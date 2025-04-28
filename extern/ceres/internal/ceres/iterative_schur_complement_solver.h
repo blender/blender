@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2015 Google Inc. All rights reserved.
+// Copyright 2023 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -39,8 +39,7 @@
 #include "ceres/linear_solver.h"
 #include "ceres/types.h"
 
-namespace ceres {
-namespace internal {
+namespace ceres::internal {
 
 class BlockSparseMatrix;
 class ImplicitSchurComplement;
@@ -53,7 +52,7 @@ class Preconditioner;
 // The algorithm used by this solver was developed in a series of
 // papers - "Agarwal et al, Bundle Adjustment in the Large, ECCV 2010"
 // and "Wu et al, Multicore Bundle Adjustment, submitted to CVPR
-// 2011" at the Univeristy of Washington.
+// 2011" at the University of Washington.
 //
 // The key idea is that one can run Conjugate Gradients on the Schur
 // Complement system without explicitly forming the Schur Complement
@@ -94,8 +93,7 @@ class CERES_NO_EXPORT IterativeSchurComplementSolver final
   Vector reduced_linear_system_solution_;
 };
 
-}  // namespace internal
-}  // namespace ceres
+}  // namespace ceres::internal
 
 #include "ceres/internal/reenable_warnings.h"
 

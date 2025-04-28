@@ -60,6 +60,7 @@
 #include "BLI_time.h"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
+#include "BLI_vector_set.hh"
 
 #include "RNA_access.hh"
 #include "RNA_path.hh"
@@ -799,10 +800,12 @@ struct LibOverrideGroupTagData {
   blender::Set<ID *> linked_ids_hierarchy_default_override;
   bool do_create_linked_overrides_set;
 
-  /** Helpers to mark or unmark an ID as part of the processed (reference of) liboverride
+  /**
+   * Helpers to mark or unmark an ID as part of the processed (reference of) liboverride
    * hierarchy.
    *
-   * \return `true` if the given ID is tagged as missing linked data, `false` otherwise. */
+   * \return `true` if the given ID is tagged as missing linked data, `false` otherwise.
+   */
   bool id_tag_set(ID *id, const bool is_missing)
   {
     if (do_create_linked_overrides_set) {
@@ -903,6 +906,12 @@ static bool lib_override_hierarchy_dependencies_relationship_skip_check(
   /* Skip all relationships that should never be taken into account to define a liboverride
    * hierarchy ('from', 'parents', 'owner' etc. pointers). */
   if ((relation_id_entry->usage_flag & IDWALK_CB_OVERRIDE_LIBRARY_NOT_OVERRIDABLE) != 0) {
+    return true;
+  }
+  /* Loop-back pointers (`from` ones) should not be taken into account in liboverride hierarchies.
+   *   - They generate an 'inverted' dependency that adds processing and...
+   *   - They should always have a regular, 'forward' matching relation anyway. */
+  if ((relation_id_entry->usage_flag & IDWALK_CB_LOOPBACK) != 0) {
     return true;
   }
   return false;
@@ -1796,6 +1805,55 @@ static ID *lib_override_root_find(Main *bmain, ID *id, const int curr_level, int
   return best_root_id_candidate;
 }
 
+/**
+ * Ensure that the current hierarchy root for the given liboverride #id is valid, i.e. that the
+ * root id is effectively one of its ancestors.
+ */
+static bool lib_override_root_is_valid(Main *bmain, ID *id)
+{
+  if (!ID_IS_OVERRIDE_LIBRARY_REAL(id)) {
+    BLI_assert_unreachable();
+    return false;
+  }
+  ID *id_root = id->override_library->hierarchy_root;
+  if (!id_root || !ID_IS_OVERRIDE_LIBRARY_REAL(id)) {
+    BLI_assert_unreachable();
+    return false;
+  }
+
+  if (id_root == id) {
+    return true;
+  }
+
+  blender::VectorSet<ID *> ancestors = {id};
+  for (int64_t i = 0; i < ancestors.size(); i++) {
+    ID *id_iter = ancestors[i];
+
+    MainIDRelationsEntry *entry = static_cast<MainIDRelationsEntry *>(
+        BLI_ghash_lookup(bmain->relations->relations_from_pointers, id_iter));
+    BLI_assert(entry != nullptr);
+
+    for (MainIDRelationsEntryItem *from_id_entry = entry->from_ids; from_id_entry != nullptr;
+         from_id_entry = from_id_entry->next)
+    {
+      if (lib_override_hierarchy_dependencies_relationship_skip_check(from_id_entry)) {
+        continue;
+      }
+      ID *from_id = from_id_entry->id_pointer.from;
+      if (lib_override_hierarchy_dependencies_skip_check(id_iter, from_id, true)) {
+        continue;
+      }
+
+      if (from_id == id_root) {
+        /* The hierarchy root is a valid ancestor of the given id. */
+        return true;
+      }
+      ancestors.add(from_id);
+    }
+  }
+  return false;
+}
+
 static void lib_override_root_hierarchy_set(
     Main *bmain, ID *id_root, ID *id, ID *id_from, blender::Set<ID *> &processed_ids)
 {
@@ -1934,6 +1992,22 @@ void BKE_lib_override_library_main_hierarchy_root_ensure(Main *bmain)
             id->name);
         id->override_library->hierarchy_root = nullptr;
       }
+      else if (!lib_override_root_is_valid(bmain, id)) {
+        /* Serious invalid cases (likely resulting from bugs or invalid operations) should have
+         * been caught by the first check above. Invalid hierarchy roots detected here can happen
+         * in normal situations, e.g. when breaking a hierarchy by making one of its components
+         * local. See also #137412. */
+        CLOG_INFO(
+            &LOG,
+            2,
+            "Existing override hierarchy root ('%s') for ID '%s' is invalid, will try to find a "
+            "new valid one",
+            id->override_library->hierarchy_root != nullptr ?
+                id->override_library->hierarchy_root->name :
+                "<NONE>",
+            id->name);
+        id->override_library->hierarchy_root = nullptr;
+      }
       else {
         /* This ID is considered as having a valid hierarchy root. */
         processed_ids.add(id);
@@ -2014,8 +2088,16 @@ static void lib_override_library_remap(
      */
     ID *id_reference_iter = static_cast<ID *>(
         BLI_ghashIterator_getKey(&linkedref_to_old_override_iter));
+
+    /* NOTE: Usually `id_reference_iter->lib == id_root_reference->lib` should always be true.
+     * However, there are some cases where it is not, e.g. if the linked reference of a liboverride
+     * is relocated to another ID in another library. */
+#if 0
     BLI_assert(id_reference_iter->lib == id_root_reference->lib);
     UNUSED_VARS_NDEBUG(id_root_reference);
+#else
+    UNUSED_VARS(id_root_reference);
+#endif
     if (!id_reference_iter->newid) {
       remapper_overrides_reference_to_old.add(id_reference_iter, id_override_old_iter);
     }
@@ -2082,17 +2164,29 @@ static LibOverrideMissingIDsData_Key lib_override_library_resync_missing_id_key(
   return LibOverrideMissingIDsData_Key(id_name_key, id->lib);
 }
 
-static LibOverrideMissingIDsData lib_override_library_resync_build_missing_ids_data(Main *bmain)
+static LibOverrideMissingIDsData lib_override_library_resync_build_missing_ids_data(
+    Main *bmain, const bool is_relocate)
 {
   LibOverrideMissingIDsData missing_ids;
   ID *id_iter;
   FOREACH_MAIN_ID_BEGIN (bmain, id_iter) {
-    if (!ID_IS_LINKED(id_iter)) {
-      continue;
+    if (is_relocate) {
+      if (!ID_IS_OVERRIDE_LIBRARY(id_iter)) {
+        continue;
+      }
+      const int required_tags = ID_TAG_LIBOVERRIDE_NEED_RESYNC;
+      if ((id_iter->tag & required_tags) != required_tags) {
+        continue;
+      }
     }
-    const int required_tags = (ID_TAG_MISSING | ID_TAG_LIBOVERRIDE_NEED_RESYNC);
-    if ((id_iter->tag & required_tags) != required_tags) {
-      continue;
+    else { /* Handling of missing linked liboverrides. */
+      if (!ID_IS_LINKED(id_iter)) {
+        continue;
+      }
+      const int required_tags = (ID_TAG_MISSING | ID_TAG_LIBOVERRIDE_NEED_RESYNC);
+      if ((id_iter->tag & required_tags) != required_tags) {
+        continue;
+      }
     }
 
     LibOverrideMissingIDsData_Key key = lib_override_library_resync_missing_id_key(id_iter);
@@ -2121,16 +2215,18 @@ static ID *lib_override_library_resync_search_missing_ids_data(
   return match_id;
 }
 
-static bool lib_override_library_resync(Main *bmain,
-                                        Scene *scene,
-                                        ViewLayer *view_layer,
-                                        ID *id_root,
-                                        LinkNode *id_resync_roots,
-                                        ListBase *no_main_ids_list,
-                                        Collection *override_resync_residual_storage,
-                                        const bool do_hierarchy_enforce,
-                                        const bool do_post_process,
-                                        BlendFileReadReport *reports)
+static bool lib_override_library_resync(
+    Main *bmain,
+    const blender::Map<Library *, Library *> *new_to_old_libraries_map,
+    Scene *scene,
+    ViewLayer *view_layer,
+    ID *id_root,
+    LinkNode *id_resync_roots,
+    ListBase *no_main_ids_list,
+    Collection *override_resync_residual_storage,
+    const bool do_hierarchy_enforce,
+    const bool do_post_process,
+    BlendFileReadReport *reports)
 {
   BLI_assert(ID_IS_OVERRIDE_LIBRARY_REAL(id_root));
 
@@ -2333,10 +2429,19 @@ static bool lib_override_library_resync(Main *bmain,
     return success;
   }
 
+  /* This used to be the library of the root reference. Should always be the same as the current
+   * library on readfile case, but may differ when relocating linked data from a library to
+   * another (See #BKE_blendfile_id_relocate and #BKE_blendfile_library_relocate). */
+  Library *id_root_reference_lib_old = (new_to_old_libraries_map ?
+                                            new_to_old_libraries_map->lookup_default(
+                                                id_root_reference->lib, id_root_reference->lib) :
+                                            id_root_reference->lib);
+  const bool is_relocate = id_root_reference_lib_old != id_root_reference->lib;
+
   /* Get a mapping of all missing linked IDs that were liboverrides, to search for 'old
    * liboverrides' for newly created ones that do not already have one, in next step. */
   LibOverrideMissingIDsData missing_ids_data = lib_override_library_resync_build_missing_ids_data(
-      bmain);
+      bmain, is_relocate);
   /* Vector of pairs of reference IDs, and their new override IDs. */
   blender::Vector<std::pair<ID *, ID *>> references_and_new_overrides;
 
@@ -2345,7 +2450,7 @@ static bool lib_override_library_resync(Main *bmain,
     ID *id_reference_iter;
     FOREACH_MAIN_LISTBASE_ID_BEGIN (lb, id_reference_iter) {
       if ((id_reference_iter->tag & ID_TAG_DOIT) == 0 || id_reference_iter->newid == nullptr ||
-          id_reference_iter->lib != id_root_reference->lib)
+          !ELEM(id_reference_iter->lib, id_root_reference->lib, id_root_reference_lib_old))
       {
         continue;
       }
@@ -2370,12 +2475,20 @@ static bool lib_override_library_resync(Main *bmain,
        * to it was stored in the local .blend file. however, since that linked liboverride ID does
        * not actually exist in the original library file, on next file read it is lost and marked
        * as missing ID. */
-      if (id_override_old == nullptr && ID_IS_LINKED(id_override_new)) {
+      if (id_override_old == nullptr && (ID_IS_LINKED(id_override_new) || is_relocate)) {
         id_override_old = lib_override_library_resync_search_missing_ids_data(missing_ids_data,
                                                                               id_override_new);
         BLI_assert(id_override_old == nullptr || id_override_old->lib == id_override_new->lib);
         if (id_override_old != nullptr) {
           BLI_ghash_insert(linkedref_to_old_override, id_reference_iter, id_override_old);
+
+          Key *key_override_old = BKE_key_from_id(id_override_old);
+          Key *key_reference_iter = BKE_key_from_id(id_reference_iter);
+          if (key_reference_iter && key_override_old) {
+            BLI_ghash_insert(
+                linkedref_to_old_override, &key_reference_iter->id, &key_override_old->id);
+          }
+
           CLOG_INFO(&LOG_RESYNC,
                     2,
                     "Found missing linked old override best-match %s for new linked override %s",
@@ -2488,7 +2601,6 @@ static bool lib_override_library_resync(Main *bmain,
         Key *key_linked_reference = BKE_key_from_id(id_override_new->override_library->reference);
         BLI_assert(key_linked_reference != nullptr);
         BLI_assert(key_linked_reference->id.newid == &(*key_override_old_p)->id);
-
         Key *key_override_old = static_cast<Key *>(
             BLI_ghash_lookup(linkedref_to_old_override, &key_linked_reference->id));
         BLI_assert(key_override_old != nullptr);
@@ -2794,6 +2906,7 @@ bool BKE_lib_override_library_resync(Main *bmain,
   id_resync_roots.next = nullptr;
 
   const bool success = lib_override_library_resync(bmain,
+                                                   nullptr,
                                                    scene,
                                                    view_layer,
                                                    id_root,
@@ -3287,6 +3400,7 @@ static void lib_override_resync_tagging_finalize(Main *bmain,
  */
 static bool lib_override_library_main_resync_on_library_indirect_level(
     Main *bmain,
+    const blender::Map<Library *, Library *> *new_to_old_libraries_map,
     Scene *scene,
     ViewLayer *view_layer,
     Collection *override_resync_residual_storage,
@@ -3467,6 +3581,7 @@ static bool lib_override_library_main_resync_on_library_indirect_level(
               reinterpret_cast<void *>(library),
               reinterpret_cast<ID *>(id_resync_roots->list->link)->name);
     const bool success = lib_override_library_resync(bmain,
+                                                     new_to_old_libraries_map,
                                                      scene,
                                                      view_layer,
                                                      id_root,
@@ -3681,10 +3796,12 @@ static int lib_override_libraries_index_define(Main *bmain)
   return library_indirect_level_max;
 }
 
-void BKE_lib_override_library_main_resync(Main *bmain,
-                                          Scene *scene,
-                                          ViewLayer *view_layer,
-                                          BlendFileReadReport *reports)
+void BKE_lib_override_library_main_resync(
+    Main *bmain,
+    const blender::Map<Library *, Library *> *new_to_old_libraries_map,
+    Scene *scene,
+    ViewLayer *view_layer,
+    BlendFileReadReport *reports)
 {
   /* We use a specific collection to gather/store all 'orphaned' override collections and objects
    * generated by re-sync-process. This avoids putting them in scene's master collection. */
@@ -3727,6 +3844,7 @@ void BKE_lib_override_library_main_resync(Main *bmain,
      * is needed at all). */
     while (lib_override_library_main_resync_on_library_indirect_level(
         bmain,
+        new_to_old_libraries_map,
         scene,
         view_layer,
         override_resync_residual_storage,

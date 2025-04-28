@@ -26,7 +26,7 @@ class OBJECT_OT_evaluated_example(bpy.types.Operator):
         # current scene and view layer.
         #
         # NOTE: This call ensure the dependency graph is fully evaluated. This might be expensive
-        # if changes were made made to the scene, but is needed to ensure no dangling or incorrect
+        # if changes were made to the scene, but is needed to ensure no dangling or incorrect
         # pointers are exposed.
         depsgraph = context.evaluated_depsgraph_get()
         # Actually request evaluated object.

@@ -197,7 +197,7 @@ static void enable_with_undo(Main &bmain, Depsgraph &depsgraph, const Scene &sce
   }
 }
 
-static int sculpt_dynamic_topology_toggle_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus sculpt_dynamic_topology_toggle_exec(bContext *C, wmOperator * /*op*/)
 {
   Main &bmain = *CTX_data_main(C);
   Depsgraph &depsgraph = *CTX_data_ensure_evaluated_depsgraph(C);
@@ -220,7 +220,7 @@ static int sculpt_dynamic_topology_toggle_exec(bContext *C, wmOperator * /*op*/)
   return OPERATOR_FINISHED;
 }
 
-static int dyntopo_warning_popup(bContext *C, wmOperatorType *ot, enum WarnFlag flag)
+static wmOperatorStatus dyntopo_warning_popup(bContext *C, wmOperatorType *ot, enum WarnFlag flag)
 {
   uiPopupMenu *pup = UI_popup_menu_begin(C, IFACE_("Warning!"), ICON_ERROR);
   uiLayout *layout = UI_popup_menu_layout(pup);
@@ -314,9 +314,9 @@ WarnFlag check_attribute_warning(Scene &scene, Object &ob)
   return flag;
 }
 
-static int sculpt_dynamic_topology_toggle_invoke(bContext *C,
-                                                 wmOperator *op,
-                                                 const wmEvent * /*event*/)
+static wmOperatorStatus sculpt_dynamic_topology_toggle_invoke(bContext *C,
+                                                              wmOperator *op,
+                                                              const wmEvent * /*event*/)
 {
   Object &ob = *CTX_data_active_object(C);
   SculptSession &ss = *ob.sculpt;

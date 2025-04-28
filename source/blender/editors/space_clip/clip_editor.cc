@@ -862,7 +862,7 @@ static void prefetch_task_func(TaskPool *__restrict pool, void *task_data)
       colorspace_name = clip->colorspace_settings.name;
     }
 
-    ibuf = IMB_ibImageFromMemory(mem, size, flag, colorspace_name, "prefetch frame");
+    ibuf = IMB_load_image_from_memory(mem, size, flag, "prefetch frame", nullptr, colorspace_name);
     if (ibuf == nullptr) {
       continue;
     }

@@ -42,7 +42,7 @@ static void transdata_elem_shrink_fatten(const TransInfo *t,
   /* Get the final offset. */
   float tdistance = distance * td->factor;
   if (td->ext && (t->flag & T_ALT_TRANSFORM) != 0) {
-    tdistance *= td->ext->isize[0]; /* Shell factor. */
+    tdistance *= td->ext->iscale[0]; /* Shell factor. */
   }
 
   madd_v3_v3v3fl(td->loc, td->iloc, td->axismtx[2], tdistance);

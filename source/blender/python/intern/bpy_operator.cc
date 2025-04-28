@@ -132,7 +132,7 @@ static PyObject *pyop_call(PyObject * /*self*/, PyObject *args)
   wmOperatorType *ot;
   int error_val = 0;
   PointerRNA ptr;
-  int operator_ret = OPERATOR_CANCELLED;
+  wmOperatorStatus retval = OPERATOR_CANCELLED;
 
   const char *opname;
   const char *context_str = nullptr;
@@ -213,7 +213,7 @@ static PyObject *pyop_call(PyObject * /*self*/, PyObject *args)
                  msg ? msg : "failed, context is incorrect");
     CTX_wm_operator_poll_msg_clear(C);
     if (msg_free) {
-      MEM_freeN((void *)msg);
+      MEM_freeN(msg);
     }
     error_val = -1;
   }
@@ -229,7 +229,7 @@ static PyObject *pyop_call(PyObject * /*self*/, PyObject *args)
     if (error_val == 0) {
       ReportList *reports;
 
-      reports = static_cast<ReportList *>(MEM_mallocN(sizeof(ReportList), "wmOperatorReportList"));
+      reports = MEM_mallocN<ReportList>("wmOperatorReportList");
 
       /* Own so these don't move into global reports. */
       BKE_reports_init(reports, RPT_STORE | RPT_OP_HOLD | RPT_PRINT_HANDLED_BY_OWNER);
@@ -243,7 +243,7 @@ static PyObject *pyop_call(PyObject * /*self*/, PyObject *args)
         PyThreadState *ts = PyEval_SaveThread();
 #endif
 
-        operator_ret = WM_operator_call_py(C, ot, context, &ptr, reports, is_undo);
+        retval = WM_operator_call_py(C, ot, context, &ptr, reports, is_undo);
 
 #ifdef BPY_RELEASE_GIL
         /* regain GIL */
@@ -300,8 +300,8 @@ static PyObject *pyop_call(PyObject * /*self*/, PyObject *args)
    * function corrects bpy.data (internal Main pointer) */
   BPY_modules_update();
 
-  /* return operator_ret as a bpy enum */
-  return pyrna_enum_bitfield_as_set(rna_enum_operator_return_items, operator_ret);
+  /* Return `retval` flag as a set. */
+  return pyrna_enum_bitfield_as_set(rna_enum_operator_return_items, int(retval));
 }
 
 static PyObject *pyop_as_string(PyObject * /*self*/, PyObject *args)
@@ -313,8 +313,6 @@ static PyObject *pyop_as_string(PyObject * /*self*/, PyObject *args)
   bool all_args = true;
   bool macro_args = true;
   int error_val = 0;
-
-  PyObject *pybuf;
 
   bContext *C = BPY_context_get();
 
@@ -381,14 +379,7 @@ static PyObject *pyop_as_string(PyObject * /*self*/, PyObject *args)
     return nullptr;
   }
 
-  if (!op_string.empty()) {
-    pybuf = PyUnicode_FromString(op_string.c_str());
-  }
-  else {
-    pybuf = PyUnicode_FromString("");
-  }
-
-  return pybuf;
+  return PyC_UnicodeFromStdStr(op_string);
 }
 
 static PyObject *pyop_dir(PyObject * /*self*/)
@@ -426,9 +417,14 @@ static PyObject *pyop_get_bl_options(PyObject * /*self*/, PyObject *value)
   return pyrna_enum_bitfield_as_set(rna_enum_operator_type_flag_items, ot->flag);
 }
 
-#if (defined(__GNUC__) && !defined(__clang__))
-#  pragma GCC diagnostic push
-#  pragma GCC diagnostic ignored "-Wcast-function-type"
+#ifdef __GNUC__
+#  ifdef __clang__
+#    pragma clang diagnostic push
+#    pragma clang diagnostic ignored "-Wcast-function-type"
+#  else
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wcast-function-type"
+#  endif
 #endif
 
 static PyMethodDef bpy_ops_methods[] = {
@@ -442,8 +438,12 @@ static PyMethodDef bpy_ops_methods[] = {
     {nullptr, nullptr, 0, nullptr},
 };
 
-#if (defined(__GNUC__) && !defined(__clang__))
-#  pragma GCC diagnostic pop
+#ifdef __GNUC__
+#  ifdef __clang__
+#    pragma clang diagnostic pop
+#  else
+#    pragma GCC diagnostic pop
+#  endif
 #endif
 
 static PyModuleDef bpy_ops_module = {

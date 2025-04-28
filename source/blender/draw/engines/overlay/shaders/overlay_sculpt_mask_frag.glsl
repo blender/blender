@@ -8,5 +8,5 @@ FRAGMENT_SHADER_CREATE_INFO(overlay_sculpt_mask)
 
 void main()
 {
-  fragColor = vec4(faceset_color * mask_color, 1.0);
+  frag_color = float4(faceset_color * mask_color, 1.0f);
 }

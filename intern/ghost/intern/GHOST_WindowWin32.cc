@@ -6,12 +6,14 @@
  * \ingroup GHOST
  */
 
-#include "GHOST_WindowWin32.hh"
+#include <algorithm>
+
 #include "GHOST_ContextD3D.hh"
 #include "GHOST_ContextNone.hh"
 #include "GHOST_DropTargetWin32.hh"
 #include "GHOST_SystemWin32.hh"
 #include "GHOST_WindowManager.hh"
+#include "GHOST_WindowWin32.hh"
 #include "utf_winfunc.hh"
 #include "utfconv.hh"
 
@@ -58,7 +60,6 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
                                      GHOST_TWindowState state,
                                      GHOST_TDrawingContextType type,
                                      bool wantStereoVisual,
-                                     bool alphaBackground,
                                      GHOST_WindowWin32 *parentwindow,
                                      bool is_debug,
                                      bool dialog,
@@ -76,7 +77,6 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
       m_hasGrabMouse(false),
       m_nPressedButtons(0),
       m_customCursor(0),
-      m_wantAlphaBackground(alphaBackground),
       m_Bar(nullptr),
       m_wintab(nullptr),
       m_lastPointerTabletData(GHOST_TABLET_DATA_NONE),
@@ -207,25 +207,6 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
   ThemeRefresh();
 
   ::ShowWindow(m_hWnd, nCmdShow);
-
-#ifdef WIN32_COMPOSITING
-  if (alphaBackground && parentwindowhwnd == 0) {
-
-    HRESULT hr = S_OK;
-
-    /* Create and populate the Blur Behind structure. */
-    DWM_BLURBEHIND bb = {0};
-
-    /* Enable Blur Behind and apply to the entire client area. */
-    bb.dwFlags = DWM_BB_ENABLE | DWM_BB_BLURREGION;
-    bb.fEnable = true;
-    bb.hRgnBlur = CreateRectRgn(0, 0, -1, -1);
-
-    /* Apply Blur Behind. */
-    hr = DwmEnableBlurBehindWindow(m_hWnd, &bb);
-    DeleteObject(bb.hRgnBlur);
-  }
-#endif
 
   /* Initialize WINTAB. */
   if (system->getTabletAPI() != GHOST_kTabletWinPointer) {
@@ -654,7 +635,7 @@ GHOST_Context *GHOST_WindowWin32::newDrawingContext(GHOST_TDrawingContextType ty
       for (int minor = 6; minor >= 3; --minor) {
         GHOST_Context *context = new GHOST_ContextWGL(
             m_wantStereoVisual,
-            m_wantAlphaBackground,
+            false,
             m_hWnd,
             m_hDC,
             WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
@@ -1022,11 +1003,19 @@ GHOST_TSuccess GHOST_WindowWin32::getPointerInfo(
     }
 
     if (pointerPenInfo[i].penMask & PEN_MASK_TILT_X) {
-      outPointerInfo[i].tabletData.Xtilt = fmin(fabs(pointerPenInfo[i].tiltX / 90.0f), 1.0f);
+      /* Input value is a range of -90 to +90, with a positive value
+       * indicating a tilt to the right. Convert to what Blender
+       * expects: -1.0f (left) to +1.0f (right). */
+      outPointerInfo[i].tabletData.Xtilt = std::clamp(
+          pointerPenInfo[i].tiltX / 90.0f, -1.0f, 1.0f);
     }
 
     if (pointerPenInfo[i].penMask & PEN_MASK_TILT_Y) {
-      outPointerInfo[i].tabletData.Ytilt = fmin(fabs(pointerPenInfo[i].tiltY / 90.0f), 1.0f);
+      /* Input value is a range of -90 to +90, with a positive value
+       * indicating a tilt toward the user. Convert to what Blender
+       * expects: -1.0f (away from user) to +1.0f (toward user). */
+      outPointerInfo[i].tabletData.Ytilt = std::clamp(
+          pointerPenInfo[i].tiltY / 90.0f, -1.0f, 1.0f);
     }
   }
 

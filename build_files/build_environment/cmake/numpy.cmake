@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 if(MSVC)
-  message("BIN >${PYTHON_BINARY}<")
+  message(STATUS "BIN >${PYTHON_BINARY}<")
   if(BUILD_MODE STREQUAL Debug)
     set(NUMPY_DIR_POSTFIX -pydebug)
     set(NUMPY_ARCHIVE_POSTFIX d)

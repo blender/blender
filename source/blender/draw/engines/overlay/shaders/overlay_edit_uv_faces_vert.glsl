@@ -7,17 +7,21 @@
 VERTEX_SHADER_CREATE_INFO(overlay_edit_uv_faces)
 
 #include "draw_model_lib.glsl"
+#include "draw_object_infos_lib.glsl"
 #include "draw_view_lib.glsl"
+#include "gpu_shader_utildefines_lib.glsl"
 
 void main()
 {
-  vec3 world_pos = vec3(au, 0.0);
+  float3 world_pos = float3(au, 0.0f);
   gl_Position = drw_point_world_to_homogenous(world_pos);
 
   bool is_selected = (flag & FACE_UV_SELECT) != 0u;
   bool is_active = (flag & FACE_UV_ACTIVE) != 0u;
+  eObjectInfoFlag ob_flag = drw_object_infos().flag;
+  bool is_object_active = flag_test(ob_flag, OBJECT_ACTIVE);
 
-  finalColor = (is_selected) ? colorFaceSelect : colorFace;
-  finalColor = (is_active) ? colorEditMeshActive : finalColor;
-  finalColor.a *= uvOpacity;
+  final_color = (is_selected) ? colorFaceSelect : colorFace;
+  final_color = (is_active) ? colorEditMeshActive : final_color;
+  final_color.a *= is_object_active ? uv_opacity : (uv_opacity * 0.25f);
 }

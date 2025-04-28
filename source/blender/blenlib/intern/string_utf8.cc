@@ -147,7 +147,7 @@ BLI_INLINE uint utf8_char_decode(const char *p, const char mask, const int len, 
 
 /** \} */
 
-ptrdiff_t BLI_str_utf8_invalid_byte(const char *str, size_t length)
+ptrdiff_t BLI_str_utf8_invalid_byte(const char *str, size_t str_len)
 {
   /* NOTE(@ideasman42): from libswish3, originally called u8_isvalid(),
    * modified to return the index of the bad character (byte index not UTF).
@@ -159,11 +159,11 @@ ptrdiff_t BLI_str_utf8_invalid_byte(const char *str, size_t length)
    * length is in bytes, since without knowing whether the string is valid
    * it's hard to know how many characters there are! */
 
-  const uchar *p, *perr, *pend = (const uchar *)str + length;
+  const uchar *p, *perr, *pend = (const uchar *)str + str_len;
   uchar c;
   int ab;
 
-  for (p = (const uchar *)str; p < pend; p++, length--) {
+  for (p = (const uchar *)str; p < pend; p++, str_len--) {
     c = *p;
     perr = p; /* Erroneous char is always the first of an invalid utf8 sequence... */
     if (ELEM(c, 0xfe, 0xff, 0x00)) {
@@ -181,13 +181,13 @@ ptrdiff_t BLI_str_utf8_invalid_byte(const char *str, size_t length)
      * we only add/subtract extra utf8 bytes in code below
      * (ab number, aka number of bytes remaining in the utf8 sequence after the initial one). */
     ab = utf8_char_compute_skip(c) - 1;
-    if (length <= size_t(ab)) {
+    if (str_len <= size_t(ab)) {
       goto utf8_error;
     }
 
     /* Check top bits in the second byte */
     p++;
-    length--;
+    str_len--;
     if ((*p & 0xc0) != 0x80) {
       goto utf8_error;
     }
@@ -268,7 +268,7 @@ ptrdiff_t BLI_str_utf8_invalid_byte(const char *str, size_t length)
     /* Check for valid bytes after the 2nd, if any; all must start 10. */
     while (--ab > 0) {
       p++;
-      length--;
+      str_len--;
       if ((*p & 0xc0) != 0x80) {
         goto utf8_error;
       }
@@ -282,25 +282,25 @@ utf8_error:
   return ((const char *)perr - (const char *)str);
 }
 
-int BLI_str_utf8_invalid_strip(char *str, size_t length)
+int BLI_str_utf8_invalid_strip(char *str, size_t str_len)
 {
   ptrdiff_t bad_char;
   int tot = 0;
 
-  BLI_assert(str[length] == '\0');
+  BLI_assert(str[str_len] == '\0');
 
-  while ((bad_char = BLI_str_utf8_invalid_byte(str, length)) != -1) {
+  while ((bad_char = BLI_str_utf8_invalid_byte(str, str_len)) != -1) {
     str += bad_char;
-    length -= size_t(bad_char + 1);
+    str_len -= size_t(bad_char + 1);
 
-    if (length == 0) {
+    if (str_len == 0) {
       /* last character bad, strip it */
       *str = '\0';
       tot++;
       break;
     }
     /* strip, keep looking */
-    memmove(str, str + 1, length + 1); /* +1 for nullptr char! */
+    memmove(str, str + 1, str_len + 1); /* +1 for null char! */
     tot++;
   }
 
@@ -763,6 +763,141 @@ char32_t BLI_str_utf32_char_to_lower(const char32_t wc)
   return wc;
 }
 
+/* -------------------------------------------------------------------- */
+/** \name UTF32 Text Boundary Analysis
+ *
+ * Helper functions to help locating linguistic boundaries, like word,
+ * sentence, and paragraph boundaries.
+ * \{ */
+
+bool BLI_str_utf32_char_is_breaking_space(char32_t codepoint)
+{
+  /* Invisible (and so can be removed at end of wrapped line) spacing characters
+   * according to the Unicode Line Breaking Algorithm (Standard Annex #14). Note
+   * to always ignore U+200B (zero-width space) and U+2060 (word joiner). */
+  return ELEM(codepoint,
+              ' ',     /* Space. */
+              0x1680,  /* Ogham space mark. */
+              0x2000,  /* En quad. */
+              0x2001,  /* Em quad. */
+              0x2002,  /* En space. */
+              0x2003,  /* Em space. */
+              0x2004,  /* Three-per-em space. */
+              0x2005,  /* Four-per-em space. */
+              0x2006,  /* Six-per-em space. */
+              0x2008,  /* Punctuation space. */
+              0x2009,  /* Thin space. */
+              0x200A,  /* Hair space. */
+              0x205F,  /* Medium mathematical space. */
+              0x3000); /* Ideographic space. */
+}
+
+bool BLI_str_utf32_char_is_optional_break_after(char32_t codepoint, char32_t codepoint_prev)
+{
+  /* Subset of the characters that are line breaking opportunities
+   * according to the Unicode Line Breaking Algorithm (Standard Annex #14).
+   * Can be expanded but please no rules that differ by language. */
+
+  /* Punctuation. Backslash can be used as path separator */
+  if (ELEM(codepoint, '\\', '_')) {
+    return true;
+  }
+
+  /* Do not break on solidus if previous is a number. */
+  if (codepoint == '/' && !(codepoint_prev >= '0' && codepoint_prev <= '9')) {
+    return true;
+  }
+
+  /* Do not break on dash, hyphen, em dash if previous is space */
+  if (ELEM(codepoint, '-', 0x2010, 0x2014) &&
+      !BLI_str_utf32_char_is_breaking_space(codepoint_prev))
+  {
+    return true;
+  }
+
+  if ((codepoint >= 0x2E80 && codepoint <= 0x2FFF) || /* CJK, Kangxi Radicals. */
+      (codepoint >= 0x3040 && codepoint <= 0x309F) || /* Hiragana (except small characters). */
+      (codepoint >= 0x30A2 && codepoint <= 0x30FA) || /* Katakana (except small characters). */
+      (codepoint >= 0x3400 && codepoint <= 0x4DBF) || /* CJK Unified Ideographs Extension A. */
+      (codepoint >= 0x4E00 && codepoint <= 0x9FFF) || /* CJK Unified Ideographs. */
+      (codepoint >= 0x3040 && codepoint <= 0x309F) || /* CJK Unified Ideographs. */
+      (codepoint >= 0x3130 && codepoint <= 0x318F))   /* Hangul Compatibility Jamo. */
+  {
+    return true;
+  }
+
+  if (ELEM(codepoint, 0x0F0D, 0x0F0B)) {
+    return true; /* Tibetan shad mark and intersyllabic tsheg. */
+  }
+
+  return false;
+}
+
+bool BLI_str_utf32_char_is_optional_break_before(char32_t codepoint, char32_t codepoint_prev)
+{
+  /* Do not break on any of these if a space follows. */
+  if (BLI_str_utf32_char_is_breaking_space(codepoint)) {
+    return false;
+  }
+
+  /* Infix Numeric Separators. Allow break on these if not numbers afterward. */
+  if (ELEM(codepoint_prev,
+           ',',    /* Comma. */
+           ':',    /* Colon. */
+           ';',    /* Semicolon. */
+           0x037E, /* Greek question mark. */
+           0x0589, /* Armenian full stop. */
+           0x060C, /* Arabic comma. */
+           0x060D, /* Arabic date separator. */
+           0x07F8, /* N'Ko comma. */
+           0x2044) /* Fraction slash. */
+      && !(codepoint >= '0' && codepoint <= '9'))
+  {
+    return true;
+  }
+
+  /* Break on full stop only if not followed by another, or by a number. */
+  if (codepoint_prev == '.' && codepoint != '.' && !(codepoint >= '0' && codepoint <= '9')) {
+    return true;
+  }
+
+  /* Close punctuation. */
+  if (ELEM(codepoint_prev,
+           0x3001,  /* Ideographic comma. */
+           0x3002,  /* Ideographic full stop. */
+           0xFE10,  /* Presentation form for vertical ideographic comma. */
+           0xFE11,  /* Presentation form for vertical ideographic full stop. */
+           0xFE12,  /* Presentation form for vertical ideographic colon. */
+           0xFE50,  /* Small comma. */
+           0xFE52,  /* Small full stop. */
+           0xFF0C,  /* Full-width comma. */
+           0xFF0E,  /* Full-width full stop. */
+           0XFF61,  /* Half-width ideographic full stop. */
+           0Xff64)) /* Half-width ideographic comma. */
+  {
+    return true;
+  }
+
+  /* Exclamation/Interrogation. */
+  if (ELEM(codepoint_prev,
+           '!',     /* Exclamation mark. */
+           '?',     /* Question mark. */
+           0x05C6,  /* Hebrew punctuation `maqaf`. */
+           0x061B,  /* Arabic semicolon. */
+           0x061E,  /* Arabic triple dot. */
+           0x061F,  /* Arabic question mark. */
+           0x06D4,  /* Arabic full stop. */
+           0x07F9,  /* N'Ko question mark. */
+           0x0F0D,  /* Tibetan shad mark. */
+           0xFF01,  /* Full-width exclamation mark. */
+           0xff1f)) /* full-width question mark. */
+  {
+    return true;
+  }
+
+  return false;
+}
+
 /** \} */ /* -------------------------------------------------------------------- */
 
 int BLI_str_utf8_size_or_error(const char *p)
@@ -888,7 +1023,7 @@ size_t BLI_str_utf8_from_unicode(uint c, char *dst, const size_t dst_maxncpy)
   UTF8_VARS_FROM_CHAR32(c, first, len);
 
   if (UNLIKELY(dst_maxncpy < len)) {
-    /* nullptr terminate instead of writing a partial byte. */
+    /* Null terminate instead of writing a partial byte. */
     memset(dst, 0x0, dst_maxncpy);
     return dst_maxncpy;
   }

@@ -137,6 +137,7 @@ const char *RealizeOnDomainOperation::get_realization_shader_name()
       case ResultType::Int:
       case ResultType::Int2:
       case ResultType::Float2:
+      case ResultType::Bool:
         /* Realization does not support internal image types. */
         break;
     }
@@ -152,6 +153,7 @@ const char *RealizeOnDomainOperation::get_realization_shader_name()
       case ResultType::Int:
       case ResultType::Int2:
       case ResultType::Float2:
+      case ResultType::Bool:
         /* Realization does not support internal image types. */
         break;
     }

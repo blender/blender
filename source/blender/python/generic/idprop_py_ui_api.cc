@@ -178,7 +178,7 @@ static bool idprop_ui_data_update_int_default(IDProperty *idprop,
     }
 
     Py_ssize_t len = PySequence_Size(default_value);
-    int *new_default_array = (int *)MEM_malloc_arrayN(len, sizeof(int), __func__);
+    int *new_default_array = MEM_malloc_arrayN<int>(size_t(len), __func__);
     if (PyC_AsArray(
             new_default_array, sizeof(int), default_value, len, &PyLong_Type, "ui_data_update") ==
         -1)
@@ -338,7 +338,7 @@ static bool idprop_ui_data_update_bool_default(IDProperty *idprop,
     }
 
     Py_ssize_t len = PySequence_Size(default_value);
-    int8_t *new_default_array = (int8_t *)MEM_malloc_arrayN(len, sizeof(int8_t), __func__);
+    int8_t *new_default_array = MEM_malloc_arrayN<int8_t>(size_t(len), __func__);
     if (PyC_AsArray(new_default_array,
                     sizeof(int8_t),
                     default_value,
@@ -428,7 +428,7 @@ static bool idprop_ui_data_update_float_default(IDProperty *idprop,
     }
 
     Py_ssize_t len = PySequence_Size(default_value);
-    double *new_default_array = (double *)MEM_malloc_arrayN(len, sizeof(double), __func__);
+    double *new_default_array = MEM_malloc_arrayN<double>(size_t(len), __func__);
     if (PyC_AsArray(new_default_array,
                     sizeof(double),
                     default_value,
@@ -963,9 +963,14 @@ static PyObject *BPy_IDPropertyUIManager_update_from(BPy_IDPropertyUIManager *se
 /** \name UI Data Manager Definition
  * \{ */
 
-#if (defined(__GNUC__) && !defined(__clang__))
-#  pragma GCC diagnostic push
-#  pragma GCC diagnostic ignored "-Wcast-function-type"
+#ifdef __GNUC__
+#  ifdef __clang__
+#    pragma clang diagnostic push
+#    pragma clang diagnostic ignored "-Wcast-function-type"
+#  else
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wcast-function-type"
+#  endif
 #endif
 
 static PyMethodDef BPy_IDPropertyUIManager_methods[] = {
@@ -988,8 +993,12 @@ static PyMethodDef BPy_IDPropertyUIManager_methods[] = {
     {nullptr, nullptr, 0, nullptr},
 };
 
-#if (defined(__GNUC__) && !defined(__clang__))
-#  pragma GCC diagnostic pop
+#ifdef __GNUC__
+#  ifdef __clang__
+#    pragma clang diagnostic pop
+#  else
+#    pragma GCC diagnostic pop
+#  endif
 #endif
 
 static PyObject *BPy_IDPropertyUIManager_repr(BPy_IDPropertyUIManager *self)

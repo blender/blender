@@ -54,7 +54,7 @@ class CornersOfEdgeInput final : public bke::MeshFieldInput {
     Array<int> map_offsets;
     Array<int> map_indices;
     const Span<int> corner_edges = mesh.corner_edges();
-    const GroupedSpan<int> edge_to_loop_map = bke::mesh::build_edge_to_corner_map(
+    const GroupedSpan<int> edge_to_corner_map = bke::mesh::build_edge_to_corner_map(
         mesh.corner_edges(), mesh.edges_num, map_offsets, map_indices);
 
     const bke::MeshFieldContext context{mesh, domain};
@@ -87,7 +87,7 @@ class CornersOfEdgeInput final : public bke::MeshFieldInput {
           continue;
         }
 
-        const Span<int> corners = edge_to_loop_map[edge_i];
+        const Span<int> corners = edge_to_corner_map[edge_i];
         if (corners.is_empty()) {
           corner_of_edge[selection_i] = 0;
           continue;

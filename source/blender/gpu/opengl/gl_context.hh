@@ -123,6 +123,8 @@ class GLContext : public Context {
   void flush() override;
   void finish() override;
 
+  ShaderCompiler *get_compiler() override;
+
   void memory_statistics_get(int *r_total_mem, int *r_free_mem) override;
 
   static GLContext *get()

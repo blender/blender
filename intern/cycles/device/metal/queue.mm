@@ -10,6 +10,7 @@
 #  include "device/metal/queue.h"
 
 #  include "device/metal/device_impl.h"
+#  include "device/metal/graphics_interop.h"
 #  include "device/metal/kernel.h"
 
 #  include "util/path.h"
@@ -17,8 +18,6 @@
 #  include "util/time.h"
 
 CCL_NAMESPACE_BEGIN
-
-#  define MAX_SAMPLE_BUFFER_LENGTH 4096
 
 /* MetalDeviceQueue */
 
@@ -47,19 +46,6 @@ MetalDeviceQueue::MetalDeviceQueue(MetalDevice *device)
         /* Enable per-kernel timing breakdown (shown at end of render). */
         profiling_enabled_ = true;
         label_command_encoders_ = true;
-
-        /* Create a global counter sampling buffer. */
-        NSArray<id<MTLCounterSet>> *counterSets = [mtlDevice_ counterSets];
-
-        NSError *error = nil;
-        MTLCounterSampleBufferDescriptor *desc = [[MTLCounterSampleBufferDescriptor alloc] init];
-        [desc setStorageMode:MTLStorageModeShared];
-        [desc setLabel:@"CounterSampleBuffer"];
-        [desc setSampleCount:MAX_SAMPLE_BUFFER_LENGTH];
-        [desc setCounterSet:counterSets[0]];
-        counter_sample_buffer_ = [mtlDevice_ newCounterSampleBufferWithDescriptor:desc
-                                                                            error:&error];
-        [counter_sample_buffer_ retain];
       }
     }
     if (getenv("CYCLES_METAL_DEBUG")) {
@@ -221,10 +207,6 @@ MetalDeviceQueue::~MetalDeviceQueue()
   [shared_event_listener_ release];
   [shared_event_ release];
   [command_buffer_desc_ release];
-
-  if (counter_sample_buffer_) {
-    [counter_sample_buffer_ release];
-  }
 
   if (mtlCaptureScope_) {
     [mtlCaptureScope_ release];
@@ -398,17 +380,8 @@ bool MetalDeviceQueue::enqueue(DeviceKernel kernel,
            plain_old_launch_data_size);
 
     /* Allocate an argument buffer. */
-    MTLResourceOptions arg_buffer_options = MTLResourceStorageModeManaged;
-    if ([mtlDevice_ hasUnifiedMemory]) {
-      arg_buffer_options = MTLResourceStorageModeShared;
-    }
-
-    id<MTLBuffer> arg_buffer = temp_buffer_pool_.get_buffer(mtlDevice_,
-                                                            mtlCommandBuffer_,
-                                                            arg_buffer_length,
-                                                            arg_buffer_options,
-                                                            init_arg_buffer,
-                                                            stats_);
+    id<MTLBuffer> arg_buffer = temp_buffer_pool_.get_buffer(
+        mtlDevice_, mtlCommandBuffer_, arg_buffer_length, init_arg_buffer, stats_);
 
     /* Encode the pointer "enqueue" arguments */
     bytes_written = 0;
@@ -516,10 +489,6 @@ bool MetalDeviceQueue::enqueue(DeviceKernel kernel,
       bytes_written = metal_offsets + metal_device_->mtlAncillaryArgEncoder.encodedLength;
     }
 
-    if (arg_buffer.storageMode == MTLStorageModeManaged) {
-      [arg_buffer didModifyRange:NSMakeRange(0, bytes_written)];
-    }
-
     [mtlComputeCommandEncoder setBuffer:arg_buffer offset:0 atIndex:0];
     [mtlComputeCommandEncoder setBuffer:arg_buffer offset:globals_offsets atIndex:1];
     [mtlComputeCommandEncoder setBuffer:arg_buffer offset:metal_offsets atIndex:2];
@@ -624,15 +593,6 @@ bool MetalDeviceQueue::enqueue(DeviceKernel kernel,
         for (auto &it : metal_device_->metal_mem_map) {
           const string c_integrator_queue_counter = "integrator_queue_counter";
           if (it.first->name == c_integrator_queue_counter) {
-            /* Workaround "device_copy_from" being protected. */
-            struct MyDeviceMemory : device_memory {
-              void device_copy_from__IntegratorQueueCounter()
-              {
-                device_copy_from(0, data_width, 1, sizeof(IntegratorQueueCounter));
-              }
-            };
-            ((MyDeviceMemory *)it.first)->device_copy_from__IntegratorQueueCounter();
-
             if (IntegratorQueueCounter *queue_counter = (IntegratorQueueCounter *)
                                                             it.first->host_pointer)
             {
@@ -657,7 +617,7 @@ void MetalDeviceQueue::flush_timing_stats()
     TimingStats &stat = timing_stats_[label.kernel];
 
     double completion_time_gpu;
-    NSData *computeTimeStamps = [counter_sample_buffer_
+    NSData *computeTimeStamps = [metal_device_->mtlCounterSampleBuffer
         resolveCounterRange:NSMakeRange(label.timing_id, 2)];
     MTLCounterResultTimestamp *timestamps = (MTLCounterResultTimestamp *)(computeTimeStamps.bytes);
 
@@ -700,11 +660,6 @@ bool MetalDeviceQueue::synchronize()
       dispatch_semaphore_wait(wait_semaphore_, DISPATCH_TIME_FOREVER);
 
       [mtlCommandBuffer_ release];
-
-      for (const CopyBack &mmem : copy_back_mem_) {
-        memcpy((uchar *)mmem.host_pointer, (uchar *)mmem.gpu_mem, mmem.size);
-      }
-      copy_back_mem_.clear();
 
       temp_buffer_pool_.process_command_buffer_completion(mtlCommandBuffer_);
       metal_device_->flush_delayed_free_list();
@@ -768,79 +723,13 @@ void MetalDeviceQueue::copy_to_device(device_memory &mem)
 
     assert(mem.device_pointer != 0);
     assert(mem.host_pointer != nullptr);
-
-    std::lock_guard<std::recursive_mutex> lock(metal_device_->metal_mem_map_mutex);
-    auto result = metal_device_->metal_mem_map.find(&mem);
-    if (result != metal_device_->metal_mem_map.end()) {
-      if (mem.host_pointer == mem.shared_pointer) {
-        return;
-      }
-
-      MetalDevice::MetalMem &mmem = *result->second;
-      id<MTLBlitCommandEncoder> blitEncoder = get_blit_encoder();
-
-      id<MTLBuffer> buffer = temp_buffer_pool_.get_buffer(mtlDevice_,
-                                                          mtlCommandBuffer_,
-                                                          mmem.size,
-                                                          MTLResourceStorageModeShared,
-                                                          mem.host_pointer,
-                                                          stats_);
-
-      [blitEncoder copyFromBuffer:buffer
-                     sourceOffset:0
-                         toBuffer:mmem.mtlBuffer
-                destinationOffset:mmem.offset
-                             size:mmem.size];
-    }
-    else {
-      metal_device_->mem_copy_to(mem);
-    }
+    /* No need to copy - Apple Silicon has Unified Memory Architecture. */
   }
 }
 
-void MetalDeviceQueue::copy_from_device(device_memory &mem)
+void MetalDeviceQueue::copy_from_device(device_memory & /*mem*/)
 {
-  @autoreleasepool {
-    if (metal_device_->have_error()) {
-      return;
-    }
-
-    assert(mem.type != MEM_GLOBAL && mem.type != MEM_TEXTURE);
-
-    if (mem.memory_size() == 0) {
-      return;
-    }
-
-    assert(mem.device_pointer != 0);
-    assert(mem.host_pointer != nullptr);
-
-    std::lock_guard<std::recursive_mutex> lock(metal_device_->metal_mem_map_mutex);
-    MetalDevice::MetalMem &mmem = *metal_device_->metal_mem_map.at(&mem);
-    if (mmem.mtlBuffer) {
-      const size_t size = mem.memory_size();
-
-      if (mem.device_pointer) {
-        if ([mmem.mtlBuffer storageMode] == MTLStorageModeManaged) {
-          id<MTLBlitCommandEncoder> blitEncoder = get_blit_encoder();
-          [blitEncoder synchronizeResource:mmem.mtlBuffer];
-        }
-        if (mem.host_pointer != mmem.hostPtr) {
-          if (mtlCommandBuffer_) {
-            copy_back_mem_.push_back({mem.host_pointer, mmem.hostPtr, size});
-          }
-          else {
-            memcpy((uchar *)mem.host_pointer, (uchar *)mmem.hostPtr, size);
-          }
-        }
-      }
-      else {
-        memset((char *)mem.host_pointer, 0, size);
-      }
-    }
-    else {
-      metal_device_->mem_copy_from(mem);
-    }
-  }
+  /* No need to copy - Apple Silicon has Unified Memory Architecture. */
 }
 
 void MetalDeviceQueue::prepare_resources(DeviceKernel /*kernel*/)
@@ -905,7 +794,7 @@ id<MTLComputeCommandEncoder> MetalDeviceQueue::get_compute_encoder(DeviceKernel 
 
     current_encoder_idx_ = (counter_sample_buffer_curr_idx_.fetch_add(2) %
                             MAX_SAMPLE_BUFFER_LENGTH);
-    [desc.sampleBufferAttachments[0] setSampleBuffer:counter_sample_buffer_];
+    [desc.sampleBufferAttachments[0] setSampleBuffer:metal_device_->mtlCounterSampleBuffer];
     [desc.sampleBufferAttachments[0] setStartOfEncoderSampleIndex:current_encoder_idx_];
     [desc.sampleBufferAttachments[0] setEndOfEncoderSampleIndex:current_encoder_idx_ + 1];
 
@@ -967,6 +856,11 @@ void MetalDeviceQueue::close_blit_encoder()
 void *MetalDeviceQueue::native_queue()
 {
   return mtlCommandQueue_;
+}
+
+unique_ptr<DeviceGraphicsInterop> MetalDeviceQueue::graphics_interop_create()
+{
+  return make_unique<MetalDeviceGraphicsInterop>(this);
 }
 
 CCL_NAMESPACE_END

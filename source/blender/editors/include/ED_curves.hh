@@ -16,6 +16,7 @@
 #include "BLI_vector_set.hh"
 
 #include "DNA_view3d_types.h"
+#include "DNA_windowmanager_enums.h"
 
 #include "ED_select_utils.hh"
 
@@ -58,6 +59,11 @@ Span<StringRef> get_curves_selection_attribute_names(const bke::CurvesGeometry &
  * Get writable positions per selection attribute for given curve.
  */
 Vector<MutableSpan<float3>> get_curves_positions_for_write(bke::CurvesGeometry &curves);
+
+/**
+ * Get read-only positions per selection attribute for given curve.
+ */
+Vector<Span<float3>> get_curves_positions(const bke::CurvesGeometry &curves);
 
 /* Get all possible curve selection attribute names. */
 Span<StringRef> get_curves_all_selection_attribute_names();
@@ -453,7 +459,7 @@ void resize_curves(bke::CurvesGeometry &curves,
  */
 void reorder_curves(bke::CurvesGeometry &curves, Span<int> old_by_new_indices_map);
 
-int join_objects(bContext *C, wmOperator *op);
+wmOperatorStatus join_objects_exec(bContext *C, wmOperator *op);
 
 /** \} */
 

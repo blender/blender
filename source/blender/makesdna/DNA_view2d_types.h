@@ -47,7 +47,7 @@ typedef struct View2D {
   short winx, winy;
   /**
    * Storage of previous winx/winy values encountered by #UI_view2d_curRect_validate(),
-   * for keep-aspect.
+   * for V2D_KEEPZOOM and V2D_KEEPASPECT.
    */
   short oldwinx, oldwiny;
 

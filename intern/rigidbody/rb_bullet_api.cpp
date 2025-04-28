@@ -163,6 +163,7 @@ void RB_dworld_delete(rbDynamicsWorld *world)
 /* Settings ------------------------- */
 
 /* Gravity */
+
 void RB_dworld_get_gravity(rbDynamicsWorld *world, float g_out[3])
 {
   copy_v3_btvec3(g_out, world->dynamicsWorld->getGravity());
@@ -174,6 +175,7 @@ void RB_dworld_set_gravity(rbDynamicsWorld *world, const float g_in[3])
 }
 
 /* Constraint Solver */
+
 void RB_dworld_set_solver_iterations(rbDynamicsWorld *world, int num_solver_iterations)
 {
   btContactSolverInfo &info = world->dynamicsWorld->getSolverInfo();
@@ -182,6 +184,7 @@ void RB_dworld_set_solver_iterations(rbDynamicsWorld *world, int num_solver_iter
 }
 
 /* Split Impulse */
+
 void RB_dworld_set_split_impulse(rbDynamicsWorld *world, int split_impulse)
 {
   btContactSolverInfo &info = world->dynamicsWorld->getSolverInfo();
@@ -201,13 +204,6 @@ void RB_dworld_step_simulation(rbDynamicsWorld *world,
 
 /* Export -------------------------- */
 
-/**
- * Exports entire dynamics world to Bullet's "*.bullet" binary format
- * which is similar to Blender's SDNA system.
- *
- * \param world: Dynamics world to write to file
- * \param filename: Assumed to be a valid filename, with .bullet extension
- */
 void RB_dworld_export(rbDynamicsWorld *world, const char *filename)
 {
   // create a large enough buffer. There is no method to pre-calculate the buffer size yet.

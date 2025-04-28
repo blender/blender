@@ -901,6 +901,7 @@ const bTheme U_theme_default = {
     .node_zone_simulation = RGBA(0x66416233),
     .node_zone_repeat = RGBA(0x76512f33),
     .node_zone_foreach_geometry_element = RGBA(0x33527f33),
+    .node_zone_closure = RGBA(0x527F3333),
     .movie = RGBA(0x0f0f0fcc),
     .gp_vertex_size = 3,
     .gp_vertex = RGBA(0x97979700),

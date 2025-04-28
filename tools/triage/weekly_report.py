@@ -55,7 +55,7 @@ if IS_ATTY:
         print(text, end="\r", flush=True)
 else:
     def print_progress(text: str) -> None:
-        pass
+        del text
 
 
 def argparse_create() -> argparse.ArgumentParser:

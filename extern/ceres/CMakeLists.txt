@@ -10,7 +10,6 @@ set(INC
 )
 
 set(INC_SYS
-  ${EIGEN3_INCLUDE_DIRS}
   ${GFLAGS_INCLUDE_DIRS}
   ${GLOG_INCLUDE_DIRS}
 )
@@ -18,11 +17,11 @@ set(INC_SYS
 set(SRC
   include/ceres/autodiff_cost_function.h
   include/ceres/autodiff_first_order_function.h
-  include/ceres/autodiff_local_parameterization.h
   include/ceres/autodiff_manifold.h
   include/ceres/c_api.h
   include/ceres/ceres.h
   include/ceres/conditioned_cost_function.h
+  include/ceres/constants.h
   include/ceres/context.h
   include/ceres/cost_function.h
   include/ceres/cost_function_to_functor.h
@@ -42,7 +41,6 @@ set(SRC
   include/ceres/jet.h
   include/ceres/jet_fwd.h
   include/ceres/line_manifold.h
-  include/ceres/local_parameterization.h
   include/ceres/loss_function.h
   include/ceres/manifold.h
   include/ceres/manifold_test_utils.h
@@ -67,6 +65,7 @@ set(SRC
   include/ceres/internal/autodiff.h
   include/ceres/internal/disable_warnings.h
   include/ceres/internal/eigen.h
+  include/ceres/internal/euler_angles.h
   include/ceres/internal/fixed_array.h
   include/ceres/internal/householder_vector.h
   include/ceres/internal/integer_sequence_algorithm.h
@@ -108,7 +107,6 @@ set(SRC
   internal/ceres/canonical_views_clustering.cc
   internal/ceres/canonical_views_clustering.h
   internal/ceres/casts.h
-  internal/ceres/cgnr_linear_operator.h
   internal/ceres/cgnr_solver.cc
   internal/ceres/cgnr_solver.h
   internal/ceres/compressed_col_sparse_matrix_utils.cc
@@ -119,7 +117,6 @@ set(SRC
   internal/ceres/compressed_row_sparse_matrix.h
   internal/ceres/concurrent_queue.h
   internal/ceres/conditioned_cost_function.cc
-  internal/ceres/conjugate_gradients_solver.cc
   internal/ceres/conjugate_gradients_solver.h
   internal/ceres/context.cc
   internal/ceres/context_impl.cc
@@ -132,9 +129,23 @@ set(SRC
   internal/ceres/covariance.cc
   internal/ceres/covariance_impl.cc
   internal/ceres/covariance_impl.h
+  internal/ceres/cuda_block_sparse_crs_view.cc
+  internal/ceres/cuda_block_sparse_crs_view.h
+  internal/ceres/cuda_block_structure.cc
+  internal/ceres/cuda_block_structure.h
   internal/ceres/cuda_buffer.h
-  internal/ceres/cxsparse.cc
-  internal/ceres/cxsparse.h
+  # internal/ceres/cuda_kernels_bsm_to_crs.cu.cc
+  # internal/ceres/cuda_kernels_bsm_to_crs.h
+  internal/ceres/cuda_kernels_utils.h
+  # internal/ceres/cuda_kernels_vector_ops.cu.cc
+  internal/ceres/cuda_kernels_vector_ops.h
+  internal/ceres/cuda_partitioned_block_sparse_crs_view.cc
+  internal/ceres/cuda_partitioned_block_sparse_crs_view.h
+  internal/ceres/cuda_sparse_matrix.cc
+  internal/ceres/cuda_sparse_matrix.h
+  internal/ceres/cuda_streamed_buffer.h
+  internal/ceres/cuda_vector.cc
+  internal/ceres/cuda_vector.h
   internal/ceres/dense_cholesky.cc
   internal/ceres/dense_cholesky.h
   internal/ceres/dense_jacobian_writer.h
@@ -157,21 +168,25 @@ set(SRC
   internal/ceres/dynamic_compressed_row_sparse_matrix.h
   internal/ceres/dynamic_sparse_normal_cholesky_solver.cc
   internal/ceres/dynamic_sparse_normal_cholesky_solver.h
+  internal/ceres/eigen_vector_ops.h
   internal/ceres/eigensparse.cc
   internal/ceres/eigensparse.h
   internal/ceres/evaluation_callback.cc
   internal/ceres/evaluator.cc
   internal/ceres/evaluator.h
   internal/ceres/execution_summary.h
+  internal/ceres/fake_bundle_adjustment_jacobian.cc
+  internal/ceres/fake_bundle_adjustment_jacobian.h
   internal/ceres/file.cc
   internal/ceres/file.h
   internal/ceres/first_order_function.cc
-  internal/ceres/float_cxsparse.cc
-  internal/ceres/float_cxsparse.h
   internal/ceres/float_suitesparse.cc
   internal/ceres/float_suitesparse.h
   internal/ceres/function_sample.cc
   internal/ceres/function_sample.h
+  internal/ceres/generate_bundle_adjustment_tests.py
+  internal/ceres/generate_template_specializations.py
+  internal/ceres/generated
   internal/ceres/gradient_checker.cc
   internal/ceres/gradient_checking_cost_function.cc
   internal/ceres/gradient_checking_cost_function.h
@@ -208,31 +223,34 @@ set(SRC
   internal/ceres/linear_operator.h
   internal/ceres/linear_solver.cc
   internal/ceres/linear_solver.h
-  internal/ceres/local_parameterization.cc
   internal/ceres/loss_function.cc
   internal/ceres/low_rank_inverse_hessian.cc
   internal/ceres/low_rank_inverse_hessian.h
   internal/ceres/manifold.cc
-  internal/ceres/manifold_adapter.h
   internal/ceres/map_util.h
   internal/ceres/minimizer.cc
   internal/ceres/minimizer.h
   internal/ceres/normal_prior.cc
   internal/ceres/pair_hash.h
   internal/ceres/parallel_for.h
-  internal/ceres/parallel_for_cxx.cc
-  internal/ceres/parallel_for_nothreads.cc
-  internal/ceres/parallel_for_openmp.cc
+  internal/ceres/parallel_invoke.cc
+  internal/ceres/parallel_invoke.h
   internal/ceres/parallel_utils.cc
   internal/ceres/parallel_utils.h
+  internal/ceres/parallel_vector_ops.cc
+  internal/ceres/parallel_vector_ops.h
   internal/ceres/parameter_block.h
   internal/ceres/parameter_block_ordering.cc
   internal/ceres/parameter_block_ordering.h
+  internal/ceres/partition_range_for_parallel_for.h
   internal/ceres/partitioned_matrix_view.cc
   internal/ceres/partitioned_matrix_view.h
   internal/ceres/partitioned_matrix_view_impl.h
+  internal/ceres/partitioned_matrix_view_template.py
   internal/ceres/polynomial.cc
   internal/ceres/polynomial.h
+  internal/ceres/power_series_expansion_preconditioner.cc
+  internal/ceres/power_series_expansion_preconditioner.h
   internal/ceres/preconditioner.cc
   internal/ceres/preconditioner.h
   internal/ceres/preprocessor.cc
@@ -243,7 +261,6 @@ set(SRC
   internal/ceres/program.cc
   internal/ceres/program.h
   internal/ceres/program_evaluator.h
-  internal/ceres/random.h
   internal/ceres/reorder_program.cc
   internal/ceres/reorder_program.h
   internal/ceres/residual_block.cc
@@ -255,6 +272,7 @@ set(SRC
   internal/ceres/schur_eliminator.cc
   internal/ceres/schur_eliminator.h
   internal/ceres/schur_eliminator_impl.h
+  internal/ceres/schur_eliminator_template.py
   internal/ceres/schur_jacobi_preconditioner.cc
   internal/ceres/schur_jacobi_preconditioner.h
   internal/ceres/schur_templates.cc
@@ -314,6 +332,8 @@ set(SRC
 set(LIB
   ${GLOG_LIBRARIES}
   ${GFLAGS_LIBRARIES}
+
+  PRIVATE bf::dependencies::eigen
 )
 
 if(WITH_LIBMV_SCHUR_SPECIALIZATIONS)

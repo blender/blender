@@ -22,11 +22,12 @@ BlenderObjectCulling::BlenderObjectCulling(Scene *scene, BL::Scene &b_scene)
   if (b_scene.render().use_simplify()) {
     PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
 
-    use_scene_camera_cull_ = scene->camera->get_camera_type() != CAMERA_PANORAMA &&
-                             !b_scene.render().use_multiview() &&
+    const bool cam_supported = (scene->camera->get_camera_type() == CAMERA_PERSPECTIVE) ||
+                               (scene->camera->get_camera_type() == CAMERA_ORTHOGRAPHIC);
+
+    use_scene_camera_cull_ = cam_supported && !b_scene.render().use_multiview() &&
                              get_boolean(cscene, "use_camera_cull");
-    use_scene_distance_cull_ = scene->camera->get_camera_type() != CAMERA_PANORAMA &&
-                               !b_scene.render().use_multiview() &&
+    use_scene_distance_cull_ = cam_supported && !b_scene.render().use_multiview() &&
                                get_boolean(cscene, "use_distance_cull");
 
     camera_cull_margin_ = get_float(cscene, "camera_cull_margin");

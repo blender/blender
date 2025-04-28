@@ -12,7 +12,7 @@ VERTEX_SHADER_CREATE_INFO(overlay_viewer_attribute_mesh)
 
 void main()
 {
-  vec3 world_pos = drw_point_object_to_world(pos);
+  float3 world_pos = drw_point_object_to_world(pos);
   gl_Position = drw_point_world_to_homogenous(world_pos);
-  finalColor = attribute_value;
+  final_color = attribute_value;
 }

@@ -70,6 +70,17 @@ template<typename Accessor> inline void destruct_array(bNode &node)
 }
 
 /**
+ * Removes all items from the node.
+ */
+template<typename Accessor> inline void clear(bNode &node)
+{
+  destruct_array<Accessor>(node);
+  SocketItemsRef ref = Accessor::get_items_from_node(node);
+  *ref.items_num = 0;
+  *ref.active_index = 0;
+}
+
+/**
  * Copy the items from the storage of the source node to the storage of the destination node.
  */
 template<typename Accessor> inline void copy_array(const bNode &src_node, bNode &dst_node)
@@ -103,23 +114,17 @@ inline void set_item_name_and_make_unique(bNode &node,
   char unique_name[MAX_NAME + 4];
   STRNCPY(unique_name, value);
 
-  struct Args {
-    SocketItemsRef<ItemT> array;
-    ItemT *item;
-  } args = {array, &item};
   BLI_uniquename_cb(
-      [](void *arg, const char *name) {
-        const Args &args = *static_cast<Args *>(arg);
-        for (ItemT &item : blender::MutableSpan(*args.array.items, *args.array.items_num)) {
-          if (&item != args.item) {
-            if (STREQ(*Accessor::get_name(item), name)) {
+      [&](const StringRef name) {
+        for (ItemT &item_iter : blender::MutableSpan(*array.items, *array.items_num)) {
+          if (&item_iter != &item) {
+            if (*Accessor::get_name(item_iter) == name) {
               return true;
             }
           }
         }
         return false;
       },
-      &args,
       default_name.c_str(),
       '.',
       unique_name,

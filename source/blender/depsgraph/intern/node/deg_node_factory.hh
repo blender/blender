@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "BLI_string_ref.hh"
+
 #include "intern/node/deg_node.hh"
 
 struct ID;
@@ -19,7 +21,7 @@ struct DepsNodeFactory {
 
   virtual int id_recalc_tag() const = 0;
 
-  virtual Node *create_node(const ID *id, const char *subdata, const char *name) const = 0;
+  virtual Node *create_node(const ID *id, const char *subdata, StringRef name) const = 0;
 };
 
 template<class ModeObjectType> struct DepsNodeFactoryImpl : public DepsNodeFactory {
@@ -28,7 +30,7 @@ template<class ModeObjectType> struct DepsNodeFactoryImpl : public DepsNodeFacto
 
   int id_recalc_tag() const override;
 
-  Node *create_node(const ID *id, const char *subdata, const char *name) const override;
+  Node *create_node(const ID *id, const char *subdata, StringRef name) const override;
 };
 
 /* Register typeinfo */

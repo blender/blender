@@ -269,7 +269,7 @@ void GLTexture::update_sub(int offset[3],
   GLContext::state_manager_active_get()->texture_bind_temp(this);
 
   /* Bind pixel buffer for source data. */
-  GLint pix_buf_handle = (GLint)GPU_pixel_buffer_get_native_handle(pixbuf);
+  GLint pix_buf_handle = (GLint)GPU_pixel_buffer_get_native_handle(pixbuf).handle;
   glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pix_buf_handle);
 
   switch (dimensions) {
@@ -620,10 +620,11 @@ GLuint GLTexture::get_sampler(const GPUSamplerState &sampler_state)
  * Dummy texture to see if the implementation supports the requested size.
  * \{ */
 
-/* NOTE: This only checks if this mipmap is valid / supported.
- * TODO(fclem): make the check cover the whole mipmap chain. */
 bool GLTexture::proxy_check(int mip)
 {
+  /* NOTE: This only checks if this mipmap is valid / supported.
+   * TODO(fclem): make the check cover the whole mipmap chain. */
+
   /* Manual validation first, since some implementation have issues with proxy creation. */
   int max_size = GPU_max_texture_size();
   int max_3d_size = GPU_max_texture_3d_size();
@@ -809,9 +810,12 @@ void GLPixelBuffer::unmap()
   glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 }
 
-int64_t GLPixelBuffer::get_native_handle()
+GPUPixelBufferNativeHandle GLPixelBuffer::get_native_handle()
 {
-  return int64_t(gl_id_);
+  GPUPixelBufferNativeHandle native_handle;
+  native_handle.handle = int64_t(gl_id_);
+  native_handle.size = size_;
+  return native_handle;
 }
 
 size_t GLPixelBuffer::get_size()

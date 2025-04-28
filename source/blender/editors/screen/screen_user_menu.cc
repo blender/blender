@@ -331,7 +331,7 @@ static void screen_user_menu_draw(const bContext *C, Menu *menu)
 
 void ED_screen_user_menu_register()
 {
-  MenuType *mt = static_cast<MenuType *>(MEM_callocN(sizeof(MenuType), __func__));
+  MenuType *mt = MEM_callocN<MenuType>(__func__);
   STRNCPY(mt->idname, "SCREEN_MT_user_menu");
   STRNCPY(mt->label, N_("Quick Favorites"));
   STRNCPY(mt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);

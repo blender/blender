@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+import datetime
 import string
 import bpy
 event_types = tuple(
@@ -145,6 +146,7 @@ class _EventBuilder:
                 shift = 'LEFT_SHIFT' in keys_held or 'RIGHT_SHIFT' in keys_held
                 alt = 'LEFT_ALT' in keys_held or 'RIGHT_ALT' in keys_held
                 oskey = 'OSKEY' in keys_held
+                hyper = 'HYPER' in keys_held
 
                 unicode = None
                 if value == 'PRESS':
@@ -165,6 +167,7 @@ class _EventBuilder:
                     ctrl=ctrl,
                     alt=alt,
                     oskey=oskey,
+                    hyper=hyper,
                     x=self._shared_event_gen._mouse_co[0],
                     y=self._shared_event_gen._mouse_co[1],
                 )
@@ -191,6 +194,7 @@ class _EventBuilder:
         shift = event.shift
         alt = event.alt
         oskey = event.oskey
+        hyper = event.hyper
         yield
 
         for x, y in coords:
@@ -202,6 +206,7 @@ class _EventBuilder:
                 ctrl=ctrl,
                 alt=alt,
                 oskey=oskey,
+                hyper=hyper,
                 x=x,
                 y=y
             )
@@ -337,6 +342,8 @@ def run(
 
         if isinstance(val, EventGenerate) or val is None:
             return 0.0
+        elif isinstance(val, datetime.timedelta):
+            return val.total_seconds()
         elif val is Ellipsis:
             if on_exit is not None:
                 on_exit()

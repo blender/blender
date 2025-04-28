@@ -24,18 +24,86 @@
 
 namespace blender::workbench {
 
-void SceneState::init(Object *camera_ob /*=nullptr*/)
+/* Used for update detection on the render settings. */
+static bool operator!=(const View3DShading &a, const View3DShading &b)
 {
-  bool reset_taa = reset_taa_next_sample;
+  /* Only checks the properties that are actually used by workbench. */
+  if (a.type != b.type) {
+    return true;
+  }
+  if (a.color_type != b.color_type) {
+    return true;
+  }
+  if (a.flag != b.flag) {
+    return true;
+  }
+  if (a.light != b.light) {
+    return true;
+  }
+  if (a.background_type != b.background_type) {
+    return true;
+  }
+  if (a.cavity_type != b.cavity_type) {
+    return true;
+  }
+  if (a.wire_color_type != b.wire_color_type) {
+    return true;
+  }
+  if (StringRefNull(a.studio_light) != StringRefNull(b.studio_light)) {
+    return true;
+  }
+  if (StringRefNull(a.matcap) != StringRefNull(b.matcap)) {
+    return true;
+  }
+  if (a.shadow_intensity != b.shadow_intensity) {
+    return true;
+  }
+  if (float3(a.single_color) != float3(b.single_color)) {
+    return true;
+  }
+  if (a.studiolight_rot_z != b.studiolight_rot_z) {
+    return true;
+  }
+  if (float3(a.object_outline_color) != float3(b.object_outline_color)) {
+    return true;
+  }
+  if (a.xray_alpha != b.xray_alpha) {
+    return true;
+  }
+  if (a.xray_alpha_wire != b.xray_alpha_wire) {
+    return true;
+  }
+  if (a.cavity_valley_factor != b.cavity_valley_factor) {
+    return true;
+  }
+  if (a.cavity_ridge_factor != b.cavity_ridge_factor) {
+    return true;
+  }
+  if (float3(a.background_color) != float3(b.background_color)) {
+    return true;
+  }
+  if (a.curvature_ridge_factor != b.curvature_ridge_factor) {
+    return true;
+  }
+  if (a.curvature_valley_factor != b.curvature_valley_factor) {
+    return true;
+  }
+  return false;
+}
+
+void SceneState::init(const DRWContext *context,
+                      bool scene_updated,
+                      Object *camera_ob /*=nullptr*/)
+{
+  bool reset_taa = reset_taa_next_sample || scene_updated;
   reset_taa_next_sample = false;
 
-  const DRWContextState *context = DRW_context_state_get();
   View3D *v3d = context->v3d;
   RegionView3D *rv3d = context->rv3d;
 
   scene = DEG_get_evaluated_scene(context->depsgraph);
 
-  if (assign_if_different(resolution, int2(DRW_viewport_size_get()))) {
+  if (assign_if_different(resolution, int2(context->viewport_size_get()))) {
     /* In some cases, the viewport can change resolution without a call to `workbench_view_update`.
      * This is the case when dragging a window between two screen with different DPI settings.
      * (See #128712) */
@@ -47,7 +115,7 @@ void SceneState::init(Object *camera_ob /*=nullptr*/)
     camera_object = (rv3d->persp == RV3D_CAMOB) ? v3d->camera : nullptr;
   }
   camera = camera_object && camera_object->type == OB_CAMERA ?
-               static_cast<Camera *>(camera_object->data) :
+               &DRW_object_get_data_for_drawing<Camera>(*camera_object) :
                nullptr;
 
   object_mode = CTX_data_mode_enum_ex(context->object_edit, context->obact, context->object_mode);
@@ -95,9 +163,8 @@ void SceneState::init(Object *camera_ob /*=nullptr*/)
     /* Disable shading options that aren't supported in transparency mode. */
     shading.flag &= ~(V3D_SHADING_SHADOW | V3D_SHADING_CAVITY | V3D_SHADING_DEPTH_OF_FIELD);
   }
-  if (SHADING_XRAY_ENABLED(shading) != SHADING_XRAY_ENABLED(previous_shading) ||
-      shading.flag != previous_shading.flag)
-  {
+
+  if (shading != previous_shading) {
     reset_taa = true;
   }
 
@@ -124,8 +191,8 @@ void SceneState::init(Object *camera_ob /*=nullptr*/)
     reset_taa = true;
   }
 
-  bool is_playback = DRW_state_is_playback();
-  bool is_navigating = DRW_state_is_navigating();
+  bool is_playback = context->is_playback();
+  bool is_navigating = context->is_navigating();
 
   /* Reset complete drawing when navigating or during viewport playback or when
    * leaving one of those states. In case of multires modifier the navigation
@@ -139,7 +206,7 @@ void SceneState::init(Object *camera_ob /*=nullptr*/)
   if (v3d && ELEM(v3d->shading.type, OB_RENDER, OB_MATERIAL)) {
     _samples_len = scene->display.viewport_aa;
   }
-  else if (DRW_state_is_scene_render()) {
+  else if (context->is_scene_render()) {
     _samples_len = scene->display.render_aa;
   }
   if (is_navigating || is_playback) {
@@ -210,15 +277,15 @@ static const CustomData *get_vert_custom_data(const Mesh *mesh)
   return &mesh->vert_data;
 }
 
-ObjectState::ObjectState(const SceneState &scene_state,
+ObjectState::ObjectState(const DRWContext *draw_ctx,
+                         const SceneState &scene_state,
                          const SceneResources &resources,
                          Object *ob)
 {
-  const DRWContextState *draw_ctx = DRW_context_state_get();
   const bool is_active = (ob == draw_ctx->obact);
 
   sculpt_pbvh = BKE_sculptsession_use_pbvh_draw(ob, draw_ctx->rv3d) &&
-                !DRW_state_is_image_render();
+                !draw_ctx->is_image_render();
   draw_shadow = scene_state.draw_shadows && (ob->dtx & OB_DRAW_NO_SHADOW_CAST) == 0 &&
                 !sculpt_pbvh && !(is_active && DRW_object_use_hide_faces(ob));
 
@@ -228,9 +295,9 @@ ObjectState::ObjectState(const SceneState &scene_state,
   bool has_uv = false;
 
   if (ob->type == OB_MESH) {
-    const Mesh *mesh = static_cast<Mesh *>(ob->data);
-    const CustomData *cd_vdata = get_vert_custom_data(mesh);
-    const CustomData *cd_ldata = get_loop_custom_data(mesh);
+    const Mesh &mesh = DRW_object_get_data_for_drawing<Mesh>(*ob);
+    const CustomData *cd_vdata = get_vert_custom_data(&mesh);
+    const CustomData *cd_ldata = get_loop_custom_data(&mesh);
 
     has_color = (CustomData_has_layer(cd_vdata, CD_PROP_COLOR) ||
                  CustomData_has_layer(cd_vdata, CD_PROP_BYTE_COLOR) ||
@@ -257,13 +324,13 @@ ObjectState::ObjectState(const SceneState &scene_state,
 
     /* Bad call C is required to access the tool system that is context aware. Cast to non-const
      * due to current API. */
-    bContext *C = (bContext *)DRW_context_state_get()->evil_C;
+    bContext *C = (bContext *)draw_ctx->evil_C;
     if (C != nullptr) {
       color_type = ED_paint_shading_color_override(
           C, &scene_state.scene->toolsettings->paint_mode, *ob, color_type);
     }
   }
-  else if (ob->type == OB_MESH && !DRW_state_is_scene_render()) {
+  else if (ob->type == OB_MESH && !draw_ctx->is_scene_render()) {
     /* Force texture or vertex mode if object is in paint mode. */
     const bool is_vertpaint_mode = is_active && (scene_state.object_mode == CTX_MODE_PAINT_VERTEX);
     const bool is_texpaint_mode = is_active && (scene_state.object_mode == CTX_MODE_PAINT_TEXTURE);

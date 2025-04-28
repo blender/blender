@@ -29,11 +29,7 @@ namespace blender::gpu {
 
 StorageBuf::StorageBuf(size_t size, const char *name)
 {
-  /* Make sure that UBO is padded to size of vec4 */
-  BLI_assert((size % 16) == 0);
-
   size_in_bytes_ = size;
-
   STRNCPY(name_, name);
 }
 

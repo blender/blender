@@ -55,6 +55,8 @@ using blender::Vector;
 /** \name Path Select Struct & Properties
  * \{ */
 
+namespace {
+
 struct PathSelectParams {
   /** ensure the active element is the last selected item (handy for picking) */
   bool track_active;
@@ -66,9 +68,11 @@ struct PathSelectParams {
 
 struct UserData_UV {
   Scene *scene;
-  BMEditMesh *em;
+  BMesh *bm;
   BMUVOffsets offsets;
 };
+
+}  // namespace
 
 static void path_select_properties(wmOperatorType *ot)
 {
@@ -137,7 +141,7 @@ static void verttag_set_cb(BMLoop *l, bool val, void *user_data_v)
 {
   UserData_UV *user_data = static_cast<UserData_UV *>(user_data_v);
   const Scene *scene = user_data->scene;
-  BMEditMesh *em = user_data->em;
+  BMesh *bm = user_data->bm;
   const uint cd_loop_uv_offset = user_data->offsets.uv;
   const float *luv = BM_ELEM_CD_GET_FLOAT_P(l, cd_loop_uv_offset);
   BMIter iter;
@@ -146,7 +150,7 @@ static void verttag_set_cb(BMLoop *l, bool val, void *user_data_v)
     if (verttag_filter_cb(l_iter, user_data)) {
       const float *luv_iter = BM_ELEM_CD_GET_FLOAT_P(l_iter, cd_loop_uv_offset);
       if (equals_v2v2(luv, luv_iter)) {
-        uvedit_uv_select_set(scene, em->bm, l_iter, val, false, user_data->offsets);
+        uvedit_uv_select_set(scene, bm, l_iter, val, false, user_data->offsets);
       }
     }
   }
@@ -158,7 +162,7 @@ static int mouse_mesh_uv_shortest_path_vert(Scene *scene,
                                             BMLoop *l_src,
                                             BMLoop *l_dst,
                                             const float aspect_y,
-                                            const BMUVOffsets offsets)
+                                            const BMUVOffsets &offsets)
 {
   BMEditMesh *em = BKE_editmesh_from_object(obedit);
   BMesh *bm = em->bm;
@@ -166,7 +170,7 @@ static int mouse_mesh_uv_shortest_path_vert(Scene *scene,
 
   UserData_UV user_data = {};
   user_data.scene = scene;
-  user_data.em = em;
+  user_data.bm = bm;
   user_data.offsets = offsets;
 
   BMCalcPathUVParams params{};
@@ -267,8 +271,8 @@ static void edgetag_set_cb(BMLoop *l, bool val, void *user_data_v)
 {
   UserData_UV *user_data = static_cast<UserData_UV *>(user_data_v);
   const Scene *scene = user_data->scene;
-  BMEditMesh *em = user_data->em;
-  uvedit_edge_select_set_with_sticky(scene, em, l, val, false, user_data->offsets);
+  BMesh *bm = user_data->bm;
+  uvedit_edge_select_set_with_sticky(scene, bm, l, val, false, user_data->offsets);
 }
 
 static int mouse_mesh_uv_shortest_path_edge(Scene *scene,
@@ -277,7 +281,7 @@ static int mouse_mesh_uv_shortest_path_edge(Scene *scene,
                                             BMLoop *l_src,
                                             BMLoop *l_dst,
                                             const float aspect_y,
-                                            const BMUVOffsets offsets)
+                                            const BMUVOffsets &offsets)
 {
   BMEditMesh *em = BKE_editmesh_from_object(obedit);
   BMesh *bm = em->bm;
@@ -285,7 +289,7 @@ static int mouse_mesh_uv_shortest_path_edge(Scene *scene,
 
   UserData_UV user_data = {};
   user_data.scene = scene;
-  user_data.em = em;
+  user_data.bm = bm;
   user_data.offsets = offsets;
 
   BMCalcPathUVParams params = {};
@@ -382,8 +386,8 @@ static void facetag_set_cb(BMFace *f, bool val, void *user_data_v)
 {
   UserData_UV *user_data = static_cast<UserData_UV *>(user_data_v);
   const Scene *scene = user_data->scene;
-  BMEditMesh *em = user_data->em;
-  uvedit_face_select_set_with_sticky(scene, em, f, val, false, user_data->offsets);
+  BMesh *bm = user_data->bm;
+  uvedit_face_select_set_with_sticky(scene, bm, f, val, false, user_data->offsets);
 }
 
 static int mouse_mesh_uv_shortest_path_face(Scene *scene,
@@ -392,7 +396,7 @@ static int mouse_mesh_uv_shortest_path_face(Scene *scene,
                                             BMFace *f_src,
                                             BMFace *f_dst,
                                             const float aspect_y,
-                                            const BMUVOffsets offsets)
+                                            const BMUVOffsets &offsets)
 {
   BMEditMesh *em = BKE_editmesh_from_object(obedit);
   BMesh *bm = em->bm;
@@ -400,7 +404,7 @@ static int mouse_mesh_uv_shortest_path_face(Scene *scene,
 
   UserData_UV user_data = {};
   user_data.scene = scene;
-  user_data.em = em;
+  user_data.bm = bm;
   user_data.offsets = offsets;
 
   BMCalcPathUVParams params = {};
@@ -474,7 +478,7 @@ static int mouse_mesh_uv_shortest_path_face(Scene *scene,
 /** \name Main Operator for vert/edge/face tag
  * \{ */
 
-static int uv_shortest_path_pick_exec(bContext *C, wmOperator *op);
+static wmOperatorStatus uv_shortest_path_pick_exec(bContext *C, wmOperator *op);
 
 static bool uv_shortest_path_pick_ex(Scene *scene,
                                      Depsgraph *depsgraph,
@@ -483,7 +487,7 @@ static bool uv_shortest_path_pick_ex(Scene *scene,
                                      BMElem *ele_src,
                                      BMElem *ele_dst,
                                      const float aspect_y,
-                                     const BMUVOffsets offsets)
+                                     const BMUVOffsets &offsets)
 {
   const ToolSettings *ts = scene->toolsettings;
   const char uv_selectmode = ED_uvedit_select_mode_get(scene);
@@ -513,12 +517,12 @@ static bool uv_shortest_path_pick_ex(Scene *scene,
   if (ok) {
     if (flush != 0) {
       const bool select = (flush == 1);
-      BMEditMesh *em = BKE_editmesh_from_object(obedit);
+      BMesh *bm = BKE_editmesh_from_object(obedit)->bm;
       if (ts->uv_flag & UV_SYNC_SELECTION) {
-        ED_uvedit_select_sync_flush(scene->toolsettings, em, select);
+        ED_uvedit_select_sync_flush(scene->toolsettings, bm, select);
       }
       else {
-        ED_uvedit_selectmode_flush(scene, em);
+        ED_uvedit_selectmode_flush(scene, bm);
       }
     }
 
@@ -537,7 +541,9 @@ static bool uv_shortest_path_pick_ex(Scene *scene,
   return ok;
 }
 
-static int uv_shortest_path_pick_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus uv_shortest_path_pick_invoke(bContext *C,
+                                                     wmOperator *op,
+                                                     const wmEvent *event)
 {
   Scene *scene = CTX_data_scene(C);
   const ToolSettings *ts = scene->toolsettings;
@@ -592,7 +598,7 @@ static int uv_shortest_path_pick_invoke(bContext *C, wmOperator *op, const wmEve
     Object *obedit = hit.ob;
     BMEditMesh *em = BKE_editmesh_from_object(obedit);
     BMesh *bm = em->bm;
-    const BMUVOffsets offsets = BM_uv_map_get_offsets(bm);
+    const BMUVOffsets offsets = BM_uv_map_offsets_get(bm);
 
     /* Respond to the hit. */
     if (uv_selectmode == UV_SELECT_FACE) {
@@ -679,7 +685,7 @@ static int uv_shortest_path_pick_invoke(bContext *C, wmOperator *op, const wmEve
   return changed ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
-static int uv_shortest_path_pick_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus uv_shortest_path_pick_exec(bContext *C, wmOperator *op)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Scene *scene = CTX_data_scene(C);
@@ -700,7 +706,7 @@ static int uv_shortest_path_pick_exec(bContext *C, wmOperator *op)
 
   BMEditMesh *em = BKE_editmesh_from_object(obedit);
   BMesh *bm = em->bm;
-  const BMUVOffsets offsets = BM_uv_map_get_offsets(bm);
+  const BMUVOffsets offsets = BM_uv_map_offsets_get(bm);
 
   BMElem *ele_src, *ele_dst;
 
@@ -775,9 +781,9 @@ void UV_OT_shortest_path_pick(wmOperatorType *ot)
 
   /* use for redo */
   prop = RNA_def_int(ot->srna, "object_index", -1, -1, INT_MAX, "", "", 0, INT_MAX);
-  RNA_def_property_flag(prop, PropertyFlag(PROP_HIDDEN | PROP_SKIP_SAVE));
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
   prop = RNA_def_int(ot->srna, "index", -1, -1, INT_MAX, "", "", 0, INT_MAX);
-  RNA_def_property_flag(prop, PropertyFlag(PROP_HIDDEN | PROP_SKIP_SAVE));
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
 /** \} */
@@ -786,7 +792,7 @@ void UV_OT_shortest_path_pick(wmOperatorType *ot)
 /** \name Select Path Between Existing Selection
  * \{ */
 
-static int uv_shortest_path_select_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus uv_shortest_path_select_exec(bContext *C, wmOperator *op)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Scene *scene = CTX_data_scene(C);
@@ -799,10 +805,9 @@ static int uv_shortest_path_select_exec(bContext *C, wmOperator *op)
   Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
       scene, view_layer, nullptr);
   for (Object *obedit : objects) {
-    BMEditMesh *em = BKE_editmesh_from_object(obedit);
-    BMesh *bm = em->bm;
+    BMesh *bm = BKE_editmesh_from_object(obedit)->bm;
 
-    const BMUVOffsets offsets = BM_uv_map_get_offsets(bm);
+    const BMUVOffsets offsets = BM_uv_map_offsets_get(bm);
 
     BMElem *ele_src = nullptr, *ele_dst = nullptr;
 

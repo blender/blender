@@ -20,7 +20,11 @@
 /* Own include. */
 #include "sequencer_intern.hh"
 
-static int sequencer_rename_channel_invoke(bContext *C, wmOperator * /*op*/, const wmEvent *event)
+namespace blender::ed::vse {
+
+static wmOperatorStatus sequencer_rename_channel_invoke(bContext *C,
+                                                        wmOperator * /*op*/,
+                                                        const wmEvent *event)
 {
   SeqChannelDrawContext context;
   SpaceSeq *sseq = CTX_wm_space_seq(C);
@@ -45,3 +49,5 @@ void SEQUENCER_OT_rename_channel(wmOperatorType *ot)
   /* Flags. */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 }
+
+}  // namespace blender::ed::vse

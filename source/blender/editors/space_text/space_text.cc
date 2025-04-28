@@ -45,7 +45,7 @@ static SpaceLink *text_create(const ScrArea * /*area*/, const Scene * /*scene*/)
   ARegion *region;
   SpaceText *stext;
 
-  stext = static_cast<SpaceText *>(MEM_callocN(sizeof(SpaceText), "inittext"));
+  stext = MEM_callocN<SpaceText>("inittext");
   stext->spacetype = SPACE_TEXT;
 
   stext->lheight = 12;
@@ -167,7 +167,6 @@ static void text_operatortypes()
   WM_operatortype_append(TEXT_OT_save_as);
   WM_operatortype_append(TEXT_OT_make_internal);
   WM_operatortype_append(TEXT_OT_run_script);
-  WM_operatortype_append(TEXT_OT_refresh_pyconstraints);
 
   WM_operatortype_append(TEXT_OT_paste);
   WM_operatortype_append(TEXT_OT_copy);
@@ -214,6 +213,8 @@ static void text_operatortypes()
   WM_operatortype_append(TEXT_OT_resolve_conflict);
 
   WM_operatortype_append(TEXT_OT_autocomplete);
+
+  WM_operatortype_append(TEXT_OT_update_shader);
 }
 
 static void text_keymap(wmKeyConfig *keyconf)
@@ -443,7 +444,7 @@ void ED_spacetype_text()
   st->blend_write = text_space_blend_write;
 
   /* regions: main window */
-  art = static_cast<ARegionType *>(MEM_callocN(sizeof(ARegionType), "spacetype text region"));
+  art = MEM_callocN<ARegionType>("spacetype text region");
   art->regionid = RGN_TYPE_WINDOW;
   art->init = text_main_region_init;
   art->draw = text_main_region_draw;
@@ -453,7 +454,7 @@ void ED_spacetype_text()
   BLI_addhead(&st->regiontypes, art);
 
   /* regions: properties */
-  art = static_cast<ARegionType *>(MEM_callocN(sizeof(ARegionType), "spacetype text region"));
+  art = MEM_callocN<ARegionType>("spacetype text region");
   art->regionid = RGN_TYPE_UI;
   art->prefsizex = UI_COMPACT_PANEL_WIDTH;
   art->keymapflag = ED_KEYMAP_UI;
@@ -463,7 +464,7 @@ void ED_spacetype_text()
   BLI_addhead(&st->regiontypes, art);
 
   /* regions: header */
-  art = static_cast<ARegionType *>(MEM_callocN(sizeof(ARegionType), "spacetype text region"));
+  art = MEM_callocN<ARegionType>("spacetype text region");
   art->regionid = RGN_TYPE_HEADER;
   art->prefsizey = HEADERY;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_HEADER;
@@ -473,7 +474,7 @@ void ED_spacetype_text()
   BLI_addhead(&st->regiontypes, art);
 
   /* regions: footer */
-  art = static_cast<ARegionType *>(MEM_callocN(sizeof(ARegionType), "spacetype text region"));
+  art = MEM_callocN<ARegionType>("spacetype text region");
   art->regionid = RGN_TYPE_FOOTER;
   art->prefsizey = HEADERY;
   art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_FOOTER;

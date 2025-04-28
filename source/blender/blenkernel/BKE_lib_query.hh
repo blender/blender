@@ -87,7 +87,7 @@ enum LibraryForeachIDCallbackFlag {
    * Note that all embedded IDs pointers (#IDWALK_CB_EMBEDDED and #IDWALK_CB_EMBEDDED_NOT_OWNING)
    * cases are also ignored during readfile.
    *
-   * Mainly used for some 'loopback' pointers like the 'owner_id' of the embedded IDs.
+   * Mainly used for some 'loop-back' pointers like the 'owner_id' of the embedded IDs.
    */
   IDWALK_CB_READFILE_IGNORE = (1 << 10),
 
@@ -225,8 +225,10 @@ enum LibraryForeachIDFlag {
    * ignored.
    */
   IDWALK_DO_LIBRARY_POINTER = (1 << 10),
-  /** Also process the DNA-deprecated pointers. Should only be used in readfile related code (for
-   * proper lib_linking and expanding of older files). */
+  /**
+   * Also process the DNA-deprecated pointers. Should only be used in readfile related code
+   * (for proper lib_linking and expanding of older files).
+   */
   IDWALK_DO_DEPRECATED_POINTERS = (1 << 11),
 };
 ENUM_OPERATORS(LibraryForeachIDFlag, IDWALK_DO_DEPRECATED_POINTERS);
@@ -486,7 +488,7 @@ void BKE_lib_query_unused_ids_tag(Main *bmain, int tag, LibQueryUnusedIDsData &p
 
 /**
  * Detect orphaned linked data blocks (i.e. linked data not used (directly or indirectly)
- * in any way by any local data), including complex cases like 'linked archipelagoes', i.e.
+ * in any way by any local data), including complex cases like "linked archipelagos", i.e.
  * linked data-blocks that use each other in loops,
  * which prevents their deletion by 'basic' usage checks.
  *

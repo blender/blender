@@ -36,6 +36,7 @@
 #include "bpy_app.hh"
 #include "bpy_cli_command.hh"
 #include "bpy_driver.hh"
+#include "bpy_geometry_set.hh"
 #include "bpy_library.hh"
 #include "bpy_operator.hh"
 #include "bpy_props.hh"
@@ -613,6 +614,10 @@ static PyObject *bpy_wm_capabilities(PyObject *self)
   PyObject *result = nullptr;
   switch (PyObject_GetOptionalAttr(self, py_id_capabilities, &result)) {
     case 1: {
+      BLI_assert(result != nullptr);
+      break;
+    }
+    case 0: {
       result = PyDict_New();
 
       const eWM_CapabilitiesFlag flag = WM_capabilities_flag();
@@ -628,14 +633,12 @@ static PyObject *bpy_wm_capabilities(PyObject *self)
       SetFlagItem(DESKTOP_SAMPLE);
       SetFlagItem(INPUT_IME);
       SetFlagItem(TRACKPAD_PHYSICAL_DIRECTION);
+      SetFlagItem(KEYBOARD_HYPER_KEY);
 
 #undef SetFlagItem
       PyObject_SetAttr(self, py_id_capabilities, result);
       break;
     }
-    case 0:
-      BLI_assert(result != nullptr);
-      break;
     default:
       /* Unlikely, but there may be an error, forward it. */
       BLI_assert(result == nullptr);
@@ -646,9 +649,14 @@ static PyObject *bpy_wm_capabilities(PyObject *self)
   return result;
 }
 
-#if (defined(__GNUC__) && !defined(__clang__))
-#  pragma GCC diagnostic push
-#  pragma GCC diagnostic ignored "-Wcast-function-type"
+#ifdef __GNUC__
+#  ifdef __clang__
+#    pragma clang diagnostic push
+#    pragma clang diagnostic ignored "-Wcast-function-type"
+#  else
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wcast-function-type"
+#  endif
 #endif
 
 static PyMethodDef bpy_methods[] = {
@@ -689,8 +697,12 @@ static PyMethodDef bpy_methods[] = {
     {nullptr, nullptr, 0, nullptr},
 };
 
-#if (defined(__GNUC__) && !defined(__clang__))
-#  pragma GCC diagnostic pop
+#ifdef __GNUC__
+#  ifdef __clang__
+#    pragma clang diagnostic pop
+#  else
+#    pragma GCC diagnostic pop
+#  endif
 #endif
 
 static PyObject *bpy_import_test(const char *modname)
@@ -742,6 +754,7 @@ void BPy_init_modules(bContext *C)
 
   /* needs to be first so bpy_types can run */
   PyObject *bpy_types = BPY_rna_types();
+  PyModule_AddObject(bpy_types, "GeometrySet", BPyInit_geometry_set_type());
   PyModule_AddObject(mod, "types", bpy_types);
 
   /* needs to be first so bpy_types can run */
@@ -757,7 +770,6 @@ void BPy_init_modules(bContext *C)
   BPY_rna_types_finalize_external_types(bpy_types);
 
   PyModule_AddObject(mod, "props", BPY_rna_props());
-  /* ops is now a python module that does the conversion from SOME_OT_foo -> some.foo */
   PyModule_AddObject(mod, "ops", BPY_operator_module());
   PyModule_AddObject(mod, "app", BPY_app_struct());
   PyModule_AddObject(mod, "_utils_units", BPY_utils_units());

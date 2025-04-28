@@ -2610,7 +2610,7 @@ class WM_OT_toolbar_prompt(Operator):
         # Pressing entry even again exists, as long as it's not mapped to a key (for convenience).
         if event_type == self._init_event_type:
             if event_value == 'RELEASE':
-                if not (event.ctrl or event.alt or event.shift or event.oskey):
+                if not (event.ctrl or event.alt or event.shift or event.oskey or event.hyper):
                     context.workspace.status_text_set(None)
                     return {'CANCELLED'}
 
@@ -3540,6 +3540,8 @@ class WM_MT_region_toggle_pie(Menu):
 
         for region in context.area.regions:
             region_type = region.type
+            # If the attribute doesn't exist, the RNA definition is outdated.
+            # See: #134339 and its fix for reference.
             attr = cls._region_info.get(region_type, None)
             if attr is None:
                 continue

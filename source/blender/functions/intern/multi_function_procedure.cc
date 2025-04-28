@@ -555,9 +555,9 @@ Procedure::InitState Procedure::find_initialization_state_before_instruction(
 class ProcedureDotExport {
  private:
   const Procedure &procedure_;
-  dot::DirectedGraph digraph_;
-  Map<const Instruction *, dot::Node *> dot_nodes_by_begin_;
-  Map<const Instruction *, dot::Node *> dot_nodes_by_end_;
+  dot_export::DirectedGraph digraph_;
+  Map<const Instruction *, dot_export::Node *> dot_nodes_by_begin_;
+  Map<const Instruction *, dot_export::Node *> dot_nodes_by_end_;
 
  public:
   ProcedureDotExport(const Procedure &procedure) : procedure_(procedure) {}
@@ -620,8 +620,8 @@ class ProcedureDotExport {
       }
       ss << ">";
 
-      dot::Node &dot_node = digraph_.new_node(ss.str());
-      dot_node.set_shape(dot::Attr_shape::Rectangle);
+      dot_export::Node &dot_node = digraph_.new_node(ss.str());
+      dot_node.set_shape(dot_export::Attr_shape::Rectangle);
       dot_nodes_by_begin_.add_new(block_instructions.first(), &dot_node);
       dot_nodes_by_end_.add_new(block_instructions.last(), &dot_node);
     }
@@ -629,20 +629,20 @@ class ProcedureDotExport {
 
   void create_edges()
   {
-    auto create_edge = [&](dot::Node &from_node,
-                           const Instruction *to_instruction) -> dot::DirectedEdge & {
+    auto create_edge = [&](dot_export::Node &from_node,
+                           const Instruction *to_instruction) -> dot_export::DirectedEdge & {
       if (to_instruction == nullptr) {
-        dot::Node &to_node = digraph_.new_node("missing");
-        to_node.set_shape(dot::Attr_shape::Diamond);
+        dot_export::Node &to_node = digraph_.new_node("missing");
+        to_node.set_shape(dot_export::Attr_shape::Diamond);
         return digraph_.new_edge(from_node, to_node);
       }
-      dot::Node &to_node = *dot_nodes_by_begin_.lookup(to_instruction);
+      dot_export::Node &to_node = *dot_nodes_by_begin_.lookup(to_instruction);
       return digraph_.new_edge(from_node, to_node);
     };
 
     for (auto item : dot_nodes_by_end_.items()) {
       const Instruction &from_instruction = *item.key;
-      dot::Node &from_node = *item.value;
+      dot_export::Node &from_node = *item.value;
       switch (from_instruction.type()) {
         case InstructionType::Call: {
           const Instruction *to_instruction =
@@ -677,7 +677,7 @@ class ProcedureDotExport {
       }
     }
 
-    dot::Node &entry_node = this->create_entry_node();
+    dot_export::Node &entry_node = this->create_entry_node();
     create_edge(entry_node, procedure_.entry());
   }
 
@@ -838,7 +838,7 @@ class ProcedureDotExport {
     variable_to_string(instruction.condition(), ss);
   }
 
-  dot::Node &create_entry_node()
+  dot_export::Node &create_entry_node()
   {
     std::stringstream ss;
     ss << "Entry: ";
@@ -856,8 +856,8 @@ class ProcedureDotExport {
       }
     }
 
-    dot::Node &node = digraph_.new_node(ss.str());
-    node.set_shape(dot::Attr_shape::Ellipse);
+    dot_export::Node &node = digraph_.new_node(ss.str());
+    node.set_shape(dot_export::Attr_shape::Ellipse);
     return node;
   }
 };

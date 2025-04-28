@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+import os
 import time
 
 
@@ -39,9 +40,13 @@ else:
     BLENDER_VERSION_HASH = "Hash Unknown"
     BLENDER_VERSION_HASH_HTML_LINK = BLENDER_VERSION_HASH
 
-extensions = ["sphinx.ext.intersphinx"]
-intersphinx_mapping = {"blender_manual": ("https://docs.blender.org/manual/en/dev/", None)}
+extensions = []
 
+# Downloading can be slow and get in the way of development,
+# support "offline" builds.
+if not os.environ.get("BLENDER_DOC_OFFLINE", "").strip("0"):
+    extensions.append("sphinx.ext.intersphinx")
+    intersphinx_mapping = {"blender_manual": ("https://docs.blender.org/manual/en/dev/", None)}
 
 # Provides copy button next to code-blocks (nice to have but not essential).
 if has_module("sphinx_copybutton"):

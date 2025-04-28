@@ -10,18 +10,18 @@ FRAGMENT_SHADER_CREATE_INFO(gpencil_layer_blend)
 
 void main()
 {
-  vec4 color;
+  float4 color;
 
   /* Remember, this is associated alpha (aka. pre-multiply). */
-  color.rgb = textureLod(colorBuf, uvcoordsvar.xy, 0).rgb;
+  color.rgb = textureLod(color_buf, screen_uv, 0).rgb;
   /* Stroke only render mono-chromatic revealage. We convert to alpha. */
-  color.a = 1.0 - textureLod(revealBuf, uvcoordsvar.xy, 0).r;
+  color.a = 1.0f - textureLod(reveal_buf, screen_uv, 0).r;
 
-  float mask = textureLod(maskBuf, uvcoordsvar.xy, 0).r;
-  mask *= blendOpacity;
+  float mask = textureLod(mask_buf, screen_uv, 0).r;
+  mask *= blend_opacity;
 
-  fragColor = vec4(1.0, 0.0, 1.0, 1.0);
-  fragRevealage = vec4(1.0, 0.0, 1.0, 1.0);
+  frag_color = float4(1.0f, 0.0f, 1.0f, 1.0f);
+  fragRevealage = float4(1.0f, 0.0f, 1.0f, 1.0f);
 
-  blend_mode_output(blendMode, color, mask, fragColor, fragRevealage);
+  blend_mode_output(blend_mode, color, mask, frag_color, fragRevealage);
 }

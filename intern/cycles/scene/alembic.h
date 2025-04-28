@@ -302,7 +302,6 @@ struct CachedData {
   DataStore<array<bool>> subd_smooth;
   DataStore<array<int>> subd_ptex_offset;
   DataStore<array<int>> subd_face_corners;
-  DataStore<int> num_ngons;
   DataStore<array<int>> subd_creases_edge;
   DataStore<array<float>> subd_creases_weight;
   DataStore<array<int>> subd_vertex_crease_indices;

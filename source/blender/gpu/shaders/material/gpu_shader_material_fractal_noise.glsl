@@ -15,10 +15,10 @@
                   bool normalize) \
   { \
     T p = co; \
-    float fscale = 1.0; \
-    float amp = 1.0; \
-    float maxamp = 0.0; \
-    float sum = 0.0; \
+    float fscale = 1.0f; \
+    float amp = 1.0f; \
+    float maxamp = 0.0f; \
+    float sum = 0.0f; \
 \
     for (int i = 0; i <= int(detail); i++) { \
       float t = snoise(fscale * p); \
@@ -28,14 +28,15 @@
       fscale *= lacunarity; \
     } \
     float rmd = detail - floor(detail); \
-    if (rmd != 0.0) { \
+    if (rmd != 0.0f) { \
       float t = snoise(fscale * p); \
       float sum2 = sum + t * amp; \
-      return normalize ? mix(0.5 * sum / maxamp + 0.5, 0.5 * sum2 / (maxamp + amp) + 0.5, rmd) : \
-                         mix(sum, sum2, rmd); \
+      return normalize ? \
+                 mix(0.5f * sum / maxamp + 0.5f, 0.5f * sum2 / (maxamp + amp) + 0.5f, rmd) : \
+                 mix(sum, sum2, rmd); \
     } \
     else { \
-      return normalize ? 0.5 * sum / maxamp + 0.5 : sum; \
+      return normalize ? 0.5f * sum / maxamp + 0.5f : sum; \
     } \
   }
 
@@ -49,18 +50,18 @@
                             bool normalize) \
   { \
     T p = co; \
-    float value = 1.0; \
-    float pwr = 1.0; \
+    float value = 1.0f; \
+    float pwr = 1.0f; \
 \
     for (int i = 0; i <= int(detail); i++) { \
-      value *= (pwr * snoise(p) + 1.0); \
+      value *= (pwr * snoise(p) + 1.0f); \
       pwr *= roughness; \
       p *= lacunarity; \
     } \
 \
     float rmd = detail - floor(detail); \
-    if (rmd != 0.0) { \
-      value *= (rmd * pwr * snoise(p) + 1.0); /* correct? */ \
+    if (rmd != 0.0f) { \
+      value *= (rmd * pwr * snoise(p) + 1.0f); /* correct? */ \
     } \
 \
     return value; \
@@ -90,7 +91,7 @@
     } \
 \
     float rmd = detail - floor(detail); \
-    if (rmd != 0.0) { \
+    if (rmd != 0.0f) { \
       float increment = (snoise(p) + offset) * pwr * value; \
       value += rmd * increment; \
     } \
@@ -108,13 +109,13 @@
                                    bool normalize) \
   { \
     T p = co; \
-    float pwr = 1.0; \
-    float value = 0.0; \
-    float weight = 1.0; \
+    float pwr = 1.0f; \
+    float value = 0.0f; \
+    float weight = 1.0f; \
 \
-    for (int i = 0; (weight > 0.001) && (i <= int(detail)); i++) { \
-      if (weight > 1.0) { \
-        weight = 1.0; \
+    for (int i = 0; (weight > 0.001f) && (i <= int(detail)); i++) { \
+      if (weight > 1.0f) { \
+        weight = 1.0f; \
       } \
 \
       float signal = (snoise(p) + offset) * pwr; \
@@ -125,9 +126,9 @@
     } \
 \
     float rmd = detail - floor(detail); \
-    if ((rmd != 0.0) && (weight > 0.001)) { \
-      if (weight > 1.0) { \
-        weight = 1.0; \
+    if ((rmd != 0.0f) && (weight > 0.001f)) { \
+      if (weight > 1.0f) { \
+        weight = 1.0f; \
       } \
       float signal = (snoise(p) + offset) * pwr; \
       value += rmd * weight * signal; \
@@ -151,11 +152,11 @@
     float signal = offset - abs(snoise(p)); \
     signal *= signal; \
     float value = signal; \
-    float weight = 1.0; \
+    float weight = 1.0f; \
 \
     for (int i = 1; i <= int(detail); i++) { \
       p *= lacunarity; \
-      weight = clamp(signal * gain, 0.0, 1.0); \
+      weight = clamp(signal * gain, 0.0f, 1.0f); \
       signal = offset - abs(snoise(p)); \
       signal *= signal; \
       signal *= weight; \
@@ -169,34 +170,34 @@
 /* Noise fBM. */
 
 NOISE_FBM(float)
-NOISE_FBM(vec2)
-NOISE_FBM(vec3)
-NOISE_FBM(vec4)
+NOISE_FBM(float2)
+NOISE_FBM(float3)
+NOISE_FBM(float4)
 
 /* Noise Multi-fractal. */
 
 NOISE_MULTI_FRACTAL(float)
-NOISE_MULTI_FRACTAL(vec2)
-NOISE_MULTI_FRACTAL(vec3)
-NOISE_MULTI_FRACTAL(vec4)
+NOISE_MULTI_FRACTAL(float2)
+NOISE_MULTI_FRACTAL(float3)
+NOISE_MULTI_FRACTAL(float4)
 
 /* Noise Hetero Terrain. */
 
 NOISE_HETERO_TERRAIN(float)
-NOISE_HETERO_TERRAIN(vec2)
-NOISE_HETERO_TERRAIN(vec3)
-NOISE_HETERO_TERRAIN(vec4)
+NOISE_HETERO_TERRAIN(float2)
+NOISE_HETERO_TERRAIN(float3)
+NOISE_HETERO_TERRAIN(float4)
 
 /* Noise Hybrid Multi-fractal. */
 
 NOISE_HYBRID_MULTI_FRACTAL(float)
-NOISE_HYBRID_MULTI_FRACTAL(vec2)
-NOISE_HYBRID_MULTI_FRACTAL(vec3)
-NOISE_HYBRID_MULTI_FRACTAL(vec4)
+NOISE_HYBRID_MULTI_FRACTAL(float2)
+NOISE_HYBRID_MULTI_FRACTAL(float3)
+NOISE_HYBRID_MULTI_FRACTAL(float4)
 
 /* Noise Ridged Multi-fractal. */
 
 NOISE_RIDGED_MULTI_FRACTAL(float)
-NOISE_RIDGED_MULTI_FRACTAL(vec2)
-NOISE_RIDGED_MULTI_FRACTAL(vec3)
-NOISE_RIDGED_MULTI_FRACTAL(vec4)
+NOISE_RIDGED_MULTI_FRACTAL(float2)
+NOISE_RIDGED_MULTI_FRACTAL(float3)
+NOISE_RIDGED_MULTI_FRACTAL(float4)

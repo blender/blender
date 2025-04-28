@@ -1167,36 +1167,13 @@ static void panel_draw_aligned_widgets(const uiStyle *style,
 
   /* Draw drag widget. */
   if (!is_subpanel && show_background) {
-    const int drag_widget_size = header_height * 0.7f;
-    const int col_tint = 84;
-    float color_high[4], color_dark[4];
-    UI_GetThemeColorShade4fv(TH_PANEL_HEADER, col_tint, color_high);
-    UI_GetThemeColorShade4fv(TH_PANEL_BACK, -col_tint, color_dark);
-    if (panel_custom_pin_to_last_get(panel)) {
-      GPU_blend(GPU_BLEND_ALPHA);
-      UI_icon_draw_ex(widget_rect.xmax - scaled_unit * 1.15,
-                      widget_rect.ymin + (header_height - drag_widget_size) * 0.5f,
-                      ICON_PINNED,
-                      aspect * UI_INV_SCALE_FAC,
-                      1.0f,
-                      0.0f,
-                      title_color,
-                      false,
-                      UI_NO_ICON_OVERLAY_TEXT);
-      GPU_blend(GPU_BLEND_NONE);
-    }
-    else {
-      GPU_matrix_push();
-      /* The magic numbers here center the widget vertically and offset it to the left.
-       * Currently this depends on the height of the header, although it could be independent. */
-      GPU_matrix_translate_2f(widget_rect.xmax - scaled_unit * 1.15,
-                              widget_rect.ymin + (header_height - drag_widget_size) * 0.5f);
-      blender::gpu::Batch *batch = GPU_batch_preset_panel_drag_widget(
-          U.pixelsize, color_high, color_dark, drag_widget_size);
-      GPU_batch_program_set_builtin(batch, GPU_SHADER_3D_FLAT_COLOR);
-      GPU_batch_draw(batch);
-      GPU_matrix_pop();
-    }
+    const float x = widget_rect.xmax - scaled_unit * 1.15;
+    const float y = widget_rect.ymin + (header_height - (header_height * 0.7f)) * 0.5f;
+    const bool is_pin = panel_custom_pin_to_last_get(panel);
+    const int icon = is_pin ? ICON_PINNED : ICON_GRIP;
+    const float size = aspect * UI_INV_SCALE_FAC;
+    const float alpha = is_pin ? 1.0f : 0.5f;
+    UI_icon_draw_ex(x, y, icon, size, alpha, 0.0f, title_color, false, UI_NO_ICON_OVERLAY_TEXT);
   }
 }
 
@@ -1378,6 +1355,7 @@ void UI_panel_category_draw_all(ARegion *region, const char *category_id_active)
   View2D *v2d = &region->v2d;
   const uiStyle *style = UI_style_get();
   const uiFontStyle *fstyle = &style->widget;
+  UI_fontstyle_set(fstyle);
   const int fontid = fstyle->uifont_id;
   float fstyle_points = fstyle->points;
   const float aspect = BLI_listbase_is_empty(&region->runtime->uiblocks) ?
@@ -1745,8 +1723,7 @@ static bool uiAlignPanelStep(ARegion *region, const float factor, const bool dra
   }
 
   /* Sort panels. */
-  PanelSort *panel_sort = static_cast<PanelSort *>(
-      MEM_mallocN(sizeof(PanelSort) * active_panels_len, __func__));
+  PanelSort *panel_sort = MEM_malloc_arrayN<PanelSort>(active_panels_len, __func__);
   {
     PanelSort *ps = panel_sort;
     LISTBASE_FOREACH (Panel *, panel, &region->panels) {
@@ -2145,6 +2122,9 @@ static int ui_panel_drag_collapse_handler(bContext *C, const wmEvent *event, voi
       /* Don't let any left-mouse event fall through! */
       retval = WM_UI_HANDLER_BREAK;
       break;
+    default: {
+      break;
+    }
   }
 
   return retval;
@@ -2564,9 +2544,7 @@ int ui_handler_panel_region(bContext *C,
 
       /* The panel collapse / expand key "A" is special as it takes priority over
        * active button handling. */
-      if (event->type == EVT_AKEY &&
-          ((event->modifier & (KM_SHIFT | KM_CTRL | KM_ALT | KM_OSKEY)) == 0))
-      {
+      if ((event->type == EVT_AKEY) && (event->modifier == 0)) {
         retval = WM_UI_HANDLER_BREAK;
         ui_handle_panel_header(
             C, block, mx, event->type, event->modifier & KM_CTRL, event->modifier & KM_SHIFT);

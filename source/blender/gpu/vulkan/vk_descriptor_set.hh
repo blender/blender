@@ -98,6 +98,12 @@ class VKDescriptorSetTracker {
    */
   void update_descriptor_set(VKContext &context,
                              render_graph::VKResourceAccessInfo &resource_access_info);
+
+  /**
+   * Upload all descriptor sets to the device.
+   *
+   * NOTE: Caller should discard the associated descriptor pools. (VKDescriptorPools::discard)
+   */
   void upload_descriptor_sets();
 
  private:

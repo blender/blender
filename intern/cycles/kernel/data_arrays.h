@@ -33,17 +33,12 @@ KERNEL_DATA_ARRAY(DecomposedTransform, camera_motion)
 KERNEL_DATA_ARRAY(uint, tri_shader)
 KERNEL_DATA_ARRAY(packed_float3, tri_vnormal)
 KERNEL_DATA_ARRAY(packed_uint3, tri_vindex)
-KERNEL_DATA_ARRAY(uint, tri_patch)
-KERNEL_DATA_ARRAY(float2, tri_patch_uv)
 KERNEL_DATA_ARRAY(packed_float3, tri_verts)
 
 /* curves */
 KERNEL_DATA_ARRAY(KernelCurve, curves)
 KERNEL_DATA_ARRAY(float4, curve_keys)
 KERNEL_DATA_ARRAY(KernelCurveSegment, curve_segments)
-
-/* patches */
-KERNEL_DATA_ARRAY(uint, patches)
 
 /* pointclouds */
 KERNEL_DATA_ARRAY(float4, points)

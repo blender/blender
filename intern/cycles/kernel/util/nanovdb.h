@@ -1,6 +1,7 @@
 /* SPDX-FileCopyrightText: 2020-2021 Contributors to the OpenVDB Project
+ * SPDX-FileCopyrightText: 2023-2025 Blender Authors
  *
- * SPDX-License-Identifier: MPL-2.0
+ * SPDX-License-Identifier: Apache-2.0
  *
  * This is an extract from NanoVDB.h, with minimal code needed for kernel side access to grids. The
  * original headers are not compatible with Metal due to missing address space qualifiers. */

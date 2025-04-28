@@ -33,7 +33,7 @@
 #include "sequencer_intern.hh"
 #include "sequencer_strips_batch.hh"
 
-using namespace blender;
+namespace blender::ed::vse {
 
 /* Information for one thumbnail picture in the timeline. Note that a single
  * strip could have multiple thumbnails. */
@@ -95,11 +95,11 @@ static void strip_get_thumb_image_dimensions(const Strip *strip,
   /* Fix the dimensions to be max SEQ_THUMB_SIZE for x or y. */
   float aspect_ratio = image_width / image_height;
   if (image_width > image_height) {
-    image_width = seq::SEQ_THUMB_SIZE;
+    image_width = seq::THUMB_SIZE;
     image_height = round_fl_to_int(image_width / aspect_ratio);
   }
   else {
-    image_height = seq::SEQ_THUMB_SIZE;
+    image_height = seq::THUMB_SIZE;
     image_width = round_fl_to_int(image_height * aspect_ratio);
   }
 
@@ -206,7 +206,7 @@ static void get_seq_strip_thumbnails(const View2D *v2d,
 }
 
 struct ThumbsDrawBatch {
-  ed::seq::StripsDrawBatch &strips_batch_;
+  StripsDrawBatch &strips_batch_;
   Array<SeqStripThumbData> thumbs_;
   GPUUniformBuf *ubo_thumbs_ = nullptr;
   GPUShader *shader_ = nullptr;
@@ -217,7 +217,7 @@ struct ThumbsDrawBatch {
   int binding_image_ = 0;
   int thumbs_count_ = 0;
 
-  ThumbsDrawBatch(ed::seq::StripsDrawBatch &strips_batch, GPUTexture *atlas)
+  ThumbsDrawBatch(StripsDrawBatch &strips_batch, GPUTexture *atlas)
       : strips_batch_(strips_batch), thumbs_(GPU_SEQ_STRIP_DRAW_DATA_LEN), atlas_(atlas)
   {
     shader_ = GPU_shader_get_builtin_shader(GPU_SHADER_SEQUENCER_THUMBS);
@@ -282,7 +282,7 @@ struct ThumbsDrawBatch {
 };
 
 void draw_strip_thumbnails(TimelineDrawContext *ctx,
-                           ed::seq::StripsDrawBatch &strips_batch,
+                           StripsDrawBatch &strips_batch,
                            const Vector<StripDrawContext> &strips)
 {
   /* Nothing to do if we're not showing thumbnails overall. */
@@ -396,3 +396,5 @@ void draw_strip_thumbnails(TimelineDrawContext *ctx,
   GPU_texture_unbind(atlas);
   GPU_texture_free(atlas);
 }
+
+}  // namespace blender::ed::vse

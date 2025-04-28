@@ -74,13 +74,13 @@ PassMain::Sub &MeshPass::get_subpass(eGeometryType geometry_type,
       else {
         sub_pass->bind_texture(WB_TEXTURE_SLOT, texture->gpu.texture, texture->sampler_state);
       }
-      sub_pass->push_constant("isImageTile", texture->gpu.tile_mapping != nullptr);
-      sub_pass->push_constant("imagePremult", texture->premultiplied);
+      sub_pass->push_constant("is_image_tile", texture->gpu.tile_mapping != nullptr);
+      sub_pass->push_constant("image_premult", texture->premultiplied);
       /* TODO(@pragma37): This setting should be exposed on the user side,
        * either as a global parameter (and set it here)
        * or by reading the Material Clipping Threshold (and set it per material) */
       float alpha_cutoff = texture->alpha_cutoff ? 0.1f : -FLT_MAX;
-      sub_pass->push_constant("imageTransparencyCutoff", alpha_cutoff);
+      sub_pass->push_constant("image_transparency_cutoff", alpha_cutoff);
       return sub_pass;
     };
 
@@ -121,7 +121,7 @@ void OpaquePass::sync(const SceneState &scene_state, SceneResources &resources)
                                                          scene_state.draw_cavity,
                                                          scene_state.draw_curvature,
                                                          scene_state.draw_shadows));
-  deferred_ps_.push_constant("forceShadowing", false);
+  deferred_ps_.push_constant("force_shadowing", false);
   deferred_ps_.bind_ubo(WB_WORLD_SLOT, resources.world_buf);
   deferred_ps_.bind_texture(WB_MATCAP_SLOT, resources.matcap_tx);
   deferred_ps_.bind_texture("normal_tx", &gbuffer_normal_tx);
@@ -189,7 +189,7 @@ void OpaquePass::draw(Manager &manager,
 
     shadow_pass->draw(
         manager, view, resources, **&shadow_depth_stencil_tx, !gbuffer_in_front_ps_.is_empty());
-    deferred_ps_stencil_tx = resources.stencil_view.extract(manager, shadow_depth_stencil_tx);
+    deferred_ps_stencil_tx = shadow_depth_stencil_tx.stencil_view();
   }
   else {
     shadow_depth_stencil_tx.free();
@@ -240,8 +240,8 @@ void TransparentPass::sync(const SceneState &scene_state, SceneResources &resour
   resolve_ps_.init();
   resolve_ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA);
   resolve_ps_.shader_set(ShaderCache::get().transparent_resolve.get());
-  resolve_ps_.bind_texture("transparentAccum", &accumulation_tx);
-  resolve_ps_.bind_texture("transparentRevealage", &reveal_tx);
+  resolve_ps_.bind_texture("transparent_accum", &accumulation_tx);
+  resolve_ps_.bind_texture("transparent_revealage", &reveal_tx);
   resolve_ps_.draw_procedural(GPU_PRIM_TRIS, 1, 3);
 }
 

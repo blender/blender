@@ -19,7 +19,7 @@
 ImBuf *imb_load_filepath_thumbnail_svg(const char *filepath,
                                        const int /*flags*/,
                                        const size_t max_thumb_size,
-                                       char colorspace[],
+                                       ImFileColorSpace & /*r_colorspace*/,
                                        size_t *r_width,
                                        size_t *r_height)
 {
@@ -46,8 +46,6 @@ ImBuf *imb_load_filepath_thumbnail_svg(const char *filepath,
     nsvgDelete(image);
     return nullptr;
   }
-
-  colorspace_set_default_role(colorspace, IM_MAX_SPACE, COLOR_ROLE_DEFAULT_BYTE);
 
   const float scale = float(max_thumb_size) / std::max(w, h);
   const int dest_w = std::max(int(w * scale), 1);

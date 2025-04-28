@@ -46,6 +46,8 @@
 
 #include "UI_view2d.hh"
 
+namespace {
+
 enum eBrushUVSculptTool {
   UV_SCULPT_BRUSH_TYPE_GRAB = 0,
   UV_SCULPT_BRUSH_TYPE_RELAX = 1,
@@ -145,6 +147,8 @@ struct UvSculptData {
   float uv_base_offset[2];
 };
 
+}  // namespace
+
 static void apply_sculpt_data_constraints(UvSculptData *sculptdata, float uv[2])
 {
   if (!sculptdata->constrain_to_bounds) {
@@ -189,8 +193,8 @@ static void HC_relaxation_iteration_uv(UvSculptData *sculptdata,
   int i;
   const float radius = sqrtf(radius_sq);
 
-  Temp_UVData *tmp_uvdata = (Temp_UVData *)MEM_callocN(
-      sculptdata->totalUniqueUvs * sizeof(Temp_UVData), "Temporal data");
+  Temp_UVData *tmp_uvdata = MEM_calloc_arrayN<Temp_UVData>(sculptdata->totalUniqueUvs,
+                                                           "Temporal data");
 
   /* counting neighbors */
   for (i = 0; i < sculptdata->totalUvEdges; i++) {
@@ -274,8 +278,8 @@ static void laplacian_relaxation_iteration_uv(UvSculptData *sculptdata,
   int i;
   const float radius = sqrtf(radius_sq);
 
-  Temp_UVData *tmp_uvdata = (Temp_UVData *)MEM_callocN(
-      sculptdata->totalUniqueUvs * sizeof(Temp_UVData), "Temporal data");
+  Temp_UVData *tmp_uvdata = MEM_calloc_arrayN<Temp_UVData>(sculptdata->totalUniqueUvs,
+                                                           "Temporal data");
 
   /* counting neighbors */
   for (i = 0; i < sculptdata->totalUvEdges; i++) {
@@ -723,8 +727,7 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
   /* Allocate the unique uv buffers */
   data->uv = MEM_calloc_arrayN<UvAdjacencyElement>(unique_uvs, __func__);
   /* Holds, for each UvElement in elementMap, an index of its unique UV. */
-  int *uniqueUv = static_cast<int *>(
-      MEM_mallocN(sizeof(*uniqueUv) * data->elementMap->total_uvs, __func__));
+  int *uniqueUv = MEM_malloc_arrayN<int>(data->elementMap->total_uvs, __func__);
   GHash *edgeHash = BLI_ghash_new(uv_edge_hash, uv_edge_compare, "uv_brush_edge_hash");
   /* we have at most totalUVs edges */
   UvEdge *edges = MEM_calloc_arrayN<UvEdge>(data->elementMap->total_uvs, __func__);
@@ -742,7 +745,7 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
   /* Index for the UvElements. */
   int counter = -1;
 
-  const BMUVOffsets offsets = BM_uv_map_get_offsets(em->bm);
+  const BMUVOffsets offsets = BM_uv_map_offsets_get(em->bm);
   /* initialize the unique UVs */
   for (int i = 0; i < bm->totvert; i++) {
     UvElement *element = data->elementMap->vertex[i];
@@ -873,8 +876,8 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
     if (!data->initial_stroke) {
       uv_sculpt_stroke_exit(C, op);
     }
-    data->initial_stroke->initialSelection = static_cast<UVInitialStrokeElement *>(MEM_mallocN(
-        sizeof(*data->initial_stroke->initialSelection) * data->totalUniqueUvs, __func__));
+    data->initial_stroke->initialSelection = MEM_malloc_arrayN<UVInitialStrokeElement>(
+        data->totalUniqueUvs, __func__);
     if (!data->initial_stroke->initialSelection) {
       uv_sculpt_stroke_exit(C, op);
     }
@@ -912,7 +915,7 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
   return static_cast<UvSculptData *>(op->customdata);
 }
 
-static int uv_sculpt_stroke_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus uv_sculpt_stroke_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   UvSculptData *data;
   Object *obedit = CTX_data_edit_object(C);
@@ -934,7 +937,7 @@ static int uv_sculpt_stroke_invoke(bContext *C, wmOperator *op, const wmEvent *e
   return OPERATOR_RUNNING_MODAL;
 }
 
-static int uv_sculpt_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus uv_sculpt_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   UvSculptData *data = (UvSculptData *)op->customdata;
   Object *obedit = CTX_data_edit_object(C);
@@ -971,7 +974,7 @@ static void register_common_props(wmOperatorType *ot)
 
   prop = RNA_def_boolean(
       ot->srna, "use_invert", false, "Invert", "Invert action for the duration of the stroke");
-  RNA_def_property_flag(prop, PropertyFlag(PROP_SKIP_SAVE));
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 void SCULPT_OT_uv_sculpt_grab(wmOperatorType *ot)

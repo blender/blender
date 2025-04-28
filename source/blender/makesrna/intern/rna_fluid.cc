@@ -2360,6 +2360,7 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
   RNA_def_property_string_maxlength(prop, FILE_MAX);
   RNA_def_property_string_funcs(prop, nullptr, nullptr, "rna_Fluid_cache_directory_set");
   RNA_def_property_string_sdna(prop, nullptr, "cache_directory");
+  RNA_def_property_flag(prop, PROP_PATH_SUPPORTS_BLEND_RELATIVE);
   RNA_def_property_ui_text(prop, "Cache directory", "Directory that contains fluid cache files");
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Fluid_update");
 

@@ -46,47 +46,58 @@ static void sh_node_mix_declare(NodeDeclarationBuilder &b)
       .max(1.0f)
       .subtype(PROP_FACTOR)
       .no_muted_links()
-      .description("Amount of mixing between the A and B inputs");
+      .description("Amount of mixing between the A and B inputs")
+      .compositor_domain_priority(2);
   b.add_input<decl::Vector>("Factor", "Factor_Vector")
       .default_value(float3(0.5f))
       .subtype(PROP_FACTOR)
       .no_muted_links()
-      .description("Amount of mixing between the A and B vector inputs");
+      .description("Amount of mixing between the A and B vector inputs")
+      .compositor_domain_priority(2);
 
   b.add_input<decl::Float>("A", "A_Float")
       .min(-10000.0f)
       .max(10000.0f)
       .is_default_link_socket()
       .translation_context(BLT_I18NCONTEXT_ID_NODETREE)
-      .description("Value of the first floating number input");
+      .description("Value of the first floating number input")
+      .compositor_domain_priority(0);
   b.add_input<decl::Float>("B", "B_Float")
       .min(-10000.0f)
       .max(10000.0f)
       .translation_context(BLT_I18NCONTEXT_ID_NODETREE)
-      .description("Value of the second floating number input");
+      .description("Value of the second floating number input")
+      .compositor_domain_priority(1);
 
   b.add_input<decl::Vector>("A", "A_Vector")
       .is_default_link_socket()
       .translation_context(BLT_I18NCONTEXT_ID_NODETREE)
-      .description("Value of the first vector input");
+      .description("Value of the first vector input")
+      .compositor_domain_priority(0);
   b.add_input<decl::Vector>("B", "B_Vector")
       .translation_context(BLT_I18NCONTEXT_ID_NODETREE)
-      .description("Value of the second vector input");
+      .description("Value of the second vector input")
+      .compositor_domain_priority(1);
 
   b.add_input<decl::Color>("A", "A_Color")
       .default_value({0.5f, 0.5f, 0.5f, 1.0f})
       .is_default_link_socket()
       .translation_context(BLT_I18NCONTEXT_ID_NODETREE)
-      .description("Value of the first color input");
+      .description("Value of the first color input")
+      .compositor_domain_priority(0);
   b.add_input<decl::Color>("B", "B_Color")
       .default_value({0.5f, 0.5f, 0.5f, 1.0f})
       .translation_context(BLT_I18NCONTEXT_ID_NODETREE)
-      .description("Value of the second color input");
+      .description("Value of the second color input")
+      .compositor_domain_priority(1);
 
   b.add_input<decl::Rotation>("A", "A_Rotation")
       .is_default_link_socket()
-      .translation_context(BLT_I18NCONTEXT_ID_NODETREE);
-  b.add_input<decl::Rotation>("B", "B_Rotation").translation_context(BLT_I18NCONTEXT_ID_NODETREE);
+      .translation_context(BLT_I18NCONTEXT_ID_NODETREE)
+      .compositor_domain_priority(0);
+  b.add_input<decl::Rotation>("B", "B_Rotation")
+      .translation_context(BLT_I18NCONTEXT_ID_NODETREE)
+      .compositor_domain_priority(1);
 
   b.add_output<decl::Float>("Result", "Result_Float");
   b.add_output<decl::Vector>("Result", "Result_Vector");
@@ -395,10 +406,10 @@ static int gpu_shader_mix(GPUMaterial *mat,
   int ret = GPU_stack_link(mat, node, name, in, out);
 
   if (ret && is_color_mode && storage.clamp_result) {
-    const float min[3] = {0.0f, 0.0f, 0.0f};
-    const float max[3] = {1.0f, 1.0f, 1.0f};
+    const float min[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+    const float max[4] = {1.0f, 1.0f, 1.0f, 1.0f};
     GPU_link(mat,
-             "node_mix_clamp_vector",
+             "node_mix_clamp_color",
              out[2].link,
              GPU_constant(min),
              GPU_constant(max),

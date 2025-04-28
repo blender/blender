@@ -127,7 +127,7 @@ class VectorSet {
 
   /** The max load factor is 1/2 = 50% by default. */
 #define LOAD_FACTOR 1, 2
-  LoadFactor max_load_factor_ = LoadFactor(LOAD_FACTOR);
+  static constexpr LoadFactor max_load_factor_ = LoadFactor(LOAD_FACTOR);
   using SlotArray = Array<Slot, LoadFactor::compute_total_slots(4, LOAD_FACTOR), Allocator>;
 #undef LOAD_FACTOR
 
@@ -458,6 +458,24 @@ class VectorSet {
     const Key *key_ptr = this->lookup_key_ptr_as(key);
     BLI_assert(key_ptr != nullptr);
     return *key_ptr;
+  }
+
+  /**
+   * Returns the key that compares equal to the given key. If the key is not in the set, the given
+   * default value is returned instead.
+   */
+  Key lookup_key_default(const Key &key, const Key &default_value) const
+  {
+    return this->lookup_key_default_as(key, default_value);
+  }
+  template<typename ForwardKey, typename... ForwardDefault>
+  Key lookup_key_default_as(const ForwardKey &key, ForwardDefault &&...default_key) const
+  {
+    const Key *ptr = this->lookup_key_ptr_as(key);
+    if (ptr == nullptr) {
+      return Key(std::forward<ForwardDefault>(default_key)...);
+    }
+    return *ptr;
   }
 
   /**

@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup bli
+ */
+
 #include "BLI_lazy_threading.hh"
 #include "BLI_stack.hh"
 #include "BLI_vector.hh"

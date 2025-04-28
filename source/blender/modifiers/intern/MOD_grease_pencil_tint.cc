@@ -16,6 +16,7 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_colorband.hh"
+#include "BKE_colortools.hh"
 #include "BKE_curves.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_grease_pencil.hh"
@@ -167,6 +168,7 @@ static void modify_stroke_color(Object &ob,
                                 const IndexMask &curves_mask,
                                 const MutableSpan<ColorGeometry4f> vertex_colors)
 {
+  const bool use_curve = (tmd.influence.flag & GREASE_PENCIL_INFLUENCE_USE_CUSTOM_CURVE);
   const bool use_weight_as_factor = (tmd.flag & MOD_GREASE_PENCIL_TINT_USE_WEIGHT_AS_FACTOR);
   const OffsetIndices<int> points_by_curve = curves.points_by_curve();
 
@@ -180,8 +182,10 @@ static void modify_stroke_color(Object &ob,
   auto get_material_color = [&](const int64_t curve_i) {
     const Material *ma = BKE_object_material_get(&ob, stroke_materials[curve_i] + 1);
     const MaterialGPencilStyle *gp_style = ma ? ma->gp_style : nullptr;
-    return (gp_style ? ColorGeometry4f(gp_style->stroke_rgba) :
-                       ColorGeometry4f(0.0f, 0.0f, 0.0f, 0.0f));
+    if (!gp_style) {
+      return ColorGeometry4f(0.0f, 0.0f, 0.0f, 0.0f);
+    }
+    return ColorGeometry4f(gp_style->stroke_rgba);
   };
 
   auto get_point_factor = [&](const int64_t point_i) {
@@ -199,11 +203,17 @@ static void modify_stroke_color(Object &ob,
         const ColorGeometry4f material_color = get_material_color(curve_i);
 
         const IndexRange points = points_by_curve[curve_i];
-        for (const int64_t point_i : points) {
+        for (const int64_t i : points.index_range()) {
+          const int64_t point_i = points[i];
+          const float curve_input = points.size() >= 2 ? (float(i) / float(points.size() - 1)) :
+                                                         0.0f;
+          const float curve_factor = use_curve ? BKE_curvemapping_evaluateF(
+                                                     tmd.influence.custom_curve, 0, curve_input) :
+                                                 1.0f;
           vertex_colors[point_i] = apply_uniform_tint(
               tmd,
               get_base_color(vertex_colors[point_i], material_color),
-              get_point_factor(point_i));
+              get_point_factor(point_i) * curve_factor);
         }
       });
       break;
@@ -263,8 +273,13 @@ static void modify_fill_color(Object &ob,
   auto get_material_color = [&](const int64_t curve_i) {
     const Material *ma = BKE_object_material_get(&ob, stroke_materials[curve_i] + 1);
     const MaterialGPencilStyle *gp_style = ma ? ma->gp_style : nullptr;
-    return (gp_style ? ColorGeometry4f(gp_style->fill_rgba) :
-                       ColorGeometry4f(0.0f, 0.0f, 0.0f, 0.0f));
+    if (!gp_style) {
+      return ColorGeometry4f(0.0f, 0.0f, 0.0f, 0.0f);
+    }
+    const bool is_gradient = gp_style->fill_style == GP_MATERIAL_FILL_STYLE_GRADIENT;
+    const float4 average_color = math::interpolate(
+        float4(gp_style->fill_rgba), float4(gp_style->mix_rgba), is_gradient ? 0.5f : 0.0f);
+    return ColorGeometry4f(average_color);
   };
 
   auto get_curve_factor = [&](const int64_t curve_i) {
@@ -410,7 +425,7 @@ static void panel_draw(const bContext *C, Panel *panel)
 
   uiItemR(layout, ptr, "color_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  uiLayout *row = uiLayoutRow(layout, true);
+  uiLayout *row = &layout->row(true);
   uiLayoutSetActive(row, !use_weight_as_factor);
   uiItemR(row, ptr, "factor", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   uiItemR(row, ptr, "use_weight_as_factor", UI_ITEM_NONE, "", ICON_MOD_VERTEX_WEIGHT);
@@ -421,7 +436,7 @@ static void panel_draw(const bContext *C, Panel *panel)
       uiItemR(layout, ptr, "color", UI_ITEM_NONE, std::nullopt, ICON_NONE);
       break;
     case MOD_GREASE_PENCIL_TINT_GRADIENT:
-      uiLayout *col = uiLayoutColumn(layout, false);
+      uiLayout *col = &layout->column(false);
       uiLayoutSetPropSep(col, false);
       uiTemplateColorRamp(col, ptr, "color_ramp", true);
       uiItemS(layout);

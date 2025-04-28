@@ -738,6 +738,7 @@ class EmissionNode : public ShaderNode {
   NODE_SOCKET_API(float3, color)
   NODE_SOCKET_API(float, strength)
   NODE_SOCKET_API(float, surface_mix_weight)
+  NODE_SOCKET_API(float, volume_mix_weight)
 
   bool from_auto_conversion = false;
 };
@@ -1480,6 +1481,7 @@ class BumpNode : public ShaderNode {
   NODE_SOCKET_API(bool, invert)
   NODE_SOCKET_API(bool, use_object_space)
   NODE_SOCKET_API(float, height)
+  NODE_SOCKET_API(float, filter_width)
   NODE_SOCKET_API(float, sample_center)
   NODE_SOCKET_API(float, sample_x)
   NODE_SOCKET_API(float, sample_y)
@@ -1572,6 +1574,8 @@ class OSLNode final : public ShaderNode {
   }
 
   ShaderNode *clone(ShaderGraph *graph) const override;
+
+  void attributes(Shader *shader, AttributeRequestSet *attributes) override;
 
   char *input_default_value();
   void add_input(ustring name, SocketType::Type type, const int flags = 0);

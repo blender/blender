@@ -329,21 +329,19 @@ MINLINE void blend_color_screen_byte(uchar dst[4], const uchar src1[4], const uc
 
 MINLINE void blend_color_softlight_byte(uchar dst[4], const uchar src1[4], const uchar src2[4])
 {
-  const int fac = src2[3];
+  const float fac = (float)(src2[3]) / 255.0f;
   if (fac != 0) {
-    const int mfac = 255 - fac;
+    const float mfac = 1.0f - fac;
     int i = 3;
 
     while (i--) {
-      int temp;
-
-      if (src1[i] < 127) {
-        temp = ((2 * ((src2[i] / 2) + 64)) * src1[i]) / 255;
-      }
-      else {
-        temp = 255 - (2 * (255 - ((src2[i] / 2) + 64)) * (255 - src1[i]) / 255);
-      }
-      dst[i] = (uchar)((temp * fac + src1[i] * mfac) / 255);
+      /* Using "Pegtop" formula: dst = (1 - 2b) * a^2 + 2ab where a=bottom and b=top color.
+       * See https://en.wikipedia.org/wiki/Blend_modes */
+      const float src1val = (float)(src1[i]) / 255.0f;
+      const float src2val = (float)(src2[i]) / 255.0f;
+      float screen = 1.0f - (1.0f - src1val) * (1.0f - src2val);
+      float soft_light = ((1.0f - src1val) * src2val + screen) * src1val;
+      dst[i] = round_fl_to_uchar_clamp((src1val * mfac + soft_light * fac) * 255.0f);
     }
   }
   else {

@@ -278,7 +278,7 @@ static NodeClipboard &get_node_clipboard()
 /** \name Copy
  * \{ */
 
-static int node_clipboard_copy_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus node_clipboard_copy_exec(bContext *C, wmOperator * /*op*/)
 {
   SpaceNode &snode = *CTX_wm_space_node(C);
   bNodeTree &tree = *snode.edittree;
@@ -346,7 +346,7 @@ void NODE_OT_clipboard_copy(wmOperatorType *ot)
 /** \name Paste
  * \{ */
 
-static int node_clipboard_paste_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus node_clipboard_paste_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   SpaceNode &snode = *CTX_wm_space_node(C);
@@ -482,7 +482,9 @@ static int node_clipboard_paste_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int node_clipboard_paste_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus node_clipboard_paste_invoke(bContext *C,
+                                                    wmOperator *op,
+                                                    const wmEvent *event)
 {
   const ARegion *region = CTX_wm_region(C);
   float2 cursor;

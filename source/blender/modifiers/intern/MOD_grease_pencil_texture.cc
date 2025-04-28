@@ -315,7 +315,7 @@ static void panel_draw(const bContext *C, Panel *panel)
   uiItemR(layout, ptr, "mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   if (ELEM(mode, MOD_GREASE_PENCIL_TEXTURE_STROKE, MOD_GREASE_PENCIL_TEXTURE_STROKE_AND_FILL)) {
-    col = uiLayoutColumn(layout, false);
+    col = &layout->column(false);
     uiItemR(col, ptr, "fit_method", UI_ITEM_NONE, IFACE_("Stroke Fit Method"), ICON_NONE);
     uiItemR(col, ptr, "uv_offset", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     uiItemR(col, ptr, "alignment_rotation", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -327,7 +327,7 @@ static void panel_draw(const bContext *C, Panel *panel)
   }
 
   if (ELEM(mode, MOD_GREASE_PENCIL_TEXTURE_FILL, MOD_GREASE_PENCIL_TEXTURE_STROKE_AND_FILL)) {
-    col = uiLayoutColumn(layout, false);
+    col = &layout->column(false);
     uiItemR(col, ptr, "fill_rotation", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     uiItemR(col, ptr, "fill_offset", UI_ITEM_NONE, IFACE_("Offset"), ICON_NONE);
     uiItemR(col, ptr, "fill_scale", UI_ITEM_NONE, IFACE_("Scale"), ICON_NONE);

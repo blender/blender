@@ -3,7 +3,7 @@ Mesh Data
 +++++++++
 
 The mesh data is accessed in object mode and intended for compact storage,
-for more flexible mesh editing from python see :mod:`bmesh`.
+for more flexible mesh editing from Python see :mod:`bmesh`.
 
 Blender stores 4 main arrays to define mesh geometry.
 
@@ -13,7 +13,8 @@ Blender stores 4 main arrays to define mesh geometry.
 - :class:`Mesh.polygons`: (reference a range of loops)
 
 
-Each polygon references a slice in the loop array, this way, polygons do not store vertices or corner data such as UVs directly,
+Each polygon references a slice in the loop array, this way,
+polygons do not store vertices or corner data such as UVs directly,
 only a reference to loops that the polygon uses.
 
 :class:`Mesh.loops`, :class:`Mesh.uv_layers` :class:`Mesh.vertex_colors` are all aligned so the same polygon loop
@@ -33,7 +34,7 @@ uv_layer = me.uv_layers.active.data
 for poly in me.polygons:
     print("Polygon index: {:d}, length: {:d}".format(poly.index, poly.loop_total))
 
-    # range is used here to show how the polygons reference loops,
+    # Range is used here to show how the polygons reference loops,
     # for convenience 'poly.loop_indices' can be used instead.
     for loop_index in range(poly.loop_start, poly.loop_start + poly.loop_total):
         print("    Vertex: {:d}".format(me.loops[loop_index].vertex_index))

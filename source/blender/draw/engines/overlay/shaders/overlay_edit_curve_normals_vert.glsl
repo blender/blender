@@ -15,36 +15,36 @@ VERTEX_SHADER_CREATE_INFO(overlay_edit_curve_normals)
 void main()
 {
   /* Line list primitive. */
-  const uint input_primitive_vertex_count = 2u;
+  constexpr uint input_primitive_vertex_count = 2u;
   /* Line list primitive. */
-  const uint ouput_primitive_vertex_count = 2u;
-  const uint ouput_primitive_count = 2u;
-  const uint ouput_invocation_count = 1u;
-  const uint output_vertex_count_per_invocation = ouput_primitive_count *
-                                                  ouput_primitive_vertex_count;
-  const uint output_vertex_count_per_input_primitive = output_vertex_count_per_invocation *
-                                                       ouput_invocation_count;
+  constexpr uint ouput_primitive_vertex_count = 2u;
+  constexpr uint ouput_primitive_count = 2u;
+  constexpr uint ouput_invocation_count = 1u;
+  constexpr uint output_vertex_count_per_invocation = ouput_primitive_count *
+                                                      ouput_primitive_vertex_count;
+  constexpr uint output_vertex_count_per_input_primitive = output_vertex_count_per_invocation *
+                                                           ouput_invocation_count;
 
   uint in_primitive_id = uint(gl_VertexID) / output_vertex_count_per_input_primitive;
   uint in_primitive_first_vertex = in_primitive_id * input_primitive_vertex_count;
 
   uint v_i = gpu_index_load(in_primitive_first_vertex);
-  vec3 ls_P = gpu_attr_load_float3(pos, gpu_attr_0, v_i);
+  float3 ls_P = gpu_attr_load_float3(pos, gpu_attr_0, v_i);
   float radius = rad[gpu_attr_load_index(v_i, gpu_attr_1)];
-  vec3 ls_N = use_hq_normals ? gpu_attr_load_short4_snorm(nor, gpu_attr_2, v_i).xyz :
-                               gpu_attr_load_uint_1010102_snorm(nor, gpu_attr_2, v_i).xyz;
-  vec3 ls_T = use_hq_normals ? gpu_attr_load_short4_snorm(tangent, gpu_attr_3, v_i).xyz :
-                               gpu_attr_load_uint_1010102_snorm(tangent, gpu_attr_3, v_i).xyz;
+  float3 ls_N = use_hq_normals ? gpu_attr_load_short4_snorm(nor, gpu_attr_2, v_i).xyz :
+                                 gpu_attr_load_uint_1010102_snorm(nor, gpu_attr_2, v_i).xyz;
+  float3 ls_T = use_hq_normals ? gpu_attr_load_short4_snorm(tangent, gpu_attr_3, v_i).xyz :
+                                 gpu_attr_load_uint_1010102_snorm(tangent, gpu_attr_3, v_i).xyz;
 
   if ((gl_VertexID & 1) == 0) {
-    float flip = ((gl_VertexID & 2) == 0) ? -1.0 : 1.0;
-    ls_P += normalSize * radius * (flip * ls_N - ls_T);
+    float flip = ((gl_VertexID & 2) == 0) ? -1.0f : 1.0f;
+    ls_P += normal_size * radius * (flip * ls_N - ls_T);
   }
 
-  vec3 world_pos = drw_point_object_to_world(ls_P);
+  float3 world_pos = drw_point_object_to_world(ls_P);
   gl_Position = drw_point_world_to_homogenous(world_pos);
 
-  finalColor = colorWireEdit;
+  final_color = colorWireEdit;
 
   view_clipping_distances(world_pos);
 }

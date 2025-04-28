@@ -9,6 +9,7 @@
 
 #  include "BLI_assert.h"
 #  include "BLI_hash.hh"
+#  include "BLI_span.hh"
 
 #  include "MEM_guardedalloc.h"
 
@@ -18,6 +19,7 @@
 #  include "COM_context.hh"
 #  include "COM_denoised_auxiliary_pass.hh"
 #  include "COM_result.hh"
+#  include "COM_utilities_oidn.hh"
 
 #  include <OpenImageDenoise/oidn.hpp>
 
@@ -26,6 +28,7 @@ namespace blender::compositor {
 /* ------------------------------------------------------------------------------------------------
  * Denoised Auxiliary Pass Key.
  */
+
 DenoisedAuxiliaryPassKey::DenoisedAuxiliaryPassKey(const DenoisedAuxiliaryPassType type,
                                                    const oidn::Quality quality)
     : type(type), quality(quality)
@@ -89,29 +92,31 @@ DenoisedAuxiliaryPass::DenoisedAuxiliaryPass(Context &context,
 
   /* Float3 results might be stored in 4-component textures due to hardware limitations, so we
    * need to use the pixel stride of the texture. */
-  const int pixel_stride = sizeof(float) *
-                           (context.use_gpu() ?
-                                GPU_texture_component_len(GPU_texture_format(pass)) :
-                                pass.channels_count());
+  const int channels_count = context.use_gpu() ?
+                                 GPU_texture_component_len(GPU_texture_format(pass)) :
+                                 pass.channels_count();
+  const int pixel_stride = sizeof(float) * channels_count;
 
-  oidn::DeviceRef device = oidn::newDevice(oidn::DeviceType::CPU);
+  oidn::DeviceRef device = create_oidn_device(context);
   device.commit();
+
+  const int64_t buffer_size = int64_t(width) * height * channels_count;
+  const MutableSpan<float> buffer_span = MutableSpan<float>(this->denoised_buffer, buffer_size);
+  oidn::BufferRef buffer = create_oidn_buffer(device, buffer_span);
 
   /* Denoise the pass in place, so set it to both the input and output. */
   oidn::FilterRef filter = device.newFilter("RT");
-  filter.setImage(get_pass_name(type),
-                  this->denoised_buffer,
-                  oidn::Format::Float3,
-                  width,
-                  height,
-                  0,
-                  pixel_stride);
-  filter.setImage(
-      "output", this->denoised_buffer, oidn::Format::Float3, width, height, 0, pixel_stride);
+  const char *pass_name = get_pass_name(type);
+  filter.setImage(pass_name, buffer, oidn::Format::Float3, width, height, 0, pixel_stride);
+  filter.setImage("output", buffer, oidn::Format::Float3, width, height, 0, pixel_stride);
   filter.set("quality", quality);
   filter.setProgressMonitorFunction(oidn_progress_monitor_function, &context);
   filter.commit();
   filter.execute();
+
+  if (buffer.getStorage() != oidn::Storage::Host) {
+    buffer.read(0, buffer_size * sizeof(float), this->denoised_buffer);
+  }
 }
 
 DenoisedAuxiliaryPass::~DenoisedAuxiliaryPass()

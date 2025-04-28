@@ -82,7 +82,7 @@ inline void remove_active_item(wmOperatorType *ot,
   ot->description = description;
   ot->poll = editable_node_active_poll<Accessor>;
 
-  ot->exec = [](bContext *C, wmOperator * /*op*/) -> int {
+  ot->exec = [](bContext *C, wmOperator * /*op*/) -> wmOperatorStatus {
     PointerRNA node_ptr = get_active_node_to_operate_on(C, Accessor::node_type);
     bNode &node = *static_cast<bNode *>(node_ptr.data);
     SocketItemsRef ref = Accessor::get_items_from_node(node);
@@ -106,7 +106,7 @@ inline void remove_item_by_index(wmOperatorType *ot,
   ot->description = description;
   ot->poll = editable_node_active_poll<Accessor>;
 
-  ot->exec = [](bContext *C, wmOperator *op) -> int {
+  ot->exec = [](bContext *C, wmOperator *op) -> wmOperatorStatus {
     PointerRNA node_ptr = get_active_node_to_operate_on(C, Accessor::node_type);
     bNode &node = *static_cast<bNode *>(node_ptr.data);
     const int index_to_remove = RNA_int_get(op->ptr, "index");
@@ -132,7 +132,7 @@ inline void add_item(wmOperatorType *ot,
   ot->description = description;
   ot->poll = editable_node_active_poll<Accessor>;
 
-  ot->exec = [](bContext *C, wmOperator * /*op*/) -> int {
+  ot->exec = [](bContext *C, wmOperator * /*op*/) -> wmOperatorStatus {
     PointerRNA node_ptr = get_active_node_to_operate_on(C, Accessor::node_type);
     bNode &node = *static_cast<bNode *>(node_ptr.data);
     SocketItemsRef ref = Accessor::get_items_from_node(node);
@@ -191,7 +191,7 @@ inline void move_active_item(wmOperatorType *ot,
   ot->description = description;
   ot->poll = editable_node_active_poll<Accessor>;
 
-  ot->exec = [](bContext *C, wmOperator *op) -> int {
+  ot->exec = [](bContext *C, wmOperator *op) -> wmOperatorStatus {
     PointerRNA node_ptr = get_active_node_to_operate_on(C, Accessor::node_type);
     bNode &node = *static_cast<bNode *>(node_ptr.data);
     const MoveDirection direction = MoveDirection(RNA_enum_get(op->ptr, "direction"));

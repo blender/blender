@@ -34,6 +34,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "NOD_geometry_nodes_bundle.hh"
+#include "NOD_geometry_nodes_closure.hh"
 #include "NOD_node_declaration.hh"
 #include "NOD_socket.hh"
 
@@ -683,6 +685,8 @@ void node_socket_init_default_value_data(eNodeSocketDatatype datatype, int subty
     case SOCK_GEOMETRY:
     case SOCK_MATRIX:
     case SOCK_SHADER:
+    case SOCK_BUNDLE:
+    case SOCK_CLOSURE:
       break;
   }
 }
@@ -782,6 +786,8 @@ void node_socket_copy_default_value_data(eNodeSocketDatatype datatype, void *to,
     case SOCK_GEOMETRY:
     case SOCK_MATRIX:
     case SOCK_SHADER:
+    case SOCK_BUNDLE:
+    case SOCK_CLOSURE:
       break;
   }
 }
@@ -975,6 +981,38 @@ static bke::bNodeSocketType *make_socket_type_matrix()
     new (r_value) SocketValueVariant(float4x4::identity());
   };
   static SocketValueVariant default_value{float4x4::identity()};
+  socktype->geometry_nodes_default_cpp_value = &default_value;
+  return socktype;
+}
+
+static bke::bNodeSocketType *make_socket_type_bundle()
+{
+  bke::bNodeSocketType *socktype = make_standard_socket_type(SOCK_BUNDLE, PROP_NONE);
+  socktype->base_cpp_type = &blender::CPPType::get<nodes::BundlePtr>();
+  socktype->get_base_cpp_value = [](const void * /*socket_value*/, void *r_value) {
+    new (r_value) nodes::BundlePtr();
+  };
+  socktype->geometry_nodes_cpp_type = &blender::CPPType::get<SocketValueVariant>();
+  socktype->get_geometry_nodes_cpp_value = [](const void * /*socket_value*/, void *r_value) {
+    new (r_value) SocketValueVariant(nodes::BundlePtr());
+  };
+  static SocketValueVariant default_value{nodes::BundlePtr()};
+  socktype->geometry_nodes_default_cpp_value = &default_value;
+  return socktype;
+}
+
+static bke::bNodeSocketType *make_socket_type_closure()
+{
+  bke::bNodeSocketType *socktype = make_standard_socket_type(SOCK_CLOSURE, PROP_NONE);
+  socktype->base_cpp_type = &blender::CPPType::get<nodes::ClosurePtr>();
+  socktype->get_base_cpp_value = [](const void * /*socket_value*/, void *r_value) {
+    new (r_value) nodes::ClosurePtr();
+  };
+  socktype->geometry_nodes_cpp_type = &blender::CPPType::get<SocketValueVariant>();
+  socktype->get_geometry_nodes_cpp_value = [](const void * /*socket_value*/, void *r_value) {
+    new (r_value) SocketValueVariant(nodes::ClosurePtr());
+  };
+  static SocketValueVariant default_value{nodes::ClosurePtr()};
   socktype->geometry_nodes_default_cpp_value = &default_value;
   return socktype;
 }
@@ -1206,6 +1244,9 @@ void register_standard_node_socket_types()
   bke::node_register_socket_type(*make_socket_type_image());
 
   bke::node_register_socket_type(*make_socket_type_material());
+
+  bke::node_register_socket_type(*make_socket_type_bundle());
+  bke::node_register_socket_type(*make_socket_type_closure());
 
   bke::node_register_socket_type(*make_socket_type_virtual());
 }

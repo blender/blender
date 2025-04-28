@@ -169,7 +169,7 @@ static void remap_pairing(bNodeTree &dst_tree,
 /** \name Edit Group Operator
  * \{ */
 
-static int node_group_edit_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus node_group_edit_exec(bContext *C, wmOperator *op)
 {
   SpaceNode *snode = CTX_wm_space_node(C);
   const StringRef node_idname = node_group_idname(C);
@@ -237,9 +237,9 @@ static AnimationBasePathChange *animation_basepath_change_new(const StringRef sr
 static void animation_basepath_change_free(AnimationBasePathChange *basepath_change)
 {
   if (basepath_change->src_basepath != basepath_change->dst_basepath) {
-    MEM_freeN((void *)basepath_change->src_basepath);
+    MEM_freeN(basepath_change->src_basepath);
   }
-  MEM_freeN((void *)basepath_change->dst_basepath);
+  MEM_freeN(basepath_change->dst_basepath);
   MEM_freeN(basepath_change);
 }
 
@@ -321,10 +321,8 @@ static void node_group_ungroup(Main *bmain, bNodeTree *ntree, bNode *gnode)
                   animation_basepath_change_new(*old_animation_basepath, *new_animation_basepath));
     }
 
-    if (!node->parent) {
-      node->location[0] += gnode->location[0];
-      node->location[1] += gnode->location[1];
-    }
+    node->location[0] += gnode->location[0];
+    node->location[1] += gnode->location[1];
 
     node->flag |= NODE_SELECT;
   }
@@ -458,7 +456,7 @@ static void node_group_ungroup(Main *bmain, bNodeTree *ntree, bNode *gnode)
   bke::node_remove_node(bmain, *ntree, *gnode, true);
 }
 
-static int node_group_ungroup_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus node_group_ungroup_exec(bContext *C, wmOperator * /*op*/)
 {
   Main *bmain = CTX_data_main(C);
   SpaceNode *snode = CTX_wm_space_node(C);
@@ -631,7 +629,7 @@ static const EnumPropertyItem node_group_separate_types[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-static int node_group_separate_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus node_group_separate_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   SpaceNode *snode = CTX_wm_space_node(C);
@@ -672,7 +670,9 @@ static int node_group_separate_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int node_group_separate_invoke(bContext *C, wmOperator * /*op*/, const wmEvent * /*event*/)
+static wmOperatorStatus node_group_separate_invoke(bContext *C,
+                                                   wmOperator * /*op*/,
+                                                   const wmEvent * /*event*/)
 {
   uiPopupMenu *pup = UI_popup_menu_begin(
       C, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Separate"), ICON_NONE);
@@ -920,8 +920,8 @@ static void update_nested_node_refs_after_moving_nodes_into_group(
     ref.path.id_in_node = new_ref.id;
   }
   MEM_SAFE_FREE(group.nested_node_refs);
-  group.nested_node_refs = static_cast<bNestedNodeRef *>(
-      MEM_malloc_arrayN(new_nested_node_refs.size(), sizeof(bNestedNodeRef), __func__));
+  group.nested_node_refs = MEM_malloc_arrayN<bNestedNodeRef>(new_nested_node_refs.size(),
+                                                             __func__);
   uninitialized_copy_n(
       new_nested_node_refs.data(), new_nested_node_refs.size(), group.nested_node_refs);
   group.nested_node_refs_num = new_nested_node_refs.size();
@@ -1232,7 +1232,7 @@ static bNode *node_group_make_from_nodes(const bContext &C,
   return gnode;
 }
 
-static int node_group_make_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus node_group_make_exec(bContext *C, wmOperator *op)
 {
   SpaceNode &snode = *CTX_wm_space_node(C);
   bNodeTree &ntree = *snode.edittree;
@@ -1287,7 +1287,7 @@ void NODE_OT_group_make(wmOperatorType *ot)
 /** \name Group Insert Operator
  * \{ */
 
-static int node_group_insert_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus node_group_insert_exec(bContext *C, wmOperator *op)
 {
   SpaceNode *snode = CTX_wm_space_node(C);
   bNodeTree *ntree = snode->edittree;
@@ -1369,7 +1369,7 @@ static bool node_default_group_width_set_poll(bContext *C)
   return true;
 }
 
-static int node_default_group_width_set_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus node_default_group_width_set_exec(bContext *C, wmOperator * /*op*/)
 {
   SpaceNode *snode = CTX_wm_space_node(C);
   bNodeTree *ntree = snode->edittree;

@@ -17,6 +17,7 @@ from pathlib import Path
 from typing import (
     TextIO,
     Any,
+    Tuple,
     Union,
     # Proxies for `collections.abc`
     Iterable,
@@ -30,7 +31,7 @@ from typing import (
 # Support for other platforms could be added by moving GNU `tar` & `md5sum` use to Python.
 # This also relies on having a Unix shell (sh) to run some git commands.
 
-SKIP_NAMES = (
+SKIP_NAMES: Tuple[str, ...] = (
     ".gitignore",
     ".gitmodules",
     ".gitattributes",
@@ -39,7 +40,7 @@ SKIP_NAMES = (
     ".svn",
 )
 
-SKIP_FOLDERS = (
+SKIP_FOLDERS: Tuple[str, ...] = (
     "release/datafiles/assets/working",
 )
 

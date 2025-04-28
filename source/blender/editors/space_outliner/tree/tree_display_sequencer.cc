@@ -32,7 +32,7 @@ ListBase TreeDisplaySequencer::build_tree(const TreeSourceData &source_data)
 {
   ListBase tree = {nullptr};
 
-  Editing *ed = SEQ_editing_get(source_data.scene);
+  Editing *ed = seq::editing_get(source_data.scene);
   if (ed == nullptr) {
     return tree;
   }

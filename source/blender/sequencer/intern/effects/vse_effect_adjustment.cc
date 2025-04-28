@@ -11,11 +11,14 @@
 #include "SEQ_channels.hh"
 #include "SEQ_relations.hh"
 #include "SEQ_render.hh"
+#include "SEQ_sequencer.hh"
 #include "SEQ_time.hh"
 #include "SEQ_utils.hh"
 
 #include "effects.hh"
 #include "render.hh"
+
+namespace blender::seq {
 
 /* No effect inputs for adjustment, we use #give_ibuf_seq. */
 static int num_inputs_adjustment()
@@ -28,22 +31,22 @@ static StripEarlyOut early_out_adjustment(const Strip * /*strip*/, float /*fac*/
   return StripEarlyOut::NoInput;
 }
 
-static ImBuf *do_adjustment_impl(const SeqRenderData *context, Strip *strip, float timeline_frame)
+static ImBuf *do_adjustment_impl(const RenderData *context, Strip *strip, float timeline_frame)
 {
   Editing *ed;
   ImBuf *i = nullptr;
 
   ed = context->scene->ed;
 
-  ListBase *seqbasep = SEQ_get_seqbase_by_seq(context->scene, strip);
-  ListBase *channels = SEQ_get_channels_by_seq(&ed->seqbase, &ed->channels, strip);
+  ListBase *seqbasep = get_seqbase_by_seq(context->scene, strip);
+  ListBase *channels = get_channels_by_seq(ed, strip);
 
   /* Clamp timeline_frame to strip range so it behaves as if it had "still frame" offset (last
    * frame is static after end of strip). This is how most strips behave. This way transition
    * effects that doesn't overlap or speed effect can't fail rendering outside of strip range. */
   timeline_frame = clamp_i(timeline_frame,
-                           SEQ_time_left_handle_frame_get(context->scene, strip),
-                           SEQ_time_right_handle_frame_get(context->scene, strip) - 1);
+                           time_left_handle_frame_get(context->scene, strip),
+                           time_right_handle_frame_get(context->scene, strip) - 1);
 
   if (strip->machine > 1) {
     i = seq_render_give_ibuf_seqbase(
@@ -57,7 +60,7 @@ static ImBuf *do_adjustment_impl(const SeqRenderData *context, Strip *strip, flo
   if (!i) {
     Strip *meta;
 
-    meta = SEQ_find_metastrip_by_sequence(&ed->seqbase, nullptr, strip);
+    meta = lookup_meta_by_strip(ed, strip);
 
     if (meta) {
       i = do_adjustment_impl(context, meta, timeline_frame);
@@ -67,7 +70,7 @@ static ImBuf *do_adjustment_impl(const SeqRenderData *context, Strip *strip, flo
   return i;
 }
 
-static ImBuf *do_adjustment(const SeqRenderData *context,
+static ImBuf *do_adjustment(const RenderData *context,
                             Strip *strip,
                             float timeline_frame,
                             float /*fac*/,
@@ -88,9 +91,11 @@ static ImBuf *do_adjustment(const SeqRenderData *context,
   return out;
 }
 
-void adjustment_effect_get_handle(SeqEffectHandle &rval)
+void adjustment_effect_get_handle(EffectHandle &rval)
 {
   rval.num_inputs = num_inputs_adjustment;
   rval.early_out = early_out_adjustment;
   rval.execute = do_adjustment;
 }
+
+}  // namespace blender::seq

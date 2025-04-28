@@ -228,7 +228,7 @@ gpu::Batch *DRW_volume_batch_cache_get_wireframes_face(Volume *volume)
     }
 
     /* Create wireframe from OpenVDB tree. */
-    const DRWContextState *draw_ctx = DRW_context_state_get();
+    const DRWContext *draw_ctx = DRW_context_get();
     VolumeWireframeUserData userdata;
     userdata.volume = volume;
     userdata.scene = draw_ctx->scene;

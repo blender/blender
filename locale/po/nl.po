@@ -1,18 +1,18 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Beta (b'1a72a0f22cde')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'1f4cae0c4623')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-03 09:33+0000\n"
-"PO-Revision-Date: 2025-01-27 09:56+0000\n"
-"Last-Translator: Sander Spolspoel <sander@sworl.be>\n"
+"POT-Creation-Date: 2025-04-28 09:32+0000\n"
+"PO-Revision-Date: 2025-04-14 08:33+0000\n"
+"Last-Translator: Brecht Van Lommel <brechtvanlommel@gmail.com>\n"
 "Language-Team: Dutch <https://translate.blender.org/projects/blender-ui/ui/nl/>\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 5.9.2"
+"X-Generator: Weblate 5.10.1"
 
 
 msgid "Shader AOV"
@@ -1445,6 +1445,10 @@ msgid "Good"
 msgstr "Goed"
 
 
+msgid "Profile"
+msgstr "Profiel"
+
+
 msgctxt "Action"
 msgid "Invalid"
 msgstr "Ongeldig"
@@ -1832,10 +1836,6 @@ msgid "Reference"
 msgstr "Voorbeeld"
 
 
-msgid "Grease Pencil Layer"
-msgstr "Vetkrijt laag"
-
-
 msgid "Regular"
 msgstr "Normaal"
 
@@ -1846,6 +1846,10 @@ msgstr "Omgekeerd"
 
 msgid "Repeat"
 msgstr "Herhaal"
+
+
+msgid "Grease Pencil Layer"
+msgstr "Vetkrijt laag"
 
 
 msgid "Red"
@@ -2089,10 +2093,6 @@ msgstr "Selectie Uitschakelen"
 
 msgid "Round"
 msgstr "Rond"
-
-
-msgid "Profile"
-msgstr "Profiel"
 
 
 msgid "Dimensions"
@@ -2702,12 +2702,16 @@ msgid "Show/Hide"
 msgstr "Toon/Verberg"
 
 
-msgid "Text"
-msgstr "Tekst"
+msgid "Clear Transform"
+msgstr "Maak Transformatie Leeg"
 
 
 msgid "Names"
 msgstr "Namen"
+
+
+msgid "Text"
+msgstr "Tekst"
 
 
 msgid "Mirror"
@@ -2756,10 +2760,6 @@ msgstr "Converteer"
 
 msgid "Hooks"
 msgstr "Haken"
-
-
-msgid "Clear Transform"
-msgstr "Maak Transformatie Leeg"
 
 
 msgctxt "MovieClip"
@@ -4759,11 +4759,6 @@ msgstr "Isoleer Actie"
 
 
 msgctxt "Operator"
-msgid "Add File Node"
-msgstr "Voeg Bestand-node Toe"
-
-
-msgctxt "Operator"
 msgid "Add Mask Node"
 msgstr "Voeg Masker-node Toe"
 
@@ -4926,11 +4921,6 @@ msgstr "Voeg een vetkrijt object toe in de scene"
 msgctxt "Operator"
 msgid "Monkey"
 msgstr "Aap"
-
-
-msgctxt "Operator"
-msgid "Hide Collection"
-msgstr "Verberg Collectie"
 
 
 msgctxt "Operator"
@@ -5277,6 +5267,11 @@ msgstr "Dupliceer Collectie"
 
 msgid "Render the collection"
 msgstr "Render de collectie"
+
+
+msgctxt "Operator"
+msgid "Hide Collection"
+msgstr "Verberg Collectie"
 
 
 msgctxt "Operator"
@@ -5913,11 +5908,6 @@ msgstr "Overschrijven Aan/Uit"
 
 
 msgctxt "Operator"
-msgid "Refresh PyConstraints"
-msgstr "Ververs PyConstraints"
-
-
-msgctxt "Operator"
 msgid "Reload"
 msgstr "Herladen"
 
@@ -6421,10 +6411,6 @@ msgstr "Palet Kleur"
 
 msgid "Custom Shape"
 msgstr "Aangepaste Vorm"
-
-
-msgid "Restrictions"
-msgstr "Beperkingen"
 
 
 msgid "Custom Distance"
@@ -7360,10 +7346,6 @@ msgid "Add Image"
 msgstr "Voeg Afbeelding Toe"
 
 
-msgid "Endpoint"
-msgstr "Eindpunt"
-
-
 msgctxt "Operator"
 msgid "Custom..."
 msgstr "Aangepast..."
@@ -7483,6 +7465,10 @@ msgstr "Render Als"
 
 msgid "Fade Distance"
 msgstr "Vervaag Afstand"
+
+
+msgid "Endpoint"
+msgstr "Eindpunt"
 
 
 msgid "Sewing"
@@ -9157,6 +9143,10 @@ msgstr "Geen actieve venster in context!"
 
 msgid "Custom Camera"
 msgstr "Aangepaste Camera"
+
+
+msgid "Restrictions"
+msgstr "Beperkingen"
 
 
 msgid "Create Armature"

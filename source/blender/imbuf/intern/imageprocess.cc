@@ -13,41 +13,6 @@
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 
-void IMB_convert_rgba_to_abgr(ImBuf *ibuf)
-{
-  size_t size;
-  uchar rt, *cp = ibuf->byte_buffer.data;
-  float rtf, *cpf = ibuf->float_buffer.data;
-
-  if (ibuf->byte_buffer.data) {
-    size = ibuf->x * ibuf->y;
-
-    while (size-- > 0) {
-      rt = cp[0];
-      cp[0] = cp[3];
-      cp[3] = rt;
-      rt = cp[1];
-      cp[1] = cp[2];
-      cp[2] = rt;
-      cp += 4;
-    }
-  }
-
-  if (ibuf->float_buffer.data) {
-    size = ibuf->x * ibuf->y;
-
-    while (size-- > 0) {
-      rtf = cpf[0];
-      cpf[0] = cpf[3];
-      cpf[3] = rtf;
-      rtf = cpf[1];
-      cpf[1] = cpf[2];
-      cpf[2] = rtf;
-      cpf += 4;
-    }
-  }
-}
-
 /* -------------------------------------------------------------------- */
 /** \name Alpha-under
  * \{ */

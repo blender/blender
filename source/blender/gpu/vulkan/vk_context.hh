@@ -71,8 +71,15 @@ class VKContext : public Context, NonCopyable {
 
   void flush() override;
 
-  TimelineValue flush_render_graph(RenderGraphFlushFlags flags);
+  TimelineValue flush_render_graph(
+      RenderGraphFlushFlags flags,
+      VkPipelineStageFlags wait_dst_stage_mask = VK_PIPELINE_STAGE_NONE,
+      VkSemaphore wait_semaphore = VK_NULL_HANDLE,
+      VkSemaphore signal_semaphore = VK_NULL_HANDLE,
+      VkFence signal_fence = VK_NULL_HANDLE);
   void finish() override;
+
+  ShaderCompiler *get_compiler() override;
 
   void memory_statistics_get(int *r_total_mem_kb, int *r_free_mem_kb) override;
 
@@ -124,10 +131,15 @@ class VKContext : public Context, NonCopyable {
 
   static void swap_buffers_pre_callback(const GHOST_VulkanSwapChainData *data);
   static void swap_buffers_post_callback();
+  static void openxr_acquire_framebuffer_image_callback(GHOST_VulkanOpenXRData *data);
+  static void openxr_release_framebuffer_image_callback(GHOST_VulkanOpenXRData *data);
 
  private:
   void swap_buffers_pre_handler(const GHOST_VulkanSwapChainData &data);
   void swap_buffers_post_handler();
+
+  void openxr_acquire_framebuffer_image_handler(GHOST_VulkanOpenXRData &data);
+  void openxr_release_framebuffer_image_handler(GHOST_VulkanOpenXRData &data);
 
   void update_pipeline_data(VKShader &shader,
                             VkPipeline vk_pipeline,

@@ -8,7 +8,6 @@ set(INC
 
 set(INC_SYS
   ../../extern/quadriflow/src
-  ${EIGEN3_INCLUDE_DIRS}
 )
 
 set(SRC
@@ -18,6 +17,7 @@ set(SRC
 
 set(LIB
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::dependencies::eigen
   extern_quadriflow
 )
 

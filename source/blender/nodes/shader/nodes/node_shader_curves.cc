@@ -27,9 +27,13 @@ static void sh_node_curve_vec_declare(NodeDeclarationBuilder &b)
       .default_value(1.0f)
       .subtype(PROP_FACTOR)
       .no_muted_links()
-      .description("Amount of influence the node exerts on the output vector");
-  b.add_input<decl::Vector>("Vector").min(-1.0f).max(1.0f).description(
-      "Vector which would be mapped to the curve");
+      .description("Amount of influence the node exerts on the output vector")
+      .compositor_domain_priority(1);
+  b.add_input<decl::Vector>("Vector")
+      .min(-1.0f)
+      .max(1.0f)
+      .description("Vector which would be mapped to the curve")
+      .compositor_domain_priority(0);
   b.add_output<decl::Vector>("Vector");
 }
 
@@ -161,10 +165,12 @@ static void sh_node_curve_rgb_declare(NodeDeclarationBuilder &b)
       .default_value(1.0f)
       .subtype(PROP_FACTOR)
       .no_muted_links()
-      .description("Amount of influence the node exerts on the output color");
+      .description("Amount of influence the node exerts on the output color")
+      .compositor_domain_priority(1);
   b.add_input<decl::Color>("Color")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
-      .description("Color input on which correction will be applied");
+      .description("Color input on which correction will be applied")
+      .compositor_domain_priority(0);
   b.add_output<decl::Color>("Color");
 }
 
@@ -324,8 +330,12 @@ static void sh_node_curve_float_declare(NodeDeclarationBuilder &b)
       .max(1.0f)
       .default_value(1.0f)
       .subtype(PROP_FACTOR)
-      .no_muted_links();
-  b.add_input<decl::Float>("Value").default_value(1.0f).is_default_link_socket();
+      .no_muted_links()
+      .compositor_domain_priority(1);
+  b.add_input<decl::Float>("Value")
+      .default_value(1.0f)
+      .is_default_link_socket()
+      .compositor_domain_priority(0);
   b.add_output<decl::Float>("Value");
 }
 

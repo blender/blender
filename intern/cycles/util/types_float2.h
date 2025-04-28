@@ -41,6 +41,11 @@ ccl_device_inline float2 make_float2(const float x, const float y)
 }
 #endif /* __KERNEL_NATIVE_VECTOR_TYPES__ */
 
+ccl_device_inline float2 make_float2(const float f)
+{
+  return {f, f};
+}
+
 ccl_device_inline void print_float2(const ccl_private char *label, const float2 a)
 {
 #ifdef __KERNEL_PRINTF__

@@ -11,6 +11,8 @@
 #include "NOD_inverse_eval_path.hh"
 #include "NOD_inverse_eval_run.hh"
 
+#include "BKE_compute_context_cache_fwd.hh"
+
 struct Object;
 struct NodesModifierData;
 struct wmWindowManager;
@@ -62,7 +64,7 @@ using ForeachGizmoFn = FunctionRef<void(const Object &object,
  * or pinned gizmos and also finds the gizmos for the active object.
  */
 void foreach_active_gizmo(const bContext &C,
-                          ComputeContextBuilder &compute_context_builder,
+                          bke::ComputeContextCache &compute_context_cache,
                           ForeachGizmoFn fn);
 
 using ForeachGizmoInModifierFn = FunctionRef<void(const ComputeContext &compute_context,
@@ -76,7 +78,7 @@ using ForeachGizmoInModifierFn = FunctionRef<void(const ComputeContext &compute_
 void foreach_active_gizmo_in_modifier(const Object &object,
                                       const NodesModifierData &nmd,
                                       const wmWindowManager &wm,
-                                      ComputeContextBuilder &compute_context_builder,
+                                      bke::ComputeContextCache &compute_context_cache,
                                       ForeachGizmoInModifierFn fn);
 
 /**

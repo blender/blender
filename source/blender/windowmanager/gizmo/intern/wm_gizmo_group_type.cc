@@ -64,8 +64,7 @@ wmGizmoGroupType *WM_gizmogrouptype_find(const StringRef idname, bool quiet)
 
 static wmGizmoGroupType *wm_gizmogrouptype_append__begin()
 {
-  wmGizmoGroupType *gzgt = static_cast<wmGizmoGroupType *>(
-      MEM_callocN(sizeof(wmGizmoGroupType), "gizmogrouptype"));
+  wmGizmoGroupType *gzgt = MEM_callocN<wmGizmoGroupType>("gizmogrouptype");
   gzgt->srna = RNA_def_struct_ptr(&BLENDER_RNA, "", &RNA_GizmoGroupProperties);
 #if 0
   /* Set the default i18n context now, so that opfunc can redefine it if needed! */
@@ -131,7 +130,7 @@ static void gizmogrouptype_free(wmGizmoGroupType *gzgt)
 {
   /* Python gizmo group, allocates its own string. */
   if (gzgt->rna_ext.srna) {
-    MEM_freeN((void *)gzgt->idname);
+    MEM_freeN(gzgt->idname);
   }
 
   MEM_freeN(gzgt);

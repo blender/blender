@@ -13,6 +13,7 @@
 #include "BLI_enumerable_thread_specific.hh"
 #include "BLI_hash.h"
 #include "BLI_math_color_blend.h"
+#include "BLI_math_matrix.hh"
 #include "BLI_math_vector.hh"
 #include "BLI_vector.hh"
 
@@ -39,6 +40,16 @@
 #include <cstdlib>
 
 namespace blender::ed::sculpt_paint::color {
+
+static void calc_local_positions(const float4x4 &mat,
+                                 const Span<int> verts,
+                                 const Span<float3> positions,
+                                 const MutableSpan<float3> local_positions)
+{
+  for (const int i : verts.index_range()) {
+    local_positions[i] = math::transform_point(mat, positions[verts[i]]);
+  }
+}
 
 template<typename Func> inline void to_static_color_type(const CPPType &type, const Func &func)
 {
@@ -247,6 +258,7 @@ bke::GSpanAttributeWriter active_color_attribute_for_write(Mesh &mesh)
 struct ColorPaintLocalData {
   Vector<float> factors;
   Vector<float> auto_mask;
+  Vector<float3> positions;
   Vector<float> distances;
   Vector<float4> colors;
   Vector<float4> new_colors;
@@ -372,18 +384,23 @@ static void do_paint_brush_task(const Scene &scene,
     calc_front_face(cache.view_normal_symm, vert_normals, verts, factors);
   }
 
+  float radius;
+
   tls.distances.resize(verts.size());
   const MutableSpan<float> distances = tls.distances;
   if (brush.tip_roundness < 1.0f) {
-    calc_brush_cube_distances(brush, mat, vert_positions, verts, distances, factors);
-    scale_factors(distances, cache.radius);
+    tls.positions.resize(verts.size());
+    calc_local_positions(mat, verts, vert_positions, tls.positions);
+    calc_brush_cube_distances<float3>(brush, tls.positions, distances);
+    radius = 1.0f;
   }
   else {
     calc_brush_distances(
         ss, vert_positions, verts, eBrushFalloffShape(brush.falloff_shape), distances);
+    radius = cache.radius;
   }
-  filter_distances_with_radius(cache.radius, distances, factors);
-  apply_hardness_to_distances(cache, distances);
+  filter_distances_with_radius(radius, distances, factors);
+  apply_hardness_to_distances(radius, cache.hardness, distances);
   calc_brush_strength_factors(cache, brush, distances, factors);
 
   MutableSpan<float> auto_mask;

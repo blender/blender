@@ -446,7 +446,7 @@ static EditBone *make_boneList_recursive(ListBase *edbo,
   EditBone *eBoneTest = nullptr;
 
   LISTBASE_FOREACH (Bone *, curBone, bones) {
-    eBone = static_cast<EditBone *>(MEM_callocN(sizeof(EditBone), "make_editbone"));
+    eBone = MEM_callocN<EditBone>("make_editbone");
     eBone->temp.bone = curBone;
 
     /* Copy relevant data from bone to eBone
@@ -677,7 +677,7 @@ void ED_armature_from_edit(Main *bmain, bArmature *arm)
 
   /* Copy the bones from the edit-data into the armature. */
   LISTBASE_FOREACH (EditBone *, eBone, arm->edbo) {
-    newBone = static_cast<Bone *>(MEM_callocN(sizeof(Bone), "bone"));
+    newBone = MEM_callocN<Bone>("bone");
     eBone->temp.bone = newBone; /* Associate the real Bones with the EditBones */
 
     STRNCPY(newBone->name, eBone->name);
@@ -806,7 +806,7 @@ void ED_armature_edit_free(bArmature *arm)
 void ED_armature_to_edit(bArmature *arm)
 {
   ED_armature_edit_free(arm);
-  arm->edbo = static_cast<ListBase *>(MEM_callocN(sizeof(ListBase), "edbo armature"));
+  arm->edbo = MEM_callocN<ListBase>("edbo armature");
   arm->act_edbone = make_boneList(arm->edbo, &arm->bonebase, arm->act_bone);
 }
 

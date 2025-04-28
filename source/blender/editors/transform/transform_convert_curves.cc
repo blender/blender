@@ -356,7 +356,7 @@ static void recalcData_curves(TransInfo *t)
     Curves *curves_id = static_cast<Curves *>(tc.obedit->data);
     bke::CurvesGeometry &curves = curves_id->geometry.wrap();
     if (t->mode == TFM_CURVE_SHRINKFATTEN) {
-      /* No cache to update currently. */
+      curves.tag_radii_changed();
     }
     else if (t->mode == TFM_TILT) {
       curves.tag_normals_changed();

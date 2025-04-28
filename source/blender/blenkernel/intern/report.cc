@@ -58,7 +58,7 @@ void BKE_reports_init(ReportList *reports, int flag)
     return;
   }
 
-  memset(reports, 0, sizeof(ReportList));
+  *reports = ReportList{};
 
   reports->storelevel = RPT_INFO;
   reports->printlevel = RPT_ERROR;
@@ -93,7 +93,7 @@ void BKE_reports_clear(ReportList *reports)
 
   while (report) {
     report_next = report->next;
-    MEM_freeN((void *)report->message);
+    MEM_freeN(report->message);
     MEM_freeN(report);
     report = report_next;
   }
@@ -138,12 +138,12 @@ void BKE_report(ReportList *reports, eReportType type, const char *_message)
     std::scoped_lock lock(*reports->lock);
 
     char *message_alloc;
-    report = static_cast<Report *>(MEM_callocN(sizeof(Report), "Report"));
+    report = MEM_callocN<Report>("Report");
     report->type = type;
     report->typestr = BKE_report_type_str(type);
 
     len = strlen(message);
-    message_alloc = static_cast<char *>(MEM_mallocN(sizeof(char) * (len + 1), "ReportMessage"));
+    message_alloc = MEM_malloc_arrayN<char>(size_t(len) + 1, "ReportMessage");
     memcpy(message_alloc, message, sizeof(char) * (len + 1));
     report->message = message_alloc;
     report->len = len;
@@ -169,7 +169,7 @@ void BKE_reportf(ReportList *reports, eReportType type, const char *_format, ...
   if (reports && (reports->flag & RPT_STORE) && (type >= reports->storelevel)) {
     std::scoped_lock lock(*reports->lock);
 
-    report = static_cast<Report *>(MEM_callocN(sizeof(Report), "Report"));
+    report = MEM_callocN<Report>("Report");
 
     va_start(args, _format);
     report->message = BLI_vsprintfN(format, args);
@@ -196,7 +196,7 @@ static void reports_prepend_impl(ReportList *reports, const char *prepend)
   const size_t prefix_len = strlen(prepend);
   LISTBASE_FOREACH (Report *, report, &reports->list) {
     char *message = BLI_string_joinN(prepend, report->message);
-    MEM_freeN((void *)report->message);
+    MEM_freeN(report->message);
     report->message = message;
     report->len += prefix_len;
     BLI_assert(report->len == strlen(message));

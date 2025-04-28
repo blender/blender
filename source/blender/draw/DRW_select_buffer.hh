@@ -25,24 +25,26 @@ struct RegionView3D;
 struct View3D;
 struct rcti;
 
-/* Indices inside the selection framebuffer associated with the elements of a mesh. */
+/**
+ * Indices inside the selection frame-buffer associated with the elements of a mesh.
+ */
 struct ElemIndexRanges {
-  /* Range for each element type. */
+  /** Range for each element type. */
   blender::IndexRange face;
   blender::IndexRange edge;
   blender::IndexRange vert;
-  /* Combined range for the whole object. */
+  /** Combined range for the whole object. */
   blender::IndexRange total;
 };
 
 struct SELECTID_Context {
-  /* All selectable evaluated objects. */
+  /** All selectable evaluated objects. */
   blender::Vector<Object *> objects;
-  /* Map of the selectable objects from `objects` to their indices ranges. */
+  /** Map of the selectable objects from `objects` to their indices ranges. */
   blender::Map<Object *, ElemIndexRanges> elem_ranges;
 
   /**
-   * Maximum index value that can be contained inside the selection framebuffer.
+   * Maximum index value that can be contained inside the selection frame-buffer.
    * Each object/element type has different range which are described inside `elem_ranges`.
    */
   uint max_index_drawn_len;

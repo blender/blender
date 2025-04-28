@@ -2,8 +2,8 @@
 Calling Operators
 -----------------
 
-Provides python access to calling operators, this includes operators written in
-C, Python or macros.
+Provides Python access to calling operators, this includes operators written in
+C++, Python or macros.
 
 Only keyword arguments can be used to pass operator properties.
 
@@ -14,11 +14,15 @@ Common return values are ``{'FINISHED'}`` and ``{'CANCELLED'}``, the latter
 meaning that the operator execution was aborted without making any changes or
 saving an undo history entry.
 
+If operator was cancelled but there wasn't any reports from it with ``{'ERROR'}`` type,
+it will just return ``{'CANCELLED'}`` without raising any exceptions.
+If it had error reports, then it will raise a ``RuntimeError`` including all report messages.
+
 Calling an operator in the wrong context will raise a ``RuntimeError``,
 there is a poll() method to avoid this problem.
 
 Note that the operator ID (bl_idname) in this example is ``mesh.subdivide``,
-``bpy.ops`` is just the access path for python.
+``bpy.ops`` is just the access path for Python.
 
 
 Keywords and Positional Arguments
@@ -41,10 +45,10 @@ Each of these arguments is optional, but must be given in the order above.
 """
 import bpy
 
-# calling an operator
+# Calling an operator.
 bpy.ops.mesh.subdivide(number_cuts=3, smoothness=0.5)
 
 
-# check poll() to avoid exception.
+# Check poll() to avoid exception.
 if bpy.ops.object.mode_set.poll():
     bpy.ops.object.mode_set(mode='EDIT')

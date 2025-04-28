@@ -24,6 +24,8 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
+namespace blender::seq {
+
 static void proxy_freejob(void *pjv)
 {
   ProxyJob *pj = static_cast<ProxyJob *>(pjv);
@@ -39,9 +41,9 @@ static void proxy_startjob(void *pjv, wmJobWorkerStatus *worker_status)
   ProxyJob *pj = static_cast<ProxyJob *>(pjv);
 
   LISTBASE_FOREACH (LinkData *, link, &pj->queue) {
-    SeqIndexBuildContext *context = static_cast<SeqIndexBuildContext *>(link->data);
+    IndexBuildContext *context = static_cast<IndexBuildContext *>(link->data);
 
-    SEQ_proxy_rebuild(context, worker_status);
+    proxy_rebuild(context, worker_status);
 
     if (worker_status->stop) {
       pj->stop = true;
@@ -54,13 +56,13 @@ static void proxy_startjob(void *pjv, wmJobWorkerStatus *worker_status)
 static void proxy_endjob(void *pjv)
 {
   ProxyJob *pj = static_cast<ProxyJob *>(pjv);
-  Editing *ed = SEQ_editing_get(pj->scene);
+  Editing *ed = editing_get(pj->scene);
 
   LISTBASE_FOREACH (LinkData *, link, &pj->queue) {
-    SEQ_proxy_rebuild_finish(static_cast<SeqIndexBuildContext *>(link->data), pj->stop);
+    proxy_rebuild_finish(static_cast<IndexBuildContext *>(link->data), pj->stop);
   }
 
-  SEQ_relations_free_imbuf(pj->scene, &ed->seqbase, false);
+  relations_free_imbuf(pj->scene, &ed->seqbase, false);
 
   WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, pj->scene);
 }
@@ -71,7 +73,7 @@ ProxyJob *ED_seq_proxy_job_get(const bContext *C, wmJob *wm_job)
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   ProxyJob *pj = static_cast<ProxyJob *>(WM_jobs_customdata_get(wm_job));
   if (!pj) {
-    pj = static_cast<ProxyJob *>(MEM_callocN(sizeof(ProxyJob), "proxy rebuild job"));
+    pj = MEM_callocN<ProxyJob>("proxy rebuild job");
     pj->depsgraph = depsgraph;
     pj->scene = scene;
     pj->main = CTX_data_main(C);
@@ -93,3 +95,5 @@ wmJob *ED_seq_proxy_wm_job_get(const bContext *C)
                               WM_JOB_TYPE_SEQ_BUILD_PROXY);
   return wm_job;
 }
+
+}  // namespace blender::seq

@@ -44,8 +44,8 @@ void uiTemplateColorPicker(uiLayout *layout,
   float softmin, softmax, step, precision;
   RNA_property_float_ui_range(ptr, prop, &softmin, &softmax, &step, &precision);
 
-  uiLayout *col = uiLayoutColumn(layout, true);
-  uiLayout *row = uiLayoutRow(col, true);
+  uiLayout *col = &layout->column(true);
+  uiLayout *row = &col->row(true);
 
   uiBut *but = nullptr;
   uiButHSVCube *hsv_but;
@@ -220,13 +220,13 @@ static void ui_template_palette_menu(bContext * /*C*/, uiLayout *layout, void * 
   uiLayout *row;
 
   uiItemL(layout, IFACE_("Sort By:"), ICON_NONE);
-  row = uiLayoutRow(layout, false);
+  row = &layout->row(false);
   uiItemEnumO_value(row, IFACE_("Hue"), ICON_NONE, "PALETTE_OT_sort", "type", 1);
-  row = uiLayoutRow(layout, false);
+  row = &layout->row(false);
   uiItemEnumO_value(row, IFACE_("Saturation"), ICON_NONE, "PALETTE_OT_sort", "type", 2);
-  row = uiLayoutRow(layout, false);
+  row = &layout->row(false);
   uiItemEnumO_value(row, IFACE_("Value"), ICON_NONE, "PALETTE_OT_sort", "type", 3);
-  row = uiLayoutRow(layout, false);
+  row = &layout->row(false);
   uiItemEnumO_value(row, IFACE_("Luminance"), ICON_NONE, "PALETTE_OT_sort", "type", 4);
 }
 
@@ -254,8 +254,8 @@ void uiTemplatePalette(uiLayout *layout,
 
   Palette *palette = static_cast<Palette *>(cptr.data);
 
-  uiLayout *col = uiLayoutColumn(layout, true);
-  uiLayoutRow(col, true);
+  uiLayout *col = &layout->column(true);
+  col->row(true);
   uiDefIconButO(block,
                 UI_BTYPE_BUT,
                 "PALETTE_OT_color_add",
@@ -308,13 +308,13 @@ void uiTemplatePalette(uiLayout *layout,
         block, ui_template_palette_menu, nullptr, ICON_SORTSIZE, 0, 0, UI_UNIT_X, UI_UNIT_Y, "");
   }
 
-  col = uiLayoutColumn(layout, true);
-  uiLayoutRow(col, true);
+  col = &layout->column(true);
+  col->row(true);
 
   int row_cols = 0, col_id = 0;
   LISTBASE_FOREACH (PaletteColor *, color, &palette->colors) {
     if (row_cols >= cols_per_row) {
-      uiLayoutRow(col, true);
+      col->row(true);
       row_cols = 0;
     }
 

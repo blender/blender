@@ -55,7 +55,7 @@ Mesh *ABCMetaballWriter::get_export_mesh(Object *object_eval, bool &r_needsfree)
     return mesh_eval;
   }
   r_needsfree = true;
-  return BKE_mesh_new_from_object(args_.depsgraph, object_eval, false, false);
+  return BKE_mesh_new_from_object(args_.depsgraph, object_eval, false, false, true);
 }
 
 void ABCMetaballWriter::free_export_mesh(Mesh *mesh)

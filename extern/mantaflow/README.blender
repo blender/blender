@@ -5,3 +5,4 @@ Copyright: Copyright 2011 Tobias Pfaff, Nils Thuerey
 Upstream version: 0.13
 Local modifications:
 * ./patches/local_namespace.diff to support loading MANTA variables into an isolated __main__ name-space.
+* ./patches/fix-computation-errors.patch fix computation errors for normalization functions for 3d vectors by using std::hypot.

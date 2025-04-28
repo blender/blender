@@ -286,6 +286,8 @@ TEST(vector_set, LookupKey)
   EXPECT_EQ(set.lookup_key_ptr_as("d"), nullptr);
   EXPECT_EQ(set.lookup_key_ptr_as("b")->size(), 1);
   EXPECT_EQ(set.lookup_key_ptr("a"), set.lookup_key_ptr_as("a"));
+  EXPECT_EQ(set.lookup_key_default("d", "default"), "default");
+  EXPECT_EQ(set.lookup_key_default("c", "default"), "c");
 }
 
 TEST(vector_set, GrowWhenEmpty)
@@ -344,6 +346,9 @@ struct KeyWithData {
   int key;
   std::string data;
 
+  KeyWithData(int key, std::string data) : key(key), data(data) {}
+  KeyWithData(const StringRef data) : key(0), data(data) {}
+
   uint64_t hash() const
   {
     return uint64_t(this->key);
@@ -377,6 +382,20 @@ TEST(vector_set, AddOverwrite)
   EXPECT_EQ(set[0].data, "c");
   EXPECT_EQ(set[1].data, "d");
   EXPECT_EQ(set.lookup_key(key).data, "d");
+}
+
+TEST(vector_set, LookupDefault)
+{
+  VectorSet<KeyWithData> set;
+  EXPECT_TRUE(set.add(KeyWithData{1, "b"}));
+  EXPECT_TRUE(set.add(KeyWithData{423, "s"}));
+  EXPECT_TRUE(set.add(KeyWithData{2, "t"}));
+  KeyWithData default_key{1, "default"};
+  EXPECT_EQ(set.lookup_key_default(KeyWithData{1221, "3"}, default_key), default_key);
+  KeyWithData other_s{0, "testing"};
+  EXPECT_EQ(set.lookup_key_default(KeyWithData{2398745, "fffff"}, StringRef("testing")), other_s);
+  EXPECT_EQ(set.lookup_key_default(KeyWithData{1, "s"}, StringRef("testing")), set[0]);
+  EXPECT_EQ(set.lookup_key_default(KeyWithData{2, "t"}, {1, "default"}), set[2]);
 }
 
 }  // namespace blender::tests

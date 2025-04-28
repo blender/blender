@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2016 Google Inc. All rights reserved.
+// Copyright 2023 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -33,8 +33,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace ceres {
-namespace internal {
+namespace ceres::internal {
 bool IsClose(double x,
              double y,
              double relative_precision,
@@ -57,5 +56,4 @@ bool IsClose(double x,
   }
   return *relative_error < std::fabs(relative_precision);
 }
-}  // namespace internal
-}  // namespace ceres
+}  // namespace ceres::internal

@@ -114,7 +114,7 @@ static void reserve(const shader::Type type, int32_t array_size, uint32_t *r_off
  */
 template<typename LayoutT> static void align_end_of_struct(uint32_t *r_offset)
 {
-  align<LayoutT>(shader::Type::VEC4, 0, r_offset);
+  align<LayoutT>(shader::Type::float4_t, 0, r_offset);
 }
 
 }  // namespace blender::gpu

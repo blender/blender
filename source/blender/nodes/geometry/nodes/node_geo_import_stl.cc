@@ -80,7 +80,6 @@ static void node_register()
   ntype.nclass = NODE_CLASS_INPUT;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.declare = node_declare;
-  ntype.gather_link_search_ops = search_link_ops_for_import_node;
 
   blender::bke::node_register_type(ntype);
 }

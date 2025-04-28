@@ -26,6 +26,7 @@
 #include "BLI_path_utils.hh"
 #include "BLI_set.hh"
 #include "BLI_string.h"
+#include "BLI_string_ref.hh"
 #include "BLI_string_utils.hh"
 
 #include "DNA_material_types.h"
@@ -38,15 +39,14 @@
 
 #include <pxr/base/tf/stringUtils.h>
 
-#include "CLG_log.h"
-static CLG_LogRef LOG = {"io.usd"};
-
 #ifdef WITH_MATERIALX
 #  include "shader/materialx/material.h"
 #  include <pxr/usd/sdf/copyUtils.h>
 #  include <pxr/usd/usdMtlx/reader.h>
-#  include <pxr/usd/usdMtlx/utils.h>
 #endif
+
+#include "CLG_log.h"
+static CLG_LogRef LOG = {"io.usd"};
 
 /* `TfToken` objects are not cheap to construct, so we do it once. */
 namespace usdtokens {
@@ -108,12 +108,12 @@ struct InputSpec {
 };
 
 /* Map Blender socket names to USD Preview Surface InputSpec structs. */
-using InputSpecMap = blender::Map<std::string, InputSpec>;
+using InputSpecMap = blender::Map<StringRef, InputSpec>;
 
 /* Static function forward declarations. */
 static pxr::UsdShadeShader create_usd_preview_shader(const USDExporterContext &usd_export_context,
                                                      const pxr::UsdShadeMaterial &material,
-                                                     const char *name,
+                                                     const StringRef name,
                                                      int type);
 static pxr::UsdShadeShader create_usd_preview_shader(const USDExporterContext &usd_export_context,
                                                      const pxr::UsdShadeMaterial &material,
@@ -537,7 +537,7 @@ static void create_uvmap_shader(const USDExporterContext &usd_export_context,
 
   BLI_assert(!uv_node || uv_node->type_legacy == SH_NODE_UVMAP);
 
-  const char *shader_name = uv_node ? uv_node->name : "uvmap";
+  const StringRef shader_name = uv_node ? uv_node->name : "uvmap";
 
   pxr::UsdShadeShader uv_shader = create_usd_preview_shader(
       usd_export_context, usd_material, shader_name, SH_NODE_UVMAP);
@@ -860,7 +860,7 @@ static void export_packed_texture(Image *ima,
        * a file extension based on the file magic. */
 
       enum eImbFileType ftype = eImbFileType(
-          IMB_ispic_type_from_memory(static_cast<const uchar *>(pf->data), pf->size));
+          IMB_test_image_type_from_memory(static_cast<const uchar *>(pf->data), pf->size));
       if (ima->source == IMA_SRC_TILED) {
         char tile_number[6];
         SNPRINTF(tile_number, ".%d", imapf->tile_number);
@@ -1008,7 +1008,7 @@ static bNode *find_displacement_node(Material *material)
 /* Creates a USD Preview Surface shader based on the given cycles node name and type. */
 static pxr::UsdShadeShader create_usd_preview_shader(const USDExporterContext &usd_export_context,
                                                      const pxr::UsdShadeMaterial &material,
-                                                     const char *name,
+                                                     const StringRef name,
                                                      const int type)
 {
   pxr::SdfPath shader_path = material.GetPath().AppendChild(
@@ -1346,7 +1346,7 @@ void export_texture(bNode *node,
   export_texture(ima, stage, allow_overwrite, reports);
 }
 
-pxr::TfToken token_for_input(const char *input_name)
+pxr::TfToken token_for_input(const StringRef input_name)
 {
   const InputSpecMap &input_map = preview_surface_input_map();
   const InputSpec *spec = input_map.lookup_ptr(input_name);

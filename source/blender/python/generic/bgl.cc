@@ -613,9 +613,14 @@ static PyObject *Buffer_dimensions(Buffer *self, void * /*arg*/)
   return list;
 }
 
-#if (defined(__GNUC__) && !defined(__clang__))
-#  pragma GCC diagnostic push
-#  pragma GCC diagnostic ignored "-Wcast-function-type"
+#ifdef __GNUC__
+#  ifdef __clang__
+#    pragma clang diagnostic push
+#    pragma clang diagnostic ignored "-Wcast-function-type"
+#  else
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wcast-function-type"
+#  endif
 #endif
 
 static PyMethodDef Buffer_methods[] = {
@@ -623,8 +628,12 @@ static PyMethodDef Buffer_methods[] = {
     {nullptr, nullptr, 0, nullptr},
 };
 
-#if (defined(__GNUC__) && !defined(__clang__))
-#  pragma GCC diagnostic pop
+#ifdef __GNUC__
+#  ifdef __clang__
+#    pragma clang diagnostic pop
+#  else
+#    pragma GCC diagnostic pop
+#  endif
 #endif
 
 static PyGetSetDef Buffer_getseters[] = {
@@ -692,8 +701,7 @@ static Buffer *BGL_MakeBuffer_FromData(
   Py_XINCREF(parent);
   buffer->parent = parent;
   buffer->ndimensions = ndimensions;
-  buffer->dimensions = static_cast<int *>(
-      MEM_mallocN(ndimensions * sizeof(int), "Buffer dimensions"));
+  buffer->dimensions = MEM_malloc_arrayN<int>(size_t(ndimensions), "Buffer dimensions");
   memcpy(buffer->dimensions, dimensions, ndimensions * sizeof(int));
   buffer->type = type;
   buffer->buf.asvoid = buf;

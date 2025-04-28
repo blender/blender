@@ -11,7 +11,7 @@
 #define MotionPayload uint
 
 /* Store velocity magnitude in the MSB to be able to use it with atomicMax operations. */
-MotionPayload motion_blur_tile_indirection_pack_payload(vec2 motion, uvec2 payload)
+MotionPayload motion_blur_tile_indirection_pack_payload(float2 motion, uint2 payload)
 {
   /* NOTE: Clamp to 16383 pixel velocity. After that, it is tile position that determine the tile
    * to dilate over. */
@@ -21,12 +21,12 @@ MotionPayload motion_blur_tile_indirection_pack_payload(vec2 motion, uvec2 paylo
 }
 
 /* Return thread index. */
-ivec2 motion_blur_tile_indirection_pack_payload(uint data)
+int2 motion_blur_tile_indirection_pack_payload(uint data)
 {
-  return ivec2((data >> 9u) & 0x1FFu, data & 0x1FFu);
+  return int2((data >> 9u) & 0x1FFu, data & 0x1FFu);
 }
 
-uint motion_blur_tile_indirection_index(uint motion_step, uvec2 tile)
+uint motion_blur_tile_indirection_index(uint motion_step, uint2 tile)
 {
   uint index = tile.x;
   index += tile.y * MOTION_BLUR_MAX_TILE;

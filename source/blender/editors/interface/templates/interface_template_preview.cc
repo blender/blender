@@ -119,8 +119,8 @@ void uiTemplatePreview(uiLayout *layout,
 
   /* layout */
   uiBlock *block = uiLayoutGetBlock(layout);
-  uiLayout *row = uiLayoutRow(layout, false);
-  uiLayout *col = uiLayoutColumn(row, false);
+  uiLayout *row = &layout->row(false);
+  uiLayout *col = &row->column(false);
   uiLayoutSetKeepAspect(col, true);
 
   /* add preview */
@@ -158,7 +158,7 @@ void uiTemplatePreview(uiLayout *layout,
       /* Create RNA Pointer */
       PointerRNA material_ptr = RNA_id_pointer_create(&ma->id);
 
-      col = uiLayoutColumn(row, true);
+      col = &row->column(true);
       uiLayoutSetScaleX(col, 1.5);
       uiItemR(col, &material_ptr, "preview_render_type", UI_ITEM_R_EXPAND, "", ICON_NONE);
 
@@ -174,7 +174,7 @@ void uiTemplatePreview(uiLayout *layout,
       /* Create RNA Pointer */
       PointerRNA texture_ptr = RNA_id_pointer_create(id);
 
-      uiLayoutRow(layout, true);
+      layout->row(true);
       uiDefButS(block,
                 UI_BTYPE_ROW,
                 B_MATPRV,
@@ -258,7 +258,7 @@ void uiTemplatePreview(uiLayout *layout,
 
       /* Alpha button for texture preview */
       if (*pr_texture != TEX_PR_OTHER) {
-        row = uiLayoutRow(layout, false);
+        row = &layout->row(false);
         uiItemR(row, &texture_ptr, "use_preview_alpha", UI_ITEM_NONE, std::nullopt, ICON_NONE);
       }
     }

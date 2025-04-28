@@ -74,7 +74,7 @@ DEF_ENUM(rna_enum_stereo3d_display_items)
 DEF_ENUM(rna_enum_stereo3d_anaglyph_type_items)
 DEF_ENUM(rna_enum_stereo3d_interlace_type_items)
 
-#ifdef WITH_OPENEXR
+#ifdef WITH_IMAGE_OPENEXR
 DEF_ENUM(rna_enum_exr_codec_items)
 #endif
 DEF_ENUM(rna_enum_color_sets_items)
@@ -119,6 +119,7 @@ DEF_ENUM(rna_enum_brush_image_brush_type_items)
 DEF_ENUM(rna_enum_brush_curve_preset_items)
 
 DEF_ENUM(rna_enum_grease_pencil_selectmode_items)
+DEF_ENUM(rna_enum_stroke_depth_order_items)
 
 DEF_ENUM(rna_enum_axis_xy_items)
 DEF_ENUM(rna_enum_axis_xyz_items)

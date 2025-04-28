@@ -124,6 +124,7 @@ ccl_device_noinline
   {
     float dist = stack_load_float_default(stack, dist_offset, node.w);
     float3 normal = stack_valid(normal_offset) ? stack_load_float3(stack, normal_offset) : sd->N;
+    normal = safe_normalize(normal);
 
 #  ifdef __KERNEL_OPTIX__
     ao = optixDirectCall<float>(0, kg, state, sd, normal, dist, samples, flags);

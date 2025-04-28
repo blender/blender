@@ -56,6 +56,7 @@ void VKDevice::deinit()
   pipelines.free_data();
   descriptor_set_layouts_.deinit();
   orphaned_data.deinit(*this);
+  vmaDestroyPool(mem_allocator_, vma_pools.external_memory);
   vmaDestroyAllocator(mem_allocator_);
   mem_allocator_ = VK_NULL_HANDLE;
 
@@ -84,15 +85,14 @@ bool VKDevice::is_initialized() const
 void VKDevice::init(void *ghost_context)
 {
   BLI_assert(!is_initialized());
-  void *queue_mutex = nullptr;
-  GHOST_GetVulkanHandles((GHOST_ContextHandle)ghost_context,
-                         &vk_instance_,
-                         &vk_physical_device_,
-                         &vk_device_,
-                         &vk_queue_family_,
-                         &vk_queue_,
-                         &queue_mutex);
-  queue_mutex_ = static_cast<std::mutex *>(queue_mutex);
+  GHOST_VulkanHandles handles = {};
+  GHOST_GetVulkanHandles((GHOST_ContextHandle)ghost_context, &handles);
+  vk_instance_ = handles.instance;
+  vk_physical_device_ = handles.physical_device;
+  vk_device_ = handles.device;
+  vk_queue_family_ = handles.graphic_queue_family;
+  vk_queue_ = handles.queue;
+  queue_mutex_ = static_cast<std::mutex *>(handles.queue_mutex);
 
   init_physical_device_properties();
   init_physical_device_memory_properties();
@@ -113,8 +113,8 @@ void VKDevice::init(void *ghost_context)
   debug::object_label(queue_get(), "GenericQueue");
   init_glsl_patch();
 
-  resources.use_dynamic_rendering = !workarounds_.dynamic_rendering;
-  resources.use_dynamic_rendering_local_read = !workarounds_.dynamic_rendering_local_read;
+  resources.use_dynamic_rendering = extensions_.dynamic_rendering;
+  resources.use_dynamic_rendering_local_read = extensions_.dynamic_rendering_local_read;
   orphaned_data.timeline_ = timeline_value_ + 1;
 
   init_submission_pool();
@@ -134,6 +134,15 @@ void VKDevice::init_functions()
   functions.vkSetDebugUtilsObjectName = LOAD_FUNCTION(vkSetDebugUtilsObjectNameEXT);
   functions.vkCreateDebugUtilsMessenger = LOAD_FUNCTION(vkCreateDebugUtilsMessengerEXT);
   functions.vkDestroyDebugUtilsMessenger = LOAD_FUNCTION(vkDestroyDebugUtilsMessengerEXT);
+
+  /* VK_KHR_external_memory_fd */
+  functions.vkGetMemoryFd = LOAD_FUNCTION(vkGetMemoryFdKHR);
+
+#ifdef _WIN32
+  /* VK_KHR_external_memory_win32 */
+  functions.vkGetMemoryWin32Handle = LOAD_FUNCTION(vkGetMemoryWin32HandleKHR);
+#endif
+
 #undef LOAD_FUNCTION
 }
 
@@ -150,7 +159,9 @@ void VKDevice::init_physical_device_properties()
   vk_physical_device_properties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
   vk_physical_device_driver_properties_.sType =
       VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DRIVER_PROPERTIES;
+  vk_physical_device_id_properties_.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ID_PROPERTIES;
   vk_physical_device_properties.pNext = &vk_physical_device_driver_properties_;
+  vk_physical_device_driver_properties_.pNext = &vk_physical_device_id_properties_;
 
   vkGetPhysicalDeviceProperties2(vk_physical_device_, &vk_physical_device_properties);
   vk_physical_device_properties_ = vk_physical_device_properties.properties;
@@ -207,6 +218,49 @@ void VKDevice::init_memory_allocator()
   info.device = vk_device_;
   info.instance = vk_instance_;
   vmaCreateAllocator(&info, &mem_allocator_);
+
+  /* External memory pool */
+  /* Initialize a dummy image create info to find the memory type index that will be used for
+   * allocating. */
+  VkExternalMemoryHandleTypeFlags vk_external_memory_handle_type = 0;
+#ifdef _WIN32
+  vk_external_memory_handle_type = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_BIT;
+#else
+  vk_external_memory_handle_type = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT;
+#endif
+  VkExternalMemoryImageCreateInfo external_image_create_info = {
+      VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_IMAGE_CREATE_INFO,
+      nullptr,
+      vk_external_memory_handle_type};
+  VkImageCreateInfo image_create_info = {VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+                                         &external_image_create_info,
+                                         0,
+                                         VK_IMAGE_TYPE_2D,
+                                         VK_FORMAT_R8G8B8A8_UNORM,
+                                         {1024, 1024, 1},
+                                         1,
+                                         1,
+                                         VK_SAMPLE_COUNT_1_BIT,
+                                         VK_IMAGE_TILING_OPTIMAL,
+                                         VK_IMAGE_USAGE_TRANSFER_SRC_BIT |
+                                             VK_IMAGE_USAGE_TRANSFER_DST_BIT |
+                                             VK_IMAGE_USAGE_SAMPLED_BIT,
+                                         VK_SHARING_MODE_EXCLUSIVE,
+                                         0,
+                                         nullptr,
+                                         VK_IMAGE_LAYOUT_UNDEFINED};
+  VmaAllocationCreateInfo allocation_create_info = {};
+  allocation_create_info.flags = VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT;
+  allocation_create_info.usage = VMA_MEMORY_USAGE_AUTO;
+  uint32_t memory_type_index;
+  vmaFindMemoryTypeIndexForImageInfo(
+      mem_allocator_, &image_create_info, &allocation_create_info, &memory_type_index);
+
+  vma_pools.external_memory_info.handleTypes = vk_external_memory_handle_type;
+  VmaPoolCreateInfo pool_create_info = {};
+  pool_create_info.memoryTypeIndex = memory_type_index;
+  pool_create_info.pMemoryAllocateNext = &vma_pools.external_memory_info;
+  vmaCreatePool(mem_allocator_, &pool_create_info, &vma_pools.external_memory);
 }
 
 void VKDevice::init_dummy_buffer()
@@ -243,7 +297,7 @@ void VKDevice::init_glsl_patch()
     ss << "#extension GL_ARB_shader_stencil_export: enable\n";
     ss << "#define GPU_ARB_shader_stencil_export 1\n";
   }
-  if (!workarounds_.fragment_shader_barycentric) {
+  if (extensions_.fragment_shader_barycentric) {
     ss << "#extension GL_EXT_fragment_shader_barycentric : require\n";
     ss << "#define gpu_BaryCoord gl_BaryCoordEXT\n";
     ss << "#define gpu_BaryCoordNoPersp gl_BaryCoordNoPerspEXT\n";
@@ -364,213 +418,6 @@ std::string VKDevice::driver_version() const
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Render graph
- * \{ */
-
-struct VKRenderGraphSubmitTask {
-  render_graph::VKRenderGraph *render_graph;
-  uint64_t timeline;
-  bool submit_to_device;
-};
-
-TimelineValue VKDevice::render_graph_submit(render_graph::VKRenderGraph *render_graph,
-                                            VKDiscardPool &context_discard_pool,
-                                            bool submit_to_device,
-                                            bool wait_for_completion)
-{
-  if (render_graph->is_empty()) {
-    render_graph->reset();
-    BLI_thread_queue_push(unused_render_graphs_, render_graph);
-    return 0;
-  }
-
-  VKRenderGraphSubmitTask *submit_task = MEM_new<VKRenderGraphSubmitTask>(__func__);
-  submit_task->render_graph = render_graph;
-  submit_task->submit_to_device = submit_to_device;
-  TimelineValue timeline = submit_task->timeline = submit_to_device ? ++timeline_value_ :
-                                                                      timeline_value_ + 1;
-  orphaned_data.timeline_ = timeline + 1;
-  orphaned_data.move_data(context_discard_pool, timeline);
-  BLI_thread_queue_push(submitted_render_graphs_, submit_task);
-  submit_task = nullptr;
-
-  if (wait_for_completion) {
-    wait_for_timeline(timeline);
-  }
-  return timeline;
-}
-
-void VKDevice::wait_for_timeline(TimelineValue timeline)
-{
-  if (timeline == 0) {
-    return;
-  }
-  VkSemaphoreWaitInfo vk_semaphore_wait_info = {
-      VK_STRUCTURE_TYPE_SEMAPHORE_WAIT_INFO, nullptr, 0, 1, &vk_timeline_semaphore_, &timeline};
-  vkWaitSemaphores(vk_device_, &vk_semaphore_wait_info, UINT64_MAX);
-}
-
-render_graph::VKRenderGraph *VKDevice::render_graph_new()
-{
-  render_graph::VKRenderGraph *render_graph = static_cast<render_graph::VKRenderGraph *>(
-      BLI_thread_queue_pop_timeout(unused_render_graphs_, 0));
-  if (render_graph) {
-    return render_graph;
-  }
-
-  std::scoped_lock lock(resources.mutex);
-  render_graph = MEM_new<render_graph::VKRenderGraph>(__func__, resources);
-  render_graphs_.append(render_graph);
-  return render_graph;
-}
-
-void VKDevice::submission_runner(TaskPool *__restrict pool, void *task_data)
-{
-  UNUSED_VARS(task_data);
-
-  VKDevice *device = static_cast<VKDevice *>(BLI_task_pool_user_data(pool));
-  VkCommandPool vk_command_pool = VK_NULL_HANDLE;
-  VkCommandPoolCreateInfo vk_command_pool_create_info = {
-      VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
-      nullptr,
-      VK_COMMAND_POOL_CREATE_TRANSIENT_BIT | VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
-      device->vk_queue_family_};
-  vkCreateCommandPool(device->vk_device_, &vk_command_pool_create_info, nullptr, &vk_command_pool);
-
-  render_graph::VKScheduler scheduler;
-  render_graph::VKCommandBuilder command_builder;
-  Vector<VkCommandBuffer> command_buffers_unused;
-  TimelineResources<VkCommandBuffer> command_buffers_in_use;
-  VkCommandBuffer vk_command_buffer = VK_NULL_HANDLE;
-  std::optional<render_graph::VKCommandBufferWrapper> command_buffer;
-
-  while (device->lifetime < Lifetime::DEINITIALIZING) {
-    VKRenderGraphSubmitTask *submit_task = static_cast<VKRenderGraphSubmitTask *>(
-        BLI_thread_queue_pop_timeout(device->submitted_render_graphs_, 1));
-    if (submit_task == nullptr) {
-      continue;
-    }
-
-    if (!command_buffer.has_value()) {
-      /* Check for completed command buffers that can be reused. */
-      if (command_buffers_unused.is_empty()) {
-        uint64_t current_timeline = device->submission_finished_timeline_get();
-        command_buffers_in_use.remove_old(current_timeline,
-                                          [&](VkCommandBuffer vk_command_buffer) {
-                                            command_buffers_unused.append(vk_command_buffer);
-                                          });
-      }
-
-      /* Create new command buffers when there are no left to be reused. */
-      if (command_buffers_unused.is_empty()) {
-        command_buffers_unused.resize(10, VK_NULL_HANDLE);
-        VkCommandBufferAllocateInfo vk_command_buffer_allocate_info = {
-            VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
-            nullptr,
-            vk_command_pool,
-            VK_COMMAND_BUFFER_LEVEL_PRIMARY,
-            10};
-        vkAllocateCommandBuffers(
-            device->vk_device_, &vk_command_buffer_allocate_info, command_buffers_unused.data());
-      };
-
-      vk_command_buffer = command_buffers_unused.pop_last();
-      command_buffer = std::make_optional<render_graph::VKCommandBufferWrapper>(
-          vk_command_buffer, device->workarounds_);
-      command_buffer->begin_recording();
-    }
-
-    BLI_assert(vk_command_buffer != VK_NULL_HANDLE);
-
-    render_graph::VKRenderGraph &render_graph = *submit_task->render_graph;
-    Span<render_graph::NodeHandle> node_handles = scheduler.select_nodes(render_graph);
-    {
-      std::scoped_lock lock_resources(device->resources.mutex);
-      command_builder.build_nodes(render_graph, *command_buffer, node_handles);
-    }
-    command_builder.record_commands(render_graph, *command_buffer, node_handles);
-
-    if (submit_task->submit_to_device) {
-      command_buffer->end_recording();
-      VkTimelineSemaphoreSubmitInfo vk_timeline_semaphore_submit_info = {
-          VK_STRUCTURE_TYPE_TIMELINE_SEMAPHORE_SUBMIT_INFO,
-          nullptr,
-          0,
-          nullptr,
-          1,
-          &submit_task->timeline};
-      VkSubmitInfo vk_submit_info = {VK_STRUCTURE_TYPE_SUBMIT_INFO,
-                                     &vk_timeline_semaphore_submit_info,
-                                     0,
-                                     nullptr,
-                                     nullptr,
-                                     1,
-                                     &vk_command_buffer,
-                                     1,
-                                     &device->vk_timeline_semaphore_};
-
-      {
-        std::scoped_lock lock_queue(*device->queue_mutex_);
-        vkQueueSubmit(device->vk_queue_, 1, &vk_submit_info, VK_NULL_HANDLE);
-      }
-      command_buffers_in_use.append_timeline(submit_task->timeline, vk_command_buffer);
-      vk_command_buffer = VK_NULL_HANDLE;
-      command_buffer.reset();
-    }
-
-    render_graph.reset();
-    BLI_thread_queue_push(device->unused_render_graphs_, std::move(submit_task->render_graph));
-    MEM_delete<VKRenderGraphSubmitTask>(submit_task);
-  }
-
-  /* Clear command buffers and pool */
-  vkDeviceWaitIdle(device->vk_device_);
-  command_buffers_in_use.remove_old(UINT64_MAX, [&](VkCommandBuffer vk_command_buffer) {
-    command_buffers_unused.append(vk_command_buffer);
-  });
-  vkFreeCommandBuffers(device->vk_device_,
-                       vk_command_pool,
-                       command_buffers_unused.size(),
-                       command_buffers_unused.data());
-  vkDestroyCommandPool(device->vk_device_, vk_command_pool, nullptr);
-}  // namespace blender::gpu
-
-void VKDevice::init_submission_pool()
-{
-  submission_pool_ = BLI_task_pool_create_background_serial(this, TASK_PRIORITY_HIGH);
-  BLI_task_pool_push(submission_pool_, VKDevice::submission_runner, nullptr, false, nullptr);
-  submitted_render_graphs_ = BLI_thread_queue_init();
-  unused_render_graphs_ = BLI_thread_queue_init();
-
-  VkSemaphoreTypeCreateInfo vk_semaphore_type_create_info = {
-      VK_STRUCTURE_TYPE_SEMAPHORE_TYPE_CREATE_INFO, nullptr, VK_SEMAPHORE_TYPE_TIMELINE, 0};
-  VkSemaphoreCreateInfo vk_semaphore_create_info = {
-      VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO, &vk_semaphore_type_create_info, 0};
-  vkCreateSemaphore(vk_device_, &vk_semaphore_create_info, nullptr, &vk_timeline_semaphore_);
-}
-
-void VKDevice::deinit_submission_pool()
-{
-  BLI_task_pool_free(submission_pool_);
-  submission_pool_ = nullptr;
-
-  while (!BLI_thread_queue_is_empty(submitted_render_graphs_)) {
-    VKRenderGraphSubmitTask *submit_task = static_cast<VKRenderGraphSubmitTask *>(
-        BLI_thread_queue_pop(submitted_render_graphs_));
-    MEM_delete<VKRenderGraphSubmitTask>(submit_task);
-  }
-  BLI_thread_queue_free(submitted_render_graphs_);
-  submitted_render_graphs_ = nullptr;
-  BLI_thread_queue_free(unused_render_graphs_);
-  unused_render_graphs_ = nullptr;
-
-  vkDestroySemaphore(vk_device_, vk_timeline_semaphore_, nullptr);
-  vk_timeline_semaphore_ = VK_NULL_HANDLE;
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name VKThreadData
  * \{ */
 
@@ -609,26 +456,6 @@ VKThreadData &VKDevice::current_thread_data()
   thread_data_.append(thread_data);
   return *thread_data;
 }
-
-#if 0
-VKDiscardPool &VKDevice::discard_pool_for_current_thread(bool thread_safe)
-{
-  std::unique_lock lock(resources.mutex, std::defer_lock);
-  if (!thread_safe) {
-    lock.lock();
-  }
-  pthread_t current_thread_id = pthread_self();
-  if (BLI_thread_is_main()) {
-    for (VKThreadData *thread_data : thread_data_) {
-      if (pthread_equal(thread_data->thread_id, current_thread_id)) {
-        return thread_data->resource_pool_get().discard_pool;
-      }
-    }
-  }
-
-  return orphaned_data;
-}
-#endif
 
 void VKDevice::context_register(VKContext &context)
 {
@@ -679,8 +506,9 @@ void VKDevice::memory_statistics_get(int *r_total_mem_kb, int *r_free_mem_kb) co
 void VKDevice::debug_print(std::ostream &os, const VKDiscardPool &discard_pool)
 {
   if (discard_pool.images_.is_empty() && discard_pool.buffers_.is_empty() &&
-      discard_pool.image_views_.is_empty() && discard_pool.shader_modules_.is_empty() &&
-      discard_pool.pipeline_layouts_.is_empty())
+      discard_pool.image_views_.is_empty() && discard_pool.buffer_views_.is_empty() &&
+      discard_pool.shader_modules_.is_empty() && discard_pool.pipeline_layouts_.is_empty() &&
+      discard_pool.descriptor_pools_.is_empty())
   {
     return;
   }
@@ -694,11 +522,17 @@ void VKDevice::debug_print(std::ostream &os, const VKDiscardPool &discard_pool)
   if (!discard_pool.buffers_.is_empty()) {
     os << "VkBuffer=" << discard_pool.buffers_.size() << " ";
   }
+  if (!discard_pool.buffer_views_.is_empty()) {
+    os << "VkBufferViews=" << discard_pool.buffer_views_.size() << " ";
+  }
   if (!discard_pool.shader_modules_.is_empty()) {
     os << "VkShaderModule=" << discard_pool.shader_modules_.size() << " ";
   }
   if (!discard_pool.pipeline_layouts_.is_empty()) {
-    os << "VkPipelineLayout=" << discard_pool.pipeline_layouts_.size();
+    os << "VkPipelineLayout=" << discard_pool.pipeline_layouts_.size() << " ";
+  }
+  if (!discard_pool.descriptor_pools_.is_empty()) {
+    os << "VkDescriptorPool=" << discard_pool.descriptor_pools_.size();
   }
   os << "\n";
 }
@@ -730,6 +564,11 @@ void VKDevice::debug_print()
   os << "Discard pool\n";
   debug_print(os, orphaned_data);
   os << "\n";
+
+  for (const std::reference_wrapper<VKContext> &context : contexts_) {
+    os << " VKContext \n";
+    debug_print(os, context.get().discard_pool);
+  }
 }
 
 /** \} */

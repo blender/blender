@@ -582,7 +582,7 @@ static bool curve_draw_init(bContext *C, wmOperator *op, bool is_invoke)
 {
   BLI_assert(op->customdata == nullptr);
 
-  CurveDrawData *cdd = static_cast<CurveDrawData *>(MEM_callocN(sizeof(*cdd), __func__));
+  CurveDrawData *cdd = MEM_callocN<CurveDrawData>(__func__);
 
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
 
@@ -734,7 +734,7 @@ static void create_NURBS(bke::CurvesGeometry &curves,
   radii.finish();
 }
 
-static int curves_draw_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus curves_draw_exec(bContext *C, wmOperator *op)
 {
   if (op->customdata == nullptr) {
     if (!curve_draw_init(C, op, false)) {
@@ -785,8 +785,7 @@ static int curves_draw_exec(bContext *C, wmOperator *op)
     int dims = 3;
     const int radius_index = use_pressure_radius ? dims++ : -1;
 
-    float *coords = static_cast<float *>(
-        MEM_mallocN(sizeof(*coords) * stroke_len * dims, __func__));
+    float *coords = MEM_malloc_arrayN<float>(stroke_len * dims, __func__);
 
     float *cubic_spline = nullptr;
     uint cubic_spline_len = 0;
@@ -1046,7 +1045,7 @@ static int curves_draw_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int curves_draw_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus curves_draw_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   if (RNA_struct_property_is_set(op->ptr, "stroke")) {
     return curves_draw_exec(C, op);
@@ -1228,7 +1227,7 @@ static void curve_draw_exec_precalc(wmOperator *op)
     BLI_mempool_iter iter;
     StrokeElem *selem, *selem_prev;
 
-    float *lengths = static_cast<float *>(MEM_mallocN(sizeof(float) * stroke_len, __func__));
+    float *lengths = MEM_malloc_arrayN<float>(stroke_len, __func__);
     StrokeElem **selem_array = static_cast<StrokeElem **>(
         MEM_mallocN(sizeof(*selem_array) * stroke_len, __func__));
     lengths[0] = 0.0f;
@@ -1272,9 +1271,9 @@ static void curve_draw_exec_precalc(wmOperator *op)
   }
 }
 
-static int curves_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus curves_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  int ret = OPERATOR_RUNNING_MODAL;
+  wmOperatorStatus ret = OPERATOR_RUNNING_MODAL;
   CurveDrawData *cdd = static_cast<CurveDrawData *>(op->customdata);
 
   UNUSED_VARS(C, op);

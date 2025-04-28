@@ -55,8 +55,8 @@ class USDHierarchyIterator : public AbstractHierarchyIterator {
 
   void release_writer(AbstractHierarchyWriter *writer) override;
 
-  virtual bool include_data_writers(const HierarchyContext *context) const override;
-  virtual bool include_child_writers(const HierarchyContext *context) const override;
+  bool include_data_writers(const HierarchyContext *context) const override;
+  bool include_child_writers(const HierarchyContext *context) const override;
 
  private:
   USDExporterContext create_usd_export_context(const HierarchyContext *context);

@@ -49,6 +49,7 @@ void CamerasExporter::operator()(Object *ob, Scene *sce)
   std::string cam_name(id_name(cam));
 
   switch (cam->type) {
+    case CAM_CUSTOM:
     case CAM_PANO:
     case CAM_PERSP: {
       COLLADASW::PerspectiveOptic persp(mSW);

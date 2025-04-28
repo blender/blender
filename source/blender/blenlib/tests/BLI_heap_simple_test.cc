@@ -95,7 +95,7 @@ TEST(heap, SimpleDuplicates)
 static void random_heapsimple_helper(const int items_total, const int random_seed)
 {
   HeapSimple *heap = BLI_heapsimple_new();
-  float *values = (float *)MEM_mallocN(sizeof(float) * items_total, __func__);
+  float *values = MEM_malloc_arrayN<float>(size_t(items_total), __func__);
   range_fl(values, items_total);
   BLI_array_randomize(values, sizeof(float), items_total, random_seed);
   for (int i = 0; i < items_total; i++) {

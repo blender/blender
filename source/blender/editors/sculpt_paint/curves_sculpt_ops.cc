@@ -206,7 +206,9 @@ static void stroke_done(const bContext *C, PaintStroke *stroke)
   UNUSED_VARS(C, stroke);
 }
 
-static int sculpt_curves_stroke_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus sculpt_curves_stroke_invoke(bContext *C,
+                                                    wmOperator *op,
+                                                    const wmEvent *event)
 {
   Scene *scene = CTX_data_scene(C);
   Paint *paint = BKE_paint_get_active_from_paintmode(scene, PaintMode::SculptCurves);
@@ -226,8 +228,10 @@ static int sculpt_curves_stroke_invoke(bContext *C, wmOperator *op, const wmEven
                                      event->type);
   op->customdata = op_data;
 
-  int return_value = op->type->modal(C, op, event);
-  if (return_value == OPERATOR_FINISHED) {
+  const wmOperatorStatus retval = op->type->modal(C, op, event);
+  OPERATOR_RETVAL_CHECK(retval);
+
+  if (retval == OPERATOR_FINISHED) {
     if (op->customdata != nullptr) {
       paint_stroke_free(C, op, op_data->stroke);
       MEM_delete(op_data);
@@ -239,16 +243,18 @@ static int sculpt_curves_stroke_invoke(bContext *C, wmOperator *op, const wmEven
   return OPERATOR_RUNNING_MODAL;
 }
 
-static int sculpt_curves_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus sculpt_curves_stroke_modal(bContext *C,
+                                                   wmOperator *op,
+                                                   const wmEvent *event)
 {
   SculptCurvesBrushStrokeData *op_data = static_cast<SculptCurvesBrushStrokeData *>(
       op->customdata);
-  int return_value = paint_stroke_modal(C, op, event, &op_data->stroke);
-  if (ELEM(return_value, OPERATOR_FINISHED, OPERATOR_CANCELLED)) {
+  wmOperatorStatus retval = paint_stroke_modal(C, op, event, &op_data->stroke);
+  if (ELEM(retval, OPERATOR_FINISHED, OPERATOR_CANCELLED)) {
     MEM_delete(op_data);
     op->customdata = nullptr;
   }
-  return return_value;
+  return retval;
 }
 
 static void sculpt_curves_stroke_cancel(bContext *C, wmOperator *op)
@@ -316,7 +322,7 @@ static void curves_sculptmode_exit(bContext *C)
   ob->mode = OB_MODE_OBJECT;
 }
 
-static int curves_sculptmode_toggle_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus curves_sculptmode_toggle_exec(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_active_object(C);
   wmMsgBus *mbus = CTX_wm_message_bus(C);
@@ -361,7 +367,7 @@ static void CURVES_OT_sculptmode_toggle(wmOperatorType *ot)
 
 namespace select_random {
 
-static int select_random_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus select_random_exec(bContext *C, wmOperator *op)
 {
   VectorSet<Curves *> unique_curves = curves::get_unique_editable_curves(*C);
 
@@ -728,7 +734,7 @@ static void select_grow_invoke_per_curve(const Curves &curves_id,
       [](const float a, const float b) { return std::min(a, b); });
 }
 
-static int select_grow_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus select_grow_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   Object *active_ob = CTX_data_active_object(C);
   ARegion *region = CTX_wm_region(C);
@@ -750,7 +756,7 @@ static int select_grow_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   return OPERATOR_RUNNING_MODAL;
 }
 
-static int select_grow_modal(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus select_grow_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   GrowOperatorData &op_data = *static_cast<GrowOperatorData *>(op->customdata);
   const int mouse_x = event->xy[0];
@@ -788,6 +794,9 @@ static int select_grow_modal(bContext *C, wmOperator *op, const wmEvent *event)
       }
       MEM_delete(&op_data);
       return OPERATOR_CANCELLED;
+    }
+    default: {
+      break;
     }
   }
   return OPERATOR_RUNNING_MODAL;
@@ -903,7 +912,8 @@ static int calculate_points_per_side(bContext *C, MinDistanceEditData &op_data)
   return std::min(300, needed_points);
 }
 
-static void min_distance_edit_draw(bContext *C, int /*x*/, int /*y*/, void *customdata)
+static void min_distance_edit_draw(
+    bContext *C, int /*x*/, int /*y*/, float /*x_tilt*/, float /*y_tilt*/, void *customdata)
 {
   Scene *scene = CTX_data_scene(C);
   MinDistanceEditData &op_data = *static_cast<MinDistanceEditData *>(customdata);
@@ -1008,7 +1018,7 @@ static void min_distance_edit_draw(bContext *C, int /*x*/, int /*y*/, void *cust
   GPU_blend(GPU_BLEND_NONE);
 }
 
-static int min_distance_edit_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus min_distance_edit_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   ARegion *region = CTX_wm_region(C);
@@ -1053,7 +1063,7 @@ static int min_distance_edit_invoke(bContext *C, wmOperator *op, const wmEvent *
                        surface_bvh_eval.raycast_callback,
                        &surface_bvh_eval);
   if (ray_hit.index == -1) {
-    WM_report(RPT_ERROR, "Cursor must be over the surface mesh");
+    WM_global_report(RPT_ERROR, "Cursor must be over the surface mesh");
     return OPERATOR_CANCELLED;
   }
 
@@ -1095,7 +1105,7 @@ static int min_distance_edit_invoke(bContext *C, wmOperator *op, const wmEvent *
   return OPERATOR_RUNNING_MODAL;
 }
 
-static int min_distance_edit_modal(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus min_distance_edit_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   ARegion *region = CTX_wm_region(C);
   MinDistanceEditData &op_data = *static_cast<MinDistanceEditData *>(op->customdata);
@@ -1140,6 +1150,9 @@ static int min_distance_edit_modal(bContext *C, wmOperator *op, const wmEvent *e
       finish();
       WM_main_add_notifier(NC_SCENE | ND_TOOLSETTINGS, nullptr);
       return OPERATOR_CANCELLED;
+    }
+    default: {
+      break;
     }
   }
 

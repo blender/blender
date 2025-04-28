@@ -96,7 +96,8 @@ class HIPDevice : public GPUDevice {
   void const_copy_to(const char *name, void *host, const size_t size) override;
 
   /* Graphics resources interoperability. */
-  bool should_use_graphics_interop() override;
+  bool should_use_graphics_interop(const GraphicsInteropDevice &interop_device,
+                                   const bool log) override;
 
   unique_ptr<DeviceQueue> gpu_queue_create() override;
 

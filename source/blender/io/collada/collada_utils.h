@@ -101,11 +101,11 @@ inline AnimData *bc_getSceneMaterialAnimData(Material *ma)
   return ma->adt;
 }
 
-std::string bc_get_action_id(std::string action_name,
-                             std::string ob_name,
-                             std::string channel_type,
-                             std::string axis_name,
-                             std::string axis_separator = "_");
+std::string bc_get_action_id(const std::string &action_name,
+                             const std::string &ob_name,
+                             const std::string &channel_type,
+                             const std::string &axis_name,
+                             const std::string &axis_separator = "_");
 
 extern float bc_get_float_value(const COLLADAFW::FloatOrDoubleArray &array, unsigned int index);
 extern int bc_test_parent_loop(Object *par, Object *ob);
@@ -195,7 +195,7 @@ inline bool bc_endswith(std::string const &value, std::string const &ending)
 extern std::string bc_replace_string(std::string data,
                                      const std::string &pattern,
                                      const std::string &replacement);
-extern std::string bc_url_encode(std::string data);
+extern std::string bc_url_encode(const std::string &data);
 /**
  * Calculate a re-scale factor such that the imported scene's scale
  * is preserved. I.e. 1 meter in the import will also be
@@ -230,7 +230,7 @@ extern void bc_triangulate_mesh(Mesh *mesh);
  * A bone is a leaf when it has no children or all children are not connected.
  */
 extern bool bc_is_leaf_bone(Bone *bone);
-extern EditBone *bc_get_edit_bone(bArmature *armature, char *name);
+extern EditBone *bc_get_edit_bone(bArmature *armature, const char *name);
 extern int bc_set_layer(int bitfield, int layer, bool enable);
 extern int bc_set_layer(int bitfield, int layer);
 
@@ -251,7 +251,7 @@ void bc_sanitize_v3(float v[3], int precision);
  * Get a custom property when it exists.
  * This function is also used to check if a property exists.
  */
-extern IDProperty *bc_get_IDProperty(Bone *bone, std::string key);
+extern IDProperty *bc_get_IDProperty(Bone *bone, const std::string &key);
 extern void bc_set_IDProperty(EditBone *ebone, const char *key, float value);
 /**
  * Stores a 4*4 matrix as a custom bone property array of size 16.
@@ -262,11 +262,14 @@ extern void bc_set_IDPropertyMatrix(EditBone *ebone, const char *key, float mat[
  * Read a custom bone property and convert to float
  * Return def if the property does not exist.
  */
-extern float bc_get_property(Bone *bone, std::string key, float def);
+extern float bc_get_property(Bone *bone, const std::string &key, float def);
 /**
  * Get a vector that is stored in 3 custom properties (used in Blender <= 2.78).
  */
-extern void bc_get_property_vector(Bone *bone, std::string key, float val[3], const float def[3]);
+extern void bc_get_property_vector(Bone *bone,
+                                   const std::string &key,
+                                   float val[3],
+                                   const float def[3]);
 /**
  * Read a custom bone property and convert to matrix
  * Return true if conversion was successful
@@ -275,9 +278,9 @@ extern void bc_get_property_vector(Bone *bone, std::string key, float val[3], co
  * - the property does not exist
  * - is not an array of size 16
  */
-extern bool bc_get_property_matrix(Bone *bone, std::string key, float mat[4][4]);
+extern bool bc_get_property_matrix(Bone *bone, const std::string &key, float mat[4][4]);
 
-extern void bc_enable_fcurves(bAction *act, char *bone_name);
+extern void bc_enable_fcurves(bAction *act, const char *bone_name);
 extern bool bc_bone_matrix_local_get(Object *ob, Bone *bone, Matrix &mat, bool for_opensim);
 extern bool bc_is_animated(BCMatrixSampleMap &values);
 extern bool bc_has_animations(Scene *sce, LinkNode *export_set);
@@ -373,9 +376,14 @@ class BoneExtended {
   bool has_custom_roll;
 
  public:
+  /**
+   * BoneExtended is a helper class needed for the Bone chain finder
+   * See ArmatureImporter::fix_leaf_bones()
+   * and ArmatureImporter::connect_bone_chains()
+   */
   BoneExtended(EditBone *aBone);
 
-  void set_name(char *aName);
+  void set_name(const char *aName);
   char *get_name();
 
   void set_chain_length(int aLength);
@@ -441,8 +449,8 @@ double bc_get_shininess(Material *ma);
 bool bc_get_float_from_shader(bNode *shader, double &val, std::string nodeid);
 COLLADASW::ColorOrTexture bc_get_cot_from_shader(bNode *shader,
                                                  std::string nodeid,
-                                                 Color &default_color,
+                                                 const Color &default_color,
                                                  bool with_alpha = true);
 
 COLLADASW::ColorOrTexture bc_get_cot(float r, float g, float b, float a);
-COLLADASW::ColorOrTexture bc_get_cot(Color col, bool with_alpha = true);
+COLLADASW::ColorOrTexture bc_get_cot(const Color col, bool with_alpha = true);

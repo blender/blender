@@ -388,7 +388,11 @@ void *OneapiDevice::host_alloc(const MemoryType type, const size_t size)
     /* Import host_pointer into USM memory for faster host<->device data transfers. */
     if (type == MEM_READ_WRITE || type == MEM_READ_ONLY) {
       sycl::queue *queue = reinterpret_cast<sycl::queue *>(device_queue_);
-      sycl::ext::oneapi::experimental::prepare_for_device_copy(host_pointer, size, *queue);
+      /* This API is properly implemented only in Level-Zero backend at the moment and we don't
+       * want it to fail at runtime, so we conservatively use it only for L0. */
+      if (queue->get_backend() == sycl::backend::ext_oneapi_level_zero) {
+        sycl::ext::oneapi::experimental::prepare_for_device_copy(host_pointer, size, *queue);
+      }
     }
   }
 #  endif
@@ -401,7 +405,11 @@ void OneapiDevice::host_free(const MemoryType type, void *host_pointer, const si
 #  ifdef SYCL_EXT_ONEAPI_COPY_OPTIMIZE
   if (type == MEM_READ_WRITE || type == MEM_READ_ONLY) {
     sycl::queue *queue = reinterpret_cast<sycl::queue *>(device_queue_);
-    sycl::ext::oneapi::experimental::release_from_device_copy(host_pointer, *queue);
+    /* This API is properly implemented only in Level-Zero backend at the moment and we don't
+     * want it to fail at runtime, so we conservatively use it only for L0. */
+    if (queue->get_backend() == sycl::backend::ext_oneapi_level_zero) {
+      sycl::ext::oneapi::experimental::release_from_device_copy(host_pointer, *queue);
+    }
   }
 #  endif
 
@@ -920,7 +928,8 @@ unique_ptr<DeviceQueue> OneapiDevice::gpu_queue_create()
   return make_unique<OneapiDeviceQueue>(this);
 }
 
-bool OneapiDevice::should_use_graphics_interop()
+bool OneapiDevice::should_use_graphics_interop(const GraphicsInteropDevice & /*interop_device*/,
+                                               const bool /*log*/)
 {
   /* NOTE(@nsirgien): oneAPI doesn't yet support direct writing into graphics API objects, so
    * return false. */
@@ -1317,13 +1326,7 @@ int parse_driver_build_version(const sycl::device &device)
   int driver_build_version = 0;
 
   size_t second_dot_position = driver_version.find('.', driver_version.find('.') + 1);
-  if (second_dot_position == std::string::npos) {
-    std::cerr << "Unable to parse unknown Intel GPU driver version \"" << driver_version
-              << "\" does not match xx.xx.xxxxx (Linux), x.x.xxxx (L0),"
-              << " xx.xx.xxx.xxxx (Windows) for device \""
-              << device.get_info<sycl::info::device::name>() << "\"." << std::endl;
-  }
-  else {
+  if (second_dot_position != std::string::npos) {
     try {
       size_t third_dot_position = driver_version.find('.', second_dot_position + 1);
       if (third_dot_position != std::string::npos) {
@@ -1341,11 +1344,14 @@ int parse_driver_build_version(const sycl::device &device)
       }
     }
     catch (std::invalid_argument &) {
-      std::cerr << "Unable to parse unknown Intel GPU driver version \"" << driver_version
-                << "\" does not match xx.xx.xxxxx (Linux), x.x.xxxx (L0),"
-                << " xx.xx.xxx.xxxx (Windows) for device \""
-                << device.get_info<sycl::info::device::name>() << "\"." << std::endl;
     }
+  }
+
+  if (driver_build_version == 0) {
+    VLOG_WARNING << "Unable to parse unknown Intel GPU driver version. \"" << driver_version
+                 << "\" does not match xx.xx.xxxxx (Linux), x.x.xxxx (L0),"
+                 << " xx.xx.xxx.xxxx (Windows) for device \""
+                 << device.get_info<sycl::info::device::name>() << "\".";
   }
 
   return driver_build_version;
@@ -1419,11 +1425,16 @@ std::vector<sycl::device> available_sycl_devices()
 #  endif
           if (check_driver_version) {
             int driver_build_version = parse_driver_build_version(device);
-            if ((driver_build_version > 100000 &&
-                 driver_build_version < lowest_supported_driver_version_win) ||
-                driver_build_version < lowest_supported_driver_version_neo)
-            {
+            const int lowest_supported_driver_version = (driver_build_version > 100000) ?
+                                                            lowest_supported_driver_version_win :
+                                                            lowest_supported_driver_version_neo;
+            if (driver_build_version < lowest_supported_driver_version) {
               filter_out = true;
+
+              VLOG_WARNING << "Driver version for device \""
+                           << device.get_info<sycl::info::device::name>()
+                           << "\" is too old. Expected \"" << lowest_supported_driver_version
+                           << "\" or newer, but got \"" << driver_build_version << "\".";
             }
           }
         }
@@ -1591,7 +1602,7 @@ int OneapiDevice::get_num_multiprocessors()
   if (device.has(sycl::aspect::ext_intel_gpu_eu_count)) {
     return device.get_info<sycl::ext::intel::info::device::gpu_eu_count>();
   }
-  return 0;
+  return device.get_info<sycl::info::device::max_compute_units>();
 }
 
 int OneapiDevice::get_max_num_threads_per_multiprocessor()
@@ -1603,7 +1614,9 @@ int OneapiDevice::get_max_num_threads_per_multiprocessor()
     return device.get_info<sycl::ext::intel::info::device::gpu_eu_simd_width>() *
            device.get_info<sycl::ext::intel::info::device::gpu_hw_threads_per_eu>();
   }
-  return 0;
+  /* We'd want sycl::info::device::max_threads_per_compute_unit which doesn't exist yet.
+   * max_work_group_size is the closest approximation but it can still be several times off. */
+  return device.get_info<sycl::info::device::max_work_group_size>();
 }
 
 CCL_NAMESPACE_END

@@ -38,6 +38,8 @@
 #include "MOD_grease_pencil_util.hh"
 #include "MOD_ui_common.hh"
 
+#include "GEO_join_geometries.hh"
+
 namespace blender {
 
 static void init_data(ModifierData *md)
@@ -342,8 +344,20 @@ static void modify_drawing(const GreasePencilDashModifierData &dmd,
   IndexMaskMemory curve_mask_memory;
   const IndexMask curves_mask = modifier::greasepencil::get_filtered_stroke_mask(
       ctx.object, src_curves, dmd.influence, curve_mask_memory);
+  const IndexMask unselected_mask = curves_mask.complement(src_curves.curves_range(),
+                                                           curve_mask_memory);
+  bke::CurvesGeometry unselected_curves = bke::curves_copy_curve_selection(
+      src_curves, unselected_mask, {});
 
-  drawing.strokes_for_write() = create_dashes(pattern_info, src_curves, curves_mask);
+  bke::CurvesGeometry dashed_curves = create_dashes(pattern_info, src_curves, curves_mask);
+
+  Curves *masked_curves_id = bke::curves_new_nomain(dashed_curves);
+  Curves *unselected_curves_id = bke::curves_new_nomain(unselected_curves);
+  bke::GeometrySet masked_geo = bke::GeometrySet::from_curves(masked_curves_id);
+  bke::GeometrySet unselected_geo = bke::GeometrySet::from_curves(unselected_curves_id);
+  bke::GeometrySet joined_geo = geometry::join_geometries({unselected_geo, masked_geo}, {});
+
+  drawing.strokes_for_write() = std::move(joined_geo.get_curves_for_write()->geometry.wrap());
   drawing.tag_topology_changed();
 }
 
@@ -385,7 +399,7 @@ static void panel_draw(const bContext *C, Panel *panel)
 
   uiItemR(layout, ptr, "dash_offset", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  uiLayout *row = uiLayoutRow(layout, false);
+  uiLayout *row = &layout->row(false);
   uiLayoutSetPropSep(row, false);
 
   uiTemplateList(row,
@@ -403,12 +417,12 @@ static void panel_draw(const bContext *C, Panel *panel)
                  1,
                  UI_TEMPLATE_LIST_FLAG_NONE);
 
-  uiLayout *col = uiLayoutColumn(row, false);
-  uiLayout *sub = uiLayoutColumn(col, true);
+  uiLayout *col = &row->column(false);
+  uiLayout *sub = &col->column(true);
   uiItemO(sub, "", ICON_ADD, "OBJECT_OT_grease_pencil_dash_modifier_segment_add");
   uiItemO(sub, "", ICON_REMOVE, "OBJECT_OT_grease_pencil_dash_modifier_segment_remove");
   uiItemS(col);
-  sub = uiLayoutColumn(col, true);
+  sub = &col->column(true);
   uiItemEnumO_string(
       sub, "", ICON_TRIA_UP, "OBJECT_OT_grease_pencil_dash_modifier_segment_move", "type", "UP");
   uiItemEnumO_string(sub,
@@ -423,11 +437,11 @@ static void panel_draw(const bContext *C, Panel *panel)
                                                     &RNA_GreasePencilDashModifierSegment,
                                                     &dmd->segments()[dmd->segment_active_index]);
 
-    sub = uiLayoutColumn(layout, true);
+    sub = &layout->column(true);
     uiItemR(sub, &ds_ptr, "dash", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     uiItemR(sub, &ds_ptr, "gap", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-    sub = uiLayoutColumn(layout, false);
+    sub = &layout->column(false);
     uiItemR(sub, &ds_ptr, "radius", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     uiItemR(sub, &ds_ptr, "opacity", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     uiItemR(sub, &ds_ptr, "material_index", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -455,7 +469,7 @@ static void segment_list_item_draw(uiList * /*ui_list*/,
                                    int /*index*/,
                                    int /*flt_flag*/)
 {
-  uiLayout *row = uiLayoutRow(layout, true);
+  uiLayout *row = &layout->row(true);
   uiItemR(row, itemptr, "name", UI_ITEM_R_NO_BG, "", ICON_NONE);
 }
 
@@ -463,8 +477,7 @@ static void panel_register(ARegionType *region_type)
 {
   modifier_panel_register(region_type, eModifierType_GreasePencilDash, panel_draw);
 
-  uiListType *list_type = static_cast<uiListType *>(
-      MEM_callocN(sizeof(uiListType), "Grease Pencil Dash modifier segments"));
+  uiListType *list_type = MEM_callocN<uiListType>("Grease Pencil Dash modifier segments");
   STRNCPY(list_type->idname, "MOD_UL_grease_pencil_dash_modifier_segments");
   list_type->draw_item = segment_list_item_draw;
   WM_uilisttype_add(list_type);

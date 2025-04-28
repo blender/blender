@@ -3,13 +3,13 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 void node_tex_magic(
-    vec3 co, float scale, float distortion, float depth, out vec4 color, out float fac)
+    float3 co, float scale, float distortion, float depth, out float4 color, out float fac)
 {
-  vec3 p = mod(co * scale, 2.0 * M_PI);
+  float3 p = mod(co * scale, 2.0f * M_PI);
 
-  float x = sin((p.x + p.y + p.z) * 5.0);
-  float y = cos((-p.x + p.y - p.z) * 5.0);
-  float z = -cos((-p.x - p.y + p.z) * 5.0);
+  float x = sin((p.x + p.y + p.z) * 5.0f);
+  float y = cos((-p.x + p.y - p.z) * 5.0f);
+  float z = -cos((-p.x - p.y + p.z) * 5.0f);
 
   if (depth > 0) {
     x *= distortion;
@@ -54,13 +54,13 @@ void node_tex_magic(
       }
     }
   }
-  if (distortion != 0.0) {
-    distortion *= 2.0;
+  if (distortion != 0.0f) {
+    distortion *= 2.0f;
     x /= distortion;
     y /= distortion;
     z /= distortion;
   }
 
-  color = vec4(0.5 - x, 0.5 - y, 0.5 - z, 1.0);
-  fac = (color.x + color.y + color.z) / 3.0;
+  color = float4(0.5f - x, 0.5f - y, 0.5f - z, 1.0f);
+  fac = (color.x + color.y + color.z) / 3.0f;
 }

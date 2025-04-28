@@ -15,49 +15,49 @@ void main()
 #if !defined(POINTS) && !defined(CURVES)
   /* Needed only because of wireframe slider.
    * If we could get rid of it would be nice because of performance drain of discard. */
-  if (edgeStart.r == -1.0) {
+  if (edge_start.r == -1.0f) {
     discard;
     return;
   }
 #endif
 
-  lineOutput = vec4(0.0);
+  line_output = float4(0.0f);
 
 #if defined(POINTS)
-  vec2 centered = abs(gl_PointCoord - vec2(0.5));
+  float2 centered = abs(gl_PointCoord - float2(0.5f));
   float dist = max(centered.x, centered.y);
 
-  float fac = dist * dist * 4.0;
+  float fac = dist * dist * 4.0f;
   /* Create a small gradient so that dense objects have a small fresnel effect. */
   /* Non linear blend. */
-  vec3 rim_col = sqrt(finalColorInner.rgb);
-  vec3 wire_col = sqrt(finalColor.rgb);
-  vec3 final_front_col = mix(rim_col, wire_col, 0.35);
-  fragColor = vec4(mix(final_front_col, rim_col, saturate(fac)), 1.0);
-  fragColor *= fragColor;
+  float3 rim_col = sqrt(final_color_inner.rgb);
+  float3 wire_col = sqrt(final_color.rgb);
+  float3 final_front_col = mix(rim_col, wire_col, 0.35f);
+  frag_color = float4(mix(final_front_col, rim_col, saturate(fac)), 1.0f);
+  frag_color *= frag_color;
 
 #elif !defined(SELECT_ENABLE)
-  lineOutput = pack_line_data(gl_FragCoord.xy, edgeStart, edgePos);
-  fragColor = finalColor;
+  line_output = pack_line_data(gl_FragCoord.xy, edge_start, edge_pos);
+  frag_color = final_color;
 
 #  if !defined(CURVES)
   if (use_custom_depth_bias) {
-    vec2 dir = lineOutput.xy * 2.0 - 1.0;
+    float2 dir = line_output.xy * 2.0f - 1.0f;
     bool dir_horiz = abs(dir.x) > abs(dir.y);
 
-    vec2 uv = gl_FragCoord.xy * sizeViewportInv;
-    float depth_occluder = texture(depthTex, uv).r;
+    float2 uv = gl_FragCoord.xy * sizeViewportInv;
+    float depth_occluder = texture(depth_tx, uv).r;
     float depth_min = depth_occluder;
-    vec2 uv_offset = sizeViewportInv;
+    float2 uv_offset = sizeViewportInv;
     if (dir_horiz) {
-      uv_offset.y = 0.0;
+      uv_offset.y = 0.0f;
     }
     else {
-      uv_offset.x = 0.0;
+      uv_offset.x = 0.0f;
     }
 
-    depth_min = min(depth_min, texture(depthTex, uv - uv_offset).r);
-    depth_min = min(depth_min, texture(depthTex, uv + uv_offset).r);
+    depth_min = min(depth_min, texture(depth_tx, uv - uv_offset).r);
+    depth_min = min(depth_min, texture(depth_tx, uv + uv_offset).r);
 
     float delta = abs(depth_occluder - depth_min);
 

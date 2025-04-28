@@ -1111,7 +1111,7 @@ static float *getLinToLogLut(const LogImageFile *logImage, const LogImageElement
   uint lutsize = uint(logElement.maxValue + 1);
   uint i;
 
-  lut = static_cast<float *>(MEM_mallocN(sizeof(float) * lutsize, "getLinToLogLut"));
+  lut = MEM_malloc_arrayN<float>(lutsize, "getLinToLogLut");
 
   negativeFilmGamma = 0.6;
   step = logElement.refHighQuantity / logElement.maxValue;
@@ -1139,7 +1139,7 @@ static float *getLogToLinLut(const LogImageFile *logImage, const LogImageElement
   uint lutsize = uint(logElement.maxValue + 1);
   uint i;
 
-  lut = static_cast<float *>(MEM_mallocN(sizeof(float) * lutsize, "getLogToLinLut"));
+  lut = MEM_malloc_arrayN<float>(lutsize, "getLogToLinLut");
 
   /* Building the Log -> Lin LUT */
   step = logElement.refHighQuantity / logElement.maxValue;
@@ -1189,7 +1189,7 @@ static float *getLinToSrgbLut(const LogImageElement &logElement)
   uint lutsize = uint(logElement.maxValue + 1);
   uint i;
 
-  lut = static_cast<float *>(MEM_mallocN(sizeof(float) * lutsize, "getLogToLinLut"));
+  lut = MEM_malloc_arrayN<float>(lutsize, "getLogToLinLut");
 
   for (i = 0; i < lutsize; i++) {
     col = float(i) / logElement.maxValue;
@@ -1210,7 +1210,7 @@ static float *getSrgbToLinLut(const LogImageElement &logElement)
   uint lutsize = uint(logElement.maxValue + 1);
   uint i;
 
-  lut = static_cast<float *>(MEM_mallocN(sizeof(float) * lutsize, "getLogToLinLut"));
+  lut = MEM_malloc_arrayN<float>(lutsize, "getLogToLinLut");
 
   for (i = 0; i < lutsize; i++) {
     col = float(i) / logElement.maxValue;

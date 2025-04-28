@@ -404,7 +404,6 @@ function(blender_link_libraries
   endif()
 endfunction()
 
-# only MSVC uses SOURCE_GROUP
 function(blender_add_lib__impl
   name
   sources
@@ -551,7 +550,7 @@ macro(TEST_SSE_SUPPORT
   if(CMAKE_COMPILER_IS_GNUCC OR (CMAKE_C_COMPILER_ID MATCHES "Clang"))
     set(${_sse42_flags} "-march=x86-64-v2")
   elseif(MSVC)
-    # msvc has no specific build flags for SSE42, but when using intrinsics it will
+    # MSVC has no specific build flags for SSE42, but when using intrinsics it will
     # generate the right instructions.
     set(${_sse42_flags} "")
   elseif(CMAKE_C_COMPILER_ID STREQUAL "Intel")
@@ -572,7 +571,13 @@ macro(TEST_SSE_SUPPORT
     check_c_source_runs("
       #include <nmmintrin.h>
       #include <emmintrin.h>
-      int main(void) { __m128i v = _mm_setzero_si128(); v = _mm_cmpgt_epi64(v,v); return 0; }"
+      #include <smmintrin.h>
+      int main(void) {
+        __m128i v = _mm_setzero_si128();
+        v = _mm_cmpgt_epi64(v,v);
+        if (_mm_test_all_zeros(v, v)) return 0;
+        return 1;
+      }"
     SUPPORT_SSE42_BUILD)
   endif()
 
@@ -688,6 +693,10 @@ macro(remove_strict_flags)
   endif()
 
   if(MSVC)
+    add_cxx_flag(
+      # Warning C5038: data member 'foo' will be initialized after data member 'bar'.
+      "/wd5038"
+    )
     remove_cc_flag(
       # Restore warn C4100 (unreferenced formal parameter) back to w4.
       "/w34100"
@@ -1265,39 +1274,9 @@ endmacro()
 function(print_all_vars)
   get_cmake_property(_vars VARIABLES)
   foreach(_var ${_vars})
-    message("${_var}=${${_var}}")
+    message(STATUS "${_var}=${${_var}}")
   endforeach()
 endfunction()
-
-macro(openmp_delayload
-  projectname
-  )
-  if(MSVC)
-    if(WITH_OPENMP)
-      if(MSVC_CLANG)
-        set(OPENMP_DLL_NAME "libomp")
-      else()
-        set(OPENMP_DLL_NAME "vcomp140")
-      endif()
-      set_property(
-        TARGET ${projectname} APPEND_STRING PROPERTY
-        LINK_FLAGS_RELEASE " /DELAYLOAD:${OPENMP_DLL_NAME}.dll delayimp.lib"
-      )
-      set_property(
-        TARGET ${projectname} APPEND_STRING PROPERTY
-        LINK_FLAGS_DEBUG " /DELAYLOAD:${OPENMP_DLL_NAME}d.dll delayimp.lib"
-      )
-      set_property(
-        TARGET ${projectname} APPEND_STRING PROPERTY
-        LINK_FLAGS_RELWITHDEBINFO " /DELAYLOAD:${OPENMP_DLL_NAME}.dll delayimp.lib"
-      )
-      set_property(
-        TARGET ${projectname} APPEND_STRING PROPERTY
-        LINK_FLAGS_MINSIZEREL " /DELAYLOAD:${OPENMP_DLL_NAME}.dll delayimp.lib"
-      )
-    endif()
-  endif()
-endmacro()
 
 macro(set_and_warn_dependency
   _dependency _setting _val)

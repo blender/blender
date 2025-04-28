@@ -265,8 +265,7 @@ IDTypeInfo IDType_ID_MA = {
 void BKE_gpencil_material_attr_init(Material *ma)
 {
   if ((ma) && (ma->gp_style == nullptr)) {
-    ma->gp_style = static_cast<MaterialGPencilStyle *>(
-        MEM_callocN(sizeof(MaterialGPencilStyle), "Grease Pencil Material Settings"));
+    ma->gp_style = MEM_callocN<MaterialGPencilStyle>("Grease Pencil Material Settings");
 
     MaterialGPencilStyle *gp_style = ma->gp_style;
     /* set basic settings */
@@ -1310,7 +1309,7 @@ void BKE_object_material_from_eval_data(Main *bmain, Object *ob_orig, const ID *
   for (int i = 0; i < *eval_totcol; i++) {
     Material *material_eval = (*eval_mat)[i];
     if (material_eval != nullptr) {
-      Material *material_orig = (Material *)DEG_get_original_id(&material_eval->id);
+      Material *material_orig = DEG_get_original(material_eval);
       (*orig_mat)[i] = material_orig;
       id_us_plus(&material_orig->id);
     }
@@ -1668,8 +1667,7 @@ void BKE_texpaint_slot_refresh_cache(Scene *scene, Material *ma, const Object *o
       ma->paint_clone_slot = 0;
     }
     else {
-      ma->texpaintslot = static_cast<TexPaintSlot *>(
-          MEM_callocN(sizeof(TexPaintSlot) * count, "texpaint_slots"));
+      ma->texpaintslot = MEM_calloc_arrayN<TexPaintSlot>(count, "texpaint_slots");
 
       bNode *active_node = blender::bke::node_get_active_paint_canvas(*ma->nodetree);
 
@@ -2058,10 +2056,10 @@ static void material_default_surface_init(Material *ma)
                               *output,
                               *blender::bke::node_find_socket(*output, SOCK_IN, "Surface"));
 
-  principled->location[0] = 10.0f;
-  principled->location[1] = 300.0f;
-  output->location[0] = 300.0f;
-  output->location[1] = 300.0f;
+  principled->location[0] = -200.0f;
+  principled->location[1] = 100.0f;
+  output->location[0] = 200.0f;
+  output->location[1] = 100.0f;
 
   blender::bke::node_set_active(*ntree, *output);
 }
@@ -2084,10 +2082,10 @@ static void material_default_volume_init(Material *ma)
                               *output,
                               *blender::bke::node_find_socket(*output, SOCK_IN, "Volume"));
 
-  principled->location[0] = 10.0f;
-  principled->location[1] = 300.0f;
-  output->location[0] = 300.0f;
-  output->location[1] = 300.0f;
+  principled->location[0] = -200.0f;
+  principled->location[1] = 100.0f;
+  output->location[0] = 200.0f;
+  output->location[1] = 100.0f;
 
   blender::bke::node_set_active(*ntree, *output);
 }

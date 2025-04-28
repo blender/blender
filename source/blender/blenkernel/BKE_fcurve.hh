@@ -483,7 +483,7 @@ bool BKE_fcurve_bezt_subdivide_handles(BezTriple *bezt,
  * \param new_totvert: new number of elements in the FCurve's `bezt` array.
  *
  * \note When increasing the size of the array, newly added elements (that is, in the
- * [old_totvert..new_totvert) interval) are zero-initialized.
+ * [old_totvert..new_totvert] interval) are zero-initialized.
  */
 void BKE_fcurve_bezt_resize(FCurve *fcu, int new_totvert);
 
@@ -504,7 +504,8 @@ BezTriple *BKE_bezier_array_merge(
  */
 void BKE_fcurve_delete_key(FCurve *fcu, int index);
 
-/** Delete an index range of keyframes from an F-curve. This is more performant than individually
+/**
+ * Delete an index range of keyframes from an F-curve. This is more performant than individually
  * removing keys.
  * Has a complexity of O(N) with respect to number of keys in `fcu`.
  *
@@ -591,7 +592,7 @@ bool test_time_fcurve(FCurve *fcu);
  * than the horizontal distance between (v1-v4).
  * This is to prevent curve loops.
  *
- * This function is very similar to BKE_curve_correct_bezpart(), but allows a steeper tangent for
+ * This function is very similar to #BKE_curve_correct_bezpart(), but allows a steeper tangent for
  * more snappy animations. This is not desired for other areas in which curves are used, though.
  */
 void BKE_fcurve_correct_bezpart(const float v1[2], float v2[2], float v3[2], const float v4[2]);

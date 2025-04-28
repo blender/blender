@@ -12,6 +12,8 @@
 
 #include "SEQ_connect.hh"
 
+namespace blender::seq {
+
 static void strip_connections_free(Strip *strip)
 {
   if (strip == nullptr) {
@@ -24,7 +26,7 @@ static void strip_connections_free(Strip *strip)
   BLI_listbase_clear(connections);
 }
 
-void SEQ_connections_duplicate(ListBase *connections_dst, ListBase *connections_src)
+void connections_duplicate(ListBase *connections_dst, ListBase *connections_src)
 {
   LISTBASE_FOREACH (StripConnection *, con, connections_src) {
     StripConnection *con_duplicate = MEM_dupallocN<StripConnection>(__func__, *con);
@@ -32,7 +34,7 @@ void SEQ_connections_duplicate(ListBase *connections_dst, ListBase *connections_
   }
 }
 
-bool SEQ_disconnect(Strip *strip)
+bool disconnect(Strip *strip)
 {
   if (strip == nullptr || BLI_listbase_is_empty(&strip->connections)) {
     return false;
@@ -53,17 +55,17 @@ bool SEQ_disconnect(Strip *strip)
   return true;
 }
 
-bool SEQ_disconnect(blender::VectorSet<Strip *> &strip_list)
+bool disconnect(blender::VectorSet<Strip *> &strip_list)
 {
   bool changed = false;
   for (Strip *strip : strip_list) {
-    changed |= SEQ_disconnect(strip);
+    changed |= disconnect(strip);
   }
 
   return changed;
 }
 
-void SEQ_cut_one_way_connections(Strip *strip)
+void cut_one_way_connections(Strip *strip)
 {
   if (strip == nullptr) {
     return;
@@ -85,7 +87,7 @@ void SEQ_cut_one_way_connections(Strip *strip)
   }
 }
 
-void SEQ_connect(Strip *seq1, Strip *seq2)
+void connect(Strip *seq1, Strip *seq2)
 {
   if (seq1 == nullptr || seq2 == nullptr) {
     return;
@@ -94,15 +96,15 @@ void SEQ_connect(Strip *seq1, Strip *seq2)
   strip_list.add(seq1);
   strip_list.add(seq2);
 
-  SEQ_connect(strip_list);
+  connect(strip_list);
 }
 
-void SEQ_connect(blender::VectorSet<Strip *> &strip_list)
+void connect(blender::VectorSet<Strip *> &strip_list)
 {
   strip_list.remove_if([&](Strip *strip) { return strip == nullptr; });
 
   for (Strip *seq1 : strip_list) {
-    SEQ_disconnect(seq1);
+    disconnect(seq1);
     for (Strip *seq2 : strip_list) {
       if (seq1 == seq2) {
         continue;
@@ -114,7 +116,7 @@ void SEQ_connect(blender::VectorSet<Strip *> &strip_list)
   }
 }
 
-blender::VectorSet<Strip *> SEQ_get_connected_strips(const Strip *strip)
+blender::VectorSet<Strip *> get_connected_strips(const Strip *strip)
 {
   blender::VectorSet<Strip *> connections;
   if (strip != nullptr) {
@@ -125,7 +127,7 @@ blender::VectorSet<Strip *> SEQ_get_connected_strips(const Strip *strip)
   return connections;
 }
 
-bool SEQ_is_strip_connected(const Strip *strip)
+bool is_strip_connected(const Strip *strip)
 {
   if (strip == nullptr) {
     return false;
@@ -133,11 +135,11 @@ bool SEQ_is_strip_connected(const Strip *strip)
   return !BLI_listbase_is_empty(&strip->connections);
 }
 
-bool SEQ_are_strips_connected_together(blender::VectorSet<Strip *> &strip_list)
+bool are_strips_connected_together(blender::VectorSet<Strip *> &strip_list)
 {
   const int expected_connection_num = strip_list.size() - 1;
   for (Strip *seq1 : strip_list) {
-    blender::VectorSet<Strip *> connections = SEQ_get_connected_strips(seq1);
+    blender::VectorSet<Strip *> connections = get_connected_strips(seq1);
     int found_connection_num = connections.size();
     if (found_connection_num != expected_connection_num) {
       return false;
@@ -150,3 +152,5 @@ bool SEQ_are_strips_connected_together(blender::VectorSet<Strip *> &strip_list)
   }
   return true;
 }
+
+}  // namespace blender::seq

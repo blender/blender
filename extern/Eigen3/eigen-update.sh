@@ -24,6 +24,7 @@ then
     cd ..
     rm -rf eigen.git
     find Eigen -type f -exec chmod 644 {} \;
+    patch -p3 < patches/blender.patch
 else
     echo "Did you install Git?"
 fi

@@ -7,10 +7,10 @@
 
 void main()
 {
-  ivec2 texel = ivec2(gl_GlobalInvocationID.xy);
+  int2 texel = int2(gl_GlobalInvocationID.xy);
 
-  ivec2 size = texture_size(input_tx);
-  vec2 translated_coordinates = (vec2(texel) + vec2(0.5f) - translation) / vec2(size);
+  int2 size = texture_size(input_tx);
+  float2 translated_coordinates = (float2(texel) + float2(0.5f) - translation) / float2(size);
 
   imageStore(output_img, texel, SAMPLER_FUNCTION(input_tx, translated_coordinates));
 }

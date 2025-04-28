@@ -35,13 +35,6 @@ static asset_system::AssetCatalog &library_ensure_catalog(
   return *library.catalog_service().create_catalog(path);
 }
 
-/* Suppress warning for GCC-14.2. This isn't a dangling reference
- * because the #asset_system::AssetLibrary owns the returned value. */
-#if defined(__GNUC__) && !defined(__clang__)
-#  pragma GCC diagnostic push
-#  pragma GCC diagnostic ignored "-Wdangling-reference"
-#endif
-
 blender::asset_system::AssetCatalog &library_ensure_catalogs_in_path(
     asset_system::AssetLibrary &library, const blender::asset_system::AssetCatalogPath &path)
 {
@@ -54,10 +47,6 @@ blender::asset_system::AssetCatalog &library_ensure_catalogs_in_path(
   });
   return *library.catalog_service().find_catalog_by_path(path);
 }
-
-#if defined(__GNUC__) && !defined(__clang__)
-#  pragma GCC diagnostic pop
-#endif
 
 AssetLibraryReference user_library_to_library_ref(const bUserAssetLibrary &user_library)
 {

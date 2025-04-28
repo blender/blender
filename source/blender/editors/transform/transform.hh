@@ -15,6 +15,7 @@
 #include "ED_view3d.hh"
 
 #include "DNA_listBase.h"
+#include "DNA_windowmanager_enums.h"
 
 #include "DEG_depsgraph.hh"
 
@@ -338,7 +339,7 @@ enum {
   TD_USEQUAT = 1 << 1,
   /* TD_NOTCONNECTED = 1 << 2, */
   /** Used for scaling of #MetaElem.rad. */
-  TD_SINGLESIZE = 1 << 3,
+  TD_SINGLE_SCALE = 1 << 3,
   /** Scale relative to individual element center. */
   TD_INDIVIDUAL_SCALE = 1 << 4,
   TD_NOCENTER = 1 << 5,
@@ -435,10 +436,13 @@ struct TransDataExtension {
   float *rotAxis;
   /** Initial rotation axis. */
   float irotAxis[4];
-  /** Size of the data to transform. */
-  float *size;
-  /** Initial size. */
-  float isize[3];
+  /**
+   * Scale of the data to transform.
+   * Note that in some cases this is used for "size" (meta-balls & texture-space for example).
+   */
+  float *scale;
+  /** Initial scale / size. */
+  float iscale[3];
   /** Object matrix. */
   float obmat[4][4];
   /** Use for #V3D_ORIENT_GIMBAL orientation. */
@@ -903,9 +907,9 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
  * \see #initTransform which reads values from the operator.
  */
 void saveTransform(bContext *C, TransInfo *t, wmOperator *op);
-int transformEvent(TransInfo *t, wmOperator *op, const wmEvent *event);
+wmOperatorStatus transformEvent(TransInfo *t, wmOperator *op, const wmEvent *event);
 void transformApply(bContext *C, TransInfo *t);
-int transformEnd(bContext *C, TransInfo *t);
+wmOperatorStatus transformEnd(bContext *C, TransInfo *t);
 
 void setTransformViewMatrices(TransInfo *t);
 void setTransformViewAspect(TransInfo *t, float r_aspect[3]);

@@ -1923,7 +1923,7 @@ Sound_get_specs(Sound* self, void* nothing)
 }
 
 PyDoc_STRVAR(M_aud_Sound_length_doc,
-			 "The sample specification of the sound as a tuple with rate and channel count.");
+			 "The length attribute returns the duration of the sound in seconds.");
 
 static PyObject *
 Sound_get_length(Sound* self, void* nothing)

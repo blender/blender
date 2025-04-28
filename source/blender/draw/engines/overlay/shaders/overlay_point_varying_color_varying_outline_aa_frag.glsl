@@ -10,7 +10,7 @@ FRAGMENT_SHADER_CREATE_INFO(overlay_extra_point_base)
 
 void main()
 {
-  float dist = length(gl_PointCoord - vec2(0.5));
+  float dist = length(gl_PointCoord - float2(0.5f));
 
   /* transparent outside of point
    * --- 0 ---
@@ -24,14 +24,14 @@ void main()
    * ...
    * dist = 0 at center of point */
 
-  float midStroke = 0.5 * (radii[1] + radii[2]);
+  float midStroke = 0.5f * (radii[1] + radii[2]);
 
   if (dist > midStroke) {
-    fragColor.rgb = outlineColor.rgb;
-    fragColor.a = mix(outlineColor.a, 0.0, smoothstep(radii[1], radii[0], dist));
+    frag_color.rgb = outline_color.rgb;
+    frag_color.a = mix(outline_color.a, 0.0f, smoothstep(radii[1], radii[0], dist));
   }
   else {
-    fragColor = mix(fillColor, outlineColor, smoothstep(radii[3], radii[2], dist));
+    frag_color = mix(fill_color, outline_color, smoothstep(radii[3], radii[2], dist));
   }
 
   select_id_output(select_id);

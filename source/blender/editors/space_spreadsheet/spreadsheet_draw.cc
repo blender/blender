@@ -138,7 +138,7 @@ static void draw_left_column_content(const int scroll_offset_y,
 
   GPU_scissor(0, 0, drawer.left_column_width, region->winy - drawer.top_row_height);
 
-  uiBlock *left_column_block = UI_block_begin(C, region, __func__, UI_EMBOSS_NONE);
+  uiBlock *left_column_block = UI_block_begin(C, region, __func__, blender::ui::EmbossType::None);
   int first_row, max_visible_rows;
   get_visible_rows(drawer, region, scroll_offset_y, &first_row, &max_visible_rows);
   for (const int row_index : IndexRange(first_row, max_visible_rows)) {
@@ -174,7 +174,7 @@ static void draw_top_row_content(const bContext *C,
               region->winx - drawer.left_column_width,
               drawer.top_row_height);
 
-  uiBlock *first_row_block = UI_block_begin(C, region, __func__, UI_EMBOSS_NONE);
+  uiBlock *first_row_block = UI_block_begin(C, region, __func__, blender::ui::EmbossType::None);
 
   int left_x = drawer.left_column_width - scroll_offset_x;
   for (const int column_index : IndexRange(drawer.tot_columns)) {
@@ -212,7 +212,7 @@ static void draw_cell_contents(const bContext *C,
               region->winx - drawer.left_column_width,
               region->winy - drawer.top_row_height);
 
-  uiBlock *cells_block = UI_block_begin(C, region, __func__, UI_EMBOSS_NONE);
+  uiBlock *cells_block = UI_block_begin(C, region, __func__, blender::ui::EmbossType::None);
 
   int first_row, max_visible_rows;
   get_visible_rows(drawer, region, scroll_offset_y, &first_row, &max_visible_rows);

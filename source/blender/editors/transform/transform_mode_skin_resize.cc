@@ -37,7 +37,7 @@ static void transdata_elem_skin_resize(const TransInfo *t,
                                        const float mat[3][3])
 {
   float tmat[3][3], smat[3][3];
-  float fsize[3];
+  float fscale[3];
 
   if (t->flag & T_EDIT) {
     mul_m3_m3m3(smat, mat, td->mtx);
@@ -51,9 +51,9 @@ static void transdata_elem_skin_resize(const TransInfo *t,
     t->con.applySize(t, nullptr, nullptr, tmat);
   }
 
-  mat3_to_size(fsize, tmat);
-  td->loc[0] = td->iloc[0] * (1 + (fsize[0] - 1) * td->factor);
-  td->loc[1] = td->iloc[1] * (1 + (fsize[1] - 1) * td->factor);
+  mat3_to_size(fscale, tmat);
+  td->loc[0] = td->iloc[0] * (1 + (fscale[0] - 1) * td->factor);
+  td->loc[1] = td->iloc[1] * (1 + (fscale[1] - 1) * td->factor);
 }
 
 static void applySkinResize(TransInfo *t)

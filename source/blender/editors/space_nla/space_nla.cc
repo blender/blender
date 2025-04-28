@@ -132,7 +132,7 @@ static void nla_init(wmWindowManager *wm, ScrArea *area)
 {
   SpaceNla *snla = static_cast<SpaceNla *>(area->spacedata.first);
 
-  /* init dopesheet data if non-existent (i.e. for old files) */
+  /* init dope-sheet data if non-existent (i.e. for old files). */
   if (snla->ads == nullptr) {
     snla->ads = MEM_callocN<bDopeSheet>("NlaEdit DopeSheet");
     wmWindow *win = WM_window_find_by_area(wm, area);
@@ -218,7 +218,10 @@ static void nla_track_region_draw(const bContext *C, ARegion *region)
   UI_view2d_view_restore(C);
 
   /* scrollers */
-  UI_view2d_scrollers_draw(v2d, nullptr);
+  if (region->winy > UI_ANIM_MINY) {
+    UI_view2d_scrollers_draw(v2d, nullptr);
+  }
+
   ANIM_animdata_freelist(&anim_data);
 }
 
@@ -244,18 +247,25 @@ static void nla_main_region_draw(const bContext *C, ARegion *region)
   bAnimContext ac;
   View2D *v2d = &region->v2d;
 
+  const int min_height = UI_ANIM_MINY;
+
   /* clear and setup matrix */
-  UI_ThemeClearColor(TH_BACK);
+  UI_ThemeClearColor(region->winy > min_height ? TH_BACK : TH_TIME_SCRUB_BACKGROUND);
 
   UI_view2d_view_ortho(v2d);
 
   /* time grid */
-  UI_view2d_draw_lines_x__discrete_frames_or_seconds(v2d, scene, snla->flag & SNLA_DRAWTIME, true);
+  if (region->winy > min_height) {
+    UI_view2d_draw_lines_x__discrete_frames_or_seconds(
+        v2d, scene, snla->flag & SNLA_DRAWTIME, true);
+  }
 
   ED_region_draw_cb_draw(C, region, REGION_DRAW_PRE_VIEW);
 
   /* start and end frame */
-  ANIM_draw_framerange(scene, v2d);
+  if (region->winy > min_height) {
+    ANIM_draw_framerange(scene, v2d);
+  }
 
   /* data */
   if (ANIM_animdata_get_context(C, &ac)) {
@@ -295,10 +305,13 @@ static void nla_main_region_draw_overlay(const bContext *C, ARegion *region)
   View2D *v2d = &region->v2d;
 
   /* scrubbing region */
-  ED_time_scrub_draw_current_frame(region, scene, snla->flag & SNLA_DRAWTIME);
+  ED_time_scrub_draw_current_frame(
+      region, scene, snla->flag & SNLA_DRAWTIME, region->winy >= UI_ANIM_MINY);
 
   /* scrollers */
-  UI_view2d_scrollers_draw(v2d, nullptr);
+  if (region->winy >= UI_ANIM_MINY) {
+    UI_view2d_scrollers_draw(v2d, nullptr);
+  }
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
@@ -507,9 +520,8 @@ static void nla_track_region_message_subscribe(const wmRegionMessageSubscribePar
   msg_sub_value_region_tag_redraw.user_data = region;
   msg_sub_value_region_tag_redraw.notify = ED_region_do_msg_notify_tag_redraw;
 
-  /* All dopesheet filter settings, etc. affect the drawing of this editor,
-   * so just whitelist the entire struct for updates
-   */
+  /* All dope-sheet filter settings, etc. affect the drawing of this editor,
+   * so just whitelist the entire struct for updates. */
   {
     wmMsgParams_RNA msg_key_params = {{}};
     StructRNA *type_array[] = {

@@ -6,6 +6,10 @@
  *
  * SPDX-License-Identifier: MIT */
 
+/** \file
+ * \ingroup bli
+ */
+
 #pragma once
 
 #define AREATEX_WIDTH 160

@@ -29,6 +29,6 @@ The execution context is one of:
 - ``EXEC_SCREEN``
 """
 
-# collection add popup
+# Collection add popup.
 import bpy
 bpy.ops.object.collection_instance_add('INVOKE_DEFAULT')

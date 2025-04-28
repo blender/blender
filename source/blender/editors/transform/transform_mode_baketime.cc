@@ -98,8 +98,8 @@ static void applyBakeTime(TransInfo *t)
       }
 
       *dst = ival + time * td->factor;
-      if (td->ext->size && *dst < *td->ext->size) {
-        *dst = *td->ext->size;
+      if (td->ext->scale && *dst < *td->ext->scale) {
+        *dst = *td->ext->scale;
       }
       if (td->ext->quat && *dst > *td->ext->quat) {
         *dst = *td->ext->quat;

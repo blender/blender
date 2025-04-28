@@ -259,7 +259,7 @@ void interp_v2_v2v2(float r[2], const float a[2], const float b[2], float t);
 void interp_v2_v2v2_db(double target[2], const double a[2], const double b[2], double t);
 /**
  * Weight 3 2D vectors,
- * 'w' must be unit length but is not a vector, just 3 weights.
+ * `w` must be unit length but is not a vector, just 3 weights.
  */
 void interp_v2_v2v2v2(
     float r[2], const float a[2], const float b[2], const float c[2], const float t[3]);
@@ -267,13 +267,13 @@ void interp_v3_v3v3(float r[3], const float a[3], const float b[3], float t);
 void interp_v3_v3v3_db(double target[3], const double a[3], const double b[3], double t);
 /**
  * Weight 3 vectors,
- * 'w' must be unit length but is not a vector, just 3 weights.
+ * `w` must be unit length but is not a vector, just 3 weights.
  */
 void interp_v3_v3v3v3(
     float p[3], const float v1[3], const float v2[3], const float v3[3], const float w[3]);
 /**
  * Weight 3 vectors,
- * 'w' must be unit length but is not a vector, just 4 weights.
+ * `w` must be unit length but is not a vector, just 4 weights.
  */
 void interp_v3_v3v3v3v3(float p[3],
                         const float v1[3],
@@ -391,8 +391,8 @@ MINLINE bool compare_size_v3v3(const float v1[3],
  *        + l2
  * </pre>
  *
- * \return Positive value when 'pt' is left-of-line
- * (looking from 'l1' -> 'l2').
+ * \return Positive value when `pt` is left-of-line
+ * (looking from `l1` -> `l2`).
  */
 MINLINE float line_point_side_v2(const float l1[2],
                                  const float l2[2],
@@ -517,7 +517,7 @@ void project_v3_plane(float out[3], const float plane_no[3], const float plane_c
  *   /
  *  /
  * +
- * out: result (negate for a 'bounce').
+ * out: result (negate for a "bounce").
  * </pre>
  */
 void reflect_v3_v3v3(float out[3], const float v[3], const float normal[3]);

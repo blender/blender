@@ -184,7 +184,7 @@ static void bli_builddir(BuildDirCtx *dir_ctx, const char *dirname)
     }
 
     if (dir_ctx->files == nullptr) {
-      dir_ctx->files = (direntry *)MEM_mallocN(newnum * sizeof(direntry), __func__);
+      dir_ctx->files = MEM_malloc_arrayN<direntry>(size_t(newnum), __func__);
     }
 
     if (UNLIKELY(dir_ctx->files == nullptr)) {
@@ -239,7 +239,7 @@ uint BLI_filelist_dir_contents(const char *dirname, direntry **r_filelist)
   else {
     /* Keep Blender happy. Blender stores this in a variable
      * where 0 has special meaning..... */
-    *r_filelist = static_cast<direntry *>(MEM_mallocN(sizeof(**r_filelist), __func__));
+    *r_filelist = MEM_mallocN<direntry>(__func__);
   }
 
   return dir_ctx.files_num;
@@ -419,8 +419,7 @@ void BLI_filelist_duplicate(direntry **dest_filelist,
 {
   uint i;
 
-  *dest_filelist = static_cast<direntry *>(
-      MEM_mallocN(sizeof(**dest_filelist) * size_t(nrentries), __func__));
+  *dest_filelist = MEM_malloc_arrayN<direntry>(size_t(nrentries), __func__);
   for (i = 0; i < nrentries; i++) {
     const direntry *src = &src_filelist[i];
     direntry *dst = &(*dest_filelist)[i];
@@ -431,10 +430,10 @@ void BLI_filelist_duplicate(direntry **dest_filelist,
 void BLI_filelist_entry_free(direntry *entry)
 {
   if (entry->relname) {
-    MEM_freeN((void *)entry->relname);
+    MEM_freeN(entry->relname);
   }
   if (entry->path) {
-    MEM_freeN((void *)entry->path);
+    MEM_freeN(entry->path);
   }
 }
 

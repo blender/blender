@@ -16,7 +16,6 @@ set(SRC
   intern/GHOST_CallbackEventConsumer.cc
   intern/GHOST_Context.cc
   intern/GHOST_ContextNone.cc
-  intern/GHOST_DisplayManager.cc
   intern/GHOST_EventManager.cc
   intern/GHOST_ISystem.cc
   intern/GHOST_ISystemPaths.cc
@@ -46,7 +45,6 @@ set(SRC
   intern/GHOST_Context.hh
   intern/GHOST_ContextNone.hh
   intern/GHOST_Debug.hh
-  intern/GHOST_DisplayManager.hh
   intern/GHOST_Event.hh
   intern/GHOST_EventButton.hh
   intern/GHOST_EventCursor.hh
@@ -107,7 +105,9 @@ if(WITH_VULKAN_BACKEND)
 
     intern/GHOST_ContextVK.hh
   )
-
+  list(APPEND INC
+    ../../extern/vulkan_memory_allocator/
+  )
   list(APPEND INC_SYS
     PUBLIC ${VULKAN_INCLUDE_DIRS}
   )
@@ -147,7 +147,6 @@ if(WITH_INPUT_NDOF)
 endif()
 
 list(APPEND SRC
-  intern/GHOST_DisplayManagerNULL.hh
   intern/GHOST_SystemHeadless.hh
   intern/GHOST_WindowNULL.hh
 )
@@ -157,12 +156,10 @@ if(WITH_HEADLESS)
 elseif(WITH_GHOST_SDL)
   list(APPEND SRC
     intern/GHOST_ContextSDL.cc
-    intern/GHOST_DisplayManagerSDL.cc
     intern/GHOST_SystemSDL.cc
     intern/GHOST_WindowSDL.cc
 
     intern/GHOST_ContextSDL.hh
-    intern/GHOST_DisplayManagerSDL.hh
     intern/GHOST_SystemSDL.hh
     intern/GHOST_WindowSDL.hh
   )
@@ -176,11 +173,9 @@ elseif(WITH_GHOST_SDL)
   )
 elseif(APPLE AND NOT WITH_GHOST_X11)
   list(APPEND SRC
-    intern/GHOST_DisplayManagerCocoa.mm
     intern/GHOST_SystemCocoa.mm
     intern/GHOST_WindowCocoa.mm
 
-    intern/GHOST_DisplayManagerCocoa.hh
     intern/GHOST_SystemCocoa.hh
     intern/GHOST_WindowCocoa.hh
     intern/GHOST_WindowViewCocoa.hh
@@ -206,15 +201,11 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
     )
 
     list(APPEND SRC
-      intern/GHOST_DisplayManagerX11.cc
       intern/GHOST_SystemX11.cc
-      intern/GHOST_TaskbarX11.cc
       intern/GHOST_WindowX11.cc
 
-      intern/GHOST_DisplayManagerX11.hh
       intern/GHOST_IconX11.hh
       intern/GHOST_SystemX11.hh
-      intern/GHOST_TaskbarX11.hh
       intern/GHOST_WindowX11.hh
     )
 
@@ -248,16 +239,6 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
       add_definitions(-DWITH_XF86KEYSYM)
       list(APPEND INC_SYS
         ${X11_XF86keysym_INCLUDE_PATH}
-      )
-    endif()
-
-    if(WITH_X11_XF86VMODE)
-      add_definitions(-DWITH_X11_XF86VMODE)
-      list(APPEND INC_SYS
-        ${X11_Xxf86vm_INCLUDE_PATH}
-      )
-      list(APPEND LIB
-        ${X11_Xxf86vmode_LIB}
       )
     endif()
 
@@ -476,7 +457,6 @@ elseif(WIN32)
 
   list(APPEND SRC
     intern/GHOST_ContextD3D.cc
-    intern/GHOST_DisplayManagerWin32.cc
     intern/GHOST_DropTargetWin32.cc
     intern/GHOST_SystemWin32.cc
     intern/GHOST_TrackpadWin32.cc
@@ -484,7 +464,6 @@ elseif(WIN32)
     intern/GHOST_Wintab.cc
 
     intern/GHOST_ContextD3D.hh
-    intern/GHOST_DisplayManagerWin32.hh
     intern/GHOST_DropTargetWin32.hh
     intern/GHOST_SystemWin32.hh
     intern/GHOST_TaskbarWin32.hh
@@ -589,19 +568,39 @@ if(WITH_XR_OPENXR)
     # Header only library.
     ../../extern/tinygltf/tiny_gltf.h
   )
+  if(WIN32)
+    list(APPEND SRC
+      intern/GHOST_XrGraphicsBindingD3D.cc
+
+      intern/GHOST_XrGraphicsBindingD3D.hh
+    )
+  endif()
+
   list(APPEND INC_SYS
     ../../extern/json/include
     ../../extern/tinygltf
   )
   list(APPEND INC_SYS
-    ${EIGEN3_INCLUDE_DIRS}
     ${XR_OPENXR_SDK_INCLUDE_DIR}
   )
   list(APPEND LIB
     ${XR_OPENXR_SDK_LIBRARIES}
+    PRIVATE bf::dependencies::eigen
   )
 
-  set(XR_PLATFORM_DEFINES -DXR_USE_GRAPHICS_API_OPENGL)
+  set(XR_PLATFORM_DEFINES
+  )
+  if(WITH_OPENGL_BACKEND)
+    list(APPEND XR_PLATFORM_DEFINES -DXR_USE_GRAPHICS_API_OPENGL)
+  endif()
+  if(WITH_VULKAN_BACKEND)
+    list(APPEND XR_PLATFORM_DEFINES -DXR_USE_GRAPHICS_API_VULKAN)
+    list(APPEND SRC
+      intern/GHOST_XrGraphicsBindingVulkan.cc
+
+      intern/GHOST_XrGraphicsBindingVulkan.hh
+    )
+  endif()
 
   # Add compiler defines as required by the OpenXR specification.
   if(WIN32)

@@ -65,8 +65,9 @@
 /* Own include. */
 #include "sequencer_intern.hh"
 
-using namespace blender;
-using namespace blender::bke::blendfile;
+namespace blender::ed::vse {
+
+using namespace bke::blendfile;
 
 /* -------------------------------------------------------------------- */
 /* Copy Operator Helper functions
@@ -86,7 +87,7 @@ static void sequencer_copy_animation_listbase(Scene *scene_src,
 
   Vector<FCurve *> fcurves_src = animrig::fcurves_in_listbase_filtered(
       *fcurve_base_src,
-      [&](const FCurve &fcurve) { return SEQ_fcurve_matches(*strip_dst, fcurve); });
+      [&](const FCurve &fcurve) { return seq::fcurve_matches(*strip_dst, fcurve); });
 
   for (FCurve *fcu_src : fcurves_src) {
     BLI_addtail(clipboard_dst, BKE_fcurve_copy(fcu_src));
@@ -112,7 +113,7 @@ static void sequencer_copy_animation_to_vector(Scene *scene_src,
 
   Vector<FCurve *> fcurves_src = animrig::fcurves_in_action_slot_filtered(
       &fcurves_src_action, fcurves_src_slot_handle, [&](const FCurve &fcurve) {
-        return SEQ_fcurve_matches(*strip_dst, fcurve);
+        return seq::fcurve_matches(*strip_dst, fcurve);
       });
 
   for (FCurve *fcu_src : fcurves_src) {
@@ -130,11 +131,11 @@ static void sequencer_copy_animation(Scene *scene_src,
                                      ListBase *drivers_dst,
                                      Strip *strip_dst)
 {
-  if (SEQ_animation_keyframes_exist(scene_src)) {
+  if (seq::animation_keyframes_exist(scene_src)) {
     sequencer_copy_animation_to_vector(
         scene_src, strip_dst, fcurves_dst, *scene_src->adt->action, scene_src->adt->slot_handle);
   }
-  if (SEQ_animation_drivers_exist(scene_src)) {
+  if (seq::animation_drivers_exist(scene_src)) {
     sequencer_copy_animation_listbase(scene_src, strip_dst, drivers_dst, &scene_src->adt->drivers);
   }
 }
@@ -167,7 +168,7 @@ static bool sequencer_write_copy_paste_file(Main *bmain_src,
   /* Create an empty sequence editor data to store all copied strips. */
   scene_dst->ed = MEM_callocN<Editing>(__func__);
   scene_dst->ed->seqbasep = &scene_dst->ed->seqbase;
-  SEQ_sequence_base_dupli_recursive(
+  seq::sequence_base_dupli_recursive(
       scene_src, scene_dst, &scene_dst->ed->seqbase, scene_src->ed->seqbasep, 0, 0);
 
   BLI_duplicatelist(&scene_dst->ed->channels, &scene_src->ed->channels);
@@ -175,12 +176,12 @@ static bool sequencer_write_copy_paste_file(Main *bmain_src,
 
   /* Save current frame and active strip. */
   scene_dst->r.cfra = scene_src->r.cfra;
-  Strip *active_seq_src = SEQ_select_active_get(scene_src);
+  Strip *active_seq_src = seq::select_active_get(scene_src);
   if (active_seq_src) {
     Strip *strip_dst = static_cast<Strip *>(
         BLI_findstring(&scene_dst->ed->seqbase, active_seq_src->name, offsetof(Strip, name)));
     if (strip_dst) {
-      SEQ_select_active_set(scene_dst, strip_dst);
+      seq::select_active_set(scene_dst, strip_dst);
     }
   }
 
@@ -305,13 +306,13 @@ static bool sequencer_write_copy_paste_file(Main *bmain_src,
   return retval;
 }
 
-int sequencer_clipboard_copy_exec(bContext *C, wmOperator *op)
+wmOperatorStatus sequencer_clipboard_copy_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
-  Editing *ed = SEQ_editing_get(scene);
+  Editing *ed = seq::editing_get(scene);
 
-  blender::VectorSet<Strip *> selected = SEQ_query_selected_strips(ed->seqbasep);
+  blender::VectorSet<Strip *> selected = seq::query_selected_strips(ed->seqbasep);
 
   if (selected.is_empty()) {
     return OPERATOR_CANCELLED;
@@ -319,7 +320,7 @@ int sequencer_clipboard_copy_exec(bContext *C, wmOperator *op)
 
   blender::VectorSet<Strip *> effect_chain;
   effect_chain.add_multiple(selected);
-  SEQ_iterator_set_expand(scene, ed->seqbasep, effect_chain, SEQ_query_strip_effect_chain);
+  seq::iterator_set_expand(scene, ed->seqbasep, effect_chain, seq::query_strip_effect_chain);
 
   blender::VectorSet<Strip *> expanded;
   for (Strip *strip : effect_chain) {
@@ -362,7 +363,7 @@ int sequencer_clipboard_copy_exec(bContext *C, wmOperator *op)
 
 static bool sequencer_paste_animation(Main *bmain_dst, Scene *scene_dst, Scene *scene_src)
 {
-  if (!SEQ_animation_keyframes_exist(scene_src) && !SEQ_animation_drivers_exist(scene_src)) {
+  if (!seq::animation_keyframes_exist(scene_src) && !seq::animation_drivers_exist(scene_src)) {
     return false;
   }
 
@@ -391,7 +392,7 @@ static bool sequencer_paste_animation(Main *bmain_dst, Scene *scene_dst, Scene *
   return true;
 }
 
-int sequencer_clipboard_paste_exec(bContext *C, wmOperator *op)
+wmOperatorStatus sequencer_clipboard_paste_exec(bContext *C, wmOperator *op)
 {
   char filepath[FILE_MAX];
   sequencer_copybuffer_filepath_get(filepath, sizeof(filepath));
@@ -431,24 +432,24 @@ int sequencer_clipboard_paste_exec(bContext *C, wmOperator *op)
   }
 
   Scene *scene_dst = CTX_data_scene(C);
-  Editing *ed_dst = SEQ_editing_ensure(scene_dst); /* Creates "ed" if it's missing. */
+  Editing *ed_dst = seq::editing_ensure(scene_dst); /* Creates "ed" if it's missing. */
   int ofs;
 
-  ED_sequencer_deselect_all(scene_dst);
+  deselect_all_strips(scene_dst);
   if (RNA_boolean_get(op->ptr, "keep_offset")) {
     ofs = scene_dst->r.cfra - scene_src->r.cfra;
   }
   else {
     int min_seq_startdisp = INT_MAX;
     LISTBASE_FOREACH (Strip *, seq, &scene_src->ed->seqbase) {
-      min_seq_startdisp = std::min(SEQ_time_left_handle_frame_get(scene_src, seq),
+      min_seq_startdisp = std::min(seq::time_left_handle_frame_get(scene_src, seq),
                                    min_seq_startdisp);
     }
     /* Paste strips relative to the current-frame. */
     ofs = scene_dst->r.cfra - min_seq_startdisp;
   }
 
-  Strip *prev_active_seq = SEQ_select_active_get(scene_src);
+  Strip *prev_active_seq = seq::select_active_get(scene_src);
   std::string active_seq_name;
   if (prev_active_seq) {
     active_seq_name.assign(prev_active_seq->name);
@@ -468,14 +469,14 @@ int sequencer_clipboard_paste_exec(bContext *C, wmOperator *op)
    * when pasted strips are renamed, pasted fcurves are renamed with them. Finally restore original
    * curves from backup.
    */
-  SeqAnimationBackup animation_backup = {{nullptr}};
-  SEQ_animation_backup_original(scene_dst, &animation_backup);
+  seq::AnimationBackup animation_backup = {{nullptr}};
+  seq::animation_backup_original(scene_dst, &animation_backup);
   bool has_animation = sequencer_paste_animation(bmain_dst, scene_dst, scene_src);
 
   ListBase nseqbase = {nullptr, nullptr};
-  /* NOTE: SEQ_sequence_base_dupli_recursive() takes care of generating
+  /* NOTE: seq::sequence_base_dupli_recursive() takes care of generating
    * new UIDs for sequences in the new list. */
-  SEQ_sequence_base_dupli_recursive(
+  seq::sequence_base_dupli_recursive(
       scene_src, scene_dst, &nseqbase, &scene_src->ed->seqbase, 0, 0);
 
   /* BKE_main_merge will copy the scene_src and its action into bmain_dst. Remove them as
@@ -493,24 +494,24 @@ int sequencer_clipboard_paste_exec(bContext *C, wmOperator *op)
 
   LISTBASE_FOREACH (Strip *, iseq, &nseqbase) {
     if (iseq->name == active_seq_name) {
-      SEQ_select_active_set(scene_dst, iseq);
+      seq::select_active_set(scene_dst, iseq);
     }
     /* Make sure, that pasted strips have unique names. This has to be done after
      * adding strips to seqbase, for lookup cache to work correctly. */
-    SEQ_ensure_unique_name(iseq, scene_dst);
+    seq::ensure_unique_name(iseq, scene_dst);
   }
 
   LISTBASE_FOREACH (Strip *, iseq, &nseqbase) {
     /* Translate after name has been changed, otherwise this will affect animdata of original
      * strip. */
-    SEQ_transform_translate_sequence(scene_dst, iseq, ofs);
+    seq::transform_translate_sequence(scene_dst, iseq, ofs);
     /* Ensure, that pasted strips don't overlap. */
-    if (SEQ_transform_test_overlap(scene_dst, ed_dst->seqbasep, iseq)) {
-      SEQ_transform_seqbase_shuffle(ed_dst->seqbasep, iseq, scene_dst);
+    if (seq::transform_test_overlap(scene_dst, ed_dst->seqbasep, iseq)) {
+      seq::transform_seqbase_shuffle(ed_dst->seqbasep, iseq, scene_dst);
     }
   }
 
-  SEQ_animation_restore_original(scene_dst, &animation_backup);
+  seq::animation_restore_original(scene_dst, &animation_backup);
 
   DEG_id_tag_update(&scene_dst->id, ID_RECALC_SEQUENCER_STRIPS);
   if (scene_dst->adt && scene_dst->adt->action) {
@@ -525,3 +526,4 @@ int sequencer_clipboard_paste_exec(bContext *C, wmOperator *op)
 
   return OPERATOR_FINISHED;
 }
+}  // namespace blender::ed::vse

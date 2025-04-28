@@ -87,7 +87,7 @@ static bool keyingset_poll_activePath_edit(bContext *C)
 
 /* Add a Default (Empty) Keying Set ------------------------- */
 
-static int add_default_keyingset_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus add_default_keyingset_exec(bContext *C, wmOperator * /*op*/)
 {
   Scene *scene = CTX_data_scene(C);
 
@@ -122,7 +122,7 @@ void ANIM_OT_keying_set_add(wmOperatorType *ot)
 
 /* Remove 'Active' Keying Set ------------------------- */
 
-static int remove_active_keyingset_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus remove_active_keyingset_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
 
@@ -169,7 +169,7 @@ void ANIM_OT_keying_set_remove(wmOperatorType *ot)
 
 /* Add Empty Keying Set Path ------------------------- */
 
-static int add_empty_ks_path_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus add_empty_ks_path_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
 
@@ -186,8 +186,7 @@ static int add_empty_ks_path_exec(bContext *C, wmOperator *op)
       BLI_findlink(&scene->keyingsets, scene->active_keyingset - 1));
 
   /* Don't use the API method for this, since that checks on values... */
-  KS_Path *keyingset_path = static_cast<KS_Path *>(
-      MEM_callocN(sizeof(KS_Path), "KeyingSetPath Empty"));
+  KS_Path *keyingset_path = MEM_callocN<KS_Path>("KeyingSetPath Empty");
   BLI_addtail(&keyingset->paths, keyingset_path);
   keyingset->active_path = BLI_listbase_count(&keyingset->paths);
 
@@ -212,7 +211,7 @@ void ANIM_OT_keying_set_path_add(wmOperatorType *ot)
 
 /* Remove Active Keying Set Path ------------------------- */
 
-static int remove_active_ks_path_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus remove_active_ks_path_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
   KeyingSet *keyingset = static_cast<KeyingSet *>(
@@ -257,7 +256,7 @@ void ANIM_OT_keying_set_path_remove(wmOperatorType *ot)
 
 /* Add to KeyingSet Button Operator ------------------------ */
 
-static int add_keyingset_button_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus add_keyingset_button_exec(bContext *C, wmOperator *op)
 {
   PropertyRNA *prop = nullptr;
   PointerRNA ptr = {};
@@ -350,7 +349,7 @@ void ANIM_OT_keyingset_button_add(wmOperatorType *ot)
 
 /* Remove from KeyingSet Button Operator ------------------------ */
 
-static int remove_keyingset_button_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus remove_keyingset_button_exec(bContext *C, wmOperator *op)
 {
   PropertyRNA *prop = nullptr;
   PointerRNA ptr = {};
@@ -424,7 +423,9 @@ void ANIM_OT_keyingset_button_remove(wmOperatorType *ot)
 /* This operator checks if a menu should be shown
  * for choosing the KeyingSet to make the active one. */
 
-static int keyingset_active_menu_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+static wmOperatorStatus keyingset_active_menu_invoke(bContext *C,
+                                                     wmOperator *op,
+                                                     const wmEvent * /*event*/)
 {
   uiPopupMenu *pup;
   uiLayout *layout;
@@ -438,7 +439,7 @@ static int keyingset_active_menu_invoke(bContext *C, wmOperator *op, const wmEve
   return OPERATOR_INTERFACE;
 }
 
-static int keyingset_active_menu_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus keyingset_active_menu_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
   const int type = RNA_enum_get(op->ptr, "type");

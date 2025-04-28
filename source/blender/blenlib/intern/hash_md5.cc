@@ -60,7 +60,7 @@ using md5_uint32 = unsigned long;
 #endif
 
 /* Following code is low level, upon which are built up the functions
- * 'BLI_hash_md5_stream' and 'BLI_hash_md5_buffer'. */
+ * #BLI_hash_md5_stream and #BLI_hash_md5_buffer. */
 
 /* Structure to save state of computation between the single steps. */
 struct md5_ctx {

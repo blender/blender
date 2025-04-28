@@ -186,7 +186,7 @@ GPUNodeLink *GPU_color_band(GPUMaterial *mat, int size, float *pixels, float *r_
  * The given function should return a float.
  * The result will be a vec2 containing dFdx and dFdy result of that function.
  */
-GPUNodeLink *GPU_differentiate_float_function(const char *function_name);
+GPUNodeLink *GPU_differentiate_float_function(const char *function_name, const float filter_width);
 
 bool GPU_link(GPUMaterial *mat, const char *name, ...);
 bool GPU_stack_link(GPUMaterial *mat,

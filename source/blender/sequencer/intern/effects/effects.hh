@@ -19,7 +19,9 @@ struct ImBuf;
 struct Scene;
 struct Strip;
 
-SeqEffectHandle strip_effect_get_sequence_blend(Strip *strip);
+namespace blender::seq {
+
+EffectHandle strip_effect_get_sequence_blend(Strip *strip);
 /**
  * Build frame map when speed in mode #SEQ_SPEED_MULTIPLY is animated.
  * This is, because `target_frame` value is integrated over time.
@@ -33,7 +35,7 @@ float strip_speed_effect_target_frame_get(Scene *scene,
                                           float timeline_frame,
                                           int input);
 
-ImBuf *prepare_effect_imbufs(const SeqRenderData *context,
+ImBuf *prepare_effect_imbufs(const RenderData *context,
                              ImBuf *ibuf1,
                              ImBuf *ibuf2,
                              bool uninitialized_pixels = true);
@@ -86,26 +88,26 @@ void get_default_fac_fade(const Scene *scene,
                           float timeline_frame,
                           float *fac);
 
-SeqEffectHandle get_sequence_effect_impl(int strip_type);
+EffectHandle get_sequence_effect_impl(int strip_type);
 
-void add_effect_get_handle(SeqEffectHandle &rval);
-void adjustment_effect_get_handle(SeqEffectHandle &rval);
-void alpha_over_effect_get_handle(SeqEffectHandle &rval);
-void alpha_under_effect_get_handle(SeqEffectHandle &rval);
-void blend_mode_effect_get_handle(SeqEffectHandle &rval);
-void color_mix_effect_get_handle(SeqEffectHandle &rval);
-void cross_effect_get_handle(SeqEffectHandle &rval);
-void gamma_cross_effect_get_handle(SeqEffectHandle &rval);
-void gaussian_blur_effect_get_handle(SeqEffectHandle &rval);
-void glow_effect_get_handle(SeqEffectHandle &rval);
-void mul_effect_get_handle(SeqEffectHandle &rval);
-void multi_camera_effect_get_handle(SeqEffectHandle &rval);
-void solid_color_effect_get_handle(SeqEffectHandle &rval);
-void speed_effect_get_handle(SeqEffectHandle &rval);
-void sub_effect_get_handle(SeqEffectHandle &rval);
-void text_effect_get_handle(SeqEffectHandle &rval);
-void transform_effect_get_handle(SeqEffectHandle &rval);
-void wipe_effect_get_handle(SeqEffectHandle &rval);
+void add_effect_get_handle(EffectHandle &rval);
+void adjustment_effect_get_handle(EffectHandle &rval);
+void alpha_over_effect_get_handle(EffectHandle &rval);
+void alpha_under_effect_get_handle(EffectHandle &rval);
+void blend_mode_effect_get_handle(EffectHandle &rval);
+void color_mix_effect_get_handle(EffectHandle &rval);
+void cross_effect_get_handle(EffectHandle &rval);
+void gamma_cross_effect_get_handle(EffectHandle &rval);
+void gaussian_blur_effect_get_handle(EffectHandle &rval);
+void glow_effect_get_handle(EffectHandle &rval);
+void mul_effect_get_handle(EffectHandle &rval);
+void multi_camera_effect_get_handle(EffectHandle &rval);
+void solid_color_effect_get_handle(EffectHandle &rval);
+void speed_effect_get_handle(EffectHandle &rval);
+void sub_effect_get_handle(EffectHandle &rval);
+void text_effect_get_handle(EffectHandle &rval);
+void transform_effect_get_handle(EffectHandle &rval);
+void wipe_effect_get_handle(EffectHandle &rval);
 
 /* Given `OpT` that implements an `apply` function:
  *
@@ -141,3 +143,5 @@ static void apply_effect_op(const OpT &op, const ImBuf *src1, const ImBuf *src2,
         }
       });
 }
+
+}  // namespace blender::seq

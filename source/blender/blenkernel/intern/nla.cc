@@ -344,7 +344,7 @@ void BKE_nla_tracks_copy_from_adt(Main *bmain,
 NlaTrack *BKE_nlatrack_new()
 {
   /* allocate new track */
-  NlaTrack *nlt = static_cast<NlaTrack *>(MEM_callocN(sizeof(NlaTrack), "NlaTrack"));
+  NlaTrack *nlt = MEM_callocN<NlaTrack>("NlaTrack");
 
   /* set settings requiring the track to not be part of the stack yet */
   nlt->flag = NLATRACK_SELECTED | NLATRACK_OVERRIDELIBRARY_LOCAL;
@@ -389,7 +389,7 @@ void BKE_nlatrack_insert_after(ListBase *nla_tracks,
   BLI_assert(nla_tracks);
   BLI_assert(new_track);
 
-  /** If nullptr, then caller intends to insert a new head. But, tracks are not allowed to be
+  /* If nullptr, then caller intends to insert a new head. But, tracks are not allowed to be
    * placed before library overrides. So it must inserted after the last override. */
   if (prev == nullptr) {
     NlaTrack *first_track = (NlaTrack *)nla_tracks->first;
@@ -483,7 +483,7 @@ static NlaStrip *nlastrip_new(bAction *act, ID &animated_id)
   }
 
   /* allocate new strip */
-  strip = static_cast<NlaStrip *>(MEM_callocN(sizeof(NlaStrip), "NlaStrip"));
+  strip = MEM_callocN<NlaStrip>("NlaStrip");
 
   /* generic settings
    * - selected flag to highlight this to the user
@@ -606,7 +606,7 @@ NlaStrip *BKE_nlastack_add_strip(const OwnedAnimData owned_adt, const bool is_li
 
 NlaStrip *BKE_nla_add_soundstrip(Main *bmain, Scene *scene, Speaker *speaker)
 {
-  NlaStrip *strip = static_cast<NlaStrip *>(MEM_callocN(sizeof(NlaStrip), "NlaSoundStrip"));
+  NlaStrip *strip = MEM_callocN<NlaStrip>("NlaSoundStrip");
 
 /* if speaker has a sound, set the strip length to the length of the sound,
  * otherwise default to length of 10 frames
@@ -723,8 +723,8 @@ static float nlastrip_get_frame_actionclip(NlaStrip *strip, float cframe, short 
       return strip->actstart;
     }
 
-    /* - the 'fmod(..., actlength * scale)' is needed to get the repeats working
-     * - the '/ scale' is needed to ensure that scaling influences the timing within the repeat
+    /* - The `fmod(..., actlength * scale)` is needed to get the repeats working.
+     * - The `/ scale` is needed to ensure that scaling influences the timing within the repeat.
      */
     return strip->actend - fmodf(cframe - strip->start, actlength * scale) / scale;
   }
@@ -743,8 +743,8 @@ static float nlastrip_get_frame_actionclip(NlaStrip *strip, float cframe, short 
     return strip->actend;
   }
 
-  /* - the 'fmod(..., actlength * scale)' is needed to get the repeats working
-   * - the '/ scale' is needed to ensure that scaling influences the timing within the repeat
+  /* - The `fmod(..., actlength * scale)` is needed to get the repeats working.
+   * - The `/ scale` is needed to ensure that scaling influences the timing within the repeat.
    */
   return strip->actstart + fmodf(cframe - strip->start, actlength * scale) / scale;
 }
@@ -968,7 +968,7 @@ void BKE_nlastrips_make_metas(ListBase *strips, bool is_temp)
       /* if there is an existing meta-strip, add this strip to it, otherwise, create a new one */
       if (mstrip == nullptr) {
         /* add a new meta-strip, and add it before the current strip that it will replace... */
-        mstrip = static_cast<NlaStrip *>(MEM_callocN(sizeof(NlaStrip), "Meta-NlaStrip"));
+        mstrip = MEM_callocN<NlaStrip>("Meta-NlaStrip");
         mstrip->type = NLASTRIP_TYPE_META;
         BLI_insertlinkbefore(strips, strip, mstrip);
 
@@ -1826,8 +1826,7 @@ void BKE_nlastrip_validate_fcurves(NlaStrip *strip)
       fcu->rna_path = BLI_strdupn("influence", 9);
 
       /* insert keyframe to ensure current value stays on first refresh */
-      fcu->bezt = static_cast<BezTriple *>(
-          MEM_callocN(sizeof(BezTriple), "nlastrip influence bezt"));
+      fcu->bezt = MEM_callocN<BezTriple>("nlastrip influence bezt");
       fcu->totvert = 1;
 
       fcu->bezt->vec[1][0] = strip->start;
@@ -1896,11 +1895,6 @@ bool BKE_nlastrip_has_curves_for_property(const PointerRNA *ptr, const PropertyR
 
 /* Sanity Validation ------------------------------------ */
 
-static bool nla_editbone_name_check(void *arg, const char *name)
-{
-  return BLI_ghash_haskey((GHash *)arg, (const void *)name);
-}
-
 void BKE_nlastrip_validate_name(AnimData *adt, NlaStrip *strip)
 {
   GHash *gh;
@@ -1951,12 +1945,14 @@ void BKE_nlastrip_validate_name(AnimData *adt, NlaStrip *strip)
    * - In an extreme case, it might not be able to find a name,
    *   but then everything else in Blender would fail too :).
    */
-  BLI_uniquename_cb(nla_editbone_name_check,
-                    (void *)gh,
-                    DATA_("NlaStrip"),
-                    '.',
-                    strip->name,
-                    sizeof(strip->name));
+  BLI_uniquename_cb(
+      [&](const blender::StringRefNull check_name) {
+        return BLI_ghash_haskey(gh, check_name.c_str());
+      },
+      DATA_("NlaStrip"),
+      '.',
+      strip->name,
+      sizeof(strip->name));
 
   /* free the hash... */
   BLI_ghash_free(gh, nullptr, nullptr);
@@ -2223,16 +2219,6 @@ void BKE_nla_action_pushdown(const OwnedAnimData owned_adt, const bool is_libove
     return;
   }
 
-  /* if the action is empty, we also shouldn't try to add to stack,
-   * as that will cause us grief down the track
-   */
-  /* TODO: what about modifiers? */
-  animrig::Action &action = adt->action->wrap();
-  if (!action.has_keyframes(adt->slot_handle)) {
-    CLOG_ERROR(&LOG, "action has no data");
-    return;
-  }
-
   /* Add a new NLA strip to the track, which references the active action + slot. */
   strip = BKE_nlastack_add_strip(owned_adt, is_liboverride);
   if (strip == nullptr) {
@@ -2413,7 +2399,7 @@ bool BKE_nla_tweakmode_enter(const OwnedAnimData owned_adt)
     }
   }
   else {
-    /* This is a strange situation to be in, as every 'tweakable' NLA strip should have an Action.
+    /* This is a strange situation to be in, as every *tweak-able* NLA strip should have an Action.
      */
     BLI_assert_unreachable();
     const bool unassign_ok = animrig::unassign_action(owned_adt);
@@ -2501,6 +2487,18 @@ void BKE_nla_tweakmode_exit(const OwnedAnimData owned_adt)
   }
 
   if (owned_adt.adt.action) {
+    /* When a strip has no slot assigned, it can still enter tweak mode. Inserting a key will then
+     * create a slot. When exiting tweak mode, this slot has to be assigned to the strip.
+     * At this moment in time, the adt->action is still the one being tweaked. */
+    NlaStrip *active_strip = owned_adt.adt.actstrip;
+    if (active_strip && active_strip->action_slot_handle != owned_adt.adt.slot_handle) {
+      const animrig::ActionSlotAssignmentResult result = animrig::nla::assign_action_slot_handle(
+          *active_strip, owned_adt.adt.slot_handle, owned_adt.owner_id);
+      BLI_assert_msg(result == animrig::ActionSlotAssignmentResult::OK,
+                     "When exiting tweak mode, syncing the tweaked Action slot should work");
+      UNUSED_VARS_NDEBUG(result);
+    }
+
     /* The Action will be replaced with adt->tmpact, and thus needs to be unassigned first. */
 
     /* The high-level function animrig::unassign_action() will check whether NLA tweak mode is

@@ -233,6 +233,17 @@ class NODE_OT_add_foreach_geometry_element_zone(NodeAddZoneOperator, Operator):
     add_default_geometry_link = False
 
 
+class NODE_OT_add_closure_zone(NodeAddZoneOperator, Operator):
+    """Add a Closure zone"""
+    bl_idname = "node.add_closure_zone"
+    bl_label = "Add Closure Zone"
+    bl_options = {'REGISTER', 'UNDO'}
+
+    input_node_type = "GeometryNodeClosureInput"
+    output_node_type = "GeometryNodeClosureOutput"
+    add_default_geometry_link = False
+
+
 class NODE_OT_collapse_hide_unused_toggle(Operator):
     """Toggle collapsed nodes and hide unused sockets"""
     bl_idname = "node.collapse_hide_unused_toggle"
@@ -314,7 +325,7 @@ class NODE_OT_interface_item_new(NodeInterfaceOperator, Operator):
 
         active_item = interface.active
         # Panels have the extra option to add a toggle.
-        if active_item and active_item.item_type == 'PANEL' and tree.type in {'GEOMETRY', 'SHADER'}:
+        if active_item and active_item.item_type == 'PANEL':
             items.append(('PANEL_TOGGLE', "Panel Toggle", ""))
 
         return items
@@ -429,6 +440,11 @@ class NODE_OT_interface_item_remove(NodeInterfaceOperator, Operator):
         item = interface.active
 
         if item:
+            if item.item_type == 'PANEL':
+                child = item.interface_items
+                if child and child[0].is_panel_toggle:
+                    panel_toggle = item.interface_items[0]
+                    interface.remove(panel_toggle)
             interface.remove(item)
             interface.active_index = min(interface.active_index, len(interface.items_tree) - 1)
 
@@ -452,9 +468,11 @@ class NODE_OT_interface_item_make_panel_toggle(NodeInterfaceOperator, Operator):
         active_item = interface.active
         if not active_item:
             return False
-        if type(active_item) is not bpy.types.NodeTreeInterfaceSocketBool:
-            cls.poll_message_set("Only boolean sockets are supported")
+
+        if type(active_item) is not bpy.types.NodeTreeInterfaceSocketBool or active_item.in_out != 'INPUT':
+            cls.poll_message_set("Only boolean input sockets are supported")
             return False
+
         parent_panel = active_item.parent
         if parent_panel.parent is None:
             cls.poll_message_set("Socket must be in a panel")
@@ -562,13 +580,13 @@ class NODE_OT_viewer_shortcut_set(Operator):
         del cls
         space = context.space_data
         return (
+            (space is not None) and
             space.type == 'NODE_EDITOR' and
             space.node_tree is not None and
-            space.tree_type == 'CompositorNodeTree'
+            space.tree_type in {'CompositorNodeTree', 'GeometryNodeTree'}
         )
 
     def execute(self, context):
-        nodes = context.space_data.edit_tree.nodes
         selected_nodes = context.selected_nodes
 
         if len(selected_nodes) == 0:
@@ -579,7 +597,6 @@ class NODE_OT_viewer_shortcut_set(Operator):
 
         # Only viewer nodes can be set to favorites. However, the user can
         # create a new favorite viewer by selecting any node and pressing ctrl+1.
-        old_active = nodes.active
         if fav_node.type == 'VIEWER':
             viewer_node = fav_node
         else:
@@ -599,10 +616,8 @@ class NODE_OT_viewer_shortcut_set(Operator):
             )
             return {'CANCELLED'}
 
-        # Use the node active status to enable this viewer node and disable others.
-        nodes.active = viewer_node
-        if old_active.type != 'VIEWER':
-            nodes.active = old_active
+        with bpy.context.temp_override(node=viewer_node):
+            bpy.ops.node.activate_viewer()
 
         viewer_node.ui_shortcut = self.viewer_index
         self.report({'INFO'}, "Assigned shortcut {:d} to {:s}".format(self.viewer_index, viewer_node.name))
@@ -625,9 +640,10 @@ class NODE_OT_viewer_shortcut_get(Operator):
         del cls
         space = context.space_data
         return (
+            (space is not None) and
             space.type == 'NODE_EDITOR' and
             space.node_tree is not None and
-            space.tree_type == 'CompositorNodeTree'
+            space.tree_type in {'CompositorNodeTree', 'GeometryNodeTree'}
         )
 
     def execute(self, context):
@@ -643,11 +659,8 @@ class NODE_OT_viewer_shortcut_get(Operator):
             self.report({'INFO'}, "Shortcut {:d} is not assigned to a Viewer node yet".format(self.viewer_index))
             return {'CANCELLED'}
 
-        # Use the node active status to enable this viewer node and disable others.
-        old_active = nodes.active
-        nodes.active = viewer_node
-        if old_active.type != "VIEWER":
-            nodes.active = old_active
+        with bpy.context.temp_override(node=viewer_node):
+            bpy.ops.node.activate_viewer()
 
         return {'FINISHED'}
 
@@ -655,7 +668,7 @@ class NODE_OT_viewer_shortcut_get(Operator):
 class NODE_FH_image_node(FileHandler):
     bl_idname = "NODE_FH_image_node"
     bl_label = "Image node"
-    bl_import_operator = "node.add_file"
+    bl_import_operator = "node.add_image"
     bl_file_extensions = ";".join((*bpy.path.extensions_image, *bpy.path.extensions_movie))
 
     @classmethod
@@ -677,6 +690,7 @@ classes = (
     NODE_OT_add_simulation_zone,
     NODE_OT_add_repeat_zone,
     NODE_OT_add_foreach_geometry_element_zone,
+    NODE_OT_add_closure_zone,
     NODE_OT_collapse_hide_unused_toggle,
     NODE_OT_interface_item_new,
     NODE_OT_interface_item_duplicate,

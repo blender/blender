@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "../eevee_next/eevee_lut.hh" /* TODO: find somewhere to share blue noise Table. */
+#include "../eevee/eevee_lut.hh" /* TODO: find somewhere to share blue noise Table. */
 
 #include "BKE_studiolight.h"
 
@@ -105,16 +105,16 @@ void SceneResources::load_jitter_tx(int total_samples)
       GPU_RGBA16F, int2(jitter_tx_size), GPU_TEXTURE_USAGE_SHADER_READ, jitter[0][0]);
 }
 
-void SceneResources::init(const SceneState &scene_state)
+void SceneResources::init(const SceneState &scene_state, const DRWContext *ctx)
 {
   const View3DShading &shading = scene_state.shading;
 
-  world_buf.viewport_size = DRW_viewport_size_get();
+  world_buf.viewport_size = ctx->viewport_size_get();
   world_buf.viewport_size_inv = 1.0f / world_buf.viewport_size;
   world_buf.xray_alpha = shading.xray_alpha;
   world_buf.background_color = scene_state.background_color;
   world_buf.object_outline_color = float4(float3(shading.object_outline_color), 1.0f);
-  world_buf.ui_scale = DRW_state_is_image_render() ? 1.0f : U.pixelsize;
+  world_buf.ui_scale = ctx->is_image_render() ? 1.0f : U.pixelsize;
   world_buf.matcap_orientation = (shading.flag & V3D_SHADING_MATCAP_FLIP_X) != 0;
 
   StudioLight *studio_light = nullptr;

@@ -40,7 +40,7 @@ int template_search_textbut_width(PointerRNA *ptr, PropertyRNA *name_prop)
   const int estimated_width = UI_fontstyle_string_width(fstyle, name) + margin;
 
   if (name != str) {
-    MEM_freeN((void *)name);
+    MEM_freeN(name);
   }
 
   /* Clamp to some min/max width. */
@@ -53,9 +53,6 @@ int template_search_textbut_height()
   return TEMPLATE_SEARCH_TEXTBUT_HEIGHT;
 }
 
-/**
- * Add a block button for the search menu for templateID and templateSearch.
- */
 void template_add_button_search_menu(const bContext *C,
                                      uiLayout *layout,
                                      uiBlock *block,
@@ -92,7 +89,7 @@ void template_add_button_search_menu(const bContext *C,
     if (use_big_size) {
       /* Assume column layout here. To be more correct, we should check if the layout passed to
        * template_id is a column one, but this should work well in practice. */
-      col = uiLayoutColumn(layout, true);
+      col = &layout->column(true);
     }
 
     but = uiDefBlockButN(block,
@@ -119,7 +116,7 @@ void template_add_button_search_menu(const bContext *C,
       UI_but_flag_enable(but, UI_BUT_DISABLED);
     }
     if (use_big_size) {
-      uiLayoutRow(col ? col : layout, true);
+      (col ? col : layout)->row(true);
     }
   }
   else {
@@ -172,7 +169,7 @@ uiBlock *template_common_search_menu(const bContext *C,
   /* clear initial search string, then all items show */
   search[0] = 0;
 
-  uiBlock *block = UI_block_begin(C, region, "_popup", UI_EMBOSS);
+  uiBlock *block = UI_block_begin(C, region, "_popup", blender::ui::EmbossType::Emboss);
   UI_block_flag_enable(block, UI_BLOCK_LOOP | UI_BLOCK_SEARCH_MENU);
   UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
 
@@ -270,7 +267,7 @@ void uiTemplatePathBuilder(uiLayout *layout,
   }
 
   /* Start drawing UI Elements using standard defines */
-  uiLayout *row = uiLayoutRow(layout, true);
+  uiLayout *row = &layout->row(true);
 
   /* Path (existing string) Widget */
   uiItemR(row, ptr, propname, UI_ITEM_NONE, text, ICON_RNA);

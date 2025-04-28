@@ -51,8 +51,6 @@ class RuntimeBackup {
   SceneBackup scene_backup;
   SoundBackup sound_backup;
   ObjectRuntimeBackup object_backup;
-  DrawDataList drawdata_backup;
-  DrawDataList *drawdata_ptr;
   MovieClipBackup movieclip_backup;
   VolumeBackup volume_backup;
 };

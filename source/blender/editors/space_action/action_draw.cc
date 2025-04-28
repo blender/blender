@@ -84,7 +84,7 @@ void draw_channel_names(bContext *C,
     }
   }
   { /* second pass: widgets */
-    uiBlock *block = UI_block_begin(C, region, __func__, UI_EMBOSS);
+    uiBlock *block = UI_block_begin(C, region, __func__, blender::ui::EmbossType::Emboss);
     size_t channel_index = 0;
     float ymax = ANIM_UI_get_first_channel_top(v2d);
 
@@ -220,6 +220,7 @@ static void draw_backdrops(bAnimContext *ac, ListBase &anim_data, View2D *v2d, u
           immUniformThemeColor(TH_ANIM_ACTIVE);
           break;
         }
+        case ANIMTYPE_ACTION_SLOT:
         case ANIMTYPE_SCENE:
         case ANIMTYPE_OBJECT: {
           immUniformColor3ubvAlpha(col1b, sel ? col1[3] : col1b[3]);
@@ -474,7 +475,7 @@ void draw_channel_strips(bAnimContext *ac,
 {
   View2D *v2d = &region->v2d;
 
-  /* Draw the manual frame ranges for actions in the background of the dopesheet.
+  /* Draw the manual frame ranges for actions in the background of the dope-sheet.
    * The action editor has already drawn the range for its action so it's not needed. */
   if (ac->datatype == ANIMCONT_DOPESHEET) {
     draw_channel_action_ranges(anim_data, v2d);

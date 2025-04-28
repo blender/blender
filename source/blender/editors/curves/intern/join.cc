@@ -21,7 +21,7 @@
 
 namespace blender::ed::curves {
 
-int join_objects(bContext *C, wmOperator *op)
+wmOperatorStatus join_objects_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);

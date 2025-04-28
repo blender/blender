@@ -13,7 +13,7 @@ that no undo step will created (see next example for more info about undo).
 
 .. note::
 
-   Operator subclasses must be registered before accessing them from blender.
+   Operator subclasses must be registered before accessing them from Blender.
 
 """
 import bpy

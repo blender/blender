@@ -253,15 +253,6 @@ void BKE_view_layer_free_ex(ViewLayer *view_layer, const bool do_id_user)
 {
   BKE_view_layer_free_object_content(view_layer);
 
-  LISTBASE_FOREACH (ViewLayerEngineData *, sled, &view_layer->drawdata) {
-    if (sled->storage) {
-      if (sled->free) {
-        sled->free(sled->storage);
-      }
-      MEM_freeN(sled->storage);
-    }
-  }
-  BLI_freelistN(&view_layer->drawdata);
   BLI_freelistN(&view_layer->aovs);
   view_layer->active_aov = nullptr;
   BLI_freelistN(&view_layer->lightgroups);
@@ -520,12 +511,11 @@ void BKE_view_layer_copy_data(Scene *scene_dst,
   view_layer_dst->stats = nullptr;
 
   /* Clear temporary data. */
-  BLI_listbase_clear(&view_layer_dst->drawdata);
   view_layer_dst->object_bases_array = nullptr;
   view_layer_dst->object_bases_hash = nullptr;
 
   /* Copy layer collections and object bases. */
-  /* Inline 'BLI_duplicatelist' and update the active base. */
+  /* Inline #BLI_duplicatelist and update the active base. */
   BLI_listbase_clear(&view_layer_dst->object_bases);
   BLI_assert_msg((view_layer_src->flag & VIEW_LAYER_OUT_OF_SYNC) == 0,
                  "View Layer Object Base out of sync, invoke BKE_view_layer_synced_ensure.");
@@ -2366,8 +2356,8 @@ static void layer_eval_view_layer(Depsgraph *depsgraph, Scene *scene, ViewLayer 
   BKE_view_layer_synced_ensure(scene, view_layer);
   const int num_object_bases = BLI_listbase_count(BKE_view_layer_object_bases_get(view_layer));
   MEM_SAFE_FREE(view_layer->object_bases_array);
-  view_layer->object_bases_array = static_cast<Base **>(
-      MEM_malloc_arrayN(num_object_bases, sizeof(Base *), "view_layer->object_bases_array"));
+  view_layer->object_bases_array = MEM_malloc_arrayN<Base *>(size_t(num_object_bases),
+                                                             "view_layer->object_bases_array");
   int base_index = 0;
   LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
     view_layer->object_bases_array[base_index++] = base;
@@ -2476,7 +2466,6 @@ void BKE_view_layer_blend_read_data(BlendDataReader *reader, ViewLayer *view_lay
   BLO_read_struct_list(reader, ViewLayerLightgroup, &view_layer->lightgroups);
   BLO_read_struct(reader, ViewLayerLightgroup, &view_layer->active_lightgroup);
 
-  BLI_listbase_clear(&view_layer->drawdata);
   view_layer->object_bases_array = nullptr;
   view_layer->object_bases_hash = nullptr;
 }

@@ -31,7 +31,7 @@ namespace blender::ed::greasepencil {
 /** \name Show All Materials Operator
  * \{ */
 
-static int grease_pencil_material_reveal_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus grease_pencil_material_reveal_exec(bContext *C, wmOperator * /*op*/)
 {
   Object *object = CTX_data_active_object(C);
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
@@ -74,7 +74,7 @@ static void GREASE_PENCIL_OT_material_reveal(wmOperatorType *ot)
 /** \name Hide Others Materials Operator
  * \{ */
 
-static int grease_pencil_material_hide_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus grease_pencil_material_hide_exec(bContext *C, wmOperator *op)
 {
   Object *object = CTX_data_active_object(C);
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
@@ -130,7 +130,7 @@ static void GREASE_PENCIL_OT_material_hide(wmOperatorType *ot)
 /** \name Lock All Materials Operator
  * \{ */
 
-static int grease_pencil_material_lock_all_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus grease_pencil_material_lock_all_exec(bContext *C, wmOperator * /*op*/)
 {
   Object *object = CTX_data_active_object(C);
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
@@ -174,7 +174,7 @@ static void GREASE_PENCIL_OT_material_lock_all(wmOperatorType *ot)
 /** \name Unlock All Materials Operator
  * \{ */
 
-static int grease_pencil_material_unlock_all_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus grease_pencil_material_unlock_all_exec(bContext *C, wmOperator * /*op*/)
 {
   Object *object = CTX_data_active_object(C);
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
@@ -217,7 +217,7 @@ static void GREASE_PENCIL_OT_material_unlock_all(wmOperatorType *ot)
 /** \name Lock Unused Materials Operator
  * \{ */
 
-static int grease_pencil_material_lock_unused_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus grease_pencil_material_lock_unused_exec(bContext *C, wmOperator * /*op*/)
 {
   Object *object = CTX_data_active_object(C);
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
@@ -261,7 +261,8 @@ static void GREASE_PENCIL_OT_material_lock_unused(wmOperatorType *ot)
 /** \name Lock Unselected Materials Operator
  * \{ */
 
-static int grease_pencil_material_lock_unselected_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus grease_pencil_material_lock_unselected_exec(bContext *C,
+                                                                    wmOperator * /*op*/)
 {
   using namespace blender;
   using namespace blender::bke;
@@ -337,7 +338,7 @@ static void GREASE_PENCIL_OT_material_lock_unselected(wmOperatorType *ot)
 /** \name Copy Materials to Selected Objects
  * \{ */
 
-static int grease_pencil_material_copy_to_object_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus grease_pencil_material_copy_to_object_exec(bContext *C, wmOperator *op)
 {
   using namespace blender;
   using namespace blender::bke;
@@ -401,7 +402,7 @@ static void GREASE_PENCIL_OT_material_copy_to_object(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
-static int material_isolate_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus material_isolate_exec(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_active_object(C);
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(ob->data);

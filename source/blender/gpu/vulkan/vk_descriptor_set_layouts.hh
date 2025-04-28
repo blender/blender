@@ -95,7 +95,7 @@ class VKDescriptorSetLayouts : NonCopyable {
    */
   VkDescriptorSetLayout get_or_create(const VKDescriptorSetLayoutInfo &info,
                                       bool &r_created,
-                                      [[deprecated]] bool &r_needed);
+                                      bool &r_needed);
 
   /**
    * Free all descriptor set layouts.

@@ -763,6 +763,20 @@ TEST(map, Equality)
   EXPECT_NE(a, b);
 }
 
+TEST(map, AddCbMove)
+{
+  Map<std::string, int> map;
+  std::string value = "a";
+  bool value_checked = false;
+  map.lookup_or_add_cb(std::move(value), [&]() {
+    EXPECT_EQ(value, "a");
+    value_checked = true;
+    return 10;
+  });
+  EXPECT_TRUE(value_checked);
+  EXPECT_EQ(value, "");
+}
+
 /**
  * Set this to 1 to activate the benchmark. It is disabled by default, because it prints a lot.
  */

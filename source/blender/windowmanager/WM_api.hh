@@ -187,6 +187,8 @@ enum eWM_CapabilitiesFlag {
   WM_CAPABILITY_TRACKPAD_PHYSICAL_DIRECTION = (1 << 7),
   /** Support for window decoration styles. */
   WM_CAPABILITY_WINDOW_DECORATION_STYLES = (1 << 8),
+  /** Support for the "Hyper" modifier key. */
+  WM_CAPABILITY_KEYBOARD_HYPER_KEY = (1 << 9),
   /** The initial value, indicates the value needs to be set by inspecting GHOST. */
   WM_CAPABILITY_INITIALIZED = (1u << 31),
 };
@@ -421,9 +423,20 @@ void WM_window_decoration_style_apply(const wmWindow *win, const bScreen *screen
 /* `wm_files.cc`. */
 
 void WM_file_autoexec_init(const char *filepath);
-bool WM_file_read(bContext *C, const char *filepath, ReportList *reports);
+/**
+ * \param use_scripts_autoexec_check: When true, script auto-execution checks excluded directories.
+ * Note that this is passed in as an argument because `filepath` may reference a path to recover.
+ * In this case the that used for exclusion is the recovery path which is only known once
+ * the file has been loaded.
+ */
+bool WM_file_read(bContext *C,
+                  const char *filepath,
+                  const bool use_scripts_autoexec_check,
+                  ReportList *reports);
 void WM_file_autosave_init(wmWindowManager *wm);
-bool WM_file_recover_last_session(bContext *C, ReportList *reports);
+bool WM_file_recover_last_session(bContext *C,
+                                  const bool use_scripts_autoexec_check,
+                                  ReportList *reports);
 void WM_file_tag_modified();
 
 /**
@@ -485,7 +498,7 @@ void WM_cursor_time(wmWindow *win, int nr);
 wmPaintCursor *WM_paint_cursor_activate(short space_type,
                                         short region_type,
                                         bool (*poll)(bContext *C),
-                                        void (*draw)(bContext *C, int, int, void *customdata),
+                                        wmPaintCursorDraw draw,
                                         void *customdata);
 
 bool WM_paint_cursor_end(wmPaintCursor *handle);
@@ -716,20 +729,42 @@ void WM_report_banners_cancel(Main *bmain);
  * #G_MAIN will be used.
  */
 void WM_reports_from_reports_move(wmWindowManager *wm, ReportList *reports);
-void WM_report(eReportType type, const char *message);
-void WM_reportf(eReportType type, const char *format, ...) ATTR_PRINTF_FORMAT(2, 3);
 
-wmEvent *wm_event_add_ex(wmWindow *win,
-                         const wmEvent *event_to_add,
-                         const wmEvent *event_to_add_after) ATTR_NONNULL(1, 2);
-wmEvent *wm_event_add(wmWindow *win, const wmEvent *event_to_add) ATTR_NONNULL(1, 2);
+/**
+ * Report directly to the window manager without any context.
+ *
+ * \warning This function should almost always be avoided in favor of #BKE_report,
+ * if this isn't possible, a code-comment must be included explaining why.
+ *
+ * Global reports are bad practice because the caller can't handle or suppress them.
+ * This means for example, if an automated tasks/scripts can generate many reports
+ * that are shown to the user without any way to control error handling.
+ *
+ * When used in operators it prevents the Python script from raising an exception
+ * form the error as it should do, showing a popup instead.
+ */
+void WM_global_report(eReportType type, const char *message);
+/**
+ * Report directly to the window manager without any context.
+ *
+ * \warning This function should almost always be avoided in favor of #BKE_reportf,
+ * if this isn't possible, a code-comment must be included explaining why.
+ *
+ * See #WM_global_report for details.
+ */
+void WM_global_reportf(eReportType type, const char *format, ...) ATTR_PRINTF_FORMAT(2, 3);
+
+wmEvent *WM_event_add(wmWindow *win, const wmEvent *event_to_add) ATTR_NONNULL(1, 2);
 
 void wm_event_init_from_window(wmWindow *win, wmEvent *event);
 
 /**
  * At maximum, every time_step seconds it triggers `event_type` events.
  */
-wmTimer *WM_event_timer_add(wmWindowManager *wm, wmWindow *win, int event_type, double time_step);
+wmTimer *WM_event_timer_add(wmWindowManager *wm,
+                            wmWindow *win,
+                            wmEventType event_type,
+                            double time_step);
 wmTimer *WM_event_timer_add_notifier(wmWindowManager *wm,
                                      wmWindow *win,
                                      unsigned int type,
@@ -764,7 +799,7 @@ void WM_event_timer_sleep(wmWindowManager *wm, wmWindow *win, wmTimer *timer, bo
  * To be used together with #WM_generic_select_invoke() and
  * #WM_operator_properties_generic_select().
  */
-int WM_generic_select_modal(bContext *C, wmOperator *op, const wmEvent *event);
+wmOperatorStatus WM_generic_select_modal(bContext *C, wmOperator *op, const wmEvent *event);
 /**
  * Helper to get select and tweak-transform to work conflict free and as desired. See
  * #WM_operator_properties_generic_select() for details.
@@ -772,44 +807,44 @@ int WM_generic_select_modal(bContext *C, wmOperator *op, const wmEvent *event);
  * To be used together with #WM_generic_select_modal() and
  * #WM_operator_properties_generic_select().
  */
-int WM_generic_select_invoke(bContext *C, wmOperator *op, const wmEvent *event);
+wmOperatorStatus WM_generic_select_invoke(bContext *C, wmOperator *op, const wmEvent *event);
 void WM_operator_view3d_unit_defaults(bContext *C, wmOperator *op);
 int WM_operator_smooth_viewtx_get(const wmOperator *op);
 /**
  * Invoke callback, uses enum property named "type".
  */
-int WM_menu_invoke_ex(bContext *C, wmOperator *op, wmOperatorCallContext opcontext);
-int WM_menu_invoke(bContext *C, wmOperator *op, const wmEvent *event);
+wmOperatorStatus WM_menu_invoke_ex(bContext *C, wmOperator *op, wmOperatorCallContext opcontext);
+wmOperatorStatus WM_menu_invoke(bContext *C, wmOperator *op, const wmEvent *event);
 /**
  * Call an existent menu. The menu can be created in C or Python.
  */
 void WM_menu_name_call(bContext *C, const char *menu_name, short context);
 
-int WM_enum_search_invoke(bContext *C, wmOperator *op, const wmEvent *event);
+wmOperatorStatus WM_enum_search_invoke(bContext *C, wmOperator *op, const wmEvent *event);
 
 /**
  * Invoke callback, confirm menu + exec.
  */
-int WM_operator_confirm(bContext *C, wmOperator *op, const wmEvent *event);
-int WM_operator_confirm_or_exec(bContext *C, wmOperator *op, const wmEvent *event);
+wmOperatorStatus WM_operator_confirm(bContext *C, wmOperator *op, const wmEvent *event);
+wmOperatorStatus WM_operator_confirm_or_exec(bContext *C, wmOperator *op, const wmEvent *event);
 
 /**
  * Like WM_operator_confirm, but with more options and can't be used as an invoke directly.
  */
-int WM_operator_confirm_ex(bContext *C,
-                           wmOperator *op,
-                           const char *title = nullptr,
-                           const char *message = nullptr,
-                           const char *confirm_text = nullptr,
-                           int icon = 0, /* ALERT_ICON_WARNING. */
-                           bool cancel_default = false);
+wmOperatorStatus WM_operator_confirm_ex(bContext *C,
+                                        wmOperator *op,
+                                        const char *title = nullptr,
+                                        const char *message = nullptr,
+                                        const char *confirm_text = nullptr,
+                                        int icon = 0, /* ALERT_ICON_WARNING. */
+                                        bool cancel_default = false);
 
 /**
  * Invoke callback, file selector "filepath" unset + exec.
  *
  * #wmOperatorType.invoke, opens file-select if path property not set, otherwise executes.
  */
-int WM_operator_filesel(bContext *C, wmOperator *op, const wmEvent *event);
+wmOperatorStatus WM_operator_filesel(bContext *C, wmOperator *op, const wmEvent *event);
 bool WM_operator_filesel_ensure_ext_imtype(wmOperator *op, const ImageFormatData *im_format);
 /** Callback for #wmOperatorType.poll. */
 bool WM_operator_winactive(bContext *C);
@@ -819,43 +854,47 @@ bool WM_operator_winactive(bContext *C);
  * Same as #WM_operator_props_popup but don't use operator redo.
  * just wraps #WM_operator_props_dialog_popup.
  */
-int WM_operator_props_popup_confirm(bContext *C, wmOperator *op, const wmEvent *event);
+wmOperatorStatus WM_operator_props_popup_confirm(bContext *C,
+                                                 wmOperator *op,
+                                                 const wmEvent *event);
 
-int WM_operator_props_popup_confirm_ex(bContext *C,
-                                       wmOperator *op,
-                                       const wmEvent *event,
-                                       std::optional<std::string> title = std::nullopt,
-                                       std::optional<std::string> confirm_text = std::nullopt,
-                                       bool cancel_default = false);
+wmOperatorStatus WM_operator_props_popup_confirm_ex(
+    bContext *C,
+    wmOperator *op,
+    const wmEvent *event,
+    std::optional<std::string> title = std::nullopt,
+    std::optional<std::string> confirm_text = std::nullopt,
+    bool cancel_default = false);
 
 /**
  * Same as #WM_operator_props_popup but call the operator first,
  * This way - the button values correspond to the result of the operator.
  * Without this, first access to a button will make the result jump, see #32452.
  */
-int WM_operator_props_popup_call(bContext *C, wmOperator *op, const wmEvent *event);
-int WM_operator_props_popup(bContext *C, wmOperator *op, const wmEvent *event);
+wmOperatorStatus WM_operator_props_popup_call(bContext *C, wmOperator *op, const wmEvent *event);
+wmOperatorStatus WM_operator_props_popup(bContext *C, wmOperator *op, const wmEvent *event);
 
-int WM_operator_props_dialog_popup(bContext *C,
-                                   wmOperator *op,
-                                   int width,
-                                   std::optional<std::string> title = std::nullopt,
-                                   std::optional<std::string> confirm_text = std::nullopt,
-                                   bool cancel_default = false);
+wmOperatorStatus WM_operator_props_dialog_popup(
+    bContext *C,
+    wmOperator *op,
+    int width,
+    std::optional<std::string> title = std::nullopt,
+    std::optional<std::string> confirm_text = std::nullopt,
+    bool cancel_default = false);
 
-int WM_operator_redo_popup(bContext *C, wmOperator *op);
-int WM_operator_ui_popup(bContext *C, wmOperator *op, int width);
+wmOperatorStatus WM_operator_redo_popup(bContext *C, wmOperator *op);
+wmOperatorStatus WM_operator_ui_popup(bContext *C, wmOperator *op, int width);
 
 /**
  * Can't be used as an invoke directly, needs message arg (can be NULL).
  */
-int WM_operator_confirm_message_ex(bContext *C,
-                                   wmOperator *op,
-                                   const char *title,
-                                   int icon,
-                                   const char *message,
-                                   wmOperatorCallContext opcontext);
-int WM_operator_confirm_message(bContext *C, wmOperator *op, const char *message);
+wmOperatorStatus WM_operator_confirm_message_ex(bContext *C,
+                                                wmOperator *op,
+                                                const char *title,
+                                                int icon,
+                                                const char *message,
+                                                wmOperatorCallContext opcontext);
+wmOperatorStatus WM_operator_confirm_message(bContext *C, wmOperator *op, const char *message);
 
 /* Operator API. */
 
@@ -886,19 +925,19 @@ bool WM_operator_poll_context(bContext *C, wmOperatorType *ot, short context);
  *
  * \warning do not use this within an operator to call itself! #29537.
  */
-int WM_operator_call_ex(bContext *C, wmOperator *op, bool store);
-int WM_operator_call(bContext *C, wmOperator *op);
+wmOperatorStatus WM_operator_call_ex(bContext *C, wmOperator *op, bool store);
+wmOperatorStatus WM_operator_call(bContext *C, wmOperator *op);
 /**
  * This is intended to be used when an invoke operator wants to call exec on itself
  * and is basically like running op->type->exec() directly, no poll checks no freeing,
  * since we assume whoever called invoke will take care of that
  */
-int WM_operator_call_notest(bContext *C, wmOperator *op);
+wmOperatorStatus WM_operator_call_notest(bContext *C, wmOperator *op);
 /**
  * Execute this operator again, put here so it can share above code
  */
-int WM_operator_repeat(bContext *C, wmOperator *op);
-int WM_operator_repeat_last(bContext *C, wmOperator *op);
+wmOperatorStatus WM_operator_repeat(bContext *C, wmOperator *op);
+wmOperatorStatus WM_operator_repeat_last(bContext *C, wmOperator *op);
 /**
  * \return true if #WM_operator_repeat can run.
  * Simple check for now but may become more involved.
@@ -918,22 +957,22 @@ bool WM_operator_name_poll(bContext *C, const char *opstring);
  * storing the key that was pressed so as to be able to detect its release.
  * In these cases it's necessary to forward the current event being handled.
  */
-int WM_operator_name_call_ptr(bContext *C,
-                              wmOperatorType *ot,
-                              wmOperatorCallContext context,
-                              PointerRNA *properties,
-                              const wmEvent *event);
+wmOperatorStatus WM_operator_name_call_ptr(bContext *C,
+                                           wmOperatorType *ot,
+                                           wmOperatorCallContext context,
+                                           PointerRNA *properties,
+                                           const wmEvent *event);
 /** See #WM_operator_name_call_ptr. */
-int WM_operator_name_call(bContext *C,
-                          const char *opstring,
-                          wmOperatorCallContext context,
-                          PointerRNA *properties,
-                          const wmEvent *event);
-int WM_operator_name_call_with_properties(bContext *C,
-                                          const char *opstring,
-                                          wmOperatorCallContext context,
-                                          IDProperty *properties,
-                                          const wmEvent *event);
+wmOperatorStatus WM_operator_name_call(bContext *C,
+                                       const char *opstring,
+                                       wmOperatorCallContext context,
+                                       PointerRNA *properties,
+                                       const wmEvent *event);
+wmOperatorStatus WM_operator_name_call_with_properties(bContext *C,
+                                                       const char *opstring,
+                                                       wmOperatorCallContext context,
+                                                       IDProperty *properties,
+                                                       const wmEvent *event);
 /**
  * Similar to #WM_operator_name_call called with #WM_OP_EXEC_DEFAULT context.
  *
@@ -941,12 +980,12 @@ int WM_operator_name_call_with_properties(bContext *C,
  * - `poll()` must be called by python before this runs.
  * - reports can be passed to this function (so python can report them as exceptions).
  */
-int WM_operator_call_py(bContext *C,
-                        wmOperatorType *ot,
-                        wmOperatorCallContext context,
-                        PointerRNA *properties,
-                        ReportList *reports,
-                        bool is_undo);
+wmOperatorStatus WM_operator_call_py(bContext *C,
+                                     wmOperatorType *ot,
+                                     wmOperatorCallContext context,
+                                     PointerRNA *properties,
+                                     ReportList *reports,
+                                     bool is_undo);
 
 void WM_operator_name_call_ptr_with_depends_on_cursor(bContext *C,
                                                       wmOperatorType *ot,
@@ -1378,38 +1417,40 @@ void WM_paneltype_idname_visit_for_search(
 
 /* `wm_gesture_ops.cc` */
 
-int WM_gesture_box_invoke(bContext *C, wmOperator *op, const wmEvent *event);
-int WM_gesture_box_modal(bContext *C, wmOperator *op, const wmEvent *event);
+wmOperatorStatus WM_gesture_box_invoke(bContext *C, wmOperator *op, const wmEvent *event);
+wmOperatorStatus WM_gesture_box_modal(bContext *C, wmOperator *op, const wmEvent *event);
 void WM_gesture_box_cancel(bContext *C, wmOperator *op);
-int WM_gesture_circle_invoke(bContext *C, wmOperator *op, const wmEvent *event);
-int WM_gesture_circle_modal(bContext *C, wmOperator *op, const wmEvent *event);
+wmOperatorStatus WM_gesture_circle_invoke(bContext *C, wmOperator *op, const wmEvent *event);
+wmOperatorStatus WM_gesture_circle_modal(bContext *C, wmOperator *op, const wmEvent *event);
 void WM_gesture_circle_cancel(bContext *C, wmOperator *op);
-int WM_gesture_lines_invoke(bContext *C, wmOperator *op, const wmEvent *event);
-int WM_gesture_lines_modal(bContext *C, wmOperator *op, const wmEvent *event);
+wmOperatorStatus WM_gesture_lines_invoke(bContext *C, wmOperator *op, const wmEvent *event);
+wmOperatorStatus WM_gesture_lines_modal(bContext *C, wmOperator *op, const wmEvent *event);
 void WM_gesture_lines_cancel(bContext *C, wmOperator *op);
-int WM_gesture_lasso_invoke(bContext *C, wmOperator *op, const wmEvent *event);
-int WM_gesture_lasso_modal(bContext *C, wmOperator *op, const wmEvent *event);
+wmOperatorStatus WM_gesture_lasso_invoke(bContext *C, wmOperator *op, const wmEvent *event);
+wmOperatorStatus WM_gesture_lasso_modal(bContext *C, wmOperator *op, const wmEvent *event);
 void WM_gesture_lasso_cancel(bContext *C, wmOperator *op);
-int WM_gesture_polyline_invoke(bContext *C, wmOperator *op, const wmEvent *event);
-int WM_gesture_polyline_modal(bContext *C, wmOperator *op, const wmEvent *event);
+wmOperatorStatus WM_gesture_polyline_invoke(bContext *C, wmOperator *op, const wmEvent *event);
+wmOperatorStatus WM_gesture_polyline_modal(bContext *C, wmOperator *op, const wmEvent *event);
 void WM_gesture_polyline_cancel(bContext *C, wmOperator *op);
 /**
  * helper function, we may want to add options for conversion to view space
  */
 blender::Array<blender::int2> WM_gesture_lasso_path_to_array(bContext *C, wmOperator *op);
 
-int WM_gesture_straightline_invoke(bContext *C, wmOperator *op, const wmEvent *event);
+wmOperatorStatus WM_gesture_straightline_invoke(bContext *C, wmOperator *op, const wmEvent *event);
 /**
  * This invoke callback starts the straight-line gesture with a viewport preview to the right side
  * of the line.
  */
-int WM_gesture_straightline_active_side_invoke(bContext *C, wmOperator *op, const wmEvent *event);
+wmOperatorStatus WM_gesture_straightline_active_side_invoke(bContext *C,
+                                                            wmOperator *op,
+                                                            const wmEvent *event);
 /**
  * This modal callback calls exec once per mouse move event while the gesture is active with the
  * updated line start and end values, so it can be used for tools that have a real time preview
  * (like a gradient updating in real time over the mesh).
  */
-int WM_gesture_straightline_modal(bContext *C, wmOperator *op, const wmEvent *event);
+wmOperatorStatus WM_gesture_straightline_modal(bContext *C, wmOperator *op, const wmEvent *event);
 /**
  * This modal one-shot callback only calls exec once after the gesture finishes without any updates
  * during the gesture execution. Should be used for operations that are intended to be applied once
@@ -1417,7 +1458,9 @@ int WM_gesture_straightline_modal(bContext *C, wmOperator *op, const wmEvent *ev
  * after finishing the gesture as the bisect operation is too heavy to be computed in real time for
  * a preview).
  */
-int WM_gesture_straightline_oneshot_modal(bContext *C, wmOperator *op, const wmEvent *event);
+wmOperatorStatus WM_gesture_straightline_oneshot_modal(bContext *C,
+                                                       wmOperator *op,
+                                                       const wmEvent *event);
 void WM_gesture_straightline_cancel(bContext *C, wmOperator *op);
 
 /* Gesture manager API. */
@@ -1480,7 +1523,8 @@ void WM_operator_region_active_win_set(bContext *C);
  * intended to box-select. In this case it's preferred to select on CLICK instead of PRESS
  * (see the Outliner use of click-drag).
  */
-int WM_operator_flag_only_pass_through_on_press(int retval, const wmEvent *event);
+wmOperatorStatus WM_operator_flag_only_pass_through_on_press(wmOperatorStatus retval,
+                                                             const wmEvent *event);
 
 /* Drag and drop. */
 
@@ -1545,7 +1589,7 @@ bool WM_drag_is_ID_type(const wmDrag *drag, int idcode);
  * \note Does not store \a asset in any way, so it's fine to pass a temporary.
  */
 wmDragAsset *WM_drag_create_asset_data(const blender::asset_system::AssetRepresentation *asset,
-                                       int /*eAssetImportMethod*/ import_method);
+                                       const AssetImportSettings &import_settings);
 
 wmDragAsset *WM_drag_get_asset_data(const wmDrag *drag, int idcode);
 AssetMetaData *WM_drag_get_asset_meta_data(const wmDrag *drag, int idcode);

@@ -218,10 +218,6 @@ void libmv_cameraIntrinsicsUpdate(
     libmv_CameraIntrinsics* /*libmv_intrinsics*/) {
 }
 
-void libmv_cameraIntrinsicsSetThreads(
-    libmv_CameraIntrinsics* /*libmv_intrinsics*/, int /*threads*/) {
-}
-
 void libmv_cameraIntrinsicsExtractOptions(
     const libmv_CameraIntrinsics* /*libmv_intrinsics*/,
     libmv_CameraIntrinsicsOptions* camera_intrinsics_options) {

@@ -166,7 +166,7 @@ bMotionPath *animviz_verify_motionpaths(ReportList *reports,
     animviz_free_motionpath_cache(mpath);
   }
   else {
-    mpath = static_cast<bMotionPath *>(MEM_callocN(sizeof(bMotionPath), "bMotionPath"));
+    mpath = MEM_callocN<bMotionPath>("bMotionPath");
     *dst = mpath;
   }
 
@@ -202,8 +202,7 @@ bMotionPath *animviz_verify_motionpaths(ReportList *reports,
   mpath->flag |= MOTIONPATH_FLAG_LINES;
 
   /* Allocate a cache. */
-  mpath->points = static_cast<bMotionPathVert *>(
-      MEM_callocN(sizeof(bMotionPathVert) * mpath->length, "bMotionPathVerts"));
+  mpath->points = MEM_calloc_arrayN<bMotionPathVert>(mpath->length, "bMotionPathVerts");
 
   /* Tag viz settings as currently having some path(s) which use it. */
   avs->path_bakeflag |= MOTIONPATH_BAKE_HAS_PATHS;

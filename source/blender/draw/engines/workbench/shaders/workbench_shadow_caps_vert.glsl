@@ -48,25 +48,25 @@ void emit_cap(bool front,
 
 void geometry_main(VertOut geom_in[3], uint out_vertex_id, uint out_invocation_id)
 {
-  vec3 v10 = geom_in[0].lP - geom_in[1].lP;
-  vec3 v12 = geom_in[2].lP - geom_in[1].lP;
+  float3 v10 = geom_in[0].lP - geom_in[1].lP;
+  float3 v12 = geom_in[2].lP - geom_in[1].lP;
 
-  vec3 Ng = cross(v12, v10);
+  float3 Ng = cross(v12, v10);
 
-  vec3 ls_light_direction = drw_normal_world_to_object(vec3(pass_data.light_direction_ws));
+  float3 ls_light_direction = drw_normal_world_to_object(float3(pass_data.light_direction_ws));
 
   float facing = dot(Ng, ls_light_direction);
 
-  bool backface = facing > 0.0;
+  bool backface = facing > 0.0f;
 
 #ifdef DOUBLE_MANIFOLD
   /* In case of non manifold geom, we only increase/decrease
    * the stencil buffer by one but do every faces as they were facing the light. */
   bool invert = backface;
-  const bool is_manifold = false;
+  constexpr bool is_manifold = false;
 #else
-  const bool invert = false;
-  const bool is_manifold = true;
+  constexpr bool invert = false;
+  constexpr bool is_manifold = true;
 #endif
 
   if (!is_manifold || !backface) {
@@ -78,16 +78,16 @@ void geometry_main(VertOut geom_in[3], uint out_vertex_id, uint out_invocation_i
 void main()
 {
   /* Triangle list primitive. */
-  const uint input_primitive_vertex_count = 3u;
+  constexpr uint input_primitive_vertex_count = 3u;
   /* Triangle list primitive. */
-  const uint ouput_primitive_vertex_count = 3u;
-  const uint ouput_primitive_count = 1u;
-  const uint ouput_invocation_count = 2u;
+  constexpr uint ouput_primitive_vertex_count = 3u;
+  constexpr uint ouput_primitive_count = 1u;
+  constexpr uint ouput_invocation_count = 2u;
 
-  const uint output_vertex_count_per_invocation = ouput_primitive_count *
-                                                  ouput_primitive_vertex_count;
-  const uint output_vertex_count_per_input_primitive = output_vertex_count_per_invocation *
-                                                       ouput_invocation_count;
+  constexpr uint output_vertex_count_per_invocation = ouput_primitive_count *
+                                                      ouput_primitive_vertex_count;
+  constexpr uint output_vertex_count_per_input_primitive = output_vertex_count_per_invocation *
+                                                           ouput_invocation_count;
 
   uint in_primitive_id = uint(gl_VertexID) / output_vertex_count_per_input_primitive;
   uint in_primitive_first_vertex = in_primitive_id * input_primitive_vertex_count;
@@ -107,6 +107,6 @@ void main()
   vert_out[2] = vertex_main(vert_in[2]);
 
   /* Discard by default. */
-  gl_Position = vec4(NAN_FLT);
+  gl_Position = float4(NAN_FLT);
   geometry_main(vert_out, out_vertex_id, out_invocation_id);
 }

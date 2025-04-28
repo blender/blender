@@ -48,8 +48,10 @@ void ED_OT_undo_history(wmOperatorType *ot);
 
 /**
  * UI callbacks should call this rather than calling WM_operator_repeat() themselves.
+ *
+ * \return true when repeat succeeded.
  */
-int ED_undo_operator_repeat(bContext *C, wmOperator *op);
+bool ED_undo_operator_repeat(bContext *C, wmOperator *op);
 /**
  * Convenience since UI callbacks use this mostly.
  */
@@ -113,7 +115,7 @@ blender::Vector<Base *> ED_undo_editmode_bases_from_view_layer(const Scene *scen
  * this is needed for modes which handle undo themselves (bypassing #ED_undo_push).
  *
  * Using global isn't great, this just avoids doing inline,
- * causing 'BKE_global.hh' & 'BKE_main.hh' includes.
+ * causing `BKE_global.hh` & `BKE_main.hh` includes.
  */
 UndoStack *ED_undo_stack_get();
 

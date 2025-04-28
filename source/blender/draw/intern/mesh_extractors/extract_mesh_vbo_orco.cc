@@ -10,7 +10,7 @@
 
 namespace blender::draw {
 
-void extract_orco(const MeshRenderData &mr, gpu::VertBuf &vbo)
+gpu::VertBufPtr extract_orco(const MeshRenderData &mr)
 {
   const Span<float3> orco_data(
       static_cast<const float3 *>(CustomData_get_layer(&mr.mesh->vert_data, CD_ORCO)),
@@ -23,9 +23,9 @@ void extract_orco(const MeshRenderData &mr, gpu::VertBuf &vbo)
   static const GPUVertFormat format = GPU_vertformat_from_attribute(
       "orco", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
 
-  GPU_vertbuf_init_with_format(vbo, format);
-  GPU_vertbuf_data_alloc(vbo, mr.corners_num);
-  MutableSpan vbo_data = vbo.data<float4>();
+  gpu::VertBufPtr vbo = gpu::VertBufPtr(GPU_vertbuf_create_with_format(format));
+  GPU_vertbuf_data_alloc(*vbo, mr.corners_num);
+  MutableSpan vbo_data = vbo->data<float4>();
 
   const int64_t bytes = orco_data.size_in_bytes() + vbo_data.size_in_bytes();
   threading::memory_bandwidth_bound_task(bytes, [&]() {
@@ -52,6 +52,7 @@ void extract_orco(const MeshRenderData &mr, gpu::VertBuf &vbo)
       });
     }
   });
+  return vbo;
 }
 
 }  // namespace blender::draw

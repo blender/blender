@@ -456,7 +456,7 @@ static void build_channel_keylist(ChannelListElement *elem, blender::float2 rang
       break;
     }
     case ChannelType::ACTION_LAYERED: {
-      /* This is only called for action summaries in the Dopesheet, *not* the
+      /* This is only called for action summaries in the Dope-sheet, *not* the
        * Action Editor. Therefore despite the name `ACTION_LAYERED`, this is
        * only used to show a *single slot* of the action: the slot used by the
        * ID the action is listed under.
@@ -559,7 +559,7 @@ struct ChannelDrawList {
 
 ChannelDrawList *ED_channel_draw_list_create()
 {
-  return static_cast<ChannelDrawList *>(MEM_callocN(sizeof(ChannelDrawList), __func__));
+  return MEM_callocN<ChannelDrawList>(__func__);
 }
 
 static void channel_list_build_keylists(ChannelDrawList *channel_list, blender::float2 range)
@@ -669,8 +669,7 @@ static ChannelListElement *channel_list_add_element(ChannelDrawList *channel_lis
                                                     float yscale_fac,
                                                     eSAction_Flag saction_flag)
 {
-  ChannelListElement *draw_elem = static_cast<ChannelListElement *>(
-      MEM_callocN(sizeof(ChannelListElement), __func__));
+  ChannelListElement *draw_elem = MEM_callocN<ChannelListElement>(__func__);
   BLI_addtail(&channel_list->channels, draw_elem);
   draw_elem->type = elem_type;
   draw_elem->keylist = ED_keylist_create();

@@ -202,10 +202,8 @@ void BM_mesh_decimate_unsubdivide_ex(BMesh *bm, const int iterations, const bool
 {
   /* NOTE: while #BMWalker seems like a logical choice, it results in uneven geometry. */
 
-  BMVert **verts_collapse = static_cast<BMVert **>(
-      MEM_mallocN(sizeof(BMVert *) * bm->totvert, __func__));
-  BMVert **verts_ignore = static_cast<BMVert **>(
-      MEM_mallocN(sizeof(BMVert *) * bm->totvert, __func__));
+  BMVert **verts_collapse = MEM_malloc_arrayN<BMVert *>(bm->totvert, __func__);
+  BMVert **verts_ignore = MEM_malloc_arrayN<BMVert *>(bm->totvert, __func__);
   uint verts_collapse_num = 0;
   uint verts_ignore_num = 0;
 

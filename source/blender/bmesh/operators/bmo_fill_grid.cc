@@ -245,11 +245,11 @@ static void bm_grid_fill_array(BMesh *bm,
   /* Store loops */
   if (use_loop_interp) {
     /* x2 because each edge connects 2 loops */
-    larr_x_a = static_cast<BMLoop *(*)[2]>(MEM_mallocN(sizeof(*larr_x_a) * (xtot - 1), __func__));
-    larr_x_b = static_cast<BMLoop *(*)[2]>(MEM_mallocN(sizeof(*larr_x_b) * (xtot - 1), __func__));
+    larr_x_a = MEM_malloc_arrayN<BMLoop *[2]>((xtot - 1), __func__);
+    larr_x_b = MEM_malloc_arrayN<BMLoop *[2]>((xtot - 1), __func__);
 
-    larr_y_a = static_cast<BMLoop *(*)[2]>(MEM_mallocN(sizeof(*larr_y_a) * (ytot - 1), __func__));
-    larr_y_b = static_cast<BMLoop *(*)[2]>(MEM_mallocN(sizeof(*larr_y_b) * (ytot - 1), __func__));
+    larr_y_a = MEM_malloc_arrayN<BMLoop *[2]>((ytot - 1), __func__);
+    larr_y_b = MEM_malloc_arrayN<BMLoop *[2]>((ytot - 1), __func__);
 
     /* fill in the loops */
     for (x = 0; x < xtot - 1; x++) {
@@ -487,8 +487,7 @@ static void bm_grid_fill(BMesh *bm,
   ListBase *lb_rail_a = BM_edgeloop_verts_get(estore_rail_a);
   ListBase *lb_rail_b = BM_edgeloop_verts_get(estore_rail_b);
 
-  BMVert **v_grid = static_cast<BMVert **>(
-      MEM_callocN(sizeof(BMVert *) * size_t(xtot * ytot), __func__));
+  BMVert **v_grid = MEM_calloc_arrayN<BMVert *>(size_t(xtot * ytot), __func__);
   /**
    * <pre>
    *           estore_b
@@ -610,7 +609,7 @@ void bmo_grid_fill_exec(BMesh *bm, BMOperator *op)
 
   if (count != 2) {
     /* Note that this error message has been adjusted to make sense when called
-     * from the operator 'MESH_OT_fill_grid' which has a 'prepare' pass which can
+     * from the operator `MESH_OT_fill_grid` which has a 'prepare' pass which can
      * extract two 'rail' loops from a single edge loop, see #72075. */
     BMO_error_raise(bm,
                     op,

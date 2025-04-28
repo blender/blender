@@ -182,7 +182,7 @@ This data is saved with the blend-file and copied with objects, for example:
    # which can have a fallback value.
    value = bpy.data.scenes["Scene"].get("test_prop", "fallback value")
 
-   # dictionaries can be assigned as long as they only use basic types.
+   # Dictionaries can be assigned as long as they only use basic types.
    collection = bpy.data.collections.new("MyTestCollection")
    collection["MySettings"] = {"foo": 10, "bar": "spam", "baz": {}}
 
@@ -363,10 +363,10 @@ so these are accessed as normal Python types.
 
   .. code-block:: python
 
-     # setting multiple camera overlay guides
-     bpy.context.scene.camera.data.show_guide = {'GOLDEN', 'CENTER'}
+     # Setting multiple snap targets.
+     bpy.context.scene.tool_settings.snap_elements_base = {'VERTEX', 'EDGE'}
 
-     # passing as an operator argument for report types
+     # Passing as an operator argument for report types.
      self.report({'WARNING', 'INFO'}, "Some message!")
 
 
@@ -411,10 +411,10 @@ Example of a matrix, vector multiplication:
 
    .. code-block:: python
 
-      # modifies the Z axis in place.
+      # Modifies the Z axis in place.
       bpy.context.object.location.z += 2.0
 
-      # location variable holds a reference to the object too.
+      # Location variable holds a reference to the object too.
       location = bpy.context.object.location
       location *= 2.0
 

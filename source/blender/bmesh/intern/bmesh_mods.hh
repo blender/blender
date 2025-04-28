@@ -53,9 +53,17 @@ bool BM_disk_dissolve(BMesh *bm, BMVert *v);
  * If the windings do not match the winding of the new face will follow
  * \a l_a's winding (i.e. \a l_b will be reversed before the join).
  *
+ * \param bm: The bmesh.
+ * \param l_a: First loop of an adjacent face pair that will be joined.
+ * \param l_b: Second loop of an adjacent face pair that will be joined.
+ * \param do_del If true, remove the original faces, internal edges,
+ * and internal verts such that they are replaced by the new face.
+ * \param r_double: A pointer to a BMFace* that controls processing of doubled faces.
+ * See #BM_faces_join_pair `r_double` argument for details.
+ *
  * \return The combined face or NULL on failure.
  */
-BMFace *BM_faces_join_pair(BMesh *bm, BMLoop *l_a, BMLoop *l_b, bool do_del);
+BMFace *BM_faces_join_pair(BMesh *bm, BMLoop *l_a, BMLoop *l_b, bool do_del, BMFace **r_double);
 
 /** see: bmesh_polygon_edgenet.hh for #BM_face_split_edgenet */
 

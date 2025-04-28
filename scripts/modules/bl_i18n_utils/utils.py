@@ -92,19 +92,20 @@ def locale_explode(locale):
 def locale_match(loc1, loc2):
     """
     Return:
-        -n if loc1 is a subtype of loc2 (e.g. 'fr_FR' is a subtype of 'fr').
+        -n if loc1 is a subtype of loc2 (e.g. ``fr_FR`` is a subtype of ``fr``).
         +n if loc2 is a subtype of loc1.
-        n becomes smaller when both locales are more similar (e.g. (sr, sr_SR) are more similar than (sr, sr_SR@latin)).
+        n becomes smaller when both locales are more similar
+        ... (e.g. (``sr, sr_SR``) are more similar than (``sr, sr_SR@latin``)).
         0 if they are exactly the same.
         ... (Ellipsis) if they cannot match!
-    Note: We consider that 'sr_SR@latin' is a subtype of 'sr@latin', 'sr_SR' and 'sr', but 'sr_SR' and 'sr@latin' won't
-          match (will return ...)!
+    Note: We consider that ``sr_SR@latin`` is a subtype of ``sr@latin``, ``sr_SR`` and ``sr``,
+          but ``sr_SR`` and ``sr@latin`` won't match (will return ...)!
     Note: About similarity, diff in variants are more important than diff in countries, currently here are the cases:
-            (sr, sr_SR)             -> 1
-            (sr@latin, sr_SR@latin) -> 1
-            (sr, sr@latin)          -> 2
-            (sr_SR, sr_SR@latin)    -> 2
-            (sr, sr_SR@latin)       -> 3
+            (``sr, sr_SR``)             -> 1
+            (``sr@latin, sr_SR@latin``) -> 1
+            (``sr, sr@latin``)          -> 2
+            (``sr_SR, sr_SR@latin``)    -> 2
+            (``sr, sr_SR@latin``)       -> 3
     """
     if loc1 == loc2:
         return 0

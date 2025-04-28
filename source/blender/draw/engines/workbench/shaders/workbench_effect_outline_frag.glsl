@@ -8,16 +8,16 @@ FRAGMENT_SHADER_CREATE_INFO(workbench_effect_outline)
 
 void main()
 {
-  vec3 offset = vec3(world_data.viewport_size_inv, 0.0) * world_data.ui_scale;
-  vec2 uv = uvcoordsvar.xy;
+  float3 offset = float3(world_data.viewport_size_inv, 0.0f) * world_data.ui_scale;
+  float2 uv = screen_uv;
 
-  uint center_id = texture(objectIdBuffer, uv).r;
-  uvec4 adjacent_ids = uvec4(texture(objectIdBuffer, uv + offset.zy).r,
-                             texture(objectIdBuffer, uv - offset.zy).r,
-                             texture(objectIdBuffer, uv + offset.xz).r,
-                             texture(objectIdBuffer, uv - offset.xz).r);
+  uint center_id = texture(object_id_buffer, uv).r;
+  uint4 adjacent_ids = uint4(texture(object_id_buffer, uv + offset.zy).r,
+                             texture(object_id_buffer, uv - offset.zy).r,
+                             texture(object_id_buffer, uv + offset.xz).r,
+                             texture(object_id_buffer, uv - offset.xz).r);
 
-  float outline_opacity = 1.0 - dot(vec4(equal(uvec4(center_id), adjacent_ids)), vec4(0.25));
+  float outline_opacity = 1.0f - dot(float4(equal(uint4(center_id), adjacent_ids)), float4(0.25f));
 
-  fragColor = world_data.object_outline_color * outline_opacity;
+  frag_color = world_data.object_outline_color * outline_opacity;
 }

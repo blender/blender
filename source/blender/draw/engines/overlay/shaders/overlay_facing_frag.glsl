@@ -8,7 +8,7 @@ FRAGMENT_SHADER_CREATE_INFO(overlay_facing_base)
 
 void main()
 {
-  fragColor = gl_FrontFacing ? colorFaceFront : colorFaceBack;
+  frag_color = gl_FrontFacing ? colorFaceFront : colorFaceBack;
   /* Pre-multiply the output as we do not do any blending in the frame-buffer. */
-  fragColor.rgb *= fragColor.a;
+  frag_color.rgb *= frag_color.a;
 }

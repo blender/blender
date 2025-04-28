@@ -218,9 +218,14 @@ static PyObject *py_imbuf_free(Py_ImBuf *self)
   Py_RETURN_NONE;
 }
 
-#if (defined(__GNUC__) && !defined(__clang__))
-#  pragma GCC diagnostic push
-#  pragma GCC diagnostic ignored "-Wcast-function-type"
+#ifdef __GNUC__
+#  ifdef __clang__
+#    pragma clang diagnostic push
+#    pragma clang diagnostic ignored "-Wcast-function-type"
+#  else
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wcast-function-type"
+#  endif
 #endif
 
 static PyMethodDef Py_ImBuf_methods[] = {
@@ -233,8 +238,12 @@ static PyMethodDef Py_ImBuf_methods[] = {
     {nullptr, nullptr, 0, nullptr},
 };
 
-#if (defined(__GNUC__) && !defined(__clang__))
-#  pragma GCC diagnostic pop
+#ifdef __GNUC__
+#  ifdef __clang__
+#    pragma clang diagnostic pop
+#  else
+#    pragma GCC diagnostic pop
+#  endif
 #endif
 
 /** \} */
@@ -493,7 +502,7 @@ static PyObject *M_imbuf_new(PyObject * /*self*/, PyObject *args, PyObject *kw)
   }
 
   /* TODO: make options. */
-  const uchar planes = 4;
+  const uchar planes = 32;
   const uint flags = IB_byte_data;
 
   ImBuf *ibuf = IMB_allocImBuf(UNPACK2(size), planes, flags);
@@ -512,7 +521,7 @@ static PyObject *imbuf_load_impl(const char *filepath)
     return nullptr;
   }
 
-  ImBuf *ibuf = IMB_loadifffile(file, IB_byte_data, nullptr, filepath);
+  ImBuf *ibuf = IMB_load_image_from_file_descriptor(file, IB_byte_data, filepath);
 
   close(file);
 
@@ -561,9 +570,75 @@ static PyObject *M_imbuf_load(PyObject * /*self*/, PyObject *args, PyObject *kw)
   return result;
 }
 
+static PyObject *imbuf_load_from_memory_impl(const char *buffer,
+                                             const size_t buffer_size,
+                                             int flags)
+{
+  ImBuf *ibuf = IMB_load_image_from_memory(
+      reinterpret_cast<const uchar *>(buffer), buffer_size, flags, "<imbuf.load_from_buffer>");
+
+  if (ibuf == nullptr) {
+    PyErr_Format(PyExc_ValueError, "load_from_buffer: Unable to load image from memory");
+    return nullptr;
+  }
+
+  return Py_ImBuf_CreatePyObject(ibuf);
+}
+
+PyDoc_STRVAR(
+    /* Wrap. */
+    M_imbuf_load_from_buffer_doc,
+    ".. function:: load_from_buffer(buffer)\n"
+    "\n"
+    "   Load an image from a buffer.\n"
+    "\n"
+    "   :arg buffer: A buffer containing the image data.\n"
+    "   :type buffer: collections.abc.Buffer\n"
+    "   :return: the newly loaded image.\n"
+    "   :rtype: :class:`ImBuf`\n");
+static PyObject *M_imbuf_load_from_buffer(PyObject * /*self*/, PyObject *args, PyObject *kw)
+{
+  PyObject *buffer_py_ob;
+
+  static const char *_keywords[] = {"buffer", nullptr};
+  static _PyArg_Parser _parser = {
+      PY_ARG_PARSER_HEAD_COMPAT()
+      "O" /* `buffer` */
+      ":load_from_buffer",
+      _keywords,
+      nullptr,
+  };
+  if (!_PyArg_ParseTupleAndKeywordsFast(args, kw, &_parser, &buffer_py_ob)) {
+    return nullptr;
+  }
+
+  PyObject *result = nullptr;
+  /* TODO: should be arguments. */
+  int flags = IB_byte_data;
+
+  /* This supports `PyBytes`, no need for a separate check. */
+  if (PyObject_CheckBuffer(buffer_py_ob)) {
+    Py_buffer pybuffer;
+    if (PyObject_GetBuffer(buffer_py_ob, &pybuffer, PyBUF_SIMPLE) == -1) {
+      return nullptr;
+    }
+    result = imbuf_load_from_memory_impl(
+        reinterpret_cast<const char *>(pybuffer.buf), pybuffer.len, flags);
+
+    PyBuffer_Release(&pybuffer);
+  }
+  else {
+    PyErr_Format(PyExc_TypeError,
+                 "load_from_buffer: expected a buffer, unsupported type %.200s",
+                 Py_TYPE(buffer_py_ob)->tp_name);
+    return nullptr;
+  }
+  return result;
+}
+
 static PyObject *imbuf_write_impl(ImBuf *ibuf, const char *filepath)
 {
-  const bool ok = IMB_saveiff(ibuf, filepath, IB_byte_data);
+  const bool ok = IMB_save_image(ibuf, filepath, IB_byte_data);
   if (ok == false) {
     PyErr_Format(
         PyExc_IOError, "write: Unable to write image file (%s) '%s'", strerror(errno), filepath);
@@ -625,20 +700,33 @@ static PyObject *M_imbuf_write(PyObject * /*self*/, PyObject *args, PyObject *kw
 /** \name Module Definition (`imbuf`)
  * \{ */
 
-#if (defined(__GNUC__) && !defined(__clang__))
-#  pragma GCC diagnostic push
-#  pragma GCC diagnostic ignored "-Wcast-function-type"
+#ifdef __GNUC__
+#  ifdef __clang__
+#    pragma clang diagnostic push
+#    pragma clang diagnostic ignored "-Wcast-function-type"
+#  else
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wcast-function-type"
+#  endif
 #endif
 
 static PyMethodDef IMB_methods[] = {
     {"new", (PyCFunction)M_imbuf_new, METH_VARARGS | METH_KEYWORDS, M_imbuf_new_doc},
     {"load", (PyCFunction)M_imbuf_load, METH_VARARGS | METH_KEYWORDS, M_imbuf_load_doc},
+    {"load_from_buffer",
+     (PyCFunction)M_imbuf_load_from_buffer,
+     METH_VARARGS | METH_KEYWORDS,
+     M_imbuf_load_from_buffer_doc},
     {"write", (PyCFunction)M_imbuf_write, METH_VARARGS | METH_KEYWORDS, M_imbuf_write_doc},
     {nullptr, nullptr, 0, nullptr},
 };
 
-#if (defined(__GNUC__) && !defined(__clang__))
-#  pragma GCC diagnostic pop
+#ifdef __GNUC__
+#  ifdef __clang__
+#    pragma clang diagnostic pop
+#  else
+#    pragma GCC diagnostic pop
+#  endif
 #endif
 
 PyDoc_STRVAR(
@@ -717,6 +805,24 @@ PyObject *BPyInit_imbuf_types()
   PyModule_AddType(submodule, &Py_ImBuf_Type);
 
   return submodule;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Public API
+ * \{ */
+
+ImBuf *BPy_ImBuf_FromPyObject(PyObject *py_imbuf)
+{
+  /* The caller must ensure this. */
+  BLI_assert(Py_TYPE(py_imbuf) == &Py_ImBuf_Type);
+
+  if (py_imbuf_valid_check((Py_ImBuf *)py_imbuf) == -1) {
+    return nullptr;
+  }
+
+  return ((Py_ImBuf *)py_imbuf)->ibuf;
 }
 
 /** \} */

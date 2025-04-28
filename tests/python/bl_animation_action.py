@@ -162,6 +162,28 @@ class ActionSlotAssignmentTest(unittest.TestCase):
             cube_adt.action_slot = slot
         self.assertEqual(cube_adt.action_slot, slot_cube, "The slot should not have changed")
 
+    def test_slot_users(self):
+        action = bpy.data.actions.new('TestAction')
+        self.assertEqual(0, action.users)
+
+        # Assign the Action to Cube.
+        cube = bpy.data.objects['Cube']
+        cube_adt = cube.animation_data_create()
+        cube_adt.action = action
+        slot_cube = action.slots.new(cube.id_type, cube.name)
+        cube_adt.action_slot = slot_cube
+
+        self.assertEqual([cube], slot_cube.users())
+
+        # Assign the same slot to the Camera object as well.
+        camera = bpy.data.objects['Camera']
+        camera_adt = camera.animation_data_create()
+        camera_adt.action = action
+        camera_adt.action_slot = slot_cube
+
+        # Sort by name, as the order doesn't matter and is an implementation detail.
+        self.assertEqual([camera, cube], sorted(slot_cube.users(), key=lambda id: id.name))
+
     def test_untyped_slot_assignment_local(self):
         """Test untyped slot assignment, with a local Action."""
 

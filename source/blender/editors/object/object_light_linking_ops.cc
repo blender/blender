@@ -32,7 +32,7 @@ namespace blender::ed::object {
  * \{ */
 
 template<LightLinkingType link_type>
-static int light_linking_collection_new_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus light_linking_collection_new_exec(bContext *C, wmOperator * /*op*/)
 {
   Main *bmain = CTX_data_main(C);
   Object *object = context_active_object(C);
@@ -79,7 +79,7 @@ void OBJECT_OT_light_linking_blocker_collection_new(wmOperatorType *ot)
  * \{ */
 
 template<LightLinkingType link_type>
-static int light_linking_select_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus light_linking_select_exec(bContext *C, wmOperator * /*op*/)
 {
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -129,7 +129,7 @@ void OBJECT_OT_light_linking_blockers_select(wmOperatorType *ot)
  * \{ */
 
 template<LightLinkingType link_type>
-static int light_linking_link_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus light_linking_link_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
@@ -233,7 +233,7 @@ void OBJECT_OT_light_linking_blockers_link(wmOperatorType *ot)
 /** \name Unlink from the Light Linking Collection Operator
  * \{ */
 
-static int light_linking_unlink_from_collection_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus light_linking_unlink_from_collection_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
 

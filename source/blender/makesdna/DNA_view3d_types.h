@@ -111,7 +111,7 @@ typedef struct RegionView3D {
 
   /** Last view (use when switching out of camera view). */
   float lviewquat[4];
-  /** Lpersp can never be set to 'RV3D_CAMOB'. */
+  /** The last perspective can never be set to #RV3D_CAMOB. */
   char lpersp;
   char lview;
   char lview_axis_roll;

@@ -8,7 +8,17 @@ import api
 def _run(args):
     import bpy
 
-    device_type = args['device_type']
+    device_info = args['device_type'].split("-")
+    device_type = device_info[0]
+
+    device_suffixes = device_info[1:]
+    use_hwrt = "RT" in device_suffixes
+    use_osl = "OSL" in device_suffixes
+
+    for suffix in device_suffixes:
+        if suffix not in {"RT", "OSL"}:
+            raise SystemExit(f"Unknown device type suffix {suffix}")
+
     device_index = args['device_index']
 
     scene = bpy.context.scene
@@ -27,6 +37,9 @@ def _run(args):
         scene.cycles.samples = 16384
         scene.cycles.time_limit = 10.0
 
+    if use_osl:
+        scene.cycles.shading_system = True
+
     if scene.cycles.device == 'GPU':
         # Enable specified GPU in preferences.
         prefs = bpy.context.preferences
@@ -44,6 +57,10 @@ def _run(args):
                     break
                 else:
                     index += 1
+
+        cprefs.use_hiprt = use_hwrt
+        cprefs.use_oneapirt = use_hwrt
+        cprefs.metalrt = 'ON' if use_hwrt else 'OFF'
 
     # Render
     bpy.ops.render.render(write_still=True)

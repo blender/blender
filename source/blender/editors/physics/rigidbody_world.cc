@@ -37,12 +37,12 @@
 /* API */
 
 /* check if there is an active rigid body world */
-static bool ED_rigidbody_world_active_poll(bContext *C)
+static bool rigidbody_world_active_poll(bContext *C)
 {
   Scene *scene = CTX_data_scene(C);
   return (scene && scene->rigidbody_world);
 }
-static bool ED_rigidbody_world_add_poll(bContext *C)
+static bool rigidbody_world_add_poll(bContext *C)
 {
   Scene *scene = CTX_data_scene(C);
   return (scene && scene->rigidbody_world == nullptr);
@@ -53,7 +53,7 @@ static bool ED_rigidbody_world_add_poll(bContext *C)
 
 /* ********** Add RigidBody World **************** */
 
-static int rigidbody_world_add_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus rigidbody_world_add_exec(bContext *C, wmOperator * /*op*/)
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
@@ -79,7 +79,7 @@ void RIGIDBODY_OT_world_add(wmOperatorType *ot)
 
   /* callbacks */
   ot->exec = rigidbody_world_add_exec;
-  ot->poll = ED_rigidbody_world_add_poll;
+  ot->poll = rigidbody_world_add_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -87,7 +87,7 @@ void RIGIDBODY_OT_world_add(wmOperatorType *ot)
 
 /* ********** Remove RigidBody World ************* */
 
-static int rigidbody_world_remove_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus rigidbody_world_remove_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
@@ -118,7 +118,7 @@ void RIGIDBODY_OT_world_remove(wmOperatorType *ot)
 
   /* callbacks */
   ot->exec = rigidbody_world_remove_exec;
-  ot->poll = ED_rigidbody_world_active_poll;
+  ot->poll = rigidbody_world_active_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -129,7 +129,7 @@ void RIGIDBODY_OT_world_remove(wmOperatorType *ot)
 
 /* ********** Export RigidBody World ************* */
 
-static int rigidbody_world_export_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus rigidbody_world_export_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
   RigidBodyWorld *rbw = scene->rigidbody_world;
@@ -154,7 +154,9 @@ static int rigidbody_world_export_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int rigidbody_world_export_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+static wmOperatorStatus rigidbody_world_export_invoke(bContext *C,
+                                                      wmOperator *op,
+                                                      const wmEvent * /*event*/)
 {
   if (!RNA_struct_property_is_set(op->ptr, "relative_path")) {
     RNA_boolean_set(op->ptr, "relative_path", (U.flag & USER_RELPATHS) != 0);
@@ -183,7 +185,7 @@ void RIGIDBODY_OT_world_export(wmOperatorType *ot)
   /* callbacks */
   ot->invoke = rigidbody_world_export_invoke;
   ot->exec = rigidbody_world_export_exec;
-  ot->poll = ED_rigidbody_world_active_poll;
+  ot->poll = rigidbody_world_active_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

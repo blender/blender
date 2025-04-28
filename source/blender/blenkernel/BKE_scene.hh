@@ -126,9 +126,7 @@ bool BKE_scene_can_be_removed(const Main *bmain, const Scene *scene);
 bool BKE_scene_has_view_layer(const Scene *scene, const ViewLayer *layer);
 Scene *BKE_scene_find_from_collection(const Main *bmain, const Collection *collection);
 
-#ifdef DURIAN_CAMERA_SWITCH
-Object *BKE_scene_camera_switch_find(Scene *scene); /* DURIAN_CAMERA_SWITCH */
-#endif
+Object *BKE_scene_camera_switch_find(Scene *scene);
 bool BKE_scene_camera_switch_update(Scene *scene);
 
 const char *BKE_scene_find_marker_name(const Scene *scene, int frame);
@@ -282,6 +280,10 @@ void BKE_scene_multiview_view_prefix_get(Scene *scene,
 void BKE_scene_multiview_videos_dimensions_get(
     const RenderData *rd, size_t width, size_t height, size_t *r_width, size_t *r_height);
 int BKE_scene_multiview_num_videos_get(const RenderData *rd);
+/**
+ * Calculate the final pixels-per-meter, from the scenes PPM & aspect data.
+ */
+void BKE_scene_ppm_get(const RenderData *rd, double r_ppm[2]);
 
 /* depsgraph */
 void BKE_scene_allocate_depsgraph_hash(Scene *scene);

@@ -194,17 +194,27 @@ void HdCyclesDisplayDriver::unmap_texture_buffer()
   glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 }
 
-DisplayDriver::GraphicsInterop HdCyclesDisplayDriver::graphics_interop_get()
+GraphicsInteropDevice HdCyclesDisplayDriver::graphics_interop_get_device()
 {
-  GraphicsInterop interop_dst;
-  interop_dst.buffer_width = pbo_size_.x;
-  interop_dst.buffer_height = pbo_size_.y;
-  interop_dst.opengl_pbo_id = gl_pbo_id_;
+  GraphicsInteropDevice interop_device;
+  interop_device.type = GraphicsInteropDevice::OPENGL;
+  return interop_device;
+}
 
-  interop_dst.need_clear = need_clear_;
+GraphicsInteropBuffer HdCyclesDisplayDriver::graphics_interop_get_buffer()
+{
+  GraphicsInteropBuffer interop_buffer;
+
+  interop_buffer.width = pbo_size_.x;
+  interop_buffer.height = pbo_size_.y;
+  interop_buffer.type = GraphicsInteropDevice::OPENGL;
+  interop_buffer.handle = gl_pbo_id_;
+  interop_buffer.size = pbo_size_.x * pbo_size_.y * sizeof(half4);
+
+  interop_buffer.need_clear = need_clear_;
   need_clear_ = false;
 
-  return interop_dst;
+  return interop_buffer;
 }
 
 void HdCyclesDisplayDriver::graphics_interop_activate()

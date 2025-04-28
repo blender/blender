@@ -337,7 +337,7 @@ def ensure_ext(filepath, ext, *, case_sensitive=False):
     :arg filepath: The file path.
     :type filepath: str
     :arg ext: The extension to check for, can be a compound extension. Should
-              start with a dot, such as '.blend' or '.tar.gz'.
+              start with a dot, such as ``.blend`` or ``.tar.gz``.
     :type ext: str
     :arg case_sensitive: Check for matching case when comparing extensions.
     :type case_sensitive: bool
@@ -366,7 +366,7 @@ def module_names(path, *, recursive=False, package=""):
     :arg package: Optional string, used as the prefix for module names (without the trailing ".").
     :type package: str
     :return: a list of string pairs (module_name, module_file).
-    :rtype: list[str]
+    :rtype: list[tuple[str, str]]
     """
 
     from os.path import join, isfile
@@ -451,7 +451,6 @@ def reduce_dirs(dirs):
     dirs.sort(key=lambda d: len(d))
     for i in range(len(dirs) - 1, -1, -1):
         for j in range(i):
-            print(i, j)
             if len(dirs[i]) == len(dirs[j]):
                 break
             elif is_subdir(dirs[i], dirs[j]):

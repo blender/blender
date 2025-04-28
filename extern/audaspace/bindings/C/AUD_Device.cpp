@@ -290,47 +290,32 @@ AUD_API AUD_Device* AUD_Device_getCurrent()
 	return new AUD_Device(device);
 }
 
-AUD_API void AUD_seekSynchronizer(AUD_Handle* handle, double time)
+AUD_API void AUD_seekSynchronizer(double time)
 {
-	auto synchronizer = DeviceManager::getDevice()->getSynchronizer();
-	if(synchronizer)
-		synchronizer->seek(*reinterpret_cast<std::shared_ptr<IHandle>*>(handle), time);
+	DeviceManager::getDevice()->seekSynchronizer(time);
 }
 
-AUD_API double AUD_getSynchronizerPosition(AUD_Handle* handle)
+AUD_API double AUD_getSynchronizerPosition()
 {
-	auto synchronizer = DeviceManager::getDevice()->getSynchronizer();
-	if(synchronizer)
-		return synchronizer->getPosition(*reinterpret_cast<std::shared_ptr<IHandle>*>(handle));
-	return (*reinterpret_cast<std::shared_ptr<IHandle>*>(handle))->getPosition();
+	return DeviceManager::getDevice()->getSynchronizerPosition();
 }
 
 AUD_API void AUD_playSynchronizer()
 {
-	auto synchronizer = DeviceManager::getDevice()->getSynchronizer();
-	if(synchronizer)
-		synchronizer->play();
+	DeviceManager::getDevice()->playSynchronizer();
 }
 
 AUD_API void AUD_stopSynchronizer()
 {
-	auto synchronizer = DeviceManager::getDevice()->getSynchronizer();
-	if(synchronizer)
-		synchronizer->stop();
+	DeviceManager::getDevice()->stopSynchronizer();
 }
 
 AUD_API void AUD_setSynchronizerCallback(AUD_syncFunction function, void* data)
 {
-	auto synchronizer = DeviceManager::getDevice()->getSynchronizer();
-	if(synchronizer)
-		synchronizer->setSyncCallback(function, data);
+	DeviceManager::getDevice()->setSyncCallback(function, data);
 }
 
 AUD_API int AUD_isSynchronizerPlaying()
 {
-	auto synchronizer = DeviceManager::getDevice()->getSynchronizer();
-	if(synchronizer)
-		return synchronizer->isPlaying();
-	return false;
+	return DeviceManager::getDevice()->isSynchronizerPlaying();
 }
-

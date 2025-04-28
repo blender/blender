@@ -1301,7 +1301,7 @@ static int imagewraposa_aniso(Tex *tex,
    * so for now commented out also disabled in #imagewraposa()
    * to be able to compare results with blender's default texture filtering */
 
-  /* brecht: tried to fix this, see "TXF alpha" comments */
+  /* NOTE(@brecht): tried to fix this, see "TXF alpha" comments. */
 
   /* do not de-pre-multiply for generated alpha, it is already in straight */
   if (texres->trgba[3] != 1.0f && texres->trgba[3] > 1e-4f && !(tex->imaflag & TEX_CALCALPHA)) {

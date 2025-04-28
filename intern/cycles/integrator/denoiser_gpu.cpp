@@ -259,6 +259,12 @@ bool DenoiserGPU::denoise_filter_color_postprocess(const DenoiseContext &context
 bool DenoiserGPU::denoise_filter_color_preprocess(const DenoiseContext &context,
                                                   const DenoisePass &pass)
 {
+  if (context.denoise_params.type != DENOISER_OPTIX) {
+    /* Pass preprocessing is used to clamp values for the OptiX denoiser.
+     * Clamping is not necessary for other denoisers, so just skip this preprocess step. */
+    return true;
+  }
+
   const BufferParams &buffer_params = context.buffer_params;
 
   const int work_size = buffer_params.width * buffer_params.height;

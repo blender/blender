@@ -106,7 +106,7 @@ static bool object_remesh_poll(bContext *C)
   return ED_operator_object_active_editable_mesh(C);
 }
 
-static int voxel_remesh_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus voxel_remesh_exec(bContext *C, wmOperator *op)
 {
   const Scene &scene = *CTX_data_scene(C);
   Object *ob = CTX_data_active_object(C);
@@ -128,7 +128,7 @@ static int voxel_remesh_exec(bContext *C, wmOperator *op)
   }
 
   Mesh *new_mesh = BKE_mesh_remesh_voxel(
-      mesh, mesh->remesh_voxel_size, mesh->remesh_voxel_adaptivity, isovalue);
+      mesh, mesh->remesh_voxel_size, mesh->remesh_voxel_adaptivity, isovalue, op->reports);
 
   if (!new_mesh) {
     BKE_report(op->reports, RPT_ERROR, "Voxel remesher failed to create mesh");
@@ -351,7 +351,7 @@ static void voxel_size_edit_cancel(bContext *C, wmOperator *op)
 
   ED_region_draw_cb_exit(region->runtime->type, cd->draw_handle);
 
-  MEM_freeN(op->customdata);
+  MEM_freeN(cd);
 
   ED_workspace_status_text(C, nullptr);
 }
@@ -366,7 +366,7 @@ static void voxel_size_edit_update_header(wmOperator *op, bContext *C)
   status.item_bool(IFACE_("Precision Mode"), cd->slow_mode, ICON_EVENT_SHIFT);
 }
 
-static int voxel_size_edit_modal(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus voxel_size_edit_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   ARegion *region = CTX_wm_region(C);
   VoxelSizeEditCustomData *cd = static_cast<VoxelSizeEditCustomData *>(op->customdata);
@@ -389,7 +389,7 @@ static int voxel_size_edit_modal(bContext *C, wmOperator *op, const wmEvent *eve
   {
     ED_region_draw_cb_exit(region->runtime->type, cd->draw_handle);
     mesh->remesh_voxel_size = cd->voxel_size;
-    MEM_freeN(op->customdata);
+    MEM_freeN(cd);
     ED_region_tag_redraw(region);
     ED_workspace_status_text(C, nullptr);
     WM_event_add_notifier(C, NC_GEOM | ND_DATA, nullptr);
@@ -432,7 +432,7 @@ static int voxel_size_edit_modal(bContext *C, wmOperator *op, const wmEvent *eve
   return OPERATOR_RUNNING_MODAL;
 }
 
-static int voxel_size_edit_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus voxel_size_edit_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   ARegion *region = CTX_wm_region(C);
   Object *active_object = CTX_data_active_object(C);
@@ -636,6 +636,13 @@ enum {
   QUADRIFLOW_REMESH_FACES,
 };
 
+enum eQuadreFlowStatus {
+  QUADRIFLOW_STATUS_SUCCESS = 1,
+  QUADRIFLOW_STATUS_FAIL = 0,
+  QUADRIFLOW_STATUS_CANCELED = -1,
+  QUADRIFLOW_STATUS_NONMANIFOLD = -2,
+};
+
 enum eSymmetryAxes {
   SYMMETRY_AXES_X = (1 << 0),
   SYMMETRY_AXES_Y = (1 << 1),
@@ -645,8 +652,7 @@ enum eSymmetryAxes {
 struct QuadriFlowJob {
   /* from wmJob */
   Object *owner;
-  bool *stop, *do_update;
-  float *progress;
+  wmJobWorkerStatus *worker_status;
 
   const wmOperator *op;
   Scene *scene;
@@ -662,7 +668,7 @@ struct QuadriFlowJob {
   bool preserve_attributes;
   bool smooth_normals;
 
-  int success;
+  eQuadreFlowStatus status;
   bool is_nonblocking_job;
 };
 
@@ -678,9 +684,8 @@ static bool mesh_is_manifold_consistent(Mesh *mesh)
   const Span<int> corner_edges = mesh->corner_edges();
 
   bool is_manifold_consistent = true;
-  char *edge_faces = (char *)MEM_callocN(mesh->edges_num * sizeof(char), "remesh_manifold_check");
-  int *edge_vert = (int *)MEM_malloc_arrayN(
-      mesh->edges_num, sizeof(uint), "remesh_consistent_check");
+  char *edge_faces = MEM_calloc_arrayN<char>(mesh->edges_num, "remesh_manifold_check");
+  int *edge_vert = MEM_malloc_arrayN<int>(mesh->edges_num, "remesh_consistent_check");
 
   for (uint i = 0; i < mesh->edges_num; i++) {
     edge_vert[i] = -1;
@@ -739,12 +744,15 @@ static int quadriflow_break_job(void *customdata)
   // return *(qj->stop);
 
   /* this is not nice yet, need to make the jobs list template better
-   * for identifying/acting upon various different jobs */
+   * for identifying/acting upon various different jobs canceled */
   /* but for now we'll reuse the render break... */
-  bool should_break = (G.is_break);
+  bool should_break = false;
 
-  if (should_break) {
-    qj->success = -1;
+  if (qj->is_nonblocking_job) {
+    bool should_break = (G.is_break);
+    if (should_break) {
+      qj->status = QUADRIFLOW_STATUS_CANCELED;
+    }
   }
 
   return should_break;
@@ -762,8 +770,8 @@ static void quadriflow_update_job(void *customdata, float progress, int *cancel)
     *cancel = 0;
   }
 
-  *(qj->do_update) = true;
-  *(qj->progress) = progress;
+  qj->worker_status->do_update = true;
+  qj->worker_status->progress = progress;
 }
 
 static Mesh *remesh_symmetry_bisect(Mesh *mesh, eSymmetryAxes symmetry_axes)
@@ -832,10 +840,8 @@ static void quadriflow_start_job(void *customdata, wmJobWorkerStatus *worker_sta
 {
   QuadriFlowJob *qj = static_cast<QuadriFlowJob *>(customdata);
 
-  qj->stop = &worker_status->stop;
-  qj->do_update = &worker_status->do_update;
-  qj->progress = &worker_status->progress;
-  qj->success = 1;
+  qj->worker_status = worker_status;
+  qj->status = QUADRIFLOW_STATUS_SUCCESS;
 
   if (qj->is_nonblocking_job) {
     G.is_break = false; /* XXX shared with render - replace with job 'stop' switch */
@@ -849,7 +855,7 @@ static void quadriflow_start_job(void *customdata, wmJobWorkerStatus *worker_sta
 
   /* Check if the mesh is manifold. Quadriflow requires manifold meshes */
   if (!mesh_is_manifold_consistent(mesh)) {
-    qj->success = -2;
+    qj->status = QUADRIFLOW_STATUS_NONMANIFOLD;
     return;
   }
 
@@ -878,9 +884,9 @@ static void quadriflow_start_job(void *customdata, wmJobWorkerStatus *worker_sta
   if (new_mesh == nullptr) {
     worker_status->do_update = true;
     worker_status->stop = false;
-    if (qj->success == 1) {
+    if (qj->status == QUADRIFLOW_STATUS_SUCCESS) {
       /* This is not a user cancellation event. */
-      qj->success = 0;
+      qj->status = QUADRIFLOW_STATUS_FAIL;
     }
     return;
   }
@@ -921,28 +927,30 @@ static void quadriflow_end_job(void *customdata)
     WM_set_locked_interface(static_cast<wmWindowManager *>(G_MAIN->wm.first), false);
   }
 
-  switch (qj->success) {
-    case 1:
+  ReportList *reports = qj->worker_status->reports;
+  switch (qj->status) {
+    case QUADRIFLOW_STATUS_SUCCESS:
       DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
-      WM_reportf(RPT_INFO, "QuadriFlow: Remeshing completed");
+      BKE_reportf(reports, RPT_INFO, "QuadriFlow: Remeshing completed");
       break;
-    case 0:
-      WM_reportf(RPT_ERROR, "QuadriFlow: Remeshing failed");
+    case QUADRIFLOW_STATUS_FAIL:
+      BKE_reportf(reports, RPT_ERROR, "QuadriFlow: Remeshing failed");
       break;
-    case -1:
-      WM_report(RPT_WARNING, "QuadriFlow: Remeshing canceled");
+    case QUADRIFLOW_STATUS_CANCELED:
+      BKE_report(reports, RPT_WARNING, "QuadriFlow: Remeshing canceled");
       break;
-    case -2:
-      WM_report(RPT_WARNING,
-                "QuadriFlow: The mesh needs to be manifold and have face normals that point in a "
-                "consistent direction");
+    case QUADRIFLOW_STATUS_NONMANIFOLD:
+      BKE_report(reports,
+                 RPT_WARNING,
+                 "QuadriFlow: The mesh needs to be manifold and have face normals that point in a "
+                 "consistent direction");
       break;
   }
 }
 
-static int quadriflow_remesh_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus quadriflow_remesh_exec(bContext *C, wmOperator *op)
 {
-  QuadriFlowJob *job = (QuadriFlowJob *)MEM_mallocN(sizeof(QuadriFlowJob), "QuadriFlowJob");
+  QuadriFlowJob *job = MEM_mallocN<QuadriFlowJob>("QuadriFlowJob");
 
   job->op = op;
   job->owner = CTX_data_active_object(C);
@@ -980,11 +988,15 @@ static int quadriflow_remesh_exec(bContext *C, wmOperator *op)
     job->symmetry_axes = (eSymmetryAxes)0;
   }
 
+  eQuadreFlowStatus status = QUADRIFLOW_STATUS_SUCCESS;
   if ((op->flag & OP_IS_INVOKE) == 0) {
     /* This is called directly from the exec operator, this operation is now blocking */
     job->is_nonblocking_job = false;
     wmJobWorkerStatus worker_status = {};
+    worker_status.reports = op->reports;
     quadriflow_start_job(job, &worker_status);
+
+    status = job->status;
     quadriflow_end_job(job);
     quadriflow_free_job(job);
   }
@@ -1007,7 +1019,12 @@ static int quadriflow_remesh_exec(bContext *C, wmOperator *op)
 
     WM_jobs_start(CTX_wm_manager(C), wm_job);
   }
-  return OPERATOR_FINISHED;
+
+  if (status == QUADRIFLOW_STATUS_SUCCESS) {
+    return OPERATOR_FINISHED;
+  }
+  /* Only ever runs with immediate execution. */
+  return OPERATOR_CANCELLED;
 }
 
 static bool quadriflow_check(bContext *C, wmOperator *op)
@@ -1094,7 +1111,7 @@ static const EnumPropertyItem mode_type_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-static int quadriflow_remesh_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus quadriflow_remesh_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   return WM_operator_props_popup_confirm_ex(
       C, op, event, IFACE_("QuadriFlow Remesh the Selected Mesh"), IFACE_("Remesh"));

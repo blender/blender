@@ -7,7 +7,7 @@
 #include "usd.hh"
 #include "usd_asset_utils.hh"
 #include "usd_private.hh"
-#include "usd_reader_prim.hh"
+#include "usd_utils.hh"
 #include "usd_writer_material.hh"
 
 #include <pxr/base/gf/rotation.h>
@@ -27,10 +27,11 @@
 #include "BKE_node_tree_update.hh"
 
 #include "BLI_fileops.h"
-#include "BLI_listbase.h"
 #include "BLI_math_vector.h"
 #include "BLI_path_utils.hh"
+#include "BLI_string_ref.hh"
 
+#include "DNA_image_types.h"
 #include "DNA_node_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_world_types.h"
@@ -113,21 +114,6 @@ struct WorldNtreeSearchResults {
 namespace blender::io::usd {
 
 /**
- * If the given path already exists on the given stage, return the path with
- * a numerical suffix appended to the name that ensures the path is unique. If
- * the path does not exist on the stage, it will be returned unchanged.
- */
-static pxr::SdfPath get_unique_path(pxr::UsdStageRefPtr stage, const std::string &path)
-{
-  std::string unique_path = path;
-  int suffix = 2;
-  while (stage->GetPrimAtPath(pxr::SdfPath(unique_path)).IsValid()) {
-    unique_path = path + std::to_string(suffix++);
-  }
-  return pxr::SdfPath(unique_path);
-}
-
-/**
  * Load the image at the given path.  Handle packing and copying based in the import options.
  * Return the opened image on success or a nullptr on failure.
  */
@@ -179,8 +165,8 @@ static Image *load_image(std::string tex_path, Main *bmain, const USDImportParam
  * as an upstream source to 'dst_node' with the given sockets. */
 static bNode *append_node(bNode *dst_node,
                           int16_t new_node_type,
-                          const char *out_sock,
-                          const char *in_sock,
+                          const StringRef out_sock,
+                          const StringRef in_sock,
                           bNodeTree *ntree,
                           float offset)
 {
@@ -271,10 +257,6 @@ static bool node_search(bNode *fromnode,
   return true;
 }
 
-/**
- * If the Blender scene has an environment texture,
- * export it as a USD dome light.
- */
 void world_material_to_dome_light(const USDExportParams &params,
                                   const Scene *scene,
                                   pxr::UsdStageRefPtr stage)
@@ -552,14 +534,13 @@ void dome_light_to_world_material(const USDImportParams &params,
   }
 
   bNode *mapping = append_node(tex, SH_NODE_MAPPING, "Vector", "Vector", ntree, 200);
-
   if (!mapping) {
     CLOG_WARN(&LOG, "Couldn't create mapping node");
     return;
   }
 
-  bNode *tex_coord = append_node(mapping, SH_NODE_TEX_COORD, "Generated", "Vector", ntree, 200);
-
+  const bNode *tex_coord = append_node(
+      mapping, SH_NODE_TEX_COORD, "Generated", "Vector", ntree, 200);
   if (!tex_coord) {
     CLOG_WARN(&LOG, "Couldn't create texture coordinate node");
     return;

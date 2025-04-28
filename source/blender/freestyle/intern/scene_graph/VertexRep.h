@@ -44,7 +44,7 @@ class VertexRep : public Rep {
   virtual void ComputeBBox();
 
   /** accessors */
-  inline const int vid() const
+  inline int vid() const
   {
     return _vid;
   }

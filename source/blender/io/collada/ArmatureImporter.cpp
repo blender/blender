@@ -485,7 +485,7 @@ void ArmatureImporter::create_armature_bones(Main *bmain, std::vector<Object *> 
       continue;
     }
 
-    char *bone_name = (char *)bc_get_joint_name(node);
+    const char *bone_name = bc_get_joint_name(node);
     Bone *bone = BKE_armature_find_bone_name(armature, bone_name);
     if (bone) {
       fprintf(stderr,

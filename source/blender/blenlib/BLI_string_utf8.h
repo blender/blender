@@ -25,17 +25,19 @@ size_t BLI_strncpy_utf8_rlen_unterminated(char *__restrict dst,
                                           size_t dst_maxncpy);
 
 /**
- * Find first UTF-8 invalid byte in given \a str, of \a length bytes.
+ * Find first UTF-8 invalid byte in given \a str, of \a str_len bytes.
  *
  * \return the offset of the first invalid byte.
  */
-ptrdiff_t BLI_str_utf8_invalid_byte(const char *str, size_t length) ATTR_NONNULL(1);
+ptrdiff_t BLI_str_utf8_invalid_byte(const char *str, size_t str_len) ATTR_NONNULL(1);
 /**
  * Remove any invalid UTF-8 byte (taking into account multi-bytes sequence of course).
  *
+ * \param str: a null terminated string.
+ * \param str_len: the result of `strlen(str)`.
  * \return number of stripped bytes.
  */
-int BLI_str_utf8_invalid_strip(char *str, size_t length) ATTR_NONNULL(1);
+int BLI_str_utf8_invalid_strip(char *str, size_t str_len) ATTR_NONNULL(1);
 
 /**
  * \return The size (in bytes) of a single UTF-8 char.
@@ -195,6 +197,10 @@ char32_t BLI_str_utf32_char_to_upper(char32_t wc);
  */
 char32_t BLI_str_utf32_char_to_lower(char32_t wc);
 
+bool BLI_str_utf32_char_is_breaking_space(char32_t codepoint);
+bool BLI_str_utf32_char_is_optional_break_after(char32_t codepoint, char32_t codepoint_prev);
+bool BLI_str_utf32_char_is_optional_break_before(char32_t codepoint, char32_t codepoint_prev);
+
 /**
  * \warning can return -1 on bad chars.
  */
@@ -257,5 +263,7 @@ int BLI_str_utf8_offset_from_column_with_tabs(const char *str,
 
 #define STRNCPY_UTF8(dst, src) BLI_strncpy_utf8(dst, src, ARRAY_SIZE(dst))
 #define STRNCPY_UTF8_RLEN(dst, src) BLI_strncpy_utf8_rlen(dst, src, ARRAY_SIZE(dst))
+
+#define STRNLEN_UTF8(str) BLI_strnlen_utf8(str, ARRAY_SIZE(str))
 
 /** \} */

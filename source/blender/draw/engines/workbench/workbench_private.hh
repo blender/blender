@@ -12,11 +12,9 @@
 
 #include "workbench_defines.hh"
 #include "workbench_enums.hh"
-#include "workbench_shader_shared.h"
+#include "workbench_shader_shared.hh"
 
 #include "GPU_capabilities.hh"
-
-extern "C" DrawEngineType draw_engine_workbench;
 
 namespace blender::workbench {
 
@@ -79,8 +77,6 @@ class ShaderCache {
   {
     return volume_[smoke][interpolation][coba][slice].get();
   }
-
-  StaticShader extract_stencil = {"workbench_extract_stencil"};
 
   /* Transparency */
   StaticShader transparent_resolve = {"workbench_transparent_resolve"};
@@ -164,7 +160,7 @@ struct SceneState {
   /* When r == -1.0 the shader uses the vertex color */
   Material material_attribute_color = Material(float3(-1.0f));
 
-  void init(Object *camera_ob = nullptr);
+  void init(const DRWContext *context, bool scene_updated, Object *camera_ob = nullptr);
 };
 
 struct MaterialTexture {
@@ -189,7 +185,10 @@ struct ObjectState {
   bool use_per_material_batches = false;
   bool sculpt_pbvh = false;
 
-  ObjectState(const SceneState &scene_state, const SceneResources &resources, Object *ob);
+  ObjectState(const DRWContext *draw_ctx,
+              const SceneState &scene_state,
+              const SceneResources &resources,
+              Object *ob);
 };
 
 class CavityEffect {
@@ -211,46 +210,6 @@ class CavityEffect {
 
  private:
   void load_samples_buf(int ssao_samples);
-};
-
-/* Used as a temporary workaround for the lack of texture views support on Windows ARM. */
-class StencilViewWorkaround {
- private:
-  Texture stencil_copy_tx_ = "stencil_copy_tx";
-
- public:
-  /** WARNING: Should only be called at render time.
-   * When the workaround path is active,
-   * the returned texture won't stay in sync with the stencil_src,
-   * and will only be valid until the next time this function is called.
-   * Note that the output is a binary mask,
-   * any stencil value that is not 0x00 will be rendered as 0xFF. */
-  GPUTexture *extract(Manager &manager, Texture &stencil_src)
-  {
-    if (GPU_texture_view_support()) {
-      return stencil_src.stencil_view();
-    }
-
-    int2 extent = int2(stencil_src.width(), stencil_src.height());
-    stencil_copy_tx_.ensure_2d(
-        GPU_R8UI, extent, GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_SHADER_READ);
-
-    PassSimple ps("Stencil View Workaround");
-    ps.init();
-    ps.clear_color(float4(0));
-    ps.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_STENCIL_NEQUAL);
-    ps.state_stencil(0x00, 0x00, 0xFF);
-    ps.shader_set(ShaderCache::get().extract_stencil.get());
-    ps.draw_procedural(GPU_PRIM_TRIS, 1, 3);
-
-    Framebuffer fb;
-    fb.ensure(GPU_ATTACHMENT_TEXTURE(stencil_src), GPU_ATTACHMENT_TEXTURE(stencil_copy_tx_));
-    fb.bind();
-
-    manager.submit(ps);
-
-    return stencil_copy_tx_;
-  }
 };
 
 struct SceneResources {
@@ -277,8 +236,6 @@ struct SceneResources {
 
   CavityEffect cavity = {};
 
-  StencilViewWorkaround stencil_view;
-
   Texture missing_tx = "missing_tx";
   MaterialTexture missing_texture;
 
@@ -294,7 +251,7 @@ struct SceneResources {
     GPU_BATCH_DISCARD_SAFE(volume_cube_batch);
   }
 
-  void init(const SceneState &scene_state);
+  void init(const SceneState &scene_state, const DRWContext *ctx);
   void load_jitter_tx(int total_samples);
 };
 
@@ -544,8 +501,8 @@ class DofPass {
   float ratio_ = 0;
 
  public:
-  void init(const SceneState &scene_state);
-  void sync(SceneResources &resources);
+  void init(const SceneState &scene_state, const DRWContext *draw_ctx);
+  void sync(SceneResources &resources, const DRWContext *draw_ctx);
   void draw(Manager &manager, View &view, SceneResources &resources, int2 resolution);
   bool is_enabled();
 
@@ -594,6 +551,7 @@ class AntiAliasingPass {
   void sync(const SceneState &scene_state, SceneResources &resources);
   void setup_view(View &view, const SceneState &scene_state);
   void draw(
+      const DRWContext *draw_ctx,
       Manager &manager,
       View &view,
       const SceneState &scene_state,

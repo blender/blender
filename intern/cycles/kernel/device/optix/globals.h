@@ -30,6 +30,10 @@ struct KernelParamsOptiX {
   float *render_buffer;
   int offset;
 
+  /* Init kernel arguments */
+  int num_tiles;
+  int max_tile_work_size;
+
   /* Global scene data and textures */
   KernelData data;
 #define KERNEL_DATA_ARRAY(type, name) const type *name;

@@ -16,12 +16,12 @@
 #include "gpu_shader_create_info.hh"
 
 GPU_SHADER_CREATE_INFO(gpu_shader_2D_checker)
-VERTEX_IN(0, VEC2, pos)
-FRAGMENT_OUT(0, VEC4, fragColor)
-PUSH_CONSTANT(MAT4, ModelViewProjectionMatrix)
-PUSH_CONSTANT(VEC4, color1)
-PUSH_CONSTANT(VEC4, color2)
-PUSH_CONSTANT(INT, size)
+VERTEX_IN(0, float2, pos)
+FRAGMENT_OUT(0, float4, fragColor)
+PUSH_CONSTANT(float4x4, ModelViewProjectionMatrix)
+PUSH_CONSTANT(float4, color1)
+PUSH_CONSTANT(float4, color2)
+PUSH_CONSTANT(int, size)
 VERTEX_SOURCE("gpu_shader_2D_vert.glsl")
 FRAGMENT_SOURCE("gpu_shader_checker_frag.glsl")
 DO_STATIC_COMPILATION()

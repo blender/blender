@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 """
-blender -b --factory-startup --python tests/python/bl_animation_fcurves.py -- --testdir /path/to/tests/data/animation
+blender -b --factory-startup --python tests/python/bl_animation_fcurves.py -- --testdir tests/data/animation
 """
 
 import pathlib
@@ -58,6 +58,147 @@ class FCurveEvaluationTest(AbstractAnimationTest, unittest.TestCase):
         self.assertAlmostEqual(0.9776642322540283, fcurve.evaluate(8))
         self.assertAlmostEqual(0.9952865839004517, fcurve.evaluate(9))
         self.assertAlmostEqual(1.0, fcurve.evaluate(10))
+
+
+class PropertyInterpolationTest(AbstractAnimationTest, unittest.TestCase):
+    """Test F-Curve interpolation on RNA properties.
+
+    This tests both the evaluation of the RNA property and the F-Curve
+    interpolation itself (the not-exposed-to-RNA flags `FCURVE_INT_VALUES` and
+    `FCURVE_DISCRETE_VALUES` have an impact on the latter as well).
+
+    NOTE: This test uses the backward-compatible API in 4.4 (action.fcurves)
+    because it only uses a single slot anyway. This way, the test is
+    backward-compatible with older versions of Blender, and can be used to track
+    down regression issues.
+    """
+
+    def setUp(self):
+        bpy.ops.wm.read_homefile(use_factory_startup=True)
+
+    def test_float(self) -> None:
+        scene: bpy.types.Scene = bpy.context.scene
+
+        camera_ob: bpy.types.Object = scene.objects["Camera"]
+        camera: bpy.types.Camera = camera_ob.data
+        camera.lens = 16
+        camera.keyframe_insert('lens', frame=0)
+        camera.lens = 32
+        camera.keyframe_insert('lens', frame=64)
+
+        self._make_all_keys_linear()
+        fcurve = camera.animation_data.action.fcurves[0]
+
+        scene.frame_set(0)
+        self.assertAlmostEqual(16, camera.lens)
+        self.assertAlmostEqual(16, fcurve.evaluate(0))
+        scene.frame_set(1)
+        self.assertAlmostEqual(16.25, camera.lens)
+        self.assertAlmostEqual(16.25, fcurve.evaluate(1))
+        scene.frame_set(2)
+        self.assertAlmostEqual(16.5, camera.lens)
+        self.assertAlmostEqual(16.5, fcurve.evaluate(2))
+        scene.frame_set(11)
+        self.assertAlmostEqual(18.75, camera.lens)
+        self.assertAlmostEqual(18.75, fcurve.evaluate(11))
+        scene.frame_set(64)
+        self.assertAlmostEqual(32, camera.lens)
+        self.assertAlmostEqual(32, fcurve.evaluate(64))
+
+    def test_int(self) -> None:
+        scene: bpy.types.Scene = bpy.context.scene
+        render: bpy.types.RenderSettings = scene.render
+
+        render.simplify_subdivision = 16
+        render.keyframe_insert('simplify_subdivision', frame=0)
+        render.simplify_subdivision = 32
+        render.keyframe_insert('simplify_subdivision', frame=64)
+
+        self._make_all_keys_linear()
+        fcurve = scene.animation_data.action.fcurves[0]
+
+        scene.frame_set(0)
+        self.assertAlmostEqual(16, render.simplify_subdivision)
+        self.assertAlmostEqual(16, fcurve.evaluate(0))
+        scene.frame_set(1)  # 16.25 rounds down.
+        self.assertAlmostEqual(16, render.simplify_subdivision)
+        self.assertAlmostEqual(16, fcurve.evaluate(1))
+        scene.frame_set(2)  # 16.50 rounds up.
+        self.assertAlmostEqual(17, render.simplify_subdivision)
+        self.assertAlmostEqual(17, fcurve.evaluate(2))
+        scene.frame_set(11)  # 18.75 rounds up.
+        self.assertAlmostEqual(19, render.simplify_subdivision)
+        self.assertAlmostEqual(19, fcurve.evaluate(11))
+        scene.frame_set(64)
+        self.assertAlmostEqual(32, render.simplify_subdivision)
+        self.assertAlmostEqual(32, fcurve.evaluate(64))
+
+    def test_bool(self) -> None:
+        scene: bpy.types.Scene = bpy.context.scene
+        render: bpy.types.RenderSettings = scene.render
+
+        render.use_simplify = False
+        render.keyframe_insert('use_simplify', frame=0)
+        render.use_simplify = True
+        render.keyframe_insert('use_simplify', frame=64)
+
+        self._make_all_keys_linear()
+        fcurve = scene.animation_data.action.fcurves[0]
+
+        scene.frame_set(0)
+        self.assertEqual(False, render.use_simplify)
+        self.assertAlmostEqual(0, fcurve.evaluate(0))
+        scene.frame_set(32)  # Boolean F-Curves should not interpolate at all.
+        self.assertEqual(False, render.use_simplify)
+        self.assertAlmostEqual(0, fcurve.evaluate(63))
+        scene.frame_set(63)  # Should remain False until the frame it goes to True.
+        self.assertEqual(False, render.use_simplify)
+        self.assertAlmostEqual(0, fcurve.evaluate(63))
+        scene.frame_set(64)
+        self.assertEqual(True, render.use_simplify)
+        self.assertAlmostEqual(1, fcurve.evaluate(64))
+
+    def test_enum(self) -> None:
+        scene: bpy.types.Scene = bpy.context.scene
+        cube: bpy.types.Object = scene.objects["Cube"]
+
+        cube.rotation_mode = 'QUATERNION'  # First item in the enum.
+        cube.keyframe_insert('rotation_mode', frame=0)
+        cube.rotation_mode = 'ZYX'  # Item in the enum with the highest value.
+        # Yes, 'AXIS_ANGLE' is the last one in the enum, but that has value -1
+        # for historical reasons, and so for this test it's a bit weird.
+        cube.keyframe_insert('rotation_mode', frame=64)
+
+        self._make_all_keys_linear()
+        fcurve = cube.animation_data.action.fcurves[0]
+
+        scene.frame_set(0)
+        self.assertEqual('QUATERNION', cube.rotation_mode)
+        self.assertAlmostEqual(0, fcurve.evaluate(0))
+        scene.frame_set(32)  # Enum F-Curves should not interpolate at all.
+        self.assertEqual('QUATERNION', cube.rotation_mode)
+        scene.frame_set(63)  # Should remain 'QUATERNION' until the frame it goes to another value.
+        self.assertEqual('QUATERNION', cube.rotation_mode)
+        self.assertAlmostEqual(0, fcurve.evaluate(63))
+        scene.frame_set(64)
+        self.assertEqual('ZYX', cube.rotation_mode)
+        self.assertAlmostEqual(6, fcurve.evaluate(64))
+
+    def _make_all_keys_linear(self) -> None:
+        """Make all keys in all Actions linearly interpolated.
+
+        This makes the code in this test a bit simpler, and shouldn't have any
+        effect on the actual mapping of the F-Curve value to the property value.
+        """
+
+        for action in bpy.data.actions:
+            # Make this test backward compatible with older versions of Blender,
+            # to make it easier to test regressions.
+            self.assertEqual(1, len(action.slots), f"{action} should have exactly one slot")
+
+            for fcurve in action.fcurves:
+                for key in fcurve.keyframe_points:
+                    key.interpolation = 'LINEAR'
 
 
 class EulerFilterTest(AbstractAnimationTest, unittest.TestCase):

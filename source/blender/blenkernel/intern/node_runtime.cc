@@ -503,6 +503,7 @@ static void update_group_output_node(const bNodeTree &ntree)
     tree_runtime.group_output_node = group_output_nodes[0];
   }
   else {
+    tree_runtime.group_output_node = nullptr;
     for (bNode *group_output : group_output_nodes) {
       if (group_output->flag & NODE_DO_OUTPUT) {
         tree_runtime.group_output_node = group_output;

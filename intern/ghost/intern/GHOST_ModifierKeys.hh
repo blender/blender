@@ -71,4 +71,6 @@ struct GHOST_ModifierKeys {
   /** Bit-field that stores the appropriate key state. */
   uint8_t m_LeftOS : 1;
   uint8_t m_RightOS : 1;
+  uint8_t m_LeftHyper : 1;
+  uint8_t m_RightHyper : 1;
 };

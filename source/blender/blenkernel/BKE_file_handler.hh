@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup bke
+ */
+
 #include "BLI_span.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
@@ -25,8 +29,10 @@ struct FileHandlerType {
   char import_operator[OP_MAX_TYPENAME];
   /** Export operator name. */
   char export_operator[OP_MAX_TYPENAME];
-  /** Formatted string of file extensions supported by the file handler, each extension should
-   * start with a `.` and be separated by `;`. For Example: `".blend;.ble"`. */
+  /**
+   * Formatted string of file extensions supported by the file handler, each extension should
+   * start with a `.` and be separated by `;`. For Example: `".blend;.ble"`.
+   */
   char file_extensions_str[FH_MAX_FILE_EXTENSIONS_STR];
 
   /** Check if file handler can be used on file drop. */

@@ -787,9 +787,14 @@ static PyObject *app_translations_locale_explode(BlenderAppTranslations * /*self
   return ret_tuple;
 }
 
-#if (defined(__GNUC__) && !defined(__clang__))
-#  pragma GCC diagnostic push
-#  pragma GCC diagnostic ignored "-Wcast-function-type"
+#ifdef __GNUC__
+#  ifdef __clang__
+#    pragma clang diagnostic push
+#    pragma clang diagnostic ignored "-Wcast-function-type"
+#  else
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wcast-function-type"
+#  endif
 #endif
 
 static PyMethodDef app_translations_methods[] = {
@@ -833,13 +838,21 @@ static PyMethodDef app_translations_methods[] = {
     {nullptr},
 };
 
-#if (defined(__GNUC__) && !defined(__clang__))
-#  pragma GCC diagnostic pop
+#ifdef __GNUC__
+#  ifdef __clang__
+#    pragma clang diagnostic pop
+#  else
+#    pragma GCC diagnostic pop
+#  endif
 #endif
 
-static PyObject *app_translations_new(PyTypeObject *type, PyObject * /*args*/, PyObject * /*kw*/)
+static PyObject *app_translations_new(PyTypeObject *type, PyObject *args, PyObject *kw)
 {
   // printf("%s (%p)\n", __func__, _translations);
+
+  /* Only called internally on startup, no need for exceptions. */
+  BLI_assert(PyTuple_GET_SIZE(args) == 0 && kw == nullptr);
+  UNUSED_VARS_NDEBUG(args, kw);
 
   if (!_translations) {
     _translations = (BlenderAppTranslations *)type->tp_alloc(type, 0);
@@ -865,8 +878,10 @@ static PyObject *app_translations_new(PyTypeObject *type, PyObject * /*args*/, P
   return (PyObject *)_translations;
 }
 
-static void app_translations_free(BlenderAppTranslations *self)
+static void app_translations_free(void *self_v)
 {
+  BlenderAppTranslations *self = static_cast<BlenderAppTranslations *>(self_v);
+
   Py_DECREF(self->contexts);
   Py_DECREF(self->contexts_C_to_py);
   Py_DECREF(self->py_messages);
@@ -922,8 +937,8 @@ static PyTypeObject BlenderAppTranslationsType = {
     /*tp_dictoffset*/ 0,
     /*tp_init*/ nullptr,
     /*tp_alloc*/ nullptr,
-    /*tp_new*/ (newfunc)app_translations_new,
-    /*tp_free*/ (freefunc)app_translations_free,
+    /*tp_new*/ app_translations_new,
+    /*tp_free*/ app_translations_free,
     /*tp_is_gc*/ nullptr,
     /*tp_bases*/ nullptr,
     /*tp_mro*/ nullptr,

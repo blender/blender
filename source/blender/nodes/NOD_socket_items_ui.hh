@@ -13,6 +13,8 @@
 #include "RNA_access.hh"
 #include "RNA_prototypes.hh"
 
+#include "BLI_function_ref.hh"
+
 #include "BKE_screen.hh"
 
 #include "NOD_socket_items.hh"
@@ -31,13 +33,13 @@ static void draw_item_in_list(uiList * /*ui_list*/,
                               int /*index*/,
                               int /*flt_flag*/)
 {
-  uiLayout *row = uiLayoutRow(layout, true);
+  uiLayout *row = &layout->row(true);
   if constexpr (Accessor::has_type) {
     float4 color;
     RNA_float_get_array(itemptr, "color", color);
     uiTemplateNodeSocket(row, const_cast<bContext *>(C), color);
   }
-  uiLayoutSetEmboss(row, UI_EMBOSS_NONE);
+  uiLayoutSetEmboss(row, blender::ui::EmbossType::None);
   uiItemR(row, itemptr, "name", UI_ITEM_NONE, "", ICON_NONE);
 }
 
@@ -63,7 +65,7 @@ static void draw_items_list_with_operators(const bContext *C,
     return list;
   }();
 
-  uiLayout *row = uiLayoutRow(layout, false);
+  uiLayout *row = &layout->row(false);
   uiTemplateList(row,
                  C,
                  items_list->idname,
@@ -79,14 +81,14 @@ static void draw_items_list_with_operators(const bContext *C,
                  0,
                  UI_TEMPLATE_LIST_FLAG_NONE);
 
-  uiLayout *ops_col = uiLayoutColumn(row, false);
+  uiLayout *ops_col = &row->column(false);
   {
-    uiLayout *add_remove_col = uiLayoutColumn(ops_col, true);
+    uiLayout *add_remove_col = &ops_col->column(true);
     uiItemO(add_remove_col, "", ICON_ADD, Accessor::operator_idnames::add_item);
     uiItemO(add_remove_col, "", ICON_REMOVE, Accessor::operator_idnames::remove_item);
   }
   {
-    uiLayout *up_down_col = uiLayoutColumn(ops_col, true);
+    uiLayout *up_down_col = &ops_col->column(true);
     uiItemEnumO(
         up_down_col, Accessor::operator_idnames::move_item, "", ICON_TRIA_UP, "direction", 0);
     uiItemEnumO(

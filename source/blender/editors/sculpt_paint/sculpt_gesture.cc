@@ -454,7 +454,7 @@ void apply(bContext &C, GestureData &gesture_data, wmOperator &op)
   operation->begin(C, op, gesture_data);
 
   for (int symmpass = 0; symmpass <= gesture_data.symm; symmpass++) {
-    if (SCULPT_is_symmetry_iteration_valid(symmpass, gesture_data.symm)) {
+    if (is_symmetry_iteration_valid(symmpass, gesture_data.symm)) {
       flip_for_symmetry_pass(gesture_data, ePaintSymmetryFlags(symmpass));
       update_affected_nodes(gesture_data);
 

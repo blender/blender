@@ -11,11 +11,9 @@
 #include "scene/shader.h"
 
 #include "subd/dice.h"
-#include "subd/patch_table.h"
 
 #include "util/array.h"
 #include "util/boundbox.h"
-#include "util/map.h"
 #include "util/param.h"
 #include "util/set.h"
 #include "util/types.h"
@@ -122,17 +120,30 @@ class Mesh : public Geometry {
     SUBDIVISION_CATMULL_CLARK,
   };
 
+  enum SubdivisionBoundaryInterpolation {
+    SUBDIVISION_BOUNDARY_NONE,
+    SUBDIVISION_BOUNDARY_EDGE_ONLY,
+    SUBDIVISION_BOUNDARY_EDGE_AND_CORNER,
+  };
+
+  enum SubdivisionFVarInterpolation {
+    SUBDIVISION_FVAR_LINEAR_NONE,
+    SUBDIVISION_FVAR_LINEAR_CORNERS_ONLY,
+    SUBDIVISION_FVAR_LINEAR_CORNERS_PLUS1,
+    SUBDIVISION_FVAR_LINEAR_CORNERS_PLUS2,
+    SUBDIVISION_FVAR_LINEAR_BOUNDARIES,
+    SUBDIVISION_FVAR_LINEAR_ALL,
+  };
+
   NODE_SOCKET_API(SubdivisionType, subdivision_type)
+  NODE_SOCKET_API(SubdivisionBoundaryInterpolation, subdivision_boundary_interpolation)
+  NODE_SOCKET_API(SubdivisionFVarInterpolation, subdivision_fvar_interpolation)
 
   /* Mesh Data */
   NODE_SOCKET_API_ARRAY(array<int>, triangles)
   NODE_SOCKET_API_ARRAY(array<float3>, verts)
   NODE_SOCKET_API_ARRAY(array<int>, shader)
   NODE_SOCKET_API_ARRAY(array<bool>, smooth)
-
-  /* used for storing patch info for subd triangles, only allocated if there are patches */
-  NODE_SOCKET_API_ARRAY(array<int>, triangle_patch) /* must be < 0 for non subd triangles */
-  NODE_SOCKET_API_ARRAY(array<float2>, vert_patch_uv)
 
   /* SubdFaces */
   NODE_SOCKET_API_ARRAY(array<int>, subd_start_corner)
@@ -142,7 +153,6 @@ class Mesh : public Geometry {
   NODE_SOCKET_API_ARRAY(array<int>, subd_ptex_offset)
 
   NODE_SOCKET_API_ARRAY(array<int>, subd_face_corners)
-  NODE_SOCKET_API(int, num_ngons)
 
   NODE_SOCKET_API_ARRAY(array<int>, subd_creases_edge)
   NODE_SOCKET_API_ARRAY(array<float>, subd_creases_weight)
@@ -160,20 +170,12 @@ class Mesh : public Geometry {
   /* BVH */
   size_t vert_offset;
 
-  size_t patch_offset;
-  size_t patch_table_offset;
   size_t face_offset;
   size_t corner_offset;
 
  private:
-  unique_ptr<PackedPatchTable> patch_table;
-
-  size_t num_subd_verts;
+  size_t num_subd_added_verts;
   size_t num_subd_faces;
-
-  unordered_map<int, int> vert_to_stitching_key_map; /* real vert index -> stitching index */
-  unordered_multimap<int, int>
-      vert_stitching_map; /* stitching index -> multiple real vert indices */
 
   friend class BVH2;
   friend class BVHBuild;
@@ -191,8 +193,8 @@ class Mesh : public Geometry {
 
   void resize_mesh(const int numverts, const int numtris);
   void reserve_mesh(const int numverts, const int numtris);
-  void resize_subd_faces(const int numfaces, const int num_ngons, const int numcorners);
-  void reserve_subd_faces(const int numfaces, const int num_ngons, const int numcorners);
+  void resize_subd_faces(const int numfaces, const int numcorners);
+  void reserve_subd_faces(const int numfaces, const int numcorners);
   void reserve_subd_creases(const size_t num_creases);
   void clear_non_sockets();
   void clear(bool preserve_shaders = false) override;
@@ -207,41 +209,34 @@ class Mesh : public Geometry {
 
   void compute_bounds() override;
   void apply_transform(const Transform &tfm, const bool apply_to_motion) override;
-  void add_face_normals();
   void add_vertex_normals();
   void add_undisplaced();
+  void update_generated(Scene *scene);
+  void update_tangents(Scene *scene);
 
   void get_uv_tiles(ustring map, unordered_set<int> &tiles) override;
 
   void pack_shaders(Scene *scene, uint *shader);
   void pack_normals(packed_float3 *vnormal);
-  void pack_verts(packed_float3 *tri_verts,
-                  packed_uint3 *tri_vindex,
-                  uint *tri_patch,
-                  float2 *tri_patch_uv);
-  void pack_patches(uint *patch_data);
+  void pack_verts(packed_float3 *tri_verts, packed_uint3 *tri_vindex);
 
+  bool has_motion_blur() const override;
   PrimitiveType primitive_type() const override;
 
-  void tessellate(DiagSplit *split);
+  void tessellate(SubdParams &params);
 
   SubdFace get_subd_face(const size_t index) const;
-
-  SubdParams *get_subd_params();
-
   size_t get_num_subd_faces() const
   {
     return num_subd_faces;
   }
-
   void set_num_subd_faces(const size_t num_subd_faces_)
   {
     num_subd_faces = num_subd_faces_;
   }
-
-  size_t get_num_subd_verts()
+  size_t get_num_subd_base_verts() const
   {
-    return num_subd_verts;
+    return verts.size() - num_subd_added_verts;
   }
 
  protected:

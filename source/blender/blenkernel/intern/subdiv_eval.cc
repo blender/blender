@@ -154,8 +154,7 @@ static void set_face_varying_data_from_uv(Subdiv *subdiv,
 
   const int num_fvar_values = topology_refiner->base_level().GetNumFVarValues(layer_index);
   /* Use a temporary buffer so we do not upload UVs one at a time to the GPU. */
-  float(*buffer)[2] = static_cast<float(*)[2]>(
-      MEM_mallocN(sizeof(float[2]) * num_fvar_values, __func__));
+  float(*buffer)[2] = MEM_malloc_arrayN<float[2]>(size_t(num_fvar_values), __func__);
 
   FaceVaryingDataFromUVContext ctx;
   ctx.topology_refiner = topology_refiner;

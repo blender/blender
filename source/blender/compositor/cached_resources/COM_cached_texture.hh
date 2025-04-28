@@ -67,6 +67,9 @@ class CachedTextureContainer : CachedResourceContainer {
  private:
   Map<std::string, Map<CachedTextureKey, std::unique_ptr<CachedTexture>>> map_;
 
+  /* A map that stores the update counts of the textures at the moment they were cached. */
+  Map<std::string, uint64_t> update_counts_;
+
  public:
   void reset() override;
 

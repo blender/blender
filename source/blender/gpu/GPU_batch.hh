@@ -435,7 +435,7 @@ blender::IndexRange GPU_batch_draw_expanded_parameter_get(GPUPrimType input_prim
 /* -------------------------------------------------------------------- */
 /** \name Procedural drawing
  *
- * A drawcall always need a batch to be issued.
+ * A draw-call always need a batch to be issued.
  * These are dummy batches that contains no vertex data and can be used to render geometry
  * without per vertex inputs.
  * \{ */

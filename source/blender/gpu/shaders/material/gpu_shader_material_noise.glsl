@@ -22,8 +22,8 @@
  */
 float bi_mix(float v0, float v1, float v2, float v3, float x, float y)
 {
-  float x1 = 1.0 - x;
-  return (1.0 - y) * (v0 * x1 + v1 * x) + y * (v2 * x1 + v3 * x);
+  float x1 = 1.0f - x;
+  return (1.0f - y) * (v0 * x1 + v1 * x) + y * (v2 * x1 + v3 * x);
 }
 
 /* Trilinear Interpolation:
@@ -56,9 +56,9 @@ float tri_mix(float v0,
               float y,
               float z)
 {
-  float x1 = 1.0 - x;
-  float y1 = 1.0 - y;
-  float z1 = 1.0 - z;
+  float x1 = 1.0f - x;
+  float y1 = 1.0f - y;
+  float z1 = 1.0f - z;
   return z1 * (y1 * (v0 * x1 + v1 * x) + y * (v2 * x1 + v3 * x)) +
          z * (y1 * (v4 * x1 + v5 * x) + y * (v6 * x1 + v7 * x));
 }
@@ -91,7 +91,7 @@ float quad_mix(float v0,
 
 float fade(float t)
 {
-  return t * t * t * (t * (t * 6.0 - 15.0) + 10.0);
+  return t * t * t * (t * (t * 6.0f - 15.0f) + 10.0f);
 }
 
 float negate_if(float value, uint condition)
@@ -110,7 +110,7 @@ float noise_grad(uint hash, float x, float y)
 {
   uint h = hash & 7u;
   float u = h < 4u ? x : y;
-  float v = 2.0 * (h < 4u ? y : x);
+  float v = 2.0f * (h < 4u ? y : x);
   return negate_if(u, h & 1u) + negate_if(v, h & 2u);
 }
 
@@ -141,12 +141,12 @@ float noise_perlin(float x)
 
   float u = fade(fx);
 
-  float r = mix(noise_grad(hash_int(X), fx), noise_grad(hash_int(X + 1), fx - 1.0), u);
+  float r = mix(noise_grad(hash_int(X), fx), noise_grad(hash_int(X + 1), fx - 1.0f), u);
 
   return r;
 }
 
-float noise_perlin(vec2 vec)
+float noise_perlin(float2 vec)
 {
   int X, Y;
   float fx, fy;
@@ -158,16 +158,16 @@ float noise_perlin(vec2 vec)
   float v = fade(fy);
 
   float r = bi_mix(noise_grad(hash_int2(X, Y), fx, fy),
-                   noise_grad(hash_int2(X + 1, Y), fx - 1.0, fy),
-                   noise_grad(hash_int2(X, Y + 1), fx, fy - 1.0),
-                   noise_grad(hash_int2(X + 1, Y + 1), fx - 1.0, fy - 1.0),
+                   noise_grad(hash_int2(X + 1, Y), fx - 1.0f, fy),
+                   noise_grad(hash_int2(X, Y + 1), fx, fy - 1.0f),
+                   noise_grad(hash_int2(X + 1, Y + 1), fx - 1.0f, fy - 1.0f),
                    u,
                    v);
 
   return r;
 }
 
-float noise_perlin(vec3 vec)
+float noise_perlin(float3 vec)
 {
   int X, Y, Z;
   float fx, fy, fz;
@@ -195,7 +195,7 @@ float noise_perlin(vec3 vec)
   return r;
 }
 
-float noise_perlin(vec4 vec)
+float noise_perlin(float4 vec)
 {
   int X, Y, Z, W;
   float fx, fy, fz, fw;
@@ -212,21 +212,22 @@ float noise_perlin(vec4 vec)
 
   float r = quad_mix(
       noise_grad(hash_int4(X, Y, Z, W), fx, fy, fz, fw),
-      noise_grad(hash_int4(X + 1, Y, Z, W), fx - 1.0, fy, fz, fw),
-      noise_grad(hash_int4(X, Y + 1, Z, W), fx, fy - 1.0, fz, fw),
-      noise_grad(hash_int4(X + 1, Y + 1, Z, W), fx - 1.0, fy - 1.0, fz, fw),
-      noise_grad(hash_int4(X, Y, Z + 1, W), fx, fy, fz - 1.0, fw),
-      noise_grad(hash_int4(X + 1, Y, Z + 1, W), fx - 1.0, fy, fz - 1.0, fw),
-      noise_grad(hash_int4(X, Y + 1, Z + 1, W), fx, fy - 1.0, fz - 1.0, fw),
-      noise_grad(hash_int4(X + 1, Y + 1, Z + 1, W), fx - 1.0, fy - 1.0, fz - 1.0, fw),
-      noise_grad(hash_int4(X, Y, Z, W + 1), fx, fy, fz, fw - 1.0),
-      noise_grad(hash_int4(X + 1, Y, Z, W + 1), fx - 1.0, fy, fz, fw - 1.0),
-      noise_grad(hash_int4(X, Y + 1, Z, W + 1), fx, fy - 1.0, fz, fw - 1.0),
-      noise_grad(hash_int4(X + 1, Y + 1, Z, W + 1), fx - 1.0, fy - 1.0, fz, fw - 1.0),
-      noise_grad(hash_int4(X, Y, Z + 1, W + 1), fx, fy, fz - 1.0, fw - 1.0),
-      noise_grad(hash_int4(X + 1, Y, Z + 1, W + 1), fx - 1.0, fy, fz - 1.0, fw - 1.0),
-      noise_grad(hash_int4(X, Y + 1, Z + 1, W + 1), fx, fy - 1.0, fz - 1.0, fw - 1.0),
-      noise_grad(hash_int4(X + 1, Y + 1, Z + 1, W + 1), fx - 1.0, fy - 1.0, fz - 1.0, fw - 1.0),
+      noise_grad(hash_int4(X + 1, Y, Z, W), fx - 1.0f, fy, fz, fw),
+      noise_grad(hash_int4(X, Y + 1, Z, W), fx, fy - 1.0f, fz, fw),
+      noise_grad(hash_int4(X + 1, Y + 1, Z, W), fx - 1.0f, fy - 1.0f, fz, fw),
+      noise_grad(hash_int4(X, Y, Z + 1, W), fx, fy, fz - 1.0f, fw),
+      noise_grad(hash_int4(X + 1, Y, Z + 1, W), fx - 1.0f, fy, fz - 1.0f, fw),
+      noise_grad(hash_int4(X, Y + 1, Z + 1, W), fx, fy - 1.0f, fz - 1.0f, fw),
+      noise_grad(hash_int4(X + 1, Y + 1, Z + 1, W), fx - 1.0f, fy - 1.0f, fz - 1.0f, fw),
+      noise_grad(hash_int4(X, Y, Z, W + 1), fx, fy, fz, fw - 1.0f),
+      noise_grad(hash_int4(X + 1, Y, Z, W + 1), fx - 1.0f, fy, fz, fw - 1.0f),
+      noise_grad(hash_int4(X, Y + 1, Z, W + 1), fx, fy - 1.0f, fz, fw - 1.0f),
+      noise_grad(hash_int4(X + 1, Y + 1, Z, W + 1), fx - 1.0f, fy - 1.0f, fz, fw - 1.0f),
+      noise_grad(hash_int4(X, Y, Z + 1, W + 1), fx, fy, fz - 1.0f, fw - 1.0f),
+      noise_grad(hash_int4(X + 1, Y, Z + 1, W + 1), fx - 1.0f, fy, fz - 1.0f, fw - 1.0f),
+      noise_grad(hash_int4(X, Y + 1, Z + 1, W + 1), fx, fy - 1.0f, fz - 1.0f, fw - 1.0f),
+      noise_grad(
+          hash_int4(X + 1, Y + 1, Z + 1, W + 1), fx - 1.0f, fy - 1.0f, fz - 1.0f, fw - 1.0f),
       u,
       v,
       t,
@@ -240,91 +241,91 @@ float noise_perlin(vec4 vec)
  */
 float noise_scale1(float result)
 {
-  return 0.2500 * result;
+  return 0.2500f * result;
 }
 
 float noise_scale2(float result)
 {
-  return 0.6616 * result;
+  return 0.6616f * result;
 }
 
 float noise_scale3(float result)
 {
-  return 0.9820 * result;
+  return 0.9820f * result;
 }
 
 float noise_scale4(float result)
 {
-  return 0.8344 * result;
+  return 0.8344f * result;
 }
 
 /* Safe Signed And Unsigned Noise */
 
 float snoise(float p)
 {
-  float precision_correction = 0.5 * float(abs(p) >= 1000000.0);
+  float precision_correction = 0.5f * float(abs(p) >= 1000000.0f);
   /* Repeat Perlin noise texture every 100000.0 on each axis to prevent floating point
    * representation issues. */
-  p = compatible_mod(p, 100000.0) + precision_correction;
+  p = compatible_mod(p, 100000.0f) + precision_correction;
 
   return noise_scale1(noise_perlin(p));
 }
 
 float noise(float p)
 {
-  return 0.5 * snoise(p) + 0.5;
+  return 0.5f * snoise(p) + 0.5f;
 }
 
-float snoise(vec2 p)
+float snoise(float2 p)
 {
-  vec2 precision_correction = 0.5 *
-                              vec2(float(abs(p.x) >= 1000000.0), float(abs(p.y) >= 1000000.0));
+  float2 precision_correction = 0.5f * float2(float(abs(p.x) >= 1000000.0f),
+                                              float(abs(p.y) >= 1000000.0f));
   /* Repeat Perlin noise texture every 100000.0 on each axis to prevent floating point
-   * representation issues. This causes discontinuities every 100000.0, however at such scales this
-   * usually shouldn't be noticeable. */
-  p = compatible_mod(p, 100000.0) + precision_correction;
+   * representation issues. This causes discontinuities every 100000.0f, however at such scales
+   * this usually shouldn't be noticeable. */
+  p = compatible_mod(p, 100000.0f) + precision_correction;
 
   return noise_scale2(noise_perlin(p));
 }
 
-float noise(vec2 p)
+float noise(float2 p)
 {
-  return 0.5 * snoise(p) + 0.5;
+  return 0.5f * snoise(p) + 0.5f;
 }
 
-float snoise(vec3 p)
+float snoise(float3 p)
 {
-  vec3 precision_correction = 0.5 * vec3(float(abs(p.x) >= 1000000.0),
-                                         float(abs(p.y) >= 1000000.0),
-                                         float(abs(p.z) >= 1000000.0));
+  float3 precision_correction = 0.5f * float3(float(abs(p.x) >= 1000000.0f),
+                                              float(abs(p.y) >= 1000000.0f),
+                                              float(abs(p.z) >= 1000000.0f));
   /* Repeat Perlin noise texture every 100000.0 on each axis to prevent floating point
-   * representation issues. This causes discontinuities every 100000.0, however at such scales this
-   * usually shouldn't be noticeable. */
-  p = compatible_mod(p, 100000.0) + precision_correction;
+   * representation issues. This causes discontinuities every 100000.0f, however at such scales
+   * this usually shouldn't be noticeable. */
+  p = compatible_mod(p, 100000.0f) + precision_correction;
 
   return noise_scale3(noise_perlin(p));
 }
 
-float noise(vec3 p)
+float noise(float3 p)
 {
-  return 0.5 * snoise(p) + 0.5;
+  return 0.5f * snoise(p) + 0.5f;
 }
 
-float snoise(vec4 p)
+float snoise(float4 p)
 {
-  vec4 precision_correction = 0.5 * vec4(float(abs(p.x) >= 1000000.0),
-                                         float(abs(p.y) >= 1000000.0),
-                                         float(abs(p.z) >= 1000000.0),
-                                         float(abs(p.w) >= 1000000.0));
+  float4 precision_correction = 0.5f * float4(float(abs(p.x) >= 1000000.0f),
+                                              float(abs(p.y) >= 1000000.0f),
+                                              float(abs(p.z) >= 1000000.0f),
+                                              float(abs(p.w) >= 1000000.0f));
   /* Repeat Perlin noise texture every 100000.0 on each axis to prevent floating point
-   * representation issues. This causes discontinuities every 100000.0, however at such scales this
-   * usually shouldn't be noticeable. */
-  p = compatible_mod(p, 100000.0) + precision_correction;
+   * representation issues. This causes discontinuities every 100000.0f, however at such scales
+   * this usually shouldn't be noticeable. */
+  p = compatible_mod(p, 100000.0f) + precision_correction;
 
   return noise_scale4(noise_perlin(p));
 }
 
-float noise(vec4 p)
+float noise(float4 p)
 {
-  return 0.5 * snoise(p) + 0.5;
+  return 0.5f * snoise(p) + 0.5f;
 }

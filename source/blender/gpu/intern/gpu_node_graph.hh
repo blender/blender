@@ -97,7 +97,10 @@ struct GPUNodeLink {
     /* GPU_NODE_LINK_IMAGE_BLENDER */
     GPUMaterialTexture *texture;
     /* GPU_NODE_LINK_DIFFERENTIATE_FLOAT_FN */
-    const char *function_name;
+    struct {
+      const char *function_name;
+      float filter_width;
+    } differentiate_float;
   };
 };
 

@@ -14,24 +14,24 @@
 
 float curvature_soft_clamp(float curvature, float control)
 {
-  if (curvature < 0.5 / control) {
-    return curvature * (1.0 - curvature * control);
+  if (curvature < 0.5f / control) {
+    return curvature * (1.0f - curvature * control);
   }
-  return 0.25 / control;
+  return 0.25f / control;
 }
 
-void curvature_compute(vec2 uv,
-                       usampler2D objectIdBuffer,
+void curvature_compute(float2 uv,
+                       usampler2D object_id_buffer,
                        sampler2D normalBuffer,
                        out float curvature)
 {
-  curvature = 0.0;
+  curvature = 0.0f;
 
-  vec3 offset = vec3(world_data.viewport_size_inv, 0.0) * world_data.ui_scale;
-  uint object_up = texture(objectIdBuffer, uv + offset.zy).r;
-  uint object_down = texture(objectIdBuffer, uv - offset.zy).r;
-  uint object_right = texture(objectIdBuffer, uv + offset.xz).r;
-  uint object_left = texture(objectIdBuffer, uv - offset.xz).r;
+  float3 offset = float3(world_data.viewport_size_inv, 0.0f) * world_data.ui_scale;
+  uint object_up = texture(object_id_buffer, uv + offset.zy).r;
+  uint object_down = texture(object_id_buffer, uv - offset.zy).r;
+  uint object_right = texture(object_id_buffer, uv + offset.xz).r;
+  uint object_left = texture(object_id_buffer, uv - offset.xz).r;
 
   /* Remove object outlines. */
   if ((object_up != object_down) || (object_right != object_left)) {
@@ -50,10 +50,10 @@ void curvature_compute(vec2 uv,
   float normal_diff = (normal_up - normal_down) + (normal_right - normal_left);
 
   if (normal_diff < 0) {
-    curvature = -2.0 * curvature_soft_clamp(-normal_diff, world_data.curvature_valley);
+    curvature = -2.0f * curvature_soft_clamp(-normal_diff, world_data.curvature_valley);
   }
   else {
-    curvature = 2.0 * curvature_soft_clamp(normal_diff, world_data.curvature_ridge);
+    curvature = 2.0f * curvature_soft_clamp(normal_diff, world_data.curvature_ridge);
   }
 }
 

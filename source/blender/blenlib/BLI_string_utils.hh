@@ -18,8 +18,6 @@
 
 struct ListBase;
 
-using UniquenameCheckCallback = bool (*)(void *arg, const char *name);
-
 /* ------------------------------------------------------------------------- */
 /** \name String Replace
  * \{ */
@@ -147,18 +145,16 @@ size_t BLI_string_flip_side_name(char *name_dst,
  * incrementing its numeric suffix as necessary.
  *
  * \param unique_check: Return true if name is not unique
- * \param arg: Additional arg to unique_check--meaning is up to caller
  * \param defname: To initialize name if latter is empty
  * \param delim: Delimits numeric suffix in name
  * \param name: Name to be ensured unique
  * \param name_maxncpy: Maximum length of name area
  */
-void BLI_uniquename_cb(UniquenameCheckCallback unique_check,
-                       void *arg,
+void BLI_uniquename_cb(blender::FunctionRef<bool(blender::StringRefNull)> unique_check,
                        const char *defname,
                        char delim,
                        char *name,
-                       size_t name_maxncpy) ATTR_NONNULL(1, 3, 5);
+                       size_t name_maxncpy) ATTR_NONNULL(2, 4);
 
 /**
  * Ensures name is unique (according to criteria specified by caller in unique_check callback),

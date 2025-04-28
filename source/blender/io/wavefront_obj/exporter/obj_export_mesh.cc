@@ -58,7 +58,7 @@ OBJMesh::OBJMesh(Depsgraph *depsgraph, const OBJExportParams &export_params, Obj
     /* Curves and NURBS surfaces need a new mesh when they're
      * exported in the form of vertices and edges.
      */
-    this->set_mesh(BKE_mesh_new_from_object(depsgraph, obj_eval, true, true));
+    this->set_mesh(BKE_mesh_new_from_object(depsgraph, obj_eval, true, true, true));
   }
   if (export_params.export_triangulated_mesh && obj_eval->type == OB_MESH) {
     this->triangulate_mesh_eval();
@@ -206,13 +206,25 @@ void OBJMesh::calc_smooth_groups(const bool use_bitflags)
   const bke::AttributeAccessor attributes = export_mesh_->attributes();
   const VArraySpan sharp_edges = *attributes.lookup<bool>("sharp_edge", bke::AttrDomain::Edge);
   const VArraySpan sharp_faces = *attributes.lookup<bool>("sharp_face", bke::AttrDomain::Face);
-  face_smooth_groups_ = BKE_mesh_calc_smoothgroups(mesh_edges_.size(),
-                                                   mesh_faces_,
-                                                   export_mesh_->corner_edges(),
-                                                   sharp_edges,
-                                                   sharp_faces,
-                                                   &tot_smooth_groups_,
-                                                   use_bitflags);
+  if (use_bitflags) {
+    face_smooth_groups_ = BKE_mesh_calc_smoothgroups_bitflags(mesh_edges_.size(),
+                                                              export_mesh_->verts_num,
+                                                              mesh_faces_,
+                                                              export_mesh_->corner_edges(),
+                                                              export_mesh_->corner_verts(),
+                                                              sharp_edges,
+                                                              sharp_faces,
+                                                              true,
+                                                              &tot_smooth_groups_);
+  }
+  else {
+    face_smooth_groups_ = BKE_mesh_calc_smoothgroups(mesh_edges_.size(),
+                                                     mesh_faces_,
+                                                     export_mesh_->corner_edges(),
+                                                     sharp_edges,
+                                                     sharp_faces,
+                                                     &tot_smooth_groups_);
+  }
 }
 
 void OBJMesh::calc_face_order()

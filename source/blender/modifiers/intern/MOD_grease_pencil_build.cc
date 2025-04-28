@@ -801,7 +801,7 @@ static void panel_draw(const bContext *C, Panel *panel)
                             .body)
   {
     const bool active = RNA_boolean_get(ptr, "use_restrict_frame_range");
-    uiLayout *col = uiLayoutColumn(panel, false);
+    uiLayout *col = &panel->column(false);
     uiLayoutSetActive(col, active);
     uiItemR(col, ptr, "frame_start", UI_ITEM_NONE, IFACE_("Start"), ICON_NONE);
     uiItemR(col, ptr, "frame_end", UI_ITEM_NONE, IFACE_("End"), ICON_NONE);
@@ -813,12 +813,12 @@ static void panel_draw(const bContext *C, Panel *panel)
               .body)
   {
     const bool active = RNA_boolean_get(ptr, "use_fading");
-    uiLayout *col = uiLayoutColumn(panel, false);
+    uiLayout *col = &panel->column(false);
     uiLayoutSetActive(col, active);
 
     uiItemR(col, ptr, "fade_factor", UI_ITEM_NONE, IFACE_("Factor"), ICON_NONE);
 
-    uiLayout *subcol = uiLayoutColumn(col, true);
+    uiLayout *subcol = &col->column(true);
     uiItemR(subcol, ptr, "fade_thickness_strength", UI_ITEM_NONE, IFACE_("Thickness"), ICON_NONE);
     uiItemR(subcol, ptr, "fade_opacity_strength", UI_ITEM_NONE, IFACE_("Opacity"), ICON_NONE);
 

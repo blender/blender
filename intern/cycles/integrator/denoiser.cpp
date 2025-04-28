@@ -7,6 +7,7 @@
 #include "device/device.h"
 
 #include "integrator/denoiser_oidn.h"
+#include "session/display_driver.h"
 #ifdef WITH_OPENIMAGEDENOISE
 #  include "integrator/denoiser_oidn_gpu.h"
 #endif
@@ -42,7 +43,9 @@ static bool is_single_device(const Device *device)
 
 /* Find best suitable device to perform denoiser on. Will iterate over possible sub-devices of
  * multi-device. */
-static Device *find_best_device(Device *device, const DenoiserType type)
+static Device *find_best_device(Device *device,
+                                const DenoiserType type,
+                                const GraphicsInteropDevice &interop_device)
 {
   Device *best_device = nullptr;
 
@@ -61,7 +64,8 @@ static Device *find_best_device(Device *device, const DenoiserType type)
       }
 
       /* Prefer a device that can use graphics interop for faster display update. */
-      if (sub_device->should_use_graphics_interop() && !best_device->should_use_graphics_interop())
+      if (sub_device->should_use_graphics_interop(interop_device) &&
+          !best_device->should_use_graphics_interop(interop_device))
       {
         best_device = sub_device;
       }
@@ -101,6 +105,7 @@ bool use_gpu_oidn_denoiser(Device *denoiser_device, const DenoiseParams &params)
 DenoiseParams get_effective_denoise_params(Device *denoiser_device,
                                            Device *cpu_fallback_device,
                                            const DenoiseParams &params,
+                                           const GraphicsInteropDevice &interop_device,
                                            Device *&single_denoiser_device)
 {
   DCHECK(params.use);
@@ -116,7 +121,7 @@ DenoiseParams get_effective_denoise_params(Device *denoiser_device,
     /* Find best device from the ones which are proposed for denoising.
      * The choice is expected to be between a few GPUs, or between a GPU and a CPU
      * or between a few GPUs and a CPU. */
-    single_denoiser_device = find_best_device(denoiser_device, params.type);
+    single_denoiser_device = find_best_device(denoiser_device, params.type, interop_device);
   }
   /* Ensure that we have a device to be used later in the code below. */
   if (single_denoiser_device == nullptr) {
@@ -142,12 +147,13 @@ DenoiseParams get_effective_denoise_params(Device *denoiser_device,
 
 unique_ptr<Denoiser> Denoiser::create(Device *denoiser_device,
                                       Device *cpu_fallback_device,
-                                      const DenoiseParams &params)
+                                      const DenoiseParams &params,
+                                      const GraphicsInteropDevice &interop_device)
 {
 
   Device *single_denoiser_device;
   const DenoiseParams effective_denoiser_params = get_effective_denoise_params(
-      denoiser_device, cpu_fallback_device, params, single_denoiser_device);
+      denoiser_device, cpu_fallback_device, params, interop_device, single_denoiser_device);
 
   const bool is_cpu_denoiser_device = single_denoiser_device->info.type == DEVICE_CPU;
   if (is_cpu_denoiser_device == false) {

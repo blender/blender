@@ -70,7 +70,7 @@ static void linestyle_copy_data(Main *bmain,
 
   for (int a = 0; a < MAX_MTEX; a++) {
     if (linestyle_src->mtex[a]) {
-      linestyle_dst->mtex[a] = static_cast<MTex *>(MEM_callocN(sizeof(MTex), __func__));
+      linestyle_dst->mtex[a] = MEM_callocN<MTex>(__func__);
       *linestyle_dst->mtex[a] = blender::dna::shallow_copy(*linestyle_src->mtex[a]);
     }
   }
@@ -1841,7 +1841,7 @@ void BKE_linestyle_modifier_list_color_ramps(FreestyleLineStyle *linestyle, List
       default:
         continue;
     }
-    link = (LinkData *)MEM_callocN(sizeof(LinkData), "link to color ramp");
+    link = MEM_callocN<LinkData>("link to color ramp");
     link->data = color_ramp;
     BLI_addtail(listbase, link);
   }
@@ -1937,17 +1937,17 @@ void BKE_linestyle_default_shader(const bContext *C, FreestyleLineStyle *linesty
       nullptr, &linestyle->id, "stroke_shader", "ShaderNodeTree");
 
   uv_along_stroke = blender::bke::node_add_static_node(C, *ntree, SH_NODE_UVALONGSTROKE);
-  uv_along_stroke->location[0] = 0.0f;
-  uv_along_stroke->location[1] = 300.0f;
+  uv_along_stroke->location[0] = -200.0f;
+  uv_along_stroke->location[1] = 100.0f;
   uv_along_stroke->custom1 = 0; /* use_tips */
 
   input_texture = blender::bke::node_add_static_node(C, *ntree, SH_NODE_TEX_IMAGE);
-  input_texture->location[0] = 200.0f;
-  input_texture->location[1] = 300.0f;
+  input_texture->location[0] = 0.0f;
+  input_texture->location[1] = 100.0f;
 
   output_linestyle = blender::bke::node_add_static_node(C, *ntree, SH_NODE_OUTPUT_LINESTYLE);
-  output_linestyle->location[0] = 400.0f;
-  output_linestyle->location[1] = 300.0f;
+  output_linestyle->location[0] = 300.0f;
+  output_linestyle->location[1] = 100.0f;
   output_linestyle->custom1 = MA_RAMP_BLEND;
   output_linestyle->custom2 = 0; /* use_clamp */
 

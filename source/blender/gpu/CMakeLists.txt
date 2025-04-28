@@ -16,8 +16,8 @@ set(INC
 
   # For `*_info.hh` includes.
   ../compositor/shaders/infos
-  ../draw/engines/eevee_next
-  ../draw/engines/eevee_next/shaders/infos
+  ../draw/engines/eevee
+  ../draw/engines/eevee/shaders/infos
   ../draw/engines/gpencil
   ../draw/engines/gpencil/shaders/infos
   ../draw/engines/image/shaders/infos
@@ -98,6 +98,7 @@ set(SRC
   intern/gpu_vertex_format.cc
   intern/gpu_vertex_format_normals.cc
   intern/gpu_viewport.cc
+  intern/gpu_worker.cc
 
   GPU_attribute_convert.hh
   GPU_batch.hh
@@ -132,6 +133,7 @@ set(SRC
   GPU_vertex_buffer.hh
   GPU_vertex_format.hh
   GPU_viewport.hh
+  GPU_worker.hh
 
   intern/gpu_backend.hh
   intern/gpu_capabilities_private.hh
@@ -149,6 +151,7 @@ set(SRC
   intern/gpu_query.hh
   intern/gpu_select_private.hh
   intern/gpu_shader_create_info.hh
+  intern/gpu_shader_create_info_list.hh
   intern/gpu_shader_create_info_private.hh
   intern/gpu_shader_dependency_private.hh
   intern/gpu_shader_interface.hh
@@ -222,6 +225,7 @@ set(VULKAN_SRC
   vulkan/vk_descriptor_set.cc
   vulkan/vk_descriptor_set_layouts.cc
   vulkan/vk_device.cc
+  vulkan/vk_device_submission.cc
   vulkan/vk_fence.cc
   vulkan/vk_framebuffer.cc
   vulkan/vk_image_view.cc
@@ -275,6 +279,7 @@ set(VULKAN_SRC
   vulkan/vk_image_view.hh
   vulkan/vk_immediate.hh
   vulkan/vk_index_buffer.hh
+  vulkan/vk_memory.hh
   vulkan/vk_memory_layout.hh
   vulkan/vk_pipeline_pool.hh
   vulkan/vk_pixel_buffer.hh
@@ -372,7 +377,7 @@ set(METAL_SRC
   metal/mtl_shader_interface.hh
   metal/mtl_shader_interface_type.hh
   metal/mtl_shader_log.hh
-  metal/mtl_shader_shared.h
+  metal/mtl_shader_shared.hh
   metal/mtl_state.hh
   metal/mtl_storage_buffer.hh
   metal/mtl_texture.hh
@@ -447,20 +452,6 @@ if(WITH_VULKAN_BACKEND)
 
   add_definitions(-DWITH_VULKAN_BACKEND)
 endif()
-
-set(MSL_SRC
-  shaders/metal/mtl_shader_defines.msl
-  shaders/metal/mtl_shader_common.msl
-
-  metal/kernels/compute_texture_update.msl
-  metal/kernels/compute_texture_read.msl
-  metal/kernels/depth_2d_update_float_frag.glsl
-  metal/kernels/depth_2d_update_int24_frag.glsl
-  metal/kernels/depth_2d_update_int32_frag.glsl
-  metal/kernels/depth_2d_update_vert.glsl
-  metal/kernels/gpu_shader_fullscreen_blit_vert.glsl
-  metal/kernels/gpu_shader_fullscreen_blit_frag.glsl
-)
 
 set(GLSL_SRC
   GPU_shader_shared.hh
@@ -537,6 +528,7 @@ set(GLSL_SRC
   shaders/common/gpu_shader_common_math_utils.glsl
   shaders/common/gpu_shader_common_mix_rgb.glsl
   shaders/common/gpu_shader_debug_gradients_lib.glsl
+  shaders/common/gpu_shader_fullscreen_vert.glsl
   shaders/common/gpu_shader_index_load_lib.glsl
   shaders/common/gpu_shader_math_base_lib.glsl
   shaders/common/gpu_shader_math_fast_lib.glsl
@@ -673,8 +665,6 @@ set(GLSL_SRC_TEST
 )
 
 set(MTL_BACKEND_GLSL_SRC
-  metal/kernels/compute_texture_update.msl
-  metal/kernels/compute_texture_read.msl
   metal/kernels/depth_2d_update_float_frag.glsl
   metal/kernels/depth_2d_update_int24_frag.glsl
   metal/kernels/depth_2d_update_int32_frag.glsl
@@ -684,9 +674,13 @@ set(MTL_BACKEND_GLSL_SRC
 )
 
 set(MSL_SRC
+  metal/mtl_shader_shared.hh
+
+  metal/kernels/compute_texture_update.msl
+  metal/kernels/compute_texture_read.msl
+
   shaders/metal/mtl_shader_defines.msl
   shaders/metal/mtl_shader_common.msl
-  metal/mtl_shader_shared.h
 )
 
 if(WITH_GTESTS)
@@ -767,6 +761,10 @@ endif()
 
 if(WITH_OPENCOLORIO)
   target_link_libraries(bf_gpu PUBLIC bf_ocio_shaders)
+endif()
+
+if(WITH_OPENSUBDIV)
+  target_link_libraries(bf_gpu PUBLIC bf_osd_shaders)
 endif()
 
 if(WITH_RENDERDOC)

@@ -56,10 +56,6 @@ static void extract_tan_init_common(const MeshRenderData &mr,
     use_orco_tan = false;
   }
 
-  const Span<int3> corner_tris = mr.mesh->corner_tris();
-  const Span<int> corner_tri_faces = mr.mesh->corner_tri_faces();
-  const Span<float3> vert_normals = mr.mesh->vert_normals();
-
   for (int i = 0; i < MAX_MTFACE; i++) {
     if (tan_layers & (1 << i)) {
       char attr_name[32], attr_safe_name[GPU_MAX_SAFE_ATTR_NAME];
@@ -123,16 +119,15 @@ static void extract_tan_init_common(const MeshRenderData &mr,
     else {
       BKE_mesh_calc_loop_tangent_ex(mr.vert_positions,
                                     mr.faces,
-                                    mr.corner_verts.data(),
-                                    corner_tris.data(),
-                                    corner_tri_faces.data(),
-                                    mr.corner_tris_num,
+                                    mr.corner_verts,
+                                    mr.mesh->corner_tris(),
+                                    mr.mesh->corner_tri_faces(),
                                     mr.sharp_faces,
                                     cd_ldata,
                                     calc_active_tangent,
                                     r_tangent_names,
                                     tan_len,
-                                    vert_normals,
+                                    mr.mesh->vert_normals(),
                                     mr.face_normals,
                                     mr.corner_normals,
                                     orco,
@@ -164,10 +159,9 @@ static void extract_tan_init_common(const MeshRenderData &mr,
   *r_tan_len = tan_len;
 }
 
-void extract_tangents(const MeshRenderData &mr,
-                      const MeshBatchCache &cache,
-                      const bool use_hq,
-                      gpu::VertBuf &vbo)
+gpu::VertBufPtr extract_tangents(const MeshRenderData &mr,
+                                 const MeshBatchCache &cache,
+                                 const bool use_hq)
 {
   GPUVertCompType comp_type = use_hq ? GPU_COMP_I16 : GPU_COMP_I10;
   GPUVertFetchMode fetch_mode = GPU_FETCH_INT_TO_FLOAT_UNIT;
@@ -189,11 +183,11 @@ void extract_tangents(const MeshRenderData &mr,
                           tangent_names,
                           &use_orco_tan);
 
-  GPU_vertbuf_init_with_format(vbo, format);
-  GPU_vertbuf_data_alloc(vbo, v_len);
+  gpu::VertBufPtr vbo = gpu::VertBufPtr(GPU_vertbuf_create_with_format(format));
+  GPU_vertbuf_data_alloc(*vbo, v_len);
 
   if (use_hq) {
-    short4 *tan_data = vbo.data<short4>().data();
+    short4 *tan_data = vbo->data<short4>().data();
     for (int i = 0; i < tan_len; i++) {
       const char *name = tangent_names[i];
       const float(*layer_data)[4] = (const float(*)[4])CustomData_get_layer_named(
@@ -215,7 +209,7 @@ void extract_tangents(const MeshRenderData &mr,
     }
   }
   else {
-    gpu::PackedNormal *tan_data = vbo.data<gpu::PackedNormal>().data();
+    gpu::PackedNormal *tan_data = vbo->data<gpu::PackedNormal>().data();
     for (int i = 0; i < tan_len; i++) {
       const char *name = tangent_names[i];
       const float(*layer_data)[4] = (const float(*)[4])CustomData_get_layer_named(
@@ -238,6 +232,7 @@ void extract_tangents(const MeshRenderData &mr,
   }
 
   CustomData_free(&corner_data);
+  return vbo;
 }
 
 static const GPUVertFormat &get_coarse_tan_format()
@@ -247,10 +242,9 @@ static const GPUVertFormat &get_coarse_tan_format()
   return format;
 }
 
-void extract_tangents_subdiv(const MeshRenderData &mr,
-                             const DRWSubdivCache &subdiv_cache,
-                             const MeshBatchCache &cache,
-                             gpu::VertBuf &vbo)
+gpu::VertBufPtr extract_tangents_subdiv(const MeshRenderData &mr,
+                                        const DRWSubdivCache &subdiv_cache,
+                                        const MeshBatchCache &cache)
 {
   GPUVertCompType comp_type = GPU_COMP_F32;
   GPUVertFetchMode fetch_mode = GPU_FETCH_FLOAT;
@@ -271,7 +265,8 @@ void extract_tangents_subdiv(const MeshRenderData &mr,
                           tangent_names,
                           &use_orco_tan);
 
-  GPU_vertbuf_init_build_on_device(vbo, format, subdiv_cache.num_subdiv_loops);
+  gpu::VertBufPtr vbo = gpu::VertBufPtr(
+      GPU_vertbuf_create_on_device(format, subdiv_cache.num_subdiv_loops));
 
   gpu::VertBuf *coarse_vbo = GPU_vertbuf_calloc();
   /* Dynamic as we upload and interpolate layers one at a time. */
@@ -296,7 +291,7 @@ void extract_tangents_subdiv(const MeshRenderData &mr,
     GPU_vertbuf_tag_dirty(coarse_vbo);
     /* Include stride in offset. */
     const int dst_offset = int(subdiv_cache.num_subdiv_loops) * 4 * pack_layer_index++;
-    draw_subdiv_interp_custom_data(subdiv_cache, *coarse_vbo, vbo, GPU_COMP_F32, 4, dst_offset);
+    draw_subdiv_interp_custom_data(subdiv_cache, *coarse_vbo, *vbo, GPU_COMP_F32, 4, dst_offset);
   }
   if (use_orco_tan) {
     float4 *tan_data = coarse_vbo->data<float4>().data();
@@ -312,11 +307,12 @@ void extract_tangents_subdiv(const MeshRenderData &mr,
     GPU_vertbuf_tag_dirty(coarse_vbo);
     /* Include stride in offset. */
     const int dst_offset = int(subdiv_cache.num_subdiv_loops) * 4 * pack_layer_index++;
-    draw_subdiv_interp_custom_data(subdiv_cache, *coarse_vbo, vbo, GPU_COMP_F32, 4, dst_offset);
+    draw_subdiv_interp_custom_data(subdiv_cache, *coarse_vbo, *vbo, GPU_COMP_F32, 4, dst_offset);
   }
 
   CustomData_free(&corner_data);
   GPU_vertbuf_discard(coarse_vbo);
+  return vbo;
 }
 
 }  // namespace blender::draw

@@ -61,8 +61,7 @@ static bool WIDGETGROUP_xform_shear_poll(const bContext *C, wmGizmoGroupType *gz
 
 static void WIDGETGROUP_xform_shear_setup(const bContext * /*C*/, wmGizmoGroup *gzgroup)
 {
-  XFormShearWidgetGroup *xgzgroup = static_cast<XFormShearWidgetGroup *>(
-      MEM_mallocN(sizeof(XFormShearWidgetGroup), __func__));
+  XFormShearWidgetGroup *xgzgroup = MEM_mallocN<XFormShearWidgetGroup>(__func__);
   const wmGizmoType *gzt_arrow = WM_gizmotype_find("GIZMO_GT_arrow_3d", true);
   wmOperatorType *ot_shear = WM_operatortype_find("TRANSFORM_OT_shear", true);
 

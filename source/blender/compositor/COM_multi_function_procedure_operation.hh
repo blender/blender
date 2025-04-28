@@ -18,6 +18,7 @@
 #include "NOD_multi_function.hh"
 
 #include "COM_context.hh"
+#include "COM_input_descriptor.hh"
 #include "COM_pixel_operation.hh"
 #include "COM_scheduler.hh"
 
@@ -44,6 +45,8 @@ class MultiFunctionProcedureOperation : public PixelOperation {
   /* A map that associates the output sockets of each node to the variables that were created for
    * them. */
   Map<DOutputSocket, mf::Variable *> output_to_variable_map_;
+  /* A map that associates implicit inputs to the variables that were created for them. */
+  Map<ImplicitInput, mf::Variable *> implicit_input_to_variable_map_;
   /* A vector that stores the intermediate variables that were implicitly created for the procedure
    * but are not associated with a node output. Those variables are for such multi-functions like
    * constant inputs and implicit conversion. */
@@ -81,6 +84,12 @@ class MultiFunctionProcedureOperation : public PixelOperation {
   /* Returns a constant variable that was created by calling a constant function carrying the value
    * of the given input socket. */
   mf::Variable *get_constant_input_variable(DInputSocket input);
+
+  /* Given an unlinked input with an implicit input. Declare an input to the operation/procedure
+   * for that implicit input if not done already and return a variable that represent that implicit
+   * input. The implicit input and type are taken from the given origin input, which will be equal
+   * to the input in most cases, but can also be an unlinked input of a group node */
+  mf::Variable *get_implicit_input_variable(const DInputSocket input, const DInputSocket origin);
 
   /* Given an input in a node that is part of the compile unit that is connected to an output that
    * is in a non that is not part of the compile unit. Declare an input to the operation/procedure

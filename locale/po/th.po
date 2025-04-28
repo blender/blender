@@ -1,17 +1,18 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Beta (b'1a72a0f22cde')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'1f4cae0c4623')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-03 09:33+0000\n"
-"PO-Revision-Date: 2019-12-08 17:40+0700\n"
-"Last-Translator: gongpha <gongpha@gmail.com>\n"
-"Language-Team: Thai Translation Team <gongpha@gmail.com>\n"
+"POT-Creation-Date: 2025-04-28 09:32+0000\n"
+"PO-Revision-Date: 2025-04-14 08:42+0000\n"
+"Last-Translator: Anonymous <noreply@weblate.org>\n"
+"Language-Team: Thai <https://translate.blender.org/projects/blender-ui/ui/th/>\n"
 "Language: th\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 2.2.4"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Weblate 5.10.1"
 
 
 msgid "Name"
@@ -1186,16 +1187,16 @@ msgid "Tools"
 msgstr "เครื่องมือ"
 
 
-msgid "Translation"
-msgstr "แปลภาษา"
-
-
 msgid "Reverse"
 msgstr "ย้อนกลับ"
 
 
 msgid "Repeat"
 msgstr "ทำซ้ำ"
+
+
+msgid "Translation"
+msgstr "แปลภาษา"
 
 
 msgid "Red Green Blue"
@@ -1864,16 +1865,28 @@ msgid "Mask"
 msgstr "หน้ากาก"
 
 
+msgid "Names"
+msgstr "ชื่อ"
+
+
+msgid "Apply"
+msgstr "นำไปใช้"
+
+
+msgid "Face Data"
+msgstr "ข้อมูลด้าน"
+
+
+msgid "Merge"
+msgstr "ผสาน"
+
+
 msgid "Text"
 msgstr "ช้อความ"
 
 
 msgid "Metaball"
 msgstr "เมตาบอล"
-
-
-msgid "Names"
-msgstr "ชื่อ"
 
 
 msgid "Pivot Point"
@@ -1928,24 +1941,12 @@ msgid "Add Image"
 msgstr "เพิ่มภาพ"
 
 
-msgid "Apply"
-msgstr "นำไปใช้"
-
-
 msgid "Track"
 msgstr "แทร็ค"
 
 
 msgid "Hooks"
 msgstr "ตะขอ"
-
-
-msgid "Face Data"
-msgstr "ข้อมูลด้าน"
-
-
-msgid "Merge"
-msgstr "ผสาน"
 
 
 msgid "Zoom"
@@ -2270,10 +2271,6 @@ msgstr "เส้นโค้ง RGB"
 
 msgid "High quality"
 msgstr "คุณภาพสูง"
-
-
-msgid "Rotate 45"
-msgstr "หมุน 45"
 
 
 msgid "Red Channel"
@@ -3602,6 +3599,14 @@ msgstr "หมุนรอบ ๆ เคอร์เซอร์สามมิ�
 
 msgid "Pivot around active object"
 msgstr "หมุนรอบ ๆ วัตถุที่กำลังถูกใช้งาน"
+
+
+msgid "Shader Editor"
+msgstr "ตัวแก้ไขเชดเดอร์"
+
+
+msgid "Texture Node Editor"
+msgstr "ตัวแก้ไขโนดพื้นผิว"
 
 
 msgid "Data API"
@@ -5244,16 +5249,8 @@ msgid "Old"
 msgstr "เก่า"
 
 
-msgid "Shader Editor"
-msgstr "ตัวแก้ไขเชดเดอร์"
-
-
 msgid "View Distance"
 msgstr "ระยะมุมมอง"
-
-
-msgid "Texture Node Editor"
-msgstr "ตัวแก้ไขโนดพื้นผิว"
 
 
 msgid "%s: incorrect dimensions for partial copy '%s'"
@@ -5290,10 +5287,6 @@ msgstr "ไม่พบ %s '%s'"
 
 msgid "Import-Export"
 msgstr "นำเข้า-ส่งออก"
-
-
-msgid "English (English)"
-msgstr "ภาษาอังกฤษ (English)"
 
 
 msgid "Japanese (日本語)"

@@ -132,10 +132,10 @@ struct TextLayout {
   /* The text that fit into the text box, with newline character sequences replaced. */
   std::string text;
 
-  /* The text that didn't fit into the text box in 'Truncate' mode. May be empty. */
+  /* The text that didn't fit into the text box in "Truncate" mode. May be empty. */
   std::string truncated_text;
 
-  /* Font size could be modified if in 'Scale to fit'-mode. */
+  /* Font size could be modified if in "Scale to fit"-mode. */
   float final_font_size;
 };
 
@@ -185,7 +185,7 @@ static std::optional<TextLayout> get_text_layout(GeoNodeExecParams &params)
   cu.linedist = line_spacing;
   cu.vfont = vfont;
   cu.overflow = overflow;
-  cu.tb = static_cast<TextBox *>(MEM_calloc_arrayN(MAXTEXTBOX, sizeof(TextBox), __func__));
+  cu.tb = MEM_calloc_arrayN<TextBox>(MAXTEXTBOX, __func__);
   cu.tb->w = textbox_w;
   cu.tb->h = textbox_h;
   cu.totbox = 1;
@@ -195,9 +195,9 @@ static std::optional<TextLayout> get_text_layout(GeoNodeExecParams &params)
   cu.len = len_bytes;
   cu.pos = len_chars;
   /* The reason for the additional character here is unknown, but reflects other code elsewhere. */
-  cu.str = static_cast<char *>(MEM_mallocN(len_bytes + sizeof(char32_t), __func__));
+  cu.str = MEM_malloc_arrayN<char>(len_bytes + sizeof(char32_t), __func__);
   memcpy(cu.str, layout.text.c_str(), len_bytes + 1);
-  cu.strinfo = static_cast<CharInfo *>(MEM_callocN((len_chars + 1) * sizeof(CharInfo), __func__));
+  cu.strinfo = MEM_calloc_arrayN<CharInfo>(len_chars + 1, __func__);
 
   CharTrans *chartransdata = nullptr;
   int text_len;
@@ -208,7 +208,7 @@ static std::optional<TextLayout> get_text_layout(GeoNodeExecParams &params)
       nullptr, &cu, FO_DUPLI, nullptr, &r_text, &text_len, &text_free, &chartransdata);
 
   if (text_free) {
-    MEM_freeN(const_cast<char32_t *>(r_text));
+    MEM_freeN(r_text);
   }
 
   Span<CharInfo> info{cu.strinfo, text_len};
@@ -294,6 +294,14 @@ static Map<int, int> create_curve_instances(GeoNodeExecParams &params,
     }
 
     GeometrySet geometry_set = GeometrySet::from_curves(curves_id);
+
+    {
+      const char32_t char_code[2] = {layout.char_codes[i], 0};
+      char inserted_utf8[8] = {0};
+      const size_t len = BLI_str_utf32_as_utf8(inserted_utf8, char_code, sizeof(inserted_utf8));
+      geometry_set.name = std::string(inserted_utf8, len);
+    }
+
     handles.add_new(layout.char_codes[i], instances.add_reference(std::move(geometry_set)));
   }
   return handles;

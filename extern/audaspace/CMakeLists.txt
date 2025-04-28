@@ -23,7 +23,7 @@ endif()
 
 project(audaspace)
 
-set(AUDASPACE_VERSION 1.5)
+set(AUDASPACE_VERSION 1.6)
 set(AUDASPACE_LONG_VERSION ${AUDASPACE_VERSION}.0)
 
 if(DEFINED AUDASPACE_CMAKE_CFG)
@@ -37,10 +37,9 @@ endif()
 # sources
 
 set(SRC
-	src/devices/DefaultSynchronizer.cpp
 	src/devices/DeviceManager.cpp
+	src/devices/MixingThreadDevice.cpp
 	src/devices/NULLDevice.cpp
-	src/devices/OpenCloseDevice.cpp
 	src/devices/ReadDevice.cpp
 	src/devices/SoftwareDevice.cpp
 	src/devices/ThreadedDevice.cpp
@@ -142,16 +141,14 @@ set(PRIVATE_HDR
 )
 
 set(PUBLIC_HDR
-	include/devices/DefaultSynchronizer.h
 	include/devices/DeviceManager.h
 	include/devices/I3DDevice.h
 	include/devices/I3DHandle.h
 	include/devices/IDeviceFactory.h
 	include/devices/IDevice.h
 	include/devices/IHandle.h
-	include/devices/ISynchronizer.h
+	include/devices/MixingThreadDevice.h
 	include/devices/NULLDevice.h
-	include/devices/OpenCloseDevice.h
 	include/devices/ReadDevice.h
 	include/devices/SoftwareDevice.h
 	include/devices/ThreadedDevice.h
@@ -435,11 +432,9 @@ if(WITH_COREAUDIO)
 
 		set(COREAUDIO_SRC
 			plugins/coreaudio/CoreAudioDevice.cpp
-			plugins/coreaudio/CoreAudioSynchronizer.cpp
 		)
 		set(COREAUDIO_HDR
 			plugins/coreaudio/CoreAudioDevice.h
-			plugins/coreaudio/CoreAudioSynchronizer.h
 		)
 
 		if(NOT PLUGIN_COREAUDIO)
@@ -567,12 +562,10 @@ if(WITH_JACK)
 	if(JACK_FOUND)
 		set(JACK_SRC
 			plugins/jack/JackDevice.cpp
-			plugins/jack/JackSynchronizer.cpp
 			plugins/jack/JackLibrary.cpp
 		)
 		set(JACK_HDR
 			plugins/jack/JackDevice.h
-			plugins/jack/JackSynchronizer.h
 			plugins/jack/JackLibrary.h
 			plugins/jack/JackSymbols.h
 		)

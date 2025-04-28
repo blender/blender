@@ -356,7 +356,17 @@ bool BLI_file_touch(const char *filepath) ATTR_NONNULL(1);
  */
 bool BLI_file_ensure_parent_dir_exists(const char *filepath) ATTR_NONNULL(1);
 
-bool BLI_file_alias_target(const char *filepath, char *r_targetpath) ATTR_WARN_UNUSED_RESULT;
+/**
+ * Return alias/shortcut file target.
+ * \param filepath: The source of the alias.
+ * \param r_targetpath: Buffer for the target path an alias points to.
+ *
+ * \return true when an alias was found and set.
+ *
+ * \note This is only used on APPLE/WIN32.
+ */
+bool BLI_file_alias_target(const char *filepath,
+                           char r_targetpath[/*FILE_MAXDIR*/ 768]) ATTR_WARN_UNUSED_RESULT;
 
 bool BLI_file_magic_is_gzip(const char header[4]);
 

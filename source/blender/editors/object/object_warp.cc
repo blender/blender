@@ -153,7 +153,7 @@ static void object_warp_transverts(TransVertStore *tvs,
   }
 }
 
-static int object_warp_verts_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus object_warp_verts_exec(bContext *C, wmOperator *op)
 {
   const float warp_angle = RNA_float_get(op->ptr, "warp_angle");
   const float offset_angle = RNA_float_get(op->ptr, "offset_angle");

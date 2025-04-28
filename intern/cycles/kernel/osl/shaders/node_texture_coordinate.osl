@@ -10,6 +10,7 @@ shader node_texture_coordinate(
     int from_dupli = 0,
     int use_transform = 0,
     string bump_offset = "center",
+    float bump_filter_width = BUMP_FILTER_WIDTH,
     matrix object_itfm = matrix(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
 
     output point Generated = point(0.0, 0.0, 0.0),
@@ -67,35 +68,33 @@ shader node_texture_coordinate(
       Object = transform("object", P);
     }
     Camera = transform("camera", P);
-    Window = transform("NDC", P);
+    getattribute("NDC", Window);
     Normal = normalize(transform("world", "object", N));
     Reflection = -reflect(I, N);
   }
 
   if (bump_offset == "dx") {
     if (!from_dupli) {
-      Generated += Dx(Generated) * BUMP_DX;
-      UV += Dx(UV) * BUMP_DX;
+      Generated += Dx(Generated) * bump_filter_width;
+      UV += Dx(UV) * bump_filter_width;
     }
-    Object += Dx(Object) * BUMP_DX;
-    Camera += Dx(Camera) * BUMP_DX;
-    Window += Dx(Window) * BUMP_DX;
+    Object += Dx(Object) * bump_filter_width;
+    Camera += Dx(Camera) * bump_filter_width;
+    Window += Dx(Window) * bump_filter_width;
     if (getattribute("geom:bump_map_normal", Normal)) {
-      /* A scaling of `BUMP_DX` is already applied when computing the derivatives, no additional
-       * scaling is needed here. */
-      Normal = normalize(Normal + Dx(Normal));
+      Normal = normalize(Normal + Dx(Normal) * bump_filter_width);
     }
   }
   else if (bump_offset == "dy") {
     if (!from_dupli) {
-      Generated += Dy(Generated) * BUMP_DY;
-      UV += Dy(UV) * BUMP_DY;
+      Generated += Dy(Generated) * bump_filter_width;
+      UV += Dy(UV) * bump_filter_width;
     }
-    Object += Dy(Object) * BUMP_DY;
-    Camera += Dy(Camera) * BUMP_DY;
-    Window += Dy(Window) * BUMP_DY;
+    Object += Dy(Object) * bump_filter_width;
+    Camera += Dy(Camera) * bump_filter_width;
+    Window += Dy(Window) * bump_filter_width;
     if (getattribute("geom:bump_map_normal", Normal)) {
-      Normal = normalize(Normal + Dy(Normal));
+      Normal = normalize(Normal + Dy(Normal) * bump_filter_width);
     }
   }
 

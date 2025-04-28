@@ -154,7 +154,7 @@ bool BLI_ghashutil_strcmp(const void *a, const void *b)
 
 GHashPair *BLI_ghashutil_pairalloc(const void *first, const void *second)
 {
-  GHashPair *pair = static_cast<GHashPair *>(MEM_mallocN(sizeof(GHashPair), "GHashPair"));
+  GHashPair *pair = MEM_mallocN<GHashPair>("GHashPair");
   pair->first = first;
   pair->second = second;
   return pair;
@@ -177,7 +177,7 @@ bool BLI_ghashutil_paircmp(const void *a, const void *b)
 
 void BLI_ghashutil_pairfree(void *ptr)
 {
-  MEM_freeN(ptr);
+  MEM_freeN(static_cast<const GHashPair *>(ptr));
 }
 
 /** \} */

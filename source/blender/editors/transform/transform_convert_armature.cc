@@ -318,7 +318,7 @@ struct PoseInitData_Mirror {
   bPoseChannel *pchan;
   struct {
     float loc[3];
-    float size[3];
+    float scale[3];
     union {
       float eul[3];
       float quat[4];
@@ -343,7 +343,7 @@ static void pose_mirror_info_init(PoseInitData_Mirror *pid,
 {
   pid->pchan = pchan;
   copy_v3_v3(pid->orig.loc, pchan->loc);
-  copy_v3_v3(pid->orig.size, pchan->size);
+  copy_v3_v3(pid->orig.scale, pchan->scale);
   pid->orig.curve_in_x = pchan->curve_in_x;
   pid->orig.curve_out_x = pchan->curve_out_x;
   pid->orig.roll1 = pchan->roll1;
@@ -414,8 +414,8 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
   td->loc = pchan->loc;
   copy_v3_v3(td->iloc, pchan->loc);
 
-  td->ext->size = pchan->size;
-  copy_v3_v3(td->ext->isize, pchan->size);
+  td->ext->scale = pchan->scale;
+  copy_v3_v3(td->ext->iscale, pchan->scale);
 
   if (pchan->rotmode > 0) {
     td->ext->rot = pchan->eul;
@@ -640,8 +640,8 @@ static void createTransPose(bContext * /*C*/, TransInfo *t)
         }
       }
 
-      PoseInitData_Mirror *pid = static_cast<PoseInitData_Mirror *>(
-          MEM_mallocN((total_mirrored + 1) * sizeof(PoseInitData_Mirror), "PoseInitData_Mirror"));
+      PoseInitData_Mirror *pid = MEM_malloc_arrayN<PoseInitData_Mirror>((total_mirrored + 1),
+                                                                        "PoseInitData_Mirror");
 
       /* Trick to terminate iteration. */
       pid[total_mirrored].pchan = nullptr;
@@ -675,10 +675,8 @@ static void createTransPose(bContext * /*C*/, TransInfo *t)
     tc->poseobj = ob;
 
     /* Initialize trans data. */
-    td = tc->data = static_cast<TransData *>(
-        MEM_callocN(tc->data_len * sizeof(TransData), "TransPoseBone"));
-    tdx = tc->data_ext = static_cast<TransDataExtension *>(
-        MEM_callocN(tc->data_len * sizeof(TransDataExtension), "TransPoseBoneExt"));
+    td = tc->data = MEM_calloc_arrayN<TransData>(tc->data_len, "TransPoseBone");
+    tdx = tc->data_ext = MEM_calloc_arrayN<TransDataExtension>(tc->data_len, "TransPoseBoneExt");
     for (i = 0; i < tc->data_len; i++, td++, tdx++) {
       td->ext = tdx;
       td->val = nullptr;
@@ -782,8 +780,7 @@ static void createTransArmatureVerts(bContext * /*C*/, TransInfo *t)
     }
 
     if (mirror) {
-      BoneInitData *bid = static_cast<BoneInitData *>(
-          MEM_mallocN((total_mirrored + 1) * sizeof(BoneInitData), "BoneInitData"));
+      BoneInitData *bid = MEM_malloc_arrayN<BoneInitData>((total_mirrored + 1), "BoneInitData");
 
       /* Trick to terminate iteration. */
       bid[total_mirrored].bone = nullptr;
@@ -812,8 +809,7 @@ static void createTransArmatureVerts(bContext * /*C*/, TransInfo *t)
     copy_m3_m4(mtx, tc->obedit->object_to_world().ptr());
     pseudoinverse_m3_m3(smtx, mtx, PSEUDOINVERSE_EPSILON);
 
-    td = tc->data = static_cast<TransData *>(
-        MEM_callocN(tc->data_len * sizeof(TransData), "TransEditBone"));
+    td = tc->data = MEM_calloc_arrayN<TransData>(tc->data_len, "TransEditBone");
     int i = 0;
 
     LISTBASE_FOREACH (EditBone *, ebo, edbo) {
@@ -1228,7 +1224,7 @@ static void pose_mirror_info_restore(const PoseInitData_Mirror *pid)
 {
   bPoseChannel *pchan = pid->pchan;
   copy_v3_v3(pchan->loc, pid->orig.loc);
-  copy_v3_v3(pchan->size, pid->orig.size);
+  copy_v3_v3(pchan->scale, pid->orig.scale);
   pchan->curve_in_x = pid->orig.curve_in_x;
   pchan->curve_out_x = pid->orig.curve_out_x;
   pchan->roll1 = pid->orig.roll1;
@@ -1581,7 +1577,7 @@ static short apply_targetless_ik(Object *ob)
             BKE_pchan_rot_to_mat3(parchan, qrmat);
             invert_m3_m3(imat3, qrmat);
             mul_m3_m3m3(smat, rmat3, imat3);
-            mat3_to_size(parchan->size, smat);
+            mat3_to_size(parchan->scale, smat);
           }
 
           /* Causes problems with some constraints (e.g. child-of), so disable this

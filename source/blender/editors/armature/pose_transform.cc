@@ -175,7 +175,7 @@ static void applyarmature_transfer_properties(EditBone *curbone,
   zero_v3(pchan->eul);
   unit_qt(pchan->quat);
   unit_axis_angle(pchan->rotAxis, &pchan->rotAngle);
-  pchan->size[0] = pchan->size[1] = pchan->size[2] = 1.0f;
+  pchan->scale[0] = pchan->scale[1] = pchan->scale[2] = 1.0f;
 }
 
 /* Adjust the current edit position of the bone using the pose space matrix. */
@@ -353,7 +353,7 @@ static void applyarmature_reset_bone_constraint(const bConstraint *constraint)
    * bConstraintTypeInfo callback function. */
   switch (constraint->type) {
     case CONSTRAINT_TYPE_STRETCHTO: {
-      bStretchToConstraint *stretch_to = (bStretchToConstraint *)constraint->data;
+      bStretchToConstraint *stretch_to = static_cast<bStretchToConstraint *>(constraint->data);
       stretch_to->orglength = 0.0f; /* Force recalculation on next evaluation. */
       break;
     }
@@ -386,7 +386,7 @@ static void applyarmature_reset_constraints(bPose *pose, const bool use_selected
 }
 
 /* Set the current pose as the rest-pose. */
-static int apply_armature_pose2bones_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus apply_armature_pose2bones_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
@@ -511,7 +511,7 @@ void POSE_OT_armature_apply(wmOperatorType *ot)
  * Set the current pose as the rest-pose.
  * \{ */
 
-static int pose_visual_transform_apply_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus pose_visual_transform_apply_exec(bContext *C, wmOperator * /*op*/)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -530,8 +530,7 @@ static int pose_visual_transform_apply_exec(bContext *C, wmOperator * /*op*/)
     struct XFormArray {
       float matrix[4][4];
       bool is_set;
-    } *pchan_xform_array = static_cast<XFormArray *>(
-        MEM_mallocN(sizeof(*pchan_xform_array) * chanbase_len, __func__));
+    } *pchan_xform_array = MEM_malloc_arrayN<XFormArray>(chanbase_len, __func__);
     bool changed = false;
 
     int i;
@@ -659,7 +658,7 @@ static bPoseChannel *pose_bone_do_paste(Object *ob,
    * - only copies transform info for the pose
    */
   copy_v3_v3(pchan->loc, chan->loc);
-  copy_v3_v3(pchan->size, chan->size);
+  copy_v3_v3(pchan->scale, chan->scale);
   pchan->flag = chan->flag;
 
   /* check if rotation modes are compatible (i.e. do they need any conversions) */
@@ -775,7 +774,7 @@ static bPoseChannel *pose_bone_do_paste(Object *ob,
 /** \name Copy Pose Operator
  * \{ */
 
-static int pose_copy_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus pose_copy_exec(bContext *C, wmOperator *op)
 {
   using namespace blender::bke::blendfile;
 
@@ -837,7 +836,7 @@ void POSE_OT_copy(wmOperatorType *ot)
 /** \name Paste Pose Operator
  * \{ */
 
-static int pose_paste_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus pose_paste_exec(bContext *C, wmOperator *op)
 {
   Object *ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
   Scene *scene = CTX_data_scene(C);
@@ -959,13 +958,13 @@ void POSE_OT_paste(wmOperatorType *ot)
 static void pchan_clear_scale(bPoseChannel *pchan)
 {
   if ((pchan->protectflag & OB_LOCK_SCALEX) == 0) {
-    pchan->size[0] = 1.0f;
+    pchan->scale[0] = 1.0f;
   }
   if ((pchan->protectflag & OB_LOCK_SCALEY) == 0) {
-    pchan->size[1] = 1.0f;
+    pchan->scale[1] = 1.0f;
   }
   if ((pchan->protectflag & OB_LOCK_SCALEZ) == 0) {
-    pchan->size[2] = 1.0f;
+    pchan->scale[2] = 1.0f;
   }
 
   pchan->ease1 = 0.0f;
@@ -1165,10 +1164,11 @@ static void pchan_clear_transforms(const bPose *pose, bPoseChannel *pchan)
 /* --------------- */
 
 /* generic exec for clear-pose operators */
-static int pose_clear_transform_generic_exec(bContext *C,
-                                             wmOperator *op,
-                                             void (*clear_func)(const bPose *, bPoseChannel *),
-                                             const char default_ksName[])
+static wmOperatorStatus pose_clear_transform_generic_exec(bContext *C,
+                                                          wmOperator *op,
+                                                          void (*clear_func)(const bPose *,
+                                                                             bPoseChannel *),
+                                                          const char default_ksName[])
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Scene *scene = CTX_data_scene(C);
@@ -1245,7 +1245,7 @@ static int pose_clear_transform_generic_exec(bContext *C,
 /** \name Clear Pose Scale Operator
  * \{ */
 
-static int pose_clear_scale_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus pose_clear_scale_exec(bContext *C, wmOperator *op)
 {
   return pose_clear_transform_generic_exec(
       C, op, pchan_clear_scale_with_mirrored, ANIM_KS_SCALING_ID);
@@ -1272,7 +1272,7 @@ void POSE_OT_scale_clear(wmOperatorType *ot)
 /** \name Clear Pose Rotation Operator
  * \{ */
 
-static int pose_clear_rot_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus pose_clear_rot_exec(bContext *C, wmOperator *op)
 {
   return pose_clear_transform_generic_exec(
       C, op, pchan_clear_rot_with_mirrored, ANIM_KS_ROTATION_ID);
@@ -1299,7 +1299,7 @@ void POSE_OT_rot_clear(wmOperatorType *ot)
 /** \name Clear Pose Location Operator
  * \{ */
 
-static int pose_clear_loc_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus pose_clear_loc_exec(bContext *C, wmOperator *op)
 {
   return pose_clear_transform_generic_exec(
       C, op, pchan_clear_loc_with_mirrored, ANIM_KS_LOCATION_ID);
@@ -1326,7 +1326,7 @@ void POSE_OT_loc_clear(wmOperatorType *ot)
 /** \name Clear Pose Transforms Operator
  * \{ */
 
-static int pose_clear_transforms_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus pose_clear_transforms_exec(bContext *C, wmOperator *op)
 {
   return pose_clear_transform_generic_exec(
       C, op, pchan_clear_transforms, ANIM_KS_LOC_ROT_SCALE_ID);
@@ -1354,7 +1354,7 @@ void POSE_OT_transforms_clear(wmOperatorType *ot)
 /** \name Clear User Transforms Operator
  * \{ */
 
-static int pose_clear_user_transforms_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus pose_clear_user_transforms_exec(bContext *C, wmOperator *op)
 {
   ViewLayer *view_layer = CTX_data_view_layer(C);
   View3D *v3d = CTX_wm_view3d(C);

@@ -4,6 +4,12 @@
 
 #pragma once
 
-struct DrawEngineType;
+#include "DRW_render.hh"
 
-extern DrawEngineType draw_engine_compositor_type;
+namespace blender::draw::compositor_engine {
+
+struct Engine : public DrawEngine::Pointer {
+  DrawEngine *create_instance() final;
+};
+
+}  // namespace blender::draw::compositor_engine

@@ -19,13 +19,11 @@
 /* Extended file attribute used by OneDrive to mark placeholder files. */
 static const char *ONEDRIVE_RECALLONOPEN_ATTRIBUTE = "com.microsoft.OneDrive.RecallOnOpen";
 
-/**
- * \param r_targetpath: Buffer for the target path an alias points to.
- * \return Whether the file at the input path is an alias.
- */
-/* False alarm by clang-tidy: #getFileSystemRepresentation changes the return value argument. */
-/* NOLINTNEXTLINE: readability-non-const-parameter. */
-bool BLI_file_alias_target(const char *filepath, char r_targetpath[FILE_MAXDIR])
+bool BLI_file_alias_target(const char *filepath,
+                           /* False alarm by clang-tidy: #getFileSystemRepresentation
+                            * changes the return value argument. */
+                           /* NOLINTNEXTLINE: readability-non-const-parameter. */
+                           char r_targetpath[FILE_MAXDIR])
 {
   /* clang-format off */
   @autoreleasepool {

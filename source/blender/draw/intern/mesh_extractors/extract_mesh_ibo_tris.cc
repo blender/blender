@@ -18,23 +18,20 @@
 
 namespace blender::draw {
 
-static void extract_tris_mesh(const MeshRenderData &mr,
-                              const SortedFaceData &face_sorted,
-                              gpu::IndexBuf &ibo)
+static gpu::IndexBufPtr extract_tris_mesh(const MeshRenderData &mr,
+                                          const SortedFaceData &face_sorted)
 {
   const Span<int3> corner_tris = mr.mesh->corner_tris();
   if (!face_sorted.face_tri_offsets) {
     /* There are no hidden faces and no reordering is necessary to group triangles with the same
      * material. The corner indices from #Mesh::corner_tris() can be copied directly to the GPU. */
     BLI_assert(face_sorted.visible_tris_num == corner_tris.size());
-    GPU_indexbuf_build_in_place_from_memory(&ibo,
-                                            GPU_PRIM_TRIS,
-                                            corner_tris.cast<uint32_t>().data(),
-                                            corner_tris.size(),
-                                            0,
-                                            mr.corners_num,
-                                            false);
-    return;
+    return gpu::IndexBufPtr(GPU_indexbuf_build_from_memory(GPU_PRIM_TRIS,
+                                                           corner_tris.cast<uint32_t>().data(),
+                                                           corner_tris.size(),
+                                                           0,
+                                                           mr.corners_num,
+                                                           false));
   }
 
   const OffsetIndices faces = mr.faces;
@@ -57,12 +54,11 @@ static void extract_tris_mesh(const MeshRenderData &mr,
     }
   });
 
-  GPU_indexbuf_build_in_place_ex(&builder, 0, mr.corners_num, false, &ibo);
+  return gpu::IndexBufPtr(GPU_indexbuf_build_ex(&builder, 0, mr.corners_num, false));
 }
 
-static void extract_tris_bmesh(const MeshRenderData &mr,
-                               const SortedFaceData &face_sorted,
-                               gpu::IndexBuf &ibo)
+static gpu::IndexBufPtr extract_tris_bmesh(const MeshRenderData &mr,
+                                           const SortedFaceData &face_sorted)
 {
   GPUIndexBufBuilder builder;
   GPU_indexbuf_init(&builder, GPU_PRIM_TRIS, face_sorted.visible_tris_num, mr.corners_num);
@@ -77,8 +73,8 @@ static void extract_tris_bmesh(const MeshRenderData &mr,
       if (BM_elem_flag_test(&face, BM_ELEM_HIDDEN)) {
         continue;
       }
-      const int loop_index = BM_elem_index_get(BM_FACE_FIRST_LOOP(&face));
-      const IndexRange bm_tris(poly_to_tri_count(face_index, loop_index),
+      const int corner_index = BM_elem_index_get(BM_FACE_FIRST_LOOP(&face));
+      const IndexRange bm_tris(poly_to_tri_count(face_index, corner_index),
                                bke::mesh::face_triangles_num(face.len));
       const IndexRange ibo_tris(face_tri_offsets[face_index], bm_tris.size());
       for (const int i : bm_tris.index_range()) {
@@ -89,70 +85,55 @@ static void extract_tris_bmesh(const MeshRenderData &mr,
     }
   });
 
-  GPU_indexbuf_build_in_place_ex(&builder, 0, bm.totloop, false, &ibo);
+  return gpu::IndexBufPtr(GPU_indexbuf_build_ex(&builder, 0, bm.totloop, false));
 }
 
-static void create_material_subranges(const MeshRenderData &mr,
-                                      const SortedFaceData &face_sorted,
-                                      MeshBatchCache &cache,
-                                      gpu::IndexBuf &ibo)
+void create_material_subranges(const SortedFaceData &face_sorted,
+                               gpu::IndexBuf &tris_ibo,
+                               MutableSpan<gpu::IndexBufPtr> ibos)
 {
   /* Create ibo sub-ranges. Always do this to avoid error when the standard surface batch
    * is created before the surfaces-per-material. */
   int mat_start = 0;
-  for (int i = 0; i < mr.materials_num; i++) {
+  for (const int i : face_sorted.tris_num_by_material.index_range()) {
     /* These IBOs have not been queried yet but we create them just in case they are needed
      * later since they are not tracked by mesh_buffer_cache_create_requested(). */
-    if (cache.tris_per_mat[i] == nullptr) {
-      cache.tris_per_mat[i] = GPU_indexbuf_calloc();
-    }
+
     const int mat_tri_len = face_sorted.tris_num_by_material[i];
     /* Multiply by 3 because these are triangle indices. */
     const int start = mat_start * 3;
     const int len = mat_tri_len * 3;
-    GPU_indexbuf_create_subrange_in_place(cache.tris_per_mat[i], &ibo, start, len);
+    ibos[i] = gpu::IndexBufPtr(GPU_indexbuf_create_subrange(&tris_ibo, start, len));
     mat_start += mat_tri_len;
   }
 }
 
-void extract_tris(const MeshRenderData &mr,
-                  const SortedFaceData &face_sorted,
-                  MeshBatchCache &cache,
-                  gpu::IndexBuf &ibo)
+gpu::IndexBufPtr extract_tris(const MeshRenderData &mr, const SortedFaceData &face_sorted)
 {
   if (mr.extract_type == MeshExtractType::Mesh) {
-    extract_tris_mesh(mr, face_sorted, ibo);
+    return extract_tris_mesh(mr, face_sorted);
   }
-  else {
-    extract_tris_bmesh(mr, face_sorted, ibo);
-  }
-
-  if (mr.use_final_mesh && !cache.tris_per_mat.is_empty()) {
-    create_material_subranges(mr, face_sorted, cache, ibo);
-  }
+  return extract_tris_bmesh(mr, face_sorted);
 }
 
-void extract_tris_subdiv(const DRWSubdivCache &subdiv_cache,
-                         MeshBatchCache &cache,
-                         gpu::IndexBuf &ibo)
+gpu::IndexBufPtr extract_tris_subdiv(const DRWSubdivCache &subdiv_cache, MeshBatchCache &cache)
 {
   /* Initialize the index buffer, it was already allocated, it will be filled on the device. */
-  GPU_indexbuf_init_build_on_device(&ibo, subdiv_cache.num_subdiv_triangles * 3);
+  gpu::IndexBufPtr ibo = gpu::IndexBufPtr(
+      GPU_indexbuf_build_on_device(subdiv_cache.num_subdiv_triangles * 3));
 
   if (!cache.tris_per_mat.is_empty()) {
     for (int i = 0; i < cache.mat_len; i++) {
-      if (cache.tris_per_mat[i] == nullptr) {
-        cache.tris_per_mat[i] = GPU_indexbuf_calloc();
-      }
-
       /* Multiply by 6 since we have 2 triangles per quad. */
       const int start = subdiv_cache.mat_start[i] * 6;
       const int len = (subdiv_cache.mat_end[i] - subdiv_cache.mat_start[i]) * 6;
-      GPU_indexbuf_create_subrange_in_place(cache.tris_per_mat[i], &ibo, start, len);
+      cache.tris_per_mat[i] = gpu::IndexBufPtr(
+          GPU_indexbuf_create_subrange(ibo.get(), start, len));
     }
   }
 
-  draw_subdiv_build_tris_buffer(subdiv_cache, &ibo, cache.mat_len);
+  draw_subdiv_build_tris_buffer(subdiv_cache, ibo.get(), cache.mat_len);
+  return ibo;
 }
 
 }  // namespace blender::draw

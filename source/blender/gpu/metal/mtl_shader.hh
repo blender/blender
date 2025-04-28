@@ -26,7 +26,7 @@
 
 #include "mtl_framebuffer.hh"
 #include "mtl_shader_interface.hh"
-#include "mtl_shader_shared.h"
+#include "mtl_shader_shared.hh"
 #include "mtl_state.hh"
 #include "mtl_texture.hh"
 
@@ -289,12 +289,6 @@ class MTLShader : public Shader {
   void uniform_int(int location, int comp_len, int array_size, const int *data) override;
   bool get_push_constant_is_dirty();
   void push_constant_bindstate_mark_dirty(bool is_dirty);
-
-  /* DEPRECATED: Kept only because of BGL API. (Returning -1 in METAL). */
-  int program_handle_get() const override
-  {
-    return -1;
-  }
 
   /* Metal shader properties and source mapping. */
   void set_vertex_function_name(NSString *vetex_function_name);

@@ -16,7 +16,6 @@
 
 #include "util/map.h"
 #include "util/set.h"
-#include "util/transform.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -137,8 +136,7 @@ class BlenderSync {
                                      BL::Depsgraph &b_depsgraph);
 
   /* Object */
-  Object *sync_object(BL::Depsgraph &b_depsgraph,
-                      BL::ViewLayer &b_view_layer,
+  Object *sync_object(BL::ViewLayer &b_view_layer,
                       BL::DepsgraphObjectInstance &b_instance,
                       const float motion_time,
                       bool use_particle_hair,
@@ -157,18 +155,12 @@ class BlenderSync {
   void sync_volume(BObjectInfo &b_ob_info, Volume *volume);
 
   /* Mesh */
-  void sync_mesh(BL::Depsgraph b_depsgraph, BObjectInfo &b_ob_info, Mesh *mesh);
-  void sync_mesh_motion(BL::Depsgraph b_depsgraph,
-                        BObjectInfo &b_ob_info,
-                        Mesh *mesh,
-                        int motion_step);
+  void sync_mesh(BObjectInfo &b_ob_info, Mesh *mesh);
+  void sync_mesh_motion(BObjectInfo &b_ob_info, Mesh *mesh, int motion_step);
 
   /* Hair */
-  void sync_hair(BL::Depsgraph b_depsgraph, BObjectInfo &b_ob_info, Hair *hair);
-  void sync_hair_motion(BL::Depsgraph b_depsgraph,
-                        BObjectInfo &b_ob_info,
-                        Hair *hair,
-                        int motion_step);
+  void sync_hair(BObjectInfo &b_ob_info, Hair *hair);
+  void sync_hair_motion(BObjectInfo &b_ob_info, Hair *hair, int motion_step);
   void sync_hair(Hair *hair, BObjectInfo &b_ob_info, bool motion, const int motion_step = 0);
   void sync_particle_hair(Hair *hair,
                           BL::Mesh &b_mesh,
@@ -191,21 +183,19 @@ class BlenderSync {
                           const float motion_time);
 
   /* Geometry */
-  Geometry *sync_geometry(BL::Depsgraph &b_depsgraph,
-                          BObjectInfo &b_ob_info,
+  Geometry *sync_geometry(BObjectInfo &b_ob_info,
                           bool object_updated,
                           bool use_particle_hair,
                           TaskPool *task_pool);
 
-  void sync_geometry_motion(BL::Depsgraph &b_depsgraph,
-                            BObjectInfo &b_ob_info,
+  void sync_geometry_motion(BObjectInfo &b_ob_info,
                             Object *object,
                             const float motion_time,
                             bool use_particle_hair,
                             TaskPool *task_pool);
 
   /* Light */
-  void sync_light(BL::Depsgraph b_depsgraph, BObjectInfo &b_ob_info, Light *light);
+  void sync_light(BObjectInfo &b_ob_info, Light *light);
   void sync_background_light(BL::SpaceView3D &b_v3d);
 
   /* Particles */
@@ -250,7 +240,8 @@ class BlenderSync {
 
   Scene *scene;
   bool preview;
-  bool experimental;
+  bool use_experimental_procedural = false;
+  bool use_adaptive_subdivision = false;
   bool use_developer_ui;
 
   float dicing_rate;

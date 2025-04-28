@@ -20,17 +20,43 @@ VKRenderGraph::VKRenderGraph(VKResourceStateTracker &resources) : resources_(res
 
 void VKRenderGraph::reset()
 {
-  links_.clear();
+#if 0
+  memstats();
+#endif
+  submission_id.next();
+
+  links_.clear_and_shrink();
   for (VKRenderGraphNode &node : nodes_) {
     node.free_data(storage_);
   }
-  nodes_.clear();
+  nodes_.clear_and_shrink();
   storage_.reset();
 
   debug_.node_group_map.clear();
   debug_.used_groups.clear();
   debug_.group_stack.clear();
   debug_.groups.clear();
+}
+
+void VKRenderGraph::memstats() const
+{
+  std::cout << __func__ << " nodes: (" << nodes_.size() << "/" << nodes_.capacity() << "), "
+            << "links: (" << links_.size() << "/" << links_.capacity() << ")\n";
+#define PRINT_STORAGE(name) \
+  std::cout << " " #name " : (" << storage_.name.size() << " / " << storage_.name.capacity() \
+            << ")\n "
+
+  PRINT_STORAGE(begin_rendering);
+  PRINT_STORAGE(clear_attachments);
+  PRINT_STORAGE(blit_image);
+  PRINT_STORAGE(copy_buffer_to_image);
+  PRINT_STORAGE(copy_image);
+  PRINT_STORAGE(copy_image_to_buffer);
+  PRINT_STORAGE(draw);
+  PRINT_STORAGE(draw_indexed);
+  PRINT_STORAGE(draw_indexed_indirect);
+  PRINT_STORAGE(draw_indirect);
+#undef PRINT_STORAGE
 }
 
 /** \} */

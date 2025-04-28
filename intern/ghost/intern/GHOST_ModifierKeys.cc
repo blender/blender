@@ -48,6 +48,12 @@ GHOST_TKey GHOST_ModifierKeys::getModifierKeyCode(GHOST_TModifierKey mask)
     case GHOST_kModifierKeyRightOS:
       key = GHOST_kKeyRightOS;
       break;
+    case GHOST_kModifierKeyLeftHyper:
+      key = GHOST_kKeyLeftHyper;
+      break;
+    case GHOST_kModifierKeyRightHyper:
+      key = GHOST_kKeyRightHyper;
+      break;
     default:
       /* Should not happen. */
       GHOST_ASSERT(0, "Invalid key!");
@@ -76,6 +82,10 @@ bool GHOST_ModifierKeys::get(GHOST_TModifierKey mask) const
       return m_LeftOS;
     case GHOST_kModifierKeyRightOS:
       return m_RightOS;
+    case GHOST_kModifierKeyLeftHyper:
+      return m_LeftHyper;
+    case GHOST_kModifierKeyRightHyper:
+      return m_RightHyper;
     default:
       GHOST_ASSERT(0, "Invalid key!");
       return false;
@@ -109,6 +119,12 @@ void GHOST_ModifierKeys::set(GHOST_TModifierKey mask, bool down)
     case GHOST_kModifierKeyRightOS:
       m_RightOS = down;
       break;
+    case GHOST_kModifierKeyLeftHyper:
+      m_LeftHyper = down;
+      break;
+    case GHOST_kModifierKeyRightHyper:
+      m_RightHyper = down;
+      break;
     default:
       GHOST_ASSERT(0, "Invalid key!");
       break;
@@ -125,6 +141,8 @@ void GHOST_ModifierKeys::clear()
   m_RightControl = false;
   m_LeftOS = false;
   m_RightOS = false;
+  m_LeftHyper = false;
+  m_RightHyper = false;
 }
 
 bool GHOST_ModifierKeys::equals(const GHOST_ModifierKeys &keys) const
@@ -132,5 +150,6 @@ bool GHOST_ModifierKeys::equals(const GHOST_ModifierKeys &keys) const
   return (m_LeftShift == keys.m_LeftShift) && (m_RightShift == keys.m_RightShift) &&
          (m_LeftAlt == keys.m_LeftAlt) && (m_RightAlt == keys.m_RightAlt) &&
          (m_LeftControl == keys.m_LeftControl) && (m_RightControl == keys.m_RightControl) &&
-         (m_LeftOS == keys.m_LeftOS) && (m_RightOS == keys.m_RightOS);
+         (m_LeftOS == keys.m_LeftOS) && (m_RightOS == keys.m_RightOS) &&
+         (m_LeftHyper == keys.m_LeftHyper) && (m_RightHyper == keys.m_RightHyper);
 }

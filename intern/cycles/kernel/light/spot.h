@@ -133,7 +133,7 @@ ccl_device_inline bool spot_light_sample(KernelGlobals kg,
       ls->P += disk_light_sample(lightN, rand) * klight->spot.radius;
     }
 
-    ls->D = normalize_len(ls->P - P, &ls->t);
+    ls->D = safe_normalize_len(ls->P - P, &ls->t);
     ls->Ng = -ls->D;
 
     /* Attenuation. */
@@ -177,7 +177,7 @@ ccl_device_forceinline void spot_light_mnee_sample_update(KernelGlobals kg,
                                                           const float3 N,
                                                           const uint32_t path_flag)
 {
-  ls->D = normalize_len(ls->P - P, &ls->t);
+  ls->D = safe_normalize_len(ls->P - P, &ls->t);
 
   ls->eval_fac = klight->spot.eval_fac;
 

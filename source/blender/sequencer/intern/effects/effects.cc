@@ -23,9 +23,9 @@
 #include "effects.hh"
 #include "render.hh"
 
-using namespace blender;
+namespace blender::seq {
 
-ImBuf *prepare_effect_imbufs(const SeqRenderData *context,
+ImBuf *prepare_effect_imbufs(const RenderData *context,
                              ImBuf *ibuf1,
                              ImBuf *ibuf2,
                              bool uninitialized_pixels)
@@ -151,14 +151,14 @@ static void get_default_fac_noop(const Scene * /*scene*/,
 
 void get_default_fac_fade(const Scene *scene, const Strip *strip, float timeline_frame, float *fac)
 {
-  *fac = float(timeline_frame - SEQ_time_left_handle_frame_get(scene, strip));
-  *fac /= SEQ_time_strip_length_get(scene, strip);
+  *fac = float(timeline_frame - time_left_handle_frame_get(scene, strip));
+  *fac /= time_strip_length_get(scene, strip);
   *fac = math::clamp(*fac, 0.0f, 1.0f);
 }
 
-SeqEffectHandle get_sequence_effect_impl(int strip_type)
+EffectHandle get_sequence_effect_impl(int strip_type)
 {
-  SeqEffectHandle rval;
+  EffectHandle rval;
 
   rval.init = init_noop;
   rval.num_inputs = num_inputs_default;
@@ -246,9 +246,9 @@ SeqEffectHandle get_sequence_effect_impl(int strip_type)
   return rval;
 }
 
-SeqEffectHandle SEQ_effect_handle_get(Strip *strip)
+EffectHandle effect_handle_get(Strip *strip)
 {
-  SeqEffectHandle rval = {};
+  EffectHandle rval = {};
 
   if (strip->type & STRIP_TYPE_EFFECT) {
     rval = get_sequence_effect_impl(strip->type);
@@ -261,9 +261,9 @@ SeqEffectHandle SEQ_effect_handle_get(Strip *strip)
   return rval;
 }
 
-SeqEffectHandle strip_effect_get_sequence_blend(Strip *strip)
+EffectHandle strip_effect_get_sequence_blend(Strip *strip)
 {
-  SeqEffectHandle rval = {};
+  EffectHandle rval = {};
 
   if (strip->blend_mode != 0) {
     if ((strip->flag & SEQ_EFFECT_NOT_LOADED) != 0) {
@@ -283,9 +283,9 @@ SeqEffectHandle strip_effect_get_sequence_blend(Strip *strip)
   return rval;
 }
 
-int SEQ_effect_get_num_inputs(int strip_type)
+int effect_get_num_inputs(int strip_type)
 {
-  SeqEffectHandle rval = get_sequence_effect_impl(strip_type);
+  EffectHandle rval = get_sequence_effect_impl(strip_type);
 
   int count = rval.num_inputs();
   if (rval.execute) {
@@ -293,3 +293,5 @@ int SEQ_effect_get_num_inputs(int strip_type)
   }
   return 0;
 }
+
+}  // namespace blender::seq

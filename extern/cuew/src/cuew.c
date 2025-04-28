@@ -297,6 +297,11 @@ tcuGLSetBufferObjectMapFlags *cuGLSetBufferObjectMapFlags;
 tcuGLMapBufferObjectAsync_v2 *cuGLMapBufferObjectAsync_v2;
 tcuGLUnmapBufferObjectAsync *cuGLUnmapBufferObjectAsync;
 
+tcuImportExternalMemory *cuImportExternalMemory;
+tcuExternalMemoryGetMappedBuffer *cuExternalMemoryGetMappedBuffer;
+tcuExternalMemoryGetMappedMipmappedArray *cuExternalMemoryGetMappedMipmappedArray;
+tcuDestroyExternalMemory *cuDestroyExternalMemory;
+
 tnvrtcGetErrorString *nvrtcGetErrorString;
 tnvrtcVersion *nvrtcVersion;
 tnvrtcCreateProgram *nvrtcCreateProgram;
@@ -606,6 +611,11 @@ static int cuewCudaInit(void) {
   CUDA_LIBRARY_FIND(cuGLSetBufferObjectMapFlags);
   CUDA_LIBRARY_FIND(cuGLMapBufferObjectAsync_v2);
   CUDA_LIBRARY_FIND(cuGLUnmapBufferObjectAsync);
+
+  CUDA_LIBRARY_FIND(cuImportExternalMemory);
+  CUDA_LIBRARY_FIND(cuExternalMemoryGetMappedBuffer);
+  CUDA_LIBRARY_FIND(cuExternalMemoryGetMappedMipmappedArray);
+  CUDA_LIBRARY_FIND(cuDestroyExternalMemory);
 
   result = CUEW_SUCCESS;
   return result;

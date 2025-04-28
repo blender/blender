@@ -104,11 +104,11 @@ Here are some examples:
 
 .. code-block:: python
 
-   # in this example the active vertex group index is used,
-   # this is stored in the object, not the BMesh
+   # In this example the active vertex group index is used,
+   # this is stored in the object, not the `BMesh`.
    group_index = obj.vertex_groups.active_index
 
-   # only ever one deform weight layer
+   # Only ever one deform weight layer.
    dvert_lay = bm.verts.layers.deform.active
 
    for vert in bm.verts:

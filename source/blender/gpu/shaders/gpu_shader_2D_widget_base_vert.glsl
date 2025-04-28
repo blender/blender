@@ -26,17 +26,17 @@ VERTEX_SHADER_CREATE_INFO(gpu_shader_2D_widget_base)
 #define triaType parameters[widgetID * MAX_PARAM + 11].x
 
 /* We encode alpha check and discard factor together. */
-#define doAlphaCheck (alphaDiscard < 0.0)
+#define doAlphaCheck (alphaDiscard < 0.0f)
 #define discardFactor abs(alphaDiscard)
 
-vec2 do_widget()
+float2 do_widget()
 {
   /* Offset to avoid losing pixels (mimics conservative rasterization). */
-  const vec2 ofs = vec2(0.5, -0.5);
+  constexpr float2 ofs = float2(0.5f, -0.5f);
   lineWidth = abs(rect.x - recti.x);
-  vec2 emboss_ofs = vec2(0.0, -lineWidth);
+  float2 emboss_ofs = float2(0.0f, -lineWidth);
 
-  vec2 pos;
+  float2 pos;
   switch (gl_VertexID) {
     default:
     case 0: {
@@ -61,8 +61,8 @@ vec2 do_widget()
   outRectSize = rect.yw - rect.xz;
   outRoundCorners = rads * roundCorners;
 
-  vec2 uv = uvInterp / outRectSize;
-  float fac = clamp((shadeDir > 0.0) ? uv.y : uv.x, 0.0, 1.0);
+  float2 uv = uvInterp / outRectSize;
+  float fac = clamp((shadeDir > 0.0f) ? uv.y : uv.x, 0.0f, 1.0f);
   /* Note innerColor is premultiplied inside the fragment shader. */
   if (doAlphaCheck) {
     innerColor = colorInner1;
@@ -74,100 +74,101 @@ vec2 do_widget()
   }
 
   /* We need premultiplied color for transparency. */
-  borderColor = colorEdge * vec4(colorEdge.aaa, 1.0);
-  embossColor = colorEmboss * vec4(colorEmboss.aaa, 1.0);
+  borderColor = colorEdge * float4(colorEdge.aaa, 1.0f);
+  embossColor = colorEmboss * float4(colorEmboss.aaa, 1.0f);
 
   return pos;
 }
 
-vec2 do_tria()
+float2 do_tria()
 {
   int vidx = gl_VertexID % 4;
   bool tria2 = gl_VertexID > 7;
 
-  vec2 pos = vec2(0.0);
+  float2 pos = float2(0.0f);
   float size = (tria2) ? -tria2Size : tria1Size;
-  vec2 center = (tria2) ? tria2Center : tria1Center;
+  float2 center = (tria2) ? tria2Center : tria1Center;
 
-  vec2 arrow_pos[4] = float2_array(
-      vec2(0.0, 0.6), vec2(0.6, 0.0), vec2(-0.6, 0.0), vec2(0.0, -0.6));
+  float2 arrow_pos[4] = float2_array(
+      float2(0.0f, 0.6f), float2(0.6f, 0.0f), float2(-0.6f, 0.0f), float2(0.0f, -0.6f));
   /* Rotated uv space by 45deg and mirrored. */
-  vec2 arrow_uvs[4] = float2_array(
-      vec2(0.0, 0.85), vec2(0.85, 0.85), vec2(0.0, 0.0), vec2(0.0, 0.85));
+  float2 arrow_uvs[4] = float2_array(
+      float2(0.0f, 0.85f), float2(0.85f, 0.85f), float2(0.0f, 0.0f), float2(0.0f, 0.85f));
 
-  vec2 point_pos[4] = float2_array(
-      vec2(-1.0, -1.0), vec2(-1.0, 1.0), vec2(1.0, -1.0), vec2(1.0, 1.0));
-  vec2 point_uvs[4] = float2_array(vec2(0.0, 0.0), vec2(0.0, 1.0), vec2(1.0, 0.0), vec2(1.0, 1.0));
+  float2 point_pos[4] = float2_array(
+      float2(-1.0f, -1.0f), float2(-1.0f, 1.0f), float2(1.0f, -1.0f), float2(1.0f, 1.0f));
+  float2 point_uvs[4] = float2_array(
+      float2(0.0f, 0.0f), float2(0.0f, 1.0f), float2(1.0f, 0.0f), float2(1.0f, 1.0f));
 
   /* We reuse the SDF round-box rendering of widget to render the tria shapes.
    * This means we do clever tricks to position the rectangle the way we want using
    * the 2 triangles uvs. */
-  if (triaType == 0.0) {
+  if (triaType == 0.0f) {
     /* ROUNDBOX_TRIA_NONE */
-    outRectSize = uvInterp = pos = vec2(0);
-    outRoundCorners = vec4(0.01);
+    outRectSize = uvInterp = pos = float2(0);
+    outRoundCorners = float4(0.01f);
   }
-  else if (triaType == 1.0) {
+  else if (triaType == 1.0f) {
     /* ROUNDBOX_TRIA_ARROWS */
     pos = arrow_pos[vidx];
     uvInterp = arrow_uvs[vidx];
-    uvInterp -= vec2(0.05, 0.63); /* Translate */
-    outRectSize = vec2(0.74, 0.17);
-    outRoundCorners = vec4(0.08);
+    uvInterp -= float2(0.05f, 0.63f); /* Translate */
+    outRectSize = float2(0.74f, 0.17f);
+    outRoundCorners = float4(0.08f);
   }
-  else if (triaType == 2.0) {
+  else if (triaType == 2.0f) {
     /* ROUNDBOX_TRIA_SCROLL */
     pos = point_pos[vidx];
     uvInterp = point_uvs[vidx];
-    outRectSize = vec2(1.0);
-    outRoundCorners = vec4(0.5);
+    outRectSize = float2(1.0f);
+    outRoundCorners = float4(0.5f);
   }
-  else if (triaType == 3.0) {
+  else if (triaType == 3.0f) {
     /* ROUNDBOX_TRIA_MENU */
-    pos = tria2 ? vec2(0.0) : arrow_pos[vidx]; /* Solo tria */
-    pos = vec2(pos.y, -pos.x);                 /* Rotate */
-    pos += vec2(-0.05, 0.0);                   /* Translate */
-    size *= 0.8;                               /* Scale */
+    pos = tria2 ? float2(0.0f) : arrow_pos[vidx]; /* Solo tria */
+    pos = float2(pos.y, -pos.x);                  /* Rotate */
+    pos += float2(-0.05f, 0.0f);                  /* Translate */
+    size *= 0.8f;                                 /* Scale */
     uvInterp = arrow_uvs[vidx];
-    uvInterp -= vec2(0.05, 0.63); /* Translate */
-    outRectSize = vec2(0.74, 0.17);
-    outRoundCorners = vec4(0.01);
+    uvInterp -= float2(0.05f, 0.63f); /* Translate */
+    outRectSize = float2(0.74f, 0.17f);
+    outRoundCorners = float4(0.01f);
   }
-  else if (triaType == 4.0) {
+  else if (triaType == 4.0f) {
     /* ROUNDBOX_TRIA_CHECK */
     /* A bit more hacky: We use the two triangles joined together to render
      * both sides of the check-mark with different length. */
-    pos = arrow_pos[min(vidx, 2)];                                    /* Only keep 1 triangle. */
-    pos.y = tria2 ? -pos.y : pos.y;                                   /* Mirror along X */
-    pos = pos.x * vec2(0.0872, -0.996) + pos.y * vec2(0.996, 0.0872); /* Rotate (85deg) */
-    pos += vec2(-0.1, 0.2);                                           /* Translate */
+    pos = arrow_pos[min(vidx, 2)];  /* Only keep 1 triangle. */
+    pos.y = tria2 ? -pos.y : pos.y; /* Mirror along X */
+    pos = pos.x * float2(0.0872f, -0.996f) + pos.y * float2(0.996f, 0.0872f); /* Rotate (85deg) */
+    pos += float2(-0.1f, 0.2f);                                               /* Translate */
     center = tria1Center;
-    size = tria1Size * 1.7; /* Scale */
+    size = tria1Size * 1.7f; /* Scale */
     uvInterp = arrow_uvs[vidx];
-    uvInterp -= tria2 ? vec2(0.4, 0.65) : vec2(0.08, 0.65); /* Translate */
-    outRectSize = vec2(0.74, 0.14);
-    outRoundCorners = vec4(0.01);
+    uvInterp -= tria2 ? float2(0.4f, 0.65f) : float2(0.08f, 0.65f); /* Translate */
+    outRectSize = float2(0.74f, 0.14f);
+    outRoundCorners = float4(0.01f);
   }
-  else if (triaType == 5.0) {
+  else if (triaType == 5.0f) {
     /* ROUNDBOX_TRIA_HOLD_ACTION_ARROW */
     /* We use a single triangle to cut the round rect in half.
      * The edge will not be Anti-aliased. */
-    pos = tria2 ? vec2(0.0) : arrow_pos[min(vidx, 2)];              /* Only keep 1 triangle. */
-    pos = pos.x * vec2(0.707, 0.707) + pos.y * vec2(-0.707, 0.707); /* Rotate (45deg) */
-    pos += vec2(-1.7, 2.4); /* Translate (hard-coded, might want to remove). */
-    size *= 0.4;            /* Scale */
+    pos = tria2 ? float2(0.0f) : arrow_pos[min(vidx, 2)]; /* Only keep 1 triangle. */
+    pos = pos.x * float2(0.707f, 0.707f) + pos.y * float2(-0.707f, 0.707f); /* Rotate (45deg) */
+    pos += float2(-1.7f, 2.4f); /* Translate (hard-coded, might want to remove). */
+    size *= 0.4f;               /* Scale */
     uvInterp = arrow_uvs[vidx];
-    uvInterp -= vec2(0.05, 0.05); /* Translate */
-    outRectSize = vec2(0.75);
-    outRoundCorners = vec4(0.01);
+    uvInterp -= float2(0.05f, 0.05f); /* Translate */
+    outRectSize = float2(0.75f);
+    outRoundCorners = float4(0.01f);
   }
-  else if (triaType == 6.0) {
+  else if (triaType == 6.0f) {
     /* ROUNDBOX_TRIA_DASH */
     pos = point_pos[vidx];
     uvInterp = point_uvs[vidx];
-    uvInterp -= vec2(0.2, 0.45); /* Translate */
-    outRectSize = vec2(0.6, 0.1);
-    outRoundCorners = vec4(0.01);
+    uvInterp -= float2(0.2f, 0.45f); /* Translate */
+    outRectSize = float2(0.6f, 0.1f);
+    outRoundCorners = float4(0.01f);
   }
 
   uvInterp *= abs(size);
@@ -176,13 +177,13 @@ vec2 do_tria()
 
   pos = pos * size + center;
 
-  innerColor = colorTria * vec4(colorTria.aaa, 1.0);
+  innerColor = colorTria * float4(colorTria.aaa, 1.0f);
 
-  lineWidth = 0.0;
-  borderColor = vec4(0.0);
-  embossColor = vec4(0.0);
+  lineWidth = 0.0f;
+  borderColor = float4(0.0f);
+  embossColor = float4(0.0f);
 
-  butCo = -2.0;
+  butCo = -2.0f;
 
   return pos;
 }
@@ -191,7 +192,7 @@ void main()
 {
   discardFac = discardFactor;
   bool is_tria = (gl_VertexID > 3);
-  vec2 pos = (is_tria) ? do_tria() : do_widget();
+  float2 pos = (is_tria) ? do_tria() : do_widget();
 
-  gl_Position = ModelViewProjectionMatrix * vec4(pos, 0.0, 1.0);
+  gl_Position = ModelViewProjectionMatrix * float4(pos, 0.0f, 1.0f);
 }

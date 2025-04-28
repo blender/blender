@@ -2,8 +2,10 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
+#include "GPU_context.hh"
 #include "GPU_immediate.hh"
 #include "GPU_platform.hh"
+#include "GPU_platform_backend_enum.h"
 #include "GPU_shader.hh"
 #include "GPU_state.hh"
 #include "GPU_texture.hh"
@@ -313,7 +315,7 @@ class DisplayGPUPixelBuffer {
 
   bool gpu_resources_ensure(const uint new_width, const uint new_height)
   {
-    const size_t required_size = sizeof(half4) * new_width * new_height * 4;
+    const size_t required_size = sizeof(half4) * new_width * new_height;
 
     /* Try to re-use the existing PBO if it has usable size. */
     if (gpu_pixel_buffer) {
@@ -619,16 +621,61 @@ void BlenderDisplayDriver::unmap_texture_buffer()
  * Graphics interoperability.
  */
 
-BlenderDisplayDriver::GraphicsInterop BlenderDisplayDriver::graphics_interop_get()
+GraphicsInteropDevice BlenderDisplayDriver::graphics_interop_get_device()
 {
-  GraphicsInterop interop_dst;
+  GraphicsInteropDevice interop_device;
 
-  interop_dst.buffer_width = tiles_->current_tile.buffer_object.width;
-  interop_dst.buffer_height = tiles_->current_tile.buffer_object.height;
-  interop_dst.opengl_pbo_id = GPU_pixel_buffer_get_native_handle(
+  switch (GPU_backend_get_type()) {
+    case GPU_BACKEND_OPENGL:
+      interop_device.type = GraphicsInteropDevice::OPENGL;
+      break;
+    case GPU_BACKEND_VULKAN:
+      interop_device.type = GraphicsInteropDevice::VULKAN;
+      break;
+    case GPU_BACKEND_METAL:
+    case GPU_BACKEND_NONE:
+    case GPU_BACKEND_ANY:
+      /* Metal not supported yet by Cycles. */
+      interop_device.type = GraphicsInteropDevice::NONE;
+      break;
+  }
+
+  blender::Span<uint8_t> uuid = GPU_platform_uuid();
+  interop_device.uuid.resize(uuid.size());
+  std::copy_n(uuid.data(), uuid.size(), interop_device.uuid.data());
+
+  return interop_device;
+}
+
+GraphicsInteropBuffer BlenderDisplayDriver::graphics_interop_get_buffer()
+{
+  GraphicsInteropBuffer interop_buffer;
+
+  interop_buffer.width = tiles_->current_tile.buffer_object.width;
+  interop_buffer.height = tiles_->current_tile.buffer_object.height;
+
+  GPUPixelBufferNativeHandle handle = GPU_pixel_buffer_get_native_handle(
       tiles_->current_tile.buffer_object.gpu_pixel_buffer);
 
-  return interop_dst;
+  switch (GPU_backend_get_type()) {
+    case GPU_BACKEND_OPENGL:
+      interop_buffer.type = GraphicsInteropDevice::OPENGL;
+      break;
+    case GPU_BACKEND_VULKAN:
+      interop_buffer.type = GraphicsInteropDevice::VULKAN;
+      break;
+    case GPU_BACKEND_METAL:
+    case GPU_BACKEND_NONE:
+    case GPU_BACKEND_ANY:
+      /* Metal not supported yet by Cycles. */
+      interop_buffer.type = GraphicsInteropDevice::NONE;
+      break;
+  }
+
+  interop_buffer.handle = handle.handle;
+  interop_buffer.size = handle.size;
+
+  return interop_buffer;
 }
 
 void BlenderDisplayDriver::graphics_interop_activate()

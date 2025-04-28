@@ -8,6 +8,9 @@
  * \ingroup bke
  */
 
+#include "BKE_geometry_set.hh"
+#include "BKE_instances.hh"
+
 struct Depsgraph;
 struct ID;
 struct ListBase;
@@ -16,9 +19,6 @@ struct ParticleSystem;
 struct Scene;
 struct ViewLayer;
 struct ViewerPath;
-namespace blender::bke {
-struct GeometrySet;
-}
 
 /* ---------------------------------------------------- */
 /* Dupli-Geometry */
@@ -36,6 +36,22 @@ ListBase *object_duplilist_preview(Depsgraph *depsgraph,
                                    const ViewerPath *viewer_path);
 void free_object_duplilist(ListBase *lb);
 
+/**
+ * Get the legacy instances of this object. That includes instances coming from these sources:
+ * - Particles
+ * - Dupli Verts
+ * - Dupli Faces
+ * - "Objects as Font"
+ *
+ * This does not include collection instances which are not considered legacy and should be treated
+ * properly at a higher level.
+ *
+ * Also see #get_dupli_generator for the different existing dupli generators.
+ */
+blender::bke::Instances object_duplilist_legacy_instances(Depsgraph &depsgraph,
+                                                          Scene &scene,
+                                                          Object &ob);
+
 constexpr int MAX_DUPLI_RECUR = 8;
 
 struct DupliObject {
@@ -49,6 +65,8 @@ struct DupliObject {
 
   short type; /* From #Object::transflag. */
   char no_draw;
+  /** Depth in the instance hierarchy. */
+  int8_t level;
   /* If this dupli object is belongs to a preview, this is non-null. */
   const blender::bke::GeometrySet *preview_base_geometry;
   /* Index of the top-level instance this dupli is part of or -1 when unused. */

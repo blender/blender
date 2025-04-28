@@ -295,7 +295,7 @@ static BoneCollection *join_armature_remap_collection(
   return new_bcoll;
 }
 
-int ED_armature_join_objects_exec(bContext *C, wmOperator *op)
+wmOperatorStatus ED_armature_join_objects_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
@@ -608,7 +608,7 @@ static void separated_armature_fix_links(Main *bmain, Object *origArm, Object *n
  */
 static void separate_armature_bones(Main *bmain, Object *ob, const bool is_select)
 {
-  bArmature *arm = (bArmature *)ob->data;
+  bArmature *arm = static_cast<bArmature *>(ob->data);
   bPoseChannel *pchan, *pchann;
   EditBone *curbone;
 
@@ -663,7 +663,7 @@ static void separate_armature_bones(Main *bmain, Object *ob, const bool is_selec
 }
 
 /* separate selected bones into their armature */
-static int separate_armature_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus separate_armature_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
@@ -858,10 +858,10 @@ static const EnumPropertyItem prop_editarm_make_parent_types[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-static int armature_parent_set_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus armature_parent_set_exec(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_edit_object(C);
-  bArmature *arm = (bArmature *)ob->data;
+  bArmature *arm = static_cast<bArmature *>(ob->data);
   EditBone *actbone = CTX_data_active_bone(C);
   EditBone *actmirb = nullptr;
   short val = RNA_enum_get(op->ptr, "type");
@@ -947,7 +947,9 @@ static int armature_parent_set_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int armature_parent_set_invoke(bContext *C, wmOperator * /*op*/, const wmEvent * /*event*/)
+static wmOperatorStatus armature_parent_set_invoke(bContext *C,
+                                                   wmOperator * /*op*/,
+                                                   const wmEvent * /*event*/)
 {
   /* False when all selected bones are parented to the active bone. */
   bool enable_offset = false;
@@ -980,12 +982,12 @@ static int armature_parent_set_invoke(bContext *C, wmOperator * /*op*/, const wm
       C, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Make Parent"), ICON_NONE);
   uiLayout *layout = UI_popup_menu_layout(pup);
 
-  uiLayout *row_offset = uiLayoutRow(layout, false);
+  uiLayout *row_offset = &layout->row(false);
   uiLayoutSetEnabled(row_offset, enable_offset);
   uiItemEnumO(
       row_offset, "ARMATURE_OT_parent_set", std::nullopt, ICON_NONE, "type", ARM_PAR_OFFSET);
 
-  uiLayout *row_connect = uiLayoutRow(layout, false);
+  uiLayout *row_connect = &layout->row(false);
   uiLayoutSetEnabled(row_connect, enable_connect);
   uiItemEnumO(
       row_connect, "ARMATURE_OT_parent_set", std::nullopt, ICON_NONE, "type", ARM_PAR_CONNECT);
@@ -1033,7 +1035,7 @@ static void editbone_clear_parent(EditBone *ebone, int mode)
   ebone->flag &= ~BONE_CONNECTED;
 }
 
-static int armature_parent_clear_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus armature_parent_clear_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -1069,9 +1071,9 @@ static int armature_parent_clear_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int armature_parent_clear_invoke(bContext *C,
-                                        wmOperator * /*op*/,
-                                        const wmEvent * /*event*/)
+static wmOperatorStatus armature_parent_clear_invoke(bContext *C,
+                                                     wmOperator * /*op*/,
+                                                     const wmEvent * /*event*/)
 {
   /* False when no selected bones are connected to the active bone. */
   bool enable_disconnect = false;
@@ -1100,12 +1102,12 @@ static int armature_parent_clear_invoke(bContext *C,
       C, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Clear Parent"), ICON_NONE);
   uiLayout *layout = UI_popup_menu_layout(pup);
 
-  uiLayout *row_clear = uiLayoutRow(layout, false);
+  uiLayout *row_clear = &layout->row(false);
   uiLayoutSetEnabled(row_clear, enable_clear);
   uiItemEnumO(
       row_clear, "ARMATURE_OT_parent_clear", std::nullopt, ICON_NONE, "type", ARM_PAR_CLEAR);
 
-  uiLayout *row_disconnect = uiLayoutRow(layout, false);
+  uiLayout *row_disconnect = &layout->row(false);
   uiLayoutSetEnabled(row_disconnect, enable_disconnect);
   uiItemEnumO(row_disconnect,
               "ARMATURE_OT_parent_clear",

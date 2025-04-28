@@ -12,6 +12,9 @@
 
 int BLI_cpu_support_sse2(void);
 int BLI_cpu_support_sse42(void);
+/**
+ * Write a backtrace into a file for systems which support it.
+ */
 void BLI_system_backtrace_with_os_info(FILE *fp, const void *os_info);
 void BLI_system_backtrace(FILE *fp);
 
@@ -43,7 +46,12 @@ int BLI_system_memory_max_in_megabytes_int(void);
  * \note Use `void *` for `exception` since we really do not want to drag Windows.h
  * in to get the proper `typedef`.
  */
-void BLI_windows_handle_exception(void *exception);
+void BLI_windows_exception_capture(void *exception);
+void BLI_windows_exception_show_dialog(const void *exception,
+                                       const char *filepath_crashlog,
+                                       const char *filepath_relaunch,
+                                       const char *gpu_name,
+                                       const char *build_version);
 
 #else
 #  define BLI_SYSTEM_PID_H <unistd.h>

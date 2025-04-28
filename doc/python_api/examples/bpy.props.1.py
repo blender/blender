@@ -2,11 +2,12 @@
 Operator Example
 ++++++++++++++++
 
-A common use of custom properties is for python based :class:`Operator`
+A common use of custom properties is for Python based :class:`Operator`
 classes. Test this code by running it in the text editor, or by clicking the
 button in the 3D View-port's Tools panel. The latter will show the properties
 in the Redo panel and allow you to change them.
 """
+
 import bpy
 
 
@@ -21,7 +22,7 @@ class OBJECT_OT_property_example(bpy.types.Operator):
 
     def execute(self, context):
         self.report(
-            {'INFO'}, "F: {:.2f}  B: {:s}  S: {!r}".format(
+            {'INFO'}, "F: {:.2f}  B: {!s}  S: {!r}".format(
                 self.my_float, self.my_bool, self.my_string,
             )
         )

@@ -22,12 +22,22 @@ enum class Solver {
   MeshArr = 0,
   /** The original BMesh floating point solver. */
   Float = 1,
+  /** The Manifold library fast robust floating point solver. */
+  Manifold = 2,
 };
 
 enum class Operation {
   Intersect = 0,
   Union = 1,
   Difference = 2,
+};
+
+enum class BooleanError {
+  NoError = 0,
+  NonManifold = 1,
+  ResultTooBig = 2,
+  SolverNotAvailable = 3,
+  UnknownError = 4,
 };
 
 /**
@@ -62,8 +72,8 @@ struct BooleanOpParameters {
  * in the way the user hopes.
  *
  * \param meshes: The meshes that are operands of the boolean operation.
- * \param transforms: An array of transform matrices used for each mesh's positions.
- * \param target_transform: the result needs to be transformed by this.
+ * \param transforms: An array of transform matrices used to transform the input meshes to bring
+ * them into the transform space of the result.
  * \param material_remaps: An array of maps from material slot numbers in the corresponding mesh
  * to the material slot in the first mesh. It is OK for material_remaps or any of its constituent
  * arrays to be empty. A -1 value means that the original index should be used with no mapping.
@@ -71,13 +81,14 @@ struct BooleanOpParameters {
  * \param solver: which solver to use
  * \param r_intersecting_edges: Vector to store indices of edges on the resulting mesh in. These
  * 'new' edges are the result of the intersections.
+ * \param r_error: Return place for error code to be stored.
  */
 Mesh *mesh_boolean(Span<const Mesh *> meshes,
                    Span<float4x4> transforms,
-                   const float4x4 &target_transform,
                    Span<Array<short>> material_remaps,
                    BooleanOpParameters op_params,
                    Solver solver,
-                   Vector<int> *r_intersecting_edges);
+                   Vector<int> *r_intersecting_edges,
+                   BooleanError *r_error);
 
 }  // namespace blender::geometry::boolean

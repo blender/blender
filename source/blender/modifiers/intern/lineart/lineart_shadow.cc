@@ -1173,8 +1173,7 @@ bool lineart_main_try_generate_shadow_v3(Depsgraph *depsgraph,
     }
   }
 
-  LineartData *ld = static_cast<LineartData *>(
-      MEM_mallocN(sizeof(LineartData), "LineArt render buffer copied"));
+  LineartData *ld = MEM_mallocN<LineartData>("LineArt render buffer copied");
   memcpy(ld, original_ld, sizeof(LineartData));
 
   BLI_spin_init(&ld->lock_task);

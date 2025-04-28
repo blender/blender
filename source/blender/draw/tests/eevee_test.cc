@@ -8,9 +8,9 @@
 #include "GPU_context.hh"
 #include "draw_shader.hh"
 #include "draw_testing.hh"
-#include "engines/eevee_next/eevee_lut.hh"
-#include "engines/eevee_next/eevee_precompute.hh"
-#include "engines/eevee_next/eevee_shadow.hh"
+#include "engines/eevee/eevee_lut.hh"
+#include "engines/eevee/eevee_precompute.hh"
+#include "engines/eevee/eevee_shadow.hh"
 
 namespace blender::draw {
 
@@ -1804,6 +1804,8 @@ DRAW_TEST(eevee_shadow_page_mask)
 
 static void test_eevee_surfel_list()
 {
+  GTEST_SKIP() << "Result is non-deterministic. To be revisited.";
+
   GPU_render_begin();
   StorageArrayBuffer<int> list_start_buf = {"list_start_buf"};
   StorageVectorBuffer<Surfel> surfel_buf = {"surfel_buf"};

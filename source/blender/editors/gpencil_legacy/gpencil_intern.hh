@@ -122,9 +122,3 @@ enum eGPencil_PaintModes {
 
 /* chunk size for gp-session buffer (the total size is a multiple of this number) */
 #define GP_STROKE_BUFFER_CHUNK 2048
-
-/* undo stack ---------- */
-
-void gpencil_undo_init(bGPdata *gpd);
-void gpencil_undo_push(bGPdata *gpd);
-void gpencil_undo_finish();

@@ -42,7 +42,7 @@ bool ED_outliner_give_rna_under_cursor(bContext *C, const int mval[2], PointerRN
 void ED_outliner_select_sync_from_object_tag(bContext *C);
 void ED_outliner_select_sync_from_edit_bone_tag(bContext *C);
 void ED_outliner_select_sync_from_pose_bone_tag(bContext *C);
-void ED_outliner_select_sync_from_sequence_tag(bContext *C);
+void ED_outliner_select_sync_from_sequence_tag(const bContext *C);
 void ED_outliner_select_sync_from_all_tag(bContext *C);
 
 bool ED_outliner_select_sync_is_dirty(const bContext *C);
@@ -58,3 +58,5 @@ void ED_outliner_select_sync_from_outliner(bContext *C, SpaceOutliner *space_out
 void ED_outliner_select_sync_flag_outliners(const bContext *C);
 
 int ED_outliner_icon_from_id(const ID &id);
+
+bool ED_outliner_support_searching(const SpaceOutliner *space_outliner);

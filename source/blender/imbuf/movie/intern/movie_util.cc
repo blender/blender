@@ -380,7 +380,7 @@ int MOV_codec_valid_bit_depths(int av_codec_id)
   int bit_depths = R_IMF_CHAN_DEPTH_8;
 #ifdef WITH_FFMPEG
   /* Note: update properties_output.py `use_bpp` when changing this function. */
-  if (ELEM(av_codec_id, AV_CODEC_ID_H264, AV_CODEC_ID_H265, AV_CODEC_ID_AV1)) {
+  if (ELEM(av_codec_id, AV_CODEC_ID_H264, AV_CODEC_ID_H265, AV_CODEC_ID_AV1, AV_CODEC_ID_PRORES)) {
     bit_depths |= R_IMF_CHAN_DEPTH_10;
   }
   if (ELEM(av_codec_id, AV_CODEC_ID_H265, AV_CODEC_ID_AV1)) {
@@ -499,17 +499,21 @@ void MOV_validate_output_settings(RenderData *rd, const ImageFormatData *imf)
 #endif
 }
 
-bool MOV_codec_supports_alpha(int av_codec_id)
+bool MOV_codec_supports_alpha(const FFMpegCodecData &ff_codec_data)
 {
 #ifdef WITH_FFMPEG
-  return ELEM(av_codec_id,
+  if (ff_codec_data.codec == AV_CODEC_ID_PRORES) {
+    return ELEM(
+        ff_codec_data.ffmpeg_prores_profile, FFM_PRORES_PROFILE_4444, FFM_PRORES_PROFILE_4444_XQ);
+  }
+  return ELEM(ff_codec_data.codec,
               AV_CODEC_ID_FFV1,
               AV_CODEC_ID_QTRLE,
               AV_CODEC_ID_PNG,
               AV_CODEC_ID_VP9,
               AV_CODEC_ID_HUFFYUV);
 #else
-  UNUSED_VARS(av_codec_id);
+  UNUSED_VARS(ff_codec_data);
   return false;
 #endif
 }

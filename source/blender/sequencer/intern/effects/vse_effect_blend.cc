@@ -16,7 +16,7 @@
 
 #include "effects.hh"
 
-using namespace blender;
+namespace blender::seq {
 
 /* -------------------------------------------------------------------- */
 /* Alpha Over Effect */
@@ -75,7 +75,7 @@ struct AlphaOverEffectOp {
   float factor;
 };
 
-static ImBuf *do_alphaover_effect(const SeqRenderData *context,
+static ImBuf *do_alphaover_effect(const RenderData *context,
                                   Strip * /*strip*/,
                                   float /*timeline_frame*/,
                                   float fac,
@@ -124,7 +124,7 @@ struct AlphaUnderEffectOp {
   float factor;
 };
 
-static ImBuf *do_alphaunder_effect(const SeqRenderData *context,
+static ImBuf *do_alphaunder_effect(const RenderData *context,
                                    Strip * /*strip*/,
                                    float /*timeline_frame*/,
                                    float fac,
@@ -316,7 +316,7 @@ struct BlendModeEffectOp {
   float factor;
 };
 
-static ImBuf *do_blend_mode_effect(const SeqRenderData *context,
+static ImBuf *do_blend_mode_effect(const RenderData *context,
                                    Strip *strip,
                                    float /*timeline_frame*/,
                                    float fac,
@@ -339,13 +339,15 @@ static void init_colormix_effect(Strip *strip)
   if (strip->effectdata) {
     MEM_freeN(strip->effectdata);
   }
-  strip->effectdata = MEM_callocN(sizeof(ColorMixVars), "colormixvars");
-  ColorMixVars *data = (ColorMixVars *)strip->effectdata;
+
+  ColorMixVars *data = MEM_callocN<ColorMixVars>("colormixvars");
+  strip->effectdata = data;
+
   data->blend_effect = STRIP_TYPE_OVERLAY;
   data->factor = 1.0f;
 }
 
-static ImBuf *do_colormix_effect(const SeqRenderData *context,
+static ImBuf *do_colormix_effect(const RenderData *context,
                                  Strip *strip,
                                  float /*timeline_frame*/,
                                  float /*fac*/,
@@ -371,13 +373,13 @@ static void free_effect_default(Strip *strip, const bool /*do_id_user*/)
   MEM_SAFE_FREE(strip->effectdata);
 }
 
-void blend_mode_effect_get_handle(SeqEffectHandle &rval)
+void blend_mode_effect_get_handle(EffectHandle &rval)
 {
   rval.execute = do_blend_mode_effect;
   rval.early_out = early_out_mul_input2;
 }
 
-void color_mix_effect_get_handle(SeqEffectHandle &rval)
+void color_mix_effect_get_handle(EffectHandle &rval)
 {
   rval.init = init_colormix_effect;
   rval.free = free_effect_default;
@@ -386,15 +388,17 @@ void color_mix_effect_get_handle(SeqEffectHandle &rval)
   rval.early_out = early_out_mul_input2;
 }
 
-void alpha_over_effect_get_handle(SeqEffectHandle &rval)
+void alpha_over_effect_get_handle(EffectHandle &rval)
 {
   rval.init = init_alpha_over_or_under;
   rval.execute = do_alphaover_effect;
   rval.early_out = early_out_mul_input1;
 }
 
-void alpha_under_effect_get_handle(SeqEffectHandle &rval)
+void alpha_under_effect_get_handle(EffectHandle &rval)
 {
   rval.init = init_alpha_over_or_under;
   rval.execute = do_alphaunder_effect;
 }
+
+}  // namespace blender::seq

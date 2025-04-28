@@ -105,8 +105,7 @@ static void copy_materials_to_new_geometry_object(const Object &src_ob_eval,
   for (int i = 0; i < materials_num; i++) {
     const Material *material_eval = BKE_object_material_get_eval(
         src_ob_eval, src_data_eval, i + 1);
-    Material *material_orig = reinterpret_cast<Material *>(
-        DEG_get_original_id(const_cast<ID *>(&material_eval->id)));
+    Material *material_orig = const_cast<Material *>(DEG_get_original(material_eval));
     if (material_orig) {
       (*dst_materials)[i] = material_orig;
       id_us_plus(&material_orig->id);
@@ -136,14 +135,16 @@ class GeometryToObjectsBuilder {
                                             const bke::GeometrySet &geometry)
   {
     ComponentObjects component_objects = this->get_objects_for_geometry(src_ob_eval, geometry);
-    return this->collection_from_component_objects(
-        component_objects, geometry.name.empty() ? BKE_id_name(src_ob_eval.id) : geometry.name);
+    const StringRefNull name = geometry.name.empty() ? StringRefNull(BKE_id_name(src_ob_eval.id)) :
+                                                       StringRefNull(geometry.name);
+    return this->collection_from_component_objects(component_objects, name);
   }
 
   ComponentObjects get_objects_for_geometry(const Object &src_ob_eval,
                                             const bke::GeometrySet &geometry)
   {
-    const StringRefNull name = geometry.name.empty() ? BKE_id_name(src_ob_eval.id) : geometry.name;
+    const StringRefNull name = geometry.name.empty() ? StringRefNull(BKE_id_name(src_ob_eval.id)) :
+                                                       StringRefNull(geometry.name);
     ComponentObjects objects;
     if (const Mesh *mesh = geometry.get_mesh()) {
       if (mesh->verts_num > 0) {
@@ -346,7 +347,7 @@ class GeometryToObjectsBuilder {
         }
         case bke::InstanceReference::Type::Object: {
           Object &object_eval = reference.object();
-          Object *object_orig = DEG_get_original_object(&object_eval);
+          Object *object_orig = DEG_get_original(&object_eval);
           if (ELEM(object_orig, &src_ob_eval, nullptr)) {
             return std::nullopt;
           }
@@ -382,7 +383,7 @@ class GeometryToObjectsBuilder {
       case bke::InstanceReference::Type::Object: {
         /* Create a collection for the object because we can't instance objects directly. */
         Object &object_eval = reference.object();
-        Object *object_orig = DEG_get_original_object(&object_eval);
+        Object *object_orig = DEG_get_original(&object_eval);
 
         if (object_orig->type == OB_EMPTY && object_orig->instance_collection) {
           instance.collection = object_orig->instance_collection;
@@ -406,8 +407,7 @@ class GeometryToObjectsBuilder {
         /* For collections, we don't need to create a new wrapper collection, we can just create
          * objects that instance the existing collection. */
         Collection &collection_eval = reference.collection();
-        Collection *collection_orig = reinterpret_cast<Collection *>(
-            DEG_get_original_id(&collection_eval.id));
+        Collection *collection_orig = DEG_get_original(&collection_eval);
         instance.collection = collection_orig;
         break;
       }
@@ -437,7 +437,7 @@ static Vector<Collection *> find_collections_containing_object(Main &bmain,
   return collections.extract_vector();
 }
 
-static int visual_geometry_to_objects_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus visual_geometry_to_objects_exec(bContext *C, wmOperator * /*op*/)
 {
   Main &bmain = *CTX_data_main(C);
   Scene &scene = *CTX_data_scene(C);

@@ -21,7 +21,7 @@ void select_id_set(uint id)
 
 void select_id_output(uint id)
 {
-  if (id == -1) {
+  if (id == uint(-1)) {
     /* Invalid index */
     return;
   }
@@ -38,7 +38,7 @@ void select_id_output(uint id)
     /* Stores the nearest depth with the distance to the cursor. */
 
     /* Distance function to the cursor. Currently a simple pixel ring distance. */
-    ivec2 coord = abs(ivec2(gl_FragCoord.xy) - select_info_buf.cursor);
+    int2 coord = abs(int2(gl_FragCoord.xy) - select_info_buf.cursor);
     uint dist = uint(max(coord.x, coord.y));
 
     uint depth = uint(gl_FragCoord.z * float(0x00FFFFFFu));

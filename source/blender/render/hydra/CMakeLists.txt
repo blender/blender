@@ -61,7 +61,6 @@ set(INC_SYS
   ${BOOST_INCLUDE_DIR}
   ${TBB_INCLUDE_DIR}
   ${GFLAGS_INCLUDE_DIRS}
-  ${EIGEN3_INCLUDE_DIRS}
 )
 
 set(LIB
@@ -76,6 +75,7 @@ set(LIB
   PRIVATE bf::intern::clog
   bf_io_usd
   PRIVATE bf::nodes
+  PRIVATE bf::dependencies::eigen
 )
 
 set(SRC

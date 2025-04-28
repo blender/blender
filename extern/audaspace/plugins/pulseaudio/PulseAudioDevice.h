@@ -26,46 +26,18 @@
  * The PulseAudioDevice class.
  */
 
-#include "devices/SoftwareDevice.h"
-#include "util/RingBuffer.h"
-
-#include <condition_variable>
-#include <thread>
-
 #include <pulse/pulseaudio.h>
+
+#include "devices/MixingThreadDevice.h"
 
 AUD_NAMESPACE_BEGIN
 
 /**
  * This device plays back through PulseAudio, the simple direct media layer.
  */
-class AUD_PLUGIN_API PulseAudioDevice : public SoftwareDevice
+class AUD_PLUGIN_API PulseAudioDevice : public MixingThreadDevice
 {
 private:
-	class PulseAudioSynchronizer : public DefaultSynchronizer
-	{
-		PulseAudioDevice* m_device;
-		bool m_playing = false;
-		pa_usec_t m_time_start = 0;
-		double m_seek_pos = 0.0f;
-
-	public:
-		PulseAudioSynchronizer(PulseAudioDevice* device);
-
-		virtual void play();
-		virtual void stop();
-		virtual void seek(std::shared_ptr<IHandle> handle, double time);
-		virtual double getPosition(std::shared_ptr<IHandle> handle);
-	};
-
-	/// Synchronizer.
-	PulseAudioSynchronizer m_synchronizer;
-
-	/**
-	 * Whether there is currently playback.
-	 */
-	volatile bool m_playback;
-
 	bool m_corked;
 
 	pa_threaded_mainloop* m_mainloop;
@@ -73,38 +45,14 @@ private:
 	pa_stream* m_stream;
 	pa_context_state_t m_state;
 
-	/**
-	 * The mixing ring buffer.
-	 */
-	RingBuffer m_ring_buffer;
-
-	/**
-	 * Whether the device is valid.
-	 */
-	bool m_valid;
-
 	int m_buffersize;
 	uint32_t m_underflows;
 
-	/**
-	 * The mixing thread.
-	 */
-	std::thread m_mixingThread;
+	/// Synchronizer.
+	pa_usec_t m_synchronizerStartTime{0};
+	double m_synchronizerStartPosition{0.0};
 
-	/**
-	 * Mutex for mixing.
-	 */
-	std::mutex m_mixingLock;
-
-	/**
-	 * Condition for mixing.
-	 */
-	std::condition_variable m_mixingCondition;
-
-	/**
-	 * Updates the ring buffer.
-	 */
-	AUD_LOCAL void updateRingBuffer();
+	AUD_LOCAL void preMixingWork(bool playing) override;
 
 	/**
 	 * Reports the state of the PulseAudio server connection.
@@ -143,7 +91,10 @@ public:
 	 */
 	virtual ~PulseAudioDevice();
 
-	virtual ISynchronizer* getSynchronizer();
+	virtual void seekSynchronizer(double time);
+	virtual double getSynchronizerPosition();
+	virtual void playSynchronizer();
+	virtual void stopSynchronizer();
 
 	/**
 	 * Registers this plugin.

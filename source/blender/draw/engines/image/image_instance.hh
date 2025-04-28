@@ -6,6 +6,10 @@
 
 #include <DRW_render.hh>
 
+#include "BKE_context.hh"
+
+#include "DRW_engine.hh"
+
 #include "image_drawing_mode.hh"
 #include "image_private.hh"
 #include "image_space.hh"
@@ -33,7 +37,7 @@ static inline std::unique_ptr<AbstractSpaceAccessor> space_accessor_from_space(
   return nullptr;
 }
 
-class Instance {
+class Instance : public DrawEngine {
  private:
   std::unique_ptr<AbstractSpaceAccessor> space_;
   Main *main_;
@@ -48,17 +52,23 @@ class Instance {
  public:
   Instance() : drawing_mode_(*this) {}
 
-  void init(Main *main, SpaceLink *space_link, const ARegion *_region)
+  virtual ~Instance() = default;
+
+  StringRefNull name_get() final
   {
-    main_ = main;
-    region = _region;
-    space_ = space_accessor_from_space(space_link);
+    return "UV/Image";
+  }
+
+  void init() final
+  {
+    const DRWContext *ctx_state = DRW_context_get();
+    main_ = CTX_data_main(ctx_state->evil_C);
+    region = ctx_state->region;
+    space_ = space_accessor_from_space(ctx_state->space_data);
     manager = DRW_manager_get();
   }
 
-  virtual ~Instance() = default;
-
-  void begin_sync()
+  void begin_sync() final
   {
     drawing_mode_.begin_sync();
 
@@ -68,6 +78,8 @@ class Instance {
     float4x4 winmat = float4x4::identity();
     state.view.sync(viewmat, winmat);
     state.flags.do_tile_drawing = false;
+
+    image_sync();
   }
 
   void image_sync()
@@ -88,7 +100,7 @@ class Instance {
     space_->init_ss_to_texture_matrix(
         region, state.image->runtime.backdrop_offset, image_resolution, state.ss_to_texture);
 
-    const Scene *scene = DRW_context_state_get()->scene;
+    const Scene *scene = DRW_context_get()->scene;
     state.sh_params.update(space_.get(), scene, state.image, image_buffer);
     space_->release_buffer(state.image, image_buffer, lock);
 
@@ -102,15 +114,17 @@ class Instance {
     drawing_mode_.image_sync(state.image, iuser);
   }
 
-  void draw_finish()
+  void object_sync(ObjectRef & /*obref*/, Manager & /*manager*/) final {}
+
+  void end_sync() final {}
+
+  void draw(Manager & /*manager */) final
   {
+    DRW_submission_start();
+    drawing_mode_.draw_viewport();
     drawing_mode_.draw_finish();
     state.image = nullptr;
-  }
-
-  void draw_viewport()
-  {
-    drawing_mode_.draw_viewport();
+    DRW_submission_end();
   }
 };
 }  // namespace blender::image_engine

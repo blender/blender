@@ -12,7 +12,7 @@ bool is_adaptive(const CpuPatchTable *patch_table)
   return patch_table->GetPatchArrayBuffer()[0].GetDescriptor().IsAdaptive();
 }
 
-bool is_adaptive(const GLPatchTable *patch_table)
+bool is_adaptive(const GPUPatchTable *patch_table)
 {
   return patch_table->GetPatchArrays()[0].GetDescriptor().IsAdaptive();
 }

@@ -928,8 +928,8 @@ class PackageInstaller:
         return cls._instance
 
     def run_command(self, command):
-        """Basic wrapper around `subprocess.Popen`, mimicking  `subprocess.run` with a basic progress bar."""
-        # First dummy call to get user password for sudo. Otherwise the progress bar on actuall commands
+        """Basic wrapper around ``subprocess.Popen``, mimicking ``subprocess.run`` with a basic progress bar."""
+        # First dummy call to get user password for `sudo`. Otherwise the progress bar on actual commands
         # makes it impossible for users to enter their password.
         if not self.settings.no_sudo:
             subprocess.run([MAYSUDO, "echo"], capture_output=True)

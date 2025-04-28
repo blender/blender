@@ -97,9 +97,9 @@ int main(int argc, char **argv)
     fprintf(fpout, "%3d,", getc(fpin));
   }
 
-  /* Trailing nullptr terminator, this isn't needed in some cases and
+  /* Trailing null terminator, this isn't needed in some cases and
    * won't be taken into account by the size variable, but its useful when dealing with
-   * nullptr terminated string data */
+   * null terminated string data. */
   fprintf(fpout, "0\n};\n\n");
 
   fclose(fpin);

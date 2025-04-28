@@ -20,6 +20,16 @@ class Device;
 class DeviceScene;
 class Scene;
 
+class OSLCameraParamQuery {
+ public:
+  OSLCameraParamQuery() = default;
+  virtual ~OSLCameraParamQuery() = default;
+
+  virtual bool get_float(ustring name, vector<float> &data) = 0;
+  virtual bool get_int(ustring name, vector<int> &data) = 0;
+  virtual bool get_string(ustring name, std::string &data) = 0;
+};
+
 /* Camera
  *
  * The camera parameters are quite standard, tested to be both compatible with
@@ -181,6 +191,10 @@ class Camera : public Node {
   KernelCamera kernel_camera;
   array<DecomposedTransform> kernel_camera_motion;
 
+  /* Custom camera script. */
+  std::string script_name;
+  map<ustring, pair<vector<uint8_t>, TypeDesc>> script_params;
+
  private:
   int width;
   int height;
@@ -209,11 +223,20 @@ class Camera : public Node {
   int motion_step(const float time) const;
   bool use_motion() const;
 
-  void set_screen_size(const int width_, int height_);
+  uint get_kernel_features() const;
+
+  bool set_screen_size(const int width_, int height_);
+
+  void set_osl_camera(Scene *scene,
+                      OSLCameraParamQuery &params,
+                      const std::string &filepath,
+                      const std::string &bytecode_hash = "",
+                      const std::string &bytecode = "");
+  void clear_osl_camera(Scene *scene);
 
  private:
   /* Private utility functions. */
-  float3 transform_raster_to_world(const float raster_x, const float raster_y);
+  float3 transform_full_raster_to_world(const float raster_x, const float raster_y);
 };
 
 CCL_NAMESPACE_END

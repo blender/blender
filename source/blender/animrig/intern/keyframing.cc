@@ -200,7 +200,6 @@ std::optional<StringRefNull> default_channel_group_for_path(const PointerRNA *an
 {
   if (animated_struct->type == &RNA_PoseBone) {
     bPoseChannel *pose_channel = static_cast<bPoseChannel *>(animated_struct->data);
-    BLI_assert(pose_channel->name != nullptr);
     return pose_channel->name;
   }
 
@@ -219,26 +218,12 @@ std::optional<StringRefNull> default_channel_group_for_path(const PointerRNA *an
   return std::nullopt;
 }
 
-void update_autoflags_fcurve_direct(FCurve *fcu, PropertyRNA *prop)
+void update_autoflags_fcurve_direct(FCurve *fcu, const PropertyType prop_type)
 {
-  /* Set additional flags for the F-Curve (i.e. only integer values). */
+  /* First clear out all the flags that should be updated by this function, before setting just the
+   * ones suitable for this property type. */
   fcu->flag &= ~(FCURVE_INT_VALUES | FCURVE_DISCRETE_VALUES);
-  switch (RNA_property_type(prop)) {
-    case PROP_FLOAT:
-      /* Do nothing. */
-      break;
-    case PROP_INT:
-      /* Do integer (only 'whole' numbers) interpolation between all points. */
-      fcu->flag |= FCURVE_INT_VALUES;
-      break;
-    default:
-      /* Do 'discrete' (i.e. enum, boolean values which cannot take any intermediate
-       * values at all) interpolation between all points.
-       *    - however, we must also ensure that evaluated values are only integers still.
-       */
-      fcu->flag |= (FCURVE_DISCRETE_VALUES | FCURVE_INT_VALUES);
-      break;
-  }
+  fcu->flag |= fcurve_flags_for_property_type(prop_type);
 }
 
 bool is_keying_flag(const Scene *scene, const eKeying_Flag flag)
@@ -441,10 +426,9 @@ static Vector<float> get_keyframe_values(PointerRNA *ptr, PropertyRNA *prop, con
   Vector<float> values;
 
   if (visual_key && visualkey_can_use(ptr, prop)) {
-    /* Visual-keying is only available for object and pchan datablocks, as
-     * it works by keyframing using a value extracted from the final matrix
-     * instead of using the kt system to extract a value.
-     */
+    /* Visual-keying is only available for object data-blocks and pose-channels,
+     * as it works by key-framing using a value extracted from the final matrix
+     * instead of using the kt system to extract a value. */
     values = visualkey_get_values(ptr, prop);
   }
   else {
@@ -546,7 +530,7 @@ bool insert_keyframe_direct(ReportList *reports,
   }
 
   /* Update F-Curve flags to ensure proper behavior for property type. */
-  update_autoflags_fcurve_direct(fcu, prop);
+  update_autoflags_fcurve_direct(fcu, RNA_property_type(prop));
 
   const int index = fcu->array_index;
   const bool visual_keyframing = flag & INSERTKEY_MATRIX;
@@ -625,7 +609,7 @@ static SingleKeyingResult insert_keyframe_fcurve_value(Main *bmain,
   }
 
   /* Update F-Curve flags to ensure proper behavior for property type. */
-  update_autoflags_fcurve_direct(fcu, prop);
+  update_autoflags_fcurve_direct(fcu, RNA_property_type(prop));
 
   const SingleKeyingResult result = insert_keyframe_value(
       fcu, fcurve_frame, curval, keytype, flag);
@@ -926,7 +910,7 @@ static SingleKeyingResult insert_key_layer(
     Layer &layer,
     const Slot &slot,
     const std::string &rna_path,
-    const std::optional<PropertySubType> prop_subtype,
+    PropertyRNA *prop,
     const std::optional<blender::StringRefNull> channel_group,
     const KeyInsertData &key_data,
     const KeyframeSettings &key_settings,
@@ -937,11 +921,14 @@ static SingleKeyingResult insert_key_layer(
 
   const bool do_cyclic = (insert_key_flags & INSERTKEY_CYCLE_AWARE) && action.is_cyclic();
 
+  const PropertyType prop_type = RNA_property_type(prop);
+  const PropertySubType prop_subtype = RNA_property_subtype(prop);
+
   Strip *strip = layer.strip(0);
   return strip->data<StripKeyframeData>(action).keyframe_insert(
       bmain,
       slot,
-      {rna_path, key_data.array_index, prop_subtype, channel_group},
+      {rna_path, key_data.array_index, prop_type, prop_subtype, channel_group},
       key_data.position,
       key_settings,
       insert_key_flags,
@@ -991,8 +978,6 @@ static CombinedKeyingResult insert_key_layered_action(
   BLI_assert(bmain != nullptr);
   BLI_assert(action.is_action_layered());
 
-  const PropertySubType prop_subtype = RNA_property_subtype(prop);
-
   int property_array_index = 0;
   CombinedKeyingResult combined_result;
   for (float value : values) {
@@ -1007,7 +992,7 @@ static CombinedKeyingResult insert_key_layered_action(
                                                        layer,
                                                        slot,
                                                        rna_path,
-                                                       prop_subtype,
+                                                       prop,
                                                        channel_group,
                                                        key_data,
                                                        key_settings,
@@ -1190,6 +1175,17 @@ CombinedKeyingResult insert_keyframes(Main *bmain,
   BKE_animsys_free_nla_keyframing_context_cache(&nla_cache);
 
   if (combined_result.get_count(SingleKeyingResult::SUCCESS) > 0) {
+    /* NOTE: this is NOT using ID_RECALC_ANIMATION on purpose, because that would be quite annoying
+     * in the following case:
+     *
+     * - Key Cube's loc/rot/scale.
+     * - Go to another frame.
+     * - Translate, rotate, and scale the cube.
+     * - Hover over the loc/rot/scale properties and one by one press 'I' to
+     *   insert a key there.
+     *
+     * If ID_RECALC_ANIMATION were used, keying the location would immediately cause a flush of the
+     * animation data, popping the rotation and scale back to their animated values. */
     DEG_id_tag_update(&dna_action->id, ID_RECALC_ANIMATION_NO_FLUSH);
 
     /* TODO: it's not entirely clear why the action we got wouldn't be the same

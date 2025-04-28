@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2015 Google Inc. All rights reserved.
+// Copyright 2023 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -40,8 +40,7 @@
 #include "glog/logging.h"
 #include "small_blas_generic.h"
 
-namespace ceres {
-namespace internal {
+namespace ceres::internal {
 
 // The following three macros are used to share code and reduce
 // template junk across the various GEMM variants.
@@ -561,7 +560,6 @@ inline void MatrixTransposeVectorMultiply(const double* A,
 #undef CERES_GEMM_STORE_SINGLE
 #undef CERES_GEMM_STORE_PAIR
 
-}  // namespace internal
-}  // namespace ceres
+}  // namespace ceres::internal
 
 #endif  // CERES_INTERNAL_SMALL_BLAS_H_

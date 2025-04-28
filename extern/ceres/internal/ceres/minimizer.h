@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2015 Google Inc. All rights reserved.
+// Copyright 2023 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -40,14 +40,14 @@
 #include "ceres/iteration_callback.h"
 #include "ceres/solver.h"
 
-namespace ceres {
-namespace internal {
+namespace ceres::internal {
 
 class Evaluator;
 class SparseMatrix;
 class TrustRegionStrategy;
 class CoordinateDescentMinimizer;
 class LinearSolver;
+class ContextImpl;
 
 // Interface for non-linear least squares solvers.
 class CERES_NO_EXPORT Minimizer {
@@ -114,6 +114,7 @@ class CERES_NO_EXPORT Minimizer {
     int max_num_iterations;
     double max_solver_time_in_seconds;
     int num_threads;
+    ContextImpl* context = nullptr;
 
     // Number of times the linear solver should be retried in case of
     // numerical failure. The retries are done by exponentially scaling up
@@ -193,8 +194,7 @@ class CERES_NO_EXPORT Minimizer {
                         Solver::Summary* summary) = 0;
 };
 
-}  // namespace internal
-}  // namespace ceres
+}  // namespace ceres::internal
 
 #include "ceres/internal/reenable_warnings.h"
 

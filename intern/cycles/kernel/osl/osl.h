@@ -12,6 +12,9 @@
  * Holds all variables to execute and use OSL shaders from the kernel.
  */
 
+#include "kernel/geom/attribute.h"
+#include "kernel/geom/primitive.h"
+
 #include "kernel/osl/closures_setup.h"
 #include "kernel/osl/types.h"
 
@@ -198,7 +201,65 @@ ccl_device_inline void osl_eval_nodes(KernelGlobals kg,
     globals.shade_index = state + 1;
   }
 
-  unsigned int optix_dc_index = 2 /* NUM_CALLABLE_PROGRAM_GROUPS */ +
+/* For surface shaders, we might have an automatic bump shader that needs to be executed before
+ * the main shader to update globals.N. */
+#    if __cplusplus < 201703L
+  if (type == SHADER_TYPE_SURFACE)
+#    else
+  if constexpr (type == SHADER_TYPE_SURFACE)
+#    endif
+  {
+    if (sd->flag & SD_HAS_BUMP) {
+      /* Save state. */
+      const float3 P = sd->P;
+      const float dP = sd->dP;
+      const packed_float3 dPdx = globals.dPdx;
+      const packed_float3 dPdy = globals.dPdy;
+
+      /* Set state as if undisplaced. */
+      if (sd->flag & SD_HAS_DISPLACEMENT) {
+        const AttributeDescriptor desc = find_attribute(kg, sd, ATTR_STD_POSITION_UNDISPLACED);
+        kernel_assert(desc.offset != ATTR_STD_NOT_FOUND);
+
+        differential3 tmp_dP;
+        sd->P = primitive_surface_attribute<float3>(kg, sd, desc, &tmp_dP.dx, &tmp_dP.dy);
+
+        object_position_transform(kg, sd, &sd->P);
+        object_dir_transform(kg, sd, &tmp_dP.dx);
+        object_dir_transform(kg, sd, &tmp_dP.dy);
+
+        sd->dP = differential_make_compact(tmp_dP);
+
+        globals.P = sd->P;
+        globals.dPdx = tmp_dP.dx;
+        globals.dPdy = tmp_dP.dy;
+      }
+
+      /* Execute bump shader. */
+      unsigned int optix_dc_index = 2 /* NUM_CALLABLE_PROGRAM_GROUPS */ + 1 /* camera program */ +
+                                    (shader + SHADER_TYPE_BUMP * kernel_data.max_shaders);
+      optixDirectCall<void>(optix_dc_index,
+                            /* shaderglobals_ptr = */ &globals,
+                            /* groupdata_ptr = */ (void *)nullptr,
+                            /* userdata_base_ptr = */ (void *)nullptr,
+                            /* output_base_ptr = */ (void *)nullptr,
+                            /* shadeindex = */ 0,
+                            /* interactive_params_ptr */ (void *)nullptr);
+
+      /* Reset state. */
+      sd->P = P;
+      sd->dP = dP;
+
+      /* Apply bump output to sd->N since it's used for e.g. shadow terminator logic. */
+      sd->N = globals.N;
+
+      globals.P = P;
+      globals.dPdx = dPdx;
+      globals.dPdy = dPdy;
+    }
+  }
+
+  unsigned int optix_dc_index = 2 /* NUM_CALLABLE_PROGRAM_GROUPS */ + 1 /* camera program */ +
                                 (shader + type * kernel_data.max_shaders);
   optixDirectCall<void>(optix_dc_index,
                         /* shaderglobals_ptr = */ &globals,

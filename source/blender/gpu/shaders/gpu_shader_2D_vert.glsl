@@ -8,5 +8,5 @@ VERTEX_SHADER_CREATE_INFO(gpu_shader_2D_checker)
 
 void main()
 {
-  gl_Position = ModelViewProjectionMatrix * vec4(pos, 0.0, 1.0);
+  gl_Position = ModelViewProjectionMatrix * float4(pos, 0.0f, 1.0f);
 }

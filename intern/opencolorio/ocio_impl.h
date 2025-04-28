@@ -25,6 +25,9 @@ class IOCIOImpl {
                                                          const char *name) = 0;
   virtual int configGetIndexForColorSpace(OCIO_ConstConfigRcPtr *config, const char *name) = 0;
 
+  virtual const char *getColorSpaceFromFilepath(OCIO_ConstConfigRcPtr *config,
+                                                const char *filepath) = 0;
+
   virtual int colorSpaceIsInvertible(OCIO_ConstColorSpaceRcPtr *cs) = 0;
   virtual int colorSpaceIsData(OCIO_ConstColorSpaceRcPtr *cs) = 0;
   virtual void colorSpaceIsBuiltin(OCIO_ConstConfigRcPtr *config,
@@ -150,6 +153,9 @@ class FallbackImpl : public IOCIOImpl {
                                                  const char *name) override;
   int configGetIndexForColorSpace(OCIO_ConstConfigRcPtr *config, const char *name) override;
 
+  const char *getColorSpaceFromFilepath(OCIO_ConstConfigRcPtr *config,
+                                        const char *filepath) override;
+
   int colorSpaceIsInvertible(OCIO_ConstColorSpaceRcPtr *cs) override;
   int colorSpaceIsData(OCIO_ConstColorSpaceRcPtr *cs) override;
   void colorSpaceIsBuiltin(OCIO_ConstConfigRcPtr *config,
@@ -251,6 +257,9 @@ class OCIOImpl : public IOCIOImpl {
                                                  const char *name) override;
   int configGetIndexForColorSpace(OCIO_ConstConfigRcPtr *config, const char *name) override;
 
+  const char *getColorSpaceFromFilepath(OCIO_ConstConfigRcPtr *config,
+                                        const char *filepath) override;
+
   int colorSpaceIsInvertible(OCIO_ConstColorSpaceRcPtr *cs) override;
   int colorSpaceIsData(OCIO_ConstColorSpaceRcPtr *cs) override;
   void colorSpaceIsBuiltin(OCIO_ConstConfigRcPtr *config,
@@ -330,6 +339,16 @@ class OCIOImpl : public IOCIOImpl {
   void OCIO_PackedImageDescRelease(OCIO_PackedImageDesc *id) override;
 
   bool supportGPUShader() override;
+  /**
+   * Setup GPU contexts for a transform defined by processor using GLSL.
+   * All LUT allocating baking and shader compilation happens here.
+   *
+   * Once this function is called, callee could start drawing images
+   * using regular 2D texture.
+   *
+   * When all drawing is finished, gpuDisplayShaderUnbind must be called to
+   * restore GPU context to its previous state.
+   */
   bool gpuDisplayShaderBind(OCIO_ConstConfigRcPtr *config,
                             const char *input,
                             const char *view,

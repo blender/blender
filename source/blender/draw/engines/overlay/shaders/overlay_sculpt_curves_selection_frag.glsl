@@ -8,5 +8,5 @@ FRAGMENT_SHADER_CREATE_INFO(overlay_sculpt_curves_selection)
 
 void main()
 {
-  out_color = vec4(vec3(0.0), 1.0 - mask_weight);
+  out_color = float4(float3(0.0f), 1.0f - mask_weight);
 }

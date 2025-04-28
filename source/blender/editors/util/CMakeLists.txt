@@ -6,6 +6,7 @@ set(INC
   ../include
   ../space_sequencer
   ../../makesrna
+  ../../nodes
   # RNA_prototypes.hh
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
@@ -95,6 +96,8 @@ set(SRC
   ../include/UI_interface.hh
   ../include/UI_interface_c.hh
   ../include/UI_interface_icons.hh
+  ../include/UI_interface_layout.hh
+  ../include/UI_interface_types.hh
   ../include/UI_resources.hh
   ../include/UI_string_search.hh
   ../include/UI_tree_view.hh

@@ -30,12 +30,17 @@ enum {
   IDTYPE_FLAGS_NO_COPY = 1 << 0,
   /** Indicates that the given IDType does not support linking/appending from a library file. */
   IDTYPE_FLAGS_NO_LIBLINKING = 1 << 1,
-  /** Indicates that the given IDType should not be directly linked from a library file, but may be
-   * appended.
-   * NOTE: Mutually exclusive with `IDTYPE_FLAGS_NO_LIBLINKING`. */
+  /**
+   * Indicates that the given IDType should not be directly linked from a library file,
+   * but may be appended.
+   * NOTE: Mutually exclusive with `IDTYPE_FLAGS_NO_LIBLINKING`.
+   */
   IDTYPE_FLAGS_ONLY_APPEND = 1 << 2,
-  /** Allow to re-use an existing local ID with matching weak library reference instead of creating
-   * a new copy of it, when appending. See also #LibraryWeakReference in `DNA_ID.h`. */
+  /**
+   * Allow to re-use an existing local ID with matching weak library reference
+   * instead of creating a new copy of it, when appending.
+   * See also #LibraryWeakReference in `DNA_ID.h`.
+   */
   IDTYPE_FLAGS_APPEND_IS_REUSABLE = 1 << 3,
   /** Indicates that the given IDType does not have animation data. */
   IDTYPE_FLAGS_NO_ANIMDATA = 1 << 4,
@@ -65,10 +70,12 @@ enum {
 };
 
 struct IDCacheKey {
-  /* The session UID of the ID owning the cached data. */
+  /** The session UID of the ID owning the cached data. */
   unsigned int id_session_uid;
-  /* Value uniquely identifying the cache within its ID.
-   * Typically the offset of its member in the data-block struct, but can be anything. */
+  /**
+   * Value uniquely identifying the cache within its ID.
+   * Typically the offset of its member in the data-block struct, but can be anything.
+   */
   size_t identifier;
 };
 
@@ -91,8 +98,10 @@ using IDTypeMakeLocalFunction = void (*)(Main *bmain, ID *id, int flags);
 using IDTypeForeachIDFunction = void (*)(ID *id, LibraryForeachIDData *data);
 
 enum eIDTypeInfoCacheCallbackFlags {
-  /** Indicates to the callback that cache may be stored in the .blend file,
-   * so its pointer should not be cleared at read-time. */
+  /**
+   * Indicates to the callback that cache may be stored in the .blend file,
+   * so its pointer should not be cleared at read-time.
+   */
   IDTYPE_CACHE_CB_FLAGS_PERSISTENT = 1 << 0,
 };
 using IDTypeForeachCacheFunctionCallback =

@@ -110,12 +110,13 @@ class PathTraceDisplay {
    * device. Complementary part of DeviceGraphicsInterop.
    *
    * NOTE: Graphics interoperability can not be used while the texture buffer is mapped. This means
-   * that `graphics_interop_get()` is not allowed between `map_texture_buffer()` and
+   * that `graphics_interop_get_buffer()` is not allowed between `map_texture_buffer()` and
    * `unmap_texture_buffer()` calls. */
 
   /* Get PathTraceDisplay graphics interoperability information which acts as a destination for the
    * device API. */
-  DisplayDriver::GraphicsInterop graphics_interop_get();
+  GraphicsInteropDevice graphics_interop_get_device();
+  GraphicsInteropBuffer graphics_interop_get_buffer();
 
   /* (De)activate GPU display for graphics interoperability outside of regular display update
    * routines. */
@@ -136,7 +137,7 @@ class PathTraceDisplay {
    * after clear will write new pixel values for an updating area, leaving everything else zeroed.
    *
    * If the GPU display supports graphics interoperability then the zeroing the display is to be
-   * delegated to the device via the `DisplayDriver::GraphicsInterop`. */
+   * delegated to the device via the `GraphicsInterop`. */
   void clear();
 
   /* Draw the current state of the texture.

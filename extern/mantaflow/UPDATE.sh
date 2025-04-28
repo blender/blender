@@ -19,44 +19,23 @@ WITH_DEPENDENCIES=0
 # Build with numpy support?
 USE_NUMPY=0
 
-# Choose which multithreading platform to use for Mantaflow preprocessing
-USE_OMP=0
-USE_TBB=1
-
-if [[ "$USE_OMP" -eq "1" && "$USE_TBB" -eq "1" ]]; then
-  echo "Cannot build Mantaflow for OpenMP and TBB at the same time"
-  exit 1
-elif [[ "$USE_OMP" -eq "0" && "$USE_TBB" -eq "0" ]]; then
-  echo "WARNING: Building Mantaflow without multithreading"
-else
-  if [[ "$USE_OMP" -eq "1" ]]; then
-    echo "Building Mantaflow with OpenMP multithreading"
-  elif [[ "$USE_TBB" -eq "1" ]]; then
-    echo "Building Mantaflow with TBB multithreading"
-  fi
-fi
-
 # ==================== 2) BUILD MANTAFLOW ================================================
-
-# For OpenMP, we need non-default compiler to build Mantaflow on OSX
-if [[ "$USE_OMP" -eq "1" && "$OSTYPE" == "darwin"* ]]; then
-  export CC=/usr/local/opt/llvm/bin/clang
-  export CXX=/usr/local/opt/llvm/bin/clang++
-  export LDFLAGS=-L/usr/local/opt/llvm/lib
-fi
 
 cd $MANTA_INSTALLATION
 
 # Check-out manta repo from git?
 if [[ "$CLEAN_REPOSITORY" -eq "1" ]]; then
-  if cd mantaflowgit/; then git pull; else git clone git@bitbucket.org:thunil/mantaflowgit.git; cd mantaflowgit; fi
+  if cd mantaflowgit/; then git pull; else
+    git clone git@bitbucket.org:thunil/mantaflowgit.git
+    cd mantaflowgit
+  fi
   git checkout develop
 fi
 
 MANTA_BUILD_PATH=$MANTA_INSTALLATION/build_blender/
 mkdir -p $MANTA_BUILD_PATH
 cd $MANTA_BUILD_PATH
-cmake ../mantaflowgit -DGUI=0 -DOPENMP=$USE_OMP -DTBB=$USE_TBB -DBLENDER=1 -DPREPDEBUG=1 -DNUMPY=$USE_NUMPY && make -j8
+cmake ../mantaflowgit -DGUI=0 -DOPENMP=0 -DTBB=1 -DBLENDER=1 -DPREPDEBUG=1 -DNUMPY=$USE_NUMPY && make -j8
 
 # ==================== 3) COPY MANTAFLOW FILES TO BLENDER ROOT ===========================
 

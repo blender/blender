@@ -95,7 +95,7 @@ static bool gizmo2d_generic_poll(const bContext *C, wmGizmoGroupType *gzgt)
         return false;
       }
       Scene *scene = CTX_data_scene(C);
-      Editing *ed = SEQ_editing_get(scene);
+      Editing *ed = seq::editing_get(scene);
       if (ed == nullptr) {
         return false;
       }
@@ -205,7 +205,7 @@ static GizmoGroup2D *gizmogroup2d_init(wmGizmoGroup *gzgroup)
   const wmGizmoType *gzt_cage = WM_gizmotype_find("GIZMO_GT_cage_2d", true);
   const wmGizmoType *gzt_button = WM_gizmotype_find("GIZMO_GT_button_2d", true);
 
-  GizmoGroup2D *ggd = static_cast<GizmoGroup2D *>(MEM_callocN(sizeof(GizmoGroup2D), __func__));
+  GizmoGroup2D *ggd = MEM_callocN<GizmoGroup2D>(__func__);
 
   ggd->translate_xy[0] = WM_gizmo_new_ptr(gzt_arrow, gzgroup, nullptr);
   ggd->translate_xy[1] = WM_gizmo_new_ptr(gzt_arrow, gzgroup, nullptr);
@@ -246,15 +246,15 @@ static bool gizmo2d_calc_bounds(const bContext *C, float *r_center, float *r_min
   }
   else if (area->spacetype == SPACE_SEQ) {
     Scene *scene = CTX_data_scene(C);
-    Editing *ed = SEQ_editing_get(scene);
-    ListBase *seqbase = SEQ_active_seqbase_get(ed);
-    ListBase *channels = SEQ_channels_displayed_get(ed);
-    VectorSet strips = SEQ_query_rendered_strips(scene, channels, seqbase, scene->r.cfra, 0);
+    Editing *ed = seq::editing_get(scene);
+    ListBase *seqbase = seq::active_seqbase_get(ed);
+    ListBase *channels = seq::channels_displayed_get(ed);
+    VectorSet strips = seq::query_rendered_strips(scene, channels, seqbase, scene->r.cfra, 0);
     strips.remove_if([&](Strip *strip) { return (strip->flag & SELECT) == 0; });
     int selected_strips = strips.size();
     if (selected_strips > 0) {
       has_select = true;
-      const Bounds<float2> box = SEQ_image_transform_bounding_box_from_collection(
+      const Bounds<float2> box = seq::image_transform_bounding_box_from_collection(
           scene, strips, selected_strips != 1);
       copy_v2_v2(r_min, box.min);
       copy_v2_v2(r_max, box.max);
@@ -271,7 +271,7 @@ static bool gizmo2d_calc_bounds(const bContext *C, float *r_center, float *r_min
       const int pivot_point = scene->toolsettings->sequencer_tool_settings->pivot_point;
       if (pivot_point == V3D_AROUND_CURSOR) {
         SpaceSeq *sseq = static_cast<SpaceSeq *>(area->spacedata.first);
-        const float2 cursor_pixel = SEQ_image_preview_unit_to_px(scene, sseq->cursor);
+        const float2 cursor_pixel = seq::image_preview_unit_to_px(scene, sseq->cursor);
         copy_v2_v2(r_center, cursor_pixel);
       }
       else {
@@ -300,10 +300,10 @@ static int gizmo2d_calc_transform_orientation(const bContext *C)
   }
 
   Scene *scene = CTX_data_scene(C);
-  Editing *ed = SEQ_editing_get(scene);
-  ListBase *seqbase = SEQ_active_seqbase_get(ed);
-  ListBase *channels = SEQ_channels_displayed_get(ed);
-  VectorSet strips = SEQ_query_rendered_strips(scene, channels, seqbase, scene->r.cfra, 0);
+  Editing *ed = seq::editing_get(scene);
+  ListBase *seqbase = seq::active_seqbase_get(ed);
+  ListBase *channels = seq::channels_displayed_get(ed);
+  VectorSet strips = seq::query_rendered_strips(scene, channels, seqbase, scene->r.cfra, 0);
   strips.remove_if([&](Strip *strip) { return (strip->flag & SELECT) == 0; });
 
   bool use_local_orient = strips.size() == 1;
@@ -322,17 +322,17 @@ static float gizmo2d_calc_rotation(const bContext *C)
   }
 
   Scene *scene = CTX_data_scene(C);
-  Editing *ed = SEQ_editing_get(scene);
-  ListBase *seqbase = SEQ_active_seqbase_get(ed);
-  ListBase *channels = SEQ_channels_displayed_get(ed);
-  VectorSet strips = SEQ_query_rendered_strips(scene, channels, seqbase, scene->r.cfra, 0);
+  Editing *ed = seq::editing_get(scene);
+  ListBase *seqbase = seq::active_seqbase_get(ed);
+  ListBase *channels = seq::channels_displayed_get(ed);
+  VectorSet strips = seq::query_rendered_strips(scene, channels, seqbase, scene->r.cfra, 0);
   strips.remove_if([&](Strip *strip) { return (strip->flag & SELECT) == 0; });
 
   if (strips.size() == 1) {
     /* Only return the strip rotation if only one is selected. */
     for (Strip *strip : strips) {
       StripTransform *transform = strip->data->transform;
-      const float2 mirror = SEQ_image_transform_mirror_factor_get(strip);
+      const float2 mirror = seq::image_transform_mirror_factor_get(strip);
       return transform->rotation * mirror[0] * mirror[1];
     }
   }
@@ -344,16 +344,16 @@ static bool seq_get_strip_pivot_median(const Scene *scene, float r_pivot[2])
 {
   zero_v2(r_pivot);
 
-  Editing *ed = SEQ_editing_get(scene);
-  ListBase *seqbase = SEQ_active_seqbase_get(ed);
-  ListBase *channels = SEQ_channels_displayed_get(ed);
-  VectorSet strips = SEQ_query_rendered_strips(scene, channels, seqbase, scene->r.cfra, 0);
+  Editing *ed = seq::editing_get(scene);
+  ListBase *seqbase = seq::active_seqbase_get(ed);
+  ListBase *channels = seq::channels_displayed_get(ed);
+  VectorSet strips = seq::query_rendered_strips(scene, channels, seqbase, scene->r.cfra, 0);
   strips.remove_if([&](Strip *strip) { return (strip->flag & SELECT) == 0; });
   bool has_select = !strips.is_empty();
 
   if (has_select) {
     for (Strip *strip : strips) {
-      const float2 origin = SEQ_image_transform_origin_offset_pixelspace_get(scene, strip);
+      const float2 origin = seq::image_transform_origin_offset_pixelspace_get(scene, strip);
       add_v2_v2(r_pivot, origin);
     }
     mul_v2_fl(r_pivot, 1.0f / strips.size());
@@ -378,13 +378,13 @@ static bool gizmo2d_calc_transform_pivot(const bContext *C, float r_pivot[2])
     const int pivot_point = scene->toolsettings->sequencer_tool_settings->pivot_point;
 
     if (pivot_point == V3D_AROUND_CURSOR) {
-      const float2 cursor_pixel = SEQ_image_preview_unit_to_px(scene, sseq->cursor);
+      const float2 cursor_pixel = seq::image_preview_unit_to_px(scene, sseq->cursor);
       copy_v2_v2(r_pivot, cursor_pixel);
 
-      Editing *ed = SEQ_editing_get(scene);
-      ListBase *seqbase = SEQ_active_seqbase_get(ed);
-      ListBase *channels = SEQ_channels_displayed_get(ed);
-      VectorSet strips = SEQ_query_rendered_strips(scene, channels, seqbase, scene->r.cfra, 0);
+      Editing *ed = seq::editing_get(scene);
+      ListBase *seqbase = seq::active_seqbase_get(ed);
+      ListBase *channels = seq::channels_displayed_get(ed);
+      VectorSet strips = seq::query_rendered_strips(scene, channels, seqbase, scene->r.cfra, 0);
       strips.remove_if([&](Strip *strip) { return (strip->flag & SELECT) == 0; });
       has_select = !strips.is_empty();
     }
@@ -412,10 +412,10 @@ BLI_INLINE void gizmo2d_origin_to_region(ARegion *region, float *r_origin)
 /**
  * Custom handler for gizmo widgets
  */
-static int gizmo2d_modal(bContext *C,
-                         wmGizmo *widget,
-                         const wmEvent * /*event*/,
-                         eWM_GizmoFlagTweak /*tweak_flag*/)
+static wmOperatorStatus gizmo2d_modal(bContext *C,
+                                      wmGizmo *widget,
+                                      const wmEvent * /*event*/,
+                                      eWM_GizmoFlagTweak /*tweak_flag*/)
 {
   ARegion *region = CTX_wm_region(C);
   float origin[3];
@@ -785,8 +785,7 @@ static GizmoGroup_Resize2D *gizmogroup2d_resize_init(wmGizmoGroup *gzgroup)
   const wmGizmoType *gzt_arrow = WM_gizmotype_find("GIZMO_GT_arrow_3d", true);
   const wmGizmoType *gzt_button = WM_gizmotype_find("GIZMO_GT_button_2d", true);
 
-  GizmoGroup_Resize2D *ggd = static_cast<GizmoGroup_Resize2D *>(
-      MEM_callocN(sizeof(GizmoGroup_Resize2D), __func__));
+  GizmoGroup_Resize2D *ggd = MEM_callocN<GizmoGroup_Resize2D>(__func__);
 
   ggd->gizmo_xy[0] = WM_gizmo_new_ptr(gzt_arrow, gzgroup, nullptr);
   ggd->gizmo_xy[1] = WM_gizmo_new_ptr(gzt_arrow, gzgroup, nullptr);
@@ -948,8 +947,7 @@ static GizmoGroup_Rotate2D *gizmogroup2d_rotate_init(wmGizmoGroup *gzgroup)
 {
   const wmGizmoType *gzt_button = WM_gizmotype_find("GIZMO_GT_button_2d", true);
 
-  GizmoGroup_Rotate2D *ggd = static_cast<GizmoGroup_Rotate2D *>(
-      MEM_callocN(sizeof(GizmoGroup_Rotate2D), __func__));
+  GizmoGroup_Rotate2D *ggd = MEM_callocN<GizmoGroup_Rotate2D>(__func__);
 
   ggd->gizmo = WM_gizmo_new_ptr(gzt_button, gzgroup, nullptr);
 

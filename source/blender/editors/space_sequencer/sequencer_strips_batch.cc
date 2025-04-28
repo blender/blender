@@ -20,7 +20,7 @@
 
 #include "UI_resources.hh"
 
-namespace blender::ed::seq {
+namespace blender::ed::vse {
 
 uint color_pack(const uchar rgba[4])
 {
@@ -128,4 +128,4 @@ void StripsDrawBatch::flush_batch()
   strips_count_ = 0;
 }
 
-}  // namespace blender::ed::seq
+}  // namespace blender::ed::vse

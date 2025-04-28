@@ -22,3 +22,32 @@ if(WITH_TBB)
   target_include_directories(bf_deps_optional_tbb SYSTEM INTERFACE ${TBB_INCLUDE_DIRS})
   target_link_libraries(bf_deps_optional_tbb INTERFACE ${TBB_LIBRARIES})
 endif()
+
+add_library(bf_deps_optional_manifold INTERFACE)
+add_library(bf::dependencies::optional::manifold ALIAS bf_deps_optional_manifold)
+if(WITH_MANIFOLD)
+  if(WIN32)
+    target_compile_definitions(bf_deps_optional_manifold INTERFACE WITH_MANIFOLD)
+    target_include_directories(bf_deps_optional_manifold SYSTEM INTERFACE ${MANIFOLD_INCLUDE_DIRS})
+    target_link_libraries(bf_deps_optional_tbb INTERFACE ${MANIFOLD_LIBRARIES} bf::dependencies::optional::tbb)
+  else()
+    if(TARGET manifold::manifold)
+      target_compile_definitions(bf_deps_optional_manifold INTERFACE WITH_MANIFOLD)
+      target_link_libraries(bf_deps_optional_tbb INTERFACE manifold::manifold)
+    endif()
+  endif()
+endif()
+
+# -----------------------------------------------------------------------------
+# Configure Eigen
+
+add_library(bf_deps_eigen INTERFACE)
+add_library(bf::dependencies::eigen ALIAS bf_deps_eigen)
+
+target_include_directories(bf_deps_eigen SYSTEM INTERFACE ${EIGEN3_INCLUDE_DIRS})
+
+if(WITH_TBB)
+  target_compile_definitions(bf_deps_eigen INTERFACE WITH_TBB)
+  target_include_directories(bf_deps_eigen SYSTEM INTERFACE ${TBB_INCLUDE_DIRS})
+  target_link_libraries(bf_deps_eigen INTERFACE ${TBB_LIBRARIES})
+endif()

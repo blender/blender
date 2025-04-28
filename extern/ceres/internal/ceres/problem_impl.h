@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2021 Google Inc. All rights reserved.
+// Copyright 2023 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -59,7 +59,6 @@ namespace ceres {
 class CostFunction;
 class EvaluationCallback;
 class LossFunction;
-class LocalParameterization;
 struct CRSMatrix;
 
 namespace internal {
@@ -100,10 +99,6 @@ class CERES_NO_EXPORT ProblemImpl {
   }
 
   void AddParameterBlock(double* values, int size);
-  void AddParameterBlock(double* values,
-                         int size,
-                         LocalParameterization* local_parameterization);
-
   void AddParameterBlock(double* values, int size, Manifold* manifold);
 
   void RemoveResidualBlock(ResidualBlock* residual_block);
@@ -112,11 +107,6 @@ class CERES_NO_EXPORT ProblemImpl {
   void SetParameterBlockConstant(const double* values);
   void SetParameterBlockVariable(double* values);
   bool IsParameterBlockConstant(const double* values) const;
-
-  void SetParameterization(double* values,
-                           LocalParameterization* local_parameterization);
-  const LocalParameterization* GetParameterization(const double* values) const;
-  bool HasParameterization(const double* values) const;
 
   void SetManifold(double* values, Manifold* manifold);
   const Manifold* GetManifold(const double* values) const;
@@ -176,14 +166,12 @@ class CERES_NO_EXPORT ProblemImpl {
     return residual_block_set_;
   }
 
+  const Problem::Options& options() const { return options_; }
+
   ContextImpl* context() { return context_impl_; }
 
  private:
   ParameterBlock* InternalAddParameterBlock(double* values, int size);
-  void InternalSetParameterization(
-      double* values,
-      ParameterBlock* parameter_block,
-      LocalParameterization* local_parameterization);
   void InternalSetManifold(double* values,
                            ParameterBlock* parameter_block,
                            Manifold* manifold);
@@ -214,15 +202,8 @@ class CERES_NO_EXPORT ProblemImpl {
   std::unique_ptr<internal::Program> program_;
 
   // TODO(sameeragarwal): Unify the shared object handling across object types.
-  // Right now we are using vectors for LocalParameterization and Manifold
-  // objects and reference counting for CostFunctions and LossFunctions. Ideally
-  // this should be done uniformly.
-
-  // When removing parameter blocks, parameterizations have ambiguous
-  // ownership. Instead of scanning the entire problem to see if the
-  // parameterization is shared with other parameter blocks, buffer
-  // them until destruction.
-  std::vector<LocalParameterization*> local_parameterizations_to_delete_;
+  // Right now we are using vectors for Manifold objects and reference counting
+  // for CostFunctions and LossFunctions. Ideally this should be done uniformly.
 
   // When removing parameter blocks, manifolds have ambiguous
   // ownership. Instead of scanning the entire problem to see if the
@@ -236,17 +217,6 @@ class CERES_NO_EXPORT ProblemImpl {
   // destroyed.
   CostFunctionRefCount cost_function_ref_count_;
   LossFunctionRefCount loss_function_ref_count_;
-
-  // Because we wrap LocalParameterization objects using a ManifoldAdapter, when
-  // the user calls GetParameterization we cannot use the same logic as
-  // GetManifold as the ParameterBlock object only returns a Manifold object. So
-  // this map stores the association between parameter blocks and local
-  // parameterizations.
-  //
-  // This is a temporary object which will be removed once the
-  // LocalParameterization to Manifold transition is complete.
-  std::unordered_map<const double*, LocalParameterization*>
-      parameter_block_to_local_param_;
 };
 
 }  // namespace internal

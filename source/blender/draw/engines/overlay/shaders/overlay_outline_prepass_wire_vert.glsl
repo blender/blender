@@ -7,6 +7,7 @@
 VERTEX_SHADER_CREATE_INFO(overlay_outline_prepass_wire)
 
 #include "draw_model_lib.glsl"
+#include "draw_object_infos_lib.glsl"
 #include "draw_view_clipping_lib.glsl"
 #include "draw_view_lib.glsl"
 #include "gpu_shader_attribute_load_lib.glsl"
@@ -15,10 +16,10 @@ VERTEX_SHADER_CREATE_INFO(overlay_outline_prepass_wire)
 
 uint outline_colorid_get()
 {
-  eObjectInfoFlag ob_flag = eObjectInfoFlag(floatBitsToUint(drw_infos[drw_resource_id()].infos.w));
+  eObjectInfoFlag ob_flag = drw_object_infos().flag;
   bool is_active = flag_test(ob_flag, OBJECT_ACTIVE);
 
-  if (isTransform) {
+  if (is_transform) {
     return 0u; /* colorTransform */
   }
   else if (is_active) {
@@ -32,7 +33,7 @@ uint outline_colorid_get()
 }
 
 struct VertIn {
-  vec3 ls_P;
+  float3 ls_P;
 };
 
 VertIn input_assembly(uint in_vertex_id)
@@ -44,15 +45,10 @@ VertIn input_assembly(uint in_vertex_id)
   return vert_in;
 }
 
-/* Replace top 2 bits (of the 16bit output) by outlineId.
- * This leaves 16K different IDs to create outlines between objects.
- * SHIFT = (32 - (16 - 2)) */
-#define SHIFT 18u
-
 struct VertOut {
-  vec3 ws_P;
-  vec4 hs_P;
-  vec3 vs_P;
+  float3 ws_P;
+  float4 hs_P;
+  float3 vs_P;
   uint ob_id;
 };
 
@@ -64,7 +60,7 @@ VertOut vertex_main(VertIn v_in)
   vert_out.vs_P = drw_point_world_to_view(vert_out.ws_P);
 
   /* Small bias to always be on top of the geom. */
-  vert_out.hs_P.z -= 1e-3;
+  vert_out.hs_P.z -= 1e-3f;
 
   /* ID 0 is nothing (background) */
   vert_out.ob_id = uint(drw_resource_id() + 1);
@@ -73,7 +69,7 @@ VertOut vertex_main(VertIn v_in)
   uint outline_id = outline_colorid_get();
 
   /* Combine for 16bit uint target. */
-  vert_out.ob_id = (outline_id << 14u) | ((vert_out.ob_id << SHIFT) >> SHIFT);
+  vert_out.ob_id = outline_id_pack(outline_id, vert_out.ob_id);
 
   return vert_out;
 }
@@ -83,14 +79,14 @@ void geometry_main(VertOut geom_in[4],
                    uint out_primitive_id,
                    uint out_invocation_id)
 {
-  vec3 view_vec = -drw_view_incident_vector(geom_in[1].vs_P);
+  float3 view_vec = -drw_view_incident_vector(geom_in[1].vs_P);
 
-  vec3 v10 = geom_in[0].vs_P - geom_in[1].vs_P;
-  vec3 v12 = geom_in[2].vs_P - geom_in[1].vs_P;
-  vec3 v13 = geom_in[3].vs_P - geom_in[1].vs_P;
+  float3 v10 = geom_in[0].vs_P - geom_in[1].vs_P;
+  float3 v12 = geom_in[2].vs_P - geom_in[1].vs_P;
+  float3 v13 = geom_in[3].vs_P - geom_in[1].vs_P;
 
-  vec3 n0 = cross(v12, v10);
-  vec3 n3 = cross(v13, v12);
+  float3 n0 = cross(v12, v10);
+  float3 n3 = cross(v13, v12);
 
   float fac0 = dot(view_vec, n0);
   float fac3 = dot(view_vec, n3);
@@ -111,15 +107,15 @@ void geometry_main(VertOut geom_in[4],
 void main()
 {
   /* Line adjacency list primitive. */
-  const uint input_primitive_vertex_count = 4u;
+  constexpr uint input_primitive_vertex_count = 4u;
   /* Line list primitive. */
-  const uint ouput_primitive_vertex_count = 2u;
-  const uint ouput_primitive_count = 1u;
-  const uint ouput_invocation_count = 1u;
-  const uint output_vertex_count_per_invocation = ouput_primitive_count *
-                                                  ouput_primitive_vertex_count;
-  const uint output_vertex_count_per_input_primitive = output_vertex_count_per_invocation *
-                                                       ouput_invocation_count;
+  constexpr uint ouput_primitive_vertex_count = 2u;
+  constexpr uint ouput_primitive_count = 1u;
+  constexpr uint ouput_invocation_count = 1u;
+  constexpr uint output_vertex_count_per_invocation = ouput_primitive_count *
+                                                      ouput_primitive_vertex_count;
+  constexpr uint output_vertex_count_per_input_primitive = output_vertex_count_per_invocation *
+                                                           ouput_invocation_count;
 
   uint in_primitive_id = uint(gl_VertexID) / output_vertex_count_per_input_primitive;
   uint in_primitive_first_vertex = in_primitive_id * input_primitive_vertex_count;
@@ -143,6 +139,6 @@ void main()
   vert_out[3] = vertex_main(vert_in[3]);
 
   /* Discard by default. */
-  gl_Position = vec4(NAN_FLT);
+  gl_Position = float4(NAN_FLT);
   geometry_main(vert_out, out_vertex_id, out_primitive_id, out_invocation_id);
 }

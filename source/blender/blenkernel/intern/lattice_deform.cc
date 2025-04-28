@@ -75,8 +75,7 @@ LatticeDeformData *BKE_lattice_deform_data_create(const Object *oblatt, const Ob
   const int32_t num_points = lt->pntsu * lt->pntsv * lt->pntsw;
   /* We allocate one additional float for SSE2 optimizations. Without this
    * the SSE2 instructions for the last item would read in unallocated memory. */
-  fp = latticedata = static_cast<float *>(
-      MEM_mallocN(sizeof(float[3]) * num_points + sizeof(float), "latticedata"));
+  fp = latticedata = MEM_malloc_arrayN<float>(3 * size_t(num_points) + 1, "latticedata");
 
   /* for example with a particle system: (ob == nullptr) */
   if (ob == nullptr) {
@@ -102,8 +101,7 @@ LatticeDeformData *BKE_lattice_deform_data_create(const Object *oblatt, const Ob
     defgrp_index = BKE_id_defgroup_name_index(&lt->id, lt->vgroup);
 
     if (defgrp_index != -1) {
-      lattice_weights = static_cast<float *>(
-          MEM_malloc_arrayN(num_points, sizeof(float), "lattice_weights"));
+      lattice_weights = MEM_malloc_arrayN<float>(size_t(num_points), "lattice_weights");
       for (int index = 0; index < num_points; index++) {
         lattice_weights[index] = BKE_defvert_find_weight(dvert + index, defgrp_index);
       }
@@ -131,8 +129,7 @@ LatticeDeformData *BKE_lattice_deform_data_create(const Object *oblatt, const Ob
     }
   }
 
-  lattice_deform_data = static_cast<LatticeDeformData *>(
-      MEM_mallocN(sizeof(LatticeDeformData), "Lattice Deform Data"));
+  lattice_deform_data = MEM_mallocN<LatticeDeformData>("Lattice Deform Data");
   lattice_deform_data->latticedata = latticedata;
   lattice_deform_data->lattice_weights = lattice_weights;
   lattice_deform_data->lt = lt;

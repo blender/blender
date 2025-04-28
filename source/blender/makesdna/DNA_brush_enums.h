@@ -469,28 +469,6 @@ typedef enum eBrushCurvesSculptType {
   CURVES_SCULPT_BRUSH_TYPE_SLIDE = 10,
 } eBrushCurvesSculptType;
 
-/** When #BRUSH_ACCUMULATE is used */
-#define SCULPT_BRUSH_TYPE_HAS_ACCUMULATE(t) \
-  ELEM(t, \
-       SCULPT_BRUSH_TYPE_DRAW, \
-       SCULPT_BRUSH_TYPE_DRAW_SHARP, \
-       SCULPT_BRUSH_TYPE_SLIDE_RELAX, \
-       SCULPT_BRUSH_TYPE_CREASE, \
-       SCULPT_BRUSH_TYPE_BLOB, \
-       SCULPT_BRUSH_TYPE_INFLATE, \
-       SCULPT_BRUSH_TYPE_CLAY, \
-       SCULPT_BRUSH_TYPE_CLAY_STRIPS, \
-       SCULPT_BRUSH_TYPE_CLAY_THUMB, \
-       SCULPT_BRUSH_TYPE_ROTATE, \
-       SCULPT_BRUSH_TYPE_PLANE, \
-       SCULPT_BRUSH_TYPE_SCRAPE, \
-       SCULPT_BRUSH_TYPE_FLATTEN)
-
-#define SCULPT_BRUSH_TYPE_HAS_NORMAL_WEIGHT(t) \
-  ELEM(t, SCULPT_BRUSH_TYPE_GRAB, SCULPT_BRUSH_TYPE_SNAKE_HOOK, SCULPT_BRUSH_TYPE_ELASTIC_DEFORM)
-
-#define SCULPT_BRUSH_TYPE_HAS_RAKE(t) ELEM(t, SCULPT_BRUSH_TYPE_SNAKE_HOOK)
-
 #define SCULPT_BRUSH_TYPE_HAS_DYNTOPO(t) \
   (ELEM(t, /* These brushes, as currently coded, cannot support dynamic topology */ \
         SCULPT_BRUSH_TYPE_GRAB, \
@@ -511,16 +489,6 @@ typedef enum eBrushCurvesSculptType {
         /* These brushes could handle dynamic topology, \ \
          * but user feedback indicates it's better not to */ \
         SCULPT_BRUSH_TYPE_SMOOTH, \
-        SCULPT_BRUSH_TYPE_MASK) == 0)
-
-#define SCULPT_BRUSH_TYPE_HAS_TOPOLOGY_RAKE(t) \
-  (ELEM(t, /* These brushes, as currently coded, cannot support topology rake. */ \
-        SCULPT_BRUSH_TYPE_GRAB, \
-        SCULPT_BRUSH_TYPE_ROTATE, \
-        SCULPT_BRUSH_TYPE_THUMB, \
-        SCULPT_BRUSH_TYPE_DRAW_SHARP, \
-        SCULPT_BRUSH_TYPE_DISPLACEMENT_ERASER, \
-        SCULPT_BRUSH_TYPE_SLIDE_RELAX, \
         SCULPT_BRUSH_TYPE_MASK) == 0)
 
 /** #Brush.image_brush_type */

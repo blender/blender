@@ -29,15 +29,14 @@ namespace libmv {
 namespace internal {
 
 LookupWarpGrid::LookupWarpGrid()
-    : offset_(NULL), width_(0), height_(0), overscan_(0.0), threads_(1) {
+    : offset_(NULL), width_(0), height_(0), overscan_(0.0) {
 }
 
 LookupWarpGrid::LookupWarpGrid(const LookupWarpGrid& from)
     : offset_(NULL),
       width_(from.width_),
       height_(from.height_),
-      overscan_(from.overscan_),
-      threads_(from.threads_) {
+      overscan_(from.overscan_) {
   if (from.offset_) {
     offset_ = new Offset[width_ * height_];
     memcpy(offset_, from.offset_, sizeof(Offset) * width_ * height_);
@@ -51,11 +50,6 @@ LookupWarpGrid::~LookupWarpGrid() {
 void LookupWarpGrid::Reset() {
   delete[] offset_;
   offset_ = NULL;
-}
-
-// Set number of threads used for threaded buffer distortion/undistortion.
-void LookupWarpGrid::SetThreads(int threads) {
-  threads_ = threads;
 }
 
 }  // namespace internal
@@ -97,12 +91,6 @@ void CameraIntrinsics::SetPrincipalPoint(double cx, double cy) {
   K_(0, 2) = cx;
   K_(1, 2) = cy;
   ResetLookupGrids();
-}
-
-// Set number of threads used for threaded buffer distortion/undistortion.
-void CameraIntrinsics::SetThreads(int threads) {
-  distort_.SetThreads(threads);
-  undistort_.SetThreads(threads);
 }
 
 void CameraIntrinsics::ImageSpaceToNormalized(double image_x,

@@ -12,6 +12,8 @@
 #include "BLI_math_vector_types.hh"
 #include "BLI_span.hh"
 
+#include "DNA_windowmanager_enums.h"
+
 struct ARegion;
 struct BMBVHTree;
 struct BMEdge;
@@ -515,8 +517,8 @@ void EDBM_redo_state_free(BMBackup *backup) ATTR_NONNULL(1);
 
 /* `meshtools.cc` */
 
-int ED_mesh_join_objects_exec(bContext *C, wmOperator *op);
-int ED_mesh_shapes_join_objects_exec(bContext *C, wmOperator *op);
+wmOperatorStatus ED_mesh_join_objects_exec(bContext *C, wmOperator *op);
+wmOperatorStatus ED_mesh_shapes_join_objects_exec(bContext *C, ReportList *reports);
 
 /* mirror lookup api */
 

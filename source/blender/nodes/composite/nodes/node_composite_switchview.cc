@@ -65,13 +65,13 @@ class SwitchViewOperation : public NodeOperation {
 
     /* A context that is not multi view, pass the first input through as a fallback. */
     if (context().get_view_name().is_empty()) {
-      Result &input = get_input(node().input(0)->identifier);
-      input.pass_through(result);
+      const Result &input = get_input(node().input(0)->identifier);
+      result.share_data(input);
       return;
     }
 
-    Result &input = get_input(context().get_view_name());
-    input.pass_through(result);
+    const Result &input = get_input(context().get_view_name());
+    result.share_data(input);
   }
 };
 

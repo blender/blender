@@ -12,6 +12,7 @@
 #include "kernel/geom/triangle.h"
 #include "kernel/svm/util.h"
 #include "kernel/util/differential.h"
+#include "util/math_base.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -84,10 +85,11 @@ ccl_device_noinline void svm_node_wireframe(KernelGlobals kg,
                                             const uint4 node)
 {
   const uint in_size = node.y;
-  const uint out_fac = node.z;
+  const float bump_filter_width = __uint_as_float(node.z);
   uint use_pixel_size;
   uint bump_offset;
-  svm_unpack_node_uchar2(node.w, &use_pixel_size, &bump_offset);
+  uint out_fac;
+  svm_unpack_node_uchar3(node.w, &use_pixel_size, &bump_offset, &out_fac);
 
   /* Input Data */
   const float size = stack_load_float(stack, in_size);
@@ -98,10 +100,10 @@ ccl_device_noinline void svm_node_wireframe(KernelGlobals kg,
 
   float3 P = sd->P;
   if (bump_offset == NODE_BUMP_OFFSET_DX) {
-    P += dP.dx * BUMP_DX;
+    P += dP.dx * bump_filter_width;
   }
   else if (bump_offset == NODE_BUMP_OFFSET_DY) {
-    P += dP.dy * BUMP_DY;
+    P += dP.dy * bump_filter_width;
   }
 
   const float f = wireframe(kg, sd, dP, size, pixel_size, &P);

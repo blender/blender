@@ -12,6 +12,8 @@
 
 #  include "scene/scene.h"
 
+#  include "session/display_driver.h"
+
 #  include "util/debug.h"
 #  include "util/md5.h"
 #  include "util/path.h"
@@ -86,14 +88,10 @@ MetalDevice::MetalDevice(const DeviceInfo &info, Stats &stats, Profiler &profile
     mtlDevice = usable_devices[mtlDevId];
     metal_printf("Creating new Cycles Metal device: %s\n", info.description.c_str());
 
-    /* determine default storage mode based on whether UMA is supported */
-
-    default_storage_mode = MTLResourceStorageModeManaged;
-
-    /* We only support Apple Silicon which hasUnifiedMemory support. But leave this check here
-     * just in case a future GPU comes out that doesn't. */
-    if ([mtlDevice hasUnifiedMemory]) {
-      default_storage_mode = MTLResourceStorageModeShared;
+    /* Enable increased concurrent shader compiler limit.
+     * This is also done by MTLContext::MTLContext, but only in GUI mode. */
+    if (@available(macOS 13.3, *)) {
+      [mtlDevice setShouldMaximizeConcurrentCompilation:YES];
     }
 
     max_threads_per_threadgroup = 512;
@@ -103,8 +101,38 @@ MetalDevice::MetalDevice(const DeviceInfo &info, Stats &stats, Profiler &profile
       use_metalrt = (atoi(metalrt) != 0);
     }
 
+#  if defined(MAC_OS_VERSION_15_0)
+    /* Use "Ray tracing with per component motion interpolation" if available.
+     * Requires Apple9 support (https://developer.apple.com/metal/Metal-Feature-Set-Tables.pdf). */
+    if (use_metalrt && [mtlDevice supportsFamily:MTLGPUFamilyApple9]) {
+      if (@available(macos 15.0, *)) {
+        use_pcmi = DebugFlags().metal.use_metalrt_pcmi;
+      }
+    }
+#  endif
+
     if (getenv("CYCLES_DEBUG_METAL_CAPTURE_KERNEL")) {
       capture_enabled = true;
+    }
+
+    /* Create a global counter sampling buffer when kernel profiling is enabled.
+     * There's a limit to the number of concurrent counter sampling buffers per device, so we
+     * create one that can be reused by successive device queues. */
+    if (auto str = getenv("CYCLES_METAL_PROFILING")) {
+      if (atoi(str) && [mtlDevice supportsCounterSampling:MTLCounterSamplingPointAtStageBoundary])
+      {
+        NSArray<id<MTLCounterSet>> *counterSets = [mtlDevice counterSets];
+
+        NSError *error = nil;
+        MTLCounterSampleBufferDescriptor *desc = [[MTLCounterSampleBufferDescriptor alloc] init];
+        [desc setStorageMode:MTLStorageModeShared];
+        [desc setLabel:@"CounterSampleBuffer"];
+        [desc setSampleCount:MAX_SAMPLE_BUFFER_LENGTH];
+        [desc setCounterSet:counterSets[0]];
+        mtlCounterSampleBuffer = [mtlDevice newCounterSampleBufferWithDescriptor:desc
+                                                                           error:&error];
+        [mtlCounterSampleBuffer retain];
+      }
     }
 
     /* Set kernel_specialization_level based on user preferences. */
@@ -144,9 +172,11 @@ MetalDevice::MetalDevice(const DeviceInfo &info, Stats &stats, Profiler &profile
     arg_desc_buffer.access = MTLArgumentAccessReadOnly;
     mtlBufferArgEncoder = [mtlDevice newArgumentEncoderWithArguments:@[ arg_desc_buffer ]];
 
-    buffer_bindings_1d = [mtlDevice newBufferWithLength:8192 options:default_storage_mode];
-    texture_bindings_2d = [mtlDevice newBufferWithLength:8192 options:default_storage_mode];
-    texture_bindings_3d = [mtlDevice newBufferWithLength:8192 options:default_storage_mode];
+    buffer_bindings_1d = [mtlDevice newBufferWithLength:8192 options:MTLResourceStorageModeShared];
+    texture_bindings_2d = [mtlDevice newBufferWithLength:8192
+                                                 options:MTLResourceStorageModeShared];
+    texture_bindings_3d = [mtlDevice newBufferWithLength:8192
+                                                 options:MTLResourceStorageModeShared];
     stats.mem_alloc(buffer_bindings_1d.allocatedSize + texture_bindings_2d.allocatedSize +
                     texture_bindings_3d.allocatedSize);
 
@@ -288,6 +318,9 @@ MetalDevice::~MetalDevice()
   [mtlAncillaryArgEncoder release];
   [mtlComputeCommandQueue release];
   [mtlGeneralCommandQueue release];
+  if (mtlCounterSampleBuffer) {
+    [mtlCounterSampleBuffer release];
+  }
   [mtlDevice release];
 
   texture_info.free();
@@ -435,7 +468,7 @@ bool MetalDevice::load_kernels(const uint _kernel_features)
      * This is necessary since objects may be reported to have motion if the Vector pass is
      * active, but may still need to be rendered without motion blur if that isn't active as well.
      */
-    motion_blur |= kernel_features & KERNEL_FEATURE_OBJECT_MOTION;
+    motion_blur = motion_blur || (kernel_features & KERNEL_FEATURE_OBJECT_MOTION);
 
     /* Only request generic kernels if they aren't cached in memory. */
     refresh_source_and_kernels_md5(PSO_GENERIC);
@@ -637,10 +670,6 @@ void MetalDevice::load_texture_info()
         [mtlTextureArgEncoder setTexture:nil atIndex:0];
       }
     }
-    if (default_storage_mode == MTLResourceStorageModeManaged) {
-      [texture_bindings_2d didModifyRange:NSMakeRange(0, num_textures * sizeof(void *))];
-      [texture_bindings_3d didModifyRange:NSMakeRange(0, num_textures * sizeof(void *))];
-    }
   }
 }
 
@@ -679,7 +708,7 @@ MetalDevice::MetalMem *MetalDevice::generic_alloc(device_memory &mem)
     mem.device_pointer = 0;
 
     id<MTLBuffer> metal_buffer = nil;
-    MTLResourceOptions options = default_storage_mode;
+    MTLResourceOptions options = MTLResourceStorageModeShared;
 
     if (size > 0) {
       if (mem.type == MEM_DEVICE_ONLY && !capture_enabled) {
@@ -727,7 +756,6 @@ MetalDevice::MetalMem *MetalDevice::generic_alloc(device_memory &mem)
 
     if (metal_buffer.storageMode == MTLStorageModeShared) {
       /* Replace host pointer with our host allocation. */
-
       if (mem.host_pointer && mem.host_pointer != mmem->hostPtr) {
         memcpy(mmem->hostPtr, mem.host_pointer, size);
 
@@ -736,10 +764,6 @@ MetalDevice::MetalMem *MetalDevice::generic_alloc(device_memory &mem)
       }
       mem.shared_pointer = mmem->hostPtr;
       mem.shared_counter++;
-      mmem->use_UMA = true;
-    }
-    else {
-      mmem->use_UMA = false;
     }
 
     MetalMem *mmem_ptr = mmem.get();
@@ -754,20 +778,9 @@ MetalDevice::MetalMem *MetalDevice::generic_alloc(device_memory &mem)
   }
 }
 
-void MetalDevice::generic_copy_to(device_memory &mem)
+void MetalDevice::generic_copy_to(device_memory &)
 {
-  if (!mem.host_pointer || !mem.device_pointer) {
-    return;
-  }
-
-  std::lock_guard<std::recursive_mutex> lock(metal_mem_map_mutex);
-  if (!metal_mem_map.at(&mem)->use_UMA || mem.host_pointer != mem.shared_pointer) {
-    MetalMem &mmem = *metal_mem_map.at(&mem);
-    memcpy(mmem.hostPtr, mem.host_pointer, mem.memory_size());
-    if (mmem.mtlBuffer.storageMode == MTLStorageModeManaged) {
-      [mmem.mtlBuffer didModifyRange:NSMakeRange(0, mem.memory_size())];
-    }
-  }
+  /* No need to copy - Apple Silicon has Unified Memory Architecture. */
 }
 
 void MetalDevice::generic_free(device_memory &mem)
@@ -784,22 +797,14 @@ void MetalDevice::generic_free(device_memory &mem)
   MetalMem &mmem = *metal_mem_map.at(&mem);
   size_t size = mmem.size;
 
-  /* If mmem.use_uma is true, reference counting is used
-   * to safely free memory. */
+  bool free_mtlBuffer = true;
 
-  bool free_mtlBuffer = false;
-
-  if (mmem.use_UMA) {
-    assert(mem.shared_pointer);
-    if (mem.shared_pointer) {
-      assert(mem.shared_counter > 0);
-      if (--mem.shared_counter == 0) {
-        free_mtlBuffer = true;
-      }
+  /* If this is shared, reference counting is used to safely free memory. */
+  if (mem.shared_pointer) {
+    assert(mem.shared_counter > 0);
+    if (--mem.shared_counter > 0) {
+      free_mtlBuffer = false;
     }
-  }
-  else {
-    free_mtlBuffer = true;
   }
 
   if (free_mtlBuffer) {
@@ -810,7 +815,6 @@ void MetalDevice::generic_free(device_memory &mem)
       assert(!"Metal device should not copy memory back to host");
       mem.host_pointer = mem.host_alloc(size);
       memcpy(mem.host_pointer, mem.shared_pointer, size);
-      mmem.use_UMA = false;
     }
 
     mem.shared_pointer = nullptr;
@@ -869,39 +873,9 @@ void MetalDevice::mem_move_to_host(device_memory & /*mem*/)
   assert(!"Metal does not support mem_move_to_host");
 }
 
-void MetalDevice::mem_copy_from(
-    device_memory &mem, const size_t y, size_t w, const size_t h, size_t elem)
+void MetalDevice::mem_copy_from(device_memory &, const size_t, size_t, const size_t, size_t)
 {
-  @autoreleasepool {
-    if (mem.host_pointer) {
-
-      bool subcopy = (w >= 0 && h >= 0);
-      const size_t size = subcopy ? (elem * w * h) : mem.memory_size();
-      const size_t offset = subcopy ? (elem * y * w) : 0;
-
-      if (mem.device_pointer) {
-        std::lock_guard<std::recursive_mutex> lock(metal_mem_map_mutex);
-        MetalMem &mmem = *metal_mem_map.at(&mem);
-
-        if ([mmem.mtlBuffer storageMode] == MTLStorageModeManaged) {
-
-          id<MTLCommandBuffer> cmdBuffer = [mtlGeneralCommandQueue commandBuffer];
-          id<MTLBlitCommandEncoder> blitEncoder = [cmdBuffer blitCommandEncoder];
-          [blitEncoder synchronizeResource:mmem.mtlBuffer];
-          [blitEncoder endEncoding];
-          [cmdBuffer commit];
-          [cmdBuffer waitUntilCompleted];
-        }
-
-        if (mem.host_pointer != mmem.hostPtr) {
-          memcpy((uchar *)mem.host_pointer + offset, (uchar *)mmem.hostPtr + offset, size);
-        }
-      }
-      else {
-        memset((char *)mem.host_pointer + offset, 0, size);
-      }
-    }
-  }
+  /* No need to copy - Apple Silicon has Unified Memory Architecture. */
 }
 
 void MetalDevice::mem_zero(device_memory &mem)
@@ -909,17 +883,8 @@ void MetalDevice::mem_zero(device_memory &mem)
   if (!mem.device_pointer) {
     mem_alloc(mem);
   }
-  if (!mem.device_pointer) {
-    return;
-  }
-
-  size_t size = mem.memory_size();
-  std::lock_guard<std::recursive_mutex> lock(metal_mem_map_mutex);
-  MetalMem &mmem = *metal_mem_map.at(&mem);
-  memset(mmem.hostPtr, 0, size);
-  if ([mmem.mtlBuffer storageMode] == MTLStorageModeManaged) {
-    [mmem.mtlBuffer didModifyRange:NSMakeRange(0, size)];
-  }
+  assert(mem.shared_pointer);
+  memset(mem.shared_pointer, 0, mem.memory_size());
 }
 
 void MetalDevice::mem_free(device_memory &mem)
@@ -1134,10 +1099,6 @@ void MetalDevice::tex_alloc(device_texture &mem)
         return;
       }
     }
-    MTLStorageMode storage_mode = MTLStorageModeManaged;
-    if ([mtlDevice hasUnifiedMemory]) {
-      storage_mode = MTLStorageModeShared;
-    }
 
     /* General variables for both architectures */
     size_t size = mem.memory_size();
@@ -1212,7 +1173,7 @@ void MetalDevice::tex_alloc(device_texture &mem)
                                                                height:mem.data_height
                                                             mipmapped:NO];
 
-      desc.storageMode = storage_mode;
+      desc.storageMode = MTLStorageModeShared;
       desc.usage = MTLTextureUsageShaderRead;
 
       desc.textureType = MTLTextureType3D;
@@ -1248,7 +1209,7 @@ void MetalDevice::tex_alloc(device_texture &mem)
                                                                height:mem.data_height
                                                             mipmapped:NO];
 
-      desc.storageMode = storage_mode;
+      desc.storageMode = MTLStorageModeShared;
       desc.usage = MTLTextureUsageShaderRead;
 
       VLOG_WORK << "Texture 2D allocate: " << mem.name << ", "
@@ -1301,11 +1262,11 @@ void MetalDevice::tex_alloc(device_texture &mem)
                          texture_bindings_3d.allocatedSize);
         }
         buffer_bindings_1d = [mtlDevice newBufferWithLength:min_buffer_length
-                                                    options:default_storage_mode];
+                                                    options:MTLResourceStorageModeShared];
         texture_bindings_2d = [mtlDevice newBufferWithLength:min_buffer_length
-                                                     options:default_storage_mode];
+                                                     options:MTLResourceStorageModeShared];
         texture_bindings_3d = [mtlDevice newBufferWithLength:min_buffer_length
-                                                     options:default_storage_mode];
+                                                     options:MTLResourceStorageModeShared];
 
         stats.mem_alloc(buffer_bindings_1d.allocatedSize + texture_bindings_2d.allocatedSize +
                         texture_bindings_3d.allocatedSize);
@@ -1401,10 +1362,11 @@ unique_ptr<DeviceQueue> MetalDevice::gpu_queue_create()
   return make_unique<MetalDeviceQueue>(this);
 }
 
-bool MetalDevice::should_use_graphics_interop()
+bool MetalDevice::should_use_graphics_interop(const GraphicsInteropDevice &interop_device,
+                                              const bool /*log*/)
 {
-  /* METAL_WIP - provide fast interop */
-  return false;
+  /* Always supported with unified memory. */
+  return interop_device.type == GraphicsInteropDevice::METAL;
 }
 
 void *MetalDevice::get_native_buffer(device_ptr ptr)
@@ -1434,6 +1396,7 @@ void MetalDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
 
     BVHMetal *bvh_metal = static_cast<BVHMetal *>(bvh);
     bvh_metal->motion_blur = motion_blur;
+    bvh_metal->use_pcmi = use_pcmi;
     if (bvh_metal->build(progress, mtlDevice, mtlGeneralCommandQueue, refit)) {
 
       if (bvh->params.top_level) {
@@ -1484,7 +1447,7 @@ void MetalDevice::update_bvh(BVHMetal *bvh_metal)
   // Allocate required buffers for BLAS array.
   uint64_t count = bvh_metal->blas_array.size();
   uint64_t buffer_size = mtlBlasArgEncoder.encodedLength * count;
-  blas_buffer = [mtlDevice newBufferWithLength:buffer_size options:default_storage_mode];
+  blas_buffer = [mtlDevice newBufferWithLength:buffer_size options:MTLResourceStorageModeShared];
   stats.mem_alloc(blas_buffer.allocatedSize);
 
   for (uint64_t i = 0; i < count; ++i) {
@@ -1492,9 +1455,6 @@ void MetalDevice::update_bvh(BVHMetal *bvh_metal)
       [mtlBlasArgEncoder setArgumentBuffer:blas_buffer offset:i * mtlBlasArgEncoder.encodedLength];
       [mtlBlasArgEncoder setAccelerationStructure:bvh_metal->blas_array[i] atIndex:0];
     }
-  }
-  if (default_storage_mode == MTLResourceStorageModeManaged) {
-    [blas_buffer didModifyRange:NSMakeRange(0, blas_buffer.length)];
   }
 }
 

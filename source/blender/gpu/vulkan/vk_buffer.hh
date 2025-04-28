@@ -22,6 +22,7 @@ class VKDevice;
  */
 class VKBuffer : public NonCopyable {
   size_t size_in_bytes_ = 0;
+  size_t alloc_size_in_bytes_ = 0;
   VkBuffer vk_buffer_ = VK_NULL_HANDLE;
   VmaAllocation allocation_ = VK_NULL_HANDLE;
   VkMemoryPropertyFlags vk_memory_property_flags_;
@@ -44,9 +45,11 @@ class VKBuffer : public NonCopyable {
               VkBufferUsageFlags buffer_usage,
               VkMemoryPropertyFlags required_flags,
               VkMemoryPropertyFlags preferred_flags,
-              VmaAllocationCreateFlags vma_allocation_flags);
+              VmaAllocationCreateFlags vma_allocation_flags,
+              bool export_memory = false);
   void clear(VKContext &context, uint32_t clear_value);
   void update_immediately(const void *data) const;
+  void update_sub_immediately(size_t start_offset, size_t data_size, const void *data) const;
 
   /**
    * Update the buffer as part of the render graph evaluation. The ownership of data will be
@@ -107,6 +110,11 @@ class VKBuffer : public NonCopyable {
    * Is this buffer mapped (visible on host)
    */
   bool is_mapped() const;
+
+  /**
+   * Get allocated device memory.
+   */
+  VkDeviceMemory export_memory_get(size_t &memory_size);
 
  private:
   /** Check if this buffer is mapped. */

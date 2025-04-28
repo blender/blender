@@ -20,6 +20,7 @@ struct GlyphCacheBLF;
 struct ListBase;
 struct ResultBLF;
 struct rcti;
+enum class BLFWrapMode;
 
 /**
  * Max number of FontBLFs in memory. Take care that every font has a glyph cache per size/dpi,
@@ -120,7 +121,8 @@ blender::Array<uchar> blf_svg_icon_bitmap(
 
 blender::Vector<blender::StringRef> blf_font_string_wrap(FontBLF *font,
                                                          blender::StringRef str,
-                                                         int max_pixel_width);
+                                                         int max_pixel_width,
+                                                         BLFWrapMode mode);
 
 /**
  * Use fixed column width, but an utf8 character may occupy multiple columns.

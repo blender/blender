@@ -32,7 +32,7 @@ void OutlinePass::sync(SceneResources &resources)
   ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA_PREMUL);
   ps_.shader_set(ShaderCache::get().outline.get());
   ps_.bind_ubo("world_data", resources.world_buf);
-  ps_.bind_texture("objectIdBuffer", &resources.object_id_tx);
+  ps_.bind_texture("object_id_buffer", &resources.object_id_tx);
   ps_.draw_procedural(GPU_PRIM_TRIS, 1, 3);
 }
 

@@ -27,7 +27,7 @@ static void uv_edge_append_to_uv_vertices(UVEdge &uv_edge)
 static void uv_primitive_append_to_uv_edges(UVPrimitive &uv_primitive)
 {
   for (UVEdge *uv_edge : uv_primitive.edges) {
-    uv_edge->uv_primitives.append_non_duplicates(&uv_primitive);
+    uv_edge->uv_primitive_indices.append_non_duplicates(uv_primitive.primitive_i);
   }
 }
 
@@ -247,8 +247,8 @@ static Vector<int> connecting_mesh_primitive_indices(const UVVertex &uv_vertex)
 {
   Vector<int> primitives_around_uv_vertex;
   for (const UVEdge *uv_edge : uv_vertex.uv_edges) {
-    for (const UVPrimitive *uv_primitive : uv_edge->uv_primitives) {
-      primitives_around_uv_vertex.append_non_duplicates(uv_primitive->primitive_i);
+    for (const int uv_primitive_index : uv_edge->uv_primitive_indices) {
+      primitives_around_uv_vertex.append_non_duplicates(uv_primitive_index);
     }
   }
   return primitives_around_uv_vertex;
@@ -296,7 +296,7 @@ bool UVEdge::has_same_vertices(const int2 &edge) const
 
 bool UVEdge::is_border_edge() const
 {
-  return uv_primitives.size() == 1;
+  return uv_primitive_indices.size() == 1;
 }
 
 UVVertex *UVEdge::get_other_uv_vertex(const int vertex)
@@ -365,7 +365,7 @@ UVEdge *UVIsland::lookup_or_create(const UVEdge &edge)
 
   uv_edges.append(edge);
   UVEdge *result = &uv_edges.last();
-  result->uv_primitives.clear();
+  result->uv_primitive_indices.clear();
   return result;
 }
 
@@ -380,7 +380,7 @@ void UVIsland::append(const UVPrimitive &primitive)
     uv_edge_template.vertices[1] = lookup_or_create(*other_edge->vertices[1]);
     new_prim_ptr->edges[i] = lookup_or_create(uv_edge_template);
     uv_edge_append_to_uv_vertices(*new_prim_ptr->edges[i]);
-    new_prim_ptr->edges[i]->uv_primitives.append(new_prim_ptr);
+    new_prim_ptr->edges[i]->uv_primitive_indices.append(new_prim_ptr->primitive_i);
   }
 }
 
@@ -437,7 +437,7 @@ static UVPrimitive *add_primitive(const MeshData &mesh_data,
     UVEdge *uv_edge = uv_island.lookup_or_create(uv_edge_template);
     uv_primitive_ptr->edges.append(uv_edge);
     uv_edge_append_to_uv_vertices(*uv_edge);
-    uv_edge->uv_primitives.append(uv_primitive_ptr);
+    uv_edge->uv_primitive_indices.append(uv_primitive_ptr->primitive_i);
   }
   return uv_primitive_ptr;
 }

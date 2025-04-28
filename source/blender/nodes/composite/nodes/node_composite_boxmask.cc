@@ -59,11 +59,11 @@ static void node_composit_buts_boxmask(uiLayout *layout, bContext * /*C*/, Point
 {
   uiLayout *row;
 
-  row = uiLayoutRow(layout, true);
+  row = &layout->row(true);
   uiItemR(row, ptr, "x", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   uiItemR(row, ptr, "y", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 
-  row = uiLayoutRow(layout, true);
+  row = &layout->row(true);
   uiItemR(row,
           ptr,
           "mask_width",

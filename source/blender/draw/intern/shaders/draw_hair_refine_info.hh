@@ -21,11 +21,11 @@
 
 GPU_SHADER_CREATE_INFO(draw_hair_refine_compute)
 LOCAL_GROUP_SIZE(1, 1)
-STORAGE_BUF(0, WRITE, vec4, posTime[])
+STORAGE_BUF(0, write, float4, posTime[])
 /* Per strands data. */
-SAMPLER(1, UINT_BUFFER, hairStrandBuffer)
-SAMPLER(2, UINT_BUFFER, hairStrandSegBuffer)
-COMPUTE_SOURCE("common_hair_refine_comp.glsl")
+SAMPLER(1, usamplerBuffer, hairStrandBuffer)
+SAMPLER(2, usamplerBuffer, hairStrandSegBuffer)
+COMPUTE_SOURCE("draw_hair_refine_comp.glsl")
 DEFINE("HAIR_PHASE_SUBDIV")
 ADDITIONAL_INFO(draw_hair)
 DO_STATIC_COMPILATION()

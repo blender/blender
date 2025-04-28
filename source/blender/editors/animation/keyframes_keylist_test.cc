@@ -42,8 +42,7 @@ const float FRAME_STEP = 0.005;
 static void build_fcurve(FCurve &fcurve)
 {
   fcurve.totvert = 3;
-  fcurve.bezt = static_cast<BezTriple *>(
-      MEM_callocN(sizeof(BezTriple) * fcurve.totvert, "BezTriples"));
+  fcurve.bezt = MEM_calloc_arrayN<BezTriple>(fcurve.totvert, "BezTriples");
   fcurve.bezt[0].vec[1][0] = 10.0f;
   fcurve.bezt[0].vec[1][1] = 1.0f;
   fcurve.bezt[1].vec[1][0] = 20.0f;
@@ -299,9 +298,9 @@ TEST_F(KeylistSummaryTest, slot_summary_bone_selection)
   Channelbag &channelbag = action_channelbag_ensure(*action, armature->id);
 
   FCurve &bone1_loc_x = channelbag.fcurve_ensure(
-      bmain, {"pose.bones[\"Bone.001\"].location", 0, std::nullopt, "Bone.001"});
+      bmain, {"pose.bones[\"Bone.001\"].location", 0, {}, {}, "Bone.001"});
   FCurve &bone2_loc_x = channelbag.fcurve_ensure(
-      bmain, {"pose.bones[\"Bone.002\"].location", 0, std::nullopt, "Bone.002"});
+      bmain, {"pose.bones[\"Bone.002\"].location", 0, {}, {}, "Bone.002"});
 
   ASSERT_EQ(SingleKeyingResult::SUCCESS, insert_vert_fcurve(&bone1_loc_x, {1.0, 0.0}, {}, {}));
   ASSERT_EQ(SingleKeyingResult::SUCCESS, insert_vert_fcurve(&bone1_loc_x, {2.0, 1.0}, {}, {}));

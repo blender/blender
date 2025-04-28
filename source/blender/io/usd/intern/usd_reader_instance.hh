@@ -31,7 +31,7 @@ class USDInstanceReader : public USDXformReader {
   /**
    * Create an object that instances a collection.
    */
-  void create_object(Main *bmain, double motionSampleTime) override;
+  void create_object(Main *bmain) override;
 
   /**
    * Assign the given collection to the object.

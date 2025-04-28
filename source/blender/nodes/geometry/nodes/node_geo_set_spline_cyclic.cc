@@ -11,11 +11,13 @@ namespace blender::nodes::node_geo_set_spline_cyclic_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
+  b.use_custom_socket_order();
+  b.allow_any_socket_order();
   b.add_input<decl::Geometry>("Geometry")
       .supported_type({GeometryComponent::Type::Curve, GeometryComponent::Type::GreasePencil});
+  b.add_output<decl::Geometry>("Geometry").propagate_all().align_with_previous();
   b.add_input<decl::Bool>("Selection").default_value(true).hide_value().field_on_all();
   b.add_input<decl::Bool>("Cyclic").field_on_all();
-  b.add_output<decl::Geometry>("Geometry").propagate_all();
 }
 
 static void set_curve_cyclic(bke::CurvesGeometry &curves,

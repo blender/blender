@@ -70,8 +70,7 @@ bool duplicate_fcurve_keys(FCurve *fcu)
     /* If a key is selected */
     if (fcu->bezt[i].f2 & SELECT) {
       /* Expand the list */
-      BezTriple *newbezt = static_cast<BezTriple *>(
-          MEM_callocN(sizeof(BezTriple) * (fcu->totvert + 1), "beztriple"));
+      BezTriple *newbezt = MEM_calloc_arrayN<BezTriple>((fcu->totvert + 1), "beztriple");
 
       memcpy(newbezt, fcu->bezt, sizeof(BezTriple) * (i + 1));
       memcpy(newbezt + i + 1, fcu->bezt + i, sizeof(BezTriple));
@@ -102,7 +101,7 @@ void clean_fcurve(bAnimListElem *ale,
                   bool cleardefault,
                   const bool only_selected_keys)
 {
-  FCurve *fcu = (FCurve *)ale->key_data;
+  FCurve *fcu = static_cast<FCurve *>(ale->key_data);
   BezTriple *old_bezts, *bezt, *beztn;
   BezTriple *lastb;
   int totCount, i;
@@ -294,7 +293,7 @@ ListBase find_fcurve_segments(FCurve *fcu)
 
   while (find_fcurve_segment(fcu, current_index, &segment_start_idx, &segment_len)) {
     FCurveSegment *segment;
-    segment = static_cast<FCurveSegment *>(MEM_callocN(sizeof(*segment), "FCurveSegment"));
+    segment = MEM_callocN<FCurveSegment>("FCurveSegment");
     segment->start_index = segment_start_idx;
     segment->length = segment_len;
     BLI_addtail(&segments, segment);
@@ -425,14 +424,12 @@ struct ButterworthCoefficients {
 
 ButterworthCoefficients *ED_anim_allocate_butterworth_coefficients(const int filter_order)
 {
-  ButterworthCoefficients *bw_coeff = static_cast<ButterworthCoefficients *>(
-      MEM_callocN(sizeof(ButterworthCoefficients), "Butterworth Coefficients"));
+  ButterworthCoefficients *bw_coeff = MEM_callocN<ButterworthCoefficients>(
+      "Butterworth Coefficients");
   bw_coeff->filter_order = filter_order;
-  bw_coeff->d1 = static_cast<double *>(
-      MEM_callocN(sizeof(double) * filter_order, "coeff filtered"));
-  bw_coeff->d2 = static_cast<double *>(
-      MEM_callocN(sizeof(double) * filter_order, "coeff samples"));
-  bw_coeff->A = static_cast<double *>(MEM_callocN(sizeof(double) * filter_order, "Butterworth A"));
+  bw_coeff->d1 = MEM_calloc_arrayN<double>(filter_order, "coeff filtered");
+  bw_coeff->d2 = MEM_calloc_arrayN<double>(filter_order, "coeff samples");
+  bw_coeff->A = MEM_calloc_arrayN<double>(filter_order, "Butterworth A");
   return bw_coeff;
 }
 
@@ -529,12 +526,12 @@ void butterworth_smooth_fcurve_segment(FCurve *fcu,
 {
   const int filter_order = bw_coeff->filter_order;
 
-  float *filtered_values = static_cast<float *>(
-      MEM_callocN(sizeof(float) * sample_count, "Butterworth Filtered FCurve Values"));
+  float *filtered_values = MEM_calloc_arrayN<float>(sample_count,
+                                                    "Butterworth Filtered FCurve Values");
 
-  double *w0 = static_cast<double *>(MEM_callocN(sizeof(double) * filter_order, "w0"));
-  double *w1 = static_cast<double *>(MEM_callocN(sizeof(double) * filter_order, "w1"));
-  double *w2 = static_cast<double *>(MEM_callocN(sizeof(double) * filter_order, "w2"));
+  double *w0 = MEM_calloc_arrayN<double>(filter_order, "w0");
+  double *w1 = MEM_calloc_arrayN<double>(filter_order, "w1");
+  double *w2 = MEM_calloc_arrayN<double>(filter_order, "w2");
 
   /* The values need to be offset so the first sample starts at 0. This avoids oscillations at the
    * start and end of the curve. */
@@ -932,8 +929,7 @@ void time_offset_fcurve_segment(FCurve *fcu, FCurveSegment *segment, const float
 
   /* If we operate directly on the fcurve there will be a feedback loop
    * so we need to capture the "y" values on an array to then apply them on a second loop. */
-  float *y_values = static_cast<float *>(
-      MEM_callocN(sizeof(float) * segment->length, "Time Offset Samples"));
+  float *y_values = MEM_calloc_arrayN<float>(segment->length, "Time Offset Samples");
 
   for (int i = 0; i < segment->length; i++) {
     /* This simulates the fcu curve moving in time. */
@@ -1070,7 +1066,7 @@ static void decimate_fcurve_segment(FCurve *fcu,
 
 bool decimate_fcurve(bAnimListElem *ale, float remove_ratio, float error_sq_max)
 {
-  FCurve *fcu = (FCurve *)ale->key_data;
+  FCurve *fcu = static_cast<FCurve *>(ale->key_data);
   /* Check if the curve actually has any points. */
   if (fcu == nullptr || fcu->bezt == nullptr || fcu->totvert == 0) {
     return true;
@@ -1149,8 +1145,7 @@ void smooth_fcurve(FCurve *fcu)
     tSmooth_Bezt *tarray, *tsb;
 
     /* allocate memory in one go */
-    tsb = tarray = static_cast<tSmooth_Bezt *>(
-        MEM_callocN(totSel * sizeof(tSmooth_Bezt), "tSmooth_Bezt Array"));
+    tsb = tarray = MEM_calloc_arrayN<tSmooth_Bezt>(totSel, "tSmooth_Bezt Array");
 
     /* populate tarray with data of selected points */
     bezt = fcu->bezt;
@@ -1359,7 +1354,7 @@ static bool is_animating_bone(const bAnimListElem *ale)
     return false;
   }
 
-  FCurve *fcurve = (FCurve *)ale->key_data;
+  FCurve *fcurve = static_cast<FCurve *>(ale->key_data);
   if (!fcurve->rna_path) {
     return false;
   }
@@ -2062,7 +2057,7 @@ static float paste_get_y_offset(const bAnimContext *ac,
 
   switch (value_offset_mode) {
     case KEYFRAME_PASTE_VALUE_OFFSET_CURSOR: {
-      const SpaceGraph *sipo = (SpaceGraph *)ac->sl;
+      const SpaceGraph *sipo = reinterpret_cast<SpaceGraph *>(ac->sl);
       const float offset = sipo->cursorVal - fcurve_in_copy_buffer.bezt[0].vec[1][1];
       return offset;
     }
@@ -2136,7 +2131,7 @@ eKeyPasteError paste_animedit_keys(bAnimContext *ac,
   if (from_single && to_single) {
     /* 1:1 match, no tricky checking, just paste. */
     bAnimListElem *ale = static_cast<bAnimListElem *>(anim_data->first);
-    FCurve *fcu = (FCurve *)ale->data; /* destination F-Curve */
+    FCurve *fcu = static_cast<FCurve *>(ale->data); /* destination F-Curve */
     const FCurve &fcurve_in_copy_buffer =
         *keyframe_copy_buffer->keyframe_data.channelbag(0)->fcurve(0);
 
@@ -2173,7 +2168,7 @@ eKeyPasteError paste_animedit_keys(bAnimContext *ac,
           ac, *fcurve_in_copy_buffer, ale, paste_context.value_offset_mode);
 
       /* Do the actual pasting. */
-      FCurve *fcurve_to_paste_into = (FCurve *)ale->data;
+      FCurve *fcurve_to_paste_into = static_cast<FCurve *>(ale->data);
       ANIM_nla_mapping_apply_if_needed_fcurve(ale, fcurve_to_paste_into, false, false);
       paste_animedit_keys_fcurve(fcurve_to_paste_into,
                                  *fcurve_in_copy_buffer,

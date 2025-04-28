@@ -47,7 +47,7 @@ typedef uint64_t u_int64_t;
 #  include <stdint.h>     // IWYU pragma: export
 #  include <sys/types.h>  // IWYU pragma: export
 
-#endif /* ifdef platform for types */
+#endif /* `ifdef` platform for types. */
 
 #include <stdbool.h>  // IWYU pragma: export
 #include <stddef.h>   // IWYU pragma: export

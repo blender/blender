@@ -80,7 +80,7 @@ static void node_shader_buts_tex_brick(uiLayout *layout, bContext * /*C*/, Point
 {
   uiLayout *col;
 
-  col = uiLayoutColumn(layout, true);
+  col = &layout->column(true);
   uiItemR(col,
           ptr,
           "offset",
@@ -90,7 +90,7 @@ static void node_shader_buts_tex_brick(uiLayout *layout, bContext * /*C*/, Point
   uiItemR(
       col, ptr, "offset_frequency", UI_ITEM_R_SPLIT_EMPTY_NAME, IFACE_("Frequency"), ICON_NONE);
 
-  col = uiLayoutColumn(layout, true);
+  col = &layout->column(true);
   uiItemR(col, ptr, "squash", UI_ITEM_R_SPLIT_EMPTY_NAME, IFACE_("Squash"), ICON_NONE);
   uiItemR(
       col, ptr, "squash_frequency", UI_ITEM_R_SPLIT_EMPTY_NAME, IFACE_("Frequency"), ICON_NONE);

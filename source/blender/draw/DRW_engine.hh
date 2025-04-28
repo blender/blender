@@ -12,8 +12,6 @@ struct ARegion;
 struct DRWData;
 struct DRWInstanceDataList;
 struct Depsgraph;
-struct DrawDataList;
-struct DrawEngineType;
 struct GPUMaterial;
 struct GPUOffScreen;
 struct GPUVertFormat;
@@ -34,21 +32,10 @@ struct rcti;
 void DRW_engines_register();
 void DRW_engines_free();
 
-bool DRW_engine_render_support(DrawEngineType *draw_engine_type);
-void DRW_engine_register(DrawEngineType *draw_engine_type);
+void DRW_module_init();
+void DRW_module_exit();
 
 void DRW_engine_external_free(RegionView3D *rv3d);
-
-struct DRWUpdateContext {
-  Main *bmain;
-  Depsgraph *depsgraph;
-  Scene *scene;
-  ViewLayer *view_layer;
-  ARegion *region;
-  View3D *v3d;
-  RenderEngineType *engine_type;
-};
-void DRW_notify_view_update(const DRWUpdateContext *update_ctx);
 
 enum eDRWSelectStage {
   DRW_SELECT_PASS_PRE = 1,
@@ -96,19 +83,16 @@ void DRW_draw_select_loop(Depsgraph *depsgraph,
                           DRW_ObjectFilterFn object_filter_fn,
                           void *object_filter_user_data);
 /**
- * Object mode select-loop.
+ * Used by auto-depth and other depth queries feature.
  */
 void DRW_draw_depth_loop(Depsgraph *depsgraph,
                          ARegion *region,
                          View3D *v3d,
                          GPUViewport *viewport,
                          const bool use_gpencil,
-                         const bool use_only_selected);
-/**
- * Clears the Depth Buffer and draws only the specified object.
- */
-void DRW_draw_depth_object(
-    Scene *scene, ARegion *region, View3D *v3d, GPUViewport *viewport, Object *object);
+                         const bool use_only_selected,
+                         const bool use_only_active_object);
+
 void DRW_draw_select_id(Depsgraph *depsgraph, ARegion *region, View3D *v3d);
 
 /**
@@ -122,14 +106,40 @@ bool DRW_draw_in_progress();
  * Helper to check if exit object type to render.
  */
 bool DRW_render_check_grease_pencil(Depsgraph *depsgraph);
+/**
+ * Helper to check if exit object type to render.
+ * Faster and more conservative than DRW_render_check_grease_pencil().
+ * Used for viewport.
+ */
+bool DRW_gpencil_engine_needed(Depsgraph *depsgraph, View3D *v3d);
+/**
+ * Render grease pencil on top of other render engine output.
+ * This function creates a DRWContext.
+ */
 void DRW_render_gpencil(RenderEngine *engine, Depsgraph *depsgraph);
 
 void DRW_render_context_enable(Render *render);
 void DRW_render_context_disable(Render *render);
 
+/* Critical section for GPUShader usage. Can be removed when we have threadsafe GPUShader class. */
+void DRW_submission_start();
+void DRW_submission_end();
+
+void DRW_submission_mutex_init();
+void DRW_submission_mutex_exit();
+
 void DRW_gpu_context_create();
 void DRW_gpu_context_destroy();
+/**
+ * Binds the draw GPU context to the active thread.
+ * In background mode, this will create the draw GPU context on first call.
+ */
 void DRW_gpu_context_enable();
+/**
+ * Tries to bind the draw GPU context to the active thread.
+ * Returns true on success, false if the draw GPU context does not exists.
+ */
+bool DRW_gpu_context_try_enable();
 void DRW_gpu_context_disable();
 
 #ifdef WITH_XR_OPENXR
@@ -164,13 +174,6 @@ void DRW_blender_gpu_render_context_disable(void *re_gpu_context);
 
 void DRW_deferred_shader_remove(GPUMaterial *mat);
 void DRW_deferred_shader_optimize_remove(GPUMaterial *mat);
-
-/**
- * Get DrawData from the given ID-block. In order for this to work, we assume that
- * the DrawData pointer is stored in the  in the same fashion as in #IdDdtTemplate.
- */
-DrawDataList *DRW_drawdatalist_from_id(ID *id);
-void DRW_drawdata_free(ID *id);
 
 DRWData *DRW_viewport_data_create();
 void DRW_viewport_data_free(DRWData *drw_data);

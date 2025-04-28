@@ -64,7 +64,7 @@ void VKShaderInterface::init(const shader::ShaderCreateInfo &info)
     }
   }
   const VKDevice &device = VKBackend::get().device;
-  const bool supports_local_read = !device.workarounds_get().dynamic_rendering_local_read;
+  const bool supports_local_read = device.extensions_get().dynamic_rendering_local_read;
   uniform_len_ += info.subpass_inputs_.size();
 
   /* Reserve 1 uniform buffer for push constants fallback. */
@@ -78,8 +78,7 @@ void VKShaderInterface::init(const shader::ShaderCreateInfo &info)
   names_size += info.subpass_inputs_.size() * SUBPASS_FALLBACK_NAME_LEN;
 
   int32_t input_tot_len = attr_len_ + ubo_len_ + uniform_len_ + ssbo_len_ + constant_len_;
-  inputs_ = static_cast<ShaderInput *>(
-      MEM_calloc_arrayN(input_tot_len, sizeof(ShaderInput), __func__));
+  inputs_ = MEM_calloc_arrayN<ShaderInput>(input_tot_len, __func__);
   ShaderInput *input = inputs_;
 
   name_buffer_ = (char *)MEM_mallocN(names_size, "name_buffer");
@@ -217,37 +216,37 @@ void VKShaderInterface::init(const shader::ShaderCreateInfo &info)
     VKImageViewArrayed arrayed = VKImageViewArrayed::DONT_CARE;
     if (res.bind_type == ShaderCreateInfo::Resource::BindType::IMAGE) {
       arrayed = ELEM(res.image.type,
-                     shader::ImageType::FLOAT_1D_ARRAY,
-                     shader::ImageType::FLOAT_2D_ARRAY,
-                     shader::ImageType::FLOAT_CUBE_ARRAY,
-                     shader::ImageType::INT_1D_ARRAY,
-                     shader::ImageType::INT_2D_ARRAY,
-                     shader::ImageType::INT_CUBE_ARRAY,
-                     shader::ImageType::UINT_1D_ARRAY,
-                     shader::ImageType::UINT_2D_ARRAY,
-                     shader::ImageType::UINT_CUBE_ARRAY,
-                     shader::ImageType::UINT_2D_ARRAY_ATOMIC,
-                     shader::ImageType::INT_2D_ARRAY_ATOMIC) ?
+                     shader::ImageType::Float1DArray,
+                     shader::ImageType::Float2DArray,
+                     shader::ImageType::FloatCubeArray,
+                     shader::ImageType::Int1DArray,
+                     shader::ImageType::Int2DArray,
+                     shader::ImageType::IntCubeArray,
+                     shader::ImageType::Uint1DArray,
+                     shader::ImageType::Uint2DArray,
+                     shader::ImageType::UintCubeArray,
+                     shader::ImageType::AtomicUint2DArray,
+                     shader::ImageType::AtomicInt2DArray) ?
                     VKImageViewArrayed::ARRAYED :
                     VKImageViewArrayed::NOT_ARRAYED;
     }
     else if (res.bind_type == ShaderCreateInfo::Resource::BindType::SAMPLER) {
       arrayed = ELEM(res.sampler.type,
-                     shader::ImageType::FLOAT_1D_ARRAY,
-                     shader::ImageType::FLOAT_2D_ARRAY,
-                     shader::ImageType::FLOAT_CUBE_ARRAY,
-                     shader::ImageType::INT_1D_ARRAY,
-                     shader::ImageType::INT_2D_ARRAY,
-                     shader::ImageType::INT_CUBE_ARRAY,
-                     shader::ImageType::UINT_1D_ARRAY,
-                     shader::ImageType::UINT_2D_ARRAY,
-                     shader::ImageType::UINT_CUBE_ARRAY,
-                     shader::ImageType::SHADOW_2D_ARRAY,
-                     shader::ImageType::SHADOW_CUBE_ARRAY,
-                     shader::ImageType::DEPTH_2D_ARRAY,
-                     shader::ImageType::DEPTH_CUBE_ARRAY,
-                     shader::ImageType::UINT_2D_ARRAY_ATOMIC,
-                     shader::ImageType::INT_2D_ARRAY_ATOMIC) ?
+                     shader::ImageType::Float1DArray,
+                     shader::ImageType::Float2DArray,
+                     shader::ImageType::FloatCubeArray,
+                     shader::ImageType::Int1DArray,
+                     shader::ImageType::Int2DArray,
+                     shader::ImageType::IntCubeArray,
+                     shader::ImageType::Uint1DArray,
+                     shader::ImageType::Uint2DArray,
+                     shader::ImageType::UintCubeArray,
+                     shader::ImageType::Shadow2DArray,
+                     shader::ImageType::ShadowCubeArray,
+                     shader::ImageType::Depth2DArray,
+                     shader::ImageType::DepthCubeArray,
+                     shader::ImageType::AtomicUint2DArray,
+                     shader::ImageType::AtomicInt2DArray) ?
                     VKImageViewArrayed::ARRAYED :
                     VKImageViewArrayed::NOT_ARRAYED;
     }
@@ -294,7 +293,7 @@ void VKShaderInterface::descriptor_set_location_update(
                  "Incorrect parameter, bind types do not match.");
 
   const VKDevice &device = VKBackend::get().device;
-  const bool supports_local_read = !device.workarounds_get().dynamic_rendering_local_read;
+  const bool supports_local_read = device.extensions_get().dynamic_rendering_local_read;
 
   int32_t index = shader_input_index(inputs_, shader_input);
   BLI_assert(resource_bindings_[index].binding == -1);
@@ -307,19 +306,19 @@ void VKShaderInterface::descriptor_set_location_update(
         break;
 
       case shader::ShaderCreateInfo::Resource::BindType::STORAGE_BUFFER:
-        if (bool(resource->storagebuf.qualifiers & shader::Qualifier::READ) == true) {
+        if (bool(resource->storagebuf.qualifiers & shader::Qualifier::read) == true) {
           vk_access_flags |= VK_ACCESS_SHADER_READ_BIT;
         }
-        if (bool(resource->storagebuf.qualifiers & shader::Qualifier::WRITE) == true) {
+        if (bool(resource->storagebuf.qualifiers & shader::Qualifier::write) == true) {
           vk_access_flags |= VK_ACCESS_SHADER_WRITE_BIT;
         }
         break;
 
       case shader::ShaderCreateInfo::Resource::BindType::IMAGE:
-        if (bool(resource->image.qualifiers & shader::Qualifier::READ) == true) {
+        if (bool(resource->image.qualifiers & shader::Qualifier::read) == true) {
           vk_access_flags |= VK_ACCESS_SHADER_READ_BIT;
         }
-        if (bool(resource->image.qualifiers & shader::Qualifier::WRITE) == true) {
+        if (bool(resource->image.qualifiers & shader::Qualifier::write) == true) {
           vk_access_flags |= VK_ACCESS_SHADER_WRITE_BIT;
         }
         break;
@@ -408,8 +407,8 @@ void VKShaderInterface::init_descriptor_set_layout_info(
     VKPushConstants::StorageType push_constants_storage)
 {
   BLI_assert(descriptor_set_layout_info_.bindings.is_empty());
-  const VKWorkarounds &workarounds = VKBackend::get().device.workarounds_get();
-  const bool supports_local_read = !workarounds.dynamic_rendering_local_read;
+  const VKExtensions &extensions = VKBackend::get().device.extensions_get();
+  const bool supports_local_read = extensions.dynamic_rendering_local_read;
 
   descriptor_set_layout_info_.bindings.reserve(resources_len);
   if (!(info.compute_source_.is_empty() && info.compute_source_generated.empty())) {
@@ -423,9 +422,10 @@ void VKShaderInterface::init_descriptor_set_layout_info(
   }
   for (int index : IndexRange(info.subpass_inputs_.size())) {
     UNUSED_VARS(index);
+    // TODO: clean up remove negation.
     descriptor_set_layout_info_.bindings.append_n_times(
-        workarounds.dynamic_rendering            ? VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT :
-        workarounds.dynamic_rendering_local_read ? VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER :
+        !extensions.dynamic_rendering            ? VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT :
+        !extensions.dynamic_rendering_local_read ? VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER :
                                                    VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT,
         info.subpass_inputs_.size());
   }

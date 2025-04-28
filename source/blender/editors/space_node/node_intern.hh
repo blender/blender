@@ -238,12 +238,6 @@ NodeResizeDirection node_get_resize_direction(const SpaceNode &snode,
 void UI_node_socket_draw_cache_flush();
 void nodesocket_batch_start();
 void nodesocket_batch_end();
-void node_draw_nodesocket(const rctf *rect,
-                          const float color_inner[4],
-                          const float color_outline[4],
-                          float outline_thickness,
-                          int shape,
-                          float aspect);
 
 void nodelink_batch_start(SpaceNode &snode);
 void nodelink_batch_end(SpaceNode &snode);
@@ -294,7 +288,7 @@ void NODE_OT_add_group(wmOperatorType *ot);
 void NODE_OT_add_group_asset(wmOperatorType *ot);
 void NODE_OT_add_object(wmOperatorType *ot);
 void NODE_OT_add_collection(wmOperatorType *ot);
-void NODE_OT_add_file(wmOperatorType *ot);
+void NODE_OT_add_image(wmOperatorType *ot);
 void NODE_OT_add_mask(wmOperatorType *ot);
 void NODE_OT_add_material(wmOperatorType *ot);
 void NODE_OT_add_color(wmOperatorType *ot);
@@ -352,7 +346,7 @@ bool composite_node_editable(bContext *C);
 bool node_has_hidden_sockets(bNode *node);
 void node_set_hidden_sockets(bNode *node, int set);
 bool node_is_previewable(const SpaceNode &snode, const bNodeTree &ntree, const bNode &node);
-int node_render_changed_exec(bContext *, wmOperator *);
+wmOperatorStatus node_render_changed_exec(bContext *, wmOperator *);
 bNodeSocket *node_find_indicated_socket(SpaceNode &snode,
                                         ARegion &region,
                                         const float2 &cursor,
@@ -374,6 +368,7 @@ void NODE_OT_preview_toggle(wmOperatorType *ot);
 void NODE_OT_options_toggle(wmOperatorType *ot);
 void NODE_OT_node_copy_color(wmOperatorType *ot);
 void NODE_OT_deactivate_viewer(wmOperatorType *ot);
+void NODE_OT_activate_viewer(wmOperatorType *ot);
 
 void NODE_OT_read_viewlayers(wmOperatorType *ot);
 void NODE_OT_render_changed(wmOperatorType *ot);
@@ -402,6 +397,8 @@ void NODE_GGT_backdrop_transform(wmGizmoGroupType *gzgt);
 void NODE_GGT_backdrop_crop(wmGizmoGroupType *gzgt);
 void NODE_GGT_backdrop_sun_beams(wmGizmoGroupType *gzgt);
 void NODE_GGT_backdrop_corner_pin(wmGizmoGroupType *gzgt);
+void NODE_GGT_backdrop_box_mask(wmGizmoGroupType *gzgt);
+void NODE_GGT_backdrop_ellipse_mask(wmGizmoGroupType *gzgt);
 
 /* `node_geometry_attribute_search.cc` */
 
@@ -410,6 +407,14 @@ void node_geometry_add_attribute_search_button(const bContext &C,
                                                PointerRNA &socket_ptr,
                                                uiLayout &layout,
                                                StringRefNull placeholder = "");
+
+/* `node_geometry_layer_search.cc` */
+
+void node_geometry_add_layer_search_button(const bContext &C,
+                                           const bNode &node,
+                                           PointerRNA &socket_ptr,
+                                           uiLayout &layout,
+                                           StringRefNull placeholder = "");
 
 /* `node_context_path.cc` */
 

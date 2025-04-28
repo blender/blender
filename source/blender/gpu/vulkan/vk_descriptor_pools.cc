@@ -8,6 +8,7 @@
 
 #include "vk_descriptor_pools.hh"
 #include "vk_backend.hh"
+#include "vk_context.hh"
 #include "vk_device.hh"
 
 namespace blender::gpu {
@@ -27,13 +28,17 @@ void VKDescriptorPools::init(const VKDevice &device)
   add_new_pool(device);
 }
 
-void VKDescriptorPools::reset()
+void VKDescriptorPools::discard(VKContext &context)
 {
   const VKDevice &device = VKBackend::get().device;
-  for (const VkDescriptorPool vk_descriptor_pool : pools_) {
-    vkResetDescriptorPool(device.vk_handle(), vk_descriptor_pool, 0);
-  }
+  VKDiscardPool &discard_pool = context.discard_pool;
 
+  for (const VkDescriptorPool vk_descriptor_pool : pools_) {
+    discard_pool.discard_descriptor_pool(vk_descriptor_pool);
+  }
+  pools_.clear();
+
+  add_new_pool(device);
   active_pool_index_ = 0;
 }
 
@@ -48,7 +53,6 @@ void VKDescriptorPools::add_new_pool(const VKDevice &device)
       {VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, POOL_SIZE_INPUT_ATTACHMENT}};
   VkDescriptorPoolCreateInfo pool_info = {};
   pool_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-  pool_info.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
   pool_info.maxSets = POOL_SIZE_DESCRIPTOR_SETS;
   pool_info.poolSizeCount = pool_sizes.size();
   pool_info.pPoolSizes = pool_sizes.data();

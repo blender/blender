@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2018 Google Inc. All rights reserved.
+// Copyright 2023 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -33,8 +33,7 @@
 
 #include "ceres/internal/export.h"
 
-namespace ceres {
-namespace internal {
+namespace ceres::internal {
 
 // Converts a linear iteration order into a triangular iteration order.
 // Suppose you have nested loops that look like
@@ -66,7 +65,6 @@ CERES_NO_EXPORT void LinearIndexToUpperTriangularIndex(int k,
                                                        int* i,
                                                        int* j);
 
-}  // namespace internal
-}  // namespace ceres
+}  // namespace ceres::internal
 
 #endif  // CERES_INTERNAL_PARALLEL_UTILS_H_

@@ -315,13 +315,12 @@ eFileAttributes BLI_file_attributes(const char *path)
 }
 #endif
 
-/* Return alias/shortcut file target. Apple version is defined in storage_apple.mm */
-#ifndef __APPLE__
+#ifndef __APPLE__ /* Apple version is defined in `storage_apple.mm`. */
 bool BLI_file_alias_target(const char *filepath,
                            /* This parameter can only be `const` on Linux since
                             * redirection is not supported there.
                             * NOLINTNEXTLINE: readability-non-const-parameter. */
-                           char r_targetpath[/*FILE_MAXDIR*/])
+                           char r_targetpath[FILE_MAXDIR])
 {
 #  ifdef WIN32
   if (!BLI_path_extension_check(filepath, ".lnk")) {

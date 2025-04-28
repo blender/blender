@@ -127,8 +127,7 @@ static void mesh_get_boundaries(Mesh *mesh, float *smooth_weights)
   const blender::Span<int> corner_edges = mesh->corner_edges();
 
   /* Flag boundary edges so only boundaries are set to 1. */
-  uint8_t *boundaries = static_cast<uint8_t *>(
-      MEM_calloc_arrayN(size_t(edges.size()), sizeof(*boundaries), __func__));
+  uint8_t *boundaries = MEM_calloc_arrayN<uint8_t>(size_t(edges.size()), __func__);
 
   for (const int64_t i : faces.index_range()) {
     for (const int edge : corner_edges.slice(faces[i])) {
@@ -170,8 +169,7 @@ static void smooth_iter__simple(CorrectiveSmoothModifierData *csmd,
   SmoothingData_Simple *smooth_data = MEM_calloc_arrayN<SmoothingData_Simple>(
       size_t(vertexCos.size()), __func__);
 
-  float *vertex_edge_count_div = static_cast<float *>(
-      MEM_calloc_arrayN(size_t(vertexCos.size()), sizeof(float), __func__));
+  float *vertex_edge_count_div = MEM_calloc_arrayN<float>(size_t(vertexCos.size()), __func__);
 
   /* calculate as floats to avoid int->float conversion in #smooth_iter */
   for (i = 0; i < edges_num; i++) {
@@ -251,8 +249,7 @@ static void smooth_iter__length_weight(CorrectiveSmoothModifierData *csmd,
       size_t(vertexCos.size()), __func__);
 
   /* calculate as floats to avoid int->float conversion in #smooth_iter */
-  float *vertex_edge_count = static_cast<float *>(
-      MEM_calloc_arrayN(size_t(vertexCos.size()), sizeof(float), __func__));
+  float *vertex_edge_count = MEM_calloc_arrayN<float>(size_t(vertexCos.size()), __func__);
   for (i = 0; i < edges_num; i++) {
     vertex_edge_count[edges[i][0]] += 1.0f;
     vertex_edge_count[edges[i][1]] += 1.0f;
@@ -352,8 +349,7 @@ static void smooth_verts(CorrectiveSmoothModifierData *csmd,
 
   if (dvert || (csmd->flag & MOD_CORRECTIVESMOOTH_PIN_BOUNDARY)) {
 
-    smooth_weights = static_cast<float *>(
-        MEM_malloc_arrayN(size_t(vertexCos.size()), sizeof(float), __func__));
+    smooth_weights = MEM_malloc_arrayN<float>(size_t(vertexCos.size()), __func__);
 
     if (dvert) {
       mesh_get_weights(dvert,
@@ -514,8 +510,8 @@ static void calc_deltas(CorrectiveSmoothModifierData *csmd,
 
   uint l_index;
 
-  float(*tangent_spaces)[3][3] = static_cast<float(*)[3][3]>(
-      MEM_malloc_arrayN(size_t(corner_verts.size()), sizeof(float[3][3]), __func__));
+  float(*tangent_spaces)[3][3] = MEM_malloc_arrayN<float[3][3]>(size_t(corner_verts.size()),
+                                                                __func__);
 
   if (csmd->delta_cache.deltas_num != uint(corner_verts.size())) {
     MEM_SAFE_FREE(csmd->delta_cache.deltas);
@@ -524,8 +520,7 @@ static void calc_deltas(CorrectiveSmoothModifierData *csmd,
   /* allocate deltas if they have not yet been allocated, otherwise we will just write over them */
   if (!csmd->delta_cache.deltas) {
     csmd->delta_cache.deltas_num = uint(corner_verts.size());
-    csmd->delta_cache.deltas = static_cast<float(*)[3]>(
-        MEM_malloc_arrayN(size_t(corner_verts.size()), sizeof(float[3]), __func__));
+    csmd->delta_cache.deltas = MEM_malloc_arrayN<float[3]>(size_t(corner_verts.size()), __func__);
   }
 
   smooth_verts(csmd, mesh, dvert, defgrp_index, smooth_vertex_coords);
@@ -579,8 +574,7 @@ static void correctivesmooth_modifier_do(ModifierData *md,
   {
     if (DEG_is_active(depsgraph)) {
       BLI_assert(csmd->bind_coords == nullptr);
-      csmd->bind_coords = static_cast<float(*)[3]>(
-          MEM_malloc_arrayN(size_t(vertexCos.size()), sizeof(float[3]), __func__));
+      csmd->bind_coords = MEM_malloc_arrayN<float[3]>(size_t(vertexCos.size()), __func__);
       memcpy(csmd->bind_coords, vertexCos.data(), size_t(vertexCos.size_in_bytes()));
       csmd->bind_coords_num = uint(vertexCos.size());
       BLI_assert(csmd->bind_coords != nullptr);
@@ -691,12 +685,11 @@ static void correctivesmooth_modifier_do(ModifierData *md,
 
     const float scale = csmd->scale;
 
-    float(*tangent_spaces)[3][3] = static_cast<float(*)[3][3]>(
-        MEM_malloc_arrayN(size_t(corner_verts.size()), sizeof(float[3][3]), __func__));
-    float *tangent_weights = static_cast<float *>(
-        MEM_malloc_arrayN(size_t(corner_verts.size()), sizeof(float), __func__));
-    float *tangent_weights_per_vertex = static_cast<float *>(
-        MEM_malloc_arrayN(size_t(vertexCos.size()), sizeof(float), __func__));
+    float(*tangent_spaces)[3][3] = MEM_malloc_arrayN<float[3][3]>(size_t(corner_verts.size()),
+                                                                  __func__);
+    float *tangent_weights = MEM_malloc_arrayN<float>(size_t(corner_verts.size()), __func__);
+    float *tangent_weights_per_vertex = MEM_malloc_arrayN<float>(size_t(vertexCos.size()),
+                                                                 __func__);
 
     calc_tangent_spaces(
         mesh, vertexCos, tangent_spaces, tangent_weights, tangent_weights_per_vertex);

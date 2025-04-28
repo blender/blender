@@ -17,7 +17,7 @@
 
 #include "bmesh.hh"
 
-BMUVOffsets BM_uv_map_get_offsets_from_layer(const BMesh *bm, const int layer)
+BMUVOffsets BM_uv_map_offsets_from_layer(const BMesh *bm, const int layer)
 {
   using namespace blender;
   using namespace blender::bke;
@@ -41,13 +41,13 @@ BMUVOffsets BM_uv_map_get_offsets_from_layer(const BMesh *bm, const int layer)
   return offsets;
 }
 
-BMUVOffsets BM_uv_map_get_offsets(const BMesh *bm)
+BMUVOffsets BM_uv_map_offsets_get(const BMesh *bm)
 {
   const int layer = CustomData_get_active_layer(&bm->ldata, CD_PROP_FLOAT2);
   if (layer == -1) {
     return {-1, -1, -1, -1};
   }
-  return BM_uv_map_get_offsets_from_layer(bm, layer);
+  return BM_uv_map_offsets_from_layer(bm, layer);
 }
 
 static void uv_aspect(const BMLoop *l,
@@ -146,10 +146,10 @@ void BM_face_uv_minmax(const BMFace *f, float min[2], float max[2], const int cd
 bool BM_loop_uv_share_edge_check(BMLoop *l_a, BMLoop *l_b, const int cd_loop_uv_offset)
 {
   BLI_assert(l_a->e == l_b->e);
-  float *luv_a_curr = BM_ELEM_CD_GET_FLOAT_P(l_a, cd_loop_uv_offset);
-  float *luv_a_next = BM_ELEM_CD_GET_FLOAT_P(l_a->next, cd_loop_uv_offset);
-  float *luv_b_curr = BM_ELEM_CD_GET_FLOAT_P(l_b, cd_loop_uv_offset);
-  float *luv_b_next = BM_ELEM_CD_GET_FLOAT_P(l_b->next, cd_loop_uv_offset);
+  const float *luv_a_curr = BM_ELEM_CD_GET_FLOAT_P(l_a, cd_loop_uv_offset);
+  const float *luv_a_next = BM_ELEM_CD_GET_FLOAT_P(l_a->next, cd_loop_uv_offset);
+  const float *luv_b_curr = BM_ELEM_CD_GET_FLOAT_P(l_b, cd_loop_uv_offset);
+  const float *luv_b_next = BM_ELEM_CD_GET_FLOAT_P(l_b->next, cd_loop_uv_offset);
   if (l_a->v != l_b->v) {
     std::swap(luv_b_curr, luv_b_next);
   }

@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2019 Google Inc. All rights reserved.
+// Copyright 2023 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -304,10 +304,6 @@ class CERES_EXPORT GradientProblemSolver {
 
     // Number of parameters in the problem.
     int num_parameters = -1;
-
-    // Dimension of the tangent space of the problem.
-    CERES_DEPRECATED_WITH_MSG("Use num_tangent_parameters.")
-    int num_local_parameters = -1;
 
     // Dimension of the tangent space of the problem.
     int num_tangent_parameters = -1;

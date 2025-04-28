@@ -78,6 +78,8 @@ void wm_gizmomaps_handled_modal_update(bContext *C, wmEvent *event, wmEventHandl
 void wm_gizmomap_handler_context_op(bContext *C, wmEventHandler_Op *handler);
 void wm_gizmomap_handler_context_gizmo(bContext *C, wmEventHandler_Gizmo *handler);
 
+bool wm_gizmomap_highlight_pending(const wmGizmoMap *gzmap);
+bool wm_gizmomap_highlight_handled(wmGizmoMap *gzmap);
 /**
  * Try to find a gizmo under the mouse position. 2D intersections have priority over
  * 3D ones (could check for smallest screen-space distance but not needed right now).

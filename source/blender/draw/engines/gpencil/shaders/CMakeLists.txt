@@ -26,6 +26,7 @@ set(SRC_GLSL_VERT
 )
 
 set(SRC_GLSL_FRAG
+  gpencil_antialiasing_accumulation_frag.glsl
   gpencil_antialiasing_frag.glsl
   gpencil_depth_merge_frag.glsl
   gpencil_frag.glsl

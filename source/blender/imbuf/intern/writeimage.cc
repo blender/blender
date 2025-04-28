@@ -17,7 +17,7 @@
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 
-bool IMB_saveiff(ImBuf *ibuf, const char *filepath, int flags)
+bool IMB_save_image(ImBuf *ibuf, const char *filepath, const int flags)
 {
   errno = 0;
 

@@ -43,6 +43,7 @@ bool string_endswith(string_view s, string_view end);
 string string_strip(const string &s);
 string string_remove_trademark(const string &s);
 string string_from_bool(const bool var);
+string string_hex(const uint8_t *data, const size_t size);
 string to_string(const char *str);
 string to_string(const float4 &v);
 string string_to_lower(const string &s);

@@ -235,8 +235,7 @@ static void gizmo_mesh_placement_setup(const bContext *C, wmGizmoGroup *gzgroup)
     return;
   }
 
-  GizmoPlacementGroup *ggd = static_cast<GizmoPlacementGroup *>(
-      MEM_callocN(sizeof(GizmoPlacementGroup), __func__));
+  GizmoPlacementGroup *ggd = MEM_callocN<GizmoPlacementGroup>(__func__);
   gzgroup->customdata = ggd;
 
   const wmGizmoType *gzt_cage = WM_gizmotype_find("GIZMO_GT_cage_3d", true);
@@ -305,7 +304,7 @@ static void MESH_GGT_add_bounds(wmGizmoGroupType *gzgt)
  * and share the same BMesh creation code.
  * \{ */
 
-static int add_primitive_cube_gizmo_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus add_primitive_cube_gizmo_exec(bContext *C, wmOperator *op)
 {
   Object *obedit = CTX_data_edit_object(C);
   BMEditMesh *em = BKE_editmesh_from_object(obedit);
@@ -353,11 +352,13 @@ static int add_primitive_cube_gizmo_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int add_primitive_cube_gizmo_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+static wmOperatorStatus add_primitive_cube_gizmo_invoke(bContext *C,
+                                                        wmOperator *op,
+                                                        const wmEvent * /*event*/)
 {
   View3D *v3d = CTX_wm_view3d(C);
 
-  int ret = add_primitive_cube_gizmo_exec(C, op);
+  wmOperatorStatus ret = add_primitive_cube_gizmo_exec(C, op);
   if (ret & OPERATOR_FINISHED) {
     /* Setup gizmos */
     if (v3d && ((v3d->gizmo_flag & V3D_GIZMO_HIDE) == 0)) {

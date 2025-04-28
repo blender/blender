@@ -11,8 +11,6 @@
 #include "util/array.h"
 #include "util/set.h"
 #include "util/string.h"
-#include "util/thread.h"
-#include "util/unique_ptr.h"
 
 #include "scene/shader.h"
 #include "scene/shader_graph.h"
@@ -64,7 +62,10 @@ class OSLManager {
   void reset(Scene *scene);
 
   void device_update_pre(Device *device, Scene *scene);
-  void device_update_post(Device *device, Scene *scene, Progress &progress);
+  void device_update_post(Device *device,
+                          Scene *scene,
+                          Progress &progress,
+                          const bool reload_kernels);
   void device_free(Device *device, DeviceScene *dscene, Scene *scene);
 
 #ifdef WITH_OSL
@@ -116,7 +117,7 @@ class OSLManager {
 class OSLShaderManager : public ShaderManager {
  public:
   OSLShaderManager() = default;
-  ~OSLShaderManager() = default;
+  ~OSLShaderManager() override = default;
 
   bool use_osl() override
   {
@@ -150,7 +151,7 @@ class OSLShaderManager : public ShaderManager {
 class OSLCompiler {
  public:
 #ifdef WITH_OSL
-  OSLCompiler(OSLShaderManager *manager, OSL::ShadingSystem *ss, Scene *scene);
+  OSLCompiler(OSL::ShadingSystem *ss, Scene *scene);
 #endif
   void compile(Shader *shader);
 
@@ -196,7 +197,6 @@ class OSLCompiler {
   void find_dependencies(ShaderNodeSet &dependencies, ShaderInput *input);
   void generate_nodes(const ShaderNodeSet &nodes);
 
-  OSLShaderManager *manager;
   OSLRenderServices *services;
   OSL::ShadingSystem *ss;
   OSL::ShaderGroupRef current_group;

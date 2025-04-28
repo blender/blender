@@ -38,14 +38,6 @@ static IndexMask calc_mesh_edge_visibility(const MeshRenderData &mr,
   return visible;
 }
 
-/* In the GPU vertex buffers, the value for each vertex is duplicated to each of its vertex
- * corners. So the edges on the GPU connect face corners rather than vertices. */
-static uint2 edge_from_corners(const IndexRange face, const int corner)
-{
-  const int corner_next = bke::mesh::face_corner_next(face, corner);
-  return uint2(corner, corner_next);
-}
-
 static void fill_loose_lines_ibo(const MeshRenderData &mr,
                                  const IndexMask &visible,
                                  MutableSpan<uint2> data)
@@ -86,8 +78,8 @@ static IndexMask calc_visible_loose_edge_indices(const MeshRenderData &mr, Index
 }
 
 static void extract_lines_mesh(const MeshRenderData &mr,
-                               gpu::IndexBuf *lines,
-                               gpu::IndexBuf *lines_loose,
+                               gpu::IndexBufPtr *lines,
+                               gpu::IndexBufPtr *lines_loose,
                                bool &no_loose_wire)
 {
   IndexMaskMemory memory;
@@ -96,12 +88,12 @@ static void extract_lines_mesh(const MeshRenderData &mr,
 
   no_loose_wire = visible_loose_edges.is_empty();
 
-  if (DRW_ibo_requested(lines_loose) && !DRW_ibo_requested(lines)) {
+  if (lines_loose && !lines) {
     GPUIndexBufBuilder builder;
     GPU_indexbuf_init(&builder, GPU_PRIM_LINES, visible_loose_edges.size(), max_index);
     MutableSpan<uint2> data = GPU_indexbuf_get_data(&builder).cast<uint2>();
     fill_loose_lines_ibo(mr, visible_loose_edges, data);
-    GPU_indexbuf_build_in_place_ex(&builder, 0, max_index, false, lines_loose);
+    *lines_loose = gpu::IndexBufPtr(GPU_indexbuf_build_ex(&builder, 0, max_index, false));
     return;
   }
 
@@ -169,16 +161,16 @@ static void extract_lines_mesh(const MeshRenderData &mr,
 
   fill_loose_lines_ibo(mr, visible_loose_edges, data.take_back(visible_loose_edges.size()));
 
-  GPU_indexbuf_build_in_place_ex(&builder, 0, max_index, false, lines);
-  if (DRW_ibo_requested(lines_loose)) {
-    GPU_indexbuf_create_subrange_in_place(
-        lines_loose, lines, visible_non_loose_edges.size() * 2, visible_loose_edges.size() * 2);
+  *lines = gpu::IndexBufPtr(GPU_indexbuf_build_ex(&builder, 0, max_index, false));
+  if (lines_loose) {
+    *lines_loose = gpu::IndexBufPtr(GPU_indexbuf_create_subrange(
+        lines->get(), visible_non_loose_edges.size() * 2, visible_loose_edges.size() * 2));
   }
 }
 
 static void extract_lines_bm(const MeshRenderData &mr,
-                             gpu::IndexBuf *lines,
-                             gpu::IndexBuf *lines_loose,
+                             gpu::IndexBufPtr *lines,
+                             gpu::IndexBufPtr *lines_loose,
                              bool &no_loose_wire)
 {
   const BMesh &bm = *mr.bm;
@@ -194,12 +186,12 @@ static void extract_lines_bm(const MeshRenderData &mr,
 
   no_loose_wire = visible_loose_edges.is_empty();
 
-  if (DRW_ibo_requested(lines_loose) && !DRW_ibo_requested(lines)) {
+  if (lines_loose && !lines) {
     GPUIndexBufBuilder builder;
     GPU_indexbuf_init(&builder, GPU_PRIM_LINES, visible_loose_edges.size(), max_index);
     MutableSpan<uint2> data = GPU_indexbuf_get_data(&builder).cast<uint2>();
     fill_loose_lines_ibo(mr, visible_loose_edges, data);
-    GPU_indexbuf_build_in_place_ex(&builder, 0, max_index, false, lines_loose);
+    *lines_loose = gpu::IndexBufPtr(GPU_indexbuf_build_ex(&builder, 0, max_index, false));
     return;
   }
 
@@ -227,16 +219,16 @@ static void extract_lines_bm(const MeshRenderData &mr,
 
   fill_loose_lines_ibo(mr, visible_loose_edges, data.take_back(visible_loose_edges.size()));
 
-  GPU_indexbuf_build_in_place_ex(&builder, 0, max_index, false, lines);
-  if (DRW_ibo_requested(lines_loose)) {
-    GPU_indexbuf_create_subrange_in_place(
-        lines_loose, lines, visible_non_loose_edges.size() * 2, visible_loose_edges.size() * 2);
+  *lines = gpu::IndexBufPtr(GPU_indexbuf_build_ex(&builder, 0, max_index, false));
+  if (lines_loose) {
+    *lines_loose = gpu::IndexBufPtr(GPU_indexbuf_create_subrange(
+        lines->get(), visible_non_loose_edges.size() * 2, visible_loose_edges.size() * 2));
   }
 }
 
 void extract_lines(const MeshRenderData &mr,
-                   gpu::IndexBuf *lines,
-                   gpu::IndexBuf *lines_loose,
+                   gpu::IndexBufPtr *lines,
+                   gpu::IndexBufPtr *lines_loose,
                    bool &no_loose_wire)
 {
   if (mr.extract_type == MeshExtractType::Mesh) {
@@ -329,30 +321,31 @@ static void extract_lines_loose_geom_subdiv(const DRWSubdivCache &subdiv_cache,
 
 void extract_lines_subdiv(const DRWSubdivCache &subdiv_cache,
                           const MeshRenderData &mr,
-                          gpu::IndexBuf *lines,
-                          gpu::IndexBuf *lines_loose,
+                          gpu::IndexBufPtr *lines,
+                          gpu::IndexBufPtr *lines_loose,
                           bool &no_loose_wire)
 {
   const int loose_ibo_size = subdiv_loose_edges_num(mr, subdiv_cache) * 2;
   no_loose_wire = loose_ibo_size == 0;
 
-  if (DRW_ibo_requested(lines_loose) && !DRW_ibo_requested(lines)) {
-    GPU_indexbuf_init_build_on_device(lines_loose, loose_ibo_size);
-    extract_lines_loose_geom_subdiv(subdiv_cache, mr, 0, lines_loose);
+  if (lines_loose && !lines) {
+    *lines_loose = gpu::IndexBufPtr(GPU_indexbuf_build_on_device(loose_ibo_size));
+    extract_lines_loose_geom_subdiv(subdiv_cache, mr, 0, lines_loose->get());
     return;
   }
 
   const int non_loose_ibo_size = subdiv_cache.num_subdiv_loops * 2;
 
-  GPU_indexbuf_init_build_on_device(lines, non_loose_ibo_size + loose_ibo_size);
+  *lines = gpu::IndexBufPtr(GPU_indexbuf_build_on_device(non_loose_ibo_size + loose_ibo_size));
   if (non_loose_ibo_size > 0) {
-    draw_subdiv_build_lines_buffer(subdiv_cache, lines);
+    draw_subdiv_build_lines_buffer(subdiv_cache, lines->get());
   }
-  extract_lines_loose_geom_subdiv(subdiv_cache, mr, non_loose_ibo_size, lines);
+  extract_lines_loose_geom_subdiv(subdiv_cache, mr, non_loose_ibo_size, lines->get());
 
-  if (DRW_ibo_requested(lines_loose)) {
+  if (lines_loose) {
     /* Multiply by 2 because these are edges indices. */
-    GPU_indexbuf_create_subrange_in_place(lines_loose, lines, non_loose_ibo_size, loose_ibo_size);
+    *lines_loose = gpu::IndexBufPtr(
+        GPU_indexbuf_create_subrange(lines->get(), non_loose_ibo_size, loose_ibo_size));
   }
 }
 

@@ -26,6 +26,8 @@
 
 #  include "kernel/device/cuda/globals.h"
 
+#  include "session/display_driver.h"
+
 CCL_NAMESPACE_BEGIN
 
 class CUDADevice;
@@ -1048,14 +1050,9 @@ unique_ptr<DeviceQueue> CUDADevice::gpu_queue_create()
   return make_unique<CUDADeviceQueue>(this);
 }
 
-bool CUDADevice::should_use_graphics_interop()
+bool CUDADevice::should_use_graphics_interop(const GraphicsInteropDevice &interop_device,
+                                             const bool log)
 {
-  /* Check whether this device is part of OpenGL context.
-   *
-   * Using CUDA device for graphics interoperability which is not part of the OpenGL context is
-   * possible, but from the empiric measurements it can be considerably slower than using naive
-   * pixels copy. */
-
   if (headless) {
     /* Avoid any call which might involve interaction with a graphics backend when we know that
      * we don't have active graphics context. This avoid crash on certain platforms when calling
@@ -1065,20 +1062,69 @@ bool CUDADevice::should_use_graphics_interop()
 
   CUDAContextScope scope(this);
 
-  int num_all_devices = 0;
-  cuda_assert(cuDeviceGetCount(&num_all_devices));
+  switch (interop_device.type) {
+    case GraphicsInteropDevice::OPENGL: {
+      /* Check whether this device is part of OpenGL context.
+       *
+       * Using CUDA device for graphics interoperability which is not part of the OpenGL context is
+       * possible, but from the empiric measurements it can be considerably slower than using naive
+       * pixels copy. */
+      int num_all_devices = 0;
+      cuda_assert(cuDeviceGetCount(&num_all_devices));
 
-  if (num_all_devices == 0) {
-    return false;
-  }
+      if (num_all_devices == 0) {
+        return false;
+      }
 
-  vector<CUdevice> gl_devices(num_all_devices);
-  uint num_gl_devices = 0;
-  cuGLGetDevices(&num_gl_devices, gl_devices.data(), num_all_devices, CU_GL_DEVICE_LIST_ALL);
+      vector<CUdevice> gl_devices(num_all_devices);
+      uint num_gl_devices = 0;
+      cuGLGetDevices(&num_gl_devices, gl_devices.data(), num_all_devices, CU_GL_DEVICE_LIST_ALL);
 
-  for (uint i = 0; i < num_gl_devices; ++i) {
-    if (gl_devices[i] == cuDevice) {
-      return true;
+      bool found = false;
+      for (uint i = 0; i < num_gl_devices; ++i) {
+        if (gl_devices[i] == cuDevice) {
+          found = true;
+          break;
+        }
+      }
+
+      if (log) {
+        if (found) {
+          VLOG_INFO << "Graphics interop: found matching OpenGL device for CUDA";
+        }
+        else {
+          VLOG_INFO << "Graphics interop: no matching OpenGL device for CUDA";
+        }
+      }
+
+      return found;
+    }
+    case ccl::GraphicsInteropDevice::VULKAN: {
+      /* Only do interop with matching device UUID. */
+      CUuuid uuid = {};
+      cuDeviceGetUuid(&uuid, cuDevice);
+      const bool found = (sizeof(uuid.bytes) == interop_device.uuid.size() &&
+                          memcmp(uuid.bytes, interop_device.uuid.data(), sizeof(uuid.bytes)) == 0);
+
+      if (log) {
+        if (found) {
+          VLOG_INFO << "Graphics interop: found matching Vulkan device for CUDA";
+        }
+        else {
+          VLOG_INFO << "Graphics interop: no matching Vulkan device for CUDA";
+        }
+
+        VLOG_INFO << "Graphics Interop: CUDA UUID "
+                  << string_hex(reinterpret_cast<uint8_t *>(uuid.bytes), sizeof(uuid.bytes))
+                  << ", Vulkan UUID "
+                  << string_hex(interop_device.uuid.data(), interop_device.uuid.size());
+      }
+
+      return found;
+    }
+    case GraphicsInteropDevice::METAL:
+    case GraphicsInteropDevice::NONE: {
+      return false;
     }
   }
 

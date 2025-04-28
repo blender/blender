@@ -20,6 +20,7 @@ struct VKDrawIndexedData {
   VKPipelineData pipeline_data;
   VKIndexBufferBinding index_buffer;
   VKVertexBufferBindings vertex_buffers;
+  VKViewportData viewport_data;
   uint32_t index_count;
   uint32_t instance_count;
   uint32_t first_index;
@@ -74,6 +75,8 @@ class VKDrawIndexedNode : public VKNodeInfo<VKNodeType::DRAW_INDEXED,
                       Data &data,
                       VKBoundPipelines &r_bound_pipelines) override
   {
+    vk_pipeline_viewport_set_commands(
+        command_buffer, data.viewport_data, r_bound_pipelines.graphics.viewport_state);
     vk_pipeline_data_build_commands(command_buffer,
                                     data.pipeline_data,
                                     r_bound_pipelines.graphics.pipeline,

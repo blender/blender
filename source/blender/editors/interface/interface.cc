@@ -314,8 +314,8 @@ static void ui_update_flexible_spacing(const ARegion *region, uiBlock *block)
 
   rcti rect;
   ui_but_to_pixelrect(&rect, region, block, block->buttons.last().get());
-  const float buttons_width = float(rect.xmax) + UI_HEADER_OFFSET;
-  const float region_width = float(region->sizex) * UI_SCALE_FAC;
+  const float buttons_width = std::ceil(float(rect.xmax) + UI_HEADER_OFFSET);
+  const float region_width = float(region->winx);
 
   if (region_width <= buttons_width) {
     return;
@@ -335,7 +335,7 @@ static void ui_update_flexible_spacing(const ARegion *region, uiBlock *block)
   float offset = 0, remaining_space = region_width - buttons_width;
   int i = 0;
   for (const std::unique_ptr<uiBut> &but : block->buttons) {
-    BLI_rctf_translate(&but->rect, offset / view_scale_x, 0);
+    BLI_rctf_translate(&but->rect, std::floor(offset / view_scale_x), 0.0f);
     if (but->type == UI_BTYPE_SEPR_SPACER) {
       /* How much the next block overlap with the current segment */
       int overlap = ((i == sepr_flex_len - 1) ? buttons_width - spacers_pos[i] :
@@ -774,6 +774,10 @@ bool ui_but_rna_equals_ex(const uiBut *but,
 /* NOTE: if `but->poin` is allocated memory for every `uiDefBut*`, things fail. */
 static bool ui_but_equals_old(const uiBut *but, const uiBut *oldbut)
 {
+  if (but->type != oldbut->type) {
+    return false;
+  }
+
   if (but->identity_cmp_func) {
     /* If the buttons have their own identity comparator callbacks (and they match), use this to
      * determine equality. */
@@ -829,7 +833,7 @@ static bool ui_but_equals_old(const uiBut *but, const uiBut *oldbut)
     return false;
   }
 
-  if ((but->type == UI_BTYPE_VIEW_ITEM) && (oldbut->type == UI_BTYPE_VIEW_ITEM)) {
+  if (but->type == UI_BTYPE_VIEW_ITEM) {
     uiButViewItem *but_item = (uiButViewItem *)but;
     uiButViewItem *oldbut_item = (uiButViewItem *)oldbut;
     if (!but_item->view_item || !oldbut_item->view_item ||
@@ -1587,7 +1591,7 @@ static std::optional<std::string> ui_but_event_property_operator_string(const bC
           opnames_len = 0; /* Do nothing. */
         }
         if (free) {
-          MEM_freeN((void *)item);
+          MEM_freeN(item);
         }
       }
 
@@ -1691,7 +1695,7 @@ static void ui_menu_block_set_keymaps(const bContext *C, uiBlock *block)
           continue;
         }
       }
-      else if (but->emboss != UI_EMBOSS_PULLDOWN) {
+      else if (but->emboss != blender::ui::EmbossType::Pulldown) {
         continue;
       }
 
@@ -3062,7 +3066,7 @@ void ui_but_string_get_ex(uiBut *but,
       else {
         BLI_strncpy(str, buf, str_maxncpy);
       }
-      MEM_freeN((void *)buf);
+      MEM_freeN(buf);
     }
   }
   else if (ELEM(but->type, UI_BTYPE_TEXT, UI_BTYPE_SEARCH_MENU)) {
@@ -3701,7 +3705,7 @@ void UI_block_free(const bContext *C, uiBlock *block)
   block->buttons.clear();
 
   if (block->unit) {
-    MEM_freeN((void *)block->unit);
+    MEM_freeN(block->unit);
   }
 
   if (block->func_argN) {
@@ -3819,7 +3823,7 @@ uiBlock *UI_block_begin(const bContext *C,
                         wmWindow *window,
                         ARegion *region,
                         std::string name,
-                        eUIEmbossType emboss)
+                        blender::ui::EmbossType emboss)
 {
   uiBlock *block = MEM_new<uiBlock>(__func__);
   block->active = true;
@@ -3866,7 +3870,10 @@ uiBlock *UI_block_begin(const bContext *C,
   return block;
 }
 
-uiBlock *UI_block_begin(const bContext *C, ARegion *region, std::string name, eUIEmbossType emboss)
+uiBlock *UI_block_begin(const bContext *C,
+                        ARegion *region,
+                        std::string name,
+                        blender::ui::EmbossType emboss)
 {
   return UI_block_begin(C, CTX_data_scene(C), CTX_wm_window(C), region, std::move(name), emboss);
 }
@@ -3880,12 +3887,12 @@ void ui_block_add_dynamic_listener(uiBlock *block,
   BLI_addtail(&block->dynamic_listeners, listener);
 }
 
-eUIEmbossType UI_block_emboss_get(uiBlock *block)
+blender::ui::EmbossType UI_block_emboss_get(uiBlock *block)
 {
   return block->emboss;
 }
 
-void UI_block_emboss_set(uiBlock *block, eUIEmbossType emboss)
+void UI_block_emboss_set(uiBlock *block, blender::ui::EmbossType emboss)
 {
   block->emboss = emboss;
 }
@@ -4101,10 +4108,11 @@ static void ui_but_update_ex(uiBut *but, const bool validate)
         if (hotkey_but->modifier_key) {
           /* Rely on #KM_NOTHING being zero for `type`, `val` ... etc. */
           wmKeyMapItem kmi_dummy = {nullptr};
-          kmi_dummy.shift = (hotkey_but->modifier_key & KM_SHIFT) ? KM_PRESS : KM_NOTHING;
-          kmi_dummy.ctrl = (hotkey_but->modifier_key & KM_CTRL) ? KM_PRESS : KM_NOTHING;
-          kmi_dummy.alt = (hotkey_but->modifier_key & KM_ALT) ? KM_PRESS : KM_NOTHING;
-          kmi_dummy.oskey = (hotkey_but->modifier_key & KM_OSKEY) ? KM_PRESS : KM_NOTHING;
+          kmi_dummy.shift = (hotkey_but->modifier_key & KM_SHIFT) ? KM_MOD_HELD : KM_NOTHING;
+          kmi_dummy.ctrl = (hotkey_but->modifier_key & KM_CTRL) ? KM_MOD_HELD : KM_NOTHING;
+          kmi_dummy.alt = (hotkey_but->modifier_key & KM_ALT) ? KM_MOD_HELD : KM_NOTHING;
+          kmi_dummy.oskey = (hotkey_but->modifier_key & KM_OSKEY) ? KM_MOD_HELD : KM_NOTHING;
+          kmi_dummy.hyper = (hotkey_but->modifier_key & KM_HYPER) ? KM_MOD_HELD : KM_NOTHING;
 
           but->drawstr = WM_keymap_item_to_string(&kmi_dummy, true).value_or("");
         }
@@ -4390,7 +4398,7 @@ static uiBut *ui_def_but(uiBlock *block,
     but->flag |= UI_BUT_DISABLED;
   }
 
-  /* keep track of UI_interface.hh */
+  /* Keep track of `UI_interface_c.hh`. */
   if (ELEM(but->type,
            UI_BTYPE_BLOCK,
            UI_BTYPE_BUT,
@@ -4422,7 +4430,7 @@ static uiBut *ui_def_but(uiBlock *block,
   }
 
 #ifdef WITH_PYTHON
-  /* If the 'UI_OT_editsource' is running, extract the source info from the button. */
+  /* If the `UI_OT_editsource` is running, extract the source info from the button. */
   if (UI_editsource_enable_check()) {
     UI_editsource_active_but_test(but);
   }
@@ -4487,7 +4495,7 @@ static void ui_def_but_rna__menu(bContext *C, uiLayout *layout, void *but_p)
   /* Calculate the maximum number of rows that can fit in half the height of this window. */
   const float row_height = float(UI_UNIT_Y) / but->block->aspect;
   const float vertical_space = (float(WM_window_native_pixel_y(win)) / 2.0f) - (UI_UNIT_Y * 3.0f);
-  const int max_rows = int(vertical_space / row_height) - 1;
+  const int max_rows = std::max(int(vertical_space / row_height) - 1, 1);
 
   float text_width = 0.0f;
   BLF_size(BLF_default(), UI_style_get()->widget.points * UI_SCALE_FAC);
@@ -4563,7 +4571,9 @@ static void ui_def_but_rna__menu(bContext *C, uiLayout *layout, void *but_p)
    *   Make an exception for menus as they aren't typically refreshed during animation
    *   playback or other situations where the overhead would be noticeable.
    */
-  bool use_enum_copy_description = free && (RNA_property_py_data_get(but->rnaprop) != nullptr);
+  const bool use_enum_copy_description = free &&
+                                         ((RNA_property_is_idprop(but->rnaprop) == false) &&
+                                          (RNA_property_py_data_get(but->rnaprop) != nullptr));
 
   if (title && title[0] && (categories == 0) && (!but->str[0] || !prior_label)) {
     /* Show title when no categories and calling button has no text or prior label. */
@@ -4598,7 +4608,7 @@ static void ui_def_but_rna__menu(bContext *C, uiLayout *layout, void *but_p)
         }
       }
 
-      column = uiLayoutColumn(split, false);
+      column = &split->column(false);
     }
 
     const EnumPropertyItem *item = &item_array[a];
@@ -4697,7 +4707,7 @@ static void ui_def_but_rna__menu(bContext *C, uiLayout *layout, void *but_p)
   UI_block_layout_set_current(block, layout);
 
   if (free) {
-    MEM_freeN((void *)item_array);
+    MEM_freeN(item_array);
   }
 }
 
@@ -4839,7 +4849,7 @@ static uiBut *ui_def_but_rna(uiBlock *block,
     }
 
     if (free) {
-      MEM_freeN((void *)item);
+      MEM_freeN(item);
     }
   }
   else {
@@ -4914,7 +4924,7 @@ static uiBut *ui_def_but_rna(uiBlock *block,
   }
 
   if (type == UI_BTYPE_MENU) {
-    if (but->emboss == UI_EMBOSS_PULLDOWN) {
+    if (but->emboss == blender::ui::EmbossType::Pulldown) {
       ui_but_submenu_enable(block, but);
     }
   }
@@ -5125,7 +5135,7 @@ AutoComplete *UI_autocomplete_begin(const char *startname, size_t maxncpy)
   autocpl = MEM_callocN<AutoComplete>(__func__);
   autocpl->maxncpy = maxncpy;
   autocpl->matches = 0;
-  autocpl->truncate = static_cast<char *>(MEM_callocN(sizeof(char) * maxncpy, __func__));
+  autocpl->truncate = MEM_calloc_arrayN<char>(maxncpy, __func__);
   autocpl->startname = startname;
 
   return autocpl;
@@ -5530,6 +5540,31 @@ uiBut *uiDefIconBut(uiBlock *block,
 {
   uiBut *but = ui_def_but(block, type, retval, "", x, y, width, height, poin, min, max, tip);
   ui_but_update_and_icon_set(but, icon);
+  return but;
+}
+uiBut *uiDefIconPreviewBut(uiBlock *block,
+                           int type,
+                           int retval,
+                           int icon,
+                           int x,
+                           int y,
+                           short width,
+                           short height,
+                           void *poin,
+                           float min,
+                           float max,
+                           const std::optional<StringRef> tip)
+{
+  uiBut *but = ui_def_but(block, type, retval, "", x, y, width, height, poin, min, max, tip);
+  if (icon) {
+    ui_def_but_icon(but, icon, UI_HAS_ICON | UI_BUT_ICON_PREVIEW);
+
+    /* Use the exact button size for the preview. Or do we need to let the caller control this? */
+    but->drawflag |= UI_BUT_NO_PREVIEW_PADDING;
+    but->drawflag &= ~UI_BUT_ICON_LEFT;
+  }
+
+  ui_but_update(but);
   return but;
 }
 static uiBut *uiDefIconButBit(uiBlock *block,
@@ -6548,7 +6583,7 @@ static void operator_enum_search_update_fn(
     }
 
     if (do_free) {
-      MEM_freeN((void *)all_items);
+      MEM_freeN(all_items);
     }
   }
 }
@@ -6709,7 +6744,7 @@ void UI_but_focus_on_enter_event(wmWindow *win, uiBut *but)
   event.customdata = but;
   event.customdata_free = false;
 
-  wm_event_add(win, &event);
+  WM_event_add(win, &event);
 }
 
 void UI_but_func_hold_set(uiBut *but, uiButHandleHoldFunc func, void *argN)

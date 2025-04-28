@@ -143,18 +143,24 @@ using TexWalkFunc = void (*)(void *user_data,
 enum ModifierApplyFlag {
   /** Render time. */
   MOD_APPLY_RENDER = 1 << 0,
-  /** Result of evaluation will be cached, so modifier might
-   * want to cache data for quick updates (used by subdivision-surface) */
+  /**
+   * Result of evaluation will be cached, so modifier might
+   * want to cache data for quick updates (used by subdivision-surface).
+   */
   MOD_APPLY_USECACHE = 1 << 1,
   /** Modifier evaluated for undeformed texture coordinates */
   MOD_APPLY_ORCO = 1 << 2,
-  /** Ignore scene simplification flag and use subdivisions
-   * level set in multires modifier. */
+  /**
+   * Ignore scene simplification flag and use subdivisions
+   * level set in multires modifier.
+   */
   MOD_APPLY_IGNORE_SIMPLIFY = 1 << 3,
-  /** The effect of this modifier will be applied to the original geometry
+  /**
+   * The effect of this modifier will be applied to the original geometry
    * The modifier itself will be removed from the modifier stack.
    * This flag can be checked to ignore rendering display data to the mesh.
-   * See `OBJECT_OT_modifier_apply` operator. */
+   * See `OBJECT_OT_modifier_apply` operator.
+   */
   MOD_APPLY_TO_ORIGINAL = 1 << 4,
 };
 ENUM_OPERATORS(ModifierApplyFlag, MOD_APPLY_TO_ORIGINAL);
@@ -165,8 +171,10 @@ struct ModifierUpdateDepsgraphContext {
   DepsNodeHandle *node;
 };
 
-/* Contains the information for deformXXX and applyXXX functions below that
- * doesn't change between consecutive modifiers. */
+/**
+ * Contains the information for deformXXX and applyXXX functions below that
+ * doesn't change between consecutive modifiers.
+ */
 struct ModifierEvalContext {
   Depsgraph *depsgraph;
   Object *object;
@@ -174,28 +182,31 @@ struct ModifierEvalContext {
 };
 
 struct ModifierTypeInfo {
-  /* A unique identifier for this modifier. Used to generate the panel id type name.
-   * See #BKE_modifier_type_panel_id. */
+  /**
+   * A unique identifier for this modifier. Used to generate the panel id type name.
+   * See #BKE_modifier_type_panel_id.
+   */
   char idname[64];
 
-  /* The user visible name for this modifier */
+  /** The user visible name for this modifier. */
   char name[64];
 
-  /* The DNA struct name for the modifier data type, used to
-   * write the DNA data out.
+  /**
+   * The DNA struct name for the modifier data type,
+   * used to write the DNA data out.
    */
   char struct_name[64];
 
-  /* The size of the modifier data type, used by allocation. */
+  /** The size of the modifier data type, used by allocation. */
   int struct_size;
 
-  /* StructRNA of this modifier. This is typically something like RNA_*Modifier. */
+  /** StructRNA of this modifier. This is typically something like `RNA_*Modifier`. */
   StructRNA *srna;
 
   ModifierTypeType type;
   ModifierTypeFlag flags;
 
-  /* Icon of the modifier. Usually something like ICON_MOD_*. */
+  /** Icon of the modifier. Usually something like ICON_MOD_*. */
   int icon;
 
   /********************* Non-optional functions *********************/
@@ -401,10 +412,10 @@ struct ModifierTypeInfo {
       blender::FunctionRef<void(const IDCacheKey &cache_key, void **cache_p, uint flags)> fn);
 };
 
-/* Used to set a modifier's panel type. */
+/** Used to set a modifier's panel type. */
 #define MODIFIER_TYPE_PANEL_PREFIX "MOD_PT_"
 
-/* Initialize modifier's global data (type info and some common global storage). */
+/** Initialize modifier's global data (type info and some common global storage). */
 void BKE_modifier_init();
 
 const ModifierTypeInfo *BKE_modifier_get_info(ModifierType type);
@@ -417,7 +428,8 @@ const ModifierTypeInfo *BKE_modifier_get_info(ModifierType type);
 void BKE_modifier_type_panel_id(ModifierType type, char *r_idname);
 void BKE_modifier_panel_expand(ModifierData *md);
 
-/* Modifier utility calls, do call through type pointer and return
+/**
+ * Modifier utility calls, do call through type pointer and return
  * default values if pointer is optional.
  */
 ModifierData *BKE_modifier_new(int type);
@@ -461,14 +473,18 @@ bool BKE_modifier_is_enabled(const Scene *scene, ModifierData *md, int required_
  */
 bool BKE_modifier_is_nonlocal_in_liboverride(const Object *ob, const ModifierData *md);
 
-/* Set modifier execution error.
- * The message will be shown in the interface and will be logged as an error to the console. */
+/**
+ * Set modifier execution error.
+ * The message will be shown in the interface and will be logged as an error to the console.
+ */
 void BKE_modifier_set_error(const Object *ob, ModifierData *md, const char *format, ...)
     ATTR_PRINTF_FORMAT(3, 4);
 
-/* Set modifier execution warning, which does not prevent the modifier from being applied but which
- * might need an attention. The message will only be shown in the interface, but will not appear in
- * the logs. */
+/**
+ * Set modifier execution warning, which does not prevent the modifier from being applied but which
+ * might need an attention. The message will only be shown in the interface,
+ * but will not appear in the logs.
+ */
 void BKE_modifier_set_warning(const Object *ob, ModifierData *md, const char *format, ...)
     ATTR_PRINTF_FORMAT(3, 4);
 

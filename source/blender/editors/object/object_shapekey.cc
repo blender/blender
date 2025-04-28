@@ -132,7 +132,7 @@ bool shape_key_report_if_any_locked(Object *ob, ReportList *reports)
 /** \name Add Shape Key Function
  * \{ */
 
-static void ED_object_shape_key_add(bContext *C, Object *ob, const bool from_mix)
+static void object_shape_key_add(bContext *C, Object *ob, const bool from_mix)
 {
   Main *bmain = CTX_data_main(C);
   KeyBlock *kb = BKE_object_shapekey_insert(bmain, ob, nullptr, from_mix);
@@ -185,8 +185,7 @@ static bool object_shape_key_mirror(
   kb = static_cast<KeyBlock *>(BLI_findlink(&key->block, ob->shapenr - 1));
 
   if (kb) {
-    char *tag_elem = static_cast<char *>(
-        MEM_callocN(sizeof(char) * kb->totelem, "shape_key_mirror"));
+    char *tag_elem = MEM_calloc_arrayN<char>(kb->totelem, "shape_key_mirror");
 
     if (ob->type == OB_MESH) {
       Mesh *mesh = static_cast<Mesh *>(ob->data);
@@ -339,12 +338,12 @@ static bool shape_key_move_poll(bContext *C)
 /** \name Shape Key Add Operator
  * \{ */
 
-static int shape_key_add_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus shape_key_add_exec(bContext *C, wmOperator *op)
 {
   Object *ob = context_object(C);
   const bool from_mix = RNA_boolean_get(op->ptr, "from_mix");
 
-  ED_object_shape_key_add(C, ob, from_mix);
+  object_shape_key_add(C, ob, from_mix);
 
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
   DEG_relations_tag_update(CTX_data_main(C));
@@ -377,10 +376,41 @@ void OBJECT_OT_shape_key_add(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Shape Key Duplicate Operator
+ * \{ */
+
+static wmOperatorStatus shape_key_copy_exec(bContext *C, wmOperator * /*op*/)
+{
+  Object *ob = context_object(C);
+  Key *key = BKE_key_from_object(ob);
+  KeyBlock *kb_src = BKE_keyblock_from_object(ob);
+  KeyBlock *kb_new = BKE_keyblock_duplicate(key, kb_src);
+  ob->shapenr = BLI_findindex(&key->block, kb_new) + 1;
+  WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
+  DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+  DEG_relations_tag_update(CTX_data_main(C));
+  return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_shape_key_copy(wmOperatorType *ot)
+{
+  ot->name = "Duplicate Shape Key";
+  ot->idname = "OBJECT_OT_shape_key_copy";
+  ot->description = "Duplicate the acive shape key";
+
+  ot->poll = shape_key_mode_exists_poll;
+  ot->exec = shape_key_copy_exec;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Shape Key Remove Operator
  * \{ */
 
-static int shape_key_remove_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus shape_key_remove_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   Object *ob = context_object(C);
@@ -473,7 +503,7 @@ void OBJECT_OT_shape_key_remove(wmOperatorType *ot)
 /** \name Shape Key Clear Operator
  * \{ */
 
-static int shape_key_clear_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus shape_key_clear_exec(bContext *C, wmOperator * /*op*/)
 {
   Object *ob = context_object(C);
   Key *key = BKE_key_from_object(ob);
@@ -509,7 +539,7 @@ void OBJECT_OT_shape_key_clear(wmOperatorType *ot)
 }
 
 /* starting point and step size could be optional */
-static int shape_key_retime_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus shape_key_retime_exec(bContext *C, wmOperator * /*op*/)
 {
   Object *ob = context_object(C);
   Key *key = BKE_key_from_object(ob);
@@ -551,7 +581,7 @@ void OBJECT_OT_shape_key_retime(wmOperatorType *ot)
 /** \name Shape Key Mirror Operator
  * \{ */
 
-static int shape_key_mirror_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus shape_key_mirror_exec(bContext *C, wmOperator *op)
 {
   Object *ob = context_object(C);
   int totmirr = 0, totfail = 0;
@@ -606,7 +636,7 @@ enum {
   KB_MOVE_BOTTOM = 2,
 };
 
-static int shape_key_move_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus shape_key_move_exec(bContext *C, wmOperator *op)
 {
   Object *ob = context_object(C);
 
@@ -676,7 +706,7 @@ enum {
   SHAPE_KEY_UNLOCK,
 };
 
-static int shape_key_lock_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus shape_key_lock_exec(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_active_object(C);
   const int action = RNA_enum_get(op->ptr, "action");

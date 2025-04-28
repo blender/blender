@@ -6,7 +6,6 @@
 
 #include "scene/background.h"
 #include "scene/camera.h"
-#include "scene/colorspace.h"
 #include "scene/integrator.h"
 #include "scene/light.h"
 #include "scene/mesh.h"
@@ -158,16 +157,6 @@ static float3 output_estimate_emission(ShaderOutput *output, bool &is_constant)
       estimate *= node->get_float(strength_in->socket_type);
     }
 
-    /* Lower importance of emission nodes from automatic value/color to shader
-     * conversion, as these are likely used for previewing and can be slow to
-     * build a light tree for on dense meshes. */
-    if (node->type == EmissionNode::get_node_type()) {
-      EmissionNode *emission_node = static_cast<EmissionNode *>(node);
-      if (emission_node->from_auto_conversion) {
-        estimate *= 0.1f;
-      }
-    }
-
     return estimate;
   }
   if (node->type == LightFalloffNode::get_node_type() ||
@@ -266,7 +255,19 @@ void Shader::estimate_emission()
      * using a lot of memory in the light tree and potentially wasting samples
      * where indirect light samples are sufficient.
      * Possible optimization: estimate front and back emission separately. */
-    emission_sampling = (reduce_max(fabs(emission_estimate)) > 0.5f) ?
+
+    /* Lower importance of emission nodes from automatic value/color to shader conversion, as these
+     * are likely used for previewing and can be slow to build a light tree for on dense meshes. */
+    float scale = 1.0f;
+    const ShaderOutput *output = surf->link;
+    if (output && output->parent->type == EmissionNode::get_node_type()) {
+      const EmissionNode *emission_node = static_cast<const EmissionNode *>(output->parent);
+      if (emission_node->from_auto_conversion) {
+        scale = 0.1f;
+      }
+    }
+
+    emission_sampling = (reduce_max(fabs(emission_estimate * scale)) > 0.5f) ?
                             EMISSION_SAMPLING_FRONT_BACK :
                             EMISSION_SAMPLING_NONE;
   }
@@ -481,11 +482,12 @@ int ShaderManager::get_shader_id(Shader *shader, bool smooth)
   return id;
 }
 
-void ShaderManager::device_update(Device *device,
-                                  DeviceScene *dscene,
-                                  Scene *scene,
-                                  Progress &progress)
+void ShaderManager::device_update_pre(Device *device,
+                                      DeviceScene *dscene,
+                                      Scene *scene,
+                                      Progress &progress)
 {
+  /* This runs before kernels have been loaded, so can't copy to device yet. */
   if (!need_update()) {
     return;
   }
@@ -503,6 +505,16 @@ void ShaderManager::device_update(Device *device,
   assert(scene->default_empty->reference_count() != 0);
 
   device_update_specific(device, dscene, scene, progress);
+}
+
+void ShaderManager::device_update_post(Device * /*device*/,
+                                       DeviceScene *dscene,
+                                       Scene * /*scene*/,
+                                       Progress & /*progress*/)
+{
+  /* This runs after kernels have been loaded, so can copy to device. */
+  dscene->shaders.copy_to_device_if_modified();
+  dscene->svm_nodes.copy_to_device_if_modified();
 }
 
 void ShaderManager::device_update_common(Device * /*device*/,
@@ -604,8 +616,6 @@ void ShaderManager::device_update_common(Device * /*device*/,
 
     has_transparent_shadow |= (flag & SD_HAS_TRANSPARENT_SHADOW) != 0;
   }
-
-  dscene->shaders.copy_to_device();
 
   /* lookup tables */
   KernelTables *ktables = &dscene->data.tables;
@@ -777,7 +787,7 @@ uint ShaderManager::get_kernel_features(Scene *scene)
   }
 
   if (use_osl()) {
-    kernel_features |= KERNEL_FEATURE_OSL;
+    kernel_features |= KERNEL_FEATURE_OSL_SHADING;
   }
 
   return kernel_features;

@@ -344,6 +344,13 @@ static bool buttons_context_path_material(ButsContextPath *path)
 
     if (ob && OB_TYPE_SUPPORT_MATERIAL(ob->type)) {
       Material *ma = BKE_object_material_get(ob, ob->actcol);
+
+      const int slot = blender::math::max(ob->actcol - 1, 0);
+      if (ob->matbits && ob->matbits[slot] == 0) {
+        /* When material from active slot is stored in object data, include it in context path, see
+         * !134968. */
+        buttons_context_path_data(path, -1);
+      }
       if (ma != nullptr) {
         path->ptr[path->len] = RNA_id_pointer_create(&ma->id);
         path->len++;
@@ -430,9 +437,10 @@ static bool buttons_context_path_particle(ButsContextPath *path)
 
     if (ob && ob->type == OB_MESH) {
       ParticleSystem *psys = psys_get_current(ob);
-
-      path->ptr[path->len] = RNA_pointer_create_discrete(&ob->id, &RNA_ParticleSystem, psys);
-      path->len++;
+      if (psys != nullptr) {
+        path->ptr[path->len] = RNA_pointer_create_discrete(&ob->id, &RNA_ParticleSystem, psys);
+        path->len++;
+      }
       return true;
     }
   }
@@ -855,7 +863,7 @@ int /*eContextResult*/ buttons_context(const bContext *C,
 {
   SpaceProperties *sbuts = CTX_wm_space_properties(C);
   if (sbuts && sbuts->path == nullptr) {
-    /* path is cleared for SCREEN_OT_redo_last, when global undo does a file-read which clears the
+    /* path is cleared for #SCREEN_OT_redo_last, when global undo does a file-read which clears the
      * path (see lib_link_workspace_layout_restore). */
     buttons_context_compute(C, sbuts);
   }
@@ -1190,7 +1198,7 @@ static void buttons_panel_context_draw(const bContext *C, Panel *panel)
     return;
   }
 
-  uiLayout *row = uiLayoutRow(panel->layout, true);
+  uiLayout *row = &panel->layout->row(true);
   uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_LEFT);
 
   bool first = true;
@@ -1219,13 +1227,13 @@ static void buttons_panel_context_draw(const bContext *C, Panel *panel)
       continue;
     }
 
+    if (ptr->data == nullptr) {
+      continue;
+    }
+
     /* Add > triangle. */
     if (!first) {
       uiItemL(row, "", ICON_RIGHTARROW);
-    }
-
-    if (ptr->data == nullptr) {
-      continue;
     }
 
     /* Add icon and name. */
@@ -1247,10 +1255,10 @@ static void buttons_panel_context_draw(const bContext *C, Panel *panel)
     first = false;
   }
 
-  uiLayout *pin_row = uiLayoutRow(row, false);
+  uiLayout *pin_row = &row->row(false);
   uiLayoutSetAlignment(pin_row, UI_LAYOUT_ALIGN_RIGHT);
   uiItemSpacer(pin_row);
-  uiLayoutSetEmboss(pin_row, UI_EMBOSS_NONE);
+  uiLayoutSetEmboss(pin_row, blender::ui::EmbossType::None);
   uiItemO(pin_row,
           "",
           (sbuts->flag & SB_PIN_CONTEXT) ? ICON_PINNED : ICON_UNPINNED,
@@ -1259,8 +1267,7 @@ static void buttons_panel_context_draw(const bContext *C, Panel *panel)
 
 void buttons_context_register(ARegionType *art)
 {
-  PanelType *pt = static_cast<PanelType *>(
-      MEM_callocN(sizeof(PanelType), "spacetype buttons panel context"));
+  PanelType *pt = MEM_callocN<PanelType>("spacetype buttons panel context");
   STRNCPY(pt->idname, "PROPERTIES_PT_context");
   STRNCPY(pt->label, N_("Context")); /* XXX C panels unavailable through RNA bpy.types! */
   STRNCPY(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);

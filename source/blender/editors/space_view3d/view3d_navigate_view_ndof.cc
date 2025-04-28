@@ -101,7 +101,9 @@ static float view3d_ndof_pan_speed_calc_from_dist(RegionView3D *rv3d, const floa
 static float view3d_ndof_pan_speed_calc(RegionView3D *rv3d)
 {
   float tvec[3];
-  if ((U.ndof_flag & NDOF_ORBIT_CENTER_AUTO) && (rv3d->ndof_flag & RV3D_NDOF_OFS_IS_VALID)) {
+  if ((U.ndof_flag & NDOF_MODE_ORBIT) && (U.ndof_flag & NDOF_ORBIT_CENTER_AUTO) &&
+      (rv3d->ndof_flag & RV3D_NDOF_OFS_IS_VALID))
+  {
     negate_v3_v3(tvec, rv3d->ndof_ofs);
   }
   else {
@@ -579,7 +581,8 @@ static std::optional<float3> ndof_orbit_center_calc(Depsgraph *depsgraph,
  * 2D orthographic style NDOF navigation within the camera view.
  * Support navigating the camera view instead of leaving the camera-view and navigating in 3D.
  */
-static int view3d_ndof_cameraview_pan_zoom(ViewOpsData *vod, const wmNDOFMotionData *ndof)
+static wmOperatorStatus view3d_ndof_cameraview_pan_zoom(ViewOpsData *vod,
+                                                        const wmNDOFMotionData *ndof)
 {
   View3D *v3d = vod->v3d;
   ARegion *region = vod->region;
@@ -643,10 +646,10 @@ static int view3d_ndof_cameraview_pan_zoom(ViewOpsData *vod, const wmNDOFMotionD
 /** \name NDOF Orbit/Translate Operator
  * \{ */
 
-static int ndof_orbit_invoke_impl(bContext *C,
-                                  ViewOpsData *vod,
-                                  const wmEvent *event,
-                                  PointerRNA * /*ptr*/)
+static wmOperatorStatus ndof_orbit_invoke_impl(bContext *C,
+                                               ViewOpsData *vod,
+                                               const wmEvent *event,
+                                               PointerRNA * /*ptr*/)
 {
   if (event->type != NDOF_MOTION) {
     return OPERATOR_CANCELLED;
@@ -691,7 +694,7 @@ static int ndof_orbit_invoke_impl(bContext *C,
   return OPERATOR_FINISHED;
 }
 
-static int ndof_orbit_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus ndof_orbit_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   if (event->type != NDOF_MOTION) {
     return OPERATOR_CANCELLED;
@@ -721,10 +724,10 @@ void VIEW3D_OT_ndof_orbit(wmOperatorType *ot)
 /** \name NDOF Orbit/Zoom Operator
  * \{ */
 
-static int ndof_orbit_zoom_invoke_impl(bContext *C,
-                                       ViewOpsData *vod,
-                                       const wmEvent *event,
-                                       PointerRNA * /*ptr*/)
+static wmOperatorStatus ndof_orbit_zoom_invoke_impl(bContext *C,
+                                                    ViewOpsData *vod,
+                                                    const wmEvent *event,
+                                                    PointerRNA * /*ptr*/)
 {
   if (event->type != NDOF_MOTION) {
     return OPERATOR_CANCELLED;
@@ -733,7 +736,7 @@ static int ndof_orbit_zoom_invoke_impl(bContext *C,
   const wmNDOFMotionData *ndof = static_cast<const wmNDOFMotionData *>(event->customdata);
 
   if (U.ndof_flag & NDOF_CAMERA_PAN_ZOOM) {
-    const int camera_retval = view3d_ndof_cameraview_pan_zoom(vod, ndof);
+    const wmOperatorStatus camera_retval = view3d_ndof_cameraview_pan_zoom(vod, ndof);
     if (camera_retval != OPERATOR_PASS_THROUGH) {
       return camera_retval;
     }
@@ -820,7 +823,7 @@ static int ndof_orbit_zoom_invoke_impl(bContext *C,
   return OPERATOR_FINISHED;
 }
 
-static int ndof_orbit_zoom_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus ndof_orbit_zoom_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   if (event->type != NDOF_MOTION) {
     return OPERATOR_CANCELLED;
@@ -850,10 +853,10 @@ void VIEW3D_OT_ndof_orbit_zoom(wmOperatorType *ot)
 /** \name NDOF Pan/Zoom Operator
  * \{ */
 
-static int ndof_pan_invoke_impl(bContext *C,
-                                ViewOpsData *vod,
-                                const wmEvent *event,
-                                PointerRNA * /*ptr*/)
+static wmOperatorStatus ndof_pan_invoke_impl(bContext *C,
+                                             ViewOpsData *vod,
+                                             const wmEvent *event,
+                                             PointerRNA * /*ptr*/)
 {
   if (event->type != NDOF_MOTION) {
     return OPERATOR_CANCELLED;
@@ -862,7 +865,7 @@ static int ndof_pan_invoke_impl(bContext *C,
   const wmNDOFMotionData *ndof = static_cast<const wmNDOFMotionData *>(event->customdata);
 
   if (U.ndof_flag & NDOF_CAMERA_PAN_ZOOM) {
-    const int camera_retval = view3d_ndof_cameraview_pan_zoom(vod, ndof);
+    const wmOperatorStatus camera_retval = view3d_ndof_cameraview_pan_zoom(vod, ndof);
     if (camera_retval != OPERATOR_PASS_THROUGH) {
       return camera_retval;
     }
@@ -905,7 +908,7 @@ static int ndof_pan_invoke_impl(bContext *C,
   return OPERATOR_FINISHED;
 }
 
-static int ndof_pan_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus ndof_pan_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   if (event->type != NDOF_MOTION) {
     return OPERATOR_CANCELLED;
@@ -938,14 +941,14 @@ void VIEW3D_OT_ndof_pan(wmOperatorType *ot)
 /**
  * wraps #ndof_orbit_zoom but never restrict to orbit.
  */
-static int ndof_all_invoke_impl(bContext *C,
-                                ViewOpsData *vod,
-                                const wmEvent *event,
-                                PointerRNA * /*ptr*/)
+static wmOperatorStatus ndof_all_invoke_impl(bContext *C,
+                                             ViewOpsData *vod,
+                                             const wmEvent *event,
+                                             PointerRNA * /*ptr*/)
 {
   /* weak!, but it works */
   const int ndof_flag = U.ndof_flag;
-  int ret;
+  wmOperatorStatus ret;
 
   U.ndof_flag &= ~NDOF_MODE_ORBIT;
 
@@ -956,7 +959,7 @@ static int ndof_all_invoke_impl(bContext *C,
   return ret;
 }
 
-static int ndof_all_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus ndof_all_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   if (event->type != NDOF_MOTION) {
     return OPERATOR_CANCELLED;

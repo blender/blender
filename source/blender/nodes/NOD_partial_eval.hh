@@ -7,8 +7,9 @@
 #include "NOD_node_in_compute_context.hh"
 
 #include "BLI_function_ref.hh"
-#include "BLI_resource_scope.hh"
 #include "BLI_set.hh"
+
+#include "BKE_compute_context_cache.hh"
 
 #include "DNA_node_types.h"
 
@@ -44,7 +45,7 @@ namespace blender::nodes::partial_eval {
  */
 void eval_downstream(
     const Span<SocketInContext> initial_sockets,
-    ResourceScope &scope,
+    bke::ComputeContextCache &compute_context_cache,
     FunctionRef<void(const NodeInContext &ctx_node,
                      Vector<const bNodeSocket *> &r_outputs_to_propagate)> evaluate_node_fn,
     FunctionRef<bool(const SocketInContext &ctx_from, const SocketInContext &ctx_to)>
@@ -81,7 +82,7 @@ struct UpstreamEvalTargets {
  */
 UpstreamEvalTargets eval_upstream(
     const Span<SocketInContext> initial_sockets,
-    ResourceScope &scope,
+    bke::ComputeContextCache &compute_context_cache,
     FunctionRef<void(const NodeInContext &ctx_node,
                      Vector<const bNodeSocket *> &r_modified_inputs)> evaluate_node_fn,
     FunctionRef<bool(const SocketInContext &ctx_from, const SocketInContext &ctx_to)>

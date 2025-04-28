@@ -26,6 +26,8 @@
 
 #include "sequencer_intern.hh"
 
+namespace blender::ed::vse {
+
 struct PreviewJob {
   ListBase previews;
   ThreadMutex *mutex;
@@ -238,3 +240,5 @@ void sequencer_preview_add_sound(const bContext *C, const Strip *strip)
 
   ED_area_tag_redraw(area);
 }
+
+}  // namespace blender::ed::vse

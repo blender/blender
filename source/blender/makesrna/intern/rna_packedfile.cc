@@ -38,7 +38,7 @@ static void rna_PackedImage_data_get(PointerRNA *ptr, char *value)
 static int rna_PackedImage_data_len(PointerRNA *ptr)
 {
   PackedFile *pf = (PackedFile *)ptr->data;
-  return pf->size; /* No need to include trailing nullptr char here! */
+  return pf->size; /* No need to include trailing null char here! */
 }
 
 #else

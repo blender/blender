@@ -46,6 +46,7 @@ if(WITH_CYCLES_OSL)
     ${SRC_KERNEL_DEVICE_OPTIX}
     osl/services_optix.cu
     device/optix/kernel_osl.cu
+    device/optix/kernel_osl_camera.cu
   )
 endif()
 
@@ -231,6 +232,7 @@ set(SRC_KERNEL_SVM_HEADERS
 if(WITH_CYCLES_OSL)
   set(SRC_KERNEL_OSL_HEADERS
     osl/osl.h
+    osl/camera.h
     osl/closures_setup.h
     osl/closures_template.h
     osl/services_gpu.h
@@ -242,18 +244,17 @@ set(SRC_KERNEL_GEOM_HEADERS
   geom/attribute.h
   geom/curve.h
   geom/curve_intersect.h
+  geom/geom_intersect.h
   geom/motion_curve.h
   geom/motion_point.h
   geom/motion_triangle.h
   geom/motion_triangle_intersect.h
   geom/motion_triangle_shader.h
   geom/object.h
-  geom/patch.h
   geom/point.h
   geom/point_intersect.h
   geom/primitive.h
   geom/shader_data.h
-  geom/subd_triangle.h
   geom/triangle.h
   geom/triangle_intersect.h
   geom/volume.h
@@ -644,6 +645,21 @@ endif()
 
 # HIP module
 
+# Workaround for SDK 6.3.42560-881c2d702 compiler bug on RDNA2
+# Issue #136138
+function(get_hip_math_flag arch math_flag)
+  if(WIN32 AND (${arch} MATCHES "gfx1030|gfx1031|gfx1032|gfx1033|gfx1034|gfx1035|gfx1036"))
+    set(result
+      -fhip-fp32-correctly-rounded-divide-sqrt
+      -fno-gpu-approx-transcendentals
+      -fgpu-flush-denormals-to-zero
+      -ffp-contract=off)
+  else()
+    set(result "")
+  endif()
+  set(${math_flag} "${result}" PARENT_SCOPE)
+endfunction()
+
 if(WITH_CYCLES_HIP_BINARIES AND WITH_CYCLES_DEVICE_HIP)
   # build for each arch
   set(hip_sources device/hip/kernel.cpp
@@ -684,6 +700,8 @@ if(WITH_CYCLES_HIP_BINARIES AND WITH_CYCLES_DEVICE_HIP)
       set(hip_opt_flags)
     endif()
 
+    get_hip_math_flag(${arch} math_flag)
+
     set(hip_flags
       ${hip_flags}
       --offload-arch=${arch}
@@ -699,6 +717,7 @@ if(WITH_CYCLES_HIP_BINARIES AND WITH_CYCLES_DEVICE_HIP)
       -Wno-parentheses-equality
       -Wno-unused-value
       -ffast-math
+      ${math_flag}
       ${hip_opt_flags}
       -o ${CMAKE_CURRENT_BINARY_DIR}/${hip_file})
 
@@ -794,10 +813,12 @@ if(WITH_CYCLES_HIP_BINARIES AND WITH_CYCLES_DEVICE_HIPRT)
 
   set(hiprt_hipfb)
   foreach(arch ${CYCLES_HIP_BINARIES_ARCH})
+    get_hip_math_flag(${arch} math_flag)
     set(hiprt_file ${CMAKE_CURRENT_BINARY_DIR}/kernel_rt_${arch}.hipfb)
     set(hiprt_file_compressed ${hiprt_file}.zst)
     set(hiprt_flags
     ${hiprt_compile_flags}
+    ${math_flag}
     --offload-arch=${arch}
     -o ${hiprt_file})
 
@@ -897,6 +918,10 @@ if(WITH_CYCLES_DEVICE_OPTIX AND WITH_CYCLES_CUDA_BINARIES)
       "device/optix/kernel_osl.cu"
       "--relocatable-device-code=true")
     cycles_optix_kernel_add(
+      kernel_optix_osl_camera
+      "device/optix/kernel_osl_camera.cu"
+      "--relocatable-device-code=true")
+    cycles_optix_kernel_add(
       kernel_optix_osl_services
       "osl/services_optix.cu"
       "--relocatable-device-code=true")
@@ -949,12 +974,7 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
     -shared
     -DWITH_ONEAPI
     -O2
-    -fno-fast-math
-    -ffp-contract=fast
-    -fassociative-math
-    -freciprocal-math
-    -fno-signed-zeros
-    -ffinite-math-only
+    -ffast-math
     -D__KERNEL_LOCAL_ATOMIC_SORT__
     -o"${cycles_kernel_oneapi_lib}"
     -I"${CMAKE_CURRENT_SOURCE_DIR}/.."
@@ -967,7 +987,7 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
 
   # Set defaults for spir64 and spir64_gen options
   if(NOT DEFINED CYCLES_ONEAPI_SYCL_OPTIONS_spir64)
-    set(CYCLES_ONEAPI_SYCL_OPTIONS_spir64 "-options '-cl-fast-relaxed-math -ze-opt-large-register-file -ze-opt-regular-grf-kernel integrator_intersect -ze-opt-large-grf-kernel shade -ze-opt-no-local-to-generic'")
+    set(CYCLES_ONEAPI_SYCL_OPTIONS_spir64 "-options '-cl-fast-relaxed-math -ze-intel-enable-auto-large-GRF-mode -ze-opt-regular-grf-kernel integrator_intersect -ze-opt-large-grf-kernel shade_surface -ze-opt-no-local-to-generic'")
   endif()
   if(NOT DEFINED CYCLES_ONEAPI_SYCL_OPTIONS_spir64_gen)
     set(CYCLES_ONEAPI_SYCL_OPTIONS_spir64_gen "${CYCLES_ONEAPI_SYCL_OPTIONS_spir64}" CACHE STRING "Extra build options for spir64_gen target")
@@ -1001,7 +1021,10 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
       endif()
       if(NOT oclocids_ret EQUAL 0)
         list(REMOVE_ITEM CYCLES_ONEAPI_INTEL_BINARIES_ARCH ${device})
-        message(STATUS "Cycles oneAPI: binaries for ${device} not supported by Intel Graphics Compiler/ocloc, skipped.")
+        message(STATUS
+          "Cycles oneAPI: "
+          "binaries for ${device} not supported by Intel Graphics Compiler/ocloc, skipped."
+        )
       endif()
     endforeach()
     list(JOIN CYCLES_ONEAPI_INTEL_BINARIES_ARCH "," gen_devices_string)
@@ -1012,23 +1035,20 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
     else()
       string(PREPEND CYCLES_ONEAPI_SYCL_OPTIONS_spir64_gen "-device ${gen_devices_string} ")
     endif()
-
-    # Iterate over all targets and their options.
-    list(JOIN CYCLES_ONEAPI_SYCL_TARGETS "," targets_string)
-    list(APPEND sycl_compiler_flags -fsycl-targets=${targets_string})
-    foreach(target ${CYCLES_ONEAPI_SYCL_TARGETS})
-      if(DEFINED CYCLES_ONEAPI_SYCL_OPTIONS_${target})
-        list(APPEND sycl_compiler_flags
-          "-Xsycl-target-backend=${target} \"${CYCLES_ONEAPI_SYCL_OPTIONS_${target}}\""
-        )
-      endif()
-    endforeach()
   else()
-    # If AOT is disabled, build for spir64
-    list(APPEND sycl_compiler_flags
-      -fsycl-targets=spir64
-      "-Xsycl-target-backend=spir64 \"${CYCLES_ONEAPI_SYCL_OPTIONS_spir64}\"")
+      list(REMOVE_ITEM CYCLES_ONEAPI_SYCL_TARGETS spir64_gen)
   endif()
+
+  # Iterate over all targets and their options.
+  list(JOIN CYCLES_ONEAPI_SYCL_TARGETS "," targets_string)
+  list(APPEND sycl_compiler_flags -fsycl-targets=${targets_string})
+  foreach(target ${CYCLES_ONEAPI_SYCL_TARGETS})
+    if(DEFINED CYCLES_ONEAPI_SYCL_OPTIONS_${target})
+      list(APPEND sycl_compiler_flags
+        "-Xsycl-target-backend=${target} \"${CYCLES_ONEAPI_SYCL_OPTIONS_${target}}\""
+      )
+    endif()
+  endforeach()
 
   if(WITH_NANOVDB)
     list(APPEND sycl_compiler_flags
@@ -1096,7 +1116,6 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
 
   if(WIN32) # Add Windows specific compiler flags.
     list(APPEND sycl_compiler_flags
-      -fuse-ld=link
       -fms-extensions
       -fms-compatibility
       -D_WINDLL

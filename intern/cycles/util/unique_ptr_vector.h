@@ -61,7 +61,7 @@ template<typename T> class unique_ptr_vector {
 
   void erase(const T *value)
   {
-    const int size = data.size();
+    const size_t size = data.size();
     for (size_t i = 0; i < size; i++) {
       if (data[i].get() == value) {
         data.erase(data.begin() + i);
@@ -76,7 +76,7 @@ template<typename T> class unique_ptr_vector {
    * but will change element order. */
   void erase_by_swap(const T *value)
   {
-    const int size = data.size();
+    const size_t size = data.size();
     for (size_t i = 0; i < size; i++) {
       if (data[i].get() == value) {
         swap(data[i], data[data.size() - 1]);

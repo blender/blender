@@ -461,10 +461,8 @@ CCGError ccgSubSurf_initFullSync(CCGSubSurf *ss)
   ss->numGrids = 0;
 
   ss->lenTempArrays = 12;
-  ss->tempVerts = static_cast<CCGVert **>(
-      MEM_mallocN(sizeof(*ss->tempVerts) * ss->lenTempArrays, "CCGSubsurf tempVerts"));
-  ss->tempEdges = static_cast<CCGEdge **>(
-      MEM_mallocN(sizeof(*ss->tempEdges) * ss->lenTempArrays, "CCGSubsurf tempEdges"));
+  ss->tempVerts = MEM_malloc_arrayN<CCGVert *>(size_t(ss->lenTempArrays), "CCGSubsurf tempVerts");
+  ss->tempEdges = MEM_malloc_arrayN<CCGEdge *>(size_t(ss->lenTempArrays), "CCGSubsurf tempEdges");
 
   ss->syncState = eSyncState_Vert;
 
@@ -870,8 +868,7 @@ void ccgSubSurf__allFaces(CCGSubSurf *ss, CCGFace ***faces, int *numFaces, int *
   int i, num;
 
   if (*faces == nullptr) {
-    array = static_cast<CCGFace **>(
-        MEM_mallocN(sizeof(*array) * ss->fMap->numEntries, "CCGSubsurf allFaces"));
+    array = MEM_malloc_arrayN<CCGFace *>(size_t(ss->fMap->numEntries), "CCGSubsurf allFaces");
     num = 0;
     for (i = 0; i < ss->fMap->curSize; i++) {
       CCGFace *f = (CCGFace *)ss->fMap->buckets[i];
@@ -902,10 +899,8 @@ void ccgSubSurf__effectedFaceNeighbors(CCGSubSurf *ss,
   CCGEdge **arrayE;
   int numV, numE, i, j;
 
-  arrayV = static_cast<CCGVert **>(
-      MEM_mallocN(sizeof(*arrayV) * ss->vMap->numEntries, "CCGSubsurf arrayV"));
-  arrayE = static_cast<CCGEdge **>(
-      MEM_mallocN(sizeof(*arrayE) * ss->eMap->numEntries, "CCGSubsurf arrayV"));
+  arrayV = MEM_malloc_arrayN<CCGVert *>(size_t(ss->vMap->numEntries), "CCGSubsurf arrayV");
+  arrayE = MEM_malloc_arrayN<CCGEdge *>(size_t(ss->eMap->numEntries), "CCGSubsurf arrayV");
   numV = numE = 0;
 
   for (i = 0; i < numFaces; i++) {

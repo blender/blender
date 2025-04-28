@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2015 Google Inc. All rights reserved.
+// Copyright 2023 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -32,6 +32,7 @@
 
 #include <numeric>
 #include <string>
+#include <vector>
 
 #include "ceres/callbacks.h"
 #include "ceres/context_impl.h"
@@ -48,10 +49,7 @@
 #include "ceres/trust_region_strategy.h"
 #include "ceres/wall_time.h"
 
-namespace ceres {
-namespace internal {
-
-using std::vector;
+namespace ceres::internal {
 
 namespace {
 
@@ -59,7 +57,8 @@ std::shared_ptr<ParameterBlockOrdering> CreateDefaultLinearSolverOrdering(
     const Program& program) {
   std::shared_ptr<ParameterBlockOrdering> ordering =
       std::make_shared<ParameterBlockOrdering>();
-  const vector<ParameterBlock*>& parameter_blocks = program.parameter_blocks();
+  const std::vector<ParameterBlock*>& parameter_blocks =
+      program.parameter_blocks();
   for (auto* parameter_block : parameter_blocks) {
     ordering->AddElementToGroup(
         const_cast<double*>(parameter_block->user_state()), 0);
@@ -114,6 +113,7 @@ bool ReorderProgram(PreprocessedProblem* pp) {
     return ReorderProgramForSchurTypeLinearSolver(
         options.linear_solver_type,
         options.sparse_linear_algebra_library_type,
+        options.linear_solver_ordering_type,
         pp->problem->parameter_map(),
         options.linear_solver_ordering.get(),
         pp->reduced_program.get(),
@@ -124,6 +124,7 @@ bool ReorderProgram(PreprocessedProblem* pp) {
       !options.dynamic_sparsity) {
     return ReorderProgramForSparseCholesky(
         options.sparse_linear_algebra_library_type,
+        options.linear_solver_ordering_type,
         *options.linear_solver_ordering,
         0, /* use all the rows of the jacobian */
         pp->reduced_program.get(),
@@ -139,6 +140,7 @@ bool ReorderProgram(PreprocessedProblem* pp) {
 
     return ReorderProgramForSparseCholesky(
         options.sparse_linear_algebra_library_type,
+        options.linear_solver_ordering_type,
         *options.linear_solver_ordering,
         pp->linear_solver_options.subset_preconditioner_start_row_block,
         pp->reduced_program.get(),
@@ -197,10 +199,16 @@ bool SetupLinearSolver(PreprocessedProblem* pp) {
       options.max_linear_solver_iterations;
   pp->linear_solver_options.type = options.linear_solver_type;
   pp->linear_solver_options.preconditioner_type = options.preconditioner_type;
+  pp->linear_solver_options.use_spse_initialization =
+      options.use_spse_initialization;
+  pp->linear_solver_options.spse_tolerance = options.spse_tolerance;
+  pp->linear_solver_options.max_num_spse_iterations =
+      options.max_num_spse_iterations;
   pp->linear_solver_options.visibility_clustering_type =
       options.visibility_clustering_type;
   pp->linear_solver_options.sparse_linear_algebra_library_type =
       options.sparse_linear_algebra_library_type;
+
   pp->linear_solver_options.dense_linear_algebra_library_type =
       options.dense_linear_algebra_library_type;
   pp->linear_solver_options.use_explicit_schur_complement =
@@ -211,7 +219,6 @@ bool SetupLinearSolver(PreprocessedProblem* pp) {
   pp->linear_solver_options.max_num_refinement_iterations =
       options.max_num_refinement_iterations;
   pp->linear_solver_options.num_threads = options.num_threads;
-  pp->linear_solver_options.use_postordering = options.use_postordering;
   pp->linear_solver_options.context = pp->problem->context();
 
   if (IsSchurType(pp->linear_solver_options.type)) {
@@ -225,26 +232,23 @@ bool SetupLinearSolver(PreprocessedProblem* pp) {
     if (pp->linear_solver_options.elimination_groups.size() == 1) {
       pp->linear_solver_options.elimination_groups.push_back(0);
     }
+  }
 
-    if (options.linear_solver_type == SPARSE_SCHUR) {
-      // When using SPARSE_SCHUR, we ignore the user's postordering
-      // preferences in certain cases.
-      //
-      // 1. SUITE_SPARSE is the sparse linear algebra library requested
-      //    but cholmod_camd is not available.
-      // 2. CX_SPARSE is the sparse linear algebra library requested.
-      //
-      // This ensures that the linear solver does not assume that a
-      // fill-reducing pre-ordering has been done.
-      //
-      // TODO(sameeragarwal): Implement the reordering of parameter
-      // blocks for CX_SPARSE.
-      if ((options.sparse_linear_algebra_library_type == SUITE_SPARSE &&
-           !SuiteSparse::
-               IsConstrainedApproximateMinimumDegreeOrderingAvailable()) ||
-          (options.sparse_linear_algebra_library_type == CX_SPARSE)) {
-        pp->linear_solver_options.use_postordering = true;
-      }
+  if (!options.dynamic_sparsity &&
+      AreJacobianColumnsOrdered(options.linear_solver_type,
+                                options.preconditioner_type,
+                                options.sparse_linear_algebra_library_type,
+                                options.linear_solver_ordering_type)) {
+    pp->linear_solver_options.ordering_type = OrderingType::NATURAL;
+  } else {
+    if (options.linear_solver_ordering_type == ceres::AMD) {
+      pp->linear_solver_options.ordering_type = OrderingType::AMD;
+    } else if (options.linear_solver_ordering_type == ceres::NESDIS) {
+      pp->linear_solver_options.ordering_type = OrderingType::NESDIS;
+    } else {
+      LOG(FATAL) << "Congratulations you have found a bug in Ceres Solver."
+                 << " Please report this to the maintainers. : "
+                 << options.linear_solver_ordering_type;
     }
   }
 
@@ -257,6 +261,8 @@ bool SetupEvaluator(PreprocessedProblem* pp) {
   const Solver::Options& options = pp->options;
   pp->evaluator_options = Evaluator::Options();
   pp->evaluator_options.linear_solver_type = options.linear_solver_type;
+  pp->evaluator_options.sparse_linear_algebra_library_type =
+      options.sparse_linear_algebra_library_type;
   pp->evaluator_options.num_eliminate_blocks = 0;
   if (IsSchurType(options.linear_solver_type)) {
     pp->evaluator_options.num_eliminate_blocks =
@@ -330,13 +336,19 @@ bool SetupInnerIterationMinimizer(PreprocessedProblem* pp) {
 }
 
 // Configure and create a TrustRegionMinimizer object.
-void SetupMinimizerOptions(PreprocessedProblem* pp) {
+bool SetupMinimizerOptions(PreprocessedProblem* pp) {
   const Solver::Options& options = pp->options;
 
   SetupCommonMinimizerOptions(pp);
   pp->minimizer_options.is_constrained =
       pp->reduced_program->IsBoundsConstrained();
   pp->minimizer_options.jacobian = pp->evaluator->CreateJacobian();
+  if (pp->minimizer_options.jacobian == nullptr) {
+    pp->error =
+        "Unable to create Jacobian matrix. Likely because it is too large.";
+    return false;
+  }
+
   pp->minimizer_options.inner_iteration_minimizer =
       pp->inner_iteration_minimizer;
 
@@ -349,9 +361,12 @@ void SetupMinimizerOptions(PreprocessedProblem* pp) {
   strategy_options.trust_region_strategy_type =
       options.trust_region_strategy_type;
   strategy_options.dogleg_type = options.dogleg_type;
+  strategy_options.context = pp->problem->context();
+  strategy_options.num_threads = options.num_threads;
   pp->minimizer_options.trust_region_strategy =
       TrustRegionStrategy::Create(strategy_options);
   CHECK(pp->minimizer_options.trust_region_strategy != nullptr);
+  return true;
 }
 
 }  // namespace
@@ -387,9 +402,7 @@ bool TrustRegionPreprocessor::Preprocess(const Solver::Options& options,
     return false;
   }
 
-  SetupMinimizerOptions(pp);
-  return true;
+  return SetupMinimizerOptions(pp);
 }
 
-}  // namespace internal
-}  // namespace ceres
+}  // namespace ceres::internal

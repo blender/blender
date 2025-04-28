@@ -359,7 +359,9 @@ static void eyedropper_grease_pencil_cancel(bContext *C, wmOperator *op)
 }
 
 /* Main modal status check. */
-static int eyedropper_grease_pencil_modal(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus eyedropper_grease_pencil_modal(bContext *C,
+                                                       wmOperator *op,
+                                                       const wmEvent *event)
 {
   eyedropper_grease_pencil_status_indicators(C, op, event);
   EyedropperGreasePencil *eye = static_cast<EyedropperGreasePencil *>(op->customdata);
@@ -414,7 +416,9 @@ static int eyedropper_grease_pencil_modal(bContext *C, wmOperator *op, const wmE
   return OPERATOR_RUNNING_MODAL;
 }
 
-static int eyedropper_grease_pencil_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus eyedropper_grease_pencil_invoke(bContext *C,
+                                                        wmOperator *op,
+                                                        const wmEvent *event)
 {
   if (eyedropper_grease_pencil_init(C, op)) {
     /* Add modal temp handler. */
@@ -428,7 +432,7 @@ static int eyedropper_grease_pencil_invoke(bContext *C, wmOperator *op, const wm
 }
 
 /* Repeat operator */
-static int eyedropper_grease_pencil_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus eyedropper_grease_pencil_exec(bContext *C, wmOperator *op)
 {
   if (eyedropper_grease_pencil_init(C, op)) {
 

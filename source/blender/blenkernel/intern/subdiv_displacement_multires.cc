@@ -381,8 +381,8 @@ static void displacement_data_init_mapping(Displacement *displacement, const Mes
   const OffsetIndices faces = mesh->faces();
   const int num_ptex_faces = count_num_ptex_faces(mesh);
   /* Allocate memory. */
-  data->ptex_face_corner = static_cast<PolyCornerIndex *>(
-      MEM_malloc_arrayN(num_ptex_faces, sizeof(*data->ptex_face_corner), "PTEX face corner"));
+  data->ptex_face_corner = MEM_malloc_arrayN<PolyCornerIndex>(size_t(num_ptex_faces),
+                                                              "PTEX face corner");
   /* Fill in offsets. */
   int ptex_face_index = 0;
   PolyCornerIndex *ptex_face_corner = data->ptex_face_corner;

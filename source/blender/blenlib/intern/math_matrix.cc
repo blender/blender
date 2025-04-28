@@ -282,8 +282,8 @@ template double4x4 pseudo_invert(const double4x4 &mat, double epsilon);
  * Right polar decomposition:
  *     M = UP
  *
- * U is the 'rotation'-like component, the closest orthogonal matrix to M.
- * P is the 'scaling'-like component, defined in U space.
+ * U is the *rotation*-like component, the closest orthogonal matrix to M.
+ * P is the *scaling*-like component, defined in U space.
  *
  * See https://en.wikipedia.org/wiki/Polar_decomposition for more.
  */
@@ -315,7 +315,7 @@ static void polar_decompose(const MatBase<T, 3, 3> &mat3,
 
     Eigen::Map<MatrixT>(W.base_ptr()) = svd.matrixU();
     (Eigen::Map<VectorT>(S_val)) = svd.singularValues();
-    Map<MatrixT>(V.base_ptr()) = svd.matrixV();
+    Eigen::Map<MatrixT>(V.base_ptr()) = svd.matrixV();
   }
 
   MatBase<T, 3, 3> S = from_scale<MatBase<T, 3, 3>>(S_val);

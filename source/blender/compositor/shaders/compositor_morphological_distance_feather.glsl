@@ -54,34 +54,34 @@
 
 void main()
 {
-  ivec2 texel = ivec2(gl_GlobalInvocationID.xy);
+  int2 texel = int2(gl_GlobalInvocationID.xy);
 
   /* A value for accumulating the blur result. */
-  float accumulated_value = 0.0;
+  float accumulated_value = 0.0f;
 
   /* Compute the contribution of the center pixel to the blur result. */
   float center_value = FUNCTION(texture_load(input_tx, texel).x);
-  accumulated_value += center_value * texture_load(weights_tx, ivec2(0)).x;
+  accumulated_value += center_value * texture_load(weights_tx, int2(0)).x;
 
   /* Start with the center value as the maximum/minimum distance and reassign to the true maximum
    * or minimum in the search loop below. Additionally, the center falloff is always 1.0, so start
    * with that. */
   float limit_distance = center_value;
-  float limit_distance_falloff = 1.0;
+  float limit_distance_falloff = 1.0f;
 
   /* Compute the contributions of the pixels to the right and left, noting that the weights and
    * falloffs textures only store the weights and falloffs for the positive half, but since the
    * they are both symmetric, the same weights and falloffs are used for the negative half and we
    * compute both of their contributions. */
   for (int i = 1; i < texture_size(weights_tx).x; i++) {
-    float weight = texture_load(weights_tx, ivec2(i, 0)).x;
-    float falloff = texture_load(falloffs_tx, ivec2(i, 0)).x;
+    float weight = texture_load(weights_tx, int2(i, 0)).x;
+    float falloff = texture_load(falloffs_tx, int2(i, 0)).x;
 
     /* Loop for two iterations, where s takes the value of -1 and 1, which is used as the sign
      * needed to evaluated the positive and negative sides as explain above. */
     for (int s = -1; s < 2; s += 2) {
       /* Compute the contribution of the pixel to the blur result. */
-      float value = FUNCTION(texture_load(input_tx, texel + ivec2(s * i, 0)).x);
+      float value = FUNCTION(texture_load(input_tx, texel + int2(s * i, 0)).x);
       accumulated_value += value * weight;
 
       /* The distance is computed such that its highest value is the pixel value itself, so
@@ -103,5 +103,5 @@ void main()
 
   /* Write the value using the transposed texel. See the execute_distance_feather_horizontal_pass
    * method for more information on the rational behind this. */
-  imageStore(output_img, texel.yx, vec4(FUNCTION(value)));
+  imageStore(output_img, texel.yx, float4(FUNCTION(value)));
 }

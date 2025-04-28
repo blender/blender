@@ -13,22 +13,22 @@ VERTEX_SHADER_CREATE_INFO(overlay_edit_lattice_point)
 void main()
 {
   if ((data & VERT_SELECTED) != 0u) {
-    finalColor = colorVertexSelect;
+    final_color = colorVertexSelect;
   }
   else if ((data & VERT_ACTIVE) != 0u) {
-    finalColor = colorEditMeshActive;
+    final_color = colorEditMeshActive;
   }
   else {
-    finalColor = colorVertex;
+    final_color = colorVertex;
   }
 
-  vec3 world_pos = drw_point_object_to_world(pos);
+  float3 world_pos = drw_point_object_to_world(pos);
   gl_Position = drw_point_world_to_homogenous(world_pos);
 
   /* Small offset in Z */
-  gl_Position.z -= 3e-4;
+  gl_Position.z -= 3e-4f;
 
-  gl_PointSize = sizeVertex * 2.0;
+  gl_PointSize = sizeVertex * 2.0f;
 
   view_clipping_distances(world_pos);
 }

@@ -109,12 +109,12 @@ static void viewdolly_apply(ViewOpsData *vod, const int xy[2], const bool zoom_i
   ED_region_tag_redraw(vod->region);
 }
 
-static int viewdolly_modal(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus viewdolly_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   ViewOpsData *vod = static_cast<ViewOpsData *>(op->customdata);
   short event_code = VIEW_PASS;
   bool use_autokey = false;
-  int ret = OPERATOR_RUNNING_MODAL;
+  wmOperatorStatus ret = OPERATOR_RUNNING_MODAL;
 
   /* Execute the events. */
   if (event->type == EVT_MODAL_MAP) {
@@ -183,7 +183,7 @@ static int viewdolly_modal(bContext *C, wmOperator *op, const wmEvent *event)
   return ret;
 }
 
-static int viewdolly_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus viewdolly_exec(bContext *C, wmOperator *op)
 {
   View3D *v3d;
   RegionView3D *rv3d;
@@ -234,7 +234,7 @@ static int viewdolly_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int viewdolly_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus viewdolly_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   /* Near duplicate logic in #viewzoom_invoke(), changes here may apply there too. */
 

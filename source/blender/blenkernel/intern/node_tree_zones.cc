@@ -420,18 +420,36 @@ const bNodeTreeZone *bNodeTreeZones::get_zone_by_node(const int32_t node_id) con
   return this->zones[zone_i];
 }
 
-Vector<const bNodeTreeZone *> bNodeTreeZones::get_zone_stack_for_node(const int node_id) const
+bool bNodeTreeZones::link_between_zones_is_allowed(const bNodeTreeZone *from_zone,
+                                                   const bNodeTreeZone *to_zone) const
 {
-  const bNodeTreeZone *zone = this->get_zone_by_node(node_id);
-  if (zone == nullptr) {
-    return {};
+  if (!from_zone) {
+    /* Links from the root tree can go to any zone. */
+    return true;
   }
-  Vector<const bNodeTreeZone *> zone_stack;
-  for (; zone; zone = zone->parent_zone) {
-    zone_stack.append(zone);
+  if (!to_zone) {
+    /* Links can not leave a zone and connect to a socket in the root tree. */
+    return false;
   }
-  std::reverse(zone_stack.begin(), zone_stack.end());
-  return zone_stack;
+  return from_zone->contains_zone_recursively(*to_zone);
+}
+
+Vector<const bNodeTreeZone *> bNodeTreeZones::get_zones_to_enter(
+    const bNodeTreeZone *outer_zone, const bNodeTreeZone *inner_zone) const
+{
+  BLI_assert(this->link_between_zones_is_allowed(outer_zone, inner_zone));
+  Vector<const bNodeTreeZone *> zones_to_enter;
+  for (const bNodeTreeZone *zone = inner_zone; zone != outer_zone; zone = zone->parent_zone) {
+    zones_to_enter.append(zone);
+  }
+  std::reverse(zones_to_enter.begin(), zones_to_enter.end());
+  return zones_to_enter;
+}
+
+Vector<const bNodeTreeZone *> bNodeTreeZones::get_zones_to_enter_from_root(
+    const bNodeTreeZone *zone) const
+{
+  return this->get_zones_to_enter(nullptr, zone);
 }
 
 const bNode *bNodeZoneType::get_corresponding_input(const bNodeTree &tree,

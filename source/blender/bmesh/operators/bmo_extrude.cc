@@ -644,7 +644,7 @@ static void calc_solidify_normals(BMesh *bm)
   int i;
 
   /* can't use BM_edge_face_count because we need to count only marked faces */
-  int *edge_face_count = static_cast<int *>(MEM_callocN(sizeof(int) * bm->totedge, __func__));
+  int *edge_face_count = MEM_calloc_arrayN<int>(bm->totedge, __func__);
 
   BM_ITER_MESH (v, &viter, bm, BM_VERTS_OF_MESH) {
     BM_elem_flag_enable(v, BM_ELEM_TAG);
@@ -785,8 +785,7 @@ static void solidify_add_thickness(BMesh *bm, const float dist)
   BMVert *v;
   BMLoop *l;
   BMIter iter, loopIter;
-  float *vert_angles = static_cast<float *>(
-      MEM_callocN(sizeof(float) * bm->totvert * 2, "solidify")); /* 2 in 1 */
+  float *vert_angles = MEM_calloc_arrayN<float>(size_t(bm->totvert) * 2, "solidify"); /* 2 in 1 */
   float *vert_accum = vert_angles + bm->totvert;
   int i, index;
 

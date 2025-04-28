@@ -28,9 +28,9 @@
 
 #include "draw_cache_impl.hh"
 #include "draw_common.hh"
+#include "draw_context_private.hh"
 #include "draw_curves_private.hh"
 #include "draw_hair_private.hh"
-#include "draw_manager_c.hh"
 #include "draw_shader.hh"
 
 namespace blender::draw {
@@ -151,13 +151,13 @@ static CurvesEvalCache *drw_curves_cache_get(Curves &curves,
 
 gpu::VertBuf *DRW_curves_pos_buffer_get(Object *object)
 {
-  const DRWContextState *draw_ctx = DRW_context_state_get();
+  const DRWContext *draw_ctx = DRW_context_get();
   const Scene *scene = draw_ctx->scene;
 
   const int subdiv = scene->r.hair_subdiv;
   const int thickness_res = (scene->r.hair_type == SCE_HAIR_SHAPE_STRAND) ? 1 : 2;
 
-  Curves &curves = *static_cast<Curves *>(object->data);
+  Curves &curves = DRW_object_get_data_for_drawing<Curves>(*object);
   CurvesEvalCache *cache = drw_curves_cache_get(curves, nullptr, subdiv, thickness_res);
 
   return cache->final.proc_buf;
@@ -185,12 +185,19 @@ static int attribute_index_in_material(GPUMaterial *gpu_material, const char *na
 
 void DRW_curves_update(draw::Manager &manager)
 {
+  DRW_submission_start();
+
   /* TODO(fclem): Remove Global access. */
   PassSimple &pass = drw_get().data->curves_module->refine;
 
   /* NOTE: This also update legacy hairs too as they populate the same pass. */
   manager.submit(pass);
   GPU_memory_barrier(GPU_BARRIER_SHADER_STORAGE);
+
+  /* Make sure calling this function again will not subdivide the same data. */
+  pass.init();
+
+  DRW_submission_end();
 }
 
 /* New Draw Manager. */
@@ -255,7 +262,7 @@ gpu::VertBuf *curves_pos_buffer_get(Scene *scene, Object *object)
   const int subdiv = scene->r.hair_subdiv;
   const int thickness_res = (scene->r.hair_type == SCE_HAIR_SHAPE_STRAND) ? 1 : 2;
 
-  Curves &curves = *static_cast<Curves *>(object->data);
+  Curves &curves = DRW_object_get_data_for_drawing<Curves>(*object);
   CurvesEvalCache *cache = curves_cache_get(curves, nullptr, subdiv, thickness_res);
 
   return cache->final.proc_buf;
@@ -272,7 +279,7 @@ gpu::Batch *curves_sub_pass_setup_implementation(PassT &sub_ps,
   CurvesModule &module = *drw_get().data->curves_module;
   CurvesInfosBuf &curves_infos = module.ubo_pool.alloc();
   BLI_assert(ob->type == OB_CURVES);
-  Curves &curves_id = *static_cast<Curves *>(ob->data);
+  Curves &curves_id = DRW_object_get_data_for_drawing<Curves>(*ob);
 
   const int subdiv = scene->r.hair_subdiv;
   const int thickness_res = (scene->r.hair_type == SCE_HAIR_SHAPE_STRAND) ? 1 : 2;

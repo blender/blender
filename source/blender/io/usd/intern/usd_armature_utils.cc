@@ -5,16 +5,46 @@
 #include "usd_armature_utils.hh"
 #include "usd_utils.hh"
 
+#include "ANIM_action.hh"
+#include "ANIM_fcurve.hh"
+
 #include "BKE_armature.hh"
+#include "BKE_fcurve.hh"
 #include "BKE_modifier.hh"
+
 #include "BLI_listbase.h"
+#include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
+
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 
 namespace blender::io::usd {
+
+/* Utility: create new fcurve and add it as a channel to a group. */
+FCurve *create_fcurve(blender::animrig::Channelbag &channelbag,
+                      const blender::animrig::FCurveDescriptor &fcurve_descriptor,
+                      const int sample_count)
+{
+  FCurve *fcurve = channelbag.fcurve_create_unique(nullptr, fcurve_descriptor);
+  BLI_assert_msg(fcurve, "The same F-Curve is being created twice, this is unexpected.");
+  BKE_fcurve_bezt_resize(fcurve, sample_count);
+  return fcurve;
+}
+
+/* Utility: fill in a single fcurve sample at the provided index. */
+void set_fcurve_sample(FCurve *fcu, int64_t sample_index, const float frame, const float value)
+{
+  BLI_assert(sample_index >= 0 && sample_index < fcu->totvert);
+  BezTriple &bez = fcu->bezt[sample_index];
+  bez.vec[1][0] = frame;
+  bez.vec[1][1] = value;
+  bez.ipo = BEZT_IPO_LIN;
+  bez.f1 = bez.f2 = bez.f3 = SELECT;
+  bez.h1 = bez.h2 = HD_AUTO;
+}
 
 /* Recursively invoke the 'visitor' function on the given bone and its children. */
 static void visit_bones(const Bone *bone, FunctionRef<void(const Bone *)> visitor)
@@ -69,8 +99,7 @@ void visit_bones(const Object *ob_arm, FunctionRef<void(const Bone *)> visitor)
     return;
   }
 
-  bArmature *armature = (bArmature *)ob_arm->data;
-
+  const bArmature *armature = (bArmature *)ob_arm->data;
   LISTBASE_FOREACH (const Bone *, bone, &armature->bonebase) {
     visit_bones(bone, visitor);
   }
@@ -78,7 +107,7 @@ void visit_bones(const Object *ob_arm, FunctionRef<void(const Bone *)> visitor)
 
 void get_armature_bone_names(const Object *ob_arm,
                              const bool use_deform,
-                             Vector<std::string> &r_names)
+                             Vector<StringRef> &r_names)
 {
   Map<StringRef, const Bone *> deform_map;
   if (use_deform) {
@@ -86,11 +115,12 @@ void get_armature_bone_names(const Object *ob_arm,
   }
 
   auto visitor = [&](const Bone *bone) {
-    if (use_deform && !deform_map.contains(bone->name)) {
+    const StringRef bone_name(bone->name);
+    if (use_deform && !deform_map.contains(bone_name)) {
       return;
     }
 
-    r_names.append(bone->name);
+    r_names.append(bone_name);
   };
 
   visit_bones(ob_arm, visitor);
@@ -102,7 +132,7 @@ pxr::TfToken build_usd_joint_path(const Bone *bone, bool allow_unicode)
 
   const Bone *parent = bone->parent;
   while (parent) {
-    path = make_safe_name(parent->name, allow_unicode) + std::string("/") + path;
+    path = make_safe_name(parent->name, allow_unicode) + '/' + path;
     parent = parent->parent;
   }
 

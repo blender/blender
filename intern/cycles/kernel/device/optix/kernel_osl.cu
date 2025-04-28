@@ -15,6 +15,8 @@
 #include "kernel/integrator/shade_shadow.h"
 #include "kernel/integrator/shade_volume.h"
 
+#include "kernel/device/gpu/work_stealing.h"
+
 extern "C" __global__ void __raygen__kernel_optix_integrator_shade_background()
 {
   const int global_index = optixGetLaunchIndex().x;

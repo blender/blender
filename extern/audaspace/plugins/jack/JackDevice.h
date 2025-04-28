@@ -26,22 +26,22 @@
  * The JackDevice class.
  */
 
-#include "JackSynchronizer.h"
-#include "devices/SoftwareDevice.h"
-#include "util/Buffer.h"
-
-#include <string>
+#include <atomic>
 #include <condition_variable>
+#include <string>
 #include <thread>
+
 #include <jack/jack.h>
-#include <jack/ringbuffer.h>
+
+#include "devices/MixingThreadDevice.h"
+#include "util/Buffer.h"
 
 AUD_NAMESPACE_BEGIN
 
 /**
  * This device plays back through JACK.
  */
-class AUD_PLUGIN_API JackDevice : public SoftwareDevice
+class AUD_PLUGIN_API JackDevice : public MixingThreadDevice
 {
 private:
 	/**
@@ -55,24 +55,9 @@ private:
 	jack_client_t* m_client;
 
 	/**
-	 * The output buffer.
-	 */
-	Buffer m_buffer;
-
-	/**
 	 * The deinterleaving buffer.
 	 */
 	Buffer m_deinterleavebuf;
-
-	jack_ringbuffer_t** m_ringbuffers;
-
-	/**
-	 * Whether the device is valid.
-	 */
-	bool m_valid;
-
-	/// Synchronizer.
-	JackSynchronizer m_synchronizer;
 
 	/**
 	 * Invalidates the jack device.
@@ -91,49 +76,53 @@ private:
 	AUD_LOCAL static int jack_sync(jack_transport_state_t state, jack_position_t* pos, void* data);
 
 	/**
-	 * Next JACK Transport state (-1 if not expected to change).
+	 * Last known JACK Transport state used for stop callbacks.
 	 */
-	jack_transport_state_t m_nextState;
+	jack_transport_state_t m_lastState;
 
 	/**
-	 * Current jack transport status.
+	 * Last known JACK Transport state used for stop callbacks.
 	 */
-	jack_transport_state_t m_state;
+	jack_transport_state_t m_lastMixState;
 
 	/**
-	 * Syncronisation state.
+	 * Time for a synchronisation request.
 	 */
-	int m_sync;
+	std::atomic<float> m_syncTime;
+
+	/**
+	 * Sync revision used to notify the mixing thread that a sync call is necessary.
+	 */
+	std::atomic<int> m_syncCallRevision;
+
+	/**
+	 * The sync revision that the last sync call in the mixing thread handled.
+	 */
+	std::atomic<int> m_lastSyncCallRevision;
+
+	/**
+	 * Sync revision that is increased every time jack transport enters the rolling state.
+	 */
+	int m_rollingSyncRevision;
+
+	/**
+	 * The last time the jack_sync callback saw the rolling sync revision.
+	 *
+	 * Used to ensure the sync callback will be called when consecutive syncs target the same sync time.
+	 */
+	int m_lastRollingSyncRevision;
 
 	/**
 	 * External syncronisation callback function.
 	 */
-	ISynchronizer::syncFunction m_syncFunc;
+	syncFunction m_syncFunc;
 
 	/**
 	 * Data for the sync function.
 	 */
 	void* m_syncFuncData;
 
-	/**
-	 * The mixing thread.
-	 */
-	std::thread m_mixingThread;
-
-	/**
-	 * Mutex for mixing.
-	 */
-	std::mutex m_mixingLock;
-
-	/**
-	 * Condition for mixing.
-	 */
-	std::condition_variable m_mixingCondition;
-
-	/**
-	 * Updates the ring buffers.
-	 */
-	AUD_LOCAL void updateRingBuffers();
+	AUD_LOCAL void preMixingWork(bool playing) override;
 
 	// delete copy constructor and operator=
 	JackDevice(const JackDevice&) = delete;
@@ -158,42 +147,40 @@ public:
 	 */
 	virtual ~JackDevice();
 
-	virtual ISynchronizer* getSynchronizer();
-
 	/**
 	 * Starts jack transport playback.
 	 */
-	void startPlayback();
+	void playSynchronizer();
 
 	/**
 	 * Stops jack transport playback.
 	 */
-	void stopPlayback();
+	void stopSynchronizer();
 
 	/**
 	 * Seeks jack transport playback.
 	 * \param time The time to seek to.
 	 */
-	void seekPlayback(double time);
+	void seekSynchronizer(double time);
 
 	/**
 	 * Sets the sync callback for jack transport playback.
 	 * \param sync The callback function.
 	 * \param data The data for the function.
 	 */
-	void setSyncCallback(ISynchronizer::syncFunction sync, void* data);
+	void setSyncCallback(syncFunction sync, void* data);
 
 	/**
 	 * Retrieves the jack transport playback time.
 	 * \return The current time position.
 	 */
-	double getPlaybackPosition();
+	double getSynchronizerPosition();
 
 	/**
 	 * Returns whether jack transport plays back.
 	 * \return Whether jack transport plays back.
 	 */
-	bool doesPlayback();
+	int isSynchronizerPlaying();
 
 	/**
 	 * Registers this plugin.

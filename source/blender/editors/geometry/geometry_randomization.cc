@@ -19,13 +19,15 @@
 
 namespace blender::ed::geometry {
 
-static int geometry_randomization_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus geometry_randomization_invoke(bContext *C,
+                                                      wmOperator *op,
+                                                      const wmEvent *event)
 {
   RNA_boolean_set(op->ptr, "value", G.randomize_geometry_element_order);
   return WM_operator_props_popup(C, op, event);
 }
 
-static int geometry_randomization_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus geometry_randomization_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
 

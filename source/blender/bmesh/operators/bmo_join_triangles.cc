@@ -268,6 +268,9 @@ static void bm_edge_to_quad_verts(const BMEdge *e, const BMVert *r_v_quad[4])
  * \{ */
 
 /** Cache custom-data delimiters. */
+
+namespace {
+
 struct DelimitData_CD {
   int cd_type;
   int cd_size;
@@ -290,6 +293,8 @@ struct DelimitData {
   DelimitData_CD cdata[4];
   int cdata_len;
 };
+
+}  // namespace
 
 /** Determines if the loop custom-data is contiguous. */
 static bool bm_edge_is_contiguous_loop_cd_all(const BMEdge *e, const DelimitData_CD *delimit_data)
@@ -947,8 +952,15 @@ static BMFace *bm_faces_join_pair_by_edge(BMesh *bm,
   }
 #endif
 
+  BMFace *f_double;
+
   /* Join the edge and identify the face. */
-  return BM_faces_join_pair(bm, l_a, l_b, true);
+  BMFace *f = BM_faces_join_pair(bm, l_a, l_b, true, &f_double);
+  /* See #BM_faces_join note on callers asserting when `r_double` is non-null. */
+  BLI_assert_msg(f_double == nullptr,
+                 "Doubled face detected at " AT ". Resulting mesh may be corrupt.");
+
+  return f;
 }
 
 /** Given a mesh, convert triangles to quads. */
@@ -968,8 +980,7 @@ void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
   s.edge_queue = BLI_heap_new();
   s.select_tris_only = BMO_slot_bool_get(op->slots_in, "deselect_joined");
   if (s.use_topo_influence) {
-    s.edge_queue_nodes = static_cast<HeapNode **>(
-        MEM_malloc_arrayN(bm->totedge, sizeof(HeapNode *), __func__));
+    s.edge_queue_nodes = MEM_malloc_arrayN<HeapNode *>(bm->totedge, __func__);
   }
 
 #ifdef USE_JOIN_TRIANGLE_INTERACTIVE_TESTING

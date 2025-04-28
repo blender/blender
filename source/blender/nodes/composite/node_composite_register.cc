@@ -60,6 +60,7 @@ void register_composite_nodes()
   register_node_type_cmp_huecorrect();
   register_node_type_cmp_idmask();
   register_node_type_cmp_image();
+  register_node_type_cmp_image_info();
   register_node_type_cmp_inpaint();
   register_node_type_cmp_invert();
   register_node_type_cmp_keying();

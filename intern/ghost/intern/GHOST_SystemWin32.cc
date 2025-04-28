@@ -32,7 +32,6 @@
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 
-#include "GHOST_DisplayManagerWin32.hh"
 #include "GHOST_EventButton.hh"
 #include "GHOST_EventCursor.hh"
 #include "GHOST_EventKey.hh"
@@ -165,10 +164,6 @@ typedef BOOL(API *GHOST_WIN32_EnableNonClientDpiScaling)(HWND);
 
 GHOST_SystemWin32::GHOST_SystemWin32() : m_hasPerformanceCounter(false), m_freq(0)
 {
-  m_displayManager = new GHOST_DisplayManagerWin32();
-  GHOST_ASSERT(m_displayManager, "GHOST_SystemWin32::GHOST_SystemWin32(): m_displayManager==0\n");
-  m_displayManager->initialize();
-
   m_consoleStatus = true;
 
   /* Tell Windows we are per monitor DPI aware. This disables the default
@@ -246,10 +241,7 @@ static uint64_t getMessageTime(GHOST_SystemWin32 *system)
 
 uint8_t GHOST_SystemWin32::getNumDisplays() const
 {
-  GHOST_ASSERT(m_displayManager, "GHOST_SystemWin32::getNumDisplays(): m_displayManager==0\n");
-  uint8_t numDisplays;
-  m_displayManager->getNumDisplays(numDisplays);
-  return numDisplays;
+  return ::GetSystemMetrics(SM_CMONITORS);
 }
 
 void GHOST_SystemWin32::getMainDisplayDimensions(uint32_t &width, uint32_t &height) const
@@ -285,7 +277,6 @@ GHOST_IWindow *GHOST_SystemWin32::createWindow(const char *title,
       state,
       gpuSettings.context_type,
       ((gpuSettings.flags & GHOST_gpuStereoVisual) != 0),
-      false,
       (GHOST_WindowWin32 *)parentWindow,
       ((gpuSettings.flags & GHOST_gpuDebugContext) != 0),
       is_dialog,
@@ -583,10 +574,14 @@ GHOST_TSuccess GHOST_SystemWin32::getButtons(GHOST_Buttons &buttons) const
 
 GHOST_TCapabilityFlag GHOST_SystemWin32::getCapabilities() const
 {
-  return GHOST_TCapabilityFlag(GHOST_CAPABILITY_FLAG_ALL &
-                               ~(
-                                   /* WIN32 has no support for a primary selection clipboard. */
-                                   GHOST_kCapabilityPrimaryClipboard));
+  return GHOST_TCapabilityFlag(
+      GHOST_CAPABILITY_FLAG_ALL &
+      ~(
+          /* WIN32 has no support for a primary selection clipboard. */
+          GHOST_kCapabilityPrimaryClipboard |
+          /* WIN32 doesn't define a Hyper modifier key,
+           * it's possible another modifier could be optionally used in it's place. */
+          GHOST_kCapabilityKeyboardHyperKey));
 }
 
 GHOST_TSuccess GHOST_SystemWin32::init()
@@ -614,11 +609,7 @@ GHOST_TSuccess GHOST_SystemWin32::init()
       ::LoadIcon(nullptr, IDI_APPLICATION);
     }
     wc.hCursor = ::LoadCursor(0, IDC_ARROW);
-    wc.hbrBackground =
-#ifdef INW32_COMPISITING
-        (HBRUSH)CreateSolidBrush
-#endif
-        (0x00000000);
+    wc.hbrBackground = (HBRUSH)GetStockObject(DKGRAY_BRUSH);
     wc.lpszMenuName = 0;
     wc.lpszClassName = L"GHOST_WindowClass";
 
@@ -1380,6 +1371,9 @@ GHOST_Event *GHOST_SystemWin32::processWindowEvent(GHOST_TEventType type,
 
   if (type == GHOST_kEventWindowActivate) {
     system->getWindowManager()->setActiveWindow(window);
+  }
+  else if (type == GHOST_kEventWindowDeactivate) {
+    system->getWindowManager()->setWindowInactive(window);
   }
 
   return new GHOST_Event(getMessageTime(system), type, window);
@@ -2238,6 +2232,18 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, uint msg, WPARAM wParam, 
           /* An application sends the WM_ERASEBKGND message when the window background must be
            * erased (for example, when a window is resized). The message is sent to prepare an
            * invalidated portion of a window for painting. */
+          {
+            HBRUSH bgBrush = (HBRUSH)GetClassLongPtr(hwnd, GCLP_HBRBACKGROUND);
+            if (bgBrush) {
+              RECT rect;
+              GetClientRect(hwnd, &rect);
+              FillRect((HDC)(wParam), &rect, bgBrush);
+              /* Clear the background brush after the initial fill as we don't
+               * need or want any default Windows fill behavior on redraw. */
+              SetClassLongPtr(hwnd, GCLP_HBRBACKGROUND, (LONG_PTR) nullptr);
+            }
+            break;
+          }
         case WM_NCPAINT:
           /* An application sends the WM_NCPAINT message to a window
            * when its frame must be painted. */
@@ -2371,8 +2377,7 @@ char *GHOST_SystemWin32::getClipboard(bool /*selection*/) const
 
     len = strlen(buffer);
     char *temp_buff = (char *)malloc(len + 1);
-    strncpy(temp_buff, buffer, len);
-    temp_buff[len] = '\0';
+    memcpy(temp_buff, buffer, len + 1);
 
     /* Buffer mustn't be accessed after CloseClipboard
      * it would like accessing free-d memory */
@@ -2429,7 +2434,8 @@ GHOST_TSuccess GHOST_SystemWin32::hasClipboardImage(void) const
             WCHAR lpszFile[MAX_PATH] = {0};
             DragQueryFileW(hDrop, 0, lpszFile, MAX_PATH);
             char *filepath = alloc_utf_8_from_16(lpszFile, 0);
-            ImBuf *ibuf = IMB_testiffname(filepath, IB_byte_data | IB_multilayer);
+            ImBuf *ibuf = IMB_load_image_from_filepath(filepath,
+                                                       IB_byte_data | IB_multilayer | IB_test);
             free(filepath);
             if (ibuf) {
               IMB_freeImBuf(ibuf);
@@ -2465,7 +2471,7 @@ static uint *getClipboardImageFilepath(int *r_width, int *r_height)
   }
 
   if (filepath) {
-    ImBuf *ibuf = IMB_loadiffname(filepath, IB_byte_data | IB_multilayer, nullptr);
+    ImBuf *ibuf = IMB_load_image_from_filepath(filepath, IB_byte_data | IB_multilayer);
     free(filepath);
     if (ibuf) {
       *r_width = ibuf->x;
@@ -2583,8 +2589,8 @@ static uint *getClipboardImageImBuf(int *r_width, int *r_height, UINT format)
 
   uint *rgba = nullptr;
 
-  ImBuf *ibuf = IMB_ibImageFromMemory(
-      (uchar *)pMem, GlobalSize(hGlobal), IB_byte_data, nullptr, "<clipboard>");
+  ImBuf *ibuf = IMB_load_image_from_memory(
+      (uchar *)pMem, GlobalSize(hGlobal), IB_byte_data, "<clipboard>");
 
   if (ibuf) {
     *r_width = ibuf->x;
@@ -2695,7 +2701,7 @@ static bool putClipboardImagePNG(uint *rgba, int width, int height)
   ImBuf *ibuf = IMB_allocFromBuffer(reinterpret_cast<uint8_t *>(rgba), nullptr, width, height, 32);
   ibuf->ftype = IMB_FTYPE_PNG;
   ibuf->foptions.quality = 15;
-  if (!IMB_saveiff(ibuf, "<memory>", IB_byte_data | IB_mem)) {
+  if (!IMB_save_image(ibuf, "<memory>", IB_byte_data | IB_mem)) {
     IMB_freeImBuf(ibuf);
     return false;
   }

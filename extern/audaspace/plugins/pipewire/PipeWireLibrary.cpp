@@ -53,7 +53,7 @@ bool loadPipeWire()
 
 #undef PIPEWIRE_SYMBOL
 
-	return AUD_pw_check_library_version != nullptr && AUD_pw_check_library_version(1,1,0);
+	return AUD_pw_check_library_version != nullptr && AUD_pw_check_library_version(1, 1, 0);
 }
 
 AUD_NAMESPACE_END

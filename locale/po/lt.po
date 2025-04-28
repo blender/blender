@@ -1,18 +1,18 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Beta (b'1a72a0f22cde')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'1f4cae0c4623')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-03 09:33+0000\n"
-"PO-Revision-Date: 2024-11-14 16:56+0000\n"
-"Last-Translator: Aras Pranckevičius <aras@nesnausk.org>\n"
+"POT-Creation-Date: 2025-04-28 09:32+0000\n"
+"PO-Revision-Date: 2025-04-14 08:54+0000\n"
+"Last-Translator: Martynas Žiemys <martynasziemys@gmail.com>\n"
 "Language-Team: Lithuanian <https://translate.blender.org/projects/blender-ui/ui/lt/>\n"
 "Language: lt\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n % 10 == 1 && (n % 100 < 11 || n % 100 > 19)) ? 0 : ((n % 10 >= 2 && n % 10 <= 9 && (n % 100 < 11 || n % 100 > 19)) ? 1 : 2);\n"
-"X-Generator: Weblate 5.8.3"
+"X-Generator: Weblate 5.10.1"
 
 
 msgid "Valid"
@@ -378,10 +378,6 @@ msgstr "Įjungta/Įgalinta (-s)"
 
 msgid "Auto"
 msgstr "Automatinis/-iškas"
-
-
-msgid "HIP RT (Experimental)"
-msgstr "„HIP RT“ (Eksperimentinis)"
 
 
 msgid "        Filter by Name"
@@ -1524,10 +1520,6 @@ msgid "Bone"
 msgstr "Kaulas"
 
 
-msgid "Script"
-msgstr "Skriptas"
-
-
 msgid "XZ"
 msgstr "„XZ“"
 
@@ -1967,6 +1959,10 @@ msgstr "Geras"
 
 msgid "Realtime"
 msgstr "Tikru laiku"
+
+
+msgid "Profile"
+msgstr "Profilis"
 
 
 msgid "Container"
@@ -2441,10 +2437,6 @@ msgid "Usage"
 msgstr "Naudojimas/Vartojimas"
 
 
-msgid "Profile"
-msgstr "Profilis"
-
-
 msgid "Path"
 msgstr "Kelias"
 
@@ -2649,6 +2641,10 @@ msgstr "Atributas"
 
 msgid "Filter"
 msgstr "Filtras"
+
+
+msgid "Script"
+msgstr "Skriptas"
 
 
 msgid "Edit"
@@ -3157,12 +3153,12 @@ msgid "Show/Hide"
 msgstr "Rodyti/Slėpti"
 
 
-msgid "Text"
-msgstr "Tekstas"
-
-
 msgid "Apply"
 msgstr "Pritaikyti"
+
+
+msgid "Text"
+msgstr "Tekstas"
 
 
 msgid "Track"
@@ -4750,10 +4746,6 @@ msgid "Magnet"
 msgstr "Magnetas"
 
 
-msgid "Fluid: %s canceled!"
-msgstr "Skystis: %s atšaukta/-s!"
-
-
 msgid "Blender Info Log"
 msgstr "„Blender“ informacijos žurnalas"
 
@@ -4866,10 +4858,6 @@ msgstr "mikrofonas"
 
 msgid "network"
 msgstr "tinklas"
-
-
-msgid "English (English)"
-msgstr "Angliškai (English)"
 
 
 msgid "Japanese (日本語)"

@@ -78,7 +78,7 @@ static void node_composit_buts_trackpos(uiLayout *layout, bContext *C, PointerRN
     NodeTrackPosData *data = (NodeTrackPosData *)node->storage;
     PointerRNA tracking_ptr = RNA_pointer_create_discrete(&clip->id, &RNA_MovieTracking, tracking);
 
-    col = uiLayoutColumn(layout, false);
+    col = &layout->column(false);
     uiItemPointerR(col, ptr, "tracking_object", &tracking_ptr, "objects", "", ICON_OBJECT_DATA);
 
     tracking_object = BKE_tracking_object_get_named(tracking, data->tracking_object);

@@ -75,6 +75,11 @@ int OCIO_configGetIndexForColorSpace(OCIO_ConstConfigRcPtr *config, const char *
   return impl->configGetIndexForColorSpace(config, name);
 }
 
+const char *OCIO_getColorSpaceFromFilepath(OCIO_ConstConfigRcPtr *config, const char *filepath)
+{
+  return impl->getColorSpaceFromFilepath(config, filepath);
+}
+
 const char *OCIO_configGetDefaultDisplay(OCIO_ConstConfigRcPtr *config)
 {
   return impl->configGetDefaultDisplay(config);

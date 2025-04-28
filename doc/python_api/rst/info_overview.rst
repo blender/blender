@@ -362,7 +362,7 @@ For example, if you want to store material settings for a custom engine:
 
 .. code-block:: python
 
-   # Create new property
+   # Create new property:
    # bpy.data.materials[0].my_custom_props.my_float
    import bpy
 
@@ -389,7 +389,7 @@ For example, if you want to store material settings for a custom engine:
 
 .. code-block:: python
 
-   # Create new property group with a sub property
+   # Create new property group with a sub property:
    # bpy.data.materials[0].my_custom_props.sub_group.my_float
    import bpy
 
@@ -428,9 +428,9 @@ For example:
 
 .. code-block:: python
 
-   # add a new property to an existing type
+   # Add a new property to an existing type.
    bpy.types.Object.my_float: bpy.props.FloatProperty()
-   # remove
+   # Remove it.
    del bpy.types.Object.my_float
 
 This works just as well for ``PropertyGroup`` subclasses you define yourself.

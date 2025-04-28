@@ -15,13 +15,15 @@ namespace blender::nodes::node_geo_dual_mesh_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
+  b.use_custom_socket_order();
+  b.allow_any_socket_order();
   b.add_input<decl::Geometry>("Mesh").supported_type(GeometryComponent::Type::Mesh);
+  b.add_output<decl::Geometry>("Dual Mesh").propagate_all().align_with_previous();
   b.add_input<decl::Bool>("Keep Boundaries")
       .default_value(false)
       .description(
           "Keep non-manifold boundaries of the input mesh in place by avoiding the dual "
           "transformation there");
-  b.add_output<decl::Geometry>("Dual Mesh").propagate_all();
 }
 
 enum class EdgeType : int8_t {
@@ -330,7 +332,7 @@ static bool sort_vertex_faces(const Span<int2> edges,
   }
 
   /* For each face store the two corners whose edge contains the vertex. */
-  Array<std::pair<int, int>> face_vertex_corners(connected_faces.size());
+  Array<std::pair<int, int>, 16> face_vertex_corners(connected_faces.size());
   for (const int i : connected_faces.index_range()) {
     bool first_edge_done = false;
     for (const int corner : faces[connected_faces[i]]) {

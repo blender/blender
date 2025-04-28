@@ -1018,12 +1018,9 @@ void ccgSubSurf__sync_legacy(CCGSubSurf *ss)
   int curLvl, nextLvl;
   void *q = ss->q, *r = ss->r;
 
-  effectedV = static_cast<CCGVert **>(
-      MEM_mallocN(sizeof(*effectedV) * ss->vMap->numEntries, "CCGSubsurf effectedV"));
-  effectedE = static_cast<CCGEdge **>(
-      MEM_mallocN(sizeof(*effectedE) * ss->eMap->numEntries, "CCGSubsurf effectedE"));
-  effectedF = static_cast<CCGFace **>(
-      MEM_mallocN(sizeof(*effectedF) * ss->fMap->numEntries, "CCGSubsurf effectedF"));
+  effectedV = MEM_malloc_arrayN<CCGVert *>(size_t(ss->vMap->numEntries), "CCGSubsurf effectedV");
+  effectedE = MEM_malloc_arrayN<CCGEdge *>(size_t(ss->eMap->numEntries), "CCGSubsurf effectedE");
+  effectedF = MEM_malloc_arrayN<CCGFace *>(size_t(ss->fMap->numEntries), "CCGSubsurf effectedF");
   numEffectedV = numEffectedE = numEffectedF = 0;
   for (i = 0; i < ss->vMap->curSize; i++) {
     CCGVert *v = (CCGVert *)ss->vMap->buckets[i];

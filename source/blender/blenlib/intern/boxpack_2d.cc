@@ -13,6 +13,7 @@
 
 #include "BLI_boxpack_2d.h" /* own include */
 #include "BLI_listbase.h"
+#include "BLI_math_base.h"
 #include "BLI_utildefines.h"
 
 #include "BLI_sort.h" /* qsort_r */
@@ -166,12 +167,6 @@ static bool box_isect(const BoxPack *box_a, const BoxPack *box_b)
 
 /** \} */
 
-/* compiler should inline */
-static float max_ff(const float a, const float b)
-{
-  return b > a ? b : a;
-}
-
 #ifdef USE_PACK_BIAS
 /* set when used is enabled */
 static void vert_bias_update(BoxVert *v)
@@ -285,9 +280,8 @@ void BLI_box_pack_2d(
   }
 
   /* Add verts to the boxes, these are only used internally. */
-  vert = static_cast<BoxVert *>(MEM_mallocN(sizeof(BoxVert[4]) * size_t(len), "BoxPack Verts"));
-  vertex_pack_indices = static_cast<uint *>(
-      MEM_mallocN(sizeof(int[3]) * size_t(len), "BoxPack Indices"));
+  vert = MEM_malloc_arrayN<BoxVert>(4 * size_t(len), "BoxPack Verts");
+  vertex_pack_indices = MEM_malloc_arrayN<uint>(3 * size_t(len), "BoxPack Indices");
 
   vs_ctx.vertarray = vert;
 

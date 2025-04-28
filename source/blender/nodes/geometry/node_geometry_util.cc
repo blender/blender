@@ -45,13 +45,6 @@ void search_link_ops_for_volume_grid_node(GatherLinkSearchOpParams &params)
   }
 }
 
-void search_link_ops_for_import_node(GatherLinkSearchOpParams &params)
-{
-  if (USER_EXPERIMENTAL_TEST(&U, use_new_file_import_nodes)) {
-    nodes::search_link_ops_for_basic_node(params);
-  }
-}
-
 namespace enums {
 
 const EnumPropertyItem *attribute_type_type_with_socket_fn(bContext * /*C*/,
@@ -84,26 +77,16 @@ bool generic_attribute_type_supported(const EnumPropertyItem &item)
 
 }  // namespace enums
 
-bool custom_data_type_supports_grids(const eCustomDataType data_type)
-{
-  if (const std::optional<eNodeSocketDatatype> socket_type = bke::custom_data_type_to_socket_type(
-          data_type))
-  {
-    return socket_type_supports_grids(*socket_type);
-  }
-  return false;
-}
-
-const EnumPropertyItem *grid_custom_data_type_items_filter_fn(bContext * /*C*/,
+const EnumPropertyItem *grid_data_type_socket_items_filter_fn(bContext * /*C*/,
                                                               PointerRNA * /*ptr*/,
                                                               PropertyRNA * /*prop*/,
                                                               bool *r_free)
 {
   *r_free = true;
-  return enum_items_filter(rna_enum_attribute_type_items,
-                           [](const EnumPropertyItem &item) -> bool {
-                             return custom_data_type_supports_grids(eCustomDataType(item.value));
-                           });
+  return enum_items_filter(
+      rna_enum_volume_grid_data_type_items, [](const EnumPropertyItem &item) -> bool {
+        return bke::grid_type_to_socket_type(VolumeGridType(item.value)).has_value();
+      });
 }
 
 const EnumPropertyItem *grid_socket_type_items_filter_fn(bContext * /*C*/,

@@ -86,7 +86,7 @@ void shaderfx_panel_end(uiLayout *layout, PointerRNA *ptr)
 {
   ShaderFxData *fx = static_cast<ShaderFxData *>(ptr->data);
   if (fx->error) {
-    uiLayout *row = uiLayoutRow(layout, false);
+    uiLayout *row = &layout->row(false);
     uiItemL(row, RPT_(fx->error), ICON_ERROR);
   }
 }
@@ -129,7 +129,7 @@ static void gpencil_shaderfx_ops_extra_draw(bContext *C, uiLayout *layout, void 
   uiItemS(layout);
 
   /* Move to first. */
-  row = uiLayoutColumn(layout, false);
+  row = &layout->column(false);
   uiItemFullO(row,
               "OBJECT_OT_shaderfx_move_to_index",
               IFACE_("Move to First"),
@@ -144,7 +144,7 @@ static void gpencil_shaderfx_ops_extra_draw(bContext *C, uiLayout *layout, void 
   }
 
   /* Move to last. */
-  row = uiLayoutColumn(layout, false);
+  row = &layout->column(false);
   uiItemFullO(row,
               "OBJECT_OT_shaderfx_move_to_index",
               IFACE_("Move to Last"),
@@ -173,21 +173,21 @@ static void shaderfx_panel_header(const bContext * /*C*/, Panel *panel)
   UI_block_lock_set(uiLayoutGetBlock(layout), (ob && !ID_IS_EDITABLE(ob)), ERROR_LIBDATA_MESSAGE);
 
   /* Effect type icon. */
-  uiLayout *row = uiLayoutRow(layout, false);
+  uiLayout *row = &layout->row(false);
   if (fxti->is_disabled && fxti->is_disabled(fx, false)) {
     uiLayoutSetRedAlert(row, true);
   }
   uiItemL(row, "", RNA_struct_ui_icon(ptr->type));
 
   /* Effect name. */
-  row = uiLayoutRow(layout, true);
+  row = &layout->row(true);
   if (!narrow_panel) {
     uiItemR(row, ptr, "name", UI_ITEM_NONE, "", ICON_NONE);
   }
 
   /* Mode enabling buttons. */
   if (fxti->flags & eShaderFxTypeFlag_SupportsEditmode) {
-    uiLayout *sub = uiLayoutRow(row, true);
+    uiLayout *sub = &row->row(true);
     uiLayoutSetActive(sub, false);
     uiItemR(sub, ptr, "show_in_editmode", UI_ITEM_NONE, "", ICON_NONE);
   }
@@ -197,8 +197,8 @@ static void shaderfx_panel_header(const bContext * /*C*/, Panel *panel)
   /* Extra operators. */
   uiItemMenuF(row, "", ICON_DOWNARROW_HLT, gpencil_shaderfx_ops_extra_draw, fx);
 
-  row = uiLayoutRow(row, false);
-  uiLayoutSetEmboss(row, UI_EMBOSS_NONE);
+  row = &row->row(false);
+  uiLayoutSetEmboss(row, blender::ui::EmbossType::None);
   uiItemO(row, "", ICON_X, "OBJECT_OT_shaderfx_remove");
 
   /* Some padding so the X isn't too close to the drag icon. */
@@ -220,7 +220,7 @@ static bool shaderfx_ui_poll(const bContext *C, PanelType * /*pt*/)
 
 PanelType *shaderfx_panel_register(ARegionType *region_type, ShaderFxType type, PanelDrawFn draw)
 {
-  PanelType *panel_type = static_cast<PanelType *>(MEM_callocN(sizeof(PanelType), __func__));
+  PanelType *panel_type = MEM_callocN<PanelType>(__func__);
 
   BKE_shaderfxType_panel_id(type, panel_type->idname);
   STRNCPY(panel_type->label, "");
@@ -250,7 +250,7 @@ PanelType *shaderfx_subpanel_register(ARegionType *region_type,
                                       PanelDrawFn draw,
                                       PanelType *parent)
 {
-  PanelType *panel_type = static_cast<PanelType *>(MEM_callocN(sizeof(PanelType), __func__));
+  PanelType *panel_type = MEM_callocN<PanelType>(__func__);
 
   BLI_assert(parent != nullptr);
   SNPRINTF(panel_type->idname, "%s_%s", parent->idname, name);

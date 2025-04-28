@@ -7,6 +7,7 @@ set(INC
   ../../io/alembic
   ../../io/collada
   ../../io/common
+  ../../io/fbx
   ../../io/grease_pencil
   ../../io/ply
   ../../io/stl
@@ -25,6 +26,7 @@ set(SRC
   io_cache.cc
   io_collada.cc
   io_drop_import_file.cc
+  io_fbx_ops.cc
   io_grease_pencil.cc
   io_obj.cc
   io_ops.cc
@@ -37,6 +39,7 @@ set(SRC
   io_cache.hh
   io_collada.hh
   io_drop_import_file.hh
+  io_fbx_ops.hh
   io_grease_pencil.hh
   io_obj.hh
   io_ops.hh
@@ -85,6 +88,13 @@ if(WITH_IO_STL)
     bf_io_stl
   )
   add_definitions(-DWITH_IO_STL)
+endif()
+
+if(WITH_IO_FBX)
+  list(APPEND LIB
+    bf_io_fbx
+  )
+  add_definitions(-DWITH_IO_FBX)
 endif()
 
 if(WITH_IO_GREASE_PENCIL)

@@ -204,6 +204,106 @@ void UI_fontstyle_draw(const uiFontStyle *fs,
   UI_fontstyle_draw_ex(fs, rect, str, str_len, col, fs_params, nullptr, nullptr, nullptr);
 }
 
+void UI_fontstyle_draw_multiline_clipped_ex(const uiFontStyle *fs,
+                                            const rcti *rect,
+                                            const char *str,
+                                            const uchar col[4],
+                                            const eFontStyle_Align align,
+                                            int *r_xofs,
+                                            int *r_yofs,
+                                            ResultBLF *r_info)
+{
+  int xofs = 0, yofs;
+  int font_flag = BLF_CLIPPING;
+
+  /* Recommended for testing: Results should be the same with or without BLF clipping since the
+   * string is wrapped and shortened to fit. Disabling it can help spot issues. */
+  // font_flag &= ~BLF_CLIPPING;
+
+  UI_fontstyle_set(fs);
+
+  /* set the flag */
+  if (fs->shadow) {
+    font_flag |= BLF_SHADOW;
+    const float shadow_color[4] = {
+        fs->shadowcolor, fs->shadowcolor, fs->shadowcolor, fs->shadowalpha};
+    BLF_shadow(fs->uifont_id, FontShadowType(fs->shadow), shadow_color);
+    BLF_shadow_offset(fs->uifont_id, fs->shadx, fs->shady);
+  }
+  if (fs->bold) {
+    font_flag |= BLF_BOLD;
+  }
+  if (fs->italic) {
+    font_flag |= BLF_ITALIC;
+  }
+
+  BLF_enable(fs->uifont_id, font_flag);
+
+  const int max_width = BLI_rcti_size_x(rect);
+  const int max_height = BLI_rcti_size_y(rect);
+  const int line_height = BLF_height_max(fs->uifont_id);
+  const int max_line_count = max_height / line_height;
+
+  BLF_clipping(fs->uifont_id, rect->xmin, rect->ymin, rect->xmax, rect->ymax);
+  BLF_color4ubv(fs->uifont_id, col);
+
+  char str_buf[UI_MAX_DRAW_STR];
+  const blender::Vector<blender::StringRef> lines = UI_text_clip_multiline_middle(
+      fs, str, str_buf, sizeof(str_buf), max_width, max_line_count);
+
+  BLI_assert(lines.size() <= max_line_count);
+
+  /* Draw so that overall text is centered vertically. */
+  yofs = (max_height + lines.size() * line_height) / 2.0f - BLF_ascender(fs->uifont_id) -
+         /* Not sure subtracting the descender is always wanted,
+          * gives best results where this is currently used. */
+         BLF_descender(fs->uifont_id) / 2.0f;
+  yofs = std::max(0, yofs);
+
+  ResultBLF line_result = {0, 0};
+  /* Draw each line with the given alignment. */
+  for (StringRef line : lines) {
+    /* String wrapping might have trailing/leading white-space. */
+    line = line.trim();
+
+    if (align == UI_STYLE_TEXT_CENTER) {
+      xofs = floor(0.5f * (max_width - BLF_width(fs->uifont_id, line.data(), line.size())));
+    }
+    else if (align == UI_STYLE_TEXT_RIGHT) {
+      xofs = max_width - BLF_width(fs->uifont_id, line.data(), line.size());
+    }
+    xofs = std::max(0, xofs);
+
+    BLF_position(fs->uifont_id, rect->xmin + xofs, rect->ymin + yofs, 0.0f);
+    BLF_draw(fs->uifont_id, line.data(), line.size(), &line_result);
+
+    yofs -= line_height;
+  }
+
+  if (r_info) {
+    r_info->width = rect->xmin + xofs + line_result.width;
+    r_info->lines = lines.size();
+  }
+
+  BLF_disable(fs->uifont_id, font_flag);
+
+  if (r_xofs) {
+    *r_xofs = xofs;
+  }
+  if (r_yofs) {
+    *r_yofs = yofs;
+  }
+}
+
+void UI_fontstyle_draw_multiline_clipped(const uiFontStyle *fs,
+                                         const rcti *rect,
+                                         const char *str,
+                                         const uchar col[4],
+                                         const eFontStyle_Align align)
+{
+  UI_fontstyle_draw_multiline_clipped_ex(fs, rect, str, col, align, nullptr, nullptr, nullptr);
+}
+
 void UI_fontstyle_draw_rotated(const uiFontStyle *fs,
                                const rcti *rect,
                                const char *str,

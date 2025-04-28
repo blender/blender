@@ -260,6 +260,11 @@ bool PyC_RunString_AsStringOrNone(const char **imports,
                                   char **r_value) ATTR_NONNULL(2, 3, 4) ATTR_WARN_UNUSED_RESULT;
 
 /**
+ * Flush Python's `sys.stdout` and `sys.stderr`. Errors are ignored.
+ */
+void PyC_StdFilesFlush();
+
+/**
  * Use with PyArg_ParseTuple's "O&" formatting.
  *
  * \see #PyC_Long_AsBool for a similar function to use outside of argument parsing.

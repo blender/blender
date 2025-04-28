@@ -114,14 +114,13 @@ int bm_mesh_calc_uv_islands(const Scene *scene,
                             const bool only_selected_uvs,
                             const bool use_seams,
                             const float aspect_y,
-                            const BMUVOffsets uv_offsets)
+                            const BMUVOffsets &uv_offsets)
 {
   BLI_assert(uv_offsets.uv >= 0);
   int island_added = 0;
   BM_mesh_elem_table_ensure(bm, BM_FACE);
 
-  int *groups_array = static_cast<int *>(
-      MEM_mallocN(sizeof(*groups_array) * size_t(bm->totface), __func__));
+  int *groups_array = MEM_malloc_arrayN<int>(bm->totface, __func__);
 
   int(*group_index)[2];
 
@@ -150,13 +149,13 @@ int bm_mesh_calc_uv_islands(const Scene *scene,
   for (int i = 0; i < group_len; i++) {
     const int faces_start = group_index[i][0];
     const int faces_len = group_index[i][1];
-    BMFace **faces = static_cast<BMFace **>(MEM_mallocN(sizeof(*faces) * faces_len, __func__));
+    BMFace **faces = MEM_malloc_arrayN<BMFace *>(faces_len, __func__);
 
     for (int j = 0; j < faces_len; j++) {
       faces[j] = BM_face_at_index(bm, groups_array[faces_start + j]);
     }
 
-    FaceIsland *island = static_cast<FaceIsland *>(MEM_callocN(sizeof(*island), __func__));
+    FaceIsland *island = MEM_callocN<FaceIsland>(__func__);
     island->faces = faces;
     island->faces_len = faces_len;
     island->offsets = uv_offsets;

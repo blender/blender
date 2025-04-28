@@ -4,13 +4,13 @@
 
 #include "gpu_shader_material_tangent.glsl"
 
-void node_geometry(vec3 orco_attr,
-                   out vec3 position,
-                   out vec3 normal,
-                   out vec3 tangent,
-                   out vec3 true_normal,
-                   out vec3 incoming,
-                   out vec3 parametric,
+void node_geometry(float3 orco_attr,
+                   out float3 position,
+                   out float3 normal,
+                   out float3 tangent,
+                   out float3 true_normal,
+                   out float3 incoming,
+                   out float3 parametric,
                    out float backfacing,
                    out float pointiness,
                    out float random_per_island)
@@ -29,8 +29,8 @@ void node_geometry(vec3 orco_attr,
     node_tangent(orco_attr, tangent);
   }
 
-  parametric = vec3(g_data.barycentric_coords, 0.0);
-  backfacing = (FrontFacing) ? 0.0 : 1.0;
-  pointiness = 0.5;
-  random_per_island = 0.0;
+  parametric = float3(g_data.barycentric_coords, 0.0f);
+  backfacing = (FrontFacing) ? 0.0f : 1.0f;
+  pointiness = 0.5f;
+  random_per_island = 0.0f;
 }

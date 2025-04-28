@@ -20,34 +20,34 @@
 
 #include "SEQ_animation.hh"
 
-using namespace blender;
+namespace blender::seq {
 
-bool SEQ_animation_keyframes_exist(Scene *scene)
+bool animation_keyframes_exist(const Scene *scene)
 {
   return scene->adt != nullptr && scene->adt->action != nullptr &&
          scene->adt->action->wrap().has_keyframes(scene->adt->slot_handle);
 }
 
-bool SEQ_animation_drivers_exist(Scene *scene)
+bool animation_drivers_exist(Scene *scene)
 {
   return scene->adt != nullptr && !BLI_listbase_is_empty(&scene->adt->drivers);
 }
 
-bool SEQ_fcurve_matches(const Strip &strip, const FCurve &fcurve)
+bool fcurve_matches(const Strip &strip, const FCurve &fcurve)
 {
   return animrig::fcurve_matches_collection_path(
       fcurve, "sequence_editor.strips_all[", strip.name + 2);
 }
 
-void SEQ_offset_animdata(Scene *scene, Strip *strip, int ofs)
+void offset_animdata(const Scene *scene, Strip *strip, float ofs)
 {
-  if (!SEQ_animation_keyframes_exist(scene) || ofs == 0) {
+  if (!animation_keyframes_exist(scene) || ofs == 0.0f) {
     return;
   }
 
   Vector<FCurve *> fcurves = animrig::fcurves_in_action_slot_filtered(
       scene->adt->action, scene->adt->slot_handle, [&](const FCurve &fcurve) {
-        return SEQ_fcurve_matches(*strip, fcurve);
+        return fcurve_matches(*strip, fcurve);
       });
 
   for (FCurve *fcu : fcurves) {
@@ -71,15 +71,15 @@ void SEQ_offset_animdata(Scene *scene, Strip *strip, int ofs)
   DEG_id_tag_update(&scene->adt->action->id, ID_RECALC_ANIMATION);
 }
 
-void SEQ_free_animdata(Scene *scene, Strip *strip)
+void free_animdata(Scene *scene, Strip *strip)
 {
-  if (!SEQ_animation_keyframes_exist(scene)) {
+  if (!animation_keyframes_exist(scene)) {
     return;
   }
 
   Vector<FCurve *> fcurves = animrig::fcurves_in_action_slot_filtered(
       scene->adt->action, scene->adt->slot_handle, [&](const FCurve &fcurve) {
-        return SEQ_fcurve_matches(*strip, fcurve);
+        return fcurve_matches(*strip, fcurve);
       });
 
   animrig::Action &action = scene->adt->action->wrap();
@@ -88,9 +88,9 @@ void SEQ_free_animdata(Scene *scene, Strip *strip)
   }
 }
 
-void SEQ_animation_backup_original(Scene *scene, SeqAnimationBackup *backup)
+void animation_backup_original(Scene *scene, AnimationBackup *backup)
 {
-  if (SEQ_animation_keyframes_exist(scene)) {
+  if (animation_keyframes_exist(scene)) {
     animrig::Action &action = scene->adt->action->wrap();
 
     assert_baklava_phase_1_invariants(action);
@@ -105,12 +105,12 @@ void SEQ_animation_backup_original(Scene *scene, SeqAnimationBackup *backup)
     }
   }
 
-  if (SEQ_animation_drivers_exist(scene)) {
+  if (animation_drivers_exist(scene)) {
     BLI_movelisttolist(&backup->drivers, &scene->adt->drivers);
   }
 }
 
-void SEQ_animation_restore_original(Scene *scene, SeqAnimationBackup *backup)
+void animation_restore_original(Scene *scene, AnimationBackup *backup)
 {
   if (!BLI_listbase_is_empty(&backup->curves) || !backup->channelbag.fcurves().is_empty()) {
     BLI_assert(scene->adt != nullptr && scene->adt->action != nullptr);
@@ -145,7 +145,7 @@ void SEQ_animation_restore_original(Scene *scene, SeqAnimationBackup *backup)
 static void strip_animation_duplicate(Strip *strip,
                                       animrig::Action &dst,
                                       const animrig::slot_handle_t dst_slot_handle,
-                                      SeqAnimationBackup *src)
+                                      AnimationBackup *src)
 {
   if (strip->type == STRIP_TYPE_META) {
     LISTBASE_FOREACH (Strip *, meta_child, &strip->seqbase) {
@@ -160,11 +160,11 @@ static void strip_animation_duplicate(Strip *strip,
   if (BLI_listbase_is_empty(&src->curves)) {
     fcurves = animrig::fcurves_in_span_filtered(
         src->channelbag.fcurves(),
-        [&](const FCurve &fcurve) { return SEQ_fcurve_matches(*strip, fcurve); });
+        [&](const FCurve &fcurve) { return fcurve_matches(*strip, fcurve); });
   }
   else {
     fcurves = animrig::fcurves_in_listbase_filtered(
-        src->curves, [&](const FCurve &fcurve) { return SEQ_fcurve_matches(*strip, fcurve); });
+        src->curves, [&](const FCurve &fcurve) { return fcurve_matches(*strip, fcurve); });
   }
 
   for (const FCurve *fcu : fcurves) {
@@ -185,7 +185,7 @@ static void strip_animation_duplicate(Strip *strip,
 /**
  * Duplicate the drivers in `src` that matches items in `strip` into `dst`.
  */
-static void strip_drivers_duplicate(Strip *strip, AnimData *dst, SeqAnimationBackup *src)
+static void strip_drivers_duplicate(Strip *strip, AnimData *dst, AnimationBackup *src)
 {
   if (strip->type == STRIP_TYPE_META) {
     LISTBASE_FOREACH (Strip *, meta_child, &strip->seqbase) {
@@ -194,7 +194,7 @@ static void strip_drivers_duplicate(Strip *strip, AnimData *dst, SeqAnimationBac
   }
 
   Vector<FCurve *> fcurves = animrig::fcurves_in_listbase_filtered(
-      src->drivers, [&](const FCurve &fcurve) { return SEQ_fcurve_matches(*strip, fcurve); });
+      src->drivers, [&](const FCurve &fcurve) { return fcurve_matches(*strip, fcurve); });
 
   for (const FCurve *fcu : fcurves) {
     FCurve *fcu_cpy = BKE_fcurve_copy(fcu);
@@ -202,9 +202,7 @@ static void strip_drivers_duplicate(Strip *strip, AnimData *dst, SeqAnimationBac
   }
 }
 
-void SEQ_animation_duplicate_backup_to_scene(Scene *scene,
-                                             Strip *strip,
-                                             SeqAnimationBackup *backup)
+void animation_duplicate_backup_to_scene(Scene *scene, Strip *strip, AnimationBackup *backup)
 {
   BLI_assert(scene != nullptr);
 
@@ -219,3 +217,5 @@ void SEQ_animation_duplicate_backup_to_scene(Scene *scene,
     strip_drivers_duplicate(strip, scene->adt, backup);
   }
 }
+
+}  // namespace blender::seq

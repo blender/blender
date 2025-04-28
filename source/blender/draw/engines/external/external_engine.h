@@ -8,10 +8,10 @@
 
 #pragma once
 
-struct DrawEngineType;
+#include "DRW_render.hh"
+
 struct RenderEngineType;
 
-extern DrawEngineType draw_engine_external_type;
 extern RenderEngineType DRW_engine_viewport_external_type;
 
 /* Check whether an external engine is to be used to draw content of an image editor.
@@ -19,4 +19,12 @@ extern RenderEngineType DRW_engine_viewport_external_type;
  * render engine for until drawing is finished.
  *
  * NOTE: Released by the draw engine when it is done drawing. */
-bool DRW_engine_external_acquire_for_image_editor(void);
+bool DRW_engine_external_acquire_for_image_editor(const DRWContext *draw_ctx);
+
+namespace blender::draw::external {
+
+struct Engine : public DrawEngine::Pointer {
+  DrawEngine *create_instance() final;
+};
+
+}  // namespace blender::draw::external

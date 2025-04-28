@@ -47,7 +47,7 @@ static bGPDlayer *detect_get_layer(MovieClip *clip)
   return nullptr;
 }
 
-static int detect_features_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus detect_features_exec(bContext *C, wmOperator *op)
 {
   SpaceClip *sc = CTX_wm_space_clip(C);
   MovieClip *clip = ED_space_clip_get_clip(sc);

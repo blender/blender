@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_memory_utils.hh"
+#include "BLI_string.h"
 
 #include "DNA_node_types.h"
 
@@ -11,6 +12,7 @@
 #include "COM_compile_state.hh"
 #include "COM_context.hh"
 #include "COM_evaluator.hh"
+#include "COM_implicit_input_operation.hh"
 #include "COM_input_single_value_operation.hh"
 #include "COM_multi_function_procedure_operation.hh"
 #include "COM_node_operation.hh"
@@ -49,7 +51,7 @@ void Evaluator::evaluate()
 
   const Schedule schedule = compute_schedule(context_, *derived_node_tree_);
 
-  CompileState compile_state(schedule);
+  CompileState compile_state(context_, schedule);
 
   for (const DNode &node : schedule) {
     if (context_.is_canceled()) {
@@ -82,6 +84,23 @@ bool Evaluator::validate_node_tree()
     return false;
   }
 
+  for (const bNodeTree *node_tree : derived_node_tree_->used_btrees()) {
+    for (const bNode *node : node_tree->all_nodes()) {
+      /* The poll method of those two nodes perform raw pointer comparisons of node trees, so they
+       * can wrongly fail since the compositor localizes the node tree, changing its pointer value
+       * than the one in the main database. So handle those two nodes. */
+      if (STR_ELEM(node->idname, "CompositorNodeRLayers", "CompositorNodeCryptomatteV2")) {
+        continue;
+      }
+
+      const char *disabled_hint = nullptr;
+      if (!node->typeinfo->poll(node->typeinfo, node_tree, &disabled_hint)) {
+        context_.set_info_message("Compositor node tree has unsupported nodes.");
+        return false;
+      }
+    }
+  }
+
   return true;
 }
 
@@ -109,6 +128,10 @@ void Evaluator::map_node_operation_inputs_to_their_results(DNode node,
 {
   for (const bNodeSocket *input : node->input_sockets()) {
     const DInputSocket dinput{node.context(), input};
+
+    if (!input->is_available()) {
+      continue;
+    }
 
     DSocket dorigin = get_input_origin_socket(dinput);
 
@@ -219,6 +242,15 @@ void Evaluator::map_pixel_operation_inputs_to_their_results(PixelOperation *oper
      * inputs_to_reference_counts_map_ variable for more information. */
     const int internal_reference_count = operation->get_internal_input_reference_count(item.key);
     result.decrement_reference_count(internal_reference_count - 1);
+  }
+
+  for (const auto item : operation->get_implicit_inputs_to_input_identifiers_map().items()) {
+    ImplicitInputOperation *input_operation = new ImplicitInputOperation(context_, item.key);
+    operation->map_input_to_result(item.value, &input_operation->get_result());
+
+    operations_stream_.append(std::unique_ptr<ImplicitInputOperation>(input_operation));
+
+    input_operation->evaluate();
   }
 }
 

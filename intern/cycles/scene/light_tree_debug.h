@@ -5,6 +5,7 @@
 #pragma once
 
 #include "util/string.h"
+#include "util/types_base.h"
 
 CCL_NAMESPACE_BEGIN
 

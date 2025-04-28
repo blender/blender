@@ -261,8 +261,8 @@ static SubdivCCGCoord *subdiv_ccg_adjacent_edge_add_face(SubdivCCG &subdiv_ccg,
   adjacent_edge.boundary_coords = static_cast<SubdivCCGCoord **>(
       MEM_reallocN(adjacent_edge.boundary_coords,
                    adjacent_edge.num_adjacent_faces * sizeof(*adjacent_edge.boundary_coords)));
-  adjacent_edge.boundary_coords[adjacent_face_index] = static_cast<SubdivCCGCoord *>(
-      MEM_malloc_arrayN(grid_size * 2, sizeof(SubdivCCGCoord), "ccg adjacent boundary"));
+  adjacent_edge.boundary_coords[adjacent_face_index] = MEM_malloc_arrayN<SubdivCCGCoord>(
+      grid_size * 2, "ccg adjacent boundary");
   return adjacent_edge.boundary_coords[adjacent_face_index];
 }
 

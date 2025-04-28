@@ -70,7 +70,7 @@ class TriangleRep : public Rep {
   virtual ~TriangleRep() {}
 
   /** accessors */
-  inline const TRIANGLE_STYLE style() const
+  inline TRIANGLE_STYLE style() const
   {
     return _Style;
   }

@@ -22,6 +22,17 @@ Vector<MutableSpan<float3>> get_curves_positions_for_write(bke::CurvesGeometry &
   return positions_per_attribute;
 }
 
+Vector<Span<float3>> get_curves_positions(const bke::CurvesGeometry &curves)
+{
+  Vector<Span<float3>> positions_per_attribute;
+  positions_per_attribute.append(curves.positions());
+  if (curves.has_curve_with_type(CURVE_TYPE_BEZIER)) {
+    positions_per_attribute.append(curves.handle_positions_left());
+    positions_per_attribute.append(curves.handle_positions_right());
+  }
+  return positions_per_attribute;
+}
+
 void transverts_from_curves_positions_create(bke::CurvesGeometry &curves,
                                              TransVertStore *tvs,
                                              const bool skip_handles)
@@ -45,7 +56,7 @@ void transverts_from_curves_positions_create(bke::CurvesGeometry &curves,
     return;
   }
 
-  tvs->transverts = static_cast<TransVert *>(MEM_calloc_arrayN(size, sizeof(TransVert), __func__));
+  tvs->transverts = MEM_calloc_arrayN<TransVert>(size, __func__);
   tvs->transverts_tot = size;
 
   int offset = 0;
@@ -67,7 +78,7 @@ float (*point_normals_array_create(const Curves *curves_id))[3]
   using namespace blender;
   const bke::CurvesGeometry &curves = curves_id->geometry.wrap();
   const int size = curves.points_num();
-  float3 *data = static_cast<float3 *>(MEM_malloc_arrayN(size, sizeof(float3), __func__));
+  float3 *data = MEM_malloc_arrayN<float3>(size, __func__);
   bke::curves_normals_point_domain_calc(curves, {data, size});
   return reinterpret_cast<float(*)[3]>(data);
 }

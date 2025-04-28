@@ -67,6 +67,7 @@ set(SRC
   templates/interface_template_curve_mapping.cc
   templates/interface_template_curve_profile.cc
   templates/interface_template_event.cc
+  templates/interface_template_grease_pencil_layer_search.cc
   templates/interface_template_grease_pencil_layer_tree.cc
   templates/interface_template_icon.cc
   templates/interface_template_id.cc

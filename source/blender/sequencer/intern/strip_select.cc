@@ -16,9 +16,11 @@
 #include "SEQ_select.hh"
 #include "SEQ_sequencer.hh"
 
-Strip *SEQ_select_active_get(const Scene *scene)
+namespace blender::seq {
+
+Strip *select_active_get(const Scene *scene)
 {
-  const Editing *ed = SEQ_editing_get(scene);
+  const Editing *ed = editing_get(scene);
 
   if (ed == nullptr) {
     return nullptr;
@@ -27,9 +29,9 @@ Strip *SEQ_select_active_get(const Scene *scene)
   return ed->act_seq;
 }
 
-void SEQ_select_active_set(Scene *scene, Strip *strip)
+void select_active_set(Scene *scene, Strip *strip)
 {
-  Editing *ed = SEQ_editing_get(scene);
+  Editing *ed = editing_get(scene);
 
   if (ed == nullptr) {
     return;
@@ -38,11 +40,11 @@ void SEQ_select_active_set(Scene *scene, Strip *strip)
   ed->act_seq = strip;
 }
 
-bool SEQ_select_active_get_pair(Scene *scene, Strip **r_seq_act, Strip **r_seq_other)
+bool select_active_get_pair(Scene *scene, Strip **r_seq_act, Strip **r_seq_other)
 {
-  Editing *ed = SEQ_editing_get(scene);
+  Editing *ed = editing_get(scene);
 
-  *r_seq_act = SEQ_select_active_get(scene);
+  *r_seq_act = select_active_get(scene);
 
   if (*r_seq_act == nullptr) {
     return false;
@@ -62,3 +64,5 @@ bool SEQ_select_active_get_pair(Scene *scene, Strip **r_seq_act, Strip **r_seq_o
 
   return (*r_seq_other != nullptr);
 }
+
+}  // namespace blender::seq

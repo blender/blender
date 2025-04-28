@@ -362,8 +362,12 @@ void GHOST_Wintab::getInput(std::vector<GHOST_WintabInfoWin32> &outWintabInfo)
       float vecLen = cos(altRad);
 
       /* From there calculate X and Y components based on azimuth. */
+
+      /* Blender expects: -1.0f (left) to +1.0f (right). */
       out.tabletData.Xtilt = sin(azmRad) * vecLen;
-      out.tabletData.Ytilt = float(sin(M_PI_2 - azmRad) * vecLen);
+
+      /* Blender expects: -1.0f (away from user) to +1.0f (toward user). */
+      out.tabletData.Ytilt = -float(sin(M_PI_2 - azmRad) * vecLen);
     }
 
     out.time = pkt.pkTime;

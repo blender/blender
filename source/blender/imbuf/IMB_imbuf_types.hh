@@ -39,14 +39,14 @@ struct IDProperty;
 /* Lowest bits of foptions.flag / exr_codec contain actual codec enum. */
 #define OPENEXR_CODEC_MASK (0xF)
 
-#ifdef WITH_CINEON
+#ifdef WITH_IMAGE_CINEON
 #  define CINEON_LOG (1 << 8)
 #  define CINEON_16BIT (1 << 7)
 #  define CINEON_12BIT (1 << 6)
 #  define CINEON_10BIT (1 << 5)
 #endif
 
-#ifdef WITH_OPENJPEG
+#ifdef WITH_IMAGE_OPENJPEG
 #  define JP2_12BIT (1 << 9)
 #  define JP2_16BIT (1 << 8)
 #  define JP2_YCC (1 << 7)
@@ -102,7 +102,6 @@ enum eImBufFlags {
   /** ignore alpha on load and substitute it with 1.0f */
   IB_alphamode_ignore = 1 << 15,
   IB_thumbnail = 1 << 16,
-  IB_halffloat = 1 << 18,
 };
 
 /** \} */
@@ -315,6 +314,12 @@ enum {
 #define FOURCC_DXT4 (DDS_MAKEFOURCC('D', 'X', 'T', '4'))
 #define FOURCC_DXT5 (DDS_MAKEFOURCC('D', 'X', 'T', '5'))
 
+/**
+ * Known image extensions, in most cases these match values
+ * for images which Blender creates, there are some exceptions to this.
+ *
+ * See #BKE_image_path_ext_from_imformat which also stores known extensions.
+ */
 extern const char *imb_ext_image[];
 extern const char *imb_ext_movie[];
 extern const char *imb_ext_audio[];

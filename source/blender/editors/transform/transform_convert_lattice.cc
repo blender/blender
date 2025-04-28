@@ -75,8 +75,7 @@ static void createTransLatticeVerts(bContext * /*C*/, TransInfo *t)
     else {
       tc->data_len = countsel;
     }
-    tc->data = static_cast<TransData *>(
-        MEM_callocN(tc->data_len * sizeof(TransData), "TransObData(Lattice EditMode)"));
+    tc->data = MEM_calloc_arrayN<TransData>(tc->data_len, "TransObData(Lattice EditMode)");
 
     copy_m3_m4(mtx, tc->obedit->object_to_world().ptr());
     pseudoinverse_m3_m3(smtx, mtx, PSEUDOINVERSE_EPSILON);

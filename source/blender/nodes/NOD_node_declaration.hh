@@ -26,6 +26,7 @@ struct uiLayout;
 namespace blender::nodes {
 
 class NodeDeclarationBuilder;
+class PanelDeclaration;
 
 enum class InputSocketFieldType : int8_t {
   /** The input is required to be a single value. */
@@ -154,6 +155,8 @@ using ImplicitInputValueFn = std::function<void(const bNode &node, void *r_value
 /* Socket or panel declaration. */
 class ItemDeclaration {
  public:
+  const PanelDeclaration *parent = nullptr;
+
   virtual ~ItemDeclaration() = default;
 };
 
@@ -191,6 +194,7 @@ class SocketDeclaration : public ItemDeclaration {
   bool align_with_previous_socket = false;
   /** This socket is used as a toggle for the parent panel. */
   bool is_panel_toggle = false;
+  bool is_layer_name = false;
 
   /** Index in the list of inputs or outputs of the node. */
   int index = -1;
@@ -202,9 +206,10 @@ class SocketDeclaration : public ItemDeclaration {
   CompositorInputRealizationMode compositor_realization_mode_ =
       CompositorInputRealizationMode::OperationDomain;
 
-  /** The priority of the input for determining the domain of the node. See
-   * compositor::InputDescriptor for more information. */
-  int compositor_domain_priority_ = 0;
+  /** The priority of the input for determining the domain of the node. If negative, then the
+   * domain priority is not set and the index of the input is assumed to be the priority instead.
+   * See compositor::InputDescriptor for more information. */
+  int compositor_domain_priority_ = -1;
 
   /** This input expects a single value and can't operate on non-single values. See
    * compositor::InputDescriptor for more information. */
@@ -352,11 +357,13 @@ class BaseSocketDeclarationBuilder {
 
   /** Attributes from the all geometry inputs can be propagated. */
   BaseSocketDeclarationBuilder &propagate_all();
+  /** Instance attributes from all geometry inputs can be propagated. */
+  BaseSocketDeclarationBuilder &propagate_all_instance_attributes();
 
   BaseSocketDeclarationBuilder &compositor_realization_mode(CompositorInputRealizationMode value);
 
   /**
-   * The priority of the input for determining the domain of the node. See
+   * The priority of the input for determining the domain of the node. Needs to be positive. See
    * compositor::InputDescriptor for more information.
    */
   BaseSocketDeclarationBuilder &compositor_domain_priority(int priority);
@@ -394,6 +401,8 @@ class BaseSocketDeclarationBuilder {
    * Use the socket as a toggle in its panel.
    */
   BaseSocketDeclarationBuilder &panel_toggle(bool value = true);
+
+  BaseSocketDeclarationBuilder &is_layer_name(bool value = true);
 
   /** Index in the list of inputs or outputs. */
   int index() const;
@@ -694,6 +703,7 @@ inline typename DeclType::Builder &DeclarationListBuilder::add_socket(StringRef 
   this->node_decl_builder.declaration_.all_items.append(std::move(socket_decl_ptr));
   this->items.append(&socket_decl);
 
+  socket_decl.parent = this->parent_panel_decl;
   socket_decl_builder.node_decl_builder_ = &this->node_decl_builder;
 
   socket_decl_builder.decl_ = &socket_decl;

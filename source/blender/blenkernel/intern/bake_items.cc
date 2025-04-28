@@ -178,7 +178,7 @@ void VolumeGridBakeItem::count_memory(MemoryCounter &memory) const
 
 PrimitiveBakeItem::PrimitiveBakeItem(const CPPType &type, const void *value) : type_(type)
 {
-  value_ = MEM_mallocN_aligned(type.size(), type.alignment(), __func__);
+  value_ = MEM_mallocN_aligned(type.size, type.alignment, __func__);
   type.copy_construct(value, value_);
 }
 

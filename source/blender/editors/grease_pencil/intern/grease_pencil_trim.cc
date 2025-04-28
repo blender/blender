@@ -142,7 +142,7 @@ static bool execute_trim_on_drawing(const int layer_index,
 /**
  * Apply the stroke trim to all layers.
  */
-static int stroke_trim_execute(const bContext *C, const Span<int2> mcoords)
+static wmOperatorStatus stroke_trim_execute(const bContext *C, const Span<int2> mcoords)
 {
   const Scene *scene = CTX_data_scene(C);
   const ARegion *region = CTX_wm_region(C);
@@ -162,12 +162,19 @@ static int stroke_trim_execute(const bContext *C, const Span<int2> mcoords)
   const bool active_layer_only = (brush->gpencil_settings->flag & GP_BRUSH_ACTIVE_LAYER_ONLY) != 0;
   std::atomic<bool> changed = false;
 
+  bool inserted_keyframe = false;
   if (active_layer_only) {
     /* Apply trim on drawings of active layer. */
     if (!grease_pencil.has_active_layer()) {
       return OPERATOR_CANCELLED;
     }
-    const bke::greasepencil::Layer &layer = *grease_pencil.get_active_layer();
+
+    bke::greasepencil::Layer &layer = *grease_pencil.get_active_layer();
+    if (!layer.is_editable()) {
+      return OPERATOR_CANCELLED;
+    }
+
+    ensure_active_keyframe(*scene, grease_pencil, layer, true, inserted_keyframe);
     const float4x4 layer_to_world = layer.to_world_space(*ob_eval);
     const float4x4 projection = ED_view3d_ob_project_mat_get_from_obmat(rv3d, layer_to_world);
     const Vector<ed::greasepencil::MutableDrawingInfo> drawings =
@@ -188,6 +195,13 @@ static int stroke_trim_execute(const bContext *C, const Span<int2> mcoords)
     });
   }
   else {
+    for (bke::greasepencil::Layer *layer : grease_pencil.layers_for_write()) {
+      if (layer->is_editable()) {
+        ed::greasepencil::ensure_active_keyframe(
+            *scene, grease_pencil, *layer, true, inserted_keyframe);
+      }
+    }
+
     /* Apply trim on every editable drawing. */
     const Vector<ed::greasepencil::MutableDrawingInfo> drawings =
         ed::greasepencil::retrieve_editable_drawings(*scene, grease_pencil);
@@ -213,12 +227,15 @@ static int stroke_trim_execute(const bContext *C, const Span<int2> mcoords)
   if (changed) {
     DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
     WM_event_add_notifier(C, NC_GEOM | ND_DATA, &grease_pencil);
+    if (inserted_keyframe) {
+      WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, nullptr);
+    }
   }
 
   return OPERATOR_FINISHED;
 }
 
-static int grease_pencil_stroke_trim(bContext *C, wmOperator *op)
+static wmOperatorStatus grease_pencil_stroke_trim_exec(bContext *C, wmOperator *op)
 {
   const Array<int2> mcoords = WM_gesture_lasso_path_to_array(C, op);
 
@@ -241,7 +258,7 @@ void GREASE_PENCIL_OT_stroke_trim(wmOperatorType *ot)
 
   ot->invoke = WM_gesture_lasso_invoke;
   ot->modal = WM_gesture_lasso_modal;
-  ot->exec = grease_pencil_stroke_trim;
+  ot->exec = grease_pencil_stroke_trim_exec;
   ot->poll = grease_pencil_painting_poll;
   ot->cancel = WM_gesture_lasso_cancel;
 

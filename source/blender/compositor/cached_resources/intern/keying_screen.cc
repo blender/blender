@@ -270,15 +270,19 @@ Result &KeyingScreenContainer::get(Context &context,
   const std::string object_key = id_key + movie_tracking_object->name;
   auto &cached_keying_screens_for_id = map_.lookup_or_add_default(object_key);
 
-  /* Invalidate the keying screen cache for that MovieClip ID if it was changed and reset the
-   * recalculate flag. */
-  if (context.query_id_recalc_flag(reinterpret_cast<ID *>(movie_clip)) & ID_RECALC_ALL) {
+  /* Invalidate the cache for that movie clip if it was changed since it was cached. */
+  if (!cached_keying_screens_for_id.is_empty() &&
+      movie_clip->runtime.last_update != update_counts_.lookup(id_key))
+  {
     cached_keying_screens_for_id.clear();
   }
 
   auto &keying_screen = *cached_keying_screens_for_id.lookup_or_add_cb(key, [&]() {
     return std::make_unique<KeyingScreen>(context, movie_clip, movie_tracking_object, smoothness);
   });
+
+  /* Store the current update count to later compare to and check if the movie clip changed. */
+  update_counts_.add_overwrite(id_key, movie_clip->runtime.last_update);
 
   keying_screen.needed = true;
   return keying_screen.result;

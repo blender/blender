@@ -2032,8 +2032,8 @@ static Array<Face *> polyfill_triangulate_poly(Face *f, IMeshArena *arena)
   uint(*tris)[3];
   const int totfilltri = flen - 2;
   /* Prepare projected vertices and array to receive triangles in tessellation. */
-  tris = static_cast<uint(*)[3]>(MEM_malloc_arrayN(totfilltri, sizeof(*tris), __func__));
-  projverts = static_cast<float(*)[2]>(MEM_malloc_arrayN(flen, sizeof(*projverts), __func__));
+  tris = MEM_malloc_arrayN<uint[3]>(size_t(totfilltri), __func__);
+  projverts = MEM_malloc_arrayN<float[2]>(size_t(flen), __func__);
   axis_dominant_v3_to_m3_negate(axis_mat, no);
   for (int j = 0; j < flen; ++j) {
     const double3 &dco = (*f)[j]->co;

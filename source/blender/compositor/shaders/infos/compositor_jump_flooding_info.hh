@@ -6,9 +6,9 @@
 
 GPU_SHADER_CREATE_INFO(compositor_jump_flooding)
 LOCAL_GROUP_SIZE(16, 16)
-PUSH_CONSTANT(INT, step_size)
-SAMPLER(0, INT_2D, input_tx)
-IMAGE(0, GPU_RG16I, WRITE, INT_2D, output_img)
+PUSH_CONSTANT(int, step_size)
+SAMPLER(0, isampler2D, input_tx)
+IMAGE(0, GPU_RG16I, write, iimage2D, output_img)
 COMPUTE_SOURCE("compositor_jump_flooding.glsl")
 DO_STATIC_COMPILATION()
 GPU_SHADER_CREATE_END()

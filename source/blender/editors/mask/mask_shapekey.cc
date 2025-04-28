@@ -28,7 +28,7 @@
 
 #include "mask_intern.hh" /* own include */
 
-static int mask_shape_key_insert_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus mask_shape_key_insert_exec(bContext *C, wmOperator * /*op*/)
 {
   Scene *scene = CTX_data_scene(C);
   const int frame = scene->r.cfra;
@@ -71,7 +71,7 @@ void MASK_OT_shape_key_insert(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-static int mask_shape_key_clear_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus mask_shape_key_clear_exec(bContext *C, wmOperator * /*op*/)
 {
   Scene *scene = CTX_data_scene(C);
   const int frame = scene->r.cfra;
@@ -117,7 +117,7 @@ void MASK_OT_shape_key_clear(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-static int mask_shape_key_feather_reset_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus mask_shape_key_feather_reset_exec(bContext *C, wmOperator * /*op*/)
 {
   Scene *scene = CTX_data_scene(C);
   const int frame = scene->r.cfra;
@@ -207,7 +207,7 @@ void MASK_OT_shape_key_feather_reset(wmOperatorType *ot)
  * - copy unselected values back from the original.
  * - free the original.
  */
-static int mask_shape_key_rekey_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus mask_shape_key_rekey_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
   const int frame = scene->r.cfra;

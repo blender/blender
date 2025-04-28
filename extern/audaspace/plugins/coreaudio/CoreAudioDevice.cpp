@@ -26,28 +26,53 @@ OSStatus CoreAudioDevice::CoreAudio_mix(void* data, AudioUnitRenderActionFlags* 
 {
 	CoreAudioDevice* device = (CoreAudioDevice*)data;
 
+	size_t sample_size = AUD_DEVICE_SAMPLE_SIZE(device->m_specs);
+
 	for(int i = 0; i < buffer_list->mNumberBuffers; i++)
 	{
 		auto& buffer = buffer_list->mBuffers[i];
 
-		device->mix((data_t*)buffer.mData, buffer.mDataByteSize / AUD_DEVICE_SAMPLE_SIZE(device->m_specs));
+		size_t readsamples = device->getRingBuffer().getReadSize();
+
+		size_t num_bytes = size_t(buffer.mDataByteSize);
+
+		readsamples = std::min(readsamples, num_bytes) / sample_size;
+
+		device->getRingBuffer().read((data_t*) buffer.mData, readsamples * sample_size);
+
+		if(readsamples * sample_size < num_bytes)
+			std::memset((data_t*) buffer.mData + readsamples * sample_size, 0, num_bytes - readsamples * sample_size);
+
+		device->notifyMixingThread();
 	}
 
 	return noErr;
 }
 
-void CoreAudioDevice::start()
+void CoreAudioDevice::playing(bool playing)
 {
-	AudioOutputUnitStart(m_audio_unit);
+	if(m_playback != playing)
+	{
+		if(playing)
+			AudioOutputUnitStart(m_audio_unit);
+		else
+			AudioOutputUnitStop(m_audio_unit);
+	}
+
+	m_playback = playing;
 }
 
-void CoreAudioDevice::stop()
+CoreAudioDevice::CoreAudioDevice(DeviceSpecs specs, int buffersize) : m_buffersize(uint32_t(buffersize)), m_playback(false), m_audio_unit(nullptr)
 {
-	AudioOutputUnitStop(m_audio_unit);
-}
+	if(specs.channels == CHANNELS_INVALID)
+		specs.channels = CHANNELS_STEREO;
+	if(specs.format == FORMAT_INVALID)
+		specs.format = FORMAT_FLOAT32;
+	if(specs.rate == RATE_INVALID)
+		specs.rate = RATE_48000;
 
-void CoreAudioDevice::open()
-{
+	m_specs = specs;
+
 	AudioComponentDescription component_description = {};
 
 	component_description.componentType = kAudioUnitType_Output;
@@ -126,6 +151,14 @@ void CoreAudioDevice::open()
 		AUD_THROW(DeviceException, "The audio device couldn't be opened with CoreAudio.");
 	}
 
+	status = AudioUnitSetProperty(m_audio_unit, kAudioDevicePropertyBufferFrameSize, kAudioUnitScope_Input, 0, &m_buffersize, sizeof(m_buffersize));
+
+	if(status != noErr)
+	{
+		AudioComponentInstanceDispose(m_audio_unit);
+		AUD_THROW(DeviceException, "Could not set the buffer size for the audio device.");
+	}
+
 	status = AudioUnitInitialize(m_audio_unit);
 
 	if(status != noErr)
@@ -136,52 +169,123 @@ void CoreAudioDevice::open()
 
 	try
 	{
-		m_synchronizer = std::unique_ptr<CoreAudioSynchronizer>(new CoreAudioSynchronizer(m_audio_unit));
+		OSStatus status = CAClockNew(0, &m_clock_ref);
+
+		if(status != noErr)
+			AUD_THROW(DeviceException, "Could not create a CoreAudio clock.");
+
+		CAClockTimebase timebase = kCAClockTimebase_AudioOutputUnit;
+
+		status = CAClockSetProperty(m_clock_ref, kCAClockProperty_InternalTimebase, sizeof(timebase), &timebase);
+
+		if(status != noErr)
+		{
+			CAClockDispose(m_clock_ref);
+			AUD_THROW(DeviceException, "Could not create a CoreAudio clock.");
+		}
+
+		status = CAClockSetProperty(m_clock_ref, kCAClockProperty_TimebaseSource, sizeof(m_audio_unit), &m_audio_unit);
+
+		if(status != noErr)
+		{
+			CAClockDispose(m_clock_ref);
+			AUD_THROW(DeviceException, "Could not create a CoreAudio clock.");
+		}
+
+		CAClockSyncMode sync_mode = kCAClockSyncMode_Internal;
+
+		status = CAClockSetProperty(m_clock_ref, kCAClockProperty_SyncMode, sizeof(sync_mode), &sync_mode);
+
+		if(status != noErr)
+		{
+			CAClockDispose(m_clock_ref);
+			AUD_THROW(DeviceException, "Could not create a CoreAudio clock.");
+		}
 	}
 	catch(Exception&)
 	{
 		AudioComponentInstanceDispose(m_audio_unit);
 		throw;
 	}
+
+	/* Workaround CoreAudio quirk that makes the Clock (m_clock_ref) be in an invalid state
+	 * after we try to re-init the device. (It is fine the first time we init the device...)
+	 * We have to do a start/stop toggle to get it into a valid state again. */
+	AudioOutputUnitStart(m_audio_unit);
+	AudioOutputUnitStop(m_audio_unit);
+
+	create();
+
+	startMixingThread(buffersize * 2 * AUD_DEVICE_SAMPLE_SIZE(specs));
 }
 
-void CoreAudioDevice::close()
+CoreAudioDevice::~CoreAudioDevice()
 {
+	stopMixingThread();
+
+	destroy();
+
 	// NOTE: Keep the device open for buggy MacOS versions (see blender issue #121911).
 	if(__builtin_available(macOS 15.2, *))
 	{
+		CAClockDispose(m_clock_ref);
 		AudioOutputUnitStop(m_audio_unit);
 		AudioUnitUninitialize(m_audio_unit);
 		AudioComponentInstanceDispose(m_audio_unit);
 	}
 }
 
-CoreAudioDevice::CoreAudioDevice(DeviceSpecs specs, int buffersize) :
-m_playback(false),
-m_audio_unit(nullptr)
+void CoreAudioDevice::seekSynchronizer(double time)
 {
-	if(specs.channels == CHANNELS_INVALID)
-		specs.channels = CHANNELS_STEREO;
-	if(specs.format == FORMAT_INVALID)
-		specs.format = FORMAT_FLOAT32;
-	if(specs.rate == RATE_INVALID)
-		specs.rate = RATE_48000;
+	if(isSynchronizerPlaying())
+		CAClockStop(m_clock_ref);
 
-	m_specs = specs;
-	open();
-	close();
-	create();
+	CAClockTime clock_time;
+	clock_time.format = kCAClockTimeFormat_Seconds;
+	clock_time.time.seconds = time;
+	CAClockSetCurrentTime(m_clock_ref, &clock_time);
+
+	if(isSynchronizerPlaying())
+		CAClockStart(m_clock_ref);
+
+	SoftwareDevice::seekSynchronizer(time);
 }
 
-CoreAudioDevice::~CoreAudioDevice()
+double CoreAudioDevice::getSynchronizerPosition()
 {
-	destroy();
-	closeNow();
+	CAClockTime clock_time;
+
+	OSStatus status;
+
+	if(isSynchronizerPlaying())
+		status = CAClockGetCurrentTime(m_clock_ref, kCAClockTimeFormat_Seconds, &clock_time);
+	else
+		status = CAClockGetStartTime(m_clock_ref, kCAClockTimeFormat_Seconds, &clock_time);
+
+	if(status != noErr)
+		return 0;
+
+	return clock_time.time.seconds;
 }
 
-ISynchronizer* CoreAudioDevice::getSynchronizer()
+void CoreAudioDevice::playSynchronizer()
 {
-	return m_synchronizer.get();
+	if(isSynchronizerPlaying())
+		return;
+
+	CAClockStart(m_clock_ref);
+
+	SoftwareDevice::playSynchronizer();
+}
+
+void CoreAudioDevice::stopSynchronizer()
+{
+	if(!isSynchronizerPlaying())
+		return;
+
+	CAClockStop(m_clock_ref);
+
+	SoftwareDevice::stopSynchronizer();
 }
 
 class CoreAudioDeviceFactory : public IDeviceFactory

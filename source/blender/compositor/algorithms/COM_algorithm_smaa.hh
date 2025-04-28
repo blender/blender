@@ -11,9 +11,10 @@ namespace blender::compositor {
 
 /* Anti-alias the given input using the SMAA algorithm and write the result into the given output.
  * See the SMAA_THRESHOLD, SMAA_LOCAL_CONTRAST_ADAPTATION_FACTOR, and SMAA_CORNER_ROUNDING defines
- * in the implementation for information on the parameters. */
+ * in the implementation for information on the parameters. Only Float and Color result types are
+ * supported. */
 void smaa(Context &context,
-          Result &input,
+          const Result &input,
           Result &output,
           const float threshold = 0.1f,
           const float local_contrast_adaptation_factor = 2.0f,

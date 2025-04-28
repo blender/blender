@@ -42,7 +42,7 @@ struct TestChunk {
 
 static TestChunk *testchunk_list_add(ListBase *lb, const void *data, size_t data_len)
 {
-  TestChunk *tc = (TestChunk *)MEM_mallocN(sizeof(*tc), __func__);
+  TestChunk *tc = MEM_mallocN<TestChunk>(__func__);
   tc->data = data;
   tc->data_len = data_len;
   BLI_addtail(lb, tc);
@@ -63,7 +63,7 @@ static void testchunk_list_free(ListBase *lb)
 {
   for (TestChunk *tc = (TestChunk *)lb->first, *tb_next; tc; tc = tb_next) {
     tb_next = tc->next;
-    MEM_freeN((void *)tc->data);
+    MEM_freeN(const_cast<void *>(tc->data));
     MEM_freeN(tc);
   }
   BLI_listbase_clear(lb);
@@ -76,7 +76,7 @@ static char *testchunk_as_data(ListBase *lb, size_t *r_data_len)
   for (TestChunk *tc = (TestChunk *)lb->first; tc; tc = tc->next) {
     data_len += tc->data_len;
   }
-  char *data = (char *)MEM_mallocN(data_len, __func__);
+  char *data = MEM_malloc_arrayN<char>(data_len, __func__);
   size_t i = 0;
   for (TestChunk *tc = (TestChunk *)lb->first; tc; tc = tc->next) {
     memcpy(&data[i], tc->data, tc->data_len);
@@ -96,7 +96,7 @@ static char *testchunk_as_data_array(TestChunk **tc_array, int tc_array_len, siz
   for (int tc_index = 0; tc_index < tc_array_len; tc_index++) {
     data_len += tc_array[tc_index]->data_len;
   }
-  char *data = (char *)MEM_mallocN(data_len, __func__);
+  char *data = MEM_malloc_arrayN<char>(data_len, __func__);
   size_t i = 0;
   for (int tc_index = 0; tc_index < tc_array_len; tc_index++) {
     TestChunk *tc = tc_array[tc_index];
@@ -124,7 +124,7 @@ struct TestBuffer {
 
 static TestBuffer *testbuffer_list_add(ListBase *lb, const void *data, size_t data_len)
 {
-  TestBuffer *tb = (TestBuffer *)MEM_mallocN(sizeof(*tb), __func__);
+  TestBuffer *tb = MEM_mallocN<TestBuffer>(__func__);
   tb->data = data;
   tb->data_len = data_len;
   tb->state = nullptr;
@@ -158,7 +158,7 @@ static void testbuffer_list_state_from_data__stride_expand(ListBase *lb,
   }
   else {
     const size_t data_stride_len = data_len * stride;
-    char *data_stride = (char *)MEM_mallocN(data_stride_len, __func__);
+    char *data_stride = MEM_malloc_arrayN<char>(data_stride_len, __func__);
 
     for (size_t i = 0, i_stride = 0; i < data_len; i += 1, i_stride += stride) {
       memset(&data_stride[i_stride], data[i], stride);
@@ -255,7 +255,7 @@ static void testbuffer_list_free(ListBase *lb)
 {
   for (TestBuffer *tb = (TestBuffer *)lb->first, *tb_next; tb; tb = tb_next) {
     tb_next = tb->next;
-    MEM_freeN((void *)tb->data);
+    MEM_freeN(const_cast<void *>(tb->data));
     MEM_freeN(tb);
   }
   BLI_listbase_clear(lb);
@@ -322,7 +322,7 @@ TEST(array_store, Single)
   EXPECT_STREQ(data_src, data_dst);
   EXPECT_EQ(data_dst_len, sizeof(data_src));
   BLI_array_store_destroy(bs);
-  MEM_freeN((void *)data_dst);
+  MEM_freeN(data_dst);
 }
 
 TEST(array_store, DoubleNop)
@@ -341,11 +341,11 @@ TEST(array_store, DoubleNop)
 
   data_dst = (char *)BLI_array_store_state_data_get_alloc(state_a, &data_dst_len);
   EXPECT_STREQ(data_src, data_dst);
-  MEM_freeN((void *)data_dst);
+  MEM_freeN(data_dst);
 
   data_dst = (char *)BLI_array_store_state_data_get_alloc(state_b, &data_dst_len);
   EXPECT_STREQ(data_src, data_dst);
-  MEM_freeN((void *)data_dst);
+  MEM_freeN(data_dst);
 
   EXPECT_EQ(data_dst_len, sizeof(data_src));
   BLI_array_store_destroy(bs);
@@ -367,11 +367,11 @@ TEST(array_store, DoubleDiff)
 
   data_dst = (char *)BLI_array_store_state_data_get_alloc(state_a, &data_dst_len);
   EXPECT_STREQ(data_src_a, data_dst);
-  MEM_freeN((void *)data_dst);
+  MEM_freeN(data_dst);
 
   data_dst = (char *)BLI_array_store_state_data_get_alloc(state_b, &data_dst_len);
   EXPECT_STREQ(data_src_b, data_dst);
-  MEM_freeN((void *)data_dst);
+  MEM_freeN(data_dst);
 
   BLI_array_store_destroy(bs);
 }
@@ -421,7 +421,7 @@ TEST(array_store, TextDupeIncreaseDecrease)
 /* Plain Text Tests */
 
 /**
- * Test that uses text input with different params for the array-store
+ * Test that uses text input with different parameters for the array-store
  * to ensure no corner cases fail.
  */
 static void plain_text_helper(const char *words,
@@ -581,7 +581,7 @@ static void testbuffer_list_state_random_data(ListBase *lb,
                                               RNG *rng)
 {
   size_t data_len = rand_range_i(rng, data_min_len, data_max_len + stride, stride);
-  char *data = (char *)MEM_mallocN(data_len, __func__);
+  char *data = MEM_malloc_arrayN<char>(data_len, __func__);
 
   if (lb->last == nullptr) {
     BLI_rng_get_char_n(rng, data, data_len);
@@ -713,7 +713,7 @@ static void random_chunk_generate(ListBase *lb,
   RNG *rng = BLI_rng_new(random_seed);
   const size_t chunk_size_bytes = stride * chunk_count;
   for (int i = 0; i < chunks_per_buffer; i++) {
-    char *data_chunk = (char *)MEM_mallocN(chunk_size_bytes, __func__);
+    char *data_chunk = MEM_malloc_arrayN<char>(chunk_size_bytes, __func__);
     BLI_rng_get_char_n(rng, data_chunk, chunk_size_bytes);
     testchunk_list_add(lb, data_chunk, chunk_size_bytes);
   }
@@ -734,8 +734,7 @@ static void random_chunk_mutate_helper(const int chunks_per_buffer,
   ListBase random_chunks;
   BLI_listbase_clear(&random_chunks);
   random_chunk_generate(&random_chunks, chunks_per_buffer, stride, chunk_count, random_seed);
-  TestChunk **chunks_array = (TestChunk **)MEM_mallocN(chunks_per_buffer * sizeof(TestChunk *),
-                                                       __func__);
+  TestChunk **chunks_array = MEM_malloc_arrayN<TestChunk *>(size_t(chunks_per_buffer), __func__);
   {
     TestChunk *tc = (TestChunk *)random_chunks.first;
     for (int i = 0; i < chunks_per_buffer; i++, tc = tc->next) {

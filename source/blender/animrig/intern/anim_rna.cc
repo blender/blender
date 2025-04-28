@@ -30,7 +30,7 @@ Vector<float> get_rna_values(PointerRNA *ptr, PropertyRNA *prop)
 
     switch (RNA_property_type(prop)) {
       case PROP_BOOLEAN: {
-        bool *tmp_bool = static_cast<bool *>(MEM_malloc_arrayN(length, sizeof(bool), __func__));
+        bool *tmp_bool = MEM_malloc_arrayN<bool>(length, __func__);
         RNA_property_boolean_get_array(ptr, prop, tmp_bool);
         for (int i = 0; i < length; i++) {
           values.append(float(tmp_bool[i]));
@@ -39,7 +39,7 @@ Vector<float> get_rna_values(PointerRNA *ptr, PropertyRNA *prop)
         break;
       }
       case PROP_INT: {
-        int *tmp_int = static_cast<int *>(MEM_malloc_arrayN(length, sizeof(int), __func__));
+        int *tmp_int = MEM_malloc_arrayN<int>(length, __func__);
         RNA_property_int_get_array(ptr, prop, tmp_int);
         for (int i = 0; i < length; i++) {
           values.append(float(tmp_int[i]));
@@ -155,7 +155,10 @@ Vector<RNAPath> get_keyable_id_property_paths(const PointerRNA &ptr)
      * Those need to be animated through an RNA path without the brackets. */
     bool is_resolved = RNA_path_resolve_property(
         &ptr, path.c_str(), &resolved_ptr, &resolved_prop);
-    if (!is_resolved) {
+    /* ID properties can be named the same as internal properties, for example `scale`. In that
+     * case they would resolve, but it wouldn't be the correct property. `RNA_property_is_runtime`
+     * catches that case. */
+    if (!is_resolved || !RNA_property_is_runtime(resolved_prop)) {
       char name_escaped[MAX_IDPROP_NAME * 2];
       BLI_str_escape(name_escaped, id_prop->name, sizeof(name_escaped));
       path = fmt::format("[\"{}\"]", name_escaped);

@@ -82,6 +82,14 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   )
 endif()
 
+if(WIN32 AND BLENDER_PLATFORM_ARM)
+  set(ODIN_PATCH_COMMAND ${ODIN_PATCH_COMMAND} &&
+    ${PATCH_CMD} --verbose -p 1 -N -d
+    ${BUILD_DIR}/openimagedenoise/src/external_openimagedenoise <
+    ${PATCH_DIR}/oidn_disable_dependentload.diff
+  )
+endif()
+
 ExternalProject_Add(external_openimagedenoise
   URL file://${PACKAGE_DIR}/${OIDN_FILE}
   DOWNLOAD_DIR ${DOWNLOAD_DIR}

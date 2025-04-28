@@ -14,7 +14,7 @@
 
 struct ImBuf;
 
-namespace blender::ed::seq {
+namespace blender::ed::vse {
 
 struct ScopeHistogram {
   /* Byte images just have bins for the 0..255 range. */
@@ -56,4 +56,4 @@ ImBuf *make_sep_waveform_view_from_ibuf(const ImBuf *ibuf);
 ImBuf *make_vectorscope_view_from_ibuf(const ImBuf *ibuf);
 ImBuf *make_zebra_view_from_ibuf(const ImBuf *ibuf, float perc);
 
-}  // namespace blender::ed::seq
+}  // namespace blender::ed::vse

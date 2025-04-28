@@ -57,10 +57,10 @@ static void node_composit_init_ellipsemask(bNodeTree * /*ntree*/, bNode *node)
 static void node_composit_buts_ellipsemask(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiLayout *row;
-  row = uiLayoutRow(layout, true);
+  row = &layout->row(true);
   uiItemR(row, ptr, "x", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   uiItemR(row, ptr, "y", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
-  row = uiLayoutRow(layout, true);
+  row = &layout->row(true);
   uiItemR(row,
           ptr,
           "mask_width",
@@ -126,6 +126,11 @@ class EllipseMaskOperation : public NodeOperation {
   {
     const Result &input_mask = get_input("Mask");
     Result &output_mask = get_result("Mask");
+    const float2 size = this->get_size();
+    if (math::is_any_zero(size)) {
+      output_mask.share_data(input_mask);
+      return;
+    }
     /* For single value masks, the output will assume the compositing region, so ensure it is valid
      * first. See the compute_domain method. */
     if (input_mask.is_single_value() && !context().is_valid_compositing_region()) {

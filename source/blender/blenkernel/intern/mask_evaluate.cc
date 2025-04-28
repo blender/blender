@@ -913,6 +913,7 @@ void BKE_mask_eval_animation(Depsgraph *depsgraph, Mask *mask)
   LISTBASE_FOREACH (MaskLayer *, mask_layer, &mask->masklayers) {
     BKE_mask_layer_evaluate_animation(mask_layer, ctime);
   }
+  mask->runtime.last_update = DEG_get_update_count(depsgraph);
 }
 
 void BKE_mask_eval_update(Depsgraph *depsgraph, Mask *mask)
@@ -925,7 +926,7 @@ void BKE_mask_eval_update(Depsgraph *depsgraph, Mask *mask)
   }
 
   if (is_depsgraph_active) {
-    Mask *mask_orig = (Mask *)DEG_get_original_id(&mask->id);
+    Mask *mask_orig = DEG_get_original(mask);
     for (MaskLayer *masklay_orig = static_cast<MaskLayer *>(mask_orig->masklayers.first),
                    *masklay_eval = static_cast<MaskLayer *>(mask->masklayers.first);
          masklay_orig != nullptr;
@@ -944,4 +945,5 @@ void BKE_mask_eval_update(Depsgraph *depsgraph, Mask *mask)
       }
     }
   }
+  mask->runtime.last_update = DEG_get_update_count(depsgraph);
 }

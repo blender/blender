@@ -2097,20 +2097,16 @@ void add_weighted_dq_dq(DualQuat *dq_sum, const DualQuat *dq, float weight)
   }
 }
 
-/**
- * Add the transformation defined by the given dual quaternion to the accumulator,
- * using the specified pivot point for combining scale transformations.
- *
- * If the resulting dual quaternion would only be used to transform the pivot point itself,
- * this function can avoid fully computing the combined scale matrix to get a performance
- * boost without affecting the result.
- */
 void add_weighted_dq_dq_pivot(DualQuat *dq_sum,
                               const DualQuat *dq,
                               const float pivot[3],
                               const float weight,
                               const bool compute_scale_matrix)
 {
+  /* NOTE: If the resulting dual quaternion would only be used to transform the pivot point itself,
+   * this function can avoid fully computing the combined scale matrix to get a performance
+   * boost without affecting the result. */
+
   /* FIX #32022, #43188, #100373 - bad deformation when combining scaling and rotation. */
   if (dq->scale_weight) {
     DualQuat mdq = *dq;
@@ -2317,7 +2313,7 @@ float fov_to_focallength(float hfov, float sensor)
   return (sensor / 2.0f) / tanf(hfov * 0.5f);
 }
 
-/* 'mod_inline(-3, 4)= 1', 'fmod(-3, 4)= -3' */
+/* `mod_inline(-3, 4)= 1`, `fmod(-3, 4)= -3` */
 static float mod_inline(float a, float b)
 {
   return a - (b * floorf(a / b));

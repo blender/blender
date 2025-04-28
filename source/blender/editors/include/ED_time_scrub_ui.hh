@@ -19,7 +19,8 @@ struct wmWindow;
 
 void ED_time_scrub_draw_current_frame(const ARegion *region,
                                       const Scene *scene,
-                                      bool display_seconds);
+                                      bool display_seconds,
+                                      bool display_stalk = true);
 
 void ED_time_scrub_draw(const ARegion *region,
                         const Scene *scene,

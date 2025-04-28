@@ -111,6 +111,13 @@ class CyclesRender(bpy.types.RenderEngine):
         else:
             self.report({'ERROR'}, "OSL support disabled in this build")
 
+    def update_custom_camera(self, cam):
+        if engine.with_osl():
+            from . import osl
+            osl.update_custom_camera_shader(cam, self.report)
+        else:
+            self.report({'ERROR'}, "OSL support disabled in this build")
+
     def update_render_passes(self, scene, srl):
         engine.register_passes(self, scene, srl)
 

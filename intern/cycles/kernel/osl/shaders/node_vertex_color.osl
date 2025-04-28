@@ -5,6 +5,7 @@
 #include "stdcycles.h"
 
 shader node_vertex_color(string bump_offset = "center",
+                         float bump_filter_width = BUMP_FILTER_WIDTH,
                          string layer_name = "",
                          output color Color = 0.0,
                          output float Alpha = 0.0)
@@ -24,12 +25,12 @@ shader node_vertex_color(string bump_offset = "center",
     Alpha = vertex_color[3];
 
     if (bump_offset == "dx") {
-      Color += Dx(Color) * BUMP_DX;
-      Alpha += Dx(Alpha) * BUMP_DX;
+      Color += Dx(Color) * bump_filter_width;
+      Alpha += Dx(Alpha) * bump_filter_width;
     }
     else if (bump_offset == "dy") {
-      Color += Dy(Color) * BUMP_DY;
-      Alpha += Dy(Alpha) * BUMP_DY;
+      Color += Dy(Color) * bump_filter_width;
+      Alpha += Dy(Alpha) * bump_filter_width;
     }
   }
   else {

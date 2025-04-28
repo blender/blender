@@ -192,11 +192,6 @@ bool GPU_hdr_support()
   return GCaps.hdr_viewport_support;
 }
 
-bool GPU_texture_view_support()
-{
-  return GCaps.texture_view_support;
-}
-
 bool GPU_stencil_export_support()
 {
   return GCaps.stencil_export_support;

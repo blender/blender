@@ -216,13 +216,15 @@ bool BKE_collection_object_cyclic_check(Main *bmain, Object *object, Collection 
 
 ListBase BKE_collection_object_cache_get(Collection *collection);
 ListBase BKE_collection_object_cache_instanced_get(Collection *collection);
-/** Free the object cache of given `collection` and all of its ancestors (recursively).
+/**
+ * Free the object cache of given `collection` and all of its ancestors (recursively).
  *
  * \param bmain: The Main database owning the collection. May be `nullptr`, only used if doing
  * depsgraph tagging.
  * \param id_create_flag: Flags controlling ID creation, used here to enable or
- * not depsgraph tagging of affected IDs (e.g. #LIB_ID_CREATE_NO_DEG_TAG would prevent depsgraph
- * tagging). */
+ * not depsgraph tagging of affected IDs
+ * (e.g. #LIB_ID_CREATE_NO_DEG_TAG would prevent depsgraph tagging).
+ */
 void BKE_collection_object_cache_free(const Main *bmain,
                                       Collection *collection,
                                       const int id_create_flag);

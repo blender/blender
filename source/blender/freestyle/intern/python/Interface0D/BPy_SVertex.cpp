@@ -126,6 +126,16 @@ static PyObject *SVertex_add_fedge(BPy_SVertex *self, PyObject *args, PyObject *
 
 // virtual bool     operator== (const SVertex &brother)
 
+#ifdef __GNUC__
+#  ifdef __clang__
+#    pragma clang diagnostic push
+#    pragma clang diagnostic ignored "-Wcast-function-type"
+#  else
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wcast-function-type"
+#  endif
+#endif
+
 static PyMethodDef BPy_SVertex_methods[] = {
     {"add_normal",
      (PyCFunction)SVertex_add_normal,
@@ -137,6 +147,14 @@ static PyMethodDef BPy_SVertex_methods[] = {
      SVertex_add_fedge_doc},
     {nullptr, nullptr, 0, nullptr},
 };
+
+#ifdef __GNUC__
+#  ifdef __clang__
+#    pragma clang diagnostic pop
+#  else
+#    pragma GCC diagnostic pop
+#  endif
+#endif
 
 /*----------------------mathutils callbacks ----------------------------*/
 

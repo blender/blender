@@ -26,6 +26,7 @@ class NODE_MT_category_compositor_input(Menu):
         node_add_menu.add_node_type(layout, "CompositorNodeMask")
         node_add_menu.add_node_type(layout, "CompositorNodeMovieClip")
         node_add_menu.add_node_type(layout, "CompositorNodeTexture")
+        node_add_menu.add_node_type(layout, "CompositorNodeImageInfo")
 
         if is_group:
             layout.separator()
@@ -43,7 +44,7 @@ class NODE_MT_category_compositor_input_constant(Menu):
     def draw(self, _context):
         layout = self.layout
         node_add_menu.add_node_type(layout, "CompositorNodeRGB")
-        node_add_menu.add_node_type(layout, "CompositorNodeValue")
+        node_add_menu.add_node_type(layout, "ShaderNodeValue")
 
         node_add_menu.draw_assets_for_catalog(layout, "Input/Constant")
 
@@ -93,9 +94,10 @@ class NODE_MT_category_compositor_color(Menu):
         layout.menu("NODE_MT_category_compositor_color_mix")
         layout.separator()
         node_add_menu.add_node_type(layout, "CompositorNodePremulKey")
-        node_add_menu.add_node_type(layout, "CompositorNodeValToRGB")
+        node_add_menu.add_node_type(layout, "ShaderNodeValToRGB")
         node_add_menu.add_node_type(layout, "CompositorNodeConvertColorSpace")
         node_add_menu.add_node_type(layout, "CompositorNodeSetAlpha")
+        node_add_menu.add_node_type(layout, "ShaderNodeBlackbody")
         layout.separator()
         node_add_menu.add_node_type(layout, "CompositorNodeInvert")
         node_add_menu.add_node_type(layout, "CompositorNodeRGBToBW")
@@ -133,9 +135,10 @@ class NODE_MT_category_compositor_color_mix(Menu):
         node_add_menu.add_node_type(layout, "CompositorNodeCombineColor")
         node_add_menu.add_node_type(layout, "CompositorNodeSeparateColor")
         layout.separator()
-        node_add_menu.add_node_type(
-            layout, "CompositorNodeMixRGB",
-            label=iface_("Mix Color"))
+        props = node_add_menu.add_node_type(layout, "ShaderNodeMix", label=iface_("Mix Color"))
+        ops = props.settings.add()
+        ops.name = "data_type"
+        ops.value = "'RGBA'"
         node_add_menu.add_node_type(layout, "CompositorNodeZcombine")
         node_add_menu.draw_assets_for_catalog(layout, "Color/Mix")
 
@@ -266,15 +269,37 @@ class NODE_MT_category_compositor_transform(Menu):
         node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
 
 
+class NODE_MT_category_compositor_texture(Menu):
+    bl_idname = "NODE_MT_category_compositor_texture"
+    bl_label = "Texture"
+
+    def draw(self, _context):
+        layout = self.layout
+
+        node_add_menu.add_node_type(layout, "ShaderNodeTexBrick")
+        node_add_menu.add_node_type(layout, "ShaderNodeTexChecker")
+        node_add_menu.add_node_type(layout, "ShaderNodeTexGabor")
+        node_add_menu.add_node_type(layout, "ShaderNodeTexGradient")
+        node_add_menu.add_node_type(layout, "ShaderNodeTexMagic")
+        node_add_menu.add_node_type(layout, "ShaderNodeTexNoise")
+        node_add_menu.add_node_type(layout, "ShaderNodeTexVoronoi")
+        node_add_menu.add_node_type(layout, "ShaderNodeTexWave")
+        node_add_menu.add_node_type(layout, "ShaderNodeTexWhiteNoise")
+
+        node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
+
+
 class NODE_MT_category_compositor_utilities(Menu):
     bl_idname = "NODE_MT_category_compositor_utilities"
     bl_label = "Utilities"
 
     def draw(self, _context):
         layout = self.layout
-        node_add_menu.add_node_type(layout, "CompositorNodeMapRange")
-        node_add_menu.add_node_type(layout, "CompositorNodeMapValue")
-        node_add_menu.add_node_type(layout, "CompositorNodeMath")
+        node_add_menu.add_node_type(layout, "ShaderNodeMapRange")
+        node_add_menu.add_node_type(layout, "ShaderNodeMath")
+        node_add_menu.add_node_type(layout, "ShaderNodeMix")
+        node_add_menu.add_node_type(layout, "ShaderNodeClamp")
+        node_add_menu.add_node_type(layout, "ShaderNodeFloatCurve")
         layout.separator()
         node_add_menu.add_node_type(layout, "CompositorNodeLevels")
         node_add_menu.add_node_type(layout, "CompositorNodeNormalize")
@@ -294,11 +319,17 @@ class NODE_MT_category_compositor_vector(Menu):
 
     def draw(self, _context):
         layout = self.layout
-        node_add_menu.add_node_type(layout, "CompositorNodeCombineXYZ")
-        node_add_menu.add_node_type(layout, "CompositorNodeSeparateXYZ")
+        node_add_menu.add_node_type(layout, "ShaderNodeCombineXYZ")
+        node_add_menu.add_node_type(layout, "ShaderNodeSeparateXYZ")
         layout.separator()
+        node_add_menu.add_node_type(layout, "ShaderNodeVectorMath")
+        node_add_menu.add_node_type(layout, "ShaderNodeVectorRotate")
+        props = node_add_menu.add_node_type(layout, "ShaderNodeMix", label=iface_("Mix Vector"))
+        ops = props.settings.add()
+        ops.name = "data_type"
+        ops.value = "'VECTOR'"
         node_add_menu.add_node_type(layout, "CompositorNodeNormal")
-        node_add_menu.add_node_type(layout, "CompositorNodeCurveVec")
+        node_add_menu.add_node_type(layout, "ShaderNodeVectorCurve")
 
         node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
 
@@ -321,6 +352,7 @@ class NODE_MT_compositor_node_add_all(Menu):
         layout.menu("NODE_MT_category_compositor_tracking")
         layout.separator()
         layout.menu("NODE_MT_category_compositor_transform")
+        layout.menu("NODE_MT_category_compositor_texture")
         layout.menu("NODE_MT_category_compositor_utilities")
         layout.menu("NODE_MT_category_compositor_vector")
         layout.separator()
@@ -341,6 +373,7 @@ classes = (
     NODE_MT_category_compositor_color_mix,
     NODE_MT_category_compositor_filter,
     NODE_MT_category_compositor_filter_blur,
+    NODE_MT_category_compositor_texture,
     NODE_MT_category_compositor_keying,
     NODE_MT_category_compositor_mask,
     NODE_MT_category_compositor_tracking,

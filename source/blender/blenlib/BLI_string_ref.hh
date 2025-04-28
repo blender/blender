@@ -124,7 +124,7 @@ class StringRefNull : public StringRefBase {
   constexpr StringRefNull();
   constexpr StringRefNull(const char *str, int64_t size);
   StringRefNull(std::nullptr_t) = delete;
-  StringRefNull(const char *str);
+  constexpr StringRefNull(const char *str);
   StringRefNull(const std::string &str);
 
   constexpr char operator[](int64_t index) const;
@@ -431,7 +431,8 @@ constexpr StringRefNull::StringRefNull(const char *str, const int64_t size)
  * Construct a StringRefNull from a null terminated c-string. The pointer must not point to
  * NULL.
  */
-inline StringRefNull::StringRefNull(const char *str) : StringRefBase(str, int64_t(strlen(str)))
+constexpr StringRefNull::StringRefNull(const char *str)
+    : StringRefBase(str, int64_t(std::char_traits<char>::length(str)))
 {
   BLI_assert(str != nullptr);
   BLI_assert(data_[size_] == '\0');

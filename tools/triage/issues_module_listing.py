@@ -42,7 +42,7 @@ modules = {
     "Module/Modeling": ModuleInfo(name="Modeling", labelid="274"),
     "Module/Nodes & Physics": ModuleInfo(name="Nodes & Physics", labelid="275"),
     "Module/Pipeline & IO": ModuleInfo(name="Pipeline & I/O", labelid="276"),
-    "Module/Platforms, Builds & Tests": ModuleInfo(name="Platforms, Builds, Test & Devices", labelid="278"),
+    "Module/Platforms & Builds": ModuleInfo(name="Platforms & Builds", labelid="278"),
     "Module/Python API": ModuleInfo(name="Python API", labelid="279"),
     "Module/Render & Cycles": ModuleInfo(name="Render & Cycles", labelid="280"),
     "Module/Sculpt, Paint & Texture": ModuleInfo(name="Sculpt, Paint & Texture", labelid="281"),

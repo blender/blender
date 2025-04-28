@@ -17,13 +17,13 @@ set(INC_GLSL
   ../../../../gpu/shaders
   ../../../../gpu/shaders/common
   ../../../../gpu/shaders/infos
-  
+
   ../../gpencil
   ../../gpencil/shaders/infos
 
   ../../select
   ../../select/shaders
-  )
+)
 
 set(SRC_GLSL_VERT
   overlay_armature_dof_vert.glsl

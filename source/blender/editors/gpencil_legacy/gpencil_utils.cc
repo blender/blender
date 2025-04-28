@@ -51,35 +51,6 @@
 /* ******************************************************** */
 /* Context Wrangling... */
 
-bGPdata **ED_gpencil_data_get_pointers_direct(ScrArea *area, Object *ob, PointerRNA *r_ptr)
-{
-  /* if there's an active area, check if the particular editor may
-   * have defined any special Grease Pencil context for editing...
-   */
-  if (area) {
-    switch (area->spacetype) {
-      case SPACE_PROPERTIES: /* properties */
-      case SPACE_INFO:       /* header info */
-      case SPACE_TOPBAR:     /* Top-bar */
-      case SPACE_VIEW3D:     /* 3D-View */
-      {
-        if (ob && (ob->type == OB_GPENCIL_LEGACY)) {
-          /* GP Object. */
-          if (r_ptr) {
-            *r_ptr = RNA_id_pointer_create(&ob->id);
-          }
-          return (bGPdata **)&ob->data;
-        }
-        return nullptr;
-      }
-      default: /* Unsupported space. */
-        return nullptr;
-    }
-  }
-
-  return nullptr;
-}
-
 bGPdata **ED_annotation_data_get_pointers_direct(ID *screen_id,
                                                  ScrArea *area,
                                                  Scene *scene,
@@ -176,14 +147,6 @@ bGPdata **ED_annotation_data_get_pointers_direct(ID *screen_id,
   }
 
   return nullptr;
-}
-
-bGPdata **ED_gpencil_data_get_pointers(const bContext *C, PointerRNA *r_ptr)
-{
-  ScrArea *area = CTX_wm_area(C);
-  Object *ob = CTX_data_active_object(C);
-
-  return ED_gpencil_data_get_pointers_direct(area, ob, r_ptr);
 }
 
 bGPdata **ED_annotation_data_get_pointers(const bContext *C, PointerRNA *r_ptr)
@@ -355,8 +318,7 @@ tGPspoint *ED_gpencil_sbuffer_ensure(tGPspoint *buffer_array,
    * This is done in order to keep cache small and improve speed. */
   if (*buffer_used + 1 > *buffer_size) {
     if ((*buffer_size == 0) || (buffer_array == nullptr)) {
-      p = static_cast<tGPspoint *>(
-          MEM_callocN(sizeof(tGPspoint) * GP_STROKE_BUFFER_CHUNK, "GPencil Sbuffer"));
+      p = MEM_calloc_arrayN<tGPspoint>(GP_STROKE_BUFFER_CHUNK, "GPencil Sbuffer");
       *buffer_size = GP_STROKE_BUFFER_CHUNK;
     }
     else {

@@ -113,19 +113,19 @@ static void extract_weights_bm(const MeshRenderData &mr,
   });
 }
 
-void extract_weights(const MeshRenderData &mr, const MeshBatchCache &cache, gpu::VertBuf &vbo)
+gpu::VertBufPtr extract_weights(const MeshRenderData &mr, const MeshBatchCache &cache)
 {
   static GPUVertFormat format = GPU_vertformat_from_attribute(
       "weight", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
 
-  GPU_vertbuf_init_with_format(vbo, format);
-  GPU_vertbuf_data_alloc(vbo, mr.corners_num);
-  MutableSpan<float> vbo_data = vbo.data<float>();
+  gpu::VertBufPtr vbo = gpu::VertBufPtr(GPU_vertbuf_create_with_format(format));
+  GPU_vertbuf_data_alloc(*vbo, mr.corners_num);
+  MutableSpan<float> vbo_data = vbo->data<float>();
 
   const DRW_MeshWeightState &weight_state = cache.weight_state;
   if (weight_state.defgroup_active == -1) {
     vbo_data.fill(weight_state.alert_mode == OB_DRAW_GROUPUSER_NONE ? 0.0f : -1.0f);
-    return;
+    return vbo;
   }
 
   if (mr.extract_type == MeshExtractType::Mesh) {
@@ -134,24 +134,22 @@ void extract_weights(const MeshRenderData &mr, const MeshBatchCache &cache, gpu:
   else {
     extract_weights_bm(mr, weight_state, vbo_data);
   }
+  return vbo;
 }
 
-void extract_weights_subdiv(const MeshRenderData &mr,
-                            const DRWSubdivCache &subdiv_cache,
-                            const MeshBatchCache &cache,
-                            gpu::VertBuf &vbo)
+gpu::VertBufPtr extract_weights_subdiv(const MeshRenderData &mr,
+                                       const DRWSubdivCache &subdiv_cache,
+                                       const MeshBatchCache &cache)
 {
   static GPUVertFormat format = GPU_vertformat_from_attribute(
       "weight", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
 
-  GPU_vertbuf_init_build_on_device(vbo, format, subdiv_cache.num_subdiv_loops);
+  gpu::VertBufPtr vbo = gpu::VertBufPtr(
+      GPU_vertbuf_create_on_device(format, subdiv_cache.num_subdiv_loops));
 
-  gpu::VertBuf *coarse_weights = GPU_vertbuf_calloc();
-  extract_weights(mr, cache, *coarse_weights);
-
-  draw_subdiv_interp_custom_data(subdiv_cache, *coarse_weights, vbo, GPU_COMP_F32, 1, 0);
-
-  GPU_vertbuf_discard(coarse_weights);
+  gpu::VertBufPtr coarse_weights = extract_weights(mr, cache);
+  draw_subdiv_interp_custom_data(subdiv_cache, *coarse_weights, *vbo, GPU_COMP_F32, 1, 0);
+  return vbo;
 }
 
 }  // namespace blender::draw

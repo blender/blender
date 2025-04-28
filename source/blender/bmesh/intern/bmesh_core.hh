@@ -169,10 +169,35 @@ void bmesh_face_swap_data(BMFace *f_a, BMFace *f_b);
  * \note If a pair of faces share multiple edges,
  * the pair of faces will be joined at every edge.
  *
+ * \param bm: The bmesh.
+ * \param faces: An array of faces to join.
+ * \param totfaces: The length of the face array to join.
+ * \param do_del if true, remove the original faces, internal edges, and internal verts such that
+ *    they are replaced by the new face.
+ * \param r_double: A pointer to a BMFace* that is controls processing of doubled faces.
+ * - When `r_double` is nullptr:
+ *   - If a new face would be made which would double an existing face, then instead of creating a
+ *     new face, the existing face will be reused and returned instead.
+ *   - The calling function must not make ANY assumption about whether the returned BMFace* is
+ *     new, or a reused face that may already have set header flags, contain custom data, etc.
+ * - When `r_double` is a pointer to a BMFace*:
+ *   - If the new join face is not a double of an existing face, then `r_double` is set to nullptr.
+ *   - If the new join face doubles an existing face, then `r_double` is set to the existing face,
+ *     and the return value is the newly created face. The double will NOT be removed, meaning the
+ *     BMesh is in an invalid state, and the calling function must fix that inconsistency.
+ *   - If an error occurs and nullptr is returned, `r_double` will be set to nullptr as well.
+ *
  * \note this is a generic, flexible join faces function,
  * almost everything uses this, including #BM_faces_join_pair
+ *
+ * \note On callers asserting when `*r_double != nullptr`.
+ * For some callers the existing algorithm does not check for or handle double faces.
+ * This can result in invalid meshes being returned.
+ * The returned value in `r_double` should be examined and if found,
+ * the algorithm should be adjusted. Until this is changed, at least warn.
+ * This comment can be removed when all callers handle this case.
  */
-BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface, bool do_del);
+BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface, bool do_del, BMFace **r_double);
 /**
  * High level function which wraps both #bmesh_kernel_vert_separate and #bmesh_kernel_edge_separate
  */

@@ -13,6 +13,8 @@
 
 #include "MOV_write.hh"
 
+#include "BKE_report.hh"
+
 #ifdef WITH_FFMPEG
 #  include <cstdio>
 #  include <cstring>
@@ -30,7 +32,6 @@
 #  include "BKE_global.hh"
 #  include "BKE_image.hh"
 #  include "BKE_main.hh"
-#  include "BKE_report.hh"
 
 #  include "IMB_imbuf.hh"
 
@@ -536,6 +537,19 @@ static int remap_crf_to_h265_crf(int crf, bool is_10_or_12_bpp)
   return crf;
 }
 
+static const AVCodec *get_prores_encoder(RenderData *rd, int rectx, int recty)
+{
+  /* The prores_aw encoder currently (April 2025) has issues when encoding alpha with high
+   * resolution but is faster in most cases for similar quality. Use it instead of prores_ks
+   * if possible. (Upstream issue https://trac.ffmpeg.org/ticket/11536) */
+  if (rd->im_format.planes == R_IMF_PLANES_RGBA) {
+    if ((size_t(rectx) * size_t(recty)) > (3840 * 2160)) {
+      return avcodec_find_encoder_by_name("prores_ks");
+    }
+  }
+  return avcodec_find_encoder_by_name("prores_aw");
+}
+
 /* 10bpp H264: remap 0..51 range to -12..51 range
  * https://trac.ffmpeg.org/wiki/Encode/H.264#a1.ChooseaCRFvalue */
 static int remap_crf_to_h264_10bpp_crf(int crf)
@@ -650,6 +664,9 @@ static AVStream *alloc_video_stream(MovieWriter *context,
      * on given parameters, and also set up opts. */
     codec = get_av1_encoder(context, rd, &opts, rectx, recty);
   }
+  else if (codec_id == AV_CODEC_ID_PRORES) {
+    codec = get_prores_encoder(rd, rectx, recty);
+  }
   else {
     codec = avcodec_find_encoder(codec_id);
   }
@@ -760,6 +777,14 @@ static AVStream *alloc_video_stream(MovieWriter *context,
     c->codec_tag = (('D' << 24) + ('I' << 16) + ('V' << 8) + 'X');
   }
 
+  if (codec_id == AV_CODEC_ID_H265) {
+    /* H.265 needs hvc1 tag for Apple compatibility, see
+     * https://trac.ffmpeg.org/wiki/Encode/H.265#FinalCutandApplestuffcompatibility
+     * Note that in case we are doing H.265 into an XviD container,
+     * this overwrites the tag set above. But that should not be what anyone does. */
+    c->codec_tag = MKTAG('h', 'v', 'c', '1');
+  }
+
   /* Keep lossless encodes in the RGB domain. */
   if (codec_id == AV_CODEC_ID_HUFFYUV) {
     if (rd->im_format.planes == R_IMF_PLANES_RGBA) {
@@ -806,6 +831,27 @@ static AVStream *alloc_video_stream(MovieWriter *context,
   if (codec_id == AV_CODEC_ID_PNG) {
     if (rd->im_format.planes == R_IMF_PLANES_RGBA) {
       c->pix_fmt = AV_PIX_FMT_RGBA;
+    }
+  }
+  if (codec_id == AV_CODEC_ID_PRORES) {
+    if ((context->ffmpeg_profile >= FFM_PRORES_PROFILE_422_PROXY) &&
+        (context->ffmpeg_profile <= FFM_PRORES_PROFILE_422_HQ))
+    {
+      c->profile = context->ffmpeg_profile;
+      c->pix_fmt = AV_PIX_FMT_YUV422P10LE;
+    }
+    else if ((context->ffmpeg_profile >= FFM_PRORES_PROFILE_4444) &&
+             (context->ffmpeg_profile <= FFM_PRORES_PROFILE_4444_XQ))
+    {
+      c->profile = context->ffmpeg_profile;
+      c->pix_fmt = AV_PIX_FMT_YUV444P10LE;
+
+      if (rd->im_format.planes == R_IMF_PLANES_RGBA) {
+        c->pix_fmt = AV_PIX_FMT_YUVA444P10LE;
+      }
+    }
+    else {
+      fprintf(stderr, "ffmpeg: invalid profile %d\n", context->ffmpeg_profile);
     }
   }
 
@@ -936,6 +982,7 @@ static bool start_ffmpeg_impl(MovieWriter *context,
   context->ffmpeg_autosplit = (rd->ffcodecdata.flags & FFMPEG_AUTOSPLIT_OUTPUT) != 0;
   context->ffmpeg_crf = rd->ffcodecdata.constant_rate_factor;
   context->ffmpeg_preset = rd->ffcodecdata.ffmpeg_preset;
+  context->ffmpeg_profile = 0;
 
   if ((rd->ffcodecdata.flags & FFMPEG_USE_MAX_B_FRAMES) != 0) {
     context->ffmpeg_max_b_frames = rd->ffcodecdata.max_b_frames;
@@ -1048,6 +1095,10 @@ static bool start_ffmpeg_impl(MovieWriter *context,
       BKE_report(reports, RPT_ERROR, "FFmpeg only supports 48khz / stereo audio for DV!");
       goto fail;
     }
+  }
+
+  if (video_codec == AV_CODEC_ID_PRORES) {
+    context->ffmpeg_profile = rd->ffcodecdata.ffmpeg_prores_profile;
   }
 
   if (video_codec != AV_CODEC_ID_NONE) {
@@ -1279,7 +1330,8 @@ static MovieWriter *ffmpeg_movie_open(const Scene *scene,
                                scene,
                                preview ? rd->psfra : rd->sfra,
                                rd->ffcodecdata.audio_mixrate,
-                               rd->ffcodecdata.audio_volume);
+                               rd->ffcodecdata.audio_volume,
+                               reports);
   }
 
   if (!success) {
@@ -1426,6 +1478,7 @@ MovieWriter *MOV_write_begin(const char imtype,
                              const char *suffix)
 {
   if (!is_imtype_ffmpeg(imtype)) {
+    BKE_report(reports, RPT_ERROR, "Image format is not a movie format");
     return nullptr;
   }
 

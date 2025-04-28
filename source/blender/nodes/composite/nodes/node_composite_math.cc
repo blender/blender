@@ -41,33 +41,6 @@ static void cmp_node_math_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>("Value");
 }
 
-class SocketSearchOp {
- public:
-  std::string socket_name;
-  NodeMathOperation mode = NODE_MATH_ADD;
-  void operator()(LinkSearchOpParams &params)
-  {
-    bNode &node = params.add_node("CompositorNodeMath");
-    node.custom1 = mode;
-    params.update_and_connect_available_socket(node, socket_name);
-  }
-};
-
-static void node_gather_link_searches(GatherLinkSearchOpParams &params)
-{
-  const int weight = ELEM(params.other_socket().type, SOCK_FLOAT) ? 0 : -1;
-
-  for (const EnumPropertyItem *item = rna_enum_node_math_items; item->identifier != nullptr;
-       item++)
-  {
-    if (item->name != nullptr && item->identifier[0] != '\0') {
-      params.add_item(CTX_IFACE_(BLT_I18NCONTEXT_ID_NODETREE, item->name),
-                      SocketSearchOp{"Value", (NodeMathOperation)item->value},
-                      weight);
-    }
-  }
-}
-
 using namespace blender::compositor;
 
 static NodeMathOperation get_operation(const bNode &node)
@@ -125,8 +98,8 @@ void register_node_type_cmp_math()
   ntype.labelfunc = node_math_label;
   ntype.updatefunc = node_math_update;
   ntype.gpu_fn = file_ns::node_gpu_material;
-  ntype.gather_link_search_ops = file_ns::node_gather_link_searches;
   ntype.build_multi_function = blender::nodes::node_math_build_multi_function;
+  ntype.gather_link_search_ops = nullptr;
 
   blender::bke::node_register_type(ntype);
 }

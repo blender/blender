@@ -149,7 +149,7 @@ static void studiolight_free_temp_resources(StudioLight *sl)
 
 static StudioLight *studiolight_create(int flag)
 {
-  StudioLight *sl = static_cast<StudioLight *>(MEM_callocN(sizeof(*sl), __func__));
+  StudioLight *sl = MEM_callocN<StudioLight>(__func__);
   sl->filepath[0] = 0x00;
   sl->name[0] = 0x00;
   sl->free_function = nullptr;
@@ -274,12 +274,16 @@ static void direction_to_equirect(float r[2], const float dir[3])
   r[1] = (acosf(dir[2] / 1.0) - M_PI) / -M_PI;
 }
 
+namespace {
+
 struct MultilayerConvertContext {
   int num_diffuse_channels;
   float *diffuse_pass;
   int num_specular_channels;
   float *specular_pass;
 };
+
+}  // namespace
 
 static void *studiolight_multilayer_addview(void * /*base*/, const char * /*view_name*/)
 {
@@ -301,8 +305,7 @@ static float *studiolight_multilayer_convert_pass(const ImBuf *ibuf,
     return rect;
   }
 
-  float *new_rect = static_cast<float *>(
-      MEM_callocN(sizeof(float[4]) * ibuf->x * ibuf->y, __func__));
+  float *new_rect = MEM_calloc_arrayN<float>(4 * size_t(ibuf->x) * size_t(ibuf->y), __func__);
 
   IMB_buffer_float_from_float(new_rect,
                               rect,
@@ -347,7 +350,7 @@ static void studiolight_multilayer_addpass(void *base,
 static void studiolight_load_equirect_image(StudioLight *sl)
 {
   if (sl->flag & STUDIOLIGHT_EXTERNAL_FILE) {
-    ImBuf *ibuf = IMB_loadiffname(sl->filepath, IB_multilayer | IB_alphamode_ignore, nullptr);
+    ImBuf *ibuf = IMB_load_image_from_filepath(sl->filepath, IB_multilayer | IB_alphamode_ignore);
     ImBuf *specular_ibuf = nullptr;
     ImBuf *diffuse_ibuf = nullptr;
     const bool failed = (ibuf == nullptr);
@@ -450,12 +453,12 @@ static void studiolight_create_matcap_gputexture(StudioLightImage *sli)
 {
   BLI_assert(sli->ibuf);
   ImBuf *ibuf = sli->ibuf;
-  float *gpu_matcap_3components = static_cast<float *>(
-      MEM_callocN(sizeof(float[3]) * ibuf->x * ibuf->y, __func__));
+  const size_t ibuf_pixel_count = IMB_get_pixel_count(ibuf);
+  float *gpu_matcap_3components = MEM_calloc_arrayN<float>(3 * ibuf_pixel_count, __func__);
 
   const float(*offset4)[4] = (const float(*)[4])ibuf->float_buffer.data;
   float(*offset3)[3] = (float(*)[3])gpu_matcap_3components;
-  for (int i = 0; i < ibuf->x * ibuf->y; i++, offset4++, offset3++) {
+  for (size_t i = 0; i < ibuf_pixel_count; i++, offset4++, offset3++) {
     copy_v3_v3(*offset3, *offset4);
   }
 

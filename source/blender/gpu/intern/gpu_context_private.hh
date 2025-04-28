@@ -37,8 +37,6 @@ class Context {
   StateManager *state_manager = nullptr;
   Immediate *imm = nullptr;
 
-  ShaderCompiler *compiler = nullptr;
-
   /**
    * All 4 window frame-buffers.
    * None of them are valid in an off-screen context.
@@ -99,6 +97,8 @@ class Context {
   /* Will wait until the GPU has finished executing all command. */
   virtual void finish() = 0;
 
+  virtual ShaderCompiler *get_compiler() = 0;
+
   virtual void memory_statistics_get(int *r_total_mem, int *r_free_mem) = 0;
 
   virtual void debug_group_begin(const char * /*name*/, int /*index*/){};
@@ -149,8 +149,10 @@ class Context {
   }
 
  protected:
-  /* Derived classes should call this from the destructor, as freeing textures and framebuffers may
-   * need the derived context to be valid. */
+  /**
+   * Derived classes should call this from the destructor,
+   * as freeing textures and frame-buffers may need the derived context to be valid.
+   */
   void free_resources();
 };
 

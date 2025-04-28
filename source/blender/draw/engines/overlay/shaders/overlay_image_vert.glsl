@@ -15,11 +15,11 @@ VERTEX_SHADER_CREATE_INFO(draw_modelmat)
 void main()
 {
   select_id_set(drw_custom_id());
-  vec3 world_pos = drw_point_object_to_world(pos);
-  if (isCameraBackground) {
+  float3 world_pos = drw_point_object_to_world(pos);
+  if (is_camera_background) {
     /* Model matrix converts to view position to avoid jittering (see #91398). */
 #ifdef DEPTH_BIAS
-    gl_Position = depth_bias_winmat * vec4(world_pos, 1.0);
+    gl_Position = depth_bias_winmat * float4(world_pos, 1.0f);
 #else
     gl_Position = drw_point_view_to_homogenous(world_pos);
 #endif
@@ -29,20 +29,20 @@ void main()
   }
   else {
 #ifdef DEPTH_BIAS
-    gl_Position = depth_bias_winmat * (drw_view().viewmat * vec4(world_pos, 1.0));
+    gl_Position = depth_bias_winmat * (drw_view().viewmat * float4(world_pos, 1.0f));
 #else
     gl_Position = drw_point_world_to_homogenous(world_pos);
 #endif
     view_clipping_distances(world_pos);
   }
 
-  if (depthSet) {
+  if (depth_set) {
     /* Result in a position at 1.0 (far plane). Small epsilon to avoid precision issue.
      * This mimics the effect of infinite projection matrix
      * (see http://www.terathon.com/gdc07_lengyel.pdf). */
-    gl_Position.z = gl_Position.w - 2.4e-7;
+    gl_Position.z = gl_Position.w - 2.4e-7f;
     view_clipping_distances_bypass();
   }
 
-  uvs = pos.xy * 0.5 + 0.5;
+  uvs = pos.xy * 0.5f + 0.5f;
 }

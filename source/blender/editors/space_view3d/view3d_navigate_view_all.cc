@@ -218,7 +218,7 @@ std::optional<blender::Bounds<float3>> view3d_calc_minmax_visible(Depsgraph *dep
   LISTBASE_FOREACH (Base *, base_eval, BKE_view_layer_object_bases_get(view_layer_eval)) {
     if (BASE_VISIBLE(v3d, base_eval)) {
       bool only_center = false;
-      Object *ob = DEG_get_original_object(base_eval->object);
+      Object *ob = DEG_get_original(base_eval->object);
       if (view3d_object_skip_minmax(v3d, rv3d, ob, skip_camera, &only_center)) {
         continue;
       }
@@ -350,7 +350,7 @@ std::optional<blender::Bounds<float3>> view3d_calc_minmax_selected(Depsgraph *de
     LISTBASE_FOREACH (Base *, base_eval, BKE_view_layer_object_bases_get(view_layer_eval)) {
       if (BASE_SELECTED(v3d, base_eval)) {
         bool only_center = false;
-        Object *ob = DEG_get_original_object(base_eval->object);
+        Object *ob = DEG_get_original(base_eval->object);
         if (view3d_object_skip_minmax(v3d, rv3d, ob, skip_camera, &only_center)) {
           continue;
         }
@@ -415,7 +415,7 @@ bool view3d_calc_point_in_selected_bounds(Depsgraph *depsgraph,
  * Move & Zoom the view to fit all of its contents.
  * \{ */
 
-static int view3d_all_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus view3d_all_exec(bContext *C, wmOperator *op)
 {
   ScrArea *area = CTX_wm_area(C);
   ARegion *region = CTX_wm_region(C);
@@ -500,7 +500,7 @@ void VIEW3D_OT_view_all(wmOperatorType *ot)
  * Move & Zoom the view to fit selected contents.
  * \{ */
 
-static int viewselected_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus viewselected_exec(bContext *C, wmOperator *op)
 {
   ScrArea *area = CTX_wm_area(C);
   ARegion *region = CTX_wm_region(C);

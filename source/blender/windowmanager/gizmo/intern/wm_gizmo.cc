@@ -224,7 +224,10 @@ PointerRNA *WM_gizmo_operator_set(wmGizmo *gz,
   return &gzop.ptr;
 }
 
-int WM_gizmo_operator_invoke(bContext *C, wmGizmo *gz, wmGizmoOpElem *gzop, const wmEvent *event)
+wmOperatorStatus WM_gizmo_operator_invoke(bContext *C,
+                                          wmGizmo *gz,
+                                          wmGizmoOpElem *gzop,
+                                          const wmEvent *event)
 {
   if (gz->flag & WM_GIZMO_OPERATOR_TOOL_INIT) {
     /* Merge tool-settings into the gizmo properties. */
@@ -454,7 +457,7 @@ void wm_gizmo_calculate_scale(wmGizmo *gz, const bContext *C)
   if ((gz->parent_gzgroup->type->flag & WM_GIZMOGROUPTYPE_SCALE) == 0) {
     scale *= U.gizmo_size;
     if (rv3d) {
-      /* 'ED_view3d_pixel_size' includes 'U.pixelsize', remove it. */
+      /* #ED_view3d_pixel_size includes #U.pixelsize, remove it. */
       float matrix_world[4][4];
       if (gz->type->matrix_basis_get) {
         float matrix_basis[4][4];

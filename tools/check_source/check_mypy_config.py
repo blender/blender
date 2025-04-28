@@ -75,6 +75,7 @@ PATHS_EXCLUDE = set(
         "tools/utils/make_gl_stipple_from_xpm.py",
         "tools/utils/make_shape_2d_from_blend.py",
         "tools/utils_api/bpy_introspect_ui.py",  # Uses `bpy`.
+        "tools/utils_doc/code_layout_diagram.py",  # Uses `bpy`.
         "tools/utils_doc/rna_manual_reference_updater.py",
         "tools/utils_ide/qtcreator/externaltools/qtc_assembler_preview.py",
         "tools/utils_ide/qtcreator/externaltools/qtc_blender_diffusion.py",
@@ -84,8 +85,6 @@ PATHS_EXCLUDE = set(
         "tools/utils_ide/qtcreator/externaltools/qtc_sort_paths.py",
         "tools/utils_maintenance/blender_menu_search_coverage.py",  # Uses `bpy`.
         "tools/utils_maintenance/blender_update_themes.py",  # Uses `bpy`.
-        "tools/utils_maintenance/trailing_space_clean.py",
-        "tools/utils_maintenance/trailing_space_clean_config.py",
     )
 )
 

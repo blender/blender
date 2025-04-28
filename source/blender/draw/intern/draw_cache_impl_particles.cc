@@ -8,6 +8,7 @@
  * \brief Particle API for render engines
  */
 
+#include "DNA_collection_types.h"
 #include "DNA_scene_types.h"
 #include "DRW_render.hh"
 
@@ -428,12 +429,11 @@ static void particle_calculate_uvs(ParticleSystem *psys,
       *r_uv = r_parent_uvs[parent_index];
     }
     else {
-      *r_uv = static_cast<float(*)[2]>(
-          MEM_callocN(sizeof(**r_uv) * num_uv_layers, "Particle UVs"));
+      *r_uv = MEM_calloc_arrayN<float[2]>(num_uv_layers, "Particle UVs");
     }
   }
   else {
-    *r_uv = static_cast<float(*)[2]>(MEM_callocN(sizeof(**r_uv) * num_uv_layers, "Particle UVs"));
+    *r_uv = MEM_calloc_arrayN<float[2]>(num_uv_layers, "Particle UVs");
   }
   if (child_index == -1) {
     /* Calculate UVs for parent particles. */
@@ -472,12 +472,11 @@ static void particle_calculate_mcol(ParticleSystem *psys,
       *r_mcol = r_parent_mcol[parent_index];
     }
     else {
-      *r_mcol = static_cast<MCol *>(
-          MEM_callocN(sizeof(**r_mcol) * num_col_layers, "Particle MCol"));
+      *r_mcol = MEM_calloc_arrayN<MCol>(num_col_layers, "Particle MCol");
     }
   }
   else {
-    *r_mcol = static_cast<MCol *>(MEM_callocN(sizeof(**r_mcol) * num_col_layers, "Particle MCol"));
+    *r_mcol = MEM_calloc_arrayN<MCol>(num_col_layers, "Particle MCol");
   }
   if (child_index == -1) {
     /* Calculate MCols for parent particles. */
@@ -937,12 +936,10 @@ static void particle_batch_cache_ensure_procedural_strand_data(PTCacheEdit *edit
   MEM_SAFE_FREE(cache->col_tex);
   MEM_SAFE_FREE(cache->col_layer_names);
 
-  cache->proc_col_buf = static_cast<gpu::VertBuf **>(
-      MEM_calloc_arrayN(cache->num_col_layers, sizeof(void *), "proc_col_buf"));
-  cache->col_tex = static_cast<GPUTexture **>(
-      MEM_calloc_arrayN(cache->num_col_layers, sizeof(void *), "col_tex"));
-  cache->col_layer_names = static_cast<char(*)[4][14]>(MEM_calloc_arrayN(
-      cache->num_col_layers, sizeof(*cache->col_layer_names), "col_layer_names"));
+  cache->proc_col_buf = MEM_calloc_arrayN<gpu::VertBuf *>(cache->num_col_layers, "proc_col_buf");
+  cache->col_tex = MEM_calloc_arrayN<GPUTexture *>(cache->num_col_layers, "col_tex");
+  cache->col_layer_names = MEM_calloc_arrayN<char[4][14]>(cache->num_col_layers,
+                                                          "col_layer_names");
 
   /* Vertex colors */
   for (int i = 0; i < cache->num_col_layers; i++) {
@@ -1218,8 +1215,8 @@ static void particle_batch_cache_ensure_pos_and_seg(PTCacheEdit *edit,
   attr_id.ind = GPU_vertformat_attr_add(&format, "ind", GPU_COMP_I32, 1, GPU_FETCH_INT);
 
   if (psmd) {
-    uv_id = static_cast<uint *>(MEM_mallocN(sizeof(*uv_id) * num_uv_layers, "UV attr format"));
-    col_id = static_cast<uint *>(MEM_mallocN(sizeof(*col_id) * num_col_layers, "Col attr format"));
+    uv_id = MEM_malloc_arrayN<uint>(num_uv_layers, "UV attr format");
+    col_id = MEM_malloc_arrayN<uint>(num_col_layers, "Col attr format");
 
     for (int i = 0; i < num_uv_layers; i++) {
 
@@ -1357,10 +1354,10 @@ static void particle_batch_cache_ensure_pos_and_seg(PTCacheEdit *edit,
     MEM_freeN(parent_mcol);
   }
   if (num_uv_layers) {
-    MEM_freeN((void *)mtfaces);
+    MEM_freeN(mtfaces);
   }
   if (num_col_layers) {
-    MEM_freeN((void *)mcols);
+    MEM_freeN(mcols);
   }
   if (psmd != nullptr) {
     MEM_freeN(uv_id);
@@ -1380,7 +1377,7 @@ static void particle_batch_cache_ensure_pos(Object *object,
   ParticleData *pa;
   ParticleKey state;
   ParticleSimulationData sim = {nullptr};
-  const DRWContextState *draw_ctx = DRW_context_state_get();
+  const DRWContext *draw_ctx = DRW_context_get();
 
   sim.depsgraph = draw_ctx->depsgraph;
   sim.scene = draw_ctx->scene;
@@ -1449,9 +1446,9 @@ static void drw_particle_update_ptcache_edit(Object *object_eval,
   /* NOTE: Get flag from particle system coming from drawing object.
    * this is where depsgraph will be setting flags to.
    */
-  const DRWContextState *draw_ctx = DRW_context_state_get();
-  Scene *scene_orig = (Scene *)DEG_get_original_id(&draw_ctx->scene->id);
-  Object *object_orig = DEG_get_original_object(object_eval);
+  const DRWContext *draw_ctx = DRW_context_get();
+  Scene *scene_orig = DEG_get_original(draw_ctx->scene);
+  Object *object_orig = DEG_get_original(object_eval);
   if (psys->flag & PSYS_HAIR_UPDATED) {
     PE_update_object(draw_ctx->depsgraph, scene_orig, object_orig, 0);
     psys->flag &= ~PSYS_HAIR_UPDATED;
@@ -1472,9 +1469,9 @@ static void drw_particle_update_ptcache(Object *object_eval, ParticleSystem *psy
   if ((object_eval->mode & OB_MODE_PARTICLE_EDIT) == 0) {
     return;
   }
-  const DRWContextState *draw_ctx = DRW_context_state_get();
-  Scene *scene_orig = (Scene *)DEG_get_original_id(&draw_ctx->scene->id);
-  Object *object_orig = DEG_get_original_object(object_eval);
+  const DRWContext *draw_ctx = DRW_context_get();
+  Scene *scene_orig = DEG_get_original(draw_ctx->scene);
+  Object *object_orig = DEG_get_original(object_eval);
   PTCacheEdit *edit = PE_create_current(draw_ctx->depsgraph, scene_orig, object_orig);
   if (edit != nullptr) {
     drw_particle_update_ptcache_edit(object_eval, psys, edit);
@@ -1494,13 +1491,13 @@ static void drw_particle_get_hair_source(Object *object,
                                          PTCacheEdit *edit,
                                          ParticleDrawSource *r_draw_source)
 {
-  const DRWContextState *draw_ctx = DRW_context_state_get();
+  const DRWContext *draw_ctx = DRW_context_get();
   r_draw_source->object = object;
   r_draw_source->psys = psys;
   r_draw_source->md = md;
   r_draw_source->edit = edit;
   if (psys_in_edit_mode(draw_ctx->depsgraph, psys)) {
-    r_draw_source->object = DEG_get_original_object(object);
+    r_draw_source->object = DEG_get_original(object);
     r_draw_source->psys = psys_orig_get(psys);
   }
 }
@@ -1704,6 +1701,26 @@ gpu::Batch *DRW_particles_batch_cache_get_edit_tip_points(Object *object,
   particle_batch_cache_ensure_edit_tip_pos(edit, cache);
   cache->edit_tip_points = GPU_batch_create(GPU_PRIM_POINTS, cache->edit_tip_pos, nullptr);
   return cache->edit_tip_points;
+}
+
+float4x4 DRW_particles_dupli_matrix_get(const ObjectRef &ob_ref)
+{
+  float4x4 dupli_mat = float4x4::identity();
+
+  if ((ob_ref.dupli_parent != nullptr) && (ob_ref.dupli_object != nullptr)) {
+    if (ob_ref.dupli_object->type & OB_DUPLICOLLECTION) {
+      Collection *collection = ob_ref.dupli_parent->instance_collection;
+      if (collection != nullptr) {
+        dupli_mat[3] -= float4(float3(collection->instance_offset), 0.0f);
+      }
+      dupli_mat = ob_ref.dupli_parent->object_to_world() * dupli_mat;
+    }
+    else {
+      dupli_mat = ob_ref.object->object_to_world() *
+                  math::invert(ob_ref.dupli_object->ob->object_to_world());
+    }
+  }
+  return dupli_mat;
 }
 
 bool particles_ensure_procedural_data(Object *object,

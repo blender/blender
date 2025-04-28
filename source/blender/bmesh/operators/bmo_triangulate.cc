@@ -101,7 +101,7 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
     uint i;
     bool is_degenerate = true;
 
-    nors = static_cast<SortNormal *>(MEM_mallocN(sizeof(*nors) * nors_tot, __func__));
+    nors = MEM_malloc_arrayN<SortNormal>(nors_tot, __func__);
 
     for (sf_vert = static_cast<ScanFillVert *>(sf_ctx.fillvertbase.first), i = 0; sf_vert;
          sf_vert = sf_vert->next, i++)
@@ -242,7 +242,12 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
       if (BMO_edge_flag_test(bm, e, ELE_NEW)) {
         /* in rare cases the edges face will have already been removed from the edge */
         if (LIKELY(BM_edge_is_manifold(e))) {
-          BMFace *f_new = BM_faces_join_pair(bm, e->l, e->l->radial_next, false);
+          BMFace *f_double;
+          BMFace *f_new = BM_faces_join_pair(bm, e->l, e->l->radial_next, false, &f_double);
+          /* See #BM_faces_join note on callers asserting when `r_double` is non-null. */
+          BLI_assert_msg(f_double == nullptr,
+                         "Doubled face detected at " AT ". Resulting mesh may be corrupt.");
+
           if (f_new) {
             BMO_face_flag_enable(bm, f_new, ELE_NEW);
             BM_edge_kill(bm, e);

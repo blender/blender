@@ -69,7 +69,9 @@ const EnumPropertyItem rna_enum_abc_export_evaluation_mode_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-static int wm_alembic_export_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+static wmOperatorStatus wm_alembic_export_invoke(bContext *C,
+                                                 wmOperator *op,
+                                                 const wmEvent * /*event*/)
 {
   if (!RNA_struct_property_is_set(op->ptr, "as_background_job")) {
     RNA_boolean_set(op->ptr, "as_background_job", true);
@@ -84,7 +86,7 @@ static int wm_alembic_export_invoke(bContext *C, wmOperator *op, const wmEvent *
   return OPERATOR_RUNNING_MODAL;
 }
 
-static int wm_alembic_export_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus wm_alembic_export_exec(bContext *C, wmOperator *op)
 {
   if (!RNA_struct_property_is_set_ex(op->ptr, "filepath", false)) {
     BKE_report(op->reports, RPT_ERROR, "No filepath given");
@@ -150,12 +152,12 @@ static void ui_alembic_export_settings(const bContext *C, uiLayout *layout, Poin
   uiLayoutSetPropDecorate(layout, false);
 
   if (uiLayout *panel = uiLayoutPanel(C, layout, "ABC_export_general", false, IFACE_("General"))) {
-    uiLayout *col = uiLayoutColumn(panel, false);
+    uiLayout *col = &panel->column(false);
     uiItemR(col, ptr, "global_scale", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-    col = uiLayoutColumn(panel, false);
+    col = &panel->column(false);
     if (CTX_wm_space_file(C)) {
-      uiLayout *sub = uiLayoutColumnWithHeading(col, true, IFACE_("Include"));
+      uiLayout *sub = &col->column(true, IFACE_("Include"));
       uiItemR(sub, ptr, "selected", UI_ITEM_NONE, IFACE_("Selection Only"), ICON_NONE);
       uiItemR(sub, ptr, "visible_objects_only", UI_ITEM_NONE, IFACE_("Visible Only"), ICON_NONE);
     }
@@ -163,17 +165,17 @@ static void ui_alembic_export_settings(const bContext *C, uiLayout *layout, Poin
 
   /* Scene Options */
   if (uiLayout *panel = uiLayoutPanel(C, layout, "ABC_export_scene", false, IFACE_("Scene"))) {
-    uiLayout *col = uiLayoutColumn(panel, false);
+    uiLayout *col = &panel->column(false);
 
-    uiLayout *sub = uiLayoutColumn(col, true);
+    uiLayout *sub = &col->column(true);
     uiItemR(sub, ptr, "start", UI_ITEM_NONE, IFACE_("Frame Start"), ICON_NONE);
     uiItemR(sub, ptr, "end", UI_ITEM_NONE, IFACE_("End"), ICON_NONE);
 
-    sub = uiLayoutColumn(col, true);
+    sub = &col->column(true);
     uiItemR(sub, ptr, "xsamples", UI_ITEM_NONE, IFACE_("Samples Transform"), ICON_NONE);
     uiItemR(sub, ptr, "gsamples", UI_ITEM_NONE, IFACE_("Geometry"), ICON_NONE);
 
-    sub = uiLayoutColumn(col, true);
+    sub = &col->column(true);
     uiItemR(sub, ptr, "sh_open", UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
     uiItemR(sub, ptr, "sh_close", UI_ITEM_R_SLIDER, IFACE_("Close"), ICON_NONE);
 
@@ -188,17 +190,17 @@ static void ui_alembic_export_settings(const bContext *C, uiLayout *layout, Poin
             ICON_NONE);
     uiItemR(col, ptr, "flatten", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-    col = uiLayoutColumn(panel, true);
+    col = &panel->column(true);
     uiItemR(col, ptr, "evaluation_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
   /* Object Data */
   if (uiLayout *panel = uiLayoutPanel(C, layout, "ABC_export_geometry", false, IFACE_("Geometry")))
   {
-    uiLayout *col = uiLayoutColumn(panel, true);
+    uiLayout *col = &panel->column(true);
     uiItemR(col, ptr, "uvs", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-    uiLayout *row = uiLayoutRow(col, false);
+    uiLayout *row = &col->row(false);
     uiLayoutSetActive(row, RNA_boolean_get(ptr, "uvs"));
     uiItemR(row, ptr, "packuv", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
@@ -210,13 +212,13 @@ static void ui_alembic_export_settings(const bContext *C, uiLayout *layout, Poin
 
     uiItemS(col);
 
-    uiLayout *sub = uiLayoutColumnWithHeading(col, true, IFACE_("Subdivision"));
+    uiLayout *sub = &col->column(true, IFACE_("Subdivision"));
     uiItemR(sub, ptr, "apply_subdiv", UI_ITEM_NONE, IFACE_("Apply"), ICON_NONE);
     uiItemR(sub, ptr, "subdiv_schema", UI_ITEM_NONE, IFACE_("Use Schema"), ICON_NONE);
 
-    col = uiLayoutColumn(panel, false);
+    col = &panel->column(false);
     uiItemR(col, ptr, "triangulate", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    sub = uiLayoutColumn(col, false);
+    sub = &col->column(false);
     uiLayoutSetActive(sub, RNA_boolean_get(ptr, "triangulate"));
     uiItemR(sub, ptr, "quad_method", UI_ITEM_NONE, IFACE_("Method Quads"), ICON_NONE);
     uiItemR(sub, ptr, "ngon_method", UI_ITEM_NONE, IFACE_("Polygons"), ICON_NONE);
@@ -226,7 +228,7 @@ static void ui_alembic_export_settings(const bContext *C, uiLayout *layout, Poin
   if (uiLayout *panel = uiLayoutPanel(
           C, layout, "ABC_export_particles", false, IFACE_("Particle Systems")))
   {
-    uiLayout *col = uiLayoutColumn(panel, true);
+    uiLayout *col = &panel->column(true);
     uiItemR(col, ptr, "export_hair", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     uiItemR(col, ptr, "export_particles", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
@@ -568,12 +570,12 @@ static void ui_alembic_import_settings(const bContext *C, uiLayout *layout, Poin
   uiLayoutSetPropDecorate(layout, false);
 
   if (uiLayout *panel = uiLayoutPanel(C, layout, "ABC_import_general", false, IFACE_("General"))) {
-    uiLayout *col = uiLayoutColumn(panel, false);
+    uiLayout *col = &panel->column(false);
     uiItemR(col, ptr, "scale", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
   if (uiLayout *panel = uiLayoutPanel(C, layout, "ABC_import_options", false, IFACE_("Options"))) {
-    uiLayout *col = uiLayoutColumn(panel, false);
+    uiLayout *col = &panel->column(false);
     uiItemR(col, ptr, "relative_path", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     uiItemR(col, ptr, "set_frame_range", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     uiItemR(col, ptr, "is_sequence", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -588,7 +590,7 @@ static void wm_alembic_import_draw(bContext *C, wmOperator *op)
 }
 
 /* op->invoke, opens fileselect if path property not set, otherwise executes */
-static int wm_alembic_import_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus wm_alembic_import_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   if (!RNA_struct_property_is_set(op->ptr, "as_background_job")) {
     RNA_boolean_set(op->ptr, "as_background_job", true);
@@ -596,7 +598,7 @@ static int wm_alembic_import_invoke(bContext *C, wmOperator *op, const wmEvent *
   return blender::ed::io::filesel_drop_import_invoke(C, op, event);
 }
 
-static int wm_alembic_import_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus wm_alembic_import_exec(bContext *C, wmOperator *op)
 {
   blender::Vector<std::string> paths = blender::ed::io::paths_from_operator_properties(op->ptr);
   if (paths.is_empty()) {

@@ -122,8 +122,7 @@ static bool node_insert_link(bNodeTree *ntree, bNode *node, bNodeLink *link)
 
 static const CPPType &get_item_cpp_type(const eNodeSocketDatatype socket_type)
 {
-  const StringRefNull socket_idname = *bke::node_static_socket_type(socket_type, 0);
-  const bke::bNodeSocketType *typeinfo = bke::node_socket_type_find(socket_idname);
+  const bke::bNodeSocketType *typeinfo = bke::node_socket_type_find_static(socket_type);
   BLI_assert(typeinfo);
   BLI_assert(typeinfo->geometry_nodes_cpp_type);
   return *typeinfo->geometry_nodes_cpp_type;
@@ -252,7 +251,7 @@ class LazyFunctionForBakeNode final : public LazyFunction {
       this->set_default_outputs(params);
       return;
     }
-    if (found_id->is_in_loop) {
+    if (found_id->is_in_loop || found_id->is_in_closure) {
       DummyDataBlockMap data_block_map;
       this->pass_through(params, user_data, &data_block_map);
       return;
@@ -376,7 +375,7 @@ class LazyFunctionForBakeNode final : public LazyFunction {
     LinearAllocator<> allocator;
     for (const int i : bake_items_.index_range()) {
       const CPPType &type = *outputs_[i].type;
-      next_values[i] = allocator.allocate(type.size(), type.alignment());
+      next_values[i] = allocator.allocate(type);
     }
     this->copy_bake_state_to_values(
         next_state, data_block_map, self_object, compute_context, next_values);
@@ -503,9 +502,9 @@ static void node_layout(uiLayout *layout, bContext *C, PointerRNA *ptr)
   }
 
   uiLayoutSetEnabled(layout, ID_IS_EDITABLE(ctx.object));
-  uiLayout *col = uiLayoutColumn(layout, false);
+  uiLayout *col = &layout->column(false);
   {
-    uiLayout *row = uiLayoutRow(col, true);
+    uiLayout *row = &col->row(true);
     uiLayoutSetEnabled(row, !ctx.is_baked);
     uiItemR(row, &ctx.bake_rna, "bake_mode", UI_ITEM_R_EXPAND, IFACE_("Mode"), ICON_NONE);
   }
@@ -525,16 +524,16 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *ptr)
   uiLayoutSetEnabled(layout, ID_IS_EDITABLE(ctx.object));
 
   {
-    uiLayout *col = uiLayoutColumn(layout, false);
+    uiLayout *col = &layout->column(false);
     {
-      uiLayout *row = uiLayoutRow(col, true);
+      uiLayout *row = &col->row(true);
       uiLayoutSetEnabled(row, !ctx.is_baked);
       uiItemR(row, &ctx.bake_rna, "bake_mode", UI_ITEM_R_EXPAND, IFACE_("Mode"), ICON_NONE);
     }
 
     draw_bake_button_row(ctx, col, true);
     if (const std::optional<std::string> bake_state_str = get_bake_state_string(ctx)) {
-      uiLayout *row = uiLayoutRow(col, true);
+      uiLayout *row = &col->row(true);
       uiItemL(row, *bake_state_str, ICON_NONE);
     }
   }
@@ -695,8 +694,8 @@ std::optional<std::string> get_bake_state_string(const BakeDrawContext &ctx)
 
 void draw_bake_button_row(const BakeDrawContext &ctx, uiLayout *layout, const bool is_in_sidebar)
 {
-  uiLayout *col = uiLayoutColumn(layout, true);
-  uiLayout *row = uiLayoutRow(col, true);
+  uiLayout *col = &layout->column(true);
+  uiLayout *row = &col->row(true);
   {
     const char *bake_label = IFACE_("Bake");
     if (is_in_sidebar) {
@@ -718,7 +717,7 @@ void draw_bake_button_row(const BakeDrawContext &ctx, uiLayout *layout, const bo
     RNA_int_set(&ptr, "bake_id", ctx.bake->id);
   }
   {
-    uiLayout *subrow = uiLayoutRow(row, true);
+    uiLayout *subrow = &row->row(true);
     uiLayoutSetActive(subrow, ctx.is_baked);
     if (is_in_sidebar) {
       if (ctx.is_baked && !G.is_rendering) {
@@ -788,16 +787,16 @@ void draw_common_bake_settings(bContext *C, BakeDrawContext &ctx, uiLayout *layo
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
 
-  uiLayout *settings_col = uiLayoutColumn(layout, false);
+  uiLayout *settings_col = &layout->column(false);
   uiLayoutSetActive(settings_col, !ctx.is_baked);
   {
-    uiLayout *col = uiLayoutColumn(settings_col, true);
+    uiLayout *col = &settings_col->column(true);
     uiItemR(col, &ctx.bake_rna, "bake_target", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    uiLayout *subcol = uiLayoutColumn(col, true);
+    uiLayout *subcol = &col->column(true);
     uiLayoutSetActive(subcol, ctx.bake_target == NODES_MODIFIER_BAKE_TARGET_DISK);
     uiItemR(
         subcol, &ctx.bake_rna, "use_custom_path", UI_ITEM_NONE, IFACE_("Custom Path"), ICON_NONE);
-    uiLayout *subsubcol = uiLayoutColumn(subcol, true);
+    uiLayout *subsubcol = &subcol->column(true);
     const bool use_custom_path = ctx.bake->flag & NODES_MODIFIER_BAKE_CUSTOM_PATH;
     uiLayoutSetActive(subsubcol, use_custom_path);
     Main *bmain = CTX_data_main(C);
@@ -825,14 +824,14 @@ void draw_common_bake_settings(bContext *C, BakeDrawContext &ctx, uiLayout *layo
                 placeholder_path);
   }
   {
-    uiLayout *col = uiLayoutColumn(settings_col, true);
+    uiLayout *col = &settings_col->column(true);
     uiItemR(col,
             &ctx.bake_rna,
             "use_custom_simulation_frame_range",
             UI_ITEM_NONE,
             IFACE_("Custom Range"),
             ICON_NONE);
-    uiLayout *subcol = uiLayoutColumn(col, true);
+    uiLayout *subcol = &col->column(true);
     uiLayoutSetActive(subcol, ctx.bake->flag & NODES_MODIFIER_BAKE_CUSTOM_SIMULATION_FRAME_RANGE);
     uiItemR(subcol, &ctx.bake_rna, "frame_start", UI_ITEM_NONE, IFACE_("Start"), ICON_NONE);
     uiItemR(subcol, &ctx.bake_rna, "frame_end", UI_ITEM_NONE, IFACE_("End"), ICON_NONE);
@@ -851,7 +850,7 @@ static void draw_bake_data_block_list_item(uiList * /*ui_list*/,
                                            int /*flt_flag*/)
 {
   auto &data_block = *static_cast<NodesModifierDataBlock *>(itemptr->data);
-  uiLayout *row = uiLayoutRow(layout, true);
+  uiLayout *row = &layout->row(true);
 
   std::string name;
   if (StringRef(data_block.lib_name).is_empty()) {

@@ -171,7 +171,7 @@ void BKE_bmbvh_free(BMBVHTree *bmtree)
   BLI_bvhtree_free(bmtree->tree);
 
   if (bmtree->cos_cage && bmtree->cos_cage_free) {
-    MEM_freeN((void *)bmtree->cos_cage);
+    MEM_freeN(bmtree->cos_cage);
   }
 
   MEM_delete(bmtree);

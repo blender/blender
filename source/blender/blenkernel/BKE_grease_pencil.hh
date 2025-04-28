@@ -421,15 +421,17 @@ class LayerRuntime {
    */
   Vector<LayerMask> masks_;
 
-  /* Runtime data used for frame transformations. */
+  /** Runtime data used for frame transformations. */
   LayerTransformData trans_data_;
 
-  /* Whether this layer's visibility is animated (via the ".hide" RNA property). This is only set
-   * when creating a copy of of the owning GreasePencil ID for the depsgraph evaluation. */
-  bool is_visisbility_animated_;
+  /**
+   * Whether this layer's visibility is animated (via the ".hide" RNA property). This is only set
+   * when creating a copy of the owning GreasePencil ID for the depsgraph evaluation.
+   */
+  bool is_visibility_animated_;
 
  public:
-  /* Reset all runtime data. */
+  /** Reset all runtime data. */
   void clear();
 };
 
@@ -641,6 +643,12 @@ class LayerGroupRuntime {
    * Caches all the layer groups in this group in a single pre-ordered vector.
    */
   mutable Vector<LayerGroup *> layer_group_cache_;
+
+  /**
+   * Whether this layer's visibility is animated (via the ".hide" RNA property). This is only set
+   * when creating a copy of the owning GreasePencil ID for the depsgraph evaluation.
+   */
+  bool is_visibility_animated_;
 };
 
 /**

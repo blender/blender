@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup bli
+ */
+
 #pragma once
 
 /**
@@ -51,5 +55,13 @@
   friend bool operator==(const Type &a, const Type &b) \
   { \
     return a.m1 == b.m1 && a.m2 == b.m2 && a.m3 == b.m3 && a.m4 == b.m4 && a.m5 == b.m5; \
+  } \
+  BLI_STRUCT_DERIVED_UNEQUAL_OPERATOR(Type)
+
+#define BLI_STRUCT_EQUALITY_OPERATORS_6(Type, m1, m2, m3, m4, m5, m6) \
+  friend bool operator==(const Type &a, const Type &b) \
+  { \
+    return a.m1 == b.m1 && a.m2 == b.m2 && a.m3 == b.m3 && a.m4 == b.m4 && a.m5 == b.m5 && \
+           a.m6 == b.m6; \
   } \
   BLI_STRUCT_DERIVED_UNEQUAL_OPERATOR(Type)

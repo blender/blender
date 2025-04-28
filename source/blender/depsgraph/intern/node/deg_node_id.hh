@@ -8,11 +8,13 @@
 
 #pragma once
 
+#include "BLI_struct_equality_utils.hh"
 #include "intern/node/deg_node.hh"
 
 #include "DNA_ID.h"
 
 #include "BLI_map.hh"
+#include "BLI_string_ref.hh"
 #include "BLI_sys_types.h"
 
 namespace blender::deg {
@@ -36,12 +38,16 @@ const char *linkedStateAsString(eDepsNode_LinkedState_Type linked_state);
 /* ID-Block Reference */
 struct IDNode : public Node {
   struct ComponentIDKey {
-    ComponentIDKey(NodeType type, const char *name = "");
-    uint64_t hash() const;
-    bool operator==(const ComponentIDKey &other) const;
 
     NodeType type;
-    const char *name;
+    StringRef name;
+
+    ComponentIDKey(NodeType type, StringRef name = "") : type(type), name(name) {}
+    BLI_STRUCT_EQUALITY_OPERATORS_2(ComponentIDKey, type, name);
+    uint64_t hash() const
+    {
+      return get_default_hash(type, name);
+    }
   };
 
   /** Initialize 'id' node - from pointer data given. */
@@ -52,8 +58,8 @@ struct IDNode : public Node {
 
   std::string identifier() const override;
 
-  ComponentNode *find_component(NodeType type, const char *name = "") const;
-  ComponentNode *add_component(NodeType type, const char *name = "");
+  ComponentNode *find_component(NodeType type, StringRef name = "") const;
+  ComponentNode *add_component(NodeType type, StringRef name = "");
 
   void tag_update(Depsgraph *graph, eUpdateSource source) override;
 

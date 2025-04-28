@@ -543,7 +543,6 @@ class PREFERENCES_OT_addon_disable(Operator):
             _wm_wait_cursor(True)
 
         module_name = self.module
-        is_extension = addon_utils.check_extension(module_name)
         addon_utils.disable(module_name, default_set=True, handle_error=err_cb)
 
         if err_str:
@@ -946,7 +945,10 @@ class PREFERENCES_OT_addon_show(Operator):
             context.preferences.view.show_addons_enabled_only = False
             context.window_manager.addon_filter = 'All'
             context.window_manager.addon_search = bl_info["name"]
-            bpy.ops.screen.userpref_show('INVOKE_DEFAULT')
+
+            # No need to show the editor if it is already visible in the main window.
+            if 'PREFERENCES' not in (area.type for area in context.screen.areas):
+                bpy.ops.screen.userpref_show('INVOKE_DEFAULT')
 
         return {'FINISHED'}
 
@@ -1129,6 +1131,7 @@ class PREFERENCES_OT_studiolight_new(Operator):
     filename: StringProperty(
         name="Name",
         default="StudioLight",
+        subtype='FILE_NAME',
     )
 
     ask_override = False

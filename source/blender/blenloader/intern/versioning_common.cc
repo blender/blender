@@ -337,8 +337,8 @@ void version_node_socket_index_animdata(Main *bmain,
 
         const size_t node_name_length = strlen(node->name);
         const size_t node_name_escaped_max_length = (node_name_length * 2);
-        char *node_name_escaped = (char *)MEM_mallocN(node_name_escaped_max_length + 1,
-                                                      "escaped name");
+        char *node_name_escaped = MEM_malloc_arrayN<char>(node_name_escaped_max_length + 1,
+                                                          "escaped name");
         BLI_str_escape(node_name_escaped, node->name, node_name_escaped_max_length);
         char *rna_path_prefix = BLI_sprintfN("nodes[\"%s\"].inputs", node_name_escaped);
 
@@ -621,7 +621,7 @@ void do_versions_after_setup(Main *new_bmain,
                              BlendFileReadReport *reports)
 {
   /* WARNING: The code below may add IDs. These IDs _will_ be (by definition) conforming to current
-   * code's version already, and _must not_ be 'versionned' again.
+   * code's version already, and _must not_ be *versioned* again.
    *
    * This means that when adding code here, _extreme_ care must be taken that it will not badly
    * affect these 'modern' IDs potentially added by already existing processing.
@@ -655,7 +655,7 @@ void do_versions_after_setup(Main *new_bmain,
   if (!blendfile_or_libraries_versions_atleast(new_bmain, 250, 0)) {
     LISTBASE_FOREACH (Scene *, scene, &new_bmain->scenes) {
       if (scene->ed) {
-        SEQ_doversion_250_sound_proxy_update(new_bmain, scene->ed);
+        blender::seq::doversion_250_sound_proxy_update(new_bmain, scene->ed);
       }
     }
   }
@@ -679,13 +679,14 @@ void do_versions_after_setup(Main *new_bmain,
     BKE_main_mesh_legacy_convert_auto_smooth(*new_bmain);
   }
 
+  if (!blendfile_or_libraries_versions_atleast(new_bmain, 404, 2)) {
+    /* Version all the action assignments of just-versioned datablocks. This MUST happen before the
+     * GreasePencil conversion, as that assumes the Action Slots have already been assigned. */
+    blender::animrig::versioning::convert_legacy_action_assignments(*new_bmain, reports->reports);
+  }
+
   if (!blendfile_or_libraries_versions_atleast(new_bmain, 403, 3)) {
     /* Convert all the legacy grease pencil objects. This does not touch annotations. */
     blender::bke::greasepencil::convert::legacy_main(*new_bmain, lapp_context, *reports);
-  }
-
-  if (!blendfile_or_libraries_versions_atleast(new_bmain, 404, 2)) {
-    /* Version all the action assignments of just-versioned datablocks. */
-    blender::animrig::versioning::convert_legacy_action_assignments(*new_bmain, reports->reports);
   }
 }

@@ -12,11 +12,11 @@ VERTEX_SHADER_CREATE_INFO(overlay_edit_pointcloud)
 
 void main()
 {
-  finalColor = colorVertexSelect;
+  final_color = colorVertexSelect;
 
   float radius = pos_rad.w;
-  vec3 world_pos = drw_point_object_to_world(pos_rad.xyz);
-  vec3 V = drw_world_incident_vector(world_pos);
+  float3 world_pos = drw_point_object_to_world(pos_rad.xyz);
+  float3 V = drw_world_incident_vector(world_pos);
 
   /* Offset the position so the selection point is always
    * drawn in from of the point, regardless of the radius. */
@@ -24,8 +24,8 @@ void main()
   gl_Position = drw_point_world_to_homogenous(world_pos);
 
   /* Small offset in Z for depth precision. */
-  gl_Position.z -= 3e-4;
+  gl_Position.z -= 3e-4f;
 
-  gl_PointSize = sizeVertex * 2.0;
+  gl_PointSize = sizeVertex * 2.0f;
   view_clipping_distances(world_pos);
 }

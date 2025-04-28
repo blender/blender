@@ -10,8 +10,10 @@
 
 struct GPUTexture;
 struct GPUViewport;
+struct DRWContext;
 
-/**
- * Draw texture to frame-buffer without any color transforms.
- */
-void DRW_viewport_colormanagement_set(GPUViewport *viewport);
+namespace blender::draw::color_management {
+
+void viewport_color_management_set(GPUViewport &viewport, DRWContext &draw_ctx);
+
+}  // namespace blender::draw::color_management

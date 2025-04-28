@@ -8,7 +8,6 @@ set(INC
 )
 
 set(INC_SYS
-  ${EIGEN3_INCLUDE_DIRS}
 )
 
 if(WIN32)
@@ -31,6 +30,7 @@ set(SRC
 )
 
 set(LIB
+  PRIVATE bf::dependencies::eigen
 )
 
 blender_add_lib(bf_intern_iksolver "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

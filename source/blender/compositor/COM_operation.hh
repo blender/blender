@@ -166,10 +166,6 @@ class Operation {
    * evaluated directly. Otherwise, the input processors will be added and evaluated. */
   void evaluate_input_processors();
 
-  /* Resets the results of the operation. See the reset method in the Result class for more
-   * information. */
-  void reset_results();
-
   /* Release the results that are mapped to the inputs of the operation. This is called after the
    * evaluation of the operation to declare that the results are no longer needed by this
    * operation. */

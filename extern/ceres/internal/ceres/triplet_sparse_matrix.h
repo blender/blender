@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2015 Google Inc. All rights reserved.
+// Copyright 2023 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -32,16 +32,17 @@
 #define CERES_INTERNAL_TRIPLET_SPARSE_MATRIX_H_
 
 #include <memory>
+#include <random>
 #include <vector>
 
+#include "ceres/crs_matrix.h"
 #include "ceres/internal/disable_warnings.h"
 #include "ceres/internal/eigen.h"
 #include "ceres/internal/export.h"
 #include "ceres/sparse_matrix.h"
 #include "ceres/types.h"
 
-namespace ceres {
-namespace internal {
+namespace ceres::internal {
 
 // An implementation of the SparseMatrix interface to store and
 // manipulate sparse matrices in triplet (i,j,s) form.  This object is
@@ -65,10 +66,11 @@ class CERES_NO_EXPORT TripletSparseMatrix final : public SparseMatrix {
 
   // Implementation of the SparseMatrix interface.
   void SetZero() final;
-  void RightMultiply(const double* x, double* y) const final;
-  void LeftMultiply(const double* x, double* y) const final;
+  void RightMultiplyAndAccumulate(const double* x, double* y) const final;
+  void LeftMultiplyAndAccumulate(const double* x, double* y) const final;
   void SquaredColumnNorm(double* x) const final;
   void ScaleColumns(const double* scale) final;
+  void ToCRSMatrix(CRSMatrix* matrix) const;
   void ToDenseMatrix(Matrix* dense_matrix) const final;
   void ToTextFile(FILE* file) const final;
   // clang-format off
@@ -134,7 +136,11 @@ class CERES_NO_EXPORT TripletSparseMatrix final : public SparseMatrix {
   // normally distributed and whose structure is determined by
   // RandomMatrixOptions.
   static std::unique_ptr<TripletSparseMatrix> CreateRandomMatrix(
-      const TripletSparseMatrix::RandomMatrixOptions& options);
+      const TripletSparseMatrix::RandomMatrixOptions& options,
+      std::mt19937& prng);
+
+  // Load a triplet sparse matrix from a text file.
+  static std::unique_ptr<TripletSparseMatrix> CreateFromTextFile(FILE* file);
 
  private:
   void AllocateMemory();
@@ -154,8 +160,7 @@ class CERES_NO_EXPORT TripletSparseMatrix final : public SparseMatrix {
   std::unique_ptr<double[]> values_;
 };
 
-}  // namespace internal
-}  // namespace ceres
+}  // namespace ceres::internal
 
 #include "ceres/internal/reenable_warnings.h"
 

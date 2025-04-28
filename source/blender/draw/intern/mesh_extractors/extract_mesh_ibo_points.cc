@@ -67,7 +67,7 @@ static void process_ibo_verts_mesh(const MeshRenderData &mr, const Fn &process_v
   });
 }
 
-static void extract_points_mesh(const MeshRenderData &mr, gpu::IndexBuf &points)
+static gpu::IndexBufPtr extract_points_mesh(const MeshRenderData &mr)
 {
   IndexMaskMemory memory;
   const IndexMask visible_verts = calc_vert_visibility_mesh(mr, IndexMask(mr.verts_num), memory);
@@ -101,7 +101,7 @@ static void extract_points_mesh(const MeshRenderData &mr, gpu::IndexBuf &points)
     }
   });
 
-  GPU_indexbuf_build_in_place_ex(&builder, 0, max_index, false, &points);
+  return gpu::IndexBufPtr(GPU_indexbuf_build_ex(&builder, 0, max_index, false));
 }
 
 template<typename Fn>
@@ -137,7 +137,7 @@ static void process_ibo_verts_bm(const MeshRenderData &mr, const Fn &process_ver
   });
 }
 
-static void extract_points_bm(const MeshRenderData &mr, gpu::IndexBuf &points)
+static gpu::IndexBufPtr extract_points_bm(const MeshRenderData &mr)
 {
   BMesh &bm = *mr.bm;
 
@@ -183,17 +183,15 @@ static void extract_points_bm(const MeshRenderData &mr, gpu::IndexBuf &points)
     });
   }
 
-  GPU_indexbuf_build_in_place_ex(&builder, 0, max_index, false, &points);
+  return gpu::IndexBufPtr(GPU_indexbuf_build_ex(&builder, 0, max_index, false));
 }
 
-void extract_points(const MeshRenderData &mr, gpu::IndexBuf &points)
+gpu::IndexBufPtr extract_points(const MeshRenderData &mr)
 {
   if (mr.extract_type == MeshExtractType::Mesh) {
-    extract_points_mesh(mr, points);
+    return extract_points_mesh(mr);
   }
-  else {
-    extract_points_bm(mr, points);
-  }
+  return extract_points_bm(mr);
 }
 
 static IndexMask calc_vert_visibility_mapped_mesh(const MeshRenderData &mr,
@@ -216,9 +214,8 @@ static IndexMask calc_vert_visibility_mapped_mesh(const MeshRenderData &mr,
   return visible;
 }
 
-static void extract_points_subdiv_mesh(const MeshRenderData &mr,
-                                       const DRWSubdivCache &subdiv_cache,
-                                       gpu::IndexBuf &points)
+static gpu::IndexBufPtr extract_points_subdiv_mesh(const MeshRenderData &mr,
+                                                   const DRWSubdivCache &subdiv_cache)
 {
   const Span<int2> coarse_edges = mr.edges;
   const Span<int> loose_verts = mr.loose_verts;
@@ -273,12 +270,11 @@ static void extract_points_subdiv_mesh(const MeshRenderData &mr,
   const int loose_verts_start = loose_geom_start + loose_edge_verts_num;
   visible_loose.shift(loose_verts_start, memory).to_indices<int32_t>(loose_vert_data);
 
-  GPU_indexbuf_build_in_place_ex(&builder, 0, max_index, true, &points);
+  return gpu::IndexBufPtr(GPU_indexbuf_build_ex(&builder, 0, max_index, true));
 }
 
-static void extract_points_subdiv_bm(const MeshRenderData &mr,
-                                     const DRWSubdivCache &subdiv_cache,
-                                     gpu::IndexBuf &points)
+static gpu::IndexBufPtr extract_points_subdiv_bm(const MeshRenderData &mr,
+                                                 const DRWSubdivCache &subdiv_cache)
 {
   const Span<int2> coarse_edges = mr.edges;
   const Span<int> loose_verts = mr.loose_verts;
@@ -328,19 +324,16 @@ static void extract_points_subdiv_bm(const MeshRenderData &mr,
   const int loose_verts_start = loose_geom_start + loose_edge_verts_num;
   visible_loose.shift(loose_verts_start, memory).to_indices<int32_t>(loose_vert_data);
 
-  GPU_indexbuf_build_in_place_ex(&builder, 0, max_index, true, &points);
+  return gpu::IndexBufPtr(GPU_indexbuf_build_ex(&builder, 0, max_index, true));
 }
 
-void extract_points_subdiv(const MeshRenderData &mr,
-                           const DRWSubdivCache &subdiv_cache,
-                           gpu::IndexBuf &points)
+gpu::IndexBufPtr extract_points_subdiv(const MeshRenderData &mr,
+                                       const DRWSubdivCache &subdiv_cache)
 {
   if (mr.extract_type == MeshExtractType::Mesh) {
-    extract_points_subdiv_mesh(mr, subdiv_cache, points);
+    return extract_points_subdiv_mesh(mr, subdiv_cache);
   }
-  else {
-    extract_points_subdiv_bm(mr, subdiv_cache, points);
-  }
+  return extract_points_subdiv_bm(mr, subdiv_cache);
 }
 
 }  // namespace blender::draw

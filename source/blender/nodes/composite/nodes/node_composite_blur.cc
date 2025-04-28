@@ -57,7 +57,7 @@ static void node_composit_buts_blur(uiLayout *layout, bContext * /*C*/, PointerR
 {
   uiLayout *col, *row;
 
-  col = uiLayoutColumn(layout, false);
+  col = &layout->column(false);
   const int filter = RNA_enum_get(ptr, "filter_type");
   const int reference = RNA_boolean_get(ptr, "use_variable_size");
 
@@ -74,7 +74,7 @@ static void node_composit_buts_blur(uiLayout *layout, bContext * /*C*/, PointerR
 
   if (RNA_boolean_get(ptr, "use_relative")) {
     uiItemL(col, IFACE_("Aspect Correction"), ICON_NONE);
-    row = uiLayoutRow(layout, true);
+    row = &layout->row(true);
     uiItemR(row,
             ptr,
             "aspect_correction",
@@ -82,12 +82,12 @@ static void node_composit_buts_blur(uiLayout *layout, bContext * /*C*/, PointerR
             std::nullopt,
             ICON_NONE);
 
-    col = uiLayoutColumn(layout, true);
+    col = &layout->column(true);
     uiItemR(col, ptr, "factor_x", UI_ITEM_R_SPLIT_EMPTY_NAME, IFACE_("X"), ICON_NONE);
     uiItemR(col, ptr, "factor_y", UI_ITEM_R_SPLIT_EMPTY_NAME, IFACE_("Y"), ICON_NONE);
   }
   else {
-    col = uiLayoutColumn(layout, true);
+    col = &layout->column(true);
     uiItemR(col, ptr, "size_x", UI_ITEM_R_SPLIT_EMPTY_NAME, IFACE_("X"), ICON_NONE);
     uiItemR(col, ptr, "size_y", UI_ITEM_R_SPLIT_EMPTY_NAME, IFACE_("Y"), ICON_NONE);
   }
@@ -102,14 +102,14 @@ class BlurOperation : public NodeOperation {
 
   void execute() override
   {
-    Result &input = get_input("Image");
-    Result &output = get_result("Image");
-    if (is_identity()) {
-      input.pass_through(output);
+    const Result &input = this->get_input("Image");
+    Result &output = this->get_result("Image");
+    if (this->is_identity()) {
+      output.share_data(input);
       return;
     }
 
-    Result *blur_input = &input;
+    const Result *blur_input = &input;
     Result *blur_output = &output;
 
     /* Apply gamma correction if needed. */

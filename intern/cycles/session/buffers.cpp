@@ -69,7 +69,7 @@ PassInfo BufferPass::get_info() const
 }
 
 /* --------------------------------------------------------------------
- * Buffer Params.
+ * Buffer Parameters.
  */
 
 NODE_DEFINE(BufferParams)

@@ -32,6 +32,13 @@ class RENDER_MT_framerate_presets(Menu):
     draw = Menu.draw_preset
 
 
+class RENDER_MT_pixeldensity_presets(Menu):
+    bl_label = "Pixel Density Presets"
+    preset_subdir = "pixel_density"
+    preset_operator = "script.execute_preset"
+    draw = Menu.draw_preset
+
+
 class RenderOutputButtonsPanel:
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
@@ -71,7 +78,7 @@ class RENDER_PT_format(RenderOutputButtonsPanel, Panel):
             fps_rate = round(fps / fps_base, 2)
 
         # TODO: Change the following to iterate over existing presets
-        custom_framerate = (fps_rate not in {23.98, 24, 25, 29.97, 30, 50, 59.94, 60, 120, 240})
+        custom_framerate = (fps_rate not in {6, 8, 12, 23.98, 24, 25, 29.97, 30, 50, 59.94, 60, 120, 240})
 
         if custom_framerate is True:
             fps_label_text = iface_("Custom ({:.4g} fps)").format(fps_rate)
@@ -375,6 +382,83 @@ class RENDER_PT_output_color_management(RenderOutputButtonsPanel, Panel):
             col.template_colormanaged_view_settings(owner, "view_settings")
 
 
+class RENDER_PT_output_pixel_density(RenderOutputButtonsPanel, Panel):
+    bl_label = "Pixel Density"
+    bl_options = {'DEFAULT_CLOSED'}
+    bl_parent_id = "RENDER_PT_output"
+
+    COMPAT_ENGINES = {
+        'BLENDER_RENDER',
+        'BLENDER_EEVEE',
+        'BLENDER_EEVEE_NEXT',
+        'BLENDER_WORKBENCH',
+    }
+
+    _pixel_density_args_prev = None
+    _preset_class = None
+
+    @staticmethod
+    def _draw_pixeldensity_label(*args):
+        # Avoids re-creating text string each draw.
+        if RENDER_PT_output_pixel_density._pixel_density_args_prev == args:
+            return RENDER_PT_output_pixel_density._pixel_density_ret
+
+        ppm_base, preset_label = args
+
+        # NOTE: `as_float_32` is needed because Blender stores this value as a 32bit float.
+        # Which won't match Python's 64bit float.
+        def as_float_32(f):
+            from struct import pack, unpack
+            return unpack("f", pack("f", f))[0]
+
+        # NOTE: Values here are duplicated from presets, ideally this could be avoided.
+        unit_name = {
+            as_float_32(0.0254): iface_("Inch"),
+            as_float_32(0.01): iface_("Centimeter"),
+            as_float_32(1.0): iface_("Meter"),
+        }.get(ppm_base)
+
+        if unit_name is None:
+            pixeldensity_label_text = iface_("Custom")
+            show_pixeldensity = True
+        else:
+            pixeldensity_label_text = iface_("Pixels/{:s}").format(unit_name)
+            show_pixeldensity = (preset_label == "Custom")
+
+        RENDER_PT_output_pixel_density._pixel_density_args_prev = args
+        RENDER_PT_output_pixel_density._pixel_density_ret = args = (pixeldensity_label_text, show_pixeldensity)
+        return args
+
+    @staticmethod
+    def draw_pixeldensity(layout, rd):
+        if RENDER_PT_output_pixel_density._preset_class is None:
+            RENDER_PT_output_pixel_density._preset_class = bpy.types.RENDER_MT_pixeldensity_presets
+
+        args = rd.ppm_base, RENDER_PT_output_pixel_density._preset_class.bl_label
+        pixeldensity_label_text, show_pixeldensity = RENDER_PT_output_pixel_density._draw_pixeldensity_label(*args)
+
+        layout.prop(rd, "ppm_factor", text="Pixels")
+
+        row = layout.split(factor=0.4)
+        row.alignment = 'RIGHT'
+        row.label(text="Unit")
+        row.menu("RENDER_MT_pixeldensity_presets", text=pixeldensity_label_text)
+
+        if show_pixeldensity:
+            col = layout.column(align=True)
+            col.prop(rd, "ppm_base", text="Base")
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        scene = context.scene
+        rd = scene.render
+
+        self.draw_pixeldensity(layout, rd)
+
+
 class RENDER_PT_encoding(RenderOutputButtonsPanel, Panel):
     bl_label = "Encoding"
     bl_parent_id = "RENDER_PT_output"
@@ -447,13 +531,16 @@ class RENDER_PT_encoding_video(RenderOutputButtonsPanel, Panel):
 
         # Color depth. List of codecs needs to be in sync with
         # `IMB_ffmpeg_valid_bit_depths` in source code.
-        use_bpp = needs_codec and ffmpeg.codec in {'H264', 'H265', 'AV1'}
+        use_bpp = needs_codec and ffmpeg.codec in {'H264', 'H265', 'AV1', 'PRORES'}
         if use_bpp:
             image_settings = context.scene.render.image_settings
             layout.prop(image_settings, "color_depth", expand=True)
 
         if ffmpeg.codec == 'DNXHD':
             layout.prop(ffmpeg, "use_lossless_output")
+
+        if ffmpeg.codec == 'PRORES':
+            layout.prop(ffmpeg, "ffmpeg_prores_profile")
 
         # Output quality
         use_crf = needs_codec and ffmpeg.codec in {
@@ -466,31 +553,41 @@ class RENDER_PT_encoding_video(RenderOutputButtonsPanel, Panel):
         if use_crf:
             layout.prop(ffmpeg, "constant_rate_factor")
 
-        # Encoding speed
-        layout.prop(ffmpeg, "ffmpeg_preset")
-        # I-frames
-        layout.prop(ffmpeg, "gopsize")
-        # B-Frames
-        row = layout.row(align=True, heading="Max B-frames")
-        row.prop(ffmpeg, "use_max_b_frames", text="")
-        sub = row.row(align=True)
-        sub.active = ffmpeg.use_max_b_frames
-        sub.prop(ffmpeg, "max_b_frames", text="")
+        use_encoding_speed = needs_codec and ffmpeg.codec not in {'DNXHD', 'FFV1', 'HUFFYUV', 'PNG', 'PRORES', 'QTRLE'}
+        use_bitrate = needs_codec and ffmpeg.codec not in {'FFV1', 'HUFFYUV', 'PNG', 'PRORES', 'QTRLE'}
+        use_min_max_bitrate = ffmpeg.codec not in {'DNXHD'}
+        use_gop = needs_codec and ffmpeg.codec not in {'DNXHD', 'HUFFYUV', 'PNG', 'PRORES'}
+        use_b_frames = needs_codec and use_gop and ffmpeg.codec not in {'FFV1', 'QTRLE'}
 
-        if not use_crf or ffmpeg.constant_rate_factor == 'NONE':
+        # Encoding speed
+        if use_encoding_speed:
+            layout.prop(ffmpeg, "ffmpeg_preset")
+        # I-frames
+        if use_gop:
+            layout.prop(ffmpeg, "gopsize")
+        # B-Frames
+        if use_b_frames:
+            row = layout.row(align=True, heading="Max B-frames")
+            row.prop(ffmpeg, "use_max_b_frames", text="")
+            sub = row.row(align=True)
+            sub.active = ffmpeg.use_max_b_frames
+            sub.prop(ffmpeg, "max_b_frames", text="")
+
+        if (not use_crf or ffmpeg.constant_rate_factor == 'NONE') and use_bitrate:
             col = layout.column()
 
             sub = col.column(align=True)
             sub.prop(ffmpeg, "video_bitrate")
-            sub.prop(ffmpeg, "minrate", text="Minimum")
-            sub.prop(ffmpeg, "maxrate", text="Maximum")
+            if use_min_max_bitrate:
+                sub.prop(ffmpeg, "minrate", text="Minimum")
+                sub.prop(ffmpeg, "maxrate", text="Maximum")
 
-            col.prop(ffmpeg, "buffersize", text="Buffer")
+                col.prop(ffmpeg, "buffersize", text="Buffer")
 
-            col.separator()
+                col.separator()
 
-            col.prop(ffmpeg, "muxrate", text="Mux Rate")
-            col.prop(ffmpeg, "packetsize", text="Mux Packet Size")
+                col.prop(ffmpeg, "muxrate", text="Mux Rate")
+                col.prop(ffmpeg, "packetsize", text="Mux Packet Size")
 
 
 class RENDER_PT_encoding_audio(RenderOutputButtonsPanel, Panel):
@@ -593,6 +690,7 @@ classes = (
     RENDER_PT_format_presets,
     RENDER_PT_ffmpeg_presets,
     RENDER_MT_framerate_presets,
+    RENDER_MT_pixeldensity_presets,
     RENDER_PT_format,
     RENDER_PT_frame_range,
     RENDER_PT_time_stretching,
@@ -600,6 +698,7 @@ classes = (
     RENDER_PT_output,
     RENDER_PT_output_views,
     RENDER_PT_output_color_management,
+    RENDER_PT_output_pixel_density,
     RENDER_PT_encoding,
     RENDER_PT_encoding_video,
     RENDER_PT_encoding_audio,

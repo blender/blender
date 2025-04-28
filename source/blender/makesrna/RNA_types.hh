@@ -111,6 +111,20 @@ struct PointerRNA {
   {
     this->reset();
   }
+
+  /**
+   * Get the data as a specific type. This expects that the caller knows what the type is and has
+   * undefined behavior otherwise. Using this method is less verbose than casting the type at the
+   * call-site and allows us to potentially add run-time type checks in the future.
+   *
+   * This method is intentionally const while still returning a non-const pointer. This is because
+   * the constness of the `PointerRNA` is not propagated to the data it references. One can always
+   * just copy the `PointerRNA` to get a non-const version of it.
+   */
+  template<typename T> T *data_as() const
+  {
+    return static_cast<T *>(this->data);
+  }
 };
 
 extern const PointerRNA PointerRNA_NULL;
@@ -268,7 +282,7 @@ enum PropertySubType {
 
 /* Make sure enums are updated with these */
 /* HIGHEST FLAG IN USE: 1u << 31
- * FREE FLAGS: 13, 14, 15. */
+ * FREE FLAGS: 13, 14. */
 enum PropertyFlag {
   /**
    * Editable means the property is editable in the user
@@ -409,6 +423,11 @@ enum PropertyFlag {
    * as having the +/- operators available in the file browser.
    */
   PROP_PATH_OUTPUT = (1 << 2),
+  /**
+   * Path supports relative prefix: `//`,
+   * paths which don't support the relative suffix show a warning if the suffix is used.
+   */
+  PROP_PATH_SUPPORTS_BLEND_RELATIVE = (1 << 15),
 
   /** Do not write in presets (#PROP_HIDDEN and #PROP_SKIP_SAVE won't either). */
   PROP_SKIP_PRESET = (1 << 11),
@@ -677,7 +696,7 @@ using StringPropertySearchFunc =
              blender::FunctionRef<void(StringPropertySearchVisitParams)> visit_fn);
 
 /**
- * Returns an optional glob pattern (e.g. "*.png") that can be passed to the file browser to filter
+ * Returns an optional glob pattern (e.g. `*.png`) that can be passed to the file browser to filter
  * valid files for this property.
  */
 using StringPropertyPathFilterFunc = std::optional<std::string> (*)(const bContext *C,

@@ -144,8 +144,7 @@ std::unique_ptr<BezTriple[]> allocate_keyframes(FCurve *fcu, const size_t num_ke
 void add_keyframe(FCurve *fcu, float x, float y)
 {
   /* The insert_keyframe functions are in the editors, so we cannot link to those here. */
-  BezTriple the_keyframe;
-  memset(&the_keyframe, 0, sizeof(the_keyframe));
+  BezTriple the_keyframe = {};
 
   /* Copied from insert_vert_fcurve() in `keyframing.cc`. */
   the_keyframe.vec[0][0] = x - 1.0f;

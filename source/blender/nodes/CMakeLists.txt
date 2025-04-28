@@ -53,6 +53,7 @@ set(INC
   intern
   shader
   texture
+  geometry/include
   ../animrig
   ../editors/include
   ../depsgraph
@@ -68,6 +69,9 @@ set(INC_SYS
 
 set(SRC
   intern/derived_node_tree.cc
+  intern/geometry_nodes_bundle.cc
+  intern/geometry_nodes_closure.cc
+  intern/geometry_nodes_closure_zone.cc
   intern/geometry_nodes_dependencies.cc
   intern/geometry_nodes_execute.cc
   intern/geometry_nodes_foreach_geometry_element_zone.cc
@@ -97,6 +101,12 @@ set(SRC
   NOD_derived_node_tree.hh
   NOD_geometry.hh
   NOD_geometry_exec.hh
+  NOD_geometry_nodes_bundle.hh
+  NOD_geometry_nodes_bundle_fwd.hh
+  NOD_geometry_nodes_closure.hh
+  NOD_geometry_nodes_closure_eval.hh
+  NOD_geometry_nodes_closure_fwd.hh
+  NOD_geometry_nodes_closure_location.hh
   NOD_geometry_nodes_dependencies.hh
   NOD_geometry_nodes_execute.hh
   NOD_geometry_nodes_gizmos.hh
@@ -175,7 +185,7 @@ if(WITH_TBB)
 endif()
 
 if(WITH_IMAGE_OPENEXR)
-  add_definitions(-DWITH_OPENEXR)
+  add_definitions(-DWITH_IMAGE_OPENEXR)
 endif()
 
 if(WITH_FREESTYLE)

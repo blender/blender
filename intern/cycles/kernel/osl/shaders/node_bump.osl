@@ -12,6 +12,7 @@ surface node_bump(int invert = 0,
                   normal NormalIn = N,
                   float Strength = 0.1,
                   float Distance = 1.0,
+                  float FilterWidth = BUMP_FILTER_WIDTH,
                   float SampleCenter = 0.0,
                   float SampleX = 0.0,
                   float SampleY = 0.0,
@@ -45,7 +46,7 @@ surface node_bump(int invert = 0,
     dist *= -1.0;
 
   /* compute and output perturbed normal */
-  NormalOut = normalize(BUMP_DX * absdet * Normal - dist * sign(det) * surfgrad);
+  NormalOut = normalize(FilterWidth * absdet * Normal - dist * sign(det) * surfgrad);
   NormalOut = normalize(strength * NormalOut + (1.0 - strength) * Normal);
 
   if (use_object_space) {

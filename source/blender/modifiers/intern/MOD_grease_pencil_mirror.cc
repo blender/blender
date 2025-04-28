@@ -208,7 +208,7 @@ static void panel_draw(const bContext *C, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiLayout *row = uiLayoutRowWithHeading(layout, true, IFACE_("Axis"));
+  uiLayout *row = &layout->row(true, IFACE_("Axis"));
   uiItemR(row, ptr, "use_axis_x", toggles_flag, std::nullopt, ICON_NONE);
   uiItemR(row, ptr, "use_axis_y", toggles_flag, std::nullopt, ICON_NONE);
   uiItemR(row, ptr, "use_axis_z", toggles_flag, std::nullopt, ICON_NONE);

@@ -19,7 +19,7 @@ Here is an example of threading supported by Blender:
    def prod():
        print(threading.current_thread().name, "Starting")
 
-       # do something vaguely useful
+       # Do something vaguely useful.
        import bpy
        from mathutils import Vector
        from random import random
@@ -28,7 +28,7 @@ Here is an example of threading supported by Blender:
        print("Prodding", prod_vec)
        bpy.data.objects["Cube"].location += prod_vec
        time.sleep(random() + 1.0)
-       # finish
+       # Finish.
 
        print(threading.current_thread().name, "Exiting")
 
@@ -256,7 +256,7 @@ Only the reference to the data itself can be re-accessed, the following example 
    bpy.ops.object.mode_set(mode='EDIT')
    bpy.ops.object.mode_set(mode='OBJECT')
 
-   # this will crash
+   # This will crash!
    print(polygons)
 
 
@@ -270,7 +270,7 @@ the following example shows how to avoid the crash above.
    bpy.ops.object.mode_set(mode='EDIT')
    bpy.ops.object.mode_set(mode='OBJECT')
 
-   # polygons have been re-allocated
+   # Polygons have been re-allocated.
    polygons = mesh.polygons
    print(polygons)
 
@@ -291,7 +291,7 @@ internally the array which stores this data is re-allocated.
    point = bpy.context.object.data.splines[0].bezier_points[0]
    bpy.context.object.data.splines[0].bezier_points.add()
 
-   # this will crash!
+   # This will crash!
    point.co = 1.0, 2.0, 3.0
 
 This can be avoided by re-assigning the point variables after adding the new one or by storing
@@ -315,9 +315,9 @@ The following example shows how this precaution works:
 .. code-block:: python
 
    mesh = bpy.data.meshes.new(name="MyMesh")
-   # normally the script would use the mesh here...
+   # Normally the script would use the mesh here.
    bpy.data.meshes.remove(mesh)
-   print(mesh.name)  # <- give an exception rather than crashing:
+   print(mesh.name)  # <- Give an exception rather than crashing:
 
    # ReferenceError: StructRNA of type Mesh has been removed
 
@@ -330,7 +330,7 @@ the next example will still crash:
    mesh = bpy.data.meshes.new(name="MyMesh")
    vertices = mesh.vertices
    bpy.data.meshes.remove(mesh)
-   print(vertices)  # <- this may crash
+   print(vertices)  # <- This may crash.
 
 
 Unfortunate Corner Cases

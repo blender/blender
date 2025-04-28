@@ -202,10 +202,9 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   }
 
   /* Get org weights, assuming 0.0 for vertices not in given vgroup. */
-  org_w = static_cast<float *>(MEM_malloc_arrayN(verts_num, sizeof(float), __func__));
-  new_w = static_cast<float *>(MEM_malloc_arrayN(verts_num, sizeof(float), __func__));
-  dw = static_cast<MDeformWeight **>(
-      MEM_malloc_arrayN(verts_num, sizeof(MDeformWeight *), __func__));
+  org_w = MEM_malloc_arrayN<float>(size_t(verts_num), __func__);
+  new_w = MEM_malloc_arrayN<float>(size_t(verts_num), __func__);
+  dw = MEM_malloc_arrayN<MDeformWeight *>(size_t(verts_num), __func__);
   for (i = 0; i < verts_num; i++) {
     dw[i] = BKE_defvert_find_index(&dvert[i], defgrp_index);
     if (dw[i]) {
@@ -294,29 +293,29 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  col = uiLayoutColumn(layout, true);
+  col = &layout->column(true);
   uiItemPointerR(
       col, ptr, "vertex_group", &ob_ptr, "vertex_groups", std::nullopt, ICON_GROUP_VERTEX);
 
   uiItemR(layout, ptr, "default_weight", UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
 
-  col = uiLayoutColumnWithHeading(layout, false, IFACE_("Group Add"));
-  row = uiLayoutRow(col, true);
+  col = &layout->column(false, IFACE_("Group Add"));
+  row = &col->row(true);
   uiLayoutSetPropDecorate(row, false);
-  sub = uiLayoutRow(row, true);
+  sub = &row->row(true);
   uiItemR(sub, ptr, "use_add", UI_ITEM_NONE, "", ICON_NONE);
-  sub = uiLayoutRow(sub, true);
+  sub = &sub->row(true);
   uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_add"));
   uiLayoutSetPropSep(sub, false);
   uiItemR(sub, ptr, "add_threshold", UI_ITEM_R_SLIDER, IFACE_("Threshold"), ICON_NONE);
   uiItemDecoratorR(row, ptr, "add_threshold", 0);
 
-  col = uiLayoutColumnWithHeading(layout, false, IFACE_("Group Remove"));
-  row = uiLayoutRow(col, true);
+  col = &layout->column(false, IFACE_("Group Remove"));
+  row = &col->row(true);
   uiLayoutSetPropDecorate(row, false);
-  sub = uiLayoutRow(row, true);
+  sub = &row->row(true);
   uiItemR(sub, ptr, "use_remove", UI_ITEM_NONE, "", ICON_NONE);
-  sub = uiLayoutRow(sub, true);
+  sub = &sub->row(true);
   uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_remove"));
   uiLayoutSetPropSep(sub, false);
   uiItemR(sub, ptr, "remove_threshold", UI_ITEM_R_SLIDER, IFACE_("Threshold"), ICON_NONE);
@@ -337,9 +336,9 @@ static void falloff_panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  row = uiLayoutRow(layout, true);
+  row = &layout->row(true);
   uiItemR(row, ptr, "falloff_type", UI_ITEM_NONE, IFACE_("Type"), ICON_NONE);
-  sub = uiLayoutRow(row, true);
+  sub = &row->row(true);
   uiLayoutSetPropSep(sub, false);
   uiItemR(row, ptr, "invert_falloff", UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);
   if (RNA_enum_get(ptr, "falloff_type") == MOD_WVG_MAPPING_CURVE) {

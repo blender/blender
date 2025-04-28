@@ -25,7 +25,7 @@
 
 namespace blender::io::usd {
 
-void USDXformReader::create_object(Main *bmain, const double /*motionSampleTime*/)
+void USDXformReader::create_object(Main *bmain)
 {
   object_ = BKE_object_add_only_object(bmain, OB_EMPTY, name_.c_str());
   object_->empty_drawsize = 0.1f;
@@ -101,7 +101,7 @@ void USDXformReader::read_matrix(float r_mat[4][4] /* local matrix */,
 
 bool USDXformReader::prim_has_xform_ops() const
 {
-  pxr::UsdGeomXformable xformable(prim_);
+  const pxr::UsdGeomXformable xformable(prim_);
 
   if (!xformable) {
     /* This might happen if the prim is a Scope. */
@@ -154,7 +154,7 @@ bool USDXformReader::is_root_xform_prim() const
 
 std::optional<XformResult> USDXformReader::get_local_usd_xform(const float time) const
 {
-  pxr::UsdGeomXformable xformable = get_xformable();
+  const pxr::UsdGeomXformable xformable = get_xformable();
 
   if (!xformable) {
     /* This might happen if the prim is a Scope. */

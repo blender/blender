@@ -1196,10 +1196,11 @@ ccl_device_noinline int svm_node_principled_volume(KernelGlobals kg,
   }
 
   /* Compute density. */
+  const float weight = mix_weight * object_volume_density(kg, sd->object);
   float primitive_density = 1.0f;
   float density = (stack_valid(density_offset)) ? stack_load_float(stack, density_offset) :
                                                   __uint_as_float(value_node.x);
-  density = mix_weight * fmaxf(density, 0.0f) * object_volume_density(kg, sd->object);
+  density = weight * fmaxf(density, 0.0f);
 
   if (density > 0.0f) {
     /* Density and color attribute lookup if available. */
@@ -1262,8 +1263,7 @@ ccl_device_noinline int svm_node_principled_volume(KernelGlobals kg,
 
   if (emission > 0.0f) {
     const float3 emission_color = stack_load_float3(stack, emission_color_offset);
-    emission_setup(
-        sd, rgb_to_spectrum(emission * emission_color * object_volume_density(kg, sd->object)));
+    emission_setup(sd, rgb_to_spectrum(emission * emission_color * weight));
   }
 
   if (blackbody > 0.0f) {
@@ -1287,7 +1287,7 @@ ccl_device_noinline int svm_node_principled_volume(KernelGlobals kg,
       const float3 blackbody_tint = stack_load_float3(stack, node.w);
       const float3 bb = blackbody_tint * intensity *
                         rec709_to_rgb(kg, svm_math_blackbody_color_rec709(T));
-      emission_setup(sd, rgb_to_spectrum(bb * object_volume_density(kg, sd->object)));
+      emission_setup(sd, rgb_to_spectrum(bb * weight));
     }
   }
 #endif

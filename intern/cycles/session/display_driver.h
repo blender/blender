@@ -6,8 +6,62 @@
 
 #include "util/half.h"
 #include "util/types.h"
+#include "util/vector.h"
 
 CCL_NAMESPACE_BEGIN
+
+/* Info about the display device that will be used for graphics interop, so it
+ * can be verified if interop is compatible with the rendering device. */
+class GraphicsInteropDevice {
+ public:
+  enum Type {
+    NONE,
+    OPENGL,
+    VULKAN,
+    METAL,
+  };
+
+  Type type = NONE;
+  vector<uint8_t> uuid;
+};
+
+/* Handle to a native graphics API pixel buffer. If supported, the rendering device
+ * may write directly to this buffer instead of calling map_texture_buffer() and
+ * unmap_texture_buffer().
+ *
+ * This must be a pixel buffer with the specified with and height, and half float
+ * with RGBA channels. */
+class GraphicsInteropBuffer {
+ public:
+  /* Dimensions of the buffer, in pixels. */
+  int width = 0;
+  int height = 0;
+
+  /* The handle is expected to be:
+   * - OpenGL: pixel buffer object ID.
+   * - Vulkan on Windows: opaque handle for VkBuffer.
+   * - Vulkan on Unix: opaque file descriptor for VkBuffer.
+   * - Metal: pixel buffer unified memory pointer. */
+  GraphicsInteropDevice::Type type = GraphicsInteropDevice::NONE;
+  int64_t handle = 0;
+
+  /* Actual size of the memory, which must be >= width * height sizeof(half4). */
+  size_t size = 0;
+
+  /* Clear the entire buffer before doing partial write to it. */
+  bool need_clear = false;
+
+  /* Enforce re-creation of the graphics interop object.
+   *
+   * When this field is true then the graphics interop will be re-created no matter what the
+   * rest of the configuration is.
+   * When this field is false the graphics interop will be re-created if the PBO or buffer size
+   * did change.
+   *
+   * This allows to ensure graphics interop is re-created when there is a possibility that an
+   * underlying PBO was re-allocated but did not change its ID. */
+  bool need_recreate = false;
+};
 
 /* Display driver for efficient interactive display of renders.
  *
@@ -76,36 +130,14 @@ class DisplayDriver {
   virtual half4 *map_texture_buffer() = 0;
   virtual void unmap_texture_buffer() = 0;
 
-  /* Optionally return a handle to a native graphics API texture buffer. If supported,
-   * the rendering device may write directly to this buffer instead of calling
-   * map_texture_buffer() and unmap_texture_buffer(). */
-  class GraphicsInterop {
-   public:
-    /* Dimensions of the buffer, in pixels. */
-    int buffer_width = 0;
-    int buffer_height = 0;
-
-    /* OpenGL pixel buffer object. */
-    int64_t opengl_pbo_id = 0;
-
-    /* Clear the entire buffer before doing partial write to it. */
-    bool need_clear = false;
-
-    /* Enforce re-creation of the graphics interop object.
-     *
-     * When this field is true then the graphics interop will be re-created no matter what the
-     * rest of the configuration is.
-     * When this field is false the graphics interop will be re-created if the PBO or buffer size
-     * did change.
-     *
-     * This allows to ensure graphics interop is re-created when there is a possibility that an
-     * underlying PBO was re-allocated but did not change its ID. */
-    bool need_recreate = false;
-  };
-
-  virtual GraphicsInterop graphics_interop_get()
+  virtual GraphicsInteropDevice graphics_interop_get_device()
   {
-    return GraphicsInterop();
+    return GraphicsInteropDevice();
+  }
+
+  virtual GraphicsInteropBuffer graphics_interop_get_buffer()
+  {
+    return GraphicsInteropBuffer();
   }
 
   /* (De)activate graphics context required for editing or deleting the graphics interop

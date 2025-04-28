@@ -2,17 +2,25 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include <fmt/format.h>
+
+#include "BLI_color.hh"
+#include "BLI_cpp_type.hh"
+#include "BLI_generic_span.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_utildefines.h"
 
 #include "GPU_shader.hh"
+
+#include "IMB_colormanagement.hh"
+
+#include "BKE_type_conversions.hh"
 
 #include "COM_context.hh"
 #include "COM_conversion_operation.hh"
 #include "COM_input_descriptor.hh"
 #include "COM_result.hh"
 #include "COM_utilities.hh"
-#include "COM_utilities_type_conversion.hh"
 
 namespace blender::compositor {
 
@@ -38,11 +46,14 @@ void ConversionOperation::execute()
 
   result.allocate_texture(input.domain());
   if (this->context().use_gpu()) {
-    GPUShader *shader = this->context().get_shader(this->get_conversion_shader_name());
+    const std::string shader_name = fmt::format("compositor_convert_{}_to_{}",
+                                                Result::type_name(this->get_input().type()),
+                                                Result::type_name(this->get_result().type()));
+    GPUShader *shader = this->context().get_shader(shader_name.c_str());
     GPU_shader_bind(shader);
 
     if (this->get_input().type() == ResultType::Color &&
-        ELEM(this->get_result().type(), ResultType::Float, ResultType::Int))
+        ELEM(this->get_result().type(), ResultType::Float, ResultType::Int, ResultType::Bool))
     {
       float luminance_coefficients[3];
       IMB_colormanagement_get_luminance_coefficients(luminance_coefficients);
@@ -79,406 +90,67 @@ SimpleOperation *ConversionOperation::construct_if_needed(Context &context,
   return nullptr;
 }
 
-const char *ConversionOperation::get_conversion_shader_name()
+/* Gets the single value of the given result as a single element GSpan. This calls the underlying
+ * single_value method to construct a GSpan from the GPointer, however, it has an exception for
+ * color types, since colors are stored as float4 internally, while their semantic type is
+ * ColorSceneLinear4f<eAlpha::Premultiplied> during conversion. */
+static GSpan get_result_single_value(const Result &result)
 {
-  switch (this->get_input().type()) {
-    case ResultType::Float:
-      switch (this->get_result().type()) {
-        case ResultType::Int:
-          return "compositor_convert_float_to_int";
-        case ResultType::Float3:
-          return "compositor_convert_float_to_float3";
-        case ResultType::Color:
-          return "compositor_convert_float_to_color";
-        case ResultType::Float4:
-          return "compositor_convert_float_to_float4";
-        case ResultType::Float:
-          /* Same type, no conversion needed. */
-          break;
-        case ResultType::Float2:
-        case ResultType::Int2:
-          /* Types are not user facing, so we needn't implement them. */
-          break;
-      }
-      break;
-    case ResultType::Int:
-      switch (this->get_result().type()) {
-        case ResultType::Float:
-          return "compositor_convert_int_to_float";
-        case ResultType::Float3:
-          return "compositor_convert_int_to_float3";
-        case ResultType::Color:
-          return "compositor_convert_int_to_color";
-        case ResultType::Float4:
-          return "compositor_convert_int_to_float4";
-        case ResultType::Int:
-          /* Same type, no conversion needed. */
-          break;
-        case ResultType::Float2:
-        case ResultType::Int2:
-          /* Types are not user facing, so we needn't implement them. */
-          break;
-      }
-      break;
-    case ResultType::Float3:
-      switch (this->get_result().type()) {
-        case ResultType::Float:
-          return "compositor_convert_float3_to_float";
-        case ResultType::Int:
-          return "compositor_convert_float3_to_int";
-        case ResultType::Color:
-          return "compositor_convert_float3_to_color";
-        case ResultType::Float4:
-          return "compositor_convert_float3_to_float4";
-        case ResultType::Float3:
-          /* Same type, no conversion needed. */
-          break;
-        case ResultType::Float2:
-        case ResultType::Int2:
-          /* Types are not user facing, so we needn't implement them. */
-          break;
-      }
-      break;
-    case ResultType::Color:
-      switch (this->get_result().type()) {
-        case ResultType::Float:
-          return "compositor_convert_color_to_float";
-        case ResultType::Int:
-          return "compositor_convert_color_to_int";
-        case ResultType::Float3:
-          return "compositor_convert_color_to_float3";
-        case ResultType::Float4:
-          return "compositor_convert_color_to_float4";
-        case ResultType::Color:
-          /* Same type, no conversion needed. */
-          break;
-        case ResultType::Float2:
-        case ResultType::Int2:
-          /* Types are not user facing, so we needn't implement them. */
-          break;
-      }
-      break;
-    case ResultType::Float4:
-      switch (this->get_result().type()) {
-        case ResultType::Float:
-          return "compositor_convert_float4_to_float";
-        case ResultType::Int:
-          return "compositor_convert_float4_to_int";
-        case ResultType::Float3:
-          return "compositor_convert_float4_to_float3";
-        case ResultType::Color:
-          return "compositor_convert_float4_to_color";
-        case ResultType::Float4:
-          /* Same type, no conversion needed. */
-          break;
-        case ResultType::Float2:
-        case ResultType::Int2:
-          /* Types are not user facing, so we needn't implement them. */
-          break;
-      }
-      break;
-    case ResultType::Float2:
-    case ResultType::Int2:
-      /* Types are not user facing, so we needn't implement them. */
-      break;
+  if (result.type() == ResultType::Color) {
+    return GSpan(
+        CPPType::get<ColorSceneLinear4f<eAlpha::Premultiplied>>(), result.single_value().get(), 1);
   }
 
-  BLI_assert_unreachable();
-  return nullptr;
+  return GSpan(result.single_value().type(), result.single_value().get(), 1);
+}
+
+static GMutableSpan get_result_single_value(Result &result)
+{
+  if (result.type() == ResultType::Color) {
+    return GMutableSpan(
+        CPPType::get<ColorSceneLinear4f<eAlpha::Premultiplied>>(), result.single_value().get(), 1);
+  }
+
+  return GMutableSpan(result.single_value().type(), result.single_value().get(), 1);
 }
 
 void ConversionOperation::execute_single(const Result &input, Result &output)
 {
-  switch (this->get_input().type()) {
-    case ResultType::Float:
-      switch (this->get_result().type()) {
-        case ResultType::Int:
-          output.set_single_value(float_to_int(input.get_single_value<float>()));
-          return;
-        case ResultType::Float3:
-          output.set_single_value(float_to_float3(input.get_single_value<float>()));
-          return;
-        case ResultType::Color:
-          output.set_single_value(float_to_color(input.get_single_value<float>()));
-          return;
-        case ResultType::Float4:
-          output.set_single_value(float_to_float4(input.get_single_value<float>()));
-          return;
-        case ResultType::Float:
-          /* Same type, no conversion needed. */
-          break;
-        case ResultType::Float2:
-        case ResultType::Int2:
-          /* Types are not user facing, so we needn't implement them. */
-          break;
-      }
-      break;
-    case ResultType::Int:
-      switch (this->get_result().type()) {
-        case ResultType::Float:
-          output.set_single_value(int_to_float(input.get_single_value<int32_t>()));
-          return;
-        case ResultType::Float3:
-          output.set_single_value(int_to_float3(input.get_single_value<int32_t>()));
-          return;
-        case ResultType::Color:
-          output.set_single_value(int_to_color(input.get_single_value<int32_t>()));
-          return;
-        case ResultType::Float4:
-          output.set_single_value(int_to_float4(input.get_single_value<int32_t>()));
-          return;
-        case ResultType::Int:
-          /* Same type, no conversion needed. */
-          break;
-        case ResultType::Float2:
-        case ResultType::Int2:
-          /* Types are not user facing, so we needn't implement them. */
-          break;
-      }
-      break;
-    case ResultType::Float3:
-      switch (this->get_result().type()) {
-        case ResultType::Float:
-          output.set_single_value(float3_to_float(input.get_single_value<float3>()));
-          return;
-        case ResultType::Int:
-          output.set_single_value(float3_to_int(input.get_single_value<float3>()));
-          return;
-        case ResultType::Color:
-          output.set_single_value(float3_to_color(input.get_single_value<float3>()));
-          return;
-        case ResultType::Float4:
-          output.set_single_value(float3_to_float4(input.get_single_value<float3>()));
-          return;
-        case ResultType::Float3:
-          /* Same type, no conversion needed. */
-          break;
-        case ResultType::Float2:
-        case ResultType::Int2:
-          /* Types are not user facing, so we needn't implement them. */
-          break;
-      }
-      break;
-    case ResultType::Color:
-      switch (this->get_result().type()) {
-        case ResultType::Float:
-          output.set_single_value(color_to_float(input.get_single_value<float4>()));
-          return;
-        case ResultType::Int:
-          output.set_single_value(color_to_int(input.get_single_value<float4>()));
-          return;
-        case ResultType::Float3:
-          output.set_single_value(color_to_float3(input.get_single_value<float4>()));
-          return;
-        case ResultType::Float4:
-          output.set_single_value(color_to_float4(input.get_single_value<float4>()));
-          return;
-        case ResultType::Color:
-          /* Same type, no conversion needed. */
-          break;
-        case ResultType::Float2:
-        case ResultType::Int2:
-          /* Types are not user facing, so we needn't implement them. */
-          break;
-      }
-      break;
-    case ResultType::Float4:
-      switch (this->get_result().type()) {
-        case ResultType::Float:
-          output.set_single_value(float4_to_float(input.get_single_value<float4>()));
-          return;
-        case ResultType::Int:
-          output.set_single_value(float4_to_int(input.get_single_value<float4>()));
-          return;
-        case ResultType::Float3:
-          output.set_single_value(float4_to_float3(input.get_single_value<float4>()));
-          return;
-        case ResultType::Color:
-          output.set_single_value(float4_to_color(input.get_single_value<float4>()));
-          return;
-        case ResultType::Float4:
-          /* Same type, no conversion needed. */
-          break;
-        case ResultType::Float2:
-        case ResultType::Int2:
-          /* Types are not user facing, so we needn't implement them. */
-          break;
-      }
-      break;
-    case ResultType::Float2:
-    case ResultType::Int2:
-      /* Types are not user facing, so we needn't implement them. */
-      break;
+  const bke::DataTypeConversions &conversions = bke::get_implicit_type_conversions();
+  conversions.convert_to_initialized_n(get_result_single_value(input),
+                                       get_result_single_value(output));
+}
+
+/* Gets the CPU data of the given result as a GSpan. This calls the underlying cpu_data method,
+ * however, it has an exception for color types, since colors are stored as float4 internally,
+ * while their semantic type is ColorSceneLinear4f<eAlpha::Premultiplied> during conversion. */
+static GSpan get_result_data(const Result &result)
+{
+  if (result.type() == ResultType::Color) {
+    return GSpan(CPPType::get<ColorSceneLinear4f<eAlpha::Premultiplied>>(),
+                 result.cpu_data().data(),
+                 result.cpu_data().size());
   }
 
-  BLI_assert_unreachable();
+  return result.cpu_data();
+}
+
+/* Same as get_result_data but takes non-const result and returns a GMutableSpan. */
+static GMutableSpan get_result_data(Result &result)
+{
+  if (result.type() == ResultType::Color) {
+    return GMutableSpan(CPPType::get<ColorSceneLinear4f<eAlpha::Premultiplied>>(),
+                        result.cpu_data().data(),
+                        result.cpu_data().size());
+  }
+
+  return result.cpu_data();
 }
 
 void ConversionOperation::execute_cpu(const Result &input, Result &output)
 {
-  switch (this->get_input().type()) {
-    case ResultType::Float:
-      switch (this->get_result().type()) {
-        case ResultType::Int:
-          parallel_for(input.domain().size, [&](const int2 texel) {
-            output.store_pixel(texel, float_to_int(input.load_pixel<float>(texel)));
-          });
-          return;
-        case ResultType::Float3:
-          parallel_for(input.domain().size, [&](const int2 texel) {
-            output.store_pixel(texel, float_to_float3(input.load_pixel<float>(texel)));
-          });
-          return;
-        case ResultType::Color:
-          parallel_for(input.domain().size, [&](const int2 texel) {
-            output.store_pixel(texel, float_to_color(input.load_pixel<float>(texel)));
-          });
-          return;
-        case ResultType::Float4:
-          parallel_for(input.domain().size, [&](const int2 texel) {
-            output.store_pixel(texel, float_to_float4(input.load_pixel<float>(texel)));
-          });
-          return;
-        case ResultType::Float:
-          /* Same type, no conversion needed. */
-          break;
-        case ResultType::Float2:
-        case ResultType::Int2:
-          /* Types are not user facing, so we needn't implement them. */
-          break;
-      }
-      break;
-    case ResultType::Int:
-      switch (this->get_result().type()) {
-        case ResultType::Float:
-          parallel_for(input.domain().size, [&](const int2 texel) {
-            output.store_pixel(texel, int_to_float(input.load_pixel<int32_t>(texel)));
-          });
-          return;
-        case ResultType::Float3:
-          parallel_for(input.domain().size, [&](const int2 texel) {
-            output.store_pixel(texel, int_to_float3(input.load_pixel<int32_t>(texel)));
-          });
-          return;
-        case ResultType::Color:
-          parallel_for(input.domain().size, [&](const int2 texel) {
-            output.store_pixel(texel, int_to_color(input.load_pixel<int32_t>(texel)));
-          });
-          return;
-        case ResultType::Float4:
-          parallel_for(input.domain().size, [&](const int2 texel) {
-            output.store_pixel(texel, int_to_float4(input.load_pixel<int32_t>(texel)));
-          });
-          return;
-        case ResultType::Int:
-          /* Same type, no conversion needed. */
-          break;
-        case ResultType::Float2:
-        case ResultType::Int2:
-          /* Types are not user facing, so we needn't implement them. */
-          break;
-      }
-      break;
-    case ResultType::Float3:
-      switch (this->get_result().type()) {
-        case ResultType::Float:
-          parallel_for(input.domain().size, [&](const int2 texel) {
-            output.store_pixel(texel, float3_to_float(input.load_pixel<float3>(texel)));
-          });
-          return;
-        case ResultType::Int:
-          parallel_for(input.domain().size, [&](const int2 texel) {
-            output.store_pixel(texel, float3_to_int(input.load_pixel<float3>(texel)));
-          });
-          return;
-        case ResultType::Color:
-          parallel_for(input.domain().size, [&](const int2 texel) {
-            output.store_pixel(texel, float3_to_color(input.load_pixel<float3>(texel)));
-          });
-          return;
-        case ResultType::Float4:
-          parallel_for(input.domain().size, [&](const int2 texel) {
-            output.store_pixel(texel, float3_to_float4(input.load_pixel<float3>(texel)));
-          });
-          return;
-        case ResultType::Float3:
-          /* Same type, no conversion needed. */
-          break;
-        case ResultType::Float2:
-        case ResultType::Int2:
-          /* Types are not user facing, so we needn't implement them. */
-          break;
-      }
-      break;
-    case ResultType::Color:
-      switch (this->get_result().type()) {
-        case ResultType::Float:
-          parallel_for(input.domain().size, [&](const int2 texel) {
-            output.store_pixel(texel, color_to_float(input.load_pixel<float4>(texel)));
-          });
-          return;
-        case ResultType::Int:
-          parallel_for(input.domain().size, [&](const int2 texel) {
-            output.store_pixel(texel, color_to_int(input.load_pixel<float4>(texel)));
-          });
-          return;
-        case ResultType::Float3:
-          parallel_for(input.domain().size, [&](const int2 texel) {
-            output.store_pixel(texel, color_to_float3(input.load_pixel<float4>(texel)));
-          });
-          return;
-        case ResultType::Float4:
-          parallel_for(input.domain().size, [&](const int2 texel) {
-            output.store_pixel(texel, color_to_float4(input.load_pixel<float4>(texel)));
-          });
-          return;
-        case ResultType::Color:
-          /* Same type, no conversion needed. */
-          break;
-        case ResultType::Float2:
-        case ResultType::Int2:
-          /* Types are not user facing, so we needn't implement them. */
-          break;
-      }
-      break;
-    case ResultType::Float4:
-      switch (this->get_result().type()) {
-        case ResultType::Float:
-          parallel_for(input.domain().size, [&](const int2 texel) {
-            output.store_pixel(texel, float4_to_float(input.load_pixel<float4>(texel)));
-          });
-          return;
-        case ResultType::Int:
-          parallel_for(input.domain().size, [&](const int2 texel) {
-            output.store_pixel(texel, float4_to_int(input.load_pixel<float4>(texel)));
-          });
-          return;
-        case ResultType::Float3:
-          parallel_for(input.domain().size, [&](const int2 texel) {
-            output.store_pixel(texel, float4_to_float3(input.load_pixel<float4>(texel)));
-          });
-          return;
-        case ResultType::Color:
-          parallel_for(input.domain().size, [&](const int2 texel) {
-            output.store_pixel(texel, float4_to_color(input.load_pixel<float4>(texel)));
-          });
-          return;
-        case ResultType::Float4:
-          /* Same type, no conversion needed. */
-          break;
-        case ResultType::Float2:
-        case ResultType::Int2:
-          /* Types are not user facing, so we needn't implement them. */
-          break;
-      }
-      break;
-    case ResultType::Float2:
-    case ResultType::Int2:
-      /* Types are not user facing, so we needn't implement them. */
-      break;
-  }
-
-  BLI_assert_unreachable();
+  const bke::DataTypeConversions &conversions = bke::get_implicit_type_conversions();
+  conversions.convert_to_initialized_n(get_result_data(input), get_result_data(output));
 }
 
 }  // namespace blender::compositor

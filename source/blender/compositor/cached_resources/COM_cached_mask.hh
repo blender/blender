@@ -73,6 +73,9 @@ class CachedMaskContainer : CachedResourceContainer {
  private:
   Map<std::string, Map<CachedMaskKey, std::unique_ptr<CachedMask>>> map_;
 
+  /* A map that stores the update counts of the masks at the moment they were cached. */
+  Map<std::string, uint64_t> update_counts_;
+
  public:
   void reset() override;
 

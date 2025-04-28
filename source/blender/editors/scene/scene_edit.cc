@@ -100,7 +100,7 @@ Scene *ED_scene_sequencer_add(Main *bmain,
   if (scene_new && strip) {
     strip->scene = scene_new;
     /* Do a refresh of the sequencer data. */
-    SEQ_relations_invalidate_cache_raw(scene_active, strip);
+    blender::seq::relations_invalidate_cache_raw(scene_active, strip);
     DEG_id_tag_update(&scene_active->id, ID_RECALC_AUDIO | ID_RECALC_SEQUENCER_STRIPS);
     DEG_relations_tag_update(bmain);
   }
@@ -242,7 +242,7 @@ bool ED_scene_view_layer_delete(Main *bmain, Scene *scene, ViewLayer *layer, Rep
 /** \name Scene New Operator
  * \{ */
 
-static int scene_new_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus scene_new_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   wmWindow *win = CTX_wm_window(C);
@@ -295,7 +295,7 @@ static void SCENE_OT_new(wmOperatorType *ot)
 /** \name Scene New Sequencer Operator
  * \{ */
 
-static int scene_new_sequencer_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus scene_new_sequencer_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   int type = RNA_enum_get(op->ptr, "type");
@@ -310,7 +310,7 @@ static int scene_new_sequencer_exec(bContext *C, wmOperator *op)
 static bool scene_new_sequencer_poll(bContext *C)
 {
   Scene *scene = CTX_data_scene(C);
-  const Strip *strip = SEQ_select_active_get(scene);
+  const Strip *strip = blender::seq::select_active_get(scene);
   return (strip && (strip->type == STRIP_TYPE_SCENE));
 }
 
@@ -333,7 +333,7 @@ static const EnumPropertyItem *scene_new_sequencer_enum_itemf(bContext *C,
   }
   else {
     Scene *scene = CTX_data_scene(C);
-    Strip *strip = SEQ_select_active_get(scene);
+    Strip *strip = blender::seq::select_active_get(scene);
     if (strip && (strip->type == STRIP_TYPE_SCENE) && (strip->scene != nullptr)) {
       has_scene_or_no_context = true;
     }
@@ -387,7 +387,7 @@ static bool scene_delete_poll(bContext *C)
   return BKE_scene_can_be_removed(bmain, scene);
 }
 
-static int scene_delete_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus scene_delete_exec(bContext *C, wmOperator * /*op*/)
 {
   Scene *scene = CTX_data_scene(C);
 

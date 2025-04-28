@@ -864,6 +864,9 @@ Vector<AttributeTransferData> retrieve_attributes_for_transfer(
     if (!(ATTR_DOMAIN_AS_MASK(iter.domain) & domain_mask)) {
       return;
     }
+    if (iter.data_type == CD_PROP_STRING) {
+      return;
+    }
     if (attribute_filter.allow_skip(iter.name)) {
       return;
     }

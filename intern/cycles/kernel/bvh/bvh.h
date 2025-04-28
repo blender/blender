@@ -229,7 +229,7 @@ ccl_device_intersect bool scene_intersect_shadow_all(KernelGlobals kg,
                                                      IntegratorShadowState state,
                                                      const ccl_private Ray *ray,
                                                      const uint visibility,
-                                                     const uint max_hits,
+                                                     const uint max_transparent_hits,
                                                      ccl_private uint *num_recorded_hits,
                                                      ccl_private float *throughput)
 {
@@ -244,7 +244,7 @@ ccl_device_intersect bool scene_intersect_shadow_all(KernelGlobals kg,
   {
     if (kernel_data.device_bvh) {
       return kernel_embree_intersect_shadow_all(
-          kg, state, ray, visibility, max_hits, num_recorded_hits, throughput);
+          kg, state, ray, visibility, max_transparent_hits, num_recorded_hits, throughput);
     }
   }
 #    endif
@@ -256,24 +256,24 @@ ccl_device_intersect bool scene_intersect_shadow_all(KernelGlobals kg,
 #      ifdef __HAIR__
       if (kernel_data.bvh.have_curves) {
         return bvh_intersect_shadow_all_hair_motion(
-            kg, ray, state, visibility, max_hits, num_recorded_hits, throughput);
+            kg, ray, state, visibility, max_transparent_hits, num_recorded_hits, throughput);
       }
 #      endif /* __HAIR__ */
 
       return bvh_intersect_shadow_all_motion(
-          kg, ray, state, visibility, max_hits, num_recorded_hits, throughput);
+          kg, ray, state, visibility, max_transparent_hits, num_recorded_hits, throughput);
     }
 #    endif /* __OBJECT_MOTION__ */
 
 #    ifdef __HAIR__
     if (kernel_data.bvh.have_curves) {
       return bvh_intersect_shadow_all_hair(
-          kg, ray, state, visibility, max_hits, num_recorded_hits, throughput);
+          kg, ray, state, visibility, max_transparent_hits, num_recorded_hits, throughput);
     }
 #    endif /* __HAIR__ */
 
     return bvh_intersect_shadow_all(
-        kg, ray, state, visibility, max_hits, num_recorded_hits, throughput);
+        kg, ray, state, visibility, max_transparent_hits, num_recorded_hits, throughput);
   }
 
   kernel_assert(false);

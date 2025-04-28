@@ -5,6 +5,7 @@
 #include "session/denoising.h"
 #include "device/cpu/device.h"
 
+#include "session/display_driver.h"
 #include "util/map.h"
 #include "util/task.h"
 
@@ -614,7 +615,7 @@ DenoiserPipeline::DenoiserPipeline(DeviceInfo &denoiser_device_info, const Denoi
   device_cpu_info(cpu_devices);
   cpu_device = device_cpu_create(cpu_devices[0], device->stats, device->profiler, true);
 
-  denoiser = Denoiser::create(device.get(), cpu_device.get(), params);
+  denoiser = Denoiser::create(device.get(), cpu_device.get(), params, GraphicsInteropDevice());
   if (denoiser) {
     denoiser->load_kernels(nullptr);
   }

@@ -261,7 +261,7 @@ typedef struct GreasePencilLayerTreeNode {
   int8_t type;
   char _pad[7];
   /**
-   * Channel color for dopesheet.
+   * Channel color for dope-sheet.
    */
   float color[3];
   /**
@@ -718,8 +718,10 @@ typedef struct GreasePencil {
   blender::bke::greasepencil::Drawing *get_eval_drawing(
       const blender::bke::greasepencil::Layer &layer);
 
-  std::optional<blender::Bounds<blender::float3>> bounds_min_max(int frame) const;
-  std::optional<blender::Bounds<blender::float3>> bounds_min_max_eval() const;
+  std::optional<blender::Bounds<blender::float3>> bounds_min_max(int frame,
+                                                                 bool use_radius = true) const;
+  std::optional<blender::Bounds<blender::float3>> bounds_min_max_eval(
+      bool use_radius = true) const;
 
   blender::bke::AttributeAccessor attributes() const;
   blender::bke::MutableAttributeAccessor attributes_for_write();

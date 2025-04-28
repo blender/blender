@@ -260,6 +260,8 @@ class VKResourceStateTracker {
   bool use_dynamic_rendering = true;
   bool use_dynamic_rendering_local_read = true;
 
+  void debug_print() const;
+
  private:
   /**
    * Get the current stamp of the resource.

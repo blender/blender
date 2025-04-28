@@ -5,6 +5,7 @@
 #include "device/device.h"
 
 #include "scene/background.h"
+#include "scene/camera.h"
 #include "scene/colorspace.h"
 #include "scene/light.h"
 #include "scene/osl.h"
@@ -143,12 +144,80 @@ void OSLManager::device_update_pre(Device *device, Scene *scene)
   }
 }
 
-void OSLManager::device_update_post(Device *device, Scene *scene, Progress &progress)
+void OSLManager::device_update_post(Device *device,
+                                    Scene *scene,
+                                    Progress &progress,
+                                    const bool reload_kernels)
 {
-  if (!need_update())
-    return;
+  /* Create the camera shader. */
+  if (need_update() && !scene->camera->script_name.empty()) {
+    if (progress.get_cancel())
+      return;
 
-  {
+    foreach_osl_device(device, [this, scene](Device *sub_device, OSLGlobals *og) {
+      OSL::ShadingSystem *ss = get_shading_system(sub_device);
+
+      OSL::ShaderGroupRef group = ss->ShaderGroupBegin("camera_group");
+      for (const auto &param : scene->camera->script_params) {
+        const ustring &name = param.first;
+        const vector<uint8_t> &data = param.second.first;
+        const TypeDesc &type = param.second.second;
+        if (type.basetype == TypeDesc::STRING) {
+          const void *string = data.data();
+          ss->Parameter(*group, name, type, (const void *)&string);
+        }
+        else {
+          ss->Parameter(*group, name, type, (const void *)data.data());
+        }
+      }
+      ss->Shader(*group, "shader", scene->camera->script_name, "camera");
+      ss->ShaderGroupEnd(*group);
+
+      og->camera_state = group;
+      og->use_camera = true;
+
+      /* Memory layout is {P, dPdx, dPdy, D, dDdx, dDdy, T}.
+       * If we request derivs from OSL, it will automatically output them after the main parameter.
+       * However, some scripts might have more efficient ways to compute them explicitly, so if a
+       * script has any of the derivative outputs we use those instead. */
+
+      OSLShaderInfo *info = shader_loaded_info(scene->camera->script_name);
+      const string deriv_args[] = {"dPdx", "dPdy", "dDdx", "dDdy"};
+      bool explicit_derivs = false;
+      for (const auto &arg : deriv_args) {
+        if (info->query.getparam(arg) != nullptr) {
+          explicit_derivs = true;
+        }
+      }
+
+      auto add_param = [&](const char *name, OIIO::TypeDesc type, bool derivs, int offset) {
+        ss->add_symlocs(group.get(),
+                        OSL::SymLocationDesc(string_printf("camera.%s", name),
+                                             type,
+                                             derivs,
+                                             OSL::SymArena::Outputs,
+                                             offset * sizeof(float)));
+      };
+
+      if (explicit_derivs) {
+        add_param("dPdx", OIIO::TypeVector, false, 3);
+        add_param("dPdy", OIIO::TypeVector, false, 6);
+        add_param("dDdx", OIIO::TypeVector, false, 12);
+        add_param("dDdy", OIIO::TypeVector, false, 15);
+      }
+      add_param("position", OIIO::TypePoint, !explicit_derivs, 0);
+      add_param("direction", OIIO::TypeVector, !explicit_derivs, 9);
+      add_param("throughput", OIIO::TypeColor, false, 18);
+    });
+  }
+  else if (need_update()) {
+    foreach_osl_device(device, [](Device *, OSLGlobals *og) {
+      og->camera_state.reset();
+      og->use_camera = false;
+    });
+  }
+
+  if (need_update()) {
     scoped_callback_timer timer([scene](double time) {
       if (scene->update_stats) {
         scene->update_stats->osl.times.add_entry({"jit", time});
@@ -180,21 +249,23 @@ void OSLManager::device_update_post(Device *device, Scene *scene, Progress &prog
     OSLRenderServices::image_manager = nullptr;
   }
 
-  /* setup shader engine */
-  foreach_osl_device(device, [this, &progress](Device *sub_device, OSLGlobals *og) {
-    if (og->use) {
-      OSL::ShadingSystem *ss = get_shading_system(sub_device);
+  /* Load OSL kernels on changes to shaders, or when main kernels got reloaded. */
+  if (need_update() || reload_kernels) {
+    foreach_osl_device(device, [this, &progress](Device *sub_device, OSLGlobals *og) {
+      if (og->use_shading || og->use_camera) {
+        OSL::ShadingSystem *ss = get_shading_system(sub_device);
 
-      og->ss = ss;
-      og->ts = get_texture_system();
-      og->services = static_cast<OSLRenderServices *>(ss->renderer());
+        og->ss = ss;
+        og->ts = get_texture_system();
+        og->services = static_cast<OSLRenderServices *>(ss->renderer());
 
-      /* load kernels */
-      if (!sub_device->load_osl_kernels()) {
-        progress.set_error(sub_device->error_message());
+        /* load kernels */
+        if (!sub_device->load_osl_kernels()) {
+          progress.set_error(sub_device->error_message());
+        }
       }
-    }
-  });
+    });
+  }
 
   need_update_ = false;
 }
@@ -203,9 +274,13 @@ void OSLManager::device_free(Device *device, DeviceScene * /*dscene*/, Scene *sc
 {
   /* clear shader engine */
   foreach_osl_device(device, [](Device *, OSLGlobals *og) {
-    og->use = false;
+    og->use_shading = false;
     og->ss = nullptr;
     og->ts = nullptr;
+
+    og->use_shading = false;
+    og->use_camera = false;
+    og->camera_state.reset();
   });
 
   /* Remove any textures specific to an image manager from shared render services textures, since
@@ -232,7 +307,9 @@ void OSLManager::texture_system_init()
 #  if OIIO_VERSION_MAJOR >= 3
     ts_shared = OSL::TextureSystem::create(false);
 #  else
-    ts_shared = shared_ptr(OSL::TextureSystem::create(false), OSL::TextureSystem::destroy);
+    ts_shared = std::shared_ptr<OSL::TextureSystem>(
+        OSL::TextureSystem::create(false),
+        [](OSL::TextureSystem *ts) { OSL::TextureSystem::destroy(ts); });
 #  endif
 
     ts_shared->attribute("automip", 1);
@@ -538,8 +615,9 @@ void OSLShaderManager::device_update_specific(Device *device,
                                               Scene *scene,
                                               Progress &progress)
 {
-  if (!need_update())
+  if (!need_update()) {
     return;
+  }
 
   scoped_callback_timer timer([scene](double time) {
     if (scene->update_stats) {
@@ -551,7 +629,7 @@ void OSLShaderManager::device_update_specific(Device *device,
 
   /* setup shader engine */
   OSLManager::foreach_osl_device(device, [](Device *, OSLGlobals *og) {
-    og->use = true;
+    og->use_shading = true;
 
     og->surface_state.clear();
     og->volume_state.clear();
@@ -568,10 +646,10 @@ void OSLShaderManager::device_update_specific(Device *device,
   for (Shader *shader : scene->shaders) {
     assert(shader->graph);
 
-    auto compile = [this, scene, shader, background_shader](Device *sub_device, OSLGlobals *) {
+    auto compile = [scene, shader, background_shader](Device *sub_device, OSLGlobals *) {
       OSL::ShadingSystem *ss = scene->osl_manager->get_shading_system(sub_device);
 
-      OSLCompiler compiler(this, ss, scene);
+      OSLCompiler compiler(ss, scene);
       compiler.background = (shader == background_shader);
       compiler.compile(shader);
     };
@@ -628,7 +706,7 @@ void OSLShaderManager::device_free(Device *device, DeviceScene *dscene, Scene *s
 
   /* clear shader engine */
   OSLManager::foreach_osl_device(device, [](Device *, OSLGlobals *og) {
-    og->use = false;
+    og->use_shading = false;
 
     og->surface_state.clear();
     og->volume_state.clear();
@@ -774,6 +852,29 @@ OSLNode *OSLShaderManager::osl_node(ShaderGraph *graph,
           if (metadata.name == "widget" && metadata.sdefault[0] == "null") {
             socket_flags |= SocketType::LINK_OSL_INITIALIZER;
           }
+          else if (metadata.name == "defaultgeomprop") {
+            /* the following match up to MaterialX default geometry properties
+             * that we use to help set socket flags to the corresponding
+             * geometry link equivalents. */
+            if (metadata.sdefault[0] == "Nobject") {
+              socket_flags |= SocketType::LINK_TEXTURE_NORMAL;
+            }
+            else if (metadata.sdefault[0] == "Nworld") {
+              socket_flags |= SocketType::LINK_NORMAL;
+            }
+            else if (metadata.sdefault[0] == "Pobject") {
+              socket_flags |= SocketType::LINK_TEXTURE_GENERATED;
+            }
+            else if (metadata.sdefault[0] == "Pworld") {
+              socket_flags |= SocketType::LINK_POSITION;
+            }
+            else if (metadata.sdefault[0] == "Tworld") {
+              socket_flags |= SocketType::LINK_TANGENT;
+            }
+            else if (metadata.sdefault[0] == "UV0") {
+              socket_flags |= SocketType::LINK_TEXTURE_UV;
+            }
+          }
         }
       }
 
@@ -818,11 +919,8 @@ void OSLShaderManager::osl_image_slots(Device *device,
 
 /* Graph Compiler */
 
-OSLCompiler::OSLCompiler(OSLShaderManager *manager, OSL::ShadingSystem *ss, Scene *scene)
-    : scene(scene),
-      manager(manager),
-      services(static_cast<OSLRenderServices *>(ss->renderer())),
-      ss(ss)
+OSLCompiler::OSLCompiler(OSL::ShadingSystem *ss, Scene *scene)
+    : scene(scene), services(static_cast<OSLRenderServices *>(ss->renderer())), ss(ss)
 {
   current_type = SHADER_TYPE_SURFACE;
   current_shader = nullptr;
@@ -1515,15 +1613,20 @@ void OSLCompiler::parameter_texture_ies(const char *name, const int svm_slot)
 
 #else
 
-OSLManager::OSLManager(Device *device) {}
+OSLManager::OSLManager(Device * /*device*/) {}
 OSLManager::~OSLManager() {}
 
 void OSLManager::free_memory() {}
-void OSLManager::reset(Scene *scene) {}
+void OSLManager::reset(Scene * /*scene*/) {}
 
-void OSLManager::device_update_pre(Device *device, Scene *scene) {}
-void OSLManager::device_update_post(Device *device, Scene *scene, Progress &progress) {}
-void OSLManager::device_free(Device *device, DeviceScene *dscene, Scene *scene) {}
+void OSLManager::device_update_pre(Device * /*device*/, Scene * /*scene*/) {}
+void OSLManager::device_update_post(Device * /*device*/,
+                                    Scene * /*scene*/,
+                                    Progress & /*progress*/,
+                                    const bool /*reload_kernels*/)
+{
+}
+void OSLManager::device_free(Device * /*device*/, DeviceScene * /*dscene*/, Scene * /*scene*/) {}
 
 void OSLManager::tag_update() {}
 bool OSLManager::need_update() const

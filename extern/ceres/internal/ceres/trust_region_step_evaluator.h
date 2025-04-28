@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2016 Google Inc. All rights reserved.
+// Copyright 2023 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -33,8 +33,7 @@
 
 #include "ceres/internal/export.h"
 
-namespace ceres {
-namespace internal {
+namespace ceres::internal {
 
 // The job of the TrustRegionStepEvaluator is to evaluate the quality
 // of a step, i.e., how the cost of a step compares with the reduction
@@ -118,7 +117,6 @@ class CERES_NO_EXPORT TrustRegionStepEvaluator {
   int num_consecutive_nonmonotonic_steps_;
 };
 
-}  // namespace internal
-}  // namespace ceres
+}  // namespace ceres::internal
 
 #endif  // CERES_INTERNAL_TRUST_REGION_STEP_EVALUATOR_H_

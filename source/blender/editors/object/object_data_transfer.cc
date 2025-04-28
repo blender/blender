@@ -102,7 +102,7 @@ static void dt_add_vcol_layers(const CustomData *cdata,
                                EnumPropertyItem **r_item,
                                int *r_totitem)
 {
-  int types[2] = {CD_PROP_COLOR, CD_PROP_BYTE_COLOR};
+  const int types[2] = {CD_PROP_COLOR, CD_PROP_BYTE_COLOR};
   int idx = 0;
   for (int i = 0; i < 2; i++) {
     eCustomDataType type = eCustomDataType(types[i]);
@@ -419,7 +419,7 @@ static bool data_transfer_exec_is_object_valid(wmOperator *op,
   return false;
 }
 
-static int data_transfer_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus data_transfer_exec(bContext *C, wmOperator *op)
 {
   Object *ob_src = context_active_object(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
@@ -546,17 +546,18 @@ static int data_transfer_exec(bContext *C, wmOperator *op)
 #endif
 }
 
-/* Used by both OBJECT_OT_data_transfer and OBJECT_OT_datalayout_transfer */
-/* Note this context poll is only really partial,
- * it cannot check for all possible invalid cases. */
+/** Used by both #OBJECT_OT_data_transfer and #OBJECT_OT_datalayout_transfer. */
 static bool data_transfer_poll(bContext *C)
 {
+  /* Note this context poll is only really partial,
+   * it cannot check for all possible invalid cases. */
+
   Object *ob = context_active_object(C);
   ID *data = static_cast<ID *>((ob) ? ob->data : nullptr);
   return (ob != nullptr && ob->type == OB_MESH && data != nullptr);
 }
 
-/* Used by both OBJECT_OT_data_transfer and OBJECT_OT_datalayout_transfer */
+/** Used by both #OBJECT_OT_data_transfer and #OBJECT_OT_datalayout_transfer. */
 static bool data_transfer_poll_property(const bContext * /*C*/,
                                         wmOperator *op,
                                         const PropertyRNA *prop)
@@ -819,7 +820,7 @@ static bool datalayout_transfer_poll(bContext *C)
           data_transfer_poll(C));
 }
 
-static int datalayout_transfer_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus datalayout_transfer_exec(bContext *C, wmOperator *op)
 {
   Object *ob_act = context_active_object(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
@@ -897,7 +898,9 @@ static int datalayout_transfer_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int datalayout_transfer_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus datalayout_transfer_invoke(bContext *C,
+                                                   wmOperator *op,
+                                                   const wmEvent *event)
 {
   if (edit_modifier_invoke_properties(C, op)) {
     return datalayout_transfer_exec(C, op);

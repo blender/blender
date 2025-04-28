@@ -41,14 +41,14 @@ class CustomHydraRenderEngine(bpy.types.HydraRenderEngine):
     # by implementing the methods like this.
     def update(self, data, depsgraph):
         super().update(data, depsgraph)
-        # Do extra work here
+        # Do extra work here.
 
     def update_render_passes(self, scene, render_layer):
         if render_layer.use_pass_z:
             self.register_pass(scene, render_layer, 'Depth', 1, 'Z', 'VALUE')
 
 
-# Registration
+# Registration.
 def register():
     bpy.utils.register_class(CustomHydraRenderEngine)
 

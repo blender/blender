@@ -14,8 +14,8 @@ COMPUTE_SHADER_CREATE_INFO(gpu_shader_index_2d_array_tris)
  */
 void main()
 {
-  ivec3 gid = ivec3(gl_GlobalInvocationID);
-  ivec3 nthreads = ivec3(gl_NumWorkGroups * uvec3(gl_WorkGroupSize));
+  int3 gid = int3(gl_GlobalInvocationID);
+  int3 nthreads = int3(gl_NumWorkGroups * uint3(gl_WorkGroupSize));
   for (int y = gid.y + gid.z * nthreads.y; y < ncurves; y += nthreads.y * nthreads.z) {
     for (int x = gid.x; x < elements_per_curve; x += nthreads.x) {
       int store_index = (x + y * elements_per_curve) * 6;

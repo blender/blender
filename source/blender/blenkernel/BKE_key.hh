@@ -24,10 +24,6 @@ struct Main;
 struct Mesh;
 struct Object;
 
-/**
- * Free (or release) any data used by this shape-key (does not free the key itself).
- */
-void BKE_key_free_data(Key *key);
 void BKE_key_free_nolib(Key *key);
 Key *BKE_key_add(Main *bmain, ID *id);
 /**
@@ -81,6 +77,10 @@ KeyBlock *BKE_keyblock_from_object(Object *ob);
 KeyBlock *BKE_keyblock_from_object_reference(Object *ob);
 
 KeyBlock *BKE_keyblock_add(Key *key, const char *name);
+
+/** Add a copy of the source key-block with a copy of its data array. */
+KeyBlock *BKE_keyblock_duplicate(Key *key, KeyBlock *kb_src);
+
 /**
  * \note sorting is a problematic side effect in some cases,
  * better only do this explicitly by having its own function,
@@ -129,7 +129,8 @@ void BKE_keyblock_convert_to_curve(KeyBlock *kb, Curve *cu, ListBase *nurb);
 
 void BKE_keyblock_update_from_mesh(const Mesh *mesh, KeyBlock *kb);
 void BKE_keyblock_convert_from_mesh(const Mesh *mesh, const Key *key, KeyBlock *kb);
-void BKE_keyblock_convert_to_mesh(const KeyBlock *kb, float (*vert_positions)[3], int totvert);
+void BKE_keyblock_convert_to_mesh(const KeyBlock *kb,
+                                  blender::MutableSpan<blender::float3> vert_positions);
 
 /**
  * Computes normals (vertices, faces and/or loops ones) of given mesh for given shape key.

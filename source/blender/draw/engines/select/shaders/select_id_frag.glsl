@@ -4,5 +4,5 @@
 
 void main()
 {
-  fragColor = floatBitsToUint(intBitsToFloat(select_id));
+  frag_color = floatBitsToUint(intBitsToFloat(select_id));
 }

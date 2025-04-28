@@ -15,15 +15,18 @@
  ******************************************************************************/
 
 #include "OpenALDevice.h"
-#include "devices/DeviceManager.h"
-#include "devices/IDeviceFactory.h"
-#include "respec/ConverterReader.h"
-#include "Exception.h"
-#include "ISound.h"
 
 #include <chrono>
 #include <cstring>
 #include <iostream>
+
+#include "Exception.h"
+#include "ISound.h"
+
+#include "devices/DeviceManager.h"
+#include "devices/IDeviceFactory.h"
+#include "generator/SilenceReader.h"
+#include "respec/ConverterReader.h"
 
 AUD_NAMESPACE_BEGIN
 
@@ -1388,9 +1391,63 @@ void OpenALDevice::setVolume(float volume)
 	alListenerf(AL_GAIN, volume);
 }
 
-ISynchronizer* OpenALDevice::getSynchronizer()
+void OpenALDevice::seekSynchronizer(double time)
 {
-	return &m_synchronizer;
+	std::lock_guard<ILockable> lock(*this);
+
+	m_synchronizerPosition = uint64_t(time * m_specs.rate);
+	if(m_silenceHandle)
+		m_silenceHandle->seek(time);
+}
+
+double OpenALDevice::getSynchronizerPosition()
+{
+	std::lock_guard<ILockable> lock(*this);
+
+	if(m_silenceHandle)
+		return m_silenceHandle->getPosition();
+
+	return m_synchronizerPosition;
+}
+
+void OpenALDevice::playSynchronizer()
+{
+	std::lock_guard<ILockable> lock(*this);
+
+	if(m_silenceHandle)
+		m_silenceHandle->resume();
+	else
+	{
+		auto reader = std::make_shared<SilenceReader>(m_specs.rate);
+		reader->seek(m_synchronizerPosition);
+		m_silenceHandle = play(reader);
+	}
+}
+
+void OpenALDevice::stopSynchronizer()
+{
+	std::lock_guard<ILockable> lock(*this);
+
+	if(m_silenceHandle)
+	{
+		m_synchronizerPosition = m_silenceHandle->getPosition();
+		m_silenceHandle->stop();
+		m_silenceHandle.reset();
+	}
+}
+
+void OpenALDevice::setSyncCallback(syncFunction function, void* data)
+{
+}
+
+int OpenALDevice::isSynchronizerPlaying()
+{
+	std::lock_guard<ILockable> lock(*this);
+
+	if(m_silenceHandle)
+		return m_silenceHandle->getStatus() == STATUS_PLAYING;
+
+	return 0;
 }
 
 /******************************************************************************/

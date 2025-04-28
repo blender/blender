@@ -352,10 +352,17 @@ class BUILTIN_KSI_Available(KeyingSetInfo):
 
     # poll - selected objects or selected object with animation data
     def poll(self, context):
+        from bpy_extras import anim_utils
         ob = context.active_object
         if ob:
             # TODO: this fails if one animation-less object is active, but many others are selected
-            return ob.animation_data and ob.animation_data.action
+            adt = ob.animation_data
+            if not adt:
+                return False
+            cbag = anim_utils.action_get_channelbag_for_slot(adt.action, adt.action_slot)
+            if not cbag:
+                return False
+            return bool(cbag.fcurves)
         else:
             return bool(context.selected_objects)
 

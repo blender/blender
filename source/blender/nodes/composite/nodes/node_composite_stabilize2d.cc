@@ -35,8 +35,12 @@ static void cmp_node_stabilize2d_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Color>("Image")
       .default_value({0.8f, 0.8f, 0.8f, 1.0f})
-      .compositor_realization_mode(CompositorInputRealizationMode::None)
-      .compositor_domain_priority(0);
+      .compositor_realization_mode(CompositorInputRealizationMode::None);
+  b.add_input<decl::Bool>("Invert")
+      .default_value(false)
+      .description("Invert stabilization to reintroduce motion to the image")
+      .compositor_expects_single_value();
+
   b.add_output<decl::Color>("Image");
 }
 
@@ -63,7 +67,6 @@ static void node_composit_buts_stabilize2d(uiLayout *layout, bContext *C, Pointe
   }
 
   uiItemR(layout, ptr, "filter_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
-  uiItemR(layout, ptr, "invert", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 }
 
 using namespace blender::compositor;
@@ -74,12 +77,12 @@ class Stabilize2DOperation : public NodeOperation {
 
   void execute() override
   {
-    Result &input = this->get_input("Image");
+    const Result &input = this->get_input("Image");
     Result &output = this->get_result("Image");
 
     MovieClip *movie_clip = get_movie_clip();
     if (input.is_single_value() || !movie_clip) {
-      input.pass_through(output);
+      output.share_data(input);
       return;
     }
 
@@ -99,7 +102,7 @@ class Stabilize2DOperation : public NodeOperation {
       transformation = math::invert(transformation);
     }
 
-    input.pass_through(output);
+    output.share_data(input);
     output.transform(transformation);
     output.get_realization_options().interpolation = this->get_interpolation();
   }
@@ -121,7 +124,7 @@ class Stabilize2DOperation : public NodeOperation {
 
   bool do_inverse_stabilization()
   {
-    return bnode().custom2 & CMP_NODE_STABILIZE_FLAG_INVERSE;
+    return this->get_input("Invert").get_single_value_default(false);
   }
 
   MovieClip *get_movie_clip()

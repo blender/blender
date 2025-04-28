@@ -175,8 +175,7 @@ static void ptcache_free_bake(PointCache *cache)
 
 static PTCacheBaker *ptcache_baker_create(bContext *C, wmOperator *op, bool all)
 {
-  PTCacheBaker *baker = static_cast<PTCacheBaker *>(
-      MEM_callocN(sizeof(PTCacheBaker), "PTCacheBaker"));
+  PTCacheBaker *baker = MEM_callocN<PTCacheBaker>("PTCacheBaker");
 
   baker->bmain = CTX_data_main(C);
   baker->scene = CTX_data_scene(C);
@@ -199,7 +198,7 @@ static PTCacheBaker *ptcache_baker_create(bContext *C, wmOperator *op, bool all)
   return baker;
 }
 
-static int ptcache_bake_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus ptcache_bake_exec(bContext *C, wmOperator *op)
 {
   bool all = STREQ(op->type->idname, "PTCACHE_OT_bake_all");
 
@@ -210,12 +209,11 @@ static int ptcache_bake_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int ptcache_bake_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+static wmOperatorStatus ptcache_bake_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
   bool all = STREQ(op->type->idname, "PTCACHE_OT_bake_all");
 
-  PointCacheJob *job = static_cast<PointCacheJob *>(
-      MEM_mallocN(sizeof(PointCacheJob), "PointCacheJob"));
+  PointCacheJob *job = MEM_mallocN<PointCacheJob>("PointCacheJob");
   job->wm = CTX_wm_manager(C);
   job->baker = ptcache_baker_create(C, op, all);
   job->baker->bake_job = job;
@@ -244,7 +242,7 @@ static int ptcache_bake_invoke(bContext *C, wmOperator *op, const wmEvent * /*ev
   return OPERATOR_RUNNING_MODAL;
 }
 
-static int ptcache_bake_modal(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+static wmOperatorStatus ptcache_bake_modal(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
   Scene *scene = (Scene *)op->customdata;
 
@@ -265,7 +263,7 @@ static void ptcache_bake_cancel(bContext *C, wmOperator *op)
   WM_jobs_kill_type(wm, scene, WM_JOB_TYPE_POINTCACHE);
 }
 
-static int ptcache_free_bake_all_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus ptcache_free_bake_all_exec(bContext *C, wmOperator * /*op*/)
 {
   Scene *scene = CTX_data_scene(C);
   ListBase pidlist;
@@ -322,7 +320,7 @@ void PTCACHE_OT_free_bake_all(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-static int ptcache_free_bake_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus ptcache_free_bake_exec(bContext *C, wmOperator * /*op*/)
 {
   PointerRNA ptr = CTX_data_pointer_get_type(C, "point_cache", &RNA_PointCache);
   PointCache *cache = static_cast<PointCache *>(ptr.data);
@@ -334,7 +332,7 @@ static int ptcache_free_bake_exec(bContext *C, wmOperator * /*op*/)
 
   return OPERATOR_FINISHED;
 }
-static int ptcache_bake_from_cache_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus ptcache_bake_from_cache_exec(bContext *C, wmOperator * /*op*/)
 {
   PointerRNA ptr = CTX_data_pointer_get_type(C, "point_cache", &RNA_PointCache);
   PointCache *cache = static_cast<PointCache *>(ptr.data);
@@ -394,7 +392,7 @@ void PTCACHE_OT_bake_from_cache(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-static int ptcache_add_new_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus ptcache_add_new_exec(bContext *C, wmOperator * /*op*/)
 {
   Scene *scene = CTX_data_scene(C);
   PointerRNA ptr = CTX_data_pointer_get_type(C, "point_cache", &RNA_PointCache);
@@ -414,7 +412,7 @@ static int ptcache_add_new_exec(bContext *C, wmOperator * /*op*/)
 
   return OPERATOR_FINISHED;
 }
-static int ptcache_remove_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus ptcache_remove_exec(bContext *C, wmOperator * /*op*/)
 {
   PointerRNA ptr = CTX_data_pointer_get_type(C, "point_cache", &RNA_PointCache);
   Scene *scene = CTX_data_scene(C);

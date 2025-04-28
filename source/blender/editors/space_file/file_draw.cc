@@ -128,7 +128,7 @@ struct FileTooltipData {
 
 static FileTooltipData *file_tooltip_data_create(const SpaceFile *sfile, const FileDirEntry *file)
 {
-  FileTooltipData *data = (FileTooltipData *)MEM_mallocN(sizeof(FileTooltipData), __func__);
+  FileTooltipData *data = MEM_mallocN<FileTooltipData>(__func__);
   data->sfile = sfile;
   data->file = file;
   return data;
@@ -338,12 +338,10 @@ static void file_draw_tooltip_custom_func(bContext & /*C*/, uiTooltipData &tip, 
   }
 }
 
-static std::string file_draw_asset_tooltip_func(bContext * /*C*/,
-                                                void *argN,
-                                                const blender::StringRef /*tip*/)
+static void file_draw_asset_tooltip_custom_func(bContext & /*C*/, uiTooltipData &tip, void *argN)
 {
   const auto *asset = static_cast<blender::asset_system::AssetRepresentation *>(argN);
-  return blender::ed::asset::asset_tooltip(*asset);
+  blender::ed::asset::asset_tooltip(*asset, tip);
 }
 
 static void draw_tile_background(const rcti *draw_rect, int colorid, int shade)
@@ -378,8 +376,17 @@ static void file_but_enable_drag(uiBut *but,
   {
     const int import_method = ED_fileselect_asset_import_method_get(sfile, file);
     BLI_assert(import_method > -1);
+    if (import_method > -1) {
+      AssetImportSettings import_settings{};
+      import_settings.method = eAssetImportMethod(import_method);
+      import_settings.use_instance_collections =
+          (sfile->asset_params->import_flags &
+           (import_method == ASSET_IMPORT_LINK ?
+                FILE_ASSET_IMPORT_INSTANCE_COLLECTIONS_ON_LINK :
+                FILE_ASSET_IMPORT_INSTANCE_COLLECTIONS_ON_APPEND)) != 0;
 
-    UI_but_drag_set_asset(but, file->asset, import_method, icon, file->preview_icon_id);
+      UI_but_drag_set_asset(but, file->asset, import_settings, icon, file->preview_icon_id);
+    }
   }
   else if (preview_image) {
     UI_but_drag_set_image(but, path, icon, preview_image, scale);
@@ -387,6 +394,17 @@ static void file_but_enable_drag(uiBut *but,
   else {
     /* path is no more static, cannot give it directly to but... */
     UI_but_drag_set_path(but, path);
+  }
+}
+
+static void file_but_tooltip_func_set(const SpaceFile *sfile, const FileDirEntry *file, uiBut *but)
+{
+  if (file->asset) {
+    UI_but_func_tooltip_custom_set(but, file_draw_asset_tooltip_custom_func, file->asset, nullptr);
+  }
+  else {
+    UI_but_func_tooltip_custom_set(
+        but, file_draw_tooltip_custom_func, file_tooltip_data_create(sfile, file), MEM_freeN);
   }
 }
 
@@ -398,23 +416,52 @@ static uiBut *file_add_icon_but(const SpaceFile *sfile,
                                 int icon,
                                 int width,
                                 int height,
+                                int padx,
                                 bool dimmed)
 {
   uiBut *but;
 
-  const int x = tile_draw_rect->xmin;
-  const int y = tile_draw_rect->ymax - sfile->layout->tile_border_y - height;
+  const int x = tile_draw_rect->xmin + padx;
+  const int y = tile_draw_rect->ymin +
+                round_fl_to_int((BLI_rcti_size_y(tile_draw_rect) - height) / 2.0f);
 
-  but = uiDefIconBut(
-      block, UI_BTYPE_LABEL, 0, icon, x, y, width, height, nullptr, 0.0f, 0.0f, std::nullopt);
-  UI_but_label_alpha_factor_set(but, dimmed ? 0.3f : 1.0f);
-  if (file->asset) {
-    UI_but_func_tooltip_set(but, file_draw_asset_tooltip_func, file->asset, nullptr);
+  if (icon < BIFICONID_LAST_STATIC) {
+    /* Small built-in icon. Draw centered in given width. */
+    but = uiDefIconBut(
+        block, UI_BTYPE_LABEL, 0, icon, x, y, width, height, nullptr, 0.0f, 0.0f, std::nullopt);
+    /* Center the icon. */
+    UI_but_drawflag_disable(but, UI_BUT_ICON_LEFT);
   }
   else {
-    UI_but_func_tooltip_custom_set(
-        but, file_draw_tooltip_custom_func, file_tooltip_data_create(sfile, file), MEM_freeN);
+    /* Larger preview icon. Fills available width/height. */
+    but = uiDefIconPreviewBut(
+        block, UI_BTYPE_LABEL, 0, icon, x, y, width, height, nullptr, 0.0f, 0.0f, std::nullopt);
   }
+  UI_but_label_alpha_factor_set(but, dimmed ? 0.3f : 1.0f);
+  file_but_tooltip_func_set(sfile, file, but);
+
+  return but;
+}
+
+static uiBut *file_add_overlay_icon_but(uiBlock *block, int pos_x, int pos_y, int icon)
+{
+  uiBut *but = uiDefIconBut(block,
+                            UI_BTYPE_LABEL,
+                            0,
+                            icon,
+                            pos_x,
+                            pos_y,
+                            ICON_DEFAULT_WIDTH_SCALE,
+                            ICON_DEFAULT_HEIGHT_SCALE,
+                            nullptr,
+                            0.0f,
+                            0.0f,
+                            std::nullopt);
+  /* Otherwise a left hand padding will be added. */
+  UI_but_drawflag_disable(but, UI_BUT_ICON_LEFT);
+  UI_but_label_alpha_factor_set(but, 0.6f);
+  const uchar light[4] = {255, 255, 255, 255};
+  UI_but_color_set(but, light);
 
   return but;
 }
@@ -452,6 +499,24 @@ static void file_draw_string(int sx,
   font_style_params.align = align;
 
   UI_fontstyle_draw(&fs, &rect, filename, sizeof(filename), col, &font_style_params);
+}
+
+/**
+ * Draw the string over at max \a line_count lines, clipping in the middle so it fits.
+ */
+static void file_draw_string_mulitline_clipped(const rcti *rect,
+                                               const char *string,
+                                               eFontStyle_Align align,
+                                               const uchar col[4])
+{
+  if (string[0] == '\0' || BLI_rcti_size_x(rect) < 1) {
+    return;
+  }
+
+  const uiStyle *style = UI_style_get();
+  uiFontStyle fs = style->widget;
+
+  UI_fontstyle_draw_multiline_clipped(&fs, rect, string, col, align);
 }
 
 /**
@@ -583,14 +648,7 @@ static void file_add_preview_drag_but(const SpaceFile *sfile,
   const auto [scaled_width, scaled_height, scale] = preview_image_scaled_dimensions_get(
       drag_image->x, drag_image->y, *layout);
   file_but_enable_drag(but, sfile, file, path, drag_image, file_type_icon, scale);
-
-  if (file->asset) {
-    UI_but_func_tooltip_set(but, file_draw_asset_tooltip_func, file->asset, nullptr);
-  }
-  else {
-    UI_but_func_tooltip_custom_set(
-        but, file_draw_tooltip_custom_func, file_tooltip_data_create(sfile, file), MEM_freeN);
-  }
+  file_but_tooltip_func_set(sfile, file, but);
 }
 
 static void file_draw_preview(const FileDirEntry *file,
@@ -775,6 +833,7 @@ static void file_draw_loading_icon(const rcti *tile_draw_rect,
 
 static void file_draw_indicator_icons(const FileList *files,
                                       const FileDirEntry *file,
+                                      const FileLayout *layout,
                                       const rcti *tile_draw_rect,
                                       const float preview_icon_aspect,
                                       const int file_type_icon,
@@ -788,7 +847,7 @@ static void file_draw_indicator_icons(const FileList *files,
    * cover the preview. */
   if (preview_icon_aspect < 2.0f) {
     const float icon_x = float(tile_draw_rect->xmin) + (3.0f * UI_SCALE_FAC);
-    const float icon_y = float(tile_draw_rect->ymin) + (17.0f * UI_SCALE_FAC);
+    const float icon_y = float(tile_draw_rect->ymax) - layout->prv_border_y - layout->prv_h;
     const uchar light[4] = {255, 255, 255, 255};
     if (is_offline) {
       /* Icon at bottom to indicate the file is offline. */
@@ -875,7 +934,8 @@ static void renamebutton_cb(bContext *C, void * /*arg1*/, char *oldname)
   if (!STREQ(orgname, newname)) {
     errno = 0;
     if ((BLI_rename(orgname, newname) != 0) || !BLI_exists(newname)) {
-      WM_reportf(RPT_ERROR, "Could not rename: %s", errno ? strerror(errno) : "unknown error");
+      WM_global_reportf(
+          RPT_ERROR, "Could not rename: %s", errno ? strerror(errno) : "unknown error");
       WM_report_banner_show(wm, win);
       /* Renaming failed, reset the name for further renaming handling. */
       STRNCPY(params->renamefile, oldname);
@@ -913,7 +973,7 @@ static void draw_background(FileLayout *layout, View2D *v2d)
 
   /* alternating flat shade background */
   for (i = 2; (i <= layout->rows + 1); i += 2) {
-    sy = int(v2d->cur.ymax) - layout->offset_top - i * item_height - layout->tile_border_y;
+    sy = int(v2d->cur.ymax) - layout->offset_top - i * item_height - layout->list_padding_top;
 
     /* Offset pattern slightly to add scroll effect. */
     sy += round_fl_to_int(item_height * (v2d->tot.ymax - v2d->cur.ymax) / item_height);
@@ -1119,7 +1179,7 @@ static void draw_details_columns(const FileSelectParams *params,
 {
   const bool compact = FILE_LAYOUT_COMPACT(layout);
   const bool update_stat_strings = layout->width != layout->curr_size;
-  int sx = tile_draw_rect->xmin - layout->tile_border_x - (UI_UNIT_X * 0.1f);
+  int sx = tile_draw_rect->xmin - layout->tile_border_x;
 
   for (int column_type = 0; column_type < ATTRIBUTE_COLUMN_MAX; column_type++) {
     const FileAttributeColumn *column = &layout->attribute_columns[column_type];
@@ -1139,7 +1199,7 @@ static void draw_details_columns(const FileSelectParams *params,
 
     if (str) {
       file_draw_string(sx + ATTRIBUTE_COLUMN_PADDING,
-                       tile_draw_rect->ymax - layout->tile_border_y,
+                       tile_draw_rect->ymax,
                        IFACE_(str),
                        column->width - 2 * ATTRIBUTE_COLUMN_PADDING,
                        layout->tile_h,
@@ -1151,11 +1211,7 @@ static void draw_details_columns(const FileSelectParams *params,
   }
 }
 
-static rcti tile_draw_rect_get(const View2D *v2d,
-                               const FileLayout *layout,
-                               const eFileDisplayType display,
-                               const int file_idx,
-                               const int padx)
+static rcti tile_draw_rect_get(const View2D *v2d, const FileLayout *layout, const int file_idx)
 {
   int tile_pos_x, tile_pos_y;
   ED_fileselect_layout_tilepos(layout, file_idx, &tile_pos_x, &tile_pos_y);
@@ -1163,12 +1219,35 @@ static rcti tile_draw_rect_get(const View2D *v2d,
   tile_pos_y = int(v2d->tot.ymax - tile_pos_y);
 
   rcti rect;
-  rect.xmin = tile_pos_x + padx;
-  rect.xmax = rect.xmin + (ELEM(display, FILE_VERTICALDISPLAY, FILE_HORIZONTALDISPLAY) ?
-                               layout->tile_w - (2 * padx) :
-                               layout->tile_w);
+  rect.xmin = tile_pos_x;
+  rect.xmax = rect.xmin + layout->tile_w;
   rect.ymax = tile_pos_y;
-  rect.ymin = rect.ymax - layout->tile_h - layout->tile_border_y;
+  rect.ymin = rect.ymax - layout->tile_h;
+
+  return rect;
+}
+
+/**
+ * Get the boundaries to display the name label in (this isn't the rectangle of the text itself).
+ */
+static rcti text_draw_rect_get(const View2D *v2d,
+                               const eFileDisplayType display_type,
+                               const FileLayout *layout,
+                               const int file_idx,
+                               const int icon_ofs_x)
+{
+  rcti tile_rect = tile_draw_rect_get(v2d, layout, file_idx);
+
+  rcti rect = tile_rect;
+  if (display_type == FILE_IMGDISPLAY) {
+    rect.ymin += round_fl_to_int(layout->prv_border_y * 0.5f);
+    rect.ymax = rect.ymin + layout->text_line_height * layout->text_lines_count;
+  }
+  else {
+    rect.xmin += icon_ofs_x + 1;
+    rect.xmax = tile_rect.xmin + round_fl_to_int(layout->attribute_columns[COLUMN_NAME].width) -
+                layout->tile_border_x;
+  }
 
   return rect;
 }
@@ -1183,11 +1262,10 @@ void file_draw_list(const bContext *C, ARegion *region)
   View2D *v2d = &region->v2d;
   FileList *files = sfile->files;
   FileDirEntry *file;
-  uiBlock *block = UI_block_begin(C, region, __func__, UI_EMBOSS);
+  uiBlock *block = UI_block_begin(C, region, __func__, blender::ui::EmbossType::Emboss);
   int numfiles;
   int numfiles_layout;
   int offset;
-  int column_width, textheight;
   int i;
   eFontStyle_Align align;
   bool do_drag;
@@ -1217,11 +1295,6 @@ void file_draw_list(const bContext *C, ARegion *region)
   }
 
   filelist_file_cache_slidingwindow_set(files, numfiles_layout);
-
-  column_width = (FILE_IMGDISPLAY == params->display) ?
-                     layout->tile_w :
-                     round_fl_to_int(layout->attribute_columns[COLUMN_NAME].width);
-  textheight = int(layout->textheight * 3.0 / 2.0 + 0.5);
 
   align = (FILE_IMGDISPLAY == params->display) ? UI_STYLE_TEXT_CENTER : UI_STYLE_TEXT_LEFT;
 
@@ -1262,8 +1335,7 @@ void file_draw_list(const bContext *C, ARegion *region)
     const int padx = 0.1f * UI_UNIT_X;
     int icon_ofs = 0;
 
-    const rcti tile_draw_rect = tile_draw_rect_get(
-        v2d, layout, eFileDisplayType(params->display), i, padx);
+    const rcti tile_draw_rect = tile_draw_rect_get(v2d, layout, i);
 
     file = filelist_file(files, i);
     file_selflag = filelist_entry_select_get(sfile->files, file, CHECK_ALL);
@@ -1280,10 +1352,7 @@ void file_draw_list(const bContext *C, ARegion *region)
                                                                                              0;
         BLI_assert(i == 0 || !FILENAME_IS_CURRPAR(file->relpath));
 
-        rcti tile_bg_rect = tile_draw_rect;
-        /* One pixel downwards, places it more in the center. */
-        BLI_rcti_translate(&tile_bg_rect, 0, -U.pixelsize);
-        draw_tile_background(&tile_bg_rect, colorid, shade);
+        draw_tile_background(&tile_draw_rect, colorid, shade);
       }
     }
     UI_draw_roundbox_corner_set(UI_CNR_NONE);
@@ -1312,8 +1381,13 @@ void file_draw_list(const bContext *C, ARegion *region)
         has_special_file_image = true;
       }
 
-      file_draw_indicator_icons(
-          files, file, &tile_draw_rect, thumb_icon_aspect, file_type_icon, has_special_file_image);
+      file_draw_indicator_icons(files,
+                                file,
+                                layout,
+                                &tile_draw_rect,
+                                thumb_icon_aspect,
+                                file_type_icon,
+                                has_special_file_image);
 
       if (do_drag) {
         file_add_preview_drag_but(
@@ -1321,23 +1395,37 @@ void file_draw_list(const bContext *C, ARegion *region)
       }
     }
     else {
-      const int icon = filelist_geticon_file_type(files, i, true);
+      const bool filelist_loading = !filelist_is_ready(files);
+      const BIFIconID icon = [&]() {
+        if (file->asset) {
+          file->asset->ensure_previewable();
 
-      icon_ofs += ICON_DEFAULT_WIDTH_SCALE + 0.2f * UI_UNIT_X;
+          if (filelist_loading) {
+            return BIFIconID(ICON_PREVIEW_LOADING);
+          }
+          return blender::ed::asset::asset_preview_or_icon(*file->asset);
+        }
+        return filelist_geticon_file_type(files, i, true);
+      }();
+
+      icon_ofs += layout->prv_w + 2 * padx;
 
       /* Add dummy draggable button covering the icon and the label. */
       if (do_drag) {
         const uiStyle *style = UI_style_get();
         const int str_width = UI_fontstyle_string_width(&style->widget, file->name);
-        const int drag_width = std::min(str_width + icon_ofs,
-                                        int(column_width - ATTRIBUTE_COLUMN_PADDING));
+        const int drag_width = std::min(
+            str_width + icon_ofs,
+            int(layout->attribute_columns[COLUMN_NAME].width - ATTRIBUTE_COLUMN_PADDING));
         if (drag_width > 0) {
+          /* Uses full row height (tile height plus 2 * tile border padding) so there's no space
+           * between rows. */
           uiBut *drag_but = uiDefBut(block,
                                      UI_BTYPE_LABEL,
                                      0,
                                      "",
                                      tile_draw_rect.xmin,
-                                     tile_draw_rect.ymin - 1,
+                                     tile_draw_rect.ymin - layout->tile_border_y,
                                      drag_width,
                                      layout->tile_h + layout->tile_border_y * 2,
                                      nullptr,
@@ -1346,10 +1434,7 @@ void file_draw_list(const bContext *C, ARegion *region)
                                      std::nullopt);
           UI_but_dragflag_enable(drag_but, UI_BUT_DRAG_FULL_BUT);
           file_but_enable_drag(drag_but, sfile, file, path, nullptr, icon, UI_SCALE_FAC);
-          UI_but_func_tooltip_custom_set(drag_but,
-                                         file_draw_tooltip_custom_func,
-                                         file_tooltip_data_create(sfile, file),
-                                         MEM_freeN);
+          file_but_tooltip_func_set(sfile, file, drag_but);
         }
       }
 
@@ -1360,30 +1445,45 @@ void file_draw_list(const bContext *C, ARegion *region)
                                           file,
                                           &tile_draw_rect,
                                           icon,
-                                          ICON_DEFAULT_WIDTH_SCALE,
-                                          ICON_DEFAULT_HEIGHT_SCALE,
+                                          layout->prv_w,
+                                          layout->prv_h,
+                                          padx,
                                           is_hidden);
       if (do_drag) {
         /* For some reason the dragging is unreliable for the icon button if we don't explicitly
          * enable dragging, even though the dummy drag button above covers the same area. */
         file_but_enable_drag(icon_but, sfile, file, path, nullptr, icon, UI_SCALE_FAC);
       }
+
+      if (layout->prv_w >= round_fl_to_int(ICON_DEFAULT_WIDTH_SCALE * 2) &&
+          (filelist_loading || icon >= BIFICONID_LAST_STATIC))
+      {
+        const BIFIconID type_icon = filelist_geticon_file_type(files, i, true);
+        file_add_overlay_icon_but(block,
+                                  tile_draw_rect.xmin + padx - 2,
+                                  tile_draw_rect.ymin - 2 * UI_SCALE_FAC,
+                                  type_icon);
+      }
     }
 
-    if (file_selflag & FILE_SEL_EDITING) {
-      const short width = (params->display == FILE_IMGDISPLAY) ?
-                              column_width :
-                              layout->attribute_columns[COLUMN_NAME].width -
-                                  ATTRIBUTE_COLUMN_PADDING;
+    const rcti text_rect = text_draw_rect_get(
+        v2d, eFileDisplayType(params->display), layout, i, icon_ofs);
 
+    if (file_selflag & FILE_SEL_EDITING) {
+      const int but_height =
+          (params->display == FILE_IMGDISPLAY) ?
+              layout->text_line_height * 1.4f :
+              /* Just a little smaller than the tile height, clamped to #UI_UNIT_Y as maximum. */
+              std::min(short(BLI_rcti_size_y(&text_rect) - 1.0f * UI_SCALE_FAC), UI_UNIT_Y);
       uiBut *but = uiDefBut(block,
                             UI_BTYPE_TEXT,
                             1,
                             "",
-                            tile_draw_rect.xmin + icon_ofs,
-                            tile_draw_rect.ymin + layout->tile_border_y - 0.15f * UI_UNIT_X,
-                            width - icon_ofs,
-                            textheight,
+                            text_rect.xmin,
+                            /* First line only, when name is displayed in multiple lines. */
+                            text_rect.ymax - but_height,
+                            BLI_rcti_size_x(&text_rect),
+                            but_height,
                             params->renamefile,
                             1.0f,
                             float(sizeof(params->renamefile)),
@@ -1410,15 +1510,18 @@ void file_draw_list(const bContext *C, ARegion *region)
 
     /* file_selflag might have been modified by branch above. */
     if ((file_selflag & FILE_SEL_EDITING) == 0) {
-      const int txpos = (params->display == FILE_IMGDISPLAY) ? tile_draw_rect.xmin :
-                                                               tile_draw_rect.xmin + 1 + icon_ofs;
-      const int typos = (params->display == FILE_IMGDISPLAY) ?
-                            tile_draw_rect.ymin + layout->tile_border_y + layout->textheight :
-                            tile_draw_rect.ymax - layout->tile_border_y;
-      const int twidth = (params->display == FILE_IMGDISPLAY) ?
-                             column_width :
-                             column_width - 1 - icon_ofs - padx - layout->tile_border_x;
-      file_draw_string(txpos, typos, file->name, float(twidth), textheight, align, text_col);
+      if (layout->text_lines_count == 1) {
+        file_draw_string(text_rect.xmin,
+                         text_rect.ymax,
+                         file->name,
+                         BLI_rcti_size_x(&text_rect),
+                         BLI_rcti_size_y(&text_rect),
+                         align,
+                         text_col);
+      }
+      else {
+        file_draw_string_mulitline_clipped(&text_rect, file->name, align, text_col);
+      }
     }
 
     if (params->display != FILE_IMGDISPLAY) {
@@ -1427,8 +1530,7 @@ void file_draw_list(const bContext *C, ARegion *region)
   }
 
   if (numfiles < 1) {
-    const rcti tile_draw_rect = tile_draw_rect_get(
-        v2d, layout, eFileDisplayType(params->display), 0, 0);
+    const rcti tile_draw_rect = tile_draw_rect_get(v2d, layout, 0);
     const uiStyle *style = UI_style_get();
 
     const bool is_filtered = params->filter_search[0] != '\0';
@@ -1487,7 +1589,7 @@ static void file_draw_invalid_asset_library_hint(const bContext *C,
   const View2D *v2d = &region->v2d;
   const int pad = sfile->layout->tile_border_x;
   const int width = BLI_rctf_size_x(&v2d->tot) - (2 * pad);
-  const int line_height = sfile->layout->textheight;
+  const int line_height = sfile->layout->text_line_height;
   int sx = v2d->tot.xmin + pad;
   /* For some reason no padding needed. */
   int sy = v2d->tot.ymax;
@@ -1512,7 +1614,7 @@ static void file_draw_invalid_asset_library_hint(const bContext *C,
     file_draw_string_multiline(
         sx + UI_UNIT_X, sy, suggestion, width - UI_UNIT_X, line_height, text_col, nullptr, &sy);
 
-    uiBlock *block = UI_block_begin(C, region, __func__, UI_EMBOSS);
+    uiBlock *block = UI_block_begin(C, region, __func__, blender::ui::EmbossType::Emboss);
     wmOperatorType *ot = WM_operatortype_find("SCREEN_OT_userpref_show", false);
     uiBut *but = uiDefIconTextButO_ptr(block,
                                        UI_BTYPE_BUT,
@@ -1545,7 +1647,7 @@ static void file_draw_invalid_library_hint(const bContext * /*C*/,
   const View2D *v2d = &region->v2d;
   const int pad = sfile->layout->tile_border_x;
   const int width = BLI_rctf_size_x(&v2d->tot) - (2 * pad);
-  const int line_height = sfile->layout->textheight;
+  const int line_height = sfile->layout->text_line_height;
   int sx = v2d->tot.xmin + pad;
   /* For some reason no padding needed. */
   int sy = v2d->tot.ymax;

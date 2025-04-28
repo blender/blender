@@ -49,7 +49,7 @@ static void node_composit_buts_bilateralblur(uiLayout *layout, bContext * /*C*/,
 {
   uiLayout *col;
 
-  col = uiLayoutColumn(layout, true);
+  col = &layout->column(true);
   uiItemR(col, ptr, "iterations", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   uiItemR(col, ptr, "sigma_color", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   uiItemR(col, ptr, "sigma_space", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
@@ -63,16 +63,16 @@ class BilateralBlurOperation : public NodeOperation {
 
   void execute() override
   {
-    const Result &input_image = get_input("Image");
+    const Result &input_image = this->get_input("Image");
+    Result &output_image = this->get_result("Image");
     if (input_image.is_single_value()) {
-      get_input("Image").pass_through(get_result("Image"));
+      output_image.share_data(input_image);
       return;
     }
 
     /* If the determinator is a single value, then the node essentially becomes a box blur. */
     const Result &determinator_image = get_input("Determinator");
     if (determinator_image.is_single_value()) {
-      Result &output_image = get_result("Image");
       symmetric_separable_blur(this->context(),
                                input_image,
                                output_image,

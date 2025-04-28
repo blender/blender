@@ -46,7 +46,10 @@ static float2 compute_sigma_from_radius(float2 radius)
  * high blur radius. The criteria suggested by the paper is a sigma value threshold of 3 and 32 for
  * the Deriche and Van Vliet filters respectively, which we apply on the larger of the two
  * dimensions. */
-void recursive_gaussian_blur(Context &context, Result &input, Result &output, float2 radius)
+void recursive_gaussian_blur(Context &context,
+                             const Result &input,
+                             Result &output,
+                             const float2 &radius)
 {
   /* The radius is in pixel units, while both recursive implementations expect the sigma value of
    * the Gaussian function. */

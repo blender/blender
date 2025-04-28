@@ -24,6 +24,7 @@ using OCIO_GPUShader = struct OCIO_GPUShader;
 #define OCIO_ROLE_DEFAULT_BYTE "default_byte"
 #define OCIO_ROLE_DEFAULT_FLOAT "default_float"
 #define OCIO_ROLE_DEFAULT_SEQUENCER "default_sequencer"
+#define OCIO_ROLE_ACES_INTERCHANGE "aces_interchange"
 
 OCIO_DECLARE_HANDLE(OCIO_ConstConfigRc);
 OCIO_DECLARE_HANDLE(OCIO_ConstColorSpaceRc);
@@ -116,6 +117,8 @@ const char *OCIO_configGetColorSpaceNameByIndex(OCIO_ConstConfigRcPtr *config, i
 OCIO_ConstColorSpaceRcPtr *OCIO_configGetColorSpace(OCIO_ConstConfigRcPtr *config,
                                                     const char *name);
 int OCIO_configGetIndexForColorSpace(OCIO_ConstConfigRcPtr *config, const char *name);
+
+const char *OCIO_getColorSpaceFromFilepath(OCIO_ConstConfigRcPtr *config, const char *filepath);
 
 int OCIO_colorSpaceIsInvertible(OCIO_ConstColorSpaceRcPtr *cs);
 int OCIO_colorSpaceIsData(OCIO_ConstColorSpaceRcPtr *cs);

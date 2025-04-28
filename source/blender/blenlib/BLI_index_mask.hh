@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup bli
+ */
+
 #pragma once
 
 #include <array>
@@ -592,7 +596,7 @@ int64_t consolidate_index_mask_segments(MutableSpan<IndexMaskSegment> segments,
                                         IndexMaskMemory &memory);
 
 /**
- * Adds index mask segments to the the vector for the given range. Ranges shorter than
+ * Adds index mask segments to the vector for the given range. Ranges shorter than
  * #max_segment_size fit into a single segment. Larger ranges are split into multiple segments.
  */
 template<int64_t N>

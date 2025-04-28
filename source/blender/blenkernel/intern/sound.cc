@@ -75,7 +75,7 @@ static void sound_copy_data(Main * /*bmain*/,
   sound_dst->cache = nullptr;
   sound_dst->waveform = nullptr;
   sound_dst->playback_handle = nullptr;
-  sound_dst->spinlock = MEM_mallocN(sizeof(SpinLock), "sound_spinlock");
+  sound_dst->spinlock = (void *)MEM_mallocN<SpinLock>("sound_spinlock");
   BLI_spin_init(static_cast<SpinLock *>(sound_dst->spinlock));
 
   /* Just to be sure, should not have any value actually after reading time. */
@@ -105,7 +105,8 @@ static void sound_free_data(ID *id)
 
   if (sound->spinlock) {
     BLI_spin_end(static_cast<SpinLock *>(sound->spinlock));
-    MEM_freeN(sound->spinlock);
+    /* The void cast is needed when building without TBB. */
+    MEM_freeN((void *)static_cast<SpinLock *>(sound->spinlock));
     sound->spinlock = nullptr;
   }
 }
@@ -184,7 +185,7 @@ static void sound_blend_read_data(BlendDataReader *reader, ID *id)
     sound->tags |= SOUND_TAGS_WAVEFORM_NO_RELOAD;
   }
 
-  sound->spinlock = MEM_mallocN(sizeof(SpinLock), "sound_spinlock");
+  sound->spinlock = (void *)MEM_mallocN<SpinLock>("sound_spinlock");
   BLI_spin_init(static_cast<SpinLock *>(sound->spinlock));
 
   /* clear waveform loading flag */
@@ -274,7 +275,7 @@ bSound *BKE_sound_new_file(Main *bmain, const char *filepath)
     sound->audio_channels = info.specs.channels;
   }
 
-  sound->spinlock = MEM_mallocN(sizeof(SpinLock), "sound_spinlock");
+  sound->spinlock = (void *)MEM_mallocN<SpinLock>("sound_spinlock");
   BLI_spin_init(static_cast<SpinLock *>(sound->spinlock));
 
   BKE_sound_reset_runtime(sound);
@@ -693,7 +694,7 @@ void BKE_sound_update_fps(Main *bmain, Scene *scene)
     AUD_Sequence_setFPS(scene->sound_scene, FPS);
   }
 
-  SEQ_sound_update_length(bmain, scene);
+  blender::seq::sound_update_length(bmain, scene);
 }
 
 void BKE_sound_update_scene_listener(Scene *scene)
@@ -723,11 +724,12 @@ void *BKE_sound_scene_add_scene_sound(
 
 void *BKE_sound_scene_add_scene_sound_defaults(Scene *scene, Strip *sequence)
 {
-  return BKE_sound_scene_add_scene_sound(scene,
-                                         sequence,
-                                         SEQ_time_left_handle_frame_get(scene, sequence),
-                                         SEQ_time_right_handle_frame_get(scene, sequence),
-                                         sequence->startofs + sequence->anim_startofs);
+  return BKE_sound_scene_add_scene_sound(
+      scene,
+      sequence,
+      blender::seq::time_left_handle_frame_get(scene, sequence),
+      blender::seq::time_right_handle_frame_get(scene, sequence),
+      sequence->startofs + sequence->anim_startofs);
 }
 
 void *BKE_sound_add_scene_sound(
@@ -760,8 +762,8 @@ void *BKE_sound_add_scene_sound_defaults(Scene *scene, Strip *sequence)
 {
   return BKE_sound_add_scene_sound(scene,
                                    sequence,
-                                   SEQ_time_left_handle_frame_get(scene, sequence),
-                                   SEQ_time_right_handle_frame_get(scene, sequence),
+                                   blender::seq::time_left_handle_frame_get(scene, sequence),
+                                   blender::seq::time_right_handle_frame_get(scene, sequence),
                                    sequence->startofs + sequence->anim_startofs);
 }
 
@@ -803,8 +805,8 @@ void BKE_sound_move_scene_sound_defaults(Scene *scene, Strip *sequence)
     }
     BKE_sound_move_scene_sound(scene,
                                sequence->scene_sound,
-                               SEQ_time_left_handle_frame_get(scene, sequence),
-                               SEQ_time_right_handle_frame_get(scene, sequence),
+                               blender::seq::time_left_handle_frame_get(scene, sequence),
+                               blender::seq::time_right_handle_frame_get(scene, sequence),
                                sequence->startofs + sequence->anim_startofs,
                                offset_time);
   }
@@ -885,7 +887,7 @@ void BKE_sound_update_sequencer(Main *main, bSound *sound)
   for (scene = static_cast<Scene *>(main->scenes.first); scene;
        scene = static_cast<Scene *>(scene->id.next))
   {
-    SEQ_sound_update(scene, sound);
+    blender::seq::sound_update(scene, sound);
   }
 }
 
@@ -949,7 +951,8 @@ void BKE_sound_play_scene(Scene *scene)
   if (status != AUD_STATUS_PLAYING) {
     /* Seeking the synchronizer will also seek the playback handle.
      * Even if we don't have A/V sync on, keep the synchronizer and handle seek time in sync. */
-    AUD_seekSynchronizer(scene->playback_handle, cur_time);
+    AUD_seekSynchronizer(cur_time);
+    AUD_Handle_setPosition(scene->playback_handle, cur_time);
     AUD_Handle_resume(scene->playback_handle);
   }
 
@@ -1030,7 +1033,8 @@ void BKE_sound_seek_scene(Main *bmain, Scene *scene)
      * Even if we don't have A/V sync on, keep the synchronizer and handle
      * seek time in sync.
      */
-    AUD_seekSynchronizer(scene->playback_handle, cur_time);
+    AUD_seekSynchronizer(cur_time);
+    AUD_Handle_setPosition(scene->playback_handle, cur_time);
   }
 
   AUD_Device_unlock(sound_device);
@@ -1047,7 +1051,7 @@ double BKE_sound_sync_scene(Scene *scene)
 
   if (scene->playback_handle) {
     if (scene->audio.flag & AUDIO_SYNC) {
-      return AUD_getSynchronizerPosition(scene->playback_handle);
+      return AUD_getSynchronizerPosition();
     }
 
     return AUD_Handle_getPosition(scene->playback_handle);
@@ -1082,14 +1086,12 @@ void BKE_sound_read_waveform(Main *bmain, bSound *sound, bool *stop)
   }
 
   AUD_SoundInfo info = AUD_getInfo(sound->playback_handle);
-  SoundWaveform *waveform = static_cast<SoundWaveform *>(
-      MEM_mallocN(sizeof(SoundWaveform), "SoundWaveform"));
+  SoundWaveform *waveform = MEM_mallocN<SoundWaveform>("SoundWaveform");
 
   if (info.length > 0) {
     int length = info.length * SOUND_WAVE_SAMPLES_PER_SECOND;
 
-    waveform->data = static_cast<float *>(
-        MEM_mallocN(sizeof(float[3]) * length, "SoundWaveform.samples"));
+    waveform->data = MEM_malloc_arrayN<float>(3 * size_t(length), "SoundWaveform.samples");
     /* Ideally this would take a boolean argument. */
     short stop_i16 = *stop;
     waveform->length = AUD_readSound(

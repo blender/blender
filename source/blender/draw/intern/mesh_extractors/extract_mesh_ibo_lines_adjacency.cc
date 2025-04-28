@@ -161,7 +161,7 @@ static void calc_adjacency_mesh(const MeshRenderData &mr,
   }
 }
 
-void extract_lines_adjacency(const MeshRenderData &mr, gpu::IndexBuf &ibo, bool &r_is_manifold)
+gpu::IndexBufPtr extract_lines_adjacency(const MeshRenderData &mr, bool &r_is_manifold)
 {
   /* Similar to poly_to_tri_count().
    * There is always (loop + triangle - 1) edges inside a face.
@@ -186,12 +186,11 @@ void extract_lines_adjacency(const MeshRenderData &mr, gpu::IndexBuf &ibo, bool 
 
   r_is_manifold = is_manifold;
 
-  GPU_indexbuf_build_in_place(&builder, &ibo);
+  return gpu::IndexBufPtr(GPU_indexbuf_build(&builder));
 }
 
-void extract_lines_adjacency_subdiv(const DRWSubdivCache &subdiv_cache,
-                                    gpu::IndexBuf &ibo,
-                                    bool &r_is_manifold)
+gpu::IndexBufPtr extract_lines_adjacency_subdiv(const DRWSubdivCache &subdiv_cache,
+                                                bool &r_is_manifold)
 {
   /* For each face there is (loop + triangle - 1) edges. Since we only have quads, and a quad
    * is split into 2 triangles, we have (loop + 2 - 1) = (loop + 1) edges for each quad, or in
@@ -237,7 +236,7 @@ void extract_lines_adjacency_subdiv(const DRWSubdivCache &subdiv_cache,
 
   r_is_manifold = is_manifold;
 
-  GPU_indexbuf_build_in_place(&builder, &ibo);
+  return gpu::IndexBufPtr(GPU_indexbuf_build(&builder));
 }
 
 #undef NO_EDGE

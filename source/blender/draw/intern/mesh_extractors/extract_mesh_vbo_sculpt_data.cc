@@ -29,17 +29,17 @@ static const GPUVertFormat &get_sculpt_data_format()
   return format;
 }
 
-void extract_sculpt_data(const MeshRenderData &mr, gpu::VertBuf &vbo)
+gpu::VertBufPtr extract_sculpt_data(const MeshRenderData &mr)
 {
-  GPU_vertbuf_init_with_format(vbo, get_sculpt_data_format());
-  GPU_vertbuf_data_alloc(vbo, mr.corners_num);
+  gpu::VertBufPtr vbo = gpu::VertBufPtr(GPU_vertbuf_create_with_format(get_sculpt_data_format()));
+  GPU_vertbuf_data_alloc(*vbo, mr.corners_num);
 
   struct gpuSculptData {
     uchar4 face_set_color;
     float mask;
   };
 
-  MutableSpan vbo_data = vbo.data<gpuSculptData>();
+  MutableSpan vbo_data = vbo->data<gpuSculptData>();
 
   const int default_face_set = mr.mesh->face_sets_color_default;
   const int face_set_seed = mr.mesh->face_sets_color_seed;
@@ -100,11 +100,11 @@ void extract_sculpt_data(const MeshRenderData &mr, gpu::VertBuf &vbo)
       }
     });
   }
+  return vbo;
 }
 
-void extract_sculpt_data_subdiv(const MeshRenderData &mr,
-                                const DRWSubdivCache &subdiv_cache,
-                                gpu::VertBuf &vbo)
+gpu::VertBufPtr extract_sculpt_data_subdiv(const MeshRenderData &mr,
+                                           const DRWSubdivCache &subdiv_cache)
 {
   const Mesh &coarse_mesh = *mr.mesh;
   const int subdiv_corners_num = subdiv_cache.num_subdiv_loops;
@@ -171,14 +171,17 @@ void extract_sculpt_data_subdiv(const MeshRenderData &mr,
   }
 
   /* Finally, interleave mask and face sets. */
-  GPU_vertbuf_init_build_on_device(vbo, get_sculpt_data_format(), subdiv_corners_num);
-  draw_subdiv_build_sculpt_data_buffer(subdiv_cache, subdiv_mask_vbo, face_set_vbo, &vbo);
+  gpu::VertBufPtr vbo = gpu::VertBufPtr(
+      GPU_vertbuf_create_on_device(get_sculpt_data_format(), subdiv_corners_num));
+
+  draw_subdiv_build_sculpt_data_buffer(subdiv_cache, subdiv_mask_vbo, face_set_vbo, vbo.get());
 
   if (mask_vbo) {
     GPU_vertbuf_discard(mask_vbo);
     GPU_vertbuf_discard(subdiv_mask_vbo);
   }
   GPU_vertbuf_discard(face_set_vbo);
+  return vbo;
 }
 
 }  // namespace blender::draw

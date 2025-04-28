@@ -26,7 +26,7 @@ void BLI_threadapi_init(void);
 void BLI_threadapi_exit(void);
 
 /**
- * \param tot: When 0 only initializes malloc mutex in a safe way (see sequence.c)
+ * \param tot: When 0 only initializes `malloc` mutex in a safe way (see sequence.c)
  * problem otherwise: scene render will kill of the mutex!
  */
 void BLI_threadpool_init(struct ListBase *threadbase, void *(*do_thread)(void *), int tot);

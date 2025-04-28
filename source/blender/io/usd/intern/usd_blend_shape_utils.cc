@@ -341,8 +341,8 @@ void remap_blend_shape_anim(pxr::UsdStageRefPtr stage,
   for (const pxr::SdfPath &mesh_path : mesh_paths) {
 
     pxr::UsdPrim mesh_prim = stage->GetPrimAtPath(mesh_path);
-    pxr::UsdSkelBindingAPI skel_api = pxr::UsdSkelBindingAPI::Apply(mesh_prim);
-    if (!skel_api) {
+    pxr::UsdSkelBindingAPI mesh_skel_api = pxr::UsdSkelBindingAPI::Apply(mesh_prim);
+    if (!mesh_skel_api) {
       CLOG_WARN(&LOG,
                 "Couldn't apply UsdSkelBindingAPI to mesh prim %s",
                 mesh_path.GetAsString().c_str());
@@ -350,30 +350,30 @@ void remap_blend_shape_anim(pxr::UsdStageRefPtr stage,
     }
 
     /* Get the blend shape names for this mesh. */
-    pxr::UsdAttribute blend_shapes_attr = skel_api.GetBlendShapesAttr();
+    pxr::UsdAttribute blend_shapes_attr = mesh_skel_api.GetBlendShapesAttr();
 
     if (!blend_shapes_attr) {
       continue;
     }
 
     pxr::VtTokenArray names;
-    if (!skel_api.GetBlendShapesAttr().Get(&names)) {
+    if (!mesh_skel_api.GetBlendShapesAttr().Get(&names)) {
       continue;
     }
 
     /* Ensure the names are unique. */
     pxr::VtTokenArray unique_names;
 
-    for (pxr::TfToken &name : names) {
+    for (const pxr::TfToken &name : names.AsConst()) {
       std::string unique = add_unique_name(merged_names, name.GetString());
       unique_names.push_back(pxr::TfToken(unique));
     }
 
     /* Set the unique names back on the mesh. */
-    skel_api.GetBlendShapesAttr().Set(unique_names);
+    mesh_skel_api.GetBlendShapesAttr().Set(unique_names);
 
     /* Look up the temporary weights time sample we wrote to the mesh. */
-    pxr::UsdAttribute temp_weights_attr = pxr::UsdGeomPrimvarsAPI(mesh_prim).GetPrimvar(
+    const pxr::UsdAttribute temp_weights_attr = pxr::UsdGeomPrimvarsAPI(mesh_prim).GetPrimvar(
         TempBlendShapeWeightsPrimvarName);
 
     if (!temp_weights_attr) {
@@ -424,7 +424,7 @@ void remap_blend_shape_anim(pxr::UsdStageRefPtr stage,
     for (const BlendShapeMergeInfo &info : merge_info) {
       pxr::VtFloatArray src_weights;
       if (info.src_weights_attr.Get(&src_weights, time)) {
-        if (!info.anim_map.Remap(src_weights, &dst_weights)) {
+        if (!info.anim_map.Remap(src_weights.AsConst(), &dst_weights)) {
           CLOG_WARN(&LOG, "Failed remapping blend shape weights");
         }
       }
@@ -448,7 +448,7 @@ Mesh *get_shape_key_basis_mesh(Object *obj)
     return nullptr;
   }
 
-  KeyBlock *basis = reinterpret_cast<KeyBlock *>(mesh->key->block.first);
+  const KeyBlock *basis = reinterpret_cast<KeyBlock *>(mesh->key->block.first);
 
   if (mesh->verts_num != basis->totelem) {
     CLOG_WARN(&LOG, "Vertex and shape key element count mismatch for mesh %s", obj->id.name + 2);
@@ -459,10 +459,7 @@ Mesh *get_shape_key_basis_mesh(Object *obj)
   Mesh *temp_mesh = BKE_mesh_copy_for_eval(*mesh);
 
   /* Update the verts. */
-  BKE_keyblock_convert_to_mesh(
-      basis,
-      reinterpret_cast<float(*)[3]>(temp_mesh->vert_positions_for_write().data()),
-      temp_mesh->verts_num);
+  BKE_keyblock_convert_to_mesh(basis, temp_mesh->vert_positions_for_write());
 
   return temp_mesh;
 }

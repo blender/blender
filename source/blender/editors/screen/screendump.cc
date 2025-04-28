@@ -65,8 +65,7 @@ static int screenshot_data_create(bContext *C, wmOperator *op, ScrArea *area)
   uint8_t *dumprect = WM_window_pixels_read(C, win, dumprect_size);
 
   if (dumprect) {
-    ScreenshotData *scd = static_cast<ScreenshotData *>(
-        MEM_callocN(sizeof(ScreenshotData), "screenshot"));
+    ScreenshotData *scd = MEM_callocN<ScreenshotData>("screenshot");
 
     scd->dumpsx = dumprect_size[0];
     scd->dumpsy = dumprect_size[1];
@@ -98,7 +97,7 @@ static void screenshot_data_free(wmOperator *op)
   }
 }
 
-static int screenshot_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus screenshot_exec(bContext *C, wmOperator *op)
 {
   const bool use_crop = STREQ(op->idname, "SCREEN_OT_screenshot_area");
   ScreenshotData *scd = static_cast<ScreenshotData *>(op->customdata);
@@ -150,7 +149,7 @@ static int screenshot_exec(bContext *C, wmOperator *op)
   return ok ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
-static int screenshot_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus screenshot_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   const bool use_crop = STREQ(op->idname, "SCREEN_OT_screenshot_area");
   ScrArea *area = nullptr;

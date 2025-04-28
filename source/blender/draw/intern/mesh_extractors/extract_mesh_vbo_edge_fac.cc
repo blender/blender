@@ -136,14 +136,14 @@ static void extract_edge_factor_bm(const MeshRenderData &mr, MutableSpan<T> vbo_
   });
 }
 
-void extract_edge_factor(const MeshRenderData &mr, gpu::VertBuf &vbo)
+gpu::VertBufPtr extract_edge_factor(const MeshRenderData &mr)
 {
   if (GPU_crappy_amd_driver() || GPU_minimum_per_vertex_stride() > 1) {
     static const GPUVertFormat format = GPU_vertformat_from_attribute(
         "wd", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
-    GPU_vertbuf_init_with_format(vbo, format);
-    GPU_vertbuf_data_alloc(vbo, mr.corners_num + mr.loose_indices_num);
-    MutableSpan vbo_data = vbo.data<float>();
+    gpu::VertBufPtr vbo = gpu::VertBufPtr(GPU_vertbuf_create_with_format(format));
+    GPU_vertbuf_data_alloc(*vbo, mr.corners_num + mr.loose_indices_num);
+    MutableSpan vbo_data = vbo->data<float>();
     if (mr.extract_type == MeshExtractType::Mesh) {
       extract_edge_factor_mesh(mr, vbo_data);
     }
@@ -151,21 +151,21 @@ void extract_edge_factor(const MeshRenderData &mr, gpu::VertBuf &vbo)
       extract_edge_factor_bm(mr, vbo_data);
     }
     vbo_data.take_back(mr.loose_indices_num).fill(0.0f);
+    return vbo;
+  }
+  static const GPUVertFormat format = GPU_vertformat_from_attribute(
+      "wd", GPU_COMP_U8, 1, GPU_FETCH_INT_TO_FLOAT_UNIT);
+  gpu::VertBufPtr vbo = gpu::VertBufPtr(GPU_vertbuf_create_with_format(format));
+  GPU_vertbuf_data_alloc(*vbo, mr.corners_num + mr.loose_indices_num);
+  MutableSpan vbo_data = vbo->data<uint8_t>();
+  if (mr.extract_type == MeshExtractType::Mesh) {
+    extract_edge_factor_mesh(mr, vbo_data);
   }
   else {
-    static const GPUVertFormat format = GPU_vertformat_from_attribute(
-        "wd", GPU_COMP_U8, 1, GPU_FETCH_INT_TO_FLOAT_UNIT);
-    GPU_vertbuf_init_with_format(vbo, format);
-    GPU_vertbuf_data_alloc(vbo, mr.corners_num + mr.loose_indices_num);
-    MutableSpan vbo_data = vbo.data<uint8_t>();
-    if (mr.extract_type == MeshExtractType::Mesh) {
-      extract_edge_factor_mesh(mr, vbo_data);
-    }
-    else {
-      extract_edge_factor_bm(mr, vbo_data);
-    }
-    vbo_data.take_back(mr.loose_indices_num).fill(uint8_t(0));
+    extract_edge_factor_bm(mr, vbo_data);
   }
+  vbo_data.take_back(mr.loose_indices_num).fill(uint8_t(0));
+  return vbo;
 }
 
 /* Different function than the one used for the non-subdivision case, as we directly take care of
@@ -226,46 +226,46 @@ static gpu::VertBuf *build_poly_other_map_vbo(const DRWSubdivCache &subdiv_cache
   return vbo;
 }
 
-void extract_edge_factor_subdiv(const DRWSubdivCache &subdiv_cache,
-                                const MeshRenderData &mr,
-                                gpu::VertBuf &pos_nor,
-                                gpu::VertBuf &vbo)
+gpu::VertBufPtr extract_edge_factor_subdiv(const DRWSubdivCache &subdiv_cache,
+                                           const MeshRenderData &mr,
+                                           gpu::VertBuf &pos_nor)
 {
-  GPU_vertbuf_init_build_on_device(vbo,
-                                   get_subdiv_edge_fac_format(),
-                                   subdiv_cache.num_subdiv_loops +
-                                       subdiv_loose_edges_num(mr, subdiv_cache) * 2);
+  gpu::VertBufPtr vbo = gpu::VertBufPtr(GPU_vertbuf_create_on_device(
+      get_subdiv_edge_fac_format(),
+      subdiv_cache.num_subdiv_loops + subdiv_loose_edges_num(mr, subdiv_cache) * 2));
 
   if (mr.faces_num > 0) {
     gpu::VertBuf *poly_other_map = build_poly_other_map_vbo(subdiv_cache);
 
     draw_subdiv_build_edge_fac_buffer(
-        subdiv_cache, &pos_nor, subdiv_cache.edges_draw_flag, poly_other_map, &vbo);
+        subdiv_cache, &pos_nor, subdiv_cache.edges_draw_flag, poly_other_map, vbo.get());
 
     GPU_vertbuf_discard(poly_other_map);
   }
 
   const int loose_edges_num = subdiv_loose_edges_num(mr, subdiv_cache);
   if (loose_edges_num == 0) {
-    return;
+    return vbo;
   }
 
   /* Make sure buffer is active for sending loose data. */
-  GPU_vertbuf_use(&vbo);
+  GPU_vertbuf_use(vbo.get());
 
   const int offset = subdiv_cache.num_subdiv_loops;
   if (GPU_crappy_amd_driver() || GPU_minimum_per_vertex_stride() > 1) {
     const float values[2] = {1.0f, 1.0f};
     for (const int i : IndexRange(loose_edges_num)) {
-      GPU_vertbuf_update_sub(&vbo, (offset + i * 2) * sizeof(float), sizeof(values), values);
+      GPU_vertbuf_update_sub(vbo.get(), (offset + i * 2) * sizeof(float), sizeof(values), values);
     }
   }
   else {
     const uint8_t values[2] = {255, 255};
     for (const int i : IndexRange(loose_edges_num)) {
-      GPU_vertbuf_update_sub(&vbo, (offset + i * 2) * sizeof(uint8_t), sizeof(values), values);
+      GPU_vertbuf_update_sub(
+          vbo.get(), (offset + i * 2) * sizeof(uint8_t), sizeof(values), values);
     }
   }
+  return vbo;
 }
 
 }  // namespace blender::draw

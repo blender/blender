@@ -47,15 +47,16 @@ static CLG_LogRef LOG = {"bke.main"};
 
 Main *BKE_main_new()
 {
-  Main *bmain = static_cast<Main *>(MEM_callocN(sizeof(Main), "new main"));
+  Main *bmain = MEM_callocN<Main>("new main");
   BKE_main_init(*bmain);
   return bmain;
 }
 
 void BKE_main_init(Main &bmain)
 {
-  bmain.lock = static_cast<MainLock *>(MEM_mallocN(sizeof(SpinLock), "main lock"));
-  BLI_spin_init(reinterpret_cast<SpinLock *>(bmain.lock));
+  SpinLock *main_lock = MEM_mallocN<SpinLock>("main lock");
+  BLI_spin_init(main_lock);
+  bmain.lock = (MainLock *)main_lock;
   bmain.is_global_main = false;
 
   /* Just rebuilding the Action Slot to ID* map once is likely cheaper than,
@@ -166,7 +167,8 @@ void BKE_main_destroy(Main &bmain)
   BKE_main_clear(bmain);
 
   BLI_spin_end(reinterpret_cast<SpinLock *>(bmain.lock));
-  MEM_freeN(static_cast<void *>(bmain.lock));
+  /* The void cast is needed when building without TBB. */
+  MEM_freeN((void *)reinterpret_cast<SpinLock *>(bmain.lock));
   bmain.lock = nullptr;
 }
 
@@ -499,7 +501,7 @@ static int main_relations_create_idlink_cb(LibraryIDLinkCallbackData *cb_data)
       if (!BLI_ghash_ensure_p(
               bmain_relations->relations_from_pointers, self_id, (void ***)&entry_p))
       {
-        *entry_p = static_cast<MainIDRelationsEntry *>(MEM_callocN(sizeof(**entry_p), __func__));
+        *entry_p = MEM_callocN<MainIDRelationsEntry>(__func__);
         (*entry_p)->session_uid = self_id->session_uid;
       }
       else {
@@ -520,7 +522,7 @@ static int main_relations_create_idlink_cb(LibraryIDLinkCallbackData *cb_data)
       if (!BLI_ghash_ensure_p(
               bmain_relations->relations_from_pointers, *id_pointer, (void ***)&entry_p))
       {
-        *entry_p = static_cast<MainIDRelationsEntry *>(MEM_callocN(sizeof(**entry_p), __func__));
+        *entry_p = MEM_callocN<MainIDRelationsEntry>(__func__);
         (*entry_p)->session_uid = (*id_pointer)->session_uid;
       }
       else {
@@ -545,8 +547,7 @@ void BKE_main_relations_create(Main *bmain, const short flag)
     BKE_main_relations_free(bmain);
   }
 
-  bmain->relations = static_cast<MainIDRelations *>(
-      MEM_mallocN(sizeof(*bmain->relations), __func__));
+  bmain->relations = MEM_mallocN<MainIDRelations>(__func__);
   bmain->relations->relations_from_pointers = BLI_ghash_new(
       BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, __func__);
   bmain->relations->entry_items_pool = BLI_mempool_create(
@@ -564,7 +565,7 @@ void BKE_main_relations_create(Main *bmain, const short flag)
     /* Ensure all IDs do have an entry, even if they are not connected to any other. */
     MainIDRelationsEntry **entry_p;
     if (!BLI_ghash_ensure_p(bmain->relations->relations_from_pointers, id, (void ***)&entry_p)) {
-      *entry_p = static_cast<MainIDRelationsEntry *>(MEM_callocN(sizeof(**entry_p), __func__));
+      *entry_p = MEM_callocN<MainIDRelationsEntry>(__func__);
       (*entry_p)->session_uid = id->session_uid;
     }
     else {
@@ -757,14 +758,28 @@ ID *BKE_main_library_weak_reference_find(Main *bmain,
                                          const char *library_filepath,
                                          const char *library_id_name)
 {
+  /* Make filepath absolute so we can compare filepaths that may be either relative or absolute. */
+  char library_filepath_abs[FILE_MAX];
+  STRNCPY(library_filepath_abs, library_filepath);
+  BLI_path_abs(library_filepath_abs, BKE_main_blendfile_path(bmain));
+
   ListBase *id_list = which_libbase(bmain, GS(library_id_name));
   LISTBASE_FOREACH (ID *, existing_id, id_list) {
-    if (existing_id->library_weak_reference &&
-        STREQ(existing_id->library_weak_reference->library_id_name, library_id_name) &&
-        STREQ(existing_id->library_weak_reference->library_filepath, library_filepath))
+    if (!(existing_id->library_weak_reference &&
+          STREQ(existing_id->library_weak_reference->library_id_name, library_id_name)))
     {
-      return existing_id;
+      continue;
     }
+
+    char existing_filepath_abs[FILE_MAX];
+    STRNCPY(existing_filepath_abs, existing_id->library_weak_reference->library_filepath);
+    BLI_path_abs(existing_filepath_abs, BKE_main_blendfile_path(bmain));
+
+    if (!STREQ(existing_filepath_abs, library_filepath_abs)) {
+      continue;
+    }
+
+    return existing_id;
   }
 
   return nullptr;

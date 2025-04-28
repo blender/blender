@@ -139,7 +139,7 @@ void BLI_jitter_init(float (*jitarr)[2], int num)
   number_fl = float(num);
   number_fl_sqrt = sqrtf(number_fl);
 
-  jit2 = static_cast<float(*)[2]>(MEM_mallocN(12 + uint(num) * sizeof(float[2]), "initjit"));
+  jit2 = MEM_malloc_arrayN<float[2]>(2 + size_t(num), "initjit");
   rad1 = 1.0f / number_fl_sqrt;
   rad2 = 1.0f / number_fl;
   rad3 = number_fl_sqrt / number_fl;

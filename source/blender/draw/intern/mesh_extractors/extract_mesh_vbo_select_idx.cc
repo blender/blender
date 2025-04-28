@@ -13,13 +13,13 @@
 
 namespace blender::draw {
 
-static MutableSpan<int> init_vbo_data(gpu::VertBuf &vbo, const int size)
+static gpu::VertBufPtr create_vbo(const int size)
 {
   static GPUVertFormat format = GPU_vertformat_from_attribute(
       "index", GPU_COMP_I32, 1, GPU_FETCH_INT);
-  GPU_vertbuf_init_with_format(vbo, format);
-  GPU_vertbuf_data_alloc(vbo, size);
-  return vbo.data<int>();
+  gpu::VertBufPtr vbo = gpu::VertBufPtr(GPU_vertbuf_create_with_format(format));
+  GPU_vertbuf_data_alloc(*vbo, size);
+  return vbo;
 }
 
 /* TODO: Use #glVertexID to get loop index and use the data structure on the CPU to retrieve the
@@ -84,15 +84,16 @@ static void extract_vert_index_bm(const MeshRenderData &mr, MutableSpan<int> vbo
   array_utils::copy(mr.loose_verts, loose_vert_data);
 }
 
-void extract_vert_index(const MeshRenderData &mr, gpu::VertBuf &vbo)
+gpu::VertBufPtr extract_vert_index(const MeshRenderData &mr)
 {
-  MutableSpan<int> vbo_data = init_vbo_data(vbo, mr.corners_num + mr.loose_indices_num);
+  gpu::VertBufPtr vbo = create_vbo(mr.corners_num + mr.loose_indices_num);
   if (mr.extract_type == MeshExtractType::Mesh) {
-    extract_vert_index_mesh(mr, vbo_data);
+    extract_vert_index_mesh(mr, vbo->data<int>());
   }
   else {
-    extract_vert_index_bm(mr, vbo_data);
+    extract_vert_index_bm(mr, vbo->data<int>());
   }
+  return vbo;
 }
 
 static void extract_edge_index_mesh(const MeshRenderData &mr, MutableSpan<int> vbo_data)
@@ -149,15 +150,16 @@ static void extract_edge_index_bm(const MeshRenderData &mr, MutableSpan<int> vbo
   });
 }
 
-void extract_edge_index(const MeshRenderData &mr, gpu::VertBuf &vbo)
+gpu::VertBufPtr extract_edge_index(const MeshRenderData &mr)
 {
-  MutableSpan<int> vbo_data = init_vbo_data(vbo, mr.corners_num + mr.loose_edges.size() * 2);
+  gpu::VertBufPtr vbo = create_vbo(mr.corners_num + mr.loose_edges.size() * 2);
   if (mr.extract_type == MeshExtractType::Mesh) {
-    extract_edge_index_mesh(mr, vbo_data);
+    extract_edge_index_mesh(mr, vbo->data<int>());
   }
   else {
-    extract_edge_index_bm(mr, vbo_data);
+    extract_edge_index_bm(mr, vbo->data<int>());
   }
+  return vbo;
 }
 
 static void extract_face_index_mesh(const MeshRenderData &mr, MutableSpan<int> vbo_data)
@@ -188,28 +190,27 @@ static void extract_face_index_bm(const MeshRenderData &mr, MutableSpan<int> vbo
   });
 }
 
-void extract_face_index(const MeshRenderData &mr, gpu::VertBuf &vbo)
+gpu::VertBufPtr extract_face_index(const MeshRenderData &mr)
 {
-  MutableSpan<int> vbo_data = init_vbo_data(vbo, mr.corners_num);
+  gpu::VertBufPtr vbo = create_vbo(mr.corners_num);
   if (mr.extract_type == MeshExtractType::Mesh) {
-    extract_face_index_mesh(mr, vbo_data);
+    extract_face_index_mesh(mr, vbo->data<int>());
   }
   else {
-    extract_face_index_bm(mr, vbo_data);
+    extract_face_index_bm(mr, vbo->data<int>());
   }
+  return vbo;
 }
 
 static void extract_vert_idx_loose_geom_subdiv(const DRWSubdivCache &subdiv_cache,
                                                const MeshRenderData &mr,
-                                               gpu::VertBuf &vbo)
+                                               MutableSpan<int32_t> vbo_data)
 {
   const Span<int> loose_verts = mr.loose_verts;
   const Span<int> loose_edges = mr.loose_edges;
   if (loose_edges.is_empty() && loose_verts.is_empty()) {
     return;
   }
-
-  MutableSpan<int32_t> vbo_data = vbo.data<int32_t>();
 
   const Span<int2> coarse_edges = mr.edges;
   const int verts_per_edge = subdiv_verts_per_coarse_edge(subdiv_cache);
@@ -231,42 +232,40 @@ static void extract_vert_idx_loose_geom_subdiv(const DRWSubdivCache &subdiv_cach
   }
 }
 
-void extract_vert_index_subdiv(const DRWSubdivCache &subdiv_cache,
-                               const MeshRenderData &mr,
-                               gpu::VertBuf &vbo)
+gpu::VertBufPtr extract_vert_index_subdiv(const DRWSubdivCache &subdiv_cache,
+                                          const MeshRenderData &mr)
 {
   /* Each element points to an element in the `ibo.points`. */
-  draw_subdiv_init_origindex_buffer(vbo,
-                                    subdiv_cache.verts_orig_index->data<int32_t>().data(),
-                                    subdiv_cache.num_subdiv_loops,
-                                    subdiv_full_vbo_size(mr, subdiv_cache));
+  gpu::VertBufPtr vbo = draw_subdiv_init_origindex_buffer(
+      subdiv_cache.verts_orig_index->data<int32_t>().data(),
+      subdiv_cache.num_subdiv_loops,
+      subdiv_full_vbo_size(mr, subdiv_cache));
   if (!mr.orig_index_vert) {
-    return;
+    return vbo;
   }
 
   /* Remap the vertex indices to those pointed by the origin indices layer. At this point, the
    * VBO data is a copy of #verts_orig_index which contains the coarse vertices indices, so
    * the memory can both be accessed for lookup and immediately overwritten. */
-  int32_t *vbo_data = vbo.data<int32_t>().data();
+  MutableSpan vbo_data = vbo->data<int32_t>();
   for (int i = 0; i < subdiv_cache.num_subdiv_loops; i++) {
     if (vbo_data[i] == -1) {
       continue;
     }
     vbo_data[i] = mr.orig_index_vert[vbo_data[i]];
   }
-  extract_vert_idx_loose_geom_subdiv(subdiv_cache, mr, vbo);
+  extract_vert_idx_loose_geom_subdiv(subdiv_cache, mr, vbo_data);
+  return vbo;
 }
 
 static void extract_edge_idx_loose_geom_subdiv(const DRWSubdivCache &subdiv_cache,
                                                const MeshRenderData &mr,
-                                               gpu::VertBuf &vbo)
+                                               MutableSpan<int32_t> vbo_data)
 {
   const Span<int> loose_edges = mr.loose_edges;
   if (loose_edges.is_empty()) {
     return;
   }
-
-  MutableSpan<int32_t> vbo_data = vbo.data<int32_t>();
 
   const int verts_per_edge = subdiv_verts_per_coarse_edge(subdiv_cache);
   MutableSpan data = vbo_data.slice(subdiv_cache.num_subdiv_loops,
@@ -278,52 +277,53 @@ static void extract_edge_idx_loose_geom_subdiv(const DRWSubdivCache &subdiv_cach
   }
 }
 
-void extract_edge_index_subdiv(const DRWSubdivCache &subdiv_cache,
-                               const MeshRenderData &mr,
-                               gpu::VertBuf &vbo)
+gpu::VertBufPtr extract_edge_index_subdiv(const DRWSubdivCache &subdiv_cache,
+                                          const MeshRenderData &mr)
 {
-  draw_subdiv_init_origindex_buffer(vbo,
-                                    subdiv_cache.edges_orig_index->data<int32_t>().data(),
-                                    subdiv_cache.num_subdiv_loops,
-                                    subdiv_loose_edges_num(mr, subdiv_cache) * 2);
-  extract_edge_idx_loose_geom_subdiv(subdiv_cache, mr, vbo);
+  gpu::VertBufPtr vbo = draw_subdiv_init_origindex_buffer(
+      subdiv_cache.edges_orig_index->data<int32_t>().data(),
+      subdiv_cache.num_subdiv_loops,
+      subdiv_loose_edges_num(mr, subdiv_cache) * 2);
+  extract_edge_idx_loose_geom_subdiv(subdiv_cache, mr, vbo->data<int32_t>());
+  return vbo;
 }
 
-void extract_face_index_subdiv(const DRWSubdivCache &subdiv_cache,
-                               const MeshRenderData &mr,
-                               gpu::VertBuf &vbo)
+gpu::VertBufPtr extract_face_index_subdiv(const DRWSubdivCache &subdiv_cache,
+                                          const MeshRenderData &mr)
 {
-  draw_subdiv_init_origindex_buffer(
-      vbo, subdiv_cache.subdiv_loop_face_index, subdiv_cache.num_subdiv_loops, 0);
+  gpu::VertBufPtr vbo = draw_subdiv_init_origindex_buffer(
+      subdiv_cache.subdiv_loop_face_index, subdiv_cache.num_subdiv_loops, 0);
 
   if (!mr.orig_index_face) {
-    return;
+    return vbo;
   }
 
   /* Remap the face indices to those pointed by the origin indices layer. At this point, the
    * VBO data is a copy of #subdiv_loop_face_index which contains the coarse face indices, so
    * the memory can both be accessed for lookup and immediately overwritten. */
-  int32_t *vbo_data = vbo.data<int32_t>().data();
+  MutableSpan vbo_data = vbo->data<int32_t>();
   for (int i = 0; i < subdiv_cache.num_subdiv_loops; i++) {
     vbo_data[i] = mr.orig_index_face[vbo_data[i]];
   }
+  return vbo;
 }
 
-void extract_face_dot_index(const MeshRenderData &mr, gpu::VertBuf &vbo)
+gpu::VertBufPtr extract_face_dot_index(const MeshRenderData &mr)
 {
-  MutableSpan<int> vbo_data = init_vbo_data(vbo, mr.faces_num);
+  gpu::VertBufPtr vbo = create_vbo(mr.faces_num);
   if (mr.extract_type == MeshExtractType::Mesh) {
     if (mr.orig_index_face) {
       const Span<int> orig_index_face(mr.orig_index_face, mr.faces_num);
-      array_utils::copy(orig_index_face, vbo_data);
+      array_utils::copy(orig_index_face, vbo->data<int>());
     }
     else {
-      array_utils::fill_index_range(vbo_data);
+      array_utils::fill_index_range(vbo->data<int>());
     }
   }
   else {
-    array_utils::fill_index_range(vbo_data);
+    array_utils::fill_index_range(vbo->data<int>());
   }
+  return vbo;
 }
 
 }  // namespace blender::draw

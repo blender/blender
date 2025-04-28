@@ -82,12 +82,12 @@ static void viewroll_apply(ViewOpsData *vod, int x, int y)
   ED_region_tag_redraw(vod->region);
 }
 
-static int viewroll_modal(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus viewroll_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   ViewOpsData *vod = static_cast<ViewOpsData *>(op->customdata);
   short event_code = VIEW_PASS;
   bool use_autokey = false;
-  int ret = OPERATOR_RUNNING_MODAL;
+  wmOperatorStatus ret = OPERATOR_RUNNING_MODAL;
 
   /* Execute the events. */
   if (event->type == EVT_MODAL_MAP) {
@@ -170,7 +170,7 @@ static const EnumPropertyItem prop_view_roll_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-static int viewroll_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus viewroll_exec(bContext *C, wmOperator *op)
 {
   ViewOpsData *vod;
   if (op->customdata) {
@@ -228,7 +228,7 @@ static int viewroll_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int viewroll_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus viewroll_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   ViewOpsData *vod;
 
@@ -238,7 +238,7 @@ static int viewroll_invoke(bContext *C, wmOperator *op, const wmEvent *event)
     viewroll_exec(C, op);
   }
   else {
-    /* The equivalent functionality for orbiting the view: VIEW3D_OT_orbit & VIEW3D_OT_rotate are
+    /* The equivalent functionality for orbiting the view: #VIEW3D_OT_orbit & #VIEW3D_OT_rotate are
      * separate operators with different poll functions [which are only permissive for non-locked
      * views]. This operator however mixes modal-interaction & instant-stepping into the same
      * operator and its current poll function permissively finds the non-locked region in quad

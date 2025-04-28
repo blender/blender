@@ -97,7 +97,7 @@ AssetMetaData::~AssetMetaData()
 
 static AssetTag *asset_metadata_tag_add(AssetMetaData *asset_data, const char *const name)
 {
-  AssetTag *tag = (AssetTag *)MEM_callocN(sizeof(*tag), __func__);
+  AssetTag *tag = MEM_callocN<AssetTag>(__func__);
   STRNCPY_UTF8(tag->name, name);
 
   BLI_addtail(&asset_data->tags, tag);

@@ -27,7 +27,7 @@ ccl_device void displacement_shader_eval(KernelGlobals kg,
 
   /* this will modify sd->P */
 #ifdef __OSL__
-  if (kernel_data.kernel_features & KERNEL_FEATURE_OSL) {
+  if (kernel_data.kernel_features & KERNEL_FEATURE_OSL_SHADING) {
     osl_eval_nodes<SHADER_TYPE_DISPLACEMENT>(kg, state, sd, 0);
   }
   else

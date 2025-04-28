@@ -381,8 +381,7 @@ static void wn_face_area(WeightedNormalModifierData *wnmd, WeightedNormalData *w
   const blender::OffsetIndices faces = wn_data->faces;
   const blender::Span<int> corner_verts = wn_data->corner_verts;
 
-  ModePair *face_area = static_cast<ModePair *>(
-      MEM_malloc_arrayN(faces.size(), sizeof(*face_area), __func__));
+  ModePair *face_area = MEM_malloc_arrayN<ModePair>(size_t(faces.size()), __func__);
 
   ModePair *f_area = face_area;
   for (const int i : faces.index_range()) {
@@ -402,13 +401,11 @@ static void wn_corner_angle(WeightedNormalModifierData *wnmd, WeightedNormalData
   const blender::OffsetIndices faces = wn_data->faces;
   const blender::Span<int> corner_verts = wn_data->corner_verts;
 
-  ModePair *corner_angle = static_cast<ModePair *>(
-      MEM_malloc_arrayN(corner_verts.size(), sizeof(*corner_angle), __func__));
+  ModePair *corner_angle = MEM_malloc_arrayN<ModePair>(size_t(corner_verts.size()), __func__);
 
   for (const int i : faces.index_range()) {
     const blender::IndexRange face = faces[i];
-    float *index_angle = static_cast<float *>(
-        MEM_malloc_arrayN(face.size(), sizeof(*index_angle), __func__));
+    float *index_angle = MEM_malloc_arrayN<float>(size_t(face.size()), __func__);
     blender::bke::mesh::face_angles_calc(
         positions, corner_verts.slice(face), {index_angle, face.size()});
 
@@ -435,15 +432,13 @@ static void wn_face_with_angle(WeightedNormalModifierData *wnmd, WeightedNormalD
   const blender::OffsetIndices faces = wn_data->faces;
   const blender::Span<int> corner_verts = wn_data->corner_verts;
 
-  ModePair *combined = static_cast<ModePair *>(
-      MEM_malloc_arrayN(corner_verts.size(), sizeof(*combined), __func__));
+  ModePair *combined = MEM_malloc_arrayN<ModePair>(size_t(corner_verts.size()), __func__);
 
   for (const int i : faces.index_range()) {
     const blender::IndexRange face = faces[i];
     const blender::Span<int> face_verts = corner_verts.slice(face);
     const float face_area = blender::bke::mesh::face_area_calc(positions, face_verts);
-    float *index_angle = static_cast<float *>(
-        MEM_malloc_arrayN(size_t(face.size()), sizeof(*index_angle), __func__));
+    float *index_angle = MEM_malloc_arrayN<float>(size_t(face.size()), __func__);
     blender::bke::mesh::face_angles_calc(positions, face_verts, {index_angle, face.size()});
 
     ModePair *cmbnd = &combined[face.start()];
@@ -524,7 +519,7 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   wn_data.clnors = clnors.span;
 
   wn_data.faces = faces;
-  wn_data.face_normals = mesh->face_normals();
+  wn_data.face_normals = mesh->face_normals_true();
   wn_data.sharp_faces = *attributes.lookup<bool>("sharp_face", bke::AttrDomain::Face);
   wn_data.face_strength = static_cast<const int *>(CustomData_get_layer_named(
       &result->face_data, CD_PROP_INT32, MOD_WEIGHTEDNORMALS_FACEWEIGHT_CDLAYER_ID));
@@ -595,7 +590,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   uiItemR(layout, ptr, "weight", UI_ITEM_NONE, IFACE_("Weight"), ICON_NONE);
   uiItemR(layout, ptr, "thresh", UI_ITEM_NONE, IFACE_("Threshold"), ICON_NONE);
 
-  col = uiLayoutColumn(layout, false);
+  col = &layout->column(false);
   uiItemR(col, ptr, "keep_sharp", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   uiItemR(col, ptr, "use_face_influence", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 

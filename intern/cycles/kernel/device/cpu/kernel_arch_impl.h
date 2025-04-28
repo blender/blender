@@ -4,7 +4,7 @@
 
 /* Templated common implementation part of all CPU kernels.
  *
- * The idea is that particular .cpp files sets needed optimization flags and
+ * The idea is that particular `.cpp` files sets needed optimization flags and
  * simply includes this file without worry of copying actual implementation over.
  */
 

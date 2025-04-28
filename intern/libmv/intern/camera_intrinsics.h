@@ -20,7 +20,6 @@ enum {
 
 typedef struct libmv_CameraIntrinsicsOptions {
   // Common settings of all distortion models.
-  int num_threads;
   int distortion_model;
   int image_width, image_height;
   double focal_length;
@@ -51,9 +50,6 @@ void libmv_cameraIntrinsicsDestroy(libmv_CameraIntrinsics* libmv_intrinsics);
 void libmv_cameraIntrinsicsUpdate(
     const libmv_CameraIntrinsicsOptions* libmv_camera_intrinsics_options,
     libmv_CameraIntrinsics* libmv_intrinsics);
-
-void libmv_cameraIntrinsicsSetThreads(libmv_CameraIntrinsics* libmv_intrinsics,
-                                      int threads);
 
 void libmv_cameraIntrinsicsExtractOptions(
     const libmv_CameraIntrinsics* libmv_intrinsics,

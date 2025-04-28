@@ -4,6 +4,6 @@
 
 void main()
 {
-  vec4 pixel = vec4(1.0, 0.5, 0.2, 1.0);
-  imageStore(img_output, ivec2(gl_GlobalInvocationID.xy), pixel);
+  float4 pixel = float4(1.0f, 0.5f, 0.2f, 1.0f);
+  imageStore(img_output, int2(gl_GlobalInvocationID.xy), pixel);
 }

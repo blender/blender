@@ -337,22 +337,37 @@ void BKE_boundbox_minmax(const BoundBox &bb,
                          blender::float3 &r_max);
 
 /**
- * Retrieve the bounds of the object's geometry, in the local space of the object
- * (not accounting for the object's transform). For evaluated objects, this includes
- * the evaluated geometry (not just #Object.data).
+ * Retrieve the bounds of the object's evaluated geometry. This is important because it includes
+ * all geometry component types created during evaluation rather than just #Object::data. This
+ * should only be called on evaluated objects, since otherwise the evaluated geometry set won't be
+ * available.
+ *
+ * \note This only includes the bounds of data stored in #GeometrySet, so it won't include the
+ * bounds of other object types that aren't considered "geometry", like armatures.
+ */
+std::optional<blender::Bounds<blender::float3>> BKE_object_evaluated_geometry_bounds(
+    const Object *ob);
+
+/**
+ * Retrieve the bounds of the object's data, in the object's local space (i.e. not accounting for
+ * the object's transform). This does *not* include the bounds of all evaluated geometry, only
+ * #Object::data.
  */
 std::optional<blender::Bounds<blender::float3>> BKE_object_boundbox_get(const Object *ob);
+
+/** The dimensions based on #BKE_object_boundbox_get, scaled by the object's scale. */
 void BKE_object_dimensions_get(const Object *ob, float r_vec[3]);
 
 /**
  * Retrieve the bounds of the evaluated object's geometry, stored on the original object as part of
- * the latest dependency graph evaluation, or fall back to the current bounds of the object if no
- * such cache exists. For evaluated objects this indirection is unnecessary, so
- * #BKE_object_boundbox_get should be used instead.
+ * the latest evaluation of the active dependency graph. If no such cache exists, fall back to the
+ * current bounds of the object's data. For evaluated objects this indirection is unnecessary, and
+ * #BKE_object_boundbox_get or #BKE_object_evaluated_geometry_bounds should be used instead.
  */
 std::optional<blender::Bounds<blender::float3>> BKE_object_boundbox_eval_cached_get(
     const Object *ob);
-/** Similar to #BKE_object_boundbox_eval_cached_get but gives the size of the bounds instead. */
+
+/** Similar to #BKE_object_dimensions_get but uses the cached evaluated bounds instead. */
 void BKE_object_dimensions_eval_cached_get(const Object *ob, float r_vec[3]);
 
 /**
@@ -372,8 +387,6 @@ void BKE_object_dimensions_set(Object *ob, const float value[3], int axis_mask);
 
 void BKE_object_empty_draw_type_set(Object *ob, int value);
 
-std::optional<blender::Bounds<blender::float3>> BKE_object_evaluated_geometry_bounds(
-    const Object *ob);
 void BKE_object_minmax(Object *ob, blender::float3 &r_min, blender::float3 &r_max);
 bool BKE_object_minmax_dupli(Depsgraph *depsgraph,
                              Scene *scene,
@@ -442,7 +455,7 @@ void BKE_object_eval_transform_final(Depsgraph *depsgraph, Object *ob);
 void BKE_object_eval_uber_transform(Depsgraph *depsgraph, Object *object);
 void BKE_object_eval_uber_data(Depsgraph *depsgraph, Scene *scene, Object *ob);
 
-void BKE_object_eval_shading(Depsgraph *depsgraph, Object *ob);
+void BKE_object_eval_shading(Depsgraph *depsgraph, Object *object);
 
 void BKE_object_eval_light_linking(Depsgraph *depsgraph, Object *object);
 
@@ -660,7 +673,7 @@ bool BKE_object_empty_image_data_is_visible_in_view3d(const Object *ob, const Re
  * The mesh will be freed when object is re-evaluated or is destroyed. It is possible to force to
  * clear memory used by this mesh by calling BKE_object_to_mesh_clear().
  *
- * If preserve_all_data_layers is truth then the modifier stack is re-evaluated to ensure it
+ * If preserve_all_data_layers is true then the modifier stack is re-evaluated to ensure it
  * preserves all possible custom data layers.
  *
  * NOTE: Dependency graph argument is required when preserve_all_data_layers is truth, and is
@@ -699,3 +712,14 @@ void BKE_object_replace_data_on_shallow_copy(Object *ob, ID *new_data);
 PartEff *BKE_object_do_version_give_parteff_245(Object *ob);
 
 bool BKE_object_supports_material_slots(Object *ob);
+
+/** Sets the location of the object, respecting #Object::protectflag. */
+void BKE_object_protected_location_set(Object *ob, const float location[3]);
+/** Sets the scale of the object, respecting #Object::protectflag. */
+void BKE_object_protected_scale_set(Object *ob, const float scale[3]);
+/** Sets the quaternion rotation of the object, respecting #Object::protectflag. */
+void BKE_object_protected_rotation_quaternion_set(Object *ob, const float quat[4]);
+/** Sets the euler rotation of the object, respecting #Object::protectflag. */
+void BKE_object_protected_rotation_euler_set(Object *ob, const float euler[3]);
+/** Sets the quaternion rotation of the object, respecting #Object::protectflag. */
+void BKE_object_protected_rotation_axisangle_set(Object *ob, const float axis[3], float angle);

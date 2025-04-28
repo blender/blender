@@ -1424,3 +1424,21 @@ TEST(BLI_string, bounded_strcpy)
     EXPECT_STREQ(str, "Hello, ");
   }
 }
+
+TEST(BLI_string, StartsWith)
+{
+  EXPECT_TRUE(BLI_str_startswith("ab", "a"));
+  EXPECT_FALSE(BLI_str_startswith("ab", "b"));
+  EXPECT_TRUE(BLI_str_startswith("ab", "ab"));
+  EXPECT_TRUE(BLI_str_startswith("ab", ""));
+  EXPECT_TRUE(BLI_str_startswith("", ""));
+}
+
+TEST(BLI_string, EndsWith)
+{
+  EXPECT_TRUE(BLI_str_endswith("ab", "b"));
+  EXPECT_FALSE(BLI_str_endswith("ab", "a"));
+  EXPECT_TRUE(BLI_str_endswith("ab", "ab"));
+  EXPECT_TRUE(BLI_str_endswith("ab", ""));
+  EXPECT_TRUE(BLI_str_endswith("", ""));
+}

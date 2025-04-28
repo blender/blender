@@ -159,11 +159,29 @@ static PyObject *Iterator_decrement(BPy_Iterator *self)
   Py_RETURN_NONE;
 }
 
+#ifdef __GNUC__
+#  ifdef __clang__
+#    pragma clang diagnostic push
+#    pragma clang diagnostic ignored "-Wcast-function-type"
+#  else
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wcast-function-type"
+#  endif
+#endif
+
 static PyMethodDef BPy_Iterator_methods[] = {
     {"increment", (PyCFunction)Iterator_increment, METH_NOARGS, Iterator_increment_doc},
     {"decrement", (PyCFunction)Iterator_decrement, METH_NOARGS, Iterator_decrement_doc},
     {nullptr, nullptr, 0, nullptr},
 };
+
+#ifdef __GNUC__
+#  ifdef __clang__
+#    pragma clang diagnostic pop
+#  else
+#    pragma GCC diagnostic pop
+#  endif
+#endif
 
 /*----------------------Iterator get/setters ----------------------------*/
 

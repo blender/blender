@@ -50,7 +50,7 @@ void DepsgraphNodeBuilder::build_scene_camera(Scene *scene)
 
 void DepsgraphNodeBuilder::build_scene_parameters(Scene *scene)
 {
-  if (built_map_.checkIsBuiltAndTag(scene, BuilderMap::TAG_PARAMETERS)) {
+  if (built_map_.check_is_built_and_tag(scene, BuilderMap::TAG_PARAMETERS)) {
     return;
   }
   build_parameters(&scene->id);
@@ -77,7 +77,7 @@ void DepsgraphNodeBuilder::build_scene_parameters(Scene *scene)
 
 void DepsgraphNodeBuilder::build_scene_compositor(Scene *scene)
 {
-  if (built_map_.checkIsBuiltAndTag(scene, BuilderMap::TAG_SCENE_COMPOSITOR)) {
+  if (built_map_.check_is_built_and_tag(scene, BuilderMap::TAG_SCENE_COMPOSITOR)) {
     return;
   }
   if (scene->nodetree == nullptr) {

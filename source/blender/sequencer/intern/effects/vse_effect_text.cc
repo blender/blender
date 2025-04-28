@@ -43,7 +43,7 @@
 
 #include "effects.hh"
 
-using namespace blender;
+namespace blender::seq {
 
 /* -------------------------------------------------------------------- */
 /* Sequencer font access.
@@ -71,7 +71,7 @@ struct SeqFontMap {
 
 static SeqFontMap g_font_map;
 
-void SEQ_fontmap_clear()
+void fontmap_clear()
 {
   for (const auto &item : g_font_map.path_to_file_font_id.items()) {
     BLF_unload_id(item.value);
@@ -153,9 +153,10 @@ static void strip_unload_font(int fontid)
 /** \name Text Effect
  * \{ */
 
-/* `data->text[0] == 0` is ignored on purpose in order to make it possible to edit  */
-bool SEQ_effects_can_render_text(const Strip *strip)
+bool effects_can_render_text(const Strip *strip)
 {
+  /* `data->text[0] == 0` is ignored on purpose in order to make it possible to edit. */
+
   TextVars *data = static_cast<TextVars *>(strip->effectdata);
   if (data->text_size < 1.0f ||
       ((data->color[3] == 0.0f) &&
@@ -174,8 +175,9 @@ static void init_text_effect(Strip *strip)
     MEM_freeN(strip->effectdata);
   }
 
-  TextVars *data = static_cast<TextVars *>(
-      strip->effectdata = MEM_callocN(sizeof(TextVars), "textvars"));
+  TextVars *data = MEM_callocN<TextVars>("textvars");
+  strip->effectdata = data;
+
   data->text_font = nullptr;
   data->text_blf_id = -1;
   data->text_size = 60.0f;
@@ -204,7 +206,7 @@ static void init_text_effect(Strip *strip)
   data->wrap_width = 1.0f;
 }
 
-void SEQ_effect_text_font_unload(TextVars *data, const bool do_id_user)
+void effect_text_font_unload(TextVars *data, const bool do_id_user)
 {
   if (data == nullptr) {
     return;
@@ -223,7 +225,7 @@ void SEQ_effect_text_font_unload(TextVars *data, const bool do_id_user)
   }
 }
 
-void SEQ_effect_text_font_load(TextVars *data, const bool do_id_user)
+void effect_text_font_load(TextVars *data, const bool do_id_user)
 {
   VFont *vfont = data->text_font;
   if (vfont == nullptr) {
@@ -259,7 +261,7 @@ void SEQ_effect_text_font_load(TextVars *data, const bool do_id_user)
 static void free_text_effect(Strip *strip, const bool do_id_user)
 {
   TextVars *data = static_cast<TextVars *>(strip->effectdata);
-  SEQ_effect_text_font_unload(data, do_id_user);
+  effect_text_font_unload(data, do_id_user);
 
   if (data) {
     MEM_delete(data->runtime);
@@ -271,7 +273,7 @@ static void free_text_effect(Strip *strip, const bool do_id_user)
 static void load_text_effect(Strip *strip)
 {
   TextVars *data = static_cast<TextVars *>(strip->effectdata);
-  SEQ_effect_text_font_load(data, false);
+  effect_text_font_load(data, false);
 }
 
 static void copy_text_effect(Strip *dst, const Strip *src, const int flag)
@@ -281,7 +283,7 @@ static void copy_text_effect(Strip *dst, const Strip *src, const int flag)
 
   data->runtime = nullptr;
   data->text_blf_id = -1;
-  SEQ_effect_text_font_load(data, (flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0);
+  effect_text_font_load(data, (flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0);
 }
 
 static int num_inputs_text()
@@ -291,7 +293,7 @@ static int num_inputs_text()
 
 static StripEarlyOut early_out_text(const Strip *strip, float /*fac*/)
 {
-  if (!SEQ_effects_can_render_text(strip)) {
+  if (!effects_can_render_text(strip)) {
     return StripEarlyOut::UseInput1;
   }
   return StripEarlyOut::NoInput;
@@ -420,11 +422,8 @@ static void composite_shadow(int width,
   });
 }
 
-static void draw_text_shadow(const SeqRenderData *context,
-                             const TextVars *data,
-                             int line_height,
-                             const rcti &rect,
-                             ImBuf *out)
+static void draw_text_shadow(
+    const RenderData *context, const TextVars *data, int line_height, const rcti &rect, ImBuf *out)
 {
   const int width = context->rectx;
   const int height = context->recty;
@@ -549,7 +548,6 @@ static void jump_flooding_pass(Span<JFACoord> input,
     }
   });
 }
-namespace blender::seq {
 
 static void text_draw(const TextVarsRuntime *runtime, float color[4])
 {
@@ -571,7 +569,7 @@ static void text_draw(const TextVarsRuntime *runtime, float color[4])
   }
 }
 
-static rcti draw_text_outline(const SeqRenderData *context,
+static rcti draw_text_outline(const RenderData *context,
                               const TextVars *data,
                               const TextVarsRuntime *runtime,
                               ColorManagedDisplay *display,
@@ -771,19 +769,19 @@ static void fill_rect_alpha_under(
   });
 }
 
-static int text_effect_line_size_get(const SeqRenderData *context, const Strip *strip)
+static int text_effect_line_size_get(const RenderData *context, const Strip *strip)
 {
   TextVars *data = static_cast<TextVars *>(strip->effectdata);
   /* Compensate text size for preview render size. */
   double proxy_size_comp = context->scene->r.size / 100.0;
   if (context->preview_render_size != SEQ_RENDER_SIZE_SCENE) {
-    proxy_size_comp = SEQ_rendersize_to_scale_factor(context->preview_render_size);
+    proxy_size_comp = rendersize_to_scale_factor(context->preview_render_size);
   }
 
   return proxy_size_comp * data->text_size;
 }
 
-static int text_effect_font_init(const SeqRenderData *context, const Strip *strip, int font_flags)
+static int text_effect_font_init(const RenderData *context, const Strip *strip, int font_flags)
 {
   TextVars *data = static_cast<TextVars *>(strip->effectdata);
   int font = blf_mono_font_render;
@@ -796,7 +794,7 @@ static int text_effect_font_init(const SeqRenderData *context, const Strip *stri
   if (data->text_blf_id == STRIP_FONT_NOT_LOADED) {
     data->text_blf_id = -1;
 
-    SEQ_effect_text_font_load(data, false);
+    effect_text_font_load(data, false);
   }
 
   if (data->text_blf_id >= 0) {
@@ -808,10 +806,10 @@ static int text_effect_font_init(const SeqRenderData *context, const Strip *stri
   return font;
 }
 
-static blender::Vector<CharInfo> build_character_info(const TextVars *data, int font)
+static Vector<CharInfo> build_character_info(const TextVars *data, int font)
 {
-  blender::Vector<CharInfo> characters;
-  const size_t len_max = BLI_strnlen(data->text, sizeof(data->text));
+  Vector<CharInfo> characters;
+  const size_t len_max = STRNLEN(data->text);
   int byte_offset = 0;
   int char_index = 0;
 
@@ -854,7 +852,7 @@ static int wrap_width_get(const TextVars *data, const int2 image_size)
 static void apply_word_wrapping(const TextVars *data,
                                 TextVarsRuntime *runtime,
                                 const int2 image_size,
-                                blender::Vector<CharInfo> &characters)
+                                Vector<CharInfo> &characters)
 {
   const int wrap_width = wrap_width_get(data, image_size);
 
@@ -896,7 +894,7 @@ static void apply_word_wrapping(const TextVars *data,
   }
 }
 
-static int text_box_width_get(const blender::Vector<LineInfo> &lines)
+static int text_box_width_get(const Vector<LineInfo> &lines)
 {
   int width_max = 0;
 
@@ -1009,13 +1007,13 @@ static void calc_text_runtime(const Strip *strip, int font, const int2 image_siz
   runtime->font_descender = BLF_descender(font);
   runtime->character_count = BLI_strlen_utf8(data->text);
 
-  blender::Vector<CharInfo> characters_temp = build_character_info(data, font);
+  Vector<CharInfo> characters_temp = build_character_info(data, font);
   apply_word_wrapping(data, runtime, image_size, characters_temp);
   apply_text_alignment(data, runtime, image_size);
   calc_boundbox(data, runtime, image_size);
 }
 
-static ImBuf *do_text_effect(const SeqRenderData *context,
+static ImBuf *do_text_effect(const RenderData *context,
                              Strip *strip,
                              float /*timeline_frame*/,
                              float /*fac*/,
@@ -1067,9 +1065,7 @@ static ImBuf *do_text_effect(const SeqRenderData *context,
   return out;
 }
 
-}  // namespace blender::seq
-
-void text_effect_get_handle(SeqEffectHandle &rval)
+void text_effect_get_handle(EffectHandle &rval)
 {
   rval.num_inputs = num_inputs_text;
   rval.init = init_text_effect;
@@ -1077,7 +1073,9 @@ void text_effect_get_handle(SeqEffectHandle &rval)
   rval.load = load_text_effect;
   rval.copy = copy_text_effect;
   rval.early_out = early_out_text;
-  rval.execute = blender::seq::do_text_effect;
+  rval.execute = do_text_effect;
 }
 
 /** \} */
+
+}  // namespace blender::seq

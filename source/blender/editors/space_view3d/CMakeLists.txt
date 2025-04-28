@@ -24,6 +24,7 @@ set(SRC
   view3d_context.cc
   view3d_cursor_snap.cc
   view3d_draw.cc
+  view3d_dropboxes.cc
   view3d_edit.cc
   view3d_gizmo_armature.cc
   view3d_gizmo_camera.cc

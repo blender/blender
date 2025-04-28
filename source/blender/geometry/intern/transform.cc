@@ -47,12 +47,6 @@ static void transform_positions(MutableSpan<float3> positions, const float4x4 &m
   });
 }
 
-static void transform_mesh(Mesh &mesh, const float4x4 &transform)
-{
-  transform_positions(mesh.vert_positions_for_write(), transform);
-  mesh.tag_positions_changed();
-}
-
 static void translate_pointcloud(PointCloud &pointcloud, const float3 translation)
 {
   if (math::is_zero(translation)) {
@@ -244,11 +238,14 @@ static void translate_gizmos_edit_hints(bke::GizmoEditHints &edit_hints, const f
 
 void translate_geometry(bke::GeometrySet &geometry, const float3 translation)
 {
+  if (math::is_zero(translation)) {
+    return;
+  }
   if (Curves *curves = geometry.get_curves_for_write()) {
     curves->geometry.wrap().translate(translation);
   }
   if (Mesh *mesh = geometry.get_mesh_for_write()) {
-    BKE_mesh_translate(mesh, translation, false);
+    bke::mesh_translate(*mesh, translation, false);
   }
   if (PointCloud *pointcloud = geometry.get_pointcloud_for_write()) {
     translate_pointcloud(*pointcloud, translation);
@@ -273,12 +270,15 @@ void translate_geometry(bke::GeometrySet &geometry, const float3 translation)
 std::optional<TransformGeometryErrors> transform_geometry(bke::GeometrySet &geometry,
                                                           const float4x4 &transform)
 {
+  if (transform == float4x4::identity()) {
+    return std::nullopt;
+  }
   TransformGeometryErrors errors;
   if (Curves *curves = geometry.get_curves_for_write()) {
     curves->geometry.wrap().transform(transform);
   }
   if (Mesh *mesh = geometry.get_mesh_for_write()) {
-    transform_mesh(*mesh, transform);
+    bke::mesh_transform(*mesh, transform, false);
   }
   if (PointCloud *pointcloud = geometry.get_pointcloud_for_write()) {
     transform_pointcloud(*pointcloud, transform);
@@ -316,7 +316,7 @@ void transform_mesh(Mesh &mesh,
                     const float3 scale)
 {
   const float4x4 matrix = math::from_loc_rot_scale<float4x4>(translation, rotation, scale);
-  transform_mesh(mesh, matrix);
+  bke::mesh_transform(mesh, matrix, false);
 }
 
 }  // namespace blender::geometry

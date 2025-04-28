@@ -12,7 +12,7 @@
 
 namespace blender::io::usd {
 
-void USDInstanceReader::create_object(Main *bmain, const double /*motionSampleTime*/)
+void USDInstanceReader::create_object(Main *bmain)
 {
   this->object_ = BKE_object_add_only_object(bmain, OB_EMPTY, name_.c_str());
   this->object_->data = nullptr;

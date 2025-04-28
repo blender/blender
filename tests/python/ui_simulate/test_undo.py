@@ -5,6 +5,7 @@
 """
 This file does not run anything, it's methods are accessed for tests by: ``run.py``.
 """
+import datetime
 
 # FIXME: Since 2.8 or so, there is a problem with simulated events
 # where a popup needs the main-loop to cycle once before new events
@@ -56,8 +57,20 @@ def _call_menu(e, text: str):
     yield e.ret()
 
 
-def _cursor_motion_data_x(window):
+def _window_size_in_pixels(window):
+    import sys
     size = window.width, window.height
+    # macOS window size is a multiple of the pixel_size.
+    if sys.platform == "darwin":
+        from bpy import context
+        # The value is always rounded to an int, so converting to an int is safe here.
+        pixel_size = int(context.preferences.system.pixel_size)
+        size = size[0] * pixel_size, size[1] * pixel_size
+    return size
+
+
+def _cursor_motion_data_x(window):
+    size = _window_size_in_pixels(window)
     return [
         (x, size[1] // 2) for x in
         range(int(size[0] * 0.2), int(size[0] * 0.8), 80)
@@ -65,7 +78,7 @@ def _cursor_motion_data_x(window):
 
 
 def _cursor_motion_data_y(window):
-    size = window.width, window.height
+    size = _window_size_in_pixels(window)
     return [
         (size[0] // 2, y) for y in
         range(int(size[1] * 0.2), int(size[1] * 0.8), 80)
@@ -88,7 +101,7 @@ def _cursor_position_from_area(area):
 def _cursor_position_from_spacetype(window, space_type):
     area = _window_area_get_by_type(window, space_type)
     if area is None:
-        raise Exception("Space Type %r not found" % space_type)
+        raise Exception("Space Type {!r} not found".format(space_type))
     return _cursor_position_from_area(area)
 
 
@@ -304,7 +317,20 @@ def view3d_simple():
     e, t = _test_vars(window := _test_window())
     yield from _view3d_startup_area_maximized(e)
 
-    yield from _call_menu(e, "Add -> Mesh -> Plane")
+    # NOTE: it should be possible to consider "Add -> Mesh -> Plane" an exact match.
+    # However, shortcuts are now included so without them this ends up fuzzy-matching to "Add -> Image -> Mesh Plane".
+    # To resolve that it's necessary to match the entire shortcut which... changes based on the platform (sign!).
+    use_menu_search_workaround = True
+    if use_menu_search_workaround:
+        import sys
+        yield from _call_menu(e, "Add ({:s} A) -> Mesh -> Plane".format(
+            "\u21e7" if sys.platform == "darwin" else "Shift"
+        ))
+        del sys
+    else:
+        # It would be nice if this could be restored.
+        yield from _call_menu(e, "Add -> Mesh -> Plane")
+
     # Duplicate and rotate.
     for _ in range(3):
         yield e.shift.d().x().text("3").ret()
@@ -628,7 +654,10 @@ def view3d_multi_mode_multi_window():
     yield from _call_menu(e_b, "New Scene")
     yield e_b.ret()
     if _MENU_CONFIRM_HACK:
-        yield
+        # We wait for a brief period of time after confirming to ensure that each main window has a different view layer
+        yield datetime.timedelta(seconds=1 / 60)
+
+    t.assertNotEqual(window_a.view_layer, window_b.view_layer, "Windows should have different view layers")
 
     for e in (e_a, e_b):
         pos_v3d = _cursor_position_from_spacetype(e.window, 'VIEW_3D')
@@ -784,7 +813,10 @@ def view3d_edit_mode_multi_window():
     yield from _call_menu(e_b, "New Scene")
     yield e_b.ret()
     if _MENU_CONFIRM_HACK:
-        yield
+        # We wait for a brief period of time after confirming to ensure that each main window has a different view layer
+        yield datetime.timedelta(seconds=1 / 60)
+
+    t.assertNotEqual(window_a.view_layer, window_b.view_layer, "Windows should have different view layers")
 
     for e in (e_a, e_b):
         pos_v3d = _cursor_position_from_spacetype(e.window, 'VIEW_3D')

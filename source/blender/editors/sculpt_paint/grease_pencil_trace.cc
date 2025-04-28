@@ -377,7 +377,7 @@ static bool grease_pencil_trace_image_poll(bContext *C)
   return true;
 }
 
-static int grease_pencil_trace_image_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus grease_pencil_trace_image_exec(bContext *C, wmOperator *op)
 {
   TraceJob *job = MEM_new<TraceJob>("TraceJob");
   job->C = C;
@@ -448,7 +448,9 @@ static int grease_pencil_trace_image_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int grease_pencil_trace_image_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+static wmOperatorStatus grease_pencil_trace_image_invoke(bContext *C,
+                                                         wmOperator *op,
+                                                         const wmEvent * /*event*/)
 {
   /* Show popup dialog to allow editing. */
   /* FIXME: hard-coded dimensions here are just arbitrary. */

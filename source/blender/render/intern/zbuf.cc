@@ -37,8 +37,8 @@ void zbuf_alloc_span(ZSpan *zspan, int rectx, int recty)
   zspan->rectx = rectx;
   zspan->recty = recty;
 
-  zspan->span1 = static_cast<float *>(MEM_mallocN(recty * sizeof(float), "zspan"));
-  zspan->span2 = static_cast<float *>(MEM_mallocN(recty * sizeof(float), "zspan"));
+  zspan->span1 = MEM_malloc_arrayN<float>(recty, "zspan");
+  zspan->span2 = MEM_malloc_arrayN<float>(recty, "zspan");
 }
 
 void zbuf_free_span(ZSpan *zspan)

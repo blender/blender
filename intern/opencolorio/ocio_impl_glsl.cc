@@ -187,6 +187,8 @@ static bool createGPUShader(OCIO_GPUShader &shader,
     }
   }
 
+  source = GPU_shader_preprocess_source(source);
+
   /* Comparison operator in Metal returns per-element comparison and returns a vector of booleans.
    * Need a special syntax to see if two vec3 are matched.
    *
@@ -199,7 +201,7 @@ static bool createGPUShader(OCIO_GPUShader &shader,
       source, "if ( gamma != vec3(1., 1., 1.) )", "if (! all(equal(gamma, vec3(1., 1., 1.))) )");
 
   StageInterfaceInfo iface("OCIO_Interface", "");
-  iface.smooth(Type::VEC2, "texCoord_interp");
+  iface.smooth(Type::float2_t, "texCoord_interp");
 
   ShaderCreateInfo info("OCIO_Display");
   /* Work around OpenColorIO not supporting latest GLSL yet. */
@@ -211,14 +213,14 @@ static bool createGPUShader(OCIO_GPUShader &shader,
   info.define("in", "");
 #endif
   info.typedef_source("ocio_shader_shared.hh");
-  info.sampler(TEXTURE_SLOT_IMAGE, ImageType::FLOAT_2D, "image_texture");
-  info.sampler(TEXTURE_SLOT_OVERLAY, ImageType::FLOAT_2D, "overlay_texture");
+  info.sampler(TEXTURE_SLOT_IMAGE, ImageType::Float2D, "image_texture");
+  info.sampler(TEXTURE_SLOT_OVERLAY, ImageType::Float2D, "overlay_texture");
   info.uniform_buf(UNIFORMBUF_SLOT_DISPLAY, "OCIO_GPUParameters", "parameters");
-  info.push_constant(Type::MAT4, "ModelViewProjectionMatrix");
-  info.vertex_in(0, Type::VEC2, "pos");
-  info.vertex_in(1, Type::VEC2, "texCoord");
+  info.push_constant(Type::float4x4_t, "ModelViewProjectionMatrix");
+  info.vertex_in(0, Type::float2_t, "pos");
+  info.vertex_in(1, Type::float2_t, "texCoord");
   info.vertex_out(iface);
-  info.fragment_out(0, Type::VEC4, "fragColor");
+  info.fragment_out(0, Type::float4_t, "fragColor");
   info.vertex_source("gpu_shader_display_transform_vert.glsl");
   info.fragment_source("gpu_shader_display_transform_frag.glsl");
   info.fragment_source_generated = source;
@@ -231,16 +233,16 @@ static bool createGPUShader(OCIO_GPUShader &shader,
   if (use_curve_mapping) {
     info.define("USE_CURVE_MAPPING");
     info.uniform_buf(UNIFORMBUF_SLOT_CURVEMAP, "OCIO_GPUCurveMappingParameters", "curve_mapping");
-    info.sampler(TEXTURE_SLOT_CURVE_MAPPING, ImageType::FLOAT_1D, "curve_mapping_texture");
+    info.sampler(TEXTURE_SLOT_CURVE_MAPPING, ImageType::Float1D, "curve_mapping_texture");
   }
 
   /* Set LUT textures. */
   int slot = TEXTURE_SLOT_LUTS_OFFSET;
   for (OCIO_GPULutTexture &texture : textures.luts) {
     const int dimensions = GPU_texture_dimensions(texture.texture);
-    ImageType type = (dimensions == 1) ? ImageType::FLOAT_1D :
-                     (dimensions == 2) ? ImageType::FLOAT_2D :
-                                         ImageType::FLOAT_3D;
+    ImageType type = (dimensions == 1) ? ImageType::Float1D :
+                     (dimensions == 2) ? ImageType::Float2D :
+                                         ImageType::Float3D;
 
     info.sampler(slot++, type, texture.sampler_name.c_str());
   }
@@ -709,16 +711,6 @@ static OCIO_GPUDisplayShader &getGPUDisplayShader(
   return display_shader;
 }
 
-/**
- * Setup GPU contexts for a transform defined by processor using GLSL.
- * All LUT allocating baking and shader compilation happens here.
- *
- * Once this function is called, callee could start drawing images
- * using regular 2D texture.
- *
- * When all drawing is finished, gpuDisplayShaderUnbind must be called to
- * restore GPU context to its previous state.
- */
 bool OCIOImpl::gpuDisplayShaderBind(OCIO_ConstConfigRcPtr *config,
                                     const char *input,
                                     const char *view,

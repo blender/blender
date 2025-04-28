@@ -24,7 +24,7 @@ namespace blender::draw {
 
 void mesh_render_data_face_flag(const MeshRenderData &mr,
                                 const BMFace *efa,
-                                const BMUVOffsets offsets,
+                                const BMUVOffsets &offsets,
                                 EditLoopData &eattr)
 {
   if (efa == mr.efa_act) {
@@ -37,7 +37,7 @@ void mesh_render_data_face_flag(const MeshRenderData &mr,
   if (efa == mr.efa_act_uv) {
     eattr.v_flag |= VFLAG_FACE_UV_ACTIVE;
   }
-  if ((offsets.uv != -1) && uvedit_face_select_test_ex(mr.toolsettings, (BMFace *)efa, offsets)) {
+  if ((offsets.uv != -1) && uvedit_face_select_test_ex(mr.toolsettings, efa, offsets)) {
     eattr.v_flag |= VFLAG_FACE_UV_SELECT;
   }
 
@@ -54,7 +54,7 @@ void mesh_render_data_face_flag(const MeshRenderData &mr,
 
 void mesh_render_data_loop_flag(const MeshRenderData &mr,
                                 const BMLoop *l,
-                                const BMUVOffsets offsets,
+                                const BMUVOffsets &offsets,
                                 EditLoopData &eattr)
 {
   if (offsets.uv == -1) {
@@ -70,7 +70,7 @@ void mesh_render_data_loop_flag(const MeshRenderData &mr,
 
 void mesh_render_data_loop_edge_flag(const MeshRenderData &mr,
                                      const BMLoop *l,
-                                     const BMUVOffsets offsets,
+                                     const BMUVOffsets &offsets,
                                      EditLoopData &eattr)
 {
   if (offsets.uv == -1) {

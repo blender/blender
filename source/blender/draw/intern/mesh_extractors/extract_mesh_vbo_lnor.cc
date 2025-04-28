@@ -139,7 +139,21 @@ template<typename GPUType>
 static void extract_vert_normals_bm(const MeshRenderData &mr, MutableSpan<GPUType> normals)
 {
   const BMesh &bm = *mr.bm;
-  if (!mr.bm_vert_normals.is_empty()) {
+  if (mr.bm_free_normal_offset_vert != -1) {
+    threading::parallel_for(IndexRange(bm.totface), 2048, [&](const IndexRange range) {
+      for (const int face_index : range) {
+        const BMFace &face = *BM_face_at_index(&const_cast<BMesh &>(bm), face_index);
+        const BMLoop *loop = BM_FACE_FIRST_LOOP(&face);
+        const IndexRange face_range(BM_elem_index_get(loop), face.len);
+        for (const int corner : face_range) {
+          normals[corner] = gpu::convert_normal<GPUType>(
+              BM_ELEM_CD_GET_FLOAT_P(loop->v, mr.bm_free_normal_offset_vert));
+          loop = loop->next;
+        }
+      }
+    });
+  }
+  else if (!mr.bm_vert_normals.is_empty()) {
     Array<GPUType> vert_normals_converted(mr.bm_vert_normals.size());
     gpu::convert_normals(mr.bm_vert_normals, vert_normals_converted.as_mutable_span());
     threading::parallel_for(IndexRange(bm.totface), 2048, [&](const IndexRange range) {
@@ -173,7 +187,18 @@ template<typename GPUType>
 static void extract_face_normals_bm(const MeshRenderData &mr, MutableSpan<GPUType> normals)
 {
   const BMesh &bm = *mr.bm;
-  if (!mr.bm_face_normals.is_empty()) {
+  if (mr.bm_free_normal_offset_face != -1) {
+    threading::parallel_for(IndexRange(bm.totface), 2048, [&](const IndexRange range) {
+      for (const int face_index : range) {
+        const BMFace &face = *BM_face_at_index(&const_cast<BMesh &>(bm), face_index);
+        const IndexRange face_range(BM_elem_index_get(BM_FACE_FIRST_LOOP(&face)), face.len);
+        normals.slice(face_range)
+            .fill(gpu::convert_normal<GPUType>(
+                BM_ELEM_CD_GET_FLOAT_P(&face, mr.bm_free_normal_offset_face)));
+      }
+    });
+  }
+  else if (!mr.bm_face_normals.is_empty()) {
     threading::parallel_for(IndexRange(bm.totface), 2048, [&](const IndexRange range) {
       for (const int face_index : range) {
         const BMFace &face = *BM_face_at_index(&const_cast<BMesh &>(bm), face_index);
@@ -222,6 +247,20 @@ static void extract_normals_bm(const MeshRenderData &mr, MutableSpan<GPUType> no
   else if (mr.normals_domain == bke::MeshNormalDomain::Point) {
     extract_vert_normals_bm(mr, normals);
   }
+  else if (mr.bm_free_normal_offset_corner != -1) {
+    threading::parallel_for(IndexRange(bm.totface), 2048, [&](const IndexRange range) {
+      for (const int face_index : range) {
+        const BMFace &face = *BM_face_at_index(&const_cast<BMesh &>(bm), face_index);
+        const BMLoop *loop = BM_FACE_FIRST_LOOP(&face);
+        const IndexRange face_range(BM_elem_index_get(loop), face.len);
+        for (const int corner : face_range) {
+          normals[corner] = gpu::convert_normal<GPUType>(
+              BM_ELEM_CD_GET_FLOAT_P(loop, mr.bm_free_normal_offset_corner));
+          loop = loop->next;
+        }
+      }
+    });
+  }
   else if (!mr.bm_loop_normals.is_empty()) {
     gpu::convert_normals(mr.bm_loop_normals, normals);
   }
@@ -261,7 +300,7 @@ static void extract_normals_bm(const MeshRenderData &mr, MutableSpan<GPUType> no
   }
 }
 
-void extract_normals(const MeshRenderData &mr, const bool use_hq, gpu::VertBuf &vbo)
+gpu::VertBufPtr extract_normals(const MeshRenderData &mr, const bool use_hq)
 {
   const int size = mr.corners_num + mr.loose_indices_num;
   if (use_hq) {
@@ -271,9 +310,9 @@ void extract_normals(const MeshRenderData &mr, const bool use_hq, gpu::VertBuf &
       GPU_vertformat_alias_add(&format, "lnor");
       return format;
     }();
-    GPU_vertbuf_init_with_format(vbo, format);
-    GPU_vertbuf_data_alloc(vbo, size);
-    MutableSpan vbo_data = vbo.data<short4>();
+    gpu::VertBufPtr vbo = gpu::VertBufPtr(GPU_vertbuf_create_with_format(format));
+    GPU_vertbuf_data_alloc(*vbo, size);
+    MutableSpan vbo_data = vbo->data<short4>();
     MutableSpan corners_data = vbo_data.take_front(mr.corners_num);
     MutableSpan loose_data = vbo_data.take_back(mr.loose_indices_num);
 
@@ -287,31 +326,31 @@ void extract_normals(const MeshRenderData &mr, const bool use_hq, gpu::VertBuf &
     }
 
     loose_data.fill(short4(0));
+    return vbo;
+  }
+  static const GPUVertFormat format = []() {
+    GPUVertFormat format{};
+    GPU_vertformat_attr_add(&format, "nor", GPU_COMP_I10, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
+    GPU_vertformat_alias_add(&format, "lnor");
+    return format;
+  }();
+  gpu::VertBufPtr vbo = gpu::VertBufPtr(GPU_vertbuf_create_with_format(format));
+  GPU_vertbuf_data_alloc(*vbo, size);
+  MutableSpan vbo_data = vbo->data<gpu::PackedNormal>();
+  MutableSpan corners_data = vbo_data.take_front(mr.corners_num);
+  MutableSpan loose_data = vbo_data.take_back(mr.loose_indices_num);
+
+  if (mr.extract_type == MeshExtractType::Mesh) {
+    extract_normals_mesh(mr, corners_data);
+    extract_paint_overlay_flags(mr, corners_data);
   }
   else {
-    static const GPUVertFormat format = []() {
-      GPUVertFormat format{};
-      GPU_vertformat_attr_add(&format, "nor", GPU_COMP_I10, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
-      GPU_vertformat_alias_add(&format, "lnor");
-      return format;
-    }();
-    GPU_vertbuf_init_with_format(vbo, format);
-    GPU_vertbuf_data_alloc(vbo, size);
-    MutableSpan vbo_data = vbo.data<gpu::PackedNormal>();
-    MutableSpan corners_data = vbo_data.take_front(mr.corners_num);
-    MutableSpan loose_data = vbo_data.take_back(mr.loose_indices_num);
-
-    if (mr.extract_type == MeshExtractType::Mesh) {
-      extract_normals_mesh(mr, corners_data);
-      extract_paint_overlay_flags(mr, corners_data);
-    }
-    else {
-      extract_normals_bm(mr, corners_data);
-      extract_edit_flags_bm(mr, corners_data);
-    }
-
-    loose_data.fill(gpu::PackedNormal{});
+    extract_normals_bm(mr, corners_data);
+    extract_edit_flags_bm(mr, corners_data);
   }
+
+  loose_data.fill(gpu::PackedNormal{});
+  return vbo;
 }
 
 static const GPUVertFormat &get_subdiv_lnor_format()
@@ -326,19 +365,19 @@ static const GPUVertFormat &get_subdiv_lnor_format()
   return format;
 }
 
-void extract_normals_subdiv(const MeshRenderData &mr,
-                            const DRWSubdivCache &subdiv_cache,
-                            gpu::VertBuf &pos_nor,
-                            gpu::VertBuf &lnor)
+gpu::VertBufPtr extract_normals_subdiv(const MeshRenderData &mr,
+                                       const DRWSubdivCache &subdiv_cache,
+                                       gpu::VertBuf &pos_nor)
 {
   const int vbo_size = subdiv_full_vbo_size(mr, subdiv_cache);
   const int loose_geom_start = subdiv_cache.num_subdiv_loops;
 
-  GPU_vertbuf_init_build_on_device(lnor, get_subdiv_lnor_format(), vbo_size);
-  draw_subdiv_build_lnor_buffer(subdiv_cache, &pos_nor, &lnor);
+  gpu::VertBufPtr lnor = gpu::VertBufPtr(
+      GPU_vertbuf_create_on_device(get_subdiv_lnor_format(), vbo_size));
+  draw_subdiv_build_lnor_buffer(subdiv_cache, &pos_nor, lnor.get());
 
   /* Push VBO content to the GPU and bind the VBO so that #GPU_vertbuf_update_sub can work. */
-  GPU_vertbuf_use(&lnor);
+  GPU_vertbuf_use(lnor.get());
 
   /* Default to zeroed attribute. The overlay shader should expect this and render engines should
    * never draw loose geometry. */
@@ -346,7 +385,9 @@ void extract_normals_subdiv(const MeshRenderData &mr,
   for (const int i : IndexRange::from_begin_end(loose_geom_start, vbo_size)) {
     /* TODO(fclem): This has HORRENDOUS performance. Prefer clearing the buffer on device with
      * something like glClearBufferSubData. */
-    GPU_vertbuf_update_sub(&lnor, i * sizeof(float4), sizeof(float4), &default_normal);
+    GPU_vertbuf_update_sub(lnor.get(), i * sizeof(float4), sizeof(float4), &default_normal);
   }
+  return lnor;
 }
+
 }  // namespace blender::draw

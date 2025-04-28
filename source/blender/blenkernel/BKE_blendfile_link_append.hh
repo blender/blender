@@ -78,18 +78,24 @@ struct BlendfileLinkAppendContextItem {
   /** ID type. */
   short idcode;
 
-  /** Type of action to perform on this item, and general status tag information.
-   *  NOTE: Mostly used by append post-linking processing. */
+  /**
+   * Type of action to perform on this item, and general status tag information.
+   * NOTE: Mostly used by append post-linking processing.
+   */
   char action;
   char tag;
 
   /** Newly linked ID (nullptr until it has been successfully linked). */
   ID *new_id;
-  /** Library ID from which the #new_id has been linked (nullptr until it has been successfully
-   * linked). */
+  /**
+   * Library ID from which the #new_id has been linked
+   * (nullptr until it has been successfully linked).
+   */
   Library *source_library;
-  /** Liboverride of the linked ID (nullptr until it has been successfully created or an existing
-   * one has been found). */
+  /**
+   * Liboverride of the linked ID
+   * (nullptr until it has been successfully created or an existing one has been found).
+   */
   ID *liboverride_id;
   /**
    * Whether the item has a matching local ID that was already appended from the same source
@@ -102,12 +108,15 @@ struct BlendfileLinkAppendContextItem {
   void *userdata;
 };
 
-/** A blendfile library entry in the `libraries` vector from #BlendfileLinkAppendContext. */
+/** A blend-file library entry in the `libraries` vector from #BlendfileLinkAppendContext. */
 struct BlendfileLinkAppendContextLibrary {
-  std::string path;         /* Absolute .blend file path. */
-  BlendHandle *blo_handle;  /* Blend file handle, if any. */
-  bool blo_handle_is_owned; /* Whether the blend file handle is owned, or borrowed. */
-  /* The blendfile report associated with the `blo_handle`, if owned. */
+  /** Absolute .blend file path. */
+  std::string path;
+  /** Blend file handle, if any. */
+  BlendHandle *blo_handle;
+  /** Whether the blend file handle is owned, or borrowed. */
+  bool blo_handle_is_owned;
+  /** The blend-file report associated with the `blo_handle`, if owned. */
   BlendFileReadReport bf_reports;
 };
 
@@ -239,7 +248,7 @@ BlendfileLinkAppendContextItem *BKE_blendfile_link_append_context_item_add(
  * \note #BKE_blendfile_link_append_context_library_add should never be called on the same
  *`lapp_context` after this function.
  *
- * \param id_types_filter: A set of `FILTER_ID` bitflags, the types of IDs to add to the items
+ * \param id_types_filter: A set of `FILTER_ID` bit-flags, the types of IDs to add to the items
  *                         list.
  * \param library_index: The index of the library to look into, in given `lapp_context`.
  *
@@ -284,11 +293,13 @@ short BKE_blendfile_link_append_context_item_idcode_get(BlendfileLinkAppendConte
 enum eBlendfileLinkAppendForeachItemFlag {
   /** Loop over directly linked items (i.e. those explicitly defined by user code). */
   BKE_BLENDFILE_LINK_APPEND_FOREACH_ITEM_FLAG_DO_DIRECT = 1 << 0,
-  /** Loop over indirectly linked items (i.e. those defined by internal code, as dependencies of
+  /**
+   * Loop over indirectly linked items (i.e. those defined by internal code, as dependencies of
    * direct ones).
    *
    * IMPORTANT: Those 'indirect' items currently may not cover **all** indirectly linked data.
-   * See comments in #foreach_libblock_link_append_callback. */
+   * See comments in #foreach_libblock_link_append_callback.
+   */
   BKE_BLENDFILE_LINK_APPEND_FOREACH_ITEM_FLAG_DO_INDIRECT = 1 << 1,
 };
 
@@ -410,3 +421,11 @@ void BKE_blendfile_library_relocate(BlendfileLinkAppendContext *lapp_context,
                                     ReportList *reports,
                                     Library *library,
                                     bool do_reload);
+
+/**
+ * Relocate a single linked ID.
+ *
+ * NOTE: content of `lapp_context` after execution of that function should not be assumed valid
+ * anymore, and should immediately be freed.
+ */
+void BKE_blendfile_id_relocate(BlendfileLinkAppendContext &lapp_context, ReportList *reports);

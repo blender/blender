@@ -22,6 +22,10 @@
 #define _BLI_KDTREE_CONCAT(MACRO_ARG1, MACRO_ARG2) _BLI_KDTREE_CONCAT_AUX(MACRO_ARG1, MACRO_ARG2)
 #define BLI_kdtree_nd_(id) _BLI_KDTREE_CONCAT(KDTREE_PREFIX_ID, _##id)
 
+/* All these struct names are #defines with unique names, to avoid violating the one definition
+ * rule. Otherwise `MEM_malloc_array<KDTreeNode>` can get defined once for multiple dimensions,
+ * with different node sizes. */
+
 struct KDTreeNode_head {
   uint left, right;
   float co[KD_DIMS];
@@ -95,8 +99,7 @@ KDTree *BLI_kdtree_nd_(new)(uint nodes_len_capacity)
   KDTree *tree;
 
   tree = MEM_callocN<KDTree>("KDTree");
-  tree->nodes = static_cast<KDTreeNode *>(
-      MEM_mallocN(sizeof(KDTreeNode) * nodes_len_capacity, "KDTreeNode"));
+  tree->nodes = MEM_malloc_arrayN<KDTreeNode>(nodes_len_capacity, "KDTreeNode");
   tree->nodes_len = 0;
   tree->root = KD_NODE_ROOT_IS_INIT;
   tree->max_node_index = -1;
@@ -216,8 +219,8 @@ void BLI_kdtree_nd_(balance)(KDTree *tree)
 
 static uint *realloc_nodes(uint *stack, uint *stack_len_capacity, const bool is_alloc)
 {
-  uint *stack_new = static_cast<uint *>(
-      MEM_mallocN((*stack_len_capacity + KD_NEAR_ALLOC_INC) * sizeof(uint), "KDTree.treestack"));
+  uint *stack_new = MEM_malloc_arrayN<uint>(*stack_len_capacity + KD_NEAR_ALLOC_INC,
+                                            "KDTree.treestack");
   memcpy(stack_new, stack, *stack_len_capacity * sizeof(uint));
   // memset(stack_new + *stack_len_capacity, 0, sizeof(uint) * KD_NEAR_ALLOC_INC);
   if (is_alloc) {

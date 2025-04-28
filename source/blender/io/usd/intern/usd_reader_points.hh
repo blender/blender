@@ -34,7 +34,7 @@ class USDPointsReader : public USDGeomReader {
   }
 
   /* Initial object creation. */
-  void create_object(Main *bmain, double motionSampleTime) override;
+  void create_object(Main *bmain) override;
 
   /* Initial point cloud data update. */
   void read_object_data(Main *bmain, double motionSampleTime) override;

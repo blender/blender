@@ -76,8 +76,7 @@ static void pose_backup_create(const Object *ob,
       return;
     }
 
-    PoseChannelBackup *chan_bak = static_cast<PoseChannelBackup *>(
-        MEM_callocN(sizeof(*chan_bak), "PoseChannelBackup"));
+    PoseChannelBackup *chan_bak = MEM_callocN<PoseChannelBackup>("PoseChannelBackup");
     chan_bak->pchan = pchan;
     chan_bak->olddata = blender::dna::shallow_copy(*chan_bak->pchan);
     chan_bak->owner = ob;
@@ -125,7 +124,7 @@ static blender::Set<bPoseChannel *> armature_find_selected_pose_bones(
 PoseBackup *BKE_pose_backup_create_all_bones(blender::Span<Object *> objects,
                                              const bAction *action)
 {
-  PoseBackup *pose_backup = static_cast<PoseBackup *>(MEM_callocN(sizeof(*pose_backup), __func__));
+  PoseBackup *pose_backup = MEM_callocN<PoseBackup>(__func__);
   pose_backup->backups = {nullptr, nullptr};
   pose_backup->is_bone_selection_relevant = false;
   for (Object *ob : objects) {
@@ -137,7 +136,7 @@ PoseBackup *BKE_pose_backup_create_all_bones(blender::Span<Object *> objects,
 PoseBackup *BKE_pose_backup_create_selected_bones(blender::Span<Object *> objects,
                                                   const bAction *action)
 {
-  PoseBackup *pose_backup = static_cast<PoseBackup *>(MEM_callocN(sizeof(*pose_backup), __func__));
+  PoseBackup *pose_backup = MEM_callocN<PoseBackup>(__func__);
   pose_backup->backups = {nullptr, nullptr};
   blender::Set<bPoseChannel *> selected_bones = armature_find_selected_pose_bones(objects);
   pose_backup->is_bone_selection_relevant = !selected_bones.is_empty();

@@ -189,11 +189,20 @@ static void view2d_masks(View2D *v2d, const rcti *mask_scroll)
       v2d->hor.ymin = v2d->hor.ymax - scroll_height;
     }
 
-    /* adjust vertical scroller if there's a horizontal scroller, to leave corner free */
+    /* Adjust horizontal scroller to avoid interfering with splitter areas. */
+    if (scroll & V2D_SCROLL_HORIZONTAL) {
+      v2d->hor.xmin += UI_AZONESPOTW;
+      v2d->hor.xmax -= UI_AZONESPOTW;
+    }
+
+    /* Adjust vertical scroller to avoid horizontal scrollers and splitter areas. */
     if (scroll & V2D_SCROLL_VERTICAL) {
+      /* Note that top splitter areas are in the header,
+       * outside of `mask_scroll`, so we can ignore them. */
+      v2d->vert.ymin += UI_AZONESPOTH;
       if (scroll & V2D_SCROLL_BOTTOM) {
         /* on bottom edge of region */
-        v2d->vert.ymin = v2d->hor.ymax;
+        v2d->vert.ymin = max_ii(v2d->hor.ymax, v2d->vert.ymin);
       }
       else if (scroll & V2D_SCROLL_TOP) {
         /* on upper edge of region */
@@ -374,9 +383,9 @@ void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
  * Ensure View2D rects remain in a viable configuration
  * 'cur' is not allowed to be: larger than max, smaller than min, or outside of 'tot'
  */
-/* XXX pre2.5 -> this used to be called #test_view2d() */
 static void ui_view2d_curRect_validate_resize(View2D *v2d, bool resize)
 {
+  /* NOTE: #calculateZfac uses this logic, keep in sync. */
   float totwidth, totheight, curwidth, curheight, width, height;
   float winx, winy;
   rctf *cur, *tot;
@@ -428,8 +437,14 @@ static void ui_view2d_curRect_validate_resize(View2D *v2d, bool resize)
   }
   winx = std::max<float>(winx, 1);
   winy = std::max<float>(winy, 1);
+  if (v2d->oldwinx == 0) {
+    v2d->oldwinx = winx;
+  }
+  if (v2d->oldwiny == 0) {
+    v2d->oldwiny = winy;
+  }
 
-  /* V2D_LIMITZOOM indicates that zoom level should be preserved when the window size changes */
+  /* V2D_KEEPZOOM indicates that zoom level should be preserved when the window size changes. */
   if (resize && (v2d->keepzoom & V2D_KEEPZOOM)) {
     float zoom, oldzoom;
 
@@ -572,11 +587,11 @@ static void ui_view2d_curRect_validate_resize(View2D *v2d, bool resize)
         height = width * winRatio;
       }
     }
-
-    /* store region size for next time */
-    v2d->oldwinx = short(winx);
-    v2d->oldwiny = short(winy);
   }
+
+  /* Store region size for next time. */
+  v2d->oldwinx = short(winx);
+  v2d->oldwiny = short(winy);
 
   /* Step 2: apply new sizes to cur rect,
    * but need to take into account alignment settings here... */
@@ -1088,7 +1103,7 @@ void UI_view2d_view_ortho(const View2D *v2d)
    * correspondence with pixels for smooth UI drawing,
    * but only applied where requested.
    */
-  /* XXX brecht: instead of zero at least use a tiny offset, otherwise
+  /* XXX(@brecht): instead of zero at least use a tiny offset, otherwise
    * pixel rounding is effectively random due to float inaccuracy */
   if (sizex > 0) {
     xofs = eps * BLI_rctf_size_x(&v2d->cur) / sizex;
@@ -1376,7 +1391,6 @@ void view2d_scrollers_calc(View2D *v2d, const rcti *mask_custom, View2DScrollers
   rcti vert, hor;
   float fac1, fac2, totsize, scrollsize;
   const int scroll = view2d_scroll_mapped(v2d->scroll);
-  int smaller;
 
   /* Always update before drawing (for dynamically sized scrollers). */
   view2d_masks(v2d, mask_custom);
@@ -1384,26 +1398,20 @@ void view2d_scrollers_calc(View2D *v2d, const rcti *mask_custom, View2DScrollers
   vert = v2d->vert;
   hor = v2d->hor;
 
-  /* slider rects need to be smaller than region and not interfere with splitter areas */
-  hor.xmin += UI_HEADER_OFFSET;
-  hor.xmax -= UI_HEADER_OFFSET;
-  vert.ymin += UI_HEADER_OFFSET;
-  vert.ymax -= UI_HEADER_OFFSET;
-
-  /* width of sliders */
-  smaller = int(0.1f * U.widget_unit);
+  /* Pad scroll-bar drawing away from region edges. */
+  const int edge_pad = int(0.1f * U.widget_unit);
   if (scroll & V2D_SCROLL_BOTTOM) {
-    hor.ymin += smaller;
+    hor.ymin += edge_pad;
   }
   else {
-    hor.ymax -= smaller;
+    hor.ymax -= edge_pad;
   }
 
   if (scroll & V2D_SCROLL_LEFT) {
-    vert.xmin += smaller;
+    vert.xmin += edge_pad;
   }
   else {
-    vert.xmax -= smaller;
+    vert.xmax -= edge_pad;
   }
 
   CLAMP_MAX(vert.ymin, vert.ymax - V2D_SCROLL_HANDLE_SIZE_HOTSPOT);
@@ -1491,7 +1499,7 @@ void view2d_scrollers_calc(View2D *v2d, const rcti *mask_custom, View2DScrollers
   }
 }
 
-void UI_view2d_scrollers_draw_ex(View2D *v2d, const rcti *mask_custom, bool use_full_hide)
+void UI_view2d_scrollers_draw(View2D *v2d, const rcti *mask_custom)
 {
   View2DScrollers scrollers;
   view2d_scrollers_calc(v2d, mask_custom, &scrollers);
@@ -1499,7 +1507,7 @@ void UI_view2d_scrollers_draw_ex(View2D *v2d, const rcti *mask_custom, bool use_
   rcti vert, hor;
   const int scroll = view2d_scroll_mapped(v2d->scroll);
   const char emboss_alpha = btheme->tui.widget_emboss[3];
-  const float alpha_min = use_full_hide ? 0.0f : V2D_SCROLL_MIN_ALPHA;
+  const float alpha_min = V2D_SCROLL_MIN_ALPHA;
 
   uchar scrollers_back_color[4];
 
@@ -1525,7 +1533,7 @@ void UI_view2d_scrollers_draw_ex(View2D *v2d, const rcti *mask_custom, bool use_
 
     state = (v2d->scroll_ui & V2D_SCROLL_H_ACTIVE) ? UI_SCROLL_PRESSED : 0;
 
-    /* In the case that scrollbar track is invisible, range from 0 ->`final_alpha` instead to
+    /* In the case that scroll-bar track is invisible, range from 0 ->`final_alpha` instead to
      * avoid errors with users trying to click into the underlying view. */
     if (wcol.inner[3] == 0) {
       const float final_alpha = 0.25f;
@@ -1569,7 +1577,7 @@ void UI_view2d_scrollers_draw_ex(View2D *v2d, const rcti *mask_custom, bool use_
 
     state = (v2d->scroll_ui & V2D_SCROLL_V_ACTIVE) ? UI_SCROLL_PRESSED : 0;
 
-    /* In the case that scrollbar track is invisible, range from 0 ->`final_alpha` instead to
+    /* In the case that scroll-bar track is invisible, range from 0 ->`final_alpha` instead to
      * avoid errors with users trying to click into the underlying view. */
     if (wcol.inner[3] == 0) {
       const float final_alpha = 0.25f;
@@ -1600,11 +1608,6 @@ void UI_view2d_scrollers_draw_ex(View2D *v2d, const rcti *mask_custom, bool use_
 
   /* Was changed above, so reset. */
   btheme->tui.widget_emboss[3] = emboss_alpha;
-}
-
-void UI_view2d_scrollers_draw(View2D *v2d, const rcti *mask_custom)
-{
-  UI_view2d_scrollers_draw_ex(v2d, mask_custom, false);
 }
 
 /** \} */
@@ -2095,7 +2098,7 @@ void UI_view2d_text_cache_add(
 
     v2s->col.pack = *((const int *)col);
 
-    memset(&v2s->rect, 0, sizeof(v2s->rect));
+    v2s->rect = rcti{};
 
     v2s->mval[0] = mval[0];
     v2s->mval[1] = mval[1];

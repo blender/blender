@@ -8,7 +8,7 @@ Notice the name of the class, this naming convention is similar as the one for p
 
 .. note::
 
-   UIList subclasses must be registered for blender to use them.
+   UIList subclasses must be registered for Blender to use them.
 """
 import bpy
 
@@ -60,7 +60,7 @@ class UIListPanelExample1(bpy.types.Panel):
 
         obj = context.object
 
-        # template_list now takes two new args.
+        # `template_list` now takes two new arguments.
         # The first one is the identifier of the registered UIList to use (if you want only the default list,
         # with no custom draw code, use "UI_UL_list").
         layout.template_list("MATERIAL_UL_matslots_example", "", obj, "material_slots", obj, "active_material_index")

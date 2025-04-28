@@ -25,17 +25,17 @@ void main()
   /* The second dispatch dimension is two dispatches, one for the causal filter and one for the non
    * causal one. */
   bool is_causal = gl_GlobalInvocationID.y == 0;
-  vec4 feedforward_coefficients = is_causal ? causal_feedforward_coefficients :
-                                              non_causal_feedforward_coefficients;
+  float4 feedforward_coefficients = is_causal ? causal_feedforward_coefficients :
+                                                non_causal_feedforward_coefficients;
   float boundary_coefficient = is_causal ? causal_boundary_coefficient :
                                            non_causal_boundary_coefficient;
 
   /* Create an array that holds the last FILTER_ORDER inputs along with the current input. The
    * current input is at index 0 and the oldest input is at index FILTER_ORDER. We assume Neumann
    * boundary condition, so we initialize all inputs by the boundary pixel. */
-  ivec2 boundary_texel = is_causal ? ivec2(0, y) : ivec2(width - 1, y);
-  vec4 input_boundary = texture_load(input_tx, boundary_texel);
-  vec4 inputs[FILTER_ORDER + 1] = float4_array(
+  int2 boundary_texel = is_causal ? int2(0, y) : int2(width - 1, y);
+  float4 input_boundary = texture_load(input_tx, boundary_texel);
+  float4 inputs[FILTER_ORDER + 1] = float4_array(
       input_boundary, input_boundary, input_boundary, input_boundary, input_boundary);
 
   /* Create an array that holds the last FILTER_ORDER outputs along with the current output. The
@@ -43,20 +43,20 @@ void main()
    * boundary condition, so we initialize all outputs by the boundary pixel multiplied by the
    * boundary coefficient. See the DericheGaussianCoefficients class for more information on the
    * boundary handing. */
-  vec4 output_boundary = input_boundary * boundary_coefficient;
-  vec4 outputs[FILTER_ORDER + 1] = float4_array(
+  float4 output_boundary = input_boundary * boundary_coefficient;
+  float4 outputs[FILTER_ORDER + 1] = float4_array(
       output_boundary, output_boundary, output_boundary, output_boundary, output_boundary);
 
   for (int x = 0; x < width; x++) {
     /* Run forward across rows for the causal filter and backward for the non causal filter. */
-    ivec2 texel = is_causal ? ivec2(x, y) : ivec2(width - 1 - x, y);
+    int2 texel = is_causal ? int2(x, y) : int2(width - 1 - x, y);
     inputs[0] = texture_load(input_tx, texel);
 
     /* Compute Equation (28) for the causal filter or Equation (29) for the non causal filter. The
      * only difference is that the non causal filter ignores the current value and starts from the
      * previous input, as can be seen in the subscript of the first input term in both equations.
      * So add one while indexing the non causal inputs. */
-    outputs[0] = vec4(0.0);
+    outputs[0] = float4(0.0f);
     int first_input_index = is_causal ? 0 : 1;
     for (int i = 0; i < FILTER_ORDER; i++) {
       outputs[0] += feedforward_coefficients[i] * inputs[first_input_index + i];

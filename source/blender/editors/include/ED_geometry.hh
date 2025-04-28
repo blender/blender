@@ -20,6 +20,7 @@
 struct ReportList;
 struct PointerRNA;
 struct PropertyRNA;
+class AttributeOwner;
 namespace blender::bke {
 enum class AttrDomain : int8_t;
 class MutableAttributeAccessor;
@@ -56,7 +57,8 @@ void operatortypes_geometry();
  *
  * \note Does not support meshes in edit mode.
  */
-bool convert_attribute(bke::MutableAttributeAccessor attributes,
+bool convert_attribute(AttributeOwner &owner,
+                       bke::MutableAttributeAccessor attributes,
                        StringRef name,
                        bke::AttrDomain dst_domain,
                        eCustomDataType dst_type,

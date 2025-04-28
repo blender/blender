@@ -12,6 +12,8 @@
 
 #include <pxr/usd/usdGeom/camera.h>
 
+struct Main;
+
 namespace blender::io::usd {
 
 class USDCameraReader : public USDXformReader {
@@ -31,7 +33,7 @@ class USDCameraReader : public USDXformReader {
     return bool(cam_prim_);
   }
 
-  void create_object(Main *bmain, double motionSampleTime) override;
+  void create_object(Main *bmain) override;
   void read_object_data(Main *bmain, double motionSampleTime) override;
 };
 

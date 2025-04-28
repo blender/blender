@@ -65,9 +65,26 @@ void VKVertexBuffer::wrap_handle(uint64_t /*handle*/)
   NOT_YET_IMPLEMENTED
 }
 
-void VKVertexBuffer::update_sub(uint /*start*/, uint /*len*/, const void * /*data*/)
+void VKVertexBuffer::update_sub(uint start_offset, uint data_size_in_bytes, const void *data)
 {
-  NOT_YET_IMPLEMENTED
+  device_format_ensure();
+  if (buffer_.is_mapped() && !vertex_format_converter.needs_conversion()) {
+    buffer_.update_sub_immediately(start_offset, data_size_in_bytes, data);
+  }
+  else {
+    VKContext &context = *VKContext::get();
+    VKStagingBuffer staging_buffer(
+        buffer_, VKStagingBuffer::Direction::HostToDevice, start_offset, data_size_in_bytes);
+    if (vertex_format_converter.needs_conversion()) {
+      vertex_format_converter.convert(staging_buffer.host_buffer_get().mapped_memory_get(),
+                                      data_,
+                                      data_size_in_bytes / vertex_len);
+    }
+    else {
+      memcpy(staging_buffer.host_buffer_get().mapped_memory_get(), data, data_size_in_bytes);
+    }
+    staging_buffer.copy_to_device(context);
+  }
 }
 
 void VKVertexBuffer::read(void *data) const
@@ -92,7 +109,7 @@ void VKVertexBuffer::acquire_data()
   /* Discard previous data if any. */
   /* TODO: Use mapped memory. */
   MEM_SAFE_FREE(data_);
-  data_ = (uchar *)MEM_mallocN(sizeof(uchar) * this->size_alloc_get(), __func__);
+  data_ = MEM_malloc_arrayN<uchar>(this->size_alloc_get(), __func__);
 }
 
 void VKVertexBuffer::resize_data()
@@ -193,7 +210,7 @@ void VKVertexBuffer::allocate()
   buffer_.create(size_alloc_get(),
                  vk_buffer_usage,
                  VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
+                 0,
                  VmaAllocationCreateFlags(0));
   debug::object_label(buffer_.vk_handle(), "VertexBuffer");
 }

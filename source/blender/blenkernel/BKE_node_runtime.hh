@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup bke
+ */
+
 #pragma once
 
 #include <memory>
@@ -334,8 +338,10 @@ class bNodeRuntime : NonCopyable, NonMovable {
   /** Used to avoid running forward compatibility code more often than necessary. */
   bool forward_compatible_versioning_done = false;
 
-  /** If this node is reroute and this reroute is not logically linked with any source except other
-   * reroute, this will be true. */
+  /**
+   * If this node is reroute and this reroute is not logically linked with any source except other
+   * reroute, this will be true.
+   */
   bool is_dangling_reroute = false;
 
   /** Only valid if #topology_cache_is_dirty is false. */
@@ -818,6 +824,11 @@ inline bool bNode::is_frame() const
 inline bool bNode::is_group() const
 {
   return ELEM(this->type_legacy, NODE_GROUP, NODE_CUSTOM_GROUP);
+}
+
+inline bool bNode::is_custom_group() const
+{
+  return this->type_legacy == NODE_CUSTOM_GROUP;
 }
 
 inline bool bNode::is_group_input() const

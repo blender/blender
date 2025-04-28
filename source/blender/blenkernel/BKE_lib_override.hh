@@ -23,6 +23,8 @@
  *    of IDs in a given Main data-base.
  */
 
+#include "BLI_map.hh"
+
 #include <optional>
 
 struct BlendFileReadReport;
@@ -274,13 +276,18 @@ bool BKE_lib_override_library_resync(Main *bmain,
  * Then it will handle the resync of necessary IDs (through calls to
  * #BKE_lib_override_library_resync).
  *
+ * \param new_to_old_libraries_map: If not null, a mapping between new and old libraries. Only
+ * useful when they are not the same, e.g. when relocating a library or ID.
+ *
  * \param view_layer: the active view layer to search instantiated collections in, can be NULL (in
- *                    which case \a scene's master collection children hierarchy is used instead).
+ * which case \a scene's master collection children hierarchy is used instead).
  */
-void BKE_lib_override_library_main_resync(Main *bmain,
-                                          Scene *scene,
-                                          ViewLayer *view_layer,
-                                          BlendFileReadReport *reports);
+void BKE_lib_override_library_main_resync(
+    Main *bmain,
+    const blender::Map<Library *, Library *> *new_to_old_libraries_map,
+    Scene *scene,
+    ViewLayer *view_layer,
+    BlendFileReadReport *reports);
 
 /**
  * Advanced 'smart' function to delete library overrides (including their existing override

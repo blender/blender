@@ -14,7 +14,6 @@
 #include <X11/Xutil.h>
 #include <X11/keysym.h>
 
-#include "GHOST_DisplayManagerX11.hh"
 #include "GHOST_EventButton.hh"
 #include "GHOST_EventCursor.hh"
 #include "GHOST_EventDragnDrop.hh"
@@ -251,11 +250,7 @@ GHOST_TSuccess GHOST_SystemX11::init()
 #ifdef WITH_INPUT_NDOF
     m_ndofManager = new GHOST_NDOFManagerUnix(*this);
 #endif
-    m_displayManager = new GHOST_DisplayManagerX11(this);
-
-    if (m_displayManager) {
-      return GHOST_kSuccess;
-    }
+    return GHOST_kSuccess;
   }
 
   return GHOST_kFailure;
@@ -710,6 +705,8 @@ bool GHOST_SystemX11::processEvents(bool waitForEvent)
                   XK_Alt_R,
                   XK_Super_L,
                   XK_Super_R,
+                  XK_Hyper_L,
+                  XK_Hyper_R,
               };
 
               for (int i = 0; i < int(ARRAY_SIZE(modifiers)); i++) {
@@ -1104,6 +1101,8 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
         case GHOST_kKeyLeftControl:
         case GHOST_kKeyLeftOS:
         case GHOST_kKeyRightOS:
+        case GHOST_kKeyLeftHyper:
+        case GHOST_kKeyRightHyper:
         case GHOST_kKey0:
         case GHOST_kKey1:
         case GHOST_kKey2:
@@ -1666,6 +1665,8 @@ GHOST_TSuccess GHOST_SystemX11::getModifierKeys(GHOST_ModifierKeys &keys) const
   const static KeyCode alt_r = XKeysymToKeycode(m_display, XK_Alt_R);
   const static KeyCode super_l = XKeysymToKeycode(m_display, XK_Super_L);
   const static KeyCode super_r = XKeysymToKeycode(m_display, XK_Super_R);
+  const static KeyCode hyper_l = XKeysymToKeycode(m_display, XK_Hyper_L);
+  const static KeyCode hyper_r = XKeysymToKeycode(m_display, XK_Hyper_R);
 
   /* shift */
   keys.set(GHOST_kModifierKeyLeftShift,
@@ -1685,6 +1686,11 @@ GHOST_TSuccess GHOST_SystemX11::getModifierKeys(GHOST_ModifierKeys &keys) const
            ((m_keyboard_vector[super_l >> 3] >> (super_l & 7)) & 1) != 0);
   keys.set(GHOST_kModifierKeyRightOS,
            ((m_keyboard_vector[super_r >> 3] >> (super_r & 7)) & 1) != 0);
+  /* hyper */
+  keys.set(GHOST_kModifierKeyLeftHyper,
+           ((m_keyboard_vector[hyper_l >> 3] >> (hyper_l & 7)) & 1) != 0);
+  keys.set(GHOST_kModifierKeyRightHyper,
+           ((m_keyboard_vector[hyper_r >> 3] >> (hyper_r & 7)) & 1) != 0);
 
   return GHOST_kSuccess;
 }
@@ -1917,6 +1923,8 @@ static GHOST_TKey ghost_key_from_keysym(const KeySym key)
       GXMAP(type, XK_Alt_R, GHOST_kKeyRightAlt);
       GXMAP(type, XK_Super_L, GHOST_kKeyLeftOS);
       GXMAP(type, XK_Super_R, GHOST_kKeyRightOS);
+      GXMAP(type, XK_Hyper_L, GHOST_kKeyLeftHyper);
+      GXMAP(type, XK_Hyper_R, GHOST_kKeyRightHyper);
 
       GXMAP(type, XK_Insert, GHOST_kKeyInsert);
       GXMAP(type, XK_Delete, GHOST_kKeyDelete);

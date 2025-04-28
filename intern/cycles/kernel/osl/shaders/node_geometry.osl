@@ -5,6 +5,7 @@
 #include "stdcycles.h"
 
 shader node_geometry(string bump_offset = "center",
+                     float bump_filter_width = BUMP_FILTER_WIDTH,
 
                      output point Position = point(0.0, 0.0, 0.0),
                      output normal Normal = normal(0.0, 0.0, 0.0),
@@ -24,12 +25,12 @@ shader node_geometry(string bump_offset = "center",
   Backfacing = backfacing();
 
   if (bump_offset == "dx") {
-    Position += Dx(Position) * BUMP_DX;
-    Parametric += Dx(Parametric) * BUMP_DX;
+    Position += Dx(Position) * bump_filter_width;
+    Parametric += Dx(Parametric) * bump_filter_width;
   }
   else if (bump_offset == "dy") {
-    Position += Dy(Position) * BUMP_DY;
-    Parametric += Dy(Parametric) * BUMP_DY;
+    Position += Dy(Position) * bump_filter_width;
+    Parametric += Dy(Parametric) * bump_filter_width;
   }
 
   point generated;
@@ -52,10 +53,10 @@ shader node_geometry(string bump_offset = "center",
 
   getattribute("geom:pointiness", Pointiness);
   if (bump_offset == "dx") {
-    Pointiness += Dx(Pointiness) * BUMP_DX;
+    Pointiness += Dx(Pointiness) * bump_filter_width;
   }
   else if (bump_offset == "dy") {
-    Pointiness += Dy(Pointiness) * BUMP_DY;
+    Pointiness += Dy(Pointiness) * bump_filter_width;
   }
 
   getattribute("geom:random_per_island", RandomPerIsland);

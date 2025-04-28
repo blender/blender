@@ -451,6 +451,15 @@ static bke::MeshNormalDomain bmesh_normals_domain(BMesh *bm)
     return bke::MeshNormalDomain::Point;
   }
 
+  if (CustomData_has_layer_named(&bm->vdata, CD_PROP_FLOAT3, "custom_normal")) {
+    return bke::MeshNormalDomain::Point;
+  }
+  if (CustomData_has_layer_named(&bm->pdata, CD_PROP_FLOAT3, "custom_normal")) {
+    return bke::MeshNormalDomain::Face;
+  }
+  if (CustomData_has_layer_named(&bm->ldata, CD_PROP_FLOAT3, "custom_normal")) {
+    return bke::MeshNormalDomain::Corner;
+  }
   if (CustomData_has_layer_named(&bm->ldata, CD_PROP_INT16_2D, "custom_normal")) {
     return bke::MeshNormalDomain::Corner;
   }
@@ -486,6 +495,13 @@ void mesh_render_data_update_corner_normals(MeshRenderData &mr)
     mr.corner_normals = mr.mesh->corner_normals();
   }
   else {
+    if (mr.bm_free_normal_offset_vert != -1 || mr.bm_free_normal_offset_face != -1 ||
+        mr.bm_free_normal_offset_corner != -1)
+    {
+      /* If there are free custom normals they should be used directly. */
+      mr.bm_loop_normals = {};
+      return;
+    }
     mr.bm_loop_normals.reinitialize(mr.corners_num);
     const int clnors_offset = CustomData_get_offset_named(
         &mr.bm->ldata, CD_PROP_INT16_2D, "custom_normal");
@@ -522,167 +538,173 @@ static void retrieve_active_attribute_names(MeshRenderData &mr,
   mr.default_color_name = mesh_final.default_color_attribute;
 }
 
-std::unique_ptr<MeshRenderData> mesh_render_data_create(Object &object,
-                                                        Mesh &mesh,
-                                                        const bool is_editmode,
-                                                        const bool is_paint_mode,
-                                                        const float4x4 &object_to_world,
-                                                        const bool do_final,
-                                                        const bool do_uvedit,
-                                                        const bool use_hide,
-                                                        const ToolSettings *ts)
+MeshRenderData mesh_render_data_create(Object &object,
+                                       Mesh &mesh,
+                                       const bool is_editmode,
+                                       const bool is_paint_mode,
+                                       const bool do_final,
+                                       const bool do_uvedit,
+                                       const bool use_hide,
+                                       const ToolSettings *ts)
 {
-  std::unique_ptr<MeshRenderData> mr = std::make_unique<MeshRenderData>();
-  mr->toolsettings = ts;
-  mr->materials_num = BKE_object_material_used_with_fallback_eval(object);
+  MeshRenderData mr{};
+  mr.toolsettings = ts;
+  mr.materials_num = BKE_object_material_used_with_fallback_eval(object);
 
-  mr->object_to_world = object_to_world;
-
-  mr->use_hide = use_hide;
+  mr.use_hide = use_hide;
 
   const Mesh *editmesh_orig = BKE_object_get_pre_modified_mesh(&object);
-  if (is_editmode && editmesh_orig) {
+  if (is_editmode && editmesh_orig && editmesh_orig->runtime->edit_mesh) {
     const Mesh *eval_cage = BKE_object_get_editmesh_eval_cage(&object);
 
-    mr->bm = editmesh_orig->runtime->edit_mesh->bm;
-    mr->edit_bmesh = editmesh_orig->runtime->edit_mesh.get();
-    mr->mesh = (do_final) ? &mesh : eval_cage;
-    mr->edit_data = is_editmode ? mr->mesh->runtime->edit_data.get() : nullptr;
+    mr.bm = editmesh_orig->runtime->edit_mesh->bm;
+    mr.edit_bmesh = editmesh_orig->runtime->edit_mesh.get();
+    mr.mesh = (do_final) ? &mesh : eval_cage;
+    mr.edit_data = is_editmode ? mr.mesh->runtime->edit_data.get() : nullptr;
 
     /* If there is no distinct cage, hide unmapped edges that can't be selected. */
-    mr->hide_unmapped_edges = !do_final || &mesh == eval_cage;
+    mr.hide_unmapped_edges = !do_final || &mesh == eval_cage;
 
-    if (bke::EditMeshData *emd = mr->edit_data) {
+    mr.bm_free_normal_offset_vert = CustomData_get_offset_named(
+        &mr.bm->vdata, CD_PROP_FLOAT3, "custom_normal");
+    mr.bm_free_normal_offset_face = CustomData_get_offset_named(
+        &mr.bm->pdata, CD_PROP_FLOAT3, "custom_normal");
+    mr.bm_free_normal_offset_corner = CustomData_get_offset_named(
+        &mr.bm->ldata, CD_PROP_FLOAT3, "custom_normal");
+
+    if (bke::EditMeshData *emd = mr.edit_data) {
       if (!emd->vert_positions.is_empty()) {
-        mr->bm_vert_coords = mr->edit_data->vert_positions;
-        mr->bm_vert_normals = BKE_editmesh_cache_ensure_vert_normals(*mr->edit_bmesh, *emd);
-        mr->bm_face_normals = BKE_editmesh_cache_ensure_face_normals(*mr->edit_bmesh, *emd);
+        mr.bm_vert_coords = mr.edit_data->vert_positions;
+        if (mr.bm_free_normal_offset_vert == -1) {
+          mr.bm_vert_normals = BKE_editmesh_cache_ensure_vert_normals(*mr.edit_bmesh, *emd);
+        }
+        if (mr.bm_free_normal_offset_face == -1) {
+          mr.bm_face_normals = BKE_editmesh_cache_ensure_face_normals(*mr.edit_bmesh, *emd);
+        }
       }
     }
 
     int bm_ensure_types = BM_VERT | BM_EDGE | BM_LOOP | BM_FACE;
 
-    BM_mesh_elem_index_ensure(mr->bm, bm_ensure_types);
-    BM_mesh_elem_table_ensure(mr->bm, bm_ensure_types & ~BM_LOOP);
+    BM_mesh_elem_index_ensure(mr.bm, bm_ensure_types);
+    BM_mesh_elem_table_ensure(mr.bm, bm_ensure_types & ~BM_LOOP);
 
-    mr->efa_act_uv = EDBM_uv_active_face_get(mr->edit_bmesh, false, false);
-    mr->efa_act = BM_mesh_active_face_get(mr->bm, false, true);
-    mr->eed_act = BM_mesh_active_edge_get(mr->bm);
-    mr->eve_act = BM_mesh_active_vert_get(mr->bm);
+    mr.efa_act_uv = EDBM_uv_active_face_get(mr.edit_bmesh, false, false);
+    mr.efa_act = BM_mesh_active_face_get(mr.bm, false, true);
+    mr.eed_act = BM_mesh_active_edge_get(mr.bm);
+    mr.eve_act = BM_mesh_active_vert_get(mr.bm);
 
-    mr->vert_crease_ofs = CustomData_get_offset_named(
-        &mr->bm->vdata, CD_PROP_FLOAT, "crease_vert");
-    mr->edge_crease_ofs = CustomData_get_offset_named(
-        &mr->bm->edata, CD_PROP_FLOAT, "crease_edge");
-    mr->bweight_ofs = CustomData_get_offset_named(
-        &mr->bm->edata, CD_PROP_FLOAT, "bevel_weight_edge");
+    mr.vert_crease_ofs = CustomData_get_offset_named(&mr.bm->vdata, CD_PROP_FLOAT, "crease_vert");
+    mr.edge_crease_ofs = CustomData_get_offset_named(&mr.bm->edata, CD_PROP_FLOAT, "crease_edge");
+    mr.bweight_ofs = CustomData_get_offset_named(
+        &mr.bm->edata, CD_PROP_FLOAT, "bevel_weight_edge");
 #ifdef WITH_FREESTYLE
-    mr->freestyle_edge_ofs = CustomData_get_offset(&mr->bm->edata, CD_FREESTYLE_EDGE);
-    mr->freestyle_face_ofs = CustomData_get_offset(&mr->bm->pdata, CD_FREESTYLE_FACE);
+    mr.freestyle_edge_ofs = CustomData_get_offset(&mr.bm->edata, CD_FREESTYLE_EDGE);
+    mr.freestyle_face_ofs = CustomData_get_offset(&mr.bm->pdata, CD_FREESTYLE_FACE);
 #endif
 
     /* Use bmesh directly when the object is in edit mode unchanged by any modifiers.
      * For non-final UVs, always use original bmesh since the UV editor does not support
      * using the cage mesh with deformed coordinates. */
-    if ((is_editmode && mr->mesh->runtime->is_original_bmesh &&
-         mr->mesh->runtime->wrapper_type == ME_WRAPPER_TYPE_BMESH) ||
+    if ((is_editmode && mr.mesh->runtime->is_original_bmesh &&
+         mr.mesh->runtime->wrapper_type == ME_WRAPPER_TYPE_BMESH) ||
         (do_uvedit && !do_final))
     {
-      mr->extract_type = MeshExtractType::BMesh;
+      mr.extract_type = MeshExtractType::BMesh;
     }
     else {
-      mr->extract_type = MeshExtractType::Mesh;
+      mr.extract_type = MeshExtractType::Mesh;
 
       /* Use mapping from final to original mesh when the object is in edit mode. */
       if (is_editmode && do_final) {
-        mr->orig_index_vert = static_cast<const int *>(
-            CustomData_get_layer(&mr->mesh->vert_data, CD_ORIGINDEX));
-        mr->orig_index_edge = static_cast<const int *>(
-            CustomData_get_layer(&mr->mesh->edge_data, CD_ORIGINDEX));
-        mr->orig_index_face = static_cast<const int *>(
-            CustomData_get_layer(&mr->mesh->face_data, CD_ORIGINDEX));
+        mr.orig_index_vert = static_cast<const int *>(
+            CustomData_get_layer(&mr.mesh->vert_data, CD_ORIGINDEX));
+        mr.orig_index_edge = static_cast<const int *>(
+            CustomData_get_layer(&mr.mesh->edge_data, CD_ORIGINDEX));
+        mr.orig_index_face = static_cast<const int *>(
+            CustomData_get_layer(&mr.mesh->face_data, CD_ORIGINDEX));
       }
       else {
-        mr->orig_index_vert = nullptr;
-        mr->orig_index_edge = nullptr;
-        mr->orig_index_face = nullptr;
+        mr.orig_index_vert = nullptr;
+        mr.orig_index_edge = nullptr;
+        mr.orig_index_face = nullptr;
       }
     }
   }
   else {
-    mr->mesh = &mesh;
-    mr->edit_bmesh = nullptr;
-    mr->extract_type = MeshExtractType::Mesh;
-    mr->hide_unmapped_edges = false;
+    mr.mesh = &mesh;
+    mr.edit_bmesh = nullptr;
+    mr.extract_type = MeshExtractType::Mesh;
+    mr.hide_unmapped_edges = false;
 
-    if (is_paint_mode && mr->mesh) {
-      mr->orig_index_vert = static_cast<const int *>(
-          CustomData_get_layer(&mr->mesh->vert_data, CD_ORIGINDEX));
-      mr->orig_index_edge = static_cast<const int *>(
-          CustomData_get_layer(&mr->mesh->edge_data, CD_ORIGINDEX));
-      mr->orig_index_face = static_cast<const int *>(
-          CustomData_get_layer(&mr->mesh->face_data, CD_ORIGINDEX));
+    if (is_paint_mode && mr.mesh) {
+      mr.orig_index_vert = static_cast<const int *>(
+          CustomData_get_layer(&mr.mesh->vert_data, CD_ORIGINDEX));
+      mr.orig_index_edge = static_cast<const int *>(
+          CustomData_get_layer(&mr.mesh->edge_data, CD_ORIGINDEX));
+      mr.orig_index_face = static_cast<const int *>(
+          CustomData_get_layer(&mr.mesh->face_data, CD_ORIGINDEX));
     }
     else {
-      mr->orig_index_vert = nullptr;
-      mr->orig_index_edge = nullptr;
-      mr->orig_index_face = nullptr;
+      mr.orig_index_vert = nullptr;
+      mr.orig_index_edge = nullptr;
+      mr.orig_index_face = nullptr;
     }
   }
 
-  if (mr->extract_type == MeshExtractType::Mesh) {
-    mr->verts_num = mr->mesh->verts_num;
-    mr->edges_num = mr->mesh->edges_num;
-    mr->faces_num = mr->mesh->faces_num;
-    mr->corners_num = mr->mesh->corners_num;
-    mr->corner_tris_num = poly_to_tri_count(mr->faces_num, mr->corners_num);
+  if (mr.extract_type == MeshExtractType::Mesh) {
+    mr.verts_num = mr.mesh->verts_num;
+    mr.edges_num = mr.mesh->edges_num;
+    mr.faces_num = mr.mesh->faces_num;
+    mr.corners_num = mr.mesh->corners_num;
+    mr.corner_tris_num = poly_to_tri_count(mr.faces_num, mr.corners_num);
 
-    mr->vert_positions = mr->mesh->vert_positions();
-    mr->edges = mr->mesh->edges();
-    mr->faces = mr->mesh->faces();
-    mr->corner_verts = mr->mesh->corner_verts();
-    mr->corner_edges = mr->mesh->corner_edges();
+    mr.vert_positions = mr.mesh->vert_positions();
+    mr.edges = mr.mesh->edges();
+    mr.faces = mr.mesh->faces();
+    mr.corner_verts = mr.mesh->corner_verts();
+    mr.corner_edges = mr.mesh->corner_edges();
 
-    mr->orig_index_vert = static_cast<const int *>(
-        CustomData_get_layer(&mr->mesh->vert_data, CD_ORIGINDEX));
-    mr->orig_index_edge = static_cast<const int *>(
-        CustomData_get_layer(&mr->mesh->edge_data, CD_ORIGINDEX));
-    mr->orig_index_face = static_cast<const int *>(
-        CustomData_get_layer(&mr->mesh->face_data, CD_ORIGINDEX));
+    mr.orig_index_vert = static_cast<const int *>(
+        CustomData_get_layer(&mr.mesh->vert_data, CD_ORIGINDEX));
+    mr.orig_index_edge = static_cast<const int *>(
+        CustomData_get_layer(&mr.mesh->edge_data, CD_ORIGINDEX));
+    mr.orig_index_face = static_cast<const int *>(
+        CustomData_get_layer(&mr.mesh->face_data, CD_ORIGINDEX));
 
-    mr->normals_domain = mr->mesh->normals_domain();
+    mr.normals_domain = mr.mesh->normals_domain();
 
-    const bke::AttributeAccessor attributes = mr->mesh->attributes();
+    const bke::AttributeAccessor attributes = mr.mesh->attributes();
 
-    mr->material_indices = *attributes.lookup<int>("material_index", bke::AttrDomain::Face);
+    mr.material_indices = *attributes.lookup<int>("material_index", bke::AttrDomain::Face);
 
     if (is_editmode || is_paint_mode) {
       if (use_hide) {
-        mr->hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
-        mr->hide_edge = *attributes.lookup<bool>(".hide_edge", bke::AttrDomain::Edge);
-        mr->hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
+        mr.hide_vert = *attributes.lookup<bool>(".hide_vert", bke::AttrDomain::Point);
+        mr.hide_edge = *attributes.lookup<bool>(".hide_edge", bke::AttrDomain::Edge);
+        mr.hide_poly = *attributes.lookup<bool>(".hide_poly", bke::AttrDomain::Face);
       }
 
-      mr->select_vert = *attributes.lookup<bool>(".select_vert", bke::AttrDomain::Point);
-      mr->select_edge = *attributes.lookup<bool>(".select_edge", bke::AttrDomain::Edge);
-      mr->select_poly = *attributes.lookup<bool>(".select_poly", bke::AttrDomain::Face);
+      mr.select_vert = *attributes.lookup<bool>(".select_vert", bke::AttrDomain::Point);
+      mr.select_edge = *attributes.lookup<bool>(".select_edge", bke::AttrDomain::Edge);
+      mr.select_poly = *attributes.lookup<bool>(".select_poly", bke::AttrDomain::Face);
     }
 
-    mr->sharp_faces = *attributes.lookup<bool>("sharp_face", bke::AttrDomain::Face);
+    mr.sharp_faces = *attributes.lookup<bool>("sharp_face", bke::AttrDomain::Face);
   }
   else {
-    BMesh *bm = mr->bm;
+    BMesh *bm = mr.bm;
 
-    mr->verts_num = bm->totvert;
-    mr->edges_num = bm->totedge;
-    mr->faces_num = bm->totface;
-    mr->corners_num = bm->totloop;
-    mr->corner_tris_num = poly_to_tri_count(mr->faces_num, mr->corners_num);
+    mr.verts_num = bm->totvert;
+    mr.edges_num = bm->totedge;
+    mr.faces_num = bm->totface;
+    mr.corners_num = bm->totloop;
+    mr.corner_tris_num = poly_to_tri_count(mr.faces_num, mr.corners_num);
 
-    mr->normals_domain = bmesh_normals_domain(bm);
+    mr.normals_domain = bmesh_normals_domain(bm);
   }
 
-  retrieve_active_attribute_names(*mr, object, *mr->mesh);
+  retrieve_active_attribute_names(mr, object, *mr.mesh);
 
   return mr;
 }

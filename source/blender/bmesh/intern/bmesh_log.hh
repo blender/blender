@@ -36,11 +36,6 @@ BMLog *BM_log_from_existing_entries_create(BMesh *bm, BMLogEntry *entry);
  */
 void BM_log_free(BMLog *log);
 
-/**
- * Get the number of log entries.
- */
-int BM_log_length(const BMLog *log);
-
 /** Apply a consistent ordering to BMesh vertices and faces. */
 void BM_log_mesh_elems_reorder(BMesh *bm, BMLog *log);
 
@@ -194,27 +189,6 @@ const float *BM_log_find_original_vert_co(BMLog *log, BMVert *v);
  * \return the pointer or nullptr if the vertex isn't found.
  */
 const float *BM_log_find_original_vert_mask(BMLog *log, BMVert *v);
-
-/**
- * Get the logged coordinates of a vertex.
- *
- * Does not modify the log or the vertex.
- */
-const float *BM_log_original_vert_co(BMLog *log, BMVert *v);
-
-/**
- * Get the logged normal of a vertex
- *
- * Does not modify the log or the vertex.
- */
-const float *BM_log_original_vert_no(BMLog *log, BMVert *v);
-
-/**
- * Get the logged mask of a vertex
- *
- * Does not modify the log or the vertex.
- */
-float BM_log_original_mask(BMLog *log, BMVert *v);
 
 /** Get the logged data of a vertex (avoid multiple lookups). */
 void BM_log_original_vert_data(BMLog *log, BMVert *v, const float **r_co, const float **r_no);

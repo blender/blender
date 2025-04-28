@@ -11,8 +11,13 @@
 
 namespace blender::gpu {
 
-VKStagingBuffer::VKStagingBuffer(const VKBuffer &device_buffer, Direction direction)
-    : device_buffer_(device_buffer)
+VKStagingBuffer::VKStagingBuffer(const VKBuffer &device_buffer,
+                                 Direction direction,
+                                 VkDeviceSize device_buffer_offset,
+                                 VkDeviceSize region_size)
+    : device_buffer_(device_buffer),
+      device_buffer_offset_(device_buffer_offset),
+      region_size_(region_size == UINT64_MAX ? device_buffer.size_in_bytes() : region_size)
 {
   VkBufferUsageFlags usage;
   switch (direction) {
@@ -23,7 +28,7 @@ VKStagingBuffer::VKStagingBuffer(const VKBuffer &device_buffer, Direction direct
       usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT;
   }
 
-  host_buffer_.create(device_buffer.size_in_bytes(),
+  host_buffer_.create(region_size_,
                       usage,
                       VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
                       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
@@ -38,7 +43,8 @@ void VKStagingBuffer::copy_to_device(VKContext &context)
   render_graph::VKCopyBufferNode::CreateInfo copy_buffer = {};
   copy_buffer.src_buffer = host_buffer_.vk_handle();
   copy_buffer.dst_buffer = device_buffer_.vk_handle();
-  copy_buffer.region.size = device_buffer_.size_in_bytes();
+  copy_buffer.region.dstOffset = device_buffer_offset_;
+  copy_buffer.region.size = region_size_;
 
   context.render_graph().add_node(copy_buffer);
 }
@@ -49,7 +55,8 @@ void VKStagingBuffer::copy_from_device(VKContext &context)
   render_graph::VKCopyBufferNode::CreateInfo copy_buffer = {};
   copy_buffer.src_buffer = device_buffer_.vk_handle();
   copy_buffer.dst_buffer = host_buffer_.vk_handle();
-  copy_buffer.region.size = device_buffer_.size_in_bytes();
+  copy_buffer.region.srcOffset = device_buffer_offset_;
+  copy_buffer.region.size = region_size_;
 
   context.render_graph().add_node(copy_buffer);
 }

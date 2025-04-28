@@ -108,7 +108,7 @@ AnimData *BKE_animdata_ensure_id(ID *id)
       AnimData *adt;
 
       /* add animdata */
-      adt = iat->adt = static_cast<AnimData *>(MEM_callocN(sizeof(AnimData), "AnimData"));
+      adt = iat->adt = MEM_callocN<AnimData>("AnimData");
 
       /* set default settings */
       adt->act_influence = 1.0f;
@@ -171,6 +171,7 @@ static bool animdata_set_action(ReportList *reports, ID *id, bAction **act_slot,
 }
 
 /* Tmpact Setter --------------------------------------- */
+
 bool BKE_animdata_set_tmpact(ReportList *reports, ID *id, bAction *act)
 {
   AnimData *adt = BKE_animdata_from_id(id);
@@ -184,6 +185,7 @@ bool BKE_animdata_set_tmpact(ReportList *reports, ID *id, bAction *act)
 }
 
 /* Action Setter --------------------------------------- */
+
 bool BKE_animdata_set_action(ReportList *reports, ID *id, bAction *act)
 {
   using namespace blender;

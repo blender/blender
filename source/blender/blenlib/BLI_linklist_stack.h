@@ -10,7 +10,7 @@
  *        to store a stack of pointers, using a single linked list
  *        allocated from a mempool.
  *
- * \note These macros follow STACK_* macros defined in 'BLI_utildefines.h'
+ * \note These macros follow STACK_* macros defined in `BLI_utildefines.h`
  *       and should be kept (mostly) interchangeable.
  *
  * \note `_##var##_type` is a dummy variable only used for type-checks.

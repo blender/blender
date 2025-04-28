@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2015 Google Inc. All rights reserved.
+// Copyright 2023 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -36,8 +36,7 @@
 #include "ceres/linear_solver.h"
 #include "ceres/trust_region_strategy.h"
 
-namespace ceres {
-namespace internal {
+namespace ceres::internal {
 
 // Dogleg step computation and trust region sizing strategy based on
 // on "Methods for Nonlinear Least Squares" by K. Madsen, H.B. Nielsen
@@ -159,8 +158,7 @@ class CERES_NO_EXPORT DoglegStrategy final : public TrustRegionStrategy {
   Matrix2d subspace_B_;
 };
 
-}  // namespace internal
-}  // namespace ceres
+}  // namespace ceres::internal
 
 #include "ceres/internal/reenable_warnings.h"
 

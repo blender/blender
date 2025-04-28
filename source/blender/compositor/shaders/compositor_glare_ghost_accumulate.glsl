@@ -6,37 +6,37 @@
 
 void main()
 {
-  ivec2 texel = ivec2(gl_GlobalInvocationID.xy);
-  ivec2 input_size = texture_size(input_ghost_tx);
+  int2 texel = int2(gl_GlobalInvocationID.xy);
+  int2 input_size = texture_size(input_ghost_tx);
 
   /* Add 0.5 to evaluate the input sampler at the center of the pixel and divide by the image size
    * to get the coordinates into the sampler's expected [0, 1] range. */
-  vec2 coordinates = (vec2(texel) + vec2(0.5)) / vec2(input_size);
+  float2 coordinates = (float2(texel) + float2(0.5f)) / float2(input_size);
 
   /* We accumulate four variants of the input ghost texture, each is scaled by some amount and
    * possibly multiplied by some color as a form of color modulation. */
-  vec4 accumulated_ghost = vec4(0.0);
+  float4 accumulated_ghost = float4(0.0f);
   for (int i = 0; i < 4; i++) {
     float scale = scales[i];
-    vec4 color_modulator = color_modulators[i];
+    float4 color_modulator = color_modulators[i];
 
     /* Scale the coordinates for the ghost, pre subtract 0.5 and post add 0.5 to use 0.5 as the
      * origin of the scaling. */
-    vec2 scaled_coordinates = (coordinates - 0.5) * scale + 0.5;
+    float2 scaled_coordinates = (coordinates - 0.5f) * scale + 0.5f;
 
     /* The value of the ghost is attenuated by a scalar multiple of the inverse distance to the
      * center, such that it is maximum at the center and become zero further from the center,
      * making sure to take the scale into account. The scalar multiple of 1 / 4 is chosen using
      * visual judgment. */
-    float distance_to_center = distance(coordinates, vec2(0.5)) * 2.0;
-    float attenuator = max(0.0, 1.0 - distance_to_center * abs(scale)) / 4.0;
+    float distance_to_center = distance(coordinates, float2(0.5f)) * 2.0f;
+    float attenuator = max(0.0f, 1.0f - distance_to_center * abs(scale)) / 4.0f;
 
     /* Accumulate the scaled ghost after attenuating and color modulating its value. */
-    vec4 multiplier = attenuator * color_modulator;
+    float4 multiplier = attenuator * color_modulator;
     accumulated_ghost += texture(input_ghost_tx, scaled_coordinates) * multiplier;
   }
 
-  vec4 current_accumulated_ghost = imageLoad(accumulated_ghost_img, texel);
-  vec4 combined_ghost = current_accumulated_ghost + accumulated_ghost;
-  imageStore(accumulated_ghost_img, texel, vec4(combined_ghost.rgb, 1.0f));
+  float4 current_accumulated_ghost = imageLoad(accumulated_ghost_img, texel);
+  float4 combined_ghost = current_accumulated_ghost + accumulated_ghost;
+  imageStore(accumulated_ghost_img, texel, float4(combined_ghost.rgb, 1.0f));
 }

@@ -13,7 +13,7 @@
   },
   "Public Domain": {
     "name": "Public Domain",
-    "url": "https://spdx.org/licenses/LLVM-exception.html",
+    "url": "https://spdx.org/licenses/CC0-1.0.html",
     "copyright_exemption": "Public domain projects have no specific license or requirements in regards to copyright enforcement."
   },
   "SPDX:Apache-2.0": {

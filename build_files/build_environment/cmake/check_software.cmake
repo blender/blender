@@ -47,13 +47,13 @@ if(UNIX)
   endif()
 
   if(_software_missing)
-    message(
+    message(WARNING
       "\n"
       "Missing software for building Blender dependencies:\n"
       "  ${_software_missing}\n"
       "\n"
       "On Debian and Ubuntu:\n"
-      "  apt install autoconf automake bison libtool yasm tcl ninja-build meson python3-mako patchelf\n"
+      "  apt install autoconf automake bison libtool yasm tcl ninja-build meson python3-mako patchelf pkg-config\n"
       "\n"
       "On macOS (with homebrew):\n"
       "  brew install autoconf automake bison dos2unix flex libtool meson ninja pkg-config yasm\n"

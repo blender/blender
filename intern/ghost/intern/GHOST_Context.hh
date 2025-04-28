@@ -15,6 +15,9 @@
 #include <cstdlib>  // for nullptr
 
 class GHOST_Context : public GHOST_IContext {
+ protected:
+  static thread_local inline GHOST_Context *active_context_;
+
  public:
   /**
    * Constructor.
@@ -25,7 +28,20 @@ class GHOST_Context : public GHOST_IContext {
   /**
    * Destructor.
    */
-  ~GHOST_Context() override = default;
+  ~GHOST_Context() override
+  {
+    if (active_context_ == this) {
+      active_context_ = nullptr;
+    }
+  };
+
+  /**
+   * Returns the thread's currently active drawing context.
+   */
+  static inline GHOST_Context *getActiveDrawingContext()
+  {
+    return active_context_;
+  }
 
   /**
    * Swaps front and back buffers of a window.
@@ -161,12 +177,7 @@ class GHOST_Context : public GHOST_IContext {
    *     GHOST_kSuccess when the context is a Vulkan context and the
    *     handles have been set.
    */
-  virtual GHOST_TSuccess getVulkanHandles(void * /*r_instance*/,
-                                          void * /*r_physical_device*/,
-                                          void * /*r_device*/,
-                                          uint32_t * /*r_graphic_queue_family*/,
-                                          void * /*r_queue*/,
-                                          void ** /*r_queue_mutex*/) override
+  virtual GHOST_TSuccess getVulkanHandles(GHOST_VulkanHandles & /* r_handles */) override
   {
     return GHOST_kFailure;
   };
@@ -179,7 +190,10 @@ class GHOST_Context : public GHOST_IContext {
 
   virtual GHOST_TSuccess setVulkanSwapBuffersCallbacks(
       std::function<void(const GHOST_VulkanSwapChainData *)> /*swap_buffers_pre_callback*/,
-      std::function<void(void)> /*swap_buffers_post_callback*/) override
+      std::function<void(void)> /*swap_buffers_post_callback*/,
+      std::function<void(GHOST_VulkanOpenXRData *)> /*openxr_acquire_framebuffer_image_callback*/,
+      std::function<void(GHOST_VulkanOpenXRData *)> /*openxr_release_framebuffer_image_callback*/)
+      override
   {
     return GHOST_kFailure;
   }

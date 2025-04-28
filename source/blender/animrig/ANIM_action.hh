@@ -570,10 +570,7 @@ class Strip : public ::ActionStrip {
    *
    * Does *not* make a copy of the strip's data, which is stored in an array on
    * the owning action. */
-  explicit Strip(const Strip &other)
-  {
-    memcpy(this, &other, sizeof(*this));
-  }
+  explicit Strip(const Strip &other) = default;
 
   /**
    * Creates a new strip of type `type` for `owning_action`, with the strip's
@@ -644,9 +641,9 @@ class Strip : public ::ActionStrip {
    *
    * For example, to get a keyframe strip's data:
    *
-   * ```
+   * \code{.cc}
    * StripKeyframeData &strip_data = strip.data<StripKeyframeData>(action);
-   * ```
+   * \endcode
    */
   template<typename T> const T &data(const Action &owning_action) const;
   template<typename T> T &data(Action &owning_action);
@@ -1045,6 +1042,13 @@ class StripKeyframeData : public ::ActionStripKeyframeData {
   void slot_data_remove(slot_handle_t slot_handle);
 
   /**
+   * Clone the channelbag belonging to the source slot, and assign it to the target slot.
+   *
+   * This is typically only called from #duplicate_slot().
+   */
+  void slot_data_duplicate(slot_handle_t source_slot_handle, slot_handle_t target_slot_handle);
+
+  /**
    * Return the index of `channelbag` in this strip data's channelbag array, or
    * -1 if `channelbag` doesn't exist in this strip data.
    */
@@ -1116,6 +1120,34 @@ class Channelbag : public ::ActionChannelbag {
   FCurve *fcurve_create_unique(Main *bmain, const FCurveDescriptor &fcurve_descriptor);
 
   /**
+   * Create many F-Curves at once.
+   *
+   * Conceptually the same as adding many curves in a loop:
+   * \code{.cc}
+   * Vector<FCurve*> res(fcurve_descriptors.size(), nullptr);
+   * for (int64_t i = 0; i < fcurve_descriptors.size(); i++) {
+   *  const FCurveDescriptor &desc = fcurve_descriptors[i];
+   *  res[i] = this->fcurve_create_unique(bmain, desc);
+   * }
+   * return res;
+   * \endcode
+   *
+   * However that is quadratic complexity due to each curve uniqueness check being
+   * a linear scan, plus invariants rebuilding after each curve.
+   *
+   * \return Vector of created F-Curves. Vector size is the same as input span size.
+   * A vector element can be nullptr if input descriptor has empty RNA path, or if
+   * if such curve already exists.
+   *
+   * \param bmain: Used to tag the dependency graph(s) for relationship
+   * rebuilding. This is necessary when adding a new F-Curve, as a
+   * previously-unanimated depsgraph component may become animated now. Can be
+   * nullptr, in which case the tagging is skipped and is left as the
+   * responsibility of the caller.
+   */
+  Vector<FCurve *> fcurve_create_many(Main *bmain, Span<FCurveDescriptor> fcurve_descriptors);
+
+  /**
    * Append an F-Curve to this Channelbag.
    *
    * This transfers ownership of the F-Curve to this Channelbag, and it is up to
@@ -1177,7 +1209,7 @@ class Channelbag : public ::ActionChannelbag {
    *
    * \see fcurve_detach
    */
-  void fcurve_detach_by_index(int64_t fcurve_array_index);
+  void fcurve_detach_by_index(int64_t fcurve_index);
 
   /**
    * Move the given fcurve to position `to_fcurve_index` in the fcurve array.
@@ -1214,6 +1246,14 @@ class Channelbag : public ::ActionChannelbag {
    */
   const bActionGroup *channel_group_find(StringRef name) const;
   bActionGroup *channel_group_find(StringRef name);
+
+  /**
+   * Find the index of the channel group.
+   *
+   * \return The index of the channel group if found, or -1 if no such group is
+   * found.
+   */
+  int channel_group_find_index(const bActionGroup *group) const;
 
   /**
    * Find the channel group that contains the fcurve at `fcurve_array_index` as
@@ -1961,6 +2001,15 @@ Action *convert_to_layered_action(Main &bmain, const Action &legacy_action);
  * users which means it will not be saved (unless it has a fake user).
  */
 void move_slot(Main &bmain, Slot &slot, Action &from_action, Action &to_action);
+
+/**
+ * Duplicate a slot, and all its animation data.
+ *
+ * Data-blocks using the slot are not updated, so the returned slot will be unused.
+ *
+ * The `action` MUST own `slot`.
+ */
+Slot &duplicate_slot(Action &action, const Slot &slot);
 
 /**
  * Deselect the keys of all actions in the Span. Duplicate entries are only visited once.

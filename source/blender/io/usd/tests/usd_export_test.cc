@@ -5,26 +5,23 @@
 #include "testing/testing.h"
 #include "tests/blendfile_loading_base_test.h"
 
-#include <pxr/base/plug/registry.h>
 #include <pxr/base/tf/stringUtils.h>
 #include <pxr/base/vt/types.h>
 #include <pxr/base/vt/value.h>
 #include <pxr/usd/sdf/types.h>
+#include <pxr/usd/usd/common.h>
 #include <pxr/usd/usd/prim.h>
 #include <pxr/usd/usd/stage.h>
 #include <pxr/usd/usdGeom/mesh.h>
-#include <pxr/usd/usdGeom/subset.h>
-#include <pxr/usd/usdGeom/tokens.h>
 
 #include "DNA_image_types.h"
 #include "DNA_material_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_node_types.h"
 
 #include "BKE_context.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
-#include "BKE_mesh.hh"
-#include "BKE_node.hh"
 
 #include "BLI_fileops.h"
 #include "BLI_listbase.h"
@@ -36,8 +33,6 @@
 #include "BKE_node_runtime.hh"
 
 #include "DEG_depsgraph.hh"
-
-#include "WM_api.hh"
 
 #include "usd.hh"
 #include "usd_utils.hh"
@@ -187,7 +182,7 @@ class UsdExportTest : public BlendfileLoadingBaseTest {
     pxr::VtVec3fArray positions;
     pxr::VtVec3fArray normals;
 
-    /* Our export doesn't use 'primvars:normals' so we're not
+    /* Our export doesn't use `primvars:normals` so we're not
      * looking for that to be written here. */
     mesh_prim.GetFaceVertexIndicesAttr().Get(&face_indices, 0.0);
     mesh_prim.GetFaceVertexCountsAttr().Get(&face_counts, 0.0);

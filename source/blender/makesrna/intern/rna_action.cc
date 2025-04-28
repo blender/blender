@@ -333,7 +333,7 @@ static void rna_ActionSlot_name_display_set(PointerRNA *ptr, const char *name)
   const StringRef name_ref(name);
 
   if (name_ref.is_empty()) {
-    WM_report(RPT_ERROR, "Action slot display names cannot be empty");
+    WM_global_report(RPT_ERROR, "Action slot display names cannot be empty");
     return;
   }
 
@@ -347,7 +347,7 @@ static void rna_ActionSlot_identifier_set(PointerRNA *ptr, const char *identifie
   const StringRef identifier_ref(identifier);
 
   if (identifier_ref.size() < animrig::Slot::identifier_length_min) {
-    WM_report(RPT_ERROR, "Action slot identifiers should be at least three characters");
+    WM_global_report(RPT_ERROR, "Action slot identifiers should be at least three characters");
     return;
   }
 
@@ -358,12 +358,13 @@ static void rna_ActionSlot_identifier_set(PointerRNA *ptr, const char *identifie
                                                      identifier_ref.substr(2);
 
   if (identifier_with_correct_prefix != identifier_ref) {
-    WM_reportf(RPT_WARNING,
-               "Attempted to set slot identifier to \"%s\", but the type prefix doesn't match the "
-               "slot's 'target_id_type' \"%s\". Setting to \"%s\" instead.\n",
-               identifier,
-               slot.idtype_string().c_str(),
-               identifier_with_correct_prefix.c_str());
+    WM_global_reportf(
+        RPT_WARNING,
+        "Attempted to set slot identifier to \"%s\", but the type prefix doesn't match the "
+        "slot's 'target_id_type' \"%s\". Setting to \"%s\" instead.\n",
+        identifier,
+        slot.idtype_string().c_str(),
+        identifier_with_correct_prefix.c_str());
   }
 
   action.slot_identifier_define(slot, identifier_with_correct_prefix);
@@ -376,28 +377,28 @@ static void rna_ActionSlot_identifier_update(Main *bmain, Scene *, PointerRNA *p
   action.slot_identifier_propagate(*bmain, slot);
 }
 
-#  ifndef NDEBUG
-static void rna_ActionSlot_debug_log_users(const ID *action_id, ActionSlot *dna_slot, Main *bmain)
+static CollectionVector rna_ActionSlot_users(struct ActionSlot *self, Main *bmain)
 {
-  using namespace blender::animrig;
-  const Action &action = reinterpret_cast<const bAction *>(action_id)->wrap();
-  Slot &slot = dna_slot->wrap();
+  animrig::Slot &slot = self->wrap();
+  const Span<ID *> slot_users = slot.users(*bmain);
 
-  printf("\033[38;5;214mAction Slot users of '%s' on Action '%s':\033[0m\n",
-         slot.identifier,
-         action.id.name + 2);
-  if (bmain->is_action_slot_to_id_map_dirty) {
-    printf("  User map is \033[93mdirty\033[0m, this will trigger a recompute.\n");
-  }
-  else {
-    printf("  User map is \033[92mclean\033[0m.\n");
+  CollectionVector vector{};
+  vector.items.resize(slot_users.size());
+  for (const int i : slot_users.index_range()) {
+    vector.items[i] = RNA_id_pointer_create(slot_users[i]);
   }
 
-  for (const ID *user : slot.users(*bmain)) {
-    printf("  - %s\n", user->name);
-  }
+  return vector;
 }
-#  endif /* NDEBUG */
+
+static ActionSlot *rna_ActionSlot_duplicate(ID *action_id, const ActionSlot *self)
+{
+  animrig::Action &action = reinterpret_cast<bAction *>(action_id)->wrap();
+  const animrig::Slot &source_slot = self->wrap();
+
+  animrig::Slot &dupli_slot = animrig::duplicate_slot(action, source_slot);
+  return &dupli_slot;
+}
 
 static std::optional<std::string> rna_ActionLayer_path(const PointerRNA *ptr)
 {
@@ -744,9 +745,15 @@ static void rna_Channelbag_group_remove(ActionChannelbag *dna_channelbag,
 
 static ActionChannelbag *rna_ActionStrip_channelbag(ID *dna_action_id,
                                                     ActionStrip *self,
+                                                    ReportList *reports,
                                                     const ActionSlot *dna_slot,
                                                     const bool ensure)
 {
+  if (!dna_slot) {
+    BKE_report(reports, RPT_ERROR, "Cannot return channelbag when slot is None");
+    return nullptr;
+  }
+
   animrig::Action &action = reinterpret_cast<bAction *>(dna_action_id)->wrap();
   animrig::StripKeyframeData &strip_data = self->wrap().data<animrig::StripKeyframeData>(action);
   const animrig::Slot &slot = dna_slot->wrap();
@@ -1233,7 +1240,7 @@ static void rna_Action_fcurve_clear(bAction *act)
 
 static TimeMarker *rna_Action_pose_markers_new(bAction *act, const char name[])
 {
-  TimeMarker *marker = static_cast<TimeMarker *>(MEM_callocN(sizeof(TimeMarker), "TimeMarker"));
+  TimeMarker *marker = MEM_callocN<TimeMarker>("TimeMarker");
   marker->flag = SELECT;
   marker->frame = 1;
   STRNCPY_UTF8(marker->name, name);
@@ -2108,6 +2115,8 @@ static void rna_def_action_slot(BlenderRNA *brna)
 {
   StructRNA *srna;
   PropertyRNA *prop;
+  PropertyRNA *parm;
+  FunctionRNA *func;
 
   srna = RNA_def_struct(brna, "ActionSlot", nullptr);
   RNA_def_struct_path_func(srna, "rna_ActionSlot_path");
@@ -2193,15 +2202,24 @@ static void rna_def_action_slot(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_update_notifier(prop, NC_ANIMATION | ND_ANIMCHAN | NA_SELECTED);
 
-#  ifndef NDEBUG
-  /* Slot.debug_log_users() */
-  {
-    FunctionRNA *func;
+  func = RNA_def_function(srna, "users", "rna_ActionSlot_users");
+  RNA_def_function_flag(func, FUNC_USE_MAIN);
+  RNA_def_function_ui_description(
+      func, "Return the data-blocks that are animated by this slot of this action");
+  /* Return value. */
+  parm = RNA_def_property(func, "users", PROP_COLLECTION, PROP_NONE);
+  RNA_def_property_struct_type(parm, "ID");
+  RNA_def_function_return(func, parm);
 
-    func = RNA_def_function(srna, "debug_log_users", "rna_ActionSlot_debug_log_users");
-    RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_MAIN);
-  }
-#  endif
+  func = RNA_def_function(srna, "duplicate", "rna_ActionSlot_duplicate");
+  RNA_def_function_ui_description(
+      func, "Duplicate this slot, including all the animation data associated with it");
+  /* Return value. */
+  parm = RNA_def_property(func, "slot", PROP_POINTER, PROP_NONE);
+  RNA_def_function_flag(func, FUNC_USE_SELF_ID);
+  RNA_def_property_struct_type(parm, "ActionSlot");
+  RNA_def_property_ui_text(parm, "Duplicated Slot", "The slot created by duplicating this one");
+  RNA_def_function_return(func, parm);
 }
 
 static void rna_def_ActionLayer_strips(BlenderRNA *brna, PropertyRNA *cprop)
@@ -2365,7 +2383,7 @@ static void rna_def_action_keyframe_strip(BlenderRNA *brna)
 
     /* Strip.channelbag(...). */
     func = RNA_def_function(srna, "channelbag", "rna_ActionStrip_channelbag");
-    RNA_def_function_flag(func, FUNC_USE_SELF_ID);
+    RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_REPORTS);
     RNA_def_function_ui_description(func, "Find the ActionChannelbag for a specific Slot");
     parm = RNA_def_pointer(
         func, "slot", "ActionSlot", "Slot", "The slot for which to find the channelbag");

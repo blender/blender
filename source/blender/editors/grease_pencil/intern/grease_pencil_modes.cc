@@ -50,7 +50,7 @@ static bool paintmode_toggle_poll(bContext *C)
   return false;
 }
 
-static int paintmode_toggle_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus paintmode_toggle_exec(bContext *C, wmOperator *op)
 {
   const bool back = RNA_boolean_get(op->ptr, "back");
 
@@ -162,7 +162,7 @@ static bool sculpt_poll_view3d(bContext *C)
   return true;
 }
 
-static int sculptmode_toggle_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus sculptmode_toggle_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   ToolSettings *ts = CTX_data_tool_settings(C);
@@ -252,7 +252,7 @@ static bool weightmode_toggle_poll(bContext *C)
   return false;
 }
 
-static int weightmode_toggle_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus weightmode_toggle_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
@@ -347,7 +347,7 @@ static bool vertexmode_toggle_poll(bContext *C)
   return false;
 }
 
-static int vertexmode_toggle_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus vertexmode_toggle_exec(bContext *C, wmOperator *op)
 {
   const bool back = RNA_boolean_get(op->ptr, "back");
 

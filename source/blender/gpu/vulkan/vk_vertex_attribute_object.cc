@@ -135,40 +135,40 @@ static uint32_t to_binding_location_len(const GPUVertAttr &attribute)
 static uint32_t to_binding_location_len(const shader::Type type)
 {
   switch (type) {
-    case shader::Type::FLOAT:
-    case shader::Type::VEC2:
-    case shader::Type::VEC3:
-    case shader::Type::VEC4:
-    case shader::Type::UINT:
-    case shader::Type::UVEC2:
-    case shader::Type::UVEC3:
-    case shader::Type::UVEC4:
-    case shader::Type::INT:
-    case shader::Type::IVEC2:
-    case shader::Type::IVEC3:
-    case shader::Type::IVEC4:
-    case shader::Type::BOOL:
-    case shader::Type::VEC3_101010I2:
-    case shader::Type::UCHAR:
-    case shader::Type::UCHAR2:
-    case shader::Type::UCHAR3:
-    case shader::Type::UCHAR4:
-    case shader::Type::CHAR:
-    case shader::Type::CHAR2:
-    case shader::Type::CHAR3:
-    case shader::Type::CHAR4:
-    case shader::Type::SHORT:
-    case shader::Type::SHORT2:
-    case shader::Type::SHORT3:
-    case shader::Type::SHORT4:
-    case shader::Type::USHORT:
-    case shader::Type::USHORT2:
-    case shader::Type::USHORT3:
-    case shader::Type::USHORT4:
+    case shader::Type::float_t:
+    case shader::Type::float2_t:
+    case shader::Type::float3_t:
+    case shader::Type::float4_t:
+    case shader::Type::uint_t:
+    case shader::Type::uint2_t:
+    case shader::Type::uint3_t:
+    case shader::Type::uint4_t:
+    case shader::Type::int_t:
+    case shader::Type::int2_t:
+    case shader::Type::int3_t:
+    case shader::Type::int4_t:
+    case shader::Type::bool_t:
+    case shader::Type::float3_10_10_10_2_t:
+    case shader::Type::uchar_t:
+    case shader::Type::uchar2_t:
+    case shader::Type::uchar3_t:
+    case shader::Type::uchar4_t:
+    case shader::Type::char_t:
+    case shader::Type::char2_t:
+    case shader::Type::char3_t:
+    case shader::Type::char4_t:
+    case shader::Type::short_t:
+    case shader::Type::short2_t:
+    case shader::Type::short3_t:
+    case shader::Type::short4_t:
+    case shader::Type::ushort_t:
+    case shader::Type::ushort2_t:
+    case shader::Type::ushort3_t:
+    case shader::Type::ushort4_t:
       return 1;
-    case shader::Type::MAT3:
+    case shader::Type::float3x3_t:
       return 3;
-    case shader::Type::MAT4:
+    case shader::Type::float4x4_t:
       return 4;
   }
 

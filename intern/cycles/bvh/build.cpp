@@ -494,6 +494,23 @@ unique_ptr<BVHNode> BVHBuild::run()
     params.use_spatial_split = false;
   }
 
+  if (!params.top_level && params.use_spatial_split && params.use_unaligned_nodes &&
+      !references.empty())
+  {
+    /* Spatial splitting for curve splitting leads to very long build times.
+     *
+     * There are also some issues (and, possibly, bugs in the split builder w.r.t how the alignment
+     * space is interpreted. It would be good to fix those issues, but due to performance, and the
+     * BVH becoming more obsolete with time it might not be the most optimal development time
+     * investment.
+     *
+     * The check is a bit implicit here, it relies on the fact that spatial splits are disabled on
+     * the top level, and that an object has primitives of the same type. */
+    if (references[0].prim_type() & PRIMITIVE_CURVE) {
+      params.use_spatial_split = false;
+    }
+  }
+
   spatial_min_overlap = root.bounds().safe_area() * params.spatial_split_alpha;
   spatial_free_index = 0;
 

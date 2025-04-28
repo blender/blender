@@ -482,12 +482,12 @@ void BKE_vfont_clipboard_set(const char32_t *text_buf, const CharInfo *info_buf,
   /* Clean previous buffers. */
   BKE_vfont_clipboard_free();
 
-  text = static_cast<char32_t *>(MEM_malloc_arrayN((len + 1), sizeof(*text), __func__));
+  text = MEM_malloc_arrayN<char32_t>((len + 1), __func__);
   if (text == nullptr) {
     return;
   }
 
-  info = static_cast<CharInfo *>(MEM_malloc_arrayN(len, sizeof(CharInfo), __func__));
+  info = MEM_malloc_arrayN<CharInfo>(len, __func__);
   if (info == nullptr) {
     MEM_freeN(text);
     return;

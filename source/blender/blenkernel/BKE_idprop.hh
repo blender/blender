@@ -64,7 +64,7 @@ IDProperty *IDP_CopyIDPArray(const IDProperty *array, int flag) ATTR_WARN_UNUSED
 void IDP_SetIndexArray(IDProperty *prop, int index, IDProperty *item) ATTR_NONNULL();
 IDProperty *IDP_GetIndexArray(IDProperty *prop, int index) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 void IDP_AppendArray(IDProperty *prop, IDProperty *item);
-void IDP_ResizeIDPArray(IDProperty *prop, int len);
+void IDP_ResizeIDPArray(IDProperty *prop, int newlen);
 
 /* ----------- Numeric Array Type ----------- */
 

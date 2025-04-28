@@ -160,7 +160,7 @@ template<size_t Divisions> class ScreenTileTextures : public BaseTextureMethod {
    */
   int2 gpu_texture_size() const
   {
-    float2 viewport_size = DRW_viewport_size_get();
+    float2 viewport_size = DRW_context_get()->viewport_size_get();
     int2 texture_size(ceil(viewport_size.x / Divisions), ceil(viewport_size.y / Divisions));
     return texture_size;
   }

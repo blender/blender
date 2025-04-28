@@ -12,6 +12,13 @@ sys.path.append(str(pathlib.Path(__file__).parent.absolute()))
 args = None
 
 
+def do_fbx_import(filepath, params):
+    # old Python based importer
+    # bpy.ops.import_scene.fbx(filepath=filepath, use_subsurf=True, use_custom_props=True, **params)
+    # new C++/ufbx based importer
+    bpy.ops.wm.fbx_import(filepath=filepath, import_subdivision=True, use_custom_props=True, **params)
+
+
 class FBXImportTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -30,9 +37,7 @@ class FBXImportTest(unittest.TestCase):
         for input_file in input_files:
             with self.subTest(pathlib.Path(input_file).stem):
                 bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "../empty.blend"))
-                ok = report.import_and_check(
-                    input_file, lambda filepath, params: bpy.ops.import_scene.fbx(
-                        filepath=str(input_file), use_subsurf=True, use_custom_props=True, **params))
+                ok = report.import_and_check(input_file, lambda filepath, params: do_fbx_import(filepath, params))
                 if not ok:
                     self.fail(f"{input_file.stem} import result does not match expectations")
 

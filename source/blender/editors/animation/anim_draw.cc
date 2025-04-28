@@ -239,7 +239,6 @@ bool ANIM_nla_mapping_allowed(const bAnimListElem *ale)
       return !fcurve->driver;
     }
     case ANIMTYPE_DSGPENCIL:
-    case ANIMTYPE_GPDATABLOCK:
     case ANIMTYPE_GPLAYER:
     case ANIMTYPE_GREASE_PENCIL_DATABLOCK:
     case ANIMTYPE_GREASE_PENCIL_LAYER_GROUP:
@@ -274,7 +273,7 @@ float ANIM_nla_tweakedit_remap(bAnimListElem *ale,
 static short bezt_nlamapping_restore(KeyframeEditData *ked, BezTriple *bezt)
 {
   /* AnimData block providing scaling is stored in 'data', only_keys option is stored in i1 */
-  AnimData *adt = (AnimData *)ked->data;
+  AnimData *adt = static_cast<AnimData *>(ked->data);
   short only_keys = short(ked->i1);
 
   /* adjust BezTriple handles only if allowed to */
@@ -293,7 +292,7 @@ static short bezt_nlamapping_restore(KeyframeEditData *ked, BezTriple *bezt)
 static short bezt_nlamapping_apply(KeyframeEditData *ked, BezTriple *bezt)
 {
   /* AnimData block providing scaling is stored in 'data', only_keys option is stored in i1 */
-  AnimData *adt = (AnimData *)ked->data;
+  AnimData *adt = static_cast<AnimData *>(ked->data);
   short only_keys = short(ked->i1);
 
   /* adjust BezTriple handles only if allowed to */
@@ -351,7 +350,7 @@ void ANIM_nla_mapping_apply_if_needed_fcurve(bAnimListElem *ale,
 short ANIM_get_normalization_flags(SpaceLink *space_link)
 {
   if (space_link->spacetype == SPACE_GRAPH) {
-    SpaceGraph *sipo = (SpaceGraph *)space_link;
+    SpaceGraph *sipo = reinterpret_cast<SpaceGraph *>(space_link);
     bool use_normalization = (sipo->flag & SIPO_NORMALIZE) != 0;
     bool freeze_normalization = (sipo->flag & SIPO_NORMALIZE_FREEZE) != 0;
     return use_normalization ? (ANIM_UNITCONV_NORMALIZE |
@@ -608,7 +607,7 @@ static bool find_prev_next_keyframes(bContext *C, int *r_nextfra, int *r_prevfra
 
   cfranext = cfraprev = float(scene->r.cfra);
 
-  /* seed up dummy dopesheet context with flags to perform necessary filtering */
+  /* Seed up dummy dope-sheet context with flags to perform necessary filtering. */
   if ((scene->flag & SCE_KEYS_NO_SELONLY) == 0) {
     /* only selected channels are included */
     ads.filterflag |= ADS_FILTER_ONLYSEL;
@@ -629,7 +628,7 @@ static bool find_prev_next_keyframes(bContext *C, int *r_nextfra, int *r_prevfra
   }
   ED_keylist_prepare_for_direct_access(keylist);
 
-  /* TODO(jbakker): Keylists are ordered, no need to do any searching at all. */
+  /* TODO(jbakker): Key-lists are ordered, no need to do any searching at all. */
   /* find matching keyframe in the right direction */
   do {
     aknext = ED_keylist_find_next(keylist, cfranext);

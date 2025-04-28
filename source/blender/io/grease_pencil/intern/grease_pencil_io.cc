@@ -64,31 +64,6 @@ static ColorGeometry4f get_average(const Span<ColorGeometry4f> values)
   return ColorGeometry4f(avg_rgba);
 }
 
-static std::optional<float> try_get_constant_value(const VArray<float> values,
-                                                   const float epsilon = 1e-5f)
-{
-  if (values.is_empty()) {
-    return std::nullopt;
-  }
-  const float first_value = values.first();
-  const std::optional<float> first_value_opt = std::make_optional(first_value);
-  return threading::parallel_reduce(
-      values.index_range().drop_front(1),
-      4096,
-      first_value_opt,
-      [&](const IndexRange range, const std::optional<float> /*value*/) -> std::optional<float> {
-        for (const int i : range) {
-          if (math::abs(values[i] - first_value) > epsilon) {
-            return std::nullopt;
-          }
-        }
-        return first_value_opt;
-      },
-      [&](const std::optional<float> a, const std::optional<float> b) {
-        return (a && b) ? first_value_opt : std::nullopt;
-      });
-}
-
 IOContext::IOContext(bContext &C,
                      const ARegion *region,
                      const View3D *v3d,
@@ -177,15 +152,15 @@ static IndexMask get_visible_strokes(const Object &object,
       return false;
     }
 
-    /* Check if the material is visible. */
     const Material *material = BKE_object_material_get(const_cast<Object *>(&object),
                                                        materials[curve_i] + 1);
-
     if (material == nullptr) {
-      return false;
+      /* We can still export without a material. */
+      return true;
     }
 
-    const MaterialGPencilStyle *gp_style = material ? material->gp_style : nullptr;
+    /* Check if the material is visible. */
+    const MaterialGPencilStyle *gp_style = material->gp_style;
     const bool is_hidden_material = (gp_style->flag & GP_MATERIAL_HIDE);
     const bool is_stroke_material = (gp_style->flag & GP_MATERIAL_STROKE_SHOW);
     if (gp_style == nullptr || is_hidden_material || !is_stroke_material) {
@@ -278,7 +253,7 @@ static std::optional<Bounds<float2>> compute_objects_bounds(
       }
 
       std::optional<Bounds<float2>> layer_bounds = compute_screen_space_drawing_bounds(
-          region, rv3d, *info.object, layer_index, *drawing);
+          region, rv3d, *object_eval, layer_index, *drawing);
 
       full_bounds = bounds::merge(full_bounds, layer_bounds);
     }
@@ -322,8 +297,8 @@ void GreasePencilExporter::prepare_render_params(Scene &scene, const int frame_n
   const bool use_camera_view = (context_.rv3d->persp == RV3D_CAMOB) &&
                                (context_.v3d->camera != nullptr);
 
-  /* Camera rectangle. */
   if (use_camera_view) {
+    /* Camera rectangle (in screen space). */
     rctf camera_rect;
     ED_view3d_calc_camera_border(&scene,
                                  context_.depsgraph,
@@ -332,14 +307,22 @@ void GreasePencilExporter::prepare_render_params(Scene &scene, const int frame_n
                                  context_.rv3d,
                                  true,
                                  &camera_rect);
-    render_rect_ = {{camera_rect.xmin, camera_rect.ymin}, {camera_rect.xmax, camera_rect.ymax}};
+    screen_rect_ = {{camera_rect.xmin, camera_rect.ymin}, {camera_rect.xmax, camera_rect.ymax}};
     camera_persmat_ = persmat_from_camera_object(scene);
+
+    /* Output resolution (when in camera view). */
+    int width, height;
+    BKE_render_resolution(&scene.r, false, &width, &height);
+    camera_rect_ = {{0.0f, 0.0f}, {float(width), float(height)}};
+    /* Compute factor that remaps screen_rect to final output resolution. */
+    BLI_assert(screen_rect_.size() != float2(0.0f));
+    camera_fac_ = float2(camera_rect_.size()) / float2(screen_rect_.size());
   }
   else {
     Vector<ObjectInfo> objects = this->retrieve_objects();
     std::optional<Bounds<float2>> full_bounds = compute_objects_bounds(
         *context_.region, *context_.rv3d, *context_.depsgraph, objects, frame_number);
-    render_rect_ = full_bounds ? *full_bounds : Bounds<float2>{float2(0.0f), float2(0.0f)};
+    screen_rect_ = full_bounds ? *full_bounds : Bounds<float2>(float2(0.0f));
     camera_persmat_ = std::nullopt;
   }
 }
@@ -362,12 +345,20 @@ float GreasePencilExporter::compute_average_stroke_opacity(const Span<float> opa
 std::optional<float> GreasePencilExporter::try_get_uniform_point_width(
     const RegionView3D &rv3d, const Span<float3> world_positions, const Span<float> radii)
 {
-  VArray<float> widths = VArray<float>::ForFunc(world_positions.size(), [&](const int index) {
-    const float3 &pos = world_positions[index];
-    const float radius = radii[index];
-    return 2.0f * radius * ED_view3d_pixel_size(&rv3d, pos);
+  if (world_positions.is_empty()) {
+    return std::nullopt;
+  }
+  BLI_assert(world_positions.size() == radii.size());
+  Array<float> widths(world_positions.size());
+  threading::parallel_for(widths.index_range(), 4096, [&](const IndexRange range) {
+    for (const int index : range) {
+      const float3 &pos = world_positions[index];
+      const float radius = radii[index];
+      /* Compute the width in screen space by dividing by the pixel size at the point position. */
+      widths[index] = 2.0f * radius / ED_view3d_pixel_size(&rv3d, pos);
+    }
   });
-  return try_get_constant_value(widths);
+  return get_average(widths);
 }
 
 Vector<GreasePencilExporter::ObjectInfo> GreasePencilExporter::retrieve_objects() const
@@ -465,20 +456,22 @@ void GreasePencilExporter::foreach_stroke_in_layer(const Object &object,
 
     const bool is_cyclic = cyclic[i_curve];
     const int material_index = material_indices[i_curve];
-    const Material *material = BKE_object_material_get(const_cast<Object *>(&object),
-                                                       material_index + 1);
-
-    if (material != nullptr) {
-      BLI_assert(material->gp_style != nullptr);
-      if (material->gp_style->flag & GP_MATERIAL_HIDE) {
-        continue;
+    const Material *material = [&]() {
+      const Material *material = BKE_object_material_get(const_cast<Object *>(&object),
+                                                         material_index + 1);
+      if (!material) {
+        const Material *material_default = BKE_material_default_gpencil();
+        return material_default;
       }
+      return material;
+    }();
+
+    BLI_assert(material->gp_style != nullptr);
+    if (material->gp_style->flag & GP_MATERIAL_HIDE) {
+      continue;
     }
-    const bool is_stroke_material = material ?
-                                        (material->gp_style->flag & GP_MATERIAL_STROKE_SHOW) :
-                                        true;
-    const bool is_fill_material = material ? (material->gp_style->flag & GP_MATERIAL_FILL_SHOW) :
-                                             false;
+    const bool is_stroke_material = (material->gp_style->flag & GP_MATERIAL_STROKE_SHOW);
+    const bool is_fill_material = (material->gp_style->flag & GP_MATERIAL_FILL_SHOW);
 
     /* Fill. */
     if (is_fill_material && params_.export_fill_materials) {
@@ -496,9 +489,8 @@ void GreasePencilExporter::foreach_stroke_in_layer(const Object &object,
 
     /* Stroke. */
     if (is_stroke_material && params_.export_stroke_materials) {
-      const ColorGeometry4f stroke_color = material ? compute_average_stroke_color(
-                                                          *material, vertex_colors.slice(points)) :
-                                                      ColorGeometry4f(0.0f, 0.0f, 0.0f, 1.0f);
+      const ColorGeometry4f stroke_color = compute_average_stroke_color(
+          *material, vertex_colors.slice(points));
       const float stroke_opacity = compute_average_stroke_opacity(opacities.slice(points)) *
                                    layer.opacity;
       const std::optional<float> uniform_width = params_.use_uniform_width ?
@@ -538,8 +530,9 @@ void GreasePencilExporter::foreach_stroke_in_layer(const Object &object,
         /* Sample the outline stroke. */
         if (params_.outline_resample_length > 0.0f) {
           VArray<float> resample_lengths = VArray<float>::ForSingle(
-              params_.outline_resample_length, curves.curves_num());
-          outline = geometry::resample_to_length(outline, single_curve_mask, resample_lengths);
+              params_.outline_resample_length, outline.curves_num());
+          outline = geometry::resample_to_length(
+              outline, outline.curves_range(), resample_lengths);
         }
 
         const OffsetIndices outline_points_by_curve = outline.points_by_curve();
@@ -568,8 +561,9 @@ float2 GreasePencilExporter::project_to_screen(const float4x4 &transform,
 
   if (camera_persmat_) {
     /* Use camera render space. */
-    return (float2(math::project_point(*camera_persmat_, world_pos)) + 1.0f) / 2.0f *
-           float2(render_rect_.size());
+    const float2 cam_space = (float2(math::project_point(*camera_persmat_, world_pos)) + 1.0f) /
+                             2.0f * float2(screen_rect_.size());
+    return cam_space * camera_fac_;
   }
 
   /* Use 3D view screen space. */
@@ -579,7 +573,7 @@ float2 GreasePencilExporter::project_to_screen(const float4x4 &transform,
   {
     if (!ELEM(V2D_IS_CLIPPED, screen_co.x, screen_co.y)) {
       /* Apply offset and scale. */
-      return screen_co - render_rect_.min;
+      return screen_co - screen_rect_.min;
     }
   }
 

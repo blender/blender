@@ -544,7 +544,7 @@ class BaseCryptoMatteOperation : public NodeOperation {
     output.allocate_texture(domain);
 
     parallel_for(domain.size, [&](const int2 texel) {
-      float4 input_color = input.load_pixel<float4>(texel);
+      float4 input_color = input.load_pixel<float4, true>(texel);
       float input_matte = matte.load_pixel<float>(texel);
 
       /* Premultiply the alpha to the image. */
@@ -701,12 +701,8 @@ class CryptoMatteOperation : public BaseCryptoMatteOperation {
 
     int view_layer_index = 0;
     LISTBASE_FOREACH_INDEX (ViewLayer *, view_layer, &scene->view_layers, view_layer_index) {
-      /* Not the viewer layer used by the node. */
-      if (!StringRef(type_name).startswith(view_layer->name)) {
-        continue;
-      }
-
-      /* Find out which type of Cryptomatte layer the node uses.  */
+      /* Find out which type of Cryptomatte layer the node uses, if non matched, then this is not
+       * the view layer used by the node and we check other view layers. */
       const char *cryptomatte_type = nullptr;
       const std::string layer_prefix = std::string(view_layer->name) + ".";
       if (type_name == layer_prefix + RE_PASSNAME_CRYPTOMATTE_OBJECT) {
@@ -719,8 +715,9 @@ class CryptoMatteOperation : public BaseCryptoMatteOperation {
         cryptomatte_type = RE_PASSNAME_CRYPTOMATTE_MATERIAL;
       }
 
+      /* Not the view layer used by the node. */
       if (!cryptomatte_type) {
-        return layers;
+        continue;
       }
 
       /* Each layer stores two ranks/levels, so do ceiling division by two. */
@@ -749,7 +746,7 @@ class CryptoMatteOperation : public BaseCryptoMatteOperation {
   {
     Vector<Result> layers;
 
-    Image *image = get_image();
+    Image *image = this->get_image();
     if (!image || image->type != IMA_TYPE_MULTILAYER) {
       return layers;
     }
@@ -757,15 +754,19 @@ class CryptoMatteOperation : public BaseCryptoMatteOperation {
     /* The render result structure of the image is populated as a side effect of the acquisition of
      * an image buffer, so acquire an image buffer and immediately release it since it is not
      * actually needed. */
-    ImageUser image_user_for_layer = *get_image_user();
+    ImageUser image_user_for_layer = *this->get_image_user();
     ImBuf *image_buffer = BKE_image_acquire_ibuf(image, &image_user_for_layer, nullptr);
     BKE_image_release_ibuf(image, image_buffer, nullptr);
     if (!image_buffer || !image->rr) {
       return layers;
     }
 
+    /* Gather all pass names first before retrieving the images because render layers might get
+     * freed when retrieving the images. */
+    Vector<std::string> pass_names;
+
     int layer_index;
-    const std::string type_name = get_type_name();
+    const std::string type_name = this->get_type_name();
     LISTBASE_FOREACH_INDEX (RenderLayer *, render_layer, &image->rr->layers, layer_index) {
       /* If the Cryptomatte type name doesn't start with the layer name, then it is not a
        * Cryptomatte layer. Unless it is an unnamed layer, in which case, we need to check its
@@ -775,26 +776,31 @@ class CryptoMatteOperation : public BaseCryptoMatteOperation {
         continue;
       }
 
-      image_user_for_layer.layer = layer_index;
       LISTBASE_FOREACH (RenderPass *, render_pass, &render_layer->passes) {
         /* If the combined pass name doesn't start with the Cryptomatte type name, then it is not a
          * Cryptomatte layer. Furthermore, if it is equal to the Cryptomatte type name with no
          * suffix, then it can be ignored, because it is a deprecated Cryptomatte preview layer
          * according to the "EXR File: Layer Naming" section of the Cryptomatte specification. */
-        const std::string combined_name = get_combined_layer_pass_name(render_layer, render_pass);
+        const std::string combined_name = this->get_combined_layer_pass_name(render_layer,
+                                                                             render_pass);
         if (combined_name == type_name || !StringRef(combined_name).startswith(type_name)) {
           continue;
         }
 
-        Result pass_result = context().cache_manager().cached_images.get(
-            context(), image, &image_user_for_layer, render_pass->name);
-        layers.append(pass_result);
+        pass_names.append(render_pass->name);
       }
 
       /* If we already found Cryptomatte layers, no need to check other render layers. */
-      if (!layers.is_empty()) {
-        return layers;
+      if (!pass_names.is_empty()) {
+        break;
       }
+    }
+
+    image_user_for_layer.layer = layer_index;
+    for (const std::string &pass_name : pass_names) {
+      Result pass_result = context().cache_manager().cached_images.get(
+          context(), image, &image_user_for_layer, pass_name.c_str());
+      layers.append(pass_result);
     }
 
     return layers;
@@ -914,7 +920,7 @@ void register_node_type_cmp_cryptomatte()
   ntype.ui_name = "Cryptomatte";
   ntype.ui_description =
       "Generate matte for individual objects and materials using Cryptomatte render passes";
-  ntype.enum_name_legacy = "CRYPTOMATTE";
+  ntype.enum_name_legacy = "CRYPTOMATTE_V2";
   ntype.nclass = NODE_CLASS_MATTE;
   ntype.declare = file_ns::cmp_node_cryptomatte_declare;
   blender::bke::node_type_size(ntype, 240, 100, 700);
@@ -991,8 +997,12 @@ class LegacyCryptoMatteOperation : public BaseCryptoMatteOperation {
   {
     Vector<Result> layers;
     /* Add all valid results of all inputs except the first input, which is the input image. */
-    for (const bNodeSocket *socket : bnode().input_sockets().drop_front(1)) {
-      const Result input = get_input(socket->identifier);
+    for (const bNodeSocket *input_socket : bnode().input_sockets().drop_front(1)) {
+      if (!input_socket->is_available()) {
+        continue;
+      }
+
+      const Result input = get_input(input_socket->identifier);
       if (input.is_single_value()) {
         /* If this Cryptomatte layer is not valid, because it is not an image, then all later
          * Cryptomatte layers can't be used even if they were valid. */

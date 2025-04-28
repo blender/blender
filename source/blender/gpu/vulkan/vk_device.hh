@@ -29,6 +29,37 @@
 namespace blender::gpu {
 class VKBackend;
 
+struct VKExtensions {
+  /** Does the device support VkPhysicalDeviceVulkan12Features::shaderOutputViewportIndex. */
+  bool shader_output_viewport_index = false;
+  /** Does the device support VkPhysicalDeviceVulkan12Features::shaderOutputLayer. */
+  bool shader_output_layer = false;
+  /**
+   * Does the device support
+   * VkPhysicalDeviceFragmentShaderBarycentricFeaturesKHR::fragmentShaderBarycentric.
+   */
+  bool fragment_shader_barycentric = false;
+  /**
+   * Does the device support VK_KHR_dynamic_rendering enabled.
+   */
+  bool dynamic_rendering = false;
+
+  /**
+   * Does the device support VK_KHR_dynamic_rendering_local_read enabled.
+   */
+  bool dynamic_rendering_local_read = false;
+
+  /**
+   * Does the device support VK_EXT_dynamic_rendering_unused_attachments.
+   */
+  bool dynamic_rendering_unused_attachments = false;
+
+  /**
+   * Does the device support logic ops.
+   */
+  bool logic_ops = false;
+};
+
 /* TODO: Split into VKWorkarounds and VKExtensions to remove the negating when an extension isn't
  * supported. */
 struct VKWorkarounds {
@@ -40,18 +71,6 @@ struct VKWorkarounds {
    */
   bool not_aligned_pixel_formats = false;
 
-  /**
-   * Is the workaround for devices that don't support
-   * #VkPhysicalDeviceVulkan12Features::shaderOutputViewportIndex enabled.
-   */
-  bool shader_output_viewport_index = false;
-
-  /**
-   * Is the workaround for devices that don't support
-   * #VkPhysicalDeviceVulkan12Features::shaderOutputLayer enabled.
-   */
-  bool shader_output_layer = false;
-
   struct {
     /**
      * Is the workaround enabled for devices that don't support using VK_FORMAT_R8G8B8_* as vertex
@@ -59,34 +78,6 @@ struct VKWorkarounds {
      */
     bool r8g8b8 = false;
   } vertex_formats;
-
-  /**
-   * Is the workaround for devices that don't support
-   * #VkPhysicalDeviceFragmentShaderBarycentricFeaturesKHR::fragmentShaderBarycentric enabled.
-   * If set to true, the backend would inject a geometry shader to produce barycentric coordinates.
-   */
-  bool fragment_shader_barycentric = false;
-
-  /**
-   * Is the workarounds for devices that don't support VK_KHR_dynamic_rendering enabled.
-   */
-  bool dynamic_rendering = false;
-
-  /**
-   * Is the workarounds for devices that don't support VK_KHR_dynamic_rendering_local_read enabled.
-   */
-  bool dynamic_rendering_local_read = false;
-
-  /**
-   * Is the workarounds for devices that don't support VK_EXT_dynamic_rendering_unused_attachments
-   * enabled.
-   */
-  bool dynamic_rendering_unused_attachments = false;
-
-  /**
-   * Is the workarounds for devices that don't support Logic Ops enabled.
-   */
-  bool logic_ops = false;
 };
 
 /**
@@ -202,6 +193,7 @@ class VKDevice : public NonCopyable {
   /** Limits of the device linked to this context. */
   VkPhysicalDeviceProperties vk_physical_device_properties_ = {};
   VkPhysicalDeviceDriverProperties vk_physical_device_driver_properties_ = {};
+  VkPhysicalDeviceIDProperties vk_physical_device_id_properties_ = {};
   VkPhysicalDeviceMemoryProperties vk_physical_device_memory_properties_ = {};
   /** Features support. */
   VkPhysicalDeviceFeatures vk_physical_device_features_ = {};
@@ -214,6 +206,7 @@ class VKDevice : public NonCopyable {
 
   /* Workarounds */
   VKWorkarounds workarounds_;
+  VKExtensions extensions_;
 
   std::string glsl_patch_;
   Vector<VKThreadData *> thread_data_;
@@ -239,7 +232,23 @@ class VKDevice : public NonCopyable {
     PFN_vkSetDebugUtilsObjectNameEXT vkSetDebugUtilsObjectName = nullptr;
     PFN_vkCreateDebugUtilsMessengerEXT vkCreateDebugUtilsMessenger = nullptr;
     PFN_vkDestroyDebugUtilsMessengerEXT vkDestroyDebugUtilsMessenger = nullptr;
+
+    /* Extension: VK_KHR_external_memory_fd */
+    PFN_vkGetMemoryFdKHR vkGetMemoryFd = nullptr;
+
+#ifdef _WIN32
+    /* Extension: VK_KHR_external_memory_win32 */
+    PFN_vkGetMemoryWin32HandleKHR vkGetMemoryWin32Handle = nullptr;
+#endif
   } functions;
+
+  struct {
+    /* NOTE: This attribute needs to be kept alive as it will be read by VMA when allocating from
+     * `external_memory` pool. */
+    VkExportMemoryAllocateInfoKHR external_memory_info = {
+        VK_STRUCTURE_TYPE_EXPORT_MEMORY_ALLOCATE_INFO_KHR};
+    VmaPool external_memory = VK_NULL_HANDLE;
+  } vma_pools;
 
   const char *extension_name_get(int index) const
   {
@@ -254,6 +263,11 @@ class VKDevice : public NonCopyable {
   const VkPhysicalDeviceProperties &physical_device_properties_get() const
   {
     return vk_physical_device_properties_;
+  }
+
+  const VkPhysicalDeviceIDProperties &physical_device_id_properties_get() const
+  {
+    return vk_physical_device_id_properties_;
   }
 
   const VkPhysicalDeviceFeatures &physical_device_features_get() const
@@ -290,7 +304,7 @@ class VKDevice : public NonCopyable {
     return *queue_mutex_;
   }
 
-  const uint32_t queue_family_get() const
+  uint32_t queue_family_get() const
   {
     return vk_queue_family_;
   }
@@ -342,6 +356,10 @@ class VKDevice : public NonCopyable {
   {
     return workarounds_;
   }
+  const VKExtensions &extensions_get() const
+  {
+    return extensions_;
+  }
 
   const char *glsl_patch_get() const;
   void init_glsl_patch();
@@ -355,7 +373,11 @@ class VKDevice : public NonCopyable {
   TimelineValue render_graph_submit(render_graph::VKRenderGraph *render_graph,
                                     VKDiscardPool &context_discard_pool,
                                     bool submit_to_device,
-                                    bool wait_for_completion);
+                                    bool wait_for_completion,
+                                    VkPipelineStageFlags wait_dst_stage_mask,
+                                    VkSemaphore wait_semaphore,
+                                    VkSemaphore signal_semaphore,
+                                    VkFence signal_fence);
   void wait_for_timeline(TimelineValue timeline);
 
   /**

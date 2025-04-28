@@ -411,7 +411,7 @@ typedef struct MovieTrackingDopesheet {
 
   /** Method to be used to sort tracks. */
   short sort_method;
-  /** Dopesheet building flag such as inverted order of sort. */
+  /** Dope-sheet building flag such as inverted order of sort. */
   short flag;
 
   /* ** runtime stuff ** */
@@ -455,7 +455,7 @@ typedef struct MovieTracking {
   /** Statistics displaying in clip editor. */
   MovieTrackingStats *stats;
 
-  /** Dopesheet data. */
+  /** Dope-sheet data. */
   MovieTrackingDopesheet dopesheet;
 } MovieTracking;
 

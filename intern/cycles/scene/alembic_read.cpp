@@ -49,8 +49,9 @@ static set<chrono_t> get_relevant_sample_times(AlembicProcedural *proc,
   }
 
   const double frame_rate = static_cast<double>(proc->get_frame_rate());
-  const double start_time = start_frame / frame_rate;
-  const double end_time = (end_frame + 1) / frame_rate;
+  const double frame_offset = proc->get_frame_offset();
+  const double start_time = (start_frame - frame_offset) / frame_rate;
+  const double end_time = (end_frame - frame_offset + 1) / frame_rate;
 
   const size_t start_index = time_sampling.getFloorIndex(start_time, num_samples).first;
   const size_t end_index = time_sampling.getCeilIndex(end_time, num_samples).first;
@@ -414,10 +415,8 @@ static void add_subd_polygons(CachedData &cached_data, const SubDSchemaData &dat
   const int *face_counts_array = face_counts->get();
   const int *face_indices_array = face_indices->get();
 
-  int num_ngons = 0;
   int num_corners = 0;
   for (size_t i = 0; i < face_counts->size(); i++) {
-    num_ngons += (face_counts_array[i] == 4 ? 0 : 1);
     num_corners += face_counts_array[i];
   }
 
@@ -466,7 +465,6 @@ static void add_subd_polygons(CachedData &cached_data, const SubDSchemaData &dat
   cached_data.subd_smooth.add_data(subd_smooth, time);
   cached_data.subd_ptex_offset.add_data(subd_ptex_offset, time);
   cached_data.subd_face_corners.add_data(subd_face_corners, time);
-  cached_data.num_ngons.add_data(num_ngons, time);
   cached_data.uv_loops.add_data(uv_loops, time);
 }
 

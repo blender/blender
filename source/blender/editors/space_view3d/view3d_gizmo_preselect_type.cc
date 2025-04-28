@@ -290,9 +290,9 @@ static void gizmo_preselect_elem_free(wmGizmo *gz)
   gz_ele->bases.~Vector();
 }
 
-static int gizmo_preselect_elem_invoke(bContext * /*C*/,
-                                       wmGizmo * /*gz*/,
-                                       const wmEvent * /*event*/)
+static wmOperatorStatus gizmo_preselect_elem_invoke(bContext * /*C*/,
+                                                    wmGizmo * /*gz*/,
+                                                    const wmEvent * /*event*/)
 {
   return OPERATOR_PASS_THROUGH;
 }
@@ -405,7 +405,7 @@ static int gizmo_preselect_edgering_test_select(bContext *C, wmGizmo *gz, const 
   else {
     if (best.eed) {
       Object *ob = gz_ring->bases[gz_ring->base_index]->object;
-      Scene *scene_eval = (Scene *)DEG_get_evaluated_id(vc.depsgraph, &vc.scene->id);
+      Scene *scene_eval = DEG_get_evaluated(vc.depsgraph, vc.scene);
       Object *ob_eval = DEG_get_evaluated_object(vc.depsgraph, ob);
       BMEditMesh *em_eval = BKE_editmesh_from_object(ob_eval);
       /* Re-allocate coords each update isn't ideal, however we can't be sure
@@ -451,9 +451,9 @@ static void gizmo_preselect_edgering_free(wmGizmo *gz)
   gz_ring->bases.~Vector();
 }
 
-static int gizmo_preselect_edgering_invoke(bContext * /*C*/,
-                                           wmGizmo * /*gz*/,
-                                           const wmEvent * /*event*/)
+static wmOperatorStatus gizmo_preselect_edgering_invoke(bContext * /*C*/,
+                                                        wmGizmo * /*gz*/,
+                                                        const wmEvent * /*event*/)
 {
   return OPERATOR_PASS_THROUGH;
 }

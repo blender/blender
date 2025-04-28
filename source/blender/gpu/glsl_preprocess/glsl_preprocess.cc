@@ -93,10 +93,18 @@ int main(int argc, char **argv)
     return 1;
   }
 
-  blender::gpu::shader::Preprocessor processor;
+  using Preprocessor = blender::gpu::shader::Preprocessor;
+  Preprocessor processor;
+
+  Preprocessor::SourceLanguage language = Preprocessor::language_from_filename(filename);
+
+  if (language == Preprocessor::SourceLanguage::GLSL) {
+    /* All build-time GLSL files should be considered blender-GLSL. */
+    language = Preprocessor::SourceLanguage::BLENDER_GLSL;
+  }
 
   output_file << processor.process(
-      buffer.str(), input_file_name, true, is_library, is_glsl, is_glsl, is_shared, report_error);
+      language, buffer.str(), input_file_name, is_library, is_shared, report_error);
 
   input_file.close();
   output_file.close();

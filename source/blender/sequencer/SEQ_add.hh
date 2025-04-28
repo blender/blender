@@ -20,17 +20,19 @@ struct Scene;
 struct Strip;
 struct Stereo3dFormat;
 
+namespace blender::seq {
+
 /** #SeqLoadData.flags */
-enum eSeqLoadFlags {
+enum eLoadFlags {
   SEQ_LOAD_SOUND_CACHE = (1 << 1),
   SEQ_LOAD_SOUND_MONO = (1 << 2),
   SEQ_LOAD_MOVIE_SYNC_FPS = (1 << 3),
   SEQ_LOAD_SET_VIEW_TRANSFORM = (1 << 4),
 };
-ENUM_OPERATORS(eSeqLoadFlags, SEQ_LOAD_SET_VIEW_TRANSFORM)
+ENUM_OPERATORS(eLoadFlags, SEQ_LOAD_SET_VIEW_TRANSFORM)
 
 /* Api for adding new sequence strips. */
-struct SeqLoadData {
+struct LoadData {
   int start_frame;
   int channel;
   char name[64]; /* Strip name. */
@@ -49,7 +51,7 @@ struct SeqLoadData {
     Strip *seq1;
     Strip *seq2;
   } effect; /* Only for effect strips. */
-  eSeqLoadFlags flags;
+  eLoadFlags flags;
   eSeqImageFitMethod fit_method;
   bool use_multiview;
   char views_format;
@@ -68,8 +70,8 @@ struct SeqLoadData {
  * \param start_frame: timeline frame where strip will be created
  * \param channel: timeline channel where strip will be created
  */
-void SEQ_add_load_data_init(
-    SeqLoadData *load_data, const char *name, const char *path, int start_frame, int channel);
+void add_load_data_init(
+    LoadData *load_data, const char *name, const char *path, int start_frame, int channel);
 /**
  * Add image strip.
  * \note Use #SEQ_add_image_set_directory() and #SEQ_add_image_load_file() to load image sequences
@@ -80,7 +82,7 @@ void SEQ_add_load_data_init(
  * \param load_data: SeqLoadData with information necessary to create strip
  * \return created strip
  */
-Strip *SEQ_add_image_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqLoadData *load_data);
+Strip *add_image_strip(Main *bmain, Scene *scene, ListBase *seqbase, LoadData *load_data);
 /**
  * Add sound strip.
  * \note Use SEQ_add_image_set_directory() and SEQ_add_image_load_file() to load image sequences
@@ -91,7 +93,7 @@ Strip *SEQ_add_image_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqLoad
  * \param load_data: SeqLoadData with information necessary to create strip
  * \return created strip
  */
-Strip *SEQ_add_sound_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqLoadData *load_data);
+Strip *add_sound_strip(Main *bmain, Scene *scene, ListBase *seqbase, LoadData *load_data);
 
 /**
  * Sync up the sound strip 'seq' with the video data in 'load_data'.
@@ -103,7 +105,7 @@ Strip *SEQ_add_sound_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqLoad
  * \param seq: The sound strip that will be synced
  * \param load_data: SeqLoadData with information necessary to sync the sound strip
  */
-void SEQ_add_sound_av_sync(Main *bmain, Scene *scene, Strip *strip, SeqLoadData *load_data);
+void add_sound_av_sync(Main *bmain, Scene *scene, Strip *strip, LoadData *load_data);
 /**
  * Add meta strip.
  *
@@ -112,7 +114,7 @@ void SEQ_add_sound_av_sync(Main *bmain, Scene *scene, Strip *strip, SeqLoadData 
  * \param load_data: SeqLoadData with information necessary to create strip
  * \return created strip
  */
-Strip *SEQ_add_meta_strip(Scene *scene, ListBase *seqbase, SeqLoadData *load_data);
+Strip *add_meta_strip(Scene *scene, ListBase *seqbase, LoadData *load_data);
 /**
  * Add movie strip.
  *
@@ -122,7 +124,7 @@ Strip *SEQ_add_meta_strip(Scene *scene, ListBase *seqbase, SeqLoadData *load_dat
  * \param load_data: SeqLoadData with information necessary to create strip
  * \return created strip
  */
-Strip *SEQ_add_movie_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqLoadData *load_data);
+Strip *add_movie_strip(Main *bmain, Scene *scene, ListBase *seqbase, LoadData *load_data);
 /**
  * Add scene strip.
  *
@@ -131,7 +133,7 @@ Strip *SEQ_add_movie_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqLoad
  * \param load_data: SeqLoadData with information necessary to create strip
  * \return created strip
  */
-Strip *SEQ_add_scene_strip(Scene *scene, ListBase *seqbase, SeqLoadData *load_data);
+Strip *add_scene_strip(Scene *scene, ListBase *seqbase, LoadData *load_data);
 /**
  * Add movieclip strip.
  *
@@ -140,7 +142,7 @@ Strip *SEQ_add_scene_strip(Scene *scene, ListBase *seqbase, SeqLoadData *load_da
  * \param load_data: SeqLoadData with information necessary to create strip
  * \return created strip
  */
-Strip *SEQ_add_movieclip_strip(Scene *scene, ListBase *seqbase, SeqLoadData *load_data);
+Strip *add_movieclip_strip(Scene *scene, ListBase *seqbase, LoadData *load_data);
 /**
  * Add mask strip.
  *
@@ -149,7 +151,7 @@ Strip *SEQ_add_movieclip_strip(Scene *scene, ListBase *seqbase, SeqLoadData *loa
  * \param load_data: SeqLoadData with information necessary to create strip
  * \return created strip
  */
-Strip *SEQ_add_mask_strip(Scene *scene, ListBase *seqbase, SeqLoadData *load_data);
+Strip *add_mask_strip(Scene *scene, ListBase *seqbase, LoadData *load_data);
 /**
  * Add effect strip.
  *
@@ -158,14 +160,14 @@ Strip *SEQ_add_mask_strip(Scene *scene, ListBase *seqbase, SeqLoadData *load_dat
  * \param load_data: SeqLoadData with information necessary to create strip
  * \return created strip
  */
-Strip *SEQ_add_effect_strip(Scene *scene, ListBase *seqbase, SeqLoadData *load_data);
+Strip *add_effect_strip(Scene *scene, ListBase *seqbase, LoadData *load_data);
 /**
  * Set directory used by image strip.
  *
  * \param seq: image strip to be changed
  * \param path: directory path
  */
-void SEQ_add_image_set_directory(Strip *strip, const char *dirpath);
+void add_image_set_directory(Strip *strip, const char *dirpath);
 /**
  * Set directory used by image strip.
  *
@@ -173,13 +175,15 @@ void SEQ_add_image_set_directory(Strip *strip, const char *dirpath);
  * \param strip_frame: frame index of strip to be changed
  * \param filename: image filename (only filename, not complete path)
  */
-void SEQ_add_image_load_file(Scene *scene, Strip *strip, size_t strip_frame, const char *filename);
+void add_image_load_file(Scene *scene, Strip *strip, size_t strip_frame, const char *filename);
 /**
  * Set image strip alpha mode
  *
  * \param seq: image strip to be changed
  */
-void SEQ_add_image_init_alpha_mode(Strip *strip);
-void SEQ_add_reload_new_file(Main *bmain, Scene *scene, Strip *strip, bool lock_range);
-void SEQ_add_movie_reload_if_needed(
+void add_image_init_alpha_mode(Strip *strip);
+void add_reload_new_file(Main *bmain, Scene *scene, Strip *strip, bool lock_range);
+void add_movie_reload_if_needed(
     Main *bmain, Scene *scene, Strip *strip, bool *r_was_reloaded, bool *r_can_produce_frames);
+
+}  // namespace blender::seq

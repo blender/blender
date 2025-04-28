@@ -89,7 +89,7 @@ static void applySeqSlide(TransInfo *t)
   else {
     copy_v2_v2(values_final, t->values);
     transform_snap_mixed_apply(t, values_final);
-    if (!sequencer_retiming_mode_is_active(t->context)) {
+    if (!vse::sequencer_retiming_mode_is_active(t->context)) {
       transform_convert_sequencer_channel_clamp(t, values_final);
     }
 

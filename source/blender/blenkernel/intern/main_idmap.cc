@@ -79,7 +79,7 @@ IDNameLib_Map *BKE_main_idmap_create(Main *bmain,
                                      Main *old_bmain,
                                      const int idmap_types)
 {
-  IDNameLib_Map *id_map = static_cast<IDNameLib_Map *>(MEM_mallocN(sizeof(*id_map), __func__));
+  IDNameLib_Map *id_map = MEM_mallocN<IDNameLib_Map>(__func__);
   id_map->bmain = bmain;
   id_map->idmap_types = idmap_types;
 

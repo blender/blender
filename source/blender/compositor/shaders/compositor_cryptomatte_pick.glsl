@@ -26,11 +26,11 @@
 
 void main()
 {
-  ivec2 texel = ivec2(gl_GlobalInvocationID.xy);
+  int2 texel = int2(gl_GlobalInvocationID.xy);
 
   /* Each layer stores two ranks, each rank contains a pair, the identifier and the coverage of
    * the entity identified by the identifier. */
-  vec2 first_rank = texture_load(first_layer_tx, texel + lower_bound).xy;
+  float2 first_rank = texture_load(first_layer_tx, texel + lower_bound).xy;
   float id_of_first_rank = first_rank.x;
 
   /* There is no logic to this, we just compute arbitrary compressed versions of the identifier in
@@ -39,5 +39,5 @@ void main()
   float green = float(hash_value << 8) / float(0xFFFFFFFFu);
   float blue = float(hash_value << 16) / float(0xFFFFFFFFu);
 
-  imageStore(output_img, texel, vec4(id_of_first_rank, green, blue, 1.0));
+  imageStore(output_img, texel, float4(id_of_first_rank, green, blue, 1.0f));
 }

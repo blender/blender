@@ -20,25 +20,9 @@ CCL_NAMESPACE_BEGIN
  * Lookup of attributes is different between OSL and SVM, as OSL is ustring
  * based while for SVM we use integer ids. */
 
-/* Patch index for triangle, -1 if not subdivision triangle */
-
-ccl_device_inline uint subd_triangle_patch(KernelGlobals kg, const int prim)
-{
-  return (prim != PRIM_NONE) ? kernel_data_fetch(tri_patch, prim) : ~0;
-}
-
-ccl_device_inline uint attribute_primitive_type(KernelGlobals kg, const int prim, const int type)
-{
-  if ((type & PRIMITIVE_TRIANGLE) && subd_triangle_patch(kg, prim) != ~0) {
-    return ATTR_PRIM_SUBD;
-  }
-  return ATTR_PRIM_GEOMETRY;
-}
-
 ccl_device_inline AttributeDescriptor attribute_not_found()
 {
-  const AttributeDescriptor desc = {
-      ATTR_ELEMENT_NONE, (NodeAttributeType)0, 0, ATTR_STD_NOT_FOUND};
+  const AttributeDescriptor desc = {ATTR_ELEMENT_NONE, (NodeAttributeType)0, ATTR_STD_NOT_FOUND};
   return desc;
 }
 
@@ -49,8 +33,10 @@ ccl_device_inline uint object_attribute_map_offset(KernelGlobals kg, const int o
   return kernel_data_fetch(objects, object).attribute_map_offset;
 }
 
-ccl_device_inline AttributeDescriptor find_attribute(
-    KernelGlobals kg, const int object, const int prim, const int type, const uint64_t id)
+ccl_device_inline AttributeDescriptor find_attribute(KernelGlobals kg,
+                                                     const int object,
+                                                     const int prim,
+                                                     const uint64_t id)
 {
   if (object == OBJECT_NONE) {
     return attribute_not_found();
@@ -58,7 +44,6 @@ ccl_device_inline AttributeDescriptor find_attribute(
 
   /* for SVM, find attribute by unique id */
   uint attr_offset = object_attribute_map_offset(kg, object);
-  attr_offset += attribute_primitive_type(kg, prim, type);
   AttributeMap attr_map = kernel_data_fetch(attributes_map, attr_offset);
 
   while (attr_map.id != id) {
@@ -88,7 +73,6 @@ ccl_device_inline AttributeDescriptor find_attribute(
   desc.offset = (attr_map.element == ATTR_ELEMENT_NONE) ? (int)ATTR_STD_NOT_FOUND :
                                                           attr_map.offset;
   desc.type = (NodeAttributeType)attr_map.type;
-  desc.flags = (AttributeFlag)attr_map.flags;
 
   return desc;
 }
@@ -97,7 +81,7 @@ ccl_device_inline AttributeDescriptor find_attribute(KernelGlobals kg,
                                                      const ccl_private ShaderData *sd,
                                                      const uint64_t id)
 {
-  return find_attribute(kg, sd->object, sd->prim, sd->type, id);
+  return find_attribute(kg, sd->object, sd->prim, id);
 }
 
 /* Templated functions to read from the attribute data */

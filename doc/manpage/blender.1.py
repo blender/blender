@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 """
-This script generates the blender.1 man page, embedding the help text
+This script generates the ``blender.1`` man page, embedding the help text
 from the Blender executable itself. Invoke it as follows:
 
     blender.1.py --blender <path-to-blender> --output <output-filename>
@@ -199,7 +199,7 @@ def create_argparse() -> argparse.ArgumentParser:
     parser.add_argument(
         "--blender",
         required=True,
-        help="Path to the blender binary."
+        help="Path to the Blender binary."
     )
     parser.add_argument(
         "--verbose",

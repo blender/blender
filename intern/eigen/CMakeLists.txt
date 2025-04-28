@@ -7,7 +7,6 @@ set(INC
 )
 
 set(INC_SYS
-  ${EIGEN3_INCLUDE_DIRS}
 )
 
 set(SRC
@@ -25,12 +24,7 @@ set(SRC
 )
 
 set(LIB
+  PRIVATE bf::dependencies::eigen
 )
-
-if(WITH_OPENMP AND WITH_OPENMP_STATIC)
-  list(APPEND LIB
-    ${OpenMP_LIBRARIES}
-  )
-endif()
 
 blender_add_lib(bf_intern_eigen "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

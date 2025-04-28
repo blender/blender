@@ -29,6 +29,10 @@ if(WITH_LIBMV)
   add_definitions(${GLOG_DEFINES})
   add_definitions(-DLIBMV_GFLAGS_NAMESPACE=${GFLAGS_NAMESPACE})
 
+  if(WITH_TBB)
+    add_definitions(-DLIBMV_USE_TBB_THREADS)
+  endif()
+
   list(APPEND INC
     ${GFLAGS_INCLUDE_DIRS}
     ${GLOG_INCLUDE_DIRS}
@@ -36,7 +40,6 @@ if(WITH_LIBMV)
   )
 
   list(APPEND INC_SYS
-    ${EIGEN3_INCLUDE_DIRS}
     ${PNG_INCLUDE_DIRS}
     ${ZLIB_INCLUDE_DIRS}
     ../../extern/ceres/include
@@ -45,10 +48,13 @@ if(WITH_LIBMV)
 
   list(APPEND LIB
     extern_ceres
+    PUBLIC bf::dependencies::optional::tbb
 
     ${GLOG_LIBRARIES}
     ${GFLAGS_LIBRARIES}
     ${PNG_LIBRARIES}
+
+    PRIVATE bf::dependencies::eigen
   )
 
   add_definitions(
@@ -182,6 +188,7 @@ if(WITH_LIBMV)
     libmv/simple_pipeline/resect.h
     libmv/simple_pipeline/tracks.h
     libmv/threading/threading.h
+    libmv/threading/parallel_for.h
     libmv/tracking/brute_region_tracker.h
     libmv/tracking/hybrid_region_tracker.h
     libmv/tracking/kalman_filter.h
@@ -198,39 +205,40 @@ if(WITH_LIBMV)
 
 
   if(WITH_GTESTS)
-    blender_add_lib(libmv_test_dataset "./libmv/multiview/test_data_sets.cc" "${INC}" "${INC_SYS}" "")
+    blender_add_lib(libmv_test_dataset "./libmv/multiview/test_data_sets.cc" "${INC}" "${INC_SYS}" "${LIB}")
 
-    blender_add_test_executable("libmv_predict_tracks" "./libmv/autotrack/predict_tracks_test.cc" "${INC}" "${INC_SYS}" "libmv_test_dataset;bf_intern_libmv;extern_ceres")
-    blender_add_test_executable("libmv_tracks" "./libmv/autotrack/tracks_test.cc" "${INC}" "${INC_SYS}" "libmv_test_dataset;bf_intern_libmv;extern_ceres")
-    blender_add_test_executable("libmv_scoped_ptr" "./libmv/base/scoped_ptr_test.cc" "${INC}" "${INC_SYS}" "libmv_test_dataset;bf_intern_libmv;extern_ceres")
-    blender_add_test_executable("libmv_vector" "./libmv/base/vector_test.cc" "${INC}" "${INC_SYS}" "libmv_test_dataset;bf_intern_libmv;extern_ceres")
-    blender_add_test_executable("libmv_array_nd" "./libmv/image/array_nd_test.cc" "${INC}" "${INC_SYS}" "libmv_test_dataset;bf_intern_libmv;extern_ceres")
-    blender_add_test_executable("libmv_convolve" "./libmv/image/convolve_test.cc" "${INC}" "${INC_SYS}" "libmv_test_dataset;bf_intern_libmv;extern_ceres")
-    blender_add_test_executable("libmv_image" "./libmv/image/image_test.cc" "${INC}" "${INC_SYS}" "libmv_test_dataset;bf_intern_libmv;extern_ceres")
-    blender_add_test_executable("libmv_sample" "./libmv/image/sample_test.cc" "${INC}" "${INC_SYS}" "libmv_test_dataset;bf_intern_libmv;extern_ceres")
-    blender_add_test_executable("libmv_tuple" "./libmv/image/tuple_test.cc" "${INC}" "${INC_SYS}" "libmv_test_dataset;bf_intern_libmv;extern_ceres")
-    blender_add_test_executable("libmv_euclidean_resection" "./libmv/multiview/euclidean_resection_test.cc" "${INC}" "${INC_SYS}" "libmv_test_dataset;bf_intern_libmv;extern_ceres")
-    blender_add_test_executable("libmv_fundamental" "./libmv/multiview/fundamental_test.cc" "${INC}" "${INC_SYS}" "libmv_test_dataset;bf_intern_libmv;extern_ceres")
-    blender_add_test_executable("libmv_homography" "./libmv/multiview/homography_test.cc" "${INC}" "${INC_SYS}" "libmv_test_dataset;bf_intern_libmv;extern_ceres")
-    blender_add_test_executable("libmv_nviewtriangulation" "./libmv/multiview/nviewtriangulation_test.cc" "${INC}" "${INC_SYS}" "libmv_test_dataset;bf_intern_libmv;extern_ceres")
-    blender_add_test_executable("libmv_panography" "./libmv/multiview/panography_test.cc" "${INC}" "${INC_SYS}" "libmv_test_dataset;bf_intern_libmv;extern_ceres")
-    blender_add_test_executable("libmv_projection" "./libmv/multiview/projection_test.cc" "${INC}" "${INC_SYS}" "libmv_test_dataset;bf_intern_libmv;extern_ceres")
-    blender_add_test_executable("libmv_resection" "./libmv/multiview/resection_test.cc" "${INC}" "${INC_SYS}" "libmv_test_dataset;bf_intern_libmv;extern_ceres")
-    blender_add_test_executable("libmv_triangulation" "./libmv/multiview/triangulation_test.cc" "${INC}" "${INC_SYS}" "libmv_test_dataset;bf_intern_libmv;extern_ceres")
-    blender_add_test_executable("libmv_dogleg" "./libmv/numeric/dogleg_test.cc" "${INC}" "${INC_SYS}" "libmv_test_dataset;bf_intern_libmv;extern_ceres")
-    blender_add_test_executable("libmv_function_derivative" "./libmv/numeric/function_derivative_test.cc" "${INC}" "${INC_SYS}" "libmv_test_dataset;bf_intern_libmv;extern_ceres")
-    blender_add_test_executable("libmv_levenberg_marquardt" "./libmv/numeric/levenberg_marquardt_test.cc" "${INC}" "${INC_SYS}" "libmv_test_dataset;bf_intern_libmv;extern_ceres")
-    blender_add_test_executable("libmv_numeric" "./libmv/numeric/numeric_test.cc" "${INC}" "${INC_SYS}" "libmv_test_dataset;bf_intern_libmv;extern_ceres")
-    blender_add_test_executable("libmv_poly" "./libmv/numeric/poly_test.cc" "${INC}" "${INC_SYS}" "libmv_test_dataset;bf_intern_libmv;extern_ceres")
-    blender_add_test_executable("libmv_camera_intrinsics" "./libmv/simple_pipeline/camera_intrinsics_test.cc" "${INC}" "${INC_SYS}" "libmv_test_dataset;bf_intern_libmv;extern_ceres")
-    blender_add_test_executable("libmv_detect" "./libmv/simple_pipeline/detect_test.cc" "${INC}" "${INC_SYS}" "libmv_test_dataset;bf_intern_libmv;extern_ceres")
-    blender_add_test_executable("libmv_intersect" "./libmv/simple_pipeline/intersect_test.cc" "${INC}" "${INC_SYS}" "libmv_test_dataset;bf_intern_libmv;extern_ceres")
-    blender_add_test_executable("libmv_keyframe_selection" "./libmv/simple_pipeline/keyframe_selection_test.cc" "${INC}" "${INC_SYS}" "libmv_test_dataset;bf_intern_libmv;extern_ceres")
-    blender_add_test_executable("libmv_modal_solver" "./libmv/simple_pipeline/modal_solver_test.cc" "${INC}" "${INC_SYS}" "libmv_test_dataset;bf_intern_libmv;extern_ceres")
-    blender_add_test_executable("libmv_resect" "./libmv/simple_pipeline/resect_test.cc" "${INC}" "${INC_SYS}" "libmv_test_dataset;bf_intern_libmv;extern_ceres")
-    blender_add_test_executable("libmv_brute_region_tracker" "./libmv/tracking/brute_region_tracker_test.cc" "${INC}" "${INC_SYS}" "libmv_test_dataset;bf_intern_libmv;extern_ceres")
-    blender_add_test_executable("libmv_klt_region_tracker" "./libmv/tracking/klt_region_tracker_test.cc" "${INC}" "${INC_SYS}" "libmv_test_dataset;bf_intern_libmv;extern_ceres")
-    blender_add_test_executable("libmv_pyramid_region_tracker" "./libmv/tracking/pyramid_region_tracker_test.cc" "${INC}" "${INC_SYS}" "libmv_test_dataset;bf_intern_libmv;extern_ceres")
+    blender_add_test_executable("libmv_predict_tracks" "./libmv/autotrack/predict_tracks_test.cc" "${INC}" "${INC_SYS}" "libmv_test_dataset;bf_intern_libmv;${LIB}")
+    blender_add_test_executable("libmv_tracks" "./libmv/autotrack/tracks_test.cc" "${INC}" "${INC_SYS}" "libmv_test_dataset;bf_intern_libmv;${LIB}")
+    blender_add_test_executable("libmv_scoped_ptr" "./libmv/base/scoped_ptr_test.cc" "${INC}" "${INC_SYS}" "libmv_test_dataset;bf_intern_libmv;${LIB}")
+    blender_add_test_executable("libmv_vector" "./libmv/base/vector_test.cc" "${INC}" "${INC_SYS}" "libmv_test_dataset;bf_intern_libmv;${LIB}")
+    blender_add_test_executable("libmv_array_nd" "./libmv/image/array_nd_test.cc" "${INC}" "${INC_SYS}" "libmv_test_dataset;bf_intern_libmv;${LIB}")
+    blender_add_test_executable("libmv_convolve" "./libmv/image/convolve_test.cc" "${INC}" "${INC_SYS}" "libmv_test_dataset;bf_intern_libmv;${LIB}")
+    blender_add_test_executable("libmv_image" "./libmv/image/image_test.cc" "${INC}" "${INC_SYS}" "libmv_test_dataset;bf_intern_libmv;${LIB}")
+    blender_add_test_executable("libmv_sample" "./libmv/image/sample_test.cc" "${INC}" "${INC_SYS}" "libmv_test_dataset;bf_intern_libmv;${LIB}")
+    blender_add_test_executable("libmv_tuple" "./libmv/image/tuple_test.cc" "${INC}" "${INC_SYS}" "libmv_test_dataset;bf_intern_libmv;${LIB}")
+    blender_add_test_executable("libmv_euclidean_resection" "./libmv/multiview/euclidean_resection_test.cc" "${INC}" "${INC_SYS}" "libmv_test_dataset;bf_intern_libmv;${LIB}")
+    blender_add_test_executable("libmv_fundamental" "./libmv/multiview/fundamental_test.cc" "${INC}" "${INC_SYS}" "libmv_test_dataset;bf_intern_libmv;${LIB}")
+    blender_add_test_executable("libmv_homography" "./libmv/multiview/homography_test.cc" "${INC}" "${INC_SYS}" "libmv_test_dataset;bf_intern_libmv;${LIB}")
+    blender_add_test_executable("libmv_nviewtriangulation" "./libmv/multiview/nviewtriangulation_test.cc" "${INC}" "${INC_SYS}" "libmv_test_dataset;bf_intern_libmv;${LIB}")
+    blender_add_test_executable("libmv_panography" "./libmv/multiview/panography_test.cc" "${INC}" "${INC_SYS}" "libmv_test_dataset;bf_intern_libmv;${LIB}")
+    blender_add_test_executable("libmv_projection" "./libmv/multiview/projection_test.cc" "${INC}" "${INC_SYS}" "libmv_test_dataset;bf_intern_libmv;${LIB}")
+    blender_add_test_executable("libmv_resection" "./libmv/multiview/resection_test.cc" "${INC}" "${INC_SYS}" "libmv_test_dataset;bf_intern_libmv;${LIB}")
+    blender_add_test_executable("libmv_triangulation" "./libmv/multiview/triangulation_test.cc" "${INC}" "${INC_SYS}" "libmv_test_dataset;bf_intern_libmv;${LIB}")
+    blender_add_test_executable("libmv_dogleg" "./libmv/numeric/dogleg_test.cc" "${INC}" "${INC_SYS}" "libmv_test_dataset;bf_intern_libmv;${LIB}")
+    blender_add_test_executable("libmv_function_derivative" "./libmv/numeric/function_derivative_test.cc" "${INC}" "${INC_SYS}" "libmv_test_dataset;bf_intern_libmv;${LIB}")
+    blender_add_test_executable("libmv_levenberg_marquardt" "./libmv/numeric/levenberg_marquardt_test.cc" "${INC}" "${INC_SYS}" "libmv_test_dataset;bf_intern_libmv;${LIB}")
+    blender_add_test_executable("libmv_numeric" "./libmv/numeric/numeric_test.cc" "${INC}" "${INC_SYS}" "libmv_test_dataset;bf_intern_libmv;${LIB}")
+    blender_add_test_executable("libmv_poly" "./libmv/numeric/poly_test.cc" "${INC}" "${INC_SYS}" "libmv_test_dataset;bf_intern_libmv;${LIB}")
+    blender_add_test_executable("libmv_camera_intrinsics" "./libmv/simple_pipeline/camera_intrinsics_test.cc" "${INC}" "${INC_SYS}" "libmv_test_dataset;bf_intern_libmv;${LIB}")
+    blender_add_test_executable("libmv_detect" "./libmv/simple_pipeline/detect_test.cc" "${INC}" "${INC_SYS}" "libmv_test_dataset;bf_intern_libmv;${LIB}")
+    blender_add_test_executable("libmv_intersect" "./libmv/simple_pipeline/intersect_test.cc" "${INC}" "${INC_SYS}" "libmv_test_dataset;bf_intern_libmv;${LIB}")
+    blender_add_test_executable("libmv_keyframe_selection" "./libmv/simple_pipeline/keyframe_selection_test.cc" "${INC}" "${INC_SYS}" "libmv_test_dataset;bf_intern_libmv;${LIB}")
+    blender_add_test_executable("libmv_modal_solver" "./libmv/simple_pipeline/modal_solver_test.cc" "${INC}" "${INC_SYS}" "libmv_test_dataset;bf_intern_libmv;${LIB}")
+    blender_add_test_executable("libmv_resect" "./libmv/simple_pipeline/resect_test.cc" "${INC}" "${INC_SYS}" "libmv_test_dataset;bf_intern_libmv;${LIB}")
+    blender_add_test_executable("libmv_brute_region_tracker" "./libmv/tracking/brute_region_tracker_test.cc" "${INC}" "${INC_SYS}" "libmv_test_dataset;bf_intern_libmv;${LIB}")
+    blender_add_test_executable("libmv_klt_region_tracker" "./libmv/tracking/klt_region_tracker_test.cc" "${INC}" "${INC_SYS}" "libmv_test_dataset;bf_intern_libmv;${LIB}")
+    blender_add_test_executable("libmv_pyramid_region_tracker" "./libmv/tracking/pyramid_region_tracker_test.cc" "${INC}" "${INC_SYS}" "libmv_test_dataset;bf_intern_libmv;${LIB}")
+    blender_add_test_executable("libmv_parallel_for" "./libmv/threading/parallel_for_test.cc" "${INC}" "${INC_SYS}" "libmv_test_dataset;bf_intern_libmv;${LIB}")
   endif()
 else()
   list(APPEND SRC

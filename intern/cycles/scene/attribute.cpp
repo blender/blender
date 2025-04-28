@@ -193,10 +193,6 @@ size_t Attribute::data_sizeof() const
 
 size_t Attribute::element_size(Geometry *geom, AttributePrimitive prim) const
 {
-  if (flags & ATTR_FINAL_SIZE) {
-    return buffer.size() / data_sizeof();
-  }
-
   size_t size = 0;
 
   switch (element) {
@@ -208,9 +204,11 @@ size_t Attribute::element_size(Geometry *geom, AttributePrimitive prim) const
     case ATTR_ELEMENT_VERTEX:
       if (geom->is_mesh() || geom->is_volume()) {
         Mesh *mesh = static_cast<Mesh *>(geom);
-        size = mesh->get_verts().size() + mesh->get_num_ngons();
         if (prim == ATTR_PRIM_SUBD) {
-          size -= mesh->get_num_subd_verts();
+          size = mesh->get_num_subd_base_verts();
+        }
+        else {
+          size = mesh->get_verts().size();
         }
       }
       else if (geom->is_pointcloud()) {
@@ -222,9 +220,11 @@ size_t Attribute::element_size(Geometry *geom, AttributePrimitive prim) const
       if (geom->is_mesh()) {
         Mesh *mesh = static_cast<Mesh *>(geom);
         DCHECK_GT(mesh->get_motion_steps(), 0);
-        size = (mesh->get_verts().size() + mesh->get_num_ngons()) * (mesh->get_motion_steps() - 1);
         if (prim == ATTR_PRIM_SUBD) {
-          size -= mesh->get_num_subd_verts() * (mesh->get_motion_steps() - 1);
+          size = mesh->get_num_subd_base_verts() * (mesh->get_motion_steps() - 1);
+        }
+        else {
+          size = mesh->get_verts().size() * (mesh->get_motion_steps() - 1);
         }
       }
       else if (geom->is_pointcloud()) {
@@ -235,11 +235,11 @@ size_t Attribute::element_size(Geometry *geom, AttributePrimitive prim) const
     case ATTR_ELEMENT_FACE:
       if (geom->is_mesh() || geom->is_volume()) {
         Mesh *mesh = static_cast<Mesh *>(geom);
-        if (prim == ATTR_PRIM_GEOMETRY) {
-          size = mesh->num_triangles();
+        if (prim == ATTR_PRIM_SUBD) {
+          size = mesh->get_num_subd_faces();
         }
         else {
-          size = mesh->get_num_subd_faces() + mesh->get_num_ngons();
+          size = mesh->num_triangles();
         }
       }
       break;
@@ -247,11 +247,11 @@ size_t Attribute::element_size(Geometry *geom, AttributePrimitive prim) const
     case ATTR_ELEMENT_CORNER_BYTE:
       if (geom->is_mesh()) {
         Mesh *mesh = static_cast<Mesh *>(geom);
-        if (prim == ATTR_PRIM_GEOMETRY) {
-          size = mesh->num_triangles() * 3;
+        if (prim == ATTR_PRIM_SUBD) {
+          size = mesh->get_subd_face_corners().size();
         }
         else {
-          size = mesh->get_subd_face_corners().size() + mesh->get_num_ngons();
+          size = mesh->num_triangles() * 3;
         }
       }
       break;
@@ -305,35 +305,11 @@ void Attribute::zero_data(void *dst)
   memset(dst, 0, data_sizeof());
 }
 
-void Attribute::add_with_weight(void *dst, void *src, const float weight)
-{
-  if (element == ATTR_ELEMENT_CORNER_BYTE) {
-    for (int i = 0; i < 4; i++) {
-      ((uchar *)dst)[i] += uchar(((uchar *)src)[i] * weight);
-    }
-  }
-  else if (same_storage(type, TypeFloat)) {
-    *((float *)dst) += *((float *)src) * weight;
-  }
-  else if (same_storage(type, TypeFloat2)) {
-    *((float2 *)dst) += *((float2 *)src) * weight;
-  }
-  else if (same_storage(type, TypeVector)) {
-    // Points are float3s and not float4s
-    *((float3 *)dst) += *((float3 *)src) * weight;
-  }
-  else {
-    assert(!"not implemented for this type");
-  }
-}
-
 const char *Attribute::standard_name(AttributeStandard std)
 {
   switch (std) {
     case ATTR_STD_VERTEX_NORMAL:
       return "N";
-    case ATTR_STD_FACE_NORMAL:
-      return "Ng";
     case ATTR_STD_UV:
       return "uv";
     case ATTR_STD_GENERATED:
@@ -537,9 +513,6 @@ Attribute *AttributeSet::add(AttributeStandard std, ustring name)
       case ATTR_STD_VERTEX_NORMAL:
         attr = add(name, TypeNormal, ATTR_ELEMENT_VERTEX);
         break;
-      case ATTR_STD_FACE_NORMAL:
-        attr = add(name, TypeNormal, ATTR_ELEMENT_FACE);
-        break;
       case ATTR_STD_UV:
         attr = add(name, TypeFloat2, ATTR_ELEMENT_CORNER);
         break;
@@ -567,7 +540,7 @@ Attribute *AttributeSet::add(AttributeStandard std, ustring name)
         attr = add(name, TypeFloat, ATTR_ELEMENT_FACE);
         break;
       case ATTR_STD_PTEX_UV:
-        attr = add(name, TypePoint, ATTR_ELEMENT_VERTEX);
+        attr = add(name, TypeFloat2, ATTR_ELEMENT_CORNER);
         break;
       case ATTR_STD_GENERATED_TRANSFORM:
         attr = add(name, TypeMatrix, ATTR_ELEMENT_MESH);
@@ -609,9 +582,6 @@ Attribute *AttributeSet::add(AttributeStandard std, ustring name)
     switch (std) {
       case ATTR_STD_VERTEX_NORMAL:
         attr = add(name, TypeNormal, ATTR_ELEMENT_VERTEX);
-        break;
-      case ATTR_STD_FACE_NORMAL:
-        attr = add(name, TypeNormal, ATTR_ELEMENT_FACE);
         break;
       case ATTR_STD_VOLUME_DENSITY:
       case ATTR_STD_VOLUME_FLAME:
@@ -677,6 +647,13 @@ Attribute *AttributeSet::add(AttributeStandard std, ustring name)
   attr->std = std;
 
   return attr;
+}
+
+Attribute &AttributeSet::copy(const Attribute &attr)
+{
+  Attribute &copy_attr = *add(attr.name, attr.type, attr.element);
+  copy_attr.std = attr.std;
+  return copy_attr;
 }
 
 Attribute *AttributeSet::find(AttributeStandard std) const
@@ -814,8 +791,7 @@ void AttributeSet::tag_modified(const Attribute &attr)
   /* Some attributes are not stored in the various kernel attribute arrays
    * (DeviceScene::attribute_*), so the modified flags are only set if the associated standard
    * corresponds to an attribute which will be stored in the kernel's attribute arrays. */
-  const bool modifies_device_array = (attr.std != ATTR_STD_FACE_NORMAL &&
-                                      attr.std != ATTR_STD_VERTEX_NORMAL);
+  const bool modifies_device_array = (attr.std != ATTR_STD_VERTEX_NORMAL);
 
   if (modifies_device_array) {
     const AttrKernelDataType kernel_type = Attribute::kernel_type(attr);
@@ -839,11 +815,6 @@ AttributeRequest::AttributeRequest(ustring name_)
   desc.element = ATTR_ELEMENT_NONE;
   desc.offset = 0;
   desc.type = NODE_ATTR_FLOAT;
-
-  subd_type = TypeFloat;
-  subd_desc.element = ATTR_ELEMENT_NONE;
-  subd_desc.offset = 0;
-  subd_desc.type = NODE_ATTR_FLOAT;
 }
 
 AttributeRequest::AttributeRequest(AttributeStandard std_)
@@ -855,11 +826,6 @@ AttributeRequest::AttributeRequest(AttributeStandard std_)
   desc.element = ATTR_ELEMENT_NONE;
   desc.offset = 0;
   desc.type = NODE_ATTR_FLOAT;
-
-  subd_type = TypeFloat;
-  subd_desc.element = ATTR_ELEMENT_NONE;
-  subd_desc.offset = 0;
-  subd_desc.type = NODE_ATTR_FLOAT;
 }
 
 /* AttributeRequestSet */

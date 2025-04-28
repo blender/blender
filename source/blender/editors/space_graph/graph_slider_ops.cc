@@ -22,6 +22,7 @@
 
 #include "DEG_depsgraph.hh"
 #include "DNA_anim_types.h"
+#include "DNA_curve_types.h"
 #include "DNA_scene_types.h"
 
 #include "RNA_access.hh"
@@ -30,6 +31,7 @@
 #include "BLT_translation.hh"
 
 #include "BKE_context.hh"
+#include "BKE_report.hh"
 
 #include "UI_interface.hh"
 
@@ -160,20 +162,17 @@ static void store_original_bezt_arrays(tGraphSliderOp *gso)
       continue;
     }
 
-    const int arr_size = sizeof(BezTriple) * fcu->totvert;
-
-    tBeztCopyData *copy = static_cast<tBeztCopyData *>(
-        MEM_mallocN(sizeof(tBeztCopyData), "bezts_copy"));
-    BezTriple *bezts_copy = static_cast<BezTriple *>(MEM_mallocN(arr_size, "bezts_copy_array"));
+    tBeztCopyData *copy = MEM_mallocN<tBeztCopyData>("bezts_copy");
+    BezTriple *bezts_copy = MEM_malloc_arrayN<BezTriple>(fcu->totvert, "bezts_copy_array");
 
     copy->tot_vert = fcu->totvert;
-    memcpy(bezts_copy, fcu->bezt, arr_size);
+    memcpy(bezts_copy, fcu->bezt, sizeof(BezTriple) * fcu->totvert);
 
     copy->bezt = bezts_copy;
 
     LinkData *link = nullptr;
 
-    link = static_cast<LinkData *>(MEM_callocN(sizeof(LinkData), "Bezt Link"));
+    link = MEM_callocN<LinkData>("Bezt Link");
     link->data = copy;
 
     BLI_addtail(&gso->bezt_arr_list, link);
@@ -210,14 +209,12 @@ static void reset_bezts(tGraphSliderOp *gso)
 
     tBeztCopyData *data = static_cast<tBeztCopyData *>(link_bezt->data);
 
-    const int arr_size = sizeof(BezTriple) * data->tot_vert;
-
     MEM_freeN(fcu->bezt);
 
-    fcu->bezt = static_cast<BezTriple *>(MEM_mallocN(arr_size, __func__));
+    fcu->bezt = MEM_malloc_arrayN<BezTriple>(data->tot_vert, __func__);
     fcu->totvert = data->tot_vert;
 
-    memcpy(fcu->bezt, data->bezt, arr_size);
+    memcpy(fcu->bezt, data->bezt, sizeof(BezTriple) * data->tot_vert);
 
     link_bezt = link_bezt->next;
   }
@@ -295,7 +292,7 @@ static void update_depsgraph(tGraphSliderOp *gso)
   ANIM_animdata_freelist(&anim_data);
 }
 
-static int graph_slider_modal(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus graph_slider_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   tGraphSliderOp *gso = static_cast<tGraphSliderOp *>(op->customdata);
 
@@ -385,7 +382,7 @@ static int graph_slider_modal(bContext *C, wmOperator *op, const wmEvent *event)
 }
 
 /* Allocate tGraphSliderOp and assign to op->customdata. */
-static int graph_slider_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus graph_slider_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   tGraphSliderOp *gso;
 
@@ -400,6 +397,7 @@ static int graph_slider_invoke(bContext *C, wmOperator *op, const wmEvent *event
     graph_slider_exit(C, op);
     return OPERATOR_CANCELLED;
   }
+  gso->ac.reports = op->reports;
 
   gso->scene = CTX_data_scene(C);
   gso->area = CTX_wm_area(C);
@@ -411,7 +409,7 @@ static int graph_slider_invoke(bContext *C, wmOperator *op, const wmEvent *event
   ED_slider_init(gso->slider, event);
 
   if (gso->bezt_arr_list.first == nullptr) {
-    WM_report(RPT_ERROR, "Cannot find keys to operate on");
+    BKE_report(op->reports, RPT_ERROR, "Cannot find keys to operate on");
     graph_slider_exit(C, op);
     return OPERATOR_CANCELLED;
   }
@@ -443,7 +441,7 @@ static void decimate_graph_keys(bAnimContext *ac, float factor, float error_sq_m
   LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
     if (!decimate_fcurve(ale, factor, error_sq_max)) {
       /* The selection contains unsupported keyframe types! */
-      WM_report(RPT_WARNING, "Decimate: Skipping non linear/Bézier keyframes!");
+      BKE_report(ac->reports, RPT_WARNING, "Decimate: Skipping non linear/Bézier keyframes!");
     }
 
     ale->update |= ANIM_UPDATE_DEFAULT;
@@ -489,9 +487,9 @@ static void decimate_modal_update(bContext *C, wmOperator *op)
   WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, nullptr);
 }
 
-static int decimate_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus decimate_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  const int invoke_result = graph_slider_invoke(C, op, event);
+  const wmOperatorStatus invoke_result = graph_slider_invoke(C, op, event);
 
   if (invoke_result == OPERATOR_CANCELLED) {
     return OPERATOR_CANCELLED;
@@ -505,7 +503,7 @@ static int decimate_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   return invoke_result;
 }
 
-static int decimate_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus decimate_exec(bContext *C, wmOperator *op)
 {
   bAnimContext ac;
 
@@ -662,9 +660,9 @@ static void blend_to_neighbor_modal_update(bContext *C, wmOperator *op)
   WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, nullptr);
 }
 
-static int blend_to_neighbor_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus blend_to_neighbor_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  const int invoke_result = graph_slider_invoke(C, op, event);
+  const wmOperatorStatus invoke_result = graph_slider_invoke(C, op, event);
 
   if (invoke_result == OPERATOR_CANCELLED) {
     return invoke_result;
@@ -680,7 +678,7 @@ static int blend_to_neighbor_invoke(bContext *C, wmOperator *op, const wmEvent *
   return invoke_result;
 }
 
-static int blend_to_neighbor_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus blend_to_neighbor_exec(bContext *C, wmOperator *op)
 {
   bAnimContext ac;
 
@@ -749,9 +747,9 @@ static void breakdown_modal_update(bContext *C, wmOperator *op)
   WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, nullptr);
 }
 
-static int breakdown_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus breakdown_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  const int invoke_result = graph_slider_invoke(C, op, event);
+  const wmOperatorStatus invoke_result = graph_slider_invoke(C, op, event);
 
   if (invoke_result == OPERATOR_CANCELLED) {
     return invoke_result;
@@ -767,7 +765,7 @@ static int breakdown_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   return invoke_result;
 }
 
-static int breakdown_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus breakdown_exec(bContext *C, wmOperator *op)
 {
   bAnimContext ac;
 
@@ -856,9 +854,9 @@ static void blend_to_default_modal_update(bContext *C, wmOperator *op)
   WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, nullptr);
 }
 
-static int blend_to_default_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus blend_to_default_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  const int invoke_result = graph_slider_invoke(C, op, event);
+  const wmOperatorStatus invoke_result = graph_slider_invoke(C, op, event);
 
   if (invoke_result == OPERATOR_CANCELLED) {
     return invoke_result;
@@ -873,7 +871,7 @@ static int blend_to_default_invoke(bContext *C, wmOperator *op, const wmEvent *e
   return invoke_result;
 }
 
-static int blend_to_default_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus blend_to_default_exec(bContext *C, wmOperator *op)
 {
   bAnimContext ac;
 
@@ -992,7 +990,7 @@ static void ease_modal_update(bContext *C, wmOperator *op)
   WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, nullptr);
 }
 
-static int ease_modal(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus ease_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   if (event->val != KM_PRESS) {
     return graph_slider_modal(C, op, event);
@@ -1029,9 +1027,9 @@ static int ease_modal(bContext *C, wmOperator *op, const wmEvent *event)
   return OPERATOR_RUNNING_MODAL;
 }
 
-static int ease_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus ease_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  const int invoke_result = graph_slider_invoke(C, op, event);
+  const wmOperatorStatus invoke_result = graph_slider_invoke(C, op, event);
 
   if (invoke_result == OPERATOR_CANCELLED) {
     return invoke_result;
@@ -1049,7 +1047,7 @@ static int ease_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   return invoke_result;
 }
 
-static int ease_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus ease_exec(bContext *C, wmOperator *op)
 {
   bAnimContext ac;
 
@@ -1133,9 +1131,9 @@ static void blend_offset_modal_update(bContext *C, wmOperator *op)
   WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, nullptr);
 }
 
-static int blend_offset_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus blend_offset_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  const int invoke_result = graph_slider_invoke(C, op, event);
+  const wmOperatorStatus invoke_result = graph_slider_invoke(C, op, event);
 
   if (invoke_result == OPERATOR_CANCELLED) {
     return invoke_result;
@@ -1151,7 +1149,7 @@ static int blend_offset_invoke(bContext *C, wmOperator *op, const wmEvent *event
   return invoke_result;
 }
 
-static int blend_offset_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus blend_offset_exec(bContext *C, wmOperator *op)
 {
   bAnimContext ac;
 
@@ -1226,9 +1224,9 @@ static void blend_to_ease_modal_update(bContext *C, wmOperator *op)
   WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, nullptr);
 }
 
-static int blend_to_ease_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus blend_to_ease_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  const int invoke_result = graph_slider_invoke(C, op, event);
+  const wmOperatorStatus invoke_result = graph_slider_invoke(C, op, event);
 
   if (invoke_result == OPERATOR_CANCELLED) {
     return invoke_result;
@@ -1245,7 +1243,7 @@ static int blend_to_ease_invoke(bContext *C, wmOperator *op, const wmEvent *even
   return invoke_result;
 }
 
-static int blend_to_ease_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus blend_to_ease_exec(bContext *C, wmOperator *op)
 {
   bAnimContext ac;
 
@@ -1319,10 +1317,12 @@ static void match_slope_graph_keys(bAnimContext *ac, const float factor)
 
   if (!all_segments_valid) {
     if (factor >= 0) {
-      WM_report(RPT_WARNING, "You need at least 2 keys to the right side of the selection");
+      BKE_report(
+          ac->reports, RPT_WARNING, "You need at least 2 keys to the right side of the selection");
     }
     else {
-      WM_report(RPT_WARNING, "You need at least 2 keys to the left side of the selection");
+      BKE_report(
+          ac->reports, RPT_WARNING, "You need at least 2 keys to the left side of the selection");
     }
   }
 
@@ -1348,9 +1348,9 @@ static void match_slope_modal_update(bContext *C, wmOperator *op)
   WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, nullptr);
 }
 
-static int match_slope_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus match_slope_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  const int invoke_result = graph_slider_invoke(C, op, event);
+  const wmOperatorStatus invoke_result = graph_slider_invoke(C, op, event);
 
   if (invoke_result == OPERATOR_CANCELLED) {
     return invoke_result;
@@ -1367,7 +1367,7 @@ static int match_slope_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   return invoke_result;
 }
 
-static int match_slope_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus match_slope_exec(bContext *C, wmOperator *op)
 {
   bAnimContext ac;
 
@@ -1375,6 +1375,7 @@ static int match_slope_exec(bContext *C, wmOperator *op)
   if (ANIM_animdata_get_context(C, &ac) == 0) {
     return OPERATOR_CANCELLED;
   }
+  ac.reports = op->reports;
 
   const float factor = RNA_float_get(op->ptr, "factor");
 
@@ -1440,9 +1441,9 @@ static void time_offset_modal_update(bContext *C, wmOperator *op)
   WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, nullptr);
 }
 
-static int time_offset_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus time_offset_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  const int invoke_result = graph_slider_invoke(C, op, event);
+  const wmOperatorStatus invoke_result = graph_slider_invoke(C, op, event);
 
   if (invoke_result == OPERATOR_CANCELLED) {
     return invoke_result;
@@ -1461,7 +1462,7 @@ static int time_offset_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   return invoke_result;
 }
 
-static int time_offset_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus time_offset_exec(bContext *C, wmOperator *op)
 {
   bAnimContext ac;
 
@@ -1585,7 +1586,7 @@ static void shear_modal_update(bContext *C, wmOperator *op)
   WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, nullptr);
 }
 
-static int shear_modal(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus shear_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   if (event->val != KM_PRESS) {
     return graph_slider_modal(C, op, event);
@@ -1608,9 +1609,9 @@ static int shear_modal(bContext *C, wmOperator *op, const wmEvent *event)
   return OPERATOR_RUNNING_MODAL;
 }
 
-static int shear_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus shear_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  const int invoke_result = graph_slider_invoke(C, op, event);
+  const wmOperatorStatus invoke_result = graph_slider_invoke(C, op, event);
 
   if (invoke_result == OPERATOR_CANCELLED) {
     return invoke_result;
@@ -1628,7 +1629,7 @@ static int shear_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   return invoke_result;
 }
 
-static int shear_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus shear_exec(bContext *C, wmOperator *op)
 {
   bAnimContext ac;
 
@@ -1706,9 +1707,9 @@ static void scale_average_modal_update(bContext *C, wmOperator *op)
   WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, nullptr);
 }
 
-static int scale_average_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus scale_average_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  const int invoke_result = graph_slider_invoke(C, op, event);
+  const wmOperatorStatus invoke_result = graph_slider_invoke(C, op, event);
 
   if (invoke_result == OPERATOR_CANCELLED) {
     return invoke_result;
@@ -1724,7 +1725,7 @@ static int scale_average_invoke(bContext *C, wmOperator *op, const wmEvent *even
   return invoke_result;
 }
 
-static int scale_average_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus scale_average_exec(bContext *C, wmOperator *op)
 {
   bAnimContext ac;
 
@@ -1797,11 +1798,9 @@ static void gaussian_smooth_allocate_operator_data(tGraphSliderOp *gso,
                                                    const int filter_width,
                                                    const float sigma)
 {
-  tGaussOperatorData *operator_data = static_cast<tGaussOperatorData *>(
-      MEM_callocN(sizeof(tGaussOperatorData), "tGaussOperatorData"));
+  tGaussOperatorData *operator_data = MEM_callocN<tGaussOperatorData>("tGaussOperatorData");
   const int kernel_size = filter_width + 1;
-  double *kernel = static_cast<double *>(
-      MEM_callocN(sizeof(double) * kernel_size, "Gauss Kernel"));
+  double *kernel = MEM_calloc_arrayN<double>(kernel_size, "Gauss Kernel");
   ED_ANIM_get_1d_gauss_kernel(sigma, kernel_size, kernel);
   operator_data->kernel = kernel;
 
@@ -1814,16 +1813,14 @@ static void gaussian_smooth_allocate_operator_data(tGraphSliderOp *gso,
     FCurve *fcu = (FCurve *)ale->key_data;
     ListBase fcu_segments = find_fcurve_segments(fcu);
     LISTBASE_FOREACH (FCurveSegment *, segment, &fcu_segments) {
-      tFCurveSegmentLink *segment_link = static_cast<tFCurveSegmentLink *>(
-          MEM_callocN(sizeof(tFCurveSegmentLink), "FCurve Segment Link"));
+      tFCurveSegmentLink *segment_link = MEM_callocN<tFCurveSegmentLink>("FCurve Segment Link");
       segment_link->fcu = fcu;
       segment_link->segment = segment;
       BezTriple left_bezt = fcu->bezt[segment->start_index];
       BezTriple right_bezt = fcu->bezt[segment->start_index + segment->length - 1];
       const int sample_count = int(right_bezt.vec[1][0] - left_bezt.vec[1][0]) +
                                (filter_width * 2 + 1);
-      float *samples = static_cast<float *>(
-          MEM_callocN(sizeof(float) * sample_count, "Smooth FCurve Op Samples"));
+      float *samples = MEM_calloc_arrayN<float>(sample_count, "Smooth FCurve Op Samples");
       blender::animrig::sample_fcurve_segment(
           fcu, left_bezt.vec[1][0] - filter_width, 1, samples, sample_count);
       segment_link->samples = samples;
@@ -1882,9 +1879,9 @@ static void gaussian_smooth_modal_update(bContext *C, wmOperator *op)
   WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, nullptr);
 }
 
-static int gaussian_smooth_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus gaussian_smooth_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  const int invoke_result = graph_slider_invoke(C, op, event);
+  const wmOperatorStatus invoke_result = graph_slider_invoke(C, op, event);
 
   if (invoke_result == OPERATOR_CANCELLED) {
     return invoke_result;
@@ -1925,8 +1922,7 @@ static void gaussian_smooth_graph_keys(bAnimContext *ac,
       BezTriple right_bezt = fcu->bezt[segment->start_index + segment->length - 1];
       const int sample_count = int(right_bezt.vec[1][0] - left_bezt.vec[1][0]) +
                                (filter_width * 2 + 1);
-      float *samples = static_cast<float *>(
-          MEM_callocN(sizeof(float) * sample_count, "Smooth FCurve Op Samples"));
+      float *samples = MEM_calloc_arrayN<float>(sample_count, "Smooth FCurve Op Samples");
       blender::animrig::sample_fcurve_segment(
           fcu, left_bezt.vec[1][0] - filter_width, 1, samples, sample_count);
       smooth_fcurve_segment(fcu, segment, samples, factor, filter_width, kernel);
@@ -1941,7 +1937,7 @@ static void gaussian_smooth_graph_keys(bAnimContext *ac,
   ANIM_animdata_freelist(&anim_data);
 }
 
-static int gaussian_smooth_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus gaussian_smooth_exec(bContext *C, wmOperator *op)
 {
   bAnimContext ac;
 
@@ -1951,8 +1947,7 @@ static int gaussian_smooth_exec(bContext *C, wmOperator *op)
   const float factor = RNA_float_get(op->ptr, "factor");
   const int filter_width = RNA_int_get(op->ptr, "filter_width");
   const int kernel_size = filter_width + 1;
-  double *kernel = static_cast<double *>(
-      MEM_callocN(sizeof(double) * kernel_size, "Gauss Kernel"));
+  double *kernel = MEM_calloc_arrayN<double>(kernel_size, "Gauss Kernel");
   ED_ANIM_get_1d_gauss_kernel(RNA_float_get(op->ptr, "sigma"), kernel_size, kernel);
 
   gaussian_smooth_graph_keys(&ac, factor, kernel, filter_width);
@@ -2041,8 +2036,7 @@ static void btw_smooth_allocate_operator_data(tGraphSliderOp *gso,
                                               const int filter_order,
                                               const int samples_per_frame)
 {
-  tBtwOperatorData *operator_data = static_cast<tBtwOperatorData *>(
-      MEM_callocN(sizeof(tBtwOperatorData), "tBtwOperatorData"));
+  tBtwOperatorData *operator_data = MEM_callocN<tBtwOperatorData>("tBtwOperatorData");
 
   operator_data->coefficients = ED_anim_allocate_butterworth_coefficients(filter_order);
 
@@ -2057,16 +2051,14 @@ static void btw_smooth_allocate_operator_data(tGraphSliderOp *gso,
 
     LISTBASE_FOREACH (FCurveSegment *, segment, &fcu_segments) {
 
-      tFCurveSegmentLink *segment_link = static_cast<tFCurveSegmentLink *>(
-          MEM_callocN(sizeof(tFCurveSegmentLink), "FCurve Segment Link"));
+      tFCurveSegmentLink *segment_link = MEM_callocN<tFCurveSegmentLink>("FCurve Segment Link");
       segment_link->fcu = fcu;
       segment_link->segment = segment;
       BezTriple left_bezt = fcu->bezt[segment->start_index];
       BezTriple right_bezt = fcu->bezt[segment->start_index + segment->length - 1];
       const int sample_count = btw_calculate_sample_count(
           &right_bezt, &left_bezt, filter_order, samples_per_frame);
-      float *samples = static_cast<float *>(
-          MEM_callocN(sizeof(float) * sample_count, "Btw Smooth FCurve Op Samples"));
+      float *samples = MEM_calloc_arrayN<float>(sample_count, "Btw Smooth FCurve Op Samples");
       blender::animrig::sample_fcurve_segment(
           fcu, left_bezt.vec[1][0] - filter_order, samples_per_frame, samples, sample_count);
       segment_link->samples = samples;
@@ -2136,9 +2128,9 @@ static void btw_smooth_modal_update(bContext *C, wmOperator *op)
   WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, nullptr);
 }
 
-static int btw_smooth_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus btw_smooth_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  const int invoke_result = graph_slider_invoke(C, op, event);
+  const wmOperatorStatus invoke_result = graph_slider_invoke(C, op, event);
 
   if (invoke_result == OPERATOR_CANCELLED) {
     return invoke_result;
@@ -2195,8 +2187,7 @@ static void btw_smooth_graph_keys(bAnimContext *ac,
       BezTriple right_bezt = fcu->bezt[segment->start_index + segment->length - 1];
       const int sample_count = btw_calculate_sample_count(
           &right_bezt, &left_bezt, filter_order, samples_per_frame);
-      float *samples = static_cast<float *>(
-          MEM_callocN(sizeof(float) * sample_count, "Smooth FCurve Op Samples"));
+      float *samples = MEM_calloc_arrayN<float>(sample_count, "Smooth FCurve Op Samples");
       blender::animrig::sample_fcurve_segment(
           fcu, left_bezt.vec[1][0] - filter_order, samples_per_frame, samples, sample_count);
       butterworth_smooth_fcurve_segment(
@@ -2213,7 +2204,7 @@ static void btw_smooth_graph_keys(bAnimContext *ac,
   ANIM_animdata_freelist(&anim_data);
 }
 
-static int btw_smooth_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus btw_smooth_exec(bContext *C, wmOperator *op)
 {
   bAnimContext ac;
 
@@ -2324,9 +2315,9 @@ static void push_pull_modal_update(bContext *C, wmOperator *op)
   WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, nullptr);
 }
 
-static int push_pull_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus push_pull_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  const int invoke_result = graph_slider_invoke(C, op, event);
+  const wmOperatorStatus invoke_result = graph_slider_invoke(C, op, event);
 
   if (invoke_result == OPERATOR_CANCELLED) {
     return invoke_result;
@@ -2342,7 +2333,7 @@ static int push_pull_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   return invoke_result;
 }
 
-static int push_pull_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus push_pull_exec(bContext *C, wmOperator *op)
 {
   bAnimContext ac;
 
@@ -2463,7 +2454,9 @@ static void scale_from_neighbor_modal_update(bContext *C, wmOperator *op)
   WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, nullptr);
 }
 
-static int scale_from_neighbor_modal(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus scale_from_neighbor_modal(bContext *C,
+                                                  wmOperator *op,
+                                                  const wmEvent *event)
 {
   if (event->val != KM_PRESS) {
     return graph_slider_modal(C, op, event);
@@ -2491,9 +2484,11 @@ static int scale_from_neighbor_modal(bContext *C, wmOperator *op, const wmEvent 
   return OPERATOR_RUNNING_MODAL;
 }
 
-static int scale_from_neighbor_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus scale_from_neighbor_invoke(bContext *C,
+                                                   wmOperator *op,
+                                                   const wmEvent *event)
 {
-  const int invoke_result = graph_slider_invoke(C, op, event);
+  const wmOperatorStatus invoke_result = graph_slider_invoke(C, op, event);
 
   if (invoke_result == OPERATOR_CANCELLED) {
     return OPERATOR_CANCELLED;
@@ -2509,7 +2504,7 @@ static int scale_from_neighbor_invoke(bContext *C, wmOperator *op, const wmEvent
   return invoke_result;
 }
 
-static int scale_from_neighbor_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus scale_from_neighbor_exec(bContext *C, wmOperator *op)
 {
   bAnimContext ac;
 

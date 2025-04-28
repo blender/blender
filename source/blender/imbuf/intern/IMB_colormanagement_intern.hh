@@ -107,7 +107,5 @@ ColorManagedLook *colormanage_look_add(const char *name, const char *process_spa
 ColorManagedLook *colormanage_look_get_named(const char *name);
 ColorManagedLook *colormanage_look_get_indexed(int index);
 
-void colorspace_set_default_role(char *colorspace, int size, int role);
-
 void colormanage_imbuf_set_default_spaces(ImBuf *ibuf);
 void colormanage_imbuf_make_linear(ImBuf *ibuf, const char *from_colorspace);

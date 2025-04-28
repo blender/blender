@@ -354,16 +354,11 @@ TEST_VEC_ROLL_TO_MAT3_ORTHOGONAL(OrthoP_100_100, 1, 0.005, 0.100, 0.005, 0.100)
 
 class BKE_armature_find_selected_bones_test : public testing::Test {
  protected:
-  bArmature arm;
-  Bone bone1, bone2, bone3;
+  bArmature arm = {};
+  Bone bone1 = {}, bone2 = {}, bone3 = {};
 
   void SetUp() override
   {
-    memset(&arm, 0, sizeof(arm));
-    memset(&bone1, 0, sizeof(Bone));
-    memset(&bone2, 0, sizeof(Bone));
-    memset(&bone3, 0, sizeof(Bone));
-
     STRNCPY(bone1.name, "bone1");
     STRNCPY(bone2.name, "bone2");
     STRNCPY(bone3.name, "bone3");

@@ -4,7 +4,7 @@
 
 #include "gpu_shader_math_vector_lib.glsl"
 
-void node_composite_gamma(vec4 color, float gamma, out vec4 result)
+void node_composite_gamma(float4 color, float gamma, out float4 result)
 {
-  result = vec4(fallback_pow(color.rgb, gamma, color.rgb), color.a);
+  result = float4(fallback_pow(color.rgb, gamma, color.rgb), color.a);
 }

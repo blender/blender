@@ -73,7 +73,7 @@ const wmGizmoType *WM_gizmotype_find(const StringRef idname, bool quiet)
 
 static wmGizmoType *wm_gizmotype_append__begin()
 {
-  wmGizmoType *gzt = static_cast<wmGizmoType *>(MEM_callocN(sizeof(wmGizmoType), "gizmotype"));
+  wmGizmoType *gzt = MEM_callocN<wmGizmoType>("gizmotype");
   gzt->srna = RNA_def_struct_ptr(&BLENDER_RNA, "", &RNA_GizmoProperties);
 #if 0
   /* Set the default i18n context now, so that opfunc can redefine it if needed! */
@@ -109,7 +109,7 @@ void WM_gizmotype_free_ptr(wmGizmoType *gzt)
 {
   /* Python gizmo, allocates its own string. */
   if (gzt->rna_ext.srna) {
-    MEM_freeN((void *)gzt->idname);
+    MEM_freeN(gzt->idname);
   }
 
   BLI_freelistN(&gzt->target_property_defs);

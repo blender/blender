@@ -185,15 +185,9 @@ class ShaderManager {
   }
 
   /* device update */
-  void device_update(Device *device, DeviceScene *dscene, Scene *scene, Progress &progress);
-  virtual void device_update_specific(Device *device,
-                                      DeviceScene *dscene,
-                                      Scene *scene,
-                                      Progress &progress) = 0;
+  void device_update_pre(Device *device, DeviceScene *dscene, Scene *scene, Progress &progress);
+  void device_update_post(Device *device, DeviceScene *dscene, Scene *scene, Progress &progress);
   virtual void device_free(Device *device, DeviceScene *dscene, Scene *scene) = 0;
-
-  void device_update_common(Device *device, DeviceScene *dscene, Scene *scene, Progress &progress);
-  void device_free_common(Device *device, DeviceScene *dscene, Scene *scene);
 
   /* get globally unique id for a type of attribute */
   virtual uint64_t get_attribute_id(ustring name);
@@ -232,6 +226,18 @@ class ShaderManager {
 
   unordered_map<const float *, size_t> bsdf_tables;
 
+  thread_spin_lock attribute_lock_;
+
+  float3 xyz_to_r;
+  float3 xyz_to_g;
+  float3 xyz_to_b;
+  float3 rgb_to_y;
+  float3 white_xyz;
+  float3 rec709_to_r;
+  float3 rec709_to_g;
+  float3 rec709_to_b;
+  bool is_rec709;
+
   template<std::size_t n>
   size_t ensure_bsdf_table(DeviceScene *dscene, Scene *scene, const float (&table)[n])
   {
@@ -244,17 +250,13 @@ class ShaderManager {
 
   uint get_graph_kernel_features(ShaderGraph *graph);
 
-  thread_spin_lock attribute_lock_;
+  virtual void device_update_specific(Device *device,
+                                      DeviceScene *dscene,
+                                      Scene *scene,
+                                      Progress &progress) = 0;
 
-  float3 xyz_to_r;
-  float3 xyz_to_g;
-  float3 xyz_to_b;
-  float3 rgb_to_y;
-  float3 white_xyz;
-  float3 rec709_to_r;
-  float3 rec709_to_g;
-  float3 rec709_to_b;
-  bool is_rec709;
+  void device_update_common(Device *device, DeviceScene *dscene, Scene *scene, Progress &progress);
+  void device_free_common(Device *device, DeviceScene *dscene, Scene *scene);
 };
 
 CCL_NAMESPACE_END

@@ -54,6 +54,8 @@
  * is used as UID. Blend file can still be copied manually which may cause conflict.
  */
 
+namespace blender::seq {
+
 /* Format string:
  * `<cache type>-<resolution X>x<resolution Y>-<rendersize>%(<view_id>)-<frame no>.dcf`. */
 #define DCACHE_FNAME_FORMAT "%d-%dx%d-%d%%(%d)-%d.dcf"
@@ -133,8 +135,7 @@ static DiskCacheFile *seq_disk_cache_add_file_to_list(SeqDiskCache *disk_cache,
                                                       const char *filepath)
 {
 
-  DiskCacheFile *cache_file = static_cast<DiskCacheFile *>(
-      MEM_callocN(sizeof(DiskCacheFile), "SeqDiskCacheFile"));
+  DiskCacheFile *cache_file = MEM_callocN<DiskCacheFile>("SeqDiskCacheFile");
   char dir[FILE_MAXDIR], file[FILE_MAX];
   BLI_path_split_dir_file(filepath, dir, sizeof(dir), file, sizeof(file));
   STRNCPY(cache_file->filepath, filepath);
@@ -384,8 +385,7 @@ static void seq_disk_cache_delete_invalid_files(SeqDiskCache *disk_cache,
     next_file = cache_file->next;
     if (cache_file->cache_type & invalidate_types) {
       if (STREQ(cache_dir, cache_file->dir)) {
-        int timeline_frame_start = seq_cache_frame_index_to_timeline_frame(
-            strip, cache_file->start_frame);
+        const int timeline_frame_start = cache_file->start_frame + time_start_frame_get(strip);
         if (timeline_frame_start > range_start && timeline_frame_start <= range_end) {
           seq_disk_cache_delete_file(disk_cache, cache_file);
         }
@@ -406,8 +406,8 @@ void seq_disk_cache_invalidate(SeqDiskCache *disk_cache,
 
   BLI_mutex_lock(&disk_cache->read_write_mutex);
 
-  start = SEQ_time_left_handle_frame_get(scene, strip_changed) - DCACHE_IMAGES_PER_FILE;
-  end = SEQ_time_right_handle_frame_get(scene, strip_changed);
+  start = time_left_handle_frame_get(scene, strip_changed) - DCACHE_IMAGES_PER_FILE;
+  end = time_right_handle_frame_get(scene, strip_changed);
 
   seq_disk_cache_delete_invalid_files(disk_cache, scene, strip, invalidate_types, start, end);
 
@@ -667,8 +667,7 @@ ImBuf *seq_disk_cache_read_file(SeqDiskCache *disk_cache, SeqCacheKey *key)
 
 SeqDiskCache *seq_disk_cache_create(Main *bmain, Scene *scene)
 {
-  SeqDiskCache *disk_cache = static_cast<SeqDiskCache *>(
-      MEM_callocN(sizeof(SeqDiskCache), "SeqDiskCache"));
+  SeqDiskCache *disk_cache = MEM_callocN<SeqDiskCache>("SeqDiskCache");
   disk_cache->bmain = bmain;
   BLI_mutex_init(&disk_cache->read_write_mutex);
   seq_disk_cache_handle_versioning(disk_cache);
@@ -684,3 +683,5 @@ void seq_disk_cache_free(SeqDiskCache *disk_cache)
   BLI_mutex_end(&disk_cache->read_write_mutex);
   MEM_freeN(disk_cache);
 }
+
+}  // namespace blender::seq

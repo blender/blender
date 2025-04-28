@@ -1187,7 +1187,7 @@ static void draw_plane_marker_image(Scene *scene,
 
   if (ibuf) {
     void *cache_handle;
-    uchar *display_buffer = IMB_display_buffer_acquire(
+    const uchar *display_buffer = IMB_display_buffer_acquire(
         ibuf, &scene->view_settings, &scene->display_settings, &cache_handle);
 
     if (display_buffer) {

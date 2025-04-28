@@ -42,7 +42,7 @@ static const EnumPropertyItem prop_view_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-static int view_axis_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus view_axis_exec(bContext *C, wmOperator *op)
 {
   View3D *v3d;
   ARegion *region;

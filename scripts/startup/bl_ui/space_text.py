@@ -34,9 +34,9 @@ class TEXT_HT_header(Header):
         row.template_ID(st, "text", new="text.new", unlink="text.unlink", open="text.open")
 
         if text:
-            is_osl = text.name.endswith((".osl", ".osl"))
+            is_osl = text.name.endswith((".osl", ".oso"))
             if is_osl:
-                row.operator("node.shader_script_update", text="", icon='FILE_REFRESH')
+                row.operator("text.update_shader", text="", icon='FILE_REFRESH')
             else:
                 row = layout.row()
                 row.active = is_syntax_highlight_supported

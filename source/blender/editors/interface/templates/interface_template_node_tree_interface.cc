@@ -108,10 +108,10 @@ class NodeSocketViewItem : public BasicTreeViewItem {
   {
     uiLayoutSetPropDecorate(&row, false);
 
-    uiLayout *input_socket_layout = uiLayoutRow(&row, true);
+    uiLayout *input_socket_layout = &row.row(true);
     if (socket_.flag & NODE_INTERFACE_SOCKET_INPUT) {
       /* XXX Socket template only draws in embossed layouts (Julian). */
-      uiLayoutSetEmboss(input_socket_layout, UI_EMBOSS);
+      uiLayoutSetEmboss(input_socket_layout, blender::ui::EmbossType::Emboss);
       /* Context is not used by the template function. */
       uiTemplateNodeSocket(input_socket_layout, /*C*/ nullptr, socket_.socket_color());
     }
@@ -122,10 +122,10 @@ class NodeSocketViewItem : public BasicTreeViewItem {
 
     this->add_label(row);
 
-    uiLayout *output_socket_layout = uiLayoutRow(&row, true);
+    uiLayout *output_socket_layout = &row.row(true);
     if (socket_.flag & NODE_INTERFACE_SOCKET_OUTPUT) {
       /* XXX Socket template only draws in embossed layouts (Julian). */
-      uiLayoutSetEmboss(output_socket_layout, UI_EMBOSS);
+      uiLayoutSetEmboss(output_socket_layout, blender::ui::EmbossType::Emboss);
       /* Context is not used by the template function. */
       uiTemplateNodeSocket(output_socket_layout, /*C*/ nullptr, socket_.socket_color());
     }
@@ -194,16 +194,16 @@ class NodePanelViewItem : public BasicTreeViewItem {
   {
     /* Add boolean socket if panel has a toggle. */
     if (toggle_ != nullptr) {
-      uiLayout *toggle_layout = uiLayoutRow(&row, true);
+      uiLayout *toggle_layout = &row.row(true);
       /* XXX Socket template only draws in embossed layouts (Julian). */
-      uiLayoutSetEmboss(toggle_layout, UI_EMBOSS);
+      uiLayoutSetEmboss(toggle_layout, blender::ui::EmbossType::Emboss);
       /* Context is not used by the template function. */
       uiTemplateNodeSocket(toggle_layout, /*C*/ nullptr, toggle_->socket_color());
     }
 
     this->add_label(row);
 
-    uiLayout *sub = uiLayoutRow(&row, true);
+    uiLayout *sub = &row.row(true);
     uiLayoutSetPropDecorate(sub, false);
   }
 
@@ -538,7 +538,7 @@ void uiTemplateNodeTreeInterface(uiLayout *layout, bContext *C, PointerRNA *ptr)
       "Node Tree Declaration Tree View",
       std::make_unique<blender::ui::nodes::NodeTreeInterfaceView>(nodetree, interface));
   tree_view->set_context_menu_title("Node Tree Interface");
-  tree_view->set_default_rows(3);
+  tree_view->set_default_rows(5);
 
   blender::ui::TreeViewBuilder::build_tree_view(*C, *tree_view, *layout);
 }

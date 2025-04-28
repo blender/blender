@@ -58,6 +58,7 @@ void register_node_type_cmp_value()
   ntype.declare = file_ns::cmp_node_value_declare;
   blender::bke::node_type_size_preset(ntype, blender::bke::eNodeSizePreset::Default);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
+  ntype.gather_link_search_ops = nullptr;
 
   blender::bke::node_register_type(ntype);
 }

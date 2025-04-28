@@ -60,9 +60,9 @@ bool GHOST_NDOFManagerUnix::available()
   return available_;
 }
 
-/*
- * Workaround for a problem where we don't enter the 'GHOST_kFinished' state,
- * this causes any proceeding event to have a very high 'dt' (time delta),
+/**
+ * Workaround for a problem where we don't enter the #GHOST_kFinished state,
+ * this causes any proceeding event to have a very high `dt` (time delta),
  * many seconds for eg, causing the view to jump.
  *
  * this workaround expects continuous events, if we miss a motion event,
@@ -116,7 +116,7 @@ bool GHOST_NDOFManagerUnix::processEvents()
         }
         case SPNAV_EVENT_BUTTON:
           uint64_t now = system_.getMilliSeconds();
-          updateButton(e.button.bnum, e.button.press, now);
+          updateButtonRAW(e.button.bnum, e.button.press, now);
           break;
       }
       anyProcessed = true;
@@ -125,7 +125,7 @@ bool GHOST_NDOFManagerUnix::processEvents()
 #ifdef USE_FINISH_GLITCH_WORKAROUND
     if (motion_test_prev == true && motion_test == false) {
       const uint64_t now = system_.getMilliSeconds();
-      GHOST_ASSERT(motion_test_prev_time < now, "Invalid time offset");
+      GHOST_ASSERT(motion_test_prev_time <= now, "Invalid time offset");
       if ((now - motion_test_prev_time) < MOTION_TEST_IDLE_MS) {
         /* Re-run this check next time `processEvents` is called. */
         motion_test = true;

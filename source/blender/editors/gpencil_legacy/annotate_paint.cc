@@ -214,11 +214,7 @@ static bool annotation_draw_poll(bContext *C)
   if (ED_operator_regionactive(C)) {
     /* check if current context can support GPencil data */
     if (ED_annotation_data_get_pointers(C, nullptr) != nullptr) {
-      /* check if Grease Pencil isn't already running */
-      if (ED_gpencil_session_active() == 0) {
-        return true;
-      }
-      CTX_wm_operator_poll_msg_set(C, "Annotation operator is already active");
+      return true;
     }
     else {
       CTX_wm_operator_poll_msg_set(C, "Failed to find Annotation data to draw into");
@@ -716,8 +712,7 @@ static void annotation_stroke_arrow_allocate(bGPDstroke *gps, const int totpoint
   /* Copy appropriate settings for stroke. */
   gps->totpoints = totpoints;
   /* Allocate enough memory for a continuous array for storage points. */
-  gps->points = static_cast<bGPDspoint *>(
-      MEM_callocN(sizeof(bGPDspoint) * gps->totpoints, "annotation_stroke_points"));
+  gps->points = MEM_calloc_arrayN<bGPDspoint>(gps->totpoints, "annotation_stroke_points");
 }
 
 static void annotation_arrow_create_open(tGPsdata *p,
@@ -847,7 +842,7 @@ static void annotation_stroke_newfrombuffer(tGPsdata *p)
   }
 
   /* allocate memory for a new stroke */
-  gps = static_cast<bGPDstroke *>(MEM_callocN(sizeof(bGPDstroke), "annotation_stroke"));
+  gps = MEM_callocN<bGPDstroke>("annotation_stroke");
 
   /* copy appropriate settings for stroke */
   gps->totpoints = totelem;
@@ -861,8 +856,7 @@ static void annotation_stroke_newfrombuffer(tGPsdata *p)
   gps->tot_triangles = 0;
 
   /* allocate enough memory for a continuous array for storage points */
-  gps->points = static_cast<bGPDspoint *>(
-      MEM_callocN(sizeof(bGPDspoint) * gps->totpoints, "annotation_stroke_points"));
+  gps->points = MEM_calloc_arrayN<bGPDspoint>(gps->totpoints, "annotation_stroke_points");
   gps->tot_triangles = 0;
 
   /* set pointer to first non-initialized point */
@@ -970,8 +964,7 @@ static void annotation_stroke_newfrombuffer(tGPsdata *p)
       int interp_depth = 0;
       int found_depth = 0;
 
-      depth_arr = static_cast<float *>(
-          MEM_mallocN(sizeof(float) * gpd->runtime.sbuffer_used, "depth_points"));
+      depth_arr = MEM_malloc_arrayN<float>(gpd->runtime.sbuffer_used, "depth_points");
 
       const ViewDepths *depths = p->depths;
       for (i = 0, ptc = static_cast<tGPspoint *>(gpd->runtime.sbuffer);
@@ -1410,13 +1403,6 @@ static bool annotation_session_initdata(bContext *C, tGPsdata *p)
   }
   p->gpd = *gpd_ptr;
 
-  if (ED_gpencil_session_active() == 0) {
-    /* initialize undo stack,
-     * also, existing undo stack would make buffer drawn
-     */
-    gpencil_undo_init(p->gpd);
-  }
-
   /* clear out buffer (stored in gp-data), in case something contaminated it */
   annotation_session_validatebuffer(p);
 
@@ -1730,7 +1716,8 @@ static void annotation_paint_cleanup(tGPsdata *p)
 /* ------------------------------- */
 
 /* Helper callback for drawing the cursor itself */
-static void annotation_draw_eraser(bContext * /*C*/, int x, int y, void *p_ptr)
+static void annotation_draw_eraser(
+    bContext * /*C*/, int x, int y, float /*x_tilt*/, float /*y_tilt*/, void *p_ptr)
 {
   tGPsdata *p = (tGPsdata *)p_ptr;
 
@@ -1790,7 +1777,8 @@ static void annotation_draw_toggle_eraser_cursor(tGPsdata *p, short enable)
                                                p);
   }
 }
-static void annotation_draw_stabilizer(bContext *C, int x, int y, void *p_ptr)
+static void annotation_draw_stabilizer(
+    bContext *C, int x, int y, float /*x_tilt*/, float /*y_tilt*/, void *p_ptr)
 {
   ARegion *region = CTX_wm_region(C);
   tGPsdata *p = (tGPsdata *)p_ptr;
@@ -1883,9 +1871,6 @@ static void annotation_draw_exit(bContext *C, wmOperator *op)
      *       have been toggled at some point.
      */
     U.gp_eraser = p->radius;
-
-    /* clear undo stack */
-    gpencil_undo_finish();
 
     /* cleanup */
     annotation_paint_cleanup(p);
@@ -2199,20 +2184,19 @@ static void annotation_draw_apply_event(
 /* ------------------------------- */
 
 /* operator 'redo' (i.e. after changing some properties, but also for repeat last) */
-static int annotation_draw_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus annotation_draw_exec(bContext *C, wmOperator *op)
 {
-  tGPsdata *p = nullptr;
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
 
   /* try to initialize context data needed while drawing */
   if (!annotation_draw_init(C, op, nullptr)) {
-    if (op->customdata) {
-      MEM_freeN(op->customdata);
-    }
+    tGPsdata *p = static_cast<tGPsdata *>(op->customdata);
+    MEM_delete(p);
+    op->customdata = nullptr;
     return OPERATOR_CANCELLED;
   }
 
-  p = static_cast<tGPsdata *>(op->customdata);
+  tGPsdata *p = static_cast<tGPsdata *>(op->customdata);
 
   /* loop over the stroke RNA elements recorded (i.e. progress of mouse movement),
    * setting the relevant values in context at each step, then applying
@@ -2266,10 +2250,8 @@ static int annotation_draw_exec(bContext *C, wmOperator *op)
 /* ------------------------------- */
 
 /* start of interactive drawing part of operator */
-static int annotation_draw_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus annotation_draw_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  tGPsdata *p = nullptr;
-
   /* support for tablets eraser pen */
   if (annotation_is_tablet_eraser_active(event)) {
     RNA_enum_set(op->ptr, "mode", GP_PAINTMODE_ERASER);
@@ -2277,13 +2259,13 @@ static int annotation_draw_invoke(bContext *C, wmOperator *op, const wmEvent *ev
 
   /* try to initialize context data needed while drawing */
   if (!annotation_draw_init(C, op, event)) {
-    if (op->customdata) {
-      MEM_freeN(op->customdata);
-    }
+    tGPsdata *p = static_cast<tGPsdata *>(op->customdata);
+    MEM_delete(p);
+    op->customdata = nullptr;
     return OPERATOR_CANCELLED;
   }
 
-  p = static_cast<tGPsdata *>(op->customdata);
+  tGPsdata *p = static_cast<tGPsdata *>(op->customdata);
 
   /* if empty erase capture and finish */
   if (p->status == GP_STATUS_CAPTURE) {
@@ -2386,8 +2368,6 @@ static void annotation_stroke_end(wmOperator *op)
 
   annotation_paint_cleanup(p);
 
-  gpencil_undo_push(p->gpd);
-
   annotation_session_cleanup(p);
 
   p->status = GP_STATUS_IDLING;
@@ -2435,11 +2415,11 @@ static void annotation_add_missing_events(bContext *C,
 }
 
 /* events handling during interactive drawing part of operator */
-static int annotation_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus annotation_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   tGPsdata *p = static_cast<tGPsdata *>(op->customdata);
   /* Default exit state - pass through to support MMB view navigation, etc. */
-  int estate = OPERATOR_PASS_THROUGH;
+  wmOperatorStatus estate = OPERATOR_PASS_THROUGH;
 
 /* NOTE(mike erwin): Not quite what I was looking for, but a good start!
  * grease-pencil continues to draw on the screen while the 3D mouse moves the viewpoint.
@@ -2683,6 +2663,9 @@ static int annotation_draw_modal(bContext *C, wmOperator *op, const wmEvent *eve
             p->radius = 1;
           }
           break;
+        default: {
+          break;
+        }
       }
 
       /* force refresh */
@@ -2724,8 +2707,10 @@ static int annotation_draw_modal(bContext *C, wmOperator *op, const wmEvent *eve
       annotation_draw_exit(C, op);
       break;
 
-    case OPERATOR_RUNNING_MODAL | OPERATOR_PASS_THROUGH:
-      /* event doesn't need to be handled */
+      /* Event doesn't need to be handled. */
+      /* `OPERATOR_RUNNING_MODAL | OPERATOR_PASS_THROUGH` */
+    default:
+      /* Quiet warnings. */
       break;
   }
 

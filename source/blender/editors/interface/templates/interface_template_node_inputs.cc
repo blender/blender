@@ -56,7 +56,7 @@ static void draw_node_input(bContext *C,
   if (socket.typeinfo->draw == nullptr) {
     return;
   }
-  if (ELEM(socket.type, SOCK_GEOMETRY, SOCK_MATRIX, SOCK_SHADER)) {
+  if (ELEM(socket.type, SOCK_GEOMETRY, SOCK_MATRIX, SOCK_SHADER, SOCK_BUNDLE, SOCK_CLOSURE)) {
     return;
   }
   const bNode &node = *static_cast<bNode *>(node_ptr->data);
@@ -70,7 +70,7 @@ static void draw_node_input(bContext *C,
   PointerRNA socket_ptr = RNA_pointer_create_discrete(
       node_ptr->owner_id, &RNA_NodeSocket, &socket);
   const StringRefNull text(IFACE_(bke::node_socket_label(socket).c_str()));
-  uiLayout *row = uiLayoutRow(layout, true);
+  uiLayout *row = &layout->row(true);
   socket.typeinfo->draw(C, row, &socket_ptr, node_ptr, text);
 }
 

@@ -101,10 +101,10 @@ bke::VolumeGridData *fog_volume_grid_add_from_points(Volume *volume,
   openvdb::tools::sdfToFogVolume(*new_grid);
 
   /* Take the desired density into account. */
-  openvdb::tools::foreach (new_grid->beginValueOn(),
-                           [&](const openvdb::FloatGrid::ValueOnIter &iter) {
-                             iter.modifyValue([&](float &value) { value *= density; });
-                           });
+  openvdb::tools::foreach(new_grid->beginValueOn(),
+                          [&](const openvdb::FloatGrid::ValueOnIter &iter) {
+                            iter.modifyValue([&](float &value) { value *= density; });
+                          });
 
   return BKE_volume_grid_add_vdb(*volume, name, std::move(new_grid));
 }

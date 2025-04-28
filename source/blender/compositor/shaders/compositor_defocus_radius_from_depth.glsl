@@ -12,7 +12,7 @@
 
 void main()
 {
-  ivec2 texel = ivec2(gl_GlobalInvocationID.xy);
+  int2 texel = int2(gl_GlobalInvocationID.xy);
   float depth = texture_load(depth_tx, texel).x;
 
   /* Compute `Vu` in equation (7). */
@@ -25,7 +25,7 @@ void main()
                        (focal_length / (f_stop * distance_to_image_of_object)));
 
   /* The diameter is in meters, so multiply by the pixels per meter. */
-  float radius = (diameter / 2.0) * pixels_per_meter;
+  float radius = (diameter / 2.0f) * pixels_per_meter;
 
-  imageStore(radius_img, texel, vec4(min(max_radius, radius)));
+  imageStore(radius_img, texel, float4(min(max_radius, radius)));
 }

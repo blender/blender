@@ -136,7 +136,7 @@ static void mesh_calc_edges_mdata(const MVert * /*allvert*/,
     return;
   }
 
-  ed = edsort = (EdgeSort *)MEM_mallocN(totedge * sizeof(EdgeSort), "EdgeSort");
+  ed = edsort = MEM_malloc_arrayN<EdgeSort>(totedge, "EdgeSort");
 
   for (a = totface, mface = allface; a > 0; a--, mface++) {
     to_edgesort(ed++, mface->v1, mface->v2, !mface->v3, mface->edcode & ME_V1V2);
@@ -162,7 +162,7 @@ static void mesh_calc_edges_mdata(const MVert * /*allvert*/,
   }
   totedge_final++;
 
-  edges = (MEdge *)MEM_callocN(sizeof(MEdge) * totedge_final, __func__);
+  edges = MEM_calloc_arrayN<MEdge>(totedge_final, __func__);
 
   for (a = totedge, edge = edges, ed = edsort; a > 1; a--, ed++) {
     /* edge is unique when it differs from next edge, or is last */
@@ -429,8 +429,7 @@ static void bm_corners_to_loops_ex(ID *id,
           MEM_freeN(ld->disps);
         }
 
-        ld->disps = (float(*)[3])MEM_malloc_arrayN(
-            size_t(side_sq), sizeof(float[3]), "converted loop mdisps");
+        ld->disps = MEM_malloc_arrayN<float[3]>(size_t(side_sq), "converted loop mdisps");
         if (fd->disps) {
           memcpy(ld->disps, disps, size_t(side_sq) * sizeof(float[3]));
         }
@@ -1033,10 +1032,9 @@ static int mesh_tessface_calc(Mesh &mesh,
   /* Allocate the length of `totfaces`, avoid many small reallocation's,
    * if all faces are triangles it will be correct, `quads == 2x` allocations. */
   /* Take care since memory is _not_ zeroed so be sure to initialize each field. */
-  mface_to_poly_map = (int *)MEM_malloc_arrayN(
-      size_t(corner_tris_num), sizeof(*mface_to_poly_map), __func__);
-  mface = (MFace *)MEM_malloc_arrayN(size_t(corner_tris_num), sizeof(*mface), __func__);
-  lindices = (uint(*)[4])MEM_malloc_arrayN(size_t(corner_tris_num), sizeof(*lindices), __func__);
+  mface_to_poly_map = MEM_malloc_arrayN<int>(size_t(corner_tris_num), __func__);
+  mface = MEM_malloc_arrayN<MFace>(size_t(corner_tris_num), __func__);
+  lindices = MEM_malloc_arrayN<uint[4]>(size_t(corner_tris_num), __func__);
 
   mface_index = 0;
   for (poly_index = 0; poly_index < faces_num; poly_index++) {
@@ -1726,21 +1724,18 @@ void BKE_mesh_legacy_convert_uvs_to_generic(Mesh *mesh)
         },
         [](const uint32_t a, const uint32_t b) { return a | b; });
 
-    float2 *coords = static_cast<float2 *>(
-        MEM_malloc_arrayN(mesh->corners_num, sizeof(float2), __func__));
+    float2 *coords = MEM_malloc_arrayN<float2>(size_t(mesh->corners_num), __func__);
     bool *vert_selection = nullptr;
     bool *edge_selection = nullptr;
     bool *pin = nullptr;
     if (needed_boolean_attributes & MLOOPUV_VERTSEL) {
-      vert_selection = static_cast<bool *>(
-          MEM_malloc_arrayN(mesh->corners_num, sizeof(bool), __func__));
+      vert_selection = MEM_malloc_arrayN<bool>(size_t(mesh->corners_num), __func__);
     }
     if (needed_boolean_attributes & MLOOPUV_EDGESEL) {
-      edge_selection = static_cast<bool *>(
-          MEM_malloc_arrayN(mesh->corners_num, sizeof(bool), __func__));
+      edge_selection = MEM_malloc_arrayN<bool>(size_t(mesh->corners_num), __func__);
     }
     if (needed_boolean_attributes & MLOOPUV_PINNED) {
-      pin = static_cast<bool *>(MEM_malloc_arrayN(mesh->corners_num, sizeof(bool), __func__));
+      pin = MEM_malloc_arrayN<bool>(size_t(mesh->corners_num), __func__);
     }
 
     threading::parallel_for(IndexRange(mesh->corners_num), 4096, [&](IndexRange range) {

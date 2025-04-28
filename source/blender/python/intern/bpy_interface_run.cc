@@ -217,6 +217,10 @@ static bool python_script_exec(
 
   PyC_MainModule_Restore(main_mod);
 
+  /* Flush `stdout` & `stderr` to ensure the script output is visible.
+   * Using `fflush(stdout)` does not solve it. */
+  PyC_StdFilesFlush();
+
   bpy_context_clear(C, &gilstate);
 
   return (py_result != nullptr);

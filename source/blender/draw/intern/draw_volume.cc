@@ -26,7 +26,7 @@
 
 #include "draw_cache.hh"
 #include "draw_common_c.hh"
-#include "draw_manager_c.hh"
+#include "draw_context_private.hh"
 
 #include "draw_common.hh"
 
@@ -126,18 +126,18 @@ PassType *volume_object_grids_init(PassType &ps,
                                    Object *ob,
                                    ListBaseWrapper<GPUMaterialAttribute> &attrs)
 {
-  Volume *volume = (Volume *)ob->data;
-  BKE_volume_load(volume, G.main);
+  Volume &volume = DRW_object_get_data_for_drawing<Volume>(*ob);
+  BKE_volume_load(&volume, G.main);
 
   /* Render nothing if there is no attribute. */
-  if (BKE_volume_num_grids(volume) == 0) {
+  if (BKE_volume_num_grids(&volume) == 0) {
     return nullptr;
   }
 
   VolumeModule &module = *drw_get().data->volume_module;
   VolumeInfosBuf &volume_infos = *module.ubo_pool.alloc();
 
-  volume_infos.density_scale = BKE_volume_density_scale(volume, ob->object_to_world().ptr());
+  volume_infos.density_scale = BKE_volume_density_scale(&volume, ob->object_to_world().ptr());
   volume_infos.color_mul = float4(1.0f);
   volume_infos.temperature_mul = 1.0f;
   volume_infos.temperature_bias = 0.0f;
@@ -147,9 +147,9 @@ PassType *volume_object_grids_init(PassType &ps,
   /* Bind volume grid textures. */
   int grid_id = 0;
   for (const GPUMaterialAttribute *attr : attrs) {
-    const bke::VolumeGridData *volume_grid = BKE_volume_grid_find(volume, attr->name);
+    const bke::VolumeGridData *volume_grid = BKE_volume_grid_find(&volume, attr->name);
     const DRWVolumeGrid *drw_grid = (volume_grid) ?
-                                        DRW_volume_batch_cache_get_grid(volume, volume_grid) :
+                                        DRW_volume_batch_cache_get_grid(&volume, volume_grid) :
                                         nullptr;
     /* Handle 3 cases here:
      * - Grid exists and texture was loaded -> use texture.
@@ -212,7 +212,7 @@ PassType *drw_volume_object_mesh_init(PassType &ps,
     sub = &ps.sub("Volume Modifier SubPass");
 
     float3 location, scale;
-    BKE_mesh_texspace_get(static_cast<Mesh *>(ob->data), location, scale);
+    BKE_mesh_texspace_get(&DRW_object_get_data_for_drawing<Mesh>(*ob), location, scale);
     float3 orco_mul = math::safe_rcp(scale * 2.0);
     float3 orco_add = (location - scale) * -orco_mul;
     /* Replace OrcoTexCoFactors with a matrix multiplication. */

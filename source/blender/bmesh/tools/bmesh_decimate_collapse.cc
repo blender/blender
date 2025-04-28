@@ -409,9 +409,8 @@ static int *bm_edge_symmetry_map(BMesh *bm, uint symmetry_axis, float limit)
 
   tree = BLI_kdtree_3d_new(bm->totedge);
 
-  etable = static_cast<BMEdge **>(MEM_mallocN(sizeof(*etable) * bm->totedge, __func__));
-  edge_symmetry_map = static_cast<int *>(
-      MEM_mallocN(sizeof(*edge_symmetry_map) * bm->totedge, __func__));
+  etable = MEM_malloc_arrayN<BMEdge *>(bm->totedge, __func__);
+  edge_symmetry_map = MEM_malloc_arrayN<int>(bm->totedge, __func__);
 
   BM_ITER_MESH_INDEX (e, &iter, bm, BM_EDGES_OF_MESH, i) {
     float co[3];
@@ -662,8 +661,14 @@ static void bm_decim_triangulate_end(BMesh *bm, const int edges_tri_tot)
     BMLoop *l_a, *l_b;
     e = edges_tri[i];
     if (BM_edge_loop_pair(e, &l_a, &l_b)) {
+      BMFace *f_double;
+
       BMFace *f_array[2] = {l_a->f, l_b->f};
-      BM_faces_join(bm, f_array, 2, false);
+      BM_faces_join(bm, f_array, 2, false, &f_double);
+      /* See #BM_faces_join note on callers asserting when `r_double` is non-null. */
+      BLI_assert_msg(f_double == nullptr,
+                     "Doubled face detected at " AT ". Resulting mesh may be corrupt.");
+
       if (e->l == nullptr) {
         BM_edge_kill(bm, e);
       }
@@ -1307,10 +1312,10 @@ void BM_mesh_decimate_collapse(BMesh *bm,
 #endif
 
   /* Allocate variables. */
-  vquadrics = static_cast<Quadric *>(MEM_callocN(sizeof(Quadric) * bm->totvert, __func__));
+  vquadrics = MEM_calloc_arrayN<Quadric>(bm->totvert, __func__);
   /* Since some edges may be degenerate, we might be over allocating a little here. */
   eheap = BLI_heap_new_ex(bm->totedge);
-  eheap_table = static_cast<HeapNode **>(MEM_mallocN(sizeof(HeapNode *) * bm->totedge, __func__));
+  eheap_table = MEM_malloc_arrayN<HeapNode *>(bm->totedge, __func__);
   tot_edge_orig = bm->totedge;
 
   /* build initial edge collapse cost data */
@@ -1499,7 +1504,7 @@ void BM_mesh_decimate_collapse(BMesh *bm,
       }
     }
 
-    MEM_freeN((void *)edge_symmetry_map);
+    MEM_freeN(edge_symmetry_map);
   }
 #endif /* USE_SYMMETRY */
 

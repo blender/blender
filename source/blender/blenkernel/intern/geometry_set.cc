@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include <fmt/format.h>
+
 #include "BLI_bounds.hh"
 #include "BLI_map.hh"
 #include "BLI_memory_counter.hh"
@@ -16,6 +18,7 @@
 #include "BKE_mesh.hh"
 #include "BKE_modifier.hh"
 #include "BKE_object_types.hh"
+#include "BKE_subdiv_modifier.hh"
 #include "BKE_volume.hh"
 
 #include "DNA_object_types.h"
@@ -193,11 +196,12 @@ Vector<const GeometryComponent *> GeometrySet::get_components() const
   return components;
 }
 
-std::optional<Bounds<float3>> GeometrySet::compute_boundbox_without_instances() const
+std::optional<Bounds<float3>> GeometrySet::compute_boundbox_without_instances(
+    const bool use_radius) const
 {
   std::optional<Bounds<float3>> bounds;
   if (const PointCloud *pointcloud = this->get_pointcloud()) {
-    bounds = bounds::merge(bounds, pointcloud->bounds_min_max());
+    bounds = bounds::merge(bounds, pointcloud->bounds_min_max(use_radius));
   }
   if (const Mesh *mesh = this->get_mesh()) {
     bounds = bounds::merge(bounds, mesh->bounds_min_max());
@@ -206,10 +210,10 @@ std::optional<Bounds<float3>> GeometrySet::compute_boundbox_without_instances() 
     bounds = bounds::merge(bounds, BKE_volume_min_max(volume));
   }
   if (const Curves *curves_id = this->get_curves()) {
-    bounds = bounds::merge(bounds, curves_id->geometry.wrap().bounds_min_max());
+    bounds = bounds::merge(bounds, curves_id->geometry.wrap().bounds_min_max(use_radius));
   }
   if (const GreasePencil *grease_pencil = this->get_grease_pencil()) {
-    bounds = bounds::merge(bounds, grease_pencil->bounds_min_max_eval());
+    bounds = bounds::merge(bounds, grease_pencil->bounds_min_max_eval(use_radius));
   }
   return bounds;
 }
@@ -217,11 +221,25 @@ std::optional<Bounds<float3>> GeometrySet::compute_boundbox_without_instances() 
 std::ostream &operator<<(std::ostream &stream, const GeometrySet &geometry_set)
 {
   Vector<std::string> parts;
+  if (!geometry_set.name.empty()) {
+    parts.append(fmt::format("\"{}\"", geometry_set.name));
+  }
   if (const Mesh *mesh = geometry_set.get_mesh()) {
     parts.append(std::to_string(mesh->verts_num) + " verts");
     parts.append(std::to_string(mesh->edges_num) + " edges");
     parts.append(std::to_string(mesh->faces_num) + " faces");
     parts.append(std::to_string(mesh->corners_num) + " corners");
+    if (mesh->runtime->subsurf_runtime_data) {
+      const int resolution = mesh->runtime->subsurf_runtime_data->resolution;
+      if (is_power_of_2_i(resolution - 1)) {
+        /* Display the resolution as subdiv levels if possible because that's more common.*/
+        const int level = log2_floor(resolution - 1);
+        parts.append(std::to_string(level) + " subdiv levels");
+      }
+      else {
+        parts.append(std::to_string(resolution) + " subdiv resolution");
+      }
+    }
   }
   if (const Curves *curves = geometry_set.get_curves()) {
     parts.append(std::to_string(curves->geometry.point_num) + " control points");
@@ -293,6 +311,15 @@ bool GeometrySet::owns_direct_data() const
     }
   }
   return true;
+}
+
+void GeometrySet::ensure_no_shared_components()
+{
+  for (const int i : IndexRange(this->components_.size())) {
+    if (components_[i]) {
+      this->get_component_for_write(GeometryComponent::Type(i));
+    }
+  }
 }
 
 const Mesh *GeometrySet::get_mesh() const
@@ -623,6 +650,18 @@ void GeometrySet::attribute_foreach(const Span<GeometryComponent::Type> componen
       attributes->foreach_attribute([&](const AttributeIter &iter) {
         callback(iter.name, {iter.domain, iter.data_type}, component);
       });
+    }
+    /* For Grease Pencil, we also need to iterate over the attributes of the evaluated drawings. */
+    if (component_type == GeometryComponent::Type::GreasePencil) {
+      const GreasePencil &grease_pencil = *this->get_grease_pencil();
+      for (const bke::greasepencil::Layer *layer : grease_pencil.layers()) {
+        if (const bke::greasepencil::Drawing *drawing = grease_pencil.get_eval_drawing(*layer)) {
+          const AttributeAccessor attributes = drawing->strokes().attributes();
+          attributes.foreach_attribute([&](const AttributeIter &iter) {
+            callback(iter.name, {iter.domain, iter.data_type}, component);
+          });
+        }
+      }
     }
   }
   if (include_instances && this->has_instances()) {

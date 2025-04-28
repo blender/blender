@@ -20,7 +20,7 @@
 /** \name View Center Pick Operator
  * \{ */
 
-static int viewcenter_pick_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus viewcenter_pick_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   View3D *v3d = CTX_wm_view3d(C);
   RegionView3D *rv3d = CTX_wm_region_view3d(C);

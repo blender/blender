@@ -513,7 +513,7 @@ static IndexMask boundary_from_enabled(Object &object,
     case bke::pbvh::Type::BMesh: {
       return IndexMask::from_predicate(enabled_mask, GrainSize(1024), memory, [&](const int vert) {
         BMVert *bm_vert = BM_vert_at_index(ss.bm, vert);
-        Vector<BMVert *, 64> neighbors;
+        BMeshNeighborVerts neighbors;
         for (const BMVert *neighbor : vert_neighbors_get_bmesh(*bm_vert, neighbors)) {
           if (!enabled_verts[BM_elem_index_get(neighbor)]) {
             return true;
@@ -574,7 +574,7 @@ Vector<int> find_symm_verts_mesh(const Depsgraph &depsgraph,
 
   const float3 location = positions[original_vert];
   for (int symm_it = 1; symm_it <= symm; symm_it++) {
-    if (!SCULPT_is_symmetry_iteration_valid(symm_it, symm)) {
+    if (!is_symmetry_iteration_valid(symm_it, symm)) {
       continue;
     }
     const float3 symm_location = symmetry_flip(location, ePaintSymmetryFlags(symm_it));
@@ -607,7 +607,7 @@ Vector<int> find_symm_verts_grids(const Object &object,
   const Span<float3> positions = subdiv_ccg.positions;
   const float3 location = positions[original_vert];
   for (int symm_it = 1; symm_it <= symm; symm_it++) {
-    if (!SCULPT_is_symmetry_iteration_valid(symm_it, symm)) {
+    if (!is_symmetry_iteration_valid(symm_it, symm)) {
       continue;
     }
     const float3 symm_location = symmetry_flip(location, ePaintSymmetryFlags(symm_it));
@@ -639,7 +639,7 @@ Vector<int> find_symm_verts_bmesh(const Object &object,
   const BMVert *original_bm_vert = BM_vert_at_index(&bm, original_vert);
   const float3 location = original_bm_vert->co;
   for (int symm_it = 1; symm_it <= symm; symm_it++) {
-    if (!SCULPT_is_symmetry_iteration_valid(symm_it, symm)) {
+    if (!is_symmetry_iteration_valid(symm_it, symm)) {
       continue;
     }
     const float3 symm_location = symmetry_flip(location, ePaintSymmetryFlags(symm_it));
@@ -2162,7 +2162,7 @@ static void find_active_connected_components_from_vert(const Depsgraph &depsgrap
 
   int valid_index = 0;
   for (int symm_it = 0; symm_it <= symm; symm_it++) {
-    if (!SCULPT_is_symmetry_iteration_valid(symm_it, symm)) {
+    if (!is_symmetry_iteration_valid(symm_it, symm)) {
       continue;
     }
     expand_cache.active_connected_islands[symm_it] = islands::vert_id_get(ss,
@@ -2288,7 +2288,7 @@ static int active_face_set_id_get(Object &object, Cache &expand_cache)
   return SCULPT_FACE_SET_NONE;
 }
 
-static int sculpt_expand_modal(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus sculpt_expand_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   Object &ob = *CTX_data_active_object(C);
   SculptSession &ss = *ob.sculpt;
@@ -2651,7 +2651,7 @@ static bool any_nonzero_mask(const Object &object)
   return false;
 }
 
-static int sculpt_expand_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus sculpt_expand_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   const Scene &scene = *CTX_data_scene(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);

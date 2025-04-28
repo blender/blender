@@ -99,7 +99,7 @@ static bool sculpt_and_dynamic_topology_poll(bContext *C)
 /** \name Detail Flood Fill
  * \{ */
 
-static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus sculpt_detail_flood_fill_exec(bContext *C, wmOperator *op)
 {
   const Scene &scene = *CTX_data_scene(C);
   const Depsgraph &depsgraph = *CTX_data_depsgraph_pointer(C);
@@ -148,7 +148,7 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *op)
                                           min_edge_len,
                                           max_edge_len,
                                           center,
-                                          nullptr,
+                                          std::nullopt,
                                           size,
                                           false,
                                           false))
@@ -287,7 +287,9 @@ static void sample_detail_dyntopo(bContext *C, ViewContext *vc, const int mval[2
   }
 }
 
-static int sample_detail(bContext *C, const int event_xy[2], const SampleDetailModeType mode)
+static wmOperatorStatus sample_detail(bContext *C,
+                                      const int event_xy[2],
+                                      const SampleDetailModeType mode)
 {
   /* Find 3D view to pick from. */
   bScreen *screen = CTX_wm_screen(C);
@@ -356,7 +358,7 @@ static int sample_detail(bContext *C, const int event_xy[2], const SampleDetailM
   return OPERATOR_FINISHED;
 }
 
-static int sculpt_sample_detail_size_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus sculpt_sample_detail_size_exec(bContext *C, wmOperator *op)
 {
   int ss_co[2];
   RNA_int_get_array(op->ptr, "location", ss_co);
@@ -364,7 +366,9 @@ static int sculpt_sample_detail_size_exec(bContext *C, wmOperator *op)
   return sample_detail(C, ss_co, mode);
 }
 
-static int sculpt_sample_detail_size_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+static wmOperatorStatus sculpt_sample_detail_size_invoke(bContext *C,
+                                                         wmOperator *op,
+                                                         const wmEvent * /*event*/)
 {
   ED_workspace_status_text(C, IFACE_("Click on the mesh to set the detail"));
   WM_cursor_modal_set(CTX_wm_window(C), WM_CURSOR_EYEDROPPER);
@@ -372,7 +376,9 @@ static int sculpt_sample_detail_size_invoke(bContext *C, wmOperator *op, const w
   return OPERATOR_RUNNING_MODAL;
 }
 
-static int sculpt_sample_detail_size_modal(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus sculpt_sample_detail_size_modal(bContext *C,
+                                                        wmOperator *op,
+                                                        const wmEvent *event)
 {
   switch (event->type) {
     case LEFTMOUSE:
@@ -394,6 +400,9 @@ static int sculpt_sample_detail_size_modal(bContext *C, wmOperator *op, const wm
       ED_workspace_status_text(C, nullptr);
 
       return OPERATOR_CANCELLED;
+    }
+    default: {
+      break;
     }
   }
 
@@ -596,7 +605,8 @@ static void dyntopo_detail_size_edit_cancel(bContext *C, wmOperator *op)
       op->customdata);
   ED_region_draw_cb_exit(region->runtime->type, cd->draw_handle);
   ss.draw_faded_cursor = false;
-  MEM_freeN(op->customdata);
+  MEM_freeN(cd);
+  op->customdata = nullptr;
   ED_workspace_status_text(C, nullptr);
 
   ScrArea *area = CTX_wm_area(C);
@@ -627,7 +637,7 @@ static void dyntopo_detail_size_sample_from_surface(Object &ob,
   BMVert *active_vertex = std::get<BMVert *>(ss.active_vert());
 
   float len_accum = 0;
-  Vector<BMVert *, 64> neighbors;
+  BMeshNeighborVerts neighbors;
   for (BMVert *neighbor : vert_neighbors_get_bmesh(*active_vertex, neighbors)) {
     len_accum += len_v3v3(active_vertex->co, neighbor->co);
   }
@@ -721,7 +731,9 @@ static void dyntopo_detail_size_update_header(bContext *C,
   status.item_bool(IFACE_("Precision Mode"), cd->accurate_mode, ICON_EVENT_SHIFT);
 }
 
-static int dyntopo_detail_size_edit_modal(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus dyntopo_detail_size_edit_modal(bContext *C,
+                                                       wmOperator *op,
+                                                       const wmEvent *event)
 {
   Object &active_object = *CTX_data_active_object(C);
   SculptSession &ss = *active_object.sculpt;
@@ -756,7 +768,7 @@ static int dyntopo_detail_size_edit_modal(bContext *C, wmOperator *op, const wmE
     }
 
     ss.draw_faded_cursor = false;
-    MEM_freeN(op->customdata);
+    MEM_freeN(cd);
     ED_region_tag_redraw(region);
     ED_workspace_status_text(C, nullptr);
 
@@ -800,7 +812,9 @@ static float dyntopo_detail_size_initial_value(const Sculpt *sd, const eDyntopoD
   return sd->detail_size;
 }
 
-static int dyntopo_detail_size_edit_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus dyntopo_detail_size_edit_invoke(bContext *C,
+                                                        wmOperator *op,
+                                                        const wmEvent *event)
 {
   const ToolSettings *tool_settings = CTX_data_tool_settings(C);
   Sculpt *sd = tool_settings->sculpt;

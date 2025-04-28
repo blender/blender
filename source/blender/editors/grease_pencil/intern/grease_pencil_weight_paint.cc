@@ -452,7 +452,9 @@ struct ClosestGreasePencilDrawing {
   ed::curves::FindClosestData elem;
 };
 
-static int weight_sample_invoke(bContext *C, wmOperator * /*op*/, const wmEvent *event)
+static wmOperatorStatus weight_sample_invoke(bContext *C,
+                                             wmOperator * /*op*/,
+                                             const wmEvent *event)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
@@ -560,7 +562,7 @@ static void GREASE_PENCIL_OT_weight_sample(wmOperatorType *ot)
   ot->flag = OPTYPE_UNDO | OPTYPE_DEPENDS_ON_CURSOR;
 }
 
-static int toggle_weight_tool_direction(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus toggle_weight_tool_direction_exec(bContext *C, wmOperator * /*op*/)
 {
   Paint *paint = BKE_paint_get_active_from_context(C);
   Brush *brush = BKE_paint_brush(paint);
@@ -601,13 +603,13 @@ static void GREASE_PENCIL_OT_weight_toggle_direction(wmOperatorType *ot)
 
   /* Callbacks. */
   ot->poll = toggle_weight_tool_direction_poll;
-  ot->exec = toggle_weight_tool_direction;
+  ot->exec = toggle_weight_tool_direction_exec;
 
   /* Flags. */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-static int grease_pencil_weight_invert_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus grease_pencil_weight_invert_exec(bContext *C, wmOperator *op)
 {
   const Scene &scene = *CTX_data_scene(C);
   Object *object = CTX_data_active_object(C);
@@ -684,7 +686,7 @@ static void GREASE_PENCIL_OT_weight_invert(wmOperatorType *ot)
   ot->flag = OPTYPE_UNDO | OPTYPE_REGISTER;
 }
 
-static int vertex_group_smooth_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus vertex_group_smooth_exec(bContext *C, wmOperator *op)
 {
   /* Get the active vertex group in the Grease Pencil object. */
   Object *object = CTX_data_active_object(C);
@@ -757,7 +759,7 @@ static void GREASE_PENCIL_OT_vertex_group_smooth(wmOperatorType *ot)
   RNA_def_int(ot->srna, "repeat", 1, 1, 10000, "Iterations", "", 1, 200);
 }
 
-static int vertex_group_normalize_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus vertex_group_normalize_exec(bContext *C, wmOperator *op)
 {
   /* Get the active vertex group in the Grease Pencil object. */
   Object *object = CTX_data_active_object(C);
@@ -872,7 +874,7 @@ static void GREASE_PENCIL_OT_vertex_group_normalize(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-static int vertex_group_normalize_all_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus vertex_group_normalize_all_exec(bContext *C, wmOperator *op)
 {
   /* Get the active vertex group in the Grease Pencil object. */
   Object *object = CTX_data_active_object(C);

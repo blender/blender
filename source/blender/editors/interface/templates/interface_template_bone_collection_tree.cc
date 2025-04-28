@@ -217,7 +217,7 @@ class BoneCollectionItem : public AbstractTreeViewItem {
 
   void build_row(uiLayout &row) override
   {
-    uiLayout *sub = uiLayoutRow(&row, true);
+    uiLayout *sub = &row.row(true);
 
     uiBut *name_label = uiItemL_ex(sub, bone_collection_.name, ICON_NONE, false, false);
     if (!ANIM_armature_bonecoll_is_editable(&armature_, &bone_collection_)) {
@@ -244,7 +244,7 @@ class BoneCollectionItem : public AbstractTreeViewItem {
     /* Visibility eye icon. */
     {
       const bool is_solo_active = armature_.flag & ARM_BCOLL_SOLO_ACTIVE;
-      uiLayout *visibility_sub = uiLayoutRow(sub, true);
+      uiLayout *visibility_sub = &sub->row(true);
       uiLayoutSetActive(visibility_sub,
                         !is_solo_active && bone_collection_.is_visible_ancestors());
 
@@ -475,7 +475,7 @@ void uiTemplateBoneCollectionTree(uiLayout *layout, bContext *C)
       "Bone Collection Tree View",
       std::make_unique<blender::ui::bonecollections::BoneCollectionTreeView>(*armature));
   tree_view->set_context_menu_title("Bone Collection");
-  tree_view->set_default_rows(3);
+  tree_view->set_default_rows(5);
 
   ui::TreeViewBuilder::build_tree_view(*C, *tree_view, *layout);
 }

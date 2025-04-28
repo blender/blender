@@ -151,26 +151,14 @@ static void viewport_settings_apply(GPUViewport &viewport,
   GPU_viewport_colorspace_set(&viewport, &view_settings, display_settings, dither);
 }
 
-static void viewport_color_management_set(GPUViewport &viewport)
+void viewport_color_management_set(GPUViewport &viewport, DRWContext &draw_ctx)
 {
-  const DRWContextState *draw_ctx = DRW_context_state_get();
-  const Depsgraph *depsgraph = draw_ctx->depsgraph;
+  const Depsgraph *depsgraph = draw_ctx.depsgraph;
   Main *bmain = DEG_get_bmain(depsgraph);
 
   const eDRWColorManagementType color_management_type = drw_color_management_type_get(
-      bmain, *draw_ctx->scene, draw_ctx->v3d, draw_ctx->space_data);
-  viewport_settings_apply(viewport, *draw_ctx->scene, color_management_type);
+      bmain, *draw_ctx.scene, draw_ctx.v3d, draw_ctx.space_data);
+  viewport_settings_apply(viewport, *draw_ctx.scene, color_management_type);
 }
 
 }  // namespace blender::draw::color_management
-
-/* -------------------------------------------------------------------- */
-/** \name Color Management
- * \{ */
-
-void DRW_viewport_colormanagement_set(GPUViewport *viewport)
-{
-  blender::draw::color_management::viewport_color_management_set(*viewport);
-}
-
-/** \} */

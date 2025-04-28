@@ -87,9 +87,9 @@ static void createTransSculpt(bContext *C, TransInfo *t)
   ss.pivot_scale[0] = 1.0f;
   ss.pivot_scale[1] = 1.0f;
   ss.pivot_scale[2] = 1.0f;
-  td->ext->size = ss.pivot_scale;
+  td->ext->scale = ss.pivot_scale;
   copy_v3_v3(ss.init_pivot_scale, ss.pivot_scale);
-  copy_v3_v3(td->ext->isize, ss.init_pivot_scale);
+  copy_v3_v3(td->ext->iscale, ss.init_pivot_scale);
 
   copy_m3_m3(td->smtx, obmat_inv);
   copy_m3_m4(td->mtx, ob.object_to_world().ptr());

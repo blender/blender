@@ -34,6 +34,8 @@
 
 #include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 
+namespace {
+
 /* local types */
 struct PolyFill {
   uint edges, verts;
@@ -46,6 +48,8 @@ struct ScanFillVertLink {
   ScanFillVert *vert;
   ScanFillEdge *edge_first, *edge_last;
 };
+
+}  // namespace
 
 /* Local functions. */
 
@@ -488,8 +492,7 @@ static uint scanfill(ScanFillContext *sf_ctx, PolyFill *pf, const int flag)
   /* STEP 1: make using FillVert and FillEdge lists a sorted
    * ScanFillVertLink list
    */
-  sc = scdata = static_cast<ScanFillVertLink *>(
-      MEM_mallocN(sizeof(*scdata) * pf->verts, "Scanfill1"));
+  sc = scdata = MEM_malloc_arrayN<ScanFillVertLink>(pf->verts, "Scanfill1");
   verts = 0;
   LISTBASE_FOREACH (ScanFillVert *, eve, &sf_ctx->fillvertbase) {
     if (eve->poly_nr == nr) {
@@ -521,7 +524,7 @@ static uint scanfill(ScanFillContext *sf_ctx, PolyFill *pf, const int flag)
        * fix to #4544.
        *
        * warning, this can hang on un-ordered edges, see: #33281.
-       * for now disable 'BLI_SCANFILL_CALC_REMOVE_DOUBLES' for ngons.
+       * for now disable #BLI_SCANFILL_CALC_REMOVE_DOUBLES for ngons.
        */
       if (eed->v1->f == SF_VERT_ZERO_LEN) {
         v1 = eed->v1;
@@ -1025,7 +1028,7 @@ uint BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, const int flag, const float n
    */
 
   /* STEP 3: MAKE POLYFILL STRUCT */
-  pflist = static_cast<PolyFill *>(MEM_mallocN(sizeof(*pflist) * size_t(poly), "edgefill"));
+  pflist = MEM_malloc_arrayN<PolyFill>(size_t(poly), "edgefill");
   pf = pflist;
   for (a = 0; a < poly; a++) {
     pf->edges = pf->verts = 0;

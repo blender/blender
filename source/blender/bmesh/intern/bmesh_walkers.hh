@@ -58,10 +58,10 @@ struct BMWalker {
 #define BMW_MASK_NOP 0
 
 /**
- * \brief Init Walker
+ * \brief Initialize Walker
  *
  * Allocates and returns a new mesh walker of a given type.
- * The elements visited are filtered by the bitmask 'searchmask'.
+ * The elements visited are filtered by the bit-mask `searchmask`.
  */
 void BMW_init(struct BMWalker *walker,
               BMesh *bm,

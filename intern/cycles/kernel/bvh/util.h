@@ -5,6 +5,7 @@
 #pragma once
 
 #include "kernel/globals.h"
+#include "kernel/integrator/state.h"
 #include "kernel/types.h"
 
 CCL_NAMESPACE_BEGIN
@@ -287,6 +288,26 @@ ccl_device_inline bool intersection_skip_shadow_link(KernelGlobals kg,
 #else
   return false;
 #endif
+}
+
+/* Check whether an intersection denoted by its object and primitive is to be skipped due to it
+ * being already recoded.
+ * The situation when primitive is already recoded happens when BVH spatial splits are used. */
+ccl_device_forceinline bool intersection_skip_shadow_already_recoded(KernelGlobals kg,
+                                                                     IntegratorShadowState state,
+                                                                     const int object,
+                                                                     const int prim,
+                                                                     const int num_hits)
+{
+  const int num_recorded_hits = min(num_hits, int(INTEGRATOR_SHADOW_ISECT_SIZE));
+  for (int i = 0; i < num_recorded_hits; ++i) {
+    const int isect_object = INTEGRATOR_STATE_ARRAY(state, shadow_isect, i, object);
+    const int isect_prim = INTEGRATOR_STATE_ARRAY(state, shadow_isect, i, prim);
+    if (object == isect_object && prim == isect_prim) {
+      return true;
+    }
+  }
+  return false;
 }
 
 CCL_NAMESPACE_END

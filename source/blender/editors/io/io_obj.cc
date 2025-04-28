@@ -59,7 +59,9 @@ static const EnumPropertyItem io_obj_path_mode[] = {
     {PATH_REFERENCE_COPY, "COPY", 0, "Copy", "Copy the file to the destination path"},
     {0, nullptr, 0, nullptr, nullptr}};
 
-static int wm_obj_export_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+static wmOperatorStatus wm_obj_export_invoke(bContext *C,
+                                             wmOperator *op,
+                                             const wmEvent * /*event*/)
 {
   ED_fileselect_ensure_default_filepath(C, op, ".obj");
 
@@ -67,7 +69,7 @@ static int wm_obj_export_invoke(bContext *C, wmOperator *op, const wmEvent * /*e
   return OPERATOR_RUNNING_MODAL;
 }
 
-static int wm_obj_export_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus wm_obj_export_exec(bContext *C, wmOperator *op)
 {
   if (!RNA_struct_property_is_set_ex(op->ptr, "filepath", false)) {
     BKE_report(op->reports, RPT_ERROR, "No filepath given");
@@ -128,10 +130,10 @@ static void ui_obj_export_settings(const bContext *C, uiLayout *layout, PointerR
 
   /* Object General options. */
   if (uiLayout *panel = uiLayoutPanel(C, layout, "OBJ_export_general", false, IFACE_("General"))) {
-    uiLayout *col = uiLayoutColumn(panel, false);
+    uiLayout *col = &panel->column(false);
 
     if (CTX_wm_space_file(C)) {
-      uiLayout *sub = uiLayoutColumnWithHeading(col, false, IFACE_("Include"));
+      uiLayout *sub = &col->column(false, IFACE_("Include"));
       uiItemR(
           sub, ptr, "export_selected_objects", UI_ITEM_NONE, IFACE_("Selection Only"), ICON_NONE);
     }
@@ -144,7 +146,7 @@ static void ui_obj_export_settings(const bContext *C, uiLayout *layout, PointerR
   /* Geometry options. */
   if (uiLayout *panel = uiLayoutPanel(C, layout, "OBJ_export_geometry", false, IFACE_("Geometry")))
   {
-    uiLayout *col = uiLayoutColumn(panel, false);
+    uiLayout *col = &panel->column(false);
     uiItemR(col, ptr, "export_uv", UI_ITEM_NONE, IFACE_("UV Coordinates"), ICON_NONE);
     uiItemR(col, ptr, "export_normals", UI_ITEM_NONE, IFACE_("Normals"), ICON_NONE);
     uiItemR(col, ptr, "export_colors", UI_ITEM_NONE, IFACE_("Colors"), ICON_NONE);
@@ -164,13 +166,13 @@ static void ui_obj_export_settings(const bContext *C, uiLayout *layout, PointerR
   /* Grouping options. */
   if (uiLayout *panel = uiLayoutPanel(C, layout, "OBJ_export_grouping", false, IFACE_("Grouping")))
   {
-    uiLayout *col = uiLayoutColumn(panel, false);
+    uiLayout *col = &panel->column(false);
     uiItemR(col, ptr, "export_object_groups", UI_ITEM_NONE, IFACE_("Object Groups"), ICON_NONE);
     uiItemR(
         col, ptr, "export_material_groups", UI_ITEM_NONE, IFACE_("Material Groups"), ICON_NONE);
     uiItemR(col, ptr, "export_vertex_groups", UI_ITEM_NONE, IFACE_("Vertex Groups"), ICON_NONE);
     uiItemR(col, ptr, "export_smooth_groups", UI_ITEM_NONE, IFACE_("Smooth Groups"), ICON_NONE);
-    col = uiLayoutColumn(col, false);
+    col = &col->column(false);
     uiLayoutSetEnabled(col, export_smooth_groups);
     uiItemR(col,
             ptr,
@@ -186,7 +188,7 @@ static void ui_obj_export_settings(const bContext *C, uiLayout *layout, PointerR
   uiItemR(panel.header, ptr, "export_materials", UI_ITEM_NONE, "", ICON_NONE);
   uiItemL(panel.header, IFACE_("Materials"), ICON_NONE);
   if (panel.body) {
-    uiLayout *col = uiLayoutColumn(panel.body, false);
+    uiLayout *col = &panel.body->column(false);
     uiLayoutSetEnabled(col, export_materials);
 
     uiItemR(col, ptr, "export_pbr_extensions", UI_ITEM_NONE, IFACE_("PBR Extensions"), ICON_NONE);
@@ -199,7 +201,7 @@ static void ui_obj_export_settings(const bContext *C, uiLayout *layout, PointerR
   uiItemR(panel.header, ptr, "export_animation", UI_ITEM_NONE, "", ICON_NONE);
   uiItemL(panel.header, IFACE_("Animation"), ICON_NONE);
   if (panel.body) {
-    uiLayout *col = uiLayoutColumn(panel.body, false);
+    uiLayout *col = &panel.body->column(false);
     uiLayoutSetEnabled(col, export_animation);
 
     uiItemR(col, ptr, "start_frame", UI_ITEM_NONE, IFACE_("Frame Start"), ICON_NONE);
@@ -335,7 +337,7 @@ void WM_OT_obj_export(wmOperatorType *ot)
                   "export_normals",
                   true,
                   "Export Normals",
-                  "Export per-face normals if the face is flat-shaded, per-face-per-loop "
+                  "Export per-face normals if the face is flat-shaded, per-face-corner "
                   "normals if smooth-shaded");
   RNA_def_boolean(ot->srna, "export_colors", false, "Export Colors", "Export per-vertex colors");
   RNA_def_boolean(ot->srna,
@@ -386,14 +388,20 @@ void WM_OT_obj_export(wmOperatorType *ot)
       "Export Vertex Groups",
       "Export the name of the vertex group of a face. It is approximated "
       "by choosing the vertex group with the most members among the vertices of a face");
+  RNA_def_boolean(ot->srna,
+                  "export_smooth_groups",
+                  false,
+                  "Export Smooth Groups",
+                  "Generate smooth groups identifiers for each group of smooth faces, as "
+                  "unique integer values by default");
   RNA_def_boolean(
       ot->srna,
-      "export_smooth_groups",
+      "smooth_group_bitflags",
       false,
-      "Export Smooth Groups",
-      "Every smooth-shaded face is assigned group \"1\" and every flat-shaded face \"off\"");
-  RNA_def_boolean(
-      ot->srna, "smooth_group_bitflags", false, "Generate Bitflags for Smooth Groups", "");
+      "Bitflags Smooth Groups",
+      "If exporting smoothgroups, generate 'bitflags' values for the groups, instead of "
+      "unique integer values. The same bitflag value can be re-used for different groups of "
+      "smooth faces, as long as they have no common sharp edges or vertices");
 
   /* Only show `.obj` or `.mtl` files by default. */
   prop = RNA_def_string(ot->srna, "filter_glob", "*.obj;*.mtl", 0, "Extension Filter", "");
@@ -403,7 +411,7 @@ void WM_OT_obj_export(wmOperatorType *ot)
   RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 
-static int wm_obj_import_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus wm_obj_import_exec(bContext *C, wmOperator *op)
 {
   OBJImportParams import_params;
   import_params.global_scale = RNA_float_get(op->ptr, "global_scale");
@@ -451,7 +459,7 @@ static void ui_obj_import_settings(const bContext *C, uiLayout *layout, PointerR
   uiLayoutSetPropDecorate(layout, false);
 
   if (uiLayout *panel = uiLayoutPanel(C, layout, "OBJ_import_general", false, IFACE_("General"))) {
-    uiLayout *col = uiLayoutColumn(panel, false);
+    uiLayout *col = &panel->column(false);
     uiItemR(col, ptr, "global_scale", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     uiItemR(col, ptr, "clamp_size", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     uiItemR(col, ptr, "forward_axis", UI_ITEM_NONE, IFACE_("Forward Axis"), ICON_NONE);
@@ -459,7 +467,7 @@ static void ui_obj_import_settings(const bContext *C, uiLayout *layout, PointerR
   }
 
   if (uiLayout *panel = uiLayoutPanel(C, layout, "OBJ_import_options", false, IFACE_("Options"))) {
-    uiLayout *col = uiLayoutColumn(panel, false);
+    uiLayout *col = &panel->column(false);
     uiItemR(col, ptr, "use_split_objects", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     uiItemR(col, ptr, "use_split_groups", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     uiItemR(col, ptr, "import_vertex_groups", UI_ITEM_NONE, std::nullopt, ICON_NONE);

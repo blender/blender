@@ -153,7 +153,7 @@ BVHSpatialSplit::BVHSpatialSplit(const BVHBuild &builder,
 
   float3 origin = range_bounds.min;
   float3 binSize = (range_bounds.max - origin) * (1.0f / (float)BVHParams::NUM_SPATIAL_BINS);
-  const float3 invBinSize = 1.0f / binSize;
+  const float3 invBinSize = safe_divide(make_float3(1.0f), binSize);
 
   for (int dim = 0; dim < 3; dim++) {
     for (int i = 0; i < BVHParams::NUM_SPATIAL_BINS; i++) {

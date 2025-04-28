@@ -16,7 +16,7 @@ struct Scene;
 
 namespace blender::seq {
 
-static constexpr int SEQ_THUMB_SIZE = 256;
+static constexpr int THUMB_SIZE = 256;
 
 /**
  * Get a thumbnail image for given strip `seq` at `timeline_frame`.

@@ -6,6 +6,9 @@
  * \ingroup edsculpt
  */
 
+#include "GEO_join_geometries.hh"
+#include "GEO_mesh_boolean.hh"
+
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_matrix.hh"
@@ -21,8 +24,6 @@
 #include "BKE_object.hh"
 #include "BKE_report.hh"
 
-#include "DNA_modifier_types.h"
-
 #include "DEG_depsgraph.hh"
 
 #include "ED_sculpt.hh"
@@ -34,8 +35,6 @@
 #include "WM_types.hh"
 
 #include "bmesh.hh"
-#include "tools/bmesh_boolean.hh"
-#include "tools/bmesh_intersect.hh"
 
 #include "paint_intern.hh"
 #include "sculpt_face_set.hh"
@@ -106,19 +105,28 @@ static EnumPropertyItem extrude_modes[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-enum class SolverMode {
-  Exact = 0,
-  Fast = 1,
-};
-
-static EnumPropertyItem solver_modes[] = {
-    {int(SolverMode::Exact), "EXACT", 0, "Exact", "Use the exact boolean solver"},
-    {int(SolverMode::Fast), "FAST", 0, "Fast", "Use the fast float boolean solver"},
+static const EnumPropertyItem solver_items[] = {
+    {int(geometry::boolean::Solver::MeshArr),
+     "EXACT",
+     0,
+     "Exact",
+     "Slower solver with the best results for coplanar faces"},
+    {int(geometry::boolean::Solver::Float),
+     "FLOAT",
+     0,
+     "Float",
+     "Simple solver with good performance, without support for overlapping geometry"},
+    {int(geometry::boolean::Solver::Manifold),
+     "MANIFOLD",
+     0,
+     "Manifold",
+     "Fastest solver that works only on manifold meshes but gives better results"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
 struct TrimOperation {
   gesture::Operation op;
+  ReportList *reports;
 
   /* Operation-generated geometry. */
   Mesh *mesh;
@@ -132,7 +140,7 @@ struct TrimOperation {
   blender::float3 initial_normal;
 
   OperationType mode;
-  SolverMode solver_mode;
+  geometry::boolean::Solver solver_mode;
   OrientationType orientation;
   ExtrudeMode extrude_mode;
 };
@@ -348,8 +356,7 @@ static void generate_geometry(gesture::GestureData &gesture_data)
   const int trim_faces_nums = (2 * (screen_points.size() - 2)) + (2 * screen_points.size());
   trim_operation->mesh = BKE_mesh_new_nomain(
       trim_totverts, 0, trim_faces_nums, trim_faces_nums * 3);
-  trim_operation->true_mesh_co = static_cast<float(*)[3]>(
-      MEM_malloc_arrayN(trim_totverts, sizeof(float[3]), "mesh orco"));
+  trim_operation->true_mesh_co = MEM_malloc_arrayN<float[3]>(trim_totverts, "mesh orco");
 
   float shape_origin[3];
   float shape_normal[3];
@@ -452,53 +459,53 @@ static void generate_geometry(gesture::GestureData &gesture_data)
   MutableSpan<int> face_offsets = trim_operation->mesh->face_offsets_for_write();
   MutableSpan<int> corner_verts = trim_operation->mesh->corner_verts_for_write();
   int face_index = 0;
-  int loop_index = 0;
+  int corner = 0;
   for (const int i : tris.index_range()) {
-    face_offsets[face_index] = loop_index;
-    corner_verts[loop_index + 0] = tris[i][0];
-    corner_verts[loop_index + 1] = tris[i][1];
-    corner_verts[loop_index + 2] = tris[i][2];
+    face_offsets[face_index] = corner;
+    corner_verts[corner + 0] = tris[i][0];
+    corner_verts[corner + 1] = tris[i][1];
+    corner_verts[corner + 2] = tris[i][2];
     face_index++;
-    loop_index += 3;
+    corner += 3;
   }
 
   /* Write the back face triangle indices. */
   for (const int i : tris.index_range()) {
-    face_offsets[face_index] = loop_index;
-    corner_verts[loop_index + 0] = tris[i][0] + screen_points.size();
-    corner_verts[loop_index + 1] = tris[i][1] + screen_points.size();
-    corner_verts[loop_index + 2] = tris[i][2] + screen_points.size();
+    face_offsets[face_index] = corner;
+    corner_verts[corner + 0] = tris[i][0] + screen_points.size();
+    corner_verts[corner + 1] = tris[i][1] + screen_points.size();
+    corner_verts[corner + 2] = tris[i][2] + screen_points.size();
     face_index++;
-    loop_index += 3;
+    corner += 3;
   }
 
   /* Write the indices for the lateral triangles. */
   for (const int i : screen_points.index_range()) {
-    face_offsets[face_index] = loop_index;
+    face_offsets[face_index] = corner;
     int current_index = i;
     int next_index = current_index + 1;
     if (next_index >= screen_points.size()) {
       next_index = 0;
     }
-    corner_verts[loop_index + 0] = next_index + screen_points.size();
-    corner_verts[loop_index + 1] = next_index;
-    corner_verts[loop_index + 2] = current_index;
+    corner_verts[corner + 0] = next_index + screen_points.size();
+    corner_verts[corner + 1] = next_index;
+    corner_verts[corner + 2] = current_index;
     face_index++;
-    loop_index += 3;
+    corner += 3;
   }
 
   for (const int i : screen_points.index_range()) {
-    face_offsets[face_index] = loop_index;
+    face_offsets[face_index] = corner;
     int current_index = i;
     int next_index = current_index + 1;
     if (next_index >= screen_points.size()) {
       next_index = 0;
     }
-    corner_verts[loop_index + 0] = current_index;
-    corner_verts[loop_index + 1] = current_index + screen_points.size();
-    corner_verts[loop_index + 2] = next_index + screen_points.size();
+    corner_verts[corner + 0] = current_index;
+    corner_verts[corner + 1] = current_index + screen_points.size();
+    corner_verts[corner + 2] = next_index + screen_points.size();
     face_index++;
-    loop_index += 3;
+    corner += 3;
   }
 
   bke::mesh_smooth_set(*trim_operation->mesh, false);
@@ -526,106 +533,72 @@ static void gesture_begin(bContext &C, wmOperator &op, gesture::GestureData &ges
   undo::geometry_begin(scene, *gesture_data.vc.obact, &op);
 }
 
-static int bm_face_isect_pair(BMFace *f, void * /*user_data*/)
+static void apply_join_operation(Object &object, Mesh &sculpt_mesh, Mesh &trim_mesh)
 {
-  return BM_elem_flag_test(f, BM_ELEM_DRAW) ? 1 : 0;
+  bke::GeometrySet joined = geometry::join_geometries(
+      {bke::GeometrySet::from_mesh(&sculpt_mesh, bke::GeometryOwnershipType::ReadOnly),
+       bke::GeometrySet::from_mesh(&trim_mesh, bke::GeometryOwnershipType::ReadOnly)},
+      {});
+  Mesh *result = joined.get_component_for_write<bke::MeshComponent>().release();
+  BKE_mesh_nomain_to_mesh(result, &sculpt_mesh, &object);
 }
 
 static void apply_trim(gesture::GestureData &gesture_data)
 {
   TrimOperation *trim_operation = (TrimOperation *)gesture_data.operation;
-  Mesh *sculpt_mesh = BKE_mesh_from_object(gesture_data.vc.obact);
-  Mesh *trim_mesh = trim_operation->mesh;
+  Object *object = gesture_data.vc.obact;
+  Mesh &sculpt_mesh = *static_cast<Mesh *>(object->data);
+  Mesh &trim_mesh = *trim_operation->mesh;
 
-  const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(sculpt_mesh, trim_mesh);
-
-  BMeshCreateParams bm_create_params{};
-  bm_create_params.use_toolflags = false;
-  BMesh *bm = BM_mesh_create(&allocsize, &bm_create_params);
-
-  BMeshFromMeshParams bm_from_me_params{};
-  bm_from_me_params.calc_face_normal = true;
-  bm_from_me_params.calc_vert_normal = true;
-  BM_mesh_bm_from_me(bm, trim_mesh, &bm_from_me_params);
-  BM_mesh_bm_from_me(bm, sculpt_mesh, &bm_from_me_params);
-
-  const int corner_tris_tot = poly_to_tri_count(bm->totface, bm->totloop);
-  Array<std::array<BMLoop *, 3>> corner_tris(corner_tris_tot);
-  BM_mesh_calc_tessellation_beauty(bm, corner_tris);
-
-  BMIter iter;
-  int i;
-  const int i_faces_end = trim_mesh->faces_num;
-
-  /* We need face normals because of 'BM_face_split_edgenet'
-   * we could calculate on the fly too (before calling split). */
-
-  const short ob_src_totcol = trim_mesh->totcol;
-  Array<short> material_remap(ob_src_totcol ? ob_src_totcol : 1);
-
-  BMFace *efa;
-  i = 0;
-  BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
-    normalize_v3(efa->no);
-
-    /* Temp tag to test which side split faces are from. */
-    BM_elem_flag_enable(efa, BM_ELEM_DRAW);
-
-    /* Remap material. */
-    if (efa->mat_nr < ob_src_totcol) {
-      efa->mat_nr = material_remap[efa->mat_nr];
-    }
-
-    if (++i == i_faces_end) {
+  geometry::boolean::Operation boolean_op;
+  switch (trim_operation->mode) {
+    case OperationType::Intersect:
+      boolean_op = geometry::boolean::Operation::Intersect;
       break;
-    }
+    case OperationType::Difference:
+      boolean_op = geometry::boolean::Operation::Difference;
+      break;
+    case OperationType::Union:
+      boolean_op = geometry::boolean::Operation::Union;
+      break;
+    case OperationType::Join:
+      apply_join_operation(*object, sculpt_mesh, trim_mesh);
+      return;
   }
 
-  /* Join does not do a boolean operation, it just adds the geometry. */
-  if (trim_operation->mode != OperationType::Join) {
-    int boolean_mode = 0;
-    switch (trim_operation->mode) {
-      case OperationType::Intersect:
-        boolean_mode = eBooleanModifierOp_Intersect;
-        break;
-      case OperationType::Difference:
-        boolean_mode = eBooleanModifierOp_Difference;
-        break;
-      case OperationType::Union:
-        boolean_mode = eBooleanModifierOp_Union;
-        break;
-      case OperationType::Join:
-        BLI_assert(false);
-        break;
-    }
-
-    if (trim_operation->solver_mode == SolverMode::Exact) {
-      BM_mesh_boolean(
-          bm, corner_tris, bm_face_isect_pair, nullptr, 2, true, true, false, boolean_mode);
-    }
-    else {
-      BM_mesh_intersect(bm,
-                        corner_tris,
-                        bm_face_isect_pair,
-                        nullptr,
-                        false,
-                        false,
-                        true,
-                        true,
-                        false,
-                        false,
-                        boolean_mode,
-                        1e-6f);
-    }
+  geometry::boolean::BooleanOpParameters op_params;
+  op_params.boolean_mode = boolean_op;
+  op_params.no_self_intersections = true;
+  op_params.watertight = false;
+  op_params.no_nested_components = true;
+  geometry::boolean::BooleanError error = geometry::boolean::BooleanError::NoError;
+  Mesh *result = geometry::boolean::mesh_boolean({&sculpt_mesh, &trim_mesh},
+                                                 {float4x4::identity(), float4x4::identity()},
+                                                 {Array<short>(), Array<short>()},
+                                                 op_params,
+                                                 trim_operation->solver_mode,
+                                                 nullptr,
+                                                 &error);
+  if (error == geometry::boolean::BooleanError::NonManifold) {
+    BKE_report(trim_operation->reports, RPT_ERROR, "Solver requires a manifold mesh");
+    return;
+  }
+  if (error == geometry::boolean::BooleanError::ResultTooBig) {
+    BKE_report(
+        trim_operation->reports, RPT_ERROR, "Boolean result is too big for solver to handle");
+    return;
+  }
+  if (error == geometry::boolean::BooleanError::SolverNotAvailable) {
+    BKE_report(
+        trim_operation->reports, RPT_ERROR, "Boolean solver not available (compiled without it)");
+    return;
+  }
+  if (error == geometry::boolean::BooleanError::UnknownError) {
+    BKE_report(trim_operation->reports, RPT_ERROR, "Unknown boolean error");
+    return;
   }
 
-  BMeshToMeshParams convert_params{};
-  convert_params.calc_object_remap = false;
-  Mesh *result = BKE_mesh_from_bmesh_nomain(bm, &convert_params, sculpt_mesh);
-
-  BM_mesh_free(bm);
-  BKE_mesh_nomain_to_mesh(
-      result, static_cast<Mesh *>(gesture_data.vc.obact->data), gesture_data.vc.obact);
+  BKE_mesh_nomain_to_mesh(result, &sculpt_mesh, object);
 }
 
 static void gesture_apply_for_symmetry_pass(bContext & /*C*/, gesture::GestureData &gesture_data)
@@ -667,7 +640,7 @@ static void gesture_end(bContext & /*C*/, gesture::GestureData &gesture_data)
 static void init_operation(gesture::GestureData &gesture_data, wmOperator &op)
 {
   TrimOperation *trim_operation = (TrimOperation *)gesture_data.operation;
-
+  trim_operation->reports = op.reports;
   trim_operation->op.begin = gesture_begin;
   trim_operation->op.apply_for_symmetry_pass = gesture_apply_for_symmetry_pass;
   trim_operation->op.end = gesture_end;
@@ -676,7 +649,7 @@ static void init_operation(gesture::GestureData &gesture_data, wmOperator &op)
   trim_operation->use_cursor_depth = RNA_boolean_get(op.ptr, "use_cursor_depth");
   trim_operation->orientation = OrientationType(RNA_enum_get(op.ptr, "trim_orientation"));
   trim_operation->extrude_mode = ExtrudeMode(RNA_enum_get(op.ptr, "trim_extrude_mode"));
-  trim_operation->solver_mode = SolverMode(RNA_enum_get(op.ptr, "trim_solver"));
+  trim_operation->solver_mode = geometry::boolean::Solver(RNA_enum_get(op.ptr, "trim_solver"));
 
   /* If the cursor was not over the mesh, force the orientation to view. */
   if (!trim_operation->initial_hit) {
@@ -730,7 +703,12 @@ static void operator_properties(wmOperatorType *ot)
                "Extrude Mode",
                nullptr);
 
-  RNA_def_enum(ot->srna, "trim_solver", solver_modes, int(SolverMode::Fast), "Solver", nullptr);
+  RNA_def_enum(ot->srna,
+               "trim_solver",
+               solver_items,
+               int(geometry::boolean::Solver::Manifold),
+               "Solver",
+               nullptr);
 }
 
 static bool can_invoke(const bContext &C)
@@ -797,7 +775,7 @@ static void initialize_cursor_info(bContext &C,
   }
 }
 
-static int gesture_box_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus gesture_box_exec(bContext *C, wmOperator *op)
 {
   if (!can_exec(*C, *op->reports)) {
     return OPERATOR_CANCELLED;
@@ -817,7 +795,7 @@ static int gesture_box_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int gesture_box_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus gesture_box_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   if (!can_invoke(*C)) {
     return OPERATOR_CANCELLED;
@@ -828,7 +806,7 @@ static int gesture_box_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   return WM_gesture_box_invoke(C, op, event);
 }
 
-static int gesture_lasso_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus gesture_lasso_exec(bContext *C, wmOperator *op)
 {
   if (!can_exec(*C, *op->reports)) {
     return OPERATOR_CANCELLED;
@@ -848,7 +826,7 @@ static int gesture_lasso_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int gesture_lasso_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus gesture_lasso_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   if (!can_invoke(*C)) {
     return OPERATOR_CANCELLED;
@@ -859,7 +837,7 @@ static int gesture_lasso_invoke(bContext *C, wmOperator *op, const wmEvent *even
   return WM_gesture_lasso_invoke(C, op, event);
 }
 
-static int gesture_line_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus gesture_line_exec(bContext *C, wmOperator *op)
 {
   if (!can_exec(*C, *op->reports)) {
     return OPERATOR_CANCELLED;
@@ -879,7 +857,7 @@ static int gesture_line_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int gesture_line_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus gesture_line_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   if (!can_invoke(*C)) {
     return OPERATOR_CANCELLED;
@@ -890,7 +868,7 @@ static int gesture_line_invoke(bContext *C, wmOperator *op, const wmEvent *event
   return WM_gesture_straightline_active_side_invoke(C, op, event);
 }
 
-static int gesture_polyline_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus gesture_polyline_exec(bContext *C, wmOperator *op)
 {
   if (!can_exec(*C, *op->reports)) {
     return OPERATOR_CANCELLED;
@@ -910,7 +888,7 @@ static int gesture_polyline_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int gesture_polyline_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus gesture_polyline_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   if (!can_invoke(*C)) {
     return OPERATOR_CANCELLED;

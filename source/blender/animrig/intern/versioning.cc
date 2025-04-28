@@ -200,16 +200,17 @@ void convert_legacy_action_assignments(Main &bmain, ReportList *reports)
     Action &action = dna_action->wrap();
 
     if (action.slot_array_num == 0) {
-      /* animated_id is from an older file (because it is in the being-versioned-right-now bmain),
-       * and it's referring to an Action from an already-versioned library file. We know this
-       * because versioned legacy Actions always have a single slot called "Legacy Slot", and so
-       * this Action must have been opened in some Blender and had its slot removed. */
+      /* There's a few reasons why this Action doesn't have a slot. It could simply be a slotted
+       * Action without slots, or a legacy-but-not-yet-versioned Action, or it could be it is a
+       * _really_ old (pre-2.50) Action. The latter are upgraded in do_versions_after_setup(), but
+       * this function can be called earlier than that. So better gracefully skip those. */
+      return true;
+    }
 
-      /* Another reason that there is no slot is that it was a _really_ old (pre-2.50)
-       * Action that should have been upgraded already. */
-      BLI_assert_msg(BLI_listbase_is_empty(&action.chanbase),
-                     "Did not expect pre-2.5 Action at this stage of the versioning code");
-
+    /* If there is already a slot assigned, there's nothing to do here. */
+    PointerRNA current_slot_ptr = RNA_property_pointer_get(&action_slot_owner_ptr,
+                                                           &action_slot_prop);
+    if (current_slot_ptr.data) {
       return true;
     }
 
@@ -255,12 +256,17 @@ void convert_legacy_action_assignments(Main &bmain, ReportList *reports)
     return true;
   };
 
+  /* Note that the code below does not remove the `action_assignment_needs_slot` tag. One ID can
+   * use multiple Actions (via NLA, Action constraints, etc.); if one of those Action is an ancient
+   * one from before 2.50 (just to name one example case) this ID may needs to be re-visited
+   * after those were versioned. Rather than trying to figure out if re-visiting is necessary, this
+   * function is safe to call multiple times, and all that's lost is a little bit of CPU time. */
+
   ID *id;
   FOREACH_MAIN_ID_BEGIN (&bmain, id) {
     /* Process the ID itself. */
     if (BLO_readfile_id_runtime_tags(*id).action_assignment_needs_slot) {
       foreach_action_slot_use_with_rna(*id, version_slot_assignment);
-      id->runtime.readfile_data->tags.action_assignment_needs_slot = false;
     }
 
     /* Process embedded IDs, as these are not listed in bmain, but still can
@@ -270,7 +276,6 @@ void convert_legacy_action_assignments(Main &bmain, ReportList *reports)
     bNodeTree *node_tree = blender::bke::node_tree_from_id(id);
     if (node_tree && BLO_readfile_id_runtime_tags(node_tree->id).action_assignment_needs_slot) {
       foreach_action_slot_use_with_rna(node_tree->id, version_slot_assignment);
-      node_tree->id.runtime.readfile_data->tags.action_assignment_needs_slot = false;
     }
   }
   FOREACH_MAIN_ID_END;

@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2022 Google Inc. All rights reserved.
+// Copyright 2023 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -57,24 +57,12 @@
 #include "ceres/wall_time.h"
 #include "glog/logging.h"
 
-namespace ceres {
-namespace internal {
-
-using std::swap;
+namespace ceres::internal {
 
 using CovarianceBlocks = std::vector<std::pair<const double*, const double*>>;
 
 CovarianceImpl::CovarianceImpl(const Covariance::Options& options)
     : options_(options), is_computed_(false), is_valid_(false) {
-#ifdef CERES_NO_THREADS
-  if (options_.num_threads > 1) {
-    LOG(WARNING) << "No threading support is compiled into this binary; "
-                 << "only options.num_threads = 1 is supported. Switching "
-                 << "to single threaded mode.";
-    options_.num_threads = 1;
-  }
-#endif
-
   evaluate_options_.num_threads = options_.num_threads;
   evaluate_options_.apply_loss_function = options_.apply_loss_function;
 }
@@ -176,7 +164,7 @@ bool CovarianceImpl::GetCovarianceBlockInTangentOrAmbientSpace(
   const double* parameter_block2 = original_parameter_block2;
   const bool transpose = parameter_block1 > parameter_block2;
   if (transpose) {
-    swap(parameter_block1, parameter_block2);
+    std::swap(parameter_block1, parameter_block2);
   }
 
   // Find where in the covariance matrix the block is located.
@@ -190,7 +178,7 @@ bool CovarianceImpl::GetCovarianceBlockInTangentOrAmbientSpace(
   const int* cols_begin = cols + rows[row_begin];
 
   // The only part that requires work is walking the compressed column
-  // vector to determine where the set of columns correspnding to the
+  // vector to determine where the set of columns corresponding to the
   // covariance block begin.
   int offset = 0;
   while (cols_begin[offset] != col_begin && offset < row_size) {
@@ -322,9 +310,8 @@ bool CovarianceImpl::GetCovarianceMatrixInTangentOrAmbientSpace(
   // Assemble the blocks in the covariance matrix.
   MatrixRef covariance(covariance_matrix, covariance_size, covariance_size);
   const int num_threads = options_.num_threads;
-  std::unique_ptr<double[]> workspace(
-      new double[num_threads * max_covariance_block_size *
-                 max_covariance_block_size]);
+  auto workspace = std::make_unique<double[]>(
+      num_threads * max_covariance_block_size * max_covariance_block_size);
 
   bool success = true;
 
@@ -481,14 +468,12 @@ bool CovarianceImpl::ComputeCovarianceSparsity(
     // Iterate over the covariance blocks contained in this row block
     // and count the number of columns in this row block.
     int num_col_blocks = 0;
-    int num_columns = 0;
     for (int j = i; j < covariance_blocks.size(); ++j, ++num_col_blocks) {
       const std::pair<const double*, const double*>& block_pair =
           covariance_blocks[j];
       if (block_pair.first != row_block) {
         break;
       }
-      num_columns += problem->ParameterBlockTangentSize(block_pair.second);
     }
 
     // Fill out all the compressed rows for this parameter block.
@@ -598,9 +583,9 @@ bool CovarianceImpl::ComputeCovarianceValuesUsingSuiteSparseQR() {
   cholmod_jacobian.ncol = num_cols;
   cholmod_jacobian.nzmax = num_nonzeros;
   cholmod_jacobian.nz = nullptr;
-  cholmod_jacobian.p = reinterpret_cast<void*>(&transpose_rows[0]);
-  cholmod_jacobian.i = reinterpret_cast<void*>(&transpose_cols[0]);
-  cholmod_jacobian.x = reinterpret_cast<void*>(&transpose_values[0]);
+  cholmod_jacobian.p = reinterpret_cast<void*>(transpose_rows.data());
+  cholmod_jacobian.i = reinterpret_cast<void*>(transpose_cols.data());
+  cholmod_jacobian.x = reinterpret_cast<void*>(transpose_values.data());
   cholmod_jacobian.z = nullptr;
   cholmod_jacobian.stype = 0;  // Matrix is not symmetric.
   cholmod_jacobian.itype = CHOLMOD_LONG;
@@ -628,13 +613,15 @@ bool CovarianceImpl::ComputeCovarianceValuesUsingSuiteSparseQR() {
   // more efficient, both in runtime as well as the quality of
   // ordering computed. So, it maybe worth doing that analysis
   // separately.
-  const SuiteSparse_long rank = SuiteSparseQR<double>(SPQR_ORDERING_BESTAMD,
-                                                      SPQR_DEFAULT_TOL,
-                                                      cholmod_jacobian.ncol,
-                                                      &cholmod_jacobian,
-                                                      &R,
-                                                      &permutation,
-                                                      &cc);
+  const SuiteSparse_long rank = SuiteSparseQR<double>(
+      SPQR_ORDERING_BESTAMD,
+      options_.column_pivot_threshold < 0 ? SPQR_DEFAULT_TOL
+                                          : options_.column_pivot_threshold,
+      static_cast<int64_t>(cholmod_jacobian.ncol),
+      &cholmod_jacobian,
+      &R,
+      &permutation,
+      &cc);
   event_logger.AddEvent("Numeric Factorization");
   if (R == nullptr) {
     LOG(ERROR) << "Something is wrong. SuiteSparseQR returned R = nullptr.";
@@ -678,7 +665,7 @@ bool CovarianceImpl::ComputeCovarianceValuesUsingSuiteSparseQR() {
   // Since the covariance matrix is symmetric, the i^th row and column
   // are equal.
   const int num_threads = options_.num_threads;
-  std::unique_ptr<double[]> workspace(new double[num_threads * num_cols]);
+  auto workspace = std::make_unique<double[]>(num_threads * num_cols);
 
   problem_->context()->EnsureMinimumThreads(num_threads);
   ParallelFor(
@@ -830,19 +817,23 @@ bool CovarianceImpl::ComputeCovarianceValuesUsingEigenSparseQR() {
           jacobian.values.data());
   event_logger.AddEvent("ConvertToSparseMatrix");
 
-  Eigen::SparseQR<EigenSparseMatrix, Eigen::COLAMDOrdering<int>> qr_solver(
-      sparse_jacobian);
+  Eigen::SparseQR<EigenSparseMatrix, Eigen::COLAMDOrdering<int>> qr;
+  if (options_.column_pivot_threshold > 0) {
+    qr.setPivotThreshold(options_.column_pivot_threshold);
+  }
+
+  qr.compute(sparse_jacobian);
   event_logger.AddEvent("QRDecomposition");
 
-  if (qr_solver.info() != Eigen::Success) {
+  if (qr.info() != Eigen::Success) {
     LOG(ERROR) << "Eigen::SparseQR decomposition failed.";
     return false;
   }
 
-  if (qr_solver.rank() < jacobian.num_cols) {
+  if (qr.rank() < jacobian.num_cols) {
     LOG(ERROR) << "Jacobian matrix is rank deficient. "
                << "Number of columns: " << jacobian.num_cols
-               << " rank: " << qr_solver.rank();
+               << " rank: " << qr.rank();
     return false;
   }
 
@@ -852,7 +843,7 @@ bool CovarianceImpl::ComputeCovarianceValuesUsingEigenSparseQR() {
 
   // Compute the inverse column permutation used by QR factorization.
   Eigen::PermutationMatrix<Eigen::Dynamic, Eigen::Dynamic> inverse_permutation =
-      qr_solver.colsPermutation().inverse();
+      qr.colsPermutation().inverse();
 
   // The following loop exploits the fact that the i^th column of A^{-1}
   // is given by the solution to the linear system
@@ -865,7 +856,7 @@ bool CovarianceImpl::ComputeCovarianceValuesUsingEigenSparseQR() {
   // are equal.
   const int num_cols = jacobian.num_cols;
   const int num_threads = options_.num_threads;
-  std::unique_ptr<double[]> workspace(new double[num_threads * num_cols]);
+  auto workspace = std::make_unique<double[]>(num_threads * num_cols);
 
   problem_->context()->EnsureMinimumThreads(num_threads);
   ParallelFor(
@@ -875,9 +866,9 @@ bool CovarianceImpl::ComputeCovarianceValuesUsingEigenSparseQR() {
         if (row_end != row_begin) {
           double* solution = workspace.get() + thread_id * num_cols;
           SolveRTRWithSparseRHS<int>(num_cols,
-                                     qr_solver.matrixR().innerIndexPtr(),
-                                     qr_solver.matrixR().outerIndexPtr(),
-                                     &qr_solver.matrixR().data().value(0),
+                                     qr.matrixR().innerIndexPtr(),
+                                     qr.matrixR().outerIndexPtr(),
+                                     &qr.matrixR().data().value(0),
                                      inverse_permutation.indices().coeff(r),
                                      solution);
 
@@ -895,5 +886,4 @@ bool CovarianceImpl::ComputeCovarianceValuesUsingEigenSparseQR() {
   return true;
 }
 
-}  // namespace internal
-}  // namespace ceres
+}  // namespace ceres::internal

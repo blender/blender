@@ -17,6 +17,7 @@
 #include "BLI_vector_set.hh"
 
 #include "DNA_customdata_types.h"
+#include "DNA_windowmanager_enums.h"
 
 struct ARegion;
 struct bContext;
@@ -145,7 +146,7 @@ void POINTCLOUD_OT_attribute_set(wmOperatorType *ot);
 void POINTCLOUD_OT_duplicate(wmOperatorType *ot);
 void POINTCLOUD_OT_separate(wmOperatorType *ot);
 
-int join_objects(bContext *C, wmOperator *op);
+wmOperatorStatus join_objects_exec(bContext *C, wmOperator *op);
 
 /** \} */
 

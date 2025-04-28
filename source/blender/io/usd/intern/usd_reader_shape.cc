@@ -40,7 +40,7 @@ USDShapeReader::USDShapeReader(const pxr::UsdPrim &prim,
 {
 }
 
-void USDShapeReader::create_object(Main *bmain, double /*motionSampleTime*/)
+void USDShapeReader::create_object(Main *bmain)
 {
   Mesh *mesh = BKE_mesh_add(bmain, name_.c_str());
   object_ = BKE_object_add_only_object(bmain, OB_MESH, name_.c_str());
@@ -139,19 +139,22 @@ Mesh *USDShapeReader::read_mesh(Mesh *existing_mesh,
                                 const USDMeshReadParams params,
                                 const char ** /*r_err_str*/)
 {
-  pxr::VtIntArray face_indices;
-  pxr::VtIntArray face_counts;
-
   if (!prim_) {
     return existing_mesh;
   }
 
+  pxr::VtIntArray usd_face_indices;
+  pxr::VtIntArray usd_face_counts;
+
   /* Should have a good set of data by this point-- copy over. */
-  Mesh *active_mesh = mesh_from_prim(existing_mesh, params, face_indices, face_counts);
+  Mesh *active_mesh = mesh_from_prim(existing_mesh, params, usd_face_indices, usd_face_counts);
 
   if (active_mesh == existing_mesh) {
     return existing_mesh;
   }
+
+  Span<int> face_indices = Span(usd_face_indices.cdata(), usd_face_indices.size());
+  Span<int> face_counts = Span(usd_face_counts.cdata(), usd_face_counts.size());
 
   MutableSpan<int> face_offsets = active_mesh->face_offsets_for_write();
   for (const int i : IndexRange(active_mesh->faces_num)) {
@@ -258,7 +261,7 @@ Mesh *USDShapeReader::mesh_from_prim(Mesh *existing_mesh,
   }
 
   MutableSpan<float3> vert_positions = active_mesh->vert_positions_for_write();
-  vert_positions.copy_from(Span(positions.data(), positions.size()).cast<float3>());
+  vert_positions.copy_from(Span(positions.cdata(), positions.size()).cast<float3>());
 
   if (params.read_flags & MOD_MESHSEQ_READ_COLOR) {
     if (active_mesh != existing_mesh) {

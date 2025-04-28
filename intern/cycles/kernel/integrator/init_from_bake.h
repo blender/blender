@@ -150,7 +150,7 @@ ccl_device bool integrator_init_from_bake(KernelGlobals kg,
                                              path_rng_2D(kg, rng_pixel, sample, PRNG_FILTER);
 
   /* Initialize path state for path integration. */
-  path_state_init_integrator(kg, state, sample, rng_pixel);
+  path_state_init_integrator(kg, state, sample, rng_pixel, one_spectrum());
 
   /* Barycentric UV. */
   float u = primitive[0];

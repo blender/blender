@@ -8,15 +8,23 @@
 
 #pragma once
 
-/* `select_engine.cc` */
+#include "DRW_render.hh"
 
-extern DrawEngineType draw_engine_select_type;
-extern RenderEngineType DRW_engine_viewport_select_type;
+/* `select_engine.cc` */
 
 #ifdef WITH_DRAW_DEBUG
 /* `select_debug_engine.cc` */
 
-extern DrawEngineType draw_engine_debug_select_type;
+namespace blender::draw::edit_select_debug {
+
+struct Engine : public DrawEngine::Pointer {
+  DrawEngine *create_instance() final;
+
+  static void free_static();
+};
+
+}  // namespace blender::draw::edit_select_debug
+
 #endif
 
 struct SELECTID_Context *DRW_select_engine_context_get();
@@ -25,4 +33,20 @@ struct GPUTexture *DRW_engine_select_texture_get();
 
 /* select_instance.cc */
 
-extern DrawEngineType draw_engine_select_next_type;
+namespace blender::draw::select {
+
+struct Engine : public DrawEngine::Pointer {
+  DrawEngine *create_instance() final;
+};
+
+}  // namespace blender::draw::select
+
+namespace blender::draw::edit_select {
+
+struct Engine : public DrawEngine::Pointer {
+  DrawEngine *create_instance() final;
+
+  static void free_static();
+};
+
+}  // namespace blender::draw::edit_select

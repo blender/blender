@@ -15,6 +15,7 @@
 #include "scene/pass.h"
 #include "scene/scene.h"
 
+#include "session/display_driver.h"
 #include "session/tile.h"
 
 #include "util/log.h"
@@ -496,10 +497,15 @@ void PathTrace::set_denoiser_params(const DenoiseParams &params)
     return;
   }
 
+  GraphicsInteropDevice interop_device;
+  if (display_) {
+    interop_device = display_->graphics_interop_get_device();
+  }
+
   Device *effective_denoise_device;
   Device *cpu_fallback_device = cpu_device_.get();
   const DenoiseParams effective_denoise_params = get_effective_denoise_params(
-      denoise_device_, cpu_fallback_device, params, effective_denoise_device);
+      denoise_device_, cpu_fallback_device, params, interop_device, effective_denoise_device);
 
   bool need_to_recreate_denoiser = false;
   if (denoiser_) {
@@ -540,7 +546,7 @@ void PathTrace::set_denoiser_params(const DenoiseParams &params)
 
   if (need_to_recreate_denoiser) {
     denoiser_ = Denoiser::create(
-        effective_denoise_device, cpu_fallback_device, effective_denoise_params);
+        effective_denoise_device, cpu_fallback_device, effective_denoise_params, interop_device);
 
     if (denoiser_) {
       /* Only take into account the "immediate" cancel to have interactive rendering responding to

@@ -27,6 +27,8 @@ set(SRC
   intern/format_bmp.cc
   intern/format_dds.cc
   intern/format_hdr.cc
+  intern/format_iris.cc
+  intern/format_jpeg.cc
   intern/format_png.cc
   intern/format_psd.cc
   intern/format_svg.cc
@@ -34,8 +36,6 @@ set(SRC
   intern/format_tiff.cc
   intern/imageprocess.cc
   intern/interp.cc
-  intern/iris.cc
-  intern/jpeg.cc
   intern/metadata.cc
   intern/module.cc
   intern/moviecache.cc
@@ -88,7 +88,7 @@ if(WITH_IMAGE_OPENEXR)
   list(APPEND LIB
     bf_imbuf_openexr
   )
-  add_definitions(-DWITH_OPENEXR)
+  add_definitions(-DWITH_IMAGE_OPENEXR)
 else()
   list(APPEND SRC
     intern/openexr/openexr_stub.cpp
@@ -109,13 +109,13 @@ if(WITH_IMAGE_OPENJPEG)
     ${OPENJPEG_INCLUDE_DIRS}
   )
   list(APPEND SRC
-    intern/jp2.cc
+    intern/format_jp2.cc
   )
   list(APPEND LIB
     ${OPENJPEG_LIBRARIES}
   )
 
-  add_definitions(-DWITH_OPENJPEG ${OPENJPEG_DEFINES})
+  add_definitions(-DWITH_IMAGE_OPENJPEG ${OPENJPEG_DEFINES})
 endif()
 
 if(WITH_IMAGE_CINEON)
@@ -125,12 +125,12 @@ if(WITH_IMAGE_CINEON)
   list(APPEND LIB
     bf_imbuf_cineon
   )
-  add_definitions(-DWITH_CINEON)
+  add_definitions(-DWITH_IMAGE_CINEON)
 endif()
 
 if(WITH_IMAGE_WEBP)
   list(APPEND SRC
-    intern/webp.cc
+    intern/format_webp.cc
   )
   list(APPEND INC_SYS
     ${WEBP_INCLUDE_DIRS}
@@ -138,7 +138,7 @@ if(WITH_IMAGE_WEBP)
   list(APPEND LIB
     ${WEBP_LIBRARIES}
   )
-  add_definitions(-DWITH_WEBP)
+  add_definitions(-DWITH_IMAGE_WEBP)
 endif()
 
 list(APPEND INC

@@ -160,7 +160,7 @@ class Map {
 
   /** The max load factor is 1/2 = 50% by default. */
 #define LOAD_FACTOR 1, 2
-  LoadFactor max_load_factor_ = LoadFactor(LOAD_FACTOR);
+  static constexpr LoadFactor max_load_factor_ = LoadFactor(LOAD_FACTOR);
   using SlotArray =
       Array<Slot, LoadFactor::compute_total_slots(InlineBufferCapacity, LOAD_FACTOR), Allocator>;
 #undef LOAD_FACTOR
@@ -613,7 +613,8 @@ class Map {
    * the map, it will be newly added.
    *
    * The create_value callback is only called when the key did not exist yet. It is expected to
-   * take no parameters and return the value to be inserted.
+   * take no parameters and return the value to be inserted. The callback is called before the key
+   * is copied/moved into the map.
    */
   template<typename CreateValueF>
   Value &lookup_or_add_cb(const Key &key, const CreateValueF &create_value)

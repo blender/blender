@@ -478,7 +478,7 @@ static void transform_radius_elastic(const Depsgraph &depsgraph,
 
   threading::EnumerableThreadSpecific<TransformLocalData> all_tls;
   for (ePaintSymmetryFlags symmpass = PAINT_SYMM_NONE; symmpass <= symm; symmpass++) {
-    if (!SCULPT_is_symmetry_iteration_valid(symmpass, symm)) {
+    if (!is_symmetry_iteration_valid(symmpass, symm)) {
       continue;
     }
 
@@ -578,12 +578,15 @@ void update_modal_transform(bContext *C, Object &ob)
 
 void cancel_modal_transform(bContext *C, Object &ob)
 {
-  /* Cancelling "Elastic" transforms (due to its TransformDisplacementMode::Incremental nature),
+  /* Canceling "Elastic" transforms (due to its #TransformDisplacementMode::Incremental nature),
    * requires restoring positions from undo. For "All Vertices" there is no benefit in using the
    * transform system to update to original positions either. */
-  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
+  Depsgraph &depsgraph = *CTX_data_depsgraph_pointer(C);
+  undo::restore_position_from_undo_step(depsgraph, ob);
 
-  undo::restore_position_from_undo_step(*depsgraph, ob);
+  bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
+  bke::pbvh::update_normals(depsgraph, ob, pbvh);
+  pbvh.update_bounds(depsgraph, ob);
 }
 
 void end_transform(bContext *C, Object &ob)
@@ -907,7 +910,7 @@ static float3 average_mask_border_position(const Depsgraph &depsgraph,
   return float3(0);
 }
 
-static int set_pivot_position_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus set_pivot_position_exec(bContext *C, wmOperator *op)
 {
   Object &ob = *CTX_data_active_object(C);
   SculptSession &ss = *ob.sculpt;
@@ -963,7 +966,9 @@ static int set_pivot_position_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int set_pivot_position_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus set_pivot_position_invoke(bContext *C,
+                                                  wmOperator *op,
+                                                  const wmEvent *event)
 {
   RNA_float_set(op->ptr, "mouse_x", event->mval[0]);
   RNA_float_set(op->ptr, "mouse_y", event->mval[1]);

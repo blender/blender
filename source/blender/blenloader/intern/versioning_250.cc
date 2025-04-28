@@ -554,7 +554,7 @@ static bNodeSocket *do_versions_node_group_add_socket_2_56_2(bNodeTree *ngroup,
                                                              int in_out)
 {
   //  bNodeSocketType *stype = ntreeGetSocketType(type);
-  bNodeSocket *gsock = static_cast<bNodeSocket *>(MEM_callocN(sizeof(bNodeSocket), "bNodeSocket"));
+  bNodeSocket *gsock = MEM_callocN<bNodeSocket>("bNodeSocket");
 
   STRNCPY(gsock->name, name);
   gsock->type = type;
@@ -595,27 +595,25 @@ static void do_versions_socket_default_value_259(bNodeSocket *sock)
 
   switch (sock->type) {
     case SOCK_FLOAT:
-      valfloat = static_cast<bNodeSocketValueFloat *>(
-          sock->default_value = MEM_callocN(sizeof(bNodeSocketValueFloat),
-                                            "default socket value"));
+      valfloat = MEM_callocN<bNodeSocketValueFloat>("default socket value");
       valfloat->value = sock->ns.vec[0];
       valfloat->min = sock->ns.min;
       valfloat->max = sock->ns.max;
       valfloat->subtype = PROP_NONE;
+      sock->default_value = valfloat;
       break;
     case SOCK_VECTOR:
-      valvector = static_cast<bNodeSocketValueVector *>(
-          sock->default_value = MEM_callocN(sizeof(bNodeSocketValueVector),
-                                            "default socket value"));
+      valvector = MEM_callocN<bNodeSocketValueVector>("default socket value");
       copy_v3_v3(valvector->value, sock->ns.vec);
       valvector->min = sock->ns.min;
       valvector->max = sock->ns.max;
       valvector->subtype = PROP_NONE;
+      sock->default_value = valvector;
       break;
     case SOCK_RGBA:
-      valrgba = static_cast<bNodeSocketValueRGBA *>(
-          sock->default_value = MEM_callocN(sizeof(bNodeSocketValueRGBA), "default socket value"));
+      valrgba = MEM_callocN<bNodeSocketValueRGBA>("default socket value");
       copy_v4_v4(valrgba->value, sock->ns.vec);
+      sock->default_value = valrgba;
       break;
   }
 }
@@ -672,7 +670,7 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
 
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       if (scene->ed) {
-        SEQ_for_each_callback(&scene->ed->seqbase, strip_sound_proxy_update_cb, bmain);
+        blender::seq::for_each_callback(&scene->ed->seqbase, strip_sound_proxy_update_cb, bmain);
       }
     }
 
@@ -791,8 +789,7 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
       if (ob->totcol && ob->matbits == nullptr) {
         int a;
 
-        ob->matbits = static_cast<char *>(
-            MEM_calloc_arrayN(ob->totcol, sizeof(char), "ob->matbits"));
+        ob->matbits = MEM_calloc_arrayN<char>(ob->totcol, "ob->matbits");
         for (a = 0; a < ob->totcol; a++) {
           ob->matbits[a] = (ob->colbits & (1 << a)) != 0;
         }
@@ -1339,7 +1336,7 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
         sce->r.ffcodecdata.audio_codec = 0x0; /* `CODEC_ID_NONE` */
       }
       if (sce->ed) {
-        SEQ_for_each_callback(&sce->ed->seqbase, strip_set_volume_cb, nullptr);
+        blender::seq::for_each_callback(&sce->ed->seqbase, strip_set_volume_cb, nullptr);
       }
     }
 
@@ -1370,9 +1367,7 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
 
               LISTBASE_FOREACH (ARegion *, region_preview, regionbase) {
                 if (region_preview->regiontype == RGN_TYPE_PREVIEW) {
-                  if (region_preview && (region_preview->regiontype == RGN_TYPE_PREVIEW)) {
-                    sequencer_init_preview_region(region_preview);
-                  }
+                  sequencer_init_preview_region(region_preview);
                   break;
                 }
               }
@@ -1566,7 +1561,7 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
 
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       if (scene->ed) {
-        SEQ_for_each_callback(&scene->ed->seqbase, strip_set_sat_cb, nullptr);
+        blender::seq::for_each_callback(&scene->ed->seqbase, strip_set_sat_cb, nullptr);
       }
     }
 
@@ -1847,7 +1842,7 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
              * have to create these directly here.
              * These links are updated again in subsequent do_version!
              */
-            bNodeLink *link = static_cast<bNodeLink *>(MEM_callocN(sizeof(bNodeLink), "link"));
+            bNodeLink *link = MEM_callocN<bNodeLink>("link");
             BLI_addtail(&ntree->links, link);
             link->fromnode = nullptr;
             link->fromsock = gsock;
@@ -1872,7 +1867,7 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
              * have to create these directly here.
              * These links are updated again in subsequent do_version!
              */
-            bNodeLink *link = static_cast<bNodeLink *>(MEM_callocN(sizeof(bNodeLink), "link"));
+            bNodeLink *link = MEM_callocN<bNodeLink>("link");
             BLI_addtail(&ntree->links, link);
             link->fromnode = node;
             link->fromsock = sock;
@@ -1997,7 +1992,7 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
       scene->r.ffcodecdata.audio_channels = 2;
       scene->audio.volume = 1.0f;
       if (scene->ed) {
-        SEQ_for_each_callback(&scene->ed->seqbase, strip_set_pitch_cb, nullptr);
+        blender::seq::for_each_callback(&scene->ed->seqbase, strip_set_pitch_cb, nullptr);
       }
     }
 

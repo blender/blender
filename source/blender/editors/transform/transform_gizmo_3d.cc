@@ -1650,10 +1650,10 @@ static GizmoGroup *gizmogroup_init(wmGizmoGroup *gzgroup)
 /**
  * Custom handler for gizmo widgets
  */
-static int gizmo_modal(bContext *C,
-                       wmGizmo *widget,
-                       const wmEvent *event,
-                       eWM_GizmoFlagTweak /*tweak_flag*/)
+static wmOperatorStatus gizmo_modal(bContext *C,
+                                    wmGizmo *widget,
+                                    const wmEvent *event,
+                                    eWM_GizmoFlagTweak /*tweak_flag*/)
 {
   /* Avoid unnecessary updates, partially address: #55458. */
   if (ELEM(event->type, TIMER, INBETWEEN_MOUSEMOVE)) {

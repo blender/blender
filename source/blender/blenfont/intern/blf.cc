@@ -916,12 +916,13 @@ void BLF_clipping(int fontid, int xmin, int ymin, int xmax, int ymax)
   }
 }
 
-void BLF_wordwrap(int fontid, int wrap_width)
+void BLF_wordwrap(int fontid, int wrap_width, BLFWrapMode mode)
 {
   FontBLF *font = blf_get(fontid);
 
   if (font) {
     font->wrap_width = wrap_width;
+    font->wrap_mode = mode;
   }
 }
 
@@ -958,6 +959,52 @@ void BLF_buffer(int fontid, float *fbuf, uchar *cbuf, int w, int h, ColorManaged
     font->buf_info.dims[1] = h;
     font->buf_info.display = display;
   }
+}
+
+struct BLFBufferState {
+  int fontid;
+  /**
+   * This only exists to validate the font has not been freed since the state was created.
+   * Needed because the state can be used from Python.
+   */
+  const FontBLF *font;
+
+  FontBufInfoBLF buf_info;
+};
+
+BLFBufferState *BLF_buffer_state_push(int fontid)
+{
+  FontBLF *font = blf_get(fontid);
+  if (font) {
+    BLFBufferState *buffer_state = MEM_new<BLFBufferState>(__func__);
+    buffer_state->fontid = fontid;
+    buffer_state->font = font;
+    buffer_state->buf_info = font->buf_info;
+    return buffer_state;
+  }
+  return nullptr;
+}
+
+void BLF_buffer_state_pop(BLFBufferState *buffer_state)
+{
+  FontBLF *font = blf_get(buffer_state->fontid);
+  /* It's possible the font has been removed as this is called from Python. */
+  if (font == buffer_state->font) {
+    /* From the callers perspective, don't consider the color part of the buffer info.
+     *
+     * NOTE(@ideasman42) This is done because the color is not logically part of the image binding.
+     * It looks like we can refactor color out of #FontBufInfoBLF::col_init,
+     * and use #FontBLF::color instead. */
+    copy_v4_v4(buffer_state->buf_info.col_init, font->buf_info.col_init);
+
+    font->buf_info = buffer_state->buf_info;
+  }
+  BLF_buffer_state_free(buffer_state);
+}
+
+void BLF_buffer_state_free(BLFBufferState *buffer_state)
+{
+  MEM_delete(buffer_state);
 }
 
 void BLF_buffer_col(int fontid, const float rgba[4])
@@ -1003,13 +1050,14 @@ void BLF_draw_buffer(int fontid, const char *str, const size_t str_len, ResultBL
 
 blender::Vector<blender::StringRef> BLF_string_wrap(int fontid,
                                                     blender::StringRef str,
-                                                    const int max_pixel_width)
+                                                    const int max_pixel_width,
+                                                    BLFWrapMode mode)
 {
   FontBLF *font = blf_get(fontid);
   if (!font) {
     return {};
   }
-  return blf_font_string_wrap(font, str, max_pixel_width);
+  return blf_font_string_wrap(font, str, max_pixel_width, mode);
 }
 
 char *BLF_display_name_from_file(const char *filepath)

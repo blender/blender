@@ -87,7 +87,7 @@ bool BKE_imtype_is_movie(char imtype);
 bool BKE_imtype_supports_compress(char imtype);
 bool BKE_imtype_supports_quality(char imtype);
 bool BKE_imtype_requires_linear_float(char imtype);
-char BKE_imtype_valid_channels(char imtype, bool write_file);
+char BKE_imtype_valid_channels(char imtype);
 char BKE_imtype_valid_depths(char imtype);
 char BKE_imtype_valid_depths_with_video(char imtype, const ID *owner_id);
 char BKE_imtype_first_valid_depth(const char valid_depths);

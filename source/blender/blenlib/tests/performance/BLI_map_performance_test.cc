@@ -673,7 +673,7 @@ TEST(ghash, Int4Map20000000)
 
 static void multi_small_ghash_tests_one(GHash *ghash, RNG *rng, const uint count)
 {
-  uint *data = (uint *)MEM_mallocN(sizeof(*data) * size_t(count), __func__);
+  uint *data = MEM_malloc_arrayN<uint>(size_t(count), __func__);
   uint *dt;
   uint i;
 

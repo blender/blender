@@ -28,12 +28,15 @@ class GHOST_IXrGraphicsBinding {
 #if defined(WITH_GHOST_WAYLAND)
     XrGraphicsBindingOpenGLWaylandKHR wl;
 #endif
+#ifdef WITH_VULKAN_BACKEND
+    XrGraphicsBindingVulkanKHR vk;
+#endif
   } oxr_binding;
 
   virtual ~GHOST_IXrGraphicsBinding() = default;
 
   /**
-   * Does __not__ require this object is initialized (can be called prior to
+   * Does __not__ require this object to be initialized (can be called prior to
    * #initFromGhostContext). It's actually meant to be called first.
    *
    * \param r_requirement_info: Return argument to retrieve an informal string on the requirements.
@@ -43,7 +46,9 @@ class GHOST_IXrGraphicsBinding {
                                         XrInstance instance,
                                         XrSystemId system_id,
                                         std::string *r_requirement_info) const = 0;
-  virtual void initFromGhostContext(class GHOST_Context &ghost_ctx) = 0;
+  virtual void initFromGhostContext(class GHOST_Context &ghost_ctx,
+                                    XrInstance instance,
+                                    XrSystemId system_id) = 0;
   virtual std::optional<int64_t> chooseSwapchainFormat(const std::vector<int64_t> &runtime_formats,
                                                        GHOST_TXrSwapchainFormat &r_format,
                                                        bool &r_is_rgb_format) const = 0;

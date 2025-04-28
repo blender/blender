@@ -197,7 +197,7 @@ wmJob *WM_jobs_get(wmWindowManager *wm,
   wmJob *wm_job = wm_job_find(wm, owner, job_type);
 
   if (wm_job == nullptr) {
-    wm_job = static_cast<wmJob *>(MEM_callocN(sizeof(wmJob), "new job"));
+    wm_job = MEM_callocN<wmJob>("new job");
 
     BLI_addtail(&wm->jobs, wm_job);
     wm_job->win = win;
@@ -583,7 +583,7 @@ void WM_jobs_kill_all(wmWindowManager *wm)
   }
 
   /* This job will be automatically restarted. */
-  SEQ_prefetch_stop_all();
+  blender::seq::prefetch_stop_all();
 }
 
 void WM_jobs_kill_all_except(wmWindowManager *wm, const void *owner)

@@ -370,15 +370,15 @@ static void update_set_sizes(const Span<int> set_ids, MutableSpan<int> set_sizes
   }
 }
 
-static void edges_from_vertex_sets(const Span<int2> edges,
-                                   const Span<int> verts_to_sorted,
-                                   const Span<int> vertex_set_ids,
-                                   MutableSpan<OrderedEdge> r_edges)
+static void edges_from_vert_sets(const Span<int2> edges,
+                                 const Span<int> verts_to_sorted,
+                                 const Span<int> vert_set_ids,
+                                 MutableSpan<OrderedEdge> r_edges)
 {
   for (const int i : r_edges.index_range()) {
     const int2 e = edges[i];
-    r_edges[i] = OrderedEdge(vertex_set_ids[verts_to_sorted[e.x]],
-                             vertex_set_ids[verts_to_sorted[e.y]]);
+    r_edges[i] = OrderedEdge(vert_set_ids[verts_to_sorted[e.x]],
+                             vert_set_ids[verts_to_sorted[e.y]]);
   }
 }
 
@@ -393,8 +393,8 @@ static bool sort_edges(const Span<int2> edges1,
   /* Need `NoInitialization()` because OrderedEdge is not default constructible. */
   Array<OrderedEdge> ordered_edges1(edges1.size(), NoInitialization());
   Array<OrderedEdge> ordered_edges2(edges2.size(), NoInitialization());
-  edges_from_vertex_sets(edges1, verts.to_sorted1, verts.set_ids, ordered_edges1);
-  edges_from_vertex_sets(edges2, verts.to_sorted2, verts.set_ids, ordered_edges2);
+  edges_from_vert_sets(edges1, verts.to_sorted1, verts.set_ids, ordered_edges1);
+  edges_from_vert_sets(edges2, verts.to_sorted2, verts.set_ids, ordered_edges2);
   sort_per_set_based_on_attributes(edges.set_sizes,
                                    edges.from_sorted1,
                                    edges.from_sorted2,
@@ -699,10 +699,10 @@ static bool all_set_sizes_one(const Span<int> set_sizes)
  *
  * \returns the type of mismatch that occurred if the mapping couldn't be constructed.
  */
-static std::optional<GeoMismatch> construct_vertex_mapping(const Mesh &mesh1,
-                                                           const Mesh &mesh2,
-                                                           IndexMapping &verts,
-                                                           IndexMapping &edges)
+static std::optional<GeoMismatch> construct_vert_mapping(const Mesh &mesh1,
+                                                         const Mesh &mesh2,
+                                                         IndexMapping &verts,
+                                                         IndexMapping &edges)
 {
   if (all_set_sizes_one(verts.set_sizes)) {
     /* The vertices are already in one-to-one correspondence. */
@@ -733,7 +733,7 @@ static std::optional<GeoMismatch> construct_vertex_mapping(const Mesh &mesh1,
       if (edges1.size() != edges2.size()) {
         continue;
       }
-      bool vertex_matches = true;
+      bool vert_matches = true;
       for (const int edge1 : edges1) {
         bool found_matching_edge = false;
         for (const int edge2 : edges2) {
@@ -743,11 +743,11 @@ static std::optional<GeoMismatch> construct_vertex_mapping(const Mesh &mesh1,
           }
         }
         if (!found_matching_edge) {
-          vertex_matches = false;
+          vert_matches = false;
           break;
         }
       }
-      if (vertex_matches) {
+      if (vert_matches) {
         matching_verts.append(index_in_set);
       }
     }
@@ -877,7 +877,7 @@ std::optional<GeoMismatch> compare_meshes(const Mesh &mesh1,
     return mismatch;
   };
 
-  mismatch = construct_vertex_mapping(mesh1, mesh2, verts, edges);
+  mismatch = construct_vert_mapping(mesh1, mesh2, verts, edges);
   if (mismatch) {
     return mismatch;
   }

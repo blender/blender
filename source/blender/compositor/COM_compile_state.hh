@@ -10,6 +10,7 @@
 
 #include "NOD_derived_node_tree.hh"
 
+#include "COM_context.hh"
 #include "COM_domain.hh"
 #include "COM_node_operation.hh"
 #include "COM_pixel_operation.hh"
@@ -119,6 +120,8 @@ using namespace nodes::derived_node_tree_types;
  * compiled. */
 class CompileState {
  private:
+  /* A reference to the compositor context. */
+  const Context &context_;
   /* A reference to the node execution schedule that is being compiled. */
   const Schedule &schedule_;
   /* Those two maps associate each node with the operation it was compiled into. Each node is
@@ -141,7 +144,7 @@ class CompileState {
 
  public:
   /* Construct a compile state from the node execution schedule being compiled. */
-  CompileState(const Schedule &schedule);
+  CompileState(const Context &context, const Schedule &schedule);
 
   /* Get a reference to the node execution schedule being compiled. */
   const Schedule &get_schedule();

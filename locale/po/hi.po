@@ -1,18 +1,18 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Beta (b'1a72a0f22cde')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'1f4cae0c4623')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-03 09:33+0000\n"
-"PO-Revision-Date: 2015-03-03 16:21+0530\n"
-"Last-Translator: Roshan Lal Gumasta <roshan@anisecrets.com>\n"
-"Language-Team: Hindi <www.anisecrets.com>\n"
+"POT-Creation-Date: 2025-04-28 09:32+0000\n"
+"PO-Revision-Date: 2025-04-14 08:23+0000\n"
+"Last-Translator: Anonymous <noreply@weblate.org>\n"
+"Language-Team: Hindi <https://translate.blender.org/projects/blender-ui/ui/hi/>\n"
 "Language: hi\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: \n"
-"X-Generator: Poedit 1.6.9"
+"Plural-Forms: nplurals=2; plural=n > 1;\n"
+"X-Generator: Weblate 5.10.1"
 
 
 msgid "Valid"
@@ -181,10 +181,6 @@ msgstr "बंद"
 
 msgid "Full"
 msgstr "पूर्ण"
-
-
-msgid "Auto"
-msgstr "स्वत:"
 
 
 msgid "Never"
@@ -571,10 +567,6 @@ msgid "Volume"
 msgstr "आयतन"
 
 
-msgid "Automatic"
-msgstr "स्वत:"
-
-
 msgid "Relative"
 msgstr "सापेक्ष"
 
@@ -739,10 +731,6 @@ msgstr "क्षेत्र की गहनता"
 
 msgid "Ratio"
 msgstr "अनुपात"
-
-
-msgid "Pivot"
-msgstr "धुरी:"
 
 
 msgid "Left"
@@ -1559,16 +1547,16 @@ msgid "Grease Pencil Frame"
 msgstr "तैलीय पेंसिल गठन"
 
 
-msgid "Grease Pencil Layer"
-msgstr "तैलीय पेंसिल परत"
-
-
 msgid "Regular"
 msgstr "नियमित"
 
 
 msgid "Repeat"
 msgstr "दोहराएँ"
+
+
+msgid "Grease Pencil Layer"
+msgstr "तैलीय पेंसिल परत"
 
 
 msgid "Red Green Blue"
@@ -2179,10 +2167,6 @@ msgid "Mass"
 msgstr "द्रव्यमान"
 
 
-msgid "Dummy"
-msgstr "प्रतिरूपी"
-
-
 msgid "Random Phase"
 msgstr "यादृच्छिक चरण"
 
@@ -2604,12 +2588,28 @@ msgid "Show/Hide"
 msgstr "छुपाएँ / दिखाएँ"
 
 
-msgid "Text"
-msgstr "पाठ"
-
-
 msgid "Names"
 msgstr "नाम"
+
+
+msgid "Apply"
+msgstr "लागू करें"
+
+
+msgid "Toggle Bone Options"
+msgstr "हड्डी विकल्प बंद/बुझ"
+
+
+msgid "Enable Bone Options"
+msgstr "हड्डी विकल्प को सक्षम करें"
+
+
+msgid "Merge"
+msgstr "विलय करें"
+
+
+msgid "Text"
+msgstr "पाठ"
 
 
 msgid "Bone Roll"
@@ -2632,10 +2632,6 @@ msgid "Rigid Body"
 msgstr "कठोर-पदार्थ"
 
 
-msgid "Apply"
-msgstr "लागू करें"
-
-
 msgid "Track"
 msgstr "ट्रैक"
 
@@ -2650,18 +2646,6 @@ msgstr "एकल प्रयोक्ता बनाएँ"
 
 msgid "Hooks"
 msgstr "खूँटी"
-
-
-msgid "Toggle Bone Options"
-msgstr "हड्डी विकल्प बंद/बुझ"
-
-
-msgid "Enable Bone Options"
-msgstr "हड्डी विकल्प को सक्षम करें"
-
-
-msgid "Merge"
-msgstr "विलय करें"
 
 
 msgid "Basic"
@@ -3177,6 +3161,10 @@ msgid "Z Up"
 msgstr "Z ऊर्ध्व"
 
 
+msgid "Unknown"
+msgstr "अज्ञात"
+
+
 msgid "Warning"
 msgstr "चेतावनी"
 
@@ -3603,6 +3591,10 @@ msgstr "अनुकृति वक्र"
 
 msgid "Duplicate Curve"
 msgstr "अनुकृति वक्र"
+
+
+msgid "Dummy"
+msgstr "प्रतिरूपी"
 
 
 msgid "Bend"
@@ -5292,10 +5284,6 @@ msgid "Rotation"
 msgstr "घूर्णन"
 
 
-msgid "Unknown"
-msgstr "अज्ञात"
-
-
 msgid "After"
 msgstr "के बाद"
 
@@ -5335,10 +5323,6 @@ msgid "Bold & Italic"
 msgstr "मोटा एवं तिर्यगक्षर"
 
 
-msgid "Endpoint"
-msgstr "समापन बिंदु"
-
-
 msgid "Priority"
 msgstr "प्राथमिकता"
 
@@ -5357,10 +5341,6 @@ msgid "Selection to Cursor"
 msgstr "प्रसंकेतक के लिए चयन"
 
 
-msgid "Parent:"
-msgstr "कारण"
-
-
 msgid "Transform:"
 msgstr "संचनांतरण:"
 
@@ -5376,6 +5356,10 @@ msgstr "दिनांक"
 
 msgid "Roughness End"
 msgstr "खुरदरापन समाप्त"
+
+
+msgid "Endpoint"
+msgstr "समापन बिंदु"
 
 
 msgid "Use Timing"
@@ -6420,14 +6404,6 @@ msgid "Offset:"
 msgstr "विचलन:"
 
 
-msgid "Width:"
-msgstr "चौड़ाई"
-
-
-msgid "Height:"
-msgstr "ऊँचाई"
-
-
 msgid "Y-position of search at frame relative to marker's position"
 msgstr "बाएँ-नीचे शंकुे सापेक्ष सामान्यीकृत निर्देशांक में खोज क्षेत्र के चिन्हक की स्थिति"
 
@@ -6510,10 +6486,6 @@ msgstr "डब्ल्यु:"
 
 msgid "Weight:"
 msgstr "भार:"
-
-
-msgid "Radius:"
-msgstr "त्रिज्या"
 
 
 msgid "Tilt:"
@@ -6721,10 +6693,6 @@ msgstr "बंद/बुझ प्रणाली कंसोल"
 
 msgid "Import-Export"
 msgstr "आयात-निर्यात"
-
-
-msgid "English (English)"
-msgstr "अंग्रेजी (English)"
 
 
 msgid "Japanese (日本語)"

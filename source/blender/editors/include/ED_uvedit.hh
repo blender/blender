@@ -81,18 +81,24 @@ void ED_object_assign_active_image(Main *bmain, Object *ob, int mat_nr, Image *i
 
 bool ED_uvedit_test(Object *obedit);
 
+/* `uvedit_select.cc` */
+
 /* Visibility and selection tests. */
 
-bool uvedit_face_visible_test_ex(const ToolSettings *ts, BMFace *efa);
-bool uvedit_face_select_test_ex(const ToolSettings *ts, BMFace *efa, BMUVOffsets offsets);
+bool uvedit_face_visible_test_ex(const ToolSettings *ts, const BMFace *efa);
+bool uvedit_face_select_test_ex(const ToolSettings *ts,
+                                const BMFace *efa,
+                                const BMUVOffsets &offsets);
 
-bool uvedit_edge_select_test_ex(const ToolSettings *ts, const BMLoop *l, BMUVOffsets offsets);
-bool uvedit_uv_select_test_ex(const ToolSettings *ts, const BMLoop *l, BMUVOffsets offsets);
+bool uvedit_edge_select_test_ex(const ToolSettings *ts,
+                                const BMLoop *l,
+                                const BMUVOffsets &offsets);
+bool uvedit_uv_select_test_ex(const ToolSettings *ts, const BMLoop *l, const BMUVOffsets &offsets);
 
-bool uvedit_face_visible_test(const Scene *scene, BMFace *efa);
-bool uvedit_face_select_test(const Scene *scene, BMFace *efa, BMUVOffsets offsets);
-bool uvedit_edge_select_test(const Scene *scene, BMLoop *l, BMUVOffsets offsets);
-bool uvedit_uv_select_test(const Scene *scene, BMLoop *l, BMUVOffsets offsets);
+bool uvedit_face_visible_test(const Scene *scene, const BMFace *efa);
+bool uvedit_face_select_test(const Scene *scene, const BMFace *efa, const BMUVOffsets &offsets);
+bool uvedit_edge_select_test(const Scene *scene, const BMLoop *l, const BMUVOffsets &offsets);
+bool uvedit_uv_select_test(const Scene *scene, const BMLoop *l, const BMUVOffsets &offsets);
 
 /* Individual UV element selection functions. */
 
@@ -101,69 +107,90 @@ bool uvedit_uv_select_test(const Scene *scene, BMLoop *l, BMUVOffsets offsets);
  *
  * Changes selection state of a single UV Face.
  */
-void uvedit_face_select_set(
-    const Scene *scene, BMesh *bm, BMFace *efa, bool select, bool do_history, BMUVOffsets offsets);
+void uvedit_face_select_set(const Scene *scene,
+                            BMesh *bm,
+                            BMFace *efa,
+                            bool select,
+                            bool do_history,
+                            const BMUVOffsets &offsets);
 /**
  * \brief Select UV Edge
  *
  * Changes selection state of a single UV Edge.
  */
-void uvedit_edge_select_set(
-    const Scene *scene, BMesh *bm, BMLoop *l, bool select, bool do_history, BMUVOffsets offsets);
+void uvedit_edge_select_set(const Scene *scene,
+                            BMesh *bm,
+                            BMLoop *l,
+                            bool select,
+                            bool do_history,
+                            const BMUVOffsets &offsets);
 /**
  * \brief Select UV Vertex
  *
  * Changes selection state of a single UV vertex.
  */
-void uvedit_uv_select_set(
-    const Scene *scene, BMesh *bm, BMLoop *l, bool select, bool do_history, BMUVOffsets offsets);
+void uvedit_uv_select_set(const Scene *scene,
+                          BMesh *bm,
+                          BMLoop *l,
+                          bool select,
+                          bool do_history,
+                          const BMUVOffsets &offsets);
 
 /* Low level functions for (de)selecting individual UV elements. Ensure UV face visibility before
  * use. */
 
 void uvedit_face_select_enable(
-    const Scene *scene, BMesh *bm, BMFace *efa, bool do_history, BMUVOffsets offsets);
-void uvedit_face_select_disable(const Scene *scene, BMesh *bm, BMFace *efa, BMUVOffsets offsets);
+    const Scene *scene, BMesh *bm, BMFace *efa, bool do_history, const BMUVOffsets &offsets);
+void uvedit_face_select_disable(const Scene *scene,
+                                BMesh *bm,
+                                BMFace *efa,
+                                const BMUVOffsets &offsets);
 
 void uvedit_edge_select_enable(
-    const Scene *scene, BMesh *bm, BMLoop *l, bool do_history, BMUVOffsets offsets);
-void uvedit_edge_select_disable(const Scene *scene, BMesh *bm, BMLoop *l, BMUVOffsets offsets);
+    const Scene *scene, BMesh *bm, BMLoop *l, bool do_history, const BMUVOffsets &offsets);
+void uvedit_edge_select_disable(const Scene *scene,
+                                BMesh *bm,
+                                BMLoop *l,
+                                const BMUVOffsets &offsets);
 
 void uvedit_uv_select_enable(
-    const Scene *scene, BMesh *bm, BMLoop *l, bool do_history, BMUVOffsets offsets);
-void uvedit_uv_select_disable(const Scene *scene, BMesh *bm, BMLoop *l, BMUVOffsets offsets);
+    const Scene *scene, BMesh *bm, BMLoop *l, bool do_history, const BMUVOffsets &offsets);
+void uvedit_uv_select_disable(const Scene *scene,
+                              BMesh *bm,
+                              BMLoop *l,
+                              const BMUVOffsets &offsets);
 
 /* Sticky mode UV element selection functions. */
 
 void uvedit_face_select_set_with_sticky(const Scene *scene,
-                                        BMEditMesh *em,
+                                        BMesh *bm,
                                         BMFace *efa,
                                         bool select,
                                         bool do_history,
-                                        BMUVOffsets offsets);
+                                        const BMUVOffsets &offsets);
 void uvedit_edge_select_set_with_sticky(const Scene *scene,
-                                        BMEditMesh *em,
+                                        BMesh *bm,
                                         BMLoop *l,
                                         bool select,
                                         bool do_history,
-                                        BMUVOffsets offsets);
+                                        const BMUVOffsets &offsets);
 
 void uvedit_uv_select_set_with_sticky(const Scene *scene,
-                                      BMEditMesh *em,
+                                      BMesh *bm,
                                       BMLoop *l,
                                       bool select,
                                       bool do_history,
-                                      BMUVOffsets offsets);
+                                      const BMUVOffsets &offsets);
 
 /* Low level functions for sticky element selection (sticky mode independent). Type of sticky
  * selection is specified explicitly (using sticky_flag, except for face selection). */
 
 void uvedit_face_select_shared_vert(const Scene *scene,
-                                    BMEditMesh *em,
+                                    BMesh *bm,
                                     BMFace *efa,
                                     const bool select,
                                     const bool do_history,
-                                    BMUVOffsets offsets);
+                                    const BMUVOffsets &offsets);
 /**
  * Selects UV edges and shared vertices according to sticky_flag.
  *
@@ -172,12 +199,12 @@ void uvedit_face_select_shared_vert(const Scene *scene,
  * - #SI_STICKY_VERTEX: selects all UV edges sharing the same mesh vertices.
  */
 void uvedit_edge_select_shared_vert(const Scene *scene,
-                                    BMEditMesh *em,
+                                    BMesh *bm,
                                     BMLoop *l,
                                     const bool select,
                                     const int sticky_flag,
                                     const bool do_history,
-                                    BMUVOffsets offsets);
+                                    const BMUVOffsets &offsets);
 /**
  * Selects shared UVs based on #sticky_flag.
  *
@@ -186,18 +213,21 @@ void uvedit_edge_select_shared_vert(const Scene *scene,
  * - #SI_STICKY_VERTEX: selects all UVs sharing same mesh vertex.
  */
 void uvedit_uv_select_shared_vert(const Scene *scene,
-                                  BMEditMesh *em,
+                                  BMesh *bm,
                                   BMLoop *l,
                                   const bool select,
                                   const int sticky_flag,
                                   const bool do_history,
-                                  BMUVOffsets offsets);
+                                  const BMUVOffsets &offsets);
 
 /**
  * Sets required UV edge flags as specified by the `sticky_flag`.
  */
-void uvedit_edge_select_set_noflush(
-    const Scene *scene, BMLoop *l, const bool select, const int sticky_flag, BMUVOffsets offsets);
+void uvedit_edge_select_set_noflush(const Scene *scene,
+                                    BMLoop *l,
+                                    const bool select,
+                                    const int sticky_flag,
+                                    const BMUVOffsets &offsets);
 
 /**
  * \brief UV Select Mode set
@@ -213,16 +243,16 @@ void ED_uvedit_selectmode_clean_multi(bContext *C);
  *
  * Flushes selections upwards as dictated by the UV select mode.
  */
-void ED_uvedit_selectmode_flush(const Scene *scene, BMEditMesh *em);
+void ED_uvedit_selectmode_flush(const Scene *scene, BMesh *bm);
 
 /**
  * Mode independent UV de-selection flush.
  */
-void uvedit_deselect_flush(const Scene *scene, BMEditMesh *em);
+void uvedit_deselect_flush(const Scene *scene, BMesh *bm);
 /**
  * Mode independent UV selection flush.
  */
-void uvedit_select_flush(const Scene *scene, BMEditMesh *em);
+void uvedit_select_flush(const Scene *scene, BMesh *bm);
 
 bool ED_uvedit_nearest_uv_multi(const View2D *v2d,
                                 const Scene *scene,
@@ -236,6 +266,21 @@ BMFace **ED_uvedit_selected_faces(const Scene *scene, BMesh *bm, int len_max, in
 BMLoop **ED_uvedit_selected_edges(const Scene *scene, BMesh *bm, int len_max, int *r_edges_len);
 BMLoop **ED_uvedit_selected_verts(const Scene *scene, BMesh *bm, int len_max, int *r_verts_len);
 
+void ED_uvedit_active_vert_loop_set(BMesh *bm, BMLoop *l);
+BMLoop *ED_uvedit_active_vert_loop_get(BMesh *bm);
+
+void ED_uvedit_active_edge_loop_set(BMesh *bm, BMLoop *l);
+BMLoop *ED_uvedit_active_edge_loop_get(BMesh *bm);
+
+/**
+ * Intentionally don't return #UV_SELECT_ISLAND as it's not an element type.
+ * In this case return #UV_SELECT_VERTEX as a fallback.
+ */
+char ED_uvedit_select_mode_get(const Scene *scene);
+void ED_uvedit_select_sync_flush(const ToolSettings *ts, BMesh *bm, bool select);
+
+/* `uvedit_unwrap_ops.cc` */
+
 void ED_uvedit_get_aspect(Object *obedit, float *r_aspx, float *r_aspy);
 
 /**
@@ -248,21 +293,6 @@ void ED_uvedit_get_aspect_from_material(Object *ob,
                                         const int material_index,
                                         float *r_aspx,
                                         float *r_aspy);
-
-void ED_uvedit_active_vert_loop_set(BMesh *bm, BMLoop *l);
-BMLoop *ED_uvedit_active_vert_loop_get(BMesh *bm);
-
-void ED_uvedit_active_edge_loop_set(BMesh *bm, BMLoop *l);
-BMLoop *ED_uvedit_active_edge_loop_get(BMesh *bm);
-
-/**
- * Intentionally don't return #UV_SELECT_ISLAND as it's not an element type.
- * In this case return #UV_SELECT_VERTEX as a fallback.
- */
-char ED_uvedit_select_mode_get(const Scene *scene);
-void ED_uvedit_select_sync_flush(const ToolSettings *ts, BMEditMesh *em, bool select);
-
-/* `uvedit_unwrap_ops.cc` */
 
 /** Return true if the timer is managed by live-unwrap. */
 bool ED_uvedit_live_unwrap_timer_check(const wmTimer *timer);
@@ -310,7 +340,7 @@ int bm_mesh_calc_uv_islands(const Scene *scene,
                             const bool only_selected_uvs,
                             const bool use_seams,
                             const float aspect_y,
-                            BMUVOffsets offsets);
+                            const BMUVOffsets &offsets);
 
 /**
  * Returns true if UV coordinates lie on a valid tile in UDIM grid or tiled image.

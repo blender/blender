@@ -81,8 +81,7 @@ static void meshcache_do(MeshCacheModifierData *mcmd,
 
   float(*vertexCos_Store)[3] = (use_factor || influence_group_index != -1 ||
                                 (mcmd->deform_mode == MOD_MESHCACHE_DEFORM_INTEGRATE)) ?
-                                   static_cast<float(*)[3]>(MEM_malloc_arrayN(
-                                       verts_num, sizeof(*vertexCos_Store), __func__)) :
+                                   MEM_malloc_arrayN<float[3]>(size_t(verts_num), __func__) :
                                    nullptr;
   float(*vertexCos)[3] = vertexCos_Store ? vertexCos_Store : vertexCos_Real;
 
@@ -173,8 +172,7 @@ static void meshcache_do(MeshCacheModifierData *mcmd,
       BKE_modifier_set_error(ob, &mcmd->modifier, "'Integrate' requires faces");
     }
     else {
-      float(*vertexCos_New)[3] = static_cast<float(*)[3]>(
-          MEM_malloc_arrayN(verts_num, sizeof(*vertexCos_New), __func__));
+      float(*vertexCos_New)[3] = MEM_malloc_arrayN<float[3]>(size_t(verts_num), __func__);
 
       BKE_mesh_calc_relative_deform(
           mesh->face_offsets().data(),
@@ -347,14 +345,14 @@ static void axis_mapping_panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  col = uiLayoutColumn(layout, true);
+  col = &layout->column(true);
   uiLayoutSetRedAlert(col, RNA_enum_get(ptr, "forward_axis") == RNA_enum_get(ptr, "up_axis"));
   uiItemR(col, ptr, "forward_axis", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   uiItemR(col, ptr, "up_axis", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   const eUI_Item_Flag toggles_flag = UI_ITEM_R_TOGGLE | UI_ITEM_R_FORCE_BLANK_DECORATE;
   PropertyRNA *prop = RNA_struct_find_property(ptr, "flip_axis");
-  uiLayout *row = uiLayoutRowWithHeading(col, true, IFACE_("Flip Axis"));
+  uiLayout *row = &col->row(true, IFACE_("Flip Axis"));
   uiItemFullR(row, ptr, prop, 0, 0, toggles_flag, IFACE_("X"), ICON_NONE);
   uiItemFullR(row, ptr, prop, 1, 0, toggles_flag, IFACE_("Y"), ICON_NONE);
   uiItemFullR(row, ptr, prop, 2, 0, toggles_flag, IFACE_("Z"), ICON_NONE);

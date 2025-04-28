@@ -72,9 +72,9 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *ptr)
   NodeIndexSwitch &storage = node_storage(node);
   if (uiLayout *panel = uiLayoutPanel(C, layout, "index_switch_items", false, IFACE_("Items"))) {
     uiItemO(panel, IFACE_("Add Item"), ICON_ADD, "node.index_switch_item_add");
-    uiLayout *col = uiLayoutColumn(panel, false);
+    uiLayout *col = &panel->column(false);
     for (const int i : IndexRange(storage.items_num)) {
-      uiLayout *row = uiLayoutRow(col, false);
+      uiLayout *row = &col->row(false);
       uiItemL(row, node.input_socket(i + 1).name, ICON_NONE);
       uiItemIntO(row, "", ICON_REMOVE, "node.index_switch_item_remove", "index", i);
     }
@@ -340,7 +340,9 @@ static void node_rna(StructRNA *srna)
                                                SOCK_COLLECTION,
                                                SOCK_MATERIAL,
                                                SOCK_IMAGE,
-                                               SOCK_MENU);
+                                               SOCK_MENU,
+                                               SOCK_BUNDLE,
+                                               SOCK_CLOSURE);
                                  });
       });
 }

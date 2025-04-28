@@ -57,7 +57,7 @@ static void node_composit_buts_map_range(uiLayout *layout, bContext * /*C*/, Poi
 {
   uiLayout *col;
 
-  col = uiLayoutColumn(layout, true);
+  col = &layout->column(true);
   uiItemR(col, ptr, "use_clamp", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 }
 
@@ -168,6 +168,7 @@ void register_node_type_cmp_map_range()
   ntype.draw_buttons = file_ns::node_composit_buts_map_range;
   ntype.gpu_fn = file_ns::node_gpu_material;
   ntype.build_multi_function = file_ns::node_build_multi_function;
+  ntype.gather_link_search_ops = nullptr;
 
   blender::bke::node_register_type(ntype);
 }

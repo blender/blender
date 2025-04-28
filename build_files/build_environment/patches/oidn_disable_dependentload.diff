@@ -1,0 +1,29 @@
+diff --git a/cmake/oidn_platform.cmake b/cmake/oidn_platform.cmake
+index d5cc45e..24fcd5b 100644
+--- a/cmake/oidn_platform.cmake
++++ b/cmake/oidn_platform.cmake
+@@ -232,15 +232,15 @@ if(MSVC)
+   # Enable control flow guard
+   append(OIDN_C_CXX_FLAGS "/guard:cf")
+ 
+-  if(WIN32)
+-    if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+-      append(CMAKE_EXE_LINKER_FLAGS    "/DEPENDENTLOADFLAG:0x2000")
+-      append(CMAKE_SHARED_LINKER_FLAGS "/DEPENDENTLOADFLAG:0x2000")
+-    elseif(CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")
+-      append(CMAKE_EXE_LINKER_FLAGS    "/Qoption,link,/DEPENDENTLOADFLAG:0x2000")
+-      append(CMAKE_SHARED_LINKER_FLAGS "/Qoption,link,/DEPENDENTLOADFLAG:0x2000")
+-    endif()
+-  endif()
++  #if(WIN32)
++  #  if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
++  #    append(CMAKE_EXE_LINKER_FLAGS    "/DEPENDENTLOADFLAG:0x2000")
++  #    append(CMAKE_SHARED_LINKER_FLAGS "/DEPENDENTLOADFLAG:0x2000")
++  #  elseif(CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")
++  #    append(CMAKE_EXE_LINKER_FLAGS    "/Qoption,link,/DEPENDENTLOADFLAG:0x2000")
++  #    append(CMAKE_SHARED_LINKER_FLAGS "/Qoption,link,/DEPENDENTLOADFLAG:0x2000")
++  #  endif()
++  #endif()
+ else()
+   append(OIDN_C_CXX_FLAGS_RELEASE "-fstack-protector")
+ 

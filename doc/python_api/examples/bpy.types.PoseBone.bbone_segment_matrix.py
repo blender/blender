@@ -12,7 +12,7 @@ def bbone_deform_matrix(pose_bone, point):
     pose1 = pose_bone.bbone_segment_matrix(index, rest=False)
     deform1 = pose1 @ rest1.inverted()
 
-    # bbone_segment_index ensures that index + 1 is always valid
+    # `bbone_segment_index` ensures that index + 1 is always valid
     rest2 = pose_bone.bbone_segment_matrix(index + 1, rest=True)
     pose2 = pose_bone.bbone_segment_matrix(index + 1, rest=False)
     deform2 = pose2 @ rest2.inverted()

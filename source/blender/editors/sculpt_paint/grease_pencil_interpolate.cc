@@ -321,7 +321,10 @@ InterpolateOpData *InterpolateOpData::from_operator(const bContext &C, const wmO
   const Object &object = *CTX_data_active_object(&C);
   const GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object.data);
 
-  BLI_assert(grease_pencil.has_active_layer());
+  if (!grease_pencil.has_active_layer()) {
+    return nullptr;
+  }
+
   const Layer &active_layer = *grease_pencil.get_active_layer();
 
   InterpolateOpData *data = MEM_new<InterpolateOpData>(__func__);
@@ -463,7 +466,8 @@ static void assign_samples_to_segments(const int num_dst_points,
   const IndexRange src_points = src_positions.index_range();
   /* Extra segment at the end for cyclic curves. */
   const int num_src_segments = src_points.size() - 1 + cyclic;
-  const int num_free_samples = num_dst_points - num_src_segments;
+  /* Extra points of the destination curve that need to be distributed on source segments. */
+  const int num_free_samples = num_dst_points - num_src_segments - 1;
   BLI_assert(dst_sample_offsets.size() == num_src_segments + 1);
 
   Array<float> segment_lengths(num_src_segments + 1);
@@ -522,13 +526,19 @@ static void sample_curve_padded(const bke::CurvesGeometry &curves,
 {
   const int num_dst_points = r_segment_indices.size();
   const IndexRange src_points = curves.points_by_curve()[curve_index];
+  if (src_points.is_empty()) {
+    return;
+  }
+  if (src_points.size() == 1) {
+    r_segment_indices.fill(0);
+    r_factors.fill(0.0f);
+    return;
+  }
+
   /* Extra segment at the end for cyclic curves. */
   const int num_src_segments = src_points.size() - 1 + cyclic;
   /* There should be at least one source point for every output sample. */
   BLI_assert(num_dst_points >= num_src_segments);
-  if (src_points.is_empty()) {
-    return;
-  }
 
   /* First destination point in each source segment. */
   Array<int> dst_sample_offsets(num_src_segments + 1);
@@ -986,7 +996,9 @@ static bool grease_pencil_interpolate_poll(bContext *C)
 }
 
 /* Invoke handler: Initialize the operator */
-static int grease_pencil_interpolate_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+static wmOperatorStatus grease_pencil_interpolate_invoke(bContext *C,
+                                                         wmOperator *op,
+                                                         const wmEvent * /*event*/)
 {
   wmWindow &win = *CTX_wm_window(C);
 
@@ -1016,7 +1028,9 @@ enum class InterpolateToolModalEvent : int8_t {
 };
 
 /* Modal handler: Events handling during interactive part */
-static int grease_pencil_interpolate_modal(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus grease_pencil_interpolate_modal(bContext *C,
+                                                        wmOperator *op,
+                                                        const wmEvent *event)
 {
   wmWindow &win = *CTX_wm_window(C);
   const ARegion &region = *CTX_wm_region(C);
@@ -1342,7 +1356,7 @@ static float grease_pencil_interpolate_sequence_easing_calc(const eBezTriple_Eas
   return time;
 }
 
-static int grease_pencil_interpolate_sequence_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus grease_pencil_interpolate_sequence_exec(bContext *C, wmOperator *op)
 {
   using bke::greasepencil::Drawing;
   using bke::greasepencil::Layer;
@@ -1438,31 +1452,31 @@ static void grease_pencil_interpolate_sequence_ui(bContext *C, wmOperator *op)
 
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
-  row = uiLayoutRow(layout, true);
+  row = &layout->row(true);
   uiItemR(row, op->ptr, "step", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  row = uiLayoutRow(layout, true);
+  row = &layout->row(true);
   uiItemR(row, op->ptr, "layers", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   if (CTX_data_mode_enum(C) == CTX_MODE_EDIT_GPENCIL_LEGACY) {
-    row = uiLayoutRow(layout, true);
+    row = &layout->row(true);
     uiItemR(row, op->ptr, "interpolate_selected_only", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
-  row = uiLayoutRow(layout, true);
+  row = &layout->row(true);
   uiItemR(row, op->ptr, "exclude_breakdowns", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  row = uiLayoutRow(layout, true);
+  row = &layout->row(true);
   uiItemR(row, op->ptr, "use_selection", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  row = uiLayoutRow(layout, true);
+  row = &layout->row(true);
   uiItemR(row, op->ptr, "flip", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  col = uiLayoutColumn(layout, true);
+  col = &layout->column(true);
   uiItemR(col, op->ptr, "smooth_factor", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   uiItemR(col, op->ptr, "smooth_steps", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  row = uiLayoutRow(layout, true);
+  row = &layout->row(true);
   uiItemR(row, op->ptr, "type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   if (type == InterpolationType::CurveMap) {
@@ -1475,16 +1489,16 @@ static void grease_pencil_interpolate_sequence_ui(bContext *C, wmOperator *op)
         layout, &gpsettings_ptr, "interpolation_curve", 0, false, true, true, false);
   }
   else if (type != InterpolationType::Linear) {
-    row = uiLayoutRow(layout, false);
+    row = &layout->row(false);
     uiItemR(row, op->ptr, "easing", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     if (type == InterpolationType::Back) {
-      row = uiLayoutRow(layout, false);
+      row = &layout->row(false);
       uiItemR(row, op->ptr, "back", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     }
     else if (type == InterpolationType::Elastic) {
-      row = uiLayoutRow(layout, false);
+      row = &layout->row(false);
       uiItemR(row, op->ptr, "amplitude", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-      row = uiLayoutRow(layout, false);
+      row = &layout->row(false);
       uiItemR(row, op->ptr, "period", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     }
   }

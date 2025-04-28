@@ -56,18 +56,19 @@ ccl_device_noinline void svm_node_geometry_bump_dx(KernelGlobals kg,
                                                    ccl_private ShaderData *sd,
                                                    ccl_private float *stack,
                                                    const uint type,
-                                                   const uint out_offset)
+                                                   const uint out_offset,
+                                                   const float bump_filter_width)
 {
 #ifdef __RAY_DIFFERENTIALS__
   float3 data;
 
   switch (type) {
     case NODE_GEOM_P:
-      data = svm_node_bump_P_dx(sd);
+      data = svm_node_bump_P_dx(sd, bump_filter_width);
       break;
     case NODE_GEOM_uv: {
-      const float u_x = sd->u + sd->du.dx * BUMP_DX;
-      const float v_x = sd->v + sd->dv.dx * BUMP_DX;
+      const float u_x = sd->u + sd->du.dx * bump_filter_width;
+      const float v_x = sd->v + sd->dv.dx * bump_filter_width;
       data = make_float3(1.0f - u_x - v_x, u_x, 0.0f);
       break;
     }
@@ -86,18 +87,19 @@ ccl_device_noinline void svm_node_geometry_bump_dy(KernelGlobals kg,
                                                    ccl_private ShaderData *sd,
                                                    ccl_private float *stack,
                                                    const uint type,
-                                                   const uint out_offset)
+                                                   const uint out_offset,
+                                                   const float bump_filter_width)
 {
 #ifdef __RAY_DIFFERENTIALS__
   float3 data;
 
   switch (type) {
     case NODE_GEOM_P:
-      data = svm_node_bump_P_dy(sd);
+      data = svm_node_bump_P_dy(sd, bump_filter_width);
       break;
     case NODE_GEOM_uv: {
-      const float u_y = sd->u + sd->du.dy * BUMP_DY;
-      const float v_y = sd->v + sd->dv.dy * BUMP_DY;
+      const float u_y = sd->u + sd->du.dy * bump_filter_width;
+      const float v_y = sd->v + sd->dv.dy * bump_filter_width;
       data = make_float3(1.0f - u_y - v_y, u_y, 0.0f);
       break;
     }

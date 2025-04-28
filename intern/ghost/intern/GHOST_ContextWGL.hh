@@ -8,8 +8,6 @@
 
 #pragma once
 
-// #define WIN32_COMPOSITING
-
 #include "GHOST_Context.hh"
 
 #include <epoxy/wgl.h>

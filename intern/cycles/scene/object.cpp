@@ -25,8 +25,6 @@
 #include "util/tbb.h"
 #include "util/vector.h"
 
-#include "subd/patch_table.h"
-
 CCL_NAMESPACE_BEGIN
 
 /* Global state of object transform update. */
@@ -465,6 +463,14 @@ static float object_volume_density(const Transform &tfm, Geometry *geom)
   return 1.0f;
 }
 
+static int object_num_motion_verts(Geometry *geom)
+{
+  return (geom->is_mesh() || geom->is_volume()) ? static_cast<Mesh *>(geom)->get_verts().size() :
+         geom->is_hair()       ? static_cast<Hair *>(geom)->get_curve_keys().size() :
+         geom->is_pointcloud() ? static_cast<PointCloud *>(geom)->num_points() :
+                                 0;
+}
+
 void ObjectManager::device_update_object_transform(UpdateObjectTransformState *state,
                                                    Object *ob,
                                                    bool update_all,
@@ -516,9 +522,18 @@ void ObjectManager::device_update_object_transform(UpdateObjectTransformState *s
     flag |= SD_OBJECT_NEGATIVE_SCALE;
   }
 
-  if (geom->is_mesh() || geom->is_pointcloud()) {
-    /* TODO: why only mesh? */
+  /* TODO: why not check hair? */
+  if (geom->is_pointcloud()) {
     if (geom->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION)) {
+      flag |= SD_OBJECT_HAS_VERTEX_MOTION;
+    }
+  }
+  else if (geom->is_mesh()) {
+    Mesh *mesh = static_cast<Mesh *>(geom);
+    if (mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION) ||
+        (mesh->get_subdivision_type() != Mesh::SUBDIVISION_NONE &&
+         mesh->subd_attributes.find(ATTR_STD_MOTION_VERTEX_POSITION)))
+    {
       flag |= SD_OBJECT_HAS_VERTEX_MOTION;
     }
   }
@@ -582,12 +597,7 @@ void ObjectManager::device_update_object_transform(UpdateObjectTransformState *s
   kobject.dupli_uv[1] = ob->dupli_uv[1];
   kobject.num_geom_steps = (geom->get_motion_steps() - 1) / 2;
   kobject.num_tfm_steps = ob->motion.size();
-  kobject.numverts = (geom->is_mesh() || geom->is_volume()) ?
-                         static_cast<Mesh *>(geom)->get_verts().size() :
-                     geom->is_hair()       ? static_cast<Hair *>(geom)->get_curve_keys().size() :
-                     geom->is_pointcloud() ? static_cast<PointCloud *>(geom)->num_points() :
-                                             0;
-  kobject.patch_map_offset = 0;
+  kobject.numverts = object_num_motion_verts(geom);
   kobject.attribute_map_offset = 0;
 
   if (ob->asset_name_is_modified() || update_all) {
@@ -827,24 +837,6 @@ void ObjectManager::device_update(Device *device,
     device_update_transforms(dscene, scene, progress);
   }
 
-  if (progress.get_cancel()) {
-    return;
-  }
-
-  /* prepare for static BVH building */
-  /* todo: do before to support getting object level coords? */
-  if (scene->params.bvh_type == BVH_TYPE_STATIC) {
-    const scoped_callback_timer timer([scene](double time) {
-      if (scene->update_stats) {
-        scene->update_stats->object.times.add_entry(
-            {"device_update (apply static transforms)", time});
-      }
-    });
-
-    progress.set_status("Updating Objects", "Applying Static Transformations");
-    apply_static_transforms(dscene, scene, progress);
-  }
-
   for (Object *object : scene->objects) {
     object->clear_modified();
   }
@@ -972,21 +964,6 @@ void ObjectManager::device_update_geom_offsets(Device * /*unused*/,
   for (Object *object : scene->objects) {
     Geometry *geom = object->geometry;
 
-    if (geom->is_mesh()) {
-      Mesh *mesh = static_cast<Mesh *>(geom);
-      if (mesh->patch_table) {
-        const uint patch_map_offset = 2 * (mesh->patch_table_offset +
-                                           mesh->patch_table->total_size() -
-                                           mesh->patch_table->num_nodes * PATCH_NODE_SIZE) -
-                                      mesh->patch_offset;
-
-        if (kobjects[object->index].patch_map_offset != patch_map_offset) {
-          kobjects[object->index].patch_map_offset = patch_map_offset;
-          update = true;
-        }
-      }
-    }
-
     size_t attr_map_offset = object->attr_map_offset;
 
     /* An object attribute map cannot have a zero offset because mesh maps come first. */
@@ -994,8 +971,16 @@ void ObjectManager::device_update_geom_offsets(Device * /*unused*/,
       attr_map_offset = geom->attr_map_offset;
     }
 
-    if (kobjects[object->index].attribute_map_offset != attr_map_offset) {
-      kobjects[object->index].attribute_map_offset = attr_map_offset;
+    KernelObject &kobject = kobjects[object->index];
+
+    if (kobject.attribute_map_offset != attr_map_offset) {
+      kobject.attribute_map_offset = attr_map_offset;
+      update = true;
+    }
+
+    const int numverts = object_num_motion_verts(geom);
+    if (kobject.numverts != numverts) {
+      kobject.numverts = numverts;
       update = true;
     }
   }

@@ -125,7 +125,7 @@ static Collection *collection_object_active_find_index(Main *bmain,
   return collection;
 }
 
-static int objects_add_active_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus objects_add_active_exec(bContext *C, wmOperator *op)
 {
   Object *ob = context_object(C);
   Main *bmain = CTX_data_main(C);
@@ -218,7 +218,7 @@ void COLLECTION_OT_objects_add_active(wmOperatorType *ot)
   ot->prop = prop;
 }
 
-static int objects_remove_active_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus objects_remove_active_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
@@ -297,7 +297,7 @@ void COLLECTION_OT_objects_remove_active(wmOperatorType *ot)
   ot->prop = prop;
 }
 
-static int collection_objects_remove_all_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus collection_objects_remove_all_exec(bContext *C, wmOperator * /*op*/)
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
@@ -328,7 +328,7 @@ void COLLECTION_OT_objects_remove_all(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-static int collection_objects_remove_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus collection_objects_remove_exec(bContext *C, wmOperator *op)
 {
   Object *ob = context_object(C);
   Main *bmain = CTX_data_main(C);
@@ -404,7 +404,7 @@ void COLLECTION_OT_objects_remove(wmOperatorType *ot)
   ot->prop = prop;
 }
 
-static int collection_create_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus collection_create_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   char name[MAX_ID_NAME - 2]; /* id name */
@@ -473,7 +473,7 @@ static bool collection_export_all_poll(bContext *C)
   return CTX_data_view_layer(C) != nullptr;
 }
 
-static int collection_exporter_add_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus collection_exporter_add_exec(bContext *C, wmOperator *op)
 {
   using namespace blender;
   Collection *collection = CTX_data_collection(C);
@@ -534,7 +534,7 @@ static void COLLECTION_OT_exporter_add(wmOperatorType *ot)
   RNA_def_string(ot->srna, "name", nullptr, MAX_ID_NAME - 2, "Name", "FileHandler idname");
 }
 
-static int collection_exporter_remove_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus collection_exporter_remove_exec(bContext *C, wmOperator *op)
 {
   Collection *collection = CTX_data_collection(C);
   ListBase *exporters = &collection->exporters;
@@ -563,9 +563,9 @@ static int collection_exporter_remove_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int collection_exporter_remove_invoke(bContext *C,
-                                             wmOperator *op,
-                                             const wmEvent * /*event*/)
+static wmOperatorStatus collection_exporter_remove_invoke(bContext *C,
+                                                          wmOperator *op,
+                                                          const wmEvent * /*event*/)
 {
   return WM_operator_confirm_ex(
       C, op, IFACE_("Remove exporter?"), nullptr, IFACE_("Delete"), ALERT_ICON_NONE, false);
@@ -589,11 +589,11 @@ static void COLLECTION_OT_exporter_remove(wmOperatorType *ot)
   RNA_def_int(ot->srna, "index", 0, 0, INT_MAX, "Index", "Exporter index", 0, INT_MAX);
 }
 
-static int collection_exporter_export(bContext *C,
-                                      wmOperator *op,
-                                      CollectionExport *data,
-                                      Collection *collection,
-                                      const bool report_success)
+static wmOperatorStatus collection_exporter_export(bContext *C,
+                                                   wmOperator *op,
+                                                   CollectionExport *data,
+                                                   Collection *collection,
+                                                   const bool report_success)
 {
   using namespace blender;
   bke::FileHandlerType *fh = bke::file_handler_find(data->fh_idname);
@@ -643,7 +643,8 @@ static int collection_exporter_export(bContext *C,
 
   RNA_string_set(&properties, "filepath", filepath);
   RNA_string_set(&properties, "collection", collection_name);
-  int op_result = WM_operator_name_call_ptr(C, ot, WM_OP_EXEC_DEFAULT, &properties, nullptr);
+  wmOperatorStatus op_result = WM_operator_name_call_ptr(
+      C, ot, WM_OP_EXEC_DEFAULT, &properties, nullptr);
 
   /* Free the "last used" properties that were just set from the collection export and restore the
    * original "last used" properties. */
@@ -661,7 +662,7 @@ static int collection_exporter_export(bContext *C,
   return op_result;
 }
 
-static int collection_exporter_export_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus collection_exporter_export_exec(bContext *C, wmOperator *op)
 {
   Collection *collection = CTX_data_collection(C);
   ListBase *exporters = &collection->exporters;
@@ -697,10 +698,10 @@ struct CollectionExportStats {
   int collections_num = 0;
 };
 
-static int collection_export(bContext *C,
-                             wmOperator *op,
-                             Collection *collection,
-                             CollectionExportStats &stats)
+static wmOperatorStatus collection_export(bContext *C,
+                                          wmOperator *op,
+                                          Collection *collection,
+                                          CollectionExportStats &stats)
 {
   ListBase *exporters = &collection->exporters;
   int files_num = 0;
@@ -720,11 +721,11 @@ static int collection_export(bContext *C,
   return OPERATOR_FINISHED;
 }
 
-static int collection_io_export_all_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus collection_io_export_all_exec(bContext *C, wmOperator *op)
 {
   Collection *collection = CTX_data_collection(C);
   CollectionExportStats stats;
-  int result = collection_export(C, op, collection, stats);
+  wmOperatorStatus result = collection_export(C, op, collection, stats);
 
   /* Only report if nothing was cancelled along the way. We don't want this UI report to happen
    * over-top any reports from the actual failures. */
@@ -754,10 +755,10 @@ static void COLLECTION_OT_export_all(wmOperatorType *ot)
   ot->flag = 0;
 }
 
-static int collection_export_recursive(bContext *C,
-                                       wmOperator *op,
-                                       LayerCollection *layer_collection,
-                                       CollectionExportStats &stats)
+static wmOperatorStatus collection_export_recursive(bContext *C,
+                                                    wmOperator *op,
+                                                    LayerCollection *layer_collection,
+                                                    CollectionExportStats &stats)
 {
   /* Skip collections which have been Excluded in the View Layer. */
   if (layer_collection->flag & LAYER_COLLECTION_EXCLUDE) {
@@ -781,7 +782,7 @@ static int collection_export_recursive(bContext *C,
   return OPERATOR_FINISHED;
 }
 
-static int wm_collection_export_all_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus wm_collection_export_all_exec(bContext *C, wmOperator *op)
 {
   ViewLayer *view_layer = CTX_data_view_layer(C);
 
@@ -857,7 +858,7 @@ void collection_exporter_register()
 
 /****************** properties window operators *********************/
 
-static int collection_add_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus collection_add_exec(bContext *C, wmOperator * /*op*/)
 {
   Object *ob = context_object(C);
   Main *bmain = CTX_data_main(C);
@@ -893,7 +894,7 @@ void OBJECT_OT_collection_add(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-static int collection_link_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus collection_link_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   Object *ob = context_object(C);
@@ -970,7 +971,7 @@ void OBJECT_OT_collection_link(wmOperatorType *ot)
   ot->prop = prop;
 }
 
-static int collection_remove_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus collection_remove_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   Object *ob = context_object(C);
@@ -1012,7 +1013,7 @@ void OBJECT_OT_collection_remove(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-static int collection_unlink_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus collection_unlink_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   Collection *collection = CTX_data_collection(C);
@@ -1079,7 +1080,7 @@ void OBJECT_OT_collection_unlink(wmOperatorType *ot)
 }
 
 /* Select objects in the same collection as the active */
-static int select_grouped_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus select_grouped_exec(bContext *C, wmOperator * /*op*/)
 {
   Scene *scene = CTX_data_scene(C);
   Collection *collection = static_cast<Collection *>(

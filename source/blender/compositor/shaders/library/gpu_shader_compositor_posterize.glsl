@@ -2,8 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-void node_composite_posterize(vec4 color, float steps, out vec4 result)
+void node_composite_posterize(float4 color, float steps, out float4 result)
 {
-  float sanitized_steps = clamp(steps, 2.0, 1024.0);
-  result = vec4(floor(color.rgb * sanitized_steps) / sanitized_steps, color.a);
+  float sanitized_steps = clamp(steps, 2.0f, 1024.0f);
+  result = float4(floor(color.rgb * sanitized_steps) / sanitized_steps, color.a);
 }

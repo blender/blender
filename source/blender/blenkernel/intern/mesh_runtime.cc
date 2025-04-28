@@ -321,7 +321,9 @@ void BKE_mesh_runtime_clear_geometry(Mesh *mesh)
   mesh->runtime->vert_to_corner_map_cache.tag_dirty();
   mesh->runtime->corner_to_face_map_cache.tag_dirty();
   mesh->runtime->vert_normals_cache.tag_dirty();
+  mesh->runtime->vert_normals_true_cache.tag_dirty();
   mesh->runtime->face_normals_cache.tag_dirty();
+  mesh->runtime->face_normals_true_cache.tag_dirty();
   mesh->runtime->corner_normals_cache.tag_dirty();
   mesh->runtime->loose_edges_cache.tag_dirty();
   mesh->runtime->loose_verts_cache.tag_dirty();
@@ -340,6 +342,7 @@ void Mesh::tag_edges_split()
   /* Triangulation didn't change because vertex positions and loop vertex indices didn't change. */
   free_bvh_caches(*this->runtime);
   this->runtime->vert_normals_cache.tag_dirty();
+  this->runtime->corner_normals_cache.tag_dirty();
   this->runtime->subdiv_ccg.reset();
   this->runtime->vert_to_face_offset_cache.tag_dirty();
   this->runtime->vert_to_face_map_cache.tag_dirty();
@@ -366,11 +369,15 @@ void Mesh::tag_edges_split()
 
 void Mesh::tag_sharpness_changed()
 {
+  this->runtime->vert_normals_cache.tag_dirty();
+  this->runtime->face_normals_cache.tag_dirty();
   this->runtime->corner_normals_cache.tag_dirty();
 }
 
 void Mesh::tag_custom_normals_changed()
 {
+  this->runtime->vert_normals_cache.tag_dirty();
+  this->runtime->face_normals_cache.tag_dirty();
   this->runtime->corner_normals_cache.tag_dirty();
 }
 
@@ -378,6 +385,8 @@ void Mesh::tag_face_winding_changed()
 {
   this->runtime->vert_normals_cache.tag_dirty();
   this->runtime->face_normals_cache.tag_dirty();
+  this->runtime->vert_normals_true_cache.tag_dirty();
+  this->runtime->face_normals_true_cache.tag_dirty();
   this->runtime->corner_normals_cache.tag_dirty();
   this->runtime->vert_to_corner_map_cache.tag_dirty();
   this->runtime->shrinkwrap_boundary_cache.tag_dirty();
@@ -387,6 +396,8 @@ void Mesh::tag_positions_changed()
 {
   this->runtime->vert_normals_cache.tag_dirty();
   this->runtime->face_normals_cache.tag_dirty();
+  this->runtime->vert_normals_true_cache.tag_dirty();
+  this->runtime->face_normals_true_cache.tag_dirty();
   this->runtime->corner_normals_cache.tag_dirty();
   this->runtime->shrinkwrap_boundary_cache.tag_dirty();
   this->tag_positions_changed_no_normals();
@@ -439,6 +450,13 @@ void BKE_mesh_batch_cache_dirty_tag(Mesh *mesh, eMeshBatchDirtyMode mode)
 {
   if (mesh->runtime->batch_cache) {
     BKE_mesh_batch_cache_dirty_tag_cb(mesh, mode);
+  }
+
+  /* Also tag batch cache for subdivided mesh, if it exists this will be
+   * the mesh that is actually being drawn. */
+  Mesh *mesh_eval = mesh->runtime->mesh_eval;
+  if (mesh_eval && mesh_eval->runtime->batch_cache) {
+    BKE_mesh_batch_cache_dirty_tag_cb(mesh_eval, mode);
   }
 }
 void BKE_mesh_batch_cache_free(void *batch_cache)

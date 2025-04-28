@@ -102,7 +102,7 @@ template<> struct VolumeGridTraits<float3> {
 
   static openvdb::Vec3f to_openvdb(const float3 &value)
   {
-    return openvdb::Vec3f(*value);
+    return openvdb::Vec3f(value.x, value.y, value.z);
   }
   static float3 to_blender(const openvdb::Vec3f &value)
   {

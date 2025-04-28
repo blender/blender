@@ -160,8 +160,7 @@ static void colorband_init_from_table_rgba_resample(ColorBand *coba,
 {
   BLI_assert(array_len >= 2);
   const float eps_2x = ((1.0f / 255.0f) + 1e-6f);
-  ColorResampleElem *c,
-      *carr = static_cast<ColorResampleElem *>(MEM_mallocN(sizeof(*carr) * array_len, __func__));
+  ColorResampleElem *c, *carr = MEM_malloc_arrayN<ColorResampleElem>(size_t(array_len), __func__);
   int carr_len = array_len;
   c = carr;
   {
@@ -299,7 +298,7 @@ ColorBand *BKE_colorband_add(bool rangetype)
 {
   ColorBand *coba;
 
-  coba = static_cast<ColorBand *>(MEM_callocN(sizeof(ColorBand), "colorband"));
+  coba = MEM_callocN<ColorBand>("colorband");
   BKE_colorband_init(coba, rangetype);
 
   return coba;
@@ -561,7 +560,7 @@ void BKE_colorband_evaluate_table_rgba(const ColorBand *coba, float **array, int
   int a;
 
   *size = CM_TABLE + 1;
-  *array = static_cast<float *>(MEM_callocN(sizeof(float) * (*size) * 4, "ColorBand"));
+  *array = MEM_calloc_arrayN<float>(4 * size_t(*size), "ColorBand");
 
   for (a = 0; a < *size; a++) {
     BKE_colorband_evaluate(coba, float(a) / float(CM_TABLE), &(*array)[a * 4]);

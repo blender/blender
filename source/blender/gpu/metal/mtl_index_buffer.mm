@@ -496,7 +496,7 @@ id<MTLBuffer> MTLIndexBuf::get_index_buffer(GPUPrimType &in_out_primitive_type,
       ibo_ = nullptr;
     }
 
-    /* Output params. */
+    /* Output parameters. */
     in_out_v_count = emulated_v_count;
     in_out_primitive_type = GPU_PRIM_TRIS;
     return optimized_ibo_->get_metal_buffer();

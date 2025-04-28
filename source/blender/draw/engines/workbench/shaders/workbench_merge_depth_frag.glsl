@@ -8,5 +8,5 @@ FRAGMENT_SHADER_CREATE_INFO(workbench_merge_depth)
 
 void main()
 {
-  gl_FragDepth = texture(depth_tx, uvcoordsvar.xy).r;
+  gl_FragDepth = texture(depth_tx, screen_uv).r;
 }

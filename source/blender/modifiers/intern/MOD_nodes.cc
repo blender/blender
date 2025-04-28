@@ -37,6 +37,7 @@
 
 #include "BKE_bake_data_block_map.hh"
 #include "BKE_bake_geometry_nodes_modifier.hh"
+#include "BKE_compute_context_cache.hh"
 #include "BKE_compute_contexts.hh"
 #include "BKE_customdata.hh"
 #include "BKE_global.hh"
@@ -77,6 +78,7 @@
 #include "MOD_nodes.hh"
 #include "MOD_ui_common.hh"
 
+#include "ED_node.hh"
 #include "ED_object.hh"
 #include "ED_screen.hh"
 #include "ED_undo.hh"
@@ -152,6 +154,11 @@ static void add_object_relation(
       DEG_add_customdata_mask(ctx->node, &object, &dependency_data_mask);
     }
   }
+  if (object.type == OB_CAMERA) {
+    if (info.camera_parameters) {
+      DEG_add_object_relation(ctx->node, &object, DEG_OB_COMP_PARAMETERS, "Nodes Modifier");
+    }
+  }
 }
 
 static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
@@ -218,7 +225,9 @@ static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphCont
   }
   if (eval_deps.needs_active_camera) {
     DEG_add_scene_camera_relation(ctx->node, ctx->scene, DEG_OB_COMP_TRANSFORM, "Nodes Modifier");
-    /* Active camera is a scene parameter that can change, so we need a relation for that, too. */
+  }
+  /* Active camera is a scene parameter that can change, so we need a relation for that, too. */
+  if (eval_deps.needs_active_camera || eval_deps.needs_scene_render_params) {
     DEG_add_scene_relation(ctx->node, ctx->scene, DEG_SCENE_COMP_PARAMETERS, "Nodes Modifier");
   }
 }
@@ -468,7 +477,8 @@ namespace blender {
  * To make sure that it is executed, all parent group nodes and zones have to be set to  have side
  * effects as well.
  */
-static void try_add_side_effect_node(const ComputeContext &final_compute_context,
+static void try_add_side_effect_node(const ModifierEvalContext &ctx,
+                                     const ComputeContext &final_compute_context,
                                      const int final_node_id,
                                      const NodesModifierData &nmd,
                                      nodes::GeoNodesSideEffectNodes &r_side_effect_nodes)
@@ -611,6 +621,49 @@ static void try_add_side_effect_node(const ComputeContext &final_compute_context
       current_tree = reinterpret_cast<const bNodeTree *>(group_node->id);
       current_zone = nullptr;
     }
+    else if (const auto *compute_context =
+                 dynamic_cast<const bke::EvaluateClosureComputeContext *>(compute_context_generic))
+    {
+      const bNode *evaluate_node = current_tree->node_by_id(compute_context->node_id());
+      if (!evaluate_node) {
+        return;
+      }
+      if (evaluate_node->is_muted()) {
+        return;
+      }
+      if (current_zone != current_zones->get_zone_by_node(evaluate_node->identifier)) {
+        return;
+      }
+      const std::optional<nodes::ClosureSourceLocation> &source_location =
+          compute_context->closure_source_location();
+      if (!source_location) {
+        return;
+      }
+      if (!source_location->tree->zones()) {
+        return;
+      }
+      const lf::FunctionNode *lf_evaluate_node =
+          lf_graph_info->mapping.possible_side_effect_node_map.lookup_default(evaluate_node,
+                                                                              nullptr);
+      if (!lf_evaluate_node) {
+        return;
+      }
+      /* The tree may sometimes be original and sometimes evaluated, depending on the source of the
+       * compute context. */
+      const bNodeTree *eval_closure_tree = DEG_is_evaluated_id(&source_location->tree->id) ?
+                                               source_location->tree :
+                                               reinterpret_cast<const bNodeTree *>(
+                                                   DEG_get_evaluated_id(
+                                                       ctx.depsgraph, &source_location->tree->id));
+      const bNode *closure_output_node = eval_closure_tree->node_by_id(
+          source_location->closure_output_node_id);
+      if (!closure_output_node) {
+        return;
+      }
+      local_side_effect_nodes.nodes_by_context.add(parent_compute_context_hash, lf_evaluate_node);
+      current_tree = eval_closure_tree;
+      current_zone = eval_closure_tree->zones()->get_zone_by_node(closure_output_node->identifier);
+    }
     else {
       return;
     }
@@ -657,34 +710,34 @@ static void find_side_effect_nodes_for_viewer_path(
   if (!parsed_path.has_value()) {
     return;
   }
-  if (parsed_path->object != DEG_get_original_object(ctx.object)) {
+  if (parsed_path->object != DEG_get_original(ctx.object)) {
     return;
   }
   if (parsed_path->modifier_name != nmd.modifier.name) {
     return;
   }
 
-  ComputeContextBuilder compute_context_builder;
-  compute_context_builder.push<bke::ModifierComputeContext>(parsed_path->modifier_name);
-
+  bke::ComputeContextCache compute_context_cache;
+  const ComputeContext *current = &compute_context_cache.for_modifier(nullptr, nmd);
   for (const ViewerPathElem *elem : parsed_path->node_path) {
-    if (!ed::viewer_path::add_compute_context_for_viewer_path_elem(*elem, compute_context_builder))
-    {
+    current = ed::viewer_path::compute_context_for_viewer_path_elem(
+        *elem, compute_context_cache, current);
+    if (!current) {
       return;
     }
   }
 
-  try_add_side_effect_node(
-      *compute_context_builder.current(), parsed_path->viewer_node_id, nmd, r_side_effect_nodes);
+  try_add_side_effect_node(ctx, *current, parsed_path->viewer_node_id, nmd, r_side_effect_nodes);
 }
 
 static void find_side_effect_nodes_for_nested_node(
+    const ModifierEvalContext &ctx,
     const NodesModifierData &nmd,
     const int root_nested_node_id,
     nodes::GeoNodesSideEffectNodes &r_side_effect_nodes)
 {
-  ComputeContextBuilder compute_context_builder;
-  compute_context_builder.push<bke::ModifierComputeContext>(nmd.modifier.name);
+  bke::ComputeContextCache compute_context_cache;
+  const ComputeContext *compute_context = &compute_context_cache.for_modifier(nullptr, nmd);
 
   int nested_node_id = root_nested_node_id;
   const bNodeTree *tree = nmd.node_group;
@@ -709,13 +762,12 @@ static void find_side_effect_nodes_for_nested_node(
       if (!node->id) {
         return;
       }
-      compute_context_builder.push<bke::GroupNodeComputeContext>(*node, *tree);
+      compute_context = &compute_context_cache.for_group_node(compute_context, *node, *tree);
       tree = reinterpret_cast<const bNodeTree *>(node->id);
       nested_node_id = ref->path.id_in_node;
     }
     else {
-      try_add_side_effect_node(
-          *compute_context_builder.current(), ref->path.node_id, nmd, r_side_effect_nodes);
+      try_add_side_effect_node(ctx, *compute_context, ref->path.node_id, nmd, r_side_effect_nodes);
       return;
     }
   }
@@ -741,7 +793,7 @@ static void find_side_effect_nodes_for_baking(const NodesModifierData &nmd,
     if (!modifier_cache.requested_bakes.contains(ref.id)) {
       continue;
     }
-    find_side_effect_nodes_for_nested_node(nmd, ref.id, r_side_effect_nodes);
+    find_side_effect_nodes_for_nested_node(ctx, nmd, ref.id, r_side_effect_nodes);
   }
 }
 
@@ -752,19 +804,20 @@ static void find_side_effect_nodes_for_active_gizmos(
     nodes::GeoNodesSideEffectNodes &r_side_effect_nodes,
     Set<ComputeContextHash> &r_socket_log_contexts)
 {
-  Object *object_orig = DEG_get_original_object(ctx.object);
+  Object *object_orig = DEG_get_original(ctx.object);
   const NodesModifierData &nmd_orig = *reinterpret_cast<const NodesModifierData *>(
       BKE_modifier_get_original(ctx.object, const_cast<ModifierData *>(&nmd.modifier)));
-  ComputeContextBuilder compute_context_builder;
+  bke::ComputeContextCache compute_context_cache;
   nodes::gizmos::foreach_active_gizmo_in_modifier(
       *object_orig,
       nmd_orig,
       wm,
-      compute_context_builder,
+      compute_context_cache,
       [&](const ComputeContext &compute_context,
           const bNode &gizmo_node,
           const bNodeSocket &gizmo_socket) {
-        try_add_side_effect_node(compute_context, gizmo_node.identifier, nmd, r_side_effect_nodes);
+        try_add_side_effect_node(
+            ctx, compute_context, gizmo_node.identifier, nmd, r_side_effect_nodes);
         r_socket_log_contexts.add(compute_context.hash());
 
         nodes::gizmos::foreach_compute_context_on_gizmo_path(
@@ -818,6 +871,7 @@ static void find_socket_log_contexts(const NodesModifierData &nmd,
   if (wm == nullptr) {
     return;
   }
+  bke::ComputeContextCache compute_context_cache;
   LISTBASE_FOREACH (const wmWindow *, window, &wm->windows) {
     const bScreen *screen = BKE_workspace_active_screen_get(window->workspace_hook);
     LISTBASE_FOREACH (const ScrArea *, area, &screen->areabase) {
@@ -827,9 +881,12 @@ static void find_socket_log_contexts(const NodesModifierData &nmd,
         if (snode.edittree == nullptr || snode.edittree->type != NTREE_GEOMETRY) {
           continue;
         }
+        if (!ed::space_node::node_editor_is_for_geometry_nodes_modifier(snode, *ctx.object, nmd)) {
+          continue;
+        }
         const Map<const bke::bNodeTreeZone *, ComputeContextHash> hash_by_zone =
-            geo_log::GeoModifierLog::get_context_hash_by_zone_for_node_editor(snode,
-                                                                              nmd.modifier.name);
+            geo_log::GeoModifierLog::get_context_hash_by_zone_for_node_editor(
+                snode, compute_context_cache);
         for (const ComputeContextHash &hash : hash_by_zone.values()) {
           r_socket_log_contexts.add(hash);
         }
@@ -842,7 +899,9 @@ static void find_socket_log_contexts(const NodesModifierData &nmd,
  * \note This could be done in #initialize_group_input, though that would require adding the
  * the object as a parameter, so it's likely better to this check as a separate step.
  */
-static void check_property_socket_sync(const Object *ob, ModifierData *md)
+static void check_property_socket_sync(const Object *ob,
+                                       const nodes::PropertiesVectorSet &properties,
+                                       ModifierData *md)
 {
   NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
 
@@ -853,18 +912,17 @@ static void check_property_socket_sync(const Object *ob, ModifierData *md)
     const bNodeTreeInterfaceSocket *socket = nmd->node_group->interface_inputs()[i];
     const bke::bNodeSocketType *typeinfo = socket->socket_typeinfo();
     const eNodeSocketDatatype type = typeinfo ? eNodeSocketDatatype(typeinfo->type) : SOCK_CUSTOM;
+    if (type == SOCK_GEOMETRY) {
+      geometry_socket_count++;
+    }
     /* The first socket is the special geometry socket for the modifier object. */
     if (i == 0 && type == SOCK_GEOMETRY) {
-      geometry_socket_count++;
       continue;
     }
 
-    IDProperty *property = IDP_GetPropertyFromGroup(nmd->settings.properties, socket->identifier);
+    IDProperty *property = properties.lookup_key_default_as(socket->identifier, nullptr);
     if (property == nullptr) {
-      if (ELEM(type, SOCK_GEOMETRY, SOCK_MATRIX)) {
-        geometry_socket_count++;
-      }
-      else {
+      if (!ELEM(type, SOCK_GEOMETRY, SOCK_MATRIX, SOCK_BUNDLE, SOCK_CLOSURE)) {
         BKE_modifier_set_error(
             ob, md, "Missing property for input socket \"%s\"", socket->name ? socket->name : "");
       }
@@ -1714,7 +1772,7 @@ static void add_data_block_items_writeback(const ModifierEvalContext &ctx,
               bake_orig, sorted_new_mappings, [&](const bake::BakeDataBlockID &key) -> ID * {
                 ID *id_orig = nullptr;
                 if (ID *id_eval = data.new_mappings.lookup_default(key, nullptr)) {
-                  id_orig = DEG_get_original_id(id_eval);
+                  id_orig = DEG_get_original(id_eval);
                 }
                 else {
                   needs_reevaluation = true;
@@ -1736,7 +1794,7 @@ static void add_data_block_items_writeback(const ModifierEvalContext &ctx,
               });
 
           if (needs_reevaluation) {
-            Object *object_orig = DEG_get_original_object(object_eval);
+            Object *object_orig = DEG_get_original(object_eval);
             DEG_id_tag_update(&object_orig->id, ID_RECALC_GEOMETRY);
             DEG_relations_tag_update(bmain);
           }
@@ -1756,8 +1814,11 @@ static void modifyGeometry(ModifierData *md,
   NodesModifierData *nmd_orig = reinterpret_cast<NodesModifierData *>(
       BKE_modifier_get_original(ctx->object, &nmd->modifier));
 
+  nodes::PropertiesVectorSet properties = nodes::build_properties_vector_set(
+      nmd->settings.properties);
+
   const bNodeTree &tree = *nmd->node_group;
-  check_property_socket_sync(ctx->object, md);
+  check_property_socket_sync(ctx->object, properties, md);
 
   tree.ensure_topology_cache();
   const bNode *output_node = tree.group_output_node();
@@ -1823,13 +1884,10 @@ static void modifyGeometry(ModifierData *md,
   find_side_effect_nodes(*nmd, *ctx, side_effect_nodes, socket_log_contexts);
   call_data.side_effect_nodes = &side_effect_nodes;
 
-  bke::ModifierComputeContext modifier_compute_context{nullptr, nmd->modifier.name};
+  bke::ModifierComputeContext modifier_compute_context{nullptr, *nmd};
 
-  geometry_set = nodes::execute_geometry_nodes_on_geometry(tree,
-                                                           nmd->settings.properties,
-                                                           modifier_compute_context,
-                                                           call_data,
-                                                           std::move(geometry_set));
+  geometry_set = nodes::execute_geometry_nodes_on_geometry(
+      tree, properties, modifier_compute_context, call_data, std::move(geometry_set));
 
   if (logging_enabled(ctx)) {
     nmd_orig->runtime->eval_log = std::move(eval_log);
@@ -1864,7 +1922,14 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
 
   modifyGeometry(md, ctx, geometry_set);
 
-  Mesh *new_mesh = geometry_set.get_component_for_write<bke::MeshComponent>().release();
+  bke::MeshComponent &mesh_component = geometry_set.get_component_for_write<bke::MeshComponent>();
+  if (mesh_component.get() != mesh) {
+    /* If this is the same as the input mesh, it's not necessary to make a copy of it even if it's
+     * not owned by the geometry set. That's because we know that the caller manages the ownership
+     * of the mesh. */
+    mesh_component.ensure_owns_direct_data();
+  }
+  Mesh *new_mesh = mesh_component.release();
   if (new_mesh == nullptr) {
     return BKE_mesh_new_nomain(0, 0, 0, 0);
   }
@@ -1878,18 +1943,27 @@ static void modify_geometry_set(ModifierData *md,
   modifyGeometry(md, ctx, *geometry_set);
 }
 
-struct AttributeSearchData {
+struct SocketSearchData {
   uint32_t object_session_uid;
   char modifier_name[MAX_NAME];
   char socket_identifier[MAX_NAME];
   bool is_output;
 };
 /* This class must not have a destructor, since it is used by buttons and freed with #MEM_freeN. */
-BLI_STATIC_ASSERT(std::is_trivially_destructible_v<AttributeSearchData>, "");
+BLI_STATIC_ASSERT(std::is_trivially_destructible_v<SocketSearchData>, "");
+
+struct DrawGroupInputsContext {
+  const bContext &C;
+  NodesModifierData &nmd;
+  nodes::PropertiesVectorSet properties;
+  PointerRNA *md_ptr;
+  PointerRNA *bmain_ptr;
+  Array<bool> input_usages;
+};
 
 static NodesModifierData *get_modifier_data(Main &bmain,
                                             const wmWindowManager &wm,
-                                            const AttributeSearchData &data)
+                                            const SocketSearchData &data)
 {
   if (ED_screen_animation_playing(&wm)) {
     /* Work around an issue where the attribute search exec function has stale pointers when data
@@ -1916,14 +1990,14 @@ static geo_log::GeoTreeLog *get_root_tree_log(const NodesModifierData &nmd)
   if (!nmd.runtime->eval_log) {
     return nullptr;
   }
-  bke::ModifierComputeContext compute_context{nullptr, nmd.modifier.name};
+  bke::ModifierComputeContext compute_context{nullptr, nmd};
   return &nmd.runtime->eval_log->get_tree_log(compute_context.hash());
 }
 
 static void attribute_search_update_fn(
     const bContext *C, void *arg, const char *str, uiSearchItems *items, const bool is_first)
 {
-  AttributeSearchData &data = *static_cast<AttributeSearchData *>(arg);
+  SocketSearchData &data = *static_cast<SocketSearchData *>(arg);
   const NodesModifierData *nmd = get_modifier_data(*CTX_data_main(C), *CTX_wm_manager(C), data);
   if (nmd == nullptr) {
     return;
@@ -1980,7 +2054,7 @@ static void attribute_search_exec_fn(bContext *C, void *data_v, void *item_v)
   if (item_v == nullptr) {
     return;
   }
-  AttributeSearchData &data = *static_cast<AttributeSearchData *>(data_v);
+  SocketSearchData &data = *static_cast<SocketSearchData *>(data_v);
   const auto &item = *static_cast<const geo_log::GeometryAttributeInfo *>(item_v);
   const NodesModifierData *nmd = get_modifier_data(*CTX_data_main(C), *CTX_wm_manager(C), data);
   if (nmd == nullptr) {
@@ -1995,14 +2069,6 @@ static void attribute_search_exec_fn(bContext *C, void *data_v, void *item_v)
 
   ED_undo_push(C, "Assign Attribute Name");
 }
-
-struct DrawGroupInputsContext {
-  const bContext &C;
-  NodesModifierData &nmd;
-  PointerRNA *md_ptr;
-  PointerRNA *bmain_ptr;
-  Array<bool> input_usages;
-};
 
 static void add_attribute_search_button(DrawGroupInputsContext &ctx,
                                         uiLayout *layout,
@@ -2038,7 +2104,7 @@ static void add_attribute_search_button(DrawGroupInputsContext &ctx,
     return;
   }
 
-  AttributeSearchData *data = MEM_callocN<AttributeSearchData>(__func__);
+  SocketSearchData *data = MEM_callocN<SocketSearchData>(__func__);
   data->object_session_uid = object->id.session_uid;
   STRNCPY(data->modifier_name, ctx.nmd.modifier.name);
   STRNCPY(data->socket_identifier, socket.identifier);
@@ -2079,19 +2145,19 @@ static void add_attribute_search_or_value_buttons(DrawGroupInputsContext &ctx,
   uiLayoutSetPropDecorate(layout, false);
 
   uiLayout *split = uiLayoutSplit(layout, 0.4f, false);
-  uiLayout *name_row = uiLayoutRow(split, false);
+  uiLayout *name_row = &split->row(false);
   uiLayoutSetAlignment(name_row, UI_LAYOUT_ALIGN_RIGHT);
 
   uiLayout *prop_row = nullptr;
 
-  const std::optional<StringRef> attribute_name = nodes::input_attribute_name_get(
-      *ctx.nmd.settings.properties, socket);
+  const std::optional<StringRef> attribute_name = nodes::input_attribute_name_get(ctx.properties,
+                                                                                  socket);
   if (type == SOCK_BOOLEAN && !attribute_name) {
     uiItemL(name_row, "", ICON_NONE);
-    prop_row = uiLayoutRow(split, true);
+    prop_row = &split->row(true);
   }
   else {
-    prop_row = uiLayoutRow(layout, true);
+    prop_row = &layout->row(true);
   }
 
   if (type == SOCK_BOOLEAN) {
@@ -2101,7 +2167,7 @@ static void add_attribute_search_or_value_buttons(DrawGroupInputsContext &ctx,
 
   if (attribute_name) {
     uiItemL(name_row, socket.name ? IFACE_(socket.name) : "", ICON_NONE);
-    prop_row = uiLayoutRow(split, true);
+    prop_row = &split->row(true);
     add_attribute_search_button(ctx, prop_row, rna_path_attribute_name, socket, false);
     uiItemL(layout, "", ICON_BLANK1);
   }
@@ -2124,6 +2190,137 @@ static void add_attribute_search_or_value_buttons(DrawGroupInputsContext &ctx,
   RNA_string_set(&props, "input_name", socket.identifier);
 }
 
+static void layer_name_search_update_fn(
+    const bContext *C, void *arg, const char *str, uiSearchItems *items, const bool is_first)
+{
+  const SocketSearchData &data = *static_cast<SocketSearchData *>(arg);
+  const NodesModifierData *nmd = get_modifier_data(*CTX_data_main(C), *CTX_wm_manager(C), data);
+  if (nmd == nullptr) {
+    return;
+  }
+  if (nmd->node_group == nullptr) {
+    return;
+  }
+  geo_log::GeoTreeLog *tree_log = get_root_tree_log(*nmd);
+  if (tree_log == nullptr) {
+    return;
+  }
+  tree_log->ensure_layer_names();
+  nmd->node_group->ensure_topology_cache();
+
+  Vector<const bNodeSocket *> sockets_to_check;
+  for (const bNode *node : nmd->node_group->group_input_nodes()) {
+    for (const bNodeSocket *socket : node->output_sockets()) {
+      if (socket->type == SOCK_GEOMETRY) {
+        sockets_to_check.append(socket);
+      }
+    }
+  }
+
+  Set<StringRef> names;
+  Vector<const std::string *> layer_names;
+  for (const bNodeSocket *socket : sockets_to_check) {
+    const geo_log::ValueLog *value_log = tree_log->find_socket_value_log(*socket);
+    if (value_log == nullptr) {
+      continue;
+    }
+    if (const auto *geo_log = dynamic_cast<const geo_log::GeometryInfoLog *>(value_log)) {
+      if (const std::optional<geo_log::GeometryInfoLog::GreasePencilInfo> &grease_pencil_info =
+              geo_log->grease_pencil_info)
+      {
+        for (const std::string &name : grease_pencil_info->layer_names) {
+          if (names.add(name)) {
+            layer_names.append(&name);
+          }
+        }
+      }
+    }
+  }
+  BLI_assert(items);
+  ui::grease_pencil_layer_search_add_items(str, layer_names.as_span(), *items, is_first);
+}
+
+static void layer_name_search_exec_fn(bContext *C, void *data_v, void *item_v)
+{
+  const SocketSearchData &data = *static_cast<SocketSearchData *>(data_v);
+  const std::string *item = static_cast<std::string *>(item_v);
+  if (item == nullptr) {
+    return;
+  }
+  const NodesModifierData *nmd = get_modifier_data(*CTX_data_main(C), *CTX_wm_manager(C), data);
+  if (nmd == nullptr) {
+    return;
+  }
+
+  IDProperty &name_property = *IDP_GetPropertyFromGroup(nmd->settings.properties,
+                                                        data.socket_identifier);
+  IDP_AssignString(&name_property, item->c_str());
+
+  ED_undo_push(C, "Assign Layer Name");
+}
+
+static void add_layer_name_search_button(DrawGroupInputsContext &ctx,
+                                         uiLayout *layout,
+                                         const StringRefNull socket_id_esc,
+                                         const bNodeTreeInterfaceSocket &socket)
+{
+  const std::string rna_path = fmt::format("[\"{}\"]", socket_id_esc);
+  if (!ctx.nmd.runtime->eval_log) {
+    uiItemR(layout, ctx.md_ptr, rna_path, UI_ITEM_NONE, "", ICON_NONE);
+    return;
+  }
+
+  uiLayoutSetPropDecorate(layout, false);
+
+  uiLayout *split = uiLayoutSplit(layout, 0.4f, false);
+  uiLayout *name_row = &split->row(false);
+  uiLayoutSetAlignment(name_row, UI_LAYOUT_ALIGN_RIGHT);
+
+  uiItemL(name_row, socket.name ? IFACE_(socket.name) : "", ICON_NONE);
+  uiLayout *prop_row = &split->row(true);
+
+  uiBlock *block = uiLayoutGetBlock(prop_row);
+  uiBut *but = uiDefIconTextButR(block,
+                                 UI_BTYPE_SEARCH_MENU,
+                                 0,
+                                 ICON_OUTLINER_DATA_GP_LAYER,
+                                 "",
+                                 0,
+                                 0,
+                                 10 * UI_UNIT_X, /* Dummy value, replaced by layout system. */
+                                 UI_UNIT_Y,
+                                 ctx.md_ptr,
+                                 rna_path,
+                                 0,
+                                 0.0f,
+                                 0.0f,
+                                 StringRef(socket.description));
+  UI_but_placeholder_set(but, "Layer");
+  uiItemL(layout, "", ICON_BLANK1);
+
+  const Object *object = ed::object::context_object(&ctx.C);
+  BLI_assert(object != nullptr);
+  if (object == nullptr) {
+    return;
+  }
+
+  SocketSearchData *data = MEM_callocN<SocketSearchData>(__func__);
+  data->object_session_uid = object->id.session_uid;
+  STRNCPY(data->modifier_name, ctx.nmd.modifier.name);
+  STRNCPY(data->socket_identifier, socket.identifier);
+
+  UI_but_func_search_set_results_are_suggestions(but, true);
+  UI_but_func_search_set_sep_string(but, UI_MENU_ARROW_SEP);
+  UI_but_func_search_set(but,
+                         nullptr,
+                         layer_name_search_update_fn,
+                         static_cast<void *>(data),
+                         true,
+                         nullptr,
+                         layer_name_search_exec_fn,
+                         nullptr);
+}
+
 /* Drawing the properties manually with #uiItemR instead of #uiDefAutoButsRNA allows using
  * the node socket identifier for the property names, since they are unique, but also having
  * the correct label displayed in the UI. */
@@ -2133,7 +2330,7 @@ static void draw_property_for_socket(DrawGroupInputsContext &ctx,
 {
   const StringRefNull identifier = socket.identifier;
   /* The property should be created in #MOD_nodes_update_interface with the correct type. */
-  IDProperty *property = IDP_GetPropertyFromGroup(ctx.nmd.settings.properties, identifier);
+  IDProperty *property = ctx.properties.lookup_key_default_as(identifier, nullptr);
 
   /* IDProperties can be removed with python, so there could be a situation where
    * there isn't a property for a socket or it doesn't have the correct type. */
@@ -2149,7 +2346,7 @@ static void draw_property_for_socket(DrawGroupInputsContext &ctx,
 
   const int input_index = ctx.nmd.node_group->interface_input_index(socket);
 
-  uiLayout *row = uiLayoutRow(layout, true);
+  uiLayout *row = &layout->row(true);
   uiLayoutSetPropDecorate(row, true);
   uiLayoutSetActive(row, ctx.input_usages[input_index]);
 
@@ -2192,7 +2389,9 @@ static void draw_property_for_socket(DrawGroupInputsContext &ctx,
     }
     case SOCK_BOOLEAN: {
       if (is_layer_selection_field(socket)) {
-        uiItemR(row, ctx.md_ptr, rna_path, UI_ITEM_NONE, name, ICON_NONE);
+        add_layer_name_search_button(ctx, row, socket_id_esc, socket);
+        /* Adds a spacing at the end of the row. */
+        uiItemL(row, "", ICON_BLANK1);
         break;
       }
       ATTR_FALLTHROUGH;
@@ -2222,11 +2421,11 @@ static void draw_property_for_output_socket(DrawGroupInputsContext &ctx,
       "[\"{}{}\"]", socket_id_esc, nodes::input_attribute_name_suffix);
 
   uiLayout *split = uiLayoutSplit(layout, 0.4f, false);
-  uiLayout *name_row = uiLayoutRow(split, false);
+  uiLayout *name_row = &split->row(false);
   uiLayoutSetAlignment(name_row, UI_LAYOUT_ALIGN_RIGHT);
   uiItemL(name_row, socket.name ? socket.name : "", ICON_NONE);
 
-  uiLayout *row = uiLayoutRow(split, true);
+  uiLayout *row = &split->row(true);
   add_attribute_search_button(ctx, row, rna_path_attribute_name, socket, true);
 }
 
@@ -2267,6 +2466,12 @@ static bool interface_panel_affects_output(DrawGroupInputsContext &ctx,
   for (const bNodeTreeInterfaceItem *item : panel.items()) {
     if (item->item_type == NODE_INTERFACE_SOCKET) {
       const auto &socket = *reinterpret_cast<const bNodeTreeInterfaceSocket *>(item);
+      if (socket.flag & NODE_INTERFACE_SOCKET_HIDE_IN_MODIFIER) {
+        continue;
+      }
+      if (!(socket.flag & NODE_INTERFACE_SOCKET_INPUT)) {
+        continue;
+      }
       const int input_index = ctx.nmd.node_group->interface_input_index(socket);
       if (ctx.input_usages[input_index]) {
         return true;
@@ -2303,7 +2508,7 @@ static void draw_interface_panel_content(DrawGroupInputsContext &ctx,
       const bNodeTreeInterfaceSocket *toggle_socket = sub_interface_panel.header_toggle_socket();
       if (toggle_socket && !(toggle_socket->flag & NODE_INTERFACE_SOCKET_HIDE_IN_MODIFIER)) {
         const StringRefNull identifier = toggle_socket->identifier;
-        IDProperty *property = IDP_GetPropertyFromGroup(ctx.nmd.settings.properties, identifier);
+        IDProperty *property = ctx.properties.lookup_key_default_as(identifier, nullptr);
         /* IDProperties can be removed with python, so there could be a situation where
          * there isn't a property for a socket or it doesn't have the correct type. */
         if (property == nullptr ||
@@ -2388,7 +2593,7 @@ static void draw_output_attributes_panel(DrawGroupInputsContext &ctx, uiLayout *
 
 static void draw_bake_panel(uiLayout *layout, PointerRNA *modifier_ptr)
 {
-  uiLayout *col = uiLayoutColumn(layout, false);
+  uiLayout *col = &layout->column(false);
   uiLayoutSetPropSep(col, true);
   uiLayoutSetPropDecorate(col, false);
   uiItemR(col, modifier_ptr, "bake_target", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -2455,12 +2660,12 @@ static void draw_named_attributes_panel(uiLayout *layout, NodesModifierData &nmd
       }
     }
 
-    uiLayout *row = uiLayoutRow(split, false);
+    uiLayout *row = &split->row(false);
     uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_RIGHT);
     uiLayoutSetActive(row, false);
     uiItemL(row, ss.str(), ICON_NONE);
 
-    row = uiLayoutRow(split, false);
+    row = &split->row(false);
     uiItemL(row, attribute_name, ICON_NONE);
   }
 }
@@ -2496,7 +2701,7 @@ static void draw_warnings(const bContext *C,
   if (!tree_log) {
     return;
   }
-  tree_log->ensure_node_warnings(nmd.node_group);
+  tree_log->ensure_node_warnings(*CTX_data_main(C));
   const int warnings_num = tree_log->all_warnings.size();
   if (warnings_num == 0) {
     return;
@@ -2524,7 +2729,7 @@ static void draw_warnings(const bContext *C,
     return BLI_strcasecmp_natural(a->message.c_str(), b->message.c_str()) < 0;
   });
 
-  uiLayout *col = uiLayoutColumn(panel.body, false);
+  uiLayout *col = &panel.body->column(false);
   for (const NodeWarning *warning : warnings) {
     const int icon = node_warning_type_icon(warning->type);
     uiItemL(col, warning->message, icon);
@@ -2551,13 +2756,14 @@ static void panel_draw(const bContext *C, Panel *panel)
 
   Main *bmain = CTX_data_main(C);
   PointerRNA bmain_ptr = RNA_main_pointer_create(bmain);
-  DrawGroupInputsContext ctx{*C, *nmd, ptr, &bmain_ptr};
+  DrawGroupInputsContext ctx{
+      *C, *nmd, nodes::build_properties_vector_set(nmd->settings.properties), ptr, &bmain_ptr};
 
   if (nmd->node_group != nullptr && nmd->settings.properties != nullptr) {
     nmd->node_group->ensure_interface_cache();
     ctx.input_usages.reinitialize(nmd->node_group->interface_inputs().size());
     nodes::socket_usage_inference::infer_group_interface_inputs_usage(
-        *nmd->node_group, nmd->settings.properties, ctx.input_usages);
+        *nmd->node_group, ctx.properties, ctx.input_usages);
     draw_interface_panel_content(ctx, layout, nmd->node_group->tree_interface.root_panel);
   }
 

@@ -69,7 +69,7 @@ static void extract_edituv_tris_mesh(const MeshRenderData &mr,
   }
 }
 
-void extract_edituv_tris(const MeshRenderData &mr, gpu::IndexBuf &ibo)
+gpu::IndexBufPtr extract_edituv_tris(const MeshRenderData &mr)
 {
   const bool sync_selection = (mr.toolsettings->uv_flag & UV_SYNC_SELECTION) != 0;
 
@@ -82,7 +82,7 @@ void extract_edituv_tris(const MeshRenderData &mr, gpu::IndexBuf &ibo)
     extract_edituv_tris_mesh(mr, sync_selection, builder);
   }
 
-  GPU_indexbuf_build_in_place(&builder, &ibo);
+  return gpu::IndexBufPtr(GPU_indexbuf_build(&builder));
 }
 
 static void extract_edituv_tris_subdiv_bm(const MeshRenderData &mr,
@@ -127,9 +127,8 @@ static void extract_edituv_tris_subdiv_mesh(const MeshRenderData &mr,
   }
 }
 
-void extract_edituv_tris_subdiv(const MeshRenderData &mr,
-                                const DRWSubdivCache &subdiv_cache,
-                                gpu::IndexBuf &ibo)
+gpu::IndexBufPtr extract_edituv_tris_subdiv(const MeshRenderData &mr,
+                                            const DRWSubdivCache &subdiv_cache)
 {
   const bool sync_selection = (mr.toolsettings->uv_flag & UV_SYNC_SELECTION) != 0;
 
@@ -143,7 +142,7 @@ void extract_edituv_tris_subdiv(const MeshRenderData &mr,
     extract_edituv_tris_subdiv_mesh(mr, subdiv_cache, sync_selection, builder);
   }
 
-  GPU_indexbuf_build_in_place(&builder, &ibo);
+  return gpu::IndexBufPtr(GPU_indexbuf_build(&builder));
 }
 
 /** \} */
@@ -152,35 +151,46 @@ void extract_edituv_tris_subdiv(const MeshRenderData &mr,
 /** \name Extract Edit UV Line Indices around faces
  * \{ */
 
-static void extract_edituv_lines_bm(const MeshRenderData &mr,
-                                    const bool sync_selection,
-                                    GPUIndexBufBuilder &builder)
+static gpu::IndexBufPtr extract_edituv_lines_bm(const MeshRenderData &mr,
+                                                const bool sync_selection)
 {
-  const BMesh &bm = *mr.bm;
+  GPUIndexBufBuilder builder;
+  /* The entire data array might not be used. It might be beneficial to count the number of visible
+   * edges first, especially if that allows parallelizing filling the data array. */
+  GPU_indexbuf_init(&builder, GPU_PRIM_LINES, mr.corners_num, mr.corners_num);
+  MutableSpan<uint2> data = GPU_indexbuf_get_data(&builder).cast<uint2>();
+  int line_index = 0;
+
   const BMFace *face;
   BMIter f_iter;
-  BM_ITER_MESH (face, &f_iter, &const_cast<BMesh &>(bm), BM_FACES_OF_MESH) {
+  BM_ITER_MESH (face, &f_iter, mr.bm, BM_FACES_OF_MESH) {
     if (skip_bm_face(*face, sync_selection)) {
       continue;
     }
     const BMLoop *loop = BM_FACE_FIRST_LOOP(face);
     for ([[maybe_unused]] const int i : IndexRange(face->len)) {
-      GPU_indexbuf_add_line_verts(
-          &builder, BM_elem_index_get(loop), BM_elem_index_get(loop->next));
+      data[line_index++] = uint2(BM_elem_index_get(loop), BM_elem_index_get(loop->next));
       loop = loop->next;
     }
   }
+
+  return gpu::IndexBufPtr(GPU_indexbuf_build_ex(&builder, 0, mr.corners_num, false));
 }
 
-static void extract_edituv_lines_mesh(const MeshRenderData &mr,
-                                      const bool sync_selection,
-                                      GPUIndexBufBuilder &builder)
+static gpu::IndexBufPtr extract_edituv_lines_mesh(const MeshRenderData &mr,
+                                                  const bool sync_selection)
 {
   const OffsetIndices faces = mr.faces;
   const Span<int> corner_edges = mr.corner_edges;
   const Span<int> orig_index_edge = mr.orig_index_edge ?
                                         Span<int>(mr.orig_index_edge, mr.edges_num) :
                                         Span<int>();
+
+  GPUIndexBufBuilder builder;
+  GPU_indexbuf_init(&builder, GPU_PRIM_LINES, mr.corners_num, mr.corners_num);
+  MutableSpan<uint2> data = GPU_indexbuf_get_data(&builder).cast<uint2>();
+  int line_index = 0;
+
   if (mr.bm) {
     for (const int face_index : faces.index_range()) {
       const IndexRange face = faces[face_index];
@@ -196,8 +206,7 @@ static void extract_edituv_lines_mesh(const MeshRenderData &mr,
         if (!orig_index_edge.is_empty() && orig_index_edge[edge] == ORIGINDEX_NONE) {
           continue;
         }
-        const int corner_next = bke::mesh::face_corner_next(face, corner);
-        GPU_indexbuf_add_line_verts(&builder, corner, corner_next);
+        data[line_index++] = edge_from_corners(face, corner);
       }
     }
   }
@@ -222,38 +231,38 @@ static void extract_edituv_lines_mesh(const MeshRenderData &mr,
         if (!orig_index_edge.is_empty() && orig_index_edge[edge] == ORIGINDEX_NONE) {
           continue;
         }
-        const int corner_next = bke::mesh::face_corner_next(face, corner);
-        GPU_indexbuf_add_line_verts(&builder, corner, corner_next);
+        data[line_index++] = edge_from_corners(face, corner);
       }
     });
   }
+
+  return gpu::IndexBufPtr(GPU_indexbuf_build_ex(&builder, 0, mr.corners_num, false));
 }
 
-void extract_edituv_lines(const MeshRenderData &mr, gpu::IndexBuf &ibo)
+gpu::IndexBufPtr extract_edituv_lines(const MeshRenderData &mr, bool edit_uvs)
 {
-  const bool sync_selection = (mr.toolsettings->uv_flag & UV_SYNC_SELECTION) != 0;
+  const bool sync_selection = ((mr.toolsettings->uv_flag & UV_SYNC_SELECTION) != 0) || !edit_uvs;
 
-  GPUIndexBufBuilder builder;
-  GPU_indexbuf_init(&builder, GPU_PRIM_LINES, mr.corners_num, mr.corners_num);
   if (mr.extract_type == MeshExtractType::BMesh) {
-    extract_edituv_lines_bm(mr, sync_selection, builder);
+    return extract_edituv_lines_bm(mr, sync_selection);
   }
-  else {
-    extract_edituv_lines_mesh(mr, sync_selection, builder);
-  }
-
-  GPU_indexbuf_build_in_place(&builder, &ibo);
+  return extract_edituv_lines_mesh(mr, sync_selection);
 }
 
-static void extract_edituv_lines_subdiv_bm(const MeshRenderData &mr,
-                                           const DRWSubdivCache &subdiv_cache,
-                                           const bool sync_selection,
-                                           GPUIndexBufBuilder &builder)
+static gpu::IndexBufPtr extract_edituv_lines_subdiv_bm(const MeshRenderData &mr,
+                                                       const DRWSubdivCache &subdiv_cache,
+                                                       const bool sync_selection)
 {
   const BMesh &bm = *mr.bm;
   const Span<int> subdiv_loop_edge_index = subdiv_cache.edges_orig_index->data<int>();
   const Span<int> subdiv_loop_face_index(subdiv_cache.subdiv_loop_face_index,
                                          subdiv_cache.num_subdiv_loops);
+
+  GPUIndexBufBuilder builder;
+  GPU_indexbuf_init(
+      &builder, GPU_PRIM_LINES, subdiv_cache.num_subdiv_loops, subdiv_cache.num_subdiv_loops);
+  MutableSpan<uint2> data = GPU_indexbuf_get_data(&builder).cast<uint2>();
+  int line_index = 0;
 
   for (const int subdiv_quad : IndexRange(subdiv_cache.num_subdiv_quads)) {
     const int coarse_face = subdiv_loop_face_index[subdiv_quad * 4];
@@ -267,17 +276,24 @@ static void extract_edituv_lines_subdiv_bm(const MeshRenderData &mr,
       if (coarse_edge == -1) {
         continue;
       }
-      const int subdiv_corner_next = bke::mesh::face_corner_next(subdiv_face, subdiv_corner);
-      GPU_indexbuf_add_line_verts(&builder, subdiv_corner, subdiv_corner_next);
+      data[line_index++] = edge_from_corners(subdiv_face, subdiv_corner);
     }
   }
+
+  return gpu::IndexBufPtr(
+      GPU_indexbuf_build_ex(&builder, 0, subdiv_cache.num_subdiv_loops, false));
 }
 
-static void extract_edituv_lines_subdiv_mesh(const MeshRenderData &mr,
-                                             const DRWSubdivCache &subdiv_cache,
-                                             const bool sync_selection,
-                                             GPUIndexBufBuilder &builder)
+static gpu::IndexBufPtr extract_edituv_lines_subdiv_mesh(const MeshRenderData &mr,
+                                                         const DRWSubdivCache &subdiv_cache,
+                                                         const bool sync_selection)
 {
+  GPUIndexBufBuilder builder;
+  GPU_indexbuf_init(
+      &builder, GPU_PRIM_LINES, subdiv_cache.num_subdiv_loops, subdiv_cache.num_subdiv_loops);
+  MutableSpan<uint2> data = GPU_indexbuf_get_data(&builder).cast<uint2>();
+  int line_index = 0;
+
   /* NOTE: #subdiv_loop_edge_index already has the #CD_ORIGINDEX layer baked in. */
   const Span<int> subdiv_loop_edge_index = subdiv_cache.edges_orig_index->data<int>();
   const Span<int> subdiv_loop_face_index(subdiv_cache.subdiv_loop_face_index,
@@ -309,29 +325,24 @@ static void extract_edituv_lines_subdiv_mesh(const MeshRenderData &mr,
       if (coarse_edge == -1) {
         continue;
       }
-      const int subdiv_corner_next = bke::mesh::face_corner_next(subdiv_face, subdiv_corner);
-      GPU_indexbuf_add_line_verts(&builder, subdiv_corner, subdiv_corner_next);
+      data[line_index++] = edge_from_corners(subdiv_face, subdiv_corner);
     }
   }
+
+  return gpu::IndexBufPtr(
+      GPU_indexbuf_build_ex(&builder, 0, subdiv_cache.num_subdiv_loops, false));
 }
 
-void extract_edituv_lines_subdiv(const MeshRenderData &mr,
-                                 const DRWSubdivCache &subdiv_cache,
-                                 gpu::IndexBuf &ibo)
+gpu::IndexBufPtr extract_edituv_lines_subdiv(const MeshRenderData &mr,
+                                             const DRWSubdivCache &subdiv_cache,
+                                             bool edit_uvs)
 {
-  const bool sync_selection = (mr.toolsettings->uv_flag & UV_SYNC_SELECTION) != 0;
+  const bool sync_selection = ((mr.toolsettings->uv_flag & UV_SYNC_SELECTION) != 0) || !edit_uvs;
 
-  GPUIndexBufBuilder builder;
-  GPU_indexbuf_init(
-      &builder, GPU_PRIM_LINES, subdiv_cache.num_subdiv_loops, subdiv_cache.num_subdiv_loops);
   if (mr.extract_type == MeshExtractType::BMesh) {
-    extract_edituv_lines_subdiv_bm(mr, subdiv_cache, sync_selection, builder);
+    return extract_edituv_lines_subdiv_bm(mr, subdiv_cache, sync_selection);
   }
-  else {
-    extract_edituv_lines_subdiv_mesh(mr, subdiv_cache, sync_selection, builder);
-  }
-
-  GPU_indexbuf_build_in_place(&builder, &ibo);
+  return extract_edituv_lines_subdiv_mesh(mr, subdiv_cache, sync_selection);
 }
 
 /** \} */
@@ -386,7 +397,7 @@ static void extract_edituv_points_mesh(const MeshRenderData &mr,
   }
 }
 
-void extract_edituv_points(const MeshRenderData &mr, gpu::IndexBuf &ibo)
+gpu::IndexBufPtr extract_edituv_points(const MeshRenderData &mr)
 {
   const bool sync_selection = (mr.toolsettings->uv_flag & UV_SYNC_SELECTION) != 0;
 
@@ -398,7 +409,7 @@ void extract_edituv_points(const MeshRenderData &mr, gpu::IndexBuf &ibo)
   else {
     extract_edituv_points_mesh(mr, sync_selection, builder);
   }
-  GPU_indexbuf_build_in_place(&builder, &ibo);
+  return gpu::IndexBufPtr(GPU_indexbuf_build(&builder));
 }
 
 static void extract_edituv_points_subdiv_bm(const MeshRenderData &mr,
@@ -455,9 +466,8 @@ static void extract_edituv_points_subdiv_mesh(const MeshRenderData &mr,
   }
 }
 
-void extract_edituv_points_subdiv(const MeshRenderData &mr,
-                                  const DRWSubdivCache &subdiv_cache,
-                                  gpu::IndexBuf &ibo)
+gpu::IndexBufPtr extract_edituv_points_subdiv(const MeshRenderData &mr,
+                                              const DRWSubdivCache &subdiv_cache)
 {
   const bool sync_selection = (mr.toolsettings->uv_flag & UV_SYNC_SELECTION) != 0;
 
@@ -470,7 +480,7 @@ void extract_edituv_points_subdiv(const MeshRenderData &mr,
   else {
     extract_edituv_points_subdiv_mesh(mr, subdiv_cache, sync_selection, builder);
   }
-  GPU_indexbuf_build_in_place(&builder, &ibo);
+  return gpu::IndexBufPtr(GPU_indexbuf_build(&builder));
 }
 
 /** \} */
@@ -479,9 +489,8 @@ void extract_edituv_points_subdiv(const MeshRenderData &mr,
 /** \name Extract Edit UV Face-dots Indices
  * \{ */
 
-static void extract_edituv_face_dots_bm(const MeshRenderData &mr,
-                                        const bool sync_selection,
-                                        gpu::IndexBuf &ibo)
+static gpu::IndexBufPtr extract_edituv_face_dots_bm(const MeshRenderData &mr,
+                                                    const bool sync_selection)
 {
   const BMesh &bm = *mr.bm;
   IndexMaskMemory memory;
@@ -493,12 +502,11 @@ static void extract_edituv_face_dots_bm(const MeshRenderData &mr,
   GPUIndexBufBuilder builder;
   GPU_indexbuf_init(&builder, GPU_PRIM_POINTS, visible.size(), bm.totface);
   visible.to_indices(GPU_indexbuf_get_data(&builder).cast<int>());
-  GPU_indexbuf_build_in_place_ex(&builder, 0, bm.totface, false, &ibo);
+  return gpu::IndexBufPtr(GPU_indexbuf_build_ex(&builder, 0, bm.totface, false));
 }
 
-static void extract_edituv_face_dots_mesh(const MeshRenderData &mr,
-                                          const bool sync_selection,
-                                          gpu::IndexBuf &ibo)
+static gpu::IndexBufPtr extract_edituv_face_dots_mesh(const MeshRenderData &mr,
+                                                      const bool sync_selection)
 {
   const OffsetIndices faces = mr.faces;
   IndexMaskMemory memory;
@@ -527,18 +535,16 @@ static void extract_edituv_face_dots_mesh(const MeshRenderData &mr,
   GPUIndexBufBuilder builder;
   GPU_indexbuf_init(&builder, GPU_PRIM_POINTS, visible.size(), faces.size());
   visible.to_indices(GPU_indexbuf_get_data(&builder).cast<int>());
-  GPU_indexbuf_build_in_place_ex(&builder, 0, faces.size(), false, &ibo);
+  return gpu::IndexBufPtr(GPU_indexbuf_build_ex(&builder, 0, faces.size(), false));
 }
 
-void extract_edituv_face_dots(const MeshRenderData &mr, gpu::IndexBuf &ibo)
+gpu::IndexBufPtr extract_edituv_face_dots(const MeshRenderData &mr)
 {
   const bool sync_selection = (mr.toolsettings->uv_flag & UV_SYNC_SELECTION) != 0;
   if (mr.extract_type == MeshExtractType::BMesh) {
-    extract_edituv_face_dots_bm(mr, sync_selection, ibo);
+    return extract_edituv_face_dots_bm(mr, sync_selection);
   }
-  else {
-    extract_edituv_face_dots_mesh(mr, sync_selection, ibo);
-  }
+  return extract_edituv_face_dots_mesh(mr, sync_selection);
 }
 
 /** \} */

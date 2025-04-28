@@ -29,15 +29,15 @@ FRAGMENT_SHADER_CREATE_INFO(workbench_effect_dof_blur2)
 void main()
 {
   /* Half Res pass */
-  vec2 pixel_size = 1.0 / vec2(textureSize(blurTex, 0).xy);
-  vec2 uv = gl_FragCoord.xy * pixel_size.xy;
-  float coc = dof_decode_coc(texture(inputCocTex, uv).rg);
-  /* Only use this filter if coc is > 9.0
+  float2 pixel_size = 1.0f / float2(textureSize(blur_tx, 0).xy);
+  float2 uv = gl_FragCoord.xy * pixel_size.xy;
+  float coc = dof_decode_coc(texture(input_coc_tx, uv).rg);
+  /* Only use this filter if coc is > 9.0f
    * since this filter is not weighted by CoC
    * and can bleed a bit. */
-  float rad = clamp(coc - 9.0, 0.0, 1.0);
+  float rad = clamp(coc - 9.0f, 0.0f, 1.0f);
 
-#define vec vec4
+#define vec float4
 #define toVec(x) x.rgba
 
 #define s2(a, b) \
@@ -76,11 +76,11 @@ void main()
   /* Add the pixels which make up our window to the pixel array. */
   for (int dX = -1; dX <= 1; dX++) {
     for (int dY = -1; dY <= 1; dY++) {
-      vec2 offset = vec2(float(dX), float(dY));
+      float2 offset = float2(float(dX), float(dY));
       /* If a pixel in the window is located at (x+dX, y+dY), put it at index (dX + R)(2R + 1) +
        * (dY + R) of the pixel array. This will fill the pixel array, with the top left pixel of
        * the window at pixel[0] and the bottom right pixel of the window at pixel[N-1]. */
-      v[(dX + 1) * 3 + (dY + 1)] = toVec(texture(blurTex, uv + offset * pixel_size * rad));
+      v[(dX + 1) * 3 + (dY + 1)] = toVec(texture(blur_tx, uv + offset * pixel_size * rad));
     }
   }
 
@@ -91,5 +91,5 @@ void main()
   mnmx5(v[1], v[2], v[3], v[4], v[6]);
   mnmx4(v[2], v[3], v[4], v[7]);
   mnmx3(v[3], v[4], v[8]);
-  toVec(finalColor) = v[4];
+  toVec(final_color) = v[4];
 }

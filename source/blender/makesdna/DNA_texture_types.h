@@ -156,17 +156,17 @@ typedef struct PointDensity {
 /** \name #Tex
  * \{ */
 
+typedef struct Tex_Runtime {
+  /* The Depsgraph::update_count when this ID was last updated. Covers any IDRecalcFlag. */
+  uint64_t last_update;
+} Tex_Runtime;
+
 typedef struct Tex {
   DNA_DEFINE_CXX_METHODS(Tex)
 
   ID id;
   /** Animation data (must be immediately after id for utilities to use it). */
   struct AnimData *adt;
-  /**
-   * Engines draw data, must be immediately after AnimData. See IdDdtTemplate and
-   * DRW_drawdatalist_from_id to understand this requirement.
-   */
-  DrawDataList drawdata;
 
   float noisesize, turbul;
   float bright, contrast, saturation, rfac, gfac, bfac;
@@ -226,6 +226,9 @@ typedef struct Tex {
   char use_nodes;
   char _pad[7];
 
+  void *_pad3;
+
+  Tex_Runtime runtime;
 } Tex;
 
 /** Used for mapping and texture nodes. */

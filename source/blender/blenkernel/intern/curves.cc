@@ -237,7 +237,7 @@ void BKE_curves_data_update(Depsgraph *depsgraph, Scene *scene, Object *object)
     GeometryComponentEditData &edit_component =
         geometry_set.get_component_for_write<GeometryComponentEditData>();
     edit_component.curves_edit_hints_ = std::make_unique<CurvesEditHints>(
-        *static_cast<const Curves *>(DEG_get_original_object(object)->data));
+        *static_cast<const Curves *>(DEG_get_original(object)->data));
   }
   curves_evaluate_modifiers(depsgraph, scene, object, geometry_set);
 
@@ -304,7 +304,7 @@ void curves_copy_parameters(const Curves &src, Curves &dst)
 {
   dst.flag = src.flag;
   MEM_SAFE_FREE(dst.mat);
-  dst.mat = static_cast<Material **>(MEM_malloc_arrayN(src.totcol, sizeof(Material *), __func__));
+  dst.mat = MEM_malloc_arrayN<Material *>(size_t(src.totcol), __func__);
   dst.totcol = src.totcol;
   MutableSpan(dst.mat, dst.totcol).copy_from(Span(src.mat, src.totcol));
   dst.symmetry = src.symmetry;

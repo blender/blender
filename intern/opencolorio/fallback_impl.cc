@@ -199,6 +199,12 @@ int FallbackImpl::configGetIndexForColorSpace(OCIO_ConstConfigRcPtr *config, con
   return -1;
 }
 
+const char *FallbackImpl::getColorSpaceFromFilepath(OCIO_ConstConfigRcPtr * /*config*/,
+                                                    const char * /*filepath*/)
+{
+  return nullptr;
+}
+
 const char *FallbackImpl::configGetDefaultDisplay(OCIO_ConstConfigRcPtr * /*config*/)
 {
   return "sRGB";

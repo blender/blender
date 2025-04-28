@@ -521,7 +521,8 @@ def main() -> None:
                 "./build_files/build_environment/patches/config_gmpxx.h",
 
                 # A modified `Apache-2.0` license.
-                "./intern/opensubdiv/internal/evaluator/shaders/glsl_compute_kernel.glsl",
+                "./intern/opensubdiv/internal/evaluator/shaders/osd_eval_patches_comp.glsl",
+                "./intern/opensubdiv/internal/evaluator/shaders/osd_eval_stencils_comp.glsl",
             ),
         ),
         Pass(

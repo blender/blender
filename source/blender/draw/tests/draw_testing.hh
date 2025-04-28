@@ -11,6 +11,7 @@ namespace blender::draw {
 class DrawOpenGLTest : public blender::gpu::GPUOpenGLTest {
  public:
   void SetUp() override;
+  void TearDown() override;
 };
 
 #  define DRAW_OPENGL_TEST(test_name) \
@@ -26,6 +27,7 @@ class DrawOpenGLTest : public blender::gpu::GPUOpenGLTest {
 class DrawMetalTest : public blender::gpu::GPUMetalTest {
  public:
   void SetUp() override;
+  void TearDown() override;
 };
 
 #  define DRAW_METAL_TEST(test_name) \
@@ -41,6 +43,7 @@ class DrawMetalTest : public blender::gpu::GPUMetalTest {
 class DrawVulkanTest : public blender::gpu::GPUVulkanTest {
  public:
   void SetUp() override;
+  void TearDown() override;
 };
 
 #  define DRAW_VULKAN_TEST(test_name) \

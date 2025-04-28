@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2022 Google Inc. All rights reserved.
+// Copyright 2023 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -35,38 +35,35 @@
 #ifndef CERES_INTERNAL_SMALL_BLAS_GENERIC_H_
 #define CERES_INTERNAL_SMALL_BLAS_GENERIC_H_
 
-namespace ceres {
-namespace internal {
+namespace ceres::internal {
 
 // The following macros are used to share code
-#define CERES_GEMM_OPT_NAIVE_HEADER \
-  double c0 = 0.0;                  \
-  double c1 = 0.0;                  \
-  double c2 = 0.0;                  \
-  double c3 = 0.0;                  \
-  const double* pa = a;             \
-  const double* pb = b;             \
-  const int span = 4;               \
-  int col_r = col_a & (span - 1);   \
+#define CERES_GEMM_OPT_NAIVE_HEADER       \
+  double cvec4[4] = {0.0, 0.0, 0.0, 0.0}; \
+  const double* pa = a;                   \
+  const double* pb = b;                   \
+  const int span = 4;                     \
+  int col_r = col_a & (span - 1);         \
   int col_m = col_a - col_r;
 
 #define CERES_GEMM_OPT_STORE_MAT1X4 \
   if (kOperation > 0) {             \
-    *c++ += c0;                     \
-    *c++ += c1;                     \
-    *c++ += c2;                     \
-    *c++ += c3;                     \
+    c[0] += cvec4[0];               \
+    c[1] += cvec4[1];               \
+    c[2] += cvec4[2];               \
+    c[3] += cvec4[3];               \
   } else if (kOperation < 0) {      \
-    *c++ -= c0;                     \
-    *c++ -= c1;                     \
-    *c++ -= c2;                     \
-    *c++ -= c3;                     \
+    c[0] -= cvec4[0];               \
+    c[1] -= cvec4[1];               \
+    c[2] -= cvec4[2];               \
+    c[3] -= cvec4[3];               \
   } else {                          \
-    *c++ = c0;                      \
-    *c++ = c1;                      \
-    *c++ = c2;                      \
-    *c++ = c3;                      \
-  }
+    c[0] = cvec4[0];                \
+    c[1] = cvec4[1];                \
+    c[2] = cvec4[2];                \
+    c[3] = cvec4[3];                \
+  }                                 \
+  c += 4;
 
 // Matrix-Matrix Multiplication
 // Figure out 1x4 of Matrix C in one batch
@@ -100,10 +97,10 @@ static inline void MMM_mat1x4(const int col_a,
 #define CERES_GEMM_OPT_MMM_MAT1X4_MUL \
   av = pa[k];                         \
   pb = b + bi;                        \
-  c0 += av * pb[0];                   \
-  c1 += av * pb[1];                   \
-  c2 += av * pb[2];                   \
-  c3 += av * pb[3];                   \
+  cvec4[0] += av * pb[0];             \
+  cvec4[1] += av * pb[1];             \
+  cvec4[2] += av * pb[2];             \
+  cvec4[3] += av * pb[3];             \
   pb += 4;                            \
   bi += col_stride_b;                 \
   k++;
@@ -168,10 +165,10 @@ static inline void MTM_mat1x4(const int col_a,
 #define CERES_GEMM_OPT_MTM_MAT1X4_MUL \
   av = pa[ai];                        \
   pb = b + bi;                        \
-  c0 += av * pb[0];                   \
-  c1 += av * pb[1];                   \
-  c2 += av * pb[2];                   \
-  c3 += av * pb[3];                   \
+  cvec4[0] += av * pb[0];             \
+  cvec4[1] += av * pb[1];             \
+  cvec4[2] += av * pb[2];             \
+  cvec4[3] += av * pb[3];             \
   pb += 4;                            \
   ai += col_stride_a;                 \
   bi += col_stride_b;
@@ -221,13 +218,13 @@ static inline void MVM_mat4x1(const int col_a,
   double bv = 0.0;
 
   // clang-format off
-#define CERES_GEMM_OPT_MVM_MAT4X1_MUL  \
-  bv = *pb;                            \
-  c0 += *(pa                   ) * bv; \
-  c1 += *(pa + col_stride_a    ) * bv; \
-  c2 += *(pa + col_stride_a * 2) * bv; \
-  c3 += *(pa + col_stride_a * 3) * bv; \
-  pa++;                                \
+#define CERES_GEMM_OPT_MVM_MAT4X1_MUL       \
+  bv = *pb;                                 \
+  cvec4[0] += *(pa                   ) * bv; \
+  cvec4[1] += *(pa + col_stride_a    ) * bv; \
+  cvec4[2] += *(pa + col_stride_a * 2) * bv; \
+  cvec4[3] += *(pa + col_stride_a * 3) * bv; \
+  pa++;                                     \
   pb++;
   // clang-format on
 
@@ -285,16 +282,14 @@ static inline void MTV_mat4x1(const int col_a,
   CERES_GEMM_OPT_NAIVE_HEADER
   double bv = 0.0;
 
-  // clang-format off
 #define CERES_GEMM_OPT_MTV_MAT4X1_MUL \
   bv = *pb;                           \
-  c0 += *(pa    ) * bv;               \
-  c1 += *(pa + 1) * bv;               \
-  c2 += *(pa + 2) * bv;               \
-  c3 += *(pa + 3) * bv;               \
+  cvec4[0] += pa[0] * bv;             \
+  cvec4[1] += pa[1] * bv;             \
+  cvec4[2] += pa[2] * bv;             \
+  cvec4[3] += pa[3] * bv;             \
   pa += col_stride_a;                 \
   pb++;
-  // clang-format on
 
   for (int k = 0; k < col_m; k += span) {
     CERES_GEMM_OPT_MTV_MAT4X1_MUL
@@ -315,7 +310,6 @@ static inline void MTV_mat4x1(const int col_a,
 #undef CERES_GEMM_OPT_NAIVE_HEADER
 #undef CERES_GEMM_OPT_STORE_MAT1X4
 
-}  // namespace internal
-}  // namespace ceres
+}  // namespace ceres::internal
 
 #endif  // CERES_INTERNAL_SMALL_BLAS_GENERIC_H_

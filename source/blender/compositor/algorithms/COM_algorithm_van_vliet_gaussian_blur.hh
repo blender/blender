@@ -31,6 +31,9 @@ namespace blender::compositor {
  *
  * The output is written to the given output result, which will be allocated internally and is thus
  * expected not to be previously allocated. */
-void van_vliet_gaussian_blur(Context &context, Result &input, Result &output, float2 sigma);
+void van_vliet_gaussian_blur(Context &context,
+                             const Result &input,
+                             Result &output,
+                             const float2 &sigma);
 
 }  // namespace blender::compositor

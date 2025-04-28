@@ -54,7 +54,7 @@ static bool operator_rigidbody_editable_poll(Scene *scene)
   return true;
 }
 
-static bool ED_operator_rigidbody_active_poll(bContext *C)
+static bool operator_rigidbody_active_poll(bContext *C)
 {
   Scene *scene = CTX_data_scene(C);
   if (!operator_rigidbody_editable_poll(scene)) {
@@ -69,7 +69,7 @@ static bool ED_operator_rigidbody_active_poll(bContext *C)
   return false;
 }
 
-static bool ED_operator_rigidbody_add_poll(bContext *C)
+static bool operator_rigidbody_add_poll(bContext *C)
 {
   Scene *scene = CTX_data_scene(C);
   if (!operator_rigidbody_editable_poll(scene)) {
@@ -101,7 +101,7 @@ void ED_rigidbody_object_remove(Main *bmain, Scene *scene, Object *ob)
 
 /* ************ Add Rigid Body ************** */
 
-static int rigidbody_object_add_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus rigidbody_object_add_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
@@ -132,7 +132,7 @@ void RIGIDBODY_OT_object_add(wmOperatorType *ot)
 
   /* callbacks */
   ot->exec = rigidbody_object_add_exec;
-  ot->poll = ED_operator_rigidbody_add_poll;
+  ot->poll = operator_rigidbody_add_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -148,7 +148,7 @@ void RIGIDBODY_OT_object_add(wmOperatorType *ot)
 
 /* ************ Remove Rigid Body ************** */
 
-static int rigidbody_object_remove_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus rigidbody_object_remove_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
@@ -183,7 +183,7 @@ void RIGIDBODY_OT_object_remove(wmOperatorType *ot)
 
   /* callbacks */
   ot->exec = rigidbody_object_remove_exec;
-  ot->poll = ED_operator_rigidbody_active_poll;
+  ot->poll = operator_rigidbody_active_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -194,7 +194,7 @@ void RIGIDBODY_OT_object_remove(wmOperatorType *ot)
 
 /* ************ Add Rigid Bodies ************** */
 
-static int rigidbody_objects_add_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus rigidbody_objects_add_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
@@ -227,7 +227,7 @@ void RIGIDBODY_OT_objects_add(wmOperatorType *ot)
 
   /* callbacks */
   ot->exec = rigidbody_objects_add_exec;
-  ot->poll = ED_operator_rigidbody_add_poll;
+  ot->poll = operator_rigidbody_add_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -243,7 +243,7 @@ void RIGIDBODY_OT_objects_add(wmOperatorType *ot)
 
 /* ************ Remove Rigid Bodies ************** */
 
-static int rigidbody_objects_remove_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus rigidbody_objects_remove_exec(bContext *C, wmOperator * /*op*/)
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
@@ -278,7 +278,7 @@ void RIGIDBODY_OT_objects_remove(wmOperatorType *ot)
 
   /* callbacks */
   ot->exec = rigidbody_objects_remove_exec;
-  ot->poll = ED_operator_rigidbody_active_poll;
+  ot->poll = operator_rigidbody_active_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -289,7 +289,7 @@ void RIGIDBODY_OT_objects_remove(wmOperatorType *ot)
 
 /* ************ Change Collision Shapes ************** */
 
-static int rigidbody_objects_shape_change_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus rigidbody_objects_shape_change_exec(bContext *C, wmOperator *op)
 {
   int shape = RNA_enum_get(op->ptr, "type");
   bool changed = false;
@@ -330,7 +330,7 @@ void RIGIDBODY_OT_shape_change(wmOperatorType *ot)
   /* callbacks */
   ot->invoke = WM_menu_invoke;
   ot->exec = rigidbody_objects_shape_change_exec;
-  ot->poll = ED_operator_rigidbody_active_poll;
+  ot->poll = operator_rigidbody_active_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -449,7 +449,7 @@ static const EnumPropertyItem *rigidbody_materials_itemf(bContext * /*C*/,
 
 /* ------------------------------------------ */
 
-static int rigidbody_objects_calc_mass_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus rigidbody_objects_calc_mass_exec(bContext *C, wmOperator *op)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   int material = RNA_enum_get(op->ptr, "material");
@@ -538,7 +538,7 @@ void RIGIDBODY_OT_mass_calculate(wmOperatorType *ot)
   /* callbacks */
   ot->invoke = WM_menu_invoke; /* XXX */
   ot->exec = rigidbody_objects_calc_mass_exec;
-  ot->poll = ED_operator_rigidbody_active_poll;
+  ot->poll = operator_rigidbody_active_poll;
   ot->poll_property = mass_calculate_poll_property;
 
   /* flags */

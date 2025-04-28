@@ -78,14 +78,12 @@ static void rna_def_timeline_marker(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Select", "Marker selection state");
   RNA_def_property_update(prop, 0, "rna_TimelineMarker_update");
 
-#  ifdef DURIAN_CAMERA_SWITCH
   prop = RNA_def_property(srna, "camera", PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_type(prop, "Object");
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_SELF_CHECK);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Camera", "Camera that becomes active on this frame");
   RNA_def_property_update(prop, 0, "rna_TimelineMarker_camera_update");
-#  endif
 }
 
 void RNA_def_timeline_marker(BlenderRNA *brna)

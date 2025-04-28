@@ -242,7 +242,8 @@ struct PaintOperation : public PaintModeData {
   }
 };
 
-static void gradient_draw_line(bContext * /*C*/, int x, int y, void *customdata)
+static void gradient_draw_line(
+    bContext * /*C*/, int x, int y, float /*x_tilt*/, float /*y_tilt*/, void *customdata)
 {
   PaintOperation *pop = (PaintOperation *)customdata;
 
@@ -451,10 +452,8 @@ static bool paint_stroke_test_start(bContext *C, wmOperator *op, const float mou
   return true;
 }
 
-static int paint_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus paint_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  int retval;
-
   op->customdata = paint_stroke_new(C,
                                     op,
                                     nullptr,
@@ -464,20 +463,22 @@ static int paint_invoke(bContext *C, wmOperator *op, const wmEvent *event)
                                     paint_stroke_done,
                                     event->type);
 
-  if ((retval = op->type->modal(C, op, event)) == OPERATOR_FINISHED) {
+  const wmOperatorStatus retval = op->type->modal(C, op, event);
+  OPERATOR_RETVAL_CHECK(retval);
+
+  if (retval == OPERATOR_FINISHED) {
     paint_stroke_free(C, op, static_cast<PaintStroke *>(op->customdata));
     return OPERATOR_FINISHED;
   }
   /* add modal handler */
   WM_event_add_modal_handler(C, op);
 
-  OPERATOR_RETVAL_CHECK(retval);
   BLI_assert(retval == OPERATOR_RUNNING_MODAL);
 
   return OPERATOR_RUNNING_MODAL;
 }
 
-static int paint_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus paint_exec(bContext *C, wmOperator *op)
 {
   PropertyRNA *strokeprop;
   PointerRNA firstpoint;
@@ -520,7 +521,7 @@ static int paint_exec(bContext *C, wmOperator *op)
   return paint_stroke_exec(C, op, static_cast<PaintStroke *>(op->customdata));
 }
 
-static int paint_modal(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus paint_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   return paint_stroke_modal(C, op, event, reinterpret_cast<PaintStroke **>(&op->customdata));
 }

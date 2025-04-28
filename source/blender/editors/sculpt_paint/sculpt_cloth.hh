@@ -153,6 +153,11 @@ IndexMask brush_affected_nodes_gather(const Object &object,
                                       const Brush &brush,
                                       IndexMaskMemory &memory);
 
+void do_cloth_brush(const Depsgraph &depsgraph,
+                    const Sculpt &sd,
+                    Object &object,
+                    const IndexMask &node_mask);
+
 bool is_cloth_deform_brush(const Brush &brush);
 
 }  // namespace blender::ed::sculpt_paint::cloth

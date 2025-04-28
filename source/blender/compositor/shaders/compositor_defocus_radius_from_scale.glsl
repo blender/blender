@@ -6,7 +6,7 @@
 
 void main()
 {
-  ivec2 texel = ivec2(gl_GlobalInvocationID.xy);
+  int2 texel = int2(gl_GlobalInvocationID.xy);
   float radius = texture_load(radius_tx, texel).x;
-  imageStore(radius_img, texel, vec4(clamp(radius * scale, 0.0, max_radius)));
+  imageStore(radius_img, texel, float4(clamp(radius * scale, 0.0f, max_radius)));
 }

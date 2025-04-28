@@ -9,5 +9,5 @@ FRAGMENT_SHADER_CREATE_INFO(gpencil_mask_invert)
 void main()
 {
   /* Blend mode does the inversion. */
-  fragRevealage = fragColor = vec4(1.0);
+  fragRevealage = frag_color = float4(1.0f);
 }

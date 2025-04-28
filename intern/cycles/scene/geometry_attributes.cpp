@@ -17,9 +17,6 @@
 #include "scene/shader.h"
 #include "scene/shader_nodes.h"
 
-#include "subd/split.h"
-
-#include "util/log.h"
 #include "util/progress.h"
 
 CCL_NAMESPACE_BEGIN
@@ -112,15 +109,13 @@ static void emit_attribute_map_entry(AttributeMap *attr_map,
   else {
     attr_map[index].type = NODE_ATTR_FLOAT3;
   }
-
-  attr_map[index].flags = desc.flags;
 }
 
 /* Generate an attribute map end marker, optionally including a link to another map.
  * Links are used to connect object attribute maps to mesh attribute maps. */
 static void emit_attribute_map_terminator(AttributeMap *attr_map,
                                           const size_t index,
-                                          bool chain,
+                                          const bool chain,
                                           const uint chain_link)
 {
   for (int j = 0; j < ATTR_PRIM_TYPES; j++) {
@@ -128,7 +123,6 @@ static void emit_attribute_map_terminator(AttributeMap *attr_map,
     attr_map[index + j].element = chain;                     /* link is valid flag */
     attr_map[index + j].offset = chain ? chain_link + j : 0; /* link to the correct sub-entry */
     attr_map[index + j].type = 0;
-    attr_map[index + j].flags = 0;
   }
 }
 
@@ -136,17 +130,9 @@ static void emit_attribute_map_terminator(AttributeMap *attr_map,
 static void emit_attribute_mapping(AttributeMap *attr_map,
                                    const size_t index,
                                    const uint64_t id,
-                                   AttributeRequest &req,
-                                   Geometry *geom)
+                                   AttributeRequest &req)
 {
   emit_attribute_map_entry(attr_map, index, id, req.type, req.desc);
-
-  if (geom->is_mesh()) {
-    Mesh *mesh = static_cast<Mesh *>(geom);
-    if (mesh->get_num_subd_faces()) {
-      emit_attribute_map_entry(attr_map, index + 1, id, req.subd_type, req.subd_desc);
-    }
-  }
 }
 
 void GeometryManager::update_svm_attributes(Device * /*unused*/,
@@ -225,14 +211,14 @@ void GeometryManager::update_svm_attributes(Device * /*unused*/,
         id = scene->shader_manager->get_attribute_id(req.std);
       }
 
-      emit_attribute_mapping(attr_map, index, id, req, geom);
+      emit_attribute_mapping(attr_map, index, id, req);
       index += ATTR_PRIM_TYPES;
 
 #ifdef WITH_OSL
       /* Some standard attributes are explicitly referenced via their standard ID, so add those
        * again in case they were added under a different attribute ID. */
       if (req.std != ATTR_STD_NONE && id != (uint64_t)req.std) {
-        emit_attribute_mapping(attr_map, index, (uint64_t)req.std, req, geom);
+        emit_attribute_mapping(attr_map, index, (uint64_t)req.std, req);
         index += ATTR_PRIM_TYPES;
       }
 #endif
@@ -258,7 +244,7 @@ void GeometryManager::update_svm_attributes(Device * /*unused*/,
           id = scene->shader_manager->get_attribute_id(req.std);
         }
 
-        emit_attribute_mapping(attr_map, index, id, req, object->geometry);
+        emit_attribute_mapping(attr_map, index, id, req);
         index += ATTR_PRIM_TYPES;
       }
 
@@ -333,7 +319,6 @@ class AttributeTableBuilder {
 
     /* store element and type */
     desc.element = mattr->element;
-    desc.flags = mattr->flags;
     type = mattr->type;
 
     /* store attribute data in arrays */
@@ -370,33 +355,17 @@ class AttributeTableBuilder {
      * a correction for that in here */
     if (geom->is_mesh()) {
       Mesh *mesh = static_cast<Mesh *>(geom);
-      if (mesh->get_subdivision_type() == Mesh::SUBDIVISION_CATMULL_CLARK &&
-          desc.flags & ATTR_SUBDIVIDED)
-      {
-        /* Indices for subdivided attributes are retrieved
-         * from patch table so no need for correction here. */
-      }
-      else if (element == ATTR_ELEMENT_VERTEX) {
+      if (element == ATTR_ELEMENT_VERTEX) {
         offset -= mesh->vert_offset;
       }
       else if (element == ATTR_ELEMENT_VERTEX_MOTION) {
         offset -= mesh->vert_offset;
       }
       else if (element == ATTR_ELEMENT_FACE) {
-        if (prim == ATTR_PRIM_GEOMETRY) {
-          offset -= mesh->prim_offset;
-        }
-        else {
-          offset -= mesh->face_offset;
-        }
+        offset -= mesh->prim_offset;
       }
       else if (element == ATTR_ELEMENT_CORNER || element == ATTR_ELEMENT_CORNER_BYTE) {
-        if (prim == ATTR_PRIM_GEOMETRY) {
-          offset -= 3 * mesh->prim_offset;
-        }
-        else {
-          offset -= mesh->corner_offset;
-        }
+        offset -= 3 * mesh->prim_offset;
       }
     }
     else if (geom->is_hair()) {
@@ -546,15 +515,7 @@ void GeometryManager::device_update_attributes(Device *device,
     AttributeRequestSet &attributes = geom_attributes[i];
     for (AttributeRequest &req : attributes.requests) {
       Attribute *attr = geom->attributes.find(req);
-
       builder.reserve(geom, attr, ATTR_PRIM_GEOMETRY);
-
-      if (geom->is_mesh()) {
-        Mesh *mesh = static_cast<Mesh *>(geom);
-        Attribute *subd_attr = mesh->subd_attributes.find(req);
-
-        builder.reserve(mesh, subd_attr, ATTR_PRIM_SUBD);
-      }
     }
   }
 
@@ -594,18 +555,6 @@ void GeometryManager::device_update_attributes(Device *device,
 
       builder.add(geom, attr, ATTR_PRIM_GEOMETRY, req.type, req.desc);
 
-      if (geom->is_mesh()) {
-        Mesh *mesh = static_cast<Mesh *>(geom);
-        Attribute *subd_attr = mesh->subd_attributes.find(req);
-
-        if (subd_attr) {
-          /* force a copy if we need to reallocate all the data */
-          subd_attr->modified |= attributes_need_realloc[Attribute::kernel_type(*subd_attr)];
-        }
-
-        builder.add(mesh, subd_attr, ATTR_PRIM_SUBD, req.subd_type, req.subd_desc);
-      }
-
       if (progress.get_cancel()) {
         return;
       }
@@ -625,10 +574,6 @@ void GeometryManager::device_update_attributes(Device *device,
       }
 
       builder.add(object->geometry, attr, ATTR_PRIM_GEOMETRY, req.type, req.desc);
-
-      /* object attributes don't care about subdivision */
-      req.subd_type = req.type;
-      req.subd_desc = req.desc;
 
       if (progress.get_cancel()) {
         return;

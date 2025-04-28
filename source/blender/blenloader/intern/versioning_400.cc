@@ -33,6 +33,7 @@
 #include "DNA_movieclip_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
+#include "DNA_space_types.h"
 #include "DNA_workspace_types.h"
 #include "DNA_world_types.h"
 
@@ -54,6 +55,7 @@
 #include "BLI_set.hh"
 #include "BLI_string.h"
 #include "BLI_string_ref.hh"
+#include "BLI_string_utf8.h"
 #include "BLI_string_utils.hh"
 
 #include "BKE_action.hh"
@@ -100,6 +102,8 @@
 
 #include "BLT_translation.hh"
 
+#include "RNA_access.hh"
+
 #include "BLO_read_write.hh"
 #include "BLO_readfile.hh"
 
@@ -131,6 +135,34 @@ static void version_fcurve_noise_modifier(FCurve &fcurve)
     data->lacunarity = 2.0f;
     data->roughness = 0.5f;
     data->legacy_noise = true;
+  }
+}
+
+static void version_fix_fcurve_noise_offset(FCurve &fcurve)
+{
+  LISTBASE_FOREACH (FModifier *, fcurve_modifier, &fcurve.modifiers) {
+    if (fcurve_modifier->type != FMODIFIER_TYPE_NOISE) {
+      continue;
+    }
+    FMod_Noise *data = static_cast<FMod_Noise *>(fcurve_modifier->data);
+    if (data->legacy_noise) {
+      /* We don't want to modify anything if the noise is set to legacy, because the issue only
+       * occurred on the new style noise. */
+      continue;
+    }
+    data->offset *= data->size;
+  }
+}
+
+static void nlastrips_apply_fcurve_versioning(ListBase &strips)
+{
+  LISTBASE_FOREACH (NlaStrip *, strip, &strips) {
+    LISTBASE_FOREACH (FCurve *, fcurve, &strip->fcurves) {
+      version_fix_fcurve_noise_offset(*fcurve);
+    }
+
+    /* Check sub-strips (if meta-strips). */
+    nlastrips_apply_fcurve_versioning(strip->strips);
   }
 }
 
@@ -862,21 +894,21 @@ static bool versioning_convert_strip_speed_factor(Strip *strip, void *user_data)
   const Scene *scene = static_cast<Scene *>(user_data);
   const float speed_factor = strip->speed_factor;
 
-  if (speed_factor == 1.0f || !SEQ_retiming_is_allowed(strip) ||
-      SEQ_retiming_keys_count(strip) > 0)
+  if (speed_factor == 1.0f || !blender::seq::retiming_is_allowed(strip) ||
+      blender::seq::retiming_keys_count(strip) > 0)
   {
     return true;
   }
 
-  SEQ_retiming_data_ensure(strip);
-  SeqRetimingKey *last_key = &SEQ_retiming_keys_get(strip)[1];
+  blender::seq::retiming_data_ensure(strip);
+  SeqRetimingKey *last_key = &blender::seq::retiming_keys_get(strip)[1];
 
   last_key->strip_frame_index = (strip->len) / speed_factor;
 
   if (strip->type == STRIP_TYPE_SOUND_RAM) {
     const int prev_length = strip->len - strip->startofs - strip->endofs;
-    const float left_handle = SEQ_time_left_handle_frame_get(scene, strip);
-    SEQ_time_right_handle_frame_set(scene, strip, left_handle + prev_length);
+    const float left_handle = blender::seq::time_left_handle_frame_get(scene, strip);
+    blender::seq::time_right_handle_frame_set(scene, strip, left_handle + prev_length);
   }
 
   return true;
@@ -1292,6 +1324,2506 @@ static void do_version_color_to_float_conversion(bNodeTree *node_tree)
   }
 }
 
+static void do_version_bump_filter_width(bNodeTree *node_tree)
+{
+  LISTBASE_FOREACH_MUTABLE (bNode *, node, &node_tree->nodes) {
+    if (node->type_legacy != SH_NODE_BUMP) {
+      continue;
+    }
+
+    bNodeSocket *filter_width_input = blender::bke::node_find_socket(
+        *node, SOCK_IN, "Filter Width");
+    if (filter_width_input) {
+      *version_cycles_node_socket_float_value(filter_width_input) = 1.0f;
+    }
+  }
+}
+
+/* The compositor Value, Color Ramp, Mix Color, Map Range, Map Value, Math, Combine XYZ, Separate
+ * XYZ, and Vector Curves nodes are now deprecated and should be replaced by their generic Shader
+ * node counterpart. */
+static void do_version_convert_to_generic_nodes(bNodeTree *node_tree)
+{
+  LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+    switch (node->type_legacy) {
+      case CMP_NODE_VALUE:
+        node->type_legacy = SH_NODE_VALUE;
+        STRNCPY(node->idname, "ShaderNodeValue");
+        break;
+      case CMP_NODE_MATH:
+        node->type_legacy = SH_NODE_MATH;
+        STRNCPY(node->idname, "ShaderNodeMath");
+        break;
+      case CMP_NODE_COMBINE_XYZ:
+        node->type_legacy = SH_NODE_COMBXYZ;
+        STRNCPY(node->idname, "ShaderNodeCombineXYZ");
+        break;
+      case CMP_NODE_SEPARATE_XYZ:
+        node->type_legacy = SH_NODE_SEPXYZ;
+        STRNCPY(node->idname, "ShaderNodeSeparateXYZ");
+        break;
+      case CMP_NODE_CURVE_VEC:
+        node->type_legacy = SH_NODE_CURVE_VEC;
+        STRNCPY(node->idname, "ShaderNodeVectorCurve");
+        break;
+      case CMP_NODE_VALTORGB: {
+        node->type_legacy = SH_NODE_VALTORGB;
+        STRNCPY(node->idname, "ShaderNodeValToRGB");
+
+        /* Compositor node uses "Image" as the output name while the shader node uses "Color" as
+         * the output name. */
+        bNodeSocket *image_output = blender::bke::node_find_socket(*node, SOCK_OUT, "Image");
+        STRNCPY(image_output->identifier, "Color");
+        STRNCPY(image_output->name, "Color");
+
+        break;
+      }
+      case CMP_NODE_MAP_RANGE: {
+        node->type_legacy = SH_NODE_MAP_RANGE;
+        STRNCPY(node->idname, "ShaderNodeMapRange");
+
+        /* Transfer options from node to NodeMapRange storage. */
+        NodeMapRange *data = MEM_callocN<NodeMapRange>(__func__);
+        data->clamp = node->custom1;
+        data->data_type = CD_PROP_FLOAT;
+        data->interpolation_type = NODE_MAP_RANGE_LINEAR;
+        node->storage = data;
+
+        /* Compositor node uses "Value" as the output name while the shader node uses "Result" as
+         * the output name. */
+        bNodeSocket *value_output = blender::bke::node_find_socket(*node, SOCK_OUT, "Value");
+        STRNCPY(value_output->identifier, "Result");
+        STRNCPY(value_output->name, "Result");
+
+        break;
+      }
+      case CMP_NODE_MIX_RGB: {
+        node->type_legacy = SH_NODE_MIX;
+        STRNCPY(node->idname, "ShaderNodeMix");
+
+        /* Transfer options from node to NodeShaderMix storage. */
+        NodeShaderMix *data = MEM_callocN<NodeShaderMix>(__func__);
+        data->data_type = SOCK_RGBA;
+        data->factor_mode = NODE_MIX_MODE_UNIFORM;
+        data->clamp_factor = 0;
+        data->clamp_result = node->custom2 & SHD_MIXRGB_CLAMP ? 1 : 0;
+        data->blend_type = node->custom1;
+        node->storage = data;
+
+        /* Compositor node uses "Fac", "Image", and ("Image" "Image_001") as socket names and
+         * identifiers while the shader node uses ("Factor", "Factor_Float"), ("A", "A_Color"),
+         * ("B", "B_Color"), and ("Result", "Result_Color") as socket names and identifiers. */
+        bNodeSocket *factor_input = blender::bke::node_find_socket(*node, SOCK_IN, "Fac");
+        STRNCPY(factor_input->identifier, "Factor_Float");
+        STRNCPY(factor_input->name, "Factor");
+        bNodeSocket *first_input = blender::bke::node_find_socket(*node, SOCK_IN, "Image");
+        STRNCPY(first_input->identifier, "A_Color");
+        STRNCPY(first_input->name, "A");
+        bNodeSocket *second_input = blender::bke::node_find_socket(*node, SOCK_IN, "Image_001");
+        STRNCPY(second_input->identifier, "B_Color");
+        STRNCPY(second_input->name, "B");
+        bNodeSocket *image_output = blender::bke::node_find_socket(*node, SOCK_OUT, "Image");
+        STRNCPY(image_output->identifier, "Result_Color");
+        STRNCPY(image_output->name, "Result");
+
+        break;
+      }
+      default:
+        break;
+    }
+  }
+}
+
+/* The Use Alpha option is does not exist in the new generic Mix node, it essentially just
+ * multiplied the factor by the alpha of the second input. */
+static void do_version_mix_color_use_alpha(bNodeTree *node_tree, bNode *node)
+{
+  if (!(node->custom2 & SHD_MIXRGB_USE_ALPHA)) {
+    return;
+  }
+
+  bNodeSocket *factor_input = blender::bke::node_find_socket(*node, SOCK_IN, "Factor_Float");
+  bNodeSocket *b_input = blender::bke::node_find_socket(*node, SOCK_IN, "B_Color");
+
+  /* Find the links going into the factor and B input of the Mix node. */
+  bNodeLink *factor_link = nullptr;
+  bNodeLink *b_link = nullptr;
+  LISTBASE_FOREACH (bNodeLink *, link, &node_tree->links) {
+    if (link->tosock == factor_input) {
+      factor_link = link;
+    }
+    else if (link->tosock == b_input) {
+      b_link = link;
+    }
+  }
+
+  /* If neither sockets are connected, just multiply the factor by the alpha of the B input. */
+  if (!factor_link && !b_link) {
+    static_cast<bNodeSocketValueFloat *>(factor_input->default_value)->value *=
+        static_cast<bNodeSocketValueRGBA *>(b_input->default_value)->value[3];
+    return;
+  }
+
+  /* Otherwise, add a multiply node to do the multiplication. */
+  bNode *multiply_node = blender::bke::node_add_static_node(nullptr, *node_tree, SH_NODE_MATH);
+  multiply_node->parent = node->parent;
+  multiply_node->custom1 = NODE_MATH_MULTIPLY;
+  multiply_node->location[0] = node->location[0] - node->width - 20.0f;
+  multiply_node->location[1] = node->location[1];
+  multiply_node->flag |= NODE_HIDDEN;
+
+  bNodeSocket *multiply_input_a = static_cast<bNodeSocket *>(
+      BLI_findlink(&multiply_node->inputs, 0));
+  bNodeSocket *multiply_input_b = static_cast<bNodeSocket *>(
+      BLI_findlink(&multiply_node->inputs, 1));
+  bNodeSocket *multiply_output = blender::bke::node_find_socket(*multiply_node, SOCK_OUT, "Value");
+
+  /* Connect the output of the multiply node to the math node. */
+  version_node_add_link(*node_tree, *multiply_node, *multiply_output, *node, *factor_input);
+
+  if (factor_link) {
+    /* The factor input is linked, so connect its origin to the first input of the multiply and
+     * remove the original link. */
+    version_node_add_link(*node_tree,
+                          *factor_link->fromnode,
+                          *factor_link->fromsock,
+                          *multiply_node,
+                          *multiply_input_a);
+    blender::bke::node_remove_link(node_tree, *factor_link);
+  }
+  else {
+    /* Otherwise, the factor is unlinked and we just copy the factor value to the first input in
+     * the multiply.*/
+    static_cast<bNodeSocketValueFloat *>(multiply_input_a->default_value)->value =
+        static_cast<bNodeSocketValueFloat *>(factor_input->default_value)->value;
+  }
+
+  if (b_link) {
+    /* The B input is linked, so extract the alpha of its origin and connect it to the second input
+     * of the multiply and remove the original link. */
+    bNode *separate_color_node = blender::bke::node_add_static_node(
+        nullptr, *node_tree, CMP_NODE_SEPARATE_COLOR);
+    separate_color_node->parent = node->parent;
+    separate_color_node->location[0] = multiply_node->location[0] - multiply_node->width - 20.0f;
+    separate_color_node->location[1] = multiply_node->location[1];
+    separate_color_node->flag |= NODE_HIDDEN;
+
+    bNodeSocket *image_input = blender::bke::node_find_socket(
+        *separate_color_node, SOCK_IN, "Image");
+    bNodeSocket *alpha_output = blender::bke::node_find_socket(
+        *separate_color_node, SOCK_OUT, "Alpha");
+
+    version_node_add_link(
+        *node_tree, *b_link->fromnode, *b_link->fromsock, *separate_color_node, *image_input);
+    version_node_add_link(
+        *node_tree, *separate_color_node, *alpha_output, *multiply_node, *multiply_input_b);
+  }
+  else {
+    /* Otherwise, the B input is unlinked and we just copy the alpha value to the second input in
+     * the multiply.*/
+    static_cast<bNodeSocketValueFloat *>(multiply_input_b->default_value)->value =
+        static_cast<bNodeSocketValueRGBA *>(b_input->default_value)->value[3];
+  }
+
+  version_socket_update_is_used(node_tree);
+}
+
+/* The Map Value node is now deprecated and should be replaced by other nodes. The node essentially
+ * just computes (value + offset) * size and clamps based on min and max. */
+static void do_version_map_value_node(bNodeTree *node_tree, bNode *node)
+{
+  const TexMapping &texture_mapping = *static_cast<TexMapping *>(node->storage);
+  const bool use_min = texture_mapping.flag & TEXMAP_CLIP_MIN;
+  const bool use_max = texture_mapping.flag & TEXMAP_CLIP_MAX;
+  const float offset = texture_mapping.loc[0];
+  const float size = texture_mapping.size[0];
+  const float min = texture_mapping.min[0];
+  const float max = texture_mapping.max[0];
+
+  bNodeSocket *value_input = blender::bke::node_find_socket(*node, SOCK_IN, "Value");
+
+  /* Find the link going into the value input Map Value node. */
+  bNodeLink *value_link = nullptr;
+  LISTBASE_FOREACH (bNodeLink *, link, &node_tree->links) {
+    if (link->tosock == value_input) {
+      value_link = link;
+    }
+  }
+
+  /* If the value input is not connected, add a value node with the computed value. */
+  if (!value_link) {
+    const float value = static_cast<bNodeSocketValueFloat *>(value_input->default_value)->value;
+    const float mapped_value = (value + offset) * size;
+    const float min_clamped_value = use_min ? blender::math::max(mapped_value, min) : mapped_value;
+    const float clamped_value = use_max ? blender::math::min(min_clamped_value, max) :
+                                          min_clamped_value;
+
+    bNode *value_node = blender::bke::node_add_static_node(nullptr, *node_tree, SH_NODE_VALUE);
+    value_node->parent = node->parent;
+    value_node->location[0] = node->location[0];
+    value_node->location[1] = node->location[1];
+
+    bNodeSocket *value_output = blender::bke::node_find_socket(*value_node, SOCK_OUT, "Value");
+    static_cast<bNodeSocketValueFloat *>(value_output->default_value)->value = clamped_value;
+
+    /* Relink from the Map Value node to the value node. */
+    LISTBASE_FOREACH_BACKWARD_MUTABLE (bNodeLink *, link, &node_tree->links) {
+      if (link->fromnode != node) {
+        continue;
+      }
+
+      version_node_add_link(*node_tree, *value_node, *value_output, *link->tonode, *link->tosock);
+      blender::bke::node_remove_link(node_tree, *link);
+    }
+
+    blender::bke::node_remove_node(nullptr, *node_tree, *node, false);
+
+    version_socket_update_is_used(node_tree);
+    return;
+  }
+
+  /* Otherwise, add math nodes to do the computation, starting with an add node to add the offset
+   * of the range. */
+  bNode *add_node = blender::bke::node_add_static_node(nullptr, *node_tree, SH_NODE_MATH);
+  add_node->parent = node->parent;
+  add_node->custom1 = NODE_MATH_ADD;
+  add_node->location[0] = node->location[0];
+  add_node->location[1] = node->location[1];
+  add_node->flag |= NODE_HIDDEN;
+
+  bNodeSocket *add_input_a = static_cast<bNodeSocket *>(BLI_findlink(&add_node->inputs, 0));
+  bNodeSocket *add_input_b = static_cast<bNodeSocket *>(BLI_findlink(&add_node->inputs, 1));
+  bNodeSocket *add_output = blender::bke::node_find_socket(*add_node, SOCK_OUT, "Value");
+
+  /* Connect the origin of the node to the first input of the add node and remove the original
+   * link. */
+  version_node_add_link(
+      *node_tree, *value_link->fromnode, *value_link->fromsock, *add_node, *add_input_a);
+  blender::bke::node_remove_link(node_tree, *value_link);
+
+  /* Set the offset to the second input of the add node. */
+  static_cast<bNodeSocketValueFloat *>(add_input_b->default_value)->value = offset;
+
+  /* Add a multiply node to multiply by the size. */
+  bNode *multiply_node = blender::bke::node_add_static_node(nullptr, *node_tree, SH_NODE_MATH);
+  multiply_node->parent = node->parent;
+  multiply_node->custom1 = NODE_MATH_MULTIPLY;
+  multiply_node->location[0] = add_node->location[0];
+  multiply_node->location[1] = add_node->location[1] - 40.0f;
+  multiply_node->flag |= NODE_HIDDEN;
+
+  bNodeSocket *multiply_input_a = static_cast<bNodeSocket *>(
+      BLI_findlink(&multiply_node->inputs, 0));
+  bNodeSocket *multiply_input_b = static_cast<bNodeSocket *>(
+      BLI_findlink(&multiply_node->inputs, 1));
+  bNodeSocket *multiply_output = blender::bke::node_find_socket(*multiply_node, SOCK_OUT, "Value");
+
+  /* Connect the output of the add node to the first input of the multiply node. */
+  version_node_add_link(*node_tree, *add_node, *add_output, *multiply_node, *multiply_input_a);
+
+  /* Set the size to the second input of the multiply node. */
+  static_cast<bNodeSocketValueFloat *>(multiply_input_b->default_value)->value = size;
+
+  bNode *final_node = multiply_node;
+  bNodeSocket *final_output = multiply_output;
+
+  if (use_min) {
+    /* Add a maximum node to clamp by the minimum. */
+    bNode *max_node = blender::bke::node_add_static_node(nullptr, *node_tree, SH_NODE_MATH);
+    max_node->parent = node->parent;
+    max_node->custom1 = NODE_MATH_MAXIMUM;
+    max_node->location[0] = final_node->location[0];
+    max_node->location[1] = final_node->location[1] - 40.0f;
+    max_node->flag |= NODE_HIDDEN;
+
+    bNodeSocket *max_input_a = static_cast<bNodeSocket *>(BLI_findlink(&max_node->inputs, 0));
+    bNodeSocket *max_input_b = static_cast<bNodeSocket *>(BLI_findlink(&max_node->inputs, 1));
+    bNodeSocket *max_output = blender::bke::node_find_socket(*max_node, SOCK_OUT, "Value");
+
+    /* Connect the output of the final node to the first input of the maximum node. */
+    version_node_add_link(*node_tree, *final_node, *final_output, *max_node, *max_input_a);
+
+    /* Set the minimum to the second input of the maximum node. */
+    static_cast<bNodeSocketValueFloat *>(max_input_b->default_value)->value = min;
+
+    final_node = max_node;
+    final_output = max_output;
+  }
+
+  if (use_max) {
+    /* Add a minimum node to clamp by the maximum. */
+    bNode *min_node = blender::bke::node_add_static_node(nullptr, *node_tree, SH_NODE_MATH);
+    min_node->parent = node->parent;
+    min_node->custom1 = NODE_MATH_MINIMUM;
+    min_node->location[0] = final_node->location[0];
+    min_node->location[1] = final_node->location[1] - 40.0f;
+    min_node->flag |= NODE_HIDDEN;
+
+    bNodeSocket *min_input_a = static_cast<bNodeSocket *>(BLI_findlink(&min_node->inputs, 0));
+    bNodeSocket *min_input_b = static_cast<bNodeSocket *>(BLI_findlink(&min_node->inputs, 1));
+    bNodeSocket *min_output = blender::bke::node_find_socket(*min_node, SOCK_OUT, "Value");
+
+    /* Connect the output of the final node to the first input of the minimum node. */
+    version_node_add_link(*node_tree, *final_node, *final_output, *min_node, *min_input_a);
+
+    /* Set the maximum to the second input of the minimum node. */
+    static_cast<bNodeSocketValueFloat *>(min_input_b->default_value)->value = max;
+
+    final_node = min_node;
+    final_output = min_output;
+  }
+
+  /* Relink from the Map Value node to the final node. */
+  LISTBASE_FOREACH_BACKWARD_MUTABLE (bNodeLink *, link, &node_tree->links) {
+    if (link->fromnode != node) {
+      continue;
+    }
+
+    version_node_add_link(*node_tree, *final_node, *final_output, *link->tonode, *link->tosock);
+    blender::bke::node_remove_link(node_tree, *link);
+  }
+
+  blender::bke::node_remove_node(nullptr, *node_tree, *node, false);
+
+  version_socket_update_is_used(node_tree);
+}
+
+/* Equivalent to do_version_convert_to_generic_nodes but performed after linking for handing things
+ * like animation or node construction. */
+static void do_version_convert_to_generic_nodes_after_linking(Main *bmain,
+                                                              bNodeTree *node_tree,
+                                                              ID *id)
+{
+  LISTBASE_FOREACH_MUTABLE (bNode *, node, &node_tree->nodes) {
+    char escaped_node_name[sizeof(node->name) * 2 + 1];
+    BLI_str_escape(escaped_node_name, node->name, sizeof(escaped_node_name));
+    const std::string rna_path_prefix = fmt::format("nodes[\"{}\"].inputs", escaped_node_name);
+
+    switch (node->type_legacy) {
+      /* Notice that we use the shader type because the node is already converted in versioning
+       * before linking. */
+      case SH_NODE_CURVE_VEC: {
+        /* The node gained a new Factor input as a first socket, so the vector socket moved to be
+         * the second socket and we need to transfer its animation as well. */
+        BKE_animdata_fix_paths_rename_all_ex(
+            bmain, id, rna_path_prefix.c_str(), nullptr, nullptr, 0, 1, false);
+        break;
+      }
+      /* Notice that we use the shader type because the node is already converted in versioning
+       * before linking. */
+      case SH_NODE_MIX: {
+        /* The node gained multiple new sockets after the factor socket, so the second and third
+         * sockets moved to be the 7th and 8th sockets. */
+        BKE_animdata_fix_paths_rename_all_ex(
+            bmain, id, rna_path_prefix.c_str(), nullptr, nullptr, 1, 6, false);
+        BKE_animdata_fix_paths_rename_all_ex(
+            bmain, id, rna_path_prefix.c_str(), nullptr, nullptr, 2, 7, false);
+
+        do_version_mix_color_use_alpha(node_tree, node);
+
+        break;
+      }
+      case CMP_NODE_MAP_VALUE: {
+        do_version_map_value_node(node_tree, node);
+        break;
+      }
+      default:
+        break;
+    }
+  }
+}
+
+/* A new suppress boolean input was added that either enables suppression or disabled it.
+ * Previously, suppression was disabled when the maximum was zero. So we enable suppression for non
+ * zero or linked maximum input. */
+static void do_version_new_glare_suppress_input(bNodeTree *node_tree)
+{
+  LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+    if (node->type_legacy != CMP_NODE_GLARE) {
+      continue;
+    }
+
+    bNodeSocket *suppress_input = blender::bke::node_find_socket(
+        *node, SOCK_IN, "Suppress Highlights");
+    bNodeSocket *maximum_input = blender::bke::node_find_socket(
+        *node, SOCK_IN, "Maximum Highlights");
+
+    const float maximum = maximum_input->default_value_typed<bNodeSocketValueFloat>()->value;
+    if (version_node_socket_is_used(maximum_input) || maximum != 0.0) {
+      suppress_input->default_value_typed<bNodeSocketValueBoolean>()->value = true;
+    }
+  }
+}
+
+/* The Rotate Star 45 option was converted into a Diagonal Star input. */
+static void do_version_glare_node_star_45_option_to_input(bNodeTree *node_tree, bNode *node)
+{
+  NodeGlare *storage = static_cast<NodeGlare *>(node->storage);
+  if (!storage) {
+    return;
+  }
+
+  /* Input already exists, was already versioned. */
+  if (blender::bke::node_find_socket(*node, SOCK_IN, "Diagonal Star")) {
+    return;
+  }
+
+  bNodeSocket *diagonal_star_input = blender::bke::node_add_static_socket(
+      *node_tree, *node, SOCK_IN, SOCK_BOOLEAN, PROP_NONE, "Diagonal Star", "Diagonal");
+  diagonal_star_input->default_value_typed<bNodeSocketValueBoolean>()->value = storage->star_45;
+}
+
+/* The Rotate Star 45 option was converted into a Diagonal Star input. */
+static void do_version_glare_node_star_45_option_to_input_animation(bNodeTree *node_tree,
+                                                                    bNode *node)
+{
+  /* Compute the RNA path of the node. */
+  char escaped_node_name[sizeof(node->name) * 2 + 1];
+  BLI_str_escape(escaped_node_name, node->name, sizeof(escaped_node_name));
+  const std::string node_rna_path = fmt::format("nodes[\"{}\"]", escaped_node_name);
+
+  BKE_fcurves_id_cb(&node_tree->id, [&](ID * /*id*/, FCurve *fcurve) {
+    /* The FCurve does not belong to the node since its RNA path doesn't start with the node's RNA
+     * path. */
+    if (!blender::StringRef(fcurve->rna_path).startswith(node_rna_path)) {
+      return;
+    }
+
+    /* Change the RNA path of the FCurve from the old property to the new input. */
+    if (BLI_str_endswith(fcurve->rna_path, "use_rotate_45")) {
+      MEM_freeN(fcurve->rna_path);
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[14].default_value");
+    }
+  });
+}
+
+/* The options were converted into inputs. */
+static void do_version_bokeh_image_node_options_to_inputs(bNodeTree *node_tree, bNode *node)
+{
+  NodeBokehImage *storage = static_cast<NodeBokehImage *>(node->storage);
+  if (!storage) {
+    return;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Flaps")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_INT, PROP_NONE, "Flaps", "Flaps");
+    input->default_value_typed<bNodeSocketValueInt>()->value = storage->flaps;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Angle")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_FLOAT, PROP_ANGLE, "Angle", "Angle");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->angle;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Roundness")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Roundness", "Roundness");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->rounding;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Catadioptric Size")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(*node_tree,
+                                                              *node,
+                                                              SOCK_IN,
+                                                              SOCK_FLOAT,
+                                                              PROP_FACTOR,
+                                                              "Catadioptric Size",
+                                                              "Catadioptric Size");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->catadioptric;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Color Shift")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Color Shift", "Color Shift");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->lensshift;
+  }
+}
+
+/* The options were converted into inputs. */
+static void do_version_bokeh_image_node_options_to_inputs_animation(bNodeTree *node_tree,
+                                                                    bNode *node)
+{
+  /* Compute the RNA path of the node. */
+  char escaped_node_name[sizeof(node->name) * 2 + 1];
+  BLI_str_escape(escaped_node_name, node->name, sizeof(escaped_node_name));
+  const std::string node_rna_path = fmt::format("nodes[\"{}\"]", escaped_node_name);
+
+  BKE_fcurves_id_cb(&node_tree->id, [&](ID * /*id*/, FCurve *fcurve) {
+    /* The FCurve does not belong to the node since its RNA path doesn't start with the node's RNA
+     * path. */
+    if (!blender::StringRef(fcurve->rna_path).startswith(node_rna_path)) {
+      return;
+    }
+
+    /* Change the RNA path of the FCurve from the old properties to the new inputs, adjusting the
+     * values of the FCurves frames when needed. */
+    char *old_rna_path = fcurve->rna_path;
+    if (BLI_str_endswith(fcurve->rna_path, "flaps")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[0].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "angle")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[1].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "rounding")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[2].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "catadioptric")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[3].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "shift")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[4].default_value");
+    }
+
+    /* The RNA path was changed, free the old path. */
+    if (fcurve->rna_path != old_rna_path) {
+      MEM_freeN(old_rna_path);
+    }
+  });
+}
+
+/* The options were converted into inputs. */
+static void do_version_time_curve_node_options_to_inputs(bNodeTree *node_tree, bNode *node)
+{
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Start Frame")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_INT, PROP_NONE, "Start Frame", "Start Frame");
+    input->default_value_typed<bNodeSocketValueInt>()->value = node->custom1;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "End Frame")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_INT, PROP_NONE, "End Frame", "End Frame");
+    input->default_value_typed<bNodeSocketValueInt>()->value = node->custom2;
+  }
+}
+
+/* The options were converted into inputs. */
+static void do_version_time_curve_node_options_to_inputs_animation(bNodeTree *node_tree,
+                                                                   bNode *node)
+{
+  /* Compute the RNA path of the node. */
+  char escaped_node_name[sizeof(node->name) * 2 + 1];
+  BLI_str_escape(escaped_node_name, node->name, sizeof(escaped_node_name));
+  const std::string node_rna_path = fmt::format("nodes[\"{}\"]", escaped_node_name);
+
+  BKE_fcurves_id_cb(&node_tree->id, [&](ID * /*id*/, FCurve *fcurve) {
+    /* The FCurve does not belong to the node since its RNA path doesn't start with the node's RNA
+     * path. */
+    if (!blender::StringRef(fcurve->rna_path).startswith(node_rna_path)) {
+      return;
+    }
+
+    /* Change the RNA path of the FCurve from the old properties to the new inputs, adjusting the
+     * values of the FCurves frames when needed. */
+    char *old_rna_path = fcurve->rna_path;
+    if (BLI_str_endswith(fcurve->rna_path, "frame_start")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[0].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "frame_end")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[1].default_value");
+    }
+
+    /* The RNA path was changed, free the old path. */
+    if (fcurve->rna_path != old_rna_path) {
+      MEM_freeN(old_rna_path);
+    }
+  });
+}
+
+/* The options were converted into inputs. */
+static void do_version_mask_node_options_to_inputs(bNodeTree *node_tree, bNode *node)
+{
+  NodeMask *storage = static_cast<NodeMask *>(node->storage);
+  if (!storage) {
+    return;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Size X")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_INT, PROP_NONE, "Size X", "Size X");
+    input->default_value_typed<bNodeSocketValueInt>()->value = storage->size_x;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Size Y")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_INT, PROP_NONE, "Size Y", "Size Y");
+    input->default_value_typed<bNodeSocketValueInt>()->value = storage->size_y;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Feather")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_BOOLEAN, PROP_NONE, "Feather", "Feather");
+    input->default_value_typed<bNodeSocketValueBoolean>()->value = !(
+        node->custom1 & CMP_NODE_MASK_FLAG_NO_FEATHER);
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Motion Blur")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_BOOLEAN, PROP_NONE, "Motion Blur", "Motion Blur");
+    input->default_value_typed<bNodeSocketValueBoolean>()->value = bool(
+        node->custom1 & CMP_NODE_MASK_FLAG_MOTION_BLUR);
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Motion Blur Samples")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_INT, PROP_NONE, "Motion Blur Samples", "Samples");
+    input->default_value_typed<bNodeSocketValueInt>()->value = node->custom2;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Motion Blur Shutter")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Motion Blur Shutter", "Shutter");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = node->custom3;
+  }
+}
+
+/* The options were converted into inputs. */
+static void do_version_mask_node_options_to_inputs_animation(bNodeTree *node_tree, bNode *node)
+{
+  /* Compute the RNA path of the node. */
+  char escaped_node_name[sizeof(node->name) * 2 + 1];
+  BLI_str_escape(escaped_node_name, node->name, sizeof(escaped_node_name));
+  const std::string node_rna_path = fmt::format("nodes[\"{}\"]", escaped_node_name);
+
+  BKE_fcurves_id_cb(&node_tree->id, [&](ID * /*id*/, FCurve *fcurve) {
+    /* The FCurve does not belong to the node since its RNA path doesn't start with the node's RNA
+     * path. */
+    if (!blender::StringRef(fcurve->rna_path).startswith(node_rna_path)) {
+      return;
+    }
+
+    /* Change the RNA path of the FCurve from the old properties to the new inputs, adjusting the
+     * values of the FCurves frames when needed. */
+    char *old_rna_path = fcurve->rna_path;
+    if (BLI_str_endswith(fcurve->rna_path, "size_x")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[0].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "size_y")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[1].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "use_feather")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[2].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "use_motion_blur")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[3].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "motion_blur_samples")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[4].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "motion_blur_shutter")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[5].default_value");
+    }
+
+    /* The RNA path was changed, free the old path. */
+    if (fcurve->rna_path != old_rna_path) {
+      MEM_freeN(old_rna_path);
+    }
+  });
+}
+
+/* The options were converted into inputs. */
+static void do_version_switch_node_options_to_inputs(bNodeTree *node_tree, bNode *node)
+{
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Switch")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_BOOLEAN, PROP_NONE, "Switch", "Switch");
+    input->default_value_typed<bNodeSocketValueBoolean>()->value = bool(node->custom1);
+  }
+}
+
+/* The options were converted into inputs. */
+static void do_version_switch_node_options_to_inputs_animation(bNodeTree *node_tree, bNode *node)
+{
+  /* Compute the RNA path of the node. */
+  char escaped_node_name[sizeof(node->name) * 2 + 1];
+  BLI_str_escape(escaped_node_name, node->name, sizeof(escaped_node_name));
+  const std::string node_rna_path = fmt::format("nodes[\"{}\"]", escaped_node_name);
+
+  BKE_fcurves_id_cb(&node_tree->id, [&](ID * /*id*/, FCurve *fcurve) {
+    /* The FCurve does not belong to the node since its RNA path doesn't start with the node's RNA
+     * path. */
+    if (!blender::StringRef(fcurve->rna_path).startswith(node_rna_path)) {
+      return;
+    }
+
+    /* Change the RNA path of the FCurve from the old properties to the new inputs, adjusting the
+     * values of the FCurves frames when needed. */
+    char *old_rna_path = fcurve->rna_path;
+    if (BLI_str_endswith(fcurve->rna_path, "check")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[0].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "inputs[0].default_value")) {
+      /* The new input was added at the start, so offset the animation indices by 1. */
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[1].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "inputs[1].default_value")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[2].default_value");
+    }
+
+    /* The RNA path was changed, free the old path. */
+    if (fcurve->rna_path != old_rna_path) {
+      MEM_freeN(old_rna_path);
+    }
+  });
+}
+
+/* The options were converted into inputs. */
+static void do_version_split_node_options_to_inputs(bNodeTree *node_tree, bNode *node)
+{
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Factor")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Factor", "Factor");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = node->custom1 / 100.0f;
+  }
+}
+
+/* The options were converted into inputs. */
+static void do_version_split_node_options_to_inputs_animation(bNodeTree *node_tree, bNode *node)
+{
+  /* Compute the RNA path of the node. */
+  char escaped_node_name[sizeof(node->name) * 2 + 1];
+  BLI_str_escape(escaped_node_name, node->name, sizeof(escaped_node_name));
+  const std::string node_rna_path = fmt::format("nodes[\"{}\"]", escaped_node_name);
+
+  BKE_fcurves_id_cb(&node_tree->id, [&](ID * /*id*/, FCurve *fcurve) {
+    /* The FCurve does not belong to the node since its RNA path doesn't start with the node's RNA
+     * path. */
+    if (!blender::StringRef(fcurve->rna_path).startswith(node_rna_path)) {
+      return;
+    }
+
+    /* Change the RNA path of the FCurve from the old properties to the new inputs, adjusting the
+     * values of the FCurves frames when needed. */
+    char *old_rna_path = fcurve->rna_path;
+    if (BLI_str_endswith(fcurve->rna_path, "factor")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[0].default_value");
+      adjust_fcurve_key_frame_values(
+          fcurve, PROP_FLOAT, [&](const float value) { return value / 100.0f; });
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "inputs[0].default_value")) {
+      /* The new input was added at the start, so offset the animation indices by 1. */
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[1].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "inputs[1].default_value")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[2].default_value");
+    }
+
+    /* The RNA path was changed, free the old path. */
+    if (fcurve->rna_path != old_rna_path) {
+      MEM_freeN(old_rna_path);
+    }
+  });
+}
+
+/* The options were converted into inputs. */
+static void do_version_invert_node_options_to_inputs(bNodeTree *node_tree, bNode *node)
+{
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Invert Color")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_BOOLEAN, PROP_NONE, "Invert Color", "Invert Color");
+    input->default_value_typed<bNodeSocketValueBoolean>()->value = bool(node->custom1 &
+                                                                        CMP_CHAN_RGB);
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Invert Alpha")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_BOOLEAN, PROP_NONE, "Invert Alpha", "Invert Alpha");
+    input->default_value_typed<bNodeSocketValueBoolean>()->value = bool(node->custom1 &
+                                                                        CMP_CHAN_A);
+  }
+}
+
+/* The options were converted into inputs. */
+static void do_version_invert_node_options_to_inputs_animation(bNodeTree *node_tree, bNode *node)
+{
+  /* Compute the RNA path of the node. */
+  char escaped_node_name[sizeof(node->name) * 2 + 1];
+  BLI_str_escape(escaped_node_name, node->name, sizeof(escaped_node_name));
+  const std::string node_rna_path = fmt::format("nodes[\"{}\"]", escaped_node_name);
+
+  BKE_fcurves_id_cb(&node_tree->id, [&](ID * /*id*/, FCurve *fcurve) {
+    /* The FCurve does not belong to the node since its RNA path doesn't start with the node's RNA
+     * path. */
+    if (!blender::StringRef(fcurve->rna_path).startswith(node_rna_path)) {
+      return;
+    }
+
+    /* Change the RNA path of the FCurve from the old properties to the new inputs, adjusting the
+     * values of the FCurves frames when needed. */
+    char *old_rna_path = fcurve->rna_path;
+    if (BLI_str_endswith(fcurve->rna_path, "invert_rgb")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[2].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "invert_alpha")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[3].default_value");
+    }
+
+    /* The RNA path was changed, free the old path. */
+    if (fcurve->rna_path != old_rna_path) {
+      MEM_freeN(old_rna_path);
+    }
+  });
+}
+
+/* The options were converted into inputs. */
+static void do_version_z_combine_node_options_to_inputs(bNodeTree *node_tree, bNode *node)
+{
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Use Alpha")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_BOOLEAN, PROP_NONE, "Use Alpha", "Use Alpha");
+    input->default_value_typed<bNodeSocketValueBoolean>()->value = bool(node->custom1);
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Anti-Alias")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_BOOLEAN, PROP_NONE, "Anti-Alias", "Anti-Alias");
+    input->default_value_typed<bNodeSocketValueBoolean>()->value = !bool(node->custom2);
+  }
+}
+
+/* The options were converted into inputs. */
+static void do_version_z_combine_node_options_to_inputs_animation(bNodeTree *node_tree,
+                                                                  bNode *node)
+{
+  /* Compute the RNA path of the node. */
+  char escaped_node_name[sizeof(node->name) * 2 + 1];
+  BLI_str_escape(escaped_node_name, node->name, sizeof(escaped_node_name));
+  const std::string node_rna_path = fmt::format("nodes[\"{}\"]", escaped_node_name);
+
+  BKE_fcurves_id_cb(&node_tree->id, [&](ID * /*id*/, FCurve *fcurve) {
+    /* The FCurve does not belong to the node since its RNA path doesn't start with the node's RNA
+     * path. */
+    if (!blender::StringRef(fcurve->rna_path).startswith(node_rna_path)) {
+      return;
+    }
+
+    /* Change the RNA path of the FCurve from the old properties to the new inputs, adjusting the
+     * values of the FCurves frames when needed. */
+    char *old_rna_path = fcurve->rna_path;
+    if (BLI_str_endswith(fcurve->rna_path, "use_alpha")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[4].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "use_antialias_z")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[5].default_value");
+    }
+
+    /* The RNA path was changed, free the old path. */
+    if (fcurve->rna_path != old_rna_path) {
+      MEM_freeN(old_rna_path);
+    }
+  });
+}
+
+/* The options were converted into inputs. */
+static void do_version_tone_map_node_options_to_inputs(bNodeTree *node_tree, bNode *node)
+{
+  NodeTonemap *storage = static_cast<NodeTonemap *>(node->storage);
+  if (!storage) {
+    return;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Key")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_FLOAT, PROP_NONE, "Key", "Key");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->key;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Balance")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_FLOAT, PROP_NONE, "Balance", "Balance");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->offset;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Gamma")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_FLOAT, PROP_NONE, "Gamma", "Gamma");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->gamma;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Intensity")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_FLOAT, PROP_NONE, "Intensity", "Intensity");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->f;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Contrast")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_FLOAT, PROP_NONE, "Contrast", "Contrast");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->m;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Light Adaptation")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(*node_tree,
+                                                              *node,
+                                                              SOCK_IN,
+                                                              SOCK_FLOAT,
+                                                              PROP_FACTOR,
+                                                              "Light Adaptation",
+                                                              "Light Adaptation");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->a;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Chromatic Adaptation")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(*node_tree,
+                                                              *node,
+                                                              SOCK_IN,
+                                                              SOCK_FLOAT,
+                                                              PROP_FACTOR,
+                                                              "Chromatic Adaptation",
+                                                              "Chromatic Adaptation");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->c;
+  }
+}
+
+/* The options were converted into inputs. */
+static void do_version_tone_map_node_options_to_inputs_animation(bNodeTree *node_tree, bNode *node)
+{
+  /* Compute the RNA path of the node. */
+  char escaped_node_name[sizeof(node->name) * 2 + 1];
+  BLI_str_escape(escaped_node_name, node->name, sizeof(escaped_node_name));
+  const std::string node_rna_path = fmt::format("nodes[\"{}\"]", escaped_node_name);
+
+  BKE_fcurves_id_cb(&node_tree->id, [&](ID * /*id*/, FCurve *fcurve) {
+    /* The FCurve does not belong to the node since its RNA path doesn't start with the node's RNA
+     * path. */
+    if (!blender::StringRef(fcurve->rna_path).startswith(node_rna_path)) {
+      return;
+    }
+
+    /* Change the RNA path of the FCurve from the old properties to the new inputs, adjusting the
+     * values of the FCurves frames when needed. */
+    char *old_rna_path = fcurve->rna_path;
+    if (BLI_str_endswith(fcurve->rna_path, "key")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[1].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "offset")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[2].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "gamma")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[3].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "intensity")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[4].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "contrast")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[5].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "adaptation")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[6].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "correction")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[7].default_value");
+    }
+
+    /* The RNA path was changed, free the old path. */
+    if (fcurve->rna_path != old_rna_path) {
+      MEM_freeN(old_rna_path);
+    }
+  });
+}
+
+/* The options were converted into inputs. */
+static void do_version_dilate_node_options_to_inputs(bNodeTree *node_tree, bNode *node)
+{
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Size")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_INT, PROP_NONE, "Size", "Size");
+    input->default_value_typed<bNodeSocketValueInt>()->value = node->custom2;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Falloff Size")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_FLOAT, PROP_NONE, "Falloff Size", "Falloff Size");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = node->custom3;
+  }
+}
+
+/* The options were converted into inputs. */
+static void do_version_dilate_node_options_to_inputs_animation(bNodeTree *node_tree, bNode *node)
+{
+  /* Compute the RNA path of the node. */
+  char escaped_node_name[sizeof(node->name) * 2 + 1];
+  BLI_str_escape(escaped_node_name, node->name, sizeof(escaped_node_name));
+  const std::string node_rna_path = fmt::format("nodes[\"{}\"]", escaped_node_name);
+
+  BKE_fcurves_id_cb(&node_tree->id, [&](ID * /*id*/, FCurve *fcurve) {
+    /* The FCurve does not belong to the node since its RNA path doesn't start with the node's RNA
+     * path. */
+    if (!blender::StringRef(fcurve->rna_path).startswith(node_rna_path)) {
+      return;
+    }
+
+    /* Change the RNA path of the FCurve from the old properties to the new inputs, adjusting the
+     * values of the FCurves frames when needed. */
+    char *old_rna_path = fcurve->rna_path;
+    if (BLI_str_endswith(fcurve->rna_path, "distance")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[1].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "edge")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[2].default_value");
+    }
+
+    /* The RNA path was changed, free the old path. */
+    if (fcurve->rna_path != old_rna_path) {
+      MEM_freeN(old_rna_path);
+    }
+  });
+}
+
+/* The options were converted into inputs. */
+static void do_version_inpaint_node_options_to_inputs(bNodeTree *node_tree, bNode *node)
+{
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Size")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_INT, PROP_NONE, "Size", "Size");
+    input->default_value_typed<bNodeSocketValueInt>()->value = node->custom2;
+  }
+}
+
+/* The options were converted into inputs. */
+static void do_version_inpaint_node_options_to_inputs_animation(bNodeTree *node_tree, bNode *node)
+{
+  /* Compute the RNA path of the node. */
+  char escaped_node_name[sizeof(node->name) * 2 + 1];
+  BLI_str_escape(escaped_node_name, node->name, sizeof(escaped_node_name));
+  const std::string node_rna_path = fmt::format("nodes[\"{}\"]", escaped_node_name);
+
+  BKE_fcurves_id_cb(&node_tree->id, [&](ID * /*id*/, FCurve *fcurve) {
+    /* The FCurve does not belong to the node since its RNA path doesn't start with the node's RNA
+     * path. */
+    if (!blender::StringRef(fcurve->rna_path).startswith(node_rna_path)) {
+      return;
+    }
+
+    /* Change the RNA path of the FCurve from the old properties to the new inputs, adjusting the
+     * values of the FCurves frames when needed. */
+    char *old_rna_path = fcurve->rna_path;
+    if (BLI_str_endswith(fcurve->rna_path, "distance")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[1].default_value");
+    }
+
+    /* The RNA path was changed, free the old path. */
+    if (fcurve->rna_path != old_rna_path) {
+      MEM_freeN(old_rna_path);
+    }
+  });
+}
+
+/* The options were converted into inputs. */
+static void do_version_pixelate_node_options_to_inputs(bNodeTree *node_tree, bNode *node)
+{
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Size")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_INT, PROP_NONE, "Size", "Size");
+    input->default_value_typed<bNodeSocketValueInt>()->value = node->custom1;
+  }
+}
+
+/* The options were converted into inputs. */
+static void do_version_pixelate_node_options_to_inputs_animation(bNodeTree *node_tree, bNode *node)
+{
+  /* Compute the RNA path of the node. */
+  char escaped_node_name[sizeof(node->name) * 2 + 1];
+  BLI_str_escape(escaped_node_name, node->name, sizeof(escaped_node_name));
+  const std::string node_rna_path = fmt::format("nodes[\"{}\"]", escaped_node_name);
+
+  BKE_fcurves_id_cb(&node_tree->id, [&](ID * /*id*/, FCurve *fcurve) {
+    /* The FCurve does not belong to the node since its RNA path doesn't start with the node's RNA
+     * path. */
+    if (!blender::StringRef(fcurve->rna_path).startswith(node_rna_path)) {
+      return;
+    }
+
+    /* Change the RNA path of the FCurve from the old properties to the new inputs, adjusting the
+     * values of the FCurves frames when needed. */
+    char *old_rna_path = fcurve->rna_path;
+    if (BLI_str_endswith(fcurve->rna_path, "pixel_size")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[1].default_value");
+    }
+
+    /* The RNA path was changed, free the old path. */
+    if (fcurve->rna_path != old_rna_path) {
+      MEM_freeN(old_rna_path);
+    }
+  });
+}
+
+/* The options were converted into inputs. */
+static void do_version_kuwahara_node_options_to_inputs(bNodeTree *node_tree, bNode *node)
+{
+  NodeKuwaharaData *storage = static_cast<NodeKuwaharaData *>(node->storage);
+  if (!storage) {
+    return;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Uniformity")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_INT, PROP_NONE, "Uniformity", "Uniformity");
+    input->default_value_typed<bNodeSocketValueInt>()->value = storage->uniformity;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Sharpness")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Sharpness", "Sharpness");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->sharpness;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Eccentricity")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Eccentricity", "Eccentricity");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->eccentricity;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "High Precision")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_BOOLEAN, PROP_NONE, "High Precision", "High Precision");
+    input->default_value_typed<bNodeSocketValueBoolean>()->value = storage->high_precision;
+  }
+}
+
+/* The options were converted into inputs. */
+static void do_version_kuwahara_node_options_to_inputs_animation(bNodeTree *node_tree, bNode *node)
+{
+  /* Compute the RNA path of the node. */
+  char escaped_node_name[sizeof(node->name) * 2 + 1];
+  BLI_str_escape(escaped_node_name, node->name, sizeof(escaped_node_name));
+  const std::string node_rna_path = fmt::format("nodes[\"{}\"]", escaped_node_name);
+
+  BKE_fcurves_id_cb(&node_tree->id, [&](ID * /*id*/, FCurve *fcurve) {
+    /* The FCurve does not belong to the node since its RNA path doesn't start with the node's RNA
+     * path. */
+    if (!blender::StringRef(fcurve->rna_path).startswith(node_rna_path)) {
+      return;
+    }
+
+    /* Change the RNA path of the FCurve from the old properties to the new inputs, adjusting the
+     * values of the FCurves frames when needed. */
+    char *old_rna_path = fcurve->rna_path;
+    if (BLI_str_endswith(fcurve->rna_path, "uniformity")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[2].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "sharpness")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[3].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "eccentricity")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[4].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "high_precision")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[5].default_value");
+    }
+
+    /* The RNA path was changed, free the old path. */
+    if (fcurve->rna_path != old_rna_path) {
+      MEM_freeN(old_rna_path);
+    }
+  });
+}
+
+/* The options were converted into inputs. */
+static void do_version_despeckle_node_options_to_inputs(bNodeTree *node_tree, bNode *node)
+{
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Color Threshold")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_FLOAT, PROP_NONE, "Color Threshold", "Color Threshold");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = node->custom3;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Neighbor Threshold")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(*node_tree,
+                                                              *node,
+                                                              SOCK_IN,
+                                                              SOCK_FLOAT,
+                                                              PROP_FACTOR,
+                                                              "Neighbor Threshold",
+                                                              "Neighbor Threshold");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = node->custom4;
+  }
+}
+
+/* The options were converted into inputs. */
+static void do_version_despeckle_node_options_to_inputs_animation(bNodeTree *node_tree,
+                                                                  bNode *node)
+{
+  /* Compute the RNA path of the node. */
+  char escaped_node_name[sizeof(node->name) * 2 + 1];
+  BLI_str_escape(escaped_node_name, node->name, sizeof(escaped_node_name));
+  const std::string node_rna_path = fmt::format("nodes[\"{}\"]", escaped_node_name);
+
+  BKE_fcurves_id_cb(&node_tree->id, [&](ID * /*id*/, FCurve *fcurve) {
+    /* The FCurve does not belong to the node since its RNA path doesn't start with the node's RNA
+     * path. */
+    if (!blender::StringRef(fcurve->rna_path).startswith(node_rna_path)) {
+      return;
+    }
+
+    /* Change the RNA path of the FCurve from the old properties to the new inputs, adjusting the
+     * values of the FCurves frames when needed. */
+    char *old_rna_path = fcurve->rna_path;
+    if (BLI_str_endswith(fcurve->rna_path, "threshold")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[2].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "threshold_neighbor")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[3].default_value");
+    }
+
+    /* The RNA path was changed, free the old path. */
+    if (fcurve->rna_path != old_rna_path) {
+      MEM_freeN(old_rna_path);
+    }
+  });
+}
+
+/* The options were converted into inputs. */
+static void do_version_denoise_node_options_to_inputs(bNodeTree *node_tree, bNode *node)
+{
+  NodeDenoise *storage = static_cast<NodeDenoise *>(node->storage);
+  if (!storage) {
+    return;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "HDR")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_BOOLEAN, PROP_NONE, "HDR", "HDR");
+    input->default_value_typed<bNodeSocketValueBoolean>()->value = storage->hdr;
+  }
+}
+
+/* The options were converted into inputs. */
+static void do_version_denoise_node_options_to_inputs_animation(bNodeTree *node_tree, bNode *node)
+{
+  /* Compute the RNA path of the node. */
+  char escaped_node_name[sizeof(node->name) * 2 + 1];
+  BLI_str_escape(escaped_node_name, node->name, sizeof(escaped_node_name));
+  const std::string node_rna_path = fmt::format("nodes[\"{}\"]", escaped_node_name);
+
+  BKE_fcurves_id_cb(&node_tree->id, [&](ID * /*id*/, FCurve *fcurve) {
+    /* The FCurve does not belong to the node since its RNA path doesn't start with the node's RNA
+     * path. */
+    if (!blender::StringRef(fcurve->rna_path).startswith(node_rna_path)) {
+      return;
+    }
+
+    /* Change the RNA path of the FCurve from the old properties to the new inputs, adjusting the
+     * values of the FCurves frames when needed. */
+    char *old_rna_path = fcurve->rna_path;
+    if (BLI_str_endswith(fcurve->rna_path, "use_hdr")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[3].default_value");
+    }
+
+    /* The RNA path was changed, free the old path. */
+    if (fcurve->rna_path != old_rna_path) {
+      MEM_freeN(old_rna_path);
+    }
+  });
+}
+
+/* The options were converted into inputs. */
+static void do_version_anti_alias_node_options_to_inputs(bNodeTree *node_tree, bNode *node)
+{
+  NodeAntiAliasingData *storage = static_cast<NodeAntiAliasingData *>(node->storage);
+  if (!storage) {
+    return;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Threshold")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Threshold", "Threshold");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->threshold;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Contrast Limit")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_FLOAT, PROP_NONE, "Contrast Limit", "Contrast Limit");
+    /* Contrast limit was previously divided by 10. */
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->contrast_limit * 10.0f;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Corner Rounding")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Corner Rounding", "Corner Rounding");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->corner_rounding;
+  }
+}
+
+/* The options were converted into inputs. */
+static void do_version_anti_alias_node_options_to_inputs_animation(bNodeTree *node_tree,
+                                                                   bNode *node)
+{
+  /* Compute the RNA path of the node. */
+  char escaped_node_name[sizeof(node->name) * 2 + 1];
+  BLI_str_escape(escaped_node_name, node->name, sizeof(escaped_node_name));
+  const std::string node_rna_path = fmt::format("nodes[\"{}\"]", escaped_node_name);
+
+  BKE_fcurves_id_cb(&node_tree->id, [&](ID * /*id*/, FCurve *fcurve) {
+    /* The FCurve does not belong to the node since its RNA path doesn't start with the node's RNA
+     * path. */
+    if (!blender::StringRef(fcurve->rna_path).startswith(node_rna_path)) {
+      return;
+    }
+
+    /* Change the RNA path of the FCurve from the old properties to the new inputs, adjusting the
+     * values of the FCurves frames when needed. */
+    char *old_rna_path = fcurve->rna_path;
+    if (BLI_str_endswith(fcurve->rna_path, "threshold")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[1].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "contrast_limit")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[2].default_value");
+      /* Contrast limit was previously divided by 10. */
+      adjust_fcurve_key_frame_values(
+          fcurve, PROP_FLOAT, [&](const float value) { return value * 10.0f; });
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "corner_rounding")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[3].default_value");
+    }
+
+    /* The RNA path was changed, free the old path. */
+    if (fcurve->rna_path != old_rna_path) {
+      MEM_freeN(old_rna_path);
+    }
+  });
+}
+
+/* The options were converted into inputs. */
+static void do_version_vector_blur_node_options_to_inputs(bNodeTree *node_tree, bNode *node)
+{
+  NodeBlurData *storage = static_cast<NodeBlurData *>(node->storage);
+  if (!storage) {
+    return;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Samples")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_INT, PROP_NONE, "Samples", "Samples");
+    input->default_value_typed<bNodeSocketValueInt>()->value = storage->samples;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Shutter")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_FLOAT, PROP_NONE, "Shutter", "Shutter");
+    /* Shutter was previously divided by 2. */
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->fac * 2.0f;
+  }
+}
+
+/* The options were converted into inputs. */
+static void do_version_vector_blur_node_options_to_inputs_animation(bNodeTree *node_tree,
+                                                                    bNode *node)
+{
+  /* Compute the RNA path of the node. */
+  char escaped_node_name[sizeof(node->name) * 2 + 1];
+  BLI_str_escape(escaped_node_name, node->name, sizeof(escaped_node_name));
+  const std::string node_rna_path = fmt::format("nodes[\"{}\"]", escaped_node_name);
+
+  BKE_fcurves_id_cb(&node_tree->id, [&](ID * /*id*/, FCurve *fcurve) {
+    /* The FCurve does not belong to the node since its RNA path doesn't start with the node's RNA
+     * path. */
+    if (!blender::StringRef(fcurve->rna_path).startswith(node_rna_path)) {
+      return;
+    }
+
+    /* Change the RNA path of the FCurve from the old properties to the new inputs, adjusting the
+     * values of the FCurves frames when needed. */
+    char *old_rna_path = fcurve->rna_path;
+    if (BLI_str_endswith(fcurve->rna_path, "samples")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[3].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "factor")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[4].default_value");
+      /* Shutter was previously divided by 2. */
+      adjust_fcurve_key_frame_values(
+          fcurve, PROP_FLOAT, [&](const float value) { return value * 2.0f; });
+    }
+
+    /* The RNA path was changed, free the old path. */
+    if (fcurve->rna_path != old_rna_path) {
+      MEM_freeN(old_rna_path);
+    }
+  });
+}
+
+/* The options were converted into inputs. */
+static void do_version_channel_matte_node_options_to_inputs(bNodeTree *node_tree, bNode *node)
+{
+  NodeChroma *storage = static_cast<NodeChroma *>(node->storage);
+  if (!storage) {
+    return;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Minimum")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Minimum", "Minimum");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->t2;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Maximum")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Maximum", "Maximum");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->t1;
+  }
+}
+
+/* The options were converted into inputs. */
+static void do_version_channel_matte_node_options_to_inputs_animation(bNodeTree *node_tree,
+                                                                      bNode *node)
+{
+  /* Compute the RNA path of the node. */
+  char escaped_node_name[sizeof(node->name) * 2 + 1];
+  BLI_str_escape(escaped_node_name, node->name, sizeof(escaped_node_name));
+  const std::string node_rna_path = fmt::format("nodes[\"{}\"]", escaped_node_name);
+
+  BKE_fcurves_id_cb(&node_tree->id, [&](ID * /*id*/, FCurve *fcurve) {
+    /* The FCurve does not belong to the node since its RNA path doesn't start with the node's RNA
+     * path. */
+    if (!blender::StringRef(fcurve->rna_path).startswith(node_rna_path)) {
+      return;
+    }
+
+    /* Change the RNA path of the FCurve from the old properties to the new inputs, adjusting the
+     * values of the FCurves frames when needed. */
+    char *old_rna_path = fcurve->rna_path;
+    if (BLI_str_endswith(fcurve->rna_path, "limit_min")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[1].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "limit_max")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[2].default_value");
+    }
+
+    /* The RNA path was changed, free the old path. */
+    if (fcurve->rna_path != old_rna_path) {
+      MEM_freeN(old_rna_path);
+    }
+  });
+}
+
+/* The options were converted into inputs. */
+static void do_version_chroma_matte_node_options_to_inputs(bNodeTree *node_tree, bNode *node)
+{
+  NodeChroma *storage = static_cast<NodeChroma *>(node->storage);
+  if (!storage) {
+    return;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Minimum")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_FLOAT, PROP_ANGLE, "Minimum", "Minimum");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->t2;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Maximum")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_FLOAT, PROP_ANGLE, "Maximum", "Maximum");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->t1;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Falloff")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Falloff", "Falloff");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->fstrength;
+  }
+}
+
+/* The options were converted into inputs. */
+static void do_version_chroma_matte_node_options_to_inputs_animation(bNodeTree *node_tree,
+                                                                     bNode *node)
+{
+  /* Compute the RNA path of the node. */
+  char escaped_node_name[sizeof(node->name) * 2 + 1];
+  BLI_str_escape(escaped_node_name, node->name, sizeof(escaped_node_name));
+  const std::string node_rna_path = fmt::format("nodes[\"{}\"]", escaped_node_name);
+
+  BKE_fcurves_id_cb(&node_tree->id, [&](ID * /*id*/, FCurve *fcurve) {
+    /* The FCurve does not belong to the node since its RNA path doesn't start with the node's RNA
+     * path. */
+    if (!blender::StringRef(fcurve->rna_path).startswith(node_rna_path)) {
+      return;
+    }
+
+    /* Change the RNA path of the FCurve from the old properties to the new inputs, adjusting the
+     * values of the FCurves frames when needed. */
+    char *old_rna_path = fcurve->rna_path;
+    if (BLI_str_endswith(fcurve->rna_path, "threshold")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[2].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "tolerance")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[3].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "gain")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[4].default_value");
+    }
+
+    /* The RNA path was changed, free the old path. */
+    if (fcurve->rna_path != old_rna_path) {
+      MEM_freeN(old_rna_path);
+    }
+  });
+}
+
+/* The options were converted into inputs. */
+static void do_version_color_matte_node_options_to_inputs(bNodeTree *node_tree, bNode *node)
+{
+  NodeChroma *storage = static_cast<NodeChroma *>(node->storage);
+  if (!storage) {
+    return;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Hue")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Hue", "Hue");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->t1;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Saturation")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Saturation", "Saturation");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->t2;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Value")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Value", "Value");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->t3;
+  }
+}
+
+/* The options were converted into inputs. */
+static void do_version_color_matte_node_options_to_inputs_animation(bNodeTree *node_tree,
+                                                                    bNode *node)
+{
+  /* Compute the RNA path of the node. */
+  char escaped_node_name[sizeof(node->name) * 2 + 1];
+  BLI_str_escape(escaped_node_name, node->name, sizeof(escaped_node_name));
+  const std::string node_rna_path = fmt::format("nodes[\"{}\"]", escaped_node_name);
+
+  BKE_fcurves_id_cb(&node_tree->id, [&](ID * /*id*/, FCurve *fcurve) {
+    /* The FCurve does not belong to the node since its RNA path doesn't start with the node's RNA
+     * path. */
+    if (!blender::StringRef(fcurve->rna_path).startswith(node_rna_path)) {
+      return;
+    }
+
+    /* Change the RNA path of the FCurve from the old properties to the new inputs, adjusting the
+     * values of the FCurves frames when needed. */
+    char *old_rna_path = fcurve->rna_path;
+    if (BLI_str_endswith(fcurve->rna_path, "color_hue")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[2].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "color_saturation")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[3].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "color_value")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[4].default_value");
+    }
+
+    /* The RNA path was changed, free the old path. */
+    if (fcurve->rna_path != old_rna_path) {
+      MEM_freeN(old_rna_path);
+    }
+  });
+}
+
+/* The options were converted into inputs. */
+static void do_version_difference_matte_node_options_to_inputs(bNodeTree *node_tree, bNode *node)
+{
+  NodeChroma *storage = static_cast<NodeChroma *>(node->storage);
+  if (!storage) {
+    return;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Tolerance")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Tolerance", "Tolerance");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->t1;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Falloff")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Falloff", "Falloff");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->t2;
+  }
+}
+
+/* The options were converted into inputs. */
+static void do_version_difference_matte_node_options_to_inputs_animation(bNodeTree *node_tree,
+                                                                         bNode *node)
+{
+  /* Compute the RNA path of the node. */
+  char escaped_node_name[sizeof(node->name) * 2 + 1];
+  BLI_str_escape(escaped_node_name, node->name, sizeof(escaped_node_name));
+  const std::string node_rna_path = fmt::format("nodes[\"{}\"]", escaped_node_name);
+
+  BKE_fcurves_id_cb(&node_tree->id, [&](ID * /*id*/, FCurve *fcurve) {
+    /* The FCurve does not belong to the node since its RNA path doesn't start with the node's RNA
+     * path. */
+    if (!blender::StringRef(fcurve->rna_path).startswith(node_rna_path)) {
+      return;
+    }
+
+    /* Change the RNA path of the FCurve from the old properties to the new inputs, adjusting the
+     * values of the FCurves frames when needed. */
+    char *old_rna_path = fcurve->rna_path;
+    if (BLI_str_endswith(fcurve->rna_path, "tolerance")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[2].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "falloff")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[3].default_value");
+    }
+
+    /* The RNA path was changed, free the old path. */
+    if (fcurve->rna_path != old_rna_path) {
+      MEM_freeN(old_rna_path);
+    }
+  });
+}
+
+/* The options were converted into inputs. */
+static void do_version_distance_matte_node_options_to_inputs(bNodeTree *node_tree, bNode *node)
+{
+  NodeChroma *storage = static_cast<NodeChroma *>(node->storage);
+  if (!storage) {
+    return;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Tolerance")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Tolerance", "Tolerance");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->t1;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Falloff")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Falloff", "Falloff");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->t2;
+  }
+}
+
+/* The options were converted into inputs. */
+static void do_version_distance_matte_node_options_to_inputs_animation(bNodeTree *node_tree,
+                                                                       bNode *node)
+{
+  /* Compute the RNA path of the node. */
+  char escaped_node_name[sizeof(node->name) * 2 + 1];
+  BLI_str_escape(escaped_node_name, node->name, sizeof(escaped_node_name));
+  const std::string node_rna_path = fmt::format("nodes[\"{}\"]", escaped_node_name);
+
+  BKE_fcurves_id_cb(&node_tree->id, [&](ID * /*id*/, FCurve *fcurve) {
+    /* The FCurve does not belong to the node since its RNA path doesn't start with the node's RNA
+     * path. */
+    if (!blender::StringRef(fcurve->rna_path).startswith(node_rna_path)) {
+      return;
+    }
+
+    /* Change the RNA path of the FCurve from the old properties to the new inputs, adjusting the
+     * values of the FCurves frames when needed. */
+    char *old_rna_path = fcurve->rna_path;
+    if (BLI_str_endswith(fcurve->rna_path, "tolerance")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[2].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "falloff")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[3].default_value");
+    }
+
+    /* The RNA path was changed, free the old path. */
+    if (fcurve->rna_path != old_rna_path) {
+      MEM_freeN(old_rna_path);
+    }
+  });
+}
+
+/* The options were converted into inputs. */
+static void do_version_luminance_matte_node_options_to_inputs(bNodeTree *node_tree, bNode *node)
+{
+  NodeChroma *storage = static_cast<NodeChroma *>(node->storage);
+  if (!storage) {
+    return;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Minimum")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Minimum", "Minimum");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->t2;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Maximum")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Maximum", "Maximum");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->t1;
+  }
+}
+
+/* The options were converted into inputs. */
+static void do_version_luminance_matte_node_options_to_inputs_animation(bNodeTree *node_tree,
+                                                                        bNode *node)
+{
+  /* Compute the RNA path of the node. */
+  char escaped_node_name[sizeof(node->name) * 2 + 1];
+  BLI_str_escape(escaped_node_name, node->name, sizeof(escaped_node_name));
+  const std::string node_rna_path = fmt::format("nodes[\"{}\"]", escaped_node_name);
+
+  BKE_fcurves_id_cb(&node_tree->id, [&](ID * /*id*/, FCurve *fcurve) {
+    /* The FCurve does not belong to the node since its RNA path doesn't start with the node's RNA
+     * path. */
+    if (!blender::StringRef(fcurve->rna_path).startswith(node_rna_path)) {
+      return;
+    }
+
+    /* Change the RNA path of the FCurve from the old properties to the new inputs, adjusting the
+     * values of the FCurves frames when needed. */
+    char *old_rna_path = fcurve->rna_path;
+    if (BLI_str_endswith(fcurve->rna_path, "limit_min")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[1].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "limit_max")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[2].default_value");
+    }
+
+    /* The RNA path was changed, free the old path. */
+    if (fcurve->rna_path != old_rna_path) {
+      MEM_freeN(old_rna_path);
+    }
+  });
+}
+
+/* The options were converted into inputs. */
+static void do_version_color_spill_node_options_to_inputs(bNodeTree *node_tree, bNode *node)
+{
+  NodeColorspill *storage = static_cast<NodeColorspill *>(node->storage);
+  if (!storage) {
+    return;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Limit Strength")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Limit Strength", "Limit Strength");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->limscale;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Use Spill Strength")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(*node_tree,
+                                                              *node,
+                                                              SOCK_IN,
+                                                              SOCK_BOOLEAN,
+                                                              PROP_NONE,
+                                                              "Use Spill Strength",
+                                                              "Use Spill Strength");
+    input->default_value_typed<bNodeSocketValueBoolean>()->value = bool(storage->unspill);
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Spill Strength")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_RGBA, PROP_NONE, "Spill Strength", "Spill Strength");
+    input->default_value_typed<bNodeSocketValueRGBA>()->value[0] = storage->uspillr;
+    input->default_value_typed<bNodeSocketValueRGBA>()->value[1] = storage->uspillg;
+    input->default_value_typed<bNodeSocketValueRGBA>()->value[2] = storage->uspillb;
+  }
+}
+
+/* The options were converted into inputs. */
+static void do_version_color_spill_node_options_to_inputs_animation(bNodeTree *node_tree,
+                                                                    bNode *node)
+{
+  /* Compute the RNA path of the node. */
+  char escaped_node_name[sizeof(node->name) * 2 + 1];
+  BLI_str_escape(escaped_node_name, node->name, sizeof(escaped_node_name));
+  const std::string node_rna_path = fmt::format("nodes[\"{}\"]", escaped_node_name);
+
+  BKE_fcurves_id_cb(&node_tree->id, [&](ID * /*id*/, FCurve *fcurve) {
+    /* The FCurve does not belong to the node since its RNA path doesn't start with the node's RNA
+     * path. */
+    if (!blender::StringRef(fcurve->rna_path).startswith(node_rna_path)) {
+      return;
+    }
+
+    /* Change the RNA path of the FCurve from the old properties to the new inputs, adjusting the
+     * values of the FCurves frames when needed. */
+    char *old_rna_path = fcurve->rna_path;
+    if (BLI_str_endswith(fcurve->rna_path, "ratio")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[2].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "use_unspill")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[3].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "unspill_red")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[4].default_value");
+      fcurve->array_index = 0;
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "unspill_green")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[4].default_value");
+      fcurve->array_index = 1;
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "unspill_blue")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[4].default_value");
+      fcurve->array_index = 2;
+    }
+
+    /* The RNA path was changed, free the old path. */
+    if (fcurve->rna_path != old_rna_path) {
+      MEM_freeN(old_rna_path);
+    }
+  });
+}
+
+/* The options were converted into inputs. */
+static void do_version_keying_screen_node_options_to_inputs(bNodeTree *node_tree, bNode *node)
+{
+  NodeKeyingScreenData *storage = static_cast<NodeKeyingScreenData *>(node->storage);
+  if (!storage) {
+    return;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Smoothness")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Smoothness", "Smoothness");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->smoothness;
+  }
+}
+
+/* The options were converted into inputs. */
+static void do_version_keying_screen_node_options_to_inputs_animation(bNodeTree *node_tree,
+                                                                      bNode *node)
+{
+  /* Compute the RNA path of the node. */
+  char escaped_node_name[sizeof(node->name) * 2 + 1];
+  BLI_str_escape(escaped_node_name, node->name, sizeof(escaped_node_name));
+  const std::string node_rna_path = fmt::format("nodes[\"{}\"]", escaped_node_name);
+
+  BKE_fcurves_id_cb(&node_tree->id, [&](ID * /*id*/, FCurve *fcurve) {
+    /* The FCurve does not belong to the node since its RNA path doesn't start with the node's RNA
+     * path. */
+    if (!blender::StringRef(fcurve->rna_path).startswith(node_rna_path)) {
+      return;
+    }
+
+    /* Change the RNA path of the FCurve from the old properties to the new inputs, adjusting the
+     * values of the FCurves frames when needed. */
+    char *old_rna_path = fcurve->rna_path;
+    if (BLI_str_endswith(fcurve->rna_path, "smoothness")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[0].default_value");
+    }
+
+    /* The RNA path was changed, free the old path. */
+    if (fcurve->rna_path != old_rna_path) {
+      MEM_freeN(old_rna_path);
+    }
+  });
+}
+
+/* The options were converted into inputs. */
+static void do_version_keying_node_options_to_inputs(bNodeTree *node_tree, bNode *node)
+{
+  NodeKeyingData *storage = static_cast<NodeKeyingData *>(node->storage);
+  if (!storage) {
+    return;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Preprocess Blur Size")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(*node_tree,
+                                                              *node,
+                                                              SOCK_IN,
+                                                              SOCK_INT,
+                                                              PROP_NONE,
+                                                              "Preprocess Blur Size",
+                                                              "Preprocess Blur Size");
+    input->default_value_typed<bNodeSocketValueInt>()->value = storage->blur_pre;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Key Balance")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Key Balance", "Key Balance");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->screen_balance;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Edge Search Size")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_INT, PROP_NONE, "Edge Search Size", "Edge Search Size");
+    input->default_value_typed<bNodeSocketValueInt>()->value = storage->edge_kernel_radius;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Edge Tolerance")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Edge Tolerance", "Edge Tolerance");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->edge_kernel_tolerance;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Black Level")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Black Level", "Black Level");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->clip_black;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "White Level")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "White Level", "White Level");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->clip_white;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Postprocess Blur Size")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(*node_tree,
+                                                              *node,
+                                                              SOCK_IN,
+                                                              SOCK_INT,
+                                                              PROP_NONE,
+                                                              "Postprocess Blur Size",
+                                                              "Postprocess Blur Size");
+    input->default_value_typed<bNodeSocketValueInt>()->value = storage->blur_post;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Postprocess Dilate Size")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(*node_tree,
+                                                              *node,
+                                                              SOCK_IN,
+                                                              SOCK_INT,
+                                                              PROP_NONE,
+                                                              "Postprocess Dilate Size",
+                                                              "Postprocess Dilate Size");
+    input->default_value_typed<bNodeSocketValueInt>()->value = storage->dilate_distance;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Postprocess Feather Size")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(*node_tree,
+                                                              *node,
+                                                              SOCK_IN,
+                                                              SOCK_INT,
+                                                              PROP_NONE,
+                                                              "Postprocess Feather Size",
+                                                              "Postprocess Feather Size");
+    input->default_value_typed<bNodeSocketValueInt>()->value = storage->feather_distance;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Despill Strength")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(*node_tree,
+                                                              *node,
+                                                              SOCK_IN,
+                                                              SOCK_FLOAT,
+                                                              PROP_FACTOR,
+                                                              "Despill Strength",
+                                                              "Despill Strength");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->despill_factor;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Despill Balance")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Despill Balance", "Despill Balance");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->despill_balance;
+  }
+}
+
+/* The options were converted into inputs. */
+static void do_version_keying_node_options_to_inputs_animation(bNodeTree *node_tree, bNode *node)
+{
+  /* Compute the RNA path of the node. */
+  char escaped_node_name[sizeof(node->name) * 2 + 1];
+  BLI_str_escape(escaped_node_name, node->name, sizeof(escaped_node_name));
+  const std::string node_rna_path = fmt::format("nodes[\"{}\"]", escaped_node_name);
+
+  BKE_fcurves_id_cb(&node_tree->id, [&](ID * /*id*/, FCurve *fcurve) {
+    /* The FCurve does not belong to the node since its RNA path doesn't start with the node's RNA
+     * path. */
+    if (!blender::StringRef(fcurve->rna_path).startswith(node_rna_path)) {
+      return;
+    }
+
+    /* Change the RNA path of the FCurve from the old properties to the new inputs, adjusting the
+     * values of the FCurves frames when needed. */
+    char *old_rna_path = fcurve->rna_path;
+    if (BLI_str_endswith(fcurve->rna_path, "blur_pre")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[2].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "screen_balance")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[3].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "clip_black")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[4].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "clip_white")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[5].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "edge_kernel_radius")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[6].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "edge_kernel_tolerance")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[7].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "blur_post")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[10].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "dilate_distance")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[11].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "feather_distance")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[12].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "despill_factor")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[13].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "despill_balance")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[14].default_value");
+    }
+
+    /* The RNA path was changed, free the old path. */
+    if (fcurve->rna_path != old_rna_path) {
+      MEM_freeN(old_rna_path);
+    }
+  });
+}
+
+/* The options were converted into inputs. */
+static void do_version_id_mask_node_options_to_inputs(bNodeTree *node_tree, bNode *node)
+{
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Index")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_INT, PROP_NONE, "Index", "Index");
+    input->default_value_typed<bNodeSocketValueInt>()->value = node->custom1;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Anti-Alias")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_BOOLEAN, PROP_NONE, "Anti-Alias", "Anti-Alias");
+    input->default_value_typed<bNodeSocketValueBoolean>()->value = bool(node->custom2);
+  }
+}
+
+/* The options were converted into inputs. */
+static void do_version_id_mask_node_options_to_inputs_animation(bNodeTree *node_tree, bNode *node)
+{
+  /* Compute the RNA path of the node. */
+  char escaped_node_name[sizeof(node->name) * 2 + 1];
+  BLI_str_escape(escaped_node_name, node->name, sizeof(escaped_node_name));
+  const std::string node_rna_path = fmt::format("nodes[\"{}\"]", escaped_node_name);
+
+  BKE_fcurves_id_cb(&node_tree->id, [&](ID * /*id*/, FCurve *fcurve) {
+    /* The FCurve does not belong to the node since its RNA path doesn't start with the node's RNA
+     * path. */
+    if (!blender::StringRef(fcurve->rna_path).startswith(node_rna_path)) {
+      return;
+    }
+
+    /* Change the RNA path of the FCurve from the old properties to the new inputs, adjusting the
+     * values of the FCurves frames when needed. */
+    char *old_rna_path = fcurve->rna_path;
+    if (BLI_str_endswith(fcurve->rna_path, "index")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[1].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "use_antialiasing")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[2].default_value");
+    }
+
+    /* The RNA path was changed, free the old path. */
+    if (fcurve->rna_path != old_rna_path) {
+      MEM_freeN(old_rna_path);
+    }
+  });
+}
+
+/* The options were converted into inputs. */
+static void do_version_stabilize_node_options_to_inputs(bNodeTree *node_tree, bNode *node)
+{
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Invert")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_BOOLEAN, PROP_NONE, "Invert", "Invert");
+    input->default_value_typed<bNodeSocketValueBoolean>()->value = bool(node->custom2);
+  }
+}
+
+/* The options were converted into inputs. */
+static void do_version_stabilize_node_options_to_inputs_animation(bNodeTree *node_tree,
+                                                                  bNode *node)
+{
+  /* Compute the RNA path of the node. */
+  char escaped_node_name[sizeof(node->name) * 2 + 1];
+  BLI_str_escape(escaped_node_name, node->name, sizeof(escaped_node_name));
+  const std::string node_rna_path = fmt::format("nodes[\"{}\"]", escaped_node_name);
+
+  BKE_fcurves_id_cb(&node_tree->id, [&](ID * /*id*/, FCurve *fcurve) {
+    /* The FCurve does not belong to the node since its RNA path doesn't start with the node's RNA
+     * path. */
+    if (!blender::StringRef(fcurve->rna_path).startswith(node_rna_path)) {
+      return;
+    }
+
+    /* Change the RNA path of the FCurve from the old properties to the new inputs, adjusting the
+     * values of the FCurves frames when needed. */
+    char *old_rna_path = fcurve->rna_path;
+    if (BLI_str_endswith(fcurve->rna_path, "invert")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[1].default_value");
+    }
+
+    /* The RNA path was changed, free the old path. */
+    if (fcurve->rna_path != old_rna_path) {
+      MEM_freeN(old_rna_path);
+    }
+  });
+}
+
+/* The options were converted into inputs. */
+static void do_version_plane_track_deform_node_options_to_inputs(bNodeTree *node_tree, bNode *node)
+{
+  NodePlaneTrackDeformData *storage = static_cast<NodePlaneTrackDeformData *>(node->storage);
+  if (!storage) {
+    return;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Motion Blur")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_BOOLEAN, PROP_NONE, "Motion Blur", "Motion Blur");
+    input->default_value_typed<bNodeSocketValueBoolean>()->value = bool(storage->flag);
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Motion Blur Samples")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_INT, PROP_NONE, "Motion Blur Samples", "Samples");
+    input->default_value_typed<bNodeSocketValueInt>()->value = storage->motion_blur_samples;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Motion Blur Shutter")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Motion Blur Shutter", "Shutter");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->motion_blur_shutter;
+  }
+}
+
+/* The options were converted into inputs. */
+static void do_version_plane_track_deform_node_options_to_inputs_animation(bNodeTree *node_tree,
+                                                                           bNode *node)
+{
+  /* Compute the RNA path of the node. */
+  char escaped_node_name[sizeof(node->name) * 2 + 1];
+  BLI_str_escape(escaped_node_name, node->name, sizeof(escaped_node_name));
+  const std::string node_rna_path = fmt::format("nodes[\"{}\"]", escaped_node_name);
+
+  BKE_fcurves_id_cb(&node_tree->id, [&](ID * /*id*/, FCurve *fcurve) {
+    /* The FCurve does not belong to the node since its RNA path doesn't start with the node's RNA
+     * path. */
+    if (!blender::StringRef(fcurve->rna_path).startswith(node_rna_path)) {
+      return;
+    }
+
+    /* Change the RNA path of the FCurve from the old properties to the new inputs, adjusting the
+     * values of the FCurves frames when needed. */
+    char *old_rna_path = fcurve->rna_path;
+    if (BLI_str_endswith(fcurve->rna_path, "use_motion_blur")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[1].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "motion_blur_samples")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[2].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "motion_blur_shutter")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[3].default_value");
+    }
+
+    /* The RNA path was changed, free the old path. */
+    if (fcurve->rna_path != old_rna_path) {
+      MEM_freeN(old_rna_path);
+    }
+  });
+}
+
+/* The options were converted into inputs. */
+static void do_version_color_correction_node_options_to_inputs(bNodeTree *node_tree, bNode *node)
+{
+  NodeColorCorrection *storage = static_cast<NodeColorCorrection *>(node->storage);
+  if (!storage) {
+    return;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Master Saturation")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(*node_tree,
+                                                              *node,
+                                                              SOCK_IN,
+                                                              SOCK_FLOAT,
+                                                              PROP_FACTOR,
+                                                              "Master Saturation",
+                                                              "Master Saturation");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->master.saturation;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Master Contrast")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Master Contrast", "Master Contrast");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->master.contrast;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Master Gamma")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Master Gamma", "Master Gamma");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->master.gamma;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Master Gain")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Master Gain", "Master Gain");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->master.gain;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Master Lift")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Master Lift", "Master Lift");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->master.lift;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Shadows Saturation")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(*node_tree,
+                                                              *node,
+                                                              SOCK_IN,
+                                                              SOCK_FLOAT,
+                                                              PROP_FACTOR,
+                                                              "Shadows Saturation",
+                                                              "Shadows Saturation");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->shadows.saturation;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Shadows Contrast")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(*node_tree,
+                                                              *node,
+                                                              SOCK_IN,
+                                                              SOCK_FLOAT,
+                                                              PROP_FACTOR,
+                                                              "Shadows Contrast",
+                                                              "Shadows Contrast");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->shadows.contrast;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Shadows Gamma")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Shadows Gamma", "Shadows Gamma");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->shadows.gamma;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Shadows Gain")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Shadows Gain", "Shadows Gain");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->shadows.gain;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Shadows Lift")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Shadows Lift", "Shadows Lift");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->shadows.lift;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Midtones Saturation")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(*node_tree,
+                                                              *node,
+                                                              SOCK_IN,
+                                                              SOCK_FLOAT,
+                                                              PROP_FACTOR,
+                                                              "Midtones Saturation",
+                                                              "Midtones Saturation");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->midtones.saturation;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Midtones Contrast")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(*node_tree,
+                                                              *node,
+                                                              SOCK_IN,
+                                                              SOCK_FLOAT,
+                                                              PROP_FACTOR,
+                                                              "Midtones Contrast",
+                                                              "Midtones Contrast");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->midtones.contrast;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Midtones Gamma")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Midtones Gamma", "Midtones Gamma");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->midtones.gamma;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Midtones Gain")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Midtones Gain", "Midtones Gain");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->midtones.gain;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Midtones Lift")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Midtones Lift", "Midtones Lift");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->midtones.lift;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Highlights Saturation")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(*node_tree,
+                                                              *node,
+                                                              SOCK_IN,
+                                                              SOCK_FLOAT,
+                                                              PROP_FACTOR,
+                                                              "Highlights Saturation",
+                                                              "Highlights Saturation");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->highlights.saturation;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Highlights Contrast")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(*node_tree,
+                                                              *node,
+                                                              SOCK_IN,
+                                                              SOCK_FLOAT,
+                                                              PROP_FACTOR,
+                                                              "Highlights Contrast",
+                                                              "Highlights Contrast");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->highlights.contrast;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Highlights Gamma")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(*node_tree,
+                                                              *node,
+                                                              SOCK_IN,
+                                                              SOCK_FLOAT,
+                                                              PROP_FACTOR,
+                                                              "Highlights Gamma",
+                                                              "Highlights Gamma");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->highlights.gamma;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Highlights Gain")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Highlights Gain", "Highlights Gain");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->highlights.gain;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Highlights Lift")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Highlights Lift", "Highlights Lift");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->highlights.lift;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Midtones Start")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Midtones Start", "Midtones Start");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->startmidtones;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Midtones End")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Midtones End", "Midtones End");
+    input->default_value_typed<bNodeSocketValueFloat>()->value = storage->endmidtones;
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Apply On Red")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_BOOLEAN, PROP_NONE, "Apply On Red", "Apply On Red");
+    input->default_value_typed<bNodeSocketValueBoolean>()->value = bool(node->custom1 & (1 << 0));
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Apply On Green")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_BOOLEAN, PROP_NONE, "Apply On Green", "Apply On Green");
+    input->default_value_typed<bNodeSocketValueBoolean>()->value = bool(node->custom1 & (1 << 1));
+  }
+
+  if (!blender::bke::node_find_socket(*node, SOCK_IN, "Apply On Blue")) {
+    bNodeSocket *input = blender::bke::node_add_static_socket(
+        *node_tree, *node, SOCK_IN, SOCK_BOOLEAN, PROP_NONE, "Apply On Blue", "Apply On Blue");
+    input->default_value_typed<bNodeSocketValueBoolean>()->value = bool(node->custom1 & (1 << 2));
+  }
+}
+
+/* The options were converted into inputs. */
+static void do_version_color_correction_node_options_to_inputs_animation(bNodeTree *node_tree,
+                                                                         bNode *node)
+{
+  /* Compute the RNA path of the node. */
+  char escaped_node_name[sizeof(node->name) * 2 + 1];
+  BLI_str_escape(escaped_node_name, node->name, sizeof(escaped_node_name));
+  const std::string node_rna_path = fmt::format("nodes[\"{}\"]", escaped_node_name);
+
+  BKE_fcurves_id_cb(&node_tree->id, [&](ID * /*id*/, FCurve *fcurve) {
+    /* The FCurve does not belong to the node since its RNA path doesn't start with the node's RNA
+     * path. */
+    if (!blender::StringRef(fcurve->rna_path).startswith(node_rna_path)) {
+      return;
+    }
+
+    /* Change the RNA path of the FCurve from the old properties to the new inputs, adjusting the
+     * values of the FCurves frames when needed. */
+    char *old_rna_path = fcurve->rna_path;
+    if (BLI_str_endswith(fcurve->rna_path, "use_motion_blur")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[1].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "master_saturation")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[2].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "master_contrast")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[3].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "master_gamma")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[4].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "master_gain")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[5].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "master_lift")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[6].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "highlights_saturation")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[7].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "highlights_contrast")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[8].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "highlights_gamma")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[9].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "highlights_gain")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[10].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "highlights_lift")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[11].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "midtones_saturation")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[12].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "midtones_contrast")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[13].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "midtones_gamma")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[14].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "midtones_gain")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[15].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "midtones_lift")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[16].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "shadows_saturation")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[17].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "shadows_contrast")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[18].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "shadows_gamma")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[19].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "shadows_gain")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[20].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "shadows_lift")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[21].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "midtones_start")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[22].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "midtones_end")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[23].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "red")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[24].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "green")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[25].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "blue")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[26].default_value");
+    }
+
+    /* The RNA path was changed, free the old path. */
+    if (fcurve->rna_path != old_rna_path) {
+      MEM_freeN(old_rna_path);
+    }
+  });
+}
+
 static void do_version_viewer_shortcut(bNodeTree *node_tree)
 {
   LISTBASE_FOREACH_MUTABLE (bNode *, node, &node_tree->nodes) {
@@ -1406,9 +3938,10 @@ void do_versions_after_linking_400(FileData *fd, Main *bmain)
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 400, 27)) {
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      Editing *ed = SEQ_editing_get(scene);
+      Editing *ed = blender::seq::editing_get(scene);
       if (ed != nullptr) {
-        SEQ_for_each_callback(&ed->seqbase, versioning_convert_strip_speed_factor, scene);
+        blender::seq::for_each_callback(
+            &ed->seqbase, versioning_convert_strip_speed_factor, scene);
       }
     }
   }
@@ -1525,6 +4058,7 @@ void do_versions_after_linking_400(FileData *fd, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 2)) {
     blender::animrig::versioning::convert_legacy_animato_actions(*bmain);
     blender::animrig::versioning::tag_action_users_for_slotted_actions_conversion(*bmain);
+    blender::animrig::versioning::convert_legacy_action_assignments(*bmain, fd->reports->reports);
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 7)) {
@@ -1640,6 +4174,470 @@ void do_versions_after_linking_400(FileData *fd, Main *bmain)
       if (ntree->type == NTREE_COMPOSIT) {
         do_version_color_to_float_conversion(ntree);
       }
+      else if (ntree->type == NTREE_SHADER) {
+        do_version_bump_filter_width(ntree);
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 8)) {
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      if (ntree->type == NTREE_COMPOSIT) {
+        do_version_convert_to_generic_nodes_after_linking(bmain, ntree, id);
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 12)) {
+    version_node_socket_index_animdata(bmain, NTREE_COMPOSIT, CMP_NODE_GLARE, 3, 1, 14);
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      if (ntree->type == NTREE_COMPOSIT) {
+        do_version_new_glare_suppress_input(ntree);
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  /* For each F-Curve, set the F-Curve flags based on the property type it animates. This is to
+   * correct F-Curves created while the bug (#136347) was in active use. Since this bug did not
+   * appear before 4.4, and this versioning code has a bit of a performance impact (going over all
+   * F-Curves of all Actions, and resolving them all to their RNA properties), it will be skipped
+   * if the blend file is old enough to not be affected. */
+  if (MAIN_VERSION_FILE_ATLEAST(bmain, 404, 0) && !MAIN_VERSION_FILE_ATLEAST(bmain, 405, 13)) {
+    LISTBASE_FOREACH (bAction *, dna_action, &bmain->actions) {
+      blender::animrig::Action &action = dna_action->wrap();
+      for (const blender::animrig::Slot *slot : action.slots()) {
+        blender::Span<ID *> slot_users = slot->users(*bmain);
+        if (slot_users.is_empty()) {
+          /* If nothing is using this slot, the RNA paths cannot be resolved, and so there
+           * is no way to find the animated property type. */
+          continue;
+        }
+        blender::animrig::foreach_fcurve_in_action_slot(action, slot->handle, [&](FCurve &fcurve) {
+          /* Loop over all slot users, because when the slot is shared, not all F-Curves may
+           * resolve on all users. For example, a custom property might only exist on a subset of
+           * the users.*/
+          for (ID *slot_user : slot_users) {
+            PointerRNA slot_user_ptr = RNA_id_pointer_create(slot_user);
+            PointerRNA ptr;
+            PropertyRNA *prop;
+            if (!RNA_path_resolve_property(&slot_user_ptr, fcurve.rna_path, &ptr, &prop)) {
+              continue;
+            }
+
+            blender::animrig::update_autoflags_fcurve_direct(&fcurve, RNA_property_type(prop));
+            break;
+          }
+        });
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 14)) {
+    LISTBASE_FOREACH (bAction *, dna_action, &bmain->actions) {
+      blender::animrig::Action &action = dna_action->wrap();
+      blender::animrig::foreach_fcurve_in_action(
+          action, [&](FCurve &fcurve) { version_fix_fcurve_noise_offset(fcurve); });
+    }
+
+    BKE_animdata_main_cb(bmain, [](ID * /* id */, AnimData *adt) {
+      LISTBASE_FOREACH (FCurve *, fcurve, &adt->drivers) {
+        version_fix_fcurve_noise_offset(*fcurve);
+      }
+      LISTBASE_FOREACH (NlaTrack *, track, &adt->nla_tracks) {
+        nlastrips_apply_fcurve_versioning(track->strips);
+      }
+    });
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 20)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type == NTREE_COMPOSIT) {
+        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+          if (node->type_legacy == CMP_NODE_GLARE) {
+            do_version_glare_node_star_45_option_to_input_animation(node_tree, node);
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 22)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type == NTREE_COMPOSIT) {
+        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+          if (node->type_legacy == CMP_NODE_BOKEHIMAGE) {
+            do_version_bokeh_image_node_options_to_inputs_animation(node_tree, node);
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 23)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type == NTREE_COMPOSIT) {
+        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+          if (node->type_legacy == CMP_NODE_TIME) {
+            do_version_time_curve_node_options_to_inputs_animation(node_tree, node);
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 24)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type == NTREE_COMPOSIT) {
+        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+          if (node->type_legacy == CMP_NODE_MASK) {
+            do_version_mask_node_options_to_inputs_animation(node_tree, node);
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 25)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type == NTREE_COMPOSIT) {
+        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+          if (node->type_legacy == CMP_NODE_SWITCH) {
+            do_version_switch_node_options_to_inputs_animation(node_tree, node);
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 26)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type == NTREE_COMPOSIT) {
+        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+          if (node->type_legacy == CMP_NODE_SPLIT) {
+            do_version_split_node_options_to_inputs_animation(node_tree, node);
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 27)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type == NTREE_COMPOSIT) {
+        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+          if (node->type_legacy == CMP_NODE_INVERT) {
+            do_version_invert_node_options_to_inputs_animation(node_tree, node);
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 28)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type == NTREE_COMPOSIT) {
+        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+          if (node->type_legacy == CMP_NODE_ZCOMBINE) {
+            do_version_z_combine_node_options_to_inputs_animation(node_tree, node);
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 29)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type == NTREE_COMPOSIT) {
+        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+          if (node->type_legacy == CMP_NODE_TONEMAP) {
+            do_version_tone_map_node_options_to_inputs_animation(node_tree, node);
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 30)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type == NTREE_COMPOSIT) {
+        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+          if (node->type_legacy == CMP_NODE_DILATEERODE) {
+            do_version_dilate_node_options_to_inputs_animation(node_tree, node);
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 31)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type == NTREE_COMPOSIT) {
+        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+          if (node->type_legacy == CMP_NODE_INPAINT) {
+            do_version_inpaint_node_options_to_inputs_animation(node_tree, node);
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 32)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type == NTREE_COMPOSIT) {
+        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+          if (node->type_legacy == CMP_NODE_PIXELATE) {
+            do_version_pixelate_node_options_to_inputs_animation(node_tree, node);
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 33)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type == NTREE_COMPOSIT) {
+        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+          if (node->type_legacy == CMP_NODE_KUWAHARA) {
+            do_version_kuwahara_node_options_to_inputs_animation(node_tree, node);
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 34)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type == NTREE_COMPOSIT) {
+        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+          if (node->type_legacy == CMP_NODE_DESPECKLE) {
+            do_version_despeckle_node_options_to_inputs_animation(node_tree, node);
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 35)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type == NTREE_COMPOSIT) {
+        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+          if (node->type_legacy == CMP_NODE_DENOISE) {
+            do_version_denoise_node_options_to_inputs_animation(node_tree, node);
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 36)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type == NTREE_COMPOSIT) {
+        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+          if (node->type_legacy == CMP_NODE_ANTIALIASING) {
+            do_version_anti_alias_node_options_to_inputs_animation(node_tree, node);
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 37)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type == NTREE_COMPOSIT) {
+        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+          if (node->type_legacy == CMP_NODE_VECBLUR) {
+            do_version_vector_blur_node_options_to_inputs_animation(node_tree, node);
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 38)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type == NTREE_COMPOSIT) {
+        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+          if (node->type_legacy == CMP_NODE_CHANNEL_MATTE) {
+            do_version_channel_matte_node_options_to_inputs_animation(node_tree, node);
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 39)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type == NTREE_COMPOSIT) {
+        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+          if (node->type_legacy == CMP_NODE_CHROMA_MATTE) {
+            do_version_chroma_matte_node_options_to_inputs_animation(node_tree, node);
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 40)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type == NTREE_COMPOSIT) {
+        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+          if (node->type_legacy == CMP_NODE_COLOR_MATTE) {
+            do_version_color_matte_node_options_to_inputs_animation(node_tree, node);
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 41)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type == NTREE_COMPOSIT) {
+        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+          if (node->type_legacy == CMP_NODE_DIFF_MATTE) {
+            do_version_difference_matte_node_options_to_inputs_animation(node_tree, node);
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 42)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type == NTREE_COMPOSIT) {
+        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+          if (node->type_legacy == CMP_NODE_DIST_MATTE) {
+            do_version_distance_matte_node_options_to_inputs_animation(node_tree, node);
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 43)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type == NTREE_COMPOSIT) {
+        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+          if (node->type_legacy == CMP_NODE_LUMA_MATTE) {
+            do_version_luminance_matte_node_options_to_inputs_animation(node_tree, node);
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 44)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type == NTREE_COMPOSIT) {
+        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+          if (node->type_legacy == CMP_NODE_COLOR_SPILL) {
+            do_version_color_spill_node_options_to_inputs_animation(node_tree, node);
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 45)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type == NTREE_COMPOSIT) {
+        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+          if (node->type_legacy == CMP_NODE_KEYINGSCREEN) {
+            do_version_keying_screen_node_options_to_inputs_animation(node_tree, node);
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 47)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type == NTREE_COMPOSIT) {
+        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+          if (node->type_legacy == CMP_NODE_KEYING) {
+            do_version_keying_node_options_to_inputs_animation(node_tree, node);
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 48)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type == NTREE_COMPOSIT) {
+        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+          if (node->type_legacy == CMP_NODE_ID_MASK) {
+            do_version_id_mask_node_options_to_inputs_animation(node_tree, node);
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 49)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type == NTREE_COMPOSIT) {
+        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+          if (node->type_legacy == CMP_NODE_STABILIZE2D) {
+            do_version_stabilize_node_options_to_inputs_animation(node_tree, node);
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 50)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type == NTREE_COMPOSIT) {
+        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+          if (node->type_legacy == CMP_NODE_PLANETRACKDEFORM) {
+            do_version_plane_track_deform_node_options_to_inputs_animation(node_tree, node);
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 52)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type == NTREE_COMPOSIT) {
+        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+          if (node->type_legacy == CMP_NODE_COLORCORRECTION) {
+            do_version_color_correction_node_options_to_inputs_animation(node_tree, node);
+          }
+        }
+      }
     }
     FOREACH_NODETREE_END;
   }
@@ -1700,7 +4698,7 @@ static void version_motion_tracking_legacy_camera_object(MovieClip &movieclip)
   BLI_listbase_clear(&tracking.plane_tracks_legacy);
   tracking.act_track_legacy = nullptr;
   tracking.act_plane_track_legacy = nullptr;
-  memset(&tracking.reconstruction_legacy, 0, sizeof(tracking.reconstruction_legacy));
+  tracking.reconstruction_legacy = MovieTrackingReconstruction{};
 }
 
 static void version_movieclips_legacy_camera_object(Main *bmain)
@@ -2734,8 +5732,8 @@ static void versioning_convert_node_tree_socket_lists_to_interface(bNodeTree *nt
   const int num_inputs = BLI_listbase_count(&ntree->inputs_legacy);
   const int num_outputs = BLI_listbase_count(&ntree->outputs_legacy);
   tree_interface.root_panel.items_num = num_inputs + num_outputs;
-  tree_interface.root_panel.items_array = static_cast<bNodeTreeInterfaceItem **>(MEM_malloc_arrayN(
-      tree_interface.root_panel.items_num, sizeof(bNodeTreeInterfaceItem *), __func__));
+  tree_interface.root_panel.items_array = MEM_malloc_arrayN<bNodeTreeInterfaceItem *>(
+      size_t(tree_interface.root_panel.items_num), __func__);
 
   /* Convert outputs first to retain old outputs/inputs ordering. */
   int index;
@@ -3765,6 +6763,83 @@ static void version_geometry_normal_input_node(bNodeTree &ntree)
   }
 }
 
+static void do_version_node_curve_to_mesh_scale_input(bNodeTree *tree)
+{
+  using namespace blender;
+  Set<bNode *> curve_to_mesh_nodes;
+  LISTBASE_FOREACH (bNode *, node, &tree->nodes) {
+    if (STREQ(node->idname, "GeometryNodeCurveToMesh")) {
+      curve_to_mesh_nodes.add(node);
+    }
+  }
+
+  for (bNode *curve_to_mesh : curve_to_mesh_nodes) {
+    if (bke::node_find_socket(*curve_to_mesh, SOCK_IN, "Scale")) {
+      /* Make versioning idempotent. */
+      continue;
+    }
+    version_node_add_socket_if_not_exist(
+        tree, curve_to_mesh, SOCK_IN, SOCK_FLOAT, PROP_NONE, "Scale", "Scale");
+
+    bNode &named_attribute = version_node_add_empty(*tree, "GeometryNodeInputNamedAttribute");
+    NodeGeometryInputNamedAttribute *named_attribute_storage =
+        MEM_callocN<NodeGeometryInputNamedAttribute>(__func__);
+    named_attribute_storage->data_type = CD_PROP_FLOAT;
+    named_attribute.storage = named_attribute_storage;
+    named_attribute.parent = curve_to_mesh->parent;
+    named_attribute.location[0] = curve_to_mesh->location[0] - 25;
+    named_attribute.location[1] = curve_to_mesh->location[1];
+    named_attribute.flag &= ~NODE_SELECT;
+
+    bNodeSocket *name_input = version_node_add_socket_if_not_exist(
+        tree, &named_attribute, SOCK_IN, SOCK_STRING, PROP_NONE, "Name", "Name");
+    STRNCPY(name_input->default_value_typed<bNodeSocketValueString>()->value, "radius");
+
+    version_node_add_socket_if_not_exist(
+        tree, &named_attribute, SOCK_OUT, SOCK_BOOLEAN, PROP_NONE, "Exists", "Exists");
+    version_node_add_socket_if_not_exist(
+        tree, &named_attribute, SOCK_OUT, SOCK_FLOAT, PROP_NONE, "Attribute", "Attribute");
+
+    bNode &switch_node = version_node_add_empty(*tree, "GeometryNodeSwitch");
+    NodeSwitch *switch_storage = MEM_callocN<NodeSwitch>(__func__);
+    switch_storage->input_type = SOCK_FLOAT;
+    switch_node.storage = switch_storage;
+    switch_node.parent = curve_to_mesh->parent;
+    switch_node.location[0] = curve_to_mesh->location[0] - 25;
+    switch_node.location[1] = curve_to_mesh->location[1];
+    switch_node.flag &= ~NODE_SELECT;
+
+    version_node_add_socket_if_not_exist(
+        tree, &switch_node, SOCK_IN, SOCK_BOOLEAN, PROP_NONE, "Switch", "Switch");
+    bNodeSocket *false_input = version_node_add_socket_if_not_exist(
+        tree, &switch_node, SOCK_IN, SOCK_FLOAT, PROP_NONE, "False", "False");
+    false_input->default_value_typed<bNodeSocketValueFloat>()->value = 1.0f;
+
+    version_node_add_socket_if_not_exist(
+        tree, &switch_node, SOCK_IN, SOCK_FLOAT, PROP_NONE, "True", "True");
+
+    version_node_add_link(*tree,
+                          named_attribute,
+                          *bke::node_find_socket(named_attribute, SOCK_OUT, "Exists"),
+                          switch_node,
+                          *bke::node_find_socket(switch_node, SOCK_IN, "Switch"));
+    version_node_add_link(*tree,
+                          named_attribute,
+                          *bke::node_find_socket(named_attribute, SOCK_OUT, "Attribute"),
+                          switch_node,
+                          *bke::node_find_socket(switch_node, SOCK_IN, "True"));
+
+    version_node_add_socket_if_not_exist(
+        tree, &switch_node, SOCK_OUT, SOCK_FLOAT, PROP_NONE, "Output", "Output");
+
+    version_node_add_link(*tree,
+                          switch_node,
+                          *bke::node_find_socket(switch_node, SOCK_OUT, "Output"),
+                          *curve_to_mesh,
+                          *bke::node_find_socket(*curve_to_mesh, SOCK_IN, "Scale"));
+  }
+}
+
 static bool strip_effect_overdrop_to_alphaover(Strip *strip, void * /*user_data*/)
 {
   if (strip->type == STRIP_TYPE_OVERDROP_REMOVED) {
@@ -3780,7 +6855,76 @@ static void version_sequencer_update_overdrop(Main *bmain)
 {
   LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
     if (scene->ed != nullptr) {
-      SEQ_for_each_callback(&scene->ed->seqbase, strip_effect_overdrop_to_alphaover, nullptr);
+      blender::seq::for_each_callback(
+          &scene->ed->seqbase, strip_effect_overdrop_to_alphaover, nullptr);
+    }
+  }
+}
+
+static void asset_browser_add_list_view(Main *bmain)
+{
+  LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+      LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+        if (sl->spacetype != SPACE_FILE) {
+          continue;
+        }
+        SpaceFile *sfile = reinterpret_cast<SpaceFile *>(sl);
+        if (sfile->params) {
+          if (sfile->params->list_thumbnail_size == 0) {
+            sfile->params->list_thumbnail_size = 16;
+          }
+          if (sfile->params->list_column_size == 0) {
+            sfile->params->list_column_size = 500;
+          }
+        }
+        if (sfile->asset_params) {
+          if (sfile->asset_params->base_params.list_thumbnail_size == 0) {
+            sfile->asset_params->base_params.list_thumbnail_size = 32;
+          }
+          if (sfile->asset_params->base_params.list_column_size == 0) {
+            sfile->asset_params->base_params.list_column_size = 220;
+          }
+          sfile->asset_params->base_params.details_flags = 0;
+        }
+      }
+    }
+  }
+}
+
+static void version_show_texpaint_to_show_uv(Main *bmain)
+{
+  LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+      LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+        if (sl->spacetype == SPACE_IMAGE) {
+          SpaceImage *sima = reinterpret_cast<SpaceImage *>(sl);
+          if (sima->flag & SI_NO_DRAW_TEXPAINT) {
+            sima->flag |= SI_NO_DRAW_UV_GUIDE;
+          }
+        }
+      }
+    }
+  }
+}
+
+static void version_set_uv_face_overlay_defaults(Main *bmain)
+{
+  LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+      LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+        if (sl->spacetype == SPACE_IMAGE) {
+          SpaceImage *sima = reinterpret_cast<SpaceImage *>(sl);
+          /* Remove ID Code from screen name */
+          const char *workspace_name = screen->id.name + 2;
+          /* Don't set uv_face_opacity for Texture Paint or Shading since these are workspaces
+           * where it's important to have unobstructed view of the Image Editor to see Image
+           * Textures. UV Editing is the only other default workspace with an Image Editor.*/
+          if (STREQ(workspace_name, "UV Editing")) {
+            sima->uv_face_opacity = 1.0f;
+          }
+        }
+      }
     }
   }
 }
@@ -4690,7 +7834,8 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 401, 18)) {
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       if (scene->ed != nullptr) {
-        SEQ_for_each_callback(&scene->ed->seqbase, strip_filter_bilinear_to_auto, nullptr);
+        blender::seq::for_each_callback(
+            &scene->ed->seqbase, strip_filter_bilinear_to_auto, nullptr);
       }
     }
   }
@@ -4850,7 +7995,8 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
 
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       if (scene->ed != nullptr) {
-        SEQ_for_each_callback(&scene->ed->seqbase, strip_hue_correct_set_wrapping, nullptr);
+        blender::seq::for_each_callback(
+            &scene->ed->seqbase, strip_hue_correct_set_wrapping, nullptr);
       }
     }
   }
@@ -4901,7 +8047,7 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 20)) {
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      SequencerToolSettings *sequencer_tool_settings = SEQ_tool_settings_ensure(scene);
+      SequencerToolSettings *sequencer_tool_settings = blender::seq::tool_settings_ensure(scene);
       sequencer_tool_settings->snap_mode |= SEQ_SNAP_TO_MARKERS;
     }
   }
@@ -5009,7 +8155,8 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 28)) {
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       if (scene->ed != nullptr) {
-        SEQ_for_each_callback(&scene->ed->seqbase, strip_proxies_timecode_update, nullptr);
+        blender::seq::for_each_callback(
+            &scene->ed->seqbase, strip_proxies_timecode_update, nullptr);
       }
     }
 
@@ -5022,7 +8169,7 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 29)) {
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       if (scene->ed) {
-        SEQ_for_each_callback(&scene->ed->seqbase, strip_text_data_update, nullptr);
+        blender::seq::for_each_callback(&scene->ed->seqbase, strip_text_data_update, nullptr);
       }
     }
   }
@@ -5389,7 +8536,7 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 403, 7)) {
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      SequencerToolSettings *sequencer_tool_settings = SEQ_tool_settings_ensure(scene);
+      SequencerToolSettings *sequencer_tool_settings = blender::seq::tool_settings_ensure(scene);
       sequencer_tool_settings->snap_mode |= SEQ_SNAP_TO_PREVIEW_BORDERS |
                                             SEQ_SNAP_TO_PREVIEW_CENTER |
                                             SEQ_SNAP_TO_STRIPS_PREVIEW;
@@ -5661,9 +8808,9 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 1)) {
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      Editing *ed = SEQ_editing_get(scene);
+      Editing *ed = blender::seq::editing_get(scene);
       if (ed != nullptr) {
-        SEQ_for_each_callback(&ed->seqbase, versioning_convert_seq_text_anchor, nullptr);
+        blender::seq::for_each_callback(&ed->seqbase, versioning_convert_seq_text_anchor, nullptr);
       }
     }
   }
@@ -5767,9 +8914,9 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 15)) {
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      Editing *ed = SEQ_editing_get(scene);
+      Editing *ed = blender::seq::editing_get(scene);
       if (ed != nullptr) {
-        SEQ_for_each_callback(&ed->seqbase, versioning_clear_strip_unused_flag, scene);
+        blender::seq::for_each_callback(&ed->seqbase, versioning_clear_strip_unused_flag, scene);
       }
     }
   }
@@ -5860,7 +9007,7 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 28)) {
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-      SequencerToolSettings *sequencer_tool_settings = SEQ_tool_settings_ensure(scene);
+      SequencerToolSettings *sequencer_tool_settings = blender::seq::tool_settings_ensure(scene);
       sequencer_tool_settings->snap_mode |= SEQ_SNAP_TO_RETIMING;
     }
   }
@@ -5872,13 +9019,604 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 30)) {
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          if (ELEM(sl->spacetype, SPACE_ACTION, SPACE_INFO, SPACE_CONSOLE)) {
+            ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
+                                                                   &sl->regionbase;
+            LISTBASE_FOREACH (ARegion *, region, regionbase) {
+              if (region->regiontype == RGN_TYPE_WINDOW) {
+                region->v2d.scroll |= V2D_SCROLL_RIGHT | V2D_SCROLL_VERTICAL_HIDE;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 2)) {
     version_sequencer_update_overdrop(bmain);
   }
 
-  /* Always run this versioning; meshes are written with the legacy format which always needs to
-   * be converted to the new format on file load. Can be moved to a subversion check in a larger
-   * breaking release. */
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 4)) {
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      if (ntree->type == NTREE_GEOMETRY) {
+        do_version_node_curve_to_mesh_scale_input(ntree);
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 5)) {
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      ToolSettings *tool_settings = scene->toolsettings;
+      tool_settings->snap_flag_seq |= SCE_SNAP;
+
+      SequencerToolSettings *sequencer_tool_settings = blender::seq::tool_settings_ensure(scene);
+      sequencer_tool_settings->snap_mode |= SEQ_SNAP_TO_FRAME_RANGE;
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 6)) {
+    asset_browser_add_list_view(bmain);
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 7)) {
+    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
+      if (ntree->type == NTREE_GEOMETRY) {
+        LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+          if (STREQ(node->idname, "GeometryNodeStoreNamedGrid")) {
+            switch (node->custom1) {
+              case CD_PROP_FLOAT:
+                node->custom1 = VOLUME_GRID_FLOAT;
+                break;
+              case CD_PROP_FLOAT2:
+              case CD_PROP_FLOAT3:
+                node->custom1 = VOLUME_GRID_VECTOR_FLOAT;
+                break;
+              default:
+                node->custom1 = VOLUME_GRID_FLOAT;
+                break;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 8)) {
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      if (ntree->type == NTREE_COMPOSIT) {
+        do_version_convert_to_generic_nodes(ntree);
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 9)) {
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          if (sl->spacetype != SPACE_FILE) {
+            continue;
+          }
+          SpaceFile *sfile = reinterpret_cast<SpaceFile *>(sl);
+          if (sfile->asset_params) {
+            sfile->asset_params->import_flags |= FILE_ASSET_IMPORT_INSTANCE_COLLECTIONS_ON_LINK;
+          }
+        }
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 15)) {
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      if (ntree->type != NTREE_COMPOSIT) {
+        continue;
+      }
+      LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+        if (node->type_legacy != CMP_NODE_SCALE) {
+          continue;
+        }
+        if (node->storage != nullptr) {
+          continue;
+        }
+        NodeScaleData *data = MEM_callocN<NodeScaleData>(__func__);
+        data->interpolation = CMP_NODE_INTERPOLATION_BILINEAR;
+        node->storage = data;
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 16)) {
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      scene->grease_pencil_settings.smaa_threshold_render =
+          scene->grease_pencil_settings.smaa_threshold;
+      scene->grease_pencil_settings.aa_samples = 1;
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 17)) {
+    version_show_texpaint_to_show_uv(bmain);
+    version_set_uv_face_overlay_defaults(bmain);
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 18)) {
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      if (ntree->type == NTREE_COMPOSIT) {
+        LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+          if (node->type_legacy == CMP_NODE_CORNERPIN) {
+            node->custom1 = CMP_NODE_CORNER_PIN_INTERPOLATION_ANISOTROPIC;
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 19)) {
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          if (sl->spacetype == SPACE_PROPERTIES) {
+            SpaceProperties *sbuts = reinterpret_cast<SpaceProperties *>(sl);
+            /* Translates to 0xFFFFFFFF, so other tabs can be added without versioning. */
+            sbuts->visible_tabs = uint(-1);
+          }
+        }
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 20)) {
+    /* Older files uses non-UTF8 aware string copy, ensure names are valid UTF8.
+     * The slot names are not unique so no further changes are needed. */
+    LISTBASE_FOREACH (Image *, image, &bmain->images) {
+      LISTBASE_FOREACH (RenderSlot *, slot, &image->renderslots) {
+        if (slot->name[0]) {
+          BLI_str_utf8_invalid_strip(slot->name, STRNLEN(slot->name));
+        }
+      }
+    }
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      scene->r.ppm_factor = 72.0f;
+      scene->r.ppm_base = 0.0254f;
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 21)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type == NTREE_COMPOSIT) {
+        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+          if (node->type_legacy == CMP_NODE_GLARE) {
+            do_version_glare_node_star_45_option_to_input(node_tree, node);
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 22)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type == NTREE_COMPOSIT) {
+        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+          if (node->type_legacy == CMP_NODE_BOKEHIMAGE) {
+            do_version_bokeh_image_node_options_to_inputs(node_tree, node);
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 23)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type == NTREE_COMPOSIT) {
+        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+          if (node->type_legacy == CMP_NODE_TIME) {
+            do_version_time_curve_node_options_to_inputs(node_tree, node);
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 24)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type == NTREE_COMPOSIT) {
+        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+          if (node->type_legacy == CMP_NODE_MASK) {
+            do_version_mask_node_options_to_inputs(node_tree, node);
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 25)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type == NTREE_COMPOSIT) {
+        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+          if (node->type_legacy == CMP_NODE_SWITCH) {
+            do_version_switch_node_options_to_inputs(node_tree, node);
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 26)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type == NTREE_COMPOSIT) {
+        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+          if (node->type_legacy == CMP_NODE_SPLIT) {
+            do_version_split_node_options_to_inputs(node_tree, node);
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 27)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type == NTREE_COMPOSIT) {
+        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+          if (node->type_legacy == CMP_NODE_INVERT) {
+            do_version_invert_node_options_to_inputs(node_tree, node);
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 28)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type == NTREE_COMPOSIT) {
+        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+          if (node->type_legacy == CMP_NODE_ZCOMBINE) {
+            do_version_z_combine_node_options_to_inputs(node_tree, node);
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 29)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type == NTREE_COMPOSIT) {
+        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+          if (node->type_legacy == CMP_NODE_TONEMAP) {
+            do_version_tone_map_node_options_to_inputs(node_tree, node);
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 30)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type == NTREE_COMPOSIT) {
+        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+          if (node->type_legacy == CMP_NODE_DILATEERODE) {
+            do_version_dilate_node_options_to_inputs(node_tree, node);
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 31)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type == NTREE_COMPOSIT) {
+        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+          if (node->type_legacy == CMP_NODE_INPAINT) {
+            do_version_inpaint_node_options_to_inputs(node_tree, node);
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 32)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type == NTREE_COMPOSIT) {
+        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+          if (node->type_legacy == CMP_NODE_PIXELATE) {
+            do_version_pixelate_node_options_to_inputs(node_tree, node);
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 33)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type == NTREE_COMPOSIT) {
+        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+          if (node->type_legacy == CMP_NODE_KUWAHARA) {
+            do_version_kuwahara_node_options_to_inputs(node_tree, node);
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 34)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type == NTREE_COMPOSIT) {
+        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+          if (node->type_legacy == CMP_NODE_DESPECKLE) {
+            do_version_despeckle_node_options_to_inputs(node_tree, node);
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 35)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type == NTREE_COMPOSIT) {
+        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+          if (node->type_legacy == CMP_NODE_DENOISE) {
+            do_version_denoise_node_options_to_inputs(node_tree, node);
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 36)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type == NTREE_COMPOSIT) {
+        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+          if (node->type_legacy == CMP_NODE_ANTIALIASING) {
+            do_version_anti_alias_node_options_to_inputs(node_tree, node);
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 37)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type == NTREE_COMPOSIT) {
+        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+          if (node->type_legacy == CMP_NODE_VECBLUR) {
+            do_version_vector_blur_node_options_to_inputs(node_tree, node);
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 38)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type == NTREE_COMPOSIT) {
+        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+          if (node->type_legacy == CMP_NODE_CHANNEL_MATTE) {
+            do_version_channel_matte_node_options_to_inputs(node_tree, node);
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 39)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type == NTREE_COMPOSIT) {
+        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+          if (node->type_legacy == CMP_NODE_CHROMA_MATTE) {
+            do_version_chroma_matte_node_options_to_inputs(node_tree, node);
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 40)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type == NTREE_COMPOSIT) {
+        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+          if (node->type_legacy == CMP_NODE_COLOR_MATTE) {
+            do_version_color_matte_node_options_to_inputs(node_tree, node);
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 41)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type == NTREE_COMPOSIT) {
+        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+          if (node->type_legacy == CMP_NODE_DIFF_MATTE) {
+            do_version_difference_matte_node_options_to_inputs(node_tree, node);
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 42)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type == NTREE_COMPOSIT) {
+        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+          if (node->type_legacy == CMP_NODE_DIST_MATTE) {
+            do_version_distance_matte_node_options_to_inputs(node_tree, node);
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 43)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type == NTREE_COMPOSIT) {
+        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+          if (node->type_legacy == CMP_NODE_LUMA_MATTE) {
+            do_version_luminance_matte_node_options_to_inputs(node_tree, node);
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 44)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type == NTREE_COMPOSIT) {
+        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+          if (node->type_legacy == CMP_NODE_COLOR_SPILL) {
+            do_version_color_spill_node_options_to_inputs(node_tree, node);
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 45)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type == NTREE_COMPOSIT) {
+        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+          if (node->type_legacy == CMP_NODE_KEYINGSCREEN) {
+            do_version_keying_screen_node_options_to_inputs(node_tree, node);
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 46)) {
+    LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+      LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+        LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+          if (sl->spacetype == SPACE_SEQ) {
+            ListBase *regionbase = (sl == area->spacedata.first) ? &area->regionbase :
+                                                                   &sl->regionbase;
+            LISTBASE_FOREACH (ARegion *, region, regionbase) {
+              if (region->regiontype == RGN_TYPE_WINDOW) {
+                region->v2d.keepzoom |= V2D_KEEPZOOM;
+                region->v2d.keepofs |= V2D_KEEPOFS_X | V2D_KEEPOFS_Y;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 47)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type == NTREE_COMPOSIT) {
+        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+          if (node->type_legacy == CMP_NODE_KEYING) {
+            do_version_keying_node_options_to_inputs(node_tree, node);
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 48)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type == NTREE_COMPOSIT) {
+        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+          if (node->type_legacy == CMP_NODE_ID_MASK) {
+            do_version_id_mask_node_options_to_inputs(node_tree, node);
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 49)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type == NTREE_COMPOSIT) {
+        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+          if (node->type_legacy == CMP_NODE_STABILIZE2D) {
+            do_version_stabilize_node_options_to_inputs(node_tree, node);
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 50)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type == NTREE_COMPOSIT) {
+        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+          if (node->type_legacy == CMP_NODE_PLANETRACKDEFORM) {
+            do_version_plane_track_deform_node_options_to_inputs(node_tree, node);
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 51)) {
+    const Object *dob = DNA_struct_default_get(Object);
+    LISTBASE_FOREACH (Object *, object, &bmain->objects) {
+      object->shadow_terminator_normal_offset = dob->shadow_terminator_normal_offset;
+      object->shadow_terminator_geometry_offset = dob->shadow_terminator_geometry_offset;
+      object->shadow_terminator_shading_offset = dob->shadow_terminator_shading_offset;
+      /* Copy Cycles' property into Blender Object. */
+      IDProperty *cob = version_cycles_properties_from_ID(&object->id);
+      if (cob) {
+        object->shadow_terminator_geometry_offset = version_cycles_property_float(
+            cob, "shadow_terminator_geometry_offset", dob->shadow_terminator_geometry_offset);
+        object->shadow_terminator_shading_offset = version_cycles_property_float(
+            cob, "shadow_terminator_offset", dob->shadow_terminator_shading_offset);
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 52)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type == NTREE_COMPOSIT) {
+        LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+          if (node->type_legacy == CMP_NODE_COLORCORRECTION) {
+            do_version_color_correction_node_options_to_inputs(node_tree, node);
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  /* Always run this versioning (keep at the bottom of the function). Meshes are written with the
+   * legacy format which always needs to be converted to the new format on file load. To be moved
+   * to a subversion check in 5.0. */
   LISTBASE_FOREACH (Mesh *, mesh, &bmain->meshes) {
     blender::bke::mesh_sculpt_mask_to_generic(*mesh);
     blender::bke::mesh_custom_normals_to_generic(*mesh);

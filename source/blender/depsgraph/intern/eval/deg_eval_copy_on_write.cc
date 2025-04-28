@@ -295,7 +295,7 @@ bool scene_copy_inplace_no_main(const Scene *scene, Scene *new_scene)
 {
 
   if (G.debug & G_DEBUG_DEPSGRAPH_UID) {
-    SEQ_relations_check_uids_unique_and_report(scene);
+    seq::relations_check_uids_unique_and_report(scene);
   }
 
 #ifdef NESTED_ID_NASTY_WORKAROUND

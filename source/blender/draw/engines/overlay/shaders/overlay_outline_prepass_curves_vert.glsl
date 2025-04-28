@@ -6,23 +6,19 @@
 
 VERTEX_SHADER_CREATE_INFO(overlay_outline_prepass_curves)
 
-#include "common_hair_lib.glsl"
+#include "draw_curves_lib.glsl"
 #include "draw_model_lib.glsl"
+#include "draw_object_infos_lib.glsl"
 #include "draw_view_clipping_lib.glsl"
 #include "draw_view_lib.glsl"
 #include "gpu_shader_utildefines_lib.glsl"
 
 uint outline_colorid_get()
 {
-#ifdef OBINFO_NEW
-  eObjectInfoFlag ob_flag = eObjectInfoFlag(floatBitsToUint(drw_infos[drw_resource_id()].infos.w));
+  eObjectInfoFlag ob_flag = drw_object_infos().flag;
   bool is_active = flag_test(ob_flag, OBJECT_ACTIVE);
-#else
-  int flag = int(abs(ObjectInfo.w));
-  bool is_active = (flag & DRW_BASE_ACTIVE) != 0;
-#endif
 
-  if (isTransform) {
+  if (is_transform) {
     return 0u; /* colorTransform */
   }
   else if (is_active) {
@@ -35,17 +31,11 @@ uint outline_colorid_get()
   return 0u;
 }
 
-/* Replace top 2 bits (of the 16bit output) by outlineId.
- * This leaves 16K different IDs to create outlines between objects.
- * `vec3 world_pos = drw_point_object_to_world(pos);`
- * `SHIFT = (32 - (16 - 2))`. */
-#define SHIFT 18u
-
 void main()
 {
-  bool is_persp = (drw_view().winmat[3][3] == 0.0);
+  bool is_persp = (drw_view().winmat[3][3] == 0.0f);
   float time, thickness;
-  vec3 center_wpos, tangent, binor;
+  float3 center_wpos, tangent, binor;
 
   hair_get_center_pos_tan_binor_time(is_persp,
                                      drw_view().viewinv[3].xyz,
@@ -55,17 +45,17 @@ void main()
                                      binor,
                                      time,
                                      thickness);
-  vec3 world_pos;
+  float3 world_pos;
   if (hairThicknessRes > 1) {
     /* Calculate the thickness, thick-time, world-position taken into account the outline. */
-    float outline_width = drw_point_world_to_homogenous(center_wpos).w * 1.25 *
+    float outline_width = drw_point_world_to_homogenous(center_wpos).w * 1.25f *
                           globalsBlock.size_viewport.w * drw_view().wininv[1][1];
     thickness += outline_width;
     float thick_time = float(gl_VertexID % hairThicknessRes) / float(hairThicknessRes - 1);
-    thick_time = thickness * (thick_time * 2.0 - 1.0);
+    thick_time = thickness * (thick_time * 2.0f - 1.0f);
     /* Take object scale into account.
      * NOTE: This only works fine with uniform scaling. */
-    float scale = 1.0 / length(to_float3x3(drw_modelinv()) * binor);
+    float scale = 1.0f / length(to_float3x3(drw_modelinv()) * binor);
     world_pos = center_wpos + binor * thick_time * scale;
   }
   else {
@@ -79,7 +69,7 @@ void main()
 #endif
 
   /* Small bias to always be on top of the geom. */
-  gl_Position.z -= 1e-3;
+  gl_Position.z -= 1e-3f;
 
   /* ID 0 is nothing (background) */
   interp.ob_id = uint(drw_resource_id() + 1);
@@ -88,7 +78,7 @@ void main()
   uint outline_id = outline_colorid_get();
 
   /* Combine for 16bit uint target. */
-  interp.ob_id = (outline_id << 14u) | ((interp.ob_id << SHIFT) >> SHIFT);
+  interp.ob_id = outline_id_pack(outline_id, interp.ob_id);
 
   view_clipping_distances(world_pos);
 }

@@ -96,7 +96,7 @@ static bGPDpalette *BKE_gpencil_palette_addnew(bGPdata *gpd, const char *name)
   }
 
   /* allocate memory and add to end of list */
-  palette = static_cast<bGPDpalette *>(MEM_callocN(sizeof(bGPDpalette), "bGPDpalette"));
+  palette = MEM_callocN<bGPDpalette>("bGPDpalette");
 
   /* add to datablock */
   BLI_addtail(&gpd->palettes, palette);
@@ -126,8 +126,7 @@ static bGPDpalettecolor *BKE_gpencil_palettecolor_addnew(bGPDpalette *palette, c
   }
 
   /* allocate memory and add to end of list */
-  palcolor = static_cast<bGPDpalettecolor *>(
-      MEM_callocN(sizeof(bGPDpalettecolor), "bGPDpalettecolor"));
+  palcolor = MEM_callocN<bGPDpalettecolor>("bGPDpalettecolor");
 
   /* add to datablock */
   BLI_addtail(&palette->colors, palcolor);
@@ -326,8 +325,7 @@ static void do_versions_compositor_render_passes_storage(bNode *node)
        sock = static_cast<bNodeSocket *>(sock->next), pass_index++)
   {
     if (sock->storage == nullptr) {
-      NodeImageLayer *sockdata = static_cast<NodeImageLayer *>(
-          MEM_callocN(sizeof(NodeImageLayer), "node image layer"));
+      NodeImageLayer *sockdata = MEM_callocN<NodeImageLayer>("node image layer");
       sock->storage = sockdata;
       STRNCPY(sockdata->pass_name, node_cmp_rlayers_sock_to_pass(pass_index));
 
@@ -423,8 +421,7 @@ static void do_version_bbone_easing_fcurve_fix(ID * /*id*/, FCurve *fcu)
 
 static bool strip_update_proxy_cb(Strip *strip, void * /*user_data*/)
 {
-  strip->stereo3d_format = static_cast<Stereo3dFormat *>(
-      MEM_callocN(sizeof(Stereo3dFormat), "Stereo Display 3d Format"));
+  strip->stereo3d_format = MEM_callocN<Stereo3dFormat>("Stereo Display 3d Format");
 
 #define STRIP_USE_PROXY_CUSTOM_DIR (1 << 19)
 #define STRIP_USE_PROXY_CUSTOM_FILE (1 << 21)
@@ -448,7 +445,7 @@ static bool strip_update_effectdata_cb(Strip *strip, void * /*user_data*/)
   }
 
   if (strip->effectdata == nullptr) {
-    SeqEffectHandle effect_handle = SEQ_effect_handle_get(strip);
+    blender::seq::EffectHandle effect_handle = blender::seq::effect_handle_get(strip);
     effect_handle.init(strip);
   }
 
@@ -861,7 +858,7 @@ void blo_do_versions_270(FileData *fd, Library * /*lib*/, Main *bmain)
       STRNCPY(srv->suffix, STEREO_RIGHT_SUFFIX);
 
       if (scene->ed) {
-        SEQ_for_each_callback(&scene->ed->seqbase, strip_update_proxy_cb, nullptr);
+        blender::seq::for_each_callback(&scene->ed->seqbase, strip_update_proxy_cb, nullptr);
       }
     }
 
@@ -893,12 +890,10 @@ void blo_do_versions_270(FileData *fd, Library * /*lib*/, Main *bmain)
     }
 
     LISTBASE_FOREACH (Image *, ima, &bmain->images) {
-      ima->stereo3d_format = static_cast<Stereo3dFormat *>(
-          MEM_callocN(sizeof(Stereo3dFormat), "Image Stereo 3d Format"));
+      ima->stereo3d_format = MEM_callocN<Stereo3dFormat>("Image Stereo 3d Format");
 
       if (ima->packedfile) {
-        ImagePackedFile *imapf = static_cast<ImagePackedFile *>(
-            MEM_mallocN(sizeof(ImagePackedFile), "Image Packed File"));
+        ImagePackedFile *imapf = MEM_mallocN<ImagePackedFile>("Image Packed File");
         BLI_addtail(&ima->packedfiles, imapf);
 
         imapf->packedfile = ima->packedfile;
@@ -909,8 +904,7 @@ void blo_do_versions_270(FileData *fd, Library * /*lib*/, Main *bmain)
 
     LISTBASE_FOREACH (wmWindowManager *, wm, &bmain->wm) {
       LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
-        win->stereo3d_format = static_cast<Stereo3dFormat *>(
-            MEM_callocN(sizeof(Stereo3dFormat), "Stereo Display 3d Format"));
+        win->stereo3d_format = MEM_callocN<Stereo3dFormat>("Stereo Display 3d Format");
       }
     }
   }
@@ -1030,9 +1024,8 @@ void blo_do_versions_270(FileData *fd, Library * /*lib*/, Main *bmain)
     LISTBASE_FOREACH (bGPdata *, gpd, &bmain->gpencils) {
       bool enabled = false;
 
-      /* Ensure that the datablock's onion-skinning toggle flag
-       * stays in sync with the status of the actual layers
-       */
+      /* Ensure that the data-block's onion-skinning toggle flag
+       * stays in sync with the status of the actual layers. */
       LISTBASE_FOREACH (bGPDlayer *, gpl, &gpd->layers) {
         if (gpl->flag & GP_LAYER_ONIONSKIN) {
           enabled = true;
@@ -1132,7 +1125,7 @@ void blo_do_versions_270(FileData *fd, Library * /*lib*/, Main *bmain)
 
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       if (scene->ed) {
-        SEQ_for_each_callback(&scene->ed->seqbase, strip_update_effectdata_cb, nullptr);
+        blender::seq::for_each_callback(&scene->ed->seqbase, strip_update_effectdata_cb, nullptr);
       }
     }
 

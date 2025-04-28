@@ -126,7 +126,7 @@ OCIO_ConstConfigRcPtr *OCIOImpl::configCreateFromFile(const char *filename)
 
 void OCIOImpl::configRelease(OCIO_ConstConfigRcPtr *config)
 {
-  MEM_delete((ConstConfigRcPtr *)config);
+  MEM_delete(reinterpret_cast<ConstConfigRcPtr *>(config));
 }
 
 int OCIOImpl::configGetNumColorSpaces(OCIO_ConstConfigRcPtr *config)
@@ -184,6 +184,22 @@ int OCIOImpl::configGetIndexForColorSpace(OCIO_ConstConfigRcPtr *config, const c
   }
 
   return -1;
+}
+
+const char *OCIOImpl::getColorSpaceFromFilepath(OCIO_ConstConfigRcPtr *config,
+                                                const char *filepath)
+{
+  ConstConfigRcPtr &cfg = *(ConstConfigRcPtr *)config;
+
+  /* If Blender specific default_byte or default_float roles exist, don't use the
+   * default rule which can't distinguish between these two cases automatically. */
+  if (cfg->filepathOnlyMatchesDefaultRule(filepath) &&
+      (cfg->hasRole(OCIO_ROLE_DEFAULT_BYTE) || cfg->hasRole(OCIO_ROLE_DEFAULT_FLOAT)))
+  {
+    return nullptr;
+  }
+
+  return cfg->getColorSpaceFromFilepath(filepath);
 }
 
 const char *OCIOImpl::configGetDefaultDisplay(OCIO_ConstConfigRcPtr *config)
@@ -401,7 +417,7 @@ const char *OCIOImpl::lookGetProcessSpace(OCIO_ConstLookRcPtr *look)
 
 void OCIOImpl::lookRelease(OCIO_ConstLookRcPtr *look)
 {
-  MEM_delete((ConstLookRcPtr *)look);
+  MEM_delete(reinterpret_cast<ConstLookRcPtr *>(look));
 }
 
 int OCIOImpl::colorSpaceIsInvertible(OCIO_ConstColorSpaceRcPtr *cs_)
@@ -520,7 +536,7 @@ void OCIOImpl::colorSpaceIsBuiltin(OCIO_ConstConfigRcPtr *config_,
 
 void OCIOImpl::colorSpaceRelease(OCIO_ConstColorSpaceRcPtr *cs)
 {
-  MEM_delete((ConstColorSpaceRcPtr *)cs);
+  MEM_delete(reinterpret_cast<ConstColorSpaceRcPtr *>(cs));
 }
 
 OCIO_ConstProcessorRcPtr *OCIOImpl::configGetProcessorWithNames(OCIO_ConstConfigRcPtr *config,
@@ -547,7 +563,7 @@ OCIO_ConstProcessorRcPtr *OCIOImpl::configGetProcessorWithNames(OCIO_ConstConfig
 
 void OCIOImpl::processorRelease(OCIO_ConstProcessorRcPtr *processor)
 {
-  MEM_delete(processor);
+  MEM_delete(reinterpret_cast<ConstProcessorRcPtr *>(processor));
 }
 
 OCIO_ConstCPUProcessorRcPtr *OCIOImpl::processorGetCPUProcessor(
@@ -655,7 +671,7 @@ void OCIOImpl::cpuProcessorApplyRGBA_predivide(OCIO_ConstCPUProcessorRcPtr *cpu_
 
 void OCIOImpl::cpuProcessorRelease(OCIO_ConstCPUProcessorRcPtr *cpu_processor)
 {
-  MEM_delete(cpu_processor);
+  MEM_delete(reinterpret_cast<ConstCPUProcessorRcPtr *>(cpu_processor));
 }
 
 const char *OCIOImpl::colorSpaceGetName(OCIO_ConstColorSpaceRcPtr *cs)
@@ -825,7 +841,7 @@ OCIO_PackedImageDesc *OCIOImpl::createOCIO_PackedImageDesc(float *data,
 
 void OCIOImpl::OCIO_PackedImageDescRelease(OCIO_PackedImageDesc *id)
 {
-  MEM_delete((PackedImageDesc *)id);
+  MEM_delete(reinterpret_cast<PackedImageDesc *>(id));
 }
 
 const char *OCIOImpl::getVersionString()

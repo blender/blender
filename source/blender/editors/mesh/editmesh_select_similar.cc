@@ -149,7 +149,7 @@ static void face_to_plane(const Object *ob, BMFace *face, float r_plane[4])
  *  -SIMFACE_AREA
  *  -SIMFACE_PERIMETER
  */
-static int similar_face_select_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus similar_face_select_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -556,7 +556,7 @@ static bool edge_data_value_set(BMEdge *edge, const int hflag, int *r_value)
 /* TODO(dfelinto): `types` that should technically be compared in world space but are not:
  *  -SIMEDGE_FACE_ANGLE
  */
-static int similar_edge_select_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus similar_edge_select_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -943,7 +943,7 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 /** \name Select Similar Vert
  * \{ */
 
-static int similar_vert_select_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus similar_vert_select_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -1261,7 +1261,7 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
 /** \name Select Similar Operator
  * \{ */
 
-static int edbm_select_similar_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus edbm_select_similar_exec(bContext *C, wmOperator *op)
 {
   ToolSettings *ts = CTX_data_tool_settings(C);
   PropertyRNA *prop = RNA_struct_find_property(op->ptr, "threshold");

@@ -69,10 +69,10 @@ Mesh *create_grid_mesh(const int verts_x,
           const int y_offset = x * verts_y;
           threading::parallel_for(IndexRange(verts_y), 512, [&](IndexRange y_range) {
             for (const int y : y_range) {
-              const int vert_index = y_offset + y;
-              positions[vert_index].x = (x - x_shift) * dx;
-              positions[vert_index].y = (y - y_shift) * dy;
-              positions[vert_index].z = 0.0f;
+              const int vert = y_offset + y;
+              positions[vert].x = (x - x_shift) * dx;
+              positions[vert].y = (y - y_shift) * dy;
+              positions[vert].z = 0.0f;
             }
           });
         }
@@ -91,8 +91,8 @@ Mesh *create_grid_mesh(const int verts_x,
         const int y_edge_offset = y_edges_start + x * edges_y;
         threading::parallel_for(IndexRange(edges_y), 512, [&](IndexRange y_range) {
           for (const int y : y_range) {
-            const int vert_index = y_vert_offset + y;
-            edges[y_edge_offset + y] = int2(vert_index, vert_index + 1);
+            const int vert = y_vert_offset + y;
+            edges[y_edge_offset + y] = int2(vert, vert + 1);
           }
         });
       }
@@ -106,8 +106,8 @@ Mesh *create_grid_mesh(const int verts_x,
         const int x_edge_offset = x_edges_start + y * edges_x;
         threading::parallel_for(IndexRange(edges_x), 512, [&](IndexRange x_range) {
           for (const int x : x_range) {
-            const int vert_index = x * verts_y + y;
-            edges[x_edge_offset + x] = int2(vert_index, vert_index + verts_y);
+            const int vert = x * verts_y + y;
+            edges[x_edge_offset + x] = int2(vert, vert + verts_y);
           }
         });
       }
@@ -121,21 +121,21 @@ Mesh *create_grid_mesh(const int verts_x,
             const int y_offset = x * edges_y;
             threading::parallel_for(IndexRange(edges_y), 512, [&](IndexRange y_range) {
               for (const int y : y_range) {
-                const int face_index = y_offset + y;
-                const int loop_index = face_index * 4;
-                const int vert_index = x * verts_y + y;
+                const int face = y_offset + y;
+                const int corner = face * 4;
+                const int vert = x * verts_y + y;
 
-                corner_verts[loop_index] = vert_index;
-                corner_edges[loop_index] = x_edges_start + edges_x * y + x;
+                corner_verts[corner] = vert;
+                corner_edges[corner] = x_edges_start + edges_x * y + x;
 
-                corner_verts[loop_index + 1] = vert_index + verts_y;
-                corner_edges[loop_index + 1] = y_edges_start + edges_y * (x + 1) + y;
+                corner_verts[corner + 1] = vert + verts_y;
+                corner_edges[corner + 1] = y_edges_start + edges_y * (x + 1) + y;
 
-                corner_verts[loop_index + 2] = vert_index + verts_y + 1;
-                corner_edges[loop_index + 2] = x_edges_start + edges_x * (y + 1) + x;
+                corner_verts[corner + 2] = vert + verts_y + 1;
+                corner_edges[corner + 2] = x_edges_start + edges_x * (y + 1) + x;
 
-                corner_verts[loop_index + 3] = vert_index + 1;
-                corner_edges[loop_index + 3] = y_edges_start + edges_y * x + y;
+                corner_verts[corner + 3] = vert + 1;
+                corner_edges[corner + 3] = y_edges_start + edges_y * x + y;
               }
             });
           }

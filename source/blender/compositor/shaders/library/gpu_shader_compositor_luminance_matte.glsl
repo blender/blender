@@ -4,15 +4,15 @@
 
 #include "gpu_shader_common_color_utils.glsl"
 
-void node_composite_luminance_matte(vec4 color,
-                                    float high,
-                                    float low,
-                                    const vec3 luminance_coefficients,
-                                    out vec4 result,
+void node_composite_luminance_matte(float4 color,
+                                    float minimum,
+                                    float maximum,
+                                    const float3 luminance_coefficients,
+                                    out float4 result,
                                     out float matte)
 {
   float luminance = get_luminance(color.rgb, luminance_coefficients);
-  float alpha = clamp((luminance - low) / (high - low), 0.0, 1.0);
+  float alpha = clamp((luminance - minimum) / (maximum - minimum), 0.0f, 1.0f);
   matte = min(alpha, color.a);
   result = color * matte;
 }

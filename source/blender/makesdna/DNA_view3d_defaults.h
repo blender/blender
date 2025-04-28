@@ -33,6 +33,7 @@
     .background_color = {0.05f, 0.05f, 0.05f}, \
     .studiolight_intensity = 1.0f, \
     .render_pass = SCE_PASS_COMBINED, \
+    .wire_color_type = V3D_SHADING_SINGLE_COLOR, \
   }
 
 #define _DNA_DEFAULT_View3DOverlay \
@@ -40,7 +41,7 @@
     .flag = V3D_OVERLAY_VIEWER_ATTRIBUTE | V3D_OVERLAY_SCULPT_SHOW_MASK | V3D_OVERLAY_SCULPT_SHOW_FACE_SETS, \
     .wireframe_threshold = 1.0f, \
     .wireframe_opacity = 1.0f, \
-    .retopology_offset = 0.2f, \
+    .retopology_offset = 0.01f, \
     .viewer_attribute_opacity = 1.0f, \
     .xray_alpha_bone = 0.5f, \
     .bone_wire_alpha = 1.0f, \

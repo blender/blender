@@ -137,7 +137,9 @@ static void simulate_to_frame_endjob(void *customdata)
   WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, nullptr);
 }
 
-static int simulate_to_frame_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+static wmOperatorStatus simulate_to_frame_invoke(bContext *C,
+                                                 wmOperator *op,
+                                                 const wmEvent * /*event*/)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
   Scene *scene = CTX_data_scene(C);
@@ -182,7 +184,9 @@ static int simulate_to_frame_invoke(bContext *C, wmOperator *op, const wmEvent *
   return OPERATOR_RUNNING_MODAL;
 }
 
-static int simulate_to_frame_modal(bContext *C, wmOperator * /*op*/, const wmEvent * /*event*/)
+static wmOperatorStatus simulate_to_frame_modal(bContext *C,
+                                                wmOperator * /*op*/,
+                                                const wmEvent * /*event*/)
 {
   if (!WM_jobs_test(CTX_wm_manager(C), CTX_data_scene(C), WM_JOB_TYPE_CALCULATE_SIMULATION_NODES))
   {
@@ -541,10 +545,10 @@ enum class BakeRequestsMode {
   Async
 };
 
-static int start_bake_job(bContext *C,
-                          Vector<NodeBakeRequest> requests,
-                          wmOperator *op,
-                          const BakeRequestsMode mode)
+static wmOperatorStatus start_bake_job(bContext *C,
+                                       Vector<NodeBakeRequest> requests,
+                                       wmOperator *op,
+                                       const BakeRequestsMode mode)
 {
   for (NodeBakeRequest &request : requests) {
     reset_old_bake_cache(request);
@@ -662,7 +666,7 @@ static Vector<NodeBakeRequest> bake_simulation_gather_requests(bContext *C, wmOp
   return collect_simulations_to_bake(*bmain, *scene, objects);
 }
 
-static int bake_simulation_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus bake_simulation_exec(bContext *C, wmOperator *op)
 {
   Vector<NodeBakeRequest> requests = bake_simulation_gather_requests(C, op);
   return start_bake_job(C, std::move(requests), op, BakeRequestsMode::Sync);
@@ -802,7 +806,9 @@ static PathUsersMap bake_simulation_get_path_users(bContext *C, const Span<Objec
   return path_users;
 }
 
-static int bake_simulation_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+static wmOperatorStatus bake_simulation_invoke(bContext *C,
+                                               wmOperator *op,
+                                               const wmEvent * /*event*/)
 {
   Vector<Object *> objects;
   if (RNA_boolean_get(op->ptr, "selected")) {
@@ -857,7 +863,9 @@ static int bake_simulation_invoke(bContext *C, wmOperator *op, const wmEvent * /
   return start_bake_job(C, std::move(requests), op, BakeRequestsMode::Async);
 }
 
-static int bake_simulation_modal(bContext *C, wmOperator * /*op*/, const wmEvent * /*event*/)
+static wmOperatorStatus bake_simulation_modal(bContext *C,
+                                              wmOperator * /*op*/,
+                                              const wmEvent * /*event*/)
 {
   if (!WM_jobs_test(CTX_wm_manager(C), CTX_data_scene(C), WM_JOB_TYPE_BAKE_GEOMETRY_NODES)) {
     return OPERATOR_FINISHED | OPERATOR_PASS_THROUGH;
@@ -865,7 +873,7 @@ static int bake_simulation_modal(bContext *C, wmOperator * /*op*/, const wmEvent
   return OPERATOR_PASS_THROUGH;
 }
 
-static int delete_baked_simulation_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus delete_baked_simulation_exec(bContext *C, wmOperator *op)
 {
   Vector<Object *> objects;
   if (RNA_boolean_get(op->ptr, "selected")) {
@@ -987,7 +995,9 @@ static Vector<NodeBakeRequest> bake_single_node_gather_bake_request(bContext *C,
   return requests;
 }
 
-static int bake_single_node_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+static wmOperatorStatus bake_single_node_invoke(bContext *C,
+                                                wmOperator *op,
+                                                const wmEvent * /*event*/)
 {
   Vector<NodeBakeRequest> requests = bake_single_node_gather_bake_request(C, op);
   if (requests.is_empty()) {
@@ -996,7 +1006,7 @@ static int bake_single_node_invoke(bContext *C, wmOperator *op, const wmEvent * 
   return start_bake_job(C, std::move(requests), op, BakeRequestsMode::Async);
 }
 
-static int bake_single_node_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus bake_single_node_exec(bContext *C, wmOperator *op)
 {
   Vector<NodeBakeRequest> requests = bake_single_node_gather_bake_request(C, op);
   if (requests.is_empty()) {
@@ -1005,7 +1015,9 @@ static int bake_single_node_exec(bContext *C, wmOperator *op)
   return start_bake_job(C, std::move(requests), op, BakeRequestsMode::Sync);
 }
 
-static int bake_single_node_modal(bContext *C, wmOperator * /*op*/, const wmEvent * /*event*/)
+static wmOperatorStatus bake_single_node_modal(bContext *C,
+                                               wmOperator * /*op*/,
+                                               const wmEvent * /*event*/)
 {
   if (!WM_jobs_test(CTX_wm_manager(C), CTX_data_scene(C), WM_JOB_TYPE_BAKE_GEOMETRY_NODES)) {
     return OPERATOR_FINISHED | OPERATOR_PASS_THROUGH;
@@ -1013,7 +1025,7 @@ static int bake_single_node_modal(bContext *C, wmOperator * /*op*/, const wmEven
   return OPERATOR_PASS_THROUGH;
 }
 
-static int delete_single_bake_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus delete_single_bake_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   Object *object = reinterpret_cast<Object *>(
@@ -1042,7 +1054,7 @@ static int delete_single_bake_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int pack_single_bake_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus pack_single_bake_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   Object *object = reinterpret_cast<Object *>(
@@ -1080,7 +1092,9 @@ static int pack_single_bake_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int unpack_single_bake_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+static wmOperatorStatus unpack_single_bake_invoke(bContext *C,
+                                                  wmOperator *op,
+                                                  const wmEvent * /*event*/)
 {
   uiPopupMenu *pup;
   uiLayout *layout;
@@ -1101,7 +1115,7 @@ static int unpack_single_bake_invoke(bContext *C, wmOperator *op, const wmEvent 
   return OPERATOR_INTERFACE;
 }
 
-static int unpack_single_bake_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus unpack_single_bake_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
   Object *object = reinterpret_cast<Object *>(

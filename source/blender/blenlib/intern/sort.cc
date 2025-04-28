@@ -14,6 +14,12 @@
 #  undef min
 #endif
 
+/* Intentional null pointer subtraction warns with: CLANG 19.1.7. */
+#ifdef __clang__
+#  pragma clang diagnostic push
+#  pragma clang diagnostic ignored "-Wnull-pointer-subtraction"
+#endif
+
 /* Maintained by FreeBSD. */
 /* clang-format off */
 
@@ -68,9 +74,6 @@ inline char *med3(char *a, char *b, char *c, BLI_sort_cmp_t cmp, void *thunk)
          (CMP(thunk, b, c) > 0 ? b : (CMP(thunk, a, c) < 0 ? a : c ));
 }
 
-/**
- * Quick sort re-entrant.
- */
 void BLI_qsort_r(void *a, size_t n, size_t es, BLI_sort_cmp_t cmp, void *thunk)
 {
   char *pa, *pb, *pc, *pd, *pl, *pm, *pn;
@@ -160,3 +163,7 @@ loop:
 }
 
 /* clang-format on */
+
+#ifdef __clang__
+#  pragma clang diagnostic pop
+#endif

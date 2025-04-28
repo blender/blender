@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2021 Google Inc. All rights reserved.
+// Copyright 2023 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -248,10 +248,9 @@ class TinySolver {
       jtj_regularized_ = jtj_;
       const Scalar min_diagonal = 1e-6;
       const Scalar max_diagonal = 1e32;
-      for (int i = 0; i < lm_diagonal_.rows(); ++i) {
-        lm_diagonal_[i] = std::sqrt(
-            u * (std::min)((std::max)(jtj_(i, i), min_diagonal), max_diagonal));
-        jtj_regularized_(i, i) += lm_diagonal_[i] * lm_diagonal_[i];
+      for (int i = 0; i < dx_.rows(); ++i) {
+        jtj_regularized_(i, i) +=
+            u * (std::min)((std::max)(jtj_(i, i), min_diagonal), max_diagonal);
       }
 
       // TODO(sameeragarwal): Check for failure and deal with it.
@@ -338,7 +337,7 @@ class TinySolver {
   // linear system. This allows reusing the intermediate storage across solves.
   LinearSolver linear_solver_;
   Scalar cost_;
-  Parameters dx_, x_new_, g_, jacobi_scaling_, lm_diagonal_, lm_step_;
+  Parameters dx_, x_new_, g_, jacobi_scaling_, lm_step_;
   Eigen::Matrix<Scalar, NUM_RESIDUALS, 1> residuals_, f_x_new_;
   Eigen::Matrix<Scalar, NUM_RESIDUALS, NUM_PARAMETERS> jacobian_;
   Eigen::Matrix<Scalar, NUM_PARAMETERS, NUM_PARAMETERS> jtj_, jtj_regularized_;
@@ -385,7 +384,6 @@ class TinySolver {
     x_new_.resize(num_parameters);
     g_.resize(num_parameters);
     jacobi_scaling_.resize(num_parameters);
-    lm_diagonal_.resize(num_parameters);
     lm_step_.resize(num_parameters);
     residuals_.resize(num_residuals);
     f_x_new_.resize(num_residuals);

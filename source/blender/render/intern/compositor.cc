@@ -12,8 +12,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_ID.h"
-
 #include "BKE_cryptomatte.hh"
 #include "BKE_global.hh"
 #include "BKE_image.hh"
@@ -160,9 +158,22 @@ class Context : public compositor::Context {
 
   int2 get_render_size() const override
   {
-    int width, height;
-    BKE_render_resolution(input_data_.render_data, true, &width, &height);
-    return int2(width, height);
+    Render *render = RE_GetSceneRender(input_data_.scene);
+    RenderResult *render_result = RE_AcquireResultRead(render);
+
+    /* If a render result already exist, use its size, since the compositor operates on the render
+     * settings at which the render happened. Otherwise, use the size from the render data. */
+    int2 size;
+    if (render_result) {
+      size = int2(render_result->rectx, render_result->recty);
+    }
+    else {
+      BKE_render_resolution(input_data_.render_data, true, &size.x, &size.y);
+    }
+
+    RE_ReleaseResult(render);
+
+    return size;
   }
 
   rcti get_compositing_region() const override
@@ -184,7 +195,7 @@ class Context : public compositor::Context {
       /* Otherwise, the size changed, so release its data and reset it, then we reallocate it on
        * the new render size below. */
       output_result_.release();
-      output_result_.reset();
+      output_result_ = this->create_result(compositor::ResultType::Color);
     }
 
     output_result_.allocate_texture(render_size, false);
@@ -208,7 +219,7 @@ class Context : public compositor::Context {
       /* Otherwise, the size or precision changed, so release its data and reset it, then we
        * reallocate it on the new domain below. */
       viewer_output_result_.release();
-      viewer_output_result_.reset();
+      viewer_output_result_ = this->create_result(compositor::ResultType::Color);
     }
 
     viewer_output_result_.set_precision(precision);
@@ -338,15 +349,6 @@ class Context : public compositor::Context {
      * incomplete support, and leave more specific message to individual nodes? */
   }
 
-  IDRecalcFlag query_id_recalc_flag(ID *id) const override
-  {
-    DrawEngineType *owner = (DrawEngineType *)this;
-    DrawData *draw_data = DRW_drawdata_ensure(id, owner, sizeof(DrawData), nullptr, nullptr);
-    IDRecalcFlag recalc_flag = IDRecalcFlag(draw_data->recalc);
-    draw_data->recalc = IDRecalcFlag(0);
-    return recalc_flag;
-  }
-
   void populate_meta_data_for_pass(const Scene *scene,
                                    int view_layer_id,
                                    const char *pass_name,
@@ -436,8 +438,8 @@ class Context : public compositor::Context {
         IMB_assign_float_buffer(ibuf, output_buffer, IB_TAKE_OWNERSHIP);
       }
       else {
-        float *data = static_cast<float *>(
-            MEM_malloc_arrayN(rr->rectx * rr->recty, 4 * sizeof(float), __func__));
+        float *data = MEM_malloc_arrayN<float>(4 * size_t(rr->rectx) * size_t(rr->recty),
+                                               __func__);
         IMB_assign_float_buffer(ibuf, data, IB_TAKE_OWNERSHIP);
         std::memcpy(
             data, output_result_.cpu_data().data(), rr->rectx * rr->recty * 4 * sizeof(float));

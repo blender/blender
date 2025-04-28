@@ -6,17 +6,20 @@
  * \ingroup edgreasepencil
  */
 
+#include "BKE_anonymous_attribute_id.hh"
 #include "BKE_attribute.hh"
 #include "BKE_brush.hh"
 #include "BKE_colortools.hh"
 #include "BKE_context.hh"
 #include "BKE_grease_pencil.hh"
+#include "BKE_lib_id.hh"
 #include "BKE_material.hh"
 #include "BKE_paint.hh"
 #include "BKE_report.hh"
 #include "BKE_scene.hh"
 
 #include "BLI_array_utils.hh"
+#include "BLI_bounds.hh"
 #include "BLI_math_geom.h"
 #include "BLI_math_numbers.hh"
 #include "BLI_math_vector.hh"
@@ -27,6 +30,8 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_view3d_types.h"
+
+#include "GEO_merge_layers.hh"
 
 #include "RNA_prototypes.hh"
 
@@ -450,51 +455,59 @@ float4x4 DrawingPlacement::to_world_space() const
   return layer_space_to_world_space_;
 }
 
-static float get_multi_frame_falloff(const int frame_number,
-                                     const int center_frame,
-                                     const int min_frame,
-                                     const int max_frame,
-                                     const CurveMapping *falloff_curve)
+static float get_frame_falloff(const bool use_multi_frame_falloff,
+                               const int frame_number,
+                               const int active_frame,
+                               const std::optional<Bounds<int>> frame_bounds,
+                               const CurveMapping *falloff_curve)
 {
-  if (falloff_curve == nullptr) {
+  if (!use_multi_frame_falloff || !frame_bounds.has_value() || falloff_curve == nullptr) {
     return 1.0f;
   }
 
+  const int min_frame = frame_bounds->min;
+  const int max_frame = frame_bounds->max;
+
   /* Frame right of the center frame. */
-  if (frame_number > center_frame) {
-    const float frame_factor = 0.5f * float(center_frame - min_frame) / (frame_number - min_frame);
+  if (frame_number < active_frame) {
+    const float frame_factor = 0.5f * float(frame_number - min_frame) / (active_frame - min_frame);
     return BKE_curvemapping_evaluateF(falloff_curve, 0, frame_factor);
   }
   /* Frame left of the center frame. */
-  if (frame_number < center_frame) {
-    const float frame_factor = 0.5f * float(center_frame - frame_number) /
-                               (max_frame - frame_number);
+  if (frame_number > active_frame) {
+    const float frame_factor = 0.5f * float(frame_number - active_frame) /
+                               (max_frame - active_frame);
     return BKE_curvemapping_evaluateF(falloff_curve, 0, frame_factor + 0.5f);
   }
   /* Frame at center. */
   return BKE_curvemapping_evaluateF(falloff_curve, 0, 0.5f);
 }
 
-static std::pair<int, int> get_minmax_selected_frame_numbers(const GreasePencil &grease_pencil,
-                                                             const int current_frame)
+static std::optional<Bounds<int>> get_selected_frame_number_bounds(
+    const bke::greasepencil::Layer &layer)
 {
   using namespace blender::bke::greasepencil;
-  int frame_min = current_frame;
-  int frame_max = current_frame;
-  Span<const Layer *> layers = grease_pencil.layers();
-  for (const int layer_i : layers.index_range()) {
-    const Layer &layer = *layers[layer_i];
-    if (!layer.is_editable()) {
-      continue;
-    }
-    for (const auto [frame_number, frame] : layer.frames().items()) {
-      if (frame_number != current_frame && frame.is_selected()) {
-        frame_min = math::min(frame_min, frame_number);
-        frame_max = math::max(frame_max, frame_number);
-      }
+  if (!layer.is_editable()) {
+    return {};
+  }
+  Vector<int> frame_numbers;
+  for (const auto [frame_number, frame] : layer.frames().items()) {
+    if (frame.is_selected()) {
+      frame_numbers.append(frame_number);
     }
   }
-  return std::pair<int, int>(frame_min, frame_max);
+  return bounds::min_max<int>(frame_numbers);
+}
+
+static int get_active_frame_for_falloff(const bke::greasepencil::Layer &layer,
+                                        const std::optional<Bounds<int>> frame_bounds,
+                                        const int current_frame)
+{
+  std::optional<int> current_start_frame = layer.start_frame_at(current_frame);
+  if (!current_start_frame && frame_bounds) {
+    return math::clamp(current_frame, frame_bounds->min, frame_bounds->max);
+  }
+  return *current_start_frame;
 }
 
 static std::optional<int> get_frame_id(const bke::greasepencil::Layer &layer,
@@ -682,12 +695,8 @@ Vector<MutableDrawingInfo> retrieve_editable_drawings_with_falloff(const Scene &
   const bool use_multi_frame_falloff = use_multi_frame_editing &&
                                        (toolsettings->gp_sculpt.flag &
                                         GP_SCULPT_SETT_FLAG_FRAME_FALLOFF) != 0;
-  int center_frame;
-  std::pair<int, int> minmax_frame;
   if (use_multi_frame_falloff) {
     BKE_curvemapping_init(toolsettings->gp_sculpt.cur_falloff);
-    minmax_frame = get_minmax_selected_frame_numbers(grease_pencil, current_frame);
-    center_frame = math::clamp(current_frame, minmax_frame.first, minmax_frame.second);
   }
 
   Vector<MutableDrawingInfo> editable_drawings;
@@ -697,17 +706,17 @@ Vector<MutableDrawingInfo> retrieve_editable_drawings_with_falloff(const Scene &
     if (!layer.is_editable()) {
       continue;
     }
+    const std::optional<Bounds<int>> frame_bounds = get_selected_frame_number_bounds(layer);
+    const int active_frame = get_active_frame_for_falloff(layer, frame_bounds, current_frame);
     const Array<int> frame_numbers = get_editable_frames_for_layer(
         grease_pencil, layer, current_frame, use_multi_frame_editing);
     for (const int frame_number : frame_numbers) {
       if (Drawing *drawing = grease_pencil.get_editable_drawing_at(layer, frame_number)) {
-        const float falloff = use_multi_frame_falloff ?
-                                  get_multi_frame_falloff(frame_number,
-                                                          center_frame,
-                                                          minmax_frame.first,
-                                                          minmax_frame.second,
-                                                          toolsettings->gp_sculpt.cur_falloff) :
-                                  1.0f;
+        const float falloff = get_frame_falloff(use_multi_frame_falloff,
+                                                frame_number,
+                                                active_frame,
+                                                frame_bounds,
+                                                toolsettings->gp_sculpt.cur_falloff);
         editable_drawings.append({*drawing, layer_i, frame_number, falloff});
       }
     }
@@ -733,7 +742,6 @@ Array<Vector<MutableDrawingInfo>> retrieve_editable_drawings_grouped_per_frame(
 
   /* Get a set of unique frame numbers with editable drawings on them. */
   VectorSet<int> selected_frames;
-  int frame_min = current_frame, frame_max = current_frame;
   Span<const Layer *> layers = grease_pencil.layers();
   if (use_multi_frame_editing) {
     for (const int layer_i : layers.index_range()) {
@@ -744,24 +752,11 @@ Array<Vector<MutableDrawingInfo>> retrieve_editable_drawings_grouped_per_frame(
       for (const auto [frame_number, frame] : layer.frames().items()) {
         if (frame_number != current_frame && frame.is_selected()) {
           selected_frames.add(frame_number);
-          frame_min = math::min(frame_min, frame_number);
-          frame_max = math::max(frame_max, frame_number);
         }
       }
     }
   }
   selected_frames.add(current_frame);
-
-  /* Get multi frame falloff factor per selected frame. */
-  Array<float> falloff_per_selected_frame(selected_frames.size(), 1.0f);
-  if (use_multi_frame_falloff) {
-    int frame_group = 0;
-    for (const int frame_number : selected_frames) {
-      falloff_per_selected_frame[frame_group] = get_multi_frame_falloff(
-          frame_number, current_frame, frame_min, frame_max, toolsettings->gp_sculpt.cur_falloff);
-      frame_group++;
-    }
-  }
 
   /* Get drawings grouped per frame. */
   Array<Vector<MutableDrawingInfo>> drawings_grouped_per_frame(selected_frames.size());
@@ -771,6 +766,9 @@ Array<Vector<MutableDrawingInfo>> retrieve_editable_drawings_grouped_per_frame(
     if (!layer.is_editable()) {
       continue;
     }
+    const std::optional<Bounds<int>> frame_bounds = get_selected_frame_number_bounds(layer);
+    const int active_frame = get_active_frame_for_falloff(layer, frame_bounds, current_frame);
+
     /* In multi frame editing mode, add drawings at selected frames. */
     if (use_multi_frame_editing) {
       for (const auto [frame_number, frame] : layer.frames().items()) {
@@ -778,9 +776,13 @@ Array<Vector<MutableDrawingInfo>> retrieve_editable_drawings_grouped_per_frame(
         if (!frame.is_selected() || drawing == nullptr || added_drawings.contains(drawing)) {
           continue;
         }
+        const float falloff = get_frame_falloff(use_multi_frame_falloff,
+                                                frame_number,
+                                                active_frame,
+                                                frame_bounds,
+                                                toolsettings->gp_sculpt.cur_falloff);
         const int frame_group = selected_frames.index_of(frame_number);
-        drawings_grouped_per_frame[frame_group].append(
-            {*drawing, layer_i, frame_number, falloff_per_selected_frame[frame_group]});
+        drawings_grouped_per_frame[frame_group].append({*drawing, layer_i, frame_number, falloff});
         added_drawings.add_new(drawing);
       }
     }
@@ -788,9 +790,14 @@ Array<Vector<MutableDrawingInfo>> retrieve_editable_drawings_grouped_per_frame(
     /* Add drawing at current frame. */
     Drawing *current_drawing = grease_pencil.get_drawing_at(layer, current_frame);
     if (current_drawing != nullptr && !added_drawings.contains(current_drawing)) {
+      const float falloff = get_frame_falloff(use_multi_frame_falloff,
+                                              current_frame,
+                                              active_frame,
+                                              frame_bounds,
+                                              toolsettings->gp_sculpt.cur_falloff);
       const int frame_group = selected_frames.index_of(current_frame);
       drawings_grouped_per_frame[frame_group].append(
-          {*current_drawing, layer_i, current_frame, falloff_per_selected_frame[frame_group]});
+          {*current_drawing, layer_i, current_frame, falloff});
       added_drawings.add_new(current_drawing);
     }
   }
@@ -836,26 +843,24 @@ Vector<MutableDrawingInfo> retrieve_editable_drawings_from_layer_with_falloff(
                                        (toolsettings->gp_sculpt.flag &
                                         GP_SCULPT_SETT_FLAG_FRAME_FALLOFF) != 0;
   const int layer_index = *grease_pencil.get_layer_index(layer);
-  int center_frame;
-  std::pair<int, int> minmax_frame;
+  std::optional<Bounds<int>> frame_bounds;
   if (use_multi_frame_falloff) {
     BKE_curvemapping_init(toolsettings->gp_sculpt.cur_falloff);
-    minmax_frame = get_minmax_selected_frame_numbers(grease_pencil, current_frame);
-    center_frame = math::clamp(current_frame, minmax_frame.first, minmax_frame.second);
+    frame_bounds = get_selected_frame_number_bounds(layer);
   }
+
+  const int active_frame = get_active_frame_for_falloff(layer, frame_bounds, current_frame);
 
   Vector<MutableDrawingInfo> editable_drawings;
   const Array<int> frame_numbers = get_editable_frames_for_layer(
       grease_pencil, layer, current_frame, use_multi_frame_editing);
   for (const int frame_number : frame_numbers) {
     if (Drawing *drawing = grease_pencil.get_editable_drawing_at(layer, frame_number)) {
-      const float falloff = use_multi_frame_falloff ?
-                                get_multi_frame_falloff(frame_number,
-                                                        center_frame,
-                                                        minmax_frame.first,
-                                                        minmax_frame.second,
-                                                        toolsettings->gp_sculpt.cur_falloff) :
-                                1.0f;
+      const float falloff = get_frame_falloff(use_multi_frame_falloff,
+                                              frame_number,
+                                              active_frame,
+                                              frame_bounds,
+                                              toolsettings->gp_sculpt.cur_falloff);
       editable_drawings.append({*drawing, layer_index, frame_number, falloff});
     }
   }
@@ -1176,6 +1181,11 @@ IndexMask retrieve_visible_bezier_handle_points(Object &object,
   const bke::CurvesGeometry &curves = drawing.strokes();
 
   if (!curves.has_curve_with_type(CURVE_TYPE_BEZIER)) {
+    return IndexMask(0);
+  }
+
+  /* Make sure that the handle position attributes exists. */
+  if (curves.handle_positions_left().is_empty() || curves.handle_positions_right().is_empty()) {
     return IndexMask(0);
   }
 
@@ -1536,9 +1546,9 @@ float opacity_from_input_sample(const float pressure,
   return opacity;
 }
 
-int grease_pencil_draw_operator_invoke(bContext *C,
-                                       wmOperator *op,
-                                       const bool use_duplicate_previous_key)
+wmOperatorStatus grease_pencil_draw_operator_invoke(bContext *C,
+                                                    wmOperator *op,
+                                                    const bool use_duplicate_previous_key)
 {
   const Scene *scene = CTX_data_scene(C);
   const Object *object = CTX_data_active_object(C);
@@ -1752,6 +1762,205 @@ void resize_single_curve(bke::CurvesGeometry &curves, const bool at_end, const i
     }
     offsets.last() = curves.points_num();
   }
+}
+
+void apply_eval_grease_pencil_data(const GreasePencil &eval_grease_pencil,
+                                   const int eval_frame,
+                                   const IndexMask &orig_layers,
+                                   GreasePencil &orig_grease_pencil)
+{
+  using namespace bke;
+  using namespace bke::greasepencil;
+  /* Build a set of pointers to the layers that we want to apply. */
+  Set<const Layer *> orig_layers_to_apply;
+  orig_layers.foreach_index([&](const int layer_i) {
+    const Layer &layer = orig_grease_pencil.layer(layer_i);
+    orig_layers_to_apply.add(&layer);
+  });
+
+  /* Ensure that the layer names are unique by merging layers with the same name. */
+  const int old_layers_num = eval_grease_pencil.layers().size();
+  Vector<Vector<int>> layers_map;
+  Map<StringRef, int> new_layer_index_by_name;
+  for (const int layer_i : IndexRange(old_layers_num)) {
+    const Layer &layer = eval_grease_pencil.layer(layer_i);
+    const int new_layer_index = new_layer_index_by_name.lookup_or_add_cb(
+        layer.name(), [&]() { return layers_map.append_and_get_index_as(); });
+    layers_map[new_layer_index].append(layer_i);
+  }
+  GreasePencil &merged_layers_grease_pencil = *geometry::merge_layers(
+      eval_grease_pencil, layers_map, {});
+
+  Map<const Layer *, const Layer *> eval_to_orig_layer_map;
+  {
+    /* Set of orig layers that require the drawing on `eval_frame` to be cleared. These are layers
+     * that existed in original geometry but were removed in the evaluated data. */
+    Set<Layer *> orig_layers_to_clear;
+    for (Layer *layer : orig_grease_pencil.layers_for_write()) {
+      /* Only allow clearing a layer if it is visible. */
+      if (layer->is_visible()) {
+        orig_layers_to_clear.add(layer);
+      }
+    }
+    for (const TreeNode *node_eval : merged_layers_grease_pencil.nodes()) {
+      /* Check if the original geometry has a layer with the same name. */
+      TreeNode *node_orig = orig_grease_pencil.find_node_by_name(node_eval->name());
+
+      BLI_assert(node_eval != nullptr);
+      if (!node_eval->is_layer()) {
+        continue;
+      }
+      /* If the orig layer isn't valid then a new layer with a unique name will be generated. */
+      const bool has_valid_orig_layer = (node_orig != nullptr && node_orig->is_layer());
+      if (!has_valid_orig_layer) {
+        /* Note: This name might be empty! This has to be resolved at a later stage! */
+        Layer &layer_orig = orig_grease_pencil.add_layer(node_eval->name(), true);
+        orig_layers_to_apply.add(&layer_orig);
+        /* Make sure to add a new keyframe with a new drawing. */
+        orig_grease_pencil.insert_frame(layer_orig, eval_frame);
+        node_orig = &layer_orig.as_node();
+      }
+      BLI_assert(node_orig != nullptr);
+      Layer &layer_orig = node_orig->as_layer();
+      /* This layer has a matching evaluated layer, so don't clear its keyframe. */
+      orig_layers_to_clear.remove(&layer_orig);
+      /* Only map layers in `eval_to_orig_layer_map` that we want to apply. */
+      if (orig_layers_to_apply.contains(&layer_orig)) {
+        /* Copy layer properties to original geometry. */
+        const Layer &layer_eval = node_eval->as_layer();
+        layer_orig.opacity = layer_eval.opacity;
+        layer_orig.set_local_transform(layer_eval.local_transform());
+
+        /* Add new mapping for `layer_eval` -> `layer_orig`. */
+        eval_to_orig_layer_map.add_new(&layer_eval, &layer_orig);
+      }
+    }
+
+    /* Clear the keyframe of all the original layers that don't have a matching evaluated layer,
+     * e.g. the ones that were "deleted" in the evaluated data. */
+    for (Layer *layer_orig : orig_layers_to_clear) {
+      /* Try inserting a frame. */
+      Drawing *drawing_orig = orig_grease_pencil.insert_frame(*layer_orig, eval_frame);
+      if (drawing_orig == nullptr) {
+        /* If that fails, get the drawing for this frame. */
+        drawing_orig = orig_grease_pencil.get_drawing_at(*layer_orig, eval_frame);
+      }
+      /* Clear the existing drawing. */
+      drawing_orig->strokes_for_write() = {};
+      drawing_orig->tag_topology_changed();
+    }
+  }
+
+  /* Update the drawings. */
+  VectorSet<Drawing *> all_updated_drawings;
+  for (auto [layer_eval, layer_orig] : eval_to_orig_layer_map.items()) {
+    const Drawing *drawing_eval = merged_layers_grease_pencil.get_drawing_at(*layer_eval,
+                                                                             eval_frame);
+    Drawing *drawing_orig = orig_grease_pencil.get_drawing_at(*layer_orig, eval_frame);
+    if (drawing_orig && drawing_eval) {
+      /* Write the data to the original drawing. */
+      drawing_orig->strokes_for_write() = std::move(drawing_eval->strokes());
+      /* Anonymous attributes shouldn't be available on original geometry. */
+      drawing_orig->strokes_for_write().attributes_for_write().remove_anonymous();
+      drawing_orig->tag_topology_changed();
+      all_updated_drawings.add_new(drawing_orig);
+    }
+  }
+
+  /* Get the original material pointers from the result geometry. */
+  VectorSet<Material *> original_materials;
+  const Span<Material *> eval_materials = Span{merged_layers_grease_pencil.material_array,
+                                               merged_layers_grease_pencil.material_array_num};
+  for (Material *eval_material : eval_materials) {
+    if (eval_material != nullptr && eval_material->id.orig_id != nullptr) {
+      original_materials.add_new(reinterpret_cast<Material *>(eval_material->id.orig_id));
+    }
+  }
+
+  /* Build material indices mapping. This maps the materials indices on the original geometry to
+   * the material indices used in the result geometry. The material indices for the drawings in the
+   * result geometry are already correct, but this might not be the case for all drawings in the
+   * original geometry (like for drawings that are not visible on the frame that the data is
+   * being applied on). */
+  Array<int> material_indices_map(orig_grease_pencil.material_array_num);
+  for (const int mat_i : IndexRange(orig_grease_pencil.material_array_num)) {
+    Material *material = orig_grease_pencil.material_array[mat_i];
+    const int map_index = original_materials.index_of_try(material);
+    if (map_index != -1) {
+      material_indices_map[mat_i] = map_index;
+    }
+  }
+
+  /* Remap material indices for all other drawings. */
+  if (!material_indices_map.is_empty() &&
+      !array_utils::indices_are_range(material_indices_map,
+                                      IndexRange(orig_grease_pencil.material_array_num)))
+  {
+    for (GreasePencilDrawingBase *base : orig_grease_pencil.drawings()) {
+      if (base->type != GP_DRAWING) {
+        continue;
+      }
+      Drawing &drawing = reinterpret_cast<GreasePencilDrawing *>(base)->wrap();
+      if (all_updated_drawings.contains(&drawing)) {
+        /* Skip remapping drawings that already have been updated. */
+        continue;
+      }
+      MutableAttributeAccessor attributes = drawing.strokes_for_write().attributes_for_write();
+      if (!attributes.contains("material_index")) {
+        continue;
+      }
+      SpanAttributeWriter<int> material_indices = attributes.lookup_or_add_for_write_span<int>(
+          "material_index", AttrDomain::Curve);
+      for (int &material_index : material_indices.span) {
+        if (material_index >= 0 && material_index < material_indices_map.size()) {
+          material_index = material_indices_map[material_index];
+        }
+      }
+      material_indices.finish();
+    }
+  }
+
+  /* Convert the layer map into an index mapping. */
+  Map<int, int> eval_to_orig_layer_indices_map;
+  for (const int layer_eval_i : merged_layers_grease_pencil.layers().index_range()) {
+    const Layer *layer_eval = &merged_layers_grease_pencil.layer(layer_eval_i);
+    if (eval_to_orig_layer_map.contains(layer_eval)) {
+      const Layer *layer_orig = eval_to_orig_layer_map.lookup(layer_eval);
+      const int layer_orig_index = *orig_grease_pencil.get_layer_index(*layer_orig);
+      eval_to_orig_layer_indices_map.add(layer_eval_i, layer_orig_index);
+    }
+  }
+
+  /* Propagate layer attributes. */
+  AttributeAccessor src_attributes = merged_layers_grease_pencil.attributes();
+  MutableAttributeAccessor dst_attributes = orig_grease_pencil.attributes_for_write();
+  src_attributes.foreach_attribute([&](const bke::AttributeIter &iter) {
+    /* Anonymous attributes shouldn't be available on original geometry. */
+    if (attribute_name_is_anonymous(iter.name)) {
+      return;
+    }
+    if (iter.data_type == CD_PROP_STRING) {
+      return;
+    }
+    const GVArraySpan src = *iter.get(AttrDomain::Layer);
+    GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
+        iter.name, AttrDomain::Layer, iter.data_type);
+    if (!dst) {
+      return;
+    }
+    attribute_math::convert_to_static_type(src.type(), [&](auto dummy) {
+      using T = decltype(dummy);
+      Span<T> src_span = src.typed<T>();
+      MutableSpan<T> dst_span = dst.span.typed<T>();
+      for (const auto [src_i, dst_i] : eval_to_orig_layer_indices_map.items()) {
+        dst_span[dst_i] = src_span[src_i];
+      }
+    });
+    dst.finish();
+  });
+
+  /* Free temporary grease pencil struct. */
+  BKE_id_free(nullptr, &merged_layers_grease_pencil);
 }
 
 }  // namespace blender::ed::greasepencil

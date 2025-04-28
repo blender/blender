@@ -102,6 +102,8 @@ struct SelectMap {
   StorageArrayBuffer<uint, 4, true> dummy_select_buf = {"dummy_select_buf"};
   /** Uniform buffer to bind to all passes to pass information about the selection state. */
   UniformBuffer<SelectInfoData> info_buf;
+  /** If clipping is enabled, this is the number of clip planes to enable. */
+  int clipping_plane_count = 0;
 
   SelectMap(const SelectionType selection_type) : selection_type(selection_type){};
 
@@ -147,11 +149,13 @@ struct SelectMap {
     return {uint32_t(-1)};
   }
 
-  void begin_sync()
+  void begin_sync(int clipping_plane_count)
   {
     if (selection_type == SelectionType::DISABLED) {
       return;
     }
+
+    this->clipping_plane_count = clipping_plane_count;
 
     select_id_map.clear();
     in_front_map.clear();
@@ -167,8 +171,7 @@ struct SelectMap {
       return;
     }
 
-    /* TODO: clipping state. */
-    pass.state_set(DRW_STATE_WRITE_COLOR);
+    pass.state_set(DRW_STATE_WRITE_COLOR, clipping_plane_count);
     pass.bind_ubo(SELECT_DATA, &info_buf);
     pass.bind_ssbo(SELECT_ID_OUT, &select_output_buf);
   }
@@ -181,8 +184,7 @@ struct SelectMap {
     }
 
     pass.use_custom_ids = true;
-    /* TODO: clipping state. */
-    pass.state_set(DRW_STATE_WRITE_COLOR);
+    pass.state_set(DRW_STATE_WRITE_COLOR, clipping_plane_count);
     pass.bind_ubo(SELECT_DATA, &info_buf);
     /* IMPORTANT: This binds a dummy buffer `in_select_buf` but it is not supposed to be used. */
     pass.bind_ssbo(SELECT_ID_IN, &dummy_select_buf);
@@ -198,8 +200,7 @@ struct SelectMap {
     }
 
     pass.use_custom_ids = true;
-    /* TODO: clipping state. */
-    sub.state_set(DRW_STATE_WRITE_COLOR);
+    sub.state_set(DRW_STATE_WRITE_COLOR, clipping_plane_count);
     sub.bind_ubo(SELECT_DATA, &info_buf);
     /* IMPORTANT: This binds a dummy buffer `in_select_buf` but it is not supposed to be used. */
     sub.bind_ssbo(SELECT_ID_IN, &dummy_select_buf);

@@ -428,7 +428,7 @@ static void generate_sample_warning(SampleResult result, wmOperator *op)
   }
 }
 
-static int bonedropper_modal(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus bonedropper_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   BoneDropper *bdr = (BoneDropper *)op->customdata;
   if (!bdr) {
@@ -468,7 +468,7 @@ static int bonedropper_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
   return OPERATOR_RUNNING_MODAL;
 }
-static int bonedropper_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+static wmOperatorStatus bonedropper_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
   /* This is needed to ensure viewport picking works. */
   BKE_object_update_select_id(CTX_data_main(C));
@@ -485,7 +485,7 @@ static int bonedropper_invoke(bContext *C, wmOperator *op, const wmEvent * /*eve
   return OPERATOR_CANCELLED;
 }
 
-static int bonedropper_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus bonedropper_exec(bContext *C, wmOperator *op)
 {
   if (bonedropper_init(C, op)) {
     bonedropper_exit(C, op);

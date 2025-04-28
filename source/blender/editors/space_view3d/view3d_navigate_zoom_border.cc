@@ -27,7 +27,7 @@
 /** \name Border Zoom Operator
  * \{ */
 
-static int view3d_zoom_border_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus view3d_zoom_border_exec(bContext *C, wmOperator *op)
 {
   ARegion *region = CTX_wm_region(C);
   View3D *v3d = CTX_wm_view3d(C);

@@ -35,7 +35,8 @@ using blender::Vector;
 /** \name Generic Utilities
  * \{ */
 
-int WM_operator_flag_only_pass_through_on_press(int retval, const wmEvent *event)
+wmOperatorStatus WM_operator_flag_only_pass_through_on_press(wmOperatorStatus retval,
+                                                             const wmEvent *event)
 {
   if (event->val != KM_PRESS) {
     if (retval & OPERATOR_PASS_THROUGH) {
@@ -197,7 +198,7 @@ static void op_generic_value_cancel(bContext * /*C*/, wmOperator *op)
   op_generic_value_exit(op);
 }
 
-static int op_generic_value_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus op_generic_value_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   if (RNA_property_is_set(op->ptr, op->type->prop)) {
     return WM_operator_call_notest(C, op);
@@ -236,7 +237,7 @@ static int op_generic_value_invoke(bContext *C, wmOperator *op, const wmEvent *e
   return OPERATOR_RUNNING_MODAL;
 }
 
-static int op_generic_value_modal(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus op_generic_value_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   ObCustomData_ForEditMode *cd = static_cast<ObCustomData_ForEditMode *>(op->customdata);
 
@@ -264,7 +265,7 @@ static int op_generic_value_modal(bContext *C, wmOperator *op, const wmEvent *ev
         }
 
         wm->op_undo_depth++;
-        int retval = op->type->exec(C, op);
+        const wmOperatorStatus retval = op->type->exec(C, op);
         OPERATOR_RETVAL_CHECK(retval);
         wm->op_undo_depth--;
 
@@ -311,6 +312,9 @@ static int op_generic_value_modal(bContext *C, wmOperator *op, const wmEvent *ev
         op_generic_value_exit(op);
         return OPERATOR_CANCELLED;
       }
+      break;
+    }
+    default: {
       break;
     }
   }

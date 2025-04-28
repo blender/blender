@@ -345,13 +345,13 @@ static void viewzoom_apply(ViewOpsData *vod,
   }
 }
 
-static int viewzoom_modal_impl(bContext *C,
-                               ViewOpsData *vod,
-                               const eV3D_OpEvent event_code,
-                               const int xy[2])
+static wmOperatorStatus viewzoom_modal_impl(bContext *C,
+                                            ViewOpsData *vod,
+                                            const eV3D_OpEvent event_code,
+                                            const int xy[2])
 {
   bool use_autokey = false;
-  int ret = OPERATOR_RUNNING_MODAL;
+  wmOperatorStatus ret = OPERATOR_RUNNING_MODAL;
 
   switch (event_code) {
     case VIEW_APPLY: {
@@ -433,7 +433,7 @@ static void view_zoom_apply_step(bContext *C,
   ED_region_tag_redraw(region);
 }
 
-static int viewzoom_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus viewzoom_exec(bContext *C, wmOperator *op)
 {
   BLI_assert(op->customdata == nullptr);
 
@@ -464,10 +464,10 @@ static int viewzoom_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-static int viewzoom_invoke_impl(bContext *C,
-                                ViewOpsData *vod,
-                                const wmEvent *event,
-                                PointerRNA *ptr)
+static wmOperatorStatus viewzoom_invoke_impl(bContext *C,
+                                             ViewOpsData *vod,
+                                             const wmEvent *event,
+                                             PointerRNA *ptr)
 {
   int xy[2];
 
@@ -519,7 +519,7 @@ static int viewzoom_invoke_impl(bContext *C,
   return OPERATOR_RUNNING_MODAL;
 }
 
-static int viewzoom_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus viewzoom_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   /* Near duplicate logic in #viewdolly_invoke(), changes here may apply there too. */
   return view3d_navigate_invoke_impl(C, op, event, &ViewOpsType_zoom);

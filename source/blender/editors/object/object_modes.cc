@@ -456,7 +456,9 @@ static bool object_transfer_mode_to_base(bContext *C,
   return mode_transferred;
 }
 
-static int object_transfer_mode_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus object_transfer_mode_invoke(bContext *C,
+                                                    wmOperator *op,
+                                                    const wmEvent *event)
 {
   Scene *scene = CTX_data_scene(C);
   ARegion *region = CTX_wm_region(C);

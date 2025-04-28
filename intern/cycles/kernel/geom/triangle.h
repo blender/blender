@@ -138,8 +138,8 @@ ccl_device_inline float3 triangle_smooth_normal(KernelGlobals kg,
   const float3 n2 = kernel_data_fetch(tri_vnormal, tri_vindex.z);
 
   const float3 N = safe_normalize(triangle_interpolate(u, v, n0, n1, n2));
-  N_x = safe_normalize(triangle_interpolate(u + du.dx * BUMP_DX, v + dv.dx * BUMP_DX, n0, n1, n2));
-  N_y = safe_normalize(triangle_interpolate(u + du.dy * BUMP_DY, v + dv.dy * BUMP_DY, n0, n1, n2));
+  N_x = safe_normalize(triangle_interpolate(u + du.dx, v + dv.dx, n0, n1, n2));
+  N_y = safe_normalize(triangle_interpolate(u + du.dy, v + dv.dy, n0, n1, n2));
 
   N_x = is_zero(N_x) ? Ng : N_x;
   N_y = is_zero(N_y) ? Ng : N_y;

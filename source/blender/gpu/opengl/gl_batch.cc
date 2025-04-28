@@ -86,8 +86,7 @@ void GLVaoCache::insert(const GLShaderInterface *interface, GLuint vao)
       dynamic_vaos.count = GPU_BATCH_VAO_DYN_ALLOC_COUNT;
       dynamic_vaos.interfaces = (const GLShaderInterface **)MEM_callocN(
           dynamic_vaos.count * sizeof(GLShaderInterface *), "dyn vaos interfaces");
-      dynamic_vaos.vao_ids = (GLuint *)MEM_callocN(dynamic_vaos.count * sizeof(GLuint),
-                                                   "dyn vaos ids");
+      dynamic_vaos.vao_ids = MEM_calloc_arrayN<GLuint>(dynamic_vaos.count, "dyn vaos ids");
     }
   }
 
@@ -167,7 +166,7 @@ void GLVaoCache::clear()
   }
 
   if (is_dynamic_vao_count) {
-    MEM_freeN((void *)dynamic_vaos.interfaces);
+    MEM_freeN(dynamic_vaos.interfaces);
     MEM_freeN(dynamic_vaos.vao_ids);
   }
 

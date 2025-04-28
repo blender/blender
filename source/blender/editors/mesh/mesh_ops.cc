@@ -194,7 +194,7 @@ void ED_operatortypes_mesh()
 }
 
 #if 0 /* UNUSED, remove? */
-static int ED_operator_editmesh_face_select(bContext *C)
+static int operator_editmesh_face_select(bContext *C)
 {
   Object *obedit = CTX_data_edit_object(C);
   if (obedit && obedit->type == OB_MESH) {

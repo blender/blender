@@ -27,8 +27,6 @@ void Operation::evaluate()
 {
   evaluate_input_processors();
 
-  reset_results();
-
   execute();
 
   compute_preview();
@@ -179,13 +177,6 @@ void Operation::evaluate_input_processors()
     for (const std::unique_ptr<SimpleOperation> &processor : processors) {
       processor->evaluate();
     }
-  }
-}
-
-void Operation::reset_results()
-{
-  for (Result &result : results_.values()) {
-    result.reset();
   }
 }
 

@@ -677,7 +677,7 @@ ccl_device int bsdf_microfacet_sample(KernelGlobals kg,
   }
 
   const float m_eta = bsdf->ior;
-  const float m_inv_eta = 1.0f / bsdf->ior;
+  const float m_inv_eta = safe_divide(1.0f, bsdf->ior);
   const float alpha_x = bsdf->alpha_x;
   const float alpha_y = bsdf->alpha_y;
   bool m_singular = !bsdf_microfacet_eval_flag(bsdf);

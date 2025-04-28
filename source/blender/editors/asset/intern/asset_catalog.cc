@@ -30,27 +30,20 @@ bool catalogs_read_only(const AssetLibrary &library)
   return catalog_service.is_read_only();
 }
 
-struct CatalogUniqueNameFnData {
-  const AssetCatalogService &catalog_service;
-  StringRef parent_path;
-};
-
-static bool catalog_name_exists_fn(void *arg, const char *name)
-{
-  CatalogUniqueNameFnData &fn_data = *static_cast<CatalogUniqueNameFnData *>(arg);
-  AssetCatalogPath fullpath = AssetCatalogPath(fn_data.parent_path) / name;
-  return fn_data.catalog_service.find_catalog_by_path(fullpath);
-}
-
 static std::string catalog_name_ensure_unique(AssetCatalogService &catalog_service,
                                               StringRefNull name,
                                               StringRef parent_path)
 {
-  CatalogUniqueNameFnData fn_data = {catalog_service, parent_path};
-
   char unique_name[MAX_NAME] = "";
   BLI_uniquename_cb(
-      catalog_name_exists_fn, &fn_data, name.c_str(), '.', unique_name, sizeof(unique_name));
+      [&](const StringRef check_name) {
+        AssetCatalogPath fullpath = AssetCatalogPath(parent_path) / check_name;
+        return catalog_service.find_catalog_by_path(fullpath);
+      },
+      name.c_str(),
+      '.',
+      unique_name,
+      sizeof(unique_name));
 
   return unique_name;
 }

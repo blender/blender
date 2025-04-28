@@ -19,7 +19,7 @@
 
 #include "effects.hh"
 
-using namespace blender;
+namespace blender::seq {
 
 static void glow_blur_bitmap(
     const float4 *src, float4 *map, int width, int height, float blur, int quality)
@@ -130,9 +130,9 @@ static void init_glow_effect(Strip *strip)
     MEM_freeN(strip->effectdata);
   }
 
-  strip->effectdata = MEM_callocN(sizeof(GlowVars), "glowvars");
+  GlowVars *glow = MEM_callocN<GlowVars>("glowvars");
+  strip->effectdata = glow;
 
-  GlowVars *glow = (GlowVars *)strip->effectdata;
   glow->fMini = 0.25;
   glow->fClamp = 1.0;
   glow->fBoost = 0.5;
@@ -223,7 +223,7 @@ static void do_glow_effect_float(Strip *strip,
                    glow->dQuality);
 }
 
-static ImBuf *do_glow_effect(const SeqRenderData *context,
+static ImBuf *do_glow_effect(const RenderData *context,
                              Strip *strip,
                              float /*timeline_frame*/,
                              float fac,
@@ -258,7 +258,7 @@ static ImBuf *do_glow_effect(const SeqRenderData *context,
   return out;
 }
 
-void glow_effect_get_handle(SeqEffectHandle &rval)
+void glow_effect_get_handle(EffectHandle &rval)
 {
   rval.init = init_glow_effect;
   rval.num_inputs = num_inputs_glow;
@@ -266,3 +266,5 @@ void glow_effect_get_handle(SeqEffectHandle &rval)
   rval.copy = copy_glow_effect;
   rval.execute = do_glow_effect;
 }
+
+}  // namespace blender::seq

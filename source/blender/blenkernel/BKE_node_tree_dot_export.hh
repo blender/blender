@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+/** \file
+ * \ingroup bke
+ */
+
 #pragma once
 
 #include <optional>
@@ -9,7 +13,7 @@
 
 #include "DNA_node_types.h"
 
-namespace blender::dot {
+namespace blender::dot_export {
 class DirectedEdge;
 }
 
@@ -22,7 +26,8 @@ class bNodeTreeToDotOptions {
  public:
   virtual std::string socket_name(const bNodeSocket &socket) const;
   virtual std::optional<std::string> socket_font_color(const bNodeSocket &socket) const;
-  virtual void add_edge_attributes(const bNodeLink &link, dot::DirectedEdge &dot_edge) const;
+  virtual void add_edge_attributes(const bNodeLink &link,
+                                   dot_export::DirectedEdge &dot_edge) const;
 };
 
 /**

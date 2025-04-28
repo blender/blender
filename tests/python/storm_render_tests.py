@@ -43,6 +43,7 @@ BLOCKLIST_METAL = [
     "light_path_is_transmission_ray.blend",
     "light_path_ray_depth.blend",
     "light_path_ray_length.blend",
+    "transparent_spatial_splits.blend",
     # Volume
     "light_link_surface_in_volume.blend",
     "openvdb.*.blend",
@@ -105,7 +106,6 @@ def create_argparse():
     parser.add_argument("--oiiotool", required=True)
     parser.add_argument("--export_method", required=True)
     parser.add_argument('--batch', default=False, action='store_true')
-    parser.add_argument('--fail-silently', default=False, action='store_true')
     return parser
 
 
@@ -141,7 +141,7 @@ def main():
 
     os.environ['BLENDER_HYDRA_EXPORT_METHOD'] = args.export_method
 
-    ok = report.run(args.testdir, args.blender, get_arguments, batch=args.batch, fail_silently=args.fail_silently)
+    ok = report.run(args.testdir, args.blender, get_arguments, batch=args.batch)
 
     sys.exit(not ok)
 

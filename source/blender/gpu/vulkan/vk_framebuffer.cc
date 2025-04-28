@@ -73,12 +73,14 @@ void VKFrameBuffer::bind(bool enabled_srgb)
   }
 
   context.activate_framebuffer(*this);
+  update_size();
+  viewport_reset();
+  scissor_reset();
+
   enabled_srgb_ = enabled_srgb;
   Shader::set_framebuffer_srgb_target(enabled_srgb && srgb_);
   load_stores.fill(default_load_store());
   attachment_states_.fill(GPU_ATTACHMENT_WRITE);
-  viewport_reset();
-  scissor_reset();
 }
 
 void VKFrameBuffer::vk_viewports_append(Vector<VkViewport> &r_viewports) const
@@ -332,7 +334,7 @@ void VKFrameBuffer::subpass_transition_impl(const GPUAttachmentState depth_attac
                                             Span<GPUAttachmentState> color_attachment_states)
 {
   const VKDevice &device = VKBackend::get().device;
-  const bool supports_local_read = !device.workarounds_get().dynamic_rendering_local_read;
+  const bool supports_local_read = device.extensions_get().dynamic_rendering_local_read;
 
   attachment_states_[GPU_FB_DEPTH_ATTACHMENT] = depth_attachment_state;
   attachment_states_.as_mutable_span()
@@ -467,12 +469,13 @@ static void blit_aspect(VKContext &context,
   region.dstSubresource.mipLevel = 0;
   region.dstSubresource.baseArrayLayer = 0;
   region.dstSubresource.layerCount = 1;
-  region.dstOffsets[0].x = min_ii(dst_offset_x, dst_texture.width_get());
-  region.dstOffsets[0].y = min_ii(dst_offset_y, dst_texture.height_get());
+  region.dstOffsets[0].x = clamp_i(dst_offset_x, 0, dst_texture.width_get());
+  region.dstOffsets[0].y = clamp_i(dst_offset_y, 0, dst_texture.height_get());
   region.dstOffsets[0].z = 0;
-  region.dstOffsets[1].x = min_ii(dst_offset_x + src_texture.width_get(), dst_texture.width_get());
-  region.dstOffsets[1].y = min_ii(dst_offset_y + src_texture.height_get(),
-                                  dst_texture.height_get());
+  region.dstOffsets[1].x = clamp_i(
+      dst_offset_x + src_texture.width_get(), 0, dst_texture.width_get());
+  region.dstOffsets[1].y = clamp_i(
+      dst_offset_y + src_texture.height_get(), 0, dst_texture.height_get());
   region.dstOffsets[1].z = 1;
 
   context.render_graph().add_node(blit_image);
@@ -819,10 +822,10 @@ void VKFrameBuffer::rendering_ensure_render_pass(VKContext &context)
 }
 
 void VKFrameBuffer::rendering_ensure_dynamic_rendering(VKContext &context,
-                                                       const VKWorkarounds &workarounds)
+                                                       const VKExtensions &extensions)
 {
   const VKDevice &device = VKBackend::get().device;
-  const bool supports_local_read = !device.workarounds_get().dynamic_rendering_local_read;
+  const bool supports_local_read = device.extensions_get().dynamic_rendering_local_read;
 
   depth_attachment_format_ = VK_FORMAT_UNDEFINED;
   stencil_attachment_format_ = VK_FORMAT_UNDEFINED;
@@ -889,7 +892,7 @@ void VKFrameBuffer::rendering_ensure_dynamic_rendering(VKContext &context,
          VK_IMAGE_ASPECT_COLOR_BIT,
          layer_base});
     color_attachment_formats_.append(
-        (workarounds.dynamic_rendering_unused_attachments && vk_image_view == VK_NULL_HANDLE) ?
+        (!extensions.dynamic_rendering_unused_attachments && vk_image_view == VK_NULL_HANDLE) ?
             VK_FORMAT_UNDEFINED :
             vk_format);
 
@@ -927,7 +930,7 @@ void VKFrameBuffer::rendering_ensure_dynamic_rendering(VKContext &context,
                                          VKImageViewArrayed::DONT_CARE};
       depth_image_view = depth_texture.image_view_get(image_view_info).vk_handle();
     }
-    VkFormat vk_format = (workarounds.dynamic_rendering_unused_attachments &&
+    VkFormat vk_format = (!extensions.dynamic_rendering_unused_attachments &&
                           depth_image_view == VK_NULL_HANDLE) ?
                              VK_FORMAT_UNDEFINED :
                              to_vk_format(depth_texture.device_format_get());
@@ -991,13 +994,13 @@ void VKFrameBuffer::rendering_ensure(VKContext &context)
   }
 #endif
 
-  const VKWorkarounds &workarounds = VKBackend::get().device.workarounds_get();
+  const VKExtensions &extensions = VKBackend::get().device.extensions_get();
   is_rendering_ = true;
-  if (workarounds.dynamic_rendering) {
-    rendering_ensure_render_pass(context);
+  if (extensions.dynamic_rendering) {
+    rendering_ensure_dynamic_rendering(context, extensions);
   }
   else {
-    rendering_ensure_dynamic_rendering(context, workarounds);
+    rendering_ensure_render_pass(context);
   }
   dirty_attachments_ = false;
   dirty_state_ = false;
@@ -1023,10 +1026,10 @@ void VKFrameBuffer::rendering_end(VKContext &context)
   }
 
   if (is_rendering_) {
-    const VKWorkarounds &workarounds = VKBackend::get().device.workarounds_get();
+    const VKExtensions &extensions = VKBackend::get().device.extensions_get();
     render_graph::VKEndRenderingNode::CreateInfo end_rendering = {};
     end_rendering.vk_render_pass = VK_NULL_HANDLE;
-    if (workarounds.dynamic_rendering) {
+    if (!extensions.dynamic_rendering) {
       BLI_assert(vk_render_pass);
       end_rendering.vk_render_pass = vk_render_pass;
     }

@@ -9,25 +9,30 @@ VERTEX_SHADER_CREATE_INFO(gpu_shader_2D_area_borders)
 void main()
 {
   int corner_id = (gl_VertexID / cornerLen) % 4;
+  bool inner = all(lessThan(abs(pos), float2(1.0f)));
 
-  vec2 final_pos = pos * scale;
+  /* Scale the inner part of the border.
+   * Add a sub pixel offset to the outer part to make sure we don't miss a pixel row/column. */
+  float2 final_pos = pos * ((inner) ? (1.0f - width) : 1.05f);
 
+  uv = final_pos;
+  /* Rescale to the corner size and position the corner. */
   if (corner_id == 0) {
-    uv = pos + vec2(1.0, 1.0);
-    final_pos += rect.yw; /* top right */
+    /* top right */
+    final_pos = (final_pos - float2(1.0f, 1.0f)) * scale + rect.yw;
   }
   else if (corner_id == 1) {
-    uv = pos + vec2(-1.0, 1.0);
-    final_pos += rect.xw; /* top left */
+    /* top left */
+    final_pos = (final_pos - float2(-1.0f, 1.0f)) * scale + rect.xw;
   }
   else if (corner_id == 2) {
-    uv = pos + vec2(-1.0, -1.0);
-    final_pos += rect.xz; /* bottom left */
+    /* bottom left */
+    final_pos = (final_pos - float2(-1.0f, -1.0f)) * scale + rect.xz;
   }
   else {
-    uv = pos + vec2(1.0, -1.0);
-    final_pos += rect.yz; /* bottom right */
+    /* bottom right */
+    final_pos = (final_pos - float2(1.0f, -1.0f)) * scale + rect.yz;
   }
 
-  gl_Position = (ModelViewProjectionMatrix * vec4(final_pos, 0.0, 1.0));
+  gl_Position = (ModelViewProjectionMatrix * float4(final_pos, 0.0f, 1.0f));
 }

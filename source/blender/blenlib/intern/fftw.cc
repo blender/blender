@@ -2,7 +2,11 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#if defined(WITH_FFTW3_THREADS_F_SUPPORT)
+/** \file
+ * \ingroup bli
+ */
+
+#if defined(WITH_FFTW3)
 #  include <fftw3.h>
 #endif
 
@@ -83,7 +87,7 @@ int2 optimal_size_for_real_transform(int2 size)
 
 void initialize_float()
 {
-#if defined(WITH_FFTW3_THREADS_F_SUPPORT)
+#if defined(WITH_FFTW3)
   fftwf_init_threads();
   fftwf_make_planner_thread_safe();
   fftwf_plan_with_nthreads(BLI_system_thread_count());

@@ -197,7 +197,7 @@ class ArtifactManager:
 
         self.temp_artifacts = []
 
-        for key, obj in self.artifact_reuse_table.items():
+        for key, obj in list(self.artifact_reuse_table.items()):
             if obj in self.used_artifacts:
                 obj.hide_viewport = True
                 obj.hide_render = True

@@ -22,7 +22,7 @@
 
 namespace blender::ed::io {
 
-int filesel_drop_import_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+wmOperatorStatus filesel_drop_import_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
 
   PropertyRNA *filepath_prop = RNA_struct_find_property(op->ptr, "filepath");

@@ -43,18 +43,24 @@ class Context : public compositor::Context {
   /* A pointer to the info message of the compositor engine. This is a char array of size
    * GPU_INFO_SIZE. The message is cleared prior to updating or evaluating the compositor. */
   char *info_message_;
+  const Scene *scene_;
 
  public:
   Context(char *info_message) : compositor::Context(), info_message_(info_message) {}
 
+  void set_scene(const Scene *scene)
+  {
+    scene_ = scene;
+  }
+
   const Scene &get_scene() const override
   {
-    return *DRW_context_state_get()->scene;
+    return *scene_;
   }
 
   const bNodeTree &get_node_tree() const override
   {
-    return *DRW_context_state_get()->scene->nodetree;
+    return *scene_->nodetree;
   }
 
   bool use_gpu() const override
@@ -82,12 +88,12 @@ class Context : public compositor::Context {
 
   const RenderData &get_render_data() const override
   {
-    return DRW_context_state_get()->scene->r;
+    return scene_->r;
   }
 
   int2 get_render_size() const override
   {
-    return int2(DRW_viewport_size_get());
+    return int2(DRW_context_get()->viewport_size_get());
   }
 
   /* We limit the compositing region to the camera region if in camera view, while we use the
@@ -95,20 +101,20 @@ class Context : public compositor::Context {
    * the viewport is already the camera region in that case. */
   rcti get_compositing_region() const override
   {
-    const int2 viewport_size = int2(DRW_viewport_size_get());
+    const DRWContext *draw_ctx = DRW_context_get();
+    const int2 viewport_size = int2(draw_ctx->viewport_size_get());
     const rcti render_region = rcti{0, viewport_size.x, 0, viewport_size.y};
 
-    if (DRW_context_state_get()->rv3d->persp != RV3D_CAMOB || DRW_state_is_viewport_image_render())
-    {
+    if (draw_ctx->rv3d->persp != RV3D_CAMOB || draw_ctx->is_viewport_image_render()) {
       return render_region;
     }
 
     rctf camera_border;
-    ED_view3d_calc_camera_border(DRW_context_state_get()->scene,
-                                 DRW_context_state_get()->depsgraph,
-                                 DRW_context_state_get()->region,
-                                 DRW_context_state_get()->v3d,
-                                 DRW_context_state_get()->rv3d,
+    ED_view3d_calc_camera_border(draw_ctx->scene,
+                                 draw_ctx->depsgraph,
+                                 draw_ctx->region,
+                                 draw_ctx->v3d,
+                                 draw_ctx->rv3d,
                                  false,
                                  &camera_border);
 
@@ -125,7 +131,7 @@ class Context : public compositor::Context {
   {
     compositor::Result result = this->create_result(compositor::ResultType::Color,
                                                     compositor::ResultPrecision::Half);
-    result.wrap_external(DRW_viewport_texture_list_get()->color);
+    result.wrap_external(DRW_context_get()->viewport_texture_list_get()->color);
     return result;
   }
 
@@ -135,15 +141,13 @@ class Context : public compositor::Context {
   {
     compositor::Result result = this->create_result(compositor::ResultType::Color,
                                                     compositor::ResultPrecision::Half);
-    result.wrap_external(DRW_viewport_texture_list_get()->color);
+    result.wrap_external(DRW_context_get()->viewport_texture_list_get()->color);
     return result;
   }
 
   compositor::Result get_pass(const Scene *scene, int view_layer, const char *pass_name) override
   {
-    if (DEG_get_original_id(const_cast<ID *>(&scene->id)) !=
-        DEG_get_original_id(&DRW_context_state_get()->scene->id))
-    {
+    if (DEG_get_original(scene) != DEG_get_original(scene_)) {
       return compositor::Result(*this);
     }
 
@@ -154,7 +158,7 @@ class Context : public compositor::Context {
     /* The combined pass is a special case where we return the viewport color texture, because it
      * includes Grease Pencil objects since GP is drawn using their own engine. */
     if (STREQ(pass_name, RE_PASSNAME_COMBINED)) {
-      GPUTexture *combined_texture = DRW_viewport_texture_list_get()->color;
+      GPUTexture *combined_texture = DRW_context_get()->viewport_texture_list_get()->color;
       compositor::Result pass = compositor::Result(*this, GPU_texture_format(combined_texture));
       pass.wrap_external(combined_texture);
       return pass;
@@ -174,7 +178,7 @@ class Context : public compositor::Context {
   StringRef get_view_name() const override
   {
     const SceneRenderView *view = static_cast<SceneRenderView *>(
-        BLI_findlink(&get_render_data().views, DRW_context_state_get()->v3d->multiview_eye));
+        BLI_findlink(&get_render_data().views, DRW_context_get()->v3d->multiview_eye));
     return view->name;
   }
 
@@ -195,100 +199,66 @@ class Context : public compositor::Context {
   {
     message.copy_utf8_truncated(info_message_, GPU_INFO_SIZE);
   }
-
-  IDRecalcFlag query_id_recalc_flag(ID *id) const override
-  {
-    DrawEngineType *owner = &draw_engine_compositor_type;
-    DrawData *draw_data = DRW_drawdata_ensure(id, owner, sizeof(DrawData), nullptr, nullptr);
-    IDRecalcFlag recalc_flag = IDRecalcFlag(draw_data->recalc);
-    draw_data->recalc = IDRecalcFlag(0);
-    return recalc_flag;
-  }
 };
 
-class Engine {
+class Instance : public DrawEngine {
  private:
   Context context_;
 
  public:
-  Engine(char *info_message) : context_(info_message) {}
+  Instance() : context_(this->info) {}
 
-  void draw()
+  StringRefNull name_get() final
   {
-    compositor::Evaluator evaluator(context_);
-    evaluator.evaluate();
+    return "Compositor";
+  }
+
+  void init() final{};
+  void begin_sync() final{};
+  void object_sync(blender::draw::ObjectRef & /*ob_ref*/,
+                   blender::draw::Manager & /*manager*/) final{};
+  void end_sync() final{};
+
+  void draw(Manager & /*manager*/) final
+  {
+    DRW_submission_start();
+
+#if defined(__APPLE__)
+    if (GPU_backend_get_type() == GPU_BACKEND_METAL) {
+      /* NOTE(Metal): Isolate Compositor compute work in individual command buffer to improve
+       * workload scheduling. When expensive compositor nodes are in the graph, these can stall out
+       * the GPU for extended periods of time and sub-optimally schedule work for execution. */
+      GPU_flush();
+    }
+#endif
+
+    /* Execute Compositor render commands. */
+    {
+      context_.set_scene(DRW_context_get()->scene);
+      compositor::Evaluator evaluator(context_);
+      evaluator.evaluate();
+    }
+
+#if defined(__APPLE__)
+    /* NOTE(Metal): Following previous flush to break command stream, with compositor command
+     * buffers potentially being heavy, we avoid issuing subsequent commands until compositor work
+     * has completed. If subsequent work is prematurely queued up, the subsequent command buffers
+     * will be blocked behind compositor work and may trigger a command buffer time-out error. As a
+     * result, we should wait for compositor work to complete.
+     *
+     * This is not an efficient approach for peak performance, but a catch-all to prevent command
+     * buffer failure, until the offending cases can be resolved. */
+    if (GPU_backend_get_type() == GPU_BACKEND_METAL) {
+      GPU_finish();
+    }
+#endif
+    DRW_submission_end();
   }
 };
+
+DrawEngine *Engine::create_instance()
+{
+  return new Instance();
+}
 
 }  // namespace blender::draw::compositor_engine
-
-using namespace blender::draw::compositor_engine;
-
-struct COMPOSITOR_Data {
-  DrawEngineType *engine_type;
-  Engine *instance_data;
-  char info[GPU_INFO_SIZE];
-};
-
-static void compositor_engine_init(void *data)
-{
-  COMPOSITOR_Data *compositor_data = static_cast<COMPOSITOR_Data *>(data);
-
-  if (!compositor_data->instance_data) {
-    compositor_data->instance_data = new Engine(compositor_data->info);
-  }
-}
-
-static void compositor_engine_free(void *instance_data)
-{
-  Engine *engine = static_cast<Engine *>(instance_data);
-  delete engine;
-}
-
-static void compositor_engine_draw(void *data)
-{
-  COMPOSITOR_Data *compositor_data = static_cast<COMPOSITOR_Data *>(data);
-
-#if defined(__APPLE__)
-  if (GPU_backend_get_type() == GPU_BACKEND_METAL) {
-    /* NOTE(Metal): Isolate Compositor compute work in individual command buffer to improve
-     * workload scheduling. When expensive compositor nodes are in the graph, these can stall out
-     * the GPU for extended periods of time and sub-optimally schedule work for execution. */
-    GPU_flush();
-  }
-#endif
-
-  /* Execute Compositor render commands. */
-  compositor_data->instance_data->draw();
-
-#if defined(__APPLE__)
-  /* NOTE(Metal): Following previous flush to break command stream, with compositor command
-   * buffers potentially being heavy, we avoid issuing subsequent commands until compositor work
-   * has completed. If subsequent work is prematurely queued up, the subsequent command buffers
-   * will be blocked behind compositor work and may trigger a command buffer time-out error. As a
-   * result, we should wait for compositor work to complete.
-   *
-   * This is not an efficient approach for peak performance, but a catch-all to prevent command
-   * buffer failure, until the offending cases can be resolved. */
-  if (GPU_backend_get_type() == GPU_BACKEND_METAL) {
-    GPU_finish();
-  }
-#endif
-}
-
-DrawEngineType draw_engine_compositor_type = {
-    /*next*/ nullptr,
-    /*prev*/ nullptr,
-    /*idname*/ N_("Compositor"),
-    /*engine_init*/ &compositor_engine_init,
-    /*engine_free*/ nullptr,
-    /*instance_free*/ &compositor_engine_free,
-    /*cache_init*/ nullptr,
-    /*cache_populate*/ nullptr,
-    /*cache_finish*/ nullptr,
-    /*draw_scene*/ &compositor_engine_draw,
-    /*view_update*/ nullptr,
-    /*id_update*/ nullptr,
-    /*render_to_image*/ nullptr,
-    /*store_metadata*/ nullptr,
-};

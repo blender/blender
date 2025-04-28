@@ -240,7 +240,7 @@ ProcDef(stucci);
 
 static void init(bNodeTree * /*ntree*/, bNode *node)
 {
-  Tex *tex = static_cast<Tex *>(MEM_callocN(sizeof(Tex), "Tex"));
+  Tex *tex = MEM_callocN<Tex>("Tex");
   node->storage = tex;
 
   BKE_texture_default(tex);

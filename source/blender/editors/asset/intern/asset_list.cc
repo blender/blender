@@ -95,7 +95,9 @@ class AssetList : NonCopyable {
 
   void setup();
   void fetch(const bContext &C);
+  void ensure_blocking(const bContext &C);
   void clear(wmWindowManager *wm);
+  void clear_current_file_assets(wmWindowManager *wm);
 
   AssetHandle asset_get_by_index(int index) const;
 
@@ -163,6 +165,22 @@ void AssetList::fetch(const bContext &C)
   filelist_filter(files);
 }
 
+void AssetList::ensure_blocking(const bContext &C)
+{
+  FileList *files = filelist_;
+
+  if (filelist_needs_force_reset(files)) {
+    filelist_clear_from_reset_tag(files);
+  }
+
+  if (filelist_needs_reading(files)) {
+    filelist_readjob_blocking_run(files, NC_ASSET | ND_ASSET_LIST_READING, &C);
+  }
+
+  filelist_sort(files);
+  filelist_filter(files);
+}
+
 bool AssetList::needs_refetch() const
 {
   return filelist_needs_force_reset(filelist_) || filelist_needs_reading(filelist_);
@@ -222,6 +240,20 @@ void AssetList::clear(wmWindowManager *wm)
   filelist_freelib(files);
   filelist_clear(files);
   filelist_tag_force_reset(files);
+
+  WM_main_add_notifier(NC_ASSET | ND_ASSET_LIST, nullptr);
+}
+
+void AssetList::clear_current_file_assets(wmWindowManager *wm)
+{
+  /* Based on #ED_fileselect_clear_main_assets() */
+
+  FileList *files = filelist_;
+  filelist_readjob_stop(files, wm);
+  filelist_freelib(files);
+  filelist_tag_force_reset_mainfiles(files);
+  filelist_tag_reload_asset_library(files);
+  filelist_clear_from_reset_tag(files);
 
   WM_main_add_notifier(NC_ASSET | ND_ASSET_LIST, nullptr);
 }
@@ -414,6 +446,21 @@ void storage_fetch(const AssetLibraryReference *library_reference, const bContex
   }
 }
 
+void storage_fetch_blocking(const AssetLibraryReference &library_reference, const bContext &C)
+{
+  std::optional filesel_type = asset_library_reference_to_fileselect_type(library_reference);
+  if (!filesel_type) {
+    /* TODO: Warn? */
+    return;
+  }
+
+  auto [list, is_new] = ensure_list_storage(library_reference, *filesel_type);
+  if (is_new || list.needs_refetch()) {
+    list.setup();
+    list.ensure_blocking(C);
+  }
+}
+
 bool is_loaded(const AssetLibraryReference *library_reference)
 {
   AssetList *list = lookup_list(*library_reference);
@@ -426,13 +473,11 @@ bool is_loaded(const AssetLibraryReference *library_reference)
   return list->is_loaded();
 }
 
-void clear(const AssetLibraryReference *library_reference, wmWindowManager *wm)
+static void foreach_visible_asset_browser_showing_library(
+    const AssetLibraryReference &library_reference,
+    const wmWindowManager *wm,
+    const FunctionRef<void(SpaceFile &sfile)> fn)
 {
-  AssetList *list = lookup_list(*library_reference);
-  if (list) {
-    list->clear(wm);
-  }
-
   LISTBASE_FOREACH (const wmWindow *, win, &wm->windows) {
     const bScreen *screen = WM_window_get_active_screen(win);
     LISTBASE_FOREACH (const ScrArea *, area, &screen->areabase) {
@@ -441,19 +486,49 @@ void clear(const AssetLibraryReference *library_reference, wmWindowManager *wm)
       if (area->spacetype == SPACE_FILE) {
         SpaceFile *sfile = reinterpret_cast<SpaceFile *>(area->spacedata.first);
         if (sfile->browse_mode == FILE_BROWSE_MODE_ASSETS) {
-          if (sfile->asset_params && sfile->asset_params->asset_library_ref == *library_reference)
-          {
-            ED_fileselect_clear(wm, sfile);
+          if (sfile->asset_params && sfile->asset_params->asset_library_ref == library_reference) {
+            fn(*sfile);
           }
         }
       }
     }
   }
+}
+
+void clear(const AssetLibraryReference *library_reference, wmWindowManager *wm)
+{
+  AssetList *list = lookup_list(*library_reference);
+  if (list) {
+    list->clear(wm);
+  }
+
+  /* Only needs to cover visible file/asset browsers, since others are already cleared through area
+   * exiting. */
+  foreach_visible_asset_browser_showing_library(
+      *library_reference, wm, [&](SpaceFile &sfile) { ED_fileselect_clear(wm, &sfile); });
 
   /* Always clear the all library when clearing a nested one. */
   if (library_reference->type != ASSET_LIBRARY_ALL) {
     const AssetLibraryReference all_lib_ref = asset_system::all_library_reference();
-    clear(&all_lib_ref, wm);
+    AssetList *all_lib_list = lookup_list(all_lib_ref);
+
+    /* If the cleared nested library is the current file one, only clear current file assets. */
+    if (library_reference->type == ASSET_LIBRARY_LOCAL) {
+      if (all_lib_list) {
+        all_lib_list->clear_current_file_assets(wm);
+      }
+
+      foreach_visible_asset_browser_showing_library(
+          all_lib_ref, wm, [&](SpaceFile &sfile) { ED_fileselect_clear_main_assets(wm, &sfile); });
+    }
+    else {
+      if (all_lib_list) {
+        all_lib_list->clear(wm);
+      }
+
+      foreach_visible_asset_browser_showing_library(
+          all_lib_ref, wm, [&](SpaceFile &sfile) { ED_fileselect_clear(wm, &sfile); });
+    }
   }
 }
 
@@ -468,9 +543,21 @@ void clear_all_library(const bContext *C)
   clear(&all_lib_ref, CTX_wm_manager(C));
 }
 
-bool storage_has_list_for_library(const AssetLibraryReference *library_reference)
+bool has_list_storage_for_library(const AssetLibraryReference *library_reference)
 {
   return lookup_list(*library_reference) != nullptr;
+}
+
+bool has_asset_browser_storage_for_library(const AssetLibraryReference *library_reference,
+                                           const bContext *C)
+{
+  bool has_asset_browser = false;
+  foreach_visible_asset_browser_showing_library(
+      *library_reference, CTX_wm_manager(C), [&](SpaceFile & /*sfile*/) {
+        has_asset_browser = true;
+      });
+
+  return has_asset_browser;
 }
 
 void iterate(const AssetLibraryReference &library_reference, AssetListIndexIterFn fn)

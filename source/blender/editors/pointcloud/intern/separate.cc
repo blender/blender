@@ -25,7 +25,7 @@
 
 namespace blender::ed::pointcloud {
 
-static int separate_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus separate_exec(bContext *C, wmOperator * /*op*/)
 {
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);

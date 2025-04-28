@@ -10,20 +10,20 @@
 #ifndef GPU_SHADER_MATH_BASE_LIB_GLSL
 #  define GPU_SHADER_MATH_BASE_LIB_GLSL
 
-#  define M_PI 3.14159265358979323846      /* pi */
-#  define M_TAU 6.28318530717958647692     /* tau = 2*pi */
-#  define M_PI_2 1.57079632679489661923    /* pi/2 */
-#  define M_PI_4 0.78539816339744830962    /* pi/4 */
-#  define M_SQRT2 1.41421356237309504880   /* sqrt(2) */
-#  define M_SQRT1_2 0.70710678118654752440 /* 1/sqrt(2) */
-#  define M_SQRT3 1.73205080756887729352   /* sqrt(3) */
-#  define M_SQRT1_3 0.57735026918962576450 /* 1/sqrt(3) */
-#  define M_1_PI 0.318309886183790671538   /* 1/pi */
-#  define M_E 2.7182818284590452354        /* e */
-#  define M_LOG2E 1.4426950408889634074    /* log_2 e */
-#  define M_LOG10E 0.43429448190325182765  /* log_10 e */
-#  define M_LN2 0.69314718055994530942     /* log_e 2 */
-#  define M_LN10 2.30258509299404568402    /* log_e 10 */
+#  define M_PI 3.14159265358979323846f      /* pi */
+#  define M_TAU 6.28318530717958647692f     /* tau = 2*pi */
+#  define M_PI_2 1.57079632679489661923f    /* pi/2 */
+#  define M_PI_4 0.78539816339744830962f    /* pi/4 */
+#  define M_SQRT2 1.41421356237309504880f   /* sqrt(2) */
+#  define M_SQRT1_2 0.70710678118654752440f /* 1/sqrt(2) */
+#  define M_SQRT3 1.73205080756887729352f   /* sqrt(3) */
+#  define M_SQRT1_3 0.57735026918962576450f /* 1/sqrt(3) */
+#  define M_1_PI 0.318309886183790671538f   /* 1/pi */
+#  define M_E 2.7182818284590452354f        /* e */
+#  define M_LOG2E 1.4426950408889634074f    /* log_2 e */
+#  define M_LOG10E 0.43429448190325182765f  /* log_10 e */
+#  define M_LN2 0.69314718055994530942f     /* log_e 2 */
+#  define M_LN10 2.30258509299404568402f    /* log_e 10 */
 
 /* `powf` is really slow for raising to integer powers. */
 
@@ -68,15 +68,15 @@ float square(float v)
 {
   return v * v;
 }
-vec2 square(vec2 v)
+float2 square(float2 v)
 {
   return v * v;
 }
-vec3 square(vec3 v)
+float3 square(float3 v)
 {
   return v * v;
 }
-vec4 square(vec4 v)
+float4 square(float4 v)
 {
   return v * v;
 }
@@ -114,20 +114,20 @@ float _atan2(float y, float x)
  */
 float safe_mod(float a, float b)
 {
-  return (b != 0.0) ? mod(a, b) : 0.0;
+  return (b != 0.0f) ? mod(a, b) : 0.0f;
 }
 
 /**
- * A version of mod that behaves similar to C++ std::modf, and is safe such that it returns 0 when
- * b is also 0.
+ * A version of mod that behaves similar to C++ `std::modf`, and is safe such that it returns 0
+ * when b is also 0.
  */
 float compatible_mod(float a, float b)
 {
-  if (b != 0.0) {
+  if (b != 0.0f) {
     int N = int(a / b);
     return a - N * b;
   }
-  return 0.0;
+  return 0.0f;
 }
 
 /**
@@ -172,7 +172,7 @@ void min_max(float value, inout float min_v, inout float max_v)
  */
 float safe_divide(float a, float b)
 {
-  return (b != 0.0) ? (a / b) : 0.0;
+  return (b != 0.0f) ? (a / b) : 0.0f;
 }
 
 /**
@@ -181,7 +181,7 @@ float safe_divide(float a, float b)
  */
 float safe_rcp(float a)
 {
-  return (a != 0.0) ? (1.0 / a) : 0.0;
+  return (a != 0.0f) ? (1.0f / a) : 0.0f;
 }
 
 /**
@@ -190,7 +190,7 @@ float safe_rcp(float a)
  */
 float safe_sqrt(float a)
 {
-  return sqrt(max(0.0, a));
+  return sqrt(max(0.0f, a));
 }
 
 /**
@@ -200,11 +200,11 @@ float safe_sqrt(float a)
  */
 float safe_acos(float a)
 {
-  if (a <= -1.0) {
+  if (a <= -1.0f) {
     return M_PI;
   }
-  else if (a >= 1.0) {
-    return 0.0;
+  else if (a >= 1.0f) {
+    return 0.0f;
   }
   return acos(a);
 }
@@ -219,12 +219,12 @@ bool is_equal(float a, float b, const float epsilon)
 
 float sin_from_cos(float c)
 {
-  return safe_sqrt(1.0 - square(c));
+  return safe_sqrt(1.0f - square(c));
 }
 
 float cos_from_sin(float s)
 {
-  return safe_sqrt(1.0 - square(s));
+  return safe_sqrt(1.0f - square(s));
 }
 
 /**
@@ -233,7 +233,7 @@ float cos_from_sin(float s)
  */
 float fallback_pow(float x, float y, float fallback)
 {
-  if (x < 0.0 || (x == 0.0 && y <= 0.0)) {
+  if (x < 0.0f || (x == 0.0f && y <= 0.0f)) {
     return fallback;
   }
 
@@ -245,21 +245,21 @@ float fallback_pow(float x, float y, float fallback)
  */
 float compatible_pow(float x, float y)
 {
-  if (y == 0.0) { /* x^0 -> 1, including 0^0 */
-    return 1.0;
+  if (y == 0.0f) { /* x^0 -> 1, including 0^0 */
+    return 1.0f;
   }
 
   /* GLSL pow doesn't accept negative x. */
-  if (x < 0.0) {
-    if (mod(-y, 2.0) == 0.0) {
+  if (x < 0.0f) {
+    if (mod(-y, 2.0f) == 0.0f) {
       return pow(-x, y);
     }
     else {
       return -pow(-x, y);
     }
   }
-  else if (x == 0.0) {
-    return 0.0;
+  else if (x == 0.0f) {
+    return 0.0f;
   }
 
   return pow(x, y);
@@ -272,8 +272,8 @@ float wrap(float a, float b, float c)
 {
   float range = b - c;
   /* Avoid discrepancy on some hardware due to floating point accuracy and fast math. */
-  float s = (a != b) ? floor((a - c) / range) : 1.0;
-  return (range != 0.0) ? a - range * s : c;
+  float s = (a != b) ? floor((a - c) / range) : 1.0f;
+  return (range != 0.0f) ? a - range * s : c;
 }
 
 /** \} */

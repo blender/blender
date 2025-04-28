@@ -36,7 +36,7 @@ using blender::Vector;
 /** \name Spin Operator
  * \{ */
 
-static int edbm_spin_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus edbm_spin_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -105,7 +105,7 @@ static int edbm_spin_exec(bContext *C, wmOperator *op)
 }
 
 /* get center and axis, in global coords */
-static int edbm_spin_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+static wmOperatorStatus edbm_spin_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
 {
   Scene *scene = CTX_data_scene(C);
   View3D *v3d = CTX_wm_view3d(C);
@@ -131,7 +131,7 @@ static int edbm_spin_invoke(bContext *C, wmOperator *op, const wmEvent * /*event
   }
 #endif
 
-  int ret = edbm_spin_exec(C, op);
+  wmOperatorStatus ret = edbm_spin_exec(C, op);
 
 #ifdef USE_GIZMO
   if (ret & OPERATOR_FINISHED) {

@@ -76,6 +76,8 @@ enum {
 /**
  * Calculate unit length values into `r_normal` & `r_plane`
  * from selected objects in the 3D viewport.
+ *
+ * \param v3d: The 3D viewport or null.
  */
 int getTransformOrientation_ex(const Scene *scene,
                                ViewLayer *view_layer,

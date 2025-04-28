@@ -37,7 +37,7 @@
 /*
  * TODO(@ideasman42): Current conversion is a approximation (usable not correct),
  * we'll need to take the next/previous bones into account to get the tangent directions.
- * First last matrices from 'BKE_pchan_bbone_spline_setup' are close but also not quite accurate
+ * First last matrices from #BKE_pchan_bbone_spline_setup are close but also not quite accurate
  * since they're not at either end-points on the curve.
  *
  * Likely we'll need a function especially to get the first/last orientations.
@@ -138,8 +138,7 @@ static void WIDGETGROUP_armature_spline_setup(const bContext *C, wmGizmoGroup *g
 
   const wmGizmoType *gzt_move = WM_gizmotype_find("GIZMO_GT_move_3d", true);
 
-  BoneSplineWidgetGroup *bspline_group = static_cast<BoneSplineWidgetGroup *>(
-      MEM_callocN(sizeof(BoneSplineWidgetGroup), __func__));
+  BoneSplineWidgetGroup *bspline_group = MEM_callocN<BoneSplineWidgetGroup>(__func__);
   gzgroup->customdata = bspline_group;
 
   /* Handles */

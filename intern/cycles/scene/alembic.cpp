@@ -76,7 +76,6 @@ void CachedData::clear()
   curve_keys.clear();
   curve_radius.clear();
   curve_shader.clear();
-  num_ngons.clear();
   shader.clear();
   subd_creases_edge.clear();
   subd_creases_weight.clear();
@@ -126,7 +125,6 @@ bool CachedData::is_constant() const
   CHECK_IF_CONSTANT(curve_keys)
   CHECK_IF_CONSTANT(curve_radius)
   CHECK_IF_CONSTANT(curve_shader)
-  CHECK_IF_CONSTANT(num_ngons)
   CHECK_IF_CONSTANT(shader)
   CHECK_IF_CONSTANT(subd_creases_edge)
   CHECK_IF_CONSTANT(subd_creases_weight)
@@ -168,7 +166,6 @@ void CachedData::invalidate_last_loaded_time(bool attributes_only)
   curve_keys.invalidate_last_loaded_time();
   curve_radius.invalidate_last_loaded_time();
   curve_shader.invalidate_last_loaded_time();
-  num_ngons.invalidate_last_loaded_time();
   shader.invalidate_last_loaded_time();
   subd_creases_edge.invalidate_last_loaded_time();
   subd_creases_weight.invalidate_last_loaded_time();
@@ -192,7 +189,6 @@ void CachedData::set_time_sampling(TimeSampling time_sampling)
   curve_keys.set_time_sampling(time_sampling);
   curve_radius.set_time_sampling(time_sampling);
   curve_shader.set_time_sampling(time_sampling);
-  num_ngons.set_time_sampling(time_sampling);
   shader.set_time_sampling(time_sampling);
   subd_creases_edge.set_time_sampling(time_sampling);
   subd_creases_weight.set_time_sampling(time_sampling);
@@ -222,7 +218,6 @@ size_t CachedData::memory_used() const
   mem_used += curve_keys.memory_used();
   mem_used += curve_radius.memory_used();
   mem_used += curve_shader.memory_used();
-  mem_used += num_ngons.memory_used();
   mem_used += shader.memory_used();
   mem_used += subd_creases_edge.memory_used();
   mem_used += subd_creases_weight.memory_used();
@@ -819,8 +814,6 @@ AlembicProcedural::~AlembicProcedural()
         geometries_set.insert(abc_object->get_object()->get_geometry());
       }
     }
-
-    delete_node(abc_object);
   }
 
   /* We may delete a Procedural before rendering started, so scene_ can be null. */
@@ -1206,8 +1199,6 @@ void AlembicProcedural::read_subd(AlembicObject *abc_object, Abc::chrono_t frame
 
   cached_data.subd_face_corners.copy_to_socket(
       frame_time, mesh, mesh->get_subd_face_corners_socket());
-
-  cached_data.num_ngons.copy_to_socket(frame_time, mesh, mesh->get_num_ngons_socket());
 
   cached_data.subd_creases_edge.copy_to_socket(
       frame_time, mesh, mesh->get_subd_creases_edge_socket());

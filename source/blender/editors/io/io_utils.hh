@@ -18,7 +18,7 @@ namespace blender::ed::io {
  * Shows a import dialog if the operator was invoked with filepath properties set,
  * otherwise invokes the file-select window.
  */
-int filesel_drop_import_invoke(bContext *C, wmOperator *op, const wmEvent *event);
+wmOperatorStatus filesel_drop_import_invoke(bContext *C, wmOperator *op, const wmEvent *event);
 
 bool poll_file_object_drop(const bContext *C, blender::bke::FileHandlerType *fh);
 

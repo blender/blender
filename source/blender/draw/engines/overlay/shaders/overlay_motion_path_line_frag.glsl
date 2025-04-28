@@ -8,5 +8,5 @@ FRAGMENT_SHADER_CREATE_INFO(overlay_motion_path_line)
 
 void main()
 {
-  fragColor = interp.color;
+  frag_color = interp.color;
 }

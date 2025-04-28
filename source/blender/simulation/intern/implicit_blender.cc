@@ -15,6 +15,7 @@
 #  include "BLI_math_geom.h"
 #  include "BLI_math_matrix.h"
 #  include "BLI_math_vector.h"
+#  include "BLI_task.hh"
 
 #  include "BKE_cloth.hh"
 
@@ -24,9 +25,7 @@
 #    pragma GCC diagnostic ignored "-Wtype-limits"
 #  endif
 
-#  ifdef _OPENMP
-#    define CLOTH_OPENMP_LIMIT 512
-#  endif
+#  define CLOTH_PARALLEL_LIMIT 1024
 
 // #define DEBUG_TIME
 
@@ -115,7 +114,7 @@ DO_INLINE void print_lfvector(float (*fLongVector)[3], uint verts)
 DO_INLINE lfVector *create_lfvector(uint verts)
 {
   /* TODO: check if memory allocation was successful */
-  return (lfVector *)MEM_callocN(verts * sizeof(lfVector), "cloth_implicit_alloc_vector");
+  return MEM_calloc_arrayN<lfVector>(verts, "cloth_implicit_alloc_vector");
   // return (lfVector *)cloth_aligned_malloc(&MEMORY_BASE, verts * sizeof(lfVector));
 }
 /* delete long vector */
@@ -165,17 +164,29 @@ DO_INLINE void submul_lfvectorS(float (*to)[3], float (*fLongVector)[3], float s
 /* dot product for big vector */
 DO_INLINE float dot_lfvector(float (*fLongVectorA)[3], float (*fLongVectorB)[3], uint verts)
 {
-  long i = 0;
+#  if 0
+  /* TODO: try enabling this and measuring performance. It was previously disabled
+   * due to non-deterministic behavior, but parallel_deterministic_reduce should
+   * give consistent results. */
+  return blender::threading::parallel_deterministic_reduce(
+      blender::IndexRange(0, verts),
+      CLOTH_PARALLEL_LIMIT,
+      0.0,
+      [=](const blender::IndexRange &range, float value) {
+        float temp = value;
+        for (const int i : range) {
+          temp += dot_v3v3(fLongVectorA[i], fLongVectorB[i]);
+        }
+        return temp;
+      },
+      std::plus<>());
+#  else
   float temp = 0.0;
-  /* XXX brecht, disabled this for now (first schedule line was already disabled),
-   * due to non-commutative nature of floating point ops this makes the sim give
-   * different results each time you run it!
-   * schedule(guided, 2) */
-  // #pragma omp parallel for reduction(+: temp) if (verts > CLOTH_OPENMP_LIMIT)
-  for (i = 0; i < long(verts); i++) {
+  for (uint i = 0; i < verts; i++) {
     temp += dot_v3v3(fLongVectorA[i], fLongVectorB[i]);
   }
   return temp;
+#  endif
 }
 /* `A = B + C` -> for big vector. */
 DO_INLINE void add_lfvector_lfvector(float (*to)[3],
@@ -279,7 +290,7 @@ static void print_bfmatrix(fmatrix3x3 *m)
 {
   int tot = m[0].vcount + m[0].scount;
   int size = m[0].vcount * 3;
-  float *t = MEM_callocN(sizeof(float) * size * size, "bfmatrix");
+  float *t = MEM_calloc_array<float>N(size * size, "bfmatrix");
   int q, i, j;
 
   for (q = 0; q < tot; q++) {
@@ -519,8 +530,7 @@ BLI_INLINE void init_fmatrix(fmatrix3x3 *matrix, int r, int c)
 DO_INLINE fmatrix3x3 *create_bfmatrix(uint verts, uint springs)
 {
   /* TODO: check if memory allocation was successful */
-  fmatrix3x3 *temp = (fmatrix3x3 *)MEM_callocN(sizeof(fmatrix3x3) * (verts + springs),
-                                               "cloth_implicit_alloc_matrix");
+  fmatrix3x3 *temp = MEM_calloc_arrayN<fmatrix3x3>(verts + springs, "cloth_implicit_alloc_matrix");
   int i;
 
   temp[0].vcount = verts;
@@ -583,23 +593,21 @@ DO_INLINE void mul_bfmatrix_lfvector(float (*to)[3], fmatrix3x3 *from, lfVector 
 
   zero_lfvector(to, vcount);
 
-#  pragma omp parallel sections if (vcount > CLOTH_OPENMP_LIMIT)
-  {
-#  pragma omp section
-    {
-      for (uint i = from[0].vcount; i < from[0].vcount + from[0].scount; i++) {
-        /* This is the lower triangle of the sparse matrix,
-         * therefore multiplication occurs with transposed sub-matrices. */
-        muladd_fmatrixT_fvector(to[from[i].c], from[i].m, fLongVector[from[i].r]);
-      }
-    }
-#  pragma omp section
-    {
-      for (uint i = 0; i < from[0].vcount + from[0].scount; i++) {
-        muladd_fmatrix_fvector(temp[from[i].r], from[i].m, fLongVector[from[i].c]);
-      }
-    }
-  }
+  blender::threading::parallel_invoke(
+      vcount > CLOTH_PARALLEL_LIMIT,
+      [&]() {
+        for (uint i = from[0].vcount; i < from[0].vcount + from[0].scount; i++) {
+          /* This is the lower triangle of the sparse matrix,
+           * therefore multiplication occurs with transposed sub-matrices. */
+          muladd_fmatrixT_fvector(to[from[i].c], from[i].m, fLongVector[from[i].r]);
+        }
+      },
+      [&]() {
+        for (uint i = 0; i < from[0].vcount + from[0].scount; i++) {
+          muladd_fmatrix_fvector(temp[from[i].r], from[i].m, fLongVector[from[i].c]);
+        }
+      });
+
   add_lfvector_lfvector(to, to, temp, from[0].vcount);
 
   del_lfvector(temp);
@@ -648,7 +656,7 @@ struct Implicit_Data {
 
 Implicit_Data *SIM_mass_spring_solver_create(int numverts, int numsprings)
 {
-  Implicit_Data *id = (Implicit_Data *)MEM_callocN(sizeof(Implicit_Data), "implicit vecmat");
+  Implicit_Data *id = MEM_callocN<Implicit_Data>("implicit vecmat");
 
   /* process diagonal elements */
   id->tfm = create_bfmatrix(numverts, 0);
@@ -910,15 +918,16 @@ static int cg_filtered(lfVector *ldV,
 /* block diagonalizer */
 DO_INLINE void BuildPPinv(fmatrix3x3 *lA, fmatrix3x3 *P, fmatrix3x3 *Pinv)
 {
-  uint i = 0;
-
   /* Take only the diagonal blocks of A */
-  // #pragma omp parallel for private(i) if (lA[0].vcount > CLOTH_OPENMP_LIMIT)
-  for (i = 0; i < lA[0].vcount; i++) {
-    /* block diagonalizer */
-    cp_fmatrix(P[i].m, lA[i].m);
-    inverse_fmatrix(Pinv[i].m, P[i].m);
-  }
+  blender::threading::parallel_for(blender::IndexRange(0, lA[0].vcount),
+                                   CLOTH_PARALLEL_LIMIT,
+                                   [&](const blender::IndexRange &range) {
+                                     for (int64_t i : range) {
+                                       /* block diagonalizer */
+                                       cp_fmatrix(P[i].m, lA[i].m);
+                                       inverse_fmatrix(Pinv[i].m, P[i].m);
+                                     }
+                                   });
 }
 
 #    if 0

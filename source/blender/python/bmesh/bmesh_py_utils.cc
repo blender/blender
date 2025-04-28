@@ -653,7 +653,11 @@ static PyObject *bpy_bm_utils_face_join(PyObject * /*self*/, PyObject *args)
 
   /* Go ahead and join the face!
    * --------------------------- */
-  f_new = BM_faces_join(bm, face_array, int(face_seq_len), do_remove);
+  BMFace *f_double;
+  f_new = BM_faces_join(bm, face_array, int(face_seq_len), do_remove, &f_double);
+  /* See #BM_faces_join note on callers asserting when `r_double` is non-null. */
+  BLI_assert_msg(f_double == nullptr,
+                 "Doubled face detected at " AT ". Resulting mesh may be corrupt.");
 
   PyMem_FREE(face_array);
 
@@ -782,9 +786,14 @@ static PyObject *bpy_bm_utils_loop_separate(PyObject * /*self*/, BPy_BMLoop *val
   Py_RETURN_NONE;
 }
 
-#if (defined(__GNUC__) && !defined(__clang__))
-#  pragma GCC diagnostic push
-#  pragma GCC diagnostic ignored "-Wcast-function-type"
+#ifdef __GNUC__
+#  ifdef __clang__
+#    pragma clang diagnostic push
+#    pragma clang diagnostic ignored "-Wcast-function-type"
+#  else
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wcast-function-type"
+#  endif
 #endif
 
 static PyMethodDef BPy_BM_utils_methods[] = {
@@ -837,8 +846,12 @@ static PyMethodDef BPy_BM_utils_methods[] = {
     {nullptr, nullptr, 0, nullptr},
 };
 
-#if (defined(__GNUC__) && !defined(__clang__))
-#  pragma GCC diagnostic pop
+#ifdef __GNUC__
+#  ifdef __clang__
+#    pragma clang diagnostic pop
+#  else
+#    pragma GCC diagnostic pop
+#  endif
 #endif
 
 PyDoc_STRVAR(

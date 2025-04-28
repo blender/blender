@@ -32,7 +32,8 @@ static Geometry::Type determine_geom_type(BObjectInfo &b_ob_info, bool use_parti
   }
 
   if (b_ob_info.object_data.is_a(&RNA_Volume) ||
-      (b_ob_info.object_data == b_ob_info.real_object.data() &&
+      (b_ob_info.object_data ==
+           object_get_data(b_ob_info.real_object, b_ob_info.use_adaptive_subdivision) &&
        object_fluid_gas_domain_find(b_ob_info.real_object)))
   {
     return Geometry::VOLUME;
@@ -76,8 +77,7 @@ array<Node *> BlenderSync::find_used_shaders(BL::Object &b_ob)
   return used_shaders;
 }
 
-Geometry *BlenderSync::sync_geometry(BL::Depsgraph &b_depsgraph,
-                                     BObjectInfo &b_ob_info,
+Geometry *BlenderSync::sync_geometry(BObjectInfo &b_ob_info,
                                      bool object_updated,
                                      bool use_particle_hair,
                                      TaskPool *task_pool)
@@ -167,7 +167,7 @@ Geometry *BlenderSync::sync_geometry(BL::Depsgraph &b_depsgraph,
   /* Store the shaders immediately for the object attribute code. */
   geom->set_used_shaders(used_shaders);
 
-  auto sync_func = [this, geom_type, b_depsgraph, b_ob_info, geom]() mutable {
+  auto sync_func = [this, geom_type, b_ob_info, geom]() mutable {
     if (progress.get_cancel()) {
       return;
     }
@@ -176,11 +176,11 @@ Geometry *BlenderSync::sync_geometry(BL::Depsgraph &b_depsgraph,
 
     if (geom_type == Geometry::LIGHT) {
       Light *light = static_cast<Light *>(geom);
-      sync_light(b_depsgraph, b_ob_info, light);
+      sync_light(b_ob_info, light);
     }
     else if (geom_type == Geometry::HAIR) {
       Hair *hair = static_cast<Hair *>(geom);
-      sync_hair(b_depsgraph, b_ob_info, hair);
+      sync_hair(b_ob_info, hair);
     }
     else if (geom_type == Geometry::VOLUME) {
       Volume *volume = static_cast<Volume *>(geom);
@@ -192,7 +192,7 @@ Geometry *BlenderSync::sync_geometry(BL::Depsgraph &b_depsgraph,
     }
     else {
       Mesh *mesh = static_cast<Mesh *>(geom);
-      sync_mesh(b_depsgraph, b_ob_info, mesh);
+      sync_mesh(b_ob_info, mesh);
     }
   };
 
@@ -207,8 +207,7 @@ Geometry *BlenderSync::sync_geometry(BL::Depsgraph &b_depsgraph,
   return geom;
 }
 
-void BlenderSync::sync_geometry_motion(BL::Depsgraph &b_depsgraph,
-                                       BObjectInfo &b_ob_info,
+void BlenderSync::sync_geometry_motion(BObjectInfo &b_ob_info,
                                        Object *object,
                                        const float motion_time,
                                        bool use_particle_hair,
@@ -256,14 +255,14 @@ void BlenderSync::sync_geometry_motion(BL::Depsgraph &b_depsgraph,
     return;
   }
 
-  auto sync_func = [this, b_depsgraph, b_ob_info, use_particle_hair, motion_step, geom]() mutable {
+  auto sync_func = [this, b_ob_info, use_particle_hair, motion_step, geom]() mutable {
     if (progress.get_cancel()) {
       return;
     }
 
     if (b_ob_info.object_data.is_a(&RNA_Curves) || use_particle_hair) {
       Hair *hair = static_cast<Hair *>(geom);
-      sync_hair_motion(b_depsgraph, b_ob_info, hair, motion_step);
+      sync_hair_motion(b_ob_info, hair, motion_step);
     }
     else if (b_ob_info.object_data.is_a(&RNA_Volume) ||
              object_fluid_gas_domain_find(b_ob_info.real_object))
@@ -276,7 +275,7 @@ void BlenderSync::sync_geometry_motion(BL::Depsgraph &b_depsgraph,
     }
     else {
       Mesh *mesh = static_cast<Mesh *>(geom);
-      sync_mesh_motion(b_depsgraph, b_ob_info, mesh, motion_step);
+      sync_mesh_motion(b_ob_info, mesh, motion_step);
     }
   };
 

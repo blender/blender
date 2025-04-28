@@ -25,6 +25,13 @@ static int segments_num_no_duplicate_edge(const int points_num, const bool cycli
   return curves::segments_num(points_num, cyclic);
 }
 
+static inline bool has_caps(const bool main_cyclic,
+                            const bool profile_cyclic,
+                            const int profile_segment_num)
+{
+  return !main_cyclic && profile_cyclic && profile_segment_num > 2;
+}
+
 static void fill_mesh_topology(const int vert_offset,
                                const int edge_offset,
                                const int face_offset,
@@ -124,8 +131,7 @@ static void fill_mesh_topology(const int vert_offset,
     }
   }
 
-  const bool has_caps = fill_caps && !main_cyclic && profile_cyclic && profile_point_num > 2;
-  if (has_caps) {
+  if (fill_caps & has_caps(main_cyclic, profile_cyclic, profile_segment_num)) {
     const int face_num = main_segment_num * profile_segment_num;
     const int cap_loop_offset = loop_offset + face_num * 4;
     const int cap_face_offset = face_offset + face_num;
@@ -189,15 +195,15 @@ static void fill_mesh_positions(const int main_point_num,
                                 const Span<float3> profile_positions,
                                 const Span<float3> tangents,
                                 const Span<float3> normals,
-                                const Span<float> radii,
+                                const Span<float> scales,
                                 MutableSpan<float3> mesh_positions)
 {
   if (profile_point_num == 1) {
     for (const int i_ring : IndexRange(main_point_num)) {
       float4x4 point_matrix = build_point_matrix(
           main_positions[i_ring], normals[i_ring], tangents[i_ring]);
-      if (!radii.is_empty()) {
-        point_matrix = math::scale(point_matrix, float3(radii[i_ring]));
+      if (!scales.is_empty()) {
+        point_matrix = math::scale(point_matrix, float3(scales[i_ring]));
       }
       mesh_positions[i_ring] = math::transform_point(point_matrix, profile_positions.first());
     }
@@ -206,8 +212,8 @@ static void fill_mesh_positions(const int main_point_num,
     for (const int i_ring : IndexRange(main_point_num)) {
       float4x4 point_matrix = build_point_matrix(
           main_positions[i_ring], normals[i_ring], tangents[i_ring]);
-      if (!radii.is_empty()) {
-        point_matrix = math::scale(point_matrix, float3(radii[i_ring]));
+      if (!scales.is_empty()) {
+        point_matrix = math::scale(point_matrix, float3(scales[i_ring]));
       }
 
       const int ring_vert_start = i_ring * profile_point_num;
@@ -296,8 +302,8 @@ static ResultOffsets calculate_result_offsets(const CurvesInfo &info, const bool
             const int profile_segment_num = curves::segments_num(profile_point_num,
                                                                  profile_cyclic);
 
-            const bool has_caps = fill_caps && !main_cyclic && profile_cyclic &&
-                                  profile_point_num > 2;
+            const bool caps = fill_caps &
+                              has_caps(main_cyclic, profile_cyclic, profile_segment_num);
             const int tube_face_num = main_segment_num * profile_segment_num;
 
             vert_offset += main_point_num * profile_point_num;
@@ -308,11 +314,11 @@ static ResultOffsets calculate_result_offsets(const CurvesInfo &info, const bool
                            main_segment_num * profile_point_num;
 
             /* Add two cap N-gons for every ending. */
-            face_offset += tube_face_num + (has_caps ? 2 : 0);
+            face_offset += tube_face_num + (caps ? 2 : 0);
 
             /* All faces on the tube are quads, and all cap faces are N-gons with an edge for each
              * profile edge. */
-            loop_offset += tube_face_num * 4 + (has_caps ? profile_segment_num * 2 : 0);
+            loop_offset += tube_face_num * 4 + (caps ? profile_segment_num * 2 : 0);
 
             mesh_index++;
           }
@@ -365,8 +371,13 @@ static bool should_add_attribute_to_mesh(const AttributeAccessor &curve_attribut
                                          const AttributeFilter &attribute_filter)
 {
 
-  /* The position attribute has special non-generic evaluation. */
   if (id == "position") {
+    /* The position attribute has special non-generic evaluation. */
+    return false;
+  }
+  if (id == "custom_normal") {
+    /* The custom normal attribute is builtin on both meshes and curves, but has a different
+     * meaning and shouldn't be directly propagated. */
     return false;
   }
   /* Don't propagate built-in curves attributes that are not built-in on meshes. */
@@ -391,20 +402,20 @@ static GSpan evaluate_attribute(const GVArray &src,
     if (src.is_span()) {
       return src.get_internal_span();
     }
-    buffer.reinitialize(curves.points_num() * src.type().size());
+    buffer.reinitialize(curves.points_num() * src.type().size);
     src.materialize(buffer.data());
     GMutableSpan eval{src.type(), buffer.data(), curves.points_num()};
     return eval;
   }
 
   if (src.is_span()) {
-    buffer.reinitialize(curves.evaluated_points_num() * src.type().size());
+    buffer.reinitialize(curves.evaluated_points_num() * src.type().size);
     GMutableSpan eval{src.type(), buffer.data(), curves.evaluated_points_num()};
     curves.interpolate_to_evaluated(src.get_internal_span(), eval);
     return eval;
   }
   GVArraySpan src_buffer(src);
-  buffer.reinitialize(curves.evaluated_points_num() * src.type().size());
+  buffer.reinitialize(curves.evaluated_points_num() * src.type().size);
   GMutableSpan eval{src.type(), buffer.data(), curves.evaluated_points_num()};
   curves.interpolate_to_evaluated(src_buffer, eval);
   return eval;
@@ -472,6 +483,7 @@ static void foreach_curve_combination(const CurvesInfo &info,
 
 static void build_mesh_positions(const CurvesInfo &curves_info,
                                  const ResultOffsets &offsets,
+                                 const VArray<float> &scales,
                                  Vector<std::byte> &eval_buffer,
                                  Mesh &mesh)
 {
@@ -499,9 +511,9 @@ static void build_mesh_positions(const CurvesInfo &curves_info,
   }
   const Span<float3> tangents = curves_info.main.evaluated_tangents();
   const Span<float3> normals = curves_info.main.evaluated_normals();
-  Span<float> radii_eval;
-  if (const GVArray radii = *curves_info.main.attributes().lookup("radius", AttrDomain::Point)) {
-    radii_eval = evaluate_attribute(radii, curves_info.main, eval_buffer).typed<float>();
+  Span<float> eval_scales;
+  if (!scales.is_empty() && scales.get_if_single() != 1.0f) {
+    eval_scales = evaluate_attribute(scales, curves_info.main, eval_buffer).typed<float>();
   }
   foreach_curve_combination(curves_info, offsets, [&](const CombinationInfo &info) {
     fill_mesh_positions(info.main_points.size(),
@@ -510,7 +522,7 @@ static void build_mesh_positions(const CurvesInfo &curves_info,
                         profile_positions.slice(info.profile_points),
                         tangents.slice(info.main_points),
                         normals.slice(info.main_points),
-                        radii_eval.is_empty() ? radii_eval : radii_eval.slice(info.main_points),
+                        eval_scales.is_empty() ? eval_scales : eval_scales.slice(info.main_points),
                         positions.slice(info.vert_range));
   });
 }
@@ -811,6 +823,7 @@ static void write_sharp_bezier_edges(const CurvesInfo &curves_info,
 
 Mesh *curve_to_mesh_sweep(const CurvesGeometry &main,
                           const CurvesGeometry &profile,
+                          const VArray<float> &scales,
                           const bool fill_caps,
                           const AttributeFilter &attribute_filter)
 {
@@ -855,8 +868,7 @@ Mesh *curve_to_mesh_sweep(const CurvesGeometry &main,
     SpanAttributeWriter<bool> sharp_faces = mesh_attributes.lookup_or_add_for_write_span<bool>(
         "sharp_face", AttrDomain::Face);
     foreach_curve_combination(curves_info, offsets, [&](const CombinationInfo &info) {
-      const bool has_caps = fill_caps && !info.main_cyclic && info.profile_cyclic;
-      if (has_caps) {
+      if (has_caps(info.main_cyclic, info.profile_cyclic, info.profile_segment_num)) {
         const int face_num = info.main_segment_num * info.profile_segment_num;
         const int cap_face_offset = info.face_range.start() + face_num;
         sharp_faces.span[cap_face_offset] = true;
@@ -871,7 +883,7 @@ Mesh *curve_to_mesh_sweep(const CurvesGeometry &main,
   /* Make sure curve attributes can be interpolated. */
   main.ensure_can_interpolate_to_evaluated();
 
-  build_mesh_positions(curves_info, offsets, eval_buffer, *mesh);
+  build_mesh_positions(curves_info, offsets, scales, eval_buffer, *mesh);
 
   mesh->tag_overlapping_none();
   if (!offsets.any_single_point_main) {
@@ -996,7 +1008,7 @@ static CurvesGeometry get_curve_single_vert()
 Mesh *curve_to_wire_mesh(const CurvesGeometry &curve, const AttributeFilter &attribute_filter)
 {
   static const CurvesGeometry vert_curve = get_curve_single_vert();
-  return curve_to_mesh_sweep(curve, vert_curve, false, attribute_filter);
+  return curve_to_mesh_sweep(curve, vert_curve, {}, false, attribute_filter);
 }
 
 }  // namespace blender::bke

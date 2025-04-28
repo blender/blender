@@ -233,19 +233,25 @@ struct ReuseOldBMainData {
   Main *new_bmain;
   Main *old_bmain;
 
-  /** Data generated and used by calling WM code to handle keeping WM and UI IDs as best as
+  /**
+   * Data generated and used by calling WM code to handle keeping WM and UI IDs as best as
    * possible across file reading.
    *
-   * \note May be null in undo (memfile) case. */
+   * \note May be null in undo (memfile) case.
+   */
   BlendFileReadWMSetupData *wm_setup_data;
 
-  /** Storage for all remapping rules (old_id -> new_id) required by the preservation of old IDs
-   * into the new Main. */
+  /**
+   * Storage for all remapping rules (old_id -> new_id) required by the preservation of old IDs
+   * into the new Main.
+   */
   id::IDRemapper *remapper;
   bool is_libraries_remapped;
 
-  /** Used to find matching IDs by name/lib in new main, to remap ID usages of data ported over
-   * from old main. */
+  /**
+   * Used to find matching IDs by name/lib in new main, to remap ID usages of data ported over
+   * from old main.
+   */
   IDNameLib_Map *id_map;
 };
 
@@ -1202,6 +1208,9 @@ static void setup_app_data(bContext *C,
     STRNCPY(bmain->filepath, bfd->filepath);
   }
 
+  /* Set the loaded .blend file path for crash recovery. */
+  STRNCPY(G.filepath_last_blend, bmain->filepath);
+
   /* Base-flags, groups, make depsgraph, etc. */
   /* first handle case if other windows have different scenes visible. */
   if (mode == LOAD_UI) {
@@ -1240,6 +1249,7 @@ static void setup_app_data(bContext *C,
 
     BKE_lib_override_library_main_resync(
         bmain,
+        nullptr,
         curscene,
         bfd->cur_view_layer ? bfd->cur_view_layer : BKE_view_layer_default_view(curscene),
         reports);
@@ -1489,7 +1499,7 @@ UserDef *BKE_blendfile_userdef_read_from_memory(const void *file_buf,
 
 UserDef *BKE_blendfile_userdef_from_defaults()
 {
-  UserDef *userdef = static_cast<UserDef *>(MEM_callocN(sizeof(UserDef), __func__));
+  UserDef *userdef = MEM_callocN<UserDef>(__func__);
   *userdef = blender::dna::shallow_copy(U_default);
 
   /* Add-ons. */

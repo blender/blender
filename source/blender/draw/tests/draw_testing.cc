@@ -4,9 +4,8 @@
 
 #include "draw_testing.hh"
 
+#include "DRW_engine.hh"
 #include "GPU_shader.hh"
-
-#include "draw_manager_testing.hh"
 
 namespace blender::draw {
 
@@ -15,7 +14,13 @@ namespace blender::draw {
 void DrawOpenGLTest::SetUp()
 {
   GPUOpenGLTest::SetUp();
-  DRW_draw_state_init_gtests(GPU_SHADER_CFG_DEFAULT);
+  DRW_submission_mutex_init();
+}
+
+void DrawOpenGLTest::TearDown()
+{
+  DRW_submission_mutex_exit();
+  GPUOpenGLTest::TearDown();
 }
 #endif
 
@@ -23,7 +28,13 @@ void DrawOpenGLTest::SetUp()
 void DrawMetalTest::SetUp()
 {
   GPUMetalTest::SetUp();
-  DRW_draw_state_init_gtests(GPU_SHADER_CFG_DEFAULT);
+  DRW_submission_mutex_init();
+}
+
+void DrawMetalTest::TearDown()
+{
+  DRW_submission_mutex_exit();
+  GPUMetalTest::TearDown();
 }
 #endif
 
@@ -31,7 +42,13 @@ void DrawMetalTest::SetUp()
 void DrawVulkanTest::SetUp()
 {
   GPUVulkanTest::SetUp();
-  DRW_draw_state_init_gtests(GPU_SHADER_CFG_DEFAULT);
+  DRW_submission_mutex_init();
+}
+
+void DrawVulkanTest::TearDown()
+{
+  DRW_submission_mutex_exit();
+  GPUVulkanTest::TearDown();
 }
 #endif
 

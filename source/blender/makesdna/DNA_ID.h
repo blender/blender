@@ -15,6 +15,8 @@
 
 /** Workaround to forward-declare C++ type in C header. */
 #ifdef __cplusplus
+#  include <type_traits>
+
 namespace blender::bke {
 struct PreviewImageRuntime;
 }
@@ -40,26 +42,6 @@ struct Library;
 struct PackedFile;
 struct UniqueName_Map;
 struct Depsgraph;
-
-/* Runtime display data */
-struct DrawData;
-typedef void (*DrawDataInitCb)(struct DrawData *engine_data);
-typedef void (*DrawDataFreeCb)(struct DrawData *engine_data);
-
-#
-#
-typedef struct DrawData {
-  struct DrawData *next, *prev;
-  struct DrawEngineType *engine_type;
-  /* Only nested data, NOT the engine data itself. */
-  DrawDataFreeCb free;
-  /* Accumulated recalc flags, which corresponds to ID->recalc flags. */
-  unsigned int recalc;
-} DrawData;
-
-typedef struct DrawDataList {
-  struct DrawData *first, *last;
-} DrawDataList;
 
 typedef struct IDPropertyUIData {
   /** Tool-tip / property description pointer. Owned by the #IDProperty. */
@@ -604,9 +586,7 @@ typedef struct PreviewImage {
  */
 #define ID_REFCOUNTING_USERS(id) (ID_REAL_USERS(id) - ID_EXTRA_REAL_USERS(id))
 
-#define ID_CHECK_UNDO(id) \
-  ((GS((id)->name) != ID_SCR) && (GS((id)->name) != ID_WM) && (GS((id)->name) != ID_WS)) && \
-      (GS((id)->name) != ID_BR)
+#define ID_CHECK_UNDO(id) (!ELEM(GS((id)->name), ID_SCR, ID_WM, ID_WS, ID_BR))
 
 #define ID_BLEND_PATH(_bmain, _id) \
   ((_id)->lib ? (_id)->lib->runtime->filepath_abs : BKE_main_blendfile_path((_bmain)))
@@ -722,12 +702,12 @@ enum {
  * code:
  *
  * - RESET_BEFORE_USE: piece of code that wants to use such flag has to ensure they are properly
- *   'reset' first.
+ *   "reset" first.
  * - RESET_AFTER_USE: piece of code that wants to use such flag has to ensure they are properly
- *   'reset' after usage (though 'lifetime' of those flags is a bit fuzzy, e.g. _RECALC ones are
+ *   "reset" after usage (though "lifetime" of those flags is a bit fuzzy, e.g. _RECALC ones are
  *   reset on depsgraph evaluation...).
  * - RESET_NEVER: these flags are 'status' ones, and never actually need any reset (except on
- *   initialization during .blend file reading).
+ *   initialization during `.blend` file reading).
  *
  * \note These tags are purely runtime, so changing there value is not an issue. When adding new
  * tags, please put them in the relevant category and always keep their values strictly increasing.
@@ -1273,4 +1253,30 @@ typedef enum eID_Index {
 
 #ifdef __cplusplus
 }
+#endif
+
+#ifdef __cplusplus
+namespace blender::dna {
+namespace detail {
+template<typename, typename = void> struct has_ID_member : std::false_type {};
+template<typename T> struct has_ID_member<T, std::void_t<decltype(&T::id)>> : std::true_type {};
+template<typename T> constexpr bool has_ID_as_first_member()
+{
+  if constexpr (std::is_standard_layout_v<T> && has_ID_member<T>::value) {
+    return offsetof(T, id) == 0 && std::is_same_v<decltype(T::id), ID>;
+  }
+  else {
+    return false;
+  }
+}
+}  // namespace detail
+
+/**
+ * Type trait to check if a type is a ID data-block. It just actually checks whether the type has
+ * #ID is first data member, which should be good enough in practice.
+ */
+template<typename T>
+constexpr bool is_ID_v = detail::has_ID_as_first_member<T>() || std::is_same_v<T, ID>;
+
+}  // namespace blender::dna
 #endif

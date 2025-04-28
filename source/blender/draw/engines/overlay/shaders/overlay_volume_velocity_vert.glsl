@@ -12,83 +12,83 @@ VERTEX_SHADER_CREATE_INFO(overlay_volume_velocity_mac)
 
 /* Straight Port from BKE_defvert_weight_to_rgb()
  * TODO: port this to a color ramp. */
-vec3 weight_to_color(float weight)
+float3 weight_to_color(float weight)
 {
-  vec3 r_rgb = vec3(0.0);
-  float blend = ((weight / 2.0) + 0.5);
+  float3 r_rgb = float3(0.0f);
+  float blend = ((weight / 2.0f) + 0.5f);
 
-  if (weight <= 0.25) { /* blue->cyan */
-    r_rgb.g = blend * weight * 4.0;
+  if (weight <= 0.25f) { /* blue->cyan */
+    r_rgb.g = blend * weight * 4.0f;
     r_rgb.b = blend;
   }
-  else if (weight <= 0.50) { /* cyan->green */
+  else if (weight <= 0.50f) { /* cyan->green */
     r_rgb.g = blend;
-    r_rgb.b = blend * (1.0 - ((weight - 0.25) * 4.0));
+    r_rgb.b = blend * (1.0f - ((weight - 0.25f) * 4.0f));
   }
-  else if (weight <= 0.75) { /* green->yellow */
-    r_rgb.r = blend * ((weight - 0.50) * 4.0);
+  else if (weight <= 0.75f) { /* green->yellow */
+    r_rgb.r = blend * ((weight - 0.50f) * 4.0f);
     r_rgb.g = blend;
   }
-  else if (weight <= 1.0) { /* yellow->red */
+  else if (weight <= 1.0f) { /* yellow->red */
     r_rgb.r = blend;
-    r_rgb.g = blend * (1.0 - ((weight - 0.75) * 4.0));
+    r_rgb.g = blend * (1.0f - ((weight - 0.75f) * 4.0f));
   }
   else {
     /* exceptional value, unclamped or nan,
      * avoid uninitialized memory use */
-    r_rgb = vec3(1.0, 0.0, 1.0);
+    r_rgb = float3(1.0f, 0.0f, 1.0f);
   }
 
   return r_rgb;
 }
 
-mat3 rotation_from_vector(vec3 v)
+float3x3 rotation_from_vector(float3 v)
 {
   /* Add epsilon to avoid NaN. */
-  vec3 N = normalize(v + 1e-8);
-  vec3 UpVector = abs(N.z) < 0.99999 ? vec3(0.0, 0.0, 1.0) : vec3(1.0, 0.0, 0.0);
-  vec3 T = normalize(cross(UpVector, N));
-  vec3 B = cross(N, T);
-  return mat3(T, B, N);
+  float3 N = normalize(v + 1e-8f);
+  float3 UpVector = abs(N.z) < 0.99999f ? float3(0.0f, 0.0f, 1.0f) : float3(1.0f, 0.0f, 0.0f);
+  float3 T = normalize(cross(UpVector, N));
+  float3 B = cross(N, T);
+  return float3x3(T, B, N);
 }
 
-vec3 get_vector(ivec3 cell_co)
+float3 get_vector(int3 cell_co)
 {
-  vec3 vector;
+  float3 vector;
 
-  vector.x = texelFetch(velocityX, cell_co, 0).r;
-  vector.y = texelFetch(velocityY, cell_co, 0).r;
-  vector.z = texelFetch(velocityZ, cell_co, 0).r;
+  vector.x = texelFetch(velocity_x, cell_co, 0).r;
+  vector.y = texelFetch(velocity_y, cell_co, 0).r;
+  vector.z = texelFetch(velocity_z, cell_co, 0).r;
 
   return vector;
 }
 
 /* Interpolate MAC information for cell-centered vectors. */
-vec3 get_vector_centered(ivec3 cell_co)
+float3 get_vector_centered(int3 cell_co)
 {
-  vec3 vector;
+  float3 vector;
 
-  vector.x = 0.5 * (texelFetch(velocityX, cell_co, 0).r +
-                    texelFetch(velocityX, ivec3(cell_co.x + 1, cell_co.yz), 0).r);
-  vector.y = 0.5 * (texelFetch(velocityY, cell_co, 0).r +
-                    texelFetch(velocityY, ivec3(cell_co.x, cell_co.y + 1, cell_co.z), 0).r);
-  vector.z = 0.5 * (texelFetch(velocityZ, cell_co, 0).r +
-                    texelFetch(velocityZ, ivec3(cell_co.xy, cell_co.z + 1), 0).r);
+  vector.x = 0.5f * (texelFetch(velocity_x, cell_co, 0).r +
+                     texelFetch(velocity_x, int3(cell_co.x + 1, cell_co.yz), 0).r);
+  vector.y = 0.5f * (texelFetch(velocity_y, cell_co, 0).r +
+                     texelFetch(velocity_y, int3(cell_co.x, cell_co.y + 1, cell_co.z), 0).r);
+  vector.z = 0.5f * (texelFetch(velocity_z, cell_co, 0).r +
+                     texelFetch(velocity_z, int3(cell_co.xy, cell_co.z + 1), 0).r);
 
   return vector;
 }
 
 /* Interpolate cell-centered information for MAC vectors. */
-vec3 get_vector_mac(ivec3 cell_co)
+float3 get_vector_mac(int3 cell_co)
 {
-  vec3 vector;
+  float3 vector;
 
-  vector.x = 0.5 * (texelFetch(velocityX, ivec3(cell_co.x - 1, cell_co.yz), 0).r +
-                    texelFetch(velocityX, cell_co, 0).r);
-  vector.y = 0.5 * (texelFetch(velocityY, ivec3(cell_co.x, cell_co.y - 1, cell_co.z), 0).r +
-                    texelFetch(velocityY, cell_co, 0).r);
-  vector.z = 0.5 * (texelFetch(velocityZ, ivec3(cell_co.xy, cell_co.z - 1), 0).r +
-                    texelFetch(velocityZ, cell_co, 0).r);
+  vector.x = 0.5f * (texelFetch(velocity_x, int3(cell_co.x - 1, cell_co.yz), 0).r +
+                     texelFetch(velocity_x, cell_co, 0).r);
+  vector.y = 0.5f * (texelFetch(velocity_y, int3(cell_co.x, cell_co.y - 1, cell_co.z), 0).r +
+                     texelFetch(velocity_y, cell_co, 0).r);
+  vector.z = 0.5f * (texelFetch(velocity_z, int3(cell_co.xy, cell_co.z - 1), 0).r +
+                     texelFetch(velocity_z, cell_co, 0).r);
 
   return vector;
 }
@@ -105,100 +105,100 @@ void main()
   int cell = gl_VertexID / 2;
 #endif
 
-  ivec3 volume_size = textureSize(velocityX, 0);
+  int3 volume_size = textureSize(velocity_x, 0);
 
-  ivec3 cell_ofs = ivec3(0);
-  ivec3 cell_div = volume_size;
-  if (sliceAxis == 0) {
-    cell_ofs.x = int(slicePosition * float(volume_size.x));
+  int3 cell_ofs = int3(0);
+  int3 cell_div = volume_size;
+  if (slice_axis == 0) {
+    cell_ofs.x = int(slice_position * float(volume_size.x));
     cell_div.x = 1;
   }
-  else if (sliceAxis == 1) {
-    cell_ofs.y = int(slicePosition * float(volume_size.y));
+  else if (slice_axis == 1) {
+    cell_ofs.y = int(slice_position * float(volume_size.y));
     cell_div.y = 1;
   }
-  else if (sliceAxis == 2) {
-    cell_ofs.z = int(slicePosition * float(volume_size.z));
+  else if (slice_axis == 2) {
+    cell_ofs.z = int(slice_position * float(volume_size.z));
     cell_div.z = 1;
   }
 
-  ivec3 cell_co;
+  int3 cell_co;
   cell_co.x = cell % cell_div.x;
   cell_co.y = (cell / cell_div.x) % cell_div.y;
   cell_co.z = cell / (cell_div.x * cell_div.y);
   cell_co += cell_ofs;
 
-  vec3 pos = domainOriginOffset + cellSize * (vec3(cell_co + adaptiveCellOffset) + 0.5);
+  float3 pos = domain_origin_offset + cell_size * (float3(cell_co + adaptive_cell_offset) + 0.5f);
 
-  vec3 vector;
+  float3 vector;
 
 #ifdef USE_MAC
-  vec3 color;
-  vector = (isCellCentered) ? get_vector_mac(cell_co) : get_vector(cell_co);
+  float3 color;
+  vector = (is_cell_centered) ? get_vector_mac(cell_co) : get_vector(cell_co);
 
   switch (gl_VertexID % 6) {
     case 0: /* Tail of X component. */
-      pos.x += (drawMACX) ? -0.5 * cellSize.x : 0.0;
-      color = vec3(1.0, 0.0, 0.0); /* red */
+      pos.x += (draw_macx) ? -0.5f * cell_size.x : 0.0f;
+      color = float3(1.0f, 0.0f, 0.0f); /* red */
       break;
     case 1: /* Head of X component. */
-      pos.x += (drawMACX) ? (-0.5 + vector.x * displaySize) * cellSize.x : 0.0;
-      color = vec3(1.0, 1.0, 0.0); /* yellow */
+      pos.x += (draw_macx) ? (-0.5f + vector.x * display_size) * cell_size.x : 0.0f;
+      color = float3(1.0f, 1.0f, 0.0f); /* yellow */
       break;
     case 2: /* Tail of Y component. */
-      pos.y += (drawMACY) ? -0.5 * cellSize.y : 0.0;
-      color = vec3(0.0, 1.0, 0.0); /* green */
+      pos.y += (draw_macy) ? -0.5f * cell_size.y : 0.0f;
+      color = float3(0.0f, 1.0f, 0.0f); /* green */
       break;
     case 3: /* Head of Y component. */
-      pos.y += (drawMACY) ? (-0.5 + vector.y * displaySize) * cellSize.y : 0.0;
-      color = vec3(1.0, 1.0, 0.0); /* yellow */
+      pos.y += (draw_macy) ? (-0.5f + vector.y * display_size) * cell_size.y : 0.0f;
+      color = float3(1.0f, 1.0f, 0.0f); /* yellow */
       break;
     case 4: /* Tail of Z component. */
-      pos.z += (drawMACZ) ? -0.5 * cellSize.z : 0.0;
-      color = vec3(0.0, 0.0, 1.0); /* blue */
+      pos.z += (draw_macz) ? -0.5f * cell_size.z : 0.0f;
+      color = float3(0.0f, 0.0f, 1.0f); /* blue */
       break;
     case 5: /* Head of Z component. */
-      pos.z += (drawMACZ) ? (-0.5 + vector.z * displaySize) * cellSize.z : 0.0;
-      color = vec3(1.0, 1.0, 0.0); /* yellow */
+      pos.z += (draw_macz) ? (-0.5f + vector.z * display_size) * cell_size.z : 0.0f;
+      color = float3(1.0f, 1.0f, 0.0f); /* yellow */
       break;
   }
 
-  finalColor = vec4(color, 1.0);
+  final_color = float4(color, 1.0f);
 #else
-  vector = (isCellCentered) ? get_vector(cell_co) : get_vector_centered(cell_co);
+  vector = (is_cell_centered) ? get_vector(cell_co) : get_vector_centered(cell_co);
 
-  finalColor = vec4(weight_to_color(length(vector)), 1.0);
+  final_color = float4(weight_to_color(length(vector)), 1.0f);
 
-  float vector_length = 1.0;
+  float vector_length = 1.0f;
 
-  if (scaleWithMagnitude) {
+  if (scale_with_magnitude) {
     vector_length = length(vector);
   }
-  else if (length(vector) == 0.0) {
-    vector_length = 0.0;
+  else if (length(vector) == 0.0f) {
+    vector_length = 0.0f;
   }
 
-  mat3 rot_mat = rotation_from_vector(vector);
+  float3x3 rot_mat = rotation_from_vector(vector);
 
 #  ifdef USE_NEEDLE
   /* NOTE(Metal): Declaring constant arrays in function scope to avoid increasing local shader
    * memory pressure. */
-  const vec3 corners[4] = float3_array(vec3(0.0, 0.2, -0.5),
-                                       vec3(-0.2 * 0.866, -0.2 * 0.5, -0.5),
-                                       vec3(0.2 * 0.866, -0.2 * 0.5, -0.5),
-                                       vec3(0.0, 0.0, 0.5));
+  constexpr float3 corners[4] = float3_array(float3(0.0f, 0.2f, -0.5f),
+                                             float3(-0.2f * 0.866f, -0.2f * 0.5f, -0.5f),
+                                             float3(0.2f * 0.866f, -0.2f * 0.5f, -0.5f),
+                                             float3(0.0f, 0.0f, 0.5f));
 
-  const int indices[12] = int_array(0, 1, 1, 2, 2, 0, 0, 3, 1, 3, 2, 3);
+  constexpr int indices[12] = int_array(0, 1, 1, 2, 2, 0, 0, 3, 1, 3, 2, 3);
 
-  vec3 rotated_pos = rot_mat * corners[indices[gl_VertexID % 12]];
-  pos += rotated_pos * vector_length * displaySize * cellSize;
+  float3 rotated_pos = rot_mat * corners[indices[gl_VertexID % 12]];
+  pos += rotated_pos * vector_length * display_size * cell_size;
 #  else
-  vec3 rotated_pos = rot_mat * vec3(0.0, 0.0, 1.0);
-  pos += ((gl_VertexID % 2) == 1) ? rotated_pos * vector_length * displaySize * cellSize :
-                                    vec3(0.0);
+  float3 rotated_pos = rot_mat * float3(0.0f, 0.0f, 1.0f);
+  pos += ((gl_VertexID % 2) == 1) ? rotated_pos * vector_length * display_size * cell_size :
+                                    float3(0.0f);
 #  endif
 #endif
 
-  vec3 world_pos = drw_point_object_to_world(pos);
+  float3 world_pos = drw_point_object_to_world(pos);
   gl_Position = drw_point_world_to_homogenous(world_pos);
 }

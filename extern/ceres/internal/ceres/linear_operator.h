@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2015 Google Inc. All rights reserved.
+// Copyright 2023 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -33,11 +33,13 @@
 #ifndef CERES_INTERNAL_LINEAR_OPERATOR_H_
 #define CERES_INTERNAL_LINEAR_OPERATOR_H_
 
+#include "ceres/internal/eigen.h"
 #include "ceres/internal/export.h"
 #include "ceres/types.h"
 
-namespace ceres {
-namespace internal {
+namespace ceres::internal {
+
+class ContextImpl;
 
 // This is an abstract base class for linear operators. It supports
 // access to size information and left and right multiply operators.
@@ -46,15 +48,44 @@ class CERES_NO_EXPORT LinearOperator {
   virtual ~LinearOperator();
 
   // y = y + Ax;
-  virtual void RightMultiply(const double* x, double* y) const = 0;
+  virtual void RightMultiplyAndAccumulate(const double* x, double* y) const = 0;
+  virtual void RightMultiplyAndAccumulate(const double* x,
+                                          double* y,
+                                          ContextImpl* context,
+                                          int num_threads) const;
   // y = y + A'x;
-  virtual void LeftMultiply(const double* x, double* y) const = 0;
+  virtual void LeftMultiplyAndAccumulate(const double* x, double* y) const = 0;
+  virtual void LeftMultiplyAndAccumulate(const double* x,
+                                         double* y,
+                                         ContextImpl* context,
+                                         int num_threads) const;
+
+  virtual void RightMultiplyAndAccumulate(const Vector& x, Vector& y) const {
+    RightMultiplyAndAccumulate(x.data(), y.data());
+  }
+
+  virtual void LeftMultiplyAndAccumulate(const Vector& x, Vector& y) const {
+    LeftMultiplyAndAccumulate(x.data(), y.data());
+  }
+
+  virtual void RightMultiplyAndAccumulate(const Vector& x,
+                                          Vector& y,
+                                          ContextImpl* context,
+                                          int num_threads) const {
+    RightMultiplyAndAccumulate(x.data(), y.data(), context, num_threads);
+  }
+
+  virtual void LeftMultiplyAndAccumulate(const Vector& x,
+                                         Vector& y,
+                                         ContextImpl* context,
+                                         int num_threads) const {
+    LeftMultiplyAndAccumulate(x.data(), y.data(), context, num_threads);
+  }
 
   virtual int num_rows() const = 0;
   virtual int num_cols() const = 0;
 };
 
-}  // namespace internal
-}  // namespace ceres
+}  // namespace ceres::internal
 
 #endif  // CERES_INTERNAL_LINEAR_OPERATOR_H_

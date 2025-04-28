@@ -123,7 +123,7 @@ static void fillDpxMainHeader(LogImageFile *dpx,
 LogImageFile *dpxOpen(const uchar *byteStuff, int fromMemory, size_t bufferSize)
 {
   DpxMainHeader header;
-  LogImageFile *dpx = (LogImageFile *)MEM_mallocN(sizeof(LogImageFile), __func__);
+  LogImageFile *dpx = MEM_mallocN<LogImageFile>(__func__);
   const char *filepath = (const char *)byteStuff;
   int i;
 
@@ -422,7 +422,7 @@ LogImageFile *dpxCreate(const char *filepath,
   const char *shortFilename = nullptr;
   uchar pad[6044];
 
-  LogImageFile *dpx = (LogImageFile *)MEM_mallocN(sizeof(LogImageFile), __func__);
+  LogImageFile *dpx = MEM_mallocN<LogImageFile>(__func__);
   if (dpx == nullptr) {
     if (verbose) {
       printf("DPX: Failed to malloc dpx file structure.\n");

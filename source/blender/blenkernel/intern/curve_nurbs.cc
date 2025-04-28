@@ -52,6 +52,22 @@ int knots_num(const int points_num, const int8_t order, const bool cyclic)
   return points_num + order;
 }
 
+void copy_custom_knots(const int8_t order,
+                       const bool cyclic,
+                       const Span<float> custom_knots,
+                       MutableSpan<float> knots)
+{
+  knots.slice(0, custom_knots.size()).copy_from(custom_knots);
+  if (cyclic) {
+    const float last_knot = custom_knots.last();
+    const float shift = last_knot - knots[order - 1];
+    const MutableSpan<float> tail = knots.take_back(order - 1);
+    for (const int knot : tail.index_range()) {
+      tail[knot] = knots[order + knot] + shift;
+    }
+  }
+}
+
 void calculate_knots(const int points_num,
                      const KnotsMode mode,
                      const int8_t order,

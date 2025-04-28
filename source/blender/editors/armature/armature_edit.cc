@@ -276,7 +276,7 @@ static const EnumPropertyItem prop_calc_roll_types[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-static int armature_calc_roll_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus armature_calc_roll_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -482,7 +482,7 @@ void ARMATURE_OT_calculate_roll(wmOperatorType *ot)
                   "Ignore the axis direction, use the shortest rotation to align");
 }
 
-static int armature_roll_clear_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus armature_roll_clear_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -615,7 +615,7 @@ static void chains_find_tips(ListBase *edbo, ListBase *list)
     }
 
     /* add current bone to a new chain */
-    ld = static_cast<LinkData *>(MEM_callocN(sizeof(LinkData), "BoneChain"));
+    ld = MEM_callocN<LinkData>("BoneChain");
     ld->data = curBone;
     BLI_addtail(list, ld);
   }
@@ -663,7 +663,7 @@ static void fill_add_joint(EditBone *ebo, short eb_tail, ListBase *points)
 
   /* allocate a new point if no existing point was related */
   if (found == 0) {
-    ebp = static_cast<EditBonePoint *>(MEM_callocN(sizeof(EditBonePoint), "EditBonePoint"));
+    ebp = MEM_callocN<EditBonePoint>("EditBonePoint");
 
     if (eb_tail) {
       copy_v3_v3(ebp->vec, ebo->tail);
@@ -679,7 +679,7 @@ static void fill_add_joint(EditBone *ebo, short eb_tail, ListBase *points)
 }
 
 /* bone adding between selected joints */
-static int armature_fill_bones_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus armature_fill_bones_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
   View3D *v3d = CTX_wm_view3d(C);
@@ -736,7 +736,7 @@ static int armature_fill_bones_exec(bContext *C, wmOperator *op)
         obedit = ob_iter;
       }
     }
-    FOREACH_OBJECT_IN_MODE_END;
+    FOREACH_OBJECT_IN_EDIT_MODE_END;
   }
   BLI_assert(obedit != nullptr);
 
@@ -760,7 +760,7 @@ static int armature_fill_bones_exec(bContext *C, wmOperator *op)
     short headtail = 0;
 
     /* check that the points don't belong to the same bone */
-    ebp_a = (EditBonePoint *)points.first;
+    ebp_a = static_cast<EditBonePoint *>(points.first);
     ebp_b = ebp_a->next;
 
     if (((ebp_a->head_owner == ebp_b->tail_owner) && (ebp_a->head_owner != nullptr)) ||
@@ -899,7 +899,7 @@ static void armature_clear_swap_done_flags(bArmature *arm)
   }
 }
 
-static int armature_switch_direction_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus armature_switch_direction_exec(bContext *C, wmOperator * /*op*/)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -1068,10 +1068,10 @@ static void bone_align_to_bone(ListBase *edbo, EditBone *selbone, EditBone *actb
   fix_editbone_connected_children(edbo, selbone);
 }
 
-static int armature_align_bones_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus armature_align_bones_exec(bContext *C, wmOperator *op)
 {
   Object *ob = CTX_data_edit_object(C);
-  bArmature *arm = (bArmature *)ob->data;
+  bArmature *arm = static_cast<bArmature *>(ob->data);
   EditBone *actbone = CTX_data_active_bone(C);
   EditBone *actmirb = nullptr;
   int num_selected_bones;
@@ -1168,7 +1168,7 @@ void ARMATURE_OT_align(wmOperatorType *ot)
 /** \name Split Operator
  * \{ */
 
-static int armature_split_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus armature_split_exec(bContext *C, wmOperator * /*op*/)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -1227,7 +1227,7 @@ static bool armature_delete_ebone_cb(const char *bone_name, void *arm_p)
 
 /* previously delete_armature */
 /* only editmode! */
-static int armature_delete_selected_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus armature_delete_selected_exec(bContext *C, wmOperator * /*op*/)
 {
   EditBone *curBone, *ebone_next;
   bool changed_multi = false;
@@ -1280,7 +1280,9 @@ static int armature_delete_selected_exec(bContext *C, wmOperator * /*op*/)
   return OPERATOR_FINISHED;
 }
 
-static int armature_delete_selected_invoke(bContext *C, wmOperator *op, const wmEvent * /*event*/)
+static wmOperatorStatus armature_delete_selected_invoke(bContext *C,
+                                                        wmOperator *op,
+                                                        const wmEvent * /*event*/)
 {
   if (RNA_boolean_get(op->ptr, "confirm")) {
     return WM_operator_confirm_ex(C,
@@ -1320,7 +1322,7 @@ static bool armature_dissolve_ebone_cb(const char *bone_name, void *arm_p)
   return (ebone && (ebone->flag & BONE_DONE));
 }
 
-static int armature_dissolve_selected_exec(bContext *C, wmOperator * /*op*/)
+static wmOperatorStatus armature_dissolve_selected_exec(bContext *C, wmOperator * /*op*/)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -1491,7 +1493,7 @@ void ARMATURE_OT_dissolve(wmOperatorType *ot)
 /** \name Hide Operator
  * \{ */
 
-static int armature_hide_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus armature_hide_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -1554,7 +1556,7 @@ void ARMATURE_OT_hide(wmOperatorType *ot)
 /** \name Reveal Operator
  * \{ */
 
-static int armature_reveal_exec(bContext *C, wmOperator *op)
+static wmOperatorStatus armature_reveal_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);

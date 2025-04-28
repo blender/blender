@@ -412,7 +412,7 @@ static void panel_draw(const bContext *C, Panel *panel)
     uiItemR(advanced_panel, ptr, "stroke_rotation", UI_ITEM_NONE, IFACE_("Rotation"), ICON_NONE);
     uiItemR(advanced_panel, ptr, "stroke_scale", UI_ITEM_NONE, IFACE_("Scale"), ICON_NONE);
 
-    uiLayout *col = uiLayoutColumn(advanced_panel, true);
+    uiLayout *col = &advanced_panel->column(true);
     switch (offset_mode) {
       case MOD_GREASE_PENCIL_OFFSET_RANDOM:
         uiItemR(advanced_panel,

@@ -201,6 +201,9 @@ PyDoc_STRVAR(
     "(specific error codes from the ``os`` module can also be used).\n"
     "   :type execute: callable\n"
     "   :return: The command handle which can be passed to :func:`unregister_cli_command`.\n"
+    "\n"
+    "      This uses Python's capsule type "
+    "however the result should be considered an opaque handle only used for unregistering.\n"
     "   :rtype: capsule\n");
 static PyObject *bpy_cli_command_register(PyObject * /*self*/, PyObject *args, PyObject *kw)
 {
@@ -288,9 +291,14 @@ static PyObject *bpy_cli_command_unregister(PyObject * /*self*/, PyObject *value
   Py_RETURN_NONE;
 }
 
-#if (defined(__GNUC__) && !defined(__clang__))
-#  pragma GCC diagnostic push
-#  pragma GCC diagnostic ignored "-Wcast-function-type"
+#ifdef __GNUC__
+#  ifdef __clang__
+#    pragma clang diagnostic push
+#    pragma clang diagnostic ignored "-Wcast-function-type"
+#  else
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wcast-function-type"
+#  endif
 #endif
 
 PyMethodDef BPY_cli_command_register_def = {
@@ -306,8 +314,12 @@ PyMethodDef BPY_cli_command_unregister_def = {
     bpy_cli_command_unregister_doc,
 };
 
-#if (defined(__GNUC__) && !defined(__clang__))
-#  pragma GCC diagnostic pop
+#ifdef __GNUC__
+#  ifdef __clang__
+#    pragma clang diagnostic pop
+#  else
+#    pragma GCC diagnostic pop
+#  endif
 #endif
 
 /** \} */

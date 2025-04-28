@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2015 Google Inc. All rights reserved.
+// Copyright 2023 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -31,6 +31,7 @@
 #ifndef CERES_INTERNAL_COORDINATE_DESCENT_MINIMIZER_H_
 #define CERES_INTERNAL_COORDINATE_DESCENT_MINIMIZER_H_
 
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -40,8 +41,7 @@
 #include "ceres/problem_impl.h"
 #include "ceres/solver.h"
 
-namespace ceres {
-namespace internal {
+namespace ceres::internal {
 
 class Program;
 class LinearSolver;
@@ -103,7 +103,6 @@ class CERES_NO_EXPORT CoordinateDescentMinimizer final : public Minimizer {
   ContextImpl* context_;
 };
 
-}  // namespace internal
-}  // namespace ceres
+}  // namespace ceres::internal
 
 #endif  // CERES_INTERNAL_COORDINATE_DESCENT_MINIMIZER_H_

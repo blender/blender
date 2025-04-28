@@ -139,7 +139,7 @@ void RNA_struct_blender_type_set(StructRNA *srna, void *blender_type);
 
 IDProperty **RNA_struct_idprops_p(PointerRNA *ptr);
 IDProperty *RNA_struct_idprops(PointerRNA *ptr, bool create);
-bool RNA_struct_idprops_check(StructRNA *srna);
+bool RNA_struct_idprops_check(const StructRNA *srna);
 bool RNA_struct_idprops_register_check(const StructRNA *type);
 bool RNA_struct_idprops_datablock_allowed(const StructRNA *type);
 /**
@@ -326,7 +326,7 @@ bool RNA_property_enum_item_from_value_gettexted(
     bContext *C, PointerRNA *ptr, PropertyRNA *prop, int value, EnumPropertyItem *r_item);
 
 int RNA_property_enum_bitflag_identifiers(
-    bContext *C, PointerRNA *ptr, PropertyRNA *prop, int value, const char **identifier);
+    bContext *C, PointerRNA *ptr, PropertyRNA *prop, int value, const char **r_identifier);
 
 StructRNA *RNA_property_pointer_type(PointerRNA *ptr, PropertyRNA *prop);
 bool RNA_property_pointer_poll(PointerRNA *ptr, PropertyRNA *prop, PointerRNA *value);
@@ -360,7 +360,7 @@ bool RNA_property_editable_flag(const PointerRNA *ptr, PropertyRNA *prop);
  * This check is only based on information stored in the data _types_ (IDTypeInfo and RNA property
  * definition), not on the actual data itself.
  */
-bool RNA_property_animateable(const PointerRNA *ptr, PropertyRNA *prop);
+bool RNA_property_animateable(const PointerRNA *ptr, PropertyRNA *prop_orig);
 /**
  * A property is anim-editable if it is animateable, and the related data is editable.
  *
@@ -370,7 +370,7 @@ bool RNA_property_animateable(const PointerRNA *ptr, PropertyRNA *prop);
  * Typically (with a few exceptions like the #PROP_LIB_EXCEPTION PropertyRNA flag), editable data
  * belongs to local ID.
  */
-bool RNA_property_anim_editable(const PointerRNA *ptr, PropertyRNA *prop);
+bool RNA_property_anim_editable(const PointerRNA *ptr, PropertyRNA *prop_orig);
 bool RNA_property_animated(PointerRNA *ptr, PropertyRNA *prop);
 /**
  * With LibOverrides, a property may be animatable and anim-editable, but not driver-editable (in
@@ -498,7 +498,7 @@ void RNA_property_string_search(
 
 /**
  * For filepath properties, get a glob pattern to filter possible files.
- * For example: *.csv
+ * For example: `*.csv`
  */
 std::optional<std::string> RNA_property_string_path_filter(const bContext *C,
                                                            PointerRNA *ptr,

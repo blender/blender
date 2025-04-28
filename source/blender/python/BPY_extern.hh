@@ -31,16 +31,8 @@ struct bConstraintOb;     /* DNA_constraint_types.h */
 struct bConstraintTarget; /* DNA_constraint_types.h */
 struct bContext;
 struct bContextDataResult;
-struct bPythonConstraint; /* DNA_constraint_types.h */
 struct StructRNA;
 struct wmWindowManager;
-
-void BPY_pyconstraint_exec(bPythonConstraint *con, bConstraintOb *cob, ListBase *targets);
-//  void BPY_pyconstraint_settings(void *arg1, void *arg2);
-void BPY_pyconstraint_target(bPythonConstraint *con, bConstraintTarget *ct);
-void BPY_pyconstraint_update(Object *owner, bConstraint *con);
-bool BPY_is_pyconstraint(Text *text);
-//  void BPY_free_pyconstraint_links(struct Text *text);
 
 /* global interpreter lock */
 

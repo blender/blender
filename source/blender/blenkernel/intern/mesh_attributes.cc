@@ -23,36 +23,46 @@ namespace blender::bke {
 
 template<typename T>
 static void adapt_mesh_domain_corner_to_point_impl(const Mesh &mesh,
-                                                   const VArray<T> &old_values,
-                                                   MutableSpan<T> r_values)
+                                                   const VArray<T> &src,
+                                                   MutableSpan<T> r_dst)
 {
-  BLI_assert(r_values.size() == mesh.verts_num);
+  BLI_assert(r_dst.size() == mesh.verts_num);
+  const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
   const Span<int> corner_verts = mesh.corner_verts();
+  const OffsetIndices<int> faces = mesh.faces();
 
-  attribute_math::DefaultMixer<T> mixer(r_values);
-  for (const int corner : IndexRange(mesh.corners_num)) {
-    mixer.mix_in(corner_verts[corner], old_values[corner]);
-  }
-  mixer.finalize();
+  threading::parallel_for(vert_to_face_map.index_range(), 2048, [&](const IndexRange range) {
+    for (const int64_t vert : range) {
+      const Span<int> vert_faces = vert_to_face_map[vert];
+
+      attribute_math::DefaultMixer<T> mixer({&r_dst[vert], 1});
+      for (const int face : vert_faces) {
+        const int corner = mesh::face_find_corner_from_vert(faces[face], corner_verts, int(vert));
+        mixer.mix_in(0, src[corner]);
+      }
+      mixer.finalize();
+    }
+  });
 }
 
 /* A vertex is selected if all connected face corners were selected and it is not loose. */
 template<>
 void adapt_mesh_domain_corner_to_point_impl(const Mesh &mesh,
-                                            const VArray<bool> &old_values,
-                                            MutableSpan<bool> r_values)
+                                            const VArray<bool> &src,
+                                            MutableSpan<bool> r_dst)
 {
-  BLI_assert(r_values.size() == mesh.verts_num);
+  BLI_assert(r_dst.size() == mesh.verts_num);
   const Span<int> corner_verts = mesh.corner_verts();
 
-  r_values.fill(true);
-  for (const int corner : IndexRange(mesh.corners_num)) {
-    const int point_index = corner_verts[corner];
-
-    if (!old_values[corner]) {
-      r_values[point_index] = false;
+  r_dst.fill(true);
+  threading::parallel_for(IndexRange(mesh.corners_num), 4096, [&](const IndexRange range) {
+    for (const int corner : range) {
+      const int vert = corner_verts[corner];
+      if (!src[corner]) {
+        r_dst[vert] = false;
+      }
     }
-  }
+  });
 
   /* Deselect loose vertices without corners that are still selected from the 'true' default. */
   const LooseVertCache &loose_verts = mesh.verts_no_face();
@@ -61,7 +71,7 @@ void adapt_mesh_domain_corner_to_point_impl(const Mesh &mesh,
     threading::parallel_for(bits.index_range(), 2048, [&](const IndexRange range) {
       for (const int vert_index : range) {
         if (bits[vert_index]) {
-          r_values[vert_index] = false;
+          r_dst[vert_index] = false;
         }
       }
     });
@@ -113,8 +123,8 @@ static GVArray adapt_mesh_domain_corner_to_face(const Mesh &mesh, const GVArray 
         new_varray = VArray<T>::ForFunc(
             faces.size(), [faces, varray = varray.typed<bool>()](const int face_index) {
               /* A face is selected if all of its corners were selected. */
-              for (const int loop_index : faces[face_index]) {
-                if (!varray[loop_index]) {
+              for (const int corner : faces[face_index]) {
+                if (!varray[corner]) {
                   return false;
                 }
               }
@@ -126,8 +136,8 @@ static GVArray adapt_mesh_domain_corner_to_face(const Mesh &mesh, const GVArray 
             faces.size(), [faces, varray = varray.typed<T>()](const int face_index) {
               T return_value;
               attribute_math::DefaultMixer<T> mixer({&return_value, 1});
-              for (const int loop_index : faces[face_index]) {
-                const T value = varray[loop_index];
+              for (const int corner : faces[face_index]) {
+                const T value = varray[corner];
                 mixer.mix_in(0, value);
               }
               mixer.finalize();
@@ -216,43 +226,37 @@ static GVArray adapt_mesh_domain_corner_to_edge(const Mesh &mesh, const GVArray 
 
 template<typename T>
 void adapt_mesh_domain_face_to_point_impl(const Mesh &mesh,
-                                          const VArray<T> &old_values,
-                                          MutableSpan<T> r_values)
+                                          const VArray<T> &src,
+                                          MutableSpan<T> r_dst)
 {
-  BLI_assert(r_values.size() == mesh.verts_num);
-  const OffsetIndices faces = mesh.faces();
-  const Span<int> corner_verts = mesh.corner_verts();
+  BLI_assert(r_dst.size() == mesh.verts_num);
+  const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
 
-  attribute_math::DefaultMixer<T> mixer(r_values);
-
-  for (const int face_index : faces.index_range()) {
-    const T value = old_values[face_index];
-    for (const int vert : corner_verts.slice(faces[face_index])) {
-      mixer.mix_in(vert, value);
+  threading::parallel_for(vert_to_face_map.index_range(), 2048, [&](const IndexRange range) {
+    for (const int vert : range) {
+      attribute_math::DefaultMixer<T> mixer({&r_dst[vert], 1});
+      for (const int face : vert_to_face_map[vert]) {
+        mixer.mix_in(0, src[face]);
+      }
+      mixer.finalize();
     }
-  }
-
-  mixer.finalize();
+  });
 }
 
 /* A vertex is selected if any of the connected faces were selected. */
 template<>
 void adapt_mesh_domain_face_to_point_impl(const Mesh &mesh,
-                                          const VArray<bool> &old_values,
-                                          MutableSpan<bool> r_values)
+                                          const VArray<bool> &src,
+                                          MutableSpan<bool> r_dst)
 {
-  BLI_assert(r_values.size() == mesh.verts_num);
-  const OffsetIndices faces = mesh.faces();
-  const Span<int> corner_verts = mesh.corner_verts();
+  BLI_assert(r_dst.size() == mesh.verts_num);
+  const GroupedSpan<int> vert_to_face_map = mesh.vert_to_face_map();
 
-  r_values.fill(false);
-  threading::parallel_for(faces.index_range(), 2048, [&](const IndexRange range) {
-    for (const int face_index : range) {
-      if (old_values[face_index]) {
-        for (const int vert : corner_verts.slice(faces[face_index])) {
-          r_values[vert] = true;
-        }
-      }
+  threading::parallel_for(vert_to_face_map.index_range(), 2048, [&](const IndexRange range) {
+    for (const int vert : range) {
+      const Span<int> vert_faces = vert_to_face_map[vert];
+      r_dst[vert] = std::any_of(
+          vert_faces.begin(), vert_faces.end(), [&](const int face) { return src[face]; });
     }
   });
 }
@@ -438,12 +442,12 @@ void adapt_mesh_domain_edge_to_corner_impl(const Mesh &mesh,
     const IndexRange face = faces[face_index];
 
     /* For every corner, mix the values from the adjacent edges on the face. */
-    for (const int loop_index : face) {
-      const int loop_index_prev = mesh::face_corner_prev(face, loop_index);
-      const int edge = corner_edges[loop_index];
-      const int edge_prev = corner_edges[loop_index_prev];
-      mixer.mix_in(loop_index, old_values[edge]);
-      mixer.mix_in(loop_index, old_values[edge_prev]);
+    for (const int corner : face) {
+      const int corner_prev = mesh::face_corner_prev(face, corner);
+      const int edge = corner_edges[corner];
+      const int edge_prev = corner_edges[corner_prev];
+      mixer.mix_in(corner, old_values[edge]);
+      mixer.mix_in(corner, old_values[edge_prev]);
     }
   }
 
@@ -465,12 +469,12 @@ void adapt_mesh_domain_edge_to_corner_impl(const Mesh &mesh,
   threading::parallel_for(faces.index_range(), 2048, [&](const IndexRange range) {
     for (const int face_index : range) {
       const IndexRange face = faces[face_index];
-      for (const int loop_index : face) {
-        const int loop_index_prev = mesh::face_corner_prev(face, loop_index);
-        const int edge = corner_edges[loop_index];
-        const int edge_prev = corner_edges[loop_index_prev];
+      for (const int corner : face) {
+        const int corner_prev = mesh::face_corner_prev(face, corner);
+        const int edge = corner_edges[corner];
+        const int edge_prev = corner_edges[corner_prev];
         if (old_values[edge] && old_values[edge_prev]) {
-          r_values[loop_index] = true;
+          r_values[corner] = true;
         }
       }
     }

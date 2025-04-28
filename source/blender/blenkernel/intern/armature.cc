@@ -273,7 +273,7 @@ static void write_bone(BlendWriter *writer, Bone *bone)
 
   /* Write this bone, except for its runtime data. */
   const Bone_Runtime runtime_backup = bone->runtime;
-  memset(&bone->runtime, 0, sizeof(bone->runtime));
+  bone->runtime = Bone_Runtime{};
   BLO_write_struct(writer, Bone, bone);
   bone->runtime = runtime_backup;
 
@@ -315,7 +315,7 @@ static void armature_blend_write(BlendWriter *writer, ID *id, const void *id_add
   arm->act_edbone = nullptr;
 
   const bArmature_Runtime runtime_backup = arm->runtime;
-  memset(&arm->runtime, 0, sizeof(arm->runtime));
+  arm->runtime = bArmature_Runtime{};
 
   /* Convert BoneCollections over to a listbase for writing. */
   BoneCollection **collection_array_backup = arm->collection_array;
@@ -369,7 +369,7 @@ static void direct_link_bones(BlendDataReader *reader, Bone *bone)
     direct_link_bones(reader, child);
   }
 
-  memset(&bone->runtime, 0, sizeof(bone->runtime));
+  bone->runtime = Bone_Runtime{};
 }
 
 static void direct_link_bone_collection(BlendDataReader *reader, BoneCollection *bcoll)
@@ -388,8 +388,8 @@ static void read_bone_collections(BlendDataReader *reader, bArmature *arm)
   /* Read as listbase, but convert to an array on the armature. */
   BLO_read_struct_list(reader, BoneCollection, &arm->collections_legacy);
   arm->collection_array_num = BLI_listbase_count(&arm->collections_legacy);
-  arm->collection_array = (BoneCollection **)MEM_malloc_arrayN(
-      arm->collection_array_num, sizeof(BoneCollection *), __func__);
+  arm->collection_array = MEM_malloc_arrayN<BoneCollection *>(size_t(arm->collection_array_num),
+                                                              __func__);
   {
     int i;
     int min_child_index = 0;
@@ -456,7 +456,7 @@ static void armature_blend_read_data(BlendDataReader *reader, ID *id)
 
   BKE_armature_bone_hash_make(arm);
 
-  memset(&arm->runtime, 0, sizeof(arm->runtime));
+  arm->runtime = bArmature_Runtime{};
   ANIM_armature_runtime_refresh(arm);
 }
 
@@ -1622,22 +1622,20 @@ static void allocate_bbone_cache(bPoseChannel *pchan,
     BKE_pose_channel_free_bbone_cache(runtime);
 
     runtime->bbone_segments = segments;
-    runtime->bbone_rest_mats = static_cast<Mat4 *>(MEM_malloc_arrayN(
-        1 + uint(segments), sizeof(Mat4), "bPoseChannel_Runtime::bbone_rest_mats"));
-    runtime->bbone_pose_mats = static_cast<Mat4 *>(MEM_malloc_arrayN(
-        1 + uint(segments), sizeof(Mat4), "bPoseChannel_Runtime::bbone_pose_mats"));
-    runtime->bbone_deform_mats = static_cast<Mat4 *>(MEM_malloc_arrayN(
-        2 + uint(segments), sizeof(Mat4), "bPoseChannel_Runtime::bbone_deform_mats"));
-    runtime->bbone_dual_quats = static_cast<DualQuat *>(MEM_malloc_arrayN(
-        1 + uint(segments), sizeof(DualQuat), "bPoseChannel_Runtime::bbone_dual_quats"));
+    runtime->bbone_rest_mats = MEM_malloc_arrayN<Mat4>(1 + uint(segments),
+                                                       "bPoseChannel_Runtime::bbone_rest_mats");
+    runtime->bbone_pose_mats = MEM_malloc_arrayN<Mat4>(1 + uint(segments),
+                                                       "bPoseChannel_Runtime::bbone_pose_mats");
+    runtime->bbone_deform_mats = MEM_malloc_arrayN<Mat4>(
+        2 + uint(segments), "bPoseChannel_Runtime::bbone_deform_mats");
+    runtime->bbone_dual_quats = MEM_malloc_arrayN<DualQuat>(
+        1 + uint(segments), "bPoseChannel_Runtime::bbone_dual_quats");
   }
 
   /* If the segment count changed, the array was deallocated and nulled above. */
   if (use_boundaries && !runtime->bbone_segment_boundaries) {
-    runtime->bbone_segment_boundaries = static_cast<bPoseChannel_BBoneSegmentBoundary *>(
-        MEM_malloc_arrayN(1 + uint(segments),
-                          sizeof(bPoseChannel_BBoneSegmentBoundary),
-                          "bPoseChannel_Runtime::bbone_segment_boundaries"));
+    runtime->bbone_segment_boundaries = MEM_malloc_arrayN<bPoseChannel_BBoneSegmentBoundary>(
+        1 + uint(segments), "bPoseChannel_Runtime::bbone_segment_boundaries");
   }
   else if (!use_boundaries) {
     MEM_SAFE_FREE(runtime->bbone_segment_boundaries);
@@ -2352,7 +2350,7 @@ void BKE_pchan_rot_to_mat3(const bPoseChannel *pchan, float r_mat[3][3])
 void BKE_pchan_apply_mat4(bPoseChannel *pchan, const float mat[4][4], bool use_compat)
 {
   float rot[3][3];
-  mat4_to_loc_rot_size(pchan->loc, rot, pchan->size, mat);
+  mat4_to_loc_rot_size(pchan->loc, rot, pchan->scale, mat);
   BKE_pchan_mat3_to_rot(pchan, rot, use_compat);
 }
 
@@ -2418,6 +2416,85 @@ void BKE_rotMode_change_values(
       /* for now, rotate around y-axis then (so that it simply becomes the roll) */
       axis[1] = 1.0f;
     }
+  }
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Protected Transform Channel Assignment
+ * \{ */
+
+void BKE_pchan_protected_location_set(bPoseChannel *pchan, const float location[3])
+{
+  if ((pchan->protectflag & OB_LOCK_LOCX) == 0) {
+    pchan->loc[0] = location[0];
+  }
+  if ((pchan->protectflag & OB_LOCK_LOCY) == 0) {
+    pchan->loc[1] = location[1];
+  }
+  if ((pchan->protectflag & OB_LOCK_LOCZ) == 0) {
+    pchan->loc[2] = location[2];
+  }
+}
+
+void BKE_pchan_protected_scale_set(bPoseChannel *pchan, const float scale[3])
+{
+  if ((pchan->protectflag & OB_LOCK_SCALEX) == 0) {
+    pchan->scale[0] = scale[0];
+  }
+  if ((pchan->protectflag & OB_LOCK_SCALEY) == 0) {
+    pchan->scale[1] = scale[1];
+  }
+  if ((pchan->protectflag & OB_LOCK_SCALEZ) == 0) {
+    pchan->scale[2] = scale[2];
+  }
+}
+
+void BKE_pchan_protected_rotation_quaternion_set(bPoseChannel *pchan, const float quat[4])
+{
+  if ((pchan->protectflag & OB_LOCK_ROTX) == 0) {
+    pchan->quat[0] = quat[0];
+  }
+  if ((pchan->protectflag & OB_LOCK_ROTY) == 0) {
+    pchan->quat[1] = quat[1];
+  }
+  if ((pchan->protectflag & OB_LOCK_ROTZ) == 0) {
+    pchan->quat[2] = quat[2];
+  }
+  if ((pchan->protectflag & OB_LOCK_ROTW) == 0) {
+    pchan->quat[3] = quat[3];
+  }
+}
+
+void BKE_pchan_protected_rotation_euler_set(bPoseChannel *pchan, const float euler[3])
+{
+  if ((pchan->protectflag & OB_LOCK_ROTX) == 0) {
+    pchan->eul[0] = euler[0];
+  }
+  if ((pchan->protectflag & OB_LOCK_ROTY) == 0) {
+    pchan->eul[1] = euler[1];
+  }
+  if ((pchan->protectflag & OB_LOCK_ROTZ) == 0) {
+    pchan->eul[2] = euler[2];
+  }
+}
+
+void BKE_pchan_protected_rotation_axisangle_set(bPoseChannel *pchan,
+                                                const float axis[3],
+                                                float angle)
+{
+  if ((pchan->protectflag & OB_LOCK_ROTX) == 0) {
+    pchan->rotAxis[0] = axis[0];
+  }
+  if ((pchan->protectflag & OB_LOCK_ROTY) == 0) {
+    pchan->rotAxis[1] = axis[1];
+  }
+  if ((pchan->protectflag & OB_LOCK_ROTZ) == 0) {
+    pchan->rotAxis[2] = axis[2];
+  }
+  if ((pchan->protectflag & OB_LOCK_ROTW) == 0) {
+    pchan->rotAngle = angle;
   }
 }
 
@@ -2766,7 +2843,7 @@ void BKE_pose_rebuild(Main *bmain, Object *ob, bArmature *arm, const bool do_id_
   /* only done here */
   if (ob->pose == nullptr) {
     /* create new pose */
-    ob->pose = static_cast<bPose *>(MEM_callocN(sizeof(bPose), "new pose"));
+    ob->pose = MEM_callocN<bPose>("new pose");
 
     /* set default settings for animviz */
     animviz_settings_init(&ob->pose->avs);
@@ -2835,7 +2912,7 @@ void BKE_pchan_to_mat4(const bPoseChannel *pchan, float r_chanmat[4][4])
   float tmat[3][3];
 
   /* get scaling matrix */
-  size_to_mat3(smat, pchan->size);
+  size_to_mat3(smat, pchan->scale);
 
   /* get rotation matrix */
   BKE_pchan_rot_to_mat3(pchan, rmat);

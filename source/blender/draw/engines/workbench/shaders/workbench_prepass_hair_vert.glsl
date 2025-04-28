@@ -9,7 +9,7 @@ VERTEX_SHADER_CREATE_INFO(workbench_lighting_flat)
 VERTEX_SHADER_CREATE_INFO(workbench_transparent_accum)
 VERTEX_SHADER_CREATE_INFO(workbench_curves)
 
-#include "common_hair_lib.glsl"
+#include "draw_curves_lib.glsl"
 #include "draw_model_lib.glsl"
 #include "draw_view_clipping_lib.glsl"
 #include "draw_view_lib.glsl"
@@ -24,40 +24,40 @@ float integer_noise(int n)
    * in a number of workbench tests. Use uint instead. */
   uint nn = (uint(n) >> 13u) ^ uint(n);
   nn = (nn * (nn * nn * 60493u + 19990303u) + 1376312589u) & 0x7fffffffu;
-  return (float(nn) / 1073741824.0);
+  return (float(nn) / 1073741824.0f);
 }
 
-vec3 workbench_hair_random_normal(vec3 tangent, vec3 binor, float rand)
+float3 workbench_hair_random_normal(float3 tangent, float3 binor, float rand)
 {
   /* To "simulate" anisotropic shading, randomize hair normal per strand. */
-  vec3 nor = cross(tangent, binor);
-  nor = normalize(mix(nor, -tangent, rand * 0.1));
-  float cos_theta = (rand * 2.0 - 1.0) * 0.2;
-  float sin_theta = sqrt(max(0.0, 1.0 - cos_theta * cos_theta));
+  float3 nor = cross(tangent, binor);
+  nor = normalize(mix(nor, -tangent, rand * 0.1f));
+  float cos_theta = (rand * 2.0f - 1.0f) * 0.2f;
+  float sin_theta = sqrt(max(0.0f, 1.0f - cos_theta * cos_theta));
   nor = nor * sin_theta + binor * cos_theta;
   return nor;
 }
 
 void workbench_hair_random_material(float rand,
-                                    inout vec3 color,
+                                    inout float3 color,
                                     inout float roughness,
                                     inout float metallic)
 {
   /* Center noise around 0. */
-  rand -= 0.5;
-  rand *= 0.1;
+  rand -= 0.5f;
+  rand *= 0.1f;
   /* Add some variation to the hairs to avoid uniform look. */
-  metallic = clamp(metallic + rand, 0.0, 1.0);
-  roughness = clamp(roughness + rand, 0.0, 1.0);
+  metallic = clamp(metallic + rand, 0.0f, 1.0f);
+  roughness = clamp(roughness + rand, 0.0f, 1.0f);
   /* Modulate by color intensity to reduce very high contrast when color is dark. */
-  color = clamp(color + rand * (color + 0.05), 0.0, 1.0);
+  color = clamp(color + rand * (color + 0.05f), 0.0f, 1.0f);
 }
 
 void main()
 {
-  bool is_persp = (drw_view().winmat[3][3] == 0.0);
-  float time = 0.0, thick_time = 0.0, thickness = 0.0;
-  vec3 world_pos, tangent, binor;
+  bool is_persp = (drw_view().winmat[3][3] == 0.0f);
+  float time = 0.0f, thick_time = 0.0f, thickness = 0.0f;
+  float3 world_pos, tangent, binor;
   hair_get_pos_tan_binor_time(is_persp,
                               drw_modelinv(),
                               drw_view().viewinv[3].xyz,
@@ -72,7 +72,7 @@ void main()
   gl_Position = drw_point_world_to_homogenous(world_pos);
 
   float hair_rand = integer_noise(hair_get_strand_id());
-  vec3 nor = workbench_hair_random_normal(tangent, binor, hair_rand);
+  float3 nor = workbench_hair_random_normal(tangent, binor, hair_rand);
 
   view_clipping_distances(world_pos);
 
@@ -89,7 +89,7 @@ void main()
 
   /* Hairs have lots of layer and can rapidly become the most prominent surface.
    * So we lower their alpha artificially. */
-  alpha_interp *= 0.3;
+  alpha_interp *= 0.3f;
 
   workbench_hair_random_material(hair_rand, color_interp, _roughness, metallic);
 

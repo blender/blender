@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2021 Google Inc. All rights reserved.
+// Copyright 2023 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -53,7 +53,6 @@ namespace ceres {
 class CostFunction;
 class EvaluationCallback;
 class LossFunction;
-class LocalParameterization;
 class Manifold;
 class Solver;
 struct CRSMatrix;
@@ -118,29 +117,17 @@ using ResidualBlockId = internal::ResidualBlock*;
 //   problem.AddResidualBlock(new MyBinaryCostFunction(...), nullptr, x2, x3);
 //
 // Please see cost_function.h for details of the CostFunction object.
-//
-// NOTE: We are currently in the process of transitioning from
-// LocalParameterization to Manifolds in the Ceres API. During this period,
-// Problem will support using both Manifold and LocalParameterization objects
-// interchangably. In particular, adding a LocalParameterization to a parameter
-// block is the same as adding a Manifold to that parameter block. For methods
-// in the API affected by this change, see their documentation below.
 class CERES_EXPORT Problem {
  public:
   struct CERES_EXPORT Options {
     // These flags control whether the Problem object owns the CostFunctions,
-    // LossFunctions, LocalParameterizations, and Manifolds passed into the
-    // Problem.
+    // LossFunctions, and Manifolds passed into the Problem.
     //
     // If set to TAKE_OWNERSHIP, then the problem object will delete the
     // corresponding object on destruction. The destructor is careful to delete
     // the pointers only once, since sharing objects is allowed.
     Ownership cost_function_ownership = TAKE_OWNERSHIP;
     Ownership loss_function_ownership = TAKE_OWNERSHIP;
-    CERES_DEPRECATED_WITH_MSG(
-        "Local Parameterizations are deprecated. Use Manifold and "
-        "manifold_ownership instead.")
-    Ownership local_parameterization_ownership = TAKE_OWNERSHIP;
     Ownership manifold_ownership = TAKE_OWNERSHIP;
 
     // If true, trades memory for faster RemoveResidualBlock() and
@@ -271,66 +258,23 @@ class CERES_EXPORT Problem {
   // pointer but a different size will result in a crash.
   void AddParameterBlock(double* values, int size);
 
-  // Add a parameter block with appropriate size and parameterization to the
-  // problem. It is okay for local_parameterization to be nullptr.
-  //
-  // Repeated calls with the same arguments are ignored. Repeated calls
-  // with the same double pointer but a different size results in a crash
-  // (unless Solver::Options::diable_all_safety_checks is set to true).
-  //
-  // Repeated calls with the same double pointer and size but different
-  // LocalParameterization is equivalent to calling
-  // SetParameterization(local_parameterization), i.e., any previously
-  // associated LocalParameterization or Manifold object will be replaced with
-  // the local_parameterization.
-  //
-  // NOTE:
-  // ----
-  //
-  // This method is deprecated and will be removed in the next public
-  // release of Ceres Solver. Please move to using the Manifold based version of
-  // AddParameterBlock.
-  //
-  // During the transition from LocalParameterization to Manifold, internally
-  // the LocalParameterization is treated as a Manifold by wrapping it using a
-  // ManifoldAdapter object. So HasManifold() will return true, GetManifold()
-  // will return the wrapped object and ParameterBlockTangentSize() will return
-  // the LocalSize of the LocalParameterization.
-  CERES_DEPRECATED_WITH_MSG(
-      "LocalParameterizations are deprecated. Use the version with Manifolds "
-      "instead.")
-  void AddParameterBlock(double* values,
-                         int size,
-                         LocalParameterization* local_parameterization);
-
   // Add a parameter block with appropriate size and Manifold to the
   // problem. It is okay for manifold to be nullptr.
   //
   // Repeated calls with the same arguments are ignored. Repeated calls
   // with the same double pointer but a different size results in a crash
-  // (unless Solver::Options::diable_all_safety_checks is set to true).
+  // (unless Solver::Options::disable_all_safety_checks is set to true).
   //
   // Repeated calls with the same double pointer and size but different Manifold
   // is equivalent to calling SetManifold(manifold), i.e., any previously
-  // associated LocalParameterization or Manifold object will be replaced with
-  // the manifold.
-  //
-  // Note:
-  // ----
-  //
-  // During the transition from LocalParameterization to Manifold, calling
-  // AddParameterBlock with a Manifold when a LocalParameterization is already
-  // associated with the parameter block is okay. It is equivalent to calling
-  // SetManifold(manifold), i.e., any previously associated
-  // LocalParameterization or Manifold object will be replaced with the
-  // manifold.
+  // associated Manifold object will be replaced with the manifold.
   void AddParameterBlock(double* values, int size, Manifold* manifold);
 
-  // Remove a parameter block from the problem. The LocalParameterization or
-  // Manifold of the parameter block, if it exists, will persist until the
-  // deletion of the problem (similar to cost/loss functions in residual block
-  // removal). Any residual blocks that depend on the parameter are also
-  // removed, as described above in RemoveResidualBlock().
+  // Remove a parameter block from the problem. The Manifold of the parameter
+  // block, if it exists, will persist until the deletion of the problem
+  // (similar to cost/loss functions in residual block removal). Any residual
+  // blocks that depend on the parameter are also removed, as described above
+  // in RemoveResidualBlock().
   //
   // If Problem::Options::enable_fast_removal is true, then the removal is fast
   // (almost constant time). Otherwise, removing a parameter block will incur a
@@ -361,76 +305,15 @@ class CERES_EXPORT Problem {
 
   // Returns true if a parameter block is set constant, and false otherwise. A
   // parameter block may be set constant in two ways: either by calling
-  // SetParameterBlockConstant or by associating a LocalParameterization or
-  // Manifold with a zero dimensional tangent space with it.
+  // SetParameterBlockConstant or by associating a Manifold with a zero
+  // dimensional tangent space with it.
   bool IsParameterBlockConstant(const double* values) const;
 
-  // Set the LocalParameterization for the parameter block. Calling
-  // SetParameterization with nullptr will clear any previously set
-  // LocalParameterization or Manifold for the parameter block.
-  //
-  // Repeated calls will cause any previously associated LocalParameterization
-  // or Manifold object to be replaced with the local_parameterization.
-  //
-  // The local_parameterization is owned by the Problem by default (See
-  // Problem::Options to override this behaviour).
-  //
-  // It is acceptable to set the same LocalParameterization for multiple
-  // parameter blocks; the destructor is careful to delete
-  // LocalParamaterizations only once.
-  //
-  // NOTE:
-  // ----
-  //
-  // This method is deprecated and will be removed in the next public
-  // release of Ceres Solver. Please move to using the SetManifold instead.
-  //
-  // During the transition from LocalParameterization to Manifold, internally
-  // the LocalParameterization is treated as a Manifold by wrapping it using a
-  // ManifoldAdapter object. So HasManifold() will return true, GetManifold()
-  // will return the wrapped object and ParameterBlockTangentSize will return
-  // the same value of ParameterBlockLocalSize.
-  CERES_DEPRECATED_WITH_MSG(
-      "LocalParameterizations are deprecated. Use SetManifold instead.")
-  void SetParameterization(double* values,
-                           LocalParameterization* local_parameterization);
-
-  // Get the LocalParameterization object associated with this parameter block.
-  // If there is no LocalParameterization associated then nullptr is returned.
-  //
-  // NOTE: This method is deprecated and will be removed in the next public
-  // release of Ceres Solver. Use GetManifold instead.
-  //
-  // Note also that if a LocalParameterization is associated with a parameter
-  // block, HasManifold will return true and GetManifold will return the
-  // LocalParameterization wrapped in a ManifoldAdapter.
-  //
-  // The converse is NOT true, i.e., if a Manifold is associated with a
-  // parameter block, HasParameterization will return false and
-  // GetParameterization will return a nullptr.
-  CERES_DEPRECATED_WITH_MSG(
-      "LocalParameterizations are deprecated. Use GetManifold "
-      "instead.")
-  const LocalParameterization* GetParameterization(const double* values) const;
-
-  // Returns true if a LocalParameterization is associated with this parameter
-  // block, false otherwise.
-  //
-  // NOTE: This method is deprecated and will be removed in the next public
-  // release of Ceres Solver. Use HasManifold instead.
-  //
-  // Note also that if a Manifold is associated with the parameter block, this
-  // method will return false.
-  CERES_DEPRECATED_WITH_MSG(
-      "LocalParameterizations are deprecated. Use HasManifold instead.")
-  bool HasParameterization(const double* values) const;
-
   // Set the Manifold for the parameter block. Calling SetManifold with nullptr
-  // will clear any previously set LocalParameterization or Manifold for the
-  // parameter block.
+  // will clear any previously set Manifold for the parameter block.
   //
-  // Repeated calls will result in any previously associated
-  // LocalParameterization or Manifold object to be replaced with the manifold.
+  // Repeated calls will result in any previously associated Manifold object to
+  // be replaced with the manifold.
   //
   // The manifold is owned by the Problem by default (See Problem::Options to
   // override this behaviour).
@@ -440,18 +323,11 @@ class CERES_EXPORT Problem {
 
   // Get the Manifold object associated with this parameter block.
   //
-  // If there is no Manifold Or LocalParameterization object associated then
-  // nullptr is returned.
-  //
-  // NOTE: During the transition from LocalParameterization to Manifold,
-  // internally the LocalParameterization is treated as a Manifold by wrapping
-  // it using a ManifoldAdapter object. So calling GetManifold on a parameter
-  // block with a LocalParameterization associated with it will return the
-  // LocalParameterization wrapped in a ManifoldAdapter
+  // If there is no Manifold object associated then nullptr is returned.
   const Manifold* GetManifold(const double* values) const;
 
-  // Returns true if a Manifold or a LocalParameterization is associated with
-  // this parameter block, false otherwise.
+  // Returns true if a Manifold is associated with this parameter block, false
+  // otherwise.
   bool HasManifold(const double* values) const;
 
   // Set the lower/upper bound for the parameter at position "index".
@@ -484,19 +360,9 @@ class CERES_EXPORT Problem {
   // The size of the parameter block.
   int ParameterBlockSize(const double* values) const;
 
-  // The dimension of the tangent space of the LocalParameterization or Manifold
-  // for the parameter block. If there is no LocalParameterization or Manifold
-  // associated with this parameter block, then ParameterBlockLocalSize =
-  // ParameterBlockSize.
-  CERES_DEPRECATED_WITH_MSG(
-      "LocalParameterizations are deprecated. Use ParameterBlockTangentSize "
-      "instead.")
-  int ParameterBlockLocalSize(const double* values) const;
-
-  // The dimenion of the tangent space of the LocalParameterization or Manifold
-  // for the parameter block. If there is no LocalParameterization or Manifold
-  // associated with this parameter block, then ParameterBlockTangentSize =
-  // ParameterBlockSize.
+  // The dimension of the tangent space of the Manifold for the parameter block.
+  // If there is no Manifold associated with this parameter block, then
+  // ParameterBlockTangentSize = ParameterBlockSize.
   int ParameterBlockTangentSize(const double* values) const;
 
   // Is the given parameter block present in this problem or not?
@@ -596,11 +462,11 @@ class CERES_EXPORT Problem {
   //
   // is the way to do so.
   //
-  // Note 2: If no LocalParameterizations or Manifolds are used, then the size
-  // of the gradient vector (and the number of columns in the jacobian) is the
-  // sum of the sizes of all the parameter blocks. If a parameter block has a
-  // LocalParameterization or Manifold, then it contributes "TangentSize"
-  // entries to the gradient vector (and the number of columns in the jacobian).
+  // Note 2: If no Manifolds are used, then the size of the gradient vector (and
+  // the number of columns in the jacobian) is the sum of the sizes of all the
+  // parameter blocks. If a parameter block has a Manifold, then it contributes
+  // "TangentSize" entries to the gradient vector (and the number of columns in
+  // the jacobian).
   //
   // Note 3: This function cannot be called while the problem is being solved,
   // for example it cannot be called from an IterationCallback at the end of an
@@ -631,11 +497,10 @@ class CERES_EXPORT Problem {
   // returns false, the caller should expect the output memory locations to have
   // been modified.
   //
-  // The returned cost and jacobians have had robustification and
-  // LocalParameterization/Manifold applied already; for example, the jacobian
-  // for a 4-dimensional quaternion parameter using the
-  // "QuaternionParameterization" is num_residuals by 3 instead of num_residuals
-  // by 4.
+  // The returned cost and jacobians have had robustification and Manifold
+  // applied already; for example, the jacobian for a 4-dimensional quaternion
+  // parameter using the "QuaternionParameterization" is num_residuals by 3
+  // instead of num_residuals by 4.
   //
   // apply_loss_function as the name implies allows the user to switch the
   // application of the loss function on and off.
@@ -672,9 +537,13 @@ class CERES_EXPORT Problem {
       double* residuals,
       double** jacobians) const;
 
+  // Returns reference to the options with which the Problem was constructed.
+  const Options& options() const;
+
+  // Returns pointer to Problem implementation
+  internal::ProblemImpl* mutable_impl();
+
  private:
-  friend class Solver;
-  friend class Covariance;
   std::unique_ptr<internal::ProblemImpl> impl_;
 };
 

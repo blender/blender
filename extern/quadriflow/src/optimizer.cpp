@@ -1296,7 +1296,9 @@ void Optimizer::optimize_integer_constraints(Hierarchy& mRes, std::map<int, int>
                 solver = std::make_unique<GurobiFlowHelper>();
             }
 #endif
-            solver->resize(initial.size() + 2, arc_ids.size());
+            /* This used to be arc_ids.size() which is wrong, the loop below adds
+             * exactly arcs.size() edges. */
+            solver->resize(initial.size() + 2, arcs.size());
 
             std::set<int> ids;
             for (int i = 0; i < arcs.size(); ++i) {

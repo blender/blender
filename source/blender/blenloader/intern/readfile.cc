@@ -170,9 +170,6 @@
  */
 #define USE_BHEAD_READ_ON_DEMAND
 
-/** Use #GHash for restoring pointers by name. */
-#define USE_GHASH_RESTORE_POINTER
-
 static CLG_LogRef LOG = {"blo.readfile"};
 static CLG_LogRef LOG_UNDO = {"blo.readfile.undo"};
 
@@ -417,8 +414,7 @@ void blo_split_main(ListBase *mainlist, Main *main)
 
   /* (Library.temp_index -> Main), lookup table */
   const uint lib_main_array_len = BLI_listbase_count(&main->libraries);
-  Main **lib_main_array = static_cast<Main **>(
-      MEM_malloc_arrayN(lib_main_array_len, sizeof(*lib_main_array), __func__));
+  Main **lib_main_array = MEM_malloc_arrayN<Main *>(lib_main_array_len, __func__);
 
   int i = 0;
   for (Library *lib = static_cast<Library *>(main->libraries.first); lib;
@@ -708,7 +704,7 @@ static BHeadN *get_bhead(FileData *fd)
             bh8_from_bh4(&bhead, &bhead4);
           }
           else {
-            /* std::min is only to quiet '-Warray-bounds' compiler warning. */
+            /* #std::min is only to quiet `-Warray-bounds` compiler warning. */
             BLI_assert(sizeof(bhead) == sizeof(bhead4));
             memcpy(&bhead, &bhead4, std::min(sizeof(bhead), sizeof(bhead4)));
           }
@@ -731,7 +727,7 @@ static BHeadN *get_bhead(FileData *fd)
             bh4_from_bh8(&bhead, &bhead8, (fd->flags & FD_FLAGS_SWITCH_ENDIAN) != 0);
           }
           else {
-            /* std::min is only to quiet `-Warray-bounds` compiler warning. */
+            /* #std::min is only to quiet `-Warray-bounds` compiler warning. */
             BLI_assert(sizeof(bhead) == sizeof(bhead8));
             memcpy(&bhead, &bhead8, std::min(sizeof(bhead), sizeof(bhead8)));
           }
@@ -756,7 +752,7 @@ static BHeadN *get_bhead(FileData *fd)
 #ifdef USE_BHEAD_READ_ON_DEMAND
       else if (fd->file->seek != nullptr && BHEAD_USE_READ_ON_DEMAND(&bhead)) {
         /* Delay reading bhead content. */
-        new_bhead = static_cast<BHeadN *>(MEM_mallocN(sizeof(BHeadN), "new_bhead"));
+        new_bhead = MEM_mallocN<BHeadN>("new_bhead");
         if (new_bhead) {
           new_bhead->next = new_bhead->prev = nullptr;
           new_bhead->file_offset = fd->file->offset;
@@ -1419,7 +1415,7 @@ void blo_filedata_free(FileData *fd)
     DNA_sdna_free(fd->filesdna);
   }
   if (fd->compflags) {
-    MEM_freeN((void *)fd->compflags);
+    MEM_freeN(fd->compflags);
   }
   if (fd->reconstruct_info) {
     DNA_reconstruct_info_free(fd->reconstruct_info);
@@ -1667,8 +1663,7 @@ void blo_cache_storage_init(FileData *fd, Main *bmain)
 {
   if (fd->flags & FD_FLAGS_IS_MEMFILE) {
     BLI_assert(fd->cache_storage == nullptr);
-    fd->cache_storage = static_cast<BLOCacheStorage *>(
-        MEM_mallocN(sizeof(*fd->cache_storage), __func__));
+    fd->cache_storage = MEM_mallocN<BLOCacheStorage>(__func__);
     fd->cache_storage->memarena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
     fd->cache_storage->cache_map = BLI_ghash_new(
         BKE_idtype_cache_key_hash, BKE_idtype_cache_key_cmp, __func__);
@@ -2222,7 +2217,7 @@ static void direct_link_id_common(BlendDataReader *reader,
   if (!BLO_read_data_is_undo(reader)) {
     /* Reset the runtime data, as there were versions of Blender that did not do
      * this before writing to disk. */
-    memset(&id->runtime, 0, sizeof(id->runtime));
+    id->runtime = ID_Runtime{};
   }
   readfile_id_runtime_data_ensure(*id);
   id->runtime.readfile_data->tags = id_read_tags;
@@ -2291,11 +2286,6 @@ static void direct_link_id_common(BlendDataReader *reader,
       }
       id->override_library->runtime = nullptr;
     }
-  }
-
-  DrawDataList *drawdata = DRW_drawdatalist_from_id(id);
-  if (drawdata) {
-    BLI_listbase_clear((ListBase *)drawdata);
   }
 
   /* Handle 'private IDs'. */
@@ -3284,7 +3274,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
   }
 
   /* WATCH IT!!!: pointers from libdata have not been converted yet here! */
-  /* WATCH IT 2!: Userdef struct init see do_versions_userdef() above! */
+  /* WATCH IT 2!: #UserDef struct init see #do_versions_userdef() above! */
 
   /* don't forget to set version number in BKE_blender_version.h! */
 
@@ -4389,7 +4379,7 @@ static Main *library_link_begin(Main *mainvar,
 
   fd->id_tag_extra = id_tag_extra;
 
-  fd->mainlist = static_cast<ListBase *>(MEM_callocN(sizeof(ListBase), "FileData.mainlist"));
+  fd->mainlist = MEM_callocN<ListBase>("FileData.mainlist");
 
   /* make mains */
   blo_split_main(fd->mainlist, mainvar);
@@ -4570,7 +4560,9 @@ static void library_link_end(Main *mainl, FileData **fd, const int flag)
   /* FIXME Temporary 'fix' to a problem in how temp ID are copied in
    * `BKE_lib_override_library_main_update`, see #103062.
    * Proper fix involves first addressing #90610. */
-  BKE_main_collections_parent_relations_rebuild(mainvar);
+  if ((flag & BLO_LIBLINK_COLLECTION_NO_HIERARCHY_REBUILD) == 0) {
+    BKE_main_collections_parent_relations_rebuild(mainvar);
+  }
 
   /* Make all relative paths, relative to the open blend file. */
   fix_relpaths_library(BKE_main_blendfile_path(mainvar), mainvar);

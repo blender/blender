@@ -1,0 +1,46 @@
+/* SPDX-FileCopyrightText: 2011-2025 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
+
+/* A panorama camera implementing a full cubemap projection. */
+
+shader camera(output point position = 0.0,
+              output vector direction = 0.0,
+              output color throughput = 1.0)
+{
+  vector st = camera_shader_raster_position() * vector(4, 3, 0);
+
+  float s = fmod(st.x, 1.0) - 0.5;
+  float t = fmod(st.y, 1.0) - 0.5;
+  int s_face = int(floor(st.x));
+  int t_face = int(floor(st.y));
+
+  if (s_face == 0 && t_face == 1) {
+    /* Left face. */
+    direction = normalize(vector(-0.5, t, s));
+  }
+  else if (s_face == 1 && t_face == 1) {
+    /* Front face. */
+    direction = normalize(vector(s, t, 0.5));
+  }
+  else if (s_face == 2 && t_face == 1) {
+    /* Right face. */
+    direction = normalize(vector(0.5, t, -s));
+  }
+  else if (s_face == 3 && t_face == 1) {
+    /* Back face. */
+    direction = normalize(vector(-s, t, -0.5));
+  }
+  else if (s_face == 1 && t_face == 2) {
+    /* Top face. */
+    direction = normalize(vector(s, 0.5, -t));
+  }
+  else if (s_face == 1 && t_face == 0) {
+    /* Bottom face. */
+    direction = normalize(vector(s, -0.5, t));
+  }
+  else {
+    /* Outside cube map. */
+    throughput = color(0.0);
+  }
+}

@@ -13,22 +13,15 @@
 struct Scene;
 struct Strip;
 struct StripProxy;
+
+namespace blender::seq {
+
 /**
  * Cache must be freed before calling this function
  * since it leaves the #Editing::seqbase in an invalid state.
  */
 void seq_free_sequence_recurse(Scene *scene, Strip *strip, bool do_id_user);
 StripProxy *seq_strip_proxy_alloc();
-/**
- * Find meta strip, that contains strip `key`.
- * If lookup hash doesn't exist, it will be created. If hash is tagged as invalid, it will be
- * rebuilt.
- *
- * \param key: pointer to Strip inside of meta strip
- *
- * \return pointer to meta strip
- */
-Strip *SEQ_lookup_meta_by_strip(Editing *ed, const Strip *key);
 /**
  * Find effect strips, that use strip `strip` as one of inputs.
  * If lookup hash doesn't exist, it will be created. If hash is tagged as invalid, it will be
@@ -39,3 +32,5 @@ Strip *SEQ_lookup_meta_by_strip(Editing *ed, const Strip *key);
  * \return collection of effect strips
  */
 blender::Span<Strip *> SEQ_lookup_effects_by_strip(Editing *ed, const Strip *key);
+
+}  // namespace blender::seq

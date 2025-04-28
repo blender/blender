@@ -41,14 +41,8 @@ static struct {
 
 static struct {
   struct {
-    blender::gpu::Batch *panel_drag_widget;
     blender::gpu::Batch *quad;
   } batch;
-
-  float panel_drag_widget_pixelsize;
-  float panel_drag_widget_width;
-  float panel_drag_widget_col_high[4];
-  float panel_drag_widget_col_dark[4];
 
   GPUVertFormat format;
 
@@ -204,110 +198,6 @@ static blender::gpu::Batch *batch_sphere_wire(int lat_res, int lon_res)
   BLI_assert(vbo_len == GPU_vertbuf_raw_used(&nor_step));
 
   return GPU_batch_create_ex(GPU_PRIM_LINES, vbo, nullptr, GPU_BATCH_OWNS_VBO);
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Panel Drag Widget
- * \{ */
-
-static void gpu_batch_preset_rectf_tris_color_ex(GPUVertBufRaw *pos_step,
-                                                 float x1,
-                                                 float y1,
-                                                 float x2,
-                                                 float y2,
-                                                 GPUVertBufRaw *col_step,
-                                                 const float color[4])
-{
-  copy_v2_v2(static_cast<float *>(GPU_vertbuf_raw_step(pos_step)), blender::float2{x1, y1});
-  copy_v4_v4(static_cast<float *>(GPU_vertbuf_raw_step(col_step)), color);
-
-  copy_v2_v2(static_cast<float *>(GPU_vertbuf_raw_step(pos_step)), blender::float2{x2, y1});
-  copy_v4_v4(static_cast<float *>(GPU_vertbuf_raw_step(col_step)), color);
-
-  copy_v2_v2(static_cast<float *>(GPU_vertbuf_raw_step(pos_step)), blender::float2{x2, y2});
-  copy_v4_v4(static_cast<float *>(GPU_vertbuf_raw_step(col_step)), color);
-
-  copy_v2_v2(static_cast<float *>(GPU_vertbuf_raw_step(pos_step)), blender::float2{x1, y1});
-  copy_v4_v4(static_cast<float *>(GPU_vertbuf_raw_step(col_step)), color);
-
-  copy_v2_v2(static_cast<float *>(GPU_vertbuf_raw_step(pos_step)), blender::float2{x2, y2});
-  copy_v4_v4(static_cast<float *>(GPU_vertbuf_raw_step(col_step)), color);
-
-  copy_v2_v2(static_cast<float *>(GPU_vertbuf_raw_step(pos_step)), blender::float2{x1, y2});
-  copy_v4_v4(static_cast<float *>(GPU_vertbuf_raw_step(col_step)), color);
-}
-
-static blender::gpu::Batch *gpu_batch_preset_panel_drag_widget(float pixelsize,
-                                                               const float col_high[4],
-                                                               const float col_dark[4],
-                                                               const float width)
-{
-  blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(preset_2d_format());
-  const uint vbo_len = 4 * 2 * (6 * 2);
-  GPU_vertbuf_data_alloc(*vbo, vbo_len);
-
-  GPUVertBufRaw pos_step, col_step;
-  GPU_vertbuf_attr_get_raw_data(vbo, g_presets_2d.attr_id.pos, &pos_step);
-  GPU_vertbuf_attr_get_raw_data(vbo, g_presets_2d.attr_id.col, &col_step);
-
-  const int px = int(pixelsize);
-  const int px_zoom = max_ii(round_fl_to_int(width / 22.0f), 1);
-
-  const int box_margin = max_ii(round_fl_to_int(float(px_zoom * 2.0f)), px);
-  const int box_size = max_ii(round_fl_to_int((width / 8.0f) - px), px);
-
-  const int y_ofs = max_ii(round_fl_to_int(width / 2.5f), px);
-  const int x_ofs = y_ofs;
-  int i_x, i_y;
-
-  for (i_x = 0; i_x < 4; i_x++) {
-    for (i_y = 0; i_y < 2; i_y++) {
-      const int x_co = (x_ofs) + (i_x * (box_size + box_margin));
-      const int y_co = (y_ofs) + (i_y * (box_size + box_margin));
-
-      gpu_batch_preset_rectf_tris_color_ex(&pos_step,
-                                           x_co - box_size,
-                                           y_co - px_zoom,
-                                           x_co,
-                                           (y_co + box_size) - px_zoom,
-                                           &col_step,
-                                           col_dark);
-      gpu_batch_preset_rectf_tris_color_ex(
-          &pos_step, x_co - box_size, y_co, x_co, y_co + box_size, &col_step, col_high);
-    }
-  }
-  return GPU_batch_create_ex(GPU_PRIM_TRIS, vbo, nullptr, GPU_BATCH_OWNS_VBO);
-}
-
-blender::gpu::Batch *GPU_batch_preset_panel_drag_widget(const float pixelsize,
-                                                        const float col_high[4],
-                                                        const float col_dark[4],
-                                                        const float width)
-{
-  const bool parameters_changed = (g_presets_2d.panel_drag_widget_pixelsize != pixelsize) ||
-                                  (g_presets_2d.panel_drag_widget_width != width) ||
-                                  !equals_v4v4(g_presets_2d.panel_drag_widget_col_high,
-                                               col_high) ||
-                                  !equals_v4v4(g_presets_2d.panel_drag_widget_col_dark, col_dark);
-
-  if (g_presets_2d.batch.panel_drag_widget && parameters_changed) {
-    gpu_batch_presets_unregister(g_presets_2d.batch.panel_drag_widget);
-    GPU_batch_discard(g_presets_2d.batch.panel_drag_widget);
-    g_presets_2d.batch.panel_drag_widget = nullptr;
-  }
-
-  if (!g_presets_2d.batch.panel_drag_widget) {
-    g_presets_2d.batch.panel_drag_widget = gpu_batch_preset_panel_drag_widget(
-        pixelsize, col_high, col_dark, width);
-    gpu_batch_presets_register(g_presets_2d.batch.panel_drag_widget);
-    g_presets_2d.panel_drag_widget_pixelsize = pixelsize;
-    g_presets_2d.panel_drag_widget_width = width;
-    copy_v4_v4(g_presets_2d.panel_drag_widget_col_high, col_high);
-    copy_v4_v4(g_presets_2d.panel_drag_widget_col_dark, col_dark);
-  }
-  return g_presets_2d.batch.panel_drag_widget;
 }
 
 blender::gpu::Batch *GPU_batch_preset_quad()

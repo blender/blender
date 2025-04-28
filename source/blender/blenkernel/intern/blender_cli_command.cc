@@ -135,8 +135,7 @@ int BKE_blender_cli_command_exec(bContext *C, const char *id, const int argc, co
 
 void BKE_blender_cli_command_print_help()
 {
-  /* As this is isn't ordered sorting in-place is acceptable,
-   * sort alphabetically for display purposes only. */
+  /* As `g_command_handlers` isn't ordered, sorting in-place is acceptable. */
   std::sort(g_command_handlers.begin(),
             g_command_handlers.end(),
             [](const CommandHandlerPtr &a, const CommandHandlerPtr &b) { return a->id < b->id; });
@@ -146,14 +145,14 @@ void BKE_blender_cli_command_print_help()
                                 "Duplicate Command Listing (ignored):")
               << std::endl;
 
-    const bool is_duplicate = pass > 0;
+    const bool show_duplicates = pass > 0;
     bool found = false;
     bool has_duplicate = false;
     for (CommandHandlerPtr &cmd_iter : g_command_handlers) {
       if (cmd_iter->is_duplicate) {
         has_duplicate = true;
       }
-      if (cmd_iter->is_duplicate != is_duplicate) {
+      if (cmd_iter->is_duplicate != show_duplicates) {
         continue;
       }
 

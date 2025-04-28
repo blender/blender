@@ -71,7 +71,7 @@ static uiBlock *colorband_tools_fn(bContext *C, ARegion *region, void *cb_v)
   short yco = 0;
   const short menuwidth = 10 * UI_UNIT_X;
 
-  uiBlock *block = UI_block_begin(C, region, __func__, UI_EMBOSS_PULLDOWN);
+  uiBlock *block = UI_block_begin(C, region, __func__, blender::ui::EmbossType::Pulldown);
 
   uiLayout *layout = UI_block_layout(block,
                                      UI_LAYOUT_VERTICAL,
@@ -230,9 +230,9 @@ static void colorband_buttons_layout(uiLayout *layout,
 
   uiLayout *split = uiLayoutSplit(layout, 0.4f, false);
 
-  UI_block_emboss_set(block, UI_EMBOSS_NONE);
+  UI_block_emboss_set(block, blender::ui::EmbossType::None);
   UI_block_align_begin(block);
-  uiLayout *row = uiLayoutRow(split, false);
+  uiLayout *row = &split->row(false);
 
   bt = uiDefIconTextBut(block,
                         UI_BTYPE_BUT,
@@ -290,9 +290,9 @@ static void colorband_buttons_layout(uiLayout *layout,
       but_func_argN_copy<RNAUpdateCb>);
 
   UI_block_align_end(block);
-  UI_block_emboss_set(block, UI_EMBOSS);
+  UI_block_emboss_set(block, blender::ui::EmbossType::Emboss);
 
-  row = uiLayoutRow(split, false);
+  row = &split->row(false);
 
   UI_block_align_begin(block);
   uiItemR(row, &ptr, "color_mode", UI_ITEM_NONE, "", ICON_NONE);
@@ -304,7 +304,7 @@ static void colorband_buttons_layout(uiLayout *layout,
   }
   UI_block_align_end(block);
 
-  row = uiLayoutRow(layout, false);
+  row = &layout->row(false);
 
   bt = uiDefBut(
       block, UI_BTYPE_COLORBAND, 0, "", xs, ys, BLI_rctf_size_x(butr), UI_UNIT_Y, coba, 0, 0, "");
@@ -312,7 +312,7 @@ static void colorband_buttons_layout(uiLayout *layout,
   bt->rnaprop = cb.prop;
   UI_but_func_set(bt, [cb](bContext &C) { rna_update_cb(C, cb); });
 
-  row = uiLayoutRow(layout, false);
+  row = &layout->row(false);
 
   if (coba->tot) {
     CBData *cbd = coba->data + coba->cur;
@@ -322,7 +322,7 @@ static void colorband_buttons_layout(uiLayout *layout,
     if (!expand) {
       split = uiLayoutSplit(layout, 0.3f, false);
 
-      row = uiLayoutRow(split, false);
+      row = &split->row(false);
       bt = uiDefButS(block,
                      UI_BTYPE_NUM,
                      0,
@@ -337,17 +337,17 @@ static void colorband_buttons_layout(uiLayout *layout,
                      TIP_("Choose active color stop"));
       UI_but_number_step_size_set(bt, 1);
 
-      row = uiLayoutRow(split, false);
+      row = &split->row(false);
       uiItemR(row, &ptr, "position", UI_ITEM_NONE, IFACE_("Pos"), ICON_NONE);
 
-      row = uiLayoutRow(layout, false);
+      row = &layout->row(false);
       uiItemR(row, &ptr, "color", UI_ITEM_NONE, "", ICON_NONE);
     }
     else {
       split = uiLayoutSplit(layout, 0.5f, false);
       uiLayout *subsplit = uiLayoutSplit(split, 0.35f, false);
 
-      row = uiLayoutRow(subsplit, false);
+      row = &subsplit->row(false);
       bt = uiDefButS(block,
                      UI_BTYPE_NUM,
                      0,
@@ -362,10 +362,10 @@ static void colorband_buttons_layout(uiLayout *layout,
                      TIP_("Choose active color stop"));
       UI_but_number_step_size_set(bt, 1);
 
-      row = uiLayoutRow(subsplit, false);
+      row = &subsplit->row(false);
       uiItemR(row, &ptr, "position", UI_ITEM_R_SLIDER, IFACE_("Pos"), ICON_NONE);
 
-      row = uiLayoutRow(split, false);
+      row = &split->row(false);
       uiItemR(row, &ptr, "color", UI_ITEM_NONE, "", ICON_NONE);
     }
 

@@ -614,7 +614,7 @@ void DepsgraphRelationBuilder::build_id(ID *id)
 
 void DepsgraphRelationBuilder::build_generic_id(ID *id)
 {
-  if (built_map_.checkIsBuiltAndTag(id)) {
+  if (built_map_.check_is_built_and_tag(id)) {
     return;
   }
 
@@ -664,7 +664,7 @@ void DepsgraphRelationBuilder::build_collection(LayerCollection *from_layer_coll
     return;
   }
 
-  if (built_map_.checkIsBuiltAndTag(collection)) {
+  if (built_map_.check_is_built_and_tag(collection)) {
     return;
   }
 
@@ -709,7 +709,7 @@ void DepsgraphRelationBuilder::build_collection(LayerCollection *from_layer_coll
 
 void DepsgraphRelationBuilder::build_object(Object *object)
 {
-  if (built_map_.checkIsBuiltAndTag(object)) {
+  if (built_map_.check_is_built_and_tag(object)) {
     return;
   }
 
@@ -964,7 +964,7 @@ void DepsgraphRelationBuilder::build_object_data(Object *object)
   }
   ID *obdata_id = (ID *)object->data;
   /* Object data animation. */
-  if (!built_map_.checkIsBuilt(obdata_id)) {
+  if (!built_map_.check_is_built(obdata_id)) {
     build_animdata(obdata_id);
   }
   /* type-specific data. */
@@ -1821,7 +1821,7 @@ void DepsgraphRelationBuilder::build_animdata_force(ID *id)
 
 void DepsgraphRelationBuilder::build_action(bAction *dna_action)
 {
-  if (built_map_.checkIsBuiltAndTag(dna_action)) {
+  if (built_map_.check_is_built_and_tag(dna_action)) {
     return;
   }
 
@@ -2225,7 +2225,7 @@ void DepsgraphRelationBuilder::build_dimensions(Object *object)
 
 void DepsgraphRelationBuilder::build_world(World *world)
 {
-  if (built_map_.checkIsBuiltAndTag(world)) {
+  if (built_map_.check_is_built_and_tag(world)) {
     return;
   }
 
@@ -2458,7 +2458,7 @@ void DepsgraphRelationBuilder::build_particle_systems(Object *object)
 
 void DepsgraphRelationBuilder::build_particle_settings(ParticleSettings *part)
 {
-  if (built_map_.checkIsBuiltAndTag(part)) {
+  if (built_map_.check_is_built_and_tag(part)) {
     return;
   }
 
@@ -2519,7 +2519,7 @@ void DepsgraphRelationBuilder::build_particle_system_visualization_object(Object
 /* Shapekeys */
 void DepsgraphRelationBuilder::build_shapekeys(Key *key)
 {
-  if (built_map_.checkIsBuiltAndTag(key)) {
+  if (built_map_.check_is_built_and_tag(key)) {
     return;
   }
 
@@ -2673,7 +2673,7 @@ void DepsgraphRelationBuilder::build_object_data_geometry(Object *object)
 
 void DepsgraphRelationBuilder::build_object_data_geometry_datablock(ID *obdata)
 {
-  if (built_map_.checkIsBuiltAndTag(obdata)) {
+  if (built_map_.check_is_built_and_tag(obdata)) {
     return;
   }
 
@@ -2842,7 +2842,7 @@ void DepsgraphRelationBuilder::build_object_data_geometry_datablock(ID *obdata)
 
 void DepsgraphRelationBuilder::build_armature(bArmature *armature)
 {
-  if (built_map_.checkIsBuiltAndTag(armature)) {
+  if (built_map_.check_is_built_and_tag(armature)) {
     return;
   }
 
@@ -2873,7 +2873,7 @@ void DepsgraphRelationBuilder::build_armature_bone_collections(
 
 void DepsgraphRelationBuilder::build_camera(Camera *camera)
 {
-  if (built_map_.checkIsBuiltAndTag(camera)) {
+  if (built_map_.check_is_built_and_tag(camera)) {
     return;
   }
 
@@ -2900,7 +2900,7 @@ void DepsgraphRelationBuilder::build_camera(Camera *camera)
 /* Lights */
 void DepsgraphRelationBuilder::build_light(Light *lamp)
 {
-  if (built_map_.checkIsBuiltAndTag(lamp)) {
+  if (built_map_.check_is_built_and_tag(lamp)) {
     return;
   }
 
@@ -2967,7 +2967,7 @@ void DepsgraphRelationBuilder::build_nodetree(bNodeTree *ntree)
   if (ntree == nullptr) {
     return;
   }
-  if (built_map_.checkIsBuiltAndTag(ntree)) {
+  if (built_map_.check_is_built_and_tag(ntree)) {
     return;
   }
 
@@ -3055,6 +3055,15 @@ void DepsgraphRelationBuilder::build_nodetree(bNodeTree *ntree)
       ComponentKey vfont_key(id, NodeType::GENERIC_DATABLOCK);
       add_relation(vfont_key, ntree_output_key, "VFont -> Node");
     }
+    else if (id_type == ID_GR) {
+      /* Build relations in the collection itself, but don't hook it up to the tree.
+       * Relations from the collection to the tree are handled by the modifier's update_depsgraph()
+       * callback.
+       *
+       * Other node trees do not currently support references to collections. Once they do this
+       * code needs to be reconsidered. */
+      build_collection(nullptr, reinterpret_cast<Collection *>(id));
+    }
     else if (bnode->is_group()) {
       bNodeTree *group_ntree = (bNodeTree *)id;
       build_nodetree(group_ntree);
@@ -3103,7 +3112,7 @@ void DepsgraphRelationBuilder::build_material(Material *material, ID *owner)
     add_relation(material_key, owner_shading_key, "Material -> Owner Shading");
   }
 
-  if (built_map_.checkIsBuiltAndTag(material)) {
+  if (built_map_.check_is_built_and_tag(material)) {
     return;
   }
 
@@ -3142,7 +3151,7 @@ void DepsgraphRelationBuilder::build_materials(ID *owner, Material **materials, 
 /* Recursively build graph for texture */
 void DepsgraphRelationBuilder::build_texture(Tex *texture)
 {
-  if (built_map_.checkIsBuiltAndTag(texture)) {
+  if (built_map_.check_is_built_and_tag(texture)) {
     return;
   }
 
@@ -3186,7 +3195,7 @@ void DepsgraphRelationBuilder::build_texture(Tex *texture)
 
 void DepsgraphRelationBuilder::build_image(Image *image)
 {
-  if (built_map_.checkIsBuiltAndTag(image)) {
+  if (built_map_.check_is_built_and_tag(image)) {
     return;
   }
 
@@ -3198,7 +3207,7 @@ void DepsgraphRelationBuilder::build_image(Image *image)
 
 void DepsgraphRelationBuilder::build_cachefile(CacheFile *cache_file)
 {
-  if (built_map_.checkIsBuiltAndTag(cache_file)) {
+  if (built_map_.check_is_built_and_tag(cache_file)) {
     return;
   }
 
@@ -3230,7 +3239,7 @@ void DepsgraphRelationBuilder::build_cachefile(CacheFile *cache_file)
 
 void DepsgraphRelationBuilder::build_mask(Mask *mask)
 {
-  if (built_map_.checkIsBuiltAndTag(mask)) {
+  if (built_map_.check_is_built_and_tag(mask)) {
     return;
   }
 
@@ -3270,7 +3279,7 @@ void DepsgraphRelationBuilder::build_mask(Mask *mask)
 
 void DepsgraphRelationBuilder::build_freestyle_linestyle(FreestyleLineStyle *linestyle)
 {
-  if (built_map_.checkIsBuiltAndTag(linestyle)) {
+  if (built_map_.check_is_built_and_tag(linestyle)) {
     return;
   }
 
@@ -3285,7 +3294,7 @@ void DepsgraphRelationBuilder::build_freestyle_linestyle(FreestyleLineStyle *lin
 
 void DepsgraphRelationBuilder::build_movieclip(MovieClip *clip)
 {
-  if (built_map_.checkIsBuiltAndTag(clip)) {
+  if (built_map_.check_is_built_and_tag(clip)) {
     return;
   }
 
@@ -3299,7 +3308,7 @@ void DepsgraphRelationBuilder::build_movieclip(MovieClip *clip)
 
 void DepsgraphRelationBuilder::build_lightprobe(LightProbe *probe)
 {
-  if (built_map_.checkIsBuiltAndTag(probe)) {
+  if (built_map_.check_is_built_and_tag(probe)) {
     return;
   }
 
@@ -3312,7 +3321,7 @@ void DepsgraphRelationBuilder::build_lightprobe(LightProbe *probe)
 
 void DepsgraphRelationBuilder::build_speaker(Speaker *speaker)
 {
-  if (built_map_.checkIsBuiltAndTag(speaker)) {
+  if (built_map_.check_is_built_and_tag(speaker)) {
     return;
   }
 
@@ -3331,7 +3340,7 @@ void DepsgraphRelationBuilder::build_speaker(Speaker *speaker)
 
 void DepsgraphRelationBuilder::build_sound(bSound *sound)
 {
-  if (built_map_.checkIsBuiltAndTag(sound)) {
+  if (built_map_.check_is_built_and_tag(sound)) {
     return;
   }
 
@@ -3391,7 +3400,7 @@ void DepsgraphRelationBuilder::build_scene_sequencer(Scene *scene)
   if (scene->ed == nullptr) {
     return;
   }
-  if (built_map_.checkIsBuiltAndTag(scene, BuilderMap::TAG_SCENE_SEQUENCER)) {
+  if (built_map_.check_is_built_and_tag(scene, BuilderMap::TAG_SCENE_SEQUENCER)) {
     return;
   }
 
@@ -3404,7 +3413,7 @@ void DepsgraphRelationBuilder::build_scene_sequencer(Scene *scene)
 
   Seq_build_prop_cb_data cb_data = {this, sequencer_key, false};
 
-  SEQ_for_each_callback(&scene->ed->seqbase, strip_build_prop_cb, &cb_data);
+  seq::for_each_callback(&scene->ed->seqbase, strip_build_prop_cb, &cb_data);
   if (cb_data.has_audio_strips) {
     add_relation(sequencer_key, scene_audio_key, "Sequencer -> Audio");
   }
@@ -3438,7 +3447,7 @@ void DepsgraphRelationBuilder::build_scene_speakers(Scene *scene, ViewLayer *vie
 
 void DepsgraphRelationBuilder::build_vfont(VFont *vfont)
 {
-  if (built_map_.checkIsBuiltAndTag(vfont)) {
+  if (built_map_.check_is_built_and_tag(vfont)) {
     return;
   }
 

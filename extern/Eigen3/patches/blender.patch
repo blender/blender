@@ -1,0 +1,74 @@
+diff --git a/extern/Eigen3/Eigen/src/SparseCore/SparseDenseProduct.h b/extern/Eigen3/Eigen/src/SparseCore/SparseDenseProduct.h
+index f005a18a18e..b1d96494500 100644
+--- a/extern/Eigen3/Eigen/src/SparseCore/SparseDenseProduct.h
++++ b/extern/Eigen3/Eigen/src/SparseCore/SparseDenseProduct.h
+@@ -10,7 +10,11 @@
+ #ifndef EIGEN_SPARSEDENSEPRODUCT_H
+ #define EIGEN_SPARSEDENSEPRODUCT_H
+ 
+-namespace Eigen { 
++#ifdef WITH_TBB
++#include <tbb/parallel_for.h>
++#endif
++
++namespace Eigen {
+ 
+ namespace internal {
+ 
+@@ -34,23 +38,21 @@ struct sparse_time_dense_product_impl<SparseLhsType,DenseRhsType,DenseResType, t
+   static void run(const SparseLhsType& lhs, const DenseRhsType& rhs, DenseResType& res, const typename Res::Scalar& alpha)
+   {
+     LhsEval lhsEval(lhs);
+-    
++
+     Index n = lhs.outerSize();
+-#ifdef EIGEN_HAS_OPENMP
+-    Eigen::initParallel();
+-    Index threads = Eigen::nbThreads();
+-#endif
+-    
++
+     for(Index c=0; c<rhs.cols(); ++c)
+     {
+-#ifdef EIGEN_HAS_OPENMP
++#ifdef WITH_TBB
+       // This 20000 threshold has been found experimentally on 2D and 3D Poisson problems.
+       // It basically represents the minimal amount of work to be done to be worth it.
+-      if(threads>1 && lhsEval.nonZerosEstimate() > 20000)
++      if(lhsEval.nonZerosEstimate() > 20000)
+       {
+-        #pragma omp parallel for schedule(dynamic,(n+threads*4-1)/(threads*4)) num_threads(threads)
+-        for(Index i=0; i<n; ++i)
+-          processRow(lhsEval,rhs,res,alpha,i,c);
++        tbb::parallel_for(tbb::blocked_range<Index>(0, n, 1024),
++          [&](const tbb::blocked_range<Index>& range) {
++            for(Index i=range.begin(); i<range.end(); ++i)
++              processRow(lhsEval,rhs,res,alpha,i,c);
++        });
+       }
+       else
+ #endif
+@@ -119,16 +121,16 @@ struct sparse_time_dense_product_impl<SparseLhsType,DenseRhsType,DenseResType, t
+     Index n = lhs.rows();
+     LhsEval lhsEval(lhs);
+ 
+-#ifdef EIGEN_HAS_OPENMP
+-    Eigen::initParallel();
+-    Index threads = Eigen::nbThreads();
++#ifdef WITH_TBB
+     // This 20000 threshold has been found experimentally on 2D and 3D Poisson problems.
+     // It basically represents the minimal amount of work to be done to be worth it.
+-    if(threads>1 && lhsEval.nonZerosEstimate()*rhs.cols() > 20000)
++    if(lhsEval.nonZerosEstimate()*rhs.cols() > 20000)
+     {
+-      #pragma omp parallel for schedule(dynamic,(n+threads*4-1)/(threads*4)) num_threads(threads)
+-      for(Index i=0; i<n; ++i)
+-        processRow(lhsEval,rhs,res,alpha,i);
++      tbb::parallel_for(tbb::blocked_range<Index>(0, n, 1024),
++        [&](const tbb::blocked_range<Index>& range) {
++          for(Index i=range.begin(); i<range.end(); ++i)
++            processRow(lhsEval,rhs,res,alpha,i);
++      });
+     }
+     else
+ #endif

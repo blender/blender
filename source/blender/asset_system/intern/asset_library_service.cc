@@ -139,21 +139,18 @@ AssetLibrary *AssetLibraryService::get_remote_asset_library(StringRefNull remote
 
 AssetLibrary *AssetLibraryService::get_asset_library_on_disk(eAssetLibraryType library_type,
                                                              StringRef name,
-                                                             StringRefNull root_path)
+                                                             StringRefNull root_path,
+                                                             const bool load_catalogs)
 {
-  BLI_assert_msg(!root_path.is_empty(),
-                 "top level directory must be given for on-disk asset library");
-
-  std::string normalized_root_path = utils::normalize_directory_path(root_path);
-
-  std::unique_ptr<OnDiskAssetLibrary> *lib_uptr_ptr = on_disk_libraries_.lookup_ptr(
-      {library_type, normalized_root_path});
-  if (lib_uptr_ptr != nullptr) {
-    CLOG_INFO(&LOG, 2, "get \"%s\" (cached)", normalized_root_path.c_str());
-    AssetLibrary *lib = lib_uptr_ptr->get();
-    lib->refresh_catalogs();
+  if (OnDiskAssetLibrary *lib = this->lookup_on_disk_library(library_type, root_path)) {
+    CLOG_INFO(&LOG, 2, "get \"%s\" (cached)", root_path.c_str());
+    if (load_catalogs) {
+      lib->load_or_reload_catalogs();
+    }
     return lib;
   }
+
+  const std::string normalized_root_path = utils::normalize_directory_path(root_path);
 
   std::unique_ptr<OnDiskAssetLibrary> lib_uptr;
   switch (library_type) {
@@ -168,7 +165,9 @@ AssetLibrary *AssetLibraryService::get_asset_library_on_disk(eAssetLibraryType l
       break;
   }
 
-  lib_uptr->load_catalogs();
+  if (load_catalogs) {
+    lib->load_or_reload_catalogs();
+  }
 
   /* Get underlying pointer before moving. */
   AssetLibrary *lib = lib_uptr.get();
@@ -228,10 +227,50 @@ void AssetLibraryService::reload_all_library_catalogs_if_dirty()
   }
 }
 
-void AssetLibraryService::destroy_runtime_current_file_library()
+AssetLibrary *AssetLibraryService::move_runtime_current_file_into_on_disk_library(
+    const Main &bmain)
 {
   AssetLibraryService &library_service = *AssetLibraryService::get();
+
+  const std::string root_path = AS_asset_library_find_suitable_root_path_from_main(&bmain);
+  if (root_path.empty()) {
+    return nullptr;
+  }
+
+  BLI_assert_msg(!library_service.lookup_on_disk_library(ASSET_LIBRARY_LOCAL, root_path),
+                 "On-disk \"Current File\" asset library shouldn't exist yet, it should only be "
+                 "created now in response to initially saving the file - catalog service "
+                 "will be overridden");
+
+  /* Create on disk library without loading catalogs. We'll steal the catalog service from the
+   * runtime library below. */
+  AssetLibrary *on_disk_library = library_service.get_asset_library_on_disk(
+      ASSET_LIBRARY_LOCAL,
+      {},
+      root_path,
+      /*load_catalogs=*/false);
+
+  {
+    /* These should always be completely separate, just sanity check since it would cause a
+     * deadlock below. */
+    BLI_assert(on_disk_library != library_service.current_file_library_.get());
+
+    std::lock_guard lock_on_disk{on_disk_library->catalog_service_mutex_};
+    std::lock_guard lock_runtime{library_service.current_file_library_->catalog_service_mutex_};
+    on_disk_library->catalog_service_.swap(
+        library_service.current_file_library_->catalog_service_);
+  }
+
+  on_disk_library->catalog_service().asset_library_root_ = on_disk_library->root_path();
+  /* The catalogs are not stored on disk, so there should not be any CDF. Otherwise, we'd have to
+   * remap their stored file-path too (#AssetCatalogDefinitionFile.file_path). */
+  BLI_assert_msg(on_disk_library->catalog_service().get_catalog_definition_file() == nullptr,
+                 "new on-disk library shouldn't have catalog definition files - root path "
+                 "changed, so they would have to be relocated");
+
   library_service.current_file_library_ = nullptr;
+
+  return on_disk_library;
 }
 
 AssetLibrary *AssetLibraryService::get_asset_library_all(const Main *bmain)
@@ -259,6 +298,19 @@ AssetLibrary *AssetLibraryService::get_asset_library_all(const Main *bmain)
   all_library_->rebuild_catalogs_from_nested(/*reload_nested_catalogs=*/false);
 
   return all_library_.get();
+}
+
+OnDiskAssetLibrary *AssetLibraryService::lookup_on_disk_library(eAssetLibraryType library_type,
+                                                                StringRefNull root_path)
+{
+  BLI_assert_msg(!root_path.is_empty(),
+                 "top level directory must be given for on-disk asset library");
+
+  std::string normalized_root_path = utils::normalize_directory_path(root_path);
+
+  std::unique_ptr<OnDiskAssetLibrary> *lib_uptr_ptr = on_disk_libraries_.lookup_ptr(
+      {library_type, normalized_root_path});
+  return lib_uptr_ptr ? lib_uptr_ptr->get() : nullptr;
 }
 
 bUserAssetLibrary *AssetLibraryService::find_custom_preferences_asset_library_from_asset_weak_ref(

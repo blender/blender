@@ -39,7 +39,8 @@ class OpenGLDisplayDriver : public DisplayDriver {
   half4 *map_texture_buffer() override;
   void unmap_texture_buffer() override;
 
-  GraphicsInterop graphics_interop_get() override;
+  GraphicsInteropDevice graphics_interop_get_device() override;
+  GraphicsInteropBuffer graphics_interop_get_buffer() override;
 
   void draw(const Params &params) override;
 

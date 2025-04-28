@@ -7,10 +7,10 @@
 
 void main()
 {
-  vec3 image_pos = vec3(pos.x, pos.y, 0.0);
+  float3 image_pos = float3(pos.x, pos.y, 0.0f);
   uv_image = uv;
 
-  vec4 position = drw_point_world_to_homogenous(image_pos);
-  position.z = 0.0;
+  float4 position = drw_point_world_to_homogenous(image_pos);
+  position.z = 0.0f;
   gl_Position = position;
 }

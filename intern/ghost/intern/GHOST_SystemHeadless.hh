@@ -10,7 +10,6 @@
 #pragma once
 
 #include "../GHOST_Types.h"
-#include "GHOST_DisplayManagerNULL.hh"
 #include "GHOST_System.hh"
 #include "GHOST_WindowNULL.hh"
 
@@ -49,13 +48,13 @@ class GHOST_SystemHeadless : public GHOST_System {
   }
   GHOST_TCapabilityFlag getCapabilities() const override
   {
-    return GHOST_TCapabilityFlag(GHOST_CAPABILITY_FLAG_ALL &
-                                 /* No windowing functionality supported. */
-                                 ~(GHOST_kCapabilityWindowPosition | GHOST_kCapabilityCursorWarp |
-                                   GHOST_kCapabilityPrimaryClipboard |
-                                   GHOST_kCapabilityDesktopSample |
-                                   GHOST_kCapabilityClipboardImages | GHOST_kCapabilityInputIME |
-                                   GHOST_kCapabilityWindowDecorationStyles));
+    return GHOST_TCapabilityFlag(
+        GHOST_CAPABILITY_FLAG_ALL &
+        /* No windowing functionality supported. */
+        ~(GHOST_kCapabilityWindowPosition | GHOST_kCapabilityCursorWarp |
+          GHOST_kCapabilityPrimaryClipboard | GHOST_kCapabilityDesktopSample |
+          GHOST_kCapabilityClipboardImages | GHOST_kCapabilityInputIME |
+          GHOST_kCapabilityWindowDecorationStyles | GHOST_kCapabilityKeyboardHyperKey));
   }
   char *getClipboard(bool /*selection*/) const override
   {
@@ -165,11 +164,7 @@ class GHOST_SystemHeadless : public GHOST_System {
     GHOST_TSuccess success = GHOST_System::init();
 
     if (success) {
-      m_displayManager = new GHOST_DisplayManagerNULL();
-
-      if (m_displayManager) {
-        return GHOST_kSuccess;
-      }
+      return GHOST_kSuccess;
     }
 
     return GHOST_kFailure;

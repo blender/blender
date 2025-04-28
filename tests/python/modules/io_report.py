@@ -16,6 +16,7 @@ import pathlib
 
 from . import global_report
 from io import StringIO
+from mathutils import Matrix
 from typing import Callable
 
 
@@ -25,6 +26,21 @@ def fmtf(f: float) -> str:
     if abs(f) < 0.0005:
         return "0.000"
     return f"{f:.3f}"
+
+
+def fmtrot(f: float) -> str:
+    str = fmtf(f)
+    # rotation by -PI is the same as by +PI, due to platform
+    # precision differences we might get one or another. Make
+    # sure to emit consistent value.
+    if str == "-3.142":
+        str = "3.142"
+    return str
+
+
+def is_approx_identity(mat: Matrix, tol=0.001):
+    identity = Matrix.Identity(4)
+    return all(abs(mat[i][j] - identity[i][j]) <= tol for i in range(4) for j in range(4))
 
 
 class Report:
@@ -228,11 +244,11 @@ class Report:
         if isinstance(val, bpy.types.IntAttributeValue):
             return f"{val.value}"
         if isinstance(val, bpy.types.FloatAttributeValue):
-            return f"{val.value:.3f}"
+            return f"{fmtf(val.value)}"
         if isinstance(val, bpy.types.FloatVectorAttributeValue):
-            return f"({val.vector[0]:.3f}, {val.vector[1]:.3f}, {val.vector[2]:.3f})"
+            return f"({fmtf(val.vector[0])}, {fmtf(val.vector[1])}, {fmtf(val.vector[2])})"
         if isinstance(val, bpy.types.Float2AttributeValue):
-            return f"({val.vector[0]:.3f}, {val.vector[1]:.3f})"
+            return f"({fmtf(val.vector[0])}, {fmtf(val.vector[1])})"
         if isinstance(val, bpy.types.FloatColorAttributeValue) or isinstance(val, bpy.types.ByteColorAttributeValue):
             return f"({val.color[0]:.3f}, {val.color[1]:.3f}, {val.color[2]:.3f}, {val.color[3]:.3f})"
         if isinstance(val, bpy.types.Int2AttributeValue) or isinstance(val, bpy.types.Short2AttributeValue):
@@ -248,16 +264,16 @@ class Report:
         if isinstance(val, bpy.types.VertexGroup):
             return f"'{val.name}'"
         if isinstance(val, bpy.types.Keyframe):
-            res = f"({val.co[0]:.1f}, {val.co[1]:.1f})"
-            res += f" lh:({val.handle_left[0]:.1f}, {val.handle_left[1]:.1f} {val.handle_left_type})"
-            res += f" rh:({val.handle_right[0]:.1f}, {val.handle_right[1]:.1f} {val.handle_right_type})"
+            res = f"({fmtf(val.co[0])}, {fmtf(val.co[1])})"
+            res += f" lh:({fmtf(val.handle_left[0])}, {fmtf(val.handle_left[1])} {val.handle_left_type})"
+            res += f" rh:({fmtf(val.handle_right[0])}, {fmtf(val.handle_right[1])} {val.handle_right_type})"
             if val.interpolation != 'LINEAR':
                 res += f" int:{val.interpolation}"
             if val.easing != 'AUTO':
                 res += f" ease:{val.easing}"
             return res
         if isinstance(val, bpy.types.SplinePoint):
-            return f"({val.co[0]:.3f}, {val.co[1]:.3f}, {val.co[2]:.3f}) w:{val.weight:.3f}"
+            return f"({fmtf(val.co[0])}, {fmtf(val.co[1])}, {fmtf(val.co[2])}) w:{fmtf(val.weight)}"
         return str(val)
 
     # single-line dump of head/tail
@@ -307,7 +323,7 @@ class Report:
             Report._write_collection_multi(attr.data, desc)
 
     @staticmethod
-    def _write_custom_props(bid, desc: StringIO) -> None:
+    def _write_custom_props(bid, desc: StringIO, prefix='') -> None:
         items = bid.items()
         if not items:
             return
@@ -315,12 +331,12 @@ class Report:
         rna_properties = {prop.identifier for prop in bid.bl_rna.properties if prop.is_runtime}
 
         had_any = False
-        for k, v in items:
+        for k, v in sorted(items, key=lambda it: it[0]):
             if k in rna_properties:
                 continue
 
             if not had_any:
-                desc.write(f"  - props:")
+                desc.write(f"{prefix}  - props:")
                 had_any = True
 
             if isinstance(v, str):
@@ -331,9 +347,13 @@ class Report:
             elif isinstance(v, int):
                 desc.write(f" int:{k}={v}")
             elif isinstance(v, float):
-                desc.write(f" fl:{k}={v:.3f}")
+                desc.write(f" fl:{k}={fmtf(v)}")
+            elif len(v) == 2:
+                desc.write(f" f2:{k}=({fmtf(v[0])}, {fmtf(v[1])})")
             elif len(v) == 3:
-                desc.write(f" f3:{k}=({v[0]:.3f}, {v[1]:.3f}, {v[2]:.3f})")
+                desc.write(f" f3:{k}=({fmtf(v[0])}, {fmtf(v[1])}, {fmtf(v[2])})")
+            elif len(v) == 4:
+                desc.write(f" f4:{k}=({fmtf(v[0])}, {fmtf(v[1])}, {fmtf(v[2])}, {fmtf(v[3])})")
             else:
                 desc.write(f" o:{k}={str(v)}")
         if had_any:
@@ -465,10 +485,14 @@ class Report:
                     desc.write(f" data:'{obj.data.name}'")
                 if obj.parent:
                     desc.write(f" par:'{obj.parent.name}'")
+                if obj.parent_type != 'OBJECT':
+                    desc.write(f" par_type:{obj.parent_type}")
+                    if obj.parent_type == 'BONE':
+                        desc.write(f" par_bone:'{obj.parent_bone}'")
                 desc.write(f"\n")
                 desc.write(f"  - pos {fmtf(obj.location[0])}, {fmtf(obj.location[1])}, {fmtf(obj.location[2])}\n")
                 desc.write(
-                    f"  - rot {fmtf(obj.rotation_euler[0])}, {fmtf(obj.rotation_euler[1])}, {fmtf(obj.rotation_euler[2])} ({obj.rotation_mode})\n")
+                    f"  - rot {fmtrot(obj.rotation_euler[0])}, {fmtrot(obj.rotation_euler[1])}, {fmtrot(obj.rotation_euler[2])} ({obj.rotation_mode})\n")
                 desc.write(f"  - scl {obj.scale[0]:.3f}, {obj.scale[1]:.3f}, {obj.scale[2]:.3f}\n")
                 if obj.vertex_groups:
                     desc.write(f"  - {len(obj.vertex_groups)} vertex groups\n")
@@ -486,6 +510,27 @@ class Report:
                             desc.write(
                                 f" levels:{mod.levels}/{mod.render_levels} type:{mod.subdivision_type} crease:{mod.use_creases}")
                         desc.write(f"\n")
+                # for a pose, only print bones that either have non-identity pose matrix, or custom properties
+                if obj.pose:
+                    bones = sorted(obj.pose.bones, key=lambda b: b.name)
+                    for bone in bones:
+                        mtx = bone.matrix_basis
+                        mtx_identity = is_approx_identity(mtx)
+                        desc_props = StringIO()
+                        Report._write_custom_props(bone, desc_props, '  ')
+                        props_str = desc_props.getvalue()
+                        if not mtx_identity or len(props_str) > 0:
+                            desc.write(f"  - posed bone '{bone.name}'\n")
+                            if not mtx_identity:
+                                desc.write(
+                                    f"      {fmtf(mtx[0][0])} {fmtf(mtx[0][1])} {fmtf(mtx[0][2])} {fmtf(mtx[0][3])}\n")
+                                desc.write(
+                                    f"      {fmtf(mtx[1][0])} {fmtf(mtx[1][1])} {fmtf(mtx[1][2])} {fmtf(mtx[1][3])}\n")
+                                desc.write(
+                                    f"      {fmtf(mtx[2][0])} {fmtf(mtx[2][1])} {fmtf(mtx[2][2])} {fmtf(mtx[2][3])}\n")
+                            if len(props_str) > 0:
+                                desc.write(props_str)
+
                 Report._write_animdata_desc(obj.animation_data, desc)
                 Report._write_custom_props(obj, desc)
             desc.write(f"\n")
@@ -571,12 +616,27 @@ class Report:
         if len(bpy.data.actions):
             desc.write(f"==== Actions: {len(bpy.data.actions)}\n")
             for act in sorted(bpy.data.actions, key=lambda a: a.name):
+                layers = sorted(act.layers, key=lambda l: l.name)
                 desc.write(
-                    f"- Action '{act.name}' curverange:({act.curve_frame_range[0]:.1f} .. {act.curve_frame_range[1]:.1f}) curves:{len(act.fcurves)}\n")
-                for fcu in act.fcurves[:15]:
-                    desc.write(
-                        f"  - fcu '{fcu.data_path}[{fcu.array_index}]' smooth:{fcu.auto_smoothing} extra:{fcu.extrapolation} keyframes:{len(fcu.keyframe_points)}\n")
-                    Report._write_collection_multi(fcu.keyframe_points, desc)
+                    f"- Action '{act.name}' curverange:({act.curve_frame_range[0]:.1f} .. {act.curve_frame_range[1]:.1f}) layers:{len(layers)}\n")
+                for layer in layers:
+                    desc.write(f"- ActionLayer {layer.name} strips:{len(layer.strips)}\n")
+                    for strip in layer.strips:
+                        if strip.type == 'KEYFRAME':
+                            desc.write(f" - Keyframe strip channelbags:{len(strip.channelbags)}\n")
+                            for chbag in strip.channelbags:
+                                curves = sorted(chbag.fcurves, key=lambda c: f"{c.data_path}[{c.array_index}]")
+                                desc.write(f" - Channelbag ")
+                                if chbag.slot:
+                                    desc.write(f"slot '{chbag.slot.identifier}' ")
+                                desc.write(f"curves:{len(curves)}\n")
+                                for fcu in curves[:15]:
+                                    grp = ''
+                                    if fcu.group:
+                                        grp = f" grp:'{fcu.group.name}'"
+                                    desc.write(
+                                        f"  - fcu '{fcu.data_path}[{fcu.array_index}]' smooth:{fcu.auto_smoothing} extra:{fcu.extrapolation} keyframes:{len(fcu.keyframe_points)}{grp}\n")
+                                    Report._write_collection_multi(fcu.keyframe_points, desc)
                 Report._write_custom_props(act, desc)
                 desc.write(f"\n")
 
@@ -584,16 +644,21 @@ class Report:
         if len(bpy.data.armatures):
             desc.write(f"==== Armatures: {len(bpy.data.armatures)}\n")
             for arm in bpy.data.armatures:
-                desc.write(f"- Armature '{arm.name}' {len(arm.bones)} bones")
+                bones = sorted(arm.bones, key=lambda b: b.name)
+                desc.write(f"- Armature '{arm.name}' {len(bones)} bones")
                 if arm.display_type != 'OCTAHEDRAL':
                     desc.write(f" display:{arm.display_type}")
                 desc.write("\n")
-                for bone in arm.bones:
+                for bone in bones:
                     desc.write(f"  - bone '{bone.name}'")
                     if bone.parent:
                         desc.write(f" parent:'{bone.parent.name}'")
                     desc.write(
                         f" h:({fmtf(bone.head[0])}, {fmtf(bone.head[1])}, {fmtf(bone.head[2])}) t:({fmtf(bone.tail[0])}, {fmtf(bone.tail[1])}, {fmtf(bone.tail[2])})")
+                    if bone.use_connect:
+                        desc.write(f" connect")
+                    if not bone.use_deform:
+                        desc.write(f" no-deform")
                     if bone.inherit_scale != 'FULL':
                         desc.write(f" inh_scale:{bone.inherit_scale}")
                     if bone.head_radius > 0.0 or bone.tail_radius > 0.0:
@@ -604,6 +669,9 @@ class Report:
                     desc.write(f"      {fmtf(mtx[1][0])} {fmtf(mtx[1][1])} {fmtf(mtx[1][2])} {fmtf(mtx[1][3])}\n")
                     desc.write(f"      {fmtf(mtx[2][0])} {fmtf(mtx[2][1])} {fmtf(mtx[2][2])} {fmtf(mtx[2][3])}\n")
                     # mtx[3] is always 0,0,0,1, not worth printing it
+                    Report._write_custom_props(bone, desc)
+                Report._write_animdata_desc(arm.animation_data, desc)
+                Report._write_custom_props(arm, desc)
                 desc.write(f"\n")
 
         # images

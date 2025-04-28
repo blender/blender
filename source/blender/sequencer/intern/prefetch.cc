@@ -47,6 +47,8 @@
 #include "prefetch.hh"
 #include "render.hh"
 
+namespace blender::seq {
+
 struct PrefetchJob {
   PrefetchJob *next = nullptr;
   PrefetchJob *prev = nullptr;
@@ -63,8 +65,8 @@ struct PrefetchJob {
   ListBase threads = {};
 
   /* context */
-  SeqRenderData context = {};
-  SeqRenderData context_cpy = {};
+  RenderData context = {};
+  RenderData context_cpy = {};
   ListBase *seqbasep = nullptr;
   ListBase *seqbasep_cpy = nullptr;
 
@@ -146,7 +148,7 @@ Strip *seq_prefetch_get_original_sequence(Strip *strip, Scene *scene)
   return sequencer_prefetch_get_original_sequence(strip, &ed->seqbase);
 }
 
-SeqRenderData *seq_prefetch_get_original_context(const SeqRenderData *context)
+RenderData *seq_prefetch_get_original_context(const RenderData *context)
 {
   PrefetchJob *pfjob = seq_prefetch_job_get(context->scene);
 
@@ -234,17 +236,17 @@ static void seq_prefetch_update_area(PrefetchJob *pfjob)
   }
 }
 
-void SEQ_prefetch_stop_all()
+void prefetch_stop_all()
 {
   /* TODO(Richard): Use wm_jobs for prefetch, or pass main. */
   for (Scene *scene = static_cast<Scene *>(G.main->scenes.first); scene;
        scene = static_cast<Scene *>(scene->id.next))
   {
-    SEQ_prefetch_stop(scene);
+    prefetch_stop(scene);
   }
 }
 
-void SEQ_prefetch_stop(Scene *scene)
+void prefetch_stop(Scene *scene)
 {
   PrefetchJob *pfjob;
   pfjob = seq_prefetch_job_get(scene);
@@ -260,30 +262,30 @@ void SEQ_prefetch_stop(Scene *scene)
   }
 }
 
-static void seq_prefetch_update_context(const SeqRenderData *context)
+static void seq_prefetch_update_context(const RenderData *context)
 {
   PrefetchJob *pfjob;
   pfjob = seq_prefetch_job_get(context->scene);
 
-  SEQ_render_new_render_data(pfjob->bmain_eval,
-                             pfjob->depsgraph,
-                             pfjob->scene_eval,
-                             context->rectx,
-                             context->recty,
-                             context->preview_render_size,
-                             false,
-                             &pfjob->context_cpy);
+  render_new_render_data(pfjob->bmain_eval,
+                         pfjob->depsgraph,
+                         pfjob->scene_eval,
+                         context->rectx,
+                         context->recty,
+                         context->preview_render_size,
+                         false,
+                         &pfjob->context_cpy);
   pfjob->context_cpy.is_prefetch_render = true;
   pfjob->context_cpy.task_id = SEQ_TASK_PREFETCH_RENDER;
 
-  SEQ_render_new_render_data(pfjob->bmain,
-                             pfjob->depsgraph,
-                             pfjob->scene,
-                             context->rectx,
-                             context->recty,
-                             context->preview_render_size,
-                             false,
-                             &pfjob->context);
+  render_new_render_data(pfjob->bmain,
+                         pfjob->depsgraph,
+                         pfjob->scene,
+                         context->rectx,
+                         context->recty,
+                         context->preview_render_size,
+                         false,
+                         &pfjob->context);
   pfjob->context.is_prefetch_render = false;
 
   /* Same ID as prefetch context, because context will be swapped, but we still
@@ -308,15 +310,15 @@ static void seq_prefetch_update_scene(Scene *scene)
 
 static void seq_prefetch_update_active_seqbase(PrefetchJob *pfjob)
 {
-  MetaStack *ms_orig = SEQ_meta_stack_active_get(SEQ_editing_get(pfjob->scene));
-  Editing *ed_eval = SEQ_editing_get(pfjob->scene_eval);
+  MetaStack *ms_orig = meta_stack_active_get(editing_get(pfjob->scene));
+  Editing *ed_eval = editing_get(pfjob->scene_eval);
 
   if (ms_orig != nullptr) {
     Strip *meta_eval = seq_prefetch_get_original_sequence(ms_orig->parseq, pfjob->scene_eval);
-    SEQ_seqbase_active_set(ed_eval, &meta_eval->seqbase);
+    seqbase_active_set(ed_eval, &meta_eval->seqbase);
   }
   else {
-    SEQ_seqbase_active_set(ed_eval, &ed_eval->seqbase);
+    seqbase_active_set(ed_eval, &ed_eval->seqbase);
   }
 }
 
@@ -336,7 +338,7 @@ void seq_prefetch_free(Scene *scene)
     return;
   }
 
-  SEQ_prefetch_stop(scene);
+  prefetch_stop(scene);
 
   BLI_threadpool_remove(&pfjob->threads, pfjob);
   BLI_threadpool_end(&pfjob->threads);
@@ -352,7 +354,7 @@ static bool seq_prefetch_seq_has_disk_cache(PrefetchJob *pfjob,
                                             Strip *strip,
                                             bool can_have_final_image)
 {
-  SeqRenderData *ctx = &pfjob->context_cpy;
+  RenderData *ctx = &pfjob->context_cpy;
   float cfra = seq_prefetch_cfra(pfjob);
 
   ImBuf *ibuf = seq_cache_get(ctx, strip, cfra, SEQ_CACHE_STORE_PREPROCESSED);
@@ -408,7 +410,7 @@ static bool seq_prefetch_scene_strip_is_rendered(PrefetchJob *pfjob,
 
     /* Check if strip is effect of scene strip or uses it as modifier. This is recursive check. */
     for (Strip *seq_scene : scene_strips) {
-      if (SEQ_relations_render_loop_check(strip, seq_scene)) {
+      if (relations_render_loop_check(strip, seq_scene)) {
         return true;
       }
     }
@@ -479,8 +481,8 @@ static void *seq_prefetch_frames(void *job)
      */
     pfjob->scene_eval->ed->prefetch_job = pfjob;
 
-    ListBase *seqbase = SEQ_active_seqbase_get(SEQ_editing_get(pfjob->scene_eval));
-    ListBase *channels = SEQ_channels_displayed_get(SEQ_editing_get(pfjob->scene_eval));
+    ListBase *seqbase = active_seqbase_get(editing_get(pfjob->scene_eval));
+    ListBase *channels = channels_displayed_get(editing_get(pfjob->scene_eval));
     if (seq_prefetch_must_skip_frame(pfjob, channels, seqbase)) {
       pfjob->num_frames_prefetched++;
       /* Break instead of keep looping if the job should be terminated. */
@@ -490,7 +492,7 @@ static void *seq_prefetch_frames(void *job)
       continue;
     }
 
-    ImBuf *ibuf = SEQ_render_give_ibuf(&pfjob->context_cpy, seq_prefetch_cfra(pfjob), 0);
+    ImBuf *ibuf = render_give_ibuf(&pfjob->context_cpy, seq_prefetch_cfra(pfjob), 0);
     seq_cache_free_temp_cache(pfjob->scene, pfjob->context.task_id, seq_prefetch_cfra(pfjob));
     IMB_freeImBuf(ibuf);
 
@@ -518,7 +520,7 @@ static void *seq_prefetch_frames(void *job)
   return nullptr;
 }
 
-static PrefetchJob *seq_prefetch_start_ex(const SeqRenderData *context, float cfra)
+static PrefetchJob *seq_prefetch_start_ex(const RenderData *context, float cfra)
 {
   PrefetchJob *pfjob = seq_prefetch_job_get(context->scene);
 
@@ -556,7 +558,7 @@ static PrefetchJob *seq_prefetch_start_ex(const SeqRenderData *context, float cf
   return pfjob;
 }
 
-void seq_prefetch_start(const SeqRenderData *context, float timeline_frame)
+void seq_prefetch_start(const RenderData *context, float timeline_frame)
 {
   Scene *scene = context->scene;
   Editing *ed = scene->ed;
@@ -581,7 +583,7 @@ void seq_prefetch_start(const SeqRenderData *context, float timeline_frame)
   }
 }
 
-bool SEQ_prefetch_need_redraw(const bContext *C, Scene *scene)
+bool prefetch_need_redraw(const bContext *C, Scene *scene)
 {
   bScreen *screen = CTX_wm_screen(C);
   bool playing = screen->animtimer != nullptr;
@@ -603,3 +605,5 @@ bool SEQ_prefetch_need_redraw(const bContext *C, Scene *scene)
   }
   return false;
 }
+
+}  // namespace blender::seq

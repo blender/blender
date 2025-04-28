@@ -1,5 +1,5 @@
 // Ceres Solver - A fast non-linear least squares minimizer
-// Copyright 2019 Google Inc. All rights reserved.
+// Copyright 2023 Google Inc. All rights reserved.
 // http://ceres-solver.org/
 //
 // Redistribution and use in source and binary forms, with or without
@@ -368,7 +368,7 @@ class BiCubicInterpolator {
 //
 //   f001, f002, f011, f012, ...
 //
-// A commonly occuring example are color images (RGB) where the three
+// A commonly occurring example are color images (RGB) where the three
 // channels are stored interleaved.
 //
 // If kInterleaved = false, then it is stored as

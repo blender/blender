@@ -15,13 +15,15 @@ shader node_ambient_occlusion(color ColorIn = color(1.0, 1.0, 1.0),
 {
   int global_radius = (Distance == 0.0 && !isconnected(Distance));
 
+  normal normalized_normal = normalize(Normal);
+
   /* Abuse texture call with special @ao token. */
   AO = texture("@ao",
                samples,
                Distance,
-               Normal[0],
-               Normal[1],
-               Normal[2],
+               normalized_normal[0],
+               normalized_normal[1],
+               normalized_normal[2],
                inside,
                "sblur",
                only_local,

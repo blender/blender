@@ -10,7 +10,7 @@
 
 #  include "draw_object_infos_info.hh"
 
-#  include "workbench_shader_shared.h"
+#  include "workbench_shader_shared.hh"
 #  define VOLUME_SMOKE
 #  define VOLUME_OBJECT
 #  define USE_COBA
@@ -27,21 +27,21 @@
  * \{ */
 
 GPU_SHADER_CREATE_INFO(workbench_volume_common)
-VERTEX_IN(0, VEC3, pos)
-FRAGMENT_OUT(0, VEC4, fragColor)
-SAMPLER(0, DEPTH_2D, depthBuffer)
-SAMPLER(1, FLOAT_3D, densityTexture)
-PUSH_CONSTANT(INT, samplesLen)
-PUSH_CONSTANT(FLOAT, noiseOfs)
-PUSH_CONSTANT(FLOAT, stepLength)
-PUSH_CONSTANT(FLOAT, densityScale)
-PUSH_CONSTANT(BOOL, do_depth_test)
+VERTEX_IN(0, float3, pos)
+FRAGMENT_OUT(0, float4, frag_color)
+SAMPLER(0, sampler2DDepth, depth_buffer)
+SAMPLER(1, sampler3D, density_tx)
+PUSH_CONSTANT(int, samples_len)
+PUSH_CONSTANT(float, noise_ofs)
+PUSH_CONSTANT(float, step_length)
+PUSH_CONSTANT(float, density_fac)
+PUSH_CONSTANT(bool, do_depth_test)
 VERTEX_SOURCE("workbench_volume_vert.glsl")
 FRAGMENT_SOURCE("workbench_volume_frag.glsl")
 GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(workbench_volume)
-SAMPLER(6, UINT_2D, stencil_tx)
+SAMPLER(6, usampler2D, stencil_tx)
 ADDITIONAL_INFO(workbench_volume_common)
 ADDITIONAL_INFO(draw_object_infos)
 ADDITIONAL_INFO(draw_view)
@@ -54,16 +54,16 @@ GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(workbench_volume_smoke_common)
 DEFINE("VOLUME_SMOKE")
-SAMPLER(2, FLOAT_3D, flameTexture)
-SAMPLER(3, FLOAT_1D, flameColorTexture)
+SAMPLER(2, sampler3D, flame_tx)
+SAMPLER(3, sampler1D, flame_color_tx)
 ADDITIONAL_INFO(draw_resource_id_varying)
 GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(workbench_volume_object_common)
 DEFINE("VOLUME_OBJECT")
-PUSH_CONSTANT(MAT4, volumeTextureToObject)
+PUSH_CONSTANT(float4x4, volume_texture_to_object)
 /* FIXME(fclem): This overflow the push_constant limit. */
-PUSH_CONSTANT(MAT4, volumeObjectToTexture)
+PUSH_CONSTANT(float4x4, volume_object_to_texture)
 ADDITIONAL_INFO(draw_resource_id_varying)
 GPU_SHADER_CREATE_END()
 
@@ -85,17 +85,17 @@ GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(workbench_volume_coba)
 DEFINE("USE_COBA")
-SAMPLER(4, UINT_3D, flagTexture)
-SAMPLER(5, FLOAT_1D, transferTexture)
-PUSH_CONSTANT(BOOL, showPhi)
-PUSH_CONSTANT(BOOL, showFlags)
-PUSH_CONSTANT(BOOL, showPressure)
-PUSH_CONSTANT(FLOAT, gridScale)
+SAMPLER(4, usampler3D, flag_tx)
+SAMPLER(5, sampler1D, transfer_tx)
+PUSH_CONSTANT(bool, show_phi)
+PUSH_CONSTANT(bool, show_flags)
+PUSH_CONSTANT(bool, show_pressure)
+PUSH_CONSTANT(float, grid_scale)
 GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(workbench_volume_no_coba)
-SAMPLER(4, FLOAT_3D, shadowTexture)
-PUSH_CONSTANT(VEC3, activeColor)
+SAMPLER(4, sampler3D, shadow_tx)
+PUSH_CONSTANT(float3, active_color)
 GPU_SHADER_CREATE_END()
 
 /** \} */
@@ -121,15 +121,15 @@ GPU_SHADER_CREATE_END()
  * \{ */
 
 GPU_SHADER_INTERFACE_INFO(workbench_volume_iface)
-SMOOTH(VEC3, localPos)
+SMOOTH(float3, local_position)
 GPU_SHADER_INTERFACE_END()
 
 GPU_SHADER_CREATE_INFO(workbench_volume_slice)
 DEFINE("VOLUME_SLICE")
-VERTEX_IN(1, VEC3, uvs)
+VERTEX_IN(1, float3, uvs)
 VERTEX_OUT(workbench_volume_iface)
-PUSH_CONSTANT(INT, sliceAxis) /* -1 is no slice. */
-PUSH_CONSTANT(FLOAT, slicePosition)
+PUSH_CONSTANT(int, slice_axis) /* -1 is no slice. */
+PUSH_CONSTANT(float, slice_position)
 GPU_SHADER_CREATE_END()
 
 /** \} */
