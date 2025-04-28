@@ -149,7 +149,7 @@ class PaintOperation : public GreasePencilStrokeOperation {
   /* Temporary vector of curve fitted screen space coordinates per input sample from the active
    * smoothing window. The length of this depends on `active_smooth_start_index_`. */
   Vector<Vector<float2>> screen_space_curve_fitted_coords_;
-  /* Temporary vector of screen space offsets  */
+  /* Temporary vector of screen space offsets. */
   Vector<float2> screen_space_jitter_offsets_;
   /* Projection planes for every point in "Stroke" placement mode. */
   Vector<std::optional<float>> stroke_placement_depths_;

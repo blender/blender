@@ -10,7 +10,7 @@
 /* Maintained by GLIBC. */
 /* clang-format off */
 
-/* Enable GNU extensions in fnmatch.h.  */
+/* Enable GNU extensions in fnmatch.h. */
 #ifndef _GNU_SOURCE
 # define _GNU_SOURCE    1
 #endif

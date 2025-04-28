@@ -65,7 +65,7 @@ inline void bits_to_index_ranges(const BitSpan bits, IndexRangesBuilder<IntT> &b
     while (current_value != 0) {
       /* Find start of next range of 1s. */
       const int64_t first_set_bit_i = int64_t(bitscan_forward_uint64(current_value));
-      /* This mask is used to find the end of the 1s range.  */
+      /* This mask is used to find the end of the 1s range. */
       const BitInt find_unset_value = ~(current_value | mask_first_n_bits(first_set_bit_i) |
                                         ~mask);
       if (find_unset_value == 0) {

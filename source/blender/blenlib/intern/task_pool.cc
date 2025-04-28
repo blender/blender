@@ -234,7 +234,8 @@ struct TaskPool {
   }
 
   TaskPool(TaskPool &&other) = delete;
-  /*      : type(other.type), use_threads(other.use_threads), userdata(other.userdata)
+#if 0
+        : type(other.type), use_threads(other.use_threads), userdata(other.userdata)
     {
       other.pool = nullptr;
       other.run = nullptr;
@@ -242,7 +243,8 @@ struct TaskPool {
       other.free_taskdata = false;
       other.freedata = nullptr;
     }
-  */
+#endif
+
   TaskPool(const TaskPool &other) = delete;
 
   TaskPool &operator=(const TaskPool &other) = delete;

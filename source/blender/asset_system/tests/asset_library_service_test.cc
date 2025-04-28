@@ -281,7 +281,7 @@ TEST_F(AssetLibraryServiceTest, move_runtime_current_file_into_on_disk_library__
     EXPECT_NE(on_disk_lib, runtime_lib);
     EXPECT_EQ(on_disk_lib->root_path(), temp_library_path_);
 
-    /* Check if catalog was moved correctly .*/
+    /* Check if catalog was moved correctly. */
     {
       EXPECT_EQ(on_disk_catservice.find_catalog(catalog->catalog_id)->path, catalog->path);
       /* Compare catalog by pointer. #move_runtime_current_file_into_on_disk_library() doesn't
@@ -348,7 +348,7 @@ TEST_F(AssetLibraryServiceTest,
     EXPECT_NE(on_disk_lib, runtime_lib);
     EXPECT_EQ(on_disk_lib->root_path(), asset_library_root_ + SEP);
 
-    /* Check if catalog was moved correctly .*/
+    /* Check if catalog was moved correctly. */
     {
       EXPECT_EQ(on_disk_catservice.find_catalog(catalog->catalog_id)->path, catalog->path);
       /* Compare catalog by pointer. #move_runtime_current_file_into_on_disk_library() doesn't

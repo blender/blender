@@ -79,7 +79,7 @@ void ViewEdgeXBuilder::BuildViewEdges(WXShape *iWShape,
       }
       // here we know that we're dealing with a face layer that has not been processed yet and that
       // contains a smooth edge.
-      /* vedge =*//* UNUSED */ BuildSmoothViewEdge(OWXFaceLayer(*sl, true));
+      /* `vedge =` */ /* UNUSED */ BuildSmoothViewEdge(OWXFaceLayer(*sl, true));
     }
   }
 

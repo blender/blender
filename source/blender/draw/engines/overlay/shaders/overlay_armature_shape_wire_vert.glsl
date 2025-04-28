@@ -131,8 +131,8 @@ void geometry_main(VertOut geom_in[2],
   screen_space_pos[0] = pos0.xy / pos0.w;
   screen_space_pos[1] = pos1.xy / pos1.w;
 
-  /* `theme.sizes.edge` is defined as the distance from the center to the outer edge. As such to
-   get the total width it needs to be doubled. */
+  /* `theme.sizes.edge` is defined as the distance from the center to the outer edge.
+   * As such to get the total width it needs to be doubled. */
   wire_width = geom_in[0].wire_width * (theme.sizes.edge * 2);
   float half_size = max(wire_width / 2.0f, 0.5f);
 

@@ -554,7 +554,7 @@ GPUSecondaryContext::GPUSecondaryContext()
   gpu_settings.preferred_device.vendor_id = U.gpu_preferred_vendor_id;
   gpu_settings.preferred_device.device_id = U.gpu_preferred_device_id;
 
-  /* Grab the system handle.  */
+  /* Grab the system handle. */
   GHOST_SystemHandle ghost_system = reinterpret_cast<GHOST_SystemHandle>(
       GPU_backend_ghost_system_get());
   BLI_assert(ghost_system);

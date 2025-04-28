@@ -94,7 +94,7 @@ constexpr float maximum_improvement = 0.99f;
 /* -------------------------------------------------------------------- */
 /** \name Join Edges state
  * pass a struct to ensure we don't have to pass these four variables everywhere.
- \{ */
+ * \{ */
 
 struct JoinEdgesState {
   /** A priority queue of `BMEdge *` to be merged, in order of preference. */

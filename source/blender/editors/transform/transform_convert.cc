@@ -1196,7 +1196,7 @@ void animrecord_check_state(TransInfo *t, ID *id)
         /* Only push down if action is more than 1-2 frames long. */
         const float2 frame_range = adt->action->wrap().get_frame_range_of_keys(true);
         if (frame_range[1] > frame_range[0] + 2.0f) {
-          /* TODO: call BKE_nla_action_pushdown() instead?  */
+          /* TODO: call #BKE_nla_action_pushdown() instead? */
 
           /* Add a new NLA strip to the track, which references the active action + slot. */
           NlaStrip *strip = BKE_nlastack_add_strip({*id, *adt}, ID_IS_OVERRIDE_LIBRARY(id));

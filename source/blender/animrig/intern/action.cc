@@ -2110,10 +2110,10 @@ void Channelbag::fcurves_clear()
 
 static void cyclic_keying_ensure_modifier(FCurve &fcurve)
 {
-  /* BKE_fcurve_get_cycle_type() only looks at the first modifier to see if it's a Cycle modifier,
+  /* #BKE_fcurve_get_cycle_type() only looks at the first modifier to see if it's a Cycle modifier,
    * so if we're going to add one, better make sure it's the first one.
-
-   * BUT: add_fmodifier() only allows adding a Cycle modifier when there are none yet, so that's
+   *
+   * BUT: #add_fmodifier() only allows adding a Cycle modifier when there are none yet, so that's
    * all that we need to check for here.
    */
   if (!BLI_listbase_is_empty(&fcurve.modifiers)) {

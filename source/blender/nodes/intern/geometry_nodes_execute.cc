@@ -1072,7 +1072,7 @@ void get_geometry_nodes_input_base_values(const bNodeTree &btree,
       continue;
     }
     if (input_attribute_name_get(properties, io_input).has_value()) {
-      /* Attributes don't have a single base value, so ignore them here.*/
+      /* Attributes don't have a single base value, so ignore them here. */
       continue;
     }
     if (is_layer_selection_field(io_input)) {

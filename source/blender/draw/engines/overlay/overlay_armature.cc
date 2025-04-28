@@ -290,7 +290,7 @@ static void drw_shgroup_bone_envelope_distance(const Armatures::DrawContext *ctx
     head_sph[3] += *distance * obscale;
     tail_sph[3] = *radius_tail * obscale;
     tail_sph[3] += *distance * obscale;
-    /* TODO(fclem): Cleanup these casts when Overlay Next is shipped.  */
+    /* TODO(fclem): Cleanup these casts when Overlay Next is shipped. */
     ctx->bone_buf->envelope_distance_buf.append(
         {*(float4 *)head_sph, *(float4 *)tail_sph, *(float3 *)xaxis},
         draw::select::SelectMap::select_invalid_id());
@@ -355,7 +355,7 @@ static void drw_shgroup_bone_envelope(const Armatures::DrawContext *ctx,
       interp_v4_v4v4(tail_sph, tmp_sph, tail_sph, fac_tail);
 
       if (ctx->is_filled) {
-        /* TODO(fclem): Cleanup these casts when Overlay Next is shipped.  */
+        /* TODO(fclem): Cleanup these casts when Overlay Next is shipped. */
         ctx->bone_buf->envelope_fill_buf.append({*(float4 *)head_sph,
                                                  *(float4 *)tail_sph,
                                                  *(float3 *)bone_col,

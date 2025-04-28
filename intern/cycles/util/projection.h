@@ -111,8 +111,8 @@ ccl_device_inline float3 transform_perspective_direction(const ccl_private Proje
   return c;
 }
 
-/* Applies transform t to point a with given derivatives da/dx and da/dy.
- * Returns t(a) and sets out_dx/dy to the values of dt(a)/dx and dt(a)/dy, respectively. */
+/* Applies transform t to point a with given derivatives `da/dx` and `da/dy`.
+ * Returns t(a) and sets `out_dx/dy` to the values of `dt(a)/dx` and `dt(a)/dy`, respectively. */
 ccl_device_inline float3 transform_perspective_deriv(const ccl_private ProjectionTransform *t,
                                                      const float3 a,
                                                      const float3 dx,

@@ -168,7 +168,7 @@ BLI_STATIC_ASSERT(MOTIONPATH_VERT_SEL == (1u << 0), "Ensure value is sync");
 BLI_STATIC_ASSERT(MOTIONPATH_VERT_KEY == (1u << 1), "Ensure value is sync");
 #endif
 
-/* All colors in this struct are converted to display linear RGB colorspace. */
+/* All colors in this struct are converted to display linear RGB color-space. */
 struct ThemeColors {
   /* UBOs data needs to be 16 byte aligned (size of float4) */
   float4 wire;

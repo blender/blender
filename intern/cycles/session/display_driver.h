@@ -45,7 +45,7 @@ class GraphicsInteropBuffer {
   GraphicsInteropDevice::Type type = GraphicsInteropDevice::NONE;
   int64_t handle = 0;
 
-  /* Actual size of the memory, which must be >= width * height sizeof(half4). */
+  /* Actual size of the memory, which must be `>= width * height sizeof(half4)`. */
   size_t size = 0;
 
   /* Clear the entire buffer before doing partial write to it. */

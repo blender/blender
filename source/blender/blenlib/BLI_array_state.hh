@@ -72,7 +72,7 @@ template<typename T> class ArrayState {
   {
     if (sharing_info_ && other_sharing_info) {
       if (sharing_info_ == other_sharing_info) {
-        /* The data is still shared.*/
+        /* The data is still shared. */
         return true;
       }
     }

@@ -72,8 +72,8 @@ static void test_framebuffer_clear_color_multiple_attachments()
   }
   MEM_freeN(read_data1);
 
-#ifndef __APPLE__ /* FIXME: Behavior is not the same on all backend. Current expected value is \
-                     broken. */
+#ifndef __APPLE__ /* FIXME: Behavior is not the same on all backend. \
+                   * Current expected value is broken. */
   uint4 *read_data2 = static_cast<uint4 *>(GPU_texture_read(texture2, GPU_DATA_UINT, 0));
   uint4 clear_color_uint(1036831949, 1045220557, 1056964608, 1065353216);
   for (uint4 pixel_color : Span<uint4>(read_data2, size.x * size.y)) {

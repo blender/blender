@@ -30,11 +30,11 @@ bool edit_move_strip_to_seqbase(Scene *scene,
                                 Strip *strip,
                                 ListBase *dst_seqbase);
 /**
- * Move strip to metastrip.
+ * Move strip to meta-strip.
  *
  * \param scene: Scene containing the editing
  * \param src_strip: Strip to move
- * \param dst_stripm: Target metastrip
+ * \param dst_stripm: Target meta-strip
  * \param r_error_str: Error message
  */
 bool edit_move_strip_to_meta(Scene *scene,

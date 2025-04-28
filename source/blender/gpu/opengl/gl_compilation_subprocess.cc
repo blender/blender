@@ -25,7 +25,7 @@
 #    include "BLI_winstuff.h"
 #  endif
 
-/* Include after BLI_winstuff.h to avoid APIENTRY redefinition.  */
+/* Include after `BLI_winstuff.h` to avoid APIENTRY redefinition. */
 #  include <epoxy/gl.h>
 
 namespace blender::gpu {

@@ -16,7 +16,7 @@ namespace blender::compositor {
  * Specifies how the input should be realized before execution. See the discussion in COM_domain.hh
  * for more information on what realization mean. */
 enum class InputRealizationMode : uint8_t {
-  /* The input should not be realized in any way.  */
+  /* The input should not be realized in any way. */
   None,
   /* The rotation and scale transforms of the input should be realized. */
   Transforms,
@@ -31,7 +31,7 @@ enum class InputRealizationMode : uint8_t {
  * Specifies the implicit input that should be assigned to the input if it is unlinked. See the
  * ImplicitInputOperation operation for more information on the individual types. */
 enum class ImplicitInput : uint8_t {
-  /* The input does not have an implicit input and its value should be used.  */
+  /* The input does not have an implicit input and its value should be used. */
   None,
   /* The input should have the texture coordinates of the compositing space as an input. */
   TextureCoordinates,

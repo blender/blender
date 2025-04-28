@@ -356,7 +356,7 @@ static void compute_second_order_section(const std::complex<double> &pole,
 }
 
 /**
-   The IIR filter difference equation relies on previous outputs to compute new outputs, those
+ * The IIR filter difference equation relies on previous outputs to compute new outputs, those
  * previous outputs are not really defined at the start of the filter. To do Neumann boundary
  * condition, we initialize the previous output with a special value that is a function of the
  * boundary value. This special value is computed by multiply the boundary value with a coefficient

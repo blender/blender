@@ -185,7 +185,7 @@ static PyObject *pygpu_batch_program_set(BPyGPUBatch *self, BPyGPUShader *py_sha
 {
   static bool deprecation_warning_issued = false;
 
-  /* Deprecation warning raised when calling `gpu.types.GPUBatch.program_set`.  */
+  /* Deprecation warning raised when calling `gpu.types.GPUBatch.program_set`. */
   if (!deprecation_warning_issued) {
     PyErr_WarnEx(PyExc_DeprecationWarning,
                  "Calls to GPUBatch.program_set are deprecated."

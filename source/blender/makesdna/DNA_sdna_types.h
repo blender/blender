@@ -152,7 +152,7 @@ typedef struct BHead {
   /**
    * Identifier the block had when it was written. This is used to remap memory blocks on load.
    * Typically, this is the pointer that the memory had when it was written.
-   * This should be unique across the whole blendfile, except for `BLEND_DATA` blocks, which
+   * This should be unique across the whole blend-file, except for `BLEND_DATA` blocks, which
    * should be unique within a same ID.
    */
   const void *old;

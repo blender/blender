@@ -172,7 +172,7 @@ TEST_F(NodeTest, tree_iterator_1mat_3scenes)
   const char SCENE_NAME_2[MAX_ID_NAME] = "Scene 2";
   const char SCENE_NAME_3[MAX_ID_NAME] = "Scene 3";
   const char NTREE_NAME[MAX_NAME] = "Test Composisiting Nodetree";
-  /* Name is hardcoded in ED_node_shader_default(). */
+  /* Name is hard-coded in #ED_node_shader_default(). */
   const char MATERIAL_NTREE_NAME[MAX_NAME] = "Shader Nodetree";
 
   Material *material = BKE_material_add(context.bmain, "Material");
@@ -193,7 +193,7 @@ TEST_F(NodeTest, tree_iterator_1mat_3scenes)
   ASSERT_EQ(iter_result.node_trees.size(), 2);
   ASSERT_EQ(iter_result.ids.size(), 2);
 
-  /* Expect that scenes with no nodetrees don't have side effects for node trees*/
+  /* Expect that scenes with no node-trees don't have side effects for node trees. */
   EXPECT_EQ(GS(iter_result.ids[0]->name), ID_SCE);
   EXPECT_STREQ(iter_result.ids[0]->name + 2, SCENE_NAME_2);
   EXPECT_STREQ(iter_result.node_trees[0]->id.name + 2, NTREE_NAME);

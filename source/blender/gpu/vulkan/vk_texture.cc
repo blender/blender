@@ -202,7 +202,7 @@ void VKTexture::read_sub(
                         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
                         VK_MEMORY_PROPERTY_HOST_CACHED_BIT,
                         /* Although we are only reading, we need to set the host access random bit
-                           to improve the performance on AMD GPUs. */
+                         * to improve the performance on AMD GPUs. */
                         VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT |
                             VMA_ALLOCATION_CREATE_MAPPED_BIT);
 

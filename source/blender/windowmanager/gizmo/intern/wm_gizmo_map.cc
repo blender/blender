@@ -719,7 +719,7 @@ static wmGizmo *gizmo_find_intersected_3d(bContext *C,
     /* NOTE(@ideasman42): Regarding the hit-radius:
      *
      * - These must remain constant for all event types
-     *   since changing the radius per event types means mon-motion events
+     *   since changing the radius per event types means non-motion events
      *   can cause the gizmo not to be highlighted.
      * - A single large radius would result in gizmos that are further away from the cursor
      *   with a nearer Z-depth being highlighted.

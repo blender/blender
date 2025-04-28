@@ -105,7 +105,7 @@ static void strip_update_muting_recursive(ListBase *channels,
     bool strip_mute = (mute || render_is_muted(channels, strip));
 
     if (strip->type == STRIP_TYPE_META) {
-      /* if this is the current metastrip, unmute because
+      /* if this is the current meta-strip, unmute because
        * all strips above this were set to mute */
       if (strip == strip_meta) {
         strip_mute = false;

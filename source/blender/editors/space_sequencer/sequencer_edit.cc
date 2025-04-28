@@ -483,22 +483,22 @@ enum {
 struct SlipData {
   NumInput num_input;
   VectorSet<Strip *> strips;
-  /* Initial mouse position in view-space. */
+  /** Initial mouse position in view-space. */
   float init_mouse_co[2];
-  /* Mouse and virtual mouse-cursor x-values in region-space. */
+  /** Mouse and virtual mouse-cursor x-values in region-space. */
   int prev_mval_x;
   float virtual_mval_x;
-  /* Parsed offset (integer when in precision mode, float otherwise).*/
+  /** Parsed offset (integer when in precision mode, float otherwise). */
   float prev_offset;
   bool precision;
-  /* Whether to show sub-frame offset in header. */
+  /** Whether to show sub-frame offset in header. */
   bool show_subframe;
 
-  /* Whether the user is currently clamping. */
+  /** Whether the user is currently clamping. */
   bool clamp;
-  /* Whether at least one strip has enough content to clamp. */
+  /** Whether at least one strip has enough content to clamp. */
   bool can_clamp;
-  /* Whether some strips do not have enough content to clamp. */
+  /** Whether some strips do not have enough content to clamp. */
   bool clamp_warning;
 };
 

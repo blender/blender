@@ -1791,7 +1791,7 @@ void DRW_create_subdivision(Object &ob,
                                             ts,
                                             use_hide))
   {
-    /* Did not run*/
+    /* Did not run. */
     return;
   }
 

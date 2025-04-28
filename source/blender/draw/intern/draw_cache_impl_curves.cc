@@ -521,7 +521,7 @@ static void calc_edit_handles_ibo(const OffsetIndices<int> points_by_curve,
   int lines_num = 0;
   /* Lines for all non-cyclic non-Bezier segments. */
   lines_num += non_bezier_points_num;
-  /* Lines for all potential non-Bezier cyclic segments.*/
+  /* Lines for all potential non-Bezier cyclic segments. */
   lines_num += non_bezier_curves_num;
   /* Lines for all Bezier handles. */
   lines_num += bezier_offsets.total_size() * 2;

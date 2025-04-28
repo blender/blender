@@ -275,7 +275,7 @@ struct MeshNormalInfo {
     }
     if (custom_normal->data_type == CD_PROP_FLOAT3) {
       if (custom_normal->domain == bke::AttrDomain::Edge) {
-        /* Skip invalid storage on the edge domain.*/
+        /* Skip invalid storage on the edge domain. */
         this->add_no_custom_normals(mesh.normals_domain());
         return;
       }

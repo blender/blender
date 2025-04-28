@@ -192,7 +192,7 @@ static bool is_vert_slide_visible_bmesh(TransInfo *t,
                                         const BMBVHTree *bmbvh,
                                         TransDataEdgeSlideVert *sv)
 {
-  /* NOTE:  */
+  /* NOTE: */
   BMIter iter_other;
   BMEdge *e;
 

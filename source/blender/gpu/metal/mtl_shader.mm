@@ -1665,7 +1665,7 @@ void MTLParallelShaderCompiler::create_compile_threads()
   /* Spawn the compiler threads. */
   for (int i = 0; i < max_mtlcompiler_threads; i++) {
 
-    /* Grab the system handle.  */
+    /* Grab the system handle. */
     GHOST_SystemHandle ghost_system = reinterpret_cast<GHOST_SystemHandle>(
         GPU_backend_ghost_system_get());
     BLI_assert(ghost_system);
