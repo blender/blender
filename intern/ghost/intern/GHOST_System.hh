@@ -19,7 +19,6 @@
 #  include "GHOST_EventPrinter.hh"
 #endif  // WITH_GHOST_DEBUG
 
-class GHOST_DisplayManager;
 class GHOST_Event;
 class GHOST_TimerManager;
 class GHOST_Window;
@@ -365,9 +364,6 @@ class GHOST_System : public GHOST_ISystem {
    * \return Indication of success.
    */
   GHOST_TSuccess exit() override;
-
-  /** The display manager (platform dependent). */
-  GHOST_DisplayManager *m_displayManager;
 
   /** The timer manager. */
   GHOST_TimerManager *m_timerManager;

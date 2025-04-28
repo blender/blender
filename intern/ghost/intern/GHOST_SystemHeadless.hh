@@ -10,7 +10,6 @@
 #pragma once
 
 #include "../GHOST_Types.h"
-#include "GHOST_DisplayManagerNULL.hh"
 #include "GHOST_System.hh"
 #include "GHOST_WindowNULL.hh"
 
@@ -165,11 +164,7 @@ class GHOST_SystemHeadless : public GHOST_System {
     GHOST_TSuccess success = GHOST_System::init();
 
     if (success) {
-      m_displayManager = new GHOST_DisplayManagerNULL();
-
-      if (m_displayManager) {
-        return GHOST_kSuccess;
-      }
+      return GHOST_kSuccess;
     }
 
     return GHOST_kFailure;

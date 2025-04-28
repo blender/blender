@@ -719,17 +719,6 @@ typedef enum {
 } GHOST_TWindowDecorationStyleFlags;
 
 typedef struct {
-  /** Number of pixels on a line. */
-  uint32_t xPixels;
-  /** Number of lines. */
-  uint32_t yPixels;
-  /** Number of bits per pixel. */
-  uint32_t bpp;
-  /** Refresh rate (in Hertz). */
-  uint32_t frequency;
-} GHOST_DisplaySetting;
-
-typedef struct {
   /** Index of the GPU device in the list provided by the platform. */
   int index;
   /** (PCI) Vendor ID of the GPU. */

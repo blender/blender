@@ -14,7 +14,6 @@
 #include <X11/Xutil.h>
 #include <X11/keysym.h>
 
-#include "GHOST_DisplayManagerX11.hh"
 #include "GHOST_EventButton.hh"
 #include "GHOST_EventCursor.hh"
 #include "GHOST_EventDragnDrop.hh"
@@ -251,11 +250,7 @@ GHOST_TSuccess GHOST_SystemX11::init()
 #ifdef WITH_INPUT_NDOF
     m_ndofManager = new GHOST_NDOFManagerUnix(*this);
 #endif
-    m_displayManager = new GHOST_DisplayManagerX11(this);
-
-    if (m_displayManager) {
-      return GHOST_kSuccess;
-    }
+    return GHOST_kSuccess;
   }
 
   return GHOST_kFailure;

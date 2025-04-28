@@ -68,7 +68,7 @@ GHOST_IWindow *GHOST_SystemSDL::createWindow(const char *title,
       SDL_Window *sdl_win = window->getSDLWindow();
       SDL_DisplayMode mode;
 
-      static_cast<GHOST_DisplayManagerSDL *>(m_displayManager)->getCurrentDisplayModeSDL(mode);
+      memset(&mode, 0, sizeof(mode));
 
       SDL_SetWindowDisplayMode(sdl_win, &mode);
       SDL_ShowWindow(sdl_win);
@@ -92,11 +92,7 @@ GHOST_TSuccess GHOST_SystemSDL::init()
   GHOST_TSuccess success = GHOST_System::init();
 
   if (success) {
-    m_displayManager = new GHOST_DisplayManagerSDL(this);
-
-    if (m_displayManager) {
-      return GHOST_kSuccess;
-    }
+    return GHOST_kSuccess;
   }
 
   return GHOST_kFailure;

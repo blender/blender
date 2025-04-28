@@ -32,7 +32,6 @@
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 
-#include "GHOST_DisplayManagerWin32.hh"
 #include "GHOST_EventButton.hh"
 #include "GHOST_EventCursor.hh"
 #include "GHOST_EventKey.hh"
@@ -165,10 +164,6 @@ typedef BOOL(API *GHOST_WIN32_EnableNonClientDpiScaling)(HWND);
 
 GHOST_SystemWin32::GHOST_SystemWin32() : m_hasPerformanceCounter(false), m_freq(0)
 {
-  m_displayManager = new GHOST_DisplayManagerWin32();
-  GHOST_ASSERT(m_displayManager, "GHOST_SystemWin32::GHOST_SystemWin32(): m_displayManager==0\n");
-  m_displayManager->initialize();
-
   m_consoleStatus = true;
 
   /* Tell Windows we are per monitor DPI aware. This disables the default
@@ -246,10 +241,7 @@ static uint64_t getMessageTime(GHOST_SystemWin32 *system)
 
 uint8_t GHOST_SystemWin32::getNumDisplays() const
 {
-  GHOST_ASSERT(m_displayManager, "GHOST_SystemWin32::getNumDisplays(): m_displayManager==0\n");
-  uint8_t numDisplays;
-  m_displayManager->getNumDisplays(numDisplays);
-  return numDisplays;
+  return ::GetSystemMetrics(SM_CMONITORS);
 }
 
 void GHOST_SystemWin32::getMainDisplayDimensions(uint32_t &width, uint32_t &height) const

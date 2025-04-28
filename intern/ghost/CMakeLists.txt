@@ -16,7 +16,6 @@ set(SRC
   intern/GHOST_CallbackEventConsumer.cc
   intern/GHOST_Context.cc
   intern/GHOST_ContextNone.cc
-  intern/GHOST_DisplayManager.cc
   intern/GHOST_EventManager.cc
   intern/GHOST_ISystem.cc
   intern/GHOST_ISystemPaths.cc
@@ -46,7 +45,6 @@ set(SRC
   intern/GHOST_Context.hh
   intern/GHOST_ContextNone.hh
   intern/GHOST_Debug.hh
-  intern/GHOST_DisplayManager.hh
   intern/GHOST_Event.hh
   intern/GHOST_EventButton.hh
   intern/GHOST_EventCursor.hh
@@ -149,7 +147,6 @@ if(WITH_INPUT_NDOF)
 endif()
 
 list(APPEND SRC
-  intern/GHOST_DisplayManagerNULL.hh
   intern/GHOST_SystemHeadless.hh
   intern/GHOST_WindowNULL.hh
 )
@@ -159,12 +156,10 @@ if(WITH_HEADLESS)
 elseif(WITH_GHOST_SDL)
   list(APPEND SRC
     intern/GHOST_ContextSDL.cc
-    intern/GHOST_DisplayManagerSDL.cc
     intern/GHOST_SystemSDL.cc
     intern/GHOST_WindowSDL.cc
 
     intern/GHOST_ContextSDL.hh
-    intern/GHOST_DisplayManagerSDL.hh
     intern/GHOST_SystemSDL.hh
     intern/GHOST_WindowSDL.hh
   )
@@ -178,11 +173,9 @@ elseif(WITH_GHOST_SDL)
   )
 elseif(APPLE AND NOT WITH_GHOST_X11)
   list(APPEND SRC
-    intern/GHOST_DisplayManagerCocoa.mm
     intern/GHOST_SystemCocoa.mm
     intern/GHOST_WindowCocoa.mm
 
-    intern/GHOST_DisplayManagerCocoa.hh
     intern/GHOST_SystemCocoa.hh
     intern/GHOST_WindowCocoa.hh
     intern/GHOST_WindowViewCocoa.hh
@@ -208,11 +201,9 @@ elseif(WITH_GHOST_X11 OR WITH_GHOST_WAYLAND)
     )
 
     list(APPEND SRC
-      intern/GHOST_DisplayManagerX11.cc
       intern/GHOST_SystemX11.cc
       intern/GHOST_WindowX11.cc
 
-      intern/GHOST_DisplayManagerX11.hh
       intern/GHOST_IconX11.hh
       intern/GHOST_SystemX11.hh
       intern/GHOST_WindowX11.hh
@@ -466,7 +457,6 @@ elseif(WIN32)
 
   list(APPEND SRC
     intern/GHOST_ContextD3D.cc
-    intern/GHOST_DisplayManagerWin32.cc
     intern/GHOST_DropTargetWin32.cc
     intern/GHOST_SystemWin32.cc
     intern/GHOST_TrackpadWin32.cc
@@ -474,7 +464,6 @@ elseif(WIN32)
     intern/GHOST_Wintab.cc
 
     intern/GHOST_ContextD3D.hh
-    intern/GHOST_DisplayManagerWin32.hh
     intern/GHOST_DropTargetWin32.hh
     intern/GHOST_SystemWin32.hh
     intern/GHOST_TaskbarWin32.hh
