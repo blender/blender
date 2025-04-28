@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'b6372b3af3f7')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'1f4cae0c4623')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-21 07:54+0000\n"
+"POT-Creation-Date: 2025-04-28 09:32+0000\n"
 "PO-Revision-Date: 2025-04-14 08:10+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Arabic <https://translate.blender.org/projects/blender-ui/ui/ar/>\n"
@@ -9188,6 +9188,10 @@ msgid "Camera near clipping distance"
 msgstr "ﺍﺮﻴﻣﺎﻜﻠﻟ ﺎﻴﻧﺪﻟﺍ ﻢﻴﻠﻘﺘﻟﺍ ﺔﻓﺎﺴﻣ"
 
 
+msgid "Use internal text data-block"
+msgstr "ﺔﻴﻠﺧﺍﺩ ﺺﻧ ﺕﺎﻧﺎﻴﺑ ﺔﻠﺘﻛ ﻡﺪﺨﺘﺳﺍ"
+
+
 msgid "Apparent size of the Camera object in the 3D View"
 msgstr "ﻲﺛﻼ﻿ﺜﻟﺍ ﺮﻈﻨﻣ ﻲﻓ ﻱﺮﻫﺎﻈﻟﺍ ﺍﺮﻴﻣﺎﻜﻟﺍ ﻦﺋﺎﻛ ﻢﺠﺣ"
 
@@ -15799,12 +15803,56 @@ msgid "Material slot name"
 msgstr "ﺔﻣﺎﺨﻟﺍ ﺔﺤﺘﻓ ﻢﺳﺇ"
 
 
-msgid "Mirror"
-msgstr "ﻞﺛﺎﻣ"
+msgid "In-Betweens"
+msgstr "ﻦﻴﺑ ﺎﻣ"
+
+
+msgid "Propagate"
+msgstr "ﻢﻤﻋ"
+
+
+msgid "Names"
+msgstr "ءﺎﻤﺳﺃ"
+
+
+msgid "Apply"
+msgstr "ﻖﺒﻃ"
+
+
+msgid "Face Data"
+msgstr "ﻪﺟﻮﻟﺍ ﺕﺎﻧﺎﻴﺑ"
+
+
+msgid "Merge"
+msgstr "ﺞﻣﺩﺇ"
+
+
+msgid "Special Characters"
+msgstr "ﺔﺻﺎﺧ ﻑﺮﺣﺃ"
+
+
+msgid "Text"
+msgstr "ﺺﻧ"
+
+
+msgid "Metaball"
+msgstr "ﺔﻠﻋﺎﻔﺘﻣ ﺓﺮﻛ"
+
+
+msgid "Bone Roll"
+msgstr "ﺔﻤﻈﻌﻟﺍ ءﺍﻮﺘﻟﺍ"
 
 
 msgid "Snap"
 msgstr "ﻱﺫﺎﺣ"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "ﻲﺒﺴﻨﻟﺍ ﺮﻳﺮﺤﺘﻟﺍ ﻲﺷﻼ﻿ﺗ"
+
+
+msgid "Mirror"
+msgstr "ﻞﺛﺎﻣ"
 
 
 msgid "UV Mapping"
@@ -15839,10 +15887,6 @@ msgid "Select Linked"
 msgstr "ﺔﻄﺒﺗﺮﻤﻟﺍ ﺭﺎﺘﺧﺇ"
 
 
-msgid "Metaball"
-msgstr "ﺔﻠﻋﺎﻔﺘﻣ ﺓﺮﻛ"
-
-
 msgid "Light"
 msgstr "ءﻮﺿ"
 
@@ -15853,10 +15897,6 @@ msgstr "ﺕﺎﻗﻼ﻿ﻌﻟﺍ"
 
 msgid "Rigid Body"
 msgstr "ﻞﻋﺎﻔﺘﻣ ﻢﺴﺟ"
-
-
-msgid "Apply"
-msgstr "ﻖﺒﻃ"
 
 
 msgid "Track"
@@ -15873,42 +15913,6 @@ msgstr "ﻡﺪﺨﺘﺴﻤﻟﺍ ﺪﻴﺣﻭ ﻪﻠﻌﺟﺍ"
 
 msgid "Hooks"
 msgstr "ﺕﺎﻓﺎﻄﺧ"
-
-
-msgid "In-Betweens"
-msgstr "ﻦﻴﺑ ﺎﻣ"
-
-
-msgid "Propagate"
-msgstr "ﻢﻤﻋ"
-
-
-msgid "Names"
-msgstr "ءﺎﻤﺳﺃ"
-
-
-msgid "Face Data"
-msgstr "ﻪﺟﻮﻟﺍ ﺕﺎﻧﺎﻴﺑ"
-
-
-msgid "Merge"
-msgstr "ﺞﻣﺩﺇ"
-
-
-msgid "Special Characters"
-msgstr "ﺔﺻﺎﺧ ﻑﺮﺣﺃ"
-
-
-msgid "Text"
-msgstr "ﺺﻧ"
-
-
-msgid "Bone Roll"
-msgstr "ﺔﻤﻈﻌﻟﺍ ءﺍﻮﺘﻟﺍ"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "ﻲﺒﺴﻨﻟﺍ ﺮﻳﺮﺤﺘﻟﺍ ﻲﺷﻼ﻿ﺗ"
 
 
 msgctxt "MovieClip"
@@ -18861,16 +18865,8 @@ msgid "Chroma Key"
 msgstr "ﻥﻮﻠﻟﺍ ﺡﺎﺘﻔﻣ"
 
 
-msgid "Alpha falloff"
-msgstr "ﺎﻔﻟﺍ ﻝﺅﺎﻀﺗ"
-
-
 msgid "Lift"
 msgstr "ﻢﻋﺪﻟﺍ"
-
-
-msgid "Alpha lift"
-msgstr "ﺎﻔﻟﺍ ﻊﻓﺭ"
 
 
 msgid "Shadow Adjust"
@@ -19073,20 +19069,12 @@ msgid "H"
 msgstr "H"
 
 
-msgid "Hue tolerance for colors to be considered a keying color"
-msgstr "ﺡﺎﺘﻔﻣ ﻥﻮﻠﻛ ﺓﺮﺒﺘﻌﻤﻟﺍ ﻥﺍﻮﻟﻸ﻿ﻟ ﻥﻮﻠﻟﺍ ﺢﻣﺎﺴﺗ"
-
-
 msgid "S"
 msgstr "S"
 
 
 msgid "Color Spill"
 msgstr "ﻥﻮﻠﻟﺍ ﺐﻜﺳ"
-
-
-msgid "Red spillmap scale"
-msgstr "spillmap ﺔﻄﻳﺮﺧ ﻢﺠﺣ"
 
 
 msgid "Composite"
@@ -19373,10 +19361,6 @@ msgid "Feather Distance"
 msgstr "ﺶﻣﺎﻬﻟﺍ ﺔﻓﺎﺴﻣ"
 
 
-msgid "Distance to grow/shrink the feather"
-msgstr "ﺶﻣﺎﻬﻟﺍ ﺺﻴﻘﻨﺗ ﻭﺍ ﺓﺩﺎﻳﺰﻟ ﺔﻓﺎﺴﻤﻟﺍ"
-
-
 msgctxt "Curve"
 msgid "Feather Falloff"
 msgstr "ﺶﻣﺎﻬﻟﺍ ﻲﺷﻼ﻿ﺗ"
@@ -19384,10 +19368,6 @@ msgstr "ﺶﻣﺎﻬﻟﺍ ﻲﺷﻼ﻿ﺗ"
 
 msgid "Screen Balance"
 msgstr "ﺔﺷﺎﺸﻟﺍ ﺔﻧﺯﺍﻮﻣ"
-
-
-msgid "Balance between two non-primary channels primary channel is comparing against"
-msgstr "ﺔﻴﺴﻴﺋﺭ ﺓﺎﻨﻗ ﺎﻫﺪﺿ ﻥﺭﺎﻘﺗ ﻲﺘﻟﺍ ﻭ ﻦﻴﺘﺴﻴﺋﺭ ﺮﻴﻏ ﻦﻴﺗﺎﻨﻗ ﻦﻴﺑ ﻥﺯﺍﻭ"
 
 
 msgid "Keying Screen"
@@ -19504,14 +19484,6 @@ msgstr "EXR ﺔﻘﺒﻃ ﺕﺎﺤﺘﻓ"
 
 msgid "Pixelate"
 msgstr "ﻞﺴﻜﺑ"
-
-
-msgid "Number of motion blur samples"
-msgstr "ﺔﻛﺮﺤﻟﺍ ﺔﻴﺑﺎﺒﺿ ﺕﺎﻨﻴﻋ ﺩﺪﻋ"
-
-
-msgid "Exposure for motion blur as a factor of FPS"
-msgstr "ﺔﻴﻧﺎﺜﻟﺍ ﻲﻓ ﺭﺎﻃﻺ﻿ﻟ ﻞﻣﺎﻌﻤﻛ ﺔﻛﺮﺤﺘﻤﻟﺍ ﺔﻴﺑﺎﺒﻀﻠﻟ ﺾﻳﺮﻌﺘﻟﺍ"
 
 
 msgid "Alpha Convert"
@@ -19828,10 +19800,6 @@ msgstr "ﻂﺑﺮﻟﺍ ﺓﺮﻔﻴﺷ"
 
 msgid "Script Source"
 msgstr "ﻢﺠﺤﻟﺍ ﺭﺪﺼﻣ"
-
-
-msgid "Use internal text data-block"
-msgstr "ﺔﻴﻠﺧﺍﺩ ﺺﻧ ﺕﺎﻧﺎﻴﺑ ﺔﻠﺘﻛ ﻡﺪﺨﺘﺳﺍ"
 
 
 msgid "Use external .osl or .oso file"
@@ -28747,20 +28715,20 @@ msgid "Palette Color"
 msgstr "ﻥﻮﻠﻟﺍ ﺔﺣﻮﻟ"
 
 
-msgid "Transform Orientations"
-msgstr "ﻝﻮﺤﺘﻟﺍ ﺕﺎﻫﺎﺠﺗﺍ"
-
-
-msgid "Motion Tracking"
-msgstr "ﺔﻛﺮﺤﻟﺍ ﺔﻘﺣﻼ﻿ﻣ"
-
-
 msgid "Wire Color"
 msgstr "ﻂﺑﺍﺮﻟﺍ ﻥﻮﻟ"
 
 
 msgid "Render Pass"
 msgstr "ﺮﻴﻴﺼﺗ ﺮﻤﻣ"
+
+
+msgid "Motion Tracking"
+msgstr "ﺔﻛﺮﺤﻟﺍ ﺔﻘﺣﻼ﻿ﻣ"
+
+
+msgid "Transform Orientations"
+msgstr "ﻝﻮﺤﺘﻟﺍ ﺕﺎﻫﺎﺠﺗﺍ"
 
 
 msgid "Bone Constraints"
@@ -31621,14 +31589,6 @@ msgstr "ﺓﺮﻴّﺼﻤﻟﺍ ﺓﺭﻮﺼﻟﺍ ﻲﻓ ﺔﻳﺩﻮﻤﻌﻟ�
 
 msgid "Sequencer Preview Shading"
 msgstr "ﻞﻴﻠﻈﺘﻟﺍ ﺔﻨﻳﺎﻌﻣ ﻞﺴِﻠﺴﻣ"
-
-
-msgid "Display the object as wire edges"
-msgstr "ﺔﻴﻜﺒﺷ ﻑﺍﻮﺣ ﻞﻜﺷ ﻰﻠﻋ ﻦﺋﺎﻜﻟﺍ ﺮﻬﻇﺃ"
-
-
-msgid "Display render preview"
-msgstr "ﺮﻴﻴﺼﺘﻟﺍ ﺔﻨﻳﺎﻌﻣ ﺮﻬﻇﺃ"
 
 
 msgid "Simplify Child Particles"
@@ -37994,6 +37954,14 @@ msgstr "ﺞﻫﻮﺗ"
 
 msgid "Use feather information from the mask"
 msgstr "ﻉﺎﻨﻘﻟﺍ ﻦﻣ ﺶﻣﺎﻬﻟﺍ ﺕﺎﻣﻮﻠﻌﻣ ﻡﺪﺨﺘﺳﺍ"
+
+
+msgid "Number of motion blur samples"
+msgstr "ﺔﻛﺮﺤﻟﺍ ﺔﻴﺑﺎﺒﺿ ﺕﺎﻨﻴﻋ ﺩﺪﻋ"
+
+
+msgid "Exposure for motion blur as a factor of FPS"
+msgstr "ﺔﻴﻧﺎﺜﻟﺍ ﻲﻓ ﺭﺎﻃﻺ﻿ﻟ ﻞﻣﺎﻌﻤﻛ ﺔﻛﺮﺤﺘﻤﻟﺍ ﺔﻴﺑﺎﺒﻀﻠﻟ ﺾﻳﺮﻌﺘﻟﺍ"
 
 
 msgid "Dot"

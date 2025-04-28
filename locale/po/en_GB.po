@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'b6372b3af3f7')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'1f4cae0c4623')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-21 07:54+0000\n"
+"POT-Creation-Date: 2025-04-28 09:32+0000\n"
 "PO-Revision-Date: 2025-04-21 02:56+0000\n"
 "Last-Translator: Deniz Jones <sdfoakes@gmail.com>\n"
 "Language-Team: English (United Kingdom) <https://translate.blender.org/projects/blender-ui/ui/en_GB/>\n"
@@ -20894,6 +20894,10 @@ msgid "Camera near clipping distance"
 msgstr "Camera near clipping distance"
 
 
+msgid "Use internal text data-block"
+msgstr "Use internal text data-block"
+
+
 msgid "Apparent size of the Camera object in the 3D View"
 msgstr "Apparent size of the Camera object in the 3D View"
 
@@ -25970,6 +25974,22 @@ msgstr "Shader Effects"
 
 msgid "Effects affecting display of object"
 msgstr "Effects affecting display of object"
+
+
+msgid "Shadow Terminator Geometry Offset"
+msgstr "Shadow Terminator Geometry Offset"
+
+
+msgid "Offset rays from the surface to reduce shadow terminator artifact on low poly geometry. Only affects triangles at grazing angles to light"
+msgstr "Offset rays from the surface to reduce shadow terminator artifact on low poly geometry. Only affects triangles at grazing angles to light"
+
+
+msgid "Shadow Terminator Shading Offset"
+msgstr "Shadow Terminator Shading Offset"
+
+
+msgid "Push the shadow terminator towards the light to hide artifacts on low poly geometry"
+msgstr "Push the shadow terminator towards the light to hide artifacts on low poly geometry"
 
 
 msgid "Display All Edges"
@@ -34447,12 +34467,132 @@ msgid "Editor menu containing buttons"
 msgstr "Editor menu containing buttons"
 
 
-msgid "Mirror"
-msgstr "Mirror"
+msgid "Sculpt Set Pivot"
+msgstr "Sculpt Set Pivot"
+
+
+msgid "Face Sets Init"
+msgstr "Face Sets Init"
+
+
+msgid "Random Mask"
+msgstr "Random Mask"
+
+
+msgid "Show/Hide"
+msgstr "Show/Hide"
+
+
+msgid "Clear Transform"
+msgstr "Clear Transform"
+
+
+msgid "In-Betweens"
+msgstr "In-Betweens"
+
+
+msgid "Propagate"
+msgstr "Propagate"
+
+
+msgid "Bone Collections"
+msgstr "Bone Collections"
+
+
+msgid "Names"
+msgstr "Names"
+
+
+msgid "Apply"
+msgstr "Apply"
+
+
+msgid "Toggle Bone Options"
+msgstr "Toggle Bone Options"
+
+
+msgid "Enable Bone Options"
+msgstr "Enable Bone Options"
+
+
+msgid "Disable Bone Options"
+msgstr "Disable Bone Options"
+
+
+msgid "Mesh Select Mode"
+msgstr "Mesh Select Mode"
+
+
+msgid "Face Data"
+msgstr "Face Data"
+
+
+msgid "Select by Face Strength"
+msgstr "Select by Face Strength"
+
+
+msgid "Set Face Strength"
+msgstr "Set Face Strength"
+
+
+msgid "Clean Up"
+msgstr "Clean Up"
+
+
+msgid "Merge"
+msgstr "Merge"
+
+
+msgid "Special Characters"
+msgstr "Special Characters"
+
+
+msgid "Kerning"
+msgstr "Kerning"
+
+
+msgid "Text"
+msgstr "Text"
+
+
+msgid "Metaball"
+msgstr "Metaball"
+
+
+msgid "Bone Roll"
+msgstr "Bone Roll"
+
+
+msgid "Pivot Point"
+msgstr "Pivot Point"
 
 
 msgid "Snap"
 msgstr "Snap"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Proportional Editing Falloff"
+
+
+msgid "Mask Edit"
+msgstr "Mask Edit"
+
+
+msgid "Automasking"
+msgstr "Automasking"
+
+
+msgid "Face Sets Edit"
+msgstr "Face Sets Edit"
+
+
+msgid "Vertex Group Locks"
+msgstr "Vertex Group Locks"
+
+
+msgid "Mirror"
+msgstr "Mirror"
 
 
 msgid "UV Mapping"
@@ -34507,10 +34647,6 @@ msgid "Assign Material"
 msgstr "Assign Material"
 
 
-msgid "Metaball"
-msgstr "Metaball"
-
-
 msgid "Light"
 msgstr "Light"
 
@@ -34531,24 +34667,12 @@ msgid "Rigid Body"
 msgstr "Rigid Body"
 
 
-msgid "Apply"
-msgstr "Apply"
-
-
 msgid "Track"
 msgstr "Track"
 
 
 msgid "Quick Effects"
 msgstr "Quick Effects"
-
-
-msgid "Show/Hide"
-msgstr "Show/Hide"
-
-
-msgid "Clean Up"
-msgstr "Clean Up"
 
 
 msgid "Asset"
@@ -34571,112 +34695,8 @@ msgid "Hooks"
 msgstr "Hooks"
 
 
-msgid "Vertex Group Locks"
-msgstr "Vertex Group Locks"
-
-
 msgid "Trim/Add"
 msgstr "Trim/Add"
-
-
-msgid "Sculpt Set Pivot"
-msgstr "Sculpt Set Pivot"
-
-
-msgid "Face Sets Init"
-msgstr "Face Sets Init"
-
-
-msgid "Random Mask"
-msgstr "Random Mask"
-
-
-msgid "Clear Transform"
-msgstr "Clear Transform"
-
-
-msgid "In-Betweens"
-msgstr "In-Betweens"
-
-
-msgid "Propagate"
-msgstr "Propagate"
-
-
-msgid "Bone Collections"
-msgstr "Bone Collections"
-
-
-msgid "Names"
-msgstr "Names"
-
-
-msgid "Toggle Bone Options"
-msgstr "Toggle Bone Options"
-
-
-msgid "Enable Bone Options"
-msgstr "Enable Bone Options"
-
-
-msgid "Disable Bone Options"
-msgstr "Disable Bone Options"
-
-
-msgid "Mesh Select Mode"
-msgstr "Mesh Select Mode"
-
-
-msgid "Face Data"
-msgstr "Face Data"
-
-
-msgid "Select by Face Strength"
-msgstr "Select by Face Strength"
-
-
-msgid "Set Face Strength"
-msgstr "Set Face Strength"
-
-
-msgid "Merge"
-msgstr "Merge"
-
-
-msgid "Special Characters"
-msgstr "Special Characters"
-
-
-msgid "Kerning"
-msgstr "Kerning"
-
-
-msgid "Text"
-msgstr "Text"
-
-
-msgid "Bone Roll"
-msgstr "Bone Roll"
-
-
-msgid "Pivot Point"
-msgstr "Pivot Point"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Proportional Editing Falloff"
-
-
-msgid "Mask Edit"
-msgstr "Mask Edit"
-
-
-msgid "Automasking"
-msgstr "Automasking"
-
-
-msgid "Face Sets Edit"
-msgstr "Face Sets Edit"
 
 
 msgid "Keyframe Insert Pie"
@@ -37107,16 +37127,8 @@ msgid "Method for calculating booleans"
 msgstr "Method for calculating booleans"
 
 
-msgid "Simple solver for the best performance, without support for overlapping geometry"
-msgstr "Simple solver for the best performance, without support for overlapping geometry"
-
-
 msgid "Exact"
 msgstr "Exact"
-
-
-msgid "Advanced solver for the best result"
-msgstr "Advanced solver for the best result"
 
 
 msgid "Hole Tolerant"
@@ -44661,10 +44673,6 @@ msgid "High"
 msgstr "High"
 
 
-msgid "Values higher than this setting are 100% opaque"
-msgstr "Values higher than this setting are 100% opaque"
-
-
 msgid "Algorithm"
 msgstr "Algorithm"
 
@@ -44689,10 +44697,6 @@ msgid "Low"
 msgstr "Low"
 
 
-msgid "Values lower than this setting are 100% keyed"
-msgstr "Values lower than this setting are 100% keyed"
-
-
 msgctxt "Color"
 msgid "Channel"
 msgstr "Channel"
@@ -44710,36 +44714,16 @@ msgid "Create matte based on chroma values"
 msgstr "Create matte based on chroma values"
 
 
-msgid "Alpha falloff"
-msgstr "Alpha falloff"
-
-
 msgid "Lift"
 msgstr "Lift"
-
-
-msgid "Alpha lift"
-msgstr "Alpha lift"
 
 
 msgid "Shadow Adjust"
 msgstr "Shadow Adjust"
 
 
-msgid "Adjusts the brightness of any shadows captured"
-msgstr "Adjusts the brightness of any shadows captured"
-
-
-msgid "Tolerance below which colors will be considered as exact matches"
-msgstr "Tolerance below which colors will be considered as exact matches"
-
-
 msgid "Acceptance"
 msgstr "Acceptance"
-
-
-msgid "Tolerance for a color to be considered a keying color"
-msgstr "Tolerance for a color to be considered a keying color"
 
 
 msgid "Color Balance"
@@ -45055,20 +45039,8 @@ msgid "H"
 msgstr "H"
 
 
-msgid "Hue tolerance for colors to be considered a keying color"
-msgstr "Hue tolerance for colors to be considered a keying color"
-
-
 msgid "S"
 msgstr "S"
-
-
-msgid "Saturation tolerance for the color"
-msgstr "Saturation tolerance for the color"
-
-
-msgid "Value tolerance for the color"
-msgstr "Value tolerance for the color"
 
 
 msgid "Color Spill"
@@ -45111,28 +45083,8 @@ msgid "Average limit algorithm"
 msgstr "Average limit algorithm"
 
 
-msgid "Scale limit by value"
-msgstr "Scale limit by value"
-
-
-msgid "Blue spillmap scale"
-msgstr "Blue spillmap scale"
-
-
-msgid "Green spillmap scale"
-msgstr "Green spillmap scale"
-
-
-msgid "Red spillmap scale"
-msgstr "Red spillmap scale"
-
-
 msgid "Unspill"
 msgstr "Unspill"
-
-
-msgid "Compensate all channels (differently) by hand"
-msgstr "Compensate all channels (differently) by hand"
 
 
 msgid "Combine HSVA (Legacy)"
@@ -45631,14 +45583,6 @@ msgid "Produce a matte that isolates foreground content by comparing it with a r
 msgstr "Produce a matte that isolates foreground content by comparing it with a reference background image"
 
 
-msgid "Color distances below this additional threshold are partially keyed"
-msgstr "Color distances below this additional threshold are partially keyed"
-
-
-msgid "Color distances below this threshold are keyed"
-msgstr "Color distances below this threshold are keyed"
-
-
 msgid "Dilate/Erode"
 msgstr "Dilate/Erode"
 
@@ -45932,14 +45876,6 @@ msgid "Create a matte from an object or material index pass"
 msgstr "Create a matte from an object or material index pass"
 
 
-msgid "Pass index number to convert to alpha"
-msgstr "Pass index number to convert to alpha"
-
-
-msgid "Apply an anti-aliasing filter to the mask"
-msgstr "Apply an anti-aliasing filter to the mask"
-
-
 msgid "Input image or movie file"
 msgstr "Input image or movie file"
 
@@ -45984,76 +45920,36 @@ msgid "Post Blur"
 msgstr "Post Blur"
 
 
-msgid "Matte blur size which applies after clipping and dilate/eroding"
-msgstr "Matte blur size which applies after clipping and dilate/eroding"
-
-
 msgid "Pre Blur"
 msgstr "Pre Blur"
-
-
-msgid "Chroma pre-blur size which applies before running keyer"
-msgstr "Chroma pre-blur size which applies before running keyer"
 
 
 msgid "Clip Black"
 msgstr "Clip Black"
 
 
-msgid "Value of non-scaled matte pixel which considers as fully background pixel"
-msgstr "Value of non-scaled matte pixel which considers as fully background pixel"
-
-
 msgid "Clip White"
 msgstr "Clip White"
-
-
-msgid "Value of non-scaled matte pixel which considers as fully foreground pixel"
-msgstr "Value of non-scaled matte pixel which considers as fully foreground pixel"
 
 
 msgid "Despill Balance"
 msgstr "Despill Balance"
 
 
-msgid "Balance between non-key colors used to detect amount of key color to be removed"
-msgstr "Balance between non-key colors used to detect amount of key color to be removed"
-
-
 msgid "Despill Factor"
 msgstr "Despill Factor"
-
-
-msgid "Factor of despilling screen color from image"
-msgstr "Factor of despilling screen color from image"
-
-
-msgid "Distance to grow/shrink the matte"
-msgstr "Distance to grow/shrink the matte"
 
 
 msgid "Edge Kernel Radius"
 msgstr "Edge Kernel Radius"
 
 
-msgid "Radius of kernel used to detect whether pixel belongs to edge"
-msgstr "Radius of kernel used to detect whether pixel belongs to edge"
-
-
 msgid "Edge Kernel Tolerance"
 msgstr "Edge Kernel Tolerance"
 
 
-msgid "Tolerance to pixels inside kernel which are treating as belonging to the same plane"
-msgstr "Tolerance to pixels inside kernel which are treating as belonging to the same plane"
-
-
 msgid "Feather Distance"
 msgstr "Feather Distance"
-
-
-msgid "Distance to grow/shrink the feather"
-msgstr "Distance to grow/shrink the feather"
 
 
 msgctxt "Curve"
@@ -46063,10 +45959,6 @@ msgstr "Feather Falloff"
 
 msgid "Screen Balance"
 msgstr "Screen Balance"
-
-
-msgid "Balance between two non-primary channels primary channel is comparing against"
-msgstr "Balance between two non-primary channels primary channel is comparing against"
 
 
 msgid "Keying Screen"
@@ -46184,6 +46076,14 @@ msgstr "Luminance Key"
 
 msgid "Create a matte based on luminance (brightness) difference"
 msgstr "Create a matte based on luminance (brightness) difference"
+
+
+msgid "Values higher than this setting are 100% opaque"
+msgstr "Values higher than this setting are 100% opaque"
+
+
+msgid "Values lower than this setting are 100% keyed"
+msgstr "Values lower than this setting are 100% keyed"
 
 
 msgid "Map Range"
@@ -46742,18 +46642,6 @@ msgid "Replace flat planes in footage by another image, detected by plane tracks
 msgstr "Replace flat planes in footage by another image, detected by plane tracks from motion tracking"
 
 
-msgid "Number of motion blur samples"
-msgstr "Number of motion blur samples"
-
-
-msgid "Exposure for motion blur as a factor of FPS"
-msgstr "Exposure for motion blur as a factor of FPS"
-
-
-msgid "Use multi-sampled motion blur of the mask"
-msgstr "Use multi-sampled motion blur of the mask"
-
-
 msgid "Posterize"
 msgstr "Posterize"
 
@@ -46916,10 +46804,6 @@ msgstr "Stabilize footage using 2D stabilization motion tracking settings"
 
 msgid "Method to use to filter stabilization"
 msgstr "Method to use to filter stabilization"
-
-
-msgid "Invert stabilization to re-introduce motion to the frame"
-msgstr "Invert stabilization to re-introduce motion to the frame"
 
 
 msgid "Sun Beams"
@@ -49038,10 +48922,6 @@ msgstr "Mesh Boolean"
 
 msgid "Cut, subtract, or join multiple mesh inputs"
 msgstr "Cut, subtract, or join multiple mesh inputs"
-
-
-msgid "Exact solver for the best results"
-msgstr "Exact solver for the best results"
 
 
 msgid "Mesh Circle"
@@ -51179,10 +51059,6 @@ msgstr "Shader script path"
 
 msgid "Script Source"
 msgstr "Script Source"
-
-
-msgid "Use internal text data-block"
-msgstr "Use internal text data-block"
 
 
 msgid "Use external .osl or .oso file"
@@ -54546,15 +54422,6 @@ msgstr "Add an Attribute node with this name"
 msgctxt "Operator"
 msgid "Add UV map"
 msgstr "Add UV map"
-
-
-msgid "Add multiple images at once"
-msgstr "Add multiple images at once"
-
-
-msgctxt "Operator"
-msgid "Open Selected Images"
-msgstr "Open Selected Images"
 
 
 msgid "Add Reroute Nodes and link them to outputs of selected nodes"
@@ -69853,14 +69720,6 @@ msgid "Which Intersect solver to use"
 msgstr "Which Intersect solver to use"
 
 
-msgid "Faster solver, some limitations"
-msgstr "Faster solver, some limitations"
-
-
-msgid "Exact solver, slower, handles more cases"
-msgstr "Exact solver, slower, handles more cases"
-
-
 msgctxt "Operator"
 msgid "Intersect (Boolean)"
 msgstr "Intersect (Boolean)"
@@ -69880,6 +69739,14 @@ msgstr "Which boolean operation to apply"
 
 msgid "Which Boolean solver to use"
 msgstr "Which Boolean solver to use"
+
+
+msgid "Faster solver, some limitations"
+msgstr "Faster solver, some limitations"
+
+
+msgid "Exact solver, slower, handles more cases"
+msgstr "Exact solver, slower, handles more cases"
 
 
 msgid "Do self-union or self-intersection"
@@ -71521,15 +71388,6 @@ msgstr "Distance within which matching vertices are searched"
 
 msgid "Snap middle vertices to the axis center"
 msgstr "Snap middle vertices to the axis center"
-
-
-msgctxt "Operator"
-msgid "Tris to Quads"
-msgstr "Tris to Quads"
-
-
-msgid "Join triangles into quads"
-msgstr "Join triangles into quads"
 
 
 msgctxt "Operator"
@@ -82403,14 +82261,6 @@ msgid "Use the surface normal to orientate the trimming shape"
 msgstr "Use the surface normal to orientate the trimming shape"
 
 
-msgid "Use the exact boolean solver"
-msgstr "Use the exact boolean solver"
-
-
-msgid "Use the fast float boolean solver"
-msgstr "Use the fast float boolean solver"
-
-
 msgid "Use Cursor for Depth"
 msgstr "Use Cursor for Depth"
 
@@ -91396,108 +91246,12 @@ msgid "Panel containing UI elements"
 msgstr "Panel containing UI elements"
 
 
-msgid "Mesh Edit Mode"
-msgstr "Mesh Edit Mode"
-
-
-msgid "Measurement"
-msgstr "Measurement"
-
-
-msgid "Curve Edit Mode"
-msgstr "Curve Edit Mode"
-
-
-msgid "Curves Edit Mode"
-msgstr "Curves Edit Mode"
-
-
-msgid "Snapping"
-msgstr "Snapping"
-
-
-msgid "Transform Orientations"
-msgstr "Transform Orientations"
-
-
-msgid "Stroke Placement"
-msgstr "Stroke Placement"
-
-
-msgid "Drawing Plane"
-msgstr "Drawing Plane"
-
-
-msgid "Guides"
-msgstr "Guides"
-
-
-msgid "Grease Pencil Options"
-msgstr "Grease Pencil Options"
-
-
-msgid "Quad View"
-msgstr "Quad View"
-
-
-msgid "Onion Skin"
-msgstr "Onion Skin"
-
-
-msgid "Stereoscopy"
-msgstr "Stereoscopy"
-
-
-msgid "Multi Frame"
-msgstr "Multi Frame"
-
-
-msgid "Auto-Masking"
-msgstr "Auto-Masking"
-
-
-msgid "Motion Tracking"
-msgstr "Motion Tracking"
-
-
-msgid "Curves Sculpt Add Curve Options"
-msgstr "Curves Sculpt Add Curve Options"
-
-
-msgid "Curves Sculpt Parameter Falloff"
-msgstr "Curves Sculpt Parameter Falloff"
-
-
-msgid "Curves Grow/Shrink Scaling"
-msgstr "Curves Grow/Shrink Scaling"
-
-
-msgid "Viewport Debug"
-msgstr "Viewport Debug"
-
-
-msgid "VR"
-msgstr "VR"
-
-
-msgid "VR Info"
-msgstr "VR Info"
-
-
 msgid "glTF Variants"
 msgstr "glTF Variants"
 
 
 msgid "glTF Material Variants"
 msgstr "glTF Material Variants"
-
-
-msgid "glTF"
-msgstr "glTF"
-
-
-msgid "glTF Animations"
-msgstr "glTF Animations"
 
 
 msgid "Active Tool"
@@ -91536,12 +91290,108 @@ msgid "Compositor"
 msgstr "Compositor"
 
 
+msgid "glTF"
+msgstr "glTF"
+
+
+msgid "glTF Animations"
+msgstr "glTF Animations"
+
+
 msgid "Overlays"
 msgstr "Overlays"
 
 
+msgid "Guides"
+msgstr "Guides"
+
+
 msgid "Viewer Node"
 msgstr "Viewer Node"
+
+
+msgid "Motion Tracking"
+msgstr "Motion Tracking"
+
+
+msgid "Mesh Edit Mode"
+msgstr "Mesh Edit Mode"
+
+
+msgid "Measurement"
+msgstr "Measurement"
+
+
+msgid "Curve Edit Mode"
+msgstr "Curve Edit Mode"
+
+
+msgid "Curves Edit Mode"
+msgstr "Curves Edit Mode"
+
+
+msgid "Snapping"
+msgstr "Snapping"
+
+
+msgid "Transform Orientations"
+msgstr "Transform Orientations"
+
+
+msgid "Stroke Placement"
+msgstr "Stroke Placement"
+
+
+msgid "Drawing Plane"
+msgstr "Drawing Plane"
+
+
+msgid "Grease Pencil Options"
+msgstr "Grease Pencil Options"
+
+
+msgid "Quad View"
+msgstr "Quad View"
+
+
+msgid "Onion Skin"
+msgstr "Onion Skin"
+
+
+msgid "Stereoscopy"
+msgstr "Stereoscopy"
+
+
+msgid "Multi Frame"
+msgstr "Multi Frame"
+
+
+msgid "Auto-Masking"
+msgstr "Auto-Masking"
+
+
+msgid "Curves Sculpt Add Curve Options"
+msgstr "Curves Sculpt Add Curve Options"
+
+
+msgid "Curves Sculpt Parameter Falloff"
+msgstr "Curves Sculpt Parameter Falloff"
+
+
+msgid "Curves Grow/Shrink Scaling"
+msgstr "Curves Grow/Shrink Scaling"
+
+
+msgid "Viewport Debug"
+msgstr "Viewport Debug"
+
+
+msgid "VR"
+msgstr "VR"
+
+
+msgid "VR Info"
+msgstr "VR Info"
 
 
 msgid "Import Settings"
@@ -91703,10 +91553,6 @@ msgstr "Caustics"
 
 msgid "Fast GI Approximation"
 msgstr "Fast GI Approximation"
-
-
-msgid "Shadow Terminator"
-msgstr "Shadow Terminator"
 
 
 msgid "Ray Visibility"
@@ -92124,6 +91970,10 @@ msgstr "Scale by Face Size"
 
 msgid "Shadow Linking"
 msgstr "Shadow Linking"
+
+
+msgid "Shadow Terminator"
+msgstr "Shadow Terminator"
 
 
 msgid "Boid Brain"
@@ -98044,22 +97894,6 @@ msgid "Control accuracy of motion blur, more steps gives more memory usage (actu
 msgstr "Control accuracy of motion blur, more steps gives more memory usage (actual number of steps is 2^(steps - 1))"
 
 
-msgid "Shadow Terminator Geometry Offset"
-msgstr "Shadow Terminator Geometry Offset"
-
-
-msgid "Offset rays from the surface to reduce shadow terminator artifact on low poly geometry. Only affects triangles at grazing angles to light"
-msgstr "Offset rays from the surface to reduce shadow terminator artifact on low poly geometry. Only affects triangles at grazing angles to light"
-
-
-msgid "Shadow Terminator Shading Offset"
-msgstr "Shadow Terminator Shading Offset"
-
-
-msgid "Push the shadow terminator towards the light to hide artifacts on low poly geometry"
-msgstr "Push the shadow terminator towards the light to hide artifacts on low poly geometry"
-
-
 msgid "Use Adaptive Subdivision"
 msgstr "Use Adaptive Subdivision"
 
@@ -101230,22 +101064,6 @@ msgstr "Sequencer Preview Shading"
 
 msgid "Display method used in the sequencer view"
 msgstr "Display method used in the sequencer view"
-
-
-msgid "Display the object as wire edges"
-msgstr "Display the object as wire edges"
-
-
-msgid "Display in solid mode"
-msgstr "Display in solid mode"
-
-
-msgid "Display in Material Preview mode"
-msgstr "Display in Material Preview mode"
-
-
-msgid "Display render preview"
-msgstr "Display render preview"
 
 
 msgid "Simplify Child Particles"
@@ -118233,14 +118051,6 @@ msgid "Focus on Object"
 msgstr "Focus on Object"
 
 
-msgid "Geometry Offset"
-msgstr "Geometry Offset"
-
-
-msgid "Shading Offset"
-msgstr "Shading Offset"
-
-
 msgid "Show In"
 msgstr "Show In"
 
@@ -121152,10 +120962,6 @@ msgid "Control Rotation"
 msgstr "Control Rotation"
 
 
-msgid "Custom wire width not available on MacOS"
-msgstr "Custom wire width not available on MacOS"
-
-
 msgctxt "Operator"
 msgid "Add Image"
 msgstr "Add Image"
@@ -121801,6 +121607,10 @@ msgid "Override Crease"
 msgstr "Override Crease"
 
 
+msgid "Geometry Offset"
+msgstr "Geometry Offset"
+
+
 msgid "All Edges"
 msgstr "All Edges"
 
@@ -121811,6 +121621,10 @@ msgstr "Align to Vertex Normal"
 
 msgid "Show Instancer"
 msgstr "Show Instancer"
+
+
+msgid "Shading Offset"
+msgstr "Shading Offset"
 
 
 msgid "Parent Vertex"
@@ -137042,10 +136856,6 @@ msgid " Named Attributes"
 msgstr " Named Attributes"
 
 
-msgid "Text not used by any node, no update done"
-msgstr "Text not used by any node, no update done"
-
-
 msgid "Not inside node group"
 msgstr "Not inside node group"
 
@@ -137694,14 +137504,6 @@ msgid "File '%s' could not be loaded"
 msgstr "File '%s' could not be loaded"
 
 
-msgid "View transform was automatically converted from %s to %s"
-msgstr "View transform was automatically converted from %s to %s"
-
-
-msgid "Scene frame rate was automatically converted from %.4g to %.4g"
-msgstr "Scene frame rate was automatically converted from %.4g to %.4g"
-
-
 msgid "Could not create the copy paste file!"
 msgstr "Could not create the copy paste file!"
 
@@ -137972,6 +137774,10 @@ msgstr "Python disabled in this build"
 
 msgid "File path property not set"
 msgstr "File path property not set"
+
+
+msgid "Text not used by any node, no update done"
+msgstr "Text not used by any node, no update done"
 
 
 msgid "No file path for \"%s\""
@@ -139464,10 +139270,6 @@ msgstr "Primvar '%s' (interpolation %s, type %s) cannot be converted to Blender"
 
 msgid "%s: Error: Couldn't get input socket %s for node %s"
 msgstr "%s: Error: Couldn't get input socket %s for node %s"
-
-
-msgid "%s: Couldn't create SH_NODE_MAPPING for node input %s"
-msgstr "%s: Couldn't create SH_NODE_MAPPING for node input %s"
 
 
 msgid "USD Import: UV attribute value '%s' count inconsistent with interpolation type"
@@ -141528,10 +141330,6 @@ msgid "Cannot execute, intersect only available using exact solver"
 msgstr "Cannot execute, intersect only available using exact solver"
 
 
-msgid "Cannot execute, fast solver and empty collection"
-msgstr "Cannot execute, fast solver and empty collection"
-
-
 msgid "Cannot execute, the selected collection contains non mesh objects"
 msgstr "Cannot execute, the selected collection contains non mesh objects"
 
@@ -142681,6 +142479,18 @@ msgid "Use feather information from the mask"
 msgstr "Use feather information from the mask"
 
 
+msgid "Use multi-sampled motion blur of the mask"
+msgstr "Use multi-sampled motion blur of the mask"
+
+
+msgid "Number of motion blur samples"
+msgstr "Number of motion blur samples"
+
+
+msgid "Exposure for motion blur as a factor of FPS"
+msgstr "Exposure for motion blur as a factor of FPS"
+
+
 msgid "Offset Y"
 msgstr "Offset Y"
 
@@ -143032,10 +142842,6 @@ msgstr "How many times to blur the values for all elements"
 
 msgid "Relative mix weight of neighboring elements"
 msgstr "Relative mix weight of neighboring elements"
-
-
-msgid "Disabled, Blender was compiled without GMP"
-msgstr "Disabled, Blender was compiled without GMP"
 
 
 msgid "Mesh 1"
@@ -146395,18 +146201,6 @@ msgstr "Blender File View"
 
 msgid "Missing 'window' in context"
 msgstr "Missing 'window' in context"
-
-
-msgid "Overwrite Main Startup File"
-msgstr "Overwrite Main Startup File"
-
-
-msgid "Make the current file the default startup blend file."
-msgstr "Make the current file the default startup blend file."
-
-
-msgid "Make the current file the default \"{}\" startup file."
-msgstr "Make the current file the default \"{}\" startup file."
 
 
 msgid "Overwrite Template Startup File"

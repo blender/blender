@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'b6372b3af3f7')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'1f4cae0c4623')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-21 07:54+0000\n"
+"POT-Creation-Date: 2025-04-28 09:32+0000\n"
 "PO-Revision-Date: 2025-04-14 08:14+0000\n"
 "Last-Translator: Thomas Radeke <rahdick@gmx.de>\n"
 "Language-Team: German <https://translate.blender.org/projects/blender-ui/ui/de/>\n"
@@ -12226,6 +12226,10 @@ msgid "Camera near clipping distance"
 msgstr "Kamera nahe Clipping-Entfernung"
 
 
+msgid "Use internal text data-block"
+msgstr "Internen Textdatenblock verwenden"
+
+
 msgid "Depth Of Field"
 msgstr "Schärfentiefe"
 
@@ -18831,12 +18835,96 @@ msgid "Material slot name"
 msgstr "Materialsteckplatzname"
 
 
-msgid "Mirror"
-msgstr "Spiegeln"
+msgid "Random Mask"
+msgstr "Zufällige Maske"
+
+
+msgid "Show/Hide"
+msgstr "Zeigen/Verbergen"
+
+
+msgid "Clear Transform"
+msgstr "Transformation löschen"
+
+
+msgid "In-Betweens"
+msgstr "Dazwischen"
+
+
+msgid "Names"
+msgstr "Namen"
+
+
+msgid "Apply"
+msgstr "Anwenden"
+
+
+msgid "Toggle Bone Options"
+msgstr "Knochen-Optionen umschalten"
+
+
+msgid "Enable Bone Options"
+msgstr "Knochen-Optionen einschalten"
+
+
+msgid "Disable Bone Options"
+msgstr "Knochen-Optionen ausschalten"
+
+
+msgid "Mesh Select Mode"
+msgstr "Maschenauswahlmodus"
+
+
+msgid "Face Data"
+msgstr "Flächendaten"
+
+
+msgid "Clean Up"
+msgstr "Aufräumen"
+
+
+msgid "Merge"
+msgstr "Zusammenführen"
+
+
+msgid "Special Characters"
+msgstr "Sonderzeichen"
+
+
+msgid "Kerning"
+msgstr "Kerning"
+
+
+msgid "Text"
+msgstr "Text"
+
+
+msgid "Metaball"
+msgstr "Metaball"
+
+
+msgid "Pivot Point"
+msgstr "Drehpunkt"
 
 
 msgid "Snap"
 msgstr "Einrasten"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Proportionaler Bearbeitungsabfall"
+
+
+msgid "Mask Edit"
+msgstr "Maskenbearbeitung"
+
+
+msgid "Vertex Group Locks"
+msgstr "Punktgruppen sperren"
+
+
+msgid "Mirror"
+msgstr "Spiegeln"
 
 
 msgid "Local View"
@@ -18887,10 +18975,6 @@ msgid "Assign Material"
 msgstr "Material zuweisen"
 
 
-msgid "Metaball"
-msgstr "Metaball"
-
-
 msgid "Light"
 msgstr "Licht"
 
@@ -18911,24 +18995,12 @@ msgid "Rigid Body"
 msgstr "Rigid Body"
 
 
-msgid "Apply"
-msgstr "Anwenden"
-
-
 msgid "Track"
 msgstr "Spur"
 
 
 msgid "Quick Effects"
 msgstr "Schnelle Effekte"
-
-
-msgid "Show/Hide"
-msgstr "Zeigen/Verbergen"
-
-
-msgid "Clean Up"
-msgstr "Aufräumen"
 
 
 msgid "Asset"
@@ -18945,74 +19017,6 @@ msgstr "Konvertieren"
 
 msgid "Hooks"
 msgstr "Haken"
-
-
-msgid "Vertex Group Locks"
-msgstr "Punktgruppen sperren"
-
-
-msgid "Random Mask"
-msgstr "Zufällige Maske"
-
-
-msgid "Clear Transform"
-msgstr "Transformation löschen"
-
-
-msgid "In-Betweens"
-msgstr "Dazwischen"
-
-
-msgid "Names"
-msgstr "Namen"
-
-
-msgid "Toggle Bone Options"
-msgstr "Knochen-Optionen umschalten"
-
-
-msgid "Enable Bone Options"
-msgstr "Knochen-Optionen einschalten"
-
-
-msgid "Disable Bone Options"
-msgstr "Knochen-Optionen ausschalten"
-
-
-msgid "Mesh Select Mode"
-msgstr "Maschenauswahlmodus"
-
-
-msgid "Face Data"
-msgstr "Flächendaten"
-
-
-msgid "Merge"
-msgstr "Zusammenführen"
-
-
-msgid "Special Characters"
-msgstr "Sonderzeichen"
-
-
-msgid "Kerning"
-msgstr "Kerning"
-
-
-msgid "Text"
-msgstr "Text"
-
-
-msgid "Pivot Point"
-msgstr "Drehpunkt"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Proportionaler Bearbeitungsabfall"
-
-
-msgid "Mask Edit"
-msgstr "Maskenbearbeitung"
 
 
 msgid "Assets"
@@ -23152,10 +23156,6 @@ msgid "High"
 msgstr "Hoch"
 
 
-msgid "Values higher than this setting are 100% opaque"
-msgstr "Werte höher als diese Einstellung sind 100% undurchsichtig"
-
-
 msgid "Algorithm"
 msgstr "Algorithmus"
 
@@ -23180,10 +23180,6 @@ msgid "Low"
 msgstr "Niedrig"
 
 
-msgid "Values lower than this setting are 100% keyed"
-msgstr "Werte niedriger als diese Einstellung sind 100% freigestellt"
-
-
 msgid "Channel used to determine matte"
 msgstr "Kanal der verwendet wird, um die Maske zu bestimmen"
 
@@ -23192,32 +23188,16 @@ msgid "Chroma Key"
 msgstr "Chroma Key"
 
 
-msgid "Alpha falloff"
-msgstr "Alpha Abfall"
-
-
 msgid "Lift"
 msgstr "Heben"
-
-
-msgid "Alpha lift"
-msgstr "Alpha anheben"
 
 
 msgid "Shadow Adjust"
 msgstr "Schatten anpassen"
 
 
-msgid "Tolerance below which colors will be considered as exact matches"
-msgstr "Toleranz unterhalb jeder Farbe wird als exakte Übereinstimmung betrachtet"
-
-
 msgid "Acceptance"
 msgstr "Akzeptanz"
-
-
-msgid "Tolerance for a color to be considered a keying color"
-msgstr "Toleranz für eine Farbe, die als Schlüsselfarbe betrachtet wird"
 
 
 msgid "Color Balance"
@@ -23424,20 +23404,8 @@ msgid "H"
 msgstr "H"
 
 
-msgid "Hue tolerance for colors to be considered a keying color"
-msgstr "Farbtoleranz für Farben, die als Schlüsselfarbe betrachtet werden"
-
-
 msgid "S"
 msgstr "S"
-
-
-msgid "Saturation tolerance for the color"
-msgstr "Sättigungstoleranz für die Farbe"
-
-
-msgid "Value tolerance for the color"
-msgstr "Werttoleranz für die Farbe"
 
 
 msgid "Color Spill"
@@ -23476,16 +23444,8 @@ msgid "Average limit algorithm"
 msgstr "Durchschnittliches Limit Algorythmus"
 
 
-msgid "Scale limit by value"
-msgstr "Skale durch Wert begrenzen"
-
-
 msgid "Unspill"
 msgstr "Überfüllung aufheben"
-
-
-msgid "Compensate all channels (differently) by hand"
-msgstr "Kompensiert alle Kanäle (Unterschiede) per Hand"
 
 
 msgid "ITU 601"
@@ -23688,14 +23648,6 @@ msgid "Difference Key"
 msgstr "Unterscheidungsschlüssel"
 
 
-msgid "Color distances below this additional threshold are partially keyed"
-msgstr "Farbabstände unterhalb des addierten Schwellenwertes werden teilweise erfasst"
-
-
-msgid "Color distances below this threshold are keyed"
-msgstr "Farbabstände unterhalb des Schwellenwertes wird erfasst"
-
-
 msgid "Dilate/Erode"
 msgstr "Erweitern/Verkleinern"
 
@@ -23888,10 +23840,6 @@ msgid "Feather Distance"
 msgstr "Federabstand"
 
 
-msgid "Distance to grow/shrink the feather"
-msgstr "Abstand zwischen den Wellen"
-
-
 msgctxt "Curve"
 msgid "Feather Falloff"
 msgstr "Feder Abfall"
@@ -23947,6 +23895,14 @@ msgstr "Luminanzkanal"
 
 msgid "Luminance Key"
 msgstr "Luminanzkanal"
+
+
+msgid "Values higher than this setting are 100% opaque"
+msgstr "Werte höher als diese Einstellung sind 100% undurchsichtig"
+
+
+msgid "Values lower than this setting are 100% keyed"
+msgstr "Werte niedriger als diese Einstellung sind 100% freigestellt"
 
 
 msgid "Map Range"
@@ -24183,10 +24139,6 @@ msgstr "Pixel"
 
 msgid "Pixel Size"
 msgstr "Pixelgröße"
-
-
-msgid "Number of motion blur samples"
-msgstr "Vertikal"
 
 
 msgid "Alpha Convert"
@@ -25049,10 +25001,6 @@ msgstr "Shader-Scriptpfad"
 
 msgid "Script Source"
 msgstr "Kurve"
-
-
-msgid "Use internal text data-block"
-msgstr "Internen Textdatenblock verwenden"
 
 
 msgid "Use external .osl or .oso file"
@@ -32816,15 +32764,6 @@ msgstr "+Z bis -Z"
 
 
 msgctxt "Operator"
-msgid "Tris to Quads"
-msgstr "Dreiecke zu Vierecken"
-
-
-msgid "Join triangles into quads"
-msgstr "Dreiecke zu Vierecken verbinden"
-
-
-msgctxt "Operator"
 msgid "Un-Subdivide"
 msgstr "Unterteilen"
 
@@ -40135,58 +40074,6 @@ msgid "Active Palette Color"
 msgstr "Aktive Farbpalette"
 
 
-msgid "Mesh Edit Mode"
-msgstr "Maschenbearbeitungsmodus"
-
-
-msgid "Measurement"
-msgstr "Messung"
-
-
-msgid "Curve Edit Mode"
-msgstr "Kurven-Bearbeitungsmodus"
-
-
-msgid "Snapping"
-msgstr "Einrasten"
-
-
-msgid "Transform Orientations"
-msgstr "Transformationsausrichtung"
-
-
-msgid "Drawing Plane"
-msgstr "Malfläche"
-
-
-msgid "Guides"
-msgstr "Hilfslinien"
-
-
-msgid "Quad View"
-msgstr "Vierfenster-Ansicht"
-
-
-msgid "Onion Skin"
-msgstr "Zwiebelhaut"
-
-
-msgid "Stereoscopy"
-msgstr "Stereoskopie"
-
-
-msgid "Auto-Masking"
-msgstr "Automatisches Maskieren"
-
-
-msgid "Motion Tracking"
-msgstr "Bewegungsverfolgung"
-
-
-msgid "VR"
-msgstr "VR"
-
-
 msgid "Active Tool"
 msgstr "Aktives Werkzeug"
 
@@ -40221,6 +40108,58 @@ msgstr "Setzer"
 
 msgid "Overlays"
 msgstr "Überlagerungen"
+
+
+msgid "Guides"
+msgstr "Hilfslinien"
+
+
+msgid "Motion Tracking"
+msgstr "Bewegungsverfolgung"
+
+
+msgid "Mesh Edit Mode"
+msgstr "Maschenbearbeitungsmodus"
+
+
+msgid "Measurement"
+msgstr "Messung"
+
+
+msgid "Curve Edit Mode"
+msgstr "Kurven-Bearbeitungsmodus"
+
+
+msgid "Snapping"
+msgstr "Einrasten"
+
+
+msgid "Transform Orientations"
+msgstr "Transformationsausrichtung"
+
+
+msgid "Drawing Plane"
+msgstr "Malfläche"
+
+
+msgid "Quad View"
+msgstr "Vierfenster-Ansicht"
+
+
+msgid "Onion Skin"
+msgstr "Zwiebelhaut"
+
+
+msgid "Stereoscopy"
+msgstr "Stereoskopie"
+
+
+msgid "Auto-Masking"
+msgstr "Automatisches Maskieren"
+
+
+msgid "VR"
+msgstr "VR"
 
 
 msgid "Chain Scaling"
@@ -44390,14 +44329,6 @@ msgstr "Anzahl von horizontalen Pixeln im gerenderten Bild"
 
 msgid "Number of vertical pixels in the rendered image"
 msgstr "Anzahl von vertikalen Pixeln im gerenderten Bild"
-
-
-msgid "Display the object as wire edges"
-msgstr "Objekt als Drahtgitter darstellen"
-
-
-msgid "Display render preview"
-msgstr "Rendervorschau darstellen"
 
 
 msgid "Simplify Child Particles"
@@ -50297,10 +50228,6 @@ msgid "Focus on Object"
 msgstr "Fokus auf Objekt"
 
 
-msgid "Shading Offset"
-msgstr "Shading Versatz"
-
-
 msgid "Show In"
 msgstr "Anzeigen in"
 
@@ -51423,6 +51350,10 @@ msgstr "An Eckpunkt Normale ausrichten"
 
 msgid "Show Instancer"
 msgstr "Instanziierer anzeigen"
+
+
+msgid "Shading Offset"
+msgstr "Shading Versatz"
 
 
 msgid "Date"
@@ -59293,6 +59224,10 @@ msgstr "Bis Maximum"
 
 msgid "Use feather information from the mask"
 msgstr "Benutze Feder Informationen von der Maske"
+
+
+msgid "Number of motion blur samples"
+msgstr "Vertikal"
 
 
 msgid "Offset Y"

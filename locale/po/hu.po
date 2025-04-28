@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'b6372b3af3f7')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'1f4cae0c4623')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-21 07:54+0000\n"
+"POT-Creation-Date: 2025-04-28 09:32+0000\n"
 "PO-Revision-Date: 2025-04-14 08:24+0000\n"
 "Last-Translator: Balázs Füvesi <fuvesib@gmail.com>\n"
 "Language-Team: Hungarian <https://translate.blender.org/projects/blender-ui/ui/hu/>\n"
@@ -6589,6 +6589,30 @@ msgid "Mask"
 msgstr "Maszk"
 
 
+msgid "Show/Hide"
+msgstr "Mutat/Rejt"
+
+
+msgid "Apply"
+msgstr "Elfogadás"
+
+
+msgid "Clean Up"
+msgstr "Tisztítás"
+
+
+msgid "Merge"
+msgstr "Összefésülés"
+
+
+msgid "Text"
+msgstr "Szöveg"
+
+
+msgid "Metaball"
+msgstr "Meta test"
+
+
 msgid "Mirror"
 msgstr "Tükrözés"
 
@@ -6605,10 +6629,6 @@ msgid "Align View"
 msgstr "Nézet igazítása"
 
 
-msgid "Metaball"
-msgstr "Meta test"
-
-
 msgid "Light"
 msgstr "Fényforrás"
 
@@ -6621,28 +6641,8 @@ msgid "Rigid Body"
 msgstr "Szilárd test"
 
 
-msgid "Apply"
-msgstr "Elfogadás"
-
-
 msgid "Track"
 msgstr "Nyom"
-
-
-msgid "Show/Hide"
-msgstr "Mutat/Rejt"
-
-
-msgid "Clean Up"
-msgstr "Tisztítás"
-
-
-msgid "Merge"
-msgstr "Összefésülés"
-
-
-msgid "Text"
-msgstr "Szöveg"
 
 
 msgctxt "MovieClip"
@@ -12946,12 +12946,12 @@ msgid "Detail Size"
 msgstr "Részlet mérete"
 
 
-msgid "Motion Tracking"
-msgstr "Mozgáskövetés"
-
-
 msgid "Render Pass"
 msgstr "Render vezeték"
+
+
+msgid "Motion Tracking"
+msgstr "Mozgáskövetés"
 
 
 msgid "Chain Scaling"

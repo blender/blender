@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'b6372b3af3f7')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'1f4cae0c4623')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-21 07:54+0000\n"
+"POT-Creation-Date: 2025-04-28 09:32+0000\n"
 "PO-Revision-Date: 2025-04-14 08:44+0000\n"
 "Last-Translator: Bartosz <gang65@poczta.onet.pl>\n"
 "Language-Team: Ukrainian <https://translate.blender.org/projects/blender-ui/ui/uk/>\n"
@@ -16053,6 +16053,10 @@ msgid "Camera near clipping distance"
 msgstr "Ближня відстань відсікання для камери"
 
 
+msgid "Use internal text data-block"
+msgstr "Використати внутрішній текстовий блок даних"
+
+
 msgid "Apparent size of the Camera object in the 3D View"
 msgstr "Видимий розмір об'єкта-камери у 3D-огляді"
 
@@ -19837,6 +19841,10 @@ msgstr "Ефекти Шейдера"
 
 msgid "Effects affecting display of object"
 msgstr "Ефекти, що впливають на показ об'єкта"
+
+
+msgid "Push the shadow terminator towards the light to hide artifacts on low poly geometry"
+msgstr "Посунути завершувач тіні у напрямі до освітлювача, щоб сховати артефакти на низько полігональній геометрії"
 
 
 msgid "Display All Edges"
@@ -26575,12 +26583,124 @@ msgid "Material slot name"
 msgstr "Назва гнізда матеріалу"
 
 
-msgid "Mirror"
-msgstr "Дзеркалення"
+msgid "Sculpt Set Pivot"
+msgstr "Ліплення Задати Опертя"
+
+
+msgid "Face Sets Init"
+msgstr "Ініціація Наборів Граней"
+
+
+msgid "Show/Hide"
+msgstr "Показати/приховати"
+
+
+msgid "Clear Transform"
+msgstr "Зчистити трансформації"
+
+
+msgid "In-Betweens"
+msgstr "У проміжках"
+
+
+msgid "Propagate"
+msgstr "Поширити"
+
+
+msgid "Names"
+msgstr "Назви"
+
+
+msgid "Apply"
+msgstr "Застосувати"
+
+
+msgid "Toggle Bone Options"
+msgstr "Перемкнути параметри кісток"
+
+
+msgid "Enable Bone Options"
+msgstr "Увімкнути параметри кісток"
+
+
+msgid "Disable Bone Options"
+msgstr "Відключити параметри кісток"
+
+
+msgid "Mesh Select Mode"
+msgstr "Режим Вибору Сіті"
+
+
+msgid "Face Data"
+msgstr "Дані граней"
+
+
+msgid "Select by Face Strength"
+msgstr "Вибрати за Силою Грані"
+
+
+msgid "Set Face Strength"
+msgstr "Задати Силу Грані"
+
+
+msgid "Clean Up"
+msgstr "Вичищення"
+
+
+msgid "Merge"
+msgstr "Об'єднання"
+
+
+msgid "Special Characters"
+msgstr "Спеціальні символи"
+
+
+msgid "Kerning"
+msgstr "Кернінг"
+
+
+msgid "Text"
+msgstr "Текст"
+
+
+msgid "Metaball"
+msgstr "Метакуля"
+
+
+msgid "Bone Roll"
+msgstr "Прокручення Кістки"
+
+
+msgid "Pivot Point"
+msgstr "Точка Опертя"
 
 
 msgid "Snap"
 msgstr "Підхоп"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Спад Пропорційного Редагування"
+
+
+msgid "Mask Edit"
+msgstr "Редагування Маски"
+
+
+msgid "Automasking"
+msgstr "Автомаскування"
+
+
+msgid "Face Sets Edit"
+msgstr "Редагування Наборів Граней"
+
+
+msgid "Vertex Group Locks"
+msgstr "Блокування Груп Вершин"
+
+
+msgid "Mirror"
+msgstr "Дзеркалення"
 
 
 msgid "UV Mapping"
@@ -26635,10 +26755,6 @@ msgid "Assign Material"
 msgstr "Призначити Матеріал"
 
 
-msgid "Metaball"
-msgstr "Метакуля"
-
-
 msgid "Light"
 msgstr "Слабко"
 
@@ -26659,24 +26775,12 @@ msgid "Rigid Body"
 msgstr "Тверде тіло"
 
 
-msgid "Apply"
-msgstr "Застосувати"
-
-
 msgid "Track"
 msgstr "Стеження"
 
 
 msgid "Quick Effects"
 msgstr "Швидкі ефекти"
-
-
-msgid "Show/Hide"
-msgstr "Показати/приховати"
-
-
-msgid "Clean Up"
-msgstr "Вичищення"
 
 
 msgid "Asset"
@@ -26697,102 +26801,6 @@ msgstr "Пов'язати/Перенести Дані"
 
 msgid "Hooks"
 msgstr "Гачки"
-
-
-msgid "Vertex Group Locks"
-msgstr "Блокування Груп Вершин"
-
-
-msgid "Sculpt Set Pivot"
-msgstr "Ліплення Задати Опертя"
-
-
-msgid "Face Sets Init"
-msgstr "Ініціація Наборів Граней"
-
-
-msgid "Clear Transform"
-msgstr "Зчистити трансформації"
-
-
-msgid "In-Betweens"
-msgstr "У проміжках"
-
-
-msgid "Propagate"
-msgstr "Поширити"
-
-
-msgid "Names"
-msgstr "Назви"
-
-
-msgid "Toggle Bone Options"
-msgstr "Перемкнути параметри кісток"
-
-
-msgid "Enable Bone Options"
-msgstr "Увімкнути параметри кісток"
-
-
-msgid "Disable Bone Options"
-msgstr "Відключити параметри кісток"
-
-
-msgid "Mesh Select Mode"
-msgstr "Режим Вибору Сіті"
-
-
-msgid "Face Data"
-msgstr "Дані граней"
-
-
-msgid "Select by Face Strength"
-msgstr "Вибрати за Силою Грані"
-
-
-msgid "Set Face Strength"
-msgstr "Задати Силу Грані"
-
-
-msgid "Merge"
-msgstr "Об'єднання"
-
-
-msgid "Special Characters"
-msgstr "Спеціальні символи"
-
-
-msgid "Kerning"
-msgstr "Кернінг"
-
-
-msgid "Text"
-msgstr "Текст"
-
-
-msgid "Bone Roll"
-msgstr "Прокручення Кістки"
-
-
-msgid "Pivot Point"
-msgstr "Точка Опертя"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Спад Пропорційного Редагування"
-
-
-msgid "Mask Edit"
-msgstr "Редагування Маски"
-
-
-msgid "Automasking"
-msgstr "Автомаскування"
-
-
-msgid "Face Sets Edit"
-msgstr "Редагування Наборів Граней"
 
 
 msgid "Basic"
@@ -28595,16 +28603,8 @@ msgid "Method for calculating booleans"
 msgstr "Метод для розрахування булевих"
 
 
-msgid "Simple solver for the best performance, without support for overlapping geometry"
-msgstr "Простий рішач для найкращої продуктивності, без підтримки для перекривальної геометрії"
-
-
 msgid "Exact"
 msgstr "Точно"
-
-
-msgid "Advanced solver for the best result"
-msgstr "Просунутий рішач для найкращого результату"
 
 
 msgid "Allow self-intersection in operands"
@@ -34268,10 +34268,6 @@ msgid "High"
 msgstr "Високо"
 
 
-msgid "Values higher than this setting are 100% opaque"
-msgstr "Значення більші, ніж цей параметр, на 100% непрозоре"
-
-
 msgid "Algorithm"
 msgstr "Алгоритм"
 
@@ -34296,10 +34292,6 @@ msgid "Low"
 msgstr "Низько"
 
 
-msgid "Values lower than this setting are 100% keyed"
-msgstr "Значення менші, ніж цей параметр, на 100% замкнуті"
-
-
 msgid "Channel used to determine matte"
 msgstr "Канал, який визначає маску"
 
@@ -34308,36 +34300,16 @@ msgid "Chroma Key"
 msgstr "Ключ колірності"
 
 
-msgid "Alpha falloff"
-msgstr "Спад прозорості"
-
-
 msgid "Lift"
 msgstr "Підйом"
-
-
-msgid "Alpha lift"
-msgstr "Підйом альфа"
 
 
 msgid "Shadow Adjust"
 msgstr "Наладнання Тіні"
 
 
-msgid "Adjusts the brightness of any shadows captured"
-msgstr "Наладнує яскравість будь-яких захоплених тіней"
-
-
-msgid "Tolerance below which colors will be considered as exact matches"
-msgstr "Допустиме значення, нижче якого кольори будуть вважатися як точно узгоджені"
-
-
 msgid "Acceptance"
 msgstr "Прийняття"
-
-
-msgid "Tolerance for a color to be considered a keying color"
-msgstr "Допустиме відхилення кольору, щоб він вважався ключовим кольором"
 
 
 msgid "Color Balance"
@@ -34588,20 +34560,8 @@ msgid "H"
 msgstr "H"
 
 
-msgid "Hue tolerance for colors to be considered a keying color"
-msgstr "Допуск відтінку кольору, який слід вважати ключовим кольором"
-
-
 msgid "S"
 msgstr "S"
-
-
-msgid "Saturation tolerance for the color"
-msgstr "Допуск насиченості для кольору"
-
-
-msgid "Value tolerance for the color"
-msgstr "Допуск значення для кольору"
 
 
 msgid "Color Spill"
@@ -34640,28 +34600,8 @@ msgid "Average limit algorithm"
 msgstr "Усереднений алгоритм лімітування"
 
 
-msgid "Scale limit by value"
-msgstr "Масштабувати межу за значенням"
-
-
-msgid "Blue spillmap scale"
-msgstr "Рівень синього у карті розтікання"
-
-
-msgid "Green spillmap scale"
-msgstr "Рівень зеленого у карті розтікання"
-
-
-msgid "Red spillmap scale"
-msgstr "Рівень червоного у карті розтікання"
-
-
 msgid "Unspill"
 msgstr "Знерозтікання"
-
-
-msgid "Compensate all channels (differently) by hand"
-msgstr "Компенсувати всі канали (окремо) вручну"
 
 
 msgid "ITU 601"
@@ -34928,14 +34868,6 @@ msgid "Difference Key"
 msgstr "Ключ відмінності"
 
 
-msgid "Color distances below this additional threshold are partially keyed"
-msgstr "Колір на відстані нижче цього додаткового порога  є частково ключованим"
-
-
-msgid "Color distances below this threshold are keyed"
-msgstr "Кольори на відстані нижче цього порога є ключовані"
-
-
 msgid "Dilate/Erode"
 msgstr "Розширення/звуження"
 
@@ -35108,14 +35040,6 @@ msgid "ID Mask"
 msgstr "Маска за ID"
 
 
-msgid "Pass index number to convert to alpha"
-msgstr "Переданий номер індексу для перетворення в альфа"
-
-
-msgid "Apply an anti-aliasing filter to the mask"
-msgstr "Застосувати до маски загладжувальний фільтр"
-
-
 msgid "Straight Alpha Output"
 msgstr "Прямий вивід альфа"
 
@@ -35132,72 +35056,36 @@ msgid "Post Blur"
 msgstr "Після-розмив"
 
 
-msgid "Matte blur size which applies after clipping and dilate/eroding"
-msgstr "Розмір розмиття маски, що застосовується після відсікання та розширення/звуження"
-
-
 msgid "Pre Blur"
 msgstr "Перед-розмив"
-
-
-msgid "Chroma pre-blur size which applies before running keyer"
-msgstr "Розмір попереднього розмиття кольору, що виконується до відокремлення ключа"
 
 
 msgid "Clip Black"
 msgstr "Відсік чорного"
 
 
-msgid "Value of non-scaled matte pixel which considers as fully background pixel"
-msgstr "Значення пікселя немасштабованої маски, який вважається повністю пікселем фону"
-
-
 msgid "Clip White"
 msgstr "Відсік білого"
-
-
-msgid "Value of non-scaled matte pixel which considers as fully foreground pixel"
-msgstr "Значення пікселя немасштабованої маски, який вважається повністю пікселем переднього плану"
 
 
 msgid "Despill Balance"
 msgstr "Баланс зменшення розтікання"
 
 
-msgid "Balance between non-key colors used to detect amount of key color to be removed"
-msgstr "Баланс між неключовими кольорами, використовуваними для визначення рівня ключового кольору, що видаляється"
-
-
 msgid "Despill Factor"
 msgstr "Коефіцієнт зменшення розтікання"
-
-
-msgid "Factor of despilling screen color from image"
-msgstr "Коефіцієнт зменшення розтікання кольору екрана на зображенні"
 
 
 msgid "Edge Kernel Radius"
 msgstr "Радіус ядра країв"
 
 
-msgid "Radius of kernel used to detect whether pixel belongs to edge"
-msgstr "Радіус ядра, за яким визначають належність пікселя до краю"
-
-
 msgid "Edge Kernel Tolerance"
 msgstr "Допуск ядра країв"
 
 
-msgid "Tolerance to pixels inside kernel which are treating as belonging to the same plane"
-msgstr "Відхилення для пікселів усередині ядра, допустиме, щоб вважати, що пікселі належать одній площині"
-
-
 msgid "Feather Distance"
 msgstr "Відстань розтушовки"
-
-
-msgid "Distance to grow/shrink the feather"
-msgstr "Відстань наростання/стискання розтушовки"
 
 
 msgctxt "Curve"
@@ -35207,10 +35095,6 @@ msgstr "Спад розтушовки"
 
 msgid "Screen Balance"
 msgstr "Баланс екрана"
-
-
-msgid "Balance between two non-primary channels primary channel is comparing against"
-msgstr "Баланс між двома неосновними каналами, з якими порівнюється основний (первинний) канал"
 
 
 msgid "Keying Screen"
@@ -35275,6 +35159,14 @@ msgstr "Канал світності"
 
 msgid "Luminance Key"
 msgstr "Ключ світності"
+
+
+msgid "Values higher than this setting are 100% opaque"
+msgstr "Значення більші, ніж цей параметр, на 100% непрозоре"
+
+
+msgid "Values lower than this setting are 100% keyed"
+msgstr "Значення менші, ніж цей параметр, на 100% замкнуті"
 
 
 msgid "Map Range"
@@ -35549,18 +35441,6 @@ msgid "Plane Track Deform"
 msgstr "Деформації стежки площини"
 
 
-msgid "Number of motion blur samples"
-msgstr "Кількість вибірок розмиву рухом"
-
-
-msgid "Exposure for motion blur as a factor of FPS"
-msgstr "Експозиція розмиття руху як множник частоти кадрів"
-
-
-msgid "Use multi-sampled motion blur of the mask"
-msgstr "Використати  для маски багато-вибірне розмиття руху"
-
-
 msgid "Alpha Convert"
 msgstr "Конвертація альфа"
 
@@ -35639,10 +35519,6 @@ msgstr "Стабілізація 2D"
 
 msgid "Method to use to filter stabilization"
 msgstr "Метод, який використовується для стабілізації фільтру"
-
-
-msgid "Invert stabilization to re-introduce motion to the frame"
-msgstr "Інвертувати стабілізацію для повторного вводу руху у кадр"
 
 
 msgid "Sun Beams"
@@ -36572,10 +36448,6 @@ msgstr "Шлях відтінювального скрипту"
 
 msgid "Script Source"
 msgstr "Джерело скрипту"
-
-
-msgid "Use internal text data-block"
-msgstr "Використати внутрішній текстовий блок даних"
 
 
 msgid "Use external .osl or .oso file"
@@ -48374,14 +48246,6 @@ msgid "Which Intersect solver to use"
 msgstr "Який рішач Перетину використати"
 
 
-msgid "Faster solver, some limitations"
-msgstr "Швидший рішач, деякі обмеження"
-
-
-msgid "Exact solver, slower, handles more cases"
-msgstr "Точний рішач, повільніше, обробляє більше випадків"
-
-
 msgctxt "Operator"
 msgid "Intersect (Boolean)"
 msgstr "Перетин (булів)"
@@ -48401,6 +48265,14 @@ msgstr "Яку булеву операцію застосувати"
 
 msgid "Which Boolean solver to use"
 msgstr "Який Булів рішач використати"
+
+
+msgid "Faster solver, some limitations"
+msgstr "Швидший рішач, деякі обмеження"
+
+
+msgid "Exact solver, slower, handles more cases"
+msgstr "Точний рішач, повільніше, обробляє більше випадків"
 
 
 msgid "Do self-union or self-intersection"
@@ -49764,15 +49636,6 @@ msgstr "Відстань, у межах якої шукається узгодж
 
 msgid "Snap middle vertices to the axis center"
 msgstr "Підхопити серединні вершини до центру осі"
-
-
-msgctxt "Operator"
-msgid "Tris to Quads"
-msgstr "Трикутники на чотирикутники"
-
-
-msgid "Join triangles into quads"
-msgstr "Сполучити трикутники у чотирикутники"
 
 
 msgctxt "Operator"
@@ -63338,66 +63201,6 @@ msgid "Panel containing UI elements"
 msgstr "Панель, що містить елементи Інтерфейсу Користувача"
 
 
-msgid "Mesh Edit Mode"
-msgstr "Режим Редагування Сіті"
-
-
-msgid "Measurement"
-msgstr "Вимірювання"
-
-
-msgid "Curve Edit Mode"
-msgstr "Режим Редагування Кривої"
-
-
-msgid "Snapping"
-msgstr "Підхоплення"
-
-
-msgid "Transform Orientations"
-msgstr "Орієнтації Трансформ"
-
-
-msgid "Stroke Placement"
-msgstr "Розміщення Штриха"
-
-
-msgid "Drawing Plane"
-msgstr "Площина Рисування"
-
-
-msgid "Guides"
-msgstr "Напрямні"
-
-
-msgid "Quad View"
-msgstr "Чотирибічний Огляд"
-
-
-msgid "Onion Skin"
-msgstr "Покрив Калькою"
-
-
-msgid "Stereoscopy"
-msgstr "Стереоскопія"
-
-
-msgid "Multi Frame"
-msgstr "Багато Кадр"
-
-
-msgid "Auto-Masking"
-msgstr "Авто-Маскування"
-
-
-msgid "Motion Tracking"
-msgstr "Відстеження руху"
-
-
-msgid "VR"
-msgstr "ВР"
-
-
 msgid "Active Tool"
 msgstr "Активний Засіб"
 
@@ -63428,6 +63231,66 @@ msgstr "Прохід Рендера"
 
 msgid "Overlays"
 msgstr "Накладки"
+
+
+msgid "Guides"
+msgstr "Напрямні"
+
+
+msgid "Motion Tracking"
+msgstr "Відстеження руху"
+
+
+msgid "Mesh Edit Mode"
+msgstr "Режим Редагування Сіті"
+
+
+msgid "Measurement"
+msgstr "Вимірювання"
+
+
+msgid "Curve Edit Mode"
+msgstr "Режим Редагування Кривої"
+
+
+msgid "Snapping"
+msgstr "Підхоплення"
+
+
+msgid "Transform Orientations"
+msgstr "Орієнтації Трансформ"
+
+
+msgid "Stroke Placement"
+msgstr "Розміщення Штриха"
+
+
+msgid "Drawing Plane"
+msgstr "Площина Рисування"
+
+
+msgid "Quad View"
+msgstr "Чотирибічний Огляд"
+
+
+msgid "Onion Skin"
+msgstr "Покрив Калькою"
+
+
+msgid "Stereoscopy"
+msgstr "Стереоскопія"
+
+
+msgid "Multi Frame"
+msgstr "Багато Кадр"
+
+
+msgid "Auto-Masking"
+msgstr "Авто-Маскування"
+
+
+msgid "VR"
+msgstr "ВР"
 
 
 msgid "Chain Scaling"
@@ -67905,10 +67768,6 @@ msgid "Control accuracy of motion blur, more steps gives more memory usage (actu
 msgstr "Керування точністю розмиву рухом, більше кроків потребує більше пам'яті (фактична кількість кроків становить 2^(кроки - 1))"
 
 
-msgid "Push the shadow terminator towards the light to hide artifacts on low poly geometry"
-msgstr "Посунути завершувач тіні у напрямі до освітлювача, щоб сховати артефакти на низько полігональній геометрії"
-
-
 msgid "Use Adaptive Subdivision"
 msgstr "Вжити адаптивне підподілення"
 
@@ -69415,22 +69274,6 @@ msgstr "Кількість пікселів по вертикалі у ренд�
 
 msgid "Sequencer Preview Shading"
 msgstr "Відтінювання Передогляду Секвенсера"
-
-
-msgid "Display the object as wire edges"
-msgstr "Показувати об'єкт як дротяні ребра"
-
-
-msgid "Display in solid mode"
-msgstr "Показувати у суцільному режимі"
-
-
-msgid "Display in Material Preview mode"
-msgstr "Показувати у режимі Передогляду Матеріалу"
-
-
-msgid "Display render preview"
-msgstr "Показати передогляд рендера"
 
 
 msgid "Simplify Child Particles"
@@ -91903,6 +91746,18 @@ msgstr "Коефіцієнт зникання стрічок"
 
 msgid "Use feather information from the mask"
 msgstr "Використати інформацію про розтушовку з маски"
+
+
+msgid "Use multi-sampled motion blur of the mask"
+msgstr "Використати  для маски багато-вибірне розмиття руху"
+
+
+msgid "Number of motion blur samples"
+msgstr "Кількість вибірок розмиву рухом"
+
+
+msgid "Exposure for motion blur as a factor of FPS"
+msgstr "Експозиція розмиття руху як множник частоти кадрів"
 
 
 msgid "Dot"

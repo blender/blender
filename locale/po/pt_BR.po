@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'b6372b3af3f7')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'1f4cae0c4623')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2025-04-21 07:54+0000\n"
+"POT-Creation-Date: 2025-04-28 09:32+0000\n"
 "PO-Revision-Date: 2025-04-14 08:36+0000\n"
 "Last-Translator: Ruan da Silva Andrade <ruanandrade818@gmail.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -12483,6 +12483,10 @@ msgid "Camera near clipping distance"
 msgstr "Distância mais próxima para corte de visualização de câmera."
 
 
+msgid "Use internal text data-block"
+msgstr "Usa os blocos de dados de textos internos."
+
+
 msgid "Apparent size of the Camera object in the 3D View"
 msgstr "Tamanho aparente do objeto câmera na janela de visualização 3D."
 
@@ -21440,12 +21444,92 @@ msgid "Material slot name"
 msgstr "Nome do compartimento do material."
 
 
-msgid "Mirror"
-msgstr "Espelhar"
+msgid "Random Mask"
+msgstr "Máscara Aleatória"
+
+
+msgid "Show/Hide"
+msgstr "Mostrar ou ocultar"
+
+
+msgid "Clear Transform"
+msgstr "Limpar transformações"
+
+
+msgid "In-Betweens"
+msgstr "Entre as continuidades"
+
+
+msgid "Propagate"
+msgstr "Propagar"
+
+
+msgid "Names"
+msgstr "Nomes"
+
+
+msgid "Apply"
+msgstr "Aplicar"
+
+
+msgid "Toggle Bone Options"
+msgstr "Alternar opções de ossos"
+
+
+msgid "Enable Bone Options"
+msgstr "Habilitar opções de ossos"
+
+
+msgid "Disable Bone Options"
+msgstr "Desabilitar as opções de ossos"
+
+
+msgid "Mesh Select Mode"
+msgstr "Modo de seleção de malhas"
+
+
+msgid "Face Data"
+msgstr "Dados das faces"
+
+
+msgid "Clean Up"
+msgstr "Limpeza"
+
+
+msgid "Merge"
+msgstr "Fundir"
+
+
+msgid "Special Characters"
+msgstr "Caracteres especiais"
+
+
+msgid "Text"
+msgstr "Texto"
+
+
+msgid "Metaball"
+msgstr "Meta-esfera"
+
+
+msgid "Bone Roll"
+msgstr "Rolagem dos ossos"
+
+
+msgid "Pivot Point"
+msgstr "Pontos de pivô"
 
 
 msgid "Snap"
 msgstr "Atrair"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Tipo de decaimento para edição proporcional"
+
+
+msgid "Mirror"
+msgstr "Espelhar"
 
 
 msgid "UV Mapping"
@@ -21496,10 +21580,6 @@ msgid "Select Loops"
 msgstr "Selecionar anéis"
 
 
-msgid "Metaball"
-msgstr "Meta-esfera"
-
-
 msgid "Light"
 msgstr "Luz"
 
@@ -21520,24 +21600,12 @@ msgid "Rigid Body"
 msgstr "Corpo rígido"
 
 
-msgid "Apply"
-msgstr "Aplicar"
-
-
 msgid "Track"
 msgstr "Rastrear"
 
 
 msgid "Quick Effects"
 msgstr "Efeitos instantâneos"
-
-
-msgid "Show/Hide"
-msgstr "Mostrar ou ocultar"
-
-
-msgid "Clean Up"
-msgstr "Limpeza"
 
 
 msgid "Make Single User"
@@ -21550,70 +21618,6 @@ msgstr "Converter"
 
 msgid "Hooks"
 msgstr "Ganchos"
-
-
-msgid "Random Mask"
-msgstr "Máscara Aleatória"
-
-
-msgid "Clear Transform"
-msgstr "Limpar transformações"
-
-
-msgid "In-Betweens"
-msgstr "Entre as continuidades"
-
-
-msgid "Propagate"
-msgstr "Propagar"
-
-
-msgid "Names"
-msgstr "Nomes"
-
-
-msgid "Toggle Bone Options"
-msgstr "Alternar opções de ossos"
-
-
-msgid "Enable Bone Options"
-msgstr "Habilitar opções de ossos"
-
-
-msgid "Disable Bone Options"
-msgstr "Desabilitar as opções de ossos"
-
-
-msgid "Mesh Select Mode"
-msgstr "Modo de seleção de malhas"
-
-
-msgid "Face Data"
-msgstr "Dados das faces"
-
-
-msgid "Merge"
-msgstr "Fundir"
-
-
-msgid "Special Characters"
-msgstr "Caracteres especiais"
-
-
-msgid "Text"
-msgstr "Texto"
-
-
-msgid "Bone Roll"
-msgstr "Rolagem dos ossos"
-
-
-msgid "Pivot Point"
-msgstr "Pontos de pivô"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Tipo de decaimento para edição proporcional"
 
 
 msgid "Basic"
@@ -27205,10 +27209,6 @@ msgid "High"
 msgstr "Alto(a)"
 
 
-msgid "Values higher than this setting are 100% opaque"
-msgstr "Valores mais altos que esta configuração são 100% opacos."
-
-
 msgid "Algorithm"
 msgstr "Algoritmo"
 
@@ -27229,10 +27229,6 @@ msgid "Low"
 msgstr "Baixo(a)"
 
 
-msgid "Values lower than this setting are 100% keyed"
-msgstr "Valores mais baixos que esta configuração são 100% interpolados por chaves."
-
-
 msgid "Channel used to determine matte"
 msgstr "Canal usado para determinar a tela."
 
@@ -27241,36 +27237,16 @@ msgid "Chroma Key"
 msgstr "Chave de crominância"
 
 
-msgid "Alpha falloff"
-msgstr "Decaimento para alfa"
-
-
 msgid "Lift"
 msgstr "Realce"
-
-
-msgid "Alpha lift"
-msgstr "Realce de alfa."
 
 
 msgid "Shadow Adjust"
 msgstr "Ajuste de sombras"
 
 
-msgid "Adjusts the brightness of any shadows captured"
-msgstr "Ajusta o brilho de quaisquer sombras capturadas."
-
-
-msgid "Tolerance below which colors will be considered as exact matches"
-msgstr "Tolerância abaixo da qual as cores serão consideradas como combinações perfeitas."
-
-
 msgid "Acceptance"
 msgstr "Tolerância"
-
-
-msgid "Tolerance for a color to be considered a keying color"
-msgstr "Tolerância para que uma cor seja considerada na inserção de chaves de cor."
 
 
 msgid "Color Balance"
@@ -27505,10 +27481,6 @@ msgid "H"
 msgstr "H"
 
 
-msgid "Hue tolerance for colors to be considered a keying color"
-msgstr "Tolerância de matiz para que as cores sejam consideradas cores para inserção de chaves."
-
-
 msgid "S"
 msgstr "S"
 
@@ -27517,28 +27489,8 @@ msgid "Color Spill"
 msgstr "Derramamento de cor"
 
 
-msgid "Scale limit by value"
-msgstr "Escalona o limite pelo valor."
-
-
-msgid "Blue spillmap scale"
-msgstr "Escala de mapa de derramamento de azul."
-
-
-msgid "Green spillmap scale"
-msgstr "Escala de mapa de derramamento de verde."
-
-
-msgid "Red spillmap scale"
-msgstr "Escala de mapa de derramamento de vermelho."
-
-
 msgid "Unspill"
 msgstr "Desfazer derramamento"
-
-
-msgid "Compensate all channels (differently) by hand"
-msgstr "Compensação manual (diferente) para todos os canais."
 
 
 msgid "ITU 601"
@@ -27761,14 +27713,6 @@ msgid "Difference Key"
 msgstr "Chave de diferença"
 
 
-msgid "Color distances below this additional threshold are partially keyed"
-msgstr "As distâncias de cores abaixo deste ajuste adicional estão com chaves inseridas parcialmente."
-
-
-msgid "Color distances below this threshold are keyed"
-msgstr "Distância de cores abaixo da qual este ajuste estará chaveado."
-
-
 msgid "Dilate/Erode"
 msgstr "Dilatar ou erodir"
 
@@ -27937,14 +27881,6 @@ msgid "ID Mask"
 msgstr "Identificador de máscara"
 
 
-msgid "Pass index number to convert to alpha"
-msgstr "Número de índice de passo para converter para alfa."
-
-
-msgid "Apply an anti-aliasing filter to the mask"
-msgstr "Aplica efeito de antisserrilhamento para a máscara."
-
-
 msgid "Straight Alpha Output"
 msgstr "Saída direta de alfa "
 
@@ -27957,72 +27893,36 @@ msgid "Post Blur"
 msgstr "Pós desfocagem"
 
 
-msgid "Matte blur size which applies after clipping and dilate/eroding"
-msgstr "Tamanho da desfocagem na tela que se aplica após o corte e diluição ou erosão."
-
-
 msgid "Pre Blur"
 msgstr "Pré desfocagem"
-
-
-msgid "Chroma pre-blur size which applies before running keyer"
-msgstr "Tamanho de desfocagem prévia para crominância, o qual é aplicado antes do funcionamento do chaveador."
 
 
 msgid "Clip Black"
 msgstr "Limite para os pixeis pretos"
 
 
-msgid "Value of non-scaled matte pixel which considers as fully background pixel"
-msgstr "Valor para os pixeis de máscara de tela não escalonados que são considerados plenamente como pixeis do plano de fundo."
-
-
 msgid "Clip White"
 msgstr "Limite para os pixeis brancos"
-
-
-msgid "Value of non-scaled matte pixel which considers as fully foreground pixel"
-msgstr "Valor para os pixeis de máscara de tela não escalonados que são considerados plenamente como pixeis do plano frontal."
 
 
 msgid "Despill Balance"
 msgstr "Balanço para desfazer derramamento"
 
 
-msgid "Balance between non-key colors used to detect amount of key color to be removed"
-msgstr "Balanço entre as cores não chave usadas para detectar quanto de cor chave deve ser removida."
-
-
 msgid "Despill Factor"
 msgstr "Fator para desfazer derramamento"
-
-
-msgid "Factor of despilling screen color from image"
-msgstr "Fator para desfazer o derramamento de cor de tela a partir da imagem."
 
 
 msgid "Edge Kernel Radius"
 msgstr "Raio do espaçamento de arestas"
 
 
-msgid "Radius of kernel used to detect whether pixel belongs to edge"
-msgstr "O raio do núcleo de espaçamento usado para detectar se os pixeis pertencem as arestas."
-
-
 msgid "Edge Kernel Tolerance"
 msgstr "Tolerância do espaçamento de arestas"
 
 
-msgid "Tolerance to pixels inside kernel which are treating as belonging to the same plane"
-msgstr "Tolerância para os pixeis dentro do núcleo de espaçamento que são tratados como pertencentes ao mesmo plano."
-
-
 msgid "Feather Distance"
 msgstr "Distância das plumas"
-
-
-msgid "Distance to grow/shrink the feather"
-msgstr "Distância para crescer ou encolher a pluma."
 
 
 msgctxt "Curve"
@@ -28032,10 +27932,6 @@ msgstr "Decaimento da plumada"
 
 msgid "Screen Balance"
 msgstr "Equilíbrio de tela"
-
-
-msgid "Balance between two non-primary channels primary channel is comparing against"
-msgstr "O equilíbrio entre dois canais não primários de cores quando o canal primário de cor da tela alfa é comparado com estes."
 
 
 msgid "Keying Screen"
@@ -28096,6 +27992,14 @@ msgstr "Canal de luminância"
 
 msgid "Luminance Key"
 msgstr "Chave de luminância"
+
+
+msgid "Values higher than this setting are 100% opaque"
+msgstr "Valores mais altos que esta configuração são 100% opacos."
+
+
+msgid "Values lower than this setting are 100% keyed"
+msgstr "Valores mais baixos que esta configuração são 100% interpolados por chaves."
 
 
 msgid "Map Range"
@@ -28234,18 +28138,6 @@ msgid "Plane Track Deform"
 msgstr "Deformação de rastreamento de plano"
 
 
-msgid "Number of motion blur samples"
-msgstr "Número de amostras para desfoque de movimento."
-
-
-msgid "Exposure for motion blur as a factor of FPS"
-msgstr "Exposição para desfoque de movimento como um fator de quadros por segundo."
-
-
-msgid "Use multi-sampled motion blur of the mask"
-msgstr "Usa o desfoque de movimento por múltiplas amostragens para a máscara."
-
-
 msgid "Posterize"
 msgstr "Posterizar"
 
@@ -28304,10 +28196,6 @@ msgstr "Estabilizar 2D"
 
 msgid "Method to use to filter stabilization"
 msgstr "Método para usar ao filtrar a estabilização."
-
-
-msgid "Invert stabilization to re-introduce motion to the frame"
-msgstr "Inverte a estabilização para reintrodução de movimentos nos quadros."
 
 
 msgid "Sun Beams"
@@ -28953,10 +28841,6 @@ msgstr "Caminho de script do sombreador"
 
 msgid "Script Source"
 msgstr "Fonte de script"
-
-
-msgid "Use internal text data-block"
-msgstr "Usa os blocos de dados de textos internos."
 
 
 msgid "Use external .osl or .oso file"
@@ -39638,15 +39522,6 @@ msgstr "Atrai os pares de vértices para suas localizações espelhadas."
 
 
 msgctxt "Operator"
-msgid "Tris to Quads"
-msgstr "Triângulos para quadriláteros"
-
-
-msgid "Join triangles into quads"
-msgstr "Junta triângulos em quadriláteros."
-
-
-msgctxt "Operator"
 msgid "Un-Subdivide"
 msgstr "(De-)Subdividir"
 
@@ -50110,6 +49985,18 @@ msgid "Active Palette Color"
 msgstr "Cor ativa da paleta"
 
 
+msgid "Wire Color"
+msgstr "Cor dos cabos"
+
+
+msgid "Render Pass"
+msgstr "Passo de renderização"
+
+
+msgid "Motion Tracking"
+msgstr "Captura de movimentos"
+
+
 msgid "Transform Orientations"
 msgstr "Orientações de transformação"
 
@@ -50120,18 +50007,6 @@ msgstr "Exibição Quadrante"
 
 msgid "Stereoscopy"
 msgstr "Estereoscopia"
-
-
-msgid "Motion Tracking"
-msgstr "Captura de movimentos"
-
-
-msgid "Wire Color"
-msgstr "Cor dos cabos"
-
-
-msgid "Render Pass"
-msgstr "Passo de renderização"
 
 
 msgid "Bone Constraints"
@@ -54744,14 +54619,6 @@ msgstr "Número de pixeis verticais na imagem renderizada."
 
 msgid "Sequencer Preview Shading"
 msgstr "Previsão de sombreamento no editor de sequências"
-
-
-msgid "Display the object as wire edges"
-msgstr "Mostra os objetos usando as arestas em formato de aramados."
-
-
-msgid "Display render preview"
-msgstr "Mostra uma previsão de renderização dos objetos na janela de exibição."
 
 
 msgid "Simplify Child Particles"
@@ -69958,6 +69825,18 @@ msgstr "Fator de saída para o esmaecimento das listras."
 
 msgid "Use feather information from the mask"
 msgstr "Usa a informação das splines das plumas a partir da máscara."
+
+
+msgid "Use multi-sampled motion blur of the mask"
+msgstr "Usa o desfoque de movimento por múltiplas amostragens para a máscara."
+
+
+msgid "Number of motion blur samples"
+msgstr "Número de amostras para desfoque de movimento."
+
+
+msgid "Exposure for motion blur as a factor of FPS"
+msgstr "Exposição para desfoque de movimento como um fator de quadros por segundo."
 
 
 msgid "Dot"

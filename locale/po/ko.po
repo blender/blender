@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'b6372b3af3f7')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'1f4cae0c4623')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-21 07:54+0000\n"
+"POT-Creation-Date: 2025-04-28 09:32+0000\n"
 "PO-Revision-Date: 2025-04-14 08:31+0000\n"
 "Last-Translator: Lee YeonJoo <yzoo2@naver.com>\n"
 "Language-Team: Korean <https://translate.blender.org/projects/blender-ui/ui/ko/>\n"
@@ -14015,6 +14015,10 @@ msgid "Camera near clipping distance"
 msgstr "카메라 근거리 클리핑 거리"
 
 
+msgid "Use internal text data-block"
+msgstr "내부 텍스트 데이터 블록을 사용"
+
+
 msgid "Apparent size of the Camera object in the 3D View"
 msgstr "3D 뷰에서 카메라 오브젝트의 외관상 크기"
 
@@ -23825,12 +23829,108 @@ msgid "Material slot name"
 msgstr "매테리얼 슬롯 이름"
 
 
-msgid "Mirror"
-msgstr "미러"
+msgid "Sculpt Set Pivot"
+msgstr "스컬프트 설정 피벗"
+
+
+msgid "Show/Hide"
+msgstr "표시/숨기기"
+
+
+msgid "Clear Transform"
+msgstr "변환을 지우기"
+
+
+msgid "In-Betweens"
+msgstr "사이에서"
+
+
+msgid "Propagate"
+msgstr "전파"
+
+
+msgid "Names"
+msgstr "이름"
+
+
+msgid "Apply"
+msgstr "적용"
+
+
+msgid "Toggle Bone Options"
+msgstr "본 옵션을 토글"
+
+
+msgid "Enable Bone Options"
+msgstr "본 옵션을 사용"
+
+
+msgid "Disable Bone Options"
+msgstr "본 옵션을 사용 중지"
+
+
+msgid "Mesh Select Mode"
+msgstr "메쉬 선택 모드"
+
+
+msgid "Face Data"
+msgstr "페이스 데이터"
+
+
+msgid "Select by Face Strength"
+msgstr "페이스 강도로 선택"
+
+
+msgid "Set Face Strength"
+msgstr "페이스 강도를 설정"
+
+
+msgid "Clean Up"
+msgstr "정리"
+
+
+msgid "Merge"
+msgstr "병합"
+
+
+msgid "Special Characters"
+msgstr "특수 문자"
+
+
+msgid "Kerning"
+msgstr "자간"
+
+
+msgid "Text"
+msgstr "텍스트"
+
+
+msgid "Metaball"
+msgstr "메타볼"
+
+
+msgid "Bone Roll"
+msgstr "본 롤"
+
+
+msgid "Pivot Point"
+msgstr "피벗 포인트"
 
 
 msgid "Snap"
 msgstr "스냅"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "비례 편집 감소"
+
+
+msgid "Mask Edit"
+msgstr "마스크 편집"
+
+
+msgid "Mirror"
+msgstr "미러"
 
 
 msgid "UV Mapping"
@@ -23885,10 +23985,6 @@ msgid "Assign Material"
 msgstr "매테리얼을 할당"
 
 
-msgid "Metaball"
-msgstr "메타볼"
-
-
 msgid "Light"
 msgstr "라이트"
 
@@ -23909,24 +24005,12 @@ msgid "Rigid Body"
 msgstr "리지드 바디"
 
 
-msgid "Apply"
-msgstr "적용"
-
-
 msgid "Track"
 msgstr "트랙"
 
 
 msgid "Quick Effects"
 msgstr "빠른 이펙트"
-
-
-msgid "Show/Hide"
-msgstr "표시/숨기기"
-
-
-msgid "Clean Up"
-msgstr "정리"
 
 
 msgid "Asset"
@@ -23939,86 +24023,6 @@ msgstr "싱글 유저를 만들기"
 
 msgid "Hooks"
 msgstr "후크"
-
-
-msgid "Sculpt Set Pivot"
-msgstr "스컬프트 설정 피벗"
-
-
-msgid "Clear Transform"
-msgstr "변환을 지우기"
-
-
-msgid "In-Betweens"
-msgstr "사이에서"
-
-
-msgid "Propagate"
-msgstr "전파"
-
-
-msgid "Names"
-msgstr "이름"
-
-
-msgid "Toggle Bone Options"
-msgstr "본 옵션을 토글"
-
-
-msgid "Enable Bone Options"
-msgstr "본 옵션을 사용"
-
-
-msgid "Disable Bone Options"
-msgstr "본 옵션을 사용 중지"
-
-
-msgid "Mesh Select Mode"
-msgstr "메쉬 선택 모드"
-
-
-msgid "Face Data"
-msgstr "페이스 데이터"
-
-
-msgid "Select by Face Strength"
-msgstr "페이스 강도로 선택"
-
-
-msgid "Set Face Strength"
-msgstr "페이스 강도를 설정"
-
-
-msgid "Merge"
-msgstr "병합"
-
-
-msgid "Special Characters"
-msgstr "특수 문자"
-
-
-msgid "Kerning"
-msgstr "자간"
-
-
-msgid "Text"
-msgstr "텍스트"
-
-
-msgid "Bone Roll"
-msgstr "본 롤"
-
-
-msgid "Pivot Point"
-msgstr "피벗 포인트"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "비례 편집 감소"
-
-
-msgid "Mask Edit"
-msgstr "마스크 편집"
 
 
 msgid "Basic"
@@ -30494,10 +30498,6 @@ msgid "High"
 msgstr "높은"
 
 
-msgid "Values higher than this setting are 100% opaque"
-msgstr "이 설정보다 높은 값은 100% 불투명합니다"
-
-
 msgid "Algorithm"
 msgstr "연산"
 
@@ -30518,10 +30518,6 @@ msgid "Low"
 msgstr "낮은"
 
 
-msgid "Values lower than this setting are 100% keyed"
-msgstr "이 설정보다 낮은 값은 100% 키됩니다"
-
-
 msgid "Channel used to determine matte"
 msgstr "매트을 결정하는 사용된 채널"
 
@@ -30530,36 +30526,16 @@ msgid "Chroma Key"
 msgstr "크로마 키"
 
 
-msgid "Alpha falloff"
-msgstr "알파 감소"
-
-
 msgid "Lift"
 msgstr "상승"
-
-
-msgid "Alpha lift"
-msgstr "알파 상승"
 
 
 msgid "Shadow Adjust"
 msgstr "섀도우 조절하기"
 
 
-msgid "Adjusts the brightness of any shadows captured"
-msgstr "캡처된 섀도우의 밝기를 조정합니다"
-
-
-msgid "Tolerance below which colors will be considered as exact matches"
-msgstr "컬러이 정확한 일치로 간주되는 허용 오차"
-
-
 msgid "Acceptance"
 msgstr "수락"
-
-
-msgid "Tolerance for a color to be considered a keying color"
-msgstr "키잉 컬러으로 간주되는 컬러의 허용 오차"
 
 
 msgid "Color Balance"
@@ -30798,10 +30774,6 @@ msgid "H"
 msgstr "H"
 
 
-msgid "Hue tolerance for colors to be considered a keying color"
-msgstr "키잉 컬러으로 간주되는 컬러의 색조 허용 오차"
-
-
 msgid "S"
 msgstr "S"
 
@@ -30810,28 +30782,8 @@ msgid "Color Spill"
 msgstr "컬러 스필"
 
 
-msgid "Scale limit by value"
-msgstr "값으로 축적 제한"
-
-
-msgid "Blue spillmap scale"
-msgstr "블루 스필맵 축적"
-
-
-msgid "Green spillmap scale"
-msgstr "그린 스필맵 축적"
-
-
-msgid "Red spillmap scale"
-msgstr "레드 스필맵 축적"
-
-
 msgid "Unspill"
 msgstr "언스필"
-
-
-msgid "Compensate all channels (differently) by hand"
-msgstr "핸드로 모든 채널을 (다르게) 보완"
 
 
 msgid "ITU 601"
@@ -31090,14 +31042,6 @@ msgid "Difference Key"
 msgstr "차이 키"
 
 
-msgid "Color distances below this additional threshold are partially keyed"
-msgstr "이 추가적인 임계 값 아래에 컬러 거리는 부분적으로 키됨"
-
-
-msgid "Color distances below this threshold are keyed"
-msgstr "이 임계 값 아래에 컬러 거리는 키됨"
-
-
 msgid "Dilate/Erode"
 msgstr "팽창/침식"
 
@@ -31266,14 +31210,6 @@ msgid "ID Mask"
 msgstr "ID 마스크"
 
 
-msgid "Pass index number to convert to alpha"
-msgstr "알파로 변환할 인덱스 번호를 패스"
-
-
-msgid "Apply an anti-aliasing filter to the mask"
-msgstr "마스크에 안티앨리어싱 필터를 적용"
-
-
 msgid "Straight Alpha Output"
 msgstr "직선 알파 출력"
 
@@ -31286,72 +31222,36 @@ msgid "Post Blur"
 msgstr "포스트 블러"
 
 
-msgid "Matte blur size which applies after clipping and dilate/eroding"
-msgstr "클리핑 및 확장/침식 후에 적용되는 매트 흐림 크기"
-
-
 msgid "Pre Blur"
 msgstr "프리 블러"
-
-
-msgid "Chroma pre-blur size which applies before running keyer"
-msgstr "키어를 실행하기 전에 적용되는 크로마 사전 블러 크기"
 
 
 msgid "Clip Black"
 msgstr "클립 블랙"
 
 
-msgid "Value of non-scaled matte pixel which considers as fully background pixel"
-msgstr "완전히 배경 픽셀로 고려하는 비 조정 매트 픽셀의 값"
-
-
 msgid "Clip White"
 msgstr "클립 화이트"
-
-
-msgid "Value of non-scaled matte pixel which considers as fully foreground pixel"
-msgstr "완전히 전경 픽셀로 고려하는 비 조정 매트 픽셀의 값"
 
 
 msgid "Despill Balance"
 msgstr "디스필 밸런스"
 
 
-msgid "Balance between non-key colors used to detect amount of key color to be removed"
-msgstr "제거할 키 컬러의 양을 감지하는 데 사용되는 키가 아닌 컬러 간의 균형"
-
-
 msgid "Despill Factor"
 msgstr "디스필 팩터"
-
-
-msgid "Factor of despilling screen color from image"
-msgstr "이미지에서 디스필링 화면 컬러의 팩터"
 
 
 msgid "Edge Kernel Radius"
 msgstr "에지 커널 반경"
 
 
-msgid "Radius of kernel used to detect whether pixel belongs to edge"
-msgstr "픽셀이 에지에 속하는지 여부를 감지하는 데 사용되는 커널 반경"
-
-
 msgid "Edge Kernel Tolerance"
 msgstr "에지 커널 허용 오차"
 
 
-msgid "Tolerance to pixels inside kernel which are treating as belonging to the same plane"
-msgstr "같은 평면에 속하는 것으로 간주하는 커널 내부의 픽셀에 대한 허용 오차"
-
-
 msgid "Feather Distance"
 msgstr "페더 거리"
-
-
-msgid "Distance to grow/shrink the feather"
-msgstr "패더를 축소/성장하는 거리"
 
 
 msgctxt "Curve"
@@ -31361,10 +31261,6 @@ msgstr "페더 감소"
 
 msgid "Screen Balance"
 msgstr "화면 밸런스"
-
-
-msgid "Balance between two non-primary channels primary channel is comparing against"
-msgstr "기본 채널이과 비 기본 채널 둘 사이의 균형이 비교 대상"
 
 
 msgid "Keying Screen"
@@ -31429,6 +31325,14 @@ msgstr "휘도 채널"
 
 msgid "Luminance Key"
 msgstr "휘도 키"
+
+
+msgid "Values higher than this setting are 100% opaque"
+msgstr "이 설정보다 높은 값은 100% 불투명합니다"
+
+
+msgid "Values lower than this setting are 100% keyed"
+msgstr "이 설정보다 낮은 값은 100% 키됩니다"
 
 
 msgid "Map Range"
@@ -31691,18 +31595,6 @@ msgid "Plane Track Deform"
 msgstr "플레인 트랙 변형"
 
 
-msgid "Number of motion blur samples"
-msgstr "모션 블러 샘플의 수"
-
-
-msgid "Exposure for motion blur as a factor of FPS"
-msgstr "FPS의 요소로 모션 블러에 대한 노출"
-
-
-msgid "Use multi-sampled motion blur of the mask"
-msgstr "마스크의 멀티 샘플리드 모션 블러를 사용"
-
-
 msgid "Alpha Convert"
 msgstr "알파 변환"
 
@@ -31753,10 +31645,6 @@ msgstr "안정화 2D"
 
 msgid "Method to use to filter stabilization"
 msgstr "필터 안정화에 사용하는 메서드"
-
-
-msgid "Invert stabilization to re-introduce motion to the frame"
-msgstr "프레임에 모션을 다시 끼워 넣는 안정화를 반전"
 
 
 msgid "Sun Beams"
@@ -32378,10 +32266,6 @@ msgstr "셰이더 스크립트 경로"
 
 msgid "Script Source"
 msgstr "스크립트 소스"
-
-
-msgid "Use internal text data-block"
-msgstr "내부 텍스트 데이터 블록을 사용"
 
 
 msgid "Use external .osl or .oso file"
@@ -43894,15 +43778,6 @@ msgstr "중간 버텍스를 축 중심에 스냅"
 
 
 msgctxt "Operator"
-msgid "Tris to Quads"
-msgstr "페이스을 사각병합"
-
-
-msgid "Join triangles into quads"
-msgstr "삼각형을 사각병합"
-
-
-msgctxt "Operator"
 msgid "Un-Subdivide"
 msgstr "언섭디비젼"
 
@@ -55260,58 +55135,6 @@ msgid "Panel containing UI elements"
 msgstr "UI 요소가 포함된 패널"
 
 
-msgid "Mesh Edit Mode"
-msgstr "메쉬 에디트 모드"
-
-
-msgid "Measurement"
-msgstr "측정"
-
-
-msgid "Curve Edit Mode"
-msgstr "커브 에디트 모드"
-
-
-msgid "Snapping"
-msgstr "스냅하기"
-
-
-msgid "Transform Orientations"
-msgstr "변환 오리엔테이션"
-
-
-msgid "Stroke Placement"
-msgstr "스트로크 배치"
-
-
-msgid "Drawing Plane"
-msgstr "드로잉 평면"
-
-
-msgid "Guides"
-msgstr "가이드"
-
-
-msgid "Quad View"
-msgstr "쿼드 뷰"
-
-
-msgid "Onion Skin"
-msgstr "어니언 스킨"
-
-
-msgid "Stereoscopy"
-msgstr "입체 영상"
-
-
-msgid "Multi Frame"
-msgstr "다중 프레임"
-
-
-msgid "Motion Tracking"
-msgstr "모션 트래킹"
-
-
 msgid "Active Tool"
 msgstr "활성 도구"
 
@@ -55342,6 +55165,58 @@ msgstr "렌더 패스"
 
 msgid "Overlays"
 msgstr "오버레이"
+
+
+msgid "Guides"
+msgstr "가이드"
+
+
+msgid "Motion Tracking"
+msgstr "모션 트래킹"
+
+
+msgid "Mesh Edit Mode"
+msgstr "메쉬 에디트 모드"
+
+
+msgid "Measurement"
+msgstr "측정"
+
+
+msgid "Curve Edit Mode"
+msgstr "커브 에디트 모드"
+
+
+msgid "Snapping"
+msgstr "스냅하기"
+
+
+msgid "Transform Orientations"
+msgstr "변환 오리엔테이션"
+
+
+msgid "Stroke Placement"
+msgstr "스트로크 배치"
+
+
+msgid "Drawing Plane"
+msgstr "드로잉 평면"
+
+
+msgid "Quad View"
+msgstr "쿼드 뷰"
+
+
+msgid "Onion Skin"
+msgstr "어니언 스킨"
+
+
+msgid "Stereoscopy"
+msgstr "입체 영상"
+
+
+msgid "Multi Frame"
+msgstr "다중 프레임"
 
 
 msgid "Bone Constraints"
@@ -60716,22 +60591,6 @@ msgstr "렌더된 이미지에서 수직 픽셀의 수"
 
 msgid "Sequencer Preview Shading"
 msgstr "시퀀서 미리보기 셰이딩"
-
-
-msgid "Display the object as wire edges"
-msgstr "와이어 에지로 오브젝트를 표시합니다"
-
-
-msgid "Display in solid mode"
-msgstr "솔리드 모드로 표시"
-
-
-msgid "Display in Material Preview mode"
-msgstr "매테리얼 미리보기 모드로 표시"
-
-
-msgid "Display render preview"
-msgstr "렌더 미리보기를 표시합니다"
 
 
 msgid "Simplify Child Particles"
@@ -79587,6 +79446,18 @@ msgstr "연속 페이드 아웃 팩터"
 
 msgid "Use feather information from the mask"
 msgstr "마스크에서 페더 정보를 사용"
+
+
+msgid "Use multi-sampled motion blur of the mask"
+msgstr "마스크의 멀티 샘플리드 모션 블러를 사용"
+
+
+msgid "Number of motion blur samples"
+msgstr "모션 블러 샘플의 수"
+
+
+msgid "Exposure for motion blur as a factor of FPS"
+msgstr "FPS의 요소로 모션 블러에 대한 노출"
 
 
 msgid "Dot"

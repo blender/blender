@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'b6372b3af3f7')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'1f4cae0c4623')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-21 07:54+0000\n"
+"POT-Creation-Date: 2025-04-28 09:32+0000\n"
 "PO-Revision-Date: 2025-04-14 08:54+0000\n"
 "Last-Translator: Martynas Žiemys <martynasziemys@gmail.com>\n"
 "Language-Team: Lithuanian <https://translate.blender.org/projects/blender-ui/ui/lt/>\n"
@@ -3149,20 +3149,20 @@ msgid "Dots"
 msgstr "Taškai"
 
 
-msgid "Apply"
-msgstr "Pritaikyti"
-
-
-msgid "Track"
-msgstr "Sekti"
-
-
 msgid "Show/Hide"
 msgstr "Rodyti/Slėpti"
 
 
+msgid "Apply"
+msgstr "Pritaikyti"
+
+
 msgid "Text"
 msgstr "Tekstas"
+
+
+msgid "Track"
+msgstr "Sekti"
 
 
 msgid "Animals"

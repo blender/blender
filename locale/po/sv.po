@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'b6372b3af3f7')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'1f4cae0c4623')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-21 07:54+0000\n"
+"POT-Creation-Date: 2025-04-28 09:32+0000\n"
 "PO-Revision-Date: 2025-04-14 08:41+0000\n"
 "Last-Translator: Marcus Edmark Lindh <marcus.lindh@outlook.com>\n"
 "Language-Team: Swedish <https://translate.blender.org/projects/blender-ui/ui/sv/>\n"
@@ -3726,6 +3726,10 @@ msgid "Clip Start"
 msgstr "Beskärningsstart"
 
 
+msgid "Use internal text data-block"
+msgstr "Använd internt text-datablock"
+
+
 msgid "Depth Of Field"
 msgstr "Skärpdjup"
 
@@ -5189,12 +5193,40 @@ msgid "Mask"
 msgstr "Mask"
 
 
-msgid "Mirror"
-msgstr "Spegla"
+msgid "Show/Hide"
+msgstr "Visa/dölj"
+
+
+msgid "Names"
+msgstr "Namn"
+
+
+msgid "Apply"
+msgstr "Applicera"
+
+
+msgid "Clean Up"
+msgstr "Städa upp"
+
+
+msgid "Text"
+msgstr "Text"
+
+
+msgid "Metaball"
+msgstr "Metaboll"
+
+
+msgid "Pivot Point"
+msgstr "Fast punkt"
 
 
 msgid "Snap"
 msgstr "Snäpp"
+
+
+msgid "Mirror"
+msgstr "Spegla"
 
 
 msgid "Local View"
@@ -5211,10 +5243,6 @@ msgstr "Justera vy till aktiv"
 
 msgid "Select More/Less"
 msgstr "Markera mera/mindre"
-
-
-msgid "Metaball"
-msgstr "Metaboll"
 
 
 msgid "Light"
@@ -5237,36 +5265,12 @@ msgid "Rigid Body"
 msgstr "Rigid kropp"
 
 
-msgid "Apply"
-msgstr "Applicera"
-
-
 msgid "Quick Effects"
 msgstr "Snabbeffekter"
 
 
-msgid "Show/Hide"
-msgstr "Visa/dölj"
-
-
-msgid "Clean Up"
-msgstr "Städa upp"
-
-
 msgid "Asset"
 msgstr "Tillgång"
-
-
-msgid "Names"
-msgstr "Namn"
-
-
-msgid "Text"
-msgstr "Text"
-
-
-msgid "Pivot Point"
-msgstr "Fast punkt"
 
 
 msgid "Catalog"
@@ -6405,10 +6409,6 @@ msgstr "Konvertera en färgs luminans till ett gråskalevärde"
 
 msgid "Script Source"
 msgstr "Skriptkälla"
-
-
-msgid "Use internal text data-block"
-msgstr "Använd internt text-datablock"
 
 
 msgid "Use external .osl or .oso file"
@@ -9910,11 +9910,6 @@ msgstr "-Z till +Z"
 
 msgid "+Z to -Z"
 msgstr "+Z till -Z"
-
-
-msgctxt "Operator"
-msgid "Tris to Quads"
-msgstr "Trianglar till fyrhörningar"
 
 
 msgctxt "Operator"

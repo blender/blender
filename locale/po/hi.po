@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'b6372b3af3f7')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'1f4cae0c4623')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-21 07:54+0000\n"
+"POT-Creation-Date: 2025-04-28 09:32+0000\n"
 "PO-Revision-Date: 2025-04-14 08:23+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Hindi <https://translate.blender.org/projects/blender-ui/ui/hi/>\n"
@@ -2584,48 +2584,16 @@ msgid "Mask"
 msgstr "आवरण"
 
 
-msgid "Mirror"
-msgstr "दर्पण"
-
-
-msgid "Snap"
-msgstr "स्नैप"
-
-
-msgid "Light"
-msgstr "प्रकाश"
-
-
-msgid "Rigid Body"
-msgstr "कठोर-पदार्थ"
-
-
-msgid "Apply"
-msgstr "लागू करें"
-
-
-msgid "Track"
-msgstr "ट्रैक"
-
-
-msgid "Quick Effects"
-msgstr "त्वरित प्रभाव"
-
-
 msgid "Show/Hide"
 msgstr "छुपाएँ / दिखाएँ"
 
 
-msgid "Make Single User"
-msgstr "एकल प्रयोक्ता बनाएँ"
-
-
-msgid "Hooks"
-msgstr "खूँटी"
-
-
 msgid "Names"
 msgstr "नाम"
+
+
+msgid "Apply"
+msgstr "लागू करें"
 
 
 msgid "Toggle Bone Options"
@@ -2646,6 +2614,38 @@ msgstr "पाठ"
 
 msgid "Bone Roll"
 msgstr "हड्डी पंजी"
+
+
+msgid "Snap"
+msgstr "स्नैप"
+
+
+msgid "Mirror"
+msgstr "दर्पण"
+
+
+msgid "Light"
+msgstr "प्रकाश"
+
+
+msgid "Rigid Body"
+msgstr "कठोर-पदार्थ"
+
+
+msgid "Track"
+msgstr "ट्रैक"
+
+
+msgid "Quick Effects"
+msgstr "त्वरित प्रभाव"
+
+
+msgid "Make Single User"
+msgstr "एकल प्रयोक्ता बनाएँ"
+
+
+msgid "Hooks"
+msgstr "खूँटी"
 
 
 msgid "Basic"
@@ -4542,12 +4542,12 @@ msgid "Lock Y"
 msgstr "तालाबंदी y"
 
 
-msgid "Transform Orientations"
-msgstr "दिक् विन्यास संरचनांतरण"
-
-
 msgid "Motion Tracking"
 msgstr "गति मार्गन"
+
+
+msgid "Transform Orientations"
+msgstr "दिक् विन्यास संरचनांतरण"
 
 
 msgid "Predefined tracking camera intrinsics"

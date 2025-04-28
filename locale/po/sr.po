@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'b6372b3af3f7')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'1f4cae0c4623')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-21 07:54+0000\n"
+"POT-Creation-Date: 2025-04-28 09:32+0000\n"
 "PO-Revision-Date: 2025-04-14 08:40+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Serbian <https://translate.blender.org/projects/blender-ui/ui/sr/>\n"
@@ -8581,68 +8581,8 @@ msgid "Material slot name"
 msgstr "Назив слота материјала"
 
 
-msgid "Mirror"
-msgstr "Огледало"
-
-
-msgid "Snap"
-msgstr "Лепљење"
-
-
-msgid "UV Mapping"
-msgstr "UV Мапирање"
-
-
-msgid "Local View"
-msgstr "Локални поглед"
-
-
-msgid "Navigation"
-msgstr "Навигација"
-
-
-msgid "Align View"
-msgstr "Поравнај поглед"
-
-
-msgid "Select Linked"
-msgstr "Изабери повезано"
-
-
-msgid "Metaball"
-msgstr "Мета лопта"
-
-
-msgid "Light"
-msgstr "Светлост"
-
-
-msgid "Relations"
-msgstr "Односи"
-
-
-msgid "Rigid Body"
-msgstr "Круто тело"
-
-
-msgid "Apply"
-msgstr "Примени"
-
-
-msgid "Track"
-msgstr "Стаза"
-
-
-msgid "Quick Effects"
-msgstr "Брзи ефекти"
-
-
 msgid "Show/Hide"
 msgstr "Прикажи/сакриј"
-
-
-msgid "Hooks"
-msgstr "Удице"
 
 
 msgid "Clear Transform"
@@ -8659,6 +8599,10 @@ msgstr "Пренеси"
 
 msgid "Names"
 msgstr "Имена"
+
+
+msgid "Apply"
+msgstr "Примени"
 
 
 msgid "Toggle Bone Options"
@@ -8685,8 +8629,64 @@ msgid "Special Characters"
 msgstr "Специјални знаци"
 
 
+msgid "Metaball"
+msgstr "Мета лопта"
+
+
 msgid "Bone Roll"
 msgstr "Ролна костију"
+
+
+msgid "Snap"
+msgstr "Лепљење"
+
+
+msgid "Mirror"
+msgstr "Огледало"
+
+
+msgid "UV Mapping"
+msgstr "UV Мапирање"
+
+
+msgid "Local View"
+msgstr "Локални поглед"
+
+
+msgid "Navigation"
+msgstr "Навигација"
+
+
+msgid "Align View"
+msgstr "Поравнај поглед"
+
+
+msgid "Select Linked"
+msgstr "Изабери повезано"
+
+
+msgid "Light"
+msgstr "Светлост"
+
+
+msgid "Relations"
+msgstr "Односи"
+
+
+msgid "Rigid Body"
+msgstr "Круто тело"
+
+
+msgid "Track"
+msgstr "Стаза"
+
+
+msgid "Quick Effects"
+msgstr "Брзи ефекти"
+
+
+msgid "Hooks"
+msgstr "Удице"
 
 
 msgid "Basic"
@@ -10759,10 +10759,6 @@ msgid "H"
 msgstr "Т"
 
 
-msgid "Hue tolerance for colors to be considered a keying color"
-msgstr "Толеранција тона за боје које се сматрају кључне"
-
-
 msgid "S"
 msgstr "З"
 
@@ -11073,10 +11069,6 @@ msgstr "Тачкасто"
 
 msgid "Pixel Size"
 msgstr "Величина пиксела"
-
-
-msgid "Number of motion blur samples"
-msgstr "Поставља број додатних бљесова"
 
 
 msgid "Alpha Convert"
@@ -15796,15 +15788,6 @@ msgstr "Лепи за симетрију"
 
 
 msgctxt "Operator"
-msgid "Tris to Quads"
-msgstr "Троуглови у четвороуглове"
-
-
-msgid "Join triangles into quads"
-msgstr "Спаја троуглове у четвороуглове"
-
-
-msgctxt "Operator"
 msgid "Remove UV Map"
 msgstr "Уклони UV мапу"
 
@@ -19771,12 +19754,12 @@ msgid "Restrict"
 msgstr "Ограничи"
 
 
-msgid "Transform Orientations"
-msgstr "Трансформација оријентација"
-
-
 msgid "Motion Tracking"
 msgstr "Праћење покрета"
+
+
+msgid "Transform Orientations"
+msgstr "Трансформација оријентација"
 
 
 msgid "Bone Constraints"
@@ -21272,10 +21255,6 @@ msgstr "Број хоризонталних пиксела у рендерова
 
 msgid "Number of vertical pixels in the rendered image"
 msgstr "Број Вертикалних пиксела у рендерованој слици"
-
-
-msgid "Display the object as wire edges"
-msgstr "Прикажи објекат са жичаним ивицама"
 
 
 msgid "Simplify Subdivision"
@@ -26070,6 +26049,10 @@ msgstr "Бљесак"
 
 msgid "Use feather information from the mask"
 msgstr "Користи информације умекшавања са маске"
+
+
+msgid "Number of motion blur samples"
+msgstr "Поставља број додатних бљесова"
 
 
 msgid "Val"

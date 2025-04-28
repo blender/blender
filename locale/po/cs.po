@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'b6372b3af3f7')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'1f4cae0c4623')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-21 07:54+0000\n"
+"POT-Creation-Date: 2025-04-28 09:32+0000\n"
 "PO-Revision-Date: 2025-04-14 08:12+0000\n"
 "Last-Translator: Zdeněk Doležal <Griperis@outlook.cz>\n"
 "Language-Team: Czech <https://translate.blender.org/projects/blender-ui/ui/cs/>\n"
@@ -13581,12 +13581,72 @@ msgid "Material slot name"
 msgstr "Název okénka materiálu"
 
 
-msgid "Mirror"
-msgstr "Zrcadlit"
+msgid "Show/Hide"
+msgstr "Zobrazit/skrýt"
+
+
+msgid "Clear Transform"
+msgstr "Vyčistit transformaci"
+
+
+msgid "Propagate"
+msgstr "Vložit"
+
+
+msgid "Names"
+msgstr "Názvy"
+
+
+msgid "Apply"
+msgstr "Použít"
+
+
+msgid "Mesh Select Mode"
+msgstr "Síťový mód výběru"
+
+
+msgid "Face Data"
+msgstr "Data Ploch"
+
+
+msgid "Clean Up"
+msgstr "Vyčistit"
+
+
+msgid "Merge"
+msgstr "Sloučit"
+
+
+msgid "Special Characters"
+msgstr "Speciální Znaky"
+
+
+msgid "Text"
+msgstr "Text"
+
+
+msgid "Metaball"
+msgstr "Meta objekt"
+
+
+msgid "Bone Roll"
+msgstr "Kost"
+
+
+msgid "Pivot Point"
+msgstr "Bod pro pivot"
 
 
 msgid "Snap"
 msgstr "Přichytit"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Způsob útlumu"
+
+
+msgid "Mirror"
+msgstr "Zrcadlit"
 
 
 msgid "UV Mapping"
@@ -13613,10 +13673,6 @@ msgid "Assign Material"
 msgstr "Přiřadit Materiál"
 
 
-msgid "Metaball"
-msgstr "Meta objekt"
-
-
 msgid "Light"
 msgstr "Světlo"
 
@@ -13629,10 +13685,6 @@ msgid "Rigid Body"
 msgstr "Tuhé Těleso"
 
 
-msgid "Apply"
-msgstr "Použít"
-
-
 msgid "Track"
 msgstr "Sledování"
 
@@ -13641,64 +13693,12 @@ msgid "Quick Effects"
 msgstr "Rychlé Efekty"
 
 
-msgid "Show/Hide"
-msgstr "Zobrazit/skrýt"
-
-
-msgid "Clean Up"
-msgstr "Vyčistit"
-
-
 msgid "Make Single User"
 msgstr "Přivlastnit"
 
 
 msgid "Hooks"
 msgstr "Háky"
-
-
-msgid "Clear Transform"
-msgstr "Vyčistit transformaci"
-
-
-msgid "Propagate"
-msgstr "Vložit"
-
-
-msgid "Names"
-msgstr "Názvy"
-
-
-msgid "Mesh Select Mode"
-msgstr "Síťový mód výběru"
-
-
-msgid "Face Data"
-msgstr "Data Ploch"
-
-
-msgid "Merge"
-msgstr "Sloučit"
-
-
-msgid "Special Characters"
-msgstr "Speciální Znaky"
-
-
-msgid "Text"
-msgstr "Text"
-
-
-msgid "Bone Roll"
-msgstr "Kost"
-
-
-msgid "Pivot Point"
-msgstr "Bod pro pivot"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Způsob útlumu"
 
 
 msgid "Basic"
@@ -16625,14 +16625,6 @@ msgid "Chroma Key"
 msgstr "Samochytavé Klíče"
 
 
-msgid "Alpha falloff"
-msgstr "Ostré tvarování"
-
-
-msgid "Alpha lift"
-msgstr "Alfa"
-
-
 msgid "Shadow Adjust"
 msgstr "Stíny"
 
@@ -17065,10 +17057,6 @@ msgid "ID Mask"
 msgstr "Plošky"
 
 
-msgid "Pass index number to convert to alpha"
-msgstr "Odstranit skupinu vertexů"
-
-
 msgid "Inpaint"
 msgstr "VBar malování"
 
@@ -17243,10 +17231,6 @@ msgstr "Pixely"
 
 msgid "Pixel Size"
 msgstr "Velikost Pixelu"
-
-
-msgid "Number of motion blur samples"
-msgstr "Číslo, určující počet 'Spin' kroků"
 
 
 msgid "Alpha Convert"
@@ -24464,15 +24448,6 @@ msgstr "Přichytit k Symetrii"
 
 
 msgctxt "Operator"
-msgid "Tris to Quads"
-msgstr "Trojúhelníky na čtyřúhelníky"
-
-
-msgid "Join triangles into quads"
-msgstr "Převede vybrané trojúhleníky na čtyřúhelníky"
-
-
-msgctxt "Operator"
 msgid "Un-Subdivide"
 msgstr "Rozdělit"
 
@@ -31120,42 +31095,6 @@ msgid "Restrict"
 msgstr "Omezit"
 
 
-msgid "Mesh Edit Mode"
-msgstr "Editační Režim Sítě"
-
-
-msgid "Measurement"
-msgstr "Měření"
-
-
-msgid "Curve Edit Mode"
-msgstr "Editační Režim Křivky"
-
-
-msgid "Snapping"
-msgstr "Přichytávání"
-
-
-msgid "Transform Orientations"
-msgstr "Orientace transformací"
-
-
-msgid "Guides"
-msgstr "Vodítka"
-
-
-msgid "Stereoscopy"
-msgstr "Stereoskopie"
-
-
-msgid "Auto-Masking"
-msgstr "Auto-Maska"
-
-
-msgid "Motion Tracking"
-msgstr "Sledování Pohybu"
-
-
 msgid "Active Tool"
 msgstr "Aktivní nástroj"
 
@@ -31178,6 +31117,42 @@ msgstr "Dutina"
 
 msgid "Overlays"
 msgstr "Překrytí"
+
+
+msgid "Guides"
+msgstr "Vodítka"
+
+
+msgid "Motion Tracking"
+msgstr "Sledování Pohybu"
+
+
+msgid "Mesh Edit Mode"
+msgstr "Editační Režim Sítě"
+
+
+msgid "Measurement"
+msgstr "Měření"
+
+
+msgid "Curve Edit Mode"
+msgstr "Editační Režim Křivky"
+
+
+msgid "Snapping"
+msgstr "Přichytávání"
+
+
+msgid "Transform Orientations"
+msgstr "Orientace transformací"
+
+
+msgid "Stereoscopy"
+msgstr "Stereoskopie"
+
+
+msgid "Auto-Masking"
+msgstr "Auto-Maska"
 
 
 msgid "Chain Scaling"
@@ -34155,14 +34130,6 @@ msgstr "Počet svislých pixelů ve vyrenderovaném obrázku"
 
 msgid "Sequencer Preview Shading"
 msgstr "Uložit změněný obrázek"
-
-
-msgid "Display the object as wire edges"
-msgstr "Zobrazit aktivní objekt se všemi možnými hranami"
-
-
-msgid "Display render preview"
-msgstr "Zobrazit křivku"
 
 
 msgid "Simplify Child Particles"
@@ -43897,6 +43864,10 @@ msgstr "Skrýt skryté soubory"
 
 msgid "Use feather information from the mask"
 msgstr "Zobrazit nastaveni hran"
+
+
+msgid "Number of motion blur samples"
+msgstr "Číslo, určující počet 'Spin' kroků"
 
 
 msgid "Dot"

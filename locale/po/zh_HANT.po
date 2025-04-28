@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'b6372b3af3f7')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'1f4cae0c4623')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-21 07:54+0000\n"
+"POT-Creation-Date: 2025-04-28 09:32+0000\n"
 "PO-Revision-Date: 2025-04-14 08:48+0000\n"
 "Last-Translator: luxem <luxem168@gmail.com>\n"
 "Language-Team: Chinese (Traditional Han script) <https://translate.blender.org/projects/blender-ui/ui/zh_Hant/>\n"
@@ -14149,6 +14149,10 @@ msgid "Camera near clipping distance"
 msgstr "攝影機近處截割距離"
 
 
+msgid "Use internal text data-block"
+msgstr "使用內部文字數據組塊"
+
+
 msgid "Apparent size of the Camera object in the 3D View"
 msgstr "3D 檢視中攝影機物體的外觀大小"
 
@@ -22575,12 +22579,112 @@ msgid "Material slot name"
 msgstr "材質槽名稱"
 
 
-msgid "Mirror"
-msgstr "鏡像"
+msgid "Sculpt Set Pivot"
+msgstr "設定樞紐點"
+
+
+msgid "Random Mask"
+msgstr "隨機遮罩"
+
+
+msgid "Show/Hide"
+msgstr "顯示/隱藏"
+
+
+msgid "Clear Transform"
+msgstr "清除變換"
+
+
+msgid "In-Betweens"
+msgstr "內部之間"
+
+
+msgid "Propagate"
+msgstr "增生"
+
+
+msgid "Bone Collections"
+msgstr "骨骼集盒"
+
+
+msgid "Names"
+msgstr "名稱"
+
+
+msgid "Apply"
+msgstr "套用"
+
+
+msgid "Toggle Bone Options"
+msgstr "開關骨骼選項"
+
+
+msgid "Enable Bone Options"
+msgstr "啟用骨骼設定"
+
+
+msgid "Disable Bone Options"
+msgstr "停用骨骼設定"
+
+
+msgid "Mesh Select Mode"
+msgstr "網格選取模式"
+
+
+msgid "Face Data"
+msgstr "面資料"
+
+
+msgid "Clean Up"
+msgstr "清理"
+
+
+msgid "Merge"
+msgstr "合併"
+
+
+msgid "Special Characters"
+msgstr "特殊字元"
+
+
+msgid "Kerning"
+msgstr "字間微調"
+
+
+msgid "Text"
+msgstr "文字"
+
+
+msgid "Metaball"
+msgstr "變幻球"
+
+
+msgid "Bone Roll"
+msgstr "骨骼滾動"
+
+
+msgid "Pivot Point"
+msgstr "樞紐點"
 
 
 msgid "Snap"
 msgstr "吸附"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "比例化編輯衰落"
+
+
+msgid "Automasking"
+msgstr "自動遮罩"
+
+
+msgid "Face Sets Edit"
+msgstr "面集編輯"
+
+
+msgid "Mirror"
+msgstr "鏡像"
 
 
 msgid "UV Mapping"
@@ -22623,10 +22727,6 @@ msgid "Select Linked"
 msgstr "選取連結項"
 
 
-msgid "Metaball"
-msgstr "變幻球"
-
-
 msgid "Light"
 msgstr "燈光"
 
@@ -22643,24 +22743,12 @@ msgid "Rigid Body"
 msgstr "剛體"
 
 
-msgid "Apply"
-msgstr "套用"
-
-
 msgid "Track"
 msgstr "追蹤"
 
 
 msgid "Quick Effects"
 msgstr "快速效果"
-
-
-msgid "Show/Hide"
-msgstr "顯示/隱藏"
-
-
-msgid "Clean Up"
-msgstr "清理"
 
 
 msgid "Asset"
@@ -22681,90 +22769,6 @@ msgstr "連結/傳輸資料"
 
 msgid "Hooks"
 msgstr "鉤"
-
-
-msgid "Sculpt Set Pivot"
-msgstr "設定樞紐點"
-
-
-msgid "Random Mask"
-msgstr "隨機遮罩"
-
-
-msgid "Clear Transform"
-msgstr "清除變換"
-
-
-msgid "In-Betweens"
-msgstr "內部之間"
-
-
-msgid "Propagate"
-msgstr "增生"
-
-
-msgid "Bone Collections"
-msgstr "骨骼集盒"
-
-
-msgid "Names"
-msgstr "名稱"
-
-
-msgid "Toggle Bone Options"
-msgstr "開關骨骼選項"
-
-
-msgid "Enable Bone Options"
-msgstr "啟用骨骼設定"
-
-
-msgid "Disable Bone Options"
-msgstr "停用骨骼設定"
-
-
-msgid "Mesh Select Mode"
-msgstr "網格選取模式"
-
-
-msgid "Face Data"
-msgstr "面資料"
-
-
-msgid "Merge"
-msgstr "合併"
-
-
-msgid "Special Characters"
-msgstr "特殊字元"
-
-
-msgid "Kerning"
-msgstr "字間微調"
-
-
-msgid "Text"
-msgstr "文字"
-
-
-msgid "Bone Roll"
-msgstr "骨骼滾動"
-
-
-msgid "Pivot Point"
-msgstr "樞紐點"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "比例化編輯衰落"
-
-
-msgid "Automasking"
-msgstr "自動遮罩"
-
-
-msgid "Face Sets Edit"
-msgstr "面集編輯"
 
 
 msgid "Basic"
@@ -28285,10 +28289,6 @@ msgid "High"
 msgstr "高"
 
 
-msgid "Values higher than this setting are 100% opaque"
-msgstr "高於此設定的值為 100% 不透明"
-
-
 msgid "Algorithm"
 msgstr "演算法"
 
@@ -28313,10 +28313,6 @@ msgid "Low"
 msgstr "低"
 
 
-msgid "Values lower than this setting are 100% keyed"
-msgstr "低於此設定的值為 100% 鍵處理"
-
-
 msgid "Channel used to determine matte"
 msgstr "用來決定遮景片的通道"
 
@@ -28325,36 +28321,16 @@ msgid "Chroma Key"
 msgstr "彩度鍵"
 
 
-msgid "Alpha falloff"
-msgstr "Alpha 衰落"
-
-
 msgid "Lift"
 msgstr "抬升"
-
-
-msgid "Alpha lift"
-msgstr "Alpha 抬升"
 
 
 msgid "Shadow Adjust"
 msgstr "陰影調整"
 
 
-msgid "Adjusts the brightness of any shadows captured"
-msgstr "調整任何捕捉到的陰影其亮度"
-
-
-msgid "Tolerance below which colors will be considered as exact matches"
-msgstr "小於容差會被視為確實相符的色彩"
-
-
 msgid "Acceptance"
 msgstr "接受度"
-
-
-msgid "Tolerance for a color to be considered a keying color"
-msgstr "被視為鍵處理色彩的色彩容差"
 
 
 msgid "Color Balance"
@@ -28585,10 +28561,6 @@ msgid "H"
 msgstr "H"
 
 
-msgid "Hue tolerance for colors to be considered a keying color"
-msgstr "色彩要被視為某鍵處理色彩的色相容差"
-
-
 msgid "S"
 msgstr "S"
 
@@ -28597,28 +28569,8 @@ msgid "Color Spill"
 msgstr "色彩溢灑"
 
 
-msgid "Scale limit by value"
-msgstr "縮放受亮度限制"
-
-
-msgid "Blue spillmap scale"
-msgstr "藍溢灑映射縮放"
-
-
-msgid "Green spillmap scale"
-msgstr "綠溢灑映射縮放"
-
-
-msgid "Red spillmap scale"
-msgstr "紅溢灑映射縮放"
-
-
 msgid "Unspill"
 msgstr "未溢灑"
-
-
-msgid "Compensate all channels (differently) by hand"
-msgstr "手動補償所有通道 (各自不同)"
 
 
 msgid "ITU 601"
@@ -28841,14 +28793,6 @@ msgid "Difference Key"
 msgstr "差異鍵"
 
 
-msgid "Color distances below this additional threshold are partially keyed"
-msgstr "在此額外閾值以下的色彩距離僅部份會鍵處理"
-
-
-msgid "Color distances below this threshold are keyed"
-msgstr "在此閾值之下的色彩距離會鍵處理"
-
-
 msgid "Dilate/Erode"
 msgstr "膨脹/腐蝕"
 
@@ -29022,14 +28966,6 @@ msgid "ID Mask"
 msgstr "ID 遮罩"
 
 
-msgid "Pass index number to convert to alpha"
-msgstr "要轉換至 alpha 的通遞索引編號"
-
-
-msgid "Apply an anti-aliasing filter to the mask"
-msgstr "套用抗鋸齒過濾器至遮罩"
-
-
 msgid "Straight Alpha Output"
 msgstr "純直 Alpha 輸出"
 
@@ -29046,72 +28982,36 @@ msgid "Post Blur"
 msgstr "後模糊"
 
 
-msgid "Matte blur size which applies after clipping and dilate/eroding"
-msgstr "在剪輯與膨脹/腐蝕之後套用的遮景片模糊大小"
-
-
 msgid "Pre Blur"
 msgstr "前模糊"
-
-
-msgid "Chroma pre-blur size which applies before running keyer"
-msgstr "彩度預模糊大小，在執行鍵處理器之前套用"
 
 
 msgid "Clip Black"
 msgstr "剪輯黑"
 
 
-msgid "Value of non-scaled matte pixel which considers as fully background pixel"
-msgstr "被視為完全背景像素的非縮放遮景片像素值"
-
-
 msgid "Clip White"
 msgstr "剪輯白"
-
-
-msgid "Value of non-scaled matte pixel which considers as fully foreground pixel"
-msgstr "被視為完全前景像素的非縮放遮景片像素值"
 
 
 msgid "Despill Balance"
 msgstr "溢灑平衡"
 
 
-msgid "Balance between non-key colors used to detect amount of key color to be removed"
-msgstr "介於用來偵測要移除之鍵色量的非鍵色平衡"
-
-
 msgid "Despill Factor"
 msgstr "溢灑係數"
-
-
-msgid "Factor of despilling screen color from image"
-msgstr "從影像去除畫面色彩溢灑的係數"
 
 
 msgid "Edge Kernel Radius"
 msgstr "邊線內核半徑"
 
 
-msgid "Radius of kernel used to detect whether pixel belongs to edge"
-msgstr "用來偵測像素是否屬於邊線的內核半徑"
-
-
 msgid "Edge Kernel Tolerance"
 msgstr "邊線內核容差"
 
 
-msgid "Tolerance to pixels inside kernel which are treating as belonging to the same plane"
-msgstr "內核範圍內像素被視為屬於相同平面的容差"
-
-
 msgid "Feather Distance"
 msgstr "羽毛距離"
-
-
-msgid "Distance to grow/shrink the feather"
-msgstr "增大/縮小羽毛的距離"
 
 
 msgctxt "Curve"
@@ -29121,10 +29021,6 @@ msgstr "羽毛衰落"
 
 msgid "Screen Balance"
 msgstr "畫面平衡"
-
-
-msgid "Balance between two non-primary channels primary channel is comparing against"
-msgstr "在兩個非主要通道之間，主要通道要與之比較的平衡"
 
 
 msgid "Keying Screen"
@@ -29206,6 +29102,14 @@ msgstr "輝度通道"
 
 msgid "Luminance Key"
 msgstr "輝度鍵"
+
+
+msgid "Values higher than this setting are 100% opaque"
+msgstr "高於此設定的值為 100% 不透明"
+
+
+msgid "Values lower than this setting are 100% keyed"
+msgstr "低於此設定的值為 100% 鍵處理"
 
 
 msgid "Map Range"
@@ -29564,14 +29468,6 @@ msgstr "像素大小"
 
 msgid "Plane Track Deform"
 msgstr "平面軌道變形"
-
-
-msgid "Number of motion blur samples"
-msgstr "運動模糊的樣本數"
-
-
-msgid "Exposure for motion blur as a factor of FPS"
-msgstr "運動模糊作為 FPS 因子的曝光"
 
 
 msgid "Posterize"
@@ -30425,10 +30321,6 @@ msgstr "著色器命令稿路徑"
 
 msgid "Script Source"
 msgstr "命令稿來源"
-
-
-msgid "Use internal text data-block"
-msgstr "使用內部文字數據組塊"
 
 
 msgid "Use external .osl or .oso file"
@@ -40293,15 +40185,6 @@ msgstr "頂點中央吸附至軸中心"
 
 
 msgctxt "Operator"
-msgid "Tris to Quads"
-msgstr "三角形至四角形"
-
-
-msgid "Join triangles into quads"
-msgstr "將三角形結合為四角形"
-
-
-msgctxt "Operator"
 msgid "Un-Subdivide"
 msgstr "取消細分"
 
@@ -49890,6 +49773,38 @@ msgid "Palette Color"
 msgstr "色版色彩"
 
 
+msgid "Active Tool"
+msgstr "作用中工具"
+
+
+msgid "Wire Color"
+msgstr "線色"
+
+
+msgid "Cavity"
+msgstr "坑腔"
+
+
+msgid "Render Pass"
+msgstr "算繪通遞"
+
+
+msgid "Compositor"
+msgstr "合成器"
+
+
+msgid "Overlays"
+msgstr "疊層"
+
+
+msgid "Viewer Node"
+msgstr "檢視器節點"
+
+
+msgid "Motion Tracking"
+msgstr "運動跟蹤"
+
+
 msgid "Measurement"
 msgstr "測量"
 
@@ -49926,40 +49841,8 @@ msgid "Auto-Masking"
 msgstr "自動遮罩"
 
 
-msgid "Motion Tracking"
-msgstr "運動跟蹤"
-
-
 msgid "VR"
 msgstr "VR"
-
-
-msgid "Active Tool"
-msgstr "作用中工具"
-
-
-msgid "Wire Color"
-msgstr "線色"
-
-
-msgid "Cavity"
-msgstr "坑腔"
-
-
-msgid "Render Pass"
-msgstr "算繪通遞"
-
-
-msgid "Compositor"
-msgstr "合成器"
-
-
-msgid "Overlays"
-msgstr "疊層"
-
-
-msgid "Viewer Node"
-msgstr "檢視器節點"
 
 
 msgid "Chain Scaling"
@@ -54563,14 +54446,6 @@ msgstr "算繪的影像中其垂直像素數量"
 
 msgid "Sequencer Preview Shading"
 msgstr "序段編輯器預覽著色處理"
-
-
-msgid "Display the object as wire edges"
-msgstr "將物體以邊線框顯示"
-
-
-msgid "Display render preview"
-msgstr "顯示算繪預覽"
 
 
 msgid "Simplify Child Particles"
@@ -62508,10 +62383,6 @@ msgid "Pipeline"
 msgstr "管線"
 
 
-msgid "Shading Offset"
-msgstr "著色偏移"
-
-
 msgid "Show In"
 msgstr "顯示於"
 
@@ -63510,6 +63381,10 @@ msgstr "追蹤用軸"
 
 msgid "Show Instancer"
 msgstr "顯示實例器"
+
+
+msgid "Shading Offset"
+msgstr "著色偏移"
 
 
 msgctxt "Time"
@@ -70472,10 +70347,6 @@ msgid " Named Attributes"
 msgstr " 具名的屬性"
 
 
-msgid "Text not used by any node, no update done"
-msgstr "文字無法被任何節點使用，無更新"
-
-
 msgid "Not inside node group"
 msgstr "不在節點群組內"
 
@@ -70698,6 +70569,10 @@ msgstr "無法重新開啟檔案"
 
 msgid "Python disabled in this build"
 msgstr "此建置版已停用 Python"
+
+
+msgid "Text not used by any node, no update done"
+msgstr "文字無法被任何節點使用，無更新"
 
 
 msgid "Unable to save '%s': %s"
@@ -72435,6 +72310,14 @@ msgstr "到最大"
 
 msgid "Use feather information from the mask"
 msgstr "使用來自遮罩的羽毛資訊"
+
+
+msgid "Number of motion blur samples"
+msgstr "運動模糊的樣本數"
+
+
+msgid "Exposure for motion blur as a factor of FPS"
+msgstr "運動模糊作為 FPS 因子的曝光"
 
 
 msgid "Offset Y"

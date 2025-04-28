@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'b6372b3af3f7')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'1f4cae0c4623')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-21 07:54+0000\n"
+"POT-Creation-Date: 2025-04-28 09:32+0000\n"
 "PO-Revision-Date: 2025-04-14 08:33+0000\n"
 "Last-Translator: Brecht Van Lommel <brechtvanlommel@gmail.com>\n"
 "Language-Team: Dutch <https://translate.blender.org/projects/blender-ui/ui/nl/>\n"
@@ -2698,6 +2698,22 @@ msgid "Mask"
 msgstr "Mask"
 
 
+msgid "Show/Hide"
+msgstr "Toon/Verberg"
+
+
+msgid "Clear Transform"
+msgstr "Maak Transformatie Leeg"
+
+
+msgid "Names"
+msgstr "Namen"
+
+
+msgid "Text"
+msgstr "Tekst"
+
+
 msgid "Mirror"
 msgstr "Spiegel"
 
@@ -2738,28 +2754,12 @@ msgid "Quick Effects"
 msgstr "Snelle Effecten"
 
 
-msgid "Show/Hide"
-msgstr "Toon/Verberg"
-
-
 msgid "Convert"
 msgstr "Converteer"
 
 
 msgid "Hooks"
 msgstr "Haken"
-
-
-msgid "Clear Transform"
-msgstr "Maak Transformatie Leeg"
-
-
-msgid "Names"
-msgstr "Namen"
-
-
-msgid "Text"
-msgstr "Tekst"
 
 
 msgctxt "MovieClip"
