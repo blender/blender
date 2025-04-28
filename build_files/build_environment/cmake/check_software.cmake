@@ -53,7 +53,7 @@ if(UNIX)
       "  ${_software_missing}\n"
       "\n"
       "On Debian and Ubuntu:\n"
-      "  apt install autoconf automake bison libtool yasm tcl ninja-build meson python3-mako patchelf\n"
+      "  apt install autoconf automake bison libtool yasm tcl ninja-build meson python3-mako patchelf pkg-config\n"
       "\n"
       "On macOS (with homebrew):\n"
       "  brew install autoconf automake bison dos2unix flex libtool meson ninja pkg-config yasm\n"
