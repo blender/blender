@@ -1084,12 +1084,14 @@ bool RE_engine_render(Render *re, bool do_all)
 
   if (type->render) {
     FOREACH_VIEW_LAYER_TO_RENDER_BEGIN (re, view_layer_iter) {
-      engine_render_view_layer(re, engine, view_layer_iter, true, true);
+      const bool use_grease_pencil = (view_layer_iter->layflag & SCE_LAY_GREASE_PENCIL) != 0;
+      engine_render_view_layer(re, engine, view_layer_iter, true, use_grease_pencil);
 
       /* If render passes are not allocated the render engine deferred final pixels write for
        * later. Need to defer the grease pencil for until after the engine has written the
        * render result to Blender. */
-      delay_grease_pencil = engine->has_grease_pencil && !re->result->passes_allocated;
+      delay_grease_pencil = use_grease_pencil && engine->has_grease_pencil &&
+                            !re->result->passes_allocated;
 
       if (RE_engine_test_break(engine)) {
         break;
@@ -1105,6 +1107,10 @@ bool RE_engine_render(Render *re, bool do_all)
   /* Perform delayed grease pencil rendering. */
   if (delay_grease_pencil) {
     FOREACH_VIEW_LAYER_TO_RENDER_BEGIN (re, view_layer_iter) {
+      const bool use_grease_pencil = (view_layer_iter->layflag & SCE_LAY_GREASE_PENCIL) != 0;
+      if (!use_grease_pencil) {
+        continue;
+      }
       engine_render_view_layer(re, engine, view_layer_iter, false, true);
       if (RE_engine_test_break(engine)) {
         break;

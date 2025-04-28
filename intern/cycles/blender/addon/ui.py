@@ -967,6 +967,7 @@ class CYCLES_RENDER_PT_filter(CyclesButtonsPanel, Panel):
         col.prop(view_layer, "use_solid", text="Surfaces")
         col.prop(view_layer, "use_strand", text="Curves")
         col.prop(view_layer, "use_volumes", text="Volumes")
+        col.prop(view_layer, "use_grease_pencil", text="Grease Pencil")
 
         col = layout.column(heading="Use")
         sub = col.row()
