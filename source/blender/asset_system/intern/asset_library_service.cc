@@ -166,7 +166,7 @@ AssetLibrary *AssetLibraryService::get_asset_library_on_disk(eAssetLibraryType l
   }
 
   if (load_catalogs) {
-    lib->load_or_reload_catalogs();
+    lib_uptr->load_or_reload_catalogs();
   }
 
   /* Get underlying pointer before moving. */

@@ -53,7 +53,7 @@ void BLO_datablock_info_linklist_free(LinkNode *datablock_infos)
   BLI_linklist_free(datablock_infos, [](void *link) {
     BLODataBlockInfo *datablock_info = static_cast<BLODataBlockInfo *>(link);
     BLO_datablock_info_free(datablock_info);
-    MEM_freeN(datablock_info);
+    MEM_delete(datablock_info);
   });
 }
 
@@ -133,7 +133,7 @@ LinkNode *BLO_blendhandle_get_datablock_info(BlendHandle *bh,
       if (skip_datablock) {
         continue;
       }
-      BLODataBlockInfo *info = MEM_mallocN<BLODataBlockInfo>(__func__);
+      BLODataBlockInfo *info = MEM_new<BLODataBlockInfo>(__func__);
 
       /* Lastly, read asset data from the following blocks. */
       if (asset_meta_data) {
