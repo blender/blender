@@ -107,8 +107,8 @@ static void node_geo_exec(GeoNodeExecParams params)
   bool use_self = false;
   bool hole_tolerant = false;
   if (solver == geometry::boolean::Solver::MeshArr) {
-    use_self = params.get_input<bool>("Self Intersection");
-    hole_tolerant = params.get_input<bool>("Hole Tolerant");
+    use_self = params.extract_input<bool>("Self Intersection");
+    hole_tolerant = params.extract_input<bool>("Hole Tolerant");
   }
 
   Vector<const Mesh *> meshes;

@@ -582,7 +582,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   const GeometryNodeDistributePointsOnFacesMode method = GeometryNodeDistributePointsOnFacesMode(
       params.node().custom1);
 
-  const int seed = params.get_input<int>("Seed") * 5383843;
+  const int seed = params.extract_input<int>("Seed") * 5383843;
   const Field<bool> selection_field = params.extract_input<Field<bool>>("Selection");
 
   AttributeOutputs attribute_outputs;
