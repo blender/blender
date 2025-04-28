@@ -581,9 +581,8 @@ ccl_device_extern void osl_transform_dvmdv(ccl_private float3 *res,
                                            const ccl_private float *m,
                                            const ccl_private float3 *v)
 {
-  for (int i = 0; i < 3; ++i) {
-    osl_transform_vmv(res + i, m + i * 16, v + i);
-  }
+  const ProjectionTransform tfm_m = make_projection(m);
+  res[0] = transform_perspective_deriv(&tfm_m, v[0], v[1], v[2], res[1], res[2]);
 }
 
 ccl_device_extern void osl_transformv_vmv(ccl_private float3 *res,
@@ -598,8 +597,9 @@ ccl_device_extern void osl_transformv_dvmdv(ccl_private float3 *res,
                                             const ccl_private float *m,
                                             const ccl_private float3 *v)
 {
+  const Transform tfm_m = make_transform(m);
   for (int i = 0; i < 3; ++i) {
-    osl_transformv_vmv(res + i, m + i * 16, v + i);
+    res[i] = transform_direction(&tfm_m, v[i]);
   }
 }
 
@@ -615,8 +615,9 @@ ccl_device_extern void osl_transformn_dvmdv(ccl_private float3 *res,
                                             const ccl_private float *m,
                                             const ccl_private float3 *v)
 {
+  const Transform tfm_m = transform_inverse(make_transform(m));
   for (int i = 0; i < 3; ++i) {
-    osl_transformn_vmv(res + i, m + i * 16, v + i);
+    res[i] = transform_direction_transposed(&tfm_m, v[i]);
   }
 }
 
