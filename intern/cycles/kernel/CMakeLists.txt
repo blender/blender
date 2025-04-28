@@ -46,6 +46,7 @@ if(WITH_CYCLES_OSL)
     ${SRC_KERNEL_DEVICE_OPTIX}
     osl/services_optix.cu
     device/optix/kernel_osl.cu
+    device/optix/kernel_osl_camera.cu
   )
 endif()
 
@@ -915,6 +916,10 @@ if(WITH_CYCLES_DEVICE_OPTIX AND WITH_CYCLES_CUDA_BINARIES)
     cycles_optix_kernel_add(
       kernel_optix_osl
       "device/optix/kernel_osl.cu"
+      "--relocatable-device-code=true")
+    cycles_optix_kernel_add(
+      kernel_optix_osl_camera
+      "device/optix/kernel_osl_camera.cu"
       "--relocatable-device-code=true")
     cycles_optix_kernel_add(
       kernel_optix_osl_services

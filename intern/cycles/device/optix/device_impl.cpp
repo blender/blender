@@ -132,6 +132,9 @@ OptiXDevice::~OptiXDevice()
   }
 
 #  ifdef WITH_OSL
+  if (osl_camera_module != nullptr) {
+    optixModuleDestroy(osl_camera_module);
+  }
   for (const OptixModule &module : osl_modules) {
     if (module != nullptr) {
       optixModuleDestroy(module);
@@ -199,10 +202,11 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
 
 #  ifdef WITH_OSL
   /* TODO: Consider splitting kernels into an OSL-camera-only and a full-OSL variant. */
-  const uint osl_mask = KERNEL_FEATURE_OSL_SHADING | KERNEL_FEATURE_OSL_CAMERA;
-  const bool use_osl = (kernel_features & osl_mask);
+  const bool use_osl_shading = (kernel_features & KERNEL_FEATURE_OSL_SHADING);
+  const bool use_osl_camera = (kernel_features & KERNEL_FEATURE_OSL_CAMERA);
 #  else
-  const bool use_osl = false;
+  const bool use_osl_shading = false;
+  const bool use_osl_camera = false;
 #  endif
 
   /* Skip creating OptiX module if only doing denoising. */
@@ -212,10 +216,10 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
   /* Detect existence of OptiX kernel and SDK here early. So we can error out
    * before compiling the CUDA kernels, to avoid failing right after when
    * compiling the OptiX kernel. */
-  string suffix = use_osl ? "_osl" :
+  string suffix = use_osl_shading ? "_osl" :
                   (kernel_features & (KERNEL_FEATURE_NODE_RAYTRACE | KERNEL_FEATURE_MNEE)) ?
-                            "_shader_raytrace" :
-                            "";
+                                    "_shader_raytrace" :
+                                    "";
   string ptx_filename;
   if (need_optix_kernels) {
     ptx_filename = path_get("lib/kernel_optix" + suffix + ".ptx.zst");
@@ -274,6 +278,11 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
   }
 
 #  ifdef WITH_OSL
+  if (osl_camera_module != nullptr) {
+    optixModuleDestroy(osl_camera_module);
+    osl_camera_module = nullptr;
+  }
+
   /* Recreating base OptiX module invalidates all OSL modules too, since they link against it. */
   for (const OptixModule &module : osl_modules) {
     if (module != nullptr) {
@@ -515,8 +524,9 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
     group_descs[PG_RGEN_SHADE_SURFACE_RAYTRACE].raygen.entryFunctionName =
         "__raygen__kernel_optix_integrator_shade_surface_raytrace";
 
-    /* Kernels with OSL support are built without SVM, so can skip those direct callables there. */
-    if (!use_osl) {
+    /* Kernels with OSL shading support are built without SVM, so can skip those direct callables
+     * there. */
+    if (!use_osl_shading) {
       group_descs[PG_CALL_SVM_AO].kind = OPTIX_PROGRAM_GROUP_KIND_CALLABLES;
       group_descs[PG_CALL_SVM_AO].callables.moduleDC = optix_module;
       group_descs[PG_CALL_SVM_AO].callables.entryFunctionNameDC = "__direct_callable__svm_node_ao";
@@ -535,7 +545,7 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
   }
 
   /* OSL uses direct callables to execute, so shading needs to be done in OptiX if OSL is used. */
-  if (use_osl) {
+  if (use_osl_shading) {
     group_descs[PG_RGEN_SHADE_BACKGROUND].kind = OPTIX_PROGRAM_GROUP_KIND_RAYGEN;
     group_descs[PG_RGEN_SHADE_BACKGROUND].raygen.module = optix_module;
     group_descs[PG_RGEN_SHADE_BACKGROUND].raygen.entryFunctionName =
@@ -572,11 +582,51 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
     group_descs[PG_RGEN_EVAL_CURVE_SHADOW_TRANSPARENCY].raygen.module = optix_module;
     group_descs[PG_RGEN_EVAL_CURVE_SHADOW_TRANSPARENCY].raygen.entryFunctionName =
         "__raygen__kernel_optix_shader_eval_curve_shadow_transparency";
+  }
+
+#  ifdef WITH_OSL
+  /* When using custom OSL cameras, integrator_init_from_camera is its own specialized module. */
+  if (use_osl_camera) {
+    /* Load and compile the OSL camera PTX module. */
+    string ptx_data, ptx_filename = path_get("lib/kernel_optix_osl_camera.ptx.zst");
+    if (!path_read_compressed_text(ptx_filename, ptx_data)) {
+      set_error(
+          string_printf("Failed to load OptiX OSL camera kernel from '%s'", ptx_filename.c_str()));
+      return false;
+    }
+
+#    if OPTIX_ABI_VERSION >= 84
+    const OptixResult result = optixModuleCreate(context,
+                                                 &module_options,
+                                                 &pipeline_options,
+                                                 ptx_data.data(),
+                                                 ptx_data.size(),
+                                                 nullptr,
+                                                 nullptr,
+                                                 &osl_camera_module);
+#    else
+    const OptixResult result = optixModuleCreateFromPTX(context,
+                                                        &module_options,
+                                                        &pipeline_options,
+                                                        ptx_data.data(),
+                                                        ptx_data.size(),
+                                                        nullptr,
+                                                        nullptr,
+                                                        &osl_camera_module);
+#    endif
+    if (result != OPTIX_SUCCESS) {
+      set_error(string_printf("Failed to load OptiX kernel from '%s' (%s)",
+                              ptx_filename.c_str(),
+                              optixGetErrorName(result)));
+      return false;
+    }
+
     group_descs[PG_RGEN_INIT_FROM_CAMERA].kind = OPTIX_PROGRAM_GROUP_KIND_RAYGEN;
-    group_descs[PG_RGEN_INIT_FROM_CAMERA].raygen.module = optix_module;
+    group_descs[PG_RGEN_INIT_FROM_CAMERA].raygen.module = osl_camera_module;
     group_descs[PG_RGEN_INIT_FROM_CAMERA].raygen.entryFunctionName =
         "__raygen__kernel_optix_integrator_init_from_camera";
   }
+#  endif
 
   optix_assert(optixProgramGroupCreate(
       context, group_descs, NUM_PROGRAM_GROUPS, &group_options, nullptr, nullptr, groups));
@@ -618,7 +668,7 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
   link_options.debugLevel = module_options.debugLevel;
 #  endif
 
-  if (use_osl) {
+  if (use_osl_shading || use_osl_camera) {
     /* OSL kernels will be (re)created on by OSL manager. */
   }
   else if (kernel_features & (KERNEL_FEATURE_NODE_RAYTRACE | KERNEL_FEATURE_MNEE)) {
@@ -952,6 +1002,8 @@ bool OptiXDevice::load_osl_kernels()
     pipeline_groups.push_back(groups[PG_RGEN_SHADE_LIGHT]);
     pipeline_groups.push_back(groups[PG_RGEN_SHADE_SURFACE]);
     pipeline_groups.push_back(groups[PG_RGEN_SHADE_SURFACE_RAYTRACE]);
+    pipeline_groups.push_back(groups[PG_CALL_SVM_AO]);
+    pipeline_groups.push_back(groups[PG_CALL_SVM_BEVEL]);
     pipeline_groups.push_back(groups[PG_RGEN_SHADE_SURFACE_MNEE]);
     pipeline_groups.push_back(groups[PG_RGEN_SHADE_VOLUME]);
     pipeline_groups.push_back(groups[PG_RGEN_SHADE_SHADOW]);
@@ -1000,7 +1052,8 @@ bool OptiXDevice::load_osl_kernels()
 
     const unsigned int css = std::max(stack_size[PG_RGEN_SHADE_SURFACE_RAYTRACE].cssRG,
                                       stack_size[PG_RGEN_SHADE_SURFACE_MNEE].cssRG);
-    unsigned int dss = 0;
+    unsigned int dss = std::max(stack_size[PG_CALL_SVM_AO].dssDC,
+                                stack_size[PG_CALL_SVM_BEVEL].dssDC);
     for (unsigned int i = 0; i < osl_stack_size.size(); ++i) {
       dss = std::max(dss, osl_stack_size[i].dssDC);
     }

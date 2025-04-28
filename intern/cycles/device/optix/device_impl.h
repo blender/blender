@@ -81,6 +81,7 @@ class OptiXDevice : public CUDADevice {
   OSLGlobals osl_globals;
   vector<OptixModule> osl_modules;
   vector<OptixProgramGroup> osl_groups;
+  OptixModule osl_camera_module = nullptr;
 #  endif
 
  private:
