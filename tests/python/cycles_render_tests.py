@@ -77,11 +77,6 @@ BLOCKLIST_OPTIX_OSL = [
     'principled_bsdf_bevel_emission_137420.blend',
     # OptiX OSL doesn't support the trace function
     'osl_trace_shader.blend',
-    # Bump evaluation is not implemented yet. See 104276
-    'compare_bump.blend',
-    'both_displacement.blend',
-    'bump_with_displacement.blend',
-    'ray_portal.blend',
     # The 3D texture doesn't have the right mappings
     'point_density_.*_object.blend',
     # Dicing tests use wireframe node which doesn't appear to be supported with OptiX OSL
