@@ -250,6 +250,9 @@ ccl_device_inline void osl_eval_nodes(KernelGlobals kg,
       sd->P = P;
       sd->dP = dP;
 
+      /* Apply bump output to sd->N since it's used for e.g. shadow terminator logic. */
+      sd->N = globals.N;
+
       globals.P = P;
       globals.dPdx = dPdx;
       globals.dPdy = dPdy;
