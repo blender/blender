@@ -11,6 +11,8 @@
 #  include "device/optix/util.h"  // IWYU pragma: keep
 #  include "kernel/osl/globals.h"
 
+#  include "util/task.h"
+
 CCL_NAMESPACE_BEGIN
 
 class BVHOptiX;
@@ -96,6 +98,12 @@ class OptiXDevice : public CUDADevice {
   BVHLayoutMask get_bvh_layout_mask(uint /*kernel_features*/) const override;
 
   string compile_kernel_get_common_cflags(const uint kernel_features);
+
+  void create_optix_module(TaskPool &pool,
+                           OptixModuleCompileOptions &module_options,
+                           string &ptx_data,
+                           OptixModule &module,
+                           OptixResult &failure_reason);
 
   bool load_kernels(const uint kernel_features) override;
 

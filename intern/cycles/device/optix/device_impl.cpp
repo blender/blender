@@ -193,6 +193,52 @@ string OptiXDevice::compile_kernel_get_common_cflags(const uint kernel_features)
   return common_cflags;
 }
 
+void OptiXDevice::create_optix_module(TaskPool &pool,
+                                      OptixModuleCompileOptions &module_options,
+                                      string &ptx_data,
+                                      OptixModule &module,
+                                      OptixResult &result)
+{
+#  if OPTIX_ABI_VERSION >= 84
+  OptixTask task = nullptr;
+  result = optixModuleCreateWithTasks(context,
+                                      &module_options,
+                                      &pipeline_options,
+                                      ptx_data.data(),
+                                      ptx_data.size(),
+                                      nullptr,
+                                      nullptr,
+                                      &module,
+                                      &task);
+  if (result == OPTIX_SUCCESS) {
+    execute_optix_task(pool, task, result);
+  }
+#  elif OPTIX_ABI_VERSION >= 55
+  OptixTask task = nullptr;
+  result = optixModuleCreateFromPTXWithTasks(context,
+                                             &module_options,
+                                             &pipeline_options,
+                                             ptx_data.data(),
+                                             ptx_data.size(),
+                                             nullptr,
+                                             nullptr,
+                                             &module,
+                                             &task);
+  if (result == OPTIX_SUCCESS) {
+    execute_optix_task(pool, task, result);
+  }
+#  else
+  result = optixModuleCreateFromPTX(context,
+                                    &module_options,
+                                    &pipeline_options,
+                                    ptx_data.data(),
+                                    ptx_data.size(),
+                                    nullptr,
+                                    nullptr,
+                                    &module);
+#  endif
+}
+
 bool OptiXDevice::load_kernels(const uint kernel_features)
 {
   if (have_error()) {
@@ -365,48 +411,10 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
       return false;
     }
 
-#  if OPTIX_ABI_VERSION >= 84
-    OptixTask task = nullptr;
-    OptixResult result = optixModuleCreateWithTasks(context,
-                                                    &module_options,
-                                                    &pipeline_options,
-                                                    ptx_data.data(),
-                                                    ptx_data.size(),
-                                                    nullptr,
-                                                    nullptr,
-                                                    &optix_module,
-                                                    &task);
-    if (result == OPTIX_SUCCESS) {
-      TaskPool pool;
-      execute_optix_task(pool, task, result);
-      pool.wait_work();
-    }
-#  elif OPTIX_ABI_VERSION >= 55
-    OptixTask task = nullptr;
-    OptixResult result = optixModuleCreateFromPTXWithTasks(context,
-                                                           &module_options,
-                                                           &pipeline_options,
-                                                           ptx_data.data(),
-                                                           ptx_data.size(),
-                                                           nullptr,
-                                                           nullptr,
-                                                           &optix_module,
-                                                           &task);
-    if (result == OPTIX_SUCCESS) {
-      TaskPool pool;
-      execute_optix_task(pool, task, result);
-      pool.wait_work();
-    }
-#  else
-    const OptixResult result = optixModuleCreateFromPTX(context,
-                                                        &module_options,
-                                                        &pipeline_options,
-                                                        ptx_data.data(),
-                                                        ptx_data.size(),
-                                                        nullptr,
-                                                        nullptr,
-                                                        &optix_module);
-#  endif
+    TaskPool pool;
+    OptixResult result;
+    create_optix_module(pool, module_options, ptx_data, optix_module, result);
+    pool.wait_work();
     if (result != OPTIX_SUCCESS) {
       set_error(string_printf("Failed to load OptiX kernel from '%s' (%s)",
                               ptx_filename.c_str(),
@@ -595,25 +603,10 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
       return false;
     }
 
-#    if OPTIX_ABI_VERSION >= 84
-    const OptixResult result = optixModuleCreate(context,
-                                                 &module_options,
-                                                 &pipeline_options,
-                                                 ptx_data.data(),
-                                                 ptx_data.size(),
-                                                 nullptr,
-                                                 nullptr,
-                                                 &osl_camera_module);
-#    else
-    const OptixResult result = optixModuleCreateFromPTX(context,
-                                                        &module_options,
-                                                        &pipeline_options,
-                                                        ptx_data.data(),
-                                                        ptx_data.size(),
-                                                        nullptr,
-                                                        nullptr,
-                                                        &osl_camera_module);
-#    endif
+    TaskPool pool;
+    OptixResult result;
+    create_optix_module(pool, module_options, ptx_data, osl_camera_module, result);
+    pool.wait_work();
     if (result != OPTIX_SUCCESS) {
       set_error(string_printf("Failed to load OptiX kernel from '%s' (%s)",
                               ptx_filename.c_str(),
@@ -864,25 +857,10 @@ bool OptiXDevice::load_osl_kernels()
       return false;
     }
 
-#    if OPTIX_ABI_VERSION >= 84
-    const OptixResult result = optixModuleCreate(context,
-                                                 &module_options,
-                                                 &pipeline_options,
-                                                 ptx_data.data(),
-                                                 ptx_data.size(),
-                                                 nullptr,
-                                                 nullptr,
-                                                 &osl_modules.back());
-#    else
-    const OptixResult result = optixModuleCreateFromPTX(context,
-                                                        &module_options,
-                                                        &pipeline_options,
-                                                        ptx_data.data(),
-                                                        ptx_data.size(),
-                                                        nullptr,
-                                                        nullptr,
-                                                        &osl_modules.back());
-#    endif
+    TaskPool pool;
+    OptixResult result;
+    create_optix_module(pool, module_options, ptx_data, osl_modules.back(), result);
+    pool.wait_work();
     if (result != OPTIX_SUCCESS) {
       set_error(string_printf("Failed to load OptiX OSL services kernel from '%s' (%s)",
                               ptx_filename.c_str(),
@@ -907,46 +885,7 @@ bool OptiXDevice::load_osl_kernels()
       continue;
     }
 
-#    if OPTIX_ABI_VERSION >= 84
-    OptixTask task = nullptr;
-    results[i] = optixModuleCreateWithTasks(context,
-                                            &module_options,
-                                            &pipeline_options,
-                                            osl_kernels[i].ptx.data(),
-                                            osl_kernels[i].ptx.size(),
-                                            nullptr,
-                                            nullptr,
-                                            &osl_modules[i],
-                                            &task);
-    if (results[i] == OPTIX_SUCCESS) {
-      execute_optix_task(pool, task, results[i]);
-    }
-#    elif OPTIX_ABI_VERSION >= 55
-    OptixTask task = nullptr;
-    results[i] = optixModuleCreateFromPTXWithTasks(context,
-                                                   &module_options,
-                                                   &pipeline_options,
-                                                   osl_kernels[i].ptx.data(),
-                                                   osl_kernels[i].ptx.size(),
-                                                   nullptr,
-                                                   nullptr,
-                                                   &osl_modules[i],
-                                                   &task);
-    if (results[i] == OPTIX_SUCCESS) {
-      execute_optix_task(pool, task, results[i]);
-    }
-#    else
-    pool.push([this, &results, i, &module_options, &osl_kernels]() {
-      results[i] = optixModuleCreateFromPTX(context,
-                                            &module_options,
-                                            &pipeline_options,
-                                            osl_kernels[i].ptx.data(),
-                                            osl_kernels[i].ptx.size(),
-                                            nullptr,
-                                            nullptr,
-                                            &osl_modules[i]);
-    });
-#    endif
+    create_optix_module(pool, module_options, osl_kernels[i].ptx, osl_modules[i], results[i]);
   }
 
   pool.wait_work();
