@@ -53,11 +53,6 @@ BLOCKLIST_OSL = [
     'image_log.blend',
     'image_non_color.blend',
     'image_mapping_udim.blend',
-    # OSL handles bump + displacement differently from SVM. There are OSL variants of these tests
-    'both_displacement.blend',
-    'bump_with_displacement.blend',
-    # Ray portal test uses bump + displacement
-    'ray_portal.blend',
     # TODO: Tests that need investigating into why they're failing, and how to fix that.
     # Noise differences due to Principled BSDF mixing/layering used in some of these scenes
     'render_passes_.*.blend',
