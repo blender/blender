@@ -701,7 +701,7 @@ class USERPREF_PT_system_display_graphics(SystemPanel, CenterAlignMixIn, Panel):
 
         if system.gpu_backend == 'VULKAN':
             col = layout.column()
-            col.label(text="The Vulkan backend is experimental:", icon='INFO')
+            col.label(text="Vulkan backend limitations:", icon='INFO')
             col.label(text="\u2022 USD/Hydra is not supported", icon='BLANK1')
 
 
