@@ -1712,7 +1712,7 @@ static void property_enum_translate(PropertyRNA *prop,
                                     const int *totitem,
                                     bool *r_free)
 {
-  if (!(prop->flag & PROP_ENUM_NO_TRANSLATE)) {
+  if (!(RNA_property_flag(prop) & PROP_ENUM_NO_TRANSLATE)) {
     int i;
 
     /* NOTE: Only do those tests once, and then use BLT_pgettext. */
@@ -1747,9 +1747,11 @@ static void property_enum_translate(PropertyRNA *prop,
       *r_free = true;
     }
 
+    const char *translation_context = RNA_property_translation_context(prop);
+
     for (i = 0; nitem[i].identifier; i++) {
       if (nitem[i].name && do_iface) {
-        nitem[i].name = BLT_pgettext(prop->translation_context, nitem[i].name);
+        nitem[i].name = BLT_pgettext(translation_context, nitem[i].name);
       }
       if (nitem[i].description && do_tooltip) {
         nitem[i].description = BLT_pgettext(nullptr, nitem[i].description);
@@ -1797,7 +1799,7 @@ void RNA_property_enum_items_gettexted_all(bContext *C,
   }
 
   if (eprop->item_fn != nullptr) {
-    const bool no_context = (prop->flag & PROP_ENUM_NO_CONTEXT) ||
+    const bool no_context = (eprop->property.flag & PROP_ENUM_NO_CONTEXT) ||
                             ((ptr->type->flag & STRUCT_NO_CONTEXT_WITHOUT_OWNER_ID) &&
                              (ptr->owner_id == nullptr));
     if (C != nullptr || no_context) {
@@ -2019,7 +2021,7 @@ bool RNA_property_enum_name_gettexted(
 
   if (result) {
     if (!(prop->flag & PROP_ENUM_NO_TRANSLATE)) {
-      *r_name = BLT_translate_do_iface(prop->translation_context, *r_name);
+      *r_name = BLT_translate_do_iface(RNA_property_translation_context(prop), *r_name);
     }
   }
 
@@ -2059,8 +2061,8 @@ bool RNA_property_enum_item_from_value_gettexted(
 {
   const bool result = RNA_property_enum_item_from_value(C, ptr, prop, value, r_item);
 
-  if (result && !(prop->flag & PROP_ENUM_NO_TRANSLATE)) {
-    r_item->name = BLT_translate_do_iface(prop->translation_context, r_item->name);
+  if (result && !(RNA_property_flag(prop) & PROP_ENUM_NO_TRANSLATE)) {
+    r_item->name = BLT_translate_do_iface(RNA_property_translation_context(prop), r_item->name);
     r_item->description = BLT_translate_do_tooltip(nullptr, r_item->description);
   }
 
@@ -2088,7 +2090,7 @@ int RNA_property_enum_bitflag_identifiers(
 
 const char *RNA_property_ui_name(const PropertyRNA *prop)
 {
-  return CTX_IFACE_(prop->translation_context, rna_ensure_property_name(prop));
+  return CTX_IFACE_(RNA_property_translation_context(prop), rna_ensure_property_name(prop));
 }
 
 const char *RNA_property_ui_name_raw(const PropertyRNA *prop)
