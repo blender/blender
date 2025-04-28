@@ -49,6 +49,9 @@ void blend_test(float4 source_a, float4 source_b, float4 expected_result)
   EXPECT_EQ(read_back, expected_result);
 
   GPU_offscreen_free(offscreen);
+
+  /* Reset default. */
+  GPU_blend(GPU_BLEND_NONE);
 }
 
 static void test_blend_none()
