@@ -6,6 +6,7 @@
  * \ingroup edobj
  */
 
+#include <cmath>
 #include <sys/stat.h>
 
 #include "MEM_guardedalloc.h"
@@ -1018,8 +1019,8 @@ static bool bake_targets_init_vertex_colors(Main *bmain,
   targets->materials_num = ob->totcol;
 
   BakeImage *bk_image = &targets->images[0];
-  bk_image->width = mesh->corners_num;
-  bk_image->height = 1;
+  bk_image->width = std::ceil(std::sqrt(mesh->corners_num));
+  bk_image->height = bk_image->width;
   bk_image->offset = 0;
   bk_image->image = nullptr;
 
