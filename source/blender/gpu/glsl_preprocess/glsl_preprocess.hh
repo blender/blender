@@ -18,6 +18,129 @@
 
 namespace blender::gpu::shader {
 
+/* Metadata extracted from shader source file.
+ * These are then converted to their GPU module equivalent. */
+/* TODO(fclem): Make GPU enums standalone and directly use them instead of using separate enums
+ * and types. */
+namespace metadata {
+
+/* Compile-time hashing function which converts string to a 64bit hash. */
+constexpr static uint64_t hash(const char *name)
+{
+  uint64_t hash = 2166136261u;
+  while (*name) {
+    hash = hash * 16777619u;
+    hash = hash ^ *name;
+    ++name;
+  }
+  return hash;
+}
+
+static uint64_t hash(const std::string &name)
+{
+  return hash(name.c_str());
+}
+
+enum Builtin : uint64_t {
+  FragCoord = hash("gl_FragCoord"),
+  FrontFacing = hash("gl_FrontFacing"),
+  GlobalInvocationID = hash("gl_GlobalInvocationID"),
+  InstanceID = hash("gl_InstanceID"),
+  LocalInvocationID = hash("gl_LocalInvocationID"),
+  LocalInvocationIndex = hash("gl_LocalInvocationIndex"),
+  NumWorkGroup = hash("gl_NumWorkGroup"),
+  PointCoord = hash("gl_PointCoord"),
+  PointSize = hash("gl_PointSize"),
+  PrimitiveID = hash("gl_PrimitiveID"),
+  VertexID = hash("gl_VertexID"),
+  WorkGroupID = hash("gl_WorkGroupID"),
+  WorkGroupSize = hash("gl_WorkGroupSize"),
+  drw_debug = hash("drw_debug_"),
+  printf = hash("printf"),
+  assert = hash("assert"),
+};
+
+enum Qualifier : uint64_t {
+  in = hash("in"),
+  out = hash("out"),
+  inout = hash("inout"),
+};
+
+enum Type : uint64_t {
+  float1 = hash("float"),
+  float2 = hash("float2"),
+  float3 = hash("float3"),
+  float4 = hash("float4"),
+  float3x3 = hash("float3x3"),
+  float4x4 = hash("float4x4"),
+  sampler1DArray = hash("sampler1DArray"),
+  sampler2DArray = hash("sampler2DArray"),
+  sampler2D = hash("sampler2D"),
+  sampler3D = hash("sampler3D"),
+  Closure = hash("Closure"),
+};
+
+struct ArgumentFormat {
+  Qualifier qualifier;
+  Type type;
+};
+
+struct FunctionFormat {
+  std::string name;
+  std::vector<ArgumentFormat> arguments;
+};
+
+struct PrintfFormat {
+  uint32_t hash;
+  std::string format;
+};
+
+struct Source {
+  std::vector<Builtin> builtins;
+  /* Note: Could be a set, but for now the order matters. */
+  std::vector<std::string> dependencies;
+  std::vector<PrintfFormat> printf_formats;
+  std::vector<FunctionFormat> functions;
+
+  std::string serialize(const std::string &function_name) const
+  {
+    std::stringstream ss;
+    ss << "static void " << function_name
+       << "(GPUSource &source, GPUFunctionDictionnary *g_functions, GPUPrintFormatMap *g_formats) "
+          "{\n";
+    for (auto function : functions) {
+      ss << "  {\n";
+      ss << "    Vector<metadata::ArgumentFormat> args = {\n";
+      for (auto arg : function.arguments) {
+        ss << "      "
+           << "metadata::ArgumentFormat{"
+           << "metadata::Qualifier(" << std::to_string(uint64_t(arg.qualifier)) << "LLU), "
+           << "metadata::Type(" << std::to_string(uint64_t(arg.type)) << "LLU)"
+           << "},\n";
+      }
+      ss << "    };\n";
+      ss << "    source.add_function(\"" << function.name << "\", args, g_functions);\n";
+      ss << "  }\n";
+    }
+    for (auto builtin : builtins) {
+      ss << "  source.add_builtin(metadata::Builtin(" << std::to_string(builtin) << "LLU));\n";
+    }
+    for (auto dependency : dependencies) {
+      ss << "  source.add_dependency(\"" << dependency << "\");\n";
+    }
+    for (auto format : printf_formats) {
+      ss << "  source.add_printf_format(uint32_t(" << std::to_string(format.hash) << "), "
+         << format.format << ", g_formats);\n";
+    }
+    /* Avoid warnings. */
+    ss << "  UNUSED_VARS(source, g_functions, g_formats);\n";
+    ss << "}\n";
+    return ss.str();
+  }
+};
+
+}  // namespace metadata
+
 /**
  * Shader source preprocessor that allow to mutate GLSL into cross API source that can be
  * interpreted by the different GPU backends. Some syntax are mutated or reported as incompatible.
@@ -35,11 +158,8 @@ class Preprocessor {
   };
 
   std::vector<SharedVar> shared_vars_;
-  std::unordered_set<std::string> static_strings_;
-  std::unordered_set<std::string> gpu_builtins_;
-  /* Note: Could be a set, but for now the order matters. */
-  std::vector<std::string> dependencies_;
-  std::stringstream gpu_functions_;
+
+  metadata::Source metadata;
 
  public:
   enum SourceLanguage {
@@ -66,30 +186,14 @@ class Preprocessor {
     return UNKNOWN;
   }
 
-  /* Compile-time hashing function which converts string to a 64bit hash. */
-  constexpr static uint64_t hash(const char *name)
-  {
-    uint64_t hash = 2166136261u;
-    while (*name) {
-      hash = hash * 16777619u;
-      hash = hash ^ *name;
-      ++name;
-    }
-    return hash;
-  }
-
-  static uint64_t hash(const std::string &name)
-  {
-    return hash(name.c_str());
-  }
-
   /* Takes a whole source file and output processed source. */
   std::string process(SourceLanguage language,
                       std::string str,
                       const std::string &filename,
                       bool do_parse_function,
                       bool do_small_type_linting,
-                      report_callback report_error)
+                      report_callback report_error,
+                      metadata::Source &r_metadata)
   {
     if (language == UNKNOWN) {
       report_error(std::smatch(), "Unknown file type");
@@ -97,7 +201,7 @@ class Preprocessor {
     }
     str = remove_comments(str, report_error);
     threadgroup_variables_parsing(str);
-    parse_builtins(str);
+    parse_builtins(str, filename);
     if (language == BLENDER_GLSL || language == CPP) {
       if (do_parse_function) {
         parse_library_functions(str);
@@ -125,16 +229,16 @@ class Preprocessor {
     }
     str = argument_decorator_macro_injection(str);
     str = array_constructor_macro_injection(str);
-    return line_directive_prefix(filename) + str + threadgroup_variables_suffix() +
-           "//__blender_metadata_sta\n" + gpu_functions_.str() + static_strings_suffix() +
-           gpu_builtins_suffix(filename) + dependency_suffix() + "//__blender_metadata_end\n";
+    r_metadata = metadata;
+    return line_directive_prefix(filename) + str + threadgroup_variables_suffix();
   }
 
   /* Variant use for python shaders. */
   std::string process(const std::string &str)
   {
     auto no_err_report = [](std::smatch, const char *) {};
-    return process(GLSL, str, "", false, false, no_err_report);
+    metadata::Source unused;
+    return process(GLSL, str, "", false, false, no_err_report, unused);
   }
 
  private:
@@ -221,7 +325,7 @@ class Preprocessor {
         /* Skip info files. They are only for IDE linting. */
         return;
       }
-      dependencies_.emplace_back(dependency_name);
+      metadata.dependencies.emplace_back(dependency_name);
     });
   }
 
@@ -230,18 +334,6 @@ class Preprocessor {
     /* Remove unsupported directives.` */
     std::regex regex(R"(#\s*(?:include|pragma once)[^\n]*)");
     return std::regex_replace(str, regex, "");
-  }
-
-  std::string dependency_suffix()
-  {
-    if (dependencies_.empty()) {
-      return "";
-    }
-    std::stringstream suffix;
-    for (const std::string &filename : dependencies_) {
-      suffix << "// " << std::to_string(hash("dependency")) << " " << filename << "\n";
-    }
-    return suffix.str();
   }
 
   void threadgroup_variables_parsing(const std::string &str)
@@ -254,11 +346,14 @@ class Preprocessor {
 
   void parse_library_functions(const std::string &str)
   {
+    using namespace metadata;
     std::regex regex_func(R"(void\s+(\w+)\s*\(([^)]+\))\s*\{)");
     regex_global_search(str, regex_func, [&](const std::smatch &match) {
       std::string name = match[1].str();
       std::string args = match[2].str();
-      gpu_functions_ << "// " << hash("function") << " " << name;
+
+      FunctionFormat fn;
+      fn.name = name;
 
       std::regex regex_arg(R"((?:(const|in|out|inout)\s)?(\w+)\s([\w\[\]]+)(?:,|\)))");
       regex_global_search(args, regex_arg, [&](const std::smatch &arg) {
@@ -267,14 +362,19 @@ class Preprocessor {
         if (qualifier.empty() || qualifier == "const") {
           qualifier = "in";
         }
-        gpu_functions_ << ' ' << hash(qualifier) << ' ' << hash(type);
+        fn.arguments.emplace_back(
+            ArgumentFormat{metadata::Qualifier(hash(qualifier)), metadata::Type(hash(type))});
       });
-      gpu_functions_ << "\n";
+      metadata.functions.emplace_back(fn);
     });
   }
 
-  void parse_builtins(const std::string &str)
+  void parse_builtins(const std::string &str, const std::string &filename)
   {
+    const bool skip_drw_debug = filename.find("draw_debug_draw_lib.glsl") != std::string::npos ||
+                                filename.find("draw_debug_draw_display_vert.glsl") !=
+                                    std::string::npos;
+    using namespace metadata;
     /* TODO: This can trigger false positive caused by disabled #if blocks. */
     std::regex regex(
         "("
@@ -297,28 +397,12 @@ class Preprocessor {
 #endif
         "printf"
         ")");
-    regex_global_search(
-        str, regex, [&](const std::smatch &match) { gpu_builtins_.insert(match[0].str()); });
-  }
-
-  std::string gpu_builtins_suffix(const std::string &filename)
-  {
-    if (gpu_builtins_.empty()) {
-      return "";
-    }
-
-    const bool skip_drw_debug = filename.find("draw_debug_draw_lib.glsl") != std::string::npos ||
-                                filename.find("draw_debug_draw_display_vert.glsl") !=
-                                    std::string::npos;
-
-    std::stringstream suffix;
-    for (const std::string &str_var : gpu_builtins_) {
-      if (str_var == "drw_debug_" && skip_drw_debug) {
-        continue;
+    regex_global_search(str, regex, [&](const std::smatch &match) {
+      if (skip_drw_debug && match[0].str() == "drw_debug_") {
+        return;
       }
-      suffix << "// " << hash("builtin") << " " << hash(str_var) << "\n";
-    }
-    return suffix.str();
+      metadata.builtins.emplace_back(Builtin(hash(match[0].str())));
+    });
   }
 
   template<typename ReportErrorF>
@@ -394,26 +478,30 @@ class Preprocessor {
     return std::regex_replace(str, regex, replacement);
   }
 
-  void static_strings_parsing(const std::string &str)
-  {
-    /* Matches any character inside a pair of un-escaped quote. */
-    std::regex regex(R"("(?:[^"])*")");
-    regex_global_search(
-        str, regex, [&](const std::smatch &match) { static_strings_.insert(match[0].str()); });
-  }
-
   /* String hash are outputted inside GLSL and needs to fit 32 bits. */
-  static uint64_t hash_string(const std::string &str)
+  static uint32_t hash_string(const std::string &str)
   {
-    uint64_t hash_64 = hash(str);
+    uint64_t hash_64 = metadata::hash(str);
     uint32_t hash_32 = uint32_t(hash_64 ^ (hash_64 >> 32));
     return hash_32;
+  }
+
+  void static_strings_parsing(const std::string &str)
+  {
+    using namespace metadata;
+    /* Matches any character inside a pair of un-escaped quote. */
+    std::regex regex(R"("(?:[^"])*")");
+    regex_global_search(str, regex, [&](const std::smatch &match) {
+      std::string format = match[0].str();
+      metadata.printf_formats.emplace_back(metadata::PrintfFormat{hash_string(format), format});
+    });
   }
 
   std::string static_strings_mutation(std::string str)
   {
     /* Replaces all matches by the respective string hash. */
-    for (const std::string &str_var : static_strings_) {
+    for (const metadata::PrintfFormat &format : metadata.printf_formats) {
+      const std::string &str_var = format.format;
       std::regex escape_regex(R"([\\\.\^\$\+\(\)\[\]\{\}\|\?\*])");
       std::string str_regex = std::regex_replace(str_var, escape_regex, "\\$&");
 
@@ -421,19 +509,6 @@ class Preprocessor {
       str = std::regex_replace(str, regex, std::to_string(hash_string(str_var)) + 'u');
     }
     return str;
-  }
-
-  std::string static_strings_suffix()
-  {
-    if (static_strings_.empty()) {
-      return "";
-    }
-    std::stringstream suffix;
-    for (const std::string &str_var : static_strings_) {
-      std::string no_quote = str_var.substr(1, str_var.size() - 2);
-      suffix << "// " << hash("string") << " " << hash_string(str_var) << " " << no_quote << "\n";
-    }
-    return suffix.str();
   }
 
   std::string enum_macro_injection(std::string str)
@@ -677,7 +752,7 @@ class Preprocessor {
       suffix << "\"" << filename << "\"";
     }
 #else
-    uint64_t hash_value = hash(filename);
+    uint64_t hash_value = metadata::hash(filename);
     /* Fold the value so it fits the GLSL spec. */
     hash_value = (hash_value ^ (hash_value >> 32)) & (~uint64_t(0) >> 33);
     suffix << std::to_string(uint64_t(hash_value));
@@ -686,50 +761,5 @@ class Preprocessor {
     return suffix.str();
   }
 };
-
-/* Enum values of metadata that the preprocessor can append at the end of a source file.
- * Eventually, remove the need for these and output the metadata inside header files. */
-namespace metadata {
-
-enum Builtin : uint64_t {
-  FragCoord = Preprocessor::hash("gl_FragCoord"),
-  FrontFacing = Preprocessor::hash("gl_FrontFacing"),
-  GlobalInvocationID = Preprocessor::hash("gl_GlobalInvocationID"),
-  InstanceID = Preprocessor::hash("gl_InstanceID"),
-  LocalInvocationID = Preprocessor::hash("gl_LocalInvocationID"),
-  LocalInvocationIndex = Preprocessor::hash("gl_LocalInvocationIndex"),
-  NumWorkGroup = Preprocessor::hash("gl_NumWorkGroup"),
-  PointCoord = Preprocessor::hash("gl_PointCoord"),
-  PointSize = Preprocessor::hash("gl_PointSize"),
-  PrimitiveID = Preprocessor::hash("gl_PrimitiveID"),
-  VertexID = Preprocessor::hash("gl_VertexID"),
-  WorkGroupID = Preprocessor::hash("gl_WorkGroupID"),
-  WorkGroupSize = Preprocessor::hash("gl_WorkGroupSize"),
-  drw_debug = Preprocessor::hash("drw_debug_"),
-  printf = Preprocessor::hash("printf"),
-  assert = Preprocessor::hash("assert"),
-};
-
-enum Qualifier : uint64_t {
-  in = Preprocessor::hash("in"),
-  out = Preprocessor::hash("out"),
-  inout = Preprocessor::hash("inout"),
-};
-
-enum Type : uint64_t {
-  float1 = Preprocessor::hash("float"),
-  float2 = Preprocessor::hash("float2"),
-  float3 = Preprocessor::hash("float3"),
-  float4 = Preprocessor::hash("float4"),
-  float3x3 = Preprocessor::hash("float3x3"),
-  float4x4 = Preprocessor::hash("float4x4"),
-  sampler1DArray = Preprocessor::hash("sampler1DArray"),
-  sampler2DArray = Preprocessor::hash("sampler2DArray"),
-  sampler2D = Preprocessor::hash("sampler2D"),
-  sampler3D = Preprocessor::hash("sampler3D"),
-  Closure = Preprocessor::hash("Closure"),
-};
-
-}  // namespace metadata
 
 }  // namespace blender::gpu::shader
