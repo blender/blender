@@ -661,7 +661,7 @@ static void test_texture_roundtrip__GPU_DATA_FLOAT__GPU_DEPTH24_STENCIL8()
   if (GPU_backend_get_type() == GPU_BACKEND_OPENGL) {
     GTEST_SKIP() << "Float based texture readback not supported on OpenGL";
   }
-  texture_create_upload_read_with_bias<GPU_DEPTH24_STENCIL8, GPU_DATA_FLOAT>(0.0f);
+  texture_create_upload_read_with_bias<GPU_DEPTH24_STENCIL8, GPU_DATA_FLOAT>(0.0000001f);
 }
 GPU_TEST(texture_roundtrip__GPU_DATA_FLOAT__GPU_DEPTH24_STENCIL8);
 

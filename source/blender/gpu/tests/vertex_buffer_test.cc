@@ -85,7 +85,14 @@ static void vertex_buffer_fetch_mode(ColorType color)
         BLI_assert_unreachable();
     }
   }
-  EXPECT_EQ(read_data[0], float4(color));
+
+  if (fetch_mode == GPU_FETCH_FLOAT) {
+    EXPECT_EQ(read_data[0], float4(color));
+  }
+  else {
+    /* Do integer comparison to avoid floating point inaccuracies from each conversion steps. */
+    EXPECT_EQ(int4(read_data[0]), int4(float4(color)));
+  }
 
   GPU_batch_discard(batch);
   GPU_offscreen_free(offscreen);
