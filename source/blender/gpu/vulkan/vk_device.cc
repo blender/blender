@@ -464,6 +464,14 @@ void VKDevice::context_register(VKContext &context)
 
 void VKDevice::context_unregister(VKContext &context)
 {
+  if (context.render_graph_.has_value()) {
+    render_graph::VKRenderGraph &render_graph = context.render_graph();
+    context.render_graph_.reset();
+    BLI_assert_msg(render_graph.is_empty(),
+                   "Unregistering a context that still has an unsubmitted render graph.");
+    render_graph.reset();
+    BLI_thread_queue_push(unused_render_graphs_, &render_graph);
+  }
   orphaned_data.move_data(context.discard_pool, timeline_value_ + 1);
   contexts_.remove(contexts_.first_index_of(std::reference_wrapper(context)));
 }

@@ -27,6 +27,7 @@ class VKBatch;
 class VKStateManager;
 class VKShader;
 class VKThreadData;
+class VKDevice;
 
 enum RenderGraphFlushFlags {
   NONE = 0,
@@ -37,6 +38,8 @@ enum RenderGraphFlushFlags {
 ENUM_OPERATORS(RenderGraphFlushFlags, RenderGraphFlushFlags::WAIT_FOR_COMPLETION);
 
 class VKContext : public Context, NonCopyable {
+  friend class VKDevice;
+
  private:
   VkExtent2D vk_extent_ = {};
   VkSurfaceFormatKHR swap_chain_format_ = {};
