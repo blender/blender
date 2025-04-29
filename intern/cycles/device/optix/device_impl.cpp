@@ -228,6 +228,7 @@ void OptiXDevice::create_optix_module(TaskPool &pool,
     execute_optix_task(pool, task, result);
   }
 #  else
+  (void)pool;
   result = optixModuleCreateFromPTX(context,
                                     &module_options,
                                     &pipeline_options,
