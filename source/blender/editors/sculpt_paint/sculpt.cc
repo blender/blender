@@ -1296,12 +1296,7 @@ static float area_normal_and_center_get_position_radius(const SculptSession &ss,
   float test_radius = ss.cache ? ss.cache->radius : ss.cursor_radius;
   if (brush.ob_mode == OB_MODE_SCULPT) {
     /* Layer brush produces artifacts with normal and area radius */
-    if (ELEM(brush.sculpt_brush_type,
-             SCULPT_BRUSH_TYPE_PLANE,
-             SCULPT_BRUSH_TYPE_SCRAPE,
-             SCULPT_BRUSH_TYPE_FILL) &&
-        brush.area_radius_factor > 0.0f)
-    {
+    if (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_PLANE && brush.area_radius_factor > 0.0f) {
       test_radius *= brush.area_radius_factor;
       if (ss.cache && brush.flag2 & BRUSH_AREA_RADIUS_PRESSURE) {
         test_radius *= ss.cache->pressure;
@@ -2150,14 +2145,6 @@ void calc_area_normal_and_center(const Depsgraph &depsgraph,
  */
 static float brush_flip(const Brush &brush, const blender::ed::sculpt_paint::StrokeCache &cache)
 {
-  /* The Fill and Scrape brushes do not invert direction when this flag is set. The behavior of
-   * the brush completely changes. */
-  if (ELEM(brush.sculpt_brush_type, SCULPT_BRUSH_TYPE_FILL, SCULPT_BRUSH_TYPE_SCRAPE) &&
-      brush.flag & BRUSH_INVERT_TO_SCRAPE_FILL)
-  {
-    return 1.0f;
-  }
-
   const float dir = (brush.flag & BRUSH_DIR_IN) ? -1.0f : 1.0f;
   const float pen_flip = cache.pen_flip ? -1.0f : 1.0f;
   const float invert = cache.invert ? -1.0f : 1.0f;
@@ -2276,18 +2263,6 @@ static float brush_strength(const Sculpt &sd,
       else {
         return 0.5f * alpha * pressure * overlap * feather;
       }
-    case SCULPT_BRUSH_TYPE_FILL:
-    case SCULPT_BRUSH_TYPE_SCRAPE:
-    case SCULPT_BRUSH_TYPE_FLATTEN:
-      if (flip > 0.0f) {
-        overlap = (1.0f + overlap) / 2.0f;
-        return alpha * flip * pressure * overlap * feather;
-      }
-      else {
-        /* Reduce strength for DEEPEN, PEAKS, and CONTRAST. */
-        return 0.5f * alpha * flip * pressure * overlap * feather;
-      }
-
     case SCULPT_BRUSH_TYPE_SMOOTH:
       return flip * alpha * pressure * feather;
 
@@ -3381,9 +3356,6 @@ static void do_brush_action(const Depsgraph &depsgraph,
     case SCULPT_BRUSH_TYPE_LAYER:
       brushes::do_layer_brush(depsgraph, sd, ob, node_mask);
       break;
-    case SCULPT_BRUSH_TYPE_FLATTEN:
-      brushes::do_flatten_brush(depsgraph, sd, ob, node_mask);
-      break;
     case SCULPT_BRUSH_TYPE_CLAY:
       brushes::do_clay_brush(depsgraph, sd, ob, node_mask);
       break;
@@ -3401,22 +3373,6 @@ static void do_brush_action(const Depsgraph &depsgraph,
       break;
     case SCULPT_BRUSH_TYPE_CLAY_THUMB:
       brushes::do_clay_thumb_brush(depsgraph, sd, ob, node_mask);
-      break;
-    case SCULPT_BRUSH_TYPE_FILL:
-      if (invert && brush.flag & BRUSH_INVERT_TO_SCRAPE_FILL) {
-        brushes::do_scrape_brush(depsgraph, sd, ob, node_mask);
-      }
-      else {
-        brushes::do_fill_brush(depsgraph, sd, ob, node_mask);
-      }
-      break;
-    case SCULPT_BRUSH_TYPE_SCRAPE:
-      if (invert && brush.flag & BRUSH_INVERT_TO_SCRAPE_FILL) {
-        brushes::do_fill_brush(depsgraph, sd, ob, node_mask);
-      }
-      else {
-        brushes::do_scrape_brush(depsgraph, sd, ob, node_mask);
-      }
       break;
     case SCULPT_BRUSH_TYPE_MASK:
       switch ((BrushMaskTool)brush.mask_tool) {
@@ -3825,18 +3781,12 @@ static const char *sculpt_brush_type_name(const Sculpt &sd)
       return "Thumb Brush";
     case SCULPT_BRUSH_TYPE_LAYER:
       return "Layer Brush";
-    case SCULPT_BRUSH_TYPE_FLATTEN:
-      return "Flatten Brush";
     case SCULPT_BRUSH_TYPE_CLAY:
       return "Clay Brush";
     case SCULPT_BRUSH_TYPE_CLAY_STRIPS:
       return "Clay Strips Brush";
     case SCULPT_BRUSH_TYPE_CLAY_THUMB:
       return "Clay Thumb Brush";
-    case SCULPT_BRUSH_TYPE_FILL:
-      return "Fill Brush";
-    case SCULPT_BRUSH_TYPE_SCRAPE:
-      return "Scrape Brush";
     case SCULPT_BRUSH_TYPE_SNAKE_HOOK:
       return "Snake Hook Brush";
     case SCULPT_BRUSH_TYPE_ROTATE:

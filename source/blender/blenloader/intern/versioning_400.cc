@@ -7178,6 +7178,52 @@ static void version_set_uv_face_overlay_defaults(Main *bmain)
   }
 }
 
+static void version_convert_sculpt_planar_brushes(Main *bmain)
+{
+  LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
+    if (ELEM(brush->sculpt_brush_type,
+             SCULPT_BRUSH_TYPE_FLATTEN,
+             SCULPT_BRUSH_TYPE_FILL,
+             SCULPT_BRUSH_TYPE_SCRAPE))
+    {
+      if (brush->sculpt_brush_type == SCULPT_BRUSH_TYPE_FLATTEN) {
+        brush->plane_height = 1.0f;
+        brush->plane_depth = 1.0f;
+        brush->area_radius_factor = 1.0f;
+        brush->plane_inversion_mode = BRUSH_PLANE_INVERT_DISPLACEMENT;
+      }
+
+      if (brush->sculpt_brush_type == SCULPT_BRUSH_TYPE_FILL) {
+        brush->plane_height = 0.0f;
+        brush->plane_depth = 1.0f;
+        brush->plane_inversion_mode = brush->flag & BRUSH_INVERT_TO_SCRAPE_FILL ?
+                                          BRUSH_PLANE_SWAP_HEIGHT_AND_DEPTH :
+                                          BRUSH_PLANE_INVERT_DISPLACEMENT;
+      }
+
+      if (brush->sculpt_brush_type == SCULPT_BRUSH_TYPE_SCRAPE) {
+        brush->plane_height = 1.0f;
+        brush->plane_depth = 0.0f;
+        brush->plane_inversion_mode = brush->flag & BRUSH_INVERT_TO_SCRAPE_FILL ?
+                                          BRUSH_PLANE_SWAP_HEIGHT_AND_DEPTH :
+                                          BRUSH_PLANE_INVERT_DISPLACEMENT;
+      }
+
+      if (brush->flag & BRUSH_PLANE_TRIM) {
+        brush->plane_height *= brush->plane_trim;
+        brush->plane_depth *= brush->plane_trim;
+      }
+
+      brush->stabilize_normal = (brush->flag & BRUSH_ORIGINAL_NORMAL) ? 1.0f : 0.0f;
+      brush->stabilize_plane = (brush->flag & BRUSH_ORIGINAL_PLANE) ? 1.0f : 0.0f;
+      brush->flag &= ~BRUSH_ORIGINAL_NORMAL;
+      brush->flag &= ~BRUSH_ORIGINAL_PLANE;
+
+      brush->sculpt_brush_type = SCULPT_BRUSH_TYPE_PLANE;
+    }
+  }
+}
+
 void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
 {
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 400, 1)) {
@@ -9901,6 +9947,10 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
       }
     }
     FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 56)) {
+    version_convert_sculpt_planar_brushes(bmain);
   }
 
   /* Always run this versioning (keep at the bottom of the function). Meshes are written with the

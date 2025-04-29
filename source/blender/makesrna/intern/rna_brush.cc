@@ -158,9 +158,6 @@ const EnumPropertyItem rna_enum_brush_sculpt_brush_type_items[] = {
     {SCULPT_BRUSH_TYPE_CREASE, "CREASE", 0, "Crease", ""},
     RNA_ENUM_ITEM_SEPR,
     {SCULPT_BRUSH_TYPE_SMOOTH, "SMOOTH", 0, "Smooth", ""},
-    {SCULPT_BRUSH_TYPE_FLATTEN, "FLATTEN", 0, "Flatten", ""},
-    {SCULPT_BRUSH_TYPE_FILL, "FILL", 0, "Fill", ""},
-    {SCULPT_BRUSH_TYPE_SCRAPE, "SCRAPE", 0, "Scrape", ""},
     {SCULPT_BRUSH_TYPE_PLANE, "PLANE", 0, "Plane", ""},
     {SCULPT_BRUSH_TYPE_MULTIPLANE_SCRAPE, "MULTIPLANE_SCRAPE", 0, "Multi-plane Scrape", ""},
     {SCULPT_BRUSH_TYPE_PINCH, "PINCH", 0, "Pinch", ""},
@@ -796,24 +793,6 @@ static const EnumPropertyItem *rna_Brush_direction_itemf(bContext *C,
   PaintMode mode = BKE_paintmode_get_active_from_context(C);
 
   /* sculpt mode */
-  static const EnumPropertyItem prop_flatten_contrast_items[] = {
-      {BRUSH_DIR_IN, "CONTRAST", ICON_ADD, "Contrast", "Subtract effect of brush"},
-      {0, "FLATTEN", ICON_REMOVE, "Flatten", "Add effect of brush"},
-      {0, nullptr, 0, nullptr, nullptr},
-  };
-
-  static const EnumPropertyItem prop_fill_deepen_items[] = {
-      {0, "FILL", ICON_ADD, "Fill", "Add effect of brush"},
-      {BRUSH_DIR_IN, "DEEPEN", ICON_REMOVE, "Deepen", "Subtract effect of brush"},
-      {0, nullptr, 0, nullptr, nullptr},
-  };
-
-  static const EnumPropertyItem prop_scrape_peaks_items[] = {
-      {0, "SCRAPE", ICON_ADD, "Scrape", "Add effect of brush"},
-      {BRUSH_DIR_IN, "PEAKS", ICON_REMOVE, "Peaks", "Subtract effect of brush"},
-      {0, nullptr, 0, nullptr, nullptr},
-  };
-
   static const EnumPropertyItem prop_pinch_magnify_items[] = {
       {BRUSH_DIR_IN, "MAGNIFY", ICON_ADD, "Magnify", "Subtract effect of brush"},
       {0, "PINCH", ICON_REMOVE, "Pinch", "Add effect of brush"},
@@ -872,15 +851,6 @@ static const EnumPropertyItem *rna_Brush_direction_itemf(bContext *C,
             default:
               return rna_enum_dummy_DEFAULT_items;
           }
-
-        case SCULPT_BRUSH_TYPE_FLATTEN:
-          return prop_flatten_contrast_items;
-
-        case SCULPT_BRUSH_TYPE_FILL:
-          return prop_fill_deepen_items;
-
-        case SCULPT_BRUSH_TYPE_SCRAPE:
-          return prop_scrape_peaks_items;
 
         case SCULPT_BRUSH_TYPE_PINCH:
           return prop_pinch_magnify_items;
