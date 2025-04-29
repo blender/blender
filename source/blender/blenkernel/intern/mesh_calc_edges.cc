@@ -31,6 +31,7 @@ static uint64_t edge_hash_2(const OrderedEdge &edge)
 }
 
 using EdgeMap = VectorSet<OrderedEdge,
+                          16,
                           DefaultProbingStrategy,
                           DefaultHash<OrderedEdge>,
                           DefaultEquality<OrderedEdge>,

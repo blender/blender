@@ -467,6 +467,7 @@ void USDMeshReader::read_edge_creases(Mesh *mesh, const double motionSampleTime)
 
   /* Build mapping from vert pairs to edge index. */
   using EdgeMap = VectorSet<OrderedEdge,
+                            16,
                             DefaultProbingStrategy,
                             DefaultHash<OrderedEdge>,
                             DefaultEquality<OrderedEdge>,
