@@ -1454,9 +1454,10 @@ static void paint_cursor_sculpt_session_update_and_init(PaintCursorContext &pcon
 
 static void paint_update_mouse_cursor(PaintCursorContext &pcontext)
 {
-  if (pcontext.win->grabcursor != 0) {
+  if (pcontext.win->grabcursor != 0 || pcontext.win->modalcursor != 0) {
     /* Don't set the cursor while it's grabbed, since this will show the cursor when interacting
-     * with the UI (dragging a number button for e.g.), see: #102792. */
+     * with the UI (dragging a number button for e.g.), see: #102792.
+     * And don't overwrite a modal cursor, allowing modal operators to set a cursor temporarily. */
     return;
   }
 
@@ -2160,8 +2161,9 @@ static void paint_draw_cursor(
   if (!paint_cursor_is_brush_cursor_enabled(pcontext)) {
     /* For Grease Pencil draw mode, we want to we only render a small mouse cursor (dot) if the
      * paint cursor is disabled so that the default mouse cursor doesn't get in the way of tablet
-     * users. See #130089. */
-    if (pcontext.mode == PaintMode::GPencil) {
+     * users. See #130089. But don't overwrite a modal cursor, allowing modal operators to set one
+     * temporarily. */
+    if (pcontext.mode == PaintMode::GPencil && pcontext.win->modalcursor == 0) {
       WM_cursor_set(pcontext.win, WM_CURSOR_DOT);
     }
     return;
