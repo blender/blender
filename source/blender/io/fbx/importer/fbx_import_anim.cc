@@ -70,6 +70,9 @@ static Vector<ElementAnimations> gather_animated_properties(const FbxElementMapp
   int64_t order = 0;
   Map<const ufbx_element *, ElementAnimations> elem_map;
   for (const ufbx_anim_prop &fprop : flayer.anim_props) {
+    if (fprop.anim_value->curves[0] == nullptr) {
+      continue;
+    }
     bool supported_prop = false;
     //@TODO: "Visibility"?
     const bool is_position = STREQ(fprop.prop_name.data, "Lcl Translation");
