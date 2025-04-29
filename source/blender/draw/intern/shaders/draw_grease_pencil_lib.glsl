@@ -235,7 +235,8 @@ float4 gpencil_vertex(float4 viewport_res,
 
     float thickness = abs((use_curr) ? thickness1 : thickness2);
     thickness = gpencil_stroke_thickness_modulate(thickness, out_ndc, viewport_res);
-    /* The radius attribute can have negative values. Make sure that it's not negative by clamping to 0. */
+    /* The radius attribute can have negative values. Make sure that it's not negative by clamping
+     * to 0. */
     float clamped_thickness = max(0.0f, thickness);
 
     out_uv = float2(x, y) * 0.5f + 0.5f;
