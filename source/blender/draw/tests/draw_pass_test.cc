@@ -505,6 +505,12 @@ static void test_draw_submit_only()
   float4x4 projmat = math::projection::orthographic(-1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
   float4x4 viewmat = float4x4::identity();
 
+  Texture color_attachment;
+  Framebuffer framebuffer;
+  color_attachment.ensure_2d(GPU_RGBA32F, int2(1));
+  framebuffer.ensure(GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_TEXTURE(color_attachment));
+  framebuffer.bind();
+
   Manager manager;
   View view = {"Test"};
   View view_other = {"Test"};
@@ -518,7 +524,7 @@ static void test_draw_submit_only()
   view_other.sync(viewmat, projmat);
 
   /* Add some draws to prevent empty pass optimization. */
-  GPUShader *sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_IMAGE_COLOR);
+  GPUShader *sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_UNIFORM_COLOR);
   pass.init();
   pass.shader_set(sh);
   pass.draw_procedural(GPU_PRIM_TRIS, 1, 3);
