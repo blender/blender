@@ -65,12 +65,18 @@ void Instance::init()
     state.xray_opacity = state.xray_enabled ? XRAY_ALPHA(state.v3d) : 1.0f;
     state.xray_flag_enabled = SHADING_XRAY_FLAG_ENABLED(state.v3d->shading) &&
                               !state.is_depth_only_drawing;
+
+    const bool viewport_uses_workbench = state.v3d->shading.type <= OB_SOLID ||
+                                         BKE_scene_uses_blender_workbench(state.scene);
+    const bool viewport_uses_eevee = state.v3d->shading.type == OB_MATERIAL ||
+                                     (state.v3d->shading.type == OB_RENDER &&
+                                      BKE_scene_uses_blender_eevee(state.scene));
+    const bool use_resolution_scaling = BKE_render_preview_pixel_size(&state.scene->r) != 1;
     /* Only workbench ensures the depth buffer is matching overlays.
      * Force depth prepass for other render engines.
      * EEVEE is an exception (if not using mixed resolution) to avoid a significant overhead. */
-    state.is_render_depth_available = state.v3d->shading.type <= OB_SOLID ||
-                                      (BKE_scene_uses_blender_eevee(state.scene) &&
-                                       BKE_render_preview_pixel_size(&state.scene->r) == 1);
+    state.is_render_depth_available = viewport_uses_workbench ||
+                                      (viewport_uses_eevee && !use_resolution_scaling);
 
     /* For depth only drawing, no other render engine is expected. Except for Grease Pencil which
      * outputs valid depth. Otherwise depth is cleared and is valid. */
