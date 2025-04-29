@@ -1610,7 +1610,7 @@ static void file_draw_invalid_asset_library_hint(const bContext *C,
 
     const char *suggestion = RPT_(
         "Asset Libraries are local directories that can contain .blend files with assets inside.\n"
-        "Manage Asset Libraries from the File Paths section in Preferences");
+        "Manage Asset Libraries from the Assets section in the Preferences");
     file_draw_string_multiline(
         sx + UI_UNIT_X, sy, suggestion, width - UI_UNIT_X, line_height, text_col, nullptr, &sy);
 
@@ -1628,7 +1628,7 @@ static void file_draw_invalid_asset_library_hint(const bContext *C,
                                        UI_UNIT_Y,
                                        std::nullopt);
     PointerRNA *but_opptr = UI_but_operator_ptr_ensure(but);
-    RNA_enum_set(but_opptr, "section", USER_SECTION_FILE_PATHS);
+    RNA_enum_set(but_opptr, "section", USER_SECTION_ASSETS);
 
     UI_block_end(C, block);
     UI_block_draw(C, block);

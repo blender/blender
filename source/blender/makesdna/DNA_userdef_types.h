@@ -1202,6 +1202,7 @@ typedef enum eUserPref_Section {
   USER_SECTION_FILE_PATHS = 15,
   USER_SECTION_EXPERIMENTAL = 16,
   USER_SECTION_EXTENSIONS = 17,
+  USER_SECTION_ASSETS = 18,
 } eUserPref_Section;
 
 /** #UserDef_SpaceData.flag (State of the user preferences UI). */

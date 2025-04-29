@@ -1681,61 +1681,6 @@ class USERPREF_PT_saveload_autorun(FilePathsPanel, Panel):
             row.operator("preferences.autoexec_path_remove", text="", icon='X', emboss=False).index = i
 
 
-class USERPREF_PT_file_paths_asset_libraries(FilePathsPanel, Panel):
-    bl_label = "Asset Libraries"
-
-    def draw(self, context):
-        layout = self.layout
-        layout.use_property_split = False
-        layout.use_property_decorate = False
-
-        paths = context.preferences.filepaths
-        active_library_index = paths.active_asset_library
-
-        row = layout.row()
-
-        row.template_list(
-            "USERPREF_UL_asset_libraries", "user_asset_libraries",
-            paths, "asset_libraries",
-            paths, "active_asset_library",
-        )
-
-        col = row.column(align=True)
-        col.operator_menu_enum("preferences.asset_library_add", "type", text="", icon='ADD')
-        props = col.operator("preferences.asset_library_remove", text="", icon='REMOVE')
-        props.index = active_library_index
-
-        try:
-            active_library = None if active_library_index < 0 else paths.asset_libraries[active_library_index]
-        except IndexError:
-            active_library = None
-
-        if active_library is None:
-            return
-
-        layout.separator()
-
-        if active_library.use_remote_url:
-            layout.prop(active_library, "remote_url")
-        else:
-            layout.prop(active_library, "path")
-            layout.prop(active_library, "import_method", text="Import Method")
-            layout.prop(active_library, "use_relative_path")
-
-
-class USERPREF_UL_asset_libraries(UIList):
-    def draw_item(self, _context, layout, _data, item, _icon, _active_data, _active_propname, _index):
-        asset_library = item
-
-        icon = 'INTERNET' if asset_library.use_remote_url else 'DISK_DRIVE'
-
-        if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            layout.prop(asset_library, "name", text="", icon=icon, emboss=False)
-        elif self.layout_type == 'GRID':
-            layout.alignment = 'CENTER'
-            layout.prop(asset_library, "name", text="", icon=icon, emboss=False)
-
-
 class USERPREF_UL_extension_repos(UIList):
     def draw_item(self, _context, layout, _data, item, icon, _active_data, _active_propname, _index):
         repo = item
@@ -2664,6 +2609,65 @@ class USERPREF_PT_addons(AddOnPanel, Panel):
                     row.label(text=addon_module_name, translate=False)
 
 
+class USERPREF_PT_assets_asset_libraries(Panel):
+    bl_label = "Asset Libraries"
+    bl_space_type = 'PREFERENCES'
+    bl_region_type = 'WINDOW'
+    bl_context = "assets"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = False
+        layout.use_property_decorate = False
+
+        paths = context.preferences.filepaths
+        active_library_index = paths.active_asset_library
+
+        row = layout.row()
+
+        row.template_list(
+            "USERPREF_UL_asset_libraries", "user_asset_libraries",
+            paths, "asset_libraries",
+            paths, "active_asset_library",
+        )
+
+        col = row.column(align=True)
+        col.operator_menu_enum("preferences.asset_library_add", "type", text="", icon='ADD')
+        props = col.operator("preferences.asset_library_remove", text="", icon='REMOVE')
+        props.index = active_library_index
+
+        try:
+            active_library = None if active_library_index < 0 else paths.asset_libraries[active_library_index]
+        except IndexError:
+            active_library = None
+
+        if active_library is None:
+            return
+
+        layout.separator()
+
+        if active_library.use_remote_url:
+            layout.prop(active_library, "remote_url")
+        else:
+            layout.prop(active_library, "path")
+            layout.prop(active_library, "import_method", text="Import Method")
+            layout.prop(active_library, "use_relative_path")
+
+
+class USERPREF_UL_asset_libraries(UIList):
+    def draw_item(self, _context, layout, _data, item, _icon, _active_data, _active_propname, _index):
+        asset_library = item
+
+        icon = 'INTERNET' if asset_library.use_remote_url else 'DISK_DRIVE'
+
+        if self.layout_type in {'DEFAULT', 'COMPACT'}:
+            layout.prop(asset_library, "name", text="", icon=icon, emboss=False)
+        elif self.layout_type == 'GRID':
+            layout.alignment = 'CENTER'
+            layout.prop(asset_library, "name", text="", icon=icon, emboss=False)
+
+
+
 # -----------------------------------------------------------------------------
 # Studio Light Panels
 
@@ -2990,7 +2994,6 @@ classes = (
 
     USERPREF_PT_file_paths_data,
     USERPREF_PT_file_paths_render,
-    USERPREF_PT_file_paths_asset_libraries,
     USERPREF_PT_file_paths_script_directories,
     USERPREF_PT_file_paths_applications,
     USERPREF_PT_text_editor,
@@ -3018,6 +3021,8 @@ classes = (
 
     USERPREF_PT_extensions,
     USERPREF_PT_addons,
+
+    USERPREF_PT_assets_asset_libraries,
 
     USERPREF_MT_extensions_active_repo,
     USERPREF_MT_extensions_active_repo_remove,

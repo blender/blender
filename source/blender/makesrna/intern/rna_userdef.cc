@@ -59,6 +59,8 @@ const EnumPropertyItem rna_enum_preference_section_items[] = {
     {USER_SECTION_WORKSPACE_KEYMAPS, "WORKSPACE_KEYMAPS", 0, "Keymap Overrides", ""},
 #endif
     RNA_ENUM_ITEM_SEPR,
+    {USER_SECTION_ASSETS, "ASSETS", 0, "Assets", ""},
+    RNA_ENUM_ITEM_SEPR,
     {USER_SECTION_INPUT, "INPUT", 0, "Input", ""},
     {USER_SECTION_NAVIGATION, "NAVIGATION", 0, "Navigation", ""},
     {USER_SECTION_KEYMAP, "KEYMAP", 0, "Keymap", ""},
@@ -7457,6 +7459,9 @@ static void rna_def_userdef_filepaths(BlenderRNA *brna)
   prop = RNA_def_property(srna, "file_preview_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, preview_type_items);
   RNA_def_property_ui_text(prop, "File Preview Type", "What type of blend preview to create");
+
+  /* TODO: move this section to own RNA struct (out of PreferencesFilePaths)? Would break
+   * compatibility. Maybe for 5.0? */
 
   rna_def_userdef_filepaths_asset_library(brna);
 
