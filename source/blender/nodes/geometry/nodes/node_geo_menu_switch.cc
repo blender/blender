@@ -33,6 +33,11 @@ NODE_STORAGE_FUNCS(NodeMenuSwitch)
 
 static bool is_supported_socket_type(const eNodeSocketDatatype data_type)
 {
+  if (!U.experimental.use_bundle_and_closure_nodes) {
+    if (ELEM(data_type, SOCK_BUNDLE, SOCK_CLOSURE)) {
+      return false;
+    }
+  }
   return ELEM(data_type,
               SOCK_FLOAT,
               SOCK_INT,
