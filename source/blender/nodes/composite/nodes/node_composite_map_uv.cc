@@ -41,7 +41,6 @@ static void cmp_node_map_uv_declare(NodeDeclarationBuilder &b)
 static void node_composit_buts_map_uv(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "filter_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
-  uiItemR(layout, ptr, "alpha", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 }
 
 static void node_composit_init_map_uv(bNodeTree * /*ntree*/, bNode *node)
@@ -77,14 +76,8 @@ class MapUVOperation : public NodeOperation {
     GPUShader *shader = context().get_shader(get_shader_name());
     GPU_shader_bind(shader);
 
-    const bool nearest_neighbour = get_nearest_neighbour();
-    if (!nearest_neighbour) {
-      GPU_shader_uniform_1f(
-          shader, "gradient_attenuation_factor", get_gradient_attenuation_factor());
-    }
-
     const Result &input_image = get_input("Image");
-    if (nearest_neighbour) {
+    if (this->get_nearest_neighbour()) {
       GPU_texture_mipmap_mode(input_image, false, false);
       GPU_texture_anisotropic_filter(input_image, false);
     }
@@ -193,7 +186,6 @@ class MapUVOperation : public NodeOperation {
     const Domain domain = compute_domain();
     Result &output_image = get_result("Image");
     output_image.allocate_texture(domain);
-    const float gradient_attenuation_factor = this->get_gradient_attenuation_factor();
 
     /* In order to perform EWA sampling, we need to compute the partial derivative of the UV
      * coordinates along the x and y directions using a finite difference approximation. But in
@@ -233,20 +225,6 @@ class MapUVOperation : public NodeOperation {
          * to utilize the anisotropic filtering capabilities of the sampler. */
         float4 sampled_color = input_image.sample_ewa_zero(coordinates, x_gradient, y_gradient);
 
-        /* The UV coordinates might be defined in only a subset area of the UV textures, in which
-         * case, the gradients would be infinite at the boundary of that area, which would
-         * produce erroneous results due to anisotropic filtering. To workaround this, we
-         * attenuate the result if its computed gradients are too high such that the result tends
-         * to zero when the magnitude of the gradients tends to one, that is when their sum tends
-         * to 2. One is chosen as the threshold because that's the maximum gradient magnitude
-         * when the boundary is the maximum sampler value of one and the out of bound values are
-         * zero. Additionally, the user supplied gradient attenuation factor can be used to
-         * control this attenuation or even disable it when it is zero, ranging between zero and
-         * one. */
-        float gradient_magnitude = (math::length(x_gradient) + math::length(y_gradient)) / 2.0f;
-        float gradient_attenuation = math::max(
-            0.0f, 1.0f - gradient_attenuation_factor * gradient_magnitude);
-
         /* The UV input is assumed to contain an alpha channel as its third channel, since the
          * UV coordinates might be defined in only a subset area of the UV texture as mentioned.
          * In that case, the alpha is typically opaque at the subset area and transparent
@@ -255,7 +233,7 @@ class MapUVOperation : public NodeOperation {
          * engines, hence the mentioned logic. */
         float alpha = input_uv.load_pixel<float3>(texel).z;
 
-        float4 result = sampled_color * gradient_attenuation * alpha;
+        float4 result = sampled_color * alpha;
 
         output_image.store_pixel(texel, result);
       };
@@ -273,15 +251,6 @@ class MapUVOperation : public NodeOperation {
         compute_pixel(upper_right_texel, upper_right_uv, upper_x_gradient, right_y_gradient);
       }
     });
-  }
-
-  /* A factor that controls the attenuation of the result at the pixels where the gradients of
-   * the UV texture are too high, see the shader for more information. The factor ranges between
-   * zero and one, where it has no effect when it is zero and performs full attenuation when it
-   * is 1. */
-  float get_gradient_attenuation_factor()
-  {
-    return bnode().custom1 / 100.0f;
   }
 
   bool get_nearest_neighbour()
