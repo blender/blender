@@ -39,7 +39,6 @@
 #include "BKE_appdir.hh"
 #include "BKE_blender.hh"
 #include "BKE_brush.hh"
-#include "BKE_cachefile.hh"
 #include "BKE_callbacks.hh"
 #include "BKE_context.hh"
 #include "BKE_cpp_types.hh"
@@ -421,7 +420,6 @@ int main(int argc,
 
   BKE_cpp_types_init();
   BKE_idtype_init();
-  BKE_cachefiles_init();
   BKE_modifier_init();
   BKE_shaderfx_init();
   BKE_volumes_init();

@@ -239,9 +239,8 @@ struct ImBuf {
   /** The absolute file path associated with this image. */
   char filepath[IMB_FILEPATH_SIZE];
 
-  /* memory cache limiter */
   /** reference counter for multiple users */
-  int refcounter;
+  int32_t refcounter;
 
   /* some parameters to pass along for packing images */
   /** Compressed image only used with PNG and EXR currently. */

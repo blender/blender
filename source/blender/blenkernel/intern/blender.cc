@@ -34,7 +34,6 @@
 #include "BKE_blender_user_menu.hh" /* own include */
 #include "BKE_blender_version.h"    /* own include */
 #include "BKE_brush.hh"
-#include "BKE_cachefile.hh"
 #include "BKE_callbacks.hh"
 #include "BKE_global.hh"
 #include "BKE_idprop.hh"
@@ -74,7 +73,6 @@ void BKE_blender_free()
   BKE_spacetypes_free(); /* after free main, it uses space callbacks */
 
   IMB_exit();
-  BKE_cachefiles_exit();
   DEG_free_node_types();
 
   BKE_brush_system_exit();

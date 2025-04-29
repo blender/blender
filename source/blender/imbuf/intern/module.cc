@@ -15,7 +15,6 @@
 
 void IMB_init()
 {
-  imb_refcounter_lock_init();
   imb_mmap_lock_init();
   imb_filetypes_init();
   colormanagement_init();
@@ -26,5 +25,4 @@ void IMB_exit()
   imb_filetypes_exit();
   colormanagement_exit();
   imb_mmap_lock_exit();
-  imb_refcounter_lock_exit();
 }

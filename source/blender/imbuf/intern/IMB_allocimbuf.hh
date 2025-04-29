@@ -9,9 +9,6 @@
 
 struct ImBuf;
 
-void imb_refcounter_lock_init();
-void imb_refcounter_lock_exit();
-
 #ifndef WIN32
 void imb_mmap_lock_init();
 void imb_mmap_lock_exit();

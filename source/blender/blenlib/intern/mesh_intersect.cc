@@ -14,6 +14,7 @@
 #  include <functional>
 #  include <iostream>
 #  include <memory>
+#  include <mutex>
 #  include <numeric>
 
 #  include "BLI_array.hh"
@@ -284,14 +285,6 @@ std::ostream &operator<<(std::ostream &os, const Face *f)
 }
 
 /**
- * Un-comment the following to try using a spin-lock instead of
- * a mutex in the arena allocation routines.
- * Initial tests showed that it doesn't seem to help very much,
- * if at all, to use a spin-lock.
- */
-// #define USE_SPINLOCK
-
-/**
  * #IMeshArena is the owner of the Vert and Face resources used
  * during a run of one of the mesh-intersect main functions.
  * It also keeps has a hash table of all Verts created so that it can
@@ -336,34 +329,9 @@ class IMeshArena::IMeshArenaImpl : NonCopyable, NonMovable {
   int next_face_id_ = 0;
 
   /* Need a lock when multi-threading to protect allocation of new elements. */
-#  ifdef USE_SPINLOCK
-  SpinLock lock_;
-#  else
-  ThreadMutex *mutex_;
-#  endif
+  std::mutex mutex_;
 
  public:
-  IMeshArenaImpl()
-  {
-    if (intersect_use_threading) {
-#  ifdef USE_SPINLOCK
-      BLI_spin_init(&lock_);
-#  else
-      mutex_ = BLI_mutex_alloc();
-#  endif
-    }
-  }
-  ~IMeshArenaImpl()
-  {
-    if (intersect_use_threading) {
-#  ifdef USE_SPINLOCK
-      BLI_spin_end(&lock_);
-#  else
-      BLI_mutex_free(mutex_);
-#  endif
-    }
-  }
-
   void reserve(int vert_num_hint, int face_num_hint)
   {
     vset_.reserve(vert_num_hint);
@@ -401,21 +369,8 @@ class IMeshArena::IMeshArenaImpl : NonCopyable, NonMovable {
   Face *add_face(Span<const Vert *> verts, int orig, Span<int> edge_origs, Span<bool> is_intersect)
   {
     Face *f = new Face(verts, next_face_id_++, orig, edge_origs, is_intersect);
-    if (intersect_use_threading) {
-#  ifdef USE_SPINLOCK
-      BLI_spin_lock(&lock_);
-#  else
-      BLI_mutex_lock(mutex_);
-#  endif
-    }
+    std::lock_guard lock(mutex_);
     allocated_faces_.append(std::unique_ptr<Face>(f));
-    if (intersect_use_threading) {
-#  ifdef USE_SPINLOCK
-      BLI_spin_unlock(&lock_);
-#  else
-      BLI_mutex_unlock(mutex_);
-#  endif
-    }
     return f;
   }
 
@@ -436,21 +391,8 @@ class IMeshArena::IMeshArenaImpl : NonCopyable, NonMovable {
   {
     Vert vtry(co, double3(co[0].get_d(), co[1].get_d(), co[2].get_d()), NO_INDEX, NO_INDEX);
     VSetKey vskey(&vtry);
-    if (intersect_use_threading) {
-#  ifdef USE_SPINLOCK
-      BLI_spin_lock(&lock_);
-#  else
-      BLI_mutex_lock(mutex_);
-#  endif
-    }
+    std::lock_guard lock(mutex_);
     const VSetKey *lookup = vset_.lookup_key_ptr(vskey);
-    if (intersect_use_threading) {
-#  ifdef USE_SPINLOCK
-      BLI_spin_unlock(&lock_);
-#  else
-      BLI_mutex_unlock(mutex_);
-#  endif
-    }
     if (!lookup) {
       return nullptr;
     }
@@ -481,13 +423,7 @@ class IMeshArena::IMeshArenaImpl : NonCopyable, NonMovable {
     Vert *vtry = new Vert(mco, dco, NO_INDEX, NO_INDEX);
     const Vert *ans;
     VSetKey vskey(vtry);
-    if (intersect_use_threading) {
-#  ifdef USE_SPINLOCK
-      BLI_spin_lock(&lock_);
-#  else
-      BLI_mutex_lock(mutex_);
-#  endif
-    }
+    std::lock_guard lock(mutex_);
     const VSetKey *lookup = vset_.lookup_key_ptr(vskey);
     if (!lookup) {
       vtry->id = next_vert_id_++;
@@ -506,13 +442,6 @@ class IMeshArena::IMeshArenaImpl : NonCopyable, NonMovable {
       delete vtry;
       ans = lookup->vert;
     }
-    if (intersect_use_threading) {
-#  ifdef USE_SPINLOCK
-      BLI_spin_unlock(&lock_);
-#  else
-      BLI_mutex_unlock(mutex_);
-#  endif
-    }
     return ans;
   };
 
@@ -520,13 +449,7 @@ class IMeshArena::IMeshArenaImpl : NonCopyable, NonMovable {
   {
     const Vert *ans;
     VSetKey vskey(vtry);
-    if (intersect_use_threading) {
-#  ifdef USE_SPINLOCK
-      BLI_spin_lock(&lock_);
-#  else
-      BLI_mutex_lock(mutex_);
-#  endif
-    }
+    std::lock_guard lock(mutex_);
     const VSetKey *lookup = vset_.lookup_key_ptr(vskey);
     if (!lookup) {
       vtry->id = next_vert_id_++;
@@ -543,13 +466,6 @@ class IMeshArena::IMeshArenaImpl : NonCopyable, NonMovable {
        * one as the canonical one. */
       delete vtry;
       ans = lookup->vert;
-    }
-    if (intersect_use_threading) {
-#  ifdef USE_SPINLOCK
-      BLI_spin_unlock(&lock_);
-#  else
-      BLI_mutex_unlock(mutex_);
-#  endif
     }
     return ans;
   };

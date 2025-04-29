@@ -75,6 +75,7 @@ set(LIB
   PRIVATE bf::dna
   PRIVATE bf::gpu
   bf_imbuf_openimageio
+  PRIVATE bf::intern::atomic
   PRIVATE bf::intern::guardedalloc
   bf_intern_memutil
   bf_intern_opencolorio

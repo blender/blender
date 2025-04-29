@@ -8,6 +8,7 @@
 
 #include <cerrno>
 #include <fcntl.h>
+#include <mutex>
 #include <sys/types.h>
 
 #ifndef WIN32
@@ -1299,7 +1300,7 @@ struct ProxyQueue {
   int cfra;
   int sfra;
   int efra;
-  SpinLock spin;
+  std::mutex mutex;
 
   const bool *stop;
   bool *do_update;
@@ -1320,7 +1321,7 @@ static uchar *proxy_thread_next_frame(ProxyQueue *queue,
 {
   uchar *mem = nullptr;
 
-  BLI_spin_lock(&queue->spin);
+  std::lock_guard lock(queue->mutex);
   if (!*queue->stop && queue->cfra <= queue->efra) {
     MovieClipUser user = *DNA_struct_default_get(MovieClipUser);
     char filepath[FILE_MAX];
@@ -1332,14 +1333,12 @@ static uchar *proxy_thread_next_frame(ProxyQueue *queue,
 
     file = BLI_open(filepath, O_BINARY | O_RDONLY, 0);
     if (file < 0) {
-      BLI_spin_unlock(&queue->spin);
       return nullptr;
     }
 
     const size_t size = BLI_file_descriptor_size(file);
     if (UNLIKELY(ELEM(size, 0, size_t(-1)))) {
       close(file);
-      BLI_spin_unlock(&queue->spin);
       return nullptr;
     }
 
@@ -1347,7 +1346,6 @@ static uchar *proxy_thread_next_frame(ProxyQueue *queue,
 
     if (BLI_read(file, mem, size) != size) {
       close(file);
-      BLI_spin_unlock(&queue->spin);
       MEM_freeN(mem);
       return nullptr;
     }
@@ -1361,8 +1359,6 @@ static uchar *proxy_thread_next_frame(ProxyQueue *queue,
     *queue->do_update = true;
     *queue->progress = float(queue->cfra - queue->sfra) / (queue->efra - queue->sfra);
   }
-  BLI_spin_unlock(&queue->spin);
-
   return mem;
 }
 
@@ -1425,8 +1421,6 @@ static void do_sequence_proxy(void *pjv,
   }
 
   ProxyQueue queue;
-  BLI_spin_init(&queue.spin);
-
   queue.cfra = sfra;
   queue.sfra = sfra;
   queue.efra = efra;
@@ -1464,7 +1458,6 @@ static void do_sequence_proxy(void *pjv,
     }
   }
 
-  BLI_spin_end(&queue.spin);
   MEM_freeN(handles);
 }
 
