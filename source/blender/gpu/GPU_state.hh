@@ -201,6 +201,7 @@ eGPUStencilTest GPU_stencil_test_get();
  * \note Already pre-multiplied by `U.pixelsize`.
  */
 float GPU_line_width_get();
+bool GPU_line_smooth_get();
 
 void GPU_flush();
 void GPU_finish();

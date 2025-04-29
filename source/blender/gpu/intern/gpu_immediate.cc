@@ -123,7 +123,7 @@ static void wide_line_workaround_start(GPUPrimType prim_type)
 
   float line_width = GPU_line_width_get();
 
-  if (line_width == 1.0f) {
+  if (line_width == 1.0f && !GPU_line_smooth_get()) {
     /* No need to change the shader. */
     return;
   }
