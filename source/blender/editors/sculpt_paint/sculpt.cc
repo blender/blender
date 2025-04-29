@@ -4090,7 +4090,7 @@ static void sculpt_update_cache_invariants(
   const float3 z_axis = {0.0f, 0.0f, 1.0f};
   ob.runtime->world_to_object = math::invert(ob.object_to_world());
   cache->view_normal = math::normalize(math::transform_direction(
-      float4x4(cache->vc->rv3d->viewinv) * ob.world_to_object(), z_axis));
+      ob.world_to_object() * float4x4(cache->vc->rv3d->viewinv), z_axis));
 
   cache->supports_gravity = bke::brush::supports_gravity(*brush) && sd.gravity_factor > 0.0f;
   /* Get gravity vector in world space. */
