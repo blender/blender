@@ -3857,6 +3857,18 @@ static void rna_NodeColorSpill_unspill_blue_set(PointerRNA *ptr, const float val
   RNA_float_set_array(&input_rna_pointer, "default_value", spill_strength);
 }
 
+static bool rna_NodeLensDistortion_projector_get(PointerRNA *ptr)
+{
+  return RNA_enum_get(ptr, "distortion_type") == CMP_NODE_LENS_DISTORTION_HORIZONTAL;
+}
+
+static void rna_NodeLensDistortion_projector_set(PointerRNA *ptr, const bool value)
+{
+  RNA_enum_set(ptr,
+               "distortion_type",
+               value ? CMP_NODE_LENS_DISTORTION_HORIZONTAL : CMP_NODE_LENS_DISTORTION_RADIAL);
+}
+
 /* A getter that returns the value of the input socket with the given template identifier and type.
  * The RNA pointer is assumed to represent a node. */
 template<typename T, const char *identifier>
@@ -4041,6 +4053,10 @@ static const char node_input_midtones_end[] = "Midtones End";
 static const char node_input_apply_on_red[] = "Apply On Red";
 static const char node_input_apply_on_green[] = "Apply On Green";
 static const char node_input_apply_on_blue[] = "Apply On Blue";
+
+/* Lens Distortion node. */
+static const char node_input_fit[] = "Fit";
+static const char node_input_jitter[] = "Jitter";
 
 /* --------------------------------------------------------------------
  * White Balance Node.
@@ -8847,28 +8863,56 @@ static void def_cmp_lensdist(BlenderRNA * /*brna*/, StructRNA *srna)
 {
   PropertyRNA *prop;
 
+  static const EnumPropertyItem type_items[] = {
+      {CMP_NODE_LENS_DISTORTION_RADIAL,
+       "RADIAL",
+       0,
+       "Radial",
+       "Radially distorts the image to create a barrel or a Pincushion distortion"},
+      {CMP_NODE_LENS_DISTORTION_HORIZONTAL,
+       "HORIZONTAL",
+       0,
+       "Horizontal",
+       "Horizontally distorts the image to create a channel/color shifting effect"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
   RNA_def_struct_sdna_from(srna, "NodeLensDist", "storage");
 
+  prop = RNA_def_property(srna, "distortion_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, nullptr, "distortion_type");
+  RNA_def_property_enum_items(prop, type_items);
+  RNA_def_property_ui_text(prop, "Type", "");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
   prop = RNA_def_property(srna, "use_projector", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "proj", 1);
-  RNA_def_property_ui_text(
-      prop,
-      "Projector",
-      "Enable/disable projector mode (the effect is applied in horizontal direction only)");
+  RNA_def_property_boolean_funcs(
+      prop, "rna_NodeLensDistortion_projector_get", "rna_NodeLensDistortion_projector_set");
+  RNA_def_property_ui_text(prop,
+                           "Projector",
+                           "Enable/disable projector mode (the effect is applied in horizontal "
+                           "direction only). (Deprecated: Use distortion_type property instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "use_jitter", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "jit", 1);
-  RNA_def_property_ui_text(prop, "Jitter", "Enable/disable jittering (faster, but also noisier)");
+  RNA_def_property_boolean_funcs(prop,
+                                 "rna_node_property_to_input_getter<bool, node_input_jitter>",
+                                 "rna_node_property_to_input_setter<bool, node_input_jitter>");
+  RNA_def_property_ui_text(prop,
+                           "Jitter",
+                           "Enable/disable jittering (faster, but also noisier). (Deprecated: Use "
+                           "Jitter input instead.)");
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_NODETREE);
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "use_fit", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "fit", 1);
-  RNA_def_property_ui_text(
-      prop,
-      "Fit",
-      "For positive distortion factor only: scale image such that black areas are not visible");
+  RNA_def_property_boolean_funcs(prop,
+                                 "rna_node_property_to_input_getter<bool, node_input_fit>",
+                                 "rna_node_property_to_input_setter<bool, node_input_fit>");
+  RNA_def_property_ui_text(prop,
+                           "Fit",
+                           "For positive distortion factor only: scale image such that black "
+                           "areas are not visible. (Deprecated: Use Fit input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 

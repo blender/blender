@@ -951,6 +951,13 @@ static void write_compositor_legacy_properties(bNodeTree &node_tree)
       write_input_to_property_bool_int16_flag("Apply On Green", node->custom1, 1 << 1);
       write_input_to_property_bool_int16_flag("Apply On Blue", node->custom1, 1 << 2);
     }
+
+    if (node->type_legacy == CMP_NODE_LENSDIST) {
+      NodeLensDist *storage = static_cast<NodeLensDist *>(node->storage);
+      write_input_to_property_bool_short("Jitter", storage->jit);
+      write_input_to_property_bool_short("Fit", storage->fit);
+      storage->proj = storage->distortion_type == CMP_NODE_LENS_DISTORTION_HORIZONTAL;
+    }
   }
 }
 

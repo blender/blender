@@ -27,10 +27,10 @@
 
 /* Distortion can't be exactly -1.0 as it will cause infinite pincushion distortion. */
 #define MINIMUM_DISTORTION -0.999f
-/* Arbitrary scaling factor for the dispersion input in projector distortion mode. */
-#define PROJECTOR_DISPERSION_SCALE 5.0f
-/* Arbitrary scaling factor for the dispersion input in screen distortion mode. */
-#define SCREEN_DISPERSION_SCALE 4.0f
+/* Arbitrary scaling factor for the dispersion input in horizontal distortion mode. */
+#define HORIZONTAL_DISPERSION_SCALE 5.0f
+/* Arbitrary scaling factor for the dispersion input in radial distortion mode. */
+#define RADIAL_DISPERSION_SCALE 4.0f
 /* Arbitrary scaling factor for the distortion input. */
 #define DISTORTION_SCALE 4.0f
 
@@ -40,40 +40,66 @@ NODE_STORAGE_FUNCS(NodeLensDist)
 
 static void cmp_node_lensdist_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Color>("Image")
-      .default_value({1.0f, 1.0f, 1.0f, 1.0f})
-      .compositor_domain_priority(0);
+  b.add_input<decl::Color>("Image").default_value({1.0f, 1.0f, 1.0f, 1.0f});
   b.add_input<decl::Float>("Distortion")
       .default_value(0.0f)
+      .subtype(PROP_FACTOR)
       .min(MINIMUM_DISTORTION)
       .max(1.0f)
+      .description(
+          "The amount of distortion. 0 means no distortion, -1 means full Pincushion distortion, "
+          "and 1 means full Barrel distortion")
       .compositor_expects_single_value();
   b.add_input<decl::Float>("Dispersion")
       .default_value(0.0f)
+      .subtype(PROP_FACTOR)
       .min(0.0f)
       .max(1.0f)
+      .description("The amount of chromatic aberration to add to the distortion")
+      .compositor_expects_single_value();
+  b.add_input<decl::Bool>("Jitter")
+      .default_value(false)
+      .description(
+          "Introduces jitter while doing distortion, which can be faster but can produce grainy "
+          "or noisy results")
+      .compositor_expects_single_value();
+  b.add_input<decl::Bool>("Fit")
+      .default_value(false)
+      .description(
+          "Scales the image such that it fits entirely in the frame, leaving no empty spaces at "
+          "the corners")
       .compositor_expects_single_value();
   b.add_output<decl::Color>("Image");
 }
 
 static void node_composit_init_lensdist(bNodeTree * /*ntree*/, bNode *node)
 {
-  NodeLensDist *nld = MEM_callocN<NodeLensDist>(__func__);
-  nld->jit = nld->proj = nld->fit = 0;
-  node->storage = nld;
+  NodeLensDist *data = MEM_callocN<NodeLensDist>(__func__);
+  data->distortion_type = CMP_NODE_LENS_DISTORTION_RADIAL;
+  node->storage = data;
 }
 
 static void node_composit_buts_lensdist(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  uiLayout *col;
+  uiItemR(layout, ptr, "distortion_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+}
 
-  col = &layout->column(false);
-  uiItemR(col, ptr, "use_projector", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+static void node_update(bNodeTree *ntree, bNode *node)
+{
+  const CMPNodeLensDistortionType distortion_type = CMPNodeLensDistortionType(
+      node_storage(*node).distortion_type);
 
-  col = &col->column(false);
-  uiLayoutSetActive(col, RNA_boolean_get(ptr, "use_projector") == false);
-  uiItemR(col, ptr, "use_jitter", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
-  uiItemR(col, ptr, "use_fit", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+  bNodeSocket *distortion_input = bke::node_find_socket(*node, SOCK_IN, "Distortion");
+  blender::bke::node_set_socket_availability(
+      *ntree, *distortion_input, distortion_type == CMP_NODE_LENS_DISTORTION_RADIAL);
+
+  bNodeSocket *jitter_input = bke::node_find_socket(*node, SOCK_IN, "Jitter");
+  blender::bke::node_set_socket_availability(
+      *ntree, *jitter_input, distortion_type == CMP_NODE_LENS_DISTORTION_RADIAL);
+
+  bNodeSocket *fit_input = bke::node_find_socket(*node, SOCK_IN, "Fit");
+  blender::bke::node_set_socket_availability(
+      *ntree, *fit_input, distortion_type == CMP_NODE_LENS_DISTORTION_RADIAL);
 }
 
 using namespace blender::compositor;
@@ -206,7 +232,7 @@ static float3 integrate_distortion(const int2 &texel,
   return accumulated_color;
 }
 
-static void screen_lens_distortion(const int2 texel,
+static void radial_lens_distortion(const int2 texel,
                                    const Result &input,
                                    Result &output,
                                    const int2 &size,
@@ -284,27 +310,29 @@ class LensDistortionOperation : public NodeOperation {
       return;
     }
 
-    if (get_is_projector()) {
-      execute_projector_distortion();
-    }
-    else {
-      execute_screen_distortion();
+    switch (this->get_type()) {
+      case CMP_NODE_LENS_DISTORTION_RADIAL:
+        this->execute_radial_distortion();
+        break;
+      case CMP_NODE_LENS_DISTORTION_HORIZONTAL:
+        this->execute_horizontal_distortion();
+        break;
     }
   }
 
-  void execute_projector_distortion()
+  void execute_horizontal_distortion()
   {
     if (this->context().use_gpu()) {
-      this->execute_projector_distortion_gpu();
+      this->execute_horizontal_distortion_gpu();
     }
     else {
-      this->execute_projector_distortion_cpu();
+      this->execute_horizontal_distortion_cpu();
     }
   }
 
-  void execute_projector_distortion_gpu()
+  void execute_horizontal_distortion_gpu()
   {
-    GPUShader *shader = context().get_shader("compositor_projector_lens_distortion");
+    GPUShader *shader = context().get_shader("compositor_horizontal_lens_distortion");
     GPU_shader_bind(shader);
 
     const Result &input_image = get_input("Image");
@@ -314,7 +342,7 @@ class LensDistortionOperation : public NodeOperation {
 
     const Domain domain = compute_domain();
 
-    const float dispersion = (get_dispersion() * PROJECTOR_DISPERSION_SCALE) / domain.size.x;
+    const float dispersion = (get_dispersion() * HORIZONTAL_DISPERSION_SCALE) / domain.size.x;
     GPU_shader_uniform_1f(shader, "dispersion", dispersion);
 
     Result &output_image = get_result("Image");
@@ -328,10 +356,10 @@ class LensDistortionOperation : public NodeOperation {
     GPU_shader_unbind();
   }
 
-  void execute_projector_distortion_cpu()
+  void execute_horizontal_distortion_cpu()
   {
     const Domain domain = compute_domain();
-    const float dispersion = (get_dispersion() * PROJECTOR_DISPERSION_SCALE) / domain.size.x;
+    const float dispersion = (get_dispersion() * HORIZONTAL_DISPERSION_SCALE) / domain.size.x;
 
     const Result &input = get_input("Image");
 
@@ -352,19 +380,19 @@ class LensDistortionOperation : public NodeOperation {
     });
   }
 
-  void execute_screen_distortion()
+  void execute_radial_distortion()
   {
     if (this->context().use_gpu()) {
-      this->execute_screen_distortion_gpu();
+      this->execute_radial_distortion_gpu();
     }
     else {
-      this->execute_screen_distortion_cpu();
+      this->execute_radial_distortion_cpu();
     }
   }
 
-  void execute_screen_distortion_gpu()
+  void execute_radial_distortion_gpu()
   {
-    GPUShader *shader = context().get_shader(get_screen_distortion_shader());
+    GPUShader *shader = context().get_shader(get_radial_distortion_shader());
     GPU_shader_bind(shader);
 
     const Result &input_image = get_input("Image");
@@ -390,15 +418,15 @@ class LensDistortionOperation : public NodeOperation {
     GPU_shader_unbind();
   }
 
-  const char *get_screen_distortion_shader()
+  const char *get_radial_distortion_shader()
   {
     if (get_use_jitter()) {
-      return "compositor_screen_lens_distortion_jitter";
+      return "compositor_radial_lens_distortion_jitter";
     }
-    return "compositor_screen_lens_distortion";
+    return "compositor_radial_lens_distortion";
   }
 
-  void execute_screen_distortion_cpu()
+  void execute_radial_distortion_cpu()
   {
     const float scale = this->compute_scale();
     const bool use_jitter = this->get_use_jitter();
@@ -412,7 +440,7 @@ class LensDistortionOperation : public NodeOperation {
 
     const int2 size = domain.size;
     parallel_for(size, [&](const int2 texel) {
-      screen_lens_distortion(texel, input, output, size, chromatic_distortion, scale, use_jitter);
+      radial_lens_distortion(texel, input, output, size, chromatic_distortion, scale, use_jitter);
     });
   }
 
@@ -434,7 +462,7 @@ class LensDistortionOperation : public NodeOperation {
   float3 compute_chromatic_distortion()
   {
     const float green_distortion = get_distortion();
-    const float dispersion = get_dispersion() / SCREEN_DISPERSION_SCALE;
+    const float dispersion = get_dispersion() / RADIAL_DISPERSION_SCALE;
     const float red_distortion = clamp_f(green_distortion + dispersion, MINIMUM_DISTORTION, 1.0f);
     const float blue_distortion = clamp_f(green_distortion - dispersion, MINIMUM_DISTORTION, 1.0f);
     return float3(red_distortion, green_distortion, blue_distortion) * DISTORTION_SCALE;
@@ -456,37 +484,39 @@ class LensDistortionOperation : public NodeOperation {
     return 1.0f / (1.0f + maximum_distortion);
   }
 
-  bool get_is_projector()
+  CMPNodeLensDistortionType get_type()
   {
-    return node_storage(bnode()).proj;
+    return CMPNodeLensDistortionType(node_storage(bnode()).distortion_type);
   }
 
   bool get_use_jitter()
   {
-    return node_storage(bnode()).jit;
+    return this->get_input("Jitter").get_single_value_default(false);
   }
 
   bool get_is_fit()
   {
-    return node_storage(bnode()).fit;
+    return this->get_input("Fit").get_single_value_default(false);
   }
 
   /* Returns true if the operation does nothing and the input can be passed through. */
   bool is_identity()
   {
     /* The input is a single value and the operation does nothing. */
-    if (get_input("Image").is_single_value()) {
+    if (this->get_input("Image").is_single_value()) {
       return true;
     }
 
     /* Projector have zero dispersion and does nothing. */
-    if (get_is_projector() && get_dispersion() == 0.0f) {
-      return true;
+    if (this->get_type() == CMP_NODE_LENS_DISTORTION_HORIZONTAL) {
+      return this->get_dispersion() == 0.0f;
     }
 
     /* Both distortion and dispersion are zero and the operation does nothing. Jittering has an
      * effect regardless, so its gets an exemption. */
-    if (!get_use_jitter() && get_distortion() == 0.0f && get_dispersion() == 0.0f) {
+    if (!this->get_use_jitter() && this->get_distortion() == 0.0f &&
+        this->get_dispersion() == 0.0f)
+    {
       return true;
     }
 
@@ -513,6 +543,7 @@ void register_node_type_cmp_lensdist()
   ntype.enum_name_legacy = "LENSDIST";
   ntype.nclass = NODE_CLASS_DISTORT;
   ntype.declare = file_ns::cmp_node_lensdist_declare;
+  ntype.updatefunc = file_ns::node_update;
   ntype.draw_buttons = file_ns::node_composit_buts_lensdist;
   ntype.initfunc = file_ns::node_composit_init_lensdist;
   blender::bke::node_type_storage(

@@ -204,6 +204,7 @@ set(GLSL_SRC
   shaders/compositor_glare_streaks_filter.glsl
   shaders/compositor_glare_write_glare_output.glsl
   shaders/compositor_glare_write_highlights_output.glsl
+  shaders/compositor_horizontal_lens_distortion.glsl
   shaders/compositor_id_mask.glsl
   shaders/compositor_image_crop.glsl
   shaders/compositor_inpaint_compute_boundary.glsl
@@ -239,11 +240,10 @@ set(GLSL_SRC
   shaders/compositor_plane_deform_motion_blur_mask.glsl
   shaders/compositor_plane_deform.glsl
   shaders/compositor_premultiply_alpha.glsl
-  shaders/compositor_projector_lens_distortion.glsl
+  shaders/compositor_radial_lens_distortion.glsl
   shaders/compositor_read_input.glsl
   shaders/compositor_realize_on_domain.glsl
   shaders/compositor_scale_variable.glsl
-  shaders/compositor_screen_lens_distortion.glsl
   shaders/compositor_smaa_blending_weight_calculation.glsl
   shaders/compositor_smaa_edge_detection.glsl
   shaders/compositor_smaa_neighborhood_blending.glsl
