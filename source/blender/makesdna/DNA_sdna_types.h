@@ -145,9 +145,21 @@ typedef struct SDNA {
 #
 #
 typedef struct BHead {
-  int code, len;
+  /** Identifier for this #BHead. Can be any of BLO_CODE_* or an ID code like ID_OB.  */
+  int code;
+  /** Identifier of the struct type that is stored in this block. */
+  int SDNAnr;
+  /**
+   * Identifier the block had when it was written. This is used to remap memory blocks on load.
+   * Typically, this is the pointer that the memory had when it was written.
+   * This should be unique across the whole blendfile, except for `BLEND_DATA` blocks, which
+   * should be unique within a same ID.
+   */
   const void *old;
-  int SDNAnr, nr;
+  /** Number of bytes in the block. */
+  int64_t len;
+  /** Number of structs in the array (1 for simple structs). */
+  int64_t nr;
 } BHead;
 #
 #
@@ -158,8 +170,25 @@ typedef struct BHead4 {
 } BHead4;
 #
 #
-typedef struct BHead8 {
+typedef struct SmallBHead8 {
   int code, len;
   uint64_t old;
   int SDNAnr, nr;
-} BHead8;
+} SmallBHead8;
+#
+#
+typedef struct LargeBHead8 {
+  int code;
+  int SDNAnr;
+  uint64_t old;
+  int64_t len;
+  int64_t nr;
+} LargeBHead8;
+
+#ifdef __cplusplus
+enum class BHeadType {
+  BHead4,
+  SmallBHead8,
+  LargeBHead8,
+};
+#endif

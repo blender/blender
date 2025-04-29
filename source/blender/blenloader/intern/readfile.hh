@@ -69,6 +69,7 @@ struct FileData {
   ListBase bhead_list = {};
   enum eFileDataFlag flags = eFileDataFlag(0);
   bool is_eof = false;
+  BlenderHeader blender_header = {};
 
   FileReader *file = nullptr;
 
@@ -157,7 +158,13 @@ struct FileData {
   void *storage_handle = nullptr;
 };
 
-#define SIZEOFBLENDERHEADER 12
+#define MIN_SIZEOFBLENDERHEADER 12
+#define MAX_SIZEOFBLENDERHEADER 17
+
+/** See #BLEND_FILE_FORMAT_VERSION_0 for the structure. */
+#define SIZEOFBLENDERHEADER_VERSION_0 12
+/** See #BLEND_FILE_FORMAT_VERSION_1 for the structure. */
+#define SIZEOFBLENDERHEADER_VERSION_1 17
 
 /***/
 void blo_join_main(ListBase *mainlist);

@@ -3,7 +3,11 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
 
+#include <optional>
+#include <variant>
+
 #include "DNA_listBase.h"
+#include "DNA_sdna_types.h"
 
 #include "BLI_compiler_attrs.h"
 #include "BLI_sys_types.h"
@@ -21,6 +25,7 @@ struct BlendfileLinkAppendContext;
 struct BlendHandle;
 struct BlendThumbnail;
 struct FileData;
+struct FileReader;
 struct ID;
 struct Library;
 struct LinkNode;
@@ -602,3 +607,33 @@ void BLO_readfile_id_runtime_data_free_all(Main &bmain);
  *  Free the ID_Readfile_Data of this ID. Does _not_ deal with embedded IDs.
  */
 void BLO_readfile_id_runtime_data_free(ID &id);
+
+/** A header that has been parsed successfully. */
+struct BlenderHeader {
+  /** 4 or 8. */
+  int pointer_size;
+  /** L_ENDIAN or B_ENDIAN. */
+  int endian;
+  /** #BLENDER_FILE_VERSION. */
+  int file_version;
+  /** #BLEND_FILE_FORMAT_VERSION. */
+  int file_format_version;
+
+  BHeadType bhead_type() const;
+};
+
+/** The file is detected to be a Blender file, but it could not be decoded successfully. */
+struct BlenderHeaderUnknown {};
+
+/** The file is not a Blender file. */
+struct BlenderHeaderInvalid {};
+
+using BlenderHeaderVariant =
+    std::variant<BlenderHeaderInvalid, BlenderHeaderUnknown, BlenderHeader>;
+
+BlenderHeaderVariant BLO_readfile_blender_header_decode(FileReader *file);
+
+/* Returns std::nullopt if the file is exhausted. */
+std::optional<BHead> BLO_readfile_read_bhead(FileReader *file,
+                                             BHeadType type,
+                                             bool do_endian_swap);

@@ -19,43 +19,9 @@
 #include "BLI_filereader.h"
 #include "BLI_string.h"
 
+#include "BLO_readfile.hh"
+
 #include "blendthumb.hh"
-
-static bool blend_header_check_magic(const char header[12])
-{
-  /* Check magic string at start of file. */
-  if (!BLI_str_startswith(header, "BLENDER")) {
-    return false;
-  }
-  /* Check pointer size and endianness indicators. */
-  if (!ELEM(header[7], '_', '-') || !ELEM(header[8], 'v', 'V')) {
-    return false;
-  }
-  /* Check version number. */
-  if (!isdigit(header[9]) || !isdigit(header[10]) || !isdigit(header[11])) {
-    return false;
-  }
-  return true;
-}
-
-static bool blend_header_is_version_valid(const char header[12])
-{
-  /* Thumbnails are only in files with version >= 2.50 */
-  char num[4];
-  memcpy(num, header + 9, 3);
-  num[3] = 0;
-  return atoi(num) >= 250;
-}
-
-static int blend_header_pointer_size(const char header[12])
-{
-  return header[7] == '_' ? 4 : 8;
-}
-
-static bool blend_header_is_endian_switch_needed(const char header[12])
-{
-  return (((header[8] == 'v') ? L_ENDIAN : B_ENDIAN) != ENDIAN_ORDER);
-}
 
 static void thumb_data_vertical_flip(Thumbnail *thumb)
 {
@@ -115,20 +81,23 @@ static bool file_seek(FileReader *file, size_t len)
 
 static eThumbStatus blendthumb_extract_from_file_impl(FileReader *file,
                                                       Thumbnail *thumb,
-                                                      const size_t bhead_size,
-                                                      const bool endian_switch)
+                                                      const BlenderHeader &header)
 {
+  const bool endian_switch = header.endian != ENDIAN_ORDER;
   /* Iterate over file blocks until we find the thumbnail or run out of data. */
-  uint8_t *bhead_data = (uint8_t *)BLI_array_alloca(bhead_data, bhead_size);
-  while (file_read(file, bhead_data, bhead_size)) {
-    /* Parse type and size from `BHead`. */
-    const int32_t block_size = bytes_to_native_i32(&bhead_data[4], endian_switch);
-    if (UNLIKELY(block_size < 0)) {
+  while (true) {
+    /* Read next BHead. */
+    const std::optional<BHead> bhead = BLO_readfile_read_bhead(
+        file, header.bhead_type(), endian_switch);
+    if (!bhead.has_value()) {
+      /* File has ended. */
       return BT_INVALID_THUMB;
     }
-
-    /* We're looking for the thumbnail, so skip any other block. */
-    switch (*((int32_t *)bhead_data)) {
+    if (bhead->len < 0) {
+      /* Avoid parsing bad data. */
+      return BT_INVALID_THUMB;
+    }
+    switch (bhead->code) {
       case MAKE_ID('T', 'E', 'S', 'T'): {
         uint8_t shape[8];
         if (!file_read(file, shape, sizeof(shape))) {
@@ -138,7 +107,7 @@ static eThumbStatus blendthumb_extract_from_file_impl(FileReader *file,
         thumb->height = bytes_to_native_i32(&shape[4], endian_switch);
 
         /* Verify that image dimensions and data size make sense. */
-        size_t data_size = block_size - sizeof(shape);
+        size_t data_size = bhead->len - sizeof(shape);
         const uint64_t expected_size = uint64_t(thumb->width) * uint64_t(thumb->height) * 4;
         if (thumb->width < 0 || thumb->height < 0 || data_size != expected_size) {
           return BT_INVALID_THUMB;
@@ -151,7 +120,7 @@ static eThumbStatus blendthumb_extract_from_file_impl(FileReader *file,
         return BT_OK;
       }
       case MAKE_ID('R', 'E', 'N', 'D'): {
-        if (!file_seek(file, block_size)) {
+        if (!file_seek(file, bhead->len)) {
           return BT_INVALID_THUMB;
         }
         /* Check the next block. */
@@ -164,15 +133,14 @@ static eThumbStatus blendthumb_extract_from_file_impl(FileReader *file,
       }
     }
   }
-
   return BT_INVALID_THUMB;
 }
 
 eThumbStatus blendthumb_create_thumb_from_file(FileReader *rawfile, Thumbnail *thumb)
 {
   /* Read header in order to identify file type. */
-  char header[12];
-  if (rawfile->read(rawfile, header, sizeof(header)) != sizeof(header)) {
+  char magic_bytes[12];
+  if (rawfile->read(rawfile, magic_bytes, sizeof(magic_bytes)) != sizeof(magic_bytes)) {
     rawfile->close(rawfile);
     return BT_ERROR;
   }
@@ -182,17 +150,17 @@ eThumbStatus blendthumb_create_thumb_from_file(FileReader *rawfile, Thumbnail *t
 
   /* Try to identify the file type from the header. */
   FileReader *file = nullptr;
-  if (BLI_str_startswith(header, "BLENDER")) {
+  if (BLI_str_startswith(magic_bytes, "BLENDER")) {
     file = rawfile;
     rawfile = nullptr;
   }
-  else if (BLI_file_magic_is_gzip(header)) {
+  else if (BLI_file_magic_is_gzip(magic_bytes)) {
     file = BLI_filereader_new_gzip(rawfile);
     if (file != nullptr) {
       rawfile = nullptr; /* The GZIP #FileReader takes ownership of raw-file. */
     }
   }
-  else if (BLI_file_magic_is_zstd(header)) {
+  else if (BLI_file_magic_is_zstd(magic_bytes)) {
     file = BLI_filereader_new_zstd(rawfile);
     if (file != nullptr) {
       rawfile = nullptr; /* The ZSTD #FileReader takes ownership of raw-file. */
@@ -208,30 +176,21 @@ eThumbStatus blendthumb_create_thumb_from_file(FileReader *rawfile, Thumbnail *t
     return BT_ERROR;
   }
 
-  /* Re-read header in case we had compression. */
-  if (file->read(file, header, sizeof(header)) != sizeof(header)) {
+  const BlenderHeaderVariant header_variant = BLO_readfile_blender_header_decode(file);
+  if (!std::holds_alternative<BlenderHeader>(header_variant)) {
     file->close(file);
     return BT_ERROR;
   }
-
-  /* Check if the header format is valid for a .blend file. */
-  if (!blend_header_check_magic(header)) {
-    file->close(file);
-    return BT_INVALID_FILE;
-  }
+  const BlenderHeader &header = std::get<BlenderHeader>(header_variant);
 
   /* Check if the file is new enough to contain a thumbnail. */
-  if (!blend_header_is_version_valid(header)) {
+  if (header.file_version < 250) {
     file->close(file);
     return BT_EARLY_VERSION;
   }
 
-  /* Depending on where it was saved, the file can use different pointer size or endianness. */
-  int bhead_size = 16 + blend_header_pointer_size(header);
-  const bool endian_switch = blend_header_is_endian_switch_needed(header);
-
   /* Read the thumbnail. */
-  eThumbStatus err = blendthumb_extract_from_file_impl(file, thumb, bhead_size, endian_switch);
+  eThumbStatus err = blendthumb_extract_from_file_impl(file, thumb, header);
   file->close(file);
   if (err != BT_OK) {
     return err;
