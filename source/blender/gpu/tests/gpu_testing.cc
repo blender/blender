@@ -16,6 +16,7 @@
 #include "gpu_testing.hh"
 
 #include "GHOST_C-api.h"
+#include "GHOST_Path-api.hh"
 
 namespace blender::gpu {
 
@@ -62,6 +63,7 @@ void GPUTest::TearDownTestSuite()
   GPU_context_discard(context_);
   GHOST_DisposeGPUContext(ghost_system_, ghost_context_);
   GHOST_DisposeSystem(ghost_system_);
+  GHOST_DisposeSystemPaths();
   CLG_exit();
 
   G.debug = prev_g_debug_;
