@@ -1113,11 +1113,11 @@ typedef struct NodeBoxMask {
 } NodeBoxMask;
 
 typedef struct NodeEllipseMask {
-  float x;
-  float y;
-  float rotation;
-  float height;
-  float width;
+  float x DNA_DEPRECATED;
+  float y DNA_DEPRECATED;
+  float rotation DNA_DEPRECATED;
+  float height DNA_DEPRECATED;
+  float width DNA_DEPRECATED;
   char _pad[4];
 } NodeEllipseMask;
 

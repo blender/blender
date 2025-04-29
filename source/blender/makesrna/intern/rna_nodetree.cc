@@ -9455,41 +9455,65 @@ static void def_cmp_ellipsemask(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_ui_text(prop, "Mask Type", "");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
-  RNA_def_struct_sdna_from(srna, "NodeEllipseMask", "storage");
-
   prop = RNA_def_property(srna, "x", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "x");
+  RNA_def_property_float_funcs(prop,
+                               "rna_node_property_to_vector_input_getter<node_input_position, 0>",
+                               "rna_node_property_to_vector_input_setter<node_input_position, 0>",
+                               nullptr);
   RNA_def_property_float_default(prop, 0.5f);
   RNA_def_property_range(prop, -1.0f, 2.0f);
-  RNA_def_property_ui_text(prop, "X", "X position of the middle of the ellipse");
+  RNA_def_property_ui_text(
+      prop,
+      "X",
+      "X position of the middle of the ellipse. (Deprecated: Use Position input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "y", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "y");
+  RNA_def_property_float_funcs(prop,
+                               "rna_node_property_to_vector_input_getter<node_input_position, 1>",
+                               "rna_node_property_to_vector_input_setter<node_input_position, 1>",
+                               nullptr);
   RNA_def_property_float_default(prop, 0.5f);
   RNA_def_property_range(prop, -1.0f, 2.0f);
-  RNA_def_property_ui_text(prop, "Y", "Y position of the middle of the ellipse");
+  RNA_def_property_ui_text(
+      prop,
+      "Y",
+      "Y position of the middle of the ellipse. (Deprecated: Use Position input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "mask_width", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "width");
+  RNA_def_property_float_funcs(prop,
+                               "rna_node_property_to_vector_input_getter<node_input_size, 0>",
+                               "rna_node_property_to_vector_input_setter<node_input_size, 0>",
+                               nullptr);
   RNA_def_property_float_default(prop, 0.3f);
   RNA_def_property_range(prop, 0.0f, 2.0f);
-  RNA_def_property_ui_text(prop, "Width", "Width of the ellipse");
+  RNA_def_property_ui_text(
+      prop, "Width", "Width of the ellipse. (Deprecated: Use Size input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "mask_height", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "height");
+  RNA_def_property_float_funcs(prop,
+                               "rna_node_property_to_vector_input_getter<node_input_size, 1>",
+                               "rna_node_property_to_vector_input_setter<node_input_size, 1>",
+                               nullptr);
   RNA_def_property_float_default(prop, 0.2f);
   RNA_def_property_range(prop, 0.0f, 2.0f);
-  RNA_def_property_ui_text(prop, "Height", "Height of the ellipse");
+  RNA_def_property_ui_text(
+      prop, "Height", "Height of the ellipse. (Deprecated: Use Size input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "rotation", PROP_FLOAT, PROP_ANGLE);
-  RNA_def_property_float_sdna(prop, nullptr, "rotation");
+  RNA_def_property_float_funcs(prop,
+                               "rna_node_property_to_input_getter<float, node_input_rotation>",
+                               "rna_node_property_to_input_setter<float, node_input_rotation>",
+                               nullptr);
   RNA_def_property_float_default(prop, 0.0f);
   RNA_def_property_range(prop, DEG2RADF(-1800.0f), DEG2RADF(1800.0f));
-  RNA_def_property_ui_text(prop, "Rotation", "Rotation angle of the ellipse");
+  RNA_def_property_ui_text(
+      prop,
+      "Rotation",
+      "Rotation angle of the ellipse. (Deprecated: Use Rotation input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
