@@ -3916,6 +3916,37 @@ static void rna_node_property_to_input_setter(PointerRNA *ptr, const T value)
   }
 }
 
+/* A getter that returns the value of the component of the vector input socket with the given
+ * template identifier and component index. The RNA pointer is assumed to represent a node. */
+template<const char *identifier, int index>
+static float rna_node_property_to_vector_input_getter(PointerRNA *ptr)
+{
+  bNode *node = ptr->data_as<bNode>();
+  bNodeSocket *input = blender::bke::node_find_socket(*node, SOCK_IN, identifier);
+  PointerRNA input_rna_pointer = RNA_pointer_create_discrete(
+      ptr->owner_id, &RNA_NodeSocket, input);
+
+  float vector[4];
+  RNA_float_get_array(&input_rna_pointer, "default_value", vector);
+  return vector[index];
+}
+
+/* A setter that sets the given value to the component of the input vector socket with the given
+ * template identifier and component index. The RNA pointer is assumed to represent a node. */
+template<const char *identifier, int index>
+static void rna_node_property_to_vector_input_setter(PointerRNA *ptr, const float value)
+{
+  bNode *node = ptr->data_as<bNode>();
+  bNodeSocket *input = blender::bke::node_find_socket(*node, SOCK_IN, identifier);
+  PointerRNA input_rna_pointer = RNA_pointer_create_discrete(
+      ptr->owner_id, &RNA_NodeSocket, input);
+
+  float vector[4];
+  RNA_float_get_array(&input_rna_pointer, "default_value", vector);
+  vector[index] = value;
+  RNA_float_set_array(&input_rna_pointer, "default_value", vector);
+}
+
 /* The following are global static strings used as template arguments to
  * rna_node_property_to_input_getter and rna_node_property_to_input_setter. */
 
@@ -4057,6 +4088,10 @@ static const char node_input_apply_on_blue[] = "Apply On Blue";
 /* Lens Distortion node. */
 static const char node_input_fit[] = "Fit";
 static const char node_input_jitter[] = "Jitter";
+
+/* Box Mask node. */
+static const char node_input_position[] = "Position";
+static const char node_input_rotation[] = "Rotation";
 
 /* --------------------------------------------------------------------
  * White Balance Node.
@@ -9355,41 +9390,59 @@ static void def_cmp_boxmask(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_ui_text(prop, "Mask Type", "");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
-  RNA_def_struct_sdna_from(srna, "NodeBoxMask", "storage");
-
   prop = RNA_def_property(srna, "x", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "x");
+  RNA_def_property_float_funcs(prop,
+                               "rna_node_property_to_vector_input_getter<node_input_position, 0>",
+                               "rna_node_property_to_vector_input_setter<node_input_position, 0>",
+                               nullptr);
   RNA_def_property_float_default(prop, 0.5f);
   RNA_def_property_range(prop, -1.0f, 2.0f);
-  RNA_def_property_ui_text(prop, "X", "X position of the middle of the box");
+  RNA_def_property_ui_text(
+      prop, "X", "X position of the middle of the box. (Deprecated: Use Position input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "y", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "y");
+  RNA_def_property_float_funcs(prop,
+                               "rna_node_property_to_vector_input_getter<node_input_position, 1>",
+                               "rna_node_property_to_vector_input_setter<node_input_position, 1>",
+                               nullptr);
   RNA_def_property_float_default(prop, 0.5f);
   RNA_def_property_range(prop, -1.0f, 2.0f);
-  RNA_def_property_ui_text(prop, "Y", "Y position of the middle of the box");
+  RNA_def_property_ui_text(
+      prop, "Y", "Y position of the middle of the box. (Deprecated: Use Position input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "mask_width", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "width");
+  RNA_def_property_float_funcs(prop,
+                               "rna_node_property_to_vector_input_getter<node_input_size, 0>",
+                               "rna_node_property_to_vector_input_setter<node_input_size, 0>",
+                               nullptr);
   RNA_def_property_float_default(prop, 0.3f);
   RNA_def_property_range(prop, 0.0f, 2.0f);
-  RNA_def_property_ui_text(prop, "Width", "Width of the box");
+  RNA_def_property_ui_text(
+      prop, "Width", "Width of the box. (Deprecated: Use Size input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "mask_height", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "height");
+  RNA_def_property_float_funcs(prop,
+                               "rna_node_property_to_vector_input_getter<node_input_size, 1>",
+                               "rna_node_property_to_vector_input_setter<node_input_size, 1>",
+                               nullptr);
   RNA_def_property_float_default(prop, 0.2f);
   RNA_def_property_range(prop, 0.0f, 2.0f);
-  RNA_def_property_ui_text(prop, "Height", "Height of the box");
+  RNA_def_property_ui_text(
+      prop, "Height", "Height of the box. (Deprecated: Use Size input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "rotation", PROP_FLOAT, PROP_ANGLE);
-  RNA_def_property_float_sdna(prop, nullptr, "rotation");
+  RNA_def_property_float_funcs(prop,
+                               "rna_node_property_to_input_getter<float, node_input_rotation>",
+                               "rna_node_property_to_input_setter<float, node_input_rotation>",
+                               nullptr);
   RNA_def_property_float_default(prop, 0.0f);
   RNA_def_property_range(prop, DEG2RADF(-1800.0f), DEG2RADF(1800.0f));
-  RNA_def_property_ui_text(prop, "Rotation", "Rotation angle of the box");
+  RNA_def_property_ui_text(
+      prop, "Rotation", "Rotation angle of the box. (Deprecated: Use Rotation input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
