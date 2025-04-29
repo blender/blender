@@ -660,7 +660,6 @@ static int gizmo_find_intersected_3d_intern(wmGizmo **visible_gizmos,
  */
 static wmGizmo *gizmo_find_intersected_3d(bContext *C,
                                           const int co[2],
-                                          const bool is_tablet,
                                           wmGizmo **visible_gizmos,
                                           const int visible_gizmos_len,
                                           int *r_part)
@@ -717,14 +716,23 @@ static wmGizmo *gizmo_find_intersected_3d(bContext *C,
                                   });
     GPU_framebuffer_bind(depth_read_fb);
 
-    /* Wider test area for tablet pens. */
-    const int test_min = (is_tablet ? 6.0f : 4.0f) * UI_SCALE_FAC;
-    const int test_max = (is_tablet ? 12.0f : 10.0f) * UI_SCALE_FAC;
-
+    /* NOTE(@ideasman42): Regarding the hit-radius:
+     *
+     * - These must remain constant for all event types
+     *   since changing the radius per event types means mon-motion events
+     *   can cause the gizmo not to be highlighted.
+     * - A single large radius would result in gizmos that are further away from the cursor
+     *   with a nearer Z-depth being highlighted.
+     *   So only use the larger radius when the first (smaller) pass has no hits.
+     * - As this runs on cursor-motion, avoid doing too many tests (currently 2x).
+     */
     const int hotspot_radii[] = {
-        test_min,
-        /* This runs on mouse move, careful doing too many tests! */
-        test_max,
+        /* Use a small value so it's possible to accurately pick a gizmo
+         * when multiple are overlapping. */
+        int(3.0f * UI_SCALE_FAC),
+        /* Use a larger value as a fallback so wire gizmos aren't difficult to click on.
+         * This value has been selected for both mouse & tablet motion, see !136847. */
+        int(12.0f * UI_SCALE_FAC),
     };
     for (int i = 0; i < ARRAY_SIZE(hotspot_radii); i++) {
       hit = gizmo_find_intersected_3d_intern(
@@ -816,7 +824,6 @@ wmGizmo *wm_gizmomap_highlight_find(wmGizmoMap *gzmap,
     if (gz == nullptr) {
       gz = gizmo_find_intersected_3d(C,
                                      mval,
-                                     event->tablet.active != EVT_TABLET_NONE,
                                      static_cast<wmGizmo **>(visible_3d_gizmos.data),
                                      visible_3d_gizmos.count,
                                      r_part);
