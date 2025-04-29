@@ -873,7 +873,7 @@ Vector<DrawingInfo> retrieve_visible_drawings(const Scene &scene,
                                               const bool do_onion_skinning)
 {
   using namespace blender::bke::greasepencil;
-  const int current_frame = scene.r.cfra;
+  const int current_frame = BKE_scene_ctime_get(&scene);
   const ToolSettings *toolsettings = scene.toolsettings;
   const bool use_multi_frame_editing = (toolsettings->gpencil_flags &
                                         GP_USE_MULTI_FRAME_EDITING) != 0;
