@@ -934,10 +934,10 @@ void resize_single_curve(bke::CurvesGeometry &curves, bool at_end, int new_point
 
 /**
  * Calculate a randomized radius value for a point.
- * \param stroke_factor Random seed value in [-1, 1] per stroke.
- * \param distance Screen-space length in pixels along the curve.
- * \param radius Base radius to be randomized.
- * \param pressure Pressure factor.
+ * \param stroke_factor: Random seed value in [-1, 1] per stroke.
+ * \param distance: Screen-space length in pixels along the curve.
+ * \param radius: Base radius to be randomized.
+ * \param pressure: Pressure factor.
  */
 float randomize_radius(const BrushGpencilSettings &settings,
                        float stroke_factor,
@@ -946,10 +946,10 @@ float randomize_radius(const BrushGpencilSettings &settings,
                        float pressure);
 /**
  * Calculate a randomized opacity value for a point.
- * \param stroke_factor Random seed value in [-1, 1] per stroke.
- * \param distance Screen-space length in pixels along the curve.
- * \param opacity Base opacity to be randomized.
- * \param pressure Pressure factor.
+ * \param stroke_factor: Random seed value in [-1, 1] per stroke.
+ * \param distance: Screen-space length in pixels along the curve.
+ * \param opacity: Base opacity to be randomized.
+ * \param pressure: Pressure factor.
  */
 float randomize_opacity(const BrushGpencilSettings &settings,
                         float stroke_factor,
@@ -958,9 +958,9 @@ float randomize_opacity(const BrushGpencilSettings &settings,
                         float pressure);
 /**
  * Calculate a randomized rotation for a point.
- * \param stroke_factor Random seed value in [-1, 1] per stroke.
- * \param distance Screen-space length in pixels along the curve.
- * \param pressure Pressure factor.
+ * \param stroke_factor: Random seed value in [-1, 1] per stroke.
+ * \param distance: Screen-space length in pixels along the curve.
+ * \param pressure: Pressure factor.
  */
 float randomize_rotation(const BrushGpencilSettings &settings,
                          float stroke_factor,
@@ -968,9 +968,9 @@ float randomize_rotation(const BrushGpencilSettings &settings,
                          float pressure);
 /**
  * Calculate a randomized rotation for a point.
- * \param rng Random number generator instance.
- * \param stroke_factor Random seed value in [-1, 1] per stroke.
- * \param pressure Pressure factor.
+ * \param rng: Random number generator instance.
+ * \param stroke_factor: Random seed value in [-1, 1] per stroke.
+ * \param pressure: Pressure factor.
  */
 float randomize_rotation(const BrushGpencilSettings &settings,
                          blender::RandomNumberGenerator &rng,
@@ -978,12 +978,12 @@ float randomize_rotation(const BrushGpencilSettings &settings,
                          float pressure);
 /**
  * Calculate a randomized opacity value for a point.
- * \param stroke_hue_factor Random seed value in [-1, 1] per stroke for color hue.
- * \param stroke_saturation_factor Random seed value in [-1, 1] per stroke for color saturation.
- * \param stroke_value_factor Random seed value in [-1, 1] per stroke for color value.
- * \param distance Screen-space length in pixels along the curve.
- * \param color Base color to be randomized.
- * \param pressure Pressure factor.
+ * \param stroke_hue_factor: Random seed value in [-1, 1] per stroke for color hue.
+ * \param stroke_saturation_factor: Random seed value in [-1, 1] per stroke for color saturation.
+ * \param stroke_value_factor: Random seed value in [-1, 1] per stroke for color value.
+ * \param distance: Screen-space length in pixels along the curve.
+ * \param color: Base color to be randomized.
+ * \param pressure: Pressure factor.
  */
 ColorGeometry4f randomize_color(const BrushGpencilSettings &settings,
                                 float stroke_hue_factor,

@@ -26,7 +26,7 @@ BMLog *BM_log_create(BMesh *bm);
  * The unused IDs field of the log will be initialized by taking all
  * keys from all Maps in the log entry.
  *
- * \param entry The last entry of the prior BMLog, its `prev` pointer will be followed back to
+ * \param entry: The last entry of the prior BMLog, its `prev` pointer will be followed back to
  * reconstruct the log.
  */
 BMLog *BM_log_from_existing_entries_create(BMesh *bm, BMLogEntry *entry);

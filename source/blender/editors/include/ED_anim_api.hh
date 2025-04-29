@@ -693,7 +693,7 @@ struct bAnimChannelType {
   /**
    * Called after a setting was changed via ANIM_channel_setting_set().
    *
-   * \param ale is marked as 'const', as it could have been duplicated and taken out of context.
+   * \param ale: is marked as `const`, as it could have been duplicated and taken out of context.
    * This means that any hypothetical changes to `ale->update`, for example, will not be seen by
    * any `ANIM_animdata_update()` call. So better to keep this `const` and avoid any manipulation.
    * Also, because of the duplications, the ale's `prev` and `next` pointers will be dangling.

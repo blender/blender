@@ -193,8 +193,8 @@ bool BKE_animdata_driver_path_remove(struct ID *id, const char *prefix);
 /**
  * Remove all drivers from the given struct.
  *
- * \param type needs to be a struct owned by the given ID.
- * \param data the actual struct data, needs to be the data for the StructRNA.
+ * \param type: needs to be a struct owned by the given ID.
+ * \param data: the actual struct data, needs to be the data for the StructRNA.
  *
  * \return true if any driver was removed.
  */
