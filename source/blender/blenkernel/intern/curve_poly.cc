@@ -57,6 +57,10 @@ void calculate_tangents(const Span<float3> positions,
 {
   BLI_assert(positions.size() == tangents.size());
 
+  if (positions.is_empty()) {
+    return;
+  }
+
   if (positions.size() == 1) {
     tangents.first() = float3(0.0f, 0.0f, 1.0f);
     return;

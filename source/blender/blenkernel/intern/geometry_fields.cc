@@ -842,12 +842,25 @@ bool try_capture_fields_on_geometry(MutableAttributeAccessor attributes,
   };
   Vector<AddResult> results_to_add;
 
+  bool success = true;
+
   for (const int input_index : attribute_ids.index_range()) {
     const StringRef id = attribute_ids[input_index];
+    const CPPType &type = fields[input_index].cpp_type();
+    const eCustomDataType data_type = bke::cpp_type_to_custom_data_type(type);
+
+    /* Avoid adding or writing to builtin attributes with an incorrect type or domain. */
+    if (const std::optional<AttributeDomainAndType> meta_data =
+            attributes.get_builtin_domain_and_type(id))
+    {
+      if (*meta_data != AttributeDomainAndType{domain, data_type}) {
+        success = false;
+        continue;
+      }
+    }
+
     const AttributeValidator validator = attributes.lookup_validator(id);
     const fn::GField field = validator.validate_field_if_necessary(fields[input_index]);
-    const CPPType &type = field.cpp_type();
-    const eCustomDataType data_type = bke::cpp_type_to_custom_data_type(type);
 
     /* We are writing to an attribute that exists already with the correct domain and type. */
     if (const GAttributeReader dst = attributes.lookup(id)) {
@@ -891,7 +904,6 @@ bool try_capture_fields_on_geometry(MutableAttributeAccessor attributes,
     }
   }
 
-  bool success = true;
   for (const AddResult &result : results_to_add) {
     const StringRef id = attribute_ids[result.input_index];
     attributes.remove(id);
