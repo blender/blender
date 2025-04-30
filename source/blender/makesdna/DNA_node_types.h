@@ -1581,9 +1581,8 @@ typedef struct NodeShaderOutputAOV {
 } NodeShaderOutputAOV;
 
 typedef struct NodeSunBeams {
-  float source[2];
-
-  float ray_length;
+  float source[2] DNA_DEPRECATED;
+  float ray_length DNA_DEPRECATED;
 } NodeSunBeams;
 
 typedef struct CryptomatteEntry {

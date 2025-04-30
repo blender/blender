@@ -730,9 +730,10 @@ static void WIDGETGROUP_node_sbeam_refresh(const bContext *C, wmGizmoGroup *gzgr
     bNode *node = bke::node_get_active(*snode->edittree);
 
     /* Need to set property here for undo. TODO: would prefer to do this in _init. */
-    PointerRNA nodeptr = RNA_pointer_create_discrete(
-        (ID *)snode->edittree, &RNA_CompositorNodeSunBeams, node);
-    WM_gizmo_target_property_def_rna(gz, "offset", &nodeptr, "source", -1);
+    bNodeSocket *source_input = bke::node_find_socket(*node, SOCK_IN, "Source");
+    PointerRNA socket_pointer = RNA_pointer_create_discrete(
+        reinterpret_cast<ID *>(snode->edittree), &RNA_NodeSocket, source_input);
+    WM_gizmo_target_property_def_rna(gz, "offset", &socket_pointer, "default_value", -1);
 
     WM_gizmo_set_flag(gz, WM_GIZMO_DRAW_MODAL, true);
   }

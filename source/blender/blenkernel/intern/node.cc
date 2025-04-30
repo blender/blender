@@ -982,6 +982,13 @@ static void write_compositor_legacy_properties(bNodeTree &node_tree)
       write_input_to_property_float_vector("Size", 1, storage->height);
       write_input_to_property_float("Rotation", storage->rotation);
     }
+
+    if (node->type_legacy == CMP_NODE_SUNBEAMS) {
+      NodeSunBeams *storage = static_cast<NodeSunBeams *>(node->storage);
+      write_input_to_property_float_vector("Source", 0, storage->source[0]);
+      write_input_to_property_float_vector("Source", 1, storage->source[1]);
+      write_input_to_property_float("Length", storage->ray_length);
+    }
   }
 }
 

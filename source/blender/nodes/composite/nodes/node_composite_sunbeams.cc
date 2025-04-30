@@ -22,34 +22,35 @@
 
 namespace blender::nodes::node_composite_sunbeams_cc {
 
-NODE_STORAGE_FUNCS(NodeSunBeams)
-
 static void cmp_node_sunbeams_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Color>("Image")
-      .default_value({1.0f, 1.0f, 1.0f, 1.0f})
-      .compositor_domain_priority(0);
+  b.add_input<decl::Color>("Image").default_value({1.0f, 1.0f, 1.0f, 1.0f});
+  b.add_input<decl::Vector>("Source")
+      .subtype(PROP_FACTOR)
+      .default_value({0.5f, 0.5f, 0.0f})
+      .description(
+          "The position of the source of the rays in normalized coordinates. 0 means lower left "
+          "corner and 1 means upper right corner")
+      .compositor_expects_single_value();
+  b.add_input<decl::Float>("Length")
+      .subtype(PROP_FACTOR)
+      .min(0.0f)
+      .max(1.0f)
+      .default_value(0.2f)
+      .description(
+          "The length of rays relative to the size of the image. 0 means no rays and 1 means the "
+          "rays cover the full extent of the image")
+      .compositor_expects_single_value();
+
   b.add_output<decl::Color>("Image");
 }
 
 static void init(bNodeTree * /*ntree*/, bNode *node)
 {
+  /* All members are deprecated and needn't be set, but the data is still allocated for forward
+   * compatibility. */
   NodeSunBeams *data = MEM_callocN<NodeSunBeams>(__func__);
-
-  data->source[0] = 0.5f;
-  data->source[1] = 0.5f;
   node->storage = data;
-}
-
-static void node_composit_buts_sunbeams(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
-{
-  uiItemR(layout, ptr, "source", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_EXPAND, "", ICON_NONE);
-  uiItemR(layout,
-          ptr,
-          "ray_length",
-          UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER,
-          std::nullopt,
-          ICON_NONE);
 }
 
 using namespace blender::compositor;
@@ -63,7 +64,7 @@ class SunBeamsOperation : public NodeOperation {
     const Result &input_image = this->get_input("Image");
 
     const int2 input_size = input_image.domain().size;
-    const int max_steps = int(node_storage(bnode()).ray_length * math::length(input_size));
+    const int max_steps = int(this->get_length() * math::length(input_size));
     if (max_steps == 0) {
       Result &output_image = this->get_result("Image");
       output_image.share_data(input_image);
@@ -83,7 +84,7 @@ class SunBeamsOperation : public NodeOperation {
     GPUShader *shader = context().get_shader("compositor_sun_beams");
     GPU_shader_bind(shader);
 
-    GPU_shader_uniform_2fv(shader, "source", node_storage(bnode()).source);
+    GPU_shader_uniform_2fv(shader, "source", this->get_source());
     GPU_shader_uniform_1i(shader, "max_steps", max_steps);
 
     Result &input_image = get_input("Image");
@@ -105,7 +106,7 @@ class SunBeamsOperation : public NodeOperation {
 
   void execute_cpu(const int max_steps)
   {
-    const float2 source = node_storage(bnode()).source;
+    const float2 source = this->get_source();
 
     Result &input = get_input("Image");
 
@@ -155,6 +156,16 @@ class SunBeamsOperation : public NodeOperation {
       output.store_pixel(texel, accumulated_color);
     });
   }
+
+  float2 get_source()
+  {
+    return this->get_input("Source").get_single_value_default(float3(0.5f, 0.5f, 0.0f)).xy();
+  }
+
+  float get_length()
+  {
+    return math::clamp(this->get_input("Length").get_single_value_default(0.2f), 0.0f, 1.0f);
+  }
 };
 
 static NodeOperation *get_compositor_operation(Context &context, DNode node)
@@ -176,7 +187,6 @@ void register_node_type_cmp_sunbeams()
   ntype.enum_name_legacy = "SUNBEAMS";
   ntype.nclass = NODE_CLASS_OP_FILTER;
   ntype.declare = file_ns::cmp_node_sunbeams_declare;
-  ntype.draw_buttons = file_ns::node_composit_buts_sunbeams;
   ntype.initfunc = file_ns::init;
   blender::bke::node_type_storage(
       ntype, "NodeSunBeams", node_free_standard_storage, node_copy_standard_storage);

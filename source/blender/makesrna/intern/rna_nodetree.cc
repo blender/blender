@@ -3916,6 +3916,53 @@ static void rna_node_property_to_input_setter(PointerRNA *ptr, const T value)
   }
 }
 
+/* A getter that returns the value of the array input socket with the given template identifier and
+ * type. The RNA pointer is assumed to represent a node. */
+template<typename T, const char *identifier>
+static void rna_node_array_property_to_input_getter(PointerRNA *ptr, T *value)
+{
+  bNode *node = ptr->data_as<bNode>();
+  bNodeSocket *input = blender::bke::node_find_socket(*node, SOCK_IN, identifier);
+  PointerRNA input_rna_pointer = RNA_pointer_create_discrete(
+      ptr->owner_id, &RNA_NodeSocket, input);
+  if constexpr (std::is_same_v<T, bool>) {
+    return RNA_boolean_get_array(&input_rna_pointer, "default_value", value);
+  }
+  else if constexpr (std::is_same_v<T, int>) {
+    return RNA_int_get_array(&input_rna_pointer, "default_value", value);
+  }
+  else if constexpr (std::is_same_v<T, float>) {
+    return RNA_float_get_array(&input_rna_pointer, "default_value", value);
+  }
+  else {
+    BLI_assert_unreachable();
+    return T(0);
+  }
+}
+
+/* A setter that sets the given value to the array input socket with the given template identifier
+ * and type. The RNA pointer is assumed to represent a node. */
+template<typename T, const char *identifier>
+static void rna_node_array_property_to_input_setter(PointerRNA *ptr, const T *value)
+{
+  bNode *node = ptr->data_as<bNode>();
+  bNodeSocket *input = blender::bke::node_find_socket(*node, SOCK_IN, identifier);
+  PointerRNA input_rna_pointer = RNA_pointer_create_discrete(
+      ptr->owner_id, &RNA_NodeSocket, input);
+  if constexpr (std::is_same_v<T, bool>) {
+    RNA_boolean_set_array(&input_rna_pointer, "default_value", value);
+  }
+  else if constexpr (std::is_same_v<T, int>) {
+    RNA_int_set_array(&input_rna_pointer, "default_value", value);
+  }
+  else if constexpr (std::is_same_v<T, float>) {
+    RNA_float_set_array(&input_rna_pointer, "default_value", value);
+  }
+  else {
+    BLI_assert_unreachable();
+  }
+}
+
 /* A getter that returns the value of the component of the vector input socket with the given
  * template identifier and component index. The RNA pointer is assumed to represent a node. */
 template<const char *identifier, int index>
@@ -4092,6 +4139,10 @@ static const char node_input_jitter[] = "Jitter";
 /* Box Mask node. */
 static const char node_input_position[] = "Position";
 static const char node_input_rotation[] = "Rotation";
+
+/* Sun Beams node. */
+static const char node_input_source[] = "Source";
+static const char node_input_length[] = "Length";
 
 /* --------------------------------------------------------------------
  * White Balance Node.
@@ -10377,21 +10428,31 @@ static void def_cmp_sunbeams(BlenderRNA * /*brna*/, StructRNA *srna)
 {
   PropertyRNA *prop;
 
-  RNA_def_struct_sdna_from(srna, "NodeSunBeams", "storage");
-
   prop = RNA_def_property(srna, "source", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "source");
+  RNA_def_property_array(prop, 2);
+  RNA_def_property_float_funcs(prop,
+                               "rna_node_array_property_to_input_getter<float, node_input_source>",
+                               "rna_node_array_property_to_input_setter<float, node_input_source>",
+                               nullptr);
   RNA_def_property_range(prop, -100.0f, 100.0f);
   RNA_def_property_ui_range(prop, -10.0f, 10.0f, 10, 3);
-  RNA_def_property_ui_text(
-      prop, "Source", "Source point of rays as a factor of the image width and height");
+  RNA_def_property_ui_text(prop,
+                           "Source",
+                           "Source point of rays as a factor of the image width and height. "
+                           "(Deprecated: Use Source input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "ray_length", PROP_FLOAT, PROP_UNSIGNED);
-  RNA_def_property_float_sdna(prop, nullptr, "ray_length");
+  RNA_def_property_float_funcs(prop,
+                               "rna_node_property_to_input_getter<float, node_input_length>",
+                               "rna_node_property_to_input_setter<float, node_input_length>",
+                               nullptr);
   RNA_def_property_range(prop, 0.0f, 100.0f);
   RNA_def_property_ui_range(prop, 0.0f, 1.0f, 10, 3);
-  RNA_def_property_ui_text(prop, "Ray Length", "Length of rays as a factor of the image size");
+  RNA_def_property_ui_text(
+      prop,
+      "Ray Length",
+      "Length of rays as a factor of the image size. (Deprecated: Use Length input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
