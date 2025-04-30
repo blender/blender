@@ -2286,7 +2286,7 @@ void DepsgraphNodeBuilder::build_scene_sequencer(Scene *scene)
                      NodeType::SEQUENCER,
                      OperationCode::SEQUENCES_EVAL,
                      [scene_cow](::Depsgraph *depsgraph) {
-                       seq::eval_sequences(depsgraph, scene_cow, &scene_cow->ed->seqbase);
+                       seq::eval_strips(depsgraph, scene_cow, &scene_cow->ed->seqbase);
                      });
   /* Make sure data for sequences is in the graph. */
   seq::for_each_callback(&scene->ed->seqbase, strip_node_build_cb, this);

@@ -76,7 +76,7 @@ Scene *ED_scene_sequencer_add(Main *bmain,
   /* Sequencer need to use as base the scene defined in the strip, not the main scene. */
   Editing *ed = scene_active->ed;
   if (ed) {
-    strip = ed->act_seq;
+    strip = ed->act_strip;
     if (strip && strip->scene) {
       scene_strip = strip->scene;
     }

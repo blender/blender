@@ -30,7 +30,7 @@ class SequencerBackup {
 
   const Depsgraph *depsgraph;
 
-  Map<SessionUID, SequenceBackup> sequences_backup;
+  Map<SessionUID, StripBackup> strips_backup;
 };
 
 }  // namespace blender::deg

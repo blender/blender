@@ -259,8 +259,8 @@ void SEQUENCER_OT_scene_frame_range_update(wmOperatorType *ot);
 /* `sequencer_select.cc` */
 
 void strip_rectf(const Scene *scene, const Strip *strip, rctf *r_rect);
-Strip *find_neighboring_sequence(Scene *scene, Strip *test, int lr, int sel);
-void recurs_sel_seq(Strip *strip_meta);
+Strip *find_neighboring_strip(Scene *scene, Strip *test, int lr, int sel);
+void recurs_sel_strip(Strip *strip_meta);
 
 void SEQUENCER_OT_select_all(wmOperatorType *ot);
 void SEQUENCER_OT_select(wmOperatorType *ot);
@@ -372,7 +372,7 @@ void sequencer_retiming_speed_draw(const TimelineDrawContext *timeline_ctx,
                                    const StripDrawContext &strip_ctx);
 void realize_fake_keys(const Scene *scene, Strip *strip);
 SeqRetimingKey *try_to_realize_fake_keys(const bContext *C, Strip *strip, const int mval[2]);
-SeqRetimingKey *retiming_mouseover_key_get(const bContext *C, const int mval[2], Strip **r_seq);
+SeqRetimingKey *retiming_mouseover_key_get(const bContext *C, const int mval[2], Strip **r_strip);
 int left_fake_key_frame_get(const bContext *C, const Strip *strip);
 int right_fake_key_frame_get(const bContext *C, const Strip *strip);
 bool retiming_keys_can_be_displayed(const SpaceSeq *sseq);

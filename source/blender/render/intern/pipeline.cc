@@ -1460,8 +1460,10 @@ bool RE_seq_render_active(Scene *scene, RenderData *rd)
     return false;
   }
 
-  LISTBASE_FOREACH (Strip *, seq, &ed->seqbase) {
-    if (seq->type != STRIP_TYPE_SOUND_RAM && !blender::seq::render_is_muted(&ed->channels, seq)) {
+  LISTBASE_FOREACH (Strip *, strip, &ed->seqbase) {
+    if (strip->type != STRIP_TYPE_SOUND_RAM &&
+        !blender::seq::render_is_muted(&ed->channels, strip))
+    {
       return true;
     }
   }
@@ -1751,23 +1753,24 @@ static int check_valid_camera(Scene *scene, Object *camera_override, ReportList 
 
   if (RE_seq_render_active(scene, &scene->r)) {
     if (scene->ed) {
-      LISTBASE_FOREACH (Strip *, seq, &scene->ed->seqbase) {
-        if ((seq->type == STRIP_TYPE_SCENE) && ((seq->flag & SEQ_SCENE_STRIPS) == 0) &&
-            (seq->scene != nullptr))
+      LISTBASE_FOREACH (Strip *, strip, &scene->ed->seqbase) {
+        if ((strip->type == STRIP_TYPE_SCENE) && ((strip->flag & SEQ_SCENE_STRIPS) == 0) &&
+            (strip->scene != nullptr))
         {
-          if (!seq->scene_camera) {
-            if (!seq->scene->camera &&
-                !BKE_view_layer_camera_find(seq->scene, BKE_view_layer_default_render(seq->scene)))
+          if (!strip->scene_camera) {
+            if (!strip->scene->camera &&
+                !BKE_view_layer_camera_find(strip->scene,
+                                            BKE_view_layer_default_render(strip->scene)))
             {
               /* camera could be unneeded due to composite nodes */
-              Object *override = (seq->scene == scene) ? camera_override : nullptr;
+              Object *override = (strip->scene == scene) ? camera_override : nullptr;
 
-              if (!check_valid_compositing_camera(seq->scene, override, reports)) {
+              if (!check_valid_compositing_camera(strip->scene, override, reports)) {
                 return false;
               }
             }
           }
-          else if (!check_valid_camera_multiview(seq->scene, seq->scene_camera, reports)) {
+          else if (!check_valid_camera_multiview(strip->scene, strip->scene_camera, reports)) {
             return false;
           }
         }

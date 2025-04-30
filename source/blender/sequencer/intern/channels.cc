@@ -88,7 +88,7 @@ bool channel_is_muted(const SeqTimelineChannel *channel)
   return (channel->flag & SEQ_CHANNEL_MUTE) != 0;
 }
 
-ListBase *get_channels_by_seq(Editing *ed, const Strip *strip)
+ListBase *get_channels_by_strip(Editing *ed, const Strip *strip)
 {
   Strip *strip_owner = lookup_meta_by_strip(ed, strip);
   if (strip_owner != nullptr) {

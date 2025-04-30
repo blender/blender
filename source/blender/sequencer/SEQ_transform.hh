@@ -19,15 +19,15 @@ struct Strip;
 
 namespace blender::seq {
 
-bool transform_sequence_can_be_translated(const Strip *strip);
+bool transform_strip_can_be_translated(const Strip *strip);
 /**
- * Used so we can do a quick check for single image seq
- * since they work a bit differently to normal image seq's (during transform).
+ * Used so we can do a quick check for single image strip
+ * since they work a bit differently to normal image strips (during transform).
  */
 bool transform_single_image_check(const Strip *strip);
 bool transform_test_overlap(const Scene *scene, ListBase *seqbasep, Strip *test);
-bool transform_test_overlap_seq_seq(const Scene *scene, Strip *seq1, Strip *seq2);
-void transform_translate_sequence(Scene *evil_scene, Strip *strip, int delta);
+bool transform_test_overlap(const Scene *scene, Strip *strip1, Strip *strip2);
+void transform_translate_strip(Scene *evil_scene, Strip *strip, int delta);
 /**
  * \return 0 if there weren't enough space.
  */
@@ -72,7 +72,7 @@ void strip_channel_set(Strip *strip, int channel);
 void transform_offset_after_frame(Scene *scene, ListBase *seqbase, int delta, int timeline_frame);
 
 /**
- * Check if `seq` can be moved.
+ * Check if `strip` can be moved.
  * This function also checks `SeqTimelineChannel` flag.
  */
 bool transform_is_locked(ListBase *channels, const Strip *strip);
@@ -85,7 +85,7 @@ blender::float2 image_transform_mirror_factor_get(const Strip *strip);
  * NOTE: This function does not apply axis mirror.
  *
  * \param scene: Scene in which strips are located
- * \param seq: Sequence to calculate image transform origin
+ * \param strip: Strip to calculate image transform origin
  */
 blender::float2 image_transform_origin_offset_pixelspace_get(const Scene *scene,
                                                              const Strip *strip);
@@ -94,8 +94,8 @@ blender::float2 image_transform_origin_offset_pixelspace_get(const Scene *scene,
  * Corner vectors are in viewport space.
  *
  * \param scene: Scene in which strips are located
- * \param seq: Sequence to calculate transformed image quad
- * \param apply_rotation: Apply sequence rotation transform to the quad
+ * \param strip: Strip to calculate transformed image quad
+ * \param apply_rotation: Apply strip rotation transform to the quad
  * \return array of 4 2D vectors
  */
 blender::Array<blender::float2> image_transform_quad_get(const Scene *scene,
@@ -105,7 +105,7 @@ blender::Array<blender::float2> image_transform_quad_get(const Scene *scene,
  * Get 4 corner points of strip image. Corner vectors are in viewport space.
  *
  * \param scene: Scene in which strips are located
- * \param seq: Sequence to calculate transformed image quad
+ * \param strip: Strip to calculate transformed image quad
  * \return array of 4 2D vectors
  */
 blender::Array<blender::float2> image_transform_final_quad_get(const Scene *scene,
@@ -120,7 +120,7 @@ blender::float2 image_preview_unit_from_px(const Scene *scene, blender::float2 c
  *
  * \param scene: Scene in which strips are located
  * \param strips: Collection of strips to get the bounding box from
- * \param apply_rotation: Include sequence rotation transform in the bounding box calculation
+ * \param apply_rotation: Include strip rotation transform in the bounding box calculation
  * \param r_min: Minimum x and y values
  * \param r_max: Maximum x and y values
  */
@@ -132,7 +132,7 @@ blender::Bounds<blender::float2> image_transform_bounding_box_from_collection(
  * system
  *
  * \param scene: Scene in which strips are located
- * \param seq: Strip that is used to construct the matrix
+ * \param strip: Strip that is used to construct the matrix
  */
 blender::float3x3 image_transform_matrix_get(const Scene *scene, const Strip *strip);
 

@@ -17,14 +17,14 @@ namespace blender::deg {
 struct Depsgraph;
 
 /* Backup of a single strip. */
-class SequenceBackup {
+class StripBackup {
  public:
-  SequenceBackup(const Depsgraph *depsgraph);
+  StripBackup(const Depsgraph *depsgraph);
 
   void reset();
 
-  void init_from_sequence(Strip *sequence);
-  void restore_to_sequence(Strip *sequence);
+  void init_from_strip(Strip *strip);
+  void restore_to_strip(Strip *strip);
 
   bool isEmpty() const;
 

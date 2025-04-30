@@ -622,11 +622,11 @@ void cache_cleanup(Scene *scene)
   seq_cache_unlock(scene);
 }
 
-void seq_cache_cleanup_sequence(Scene *scene,
-                                Strip *strip,
-                                Strip *strip_changed,
-                                int invalidate_types,
-                                bool force_seq_changed_range)
+void seq_cache_cleanup_strip(Scene *scene,
+                             Strip *strip,
+                             Strip *strip_changed,
+                             int invalidate_types,
+                             bool force_strip_changed_range)
 {
   SeqCache *cache = seq_cache_get_from_scene(scene);
   if (!cache) {
@@ -639,18 +639,18 @@ void seq_cache_cleanup_sequence(Scene *scene,
 
   seq_cache_lock(scene);
 
-  const int range_start_seq_changed = time_left_handle_frame_get(scene, strip_changed);
-  const int range_end_seq_changed = time_right_handle_frame_get(scene, strip_changed);
+  const int range_start_strip_changed = time_left_handle_frame_get(scene, strip_changed);
+  const int range_end_strip_changed = time_right_handle_frame_get(scene, strip_changed);
 
-  int range_start = range_start_seq_changed;
-  int range_end = range_end_seq_changed;
+  int range_start = range_start_strip_changed;
+  int range_end = range_end_strip_changed;
 
-  if (!force_seq_changed_range) {
-    const int range_start_seq = time_left_handle_frame_get(scene, strip);
-    const int range_end_seq = time_right_handle_frame_get(scene, strip);
+  if (!force_strip_changed_range) {
+    const int range_start_strip = time_left_handle_frame_get(scene, strip);
+    const int range_end_strip = time_right_handle_frame_get(scene, strip);
 
-    range_start = max_ii(range_start, range_start_seq);
-    range_end = min_ii(range_end, range_end_seq);
+    range_start = max_ii(range_start, range_start_strip);
+    range_end = min_ii(range_end, range_end_strip);
   }
 
   int invalidate_composite = invalidate_types & SEQ_CACHE_STORE_FINAL_OUT;
@@ -694,9 +694,9 @@ ImBuf *seq_cache_get(const RenderData *context, Strip *strip, float timeline_fra
   Scene *scene = context->scene;
 
   if (context->is_prefetch_render) {
-    context = seq_prefetch_get_original_context(context);
+    context = seq_prefetch_original_context_get(context);
     scene = context->scene;
-    strip = seq_prefetch_get_original_sequence(strip, scene);
+    strip = seq_prefetch_original_strip_get(strip, scene);
   }
 
   if (!strip) {
@@ -755,9 +755,9 @@ bool seq_cache_put_if_possible(
   Scene *scene = context->scene;
 
   if (context->is_prefetch_render) {
-    context = seq_prefetch_get_original_context(context);
+    context = seq_prefetch_original_context_get(context);
     scene = context->scene;
-    strip = seq_prefetch_get_original_sequence(strip, scene);
+    strip = seq_prefetch_original_strip_get(strip, scene);
   }
 
   if (!strip) {
@@ -787,9 +787,9 @@ void seq_cache_put(
   Scene *scene = context->scene;
 
   if (context->is_prefetch_render) {
-    context = seq_prefetch_get_original_context(context);
+    context = seq_prefetch_original_context_get(context);
     scene = context->scene;
-    strip = seq_prefetch_get_original_sequence(strip, scene);
+    strip = seq_prefetch_original_strip_get(strip, scene);
     BLI_assert(strip != nullptr);
   }
 

@@ -173,7 +173,7 @@ bool strip_can_have_thumbnail(const Scene *scene, const Strip *strip)
   return true;
 }
 
-static std::string get_path_from_seq(Scene *scene, const Strip *strip, float timeline_frame)
+static std::string get_path_from_strip(Scene *scene, const Strip *strip, float timeline_frame)
 {
   char filepath[FILE_MAX];
   filepath[0] = 0;
@@ -493,7 +493,7 @@ ImBuf *thumbnail_cache_get(const bContext *C,
 
   timeline_frame = math::round(timeline_frame);
 
-  const std::string key = get_path_from_seq(scene, strip, timeline_frame);
+  const std::string key = get_path_from_strip(scene, strip, timeline_frame);
   int frame_index = give_frame_index(scene, strip, timeline_frame);
   if (strip->type == STRIP_TYPE_MOVIE) {
     frame_index += strip->anim_startofs;

@@ -23,7 +23,7 @@ using ForEachFunc = bool (*)(Strip *strip, void *user_data);
 
 /**
  * Utility function to recursively iterate through all sequence strips in a `seqbase` list.
- * Uses callback to do operations on each sequence element.
+ * Uses callback to do operations on each element.
  * The callback can stop the iteration if needed.
  *
  * \param seqbase: #ListBase of sequences to be iterated over.

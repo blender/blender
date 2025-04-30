@@ -24,10 +24,10 @@ void seq_prefetch_get_time_range(Scene *scene, int *r_start, int *r_end);
 /**
  * For cache context swapping.
  */
-RenderData *seq_prefetch_get_original_context(const RenderData *context);
+RenderData *seq_prefetch_original_context_get(const RenderData *context);
 /**
  * For cache context swapping.
  */
-Strip *seq_prefetch_get_original_sequence(Strip *strip, Scene *scene);
+Strip *seq_prefetch_original_strip_get(Strip *strip, Scene *scene);
 
 }  // namespace blender::seq

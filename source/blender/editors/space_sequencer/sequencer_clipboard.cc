@@ -168,7 +168,7 @@ static bool sequencer_write_copy_paste_file(Main *bmain_src,
   /* Create an empty sequence editor data to store all copied strips. */
   scene_dst->ed = MEM_callocN<Editing>(__func__);
   scene_dst->ed->seqbasep = &scene_dst->ed->seqbase;
-  seq::sequence_base_dupli_recursive(
+  seq::seqbase_duplicate_recursive(
       scene_src, scene_dst, &scene_dst->ed->seqbase, scene_src->ed->seqbasep, 0, 0);
 
   BLI_duplicatelist(&scene_dst->ed->channels, &scene_src->ed->channels);
@@ -441,8 +441,8 @@ wmOperatorStatus sequencer_clipboard_paste_exec(bContext *C, wmOperator *op)
   }
   else {
     int min_seq_startdisp = INT_MAX;
-    LISTBASE_FOREACH (Strip *, seq, &scene_src->ed->seqbase) {
-      min_seq_startdisp = std::min(seq::time_left_handle_frame_get(scene_src, seq),
+    LISTBASE_FOREACH (Strip *, strip, &scene_src->ed->seqbase) {
+      min_seq_startdisp = std::min(seq::time_left_handle_frame_get(scene_src, strip),
                                    min_seq_startdisp);
     }
     /* Paste strips relative to the current-frame. */
@@ -474,10 +474,9 @@ wmOperatorStatus sequencer_clipboard_paste_exec(bContext *C, wmOperator *op)
   bool has_animation = sequencer_paste_animation(bmain_dst, scene_dst, scene_src);
 
   ListBase nseqbase = {nullptr, nullptr};
-  /* NOTE: seq::sequence_base_dupli_recursive() takes care of generating
+  /* NOTE: seq::seqbase_duplicate_recursive() takes care of generating
    * new UIDs for sequences in the new list. */
-  seq::sequence_base_dupli_recursive(
-      scene_src, scene_dst, &nseqbase, &scene_src->ed->seqbase, 0, 0);
+  seq::seqbase_duplicate_recursive(scene_src, scene_dst, &nseqbase, &scene_src->ed->seqbase, 0, 0);
 
   /* BKE_main_merge will copy the scene_src and its action into bmain_dst. Remove them as
    * we merge the data from these manually.
@@ -492,22 +491,22 @@ wmOperatorStatus sequencer_clipboard_paste_exec(bContext *C, wmOperator *op)
   /* Restore "first" pointer as BLI_movelisttolist sets it to nullptr */
   nseqbase.first = iseq_first;
 
-  LISTBASE_FOREACH (Strip *, iseq, &nseqbase) {
-    if (iseq->name == active_seq_name) {
-      seq::select_active_set(scene_dst, iseq);
+  LISTBASE_FOREACH (Strip *, istrip, &nseqbase) {
+    if (istrip->name == active_seq_name) {
+      seq::select_active_set(scene_dst, istrip);
     }
     /* Make sure, that pasted strips have unique names. This has to be done after
      * adding strips to seqbase, for lookup cache to work correctly. */
-    seq::ensure_unique_name(iseq, scene_dst);
+    seq::ensure_unique_name(istrip, scene_dst);
   }
 
-  LISTBASE_FOREACH (Strip *, iseq, &nseqbase) {
+  LISTBASE_FOREACH (Strip *, istrip, &nseqbase) {
     /* Translate after name has been changed, otherwise this will affect animdata of original
      * strip. */
-    seq::transform_translate_sequence(scene_dst, iseq, ofs);
+    seq::transform_translate_strip(scene_dst, istrip, ofs);
     /* Ensure, that pasted strips don't overlap. */
-    if (seq::transform_test_overlap(scene_dst, ed_dst->seqbasep, iseq)) {
-      seq::transform_seqbase_shuffle(ed_dst->seqbasep, iseq, scene_dst);
+    if (seq::transform_test_overlap(scene_dst, ed_dst->seqbasep, istrip)) {
+      seq::transform_seqbase_shuffle(ed_dst->seqbasep, istrip, scene_dst);
     }
   }
 

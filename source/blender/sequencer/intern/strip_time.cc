@@ -95,27 +95,29 @@ float give_frame_index(const Scene *scene, const Strip *strip, float timeline_fr
   return frame_index;
 }
 
-static int metaseq_start(Strip *metaseq)
+static int metastrip_start_get(Strip *strip_meta)
 {
-  return metaseq->start + metaseq->startofs;
+  return strip_meta->start + strip_meta->startofs;
 }
 
-static int metaseq_end(Strip *metaseq)
+static int metastrip_end_get(Strip *strip_meta)
 {
-  return metaseq->start + metaseq->len - metaseq->endofs;
+  return strip_meta->start + strip_meta->len - strip_meta->endofs;
 }
 
 static void strip_update_sound_bounds_recursive_impl(const Scene *scene,
-                                                     Strip *metaseq,
+                                                     Strip *strip_meta,
                                                      int start,
                                                      int end)
 {
   /* For sound we go over full meta tree to update bounds of the sound strips,
    * since sound is played outside of evaluating the image-buffers (#ImBuf). */
-  LISTBASE_FOREACH (Strip *, strip, &metaseq->seqbase) {
+  LISTBASE_FOREACH (Strip *, strip, &strip_meta->seqbase) {
     if (strip->type == STRIP_TYPE_META) {
-      strip_update_sound_bounds_recursive_impl(
-          scene, strip, max_ii(start, metaseq_start(strip)), min_ii(end, metaseq_end(strip)));
+      strip_update_sound_bounds_recursive_impl(scene,
+                                               strip,
+                                               max_ii(start, metastrip_start_get(strip)),
+                                               min_ii(end, metastrip_end_get(strip)));
     }
     else if (ELEM(strip->type, STRIP_TYPE_SOUND_RAM, STRIP_TYPE_SCENE)) {
       if (strip->scene_sound) {
@@ -145,10 +147,10 @@ static void strip_update_sound_bounds_recursive_impl(const Scene *scene,
   }
 }
 
-void strip_update_sound_bounds_recursive(const Scene *scene, Strip *metaseq)
+void strip_update_sound_bounds_recursive(const Scene *scene, Strip *strip_meta)
 {
   strip_update_sound_bounds_recursive_impl(
-      scene, metaseq, metaseq_start(metaseq), metaseq_end(metaseq));
+      scene, strip_meta, metastrip_start_get(strip_meta), metastrip_end_get(strip_meta));
 }
 
 void time_update_meta_strip_range(const Scene *scene, Strip *strip_meta)
@@ -313,7 +315,7 @@ int time_find_next_prev_edit(Scene *scene,
   return best_frame;
 }
 
-float time_sequence_get_fps(Scene *scene, Strip *strip)
+float time_strip_fps_get(Scene *scene, Strip *strip)
 {
   switch (strip->type) {
     case STRIP_TYPE_MOVIE: {

@@ -26,7 +26,7 @@ namespace blender::seq {
 
 static ThreadMutex presence_lock = BLI_MUTEX_INITIALIZER;
 
-static const char *get_seq_base_path(const Strip *strip)
+static const char *strip_base_path_get(const Strip *strip)
 {
   return strip->scene ? ID_BLEND_PATH_FROM_GLOBAL(&strip->scene->id) :
                         BKE_main_blendfile_path_from_global();
@@ -40,7 +40,7 @@ static bool check_sound_media_missing(const bSound *sound, const Strip *strip)
 
   char filepath[FILE_MAX];
   STRNCPY(filepath, sound->filepath);
-  const char *basepath = get_seq_base_path(strip);
+  const char *basepath = strip_base_path_get(strip);
   BLI_path_abs(filepath, basepath);
   return !BLI_exists(filepath);
 }
@@ -61,7 +61,7 @@ static bool check_media_missing(const Strip *strip)
         paths_count = int(MEM_allocN_len(elem) / sizeof(*elem));
       }
       char filepath[FILE_MAX];
-      const char *basepath = get_seq_base_path(strip);
+      const char *basepath = strip_base_path_get(strip);
       for (int i = 0; i < paths_count; i++, elem++) {
         BLI_path_join(filepath, sizeof(filepath), strip->data->dirpath, elem->filename);
         BLI_path_abs(filepath, basepath);
@@ -74,8 +74,8 @@ static bool check_media_missing(const Strip *strip)
 
   /* Recurse into meta strips. */
   if (strip->type == STRIP_TYPE_META) {
-    LISTBASE_FOREACH (Strip *, seqn, &strip->seqbase) {
-      if (check_media_missing(seqn)) {
+    LISTBASE_FOREACH (Strip *, strip_n, &strip->seqbase) {
+      if (check_media_missing(strip_n)) {
         return true;
       }
     }

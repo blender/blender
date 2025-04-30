@@ -102,7 +102,7 @@ static wmOperatorStatus strip_modifier_remove_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   Strip *strip = seq::select_active_get(scene);
   char name[MAX_NAME];
-  SequenceModifierData *smd;
+  StripModifierData *smd;
 
   RNA_string_get(op->ptr, "name", name);
 
@@ -163,7 +163,7 @@ static wmOperatorStatus strip_modifier_move_exec(bContext *C, wmOperator *op)
   Strip *strip = seq::select_active_get(scene);
   char name[MAX_NAME];
   int direction;
-  SequenceModifierData *smd;
+  StripModifierData *smd;
 
   RNA_string_get(op->ptr, "name", name);
   direction = RNA_enum_get(op->ptr, "direction");
@@ -266,8 +266,8 @@ static wmOperatorStatus strip_modifier_copy_exec(bContext *C, wmOperator *op)
 
       if (type == SEQ_MODIFIER_COPY_REPLACE) {
         if (strip_iter->modifiers.first) {
-          SequenceModifierData *smd_tmp,
-              *smd = static_cast<SequenceModifierData *>(strip_iter->modifiers.first);
+          StripModifierData *smd_tmp,
+              *smd = static_cast<StripModifierData *>(strip_iter->modifiers.first);
           while (smd) {
             smd_tmp = smd->next;
             BLI_remlink(&strip_iter->modifiers, smd);
@@ -333,7 +333,7 @@ static wmOperatorStatus strip_modifier_equalizer_redefine_exec(bContext *C, wmOp
 {
   Scene *scene = CTX_data_scene(C);
   Strip *strip = seq::select_active_get(scene);
-  SequenceModifierData *smd;
+  StripModifierData *smd;
   char name[MAX_NAME];
   RNA_string_get(op->ptr, "name", name);
   int number = RNA_enum_get(op->ptr, "graphs");

@@ -13,7 +13,7 @@ struct BlendWriter;
 struct ImBuf;
 struct ListBase;
 struct Strip;
-struct SequenceModifierData;
+struct StripModifierData;
 
 namespace blender::seq {
 
@@ -31,34 +31,34 @@ struct StripModifierTypeInfo {
   int struct_size;
 
   /* data initialization */
-  void (*init_data)(SequenceModifierData *smd);
+  void (*init_data)(StripModifierData *smd);
 
   /* free data used by modifier,
    * only modifier-specific data should be freed, modifier descriptor would
    * be freed outside of this callback
    */
-  void (*free_data)(SequenceModifierData *smd);
+  void (*free_data)(StripModifierData *smd);
 
   /* copy data from one modifier to another */
-  void (*copy_data)(SequenceModifierData *smd, SequenceModifierData *target);
+  void (*copy_data)(StripModifierData *smd, StripModifierData *target);
 
   /* Apply modifier on an image buffer.
    * quad contains four corners of the (pre-transform) strip rectangle in pixel space. */
-  void (*apply)(const StripScreenQuad &quad, SequenceModifierData *smd, ImBuf *ibuf, ImBuf *mask);
+  void (*apply)(const StripScreenQuad &quad, StripModifierData *smd, ImBuf *ibuf, ImBuf *mask);
 };
 
 const StripModifierTypeInfo *modifier_type_info_get(int type);
-SequenceModifierData *modifier_new(Strip *strip, const char *name, int type);
-bool modifier_remove(Strip *strip, SequenceModifierData *smd);
+StripModifierData *modifier_new(Strip *strip, const char *name, int type);
+bool modifier_remove(Strip *strip, StripModifierData *smd);
 void modifier_clear(Strip *strip);
-void modifier_free(SequenceModifierData *smd);
-void modifier_unique_name(Strip *strip, SequenceModifierData *smd);
-SequenceModifierData *modifier_find_by_name(Strip *strip, const char *name);
+void modifier_free(StripModifierData *smd);
+void modifier_unique_name(Strip *strip, StripModifierData *smd);
+StripModifierData *modifier_find_by_name(Strip *strip, const char *name);
 void modifier_apply_stack(const RenderData *context,
                           const Strip *strip,
                           ImBuf *ibuf,
                           int timeline_frame);
-void modifier_list_copy(Strip *seqn, Strip *strip);
+void modifier_list_copy(Strip *strip_new, Strip *strip);
 int sequence_supports_modifiers(Strip *strip);
 
 void modifier_blend_write(BlendWriter *writer, ListBase *modbase);

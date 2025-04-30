@@ -78,11 +78,11 @@ void iterator_set_expand(const Scene *scene,
 
 static void query_all_strips_recursive(const ListBase *seqbase, VectorSet<Strip *> &strips)
 {
-  LISTBASE_FOREACH (Strip *, seq, seqbase) {
-    if (seq->type == STRIP_TYPE_META) {
-      query_all_strips_recursive(&seq->seqbase, strips);
+  LISTBASE_FOREACH (Strip *, strip, seqbase) {
+    if (strip->type == STRIP_TYPE_META) {
+      query_all_strips_recursive(&strip->seqbase, strips);
     }
-    strips.add(seq);
+    strips.add(strip);
   }
 }
 
@@ -132,8 +132,8 @@ static void collection_filter_channel_up_to_incl(VectorSet<Strip *> &strips, con
   strips.remove_if([&](Strip *strip) { return strip->machine > channel; });
 }
 
-/* Check if seq must be rendered. This depends on whole stack in some cases, not only seq itself.
- * Order of applying these conditions is important. */
+/* Check if strip must be rendered. This depends on whole stack in some cases, not only strip
+ * itself. Order of applying these conditions is important. */
 static bool must_render_strip(const VectorSet<Strip *> &strips, Strip *strip)
 {
   bool strip_have_effect_in_stack = false;
@@ -197,11 +197,11 @@ VectorSet<Strip *> query_rendered_strips(const Scene *scene,
 VectorSet<Strip *> query_unselected_strips(ListBase *seqbase)
 {
   VectorSet<Strip *> strips;
-  LISTBASE_FOREACH (Strip *, seq, seqbase) {
-    if ((seq->flag & SELECT) != 0) {
+  LISTBASE_FOREACH (Strip *, strip, seqbase) {
+    if ((strip->flag & SELECT) != 0) {
       continue;
     }
-    strips.add(seq);
+    strips.add(strip);
   }
   return strips;
 }
@@ -253,7 +253,7 @@ void query_strip_connected_and_effect_chain(const Scene *scene,
 
     r_strips.add(current);
 
-    VectorSet<Strip *> connections = get_connected_strips(current);
+    VectorSet<Strip *> connections = connected_strips_get(current);
     for (Strip *connection : connections) {
       if (!r_strips.contains(connection)) {
         pending.append(connection);

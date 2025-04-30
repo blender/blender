@@ -615,18 +615,18 @@ static void do_version_constraints_copy_rotation_mix_mode(ListBase *lb)
 
 static void do_versions_seq_alloc_transform_and_crop(ListBase *seqbase)
 {
-  LISTBASE_FOREACH (Strip *, seq, seqbase) {
-    if (ELEM(seq->type, STRIP_TYPE_SOUND_RAM, STRIP_TYPE_SOUND_HD) == 0) {
-      if (seq->data->transform == nullptr) {
-        seq->data->transform = MEM_callocN<StripTransform>("StripTransform");
+  LISTBASE_FOREACH (Strip *, strip, seqbase) {
+    if (ELEM(strip->type, STRIP_TYPE_SOUND_RAM, STRIP_TYPE_SOUND_HD) == 0) {
+      if (strip->data->transform == nullptr) {
+        strip->data->transform = MEM_callocN<StripTransform>("StripTransform");
       }
 
-      if (seq->data->crop == nullptr) {
-        seq->data->crop = MEM_callocN<StripCrop>("StripCrop");
+      if (strip->data->crop == nullptr) {
+        strip->data->crop = MEM_callocN<StripCrop>("StripCrop");
       }
 
-      if (seq->seqbase.first != nullptr) {
-        do_versions_seq_alloc_transform_and_crop(&seq->seqbase);
+      if (strip->seqbase.first != nullptr) {
+        do_versions_seq_alloc_transform_and_crop(&strip->seqbase);
       }
     }
   }
@@ -771,8 +771,8 @@ static void do_version_curvemapping_walker(Main *bmain, void (*callback)(CurveMa
     }
 
     if (scene->ed != nullptr) {
-      LISTBASE_FOREACH (Strip *, seq, &scene->ed->seqbase) {
-        LISTBASE_FOREACH (SequenceModifierData *, smd, &seq->modifiers) {
+      LISTBASE_FOREACH (Strip *, strip, &scene->ed->seqbase) {
+        LISTBASE_FOREACH (StripModifierData *, smd, &strip->modifiers) {
           const blender::seq::StripModifierTypeInfo *smti = blender::seq::modifier_type_info_get(
               smd->type);
 
@@ -3005,10 +3005,10 @@ void do_versions_after_linking_280(FileData *fd, Main *bmain)
  * (see #55668, involving Meta strips). */
 static void do_versions_seq_unique_name_all_strips(Scene *sce, ListBase *seqbasep)
 {
-  LISTBASE_FOREACH (Strip *, seq, seqbasep) {
-    blender::seq::sequence_base_unique_name_recursive(sce, &sce->ed->seqbase, seq);
-    if (seq->seqbase.first != nullptr) {
-      do_versions_seq_unique_name_all_strips(sce, &seq->seqbase);
+  LISTBASE_FOREACH (Strip *, strip, seqbasep) {
+    blender::seq::strip_unique_name_set(sce, &sce->ed->seqbase, strip);
+    if (strip->seqbase.first != nullptr) {
+      do_versions_seq_unique_name_all_strips(sce, &strip->seqbase);
     }
   }
 }

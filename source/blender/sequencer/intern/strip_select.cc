@@ -26,7 +26,7 @@ Strip *select_active_get(const Scene *scene)
     return nullptr;
   }
 
-  return ed->act_seq;
+  return ed->act_strip;
 }
 
 void select_active_set(Scene *scene, Strip *strip)
@@ -37,32 +37,32 @@ void select_active_set(Scene *scene, Strip *strip)
     return;
   }
 
-  ed->act_seq = strip;
+  ed->act_strip = strip;
 }
 
-bool select_active_get_pair(Scene *scene, Strip **r_seq_act, Strip **r_seq_other)
+bool select_active_get_pair(Scene *scene, Strip **r_strip_act, Strip **r_strip_other)
 {
   Editing *ed = editing_get(scene);
 
-  *r_seq_act = select_active_get(scene);
+  *r_strip_act = select_active_get(scene);
 
-  if (*r_seq_act == nullptr) {
+  if (*r_strip_act == nullptr) {
     return false;
   }
 
-  *r_seq_other = nullptr;
+  *r_strip_other = nullptr;
 
   LISTBASE_FOREACH (Strip *, strip, ed->seqbasep) {
-    if (strip->flag & SELECT && (strip != (*r_seq_act))) {
-      if (*r_seq_other) {
+    if (strip->flag & SELECT && (strip != (*r_strip_act))) {
+      if (*r_strip_other) {
         return false;
       }
 
-      *r_seq_other = strip;
+      *r_strip_other = strip;
     }
   }
 
-  return (*r_seq_other != nullptr);
+  return (*r_strip_other != nullptr);
 }
 
 }  // namespace blender::seq

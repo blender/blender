@@ -96,7 +96,7 @@ static TransData *SeqToTransData(const Scene *scene,
   tdseq->orig_rotation = transform->rotation;
   tdseq->orig_flag = strip->flag;
   tdseq->orig_mirror = mirror;
-  tdseq->active_seq_orig_rotation = ed->act_seq->data->transform->rotation;
+  tdseq->active_seq_orig_rotation = ed->act_strip->data->transform->rotation;
 
   td->extra = (void *)tdseq;
   td->ext = nullptr;
@@ -262,7 +262,7 @@ static void recalcData_sequencer_image(TransInfo *t)
       transform->yofs *= t->values_final[1];
 
       if (t->orient_curr == O_SET) {
-        if (strip == ed->act_seq) {
+        if (strip == ed->act_strip) {
           transform->rotation = -tdseq->orig_rotation;
         }
         else {

@@ -102,7 +102,7 @@ Strip *add_sound_strip(Main *bmain, Scene *scene, ListBase *seqbase, LoadData *l
  *
  * \param bmain: Main reference
  * \param scene: Scene where the sound strip is located
- * \param seq: The sound strip that will be synced
+ * \param strip: The sound strip that will be synced
  * \param load_data: SeqLoadData with information necessary to sync the sound strip
  */
 void add_sound_av_sync(Main *bmain, Scene *scene, Strip *strip, LoadData *load_data);
@@ -164,14 +164,14 @@ Strip *add_effect_strip(Scene *scene, ListBase *seqbase, LoadData *load_data);
 /**
  * Set directory used by image strip.
  *
- * \param seq: image strip to be changed
+ * \param strip: image strip to be changed
  * \param path: directory path
  */
 void add_image_set_directory(Strip *strip, const char *dirpath);
 /**
  * Set directory used by image strip.
  *
- * \param seq: image strip to be changed
+ * \param strip: image strip to be changed
  * \param strip_frame: frame index of strip to be changed
  * \param filename: image filename (only filename, not complete path)
  */
@@ -179,7 +179,7 @@ void add_image_load_file(Scene *scene, Strip *strip, size_t strip_frame, const c
 /**
  * Set image strip alpha mode
  *
- * \param seq: image strip to be changed
+ * \param strip: image strip to be changed
  */
 void add_image_init_alpha_mode(Strip *strip);
 void add_reload_new_file(Main *bmain, Scene *scene, Strip *strip, bool lock_range);

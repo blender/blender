@@ -2158,7 +2158,7 @@ static void sequence_fn(int event, TreeElement *te, TreeStoreElem * /*tselem*/, 
   Editing *ed = seq::editing_get(scene);
   if (BLI_findindex(ed->seqbasep, strip) != -1) {
     if (event == OL_DOP_SELECT) {
-      vse::select_sequence_single(scene, strip, true);
+      vse::select_strip_single(scene, strip, true);
     }
     else if (event == OL_DOP_DESELECT) {
       strip->flag &= ~SELECT;

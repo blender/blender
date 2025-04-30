@@ -1019,7 +1019,7 @@ static eOLDrawState tree_element_strip_state_get(const Scene *scene, const TreeE
   const Strip *strip = &te_strip->get_strip();
   const Editing *ed = scene->ed;
 
-  if (ed && ed->act_seq == strip && strip->flag & SELECT) {
+  if (ed && ed->act_strip == strip && strip->flag & SELECT) {
     return OL_DRAWSEL_NORMAL;
   }
   return OL_DRAWSEL_NONE;

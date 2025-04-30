@@ -31,7 +31,7 @@ struct StripSelection {
   eStripHandle handle = SEQ_HANDLE_NONE;
 };
 
-void select_sequence_single(Scene *scene, Strip *strip, bool deselect_all);
+void select_strip_single(Scene *scene, Strip *strip, bool deselect_all);
 /**
  * Iterates over a scene's sequences and deselects all of them.
  *

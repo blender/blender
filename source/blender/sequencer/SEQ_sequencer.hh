@@ -35,7 +35,7 @@ enum {
   SIDE_NO_CHANGE,
 };
 
-/* strip_dupli' flags */
+/* strip_duplicate' flags */
 #define STRIP_DUPE_UNIQUE_NAME (1 << 0)
 #define STRIP_DUPE_ALL (1 << 3) /* otherwise only selected are copied */
 
@@ -66,9 +66,9 @@ ListBase *active_seqbase_get(const Editing *ed);
  * \param ed: sequence editor data
  * \param seqbase: ListBase with strips
  */
-void seqbase_active_set(Editing *ed, ListBase *seqbase);
-Strip *sequence_alloc(ListBase *lb, int timeline_frame, int machine, int type);
-void sequence_free(Scene *scene, Strip *strip);
+void active_seqbase_set(Editing *ed, ListBase *seqbase);
+Strip *strip_alloc(ListBase *lb, int timeline_frame, int machine, int type);
+void strip_free(Scene *scene, Strip *strip);
 /**
  * Get #MetaStack that corresponds to current level that is being viewed
  *
@@ -79,23 +79,23 @@ MetaStack *meta_stack_active_get(const Editing *ed);
  * Open Meta strip content for editing.
  *
  * \param ed: sequence editor data
- * \param seqm: meta sequence or NULL for top level view
+ * \param dst: meta strip or NULL for top level view
  */
-void meta_stack_set(const Scene *scene, Strip *dst_seq);
+void meta_stack_set(const Scene *scene, Strip *dst);
 /**
  * Close last Meta strip open for editing.
  *
  * \param ed: sequence editor data
  */
 Strip *meta_stack_pop(Editing *ed);
-Strip *sequence_dupli_recursive(
+Strip *strip_duplicate_recursive(
     const Scene *scene_src, Scene *scene_dst, ListBase *new_seq_list, Strip *strip, int dupe_flag);
-void sequence_base_dupli_recursive(const Scene *scene_src,
-                                   Scene *scene_dst,
-                                   ListBase *nseqbase,
-                                   const ListBase *seqbase,
-                                   int dupe_flag,
-                                   int flag);
+void seqbase_duplicate_recursive(const Scene *scene_src,
+                                 Scene *scene_dst,
+                                 ListBase *nseqbase,
+                                 const ListBase *seqbase,
+                                 int dupe_flag,
+                                 int flag);
 bool is_valid_strip_channel(const Strip *strip);
 
 /**
@@ -109,11 +109,11 @@ void doversion_250_sound_proxy_update(Main *bmain, Editing *ed);
 /* Depsgraph update function. */
 
 /**
- * Evaluate parts of sequences which needs to be done as a part of a dependency graph evaluation.
+ * Evaluate parts of strips which needs to be done as a part of a dependency graph evaluation.
  * This does NOT include actual rendering of the strips, but rather makes them up-to-date for
  * animation playback and makes them ready for the sequencer's rendering pipeline to render them.
  */
-void eval_sequences(Depsgraph *depsgraph, Scene *scene, ListBase *seqbase);
+void eval_strips(Depsgraph *depsgraph, Scene *scene, ListBase *seqbase);
 
 /**
  * Find a strip with a given name.

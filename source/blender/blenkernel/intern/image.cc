@@ -1877,7 +1877,7 @@ static void stampdata(
   }
 
   if (use_dynamic && scene->r.stamp & R_STAMP_SEQSTRIP) {
-    const Strip *strip = blender::seq::get_topmost_sequence(scene, scene->r.cfra);
+    const Strip *strip = blender::seq::strip_topmost_get(scene, scene->r.cfra);
 
     if (strip) {
       STRNCPY(text, strip->name + 2);

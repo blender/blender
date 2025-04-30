@@ -51,7 +51,7 @@
 
 namespace blender::seq {
 
-struct SeqUniqueInfo {
+struct StripUniqueInfo {
   Strip *strip;
   char name_src[STRIP_NAME_MAXSTR];
   char name_dest[STRIP_NAME_MAXSTR];
@@ -59,7 +59,7 @@ struct SeqUniqueInfo {
   int match;
 };
 
-static void seqbase_unique_name(ListBase *seqbasep, SeqUniqueInfo *sui)
+static void seqbase_unique_name(ListBase *seqbasep, StripUniqueInfo *sui)
 {
   LISTBASE_FOREACH (Strip *, strip, seqbasep) {
     if ((sui->strip != strip) && STREQ(sui->name_dest, strip->name + 2)) {
@@ -74,14 +74,14 @@ static void seqbase_unique_name(ListBase *seqbasep, SeqUniqueInfo *sui)
 static bool seqbase_unique_name_recursive_fn(Strip *strip, void *arg_pt)
 {
   if (strip->seqbase.first) {
-    seqbase_unique_name(&strip->seqbase, (SeqUniqueInfo *)arg_pt);
+    seqbase_unique_name(&strip->seqbase, (StripUniqueInfo *)arg_pt);
   }
   return true;
 }
 
-void sequence_base_unique_name_recursive(Scene *scene, ListBase *seqbasep, Strip *strip)
+void strip_unique_name_set(Scene *scene, ListBase *seqbasep, Strip *strip)
 {
-  SeqUniqueInfo sui;
+  StripUniqueInfo sui;
   char *dot;
   sui.strip = strip;
   STRNCPY(sui.name_src, strip->name + 2);
@@ -106,10 +106,10 @@ void sequence_base_unique_name_recursive(Scene *scene, ListBase *seqbasep, Strip
     for_each_callback(seqbasep, seqbase_unique_name_recursive_fn, &sui);
   }
 
-  edit_sequence_name_set(scene, strip, sui.name_dest);
+  edit_strip_name_set(scene, strip, sui.name_dest);
 }
 
-static const char *give_seqname_by_type(int type)
+static const char *give_stripname_by_type(int type)
 {
   switch (type) {
     case STRIP_TYPE_META:
@@ -165,9 +165,9 @@ static const char *give_seqname_by_type(int type)
   }
 }
 
-const char *sequence_give_name(const Strip *strip)
+const char *strip_give_name(const Strip *strip)
 {
-  const char *name = give_seqname_by_type(strip->type);
+  const char *name = give_stripname_by_type(strip->type);
 
   if (!name) {
     if (!(strip->type & STRIP_TYPE_EFFECT)) {
@@ -179,7 +179,7 @@ const char *sequence_give_name(const Strip *strip)
   return name;
 }
 
-ListBase *get_seqbase_from_sequence(Strip *strip, ListBase **r_channels, int *r_offset)
+ListBase *get_seqbase_from_strip(Strip *strip, ListBase **r_channels, int *r_offset)
 {
   ListBase *seqbase = nullptr;
 
@@ -283,7 +283,7 @@ static bool open_anim_file_multiview(Scene *scene, Strip *strip, const char *fil
     open_anim_filepath(strip, sanim, filepath_view, true);
 
     if (sanim->anim == nullptr) {
-      relations_sequence_free_anim(strip);
+      relations_strip_free_anim(strip);
       return false; /* Multiview render failed. */
     }
 
@@ -305,7 +305,7 @@ void strip_open_anim_file(Scene *scene, Strip *strip, bool openfile)
   }
 
   /* Reset all the previously created anims. */
-  relations_sequence_free_anim(strip);
+  relations_strip_free_anim(strip);
 
   Editing *ed = scene->ed;
   char filepath[FILE_MAX];
@@ -328,7 +328,7 @@ void strip_open_anim_file(Scene *scene, Strip *strip, bool openfile)
   }
 }
 
-const Strip *get_topmost_sequence(const Scene *scene, int frame)
+const Strip *strip_topmost_get(const Scene *scene, int frame)
 {
   Editing *ed = scene->ed;
 
@@ -337,7 +337,7 @@ const Strip *get_topmost_sequence(const Scene *scene, int frame)
   }
 
   ListBase *channels = channels_displayed_get(ed);
-  const Strip *best_seq = nullptr;
+  const Strip *best_strip = nullptr;
   int best_machine = -1;
 
   LISTBASE_FOREACH (const Strip *, strip, ed->seqbasep) {
@@ -355,15 +355,15 @@ const Strip *get_topmost_sequence(const Scene *scene, int frame)
              STRIP_TYPE_TEXT))
     {
       if (strip->machine > best_machine) {
-        best_seq = strip;
+        best_strip = strip;
         best_machine = strip->machine;
       }
     }
   }
-  return best_seq;
+  return best_strip;
 }
 
-ListBase *get_seqbase_by_seq(const Scene *scene, Strip *strip)
+ListBase *get_seqbase_by_strip(const Scene *scene, Strip *strip)
 {
   Editing *ed = editing_get(scene);
   ListBase *main_seqbase = &ed->seqbase;
@@ -378,34 +378,34 @@ ListBase *get_seqbase_by_seq(const Scene *scene, Strip *strip)
   return nullptr;
 }
 
-Strip *sequence_from_strip_elem(ListBase *seqbase, StripElem *se)
+Strip *strip_from_strip_elem(ListBase *seqbase, StripElem *se)
 {
-  Strip *iseq;
+  Strip *istrip;
 
-  for (iseq = static_cast<Strip *>(seqbase->first); iseq; iseq = iseq->next) {
+  for (istrip = static_cast<Strip *>(seqbase->first); istrip; istrip = istrip->next) {
     Strip *strip_found;
-    if ((iseq->data && iseq->data->stripdata) &&
-        ARRAY_HAS_ITEM(se, iseq->data->stripdata, iseq->len))
+    if ((istrip->data && istrip->data->stripdata) &&
+        ARRAY_HAS_ITEM(se, istrip->data->stripdata, istrip->len))
     {
       break;
     }
-    if ((strip_found = sequence_from_strip_elem(&iseq->seqbase, se))) {
-      iseq = strip_found;
+    if ((strip_found = strip_from_strip_elem(&istrip->seqbase, se))) {
+      istrip = strip_found;
       break;
     }
   }
 
-  return iseq;
+  return istrip;
 }
 
-Strip *get_sequence_by_name(ListBase *seqbase, const char *name, bool recursive)
+Strip *get_strip_by_name(ListBase *seqbase, const char *name, bool recursive)
 {
-  LISTBASE_FOREACH (Strip *, iseq, seqbase) {
-    if (STREQ(name, iseq->name + 2)) {
-      return iseq;
+  LISTBASE_FOREACH (Strip *, istrip, seqbase) {
+    if (STREQ(name, istrip->name + 2)) {
+      return istrip;
     }
-    if (recursive && !BLI_listbase_is_empty(&iseq->seqbase)) {
-      Strip *rseq = get_sequence_by_name(&iseq->seqbase, name, true);
+    if (recursive && !BLI_listbase_is_empty(&istrip->seqbase)) {
+      Strip *rseq = get_strip_by_name(&istrip->seqbase, name, true);
       if (rseq != nullptr) {
         return rseq;
       }
@@ -434,7 +434,7 @@ void alpha_mode_from_file_extension(Strip *strip)
   }
 }
 
-bool sequence_has_valid_data(const Strip *strip)
+bool strip_has_valid_data(const Strip *strip)
 {
   switch (strip->type) {
     case STRIP_TYPE_MASK:
@@ -450,7 +450,7 @@ bool sequence_has_valid_data(const Strip *strip)
   return true;
 }
 
-bool sequencer_seq_generates_image(Strip *strip)
+bool sequencer_strip_generates_image(Strip *strip)
 {
   switch (strip->type) {
     case STRIP_TYPE_IMAGE:
@@ -501,7 +501,7 @@ void ensure_unique_name(Strip *strip, Scene *scene)
   char name[STRIP_NAME_MAXSTR];
 
   STRNCPY_UTF8(name, strip->name + 2);
-  sequence_base_unique_name_recursive(scene, &scene->ed->seqbase, strip);
+  strip_unique_name_set(scene, &scene->ed->seqbase, strip);
   BKE_animdata_fix_paths_rename(&scene->id,
                                 scene->adt,
                                 nullptr,
