@@ -312,7 +312,7 @@ void uvedit_face_select_shared_vert(const Scene *scene,
     }
     else {
       BM_ELEM_CD_SET_BOOL(l, offsets.select_edge, false);
-      if (!uvedit_vert_is_face_select_any_other(scene, l, offsets)) {
+      if (!uvedit_vert_is_face_select_any_other(scene->toolsettings, l, offsets)) {
         uvedit_uv_select_shared_vert(scene, bm, l, select, SI_STICKY_LOC, do_history, offsets);
       }
     }
@@ -467,11 +467,11 @@ void uvedit_edge_select_shared_vert(const Scene *scene,
     }
     else {
       if (!BM_ELEM_CD_GET_BOOL(l_iter, offsets.select_edge)) {
-        if (!uvedit_vert_is_edge_select_any_other(scene, l, offsets)) {
+        if (!uvedit_vert_is_edge_select_any_other(scene->toolsettings, l, offsets)) {
           uvedit_uv_select_shared_vert(
               scene, bm, l_iter, false, SI_STICKY_LOC, do_history, offsets);
         }
-        if (!uvedit_vert_is_edge_select_any_other(scene, l->next, offsets)) {
+        if (!uvedit_vert_is_edge_select_any_other(scene->toolsettings, l->next, offsets)) {
           uvedit_uv_select_shared_vert(
               scene, bm, l_iter->next, false, SI_STICKY_LOC, do_history, offsets);
         }
@@ -1201,7 +1201,7 @@ void uvedit_select_prepare_custom_data(const Scene *scene, BMesh *bm)
   BM_uv_map_attr_edge_select_ensure(bm, active_uv_name);
 }
 
-bool uvedit_vert_is_edge_select_any_other(const Scene *scene,
+bool uvedit_vert_is_edge_select_any_other(const ToolSettings *ts,
                                           const BMLoop *l,
                                           const BMUVOffsets &offsets)
 {
@@ -1210,12 +1210,12 @@ bool uvedit_vert_is_edge_select_any_other(const Scene *scene,
   do {
     BMLoop *l_radial_iter = e_iter->l, *l_other;
     do {
-      if (uvedit_face_visible_test(scene, l_radial_iter->f)) {
+      if (uvedit_face_visible_test_ex(ts, l_radial_iter->f)) {
         /* Use #l_other to check if the uvs are connected (share the same uv coordinates)
          * and #l_radial_iter for the actual edge selection test. */
         l_other = (l_radial_iter->v != l->v) ? l_radial_iter->next : l_radial_iter;
         if (BM_loop_uv_share_vert_check(l, l_other, offsets.uv) &&
-            uvedit_edge_select_test(scene, l_radial_iter, offsets))
+            uvedit_edge_select_test_ex(ts, l_radial_iter, offsets))
         {
           return true;
         }
@@ -1226,7 +1226,7 @@ bool uvedit_vert_is_edge_select_any_other(const Scene *scene,
   return false;
 }
 
-bool uvedit_vert_is_face_select_any_other(const Scene *scene,
+bool uvedit_vert_is_face_select_any_other(const ToolSettings *ts,
                                           const BMLoop *l,
                                           const BMUVOffsets &offsets)
 {
@@ -1234,11 +1234,11 @@ bool uvedit_vert_is_face_select_any_other(const Scene *scene,
   BMIter liter;
   BMLoop *l_iter;
   BM_ITER_ELEM (l_iter, &liter, l->v, BM_LOOPS_OF_VERT) {
-    if (!uvedit_face_visible_test(scene, l_iter->f) || (l_iter->f == l->f)) {
+    if (!uvedit_face_visible_test_ex(ts, l_iter->f) || (l_iter->f == l->f)) {
       continue;
     }
     if (BM_loop_uv_share_vert_check(l, l_iter, offsets.uv) &&
-        uvedit_face_select_test(scene, l_iter->f, offsets))
+        uvedit_face_select_test_ex(ts, l_iter->f, offsets))
     {
       return true;
     }
@@ -1246,7 +1246,7 @@ bool uvedit_vert_is_face_select_any_other(const Scene *scene,
   return false;
 }
 
-bool uvedit_vert_is_all_other_faces_selected(const Scene *scene,
+bool uvedit_vert_is_all_other_faces_selected(const ToolSettings *ts,
                                              const BMLoop *l,
                                              const BMUVOffsets &offsets)
 {
@@ -1254,11 +1254,11 @@ bool uvedit_vert_is_all_other_faces_selected(const Scene *scene,
   BMIter liter;
   BMLoop *l_iter;
   BM_ITER_ELEM (l_iter, &liter, l->v, BM_LOOPS_OF_VERT) {
-    if (!uvedit_face_visible_test(scene, l_iter->f) || (l_iter->f == l->f)) {
+    if (!uvedit_face_visible_test_ex(ts, l_iter->f) || (l_iter->f == l->f)) {
       continue;
     }
     if (BM_loop_uv_share_vert_check(l, l_iter, offsets.uv) &&
-        !uvedit_face_select_test(scene, l_iter->f, offsets))
+        !uvedit_face_select_test_ex(ts, l_iter->f, offsets))
     {
       return false;
     }
@@ -2146,7 +2146,7 @@ static wmOperatorStatus uv_select_more_less(bContext *C, const bool select)
             }
             BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
               /* Deselect face when at least one of the surrounding faces is not selected */
-              if (!uvedit_vert_is_all_other_faces_selected(scene, l, offsets)) {
+              if (!uvedit_vert_is_all_other_faces_selected(ts, l, offsets)) {
                 BM_elem_flag_enable(efa, BM_ELEM_TAG);
                 changed = true;
                 break;
@@ -3350,7 +3350,7 @@ static void uv_select_flush_from_tag_face(const Scene *scene, Object *obedit, co
         }
         else {
           BM_ELEM_CD_SET_BOOL(l, offsets.select_edge, false);
-          if (!uvedit_vert_is_face_select_any_other(scene, l, offsets)) {
+          if (!uvedit_vert_is_face_select_any_other(ts, l, offsets)) {
             uv_select_flush_from_tag_sticky_loc_internal(scene, bm, l, select, offsets);
           }
         }
