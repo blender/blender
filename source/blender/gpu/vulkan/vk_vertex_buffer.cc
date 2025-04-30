@@ -181,11 +181,6 @@ void VKVertexBuffer::upload_data()
   }
 }
 
-void VKVertexBuffer::duplicate_data(VertBuf * /*dst*/)
-{
-  NOT_YET_IMPLEMENTED
-}
-
 void VKVertexBuffer::device_format_ensure()
 {
   if (!vertex_format_converter.is_initialized()) {

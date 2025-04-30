@@ -50,32 +50,6 @@ void GLVertBuf::release_data()
   MEM_SAFE_FREE(data_);
 }
 
-void GLVertBuf::duplicate_data(VertBuf *dst_)
-{
-  BLI_assert(GLContext::get() != nullptr);
-  GLVertBuf *src = this;
-  GLVertBuf *dst = static_cast<GLVertBuf *>(dst_);
-  dst->buffer_texture_ = nullptr;
-
-  if (src->vbo_id_ != 0) {
-    dst->vbo_size_ = src->size_used_get();
-
-    glGenBuffers(1, &dst->vbo_id_);
-    glBindBuffer(GL_COPY_WRITE_BUFFER, dst->vbo_id_);
-    glBufferData(GL_COPY_WRITE_BUFFER, dst->vbo_size_, nullptr, to_gl(dst->usage_));
-
-    glBindBuffer(GL_COPY_READ_BUFFER, src->vbo_id_);
-
-    glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, 0, 0, dst->vbo_size_);
-
-    memory_usage += dst->vbo_size_;
-  }
-
-  if (data_ != nullptr) {
-    dst->data_ = (uchar *)MEM_dupallocN(src->data_);
-  }
-}
-
 void GLVertBuf::upload_data()
 {
   this->bind();

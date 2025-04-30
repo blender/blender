@@ -67,22 +67,6 @@ void VertBuf::clear()
   flag = GPU_VERTBUF_INVALID;
 }
 
-VertBuf *VertBuf::duplicate()
-{
-  VertBuf *dst = GPUBackend::get()->vertbuf_alloc();
-  /* Full copy. */
-  *dst = *this;
-  /* Almost full copy... */
-  dst->handle_refcount_ = 1;
-  /* Metadata. */
-#ifndef NDEBUG
-  dst->extended_usage_ = extended_usage_;
-#endif
-  /* Duplicate all needed implementation specifics data. */
-  this->duplicate_data(dst);
-  return dst;
-}
-
 void VertBuf::allocate(uint vert_len)
 {
   BLI_assert(format.packed);
@@ -154,11 +138,6 @@ VertBuf *GPU_vertbuf_create_on_device(const GPUVertFormat &format, uint v_len)
   VertBuf *verts = GPU_vertbuf_create_with_format_ex(format, GPU_USAGE_DEVICE_ONLY);
   GPU_vertbuf_data_alloc(*verts, v_len);
   return verts;
-}
-
-VertBuf *GPU_vertbuf_duplicate(VertBuf *verts)
-{
-  return verts->duplicate();
 }
 
 void GPU_vertbuf_read(const VertBuf *verts, void *data)
