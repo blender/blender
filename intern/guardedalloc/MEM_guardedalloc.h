@@ -9,19 +9,25 @@
  *
  * \page MEMPage Guarded memory(de)allocation
  *
- * \section aboutmem c-style & C++-style guarded memory allocation
+ * \section aboutmem C++-style & C-style guarded memory allocation
  *
- * \subsection memabout About the MEM module
+ * \subsection memabout About the MEM allocator module
  *
- * MEM provides guarded malloc/calloc calls. All memory is enclosed by
- * pads, to detect out-of-bound writes. All blocks are placed in a
- * linked list, so they remain reachable at all times. There is no
- * back-up in case the linked-list related data is lost.
+ * MEM provides guarded memory management. All allocated memory is enclosed by pads, to detect
+ * out-of-bound writes. All blocks are placed in a linked list, so they remain reachable at all
+ * times. There is no back-up in case the linked-list related data is lost.
  *
- * It also provides C++ template versions of [cm]alloc and related API,
- * which provides improved type safety, ensures that the allocated types
- * are trivial, and reduces the casting verbosity by directly returning
- * a pointer of the expected type.
+ * It provides C++ template versions of the `new`/`delete` operators (#MEM_new and #MEM_delete),
+ * which are the preferred way to create and delete data in new C++ code.
+ *
+ * It also provides C++ template versions of [cm]alloc and related API, which provides improved
+ * type safety, ensures that the allocated types are trivial, and reduces the casting verbosity by
+ * directly returning a pointer of the expected type. These are the preferred API when C++ code
+ * needs to allocate or free data in a C-compatible way (e.g. because it needs to interact with
+ * other 'legacy' code using C-based memory management).
+ *
+ * Finally, the original C-compatible, type-agnostic allocation API (#MEM_mallocN, #MEM_freeN,
+ * etc.) is kept for a few specific use-cases. Its usage should be avoided as much as possible.
  *
  * \subsection memdependencies Dependencies
  * - `stdlib`
