@@ -314,20 +314,8 @@ static void create_transform_curves(const FbxElementMapping &mapping,
     ufbx_transform xform = ufbx_evaluate_transform(fbx_anim, fnode, t);
 
     if (is_bone) {
-      /* For bones that have "ignore parent scale" on them, ufbx helpfully applies global scale to
-       * the evaluated transform. However we really need to get local transform without global
-       * scale, so undo that. */
-      if (fnode->adjust_post_scale != 1.0) {
-        xform.scale.x /= fnode->adjust_post_scale;
-        xform.scale.y /= fnode->adjust_post_scale;
-        xform.scale.z /= fnode->adjust_post_scale;
-      }
-
-      /* Bone transform curves need to be transformed to the bind transform
-       * in joint-local space. */
-      ufbx_matrix xform_mtx = ufbx_transform_to_matrix(&xform);
-      xform_mtx = ufbx_matrix_mul(&bone_xform, &xform_mtx);
-      xform = ufbx_matrix_to_transform(&xform_mtx);
+      ufbx_matrix matrix = calc_bone_pose_matrix(xform, *fnode, bone_xform);
+      xform = ufbx_matrix_to_transform(&matrix);
     }
 
     set_curve_sample(curves_pos[0], i, tf, float(xform.translation.x));

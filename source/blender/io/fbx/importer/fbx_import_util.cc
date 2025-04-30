@@ -59,6 +59,27 @@ void m44_to_matrix(const float src[4][4], ufbx_matrix &dst)
   dst.m23 = src[3][2];
 }
 
+ufbx_matrix calc_bone_pose_matrix(const ufbx_transform &local_xform,
+                                  const ufbx_node &node,
+                                  const ufbx_matrix &local_bind_inv_matrix)
+{
+  ufbx_transform xform = local_xform;
+
+  /* For bones that have "ignore parent scale" on them, ufbx helpfully applies global scale to
+   * the evaluated transform. However we really need to get local transform without global
+   * scale, so undo that. */
+  if (node.adjust_post_scale != 1.0) {
+    xform.scale.x /= node.adjust_post_scale;
+    xform.scale.y /= node.adjust_post_scale;
+    xform.scale.z /= node.adjust_post_scale;
+  }
+
+  /* Transformed to the bind transform in joint-local space. */
+  ufbx_matrix matrix = ufbx_transform_to_matrix(&xform);
+  matrix = ufbx_matrix_mul(&local_bind_inv_matrix, &matrix);
+  return matrix;
+}
+
 void ufbx_matrix_to_obj(const ufbx_matrix &mtx, Object *obj)
 {
 #ifdef FBX_DEBUG_PRINT

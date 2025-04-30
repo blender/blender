@@ -101,6 +101,9 @@ void ArmatureImportContext::create_armature_bones(const ufbx_node *node,
   this->mapping.el_to_object.add(&node->element, arm_obj);
   bone->flag |= BONE_SELECTED;
   bone->parent = parent_bone;
+  if (node->inherit_mode == UFBX_INHERIT_MODE_IGNORE_PARENT_SCALE) {
+    bone->inherit_scale_mode = BONE_INHERIT_SCALE_NONE;
+  }
 
   this->mapping.bone_to_armature.add(node, arm_obj);
 
@@ -304,11 +307,12 @@ void ArmatureImportContext::find_armatures(const ufbx_node *node)
             fbone, world_to_arm, found);
         if (found) {
           ufbx_matrix bind_local_mtx_inv = ufbx_matrix_invert(&bind_local_mtx);
-          ufbx_matrix local_mtx = fbone->node_to_parent;
+          ufbx_transform xform = fbone->local_transform;
           if (fbone->node_depth <= 1) {
-            local_mtx = ufbx_matrix_mul(&world_to_arm, &fbone->node_to_world);
+            ufbx_matrix matrix = ufbx_matrix_mul(&world_to_arm, &fbone->node_to_world);
+            xform = ufbx_matrix_to_transform(&matrix);
           }
-          ufbx_matrix pose_mtx = ufbx_matrix_mul(&bind_local_mtx_inv, &local_mtx);
+          ufbx_matrix pose_mtx = calc_bone_pose_matrix(xform, *fbone, bind_local_mtx_inv);
 
           float pchan_matrix[4][4];
           matrix_to_m44(pose_mtx, pchan_matrix);

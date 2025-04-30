@@ -78,6 +78,10 @@ void node_matrix_to_obj(const ufbx_node *node, Object *obj, const FbxElementMapp
 void read_custom_properties(const ufbx_props &props, ID &id, bool enums_as_strings);
 void read_custom_properties(const ufbx_props &props, bPoseChannel &pchan, bool enums_as_strings);
 
+ufbx_matrix calc_bone_pose_matrix(const ufbx_transform &local_xform,
+                                  const ufbx_node &node,
+                                  const ufbx_matrix &local_bind_inv_matrix);
+
 //@TODO remove debug file print once things are working properly
 // #define FBX_DEBUG_PRINT
 
