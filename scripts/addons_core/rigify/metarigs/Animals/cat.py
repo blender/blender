@@ -79,7 +79,7 @@ def create(obj):  # noqa
     add_bone_collection('Paws (Tweak)', ui_row=8, ui_title='(Tweak)', color_set_id=4)
     add_bone_collection('Arm.L (IK)', ui_row=10, color_set_id=2)
     add_bone_collection('Arm.L (FK)', ui_row=11, ui_title='(FK)', color_set_id=5)
-    add_bone_collection('Arm,L (Tweak)', ui_row=12, ui_title='(Tweak)', color_set_id=4)
+    add_bone_collection('Arm.L (Tweak)', ui_row=12, ui_title='(Tweak)', color_set_id=4)
     add_bone_collection('Arm.R (IK)', ui_row=10, color_set_id=2)
     add_bone_collection('Arm.R (FK)', ui_row=11, ui_title='(FK)', color_set_id=5)
     add_bone_collection('Arm.R (Tweak)', ui_row=12, ui_title='(Tweak)', color_set_id=4)
@@ -1586,7 +1586,7 @@ def create(obj):  # noqa
     except AttributeError:
         pass
     assign_bone_collection_refs(pbone.rigify_parameters, 'fk', 'Arm.L (FK)')
-    assign_bone_collection_refs(pbone.rigify_parameters, 'tweak', 'Arm,L (Tweak)')
+    assign_bone_collection_refs(pbone.rigify_parameters, 'tweak', 'Arm.L (Tweak)')
     pbone = obj.pose.bones[bones['upper_arm.R']]
     pbone.rigify_type = 'limbs.front_paw'
     pbone.lock_location = (False, False, False)
