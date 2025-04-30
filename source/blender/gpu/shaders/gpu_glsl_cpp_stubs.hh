@@ -1029,4 +1029,46 @@ void groupMemoryBarrier() {}
 
 #define GLSL_CPP_STUBS
 
+/* List of reserved keywords in GLSL. */
+#define common common_is_reserved_glsl_keyword_do_not_use
+#define partition partition_is_reserved_glsl_keyword_do_not_use
+#define active active_is_reserved_glsl_keyword_do_not_use
+#define class class_is_reserved_glsl_keyword_do_not_use
+#define union union_is_reserved_glsl_keyword_do_not_use
+// #define enum /* Supported. */
+#define typedef typedef_is_reserved_glsl_keyword_do_not_use
+// #define template /* Needed for Stubs. */
+#define this this_is_reserved_glsl_keyword_do_not_use
+#define packed packed_is_reserved_glsl_keyword_do_not_use
+#define resource resource_is_reserved_glsl_keyword_do_not_use
+#define goto goto_is_reserved_glsl_keyword_do_not_use
+// #define inline  /* Supported. */
+#define noinline noinline_is_reserved_glsl_keyword_do_not_use
+#define public public_is_reserved_glsl_keyword_do_not_use
+// #define static /* Supported. */
+// #define extern /* Needed for Stubs. */
+#define external external_is_reserved_glsl_keyword_do_not_use
+#define interface interface_is_reserved_glsl_keyword_do_not_use
+#define long long_is_reserved_glsl_keyword_do_not_use
+// #define short /* Supported. */
+// #define half /* Supported. */
+#define fixed fixed_is_reserved_glsl_keyword_do_not_use
+#define unsigned unsigned_is_reserved_glsl_keyword_do_not_use
+#define superp superp_is_reserved_glsl_keyword_do_not_use
+#define input input_is_reserved_glsl_keyword_do_not_use
+#define output output_is_reserved_glsl_keyword_do_not_use
+#define hvec2 hvec2_is_reserved_glsl_keyword_do_not_use
+#define hvec3 hvec3_is_reserved_glsl_keyword_do_not_use
+#define hvec4 hvec4_is_reserved_glsl_keyword_do_not_use
+#define fvec2 fvec2_is_reserved_glsl_keyword_do_not_use
+#define fvec3 fvec3_is_reserved_glsl_keyword_do_not_use
+#define fvec4 fvec4_is_reserved_glsl_keyword_do_not_use
+#define sampler3DRect sampler3DRect_is_reserved_glsl_keyword_do_not_use
+#define filter filter_is_reserved_glsl_keyword_do_not_use
+#define sizeof sizeof_is_reserved_glsl_keyword_do_not_use
+#define cast cast_is_reserved_glsl_keyword_do_not_use
+// #define namespace /* Needed for Stubs. */
+// #define using /* Needed for Stubs. */
+#define row_major row_major_is_reserved_glsl_keyword_do_not_use
+
 #include "GPU_shader_shared_utils.hh"
