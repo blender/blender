@@ -398,12 +398,8 @@ static void sequencer_preview_clear()
   UI_ThemeClearColor(TH_SEQ_PREVIEW);
 }
 
-static void sequencer_preview_get_rect(rctf *preview,
-                                       Scene *scene,
-                                       ARegion *region,
-                                       SpaceSeq *sseq,
-                                       bool draw_overlay,
-                                       bool draw_backdrop)
+static void sequencer_preview_get_rect(
+    rctf *preview, Scene *scene, ARegion *region, SpaceSeq *sseq, bool draw_overlay)
 {
   View2D *v2d = &region->v2d;
   float viewrect[2];
@@ -421,19 +417,6 @@ static void sequencer_preview_get_rect(rctf *preview,
     preview->ymin = v2d->tot.ymin +
                     (fabsf(BLI_rctf_size_y(&v2d->tot)) * scene->ed->overlay_frame_rect.ymin);
   }
-  else if (draw_backdrop) {
-    float aspect = BLI_rcti_size_x(&region->winrct) / float(BLI_rcti_size_y(&region->winrct));
-    float image_aspect = viewrect[0] / viewrect[1];
-
-    if (aspect >= image_aspect) {
-      preview->xmax = image_aspect / aspect;
-      preview->xmin = -preview->xmax;
-    }
-    else {
-      preview->ymax = aspect / image_aspect;
-      preview->ymin = -preview->ymax;
-    }
-  }
   else {
     *preview = v2d->tot;
   }
@@ -444,8 +427,7 @@ static void sequencer_draw_display_buffer(const bContext *C,
                                           ARegion *region,
                                           SpaceSeq *sseq,
                                           ImBuf *ibuf,
-                                          bool draw_overlay,
-                                          bool draw_backdrop)
+                                          bool draw_overlay)
 {
   void *buffer_cache_handle = nullptr;
 
@@ -466,12 +448,6 @@ static void sequencer_draw_display_buffer(const bContext *C,
   void *display_buffer = sequencer_OCIO_transform_ibuf(
       C, ibuf, &glsl_used, &format, &data, &buffer_cache_handle);
 
-  if (draw_backdrop) {
-    GPU_matrix_push();
-    GPU_matrix_identity_set();
-    GPU_matrix_push_projection();
-    GPU_matrix_identity_projection_set();
-  }
   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT;
   GPUTexture *texture = GPU_texture_create_2d(
       "seq_display_buf", ibuf->x, ibuf->y, 1, format, usage, nullptr);
@@ -487,7 +463,7 @@ static void sequencer_draw_display_buffer(const bContext *C,
 
   rctf preview;
   rctf canvas;
-  sequencer_preview_get_rect(&preview, scene, region, sseq, draw_overlay, draw_backdrop);
+  sequencer_preview_get_rect(&preview, scene, region, sseq, draw_overlay);
 
   if (draw_overlay && (sseq->overlay_frame_type == SEQ_OVERLAY_FRAME_TYPE_RECT)) {
     canvas = scene->ed->overlay_frame_rect;
@@ -514,11 +490,6 @@ static void sequencer_draw_display_buffer(const bContext *C,
 
   if (sseq->mainb == SEQ_DRAW_IMG_IMBUF && sseq->flag & SEQ_USE_ALPHA) {
     GPU_blend(GPU_BLEND_NONE);
-  }
-
-  if (draw_backdrop) {
-    GPU_matrix_pop();
-    GPU_matrix_pop_projection();
   }
 }
 
@@ -791,7 +762,7 @@ static void sequencer_draw_scopes(Scene *scene, ARegion *region, SpaceSeq *sseq)
 {
   /* Figure out draw coordinates. */
   rctf preview;
-  sequencer_preview_get_rect(&preview, scene, region, sseq, false, false);
+  sequencer_preview_get_rect(&preview, scene, region, sseq, false);
 
   rctf uv;
   BLI_rctf_init(&uv, 0.0f, 1.0f, 0.0f, 1.0f);
@@ -908,9 +879,9 @@ static void sequencer_draw_scopes(Scene *scene, ARegion *region, SpaceSeq *sseq)
   }
 }
 
-static bool sequencer_calc_scopes(Scene *scene, SpaceSeq *sseq, ImBuf *ibuf, bool draw_backdrop)
+static bool sequencer_calc_scopes(Scene *scene, SpaceSeq *sseq, ImBuf *ibuf)
 {
-  if (draw_backdrop || (sseq->mainb == SEQ_DRAW_IMG_IMBUF && sseq->zebra == 0)) {
+  if (sseq->mainb == SEQ_DRAW_IMG_IMBUF && sseq->zebra == 0) {
     return false; /* Not drawing any scopes. */
   }
 
@@ -1253,8 +1224,7 @@ void sequencer_draw_preview(const bContext *C,
                             SpaceSeq *sseq,
                             int timeline_frame,
                             int offset,
-                            bool draw_overlay,
-                            bool draw_backdrop)
+                            bool draw_overlay)
 {
   View2D *v2d = &region->v2d;
   ImBuf *ibuf = nullptr;
@@ -1294,9 +1264,7 @@ void sequencer_draw_preview(const bContext *C,
   UI_view2d_view_ortho(v2d);
 
   /* Draw background. */
-  if (!draw_backdrop &&
-      (!draw_overlay || (sseq->overlay_frame_type == SEQ_OVERLAY_FRAME_TYPE_REFERENCE)))
-  {
+  if (!draw_overlay || (sseq->overlay_frame_type == SEQ_OVERLAY_FRAME_TYPE_REFERENCE)) {
     sequencer_preview_clear();
 
     if (sseq->flag & SEQ_USE_ALPHA) {
@@ -1305,14 +1273,14 @@ void sequencer_draw_preview(const bContext *C,
   }
 
   if (ibuf) {
-    bool has_scope = sequencer_calc_scopes(scene, sseq, ibuf, draw_backdrop);
+    bool has_scope = sequencer_calc_scopes(scene, sseq, ibuf);
     if (has_scope) {
       /* Draw scope. */
       sequencer_draw_scopes(scene, region, sseq);
     }
     else {
       /* Draw image. */
-      sequencer_draw_display_buffer(C, scene, region, sseq, ibuf, draw_overlay, draw_backdrop);
+      sequencer_draw_display_buffer(C, scene, region, sseq, ibuf, draw_overlay);
     }
 
     /* Draw metadata. */
@@ -1325,7 +1293,7 @@ void sequencer_draw_preview(const bContext *C,
     sequencer_draw_borders_overlay(sseq, v2d, scene);
   }
 
-  if (!draw_backdrop && scene->ed != nullptr) {
+  if (scene->ed != nullptr) {
     Editing *ed = seq::editing_get(scene);
     ListBase *channels = seq::channels_displayed_get(ed);
     blender::VectorSet strips = seq::query_rendered_strips(

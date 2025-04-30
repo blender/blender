@@ -953,7 +953,7 @@ static void sequencer_preview_region_draw(const bContext *C, ARegion *region)
   const bool is_playing = ED_screen_animation_playing(wm);
 
   if (!(draw_frame_overlay && (sseq->overlay_frame_type == SEQ_OVERLAY_FRAME_TYPE_REFERENCE))) {
-    sequencer_draw_preview(C, scene, region, sseq, scene->r.cfra, 0, false, false);
+    sequencer_draw_preview(C, scene, region, sseq, scene->r.cfra, 0, false);
   }
 
   if (draw_frame_overlay && sseq->overlay_frame_type != SEQ_OVERLAY_FRAME_TYPE_CURRENT) {
@@ -969,7 +969,7 @@ static void sequencer_preview_region_draw(const bContext *C, ARegion *region)
     if ((over_cfra != scene->r.cfra) || (sseq->overlay_frame_type != SEQ_OVERLAY_FRAME_TYPE_RECT))
     {
       sequencer_draw_preview(
-          C, scene, region, sseq, scene->r.cfra, over_cfra - scene->r.cfra, true, false);
+          C, scene, region, sseq, scene->r.cfra, over_cfra - scene->r.cfra, true);
     }
   }
 

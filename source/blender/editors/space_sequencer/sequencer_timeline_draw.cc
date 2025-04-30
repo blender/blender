@@ -1887,22 +1887,6 @@ static void draw_timeline_grid(TimelineDrawContext *ctx)
   U.v2d_min_gridsize /= 3;
 }
 
-static void draw_timeline_backdrop(TimelineDrawContext *ctx)
-{
-  if (ctx->sseq->view != SEQ_VIEW_SEQUENCE || (ctx->sseq->draw_flag & SEQ_DRAW_BACKDROP) == 0) {
-    return;
-  }
-
-  int preview_frame = ctx->scene->r.cfra;
-  if (sequencer_draw_get_transform_preview(ctx->sseq, ctx->scene)) {
-    preview_frame = sequencer_draw_get_transform_preview_frame(ctx->scene);
-  }
-
-  sequencer_draw_preview(
-      ctx->C, ctx->scene, ctx->region, ctx->sseq, preview_frame, 0, false, true);
-  UI_view2d_view_ortho(ctx->v2d);
-}
-
 static void draw_timeline_markers(TimelineDrawContext *ctx)
 {
   if ((ctx->sseq->flag & SEQ_SHOW_MARKERS) == 0) {
@@ -1948,7 +1932,6 @@ void draw_timeline_seq(const bContext *C, ARegion *region)
   UI_ThemeClearColor(TH_BACK);
   draw_seq_timeline_channels(&ctx);
   draw_timeline_grid(&ctx);
-  draw_timeline_backdrop(&ctx);
   draw_timeline_sfra_efra(&ctx);
   draw_seq_strips(&ctx, strips_batch);
   draw_timeline_markers(&ctx);

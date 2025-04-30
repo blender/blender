@@ -131,12 +131,8 @@ static bool sequencer_fcurves_targets_color_strip(const FCurve *fcurve)
   return true;
 }
 
-bool has_playback_animation(const SpaceSeq *sseq, const Scene *scene)
+bool has_playback_animation(const Scene *scene)
 {
-  if (sseq->draw_flag & SEQ_DRAW_BACKDROP) {
-    return true;
-  }
-
   if (!scene->adt) {
     return false;
   }

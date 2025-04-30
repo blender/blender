@@ -2006,10 +2006,6 @@ bool ED_screen_stereo3d_required(const bScreen *screen, const Scene *scene)
           return true;
         }
 
-        if (sseq->draw_flag & SEQ_DRAW_BACKDROP) {
-          return true;
-        }
-
         break;
       }
     }

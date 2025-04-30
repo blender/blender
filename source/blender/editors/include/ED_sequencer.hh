@@ -56,7 +56,7 @@ bool check_show_strip(SpaceSeq *sseq);
  * - Colors of color strips are displayed on the strip itself.
  * - Backdrop is drawn.
  */
-bool has_playback_animation(const SpaceSeq *sseq, const Scene *scene);
+bool has_playback_animation(const Scene *scene);
 
 void ED_operatormacros_sequencer();
 

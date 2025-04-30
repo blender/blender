@@ -10642,6 +10642,19 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
     rename_mesh_uv_seam_attribute(*mesh);
   }
 
+  /* Clear unused darw flag (used to be SEQ_DRAW_BACKDROP). */
+  // TODO: Move into a dedicated subversion check.
+  LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
+    LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
+      LISTBASE_FOREACH (SpaceLink *, sl, &area->spacedata) {
+        if (sl->spacetype == SPACE_SEQ) {
+          SpaceSeq *space_sequencer = (SpaceSeq *)sl;
+          space_sequencer->draw_flag &= ~SEQ_DRAW_UNUSED_0;
+        }
+      }
+    }
+  }
+
   /**
    * Always bump subversion in BKE_blender_version.h when adding versioning
    * code here, and wrap it inside a MAIN_VERSION_FILE_ATLEAST check.

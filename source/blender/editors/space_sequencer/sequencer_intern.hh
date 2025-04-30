@@ -133,8 +133,7 @@ void sequencer_draw_preview(const bContext *C,
                             SpaceSeq *sseq,
                             int timeline_frame,
                             int offset,
-                            bool draw_overlay,
-                            bool draw_backdrop);
+                            bool draw_overlay);
 bool sequencer_draw_get_transform_preview(SpaceSeq *sseq, Scene *scene);
 int sequencer_draw_get_transform_preview_frame(Scene *scene);
 
