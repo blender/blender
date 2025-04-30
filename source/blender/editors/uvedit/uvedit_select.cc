@@ -388,6 +388,29 @@ bool uvedit_edge_select_test_ex(const ToolSettings *ts,
   BLI_assert(offsets.select_vert >= 0);
   BLI_assert(offsets.select_edge >= 0);
   if (ts->uv_flag & UV_SYNC_SELECTION) {
+    if (ts->selectmode == SCE_SELECT_FACE) {
+      /* Face only is a special case that can respect sticky modes. */
+      switch (ts->uv_sticky) {
+        case SI_STICKY_LOC: {
+          if (BM_elem_flag_test(l->f, BM_ELEM_SELECT)) {
+            return true;
+          }
+          if (uvedit_edge_is_face_select_any_other(ts, l, offsets)) {
+            return true;
+          }
+          return false;
+        }
+        case SI_STICKY_DISABLE: {
+          return BM_elem_flag_test_bool(l->f, BM_ELEM_SELECT);
+        }
+        default: {
+          /* #SI_STICKY_VERTEX */
+          return BM_elem_flag_test_bool(l->e, BM_ELEM_SELECT);
+        }
+      }
+      BLI_assert_unreachable();
+    }
+
     if (ts->selectmode & SCE_SELECT_FACE) {
       return BM_elem_flag_test(l->f, BM_ELEM_SELECT);
     }
@@ -589,6 +612,30 @@ bool uvedit_uv_select_test_ex(const ToolSettings *ts, const BMLoop *l, const BMU
 {
   BLI_assert(offsets.select_vert >= 0);
   if (ts->uv_flag & UV_SYNC_SELECTION) {
+
+    if (ts->selectmode == SCE_SELECT_FACE) {
+      /* Face only is a special case that can respect sticky modes. */
+      switch (ts->uv_sticky) {
+        case SI_STICKY_LOC: {
+          if (BM_elem_flag_test(l->f, BM_ELEM_SELECT)) {
+            return true;
+          }
+          if (uvedit_vert_is_face_select_any_other(ts, l, offsets)) {
+            return true;
+          }
+          return false;
+        }
+        case SI_STICKY_DISABLE: {
+          return BM_elem_flag_test_bool(l->f, BM_ELEM_SELECT);
+        }
+        default: {
+          /* #SI_STICKY_VERTEX */
+          return BM_elem_flag_test_bool(l->v, BM_ELEM_SELECT);
+        }
+      }
+      BLI_assert_unreachable();
+    }
+
     if (ts->selectmode & SCE_SELECT_FACE) {
       return BM_elem_flag_test_bool(l->f, BM_ELEM_SELECT);
     }
@@ -1222,6 +1269,29 @@ bool uvedit_vert_is_edge_select_any_other(const ToolSettings *ts,
       }
     } while ((l_radial_iter = l_radial_iter->radial_next) != e_iter->l);
   } while ((e_iter = BM_DISK_EDGE_NEXT(e_iter, l->v)) != l->e);
+
+  return false;
+}
+
+bool uvedit_edge_is_face_select_any_other(const ToolSettings *ts,
+                                          const BMLoop *l,
+                                          const BMUVOffsets &offsets)
+{
+  BLI_assert(offsets.uv >= 0);
+  BMLoop *l_radial_iter = l->radial_next;
+  if (l_radial_iter == l) {
+    return false;
+  }
+  do {
+    if (!uvedit_face_visible_test_ex(ts, l_radial_iter->f)) {
+      continue;
+    }
+    if (BM_loop_uv_share_edge_check(l, l_radial_iter, offsets.uv) &&
+        uvedit_face_select_test_ex(ts, l_radial_iter->f, offsets))
+    {
+      return true;
+    }
+  } while ((l_radial_iter = l_radial_iter->radial_next) != l);
 
   return false;
 }
@@ -5559,6 +5629,7 @@ void ED_uvedit_selectmode_clean(const Scene *scene, Object *obedit)
 void ED_uvedit_selectmode_clean_multi(bContext *C)
 {
   Scene *scene = CTX_data_scene(C);
+  ToolSettings *ts = scene->toolsettings;
   ViewLayer *view_layer = CTX_data_view_layer(C);
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
 
@@ -5567,7 +5638,28 @@ void ED_uvedit_selectmode_clean_multi(bContext *C)
   for (Object *obedit : objects) {
     ED_uvedit_selectmode_clean(scene, obedit);
 
-    uv_select_tag_update_for_object(depsgraph, scene->toolsettings, obedit);
+    uv_select_tag_update_for_object(depsgraph, ts, obedit);
+  }
+}
+
+void ED_uvedit_sticky_selectmode_update(bContext *C)
+{
+  Scene *scene = CTX_data_scene(C);
+  ToolSettings *ts = scene->toolsettings;
+  if ((ts->uv_flag & UV_SYNC_SELECTION) == 0) {
+    return;
+  }
+  if (ts->selectmode != SCE_SELECT_FACE) {
+    return;
+  }
+
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+
+  Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
+      scene, view_layer, nullptr);
+  for (Object *obedit : objects) {
+    uv_select_tag_update_for_object(depsgraph, ts, obedit);
   }
 }
 

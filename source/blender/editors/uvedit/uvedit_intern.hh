@@ -95,6 +95,9 @@ bool uvedit_vert_is_face_select_any_other(const ToolSettings *ts,
 bool uvedit_vert_is_all_other_faces_selected(const ToolSettings *ts,
                                              const BMLoop *l,
                                              const BMUVOffsets &offsets);
+bool uvedit_edge_is_face_select_any_other(const ToolSettings *ts,
+                                          const BMLoop *l,
+                                          const BMUVOffsets &offsets);
 
 /* utility tool functions */
 

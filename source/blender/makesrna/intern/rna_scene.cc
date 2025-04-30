@@ -2051,6 +2051,12 @@ static void rna_Scene_uv_select_mode_update(bContext *C, PointerRNA * /*ptr*/)
   ED_uvedit_selectmode_clean_multi(C);
 }
 
+static void rna_Scene_uv_sticky_select_mode_update(bContext *C, PointerRNA * /*ptr*/)
+{
+  /* Some changes to sticky select mode require rebuilding. */
+  ED_uvedit_sticky_selectmode_update(C);
+}
+
 static void object_simplify_update(Scene *scene,
                                    Object *ob,
                                    bool update_normals,
@@ -4105,7 +4111,9 @@ static void rna_def_tool_settings(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, uv_sticky_mode_items);
   RNA_def_property_ui_text(
       prop, "Sticky Selection Mode", "Method for extending UV vertex selection");
-  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, nullptr);
+  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+  RNA_def_property_update(
+      prop, NC_SPACE | ND_SPACE_IMAGE, "rna_Scene_uv_sticky_select_mode_update");
 
   prop = RNA_def_property(srna, "use_uv_select_sync", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "uv_flag", UV_SYNC_SELECTION);
