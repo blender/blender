@@ -105,21 +105,10 @@ echo *********************************************************************
 mkdir c:\tools\cuda\12.8.0\
 start /wait c:\install\cuda_12.8.0_571.96_windows.exe
 
-echo Obtaining Hip SDK 5.7.1
-curl https://download.amd.com/developer/eula/rocm-hub/AMD-Software-PRO-Edition-23.Q4-WinSvr2022-For-HIP.exe  -o c:\install\AMD-Software-PRO-Edition-23.Q4-WinSvr2022-For-HIP.exe
-echo Installing Hip SDK 5.7.1
-REM this will exit anhow, so adding /wait doesn't do anything, so there's a manual pause later on
-mkdir C:\tools\rocm
-start c:\install\AMD-Software-PRO-Edition-23.Q4-WinSvr2022-For-HIP.exe 
-
-echo *********************************************************************
-echo ** HIP is a bit of a pain to install due to it lacking features    **
-echo ** for unattended installs, the installer should have just started **
-echo ** manually install it to C:\tools\rocm this HAS to be the place   **
-echo ** don't use anything else, This folder has been created           **
-echo ** so you should be able to just browse to it in the installer     **
-echo *********************************************************************
-pause 
+echo Obtaining Hip SDK 6.3.42560-881c2d702
+curl https://gpuopen.com/download/hiprt/HIP_SDK_6.3.42560-881c2d702_update.zip  -o c:\install\HIP_SDK_6.3.42560-881c2d702_update.zip
+echo Installing Hip SDK 6.3.42560-881c2d702
+tar -zxvf c:\install\HIP_SDK_6.3.42560-881c2d702_update.zip -C c:\tools\
 
 echo Cloning Blender repository
 mkdir c:\blendergit
