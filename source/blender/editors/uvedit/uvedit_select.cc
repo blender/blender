@@ -1202,7 +1202,7 @@ void uvedit_select_prepare_custom_data(const Scene *scene, BMesh *bm)
 }
 
 bool uvedit_vert_is_edge_select_any_other(const Scene *scene,
-                                          BMLoop *l,
+                                          const BMLoop *l,
                                           const BMUVOffsets &offsets)
 {
   BLI_assert(offsets.uv >= 0);
@@ -1227,7 +1227,7 @@ bool uvedit_vert_is_edge_select_any_other(const Scene *scene,
 }
 
 bool uvedit_vert_is_face_select_any_other(const Scene *scene,
-                                          BMLoop *l,
+                                          const BMLoop *l,
                                           const BMUVOffsets &offsets)
 {
   BLI_assert(offsets.uv >= 0);
@@ -1247,7 +1247,7 @@ bool uvedit_vert_is_face_select_any_other(const Scene *scene,
 }
 
 bool uvedit_vert_is_all_other_faces_selected(const Scene *scene,
-                                             BMLoop *l,
+                                             const BMLoop *l,
                                              const BMUVOffsets &offsets)
 {
   BLI_assert(offsets.uv >= 0);

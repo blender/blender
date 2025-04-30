@@ -86,13 +86,13 @@ BMLoop *uv_find_nearest_loop_from_vert(Scene *scene, Object *obedit, BMVert *v, 
 BMLoop *uv_find_nearest_loop_from_edge(Scene *scene, Object *obedit, BMEdge *e, const float co[2]);
 
 bool uvedit_vert_is_edge_select_any_other(const Scene *scene,
-                                          BMLoop *l,
+                                          const BMLoop *l,
                                           const BMUVOffsets &offsets);
 bool uvedit_vert_is_face_select_any_other(const Scene *scene,
-                                          BMLoop *l,
+                                          const BMLoop *l,
                                           const BMUVOffsets &offsets);
 bool uvedit_vert_is_all_other_faces_selected(const Scene *scene,
-                                             BMLoop *l,
+                                             const BMLoop *l,
                                              const BMUVOffsets &offsets);
 
 /* utility tool functions */

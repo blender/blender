@@ -143,7 +143,7 @@ void BM_face_uv_minmax(const BMFace *f, float min[2], float max[2], const int cd
   } while ((l_iter = l_iter->next) != l_first);
 }
 
-bool BM_loop_uv_share_edge_check(BMLoop *l_a, BMLoop *l_b, const int cd_loop_uv_offset)
+bool BM_loop_uv_share_edge_check(const BMLoop *l_a, const BMLoop *l_b, const int cd_loop_uv_offset)
 {
   BLI_assert(l_a->e == l_b->e);
   const float *luv_a_curr = BM_ELEM_CD_GET_FLOAT_P(l_a, cd_loop_uv_offset);
@@ -156,7 +156,7 @@ bool BM_loop_uv_share_edge_check(BMLoop *l_a, BMLoop *l_b, const int cd_loop_uv_
   return (equals_v2v2(luv_a_curr, luv_b_curr) && equals_v2v2(luv_a_next, luv_b_next));
 }
 
-bool BM_loop_uv_share_vert_check(BMLoop *l_a, BMLoop *l_b, const int cd_loop_uv_offset)
+bool BM_loop_uv_share_vert_check(const BMLoop *l_a, const BMLoop *l_b, const int cd_loop_uv_offset)
 {
   BLI_assert(l_a->v == l_b->v);
   const float *luv_a = BM_ELEM_CD_GET_FLOAT_P(l_a, cd_loop_uv_offset);
@@ -167,7 +167,10 @@ bool BM_loop_uv_share_vert_check(BMLoop *l_a, BMLoop *l_b, const int cd_loop_uv_
   return true;
 }
 
-bool BM_edge_uv_share_vert_check(BMEdge *e, BMLoop *l_a, BMLoop *l_b, const int cd_loop_uv_offset)
+bool BM_edge_uv_share_vert_check(const BMEdge *e,
+                                 const BMLoop *l_a,
+                                 const BMLoop *l_b,
+                                 const int cd_loop_uv_offset)
 {
   BLI_assert(l_a->v == l_b->v);
   if (!BM_loop_uv_share_vert_check(l_a, l_b, cd_loop_uv_offset)) {
@@ -175,8 +178,10 @@ bool BM_edge_uv_share_vert_check(BMEdge *e, BMLoop *l_a, BMLoop *l_b, const int 
   }
 
   /* No need for null checks, these will always succeed. */
-  const BMLoop *l_other_a = BM_loop_other_vert_loop_by_edge(l_a, e);
-  const BMLoop *l_other_b = BM_loop_other_vert_loop_by_edge(l_b, e);
+  const BMLoop *l_other_a = BM_loop_other_vert_loop_by_edge(const_cast<BMLoop *>(l_a),
+                                                            const_cast<BMEdge *>(e));
+  const BMLoop *l_other_b = BM_loop_other_vert_loop_by_edge(const_cast<BMLoop *>(l_b),
+                                                            const_cast<BMEdge *>(e));
 
   {
     const float *luv_other_a = BM_ELEM_CD_GET_FLOAT_P(l_other_a, cd_loop_uv_offset);
