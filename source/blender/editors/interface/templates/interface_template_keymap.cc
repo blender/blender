@@ -31,7 +31,7 @@ static void template_keymap_item_properties(uiLayout *layout, const char *title,
     uiItemL(layout, title, ICON_NONE);
   }
 
-  uiLayout *flow = uiLayoutColumnFlow(layout, 2, false);
+  uiLayout *flow = &layout->column_flow(2, false);
 
   RNA_STRUCT_BEGIN_SKIP_RNA_TYPE (ptr, prop) {
     const bool is_set = RNA_property_is_set(ptr, prop);

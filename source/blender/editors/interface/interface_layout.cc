@@ -5121,40 +5121,36 @@ uiLayout &uiLayout::column(bool align, const StringRef heading)
   return litem;
 }
 
-uiLayout *uiLayoutColumnFlow(uiLayout *layout, int number, bool align)
+uiLayout &uiLayout::column_flow(int number, bool align)
 {
   uiLayoutItemFlow *flow = MEM_new<uiLayoutItemFlow>(__func__);
-  ui_litem_init_from_parent(flow, layout, align);
+  ui_litem_init_from_parent(flow, this, align);
 
   flow->type_ = uiItemType::LayoutColumnFlow;
-  flow->space_ = (flow->align_) ? 0 : layout->root_->style->columnspace;
+  flow->space_ = (flow->align_) ? 0 : this->root_->style->columnspace;
   flow->number = number;
 
-  UI_block_layout_set_current(layout->root_->block, flow);
+  UI_block_layout_set_current(this->root_->block, flow);
 
-  return flow;
+  return *flow;
 }
 
-uiLayout *uiLayoutGridFlow(uiLayout *layout,
-                           bool row_major,
-                           int columns_len,
-                           bool even_columns,
-                           bool even_rows,
-                           bool align)
+uiLayout &uiLayout::grid_flow(
+    bool row_major, int columns_len, bool even_columns, bool even_rows, bool align)
 {
   uiLayoutItemGridFlow *flow = MEM_new<uiLayoutItemGridFlow>(__func__);
   flow->type_ = uiItemType::LayoutGridFlow;
-  ui_litem_init_from_parent(flow, layout, align);
+  ui_litem_init_from_parent(flow, this, align);
 
-  flow->space_ = (flow->align_) ? 0 : layout->root_->style->columnspace;
+  flow->space_ = (flow->align_) ? 0 : this->root_->style->columnspace;
   flow->row_major = row_major;
   flow->columns_len = columns_len;
   flow->even_columns = even_columns;
   flow->even_rows = even_rows;
 
-  UI_block_layout_set_current(layout->root_->block, flow);
+  UI_block_layout_set_current(this->root_->block, flow);
 
-  return flow;
+  return *flow;
 }
 
 static uiLayoutItemBx *ui_layout_box(uiLayout *layout, int type)

@@ -121,6 +121,27 @@ struct uiLayout : uiItem {
    * label column when there is no label defined.
    */
   uiLayout &row(bool align, blender::StringRef heading);
+
+  /**
+   * Add a new column flow sub-layout, items placed in this sub-layout would be evenly distributed
+   * in columns.
+   * \param number: the number of columns in which items are distributed.
+   */
+  uiLayout &column_flow(int number, bool align);
+  /**
+   * Add a new grid flow sub-layout, items placed in this sub-layout would be distributed in a
+   * grid.
+   * \param row_major: When true items are distributed by rows, otherwise items are distributed by
+   * columns.
+   * \param columns_len: When positive is the fixed number of columns to show, when 0 its automatic
+   * defined, when negative its an automatic stepped number of columns/rows to show (e.g. when \a
+   * row_major is true -3 will automatically show (1,2,3,6,9,...) columns, or when \a row_major is
+   * false -3 will automatically show (3,6,9,...) rows).
+   * \param even_columns: All columns will have the same width.
+   * \param even_rows: All rows will have the same height.
+   */
+  uiLayout &grid_flow(
+      bool row_major, int columns_len, bool even_columns, bool even_rows, bool align);
 };
 
 enum {
@@ -377,13 +398,6 @@ uiLayout *uiLayoutPanel(const bContext *C,
 
 bool uiLayoutEndsWithPanelHeader(const uiLayout &layout);
 
-uiLayout *uiLayoutColumnFlow(uiLayout *layout, int number, bool align);
-uiLayout *uiLayoutGridFlow(uiLayout *layout,
-                           bool row_major,
-                           int columns_len,
-                           bool even_columns,
-                           bool even_rows,
-                           bool align);
 uiLayout *uiLayoutBox(uiLayout *layout);
 uiLayout *uiLayoutListBox(uiLayout *layout,
                           uiList *ui_list,

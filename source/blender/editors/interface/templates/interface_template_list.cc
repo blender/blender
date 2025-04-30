@@ -1005,7 +1005,7 @@ static void ui_template_list_layout_draw(const bContext *C,
 
       const int cols_per_row = std::max(int((uiLayoutGetWidth(box) - V2D_SCROLL_WIDTH) / size_x),
                                         1);
-      uiLayout *grid = uiLayoutGridFlow(row, true, cols_per_row, true, true, true);
+      uiLayout *grid = &row->grid_flow(true, cols_per_row, true, true, true);
 
       TemplateListLayoutDrawData adjusted_layout_data = *layout_data;
       adjusted_layout_data.columns = cols_per_row;
