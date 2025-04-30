@@ -518,7 +518,9 @@ void EDBM_redo_state_free(BMBackup *backup) ATTR_NONNULL(1);
 /* `meshtools.cc` */
 
 wmOperatorStatus ED_mesh_join_objects_exec(bContext *C, wmOperator *op);
-wmOperatorStatus ED_mesh_shapes_join_objects_exec(bContext *C, ReportList *reports);
+wmOperatorStatus ED_mesh_shapes_join_objects_exec(bContext *C,
+                                                  bool ensure_keys_exist,
+                                                  ReportList *reports);
 
 /* mirror lookup api */
 

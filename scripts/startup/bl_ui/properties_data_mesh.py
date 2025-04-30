@@ -66,6 +66,7 @@ class MESH_MT_shape_key_context_menu(Menu):
         layout.operator("object.shape_key_mirror", text="Mirror Shape Key (Topology)").use_topology = True
         layout.separator()
         layout.operator("object.join_shapes")
+        layout.operator("object.update_shapes")
         layout.operator("object.shape_key_transfer")
         layout.separator()
         props = layout.operator("object.shape_key_remove", icon='X', text="Delete All Shape Keys")

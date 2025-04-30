@@ -141,6 +141,7 @@ void OBJECT_OT_duplicate(wmOperatorType *ot);
 void OBJECT_OT_delete(wmOperatorType *ot);
 void OBJECT_OT_join(wmOperatorType *ot);
 void OBJECT_OT_join_shapes(wmOperatorType *ot);
+void OBJECT_OT_update_shapes(wmOperatorType *ot);
 void OBJECT_OT_convert(wmOperatorType *ot);
 
 /* `object_volume.cc` */

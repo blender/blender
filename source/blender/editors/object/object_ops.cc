@@ -112,6 +112,7 @@ void operatortypes_object()
   WM_operatortype_append(OBJECT_OT_duplicate);
   WM_operatortype_append(OBJECT_OT_join);
   WM_operatortype_append(OBJECT_OT_join_shapes);
+  WM_operatortype_append(OBJECT_OT_update_shapes);
   WM_operatortype_append(OBJECT_OT_convert);
   WM_operatortype_append(OBJECT_OT_visual_geometry_to_objects);
 
