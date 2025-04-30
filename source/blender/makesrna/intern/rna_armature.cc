@@ -1035,12 +1035,14 @@ static void rna_Armature_editbone_transform_update(Main *bmain, Scene *scene, Po
   /* update our parent */
   if (ebone->parent && ebone->flag & BONE_CONNECTED) {
     copy_v3_v3(ebone->parent->tail, ebone->head);
+    ebone->parent->rad_tail = ebone->rad_head;
   }
 
   /* update our children if necessary */
   for (child = static_cast<EditBone *>(arm->edbo->first); child; child = child->next) {
     if (child->parent == ebone && (child->flag & BONE_CONNECTED)) {
       copy_v3_v3(child->head, ebone->tail);
+      child->rad_head = ebone->rad_tail;
     }
   }
 

@@ -9953,6 +9953,24 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
     version_convert_sculpt_planar_brushes(bmain);
   }
 
+  /* Enforce that bone envelope radii match for parent and connected children. */
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 57)) {
+    LISTBASE_FOREACH (bArmature *, arm, &bmain->armatures) {
+      blender::animrig::ANIM_armature_foreach_bone(&arm->bonebase, [](Bone *bone) {
+        if (bone->parent && (bone->flag & BONE_CONNECTED)) {
+          bone->rad_head = bone->parent->rad_tail;
+        }
+      });
+      if (arm->edbo) {
+        LISTBASE_FOREACH (EditBone *, ebone, arm->edbo) {
+          if (ebone->parent && (ebone->flag & BONE_CONNECTED)) {
+            ebone->rad_head = ebone->parent->rad_tail;
+          }
+        }
+      }
+    }
+  }
+
   /* Always run this versioning (keep at the bottom of the function). Meshes are written with the
    * legacy format which always needs to be converted to the new format on file load. To be moved
    * to a subversion check in 5.0. */
