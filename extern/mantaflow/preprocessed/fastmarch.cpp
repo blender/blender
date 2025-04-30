@@ -306,25 +306,24 @@ struct knExtrapolateMACSimple : public KernelBase {
                  const int d,
                  const int c) const
   {
-    static const Vec3i nb[6] = {Vec3i(1, 0, 0),
-                                Vec3i(-1, 0, 0),
-                                Vec3i(0, 1, 0),
-                                Vec3i(0, -1, 0),
-                                Vec3i(0, 0, 1),
-                                Vec3i(0, 0, -1)};
-    const int dim = (vel.is3D() ? 3 : 2);
-
     if (tmp(i, j, k) != 0)
       return;
+    static const Vec3i nb[6] = {Vec3i(i+1, j, k),
+                                Vec3i(i-1, j, k),
+                                Vec3i(i, j+1, k),
+                                Vec3i(i, j-1, k),
+                                Vec3i(i, j, k+1),
+                                Vec3i(i, j, k-1)};
+    const int dim = (vel.is3D() ? 3 : 2);
 
     // copy from initialized neighbors
     Vec3i p(i, j, k);
     int nbs = 0;
     Real avgVel = 0.;
     for (int n = 0; n < 2 * dim; ++n) {
-      if (tmp(p + nb[n]) == d) {
+      if (tmp(nb[n]) == d) {
         // vel(p)[c] = (c+1.)*0.1;
-        avgVel += vel(p + nb[n])[c];
+        avgVel += vel(nb[n])[c];
         nbs++;
       }
     }
@@ -714,24 +713,23 @@ struct knExtrapolateMACFromWeight : public KernelBase {
                  const int d,
                  const int c) const
   {
-    static const Vec3i nb[6] = {Vec3i(1, 0, 0),
-                                Vec3i(-1, 0, 0),
-                                Vec3i(0, 1, 0),
-                                Vec3i(0, -1, 0),
-                                Vec3i(0, 0, 1),
-                                Vec3i(0, 0, -1)};
-    const int dim = (vel.is3D() ? 3 : 2);
-
     if (weight(i, j, k)[c] != 0)
       return;
+    static const Vec3i nb[6] = {Vec3i(i+1, j, k),
+                                Vec3i(i-1, j, k),
+                                Vec3i(i, j+1, k),
+                                Vec3i(i, j-1, k),
+                                Vec3i(i, j, k+1),
+                                Vec3i(i, j, k-1)};
+    const int dim = (vel.is3D() ? 3 : 2);
 
     // copy from initialized neighbors
     Vec3i p(i, j, k);
     int nbs = 0;
     Real avgVel = 0.;
     for (int n = 0; n < 2 * dim; ++n) {
-      if (weight(p + nb[n])[c] == d) {
-        avgVel += vel(p + nb[n])[c];
+      if (weight(nb[n])[c] == d) {
+        avgVel += vel(nb[n])[c];
         nbs++;
       }
     }
