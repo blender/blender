@@ -278,7 +278,7 @@ static void sequencer_sample_apply(bContext *C, wmOperator *op, const wmEvent *e
 {
   Scene *scene = CTX_data_scene(C);
   ARegion *region = CTX_wm_region(C);
-  ImBuf *ibuf = blender::ed::vse::sequencer_ibuf_get(C, scene->r.cfra, 0, nullptr);
+  ImBuf *ibuf = blender::ed::vse::sequencer_ibuf_get(C, scene->r.cfra, nullptr);
   ImageSampleInfo *info = static_cast<ImageSampleInfo *>(op->customdata);
   float fx, fy;
 

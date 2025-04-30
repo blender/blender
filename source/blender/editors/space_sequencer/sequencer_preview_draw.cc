@@ -103,10 +103,7 @@ void special_preview_clear()
   sequencer_special_update_set(nullptr);
 }
 
-ImBuf *sequencer_ibuf_get(const bContext *C,
-                          int timeline_frame,
-                          int frame_ofs,
-                          const char *viewname)
+ImBuf *sequencer_ibuf_get(const bContext *C, const int timeline_frame, const char *viewname)
 {
   Main *bmain = CTX_data_main(C);
   ARegion *region = CTX_wm_region(C);
@@ -158,11 +155,10 @@ ImBuf *sequencer_ibuf_get(const bContext *C,
   }
 
   if (special_preview_get()) {
-    ibuf = seq::render_give_ibuf_direct(
-        &context, timeline_frame + frame_ofs, special_preview_get());
+    ibuf = seq::render_give_ibuf_direct(&context, timeline_frame, special_preview_get());
   }
   else {
-    ibuf = seq::render_give_ibuf(&context, timeline_frame + frame_ofs, sseq->chanshown);
+    ibuf = seq::render_give_ibuf(&context, timeline_frame, sseq->chanshown);
   }
 
   if (viewport) {
@@ -1244,7 +1240,7 @@ void sequencer_draw_preview(const bContext *C,
   }
 
   /* Get image. */
-  ibuf = sequencer_ibuf_get(C, preview_frame, offset, names[sseq->multiview_eye]);
+  ibuf = sequencer_ibuf_get(C, preview_frame + offset, names[sseq->multiview_eye]);
 
   /* Setup off-screen buffers. */
   GPUViewport *viewport = WM_draw_region_get_viewport(region);

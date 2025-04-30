@@ -151,10 +151,7 @@ float strip_handle_draw_size_get(const Scene *scene, Strip *strip, float pixelx)
  * TODO: do not rely on such hack and just update the \a ibuf outside of
  * the UI drawing code.
  */
-ImBuf *sequencer_ibuf_get(const bContext *C,
-                          int timeline_frame,
-                          int frame_ofs,
-                          const char *viewname);
+ImBuf *sequencer_ibuf_get(const bContext *C, int timeline_frame, const char *viewname);
 
 /* `sequencer_thumbnails.cc` */
 
