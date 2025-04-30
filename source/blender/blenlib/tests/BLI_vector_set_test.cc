@@ -401,6 +401,29 @@ TEST(vector_set, CustomIDVectorSet)
   EXPECT_TRUE(larger_set.size() == 6);
 }
 
+TEST(vector_set, CustomIDVectorSetMove)
+{
+
+  struct ThingWithID {
+    int a;
+    std::string b;
+    int c;
+  };
+  struct ThingGetter {
+    StringRef operator()(const std::unique_ptr<ThingWithID> &value) const
+    {
+      return value->b;
+    }
+  };
+  CustomIDVectorSet<std::unique_ptr<ThingWithID>, ThingGetter> set;
+  set.add(std::make_unique<ThingWithID>(ThingWithID{1, "hug", 2}));
+  set.add(std::make_unique<ThingWithID>(ThingWithID{2, "a", 2}));
+  set.add(std::make_unique<ThingWithID>(ThingWithID{3, "bug", 4}));
+  auto set_new = std::move(set);
+  EXPECT_EQ(set.size(), 0); /* NOLINT: bugprone-use-after-move */
+  EXPECT_EQ(set_new.size(), 3);
+}
+
 namespace {
 struct KeyWithData {
   int key;

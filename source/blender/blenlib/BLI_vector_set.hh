@@ -234,7 +234,9 @@ class VectorSet {
   }
 
   template<int64_t OtherInlineBufferCapacity>
-  VectorSet(VectorSet<Key, OtherInlineBufferCapacity> &&other) noexcept
+  VectorSet(
+      VectorSet<Key, OtherInlineBufferCapacity, ProbingStrategy, Hash, IsEqual, Slot, Allocator>
+          &&other) noexcept
       : removed_slots_(other.removed_slots_),
         occupied_and_removed_slots_(other.occupied_and_removed_slots_),
         slot_mask_(other.slot_mask_),
