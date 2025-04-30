@@ -51,6 +51,9 @@ static void curve_offsets_from_selection(const Span<IndexRange> selected_points,
                                          Vector<int> &r_dst_offsets,
                                          Vector<int> &r_dst_to_src_curve)
 {
+  if (selected_points.is_empty()) {
+    return;
+  }
   const bool merge_loop = cyclic && selected_points.first().size() < points.size() &&
                           selected_points.first().first() == points.first() &&
                           selected_points.last().last() == points.last();
@@ -423,7 +426,6 @@ bke::CurvesGeometry split_points(const bke::CurvesGeometry &curves,
       points_to_split,
       points_by_curve,
       [&](const int curve, const IndexRange points, const Span<IndexRange> selected_curve_points) {
-        const int points_start = new_offsets.last();
         curve_offsets_from_selection(selected_curve_points,
                                      points,
                                      curve,
@@ -433,7 +435,6 @@ bke::CurvesGeometry split_points(const bke::CurvesGeometry &curves,
                                      src_ranges,
                                      dst_offsets,
                                      curve_map);
-        const int split_points_num = new_offsets.last() - points_start;
         /* Invert ranges to get non selected points. */
         invert_ranges(points, selected_curve_points, unselected_curve_points);
         /* Extended every range to left and right by one point. Any resulting intersection is
@@ -441,11 +442,16 @@ bke::CurvesGeometry split_points(const bke::CurvesGeometry &curves,
         extend_range_by_1_within_bounds(
             points, cyclic[curve], unselected_curve_points, curve_points_to_preserve);
         const int size_before = curve_map.size();
+        /* Unselected part can contain all points from original curve, but have cuts. This happens
+         * when pairs of adjacent points are selected. To prevent loop merge and result curve from
+         * cyclic additional condition is checked. */
+        const bool can_merge_loop = !unselected_curve_points.is_empty() &&
+                                    (unselected_curve_points.first().first() == points.first() ||
+                                     unselected_curve_points.last().last() == points.last());
         curve_offsets_from_selection(curve_points_to_preserve,
                                      points,
                                      curve,
-                                     cyclic[curve] &&
-                                         (split_points_num <= curve_points_to_preserve.size()),
+                                     cyclic[curve] && can_merge_loop,
                                      new_offsets,
                                      new_cyclic,
                                      src_ranges,
