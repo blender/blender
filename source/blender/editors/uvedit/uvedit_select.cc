@@ -1257,15 +1257,16 @@ bool uvedit_vert_is_edge_select_any_other(const ToolSettings *ts,
   do {
     BMLoop *l_radial_iter = e_iter->l, *l_other;
     do {
-      if (uvedit_face_visible_test_ex(ts, l_radial_iter->f)) {
-        /* Use #l_other to check if the uvs are connected (share the same uv coordinates)
-         * and #l_radial_iter for the actual edge selection test. */
-        l_other = (l_radial_iter->v != l->v) ? l_radial_iter->next : l_radial_iter;
-        if (BM_loop_uv_share_vert_check(l, l_other, offsets.uv) &&
-            uvedit_edge_select_test_ex(ts, l_radial_iter, offsets))
-        {
-          return true;
-        }
+      if (!uvedit_face_visible_test_ex(ts, l_radial_iter->f)) {
+        continue;
+      }
+      /* Use #l_other to check if the uvs are connected (share the same uv coordinates)
+       * and #l_radial_iter for the actual edge selection test. */
+      l_other = (l_radial_iter->v != l->v) ? l_radial_iter->next : l_radial_iter;
+      if (BM_loop_uv_share_vert_check(l, l_other, offsets.uv) &&
+          uvedit_edge_select_test_ex(ts, l_radial_iter, offsets))
+      {
+        return true;
       }
     } while ((l_radial_iter = l_radial_iter->radial_next) != e_iter->l);
   } while ((e_iter = BM_DISK_EDGE_NEXT(e_iter, l->v)) != l->e);
@@ -1304,7 +1305,7 @@ bool uvedit_vert_is_face_select_any_other(const ToolSettings *ts,
   BMIter liter;
   BMLoop *l_iter;
   BM_ITER_ELEM (l_iter, &liter, l->v, BM_LOOPS_OF_VERT) {
-    if (!uvedit_face_visible_test_ex(ts, l_iter->f) || (l_iter->f == l->f)) {
+    if ((l_iter->f == l->f) || !uvedit_face_visible_test_ex(ts, l_iter->f)) {
       continue;
     }
     if (BM_loop_uv_share_vert_check(l, l_iter, offsets.uv) &&
@@ -1324,7 +1325,7 @@ bool uvedit_vert_is_all_other_faces_selected(const ToolSettings *ts,
   BMIter liter;
   BMLoop *l_iter;
   BM_ITER_ELEM (l_iter, &liter, l->v, BM_LOOPS_OF_VERT) {
-    if (!uvedit_face_visible_test_ex(ts, l_iter->f) || (l_iter->f == l->f)) {
+    if ((l_iter->f == l->f) || !uvedit_face_visible_test_ex(ts, l_iter->f)) {
       continue;
     }
     if (BM_loop_uv_share_vert_check(l, l_iter, offsets.uv) &&
