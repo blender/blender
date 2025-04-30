@@ -1170,7 +1170,7 @@ bool ShadowModule::shadow_update_finished(int loop_count)
     return true;
   }
 
-  if (!inst_.is_image_render) {
+  if (!inst_.is_image_render && !inst_.is_light_bake) {
     /* For viewport, only run the shadow update once per redraw.
      * This avoids the stall from the read-back and freezes from long shadow update. */
     return true;
