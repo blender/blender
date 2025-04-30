@@ -1,0 +1,83 @@
+diff --git a/extern/mantaflow/helper/util/vector4d.h b/extern/mantaflow/helper/util/vector4d.h
+index c3d72ac8aff..69cb96ff1ff 100644
+--- a/extern/mantaflow/helper/util/vector4d.h
++++ b/extern/mantaflow/helper/util/vector4d.h
+@@ -287,6 +287,34 @@ template<class S> inline S dot(const Vector4D<S> &t, const Vector4D<S> &v)
+   return t.x * v.x + t.y * v.y + t.z * v.z + t.t * v.t;
+ }
+ 
++/* Based on libstdc++ implementation from:
++   https://github.com/gcc-mirror/gcc/blob/master/libstdc%2B%2B-v3/include/c_global/cmath#L3769
++*/
++template<typename _Tp>
++inline _Tp
++__hypot4(_Tp __x, _Tp __y, _Tp __z, _Tp __t)
++{
++  __x = std::abs(__x);
++  __y = std::abs(__y);
++  __z = std::abs(__z);
++  __t = std::abs(__t);
++  if (_Tp __a = __x < __y ? (__y < __z ? (__z < __t ? __t : __z ) : (__y < __t ? __t : __y )) : __x < __z ? (__z < __t ? __t : __z ) : (__x < __t ? __t : __x ))
++    return __a * std::sqrt((__x / __a) * (__x / __a)
++                            + (__y / __a) * (__y / __a)
++                            + (__z / __a) * (__z / __a)
++                            + (__t / __a) * (__t / __a));
++  else
++    return {};
++}
++
++inline float
++hypot4(float __x, float __y, float __z, float __t)
++{ return __hypot4<float>(__x, __y, __z, __t); }
++
++inline double
++hypot4(double __x, double __y, double __z, double __t)
++{ return __hypot4<double>(__x, __y, __z, __t); }
++
+ //! Cross product
+ /*template<class S>
+ inline Vector4D<S> cross ( const Vector4D<S> &t, const Vector4D<S> &v ) {
+@@ -300,8 +328,8 @@ inline Vector4D<S> cross ( const Vector4D<S> &t, const Vector4D<S> &v ) {
+ //! Compute the magnitude (length) of the vector
+ template<class S> inline S norm(const Vector4D<S> &v)
+ {
+-  S l = v.x * v.x + v.y * v.y + v.z * v.z + v.t * v.t;
+-  return (fabs(l - 1.) < VECTOR_EPSILON * VECTOR_EPSILON) ? 1. : sqrt(l);
++  S l = hypot4(v.x, v.y, v.z, v.t);
++  return (fabs(l - 1.) < VECTOR_EPSILON) ? 1. : l;
+ }
+ 
+ //! Compute squared magnitude
+@@ -313,11 +341,11 @@ template<class S> inline S normSquare(const Vector4D<S> &v)
+ //! Returns a normalized vector
+ template<class S> inline Vector4D<S> getNormalized(const Vector4D<S> &v)
+ {
+-  S l = v.x * v.x + v.y * v.y + v.z * v.z + v.t * v.t;
+-  if (fabs(l - 1.) < VECTOR_EPSILON * VECTOR_EPSILON)
++  S l = hypot4(v.x, v.y, v.z, v.t);
++  if (fabs(l - 1.) < VECTOR_EPSILON)
+     return v; /* normalized "enough"... */
+-  else if (l > VECTOR_EPSILON * VECTOR_EPSILON) {
+-    S fac = 1. / sqrt(l);
++  else if (l > VECTOR_EPSILON) {
++    S fac = 1. / l;
+     return Vector4D<S>(v.x * fac, v.y * fac, v.z * fac, v.t * fac);
+   }
+   else
+@@ -329,12 +357,12 @@ template<class S> inline Vector4D<S> getNormalized(const Vector4D<S> &v)
+ template<class S> inline S normalize(Vector4D<S> &v)
+ {
+   S norm;
+-  S l = v.x * v.x + v.y * v.y + v.z * v.z + v.t * v.t;
+-  if (fabs(l - 1.) < VECTOR_EPSILON * VECTOR_EPSILON) {
++  S l = hypot4(v.x, v.y, v.z, v.t);
++  if (fabs(l - 1.) < VECTOR_EPSILON) {
+     norm = 1.;
+   }
+-  else if (l > VECTOR_EPSILON * VECTOR_EPSILON) {
+-    norm = sqrt(l);
++  else if (l > VECTOR_EPSILON) {
++    norm = l;
+     v *= 1. / norm;
+   }
+   else {
