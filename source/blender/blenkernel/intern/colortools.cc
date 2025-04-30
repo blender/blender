@@ -1915,6 +1915,19 @@ void BKE_color_managed_view_settings_init_default(
 void BKE_color_managed_view_settings_copy(ColorManagedViewSettings *new_settings,
                                           const ColorManagedViewSettings *settings)
 {
+  BKE_color_managed_view_settings_copy_keep_curve_mapping(new_settings, settings);
+
+  if (settings->curve_mapping) {
+    new_settings->curve_mapping = BKE_curvemapping_copy(settings->curve_mapping);
+  }
+  else {
+    new_settings->curve_mapping = nullptr;
+  }
+}
+
+void BKE_color_managed_view_settings_copy_keep_curve_mapping(
+    ColorManagedViewSettings *new_settings, const ColorManagedViewSettings *settings)
+{
   STRNCPY(new_settings->look, settings->look);
   STRNCPY(new_settings->view_transform, settings->view_transform);
 
@@ -1923,13 +1936,6 @@ void BKE_color_managed_view_settings_copy(ColorManagedViewSettings *new_settings
   new_settings->gamma = settings->gamma;
   new_settings->temperature = settings->temperature;
   new_settings->tint = settings->tint;
-
-  if (settings->curve_mapping) {
-    new_settings->curve_mapping = BKE_curvemapping_copy(settings->curve_mapping);
-  }
-  else {
-    new_settings->curve_mapping = nullptr;
-  }
 }
 
 void BKE_color_managed_view_settings_free(ColorManagedViewSettings *settings)

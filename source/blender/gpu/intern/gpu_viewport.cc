@@ -230,7 +230,7 @@ void GPU_viewport_bind_from_offscreen(GPUViewport *viewport, GPUOffScreen *ofs, 
 }
 
 void GPU_viewport_colorspace_set(GPUViewport *viewport,
-                                 ColorManagedViewSettings *view_settings,
+                                 const ColorManagedViewSettings *view_settings,
                                  const ColorManagedDisplaySettings *display_settings,
                                  float dither)
 {
@@ -256,19 +256,11 @@ void GPU_viewport_colorspace_set(GPUViewport *viewport,
     BKE_color_managed_view_settings_free(&viewport->view_settings);
   }
   /* Don't copy the curve mapping already. */
-  CurveMapping *tmp_curve_mapping = view_settings->curve_mapping;
-  CurveMapping *tmp_curve_mapping_vp = viewport->view_settings.curve_mapping;
-  view_settings->curve_mapping = nullptr;
-  viewport->view_settings.curve_mapping = nullptr;
-
-  BKE_color_managed_view_settings_copy(&viewport->view_settings, view_settings);
-  /* Restore. */
-  view_settings->curve_mapping = tmp_curve_mapping;
-  viewport->view_settings.curve_mapping = tmp_curve_mapping_vp;
+  BKE_color_managed_view_settings_copy_keep_curve_mapping(&viewport->view_settings, view_settings);
   /* Only copy curve-mapping if needed. Avoid unneeded OCIO cache miss. */
-  if (tmp_curve_mapping && viewport->view_settings.curve_mapping == nullptr) {
+  if (view_settings->curve_mapping && viewport->view_settings.curve_mapping == nullptr) {
     BKE_color_managed_view_settings_free(&viewport->view_settings);
-    viewport->view_settings.curve_mapping = BKE_curvemapping_copy(tmp_curve_mapping);
+    viewport->view_settings.curve_mapping = BKE_curvemapping_copy(view_settings->curve_mapping);
   }
 
   BKE_color_managed_display_settings_copy(&viewport->display_settings, display_settings);
