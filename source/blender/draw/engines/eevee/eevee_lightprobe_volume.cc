@@ -1127,6 +1127,12 @@ void IrradianceBake::surfels_lights_eval()
   inst_.hiz_buffer.set_source(&inst_.render_buffers.depth_tx);
   inst_.lights.set_view(view_z_, grid_pixel_extent_.xy());
   inst_.shadows.set_view(view_z_, grid_pixel_extent_.xy());
+  if (GPU_type_matches(GPU_DEVICE_ANY, GPU_OS_MAC, GPU_DRIVER_ANY)) {
+    /* There seems to be a synchronization issue with shadow rendering pass. If not waiting, the
+     * surfels are lit without shadows. Waiting for sync here shouldn't be a huge bottleneck
+     * anyway. */
+    GPU_finish();
+  }
   inst_.render_buffers.release();
 
   inst_.manager->submit(surfel_light_eval_ps_, view_z_);
