@@ -216,7 +216,7 @@ class EditText : Overlay {
     for (const int i : IndexRange(cu.totbox)) {
       const TextBox &tb = cu.tb[i];
       const bool is_active = (i == (cu.actbox - 1));
-      const float4 &color = is_active ? res.theme.colors.active : res.theme.colors.wire;
+      const float4 &color = is_active ? res.theme.colors.active_object : res.theme.colors.wire;
 
       if ((tb.w != 0.0f) || (tb.h != 0.0f)) {
         const float3 top_left = float3(cu.xof + tb.x, cu.yof + tb.y + cu.fsize_realtime, 0.001);

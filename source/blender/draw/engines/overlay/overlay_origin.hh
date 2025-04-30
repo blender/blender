@@ -58,7 +58,7 @@ class Origins : Overlay {
 
     if (ob == BKE_view_layer_active_object_get(state.view_layer)) {
       select_buf_.select_append(res.select_id(ob_ref));
-      point_buf_.append(VertexData{location, res.theme.colors.active});
+      point_buf_.append(VertexData{location, res.theme.colors.active_object});
     }
     else if (ob->base_flag & BASE_SELECTED) {
       select_buf_.select_append(res.select_id(ob_ref));

@@ -870,7 +870,7 @@ struct Resources : public select::SelectMap {
       case TH_WIRE_EDIT:
         return theme.colors.wire_edit;
       case TH_ACTIVE:
-        return theme.colors.active;
+        return theme.colors.active_object;
       case TH_SELECT:
         return theme.colors.select;
       case TH_TRANSFORM:

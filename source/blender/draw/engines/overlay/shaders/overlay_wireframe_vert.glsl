@@ -38,7 +38,7 @@ void wire_color_get(out float3 rim_col, out float3 wire_col)
       rim_col = theme.colors.transform.rgb;
     }
     else if (is_active) {
-      rim_col = theme.colors.active.rgb;
+      rim_col = theme.colors.active_object.rgb;
     }
     else {
       rim_col = theme.colors.select.rgb;

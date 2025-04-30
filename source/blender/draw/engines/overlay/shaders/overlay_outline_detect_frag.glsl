@@ -239,7 +239,7 @@ void main()
     frag_color = theme.colors.select;
   }
   else if (color_id == 3u) {
-    frag_color = theme.colors.active;
+    frag_color = theme.colors.active_object;
   }
   else {
     frag_color = theme.colors.transform;

@@ -18,7 +18,7 @@ float4 color_from_id(float color_id)
     return theme.colors.transform;
   }
   else if (color_id == 1.0f) {
-    return theme.colors.active;
+    return theme.colors.active_object;
   }
   else /* 2.0f */ {
     return theme.colors.select;

@@ -173,7 +173,7 @@ struct ThemeColors {
   /* UBOs data needs to be 16 byte aligned (size of float4) */
   float4 wire;
   float4 wire_edit;
-  float4 active;
+  float4 active_object; /* "active" is reserved keyword in GLSL. */
   float4 select;
   float4 library_select;
   float4 library;
