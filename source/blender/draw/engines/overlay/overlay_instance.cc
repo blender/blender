@@ -68,9 +68,9 @@ void Instance::init()
 
     const bool viewport_uses_workbench = state.v3d->shading.type <= OB_SOLID ||
                                          BKE_scene_uses_blender_workbench(state.scene);
-    const bool viewport_uses_eevee = state.v3d->shading.type == OB_MATERIAL ||
-                                     (state.v3d->shading.type == OB_RENDER &&
-                                      BKE_scene_uses_blender_eevee(state.scene));
+    const bool viewport_uses_eevee = STREQ(
+        ED_view3d_engine_type(state.scene, state.v3d->shading.type)->idname,
+        RE_engine_id_BLENDER_EEVEE_NEXT);
     const bool use_resolution_scaling = BKE_render_preview_pixel_size(&state.scene->r) != 1;
     /* Only workbench ensures the depth buffer is matching overlays.
      * Force depth prepass for other render engines.
