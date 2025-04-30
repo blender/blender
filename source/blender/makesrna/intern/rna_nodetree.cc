@@ -3869,6 +3869,26 @@ static void rna_NodeLensDistortion_projector_set(PointerRNA *ptr, const bool val
                value ? CMP_NODE_LENS_DISTORTION_HORIZONTAL : CMP_NODE_LENS_DISTORTION_RADIAL);
 }
 
+static float rna_NodeDirectionalBlur_scale_get(PointerRNA *ptr)
+{
+  bNode *node = static_cast<bNode *>(ptr->data);
+  bNodeSocket *input = blender::bke::node_find_socket(*node, SOCK_IN, "Scale");
+  PointerRNA input_rna_pointer = RNA_pointer_create_discrete(
+      ptr->owner_id, &RNA_NodeSocket, input);
+  /* Scale was previously minus 1. */
+  return RNA_float_get(&input_rna_pointer, "default_value") - 1.0f;
+}
+
+static void rna_NodeDirectionalBlur_scale_set(PointerRNA *ptr, const float value)
+{
+  bNode *node = static_cast<bNode *>(ptr->data);
+  bNodeSocket *input = blender::bke::node_find_socket(*node, SOCK_IN, "Scale");
+  PointerRNA input_rna_pointer = RNA_pointer_create_discrete(
+      ptr->owner_id, &RNA_NodeSocket, input);
+  /* Scale was previously minus 1. */
+  RNA_float_set(&input_rna_pointer, "default_value", value + 1.0f);
+}
+
 /* A getter that returns the value of the input socket with the given template identifier and type.
  * The RNA pointer is assumed to represent a node. */
 template<typename T, const char *identifier>
@@ -4143,6 +4163,11 @@ static const char node_input_rotation[] = "Rotation";
 /* Sun Beams node. */
 static const char node_input_source[] = "Source";
 static const char node_input_length[] = "Length";
+
+/* Directional Blur node. */
+static const char node_input_center[] = "Center";
+static const char node_input_translation_amount[] = "Translation Amount";
+static const char node_input_translation_direction[] = "Translation Direction";
 
 /* --------------------------------------------------------------------
  * White Balance Node.
@@ -8639,48 +8664,69 @@ static void def_cmp_dblur(BlenderRNA * /*brna*/, StructRNA *srna)
 {
   PropertyRNA *prop;
 
-  RNA_def_struct_sdna_from(srna, "NodeDBlurData", "storage");
-
   prop = RNA_def_property(srna, "iterations", PROP_INT, PROP_NONE);
-  RNA_def_property_int_sdna(prop, nullptr, "iter");
+  RNA_def_property_int_funcs(prop,
+                             "rna_node_property_to_input_getter<int, node_input_samples>",
+                             "rna_node_property_to_input_setter<int, node_input_samples>",
+                             nullptr);
   RNA_def_property_range(prop, 1, 32);
-  RNA_def_property_ui_text(prop, "Iterations", "");
+  RNA_def_property_ui_text(prop, "Iterations", "(Deprecated: Use Samples input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "center_x", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "center_x");
+  RNA_def_property_float_funcs(prop,
+                               "rna_node_property_to_vector_input_getter<node_input_center, 0>",
+                               "rna_node_property_to_vector_input_setter<node_input_center, 0>",
+                               nullptr);
   RNA_def_property_range(prop, 0.0f, 1.0f);
-  RNA_def_property_ui_text(prop, "Center X", "");
+  RNA_def_property_ui_text(prop, "Center X", "(Deprecated: Use Center input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "center_y", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "center_y");
+  RNA_def_property_float_funcs(prop,
+                               "rna_node_property_to_vector_input_getter<node_input_center, 1>",
+                               "rna_node_property_to_vector_input_setter<node_input_center, 1>",
+                               nullptr);
   RNA_def_property_range(prop, 0.0f, 1.0f);
-  RNA_def_property_ui_text(prop, "Center Y", "");
+  RNA_def_property_ui_text(prop, "Center Y", "(Deprecated: Use Center input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "distance", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "distance");
+  RNA_def_property_float_funcs(
+      prop,
+      "rna_node_property_to_input_getter<float, node_input_translation_amount>",
+      "rna_node_property_to_input_setter<float, node_input_translation_amount>",
+      nullptr);
   RNA_def_property_range(prop, -1.0f, 1.0f);
-  RNA_def_property_ui_text(prop, "Distance", "");
+  RNA_def_property_ui_text(
+      prop, "Distance", "(Deprecated: Use Translation Amount input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "angle", PROP_FLOAT, PROP_ANGLE);
-  RNA_def_property_float_sdna(prop, nullptr, "angle");
+  RNA_def_property_float_funcs(
+      prop,
+      "rna_node_property_to_input_getter<float, node_input_translation_direction>",
+      "rna_node_property_to_input_setter<float, node_input_translation_direction>",
+      nullptr);
   RNA_def_property_range(prop, 0.0f, DEG2RADF(360.0f));
-  RNA_def_property_ui_text(prop, "Angle", "");
+  RNA_def_property_ui_text(
+      prop, "Angle", "(Deprecated: Use Translation Direction input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "spin", PROP_FLOAT, PROP_ANGLE);
-  RNA_def_property_float_sdna(prop, nullptr, "spin");
+  RNA_def_property_float_funcs(prop,
+                               "rna_node_property_to_input_getter<float, node_input_rotation>",
+                               "rna_node_property_to_input_setter<float, node_input_rotation>",
+                               nullptr);
   RNA_def_property_range(prop, DEG2RADF(-360.0f), DEG2RADF(360.0f));
-  RNA_def_property_ui_text(prop, "Spin", "");
+  RNA_def_property_ui_text(prop, "Spin", "(Deprecated: Use Rotation input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "zoom", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "zoom");
+  RNA_def_property_float_funcs(
+      prop, "rna_NodeDirectionalBlur_scale_get", "rna_NodeDirectionalBlur_scale_set", nullptr);
   RNA_def_property_range(prop, 0.0f, 100.0f);
-  RNA_def_property_ui_text(prop, "Zoom", "");
+  RNA_def_property_ui_text(prop, "Zoom", "(Deprecated: Use Scale input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 

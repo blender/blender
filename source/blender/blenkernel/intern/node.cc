@@ -989,6 +989,20 @@ static void write_compositor_legacy_properties(bNodeTree &node_tree)
       write_input_to_property_float_vector("Source", 1, storage->source[1]);
       write_input_to_property_float("Length", storage->ray_length);
     }
+
+    if (node->type_legacy == CMP_NODE_DBLUR) {
+      NodeDBlurData *storage = static_cast<NodeDBlurData *>(node->storage);
+      write_input_to_property_short("Samples", storage->iter);
+      write_input_to_property_float_vector("Center", 0, storage->center_x);
+      write_input_to_property_float_vector("Center", 1, storage->center_y);
+      write_input_to_property_float("Translation Amount", storage->distance);
+      write_input_to_property_float("Translation Direction", storage->angle);
+      write_input_to_property_float("Rotation", storage->spin);
+
+      /* Scale was previously minus 1. */
+      const bNodeSocket *input = blender::bke::node_find_socket(*node, SOCK_IN, "Scale");
+      storage->zoom = input->default_value_typed<bNodeSocketValueFloat>()->value - 1.0f;
+    }
   }
 }
 
