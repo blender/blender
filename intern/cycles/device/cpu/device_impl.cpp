@@ -17,11 +17,7 @@
 #endif
 
 #ifdef WITH_EMBREE
-#  if EMBREE_MAJOR_VERSION >= 4
-#    include <embree4/rtcore.h>
-#  else
-#    include <embree3/rtcore.h>
-#  endif
+#  include <embree4/rtcore.h>
 #endif
 
 #include "device/cpu/kernel.h"

@@ -18,11 +18,7 @@
 
 #ifdef WITH_EMBREE
 
-#  if EMBREE_MAJOR_VERSION >= 4
-#    include <embree4/rtcore_geometry.h>
-#  else
-#    include <embree3/rtcore_geometry.h>
-#  endif
+#  include <embree4/rtcore_geometry.h>
 
 #  include "bvh/embree.h"
 
@@ -34,10 +30,6 @@
 #  include "util/log.h"
 #  include "util/progress.h"
 #  include "util/stats.h"
-
-#  if EMBREE_MAJOR_VERSION < 4
-#    include "kernel/device/cpu/bvh.h"
-#  endif
 
 CCL_NAMESPACE_BEGIN
 
@@ -136,11 +128,8 @@ void BVHEmbree::build(Progress &progress,
   scene = rtcNewScene(rtc_device);
   const RTCSceneFlags scene_flags = (dynamic ? RTC_SCENE_FLAG_DYNAMIC : RTC_SCENE_FLAG_NONE) |
                                     (compact ? RTC_SCENE_FLAG_COMPACT : RTC_SCENE_FLAG_NONE) |
-                                    RTC_SCENE_FLAG_ROBUST
-#  if EMBREE_MAJOR_VERSION >= 4
-                                    | RTC_SCENE_FLAG_FILTER_FUNCTION_IN_ARGUMENTS
-#  endif
-      ;
+                                    RTC_SCENE_FLAG_ROBUST |
+                                    RTC_SCENE_FLAG_FILTER_FUNCTION_IN_ARGUMENTS;
   rtcSetSceneFlags(scene, scene_flags);
   build_quality = dynamic ? RTC_BUILD_QUALITY_LOW :
                             (params.use_spatial_split ? RTC_BUILD_QUALITY_HIGH :
@@ -291,9 +280,7 @@ void BVHEmbree::add_instance(Object *ob, const int i)
 
   rtcSetGeometryUserData(geom_id, (void *)instance_bvh->scene);
   rtcSetGeometryMask(geom_id, ob->visibility_for_tracing());
-#  if EMBREE_MAJOR_VERSION >= 4
   rtcSetGeometryEnableFilterFunctionFromArguments(geom_id, true);
-#  endif
 
   rtcCommitGeometry(geom_id);
   rtcAttachGeometryByID(scene, geom_id, i * 2);
@@ -350,12 +337,7 @@ void BVHEmbree::add_triangles(const Object *ob, const Mesh *mesh, const int i)
 
   rtcSetGeometryUserData(geom_id, (void *)prim_offset);
   rtcSetGeometryMask(geom_id, ob->visibility_for_tracing());
-#  if EMBREE_MAJOR_VERSION >= 4
   rtcSetGeometryEnableFilterFunctionFromArguments(geom_id, true);
-#  else
-  rtcSetGeometryOccludedFilterFunction(geom_id, kernel_embree_filter_occluded_func);
-  rtcSetGeometryIntersectFilterFunction(geom_id, kernel_embree_filter_intersection_func);
-#  endif
 
   rtcCommitGeometry(geom_id);
   rtcAttachGeometryByID(scene, geom_id, i * 2);
@@ -603,12 +585,7 @@ void BVHEmbree::add_points(const Object *ob, const PointCloud *pointcloud, const
 
   rtcSetGeometryUserData(geom_id, (void *)prim_offset);
   rtcSetGeometryMask(geom_id, ob->visibility_for_tracing());
-#  if EMBREE_MAJOR_VERSION >= 4
   rtcSetGeometryEnableFilterFunctionFromArguments(geom_id, true);
-#  else
-  rtcSetGeometryIntersectFilterFunction(geom_id, kernel_embree_filter_func_backface_cull);
-  rtcSetGeometryOccludedFilterFunction(geom_id, kernel_embree_filter_occluded_func_backface_cull);
-#  endif
 
   rtcCommitGeometry(geom_id);
   rtcAttachGeometryByID(scene, geom_id, i * 2);
@@ -666,19 +643,7 @@ void BVHEmbree::add_curves(const Object *ob, const Hair *hair, const int i)
 
   rtcSetGeometryUserData(geom_id, (void *)prim_offset);
   rtcSetGeometryMask(geom_id, ob->visibility_for_tracing());
-#  if EMBREE_MAJOR_VERSION >= 4
   rtcSetGeometryEnableFilterFunctionFromArguments(geom_id, true);
-#  else
-  if (hair->curve_shape == CURVE_RIBBON) {
-    rtcSetGeometryIntersectFilterFunction(geom_id, kernel_embree_filter_intersection_func);
-    rtcSetGeometryOccludedFilterFunction(geom_id, kernel_embree_filter_occluded_func);
-  }
-  else {
-    rtcSetGeometryIntersectFilterFunction(geom_id, kernel_embree_filter_func_backface_cull);
-    rtcSetGeometryOccludedFilterFunction(geom_id,
-                                         kernel_embree_filter_occluded_func_backface_cull);
-  }
-#  endif
 
   rtcCommitGeometry(geom_id);
   rtcAttachGeometryByID(scene, geom_id, i * 2 + 1);
