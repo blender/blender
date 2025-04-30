@@ -1287,22 +1287,36 @@ StringRef effect_inputs_validate(const VectorSet<Strip *> &inputs, int num_input
   return "";
 }
 
-VectorSet<Strip *> strip_effect_get_new_inputs(const Scene *scene, bool ignore_active)
+VectorSet<Strip *> strip_effect_get_new_inputs(const Scene *scene,
+                                               int num_inputs,
+                                               bool ignore_active)
 {
+  if (num_inputs == 0) {
+    return {};
+  }
+
   Editing *ed = seq::editing_get(scene);
-  blender::VectorSet<Strip *> new_inputs = seq::query_selected_strips(ed->seqbasep);
+  blender::VectorSet<Strip *> selected_strips = seq::query_selected_strips(ed->seqbasep);
   /* Ignore sound strips for now (avoids unnecessary errors when connected strips are
    * selected together, and the intent to operate on strips with video content is clear). */
-  new_inputs.remove_if([&](Strip *strip) { return strip->type == STRIP_TYPE_SOUND_RAM; });
+  selected_strips.remove_if([&](Strip *strip) { return strip->type == STRIP_TYPE_SOUND_RAM; });
 
   if (ignore_active) {
     /* If `ignore_active` is true, this function is being called from the reassign inputs
      * operator, meaning the active strip must be the effect strip to reassign. */
     Strip *active_strip = seq::select_active_get(scene);
-    new_inputs.remove_if([&](Strip *strip) { return strip == active_strip; });
+    selected_strips.remove_if([&](Strip *strip) { return strip == active_strip; });
   }
 
-  return new_inputs;
+  if (selected_strips.size() > num_inputs) {
+    VectorSet<Strip *> inputs;
+    for (int64_t i : IndexRange(num_inputs)) {
+      inputs.add(selected_strips[i]);
+    }
+    return inputs;
+  }
+
+  return selected_strips;
 }
 
 static wmOperatorStatus sequencer_reassign_inputs_exec(bContext *C, wmOperator *op)
