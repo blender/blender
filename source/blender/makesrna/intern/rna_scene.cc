@@ -6971,7 +6971,11 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_range(prop, 1e-5f, 1e6f);
   RNA_def_property_ui_range(prop, 0.0001f, 10000.0f, 2, 2);
-  RNA_def_property_ui_text(prop, "PPM Factor", "The unit multiplier for pixels per meter");
+  RNA_def_property_ui_text(prop,
+                           "PPM Factor",
+                           "The pixel density meta-data written to supported image formats. "
+                           "This value is multiplied by the PPM-base which defines the unit "
+                           "(typically inches or meters)");
 
   prop = RNA_def_property(srna, "ppm_base", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, nullptr, "ppm_base");
