@@ -9,7 +9,7 @@ import pprint
 import sys
 import tempfile
 import unittest
-from pxr import Gf, Sdf, Usd, UsdGeom, UsdShade, UsdSkel, UsdUtils, UsdVol
+from pxr import Gf, Sdf, Usd, UsdGeom, UsdMtlx, UsdShade, UsdSkel, UsdUtils, UsdVol
 
 import bpy
 
@@ -1131,6 +1131,11 @@ class USDExportTest(AbstractUSDTest):
         stage = Usd.Stage.Open(str(export_path))
         material_prim = stage.GetPrimAtPath("/root/_materials/Material")
         self.assertTrue(material_prim, "Could not find Material prim")
+
+        self.assertTrue(material_prim.HasAPI(UsdMtlx.MaterialXConfigAPI))
+        mtlx_config_api = UsdMtlx.MaterialXConfigAPI(material_prim)
+        mtlx_version_attr = mtlx_config_api.GetConfigMtlxVersionAttr()
+        self.assertTrue(mtlx_version_attr, "Could not find mtlx config version attribute")
 
         material = UsdShade.Material(material_prim)
         mtlx_output = material.GetOutput("mtlx:surface")

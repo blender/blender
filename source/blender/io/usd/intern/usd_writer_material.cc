@@ -42,6 +42,7 @@
 #ifdef WITH_MATERIALX
 #  include "shader/materialx/material.h"
 #  include <pxr/usd/sdf/copyUtils.h>
+#  include <pxr/usd/usdMtlx/materialXConfigAPI.h>
 #  include <pxr/usd/usdMtlx/reader.h>
 #endif
 
@@ -1465,6 +1466,18 @@ static void create_usd_materialx_material(const USDExporterContext &usd_export_c
   pxr::UsdShadeMaterial temp_material{temp_material_prim};
   if (!temp_material) {
     return;
+  }
+
+  /* Copy over the MateralXConfigAPI schema and associated attribute. */
+  pxr::UsdMtlxMaterialXConfigAPI temp_config_api{temp_material_prim};
+  if (temp_config_api) {
+    pxr::UsdMtlxMaterialXConfigAPI materialx_config_api = pxr::UsdMtlxMaterialXConfigAPI::Apply(
+        material_prim);
+    pxr::UsdAttribute temp_mtlx_version_attr = temp_config_api.GetConfigMtlxVersionAttr();
+    pxr::VtValue mtlx_version;
+    if (temp_mtlx_version_attr && temp_mtlx_version_attr.Get(&mtlx_version)) {
+      materialx_config_api.CreateConfigMtlxVersionAttr(mtlx_version);
+    }
   }
 
   /* Once we have the material, we need to prepare for renaming any conflicts.
