@@ -74,12 +74,11 @@ struct ImportSettings {
 class USDPrimReader {
 
  protected:
-  std::string name_;
-  pxr::SdfPath prim_path_;
+  StringRefNull name_;
   Object *object_;
   pxr::UsdPrim prim_;
-  const USDImportParams &import_params_;
   USDPrimReader *parent_reader_;
+  const USDImportParams &import_params_;
   const ImportSettings *settings_;
   int refcount_;
   bool is_in_instancer_proto_;
@@ -128,13 +127,13 @@ class USDPrimReader {
   void incref();
   void decref();
 
-  const std::string &name() const
+  StringRefNull name() const
   {
     return name_;
   }
   pxr::SdfPath prim_path() const
   {
-    return prim_path_;
+    return prim_.GetPrimPath();
   }
 
   virtual pxr::SdfPath object_prim_path() const

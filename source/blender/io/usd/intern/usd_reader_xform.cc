@@ -44,9 +44,9 @@ void USDXformReader::read_object_data(Main * /*bmain*/, const double motionSampl
         object_, nullptr, CONSTRAINT_TYPE_TRANSFORM_CACHE);
     bTransformCacheConstraint *data = static_cast<bTransformCacheConstraint *>(con->data);
 
-    pxr::SdfPath prim_path = use_parent_xform_ ? prim_.GetParent().GetPath() : prim_path_;
+    pxr::SdfPath object_path = use_parent_xform_ ? prim_.GetParent().GetPath() : this->prim_path();
 
-    STRNCPY(data->object_path, prim_path.GetAsString().c_str());
+    STRNCPY(data->object_path, object_path.GetAsString().c_str());
 
     data->cache_file = settings_->get_cache_file();
     id_us_plus(&data->cache_file->id);
