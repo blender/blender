@@ -105,6 +105,7 @@
 
 #include "intern/builder/deg_builder.h"
 #include "intern/builder/deg_builder_key.h"
+#include "intern/builder/deg_builder_relations_drivers.h"
 #include "intern/builder/deg_builder_rna.h"
 #include "intern/depsgraph.hh"
 #include "intern/depsgraph_light_linking.hh"
@@ -1261,11 +1262,7 @@ void DepsgraphNodeBuilder::build_animdata(ID *id)
     build_animdata_nlastrip_targets(&nlt->strips);
   }
   /* Drivers. */
-  int driver_index = 0;
-  LISTBASE_FOREACH (FCurve *, fcu, &adt->drivers) {
-    /* create driver */
-    build_driver(id, fcu, driver_index++);
-  }
+  build_animdata_drivers(id, adt);
 }
 
 void DepsgraphNodeBuilder::build_animdata_nlastrip_targets(ListBase *strips)
@@ -1310,6 +1307,28 @@ void DepsgraphNodeBuilder::build_action(bAction *action)
   }
   build_idproperties(action->id.properties);
   add_operation_node(&action->id, NodeType::ANIMATION, OperationCode::ANIMATION_EVAL);
+}
+
+void DepsgraphNodeBuilder::build_animdata_drivers(ID *id, AnimData *adt)
+{
+  bool needs_unshare = false;
+
+  /* Drivers. */
+  int driver_index;
+  LISTBASE_FOREACH_INDEX (FCurve *, fcu, &adt->drivers, driver_index) {
+    build_driver(id, fcu, driver_index);
+    needs_unshare = needs_unshare || data_path_maybe_shared(*id, fcu->rna_path);
+  }
+
+  if (!needs_unshare) {
+    return;
+  }
+
+  ID *id_cow = get_cow_id(id);
+  ensure_operation_node(
+      id, NodeType::PARAMETERS, OperationCode::DRIVER_UNSHARE, [id_cow](::Depsgraph *depsgraph) {
+        BKE_animsys_eval_driver_unshare(depsgraph, id_cow);
+      });
 }
 
 void DepsgraphNodeBuilder::build_driver(ID *id, FCurve *fcurve, int driver_index)

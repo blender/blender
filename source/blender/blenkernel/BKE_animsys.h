@@ -290,8 +290,14 @@ bool BKE_animsys_rna_path_resolve(struct PointerRNA *ptr,
 bool BKE_animsys_read_from_rna_path(struct PathResolvedRNA *anim_rna, float *r_value);
 /**
  * Write the given value to a setting using RNA, and return success.
+ *
+ * \param force_write When false, this function will only call the RNA setter when `value` is
+ * different from the property's current value. When true, this function will skip that check and
+ * always call the RNA setter.
  */
-bool BKE_animsys_write_to_rna_path(struct PathResolvedRNA *anim_rna, float value);
+bool BKE_animsys_write_to_rna_path(struct PathResolvedRNA *anim_rna,
+                                   float value,
+                                   bool force_write = false);
 
 /**
  * Evaluation loop for evaluation animation data
@@ -355,6 +361,7 @@ void animsys_evaluate_action_group(struct PointerRNA *ptr,
 struct Depsgraph;
 
 void BKE_animsys_eval_animdata(struct Depsgraph *depsgraph, struct ID *id);
+void BKE_animsys_eval_driver_unshare(Depsgraph *depsgraph, ID *id);
 void BKE_animsys_eval_driver(struct Depsgraph *depsgraph,
                              struct ID *id,
                              int driver_index,

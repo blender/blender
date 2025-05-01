@@ -58,4 +58,16 @@ class DriverDescriptor {
   bool resolve_rna();
 };
 
+/**
+ * Returns whether the data at the given path may be implicitly shared (also see
+ * #ImplicitSharingInfo). If it is shared, writing to it through RNA will make a
+ * local copy that can be edited without affecting the other users.
+ *
+ * If multi-threaded writing to the path is required, one should trigger making
+ * the mutable copy before multi-threaded writing starts. Otherwise there is a
+ * race condition where each thread tries to make its own copy. The "unsharing"
+ * can be triggered by doing a dummy-write to it.
+ */
+bool data_path_maybe_shared(const ID &id, StringRef data_path);
+
 }  // namespace blender::deg
