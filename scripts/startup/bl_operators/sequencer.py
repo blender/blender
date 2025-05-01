@@ -340,10 +340,10 @@ class Fade:
         self.duration = duration
         self.max_value = self.calculate_max_value(strip, fade_fcurve)
 
-        if type == 'IN':
+        if ty == 'IN':
             self.start = Vector((strip.frame_final_start, 0.0))
             self.end = Vector((strip.frame_final_start + self.duration, self.max_value))
-        elif type == 'OUT':
+        elif ty == 'OUT':
             self.start = Vector((strip.frame_final_end - self.duration, self.max_value))
             self.end = Vector((strip.frame_final_end, 0.0))
 
