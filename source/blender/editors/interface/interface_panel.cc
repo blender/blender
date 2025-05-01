@@ -1575,7 +1575,7 @@ void UI_panel_category_draw_all(ARegion *region, const char *category_id_active)
 
 /** \} */
 
-int ui_panel_category_show_active_tab(ARegion *region, const int mval[2])
+static int ui_panel_category_show_active_tab(ARegion *region, const int mval[2])
 {
   if (!ED_region_panel_category_gutter_isect_xy(region, mval)) {
     return WM_UI_HANDLER_CONTINUE;
