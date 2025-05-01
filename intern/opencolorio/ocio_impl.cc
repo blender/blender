@@ -5,7 +5,6 @@
 #include <cassert>
 #include <cmath>
 #include <cstring>
-#include <iostream>
 
 #ifdef _MSC_VER
 #  pragma warning(push)
@@ -25,14 +24,9 @@ using namespace OCIO_NAMESPACE;
 #include "BLI_math_matrix.h"
 #include "BLI_math_matrix.hh"
 
-#include "ocio_impl.h"
+#include "CLG_log.h"
 
-#if !defined(WITH_ASSERT_ABORT)
-#  define OCIO_abort()
-#else
-#  include <cstdlib>
-#  define OCIO_abort() abort()
-#endif
+#include "ocio_impl.h"
 
 #if defined(_MSC_VER)
 #  define __func__ __FUNCTION__
@@ -42,16 +36,11 @@ using blender::double4x4;
 using blender::float3;
 using blender::float3x3;
 
-static void OCIO_reportError(const char *err)
-{
-  std::cerr << "OpenColorIO Error: " << err << std::endl;
-
-  OCIO_abort();
-}
+static CLG_LogRef LOG = {"imbuf.color_management"};
 
 static void OCIO_reportException(Exception &exception)
 {
-  OCIO_reportError(exception.what());
+  CLOG_ERROR(&LOG, "OpenColorIO Error: %s", exception.what());
 }
 
 OCIO_ConstConfigRcPtr *OCIOImpl::getCurrentConfig()

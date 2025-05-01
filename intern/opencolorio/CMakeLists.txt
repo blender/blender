@@ -25,6 +25,7 @@ set(LIB
   PRIVATE bf::dna
   PRIVATE bf::gpu
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::intern::clog
 )
 
 if(WITH_OPENCOLORIO)
