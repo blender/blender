@@ -23,36 +23,32 @@
 
 namespace blender::nodes::node_composite_bilateralblur_cc {
 
-NODE_STORAGE_FUNCS(NodeBilateralBlurData)
-
 static void cmp_node_bilateralblur_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Color>("Image")
-      .default_value({1.0f, 1.0f, 1.0f, 1.0f})
-      .compositor_domain_priority(0);
-  b.add_input<decl::Color>("Determinator")
-      .default_value({1.0f, 1.0f, 1.0f, 1.0f})
-      .compositor_domain_priority(1);
+  b.add_input<decl::Color>("Image").default_value({1.0f, 1.0f, 1.0f, 1.0f});
+  b.add_input<decl::Color>("Determinator").default_value({1.0f, 1.0f, 1.0f, 1.0f});
+  b.add_input<decl::Int>("Size")
+      .default_value(0)
+      .min(0)
+      .description("The size of the blur in pixels")
+      .compositor_expects_single_value();
+  b.add_input<decl::Float>("Threshold")
+      .default_value(0.1f)
+      .min(0.0f)
+      .description(
+          "Pixels are considered in the blur area if the average difference between their "
+          "determinator and the determinator of the center pixel is less than this threshold")
+      .compositor_expects_single_value();
+
   b.add_output<decl::Color>("Image");
 }
 
 static void node_composit_init_bilateralblur(bNodeTree * /*ntree*/, bNode *node)
 {
+  /* All members are deprecated and needn't be set, but the data is still allocated for forward
+   * compatibility. */
   NodeBilateralBlurData *nbbd = MEM_callocN<NodeBilateralBlurData>(__func__);
   node->storage = nbbd;
-  nbbd->iter = 1;
-  nbbd->sigma_color = 0.3;
-  nbbd->sigma_space = 5.0;
-}
-
-static void node_composit_buts_bilateralblur(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
-{
-  uiLayout *col;
-
-  col = &layout->column(true);
-  uiItemR(col, ptr, "iterations", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
-  uiItemR(col, ptr, "sigma_color", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
-  uiItemR(col, ptr, "sigma_space", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 }
 
 using namespace blender::compositor;
@@ -65,7 +61,9 @@ class BilateralBlurOperation : public NodeOperation {
   {
     const Result &input_image = this->get_input("Image");
     Result &output_image = this->get_result("Image");
-    if (input_image.is_single_value()) {
+    if (input_image.is_single_value() || this->get_blur_radius() == 0 ||
+        this->get_threshold() == 0.0f)
+    {
       output_image.share_data(input_image);
       return;
     }
@@ -140,7 +138,8 @@ class BilateralBlurOperation : public NodeOperation {
         for (int x = -radius; x <= radius; x++) {
           float4 determinator = determinator_image.load_pixel_extended<float4>(texel + int2(x, y));
           float difference = math::dot(math::abs(center_determinator - determinator).xyz(),
-                                       float3(1.0f));
+                                       float3(1.0f)) /
+                             3.0f;
 
           if (difference < threshold) {
             accumulated_weight += 1.0f;
@@ -160,12 +159,12 @@ class BilateralBlurOperation : public NodeOperation {
 
   int get_blur_radius()
   {
-    return math::ceil(node_storage(bnode()).iter + node_storage(bnode()).sigma_space);
+    return math::max(0, this->get_input("Size").get_single_value_default(0));
   }
 
   float get_threshold()
   {
-    return node_storage(bnode()).sigma_color;
+    return math::max(0.0f, this->get_input("Threshold").get_single_value_default(0.1f));
   }
 };
 
@@ -188,7 +187,6 @@ void register_node_type_cmp_bilateralblur()
   ntype.enum_name_legacy = "BILATERALBLUR";
   ntype.nclass = NODE_CLASS_OP_FILTER;
   ntype.declare = file_ns::cmp_node_bilateralblur_declare;
-  ntype.draw_buttons = file_ns::node_composit_buts_bilateralblur;
   ntype.initfunc = file_ns::node_composit_init_bilateralblur;
   blender::bke::node_type_storage(
       ntype, "NodeBilateralBlurData", node_free_standard_storage, node_copy_standard_storage);

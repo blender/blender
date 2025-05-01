@@ -1003,6 +1003,21 @@ static void write_compositor_legacy_properties(bNodeTree &node_tree)
       const bNodeSocket *input = blender::bke::node_find_socket(*node, SOCK_IN, "Scale");
       storage->zoom = input->default_value_typed<bNodeSocketValueFloat>()->value - 1.0f;
     }
+
+    if (node->type_legacy == CMP_NODE_BILATERALBLUR) {
+      NodeBilateralBlurData *storage = static_cast<NodeBilateralBlurData *>(node->storage);
+
+      /* The size input is ceil(iterations + sigma_space). */
+      const bNodeSocket *size_input = blender::bke::node_find_socket(*node, SOCK_IN, "Size");
+      storage->iter = size_input->default_value_typed<bNodeSocketValueInt>()->value - 1;
+      storage->sigma_space = 1.0f;
+
+      /* Threshold was previously multiplied by 3. */
+      const bNodeSocket *threshold_input = blender::bke::node_find_socket(
+          *node, SOCK_IN, "Threshold");
+      storage->sigma_color = threshold_input->default_value_typed<bNodeSocketValueFloat>()->value *
+                             3.0f;
+    }
   }
 }
 
