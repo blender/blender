@@ -1517,6 +1517,33 @@ bool IMB_colormanagement_space_name_is_srgb(const char *name)
   return (colorspace && IMB_colormanagement_space_is_srgb(colorspace));
 }
 
+const char *IMB_colormanagement_srgb_colorspace_name_get()
+{
+  LISTBASE_FOREACH (ColorSpace *, colorspace, &global_colorspaces) {
+    colormanage_ensure_srgb_scene_linear_info(colorspace);
+    if (colorspace->info.is_srgb) {
+      return colorspace->name;
+    }
+  }
+
+  /* Make a best effort to find by common names. First two are from the ColorInterop forum. */
+  const char *names[] = {"sRGB Encoded Rec.709 (sRGB)",
+                         "srgb_rec709_scene",
+                         "Utility - sRGB - Texture",
+                         "sRGB - Texture",
+                         "sRGB",
+                         nullptr};
+  for (int i = 0; names[i]; i++) {
+    ColorSpace *colorspace = colormanage_colorspace_get_named(names[i]);
+    if (colorspace) {
+      return colorspace->name;
+    }
+  }
+
+  /* Fallback if nothing can be found. */
+  return global_role_default_byte;
+}
+
 blender::float3x3 IMB_colormanagement_get_xyz_to_scene_linear()
 {
   return blender::float3x3(imbuf_xyz_to_scene_linear);

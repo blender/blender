@@ -37,6 +37,7 @@ void IMB_colormanagement_validate_settings(const ColorManagedDisplaySettings *di
                                            ColorManagedViewSettings *view_settings);
 
 const char *IMB_colormanagement_role_colorspace_name_get(int role);
+const char *IMB_colormanagement_srgb_colorspace_name_get();
 void IMB_colormanagement_check_is_data(ImBuf *ibuf, const char *name);
 void IMB_colormanagegent_copy_settings(ImBuf *ibuf_src, ImBuf *ibuf_dst);
 void IMB_colormanagement_assign_float_colorspace(ImBuf *ibuf, const char *name);
