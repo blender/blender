@@ -237,7 +237,6 @@ set(SRC
   engines/image/image_state.hh
   engines/image/image_texture_info.hh
   engines/image/image_usage.hh
-  engines/overlay/overlay_engine.h
   engines/overlay/overlay_antialiasing.hh
   engines/overlay/overlay_armature.hh
   engines/overlay/overlay_attribute_text.hh
@@ -251,6 +250,7 @@ set(SRC
   engines/overlay/overlay_curve.hh
   engines/overlay/overlay_edit_text.hh
   engines/overlay/overlay_empty.hh
+  engines/overlay/overlay_engine.h
   engines/overlay/overlay_facing.hh
   engines/overlay/overlay_fade.hh
   engines/overlay/overlay_fluid.hh

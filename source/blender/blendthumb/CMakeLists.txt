@@ -7,8 +7,8 @@
 
 include_directories(
   ../blenlib
-  ../makesdna
   ../blenloader
+  ../makesdna
   ../../../intern/guardedalloc
 )
 

@@ -4,8 +4,8 @@
 
 set(INC
   ../asset
-  ../space_graph
   ../include
+  ../space_graph
   ../../makesrna
   ../../nodes
   ../../../../extern/fmtlib/include
