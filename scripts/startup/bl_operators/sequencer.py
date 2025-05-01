@@ -68,9 +68,9 @@ class SequencerCrossfadeSounds(Operator):
             strip2.keyframe_insert("volume")
             scene.frame_current = tempcfra
             return {'FINISHED'}
-        else:
-            self.report({'ERROR'}, "The selected strips don't overlap")
-            return {'CANCELLED'}
+
+        self.report({'ERROR'}, "The selected strips don't overlap")
+        return {'CANCELLED'}
 
 
 class SequencerSplitMulticam(Operator):
@@ -333,9 +333,9 @@ class Fade:
         "end",
     )
 
-    def __init__(self, strip, fade_fcurve, type, animated_property, duration):
+    def __init__(self, strip, fade_fcurve, ty, animated_property, duration):
         from mathutils import Vector
-        self.type = type
+        self.type = ty
         self.animated_property = animated_property
         self.duration = duration
         self.max_value = self.calculate_max_value(strip, fade_fcurve)
