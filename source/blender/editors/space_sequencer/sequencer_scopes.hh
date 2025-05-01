@@ -38,7 +38,7 @@ struct SeqScopes : public NonCopyable {
   static constexpr float VECSCOPE_U_SCALE = 0.5f / 0.436f;
   static constexpr float VECSCOPE_V_SCALE = 0.5f / 0.615f;
 
-  ImBuf *reference_ibuf = nullptr;
+  const ImBuf *reference_ibuf = nullptr;
   ImBuf *zebra_ibuf = nullptr;
   ImBuf *waveform_ibuf = nullptr;
   ImBuf *sep_waveform_ibuf = nullptr;

@@ -47,7 +47,7 @@ static bool metadata_panel_context_poll(const bContext *C, PanelType * /*pt*/)
   if (space_sequencer == nullptr) {
     return false;
   }
-  return check_show_imbuf(space_sequencer);
+  return check_show_imbuf(*space_sequencer);
 }
 
 static void metadata_panel_context_draw(const bContext *C, Panel *panel)

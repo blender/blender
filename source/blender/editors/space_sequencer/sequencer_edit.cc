@@ -107,15 +107,15 @@ bool maskedit_poll(bContext *C)
   return false;
 }
 
-bool check_show_imbuf(SpaceSeq *sseq)
+bool check_show_imbuf(const SpaceSeq &sseq)
 {
-  return (sseq->mainb == SEQ_DRAW_IMG_IMBUF) &&
-         ELEM(sseq->view, SEQ_VIEW_PREVIEW, SEQ_VIEW_SEQUENCE_PREVIEW);
+  return (sseq.mainb == SEQ_DRAW_IMG_IMBUF) &&
+         ELEM(sseq.view, SEQ_VIEW_PREVIEW, SEQ_VIEW_SEQUENCE_PREVIEW);
 }
 
-bool check_show_strip(SpaceSeq *sseq)
+bool check_show_strip(const SpaceSeq &sseq)
 {
-  return ELEM(sseq->view, SEQ_VIEW_SEQUENCE, SEQ_VIEW_SEQUENCE_PREVIEW);
+  return ELEM(sseq.view, SEQ_VIEW_SEQUENCE, SEQ_VIEW_SEQUENCE_PREVIEW);
 }
 
 static bool sequencer_fcurves_targets_color_strip(const FCurve *fcurve)
@@ -251,7 +251,7 @@ bool sequencer_view_strips_poll(bContext *C)
   if (sseq == nullptr) {
     return false;
   }
-  if (!check_show_strip(sseq)) {
+  if (!check_show_strip(*sseq)) {
     return false;
   }
   ARegion *region = CTX_wm_region(C);

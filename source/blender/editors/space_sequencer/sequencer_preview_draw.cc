@@ -1225,7 +1225,7 @@ void sequencer_draw_preview(const bContext *C,
   View2D *v2d = &region->v2d;
   ImBuf *ibuf = nullptr;
   float viewrect[2];
-  const bool show_imbuf = check_show_imbuf(sseq);
+  const bool show_imbuf = check_show_imbuf(*sseq);
   const bool draw_gpencil = ((sseq->preview_overlay.flag & SEQ_PREVIEW_SHOW_GPENCIL) && sseq->gpd);
   const char *names[2] = {STEREO_LEFT_NAME, STEREO_RIGHT_NAME};
 
