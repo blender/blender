@@ -205,7 +205,7 @@ PulseAudioDevice::PulseAudioDevice(const std::string& name, DeviceSpecs specs, i
 	buffer_attr.prebuf = -1U;
 	buffer_attr.tlength = buffersize;
 
-	if(AUD_pa_stream_connect_playback(m_stream, nullptr, &buffer_attr, static_cast<pa_stream_flags_t>(PA_STREAM_INTERPOLATE_TIMING | PA_STREAM_ADJUST_LATENCY | PA_STREAM_AUTO_TIMING_UPDATE), nullptr, nullptr) < 0)
+	if(AUD_pa_stream_connect_playback(m_stream, nullptr, &buffer_attr, static_cast<pa_stream_flags_t>(PA_STREAM_INTERPOLATE_TIMING | PA_STREAM_ADJUST_LATENCY | PA_STREAM_AUTO_TIMING_UPDATE | PA_STREAM_START_CORKED), nullptr, nullptr) < 0)
 	{
 		AUD_pa_threaded_mainloop_unlock(m_mainloop);
 		AUD_pa_threaded_mainloop_stop(m_mainloop);
