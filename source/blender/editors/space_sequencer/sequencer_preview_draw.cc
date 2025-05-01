@@ -485,8 +485,6 @@ static void sequencer_draw_display_buffer(const bContext *C,
     immUniformColor3f(1.0f, 1.0f, 1.0f);
   }
 
-  immBegin(GPU_PRIM_TRI_FAN, 4);
-
   rctf preview;
   rctf canvas;
   sequencer_preview_get_rect(&preview, scene, region, sseq, draw_overlay, draw_backdrop);
@@ -498,19 +496,7 @@ static void sequencer_draw_display_buffer(const bContext *C,
     BLI_rctf_init(&canvas, 0.0f, 1.0f, 0.0f, 1.0f);
   }
 
-  immAttr2f(texCoord, canvas.xmin, canvas.ymin);
-  immVertex2f(pos, preview.xmin, preview.ymin);
-
-  immAttr2f(texCoord, canvas.xmin, canvas.ymax);
-  immVertex2f(pos, preview.xmin, preview.ymax);
-
-  immAttr2f(texCoord, canvas.xmax, canvas.ymax);
-  immVertex2f(pos, preview.xmax, preview.ymax);
-
-  immAttr2f(texCoord, canvas.xmax, canvas.ymin);
-  immVertex2f(pos, preview.xmax, preview.ymin);
-
-  immEnd();
+  immRectf_with_texco(pos, texCoord, preview, canvas);
 
   GPU_texture_unbind(texture);
   GPU_texture_free(texture);
