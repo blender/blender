@@ -1278,11 +1278,6 @@ void VertexFormatConverter::reset()
   needs_conversion_ = false;
 }
 
-bool VertexFormatConverter::is_initialized() const
-{
-  return device_format_ != nullptr;
-}
-
 void VertexFormatConverter::init(const GPUVertFormat *vertex_format,
                                  const VKWorkarounds &workarounds)
 {
