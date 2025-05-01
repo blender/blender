@@ -2001,7 +2001,7 @@ static void rearrange_layered_action_fcurves(bAnimContext *ac,
 
         bag.fcurve_move_to_index(*fcurve, to_index);
       }
-      return;
+      break;
     }
 
     case REARRANGE_ANIMCHAN_TOP: {
@@ -2020,7 +2020,7 @@ static void rearrange_layered_action_fcurves(bAnimContext *ac,
         blender::animrig::Channelbag &bag = group.channelbag->wrap();
         bag.fcurve_move_to_index(*fcurve, group.fcurve_range_start);
       }
-      return;
+      break;
     }
 
     case REARRANGE_ANIMCHAN_DOWN: {
@@ -2052,7 +2052,7 @@ static void rearrange_layered_action_fcurves(bAnimContext *ac,
 
         bag.fcurve_move_to_index(*fcurve, to_index);
       }
-      return;
+      break;
     }
 
     case REARRANGE_ANIMCHAN_BOTTOM: {
@@ -2072,9 +2072,10 @@ static void rearrange_layered_action_fcurves(bAnimContext *ac,
         bag.fcurve_move_to_index(*fcurve,
                                  group.fcurve_range_start + group.fcurve_range_length - 1);
       }
-      return;
+      break;
     }
   }
+  BLI_freelistN(&anim_data_visible);
 }
 
 /* Change the order of anim-channels within action
