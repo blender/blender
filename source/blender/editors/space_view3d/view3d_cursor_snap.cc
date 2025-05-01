@@ -64,8 +64,7 @@ struct SnapCursorDataIntern {
 
   /* Copy of the parameters of the last event state in order to detect updates. */
   struct {
-    int x;
-    int y;
+    blender::int2 mval;
     uint8_t modifier;
   } last_eventstate;
 
@@ -488,11 +487,10 @@ void ED_view3d_cursor_snap_draw_util(RegionView3D *rv3d,
 /* Checks if the current event is different from the one captured in the last update. */
 static bool v3d_cursor_eventstate_has_changed(SnapCursorDataIntern *data_intern,
                                               V3DSnapCursorState *state,
-                                              const int x,
-                                              const int y,
+                                              const blender::int2 &mval,
                                               uint8_t event_modifier)
 {
-  if ((x != data_intern->last_eventstate.x) || (y != data_intern->last_eventstate.y)) {
+  if (mval != data_intern->last_eventstate.mval) {
     return true;
   }
 
@@ -509,11 +507,9 @@ static bool v3d_cursor_eventstate_has_changed(SnapCursorDataIntern *data_intern,
 
 /* Copies the current eventstate. */
 static void v3d_cursor_eventstate_save_xy(SnapCursorDataIntern *cursor_snap,
-                                          const int x,
-                                          const int y)
+                                          const blender::int2 &mval)
 {
-  cursor_snap->last_eventstate.x = x;
-  cursor_snap->last_eventstate.y = y;
+  cursor_snap->last_eventstate.mval = mval;
 }
 
 #ifdef USE_SNAP_DETECT_FROM_KEYMAP_HACK
@@ -606,8 +602,7 @@ static void v3d_cursor_snap_update(V3DSnapCursorState *state,
                                    Scene *scene,
                                    const ARegion *region,
                                    View3D *v3d,
-                                   int x,
-                                   int y,
+                                   const blender::int2 &mval,
                                    uint8_t event_modifier)
 {
   SnapCursorDataIntern *data_intern = &g_data_intern;
@@ -642,7 +637,7 @@ static void v3d_cursor_snap_update(V3DSnapCursorState *state,
   int snap_elem_index[3] = {-1, -1, -1};
   int index = -1;
 
-  const float mval_fl[2] = {float(x), float(y)};
+  const blender::float2 mval_fl = blender::float2(mval);
   zero_v3(no);
   zero_v3(face_nor);
   unit_m3(omat);
@@ -819,7 +814,7 @@ static void v3d_cursor_snap_update(V3DSnapCursorState *state,
 
   copy_m3_m3(snap_data->plane_omat, omat);
 
-  v3d_cursor_eventstate_save_xy(data_intern, x, y);
+  v3d_cursor_eventstate_save_xy(data_intern, mval);
 }
 
 /** \} */
@@ -876,17 +871,16 @@ static void v3d_cursor_snap_draw_fn(
   using namespace blender;
   ScrArea *area = CTX_wm_area(C);
   ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
-  int2 xy(x, y);
   if (region->alignment == RGN_ALIGN_QSPLIT) {
     /* Quad-View. */
+    const int2 xy = {x, y};
     region = BKE_area_find_region_xy(area, RGN_TYPE_WINDOW, xy);
     if (region == nullptr) {
       return;
     }
   }
 
-  xy[0] -= region->winrct.xmin;
-  xy[1] -= region->winrct.ymin;
+  const int2 mval(x - region->winrct.xmin, y - region->winrct.ymin);
 
   SnapCursorDataIntern *data_intern = &g_data_intern;
   V3DSnapCursorState *state = ED_view3d_cursor_snap_state_active_get();
@@ -896,10 +890,9 @@ static void v3d_cursor_snap_draw_fn(
 
   const wmWindow *win = CTX_wm_window(C);
   const wmEvent *event = win->eventstate;
-  if (event && v3d_cursor_eventstate_has_changed(data_intern, state, UNPACK2(xy), event->modifier))
-  {
+  if (event && v3d_cursor_eventstate_has_changed(data_intern, state, mval, event->modifier)) {
     View3D *v3d = CTX_wm_view3d(C);
-    v3d_cursor_snap_update(state, C, depsgraph, scene, region, v3d, UNPACK2(xy), event->modifier);
+    v3d_cursor_snap_update(state, C, depsgraph, scene, region, v3d, mval, event->modifier);
   }
 
   const bool draw_plane = state->draw_plane || state->draw_box;
@@ -1077,12 +1070,14 @@ void ED_view3d_cursor_snap_state_prevpoint_set(V3DSnapCursorState *state,
   }
 }
 
-void ED_view3d_cursor_snap_data_update(
-    V3DSnapCursorState *state, const bContext *C, const ARegion *region, const int x, const int y)
+void ED_view3d_cursor_snap_data_update(V3DSnapCursorState *state,
+                                       const bContext *C,
+                                       const ARegion *region,
+                                       const blender::int2 &mval)
 {
   SnapCursorDataIntern *data_intern = &g_data_intern;
   const wmEvent *event = CTX_wm_window(C)->eventstate;
-  if (event && v3d_cursor_eventstate_has_changed(data_intern, state, x, y, event->modifier)) {
+  if (event && v3d_cursor_eventstate_has_changed(data_intern, state, mval, event->modifier)) {
     Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
     Scene *scene = DEG_get_input_scene(depsgraph);
     View3D *v3d = CTX_wm_view3d(C);
@@ -1090,7 +1085,7 @@ void ED_view3d_cursor_snap_data_update(
     if (!state) {
       state = ED_view3d_cursor_snap_state_active_get();
     }
-    v3d_cursor_snap_update(state, C, depsgraph, scene, region, v3d, x, y, event->modifier);
+    v3d_cursor_snap_update(state, C, depsgraph, scene, region, v3d, mval, event->modifier);
   }
 }
 
