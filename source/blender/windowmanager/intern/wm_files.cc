@@ -4335,10 +4335,10 @@ static void file_overwrite_detailed_info_show(uiLayout *parent_layout, Main *bma
     char message_line1[256];
     char message_line2[256];
     SNPRINTF(message_line1,
-             RPT_("This file was saved by a newer version of Blender (%s)"),
+             RPT_("This file was saved by a newer version of Blender (%s)."),
              writer_ver_str);
     SNPRINTF(message_line2,
-             RPT_("Saving it with this Blender (%s) may cause loss of data"),
+             RPT_("Saving it with this Blender (%s) may cause loss of data."),
              current_ver_str);
     uiItemL(layout, message_line1, ICON_NONE);
     uiItemL(layout, message_line2, ICON_NONE);
