@@ -7,10 +7,10 @@
 
 #include "GHOST_Path-api.hh"
 
+#include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
-#include "DNA_scene_types.h"
 
 #include "RNA_define.hh"
 
@@ -23,6 +23,7 @@
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
 #include "BKE_main.hh"
+#include "BKE_material.hh"
 #include "BKE_mesh.h"
 #include "BKE_node.hh"
 #include "BKE_object.hh"
@@ -39,31 +40,57 @@ class TestData {
   Main *bmain = nullptr;
   bContext *C = nullptr;
 
-  virtual void setup()
+  TestData()
   {
     if (this->bmain == nullptr) {
       this->bmain = BKE_main_new();
+      G.main = this->bmain;
     }
-    G.main = this->bmain;
 
     if (this->C == nullptr) {
       this->C = CTX_create();
-      CTX_data_main_set(this->C, bmain);
+      CTX_data_main_set(this->C, this->bmain);
     }
   }
 
-  virtual void teardown()
+  ~TestData()
   {
+    if (this->bmain != nullptr) {
+      BKE_main_free(this->bmain);
+      this->bmain = nullptr;
+      G.main = nullptr;
+    }
+
     if (this->C != nullptr) {
       CTX_free(this->C);
       this->C = nullptr;
     }
+  }
+};
 
-    G.main = nullptr;
-    if (this->bmain != nullptr) {
-      BKE_main_free(this->bmain);
-      this->bmain = nullptr;
-    }
+class LibQueryTest : public ::testing::Test {
+
+ protected:
+  static void SetUpTestSuite()
+  {
+    CLG_init();
+    BKE_idtype_init();
+    RNA_init();
+    bke::node_system_init();
+    BKE_appdir_init();
+    IMB_init();
+    BKE_materials_init();
+  }
+
+  static void TearDownTestSuite()
+  {
+    BKE_materials_exit();
+    bke::node_system_exit();
+    RNA_exit();
+    IMB_exit();
+    BKE_appdir_exit();
+    GHOST_DisposeSystemPaths();
+    CLG_exit();
   }
 };
 
@@ -73,11 +100,10 @@ class WholeIDTestData : public TestData {
   Object *object = nullptr;
   Object *target = nullptr;
   Mesh *mesh = nullptr;
+  Material *material = nullptr;
 
-  void setup() override
+  WholeIDTestData()
   {
-    TestData::setup();
-
     this->scene = BKE_scene_add(this->bmain, "IDLibQueryScene");
     CTX_data_scene_set(this->C, this->scene);
 
@@ -94,76 +120,53 @@ class WholeIDTestData : public TestData {
 
 class IDSubDataTestData : public WholeIDTestData {
  public:
-  bNodeTree *compositor_nodetree = nullptr;
   bNode *node = nullptr;
 
-  void setup() override
+  IDSubDataTestData()
   {
-    WholeIDTestData::setup();
-
-    /* Add a default Compositor nodetree to the scene, and an ID pointer custom property to one of
+    /* Add a material that contains an embedded nodetree and assign a custom property to one of
      * its nodes. */
-    ED_node_composit_default(C, scene);
-    this->compositor_nodetree = scene->nodetree;
-    this->node = static_cast<bNode *>(compositor_nodetree->nodes.first);
+    this->material = BKE_material_add(this->bmain, "Material");
+    ED_node_shader_default(this->C, &this->material->id);
+
+    BKE_object_material_assign(
+        this->bmain, this->object, this->material, this->object->actcol, BKE_MAT_ASSIGN_OBJECT);
+
+    this->node = static_cast<bNode *>(this->material->nodetree->nodes.first);
 
     this->node->prop = bke::idprop::create_group("Node Custom Properties").release();
     IDP_AddToGroup(this->node->prop,
                    bke::idprop::create("ID Pointer", &this->target->id).release());
   }
-};
-
-template<typename TestData> class Context {
- public:
-  TestData test_data;
-
-  Context()
+  ~IDSubDataTestData()
   {
-    CLG_init();
-    BKE_idtype_init();
-    RNA_init();
-    bke::node_system_init();
-    BKE_appdir_init();
-    IMB_init();
-
-    test_data.setup();
-  }
-
-  ~Context()
-  {
-    test_data.teardown();
-
-    bke::node_system_exit();
-    RNA_exit();
-    IMB_exit();
-    GHOST_DisposeSystemPaths();
-    BKE_appdir_exit();
-    CLG_exit();
+    BKE_id_free(this->bmain, &this->material->id);
   }
 };
 
 /* -------------------------------------------------------------------- */
-/** \name Tests.
+/** \name Query Tests
  * \{ */
 
-TEST(lib_query, libquery_basic)
+TEST_F(LibQueryTest, libquery_basic)
 {
-  Context<WholeIDTestData> context;
+  WholeIDTestData context;
 
-  ASSERT_NE(context.test_data.scene, nullptr);
-  ASSERT_NE(context.test_data.object, nullptr);
-  ASSERT_NE(context.test_data.target, nullptr);
-  ASSERT_NE(context.test_data.mesh, nullptr);
+  ASSERT_NE(context.scene, nullptr);
+  ASSERT_NE(context.object, nullptr);
+  ASSERT_NE(context.target, nullptr);
+  ASSERT_NE(context.mesh, nullptr);
 
   /* Reset all ID user-count to 0. */
   ID *id_iter;
-  FOREACH_MAIN_ID_BEGIN (context.test_data.bmain, id_iter) {
+  FOREACH_MAIN_ID_BEGIN (context.bmain, id_iter) {
     id_iter->us = 0;
   }
   FOREACH_MAIN_ID_END;
 
   /* Set an invalid user-count value to IDs directly used by the scene.
-   * This includes these used by its embedded IDs, like the master collection, and the scene itself
+   * This includes these used by its embedded IDs, like the master collection, and the scene
+   itself
    * (through the loop-back pointers of embedded IDs to their owner). */
   auto set_count = [](LibraryIDLinkCallbackData *cb_data) -> int {
     if (*(cb_data->id_pointer)) {
@@ -172,11 +175,11 @@ TEST(lib_query, libquery_basic)
     return IDWALK_RET_NOP;
   };
   BKE_library_foreach_ID_link(
-      context.test_data.bmain, &context.test_data.scene->id, set_count, nullptr, IDWALK_READONLY);
-  EXPECT_EQ(context.test_data.scene->id.us, 42);
-  EXPECT_EQ(context.test_data.object->id.us, 42);
-  EXPECT_EQ(context.test_data.target->id.us, 42);
-  EXPECT_EQ(context.test_data.mesh->id.us, 0);
+      context.bmain, &context.scene->id, set_count, nullptr, IDWALK_READONLY);
+  EXPECT_EQ(context.scene->id.us, 42);
+  EXPECT_EQ(context.object->id.us, 42);
+  EXPECT_EQ(context.target->id.us, 42);
+  EXPECT_EQ(context.mesh->id.us, 0);
 
   /* Clear object's obdata mesh pointer. */
   auto clear_mesh_pointer = [](LibraryIDLinkCallbackData *cb_data) -> int {
@@ -186,18 +189,15 @@ TEST(lib_query, libquery_basic)
     }
     return IDWALK_RET_NOP;
   };
-  BKE_library_foreach_ID_link(context.test_data.bmain,
-                              &context.test_data.object->id,
-                              clear_mesh_pointer,
-                              &context.test_data,
-                              IDWALK_NOP);
-  EXPECT_EQ(context.test_data.object->data, nullptr);
+  BKE_library_foreach_ID_link(
+      context.bmain, &context.object->id, clear_mesh_pointer, &context, IDWALK_NOP);
+  EXPECT_EQ(context.object->data, nullptr);
 
 #if 0 /* Does not work. */
   /* Modifying data when IDWALK_READONLY is set is forbidden. */
-  context.test_data.object->data = context.test_data.mesh;
-  EXPECT_BLI_ASSERT(BKE_library_foreach_ID_link(context.test_data.bmain,
-                                                &context.test_data.scene->id,
+  context.object->data = context.mesh;
+  EXPECT_BLI_ASSERT(BKE_library_foreach_ID_link(context.bmain,
+                                                &context.scene->id,
                                                 clear_mesh_pointer,
                                                 &context.test_data,
                                                 IDWALK_READONLY),
@@ -205,18 +205,18 @@ TEST(lib_query, libquery_basic)
 #endif
 }
 
-TEST(lib_query, libquery_recursive)
+TEST_F(LibQueryTest, libquery_recursive)
 {
-  Context<IDSubDataTestData> context;
+  IDSubDataTestData context;
 
-  ASSERT_NE(context.test_data.scene, nullptr);
-  ASSERT_NE(context.test_data.object, nullptr);
-  ASSERT_NE(context.test_data.target, nullptr);
-  ASSERT_NE(context.test_data.mesh, nullptr);
+  EXPECT_NE(context.scene, nullptr);
+  EXPECT_NE(context.object, nullptr);
+  EXPECT_NE(context.target, nullptr);
+  EXPECT_NE(context.mesh, nullptr);
 
   /* Reset all ID user-count to 0. */
   ID *id_iter;
-  FOREACH_MAIN_ID_BEGIN (context.test_data.bmain, id_iter) {
+  FOREACH_MAIN_ID_BEGIN (context.bmain, id_iter) {
     id_iter->us = 0;
   }
   FOREACH_MAIN_ID_END;
@@ -231,14 +231,14 @@ TEST(lib_query, libquery_recursive)
     return IDWALK_RET_NOP;
   };
   BKE_library_foreach_ID_link(
-      context.test_data.bmain, &context.test_data.scene->id, set_count, nullptr, IDWALK_RECURSE);
-  FOREACH_MAIN_ID_BEGIN (context.test_data.bmain, id_iter) {
+      context.bmain, &context.scene->id, set_count, nullptr, IDWALK_RECURSE);
+  FOREACH_MAIN_ID_BEGIN (context.bmain, id_iter) {
     EXPECT_EQ(id_iter->us, 42);
   }
   FOREACH_MAIN_ID_END;
 
   /* Reset all ID user-count to 0. */
-  FOREACH_MAIN_ID_BEGIN (context.test_data.bmain, id_iter) {
+  FOREACH_MAIN_ID_BEGIN (context.bmain, id_iter) {
     id_iter->us = 0;
   }
   FOREACH_MAIN_ID_END;
@@ -250,37 +250,34 @@ TEST(lib_query, libquery_recursive)
     }
     return IDWALK_RET_NOP;
   };
-  BKE_library_foreach_ID_link(context.test_data.bmain,
-                              &context.test_data.scene->id,
-                              compute_count,
-                              nullptr,
-                              IDWALK_RECURSE);
-  /* The render layer output node of compositing node-tree uses the scene. */
-  EXPECT_EQ(context.test_data.scene->id.us, 1);
-  EXPECT_EQ(context.test_data.object->id.us, 1);
+  BKE_library_foreach_ID_link(
+      context.bmain, &context.scene->id, compute_count, nullptr, IDWALK_RECURSE);
+  EXPECT_EQ(context.scene->id.us, 0);
+  EXPECT_EQ(context.object->id.us, 1);
   /* Scene's master collection, and scene's compositor node IDProperty. Note that object constraint
    * is _not_ a reference-counting usage. */
-  EXPECT_EQ(context.test_data.target->id.us, 2);
-  EXPECT_EQ(context.test_data.mesh->id.us, 1);
+  EXPECT_EQ(context.target->id.us, 2);
+  EXPECT_EQ(context.mesh->id.us, 1);
 }
 
-TEST(lib_query, libquery_subdata)
+TEST_F(LibQueryTest, libquery_subdata)
 {
-  Context<IDSubDataTestData> context;
+  IDSubDataTestData context;
 
-  ASSERT_NE(context.test_data.scene, nullptr);
-  ASSERT_NE(context.test_data.object, nullptr);
-  ASSERT_NE(context.test_data.target, nullptr);
-  ASSERT_NE(context.test_data.mesh, nullptr);
+  ASSERT_NE(context.scene, nullptr);
+  ASSERT_NE(context.object, nullptr);
+  ASSERT_NE(context.target, nullptr);
+  ASSERT_NE(context.mesh, nullptr);
+  ASSERT_NE(context.material, nullptr);
 
   /* Reset all ID user-count to 0. */
   ID *id_iter;
-  FOREACH_MAIN_ID_BEGIN (context.test_data.bmain, id_iter) {
+  FOREACH_MAIN_ID_BEGIN (context.bmain, id_iter) {
     id_iter->us = 0;
   }
   FOREACH_MAIN_ID_END;
 
-  /* Set an invalid user-count value to all IDs used by one of the scene's compositor nodes. */
+  /* Set an invalid user-count value to all IDs used by one of the material's nodes. */
   auto set_count = [](LibraryIDLinkCallbackData *cb_data) -> int {
     if (*(cb_data->id_pointer)) {
       (*(cb_data->id_pointer))->us = 42;
@@ -288,22 +285,22 @@ TEST(lib_query, libquery_subdata)
     return IDWALK_RET_NOP;
   };
   auto node_foreach_id = [&context](LibraryForeachIDData *data) {
-    bke::node_node_foreach_id(context.test_data.node, data);
+    bke::node_node_foreach_id(context.node, data);
   };
 
-  BKE_library_foreach_subdata_id(context.test_data.bmain,
-                                 &context.test_data.scene->id,
-                                 &context.test_data.scene->nodetree->id,
+  BKE_library_foreach_subdata_id(context.bmain,
+                                 &context.material->id,
+                                 &context.material->nodetree->id,
                                  node_foreach_id,
                                  set_count,
                                  nullptr,
                                  IDWALK_NOP);
 
-  EXPECT_EQ(context.test_data.scene->id.us, 0);
-  EXPECT_EQ(context.test_data.object->id.us, 0);
-  /* The scene's compositor input node IDProperty uses the target object. */
-  EXPECT_EQ(context.test_data.target->id.us, 42);
-  EXPECT_EQ(context.test_data.mesh->id.us, 0);
+  EXPECT_EQ(context.scene->id.us, 0);
+  EXPECT_EQ(context.object->id.us, 0);
+  /* The material's nodetre input node IDProperty uses the target object. */
+  EXPECT_EQ(context.target->id.us, 42);
+  EXPECT_EQ(context.mesh->id.us, 0);
 }
 
 /** \} */
