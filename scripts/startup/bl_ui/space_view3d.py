@@ -7910,7 +7910,12 @@ class VIEW3D_PT_overlay_grease_pencil_options(Panel):
             translate=False
         )
 
-        layout.prop(overlay, "use_gpencil_onion_skin", text="Onion Skin")
+        split = layout.split()
+        col = split.column()
+        col.prop(overlay, "use_gpencil_onion_skin", text="Onion Skin")
+        col = split.column()
+        col.active = overlay.use_gpencil_onion_skin
+        col.prop(overlay, "use_gpencil_onion_skin_active_object", text="Active Object Only")
 
         col = layout.column()
         row = col.row()

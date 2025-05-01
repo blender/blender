@@ -181,6 +181,8 @@ void Instance::begin_sync()
                                  nullptr :
                              false;
     this->do_onion = show_onion && !hide_overlay && !playing;
+    this->do_onion_only_active_object = ((draw_ctx->v3d->gp_flag &
+                                          V3D_GP_ONION_SKIN_ACTIVE_OBJECT) != 0);
     this->playing = playing;
     /* Save simplify flags (can change while drawing, so it's better to save). */
     Scene *scene = draw_ctx->scene;
@@ -346,7 +348,8 @@ tObject *Instance::object_sync_do(Object *ob, ResourceHandle res_handle)
   const bool is_vertex_mode = (ob->mode & OB_MODE_VERTEX_PAINT) != 0;
   const Bounds<float3> bounds = grease_pencil.bounds_min_max_eval().value_or(Bounds(float3(0)));
 
-  const bool do_onion = !this->is_render && this->do_onion;
+  const bool do_onion = !this->is_render && this->do_onion &&
+                        (this->do_onion_only_active_object ? this->obact == ob : true);
   const bool do_multi_frame = (((this->scene->toolsettings->gpencil_flags &
                                  GP_USE_MULTI_FRAME_EDITING) != 0) &&
                                (ob->mode != OB_MODE_OBJECT));

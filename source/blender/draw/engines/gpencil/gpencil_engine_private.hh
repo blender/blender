@@ -256,6 +256,8 @@ struct Instance final : public DrawEngine {
 
   /* Display onion skinning */
   bool do_onion;
+  /* Show only the onion skins of the active object. */
+  bool do_onion_only_active_object;
   /* Playing animation */
   bool playing;
   /* simplify settings */

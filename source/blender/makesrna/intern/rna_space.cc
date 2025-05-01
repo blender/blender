@@ -5167,6 +5167,13 @@ static void rna_def_space_view3d_overlay(BlenderRNA *brna)
       prop, "Onion Skins", "Show ghosts of the keyframes before and after the current frame");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, nullptr);
 
+  /* Show onion skin for active object only. */
+  prop = RNA_def_property(srna, "use_gpencil_onion_skin_active_object", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "gp_flag", V3D_GP_ONION_SKIN_ACTIVE_OBJECT);
+  RNA_def_property_ui_text(
+      prop, "Active Object Only", "Show only the onion skins of the active object");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, nullptr);
+
   /* vertex opacity */
   prop = RNA_def_property(srna, "vertex_opacity", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, nullptr, "vertex_opacity");
