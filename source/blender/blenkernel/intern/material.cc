@@ -2155,6 +2155,10 @@ void BKE_material_defaults_free_gpu()
 void BKE_materials_init()
 {
   for (int i = 0; default_materials[i]; i++) {
+    /* Note: material_init_data() expects input struct to be initialized at zero.
+     * However, we are initializing global static materials in this function, which will only get
+     * properly defined in the respective material_default_*_init() functions. */
+    memset(&default_materials[i]->id, 0, sizeof(Material));
     material_init_data(&default_materials[i]->id);
   }
 
