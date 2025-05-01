@@ -707,7 +707,7 @@ static const char *meta_data_list[] = {
     "Scene",
 };
 
-BLI_INLINE bool metadata_is_valid(ImBuf *ibuf, char *r_str, short index, int offset)
+BLI_INLINE bool metadata_is_valid(const ImBuf *ibuf, char *r_str, short index, int offset)
 {
   return (IMB_metadata_get_field(
               ibuf->metadata, meta_data_list[index], r_str + offset, MAX_METADATA_STR - offset) &&
@@ -750,7 +750,7 @@ static void metadata_custom_draw_fields(const char *field, const char *value, vo
   ctx->current_y += ctx->vertical_offset;
 }
 
-static void metadata_draw_imbuf(ImBuf *ibuf, const rctf *rect, int fontid, const bool is_top)
+static void metadata_draw_imbuf(const ImBuf *ibuf, const rctf *rect, int fontid, const bool is_top)
 {
   char temp_str[MAX_METADATA_STR];
   int ofs_y = 0;
@@ -856,7 +856,7 @@ static void metadata_custom_count_fields(const char *field, const char * /*value
   ctx->count++;
 }
 
-static float metadata_box_height_get(ImBuf *ibuf, int fontid, const bool is_top)
+static float metadata_box_height_get(const ImBuf *ibuf, int fontid, const bool is_top)
 {
   const float height = BLF_height_max(fontid);
   const float margin = (height / 8);
@@ -910,7 +910,7 @@ static float metadata_box_height_get(ImBuf *ibuf, int fontid, const bool is_top)
 }
 
 void ED_region_image_metadata_draw(
-    int x, int y, ImBuf *ibuf, const rctf *frame, float zoomx, float zoomy)
+    int x, int y, const ImBuf *ibuf, const rctf *frame, float zoomx, float zoomy)
 {
   const uiStyle *style = UI_style_get_dpi();
 

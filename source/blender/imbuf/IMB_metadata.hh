@@ -59,4 +59,4 @@ void IMB_metadata_copy(ImBuf *ibuf_dst, const ImBuf *ibuf_src);
 
 /* Invoke callback for every value stored in the metadata. */
 using IMBMetadataForeachCb = void (*)(const char *field, const char *value, void *userdata);
-void IMB_metadata_foreach(ImBuf *ibuf, IMBMetadataForeachCb callback, void *userdata);
+void IMB_metadata_foreach(const ImBuf *ibuf, IMBMetadataForeachCb callback, void *userdata);

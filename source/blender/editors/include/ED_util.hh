@@ -75,7 +75,7 @@ void ED_region_draw_mouse_line_cb(const bContext *C, ARegion *region, void *arg_
  * \note Keep in sync with #BKE_image_stamp_buf.
  */
 void ED_region_image_metadata_draw(
-    int x, int y, ImBuf *ibuf, const rctf *frame, float zoomx, float zoomy);
+    int x, int y, const ImBuf *ibuf, const rctf *frame, float zoomx, float zoomy);
 
 /* Slider */
 
