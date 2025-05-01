@@ -752,10 +752,10 @@ if((WITH_CYCLES OR WITH_GPU_RENDER_TESTS) AND TEST_SRC_DIR_EXISTS)
     if(WITH_OPENGL_BACKEND)
       foreach(render_test ${gpu_render_tests})
         add_render_test(
-          eevee_next_opengl_${render_test}
-          ${CMAKE_CURRENT_LIST_DIR}/eevee_next_render_tests.py
+          eevee_opengl_${render_test}
+          ${CMAKE_CURRENT_LIST_DIR}/eevee_render_tests.py
           --testdir "${TEST_SRC_DIR}/render/${render_test}"
-          --outdir "${TEST_OUT_DIR}/eevee_next_opengl"
+          --outdir "${TEST_OUT_DIR}/eevee_opengl"
           --gpu-backend opengl
           ${_gpu_render_tests_arguments}
         )
@@ -765,10 +765,10 @@ if((WITH_CYCLES OR WITH_GPU_RENDER_TESTS) AND TEST_SRC_DIR_EXISTS)
     if(WITH_METAL_BACKEND)
       foreach(render_test ${gpu_render_tests})
         add_render_test(
-          eevee_next_metal_${render_test}
-          ${CMAKE_CURRENT_LIST_DIR}/eevee_next_render_tests.py
+          eevee_metal_${render_test}
+          ${CMAKE_CURRENT_LIST_DIR}/eevee_render_tests.py
           --testdir "${TEST_SRC_DIR}/render/${render_test}"
-          --outdir "${TEST_OUT_DIR}/eevee_next_metal"
+          --outdir "${TEST_OUT_DIR}/eevee_metal"
           --gpu-backend metal
           ${_gpu_render_tests_arguments}
         )
@@ -778,10 +778,10 @@ if((WITH_CYCLES OR WITH_GPU_RENDER_TESTS) AND TEST_SRC_DIR_EXISTS)
     if(WITH_VULKAN_BACKEND AND WITH_GPU_RENDER_TESTS_VULKAN)
       foreach(render_test ${gpu_render_tests})
         add_render_test(
-          eevee_next_vulkan_${render_test}
-          ${CMAKE_CURRENT_LIST_DIR}/eevee_next_render_tests.py
+          eevee_vulkan_${render_test}
+          ${CMAKE_CURRENT_LIST_DIR}/eevee_render_tests.py
           --testdir "${TEST_SRC_DIR}/render/${render_test}"
-          --outdir "${TEST_OUT_DIR}/eevee_next_vulkan"
+          --outdir "${TEST_OUT_DIR}/eevee_vulkan"
           --gpu-backend vulkan
           ${_gpu_render_tests_arguments}
         )
