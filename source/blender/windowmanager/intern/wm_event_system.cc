@@ -5546,8 +5546,8 @@ constexpr wmTabletData wm_event_tablet_data_default()
   wmTabletData tablet_data{};
   tablet_data.active = EVT_TABLET_NONE;
   tablet_data.pressure = 1.0f;
-  tablet_data.x_tilt = 0.0f;
-  tablet_data.y_tilt = 0.0f;
+  tablet_data.tilt.x = 0.0f;
+  tablet_data.tilt.y = 0.0f;
   tablet_data.is_motion_absolute = false;
   return tablet_data;
 }
@@ -5562,8 +5562,7 @@ void wm_tablet_data_from_ghost(const GHOST_TabletData *tablet_data, wmTabletData
   if ((tablet_data != nullptr) && tablet_data->Active != GHOST_kTabletModeNone) {
     wmtab->active = int(tablet_data->Active);
     wmtab->pressure = wm_pressure_curve(tablet_data->Pressure);
-    wmtab->x_tilt = tablet_data->Xtilt;
-    wmtab->y_tilt = tablet_data->Ytilt;
+    wmtab->tilt = blender::float2(tablet_data->Xtilt, tablet_data->Ytilt);
     /* We could have a preference to support relative tablet motion (we can't detect that). */
     wmtab->is_motion_absolute = true;
     // printf("%s: using tablet %.5f\n", __func__, wmtab->pressure);
@@ -5952,8 +5951,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm,
         wmEvent *event_new = wm_event_add_mousemove(win, &event);
         copy_v2_v2_int(event_state->xy, event_new->xy);
         event_state->tablet.is_motion_absolute = event_new->tablet.is_motion_absolute;
-        event_state->tablet.x_tilt = event.tablet.x_tilt;
-        event_state->tablet.y_tilt = event.tablet.y_tilt;
+        event_state->tablet.tilt = event.tablet.tilt;
       }
 
       /* Also add to other window if event is there, this makes overdraws disappear nicely. */

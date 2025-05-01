@@ -119,8 +119,7 @@ struct PaintStroke {
   bool pen_flip;
 
   /* Tilt, as read from the event. */
-  float x_tilt;
-  float y_tilt;
+  float2 tilt;
 
   /* line constraint */
   bool constrain_line;
@@ -644,8 +643,8 @@ static void paint_brush_stroke_add_step(
     /* Original mouse coordinates. */
     RNA_float_set_array(&itemptr, "mouse_event", mval);
     RNA_float_set(&itemptr, "pressure", pressure);
-    RNA_float_set(&itemptr, "x_tilt", stroke->x_tilt);
-    RNA_float_set(&itemptr, "y_tilt", stroke->y_tilt);
+    RNA_float_set(&itemptr, "x_tilt", stroke->tilt.x);
+    RNA_float_set(&itemptr, "y_tilt", stroke->tilt.y);
 
     stroke->update_step(C, op, stroke, &itemptr);
 
@@ -1506,8 +1505,7 @@ wmOperatorStatus paint_stroke_modal(bContext *C,
 
   /* Tilt. */
   if (WM_event_is_tablet(event)) {
-    stroke->x_tilt = event->tablet.x_tilt;
-    stroke->y_tilt = event->tablet.y_tilt;
+    stroke->tilt = event->tablet.tilt;
   }
 
 #ifdef WITH_INPUT_NDOF
