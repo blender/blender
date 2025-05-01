@@ -6,6 +6,7 @@
 
 #include "BLI_math_vector.h"
 #include "BLI_math_vector.hh"
+#include "BLI_vector.hh"
 
 namespace blender::tests {
 
@@ -63,6 +64,44 @@ TEST(math_vector, Clamp)
   EXPECT_EQ(result_2.x, 0);
   EXPECT_EQ(result_2.y, 50);
   EXPECT_EQ(result_2.z, -50);
+}
+
+TEST(math_vector, MinList)
+{
+  EXPECT_EQ(float3(1.0, 2.0, 3.0), math::min({float3(1.0, 2.0, 3.0)}));
+  EXPECT_EQ(float3(0.0, 2.0, 2.0), math::min({float3(1.0, 2.0, 3.0), float3(0.0, 5.0, 2.0)}));
+  EXPECT_EQ(float3(0.0, 2.0, 1.5),
+            math::min({float3(1.0, 2.0, 3.0), float3(0.0, 5.0, 2.0), float3(2.0, 4.0, 1.5)}));
+
+  const float inf = std::numeric_limits<float>::infinity();
+  EXPECT_EQ(float3(0.0, -inf, -inf),
+            math::min({float3(inf, 2.0, 3.0), float3(0.0, -inf, inf), float3(2.0, 4.0, -inf)}));
+
+  const float nan = std::numeric_limits<float>::quiet_NaN();
+  const float3 result = math::min(
+      {float3(nan, 2.0, 3.0), float3(0.0, nan, 2.0), float3(2.0, 4.0, nan)});
+  EXPECT_TRUE(std::isnan(result.x));
+  EXPECT_EQ(result.y, 2.0);
+  EXPECT_EQ(result.z, 2.0);
+}
+
+TEST(math_vector, MaxList)
+{
+  EXPECT_EQ(float3(1.0, 2.0, 3.0), math::max({float3(1.0, 2.0, 3.0)}));
+  EXPECT_EQ(float3(1.0, 5.0, 3.0), math::max({float3(1.0, 2.0, 3.0), float3(0.0, 5.0, 2.0)}));
+  EXPECT_EQ(float3(2.0, 5.0, 3.0),
+            math::max({float3(1.0, 2.0, 3.0), float3(0.0, 5.0, 2.0), float3(2.0, 4.0, 1.5)}));
+
+  const float inf = std::numeric_limits<float>::infinity();
+  EXPECT_EQ(float3(inf, 4.0, inf),
+            math::max({float3(inf, 2.0, 3.0), float3(0.0, -inf, inf), float3(2.0, 4.0, -inf)}));
+
+  const float nan = std::numeric_limits<float>::quiet_NaN();
+  const float3 result = math::max(
+      {float3(nan, 2.0, 3.0), float3(0.0, nan, 2.0), float3(2.0, 4.0, nan)});
+  EXPECT_TRUE(std::isnan(result.x));
+  EXPECT_EQ(result.y, 4.0);
+  EXPECT_EQ(result.z, 3.0);
 }
 
 TEST(math_vector, InterpolateInt)

@@ -159,7 +159,7 @@ void BKE_armature_transform(bArmature *arm, const float mat[4][4], bool do_props
 std::optional<blender::Bounds<blender::float3>> BKE_armature_min_max(const Object *ob);
 
 /**
- * Calculate the axis-aligned bounds of `pchan` in world-space,
+ * Calculate the axis-aligned bounds of `pchan` in object-space,
  * taking into account custom transform when set.
  *
  * `r_min` and `r_max` are expanded to fit `pchan` so the caller must initialize them
@@ -179,7 +179,7 @@ void BKE_pchan_minmax(const Object *ob,
                       blender::float3 &r_min,
                       blender::float3 &r_max);
 /**
- * Calculate the axis aligned bounds of the pose of `ob` in world-space.
+ * Calculate the axis aligned bounds of the pose of `ob` in object-space.
  *
  * This only considers visible bones. When they are either directly (via a flag on the bone) or
  * indirectly (via bone collections) hidden, they are not part of the bounds calculation. When a
