@@ -51,8 +51,6 @@ static void node_composit_init_bokehblur(bNodeTree * /*ntree*/, bNode *node)
 
 static void node_composit_buts_bokehblur(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  uiItemR(layout, ptr, "use_variable_size", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
-  // uiItemR(layout, ptr, "f_stop", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   uiItemR(layout, ptr, "blur_max", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   uiItemR(layout, ptr, "use_extended_bounds", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 }
@@ -72,7 +70,7 @@ class BokehBlurOperation : public NodeOperation {
       return;
     }
 
-    if (get_input("Size").is_single_value() || !get_variable_size()) {
+    if (this->get_input("Size").is_single_value()) {
       execute_constant_size();
     }
     else {
@@ -388,11 +386,6 @@ class BokehBlurOperation : public NodeOperation {
   bool get_extend_bounds()
   {
     return bnode().custom1 & CMP_NODEFLAG_BLUR_EXTEND_BOUNDS;
-  }
-
-  bool get_variable_size()
-  {
-    return bnode().custom1 & CMP_NODEFLAG_BLUR_VARIABLE_SIZE;
   }
 
   int get_max_size()

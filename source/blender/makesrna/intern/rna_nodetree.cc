@@ -7307,9 +7307,11 @@ static void def_cmp_blur(BlenderRNA * /*brna*/, StructRNA *srna)
 
   /* duplicated in def_cmp_bokehblur */
   prop = RNA_def_property(srna, "use_variable_size", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "custom1", CMP_NODEFLAG_BLUR_VARIABLE_SIZE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "custom1", 1);
   RNA_def_property_ui_text(
-      prop, "Variable Size", "Support variable blur per pixel when using an image for size input");
+      prop,
+      "Variable Size",
+      "Support variable blur per pixel when using an image for size input. (Deprecated: Unused.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "use_extended_bounds", PROP_BOOLEAN, PROP_NONE);
@@ -9662,9 +9664,11 @@ static void def_cmp_bokehblur(BlenderRNA * /*brna*/, StructRNA *srna)
 
   /* duplicated in def_cmp_blur */
   prop = RNA_def_property(srna, "use_variable_size", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "custom1", CMP_NODEFLAG_BLUR_VARIABLE_SIZE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "custom1", 1);
   RNA_def_property_ui_text(
-      prop, "Variable Size", "Support variable blur per pixel when using an image for size input");
+      prop,
+      "Variable Size",
+      "Support variable blur per pixel when using an image for size input. (Deprecated: Unused.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "use_extended_bounds", PROP_BOOLEAN, PROP_NONE);

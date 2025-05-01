@@ -59,14 +59,10 @@ static void node_composit_buts_blur(uiLayout *layout, bContext * /*C*/, PointerR
 
   col = &layout->column(false);
   const int filter = RNA_enum_get(ptr, "filter_type");
-  const int reference = RNA_boolean_get(ptr, "use_variable_size");
 
   uiItemR(col, ptr, "filter_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
   if (filter != R_FILTER_FAST_GAUSS) {
-    uiItemR(col, ptr, "use_variable_size", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
-    if (!reference) {
-      uiItemR(col, ptr, "use_bokeh", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
-    }
+    uiItemR(col, ptr, "use_bokeh", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
     uiItemR(col, ptr, "use_gamma_correction", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   }
 
@@ -124,7 +120,7 @@ class BlurOperation : public NodeOperation {
     if (node_storage(bnode()).filtertype == R_FILTER_FAST_GAUSS) {
       recursive_gaussian_blur(context(), *blur_input, *blur_output, compute_blur_radius());
     }
-    else if (use_variable_size()) {
+    else if (!this->get_input("Size").is_single_value()) {
       execute_variable_size(*blur_input, *blur_output);
     }
     else if (use_separable_filter()) {
@@ -482,12 +478,6 @@ class BlurOperation : public NodeOperation {
     }
   }
 
-  bool use_variable_size()
-  {
-    return get_variable_size() && !get_input("Size").is_single_value() &&
-           node_storage(bnode()).filtertype != R_FILTER_FAST_GAUSS;
-  }
-
   float2 get_size_factor()
   {
     return float2(node_storage(bnode()).percentx, node_storage(bnode()).percenty) / 100.0f;
@@ -501,11 +491,6 @@ class BlurOperation : public NodeOperation {
   bool get_extend_bounds()
   {
     return bnode().custom1 & CMP_NODEFLAG_BLUR_EXTEND_BOUNDS;
-  }
-
-  bool get_variable_size()
-  {
-    return bnode().custom1 & CMP_NODEFLAG_BLUR_VARIABLE_SIZE;
   }
 };
 
