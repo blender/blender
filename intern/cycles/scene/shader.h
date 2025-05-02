@@ -5,6 +5,7 @@
 #pragma once
 
 #ifdef WITH_OSL
+#  include <cstdint> /* Needed before `sdlexec.h` for `int32_t` with GCC 15.1. */
 /* So no context pollution happens from indirectly included windows.h */
 #  ifdef _WIN32
 #    include "util/windows.h"
