@@ -690,7 +690,7 @@ def gather_data_track_animations(
 
 
 def __get_data_blender_tracks(blender_type_data, blender_id, export_settings):
-    tracks_data = __get_nla_tracks_material(blender_type_data, blender_id, export_settings)
+    tracks_data = __get_nla_tracks_data(blender_type_data, blender_id, export_settings)
     if blender_type_data in ["materials", "lights"]:
         tracks_data_tree = __get_nla_tracks_material_node_tree(
             blender_type_data, blender_id, export_settings)
@@ -702,7 +702,7 @@ def __get_data_blender_tracks(blender_type_data, blender_id, export_settings):
     return tracks_data
 
 
-def __get_nla_tracks_material(blender_type_data, blender_id, export_settings):
+def __get_nla_tracks_data(blender_type_data, blender_id, export_settings):
     if blender_type_data == "materials":
         # Special cases for materials, where, when apply modifiers, the original material changed
         if export_settings['gltf_animation_mode'] == "NLA_TRACKS" and export_settings['gltf_apply'] is True:
