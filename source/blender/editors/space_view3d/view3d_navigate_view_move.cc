@@ -83,7 +83,7 @@ static wmOperatorStatus viewmove_modal_impl(bContext *C,
   return ret;
 }
 
-static wmOperatorStatus viewmove_invoke_impl(bContext * /*C*/,
+static wmOperatorStatus viewmove_invoke_impl(bContext *C,
                                              ViewOpsData *vod,
                                              const wmEvent *event,
                                              PointerRNA * /*ptr*/)
@@ -95,6 +95,8 @@ static wmOperatorStatus viewmove_invoke_impl(bContext * /*C*/,
     int mx = 2 * event->xy[0] - event->prev_xy[0];
     int my = 2 * event->xy[1] - event->prev_xy[1];
     viewmove_apply(vod, mx, my);
+
+    ED_view3d_camera_lock_autokey(vod->v3d, vod->rv3d, C, false, true);
     return OPERATOR_FINISHED;
   }
 

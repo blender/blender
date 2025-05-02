@@ -332,7 +332,7 @@ static wmOperatorStatus viewrotate_modal_impl(bContext *C,
   return ret;
 }
 
-static wmOperatorStatus viewrotate_invoke_impl(bContext * /*C*/,
+static wmOperatorStatus viewrotate_invoke_impl(bContext *C,
                                                ViewOpsData *vod,
                                                const wmEvent *event,
                                                PointerRNA * /*ptr*/)
@@ -357,6 +357,8 @@ static wmOperatorStatus viewrotate_invoke_impl(bContext * /*C*/,
       copy_v2_v2_int(m_xy, event->prev_xy);
     }
     viewrotate_apply(vod, m_xy);
+
+    ED_view3d_camera_lock_autokey(vod->v3d, vod->rv3d, C, true, true);
     return OPERATOR_FINISHED;
   }
 
