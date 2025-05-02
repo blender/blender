@@ -2527,6 +2527,10 @@ static bool id_order_compare(ID *a, ID *b)
   int *order_a = id_order_get(a);
   int *order_b = id_order_get(b);
 
+  /* In practice either both or neither are set,
+   * failing to do this would result in a logically invalid sort function, see #137712. */
+  BLI_assert((order_a && order_b) || (!order_a && !order_b));
+
   if (order_a && order_b) {
     if (*order_a < *order_b) {
       return true;
