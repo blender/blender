@@ -650,7 +650,7 @@ static BHead bhead_from_bhead4(const BHead4 &bhead4)
   BHead bhead;
   bhead.code = bhead4.code;
   bhead.len = bhead4.len;
-  bhead.old = reinterpret_cast<const void *>(bhead4.old);
+  bhead.old = reinterpret_cast<const void *>(uintptr_t(bhead4.old));
   bhead.SDNAnr = bhead4.SDNAnr;
   bhead.nr = bhead4.nr;
   return bhead;
@@ -679,7 +679,7 @@ static const void *old_ptr_from_uint64_ptr(const uint64_t ptr, const bool use_en
     return reinterpret_cast<const void *>(ptr);
   }
   else {
-    return reinterpret_cast<const void *>(uint32_from_uint64_ptr(ptr, use_endian_swap));
+    return reinterpret_cast<const void *>(uintptr_t(uint32_from_uint64_ptr(ptr, use_endian_swap)));
   }
 }
 
