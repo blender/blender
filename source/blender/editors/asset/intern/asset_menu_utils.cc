@@ -104,11 +104,9 @@ const asset_system::AssetRepresentation *find_asset_from_weak_ref(
     return nullptr;
   }
 
-  const std::string full_path = all_library->resolve_asset_weak_reference_to_full_path(weak_ref);
-
   const asset_system::AssetRepresentation *matching_asset = nullptr;
   list::iterate(library_ref, [&](asset_system::AssetRepresentation &asset) {
-    if (asset.full_path() == full_path) {
+    if (asset.make_weak_reference() == weak_ref) {
       matching_asset = &asset;
       return false;
     }
@@ -117,6 +115,8 @@ const asset_system::AssetRepresentation *find_asset_from_weak_ref(
 
   if (reports && !matching_asset) {
     if (list::is_loaded(&library_ref)) {
+      const std::string full_path = all_library->resolve_asset_weak_reference_to_full_path(
+          weak_ref);
       BKE_reportf(reports, RPT_ERROR, "No asset found at path \"%s\"", full_path.c_str());
     }
   }
