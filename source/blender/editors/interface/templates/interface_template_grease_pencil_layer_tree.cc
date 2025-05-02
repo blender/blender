@@ -159,6 +159,8 @@ class LayerNodeDropTarget : public TreeViewItemDropTarget {
           CTX_wm_message_bus(C), &grease_pencil.id, &grease_pencil, GreasePencilv3, layer_groups);
     }
 
+    ED_undo_push(C, "Reorder Layers");
+
     DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
     WM_event_add_notifier(C, NC_GPENCIL | NA_EDITED, nullptr);
     return true;
