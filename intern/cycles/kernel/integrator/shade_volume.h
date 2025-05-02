@@ -207,22 +207,6 @@ ccl_device_inline bool volume_integrate_advance(const int step,
  * These functions are used to attenuate shadow rays to lights. Both absorption
  * and scattering will block light, represented by the extinction coefficient. */
 
-#  if 0
-/* homogeneous volume: assume shader evaluation at the starts gives
- * the extinction coefficient for the entire line segment */
-ccl_device void volume_shadow_homogeneous(KernelGlobals kg, IntegratorState state,
-                                          ccl_private Ray *ccl_restrict ray,
-                                          ccl_private ShaderData *ccl_restrict sd,
-                                          ccl_global Spectrum *ccl_restrict throughput)
-{
-  Spectrum sigma_t = zero_spectrum();
-
-  if (shadow_volume_shader_sample(kg, state, sd, &sigma_t)) {
-    *throughput *= volume_color_transmittance(sigma_t, ray->tmax - ray->tmin);
-  }
-}
-#  endif
-
 /* heterogeneous volume: integrate stepping through the volume until we
  * reach the end, get absorbed entirely, or run out of iterations */
 ccl_device void volume_shadow_heterogeneous(KernelGlobals kg,
