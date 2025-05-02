@@ -182,6 +182,7 @@ def __gather_attribute(blender_primitive, attribute, export_settings):
         ) and blender_primitive["attributes"][attribute]['component_type'] == gltf2_io_constants.ComponentType.UnsignedShort:
         # Byte Color vertex color, need to normalize
 
+        data['data'] = np.clip(data['data'], 0, 1)
         data['data'] *= 65535
         data['data'] += 0.5  # bias for rounding
         data['data'] = data['data'].astype(np.uint16)
