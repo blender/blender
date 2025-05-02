@@ -2031,8 +2031,7 @@ static Material **default_materials[] = {&default_material_empty,
 
 static Material *material_default_create(Material **ma_p, const char *name)
 {
-  *ma_p = static_cast<Material *>(
-      BKE_libblock_alloc_in_lib(nullptr, std::nullopt, ID_MA, name, LIB_ID_CREATE_NO_MAIN));
+  *ma_p = static_cast<Material *>(BKE_id_new_nomain(ID_MA, name));
   return *ma_p;
 }
 
