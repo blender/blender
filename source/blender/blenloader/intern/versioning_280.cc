@@ -5433,11 +5433,14 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
             ARegion *region_toolprops = do_versions_find_region_or_null(regionbase,
                                                                         RGN_TYPE_TOOL_PROPS);
 
-            /* Reinsert UI region so that it spawns entire area width */
-            BLI_remlink(regionbase, region_ui);
-            BLI_insertlinkafter(regionbase, region_header, region_ui);
+            /* Check, even though this is expected to be valid. */
+            if (region_ui) {
+              /* Reinsert UI region so that it spawns entire area width. */
+              BLI_remlink(regionbase, region_ui);
+              BLI_insertlinkafter(regionbase, region_header, region_ui);
 
-            region_ui->flag |= RGN_FLAG_DYNAMIC_SIZE;
+              region_ui->flag |= RGN_FLAG_DYNAMIC_SIZE;
+            }
 
             if (region_toolprops &&
                 (region_toolprops->alignment == (RGN_ALIGN_BOTTOM | RGN_SPLIT_PREV)))
