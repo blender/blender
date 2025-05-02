@@ -6,6 +6,8 @@ import bpy
 from mathutils import Vector, Quaternion, Matrix
 from ...io.imp.user_extensions import import_user_extensions
 from .scene import BlenderScene
+from .material import BlenderMaterial
+from .image import BlenderImage
 
 
 class BlenderGlTF():
@@ -43,6 +45,20 @@ class BlenderGlTF():
         BlenderGlTF.set_convert_functions(gltf)
         BlenderGlTF.pre_compute(gltf)
         BlenderScene.create(gltf)
+
+        # If needed, create not used materials
+        if gltf.import_settings['import_unused_materials']:
+            for mat_idx in [i for i in range(len(gltf.data.materials)) if len(gltf.data.materials[i].blender_material) == 0]:
+                BlenderMaterial.create(gltf, mat_idx, None)
+                # Force material users (fake user)
+                bpy.data.materials[gltf.data.materials[mat_idx].blender_material[None]].use_fake_user = True
+
+            # If needed, create not used images
+            for img_idx in [i for i in range(len(gltf.data.images)) if gltf.data.images[i].blender_image_name is None]:
+                BlenderImage.create(gltf, img_idx)
+                # Force image users (fake user)
+                bpy.data.images[gltf.data.images[img_idx].blender_image_name].use_fake_user = True
+
 
     @staticmethod
     def set_convert_functions(gltf):
@@ -116,27 +132,20 @@ class BlenderGlTF():
         gltf.animation_object = False
 
         # Blender material
-        if gltf.data.materials:
-            for material in gltf.data.materials:
-                material.blender_material = {}
+        for material in gltf.data.materials if gltf.data.materials is not None else []:
+            material.blender_material = {}
 
         # images
-        if gltf.data.images is not None:
-            for img in gltf.data.images:
-                img.blender_image_name = None
+        for img in gltf.data.images if gltf.data.images is not None else []:
+            img.blender_image_name = None
 
-        if gltf.data.nodes is None:
-            # Something is wrong in file, there is no nodes
-            return
-
-        for node in gltf.data.nodes:
+        for node in gltf.data.nodes if gltf.data.nodes is not None else []:
             # Weight animation management
             node.weight_animation = False
 
         # Meshes initialization
-        if gltf.data.meshes:
-            for mesh in gltf.data.meshes:
-                mesh.blender_name = {}  # caches Blender mesh name
+        for mesh in gltf.data.meshes if gltf.data.meshes is not None else []:
+            mesh.blender_name = {}  # caches Blender mesh name
 
         if gltf.data.extensions_used is not None and "KHR_animation_pointer" in gltf.data.extensions_used:
             # Meshes initialization
@@ -211,7 +220,7 @@ class BlenderGlTF():
 
         # Dispatch animation
         if gltf.data.animations:
-            for node in gltf.data.nodes:
+            for node in gltf.data.nodes if gltf.data.nodes is not None else []:
                 node.animations = {}
 
             track_names = set()
@@ -240,7 +249,7 @@ class BlenderGlTF():
         # For KHR_animation_pointer, weight on meshes
         # We broadcast mesh weight animations to corresponding nodes
         if gltf.data.extensions_used is not None and "KHR_animation_pointer" in gltf.data.extensions_used:
-            for node in gltf.data.nodes:
+            for node in gltf.data.nodes if gltf.data.nodes is not None else []:
                 if node.mesh is not None and gltf.data.meshes[node.mesh].weight_animation_on_mesh is not None:
                     anim_idx, channel_idx = gltf.data.meshes[node.mesh].weight_animation_on_mesh
                     if anim_idx not in node.animations.keys():

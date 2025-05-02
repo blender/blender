@@ -5,7 +5,7 @@
 bl_info = {
     'name': 'glTF 2.0 format',
     'author': 'Julien Duroure, Scurest, Norbert Nopper, Urs Hanselmann, Moritz Becher, Benjamin Schmithüsen, Jim Eckerlein, and many external contributors',
-    "version": (4, 5, 18),
+    "version": (4, 5, 19),
     'blender': (4, 4, 0),
     'location': 'File > Import-Export',
     'description': 'Import-Export as glTF 2.0',
@@ -1926,6 +1926,12 @@ class ImportGLTF2(Operator, ConvertGLTF2_Base, ImportHelper):
         default=False,
     )
 
+    import_unused_materials: BoolProperty(
+        name='Import Unused Materials & Images',
+        description='Import materials & Images not assigned to any mesh',
+        default=False,
+    )
+
     import_select_created_objects: BoolProperty(
         name='Select Imported Objects',
         description='Select created objects at the end of the import',
@@ -2063,6 +2069,7 @@ def import_texture_panel(layout, operator):
     if body:
         body.prop(operator, 'import_pack_images')
         body.prop(operator, 'import_webp_texture')
+        body.prop(operator, 'import_unused_materials')
 
 
 def import_panel_user_extension(context, layout):
