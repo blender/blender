@@ -1118,15 +1118,14 @@ class USDExportTest(AbstractUSDTest):
         export_path = self.tempdir / "materialx.usda"
 
         # USD currently has an issue where embedded MaterialX graphs cause validation to fail.
-        # Skip validation and just run a regular export until this is fixed.
+        # Note: We use the below patch for now; keep this in mind if it causes issues in the future.
         # See: https://github.com/PixarAnimationStudios/OpenUSD/pull/3243
-        res = bpy.ops.wm.usd_export(
+        res = self.export_and_validate(
             filepath=str(export_path),
             export_materials=True,
             generate_materialx_network=True,
             evaluation_mode="RENDER",
         )
-        self.assertEqual({'FINISHED'}, res, f"Unable to export to {export_path}")
 
         stage = Usd.Stage.Open(str(export_path))
         material_prim = stage.GetPrimAtPath("/root/_materials/Material")
