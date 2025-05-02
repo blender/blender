@@ -112,7 +112,7 @@ static void grease_pencil_set_runtime_visibilities(ID &id_dst, GreasePencil &gre
 {
   using namespace blender::bke;
 
-  if (!DEG_is_evaluated_id(&id_dst) || !grease_pencil.adt) {
+  if (!DEG_is_evaluated(&id_dst) || !grease_pencil.adt) {
     return;
   }
 

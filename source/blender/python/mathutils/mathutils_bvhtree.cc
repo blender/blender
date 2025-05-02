@@ -1029,7 +1029,7 @@ static const Mesh *bvh_get_mesh(const char *funcname,
                                 const bool use_cage,
                                 bool *r_free_mesh)
 {
-  Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+  Object *ob_eval = DEG_get_evaluated(depsgraph, ob);
   /* we only need minimum mesh data for topology and vertex locations */
   const CustomData_MeshMasks data_masks = CD_MASK_BAREMESH;
   const bool use_render = DEG_get_mode(depsgraph) == DAG_EVAL_RENDER;

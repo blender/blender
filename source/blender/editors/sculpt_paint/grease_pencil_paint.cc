@@ -1064,7 +1064,7 @@ void PaintOperation::on_stroke_begin(const bContext &C, const InputSample &start
   View3D *view3d = CTX_wm_view3d(&C);
   Scene *scene = CTX_data_scene(&C);
   Object *object = CTX_data_active_object(&C);
-  Object *eval_object = DEG_get_evaluated_object(depsgraph, object);
+  Object *eval_object = DEG_get_evaluated(depsgraph, object);
   GreasePencil *grease_pencil = static_cast<GreasePencil *>(object->data);
 
   Paint *paint = &scene->toolsettings->gp_paint->paint;

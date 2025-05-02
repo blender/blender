@@ -179,7 +179,7 @@ std::optional<CurvesBrush3D> sample_curves_3d_brush(const Depsgraph &depsgraph,
   const Curves &curves_id = *static_cast<Curves *>(curves_object.data);
   const CurvesGeometry &curves = curves_id.geometry.wrap();
   Object *surface_object = curves_id.surface;
-  Object *surface_object_eval = DEG_get_evaluated_object(&depsgraph, surface_object);
+  Object *surface_object_eval = DEG_get_evaluated(&depsgraph, surface_object);
 
   float3 center_ray_start_wo, center_ray_end_wo;
   ED_view3d_win_to_segment_clipped(

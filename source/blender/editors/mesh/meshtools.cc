@@ -774,7 +774,7 @@ wmOperatorStatus ED_mesh_shapes_join_objects_exec(bContext *C,
   int keys_changed = 0;
   Scene *scene_eval = DEG_get_evaluated_scene(&depsgraph);
   for (Object *object : compatible_objects) {
-    Object *object_eval = DEG_get_evaluated_object(&depsgraph, object);
+    Object *object_eval = DEG_get_evaluated(&depsgraph, object);
     Mesh *deformed_mesh = blender::bke::mesh_get_eval_deform(
         &depsgraph, scene_eval, object_eval, &CD_MASK_BAREMESH);
     if (!deformed_mesh) {
@@ -1224,7 +1224,7 @@ bool ED_mesh_pick_face_vert(
   BLI_assert(mesh && GS(mesh->id.name) == ID_ME);
 
   if (ED_mesh_pick_face(C, ob, mval, dist_px, &face_index)) {
-    const Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+    const Object *ob_eval = DEG_get_evaluated(depsgraph, ob);
     const Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob_eval);
     if (!mesh_eval) {
       return false;
@@ -1402,7 +1402,7 @@ bool ED_mesh_pick_vert(
     (*r_index)--;
   }
   else {
-    const Object *ob_eval = DEG_get_evaluated_object(vc.depsgraph, ob);
+    const Object *ob_eval = DEG_get_evaluated(vc.depsgraph, ob);
     const Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob_eval);
     ARegion *region = vc.region;
     RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);

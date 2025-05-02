@@ -241,7 +241,7 @@ static int gizmo_preselect_elem_test_select(bContext *C, wmGizmo *gz, const int 
     {
       Object *ob = gz_ele->bases[gz_ele->base_index]->object;
       const Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-      const Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+      const Object *ob_eval = DEG_get_evaluated(depsgraph, ob);
       const Mesh *mesh_eval = BKE_object_get_editmesh_eval_cage(ob_eval);
       if (BKE_mesh_wrapper_vert_len(mesh_eval) == bm->totvert) {
         vert_positions = BKE_mesh_wrapper_vert_coords(mesh_eval);
@@ -406,7 +406,7 @@ static int gizmo_preselect_edgering_test_select(bContext *C, wmGizmo *gz, const 
     if (best.eed) {
       Object *ob = gz_ring->bases[gz_ring->base_index]->object;
       Scene *scene_eval = DEG_get_evaluated(vc.depsgraph, vc.scene);
-      Object *ob_eval = DEG_get_evaluated_object(vc.depsgraph, ob);
+      Object *ob_eval = DEG_get_evaluated(vc.depsgraph, ob);
       BMEditMesh *em_eval = BKE_editmesh_from_object(ob_eval);
       /* Re-allocate coords each update isn't ideal, however we can't be sure
        * the mesh hasn't been edited since last update. */

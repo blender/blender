@@ -1593,7 +1593,7 @@ static void rna_NodeTree_debug_lazy_function_graph(bNodeTree *tree,
 {
   *r_len = 0;
   *r_str = nullptr;
-  if (DEG_is_original_id(&tree->id)) {
+  if (DEG_is_original(tree)) {
     /* The graph is only stored on the evaluated data. */
     Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
     tree = DEG_get_evaluated(depsgraph, tree);
@@ -1613,7 +1613,7 @@ static void rna_NodeTree_debug_zone_body_lazy_function_graph(
   *r_len = 0;
   *r_str = nullptr;
   bNodeTree *tree = reinterpret_cast<bNodeTree *>(tree_id);
-  if (DEG_is_original_id(&tree->id)) {
+  if (DEG_is_original(tree)) {
     /* The graph is only stored on the evaluated data. */
     Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
     tree = DEG_get_evaluated(depsgraph, tree);

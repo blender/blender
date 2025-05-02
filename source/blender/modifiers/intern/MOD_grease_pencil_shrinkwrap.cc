@@ -193,7 +193,7 @@ static void ensure_shrinkwrap_cache_data(GreasePencilShrinkwrapModifierData &smd
     MEM_delete(smd.cache_data);
     smd.cache_data = nullptr;
   }
-  Object *target_ob = DEG_get_evaluated_object(ctx.depsgraph, smd.target);
+  Object *target_ob = DEG_get_evaluated(ctx.depsgraph, smd.target);
   Mesh *target_mesh = BKE_modifier_get_evaluated_mesh_from_evaluated_object(target_ob);
 
   smd.cache_data = MEM_new<ShrinkwrapTreeData>(__func__);

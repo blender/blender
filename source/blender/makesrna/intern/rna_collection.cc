@@ -98,12 +98,12 @@ static bool rna_collection_objects_edit_check(Collection *collection,
                                               ReportList *reports,
                                               Object *object)
 {
-  if (!DEG_is_original_id(&collection->id)) {
+  if (!DEG_is_original(collection)) {
     BKE_reportf(
         reports, RPT_ERROR, "Collection '%s' is not an original ID", collection->id.name + 2);
     return false;
   }
-  if (!DEG_is_original_id(&object->id)) {
+  if (!DEG_is_original(object)) {
     BKE_reportf(reports, RPT_ERROR, "Collection '%s' is not an original ID", object->id.name + 2);
     return false;
   }
@@ -226,12 +226,12 @@ static bool rna_collection_children_edit_check(Collection *collection,
                                                ReportList *reports,
                                                Collection *child)
 {
-  if (!DEG_is_original_id(&collection->id)) {
+  if (!DEG_is_original(collection)) {
     BKE_reportf(
         reports, RPT_ERROR, "Collection '%s' is not an original ID", collection->id.name + 2);
     return false;
   }
-  if (!DEG_is_original_id(&child->id)) {
+  if (!DEG_is_original(child)) {
     BKE_reportf(reports, RPT_ERROR, "Collection '%s' is not an original ID", child->id.name + 2);
     return false;
   }

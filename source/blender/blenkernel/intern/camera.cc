@@ -417,7 +417,7 @@ void BKE_camera_params_from_view3d(CameraParams *params,
 
   if (rv3d->persp == RV3D_CAMOB) {
     /* camera view */
-    const Object *ob_camera_eval = DEG_get_evaluated_object(depsgraph, v3d->camera);
+    const Object *ob_camera_eval = DEG_get_evaluated(depsgraph, v3d->camera);
     BKE_camera_params_from_object(params, ob_camera_eval);
 
     params->zoom = BKE_screen_view3d_zoom_to_fac(rv3d->camzoom);
@@ -898,7 +898,7 @@ bool BKE_camera_view_frame_fit_to_coords(const Depsgraph *depsgraph,
                                          float *r_scale)
 {
   Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
-  Object *camera_ob_eval = DEG_get_evaluated_object(depsgraph, camera_ob);
+  Object *camera_ob_eval = DEG_get_evaluated(depsgraph, camera_ob);
   CameraParams params;
   CameraViewFrameData data_cb;
 

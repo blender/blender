@@ -66,7 +66,7 @@ static bool is_selected_frame(const GreasePencil &grease_pencil, const int frame
 bool PDFExporter::export_scene(Scene &scene, StringRefNull filepath)
 {
   bool result = false;
-  Object &ob_eval = *DEG_get_evaluated_object(context_.depsgraph, params_.object);
+  Object &ob_eval = *DEG_get_evaluated(context_.depsgraph, params_.object);
 
   if (!create_document()) {
     return false;
@@ -125,7 +125,7 @@ void PDFExporter::export_grease_pencil_objects(const int frame_number)
     const Object *ob = info.object;
 
     /* Use evaluated version to get strokes with modifiers. */
-    const Object *ob_eval = DEG_get_evaluated_object(context_.depsgraph, ob);
+    const Object *ob_eval = DEG_get_evaluated(context_.depsgraph, ob);
     BLI_assert(ob_eval->type == OB_GREASE_PENCIL);
     const GreasePencil *grease_pencil_eval = static_cast<const GreasePencil *>(ob_eval->data);
 

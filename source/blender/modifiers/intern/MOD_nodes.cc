@@ -650,7 +650,7 @@ static void try_add_side_effect_node(const ModifierEvalContext &ctx,
       }
       /* The tree may sometimes be original and sometimes evaluated, depending on the source of the
        * compute context. */
-      const bNodeTree *eval_closure_tree = DEG_is_evaluated_id(&source_location->tree->id) ?
+      const bNodeTree *eval_closure_tree = DEG_is_evaluated(source_location->tree) ?
                                                source_location->tree :
                                                reinterpret_cast<const bNodeTree *>(
                                                    DEG_get_evaluated_id(

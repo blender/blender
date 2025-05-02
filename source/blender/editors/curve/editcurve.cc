@@ -7155,7 +7155,7 @@ static wmOperatorStatus match_texture_space_exec(bContext *C, wmOperator * /*op*
   (void)depsgraph;
 
   Object *object = CTX_data_active_object(C);
-  Object *object_eval = DEG_get_evaluated_object(depsgraph, object);
+  Object *object_eval = DEG_get_evaluated(depsgraph, object);
   Curve *curve = (Curve *)object->data;
   float min[3], max[3], texspace_size[3], texspace_location[3];
   int a;

@@ -455,7 +455,7 @@ static wmOperatorStatus visual_geometry_to_objects_exec(bContext *C, wmOperator 
   GeometryToObjectsBuilder op(bmain);
   Vector<Object *> all_new_top_level_objects;
   for (Object *src_ob_orig : selected_objects_orig) {
-    Object *src_ob_eval = DEG_get_evaluated_object(&depsgraph, src_ob_orig);
+    Object *src_ob_eval = DEG_get_evaluated(&depsgraph, src_ob_orig);
     bke::GeometrySet geometry_eval = bke::object_get_evaluated_geometry_set(*src_ob_eval);
     const ComponentObjects new_component_objects = op.get_objects_for_geometry(*src_ob_eval,
                                                                                geometry_eval);

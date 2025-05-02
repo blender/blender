@@ -116,7 +116,7 @@ static void modifier_skin_customdata_delete(Object *ob);
 static void object_force_modifier_update_for_bind(Depsgraph *depsgraph, Object *ob)
 {
   Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
-  Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+  Object *ob_eval = DEG_get_evaluated(depsgraph, ob);
   BKE_object_eval_reset(ob_eval);
   if (ob->type == OB_MESH) {
     Mesh *mesh_eval = blender::bke::mesh_create_eval_final(
@@ -911,7 +911,7 @@ static bool modifier_apply_shape(Main *bmain,
 
     Mesh *mesh_applied = create_applied_mesh_for_modifier(depsgraph,
                                                           DEG_get_evaluated_scene(depsgraph),
-                                                          DEG_get_evaluated_object(depsgraph, ob),
+                                                          DEG_get_evaluated(depsgraph, ob),
                                                           md_eval,
                                                           true,
                                                           false,
@@ -950,7 +950,7 @@ static bool apply_grease_pencil_for_modifier(Depsgraph *depsgraph,
   using namespace bke;
   using namespace bke::greasepencil;
   const ModifierTypeInfo *mti = BKE_modifier_get_info(ModifierType(md_eval->type));
-  Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+  Object *ob_eval = DEG_get_evaluated(depsgraph, ob);
   GreasePencil *grease_pencil_for_eval = ob_eval->runtime->data_orig ?
                                              reinterpret_cast<GreasePencil *>(
                                                  ob_eval->runtime->data_orig) :
@@ -1028,7 +1028,7 @@ static bool apply_grease_pencil_for_modifier_all_keyframes(Depsgraph *depsgraph,
     scene->r.cfra = eval_frame;
     BKE_scene_graph_update_for_newframe(depsgraph);
 
-    Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+    Object *ob_eval = DEG_get_evaluated(depsgraph, ob);
     GreasePencil *grease_pencil_for_eval = ob_eval->runtime->data_orig ?
                                                reinterpret_cast<GreasePencil *>(
                                                    ob_eval->runtime->data_orig) :
@@ -1112,7 +1112,7 @@ static bool modifier_apply_obdata(ReportList *reports,
       Mesh *mesh_applied = create_applied_mesh_for_modifier(
           depsgraph,
           DEG_get_evaluated_scene(depsgraph),
-          DEG_get_evaluated_object(depsgraph, ob),
+          DEG_get_evaluated(depsgraph, ob),
           md_eval,
           /* It's important not to apply virtual modifiers (e.g. shape-keys) because they're kept,
            * causing them to be applied twice, see: #97758. */
@@ -1139,7 +1139,7 @@ static bool modifier_apply_obdata(ReportList *reports,
     }
   }
   else if (ELEM(ob->type, OB_CURVES_LEGACY, OB_SURF)) {
-    Object *object_eval = DEG_get_evaluated_object(depsgraph, ob);
+    Object *object_eval = DEG_get_evaluated(depsgraph, ob);
     Curve *curve = static_cast<Curve *>(ob->data);
     Curve *curve_eval = static_cast<Curve *>(object_eval->data);
     ModifierEvalContext mectx = {depsgraph, object_eval, MOD_APPLY_TO_ORIGINAL};
@@ -1163,7 +1163,7 @@ static bool modifier_apply_obdata(ReportList *reports,
     DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
   }
   else if (ob->type == OB_LATTICE) {
-    Object *object_eval = DEG_get_evaluated_object(depsgraph, ob);
+    Object *object_eval = DEG_get_evaluated(depsgraph, ob);
     Lattice *lattice = static_cast<Lattice *>(ob->data);
     ModifierEvalContext mectx = {depsgraph, object_eval, MOD_APPLY_TO_ORIGINAL};
 
@@ -1309,7 +1309,7 @@ bool modifier_apply(Main *bmain,
 
   /* Get evaluated modifier, so object links pointer to evaluated data,
    * but still use original object it is applied to the original mesh. */
-  Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+  Object *ob_eval = DEG_get_evaluated(depsgraph, ob);
   ModifierData *md_eval = (ob_eval) ? BKE_modifiers_findby_name(ob_eval, md->name) : md;
 
   Depsgraph *apply_depsgraph = depsgraph;
@@ -1334,7 +1334,7 @@ bool modifier_apply(Main *bmain,
     apply_depsgraph = local_depsgraph;
 
     /* The evaluated object and modifier are now from the different dependency graph. */
-    ob_eval = DEG_get_evaluated_object(local_depsgraph, ob);
+    ob_eval = DEG_get_evaluated(local_depsgraph, ob);
     md_eval = BKE_modifiers_findby_name(ob_eval, md->name);
 
     /* Force mode on the evaluated modifier, enforcing the modifier evaluation in the apply()
@@ -2797,7 +2797,7 @@ static Object *modifier_skin_armature_create(Depsgraph *depsgraph, Main *bmain, 
   const Span<int2> me_edges = mesh->edges();
 
   Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
-  Object *ob_eval = DEG_get_evaluated_object(depsgraph, skin_ob);
+  Object *ob_eval = DEG_get_evaluated(depsgraph, skin_ob);
 
   const Mesh *me_eval_deform = blender::bke::mesh_get_eval_deform(
       depsgraph, scene_eval, ob_eval, &CD_MASK_BAREMESH);

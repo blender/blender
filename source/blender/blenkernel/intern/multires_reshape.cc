@@ -52,7 +52,7 @@ bool multiresModifier_reshapeFromObject(Depsgraph *depsgraph,
                                         Object *dst,
                                         Object *src)
 {
-  const Object *ob_eval = DEG_get_evaluated_object(depsgraph, src);
+  const Object *ob_eval = DEG_get_evaluated(depsgraph, src);
   if (!ob_eval) {
     return false;
   }

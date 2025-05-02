@@ -544,7 +544,7 @@ static void ignore_parent_tx(Main *bmain, Depsgraph *depsgraph, Scene *scene, Ob
   /* a change was made, adjust the children to compensate */
   LISTBASE_FOREACH (Object *, ob_child, &bmain->objects) {
     if (ob_child->parent == ob) {
-      Object *ob_child_eval = DEG_get_evaluated_object(depsgraph, ob_child);
+      Object *ob_child_eval = DEG_get_evaluated(depsgraph, ob_child);
       BKE_object_apply_mat4(ob_child_eval, ob_child_eval->object_to_world().ptr(), true, false);
       invert_m4_m4(ob_child->parentinv,
                    BKE_object_calc_parent(depsgraph, scene, ob_child_eval).ptr());
@@ -1076,7 +1076,7 @@ static wmOperatorStatus apply_objects_internal(bContext *C,
       }
     }
 
-    Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+    Object *ob_eval = DEG_get_evaluated(depsgraph, ob);
     BKE_object_transform_copy(ob_eval, ob);
 
     BKE_object_where_is_calc(depsgraph, scene, ob_eval);
@@ -1113,7 +1113,7 @@ static wmOperatorStatus visual_transform_apply_exec(bContext *C, wmOperator * /*
   bool changed = false;
 
   CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects) {
-    Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+    Object *ob_eval = DEG_get_evaluated(depsgraph, ob);
     BKE_object_where_is_calc(depsgraph, scene, ob_eval);
     BKE_object_apply_mat4(ob_eval, ob_eval->object_to_world().ptr(), true, true);
     BKE_object_transform_copy(ob, ob_eval);
@@ -1557,7 +1557,7 @@ static wmOperatorStatus object_origin_set_exec(bContext *C, wmOperator *op)
         arm->id.tag |= ID_TAG_DOIT;
         // do_inverse_offset = true; /* docenter_armature() handles this. */
 
-        Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+        Object *ob_eval = DEG_get_evaluated(depsgraph, ob);
         BKE_object_transform_copy(ob_eval, ob);
         BKE_armature_copy_bone_transforms(static_cast<bArmature *>(ob_eval->data),
                                           static_cast<bArmature *>(ob->data));
@@ -1767,7 +1767,7 @@ static wmOperatorStatus object_origin_set_exec(bContext *C, wmOperator *op)
 
       add_v3_v3(ob->loc, centn);
 
-      Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+      Object *ob_eval = DEG_get_evaluated(depsgraph, ob);
       BKE_object_transform_copy(ob_eval, ob);
       BKE_object_where_is_calc(depsgraph, scene, ob_eval);
       if (ob->type == OB_ARMATURE) {
@@ -1797,7 +1797,7 @@ static wmOperatorStatus object_origin_set_exec(bContext *C, wmOperator *op)
               centn, ob_other->object_to_world().ptr(), cent); /* omit translation part */
           add_v3_v3(ob_other->loc, centn);
 
-          Object *ob_other_eval = DEG_get_evaluated_object(depsgraph, ob_other);
+          Object *ob_other_eval = DEG_get_evaluated(depsgraph, ob_other);
           BKE_object_transform_copy(ob_other_eval, ob_other);
           BKE_object_where_is_calc(depsgraph, scene, ob_other_eval);
           if (ob_other->type == OB_ARMATURE) {

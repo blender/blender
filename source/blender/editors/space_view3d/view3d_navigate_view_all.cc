@@ -388,7 +388,7 @@ bool view3d_calc_point_in_selected_bounds(Depsgraph *depsgraph,
       continue;
     }
     Object *ob = base->object;
-    BLI_assert(!DEG_is_original_id(&ob->id));
+    BLI_assert(!DEG_is_original(ob));
 
     float3 min, max;
     view3d_object_calc_minmax(depsgraph, scene, ob, false, min, max);

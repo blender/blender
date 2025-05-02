@@ -256,7 +256,7 @@ class Grid : Overlay {
     }
 
     if (rv3d->persp == RV3D_CAMOB && v3d->camera && v3d->camera->type == OB_CAMERA) {
-      Object *camera_object = DEG_get_evaluated_object(state.depsgraph, v3d->camera);
+      Object *camera_object = DEG_get_evaluated(state.depsgraph, v3d->camera);
       v3d_clip_end_ = ((Camera *)(camera_object->data))->clip_end;
       grid_flag_ |= GRID_CAMERA;
       zneg_flag_ |= GRID_CAMERA;

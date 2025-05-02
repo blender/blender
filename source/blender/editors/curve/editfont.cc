@@ -418,7 +418,7 @@ static void text_update_edited(bContext *C, Object *obedit, const eEditFontMode 
     /* depsgraph runs above, but since we're not tagging for update, call direct */
     /* We need evaluated data here. */
     Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-    BKE_vfont_to_curve(DEG_get_evaluated_object(depsgraph, obedit), mode);
+    BKE_vfont_to_curve(DEG_get_evaluated(depsgraph, obedit), mode);
   }
 
   cu->curinfo = ef->textbufinfo[ef->pos ? ef->pos - 1 : 0];
@@ -1462,14 +1462,14 @@ static wmOperatorStatus move_cursor(bContext *C, int type, const bool select)
   /* apply vertical cursor motion to position immediately
    * otherwise the selection will lag behind */
   if (FO_CURS_IS_MOTION(cursmove)) {
-    BKE_vfont_to_curve(DEG_get_evaluated_object(depsgraph, obedit), eEditFontMode(cursmove));
+    BKE_vfont_to_curve(DEG_get_evaluated(depsgraph, obedit), eEditFontMode(cursmove));
     cursmove = FO_CURS;
   }
 
   if (select == 0) {
     if (ef->selstart) {
       ef->selstart = ef->selend = 0;
-      BKE_vfont_to_curve(DEG_get_evaluated_object(depsgraph, obedit), FO_SELCHANGE);
+      BKE_vfont_to_curve(DEG_get_evaluated(depsgraph, obedit), FO_SELCHANGE);
     }
   }
 
@@ -2031,7 +2031,7 @@ static int font_cursor_text_index_from_event(bContext *C, Object *obedit, const 
 static void font_cursor_set_apply(bContext *C, const wmEvent *event)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  Object *ob = DEG_get_evaluated_object(depsgraph, CTX_data_active_object(C));
+  Object *ob = DEG_get_evaluated(depsgraph, CTX_data_active_object(C));
   Curve *cu = static_cast<Curve *>(ob->data);
   EditFont *ef = cu->editfont;
   BLI_assert(ef->len >= 0);

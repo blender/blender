@@ -79,7 +79,7 @@ ViewerPathElem *viewer_path_elem_for_compute_context(const ComputeContext &compu
             context->closure_source_location())
     {
       elem->source_output_node_id = source->closure_output_node_id;
-      BLI_assert(DEG_is_original_id(&source->tree->id));
+      BLI_assert(DEG_is_original(source->tree));
       elem->source_node_tree = const_cast<bNodeTree *>(source->tree);
     }
     return &elem->base;

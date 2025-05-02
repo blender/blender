@@ -446,7 +446,7 @@ static PointerRNA rna_RenderEngine_camera_override_get(PointerRNA *ptr)
   /* TODO(sergey): Shouldn't engine point to an evaluated datablocks already? */
   if (engine->re) {
     Object *cam = RE_GetCamera(engine->re);
-    Object *cam_eval = DEG_get_evaluated_object(engine->depsgraph, cam);
+    Object *cam_eval = DEG_get_evaluated(engine->depsgraph, cam);
     return RNA_id_pointer_create(reinterpret_cast<ID *>(cam_eval));
   }
   else {

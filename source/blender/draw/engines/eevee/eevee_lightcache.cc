@@ -160,7 +160,7 @@ class LightBake {
     context_disable();
 
     for (auto i : original_probes_.index_range()) {
-      Object *eval_ob = DEG_get_evaluated_object(depsgraph_, original_probes_[i]);
+      Object *eval_ob = DEG_get_evaluated(depsgraph_, original_probes_[i]);
 
       instance_->light_bake_irradiance(
           *eval_ob,

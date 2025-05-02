@@ -468,7 +468,7 @@ static wmOperatorStatus weight_sample_invoke(bContext *C,
       BLI_findlink(BKE_object_defgroup_list(vc.obact), object_defgroup_nr));
 
   /* Collect visible drawings. */
-  const Object *ob_eval = DEG_get_evaluated_object(vc.depsgraph, vc.obact);
+  const Object *ob_eval = DEG_get_evaluated(vc.depsgraph, vc.obact);
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(vc.obact->data);
   const Vector<DrawingInfo> drawings = retrieve_visible_drawings(*vc.scene, grease_pencil, false);
 

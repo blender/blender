@@ -3318,7 +3318,7 @@ static void uv_select_tag_update_for_object(Depsgraph *depsgraph,
     WM_main_add_notifier(NC_GEOM | ND_SELECT, obedit->data);
   }
   else {
-    Object *obedit_eval = DEG_get_evaluated_object(depsgraph, obedit);
+    Object *obedit_eval = DEG_get_evaluated(depsgraph, obedit);
     BKE_mesh_batch_cache_dirty_tag(static_cast<Mesh *>(obedit_eval->data),
                                    BKE_MESH_BATCH_DIRTY_UVEDIT_SELECT);
     /* Only for region redraw. */

@@ -513,7 +513,7 @@ void ED_view3d_persp_switch_from_camera(const Depsgraph *depsgraph,
   BLI_assert(persp != RV3D_CAMOB);
 
   if (v3d->camera) {
-    Object *ob_camera_eval = DEG_get_evaluated_object(depsgraph, v3d->camera);
+    Object *ob_camera_eval = DEG_get_evaluated(depsgraph, v3d->camera);
     rv3d->dist = ED_view3d_offset_distance(
         ob_camera_eval->object_to_world().ptr(), rv3d->ofs, VIEW3D_DIST_FALLBACK);
     ED_view3d_from_object(ob_camera_eval, rv3d->ofs, rv3d->viewquat, &rv3d->dist, nullptr);
@@ -604,7 +604,7 @@ void ED_view3d_camera_lock_init_ex(const Depsgraph *depsgraph,
                                    const bool calc_dist)
 {
   if (ED_view3d_camera_lock_check(v3d, rv3d)) {
-    Object *ob_camera_eval = DEG_get_evaluated_object(depsgraph, v3d->camera);
+    Object *ob_camera_eval = DEG_get_evaluated(depsgraph, v3d->camera);
     if (calc_dist) {
       /* using a fallback dist is OK here since ED_view3d_from_object() compensates for it */
       rv3d->dist = ED_view3d_offset_distance(
@@ -638,8 +638,8 @@ bool ED_view3d_camera_lock_sync(const Depsgraph *depsgraph, View3D *v3d, RegionV
       while (root_parent->parent) {
         root_parent = root_parent->parent;
       }
-      Object *ob_camera_eval = DEG_get_evaluated_object(depsgraph, v3d->camera);
-      Object *root_parent_eval = DEG_get_evaluated_object(depsgraph, root_parent);
+      Object *ob_camera_eval = DEG_get_evaluated(depsgraph, v3d->camera);
+      Object *root_parent_eval = DEG_get_evaluated(depsgraph, root_parent);
 
       ED_view3d_to_m4(view_mat, rv3d->ofs, rv3d->viewquat, rv3d->dist);
 
@@ -1304,7 +1304,7 @@ float ED_view3d_radius_to_dist(const View3D *v3d,
       BKE_camera_params_init(&params);
       params.clip_start = v3d->clip_start;
       params.clip_end = v3d->clip_end;
-      Object *camera_eval = DEG_get_evaluated_object(depsgraph, v3d->camera);
+      Object *camera_eval = DEG_get_evaluated(depsgraph, v3d->camera);
       BKE_camera_params_from_object(&params, camera_eval);
 
       lens = params.lens;
@@ -1655,7 +1655,7 @@ void ED_view3d_to_object(const Depsgraph *depsgraph,
   float mat[4][4];
   ED_view3d_to_m4(mat, ofs, quat, dist);
 
-  Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+  Object *ob_eval = DEG_get_evaluated(depsgraph, ob);
   BKE_object_apply_mat4_ex(ob, mat, ob_eval->parent, ob_eval->parentinv, true);
 }
 
@@ -1666,7 +1666,7 @@ static bool view3d_camera_to_view_selected_impl(Main *bmain,
                                                 float *r_clip_start,
                                                 float *r_clip_end)
 {
-  Object *camera_ob_eval = DEG_get_evaluated_object(depsgraph, camera_ob);
+  Object *camera_ob_eval = DEG_get_evaluated(depsgraph, camera_ob);
   float co[3]; /* the new location to apply */
   float scale; /* only for ortho cameras */
 
@@ -1727,7 +1727,7 @@ bool ED_view3d_camera_to_view_selected_with_set_clipping(Main *bmain,
     ((Camera *)camera_ob->data)->clip_end = clip_end;
 
     /* TODO: Support update via #ID_RECALC_PARAMETERS. */
-    Object *camera_ob_eval = DEG_get_evaluated_object(depsgraph, camera_ob);
+    Object *camera_ob_eval = DEG_get_evaluated(depsgraph, camera_ob);
     ((Camera *)camera_ob_eval->data)->clip_start = clip_start;
     ((Camera *)camera_ob_eval->data)->clip_end = clip_end;
 

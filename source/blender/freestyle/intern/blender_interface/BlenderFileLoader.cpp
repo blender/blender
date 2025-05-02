@@ -436,7 +436,7 @@ void BlenderFileLoader::insertShapeNode(Object *ob, Mesh *mesh, int id)
                                                                          CD_FREESTYLE_FACE);
 
   // Compute view matrix
-  Object *ob_camera_eval = DEG_get_evaluated_object(_depsgraph, RE_GetCamera(_re));
+  Object *ob_camera_eval = DEG_get_evaluated(_depsgraph, RE_GetCamera(_re));
   float viewinv[4][4], viewmat[4][4];
   RE_GetCameraModelMatrix(_re, ob_camera_eval, viewinv);
   invert_m4_m4(viewmat, viewinv);

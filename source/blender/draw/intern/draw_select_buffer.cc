@@ -438,7 +438,7 @@ uint DRW_select_buffer_context_offset_for_object_elem(Depsgraph *depsgraph,
 {
   SELECTID_Context *select_ctx = DRW_select_engine_context_get();
 
-  Object *ob_eval = DEG_get_evaluated_object(depsgraph, object);
+  Object *ob_eval = DEG_get_evaluated(depsgraph, object);
 
   const ElemIndexRanges base_ofs = select_ctx->elem_ranges.lookup_default(ob_eval,
                                                                           ElemIndexRanges{});
@@ -472,7 +472,7 @@ void DRW_select_buffer_context_create(Depsgraph *depsgraph,
 
   for (const int i : bases.index_range()) {
     Object *obj = bases[i]->object;
-    select_ctx->objects[i] = DEG_get_evaluated_object(depsgraph, obj);
+    select_ctx->objects[i] = DEG_get_evaluated(depsgraph, obj);
   }
 
   select_ctx->select_mode = select_mode;

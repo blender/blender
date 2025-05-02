@@ -41,7 +41,7 @@ blender::bke::subdiv::Subdiv *multires_reshape_create_subdiv(Depsgraph *depsgrap
 
   if (depsgraph != nullptr) {
     Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
-    Object *object_eval = DEG_get_evaluated_object(depsgraph, object);
+    Object *object_eval = DEG_get_evaluated(depsgraph, object);
     base_mesh = mesh_get_eval_deform(depsgraph, scene_eval, object_eval, &CD_MASK_BAREMESH);
   }
   else {

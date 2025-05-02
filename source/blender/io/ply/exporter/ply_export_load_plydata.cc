@@ -343,7 +343,7 @@ void load_plydata(PlyData &plyData, Depsgraph *depsgraph, const PLYExportParams 
       continue;
     }
 
-    Object *obj_eval = DEG_get_evaluated_object(depsgraph, object);
+    Object *obj_eval = DEG_get_evaluated(depsgraph, object);
     const Mesh *mesh = export_params.apply_modifiers ? BKE_object_get_evaluated_mesh(obj_eval) :
                                                        BKE_object_get_pre_modified_mesh(obj_eval);
 

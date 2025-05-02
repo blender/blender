@@ -460,7 +460,7 @@ static wmOperatorStatus dynamicpaint_bake_exec(bContext *C, wmOperator *op)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Object *ob_ = blender::ed::object::context_active_object(C);
-  Object *object_eval = DEG_get_evaluated_object(depsgraph, ob_);
+  Object *object_eval = DEG_get_evaluated(depsgraph, ob_);
   Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
 
   DynamicPaintSurface *surface;

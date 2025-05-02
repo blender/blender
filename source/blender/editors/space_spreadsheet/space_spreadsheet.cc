@@ -318,7 +318,7 @@ Object *spreadsheet_get_object_eval(const SpaceSpreadsheet *sspreadsheet,
     return nullptr;
   }
 
-  Object *object_eval = DEG_get_evaluated_object(depsgraph, object_orig);
+  Object *object_eval = DEG_get_evaluated(depsgraph, object_orig);
   if (object_eval == nullptr) {
     return nullptr;
   }

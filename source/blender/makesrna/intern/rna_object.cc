@@ -1330,7 +1330,7 @@ static PointerRNA rna_MaterialSlot_material_get(PointerRNA *ptr)
   Material *ma;
   const int index = rna_MaterialSlot_index(ptr);
 
-  if (DEG_is_evaluated_object(ob)) {
+  if (DEG_is_evaluated(ob)) {
     ma = BKE_object_material_get_eval(ob, index + 1);
   }
   else {
@@ -1443,7 +1443,7 @@ static std::optional<std::string> rna_MaterialSlot_path(const PointerRNA *ptr)
 static int rna_Object_material_slots_length(PointerRNA *ptr)
 {
   Object *ob = reinterpret_cast<Object *>(ptr->owner_id);
-  if (DEG_is_evaluated_object(ob)) {
+  if (DEG_is_evaluated(ob)) {
     return BKE_object_material_count_eval(ob);
   }
   else {

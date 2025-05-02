@@ -2533,7 +2533,7 @@ static void lineart_object_load_single_instance(LineartData *ld,
 
   obi->original_me = use_mesh;
   obi->original_ob = (ref_ob->id.orig_id ? (Object *)ref_ob->id.orig_id : ref_ob);
-  obi->original_ob_eval = DEG_get_evaluated_object(depsgraph, obi->original_ob);
+  obi->original_ob_eval = DEG_get_evaluated(depsgraph, obi->original_ob);
   lineart_geometry_load_assign_thread(olti, obi, thread_count, use_mesh->faces_num);
 }
 
@@ -2618,7 +2618,7 @@ void lineart_main_load_geometries(Depsgraph *depsgraph,
 
     obindex++;
 
-    Object *eval_ob = DEG_get_evaluated_object(depsgraph, ob);
+    Object *eval_ob = DEG_get_evaluated(depsgraph, ob);
 
     if (!eval_ob) {
       continue;
@@ -5018,8 +5018,7 @@ bool MOD_lineart_compute_feature_lines_v3(Depsgraph *depsgraph,
   bool use_render_camera_override = false;
   if (lmd.calculation_flags & MOD_LINEART_USE_CUSTOM_CAMERA) {
     if (!lmd.source_camera ||
-        (lineart_camera = DEG_get_evaluated_object(depsgraph, lmd.source_camera))->type !=
-            OB_CAMERA)
+        (lineart_camera = DEG_get_evaluated(depsgraph, lmd.source_camera))->type != OB_CAMERA)
     {
       return false;
     }
@@ -5027,7 +5026,7 @@ bool MOD_lineart_compute_feature_lines_v3(Depsgraph *depsgraph,
   else {
     Render *render = RE_GetSceneRender(scene);
     if (render && render->camera_override) {
-      lineart_camera = DEG_get_evaluated_object(depsgraph, render->camera_override);
+      lineart_camera = DEG_get_evaluated(depsgraph, render->camera_override);
       use_render_camera_override = true;
     }
     if (!lineart_camera) {
@@ -5425,7 +5424,7 @@ void MOD_lineart_gpencil_generate_v3(const LineartCache *cache,
     int src_deform_group = -1;
     Mesh *src_mesh = nullptr;
     if (source_vgname && vgroup_weights) {
-      Object *eval_ob = DEG_get_evaluated_object(depsgraph, cwi.chain->object_ref);
+      Object *eval_ob = DEG_get_evaluated(depsgraph, cwi.chain->object_ref);
       if (eval_ob && eval_ob->type == OB_MESH) {
         src_mesh = BKE_object_get_evaluated_mesh(eval_ob);
         src_dvert = src_mesh->deform_verts_for_write().data();

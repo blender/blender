@@ -1181,7 +1181,7 @@ void BKE_object_data_transfer_layout(Depsgraph *depsgraph,
   me_dst = static_cast<Mesh *>(ob_dst->data);
 
   /* Get source evaluated mesh. */
-  const Object *ob_src_eval = DEG_get_evaluated_object(depsgraph, ob_src);
+  const Object *ob_src_eval = DEG_get_evaluated(depsgraph, ob_src);
   const Mesh *me_src = BKE_object_get_evaluated_mesh(ob_src_eval);
   if (!me_src) {
     return;
@@ -1378,7 +1378,7 @@ bool BKE_object_data_transfer_ex(Depsgraph *depsgraph,
     me_src = BKE_modifier_get_evaluated_mesh_from_evaluated_object(ob_src);
   }
   else {
-    const Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob_src);
+    const Object *ob_eval = DEG_get_evaluated(depsgraph, ob_src);
     me_src = BKE_object_get_evaluated_mesh(ob_eval);
   }
   if (!me_src) {

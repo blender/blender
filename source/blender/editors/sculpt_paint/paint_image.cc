@@ -939,7 +939,7 @@ void ED_object_texture_paint_mode_enter_ex(Main &bmain,
   BKE_scene_graph_evaluated_ensure(&depsgraph, &bmain);
 
   /* Set pivot to bounding box center. */
-  Object *ob_eval = DEG_get_evaluated_object(&depsgraph, &ob);
+  Object *ob_eval = DEG_get_evaluated(&depsgraph, &ob);
   paint_init_pivot(ob_eval ? ob_eval : &ob, &scene);
 
   WM_main_add_notifier(NC_SCENE | ND_MODE, &scene);

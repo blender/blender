@@ -242,7 +242,7 @@ static std::optional<Bounds<float2>> compute_objects_bounds(
   std::optional<Bounds<float2>> full_bounds = std::nullopt;
 
   for (const ObjectInfo &info : objects) {
-    const Object *object_eval = DEG_get_evaluated_object(&depsgraph, info.object);
+    const Object *object_eval = DEG_get_evaluated(&depsgraph, info.object);
     const GreasePencil &grease_pencil_eval = *static_cast<GreasePencil *>(object_eval->data);
 
     for (const int layer_index : grease_pencil_eval.layers().index_range()) {

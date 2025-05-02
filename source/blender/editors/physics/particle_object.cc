@@ -585,7 +585,7 @@ void PARTICLE_OT_dupliob_move_down(wmOperatorType *ot)
 
 static void disconnect_hair(Depsgraph *depsgraph, Scene *scene, Object *ob, ParticleSystem *psys)
 {
-  Object *object_eval = DEG_get_evaluated_object(depsgraph, ob);
+  Object *object_eval = DEG_get_evaluated(depsgraph, ob);
   ParticleSystem *psys_eval = psys_eval_get(depsgraph, ob, psys);
   ParticleSystemModifierData *psmd_eval = psys_get_modifier(object_eval, psys_eval);
   ParticleEditSettings *pset = PE_settings(scene);
@@ -696,7 +696,7 @@ static bool remap_hair_emitter(Depsgraph *depsgraph,
                                bool from_global,
                                bool to_global)
 {
-  Object *object_eval = DEG_get_evaluated_object(depsgraph, ob);
+  Object *object_eval = DEG_get_evaluated(depsgraph, ob);
   ParticleSystem *psys_eval = psys_eval_get(depsgraph, ob, psys);
   ParticleSystemModifierData *target_psmd = psys_get_modifier(object_eval, psys_eval);
   ParticleData *pa, *tpa;

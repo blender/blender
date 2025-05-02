@@ -404,7 +404,7 @@ static void add_verts_to_dgroups(ReportList *reports,
 
   if (wpmode) {
     /* if in weight paint mode, use final verts from evaluated mesh */
-    const Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+    const Object *ob_eval = DEG_get_evaluated(depsgraph, ob);
     const Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob_eval);
     if (mesh_eval) {
       BKE_mesh_foreach_mapped_vert_coords_get(mesh_eval, verts, mesh->verts_num);

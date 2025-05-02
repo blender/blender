@@ -950,8 +950,7 @@ static auto fit_strokes_to_view(const ViewContext &view_context,
       return std::make_tuple(float2(1.0f), float2(0.0f), min_image_size, float3x3::identity());
 
     case FillToolFitMethod::FitToView: {
-      const Object &object_eval = *DEG_get_evaluated_object(view_context.depsgraph,
-                                                            view_context.obact);
+      const Object &object_eval = *DEG_get_evaluated(view_context.depsgraph, view_context.obact);
       /* Zoom and offset based on bounds, to fit all strokes within the render. */
       const std::optional<Bounds<float2>> boundary_bounds = get_boundary_bounds(
           *view_context.region,
@@ -1133,7 +1132,7 @@ bke::CurvesGeometry fill_strokes(const ViewContext &view_context,
   Object &object = *view_context.obact;
 
   BLI_assert(object.type == OB_GREASE_PENCIL);
-  const Object &object_eval = *DEG_get_evaluated_object(&depsgraph, &object);
+  const Object &object_eval = *DEG_get_evaluated(&depsgraph, &object);
 
   /* Zoom and offset based on bounds, to fit all strokes within the render. */
   const bool uniform_zoom = true;

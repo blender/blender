@@ -411,7 +411,7 @@ static void panel_draw(const bContext *C, Panel *panel)
             RPT_("Sharp edges or custom normals detected, disabling GPU subdivision"),
             ICON_INFO);
   }
-  else if (Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob)) {
+  else if (Object *ob_eval = DEG_get_evaluated(depsgraph, ob)) {
     if (ModifierData *md_eval = BKE_modifiers_findby_name(ob_eval, smd->modifier.name)) {
       if (md_eval->type == eModifierType_Subsurf) {
         SubsurfRuntimeData *runtime_data = (SubsurfRuntimeData *)md_eval->runtime;

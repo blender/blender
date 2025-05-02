@@ -269,9 +269,8 @@ void Instance::update_eval_members()
 {
   scene = DEG_get_evaluated_scene(depsgraph);
   view_layer = DEG_get_evaluated_view_layer(depsgraph);
-  camera_eval_object = (camera_orig_object) ?
-                           DEG_get_evaluated_object(depsgraph, camera_orig_object) :
-                           nullptr;
+  camera_eval_object = (camera_orig_object) ? DEG_get_evaluated(depsgraph, camera_orig_object) :
+                                              nullptr;
 }
 
 /** \} */

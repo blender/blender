@@ -1152,7 +1152,7 @@ bool EDBM_unified_findnearest_from_raycast(ViewContext *vc,
 
       Span<float3> vert_positions;
       {
-        const Object *obedit_eval = DEG_get_evaluated_object(vc->depsgraph, obedit);
+        const Object *obedit_eval = DEG_get_evaluated(vc->depsgraph, obedit);
         const Mesh *mesh_eval = BKE_object_get_editmesh_eval_cage(obedit_eval);
         if (BKE_mesh_wrapper_vert_len(mesh_eval) == bm->totvert) {
           vert_positions = BKE_mesh_wrapper_vert_coords(mesh_eval);

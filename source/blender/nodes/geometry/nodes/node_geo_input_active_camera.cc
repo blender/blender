@@ -17,7 +17,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 static void node_exec(GeoNodeExecParams params)
 {
   const Scene *scene = DEG_get_evaluated_scene(params.depsgraph());
-  Object *camera = DEG_get_evaluated_object(params.depsgraph(), scene->camera);
+  Object *camera = DEG_get_evaluated(params.depsgraph(), scene->camera);
   params.set_output("Active Camera", camera);
 }
 

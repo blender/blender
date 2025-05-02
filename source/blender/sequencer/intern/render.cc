@@ -1471,7 +1471,7 @@ static ImBuf *seq_render_scene_strip(const RenderData *context,
     /* opengl offscreen render */
     depsgraph = BKE_scene_ensure_depsgraph(context->bmain, scene, view_layer);
     BKE_scene_graph_update_for_newframe(depsgraph);
-    Object *camera_eval = DEG_get_evaluated_object(depsgraph, camera);
+    Object *camera_eval = DEG_get_evaluated(depsgraph, camera);
     ibuf = view3d_fn(
         /* set for OpenGL render (nullptr when scrubbing) */
         depsgraph,

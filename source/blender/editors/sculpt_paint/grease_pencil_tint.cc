@@ -117,7 +117,7 @@ void TintOperation::on_stroke_begin(const bContext &C, const InputSample & /*sta
 
   ARegion *region = CTX_wm_region(&C);
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(&C);
-  Object *ob_eval = DEG_get_evaluated_object(depsgraph, obact);
+  Object *ob_eval = DEG_get_evaluated(depsgraph, obact);
 
   screen_positions_per_drawing_.reinitialize(drawings_.size());
 

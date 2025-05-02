@@ -292,7 +292,7 @@ class Cameras : Overlay {
     const RegionView3D *rv3d = state.rv3d;
 
     const Camera &cam = DRW_object_get_data_for_drawing<Camera>(*ob);
-    const Object *camera_object = DEG_get_evaluated_object(state.depsgraph, v3d->camera);
+    const Object *camera_object = DEG_get_evaluated(state.depsgraph, v3d->camera);
     const bool is_select = res.is_selection();
     const bool is_active = (ob == camera_object);
     const bool is_camera_view = (is_active && (rv3d->persp == RV3D_CAMOB));
@@ -560,7 +560,7 @@ class Cameras : Overlay {
   {
     Object *ob = ob_ref.object;
     const Camera &cam = DRW_object_get_data_for_drawing<Camera>(*ob_ref.object);
-    const Object *camera_object = DEG_get_evaluated_object(state.depsgraph, state.v3d->camera);
+    const Object *camera_object = DEG_get_evaluated(state.depsgraph, state.v3d->camera);
 
     const bool is_active = ob_ref.object == camera_object;
     const bool is_camera_view = (is_active && (state.rv3d->persp == RV3D_CAMOB));

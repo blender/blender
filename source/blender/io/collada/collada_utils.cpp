@@ -271,7 +271,7 @@ Mesh *bc_get_mesh_copy(BlenderContext &blender_context,
     }
 #else
     Depsgraph *depsgraph = blender_context.get_depsgraph();
-    const Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+    const Object *ob_eval = DEG_get_evaluated(depsgraph, ob);
     tmpmesh = BKE_object_get_evaluated_mesh(ob_eval);
 #endif
   }

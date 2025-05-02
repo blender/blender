@@ -530,7 +530,7 @@ static bool uv_shortest_path_pick_ex(Scene *scene,
       DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_SELECT);
     }
     else {
-      Object *obedit_eval = DEG_get_evaluated_object(depsgraph, obedit);
+      Object *obedit_eval = DEG_get_evaluated(depsgraph, obedit);
       BKE_mesh_batch_cache_dirty_tag(static_cast<Mesh *>(obedit_eval->data),
                                      BKE_MESH_BATCH_DIRTY_UVEDIT_SELECT);
     }

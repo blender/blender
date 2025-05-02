@@ -24,7 +24,7 @@ OBJCurve::OBJCurve(const Depsgraph *depsgraph,
                    Object *curve_object)
     : export_object_eval_(curve_object)
 {
-  export_object_eval_ = DEG_get_evaluated_object(depsgraph, curve_object);
+  export_object_eval_ = DEG_get_evaluated(depsgraph, curve_object);
   export_curve_ = static_cast<Curve *>(export_object_eval_->data);
   set_world_axes_transform(export_params.forward_axis, export_params.up_axis);
 }

@@ -288,7 +288,7 @@ GreasePencilStrokeParams GreasePencilStrokeParams::from_context(
     const float multi_frame_falloff,
     bke::greasepencil::Drawing &drawing)
 {
-  Object &ob_eval = *DEG_get_evaluated_object(&depsgraph, &object);
+  Object &ob_eval = *DEG_get_evaluated(&depsgraph, &object);
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object.data);
 
   const bke::greasepencil::Layer &layer = grease_pencil.layer(layer_index);
@@ -459,7 +459,7 @@ void GreasePencilStrokeOperationCommon::foreach_editable_drawing_with_automask(
   ARegion &region = *CTX_wm_region(&C);
   RegionView3D &rv3d = *CTX_wm_region_view3d(&C);
   Object &object = *CTX_data_active_object(&C);
-  Object &object_eval = *DEG_get_evaluated_object(&depsgraph, &object);
+  Object &object_eval = *DEG_get_evaluated(&depsgraph, &object);
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object.data);
 
   std::atomic<bool> changed = false;
@@ -540,7 +540,7 @@ void GreasePencilStrokeOperationCommon::foreach_editable_drawing(
   ARegion &region = *CTX_wm_region(&C);
   RegionView3D &rv3d = *CTX_wm_region_view3d(&C);
   Object &object = *CTX_data_active_object(&C);
-  Object &object_eval = *DEG_get_evaluated_object(&depsgraph, &object);
+  Object &object_eval = *DEG_get_evaluated(&depsgraph, &object);
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object.data);
 
   bool changed = false;

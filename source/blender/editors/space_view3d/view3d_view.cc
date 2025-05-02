@@ -395,7 +395,7 @@ void view3d_viewmatrix_set(const Depsgraph *depsgraph,
 {
   if (rv3d->persp == RV3D_CAMOB) { /* obs/camera */
     if (v3d->camera) {
-      Object *ob_camera_eval = DEG_get_evaluated_object(depsgraph, v3d->camera);
+      Object *ob_camera_eval = DEG_get_evaluated(depsgraph, v3d->camera);
       obmat_to_viewmat(rv3d, ob_camera_eval);
     }
     else {
@@ -416,7 +416,7 @@ void view3d_viewmatrix_set(const Depsgraph *depsgraph,
       rv3d->viewmat[3][2] -= rv3d->dist;
     }
     if (v3d->ob_center) {
-      Object *ob_eval = DEG_get_evaluated_object(depsgraph, v3d->ob_center);
+      Object *ob_eval = DEG_get_evaluated(depsgraph, v3d->ob_center);
       float vec[3];
 
       copy_v3_v3(vec, ob_eval->object_to_world().location());
@@ -842,7 +842,7 @@ static bool view3d_localview_init(const Depsgraph *depsgraph,
         base->local_view_bits &= ~local_view_bit;
       }
       FOREACH_BASE_IN_EDIT_MODE_BEGIN (scene, view_layer, v3d, base_iter) {
-        Object *ob_eval = DEG_get_evaluated_object(depsgraph, base_iter->object);
+        Object *ob_eval = DEG_get_evaluated(depsgraph, base_iter->object);
         BKE_object_minmax(ob_eval ? ob_eval : base_iter->object, min, max);
         base_iter->local_view_bits |= local_view_bit;
         changed = true;
@@ -853,7 +853,7 @@ static bool view3d_localview_init(const Depsgraph *depsgraph,
       BKE_view_layer_synced_ensure(scene, view_layer);
       LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
         if (BASE_SELECTED(v3d, base)) {
-          Object *ob_eval = DEG_get_evaluated_object(depsgraph, base->object);
+          Object *ob_eval = DEG_get_evaluated(depsgraph, base->object);
           BKE_object_minmax(ob_eval ? ob_eval : base->object, min, max);
           base->local_view_bits |= local_view_bit;
           changed = true;

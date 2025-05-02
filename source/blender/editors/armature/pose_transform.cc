@@ -393,7 +393,7 @@ static wmOperatorStatus apply_armature_pose2bones_exec(bContext *C, wmOperator *
   Scene *scene = CTX_data_scene(C);
   /* must be active object, not edit-object */
   Object *ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
-  const Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+  const Object *ob_eval = DEG_get_evaluated(depsgraph, ob);
   bArmature *arm = BKE_armature_from_object(ob);
   bPose *pose;
   blender::Vector<PointerRNA> selected_bones;
@@ -1187,7 +1187,7 @@ static wmOperatorStatus pose_clear_transform_generic_exec(bContext *C,
   View3D *v3d = CTX_wm_view3d(C);
   FOREACH_OBJECT_IN_MODE_BEGIN (scene, view_layer, v3d, OB_ARMATURE, OB_MODE_POSE, ob_iter) {
     /* XXX: UGLY HACK (for auto-key + clear transforms). */
-    Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob_iter);
+    Object *ob_eval = DEG_get_evaluated(depsgraph, ob_iter);
     blender::Vector<PointerRNA> sources;
     bool changed = false;
 

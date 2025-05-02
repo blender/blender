@@ -504,7 +504,7 @@ void BKE_mesh_to_curve_nurblist(const Mesh *mesh, ListBase *nurblist, const int 
 
 void BKE_mesh_to_curve(Main *bmain, Depsgraph *depsgraph, Scene * /*scene*/, Object *ob)
 {
-  const Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+  const Object *ob_eval = DEG_get_evaluated(depsgraph, ob);
   if (!ob_eval) {
     return;
   }
@@ -535,7 +535,7 @@ void BKE_mesh_to_curve(Main *bmain, Depsgraph *depsgraph, Scene * /*scene*/, Obj
 void BKE_mesh_to_pointcloud(Main *bmain, Depsgraph *depsgraph, Scene * /*scene*/, Object *ob)
 {
   BLI_assert(ob->type == OB_MESH);
-  const Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+  const Object *ob_eval = DEG_get_evaluated(depsgraph, ob);
   if (!ob_eval) {
     return;
   }
@@ -564,7 +564,7 @@ void BKE_pointcloud_to_mesh(Main *bmain, Depsgraph *depsgraph, Scene * /*scene*/
 {
   BLI_assert(ob->type == OB_POINTCLOUD);
 
-  const Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+  const Object *ob_eval = DEG_get_evaluated(depsgraph, ob);
   const blender::bke::GeometrySet geometry = blender::bke::object_get_evaluated_geometry_set(
       *ob_eval);
 
@@ -717,7 +717,7 @@ static Mesh *mesh_new_from_curve_type_object(const Object *object)
 {
   /* If the object is evaluated, it should either have an evaluated mesh or curve data already.
    * The mesh can be duplicated, or the curve converted to wire mesh edges. */
-  if (DEG_is_evaluated_object(object)) {
+  if (DEG_is_evaluated(object)) {
     return mesh_new_from_evaluated_curve_type_object(object);
   }
 
@@ -754,7 +754,7 @@ static Mesh *mesh_new_from_mball_object(Object *object)
    * ball).
    *
    * Create empty mesh so script-authors don't run into None objects. */
-  if (!DEG_is_evaluated_object(object)) {
+  if (!DEG_is_evaluated(object)) {
     return (Mesh *)BKE_id_new_nomain(ID_ME, ((ID *)object->data)->name + 2);
   }
 
@@ -790,7 +790,7 @@ static Mesh *mesh_new_from_mesh_object_with_layers(Depsgraph *depsgraph,
                                                    const bool preserve_origindex,
                                                    const bool ensure_subdivision)
 {
-  if (DEG_is_original_id(&object->id)) {
+  if (DEG_is_original(object)) {
     return mesh_new_from_mesh(object, (Mesh *)object->data, ensure_subdivision);
   }
 

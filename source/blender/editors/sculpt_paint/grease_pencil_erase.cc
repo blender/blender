@@ -918,7 +918,7 @@ struct EraseOperationExecutor {
     Depsgraph *depsgraph = CTX_data_depsgraph_pointer(&C);
     ARegion *region = CTX_wm_region(&C);
     Object *obact = CTX_data_active_object(&C);
-    Object *ob_eval = DEG_get_evaluated_object(depsgraph, obact);
+    Object *ob_eval = DEG_get_evaluated(depsgraph, obact);
 
     Paint *paint = &scene->toolsettings->gp_paint->paint;
     Brush *brush = BKE_paint_brush(paint);

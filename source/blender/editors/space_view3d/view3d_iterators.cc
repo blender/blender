@@ -293,7 +293,7 @@ void meshobject_foreachScreenVert(const ViewContext *vc,
   BLI_assert((clip_flag & V3D_PROJ_TEST_CLIP_CONTENT) == 0);
   foreachScreenObjectVert_userData data;
 
-  const Object *ob_eval = DEG_get_evaluated_object(vc->depsgraph, vc->obact);
+  const Object *ob_eval = DEG_get_evaluated(vc->depsgraph, vc->obact);
   const Mesh *mesh = BKE_object_get_evaluated_mesh(ob_eval);
   const bke::AttributeAccessor attributes = mesh->attributes();
 
@@ -844,7 +844,7 @@ void pose_foreachScreenBone(const ViewContext *vc,
 {
   /* Almost _exact_ copy of #armature_foreachScreenBone */
 
-  const Object *ob_eval = DEG_get_evaluated_object(vc->depsgraph, vc->obact);
+  const Object *ob_eval = DEG_get_evaluated(vc->depsgraph, vc->obact);
   const bArmature *arm_eval = static_cast<const bArmature *>(ob_eval->data);
   bPose *pose = vc->obact->pose;
 
