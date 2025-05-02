@@ -72,8 +72,8 @@ class LookdevWorld {
   bNode *environment_node_ = nullptr;
   bNodeSocketValueFloat *intensity_socket_ = nullptr;
   bNodeSocketValueFloat *angle_socket_ = nullptr;
-  ::Image image = {};
-  ::World world = {};
+  ::Image *image = nullptr;
+  ::World *world = nullptr;
 
   LookdevParameters parameters_;
 
@@ -86,7 +86,7 @@ class LookdevWorld {
 
   ::World *world_get()
   {
-    return &world;
+    return world;
   }
 
   float background_opacity_get() const

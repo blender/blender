@@ -284,9 +284,8 @@ PointCloud *BKE_pointcloud_add(Main *bmain, const char *name)
 
 PointCloud *BKE_pointcloud_add_default(Main *bmain, const char *name)
 {
-  PointCloud *pointcloud = static_cast<PointCloud *>(BKE_libblock_alloc(bmain, ID_PT, name, 0));
+  PointCloud *pointcloud = static_cast<PointCloud *>(BKE_id_new(bmain, ID_PT, name));
 
-  pointcloud_init_data(&pointcloud->id);
   pointcloud_random(pointcloud);
 
   return pointcloud;
@@ -297,7 +296,7 @@ PointCloud *BKE_pointcloud_new_nomain(const int totpoint)
   PointCloud *pointcloud = static_cast<PointCloud *>(BKE_libblock_alloc(
       nullptr, ID_PT, BKE_idtype_idcode_to_name(ID_PT), LIB_ID_CREATE_LOCALIZE));
 
-  pointcloud_init_data(&pointcloud->id);
+  BKE_libblock_init_empty(&pointcloud->id);
 
   CustomData_realloc(&pointcloud->pdata, 0, totpoint);
   pointcloud->totpoint = totpoint;

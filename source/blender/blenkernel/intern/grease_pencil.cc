@@ -2589,6 +2589,8 @@ Material *BKE_grease_pencil_object_material_ensure_from_brush(Main *bmain,
   }
 
   /* Fall back to default material. */
+  /* XXX FIXME This is critical abuse of the 'default material' feature, these IDs should never be
+   * used/returned as 'regular' data. */
   return BKE_material_default_gpencil();
 }
 

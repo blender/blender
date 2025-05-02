@@ -215,6 +215,11 @@ void ramp_blend(int type, float r_col[3], float fac, const float col[3]);
 
 /* -------------------------------------------------------------------- */
 /** \name Default Materials
+ *
+ * TODO: Explain expected usages? Seems to be primarily defined for GPU/viewport code?
+ *
+ *  \warning _NEVER_ use these materials as fallback data for regular ID data. They should only be
+ * used as template/copy source, or in some very specific, local and short-lived contexts.
  * \{ */
 
 Material *BKE_material_default_empty();
