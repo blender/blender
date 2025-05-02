@@ -525,6 +525,13 @@ void MTLStateManager::set_blend(const eGPUBlend value)
       dst_alpha = MTLBlendFactorSource1Alpha;
       break;
     }
+    case GPU_BLEND_OVERLAY_MASK_FROM_ALPHA: {
+      src_rgb = MTLBlendFactorZero;
+      dst_rgb = MTLBlendFactorOneMinusSourceAlpha;
+      src_alpha = MTLBlendFactorZero;
+      dst_alpha = MTLBlendFactorOneMinusSourceAlpha;
+      break;
+    }
   }
 
   /* Check Current Context. */
