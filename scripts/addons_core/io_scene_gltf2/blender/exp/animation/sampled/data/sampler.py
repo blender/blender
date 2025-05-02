@@ -108,19 +108,14 @@ def __convert_keyframes(blender_type_data, blender_id, channel, keyframes, actio
     else:
         data_type = gltf2_io_constants.DataType.vec_type_from_num(1)
 
-    output = gltf2_io.Accessor(
-        buffer_view=gltf2_io_binary_data.BinaryData.from_list(values, component_type),
-        byte_offset=None,
-        component_type=component_type,
-        count=len(values) // gltf2_io_constants.DataType.num_elements(data_type),
-        extensions=None,
-        extras=None,
-        max=None,
-        min=None,
-        name=None,
-        normalized=None,
-        sparse=None,
-        type=data_type
+    output = gather_accessor(
+        gltf2_io_binary_data.BinaryData.from_list(values, component_type),
+        component_type,
+        len(values) // gltf2_io_constants.DataType.num_elements(data_type),
+        None,
+        None,
+        data_type,
+        export_settings
     )
 
     return input, output
