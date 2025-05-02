@@ -5,7 +5,7 @@
 bl_info = {
     'name': 'glTF 2.0 format',
     'author': 'Julien Duroure, Scurest, Norbert Nopper, Urs Hanselmann, Moritz Becher, Benjamin Schmithüsen, Jim Eckerlein, and many external contributors',
-    "version": (4, 5, 15),
+    "version": (4, 5, 16),
     'blender': (4, 4, 0),
     'location': 'File > Import-Export',
     'description': 'Import-Export as glTF 2.0',
@@ -495,6 +495,9 @@ class ExportGLTF2_Base(ConvertGLTF2_Base):
             ('PLACEHOLDER',
              'Placeholder',
              'Do not export materials, but write multiple primitive groups per mesh, keeping material slot information'),
+            ('VIEWPORT',
+            'Viewport',
+            'Export minimal materials as defined in Viewport display properties'),
             ('NONE',
              'No export',
              'Do not export materials, and combine mesh primitive groups, losing material slot information')),
@@ -1527,10 +1530,10 @@ def export_panel_data_material(layout, operator):
         if operator.export_image_format in ["AUTO", "JPEG", "WEBP"]:
             col.prop(operator, 'export_image_quality')
         col = body.column()
-        col.active = operator.export_image_format != "WEBP" and not operator.export_materials in ['PLACEHOLDER', 'NONE']
+        col.active = operator.export_image_format != "WEBP" and not operator.export_materials in ['PLACEHOLDER', 'NONE', 'VIEWPORT']
         col.prop(operator, "export_image_add_webp")
         col = body.column()
-        col.active = operator.export_image_format != "WEBP" and not operator.export_materials in ['PLACEHOLDER', 'NONE']
+        col.active = operator.export_image_format != "WEBP" and not operator.export_materials in ['PLACEHOLDER', 'NONE', 'VIEWPORT']
         col.prop(operator, "export_image_webp_fallback")
 
         header, sub_body = body.panel("GLTF_export_data_material_unused", default_closed=True)
