@@ -923,9 +923,9 @@ static int gizmo_3d_foreach_selected(const bContext *C,
       totsel++;
       if (r_drawflags) {
         if (orient_index == V3D_ORIENT_GLOBAL) {
-          /* Protect-flags apply to world space in object mode,
-           * so only let them influence axis visibility if we show the global orientation,
-           * otherwise it's confusing. */
+          /* Ignore scale/rotate lock flag while global orientation is active.
+           * Otherwise when object is rotated, global and local axes are misaligned, implying wrong
+           * axis as hidden/locked, see: !133286. */
           protectflag_to_drawflags(base->object->protectflag & OB_LOCK_LOC, r_drawflags);
         }
         else if (ELEM(orient_index, V3D_ORIENT_LOCAL, V3D_ORIENT_GIMBAL)) {
