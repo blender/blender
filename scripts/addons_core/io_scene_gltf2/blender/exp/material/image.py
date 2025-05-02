@@ -72,7 +72,7 @@ def gather_image(
         export_settings
     )
 
-    export_user_extensions('gather_image_hook', export_settings, image, blender_shader_sockets)
+    export_user_extensions('gather_image_hook', export_settings, image, export_image, blender_shader_sockets)
 
     # We also return image_data, as it can be used to generate same file with another extension for WebP management
     return image, export_image, factor, None
