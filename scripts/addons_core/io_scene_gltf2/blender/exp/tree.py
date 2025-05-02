@@ -922,6 +922,8 @@ class VExportTree:
                     self.nodes[self.nodes[bone].parent_uuid].children.remove(bone)
                     self.nodes[bone].parent_uuid = arma
                     self.nodes[arma].children.append(bone)
+                    self.nodes[arma].children_type[bone] = VExportNode.CHILDREN_REAL
+                    self.nodes[bone].parent_bone_uuid = None
 
     def break_obj_hierarchy(self):
         # Can be usefull when matrix is not decomposable
