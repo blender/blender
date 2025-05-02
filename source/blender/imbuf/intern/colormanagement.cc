@@ -4285,10 +4285,23 @@ bool IMB_colormanagement_setup_glsl_draw_ctx(const bContext *C, float dither, bo
   return IMB_colormanagement_setup_glsl_draw_from_space_ctx(C, nullptr, dither, predivide);
 }
 
+bool IMB_colormanagement_setup_glsl_draw_to_scene_linear(const char *from_colorspace_name,
+                                                         const bool predivide)
+{
+  OCIO_ConstConfigRcPtr *config = OCIO_getCurrentConfig();
+
+  global_gpu_state.gpu_shader_bound = OCIO_gpuToSceneLinearShaderBind(
+      config, from_colorspace_name, predivide);
+
+  OCIO_configRelease(config);
+
+  return global_gpu_state.gpu_shader_bound;
+}
+
 void IMB_colormanagement_finish_glsl_draw()
 {
   if (global_gpu_state.gpu_shader_bound) {
-    OCIO_gpuDisplayShaderUnbind();
+    OCIO_gpuShaderUnbind();
     global_gpu_state.gpu_shader_bound = false;
   }
 }

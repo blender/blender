@@ -211,7 +211,10 @@ bool OCIO_gpuDisplayShaderBind(OCIO_ConstConfigRcPtr *config,
                                const bool use_overlay,
                                const bool use_hdr,
                                const bool use_white_balance);
-void OCIO_gpuDisplayShaderUnbind(void);
+bool OCIO_gpuToSceneLinearShaderBind(OCIO_ConstConfigRcPtr *config,
+                                     const char *from_colorspace_name,
+                                     bool use_predivide);
+void OCIO_gpuShaderUnbind(void);
 void OCIO_gpuCacheFree(void);
 
 const char *OCIO_getVersionString(void);

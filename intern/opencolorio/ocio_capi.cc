@@ -333,9 +333,16 @@ bool OCIO_gpuDisplayShaderBind(OCIO_ConstConfigRcPtr *config,
                                     use_white_balance);
 }
 
-void OCIO_gpuDisplayShaderUnbind()
+bool OCIO_gpuToSceneLinearShaderBind(OCIO_ConstConfigRcPtr *config,
+                                     const char *from_colorspace_name,
+                                     const bool use_predivide)
 {
-  impl->gpuDisplayShaderUnbind();
+  return impl->gpuToSceneLinearShaderBind(config, from_colorspace_name, use_predivide);
+}
+
+void OCIO_gpuShaderUnbind()
+{
+  impl->gpuShaderUnbind();
 }
 
 void OCIO_gpuCacheFree()

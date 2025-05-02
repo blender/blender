@@ -486,6 +486,16 @@ bool IMB_colormanagement_setup_glsl_draw_from_space_ctx(const bContext *C,
                                                         ColorSpace *from_colorspace,
                                                         float dither,
                                                         bool predivide);
+
+/**
+ * Configures GPU shader for conversion from the given space to scene linear.
+ * Drawing happens in the same immediate mode as when GPU_SHADER_3D_IMAGE_COLOR shader is used.
+ *
+ * Returns true if the GPU shader was successfully bound.
+ */
+bool IMB_colormanagement_setup_glsl_draw_to_scene_linear(const char *from_colorspace_name,
+                                                         bool predivide);
+
 /**
  * Finish GLSL-based display space conversion.
  */
