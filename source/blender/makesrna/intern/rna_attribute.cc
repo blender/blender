@@ -542,7 +542,8 @@ static bool rna_Attributes_noncolor_layer_skip(CollectionPropertyIterator *iter,
   CustomDataLayer *layer = (CustomDataLayer *)data;
 
   /* Check valid domain here, too, keep in line with rna_AttributeGroup_color_length(). */
-  AttributeOwner owner = AttributeOwner::from_id(iter->parent.owner_id);
+  PointerRNA attribute_pointer(iter->parent.owner_id, &RNA_Attribute, data);
+  const AttributeOwner owner = owner_from_attribute_pointer_rna(&attribute_pointer);
   const AttrDomain domain = BKE_attribute_domain(owner, layer);
   if (!(ATTR_DOMAIN_AS_MASK(domain) & ATTR_DOMAIN_MASK_COLOR)) {
     return true;
