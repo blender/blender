@@ -66,7 +66,12 @@ struct GPUViewport {
   GPUTexture *depth_tx;
   /** Compositing framebuffer for stereo viewport. */
   GPUFrameBuffer *stereo_comp_fb;
-  /** Overlay framebuffer for drawing outside of DRW module. */
+  /** Color render and overlay frame-buffers for drawing outside of DRW module.
+   * The render framebuffer is expected to be in the linear space and viewport will perform color
+   * management on it to bring it to the display space.
+   * The overlay frame-buffer is expected to be in the display space and viewport does not do any
+   * color management on it. */
+  GPUFrameBuffer *render_fb;
   GPUFrameBuffer *overlay_fb;
 
   /* Color management. */
@@ -178,6 +183,7 @@ static void gpu_viewport_textures_create(GPUViewport *viewport)
 static void gpu_viewport_textures_free(GPUViewport *viewport)
 {
   GPU_FRAMEBUFFER_FREE_SAFE(viewport->stereo_comp_fb);
+  GPU_FRAMEBUFFER_FREE_SAFE(viewport->render_fb);
   GPU_FRAMEBUFFER_FREE_SAFE(viewport->overlay_fb);
 
   for (int i = 0; i < 2; i++) {
@@ -589,6 +595,17 @@ GPUTexture *GPU_viewport_overlay_texture(GPUViewport *viewport, int view)
 GPUTexture *GPU_viewport_depth_texture(GPUViewport *viewport)
 {
   return viewport->depth_tx;
+}
+
+GPUFrameBuffer *GPU_viewport_framebuffer_render_get(GPUViewport *viewport)
+{
+  GPU_framebuffer_ensure_config(
+      &viewport->render_fb,
+      {
+          GPU_ATTACHMENT_TEXTURE(viewport->depth_tx),
+          GPU_ATTACHMENT_TEXTURE(viewport->color_render_tx[viewport->active_view]),
+      });
+  return viewport->render_fb;
 }
 
 GPUFrameBuffer *GPU_viewport_framebuffer_overlay_get(GPUViewport *viewport)
