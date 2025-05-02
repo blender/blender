@@ -779,8 +779,8 @@ static IndexMask get_visible_boundary_strokes(const Object &object,
 {
   const bke::CurvesGeometry &strokes = info.drawing.strokes();
   const bke::AttributeAccessor attributes = strokes.attributes();
-  const VArray<int> materials = *attributes.lookup<int>(attr_material_index,
-                                                        bke::AttrDomain::Curve);
+  const VArray<int> materials = *attributes.lookup_or_default<int>(
+      attr_material_index, bke::AttrDomain::Curve, 0);
 
   auto is_visible_curve = [&](const int curve_i) {
     /* Check if stroke can be drawn. */
@@ -885,8 +885,8 @@ static std::optional<Bounds<float2>> get_boundary_bounds(const ARegion &region,
     const VArray<float> radii = info.drawing.radii();
     const bke::CurvesGeometry &strokes = info.drawing.strokes();
     const bke::AttributeAccessor attributes = strokes.attributes();
-    const VArray<int> materials = *attributes.lookup<int>(attr_material_index,
-                                                          bke::AttrDomain::Curve);
+    const VArray<int> materials = *attributes.lookup_or_default<int>(
+        attr_material_index, bke::AttrDomain::Curve, 0);
     const VArray<bool> is_boundary_stroke = *attributes.lookup_or_default<bool>(
         "is_boundary", bke::AttrDomain::Curve, false);
 
@@ -1065,8 +1065,8 @@ static Image *render_strokes(const ViewContext &view_context,
     const bke::CurvesGeometry &strokes = info.drawing.strokes();
     const bke::AttributeAccessor attributes = strokes.attributes();
     const VArray<float> opacities = info.drawing.opacities();
-    const VArray<int> materials = *attributes.lookup<int>(attr_material_index,
-                                                          bke::AttrDomain::Curve);
+    const VArray<int> materials = *attributes.lookup_or_default<int>(
+        attr_material_index, bke::AttrDomain::Curve, 0);
 
     IndexMaskMemory curve_mask_memory;
     const IndexMask curve_mask = get_visible_boundary_strokes(

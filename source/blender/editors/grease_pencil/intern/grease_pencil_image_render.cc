@@ -579,7 +579,8 @@ void draw_grease_pencil_strokes(const RegionView3D &rv3d,
       "start_cap", bke::AttrDomain::Curve, GP_STROKE_CAP_ROUND);
   const VArray<int8_t> stroke_end_caps = *attributes.lookup_or_default<int8_t>(
       "end_cap", bke::AttrDomain::Curve, GP_STROKE_CAP_ROUND);
-  const VArray<int> materials = *attributes.lookup<int>("material_index", bke::AttrDomain::Curve);
+  const VArray<int> materials = *attributes.lookup_or_default<int>(
+      "material_index", bke::AttrDomain::Curve, 0);
 
   /* Note: Serial loop without GrainSize, since immediate mode drawing can't happen in worker
    * threads, has to be from the main thread. */

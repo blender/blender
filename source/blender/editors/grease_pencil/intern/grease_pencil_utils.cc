@@ -972,7 +972,8 @@ IndexMask retrieve_editable_strokes(Object &object,
   }
 
   const bke::AttributeAccessor attributes = curves.attributes();
-  const VArray<int> materials = *attributes.lookup<int>("material_index", bke::AttrDomain::Curve);
+  const VArray<int> materials = *attributes.lookup_or_default<int>(
+      "material_index", bke::AttrDomain::Curve, 0);
   if (!materials) {
     /* If the attribute does not exist then the default is the first material. */
     if (locked_material_indices.contains(0)) {
@@ -1003,7 +1004,8 @@ IndexMask retrieve_editable_fill_strokes(Object &object,
   const IndexRange curves_range = curves.curves_range();
 
   const bke::AttributeAccessor attributes = curves.attributes();
-  const VArray<int> materials = *attributes.lookup<int>("material_index", bke::AttrDomain::Curve);
+  const VArray<int> materials = *attributes.lookup_or_default<int>(
+      "material_index", bke::AttrDomain::Curve, 0);
   const VectorSet<int> fill_material_indices = get_fill_material_indices(object);
   if (!materials) {
     /* If the attribute does not exist then the default is the first material. */
@@ -1035,7 +1037,8 @@ IndexMask retrieve_editable_strokes_by_material(Object &object,
 
   const bke::AttributeAccessor attributes = curves.attributes();
 
-  const VArray<int> materials = *attributes.lookup<int>("material_index", bke::AttrDomain::Curve);
+  const VArray<int> materials = *attributes.lookup_or_default<int>(
+      "material_index", bke::AttrDomain::Curve, 0);
   if (!materials) {
     /* If the attribute does not exist then the default is the first material. */
     if (locked_material_indices.contains(0)) {
@@ -1082,7 +1085,8 @@ IndexMask retrieve_editable_points(Object &object,
 
   /* Propagate the material index to the points. */
   const bke::AttributeAccessor attributes = curves.attributes();
-  const VArray<int> materials = *attributes.lookup<int>("material_index", bke::AttrDomain::Point);
+  const VArray<int> materials = *attributes.lookup_or_default<int>(
+      "material_index", bke::AttrDomain::Point, 0);
   if (!materials) {
     /* If the attribute does not exist then the default is the first material. */
     if (locked_material_indices.contains(0)) {
