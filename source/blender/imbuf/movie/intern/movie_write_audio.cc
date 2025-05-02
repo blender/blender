@@ -180,7 +180,7 @@ bool movie_audio_open(MovieWriter *context,
     }
   }
 #  else
-  UNUSED_VARS(context, scene, start_frame, mixrate, volume);
+  UNUSED_VARS(context, scene, start_frame, mixrate, volume, reports);
 #  endif
   return success;
 }
