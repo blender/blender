@@ -54,9 +54,16 @@ class BlenderScene():
 
         if bpy.context.mode != 'OBJECT':
             bpy.ops.object.mode_set(mode='OBJECT')
-        if gltf.import_settings['import_select_created_objects']:
+        if gltf.import_settings['import_select_created_objects'] and gltf.import_settings['import_scene_as_collection'] is True:
             BlenderScene.select_imported_objects(gltf)
             BlenderScene.set_active_object(gltf)
+
+        # Exlude not default scene(s) collection(s), if we are in collection
+        if gltf.import_settings['import_scene_as_collection'] is True:
+            if gltf.data.scene is not None:
+                for scene_idx, coll in gltf.blender_collections.items():
+                    if scene_idx != gltf.data.scene:
+                        bpy.context.layer_collection.children[coll.name].exclude = True
 
     @staticmethod
     def create_animations(gltf):

@@ -340,7 +340,7 @@ class GlTF2Exporter:
 
         The scene should be built up with the generated glTF classes
         :param scene: gltf2_io.Scene type. Root node of the scene graph
-        :param active: If true, sets the glTD.scene index to the added scene
+        :param active: If true, sets the glTF.scene index to the added scene
         :return: nothing
         """
         if self.__finalized:
