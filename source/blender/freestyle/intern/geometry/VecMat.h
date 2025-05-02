@@ -170,7 +170,7 @@ template<class T, uint N> class Vec {
     return *this;
   }
 
-  template<class U> inline Vec<T, N> &operator+=(const Vec<U, N> &v)
+  template<class U> inline Vec<T, N> &operator+=(const Vec<U, N> &v) &
   {
     for (uint i = 0; i < N; i++) {
       this->_coord[i] += (T)v[i];
@@ -178,7 +178,7 @@ template<class T, uint N> class Vec {
     return *this;
   }
 
-  template<class U> inline Vec<T, N> &operator-=(const Vec<U, N> &v)
+  template<class U> inline Vec<T, N> &operator-=(const Vec<U, N> &v) &
   {
     for (uint i = 0; i < N; i++) {
       this->_coord[i] -= (T)v[i];
@@ -186,7 +186,7 @@ template<class T, uint N> class Vec {
     return *this;
   }
 
-  template<class U> inline Vec<T, N> &operator*=(const U r)
+  template<class U> inline Vec<T, N> &operator*=(const U r) &
   {
     for (uint i = 0; i < N; i++) {
       this->_coord[i] *= r;
@@ -194,7 +194,7 @@ template<class T, uint N> class Vec {
     return *this;
   }
 
-  template<class U> inline Vec<T, N> &operator/=(const U r)
+  template<class U> inline Vec<T, N> &operator/=(const U r) &
   {
     if (r) {
       for (uint i = 0; i < N; i++) {
@@ -688,7 +688,7 @@ template<class T, uint M, uint N> class Matrix {
     return *this;
   }
 
-  template<class U> inline Matrix<T, M, N> &operator+=(const Matrix<U, M, N> &m)
+  template<class U> inline Matrix<T, M, N> &operator+=(const Matrix<U, M, N> &m) &
   {
     for (uint i = 0; i < M; i++) {
       for (uint j = 0; j < N; j++) {
@@ -698,7 +698,7 @@ template<class T, uint M, uint N> class Matrix {
     return *this;
   }
 
-  template<class U> inline Matrix<T, M, N> &operator-=(const Matrix<U, M, N> &m)
+  template<class U> inline Matrix<T, M, N> &operator-=(const Matrix<U, M, N> &m) &
   {
     for (uint i = 0; i < M; i++) {
       for (uint j = 0; j < N; j++) {
@@ -708,7 +708,7 @@ template<class T, uint M, uint N> class Matrix {
     return *this;
   }
 
-  template<class U> inline Matrix<T, M, N> &operator*=(const U lambda)
+  template<class U> inline Matrix<T, M, N> &operator*=(const U lambda) &
   {
     for (uint i = 0; i < M; i++) {
       for (uint j = 0; j < N; j++) {
@@ -718,7 +718,7 @@ template<class T, uint M, uint N> class Matrix {
     return *this;
   }
 
-  template<class U> inline Matrix<T, M, N> &operator/=(const U lambda)
+  template<class U> inline Matrix<T, M, N> &operator/=(const U lambda) &
   {
     if (lambda) {
       for (uint i = 0; i < M; i++) {

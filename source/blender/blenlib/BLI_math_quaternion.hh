@@ -362,7 +362,7 @@ DualQuaternionBase<T>::DualQuaternionBase(const QuaternionBase<T> &non_dual,
 /* -------------- Operators -------------- */
 
 template<typename T>
-DualQuaternionBase<T> &DualQuaternionBase<T>::operator+=(const DualQuaternionBase<T> &b)
+DualQuaternionBase<T> &DualQuaternionBase<T>::operator+=(const DualQuaternionBase<T> &b) &
 {
   DualQuaternionBase<T> &a = *this;
   /* Sum rotation and translation. */
@@ -408,7 +408,7 @@ DualQuaternionBase<T> &DualQuaternionBase<T>::operator+=(const DualQuaternionBas
   return *this;
 }
 
-template<typename T> DualQuaternionBase<T> &DualQuaternionBase<T>::operator*=(const T &t)
+template<typename T> DualQuaternionBase<T> &DualQuaternionBase<T>::operator*=(const T &t) &
 {
   BLI_assert(t >= 0);
   DualQuaternionBase<T> &q = *this;

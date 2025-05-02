@@ -312,13 +312,13 @@ struct alignas(Alignment) MatBase : public vec_struct_base<VecBase<T, NumRow>, N
     return b + a;
   }
 
-  MatBase &operator+=(const MatBase &b)
+  MatBase &operator+=(const MatBase &b) &
   {
     unroll<NumCol>([&](auto i) { (*this)[i] += b[i]; });
     return *this;
   }
 
-  MatBase &operator+=(T b)
+  MatBase &operator+=(T b) &
   {
     unroll<NumCol>([&](auto i) { (*this)[i] += b; });
     return *this;
@@ -352,13 +352,13 @@ struct alignas(Alignment) MatBase : public vec_struct_base<VecBase<T, NumRow>, N
     return result;
   }
 
-  MatBase &operator-=(const MatBase &b)
+  MatBase &operator-=(const MatBase &b) &
   {
     unroll<NumCol>([&](auto i) { (*this)[i] -= b[i]; });
     return *this;
   }
 
-  MatBase &operator-=(T b)
+  MatBase &operator-=(T b) &
   {
     unroll<NumCol>([&](auto i) { (*this)[i] -= b; });
     return *this;
@@ -379,7 +379,7 @@ struct alignas(Alignment) MatBase : public vec_struct_base<VecBase<T, NumRow>, N
   }
 
   /** Multiply two matrices using matrix multiplication. */
-  MatBase &operator*=(const MatBase &b)
+  MatBase &operator*=(const MatBase &b) &
   {
     const MatBase &a = *this;
     *this = a * b;
@@ -387,7 +387,7 @@ struct alignas(Alignment) MatBase : public vec_struct_base<VecBase<T, NumRow>, N
   }
 
   /** Multiply each component by a scalar. */
-  MatBase &operator*=(T b)
+  MatBase &operator*=(T b) &
   {
     unroll<NumCol>([&](auto i) { (*this)[i] *= b; });
     return *this;
@@ -788,18 +788,18 @@ struct MutableMatView
                                            OtherSrcNumRow,
                                            OtherSrcStartCol,
                                            OtherSrcStartRow,
-                                           OtherSrcAlignment> &b)
+                                           OtherSrcAlignment> &b) &
   {
     unroll<NumCol>([&](auto i) { (*this)[i] += b[i]; });
     return *this;
   }
 
-  MutableMatView &operator+=(const MatT &b)
+  MutableMatView &operator+=(const MatT &b) &
   {
     return *this += b.view();
   }
 
-  MutableMatView &operator+=(T b)
+  MutableMatView &operator+=(T b) &
   {
     unroll<NumCol>([&](auto i) { (*this)[i] += b; });
     return *this;
@@ -817,18 +817,18 @@ struct MutableMatView
                                            OtherSrcNumRow,
                                            OtherSrcStartCol,
                                            OtherSrcStartRow,
-                                           OtherSrcAlignment> &b)
+                                           OtherSrcAlignment> &b) &
   {
     unroll<NumCol>([&](auto i) { (*this)[i] -= b[i]; });
     return *this;
   }
 
-  MutableMatView &operator-=(const MatT &b)
+  MutableMatView &operator-=(const MatT &b) &
   {
     return *this -= b.view();
   }
 
-  MutableMatView &operator-=(T b)
+  MutableMatView &operator-=(T b) &
   {
     unroll<NumCol>([&](auto i) { (*this)[i] -= b; });
     return *this;
@@ -847,19 +847,19 @@ struct MutableMatView
                                            OtherSrcNumRow,
                                            OtherSrcStartCol,
                                            OtherSrcStartRow,
-                                           OtherSrcAlignment> &b)
+                                           OtherSrcAlignment> &b) &
   {
     *this = *static_cast<MatViewT *>(this) * b;
     return *this;
   }
 
-  MutableMatView &operator*=(const MatT &b)
+  MutableMatView &operator*=(const MatT &b) &
   {
     return *this *= b.view();
   }
 
   /** Multiply each component by a scalar. */
-  MutableMatView &operator*=(T b)
+  MutableMatView &operator*=(T b) &
   {
     unroll<NumCol>([&](auto i) { (*this)[i] *= b; });
     return *this;

@@ -121,25 +121,25 @@ template<typename T> struct AngleRadianBase {
     return -a.value_;
   }
 
-  AngleRadianBase &operator+=(const AngleRadianBase &b)
+  AngleRadianBase &operator+=(const AngleRadianBase &b) &
   {
     value_ += b.value_;
     return *this;
   }
 
-  AngleRadianBase &operator-=(const AngleRadianBase &b)
+  AngleRadianBase &operator-=(const AngleRadianBase &b) &
   {
     value_ -= b.value_;
     return *this;
   }
 
-  AngleRadianBase &operator*=(const AngleRadianBase &b)
+  AngleRadianBase &operator*=(const AngleRadianBase &b) &
   {
     value_ *= b.value_;
     return *this;
   }
 
-  AngleRadianBase &operator/=(const AngleRadianBase &b)
+  AngleRadianBase &operator/=(const AngleRadianBase &b) &
   {
     value_ /= b.value_;
     return *this;
@@ -317,25 +317,25 @@ template<typename T> struct AngleCartesianBase {
     return {a.cos_, -a.sin_};
   }
 
-  AngleCartesianBase &operator+=(const AngleCartesianBase &b)
+  AngleCartesianBase &operator+=(const AngleCartesianBase &b) &
   {
     *this = *this + b;
     return *this;
   }
 
-  AngleCartesianBase &operator*=(const T &b)
+  AngleCartesianBase &operator*=(const T &b) &
   {
     *this = *this * b;
     return *this;
   }
 
-  AngleCartesianBase &operator-=(const AngleCartesianBase &b)
+  AngleCartesianBase &operator-=(const AngleCartesianBase &b) &
   {
     *this = *this - b;
     return *this;
   }
 
-  AngleCartesianBase &operator/=(const T &b)
+  AngleCartesianBase &operator/=(const T &b) &
   {
     *this = *this / b;
     return *this;
@@ -538,32 +538,32 @@ template<typename T = float> struct AngleFraction {
     return {-a.numerator_, a.denominator_};
   }
 
-  AngleFraction &operator+=(const AngleFraction &b)
+  AngleFraction &operator+=(const AngleFraction &b) &
   {
     return *this = *this + b;
   }
 
-  AngleFraction &operator-=(const AngleFraction &b)
+  AngleFraction &operator-=(const AngleFraction &b) &
   {
     return *this = *this - b;
   }
 
-  AngleFraction &operator*=(const AngleFraction &b)
+  AngleFraction &operator*=(const AngleFraction &b) &
   {
     return *this = *this * b;
   }
 
-  AngleFraction &operator/=(const AngleFraction &b)
+  AngleFraction &operator/=(const AngleFraction &b) &
   {
     return *this = *this / b;
   }
 
-  AngleFraction &operator*=(const int64_t &b)
+  AngleFraction &operator*=(const int64_t &b) &
   {
     return *this = *this * b;
   }
 
-  AngleFraction &operator/=(const int64_t &b)
+  AngleFraction &operator/=(const int64_t &b) &
   {
     return *this = *this / b;
   }

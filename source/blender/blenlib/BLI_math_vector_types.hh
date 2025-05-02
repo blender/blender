@@ -292,12 +292,12 @@ template<typename T, int Size> struct VecBase : public vec_struct_base<T, Size> 
     BLI_UNROLL_MATH_VEC_OP_SCALAR_VEC(+, a, b);
   }
 
-  VecBase &operator+=(const VecBase &b)
+  VecBase &operator+=(const VecBase &b) &
   {
     BLI_UNROLL_MATH_VEC_OP_ASSIGN_VEC(+=, b);
   }
 
-  VecBase &operator+=(const T &b)
+  VecBase &operator+=(const T &b) &
   {
     BLI_UNROLL_MATH_VEC_OP_ASSIGN_SCALAR(+=, b);
   }
@@ -322,12 +322,12 @@ template<typename T, int Size> struct VecBase : public vec_struct_base<T, Size> 
     BLI_UNROLL_MATH_VEC_OP_SCALAR_VEC(-, a, b);
   }
 
-  VecBase &operator-=(const VecBase &b)
+  VecBase &operator-=(const VecBase &b) &
   {
     BLI_UNROLL_MATH_VEC_OP_ASSIGN_VEC(-=, b);
   }
 
-  VecBase &operator-=(const T &b)
+  VecBase &operator-=(const T &b) &
   {
     BLI_UNROLL_MATH_VEC_OP_ASSIGN_SCALAR(-=, b);
   }
@@ -347,12 +347,12 @@ template<typename T, int Size> struct VecBase : public vec_struct_base<T, Size> 
     BLI_UNROLL_MATH_VEC_OP_SCALAR_VEC(*, a, b);
   }
 
-  VecBase &operator*=(T b)
+  VecBase &operator*=(T b) &
   {
     BLI_UNROLL_MATH_VEC_OP_ASSIGN_SCALAR(*=, b);
   }
 
-  VecBase &operator*=(const VecBase &b)
+  VecBase &operator*=(const VecBase &b) &
   {
     BLI_UNROLL_MATH_VEC_OP_ASSIGN_VEC(*=, b);
   }
@@ -379,13 +379,13 @@ template<typename T, int Size> struct VecBase : public vec_struct_base<T, Size> 
     BLI_UNROLL_MATH_VEC_OP_SCALAR_VEC(/, a, b);
   }
 
-  VecBase &operator/=(T b)
+  VecBase &operator/=(T b) &
   {
     BLI_assert(b != T(0));
     BLI_UNROLL_MATH_VEC_OP_ASSIGN_SCALAR(/=, b);
   }
 
-  VecBase &operator/=(const VecBase &b)
+  VecBase &operator/=(const VecBase &b) &
   {
     for (int i = 0; i < Size; i++) {
       BLI_assert(b[i] != T(0));
@@ -410,12 +410,12 @@ template<typename T, int Size> struct VecBase : public vec_struct_base<T, Size> 
     BLI_UNROLL_MATH_VEC_OP_SCALAR_VEC(&, a, b);
   }
 
-  BLI_INT_OP(T) VecBase &operator&=(T b)
+  BLI_INT_OP(T) VecBase &operator&=(T b) &
   {
     BLI_UNROLL_MATH_VEC_OP_ASSIGN_SCALAR(&=, b);
   }
 
-  BLI_INT_OP(T) VecBase &operator&=(const VecBase &b)
+  BLI_INT_OP(T) VecBase &operator&=(const VecBase &b) &
   {
     BLI_UNROLL_MATH_VEC_OP_ASSIGN_VEC(&=, b);
   }
@@ -435,12 +435,12 @@ template<typename T, int Size> struct VecBase : public vec_struct_base<T, Size> 
     BLI_UNROLL_MATH_VEC_OP_SCALAR_VEC(|, a, b);
   }
 
-  BLI_INT_OP(T) VecBase &operator|=(T b)
+  BLI_INT_OP(T) VecBase &operator|=(T b) &
   {
     BLI_UNROLL_MATH_VEC_OP_ASSIGN_SCALAR(|=, b);
   }
 
-  BLI_INT_OP(T) VecBase &operator|=(const VecBase &b)
+  BLI_INT_OP(T) VecBase &operator|=(const VecBase &b) &
   {
     BLI_UNROLL_MATH_VEC_OP_ASSIGN_VEC(|=, b);
   }
@@ -460,12 +460,12 @@ template<typename T, int Size> struct VecBase : public vec_struct_base<T, Size> 
     BLI_UNROLL_MATH_VEC_OP_SCALAR_VEC(^, a, b);
   }
 
-  BLI_INT_OP(T) VecBase &operator^=(T b)
+  BLI_INT_OP(T) VecBase &operator^=(T b) &
   {
     BLI_UNROLL_MATH_VEC_OP_ASSIGN_SCALAR(^=, b);
   }
 
-  BLI_INT_OP(T) VecBase &operator^=(const VecBase &b)
+  BLI_INT_OP(T) VecBase &operator^=(const VecBase &b) &
   {
     BLI_UNROLL_MATH_VEC_OP_ASSIGN_VEC(^=, b);
   }
@@ -487,12 +487,12 @@ template<typename T, int Size> struct VecBase : public vec_struct_base<T, Size> 
     BLI_UNROLL_MATH_VEC_OP_VEC_SCALAR(<<, a, b);
   }
 
-  BLI_INT_OP(T) VecBase &operator<<=(T b)
+  BLI_INT_OP(T) VecBase &operator<<=(T b) &
   {
     BLI_UNROLL_MATH_VEC_OP_ASSIGN_SCALAR(<<=, b);
   }
 
-  BLI_INT_OP(T) VecBase &operator<<=(const VecBase &b)
+  BLI_INT_OP(T) VecBase &operator<<=(const VecBase &b) &
   {
     BLI_UNROLL_MATH_VEC_OP_ASSIGN_VEC(<<=, b);
   }
@@ -507,12 +507,12 @@ template<typename T, int Size> struct VecBase : public vec_struct_base<T, Size> 
     BLI_UNROLL_MATH_VEC_OP_VEC_SCALAR(>>, a, b);
   }
 
-  BLI_INT_OP(T) VecBase &operator>>=(T b)
+  BLI_INT_OP(T) VecBase &operator>>=(T b) &
   {
     BLI_UNROLL_MATH_VEC_OP_ASSIGN_SCALAR(>>=, b);
   }
 
-  BLI_INT_OP(T) VecBase &operator>>=(const VecBase &b)
+  BLI_INT_OP(T) VecBase &operator>>=(const VecBase &b) &
   {
     BLI_UNROLL_MATH_VEC_OP_ASSIGN_VEC(>>=, b);
   }

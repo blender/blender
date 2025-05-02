@@ -140,7 +140,7 @@ template<typename T> struct QuaternionBase {
             a.w * b.z + a.z * b.w + a.x * b.y - a.y * b.x};
   }
 
-  QuaternionBase &operator*=(const QuaternionBase &b)
+  QuaternionBase &operator*=(const QuaternionBase &b) &
   {
     *this = *this * b;
     return *this;
@@ -233,10 +233,10 @@ template<typename T> struct DualQuaternionBase {
   /** Operators. */
 
   /** Apply a scalar weight to a dual quaternion. */
-  DualQuaternionBase &operator*=(const T &t);
+  DualQuaternionBase &operator*=(const T &t) &;
 
   /** Add two weighted dual-quaternions rotations. */
-  DualQuaternionBase &operator+=(const DualQuaternionBase &b);
+  DualQuaternionBase &operator+=(const DualQuaternionBase &b) &;
 
   /** Apply a scalar weight to a dual quaternion. */
   friend DualQuaternionBase operator*(const DualQuaternionBase &a, const T &t)
