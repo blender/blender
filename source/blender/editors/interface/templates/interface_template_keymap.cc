@@ -48,7 +48,7 @@ static void template_keymap_item_properties(uiLayout *layout, const char *title,
       }
     }
 
-    uiLayout *box = uiLayoutBox(flow);
+    uiLayout *box = &flow->box();
     uiLayoutSetActive(box, is_set);
     uiLayout *row = &box->row(false);
 

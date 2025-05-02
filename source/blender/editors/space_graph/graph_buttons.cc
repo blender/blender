@@ -1141,7 +1141,7 @@ static void graph_draw_driver_settings_panel(uiLayout *layout,
     col = &layout->column(true);
 
     /* 1) header panel */
-    box = uiLayoutBox(col);
+    box = &col->box();
     PointerRNA dvar_ptr = RNA_pointer_create_discrete(id, &RNA_DriverVariable, dvar);
 
     row = &box->row(false);
@@ -1206,7 +1206,7 @@ static void graph_draw_driver_settings_panel(uiLayout *layout,
     UI_block_emboss_set(block, blender::ui::EmbossType::Emboss);
 
     /* 2) variable type settings */
-    box = uiLayoutBox(col);
+    box = &col->box();
     /* controls to draw depends on the type of variable */
     switch (dvar->type) {
       case DVAR_TYPE_SINGLE_PROP: /* single property */
@@ -1230,7 +1230,7 @@ static void graph_draw_driver_settings_panel(uiLayout *layout,
     {
       char valBuf[32];
 
-      box = uiLayoutBox(col);
+      box = &col->box();
       row = &box->row(true);
       uiItemL(row, IFACE_("Value:"), ICON_NONE);
 

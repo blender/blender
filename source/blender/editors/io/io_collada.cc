@@ -253,7 +253,7 @@ static void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
 
   if (ui_section == BC_UI_SECTION_MAIN) {
     /* Export data options. */
-    box = uiLayoutBox(layout);
+    box = &layout->box();
     col = &box->column(false);
     uiItemR(col, imfptr, "selected", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     sub = &col->column(false);
@@ -262,7 +262,7 @@ static void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
     uiItemR(sub, imfptr, "include_armatures", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     uiItemR(sub, imfptr, "include_shapekeys", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-    box = uiLayoutBox(layout);
+    box = &layout->box();
     row = &box->row(false);
     uiItemL(row, IFACE_("Global Orientation"), ICON_ORIENTATION_GLOBAL);
 
@@ -276,7 +276,7 @@ static void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
     uiItemR(box, imfptr, "export_global_up_selection", UI_ITEM_NONE, IFACE_("Up Axis"), ICON_NONE);
 
     /* Texture options */
-    box = uiLayoutBox(layout);
+    box = &layout->box();
     uiItemL(box, IFACE_("Texture Options"), ICON_TEXTURE_DATA);
 
     col = &box->column(false);
@@ -285,7 +285,7 @@ static void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
     uiItemR(row, imfptr, "active_uv_only", UI_ITEM_NONE, IFACE_("Only Selected Map"), ICON_NONE);
   }
   else if (ui_section == BC_UI_SECTION_GEOMETRY) {
-    box = uiLayoutBox(layout);
+    box = &layout->box();
     uiItemL(box, IFACE_("Export Data Options"), ICON_MESH_DATA);
 
     col = &box->column(false);
@@ -317,7 +317,7 @@ static void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
   }
   else if (ui_section == BC_UI_SECTION_ARMATURE) {
     /* Armature options */
-    box = uiLayoutBox(layout);
+    box = &layout->box();
     uiItemL(box, IFACE_("Armature Options"), ICON_ARMATURE_DATA);
 
     col = &box->column(false);
@@ -326,7 +326,7 @@ static void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
   }
   else if (ui_section == BC_UI_SECTION_ANIMATION) {
     /* Animation options. */
-    box = uiLayoutBox(layout);
+    box = &layout->box();
     uiItemR(box, imfptr, "include_animations", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
     col = &box->column(false);
@@ -372,7 +372,7 @@ static void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
   }
   else if (ui_section == BC_UI_SECTION_COLLADA) {
     /* Collada options: */
-    box = uiLayoutBox(layout);
+    box = &layout->box();
     row = &box->row(false);
     uiItemL(row, IFACE_("Collada Options"), ICON_MODIFIER);
 
@@ -775,13 +775,13 @@ static void wm_collada_import_settings(uiLayout *layout, PointerRNA *imfptr)
   uiLayoutSetPropDecorate(layout, false);
 
   /* Import Options: */
-  box = uiLayoutBox(layout);
+  box = &layout->box();
   uiItemL(box, IFACE_("Import Data Options"), ICON_MESH_DATA);
 
   uiItemR(box, imfptr, "import_units", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   uiItemR(box, imfptr, "custom_normals", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  box = uiLayoutBox(layout);
+  box = &layout->box();
   uiItemL(box, IFACE_("Armature Options"), ICON_ARMATURE_DATA);
 
   col = &box->column(false);
@@ -790,7 +790,7 @@ static void wm_collada_import_settings(uiLayout *layout, PointerRNA *imfptr)
   uiItemR(col, imfptr, "auto_connect", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   uiItemR(col, imfptr, "min_chain_length", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  box = uiLayoutBox(layout);
+  box = &layout->box();
 
   uiItemR(box, imfptr, "keep_bind_info", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }

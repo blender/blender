@@ -799,7 +799,7 @@ void TreeViewLayoutBuilder::build_from_tree(AbstractTreeView &tree_view)
 
   uiLayout *col = nullptr;
   if (add_box_) {
-    uiLayout *box = uiLayoutBox(&parent_layout);
+    uiLayout *box = &parent_layout.box();
     col = &box->column(true);
   }
   else {

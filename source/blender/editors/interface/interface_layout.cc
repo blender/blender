@@ -5173,9 +5173,9 @@ uiLayout *uiLayoutRadial(uiLayout *layout)
   return litem;
 }
 
-uiLayout *uiLayoutBox(uiLayout *layout)
+uiLayout &uiLayout::box()
 {
-  return (uiLayout *)ui_layout_box(layout, UI_BTYPE_ROUNDBOX);
+  return *ui_layout_box(this, UI_BTYPE_ROUNDBOX);
 }
 
 void ui_layout_list_set_labels_active(uiLayout *layout)

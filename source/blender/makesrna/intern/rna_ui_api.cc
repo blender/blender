@@ -867,6 +867,11 @@ static const EnumPropertyItem *rna_uiTemplateAssetView_filter_id_types_itemf(
   return items;
 }
 
+static uiLayout *rna_uiLayoutBox(uiLayout *layout)
+{
+  return &layout->box();
+}
+
 static uiLayout *rna_uiLayoutRowWithHeading(
     uiLayout *layout, bool align, const char *heading, const char *heading_ctxt, bool translate)
 {
@@ -1367,7 +1372,7 @@ void RNA_api_ui_layout(StructRNA *srna)
   RNA_def_function_return(func, parm);
 
   /* box layout */
-  func = RNA_def_function(srna, "box", "uiLayoutBox");
+  func = RNA_def_function(srna, "box", "rna_uiLayoutBox");
   parm = RNA_def_pointer(func, "layout", "UILayout", "", "Sub-layout to put items in");
   RNA_def_function_return(func, parm);
   RNA_def_function_ui_description(func,

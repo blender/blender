@@ -91,6 +91,11 @@ struct uiLayout : uiItem {
 
  public:
   /**
+   * Add a new box sub-layout, items placed in this sub-layout are added vertically one under
+   * each other in a column and are surrounded by a box.
+   */
+  uiLayout &box();
+  /**
    * Add a new column sub-layout, items placed in this sub-layout are added vertically one under
    * each other in a column.
    */
@@ -384,7 +389,6 @@ uiLayout *uiLayoutPanel(const bContext *C,
 
 bool uiLayoutEndsWithPanelHeader(const uiLayout &layout);
 
-uiLayout *uiLayoutBox(uiLayout *layout);
 uiLayout *uiLayoutListBox(uiLayout *layout,
                           uiList *ui_list,
                           PointerRNA *actptr,
