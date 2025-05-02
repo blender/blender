@@ -5,7 +5,7 @@
 bl_info = {
     'name': 'glTF 2.0 format',
     'author': 'Julien Duroure, Scurest, Norbert Nopper, Urs Hanselmann, Moritz Becher, Benjamin Schmithüsen, Jim Eckerlein, and many external contributors',
-    "version": (4, 5, 29),
+    "version": (4, 5, 30),
     'blender': (4, 4, 0),
     'location': 'File > Import-Export',
     'description': 'Import-Export as glTF 2.0',
@@ -1312,6 +1312,8 @@ class ExportGLTF2_Base(ConvertGLTF2_Base):
         )
 
         export_settings['warning_joint_weight_exceed_already_displayed'] = False
+
+        export_settings['image_names'] = []
 
         user_extensions = []
         pre_export_callbacks = []
