@@ -123,6 +123,11 @@ class VExportTree:
 
     def construct(self, blender_scene):
         bpy.context.window.scene = blender_scene
+
+        # Make sure the active object is in object mode
+        if bpy.context.active_object and bpy.context.active_object.mode != 'OBJECT':
+            bpy.ops.object.mode_set(mode='OBJECT')
+
         depsgraph = bpy.context.evaluated_depsgraph_get()
 
         # Gather parent/children information once, as calling bobj.children is
