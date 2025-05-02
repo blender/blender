@@ -142,9 +142,9 @@ class Texture(_types.ID):
         """Materials that use this texture"""
         import bpy
         return tuple(mat for mat in bpy.data.materials
-                     if self in [slot.texture
+                     if self in (slot.texture
                                  for slot in mat.texture_slots
-                                 if slot]
+                                 if slot)
                      )
 
     @property
@@ -153,10 +153,10 @@ class Texture(_types.ID):
         import bpy
         return tuple(
             obj for obj in bpy.data.objects if
-            self in [
+            self in (
                 mod.texture
                 for mod in obj.modifiers
-                if mod.type == 'DISPLACE']
+                if mod.type == 'DISPLACE')
         )
 
 
