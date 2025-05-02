@@ -370,7 +370,7 @@ static bool bone_collection_assign_named_mode_specific(bContext *C,
 
 static bool bone_collection_assign_poll(bContext *C)
 {
-  Object *ob = blender::ed::object::context_object(C);
+  Object *ob = blender::ed::object::context_active_object(C);
   if (ob == nullptr) {
     return false;
   }
@@ -381,6 +381,11 @@ static bool bone_collection_assign_poll(bContext *C)
   }
 
   bArmature *armature = static_cast<bArmature *>(ob->data);
+  if (armature != ED_armature_context(C)) {
+    CTX_wm_operator_poll_msg_set(C, "Pinned armature is not active in the 3D viewport");
+    return false;
+  }
+
   if (!ID_IS_EDITABLE(armature) && !ID_IS_OVERRIDE_LIBRARY(armature)) {
     CTX_wm_operator_poll_msg_set(
         C, "Cannot edit bone collections on linked Armatures without override");
@@ -403,7 +408,7 @@ static bool bone_collection_assign_poll(bContext *C)
 /* Assign selected pchans to the bone collection that the user selects */
 static wmOperatorStatus bone_collection_assign_exec(bContext *C, wmOperator *op)
 {
-  Object *ob = blender::ed::object::context_object(C);
+  Object *ob = blender::ed::object::context_active_object(C);
   if (ob == nullptr) {
     return OPERATOR_CANCELLED;
   }
@@ -574,7 +579,7 @@ void ARMATURE_OT_collection_create_and_assign(wmOperatorType *ot)
 
 static wmOperatorStatus bone_collection_unassign_exec(bContext *C, wmOperator *op)
 {
-  Object *ob = blender::ed::object::context_object(C);
+  Object *ob = blender::ed::object::context_active_object(C);
   if (ob == nullptr) {
     return OPERATOR_CANCELLED;
   }
@@ -638,7 +643,7 @@ void ARMATURE_OT_collection_unassign(wmOperatorType *ot)
 
 static wmOperatorStatus bone_collection_unassign_named_exec(bContext *C, wmOperator *op)
 {
-  Object *ob = blender::ed::object::context_object(C);
+  Object *ob = blender::ed::object::context_active_object(C);
   if (ob == nullptr) {
     return OPERATOR_CANCELLED;
   }
@@ -729,19 +734,22 @@ static bool editbone_is_member(const EditBone *ebone, const BoneCollection *bcol
 static bool armature_bone_select_poll(bContext *C)
 {
   Object *ob = blender::ed::object::context_object(C);
-  if (ob == nullptr || ob->type != OB_ARMATURE) {
+  if (ob && ob->type == OB_ARMATURE) {
+
+    /* For bone selection, at least the pose should be editable to actually store
+     * the selection state. */
+    if (!ID_IS_EDITABLE(ob) && !ID_IS_OVERRIDE_LIBRARY(ob)) {
+      CTX_wm_operator_poll_msg_set(
+          C, "Cannot (de)select bones on linked object, that would need an override");
+      return false;
+    }
+  }
+
+  const bArmature *armature = ED_armature_context(C);
+  if (armature == nullptr) {
     return false;
   }
 
-  /* For bone selection, at least the pose should be editable to actually store
-   * the selection state. */
-  if (!ID_IS_EDITABLE(ob) && !ID_IS_OVERRIDE_LIBRARY(ob)) {
-    CTX_wm_operator_poll_msg_set(
-        C, "Cannot (de)select bones on linked object, that would need an override");
-    return false;
-  }
-
-  const bArmature *armature = reinterpret_cast<bArmature *>(ob->data);
   if (armature->runtime.active_collection == nullptr) {
     CTX_wm_operator_poll_msg_set(C, "No active bone collection");
     return false;
@@ -750,11 +758,10 @@ static bool armature_bone_select_poll(bContext *C)
 }
 
 static void bone_collection_select(bContext *C,
-                                   Object *ob,
+                                   bArmature *armature,
                                    BoneCollection *bcoll,
                                    const bool select)
 {
-  bArmature *armature = static_cast<bArmature *>(ob->data);
   const bool is_editmode = armature->edbo != nullptr;
 
   if (is_editmode) {
@@ -788,7 +795,7 @@ static void bone_collection_select(bContext *C,
   }
 
   DEG_id_tag_update(&armature->id, ID_RECALC_SELECT);
-  WM_event_add_notifier(C, NC_OBJECT | ND_BONE_COLLECTION, ob);
+  WM_event_add_notifier(C, NC_OBJECT | ND_BONE_COLLECTION, nullptr);
 
   if (is_editmode) {
     ED_outliner_select_sync_from_edit_bone_tag(C);
@@ -800,18 +807,17 @@ static void bone_collection_select(bContext *C,
 
 static wmOperatorStatus bone_collection_select_exec(bContext *C, wmOperator * /*op*/)
 {
-  Object *ob = blender::ed::object::context_object(C);
-  if (ob == nullptr) {
+  bArmature *armature = ED_armature_context(C);
+  if (armature == nullptr) {
     return OPERATOR_CANCELLED;
   }
 
-  bArmature *armature = reinterpret_cast<bArmature *>(ob->data);
   BoneCollection *bcoll = armature->runtime.active_collection;
   if (bcoll == nullptr) {
     return OPERATOR_CANCELLED;
   }
 
-  bone_collection_select(C, ob, bcoll, true);
+  bone_collection_select(C, armature, bcoll, true);
   return OPERATOR_FINISHED;
 }
 
@@ -832,18 +838,17 @@ void ARMATURE_OT_collection_select(wmOperatorType *ot)
 
 static wmOperatorStatus bone_collection_deselect_exec(bContext *C, wmOperator * /*op*/)
 {
-  Object *ob = blender::ed::object::context_object(C);
-  if (ob == nullptr) {
+  bArmature *armature = ED_armature_context(C);
+  if (armature == nullptr) {
     return OPERATOR_CANCELLED;
   }
 
-  bArmature *armature = reinterpret_cast<bArmature *>(ob->data);
   BoneCollection *bcoll = armature->runtime.active_collection;
   if (bcoll == nullptr) {
     return OPERATOR_CANCELLED;
   }
 
-  bone_collection_select(C, ob, bcoll, false);
+  bone_collection_select(C, armature, bcoll, false);
   return OPERATOR_FINISHED;
 }
 
