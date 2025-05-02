@@ -9,6 +9,7 @@
 #pragma once
 
 #include "BLI_map.hh"
+#include "BLI_rect.h"
 #include "BLI_span.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_utility_mixins.hh"
@@ -29,6 +30,8 @@
 
 struct ARegion;
 struct ARegionType;
+struct ColorManagedViewSettings;
+struct ColorManagedDisplaySettings;
 struct Scene;
 struct SeqRetimingKey;
 struct Strip;
@@ -127,15 +130,16 @@ void draw_timeline_seq_display(const bContext *C, ARegion *region);
 
 /* `sequencer_preview_draw.cc` */
 
-void sequencer_draw_preview(const bContext *C,
-                            Scene *scene,
-                            ARegion *region,
-                            SpaceSeq *sseq,
-                            int timeline_frame,
-                            int offset,
-                            bool draw_overlay);
+/**
+ * Draw callback for the sequencer preview region.
+ *
+ * It is supposed to be set as the draw function of the ARegionType corresponding to the preview
+ * region.
+ */
+void sequencer_preview_region_draw(const bContext *C, ARegion *region);
+
 bool sequencer_draw_get_transform_preview(SpaceSeq *sseq, Scene *scene);
-int sequencer_draw_get_transform_preview_frame(Scene *scene);
+int sequencer_draw_get_transform_preview_frame(const Scene *scene);
 
 void sequencer_special_update_set(Strip *strip);
 /* Get handle width in 2d-View space. */
