@@ -30,7 +30,6 @@ from .search_node_tree import \
     get_node_socket, \
     get_material_nodes, \
     NodeSocket, \
-    get_vertex_color_info, \
     gather_alpha_info
 
 
@@ -480,7 +479,7 @@ def __export_unlit(blender_material, export_settings):
     else:
         alpha_info = gather_alpha_info(None)
 
-    vc_info = get_vertex_color_info(info.get('rgb_socket'), info.get('alpha_socket'), export_settings)
+    base_color_factor, vc_info = gltf2_unlit.gather_base_color_factor(info, export_settings)
 
     material = gltf2_io.Material(
         alpha_cutoff=__gather_alpha_cutoff(alpha_info, export_settings),
@@ -495,7 +494,7 @@ def __export_unlit(blender_material, export_settings):
         occlusion_texture=None,
 
         pbr_metallic_roughness=gltf2_io.MaterialPBRMetallicRoughness(
-            base_color_factor=gltf2_unlit.gather_base_color_factor(info, export_settings),
+            base_color_factor=base_color_factor,
             base_color_texture=base_color_texture,
             metallic_factor=0.0,
             roughness_factor=0.9,

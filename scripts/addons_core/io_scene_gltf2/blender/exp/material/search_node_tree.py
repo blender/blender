@@ -968,56 +968,6 @@ def check_if_is_linked_to_active_output(shader_socket, group_path):
 
     return False
 
-
-def get_vertex_color_info(color_socket, alpha_socket, export_settings):
-
-    attribute_color = None
-    attribute_alpha = None
-    attribute_color_type = None
-    attribute_alpha_type = None
-    alpha_mode = "OPAQUE"
-
-    # Retrieve Attribute used as vertex color for Color
-    if color_socket is not None and color_socket.socket is not None:
-        node = previous_node(color_socket)
-        if node.node is not None:
-            if node.node.type == 'MIX' and node.node.data_type == "RGBA" and node.node.blend_type == 'MULTIPLY':
-                use_vc, attribute_color, use_active = get_attribute_name(
-                    NodeSocket(node.node.inputs[6], node.group_path), export_settings)
-                if use_vc is False:
-                    use_vc, attribute_color, use_active = get_attribute_name(
-                        NodeSocket(node.node.inputs[7], node.group_path), export_settings)
-                if use_vc is True and use_active is True:
-                    attribute_color_type = "active"
-                elif use_vc is True and use_active is None and attribute_color is not None:
-                    attribute_color_type = "name"
-            elif node.node.type in ["ATTRIBUTE", "VERTEX_COLOR"]:
-                use_vc, attribute_color, use_active = get_attribute_name(
-                    NodeSocket(node.node.outputs[0], node.group_path), export_settings)
-                if use_vc is True and use_active is True:
-                    attribute_color_type = "active"
-                elif use_vc is True and use_active is None and attribute_color is not None:
-                    attribute_color_type = "name"
-
-    if alpha_socket is not None and alpha_socket.socket is not None:
-        alpha_info = gather_alpha_info(alpha_socket.to_node_nav())
-
-        if alpha_info['alphaColorAttrib'] == '':
-            attribute_alpha = None
-            attribute_alpha_type = 'active'
-        elif alpha_info['alphaColorAttrib'] is not None:
-            attribute_alpha = alpha_info['alphaColorAttrib']
-            attribute_alpha_type = 'name'
-        alpha_mode = alpha_info['alphaMode']
-
-    return {
-        "color": attribute_color,
-        "alpha": attribute_alpha,
-        "color_type": attribute_color_type,
-        "alpha_type": attribute_alpha_type,
-        'alpha_mode': alpha_mode}
-
-
 def get_attribute_name(socket, export_settings):
     node = previous_node(socket)
     if node.node is not None and node.node.type == "ATTRIBUTE" \

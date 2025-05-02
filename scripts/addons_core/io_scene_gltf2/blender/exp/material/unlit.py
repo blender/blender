@@ -9,7 +9,8 @@ from .search_node_tree import \
     previous_socket, \
     previous_node, \
     get_factor_from_socket, \
-    gather_alpha_info
+    gather_alpha_info,  \
+    gather_color_info
 
 
 def detect_shadeless_material(blender_material_node_tree, use_nodes, export_settings):
@@ -124,13 +125,22 @@ def __detect_lightpath_trick(socket):
 def gather_base_color_factor(info, export_settings):
     rgb, alpha = None, None
     path, path_alpha = None, None
+    vc_info = {"color": None, "alpha": None, "color_type": None, "alpha_type": None, "alpha_mode": "OPAQUE"}
+
 
     if 'rgb_socket' in info:
-        rgb, path = get_factor_from_socket(info['rgb_socket'], kind='RGB')
+        rgb_vc_info = gather_color_info(info['rgb_socket'].to_node_nav())
+        vc_info['color'] = rgb_vc_info['colorAttrib']
+        vc_info['color_type'] = rgb_vc_info['colorAttribType']
+        rgb = rgb_vc_info['colorFactor']
+        path = rgb_vc_info['colorPath']
     if 'alpha_socket' in info:
         alpha_info = gather_alpha_info(info['alpha_socket'].to_node_nav())
         alpha = alpha_info['alphaFactor']
         path_alpha = alpha_info['alphaPath']
+        vc_info['alpha'] = alpha_info['alphaColorAttrib']
+        vc_info['alpha_type'] = alpha_info['alphaColorAttribType']
+        vc_info['alpha_mode'] = alpha_info['alphaMode']
 
     # Storing path for KHR_animation_pointer
     if path is not None:
@@ -147,8 +157,8 @@ def gather_base_color_factor(info, export_settings):
 
     rgba = [*rgb, alpha]
     if rgba == [1, 1, 1, 1]:
-        return None
-    return rgba
+        return None, vc_info
+    return rgba, vc_info
 
 
 def gather_base_color_texture(info, export_settings):
