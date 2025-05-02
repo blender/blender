@@ -54,7 +54,7 @@ static wmOperatorStatus separate_exec(bContext *C, wmOperator * /*op*/)
           }
           bke::CurvesGeometry separated;
           bke::CurvesGeometry retained;
-          ed::curves::separate_points(src.geometry.wrap(), selection, separated, retained);
+          separate_points(src.geometry.wrap(), selection, separated, retained);
 
           separated.calculate_bezier_auto_handles();
           retained.calculate_bezier_auto_handles();

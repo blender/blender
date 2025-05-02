@@ -12,6 +12,7 @@
 #include "BKE_attribute.hh"
 #include "BKE_curves.hh"
 #include "BKE_curves_utils.hh"
+#include "BKE_deform.hh"
 
 #include "GEO_reorder.hh"
 
@@ -365,15 +366,15 @@ static void extend_range_by_1_within_bounds(const IndexRange universe,
   }
 }
 
-static void copy_data_to_geometry(const bke::CurvesGeometry &src_curves,
-                                  const Span<int> dst_to_src_curve,
-                                  const Span<int> offsets,
-                                  const Span<bool> cyclic,
-                                  const Span<IndexRange> src_ranges,
-                                  const OffsetIndices<int> dst_offsets,
-                                  bke::CurvesGeometry &dst_curves)
+static bke::CurvesGeometry copy_data_to_geometry(const bke::CurvesGeometry &src_curves,
+                                                 const Span<int> dst_to_src_curve,
+                                                 const Span<int> offsets,
+                                                 const Span<bool> cyclic,
+                                                 const Span<IndexRange> src_ranges,
+                                                 const OffsetIndices<int> dst_offsets)
 {
-  dst_curves.resize(offsets.last(), dst_to_src_curve.size());
+  bke::CurvesGeometry dst_curves(offsets.last(), dst_to_src_curve.size());
+  BKE_defgroup_copy_list(&dst_curves.vertex_group_names, &src_curves.vertex_group_names);
 
   array_utils::copy(offsets, dst_curves.offsets_for_write());
   dst_curves.cyclic_for_write().copy_from(cyclic);
@@ -401,7 +402,7 @@ static void copy_data_to_geometry(const bke::CurvesGeometry &src_curves,
   };
 
   dst_curves.update_curve_types();
-  dst_curves.tag_topology_changed();
+  return dst_curves;
 }
 
 bke::CurvesGeometry split_points(const bke::CurvesGeometry &curves,
@@ -472,11 +473,10 @@ bke::CurvesGeometry split_points(const bke::CurvesGeometry &curves,
         }
       });
 
-  bke::CurvesGeometry new_curves;
-  copy_data_to_geometry(
-      curves, curve_map, new_offsets, new_cyclic, src_ranges, dst_offsets.as_span(), new_curves);
+  bke::CurvesGeometry new_curves = copy_data_to_geometry(
+      curves, curve_map, new_offsets, new_cyclic, src_ranges, dst_offsets.as_span());
 
-  OffsetIndices<int> new_points_by_curve = new_curves.points_by_curve();
+  const OffsetIndices<int> new_points_by_curve = new_curves.points_by_curve();
   foreach_selection_attribute_writer(
       new_curves, bke::AttrDomain::Point, [&](bke::GSpanAttributeWriter &selection) {
         for (const IndexRange curves : deselect) {
@@ -562,25 +562,23 @@ void separate_points(const bke::CurvesGeometry &curves,
     bke::MutableAttributeAccessor attributes = separated.attributes_for_write();
     remove_selection_attributes(attributes);
 
-    copy_data_to_geometry(curves,
-                          separated_curve_map,
-                          separated_offsets,
-                          separated_cyclic,
-                          separated_src_ranges,
-                          separated_dst_offsets.as_span(),
-                          separated);
+    separated = copy_data_to_geometry(curves,
+                                      separated_curve_map,
+                                      separated_offsets,
+                                      separated_cyclic,
+                                      separated_src_ranges,
+                                      separated_dst_offsets.as_span());
   }
   {
     bke::MutableAttributeAccessor attributes = retained.attributes_for_write();
     remove_selection_attributes(attributes);
 
-    copy_data_to_geometry(curves,
-                          retained_curve_map,
-                          retained_offsets,
-                          retained_cyclic,
-                          retained_src_ranges,
-                          retained_dst_offsets.as_span(),
-                          retained);
+    retained = copy_data_to_geometry(curves,
+                                     retained_curve_map,
+                                     retained_offsets,
+                                     retained_cyclic,
+                                     retained_src_ranges,
+                                     retained_dst_offsets.as_span());
   }
 
   foreach_selection_attribute_writer(
