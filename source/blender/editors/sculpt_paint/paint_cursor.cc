@@ -1299,10 +1299,8 @@ struct PaintCursorContext {
 };
 
 static bool paint_cursor_context_init(bContext *C,
-                                      const int x,
-                                      const int y,
-                                      const float x_tilt,
-                                      const float y_tilt,
+                                      const blender::int2 &xy,
+                                      const blender::float2 &tilt,
                                       PaintCursorContext &pcontext)
 {
   ARegion *region = CTX_wm_region(C);
@@ -1340,9 +1338,9 @@ static bool paint_cursor_context_init(bContext *C,
     pcontext.cursor_type = PaintCursorDrawingType::Cursor3D;
   }
 
-  pcontext.mval = {x, y};
-  pcontext.translation = {float(x), float(y)};
-  pcontext.tilt = {x_tilt, y_tilt};
+  pcontext.mval = xy;
+  pcontext.translation = {float(xy[0]), float(xy[1])};
+  pcontext.tilt = tilt;
 
   float zoomx, zoomy;
   get_imapaint_zoom(C, &zoomx, &zoomy);
@@ -2150,11 +2148,13 @@ static void paint_cursor_restore_drawing_state()
   GPU_line_smooth(false);
 }
 
-static void paint_draw_cursor(
-    bContext *C, int x, int y, float x_tilt, float y_tilt, void * /*unused*/)
+static void paint_draw_cursor(bContext *C,
+                              const blender::int2 &xy,
+                              const blender::float2 &tilt,
+                              void * /*unused*/)
 {
   PaintCursorContext pcontext;
-  if (!paint_cursor_context_init(C, x, y, x_tilt, y_tilt, pcontext)) {
+  if (!paint_cursor_context_init(C, xy, tilt, pcontext)) {
     return;
   }
 

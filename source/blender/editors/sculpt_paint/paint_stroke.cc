@@ -136,10 +136,8 @@ struct PaintStroke {
 
 /*** Cursors ***/
 static void paint_draw_smooth_cursor(bContext *C,
-                                     const int x,
-                                     const int y,
-                                     const float /*x_tilt*/,
-                                     const float /*y_tilt*/,
+                                     const blender::int2 &xy,
+                                     const blender::float2 & /*tilt*/,
                                      void *customdata)
 {
   const Paint *paint = BKE_paint_get_active_from_context(C);
@@ -163,7 +161,7 @@ static void paint_draw_smooth_cursor(bContext *C,
     immUniformColor4ubv(paint->paint_cursor_col);
 
     immBegin(GPU_PRIM_LINES, 2);
-    immVertex2f(pos, x, y);
+    immVertex2iv(pos, xy);
     immVertex2f(pos,
                 stroke->last_mouse_position[0] + region->winrct.xmin,
                 stroke->last_mouse_position[1] + region->winrct.ymin);
@@ -178,10 +176,8 @@ static void paint_draw_smooth_cursor(bContext *C,
 }
 
 static void paint_draw_line_cursor(bContext *C,
-                                   const int x,
-                                   const int y,
-                                   const float /*x_tilt*/,
-                                   const float /*y_tilt*/,
+                                   const blender::int2 &xy,
+                                   const blender::float2 & /*tilt*/,
                                    void *customdata)
 {
   const Paint *paint = BKE_paint_get_active_from_context(C);
@@ -223,7 +219,7 @@ static void paint_draw_line_cursor(bContext *C,
                 stroke->last_mouse_position[0] + region->winrct.xmin,
                 stroke->last_mouse_position[1] + region->winrct.ymin);
 
-    immVertex2f(shdr_pos, x, y);
+    immVertex2iv(shdr_pos, xy);
   }
 
   immEnd();

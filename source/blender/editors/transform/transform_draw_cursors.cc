@@ -80,8 +80,10 @@ bool transform_draw_cursor_poll(bContext *C)
   return (region && ELEM(region->regiontype, RGN_TYPE_WINDOW, RGN_TYPE_PREVIEW)) ? true : false;
 }
 
-void transform_draw_cursor_draw(
-    bContext *C, int x, int y, float /*x_tilt*/, float /*y_tilt*/, void *customdata)
+void transform_draw_cursor_draw(bContext *C,
+                                const blender::int2 &xy,
+                                const blender::float2 & /*tilt*/,
+                                void *customdata)
 {
   TransInfo *t = (TransInfo *)customdata;
 
@@ -164,7 +166,7 @@ void transform_draw_cursor_draw(
   immUniform1f("lineWidth", ARROW_WIDTH * 2.0f);
 
   GPU_matrix_push();
-  GPU_matrix_translate_3f(float(x), float(y), 0.0f);
+  GPU_matrix_translate_3f(float(xy.x), float(xy.y), 0.0f);
 
   switch (t->helpline) {
     case HLP_SPRING:

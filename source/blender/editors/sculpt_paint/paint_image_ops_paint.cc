@@ -242,8 +242,10 @@ struct PaintOperation : public PaintModeData {
   }
 };
 
-static void gradient_draw_line(
-    bContext * /*C*/, int x, int y, float /*x_tilt*/, float /*y_tilt*/, void *customdata)
+static void gradient_draw_line(bContext * /*C*/,
+                               const blender::int2 &xy,
+                               const blender::float2 & /*tilt*/,
+                               void *customdata)
 {
   PaintOperation *pop = (PaintOperation *)customdata;
 
@@ -262,7 +264,7 @@ static void gradient_draw_line(
     immUniformColor4ub(0, 0, 0, 255);
 
     immBegin(GPU_PRIM_LINES, 2);
-    immVertex2i(pos, x, y);
+    immVertex2iv(pos, xy);
     immVertex2i(
         pos, pop->startmouse[0] + region->winrct.xmin, pop->startmouse[1] + region->winrct.ymin);
     immEnd();
@@ -271,7 +273,7 @@ static void gradient_draw_line(
     immUniformColor4ub(255, 255, 255, 255);
 
     immBegin(GPU_PRIM_LINES, 2);
-    immVertex2i(pos, x, y);
+    immVertex2iv(pos, xy);
     immVertex2i(
         pos, pop->startmouse[0] + region->winrct.xmin, pop->startmouse[1] + region->winrct.ymin);
     immEnd();

@@ -865,22 +865,23 @@ static bool v3d_cursor_snap_poll_fn(bContext *C)
   return true;
 }
 
-static void v3d_cursor_snap_draw_fn(
-    bContext *C, int x, int y, float /*x_tilt*/, float /*y_tilt*/, void * /*customdata*/)
+static void v3d_cursor_snap_draw_fn(bContext *C,
+                                    const blender::int2 &xy,
+                                    const blender::float2 & /*tilt*/,
+                                    void * /*customdata*/)
 {
   using namespace blender;
   ScrArea *area = CTX_wm_area(C);
   ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
   if (region->alignment == RGN_ALIGN_QSPLIT) {
     /* Quad-View. */
-    const int2 xy = {x, y};
     region = BKE_area_find_region_xy(area, RGN_TYPE_WINDOW, xy);
     if (region == nullptr) {
       return;
     }
   }
 
-  const int2 mval(x - region->winrct.xmin, y - region->winrct.ymin);
+  const int2 mval(xy.x - region->winrct.xmin, xy.y - region->winrct.ymin);
 
   SnapCursorDataIntern *data_intern = &g_data_intern;
   V3DSnapCursorState *state = ED_view3d_cursor_snap_state_active_get();

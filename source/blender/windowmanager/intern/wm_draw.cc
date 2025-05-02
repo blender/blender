@@ -150,12 +150,7 @@ static void wm_paintcursor_draw(bContext *C, ScrArea *area, ARegion *region)
         xy = xy_buf;
       }
 
-      pc->draw(C,
-               xy[0],
-               xy[1],
-               win->eventstate->tablet.tilt.x,
-               win->eventstate->tablet.tilt.y,
-               pc->customdata);
+      pc->draw(C, xy, win->eventstate->tablet.tilt, pc->customdata);
       GPU_scissor_test(false);
     }
   }
