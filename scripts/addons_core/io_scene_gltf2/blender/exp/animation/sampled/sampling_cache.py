@@ -125,7 +125,10 @@ def material_caching(data, action_name, slot_identifier, frame, export_settings)
         if len(export_settings['KHR_animation_pointer']['materials'][mat]['paths']) == 0:
             continue
 
-        blender_material = [m for m in bpy.data.materials if id(m) == mat]
+        if export_settings['gltf_animation_mode'] == "NLA_TRACKS" and export_settings['gltf_apply'] is True:
+            blender_material = [export_settings['material_identifiers'][mat]]
+        else:
+            blender_material = [m for m in bpy.data.materials if id(m) == mat]
         if len(blender_material) == 0:
             # This is not a material from Blender (coming from Geometry Node for example, so no animation on it)
             continue
@@ -180,7 +183,10 @@ def material_nodetree_caching(data, action_name, slot_identifier, frame, export_
         if len(export_settings['KHR_animation_pointer']['materials'][mat]['paths']) == 0:
             continue
 
-        blender_material = [m for m in bpy.data.materials if id(m) == mat]
+        if export_settings['gltf_animation_mode'] == "NLA_TRACKS" and export_settings['gltf_apply'] is True:
+            blender_material = [export_settings['material_identifiers'][mat]]
+        else:
+            blender_material = [m for m in bpy.data.materials if id(m) == mat]
         if len(blender_material) == 0:
             # This is not a material from Blender (coming from Geometry Node for example, so no animation on it)
             continue

@@ -261,8 +261,10 @@ def __gather_mesh(vnode, blender_object, export_settings):
         blender_mesh = vnode.data
         # Keep materials from the tmp mesh, but if no material, keep from object
         materials = tuple(mat for mat in blender_mesh.materials)
+        __keep_material_info(materials, False, export_settings)
         if len(materials) == 1 and materials[0] is None:
             materials = tuple(ms.material for ms in vnode.original_object.material_slots)
+            __keep_material_info(materials, True, export_settings)
 
         uuid_for_skined_data = None
         modifiers = None
@@ -292,6 +294,7 @@ def __gather_mesh(vnode, blender_object, export_settings):
                 # Keep materials from object, as no modifiers are applied, so no risk that
                 # modifiers changed them
                 materials = tuple(ms.material for ms in blender_object.material_slots)
+                __keep_material_info(materials, True, export_settings)
             else:
                 armature_modifiers = {}
                 if export_settings['gltf_skins']:
@@ -324,8 +327,12 @@ def __gather_mesh(vnode, blender_object, export_settings):
 
                 # Keep materials from the newly created tmp mesh, but if no materials, keep from object
                 materials = tuple(mat for mat in blender_mesh.materials)
+                # We need to store link between the original material and the tmp mesh material,
+                # Because of animation pointer NLA that will still have the original
+                __keep_material_info(materials, False, export_settings)
                 if len(materials) == 1 and materials[0] is None:
                     materials = tuple(ms.material for ms in blender_object.material_slots)
+                    __keep_material_info(materials, True, export_settings)
 
         else:
             blender_mesh = blender_object.data
@@ -339,6 +346,7 @@ def __gather_mesh(vnode, blender_object, export_settings):
             # Keep materials from object, as no modifiers are applied, so no risk that
             # modifiers changed them
             materials = tuple(ms.material for ms in blender_object.material_slots)
+            __keep_material_info(materials, True, export_settings)
 
         # retrieve armature
         # Because mesh data will be transforms to skeleton space,
@@ -362,6 +370,14 @@ def __gather_mesh(vnode, blender_object, export_settings):
 
     return result
 
+def __keep_material_info(materials, originals, export_settings):
+    for m in [m for m in materials if m is not None]:
+        if 'material_identifiers' not in export_settings.keys():
+            export_settings['material_identifiers'] = {}
+        if originals is True:
+            export_settings['material_identifiers'][id(m)] = m
+        else:
+            export_settings['material_identifiers'][id(m)] = m.original
 
 def __gather_mesh_from_nonmesh(blender_object, export_settings):
     """Handles curves, surfaces, text, etc."""
