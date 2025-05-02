@@ -154,11 +154,13 @@ class Texture(_types.ID):
         .. note:: Takes ``O(len(bpy.data.materials) * len(material.texture_slots))`` time.
         """
         import bpy
-        return tuple(mat for mat in bpy.data.materials
-                     if self in (slot.texture
-                                 for slot in mat.texture_slots
-                                 if slot)
-                     )
+        return tuple(
+            mat for mat in bpy.data.materials
+            if self in (
+                slot.texture for slot in mat.texture_slots
+                if slot is not None
+            )
+        )
 
     @property
     def users_object_modifier(self):
@@ -170,11 +172,11 @@ class Texture(_types.ID):
         """
         import bpy
         return tuple(
-            obj for obj in bpy.data.objects if
-            self in (
-                mod.texture
-                for mod in obj.modifiers
-                if mod.type == 'DISPLACE')
+            obj for obj in bpy.data.objects
+            if self in (
+                mod.texture for mod in obj.modifiers
+                if mod.type == 'DISPLACE'
+            )
         )
 
 
@@ -212,8 +214,10 @@ class Collection(_types.ID):
         .. note:: Takes ``O(len(bpy.data.objects))`` time.
         """
         import bpy
-        return tuple(obj for obj in bpy.data.objects
-                     if self == obj.instance_collection)
+        return tuple(
+            obj for obj in bpy.data.objects
+            if self == obj.instance_collection
+        )
 
 
 class Object(_types.ID):
@@ -228,8 +232,10 @@ class Object(_types.ID):
 
         .. note:: Takes ``O(len(bpy.data.objects))`` time."""
         import bpy
-        return tuple(child for child in bpy.data.objects
-                     if child.parent == self)
+        return tuple(
+            child for child in bpy.data.objects
+            if child.parent == self
+        )
 
     @property
     def children_recursive(self):
@@ -283,8 +289,10 @@ class Object(_types.ID):
 
         .. note:: Takes ``O(len(bpy.data.scenes) * len(bpy.data.objects))`` time."""
         import bpy
-        return tuple(scene for scene in bpy.data.scenes
-                     if self in scene.objects[:])
+        return tuple(
+            scene for scene in bpy.data.scenes
+            if self in scene.objects[:]
+        )
 
     def evaluated_geometry(self):
         """
@@ -999,9 +1007,11 @@ class Operator(_StructRNA, metaclass=_RNAMeta):
     def as_keywords(self, *, ignore=()):
         """Return a copy of the properties as a dictionary"""
         ignore = ignore + ("rna_type",)
-        return {attr: getattr(self, attr)
-                for attr in self.properties.rna_type.properties.keys()
-                if attr not in ignore}
+        return {
+            attr: getattr(self, attr)
+            for attr in self.properties.rna_type.properties.keys()
+            if attr not in ignore
+        }
 
 
 class Macro(_StructRNA):
