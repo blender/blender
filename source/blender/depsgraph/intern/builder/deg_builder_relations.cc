@@ -636,8 +636,6 @@ void DepsgraphRelationBuilder::build_idproperties(IDProperty *id_property)
 void DepsgraphRelationBuilder::build_collection(LayerCollection *from_layer_collection,
                                                 Collection *collection)
 {
-  const ComponentKey collection_hierarchy_key{&collection->id, NodeType::HIERARCHY};
-
   if (from_layer_collection != nullptr) {
     /* If we came from layer collection we don't go deeper, view layer builder takes care of going
      * deeper.
@@ -646,22 +644,25 @@ void DepsgraphRelationBuilder::build_collection(LayerCollection *from_layer_coll
      * outside of the layer collection properly recurses into all the nested objects and
      * collections. */
 
-    LISTBASE_FOREACH (CollectionObject *, cob, &collection->gobject) {
-      Object *object = cob->ob;
-
-      /* Ensure that the hierarchy relations always exists, even for the layer collection.
-       *
-       * Note that the view layer builder can skip bases if they are constantly excluded from the
-       * collections. In order to avoid noisy output check that the target node exists before
-       * adding the relation. */
-      const ComponentKey object_hierarchy_key{&object->id, NodeType::HIERARCHY};
-      if (has_node(object_hierarchy_key)) {
-        add_relation(collection_hierarchy_key,
-                     object_hierarchy_key,
-                     "Collection -> Object hierarchy",
-                     RELATION_CHECK_BEFORE_ADD);
+    if (!built_map_.check_is_built_and_tag(collection,
+                                           BuilderMap::TAG_COLLECTION_CHILDREN_HIERARCHY))
+    {
+      const ComponentKey collection_hierarchy_key{&collection->id, NodeType::HIERARCHY};
+      OperationNode *collection_hierarchy_exit =
+          this->find_node(collection_hierarchy_key)->get_exit_operation();
+      LISTBASE_FOREACH (CollectionObject *, cob, &collection->gobject) {
+        Object *object = cob->ob;
+        const ComponentKey object_hierarchy_key{&object->id, NodeType::HIERARCHY};
+        /* Check whether the object hierarchy node exists, because the view layer builder can skip
+         * bases if they are constantly excluded from the collections. */
+        if (Node *object_hierarchy_node = this->find_node(object_hierarchy_key)) {
+          this->add_operation_relation(collection_hierarchy_exit,
+                                       object_hierarchy_node->get_entry_operation(),
+                                       "Collection -> Object hierarchy");
+        }
       }
     }
+
     return;
   }
 
@@ -677,13 +678,23 @@ void DepsgraphRelationBuilder::build_collection(LayerCollection *from_layer_coll
   const OperationKey collection_geometry_key{
       &collection->id, NodeType::GEOMETRY, OperationCode::GEOMETRY_EVAL_DONE};
 
+  const ComponentKey collection_hierarchy_key{&collection->id, NodeType::HIERARCHY};
+  OperationNode *collection_hierarchy_exit =
+      this->find_node(collection_hierarchy_key)->get_exit_operation();
+
   LISTBASE_FOREACH (CollectionObject *, cob, &collection->gobject) {
     Object *object = cob->ob;
 
     build_object(object);
 
+    /* Unfortunately this may add duplicates with the hierarchy relations added below above. This
+     * is necessary though, for collections that are built as layer collections and otherwise,
+     * where an object may not be built yet in the layer collection case. */
     const ComponentKey object_hierarchy_key{&object->id, NodeType::HIERARCHY};
-    add_relation(collection_hierarchy_key, object_hierarchy_key, "Collection -> Object hierarchy");
+    Node *object_hierarchy_node = this->find_node(object_hierarchy_key);
+    this->add_operation_relation(collection_hierarchy_exit,
+                                 object_hierarchy_node->get_entry_operation(),
+                                 "Collection -> Object hierarchy");
 
     const OperationKey object_instance_geometry_key{
         &object->id, NodeType::INSTANCING, OperationCode::INSTANCE_GEOMETRY};

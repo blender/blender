@@ -26,6 +26,13 @@ class BuilderMap {
     TAG_SCENE_SEQUENCER = (1 << 5),
     TAG_SCENE_AUDIO = (1 << 6),
 
+    /**
+     * Specific tag for whether the collection -> children object relations have been built.
+     * Purposefully not included in TAG_COMPLETE so it doesn't influence other decisions about
+     * whether the collection is considered complete.
+     */
+    TAG_COLLECTION_CHILDREN_HIERARCHY = (1 << 7),
+
     /* All ID components has been built. */
     TAG_COMPLETE = (TAG_ANIMATION | TAG_PARAMETERS | TAG_TRANSFORM | TAG_GEOMETRY |
                     TAG_SCENE_COMPOSITOR | TAG_SCENE_SEQUENCER | TAG_SCENE_AUDIO),
