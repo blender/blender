@@ -114,7 +114,15 @@ class Library(_types.ID):
 
     @property
     def users_id(self):
-        """ID data blocks which use this library"""
+        """ID data-blocks that use this library
+
+        :type: tuple of :class:`bpy.types.ID`
+
+        .. note::
+
+            Takes ``O(n)`` time, where ``n`` is the total number of all
+            linkable ID types in ``bpy.data``.
+        """
         import bpy
 
         # See: `readblenentry.cc`, IDTYPE_FLAGS_ISLINKABLE,
@@ -139,7 +147,12 @@ class Texture(_types.ID):
 
     @property
     def users_material(self):
-        """Materials that use this texture"""
+        """Materials that use this texture
+
+        :type: tuple of :class:`Material`
+
+        .. note:: Takes ``O(len(bpy.data.materials) * len(material.texture_slots))`` time.
+        """
         import bpy
         return tuple(mat for mat in bpy.data.materials
                      if self in (slot.texture
@@ -149,7 +162,12 @@ class Texture(_types.ID):
 
     @property
     def users_object_modifier(self):
-        """Object modifiers that use this texture"""
+        """Object modifiers that use this texture
+
+        :type: tuple of :class:`Object`
+
+        .. note:: Takes ``O(len(bpy.data.objects) * len(obj.modifiers))`` time.
+        """
         import bpy
         return tuple(
             obj for obj in bpy.data.objects if
@@ -165,7 +183,16 @@ class Collection(_types.ID):
 
     @property
     def children_recursive(self):
-        """A list of all children from this collection."""
+        """
+        A list of all children from this collection.
+
+        :type: list of :class:`Collection`
+
+        .. note::
+
+            Takes ``O(n)`` time, where ``n`` is the total number of all
+            descendant collections.
+        """
         children_recursive = []
 
         def recurse(parent):
@@ -178,7 +205,12 @@ class Collection(_types.ID):
 
     @property
     def users_dupli_group(self):
-        """The collection instance objects this collection is used in"""
+        """The collection instance objects this collection is used in
+
+        :type: tuple of :class:`Object`
+
+        .. note:: Takes ``O(len(bpy.data.objects))`` time.
+        """
         import bpy
         return tuple(obj for obj in bpy.data.objects
                      if self == obj.instance_collection)
@@ -204,7 +236,7 @@ class Object(_types.ID):
         """
         A list of all children from this object.
 
-        :type: tuple of :class:`Object`
+        :type: list of :class:`Object`
 
         .. note:: Takes ``O(len(bpy.data.objects))`` time."""
         import bpy
