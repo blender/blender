@@ -733,6 +733,7 @@ foreach(GLSL_FILE ${GLSL_SRC})
 endforeach()
 
 blender_add_lib(bf_draw_shaders "${GLSL_C}" "" "" "")
+blender_set_target_unity_build(bf_draw_shaders 10)
 
 list(APPEND LIB
   PRIVATE bf::animrig
