@@ -712,7 +712,8 @@ class ANIM_OT_slot_new_for_id(Operator):
         if adt.action_slot:
             slot = adt.action_slot.duplicate()
         else:
-            slot = adt.action.slots.new(animated_id.id_type, animated_id.name)
+            slot_name = adt.last_slot_identifier[2:] or animated_id.name
+            slot = adt.action.slots.new(animated_id.id_type, slot_name)
 
         adt.action_slot = slot
         return {'FINISHED'}
