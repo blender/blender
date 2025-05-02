@@ -664,7 +664,8 @@ class Cameras : Overlay {
     translate[3][1] = bgpic->offset[1];
     translate[3][2] = cam_corners[0][2];
     if (cam->type == CAM_ORTHO) {
-      translate[3].xy() *= cam->ortho_scale;
+      translate[3][0] *= cam->ortho_scale;
+      translate[3][1] *= cam->ortho_scale;
     }
     /* These lines are for keeping 2.80 behavior and could be removed to keep 2.79 behavior. */
     translate[3][0] *= min_ff(1.0f, cam_aspect);
