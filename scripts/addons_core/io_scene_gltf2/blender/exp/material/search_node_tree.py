@@ -336,12 +336,30 @@ class NodeNav:
 
         # Check for a constant in the next node
         nav = self.peek_back()
-        if nav.moved:
+        # Dev warning: because of loopbacks, this can be an infinite loop if not careful
+        # Please check all branches of your if statements
+        while True:
+            if not nav.moved:
+                break
+
             if self.in_socket.type == 'RGBA':
+
+                # RGB node
                 if nav.node.type == 'RGB':
                     color = list(nav.out_socket.default_value)
                     color = color[:3]  # drop unused alpha component (assumes shader tree)
                     return color, "node_tree." + nav.out_socket.path_from_id() + ".default_value"
+                # Ambient Occlusion node, not linked
+                elif nav.node.type == 'AMBIENT_OCCLUSION' and not nav.node.inputs['Color'].is_linked:
+                    color = list(nav.node.inputs['Color'].default_value)
+                    color = color[:3] # drop unused alpha component (assumes shader tree)
+                    return color, "node_tree." + nav.node.inputs['Color'].path_from_id() + ".default_value"
+                # Ambient Occlusion node, linked, so check the next node
+                elif nav.node.type == "AMBIENT_OCCLUSION" and nav.node.inputs['Color'].is_linked:
+                    nav.move_back('Color')
+                    continue
+                else:
+                    break
 
             elif self.in_socket.type == 'SHADER':
                 # Historicaly, we manage RGB node plugged into a shader socket (output node)
@@ -349,10 +367,25 @@ class NodeNav:
                     color = list(nav.out_socket.default_value)
                     color = color[:3]
                     return color, "node_tree." + nav.out_socket.path_from_id() + ".default_value"
+                # Ambient Occlusion node, not linked
+                elif nav.node.type == 'AMBIENT_OCCLUSION' and not nav.node.inputs['Color'].is_linked:
+                    color = list(nav.node.inputs['Color'].default_value)
+                    color = color[:3] # drop unused alpha component (assumes shader tree)
+                    return color, "node_tree." + nav.node.inputs['Color'].path_from_id() + ".default_value"
+                # Ambient Occlusion node, linked, so check the next node
+                elif nav.node.type == "AMBIENT_OCCLUSION" and nav.node.inputs['Color'].is_linked:
+                    nav.move_back('Color')
+                    continue
+                else:
+                    break
 
             elif self.in_socket.type == 'VALUE':
                 if nav.node.type == 'VALUE':
                     return nav.out_socket.default_value, "node_tree." + nav.out_socket.path_from_id() + ".default_value"
+                else:
+                    break
+            else:
+                break
 
         return None, None
 
