@@ -32,7 +32,7 @@ namespace blender::eevee {
 LookdevWorld::LookdevWorld()
 {
   /* Create a dummy World data block to hold the nodetree generated for studio-lights. */
-  world = static_cast<::World *>(BKE_id_new_nomain(ID_MA, "Lookdev"));
+  world = static_cast<::World *>(BKE_id_new_nomain(ID_WO, "Lookdev"));
 
   bNodeTree *ntree = bke::node_tree_add_tree_embedded(
       nullptr, &world->id, "Lookdev World Nodetree", ntreeType_Shader->idname);
