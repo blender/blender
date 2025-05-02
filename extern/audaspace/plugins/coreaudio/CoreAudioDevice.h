@@ -56,6 +56,8 @@ private:
 
 	/// The CoreAudio clock referene.
 	CAClockRef m_clock_ref;
+	bool m_audio_clock_ready;
+	double m_synchronizerStartTime{0};
 
 	/**
 	 * Mixes the next bytes into the buffer.
