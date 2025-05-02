@@ -505,17 +505,13 @@ Span<int> Instances::reference_user_counts() const
 Span<int> Instances::almost_unique_ids() const
 {
   almost_unique_ids_cache_.ensure([&](Array<int> &r_data) {
-    bke::AttributeReader<int> instance_ids_attribute = this->attributes().lookup<int>("id");
-    if (instance_ids_attribute) {
-      Span<int> instance_ids = instance_ids_attribute.varray.get_internal_span();
-      if (r_data.size() != instance_ids.size()) {
-        r_data = generate_unique_instance_ids(instance_ids);
-      }
-    }
-    else {
+    const VArraySpan<int> instance_ids = *this->attributes().lookup<int>("id");
+    if (instance_ids.is_empty()) {
       r_data.reinitialize(instances_num_);
       array_utils::fill_index_range(r_data.as_mutable_span());
+      return;
     }
+    r_data = generate_unique_instance_ids(instance_ids);
   });
   return almost_unique_ids_cache_.data();
 }
