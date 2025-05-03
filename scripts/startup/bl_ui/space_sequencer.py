@@ -584,7 +584,10 @@ class SEQUENCER_MT_select(Menu):
             context.scene.sequence_editor is not None and
             context.scene.sequence_editor.selected_retiming_keys
         )
-
+        if has_preview:
+            layout.operator_context = 'INVOKE_REGION_PREVIEW'
+        else:
+            layout.operator_context = 'INVOKE_REGION_WIN'
         layout.operator("sequencer.select_all", text="All").action = 'SELECT'
         layout.operator("sequencer.select_all", text="None").action = 'DESELECT'
         layout.operator("sequencer.select_all", text="Invert").action = 'INVERT'

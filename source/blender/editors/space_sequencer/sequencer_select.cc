@@ -443,24 +443,26 @@ static wmOperatorStatus sequencer_de_select_all_exec(bContext *C, wmOperator *op
       }
     }
   }
-
+  if (action == SEL_INVERT || action == SEL_SELECT) {
+    if (action == SEL_INVERT) {
+      for (Strip *strip : strips) {
+        if (strip->flag & STRIP_ALLSEL) {
+          strips.remove(strip);
+        }
+      }
+    }
+    deselect_all_strips(scene);
+  }
   for (Strip *strip : strips) {
     switch (action) {
       case SEL_SELECT:
-        strip->flag &= ~(SEQ_LEFTSEL + SEQ_RIGHTSEL);
         strip->flag |= SELECT;
         break;
       case SEL_DESELECT:
         strip->flag &= ~STRIP_ALLSEL;
         break;
       case SEL_INVERT:
-        if (strip->flag & STRIP_ALLSEL) {
-          strip->flag &= ~STRIP_ALLSEL;
-        }
-        else {
-          strip->flag &= ~(SEQ_LEFTSEL + SEQ_RIGHTSEL);
-          strip->flag |= SELECT;
-        }
+        strip->flag |= SELECT;
         break;
     }
   }
