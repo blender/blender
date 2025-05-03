@@ -3,8 +3,12 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
+
 Welcome to audaspace's documentation!
 =====================================
+
+For detailed and up-to-date build instructions, please refer to the official Blender Wiki:
+https://wiki.blender.org/wiki/Building_Blender
 
 .. automodule:: aud
    :no-members:
