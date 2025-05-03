@@ -4585,7 +4585,7 @@ static void ui_def_but_rna__menu(bContext *C, uiLayout *layout, void *but_p)
   /* NOTE: `item_array[...]` is reversed on access. */
 
   /* create items */
-  uiLayout *split = uiLayoutSplit(layout, 0.0f, false);
+  uiLayout *split = &layout->split(0.0f, false);
 
   bool new_column;
 

@@ -734,7 +734,7 @@ static uiBlock *wm_block_insert_unicode_create(bContext *C, ARegion *region, voi
 
   uiBut *confirm = nullptr;
   uiBut *cancel = nullptr;
-  uiLayout *split = uiLayoutSplit(layout, 0.0f, true);
+  uiLayout *split = &layout->split(0.0f, true);
   split->column(false);
 
   if (windows_layout) {

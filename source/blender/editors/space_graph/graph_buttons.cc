@@ -388,7 +388,7 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
     /* interpolation */
     col = &layout->column(false);
     if (fcu->flag & FCURVE_DISCRETE_VALUES) {
-      uiLayout *split = uiLayoutSplit(col, 0.33f, true);
+      uiLayout *split = &col->split(0.33f, true);
       uiItemL(split, IFACE_("Interpolation:"), ICON_NONE);
       uiItemL(split, IFACE_("None for Enum/Boolean"), ICON_IPO_CONSTANT);
     }

@@ -104,7 +104,7 @@ static void node_composit_buts_colorbalance(uiLayout *layout, bContext * /*C*/, 
   const int method = RNA_enum_get(ptr, "correction_method");
 
   if (method == CMP_NODE_COLOR_BALANCE_LGG) {
-    split = uiLayoutSplit(layout, 0.0f, false);
+    split = &layout->split(0.0f, false);
     col = &split->column(false);
     uiTemplateColorPicker(col, ptr, "lift", true, true, false, true);
     row = &col->row(false);
@@ -121,7 +121,7 @@ static void node_composit_buts_colorbalance(uiLayout *layout, bContext * /*C*/, 
     uiItemR(row, ptr, "gain", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   }
   else if (method == CMP_NODE_COLOR_BALANCE_ASC_CDL) {
-    split = uiLayoutSplit(layout, 0.0f, false);
+    split = &layout->split(0.0f, false);
     col = &split->column(false);
     uiTemplateColorPicker(col, ptr, "offset", true, true, false, true);
     row = &col->row(false);
@@ -139,7 +139,7 @@ static void node_composit_buts_colorbalance(uiLayout *layout, bContext * /*C*/, 
     uiItemR(row, ptr, "slope", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   }
   else if (method == CMP_NODE_COLOR_BALANCE_WHITEPOINT) {
-    split = uiLayoutSplit(layout, 0.0f, false);
+    split = &layout->split(0.0f, false);
 
     col = &split->column(false);
     row = &col->row(true);

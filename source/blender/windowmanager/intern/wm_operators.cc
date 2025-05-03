@@ -1621,7 +1621,7 @@ static uiBlock *wm_block_dialog_create(bContext *C, ARegion *region, void *user_
     uiBut *confirm_but;
     uiBut *cancel_but;
 
-    col = uiLayoutSplit(col, 0.0f, true);
+    col = &col->split(0.0f, true);
     uiLayoutSetScaleY(col, small ? 1.0f : 1.2f);
 
     if (windows_layout) {

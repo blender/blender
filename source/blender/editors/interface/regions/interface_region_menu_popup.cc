@@ -800,7 +800,7 @@ void UI_popup_block_template_confirm_op(uiLayout *layout,
   /* Use a split so both buttons are the same size. */
   const bool show_confirm = !confirm_text.is_empty();
   const bool show_cancel = !cancel_text.is_empty();
-  uiLayout *row = (show_confirm && show_cancel) ? uiLayoutSplit(layout, 0.5f, false) : layout;
+  uiLayout *row = (show_confirm && show_cancel) ? &layout->split(0.5f, false) : layout;
 
   /* When only one button is shown, make it default. */
   if (!show_confirm) {

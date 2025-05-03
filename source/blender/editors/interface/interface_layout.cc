@@ -1507,7 +1507,7 @@ void uiItemsFullEnumO_items(uiLayout *layout,
                  std::nullopt);
   }
   else {
-    split = uiLayoutSplit(layout, 0.0f, false);
+    split = &layout->split(0.0f, false);
     target = &split->column(layout->align_);
   }
 
@@ -2243,8 +2243,8 @@ void uiItemFullR(uiLayout *layout,
       }
     }
     else {
-      uiLayout *layout_split = uiLayoutSplit(
-          layout_row ? layout_row : layout, UI_ITEM_PROP_SEP_DIVIDE, true);
+      uiLayout *layout_split =
+          &(layout_row ? layout_row : layout)->split(UI_ITEM_PROP_SEP_DIVIDE, true);
       bool label_added = false;
       uiLayout *layout_sub = &layout_split->column(true);
       layout_sub->space_ = 0;
@@ -2710,7 +2710,7 @@ void uiItemsEnumR(uiLayout *layout, PointerRNA *ptr, const StringRefNull propnam
     return;
   }
 
-  uiLayout *split = uiLayoutSplit(layout, 0.0f, false);
+  uiLayout *split = &layout->split(0.0f, false);
   uiLayout *column = &split->column(false);
 
   int totitem;
@@ -3332,7 +3332,7 @@ uiPropertySplitWrapper uiItemPropertySplitWrapperCreate(uiLayout *parent_layout)
   uiPropertySplitWrapper split_wrapper = {nullptr};
 
   uiLayout *layout_row = &parent_layout->row(true);
-  uiLayout *layout_split = uiLayoutSplit(layout_row, UI_ITEM_PROP_SEP_DIVIDE, true);
+  uiLayout *layout_split = &layout_row->split(UI_ITEM_PROP_SEP_DIVIDE, true);
 
   split_wrapper.label_column = &layout_split->column(true);
   split_wrapper.label_column->alignment_ = UI_LAYOUT_ALIGN_RIGHT;
@@ -5246,18 +5246,18 @@ uiLayout *uiLayoutOverlap(uiLayout *layout)
   return litem;
 }
 
-uiLayout *uiLayoutSplit(uiLayout *layout, float percentage, bool align)
+uiLayout &uiLayout::split(float percentage, bool align)
 {
   uiLayoutItemSplit *split = MEM_new<uiLayoutItemSplit>(__func__);
-  ui_litem_init_from_parent(split, layout, align);
+  ui_litem_init_from_parent(split, this, align);
 
   split->type_ = uiItemType::LayoutSplit;
-  split->space_ = layout->root_->style->columnspace;
+  split->space_ = root_->style->columnspace;
   split->percentage = percentage;
 
-  UI_block_layout_set_current(layout->root_->block, split);
+  UI_block_layout_set_current(root_->block, split);
 
-  return split;
+  return *split;
 }
 
 void uiLayoutSetActive(uiLayout *layout, bool active)
@@ -6474,7 +6474,7 @@ uiLayout *uiItemsAlertBox(uiBlock *block,
       block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, dialog_width, 0, 0, style);
 
   /* Split layout to put alert icon on left side. */
-  uiLayout *split_block = uiLayoutSplit(block_layout, split_factor, false);
+  uiLayout *split_block = &block_layout->split(split_factor, false);
 
   /* Alert icon on the left. */
   uiLayout *layout = &split_block->row(false);

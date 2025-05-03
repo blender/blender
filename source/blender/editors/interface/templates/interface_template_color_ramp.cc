@@ -228,7 +228,7 @@ static void colorband_buttons_layout(uiLayout *layout,
 
   PointerRNA ptr = RNA_pointer_create_discrete(cb.ptr.owner_id, &RNA_ColorRamp, coba);
 
-  uiLayout *split = uiLayoutSplit(layout, 0.4f, false);
+  uiLayout *split = &layout->split(0.4f, false);
 
   UI_block_emboss_set(block, blender::ui::EmbossType::None);
   UI_block_align_begin(block);
@@ -320,7 +320,7 @@ static void colorband_buttons_layout(uiLayout *layout,
     ptr = RNA_pointer_create_discrete(cb.ptr.owner_id, &RNA_ColorRampElement, cbd);
 
     if (!expand) {
-      split = uiLayoutSplit(layout, 0.3f, false);
+      split = &layout->split(0.3f, false);
 
       row = &split->row(false);
       bt = uiDefButS(block,
@@ -344,8 +344,8 @@ static void colorband_buttons_layout(uiLayout *layout,
       uiItemR(row, &ptr, "color", UI_ITEM_NONE, "", ICON_NONE);
     }
     else {
-      split = uiLayoutSplit(layout, 0.5f, false);
-      uiLayout *subsplit = uiLayoutSplit(split, 0.35f, false);
+      split = &layout->split(0.5f, false);
+      uiLayout *subsplit = &split->split(0.35f, false);
 
       row = &subsplit->row(false);
       bt = uiDefButS(block,

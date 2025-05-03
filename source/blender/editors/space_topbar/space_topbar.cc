@@ -226,7 +226,7 @@ static void undo_history_draw_menu(const bContext *C, Menu *menu)
     undo_step_count += 1;
   }
 
-  uiLayout *split = uiLayoutSplit(menu->layout, 0.0f, false);
+  uiLayout *split = &menu->layout->split(0.0f, false);
   uiLayout *column = nullptr;
 
   const int col_size = 20 + (undo_step_count / 12);

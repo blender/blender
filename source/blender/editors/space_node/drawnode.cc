@@ -353,13 +353,13 @@ static void node_buts_image_user(uiLayout *layout,
   }
 
   if (show_color_management) {
-    uiLayout *split = uiLayoutSplit(layout, 0.33f, true);
+    uiLayout *split = &layout->split(0.33f, true);
     PointerRNA colorspace_settings_ptr = RNA_pointer_get(imaptr, "colorspace_settings");
     uiItemL(split, IFACE_("Color Space"), ICON_NONE);
     uiItemR(split, &colorspace_settings_ptr, "name", DEFAULT_FLAGS, "", ICON_NONE);
 
     if (image->source != IMA_SRC_GENERATED) {
-      split = uiLayoutSplit(layout, 0.33f, true);
+      split = &layout->split(0.33f, true);
       uiItemL(split, IFACE_("Alpha"), ICON_NONE);
       uiItemR(split, imaptr, "alpha_mode", DEFAULT_FLAGS, "", ICON_NONE);
 
@@ -1317,7 +1317,7 @@ static void std_node_socket_draw(
         uiItemR(layout, ptr, "default_value", DEFAULT_FLAGS, "", ICON_NONE);
       }
       else {
-        uiLayout *row = uiLayoutSplit(layout, 0.4f, false);
+        uiLayout *row = &layout->split(0.4f, false);
         uiItemL(row, text, ICON_NONE);
         uiItemR(row, ptr, "default_value", DEFAULT_FLAGS, "", ICON_NONE);
       }
@@ -1329,7 +1329,7 @@ static void std_node_socket_draw(
           node_geometry_add_attribute_search_button(*C, *node, *ptr, *layout, label);
         }
         else {
-          uiLayout *row = uiLayoutSplit(layout, 0.4f, false);
+          uiLayout *row = &layout->split(0.4f, false);
           uiItemL(row, text, ICON_NONE);
           node_geometry_add_attribute_search_button(*C, *node, *ptr, *row);
         }
@@ -1339,7 +1339,7 @@ static void std_node_socket_draw(
           node_geometry_add_layer_search_button(*C, *node, *ptr, *layout, label);
         }
         else {
-          uiLayout *row = uiLayoutSplit(layout, 0.4f, false);
+          uiLayout *row = &layout->split(0.4f, false);
           uiItemL(row, text, ICON_NONE);
           node_geometry_add_layer_search_button(*C, *node, *ptr, *row);
         }
@@ -1357,7 +1357,7 @@ static void std_node_socket_draw(
                       label);
         }
         else {
-          uiLayout *row = uiLayoutSplit(layout, 0.4f, false);
+          uiLayout *row = &layout->split(0.4f, false);
           uiItemL(row, text, ICON_NONE);
           uiItemR(row, ptr, "default_value", DEFAULT_FLAGS, "", ICON_NONE);
         }
@@ -1369,7 +1369,7 @@ static void std_node_socket_draw(
           sock->default_value_typed<bNodeSocketValueMenu>();
       if (default_value->enum_items) {
         if (default_value->enum_items->items.is_empty()) {
-          uiLayout *row = uiLayoutSplit(layout, 0.4f, false);
+          uiLayout *row = &layout->split(0.4f, false);
           uiItemL(row, text, ICON_NONE);
           uiItemL(row, IFACE_("No Items"), ICON_NONE);
         }
@@ -1407,7 +1407,7 @@ static void std_node_socket_draw(
         }
         else {
           /* 0.3 split ratio is inconsistent, but use it here because the "New" button is large. */
-          uiLayout *row = uiLayoutSplit(layout, 0.3f, false);
+          uiLayout *row = &layout->split(0.3f, false);
           uiItemL(row, text, ICON_NONE);
           uiTemplateID(row, C, ptr, "default_value", "image.new", "image.open", nullptr);
         }
@@ -1423,7 +1423,7 @@ static void std_node_socket_draw(
       }
       else {
         /* 0.3 split ratio is inconsistent, but use it here because the "New" button is large. */
-        uiLayout *row = uiLayoutSplit(layout, 0.3f, false);
+        uiLayout *row = &layout->split(0.3f, false);
         uiItemL(row, text, ICON_NONE);
         uiTemplateID(row, C, ptr, "default_value", "texture.new", nullptr, nullptr);
       }

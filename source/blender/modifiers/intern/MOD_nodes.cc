@@ -2144,7 +2144,7 @@ static void add_attribute_search_or_value_buttons(DrawGroupInputsContext &ctx,
   /* We're handling this manually in this case. */
   uiLayoutSetPropDecorate(layout, false);
 
-  uiLayout *split = uiLayoutSplit(layout, 0.4f, false);
+  uiLayout *split = &layout->split(0.4f, false);
   uiLayout *name_row = &split->row(false);
   uiLayoutSetAlignment(name_row, UI_LAYOUT_ALIGN_RIGHT);
 
@@ -2272,7 +2272,7 @@ static void add_layer_name_search_button(DrawGroupInputsContext &ctx,
 
   uiLayoutSetPropDecorate(layout, false);
 
-  uiLayout *split = uiLayoutSplit(layout, 0.4f, false);
+  uiLayout *split = &layout->split(0.4f, false);
   uiLayout *name_row = &split->row(false);
   uiLayoutSetAlignment(name_row, UI_LAYOUT_ALIGN_RIGHT);
 
@@ -2420,7 +2420,7 @@ static void draw_property_for_output_socket(DrawGroupInputsContext &ctx,
   const std::string rna_path_attribute_name = fmt::format(
       "[\"{}{}\"]", socket_id_esc, nodes::input_attribute_name_suffix);
 
-  uiLayout *split = uiLayoutSplit(layout, 0.4f, false);
+  uiLayout *split = &layout->split(0.4f, false);
   uiLayout *name_row = &split->row(false);
   uiLayoutSetAlignment(name_row, UI_LAYOUT_ALIGN_RIGHT);
   uiItemL(name_row, socket.name ? socket.name : "", ICON_NONE);
@@ -2640,7 +2640,7 @@ static void draw_named_attributes_panel(uiLayout *layout, NodesModifierData &nmd
     const geo_log::NamedAttributeUsage usage = attribute.usage;
 
     /* #uiLayoutRowWithHeading doesn't seem to work in this case. */
-    uiLayout *split = uiLayoutSplit(layout, 0.4f, false);
+    uiLayout *split = &layout->split(0.4f, false);
 
     std::stringstream ss;
     Vector<std::string> usages;

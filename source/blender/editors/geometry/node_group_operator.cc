@@ -744,7 +744,7 @@ static void add_attribute_search_or_value_buttons(uiLayout *layout,
   /* We're handling this manually in this case. */
   uiLayoutSetPropDecorate(layout, false);
 
-  uiLayout *split = uiLayoutSplit(layout, 0.4f, false);
+  uiLayout *split = &layout->split(0.4f, false);
   uiLayout *name_row = &split->row(false);
   uiLayoutSetAlignment(name_row, UI_LAYOUT_ALIGN_RIGHT);
 

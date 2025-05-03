@@ -393,7 +393,7 @@ static void generator_panel_draw(const bContext *C, Panel *panel)
       {
         /* Add column labels above the buttons to prevent confusion.
          * Fake the property split layout, otherwise the labels use the full row. */
-        uiLayout *split = uiLayoutSplit(col, 0.4f, false);
+        uiLayout *split = &col->split(0.4f, false);
         split->column(false);
         uiLayout *title_col = &split->column(false);
         uiLayout *title_row = &title_col->row(true);

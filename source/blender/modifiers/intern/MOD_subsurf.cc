@@ -449,7 +449,7 @@ static void panel_draw(const bContext *C, Panel *panel)
                                    RNA_float_get(&ob_cycles_ptr, "dicing_rate"),
                                0.1f);
 
-      uiLayout *split = uiLayoutSplit(adaptive_panel.body, 0.4f, false);
+      uiLayout *split = &adaptive_panel.body->split(0.4f, false);
       uiItemL(&split->column(true), "", ICON_NONE);
       uiLayout *col = &split->column(true);
       uiItemL(col, fmt::format(RPT_("Viewport {:.2f} px"), preview), ICON_NONE);

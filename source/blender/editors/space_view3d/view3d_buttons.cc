@@ -1481,7 +1481,7 @@ static void view3d_panel_vgroup(const bContext *C, Panel *panel)
         if (dw) {
           int x, xco = 0;
           int icon;
-          uiLayout *split = uiLayoutSplit(col, 0.45, true);
+          uiLayout *split = &col->split(0.45, true);
           row = &split->row(true);
 
           /* The Weight Group Name */
@@ -1603,7 +1603,7 @@ static void v3d_transform_butsR(uiLayout *layout, PointerRNA *ptr)
 {
   uiLayout *split, *colsub;
 
-  split = uiLayoutSplit(layout, 0.8f, false);
+  split = &layout->split(0.8f, false);
 
   if (ptr->type == &RNA_PoseBone) {
     PointerRNA boneptr;
@@ -1625,7 +1625,7 @@ static void v3d_transform_butsR(uiLayout *layout, PointerRNA *ptr)
           "",
           ICON_DECORATE_UNLOCKED);
 
-  split = uiLayoutSplit(layout, 0.8f, false);
+  split = &layout->split(0.8f, false);
 
   switch (RNA_enum_get(ptr, "rotation_mode")) {
     case ROT_MODE_QUAT: /* quaternion */
@@ -1692,7 +1692,7 @@ static void v3d_transform_butsR(uiLayout *layout, PointerRNA *ptr)
   }
   uiItemR(layout, ptr, "rotation_mode", UI_ITEM_NONE, "", ICON_NONE);
 
-  split = uiLayoutSplit(layout, 0.8f, false);
+  split = &layout->split(0.8f, false);
   colsub = &split->column(true);
   uiItemR(colsub, ptr, "scale", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   colsub = &split->column(true);

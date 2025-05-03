@@ -1785,7 +1785,7 @@ void uiTemplateAnyID(uiLayout *layout,
   /* Start drawing UI Elements using standard defines */
 
   /* NOTE: split amount here needs to be synced with normal labels */
-  uiLayout *split = uiLayoutSplit(layout, 0.33f, false);
+  uiLayout *split = &layout->split(0.33f, false);
 
   /* FIRST PART ................................................ */
   uiLayout *row = &split->row(false);

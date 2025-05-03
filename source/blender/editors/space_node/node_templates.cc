@@ -616,7 +616,7 @@ static void ui_template_node_link_menu(bContext *C, uiLayout *layout, void *but_
   bke::bNodeTreeType *ntreetype = arg->ntree->typeinfo;
 
   UI_block_layout_set_current(block, layout);
-  split = uiLayoutSplit(layout, 0.0f, false);
+  split = &layout->split(0.0f, false);
 
   arg->bmain = bmain;
   arg->scene = scene;
