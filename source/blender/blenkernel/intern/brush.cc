@@ -172,7 +172,10 @@ static void brush_make_local(Main *bmain, ID *id, const int flags)
   else if (force_copy) {
     Brush *brush_new = (Brush *)BKE_id_copy(bmain, &brush->id); /* Ensures FAKE_USER is set */
 
-    brush_new->id.us = 0;
+    id_us_min(&brush_new->id);
+
+    BLI_assert(brush_new->id.flag & ID_FLAG_FAKEUSER);
+    BLI_assert(brush_new->id.us == 1);
 
     /* Setting `newid` is mandatory for complex #make_lib_local logic. */
     ID_NEW_SET(brush, brush_new);
