@@ -13,6 +13,21 @@ motion tracking and video editing.
 
 ![Blender screenshot](https://code.blender.org/wp-content/uploads/2018/12/springrg.jpg "Blender screenshot")
 
+Getting Started for New Contributors
+=======
+
+If you're contributing to Blender for the first time, here are some helpful steps:
+
+1. **Install Prerequisites:**
+   - Python 3.10 or newer
+   - CMake 3.20+
+   - Git
+   - A C++ compiler (e.g., MSVC on Windows, Clang or GCC on Mac/Linux)
+
+2. **Clone the Repository:**
+   ```bash
+   git clone https://github.com/blender/blender.git
+
 Project Pages
 -------------
 
