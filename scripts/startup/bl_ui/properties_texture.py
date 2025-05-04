@@ -18,7 +18,7 @@ from bpy.app.translations import contexts as i18n_contexts
 
 from rna_prop_ui import PropertyPanel
 from bl_ui.properties_paint_common import brush_texture_settings
-from .space_properties import PropertiesAnimationMixin
+from bl_ui.space_properties import PropertiesAnimationMixin
 
 
 class TEXTURE_MT_context_menu(Menu):

@@ -4,7 +4,7 @@
 
 from bpy.types import Panel
 from bpy.app.translations import contexts as i18n_contexts
-from .space_properties import PropertiesAnimationMixin
+from bl_ui.space_properties import PropertiesAnimationMixin
 
 
 class DataButtonsPanel:

@@ -4,7 +4,7 @@
 
 import bpy
 from bpy.types import Menu, Panel, UIList
-from .space_properties import PropertiesAnimationMixin
+from bl_ui.space_properties import PropertiesAnimationMixin
 
 
 # Render properties

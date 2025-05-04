@@ -13,7 +13,7 @@ from bl_ui.properties_grease_pencil_common import (
     AnnotationDrawingToolsPanel,
     AnnotationDataPanel,
 )
-from . import anim
+from bl_ui import anim
 
 
 class CLIP_UL_tracking_objects(UIList):
