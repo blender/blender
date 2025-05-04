@@ -286,7 +286,8 @@ bool deg_iterator_objects_step(DEGObjectIterData *data)
           ((object->transflag & OB_DUPLI) || object->runtime->geometry_set_eval != nullptr))
       {
         BLI_assert(deg::deg_validate_eval_copy_datablock(&object->id));
-        ListBase *duplis = object_duplilist(data->graph, data->scene, object);
+        ListBase *duplis = object_duplilist(
+            data->graph, data->scene, object, data->settings->included_objects);
         deg_iterator_duplis_init(data, object, duplis);
       }
     }
