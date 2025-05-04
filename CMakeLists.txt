@@ -1046,8 +1046,8 @@ if(WITH_COMPILER_CODE_COVERAGE)
     "C flags for code coverage"
   )
   mark_as_advanced(COMPILER_CODE_COVERAGE_CFLAGS)
-  set(COMPILER_CODE_COVERAGE_
-    CXXFLAGS ${_code_coverage_defaults} CACHE STRING
+  set(COMPILER_CODE_COVERAGE_CXXFLAGS
+    ${_code_coverage_defaults} CACHE STRING
     "C++ flags for code coverage"
   )
   mark_as_advanced(COMPILER_CODE_COVERAGE_CXXFLAGS)
