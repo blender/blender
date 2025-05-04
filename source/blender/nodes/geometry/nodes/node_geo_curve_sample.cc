@@ -313,12 +313,38 @@ class SampleCurveFunction : public mf::MultiFunction {
     };
 
     auto sample_curve = [&](const int curve_i, const IndexMask &mask) {
+      const IndexRange evaluated_points = evaluated_points_by_curve[curve_i];
+      if (evaluated_points.size() == 1) {
+        if (!sampled_positions.is_empty()) {
+          index_mask::masked_fill(
+              sampled_positions, evaluated_positions[evaluated_points.first()], mask);
+        }
+        if (!sampled_tangents.is_empty()) {
+          index_mask::masked_fill(
+              sampled_tangents, evaluated_tangents[evaluated_points.first()], mask);
+        }
+        if (!sampled_normals.is_empty()) {
+          index_mask::masked_fill(
+              sampled_normals, evaluated_normals[evaluated_points.first()], mask);
+        }
+        if (!sampled_values.is_empty()) {
+          bke::attribute_math::convert_to_static_type(source_data_->type(), [&](auto dummy) {
+            using T = decltype(dummy);
+            const T &value = source_data_->typed<T>()[points_by_curve[curve_i].first()];
+            index_mask::masked_fill<T>(sampled_values.typed<T>(), value, mask);
+          });
+        }
+        return;
+      }
+
       const Span<float> accumulated_lengths = curves.evaluated_lengths_for_curve(curve_i,
                                                                                  cyclic[curve_i]);
       if (accumulated_lengths.is_empty()) {
+        /* Sanity check in case of invalid evaluation (for example NURBS with invalid order). */
         fill_invalid(mask);
         return;
       }
+
       /* Store the sampled indices and factors in arrays the size of the mask.
        * Then, during interpolation, move the results back to the masked indices. */
       indices.reinitialize(mask.size());
@@ -326,7 +352,6 @@ class SampleCurveFunction : public mf::MultiFunction {
       sample_indices_and_factors_to_compressed(
           accumulated_lengths, lengths, length_mode_, mask, indices, factors);
 
-      const IndexRange evaluated_points = evaluated_points_by_curve[curve_i];
       if (!sampled_positions.is_empty()) {
         length_parameterize::interpolate_to_masked<float3>(
             evaluated_positions.slice(evaluated_points),
