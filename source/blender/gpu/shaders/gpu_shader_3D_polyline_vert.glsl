@@ -2,10 +2,14 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "infos/gpu_shader_3D_polyline_info.hh"
+
 #include "gpu_shader_attribute_load_lib.glsl"
 #include "gpu_shader_index_load_lib.glsl"
 #include "gpu_shader_math_base_lib.glsl"
 #include "gpu_shader_utildefines_lib.glsl"
+
+VERTEX_SHADER_CREATE_INFO(gpu_shader_3D_polyline_flat_color)
 
 struct VertIn {
   float3 ls_P;

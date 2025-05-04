@@ -20,6 +20,7 @@ set(SRC_GLSL_VERT
   gpu_shader_2D_point_uniform_size_aa_vert.glsl
   gpu_shader_2D_point_uniform_size_outline_aa_vert.glsl
   gpu_shader_2D_point_varying_size_varying_color_vert.glsl
+  gpu_shader_3D_polyline_vert.glsl
   gpu_shader_2D_vert.glsl
   gpu_shader_2D_widget_base_vert.glsl
   gpu_shader_2D_widget_shadow_vert.glsl
