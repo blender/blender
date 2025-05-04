@@ -133,6 +133,7 @@ class COLLECTION_PT_collection_custom_props(CollectionButtonsPanel, PropertyPane
 classes = (
     COLLECTION_MT_context_menu_instance_offset,
     COLLECTION_PT_collection_flags,
+    COLLECTION_PT_viewlayer_flags,
     COLLECTION_PT_instancing,
     COLLECTION_PT_lineart_collection,
     COLLECTION_PT_collection_custom_props,
