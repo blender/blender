@@ -2815,7 +2815,7 @@ static void rna_def_uv_layers(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "remove", "rna_Mesh_uv_layers_remove");
-  RNA_def_function_ui_description(func, "Remove a vertex color layer");
+  RNA_def_function_ui_description(func, "Remove a UV map layer");
   RNA_def_function_flag(func, FUNC_USE_REPORTS);
   parm = RNA_def_pointer(func, "layer", "MeshUVLoopLayer", "", "The layer to remove");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
