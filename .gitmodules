@@ -23,12 +23,3 @@
 	path = lib/windows_arm64
 	url = https://projects.blender.org/blender/lib-windows_arm64.git
 	branch = main
-[submodule "release/datafiles/assets"]
-	path = release/datafiles/assets
-	url = https://projects.blender.org/blender/blender-assets.git
-	branch = main
-[submodule "tests/data"]
-	update = none
-	path = tests/data
-	url = https://projects.blender.org/blender/blender-test-data.git
-	branch = main

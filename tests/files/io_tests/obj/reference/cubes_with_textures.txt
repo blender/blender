@@ -1,0 +1,226 @@
+==== Meshes: 4
+- Mesh 'Cube4Tex' vtx:8 face:6 loop:24 edge:12
+    - 0 4 6 2 3 ... 3 5 4 0 1 
+    - 0/2 0/4 4/6 2/6 3/7 ... 5/7 4/5 1/5 1/3 0/1 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (1.000, 1.000, -1.000)
+    - (1.000, -1.000, -1.000)
+    - (1.000, 1.000, 1.000)
+      ...
+    - (-1.000, -1.000, -1.000)
+    - (-1.000, 1.000, 1.000)
+    - (-1.000, -1.000, 1.000)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 1 1 1 1 1 ... 1 1 1 1 1 
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 0 
+  - attr 'sharp_face' BOOLEAN FACE
+    - 0 0 0 0 0 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'UVMap' FLOAT2 CORNER
+    - (0.993, 0.002)
+    - (1.984, 0.002)
+    - (1.984, 0.993)
+      ...
+    - (0.993, -0.989)
+    - (0.993, 0.002)
+    - (0.003, 0.002)
+  - 1 materials
+    - 'Mat_BaseRoughEmissNormal10' 
+
+- Mesh 'CubeTexMul' vtx:8 face:6 loop:24 edge:12
+    - 0 4 6 2 3 ... 3 5 4 0 1 
+    - 0/2 0/4 4/6 2/6 3/7 ... 5/7 4/5 1/5 1/3 0/1 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (4.000, -2.000, -1.000)
+    - (4.000, -4.000, -1.000)
+    - (4.000, -2.000, 1.000)
+      ...
+    - (2.000, -4.000, -1.000)
+    - (2.000, -2.000, 1.000)
+    - (2.000, -4.000, 1.000)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 1 1 1 1 1 ... 1 1 1 1 1 
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 0 
+  - attr 'sharp_face' BOOLEAN FACE
+    - 0 0 0 0 0 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'UVMap' FLOAT2 CORNER
+    - (0.993, 0.002)
+    - (1.984, 0.002)
+    - (1.984, 0.993)
+      ...
+    - (0.993, -0.989)
+    - (0.993, 0.002)
+    - (0.003, 0.002)
+  - 1 materials
+    - 'Mat_BaseMul' 
+
+- Mesh 'CubeTiledTex' vtx:8 face:6 loop:24 edge:12
+    - 0 4 6 2 3 ... 3 5 4 0 1 
+    - 0/2 0/4 4/6 2/6 3/7 ... 5/7 4/5 1/5 1/3 0/1 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (4.000, 1.000, -1.000)
+    - (4.000, -1.000, -1.000)
+    - (4.000, 1.000, 1.000)
+      ...
+    - (2.000, -1.000, -1.000)
+    - (2.000, 1.000, 1.000)
+    - (2.000, -1.000, 1.000)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 1 1 1 1 1 ... 1 1 1 1 1 
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 0 
+  - attr 'sharp_face' BOOLEAN FACE
+    - 0 0 0 0 0 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'UVMap' FLOAT2 CORNER
+    - (0.993, 0.002)
+    - (1.984, 0.002)
+    - (1.984, 0.993)
+      ...
+    - (0.993, -0.989)
+    - (0.993, 0.002)
+    - (0.003, 0.002)
+  - 1 materials
+    - 'Mat_BaseTiled' 
+
+- Mesh 'CubeTiledTexFromAnotherFolder' vtx:8 face:6 loop:24 edge:12
+    - 0 4 6 2 3 ... 3 5 4 0 1 
+    - 0/2 0/4 4/6 2/6 3/7 ... 5/7 4/5 1/5 1/3 0/1 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (7.000, 1.000, -1.000)
+    - (7.000, -1.000, -1.000)
+    - (7.000, 1.000, 1.000)
+      ...
+    - (5.000, -1.000, -1.000)
+    - (5.000, 1.000, 1.000)
+    - (5.000, -1.000, 1.000)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 1 1 1 1 1 ... 1 1 1 1 1 
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 0 
+  - attr 'sharp_face' BOOLEAN FACE
+    - 0 0 0 0 0 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'UVMap' FLOAT2 CORNER
+    - (0.993, 0.002)
+    - (1.984, 0.002)
+    - (1.984, 0.993)
+      ...
+    - (0.993, -0.989)
+    - (0.993, 0.002)
+    - (0.003, 0.002)
+  - 1 materials
+    - 'Mat_EmissTiledAnotherFolder' 
+
+==== Objects: 4
+- Obj 'Cube4Tex' MESH data:'Cube4Tex'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'CubeTexMul' MESH data:'CubeTexMul'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'CubeTiledTex' MESH data:'CubeTiledTex'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'CubeTiledTexFromAnotherFolder' MESH data:'CubeTiledTexFromAnotherFolder'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+
+==== Materials: 4
+- Mat 'Mat_BaseMul'
+  - base color (0.800, 0.200, 0.200)
+  - specular ior 0.200
+  - specular tint (1.000, 1.000, 1.000)
+  - roughness 1.000 tex:'texture_checker.png' (//obj/texture_checker.png) a:False
+  - metallic 0.300
+  - ior 1.450
+  - emission color (1.000, 1.000, 1.000) tex:'texture_illum.png' (//obj/texture_illum.png) a:False
+  - emission strength 1.000
+  - viewport diffuse (0.800, 0.200, 0.200, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 0.500
+  - viewport metallic 0.300, roughness 1.000
+  - backface False probe True shadow False
+
+- Mat 'Mat_BaseRoughEmissNormal10'
+  - base color (0.800, 0.800, 0.800) tex:'texture_checker.png' (//obj/texture_checker.png) a:False
+  - specular ior 0.500
+  - specular tint (1.000, 1.000, 1.000)
+  - roughness 0.500
+  - metallic 0.000
+  - ior 1.450
+  - emission color (1.000, 1.000, 1.000) tex:'texture_illum.png' (//obj/texture_illum.png) a:False
+  - emission strength 1.000
+  - normalmap 2.000 tex:'texture_normal.png' (texture_normal.png) a:False data
+  - viewport diffuse (0.800, 0.800, 0.800, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 0.500
+  - viewport metallic 0.000, roughness 0.500
+  - backface False probe True shadow False
+
+- Mat 'Mat_BaseTiled'
+  - base color (0.800, 0.800, 0.800) tex:'texture_checker.png' (//obj/texture_checker.png) a:False tr:(0.100, 0.200, 0.300) scl:(1.500, 3.000, 1.000)
+  - specular ior 0.500
+  - specular tint (1.000, 1.000, 1.000)
+  - roughness 0.500
+  - metallic 0.000
+  - ior 1.450
+  - viewport diffuse (0.800, 0.800, 0.800, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 0.500
+  - viewport metallic 0.000, roughness 0.500
+  - backface False probe True shadow False
+
+- Mat 'Mat_EmissTiledAnotherFolder'
+  - base color (0.023, 0.011, 0.040)
+  - specular ior 0.700
+  - specular tint (1.000, 1.000, 1.000)
+  - roughness 0.300
+  - metallic 0.000
+  - ior 1.200
+  - alpha 0.400
+  - emission color (1.000, 1.000, 1.000) tex:'texture.png' (//obj/texture.png) a:False tr:(0.000, -0.400, 0.000) scl:(4.000, 3.000, 1.000)
+  - emission strength 1.000
+  - viewport diffuse (0.023, 0.011, 0.040, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 0.500
+  - viewport metallic 0.000, roughness 0.300
+  - backface False probe True shadow False
+
+==== Images: 4
+- Image 'texture.png' 4x4 24bpp
+- Image 'texture_checker.png' 0x0 0bpp
+- Image 'texture_illum.png' 0x0 0bpp
+- Image 'texture_normal.png' 0x0 0bpp
+

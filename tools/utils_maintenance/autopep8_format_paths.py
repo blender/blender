@@ -82,7 +82,7 @@ def source_files_from_git(paths: list[str], changed_only: bool) -> list[str]:
     else:
         cmd = ("git", "ls-tree", "-r", "HEAD", *paths, "--name-only", "-z")
     files = subprocess.check_output(cmd).split(b'\0')
-    return [f.decode('ascii') for f in files]
+    return [f.decode('utf-8') for f in files]
 
 
 def autopep8_parse_version(version: str) -> tuple[int, int, int]:

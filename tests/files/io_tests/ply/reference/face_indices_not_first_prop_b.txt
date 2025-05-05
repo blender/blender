@@ -1,0 +1,18 @@
+==== Meshes: 1
+- Mesh 'face_indices_not_first_prop_b' vtx:4 face:2 loop:6 edge:5
+    - 0 1 2 0 2 3 
+    - 0/2 0/1 1/2 0/3 2/3 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (1.000, 0.000, 1.000)
+    - (1.000, 0.000, -1.000)
+    - (-1.000, 0.000, -1.000)
+    - (-1.000, 0.000, 1.000)
+  - attr 'sharp_face' BOOLEAN FACE
+    - 1 1 
+
+==== Objects: 1
+- Obj 'face_indices_not_first_prop_b' MESH data:'face_indices_not_first_prop_b'
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+

@@ -1,0 +1,41 @@
+==== Meshes: 1
+- Mesh 'Mesh' vtx:3 face:1 loop:3 edge:3
+    - 1 0 2 
+    - 0/1 0/2 1/2 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (0.000, 10.000, 10.000)
+    - (20.000, 10.000, 0.000)
+    - (20.000, -10.000, 0.000)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 0 0 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'UVChannel_1' FLOAT2 CORNER
+    - (0.000, 1.000)
+    - (0.000, 0.000)
+    - (1.000, 1.000)
+
+==== Objects: 4
+- Obj 'Curve001' EMPTY
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 0.025, 0.025, 0.025
+  - props: int:MaxHandle=5
+- Obj 'Line001' EMPTY
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 0.025, 0.025, 0.025
+  - props: int:MaxHandle=3
+- Obj 'Plane001' MESH data:'Mesh'
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 0.025, 0.025, 0.025
+  - props: int:MaxHandle=1
+- Obj 'Surface001' EMPTY
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 0.025, 0.025, 0.025
+  - props: int:MaxHandle=8
+

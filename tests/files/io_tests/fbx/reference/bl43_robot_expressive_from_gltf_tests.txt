@@ -1,0 +1,1049 @@
+==== Meshes: 14
+- Mesh 'Cube.001' vtx:497 face:529 loop:1928 edge:1002
+    - 0 39 71 21 0 ... 494 496 491 490 496 
+    - 0/39 39/71 21/71 0/21 21/64 ... 493/496 492/496 491/496 494/496 490/496 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-0.513, 0.000, 0.105)
+    - (0.257, 0.513, 0.105)
+    - (0.513, 0.000, 0.105)
+      ...
+    - (0.683, -0.021, -0.846)
+    - (0.626, -0.001, -0.640)
+    - (0.624, -0.002, -0.860)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 1 1 1 1 1 ... 1 1 1 1 1 
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 ... 0 0 0 0 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - 2 materials
+    - 'Main' 'Grey' 
+
+- Mesh 'Cylinder' vtx:511 face:466 loop:1742 edge:943
+    - 0 1 3 2 2 ... 509 510 508 504 506 
+    - 0/1 1/3 2/3 0/2 3/5 ... 507/509 507/508 508/510 503/507 504/508 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (1.294, 0.038, -0.677)
+    - (1.294, 0.038, -0.512)
+    - (1.047, -0.713, -0.677)
+      ...
+    - (-1.119, -0.921, 0.540)
+    - (-1.026, -0.705, 0.401)
+    - (-1.029, -0.710, 0.549)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 1 1 1 1 1 ... 1 1 1 1 1 
+  - attr 'material_index' INT FACE
+    - 1 1 1 1 1 ... 2 2 2 2 2 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - 3 materials
+    - 'Main' 'Grey' 'Black' 
+  - shape key 'Basis' w:0.000 vgrp:'' 0:(1.294, 0.038, -0.677) 1:(1.294, 0.038, -0.512) 2:(1.047, -0.713, -0.677)
+  - shape key 'Angry' w:0.300 vgrp:'' 0:(1.294, 0.038, -0.677) 1:(1.294, 0.038, -0.512) 2:(1.047, -0.713, -0.677)
+  - shape key 'Surprised' w:0.500 vgrp:'' 0:(1.294, 0.038, -0.677) 1:(1.294, 0.038, -0.512) 2:(1.047, -0.713, -0.677)
+  - shape key 'Sad' w:0.000 vgrp:'' 0:(1.294, 0.038, -0.677) 1:(1.294, 0.038, -0.512) 2:(1.047, -0.713, -0.677)
+
+- Mesh 'Cylinder.008' vtx:64 face:59 loop:240 edge:122
+    - 4 5 11 10 10 ... 33 37 32 0 5 
+    - 4/5 5/11 10/11 4/10 11/17 ... 54/60 55/61 53/59 50/56 62/63 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (0.000, -0.050, -0.108)
+    - (0.094, -0.050, -0.054)
+    - (0.094, -0.050, 0.054)
+      ...
+    - (-0.085, 0.114, -0.049)
+    - (0.093, 0.035, -0.039)
+    - (0.093, 0.035, 0.039)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 1 1 1 1 1 ... 1 1 1 1 0 
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 ... 0 0 0 0 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - 2 materials
+    - 'Main' 'Grey' 
+
+- Mesh 'Cylinder.009' vtx:64 face:59 loop:240 edge:122
+    - 4 10 11 5 10 ... 63 37 5 0 32 
+    - 4/10 10/11 5/11 4/5 10/16 ... 55/61 54/60 53/59 50/56 62/63 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (0.000, -0.050, -0.108)
+    - (-0.094, -0.050, -0.054)
+    - (-0.094, -0.050, 0.054)
+      ...
+    - (0.085, 0.114, -0.049)
+    - (-0.093, 0.035, -0.039)
+    - (-0.093, 0.035, 0.039)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 1 1 1 1 1 ... 1 1 1 1 0 
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 ... 0 0 0 0 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - 2 materials
+    - 'Main' 'Grey' 
+
+- Mesh 'Cylinder.010' vtx:58 face:94 loop:296 edge:148
+    - 4 6 2 0 3 ... 55 52 50 54 56 
+    - 4/6 2/6 0/2 0/4 3/7 ... 55/57 54/56 54/55 51/55 50/54 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (0.665, -0.035, 0.031)
+    - (0.665, -0.035, 0.108)
+    - (1.272, -0.035, 0.031)
+      ...
+    - (0.638, -0.007, 0.078)
+    - (0.638, 0.007, 0.062)
+    - (0.638, 0.007, 0.078)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 1 1 1 1 1 ... 1 1 1 1 1 
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 ... 0 0 0 0 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - 2 materials
+    - 'Main' 'Grey' 
+
+- Mesh 'Cylinder.011' vtx:51 face:86 loop:270 edge:135
+    - 0 11 13 0 13 ... 15 50 17 14 50 
+    - 0/11 11/13 0/13 13/20 0/20 ... 17/50 15/50 10/50 11/50 14/50 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-0.060, -0.081, -0.347)
+    - (-0.096, 0.032, -0.347)
+    - (0.001, 0.101, -0.347)
+      ...
+    - (-0.043, -0.015, 0.115)
+    - (0.000, -0.046, 0.115)
+    - (0.000, 0.000, -0.408)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 1 1 1 1 1 ... 1 1 1 1 1 
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 ... 0 0 0 0 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - 2 materials
+    - 'Main' 'Grey' 
+
+- Mesh 'Cylinder.012' vtx:77 face:112 loop:370 edge:185
+    - 4 2 9 7 0 ... 76 22 25 76 75 
+    - 2/4 2/9 7/9 4/7 0/3 ... 23/73 24/72 22/75 21/74 25/76 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-0.057, 0.226, 0.418)
+    - (-0.035, 0.160, 0.418)
+    - (0.034, 0.160, 0.418)
+      ...
+    - (0.151, -0.023, -0.091)
+    - (-0.154, -0.021, -0.091)
+    - (-0.246, 0.269, -0.091)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 1 1 1 1 1 ... 1 1 1 1 1 
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 ... 0 0 0 0 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - 2 materials
+    - 'Main' 'Grey' 
+
+- Mesh 'Cylinder.013' vtx:58 face:93 loop:292 edge:148
+    - 4 0 2 6 3 ... 57 50 52 56 54 
+    - 0/4 0/2 2/6 4/6 1/3 ... 50/54 54/55 51/55 55/57 54/56 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (1.511, 0.000, -0.136)
+    - (1.511, 0.000, 0.204)
+    - (-0.890, 0.000, -0.136)
+      ...
+    - (1.634, 0.000, 0.122)
+    - (1.634, 0.308, -0.040)
+    - (1.634, 0.308, 0.122)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 1 1 1 1 1 ... 1 0 1 0 0 
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 ... 0 0 0 0 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - 2 materials
+    - 'Main' 'Grey' 
+
+- Mesh 'Cylinder.014' vtx:19 face:16 loop:66 edge:33
+    - 9 6 5 12 6 ... 0 1 2 3 4 
+    - 6/9 5/6 5/12 9/12 6/7 ... 1/2 1/16 16/17 11/16 15/18 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (0.151, -0.017, -0.168)
+    - (0.248, 0.265, -0.268)
+    - (0.001, 0.441, -0.331)
+      ...
+    - (0.248, 0.265, -0.418)
+    - (0.001, 0.441, -0.418)
+    - (-0.248, 0.267, -0.418)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 1 1 1 1 1 ... 1 1 1 1 1 
+  - attr 'material_index' INT FACE
+    - 1 1 1 1 1 ... 1 1 1 1 1 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - 2 materials
+    - 'Main' 'Grey' 
+
+- Mesh 'Cylinder.015' vtx:138 face:141 loop:554 edge:277
+    - 4 10 8 2 5 ... 0 5 3 4 2 
+    - 4/10 8/10 2/8 2/4 5/11 ... 131/136 128/136 130/135 125/135 114/130 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.405, -0.054, 0.119)
+    - (-1.405, 0.054, 0.119)
+    - (-1.405, 0.070, 0.069)
+      ...
+    - (-1.928, 0.012, 0.437)
+    - (-1.999, -0.299, 0.037)
+    - (-1.935, 0.005, -0.308)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 1 1 1 1 1 ... 1 1 1 1 1 
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 ... 1 1 1 1 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - vertex groups:
+    - 0=1.000
+    - 0=1.000
+    - 0=1.000
+    - 0=1.000
+    - 0=1.000
+  - 2 materials
+    - 'Main' 'Grey' 
+
+- Mesh 'Cylinder.017' vtx:19 face:16 loop:66 edge:33
+    - 9 12 5 6 6 ... 0 4 3 2 1 
+    - 9/12 5/12 5/6 6/9 5/10 ... 16/17 1/16 1/2 11/16 15/18 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-0.151, -0.017, -0.168)
+    - (-0.248, 0.265, -0.268)
+    - (-0.001, 0.441, -0.331)
+      ...
+    - (-0.248, 0.265, -0.418)
+    - (-0.001, 0.441, -0.418)
+    - (0.248, 0.267, -0.418)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 1 1 1 1 1 ... 1 1 1 1 1 
+  - attr 'material_index' INT FACE
+    - 1 1 1 1 1 ... 1 1 1 1 1 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - 2 materials
+    - 'Main' 'Grey' 
+
+- Mesh 'Cylinder.018' vtx:77 face:112 loop:370 edge:185
+    - 4 7 9 2 0 ... 24 22 75 76 25 
+    - 4/7 7/9 2/9 2/4 0/5 ... 24/72 23/73 21/74 22/75 25/76 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (0.057, 0.226, 0.418)
+    - (0.035, 0.160, 0.418)
+    - (-0.034, 0.160, 0.418)
+      ...
+    - (-0.151, -0.023, -0.091)
+    - (0.154, -0.021, -0.091)
+    - (0.246, 0.269, -0.091)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 1 1 1 1 1 ... 1 1 1 1 1 
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 ... 0 0 0 0 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - 2 materials
+    - 'Main' 'Grey' 
+
+- Mesh 'Cylinder.019' vtx:51 face:86 loop:270 edge:135
+    - 0 13 11 0 20 ... 50 15 17 50 14 
+    - 0/13 11/13 0/11 0/20 13/20 ... 15/50 17/50 11/50 10/50 14/50 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (0.060, -0.081, -0.347)
+    - (0.096, 0.032, -0.347)
+    - (-0.001, 0.101, -0.347)
+      ...
+    - (0.043, -0.015, 0.115)
+    - (0.000, -0.046, 0.115)
+    - (0.000, 0.000, -0.408)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 1 1 1 1 1 ... 1 1 1 1 1 
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 ... 0 0 0 0 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - 2 materials
+    - 'Main' 'Grey' 
+
+- Mesh 'Cylinder.022' vtx:138 face:141 loop:554 edge:277
+    - 4 2 8 10 5 ... 2 4 3 5 0 
+    - 2/4 2/8 8/10 4/10 3/5 ... 131/136 129/131 125/135 130/135 114/130 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (1.405, -0.054, 0.119)
+    - (1.405, 0.054, 0.119)
+    - (1.405, 0.070, 0.069)
+      ...
+    - (1.928, 0.012, 0.437)
+    - (1.999, -0.299, 0.037)
+    - (1.935, 0.005, -0.308)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 1 1 1 1 1 ... 1 1 1 1 1 
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 ... 1 1 1 1 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - vertex groups:
+    - 0=1.000
+    - 0=1.000
+    - 0=1.000
+    - 0=1.000
+    - 0=1.000
+  - 2 materials
+    - 'Main' 'Grey' 
+
+==== Objects: 15
+- Obj 'Arm.L' MESH data:'Cylinder.010' par:'RobotArmature' par_type:BONE par_bone:'UpperArm.L'
+  - pos 0.035, -1.325, -0.076
+  - rot 0.067, -0.013, 1.632 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'Arm.R' MESH data:'Cylinder.013' par:'RobotArmature' par_type:BONE par_bone:'UpperArm.R'
+  - pos -0.008, -0.240, -0.005
+  - rot 0.267, 0.028, -1.631 (XYZ)
+  - scl 0.227, 0.227, 0.227
+- Obj 'Foot.L' MESH data:'Cylinder.014' par:'RobotArmature' par_type:BONE par_bone:'Foot.L'
+  - pos 0.009, -0.009, 0.383
+  - rot -0.032, 0.000, 3.142 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'Foot.R' MESH data:'Cylinder.017' par:'RobotArmature' par_type:BONE par_bone:'Foot.R'
+  - pos -0.002, -0.009, 0.383
+  - rot -0.032, 0.000, 3.142 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'Hand.L' MESH data:'Cylinder.022' par:'RobotArmature'
+  - pos -0.003, 0.021, 2.370
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+  - 12 vertex groups
+    - 'LowerArm.L' 'Palm2.L' 'Middle1.L' 'Middle2.L' 'Thumb.L' ... 'Index.L' 'Index2.L' 'Palm3.L' 'Ring1.L' 'Ring2.L' 
+  - 1 modifiers
+    - ARMATURE 'RobotArmature'
+- Obj 'Hand.R' MESH data:'Cylinder.015' par:'RobotArmature'
+  - pos -0.003, 0.021, 2.370
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+  - 12 vertex groups
+    - 'LowerArm.R' 'Palm2.R' 'Middle1.R' 'Middle2.R' 'Thumb.R' ... 'Index.R' 'Index2.R' 'Palm3.R' 'Ring1.R' 'Ring2.R' 
+  - 1 modifiers
+    - ARMATURE 'RobotArmature'
+- Obj 'Head' MESH data:'Cylinder' par:'RobotArmature' par_type:BONE par_bone:'Head'
+  - pos -0.001, -0.461, 0.036
+  - rot -1.590, 0.000, -0.003 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'Leg.L' MESH data:'Cylinder.011' par:'RobotArmature' par_type:BONE par_bone:'UpperLeg.L'
+  - pos -0.007, -0.279, -0.003
+  - rot 1.782, -0.006, 0.001 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'Leg.R' MESH data:'Cylinder.019' par:'RobotArmature' par_type:BONE par_bone:'UpperLeg.R'
+  - pos 0.005, -0.278, 0.006
+  - rot 1.750, -0.006, 0.001 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'LowerLeg.L' MESH data:'Cylinder.012' par:'RobotArmature' par_type:BONE par_bone:'LowerLeg.L'
+  - pos -0.007, -0.429, -0.252
+  - rot 1.379, -0.005, 0.003 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'LowerLeg.R' MESH data:'Cylinder.018' par:'RobotArmature' par_type:BONE par_bone:'LowerLeg.R'
+  - pos 0.005, -0.429, -0.252
+  - rot 1.379, -0.005, 0.003 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'RobotArmature' ARMATURE data:'RobotArmature'
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+  - posed bone 'Body'
+      1.000 0.000 0.000 0.000
+      0.000 1.000 0.000 -0.032
+      0.000 0.000 1.000 0.000
+  - posed bone 'Head'
+      1.000 0.006 -0.005 0.131
+      -0.005 0.998 0.058 2.475
+      0.006 -0.058 0.998 0.311
+  - posed bone 'Index.L'
+      0.402 0.915 0.026 0.000
+      -0.916 0.402 0.003 0.000
+      -0.008 -0.025 1.000 0.000
+  - posed bone 'Index.R'
+      0.533 -0.846 0.014 0.000
+      0.842 0.532 0.085 0.000
+      -0.079 -0.034 0.996 0.000
+  - posed bone 'Index2.L'
+      0.386 0.919 0.083 0.000
+      -0.922 0.379 0.085 0.000
+      0.046 -0.109 0.993 0.000
+  - posed bone 'Index2.R'
+      0.733 -0.676 0.074 0.000
+      0.675 0.737 0.036 0.000
+      -0.078 0.024 0.997 0.000
+  - posed bone 'LowerArm.L'
+      0.975 0.170 0.144 0.000
+      -0.061 0.824 -0.564 0.000
+      -0.214 0.541 0.814 0.000
+  - posed bone 'LowerArm.R'
+      -0.056 -0.520 -0.852 0.000
+      0.231 0.823 -0.518 0.000
+      0.971 -0.226 0.074 0.000
+  - posed bone 'LowerLeg.L'
+      1.000 0.000 0.000 0.000
+      0.000 0.981 -0.192 0.000
+      0.000 0.192 0.981 0.000
+  - posed bone 'LowerLeg.R'
+      1.000 0.000 0.000 0.000
+      0.000 0.981 -0.192 0.000
+      0.000 0.192 0.981 0.000
+  - posed bone 'Middle1.L'
+      0.431 0.901 0.056 0.000
+      -0.902 0.432 -0.016 0.000
+      -0.039 -0.043 0.998 0.000
+  - posed bone 'Middle1.R'
+      0.489 -0.871 -0.050 0.000
+      0.872 0.485 0.066 0.000
+      -0.033 -0.076 0.997 0.000
+  - posed bone 'Middle2.L'
+      0.386 0.917 0.103 0.000
+      -0.922 0.380 0.071 0.000
+      0.026 -0.122 0.992 0.000
+  - posed bone 'Middle2.R'
+      0.775 -0.632 0.005 0.000
+      0.630 0.772 -0.083 0.000
+      0.048 0.068 0.997 0.000
+  - posed bone 'Neck'
+      0.998 -0.055 -0.031 0.000
+      0.055 0.998 0.000 0.000
+      0.031 -0.002 1.000 0.000
+  - posed bone 'PoleTarget.L'
+      1.000 0.000 0.000 0.285
+      0.000 1.000 0.000 0.000
+      0.000 0.000 1.000 0.000
+  - posed bone 'PoleTarget.R'
+      1.000 0.000 0.000 -0.456
+      0.000 1.000 0.000 0.000
+      0.000 0.000 1.000 0.000
+  - posed bone 'Ring1.L'
+      0.396 0.918 0.027 0.000
+      -0.918 0.397 0.003 0.000
+      -0.008 -0.026 1.000 0.000
+  - posed bone 'Ring1.R'
+      0.345 -0.914 -0.214 0.000
+      0.926 0.369 -0.083 0.000
+      0.154 -0.170 0.973 0.000
+  - posed bone 'Ring2.L'
+      0.386 0.919 0.083 0.000
+      -0.922 0.379 0.085 0.000
+      0.046 -0.109 0.993 0.000
+  - posed bone 'Ring2.R'
+      0.875 -0.452 0.177 0.000
+      0.485 0.818 -0.310 0.000
+      -0.004 0.357 0.934 0.000
+  - posed bone 'Shoulder.L'
+      0.435 0.901 0.000 0.000
+      -0.901 0.435 0.000 0.000
+      0.000 0.000 1.000 0.000
+  - posed bone 'Shoulder.R'
+      0.986 0.164 0.000 0.028
+      -0.164 0.986 0.000 0.248
+      0.000 0.000 1.000 -0.407
+  - posed bone 'Thumb.L'
+      0.988 -0.153 -0.023 0.000
+      0.112 0.807 -0.579 0.000
+      0.107 0.570 0.815 0.000
+  - posed bone 'Thumb2.L'
+      0.336 0.658 0.674 0.000
+      -0.942 0.250 0.226 0.000
+      -0.020 -0.710 0.703 0.000
+  - posed bone 'Thumb2.R'
+      0.847 0.530 0.040 0.000
+      -0.159 0.180 0.971 0.000
+      0.507 -0.829 0.237 0.000
+  - posed bone 'UpperArm.L'
+      0.967 -0.229 0.109 0.000
+      0.230 0.973 0.003 0.000
+      -0.107 0.022 0.994 0.000
+  - posed bone 'UpperArm.R'
+      0.996 -0.077 0.038 0.000
+      0.077 0.997 0.020 0.000
+      -0.039 -0.017 0.999 0.000
+  - posed bone 'UpperLeg.L'
+      0.985 0.059 -0.161 0.000
+      -0.040 0.992 0.120 0.000
+      0.167 -0.111 0.980 0.000
+  - posed bone 'UpperLeg.R'
+      0.961 -0.090 0.262 0.000
+      0.059 0.991 0.124 0.000
+      -0.270 -0.104 0.957 0.000
+  - anim act:RobotArmature|Robot_Dance slot:OBRobotArmature blend:REPLACE drivers:0
+- Obj 'Shoulder.L' MESH data:'Cylinder.008' par:'RobotArmature' par_type:BONE par_bone:'Shoulder.L'
+  - pos 0.000, -0.085, -0.004
+  - rot -1.571, 0.000, 1.597 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'Shoulder.R' MESH data:'Cylinder.009' par:'RobotArmature' par_type:BONE par_bone:'Shoulder.R'
+  - pos 0.000, -0.103, -0.004
+  - rot -1.571, 0.000, -1.581 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'Torso' MESH data:'Cube.001' par:'RobotArmature' par_type:BONE par_bone:'Body'
+  - pos -0.005, 0.306, -0.132
+  - rot -1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+
+==== Materials: 3
+- Mat 'Black'
+  - base color (0.058, 0.058, 0.058)
+  - specular ior 0.500
+  - specular tint (1.000, 1.000, 1.000)
+  - roughness 0.500
+  - metallic 0.000
+  - ior 1.500
+  - viewport diffuse (0.058, 0.058, 0.058, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 0.500
+  - viewport metallic 0.000, roughness 0.500
+  - backface False probe True shadow False
+
+- Mat 'Grey'
+  - base color (0.467, 0.464, 0.419)
+  - specular ior 0.500
+  - specular tint (1.000, 1.000, 1.000)
+  - roughness 0.500
+  - metallic 0.000
+  - ior 1.500
+  - viewport diffuse (0.467, 0.464, 0.419, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 0.500
+  - viewport metallic 0.000, roughness 0.500
+  - backface False probe True shadow False
+
+- Mat 'Main'
+  - base color (0.738, 0.364, 0.048)
+  - specular ior 0.500
+  - specular tint (1.000, 1.000, 1.000)
+  - roughness 0.500
+  - metallic 0.000
+  - ior 1.500
+  - viewport diffuse (0.738, 0.364, 0.048, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 0.500
+  - viewport metallic 0.000, roughness 0.500
+  - backface False probe True shadow False
+
+==== Actions: 4
+- Action 'Head|Robot_Dance' curverange:(1.0 .. 81.0) layers:1
+- ActionLayer Layer strips:1
+ - Keyframe strip channelbags:1
+ - Channelbag slot 'KEKey' curves:3
+  - fcu 'key_blocks["Angry"].value[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2
+    - (1.000, 0.300) lh:(-25.667, 0.300 AUTO_CLAMPED) rh:(27.667, 0.300 AUTO_CLAMPED)
+    - (81.000, 0.300) lh:(54.333, 0.300 AUTO_CLAMPED) rh:(107.667, 0.300 AUTO_CLAMPED)
+  - fcu 'key_blocks["Sad"].value[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2
+    - (1.000, 0.000) lh:(-25.667, 0.000 AUTO_CLAMPED) rh:(27.667, 0.000 AUTO_CLAMPED)
+    - (81.000, 0.000) lh:(54.333, 0.000 AUTO_CLAMPED) rh:(107.667, 0.000 AUTO_CLAMPED)
+  - fcu 'key_blocks["Surprised"].value[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2
+    - (1.000, 0.500) lh:(-25.667, 0.500 AUTO_CLAMPED) rh:(27.667, 0.500 AUTO_CLAMPED)
+    - (81.000, 0.500) lh:(54.333, 0.500 AUTO_CLAMPED) rh:(107.667, 0.500 AUTO_CLAMPED)
+
+- Action 'RobotArmature|Robot_Dance' curverange:(1.0 .. 81.0) layers:1
+- ActionLayer Layer strips:1
+ - Keyframe strip channelbags:2
+ - Channelbag slot 'KEKey' curves:3
+  - fcu 'key_blocks["Angry"].value[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2
+    - (1.000, 0.300) lh:(-25.667, 0.300 AUTO_CLAMPED) rh:(27.667, 0.300 AUTO_CLAMPED)
+    - (81.000, 0.300) lh:(54.333, 0.300 AUTO_CLAMPED) rh:(107.667, 0.300 AUTO_CLAMPED)
+  - fcu 'key_blocks["Sad"].value[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2
+    - (1.000, 0.000) lh:(-25.667, 0.000 AUTO_CLAMPED) rh:(27.667, 0.000 AUTO_CLAMPED)
+    - (81.000, 0.000) lh:(54.333, 0.000 AUTO_CLAMPED) rh:(107.667, 0.000 AUTO_CLAMPED)
+  - fcu 'key_blocks["Surprised"].value[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2
+    - (1.000, 0.500) lh:(-25.667, 0.500 AUTO_CLAMPED) rh:(27.667, 0.500 AUTO_CLAMPED)
+    - (81.000, 0.500) lh:(54.333, 0.500 AUTO_CLAMPED) rh:(107.667, 0.500 AUTO_CLAMPED)
+ - Channelbag slot 'OBRobotArmature' curves:439
+  - fcu 'location[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'RobotArmature'
+    - (1.000, 0.000) lh:(-25.667, 0.000 AUTO_CLAMPED) rh:(27.667, 0.000 AUTO_CLAMPED)
+    - (81.000, 0.000) lh:(54.333, 0.000 AUTO_CLAMPED) rh:(107.667, 0.000 AUTO_CLAMPED)
+  - fcu 'location[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'RobotArmature'
+    - (1.000, 0.000) lh:(-25.667, 0.000 AUTO_CLAMPED) rh:(27.667, 0.000 AUTO_CLAMPED)
+    - (81.000, 0.000) lh:(54.333, 0.000 AUTO_CLAMPED) rh:(107.667, 0.000 AUTO_CLAMPED)
+  - fcu 'location[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'RobotArmature'
+    - (1.000, 0.000) lh:(-25.667, 0.000 AUTO_CLAMPED) rh:(27.667, 0.000 AUTO_CLAMPED)
+    - (81.000, 0.000) lh:(54.333, 0.000 AUTO_CLAMPED) rh:(107.667, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Abdomen"].location[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Abdomen'
+    - (1.000, 0.000) lh:(-25.667, 0.000 AUTO_CLAMPED) rh:(27.667, 0.000 AUTO_CLAMPED)
+    - (81.000, 0.000) lh:(54.333, 0.000 AUTO_CLAMPED) rh:(107.667, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Abdomen"].location[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Abdomen'
+    - (1.000, 0.000) lh:(-25.667, 0.000 AUTO_CLAMPED) rh:(27.667, 0.000 AUTO_CLAMPED)
+    - (81.000, 0.000) lh:(54.333, 0.000 AUTO_CLAMPED) rh:(107.667, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Abdomen"].location[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Abdomen'
+    - (1.000, 0.000) lh:(-25.667, 0.000 AUTO_CLAMPED) rh:(27.667, 0.000 AUTO_CLAMPED)
+    - (81.000, 0.000) lh:(54.333, 0.000 AUTO_CLAMPED) rh:(107.667, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Abdomen"].rotation_quaternion[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Abdomen'
+    - (1.000, 1.000) lh:(-25.667, 1.000 AUTO_CLAMPED) rh:(27.667, 1.000 AUTO_CLAMPED)
+    - (81.000, 1.000) lh:(54.333, 1.000 AUTO_CLAMPED) rh:(107.667, 1.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Abdomen"].rotation_quaternion[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Abdomen'
+    - (1.000, 0.000) lh:(-25.667, 0.000 AUTO_CLAMPED) rh:(27.667, 0.000 AUTO_CLAMPED)
+    - (81.000, 0.000) lh:(54.333, 0.000 AUTO_CLAMPED) rh:(107.667, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Abdomen"].rotation_quaternion[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Abdomen'
+    - (1.000, 0.000) lh:(-25.667, 0.000 AUTO_CLAMPED) rh:(27.667, 0.000 AUTO_CLAMPED)
+    - (81.000, 0.000) lh:(54.333, 0.000 AUTO_CLAMPED) rh:(107.667, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Abdomen"].rotation_quaternion[3]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Abdomen'
+    - (1.000, 0.000) lh:(-25.667, 0.000 AUTO_CLAMPED) rh:(27.667, 0.000 AUTO_CLAMPED)
+    - (81.000, 0.000) lh:(54.333, 0.000 AUTO_CLAMPED) rh:(107.667, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Abdomen"].scale[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Abdomen'
+    - (1.000, 1.000) lh:(-25.667, 1.000 AUTO_CLAMPED) rh:(27.667, 1.000 AUTO_CLAMPED)
+    - (81.000, 1.000) lh:(54.333, 1.000 AUTO_CLAMPED) rh:(107.667, 1.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Abdomen"].scale[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Abdomen'
+    - (1.000, 1.000) lh:(-25.667, 1.000 AUTO_CLAMPED) rh:(27.667, 1.000 AUTO_CLAMPED)
+    - (81.000, 1.000) lh:(54.333, 1.000 AUTO_CLAMPED) rh:(107.667, 1.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Abdomen"].scale[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Abdomen'
+    - (1.000, 1.000) lh:(-25.667, 1.000 AUTO_CLAMPED) rh:(27.667, 1.000 AUTO_CLAMPED)
+    - (81.000, 1.000) lh:(54.333, 1.000 AUTO_CLAMPED) rh:(107.667, 1.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Body"].location[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:8 grp:'Body'
+    - (1.000, 0.000) lh:(-0.333, 0.000 AUTO_CLAMPED) rh:(2.333, 0.000 AUTO_CLAMPED)
+    - (5.000, 0.000) lh:(3.667, 0.000 AUTO_CLAMPED) rh:(6.333, 0.000 AUTO_CLAMPED)
+    - (9.000, 0.000) lh:(7.667, 0.000 AUTO_CLAMPED) rh:(10.333, 0.000 AUTO_CLAMPED)
+      ...
+    - (73.000, 0.000) lh:(71.667, 0.000 AUTO_CLAMPED) rh:(74.333, 0.000 AUTO_CLAMPED)
+    - (77.000, 0.000) lh:(75.667, 0.000 AUTO_CLAMPED) rh:(78.333, 0.000 AUTO_CLAMPED)
+    - (81.000, 0.000) lh:(79.667, 0.000 AUTO_CLAMPED) rh:(82.333, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Body"].location[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:8 grp:'Body'
+    - (1.000, -0.032) lh:(-0.333, -0.032 AUTO_CLAMPED) rh:(2.333, -0.032 AUTO_CLAMPED)
+    - (5.000, -0.032) lh:(3.667, -0.032 AUTO_CLAMPED) rh:(6.333, -0.032 AUTO_CLAMPED)
+    - (9.000, -0.032) lh:(7.667, -0.032 AUTO_CLAMPED) rh:(10.333, -0.032 AUTO_CLAMPED)
+      ...
+    - (73.000, -0.032) lh:(71.667, -0.032 AUTO_CLAMPED) rh:(74.333, -0.032 AUTO_CLAMPED)
+    - (77.000, -0.032) lh:(75.667, -0.032 AUTO_CLAMPED) rh:(78.333, -0.032 AUTO_CLAMPED)
+    - (81.000, -0.032) lh:(79.667, -0.032 AUTO_CLAMPED) rh:(82.333, -0.032 AUTO_CLAMPED)
+
+- Action 'RobotArmature|Robot_Death' curverange:(1.0 .. 21.0) layers:1
+- ActionLayer Layer strips:1
+ - Keyframe strip channelbags:2
+ - Channelbag slot 'KEKey' curves:3
+  - fcu 'key_blocks["Angry"].value[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2
+    - (1.000, 0.300) lh:(-5.667, 0.300 AUTO_CLAMPED) rh:(7.667, 0.300 AUTO_CLAMPED)
+    - (21.000, 0.300) lh:(14.333, 0.300 AUTO_CLAMPED) rh:(27.667, 0.300 AUTO_CLAMPED)
+  - fcu 'key_blocks["Sad"].value[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2
+    - (1.000, 0.000) lh:(-5.667, 0.000 AUTO_CLAMPED) rh:(7.667, 0.000 AUTO_CLAMPED)
+    - (21.000, 0.000) lh:(14.333, 0.000 AUTO_CLAMPED) rh:(27.667, 0.000 AUTO_CLAMPED)
+  - fcu 'key_blocks["Surprised"].value[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2
+    - (1.000, 0.500) lh:(-5.667, 0.500 AUTO_CLAMPED) rh:(7.667, 0.500 AUTO_CLAMPED)
+    - (21.000, 0.500) lh:(14.333, 0.500 AUTO_CLAMPED) rh:(27.667, 0.500 AUTO_CLAMPED)
+ - Channelbag slot 'OBRobotArmature' curves:439
+  - fcu 'location[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'RobotArmature'
+    - (1.000, 0.000) lh:(-5.667, 0.000 AUTO_CLAMPED) rh:(7.667, 0.000 AUTO_CLAMPED)
+    - (21.000, 0.000) lh:(14.333, 0.000 AUTO_CLAMPED) rh:(27.667, 0.000 AUTO_CLAMPED)
+  - fcu 'location[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'RobotArmature'
+    - (1.000, 0.000) lh:(-5.667, 0.000 AUTO_CLAMPED) rh:(7.667, 0.000 AUTO_CLAMPED)
+    - (21.000, 0.000) lh:(14.333, 0.000 AUTO_CLAMPED) rh:(27.667, 0.000 AUTO_CLAMPED)
+  - fcu 'location[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'RobotArmature'
+    - (1.000, 0.000) lh:(-5.667, 0.000 AUTO_CLAMPED) rh:(7.667, 0.000 AUTO_CLAMPED)
+    - (21.000, 0.000) lh:(14.333, 0.000 AUTO_CLAMPED) rh:(27.667, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Abdomen"].location[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Abdomen'
+    - (1.000, 0.000) lh:(-5.667, 0.000 AUTO_CLAMPED) rh:(7.667, 0.000 AUTO_CLAMPED)
+    - (21.000, 0.000) lh:(14.333, 0.000 AUTO_CLAMPED) rh:(27.667, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Abdomen"].location[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Abdomen'
+    - (1.000, 0.000) lh:(-5.667, 0.000 AUTO_CLAMPED) rh:(7.667, 0.000 AUTO_CLAMPED)
+    - (21.000, 0.000) lh:(14.333, 0.000 AUTO_CLAMPED) rh:(27.667, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Abdomen"].location[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Abdomen'
+    - (1.000, 0.000) lh:(-5.667, 0.000 AUTO_CLAMPED) rh:(7.667, 0.000 AUTO_CLAMPED)
+    - (21.000, 0.000) lh:(14.333, 0.000 AUTO_CLAMPED) rh:(27.667, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Abdomen"].rotation_quaternion[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Abdomen'
+    - (1.000, 1.000) lh:(-5.667, 1.000 AUTO_CLAMPED) rh:(7.667, 1.000 AUTO_CLAMPED)
+    - (21.000, 1.000) lh:(14.333, 1.000 AUTO_CLAMPED) rh:(27.667, 1.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Abdomen"].rotation_quaternion[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Abdomen'
+    - (1.000, 0.000) lh:(-5.667, 0.000 AUTO_CLAMPED) rh:(7.667, 0.000 AUTO_CLAMPED)
+    - (21.000, 0.000) lh:(14.333, 0.000 AUTO_CLAMPED) rh:(27.667, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Abdomen"].rotation_quaternion[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Abdomen'
+    - (1.000, 0.000) lh:(-5.667, 0.000 AUTO_CLAMPED) rh:(7.667, 0.000 AUTO_CLAMPED)
+    - (21.000, 0.000) lh:(14.333, 0.000 AUTO_CLAMPED) rh:(27.667, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Abdomen"].rotation_quaternion[3]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Abdomen'
+    - (1.000, 0.000) lh:(-5.667, 0.000 AUTO_CLAMPED) rh:(7.667, 0.000 AUTO_CLAMPED)
+    - (21.000, 0.000) lh:(14.333, 0.000 AUTO_CLAMPED) rh:(27.667, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Abdomen"].scale[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Abdomen'
+    - (1.000, 1.000) lh:(-5.667, 1.000 AUTO_CLAMPED) rh:(7.667, 1.000 AUTO_CLAMPED)
+    - (21.000, 1.000) lh:(14.333, 1.000 AUTO_CLAMPED) rh:(27.667, 1.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Abdomen"].scale[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Abdomen'
+    - (1.000, 1.000) lh:(-5.667, 1.000 AUTO_CLAMPED) rh:(7.667, 1.000 AUTO_CLAMPED)
+    - (21.000, 1.000) lh:(14.333, 1.000 AUTO_CLAMPED) rh:(27.667, 1.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Abdomen"].scale[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Abdomen'
+    - (1.000, 1.000) lh:(-5.667, 1.000 AUTO_CLAMPED) rh:(7.667, 1.000 AUTO_CLAMPED)
+    - (21.000, 1.000) lh:(14.333, 1.000 AUTO_CLAMPED) rh:(27.667, 1.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Body"].location[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Body'
+    - (1.000, 0.000) lh:(-5.667, 0.000 AUTO_CLAMPED) rh:(7.667, 0.000 AUTO_CLAMPED)
+    - (21.000, 0.000) lh:(14.333, 0.000 AUTO_CLAMPED) rh:(27.667, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Body"].location[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Body'
+    - (1.000, -0.706) lh:(-5.667, -0.706 AUTO_CLAMPED) rh:(7.667, -0.706 AUTO_CLAMPED)
+    - (21.000, -0.706) lh:(14.333, -0.706 AUTO_CLAMPED) rh:(27.667, -0.706 AUTO_CLAMPED)
+
+- Action 'RobotArmature|Robot_ThumbsUp' curverange:(1.0 .. 37.0) layers:1
+- ActionLayer Layer strips:1
+ - Keyframe strip channelbags:2
+ - Channelbag slot 'KEKey' curves:3
+  - fcu 'key_blocks["Angry"].value[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2
+    - (1.000, 0.300) lh:(-11.000, 0.300 AUTO_CLAMPED) rh:(13.000, 0.300 AUTO_CLAMPED)
+    - (37.000, 0.300) lh:(25.000, 0.300 AUTO_CLAMPED) rh:(49.000, 0.300 AUTO_CLAMPED)
+  - fcu 'key_blocks["Sad"].value[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2
+    - (1.000, 0.000) lh:(-11.000, 0.000 AUTO_CLAMPED) rh:(13.000, 0.000 AUTO_CLAMPED)
+    - (37.000, 0.000) lh:(25.000, 0.000 AUTO_CLAMPED) rh:(49.000, 0.000 AUTO_CLAMPED)
+  - fcu 'key_blocks["Surprised"].value[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2
+    - (1.000, 0.500) lh:(-11.000, 0.500 AUTO_CLAMPED) rh:(13.000, 0.500 AUTO_CLAMPED)
+    - (37.000, 0.500) lh:(25.000, 0.500 AUTO_CLAMPED) rh:(49.000, 0.500 AUTO_CLAMPED)
+ - Channelbag slot 'OBRobotArmature' curves:439
+  - fcu 'location[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'RobotArmature'
+    - (1.000, 0.000) lh:(-11.000, 0.000 AUTO_CLAMPED) rh:(13.000, 0.000 AUTO_CLAMPED)
+    - (37.000, 0.000) lh:(25.000, 0.000 AUTO_CLAMPED) rh:(49.000, 0.000 AUTO_CLAMPED)
+  - fcu 'location[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'RobotArmature'
+    - (1.000, 0.000) lh:(-11.000, 0.000 AUTO_CLAMPED) rh:(13.000, 0.000 AUTO_CLAMPED)
+    - (37.000, 0.000) lh:(25.000, 0.000 AUTO_CLAMPED) rh:(49.000, 0.000 AUTO_CLAMPED)
+  - fcu 'location[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'RobotArmature'
+    - (1.000, 0.000) lh:(-11.000, 0.000 AUTO_CLAMPED) rh:(13.000, 0.000 AUTO_CLAMPED)
+    - (37.000, 0.000) lh:(25.000, 0.000 AUTO_CLAMPED) rh:(49.000, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Abdomen"].location[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Abdomen'
+    - (1.000, 0.000) lh:(-11.000, 0.000 AUTO_CLAMPED) rh:(13.000, 0.000 AUTO_CLAMPED)
+    - (37.000, 0.000) lh:(25.000, 0.000 AUTO_CLAMPED) rh:(49.000, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Abdomen"].location[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Abdomen'
+    - (1.000, 0.000) lh:(-11.000, 0.000 AUTO_CLAMPED) rh:(13.000, 0.000 AUTO_CLAMPED)
+    - (37.000, 0.000) lh:(25.000, 0.000 AUTO_CLAMPED) rh:(49.000, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Abdomen"].location[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Abdomen'
+    - (1.000, 0.000) lh:(-11.000, 0.000 AUTO_CLAMPED) rh:(13.000, 0.000 AUTO_CLAMPED)
+    - (37.000, 0.000) lh:(25.000, 0.000 AUTO_CLAMPED) rh:(49.000, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Abdomen"].rotation_quaternion[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Abdomen'
+    - (1.000, 1.000) lh:(-11.000, 1.000 AUTO_CLAMPED) rh:(13.000, 1.000 AUTO_CLAMPED)
+    - (37.000, 1.000) lh:(25.000, 1.000 AUTO_CLAMPED) rh:(49.000, 1.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Abdomen"].rotation_quaternion[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Abdomen'
+    - (1.000, 0.000) lh:(-11.000, 0.000 AUTO_CLAMPED) rh:(13.000, 0.000 AUTO_CLAMPED)
+    - (37.000, 0.000) lh:(25.000, 0.000 AUTO_CLAMPED) rh:(49.000, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Abdomen"].rotation_quaternion[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Abdomen'
+    - (1.000, 0.000) lh:(-11.000, 0.000 AUTO_CLAMPED) rh:(13.000, 0.000 AUTO_CLAMPED)
+    - (37.000, 0.000) lh:(25.000, 0.000 AUTO_CLAMPED) rh:(49.000, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Abdomen"].rotation_quaternion[3]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Abdomen'
+    - (1.000, 0.000) lh:(-11.000, 0.000 AUTO_CLAMPED) rh:(13.000, 0.000 AUTO_CLAMPED)
+    - (37.000, 0.000) lh:(25.000, 0.000 AUTO_CLAMPED) rh:(49.000, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Abdomen"].scale[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Abdomen'
+    - (1.000, 1.000) lh:(-11.000, 1.000 AUTO_CLAMPED) rh:(13.000, 1.000 AUTO_CLAMPED)
+    - (37.000, 1.000) lh:(25.000, 1.000 AUTO_CLAMPED) rh:(49.000, 1.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Abdomen"].scale[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Abdomen'
+    - (1.000, 1.000) lh:(-11.000, 1.000 AUTO_CLAMPED) rh:(13.000, 1.000 AUTO_CLAMPED)
+    - (37.000, 1.000) lh:(25.000, 1.000 AUTO_CLAMPED) rh:(49.000, 1.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Abdomen"].scale[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Abdomen'
+    - (1.000, 1.000) lh:(-11.000, 1.000 AUTO_CLAMPED) rh:(13.000, 1.000 AUTO_CLAMPED)
+    - (37.000, 1.000) lh:(25.000, 1.000 AUTO_CLAMPED) rh:(49.000, 1.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Body"].location[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Body'
+    - (1.000, 0.000) lh:(-11.000, 0.000 AUTO_CLAMPED) rh:(13.000, 0.000 AUTO_CLAMPED)
+    - (37.000, 0.000) lh:(25.000, 0.000 AUTO_CLAMPED) rh:(49.000, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Body"].location[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Body'
+    - (1.000, -0.706) lh:(-11.000, -0.706 AUTO_CLAMPED) rh:(13.000, -0.706 AUTO_CLAMPED)
+    - (37.000, -0.706) lh:(25.000, -0.706 AUTO_CLAMPED) rh:(49.000, -0.706 AUTO_CLAMPED)
+
+==== Armatures: 1
+- Armature 'RobotArmature' 58 bones
+  - bone 'Abdomen' parent:'Hips' h:(0.000, 0.000, 0.000) t:(0.000, 0.472, 0.111) connect radius h:0.100 t:0.050
+      1.000 0.000 0.000 0.000
+      0.000 0.008 -1.000 0.078
+      0.000 1.000 0.008 1.663
+  - bone 'Body' parent:'Bone' h:(0.005, 0.051, 0.308) t:(0.005, 0.547, 0.308) radius h:0.100 t:0.050
+      1.000 0.000 0.000 0.002
+      0.000 0.000 -1.000 -0.113
+      0.000 1.000 0.000 1.441
+  - bone 'Bone' h:(-0.003, 0.195, -0.006) t:(-0.003, 0.195, 1.389) radius h:0.100 t:0.050
+      1.000 0.000 0.000 -0.003
+      0.000 0.000 -1.000 0.195
+      0.000 1.000 0.000 -0.006
+  - bone 'Foot.L' parent:'Bone' h:(0.637, -1.365, 0.057) t:(0.637, -1.375, 0.382) radius h:0.100 t:0.050
+      -1.000 0.000 0.000 0.634
+      0.000 -0.999 -0.032 0.138
+      0.000 -0.032 0.999 0.025
+  - bone 'Foot.L_end' parent:'Foot.L' h:(0.000, 0.000, 0.000) t:(0.000, 0.326, 0.000) connect radius h:0.100 t:0.050
+      -1.000 0.000 0.000 0.634
+      0.000 -0.999 -0.032 -0.187
+      0.000 -0.032 0.999 0.014
+  - bone 'Foot.R' parent:'Bone' h:(-0.637, -1.365, 0.057) t:(-0.637, -1.375, 0.382) radius h:0.100 t:0.050
+      -1.000 0.000 0.000 -0.640
+      0.000 -0.999 -0.032 0.138
+      0.000 -0.032 0.999 0.025
+  - bone 'Foot.R_end' parent:'Foot.R' h:(0.000, 0.000, 0.000) t:(0.000, 0.326, 0.000) connect radius h:0.100 t:0.050
+      -1.000 0.000 0.000 -0.640
+      0.000 -0.999 -0.032 -0.187
+      0.000 -0.032 0.999 0.014
+  - bone 'Head' parent:'Neck' h:(0.000, 0.000, 0.000) t:(-0.003, 1.108, -0.005) radius h:0.100 t:0.050
+      1.000 -0.003 0.000 0.000
+      0.000 -0.019 -1.000 0.011
+      0.003 1.000 -0.019 3.038
+  - bone 'Head_end' parent:'Head' h:(0.000, 0.000, 0.000) t:(0.000, 1.108, 0.000) connect radius h:0.100 t:0.050
+      1.000 -0.003 0.000 -0.003
+      0.000 -0.019 -1.000 -0.010
+      0.003 1.000 -0.019 4.147
+  - bone 'Hips' parent:'Body' h:(-0.002, -0.592, -0.113) t:(-0.002, -0.273, -0.190) radius h:0.100 t:0.050
+      1.000 0.000 0.000 0.000
+      0.000 0.236 -0.972 0.000
+      0.000 0.972 0.236 1.344
+  - bone 'Index.L' parent:'Palm1.L' h:(0.000, 0.000, 0.000) t:(0.061, 0.173, -0.046) connect radius h:0.100 t:0.050
+      -0.621 0.783 -0.029 3.003
+      -0.783 -0.621 0.017 -0.184
+      -0.005 0.034 0.999 2.631
+  - bone 'Index.R' parent:'Palm1.R' h:(0.000, 0.000, 0.000) t:(0.076, 0.173, 0.011) connect radius h:0.100 t:0.050
+      -0.621 -0.783 -0.029 -3.005
+      0.778 -0.621 0.091 -0.184
+      -0.090 0.034 0.995 2.631
+  - bone 'Index2.L' parent:'Index.L' h:(0.000, 0.000, 0.000) t:(0.048, 0.122, -0.001) connect radius h:0.100 t:0.050
+      -0.863 0.504 0.047 3.152
+      -0.501 -0.864 0.052 -0.302
+      0.067 0.022 0.998 2.637
+  - bone 'Index2.L_end' parent:'Index2.L' h:(0.000, 0.000, 0.000) t:(0.000, 0.131, 0.000) connect radius h:0.100 t:0.050
+      -0.863 0.504 0.047 3.218
+      -0.501 -0.864 0.052 -0.416
+      0.067 0.022 0.998 2.640
+  - bone 'Index2.R' parent:'Index.R' h:(0.000, 0.000, 0.000) t:(-0.047, 0.122, -0.006) connect radius h:0.100 t:0.050
+      -0.863 -0.504 0.047 -3.153
+      0.504 -0.864 -0.002 -0.302
+      0.042 0.022 0.999 2.637
+  - bone 'Index2.R_end' parent:'Index2.R' h:(0.000, 0.000, 0.000) t:(0.000, 0.131, 0.000) connect radius h:0.100 t:0.050
+      -0.863 -0.504 0.047 -3.219
+      0.504 -0.864 -0.002 -0.416
+      0.042 0.022 0.999 2.640
+  - bone 'LowerArm.L' parent:'UpperArm.L' h:(0.000, 0.000, 0.000) t:(-0.127, 1.338, 0.036) connect radius h:0.100 t:0.050
+      0.039 0.999 -0.012 1.323
+      -0.999 0.039 0.000 -0.021
+      0.001 0.012 1.000 2.432
+  - bone 'LowerArm.R' parent:'UpperArm.R' h:(0.000, 0.000, 0.000) t:(0.127, 1.349, 0.068) connect radius h:0.100 t:0.050
+      0.036 -0.999 0.019 -1.313
+      0.984 0.039 0.177 -0.021
+      -0.177 0.012 0.984 2.432
+  - bone 'LowerLeg.L' parent:'UpperLeg.L' h:(0.000, 0.000, 0.000) t:(0.000, 0.866, 0.334) connect radius h:0.100 t:0.050
+      1.000 0.000 0.000 0.630
+      0.000 0.190 0.982 -0.038
+      0.000 -0.982 0.190 0.935
+  - bone 'LowerLeg.L_end' parent:'LowerLeg.L' h:(0.000, 0.000, 0.000) t:(0.000, 0.928, 0.000) connect radius h:0.100 t:0.050
+      1.000 0.000 0.000 0.630
+      0.000 0.190 0.982 0.138
+      0.000 -0.982 0.190 0.024
+  - bone 'LowerLeg.R' parent:'UpperLeg.R' h:(0.000, 0.000, 0.000) t:(0.000, 0.866, 0.334) connect radius h:0.100 t:0.050
+      1.000 0.000 0.000 -0.643
+      0.000 0.190 0.982 -0.038
+      0.000 -0.982 0.190 0.935
+  - bone 'LowerLeg.R_end' parent:'LowerLeg.R' h:(0.000, 0.000, 0.000) t:(0.000, 0.928, 0.000) connect radius h:0.100 t:0.050
+      1.000 0.000 0.000 -0.643
+      0.000 0.190 0.982 0.138
+      0.000 -0.982 0.190 0.024
+  - bone 'Middle1.L' parent:'Palm2.L' h:(0.000, 0.000, 0.000) t:(0.009, 0.189, 0.000) connect radius h:0.100 t:0.050
+      -0.621 0.784 -0.003 2.991
+      -0.784 -0.621 -0.004 -0.184
+      -0.005 0.000 1.000 2.449
+  - bone 'Middle1.R' parent:'Palm2.R' h:(0.000, 0.000, 0.000) t:(-0.009, 0.189, 0.000) connect radius h:0.100 t:0.050
+      -0.621 -0.784 -0.003 -2.993
+      0.784 -0.621 0.004 -0.184
+      -0.005 0.000 1.000 2.449
+  - bone 'Middle2.L' parent:'Middle1.L' h:(0.000, 0.000, 0.000) t:(0.048, 0.122, 0.000) connect radius h:0.100 t:0.050
+      -0.862 0.504 0.058 3.140
+      -0.503 -0.864 0.034 -0.302
+      0.067 0.000 0.998 2.449
+  - bone 'Middle2.L_end' parent:'Middle2.L' h:(0.000, 0.000, 0.000) t:(0.000, 0.131, 0.000) connect radius h:0.100 t:0.050
+      -0.862 0.504 0.058 3.206
+      -0.503 -0.864 0.034 -0.416
+      0.067 0.000 0.998 2.449
+  - bone 'Middle2.R' parent:'Middle1.R' h:(0.000, 0.000, 0.000) t:(-0.048, 0.122, 0.000) connect radius h:0.100 t:0.050
+      -0.862 -0.504 0.058 -3.141
+      0.503 -0.864 -0.034 -0.302
+      0.067 0.000 0.998 2.449
+  - bone 'Middle2.R_end' parent:'Middle2.R' h:(0.000, 0.000, 0.000) t:(0.000, 0.131, 0.000) connect radius h:0.100 t:0.050
+      -0.862 -0.504 0.058 -3.207
+      0.503 -0.864 -0.034 -0.416
+      0.067 0.000 0.998 2.449
+  - bone 'Neck' parent:'Torso' h:(0.000, -0.063, 0.000) t:(0.000, 0.245, -0.027) radius h:0.100 t:0.050
+      1.000 0.000 0.000 0.000
+      0.000 -0.023 -1.000 0.018
+      0.000 1.000 -0.023 2.729
+  - bone 'Palm1.L' parent:'LowerArm.L' h:(0.000, 0.023, 0.000) t:(0.229, 0.330, 0.178) radius h:0.100 t:0.050
+      -0.166 0.742 -0.649 2.690
+      -0.764 -0.514 -0.391 0.032
+      -0.624 0.431 0.652 2.449
+  - bone 'Palm1.R' parent:'LowerArm.R' h:(0.000, 0.023, 0.000) t:(-0.257, 0.330, 0.135) radius h:0.100 t:0.050
+      -0.166 -0.742 -0.649 -2.692
+      -0.482 -0.514 0.710 0.032
+      -0.860 0.431 -0.272 2.449
+  - bone 'Palm2.L' parent:'LowerArm.L' h:(0.000, 0.023, 0.000) t:(0.228, 0.316, -0.004) radius h:0.100 t:0.050
+      -0.584 0.811 -0.009 2.690
+      -0.811 -0.584 -0.013 0.032
+      -0.016 0.000 1.000 2.449
+  - bone 'Palm2.R' parent:'LowerArm.R' h:(0.000, 0.023, 0.000) t:(-0.224, 0.316, -0.044) radius h:0.100 t:0.050
+      -0.584 -0.811 -0.009 -2.692
+      0.811 -0.584 0.013 0.032
+      -0.016 0.000 1.000 2.449
+  - bone 'Palm3.L' parent:'LowerArm.L' h:(0.000, 0.023, 0.000) t:(0.229, 0.326, -0.195) radius h:0.100 t:0.050
+      -0.066 0.735 0.674 2.690
+      -0.711 -0.509 0.485 0.032
+      0.700 -0.447 0.557 2.449
+  - bone 'Palm3.R' parent:'LowerArm.R' h:(0.000, 0.023, 0.000) t:(-0.191, 0.326, -0.232) radius h:0.100 t:0.050
+      -0.066 -0.735 0.674 -2.692
+      -0.603 -0.509 -0.614 0.032
+      0.795 -0.447 -0.410 2.449
+  - bone 'PoleTarget.L' parent:'Bone' h:(0.628, -0.337, 1.709) t:(0.628, -0.028, 1.709) radius h:0.100 t:0.050
+      1.000 0.000 0.000 0.625
+      0.000 0.000 -1.000 -1.514
+      0.000 1.000 0.000 1.052
+  - bone 'PoleTarget.L_end' parent:'PoleTarget.L' h:(0.000, 0.000, 0.000) t:(0.000, 0.309, 0.000) connect radius h:0.100 t:0.050
+      1.000 0.000 0.000 0.625
+      0.000 0.000 -1.000 -1.514
+      0.000 1.000 0.000 1.361
+  - bone 'PoleTarget.R' parent:'Bone' h:(-0.645, -0.337, 1.709) t:(-0.645, -0.028, 1.709) radius h:0.100 t:0.050
+      1.000 0.000 0.000 -0.648
+      0.000 0.000 -1.000 -1.514
+      0.000 1.000 0.000 1.052
+  - bone 'PoleTarget.R_end' parent:'PoleTarget.R' h:(0.000, 0.000, 0.000) t:(0.000, 0.309, 0.000) connect radius h:0.100 t:0.050
+      1.000 0.000 0.000 -0.648
+      0.000 0.000 -1.000 -1.514
+      0.000 1.000 0.000 1.361
+  - bone 'Ring1.L' parent:'Palm3.L' h:(0.000, 0.000, 0.000) t:(0.078, 0.166, 0.046) connect radius h:0.100 t:0.050
+      -0.621 0.783 -0.029 3.003
+      -0.783 -0.621 0.017 -0.184
+      -0.005 0.034 0.999 2.258
+  - bone 'Ring1.R' parent:'Palm3.R' h:(0.000, 0.000, 0.000) t:(0.086, 0.166, -0.030) connect radius h:0.100 t:0.050
+      -0.621 -0.783 -0.029 -3.005
+      0.778 -0.621 0.091 -0.184
+      -0.090 0.034 0.995 2.258
+  - bone 'Ring2.L' parent:'Ring1.L' h:(0.000, 0.000, 0.000) t:(0.048, 0.122, -0.001) connect radius h:0.100 t:0.050
+      -0.863 0.504 0.047 3.152
+      -0.501 -0.864 0.052 -0.302
+      0.067 0.022 0.998 2.264
+  - bone 'Ring2.L_end' parent:'Ring2.L' h:(0.000, 0.000, 0.000) t:(0.000, 0.131, 0.000) connect radius h:0.100 t:0.050
+      -0.863 0.504 0.047 3.218
+      -0.501 -0.864 0.052 -0.416
+      0.067 0.022 0.998 2.267
+  - bone 'Ring2.R' parent:'Ring1.R' h:(0.000, 0.000, 0.000) t:(-0.047, 0.122, -0.006) connect radius h:0.100 t:0.050
+      -0.863 -0.504 0.047 -3.153
+      0.504 -0.864 -0.002 -0.302
+      0.042 0.022 0.999 2.264
+  - bone 'Ring2.R_end' parent:'Ring2.R' h:(0.000, 0.000, 0.000) t:(0.000, 0.131, 0.000) connect radius h:0.100 t:0.050
+      -0.863 -0.504 0.047 -3.219
+      0.504 -0.864 -0.002 -0.416
+      0.042 0.022 0.999 2.267
+  - bone 'Shoulder.L' parent:'Torso' h:(0.583, -0.351, 0.032) t:(0.667, -0.353, 0.033) radius h:0.100 t:0.050
+      -0.026 1.000 0.000 0.583
+      0.000 0.000 -1.000 0.017
+      -1.000 -0.026 0.000 2.439
+  - bone 'Shoulder.R' parent:'Torso' h:(-0.637, -0.351, 0.032) t:(-0.739, -0.352, 0.033) radius h:0.100 t:0.050
+      -0.010 -1.000 0.000 -0.637
+      0.000 0.000 -1.000 0.017
+      1.000 -0.010 0.000 2.440
+  - bone 'Thumb.L' parent:'LowerArm.L' h:(0.084, -0.087, 0.190) t:(0.143, -0.095, 0.313) radius h:0.100 t:0.050
+      0.993 -0.047 0.112 2.580
+      0.081 -0.434 -0.897 -0.056
+      0.091 0.899 -0.427 2.637
+  - bone 'Thumb.R' parent:'LowerArm.R' h:(-0.116, -0.087, 0.172) t:(-0.196, -0.095, 0.283) radius h:0.100 t:0.050
+      0.993 0.047 0.112 -2.582
+      0.122 -0.434 -0.892 -0.056
+      0.006 0.899 -0.437 2.637
+  - bone 'Thumb2.L' parent:'Thumb.L' h:(0.000, 0.000, 0.000) t:(0.052, 0.115, 0.014) connect radius h:0.100 t:0.050
+      -0.538 0.379 -0.753 2.574
+      -0.816 -0.458 0.353 -0.115
+      -0.211 0.804 0.555 2.760
+  - bone 'Thumb2.L_end' parent:'Thumb2.L' h:(0.000, 0.000, 0.000) t:(0.000, 0.127, 0.000) connect radius h:0.100 t:0.050
+      -0.538 0.379 -0.753 2.622
+      -0.816 -0.458 0.353 -0.173
+      -0.211 0.804 0.555 2.862
+  - bone 'Thumb2.R' parent:'Thumb.R' h:(0.000, 0.000, 0.000) t:(-0.054, 0.115, 0.002) connect radius h:0.100 t:0.050
+      -0.538 -0.379 -0.753 -2.575
+      -0.598 -0.458 0.657 -0.115
+      -0.594 0.804 0.020 2.760
+  - bone 'Thumb2.R_end' parent:'Thumb2.R' h:(0.000, 0.000, 0.000) t:(0.000, 0.127, 0.000) connect radius h:0.100 t:0.050
+      -0.538 -0.379 -0.753 -2.623
+      -0.598 -0.458 0.657 -0.173
+      -0.594 0.804 0.020 2.862
+  - bone 'Torso' parent:'Abdomen' h:(0.000, 0.000, 0.000) t:(0.000, 0.643, 0.075) connect radius h:0.100 t:0.050
+      1.000 0.000 0.000 0.000
+      0.000 -0.109 -0.994 0.081
+      0.000 0.994 -0.109 2.148
+  - bone 'UpperArm.L' parent:'Shoulder.L' h:(0.000, 0.000, 0.000) t:(-0.012, 0.656, 0.038) connect radius h:0.100 t:0.050
+      -0.056 0.998 0.012 0.667
+      -0.996 -0.057 0.067 0.017
+      0.068 -0.008 0.998 2.437
+  - bone 'UpperArm.R' parent:'Shoulder.R' h:(0.000, 0.000, 0.000) t:(-0.001, 0.574, 0.038) connect radius h:0.100 t:0.050
+      -0.060 -0.998 -0.028 -0.739
+      0.962 -0.065 0.264 0.017
+      -0.265 -0.012 0.964 2.439
+  - bone 'UpperLeg.L' parent:'Body' h:(0.628, -0.400, -0.183) t:(0.628, -1.001, -0.075) radius h:0.100 t:0.050
+      1.000 0.000 0.000 0.630
+      0.000 -0.177 0.984 0.070
+      0.000 -0.984 -0.177 1.537
+  - bone 'UpperLeg.R' parent:'Body' h:(-0.645, -0.400, -0.183) t:(-0.645, -1.001, -0.075) radius h:0.100 t:0.050
+      1.000 0.000 0.000 -0.643
+      0.000 -0.177 0.984 0.070
+      0.000 -0.984 -0.177 1.537
+

@@ -1,0 +1,156 @@
+#usda 1.0
+(
+    defaultPrim = "root"
+    doc = "Blender v4.4.0 Alpha"
+    metersPerUnit = 1
+    upAxis = "Z"
+)
+
+def Xform "root" (
+    customData = {
+        dictionary Blender = {
+            bool generated = 1
+        }
+    }
+)
+{
+    def Xform "Camera"
+    {
+        custom string userProperties:blender:object_name = "Camera"
+        float3 xformOp:rotateXYZ = (63.559296, 2.2983238e-7, 46.691944)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (7.358891487121582, -6.925790786743164, 4.958309173583984)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def Camera "Camera"
+        {
+            float2 clippingRange = (0.1, 100)
+            float focalLength = 0.5
+            float horizontalAperture = 0.36
+            float horizontalApertureOffset = 0
+            token projection = "perspective"
+            custom string userProperties:blender:data_name = "Camera"
+            float verticalAperture = 0.2025
+            float verticalApertureOffset = 0
+        }
+    }
+
+    def Xform "Light"
+    {
+        custom string userProperties:blender:object_name = "Light"
+        float3 xformOp:rotateXYZ = (37.261047, 3.1637092, 106.936325)
+        float3 xformOp:scale = (1, 0.99999994, 1)
+        double3 xformOp:translate = (4.076245307922363, 1.0054539442062378, 5.903861999511719)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def SphereLight "Light"
+        {
+            float3[] extent = [(-0.1, -0.1, -0.1), (0.1, 0.1, 0.1)]
+            color3f inputs:color = (1, 1, 1)
+            float inputs:diffuse = 1
+            float inputs:exposure = 0
+            float inputs:intensity = 318.30988
+            bool inputs:normalize = 1
+            float inputs:radius = 0.1
+            float inputs:specular = 1
+            custom string userProperties:blender:data_name = "Light"
+        }
+    }
+
+    def Xform "Cube"
+    {
+        custom string userProperties:blender:object_name = "Cube"
+
+        def Mesh "Cube" (
+            active = true
+            prepend apiSchemas = ["MaterialBindingAPI"]
+        )
+        {
+            uniform bool doubleSided = 1
+            float3[] extent = [(-1, -1, -1), (1, 1, 1)]
+            int[] faceVertexCounts = [4, 4, 4, 4, 4, 4]
+            int[] faceVertexIndices = [0, 4, 6, 2, 3, 2, 6, 7, 7, 6, 4, 5, 5, 1, 3, 7, 1, 0, 2, 3, 5, 4, 0, 1]
+            rel material:binding = </root/_materials/Material>
+            normal3f[] normals = [(0, 0, 1), (0, 0, 1), (0, 0, 1), (0, 0, 1), (0, -1, 0), (0, -1, 0), (0, -1, 0), (0, -1, 0), (-1, 0, 0), (-1, 0, 0), (-1, 0, 0), (-1, 0, 0), (0, 0, -1), (0, 0, -1), (0, 0, -1), (0, 0, -1), (1, 0, 0), (1, 0, 0), (1, 0, 0), (1, 0, 0), (0, 1, 0), (0, 1, 0), (0, 1, 0), (0, 1, 0)] (
+                interpolation = "faceVarying"
+            )
+            point3f[] points = [(1, 1, 1), (1, 1, -1), (1, -1, 1), (1, -1, -1), (-1, 1, 1), (-1, 1, -1), (-1, -1, 1), (-1, -1, -1)]
+            bool[] primvars:sharp_face = [1, 1, 1, 1, 1, 1] (
+                interpolation = "uniform"
+            )
+            texCoord2f[] primvars:st = [(0.625, 0.5), (0.875, 0.5), (0.875, 0.75), (0.625, 0.75), (0.375, 0.75), (0.625, 0.75), (0.625, 1), (0.375, 1), (0.375, 0), (0.625, 0), (0.625, 0.25), (0.375, 0.25), (0.125, 0.5), (0.375, 0.5), (0.375, 0.75), (0.125, 0.75), (0.375, 0.5), (0.625, 0.5), (0.625, 0.75), (0.375, 0.75), (0.375, 0.25), (0.625, 0.25), (0.625, 0.5), (0.375, 0.5)] (
+                interpolation = "faceVarying"
+            )
+            uniform token subdivisionScheme = "none"
+            custom string userProperties:blender:data_name = "Cube"
+        }
+    }
+
+    def Scope "_materials"
+    {
+        def Material "Material"
+        {
+            token outputs:mtlx:surface.connect = </root/_materials/Material/ND_standard_surface_surfaceshader.outputs:surface>
+            token outputs:surface.connect = </root/_materials/Material/previewShader.outputs:surface>
+            custom string userProperties:blender:data_name = "Material"
+
+            def Shader "previewShader"
+            {
+                uniform token info:id = "UsdPreviewSurface"
+                color3f inputs:diffuseColor = (0.8, 0.8, 0.8)
+                float inputs:metallic = 0
+                float inputs:roughness = 0.5
+                token outputs:surface
+            }
+
+            def Shader "ND_standard_surface_surfaceshader"
+            {
+                uniform token info:id = "ND_standard_surface_surfaceshader"
+                float inputs:base = 1
+                color3f inputs:base_color = (0, 1, 0)
+                float inputs:coat = 0
+                float inputs:coat_affect_color
+                float inputs:coat_affect_roughness
+                float inputs:coat_anisotropy = 0
+                color3f inputs:coat_color = (1, 1, 1)
+                float inputs:coat_IOR = 1.5
+                float3 inputs:coat_normal
+                float inputs:coat_rotation = 0
+                float inputs:coat_roughness = 0.03
+                float inputs:diffuse_roughness = 0
+                float inputs:emission = 0
+                color3f inputs:emission_color = (1, 1, 1)
+                float inputs:metalness = 0
+                float3 inputs:normal
+                color3f inputs:opacity = (1, 1, 1)
+                float inputs:sheen = 0
+                color3f inputs:sheen_color = (1, 1, 1)
+                float inputs:sheen_roughness = 0.5
+                float inputs:specular = 0.5
+                float inputs:specular_anisotropy = 0
+                color3f inputs:specular_color = (1, 1, 1)
+                float inputs:specular_IOR = 1.45
+                float inputs:specular_rotation = 0
+                float inputs:specular_roughness = 0.5
+                float inputs:subsurface = 0
+                float inputs:subsurface_anisotropy = 0
+                color3f inputs:subsurface_color = (0, 1, 0)
+                color3f inputs:subsurface_radius = (0.05, 0.01, 0.005)
+                float inputs:subsurface_scale
+                float3 inputs:tangent
+                float inputs:thin_film_IOR = 1.33
+                float inputs:thin_film_thickness = 0
+                bool inputs:thin_walled
+                float inputs:transmission = 0
+                color3f inputs:transmission_color = (0, 1, 0)
+                float inputs:transmission_depth
+                float inputs:transmission_dispersion
+                float inputs:transmission_extra_roughness = 0.5
+                color3f inputs:transmission_scatter
+                float inputs:transmission_scatter_anisotropy
+                token outputs:surface
+            }
+        }
+    }
+}
+

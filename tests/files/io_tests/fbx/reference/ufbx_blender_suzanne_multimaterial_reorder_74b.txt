@@ -1,0 +1,126 @@
+==== Meshes: 1
+- Mesh 'Suzanne' vtx:507 face:500 loop:1968 edge:1005
+    - 46 44 2 0 3 ... 389 504 322 320 390 
+    - 44/46 2/44 0/2 0/46 3/45 ... 496/500 313/505 314/506 321/503 322/504 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-0.438, -0.766, 0.164)
+    - (0.438, -0.766, 0.164)
+    - (-0.500, -0.688, 0.094)
+      ...
+    - (-0.789, 0.328, -0.125)
+    - (0.859, 0.383, 0.383)
+    - (-0.859, 0.383, 0.383)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 1 1 1 1 1 ... 1 1 1 1 1 
+  - attr 'material_index' INT FACE
+    - 4 0 4 0 4 ... 3 2 3 2 3 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'UVMap' FLOAT2 CORNER
+    - (0.899, 0.615)
+    - (0.939, 0.615)
+    - (0.917, 0.564)
+      ...
+    - (0.223, 0.539)
+    - (0.342, 0.588)
+    - (0.242, 0.641)
+  - 7 materials
+    - 'LeftEye' 'Monkey' 'LeftEar' 'RightEar' 'RightEye' 'Nose' 'Pupil' 
+
+==== Objects: 1
+- Obj 'Suzanne' MESH data:'Suzanne'
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+
+==== Materials: 7
+- Mat 'LeftEar'
+  - base color (0.800, 0.006, 0.377)
+  - specular ior 0.500
+  - specular tint (1.000, 1.000, 1.000)
+  - roughness 0.000
+  - metallic 0.000
+  - ior 1.500
+  - viewport diffuse (0.800, 0.006, 0.377, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 0.500
+  - viewport metallic 0.000, roughness 0.000
+  - backface False probe True shadow False
+
+- Mat 'LeftEye'
+  - base color (0.747, 0.000, 0.801)
+  - specular ior 0.500
+  - specular tint (1.000, 1.000, 1.000)
+  - roughness 0.148
+  - metallic 0.000
+  - ior 1.500
+  - viewport diffuse (0.747, 0.000, 0.801, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 0.500
+  - viewport metallic 0.000, roughness 0.148
+  - backface False probe True shadow False
+
+- Mat 'Monkey'
+  - base color (0.077, 0.017, 0.000)
+  - specular ior 0.500
+  - specular tint (1.000, 1.000, 1.000)
+  - roughness 1.000
+  - metallic 0.000
+  - ior 1.500
+  - viewport diffuse (0.077, 0.017, 0.000, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 0.500
+  - viewport metallic 0.000, roughness 1.000
+  - backface False probe True shadow False
+
+- Mat 'Nose'
+  - base color (0.800, 0.800, 0.800)
+  - specular ior 0.500
+  - specular tint (1.000, 1.000, 1.000)
+  - roughness 0.007
+  - metallic 0.423
+  - ior 1.500
+  - viewport diffuse (0.800, 0.800, 0.800, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 0.500
+  - viewport metallic 0.423, roughness 0.007
+  - backface False probe True shadow False
+
+- Mat 'Pupil'
+  - base color (0.800, 0.800, 0.800)
+  - specular ior 0.500
+  - specular tint (1.000, 1.000, 1.000)
+  - roughness 0.099
+  - metallic 0.000
+  - ior 1.500
+  - viewport diffuse (0.800, 0.800, 0.800, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 0.500
+  - viewport metallic 0.000, roughness 0.099
+  - backface False probe True shadow False
+
+- Mat 'RightEar'
+  - base color (0.000, 0.462, 0.800)
+  - specular ior 0.500
+  - specular tint (1.000, 1.000, 1.000)
+  - roughness 1.000
+  - metallic 0.000
+  - ior 1.500
+  - viewport diffuse (0.000, 0.462, 0.800, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 0.500
+  - viewport metallic 0.000, roughness 1.000
+  - backface False probe True shadow False
+
+- Mat 'RightEye'
+  - base color (0.800, 0.000, 0.001)
+  - specular ior 0.500
+  - specular tint (1.000, 1.000, 1.000)
+  - roughness 0.134
+  - metallic 0.000
+  - ior 1.500
+  - viewport diffuse (0.800, 0.000, 0.001, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 0.500
+  - viewport metallic 0.000, roughness 0.134
+  - backface False probe True shadow False
+

@@ -1,0 +1,9 @@
+<?xml version="1.0" standalone="no"?>
+<svg width="4cm" height="4cm" viewBox="100 100 500 500"
+     xmlns="http://www.w3.org/2000/svg" version="1.1">
+  <desc>Paths that are closed implicitly by the move command</desc>
+
+  <path d="M 100 100 L 300 100 L 200 300 M 0 0" fill="red" />
+  <path d="M 300 100 L 500 100 L 400 300 m 0 0" fill="blue" />
+  <path d="M 100 300 L 300 300 L 200 500 m 100 -200 l 200 0 l -100 200" fill="green" />
+</svg>

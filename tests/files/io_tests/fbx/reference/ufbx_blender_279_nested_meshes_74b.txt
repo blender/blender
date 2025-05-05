@@ -1,0 +1,99 @@
+==== Meshes: 4
+- Mesh 'Cone' vtx:5 face:5 loop:16 edge:8
+    - 0 1 2 2 1 ... 0 0 2 3 4 
+    - 0/1 1/2 0/2 1/3 2/3 1/4 3/4 0/4 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (0.000, 1.000, -1.000)
+    - (0.000, 0.000, 1.000)
+    - (1.000, 0.000, -1.000)
+    - (0.000, -1.000, -1.000)
+    - (-1.000, 0.000, -1.000)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 1 1 1 1 1 1 1 1 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+
+- Mesh 'Cube.001' vtx:8 face:6 loop:24 edge:12
+    - 0 1 3 2 2 ... 0 7 3 1 5 
+    - 0/1 1/3 2/3 0/2 3/7 ... 5/7 4/5 4/6 1/5 0/4 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, -1.000, -1.000)
+    - (-1.000, -1.000, 1.000)
+    - (-1.000, 1.000, -1.000)
+      ...
+    - (1.000, -1.000, 1.000)
+    - (1.000, 1.000, -1.000)
+    - (1.000, 1.000, 1.000)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 1 1 1 1 1 ... 1 1 1 1 1 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+
+- Mesh 'Icosphere' vtx:12 face:20 loop:60 edge:30
+    - 0 1 2 1 0 ... 8 11 10 9 11 
+    - 0/1 1/2 0/2 0/5 1/5 ... 10/11 6/11 7/11 8/11 9/11 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (0.000, 0.000, -1.000)
+    - (0.724, -0.526, -0.447)
+    - (-0.276, -0.851, -0.447)
+      ...
+    - (0.276, 0.851, 0.447)
+    - (0.894, 0.000, 0.447)
+    - (0.000, 0.000, 1.000)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 1 1 1 1 1 ... 1 1 1 1 1 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+
+- Mesh 'Plane' vtx:4 face:1 loop:4 edge:4
+    - 0 1 3 2 
+    - 0/1 1/3 2/3 0/2 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, -1.000, 0.000)
+    - (1.000, -1.000, 0.000)
+    - (-1.000, 1.000, 0.000)
+    - (1.000, 1.000, 0.000)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 0 0 0 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+
+==== Objects: 4
+- Obj 'Cube.001' MESH data:'Cube.001'
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'Deep Plane' MESH data:'Plane' par:'Space Cone'
+  - pos 3.847, -0.795, -0.264
+  - rot -0.063, 2.771, -0.741 (XYZ)
+  - scl 0.993, 1.571, 0.465
+- Obj 'Ico. .Sphere' MESH data:'Icosphere' par:'Cube.001'
+  - pos -0.621, -1.353, 2.245
+  - rot -0.736, 0.148, -0.451 (XYZ)
+  - scl 2.965, 0.568, 1.000
+- Obj 'Space Cone' MESH data:'Cone' par:'Cube.001'
+  - pos -0.225, 1.150, 2.424
+  - rot -0.017, -1.335, -0.621 (XYZ)
+  - scl 0.376, 1.000, 2.056
+

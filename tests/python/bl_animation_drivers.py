@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 """
-blender -b --factory-startup --python tests/python/bl_animation_drivers.py -- --testdir /path/to/tests/data/animation
+blender -b --factory-startup --python tests/python/bl_animation_drivers.py -- --testdir /path/to/tests/files/animation
 """
 __all__ = (
     "main",

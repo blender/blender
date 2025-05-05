@@ -1,0 +1,553 @@
+==== Objects: 1
+- Obj 'Tereza:__root__Tereza' ARMATURE data:'Tereza:__root__Tereza'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 0.058, 0.058, 0.058
+  - posed bone 'Tereza:Ankle_L'
+    - props: fl:fat=0.552 fl:fatY=1.000 fl:fatZ=1.000 int:lockInfluenceWeights=False
+  - posed bone 'Tereza:Ankle_R'
+    - props: fl:fat=0.552 fl:fatY=1.000 fl:fatZ=1.000 int:lockInfluenceWeights=False
+  - posed bone 'Tereza:Chest_M'
+    - props: fl:fat=2.535 fl:fatY=0.650 fl:fatZ=1.000 int:lockInfluenceWeights=False
+  - posed bone 'Tereza:Cup_L'
+    - props: fl:fat=0.179 fl:fatY=1.000 fl:fatZ=1.000 int:lockInfluenceWeights=False
+  - posed bone 'Tereza:Cup_R'
+    - props: fl:fat=0.179 fl:fatY=1.000 fl:fatZ=1.000 int:lockInfluenceWeights=False
+  - posed bone 'Tereza:ElbowPart1_L'
+    - props: int:lockInfluenceWeights=False fl:twistAddition=0.000 fl:twistAmount=0.333
+  - posed bone 'Tereza:ElbowPart1_R'
+    - props: int:lockInfluenceWeights=False fl:twistAddition=0.000 fl:twistAmount=0.333
+  - posed bone 'Tereza:ElbowPart2_L'
+    - props: int:lockInfluenceWeights=False fl:twistAddition=0.000 fl:twistAmount=0.667
+  - posed bone 'Tereza:ElbowPart2_R'
+    - props: int:lockInfluenceWeights=False fl:twistAddition=0.000 fl:twistAmount=0.667
+  - posed bone 'Tereza:Elbow_L'
+    - props: fl:fat=0.671 fl:fatY=1.000 fl:fatZ=1.000 int:lockInfluenceWeights=False fl:twistAddition=0.000 fl:twistAmount=0.000
+  - posed bone 'Tereza:Elbow_R'
+    - props: fl:fat=0.671 fl:fatY=1.000 fl:fatZ=1.000 int:lockInfluenceWeights=False fl:twistAddition=0.000 fl:twistAmount=0.000
+  - posed bone 'Tereza:EyeEnd_L'
+    - props: fl:fat=0.298 fl:fatY=1.000 fl:fatZ=1.000 int:lockInfluenceWeights=False
+  - posed bone 'Tereza:EyeEnd_R'
+    - props: fl:fat=0.298 fl:fatY=1.000 fl:fatZ=1.000 int:lockInfluenceWeights=False
+  - posed bone 'Tereza:Eye_L'
+    - props: fl:fat=0.298 fl:fatY=1.000 fl:fatZ=1.000 int:lockInfluenceWeights=False
+  - posed bone 'Tereza:Eye_R'
+    - props: fl:fat=0.298 fl:fatY=1.000 fl:fatZ=1.000 int:lockInfluenceWeights=False
+  - posed bone 'Tereza:Head1_M'
+    - props: fl:fat=0.477 fl:fatY=1.000 fl:fatZ=1.000 int:lockInfluenceWeights=False
+  - posed bone 'Tereza:HeadEnd_M'
+    - props: fl:fat=0.522 fl:fatY=1.000 fl:fatZ=1.000 int:lockInfluenceWeights=False
+  - posed bone 'Tereza:HipPart1_L'
+    - props: int:lockInfluenceWeights=False fl:twistAddition=0.000 fl:twistAmount=0.333
+  - posed bone 'Tereza:HipPart1_R'
+    - props: int:lockInfluenceWeights=False fl:twistAddition=0.000 fl:twistAmount=0.333
+  - posed bone 'Tereza:HipPart2_L'
+    - props: int:lockInfluenceWeights=False fl:twistAddition=0.000 fl:twistAmount=0.667
+  - posed bone 'Tereza:HipPart2_R'
+    - props: int:lockInfluenceWeights=False fl:twistAddition=0.000 fl:twistAmount=0.667
+  - posed bone 'Tereza:Hip_L'
+    - props: fl:fat=1.297 fl:fatY=1.000 fl:fatZ=1.000 int:lockInfluenceWeights=False fl:twistAddition=0.000 fl:twistAmount=0.000
+  - posed bone 'Tereza:Hip_R'
+    - props: fl:fat=1.297 fl:fatY=1.000 fl:fatZ=1.000 int:lockInfluenceWeights=False fl:twistAddition=0.000 fl:twistAmount=0.000
+  - posed bone 'Tereza:IndexFinger1_L'
+    - props: fl:fat=0.179 fl:fatY=1.000 fl:fatZ=1.000 int:lockInfluenceWeights=False
+  - posed bone 'Tereza:IndexFinger1_R'
+    - props: fl:fat=0.179 fl:fatY=1.000 fl:fatZ=1.000 int:lockInfluenceWeights=False
+  - posed bone 'Tereza:IndexFinger2_L'
+    - props: fl:fat=0.179 fl:fatY=1.000 fl:fatZ=1.000 int:lockInfluenceWeights=False
+  - posed bone 'Tereza:IndexFinger2_R'
+    - props: fl:fat=0.179 fl:fatY=1.000 fl:fatZ=1.000 int:lockInfluenceWeights=False
+  - posed bone 'Tereza:IndexFinger3_L'
+    - props: fl:fat=0.179 fl:fatY=1.000 fl:fatZ=1.000 int:lockInfluenceWeights=False
+  - posed bone 'Tereza:IndexFinger3_R'
+    - props: fl:fat=0.179 fl:fatY=1.000 fl:fatZ=1.000 int:lockInfluenceWeights=False
+  - posed bone 'Tereza:IndexFinger4_L'
+    - props: fl:fat=0.179 fl:fatY=1.000 fl:fatZ=1.000 int:lockInfluenceWeights=False
+  - posed bone 'Tereza:IndexFinger4_R'
+    - props: fl:fat=0.179 fl:fatY=1.000 fl:fatZ=1.000 int:lockInfluenceWeights=False
+  - posed bone 'Tereza:JawEnd_M'
+    - props: fl:fat=0.298 fl:fatY=1.000 fl:fatZ=1.000 int:lockInfluenceWeights=False
+  - posed bone 'Tereza:Jaw_M'
+    - props: fl:fat=0.298 fl:fatY=1.000 fl:fatZ=1.000 int:lockInfluenceWeights=False
+  - posed bone 'Tereza:Knee_L'
+    - props: fl:fat=0.895 fl:fatY=1.000 fl:fatZ=1.000 int:lockInfluenceWeights=False
+  - posed bone 'Tereza:Knee_R'
+    - props: fl:fat=0.895 fl:fatY=1.000 fl:fatZ=1.000 int:lockInfluenceWeights=False
+  - posed bone 'Tereza:MiddleFinger1_L'
+    - props: fl:fat=0.179 fl:fatY=1.000 fl:fatZ=1.000 int:lockInfluenceWeights=False
+  - posed bone 'Tereza:MiddleFinger1_R'
+    - props: fl:fat=0.179 fl:fatY=1.000 fl:fatZ=1.000 int:lockInfluenceWeights=False
+  - posed bone 'Tereza:MiddleFinger2_L'
+    - props: fl:fat=0.179 fl:fatY=1.000 fl:fatZ=1.000 int:lockInfluenceWeights=False
+  - posed bone 'Tereza:MiddleFinger2_R'
+    - props: fl:fat=0.179 fl:fatY=1.000 fl:fatZ=1.000 int:lockInfluenceWeights=False
+  - posed bone 'Tereza:MiddleFinger3_L'
+    - props: fl:fat=0.179 fl:fatY=1.000 fl:fatZ=1.000 int:lockInfluenceWeights=False
+  - posed bone 'Tereza:MiddleFinger3_R'
+    - props: fl:fat=0.179 fl:fatY=1.000 fl:fatZ=1.000 int:lockInfluenceWeights=False
+  - posed bone 'Tereza:MiddleFinger4_L'
+    - props: fl:fat=0.179 fl:fatY=1.000 fl:fatZ=1.000 int:lockInfluenceWeights=False
+  - posed bone 'Tereza:MiddleFinger4_R'
+    - props: fl:fat=0.179 fl:fatY=1.000 fl:fatZ=1.000 int:lockInfluenceWeights=False
+  - posed bone 'Tereza:NeckPart1_M'
+    - props: fl:fat=0.477 fl:fatY=1.000 fl:fatZ=1.000 int:lockInfluenceWeights=False
+  - posed bone 'Tereza:NeckPart2_M'
+    - props: fl:fat=0.477 fl:fatY=1.000 fl:fatZ=1.000 int:lockInfluenceWeights=False
+  - posed bone 'Tereza:Neck_M'
+    - props: fl:fat=0.477 fl:fatY=1.000 fl:fatZ=1.000 int:lockInfluenceWeights=False
+  - posed bone 'Tereza:PinkyFinger1_L'
+    - props: fl:fat=0.179 fl:fatY=1.000 fl:fatZ=1.000 int:lockInfluenceWeights=False
+  - posed bone 'Tereza:PinkyFinger1_R'
+    - props: fl:fat=0.179 fl:fatY=1.000 fl:fatZ=1.000 int:lockInfluenceWeights=False
+  - posed bone 'Tereza:PinkyFinger2_L'
+    - props: fl:fat=0.179 fl:fatY=1.000 fl:fatZ=1.000 int:lockInfluenceWeights=False
+  - posed bone 'Tereza:PinkyFinger2_R'
+    - props: fl:fat=0.179 fl:fatY=1.000 fl:fatZ=1.000 int:lockInfluenceWeights=False
+  - posed bone 'Tereza:PinkyFinger3_L'
+    - props: fl:fat=0.179 fl:fatY=1.000 fl:fatZ=1.000 int:lockInfluenceWeights=False
+  - posed bone 'Tereza:PinkyFinger3_R'
+    - props: fl:fat=0.179 fl:fatY=1.000 fl:fatZ=1.000 int:lockInfluenceWeights=False
+  - posed bone 'Tereza:PinkyFinger4_L'
+    - props: fl:fat=0.179 fl:fatY=1.000 fl:fatZ=1.000 int:lockInfluenceWeights=False
+  - posed bone 'Tereza:PinkyFinger4_R'
+    - props: fl:fat=0.179 fl:fatY=1.000 fl:fatZ=1.000 int:lockInfluenceWeights=False
+  - posed bone 'Tereza:RingFinger1_L'
+    - props: fl:fat=0.179 fl:fatY=1.000 fl:fatZ=1.000 int:lockInfluenceWeights=False
+  - posed bone 'Tereza:RingFinger1_R'
+    - props: fl:fat=0.179 fl:fatY=1.000 fl:fatZ=1.000 int:lockInfluenceWeights=False
+  - posed bone 'Tereza:RingFinger2_L'
+    - props: fl:fat=0.179 fl:fatY=1.000 fl:fatZ=1.000 int:lockInfluenceWeights=False
+  - posed bone 'Tereza:RingFinger2_R'
+    - props: fl:fat=0.179 fl:fatY=1.000 fl:fatZ=1.000 int:lockInfluenceWeights=False
+  - posed bone 'Tereza:RingFinger3_L'
+    - props: fl:fat=0.179 fl:fatY=1.000 fl:fatZ=1.000 int:lockInfluenceWeights=False
+  - posed bone 'Tereza:RingFinger3_R'
+    - props: fl:fat=0.179 fl:fatY=1.000 fl:fatZ=1.000 int:lockInfluenceWeights=False
+  - posed bone 'Tereza:RingFinger4_L'
+    - props: fl:fat=0.179 fl:fatY=1.000 fl:fatZ=1.000 int:lockInfluenceWeights=False
+  - posed bone 'Tereza:RingFinger4_R'
+    - props: fl:fat=0.179 fl:fatY=1.000 fl:fatZ=1.000 int:lockInfluenceWeights=False
+  - posed bone 'Tereza:RootPart1_M'
+    - props: fl:fat=2.535 fl:fatY=0.650 fl:fatZ=1.000 int:lockInfluenceWeights=False
+  - posed bone 'Tereza:RootPart2_M'
+    - props: fl:fat=2.535 fl:fatY=0.650 fl:fatZ=1.000 int:lockInfluenceWeights=False
+  - posed bone 'Tereza:Root_M'
+    - props: fl:fat=2.535 fl:fatY=0.650 fl:fatZ=1.000 int:lockInfluenceWeights=False
+  - posed bone 'Tereza:Scapula_L'
+    - props: fl:fat=0.969 fl:fatY=1.000 fl:fatZ=1.000 int:lockInfluenceWeights=False
+  - posed bone 'Tereza:Scapula_R'
+    - props: fl:fat=0.969 fl:fatY=1.000 fl:fatZ=1.000 int:lockInfluenceWeights=False
+  - posed bone 'Tereza:ShoulderPart1_L'
+    - props: int:lockInfluenceWeights=False fl:twistAddition=0.000 fl:twistAmount=0.333
+  - posed bone 'Tereza:ShoulderPart1_R'
+    - props: int:lockInfluenceWeights=False fl:twistAddition=0.000 fl:twistAmount=0.333
+  - posed bone 'Tereza:ShoulderPart2_L'
+    - props: int:lockInfluenceWeights=False fl:twistAddition=0.000 fl:twistAmount=0.667
+  - posed bone 'Tereza:ShoulderPart2_R'
+    - props: int:lockInfluenceWeights=False fl:twistAddition=0.000 fl:twistAmount=0.667
+  - posed bone 'Tereza:Shoulder_L'
+    - props: fl:fat=0.969 fl:fatY=1.000 fl:fatZ=1.000 int:lockInfluenceWeights=False fl:twistAddition=0.000 fl:twistAmount=0.000
+  - posed bone 'Tereza:Shoulder_R'
+    - props: fl:fat=0.969 fl:fatY=1.000 fl:fatZ=1.000 int:lockInfluenceWeights=False fl:twistAddition=0.000 fl:twistAmount=0.000
+  - posed bone 'Tereza:Spine1Part1_M'
+    - props: fl:fat=2.535 fl:fatY=0.650 fl:fatZ=1.000 int:lockInfluenceWeights=False
+  - posed bone 'Tereza:Spine1Part2_M'
+    - props: fl:fat=2.535 fl:fatY=0.650 fl:fatZ=1.000 int:lockInfluenceWeights=False
+  - posed bone 'Tereza:Spine1_M'
+    - props: fl:fat=2.535 fl:fatY=0.650 fl:fatZ=1.000 int:lockInfluenceWeights=False
+  - posed bone 'Tereza:ThumbFinger1_L'
+    - props: fl:fat=0.179 fl:fatY=1.000 fl:fatZ=1.000 int:lockInfluenceWeights=False
+  - posed bone 'Tereza:ThumbFinger1_R'
+    - props: fl:fat=0.179 fl:fatY=1.000 fl:fatZ=1.000 int:lockInfluenceWeights=False
+  - posed bone 'Tereza:ThumbFinger2_L'
+    - props: fl:fat=0.179 fl:fatY=1.000 fl:fatZ=1.000 int:lockInfluenceWeights=False
+  - posed bone 'Tereza:ThumbFinger2_R'
+    - props: fl:fat=0.179 fl:fatY=1.000 fl:fatZ=1.000 int:lockInfluenceWeights=False
+  - posed bone 'Tereza:ThumbFinger3_L'
+    - props: fl:fat=0.179 fl:fatY=1.000 fl:fatZ=1.000 int:lockInfluenceWeights=False
+  - posed bone 'Tereza:ThumbFinger3_R'
+    - props: fl:fat=0.179 fl:fatY=1.000 fl:fatZ=1.000 int:lockInfluenceWeights=False
+  - posed bone 'Tereza:ThumbFinger4_L'
+    - props: fl:fat=0.179 fl:fatY=1.000 fl:fatZ=1.000 int:lockInfluenceWeights=False
+  - posed bone 'Tereza:ThumbFinger4_R'
+    - props: fl:fat=0.179 fl:fatY=1.000 fl:fatZ=1.000 int:lockInfluenceWeights=False
+  - posed bone 'Tereza:ToesEnd_L'
+    - props: fl:fat=0.447 fl:fatY=1.000 fl:fatZ=1.000 int:lockInfluenceWeights=False
+  - posed bone 'Tereza:ToesEnd_R'
+    - props: fl:fat=0.447 fl:fatY=1.000 fl:fatZ=1.000 int:lockInfluenceWeights=False
+  - posed bone 'Tereza:Toes_L'
+    - props: fl:fat=0.447 fl:fatY=1.000 fl:fatZ=1.000 int:lockInfluenceWeights=False
+  - posed bone 'Tereza:Toes_R'
+    - props: fl:fat=0.447 fl:fatY=1.000 fl:fatZ=1.000 int:lockInfluenceWeights=False
+  - posed bone 'Tereza:Wrist_L'
+    - props: fl:fat=0.254 fl:fatY=2.310 fl:fatZ=1.000 int:lockInfluenceWeights=False
+  - posed bone 'Tereza:Wrist_R'
+    - props: fl:fat=0.254 fl:fatY=2.310 fl:fatZ=1.000 int:lockInfluenceWeights=False
+
+==== Armatures: 1
+- Armature 'Tereza:__root__Tereza' 91 bones
+  - bone 'Tereza:Ankle_L' parent:'Tereza:Knee_L' h:(-5.501, -5.501, 0.000) t:(-5.678, -2.977, 0.044) inh_scale:NONE radius h:0.100 t:0.050
+      0.000 -0.017 -1.000 1.222
+      1.000 0.000 0.000 2.482
+      0.000 -1.000 0.017 -1.048
+  - bone 'Tereza:Ankle_R' parent:'Tereza:Knee_R' h:(5.501, -5.501, 0.000) t:(5.325, -2.977, 0.044) inh_scale:NONE radius h:0.100 t:0.050
+      0.000 -0.017 -1.000 -1.222
+      -1.000 0.000 0.000 2.482
+      0.000 1.000 -0.017 -1.048
+  - bone 'Tereza:Chest_M' parent:'Tereza:Spine1Part2_M' h:(0.706, -0.706, 0.000) t:(0.798, 0.607, 0.000) inh_scale:NONE radius h:0.100 t:0.050
+      0.000 0.000 1.000 0.000
+      0.982 0.191 0.000 19.360
+      -0.191 0.982 0.000 -0.243
+  - bone 'Tereza:Cup_L' parent:'Tereza:Wrist_L' h:(-0.296, -1.114, 0.035) t:(-0.249, 0.437, 0.034) radius h:0.100 t:0.050
+      -0.995 -0.087 0.045 10.445
+      -0.065 0.253 -0.965 21.270
+      0.072 -0.964 -0.257 -1.781
+  - bone 'Tereza:Cup_R' parent:'Tereza:Wrist_R' h:(0.296, -1.436, -0.035) t:(0.344, 0.115, -0.036) radius h:0.100 t:0.050
+      -0.995 -0.087 0.045 -10.445
+      0.065 -0.253 0.965 21.270
+      -0.072 0.964 0.257 -1.781
+  - bone 'Tereza:ElbowPart1_L' parent:'Tereza:Elbow_L' h:(-1.237, -1.237, 0.000) t:(-1.237, 0.000, 0.000) inh_scale:NONE radius h:0.100 t:0.050
+      -1.000 -0.017 0.000 7.682
+      0.000 0.000 -1.000 21.237
+      0.017 -1.000 0.000 -1.563
+  - bone 'Tereza:ElbowPart1_R' parent:'Tereza:Elbow_R' h:(1.237, -1.237, 0.000) t:(1.237, 0.000, 0.000) inh_scale:NONE radius h:0.100 t:0.050
+      -1.000 -0.017 0.000 -7.682
+      0.000 0.000 1.000 21.237
+      -0.017 1.000 0.000 -1.563
+  - bone 'Tereza:ElbowPart2_L' parent:'Tereza:ElbowPart1_L' h:(-1.237, -1.237, 0.000) t:(-1.237, 0.000, 0.000) inh_scale:NONE radius h:0.100 t:0.050
+      -1.000 -0.017 0.000 8.920
+      0.000 0.000 -1.000 21.237
+      0.017 -1.000 0.000 -1.584
+  - bone 'Tereza:ElbowPart2_R' parent:'Tereza:ElbowPart1_R' h:(1.237, -1.237, 0.000) t:(1.237, 0.000, 0.000) inh_scale:NONE radius h:0.100 t:0.050
+      -1.000 -0.017 0.000 -8.920
+      0.000 0.000 1.000 21.237
+      -0.017 1.000 0.000 -1.584
+  - bone 'Tereza:Elbow_L' parent:'Tereza:ShoulderPart2_L' h:(-1.266, -1.266, 0.000) t:(-1.287, -0.028, 0.000) inh_scale:NONE radius h:0.100 t:0.050
+      -1.000 -0.017 0.000 6.445
+      0.000 0.000 -1.000 21.237
+      0.017 -1.000 0.000 -1.541
+  - bone 'Tereza:Elbow_R' parent:'Tereza:ShoulderPart2_R' h:(1.266, -1.266, 0.000) t:(1.244, -0.028, 0.000) inh_scale:NONE radius h:0.100 t:0.050
+      -1.000 -0.017 0.000 -6.445
+      0.000 0.000 1.000 21.237
+      -0.017 1.000 0.000 -1.541
+  - bone 'Tereza:EyeEnd_L' parent:'Tereza:Eye_L' h:(0.483, -0.483, 0.000) t:(0.483, -0.019, -0.133) inh_scale:NONE radius h:0.100 t:0.050
+      -0.005 -0.275 0.962 1.040
+      0.087 -0.958 -0.273 26.629
+      0.996 0.083 0.028 2.740
+  - bone 'Tereza:EyeEnd_R' parent:'Tereza:Eye_R' h:(0.483, -0.483, 0.000) t:(0.483, -0.019, 0.133) inh_scale:NONE radius h:0.100 t:0.050
+      0.005 0.275 0.962 -1.040
+      0.087 -0.958 0.273 26.629
+      0.996 0.083 -0.028 2.740
+  - bone 'Tereza:Eye_L' parent:'Tereza:Head1_M' h:(2.206, -1.270, 1.040) t:(1.723, -1.270, 1.040) inh_scale:NONE radius h:0.100 t:0.050
+      0.000 0.000 1.000 1.040
+      0.087 -0.996 0.000 26.587
+      0.996 0.087 0.000 2.259
+  - bone 'Tereza:Eye_R' parent:'Tereza:Head1_M' h:(2.206, -1.270, -1.040) t:(1.723, -1.270, -1.040) inh_scale:NONE radius h:0.100 t:0.050
+      0.000 0.000 1.000 -1.040
+      0.087 -0.996 0.000 26.587
+      0.996 0.087 0.000 2.259
+  - bone 'Tereza:Head1_M' parent:'Tereza:NeckPart2_M' h:(1.036, -1.036, 0.000) t:(2.241, 2.276, 0.000) inh_scale:NONE radius h:0.100 t:0.050
+      0.000 0.000 1.000 0.000
+      0.996 0.087 0.000 24.193
+      -0.087 0.996 0.000 0.205
+  - bone 'Tereza:HeadEnd_M' parent:'Tereza:Head1_M' h:(6.409, -3.525, 0.000) t:(6.409, 0.000, 0.000) inh_scale:NONE radius h:0.100 t:0.050
+      0.000 0.000 1.000 0.000
+      0.996 0.087 0.000 30.578
+      -0.087 0.996 0.000 -0.353
+  - bone 'Tereza:HipPart1_L' parent:'Tereza:Hip_L' h:(-2.132, -2.132, 0.000) t:(-2.132, 0.000, 0.000) inh_scale:NONE radius h:0.100 t:0.050
+      0.000 0.000 -1.000 1.222
+      0.996 0.087 0.000 12.218
+      0.087 -0.996 0.000 -0.293
+  - bone 'Tereza:HipPart1_R' parent:'Tereza:Hip_R' h:(2.132, -2.132, 0.000) t:(2.132, 0.000, 0.000) inh_scale:NONE radius h:0.100 t:0.050
+      0.000 0.000 -1.000 -1.222
+      -0.996 -0.087 0.000 12.218
+      -0.087 0.996 0.000 -0.293
+  - bone 'Tereza:HipPart2_L' parent:'Tereza:HipPart1_L' h:(-2.132, -2.132, 0.000) t:(-2.132, 0.000, 0.000) inh_scale:NONE radius h:0.100 t:0.050
+      0.000 0.000 -1.000 1.222
+      0.996 0.087 0.000 10.094
+      0.087 -0.996 0.000 -0.479
+  - bone 'Tereza:HipPart2_R' parent:'Tereza:HipPart1_R' h:(2.132, -2.132, 0.000) t:(2.132, 0.000, 0.000) inh_scale:NONE radius h:0.100 t:0.050
+      0.000 0.000 -1.000 -1.222
+      -0.996 -0.087 0.000 10.094
+      -0.087 0.996 0.000 -0.479
+  - bone 'Tereza:Hip_L' parent:'Tereza:Root_M' h:(-0.320, -1.224, 1.222) t:(-0.246, -3.355, 1.222) inh_scale:NONE radius h:0.100 t:0.050
+      0.000 0.000 -1.000 1.222
+      0.996 0.087 0.000 14.342
+      0.087 -0.996 0.000 -0.107
+  - bone 'Tereza:Hip_R' parent:'Tereza:Root_M' h:(-0.320, -1.224, -1.222) t:(-0.395, 0.907, -1.222) inh_scale:NONE radius h:0.100 t:0.050
+      0.000 0.000 -1.000 -1.222
+      -0.996 -0.087 0.000 14.342
+      -0.087 0.996 0.000 -0.107
+  - bone 'Tereza:IndexFinger1_L' parent:'Tereza:Wrist_L' h:(-1.904, -1.734, -0.050) t:(-1.911, -1.048, 0.080) radius h:0.100 t:0.050
+      -0.999 -0.032 -0.012 12.075
+      0.009 0.071 -0.997 21.334
+      0.032 -0.997 -0.071 -1.216
+  - bone 'Tereza:IndexFinger1_R' parent:'Tereza:Wrist_R' h:(1.904, -0.816, 0.050) t:(1.897, -0.129, 0.181) radius h:0.100 t:0.050
+      -0.999 -0.032 -0.012 -12.075
+      -0.009 -0.071 0.997 21.334
+      -0.032 0.997 0.071 -1.216
+  - bone 'Tereza:IndexFinger2_L' parent:'Tereza:IndexFinger1_L' h:(-0.698, -0.698, 0.000) t:(-0.699, -0.197, 0.000) radius h:0.100 t:0.050
+      -0.999 -0.031 -0.027 12.773
+      0.024 0.071 -0.997 21.328
+      0.033 -0.997 -0.070 -1.239
+  - bone 'Tereza:IndexFinger2_R' parent:'Tereza:IndexFinger1_R' h:(0.698, -0.698, 0.000) t:(0.603, -0.206, 0.001) radius h:0.100 t:0.050
+      -0.987 0.160 -0.027 -12.773
+      -0.037 -0.065 0.997 21.328
+      0.158 0.985 0.070 -1.239
+  - bone 'Tereza:IndexFinger3_L' parent:'Tereza:IndexFinger2_L' h:(-0.501, -0.501, 0.000) t:(-0.501, 0.081, -0.017) radius h:0.100 t:0.050
+      -0.999 -0.031 -0.032 13.274
+      0.029 0.100 -0.995 21.316
+      0.034 -0.995 -0.099 -1.255
+  - bone 'Tereza:IndexFinger3_R' parent:'Tereza:IndexFinger2_R' h:(0.501, -0.501, 0.000) t:(0.502, 0.081, -0.017) radius h:0.100 t:0.050
+      -0.987 0.160 -0.027 -13.267
+      -0.042 -0.094 0.995 21.309
+      0.156 0.983 0.099 -1.159
+  - bone 'Tereza:IndexFinger4_L' parent:'Tereza:IndexFinger3_L' h:(-0.582, -0.582, 0.000) t:(-0.582, 0.000, 0.000) radius h:0.100 t:0.050
+      -0.999 -0.031 -0.032 13.855
+      0.029 0.100 -0.995 21.299
+      0.034 -0.995 -0.099 -1.275
+  - bone 'Tereza:IndexFinger4_R' parent:'Tereza:IndexFinger3_R' h:(0.582, -0.582, 0.000) t:(0.582, 0.000, 0.000) radius h:0.100 t:0.050
+      -0.987 0.160 -0.027 -13.842
+      -0.042 -0.094 0.995 21.285
+      0.156 0.983 0.099 -1.068
+  - bone 'Tereza:JawEnd_M' parent:'Tereza:Jaw_M' h:(3.189, -3.189, 0.000) t:(3.189, 0.000, 0.000) inh_scale:NONE radius h:0.100 t:0.050
+      0.000 0.000 1.000 0.000
+      -0.652 -0.758 0.000 23.064
+      0.758 -0.652 0.000 3.066
+  - bone 'Tereza:Jaw_M' parent:'Tereza:Head1_M' h:(0.908, -3.001, 0.000) t:(-1.320, -5.283, 0.000) inh_scale:NONE radius h:0.100 t:0.050
+      0.000 0.000 1.000 0.000
+      -0.652 -0.758 0.000 25.143
+      0.758 -0.652 0.000 0.648
+  - bone 'Tereza:Knee_L' parent:'Tereza:HipPart2_L' h:(-2.132, -2.132, 0.000) t:(-2.228, 3.368, 0.000) inh_scale:NONE radius h:0.100 t:0.050
+      0.000 0.000 -1.000 1.222
+      0.998 0.070 0.000 7.970
+      0.070 -0.998 0.000 -0.664
+  - bone 'Tereza:Knee_R' parent:'Tereza:HipPart2_R' h:(2.132, -2.132, 0.000) t:(2.036, 3.368, 0.000) inh_scale:NONE radius h:0.100 t:0.050
+      0.000 0.000 -1.000 -1.222
+      -0.998 -0.070 0.000 7.970
+      -0.070 0.998 0.000 -0.664
+  - bone 'Tereza:MiddleFinger1_L' parent:'Tereza:Wrist_L' h:(-1.910, -1.275, 0.000) t:(-1.880, -0.455, 0.200) radius h:0.100 t:0.050
+      -0.997 -0.072 -0.032 12.058
+      0.031 0.016 -0.999 21.404
+      0.072 -0.997 -0.014 -1.672
+  - bone 'Tereza:MiddleFinger1_R' parent:'Tereza:Wrist_R' h:(1.910, -1.275, 0.000) t:(1.940, -0.455, 0.200) radius h:0.100 t:0.050
+      -0.997 -0.072 -0.032 -12.058
+      -0.031 -0.016 0.999 21.404
+      -0.072 0.997 0.014 -1.672
+  - bone 'Tereza:MiddleFinger2_L' parent:'Tereza:MiddleFinger1_L' h:(-0.844, -0.844, 0.000) t:(-0.844, -0.255, 0.000) radius h:0.100 t:0.050
+      -0.997 -0.072 0.022 12.900
+      -0.023 0.015 -1.000 21.377
+      0.071 -0.997 -0.017 -1.733
+  - bone 'Tereza:MiddleFinger2_R' parent:'Tereza:MiddleFinger1_R' h:(0.844, -0.844, 0.000) t:(0.844, -0.255, 0.000) radius h:0.100 t:0.050
+      -0.997 -0.072 0.022 -12.900
+      0.023 -0.015 1.000 21.377
+      -0.071 0.997 0.017 -1.733
+  - bone 'Tereza:MiddleFinger3_L' parent:'Tereza:MiddleFinger2_L' h:(-0.589, -0.589, 0.000) t:(-0.589, -0.029, 0.001) radius h:0.100 t:0.050
+      -0.997 -0.072 -0.005 13.488
+      0.004 0.014 -1.000 21.391
+      0.072 -0.997 -0.014 -1.775
+  - bone 'Tereza:MiddleFinger3_R' parent:'Tereza:MiddleFinger2_R' h:(0.589, -0.589, 0.000) t:(0.589, -0.029, 0.001) radius h:0.100 t:0.050
+      -0.997 -0.072 -0.005 -13.488
+      -0.004 -0.014 1.000 21.391
+      -0.072 0.997 0.014 -1.775
+  - bone 'Tereza:MiddleFinger4_L' parent:'Tereza:MiddleFinger3_L' h:(-0.560, -0.560, 0.000) t:(-0.560, 0.000, 0.000) radius h:0.100 t:0.050
+      -0.997 -0.072 -0.005 14.046
+      0.004 0.014 -1.000 21.389
+      0.072 -0.997 -0.014 -1.815
+  - bone 'Tereza:MiddleFinger4_R' parent:'Tereza:MiddleFinger3_R' h:(0.560, -0.560, 0.000) t:(0.560, 0.000, 0.000) radius h:0.100 t:0.050
+      -0.997 -0.072 -0.005 -14.046
+      -0.004 -0.014 1.000 21.389
+      -0.072 0.997 0.014 -1.815
+  - bone 'Tereza:NeckPart1_M' parent:'Tereza:Neck_M' h:(1.036, -1.036, 0.000) t:(1.036, 0.000, 0.000) inh_scale:NONE radius h:0.100 t:0.050
+      0.000 0.000 1.000 0.000
+      0.966 -0.259 0.000 22.192
+      0.259 0.966 0.000 -0.331
+  - bone 'Tereza:NeckPart2_M' parent:'Tereza:NeckPart1_M' h:(1.036, -1.036, 0.000) t:(1.036, 0.000, 0.000) inh_scale:NONE radius h:0.100 t:0.050
+      0.000 0.000 1.000 0.000
+      0.966 -0.259 0.000 23.192
+      0.259 0.966 0.000 -0.063
+  - bone 'Tereza:Neck_M' parent:'Tereza:Chest_M' h:(1.865, -1.316, 0.000) t:(1.411, -0.385, 0.000) inh_scale:NONE radius h:0.100 t:0.050
+      0.000 0.000 1.000 0.000
+      0.966 -0.259 0.000 21.191
+      0.259 0.966 0.000 -0.599
+  - bone 'Tereza:PinkyFinger1_L' parent:'Tereza:Cup_L' h:(-1.397, -0.997, 0.285) t:(-1.383, -0.456, 0.563) radius h:0.100 t:0.050
+      -0.995 -0.079 0.055 11.801
+      -0.037 -0.219 -0.975 21.228
+      0.089 -0.973 0.215 -2.490
+  - bone 'Tereza:PinkyFinger1_R' parent:'Tereza:Cup_R' h:(1.397, -2.107, -0.285) t:(1.411, -1.567, -0.006) radius h:0.100 t:0.050
+      -0.995 -0.079 0.055 -11.801
+      0.037 0.219 0.975 21.228
+      -0.089 0.973 -0.215 -2.490
+  - bone 'Tereza:PinkyFinger2_L' parent:'Tereza:PinkyFinger1_L' h:(-0.608, -0.608, 0.000) t:(-0.608, -0.272, 0.002) radius h:0.100 t:0.050
+      -0.996 -0.078 0.032 12.406
+      -0.014 -0.223 -0.975 21.250
+      0.083 -0.972 0.221 -2.544
+  - bone 'Tereza:PinkyFinger2_R' parent:'Tereza:PinkyFinger1_R' h:(0.608, -0.608, 0.000) t:(0.608, -0.272, 0.002) radius h:0.100 t:0.050
+      -0.996 -0.078 0.032 -12.406
+      0.014 0.223 0.975 21.250
+      -0.083 0.972 -0.221 -2.544
+  - bone 'Tereza:PinkyFinger3_L' parent:'Tereza:PinkyFinger2_L' h:(-0.336, -0.336, 0.000) t:(-0.336, 0.092, 0.016) radius h:0.100 t:0.050
+      -0.997 -0.076 0.026 12.740
+      -0.005 -0.260 -0.966 21.255
+      0.080 -0.963 0.258 -2.572
+  - bone 'Tereza:PinkyFinger3_R' parent:'Tereza:PinkyFinger2_R' h:(0.336, -0.336, 0.000) t:(0.335, 0.092, 0.016) radius h:0.100 t:0.050
+      -0.997 -0.076 0.026 -12.740
+      0.005 0.260 0.966 21.255
+      -0.080 0.963 -0.258 -2.572
+  - bone 'Tereza:PinkyFinger4_L' parent:'Tereza:PinkyFinger3_L' h:(-0.427, -0.427, 0.000) t:(-0.427, 0.000, 0.000) radius h:0.100 t:0.050
+      -0.997 -0.076 0.026 13.166
+      -0.005 -0.260 -0.966 21.257
+      0.080 -0.963 0.258 -2.606
+  - bone 'Tereza:PinkyFinger4_R' parent:'Tereza:PinkyFinger3_R' h:(0.427, -0.427, 0.000) t:(0.427, 0.000, 0.000) radius h:0.100 t:0.050
+      -0.997 -0.076 0.026 -13.166
+      0.005 0.260 0.966 21.257
+      -0.080 0.963 -0.258 -2.606
+  - bone 'Tereza:RingFinger1_L' parent:'Tereza:Cup_L' h:(-1.557, -1.342, 0.084) t:(-1.559, -0.637, 0.331) radius h:0.100 t:0.050
+      -0.998 -0.065 0.008 11.981
+      -0.003 -0.080 -0.997 21.344
+      0.066 -0.995 0.080 -2.117
+  - bone 'Tereza:RingFinger1_R' parent:'Tereza:Cup_R' h:(1.557, -1.762, -0.084) t:(1.556, -1.057, 0.163) radius h:0.100 t:0.050
+      -0.998 -0.065 0.008 -11.981
+      0.003 0.080 0.997 21.344
+      -0.066 0.995 -0.080 -2.117
+  - bone 'Tereza:RingFinger2_L' parent:'Tereza:RingFinger1_L' h:(-0.747, -0.747, 0.000) t:(-0.747, -0.256, -0.002) radius h:0.100 t:0.050
+      -0.998 -0.064 0.014 12.726
+      -0.009 -0.075 -0.997 21.346
+      0.065 -0.995 0.075 -2.166
+  - bone 'Tereza:RingFinger2_R' parent:'Tereza:RingFinger1_R' h:(0.747, -0.747, 0.000) t:(0.746, -0.256, -0.002) radius h:0.100 t:0.050
+      -0.998 -0.064 0.014 -12.726
+      0.009 0.075 0.997 21.346
+      -0.065 0.995 -0.075 -2.166
+  - bone 'Tereza:RingFinger3_L' parent:'Tereza:RingFinger2_L' h:(-0.491, -0.491, 0.000) t:(-0.491, 0.083, 0.006) radius h:0.100 t:0.050
+      -0.996 -0.064 0.058 13.216
+      -0.052 -0.085 -0.995 21.350
+      0.069 -0.994 0.082 -2.198
+  - bone 'Tereza:RingFinger3_R' parent:'Tereza:RingFinger2_R' h:(0.491, -0.491, 0.000) t:(0.491, 0.083, 0.006) radius h:0.100 t:0.050
+      -0.996 -0.064 0.058 -13.216
+      0.052 0.085 0.995 21.350
+      -0.069 0.994 -0.082 -2.198
+  - bone 'Tereza:RingFinger4_L' parent:'Tereza:RingFinger3_L' h:(-0.574, -0.574, 0.000) t:(-0.574, 0.000, 0.000) radius h:0.100 t:0.050
+      -0.996 -0.064 0.058 13.788
+      -0.052 -0.085 -0.995 21.380
+      0.069 -0.994 0.082 -2.238
+  - bone 'Tereza:RingFinger4_R' parent:'Tereza:RingFinger3_R' h:(0.574, -0.574, 0.000) t:(0.574, 0.000, 0.000) radius h:0.100 t:0.050
+      -0.996 -0.064 0.058 -13.788
+      0.052 0.085 0.995 21.380
+      -0.069 0.994 -0.082 -2.238
+  - bone 'Tereza:RootPart1_M' parent:'Tereza:Root_M' h:(0.867, -1.134, 0.000) t:(0.913, -0.268, 0.000) inh_scale:NONE radius h:0.100 t:0.050
+      0.000 0.000 1.000 0.000
+      1.000 0.000 0.000 15.523
+      0.000 1.000 0.000 0.045
+  - bone 'Tereza:RootPart2_M' parent:'Tereza:RootPart1_M' h:(0.867, -0.867, 0.000) t:(0.897, -0.001, 0.000) inh_scale:NONE radius h:0.100 t:0.050
+      0.000 0.000 1.000 0.000
+      0.999 0.035 0.000 16.391
+      -0.035 0.999 0.000 0.045
+  - bone 'Tereza:Root_M' parent:'Tereza:Zero_joint' h:(0.000, 0.000, 0.000) t:(0.000, -0.059, 1.132) connect inh_scale:NONE radius h:0.100 t:0.050
+      0.000 0.000 1.000 0.000
+      0.999 -0.052 0.000 14.657
+      0.052 0.999 0.000 0.000
+  - bone 'Tereza:Scapula_L' parent:'Tereza:Chest_M' h:(0.751, -0.744, 0.440) t:(0.559, -3.266, -0.996) inh_scale:NONE radius h:0.100 t:0.050
+      -0.760 -0.494 0.423 0.440
+      -0.354 -0.230 -0.906 20.206
+      0.545 -0.839 0.000 0.176
+  - bone 'Tereza:Scapula_R' parent:'Tereza:Chest_M' h:(0.751, -0.744, -0.440) t:(0.943, 1.779, -1.876) inh_scale:NONE radius h:0.100 t:0.050
+      -0.760 -0.494 0.423 -0.440
+      0.354 0.230 0.906 20.206
+      -0.545 0.839 0.000 0.176
+  - bone 'Tereza:ShoulderPart1_L' parent:'Tereza:Shoulder_L' h:(-1.266, -1.266, 0.000) t:(-1.266, 0.000, 0.000) inh_scale:NONE radius h:0.100 t:0.050
+      -0.999 -0.035 0.000 3.916
+      0.000 0.000 -1.000 21.237
+      0.035 -0.999 0.000 -1.453
+  - bone 'Tereza:ShoulderPart1_R' parent:'Tereza:Shoulder_R' h:(1.266, -1.266, 0.000) t:(1.266, 0.000, 0.000) inh_scale:NONE radius h:0.100 t:0.050
+      -0.999 -0.035 0.000 -3.916
+      0.000 0.000 1.000 21.237
+      -0.035 0.999 0.000 -1.453
+  - bone 'Tereza:ShoulderPart2_L' parent:'Tereza:ShoulderPart1_L' h:(-1.266, -1.266, 0.000) t:(-1.266, 0.000, 0.000) inh_scale:NONE radius h:0.100 t:0.050
+      -0.999 -0.035 0.000 5.180
+      0.000 0.000 -1.000 21.237
+      0.035 -0.999 0.000 -1.497
+  - bone 'Tereza:ShoulderPart2_R' parent:'Tereza:ShoulderPart1_R' h:(1.266, -1.266, 0.000) t:(1.266, 0.000, 0.000) inh_scale:NONE radius h:0.100 t:0.050
+      -0.999 -0.035 0.000 -5.180
+      0.000 0.000 1.000 21.237
+      -0.035 0.999 0.000 -1.497
+  - bone 'Tereza:Shoulder_L' parent:'Tereza:Scapula_L' h:(-2.909, -2.909, 0.000) t:(-3.564, -1.826, -0.019) inh_scale:NONE radius h:0.100 t:0.050
+      -0.999 -0.035 0.000 2.651
+      0.000 0.000 -1.000 21.237
+      0.035 -0.999 0.000 -1.408
+  - bone 'Tereza:Shoulder_R' parent:'Tereza:Scapula_R' h:(2.909, -2.909, 0.000) t:(2.254, -1.826, -0.019) inh_scale:NONE radius h:0.100 t:0.050
+      -0.999 -0.035 0.000 -2.651
+      0.000 0.000 1.000 21.237
+      -0.035 0.999 0.000 -1.408
+  - bone 'Tereza:Spine1Part1_M' parent:'Tereza:Spine1_M' h:(0.706, -0.706, 0.000) t:(0.706, 0.000, 0.000) inh_scale:NONE radius h:0.100 t:0.050
+      0.000 0.000 1.000 0.000
+      0.993 0.122 0.000 17.958
+      -0.122 0.993 0.000 -0.071
+  - bone 'Tereza:Spine1Part2_M' parent:'Tereza:Spine1Part1_M' h:(0.706, -0.706, 0.000) t:(0.706, 0.000, 0.000) inh_scale:NONE radius h:0.100 t:0.050
+      0.000 0.000 1.000 0.000
+      0.993 0.122 0.000 18.659
+      -0.122 0.993 0.000 -0.157
+  - bone 'Tereza:Spine1_M' parent:'Tereza:RootPart2_M' h:(0.867, -0.867, 0.000) t:(0.929, -0.164, 0.000) inh_scale:NONE radius h:0.100 t:0.050
+      0.000 0.000 1.000 0.000
+      0.993 0.122 0.000 17.257
+      -0.122 0.993 0.000 0.015
+  - bone 'Tereza:ThumbFinger1_L' parent:'Tereza:Wrist_L' h:(-0.718, -1.729, 0.271) t:(-1.097, -1.590, -0.202) radius h:0.100 t:0.050
+      -0.558 0.536 0.633 10.918
+      0.319 0.843 -0.433 20.923
+      -0.766 -0.040 -0.642 -1.263
+  - bone 'Tereza:ThumbFinger1_R' parent:'Tereza:Wrist_R' h:(0.718, -0.821, -0.271) t:(0.339, -0.682, -0.745) radius h:0.100 t:0.050
+      -0.558 0.536 0.633 -10.918
+      -0.319 -0.843 0.433 20.923
+      0.766 0.040 0.642 -1.263
+  - bone 'Tereza:ThumbFinger2_L' parent:'Tereza:ThumbFinger1_L' h:(-0.622, -0.622, 0.000) t:(-0.622, -0.167, 0.000) radius h:0.100 t:0.050
+      -0.556 0.536 0.635 11.265
+      0.318 0.843 -0.434 20.724
+      -0.768 -0.040 -0.639 -0.786
+  - bone 'Tereza:ThumbFinger2_R' parent:'Tereza:ThumbFinger1_R' h:(0.622, -0.622, 0.000) t:(0.622, -0.167, 0.000) radius h:0.100 t:0.050
+      -0.556 0.536 0.635 -11.265
+      -0.318 -0.843 0.434 20.724
+      0.768 0.040 0.639 -0.786
+  - bone 'Tereza:ThumbFinger3_L' parent:'Tereza:ThumbFinger2_L' h:(-0.455, -0.455, 0.000) t:(-0.435, 0.140, -0.002) radius h:0.100 t:0.050
+      -0.534 0.515 0.671 11.518
+      0.262 0.855 -0.448 20.580
+      -0.804 -0.064 -0.591 -0.437
+  - bone 'Tereza:ThumbFinger3_R' parent:'Tereza:ThumbFinger2_R' h:(0.455, -0.455, 0.000) t:(0.475, 0.140, -0.002) radius h:0.100 t:0.050
+      -0.534 0.515 0.671 -11.518
+      -0.262 -0.855 0.448 20.580
+      0.804 0.064 0.591 -0.437
+  - bone 'Tereza:ThumbFinger4_L' parent:'Tereza:ThumbFinger3_L' h:(-0.595, -0.595, 0.000) t:(-0.595, 0.000, 0.000) radius h:0.100 t:0.050
+      -0.534 0.515 0.671 11.836
+      0.262 0.855 -0.448 20.424
+      -0.804 -0.064 -0.591 0.042
+  - bone 'Tereza:ThumbFinger4_R' parent:'Tereza:ThumbFinger3_R' h:(0.595, -0.595, 0.000) t:(0.595, 0.000, 0.000) radius h:0.100 t:0.050
+      -0.534 0.515 0.671 -11.836
+      -0.262 -0.855 0.448 20.424
+      0.804 0.064 0.591 0.042
+  - bone 'Tereza:ToesEnd_L' parent:'Tereza:Toes_L' h:(-2.273, -2.273, 0.000) t:(-2.273, 0.000, 0.000) radius h:0.100 t:0.050
+      -0.038 0.015 -0.999 1.336
+      0.152 -0.988 -0.020 0.155
+      -0.988 -0.152 0.035 2.771
+  - bone 'Tereza:ToesEnd_R' parent:'Tereza:Toes_R' h:(2.273, -2.273, 0.000) t:(2.273, 0.000, 0.000) radius h:0.100 t:0.050
+      -0.038 0.015 -0.999 -1.336
+      -0.152 0.988 0.020 0.155
+      0.988 0.152 -0.035 2.771
+  - bone 'Tereza:Toes_L' parent:'Tereza:Ankle_L' h:(-1.982, -4.105, 0.000) t:(-4.228, -3.759, -0.039) radius h:0.100 t:0.050
+      -0.038 0.015 -0.999 1.250
+      0.152 -0.988 -0.020 0.500
+      -0.988 -0.152 0.035 0.525
+  - bone 'Tereza:Toes_R' parent:'Tereza:Ankle_R' h:(1.982, -0.957, 0.000) t:(-0.265, -0.611, -0.039) radius h:0.100 t:0.050
+      -0.038 0.015 -0.999 -1.250
+      -0.152 0.988 0.020 0.500
+      0.988 0.152 -0.035 0.525
+  - bone 'Tereza:Wrist_L' parent:'Tereza:ElbowPart2_L' h:(-1.237, -1.237, 0.000) t:(-1.187, -0.006, -0.325) inh_scale:NONE radius h:0.100 t:0.050
+      -0.996 -0.056 0.075 10.157
+      -0.087 0.255 -0.963 21.237
+      0.035 -0.965 -0.259 -1.606
+  - bone 'Tereza:Wrist_R' parent:'Tereza:ElbowPart2_R' h:(1.237, -1.237, 0.000) t:(1.288, -0.006, -0.325) inh_scale:NONE radius h:0.100 t:0.050
+      -0.996 -0.056 0.075 -10.157
+      0.087 -0.255 0.963 21.237
+      -0.035 0.965 0.259 -1.606
+  - bone 'Tereza:Zero_joint' h:(0.000, 0.000, 0.000) t:(0.000, 14.657, 0.000) radius h:0.100 t:0.050
+      1.000 0.000 0.000 0.000
+      0.000 1.000 0.000 0.000
+      0.000 0.000 1.000 0.000
+

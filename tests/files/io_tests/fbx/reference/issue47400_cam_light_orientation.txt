@@ -1,0 +1,169 @@
+==== Meshes: 2
+- Mesh 'object0' vtx:872 face:1740 loop:5220 edge:2610
+    - 0 2 1 0 3 ... 870 871 870 841 871 
+    - 0/1 0/2 0/3 0/4 0/5 ... 839/868 839/869 847/871 855/871 863/871 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-6.000, -1.000, -24.300)
+    - (-6.000, -0.995, -24.195)
+    - (-5.978, -0.995, -24.198)
+      ...
+    - (-6.043, 0.995, -24.205)
+    - (-6.022, 0.995, -24.198)
+    - (-6.000, 1.000, -24.300)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 0 0 0 0 0 ... 0 0 0 0 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (70, 7649)
+    - (70, 0)
+      ...
+    - (70, 25118)
+    - (70, 16399)
+    - (0, 0)
+  - attr 'map1' FLOAT2 CORNER
+    - (0.000, 0.000)
+    - (0.033, 0.033)
+    - (0.000, 0.033)
+      ...
+    - (0.967, 0.967)
+    - (1.000, 0.967)
+    - (0.967, 1.000)
+
+- Mesh 'object1' vtx:726 face:600 loop:2400 edge:1320
+    - 0 1 12 11 1 ... 723 713 714 725 724 
+    - 0/11 0/1 1/12 11/12 1/2 ... 722/723 713/724 723/724 714/725 724/725 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-0.650, -0.440, -21.500)
+    - (-0.542, -0.440, -21.500)
+    - (-0.434, -0.440, -21.500)
+      ...
+    - (0.214, -0.440, -21.500)
+    - (0.322, -0.440, -21.500)
+    - (0.430, -0.440, -21.500)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 0 0 0 0 0 ... 0 0 0 0 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'map1' FLOAT2 CORNER
+    - (0.000, 0.000)
+    - (0.100, 0.000)
+    - (0.100, 0.100)
+      ...
+    - (1.000, 0.900)
+    - (1.000, 1.000)
+    - (0.900, 1.000)
+
+==== Objects: 3
+- Obj 'Camera1' CAMERA data:'Camera1'
+  - pos -0.035, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 0.010, 0.010, 0.010
+  - anim act:Take 001 slot:OBCamera1 blend:REPLACE drivers:0
+- Obj 'object0' MESH data:'object0'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 0.010, 0.010, 0.010
+- Obj 'object1' MESH data:'object1'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 0.010, 0.010, 0.010
+
+==== Cameras: 1
+- Cam 'Camera1' PERSP lens:50.0 MILLIMETERS near:0.001 far:100.0 orthosize:1.0
+  - fov 0.482 (h 0.482 v 0.369)
+  - sensor 24.6x18.7 shift 0.000,0.000
+  - anim act:Take 001 slot:CACamera1 blend:REPLACE drivers:0
+
+==== Actions: 1
+- Action 'Take 001' curverange:(2.0 .. 61.0) layers:1
+- ActionLayer Layer strips:1
+ - Keyframe strip channelbags:2
+ - Channelbag slot 'CACamera1' curves:1
+  - fcu 'lens[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:60
+    - (2.000, 50.000) lh:(1.667, 50.000 AUTO_CLAMPED) rh:(2.333, 50.000 AUTO_CLAMPED)
+    - (3.000, 50.000) lh:(2.667, 50.000 AUTO_CLAMPED) rh:(3.333, 50.000 AUTO_CLAMPED)
+    - (4.000, 50.000) lh:(3.667, 50.000 AUTO_CLAMPED) rh:(4.333, 50.000 AUTO_CLAMPED)
+      ...
+    - (59.000, 50.000) lh:(58.667, 50.000 AUTO_CLAMPED) rh:(59.333, 50.000 AUTO_CLAMPED)
+    - (60.000, 50.000) lh:(59.667, 50.000 AUTO_CLAMPED) rh:(60.333, 50.000 AUTO_CLAMPED)
+    - (61.000, 50.000) lh:(60.667, 50.000 AUTO_CLAMPED) rh:(61.333, 50.000 AUTO_CLAMPED)
+ - Channelbag slot 'OBCamera1' curves:9
+  - fcu 'location[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:60 grp:'Camera1'
+    - (2.000, -0.035) lh:(1.667, -0.035 AUTO_CLAMPED) rh:(2.333, -0.035 AUTO_CLAMPED)
+    - (3.000, -0.034) lh:(2.667, -0.034 AUTO_CLAMPED) rh:(3.333, -0.034 AUTO_CLAMPED)
+    - (4.000, -0.033) lh:(3.667, -0.033 AUTO_CLAMPED) rh:(4.333, -0.033 AUTO_CLAMPED)
+      ...
+    - (59.000, 0.013) lh:(58.667, 0.013 AUTO_CLAMPED) rh:(59.333, 0.013 AUTO_CLAMPED)
+    - (60.000, 0.014) lh:(59.667, 0.014 AUTO_CLAMPED) rh:(60.333, 0.014 AUTO_CLAMPED)
+    - (61.000, 0.015) lh:(60.667, 0.015 AUTO_CLAMPED) rh:(61.333, 0.015 AUTO_CLAMPED)
+  - fcu 'location[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:60 grp:'Camera1'
+    - (2.000, 0.000) lh:(1.667, 0.000 AUTO_CLAMPED) rh:(2.333, 0.000 AUTO_CLAMPED)
+    - (3.000, 0.000) lh:(2.667, 0.000 AUTO_CLAMPED) rh:(3.333, 0.000 AUTO_CLAMPED)
+    - (4.000, 0.000) lh:(3.667, 0.000 AUTO_CLAMPED) rh:(4.333, 0.000 AUTO_CLAMPED)
+      ...
+    - (59.000, 0.000) lh:(58.667, 0.000 AUTO_CLAMPED) rh:(59.333, 0.000 AUTO_CLAMPED)
+    - (60.000, 0.000) lh:(59.667, 0.000 AUTO_CLAMPED) rh:(60.333, 0.000 AUTO_CLAMPED)
+    - (61.000, 0.000) lh:(60.667, 0.000 AUTO_CLAMPED) rh:(61.333, 0.000 AUTO_CLAMPED)
+  - fcu 'location[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:60 grp:'Camera1'
+    - (2.000, 0.000) lh:(1.667, 0.000 AUTO_CLAMPED) rh:(2.333, 0.000 AUTO_CLAMPED)
+    - (3.000, 0.000) lh:(2.667, 0.000 AUTO_CLAMPED) rh:(3.333, 0.000 AUTO_CLAMPED)
+    - (4.000, 0.000) lh:(3.667, 0.000 AUTO_CLAMPED) rh:(4.333, 0.000 AUTO_CLAMPED)
+      ...
+    - (59.000, 0.010) lh:(58.667, 0.010 AUTO_CLAMPED) rh:(59.333, 0.010 AUTO_CLAMPED)
+    - (60.000, 0.010) lh:(59.667, 0.010 AUTO_CLAMPED) rh:(60.333, 0.010 AUTO_CLAMPED)
+    - (61.000, 0.011) lh:(60.667, 0.011 AUTO_CLAMPED) rh:(61.333, 0.011 AUTO_CLAMPED)
+  - fcu 'rotation_euler[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:60 grp:'Camera1'
+    - (2.000, 1.571) lh:(1.667, 1.571 AUTO_CLAMPED) rh:(2.333, 1.571 AUTO_CLAMPED)
+    - (3.000, 1.571) lh:(2.667, 1.571 AUTO_CLAMPED) rh:(3.333, 1.571 AUTO_CLAMPED)
+    - (4.000, 1.571) lh:(3.667, 1.571 AUTO_CLAMPED) rh:(4.333, 1.571 AUTO_CLAMPED)
+      ...
+    - (59.000, 1.571) lh:(58.667, 1.571 AUTO_CLAMPED) rh:(59.333, 1.571 AUTO_CLAMPED)
+    - (60.000, 1.571) lh:(59.667, 1.571 AUTO_CLAMPED) rh:(60.333, 1.571 AUTO_CLAMPED)
+    - (61.000, 1.571) lh:(60.667, 1.571 AUTO_CLAMPED) rh:(61.333, 1.571 AUTO_CLAMPED)
+  - fcu 'rotation_euler[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:60 grp:'Camera1'
+    - (2.000, 0.000) lh:(1.667, 0.000 AUTO_CLAMPED) rh:(2.333, 0.000 AUTO_CLAMPED)
+    - (3.000, 0.000) lh:(2.667, 0.000 AUTO_CLAMPED) rh:(3.333, 0.000 AUTO_CLAMPED)
+    - (4.000, 0.000) lh:(3.667, 0.000 AUTO_CLAMPED) rh:(4.333, 0.000 AUTO_CLAMPED)
+      ...
+    - (59.000, 0.000) lh:(58.667, 0.000 AUTO_CLAMPED) rh:(59.333, 0.000 AUTO_CLAMPED)
+    - (60.000, 0.000) lh:(59.667, 0.000 AUTO_CLAMPED) rh:(60.333, 0.000 AUTO_CLAMPED)
+    - (61.000, 0.000) lh:(60.667, 0.000 AUTO_CLAMPED) rh:(61.333, 0.000 AUTO_CLAMPED)
+  - fcu 'rotation_euler[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:60 grp:'Camera1'
+    - (2.000, 0.000) lh:(1.667, 0.000 AUTO_CLAMPED) rh:(2.333, 0.000 AUTO_CLAMPED)
+    - (3.000, 0.005) lh:(2.667, 0.003 AUTO_CLAMPED) rh:(3.333, 0.006 AUTO_CLAMPED)
+    - (4.000, 0.009) lh:(3.667, 0.008 AUTO_CLAMPED) rh:(4.333, 0.010 AUTO_CLAMPED)
+      ...
+    - (59.000, 0.257) lh:(58.667, 0.256 AUTO_CLAMPED) rh:(59.333, 0.258 AUTO_CLAMPED)
+    - (60.000, 0.261) lh:(59.667, 0.260 AUTO_CLAMPED) rh:(60.333, 0.263 AUTO_CLAMPED)
+    - (61.000, 0.266) lh:(60.667, 0.266 AUTO_CLAMPED) rh:(61.333, 0.266 AUTO_CLAMPED)
+  - fcu 'scale[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:60 grp:'Camera1'
+    - (2.000, 0.010) lh:(1.667, 0.010 AUTO_CLAMPED) rh:(2.333, 0.010 AUTO_CLAMPED)
+    - (3.000, 0.010) lh:(2.667, 0.010 AUTO_CLAMPED) rh:(3.333, 0.010 AUTO_CLAMPED)
+    - (4.000, 0.010) lh:(3.667, 0.010 AUTO_CLAMPED) rh:(4.333, 0.010 AUTO_CLAMPED)
+      ...
+    - (59.000, 0.010) lh:(58.667, 0.010 AUTO_CLAMPED) rh:(59.333, 0.010 AUTO_CLAMPED)
+    - (60.000, 0.010) lh:(59.667, 0.010 AUTO_CLAMPED) rh:(60.333, 0.010 AUTO_CLAMPED)
+    - (61.000, 0.010) lh:(60.667, 0.010 AUTO_CLAMPED) rh:(61.333, 0.010 AUTO_CLAMPED)
+  - fcu 'scale[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:60 grp:'Camera1'
+    - (2.000, 0.010) lh:(1.667, 0.010 AUTO_CLAMPED) rh:(2.333, 0.010 AUTO_CLAMPED)
+    - (3.000, 0.010) lh:(2.667, 0.010 AUTO_CLAMPED) rh:(3.333, 0.010 AUTO_CLAMPED)
+    - (4.000, 0.010) lh:(3.667, 0.010 AUTO_CLAMPED) rh:(4.333, 0.010 AUTO_CLAMPED)
+      ...
+    - (59.000, 0.010) lh:(58.667, 0.010 AUTO_CLAMPED) rh:(59.333, 0.010 AUTO_CLAMPED)
+    - (60.000, 0.010) lh:(59.667, 0.010 AUTO_CLAMPED) rh:(60.333, 0.010 AUTO_CLAMPED)
+    - (61.000, 0.010) lh:(60.667, 0.010 AUTO_CLAMPED) rh:(61.333, 0.010 AUTO_CLAMPED)
+  - fcu 'scale[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:60 grp:'Camera1'
+    - (2.000, 0.010) lh:(1.667, 0.010 AUTO_CLAMPED) rh:(2.333, 0.010 AUTO_CLAMPED)
+    - (3.000, 0.010) lh:(2.667, 0.010 AUTO_CLAMPED) rh:(3.333, 0.010 AUTO_CLAMPED)
+    - (4.000, 0.010) lh:(3.667, 0.010 AUTO_CLAMPED) rh:(4.333, 0.010 AUTO_CLAMPED)
+      ...
+    - (59.000, 0.010) lh:(58.667, 0.010 AUTO_CLAMPED) rh:(59.333, 0.010 AUTO_CLAMPED)
+    - (60.000, 0.010) lh:(59.667, 0.010 AUTO_CLAMPED) rh:(60.333, 0.010 AUTO_CLAMPED)
+    - (61.000, 0.010) lh:(60.667, 0.010 AUTO_CLAMPED) rh:(61.333, 0.010 AUTO_CLAMPED)
+

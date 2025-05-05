@@ -1,0 +1,114 @@
+==== Meshes: 3
+- Mesh 'Mesh' vtx:184 face:92 loop:276 edge:230
+    - 0 1 2 1 0 ... 181 182 181 180 183 
+    - 0/1 1/2 0/2 0/3 1/3 ... 180/181 181/182 180/182 180/183 181/183 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-0.108, 0.286, 0.029)
+    - (-0.108, 0.286, 0.023)
+    - (-0.108, 0.286, 0.023)
+      ...
+    - (-0.108, 0.294, 0.023)
+    - (-0.108, 0.294, 0.023)
+    - (-0.108, 0.294, 0.029)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 0 0 0 0 0 ... 0 0 0 0 0 
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 ... 0 0 0 0 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - 1 materials
+    - 'basic' 
+
+- Mesh 'Mesh.001' vtx:92 face:88 loop:264 edge:178
+    - 0 1 2 1 0 ... 39 70 38 70 39 
+    - 0/1 1/2 0/2 0/3 1/3 ... 89/91 70/89 70/91 39/89 39/70 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-0.108, 0.307, 0.034)
+    - (-0.108, 0.304, 0.032)
+    - (-0.108, 0.304, 0.034)
+      ...
+    - (-0.108, 0.313, 0.036)
+    - (-0.108, 0.313, 0.029)
+    - (-0.108, 0.312, 0.029)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 0 0 0 0 0 ... 0 0 0 0 0 
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 ... 0 0 0 0 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - 1 materials
+    - 'basic' 
+
+- Mesh 'Mesh.002' vtx:9 face:5 loop:15 edge:12
+    - 0 1 2 1 0 ... 6 7 6 5 8 
+    - 0/1 1/2 0/2 0/3 1/3 ... 5/6 6/7 5/7 5/8 6/8 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (0.017, 0.007, -0.110)
+    - (0.000, 0.006, -0.110)
+    - (0.000, 0.007, -0.110)
+      ...
+    - (0.017, 0.006, -0.110)
+    - (0.017, 0.007, -0.110)
+    - (0.035, 0.006, -0.110)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 0 0 0 0 0 ... 0 0 0 0 0 
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - 1 materials
+    - 'basic' 
+
+==== Objects: 4
+- Obj '_KVM_Switch' EMPTY
+  - pos 0.707, 0.773, 0.000
+  - rot 0.000, 3.142, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+  - props: int:MaxHandle=2125
+- Obj 'group_12' MESH data:'Mesh.002' par:'group_2'
+  - pos 0.013, 0.221, 0.011
+  - rot 1.571, 0.000, 1.571 (XYZ)
+  - scl 1.000, 1.000, 1.000
+  - props: int:MaxHandle=1774
+- Obj 'group_2' MESH data:'Mesh' par:'_KVM_Switch'
+  - pos -0.315, -0.227, 0.001
+  - rot 0.000, 3.142, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+  - props: int:MaxHandle=10
+- Obj 'ID9938' MESH data:'Mesh.001' par:'group_2'
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+  - props: int:MaxHandle=121
+
+==== Materials: 1
+- Mat 'basic'
+  - base color (0.588, 0.588, 0.588)
+  - specular ior 0.000
+  - specular tint (0.900, 0.900, 0.900)
+  - roughness 0.859
+  - metallic 0.000
+  - ior 1.500
+  - viewport diffuse (0.588, 0.588, 0.588, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 0.000
+  - viewport metallic 0.000, roughness 0.859
+  - backface False probe True shadow False
+

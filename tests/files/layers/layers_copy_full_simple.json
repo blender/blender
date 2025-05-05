@@ -1,0 +1,49 @@
+[
+    "Master Collection",
+    {
+        "collections": {
+            "1": {
+                "collections": {},
+                "name": "1",
+                "objects": [
+                    "T.1a.001"
+                ]
+            },
+            "2": {
+                "collections": {},
+                "name": "2",
+                "objects": [
+                    "T.2a.001"
+                ]
+            },
+            "3": {
+                "collections": {},
+                "name": "3",
+                "objects": [
+                    "T.3,5a.001",
+                    "T.3d.001",
+                    "T.3c.001",
+                    "T.3b.001",
+                    "T.3a.001"
+                ]
+            },
+            "4": {
+                "collections": {},
+                "name": "4",
+                "objects": [
+                    "T.4a.001"
+                ]
+            },
+            "5": {
+                "collections": {},
+                "name": "5",
+                "objects": [
+                    "T.3,5a",
+                    "T.5a.001"
+                ]
+            }
+        },
+        "name": "Master Collection",
+        "objects": []
+    }
+]

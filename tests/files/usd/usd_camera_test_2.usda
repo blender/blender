@@ -1,0 +1,18 @@
+#usda 1.0
+(
+    defaultPrim = "Test_Camera"
+    metersPerUnit = 0.1
+)
+def Xform "TestGroup" (
+    kind = "assembly"
+)
+{
+  def Camera "Test_Camera"
+  {
+    float focalLength = 0.4312
+    float horizontalAperture = 0.2489
+    float verticalAperture = 0.1400
+    float horizontalApertureOffset = 0.5678
+    float verticalApertureOffset = 0.1234
+  }
+}

@@ -1,0 +1,161 @@
+==== Meshes: 11
+- Mesh 'BezierCircle' vtx:12 face:0 loop:0 edge:12
+    - 0/1 1/2 2/3 3/4 4/5 ... 7/8 8/9 9/10 10/11 0/11 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (2.895, 0.000, 0.000)
+    - (3.032, 0.000, -0.505)
+    - (3.390, 0.000, -0.863)
+      ...
+    - (3.895, 0.000, 1.000)
+    - (3.390, 0.000, 0.863)
+    - (3.032, 0.000, 0.505)
+
+- Mesh 'BezierCurve' vtx:8 face:0 loop:0 edge:7
+    - 0/1 1/2 2/3 3/4 4/5 5/6 6/7 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.000, 0.000)
+    - (-0.950, 0.000, -0.624)
+    - (-0.790, 0.000, -0.867)
+      ...
+    - (0.161, 0.000, -0.347)
+    - (0.573, 0.000, -0.104)
+    - (1.000, 0.000, 0.000)
+
+- Mesh 'BezierCurve2' vtx:29 face:0 loop:0 edge:28
+    - 0/1 1/2 2/3 3/4 4/5 ... 23/24 24/25 25/26 26/27 27/28 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-0.902, 0.000, 2.693)
+    - (-0.956, 0.000, 2.645)
+    - (-1.183, 0.000, 2.632)
+      ...
+    - (1.158, 0.000, 3.151)
+    - (1.070, 0.000, 2.817)
+    - (1.098, 0.000, 2.693)
+
+- Mesh 'MultiCurve_BezierNurbPoly' vtx:32 face:0 loop:0 edge:32
+    - 0/1 1/2 2/3 3/4 4/5 ... 16/27 28/29 29/30 30/31 28/31 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (3.188, 0.000, 7.747)
+    - (3.266, 0.000, 7.358)
+    - (3.481, 0.000, 7.040)
+      ...
+    - (4.285, 0.000, 11.821)
+    - (5.285, 0.000, 12.821)
+    - (4.285, 0.000, 13.821)
+
+- Mesh 'MultiCurve_NurbPolyBezier' vtx:34 face:0 loop:0 edge:34
+    - 0/1 1/2 2/3 3/4 4/5 ... 29/30 30/31 31/32 32/33 24/33 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (10.600, 0.000, 8.259)
+    - (10.338, 0.000, 7.822)
+    - (10.307, 0.000, 7.552)
+      ...
+    - (12.837, 0.000, 13.444)
+    - (12.813, 0.000, 14.125)
+    - (12.066, 0.000, 14.493)
+
+- Mesh 'NurbsCircle' vtx:32 face:0 loop:0 edge:32
+    - 0/1 1/2 2/3 3/4 4/5 ... 27/28 28/29 29/30 30/31 0/31 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (10.756, 0.000, 0.707)
+    - (10.580, 0.000, 0.474)
+    - (10.494, 0.000, 0.270)
+      ...
+    - (11.344, 0.000, 0.997)
+    - (11.193, 0.000, 0.969)
+    - (10.989, 0.000, 0.883)
+
+- Mesh 'NurbsCurve' vtx:9 face:0 loop:0 edge:8
+    - 0/1 1/2 2/3 3/4 4/5 5/6 6/7 7/8 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (7.730, 0.000, -0.375)
+    - (7.886, 0.000, -0.581)
+    - (8.063, 0.000, -0.734)
+      ...
+    - (8.846, 0.000, -0.920)
+    - (9.030, 0.000, -0.887)
+    - (9.197, 0.000, -0.833)
+
+- Mesh 'NurbsCurve2' vtx:24 face:0 loop:0 edge:23
+    - 0/1 1/2 2/3 3/4 4/5 ... 18/19 19/20 20/21 21/22 22/23 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (5.857, 0.000, 5.211)
+    - (5.883, 0.000, 4.843)
+    - (5.990, 0.000, 4.491)
+      ...
+    - (9.419, 0.000, 3.357)
+    - (9.557, 0.000, 3.570)
+    - (9.665, 0.000, 3.871)
+
+- Mesh 'NurbsPathCurve' vtx:31 face:0 loop:0 edge:29
+    - 0/1 1/2 2/3 3/4 4/5 ... 25/26 26/27 27/28 28/29 29/30 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (13.691, 0.000, 0.000)
+    - (14.059, 0.000, 0.419)
+    - (14.383, 0.000, 0.670)
+      ...
+    - (16.242, 0.000, -0.671)
+    - (16.339, 0.000, -0.583)
+    - (16.430, 0.000, -0.479)
+
+- Mesh 'PolyCircle' vtx:4 face:0 loop:0 edge:4
+    - 0/1 1/2 2/3 0/3 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (3.090, 0.000, -4.488)
+    - (4.090, 0.000, -5.488)
+    - (5.090, 0.000, -4.488)
+    - (4.090, 0.000, -3.488)
+
+- Mesh 'PolyCurve' vtx:3 face:0 loop:0 edge:2
+    - 0/1 1/2 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.000, -4.488)
+    - (0.371, 0.000, -5.659)
+    - (1.000, 0.000, -4.488)
+
+==== Objects: 11
+- Obj 'BezierCircle' MESH data:'BezierCircle'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'BezierCurve' MESH data:'BezierCurve'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'BezierCurve2' MESH data:'BezierCurve2'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'MultiCurve_BezierNurbPoly' MESH data:'MultiCurve_BezierNurbPoly'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'MultiCurve_NurbPolyBezier' MESH data:'MultiCurve_NurbPolyBezier'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'NurbsCircle' MESH data:'NurbsCircle'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'NurbsCurve' MESH data:'NurbsCurve'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'NurbsCurve2' MESH data:'NurbsCurve2'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'NurbsPathCurve' MESH data:'NurbsPathCurve'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'PolyCircle' MESH data:'PolyCircle'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'PolyCurve' MESH data:'PolyCurve'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+

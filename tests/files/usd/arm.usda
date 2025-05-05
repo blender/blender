@@ -1,0 +1,122 @@
+#usda 1.0
+(
+    startTimeCode = 1
+    endTimeCode = 10
+    upAxis = "Z"
+)
+def SkelRoot "Model"(
+    prepend apiSchemas = ["SkelBindingAPI"]
+) 
+{
+    def Skeleton "Skel"(
+        prepend apiSchemas = ["SkelBindingAPI"]
+    )
+    {
+        uniform token[] joints = ["Shoulder", "Shoulder/Elbow", "Shoulder/Elbow/Hand"]
+        uniform matrix4d[] bindTransforms = [
+            ((1,0,0,0),(0,1,0,0),(0,0,1,0),(0,0,0,1)),
+            ((1,0,0,0),(0,1,0,0),(0,0,1,0),(0,0,2,1)),
+            ((1,0,0,0),(0,1,0,0),(0,0,1,0),(0,0,4,1))
+        ]
+        uniform matrix4d[] restTransforms = [
+            ((1,0,0,0),(0,1,0,0),(0,0,1,0),(0,0,0,1)),
+            ((1,0,0,0),(0,1,0,0),(0,0,1,0),(0,0,2,1)),
+            ((1,0,0,0),(0,1,0,0),(0,0,1,0),(0,0,2,1))
+        ]
+        def SkelAnimation "Anim1" {
+            uniform token[] joints = ["Shoulder/Elbow"]
+        
+            float3[] translations = [(0,0,2)]
+            quatf[] rotations.timeSamples = {
+                1: [(1,0,0,0)],
+                10: [(0.7071, 0.7071, 0, 0)]
+            }
+            half3[] scales = [(1,1,1)]
+        }
+        
+        rel skel:animationSource = <Anim1>
+    }
+    rel skel:skeleton = </Model/Skel>
+
+    def Mesh "Arm"(
+        prepend apiSchemas = ["SkelBindingAPI"]
+    )
+    {
+        int[] faceVertexCounts = [4, 4, 4, 4, 4, 4, 4, 4, 4, 4]
+        int[] faceVertexIndices = [
+            2, 3, 1, 0,
+            6, 7, 5, 4,
+            8, 9, 7, 6,
+            3, 2, 9, 8,
+            10, 11, 4, 5,
+            0, 1, 11, 10,
+            7, 9, 10, 5,
+            9, 2, 0, 10,
+            3, 8, 11, 1,
+            8, 6, 4, 11
+        ]
+        point3f[] points = [
+            (0.5, -0.5, 4), (-0.5, -0.5, 4), (0.5, 0.5, 4), (-0.5, 0.5, 4),
+            (-0.5, -0.5, 0), (0.5, -0.5, 0), (-0.5, 0.5, 0), (0.5, 0.5, 0),
+            (-0.5, 0.5, 2), (0.5, 0.5, 2), (0.5, -0.5, 2), (-0.5, -0.5, 2)
+        ]
+        float3[] primvars:displayColor = [(0.5, 0.5, 0.5)] (
+            interpolation = "constant"
+        )
+        float[] primvars:displayOpacity = [1.0] (
+            interpolation = "constant"
+        )
+
+        int[] primvars:skel:jointIndices = [
+            2,2,2,2, 0,0,0,0, 1,1,1,1
+        ] (
+            interpolation = "vertex"
+            elementSize = 1
+        )
+        float[] primvars:skel:jointWeights = [
+            1,1,1,1, 1,1,1,1, 1,1,1,1
+            ] (
+            interpolation = "vertex"
+            elementSize = 1
+        )
+        matrix4d primvars:skel:geomBindTransform = ((1,0,0,0),(0,1,0,0),(0,0,1,0),(0,0,0,1))
+
+        # Baking the extents so the prim isn't clipped due to skinning.
+        float3[] extent = [(-1, -2, -1), (1, 2, 1)]
+    }
+
+    # While we can view the mesh as points (via the shading mode), this is to
+    # test if the points prim can be skinned.
+    def Points "ArmPoints"(
+        prepend apiSchemas = ["SkelBindingAPI"]
+    )
+    {
+ 
+        point3f[] points = [
+            (0.5, -0.5, 4), (-0.5, -0.5, 4), (0.5, 0.5, 4), (-0.5, 0.5, 4),
+            (-0.5, -0.5, 0), (0.5, -0.5, 0), (-0.5, 0.5, 0), (0.5, 0.5, 0),
+            (-0.5, 0.5, 2), (0.5, 0.5, 2), (0.5, -0.5, 2), (-0.5, -0.5, 2)
+        ]
+        float[] widths = [0.1] (
+            interpolation = "constant"
+        )
+        float3[] primvars:displayColor = [(0.5, 0.0, 0.0)] (
+            interpolation = "constant"
+        )
+
+        int[] primvars:skel:jointIndices = [
+            2,2,2,2, 0,0,0,0, 1,1,1,1
+        ] (
+            interpolation = "vertex"
+            elementSize = 1
+        )
+        float[] primvars:skel:jointWeights = [
+            1,1,1,1, 1,1,1,1, 1,1,1,1
+            ] (
+            interpolation = "vertex"
+            elementSize = 1
+        )
+        # translate by 2.0 units on the X-axis.
+        matrix4d primvars:skel:geomBindTransform = ((1,0,0,0),(0,1,0,0),(0,0,1,0),(2,0,0,1))
+    }
+}

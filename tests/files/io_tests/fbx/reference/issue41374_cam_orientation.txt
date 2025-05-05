@@ -1,0 +1,70 @@
+==== Meshes: 1
+- Mesh 'Suzanne' vtx:507 face:500 loop:1968 edge:1005
+    - 46 0 2 44 3 ... 389 504 322 320 390 
+    - 0/46 0/2 2/44 44/46 1/3 ... 496/500 313/505 314/506 321/503 322/504 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (0.438, -0.766, 0.164)
+    - (-0.438, -0.766, 0.164)
+    - (0.500, -0.688, 0.094)
+      ...
+    - (-0.789, 0.328, -0.125)
+    - (0.859, 0.383, 0.383)
+    - (-0.859, 0.383, 0.383)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 1 1 1 1 1 ... 1 1 1 1 1 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+
+==== Objects: 8
+- Obj 'Camera' CAMERA data:'Camera'
+  - pos 2.148, -8.193, 0.000
+  - rot 1.571, 0.000, -1.228 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'Camera.001' CAMERA data:'Camera.001'
+  - pos 7.927, 0.002, 0.000
+  - rot 1.571, 0.000, -1.571 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'Sun' LIGHT data:'Sun'
+  - pos -13.088, 3.695, 4.098
+  - rot 3.142, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'Sun.001' LIGHT data:'Sun.001'
+  - pos -13.088, -6.383, 9.433
+  - rot -1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'Sun.002' LIGHT data:'Sun.002'
+  - pos -7.684, -6.383, -1.913
+  - rot -1.571, 0.000, 1.571 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'Suzanne' MESH data:'Suzanne'
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'Suzanne.001' MESH data:'Suzanne'
+  - pos 0.000, 0.000, 1.553
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 0.689, 0.689, 0.689
+- Obj 'Suzanne.002' MESH data:'Suzanne'
+  - pos 0.000, 0.000, 2.811
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 0.510, 0.510, 0.510
+
+==== Cameras: 2
+- Cam 'Camera' PERSP lens:35.0 MILLIMETERS near:0.100 far:100.0 orthosize:6.0
+  - fov 0.858 (h 0.858 v 0.503)
+  - sensor 32.0x18.0 shift 0.000,0.000
+- Cam 'Camera.001' ORTHO lens:35.0 MILLIMETERS near:0.100 far:100.0 orthosize:6.0
+  - fov 0.858 (h 0.858 v 0.503)
+  - sensor 32.0x18.0 shift 0.000,0.000
+
+==== Lights: 3
+- Light 'Sun' SUN col:(0.800, 0.800, 0.800) energy:1.000
+- Light 'Sun.001' SUN col:(0.800, 0.800, 0.800) energy:1.000
+- Light 'Sun.002' SUN col:(0.800, 0.800, 0.800) energy:1.000
+

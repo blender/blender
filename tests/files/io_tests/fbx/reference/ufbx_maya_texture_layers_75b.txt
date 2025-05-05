@@ -1,0 +1,79 @@
+==== Meshes: 1
+- Mesh 'Mesh' vtx:8 face:6 loop:24 edge:12
+    - 0 1 3 2 2 ... 3 6 0 2 4 
+    - 0/1 2/3 4/5 6/7 0/2 ... 3/5 4/6 5/7 0/6 1/7 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-0.500, -0.500, 0.500)
+    - (0.500, -0.500, 0.500)
+    - (-0.500, 0.500, 0.500)
+      ...
+    - (0.500, 0.500, -0.500)
+    - (-0.500, -0.500, -0.500)
+    - (0.500, -0.500, -0.500)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 1 1 1 1 1 ... 1 1 1 1 1 
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'map1' FLOAT2 CORNER
+    - (0.375, 0.000)
+    - (0.625, 0.000)
+    - (0.625, 0.250)
+      ...
+    - (0.375, 0.000)
+    - (0.375, 0.250)
+    - (0.125, 0.250)
+  - attr 'map2' FLOAT2 CORNER
+    - (0.002, 0.002)
+    - (0.331, 0.002)
+    - (0.331, 0.331)
+      ...
+    - (0.668, 0.669)
+    - (0.668, 0.998)
+    - (0.339, 0.998)
+  - attr 'map3' FLOAT2 CORNER
+    - (0.033, 0.012)
+    - (0.745, 0.000)
+    - (0.776, 0.566)
+      ...
+    - (0.033, 0.012)
+    - (0.000, 0.578)
+    - (0.058, 1.000)
+  - 1 materials
+    - 'lambert2' 
+
+==== Objects: 1
+- Obj 'pCube1' MESH data:'Mesh'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 0.010, 0.010, 0.010
+  - props: str:currentUVSet='map3'
+
+==== Materials: 1
+- Mat 'lambert2'
+  - base color (1.000, 1.000, 1.000) tex:'Image' (.) a:False
+  - specular ior 0.500
+  - specular tint (1.000, 1.000, 1.000)
+  - roughness 0.500
+  - metallic 0.000
+  - ior 1.500
+  - alpha 1.000 tex:'checkerboard_transparency.png' (textures/checkerboard_transparency.png) a:True tr:(0.500, -0.207, 0.000) rot:(-0.000, -0.000, -45.000)
+  - emission color (0.500, 0.500, 0.500) tex:'checkerboard_emissive.png' (textures/checkerboard_emissive.png) a:False tr:(1.000, 2.000, 0.000)
+  - emission strength 1.000
+  - viewport diffuse (1.000, 1.000, 1.000, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 0.500
+  - viewport metallic 0.000, roughness 0.500
+  - backface False probe True shadow False
+
+==== Images: 3
+- Image 'checkerboard_emissive.png' 128x128 32bpp
+- Image 'checkerboard_transparency.png' 128x128 32bpp
+- Image 'Image' 0x0 0bpp
+

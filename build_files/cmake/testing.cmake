@@ -139,7 +139,7 @@ function(blender_add_ctests)
   if(ARGC LESS 1)
     message(FATAL_ERROR "No arguments supplied to blender_add_ctests()")
   endif()
-  if(NOT EXISTS "${CMAKE_SOURCE_DIR}/tests/data/render")
+  if(NOT EXISTS "${CMAKE_SOURCE_DIR}/tests/files/render")
     return()
   endif()
 
@@ -169,14 +169,14 @@ function(blender_add_ctests)
       TEST_PREFIX ${ARGS_SUITE_NAME}
       WORKING_DIRECTORY "${TEST_INSTALL_DIR}"
       EXTRA_ARGS
-        --test-assets-dir "${CMAKE_SOURCE_DIR}/tests/data"
+        --test-assets-dir "${CMAKE_SOURCE_DIR}/tests/files"
         --test-release-dir "${_test_release_dir}"
     )
   else()
     add_test(
       NAME ${ARGS_SUITE_NAME}
       COMMAND ${ARGS_TARGET}
-        --test-assets-dir "${CMAKE_SOURCE_DIR}/tests/data"
+        --test-assets-dir "${CMAKE_SOURCE_DIR}/tests/files"
         --test-release-dir "${_test_release_dir}"
       WORKING_DIRECTORY ${TEST_INSTALL_DIR}
     )

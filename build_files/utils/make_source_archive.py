@@ -21,6 +21,7 @@ from typing import (
     Union,
     # Proxies for `collections.abc`
     Iterable,
+    List,
 )
 
 # This script can run from any location,
@@ -40,9 +41,13 @@ SKIP_NAMES: Tuple[str, ...] = (
     ".svn",
 )
 
+# Tuple with folder names relative to the main repository root that are to be excluded.
 SKIP_FOLDERS: Tuple[str, ...] = (
-    "release/datafiles/assets/working",
 )
+
+# Generated list of Paths to be ignored based on the SKIP_FOLDERS and some rum-time rules like
+# the type of package that is being created.
+SKIP_PATHS: List[Path] = []
 
 
 def main() -> None:
@@ -77,8 +82,8 @@ def main() -> None:
     blender_srcdir = blender_srcdir.relative_to(curdir)
 
     # Update our SKIP_FOLDERS blacklist with the source directory name
-    global SKIP_FOLDERS
-    SKIP_FOLDERS = tuple([f"{blender_srcdir}/{entry}" for entry in SKIP_FOLDERS])
+    global SKIP_PATHS
+    SKIP_PATHS = [blender_srcdir / entry for entry in SKIP_FOLDERS]
 
     print(f"Output dir: {curdir}")
 
@@ -89,8 +94,9 @@ def main() -> None:
 
     if cli_args.package_test_data:
         print("Creating an archive of all test data.")
-        create_manifest(version, manifest, blender_srcdir / "tests/data", packages_dir)
+        create_manifest(version, manifest, blender_srcdir / "tests/files", packages_dir)
     else:
+        SKIP_PATHS.append(blender_srcdir / "tests/files")
         create_manifest(version, manifest, blender_srcdir, packages_dir)
 
     create_tarball(version, tarball, manifest, blender_srcdir, packages_dir)
@@ -145,6 +151,7 @@ def create_manifest(
     outpath: Path,
     blender_srcdir: Path,
     packages_dir: Union[Path, None],
+    exclude: List[Path] = []
 ) -> None:
     print(f'Building manifest of files:  "{outpath}"...', end="", flush=True)
     with outpath.open("w", encoding="utf-8") as outfile:
@@ -266,6 +273,13 @@ def git_gather_all_folders_to_package(directory: Path = Path(".")) -> Iterable[P
         yield path
 
 
+def is_path_ignored(file: Path) -> bool:
+    for skip_folder in SKIP_PATHS:
+        if file.is_relative_to(skip_folder):
+            return True
+    return False
+
+
 def git_ls_files(directory: Path = Path(".")) -> Iterable[Path]:
     """Generator, yields lines of output from 'git ls-files'.
 
@@ -276,9 +290,8 @@ def git_ls_files(directory: Path = Path(".")) -> Iterable[Path]:
         path = directory / line
         if not path.is_file() or path.name in SKIP_NAMES:
             continue
-        if path.as_posix().startswith(SKIP_FOLDERS):
-            continue
-        yield path
+        if not is_path_ignored(path):
+            yield path
 
 
 def git_command(cli_args: str) -> Iterable[str]:

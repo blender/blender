@@ -1,0 +1,43 @@
+# This is an Asset Catalog Definition file for Blender.
+#
+# Empty lines and lines starting with `#` will be ignored.
+# The first non-ignored line should be the version indicator.
+# Other lines are of the format "UUID:catalog/path/for/assets:simple catalog name"
+
+VERSION 1
+
+753df37f-2da1-4c8e-bf3e-3cbf24387e66:Brushes:Brushes
+8c4f15ab-755e-4929-9fd2-609157d8067f:Brushes/Curve Sculpt:Brushes-Curve Sculpt
+851d0192-113d-4737-b5d7-ab054198bdaa:Brushes/Curve Sculpt/Deform:Brushes-Curve Sculpt-Deform
+754a6925-6a06-476e-a714-25db953c80ea:Brushes/Curve Sculpt/Density:Brushes-Curve Sculpt-Density
+2c511e86-866e-4379-93db-7d25ac850a02:Brushes/Curve Sculpt/General:Brushes-Curve Sculpt-General
+00c402c1-8f55-45ab-bb26-b4c57c9e87ad:Brushes/Grease Pencil Draw:Brushes-Grease Pencil Draw
+f14d7a24-428a-4753-bf88-ef136a66be73:Brushes/Grease Pencil Draw/Draw:Brushes-Grease Pencil Draw-Draw
+db855991-aff2-45d1-9ba5-cd0dccea5fe0:Brushes/Grease Pencil Draw/Erase:Brushes-Grease Pencil Draw-Erase
+bef62e73-63d2-43e6-89fd-e72245350bc7:Brushes/Grease Pencil Draw/Utilities:Brushes-Grease Pencil Draw-Utilities
+98c3c158-b363-48d3-80cd-ce4846f5aed1:Brushes/Grease Pencil Paint:Brushes-Grease Pencil Paint
+eb75aff6-7006-4ecf-a41d-48c14e09c32c:Brushes/Grease Pencil Sculpt:Brushes-Grease Pencil Sculpt
+2afe28e4-1769-4262-ae62-7e8c17e64246:Brushes/Grease Pencil Sculpt/Contrast:Brushes-Grease Pencil Sculpt-Contrast
+2cfbd59a-9b11-48f1-b35d-665b70c112cf:Brushes/Grease Pencil Sculpt/Transform:Brushes-Grease Pencil Sculpt-Transform
+ca10d93d-0283-480d-b868-b4275f8bc79a:Brushes/Grease Pencil Sculpt/Utilities:Brushes-Grease Pencil Sculpt-Utilities
+9601079f-86e9-4a6f-ba04-56ba1bef3a9f:Brushes/Grease Pencil Weight Paint:Brushes-Grease Pencil Weight Paint
+19f885c8-9bd7-43f7-98c1-104118c06f60:Brushes/Mesh Sculpt:Brushes-Mesh Sculpt
+194fda97-6d88-41b1-b26d-f41cd8426518:Brushes/Mesh Sculpt/General:Brushes-Mesh Sculpt-General
+45d61c81-d318-4835-a37f-54af720391e6:Brushes/Mesh Sculpt/General/Add & Subtract:Brushes-Mesh Sculpt-General-Add & Subtract
+650ad315-0880-451e-8f49-7339af60808a:Brushes/Mesh Sculpt/General/Contrast:Brushes-Mesh Sculpt-General-Contrast
+a1131a99-c34b-4a28-b6d7-ce61fdbf2573:Brushes/Mesh Sculpt/General/Transform:Brushes-Mesh Sculpt-General-Transform
+4900134b-ead6-413d-b6bf-3fb6ff43bbe4:Brushes/Mesh Sculpt/General/Utilities:Brushes-Mesh Sculpt-General-Utilities
+eb98fe9e-0baa-417f-8ff1-d56dd79d2ce2:Brushes/Mesh Sculpt/General/Utilities:Brushes-Mesh Sculpt-General-Utilities
+722259b1-4abf-4d15-8b17-7875c8efb248:Brushes/Mesh Sculpt/Paint:Brushes-Mesh Sculpt-Paint
+abea2557-f13e-4e21-b4d8-11a1fffd7d57:Brushes/Mesh Sculpt/Simulation:Brushes-Mesh Sculpt-Simulation
+a82f0b44-1d89-4ca7-ae21-86296257be99:Brushes/Mesh Texture Paint:Brushes-Mesh Texture Paint
+27cbc8dc-80c8-45d5-863c-7ecc48bccf20:Brushes/Mesh Vertex Paint:Brushes-Mesh Vertex Paint
+77635e98-1a5a-482e-9cb1-ba9ec4bc5b74:Brushes/Mesh Weight Paint:Brushes-Mesh Weight Paint
+f14d3c5d-8223-4e8c-b3b3-cbce81e4b3ee:Hair:Hair
+87cbaad7-ae4e-404c-9b6b-4fe60ecc39dc:Hair/Deformation:Hair-Deformation
+40aedbf9-be4b-4ddb-8eec-8a9cd37d0921:Hair/Generation:Hair-Generation
+09af8c50-8c07-4039-821c-be801761d7cf:Hair/Guides:Hair-Guides
+c676fe02-8d25-49a1-b672-11aee0918221:Hair/Read:Hair-Read
+9dedc75a-afe5-472a-9e3f-a555a8df3dff:Hair/Utility:Hair-Utility
+63a83f9c-5a95-476a-9bd5-fcb72414ea0b:Hair/Write:Hair-Write
+9e98eca8-e987-44d3-88a1-6633d0a8ad82:Normals:Normals

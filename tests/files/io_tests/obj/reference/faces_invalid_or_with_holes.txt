@@ -1,0 +1,105 @@
+==== Meshes: 6
+- Mesh 'FaceAllVerts_BecomesOneOverlappingFaceUsingAllVerts' vtx:8 face:1 loop:8 edge:8
+    - 0 1 2 3 4 5 6 7 
+    - 0/7 0/1 1/2 2/3 3/4 4/5 5/6 6/7 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (8.000, 0.000, -2.000)
+    - (8.000, 0.000, 2.000)
+    - (12.000, 0.000, 2.000)
+      ...
+    - (9.000, 0.000, 1.000)
+    - (11.000, 0.000, 1.000)
+    - (11.000, 0.000, -1.000)
+  - attr 'material_index' INT FACE
+    - 0 
+  - attr 'sharp_face' BOOLEAN FACE
+    - 1 
+
+- Mesh 'FaceAllVertsDup_BecomesOneOverlappingFaceUsingAllVerts' vtx:8 face:1 loop:8 edge:8
+    - 1 2 3 7 6 5 4 0 
+    - 0/1 1/2 2/3 3/7 6/7 5/6 4/5 0/4 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (3.000, 0.000, 3.000)
+    - (3.000, 0.000, 7.000)
+    - (7.000, 0.000, 7.000)
+      ...
+    - (4.000, 0.000, 6.000)
+    - (6.000, 0.000, 6.000)
+    - (6.000, 0.000, 4.000)
+  - attr 'material_index' INT FACE
+    - 0 
+  - attr 'sharp_face' BOOLEAN FACE
+    - 1 
+
+- Mesh 'FaceJustTwoVerts_IsSkipped' vtx:2 face:0 loop:0 edge:0
+  - attr 'position' FLOAT_VECTOR POINT
+    - (8.000, 0.000, 3.000)
+    - (8.000, 0.000, 7.000)
+
+- Mesh 'FaceQuadDupSomeVerts_BecomesOneQuadUsing4Verts' vtx:4 face:1 loop:4 edge:4
+    - 0 1 2 3 
+    - 0/3 0/1 1/2 2/3 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (3.000, 0.000, -2.000)
+    - (3.000, 0.000, 2.000)
+    - (7.000, 0.000, 2.000)
+    - (7.000, 0.000, -2.000)
+  - attr 'material_index' INT FACE
+    - 0 
+  - attr 'sharp_face' BOOLEAN FACE
+    - 1 
+
+- Mesh 'FaceTriDupVert_Becomes1Tri' vtx:3 face:1 loop:3 edge:3
+    - 0 1 2 
+    - 0/2 0/1 1/2 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-2.000, 0.000, 3.000)
+    - (-2.000, 0.000, 7.000)
+    - (2.000, 0.000, 7.000)
+  - attr 'material_index' INT FACE
+    - 0 
+  - attr 'sharp_face' BOOLEAN FACE
+    - 1 
+
+- Mesh 'FaceWithHole_BecomesTwoFacesFormingAHole' vtx:8 face:2 loop:12 edge:10
+    - 1 2 5 4 0 ... 7 6 5 2 3 
+    - 0/1 1/2 2/5 4/5 0/4 0/3 4/7 6/7 5/6 2/3 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-2.000, 0.000, -2.000)
+    - (-2.000, 0.000, 2.000)
+    - (2.000, 0.000, 2.000)
+      ...
+    - (-1.000, 0.000, 1.000)
+    - (1.000, 0.000, 1.000)
+    - (1.000, 0.000, -1.000)
+  - attr 'material_index' INT FACE
+    - 0 0 
+  - attr 'sharp_face' BOOLEAN FACE
+    - 1 1 
+
+==== Objects: 6
+- Obj 'FaceAllVerts_BecomesOneOverlappingFaceUsingAllVerts' MESH data:'FaceAllVerts_BecomesOneOverlappingFaceUsingAllVerts'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'FaceAllVertsDup_BecomesOneOverlappingFaceUsingAllVerts' MESH data:'FaceAllVertsDup_BecomesOneOverlappingFaceUsingAllVerts'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'FaceJustTwoVerts_IsSkipped' MESH data:'FaceJustTwoVerts_IsSkipped'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'FaceQuadDupSomeVerts_BecomesOneQuadUsing4Verts' MESH data:'FaceQuadDupSomeVerts_BecomesOneQuadUsing4Verts'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'FaceTriDupVert_Becomes1Tri' MESH data:'FaceTriDupVert_Becomes1Tri'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'FaceWithHole_BecomesTwoFacesFormingAHole' MESH data:'FaceWithHole_BecomesTwoFacesFormingAHole'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+

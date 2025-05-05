@@ -1,0 +1,138 @@
+#usda 1.0
+(
+    defaultPrim = "root"
+    doc = "Linear BasisCurves"
+    metersPerUnit = .01
+    upAxis = "Z"
+)
+
+def Xform "root" (
+)
+{
+    def Xform "linear_nonperiodic"
+    {
+        float3 xformOp:translate = (0, 0, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+
+        def Xform "single"
+        {
+            float3 xformOp:translate = (0, 0, 0)
+            uniform token[] xformOpOrder = ["xformOp:translate"]
+
+            def BasisCurves "linear_nonperiodic_single_constant"
+            {
+                float3 xformOp:translate = (0, 0, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+
+                int[] curveVertexCounts = [5]
+                point3f[] points = [(0, 0, 0), (-.5, 0, .5), (0, 0, 1), (.3, 0, .7), (.3, 0, .3)]
+                uniform token type = "linear"
+                float[] widths = [.2] (interpolation = "constant")
+            }
+            def BasisCurves "linear_nonperiodic_single_varying"
+            {
+                float3 xformOp:translate = (0, 0, 1.25)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+
+                int[] curveVertexCounts = [5]
+                point3f[] points = [(0, 0, 0), (-.5, 0, .5), (0, 0, 1), (.3, 0, .7), (.3, 0, .3)]
+                uniform token type = "linear"
+                float[] widths = [.2, .4, .6, .4, .2] (interpolation = "varying")
+            }
+        }
+
+        def Xform "multiple"
+        {
+            float3 xformOp:translate = (2, 0, 0)
+            uniform token[] xformOpOrder = ["xformOp:translate"]
+
+            def BasisCurves "linear_nonperiodic_multiple_constant"
+            {
+                float3 xformOp:translate = (0, 0, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+
+                int[] curveVertexCounts = [2, 3, 4, 5]
+                point3f[] points = [(0, 0, 0), (-.5, 0, .5),    (1, 0, 0), (.5, 0, .5), (1, 0, 1),    (2, 0, 0), (1.5, 0, .5), (2, 0, 1), (2.3, 0, .7),    (3, 0, 0), (2.5, 0, .5), (3, 0, 1), (3.3, 0, .7), (3.3, 0, .3)]
+                uniform token type = "linear"
+                float[] widths = [.2] (interpolation = "constant")
+            }
+
+            def BasisCurves "linear_nonperiodic_multiple_varying"
+            {
+                float3 xformOp:translate = (0, 0, 1.25)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+
+                int[] curveVertexCounts = [2, 3, 4, 5]
+                point3f[] points = [(0, 0, 0), (-.5, 0, .5),    (1, 0, 0), (.5, 0, .5), (1, 0, 1),    (2, 0, 0), (1.5, 0, .5), (2, 0, 1), (2.3, 0, .7),    (3, 0, 0), (2.5, 0, .5), (3, 0, 1), (3.3, 0, .7), (3.3, 0, .3)]
+                uniform token type = "linear"
+                float[] widths = [.2, .4,    .2, .4, .6,    .2, .4, .6, .4,    .2, .4, .6, .4, .2] (interpolation = "varying") 
+            }
+        }
+    }
+
+    def Xform "linear_periodic"
+    {
+        float3 xformOp:translate = (0, 0, 2.5)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+
+        def Xform "single"
+        {
+            float3 xformOp:translate = (0, 0, 0)
+            uniform token[] xformOpOrder = ["xformOp:translate"]
+
+            def BasisCurves "linear_periodic_single_constant"
+            {
+                float3 xformOp:translate = (0, 0, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+
+                int[] curveVertexCounts = [5]
+                point3f[] points = [(0, 0, 0), (-.5, 0, .5), (0, 0, 1), (.3, 0, .7), (.3, 0, .3)]
+                uniform token type = "linear"
+                float[] widths = [.2] (interpolation = "constant")
+                uniform token wrap = "periodic"
+            }
+            def BasisCurves "linear_periodic_single_varying"
+            {
+                float3 xformOp:translate = (0, 0, 1.25)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+
+                int[] curveVertexCounts = [5]
+                point3f[] points = [(0, 0, 0), (-.5, 0, .5), (0, 0, 1), (.3, 0, .7), (.3, 0, .3)]
+                uniform token type = "linear"
+                float[] widths = [.2, .4, .6, .4, .2] (interpolation = "varying")
+                uniform token wrap = "periodic"
+            }
+        }
+
+        def Xform "multiple"
+        {
+            float3 xformOp:translate = (2, 0, 0)
+            uniform token[] xformOpOrder = ["xformOp:translate"]
+
+            def BasisCurves "linear_periodic_multiple_constant"
+            {
+                float3 xformOp:translate = (0, 0, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+
+                int[] curveVertexCounts = [3, 4, 5]
+                point3f[] points = [(1, 0, 0), (.5, 0, .5), (1, 0, 1),    (2, 0, 0), (1.5, 0, .5), (2, 0, 1), (2.3, 0, .7),    (3, 0, 0), (2.5, 0, .5), (3, 0, 1), (3.3, 0, .7), (3.3, 0, .3)]
+                uniform token type = "linear"
+                float[] widths = [.2] (interpolation = "constant")
+                uniform token wrap = "periodic"
+            }
+
+            def BasisCurves "linear_periodic_multiple_varying"
+            {
+                float3 xformOp:translate = (0, 0, 1.25)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+
+                int[] curveVertexCounts = [3, 4, 5]
+                point3f[] points = [(1, 0, 0), (.5, 0, .5), (1, 0, 1),    (2, 0, 0), (1.5, 0, .5), (2, 0, 1), (2.3, 0, .7),    (3, 0, 0), (2.5, 0, .5), (3, 0, 1), (3.3, 0, .7), (3.3, 0, .3)]
+                uniform token type = "linear"
+                float[] widths = [.2, .4, .6,    .2, .4, .6, .4,    .2, .4, .6, .4, .2] (interpolation = "varying")
+                uniform token wrap = "periodic"
+            }
+        }
+    }
+}
+

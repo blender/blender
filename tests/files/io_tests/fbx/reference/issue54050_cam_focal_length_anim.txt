@@ -1,0 +1,100 @@
+==== Objects: 1
+- Obj 'Camera1' CAMERA data:'Camera1'
+  - pos -0.040, 0.008, 0.005
+  - rot 1.524, 0.004, -0.370 (XYZ)
+  - scl 0.010, 0.010, 0.010
+  - anim act:Take 001 slot:OBCamera1 blend:REPLACE drivers:0
+
+==== Cameras: 1
+- Cam 'Camera1' PERSP lens:39.1 MILLIMETERS near:0.001 far:100.0 orthosize:1.0
+  - fov 0.693 (h 0.693 v 0.456)
+  - sensor 28.2x18.2 shift 0.000,0.000
+  - anim act:Take 001 slot:CACamera1 blend:REPLACE drivers:0
+
+==== Actions: 1
+- Action 'Take 001' curverange:(2.0 .. 151.0) layers:1
+- ActionLayer Layer strips:1
+ - Keyframe strip channelbags:2
+ - Channelbag slot 'CACamera1' curves:1
+  - fcu 'lens[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:150
+    - (2.000, 39.125) lh:(1.667, 39.125 AUTO_CLAMPED) rh:(2.333, 39.125 AUTO_CLAMPED)
+    - (3.000, 38.961) lh:(2.667, 39.025 AUTO_CLAMPED) rh:(3.333, 38.896 AUTO_CLAMPED)
+    - (4.000, 38.833) lh:(3.667, 38.868 AUTO_CLAMPED) rh:(4.333, 38.798 AUTO_CLAMPED)
+      ...
+    - (149.000, 36.640) lh:(148.667, 36.692 AUTO_CLAMPED) rh:(149.333, 36.589 AUTO_CLAMPED)
+    - (150.000, 36.471) lh:(149.667, 36.538 AUTO_CLAMPED) rh:(150.333, 36.404 AUTO_CLAMPED)
+    - (151.000, 36.321) lh:(150.667, 36.321 AUTO_CLAMPED) rh:(151.333, 36.321 AUTO_CLAMPED)
+ - Channelbag slot 'OBCamera1' curves:9
+  - fcu 'location[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:150 grp:'Camera1'
+    - (2.000, -0.040) lh:(1.667, -0.040 AUTO_CLAMPED) rh:(2.333, -0.040 AUTO_CLAMPED)
+    - (3.000, -0.039) lh:(2.667, -0.039 AUTO_CLAMPED) rh:(3.333, -0.038 AUTO_CLAMPED)
+    - (4.000, -0.038) lh:(3.667, -0.038 AUTO_CLAMPED) rh:(4.333, -0.038 AUTO_CLAMPED)
+      ...
+    - (149.000, -0.031) lh:(148.667, -0.031 AUTO_CLAMPED) rh:(149.333, -0.031 AUTO_CLAMPED)
+    - (150.000, -0.032) lh:(149.667, -0.032 AUTO_CLAMPED) rh:(150.333, -0.033 AUTO_CLAMPED)
+    - (151.000, -0.033) lh:(150.667, -0.033 AUTO_CLAMPED) rh:(151.333, -0.033 AUTO_CLAMPED)
+  - fcu 'location[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:150 grp:'Camera1'
+    - (2.000, 0.008) lh:(1.667, 0.008 AUTO_CLAMPED) rh:(2.333, 0.008 AUTO_CLAMPED)
+    - (3.000, 0.009) lh:(2.667, 0.009 AUTO_CLAMPED) rh:(3.333, 0.009 AUTO_CLAMPED)
+    - (4.000, 0.010) lh:(3.667, 0.010 AUTO_CLAMPED) rh:(4.333, 0.010 AUTO_CLAMPED)
+      ...
+    - (149.000, 0.025) lh:(148.667, 0.025 AUTO_CLAMPED) rh:(149.333, 0.025 AUTO_CLAMPED)
+    - (150.000, 0.025) lh:(149.667, 0.025 AUTO_CLAMPED) rh:(150.333, 0.026 AUTO_CLAMPED)
+    - (151.000, 0.026) lh:(150.667, 0.026 AUTO_CLAMPED) rh:(151.333, 0.026 AUTO_CLAMPED)
+  - fcu 'location[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:150 grp:'Camera1'
+    - (2.000, 0.005) lh:(1.667, 0.005 AUTO_CLAMPED) rh:(2.333, 0.005 AUTO_CLAMPED)
+    - (3.000, 0.005) lh:(2.667, 0.005 AUTO_CLAMPED) rh:(3.333, 0.005 AUTO_CLAMPED)
+    - (4.000, 0.005) lh:(3.667, 0.005 AUTO_CLAMPED) rh:(4.333, 0.005 AUTO_CLAMPED)
+      ...
+    - (149.000, -0.009) lh:(148.667, -0.009 AUTO_CLAMPED) rh:(149.333, -0.009 AUTO_CLAMPED)
+    - (150.000, -0.009) lh:(149.667, -0.009 AUTO_CLAMPED) rh:(150.333, -0.009 AUTO_CLAMPED)
+    - (151.000, -0.009) lh:(150.667, -0.009 AUTO_CLAMPED) rh:(151.333, -0.009 AUTO_CLAMPED)
+  - fcu 'rotation_euler[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:150 grp:'Camera1'
+    - (2.000, 1.524) lh:(1.667, 1.524 AUTO_CLAMPED) rh:(2.333, 1.524 AUTO_CLAMPED)
+    - (3.000, 1.524) lh:(2.667, 1.524 AUTO_CLAMPED) rh:(3.333, 1.524 AUTO_CLAMPED)
+    - (4.000, 1.525) lh:(3.667, 1.525 AUTO_CLAMPED) rh:(4.333, 1.525 AUTO_CLAMPED)
+      ...
+    - (149.000, 1.629) lh:(148.667, 1.629 AUTO_CLAMPED) rh:(149.333, 1.630 AUTO_CLAMPED)
+    - (150.000, 1.631) lh:(149.667, 1.631 AUTO_CLAMPED) rh:(150.333, 1.632 AUTO_CLAMPED)
+    - (151.000, 1.633) lh:(150.667, 1.633 AUTO_CLAMPED) rh:(151.333, 1.633 AUTO_CLAMPED)
+  - fcu 'rotation_euler[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:150 grp:'Camera1'
+    - (2.000, 0.004) lh:(1.667, 0.004 AUTO_CLAMPED) rh:(2.333, 0.004 AUTO_CLAMPED)
+    - (3.000, 0.005) lh:(2.667, 0.004 AUTO_CLAMPED) rh:(3.333, 0.005 AUTO_CLAMPED)
+    - (4.000, 0.005) lh:(3.667, 0.005 AUTO_CLAMPED) rh:(4.333, 0.006 AUTO_CLAMPED)
+      ...
+    - (149.000, -0.002) lh:(148.667, -0.002 AUTO_CLAMPED) rh:(149.333, -0.002 AUTO_CLAMPED)
+    - (150.000, -0.002) lh:(149.667, -0.002 AUTO_CLAMPED) rh:(150.333, -0.003 AUTO_CLAMPED)
+    - (151.000, -0.003) lh:(150.667, -0.003 AUTO_CLAMPED) rh:(151.333, -0.003 AUTO_CLAMPED)
+  - fcu 'rotation_euler[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:150 grp:'Camera1'
+    - (2.000, -0.370) lh:(1.667, -0.370 AUTO_CLAMPED) rh:(2.333, -0.370 AUTO_CLAMPED)
+    - (3.000, -0.367) lh:(2.667, -0.369 AUTO_CLAMPED) rh:(3.333, -0.366 AUTO_CLAMPED)
+    - (4.000, -0.364) lh:(3.667, -0.365 AUTO_CLAMPED) rh:(4.333, -0.363 AUTO_CLAMPED)
+      ...
+    - (149.000, -0.220) lh:(148.667, -0.217 AUTO_CLAMPED) rh:(149.333, -0.224 AUTO_CLAMPED)
+    - (150.000, -0.233) lh:(149.667, -0.227 AUTO_CLAMPED) rh:(150.333, -0.238 AUTO_CLAMPED)
+    - (151.000, -0.245) lh:(150.667, -0.245 AUTO_CLAMPED) rh:(151.333, -0.245 AUTO_CLAMPED)
+  - fcu 'scale[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:150 grp:'Camera1'
+    - (2.000, 0.010) lh:(1.667, 0.010 AUTO_CLAMPED) rh:(2.333, 0.010 AUTO_CLAMPED)
+    - (3.000, 0.010) lh:(2.667, 0.010 AUTO_CLAMPED) rh:(3.333, 0.010 AUTO_CLAMPED)
+    - (4.000, 0.010) lh:(3.667, 0.010 AUTO_CLAMPED) rh:(4.333, 0.010 AUTO_CLAMPED)
+      ...
+    - (149.000, 0.010) lh:(148.667, 0.010 AUTO_CLAMPED) rh:(149.333, 0.010 AUTO_CLAMPED)
+    - (150.000, 0.010) lh:(149.667, 0.010 AUTO_CLAMPED) rh:(150.333, 0.010 AUTO_CLAMPED)
+    - (151.000, 0.010) lh:(150.667, 0.010 AUTO_CLAMPED) rh:(151.333, 0.010 AUTO_CLAMPED)
+  - fcu 'scale[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:150 grp:'Camera1'
+    - (2.000, 0.010) lh:(1.667, 0.010 AUTO_CLAMPED) rh:(2.333, 0.010 AUTO_CLAMPED)
+    - (3.000, 0.010) lh:(2.667, 0.010 AUTO_CLAMPED) rh:(3.333, 0.010 AUTO_CLAMPED)
+    - (4.000, 0.010) lh:(3.667, 0.010 AUTO_CLAMPED) rh:(4.333, 0.010 AUTO_CLAMPED)
+      ...
+    - (149.000, 0.010) lh:(148.667, 0.010 AUTO_CLAMPED) rh:(149.333, 0.010 AUTO_CLAMPED)
+    - (150.000, 0.010) lh:(149.667, 0.010 AUTO_CLAMPED) rh:(150.333, 0.010 AUTO_CLAMPED)
+    - (151.000, 0.010) lh:(150.667, 0.010 AUTO_CLAMPED) rh:(151.333, 0.010 AUTO_CLAMPED)
+  - fcu 'scale[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:150 grp:'Camera1'
+    - (2.000, 0.010) lh:(1.667, 0.010 AUTO_CLAMPED) rh:(2.333, 0.010 AUTO_CLAMPED)
+    - (3.000, 0.010) lh:(2.667, 0.010 AUTO_CLAMPED) rh:(3.333, 0.010 AUTO_CLAMPED)
+    - (4.000, 0.010) lh:(3.667, 0.010 AUTO_CLAMPED) rh:(4.333, 0.010 AUTO_CLAMPED)
+      ...
+    - (149.000, 0.010) lh:(148.667, 0.010 AUTO_CLAMPED) rh:(149.333, 0.010 AUTO_CLAMPED)
+    - (150.000, 0.010) lh:(149.667, 0.010 AUTO_CLAMPED) rh:(150.333, 0.010 AUTO_CLAMPED)
+    - (151.000, 0.010) lh:(150.667, 0.010 AUTO_CLAMPED) rh:(151.333, 0.010 AUTO_CLAMPED)
+

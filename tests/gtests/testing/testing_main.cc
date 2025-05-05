@@ -6,7 +6,7 @@
 
 #include "MEM_guardedalloc.h"
 
-DEFINE_string(test_assets_dir, "", "tests/data directory containing the test assets.");
+DEFINE_string(test_assets_dir, "", "tests/files directory containing the test assets.");
 DEFINE_string(test_release_dir, "", "bin/{blender version} directory of the current build.");
 
 namespace blender::tests {
@@ -14,7 +14,7 @@ namespace blender::tests {
 const std::string &flags_test_asset_dir()
 {
   if (FLAGS_test_assets_dir.empty()) {
-    ADD_FAILURE() << "Pass the flag --test-assets-dir and point to the tests/data directory.";
+    ADD_FAILURE() << "Pass the flag --test-assets-dir and point to the tests/files directory.";
   }
   return FLAGS_test_assets_dir;
 }

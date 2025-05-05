@@ -9,7 +9,7 @@ import pathlib
 import bpy
 
 """
-blender -b --factory-startup --python tests/python/bl_animation_action.py -- --testdir tests/data/animation/
+blender -b --factory-startup --python tests/python/bl_animation_action.py -- --testdir tests/files/animation/
 """
 
 

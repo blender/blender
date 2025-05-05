@@ -1,0 +1,138 @@
+==== Meshes: 2
+- Mesh '20 Sided' vtx:12 face:20 loop:60 edge:30
+    - 2 1 0 2 0 ... 7 10 11 6 7 
+    - 1/2 0/1 0/2 0/3 2/3 ... 8/11 6/11 9/11 10/11 7/11 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (0.866, 1.000, -0.500)
+    - (0.000, 1.618, -0.619)
+    - (0.000, 0.618, -1.000)
+      ...
+    - (0.000, 0.001, 0.619)
+    - (-0.866, 0.619, 0.500)
+    - (0.000, 1.001, 1.000)
+  - attr 'crease_edge' FLOAT EDGE
+    - 0.000 0.000 0.000 0.000 0.000 ... 0.000 0.000 0.000 0.000 0.000 
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 0 0 0 0 0 ... 0 0 0 0 0 
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 ... 0 0 0 0 0 
+  - attr 'sharp_face' BOOLEAN FACE
+    - 0 0 0 0 0 ... 0 0 0 0 0 
+  - attr 'Attribute' BYTE_COLOR CORNER
+    - (1.000, 1.000, 1.000, 1.000)
+    - (0.000, 1.000, 0.000, 1.000)
+    - (1.000, 1.000, 1.000, 1.000)
+      ...
+    - (1.000, 1.000, 1.000, 1.000)
+    - (0.000, 1.000, 0.000, 1.000)
+    - (0.000, 1.000, 0.000, 1.000)
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'DiffuseUV' FLOAT2 CORNER
+    - (0.600, 1.000)
+    - (0.500, 0.648)
+    - (0.700, 0.648)
+      ...
+    - (0.500, 0.000)
+    - (0.600, 0.352)
+    - (0.400, 0.352)
+  - 1 materials
+    - '20 Sided' 
+
+- Mesh 'PolyMesh3D1' vtx:14 face:24 loop:72 edge:36
+    - 0 2 1 3 0 ... 12 11 12 13 2 
+    - 0/2 1/2 0/1 0/3 1/3 ... 8/13 9/13 10/13 11/13 12/13 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (0.000, 2.823, 0.250)
+    - (-1.303, 2.823, 0.000)
+    - (-0.445, 3.020, 0.000)
+      ...
+    - (0.000, 3.217, 0.000)
+    - (-0.651, 3.689, 0.000)
+    - (0.000, 2.823, -0.250)
+  - attr 'crease_edge' FLOAT EDGE
+    - 0.000 0.000 0.000 0.000 0.000 ... 0.000 0.000 0.000 0.000 0.000 
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 0 0 0 0 0 ... 0 0 0 0 0 
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 ... 0 0 0 0 0 
+  - attr 'sharp_face' BOOLEAN FACE
+    - 0 0 0 0 0 ... 0 0 0 0 0 
+  - attr 'Attribute' BYTE_COLOR CORNER
+    - (1.000, 1.000, 1.000, 1.000)
+    - (1.000, 1.000, 1.000, 1.000)
+    - (1.000, 1.000, 1.000, 1.000)
+      ...
+    - (1.000, 1.000, 1.000, 1.000)
+    - (1.000, 1.000, 1.000, 1.000)
+    - (1.000, 1.000, 1.000, 1.000)
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (112, 16386)
+    - (0, 0)
+      ...
+    - (2423, 7838)
+    - (0, 0)
+    - (112, 16386)
+  - attr 'DiffuseUV' FLOAT2 CORNER
+    - (0.500, 0.235)
+    - (0.329, 0.181)
+    - (0.000, 0.235)
+      ...
+    - (0.250, 0.000)
+    - (0.500, 0.235)
+    - (0.329, 0.181)
+  - 1 materials
+    - 'PolyMesh3D1' 
+  - shape key 'Basis' w:0.000 vgrp:'' 0:(-0.000, 2.823, 0.250) 1:(-1.303, 2.823, -0.000) 2:(-0.445, 3.020, -0.000)
+  - shape key 'Morph' w:0.000 vgrp:'' 0:(-0.000, 2.823, 0.250) 1:(-1.303, 2.823, -0.000) 2:(-0.445, 3.020, -0.000)
+  - shape key 'Back' w:0.000 vgrp:'' 0:(-0.000, 2.834, 1.092) 1:(-1.303, 2.823, -0.000) 2:(-0.445, 3.020, -0.000)
+
+==== Objects: 2
+- Obj '20 Sided' MESH data:'20 Sided'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 0.010, 0.010, 0.010
+  - 1 modifiers
+    - SUBSURF 'Subdivision' levels:2/2 type:CATMULL_CLARK crease:True
+- Obj 'PolyMesh3D1' MESH data:'PolyMesh3D1'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 0.010, 0.010, 0.010
+  - 1 modifiers
+    - SUBSURF 'Subdivision' levels:2/2 type:CATMULL_CLARK crease:True
+
+==== Materials: 2
+- Mat '20 Sided'
+  - base color (0.500, 0.500, 0.500)
+  - specular ior 1.000
+  - specular tint (0.000, 0.000, 0.000)
+  - roughness 1.000
+  - metallic 0.000
+  - ior 1.500
+  - viewport diffuse (0.500, 0.500, 0.500, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 1.000
+  - viewport metallic 0.000, roughness 1.000
+  - backface False probe True shadow False
+
+- Mat 'PolyMesh3D1'
+  - base color (0.500, 0.500, 0.500) tex:'PolyMesh3D1_TXTR.tga' (PolyMesh3D1_TXTR.tga) a:False
+  - specular ior 1.000
+  - specular tint (0.000, 0.000, 0.000)
+  - roughness 1.000
+  - metallic 0.000
+  - ior 1.500
+  - viewport diffuse (0.500, 0.500, 0.500, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 1.000
+  - viewport metallic 0.000, roughness 1.000
+  - backface False probe True shadow False
+
+==== Images: 1
+- Image 'PolyMesh3D1_TXTR.tga' 32x32 24bpp
+

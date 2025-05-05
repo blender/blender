@@ -55,7 +55,7 @@ class TestBlendFileOpenAllTestFiles(TestHelper):
             "ram_glsl.blend",
         }
 
-        # Directories to exclude relative to `./tests/data/`.
+        # Directories to exclude relative to `./tests/files/`.
         self.excluded_dirs = ()
 
         assert all(p.endswith("/") for p in self.excluded_dirs)
@@ -144,7 +144,7 @@ def argparse_create():
 
     # When --help or no args are given, print this help
     description = ("Test basic versioning code by opening all blend files "
-                   "in `tests/data` directory.")
+                   "in `tests/files` directory.")
     parser = argparse.ArgumentParser(description=description)
     parser.add_argument(
         "--src-test-dir",

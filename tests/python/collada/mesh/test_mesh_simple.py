@@ -5,7 +5,7 @@
 
 """
 Call as follows:
-python collada_mesh_simple.py --blender PATH_TO_BLENDER_EXE --testdir tests/data/collada/mesh
+python collada_mesh_simple.py --blender PATH_TO_BLENDER_EXE --testdir tests/files/collada/mesh
 """
 
 import sys

@@ -1,0 +1,45 @@
+==== Curves: 3
+- Curve 'CurveEndpointRange01' dim:3D resu:12 resv:12 splines:1
+  - spline type:NURBS pts:15x1 order:4x4 cyclic:False,False endp:True,False
+    - (0.290, 0.000, -0.110) w:1.000
+    - (-2.670, 0.000, -15.710) w:1.000
+    - (2.980, 0.000, -18.050) w:1.000
+      ...
+    - (13.380, 0.000, 0.060) w:1.000
+    - (20.200, 0.000, -2.260) w:1.000
+    - (22.170, 0.000, -5.310) w:1.000
+
+- Curve 'CurveEndpointRangeNon01' dim:3D resu:12 resv:12 splines:1
+  - spline type:NURBS pts:15x1 order:4x4 cyclic:False,False endp:True,False
+    - (0.290, 0.000, -0.110) w:1.000
+    - (-2.670, 0.000, -15.710) w:1.000
+    - (2.980, 0.000, -18.050) w:1.000
+      ...
+    - (13.380, 0.000, 0.060) w:1.000
+    - (20.200, 0.000, -2.260) w:1.000
+    - (22.170, 0.000, -5.310) w:1.000
+
+- Curve 'CurveNoEndpointRange01' dim:3D resu:12 resv:12 splines:1
+  - spline type:NURBS pts:15x1 order:4x4 cyclic:False,False endp:False,False
+    - (0.290, 0.000, -0.110) w:1.000
+    - (-2.670, 0.000, -15.710) w:1.000
+    - (2.980, 0.000, -18.050) w:1.000
+      ...
+    - (13.380, 0.000, 0.060) w:1.000
+    - (20.200, 0.000, -2.260) w:1.000
+    - (22.170, 0.000, -5.310) w:1.000
+
+==== Objects: 3
+- Obj 'CurveEndpointRange01' CURVE data:'CurveEndpointRange01'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'CurveEndpointRangeNon01' CURVE data:'CurveEndpointRangeNon01'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'CurveNoEndpointRange01' CURVE data:'CurveNoEndpointRange01'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+

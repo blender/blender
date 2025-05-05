@@ -14,7 +14,7 @@ import numpy as np
 import bpy
 
 """
-blender -b --factory-startup --python tests/python/bl_sculpt.py -- --testdir tests/data/sculpting/
+blender -b --factory-startup --python tests/python/bl_sculpt.py -- --testdir tests/files/sculpting/
 """
 
 args = None

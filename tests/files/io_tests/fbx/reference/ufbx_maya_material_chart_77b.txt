@@ -1,0 +1,558 @@
+==== Meshes: 12
+- Mesh 'Mesh' vtx:4 face:1 loop:4 edge:4
+    - 0 1 3 2 
+    - 0/1 0/2 1/3 2/3 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-5.000, 0.000, 5.000)
+    - (5.000, 0.000, 5.000)
+    - (-5.000, 0.000, -5.000)
+    - (5.000, 0.000, -5.000)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 0 0 0 0 
+  - attr 'material_index' INT FACE
+    - 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'map1' FLOAT2 CORNER
+    - (0.000, 0.000)
+    - (1.000, 0.000)
+    - (1.000, 1.000)
+    - (0.000, 1.000)
+  - 1 materials
+    - 'FBX_DiffuseFactorMaterial' 
+
+- Mesh 'Mesh.001' vtx:4 face:1 loop:4 edge:4
+    - 0 1 3 2 
+    - 0/1 0/2 1/3 2/3 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-5.000, 0.000, 5.000)
+    - (5.000, 0.000, 5.000)
+    - (-5.000, 0.000, -5.000)
+    - (5.000, 0.000, -5.000)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 0 0 0 0 
+  - attr 'material_index' INT FACE
+    - 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'map1' FLOAT2 CORNER
+    - (0.000, 0.000)
+    - (1.000, 0.000)
+    - (1.000, 1.000)
+    - (0.000, 1.000)
+  - 1 materials
+    - 'FBX_EmissiveColorMaterial' 
+
+- Mesh 'Mesh.002' vtx:4 face:1 loop:4 edge:4
+    - 0 1 3 2 
+    - 0/1 0/2 1/3 2/3 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-5.000, 0.000, 5.000)
+    - (5.000, 0.000, 5.000)
+    - (-5.000, 0.000, -5.000)
+    - (5.000, 0.000, -5.000)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 0 0 0 0 
+  - attr 'material_index' INT FACE
+    - 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'map1' FLOAT2 CORNER
+    - (0.000, 0.000)
+    - (1.000, 0.000)
+    - (1.000, 1.000)
+    - (0.000, 1.000)
+  - 1 materials
+    - 'Standard_BaseColorMaterial' 
+
+- Mesh 'Mesh.003' vtx:4 face:1 loop:4 edge:4
+    - 0 1 3 2 
+    - 0/1 0/2 1/3 2/3 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-5.000, 0.000, 5.000)
+    - (5.000, 0.000, 5.000)
+    - (-5.000, 0.000, -5.000)
+    - (5.000, 0.000, -5.000)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 0 0 0 0 
+  - attr 'material_index' INT FACE
+    - 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'map1' FLOAT2 CORNER
+    - (0.000, 0.000)
+    - (1.000, 0.000)
+    - (1.000, 1.000)
+    - (0.000, 1.000)
+  - 1 materials
+    - 'Standard_BaseFactorMaterial' 
+
+- Mesh 'Mesh.004' vtx:4 face:1 loop:4 edge:4
+    - 0 1 3 2 
+    - 0/1 0/2 1/3 2/3 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-5.000, 0.000, 5.000)
+    - (5.000, 0.000, 5.000)
+    - (-5.000, 0.000, -5.000)
+    - (5.000, 0.000, -5.000)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 0 0 0 0 
+  - attr 'material_index' INT FACE
+    - 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'map1' FLOAT2 CORNER
+    - (0.000, 0.000)
+    - (1.000, 0.000)
+    - (1.000, 1.000)
+    - (0.000, 1.000)
+  - 1 materials
+    - 'Standard_EmissiveColorMaterial' 
+
+- Mesh 'Mesh.005' vtx:4 face:1 loop:4 edge:4
+    - 0 1 3 2 
+    - 0/1 0/2 1/3 2/3 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-5.000, 0.000, 5.000)
+    - (5.000, 0.000, 5.000)
+    - (-5.000, 0.000, -5.000)
+    - (5.000, 0.000, -5.000)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 0 0 0 0 
+  - attr 'material_index' INT FACE
+    - 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'map1' FLOAT2 CORNER
+    - (0.000, 0.000)
+    - (1.000, 0.000)
+    - (1.000, 1.000)
+    - (0.000, 1.000)
+  - 1 materials
+    - 'FBX_DiffuseTextureMaterial' 
+
+- Mesh 'Mesh.006' vtx:4 face:1 loop:4 edge:4
+    - 0 1 3 2 
+    - 0/1 0/2 1/3 2/3 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-5.000, 0.000, 5.000)
+    - (5.000, 0.000, 5.000)
+    - (-5.000, 0.000, -5.000)
+    - (5.000, 0.000, -5.000)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 0 0 0 0 
+  - attr 'material_index' INT FACE
+    - 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'map1' FLOAT2 CORNER
+    - (0.000, 0.000)
+    - (1.000, 0.000)
+    - (1.000, 1.000)
+    - (0.000, 1.000)
+  - 1 materials
+    - 'FBX_DiffuseTextureFactorMaterial' 
+
+- Mesh 'Mesh.007' vtx:4 face:1 loop:4 edge:4
+    - 0 1 3 2 
+    - 0/1 0/2 1/3 2/3 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-5.000, 0.000, 5.000)
+    - (5.000, 0.000, 5.000)
+    - (-5.000, 0.000, -5.000)
+    - (5.000, 0.000, -5.000)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 0 0 0 0 
+  - attr 'material_index' INT FACE
+    - 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'map1' FLOAT2 CORNER
+    - (0.000, 0.000)
+    - (1.000, 0.000)
+    - (1.000, 1.000)
+    - (0.000, 1.000)
+  - 1 materials
+    - 'FBX_EmissiveTextureMaterial' 
+
+- Mesh 'Mesh.008' vtx:4 face:1 loop:4 edge:4
+    - 0 1 3 2 
+    - 0/1 0/2 1/3 2/3 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-5.000, 0.000, 5.000)
+    - (5.000, 0.000, 5.000)
+    - (-5.000, 0.000, -5.000)
+    - (5.000, 0.000, -5.000)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 0 0 0 0 
+  - attr 'material_index' INT FACE
+    - 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'map1' FLOAT2 CORNER
+    - (0.000, 0.000)
+    - (1.000, 0.000)
+    - (1.000, 1.000)
+    - (0.000, 1.000)
+  - 1 materials
+    - 'Standard_BaseTextureMaterial' 
+
+- Mesh 'Mesh.009' vtx:4 face:1 loop:4 edge:4
+    - 0 1 3 2 
+    - 0/1 0/2 1/3 2/3 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-5.000, 0.000, 5.000)
+    - (5.000, 0.000, 5.000)
+    - (-5.000, 0.000, -5.000)
+    - (5.000, 0.000, -5.000)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 0 0 0 0 
+  - attr 'material_index' INT FACE
+    - 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'map1' FLOAT2 CORNER
+    - (0.000, 0.000)
+    - (1.000, 0.000)
+    - (1.000, 1.000)
+    - (0.000, 1.000)
+  - 1 materials
+    - 'Standard_BaseTextureFactorMaterial' 
+
+- Mesh 'Mesh.010' vtx:4 face:1 loop:4 edge:4
+    - 0 1 3 2 
+    - 0/1 0/2 1/3 2/3 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-5.000, 0.000, 5.000)
+    - (5.000, 0.000, 5.000)
+    - (-5.000, 0.000, -5.000)
+    - (5.000, 0.000, -5.000)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 0 0 0 0 
+  - attr 'material_index' INT FACE
+    - 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'map1' FLOAT2 CORNER
+    - (0.000, 0.000)
+    - (1.000, 0.000)
+    - (1.000, 1.000)
+    - (0.000, 1.000)
+  - 1 materials
+    - 'Standard_EmissiveTextureMaterial' 
+
+- Mesh 'Mesh.011' vtx:4 face:1 loop:4 edge:4
+    - 0 1 3 2 
+    - 0/1 0/2 1/3 2/3 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-5.000, 0.000, 5.000)
+    - (5.000, 0.000, 5.000)
+    - (-5.000, 0.000, -5.000)
+    - (5.000, 0.000, -5.000)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 0 0 0 0 
+  - attr 'material_index' INT FACE
+    - 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'map1' FLOAT2 CORNER
+    - (0.000, 0.000)
+    - (1.000, 0.000)
+    - (1.000, 1.000)
+    - (0.000, 1.000)
+  - 1 materials
+    - 'FBX_DIffuseColorMaterial' 
+
+==== Objects: 14
+- Obj 'camera1' CAMERA data:'camera1'
+  - pos 0.000, -0.200, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 0.010, 0.010, 0.010
+- Obj 'directionalLight1' LIGHT data:'Light'
+  - pos 0.000, -0.100, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 0.010, 0.010, 0.010
+- Obj 'FBX_DiffuseColor' MESH data:'Mesh.011'
+  - pos -0.150, 0.000, -0.100
+  - rot 3.142, -1.571, 0.000 (XYZ)
+  - scl 0.010, 0.010, 0.010
+  - 1 modifiers
+    - SUBSURF 'Subdivision' levels:2/2 type:CATMULL_CLARK crease:True
+  - props: str:currentUVSet='map1'
+- Obj 'FBX_DiffuseFactor' MESH data:'Mesh'
+  - pos -0.150, 0.000, 0.000
+  - rot 3.142, -1.571, 0.000 (XYZ)
+  - scl 0.010, 0.010, 0.010
+  - 1 modifiers
+    - SUBSURF 'Subdivision' levels:2/2 type:CATMULL_CLARK crease:True
+  - props: str:currentUVSet='map1'
+- Obj 'FBX_DiffuseTexture' MESH data:'Mesh.005'
+  - pos 0.050, 0.000, -0.100
+  - rot 3.142, -1.571, 0.000 (XYZ)
+  - scl 0.010, 0.010, 0.010
+  - 1 modifiers
+    - SUBSURF 'Subdivision' levels:2/2 type:CATMULL_CLARK crease:True
+  - props: str:currentUVSet='map1'
+- Obj 'FBX_DiffuseTextureFactor' MESH data:'Mesh.006'
+  - pos 0.050, 0.000, 0.000
+  - rot 3.142, -1.571, 0.000 (XYZ)
+  - scl 0.010, 0.010, 0.010
+  - 1 modifiers
+    - SUBSURF 'Subdivision' levels:2/2 type:CATMULL_CLARK crease:True
+  - props: str:currentUVSet='map1'
+- Obj 'FBX_EmissiveColor' MESH data:'Mesh.001'
+  - pos -0.150, 0.000, 0.100
+  - rot 3.142, -1.571, 0.000 (XYZ)
+  - scl 0.010, 0.010, 0.010
+  - 1 modifiers
+    - SUBSURF 'Subdivision' levels:2/2 type:CATMULL_CLARK crease:True
+  - props: str:currentUVSet='map1'
+- Obj 'FBX_EmissiveTexture' MESH data:'Mesh.007'
+  - pos 0.050, 0.000, 0.100
+  - rot 3.142, -1.571, 0.000 (XYZ)
+  - scl 0.010, 0.010, 0.010
+  - 1 modifiers
+    - SUBSURF 'Subdivision' levels:2/2 type:CATMULL_CLARK crease:True
+  - props: str:currentUVSet='map1'
+- Obj 'Standard_BaseColor' MESH data:'Mesh.002'
+  - pos -0.050, 0.000, -0.100
+  - rot 3.142, -1.571, 0.000 (XYZ)
+  - scl 0.010, 0.010, 0.010
+  - 1 modifiers
+    - SUBSURF 'Subdivision' levels:2/2 type:CATMULL_CLARK crease:True
+  - props: str:currentUVSet='map1'
+- Obj 'Standard_BaseFactor' MESH data:'Mesh.003'
+  - pos -0.050, 0.000, 0.000
+  - rot 3.142, -1.571, 0.000 (XYZ)
+  - scl 0.010, 0.010, 0.010
+  - 1 modifiers
+    - SUBSURF 'Subdivision' levels:2/2 type:CATMULL_CLARK crease:True
+  - props: str:currentUVSet='map1'
+- Obj 'Standard_BaseTexture' MESH data:'Mesh.008'
+  - pos 0.150, 0.000, -0.100
+  - rot 3.142, -1.571, 0.000 (XYZ)
+  - scl 0.010, 0.010, 0.010
+  - 1 modifiers
+    - SUBSURF 'Subdivision' levels:2/2 type:CATMULL_CLARK crease:True
+  - props: str:currentUVSet='map1'
+- Obj 'Standard_BaseTextureFactor' MESH data:'Mesh.009'
+  - pos 0.150, 0.000, 0.000
+  - rot 3.142, -1.571, 0.000 (XYZ)
+  - scl 0.010, 0.010, 0.010
+  - 1 modifiers
+    - SUBSURF 'Subdivision' levels:2/2 type:CATMULL_CLARK crease:True
+  - props: str:currentUVSet='map1'
+- Obj 'Standard_EmissiveColor' MESH data:'Mesh.004'
+  - pos -0.050, 0.000, 0.100
+  - rot 3.142, -1.571, 0.000 (XYZ)
+  - scl 0.010, 0.010, 0.010
+  - 1 modifiers
+    - SUBSURF 'Subdivision' levels:2/2 type:CATMULL_CLARK crease:True
+  - props: str:currentUVSet='map1'
+- Obj 'Standard_EmissiveTexture' MESH data:'Mesh.010'
+  - pos 0.150, 0.000, 0.100
+  - rot 3.142, -1.571, 0.000 (XYZ)
+  - scl 0.010, 0.010, 0.010
+  - 1 modifiers
+    - SUBSURF 'Subdivision' levels:2/2 type:CATMULL_CLARK crease:True
+  - props: str:currentUVSet='map1'
+
+==== Cameras: 1
+- Cam 'camera1' ORTHO lens:35.0 MILLIMETERS near:0.001 far:100.0 orthosize:2.0
+  - fov 0.950 (h 0.950 v 0.661)
+  - sensor 36.0x24.0 shift 0.000,0.000
+
+==== Lights: 1
+- Light 'Light' SUN col:(1.000, 1.000, 1.000) energy:3.142
+
+==== Materials: 12
+- Mat 'FBX_DIffuseColorMaterial'
+  - base color (0.125, 0.250, 0.500)
+  - specular ior 0.500
+  - specular tint (1.000, 1.000, 1.000)
+  - roughness 0.500
+  - metallic 0.000
+  - ior 1.500
+  - viewport diffuse (0.125, 0.250, 0.500, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 0.500
+  - viewport metallic 0.000, roughness 0.500
+  - backface False probe True shadow False
+
+- Mat 'FBX_DiffuseFactorMaterial'
+  - base color (0.250, 0.500, 1.000)
+  - specular ior 0.500
+  - specular tint (1.000, 1.000, 1.000)
+  - roughness 0.500
+  - metallic 0.000
+  - ior 1.500
+  - viewport diffuse (0.250, 0.500, 1.000, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 0.500
+  - viewport metallic 0.000, roughness 0.500
+  - backface False probe True shadow False
+
+- Mat 'FBX_DiffuseTextureFactorMaterial'
+  - base color (1.000, 1.000, 1.000) tex:'chart_bright_blue_srgb.png' (textures/chart_bright_blue_srgb.png) a:False
+  - specular ior 0.500
+  - specular tint (1.000, 1.000, 1.000)
+  - roughness 0.500
+  - metallic 0.000
+  - ior 1.500
+  - viewport diffuse (1.000, 1.000, 1.000, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 0.500
+  - viewport metallic 0.000, roughness 0.500
+  - backface False probe True shadow False
+
+- Mat 'FBX_DiffuseTextureMaterial'
+  - base color (1.000, 1.000, 1.000) tex:'chart_blue_srgb.png' (textures/chart_blue_srgb.png) a:False
+  - specular ior 0.500
+  - specular tint (1.000, 1.000, 1.000)
+  - roughness 0.500
+  - metallic 0.000
+  - ior 1.500
+  - viewport diffuse (1.000, 1.000, 1.000, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 0.500
+  - viewport metallic 0.000, roughness 0.500
+  - backface False probe True shadow False
+
+- Mat 'FBX_EmissiveColorMaterial'
+  - base color (0.000, 0.000, 0.000)
+  - specular ior 0.500
+  - specular tint (0.000, 0.000, 0.000)
+  - roughness 0.859
+  - metallic 0.000
+  - ior 1.500
+  - emission color (0.125, 0.250, 0.500)
+  - emission strength 1.000
+  - viewport diffuse (0.000, 0.000, 0.000, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 0.500
+  - viewport metallic 0.000, roughness 0.859
+  - backface False probe True shadow False
+
+- Mat 'FBX_EmissiveTextureMaterial'
+  - base color (0.000, 0.000, 0.000)
+  - specular ior 0.500
+  - specular tint (0.000, 0.000, 0.000)
+  - roughness 0.437
+  - metallic 0.000
+  - ior 1.500
+  - emission color (0.500, 0.500, 0.500) tex:'chart_blue_srgb.png' (textures/chart_blue_srgb.png) a:False
+  - emission strength 1.000
+  - viewport diffuse (0.000, 0.000, 0.000, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 0.500
+  - viewport metallic 0.000, roughness 0.437
+  - backface False probe True shadow False
+
+- Mat 'Standard_BaseColorMaterial'
+  - base color (0.125, 0.250, 0.500)
+  - specular ior 0.000
+  - specular tint (1.000, 1.000, 1.000)
+  - roughness 0.400
+  - metallic 0.000
+  - ior 1.500
+  - viewport diffuse (0.125, 0.250, 0.500, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 0.000
+  - viewport metallic 0.000, roughness 0.400
+  - backface False probe True shadow False
+
+- Mat 'Standard_BaseFactorMaterial'
+  - base color (0.250, 0.500, 1.000)
+  - specular ior 0.000
+  - specular tint (0.000, 0.000, 0.000)
+  - roughness 0.400
+  - metallic 0.000
+  - ior 1.500
+  - viewport diffuse (0.250, 0.500, 1.000, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 0.000
+  - viewport metallic 0.000, roughness 0.400
+  - backface False probe True shadow False
+
+- Mat 'Standard_BaseTextureFactorMaterial'
+  - base color (0.000, 0.000, 0.000) tex:'chart_bright_blue_srgb.png' (textures/chart_bright_blue_srgb.png) a:False
+  - specular ior 0.000
+  - specular tint (0.000, 0.000, 0.000)
+  - roughness 0.400
+  - metallic 0.000
+  - ior 1.500
+  - viewport diffuse (0.000, 0.000, 0.000, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 0.000
+  - viewport metallic 0.000, roughness 0.400
+  - backface False probe True shadow False
+
+- Mat 'Standard_BaseTextureMaterial'
+  - base color (0.000, 0.000, 0.000) tex:'chart_blue_srgb.png' (textures/chart_blue_srgb.png) a:False
+  - specular ior 0.000
+  - specular tint (0.000, 0.000, 0.000)
+  - roughness 0.400
+  - metallic 0.000
+  - ior 1.500
+  - viewport diffuse (0.000, 0.000, 0.000, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 0.000
+  - viewport metallic 0.000, roughness 0.400
+  - backface False probe True shadow False
+
+- Mat 'Standard_EmissiveColorMaterial'
+  - base color (0.000, 0.000, 0.000)
+  - specular ior 0.000
+  - specular tint (0.000, 0.000, 0.000)
+  - roughness 0.400
+  - metallic 0.000
+  - ior 1.500
+  - emission color (0.125, 0.250, 0.500)
+  - emission strength 1.000
+  - viewport diffuse (0.000, 0.000, 0.000, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 0.000
+  - viewport metallic 0.000, roughness 0.400
+  - backface False probe True shadow False
+
+- Mat 'Standard_EmissiveTextureMaterial'
+  - base color (0.000, 0.000, 0.000)
+  - specular ior 0.000
+  - specular tint (0.000, 0.000, 0.000)
+  - roughness 0.400
+  - metallic 0.000
+  - ior 1.500
+  - viewport diffuse (0.000, 0.000, 0.000, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 0.000
+  - viewport metallic 0.000, roughness 0.400
+  - backface False probe True shadow False
+
+==== Images: 2
+- Image 'chart_blue_srgb.png' 4x4 24bpp
+- Image 'chart_bright_blue_srgb.png' 4x4 24bpp
+

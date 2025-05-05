@@ -1,0 +1,670 @@
+==== Meshes: 18
+- Mesh 'BezierCurve' vtx:13 face:0 loop:0 edge:12
+    - 0/1 1/2 2/3 3/4 4/5 ... 7/8 8/9 9/10 10/11 11/12 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, -2.000, 0.000)
+    - (-0.875, -1.895, 0.000)
+    - (-0.748, -1.826, 0.000)
+      ...
+    - (0.539, -1.965, 0.000)
+    - (0.760, -1.990, 0.000)
+    - (1.000, -2.000, 0.000)
+
+- Mesh 'BlankCube' vtx:8 face:7 loop:26 edge:13
+    - 4 7 6 5 0 ... 1 2 0 2 3 
+    - 4/5 4/7 6/7 5/6 0/1 ... 2/6 2/3 3/7 0/3 0/2 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (1.000, 1.000, -1.000)
+    - (1.000, -1.000, -1.000)
+    - (-1.000, -1.000, -1.000)
+      ...
+    - (1.000, -1.000, 1.000)
+    - (-1.000, -1.000, 1.000)
+    - (-1.000, 1.000, 1.000)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 1 1 1 1 1 ... 1 1 1 1 0 
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 0 0 
+  - attr 'sharp_face' BOOLEAN FACE
+    - 0 0 0 0 0 0 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - 1 materials
+    - 'Material' 
+
+- Mesh 'MaterialCube' vtx:8 face:7 loop:26 edge:13
+    - 2 6 7 3 4 ... 1 2 0 2 3 
+    - 2/3 2/6 6/7 3/7 4/7 ... 5/6 0/1 1/5 1/2 0/2 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (28.000, 1.000, -1.000)
+    - (28.000, -1.000, -1.000)
+    - (26.000, -1.000, -1.000)
+      ...
+    - (28.000, -1.000, 1.000)
+    - (26.000, -1.000, 1.000)
+    - (26.000, 1.000, 1.000)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 1 1 1 1 1 ... 1 1 1 1 0 
+  - attr 'material_index' INT FACE
+    - 0 1 2 3 4 5 5 
+  - attr 'sharp_face' BOOLEAN FACE
+    - 0 0 0 0 0 0 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - 6 materials
+    - 'Red' 'Green' 'Blue' 'RedDark' 'GreenDark' 'BlueDark' 
+
+- Mesh 'NurbsCircle' vtx:96 face:0 loop:0 edge:96
+    - 0/1 1/2 2/3 3/4 4/5 ... 91/92 92/93 93/94 94/95 0/95 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (3.293, -2.707, 0.000)
+    - (3.224, -2.631, 0.000)
+    - (3.165, -2.552, 0.000)
+      ...
+    - (3.526, -2.883, 0.000)
+    - (3.448, -2.835, 0.000)
+    - (3.369, -2.776, 0.000)
+
+- Mesh 'NurbsCircle.001' vtx:4 face:0 loop:0 edge:4
+    - 0/1 1/2 2/3 0/3 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (2.000, -3.000, 0.000)
+    - (1.000, -2.000, 0.000)
+    - (2.000, -1.000, 0.000)
+    - (3.000, -2.000, 0.000)
+
+- Mesh 'ParticleCube' vtx:8 face:7 loop:26 edge:13
+    - 4 7 6 5 0 ... 1 2 0 2 3 
+    - 4/5 4/7 6/7 5/6 0/1 ... 2/6 2/3 3/7 0/3 0/2 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (22.000, 1.000, -1.000)
+    - (22.000, -1.000, -1.000)
+    - (20.000, -1.000, -1.000)
+      ...
+    - (22.000, -1.000, 1.000)
+    - (20.000, -1.000, 1.000)
+    - (20.000, 1.000, 1.000)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 1 1 1 1 1 ... 1 1 1 1 0 
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 0 0 
+  - attr 'sharp_face' BOOLEAN FACE
+    - 0 0 0 0 0 0 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - 1 materials
+    - 'Material' 
+
+- Mesh 'ShapeKeyCube' vtx:8 face:7 loop:26 edge:13
+    - 4 7 6 5 0 ... 1 2 0 2 3 
+    - 4/5 4/7 6/7 5/6 0/1 ... 2/6 2/3 3/7 0/3 0/2 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (19.000, 1.000, -1.000)
+    - (19.000, -1.000, -1.000)
+    - (17.000, -1.000, -1.000)
+      ...
+    - (19.000, -1.000, 1.000)
+    - (17.000, -1.000, 0.000)
+    - (17.000, 1.000, 1.000)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 1 1 1 1 1 ... 1 1 1 1 0 
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 0 0 
+  - attr 'sharp_face' BOOLEAN FACE
+    - 0 0 0 0 0 0 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - 1 materials
+    - 'Material' 
+
+- Mesh 'SmoothCube' vtx:8 face:7 loop:26 edge:13
+    - 4 7 6 5 0 ... 1 2 0 2 3 
+    - 4/5 4/7 6/7 5/6 0/1 ... 2/6 2/3 3/7 0/3 0/2 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (4.000, 1.000, -1.000)
+    - (4.000, -1.000, -1.000)
+    - (2.000, -1.000, -1.000)
+      ...
+    - (4.000, -1.000, 1.000)
+    - (2.000, -1.000, 1.000)
+    - (2.000, 1.000, 1.000)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 0 0 0 0 0 ... 0 0 0 0 0 
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 0 0 
+  - attr 'sharp_face' BOOLEAN FACE
+    - 0 0 0 0 0 0 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - 1 materials
+    - 'Material' 
+
+- Mesh 'Surface' vtx:256 face:224 loop:896 edge:480
+    - 1 9 8 0 2 ... 253 255 7 6 254 
+    - 0/1 1/9 8/9 0/8 1/2 ... 3/251 4/252 5/253 6/254 7/255 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (7.293, -2.707, -1.000)
+    - (7.293, -2.707, -0.714)
+    - (7.293, -2.707, -0.429)
+      ...
+    - (7.526, -2.883, 0.429)
+    - (7.526, -2.883, 0.714)
+    - (7.526, -2.883, 1.000)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 0 0 0 0 0 ... 0 0 0 0 0 
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 ... 0 0 0 0 0 
+  - attr 'sharp_face' BOOLEAN FACE
+    - 0 0 0 0 0 ... 0 0 0 0 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'UVMap' FLOAT2 CORNER
+    - (0.000, 0.143)
+    - (0.031, 0.143)
+    - (0.031, 0.000)
+      ...
+    - (1.000, 1.000)
+    - (1.000, 0.857)
+    - (0.969, 0.857)
+  - 1 materials
+    - 'Material' 
+
+- Mesh 'SurfPatch' vtx:256 face:225 loop:900 edge:480
+    - 1 17 16 0 2 ... 237 239 255 254 238 
+    - 0/1 1/17 16/17 0/16 1/2 ... 252/253 238/254 253/254 239/255 254/255 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (12.500, -2.500, 0.694)
+    - (12.567, -2.500, 0.720)
+    - (12.633, -2.500, 0.743)
+      ...
+    - (13.367, -1.500, 0.743)
+    - (13.433, -1.500, 0.720)
+    - (13.500, -1.500, 0.694)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 0 0 0 0 0 ... 0 0 0 0 0 
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 ... 0 0 0 0 0 
+  - attr 'sharp_face' BOOLEAN FACE
+    - 0 0 0 0 0 ... 0 0 0 0 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'UVMap' FLOAT2 CORNER
+    - (0.000, 0.067)
+    - (0.067, 0.067)
+    - (0.067, 0.000)
+      ...
+    - (1.000, 1.000)
+    - (1.000, 0.933)
+    - (0.933, 0.933)
+
+- Mesh 'SurfSphere' vtx:640 face:608 loop:2432 edge:1248
+    - 0 32 63 31 1 ... 605 607 639 638 606 
+    - 0/31 0/32 32/63 31/63 0/1 ... 605/637 636/637 606/638 637/638 638/639 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (11.000, -2.000, -1.000)
+    - (11.000, -2.000, -1.000)
+    - (11.000, -2.000, -1.000)
+      ...
+    - (11.000, -2.000, 1.000)
+    - (11.000, -2.000, 1.000)
+    - (11.000, -2.000, 1.000)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 0 0 0 0 0 ... 0 0 0 0 0 
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 ... 0 0 0 0 0 
+  - attr 'sharp_face' BOOLEAN FACE
+    - 0 0 0 0 0 ... 0 0 0 0 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (102, -7523)
+    - (45, 32767)
+    - (0, 0)
+  - attr 'UVMap' FLOAT2 CORNER
+    - (0.000, 1.000)
+    - (0.053, 1.000)
+    - (0.053, 0.969)
+      ...
+    - (1.000, 0.969)
+    - (1.000, 0.938)
+    - (0.947, 0.938)
+
+- Mesh 'SurfTorus.001' vtx:1024 face:1024 loop:4096 edge:2048
+    - 0 32 63 31 1 ... 1021 1023 31 30 1022 
+    - 0/31 0/32 32/63 0/1 32/33 ... 1015/1016 31/1023 7/999 15/1007 23/1015 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (5.345, -2.655, -0.177)
+    - (5.561, -2.819, -0.177)
+    - (5.750, -2.898, -0.177)
+      ...
+    - (5.134, -2.103, -0.221)
+    - (5.158, -2.235, -0.221)
+    - (5.233, -2.412, -0.221)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 0 0 0 0 0 ... 0 0 0 0 0 
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 ... 0 0 0 0 0 
+  - attr 'sharp_face' BOOLEAN FACE
+    - 0 0 0 0 0 ... 0 0 0 0 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'UVMap' FLOAT2 CORNER
+    - (0.000, 1.000)
+    - (0.031, 1.000)
+    - (0.031, 0.969)
+      ...
+    - (1.000, 0.969)
+    - (1.000, 0.938)
+    - (0.969, 0.938)
+  - 1 materials
+    - 'Material' 
+
+- Mesh 'TaperCube' vtx:106 face:104 loop:416 edge:208
+    - 47 48 51 50 48 ... 104 25 104 103 24 
+    - 47/50 47/48 48/51 50/51 48/49 ... 23/102 46/102 24/103 13/104 25/104 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (24.444, 0.503, -0.754)
+    - (24.556, -0.646, -0.582)
+    - (23.556, -0.386, -0.580)
+      ...
+    - (23.509, 0.179, -0.699)
+    - (23.552, 0.389, -0.640)
+    - (23.791, 0.461, -0.767)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 1 1 1 1 1 ... 1 1 1 1 1 
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 ... 0 0 0 0 0 
+  - attr 'sharp_face' BOOLEAN FACE
+    - 0 0 0 0 0 ... 0 0 0 0 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - 1 materials
+    - 'Material' 
+
+- Mesh 'Text' vtx:177 face:171 loop:513 edge:345
+    - 1 57 0 1 56 ... 176 172 173 174 175 
+    - 0/1 1/57 0/57 1/56 56/57 ... 173/175 172/175 175/176 173/174 174/175 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (1.750, -9.458, 0.000)
+    - (1.583, -9.621, 0.000)
+    - (1.583, -9.631, 0.000)
+      ...
+    - (0.351, -10.000, 0.000)
+    - (0.351, -9.406, 0.000)
+    - (0.587, -9.406, 0.000)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 0 0 0 0 0 ... 0 0 0 0 0 
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 ... 0 0 0 0 0 
+  - attr 'sharp_face' BOOLEAN FACE
+    - 0 0 0 0 1 ... 0 1 0 1 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'UVMap' FLOAT2 CORNER
+    - (0.018, 0.000)
+    - (1.000, 0.000)
+    - (0.000, 0.000)
+      ...
+    - (0.571, 0.000)
+    - (0.714, 0.000)
+    - (0.857, 0.000)
+  - 1 materials
+    - 'Material' 
+
+- Mesh 'UVCube' vtx:8 face:7 loop:26 edge:13
+    - 4 7 6 5 0 ... 1 2 0 2 3 
+    - 4/5 4/7 6/7 5/6 0/1 ... 2/6 2/3 3/7 0/3 0/2 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (7.000, 1.000, -1.000)
+    - (7.000, -1.000, -1.000)
+    - (5.000, -1.000, -1.000)
+      ...
+    - (7.000, -1.000, 1.000)
+    - (5.000, -1.000, 1.000)
+    - (5.000, 1.000, 1.000)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 1 1 1 1 1 ... 1 1 1 1 0 
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 0 0 
+  - attr 'sharp_face' BOOLEAN FACE
+    - 0 0 0 0 0 0 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'UVMap' FLOAT2 CORNER
+    - (0.655, 0.580)
+    - (0.089, 0.796)
+    - (0.000, 0.216)
+      ...
+    - (1.000, 0.784)
+    - (0.345, 0.420)
+    - (0.435, 1.000)
+  - 1 materials
+    - 'Material' 
+
+- Mesh 'UVImageCube' vtx:8 face:7 loop:26 edge:13
+    - 4 7 6 5 0 ... 1 2 0 2 3 
+    - 4/5 4/7 6/7 5/6 0/1 ... 2/6 2/3 3/7 0/3 0/2 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (10.000, 1.000, -1.000)
+    - (10.000, -1.000, -1.000)
+    - (8.000, -1.000, -1.000)
+      ...
+    - (10.000, -1.000, 1.000)
+    - (8.000, -1.000, 1.000)
+    - (8.000, 1.000, 1.000)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 1 1 1 1 1 ... 1 1 1 1 0 
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 0 0 
+  - attr 'sharp_face' BOOLEAN FACE
+    - 0 0 0 0 0 0 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'UVMap' FLOAT2 CORNER
+    - (0.655, 0.580)
+    - (0.089, 0.796)
+    - (0.000, 0.216)
+      ...
+    - (1.000, 0.784)
+    - (0.345, 0.420)
+    - (0.435, 1.000)
+  - 1 materials
+    - 'Material' 
+
+- Mesh 'VColCube' vtx:8 face:7 loop:26 edge:13
+    - 4 7 6 5 0 ... 1 2 0 2 3 
+    - 4/5 4/7 6/7 5/6 0/1 ... 2/6 2/3 3/7 0/3 0/2 
+  - attr 'Color' FLOAT_COLOR POINT
+    - (0.000, 0.002, 1.000, 1.000)
+    - (1.000, 1.000, 1.000, 1.000)
+    - (1.000, 0.000, 0.010, 1.000)
+      ...
+    - (0.956, 0.000, 1.000, 1.000)
+    - (0.000, 1.000, 0.991, 1.000)
+    - (0.000, 0.000, 0.000, 1.000)
+  - attr 'position' FLOAT_VECTOR POINT
+    - (13.000, 1.000, -1.000)
+    - (13.000, -1.000, -1.000)
+    - (11.000, -1.000, -1.000)
+      ...
+    - (13.000, -1.000, 1.000)
+    - (11.000, -1.000, 1.000)
+    - (11.000, 1.000, 1.000)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 1 1 1 1 1 ... 1 1 1 1 0 
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 0 0 
+  - attr 'sharp_face' BOOLEAN FACE
+    - 0 0 0 0 0 0 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - 1 materials
+    - 'Material' 
+
+- Mesh 'VGroupCube' vtx:8 face:7 loop:26 edge:13
+    - 4 7 6 5 0 ... 1 2 0 2 3 
+    - 4/5 4/7 6/7 5/6 0/1 ... 2/6 2/3 3/7 0/3 0/2 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (16.000, 1.000, -1.000)
+    - (16.000, -1.000, -1.000)
+    - (14.000, -1.000, -1.000)
+      ...
+    - (16.000, -1.000, 1.000)
+    - (14.000, -1.000, 1.000)
+    - (14.000, 1.000, 1.000)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 1 1 1 1 1 ... 1 1 1 1 0 
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 0 0 
+  - attr 'sharp_face' BOOLEAN FACE
+    - 0 0 0 0 0 0 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - 1 materials
+    - 'Material' 
+
+==== Objects: 18
+- Obj 'BezierCurve' MESH data:'BezierCurve'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'BlankCube' MESH data:'BlankCube'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'MaterialCube' MESH data:'MaterialCube'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'NurbsCircle' MESH data:'NurbsCircle'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'NurbsCircle.001' MESH data:'NurbsCircle.001'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'ParticleCube' MESH data:'ParticleCube'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'ShapeKeyCube' MESH data:'ShapeKeyCube'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'SmoothCube' MESH data:'SmoothCube'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'Surface' MESH data:'Surface'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'SurfPatch' MESH data:'SurfPatch'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'SurfSphere' MESH data:'SurfSphere'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'SurfTorus.001' MESH data:'SurfTorus.001'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'TaperCube' MESH data:'TaperCube'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'Text' MESH data:'Text'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'UVCube' MESH data:'UVCube'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'UVImageCube' MESH data:'UVImageCube'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'VColCube' MESH data:'VColCube'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'VGroupCube' MESH data:'VGroupCube'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+
+==== Materials: 7
+- Mat 'Blue'
+  - base color (0.000, 0.000, 1.000)
+  - specular ior 0.500
+  - specular tint (1.000, 1.000, 1.000)
+  - roughness 0.500
+  - metallic 0.000
+  - ior 1.000
+  - viewport diffuse (0.000, 0.000, 1.000, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 0.500
+  - viewport metallic 0.000, roughness 0.500
+  - backface False probe True shadow False
+
+- Mat 'BlueDark'
+  - base color (0.000, 0.000, 0.500)
+  - specular ior 0.500
+  - specular tint (1.000, 1.000, 1.000)
+  - roughness 0.500
+  - metallic 0.000
+  - ior 1.000
+  - viewport diffuse (0.000, 0.000, 0.500, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 0.500
+  - viewport metallic 0.000, roughness 0.500
+  - backface False probe True shadow False
+
+- Mat 'Green'
+  - base color (0.000, 1.000, 0.000)
+  - specular ior 0.500
+  - specular tint (1.000, 1.000, 1.000)
+  - roughness 0.500
+  - metallic 0.000
+  - ior 1.000
+  - viewport diffuse (0.000, 1.000, 0.000, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 0.500
+  - viewport metallic 0.000, roughness 0.500
+  - backface False probe True shadow False
+
+- Mat 'GreenDark'
+  - base color (0.000, 0.500, 0.000)
+  - specular ior 0.500
+  - specular tint (1.000, 1.000, 1.000)
+  - roughness 0.500
+  - metallic 0.000
+  - ior 1.000
+  - viewport diffuse (0.000, 0.500, 0.000, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 0.500
+  - viewport metallic 0.000, roughness 0.500
+  - backface False probe True shadow False
+
+- Mat 'Material'
+  - base color (0.800, 0.800, 0.800)
+  - specular ior 0.500
+  - specular tint (1.000, 1.000, 1.000)
+  - roughness 0.500
+  - metallic 0.000
+  - ior 1.000
+  - viewport diffuse (0.800, 0.800, 0.800, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 0.500
+  - viewport metallic 0.000, roughness 0.500
+  - backface False probe True shadow False
+
+- Mat 'Red'
+  - base color (1.000, 0.000, 0.000)
+  - specular ior 0.500
+  - specular tint (1.000, 1.000, 1.000)
+  - roughness 0.500
+  - metallic 0.000
+  - ior 1.000
+  - viewport diffuse (1.000, 0.000, 0.000, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 0.500
+  - viewport metallic 0.000, roughness 0.500
+  - backface False probe True shadow False
+
+- Mat 'RedDark'
+  - base color (0.500, 0.000, 0.000)
+  - specular ior 0.500
+  - specular tint (1.000, 1.000, 1.000)
+  - roughness 0.500
+  - metallic 0.000
+  - ior 1.000
+  - viewport diffuse (0.500, 0.000, 0.000, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 0.500
+  - viewport metallic 0.000, roughness 0.500
+  - backface False probe True shadow False
+

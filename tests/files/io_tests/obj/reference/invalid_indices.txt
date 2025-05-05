@@ -1,0 +1,29 @@
+==== Meshes: 1
+- Mesh 'Quad' vtx:3 face:1 loop:3 edge:3
+    - 0 1 2 
+    - 0/2 0/1 1/2 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-2.000, 0.000, -2.000)
+    - (-2.000, 0.000, 2.000)
+    - (2.000, 0.000, 2.000)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 0 0 0 
+  - attr 'material_index' INT FACE
+    - 0 
+  - attr 'sharp_face' BOOLEAN FACE
+    - 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'UVMap' FLOAT2 CORNER
+    - (0.500, 0.250)
+    - (0.500, 0.250)
+    - (1.000, 0.750)
+
+==== Objects: 1
+- Obj 'Quad' MESH data:'Quad'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+
