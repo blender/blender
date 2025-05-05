@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'1f4cae0c4623')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'a7d2b7850ef2')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-28 09:32+0000\n"
+"POT-Creation-Date: 2025-05-05 08:47+0000\n"
 "PO-Revision-Date: 2025-04-14 08:48+0000\n"
 "Last-Translator: luxem <luxem168@gmail.com>\n"
 "Language-Team: Chinese (Traditional Han script) <https://translate.blender.org/projects/blender-ui/ui/zh_Hant/>\n"
@@ -22579,16 +22579,84 @@ msgid "Material slot name"
 msgstr "材質槽名稱"
 
 
+msgid "Select Similar"
+msgstr "選取相似者"
+
+
+msgid "Select More/Less"
+msgstr "選取更多/更少"
+
+
+msgid "Select Linked"
+msgstr "選取連結項"
+
+
+msgid "Metaball"
+msgstr "變幻球"
+
+
+msgid "Light"
+msgstr "燈光"
+
+
+msgid "Light Probe"
+msgstr "燈光採樣器"
+
+
+msgid "Relations"
+msgstr "關係"
+
+
+msgid "Rigid Body"
+msgstr "剛體"
+
+
+msgid "Apply"
+msgstr "套用"
+
+
+msgid "Track"
+msgstr "追蹤"
+
+
+msgid "Quick Effects"
+msgstr "快速效果"
+
+
+msgid "Show/Hide"
+msgstr "顯示/隱藏"
+
+
+msgid "Clean Up"
+msgstr "清理"
+
+
+msgid "Asset"
+msgstr "素材"
+
+
+msgid "Make Single User"
+msgstr "製作單一使用者"
+
+
+msgid "Convert"
+msgstr "轉換"
+
+
+msgid "Link/Transfer Data"
+msgstr "連結/傳輸資料"
+
+
+msgid "Hooks"
+msgstr "鉤"
+
+
 msgid "Sculpt Set Pivot"
 msgstr "設定樞紐點"
 
 
 msgid "Random Mask"
 msgstr "隨機遮罩"
-
-
-msgid "Show/Hide"
-msgstr "顯示/隱藏"
 
 
 msgid "Clear Transform"
@@ -22611,10 +22679,6 @@ msgid "Names"
 msgstr "名稱"
 
 
-msgid "Apply"
-msgstr "套用"
-
-
 msgid "Toggle Bone Options"
 msgstr "開關骨骼選項"
 
@@ -22635,10 +22699,6 @@ msgid "Face Data"
 msgstr "面資料"
 
 
-msgid "Clean Up"
-msgstr "清理"
-
-
 msgid "Merge"
 msgstr "合併"
 
@@ -22653,10 +22713,6 @@ msgstr "字間微調"
 
 msgid "Text"
 msgstr "文字"
-
-
-msgid "Metaball"
-msgstr "變幻球"
 
 
 msgid "Bone Roll"
@@ -22713,62 +22769,6 @@ msgstr "對齊檢視至作用項"
 
 msgid "View Regions"
 msgstr "檢視範圍"
-
-
-msgid "Select More/Less"
-msgstr "選取更多/更少"
-
-
-msgid "Select Similar"
-msgstr "選取相似者"
-
-
-msgid "Select Linked"
-msgstr "選取連結項"
-
-
-msgid "Light"
-msgstr "燈光"
-
-
-msgid "Light Probe"
-msgstr "燈光採樣器"
-
-
-msgid "Relations"
-msgstr "關係"
-
-
-msgid "Rigid Body"
-msgstr "剛體"
-
-
-msgid "Track"
-msgstr "追蹤"
-
-
-msgid "Quick Effects"
-msgstr "快速效果"
-
-
-msgid "Asset"
-msgstr "素材"
-
-
-msgid "Make Single User"
-msgstr "製作單一使用者"
-
-
-msgid "Convert"
-msgstr "轉換"
-
-
-msgid "Link/Transfer Data"
-msgstr "連結/傳輸資料"
-
-
-msgid "Hooks"
-msgstr "鉤"
 
 
 msgid "Basic"
@@ -28237,36 +28237,12 @@ msgid "Box Mask"
 msgstr "方塊遮罩"
 
 
-msgid "Height of the box"
-msgstr "方塊的高度"
-
-
 msgid "Not"
 msgstr "不是"
 
 
-msgid "Width of the box"
-msgstr "方塊的寬度"
-
-
-msgid "Rotation angle of the box"
-msgstr "方塊的旋轉角度"
-
-
-msgid "X position of the middle of the box"
-msgstr "方塊中間的 X 位置"
-
-
-msgid "Y position of the middle of the box"
-msgstr "方塊中間的 Y 位置"
-
-
 msgid "Brightness/Contrast"
 msgstr "亮度/對比"
-
-
-msgid "Keep output image premultiplied alpha"
-msgstr "保持輸出圖片的 alpha 為預乘模式"
 
 
 msgid "Channel Key"
@@ -28365,19 +28341,7 @@ msgid "Color Correction"
 msgstr "色彩校正"
 
 
-msgid "Blue channel active"
-msgstr "藍色通道作用中"
-
-
-msgid "Green channel active"
-msgstr "綠色通道作用中"
-
-
 msgid "Highlights Contrast"
-msgstr "高亮處對比"
-
-
-msgid "Highlights contrast"
 msgstr "高亮處對比"
 
 
@@ -28385,15 +28349,7 @@ msgid "Highlights Gain"
 msgstr "高亮處增益"
 
 
-msgid "Highlights gain"
-msgstr "高亮處增益"
-
-
 msgid "Highlights Gamma"
-msgstr "高亮處伽瑪"
-
-
-msgid "Highlights gamma"
 msgstr "高亮處伽瑪"
 
 
@@ -28401,15 +28357,7 @@ msgid "Highlights Lift"
 msgstr "高亮處抬升"
 
 
-msgid "Highlights lift"
-msgstr "高亮處抬升"
-
-
 msgid "Highlights Saturation"
-msgstr "高亮處飽和度"
-
-
-msgid "Highlights saturation"
 msgstr "高亮處飽和度"
 
 
@@ -28417,15 +28365,7 @@ msgid "Master Contrast"
 msgstr "主區對比"
 
 
-msgid "Master contrast"
-msgstr "主區對比"
-
-
 msgid "Master Gain"
-msgstr "主區增益"
-
-
-msgid "Master gain"
 msgstr "主區增益"
 
 
@@ -28433,15 +28373,7 @@ msgid "Master Gamma"
 msgstr "主區伽瑪"
 
 
-msgid "Master gamma"
-msgstr "主區伽瑪"
-
-
 msgid "Master Lift"
-msgstr "主區抬升"
-
-
-msgid "Master lift"
 msgstr "主區抬升"
 
 
@@ -28449,15 +28381,7 @@ msgid "Master Saturation"
 msgstr "主區飽和度"
 
 
-msgid "Master saturation"
-msgstr "主區飽和度"
-
-
 msgid "Midtones Contrast"
-msgstr "中間色調對比"
-
-
-msgid "Midtones contrast"
 msgstr "中間色調對比"
 
 
@@ -28465,15 +28389,7 @@ msgid "Midtones End"
 msgstr "中間色調結束"
 
 
-msgid "End of midtones"
-msgstr "中間色調的結束"
-
-
 msgid "Midtones Gain"
-msgstr "中間色調增益"
-
-
-msgid "Midtones gain"
 msgstr "中間色調增益"
 
 
@@ -28481,15 +28397,7 @@ msgid "Midtones Gamma"
 msgstr "中間色調伽瑪"
 
 
-msgid "Midtones gamma"
-msgstr "中間色調伽瑪"
-
-
 msgid "Midtones Lift"
-msgstr "中間色調抬升"
-
-
-msgid "Midtones lift"
 msgstr "中間色調抬升"
 
 
@@ -28497,27 +28405,11 @@ msgid "Midtones Saturation"
 msgstr "中間色調飽和度"
 
 
-msgid "Midtones saturation"
-msgstr "中間色調飽和度"
-
-
 msgid "Midtones Start"
 msgstr "中間色調開始"
 
 
-msgid "Start of midtones"
-msgstr "中間色調的開始"
-
-
-msgid "Red channel active"
-msgstr "紅色通道作用中"
-
-
 msgid "Shadows Contrast"
-msgstr "陰影對比"
-
-
-msgid "Shadows contrast"
 msgstr "陰影對比"
 
 
@@ -28525,15 +28417,7 @@ msgid "Shadows Gain"
 msgstr "陰影增益"
 
 
-msgid "Shadows gain"
-msgstr "陰影增益"
-
-
 msgid "Shadows Gamma"
-msgstr "陰影伽瑪"
-
-
-msgid "Shadows gamma"
 msgstr "陰影伽瑪"
 
 
@@ -28541,15 +28425,7 @@ msgid "Shadows Lift"
 msgstr "陰影抬升"
 
 
-msgid "Shadows lift"
-msgstr "陰影抬升"
-
-
 msgid "Shadows Saturation"
-msgstr "陰影飽和度"
-
-
-msgid "Shadows saturation"
 msgstr "陰影飽和度"
 
 
@@ -28587,10 +28463,6 @@ msgstr "合成 XYZ"
 
 msgid "Composite"
 msgstr "合成"
-
-
-msgid "Colors are treated alpha premultiplied, or colors output straight (alpha gets set to 1)"
-msgstr "色彩會以 alpha 預乘模式，或是以直出模式來備處裡 (alpha 設為 1)"
 
 
 msgid "Convert Colorspace"
@@ -28749,10 +28621,6 @@ msgid "Enable gamma correction before and after main process"
 msgstr "在主程序之前與之後啟用伽瑪校正"
 
 
-msgid "Enable low quality mode, useful for preview"
-msgstr "啟用低品質模式，對於預覽很有用"
-
-
 msgid "Use Z-Buffer"
 msgstr "使用 Z 緩衝"
 
@@ -28860,18 +28728,6 @@ msgstr "僅相鄰於外部遮罩像素的內部遮罩像素在遮罩計算時會
 
 msgid "Ellipse Mask"
 msgstr "橢圓遮罩"
-
-
-msgid "Height of the ellipse"
-msgstr "橢圓的高"
-
-
-msgid "Width of the ellipse"
-msgstr "橢圓的寬"
-
-
-msgid "Rotation angle of the ellipse"
-msgstr "橢圓的旋轉角度"
 
 
 msgid "Filter Type"
@@ -29051,25 +28907,13 @@ msgid "Lens Distortion"
 msgstr "鏡頭扭曲"
 
 
-msgid "For positive distortion factor only: scale image such that black areas are not visible"
-msgstr "僅適用於正扭曲係數：縮放那些黑色區域看不見的影像"
-
-
 msgctxt "NodeTree"
 msgid "Jitter"
 msgstr "抖動"
 
 
-msgid "Enable/disable jittering (faster, but also noisier)"
-msgstr "啟用/停用 (較快，但也較多噪訊)"
-
-
 msgid "Projector"
 msgstr "投影器"
-
-
-msgid "Enable/disable projector mode (the effect is applied in horizontal direction only)"
-msgstr "啟用/停用投影器模式 (效果僅套用於水平方向)"
 
 
 msgid "Combined"
@@ -46097,10 +45941,6 @@ msgid "Set Render Size"
 msgstr "設定算繪大小"
 
 
-msgid "Set render size and aspect from active sequence"
-msgstr "按照作用中序段來設定算繪的大小及寬長比"
-
-
 msgid "Timeline Frame"
 msgstr "時間軸影格"
 
@@ -49773,6 +49613,34 @@ msgid "Palette Color"
 msgstr "色版色彩"
 
 
+msgid "Drawing Plane"
+msgstr "描繪平面"
+
+
+msgid "Quad View"
+msgstr "四格檢視"
+
+
+msgid "Stereoscopy"
+msgstr "立體視覺"
+
+
+msgid "Multi Frame"
+msgstr "多重畫框"
+
+
+msgid "Auto-Masking"
+msgstr "自動遮罩"
+
+
+msgid "Stroke Placement"
+msgstr "筆觸放置"
+
+
+msgid "VR"
+msgstr "VR"
+
+
 msgid "Active Tool"
 msgstr "作用中工具"
 
@@ -49815,34 +49683,6 @@ msgstr "吸附"
 
 msgid "Transform Orientations"
 msgstr "變換方向"
-
-
-msgid "Stroke Placement"
-msgstr "筆觸放置"
-
-
-msgid "Drawing Plane"
-msgstr "描繪平面"
-
-
-msgid "Quad View"
-msgstr "四格檢視"
-
-
-msgid "Stereoscopy"
-msgstr "立體視覺"
-
-
-msgid "Multi Frame"
-msgstr "多重畫框"
-
-
-msgid "Auto-Masking"
-msgstr "自動遮罩"
-
-
-msgid "VR"
-msgstr "VR"
 
 
 msgid "Chain Scaling"
@@ -53847,26 +53687,6 @@ msgstr "穿透間接"
 
 msgid "Transmission Color"
 msgstr "穿透色彩"
-
-
-msgid "Object visibility for camera rays"
-msgstr "攝影機光線的物體可見性"
-
-
-msgid "Object visibility for diffuse reflection rays"
-msgstr "漫射反射光線的物體可見性"
-
-
-msgid "Object visibility for glossy reflection rays"
-msgstr "光澤反射光線的物體可見性"
-
-
-msgid "Object visibility for shadow rays"
-msgstr "陰影光線的物體可見性"
-
-
-msgid "Object visibility for transmission rays"
-msgstr "穿透光線的物體可見性"
 
 
 msgid "Map Resolution"
@@ -60187,10 +60007,6 @@ msgid "Only use the first and last parts of the stroke for snapping"
 msgstr "快抓貼附時僅使用筆劃的最前與最後部份"
 
 
-msgid "Ensure all bone-deforming vertex groups add up to 1.0 while weight painting"
-msgstr "確保所有骨骼變形頂點群組當權重繪製時新增高至 1.0"
-
-
 msgid "Automerge"
 msgstr "自動合併"
 
@@ -63231,6 +63047,10 @@ msgstr "刪除所有群組"
 msgctxt "Operator"
 msgid "Mirror Shape Key (Topology)"
 msgstr "鏡射外形鍵 (拓樸)"
+
+
+msgid "Auto Normalize"
+msgstr "自動歸一化"
 
 
 msgid "Name collisions: "
@@ -66547,10 +66367,6 @@ msgstr "細節"
 msgctxt "Operator"
 msgid "Remesh"
 msgstr "重建網格"
-
-
-msgid "Auto Normalize"
-msgstr "自動歸一化"
 
 
 msgid "Lock-Relative"
@@ -70511,10 +70327,6 @@ msgid "New effect needs more input strips"
 msgstr "新特效需要更多輸入片段"
 
 
-msgid "No active sequence!"
-msgstr "無作用中序段！"
-
-
 msgid "Columns:"
 msgstr "欄："
 
@@ -72234,10 +72046,6 @@ msgstr "影像 1"
 
 msgid "Image 2"
 msgstr "影像 2"
-
-
-msgid "Center:"
-msgstr "中心："
 
 
 msgid "Inner Edge:"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'1f4cae0c4623')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'a7d2b7850ef2')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-28 09:32+0000\n"
+"POT-Creation-Date: 2025-05-05 08:47+0000\n"
 "PO-Revision-Date: 2025-04-14 08:34+0000\n"
 "Last-Translator: Kamil <uhkamil@gmail.com>\n"
 "Language-Team: Polish <https://translate.blender.org/projects/blender-ui/ui/pl/>\n"
@@ -11584,24 +11584,64 @@ msgid "Mask"
 msgstr "Maska"
 
 
-msgid "Show/Hide"
-msgstr "Pokaż/Ukryj"
+msgid "Select Linked"
+msgstr "Zaznacz powiązane"
 
 
-msgid "Bone Collections"
-msgstr "Kolekcja kości"
+msgid "Assign Material"
+msgstr "Przypisanie materiału"
+
+
+msgid "Metaball"
+msgstr "Metakula"
+
+
+msgid "Light"
+msgstr "Światło"
+
+
+msgid "Light Probe"
+msgstr "Sonda świetlna"
+
+
+msgid "Rigid Body"
+msgstr "Bryła sztywna"
 
 
 msgid "Apply"
 msgstr "Zastosuj"
 
 
-msgid "Face Data"
-msgstr "Dane ściany"
+msgid "Track"
+msgstr "Ścieżka"
+
+
+msgid "Quick Effects"
+msgstr "Szybkie efekty"
+
+
+msgid "Show/Hide"
+msgstr "Pokaż/Ukryj"
 
 
 msgid "Clean Up"
 msgstr "Sprzątanie"
+
+
+msgid "Asset"
+msgstr "Prefabrykat"
+
+
+msgid "Convert"
+msgstr "Konwertuj"
+
+
+msgid "Bone Collections"
+msgstr "Kolekcja kości"
+
+
+msgid "Face Data"
+msgstr "Dane ściany"
 
 
 msgid "Merge"
@@ -11610,10 +11650,6 @@ msgstr "Scal"
 
 msgid "Text"
 msgstr "Tekst"
-
-
-msgid "Metaball"
-msgstr "Metakula"
 
 
 msgid "Snap"
@@ -11638,42 +11674,6 @@ msgstr "Punkt obserwacji"
 
 msgid "Navigation"
 msgstr "Nawigacja"
-
-
-msgid "Select Linked"
-msgstr "Zaznacz powiązane"
-
-
-msgid "Assign Material"
-msgstr "Przypisanie materiału"
-
-
-msgid "Light"
-msgstr "Światło"
-
-
-msgid "Light Probe"
-msgstr "Sonda świetlna"
-
-
-msgid "Rigid Body"
-msgstr "Bryła sztywna"
-
-
-msgid "Track"
-msgstr "Ścieżka"
-
-
-msgid "Quick Effects"
-msgstr "Szybkie efekty"
-
-
-msgid "Asset"
-msgstr "Prefabrykat"
-
-
-msgid "Convert"
-msgstr "Konwertuj"
 
 
 msgid "Catalog"
@@ -26731,10 +26731,6 @@ msgid "New effect needs more input strips"
 msgstr "Nowy efekt potrzebuje paska źródłowego"
 
 
-msgid "No active sequence!"
-msgstr "Brak aktywnej sekwencji!"
-
-
 msgid "Rows:"
 msgstr "Wiersze:"
 
@@ -28091,10 +28087,6 @@ msgstr "Filtr wstępny:"
 
 msgid "Quality:"
 msgstr "Jakość:"
-
-
-msgid "Center:"
-msgstr "Centrum:"
 
 
 msgid "Path:"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'1f4cae0c4623')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'a7d2b7850ef2')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-28 09:32+0000\n"
+"POT-Creation-Date: 2025-05-05 08:47+0000\n"
 "PO-Revision-Date: 2025-04-14 08:12+0000\n"
 "Last-Translator: Zdeněk Doležal <Griperis@outlook.cz>\n"
 "Language-Team: Czech <https://translate.blender.org/projects/blender-ui/ui/cs/>\n"
@@ -13581,8 +13581,56 @@ msgid "Material slot name"
 msgstr "Název okénka materiálu"
 
 
+msgid "Select Linked"
+msgstr "Vybrat Propojené"
+
+
+msgid "Assign Material"
+msgstr "Přiřadit Materiál"
+
+
+msgid "Metaball"
+msgstr "Meta objekt"
+
+
+msgid "Light"
+msgstr "Světlo"
+
+
+msgid "Relations"
+msgstr "Vztahy"
+
+
+msgid "Rigid Body"
+msgstr "Tuhé Těleso"
+
+
+msgid "Apply"
+msgstr "Použít"
+
+
+msgid "Track"
+msgstr "Sledování"
+
+
+msgid "Quick Effects"
+msgstr "Rychlé Efekty"
+
+
 msgid "Show/Hide"
 msgstr "Zobrazit/skrýt"
+
+
+msgid "Clean Up"
+msgstr "Vyčistit"
+
+
+msgid "Make Single User"
+msgstr "Přivlastnit"
+
+
+msgid "Hooks"
+msgstr "Háky"
 
 
 msgid "Clear Transform"
@@ -13597,20 +13645,12 @@ msgid "Names"
 msgstr "Názvy"
 
 
-msgid "Apply"
-msgstr "Použít"
-
-
 msgid "Mesh Select Mode"
 msgstr "Síťový mód výběru"
 
 
 msgid "Face Data"
 msgstr "Data Ploch"
-
-
-msgid "Clean Up"
-msgstr "Vyčistit"
 
 
 msgid "Merge"
@@ -13623,10 +13663,6 @@ msgstr "Speciální Znaky"
 
 msgid "Text"
 msgstr "Text"
-
-
-msgid "Metaball"
-msgstr "Meta objekt"
 
 
 msgid "Bone Roll"
@@ -13663,42 +13699,6 @@ msgstr "Navigace"
 
 msgid "Align View"
 msgstr "Zarovnat pohled"
-
-
-msgid "Select Linked"
-msgstr "Vybrat Propojené"
-
-
-msgid "Assign Material"
-msgstr "Přiřadit Materiál"
-
-
-msgid "Light"
-msgstr "Světlo"
-
-
-msgid "Relations"
-msgstr "Vztahy"
-
-
-msgid "Rigid Body"
-msgstr "Tuhé Těleso"
-
-
-msgid "Track"
-msgstr "Sledování"
-
-
-msgid "Quick Effects"
-msgstr "Rychlé Efekty"
-
-
-msgid "Make Single User"
-msgstr "Přivlastnit"
-
-
-msgid "Hooks"
-msgstr "Háky"
 
 
 msgid "Basic"
@@ -16581,28 +16581,8 @@ msgid "Box Mask"
 msgstr "Nastavit poloměr"
 
 
-msgid "Height of the box"
-msgstr "Šířka a výška nového obrázku"
-
-
 msgid "Not"
 msgstr "Ne"
-
-
-msgid "Width of the box"
-msgstr "Nastaví umístění 3D kurzoru"
-
-
-msgid "Rotation angle of the box"
-msgstr "Úhel otáčení"
-
-
-msgid "X position of the middle of the box"
-msgstr "Počáteční pozice pro osu Y"
-
-
-msgid "Y position of the middle of the box"
-msgstr "Počáteční pozice pro osu Y"
 
 
 msgid "Channel Key"
@@ -16645,19 +16625,7 @@ msgid "Color Correction"
 msgstr "Odznačit spojené"
 
 
-msgid "Blue channel active"
-msgstr "Kanál textury"
-
-
-msgid "Green channel active"
-msgstr "Kanál textury"
-
-
 msgid "Highlights Contrast"
-msgstr "Odstranit pruh"
-
-
-msgid "Highlights contrast"
 msgstr "Odstranit pruh"
 
 
@@ -16665,15 +16633,7 @@ msgid "Highlights Gain"
 msgstr "Vybrat řádek"
 
 
-msgid "Highlights gain"
-msgstr "Vybrat řádek"
-
-
 msgid "Highlights Gamma"
-msgstr "Vybrat řádek"
-
-
-msgid "Highlights gamma"
 msgstr "Vybrat řádek"
 
 
@@ -16681,15 +16641,7 @@ msgid "Highlights Lift"
 msgstr "Vybrat řádek"
 
 
-msgid "Highlights lift"
-msgstr "Vybrat řádek"
-
-
 msgid "Highlights Saturation"
-msgstr "Vybrat řádek"
-
-
-msgid "Highlights saturation"
 msgstr "Vybrat řádek"
 
 
@@ -16697,23 +16649,11 @@ msgid "Master Contrast"
 msgstr "Odstranit pruh"
 
 
-msgid "Master contrast"
-msgstr "Odstranit pruh"
-
-
 msgid "Master Gain"
 msgstr "Rotace"
 
 
-msgid "Master gain"
-msgstr "Rotace"
-
-
 msgid "Master Gamma"
-msgstr "Nejbližší snímek"
-
-
-msgid "Master gamma"
 msgstr "Nejbližší snímek"
 
 
@@ -16725,24 +16665,12 @@ msgid "Master Saturation"
 msgstr "Hlavní sytost"
 
 
-msgid "Master saturation"
-msgstr "Hlavní sytost"
-
-
 msgid "Midtones Contrast"
-msgstr "Odstranit pruh"
-
-
-msgid "Midtones contrast"
 msgstr "Odstranit pruh"
 
 
 msgid "Midtones End"
 msgstr "Lineární"
-
-
-msgid "End of midtones"
-msgstr "Upravit kost"
 
 
 msgid "Midtones Gain"
@@ -16761,27 +16689,11 @@ msgid "Midtones Saturation"
 msgstr "Sytost středních tónů"
 
 
-msgid "Midtones saturation"
-msgstr "Sytost středních tónů"
-
-
 msgid "Midtones Start"
 msgstr "Krok animace"
 
 
-msgid "Start of midtones"
-msgstr "Mezipauza"
-
-
-msgid "Red channel active"
-msgstr "Změnit pruh"
-
-
 msgid "Shadows Contrast"
-msgstr "Činitel"
-
-
-msgid "Shadows contrast"
 msgstr "Činitel"
 
 
@@ -16789,15 +16701,7 @@ msgid "Shadows Gain"
 msgstr "Stín"
 
 
-msgid "Shadows gain"
-msgstr "Stín"
-
-
 msgid "Shadows Gamma"
-msgstr "Stíny"
-
-
-msgid "Shadows gamma"
 msgstr "Stíny"
 
 
@@ -16805,15 +16709,7 @@ msgid "Shadows Lift"
 msgstr "Stín"
 
 
-msgid "Shadows lift"
-msgstr "Stín"
-
-
 msgid "Shadows Saturation"
-msgstr "Sytost"
-
-
-msgid "Shadows saturation"
 msgstr "Sytost"
 
 
@@ -28509,10 +28405,6 @@ msgid "Set Render Size"
 msgstr "Nastavit okraje renderování"
 
 
-msgid "Set render size and aspect from active sequence"
-msgstr "Spustit renderovani animace"
-
-
 msgid "Use mouse to sample color in current frame"
 msgstr "Zobrazit nastaveni hran"
 
@@ -31095,6 +30987,18 @@ msgid "Restrict"
 msgstr "Omezit"
 
 
+msgid "Guides"
+msgstr "Vodítka"
+
+
+msgid "Stereoscopy"
+msgstr "Stereoskopie"
+
+
+msgid "Auto-Masking"
+msgstr "Auto-Maska"
+
+
 msgid "Active Tool"
 msgstr "Aktivní nástroj"
 
@@ -31119,10 +31023,6 @@ msgid "Overlays"
 msgstr "Překrytí"
 
 
-msgid "Guides"
-msgstr "Vodítka"
-
-
 msgid "Motion Tracking"
 msgstr "Sledování Pohybu"
 
@@ -31145,14 +31045,6 @@ msgstr "Přichytávání"
 
 msgid "Transform Orientations"
 msgstr "Orientace transformací"
-
-
-msgid "Stereoscopy"
-msgstr "Stereoskopie"
-
-
-msgid "Auto-Masking"
-msgstr "Auto-Maska"
 
 
 msgid "Chain Scaling"
@@ -38506,6 +38398,10 @@ msgid "Move to Bottom"
 msgstr "Přesunout Dolů"
 
 
+msgid "Auto Normalize"
+msgstr "Automaticky Normalizovat"
+
+
 msgid "Detail"
 msgstr "Detail"
 
@@ -41275,10 +41171,6 @@ msgid "Detailing"
 msgstr "Detailování"
 
 
-msgid "Auto Normalize"
-msgstr "Automaticky Normalizovat"
-
-
 msgid "Multi-Paint"
 msgstr "VBar malování"
 
@@ -43287,10 +43179,6 @@ msgstr "Odstranit označené značky"
 
 msgid "One of the effect inputs is unset, cannot swap"
 msgstr "Jméno skriptu"
-
-
-msgid "No active sequence!"
-msgstr "Žádná aktivní sekvence!"
 
 
 msgid "Save to disk (ignore outside changes)"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'1f4cae0c4623')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'a7d2b7850ef2')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-28 09:32+0000\n"
+"POT-Creation-Date: 2025-05-05 08:47+0000\n"
 "PO-Revision-Date: 2025-04-14 08:14+0000\n"
 "Last-Translator: Thomas Radeke <rahdick@gmx.de>\n"
 "Language-Team: German <https://translate.blender.org/projects/blender-ui/ui/de/>\n"
@@ -18835,12 +18835,96 @@ msgid "Material slot name"
 msgstr "Materialsteckplatzname"
 
 
-msgid "Random Mask"
-msgstr "Zufällige Maske"
+msgid "Select Similar"
+msgstr "Ähnliche auswählen"
+
+
+msgid "Select All by Trait"
+msgstr "Alles nach Merkmal auswählen"
+
+
+msgid "Select More/Less"
+msgstr "Mehr/weniger anzeigen"
+
+
+msgid "Select Linked"
+msgstr "Verknüpfte auswählen"
+
+
+msgid "Select Loops"
+msgstr "Schleifen auswählen"
+
+
+msgid "Assign Material"
+msgstr "Material zuweisen"
+
+
+msgid "Metaball"
+msgstr "Metaball"
+
+
+msgid "Light"
+msgstr "Licht"
+
+
+msgid "Light Probe"
+msgstr "Lichtsonde"
+
+
+msgid "Add Image"
+msgstr "Bild hinzufügen"
+
+
+msgid "Relations"
+msgstr "Beziehungen"
+
+
+msgid "Rigid Body"
+msgstr "Rigid Body"
+
+
+msgid "Apply"
+msgstr "Anwenden"
+
+
+msgid "Track"
+msgstr "Spur"
+
+
+msgid "Quick Effects"
+msgstr "Schnelle Effekte"
 
 
 msgid "Show/Hide"
 msgstr "Zeigen/Verbergen"
+
+
+msgid "Clean Up"
+msgstr "Aufräumen"
+
+
+msgid "Asset"
+msgstr "Asset"
+
+
+msgid "Make Single User"
+msgstr "Einfachen Benutzer erzeugen"
+
+
+msgid "Convert"
+msgstr "Konvertieren"
+
+
+msgid "Hooks"
+msgstr "Haken"
+
+
+msgid "Vertex Group Locks"
+msgstr "Punktgruppen sperren"
+
+
+msgid "Random Mask"
+msgstr "Zufällige Maske"
 
 
 msgid "Clear Transform"
@@ -18853,10 +18937,6 @@ msgstr "Dazwischen"
 
 msgid "Names"
 msgstr "Namen"
-
-
-msgid "Apply"
-msgstr "Anwenden"
 
 
 msgid "Toggle Bone Options"
@@ -18879,10 +18959,6 @@ msgid "Face Data"
 msgstr "Flächendaten"
 
 
-msgid "Clean Up"
-msgstr "Aufräumen"
-
-
 msgid "Merge"
 msgstr "Zusammenführen"
 
@@ -18899,10 +18975,6 @@ msgid "Text"
 msgstr "Text"
 
 
-msgid "Metaball"
-msgstr "Metaball"
-
-
 msgid "Pivot Point"
 msgstr "Drehpunkt"
 
@@ -18917,10 +18989,6 @@ msgstr "Proportionaler Bearbeitungsabfall"
 
 msgid "Mask Edit"
 msgstr "Maskenbearbeitung"
-
-
-msgid "Vertex Group Locks"
-msgstr "Punktgruppen sperren"
 
 
 msgid "Mirror"
@@ -18949,74 +19017,6 @@ msgstr "Ansicht auf Aktiv ausrichten"
 
 msgid "View Regions"
 msgstr "Vierfenster Ansicht"
-
-
-msgid "Select More/Less"
-msgstr "Mehr/weniger anzeigen"
-
-
-msgid "Select Similar"
-msgstr "Ähnliche auswählen"
-
-
-msgid "Select All by Trait"
-msgstr "Alles nach Merkmal auswählen"
-
-
-msgid "Select Linked"
-msgstr "Verknüpfte auswählen"
-
-
-msgid "Select Loops"
-msgstr "Schleifen auswählen"
-
-
-msgid "Assign Material"
-msgstr "Material zuweisen"
-
-
-msgid "Light"
-msgstr "Licht"
-
-
-msgid "Light Probe"
-msgstr "Lichtsonde"
-
-
-msgid "Add Image"
-msgstr "Bild hinzufügen"
-
-
-msgid "Relations"
-msgstr "Beziehungen"
-
-
-msgid "Rigid Body"
-msgstr "Rigid Body"
-
-
-msgid "Track"
-msgstr "Spur"
-
-
-msgid "Quick Effects"
-msgstr "Schnelle Effekte"
-
-
-msgid "Asset"
-msgstr "Asset"
-
-
-msgid "Make Single User"
-msgstr "Einfachen Benutzer erzeugen"
-
-
-msgid "Convert"
-msgstr "Konvertieren"
-
-
-msgid "Hooks"
-msgstr "Haken"
 
 
 msgid "Assets"
@@ -23108,32 +23108,12 @@ msgid "Box Mask"
 msgstr "Rechteckige Maske"
 
 
-msgid "Height of the box"
-msgstr "Höhe der Box"
-
-
 msgid "Mask Type"
 msgstr "Abdecktyp"
 
 
 msgid "Not"
 msgstr "Nicht"
-
-
-msgid "Width of the box"
-msgstr "Breite der Box"
-
-
-msgid "Rotation angle of the box"
-msgstr "Rotationswinkel der Box"
-
-
-msgid "X position of the middle of the box"
-msgstr "X Position der Boxmitte"
-
-
-msgid "Y position of the middle of the box"
-msgstr "Y-Position von der Mitte der Box"
 
 
 msgid "Channel Key"
@@ -23228,19 +23208,7 @@ msgid "Color Correction"
 msgstr "Farbkorrektur"
 
 
-msgid "Blue channel active"
-msgstr "Blaukanal aktiv"
-
-
-msgid "Green channel active"
-msgstr "Grünkanal aktiv"
-
-
 msgid "Highlights Contrast"
-msgstr "Lichter Kontrast"
-
-
-msgid "Highlights contrast"
 msgstr "Lichter Kontrast"
 
 
@@ -23248,15 +23216,7 @@ msgid "Highlights Gain"
 msgstr "Lichter anheben"
 
 
-msgid "Highlights gain"
-msgstr "Lichter verstärken"
-
-
 msgid "Highlights Gamma"
-msgstr "Lichter Gamma"
-
-
-msgid "Highlights gamma"
 msgstr "Lichter Gamma"
 
 
@@ -23264,15 +23224,7 @@ msgid "Highlights Lift"
 msgstr "Lichter anheben"
 
 
-msgid "Highlights lift"
-msgstr "Lichter anheben"
-
-
 msgid "Highlights Saturation"
-msgstr "Lichter Sättigung"
-
-
-msgid "Highlights saturation"
 msgstr "Lichter Sättigung"
 
 
@@ -23280,16 +23232,8 @@ msgid "Master Contrast"
 msgstr "Master Kontrast"
 
 
-msgid "Master contrast"
-msgstr "Hauptkontrast"
-
-
 msgid "Master Gamma"
 msgstr "Haupt-Gamma"
-
-
-msgid "Master gamma"
-msgstr "Master Gamma"
 
 
 msgid "Master Lift"
@@ -23300,24 +23244,12 @@ msgid "Master Saturation"
 msgstr "Master Sättigung"
 
 
-msgid "Master saturation"
-msgstr "Master Sättigung"
-
-
 msgid "Midtones Contrast"
-msgstr "Mitteltöne Kontrast"
-
-
-msgid "Midtones contrast"
 msgstr "Mitteltöne Kontrast"
 
 
 msgid "Midtones End"
 msgstr "Mittelton Ende"
-
-
-msgid "End of midtones"
-msgstr "Ende der Mitteltöne"
 
 
 msgid "Midtones Gain"
@@ -23328,15 +23260,7 @@ msgid "Midtones Gamma"
 msgstr "Mitteltöne Gamma"
 
 
-msgid "Midtones gamma"
-msgstr "Mittelton Gamma"
-
-
 msgid "Midtones Lift"
-msgstr "Mitteltöne anheben"
-
-
-msgid "Midtones lift"
 msgstr "Mitteltöne anheben"
 
 
@@ -23344,27 +23268,11 @@ msgid "Midtones Saturation"
 msgstr "Mittelton Sättigung"
 
 
-msgid "Midtones saturation"
-msgstr "Mittelton Sättigung"
-
-
 msgid "Midtones Start"
 msgstr "Mittelton Beginn"
 
 
-msgid "Start of midtones"
-msgstr "Start der mitteltöne"
-
-
-msgid "Red channel active"
-msgstr "Rotkanal aktiv"
-
-
 msgid "Shadows Contrast"
-msgstr "Tiefen Kontrast"
-
-
-msgid "Shadows contrast"
 msgstr "Tiefen Kontrast"
 
 
@@ -23372,23 +23280,11 @@ msgid "Shadows Gain"
 msgstr "Tiefen verstärken"
 
 
-msgid "Shadows gain"
-msgstr "Tiefen verstärken"
-
-
 msgid "Shadows Gamma"
 msgstr "Tiefen Gamma"
 
 
-msgid "Shadows gamma"
-msgstr "Tiefen Gamma"
-
-
 msgid "Shadows Lift"
-msgstr "Tiefen anheben"
-
-
-msgid "Shadows lift"
 msgstr "Tiefen anheben"
 
 
@@ -23702,26 +23598,6 @@ msgstr "Nur angrenzende"
 
 msgid "Ellipse Mask"
 msgstr "Ellipsenmaske"
-
-
-msgid "Height of the ellipse"
-msgstr "Höhe der Ellipse"
-
-
-msgid "Width of the ellipse"
-msgstr "Breite der Ellipse"
-
-
-msgid "Rotation angle of the ellipse"
-msgstr "Rotationswinkel der Ellipse"
-
-
-msgid "X position of the middle of the ellipse"
-msgstr "X-Position vom Zentrum der Ellipse"
-
-
-msgid "Y position of the middle of the ellipse"
-msgstr "Y-Position vom Zentrum der Ellipse"
 
 
 msgid "Filter Type"
@@ -40074,6 +39950,34 @@ msgid "Active Palette Color"
 msgstr "Aktive Farbpalette"
 
 
+msgid "Drawing Plane"
+msgstr "Malfläche"
+
+
+msgid "Guides"
+msgstr "Hilfslinien"
+
+
+msgid "Quad View"
+msgstr "Vierfenster-Ansicht"
+
+
+msgid "Onion Skin"
+msgstr "Zwiebelhaut"
+
+
+msgid "Stereoscopy"
+msgstr "Stereoskopie"
+
+
+msgid "Auto-Masking"
+msgstr "Automatisches Maskieren"
+
+
+msgid "VR"
+msgstr "VR"
+
+
 msgid "Active Tool"
 msgstr "Aktives Werkzeug"
 
@@ -40110,10 +40014,6 @@ msgid "Overlays"
 msgstr "Überlagerungen"
 
 
-msgid "Guides"
-msgstr "Hilfslinien"
-
-
 msgid "Motion Tracking"
 msgstr "Bewegungsverfolgung"
 
@@ -40136,30 +40036,6 @@ msgstr "Einrasten"
 
 msgid "Transform Orientations"
 msgstr "Transformationsausrichtung"
-
-
-msgid "Drawing Plane"
-msgstr "Malfläche"
-
-
-msgid "Quad View"
-msgstr "Vierfenster-Ansicht"
-
-
-msgid "Onion Skin"
-msgstr "Zwiebelhaut"
-
-
-msgid "Stereoscopy"
-msgstr "Stereoskopie"
-
-
-msgid "Auto-Masking"
-msgstr "Automatisches Maskieren"
-
-
-msgid "VR"
-msgstr "VR"
 
 
 msgid "Chain Scaling"
@@ -43817,14 +43693,6 @@ msgstr "Beispielzähler"
 
 msgid "Show Active Pixels"
 msgstr "Aktive Pixel anzeigen"
-
-
-msgid "Object visibility for camera rays"
-msgstr "Objektsichtbarkeit für Kamerastrahlen"
-
-
-msgid "Object visibility for volume scatter rays"
-msgstr "Objektsichtbarkeit für Volumenstreustrahlen"
 
 
 msgid "Map Resolution"
@@ -51132,6 +51000,10 @@ msgid "Move to Bottom"
 msgstr "Nach unten verschieben"
 
 
+msgid "Auto Normalize"
+msgstr "Automatisch normalisieren"
+
+
 msgid "Resolution Viewport"
 msgstr "Auflösung Viewport"
 
@@ -51796,10 +51668,6 @@ msgstr "Zielgeschwindigkeit"
 
 msgid "CFL Number"
 msgstr "CFL Nummer"
-
-
-msgid "Compression Volumes"
-msgstr "Komprimierung Volumen"
 
 
 msgid "Sampling Substeps"
@@ -55190,10 +55058,6 @@ msgid "Tile Offset"
 msgstr "Kachelversatz"
 
 
-msgid "Auto Normalize"
-msgstr "Automatisch normalisieren"
-
-
 msgid "Lock-Relative"
 msgstr "Sperre-Relativ"
 
@@ -58130,10 +57994,6 @@ msgid "Please select two strips"
 msgstr "Bitte zwei Steifen auswählen"
 
 
-msgid "No active sequence!"
-msgstr "Keine aktive Sequenz!"
-
-
 msgid "Fog Volume"
 msgstr "Nebel Volumen"
 
@@ -59164,10 +59024,6 @@ msgstr "Bild 1"
 
 msgid "Image 2"
 msgstr "Bild 2"
-
-
-msgid "Center:"
-msgstr "Zentrum:"
 
 
 msgid "Inner Edge:"

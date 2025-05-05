@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'1f4cae0c4623')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'a7d2b7850ef2')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2025-04-28 09:32+0000\n"
+"POT-Creation-Date: 2025-05-05 08:47+0000\n"
 "PO-Revision-Date: 2025-04-14 08:36+0000\n"
 "Last-Translator: Ruan da Silva Andrade <ruanandrade818@gmail.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -21444,12 +21444,84 @@ msgid "Material slot name"
 msgstr "Nome do compartimento do material."
 
 
-msgid "Random Mask"
-msgstr "Máscara Aleatória"
+msgid "Select Similar"
+msgstr "Selecionar por similaridades"
+
+
+msgid "Select All by Trait"
+msgstr "Selecionar todos por características..."
+
+
+msgid "Select More/Less"
+msgstr "Selecionar mais ou menos"
+
+
+msgid "Select Linked"
+msgstr "Selecionar vinculados(as)"
+
+
+msgid "Select Loops"
+msgstr "Selecionar anéis"
+
+
+msgid "Metaball"
+msgstr "Meta-esfera"
+
+
+msgid "Light"
+msgstr "Luz"
+
+
+msgid "Light Probe"
+msgstr "Sonda de Luz"
+
+
+msgid "Add Image"
+msgstr "Adicionar Imagem"
+
+
+msgid "Relations"
+msgstr "Relações"
+
+
+msgid "Rigid Body"
+msgstr "Corpo rígido"
+
+
+msgid "Apply"
+msgstr "Aplicar"
+
+
+msgid "Track"
+msgstr "Rastrear"
+
+
+msgid "Quick Effects"
+msgstr "Efeitos instantâneos"
 
 
 msgid "Show/Hide"
 msgstr "Mostrar ou ocultar"
+
+
+msgid "Clean Up"
+msgstr "Limpeza"
+
+
+msgid "Make Single User"
+msgstr "Tornar usuário único"
+
+
+msgid "Convert"
+msgstr "Converter"
+
+
+msgid "Hooks"
+msgstr "Ganchos"
+
+
+msgid "Random Mask"
+msgstr "Máscara Aleatória"
 
 
 msgid "Clear Transform"
@@ -21466,10 +21538,6 @@ msgstr "Propagar"
 
 msgid "Names"
 msgstr "Nomes"
-
-
-msgid "Apply"
-msgstr "Aplicar"
 
 
 msgid "Toggle Bone Options"
@@ -21492,10 +21560,6 @@ msgid "Face Data"
 msgstr "Dados das faces"
 
 
-msgid "Clean Up"
-msgstr "Limpeza"
-
-
 msgid "Merge"
 msgstr "Fundir"
 
@@ -21506,10 +21570,6 @@ msgstr "Caracteres especiais"
 
 msgid "Text"
 msgstr "Texto"
-
-
-msgid "Metaball"
-msgstr "Meta-esfera"
 
 
 msgid "Bone Roll"
@@ -21558,66 +21618,6 @@ msgstr "Alinhar vista para o ativo"
 
 msgid "View Regions"
 msgstr "Visualizar Regiões"
-
-
-msgid "Select More/Less"
-msgstr "Selecionar mais ou menos"
-
-
-msgid "Select Similar"
-msgstr "Selecionar por similaridades"
-
-
-msgid "Select All by Trait"
-msgstr "Selecionar todos por características..."
-
-
-msgid "Select Linked"
-msgstr "Selecionar vinculados(as)"
-
-
-msgid "Select Loops"
-msgstr "Selecionar anéis"
-
-
-msgid "Light"
-msgstr "Luz"
-
-
-msgid "Light Probe"
-msgstr "Sonda de Luz"
-
-
-msgid "Add Image"
-msgstr "Adicionar Imagem"
-
-
-msgid "Relations"
-msgstr "Relações"
-
-
-msgid "Rigid Body"
-msgstr "Corpo rígido"
-
-
-msgid "Track"
-msgstr "Rastrear"
-
-
-msgid "Quick Effects"
-msgstr "Efeitos instantâneos"
-
-
-msgid "Make Single User"
-msgstr "Tornar usuário único"
-
-
-msgid "Convert"
-msgstr "Converter"
-
-
-msgid "Hooks"
-msgstr "Ganchos"
 
 
 msgid "Basic"
@@ -27165,32 +27165,8 @@ msgid "Box Mask"
 msgstr "Máscara em caixa"
 
 
-msgid "Height of the box"
-msgstr "Altura da caixa."
-
-
 msgid "Not"
 msgstr "Negar"
-
-
-msgid "Width of the box"
-msgstr "Largura da caixa."
-
-
-msgid "Rotation angle of the box"
-msgstr "Ângulo de rotação da caixa."
-
-
-msgid "X position of the middle of the box"
-msgstr "Posição X do meio da caixa."
-
-
-msgid "Y position of the middle of the box"
-msgstr "Posição Y do meio da caixa."
-
-
-msgid "Keep output image premultiplied alpha"
-msgstr "Mantém o alfa pré-multiplicado na imagem de saída."
 
 
 msgid "Channel Key"
@@ -27285,192 +27261,92 @@ msgid "Color Correction"
 msgstr "Correção de cores"
 
 
-msgid "Blue channel active"
-msgstr "Canal azul ativo."
-
-
-msgid "Green channel active"
-msgstr "Canal verde ativo."
-
-
 msgid "Highlights Contrast"
 msgstr "Realçar contraste"
-
-
-msgid "Highlights contrast"
-msgstr "O realce para o contraste."
 
 
 msgid "Highlights Gain"
 msgstr "Realçar ganho"
 
 
-msgid "Highlights gain"
-msgstr "O realce para o ganho."
-
-
 msgid "Highlights Gamma"
 msgstr "Realçar gama"
-
-
-msgid "Highlights gamma"
-msgstr "O realce para a gama."
 
 
 msgid "Highlights Lift"
 msgstr "Elevação dos realces"
 
 
-msgid "Highlights lift"
-msgstr "A elevação dos realces."
-
-
 msgid "Highlights Saturation"
 msgstr "Realçar saturação"
-
-
-msgid "Highlights saturation"
-msgstr "O realce para a saturação."
 
 
 msgid "Master Contrast"
 msgstr "Contraste mestre"
 
 
-msgid "Master contrast"
-msgstr "O contraste mestre."
-
-
 msgid "Master Gain"
 msgstr "Ganho mestre"
-
-
-msgid "Master gain"
-msgstr "O ganho mestre."
 
 
 msgid "Master Gamma"
 msgstr "Gama mestre"
 
 
-msgid "Master gamma"
-msgstr "A gama mestre."
-
-
 msgid "Master Lift"
 msgstr "Realce mestre "
-
-
-msgid "Master lift"
-msgstr "O realce mestre."
 
 
 msgid "Master Saturation"
 msgstr "Saturação mestre"
 
 
-msgid "Master saturation"
-msgstr "A saturação mestre."
-
-
 msgid "Midtones Contrast"
 msgstr "Contraste dos meios tons"
-
-
-msgid "Midtones contrast"
-msgstr "O contraste dos meios tons."
 
 
 msgid "Midtones End"
 msgstr "Final dos meios tons"
 
 
-msgid "End of midtones"
-msgstr "O final dos meios tons."
-
-
 msgid "Midtones Gain"
 msgstr "Ganho dos meios tons"
-
-
-msgid "Midtones gain"
-msgstr "O ganho dos meios tons."
 
 
 msgid "Midtones Gamma"
 msgstr "Gama dos meios tons"
 
 
-msgid "Midtones gamma"
-msgstr "O gama dos meios tons."
-
-
 msgid "Midtones Lift"
 msgstr "Realce dos meios tons"
-
-
-msgid "Midtones lift"
-msgstr "O realce para os meios tons."
 
 
 msgid "Midtones Saturation"
 msgstr "Saturação dos meios tons"
 
 
-msgid "Midtones saturation"
-msgstr "A saturação dos meios tons."
-
-
 msgid "Midtones Start"
 msgstr "Início dos meios tons"
-
-
-msgid "Start of midtones"
-msgstr "O início dos meios tons."
-
-
-msgid "Red channel active"
-msgstr "Canal vermelho ativo."
 
 
 msgid "Shadows Contrast"
 msgstr "Contraste de sombras"
 
 
-msgid "Shadows contrast"
-msgstr "O contraste das sombras."
-
-
 msgid "Shadows Gain"
 msgstr "Ganho de sombras"
-
-
-msgid "Shadows gain"
-msgstr "O ganho para as sombras."
 
 
 msgid "Shadows Gamma"
 msgstr "Gama de sombras"
 
 
-msgid "Shadows gamma"
-msgstr "A gama para as sombras."
-
-
 msgid "Shadows Lift"
 msgstr "Realce de sombras"
 
 
-msgid "Shadows lift"
-msgstr "O realce para as sombras."
-
-
 msgid "Shadows Saturation"
 msgstr "Saturação de sombras"
-
-
-msgid "Shadows saturation"
-msgstr "A saturação das sombras."
 
 
 msgid "Color Key"
@@ -27507,10 +27383,6 @@ msgstr "Combinar XYZ"
 
 msgid "Composite"
 msgstr "Composição"
-
-
-msgid "Colors are treated alpha premultiplied, or colors output straight (alpha gets set to 1)"
-msgstr "As cores são tratadas com alfa pré-multiplicado, ou saída de cores diretas (alfa é configurado para 1)."
 
 
 msgid "To"
@@ -27673,10 +27545,6 @@ msgid "Enable gamma correction before and after main process"
 msgstr "Habilita a correção de gama antes e depois do processo principal."
 
 
-msgid "Enable low quality mode, useful for preview"
-msgstr "Habilita o modo de baixa qualidade, útil para previsão."
-
-
 msgid "Use Z-Buffer"
 msgstr "Usar buffer Z"
 
@@ -27775,26 +27643,6 @@ msgstr "Somente os pixeis de máscara internos adjacentes para os pixeis da más
 
 msgid "Ellipse Mask"
 msgstr "Máscara em elipse"
-
-
-msgid "Height of the ellipse"
-msgstr "Altura da elipse"
-
-
-msgid "Width of the ellipse"
-msgstr "Largura da elipse"
-
-
-msgid "Rotation angle of the ellipse"
-msgstr "Ângulo de rotação da elipse."
-
-
-msgid "X position of the middle of the ellipse"
-msgstr "A posição X do meio da elipse."
-
-
-msgid "Y position of the middle of the ellipse"
-msgstr "A posição Y do meio da elipse."
 
 
 msgid "Filter Type"
@@ -27950,20 +27798,8 @@ msgid "Lens Distortion"
 msgstr "Distorção de lentes"
 
 
-msgid "For positive distortion factor only: scale image such that black areas are not visible"
-msgstr "Para fator de distorção positiva somente: escalonar a imagem de maneira que as áreas pretas não sejam visíveis."
-
-
-msgid "Enable/disable jittering (faster, but also noisier)"
-msgstr "Habilita ou desabilita a tremulação (rápido, mas também com mais ruídos)."
-
-
 msgid "Projector"
 msgstr "Projetor"
-
-
-msgid "Enable/disable projector mode (the effect is applied in horizontal direction only)"
-msgstr "Habilita ou desabilita o modo de projetor (o efeito é aplicado somente na direção horizontal)."
 
 
 msgid "Combined"
@@ -28204,10 +28040,6 @@ msgstr "Fachos de luz do sol"
 
 msgid "Ray Length"
 msgstr "Comprimento dos raios"
-
-
-msgid "Length of rays as a factor of the image size"
-msgstr "Comprimento dos raios como um fator do tamanho da imagem."
 
 
 msgid "Switch"
@@ -45910,10 +45742,6 @@ msgid "Set Render Size"
 msgstr "Configurar tamanho de renderização"
 
 
-msgid "Set render size and aspect from active sequence"
-msgstr "Configura o tamanho da renderização e o aspecto a partir da sequência ativa."
-
-
 msgid "Use mouse to sample color in current frame"
 msgstr "Usa o mouse para obter uma amostra de cor no quadro atual."
 
@@ -49985,6 +49813,14 @@ msgid "Active Palette Color"
 msgstr "Cor ativa da paleta"
 
 
+msgid "Quad View"
+msgstr "Exibição Quadrante"
+
+
+msgid "Stereoscopy"
+msgstr "Estereoscopia"
+
+
 msgid "Wire Color"
 msgstr "Cor dos cabos"
 
@@ -49999,14 +49835,6 @@ msgstr "Captura de movimentos"
 
 msgid "Transform Orientations"
 msgstr "Orientações de transformação"
-
-
-msgid "Quad View"
-msgstr "Exibição Quadrante"
-
-
-msgid "Stereoscopy"
-msgstr "Estereoscopia"
 
 
 msgid "Bone Constraints"
@@ -53987,30 +53815,6 @@ msgstr "Cor de transmissão"
 
 msgid "Albedo pass used by denoiser"
 msgstr "Passo de albedo usado pelo redutor de ruído"
-
-
-msgid "Object visibility for camera rays"
-msgstr "Visibilidade de objetos para os raios de câmera."
-
-
-msgid "Object visibility for diffuse reflection rays"
-msgstr "Visibilidade de objetos para os raios de reflexão difusa."
-
-
-msgid "Object visibility for glossy reflection rays"
-msgstr "Visibilidade de objetos para os raios de reflexão de polimento."
-
-
-msgid "Object visibility for volume scatter rays"
-msgstr "Visibilidade de objetos para os raios de espalhamento de volume."
-
-
-msgid "Object visibility for shadow rays"
-msgstr "Visibilidade de objetos para os raios de sombra."
-
-
-msgid "Object visibility for transmission rays"
-msgstr "Visibilidade de objetos para os raios de transmissão."
 
 
 msgid "Maximum number of bounces the background light will contribute to the render"
@@ -60275,10 +60079,6 @@ msgid "Only use the first and last parts of the stroke for snapping"
 msgstr "Somente usa as primeiras e últimas terminações dos traços para atração."
 
 
-msgid "Ensure all bone-deforming vertex groups add up to 1.0 while weight painting"
-msgstr "Assegura que todos os grupos de vértices de deformação por ossos adicionam até 1.0 durante a pintura de pesos."
-
-
 msgid "Use Additive Drawing"
 msgstr "Usar modo de desenho aditivo"
 
@@ -62044,6 +61844,10 @@ msgid "Move to Bottom"
 msgstr "Mover para a base"
 
 
+msgid "Auto Normalize"
+msgstr "Normalizar automaticamente"
+
+
 msgid "Detail"
 msgstr "Detalhes"
 
@@ -62369,10 +62173,6 @@ msgstr "Exponente"
 
 msgid "Lower"
 msgstr "Inferior"
-
-
-msgid "Precision Volumes"
-msgstr "Volumes de Precisão"
 
 
 msgctxt "Operator"
@@ -64856,10 +64656,6 @@ msgid "Tile Offset"
 msgstr "Deslocamento dos ladrilhos"
 
 
-msgid "Auto Normalize"
-msgstr "Normalizar automaticamente"
-
-
 msgid "Multi-Paint"
 msgstr "Pintura múltipla"
 
@@ -67166,12 +66962,12 @@ msgid "|%i multiuser armature object(s)"
 msgstr "|%i objetos de armação com múltiplos usuários."
 
 
-msgid "No vertex groups to operate on"
-msgstr "Nenhum grupo de vértices nos quais executar as operações."
-
-
 msgid "All groups are locked"
 msgstr "Todos os grupos estão bloqueados."
+
+
+msgid "No vertex groups to operate on"
+msgstr "Nenhum grupo de vértices nos quais executar as operações."
 
 
 msgid "Editmode lattice is not supported yet"
@@ -68482,10 +68278,6 @@ msgstr "Não é possível criar arquivo de subtítulos."
 
 msgid "No subtitles (text strips) to export"
 msgstr "Sem faixas de texto para as quais exportar os subtítulos."
-
-
-msgid "No active sequence!"
-msgstr "Nenhuma sequência ativa !"
 
 
 msgid "File Modified Outside and Inside Blender"
