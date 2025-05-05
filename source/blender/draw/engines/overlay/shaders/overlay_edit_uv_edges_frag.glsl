@@ -15,7 +15,7 @@ void main()
   float4 inner_color = float4(float3(0.0f), 1.0f);
   float4 outer_color = float4(0.0f);
 
-  float2 dd = fwidth(stipple_pos);
+  float2 dd = gpu_fwidth(stipple_pos);
   float line_distance = distance(stipple_pos, stipple_start) / max(dd.x, dd.y);
 
   if (OVERLAY_UVLineStyle(line_style) == OVERLAY_UV_LINE_STYLE_OUTLINE) {

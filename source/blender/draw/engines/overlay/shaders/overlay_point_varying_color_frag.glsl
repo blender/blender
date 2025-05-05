@@ -16,7 +16,7 @@ void main()
 
   /* Round point with jagged edges. */
   if (dist_squared > rad_squared) {
-    discard;
+    gpu_discard_fragment();
     return;
   }
 

@@ -533,15 +533,29 @@ void VKShader::build_shader_module(MutableSpan<StringRefNull> sources,
                                    shaderc_shader_kind stage,
                                    VKShaderModule &r_shader_module)
 {
-  BLI_assert_msg(ELEM(stage,
-                      shaderc_vertex_shader,
-                      shaderc_geometry_shader,
-                      shaderc_fragment_shader,
-                      shaderc_compute_shader),
-                 "Only forced ShaderC shader kinds are supported.");
   r_shader_module.is_ready = false;
   const VKDevice &device = VKBackend::get().device;
-  sources[SOURCES_INDEX_VERSION] = device.glsl_patch_get();
+  const char *source_patch = nullptr;
+
+  switch (stage) {
+    case shaderc_vertex_shader:
+      source_patch = device.glsl_vertex_patch_get();
+      break;
+    case shaderc_geometry_shader:
+      source_patch = device.glsl_geometry_patch_get();
+      break;
+    case shaderc_fragment_shader:
+      source_patch = device.glsl_fragment_patch_get();
+      break;
+    case shaderc_compute_shader:
+      source_patch = device.glsl_compute_patch_get();
+      break;
+    default:
+      BLI_assert_msg(0, "Only forced ShaderC shader kinds are supported.");
+      break;
+  }
+
+  sources[SOURCES_INDEX_VERSION] = source_patch;
   r_shader_module.combined_sources = combine_sources(sources);
   if (!use_batch_compilation_) {
     VKShaderCompiler::compile_module(*this, stage, r_shader_module);

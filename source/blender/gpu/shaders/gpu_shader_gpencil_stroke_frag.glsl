@@ -15,7 +15,7 @@ void main()
     tColor.a = tColor.a * -1.0f;
     float dist = length(interp.mTexCoord - center);
     if (dist > 0.25f) {
-      discard;
+      gpu_discard_fragment();
     }
   }
   /* Solid */

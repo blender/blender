@@ -16,7 +16,7 @@ float3 compute_masks(float2 uv)
 
   /* Correct aspect ratio for 2D views not using uniform scaling.
    * uv is already in pixel space so a uniform scale should give us a ratio of 1. */
-  float ratio = (butCo != -2.0f) ? abs(dFdy(uv.y) / dFdx(uv.x)) : 1.0f;
+  float ratio = (butCo != -2.0f) ? abs(gpu_dfdy(uv.y) / gpu_dfdx(uv.x)) : 1.0f;
   float2 uv_sdf = uv;
   uv_sdf.x *= ratio;
 
@@ -43,7 +43,7 @@ float3 compute_masks(float2 uv)
 
   /* Clamp line width to be at least 1px wide. This can happen if the projection matrix
    * has been scaled (i.e: Node editor)... */
-  float line_width = (lineWidth > 0.0f) ? max(fwidth(uv.y), lineWidth) : 0.0f;
+  float line_width = (lineWidth > 0.0f) ? max(gpu_fwidth(uv.y), lineWidth) : 0.0f;
 
   constexpr float aa_radius = 0.5f;
   float3 masks;
@@ -73,7 +73,7 @@ float4 do_checkerboard()
 void main()
 {
   if (min(1.0f, -butCo) > discardFac) {
-    discard;
+    gpu_discard_fragment();
   }
 
   float3 masks = compute_masks(uvInterp);

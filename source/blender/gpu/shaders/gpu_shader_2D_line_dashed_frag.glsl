@@ -30,7 +30,7 @@ void main()
       fragColor = color2;
     }
     else {
-      discard;
+      gpu_discard_fragment();
     }
   }
 }

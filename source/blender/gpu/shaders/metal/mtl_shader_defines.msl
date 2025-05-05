@@ -1165,3 +1165,11 @@ RESHAPE(float3x3, float3x4, m[0].xyz, m[1].xyz, m[2].xyz)
 #define _enum_end \
   } \
   ;
+
+/* Stage agnostic builtin function.
+ * MSL allow mixing shader stages inside the same source file.
+ * Leaving the calls untouched makes sure we catch invalid usage during CI testing. */
+#define gpu_discard_fragment() discard
+#define gpu_dfdx(x) dFdx(x)
+#define gpu_dfdy(x) dFdy(x)
+#define gpu_fwidth(x) fwidth(x)

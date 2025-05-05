@@ -48,6 +48,6 @@ void main()
 
   float out_depth = imageLoadFast(depth_img, texel).r;
   out_depth = drw_depth_view_to_screen(-out_depth);
-  out_depth += 2.4e-7f * 4.0f + fwidth(out_depth);
+  out_depth += 2.4e-7f * 4.0f + gpu_fwidth(out_depth);
   gl_FragDepth = saturate(out_depth);
 }

@@ -12,7 +12,7 @@ void main()
 {
 #ifdef CLIP
   if (clip < 0.0f) {
-    discard;
+    gpu_discard_fragment();
   }
 #endif
   fragColor = final_color;

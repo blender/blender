@@ -43,7 +43,7 @@ void main()
     ndc_depth = 1.0f;
 #else
 #  define discard_result \
-    discard; \
+    gpu_discard_fragment(); \
     return;
 #endif
 

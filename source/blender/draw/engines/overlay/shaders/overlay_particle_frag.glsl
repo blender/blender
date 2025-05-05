@@ -15,7 +15,7 @@ void main()
   float dist = length(uv);
 
   if (dist > 0.5f) {
-    discard;
+    gpu_discard_fragment();
     return;
   }
   /* Nice sphere falloff. */

@@ -15,7 +15,7 @@ void main()
 
   /* Discard outside the circle. */
   if (dist_sqr > 1.0f) {
-    discard;
+    gpu_discard_fragment();
     return;
   }
 

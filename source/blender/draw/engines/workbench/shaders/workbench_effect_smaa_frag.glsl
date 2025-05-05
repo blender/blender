@@ -16,7 +16,7 @@ void main()
   out_edges = SMAALumaEdgeDetectionPS(uvs, offset, color_tx);
   /* Discard if there is no edge. */
   if (dot(out_edges, float2(1.0f, 1.0f)) == 0.0f) {
-    discard;
+    gpu_discard_fragment();
     return;
   }
 

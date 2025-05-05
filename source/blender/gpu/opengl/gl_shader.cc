@@ -1016,18 +1016,13 @@ bool GLShader::do_geometry_shader_injection(const shader::ShaderCreateInfo *info
 /** \name Shader stage creation
  * \{ */
 
-static StringRefNull glsl_patch_default_get()
+static StringRefNull glsl_patch_vertex_get()
 {
   /** Used for shader patching. Init once. */
   static std::string patch = []() {
     std::stringstream ss;
     /* Version need to go first. */
-    if (epoxy_gl_version() >= 43) {
-      ss << "#version 430\n";
-    }
-    else {
-      ss << "#version 330\n";
-    }
+    ss << "#version 430\n";
 
     /* Enable extensions for features that are not part of our base GLSL version
      * don't use an extension for something already available! */
@@ -1042,13 +1037,6 @@ static StringRefNull glsl_patch_default_get()
     if (GLContext::native_barycentric_support) {
       ss << "#extension GL_AMD_shader_explicit_vertex_parameter: enable\n";
     }
-    if (GLContext::framebuffer_fetch_support) {
-      ss << "#extension GL_EXT_shader_framebuffer_fetch: enable\n";
-    }
-    if (GPU_stencil_export_support()) {
-      ss << "#extension GL_ARB_shader_stencil_export: enable\n";
-      ss << "#define GPU_ARB_shader_stencil_export\n";
-    }
 
     /* Fallbacks. */
     if (!GLContext::shader_draw_parameters_support) {
@@ -1057,11 +1045,75 @@ static StringRefNull glsl_patch_default_get()
 
     /* Vulkan GLSL compatibility. */
     ss << "#define gpu_InstanceIndex (gl_InstanceID + gpu_BaseInstance)\n";
-    ss << "#define gpu_EmitVertex EmitVertex\n";
 
     /* Array compatibility. */
     ss << "#define gpu_Array(_type) _type[]\n";
 
+    /* Needs to have this defined upfront for configuring shader defines. */
+    ss << "#define GPU_VERTEX_SHADER\n";
+    /* GLSL Backend Lib. */
+    ss << datatoc_glsl_shader_defines_glsl;
+
+    return ss.str();
+  }();
+  return patch;
+}
+
+static StringRefNull glsl_patch_geometry_get()
+{
+  /** Used for shader patching. Init once. */
+  static std::string patch = []() {
+    std::stringstream ss;
+    /* Version need to go first. */
+    ss << "#version 430\n";
+
+    if (GLContext::layered_rendering_support) {
+      ss << "#extension GL_ARB_shader_viewport_layer_array: enable\n";
+    }
+    if (GLContext::native_barycentric_support) {
+      ss << "#extension GL_AMD_shader_explicit_vertex_parameter: enable\n";
+    }
+
+    /* Array compatibility. */
+    ss << "#define gpu_Array(_type) _type[]\n";
+
+    /* Needs to have this defined upfront for configuring shader defines. */
+    ss << "#define GPU_GEOMETRY_SHADER\n";
+    /* GLSL Backend Lib. */
+    ss << datatoc_glsl_shader_defines_glsl;
+
+    return ss.str();
+  }();
+  return patch;
+}
+
+static StringRefNull glsl_patch_fragment_get()
+{
+  /** Used for shader patching. Init once. */
+  static std::string patch = []() {
+    std::stringstream ss;
+    /* Version need to go first. */
+    ss << "#version 430\n";
+
+    if (GLContext::layered_rendering_support) {
+      ss << "#extension GL_ARB_shader_viewport_layer_array: enable\n";
+    }
+    if (GLContext::native_barycentric_support) {
+      ss << "#extension GL_AMD_shader_explicit_vertex_parameter: enable\n";
+    }
+    if (GLContext::framebuffer_fetch_support) {
+      ss << "#extension GL_EXT_shader_framebuffer_fetch: enable\n";
+    }
+    if (GPU_stencil_export_support()) {
+      ss << "#extension GL_ARB_shader_stencil_export: enable\n";
+      ss << "#define GPU_ARB_shader_stencil_export\n";
+    }
+
+    /* Array compatibility. */
+    ss << "#define gpu_Array(_type) _type[]\n";
+
+    /* Needs to have this defined upfront for configuring shader defines. */
+    ss << "#define GPU_FRAGMENT_SHADER\n";
     /* GLSL Backend Lib. */
     ss << datatoc_glsl_shader_defines_glsl;
 
@@ -1077,10 +1129,12 @@ static StringRefNull glsl_patch_compute_get()
     std::stringstream ss;
     /* Version need to go first. */
     ss << "#version 430\n";
-    ss << "#extension GL_ARB_compute_shader :enable\n";
 
     /* Array compatibility. */
     ss << "#define gpu_Array(_type) _type[]\n";
+
+    /* Needs to have this defined upfront for configuring shader defines. */
+    ss << "#define GPU_COMPUTE_SHADER\n";
 
     ss << datatoc_glsl_shader_defines_glsl;
 
@@ -1091,10 +1145,20 @@ static StringRefNull glsl_patch_compute_get()
 
 StringRefNull GLShader::glsl_patch_get(GLenum gl_stage)
 {
+  if (gl_stage == GL_VERTEX_SHADER) {
+    return glsl_patch_vertex_get();
+  }
+  if (gl_stage == GL_GEOMETRY_SHADER) {
+    return glsl_patch_geometry_get();
+  }
+  if (gl_stage == GL_FRAGMENT_SHADER) {
+    return glsl_patch_fragment_get();
+  }
   if (gl_stage == GL_COMPUTE_SHADER) {
     return glsl_patch_compute_get();
   }
-  return glsl_patch_default_get();
+  BLI_assert_unreachable();
+  return "";
 }
 
 GLuint GLShader::create_shader_stage(GLenum gl_stage,

@@ -835,12 +835,13 @@ uint floatBitsToUint(float) RET;
 float intBitsToFloat(int) RET;
 float uintBitsToFloat(uint) RET;
 
-namespace gl_FragmentShader {
 /* Derivative functions. */
-template<typename T> T dFdx(T) RET;
-template<typename T> T dFdy(T) RET;
-template<typename T> T fwidth(T) RET;
-}  // namespace gl_FragmentShader
+template<typename T> T gpu_dfdx(T) RET;
+template<typename T> T gpu_dfdy(T) RET;
+template<typename T> T gpu_fwidth(T) RET;
+
+/* Discards the output of the current fragment shader invocation and halts its execution. */
+void gpu_discard_fragment() {}
 
 /* Geometric functions. */
 template<typename T, int D> VecBase<T, D> faceforward(VecOp<T, D>, VecOp<T, D>, VecOp<T, D>) RET;
@@ -943,9 +944,6 @@ extern const uint gl_LocalInvocationIndex;
 #define out
 /* Pass argument by copy (default). */
 #define in
-
-/* Discards the output of the current fragment shader invocation and halts its execution. */
-#define discard
 
 /* Decorate a variable in global scope that is common to all threads in a thread-group. */
 #define shared

@@ -18,8 +18,8 @@ SHADER_LIBRARY_CREATE_INFO(eevee_geom_mesh)
 #if defined(USE_BARYCENTRICS) && defined(GPU_FRAGMENT_SHADER) && defined(MAT_GEOM_MESH)
 float3 barycentric_distances_get()
 {
-  float wp_delta = length(dFdx(interp.P)) + length(dFdy(interp.P));
-  float bc_delta = length(dFdx(gpu_BaryCoord)) + length(dFdy(gpu_BaryCoord));
+  float wp_delta = length(gpu_dfdx(interp.P)) + length(gpu_dfdy(interp.P));
+  float bc_delta = length(gpu_dfdx(gpu_BaryCoord)) + length(gpu_dfdy(gpu_BaryCoord));
   float rate_of_change = wp_delta / bc_delta;
   return rate_of_change * (1.0f - gpu_BaryCoord);
 }
@@ -107,7 +107,7 @@ void init_globals()
 #ifdef GPU_FRAGMENT_SHADER
   g_data.N = (FrontFacing) ? g_data.N : -g_data.N;
   g_data.Ni = (FrontFacing) ? g_data.Ni : -g_data.Ni;
-  g_data.Ng = safe_normalize(cross(dFdx(g_data.P), dFdy(g_data.P)));
+  g_data.Ng = safe_normalize(cross(gpu_dfdx(g_data.P), gpu_dfdy(g_data.P)));
 #endif
 
 #if defined(MAT_GEOM_MESH)

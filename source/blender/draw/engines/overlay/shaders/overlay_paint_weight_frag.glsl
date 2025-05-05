@@ -90,7 +90,7 @@ void main()
     /* Contour display */
     if (draw_contours) {
       /* This must be executed uniformly for all fragments */
-      float weight_gradient = length(float2(dFdx(weight), dFdy(weight)));
+      float weight_gradient = length(float2(gpu_dfdx(weight), gpu_dfdy(weight)));
 
       float4 grid = contour_grid(weight, weight_gradient);
 

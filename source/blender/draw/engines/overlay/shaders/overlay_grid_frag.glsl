@@ -43,8 +43,8 @@ float3 get_axes(float3 co, float3 fwidthCos, float line_size)
 void main()
 {
   float3 P = local_pos * grid_buf.size.xyz;
-  float3 dFdxPos = dFdx(P);
-  float3 dFdyPos = dFdy(P);
+  float3 dFdxPos = gpu_dfdx(P);
+  float3 dFdyPos = gpu_dfdy(P);
   float3 fwidthPos = abs(dFdxPos) + abs(dFdyPos);
   P += drw_view_position() * plane_axes;
 
@@ -210,7 +210,7 @@ void main()
      * (avoids popping visuals due to depth buffer precision) */
     /* Harder settings tend to flicker more,
      * but have less "see through" appearance. */
-    float bias = max(fwidth(gl_FragCoord.z), 2.4e-7f);
+    float bias = max(gpu_fwidth(gl_FragCoord.z), 2.4e-7f);
     fade *= linearstep(grid_depth, grid_depth + bias, scene_depth);
   }
 

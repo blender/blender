@@ -29,7 +29,7 @@ void main()
 #ifndef SELECT_ENABLE
     /* We cannot discard the fragment in selection mode. Otherwise we would break pipeline
      * correctness (no discard if early depth test enforced). */
-    discard;
+    gpu_discard_fragment();
 #endif
     return;
   }

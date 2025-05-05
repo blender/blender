@@ -25,7 +25,7 @@ void main()
                                     gp_interp_noperspective.thickness.x,
                                     gp_interp_noperspective.hardness) < 0.001f)
   {
-    discard;
+    gpu_discard_fragment();
     return;
   }
 

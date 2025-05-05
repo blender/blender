@@ -339,8 +339,8 @@ void dF_branch(float fn, out float2 result)
 {
   /* NOTE: this function is currently unused, once it is used we need to check if
    * `g_derivative_filter_width` needs to be applied. */
-  result.x = dFdx(fn);
-  result.y = dFdy(fn);
+  result.x = gpu_dfdx(fn);
+  result.y = gpu_dfdy(fn);
 }
 
 #else
@@ -353,10 +353,10 @@ int g_derivative_flag = 0;
 float3 dF_impl(float3 v)
 {
   if (g_derivative_flag > 0) {
-    return dFdx(v) * g_derivative_filter_width;
+    return gpu_dfdx(v) * g_derivative_filter_width;
   }
   else if (g_derivative_flag < 0) {
-    return dFdy(v) * g_derivative_filter_width;
+    return gpu_dfdy(v) * g_derivative_filter_width;
   }
   return float3(0.0f);
 }

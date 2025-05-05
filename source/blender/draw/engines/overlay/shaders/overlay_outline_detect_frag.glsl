@@ -265,7 +265,7 @@ void main()
     /* NOTE(Metal): Discards are not explicit returns in Metal. We should also return to avoid
      * erroneous derivatives which can manifest during texture sampling in
      * non-uniform-control-flow. */
-    discard;
+    gpu_discard_fragment();
     return;
   }
 
