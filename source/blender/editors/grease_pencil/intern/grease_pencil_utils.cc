@@ -31,6 +31,8 @@
 #include "DNA_scene_types.h"
 #include "DNA_view3d_types.h"
 
+#include "DEG_depsgraph_query.hh"
+
 #include "GEO_merge_layers.hh"
 
 #include "RNA_prototypes.hh"
@@ -1873,21 +1875,23 @@ void apply_eval_grease_pencil_data(const GreasePencil &eval_grease_pencil,
 
   /* Get the original material pointers from the result geometry. */
   VectorSet<Material *> original_materials;
-  const Span<Material *> eval_materials = Span{merged_layers_grease_pencil.material_array,
-                                               merged_layers_grease_pencil.material_array_num};
+  const Span<Material *> eval_materials = Span{eval_grease_pencil.material_array,
+                                               eval_grease_pencil.material_array_num};
   for (Material *eval_material : eval_materials) {
-    if (eval_material != nullptr && eval_material->id.orig_id != nullptr) {
-      original_materials.add_new(reinterpret_cast<Material *>(eval_material->id.orig_id));
+    if (!eval_material) {
+      return;
     }
+    original_materials.add(DEG_get_original(eval_material));
   }
 
   /* Build material indices mapping. This maps the materials indices on the original geometry to
-   * the material indices used in the result geometry. The material indices for the drawings in the
-   * result geometry are already correct, but this might not be the case for all drawings in the
-   * original geometry (like for drawings that are not visible on the frame that the data is
+   * the material indices used in the result geometry. The material indices for the drawings in
+   * the result geometry are already correct, but this might not be the case for all drawings in
+   * the original geometry (like for drawings that are not visible on the frame that the data is
    * being applied on). */
-  Array<int> material_indices_map(orig_grease_pencil.material_array_num);
-  for (const int mat_i : IndexRange(orig_grease_pencil.material_array_num)) {
+  const IndexRange orig_material_indices = IndexRange(orig_grease_pencil.material_array_num);
+  Array<int> material_indices_map(orig_grease_pencil.material_array_num, -1);
+  for (const int mat_i : orig_material_indices) {
     Material *material = orig_grease_pencil.material_array[mat_i];
     const int map_index = original_materials.index_of_try(material);
     if (map_index != -1) {
@@ -1897,8 +1901,7 @@ void apply_eval_grease_pencil_data(const GreasePencil &eval_grease_pencil,
 
   /* Remap material indices for all other drawings. */
   if (!material_indices_map.is_empty() &&
-      !array_utils::indices_are_range(material_indices_map,
-                                      IndexRange(orig_grease_pencil.material_array_num)))
+      !array_utils::indices_are_range(material_indices_map, orig_material_indices))
   {
     for (GreasePencilDrawingBase *base : orig_grease_pencil.drawings()) {
       if (base->type != GP_DRAWING) {
@@ -1916,7 +1919,7 @@ void apply_eval_grease_pencil_data(const GreasePencil &eval_grease_pencil,
       SpanAttributeWriter<int> material_indices = attributes.lookup_or_add_for_write_span<int>(
           "material_index", AttrDomain::Curve);
       for (int &material_index : material_indices.span) {
-        if (material_index >= 0 && material_index < material_indices_map.size()) {
+        if (material_indices_map.index_range().contains(material_index)) {
           material_index = material_indices_map[material_index];
         }
       }

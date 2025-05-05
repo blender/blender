@@ -6,12 +6,14 @@
  * \ingroup edcurves
  */
 
+#include "BLI_index_mask.hh"
 #include "BLI_listbase.h"
 #include "BLI_path_utils.hh"
 #include "BLI_rect.h"
 #include "BLI_string.h"
 
 #include "ED_curves.hh"
+#include "ED_grease_pencil.hh"
 #include "ED_object.hh"
 #include "ED_screen.hh"
 #include "ED_select_utils.hh"
@@ -27,6 +29,7 @@
 #include "BKE_customdata.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_geometry_set.hh"
+#include "BKE_grease_pencil.hh"
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
@@ -253,12 +256,22 @@ static bke::GeometrySet get_original_geometry_eval_copy(Depsgraph &depsgraph,
       orig_mesh_states.append_as(*mesh_copy);
       return bke::GeometrySet::from_mesh(mesh_copy);
     }
+    case OB_GREASE_PENCIL: {
+      const GreasePencil *grease_pencil = static_cast<const GreasePencil *>(object.data);
+      if (const bke::greasepencil::Layer *active_layer = grease_pencil->get_active_layer()) {
+        operator_data.active_layer_index = *grease_pencil->get_layer_index(*active_layer);
+      }
+      GreasePencil *grease_pencil_copy = BKE_grease_pencil_copy_for_eval(grease_pencil);
+      grease_pencil_copy->runtime->eval_frame = int(DEG_get_ctime(&depsgraph));
+      return bke::GeometrySet::from_grease_pencil(grease_pencil_copy);
+    }
     default:
       return {};
   }
 }
 
-static void store_result_geometry(const wmOperator &op,
+static void store_result_geometry(const bContext &C,
+                                  const wmOperator &op,
                                   const Depsgraph &depsgraph,
                                   Main &bmain,
                                   Scene &scene,
@@ -335,6 +348,59 @@ static void store_result_geometry(const wmOperator &op,
         BKE_report(op.reports, RPT_WARNING, "Mesh shape key data removed");
       }
       break;
+    }
+    case OB_GREASE_PENCIL: {
+      const int eval_frame = int(DEG_get_ctime(&depsgraph));
+
+      GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object.data);
+      Vector<int> editable_layer_indices;
+      for (const int layer_i : grease_pencil.layers().index_range()) {
+        const bke::greasepencil::Layer &layer = grease_pencil.layer(layer_i);
+        if (!layer.is_editable()) {
+          continue;
+        }
+        editable_layer_indices.append(layer_i);
+      }
+
+      bool inserted_new_keyframe = false;
+      for (const int layer_i : editable_layer_indices) {
+        bke::greasepencil::Layer &layer = grease_pencil.layer(layer_i);
+        /* TODO: For now, we always create a blank keyframe, but it might be good to expose this as
+         * an option and allow to duplicate the previous key. */
+        const bool duplicate_previous_key = false;
+        ed::greasepencil::ensure_active_keyframe(
+            scene, grease_pencil, layer, duplicate_previous_key, inserted_new_keyframe);
+      }
+      GreasePencil *new_grease_pencil =
+          geometry.get_component_for_write<bke::GreasePencilComponent>().get_for_write();
+      if (!new_grease_pencil) {
+        /* Clear the Grease Pencil geometry. */
+        for (const int layer_i : editable_layer_indices) {
+          bke::greasepencil::Layer &layer = grease_pencil.layer(layer_i);
+          if (bke::greasepencil::Drawing *drawing_orig = grease_pencil.get_drawing_at(layer,
+                                                                                      eval_frame))
+          {
+            drawing_orig->strokes_for_write() = {};
+            drawing_orig->tag_topology_changed();
+          }
+        }
+      }
+      else {
+        IndexMaskMemory memory;
+        const IndexMask editable_layers = IndexMask::from_indices(editable_layer_indices.as_span(),
+                                                                  memory);
+        ed::greasepencil::apply_eval_grease_pencil_data(
+            *new_grease_pencil, eval_frame, editable_layers, grease_pencil);
+
+        /* There might be layers with empty names after evaluation. Make sure to rename them. */
+        bke::greasepencil::ensure_non_empty_layer_names(bmain, grease_pencil);
+        BKE_object_material_from_eval_data(&bmain, &object, &new_grease_pencil->id);
+      }
+
+      DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
+      if (inserted_new_keyframe) {
+        WM_event_add_notifier(&C, NC_GPENCIL | NA_EDITED, nullptr);
+      }
     }
   }
 }
@@ -473,7 +539,7 @@ static void replace_inputs_evaluated_data_blocks(
 
 static bool object_has_editable_data(const Main &bmain, const Object &object)
 {
-  if (!ELEM(object.type, OB_CURVES, OB_POINTCLOUD, OB_MESH)) {
+  if (!ELEM(object.type, OB_CURVES, OB_POINTCLOUD, OB_MESH, OB_GREASE_PENCIL)) {
     return false;
   }
   if (!BKE_id_is_editable(&bmain, static_cast<const ID *>(object.data))) {
@@ -635,7 +701,7 @@ static wmOperatorStatus run_node_group_exec(bContext *C, wmOperator *op)
         std::move(geometry_orig));
 
     store_result_geometry(
-        *op, *depsgraph_active, *bmain, *scene, *object, rv3d, std::move(new_geometry));
+        *C, *op, *depsgraph_active, *bmain, *scene, *object, rv3d, std::move(new_geometry));
     WM_event_add_notifier(C, NC_GEOM | ND_DATA, object->data);
   }
 
@@ -1066,6 +1132,20 @@ static GeometryNodeAssetTraitFlag asset_flag_for_context(const ObjectType type,
       }
       break;
     }
+    case OB_GREASE_PENCIL: {
+      switch (mode) {
+        case OB_MODE_OBJECT:
+          return (GEO_NODE_ASSET_TOOL | GEO_NODE_ASSET_OBJECT | GEO_NODE_ASSET_GREASE_PENCIL);
+        case OB_MODE_EDIT:
+          return (GEO_NODE_ASSET_TOOL | GEO_NODE_ASSET_EDIT | GEO_NODE_ASSET_GREASE_PENCIL);
+        case OB_MODE_SCULPT_GREASE_PENCIL:
+          return (GEO_NODE_ASSET_TOOL | GEO_NODE_ASSET_SCULPT | GEO_NODE_ASSET_GREASE_PENCIL);
+        case OB_MODE_PAINT_GREASE_PENCIL:
+          return (GEO_NODE_ASSET_TOOL | GEO_NODE_ASSET_PAINT | GEO_NODE_ASSET_GREASE_PENCIL);
+        default:
+          break;
+      }
+    }
     default:
       break;
   }
@@ -1131,6 +1211,28 @@ static asset::AssetItemTree *get_static_item_tree(const ObjectType type, const e
           return nullptr;
       }
     }
+    case OB_GREASE_PENCIL: {
+      switch (mode) {
+        case OB_MODE_OBJECT: {
+          static asset::AssetItemTree tree;
+          return &tree;
+        }
+        case OB_MODE_EDIT: {
+          static asset::AssetItemTree tree;
+          return &tree;
+        }
+        case OB_MODE_SCULPT_GREASE_PENCIL: {
+          static asset::AssetItemTree tree;
+          return &tree;
+        }
+        case OB_MODE_PAINT_GREASE_PENCIL: {
+          static asset::AssetItemTree tree;
+          return &tree;
+        }
+        default:
+          return nullptr;
+      }
+    }
     default:
       return nullptr;
   }
@@ -1143,9 +1245,13 @@ static asset::AssetItemTree *get_static_item_tree(const Object &active_object)
 
 void clear_operator_asset_trees()
 {
-  for (const ObjectType type : {OB_MESH, OB_CURVES, OB_POINTCLOUD}) {
-    for (const eObjectMode mode :
-         {OB_MODE_OBJECT, OB_MODE_EDIT, OB_MODE_SCULPT, OB_MODE_SCULPT_CURVES})
+  for (const ObjectType type : {OB_MESH, OB_CURVES, OB_POINTCLOUD, OB_GREASE_PENCIL}) {
+    for (const eObjectMode mode : {OB_MODE_OBJECT,
+                                   OB_MODE_EDIT,
+                                   OB_MODE_SCULPT,
+                                   OB_MODE_SCULPT_CURVES,
+                                   OB_MODE_SCULPT_GREASE_PENCIL,
+                                   OB_MODE_PAINT_GREASE_PENCIL})
     {
       if (asset::AssetItemTree *tree = get_static_item_tree(type, mode)) {
         tree->dirty = true;
@@ -1243,6 +1349,36 @@ static Set<std::string> get_builtin_menus(const ObjectType object_type, const eO
         default:
           break;
       }
+      break;
+    case OB_GREASE_PENCIL: {
+      switch (mode) {
+        case OB_MODE_OBJECT:
+          menus.add_new("View");
+          menus.add_new("Select");
+          menus.add_new("Add");
+          menus.add_new("Object");
+          menus.add_new("Object/Apply");
+          menus.add_new("Object/Convert");
+          menus.add_new("Object/Quick Effects");
+          break;
+        case OB_MODE_EDIT:
+          menus.add_new("View");
+          menus.add_new("Select");
+          menus.add_new("Grease Pencil");
+          menus.add_new("Stroke");
+          menus.add_new("Point");
+          break;
+        case OB_MODE_SCULPT_GREASE_PENCIL:
+          menus.add_new("View");
+          break;
+        case OB_MODE_PAINT_GREASE_PENCIL:
+          menus.add_new("View");
+          menus.add_new("Draw");
+          break;
+        default:
+          break;
+      }
+    }
     default:
       break;
   }

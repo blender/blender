@@ -1212,6 +1212,7 @@ class VIEW3D_MT_editor_menus(Menu):
             elif mode_string == 'EDIT_GREASE_PENCIL':
                 layout.menu("VIEW3D_MT_edit_greasepencil_point")
                 layout.menu("VIEW3D_MT_edit_greasepencil_stroke")
+                layout.template_node_operator_asset_root_items()
 
         elif obj:
             if mode_string not in {'PAINT_TEXTURE', 'SCULPT_CURVES', 'SCULPT_GREASE_PENCIL', 'VERTEX_GREASE_PENCIL'}:
@@ -1236,6 +1237,7 @@ class VIEW3D_MT_editor_menus(Menu):
                 )
                 if is_selection_mask:
                     layout.menu("VIEW3D_MT_select_edit_grease_pencil")
+                layout.template_node_operator_asset_root_items()
             else:
                 layout.template_node_operator_asset_root_items()
 
@@ -2224,6 +2226,8 @@ class VIEW3D_MT_select_edit_grease_pencil(Menu):
         props = layout.operator("grease_pencil.select_ends", text="Last")
         props.amount_start = 0
         props.amount_end = 1
+
+        layout.template_node_operator_asset_menu_items(catalog_path=self.bl_label)
 
 
 class VIEW3D_MT_paint_grease_pencil(Menu):
@@ -5777,6 +5781,8 @@ class VIEW3D_MT_edit_greasepencil(Menu):
 
         layout.menu("VIEW3D_MT_edit_greasepencil_delete")
 
+        layout.template_node_operator_asset_menu_items(catalog_path=self.bl_label)
+
 
 class VIEW3D_MT_edit_greasepencil_stroke(Menu):
     bl_label = "Stroke"
@@ -5825,6 +5831,8 @@ class VIEW3D_MT_edit_greasepencil_stroke(Menu):
 
         layout.operator("grease_pencil.reset_uvs")
 
+        layout.template_node_operator_asset_menu_items(catalog_path=self.bl_label)
+
 
 class VIEW3D_MT_edit_greasepencil_point(Menu):
     bl_label = "Point"
@@ -5845,6 +5853,8 @@ class VIEW3D_MT_edit_greasepencil_point(Menu):
         layout.separator()
 
         layout.operator_menu_enum("grease_pencil.set_handle_type", property="type")
+
+        layout.template_node_operator_asset_menu_items(catalog_path=self.bl_label)
 
 
 class VIEW3D_MT_edit_curves_add(Menu):

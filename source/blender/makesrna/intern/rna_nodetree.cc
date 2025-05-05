@@ -2207,6 +2207,15 @@ static void rna_GeometryNodeTree_is_mode_sculpt_set(PointerRNA *ptr, bool value)
   geometry_node_asset_trait_flag_set(ptr, GEO_NODE_ASSET_SCULPT, value);
 }
 
+static bool rna_GeometryNodeTree_is_mode_paint_get(PointerRNA *ptr)
+{
+  return geometry_node_asset_trait_flag_get(ptr, GEO_NODE_ASSET_PAINT);
+}
+static void rna_GeometryNodeTree_is_mode_paint_set(PointerRNA *ptr, bool value)
+{
+  geometry_node_asset_trait_flag_set(ptr, GEO_NODE_ASSET_PAINT, value);
+}
+
 static bool rna_GeometryNodeTree_is_type_mesh_get(PointerRNA *ptr)
 {
   return geometry_node_asset_trait_flag_get(ptr, GEO_NODE_ASSET_MESH);
@@ -2241,6 +2250,15 @@ static bool rna_GeometryNodeTree_use_wait_for_click_get(PointerRNA *ptr)
 static void rna_GeometryNodeTree_use_wait_for_click_set(PointerRNA *ptr, bool value)
 {
   geometry_node_asset_trait_flag_set(ptr, GEO_NODE_ASSET_WAIT_FOR_CURSOR, value);
+}
+
+static bool rna_GeometryNodeTree_is_type_grease_pencil_get(PointerRNA *ptr)
+{
+  return geometry_node_asset_trait_flag_get(ptr, GEO_NODE_ASSET_GREASE_PENCIL);
+}
+static void rna_GeometryNodeTree_is_type_grease_pencil_set(PointerRNA *ptr, bool value)
+{
+  geometry_node_asset_trait_flag_set(ptr, GEO_NODE_ASSET_GREASE_PENCIL, value);
 }
 
 static bool random_value_type_supported(const EnumPropertyItem *item)
@@ -13357,6 +13375,14 @@ static void rna_def_geometry_nodetree(BlenderRNA *brna)
       prop, "rna_GeometryNodeTree_is_mode_sculpt_get", "rna_GeometryNodeTree_is_mode_sculpt_set");
   RNA_def_property_update(prop, NC_NODE | ND_DISPLAY, "rna_NodeTree_update_asset");
 
+  prop = RNA_def_property(srna, "is_mode_paint", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", GEO_NODE_ASSET_PAINT);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_ui_text(prop, "Paint", "The node group is used in paint mode");
+  RNA_def_property_boolean_funcs(
+      prop, "rna_GeometryNodeTree_is_mode_paint_get", "rna_GeometryNodeTree_is_mode_paint_set");
+  RNA_def_property_update(prop, NC_NODE | ND_DISPLAY, "rna_NodeTree_update_asset");
+
   prop = RNA_def_property(srna, "is_type_mesh", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", GEO_NODE_ASSET_MESH);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
@@ -13391,6 +13417,15 @@ static void rna_def_geometry_nodetree(BlenderRNA *brna)
   RNA_def_property_boolean_funcs(prop,
                                  "rna_GeometryNodeTree_use_wait_for_click_get",
                                  "rna_GeometryNodeTree_use_wait_for_click_set");
+  RNA_def_property_update(prop, NC_NODE | ND_DISPLAY, "rna_NodeTree_update_asset");
+
+  prop = RNA_def_property(srna, "is_type_grease_pencil", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", GEO_NODE_ASSET_GREASE_PENCIL);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_ui_text(prop, "Grease Pencil", "The node group is used for Grease Pencil");
+  RNA_def_property_boolean_funcs(prop,
+                                 "rna_GeometryNodeTree_is_type_grease_pencil_get",
+                                 "rna_GeometryNodeTree_is_type_grease_pencil_set");
   RNA_def_property_update(prop, NC_NODE | ND_DISPLAY, "rna_NodeTree_update_asset");
 }
 
