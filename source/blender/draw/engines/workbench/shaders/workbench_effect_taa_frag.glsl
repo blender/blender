@@ -13,8 +13,10 @@ void main()
 
   frag_color = float4(0.0f);
   int i = 0;
-  for (int x = -1; x <= 1; x++) {
-    for (int y = -1; y <= 1; y++, i++) {
+  [[gpu::unroll]] for (int x = -1; x <= 1; x++)
+  {
+    [[gpu::unroll]] for (int y = -1; y <= 1; y++, i++)
+    {
       float4 color = texture(color_buffer, uv + float2(x, y) * texel_size);
       /* Clamp infinite inputs (See #112211). */
       color = clamp(color, float4(0.0f), float4(1e10f));

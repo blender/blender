@@ -1070,3 +1070,12 @@ void groupMemoryBarrier() {}
 #define row_major row_major_is_reserved_glsl_keyword_do_not_use
 
 #include "GPU_shader_shared_utils.hh"
+
+#ifdef __GNUC__
+/* Avoid warnings caused by our own unroll attributes. */
+#  ifdef __clang__
+#    pragma GCC diagnostic ignored "-Wunknown-attributes"
+#  else
+#    pragma GCC diagnostic ignored "-Wattributes"
+#  endif
+#endif
