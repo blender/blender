@@ -1097,6 +1097,44 @@ class Preprocessor {
   {
     return char_count(str, '\n');
   }
+
+  /* Match any reference definition (e.g. `int &a = b`).
+   * Call the callback function for each `&` character that matches a reference definition.
+   * Expects the input `str` to be formatted with balanced parenthesis and curly brackets. */
+  static void reference_search(std::string &str, std::function<void(int, int, char &)> callback)
+  {
+    size_t pos = 0;
+    int parenthesis_depth = 0;
+    int bracket_depth = 0;
+    for (char &c : str) {
+      if (c == '&') {
+        if (pos > 0 && pos <= str.length() - 2) {
+          /* This is made safe by the previous check and by starting at pos = 1. */
+          char prev_char = str[pos - 1];
+          char next_char = str[pos + 1];
+          /* Validate it is not an operator (`&`, `&&`, `&=`). */
+          if (prev_char == ' ' || prev_char == '(') {
+            if (next_char != ' ' && next_char != '&' && next_char != '=') {
+              callback(parenthesis_depth, bracket_depth, c);
+            }
+          }
+        }
+      }
+      else if (c == '(') {
+        parenthesis_depth++;
+      }
+      else if (c == ')') {
+        parenthesis_depth--;
+      }
+      else if (c == '{') {
+        bracket_depth++;
+      }
+      else if (c == '}') {
+        bracket_depth--;
+      }
+      pos++;
+    }
+  }
 };
 
 }  // namespace blender::gpu::shader
