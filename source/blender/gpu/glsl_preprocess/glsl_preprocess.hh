@@ -760,6 +760,129 @@ class Preprocessor {
     suffix << "\n";
     return suffix.str();
   }
+
+  /* Made public for unit testing purpose. */
+ public:
+  static std::string get_content_between_balanced_pair(const std::string &input,
+                                                       char start_delimiter,
+                                                       char end_delimiter,
+                                                       const bool backwards = false)
+  {
+    int balance = 0;
+    size_t start = std::string::npos;
+    size_t end = std::string::npos;
+
+    if (backwards) {
+      std::swap(start_delimiter, end_delimiter);
+    }
+
+    for (size_t i = 0; i < input.length(); ++i) {
+      size_t idx = backwards ? (input.length() - 1) - i : i;
+      if (input[idx] == start_delimiter) {
+        if (balance == 0) {
+          start = idx;
+        }
+        balance++;
+      }
+      else if (input[idx] == end_delimiter) {
+        balance--;
+        if (balance == 0 && start != std::string::npos) {
+          end = idx;
+          if (backwards) {
+            std::swap(start, end);
+          }
+          return input.substr(start + 1, end - start - 1);
+        }
+      }
+    }
+    return "";
+  }
+
+  /* Replaces all occurrences of `from` by `to` between `start_delimiter`
+   * and `end_delimiter` even inside nested delimiters pair. */
+  static std::string replace_char_between_balanced_pair(const std::string &input,
+                                                        const char start_delimiter,
+                                                        const char end_delimiter,
+                                                        const char from,
+                                                        const char to)
+  {
+    int depth = 0;
+
+    std::string str = input;
+    for (char &string_char : str) {
+      if (string_char == start_delimiter) {
+        depth++;
+      }
+      else if (string_char == end_delimiter) {
+        depth--;
+      }
+      else if (depth > 0 && string_char == from) {
+        string_char = to;
+      }
+    }
+    return str;
+  }
+
+  /* Function to split a string by a delimiter and return a vector of substrings. */
+  static std::vector<std::string> split_string(const std::string &str, const char delimiter)
+  {
+    std::vector<std::string> substrings;
+    std::stringstream ss(str);
+    std::string item;
+
+    while (std::getline(ss, item, delimiter)) {
+      substrings.push_back(item);
+    }
+    return substrings;
+  }
+
+  /* Similar to split_string but only split if the delimiter is not between any pair_start and
+   * pair_end. */
+  static std::vector<std::string> split_string_not_between_balanced_pair(const std::string &str,
+                                                                         const char delimiter,
+                                                                         const char pair_start,
+                                                                         const char pair_end)
+  {
+    const char safe_char = '@';
+    const std::string safe_str = replace_char_between_balanced_pair(
+        str, pair_start, pair_end, delimiter, safe_char);
+    std::vector<std::string> split = split_string(safe_str, delimiter);
+    for (std::string &str : split) {
+      replace_all(str, safe_char, delimiter);
+    }
+    return split;
+  }
+
+  static void replace_all(std::string &str, const std::string &from, const std::string &to)
+  {
+    if (from.empty()) {
+      return;
+    }
+    size_t start_pos = 0;
+    while ((start_pos = str.find(from, start_pos)) != std::string::npos) {
+      str.replace(start_pos, from.length(), to);
+      start_pos += to.length();
+    }
+  }
+
+  static void replace_all(std::string &str, const char from, const char to)
+  {
+    for (char &string_char : str) {
+      if (string_char == from) {
+        string_char = to;
+      }
+    }
+  }
+
+  static int64_t char_count(const std::string &str, char c)
+  {
+    return std::count(str.begin(), str.end(), c);
+  }
+
+  static int64_t line_count(const std::string &str)
+  {
+    return char_count(str, '\n');
+  }
 };
 
 }  // namespace blender::gpu::shader
