@@ -185,6 +185,8 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
   device_free(device, dscene);
 
   /* integrator parameters */
+
+  /* Plus one so that a bounce of 0 indicates no global illumination, only direct illumination. */
   kintegrator->min_bounce = min_bounce + 1;
   kintegrator->max_bounce = max_bounce + 1;
 
@@ -194,7 +196,10 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
   kintegrator->max_volume_bounce = max_volume_bounce + 1;
 
   kintegrator->transparent_min_bounce = transparent_min_bounce + 1;
-  kintegrator->transparent_max_bounce = transparent_max_bounce + 1;
+
+  /* Unlike other type of bounces, 0 transparent bounce means there is no transparent bounce in the
+   * scene. */
+  kintegrator->transparent_max_bounce = transparent_max_bounce;
 
   kintegrator->ao_bounces = (ao_factor != 0.0f) ? ao_bounces : 0;
   kintegrator->ao_bounces_distance = ao_distance;
