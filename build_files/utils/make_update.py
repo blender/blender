@@ -58,6 +58,7 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument("--no-libraries", action="store_true")
     parser.add_argument("--no-blender", action="store_true")
     parser.add_argument("--no-submodules", action="store_true")
+    parser.add_argument("--no-lfs-fallback", action="store_true")
     parser.add_argument("--git-command", default="git")
     parser.add_argument("--use-linux-libraries", action="store_true")
     parser.add_argument("--architecture", type=str,
@@ -573,6 +574,31 @@ def submodules_lib_update(args: argparse.Namespace, branch: "str | None") -> str
     return msg
 
 
+def lfs_fallback_setup(args: argparse.Namespace) -> None:
+    """
+    Set up an additional projects.blender.org remote, for LFS fetching fallback
+    in case the fork does not include LFS files.
+    """
+    remotes = make_utils.git_get_remotes(args.git_command)
+    add_fallback_remote = True
+    fallback_remote = "lfs-fallback"
+
+    for remote in remotes:
+        url = make_utils.git_get_remote_url(args.git_command, remote)
+        if "projects.blender.org" not in url:
+            make_utils.git_set_config(args.git_command, f"lfs.{remote}.searchall", "true")
+        else:
+            add_fallback_remote = False
+
+    if add_fallback_remote and not make_utils.git_remote_exist(args.git_command, fallback_remote):
+        print_stage("Adding Git LFS fallback remote")
+        print("Used to fetch files from projects.blender.org if missing.")
+
+        url = "https://projects.blender.org/blender/blender.git"
+        push_url = "no_push"
+        make_utils.git_add_remote(args.git_command, fallback_remote, url, push_url)
+
+
 def main() -> int:
     args = parse_arguments()
 
@@ -593,6 +619,9 @@ def main() -> int:
 
     if args.prune_destructive:
         prune_stale_files(args)
+
+    if not args.no_lfs_fallback:
+        lfs_fallback_setup(args)
 
     if not args.no_blender:
         blender_skip_msg = git_update_skip(args)
