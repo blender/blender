@@ -8262,7 +8262,9 @@ static void def_cmp_brightcontrast(BlenderRNA * /*brna*/, StructRNA *srna)
 
   prop = RNA_def_property(srna, "use_premultiply", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "custom1", 1);
-  RNA_def_property_ui_text(prop, "Convert Premultiplied", "Keep output image premultiplied alpha");
+  RNA_def_property_ui_text(prop,
+                           "Convert Premultiplied",
+                           "Keep output image premultiplied alpha. (Deprecated: Unused.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 

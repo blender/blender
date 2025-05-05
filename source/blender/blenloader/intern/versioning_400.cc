@@ -4361,6 +4361,73 @@ static void do_version_composite_viewer_remove_alpha(bNodeTree *node_tree)
   }
 }
 
+/* The Convert Premultiplied option was removed. If enabled, a convert alpha node will be added
+ * before and after the node to perform the adjustment in straight alpha. */
+static void do_version_bright_contrast_remove_premultiplied(bNodeTree *node_tree)
+{
+  LISTBASE_FOREACH_BACKWARD_MUTABLE (bNodeLink *, link, &node_tree->links) {
+    if (link->tonode->type_legacy != CMP_NODE_BRIGHTCONTRAST) {
+      continue;
+    }
+
+    if (!bool(link->tonode->custom1)) {
+      continue;
+    }
+
+    if (blender::StringRef(link->tosock->identifier) != "Image") {
+      continue;
+    }
+
+    bNode *convert_alpha_node = blender::bke::node_add_static_node(
+        nullptr, *node_tree, CMP_NODE_PREMULKEY);
+    convert_alpha_node->parent = link->tonode->parent;
+    convert_alpha_node->location[0] = link->tonode->location[0] - link->tonode->width - 20.0f;
+    convert_alpha_node->location[1] = link->tonode->location[1];
+    convert_alpha_node->custom1 = CMP_NODE_ALPHA_CONVERT_UNPREMULTIPLY;
+
+    bNodeSocket *convert_alpha_input = blender::bke::node_find_socket(
+        *convert_alpha_node, SOCK_IN, "Image");
+    bNodeSocket *convert_alpha_output = blender::bke::node_find_socket(
+        *convert_alpha_node, SOCK_OUT, "Image");
+
+    version_node_add_link(
+        *node_tree, *link->fromnode, *link->fromsock, *convert_alpha_node, *convert_alpha_input);
+    version_node_add_link(
+        *node_tree, *convert_alpha_node, *convert_alpha_output, *link->tonode, *link->tosock);
+
+    blender::bke::node_remove_link(node_tree, *link);
+  }
+
+  LISTBASE_FOREACH_BACKWARD_MUTABLE (bNodeLink *, link, &node_tree->links) {
+    if (link->fromnode->type_legacy != CMP_NODE_BRIGHTCONTRAST) {
+      continue;
+    }
+
+    if (!bool(link->fromnode->custom1)) {
+      continue;
+    }
+
+    bNode *convert_alpha_node = blender::bke::node_add_static_node(
+        nullptr, *node_tree, CMP_NODE_PREMULKEY);
+    convert_alpha_node->parent = link->fromnode->parent;
+    convert_alpha_node->location[0] = link->fromnode->location[0] + link->fromnode->width + 20.0f;
+    convert_alpha_node->location[1] = link->fromnode->location[1];
+    convert_alpha_node->custom1 = CMP_NODE_ALPHA_CONVERT_PREMULTIPLY;
+
+    bNodeSocket *convert_alpha_input = blender::bke::node_find_socket(
+        *convert_alpha_node, SOCK_IN, "Image");
+    bNodeSocket *convert_alpha_output = blender::bke::node_find_socket(
+        *convert_alpha_node, SOCK_OUT, "Image");
+
+    version_node_add_link(
+        *node_tree, *link->fromnode, *link->fromsock, *convert_alpha_node, *convert_alpha_input);
+    version_node_add_link(
+        *node_tree, *convert_alpha_node, *convert_alpha_output, *link->tonode, *link->tosock);
+
+    blender::bke::node_remove_link(node_tree, *link);
+  }
+}
+
 static void do_version_viewer_shortcut(bNodeTree *node_tree)
 {
   LISTBASE_FOREACH_MUTABLE (bNode *, node, &node_tree->nodes) {
@@ -10380,6 +10447,15 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
         do_version_composite_viewer_remove_alpha(node_tree);
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 62)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type == NTREE_COMPOSIT) {
+        do_version_bright_contrast_remove_premultiplied(node_tree);
       }
     }
     FOREACH_NODETREE_END;
