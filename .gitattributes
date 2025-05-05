@@ -36,7 +36,6 @@
 *.bmp filter=lfs diff=lfs merge=lfs -text
 *.gif filter=lfs diff=lfs merge=lfs -text
 *.pbm filter=lfs diff=lfs merge=lfs -text
-
 *.pgm filter=lfs diff=lfs merge=lfs -text
 *.ppm filter=lfs diff=lfs merge=lfs -text
 *.ras filter=lfs diff=lfs merge=lfs -text
