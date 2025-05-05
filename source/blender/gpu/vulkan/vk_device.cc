@@ -308,10 +308,10 @@ void VKDevice::init_glsl_patch()
 
   /* GLSL Backend Lib. */
 
-  glsl_vert_patch_ = ss.str() + "#define GPU_VERTEX_SHADER" + datatoc_glsl_shader_defines_glsl;
-  glsl_geom_patch_ = ss.str() + "#define GPU_GEOMETRY_SHADER" + datatoc_glsl_shader_defines_glsl;
-  glsl_frag_patch_ = ss.str() + "#define GPU_FRAGMENT_SHADER" + datatoc_glsl_shader_defines_glsl;
-  glsl_comp_patch_ = ss.str() + "#define GPU_COMPUTE_SHADER" + datatoc_glsl_shader_defines_glsl;
+  glsl_vert_patch_ = ss.str() + "#define GPU_VERTEX_SHADER\n" + datatoc_glsl_shader_defines_glsl;
+  glsl_geom_patch_ = ss.str() + "#define GPU_GEOMETRY_SHADER\n" + datatoc_glsl_shader_defines_glsl;
+  glsl_frag_patch_ = ss.str() + "#define GPU_FRAGMENT_SHADER\n" + datatoc_glsl_shader_defines_glsl;
+  glsl_comp_patch_ = ss.str() + "#define GPU_COMPUTE_SHADER\n" + datatoc_glsl_shader_defines_glsl;
 }
 
 const char *VKDevice::glsl_vertex_patch_get() const
