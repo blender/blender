@@ -2,6 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "DNA_windowmanager_types.h"
 #include "NOD_geometry_nodes_bundle.hh"
 #include "NOD_geometry_nodes_closure.hh"
 #include "NOD_geometry_nodes_log.hh"
@@ -244,6 +245,19 @@ ClosureValueLog::ClosureValueLog(Vector<Item> inputs,
                           source_location->closure_output_node_id,
                           source_location->compute_context_hash};
   }
+}
+
+NodeWarning::NodeWarning(const Report &report)
+{
+  switch (report.type) {
+    case RPT_ERROR:
+      this->type = NodeWarningType::Error;
+      break;
+    default:
+      this->type = NodeWarningType::Info;
+      break;
+  }
+  this->message = report.message;
 }
 
 /* Avoid generating these in every translation unit. */
