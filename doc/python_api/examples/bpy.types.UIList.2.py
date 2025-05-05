@@ -3,7 +3,7 @@ Advanced UIList Example - Filtering and Reordering
 ++++++++++++++++++++++++++++++++++++++++++++++++++
 
 This script is an extended version of the ``UIList`` subclass used to show vertex groups. It is not used 'as is',
-because iterating over all vertices in a 'draw' function is a very bad idea for UI performances! However, it's a good
+because iterating over all vertices in a 'draw' function is a very bad idea for UI performance! However, it's a good
 example of how to create/use filtering/reordering callbacks.
 """
 import bpy
@@ -32,6 +32,12 @@ class MESH_UL_vgroups_slow(bpy.types.UIList):
         default=False,
         options=set(),
         description="Reverse name filtering",
+    )
+    use_filter_orderby_invert: bpy.props.BoolProperty(
+        name="Reverse Order",
+        default=False,
+        options=set(),
+        description="Reverse order filtering",
     )
 
     # This allows us to have mutually exclusive options, which are also all disable-able!
@@ -173,9 +179,12 @@ class MESH_UL_vgroups_slow(bpy.types.UIList):
         # Reorder by name or average weight.
         if self.use_order_name:
             flt_neworder = helper_funcs.sort_items_by_name(vgroups, "name")
+            if self.use_filter_orderby_invert:
+                flt_neworder.reverse()
         elif self.use_order_importance:
             _sort = [(idx, vgroups_empty[vg.index][1]) for idx, vg in enumerate(vgroups)]
-            flt_neworder = helper_funcs.sort_items_helper(_sort, lambda e: e[1], True)
+            highest_first = not self.use_filter_orderby_invert
+            flt_neworder = helper_funcs.sort_items_helper(_sort, lambda e: e[1], highest_first)
 
         return flt_flags, flt_neworder
 
