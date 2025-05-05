@@ -755,12 +755,12 @@ static Mesh *mesh_new_from_mball_object(Object *object)
    *
    * Create empty mesh so script-authors don't run into None objects. */
   if (!DEG_is_evaluated(object)) {
-    return (Mesh *)BKE_id_new_nomain(ID_ME, ((ID *)object->data)->name + 2);
+    return BKE_id_new_nomain<Mesh>(((ID *)object->data)->name + 2);
   }
 
   const Mesh *mesh_eval = BKE_object_get_evaluated_mesh(object);
   if (mesh_eval == nullptr) {
-    return (Mesh *)BKE_id_new_nomain(ID_ME, ((ID *)object->data)->name + 2);
+    return BKE_id_new_nomain<Mesh>(((ID *)object->data)->name + 2);
   }
 
   return BKE_mesh_copy_for_eval(*mesh_eval);

@@ -305,7 +305,7 @@ static void grease_pencil_blend_read_data(BlendDataReader *reader, ID *id)
 }
 
 IDTypeInfo IDType_ID_GP = {
-    /*id_code*/ ID_GP,
+    /*id_code*/ GreasePencil::id_type,
     /*id_filter*/ FILTER_ID_GP,
     /*dependencies_id_types*/ FILTER_ID_GP | FILTER_ID_MA,
     /*main_listbase_index*/ INDEX_ID_GP,
@@ -2007,8 +2007,7 @@ GreasePencil *BKE_grease_pencil_add(Main *bmain, const char *name)
 
 GreasePencil *BKE_grease_pencil_new_nomain()
 {
-  GreasePencil *grease_pencil = reinterpret_cast<GreasePencil *>(
-      BKE_id_new_nomain(ID_GP, nullptr));
+  GreasePencil *grease_pencil = BKE_id_new_nomain<GreasePencil>(nullptr);
   return grease_pencil;
 }
 

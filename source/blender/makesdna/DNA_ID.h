@@ -485,6 +485,11 @@ typedef struct ID {
  * For each library file used, a Library struct is added to Main.
  */
 typedef struct Library {
+#ifdef __cplusplus
+  /** See #ID_Type comment for why this is here. */
+  static constexpr ID_Type id_type = ID_LI;
+#endif
+
   ID id;
   /** Path name used for reading, can be relative and edited in the outliner. */
   char filepath[1024];

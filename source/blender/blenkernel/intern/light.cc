@@ -157,7 +157,7 @@ static void light_blend_read_data(BlendDataReader *reader, ID *id)
 }
 
 IDTypeInfo IDType_ID_LA = {
-    /*id_code*/ ID_LA,
+    /*id_code*/ Light::id_type,
     /*id_filter*/ FILTER_ID_LA,
     /*dependencies_id_types*/ FILTER_ID_TE,
     /*main_listbase_index*/ INDEX_ID_LA,

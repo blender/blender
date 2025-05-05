@@ -123,7 +123,7 @@ static void cache_file_blend_read_data(BlendDataReader *reader, ID *id)
 }
 
 IDTypeInfo IDType_ID_CF = {
-    /*id_code*/ ID_CF,
+    /*id_code*/ CacheFile::id_type,
     /*id_filter*/ FILTER_ID_CF,
     /*dependencies_id_types*/ 0,
     /*main_listbase_index*/ INDEX_ID_CF,

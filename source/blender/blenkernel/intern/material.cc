@@ -231,7 +231,7 @@ static void material_blend_read_data(BlendDataReader *reader, ID *id)
 }
 
 IDTypeInfo IDType_ID_MA = {
-    /*id_code*/ ID_MA,
+    /*id_code*/ Material::id_type,
     /*id_filter*/ FILTER_ID_MA,
     /*dependencies_id_types*/ FILTER_ID_TE | FILTER_ID_GR,
     /*main_listbase_index*/ INDEX_ID_MA,
@@ -2031,7 +2031,7 @@ static Material **default_materials[] = {&default_material_empty,
 
 static Material *material_default_create(Material **ma_p, const char *name)
 {
-  *ma_p = static_cast<Material *>(BKE_id_new_nomain(ID_MA, name));
+  *ma_p = BKE_id_new_nomain<Material>(name);
   return *ma_p;
 }
 

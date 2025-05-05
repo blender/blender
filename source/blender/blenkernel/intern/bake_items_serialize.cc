@@ -987,7 +987,7 @@ static Volume *try_load_volume(const DictionaryValue &io_geometry, const BlobRea
       return nullptr;
     }
   }
-  Volume *volume = reinterpret_cast<Volume *>(BKE_id_new_nomain(ID_VO, nullptr));
+  Volume *volume = BKE_id_new_nomain<Volume>(nullptr);
   auto cancel = [&]() {
     BKE_id_free(nullptr, volume);
     return nullptr;

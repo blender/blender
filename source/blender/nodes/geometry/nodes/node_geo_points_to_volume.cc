@@ -113,7 +113,7 @@ static void initialize_volume_component_from_points(GeoNodeExecParams &params,
     return;
   }
 
-  Volume *volume = reinterpret_cast<Volume *>(BKE_id_new_nomain(ID_VO, nullptr));
+  Volume *volume = BKE_id_new_nomain<Volume>(nullptr);
 
   const float density = params.get_input<float>("Density");
   blender::geometry::fog_volume_grid_add_from_points(

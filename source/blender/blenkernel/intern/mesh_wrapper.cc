@@ -43,7 +43,7 @@ Mesh *BKE_mesh_wrapper_from_editmesh(std::shared_ptr<BMEditMesh> em,
                                      const CustomData_MeshMasks *cd_mask_extra,
                                      const Mesh *me_settings)
 {
-  Mesh *mesh = static_cast<Mesh *>(BKE_id_new_nomain(ID_ME, nullptr));
+  Mesh *mesh = BKE_id_new_nomain<Mesh>(nullptr);
   BKE_mesh_copy_parameters_for_eval(mesh, me_settings);
   BKE_mesh_runtime_ensure_edit_data(mesh);
 

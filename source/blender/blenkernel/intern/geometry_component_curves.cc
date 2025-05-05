@@ -137,7 +137,7 @@ const Curve *CurveComponent::get_curve_for_render() const
     return curve_for_render_;
   }
 
-  curve_for_render_ = (Curve *)BKE_id_new_nomain(ID_CU_LEGACY, nullptr);
+  curve_for_render_ = BKE_id_new_nomain<Curve>(nullptr);
   curve_for_render_->curve_eval = curves_;
 
   return curve_for_render_;

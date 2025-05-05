@@ -55,7 +55,11 @@ struct MFace;
 struct Material;
 
 typedef struct Mesh {
+#ifdef __cplusplus
   DNA_DEFINE_CXX_METHODS(Mesh)
+  /** See #ID_Type comment for why this is here. */
+  static constexpr ID_Type id_type = ID_ME;
+#endif
 
   ID id;
   /** Animation data (must be immediately after id for utilities to use it). */

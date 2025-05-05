@@ -146,7 +146,7 @@ static Volume *mesh_to_volume(ModifierData *md,
   /* Create a new volume. */
   Volume *volume;
   if (input_volume == nullptr) {
-    volume = static_cast<Volume *>(BKE_id_new_nomain(ID_VO, "Volume"));
+    volume = BKE_id_new_nomain<Volume>("Volume");
   }
   else {
     volume = BKE_volume_new_for_eval(input_volume);

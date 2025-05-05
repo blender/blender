@@ -465,7 +465,7 @@ static void mesh_blend_read_data(BlendDataReader *reader, ID *id)
 }
 
 IDTypeInfo IDType_ID_ME = {
-    /*id_code*/ ID_ME,
+    /*id_code*/ Mesh::id_type,
     /*id_filter*/ FILTER_ID_ME,
     /*dependencies_id_types*/ FILTER_ID_ME | FILTER_ID_MA | FILTER_ID_IM | FILTER_ID_KE,
     /*main_listbase_index*/ INDEX_ID_ME,
@@ -924,7 +924,7 @@ Mesh *BKE_mesh_new_nomain_from_template_ex(const Mesh *me_src,
   const bool do_tessface = (tessface_num ||
                             ((me_src->totface_legacy != 0) && (me_src->faces_num == 0)));
 
-  Mesh *me_dst = static_cast<Mesh *>(BKE_id_new_nomain(ID_ME, nullptr));
+  Mesh *me_dst = BKE_id_new_nomain<Mesh>(nullptr);
 
   me_dst->mselect = (MSelect *)MEM_dupallocN(me_src->mselect);
 
@@ -1010,7 +1010,7 @@ Mesh *BKE_mesh_from_bmesh_nomain(BMesh *bm,
                                  const Mesh *me_settings)
 {
   BLI_assert(params->calc_object_remap == false);
-  Mesh *mesh = static_cast<Mesh *>(BKE_id_new_nomain(ID_ME, nullptr));
+  Mesh *mesh = BKE_id_new_nomain<Mesh>(nullptr);
   BM_mesh_bm_to_me(nullptr, bm, mesh, params);
   BKE_mesh_copy_parameters_for_eval(mesh, me_settings);
   return mesh;
@@ -1020,7 +1020,7 @@ Mesh *BKE_mesh_from_bmesh_for_eval_nomain(BMesh *bm,
                                           const CustomData_MeshMasks *cd_mask_extra,
                                           const Mesh *me_settings)
 {
-  Mesh *mesh = static_cast<Mesh *>(BKE_id_new_nomain(ID_ME, nullptr));
+  Mesh *mesh = BKE_id_new_nomain<Mesh>(nullptr);
   BM_mesh_bm_to_me_for_eval(*bm, *mesh, cd_mask_extra);
   BKE_mesh_copy_parameters_for_eval(mesh, me_settings);
   return mesh;

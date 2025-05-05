@@ -141,7 +141,7 @@ class MeshObjectTestData : public MeshTestData {
 TEST_F(LibRemapTest, embedded_ids_can_not_be_remapped)
 {
   MaterialTestData context;
-  bNodeTree *other_tree = static_cast<bNodeTree *>(BKE_id_new_nomain(ID_NT, nullptr));
+  bNodeTree *other_tree = BKE_id_new_nomain<bNodeTree>(nullptr);
 
   ASSERT_NE(context.material, nullptr);
   ASSERT_EQ(context.material_nodetree, context.material->nodetree);

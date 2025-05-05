@@ -145,6 +145,11 @@ typedef struct Image_Runtime {
 } Image_Runtime;
 
 typedef struct Image {
+#ifdef __cplusplus
+  /** See #ID_Type comment for why this is here. */
+  static constexpr ID_Type id_type = ID_IM;
+#endif
+
   ID id;
   struct AnimData *adt;
 

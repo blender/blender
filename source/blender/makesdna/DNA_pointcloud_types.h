@@ -37,6 +37,11 @@ typedef struct PointCloudRuntimeHandle PointCloudRuntimeHandle;
 #endif
 
 typedef struct PointCloud {
+#ifdef __cplusplus
+  /** See #ID_Type comment for why this is here. */
+  static constexpr ID_Type id_type = ID_PT;
+#endif
+
   ID id;
   struct AnimData *adt; /* animation data (must be immediately after id) */
 

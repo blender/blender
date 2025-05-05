@@ -162,7 +162,7 @@ static void ipo_blend_read_data(BlendDataReader *reader, ID *id)
 }
 
 IDTypeInfo IDType_ID_IP = {
-    /*id_code*/ ID_IP,
+    /*id_code*/ Ipo::id_type,
     /*id_filter*/ FILTER_ID_IP,
     /*dependencies_id_types*/ 0,
     /*main_listbase_index*/ INDEX_ID_IP,

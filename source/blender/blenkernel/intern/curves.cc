@@ -137,7 +137,7 @@ static void curves_blend_read_data(BlendDataReader *reader, ID *id)
 }
 
 IDTypeInfo IDType_ID_CV = {
-    /*id_code*/ ID_CV,
+    /*id_code*/ Curves::id_type,
     /*id_filter*/ FILTER_ID_CV,
     /*dependencies_id_types*/ FILTER_ID_MA | FILTER_ID_OB,
     /*main_listbase_index*/ INDEX_ID_CV,
@@ -278,7 +278,7 @@ Curves *curves_new_nomain(const int points_num, const int curves_num)
 {
   BLI_assert(points_num >= 0);
   BLI_assert(curves_num >= 0);
-  Curves *curves_id = static_cast<Curves *>(BKE_id_new_nomain(ID_CV, nullptr));
+  Curves *curves_id = BKE_id_new_nomain<Curves>(nullptr);
   CurvesGeometry &curves = curves_id->geometry.wrap();
   curves.resize(points_num, curves_num);
   return curves_id;
@@ -295,7 +295,7 @@ Curves *curves_new_nomain_single(const int points_num, const CurveType type)
 
 Curves *curves_new_nomain(CurvesGeometry curves)
 {
-  Curves *curves_id = static_cast<Curves *>(BKE_id_new_nomain(ID_CV, nullptr));
+  Curves *curves_id = BKE_id_new_nomain<Curves>(nullptr);
   curves_id->geometry.wrap() = std::move(curves);
   return curves_id;
 }

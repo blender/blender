@@ -5,6 +5,7 @@
 #include "node_geometry_util.hh"
 
 #include "DNA_mesh_types.h"
+#include "DNA_volume_types.h"
 
 #include "BKE_lib_id.hh"
 
@@ -98,7 +99,7 @@ static Volume *create_volume_from_mesh(const Mesh &mesh, GeoNodeExecParams &para
       0.0f,
       mesh_to_volume_space_transform);
 
-  Volume *volume = reinterpret_cast<Volume *>(BKE_id_new_nomain(ID_VO, nullptr));
+  Volume *volume = BKE_id_new_nomain<Volume>(nullptr);
 
   /* Convert mesh to grid and add to volume. */
   geometry::fog_volume_grid_add_from_mesh(volume,

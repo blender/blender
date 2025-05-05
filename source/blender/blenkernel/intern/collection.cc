@@ -381,7 +381,7 @@ static void collection_blend_read_after_liblink(BlendLibReader * /*reader*/, ID 
 }
 
 IDTypeInfo IDType_ID_GR = {
-    /*id_code*/ ID_GR,
+    /*id_code*/ Collection::id_type,
     /*id_filter*/ FILTER_ID_GR,
     /*dependencies_id_types*/ FILTER_ID_OB | FILTER_ID_GR,
     /*main_listbase_index*/ INDEX_ID_GR,

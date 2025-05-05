@@ -19,6 +19,8 @@
 
 #include "BKE_volume_grid_fwd.hh"
 
+#include "DNA_volume_types.h"
+
 struct Depsgraph;
 struct Main;
 struct Object;

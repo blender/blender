@@ -93,8 +93,7 @@ TEST(greasepencil, remove_drawings)
 
 TEST(greasepencil, remove_drawings_last_unused)
 {
-  GreasePencil *grease_pencil = reinterpret_cast<GreasePencil *>(
-      BKE_id_new_nomain(ID_GP, "Grease Pencil test"));
+  GreasePencil *grease_pencil = BKE_id_new_nomain<GreasePencil>("Grease Pencil test");
 
   /* Regression test for #129900: unused drawing at the end causes crash. */
 
@@ -480,8 +479,7 @@ TEST(greasepencil, remove_frame_fixed_duration_overwrite_end)
 
 TEST(greasepencil, remove_drawings_no_change)
 {
-  GreasePencil *grease_pencil = reinterpret_cast<GreasePencil *>(
-      BKE_id_new_nomain(ID_GP, "Grease Pencil test"));
+  GreasePencil *grease_pencil = BKE_id_new_nomain<GreasePencil>("Grease Pencil test");
 
   grease_pencil->add_empty_drawings(3);
 
@@ -522,8 +520,7 @@ TEST(greasepencil, remove_drawings_no_change)
 
 TEST(greasepencil, remove_drawings_with_no_users)
 {
-  GreasePencil *grease_pencil = reinterpret_cast<GreasePencil *>(
-      BKE_id_new_nomain(ID_GP, "Grease Pencil test"));
+  GreasePencil *grease_pencil = BKE_id_new_nomain<GreasePencil>("Grease Pencil test");
 
   /* Test drawing index correctness: Removing users from drawings should remove those drawings, and
    * all index references should get updated to match the changed drawing indices. */

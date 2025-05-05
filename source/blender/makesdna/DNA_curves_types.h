@@ -175,6 +175,11 @@ typedef struct CurvesGeometry {
  * interaction) is embedded in the #CurvesGeometry struct.
  */
 typedef struct Curves {
+#ifdef __cplusplus
+  /** See #ID_Type comment for why this is here. */
+  static constexpr ID_Type id_type = ID_CV;
+#endif
+
   ID id;
   /** Animation data (must be immediately after #id). */
   struct AnimData *adt;

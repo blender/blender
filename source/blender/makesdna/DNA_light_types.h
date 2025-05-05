@@ -20,7 +20,11 @@ struct Ipo;
 struct bNodeTree;
 
 typedef struct Light {
+#ifdef __cplusplus
   DNA_DEFINE_CXX_METHODS(Light)
+  /** See #ID_Type comment for why this is here. */
+  static constexpr ID_Type id_type = ID_LA;
+#endif
 
   ID id;
   /** Animation data (must be immediately after id for utilities to use it). */

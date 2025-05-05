@@ -2992,7 +2992,7 @@ static Object *convert_grease_pencil_component_to_curves(Base &base,
       if (drawings.size() > 0) {
         Array<bke::GeometrySet> geometries(drawings.size());
         for (const int i : drawings.index_range()) {
-          Curves *curves_id = static_cast<Curves *>(BKE_id_new_nomain(ID_CV, nullptr));
+          Curves *curves_id = BKE_id_new_nomain<Curves>(nullptr);
           curves_id->geometry.wrap() = drawings[i].drawing.strokes();
           geometries[i] = bke::GeometrySet::from_curves(curves_id);
         }
@@ -3500,7 +3500,7 @@ static Object *convert_grease_pencil_to_mesh(Base &base,
     newob = get_object_for_conversion(base, info, r_new_base);
 
     /* Do not link `new_curves` to `bmain` since it's temporary. */
-    Curves *new_curves = static_cast<Curves *>(BKE_id_new_nomain(ID_CV, newob->id.name + 2));
+    Curves *new_curves = BKE_id_new_nomain<Curves>(newob->id.name + 2);
 
     newob->data = new_curves;
     newob->type = OB_CURVES;
@@ -3514,7 +3514,7 @@ static Object *convert_grease_pencil_to_mesh(Base &base,
           ed::greasepencil::retrieve_visible_drawings(*info.scene, *grease_pencil, false);
       Array<bke::GeometrySet> geometries(drawings.size());
       for (const int i : drawings.index_range()) {
-        Curves *curves_id = static_cast<Curves *>(BKE_id_new_nomain(ID_CV, nullptr));
+        Curves *curves_id = BKE_id_new_nomain<Curves>(nullptr);
         curves_id->geometry.wrap() = drawings[i].drawing.strokes();
         const int layer_index = drawings[i].layer_index;
         const bke::greasepencil::Layer *layer = grease_pencil->layers()[layer_index];

@@ -276,7 +276,7 @@ static void volume_blend_read_after_liblink(BlendLibReader * /*reader*/, ID *id)
 }
 
 IDTypeInfo IDType_ID_VO = {
-    /*id_code*/ ID_VO,
+    /*id_code*/ Volume::id_type,
     /*id_filter*/ FILTER_ID_VO,
     /*dependencies_id_types*/ FILTER_ID_MA,
     /*main_listbase_index*/ INDEX_ID_VO,
@@ -942,7 +942,7 @@ blender::bke::VolumeGridData *BKE_volume_grid_find_for_write(Volume *volume, con
 
 Volume *BKE_volume_new_for_eval(const Volume *volume_src)
 {
-  Volume *volume_dst = (Volume *)BKE_id_new_nomain(ID_VO, nullptr);
+  Volume *volume_dst = BKE_id_new_nomain<Volume>(nullptr);
 
   STRNCPY(volume_dst->id.name, volume_src->id.name);
   volume_dst->mat = (Material **)MEM_dupallocN(volume_src->mat);

@@ -161,7 +161,11 @@ typedef struct BrushCurvesSculptSettings {
  * saved in the asset library should be followed by a #BKE_brush_tag_unsaved_changes() call.
  */
 typedef struct Brush {
+#ifdef __cplusplus
   DNA_DEFINE_CXX_METHODS(Brush)
+  /** See #ID_Type comment for why this is here. */
+  static constexpr ID_Type id_type = ID_BR;
+#endif
 
   ID id;
 
@@ -426,6 +430,11 @@ typedef struct PaletteColor {
 } PaletteColor;
 
 typedef struct Palette {
+#ifdef __cplusplus
+  /** See #ID_Type comment for why this is here. */
+  static constexpr ID_Type id_type = ID_PAL;
+#endif
+
   ID id;
 
   /** Pointer to individual colors. */
@@ -443,6 +452,11 @@ typedef struct PaintCurvePoint {
 } PaintCurvePoint;
 
 typedef struct PaintCurve {
+#ifdef __cplusplus
+  /** See #ID_Type comment for why this is here. */
+  static constexpr ID_Type id_type = ID_PC;
+#endif
+
   ID id;
   /** Points of curve. */
   PaintCurvePoint *points;

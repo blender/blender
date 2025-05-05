@@ -66,7 +66,7 @@ World::~World()
 ::World *World::default_world_get()
 {
   if (default_world_ == nullptr) {
-    default_world_ = static_cast<::World *>(BKE_id_new_nomain(ID_WO, "EEVEEE default world"));
+    default_world_ = BKE_id_new_nomain<::World>("EEVEEE default world");
     default_world_->horr = default_world_->horg = default_world_->horb = 0.0f;
     default_world_->use_nodes = 0;
     default_world_->nodetree = nullptr;

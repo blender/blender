@@ -196,7 +196,7 @@ static void sound_blend_read_data(BlendDataReader *reader, ID *id)
 }
 
 IDTypeInfo IDType_ID_SO = {
-    /*id_code*/ ID_SO,
+    /*id_code*/ bSound::id_type,
     /*id_filter*/ FILTER_ID_SO,
     /*dependencies_id_types*/ 0,
     /*main_listbase_index*/ INDEX_ID_SO,

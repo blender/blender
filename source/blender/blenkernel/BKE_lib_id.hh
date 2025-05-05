@@ -148,6 +148,12 @@ void *BKE_id_new_in_lib(Main *bmain,
  */
 void *BKE_id_new_nomain(short type, const char *name);
 
+template<typename T> inline T *BKE_id_new_nomain(const char *name)
+{
+  const ID_Type id_type = T::id_type;
+  return static_cast<T *>(BKE_id_new_nomain(id_type, name));
+}
+
 /**
  * New ID creation/copying options.
  */

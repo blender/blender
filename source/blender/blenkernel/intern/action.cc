@@ -765,7 +765,7 @@ static AssetTypeInfo AssetType_AC = {
 }  // namespace blender::bke
 
 IDTypeInfo IDType_ID_AC = {
-    /*id_code*/ ID_AC,
+    /*id_code*/ bAction::id_type,
     /*id_filter*/ FILTER_ID_AC,
 
     /* This value will be set dynamically in `BKE_idtype_init()` to only include

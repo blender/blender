@@ -175,7 +175,7 @@ static void workspace_blend_read_after_liblink(BlendLibReader *reader, ID *id)
 }
 
 IDTypeInfo IDType_ID_WS = {
-    /*id_code*/ ID_WS,
+    /*id_code*/ WorkSpace::id_type,
     /*id_filter*/ FILTER_ID_WS,
     /*dependencies_id_types*/ FILTER_ID_SCE,
     /*main_listbase_index*/ INDEX_ID_WS,

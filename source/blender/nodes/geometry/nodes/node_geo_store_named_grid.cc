@@ -101,7 +101,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   GeometrySet geometry_set = params.extract_input<GeometrySet>("Volume");
   Volume *volume = geometry_set.get_volume_for_write();
   if (!volume) {
-    volume = static_cast<Volume *>(BKE_id_new_nomain(ID_VO, "Store Named Grid Output"));
+    volume = BKE_id_new_nomain<Volume>("Store Named Grid Output");
     geometry_set.replace_volume(volume);
   }
 

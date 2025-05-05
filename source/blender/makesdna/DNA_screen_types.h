@@ -50,6 +50,11 @@ typedef struct FileHandlerTypeHandle FileHandlerTypeHandle;
 #define AREAMAP_FROM_SCREEN(screen) ((ScrAreaMap *)&(screen)->vertbase)
 
 typedef struct bScreen {
+#ifdef __cplusplus
+  /** See #ID_Type comment for why this is here. */
+  static constexpr ID_Type id_type = ID_SCR;
+#endif
+
   ID id;
 
   /* TODO: Should become ScrAreaMap now.

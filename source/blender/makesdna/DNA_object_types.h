@@ -191,7 +191,11 @@ typedef struct LightLinking {
 } LightLinking;
 
 typedef struct Object {
+#ifdef __cplusplus
   DNA_DEFINE_CXX_METHODS(Object)
+  /** See #ID_Type comment for why this is here. */
+  static constexpr ID_Type id_type = ID_OB;
+#endif
 
   ID id;
   /** Animation data (must be immediately after id for utilities to use it). */
