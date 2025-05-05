@@ -1,0 +1,41 @@
+# templates/ci.yml.j2
+
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        # platforms ← array of runner labels, e.g. ["macos-14","ubuntu-24.04"]
+        os: [ macos-latest ]
+        # build types ← typically ["Release"], but extensible
+        build_type: [ Release ]
+
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure
+        run: cmake \
+               -S . \
+               -B build \
+               -GNinja \
+               -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+
+      - name: Build
+        run: cmake --build build --parallel
+
+      - name: Test
+        run: ctest \
+               --test-dir build \
+               --output-on-failure
+
+
