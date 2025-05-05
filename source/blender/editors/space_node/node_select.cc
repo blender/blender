@@ -8,6 +8,7 @@
 
 #include <array>
 #include <cstdlib>
+#include <fmt/format.h>
 
 #include "DNA_node_types.h"
 #include "DNA_windowmanager_types.h"
@@ -1302,14 +1303,13 @@ void NODE_OT_select_same_type_step(wmOperatorType *ot)
 /** \name Find Node by Name Operator
  * \{ */
 
-static void node_find_create_label(const bNode *node, char *str, int str_maxncpy)
+static std::string node_find_create_label(const bNodeTree &ntree, const bNode &node)
 {
-  if (node->label[0]) {
-    BLI_snprintf(str, str_maxncpy, "%s (%s)", node->name, node->label);
+  std::string label = bke::node_label(ntree, node);
+  if (label == node.name) {
+    return label;
   }
-  else {
-    BLI_strncpy(str, node->name, str_maxncpy);
-  }
+  return fmt::format("{} ({})", label, node.name);
 }
 
 /* Generic search invoke. */
@@ -1323,17 +1323,16 @@ static void node_find_update_fn(const bContext *C,
 
   ui::string_search::StringSearch<bNode> search;
 
+  const bNodeTree &ntree = *snode->edittree;
   for (bNode *node : snode->edittree->all_nodes()) {
-    char name[256];
-    node_find_create_label(node, name, ARRAY_SIZE(name));
+    const std::string name = node_find_create_label(ntree, *node);
     search.add(name, node);
   }
 
   const Vector<bNode *> filtered_nodes = search.query(str);
 
   for (bNode *node : filtered_nodes) {
-    char name[256];
-    node_find_create_label(node, name, ARRAY_SIZE(name));
+    const std::string name = node_find_create_label(ntree, *node);
     if (!UI_search_item_add(items, name, node, ICON_NONE, 0, 0)) {
       break;
     }
