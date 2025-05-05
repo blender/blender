@@ -4428,6 +4428,86 @@ static void do_version_bright_contrast_remove_premultiplied(bNodeTree *node_tree
   }
 }
 
+/* The Premultiply Mix option was removed. If enabled, the image is converted to premultiplied then
+ * to straight, and both are mixed using a mix node. */
+static void do_version_alpha_over_remove_premultiply(bNodeTree *node_tree)
+{
+  LISTBASE_FOREACH_BACKWARD_MUTABLE (bNodeLink *, link, &node_tree->links) {
+    if (link->tonode->type_legacy != CMP_NODE_ALPHAOVER) {
+      continue;
+    }
+
+    const float mix_factor = static_cast<NodeTwoFloats *>(link->tonode->storage)->x;
+    if (mix_factor == 0.0f) {
+      continue;
+    }
+
+    if (blender::StringRef(link->tosock->identifier) != "Image_001") {
+      continue;
+    }
+
+    /* Disable Convert Premultiplied option, since this will be done manually. */
+    link->tonode->custom1 = false;
+
+    bNode *mix_node = blender::bke::node_add_static_node(nullptr, *node_tree, SH_NODE_MIX);
+    mix_node->parent = link->tonode->parent;
+    mix_node->location[0] = link->tonode->location[0] - link->tonode->width - 20.0f;
+    mix_node->location[1] = link->tonode->location[1];
+    static_cast<NodeShaderMix *>(mix_node->storage)->data_type = SOCK_RGBA;
+
+    bNodeSocket *mix_a_input = blender::bke::node_find_socket(*mix_node, SOCK_IN, "A_Color");
+    bNodeSocket *mix_b_input = blender::bke::node_find_socket(*mix_node, SOCK_IN, "B_Color");
+    bNodeSocket *mix_factor_input = blender::bke::node_find_socket(
+        *mix_node, SOCK_IN, "Factor_Float");
+    bNodeSocket *mix_output = blender::bke::node_find_socket(*mix_node, SOCK_OUT, "Result_Color");
+
+    mix_factor_input->default_value_typed<bNodeSocketValueFloat>()->value = mix_factor;
+
+    bNode *to_straight_node = blender::bke::node_add_static_node(
+        nullptr, *node_tree, CMP_NODE_PREMULKEY);
+    to_straight_node->parent = link->tonode->parent;
+    to_straight_node->location[0] = mix_node->location[0] - mix_node->width - 20.0f;
+    to_straight_node->location[1] = mix_node->location[1];
+    to_straight_node->custom1 = CMP_NODE_ALPHA_CONVERT_UNPREMULTIPLY;
+
+    bNodeSocket *to_straight_input = blender::bke::node_find_socket(
+        *to_straight_node, SOCK_IN, "Image");
+    bNodeSocket *to_straight_output = blender::bke::node_find_socket(
+        *to_straight_node, SOCK_OUT, "Image");
+
+    bNode *to_premultiplied_node = blender::bke::node_add_static_node(
+        nullptr, *node_tree, CMP_NODE_PREMULKEY);
+    to_premultiplied_node->parent = link->tonode->parent;
+    to_premultiplied_node->location[0] = to_straight_node->location[0] - to_straight_node->width -
+                                         20.0f;
+    to_premultiplied_node->location[1] = to_straight_node->location[1];
+    to_premultiplied_node->custom1 = CMP_NODE_ALPHA_CONVERT_PREMULTIPLY;
+
+    bNodeSocket *to_premultiplied_input = blender::bke::node_find_socket(
+        *to_premultiplied_node, SOCK_IN, "Image");
+    bNodeSocket *to_premultiplied_output = blender::bke::node_find_socket(
+        *to_premultiplied_node, SOCK_OUT, "Image");
+
+    version_node_add_link(*node_tree,
+                          *link->fromnode,
+                          *link->fromsock,
+                          *to_premultiplied_node,
+                          *to_premultiplied_input);
+    version_node_add_link(*node_tree,
+                          *to_premultiplied_node,
+                          *to_premultiplied_output,
+                          *to_straight_node,
+                          *to_straight_input);
+    version_node_add_link(
+        *node_tree, *to_premultiplied_node, *to_premultiplied_output, *mix_node, *mix_b_input);
+    version_node_add_link(
+        *node_tree, *to_straight_node, *to_straight_output, *mix_node, *mix_a_input);
+    version_node_add_link(*node_tree, *mix_node, *mix_output, *link->tonode, *link->tosock);
+
+    blender::bke::node_remove_link(node_tree, *link);
+  }
+}
+
 static void do_version_viewer_shortcut(bNodeTree *node_tree)
 {
   LISTBASE_FOREACH_MUTABLE (bNode *, node, &node_tree->nodes) {
@@ -10456,6 +10536,15 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
     FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
       if (node_tree->type == NTREE_COMPOSIT) {
         do_version_bright_contrast_remove_premultiplied(node_tree);
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 63)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type == NTREE_COMPOSIT) {
+        do_version_alpha_over_remove_premultiply(node_tree);
       }
     }
     FOREACH_NODETREE_END;

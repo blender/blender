@@ -24,8 +24,6 @@
 
 namespace blender::nodes::node_composite_alpha_over_cc {
 
-NODE_STORAGE_FUNCS(NodeTwoFloats)
-
 static void cmp_node_alphaover_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Float>("Fac")
@@ -45,16 +43,13 @@ static void cmp_node_alphaover_declare(NodeDeclarationBuilder &b)
 
 static void node_alphaover_init(bNodeTree * /*ntree*/, bNode *node)
 {
+  /* Not used, but the data is still allocated for forward compatibility. */
   node->storage = MEM_callocN<NodeTwoFloats>(__func__);
 }
 
 static void node_composit_buts_alphaover(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  uiLayout *col;
-
-  col = &layout->column(true);
-  uiItemR(col, ptr, "use_premultiply", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
-  uiItemR(col, ptr, "premul", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+  uiItemR(layout, ptr, "use_premultiply", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 }
 
 using namespace blender::compositor;
@@ -64,52 +59,17 @@ static bool get_use_premultiply(const bNode &node)
   return node.custom1;
 }
 
-static float get_premultiply_factor(const bNode &node)
-{
-  return node_storage(node).x;
-}
-
 static int node_gpu_material(GPUMaterial *material,
                              bNode *node,
                              bNodeExecData * /*execdata*/,
                              GPUNodeStack *inputs,
                              GPUNodeStack *outputs)
 {
-  const float premultiply_factor = get_premultiply_factor(*node);
-  if (premultiply_factor != 0.0f) {
-    return GPU_stack_link(material,
-                          node,
-                          "node_composite_alpha_over_mixed",
-                          inputs,
-                          outputs,
-                          GPU_uniform(&premultiply_factor));
-  }
-
   if (get_use_premultiply(*node)) {
     return GPU_stack_link(material, node, "node_composite_alpha_over_key", inputs, outputs);
   }
 
   return GPU_stack_link(material, node, "node_composite_alpha_over_premultiply", inputs, outputs);
-}
-
-static float4 alpha_over_mixed(const float factor,
-                               const float4 &color,
-                               const float4 &over_color,
-                               const float premultiply_factor)
-{
-  if (over_color.w <= 0.0f) {
-    return color;
-  }
-
-  if (factor == 1.0f && over_color.w >= 1.0f) {
-    return over_color;
-  }
-
-  float add_factor = 1.0f - premultiply_factor + over_color.w * premultiply_factor;
-  float premultiplier = factor * add_factor;
-  float multiplier = 1.0f - factor * over_color.w;
-
-  return multiplier * color + float4(float3(premultiplier), factor) * over_color;
 }
 
 static float4 alpha_over_key(const float factor, const float4 &color, const float4 &over_color)
@@ -157,18 +117,7 @@ static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &
       },
       mf::build::exec_presets::SomeSpanOrSingle<1, 2>());
 
-  const float premultiply_factor = get_premultiply_factor(builder.node());
-  if (premultiply_factor != 0.0f) {
-    builder.construct_and_set_matching_fn_cb([=]() {
-      return mf::build::SI3_SO<float, float4, float4, float4>(
-          "Alpha Over Mixed",
-          [=](const float factor, const float4 &color, const float4 &over_color) -> float4 {
-            return alpha_over_mixed(factor, color, over_color, premultiply_factor);
-          },
-          mf::build::exec_presets::SomeSpanOrSingle<1, 2>());
-    });
-  }
-  else if (get_use_premultiply(builder.node())) {
+  if (get_use_premultiply(builder.node())) {
     builder.set_matching_fn(key_function);
   }
   else {
