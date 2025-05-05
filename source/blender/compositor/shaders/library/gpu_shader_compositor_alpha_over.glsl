@@ -2,36 +2,16 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-void node_composite_alpha_over_key(float factor,
-                                   float4 color,
-                                   float4 over_color,
-                                   out float4 result)
+/* Computes the Porter and Duff Over compositing operation. If straight_alpha is true, then the
+ * foreground is in straight alpha form and would need to be premultiplied. */
+void node_composite_alpha_over(
+    float factor, float4 background, float4 foreground, float straight_alpha, out float4 result)
 {
-  if (over_color.a <= 0.0f) {
-    result = color;
-  }
-  else if (factor == 1.0f && over_color.a >= 1.0f) {
-    result = over_color;
-  }
-  else {
-    result = mix(color, float4(over_color.rgb, 1.0f), factor * over_color.a);
-  }
-}
+  /* Premultiply the alpha of the foreground if it is straight. */
+  const float alpha = clamp(foreground.w, 0.0f, 1.0f);
+  const float4 premultiplied_foreground = float4(foreground.xyz * alpha, alpha);
+  const float4 foreground_color = straight_alpha != 0.0f ? premultiplied_foreground : foreground;
 
-void node_composite_alpha_over_premultiply(float factor,
-                                           float4 color,
-                                           float4 over_color,
-                                           out float4 result)
-{
-  if (over_color.a < 0.0f) {
-    result = color;
-  }
-  else if (factor == 1.0f && over_color.a >= 1.0f) {
-    result = over_color;
-  }
-  else {
-    float multiplier = 1.0f - factor * over_color.a;
-
-    result = multiplier * color + factor * over_color;
-  }
+  const float4 mix_result = background * (1.0f - alpha) + foreground_color;
+  result = mix(background, mix_result, factor);
 }

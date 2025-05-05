@@ -38,6 +38,13 @@ static void cmp_node_alphaover_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Color>("Image", "Image_001")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
       .compositor_domain_priority(1);
+  b.add_input<decl::Bool>("Straight Alpha")
+      .default_value(false)
+      .description(
+          "Defines whether the foreground is in straight alpha form, which is necessary to know "
+          "for proper alpha compositing. Images in the compositor are in premultiplied alpha form "
+          "by default, so this should be false in most cases. But if, and only if, the foreground "
+          "was converted to straight alpha form for some reason, this should be set to true");
   b.add_output<decl::Color>("Image");
 }
 
@@ -47,17 +54,7 @@ static void node_alphaover_init(bNodeTree * /*ntree*/, bNode *node)
   node->storage = MEM_callocN<NodeTwoFloats>(__func__);
 }
 
-static void node_composit_buts_alphaover(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
-{
-  uiItemR(layout, ptr, "use_premultiply", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
-}
-
 using namespace blender::compositor;
-
-static bool get_use_premultiply(const bNode &node)
-{
-  return node.custom1;
-}
 
 static int node_gpu_material(GPUMaterial *material,
                              bNode *node,
@@ -65,64 +62,37 @@ static int node_gpu_material(GPUMaterial *material,
                              GPUNodeStack *inputs,
                              GPUNodeStack *outputs)
 {
-  if (get_use_premultiply(*node)) {
-    return GPU_stack_link(material, node, "node_composite_alpha_over_key", inputs, outputs);
-  }
-
-  return GPU_stack_link(material, node, "node_composite_alpha_over_premultiply", inputs, outputs);
+  return GPU_stack_link(material, node, "node_composite_alpha_over", inputs, outputs);
 }
 
-static float4 alpha_over_key(const float factor, const float4 &color, const float4 &over_color)
+/* Computes the Porter and Duff Over compositing operation. If straight_alpha is true, then the
+ * foreground is in straight alpha form and would need to be premultiplied. */
+static float4 alpha_over(const float factor,
+                         const float4 &background,
+                         const float4 &foreground,
+                         const bool straight_alpha)
 {
-  if (over_color.w <= 0.0f) {
-    return color;
-  }
+  /* Premultiply the alpha of the foreground if it is straight. */
+  const float alpha = math::clamp(foreground.w, 0.0f, 1.0f);
+  const float4 premultiplied_foreground = float4(foreground.xyz() * alpha, alpha);
+  const float4 foreground_color = straight_alpha ? premultiplied_foreground : foreground;
 
-  if (factor == 1.0f && over_color.w >= 1.0f) {
-    return over_color;
-  }
-
-  return math::interpolate(color, float4(over_color.xyz(), 1.0f), factor * over_color.w);
-}
-
-static float4 alpha_over_premultiply(const float factor,
-                                     const float4 &color,
-                                     const float4 &over_color)
-{
-  if (over_color.w < 0.0f) {
-    return color;
-  }
-
-  if (factor == 1.0f && over_color.w >= 1.0f) {
-    return over_color;
-  }
-
-  float multiplier = 1.0f - factor * over_color.w;
-  return multiplier * color + factor * over_color;
+  const float4 mix_result = background * (1.0f - alpha) + foreground_color;
+  return math::interpolate(background, mix_result, factor);
 }
 
 static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
 {
-  static auto key_function = mf::build::SI3_SO<float, float4, float4, float4>(
-      "Alpha Over Key",
-      [=](const float factor, const float4 &color, const float4 &over_color) -> float4 {
-        return alpha_over_key(factor, color, over_color);
+  static auto function = mf::build::SI4_SO<float, float4, float4, bool, float4>(
+      "Alpha Over",
+      [=](const float factor,
+          const float4 &background,
+          const float4 &foreground,
+          const bool straight_alpha) -> float4 {
+        return alpha_over(factor, background, foreground, straight_alpha);
       },
       mf::build::exec_presets::SomeSpanOrSingle<1, 2>());
-
-  static auto premultiply_function = mf::build::SI3_SO<float, float4, float4, float4>(
-      "Alpha Over Premultiply",
-      [=](const float factor, const float4 &color, const float4 &over_color) -> float4 {
-        return alpha_over_premultiply(factor, color, over_color);
-      },
-      mf::build::exec_presets::SomeSpanOrSingle<1, 2>());
-
-  if (get_use_premultiply(builder.node())) {
-    builder.set_matching_fn(key_function);
-  }
-  else {
-    builder.set_matching_fn(premultiply_function);
-  }
+  builder.set_matching_fn(function);
 }
 
 }  // namespace blender::nodes::node_composite_alpha_over_cc
@@ -139,7 +109,6 @@ void register_node_type_cmp_alphaover()
   ntype.enum_name_legacy = "ALPHAOVER";
   ntype.nclass = NODE_CLASS_OP_COLOR;
   ntype.declare = file_ns::cmp_node_alphaover_declare;
-  ntype.draw_buttons = file_ns::node_composit_buts_alphaover;
   ntype.initfunc = file_ns::node_alphaover_init;
   blender::bke::node_type_storage(
       ntype, "NodeTwoFloats", node_free_standard_storage, node_copy_standard_storage);

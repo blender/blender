@@ -1018,6 +1018,10 @@ static void write_compositor_legacy_properties(bNodeTree &node_tree)
       storage->sigma_color = threshold_input->default_value_typed<bNodeSocketValueFloat>()->value *
                              3.0f;
     }
+
+    if (node->type_legacy == CMP_NODE_ALPHAOVER) {
+      write_input_to_property_bool_short("Straight Alpha", node->custom1);
+    }
   }
 }
 

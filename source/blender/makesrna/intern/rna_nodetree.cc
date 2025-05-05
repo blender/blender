@@ -4224,6 +4224,9 @@ static const char node_input_center[] = "Center";
 static const char node_input_translation_amount[] = "Translation Amount";
 static const char node_input_translation_direction[] = "Translation Direction";
 
+/* Alpha Over node. */
+static const char node_input_straight_alpha[] = "Straight Alpha";
+
 /* --------------------------------------------------------------------
  * White Balance Node.
  */
@@ -7285,10 +7288,13 @@ static void def_cmp_alpha_over(BlenderRNA * /*brna*/, StructRNA *srna)
 {
   PropertyRNA *prop;
 
-  /* XXX: Tooltip */
   prop = RNA_def_property(srna, "use_premultiply", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "custom1", 1);
-  RNA_def_property_ui_text(prop, "Convert Premultiplied", "");
+  RNA_def_property_boolean_funcs(
+      prop,
+      "rna_node_property_to_input_getter<bool, node_input_straight_alpha>",
+      "rna_node_property_to_input_setter<bool, node_input_straight_alpha>");
+  RNA_def_property_ui_text(
+      prop, "Convert Premultiplied", "(Deprecated: Use Straight Alpha input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   RNA_def_struct_sdna_from(srna, "NodeTwoFloats", "storage");
