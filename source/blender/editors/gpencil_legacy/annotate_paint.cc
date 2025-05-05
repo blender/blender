@@ -1819,7 +1819,7 @@ static void annotation_draw_stabilizer(bContext *C,
   immUniformColor4f(color[0], color[1], color[2], 0.8f);
   immBegin(GPU_PRIM_LINES, 2);
   immVertex2f(pos, pt->m_xy[0] + region->winrct.xmin, pt->m_xy[1] + region->winrct.ymin);
-  immVertex2iv(pos, xy);
+  immVertex2fv(pos, blender::float2(xy));
   immEnd();
 
   /* Returns back all GPU settings */
