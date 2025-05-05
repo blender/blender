@@ -590,33 +590,32 @@ class Preprocessor {
                                     std::string::npos;
     using namespace metadata;
     /* TODO: This can trigger false positive caused by disabled #if blocks. */
-    std::regex regex(
-        "("
-        "gl_FragCoord|"
-        "gl_FrontFacing|"
-        "gl_GlobalInvocationID|"
-        "gl_InstanceID|"
-        "gl_LocalInvocationID|"
-        "gl_LocalInvocationIndex|"
-        "gl_NumWorkGroup|"
-        "gl_PointCoord|"
-        "gl_PointSize|"
-        "gl_PrimitiveID|"
-        "gl_VertexID|"
-        "gl_WorkGroupID|"
-        "gl_WorkGroupSize|"
-        "drw_debug_|"
+    std::string tokens[] = {"gl_FragCoord",
+                            "gl_FrontFacing",
+                            "gl_GlobalInvocationID",
+                            "gl_InstanceID",
+                            "gl_LocalInvocationID",
+                            "gl_LocalInvocationIndex",
+                            "gl_NumWorkGroup",
+                            "gl_PointCoord",
+                            "gl_PointSize",
+                            "gl_PrimitiveID",
+                            "gl_VertexID",
+                            "gl_WorkGroupID",
+                            "gl_WorkGroupSize",
+                            "drw_debug_",
 #ifdef WITH_GPU_SHADER_ASSERT
-        "assert|"
+                            "assert",
 #endif
-        "printf"
-        ")");
-    regex_global_search(str, regex, [&](const std::smatch &match) {
-      if (skip_drw_debug && match[0].str() == "drw_debug_") {
-        return;
+                            "printf"};
+    for (auto &token : tokens) {
+      if (skip_drw_debug && token == "drw_debug_") {
+        continue;
       }
-      metadata.builtins.emplace_back(Builtin(hash(match[0].str())));
-    });
+      if (str.find(token) != std::string::npos) {
+        metadata.builtins.emplace_back(Builtin(hash(token)));
+      }
+    }
   }
 
   template<typename ReportErrorF>
@@ -773,14 +772,30 @@ class Preprocessor {
   }
 
   /* To be run before `argument_decorator_macro_injection()`. */
-  std::string argument_reference_mutation(const std::string &str)
+  std::string argument_reference_mutation(std::string &str)
   {
+    /* Next two regexes are expensive. Check if they are needed at all. */
+    bool valid_match = false;
+    reference_search(str, [&](int parenthesis_depth, int bracket_depth, char &c) {
+      /* Check if inside a function signature.
+       * Check parenthesis_depth == 2 for array references. */
+      if ((parenthesis_depth == 1 || parenthesis_depth == 2) && bracket_depth == 0) {
+        valid_match = true;
+        /* Modify the & into @ to make sure we only match these references in the regex
+         * below. @ being forbidden in the shader language, it is safe to use a temp
+         * character. */
+        c = '@';
+      }
+    });
+    if (!valid_match) {
+      return str;
+    }
     /* Remove parenthesis first. */
     /* Example: `float (&var)[2]` > `float &var[2]` */
-    std::regex regex_parenthesis(R"((\w+ )\(&(\w+)\))");
-    std::string out = std::regex_replace(str, regex_parenthesis, "$1&$2");
+    std::regex regex_parenthesis(R"((\w+ )\(@(\w+)\))");
+    std::string out = std::regex_replace(str, regex_parenthesis, "$1@$2");
     /* Example: `const float &var[2]` > `inout float var[2]` */
-    std::regex regex(R"((?:const)?(\s*)(\w+)\s+\&(\w+)(\[\d*\])?)");
+    std::regex regex(R"((?:const)?(\s*)(\w+)\s+\@(\w+)(\[\d*\])?)");
     return std::regex_replace(out, regex, "$1 inout $2 $3$4");
   }
 
@@ -801,9 +816,20 @@ class Preprocessor {
   /* TODO(fclem): Too many false positive and false negative to be applied to python shaders. */
   void matrix_constructor_linting(const std::string &str, report_callback report_error)
   {
+    /* The following regex is expensive. Do a quick early out scan. */
+    if (str.find("mat") == std::string::npos && str.find("float") == std::string::npos) {
+      return;
+    }
     /* Example: `mat4(other_mat)`. */
-    std::regex regex(R"(\s+(mat(\d|\dx\d)|float\dx\d)\([^,\s\d]+\))");
+    std::regex regex(R"(\s(?:mat(?:\d|\dx\d)|float\dx\d)\()");
     regex_global_search(str, regex, [&](const std::smatch &match) {
+      std::string args = get_content_between_balanced_pair("(" + match.suffix().str(), '(', ')');
+      int arg_count = split_string_not_between_balanced_pair(args, ',', '(', ')').size();
+      bool has_floating_point_arg = args.find('.') != std::string::npos;
+      /* TODO(fclem): Check if arg count matches matrix type.  */
+      if (arg_count != 1 || has_floating_point_arg) {
+        return;
+      }
       /* This only catches some invalid usage. For the rest, the CI will catch them. */
       const char *msg =
           "Matrix constructor is not cross API compatible. "
