@@ -39,23 +39,33 @@ void MeshPass::init_pass(SceneResources &resources, DRWState state, int clip_pla
 void MeshPass::init_subpasses(ePipelineType pipeline, eLightingType lighting, bool clip)
 {
   texture_subpass_map_.clear();
-
-  static std::string pass_names[geometry_type_len][shader_type_len] = {};
+  pipeline_ = pipeline;
+  lighting_ = lighting;
+  clip_ = clip;
 
   for (auto geom : IndexRange(geometry_type_len)) {
     for (auto shader : IndexRange(shader_type_len)) {
-      eGeometryType geom_type = static_cast<eGeometryType>(geom);
-      eShaderType shader_type = static_cast<eShaderType>(shader);
-      if (pass_names[geom][shader].empty()) {
-        pass_names[geom][shader] = std::string(get_name(geom_type)) +
-                                   std::string(get_name(shader_type));
-      }
-      PassMain::Sub *pass = &sub(pass_names[geom][shader].c_str());
-      pass->shader_set(
-          ShaderCache::get().prepass_get(geom_type, pipeline, lighting, shader_type, clip));
-      passes_[geom][shader] = pass;
+      passes_[geom][shader] = nullptr;
     }
   }
+}
+
+PassMain::Sub &MeshPass::get_subpass(eGeometryType geometry_type, eShaderType shader_type)
+{
+  static std::string pass_names[geometry_type_len][shader_type_len] = {};
+
+  PassMain::Sub *&sub_pass = passes_[int(geometry_type)][int(shader_type)];
+  if (!sub_pass) {
+    std::string &pass_name = pass_names[int(geometry_type)][int(shader_type)];
+    if (pass_name.empty()) {
+      pass_name = std::string(get_name(geometry_type)) + std::string(get_name(shader_type));
+    }
+    sub_pass = &sub(pass_name.c_str());
+    sub_pass->shader_set(
+        ShaderCache::get().prepass_get(geometry_type, pipeline_, lighting_, shader_type, clip_));
+  }
+
+  return *sub_pass;
 }
 
 PassMain::Sub &MeshPass::get_subpass(eGeometryType geometry_type,
@@ -65,7 +75,7 @@ PassMain::Sub &MeshPass::get_subpass(eGeometryType geometry_type,
 
   if (texture && texture->gpu.texture) {
     auto add_cb = [&] {
-      PassMain::Sub *sub_pass = passes_[int(geometry_type)][int(eShaderType::TEXTURE)];
+      PassMain::Sub *sub_pass = &get_subpass(geometry_type, eShaderType::TEXTURE);
       sub_pass = &sub_pass->sub(texture->name);
       if (texture->gpu.tile_mapping) {
         sub_pass->bind_texture(WB_TILE_ARRAY_SLOT, texture->gpu.texture, texture->sampler_state);
@@ -88,7 +98,7 @@ PassMain::Sub &MeshPass::get_subpass(eGeometryType geometry_type,
         TextureSubPassKey(texture->gpu.texture, geometry_type), add_cb);
   }
 
-  return *passes_[int(geometry_type)][int(eShaderType::MATERIAL)];
+  return get_subpass(geometry_type, eShaderType::MATERIAL);
 }
 
 /** \} */

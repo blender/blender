@@ -263,7 +263,13 @@ class MeshPass : public PassMain {
 
   PassMain::Sub *passes_[geometry_type_len][shader_type_len] = {{nullptr}};
 
+  ePipelineType pipeline_;
+  eLightingType lighting_;
+  bool clip_;
+
   bool is_empty_ = false;
+
+  PassMain::Sub &get_subpass(eGeometryType geometry_type, eShaderType shader_type);
 
  public:
   MeshPass(const char *name);
