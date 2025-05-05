@@ -20,6 +20,7 @@
 #include "BLI_listbase.h"
 #include "BLI_ordered_edge.hh"
 #include "BLI_string.h"
+#include "BLI_task.hh"
 
 #include "BLT_translation.hh"
 
@@ -343,12 +344,14 @@ void import_meshes(Main &bmain,
                    FbxElementMapping &mapping,
                    const FBXImportParams &params)
 {
-  for (const ufbx_mesh *fmesh : fbx.meshes) {
+  /* Create Mesh objects outside of Main, in parallel. */
+  Vector<Mesh *> meshes(fbx.meshes.count);
+  threading::parallel_for_each(IndexRange(fbx.meshes.count), [&](const int64_t index) {
+    const ufbx_mesh *fmesh = fbx.meshes.data[index];
     if (fmesh->instances.count == 0) {
-      continue; /* Ignore if not used by any objects. */
+      meshes[index] = nullptr; /* Ignore if not used by any objects. */
+      return;
     }
-
-    const ufbx_skin_deformer *skin = get_skin_from_mesh(fmesh);
 
     /* Create Mesh outside of main. */
     Mesh *mesh = BKE_mesh_new_nomain(
@@ -368,6 +371,7 @@ void import_meshes(Main &bmain,
     if (params.use_custom_normals) {
       import_normals(fmesh, mesh);
     }
+    const ufbx_skin_deformer *skin = get_skin_from_mesh(fmesh);
     if (skin != nullptr) {
       import_skin_vertex_groups(fmesh, skin, mesh);
     }
@@ -380,11 +384,24 @@ void import_meshes(Main &bmain,
 #endif
       BKE_mesh_validate(mesh, verbose_validate, false);
     }
+    meshes[index] = mesh;
+  });
 
-    /* Steps below have to be done on the final mesh in Main. */
+  /* Create final mesh objects in Main, serially. And do steps that need to be done on the final
+   * objects. */
+  for (int64_t index : meshes.index_range()) {
+    Mesh *mesh = meshes[index];
+    if (mesh == nullptr) {
+      continue;
+    }
+    const ufbx_mesh *fmesh = fbx.meshes[index];
+    BLI_assert(fmesh != nullptr);
+    const ufbx_skin_deformer *skin = get_skin_from_mesh(fmesh);
+
     Mesh *mesh_main = static_cast<Mesh *>(
         BKE_object_obdata_add_from_type(&bmain, OB_MESH, get_fbx_name(fmesh->name, "Mesh")));
     BKE_mesh_nomain_to_mesh(mesh, mesh_main, nullptr);
+    meshes[index] = mesh_main;
     mesh = mesh_main;
     if (params.use_custom_props) {
       read_custom_properties(fmesh->props, mesh->id, params.props_enum_as_string);

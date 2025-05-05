@@ -14,6 +14,7 @@
 
 #include "BLI_fileops.h"
 #include "BLI_math_rotation.h"
+#include "BLI_task.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
@@ -266,6 +267,26 @@ void FbxImportContext::setup_hierarchy()
   }
 }
 
+static void fbx_task_run_fn(void * /* user */,
+                            ufbx_thread_pool_context ctx,
+                            uint32_t /* group */,
+                            uint32_t start_index,
+                            uint32_t count)
+{
+  threading::parallel_for_each(IndexRange(start_index, count), [&](const int64_t index) {
+    ufbx_thread_pool_run_task(ctx, index);
+  });
+}
+
+static void fbx_task_wait_fn(void * /* user */,
+                             ufbx_thread_pool_context /* ctx */,
+                             uint32_t /* group */,
+                             uint32_t /* max_index */)
+{
+  /* Empty implementation; #fbx_task_run_fn already waits for the tasks.
+   * This means that only one fbx "task group" is effectively scheduled at once. */
+}
+
 void importer_main(Main *bmain, Scene *scene, ViewLayer *view_layer, const FBXImportParams &params)
 {
   FILE *file = BLI_fopen(params.filepath, "rb");
@@ -301,6 +322,10 @@ void importer_main(Main *bmain, Scene *scene, ViewLayer *view_layer, const FBXIm
   opts.target_light_axes.right = UFBX_COORDINATE_AXIS_POSITIVE_X;
   opts.target_light_axes.up = UFBX_COORDINATE_AXIS_POSITIVE_Y;
   opts.target_light_axes.front = UFBX_COORDINATE_AXIS_POSITIVE_Z;
+
+  /* Setup ufbx threading to go through our own task system. */
+  opts.thread_opts.pool.run_fn = fbx_task_run_fn;
+  opts.thread_opts.pool.wait_fn = fbx_task_wait_fn;
 
   ufbx_error fbx_error;
   ufbx_scene *fbx = ufbx_load_stdio(file, &opts, &fbx_error);
