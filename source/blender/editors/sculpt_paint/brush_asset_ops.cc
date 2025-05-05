@@ -454,8 +454,8 @@ void BRUSH_OT_asset_edit_metadata(wmOperatorType *ot)
       ot->srna, "catalog_path", nullptr, MAX_NAME, "Catalog", "The asset's catalog path");
   RNA_def_property_string_search_func_runtime(
       prop, visit_active_library_catalogs_catalog_for_search_fn, PROP_STRING_SEARCH_SUGGESTION);
-  RNA_def_string(ot->srna, "author", nullptr, MAX_NAME, "Author", "");
-  RNA_def_string(ot->srna, "description", nullptr, MAX_NAME, "Description", "");
+  RNA_def_string(ot->srna, "author", nullptr, 0, "Author", "");
+  RNA_def_string(ot->srna, "description", nullptr, 0, "Description", "");
 }
 
 static wmOperatorStatus brush_asset_load_preview_exec(bContext *C, wmOperator *op)
