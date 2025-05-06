@@ -250,14 +250,10 @@ CoreAudioDevice::~CoreAudioDevice()
 
 	destroy();
 
-	// NOTE: Keep the device open for buggy MacOS versions (see blender issue #121911).
-	if(__builtin_available(macOS 15.2, *))
-	{
-		CAClockDispose(m_clock_ref);
-		AudioOutputUnitStop(m_audio_unit);
-		AudioUnitUninitialize(m_audio_unit);
-		AudioComponentInstanceDispose(m_audio_unit);
-	}
+	CAClockDispose(m_clock_ref);
+	AudioOutputUnitStop(m_audio_unit);
+	AudioUnitUninitialize(m_audio_unit);
+	AudioComponentInstanceDispose(m_audio_unit);
 }
 
 void CoreAudioDevice::seekSynchronizer(double time)
