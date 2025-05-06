@@ -226,6 +226,8 @@ class Preprocessor {
       str = remove_quotes(str);
       str = enum_macro_injection(str);
       str = argument_reference_mutation(str);
+      str = template_definition_mutation(str, report_error);
+      str = template_call_mutation(str);
     }
     str = argument_decorator_macro_injection(str);
     str = array_constructor_macro_injection(str);
@@ -303,6 +305,117 @@ class Preprocessor {
     /* Remove trailing white space as they make the subsequent regex much slower. */
     std::regex regex(R"((\ )*?\n)");
     return std::regex_replace(out_str, regex, "\n");
+  }
+
+  std::string template_definition_mutation(const std::string &str, report_callback &report_error)
+  {
+    if (str.find("template") == std::string::npos) {
+      return str;
+    }
+
+    std::string out_str = str;
+    {
+      /* Transform template definition into macro declaration. */
+      std::regex regex(R"(template<([\w\d\n, ]+)>(\s\w+\s)(\w+)\()");
+      out_str = std::regex_replace(out_str, regex, "#define $3_TEMPLATE($1)$2$3@(");
+    }
+    {
+      /* Add backslash for each newline in template macro. */
+      size_t start, end = 0;
+      while ((start = out_str.find("_TEMPLATE(", end)) != std::string::npos) {
+        /* Remove parameter type from macro argument list. */
+        end = out_str.find(")", start);
+        std::string arg_list = out_str.substr(start, end - start);
+        arg_list = std::regex_replace(arg_list, std::regex(R"(\w+ (\w+))"), "$1");
+        out_str.replace(start, end - start, arg_list);
+
+        std::string template_body = get_content_between_balanced_pair(
+            out_str.substr(start), '{', '}');
+        if (template_body.empty()) {
+          /* Empty body is unlikely to happen. This limitation can be worked-around by using a noop
+           * comment inside the function body. */
+          report_error(
+              std::smatch(),
+              "Template function declaration is missing closing bracket or has empty body.");
+          break;
+        }
+        size_t body_end = out_str.find('{', start) + 1 + template_body.size();
+        /* Contains "_TEMPLATE(macro_args) void fn@(fn_args) { body;". */
+        std::string macro_body = out_str.substr(start, body_end - start);
+
+        macro_body = std::regex_replace(macro_body, std::regex(R"(\n)"), " \\\n");
+
+        std::string macro_args = get_content_between_balanced_pair(macro_body, '(', ')');
+        /* Find function arg list. Skip first 10 chars to skip "_TEMPLATE" and the arg list. */
+        std::string fn_args = get_content_between_balanced_pair(
+            macro_body.substr(10 + macro_args.length() + 1), '(', ')');
+        /* Remove whitespaces. */
+        macro_args = std::regex_replace(macro_args, std::regex(R"(\s)"), "");
+        std::vector<std::string> macro_args_split = split_string(macro_args, ',');
+        /* Append arguments inside the function name. */
+        std::string fn_name_suffix = "_";
+        bool all_args_in_function_signature = true;
+        for (std::string macro_arg : macro_args_split) {
+          fn_name_suffix += "##" + macro_arg + "##_";
+          /* Search macro arguments inside the function arguments types. */
+          if (std::regex_search(fn_args, std::regex(R"(\b)" + macro_arg + R"(\b)")) == false) {
+            all_args_in_function_signature = false;
+          }
+        }
+        if (all_args_in_function_signature) {
+          /* No need for suffix. Use overload for type deduction.
+           * Otherwise, we require full explicit template call. */
+          fn_name_suffix = "";
+        }
+        size_t end_of_fn_name = macro_body.find("@");
+        macro_body.replace(end_of_fn_name, 1, fn_name_suffix);
+
+        out_str.replace(start, body_end - start, macro_body);
+      }
+    }
+    {
+      /* Replace explicit instantiation by macro call. */
+      /* Only `template ret_t fn<T>(args);` syntax is supported. */
+      std::regex regex_instance(R"(template \w+ (\w+)<([\w+, \n]+)>\(([\w+ ,\n]+)\);)");
+      /* Notice the stupid way of keeping the number of lines the same by copying the argument list
+       * inside a multiline comment. */
+      out_str = std::regex_replace(out_str, regex_instance, "$1_TEMPLATE($2)/*$3*/");
+    }
+    {
+      /* Check if there is no remaining declaration and instantiation that were not processed. */
+      if (out_str.find("template<") != std::string::npos) {
+        std::regex regex_declaration(R"(\btemplate<)");
+        regex_global_search(out_str, regex_declaration, [&](const std::smatch &match) {
+          report_error(match, "Template declaration unsupported syntax");
+        });
+      }
+      if (out_str.find("template ") != std::string::npos) {
+        std::regex regex_instance(R"(\btemplate )");
+        regex_global_search(out_str, regex_instance, [&](const std::smatch &match) {
+          report_error(match, "Template instantiation unsupported syntax");
+        });
+      }
+    }
+    return out_str;
+  }
+
+  std::string template_call_mutation(std::string &str)
+  {
+    while (true) {
+      std::smatch match;
+      if (std::regex_search(str, match, std::regex(R"(([\w\d]+)<([\w\d\n, ]+)>)")) == false) {
+        break;
+      }
+      const std::string template_name = match[1].str();
+      const std::string template_args = match[2].str();
+
+      std::string replacement = "TEMPLATE_GLUE" +
+                                std::to_string(char_count(template_args, ',') + 1) + "(" +
+                                template_name + ", " + template_args + ")";
+
+      replace_all(str, match[0].str(), replacement);
+    }
+    return str;
   }
 
   std::string remove_quotes(const std::string &str)

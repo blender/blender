@@ -27,7 +27,7 @@ void main()
   probe_index = display_data_buf[display_index].probe_index;
 
   float4x4 plane_to_world = display_data_buf[display_index].plane_to_world;
-  probe_normal = safe_normalize(plane_to_world[2].xyz);
+  probe_normal = safe_normalize(float3(plane_to_world[2].xyz));
 
   float3 P = transform_point(plane_to_world, float3(lP, 0.0f));
   gl_Position = drw_point_world_to_homogenous(P);

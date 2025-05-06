@@ -186,7 +186,7 @@ float4 midpoint(float4 a, float4 b);
 /**
  * Return `vector` if `incident` and `reference` are pointing in the same direction.
  */
-// vec2 faceforward(vec2 vector, vec2 incident, vec2 reference); /* Built-in GLSL. */
+// float2 faceforward(float2 vector, float2 incident, float2 reference); /* Built-in GLSL. */
 
 /**
  * Return the index of the component with the greatest absolute value.
@@ -266,73 +266,45 @@ float average(float4 a);
 /** \name Implementation
  * \{ */
 
-bool is_zero(float2 vec)
+template<typename VecT> bool is_zero(VecT vec)
 {
-  return all(equal(vec, float2(0.0f)));
+  return all(equal(vec, VecT(0.0f)));
 }
-bool is_zero(float3 vec)
-{
-  return all(equal(vec, float3(0.0f)));
-}
-bool is_zero(float4 vec)
-{
-  return all(equal(vec, float4(0.0f)));
-}
+template bool is_zero<float2>(float2);
+template bool is_zero<float3>(float3);
+template bool is_zero<float4>(float4);
 
-bool is_any_zero(float2 vec)
+template<typename VecT> bool is_any_zero(VecT vec)
 {
-  return any(equal(vec, float2(0.0f)));
+  return any(equal(vec, VecT(0.0f)));
 }
-bool is_any_zero(float3 vec)
-{
-  return any(equal(vec, float3(0.0f)));
-}
-bool is_any_zero(float4 vec)
-{
-  return any(equal(vec, float4(0.0f)));
-}
+template bool is_any_zero<float2>(float2);
+template bool is_any_zero<float3>(float3);
+template bool is_any_zero<float4>(float4);
 
-bool almost_equal_relative(float2 a, float2 b, float epsilon_factor)
+template<typename VecT, int dim>
+bool almost_equal_relative(VecT a, VecT b, const float epsilon_factor)
 {
-  for (int i = 0; i < 2; i++) {
+  for (int i = 0; i < dim; i++) {
     if (abs(a[i] - b[i]) > epsilon_factor * abs(a[i])) {
       return false;
     }
   }
   return true;
 }
-bool almost_equal_relative(float3 a, float3 b, float epsilon_factor)
-{
-  for (int i = 0; i < 3; i++) {
-    if (abs(a[i] - b[i]) > epsilon_factor * abs(a[i])) {
-      return false;
-    }
-  }
-  return true;
-}
-bool almost_equal_relative(float4 a, float4 b, float epsilon_factor)
-{
-  for (int i = 0; i < 4; i++) {
-    if (abs(a[i] - b[i]) > epsilon_factor * abs(a[i])) {
-      return false;
-    }
-  }
-  return true;
-}
+template bool almost_equal_relative<float2, 2>(float2 a, float2 b, const float epsilon_factor);
+template bool almost_equal_relative<float3, 3>(float3 a, float3 b, const float epsilon_factor);
+template bool almost_equal_relative<float4, 4>(float4 a, float4 b, const float epsilon_factor);
 
-float2 safe_mod(float2 a, float2 b)
+template<typename VecT> VecT safe_mod(VecT a, VecT b)
 {
-  return select(float2(0), mod(a, b), notEqual(b, float2(0)));
+  return select(VecT(0), mod(a, b), notEqual(b, VecT(0)));
 }
-float3 safe_mod(float3 a, float3 b)
-{
-  return select(float3(0), mod(a, b), notEqual(b, float3(0)));
-}
-float4 safe_mod(float4 a, float4 b)
-{
-  return select(float4(0), mod(a, b), notEqual(b, float4(0)));
-}
+template float2 safe_mod<float2>(float2, float2);
+template float3 safe_mod<float3>(float3, float3);
+template float4 safe_mod<float4>(float4, float4);
 
+/* NOTE: Cannot overload templates. */
 float2 safe_mod(float2 a, float b)
 {
   return (b != 0.0f) ? mod(a, float2(b)) : float2(0);
@@ -392,85 +364,46 @@ float4 wrap(float4 a, float4 b, float4 c)
       wrap(a.x, b.x, c.x), wrap(a.y, b.y, c.y), wrap(a.z, b.z, c.z), wrap(a.w, b.w, c.w));
 }
 
-int2 ceil_to_multiple(int2 a, int2 b)
+template<typename VecT> VecT ceil_to_multiple(VecT a, VecT b)
 {
-  return ((a + b - 1) / b) * b;
+  return ((a + b - VecT(1)) / b) * b;
 }
-int3 ceil_to_multiple(int3 a, int3 b)
-{
-  return ((a + b - 1) / b) * b;
-}
-int4 ceil_to_multiple(int4 a, int4 b)
-{
-  return ((a + b - 1) / b) * b;
-}
-uint2 ceil_to_multiple(uint2 a, uint2 b)
-{
-  return ((a + b - 1u) / b) * b;
-}
-uint3 ceil_to_multiple(uint3 a, uint3 b)
-{
-  return ((a + b - 1u) / b) * b;
-}
-uint4 ceil_to_multiple(uint4 a, uint4 b)
-{
-  return ((a + b - 1u) / b) * b;
-}
+template int2 ceil_to_multiple<int2>(int2, int2);
+template int3 ceil_to_multiple<int3>(int3, int3);
+template int4 ceil_to_multiple<int4>(int4, int4);
+template uint2 ceil_to_multiple<uint2>(uint2, uint2);
+template uint3 ceil_to_multiple<uint3>(uint3, uint3);
+template uint4 ceil_to_multiple<uint4>(uint4, uint4);
 
-int2 divide_ceil(int2 a, int2 b)
+template<typename VecT> VecT divide_ceil(VecT a, VecT b)
 {
-  return (a + b - 1) / b;
+  return (a + b - VecT(1)) / b;
 }
-int3 divide_ceil(int3 a, int3 b)
-{
-  return (a + b - 1) / b;
-}
-int4 divide_ceil(int4 a, int4 b)
-{
-  return (a + b - 1) / b;
-}
-uint2 divide_ceil(uint2 a, uint2 b)
-{
-  return (a + b - 1u) / b;
-}
-uint3 divide_ceil(uint3 a, uint3 b)
-{
-  return (a + b - 1u) / b;
-}
-uint4 divide_ceil(uint4 a, uint4 b)
-{
-  return (a + b - 1u) / b;
-}
+template int2 divide_ceil<int2>(int2, int2);
+template int3 divide_ceil<int3>(int3, int3);
+template int4 divide_ceil<int4>(int4, int4);
+template uint2 divide_ceil<uint2>(uint2, uint2);
+template uint3 divide_ceil<uint3>(uint3, uint3);
+template uint4 divide_ceil<uint4>(uint4, uint4);
 
-void min_max(float2 vector, inout float2 min_v, inout float2 max_v)
+template<typename VecT> void min_max(VecT vector, inout VecT min_v, inout VecT max_v)
 {
   min_v = min(vector, min_v);
   max_v = max(vector, max_v);
 }
-void min_max(float3 vector, inout float3 min_v, inout float3 max_v)
-{
-  min_v = min(vector, min_v);
-  max_v = max(vector, max_v);
-}
-void min_max(float4 vector, inout float4 min_v, inout float4 max_v)
-{
-  min_v = min(vector, min_v);
-  max_v = max(vector, max_v);
-}
+template void min_max<float2>(float2, inout float2, inout float2);
+template void min_max<float3>(float3, inout float3, inout float3);
+template void min_max<float4>(float4, inout float4, inout float4);
 
-float2 safe_divide(float2 a, float2 b)
+template<typename VecT> VecT safe_divide(VecT a, VecT b)
 {
-  return select(float2(0), a / b, notEqual(b, float2(0)));
+  return select(VecT(0), a / b, notEqual(b, VecT(0)));
 }
-float3 safe_divide(float3 a, float3 b)
-{
-  return select(float3(0), a / b, notEqual(b, float3(0)));
-}
-float4 safe_divide(float4 a, float4 b)
-{
-  return select(float4(0), a / b, notEqual(b, float4(0)));
-}
+template float2 safe_divide<float2>(float2, float2);
+template float3 safe_divide<float3>(float3, float3);
+template float4 safe_divide<float4>(float4, float4);
 
+/* NOTE: Cannot overload templates. */
 float2 safe_divide(float2 a, float b)
 {
   return (b != 0.0f) ? (a / b) : float2(0);
@@ -484,57 +417,37 @@ float4 safe_divide(float4 a, float b)
   return (b != 0.0f) ? (a / b) : float4(0);
 }
 
-float length_manhattan(float2 a)
+template<typename VecT> float length_manhattan(VecT a)
 {
-  return dot(abs(a), float2(1));
+  return dot(abs(a), VecT(1));
 }
-float length_manhattan(float3 a)
-{
-  return dot(abs(a), float3(1));
-}
-float length_manhattan(float4 a)
-{
-  return dot(abs(a), float4(1));
-}
+template float length_manhattan<float2>(float2);
+template float length_manhattan<float3>(float3);
+template float length_manhattan<float4>(float4);
 
-float length_squared(float2 a)
+template<typename VecT> float length_squared(VecT a)
 {
   return dot(a, a);
 }
-float length_squared(float3 a)
-{
-  return dot(a, a);
-}
-float length_squared(float4 a)
-{
-  return dot(a, a);
-}
+template float length_squared<float2>(float2);
+template float length_squared<float3>(float3);
+template float length_squared<float4>(float4);
 
-float distance_manhattan(float2 a, float2 b)
+template<typename VecT> float distance_manhattan(VecT a, VecT b)
 {
   return length_manhattan(a - b);
 }
-float distance_manhattan(float3 a, float3 b)
-{
-  return length_manhattan(a - b);
-}
-float distance_manhattan(float4 a, float4 b)
-{
-  return length_manhattan(a - b);
-}
+template float distance_manhattan<float2>(float2, float2);
+template float distance_manhattan<float3>(float3, float3);
+template float distance_manhattan<float4>(float4, float4);
 
-float distance_squared(float2 a, float2 b)
+template<typename VecT> float distance_squared(VecT a, VecT b)
 {
   return length_squared(a - b);
 }
-float distance_squared(float3 a, float3 b)
-{
-  return length_squared(a - b);
-}
-float distance_squared(float4 a, float4 b)
-{
-  return length_squared(a - b);
-}
+template float distance_squared<float2>(float2, float2);
+template float distance_squared<float3>(float3, float3);
+template float distance_squared<float4>(float4, float4);
 
 float3 project(float3 p, float3 v_proj)
 {
@@ -544,7 +457,7 @@ float3 project(float3 p, float3 v_proj)
   return v_proj * (dot(p, v_proj) / dot(v_proj, v_proj));
 }
 
-float2 normalize_and_get_length(float2 vector, out float out_length)
+template<typename VecT> VecT normalize_and_get_length(VecT vector, out float out_length)
 {
   out_length = length_squared(vector);
   constexpr float threshold = 1e-35f;
@@ -554,34 +467,13 @@ float2 normalize_and_get_length(float2 vector, out float out_length)
   }
   /* Either the vector is small or one of its values contained `nan`. */
   out_length = 0.0f;
-  return float2(0.0f);
+  return VecT(0.0f);
 }
-float3 normalize_and_get_length(float3 vector, out float out_length)
-{
-  out_length = length_squared(vector);
-  constexpr float threshold = 1e-35f;
-  if (out_length > threshold) {
-    out_length = sqrt(out_length);
-    return vector / out_length;
-  }
-  /* Either the vector is small or one of its values contained `nan`. */
-  out_length = 0.0f;
-  return float3(0.0f);
-}
-float4 normalize_and_get_length(float4 vector, out float out_length)
-{
-  out_length = length_squared(vector);
-  constexpr float threshold = 1e-35f;
-  if (out_length > threshold) {
-    out_length = sqrt(out_length);
-    return vector / out_length;
-  }
-  /* Either the vector is small or one of its values contained `nan`. */
-  out_length = 0.0f;
-  return float4(0.0f);
-}
+template float2 normalize_and_get_length<float2>(float2, out float);
+template float3 normalize_and_get_length<float3>(float3, out float);
+template float4 normalize_and_get_length<float4>(float4, out float);
 
-float2 safe_normalize_and_get_length(float2 vector, out float out_length)
+template<typename VecT> VecT safe_normalize_and_get_length(VecT vector, out float out_length)
 {
   out_length = length_squared(vector);
   constexpr float threshold = 1e-35f;
@@ -591,61 +483,30 @@ float2 safe_normalize_and_get_length(float2 vector, out float out_length)
   }
   /* Either the vector is small or one of its values contained `nan`. */
   out_length = 0.0f;
-  return float2(1.0f, 0.0f);
+  VecT result = VecT(0.0f);
+  result[0] = 1.0f;
+  return result;
 }
-float3 safe_normalize_and_get_length(float3 vector, out float out_length)
-{
-  out_length = length_squared(vector);
-  constexpr float threshold = 1e-35f;
-  if (out_length > threshold) {
-    out_length = sqrt(out_length);
-    return vector / out_length;
-  }
-  /* Either the vector is small or one of its values contained `nan`. */
-  out_length = 0.0f;
-  return float3(1.0f, 0.0f, 0.0f);
-}
-float4 safe_normalize_and_get_length(float4 vector, out float out_length)
-{
-  out_length = length_squared(vector);
-  constexpr float threshold = 1e-35f;
-  if (out_length > threshold) {
-    out_length = sqrt(out_length);
-    return vector / out_length;
-  }
-  /* Either the vector is small or one of its values contained `nan`. */
-  out_length = 0.0f;
-  return float4(1.0f, 0.0f, 0.0f, 0.0f);
-}
+template float2 safe_normalize_and_get_length<float2>(float2, out float);
+template float3 safe_normalize_and_get_length<float3>(float3, out float);
+template float4 safe_normalize_and_get_length<float4>(float4, out float);
 
-float2 safe_normalize(float2 vector)
+template<typename VecT> VecT safe_normalize(VecT vector)
 {
   float unused_length = 0.0f;
   return safe_normalize_and_get_length(vector, unused_length);
 }
-float3 safe_normalize(float3 vector)
-{
-  float unused_length = 0.0f;
-  return safe_normalize_and_get_length(vector, unused_length);
-}
-float4 safe_normalize(float4 vector)
-{
-  float unused_length = 0.0f;
-  return safe_normalize_and_get_length(vector, unused_length);
-}
+template float2 safe_normalize<float2>(float2);
+template float3 safe_normalize<float3>(float3);
+template float4 safe_normalize<float4>(float4);
 
-float2 safe_rcp(float2 a)
+template<typename VecT> VecT safe_rcp(VecT a)
 {
-  return select(float2(0.0f), (1.0f / a), notEqual(a, float2(0.0f)));
+  return select(VecT(0.0f), (1.0f / a), notEqual(a, VecT(0.0f)));
 }
-float3 safe_rcp(float3 a)
-{
-  return select(float3(0.0f), (1.0f / a), notEqual(a, float3(0.0f)));
-}
-float4 safe_rcp(float4 a)
-{
-  return select(float4(0.0f), (1.0f / a), notEqual(a, float4(0.0f)));
-}
+template float2 safe_rcp<float2>(float2);
+template float3 safe_rcp<float3>(float3);
+template float4 safe_rcp<float4>(float4);
 
 float2 fallback_pow(float2 a, float b, float2 fallback)
 {
@@ -665,31 +526,21 @@ float4 fallback_pow(float4 a, float b, float4 fallback)
                 fallback_pow(a.w, b, fallback.w));
 }
 
-float2 interpolate(float2 a, float2 b, float t)
+template<typename VecT> VecT interpolate(VecT a, VecT b, float t)
 {
   return mix(a, b, t);
 }
-float3 interpolate(float3 a, float3 b, float t)
-{
-  return mix(a, b, t);
-}
-float4 interpolate(float4 a, float4 b, float t)
-{
-  return mix(a, b, t);
-}
+template float2 interpolate<float2>(float2, float2, float);
+template float3 interpolate<float3>(float3, float3, float);
+template float4 interpolate<float4>(float4, float4, float);
 
-float2 midpoint(float2 a, float2 b)
+template<typename VecT> VecT midpoint(VecT a, VecT b)
 {
   return (a + b) * 0.5f;
 }
-float3 midpoint(float3 a, float3 b)
-{
-  return (a + b) * 0.5f;
-}
-float4 midpoint(float4 a, float4 b)
-{
-  return (a + b) * 0.5f;
-}
+template float2 midpoint<float2>(float2, float2);
+template float3 midpoint<float3>(float3, float3);
+template float4 midpoint<float4>(float4, float4);
 
 int dominant_axis(float3 a)
 {

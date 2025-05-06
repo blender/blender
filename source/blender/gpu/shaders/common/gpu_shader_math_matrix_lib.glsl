@@ -1223,7 +1223,11 @@ float3 to_scale(float3x3 mat)
 {
   return float3(length(mat[0]), length(mat[1]), length(mat[2]));
 }
-float3 to_scale(float3x3 mat, const bool allow_negative_scale)
+float3 to_scale(float4x4 mat)
+{
+  return to_scale(to_float3x3(mat));
+}
+template<typename MatT, bool allow_negative_scale> float3 to_scale(MatT mat)
 {
   float3 result = to_scale(mat);
   if (allow_negative_scale) {
@@ -1233,14 +1237,10 @@ float3 to_scale(float3x3 mat, const bool allow_negative_scale)
   }
   return result;
 }
-float3 to_scale(float4x4 mat)
-{
-  return to_scale(to_float3x3(mat));
-}
-float3 to_scale(float4x4 mat, const bool allow_negative_scale)
-{
-  return to_scale(to_float3x3(mat), allow_negative_scale);
-}
+template float3 to_scale<float3x3, true>(float3x3 mat);
+template float3 to_scale<float3x3, false>(float3x3 mat);
+template float3 to_scale<float4x4, true>(float4x4 mat);
+template float3 to_scale<float4x4, false>(float4x4 mat);
 
 void to_rot_scale(float3x3 mat, out EulerXYZ r_rotation, out float3 r_scale)
 {

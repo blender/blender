@@ -139,6 +139,9 @@ template<typename T, int Sz> struct VecOp {
 template<typename T, int Sz> struct SwizzleBase : VecOp<T, Sz> {
   using VecT = VecBase<T, Sz>;
 
+  SwizzleBase() = default;
+  SwizzleBase(T) {}
+
   constexpr VecT operator=(const VecT &) RET;
   operator VecT() const RET;
 };
