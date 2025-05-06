@@ -2635,8 +2635,11 @@ static void rna_SpaceNodeEditor_node_tree_set(PointerRNA *ptr,
                                               const PointerRNA value,
                                               ReportList * /*reports*/)
 {
-  SpaceNode *snode = (SpaceNode *)ptr->data;
-  ED_node_tree_start(snode, (bNodeTree *)value.data, nullptr, nullptr);
+  SpaceNode *snode = ptr->data_as<SpaceNode>();
+  ScrArea *area = BKE_screen_find_area_from_space(reinterpret_cast<const bScreen *>(ptr->owner_id),
+                                                  reinterpret_cast<const SpaceLink *>(snode));
+  ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
+  ED_node_tree_start(region, snode, (bNodeTree *)value.data, nullptr, nullptr);
 }
 
 static bool rna_SpaceNodeEditor_geometry_nodes_tool_tree_poll(PointerRNA * /*ptr*/,
@@ -2772,13 +2775,29 @@ static int rna_SpaceNodeEditor_path_length(PointerRNA *ptr)
 
 static void rna_SpaceNodeEditor_path_clear(SpaceNode *snode, bContext *C)
 {
-  ED_node_tree_start(snode, nullptr, nullptr, nullptr);
+  ED_node_tree_start(nullptr, snode, nullptr, nullptr, nullptr);
   blender::ed::space_node::tree_update(C);
+}
+
+static ARegion *find_snode_region(SpaceNode *snode, bContext *C)
+{
+  if (wmWindowManager *wm = CTX_wm_manager(C)) {
+    LISTBASE_FOREACH (wmWindow *, win, &wm->windows) {
+      bScreen *screen = WM_window_get_active_screen(win);
+      ScrArea *area = BKE_screen_find_area_from_space(screen,
+                                                      reinterpret_cast<const SpaceLink *>(snode));
+      if (ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW)) {
+        return region;
+      }
+    }
+  }
+  return nullptr;
 }
 
 static void rna_SpaceNodeEditor_path_start(SpaceNode *snode, bContext *C, PointerRNA *node_tree)
 {
-  ED_node_tree_start(snode, (bNodeTree *)node_tree->data, nullptr, nullptr);
+  ARegion *region = find_snode_region(snode, C);
+  ED_node_tree_start(region, snode, (bNodeTree *)node_tree->data, nullptr, nullptr);
   blender::ed::space_node::tree_update(C);
 }
 
@@ -2787,14 +2806,16 @@ static void rna_SpaceNodeEditor_path_append(SpaceNode *snode,
                                             PointerRNA *node_tree,
                                             PointerRNA *node)
 {
+  ARegion *region = find_snode_region(snode, C);
   ED_node_tree_push(
-      snode, static_cast<bNodeTree *>(node_tree->data), static_cast<bNode *>(node->data));
+      region, snode, static_cast<bNodeTree *>(node_tree->data), static_cast<bNode *>(node->data));
   blender::ed::space_node::tree_update(C);
 }
 
 static void rna_SpaceNodeEditor_path_pop(SpaceNode *snode, bContext *C)
 {
-  ED_node_tree_pop(snode);
+  ARegion *region = find_snode_region(snode, C);
+  ED_node_tree_pop(region, snode);
   blender::ed::space_node::tree_update(C);
 }
 

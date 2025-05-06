@@ -31,6 +31,7 @@
 #include "BKE_report.hh"
 #include "BKE_scene.hh"
 #include "BKE_scene_runtime.hh"
+#include "BKE_screen.hh"
 
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
@@ -737,7 +738,9 @@ void snode_set_context(const bContext &C)
   if (snode->nodetree != ntree || snode->id != id || snode->from != from ||
       (snode->treepath.last == nullptr && ntree))
   {
-    ED_node_tree_start(snode, ntree, id, from);
+    ScrArea *area = CTX_wm_area(&C);
+    ARegion *region = BKE_area_find_region_type(area, RGN_TYPE_WINDOW);
+    ED_node_tree_start(region, snode, ntree, id, from);
   }
 }
 

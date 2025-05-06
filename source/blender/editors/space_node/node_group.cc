@@ -172,6 +172,7 @@ static void remap_pairing(bNodeTree &dst_tree,
 static wmOperatorStatus node_group_edit_exec(bContext *C, wmOperator *op)
 {
   SpaceNode *snode = CTX_wm_space_node(C);
+  ARegion *region = CTX_wm_region(C);
   const StringRef node_idname = node_group_idname(C);
   const bool exit = RNA_boolean_get(op->ptr, "exit");
 
@@ -183,11 +184,11 @@ static wmOperatorStatus node_group_edit_exec(bContext *C, wmOperator *op)
     bNodeTree *ngroup = (bNodeTree *)gnode->id;
 
     if (ngroup) {
-      ED_node_tree_push(snode, ngroup, gnode);
+      ED_node_tree_push(region, snode, ngroup, gnode);
     }
   }
   else {
-    ED_node_tree_pop(snode);
+    ED_node_tree_pop(region, snode);
   }
 
   WM_event_add_notifier(C, NC_SCENE | ND_NODES, nullptr);
@@ -632,6 +633,7 @@ static const EnumPropertyItem node_group_separate_types[] = {
 static wmOperatorStatus node_group_separate_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
+  ARegion *region = CTX_wm_region(C);
   SpaceNode *snode = CTX_wm_space_node(C);
   int type = RNA_enum_get(op->ptr, "type");
 
@@ -663,7 +665,7 @@ static wmOperatorStatus node_group_separate_exec(bContext *C, wmOperator *op)
   }
 
   /* switch to parent tree */
-  ED_node_tree_pop(snode);
+  ED_node_tree_pop(region, snode);
 
   BKE_main_ensure_invariants(*CTX_data_main(C));
 
@@ -1234,6 +1236,7 @@ static bNode *node_group_make_from_nodes(const bContext &C,
 
 static wmOperatorStatus node_group_make_exec(bContext *C, wmOperator *op)
 {
+  ARegion &region = *CTX_wm_region(C);
   SpaceNode &snode = *CTX_wm_space_node(C);
   bNodeTree &ntree = *snode.edittree;
   const StringRef ntree_idname = group_ntree_idname(C);
@@ -1254,7 +1257,7 @@ static wmOperatorStatus node_group_make_exec(bContext *C, wmOperator *op)
 
     bke::node_set_active(ntree, *gnode);
     if (ngroup) {
-      ED_node_tree_push(&snode, ngroup, gnode);
+      ED_node_tree_push(&region, &snode, ngroup, gnode);
     }
   }
 
@@ -1290,6 +1293,7 @@ void NODE_OT_group_make(wmOperatorType *ot)
 static wmOperatorStatus node_group_insert_exec(bContext *C, wmOperator *op)
 {
   SpaceNode *snode = CTX_wm_space_node(C);
+  ARegion *region = CTX_wm_region(C);
   bNodeTree *ntree = snode->edittree;
   const StringRef node_idname = node_group_idname(C);
 
@@ -1322,7 +1326,7 @@ static wmOperatorStatus node_group_insert_exec(bContext *C, wmOperator *op)
   node_group_make_insert_selected(*C, *ntree, gnode, nodes_to_group);
 
   bke::node_set_active(*ntree, *gnode);
-  ED_node_tree_push(snode, ngroup, gnode);
+  ED_node_tree_push(region, snode, ngroup, gnode);
 
   return OPERATOR_FINISHED;
 }
