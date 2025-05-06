@@ -25,7 +25,7 @@ uint outline_colorid_get()
     return 3u; /* theme.colors.active */
   }
   else {
-    return 1u; /* theme.colors.select */
+    return 1u; /* theme.colors.object_select */
   }
 
   return 0u;

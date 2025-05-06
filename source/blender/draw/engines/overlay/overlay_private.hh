@@ -881,7 +881,7 @@ struct Resources : public select::SelectMap {
       case TH_ACTIVE:
         return theme.colors.active_object;
       case TH_SELECT:
-        return theme.colors.select;
+        return theme.colors.object_select;
       case TH_TRANSFORM:
         return theme.colors.transform;
       case TH_SPEAKER:

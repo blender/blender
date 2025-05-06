@@ -236,7 +236,7 @@ void main()
     frag_color = float4(0.0f);
   }
   else if (color_id == 1u) {
-    frag_color = theme.colors.select;
+    frag_color = theme.colors.object_select;
   }
   else if (color_id == 3u) {
     frag_color = theme.colors.active_object;

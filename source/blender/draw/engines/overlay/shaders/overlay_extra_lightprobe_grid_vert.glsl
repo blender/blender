@@ -21,7 +21,7 @@ float4 color_from_id(float color_id)
     return theme.colors.active_object;
   }
   else /* 2.0f */ {
-    return theme.colors.select;
+    return theme.colors.object_select;
   }
 
   return theme.colors.transform;

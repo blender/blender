@@ -254,7 +254,7 @@ void Resources::update_theme_settings(const DRWContext *ctx, const State &state)
   UI_GetThemeColor4fv(TH_WIRE, gb.colors.wire);
   UI_GetThemeColor4fv(TH_WIRE_EDIT, gb.colors.wire_edit);
   UI_GetThemeColor4fv(TH_ACTIVE, gb.colors.active_object);
-  UI_GetThemeColor4fv(TH_SELECT, gb.colors.select);
+  UI_GetThemeColor4fv(TH_SELECT, gb.colors.object_select);
   gb.colors.library_select = rgba_uchar_to_float(0x88, 0xFF, 0xFF, 155);
   gb.colors.library = rgba_uchar_to_float(0x55, 0xCC, 0xCC, 155);
   UI_GetThemeColor4fv(TH_TRANSFORM, gb.colors.transform);

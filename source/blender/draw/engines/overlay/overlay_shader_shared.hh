@@ -174,7 +174,7 @@ struct ThemeColors {
   float4 wire;
   float4 wire_edit;
   float4 active_object; /* "active" is reserved keyword in GLSL. */
-  float4 select;
+  float4 object_select; /* "select" is defined as a macro for GLSL. */
   float4 library_select;
   float4 library;
   float4 transform;
