@@ -399,11 +399,18 @@ inline T *MEM_new(const char *allocation_name, Args &&...args)
  * once not needed anymore (i.e. mainly when there is no more need to dupalloc and free untyped
  * data stored in void pointers).
  */
-template<typename T> inline T *MEM_new_for_free(const char *allocation_name)
+template<typename T, typename... Args>
+inline T *MEM_new_for_free(const char *allocation_name, Args &&...args)
 {
+#  ifdef _MSC_VER
+  static_assert(std::is_trivially_destructible_v<T>,
+                "MEM_new_for_free can only construct types that are trivially copyable and "
+                "destructible, use MEM_new instead.");
+#  else
   static_assert(mem_guarded::internal::is_trivial_after_construction<T>,
                 "MEM_new_for_free can only construct types that are trivially copyable and "
                 "destructible, use MEM_new instead.");
+#  endif
   void *buffer;
   /* There is no lower level #calloc with an alignment parameter, so unless the alignment is less
    * than or equal to what we'd get by default, we have to fall back to #memset unfortunately. */
@@ -415,7 +422,35 @@ template<typename T> inline T *MEM_new_for_free(const char *allocation_name)
         sizeof(T), alignof(T), allocation_name, mem_guarded::internal::AllocationType::ALLOC_FREE);
     memset(buffer, 0, sizeof(T));
   }
-  return new (buffer) T;
+  return new (buffer) T(std::forward<Args>(args)...);
+}
+
+/**
+ * Allocate new memory for an array of objects with type #T, and construct them.
+ *
+ * See #MEM_new_for_free for initialization logic.
+ *
+ * This is only supported for trivially destructible types. For other types, use
+ * a data structure like Vector instead.
+ */
+template<typename T>
+inline T *MEM_new_array_for_free(const size_t length, const char *allocation_name)
+{
+#  ifdef _MSC_VER
+  static_assert(
+      std::is_trivially_destructible_v<T>,
+      "For non-trivially copyable and destructible types, use higher level types like Vector.");
+#  else
+  static_assert(
+      mem_guarded::internal::is_trivial_after_construction<T>,
+      "For non-trivially copyable and destructible types, use higher level types like Vector.");
+#  endif
+  T *buffer = static_cast<T *>(
+      MEM_malloc_arrayN_aligned(length, sizeof(T), alignof(T), allocation_name));
+  for (size_t i = 0; i < length; i++) {
+    new (buffer + i) T();
+  }
+  return buffer;
 }
 
 /**
