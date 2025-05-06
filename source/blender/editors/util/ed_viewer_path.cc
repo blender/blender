@@ -125,7 +125,7 @@ static void viewer_path_for_geometry_node(const SpaceNode &snode,
 
   ViewerNodeViewerPathElem *viewer_node_elem = BKE_viewer_path_elem_new_viewer_node();
   viewer_node_elem->node_id = node.identifier;
-  viewer_node_elem->base.ui_name = BLI_strdup(node.name);
+  viewer_node_elem->base.ui_name = BLI_strdup(bke::node_label(*snode.edittree, node).c_str());
   BLI_addtail(&r_dst.path, viewer_node_elem);
 }
 
