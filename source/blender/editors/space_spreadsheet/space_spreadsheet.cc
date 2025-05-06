@@ -275,7 +275,10 @@ static void spreadsheet_update_context(const bContext *C)
       const std::optional<ViewerPathForGeometryNodesViewer> workspace_parsed_path =
           blender::ed::viewer_path::parse_geometry_nodes_viewer(workspace->viewer_path);
       if (workspace_parsed_path.has_value()) {
-        if (BKE_viewer_path_equal(&sspreadsheet->viewer_path, &workspace->viewer_path)) {
+        if (BKE_viewer_path_equal(&sspreadsheet->viewer_path,
+                                  &workspace->viewer_path,
+                                  VIEWER_PATH_EQUAL_FLAG_CONSIDER_UI_NAME))
+        {
           /* Nothing changed. */
           break;
         }
