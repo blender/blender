@@ -33,6 +33,14 @@ BsdfSample ray_generate_direction(float2 noise, ClosureUndetermined cl, float3 V
     case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID:
       bxdf_ggx_context_amend_transmission(cl, V, thickness);
       break;
+    case CLOSURE_BSDF_MICROFACET_GGX_REFLECTION_ID:
+    case CLOSURE_BSDF_TRANSLUCENT_ID:
+    case CLOSURE_BSSRDF_BURLEY_ID:
+    case CLOSURE_BSDF_DIFFUSE_ID:
+      break;
+    case CLOSURE_NONE_ID:
+      assert(0);
+      break;
   }
 
   float3x3 tangent_to_world = from_up_axis(cl.N);
@@ -64,6 +72,9 @@ BsdfSample ray_generate_direction(float2 noise, ClosureUndetermined cl, float3 V
                                         true);
       break;
     }
+    case CLOSURE_NONE_ID:
+      assert(0);
+      break;
   }
   samp.direction = tangent_to_world * float3(samp.direction);
 
