@@ -1035,7 +1035,7 @@ static int wm_drag_imbuf_icon_height_get(const wmDrag *drag)
 
 static int wm_drag_preview_icon_size_get()
 {
-  return UI_preview_tile_size_x();
+  return int(PREVIEW_DRAG_DRAW_SIZE * UI_SCALE_FAC);
 }
 
 static void wm_drag_draw_icon(bContext * /*C*/, wmWindow * /*win*/, wmDrag *drag, const int xy[2])
@@ -1072,7 +1072,7 @@ static void wm_drag_draw_icon(bContext * /*C*/, wmWindow * /*win*/, wmDrag *drag
     x = xy[0] - (size / 2);
     y = xy[1] - (size / 2);
 
-    UI_icon_draw_preview(x, y, drag->preview_icon_id, UI_INV_SCALE_FAC, 0.8, size);
+    UI_icon_draw_preview(x, y, drag->preview_icon_id, 1.0, 0.8, size);
   }
   else {
     int padding = 4 * UI_SCALE_FAC;

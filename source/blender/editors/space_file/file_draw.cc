@@ -644,8 +644,8 @@ static void file_add_preview_drag_but(const SpaceFile *sfile,
   const ImBuf *drag_image = preview_image ? preview_image :
                                             /* Larger directory or document icon. */
                                             filelist_geticon_special_file_image_ex(file);
-  const auto [scaled_width, scaled_height, scale] = preview_image_scaled_dimensions_get(
-      drag_image->x, drag_image->y, *layout);
+  const float scale = (PREVIEW_DRAG_DRAW_SIZE * UI_SCALE_FAC) /
+                      std::max(drag_image->x, drag_image->y);
   file_but_enable_drag(but, sfile, file, path, drag_image, file_type_icon, scale);
   file_but_tooltip_func_set(sfile, file, but);
 }
