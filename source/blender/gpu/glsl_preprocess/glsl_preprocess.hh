@@ -774,7 +774,7 @@ class Preprocessor {
   /* To be run before `argument_decorator_macro_injection()`. */
   std::string argument_reference_mutation(std::string &str)
   {
-    /* Next two regexes are expensive. Check if they are needed at all. */
+    /* Next two REGEX checks are expensive. Check if they are needed at all. */
     bool valid_match = false;
     reference_search(str, [&](int parenthesis_depth, int bracket_depth, char &c) {
       /* Check if inside a function signature.

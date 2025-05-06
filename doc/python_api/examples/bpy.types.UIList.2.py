@@ -108,7 +108,7 @@ class MESH_UL_vgroups_slow(bpy.types.UIList):
 
     def filter_items_empty_vgroups(self, context, vgroups):
         # This helper function checks vgroups to find out whether they are empty, and what's their average weights.
-        # TODO: This should be RNA helper actually (a vgroup prop like "raw_data: ((vidx, vweight), etc.)").
+        # TODO: This should be RNA helper actually (a vgroup prop like `"raw_data: ((vidx, vweight), etc.)"`).
         #       Too slow for Python!
         obj_data = context.active_object.data
         ret = {vg.index: [True, 0.0] for vg in vgroups}
@@ -131,7 +131,7 @@ class MESH_UL_vgroups_slow(bpy.types.UIList):
                         ret[vg.group][0] = False
                         ret[vg.group][1] += vg.weight * fact
         elif hasattr(obj_data, "points"):  # Lattice data
-            # XXX no access to lattice editdata?
+            # XXX: no access to lattice edit-data?
             fact = 1 / len(obj_data.points)
             for v in obj_data.points:
                 for vg in v.groups:
@@ -142,11 +142,11 @@ class MESH_UL_vgroups_slow(bpy.types.UIList):
     def filter_items(self, context, data, propname):
         # This function gets the collection property (as the usual tuple (data, propname)), and must return two lists:
         # * The first one is for filtering, it must contain 32bit integers were self.bitflag_filter_item marks the
-        #   matching item as filtered (i.e. to be shown). The upper 16 bits (including self.bitflag_filter_item) are
+        #   matching item as filtered (i.e. to be shown). The upper 16 bits (including `self.bitflag_filter_item`) are
         #   reserved for internal use, the lower 16 bits are free for custom use. Here we use the first bit to mark
         #   VGROUP_EMPTY.
         # * The second one is for reordering, it must return a list containing the new indices of the items (which
-        #   gives us a mapping org_idx -> new_idx).
+        #   gives us a mapping `org_idx -> new_idx`).
         # Please note that the default UI_UL_list defines helper functions for common tasks (see its doc for more info).
         # If you do not make filtering and/or ordering, return empty list(s) (this will be more efficient than
         # returning full lists doing nothing!).

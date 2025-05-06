@@ -12,7 +12,7 @@ Introduction
 To add translations to your Python script, you must define a dictionary formatted like that:
 ``{locale: {msg_key: msg_translation, ...}, ...}`` where:
 
-- locale is either a lang iso code (e.g. ``fr``), a lang+country code (e.g. ``pt_BR``),
+- locale is either a lang ISO code (e.g. ``fr``), a lang+country code (e.g. ``pt_BR``),
   a lang+variant code (e.g. ``sr@latin``), or a full code (e.g. ``uz_UZ@cyrilic``).
 - msg_key is a tuple (context, org message) - use, as much as possible, the predefined :const:`contexts`.
 - msg_translation is the translated message in given language!

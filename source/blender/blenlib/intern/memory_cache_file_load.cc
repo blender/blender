@@ -116,7 +116,7 @@ static void invalidate_outdated_caches_if_necessary(const Span<StringRefNull> fi
     /* Isolate because a mutex is locked. */
     threading::isolate_task([&]() {
       /* Invalidation is done while the mutex is locked so that other threads won't see the old
-       * cached value anymore after we've detected that it's oudated. */
+       * cached value anymore after we've detected that it's outdated. */
       memory_cache::remove_if([&](const GenericKey &other_key) {
         if (const auto *other_key_typed = dynamic_cast<const LoadFileKey *>(&other_key)) {
           const Span<std::string> other_key_paths = other_key_typed->file_paths();

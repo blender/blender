@@ -298,7 +298,7 @@ TEST_F(LibQueryTest, libquery_subdata)
 
   EXPECT_EQ(context.scene->id.us, 0);
   EXPECT_EQ(context.object->id.us, 0);
-  /* The material's nodetre input node IDProperty uses the target object. */
+  /* The material's node-tree input node IDProperty uses the target object. */
   EXPECT_EQ(context.target->id.us, 42);
   EXPECT_EQ(context.mesh->id.us, 0);
 }

@@ -26,14 +26,14 @@ import bpy
 
 
 class CurveTextImport(bpy.types.Operator):
-    """ Test importer that creates a text object from a .txt file """
+    """
+    Test importer that creates a text object from a text file.
+    """
     bl_idname = "curve.text_import"
     bl_label = "Import a text file as text object"
 
-    """
-    This Operator supports import one .txt file at the time, we need the
-    following filepath property that the file handler will use to set file path data.
-    """
+    # This Operator supports import one `.txt` file at the time, we need the
+    # following file-path property that the file handler will use to set file path data.
     filepath: bpy.props.StringProperty(subtype='FILE_PATH', options={'SKIP_SAVE'})
 
     @classmethod
@@ -41,7 +41,7 @@ class CurveTextImport(bpy.types.Operator):
         return (context.area and context.area.type == "VIEW_3D")
 
     def execute(self, context):
-        """ Calls to this Operator can set unfiltered filepaths, ensure the file extension is .txt. """
+        # Calls to this Operator can set unfiltered file-paths, ensure the file extension is `.txt`.
         if not self.filepath or not self.filepath.endswith(".txt"):
             return {'CANCELLED'}
 
@@ -52,13 +52,11 @@ class CurveTextImport(bpy.types.Operator):
             bpy.context.scene.collection.objects.link(text_object)
         return {'FINISHED'}
 
-    """
-    By default the file handler invokes the operator with the filepath property set.
-    In this example if this property is set the operator is executed, if not the
-    file select window is invoked.
-    This depends on setting ``options={'SKIP_SAVE'}`` to the property options to avoid
-    to reuse filepath data between operator calls.
-    """
+    # By default the file handler invokes the operator with the file-path property set.
+    # In this example if this property is set the operator is executed, if not the
+    # file select window is invoked.
+    # This depends on setting `options={'SKIP_SAVE'}` to the property options to avoid
+    # to reuse file-path data between operator calls.
 
     def invoke(self, context, event):
         if self.filepath:

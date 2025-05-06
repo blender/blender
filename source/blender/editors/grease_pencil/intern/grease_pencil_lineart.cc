@@ -194,7 +194,7 @@ static bool bake_strokes(Object *ob,
       MOD_lineart_destroy_render_data_v3(lmd);
     }
     else {
-      /* Use the cacued result, *lc is already valid. */
+      /* Use the cached result, `*lc` is already valid. */
       local_lc = *lc;
     }
     MOD_lineart_chain_clear_picked_flag(local_lc);

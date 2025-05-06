@@ -267,7 +267,7 @@ void BVHSpatialSplit::split(BVHBuild *builder,
   /* Duplicate or unsplit references intersecting both sides.
    *
    * Duplication happens into a temporary pre-allocated vector in order to
-   * reduce number of memmove() calls happening in vector.insert().
+   * reduce number of `memmove()` calls happening in `vector.insert()`.
    */
   vector<BVHReference> &new_refs = storage_->new_references;
   new_refs.clear();

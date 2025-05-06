@@ -1974,7 +1974,7 @@ def run_edits_on_directory(
     # needed for when arguments are referenced relatively
     os.chdir(build_dir)
 
-    # Weak, but we probably don't want to handle extern.
+    # Weak, but we probably don't want to handle `./extern/`.
     # this limit could be removed.
     source_paths = (
         os.path.join("intern", "ghost"),

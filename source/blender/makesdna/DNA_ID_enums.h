@@ -112,9 +112,10 @@ typedef enum eIDPropertyFlag {
  * Written to #BHead.code (for file IO)
  * and the first 2 bytes of #ID.name (for runtime checks, see #GS macro).
  *
- * These types should also be available on their corresponding DNA struct. It must be a static
- * constexpr data member so that it can be used in compile-time expressions and does not take up
- * space in the struct. This is used by e.g. #BKE_id_new_nomain for improved type safety.
+ * These types should also be available on their corresponding DNA struct.
+ * It must be a static `constexpr` data member so that it can be used in
+ * compile-time expressions and does not take up space in the struct.
+ * This is used by e.g. #BKE_id_new_nomain for improved type safety.
  *
  * Update #ID_TYPE_IS_DEPRECATED() when deprecating types.
  */

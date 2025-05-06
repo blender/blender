@@ -122,7 +122,7 @@ static float map_range(const float value,
 static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
 {
   static auto no_clamp_function = mf::build::SI5_SO<float, float, float, float, float, float>(
-      "Map Range No CLamp",
+      "Map Range No Clamp",
       [](const float value,
          const float from_min,
          const float from_max,
