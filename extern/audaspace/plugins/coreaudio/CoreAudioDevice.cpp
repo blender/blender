@@ -65,20 +65,35 @@ OSStatus CoreAudioDevice::CoreAudio_mix(void* data, AudioUnitRenderActionFlags* 
 	return noErr;
 }
 
+void CoreAudioDevice::preMixingWork(bool playing)
+{
+	if(!playing)
+	{
+		if((getRingBuffer().getReadSize() == 0) && m_active)
+		{
+			AudioOutputUnitStop(m_audio_unit);
+			m_active = false;
+		}
+	}
+}
+
 void CoreAudioDevice::playing(bool playing)
 {
+	MixingThreadDevice::playing(playing);
+
 	if(m_playback != playing)
 	{
 		if(playing)
+		{
 			AudioOutputUnitStart(m_audio_unit);
-		else
-			AudioOutputUnitStop(m_audio_unit);
+			m_active = true;
+		}
 	}
 
 	m_playback = playing;
 }
 
-CoreAudioDevice::CoreAudioDevice(DeviceSpecs specs, int buffersize) : m_buffersize(uint32_t(buffersize)), m_playback(false), m_audio_unit(nullptr), m_audio_clock_ready(false)
+CoreAudioDevice::CoreAudioDevice(DeviceSpecs specs, int buffersize) : m_buffersize(uint32_t(buffersize)), m_playback(false), m_audio_unit(nullptr)
 {
 	if(specs.channels == CHANNELS_INVALID)
 		specs.channels = CHANNELS_STEREO;
