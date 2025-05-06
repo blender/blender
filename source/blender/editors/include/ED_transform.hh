@@ -125,6 +125,7 @@ int BIF_countTransformOrientation(const bContext *C);
 #define P_VIEW2D_EDGE_PAN (1 << 17)
 /* For properties performed when confirming the transformation. */
 #define P_POST_TRANSFORM (1 << 18)
+#define P_TRANSLATE_ORIGIN (1 << 19)
 
 void properties_register(wmOperatorType *ot, int flags);
 

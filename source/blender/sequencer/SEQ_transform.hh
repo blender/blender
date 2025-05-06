@@ -103,6 +103,10 @@ blender::Array<blender::float2> image_transform_quad_get(const Scene *scene,
                                                          bool apply_rotation);
 /**
  * Get 4 corner points of strip image. Corner vectors are in viewport space.
+ * Indices correspond to following corners (assuming no rotation):
+ * 3--0
+ * |  |
+ * 2--1
  *
  * \param scene: Scene in which strips are located
  * \param strip: Strip to calculate transformed image quad
