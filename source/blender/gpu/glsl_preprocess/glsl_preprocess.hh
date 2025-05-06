@@ -946,8 +946,6 @@ class Preprocessor {
       const string suffix = match.suffix().str();
 
       out_str += prefix;
-      /** IMPORTANT: `match` is invalid after the assignment. */
-      next_str = definition + suffix;
 
       /* Assert definition doesn't contain any side effect. */
       if (value.find("++") != string::npos || value.find("--") != string::npos) {
@@ -1016,6 +1014,9 @@ class Preprocessor {
        * and functions with the same name. */
       modified = regex_replace(
           modified, regex(R"(([^\.])\b)" + name + R"(\b([^(]))"), "$1" + value + "$2");
+
+      /** IMPORTANT: `match` is invalid after the assignment. */
+      next_str = definition + suffix;
 
       /* Replace whole modified scope in output string. */
       replace_all(next_str, original, modified);
