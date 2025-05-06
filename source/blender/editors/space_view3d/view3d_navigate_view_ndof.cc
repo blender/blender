@@ -759,6 +759,14 @@ static wmOperatorStatus ndof_orbit_zoom_invoke_impl(bContext *C,
               vod->depsgraph, vod->area, vod->region))
       {
         negate_v3_v3(rv3d->ndof_ofs, center_test.value());
+        /* When `ndof_ofs` is set `rv3d->dist` should be set based on distance to `ndof_ofs`.
+         * Without this the user is enable to zoom to the `ndof_ofs` point. See: #134732. */
+        if (rv3d->is_persp) {
+          const float dist_min = v3d->clip_start * 1.5f;
+          if (!ED_view3d_distance_set_from_location(rv3d, center_test.value(), dist_min)) {
+            ED_view3d_distance_set(rv3d, dist_min);
+          }
+        }
         rv3d->ndof_flag |= RV3D_NDOF_OFS_IS_VALID;
       }
     }
