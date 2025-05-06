@@ -688,7 +688,15 @@ class MeshUVs : Overlay {
       pass.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
       pass.bind_ubo(DRW_CLIPPING_UBO_SLOT, &res.clip_planes_buf);
       pass.push_constant("line_style", int(edit_uv_line_style_from_space_image(space_image)));
-      pass.push_constant("alpha", space_image->uv_opacity);
+
+      /* The `uv_opacity` setting does not apply to vertices & face-dots.
+       * This means it may be useful show vertices/faces while hiding the wire-frame.
+       * An exception to this is when only UV edges are displayed (UV edge mode).
+       * In this case, hiding the wire-frame has the effect of hiding UV's entirely.
+       * Set the alpha to 1.0 in this case.
+       * To hide all UV's, overlays can be disabled entirely. */
+      const float alpha = (select_vert_ || select_face_dots_) ? space_image->uv_opacity : 1.0f;
+      pass.push_constant("alpha", alpha);
       pass.push_constant("dash_length", dash_length);
       pass.push_constant("do_smooth_wire", do_smooth_wire);
     }
