@@ -146,7 +146,7 @@ class Armatures : Overlay {
 
   void begin_sync(Resources &res, const State &state) final
   {
-    enabled_ = state.is_space_v3d() && state.show_bones();
+    enabled_ = state.is_space_v3d() && state.show_bones() && state.has_armature;
 
     if (!enabled_) {
       return;
