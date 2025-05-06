@@ -504,6 +504,8 @@ class MeshUVs : Overlay {
   bool show_vert_ = false;
   bool show_edge_ = false;
   bool show_face_ = false;
+
+  bool select_face_ = false;
   bool show_face_dots_ = false;
   bool show_uv_edit_ = false;
 
@@ -593,10 +595,12 @@ class MeshUVs : Overlay {
         show_edge_ = false;
         show_face_ = false;
         show_face_dots_ = false;
+
+        select_face_ = false;
       }
       else {
         const bool hide_faces = space_image->flag & SI_NO_DRAWFACES;
-        show_face_ = !show_mesh_analysis_ && !hide_faces;
+        select_face_ = !show_mesh_analysis_ && !hide_faces;
 
         if (tool_setting->uv_flag & UV_SYNC_SELECTION) {
           const char sel_mode_3d = tool_setting->selectmode;
@@ -634,11 +638,10 @@ class MeshUVs : Overlay {
       }
       else {
         show_wireframe_ = show_wireframe_uv_guide;
-        if (!show_face_) {
-          show_face_ = show_wireframe_;
-        }
+        show_face_ = show_wireframe_;
       }
     }
+
     {
       /* Brush Stencil Overlay. */
       const ImagePaintSettings &image_paint_settings = tool_setting->imapaint;
@@ -718,7 +721,7 @@ class MeshUVs : Overlay {
       pass.push_constant("dot_size", dot_size);
     }
 
-    if (show_face_) {
+    if (show_face_ || select_face_) {
       const float opacity = (object_mode_is_edit && space_mode_is_uv) ?
                                 space_image->uv_opacity :
                                 space_image->uv_face_opacity;
@@ -816,7 +819,7 @@ class MeshUVs : Overlay {
         gpu::Batch *geom = DRW_mesh_batch_cache_get_edituv_facedots(ob, mesh);
         facedots_ps_.draw(geom, res_handle);
       }
-      if (show_face_) {
+      if (show_face_ || select_face_) {
         gpu::Batch *geom = DRW_mesh_batch_cache_get_edituv_faces(ob, mesh);
         faces_ps_.draw(geom, res_handle);
       }
@@ -1000,7 +1003,7 @@ class MeshUVs : Overlay {
     if (show_mesh_analysis_) {
       manager.submit(analysis_ps_, view);
     }
-    if (show_face_) {
+    if (show_face_ || select_face_) {
       manager.submit(faces_ps_, view);
     }
     if (show_uv_edit_) {
