@@ -1029,6 +1029,16 @@ bool BKE_volume_grid_determinant_valid(const double determinant)
 #endif
 }
 
+bool BKE_volume_voxel_size_valid(const float3 &voxel_size)
+{
+  return BKE_volume_grid_determinant_valid(voxel_size[0] * voxel_size[1] * voxel_size[2]);
+}
+
+bool BKE_volume_grid_transform_valid(const float4x4 &transform)
+{
+  return BKE_volume_grid_determinant_valid(blender::math::determinant(transform));
+}
+
 int BKE_volume_simplify_level(const Depsgraph *depsgraph)
 {
   if (DEG_get_mode(depsgraph) != DAG_EVAL_RENDER) {

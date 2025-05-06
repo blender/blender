@@ -108,8 +108,7 @@ static void initialize_volume_component_from_points(GeoNodeExecParams &params,
     BLI_assert_msg(0, "Unknown volume resolution mode");
   }
 
-  const double determinant = std::pow(double(voxel_size), 3.0);
-  if (!BKE_volume_grid_determinant_valid(determinant)) {
+  if (!BKE_volume_voxel_size_valid(float3(voxel_size))) {
     return;
   }
 

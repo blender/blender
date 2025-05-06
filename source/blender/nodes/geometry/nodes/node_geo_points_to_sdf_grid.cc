@@ -61,8 +61,7 @@ static bke::VolumeGrid<float> points_to_grid(const GeometrySet &geometry_set,
                                              const Field<float> &radius_field,
                                              const float voxel_size)
 {
-  const double determinant = std::pow(double(voxel_size), 3.0);
-  if (!BKE_volume_grid_determinant_valid(determinant)) {
+  if (!BKE_volume_voxel_size_valid(float3(voxel_size))) {
     return {};
   }
 
