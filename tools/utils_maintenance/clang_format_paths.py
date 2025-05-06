@@ -96,7 +96,7 @@ def source_files_from_git(paths: Sequence[str], changed_only: bool) -> list[str]
     else:
         cmd = ("git", "ls-tree", "-r", "HEAD", *paths, "--name-only", "-z")
     files = subprocess.check_output(cmd).split(b'\0')
-    return [f.decode('ascii') for f in files]
+    return [f.decode('utf-8') for f in files]
 
 
 def convert_tabs_to_spaces(files: Sequence[str]) -> None:
