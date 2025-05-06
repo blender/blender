@@ -505,7 +505,7 @@ class MeshUVs : Overlay {
   bool show_edge_ = false;
   bool show_face_ = false;
   bool show_face_dots_ = false;
-  bool show_uv_edit = false;
+  bool show_uv_edit_ = false;
 
   /** Wireframe Overlay */
   /* Draw final evaluated UVs (modifier stack applied) as grayed out wire-frame. */
@@ -585,10 +585,10 @@ class MeshUVs : Overlay {
 
     {
       /* Edit UV Overlay. */
-      show_uv_edit = space_mode_is_uv && object_mode_is_edit;
-      show_mesh_analysis_ = show_uv_edit && (space_image->flag & SI_DRAW_STRETCH);
+      show_uv_edit_ = space_mode_is_uv && object_mode_is_edit;
+      show_mesh_analysis_ = show_uv_edit_ && (space_image->flag & SI_DRAW_STRETCH);
 
-      if (!show_uv_edit) {
+      if (!show_uv_edit_) {
         show_vert_ = false;
         show_edge_ = false;
         show_face_ = false;
@@ -670,7 +670,7 @@ class MeshUVs : Overlay {
       pass.push_constant("do_smooth_wire", do_smooth_wire);
     }
 
-    if (show_uv_edit) {
+    if (show_uv_edit_) {
       auto &pass = edges_ps_;
       pass.init();
       pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL |
@@ -804,7 +804,7 @@ class MeshUVs : Overlay {
     ResourceHandle res_handle = manager.unique_handle(ob_ref);
 
     if (has_active_edit_uvmap && is_uv_editable) {
-      if (show_uv_edit) {
+      if (show_uv_edit_) {
         gpu::Batch *geom = DRW_mesh_batch_cache_get_edituv_edges(ob, mesh);
         edges_ps_.draw_expand(geom, GPU_PRIM_TRIS, 2, 1, res_handle);
       }
@@ -1003,7 +1003,7 @@ class MeshUVs : Overlay {
     if (show_face_) {
       manager.submit(faces_ps_, view);
     }
-    if (show_uv_edit) {
+    if (show_uv_edit_) {
       manager.submit(edges_ps_, view);
     }
     if (show_face_dots_) {
