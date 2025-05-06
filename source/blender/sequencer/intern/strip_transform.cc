@@ -587,6 +587,13 @@ static float2 strip_raw_image_size_get(const Scene *scene, const Strip *strip)
     return {float(selem->orig_width), float(selem->orig_height)};
   }
 
+  if (strip->type == STRIP_TYPE_MOVIECLIP) {
+    const MovieClip *clip = strip->clip;
+    if (clip != nullptr && clip->lastsize[0] != 0 && clip->lastsize[1] != 0) {
+      return {float(clip->lastsize[0]), float(clip->lastsize[1])};
+    }
+  }
+
   return {float(scene->r.xsch), float(scene->r.ysch)};
 }
 
