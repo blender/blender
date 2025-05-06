@@ -1,0 +1,76 @@
+newmtl no_textures_red
+Ns 5.624998
+Ka 0.3 0.3 0.3
+Kd 0.8 0.3 0.1
+
+newmtl four_maps
+Ns 1000.0
+Ka 1.0 1.0 1.0
+Kd 0.8 0.8 0.8
+Ks 0.5 0.5 0.5
+Ke 0.0 0.0 0.0
+Ni 1.450000
+d 1.000000
+illum 2
+# this texture will exist
+map_Kd texture.png
+# these textures will not be found
+map_Ns sometexture_Roughness.png
+map_refl sometexture_Metallic.png
+map_Bump -bm 1.000000 sometexture_Normal.png
+
+newmtl Clay
+Ns 440.924042
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.682657 0.536371
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+
+newmtl Hat
+Ns 800
+Ka 1.0 1.0 1.0
+Kd 0.8 0.8 0.8
+Ks 0.5 0.5 0.5
+# these textures will not be found
+map_Kd someHatTexture_BaseColor.jpg
+map_Ns someHatTexture_Roughness.jpg
+map_refl someHatTexture_Metalness.jpg
+map_Bump -bm 0.5 someHatTexture_Normal.jpg
+
+newmtl Parser_Test
+Ka	0.1 0.2 0.3
+Kd 0.4 0.5 0.6
+Ks    0.7    0.8		0.9
+illum	6
+Ns			15.5
+Ni   1.5
+d	0.5
+# PBR extension
+Tf 0.1 0.3 0.5
+Pr 0.2
+Pm 0.3
+Ps 0.4
+Pc 0.5
+Pcr 0.6
+aniso 0.7
+anisor 0.8
+
+bump -s 3 4 5 -bm 0.1 somebump.tga
+refl	-type sphere -s 1.5 2.5 3.5 -o	4.5 5.5 6.5 clouds.tiff
+map_Kd		-blendu off -blendv on -cc off -clamp on -mm	0.1 0.3 -t 1 2 3 -texres 128	sometex_d.png
+map_Ns -imfchan g -boost 1.5 sometex_ns.psd
+
+newmtl Parser_ScaleOffset_Test
+map_Kd -o 2.5 OffsetOneValue.png
+map_Ks -s 1.5 2.5 -o 3.5 4.5 ScaleOffsetBothTwovalues.png
+map_Ns -s 0.5 1.Value.png
+
+# these mtl options are not supported yet
+map_Ka -s 1.5 2.5 3.5 -o 4.5 5.5 6.5 -mm 0.1 0.2 sometex_a.jpg
+sharpness 90
+map_aat on
+decal -o 1 2 3 sometex_decal.png
+disp -imgchan b sometex_disp.png

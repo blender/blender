@@ -5,7 +5,7 @@
 
 """
 "make update" for all platforms, updating Git LFS submodules for libraries and
-tests, and Blender git repository.
+Blender git repository.
 
 For release branches, this will check out the appropriate branches of
 submodules and libraries.
@@ -48,13 +48,17 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument("--no-libraries", action="store_true")
     parser.add_argument("--no-blender", action="store_true")
     parser.add_argument("--no-submodules", action="store_true")
-    parser.add_argument("--use-tests", action="store_true")
+    parser.add_argument("--no-lfs-fallback", action="store_true")
     parser.add_argument("--git-command", default="git")
     parser.add_argument("--use-linux-libraries", action="store_true")
     parser.add_argument("--architecture", type=str,
                         choices=("x86_64", "amd64", "arm64",))
     parser.add_argument("--prune-destructive", action="store_true",
                         help="Destructive! Detect and remove stale files from older checkouts")
+
+    # Deprecated options, kept for compatibility with old configurations.
+    parser.add_argument("--use-tests", action="store_true", help=argparse.SUPPRESS)
+
     return parser.parse_args()
 
 
@@ -196,21 +200,6 @@ def initialize_precompiled_libraries(args: argparse.Namespace) -> str:
         return "Skipping libraries update: no configured submodule\n"
 
     print(f"* Enabling precompiled libraries at {submodule_dir}")
-    make_utils.git_enable_submodule(args.git_command, Path(submodule_dir))
-
-    return ""
-
-
-def initialize_tests_data_files(args: argparse.Namespace) -> str:
-    """
-    Configure submodule with files used by regression tests
-    """
-
-    print_stage("Configuring Tests Data Files")
-
-    submodule_dir = "tests/data"
-
-    print(f"* Enabling tests data at {submodule_dir}")
     make_utils.git_enable_submodule(args.git_command, Path(submodule_dir))
 
     return ""
@@ -515,21 +504,6 @@ def floating_checkout_update(
     return skip_msg
 
 
-def external_scripts_update(
-        args: argparse.Namespace,
-        repo_name: str,
-        directory_name: str,
-        branch: Optional[str],
-) -> str:
-    return floating_checkout_update(
-        args,
-        repo_name,
-        Path("scripts") / directory_name,
-        branch,
-        old_submodules_dir=Path("release") / "scripts" / directory_name,
-    )
-
-
 def floating_libraries_update(args: argparse.Namespace, branch: Optional[str]) -> str:
     """Update libraries checkouts which are floating (not attached as Git submodules)"""
     msg = ""
@@ -605,8 +579,34 @@ def submodules_lib_update(args: argparse.Namespace, branch: Optional[str]) -> st
     return msg
 
 
+def lfs_fallback_setup(args: argparse.Namespace) -> None:
+    """
+    Set up an additional projects.blender.org remote, for LFS fetching fallback
+    in case the fork does not include LFS files.
+    """
+    remotes = make_utils.git_get_remotes(args.git_command)
+    add_fallback_remote = True
+    fallback_remote = "lfs-fallback"
+
+    for remote in remotes:
+        url = make_utils.git_get_remote_url(args.git_command, remote)
+        if "projects.blender.org" not in url:
+            make_utils.git_set_config(args.git_command, f"lfs.{remote}.searchall", "true")
+        else:
+            add_fallback_remote = False
+
+    if add_fallback_remote and not make_utils.git_remote_exist(args.git_command, fallback_remote):
+        print_stage("Adding Git LFS fallback remote")
+        print("Used to fetch files from projects.blender.org if missing.")
+
+        url = "https://projects.blender.org/blender/blender.git"
+        push_url = "no_push"
+        make_utils.git_add_remote(args.git_command, fallback_remote, url, push_url)
+
+
 if __name__ == "__main__":
     args = parse_arguments()
+
     blender_skip_msg = ""
     libraries_skip_msg = ""
     submodules_skip_msg = ""
@@ -625,6 +625,9 @@ if __name__ == "__main__":
     if args.prune_destructive:
         prune_stale_files()
 
+    if not args.no_lfs_fallback:
+        lfs_fallback_setup(args)
+
     if not args.no_blender:
         blender_skip_msg = git_update_skip(args)
         if not blender_skip_msg:
@@ -634,8 +637,6 @@ if __name__ == "__main__":
 
     if not args.no_libraries:
         libraries_skip_msg += initialize_precompiled_libraries(args)
-        if args.use_tests:
-            libraries_skip_msg += initialize_tests_data_files(args)
         libraries_skip_msg += submodules_lib_update(args, branch)
 
     # Report any skipped repositories at the end, so it's not as easy to miss.
@@ -643,6 +644,10 @@ if __name__ == "__main__":
     if skip_msg:
         print_stage("Update finished with the following messages")
         print(skip_msg.strip())
+
+    if args.use_tests:
+        print()
+        print('NOTE: --use-tests is a deprecated command line argument, kept for compatibility purposes.')
 
     # For failed submodule update we throw an error, since not having correct
     # submodules can make Blender throw errors.

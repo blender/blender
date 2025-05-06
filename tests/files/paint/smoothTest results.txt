@@ -1,0 +1,4 @@
+The mouth is slightly concave and needs smoothing.
+
+Run Fix Deforms on the selected 3 to begin to correct it,
+ but dial the distance back to make the surface as smooth as it can be.

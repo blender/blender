@@ -1,0 +1,2 @@
+These reference images have been renderd with:
+SVN 55063 on Mac OS X 10.8

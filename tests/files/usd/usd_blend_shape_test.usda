@@ -1,0 +1,68 @@
+#usda 1.0
+(
+    defaultPrim = "root"
+    endTimeCode = 60
+    metersPerUnit = 1
+    startTimeCode = 1
+    timeCodesPerSecond = 24
+    upAxis = "Z"
+)
+
+def Xform "root"
+{
+    def SkelRoot "Plane"
+    {
+        def Mesh "Plane" (
+            active = true
+            prepend apiSchemas = ["SkelBindingAPI"]
+        )
+        {
+            float3[] extent = [(-1, -1, 0), (1, 1, 0)]
+            int[] faceVertexCounts = [4]
+            int[] faceVertexIndices = [0, 1, 3, 2]
+            normal3f[] normals = [(0, 0, 1), (0, 0, 1), (0, 0, 1), (0, 0, 1)] (
+                interpolation = "faceVarying"
+            )
+            point3f[] points = [(-1, -1, 0), (1, -1, 0), (-1, 1, 0), (1, 1, 0)]
+            int[] primvars:skel:jointIndices = [0, 0, 0, 0] (
+                elementSize = 1
+                interpolation = "vertex"
+            )
+            float[] primvars:skel:jointWeights = [1, 1, 1, 1] (
+                elementSize = 1
+                interpolation = "vertex"
+            )
+            uniform token[] skel:blendShapes = ["Key_1"]
+            rel skel:blendShapeTargets = </root/Plane/Plane/Key_1>
+            prepend rel skel:skeleton = </root/Plane/Skel>
+            uniform token subdivisionScheme = "none"
+            custom string userProperties:blenderName:data = "Plane"
+
+            def BlendShape "Key_1"
+            {
+                uniform vector3f[] offsets = [(-1.51, -0.92, 0.20), (-0.14, -0.46, -0.10), (-0.33, 0.29, 0.84), (0.32, 1.20, -0.42)]
+                uniform int[] pointIndices = [0, 1, 2, 3]
+            }
+        }
+
+        def Skeleton "Skel"
+        {
+            uniform matrix4d[] bindTransforms = [( (1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1) )]
+            uniform token[] joints = ["joint1"]
+            uniform matrix4d[] restTransforms = [( (1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1) )]
+            prepend rel skel:animationSource = </root/Plane/Skel/Anim>
+
+            def SkelAnimation "Anim"
+            {
+                uniform token[] blendShapes = ["Key_1"]
+                float[] blendShapeWeights = [0.0]
+                float[] blendShapeWeights.timeSamples = {
+                    1: [0.0029333336],
+                    30: [0.9],
+                    60: [0.1],
+                }
+            }
+        }
+    }
+}
+

@@ -1,0 +1,32 @@
+# Blender 3.6.0 Alpha MTL File: 'materials_pbr.blend'
+# www.blender.org
+
+newmtl Mat1
+Kd 0.800000 0.276449 0.101911
+Ks 0.250000 0.250000 0.250000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 3
+Pr 0.400000
+Pm 0.900000
+Ps 0.060000
+Pc 0.393182
+Pcr 0.050000
+aniso 0.200000
+anisor 0.000000
+
+newmtl Mat2
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ni 1.450000
+d 1.000000
+illum 2
+Pm 0.000000
+Pc 0.300000
+Pcr 0.400000
+aniso 0.800000
+anisor 0.700000
+map_Pr ../blend_geometry/texture_roughness.png
+map_Ps ../blend_geometry/texture_checker.png
+map_Ke ../blend_geometry/texture_illum.png

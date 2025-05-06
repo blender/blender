@@ -1,0 +1,29 @@
+# This is an Asset Catalog Definition file for Blender.
+#
+# Empty lines and lines starting with `#` will be ignored.
+# The first non-ignored line should be the version indicator.
+# Other lines are of the format "UUID:/catalog/path/for/assets:simple name for debugging"
+
+VERSION 1
+
+# Changed path, the unit test will not modify this, so it should load:
+b06132f6-5687-4751-a6dd-392740eb3c46:whitespace from file:POSES_ELLIE WHITESPACE
+
+# Changed path, but will also be modified by the unit test, so should not load:
+3376b94b-a28d-4d05-86c1-bf30b937130d:character/Ellie/file-value:POSES_ELLIE_TRAILING_SLASH
+
+# Deleted from this file:
+# a51e17ae-34fc-47d5-ba0f-64c2c9b771f7:character/Ellie/backslashes:Windows For Life!
+
+# Obtained a simple name:
+d7916a31-6ca9-4909-955f-182ca2b81fa3:path/without/simplename:Hah simple name after all
+
+# New catalog:
+c5744ba5-43f5-4f73-8e52-010ad4a61b34:agents/47:Agent 47
+
+# Unchanged from original file:
+df60e1f6-2259-475b-93d9-69a1b4a8db78:character/Ellie/poselib:POSES_ELLIE
+79a4f887-ab60-4bd4-94da-d572e27d6aed:character/Ružena/poselib:POSES_RUŽENA
+00000000-d9fa-4b91-b704-e6af1f1339ef:character/Ružena/poselib:Another Ružena
+82162c1f-06cc-4d91-a9bf-4f72c104e348:character/Ružena/poselib/face:POSES_RUŽENA_FACE
+81811c31-1a88-4bd7-bb34-c6fc2607a12e:character/Ružena/poselib/hand:POSES_RUŽENA_HAND

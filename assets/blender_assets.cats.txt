@@ -1,0 +1,16 @@
+# This is an Asset Catalog Definition file for Blender.
+#
+# Empty lines and lines starting with `#` will be ignored.
+# The first non-ignored line should be the version indicator.
+# Other lines are of the format "UUID:catalog/path/for/assets:simple catalog name"
+
+VERSION 1
+
+f14d3c5d-8223-4e8c-b3b3-cbce81e4b3ee:Hair:Hair
+87cbaad7-ae4e-404c-9b6b-4fe60ecc39dc:Hair/Deformation:Hair-Deformation
+40aedbf9-be4b-4ddb-8eec-8a9cd37d0921:Hair/Generation:Hair-Generation
+09af8c50-8c07-4039-821c-be801761d7cf:Hair/Guides:Hair-Guides
+c676fe02-8d25-49a1-b672-11aee0918221:Hair/Read:Hair-Read
+9dedc75a-afe5-472a-9e3f-a555a8df3dff:Hair/Utility:Hair-Utility
+63a83f9c-5a95-476a-9bd5-fcb72414ea0b:Hair/Write:Hair-Write
+9e98eca8-e987-44d3-88a1-6633d0a8ad82:Normals:Normals

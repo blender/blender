@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE X3D PUBLIC "ISO//Web3D//DTD X3D 3.0//EN" "http://www.web3d.org/specifications/x3d-3.0.dtd">
+<X3D version="3.0" profile="Immersive" xmlns:xsd="http://www.w3.org/2001/XMLSchema-instance" xsd:noNamespaceSchemaLocation="http://www.web3d.org/specifications/x3d-3.0.xsd">
+<head>
+	<meta name="filename" content="color_cube.x3d" />
+	<meta name="generator" content="Blender 2.56 (sub 0)" />
+	<meta name="translator" content="X3D exporter v1.55 (2006/01/17)" />
+</head>
+<Scene>
+<NavigationInfo headlight="false" visibilityLimit="0.0" type='"EXAMINE","ANY"' avatarSize="0.25, 1.75, 0.75" />
+<Background DEF="World0" groundColor="0.051 0.051 0.051" skyColor="0.051 0.051 0.051" />
+
+<Collision enabled="false">
+	<Transform DEF="Cube" translation="0.000000 0.000000 0.000000" scale="1.000000 1.000000 1.000000" rotation="-1.000000 0.000000 0.000000 1.570796" >
+		<Group DEF="G_Cube">
+			<Shape>
+				<Appearance>
+					<Material DEF="MA_Material" diffuseColor="0.8 0.8 0.8" specularColor="0.401 0.401 0.401" emissiveColor="0.0 0.0 0.0" 
+						ambientIntensity="0.333" shininess="0.098" transparency="0.0" />					
+				</Appearance>
+				<IndexedFaceSet solid="true" colorPerVertex="false" coordIndex="0 1 2 3 -1, 4 7 6 5 -1, 0 4 5 1 -1, 1 5 6 2 -1, 2 6 7 3 -1, 4 0 3 7 -1, " >
+					<Coordinate DEF="coord_Cube" 
+				point="1.000000 1.000000 -1.000000, 1.000000 -1.000000 -1.000000, -1.000000 -1.000000 -1.000000, -1.000000 1.000000 -1.000000, 1.000000 0.999999 1.000000, 0.999999 -1.000001 1.000000, -1.000000 -1.000000 1.000000, -1.000000 1.000000 1.000000, " />					
+					<Color color="0.000 1.000 1.000, 0.000 0.000 1.000, 0.000 1.000 0.000, 1.000 0.000 0.000, 1.000 0.000 1.000, 1.000 1.000 0.000, " />					
+				</IndexedFaceSet>
+			</Shape>
+		</Group>
+	</Transform>
+</Collision>
+
+<PointLight DEF="Lamp" ambientIntensity="0.0" color="1.0 1.0 1.0" intensity="0.571" radius="29.999982833862305" location="4.076 5.904 -1.005" />
+
+
+</Scene>
+</X3D>
