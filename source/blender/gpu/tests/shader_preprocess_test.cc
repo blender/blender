@@ -348,4 +348,114 @@ static void test_preprocess_reference()
 }
 GPU_TEST(preprocess_reference);
 
+static void test_preprocess_default_arguments()
+{
+  using namespace shader;
+  using namespace std;
+
+  {
+    string input = R"(
+int func(int a, int b = 0)
+{
+  return a + b;
+}
+)";
+    string expect = R"(
+int func(int a, int b)
+{
+  return a + b;
+}
+#line 2
+int func(int a)
+{
+#line 2
+  return func(a, 0);
+}
+#line 6
+)";
+    string error;
+    string output = process_test_string(input, error);
+    EXPECT_EQ(output, expect);
+    EXPECT_EQ(error, "");
+  }
+  {
+    string input = R"(
+int func(int a = 0, const int b = 0)
+{
+  return a + b;
+}
+)";
+    string expect = R"(
+int func(int a, const int b)
+{
+  return a + b;
+}
+#line 2
+int func(int a)
+{
+#line 2
+  return func(a, 0);
+}
+#line 2
+int func()
+{
+#line 2
+  return func(0);
+}
+#line 6
+)";
+    string error;
+    string output = process_test_string(input, error);
+    EXPECT_EQ(output, expect);
+    EXPECT_EQ(error, "");
+  }
+  {
+    string input = R"(
+int2 func(int2 a = int2(0, 0)) {
+  return a;
+}
+)";
+    string expect = R"(
+int2 func(int2 a) {
+  return a;
+}
+#line 2
+int2 func()
+{
+#line 2
+  return func(int2(0, 0));
+}
+#line 6
+)";
+    string error;
+    string output = process_test_string(input, error);
+    EXPECT_EQ(output, expect);
+    EXPECT_EQ(error, "");
+  }
+  {
+    string input = R"(
+void func(int a = 0) {
+  a;
+}
+)";
+    string expect = R"(
+void func(int a) {
+  a;
+}
+#line 2
+void func()
+{
+#line 2
+  func(0);
+}
+#line 6
+)";
+    string error;
+    string output = process_test_string(input, error);
+    EXPECT_EQ(output, expect);
+    EXPECT_EQ(error, "");
+  }
+}
+GPU_TEST(preprocess_default_arguments);
+
 }  // namespace blender::gpu::tests

@@ -225,6 +225,7 @@ class Preprocessor {
       }
       str = remove_quotes(str);
       str = enum_macro_injection(str);
+      str = default_argument_mutation(str);
       str = argument_reference_mutation(str);
       str = variable_reference_mutation(str, report_error);
       str = template_definition_mutation(str, report_error);
@@ -885,6 +886,104 @@ class Preprocessor {
     return str;
   }
 
+  /**
+   * Expand functions with default arguments to function overloads.
+   * Expects formatted input and that function bodies are followed by newline.
+   */
+  std::string default_argument_mutation(std::string str)
+  {
+    using namespace std;
+    int match = 0;
+    default_argument_search(
+        str, [&](int /*parenthesis_depth*/, int /*bracket_depth*/, char & /*c*/) { match++; });
+
+    if (match == 0) {
+      /* No mutation to do. Early out as the following regex is expensive. */
+      return str;
+    }
+
+    vector<pair<string, string>> mutations;
+
+    int64_t line = 0;
+
+    /* Matches function definition.  */
+    regex regex_func(R"(\n((\w+)\s+(\w+)\s*\()([^{]+))");
+    regex_global_search(str, regex_func, [&](const smatch &match) {
+      const string prefix = match[1].str();
+      const string return_type = match[2].str();
+      const string func_name = match[3].str();
+      const string args = get_content_between_balanced_pair('(' + match[4].str(), '(', ')');
+      const string suffix = ")\n{";
+
+      int64_t lines_in_content = line_count(match[0].str());
+      line += line_count(match.prefix().str()) + lines_in_content;
+
+      if (args.find('=') == string::npos) {
+        return;
+      }
+
+      const bool has_non_void_return_type = return_type != "void";
+
+      string line_directive = "#line " + to_string(line - lines_in_content + 2) + "\n";
+
+      vector<string> args_split = split_string_not_between_balanced_pair(args, ',', '(', ')');
+      string overloads;
+      string args_defined;
+      string args_called;
+
+      /* Rewrite original definition without defaults. */
+      string with_default = match[0].str();
+      string no_default = with_default;
+
+      for (const string &arg : args_split) {
+        regex regex(R"(((?:const )?\w+)\s+(\w+)( = (.+))?)");
+        smatch match;
+        regex_search(arg, match, regex);
+
+        string arg_type = match[1].str();
+        string arg_name = match[2].str();
+        string arg_assign = match[3].str();
+        string arg_value = match[4].str();
+
+        if (!arg_value.empty()) {
+          string body = func_name + "(" + args_called + arg_value + ");";
+          if (has_non_void_return_type) {
+            body = "  return " + body;
+          }
+          else {
+            body = "  " + body;
+          }
+
+          overloads = line_directive + prefix + args_defined + suffix + '\n' + line_directive +
+                      body + "\n}\n" + overloads;
+
+          replace_all(no_default, arg_assign, "");
+        }
+        if (!args_defined.empty()) {
+          args_defined += ", ";
+        }
+        args_defined += arg_type + ' ' + arg_name;
+        args_called += arg_name + ", ";
+      }
+
+      /* Get function body to put the overload after it. */
+      string body_content = '{' +
+                            get_content_between_balanced_pair(match.suffix().str(), '{', '}') +
+                            "}\n";
+
+      string last_line_directive =
+          "#line " + to_string(line - lines_in_content + line_count(body_content) + 3) + "\n";
+
+      mutations.emplace_back(with_default + body_content,
+                             no_default + body_content + overloads + last_line_directive);
+    });
+
+    for (auto mutation : mutations) {
+      replace_all(str, mutation.first, mutation.second);
+    }
+    return str;
+  }
+
   /* To be run before `argument_decorator_macro_injection()`. */
   std::string argument_reference_mutation(std::string &str)
   {
@@ -1353,22 +1452,56 @@ class Preprocessor {
    * Expects the input `str` to be formatted with balanced parenthesis and curly brackets. */
   static void reference_search(std::string &str, std::function<void(int, int, char &)> callback)
   {
+    scopes_scan_for_char(
+        str, '&', [&](size_t pos, int parenthesis_depth, int bracket_depth, char &c) {
+          if (pos > 0 && pos <= str.length() - 2) {
+            /* This is made safe by the previous check. */
+            char prev_char = str[pos - 1];
+            char next_char = str[pos + 1];
+            /* Validate it is not an operator (`&`, `&&`, `&=`). */
+            if (prev_char == ' ' || prev_char == '(') {
+              if (next_char != ' ' && next_char != '\n' && next_char != '&' && next_char != '=') {
+                callback(parenthesis_depth, bracket_depth, c);
+              }
+            }
+          }
+        });
+  }
+
+  /* Match any default argument definition (e.g. `void func(int a = 0)`).
+   * Call the callback function for each `=` character inside a function argument list.
+   * Expects the input `str` to be formatted with balanced parenthesis and curly brackets. */
+  static void default_argument_search(std::string &str,
+                                      std::function<void(int, int, char &)> callback)
+  {
+    scopes_scan_for_char(
+        str, '=', [&](size_t pos, int parenthesis_depth, int bracket_depth, char &c) {
+          if (pos > 0 && pos <= str.length() - 2) {
+            /* This is made safe by the previous check. */
+            char prev_char = str[pos - 1];
+            char next_char = str[pos + 1];
+            /* Validate it is not an operator (`==`, `<=`, `>=`). Expects formatted input. */
+            if (prev_char == ' ' && next_char == ' ') {
+              if (parenthesis_depth == 1 && bracket_depth == 0) {
+                callback(parenthesis_depth, bracket_depth, c);
+              }
+            }
+          }
+        });
+  }
+
+  /* Scan through a string matching for every occurrence of a character.
+   * Calls the callback with the context in which the match occurs. */
+  static void scopes_scan_for_char(std::string &str,
+                                   char search_char,
+                                   std::function<void(size_t, int, int, char &)> callback)
+  {
     size_t pos = 0;
     int parenthesis_depth = 0;
     int bracket_depth = 0;
     for (char &c : str) {
-      if (c == '&') {
-        if (pos > 0 && pos <= str.length() - 2) {
-          /* This is made safe by the previous check and by starting at pos = 1. */
-          char prev_char = str[pos - 1];
-          char next_char = str[pos + 1];
-          /* Validate it is not an operator (`&`, `&&`, `&=`). */
-          if (prev_char == ' ' || prev_char == '(') {
-            if (next_char != ' ' && next_char != '\n' && next_char != '&' && next_char != '=') {
-              callback(parenthesis_depth, bracket_depth, c);
-            }
-          }
-        }
+      if (c == search_char) {
+        callback(pos, parenthesis_depth, bracket_depth, c);
       }
       else if (c == '(') {
         parenthesis_depth++;
