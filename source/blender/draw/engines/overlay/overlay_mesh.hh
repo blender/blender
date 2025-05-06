@@ -704,7 +704,7 @@ class MeshUVs : Overlay {
       pass.shader_set(res.shaders->uv_edit_facedot.get());
       pass.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
       pass.bind_ubo(DRW_CLIPPING_UBO_SLOT, &res.clip_planes_buf);
-      pass.push_constant("point_size", point_size);
+      pass.push_constant("dot_size", point_size);
     }
 
     if (show_face_) {
