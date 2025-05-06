@@ -5038,30 +5038,27 @@ uiLayout *uiLayoutPanelProp(const bContext *C,
   return panel.body;
 }
 
-PanelLayout uiLayoutPanel(const bContext *C,
-                          uiLayout *layout,
-                          const StringRef idname,
-                          const bool default_closed)
+PanelLayout uiLayout::panel(const bContext *C, const StringRef idname, const bool default_closed)
 {
-  Panel *panel = uiLayoutGetRootPanel(layout);
-  BLI_assert(panel != nullptr);
+  Panel *root_panel = uiLayoutGetRootPanel(this);
+  BLI_assert(root_panel != nullptr);
 
-  LayoutPanelState *state = BKE_panel_layout_panel_state_ensure(panel, idname, default_closed);
+  LayoutPanelState *state = BKE_panel_layout_panel_state_ensure(
+      root_panel, idname, default_closed);
   PointerRNA state_ptr = RNA_pointer_create_discrete(nullptr, &RNA_LayoutPanelState, state);
 
-  return uiLayoutPanelProp(C, layout, &state_ptr, "is_open");
+  return uiLayoutPanelProp(C, this, &state_ptr, "is_open");
 }
 
-uiLayout *uiLayoutPanel(const bContext *C,
-                        uiLayout *layout,
-                        const StringRef idname,
-                        const bool default_closed,
-                        const StringRef label)
+uiLayout *uiLayout::panel(const bContext *C,
+                          const StringRef idname,
+                          const bool default_closed,
+                          const StringRef label)
 {
-  PanelLayout panel = uiLayoutPanel(C, layout, idname, default_closed);
-  uiItemL(panel.header, label, ICON_NONE);
+  PanelLayout panel_layout = panel(C, idname, default_closed);
+  uiItemL(panel_layout.header, label, ICON_NONE);
 
-  return panel.body;
+  return panel_layout.body;
 }
 
 bool uiLayoutEndsWithPanelHeader(const uiLayout &layout)

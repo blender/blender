@@ -151,7 +151,7 @@ static void ui_alembic_export_settings(const bContext *C, uiLayout *layout, Poin
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
 
-  if (uiLayout *panel = uiLayoutPanel(C, layout, "ABC_export_general", false, IFACE_("General"))) {
+  if (uiLayout *panel = layout->panel(C, "ABC_export_general", false, IFACE_("General"))) {
     uiLayout *col = &panel->column(false);
     uiItemR(col, ptr, "global_scale", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
@@ -164,7 +164,7 @@ static void ui_alembic_export_settings(const bContext *C, uiLayout *layout, Poin
   }
 
   /* Scene Options */
-  if (uiLayout *panel = uiLayoutPanel(C, layout, "ABC_export_scene", false, IFACE_("Scene"))) {
+  if (uiLayout *panel = layout->panel(C, "ABC_export_scene", false, IFACE_("Scene"))) {
     uiLayout *col = &panel->column(false);
 
     uiLayout *sub = &col->column(true);
@@ -195,8 +195,7 @@ static void ui_alembic_export_settings(const bContext *C, uiLayout *layout, Poin
   }
 
   /* Object Data */
-  if (uiLayout *panel = uiLayoutPanel(C, layout, "ABC_export_geometry", false, IFACE_("Geometry")))
-  {
+  if (uiLayout *panel = layout->panel(C, "ABC_export_geometry", false, IFACE_("Geometry"))) {
     uiLayout *col = &panel->column(true);
     uiItemR(col, ptr, "uvs", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
@@ -225,8 +224,8 @@ static void ui_alembic_export_settings(const bContext *C, uiLayout *layout, Poin
   }
 
   /* Particle Data */
-  if (uiLayout *panel = uiLayoutPanel(
-          C, layout, "ABC_export_particles", false, IFACE_("Particle Systems")))
+  if (uiLayout *panel = layout->panel(
+          C, "ABC_export_particles", false, IFACE_("Particle Systems")))
   {
     uiLayout *col = &panel->column(true);
     uiItemR(col, ptr, "export_hair", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -569,12 +568,12 @@ static void ui_alembic_import_settings(const bContext *C, uiLayout *layout, Poin
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
 
-  if (uiLayout *panel = uiLayoutPanel(C, layout, "ABC_import_general", false, IFACE_("General"))) {
+  if (uiLayout *panel = layout->panel(C, "ABC_import_general", false, IFACE_("General"))) {
     uiLayout *col = &panel->column(false);
     uiItemR(col, ptr, "scale", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
-  if (uiLayout *panel = uiLayoutPanel(C, layout, "ABC_import_options", false, IFACE_("Options"))) {
+  if (uiLayout *panel = layout->panel(C, "ABC_import_options", false, IFACE_("Options"))) {
     uiLayout *col = &panel->column(false);
     uiItemR(col, ptr, "relative_path", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     uiItemR(col, ptr, "set_frame_range", UI_ITEM_NONE, std::nullopt, ICON_NONE);

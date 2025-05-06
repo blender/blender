@@ -40,6 +40,11 @@ enum class ItemInternalFlag : uint8_t;
 enum class EmbossType : uint8_t;
 }  // namespace blender::ui
 
+struct PanelLayout {
+  uiLayout *header;
+  uiLayout *body;
+};
+
 /**
  * NOTE: `uiItem` properties should be considered private outside `interface_layout.cc`,
  * incoming refactors would remove public access and add public read/write function methods.
@@ -143,6 +148,29 @@ struct uiLayout : uiItem {
    */
   uiLayout &grid_flow(
       bool row_major, int columns_len, bool even_columns, bool even_rows, bool align);
+
+  /**
+   * Variant of #uiLayoutPanelProp that automatically stores the open-close-state in the root
+   * panel. When a dynamic number of panels is required, it's recommended to use #uiLayoutPanelProp
+   * instead of passing in generated id names.
+   *
+   * \param idname: String that identifies the open-close-state in the root panel.
+   */
+  PanelLayout panel(const bContext *C, blender::StringRef idname, bool default_closed);
+
+  /**
+   * Variant of #panel that automatically creates the header row with the given label and
+   * only returns the body layout.
+   *
+   * \param label:  Text that's shown in the panel header. It should already be translated.
+   *
+   * \return NULL if the panel is closed and should not be drawn, otherwise the layout where the
+   * sub-panel should be inserted into.
+   */
+  uiLayout *panel(const bContext *C,
+                  blender::StringRef idname,
+                  bool default_closed,
+                  blender::StringRef label);
 
   /**
    * Add a new split sub-layout, items placed in this sub-layout are added horizontally next to
@@ -318,11 +346,6 @@ void uiLayoutListItemAddPadding(uiLayout *layout);
 
 /* Layout create functions. */
 
-struct PanelLayout {
-  uiLayout *header;
-  uiLayout *body;
-};
-
 /**
  * Create a "layout panel" which is a panel that is defined as part of the `uiLayout`. This allows
  * creating expandable sections which can also be nested.
@@ -366,33 +389,6 @@ uiLayout *uiLayoutPanelProp(const bContext *C,
                             PointerRNA *open_prop_owner,
                             blender::StringRefNull open_prop_name,
                             blender::StringRef label);
-
-/**
- * Variant of #uiLayoutPanelProp that automatically stores the open-close-state in the root
- * panel. When a dynamic number of panels is required, it's recommended to use #uiLayoutPanelProp
- * instead of passing in generated id names.
- *
- * \param idname: String that identifies the open-close-state in the root panel.
- */
-PanelLayout uiLayoutPanel(const bContext *C,
-                          uiLayout *layout,
-                          blender::StringRef idname,
-                          bool default_closed);
-
-/**
- * Variant of #uiLayoutPanel that automatically creates the header row with the given label and
- * only returns the body layout.
- *
- * \param label:  Text that's shown in the panel header. It should already be translated.
- *
- * \return NULL if the panel is closed and should not be drawn, otherwise the layout where the
- * sub-panel should be inserted into.
- */
-uiLayout *uiLayoutPanel(const bContext *C,
-                        uiLayout *layout,
-                        blender::StringRef idname,
-                        bool default_closed,
-                        blender::StringRef label);
 
 bool uiLayoutEndsWithPanelHeader(const uiLayout &layout);
 

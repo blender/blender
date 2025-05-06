@@ -52,7 +52,7 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *current_no
   auto &storage = *static_cast<NodeGeometryForeachGeometryElementOutput *>(output_node.storage);
 
   if (is_zone_input_node) {
-    if (uiLayout *panel = uiLayoutPanel(C, layout, "input", false, IFACE_("Input Fields"))) {
+    if (uiLayout *panel = layout->panel(C, "input", false, IFACE_("Input Fields"))) {
       socket_items::ui::draw_items_list_with_operators<ForeachGeometryElementInputItemsAccessor>(
           C, panel, ntree, output_node);
       socket_items::ui::draw_active_item_props<ForeachGeometryElementInputItemsAccessor>(
@@ -64,7 +64,7 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *current_no
     }
   }
   else {
-    if (uiLayout *panel = uiLayoutPanel(C, layout, "main_items", false, IFACE_("Main Geometry"))) {
+    if (uiLayout *panel = layout->panel(C, "main_items", false, IFACE_("Main Geometry"))) {
       socket_items::ui::draw_items_list_with_operators<ForeachGeometryElementMainItemsAccessor>(
           C, panel, ntree, output_node);
       socket_items::ui::draw_active_item_props<ForeachGeometryElementMainItemsAccessor>(
@@ -74,8 +74,8 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *current_no
             uiItemR(panel, item_ptr, "socket_type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
           });
     }
-    if (uiLayout *panel = uiLayoutPanel(
-            C, layout, "generation_items", false, IFACE_("Generated Geometry")))
+    if (uiLayout *panel = layout->panel(
+            C, "generation_items", false, IFACE_("Generated Geometry")))
     {
       socket_items::ui::draw_items_list_with_operators<
           ForeachGeometryElementGenerationItemsAccessor>(C, panel, ntree, output_node);

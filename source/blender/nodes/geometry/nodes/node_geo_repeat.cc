@@ -47,7 +47,7 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *current_no
   PointerRNA output_node_ptr = RNA_pointer_create_discrete(
       current_node_ptr->owner_id, &RNA_Node, &output_node);
 
-  if (uiLayout *panel = uiLayoutPanel(C, layout, "repeat_items", false, IFACE_("Repeat Items"))) {
+  if (uiLayout *panel = layout->panel(C, "repeat_items", false, IFACE_("Repeat Items"))) {
     socket_items::ui::draw_items_list_with_operators<RepeatItemsAccessor>(
         C, panel, ntree, output_node);
     socket_items::ui::draw_active_item_props<RepeatItemsAccessor>(

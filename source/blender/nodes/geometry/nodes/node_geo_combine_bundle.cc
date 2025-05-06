@@ -69,7 +69,7 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *node_ptr)
   bNodeTree &ntree = *reinterpret_cast<bNodeTree *>(node_ptr->owner_id);
   bNode &node = *static_cast<bNode *>(node_ptr->data);
 
-  if (uiLayout *panel = uiLayoutPanel(C, layout, "bundle_items", false, TIP_("Bundle Items"))) {
+  if (uiLayout *panel = layout->panel(C, "bundle_items", false, TIP_("Bundle Items"))) {
     socket_items::ui::draw_items_list_with_operators<CombineBundleItemsAccessor>(
         C, panel, ntree, node);
     socket_items::ui::draw_active_item_props<CombineBundleItemsAccessor>(

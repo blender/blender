@@ -91,7 +91,7 @@ static void ui_fbx_import_settings(const bContext *C, uiLayout *layout, PointerR
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
 
-  if (uiLayout *panel = uiLayoutPanel(C, layout, "FBX_import_general", false, IFACE_("General"))) {
+  if (uiLayout *panel = layout->panel(C, "FBX_import_general", false, IFACE_("General"))) {
     uiLayout *col = &panel->column(false);
     uiItemR(col, ptr, "global_scale", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     uiItemR(col, ptr, "use_custom_props", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -99,8 +99,7 @@ static void ui_fbx_import_settings(const bContext *C, uiLayout *layout, PointerR
     uiItemR(col, ptr, "use_custom_props_enum_as_string", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
-  if (uiLayout *panel = uiLayoutPanel(C, layout, "FBX_import_geometry", false, IFACE_("Geometry")))
-  {
+  if (uiLayout *panel = layout->panel(C, "FBX_import_geometry", false, IFACE_("Geometry"))) {
     uiLayout *col = &panel->column(false);
     uiItemR(col, ptr, "use_custom_normals", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     uiItemR(col, ptr, "import_subdivision", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -109,7 +108,7 @@ static void ui_fbx_import_settings(const bContext *C, uiLayout *layout, PointerR
   }
 
   {
-    PanelLayout panel = uiLayoutPanel(C, layout, "FBX_import_anim", true);
+    PanelLayout panel = layout->panel(C, "FBX_import_anim", true);
     uiLayoutSetPropSep(panel.header, false);
     uiItemR(panel.header, ptr, "use_anim", UI_ITEM_NONE, "", ICON_NONE);
     uiItemL(panel.header, IFACE_("Animation"), ICON_NONE);
@@ -119,8 +118,7 @@ static void ui_fbx_import_settings(const bContext *C, uiLayout *layout, PointerR
     }
   }
 
-  if (uiLayout *panel = uiLayoutPanel(C, layout, "FBX_import_armature", false, IFACE_("Armature")))
-  {
+  if (uiLayout *panel = layout->panel(C, "FBX_import_armature", false, IFACE_("Armature"))) {
     uiLayout *col = &panel->column(false);
     uiItemR(col, ptr, "ignore_leaf_bones", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }

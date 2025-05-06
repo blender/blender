@@ -946,7 +946,7 @@ void rna_uiLayoutPanel(uiLayout *layout,
     *r_layout_body = nullptr;
     return;
   }
-  PanelLayout panel_layout = uiLayoutPanel(C, layout, idname, default_closed);
+  PanelLayout panel_layout = layout->panel(C, idname, default_closed);
   *r_layout_header = panel_layout.header;
   *r_layout_body = panel_layout.body;
 }

@@ -182,8 +182,8 @@ static void draw_simulation_state(const bContext *C,
                                   bNodeTree &ntree,
                                   bNode &output_node)
 {
-  if (uiLayout *panel = uiLayoutPanel(
-          C, layout, "simulation_state_items", false, IFACE_("Simulation State")))
+  if (uiLayout *panel = layout->panel(
+          C, "simulation_state_items", false, IFACE_("Simulation State")))
   {
     socket_items::ui::draw_items_list_with_operators<SimulationItemsAccessor>(
         C, panel, ntree, output_node);

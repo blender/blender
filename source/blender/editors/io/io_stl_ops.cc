@@ -83,7 +83,7 @@ static void wm_stl_export_draw(bContext *C, wmOperator *op)
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
 
-  if (uiLayout *panel = uiLayoutPanel(C, layout, "STL_export_general", false, IFACE_("General"))) {
+  if (uiLayout *panel = layout->panel(C, "STL_export_general", false, IFACE_("General"))) {
     uiLayout *col = &panel->column(false);
 
     uiLayout *sub = &col->column(false, IFACE_("Format"));
@@ -104,8 +104,7 @@ static void wm_stl_export_draw(bContext *C, wmOperator *op)
     uiItemR(sub, ptr, "up_axis", UI_ITEM_NONE, IFACE_("Up"), ICON_NONE);
   }
 
-  if (uiLayout *panel = uiLayoutPanel(C, layout, "STL_export_geometry", false, IFACE_("Geometry")))
-  {
+  if (uiLayout *panel = layout->panel(C, "STL_export_geometry", false, IFACE_("Geometry"))) {
     uiLayout *col = &panel->column(false);
     uiItemR(col, ptr, "apply_modifiers", UI_ITEM_NONE, IFACE_("Apply Modifiers"), ICON_NONE);
   }
@@ -247,7 +246,7 @@ static void ui_stl_import_settings(const bContext *C, uiLayout *layout, PointerR
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
 
-  if (uiLayout *panel = uiLayoutPanel(C, layout, "STL_import_general", false, IFACE_("General"))) {
+  if (uiLayout *panel = layout->panel(C, "STL_import_general", false, IFACE_("General"))) {
     uiLayout *col = &panel->column(false);
     uiItemR(col, ptr, "global_scale", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     uiItemR(col, ptr, "use_scene_unit", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -255,7 +254,7 @@ static void ui_stl_import_settings(const bContext *C, uiLayout *layout, PointerR
     uiItemR(col, ptr, "up_axis", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
-  if (uiLayout *panel = uiLayoutPanel(C, layout, "STL_import_options", false, IFACE_("Options"))) {
+  if (uiLayout *panel = layout->panel(C, "STL_import_options", false, IFACE_("Options"))) {
     uiLayout *col = &panel->column(false);
     uiItemR(col, ptr, "use_facet_normal", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     uiItemR(col, ptr, "use_mesh_validate", UI_ITEM_NONE, std::nullopt, ICON_NONE);

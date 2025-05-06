@@ -739,8 +739,7 @@ static void ui_node_draw_recursive(uiLayout &layout,
   const nodes::SocketDeclaration *panel_toggle_decl = panel_decl.panel_input_decl();
   const std::string panel_id = fmt::format(
       "{}_{}_{}", ntree.id.name, node.identifier, panel_decl.identifier);
-  PanelLayout panel_layout = uiLayoutPanel(
-      &C, &layout, panel_id.c_str(), panel_decl.default_collapsed);
+  PanelLayout panel_layout = layout.panel(&C, panel_id.c_str(), panel_decl.default_collapsed);
   if (panel_toggle_decl) {
     uiLayoutSetPropSep(panel_layout.header, false);
     uiLayoutSetPropDecorate(panel_layout.header, false);

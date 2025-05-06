@@ -766,7 +766,7 @@ void spreadsheet_data_set_panel_draw(const bContext *C, Panel *panel)
   const bke::GeometrySet root_geometry = spreadsheet_get_display_geometry_set(sspreadsheet,
                                                                               object);
 
-  if (uiLayout *panel = uiLayoutPanel(C, layout, "instance tree", false, IFACE_("Geometry"))) {
+  if (uiLayout *panel = layout->panel(C, "instance tree", false, IFACE_("Geometry"))) {
     ui::AbstractTreeView *tree_view = UI_block_add_view(
         *block,
         "Instances Tree View",
@@ -774,9 +774,7 @@ void spreadsheet_data_set_panel_draw(const bContext *C, Panel *panel)
     tree_view->set_context_menu_title("Instance");
     ui::TreeViewBuilder::build_tree_view(*C, *tree_view, *panel, {}, false);
   }
-  if (uiLayout *panel = uiLayoutPanel(
-          C, layout, "geometry_domain_tree_view", false, IFACE_("Domain")))
-  {
+  if (uiLayout *panel = layout->panel(C, "geometry_domain_tree_view", false, IFACE_("Domain"))) {
     bke::GeometrySet instance_geometry = get_geometry_set_for_instance_ids(
         root_geometry, {sspreadsheet->instance_ids, sspreadsheet->instance_ids_num});
     ui::AbstractTreeView *tree_view = UI_block_add_view(

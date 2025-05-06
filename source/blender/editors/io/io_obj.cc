@@ -129,7 +129,7 @@ static void ui_obj_export_settings(const bContext *C, uiLayout *layout, PointerR
   uiLayoutSetPropDecorate(layout, false);
 
   /* Object General options. */
-  if (uiLayout *panel = uiLayoutPanel(C, layout, "OBJ_export_general", false, IFACE_("General"))) {
+  if (uiLayout *panel = layout->panel(C, "OBJ_export_general", false, IFACE_("General"))) {
     uiLayout *col = &panel->column(false);
 
     if (CTX_wm_space_file(C)) {
@@ -144,8 +144,7 @@ static void ui_obj_export_settings(const bContext *C, uiLayout *layout, PointerR
   }
 
   /* Geometry options. */
-  if (uiLayout *panel = uiLayoutPanel(C, layout, "OBJ_export_geometry", false, IFACE_("Geometry")))
-  {
+  if (uiLayout *panel = layout->panel(C, "OBJ_export_geometry", false, IFACE_("Geometry"))) {
     uiLayout *col = &panel->column(false);
     uiItemR(col, ptr, "export_uv", UI_ITEM_NONE, IFACE_("UV Coordinates"), ICON_NONE);
     uiItemR(col, ptr, "export_normals", UI_ITEM_NONE, IFACE_("Normals"), ICON_NONE);
@@ -164,8 +163,7 @@ static void ui_obj_export_settings(const bContext *C, uiLayout *layout, PointerR
   }
 
   /* Grouping options. */
-  if (uiLayout *panel = uiLayoutPanel(C, layout, "OBJ_export_grouping", false, IFACE_("Grouping")))
-  {
+  if (uiLayout *panel = layout->panel(C, "OBJ_export_grouping", false, IFACE_("Grouping"))) {
     uiLayout *col = &panel->column(false);
     uiItemR(col, ptr, "export_object_groups", UI_ITEM_NONE, IFACE_("Object Groups"), ICON_NONE);
     uiItemR(
@@ -183,7 +181,7 @@ static void ui_obj_export_settings(const bContext *C, uiLayout *layout, PointerR
   }
 
   /* Material options. */
-  PanelLayout panel = uiLayoutPanel(C, layout, "OBJ_export_materials", false);
+  PanelLayout panel = layout->panel(C, "OBJ_export_materials", false);
   uiLayoutSetPropSep(panel.header, false);
   uiItemR(panel.header, ptr, "export_materials", UI_ITEM_NONE, "", ICON_NONE);
   uiItemL(panel.header, IFACE_("Materials"), ICON_NONE);
@@ -196,7 +194,7 @@ static void ui_obj_export_settings(const bContext *C, uiLayout *layout, PointerR
   }
 
   /* Animation options. */
-  panel = uiLayoutPanel(C, layout, "OBJ_export_animation", true);
+  panel = layout->panel(C, "OBJ_export_animation", true);
   uiLayoutSetPropSep(panel.header, false);
   uiItemR(panel.header, ptr, "export_animation", UI_ITEM_NONE, "", ICON_NONE);
   uiItemL(panel.header, IFACE_("Animation"), ICON_NONE);
@@ -458,7 +456,7 @@ static void ui_obj_import_settings(const bContext *C, uiLayout *layout, PointerR
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
 
-  if (uiLayout *panel = uiLayoutPanel(C, layout, "OBJ_import_general", false, IFACE_("General"))) {
+  if (uiLayout *panel = layout->panel(C, "OBJ_import_general", false, IFACE_("General"))) {
     uiLayout *col = &panel->column(false);
     uiItemR(col, ptr, "global_scale", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     uiItemR(col, ptr, "clamp_size", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -466,7 +464,7 @@ static void ui_obj_import_settings(const bContext *C, uiLayout *layout, PointerR
     uiItemR(col, ptr, "up_axis", UI_ITEM_NONE, IFACE_("Up Axis"), ICON_NONE);
   }
 
-  if (uiLayout *panel = uiLayoutPanel(C, layout, "OBJ_import_options", false, IFACE_("Options"))) {
+  if (uiLayout *panel = layout->panel(C, "OBJ_import_options", false, IFACE_("Options"))) {
     uiLayout *col = &panel->column(false);
     uiItemR(col, ptr, "use_split_objects", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     uiItemR(col, ptr, "use_split_groups", UI_ITEM_NONE, std::nullopt, ICON_NONE);
