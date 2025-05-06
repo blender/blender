@@ -594,8 +594,7 @@ static void panel_draw(const bContext *C, Panel *panel)
     }
   }
 
-  PanelLayout custom_range_panel_layout = uiLayoutPanelProp(
-      C, layout, ptr, "open_custom_range_panel");
+  PanelLayout custom_range_panel_layout = layout->panel_prop(C, ptr, "open_custom_range_panel");
   if (uiLayout *header = custom_range_panel_layout.header) {
     uiLayoutSetPropSep(header, false);
     uiLayoutSetActive(header, use_custom_range);
@@ -610,8 +609,8 @@ static void panel_draw(const bContext *C, Panel *panel)
     uiItemR(col, ptr, "frame_end", UI_ITEM_NONE, IFACE_("End"), ICON_NONE);
   }
 
-  if (uiLayout *influence_panel = uiLayoutPanelProp(
-          C, layout, ptr, "open_influence_panel", IFACE_("Influence")))
+  if (uiLayout *influence_panel = layout->panel_prop(
+          C, ptr, "open_influence_panel", IFACE_("Influence")))
   {
     modifier::greasepencil::draw_layer_filter_settings(C, influence_panel, ptr);
   }

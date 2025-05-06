@@ -282,7 +282,7 @@ static void panel_draw(const bContext *C, Panel *panel)
 
   uiItemR(layout, ptr, "strength", UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
 
-  if (uiLayout *sub = uiLayoutPanelProp(C, layout, ptr, "open_falloff_panel", IFACE_("Falloff"))) {
+  if (uiLayout *sub = layout->panel_prop(C, ptr, "open_falloff_panel", IFACE_("Falloff"))) {
     uiLayoutSetPropSep(sub, true);
 
     uiItemR(sub, ptr, "falloff_type", UI_ITEM_NONE, IFACE_("Type"), ICON_NONE);
@@ -300,8 +300,8 @@ static void panel_draw(const bContext *C, Panel *panel)
     }
   }
 
-  if (uiLayout *influence_panel = uiLayoutPanelProp(
-          C, layout, ptr, "open_influence_panel", IFACE_("Influence")))
+  if (uiLayout *influence_panel = layout->panel_prop(
+          C, ptr, "open_influence_panel", IFACE_("Influence")))
   {
     modifier::greasepencil::draw_layer_filter_settings(C, influence_panel, ptr);
     modifier::greasepencil::draw_material_filter_settings(C, influence_panel, ptr);

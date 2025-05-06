@@ -461,7 +461,7 @@ void uiTemplateCollectionExporters(uiLayout *layout, bContext *C)
   using namespace blender;
   PointerRNA exporter_ptr = RNA_pointer_create_discrete(
       &collection->id, &RNA_CollectionExport, data);
-  PanelLayout panel = uiLayoutPanelProp(C, layout, &exporter_ptr, "is_open");
+  PanelLayout panel = layout->panel_prop(C, &exporter_ptr, "is_open");
 
   bke::FileHandlerType *fh = bke::file_handler_find(data->fh_idname);
   if (!fh) {

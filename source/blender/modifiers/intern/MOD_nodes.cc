@@ -2532,7 +2532,7 @@ static void draw_interface_panel_content(DrawGroupInputsContext &ctx,
         skip_first = true;
       }
       else {
-        panel_layout = uiLayoutPanelProp(&ctx.C, layout, &panel_ptr, "is_open");
+        panel_layout = layout->panel_prop(&ctx.C, &panel_ptr, "is_open");
         uiItemL(panel_layout.header, IFACE_(sub_interface_panel.name), ICON_NONE);
       }
       if (!interface_panel_affects_output(ctx, sub_interface_panel)) {
@@ -2675,13 +2675,13 @@ static void draw_manage_panel(const bContext *C,
                               PointerRNA *modifier_ptr,
                               NodesModifierData &nmd)
 {
-  if (uiLayout *panel_layout = uiLayoutPanelProp(
-          C, layout, modifier_ptr, "open_bake_panel", IFACE_("Bake")))
+  if (uiLayout *panel_layout = layout->panel_prop(
+          C, modifier_ptr, "open_bake_panel", IFACE_("Bake")))
   {
     draw_bake_panel(panel_layout, modifier_ptr);
   }
-  if (uiLayout *panel_layout = uiLayoutPanelProp(
-          C, layout, modifier_ptr, "open_named_attributes_panel", IFACE_("Named Attributes")))
+  if (uiLayout *panel_layout = layout->panel_prop(
+          C, modifier_ptr, "open_named_attributes_panel", IFACE_("Named Attributes")))
   {
     draw_named_attributes_panel(panel_layout, nmd);
   }
@@ -2706,7 +2706,7 @@ static void draw_warnings(const bContext *C,
   if (warnings_num == 0) {
     return;
   }
-  PanelLayout panel = uiLayoutPanelProp(C, layout, md_ptr, "open_warnings_panel");
+  PanelLayout panel = layout->panel_prop(C, md_ptr, "open_warnings_panel");
   uiItemL(panel.header,
           fmt::format(fmt::runtime(IFACE_("Warnings ({})")), warnings_num).c_str(),
           ICON_NONE);
@@ -2772,15 +2772,13 @@ static void panel_draw(const bContext *C, Panel *panel)
   draw_warnings(C, *nmd, layout, ptr);
 
   if (has_output_attribute(*nmd)) {
-    if (uiLayout *panel_layout = uiLayoutPanelProp(
-            C, layout, ptr, "open_output_attributes_panel", IFACE_("Output Attributes")))
+    if (uiLayout *panel_layout = layout->panel_prop(
+            C, ptr, "open_output_attributes_panel", IFACE_("Output Attributes")))
     {
       draw_output_attributes_panel(ctx, panel_layout);
     }
   }
-  if (uiLayout *panel_layout = uiLayoutPanelProp(
-          C, layout, ptr, "open_manage_panel", IFACE_("Manage")))
-  {
+  if (uiLayout *panel_layout = layout->panel_prop(C, ptr, "open_manage_panel", IFACE_("Manage"))) {
     draw_manage_panel(C, panel_layout, ptr, *nmd);
   }
 }

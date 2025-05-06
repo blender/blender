@@ -457,8 +457,8 @@ static void panel_draw(const bContext *C, Panel *panel)
     }
   }
 
-  if (uiLayout *advanced_layout = uiLayoutPanelProp(
-          C, layout, ptr, "open_advanced_panel", IFACE_("Advanced")))
+  if (uiLayout *advanced_layout = layout->panel_prop(
+          C, ptr, "open_advanced_panel", IFACE_("Advanced")))
   {
     uiLayoutSetPropSep(advanced_layout, true);
 

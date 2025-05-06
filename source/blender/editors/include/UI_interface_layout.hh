@@ -150,8 +150,41 @@ struct uiLayout : uiItem {
       bool row_major, int columns_len, bool even_columns, bool even_rows, bool align);
 
   /**
-   * Variant of #uiLayoutPanelProp that automatically stores the open-close-state in the root
-   * panel. When a dynamic number of panels is required, it's recommended to use #uiLayoutPanelProp
+   * Create a "layout panel" which is a panel that is defined as part of the `uiLayout`. This
+   * allows creating expandable sections which can also be nested.
+   *
+   * The open-state of the panel is defined by an RNA property which is passed in as a pointer +
+   * property name pair. This gives the caller flexibility to decide who should own the open-state.
+   *
+   * \param C: The context is necessary because sometimes the panel may be forced to be open by the
+   * context even of the open-property is `false`. This can happen with e.g. property search.
+   * \param layout: The `uiLayout` that should contain the sub-panel.
+   * Only layouts that span the full width of the region are supported for now.
+   * \param open_prop_owner: Data that contains the open-property.
+   * \param open_prop_name: Name of the open-property in `open_prop_owner`.
+   *
+   * \return A #PanelLayout containing layouts for both the header row and the panel body. If the
+   * panel is closed and should not be drawn, the body layout will be NULL.
+   */
+  PanelLayout panel_prop(const bContext *C,
+                         PointerRNA *open_prop_owner,
+                         blender::StringRefNull open_prop_name);
+  /**
+   * Variant of #panel_prop that automatically creates the header row with the
+   * given label and only returns the body layout.
+   *
+   * \param label: Text that's shown in the panel header. It should already be translated.
+   *
+   * \return NULL if the panel is closed and should not be drawn, otherwise the layout where the
+   * sub-panel should be inserted into.
+   */
+  uiLayout *panel_prop(const bContext *C,
+                       PointerRNA *open_prop_owner,
+                       blender::StringRefNull open_prop_name,
+                       blender::StringRef label);
+  /**
+   * Variant of #panel_prop that automatically stores the open-close-state in the root
+   * panel. When a dynamic number of panels is required, it's recommended to use #panel_prop
    * instead of passing in generated id names.
    *
    * \param idname: String that identifies the open-close-state in the root panel.
@@ -346,27 +379,6 @@ void uiLayoutListItemAddPadding(uiLayout *layout);
 
 /* Layout create functions. */
 
-/**
- * Create a "layout panel" which is a panel that is defined as part of the `uiLayout`. This allows
- * creating expandable sections which can also be nested.
- *
- * The open-state of the panel is defined by an RNA property which is passed in as a pointer +
- * property name pair. This gives the caller flexibility to decide who should own the open-state.
- *
- * \param C: The context is necessary because sometimes the panel may be forced to be open by the
- * context even of the open-property is `false`. This can happen with e.g. property search.
- * \param layout: The `uiLayout` that should contain the sub-panel.
- * Only layouts that span the full width of the region are supported for now.
- * \param open_prop_owner: Data that contains the open-property.
- * \param open_prop_name: Name of the open-property in `open_prop_owner`.
- *
- * \return A #PanelLayout containing layouts for both the header row and the panel body. If the
- * panel is closed and should not be drawn, the body layout will be NULL.
- */
-PanelLayout uiLayoutPanelProp(const bContext *C,
-                              uiLayout *layout,
-                              PointerRNA *open_prop_owner,
-                              blender::StringRefNull open_prop_name);
 PanelLayout uiLayoutPanelPropWithBoolHeader(const bContext *C,
                                             uiLayout *layout,
                                             PointerRNA *open_prop_owner,
@@ -374,21 +386,6 @@ PanelLayout uiLayoutPanelPropWithBoolHeader(const bContext *C,
                                             PointerRNA *bool_prop_owner,
                                             blender::StringRefNull bool_prop_name,
                                             std::optional<blender::StringRefNull> label);
-
-/**
- * Variant of #uiLayoutPanelProp that automatically creates the header row with the
- * given label and only returns the body layout.
- *
- * \param label: Text that's shown in the panel header. It should already be translated.
- *
- * \return NULL if the panel is closed and should not be drawn, otherwise the layout where the
- * sub-panel should be inserted into.
- */
-uiLayout *uiLayoutPanelProp(const bContext *C,
-                            uiLayout *layout,
-                            PointerRNA *open_prop_owner,
-                            blender::StringRefNull open_prop_name,
-                            blender::StringRef label);
 
 bool uiLayoutEndsWithPanelHeader(const uiLayout &layout);
 

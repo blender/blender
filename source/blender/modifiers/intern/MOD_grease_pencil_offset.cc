@@ -390,8 +390,8 @@ static void panel_draw(const bContext *C, Panel *panel)
   const auto offset_mode = GreasePencilOffsetModifierMode(RNA_enum_get(ptr, "offset_mode"));
 
   uiLayoutSetPropSep(layout, true);
-  if (uiLayout *general_panel = uiLayoutPanelProp(
-          C, layout, ptr, "open_general_panel", IFACE_("General")))
+  if (uiLayout *general_panel = layout->panel_prop(
+          C, ptr, "open_general_panel", IFACE_("General")))
   {
     uiLayoutSetPropSep(general_panel, true);
     uiItemR(general_panel, ptr, "location", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -403,8 +403,8 @@ static void panel_draw(const bContext *C, Panel *panel)
       panel, "advanced", true);
   PointerRNA advanced_state_ptr = RNA_pointer_create_discrete(
       nullptr, &RNA_LayoutPanelState, advanced_panel_state);
-  if (uiLayout *advanced_panel = uiLayoutPanelProp(
-          C, layout, &advanced_state_ptr, "is_open", IFACE_("Advanced")))
+  if (uiLayout *advanced_panel = layout->panel_prop(
+          C, &advanced_state_ptr, "is_open", IFACE_("Advanced")))
   {
     uiItemR(advanced_panel, ptr, "offset_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
@@ -438,8 +438,8 @@ static void panel_draw(const bContext *C, Panel *panel)
     }
   }
 
-  if (uiLayout *influence_panel = uiLayoutPanelProp(
-          C, layout, ptr, "open_influence_panel", IFACE_("Influence")))
+  if (uiLayout *influence_panel = layout->panel_prop(
+          C, ptr, "open_influence_panel", IFACE_("Influence")))
   {
     modifier::greasepencil::draw_layer_filter_settings(C, influence_panel, ptr);
     modifier::greasepencil::draw_material_filter_settings(C, influence_panel, ptr);
