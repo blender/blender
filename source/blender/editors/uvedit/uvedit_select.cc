@@ -411,10 +411,10 @@ bool uvedit_edge_select_test_ex(const ToolSettings *ts,
       BLI_assert_unreachable();
     }
 
-    if (ts->selectmode & SCE_SELECT_FACE) {
+    if ((ts->selectmode & ~SCE_SELECT_VERTEX) == SCE_SELECT_FACE) {
       return BM_elem_flag_test(l->f, BM_ELEM_SELECT);
     }
-    if (ts->selectmode == SCE_SELECT_EDGE) {
+    if ((ts->selectmode & ~SCE_SELECT_FACE) == SCE_SELECT_EDGE) {
       return BM_elem_flag_test(l->e, BM_ELEM_SELECT);
     }
     return BM_elem_flag_test(l->v, BM_ELEM_SELECT) &&
@@ -627,6 +627,30 @@ bool uvedit_uv_select_test_ex(const ToolSettings *ts, const BMLoop *l, const BMU
         }
         case SI_STICKY_DISABLE: {
           return BM_elem_flag_test_bool(l->f, BM_ELEM_SELECT);
+        }
+        default: {
+          /* #SI_STICKY_VERTEX */
+          return BM_elem_flag_test_bool(l->v, BM_ELEM_SELECT);
+        }
+      }
+      BLI_assert_unreachable();
+    }
+
+    if ((ts->selectmode & ~SCE_SELECT_FACE) == SCE_SELECT_EDGE) {
+      /* Edge/Face is a special case that can respect sticky modes. */
+      switch (ts->uv_sticky) {
+        case SI_STICKY_LOC: {
+          if (BM_elem_flag_test(l->f, BM_ELEM_SELECT)) {
+            return true;
+          }
+          if (uvedit_vert_is_edge_select_any_other(ts, l, offsets)) {
+            return true;
+          }
+          return false;
+        }
+        case SI_STICKY_DISABLE: {
+          return BM_elem_flag_test(l->e, BM_ELEM_SELECT) ||
+                 BM_elem_flag_test(l->prev->e, BM_ELEM_SELECT);
         }
         default: {
           /* #SI_STICKY_VERTEX */
@@ -5650,7 +5674,8 @@ void ED_uvedit_sticky_selectmode_update(bContext *C)
   if ((ts->uv_flag & UV_SYNC_SELECTION) == 0) {
     return;
   }
-  if (ts->selectmode != SCE_SELECT_FACE) {
+  /* Only for edge/face select modes. */
+  if (ts->selectmode & SCE_SELECT_VERTEX) {
     return;
   }
 

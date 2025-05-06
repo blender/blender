@@ -502,6 +502,7 @@ class MeshUVs : Overlay {
   PassSimple paint_mask_ps_ = {"PaintMask"};
 
   bool show_vert_ = false;
+  bool show_edge_ = false;
   bool show_face_ = false;
   bool show_face_dots_ = false;
   bool show_uv_edit = false;
@@ -589,6 +590,7 @@ class MeshUVs : Overlay {
 
       if (!show_uv_edit) {
         show_vert_ = false;
+        show_edge_ = false;
         show_face_ = false;
         show_face_dots_ = false;
       }
@@ -598,14 +600,22 @@ class MeshUVs : Overlay {
 
         if (tool_setting->uv_flag & UV_SYNC_SELECTION) {
           const char sel_mode_3d = tool_setting->selectmode;
-          /* NOTE: Ignore #SCE_SELECT_VERTEX because a single selected edge
-           * on the mesh may cause single UV vertices to be selected. */
-          show_vert_ = true /* (sel_mode_3d & SCE_SELECT_VERTEX) */;
+          if (tool_setting->uv_sticky == SI_STICKY_VERTEX) {
+            /* NOTE: Ignore #SCE_SELECT_VERTEX because a single selected edge
+             * on the mesh may cause single UV vertices to be selected. */
+            show_vert_ = true;
+          }
+          else {
+            show_vert_ = (sel_mode_3d & SCE_SELECT_VERTEX);
+          }
+          /* When */
+          show_edge_ = (sel_mode_3d & SCE_SELECT_VERTEX) == 0;
           show_face_dots_ = (sel_mode_3d & SCE_SELECT_FACE) && !hide_faces;
         }
         else {
           const char sel_mode_2d = tool_setting->uv_selectmode;
           show_vert_ = (sel_mode_2d != UV_SELECT_EDGE);
+          show_edge_ = (sel_mode_2d == UV_SELECT_EDGE);
           show_face_dots_ = (sel_mode_2d & UV_SELECT_FACE) && !hide_faces;
         }
       }
@@ -667,7 +677,7 @@ class MeshUVs : Overlay {
                      DRW_STATE_BLEND_ALPHA);
 
       GPUShader *sh = res.shaders->uv_edit_edge.get();
-      pass.specialize_constant(sh, "use_edge_select", !show_vert_);
+      pass.specialize_constant(sh, "use_edge_select", show_edge_);
       pass.shader_set(sh);
       pass.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
       pass.bind_ubo(DRW_CLIPPING_UBO_SLOT, &res.clip_planes_buf);
