@@ -1068,6 +1068,9 @@ static wmOperatorStatus node_add_import_node_exec(bContext *C, wmOperator *op)
     else if (path.endswith(".txt")) {
       node = add_node(*C, "GeometryNodeImportText", snode->runtime->cursor);
     }
+    else if (path.endswith(".vdb")) {
+      node = add_node(*C, "GeometryNodeImportVDB", snode->runtime->cursor);
+    }
 
     if (node) {
       bNodeSocket &path_socket = node->input_by_identifier("Path");

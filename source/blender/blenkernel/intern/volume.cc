@@ -986,6 +986,11 @@ blender::bke::VolumeGridData *BKE_volume_grid_add_vdb(Volume &volume,
   grids.emplace_back(GVolumeGrid(std::move(vdb_grid)));
   return &grids.back().get_for_write();
 }
+
+void BKE_volume_metadata_set(Volume &volume, openvdb::MetaMap::Ptr metadata)
+{
+  volume.runtime->grids->metadata = metadata;
+}
 #endif
 
 void BKE_volume_grid_remove(Volume *volume, const blender::bke::VolumeGridData *grid)

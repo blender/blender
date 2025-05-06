@@ -524,6 +524,7 @@ class NODE_MT_category_import(Menu):
         node_add_menu.add_node_type(layout, "GeometryNodeImportPLY", label="Stanford PLY (.ply)")
         node_add_menu.add_node_type(layout, "GeometryNodeImportSTL", label="STL (.stl)")
         node_add_menu.add_node_type(layout, "GeometryNodeImportText", label="Text (.txt)")
+        node_add_menu.add_node_type(layout, "GeometryNodeImportVDB", label="OpenVDB (.vdb)")
         node_add_menu.draw_assets_for_catalog(layout, "Input/Import")
 
 
