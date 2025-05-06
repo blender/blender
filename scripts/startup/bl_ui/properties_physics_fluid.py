@@ -180,7 +180,7 @@ class PHYSICS_PT_settings(PhysicButtonsPanel, Panel):
             if scene.use_gravity:
                 sub = col.column()
                 sub.enabled = False
-                sub.prop(domain, "gravity", text="Using Scene Gravity", icon='SCENE_DATA')
+                sub.prop(domain, "gravity", text="Scene Gravity", icon='SCENE_DATA')
             else:
                 col.prop(domain, "gravity", text="Gravity")
 
@@ -853,7 +853,7 @@ class PHYSICS_PT_mesh(PhysicButtonsPanel, Panel):
         col.prop(domain, "mesh_particle_radius", text="Particle Radius")
 
         col = flow.column()
-        col.prop(domain, "use_speed_vectors", text="Use Speed Vectors")
+        col.prop(domain, "use_speed_vectors", text="Speed Vectors")
 
         col.separator()
         col.prop(domain, "mesh_generator", text="Mesh Generator")
@@ -1290,7 +1290,7 @@ class PHYSICS_PT_cache(PhysicButtonsPanel, Panel):
 
         row = col.row()
         row.enabled = not is_baking_any and not has_baked_data
-        row.prop(domain, "cache_resumable", text="Is Resumable")
+        row.prop(domain, "cache_resumable", text="Resumable")
 
         if domain.cache_type == 'ALL':
             col.separator()

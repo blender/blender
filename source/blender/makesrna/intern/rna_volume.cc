@@ -505,8 +505,8 @@ static void rna_def_volume_render(BlenderRNA *brna)
   RNA_def_struct_path_func(srna, "rna_VolumeRender_path");
 
   static const EnumPropertyItem precision_items[] = {
-      {VOLUME_PRECISION_FULL, "FULL", 0, "Full", "Full float (Use 32 bit for all data)"},
-      {VOLUME_PRECISION_HALF, "HALF", 0, "Half", "Half float (Use 16 bit for all data)"},
+      {VOLUME_PRECISION_FULL, "FULL", 0, "Full", "Use 32-bit floating-point numbers for all data"},
+      {VOLUME_PRECISION_HALF, "HALF", 0, "Half", "Use 16-bit floating-point numbers for all data"},
       {VOLUME_PRECISION_VARIABLE, "VARIABLE", 0, "Variable", "Use variable bit quantization"},
       {0, nullptr, 0, nullptr, nullptr},
   };
