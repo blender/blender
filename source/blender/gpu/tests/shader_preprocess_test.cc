@@ -275,4 +275,77 @@ func_TEMPLATE(float, 1)/*float a*/)";
 }
 GPU_TEST(preprocess_template);
 
+static void test_preprocess_reference()
+{
+  using namespace shader;
+  using namespace std;
+
+  {
+    string input = R"(void func() { auto &a = b; a.a = 0; c = a(a); a_c_a = a; })";
+    string expect = R"(void func() { b.a = 0; c = a(b); a_c_a = b; })";
+    string error;
+    string output = process_test_string(input, error);
+    EXPECT_EQ(output, expect);
+    EXPECT_EQ(error, "");
+  }
+  {
+    string input = R"(void func() { const int &a = b; a.a = 0; c = a(a); })";
+    string expect = R"(void func() { b.a = 0; c = a(b); })";
+    string error;
+    string output = process_test_string(input, error);
+    EXPECT_EQ(output, expect);
+    EXPECT_EQ(error, "");
+  }
+  {
+    string input = R"(void func() { const int i = 0; auto &a = b[i]; a.a = 0; })";
+    string expect = R"(void func() { const int i = 0; b[i].a = 0; })";
+    string error;
+    string output = process_test_string(input, error);
+    EXPECT_EQ(output, expect);
+    EXPECT_EQ(error, "");
+  }
+  {
+    string input = R"(void func() { auto &a = b(0); })";
+    string error;
+    string output = process_test_string(input, error);
+    EXPECT_EQ(error, "Reference definitions cannot contain function calls.");
+  }
+  {
+    string input = R"(void func() { int i = 0; auto &a = b[i++]; })";
+    string error;
+    string output = process_test_string(input, error);
+    EXPECT_EQ(error, "Reference definitions cannot have side effects.");
+  }
+  {
+    string input = R"(void func() { auto &a = b[0 + 1]; })";
+    string error;
+    string output = process_test_string(input, error);
+    EXPECT_EQ(error,
+              "Array subscript inside reference declaration must be a single variable or a "
+              "constant, not an expression.");
+  }
+  {
+    string input = R"(void func() { auto &a = b[c]; })";
+    string error;
+    string output = process_test_string(input, error);
+    EXPECT_EQ(error,
+              "Cannot locate array subscript variable declaration. "
+              "If it is a global variable, assign it to a temporary const variable for "
+              "indexing inside the reference.");
+  }
+  {
+    string input = R"(void func() { int c = 0; auto &a = b[c]; })";
+    string error;
+    string output = process_test_string(input, error);
+    EXPECT_EQ(error, "Array subscript variable must be declared as const qualified.");
+  }
+  {
+    string input = R"(auto &a = b;)";
+    string error;
+    string output = process_test_string(input, error);
+    EXPECT_EQ(error, "Reference is defined inside a global or unterminated scope.");
+  }
+}
+GPU_TEST(preprocess_reference);
+
 }  // namespace blender::gpu::tests

@@ -151,8 +151,10 @@ void main()
     barrier();
 
     /* Reusing local_radiance for directions. */
-    local_radiance[local_index] = float4(normalize(direction), 1.0f) * sample_weight *
-                                  length(radiance_sun.xyz);
+    auto &local_direction = local_radiance;
+
+    local_direction[local_index] = float4(normalize(direction), 1.0f) * sample_weight *
+                                   length(radiance_sun.xyz);
     /* OpenGL/Intel drivers have known issues where it isn't able to compile barriers inside for
      * loops. Unroll is needed as driver might decide to not unroll in shaders with more
      * complexity. */
@@ -160,13 +162,13 @@ void main()
     {
       barrier();
       if (local_index < stride) {
-        local_radiance[local_index] += local_radiance[local_index + stride];
+        local_direction[local_index] += local_direction[local_index + stride];
       }
     }
     barrier();
 
     if (gl_LocalInvocationIndex == 0u) {
-      out_sun[work_group_index].direction = local_radiance[0];
+      out_sun[work_group_index].direction = local_direction[0];
     }
     barrier();
   }

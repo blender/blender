@@ -226,6 +226,7 @@ class Preprocessor {
       str = remove_quotes(str);
       str = enum_macro_injection(str);
       str = argument_reference_mutation(str);
+      str = variable_reference_mutation(str, report_error);
       str = template_definition_mutation(str, report_error);
       str = template_call_mutation(str);
     }
@@ -912,6 +913,117 @@ class Preprocessor {
     return std::regex_replace(out, regex, "$1 inout $2 $3$4");
   }
 
+  /* To be run after `argument_reference_mutation()`. */
+  std::string variable_reference_mutation(const std::string &str, report_callback report_error)
+  {
+    using namespace std;
+    /* Processing regex and logic is expensive. Check if they are needed at all. */
+    bool valid_match = false;
+    string next_str = str;
+    reference_search(next_str, [&](int parenthesis_depth, int /*bracket_depth*/, char &c) {
+      /* Check if inside a function body.  */
+      if (parenthesis_depth == 0) {
+        valid_match = true;
+        /* Modify the & into @ to make sure we only match these references in the regex
+         * below. @ being forbidden in the shader language, it is safe to use a temp
+         * character. */
+        c = '@';
+      }
+    });
+    if (!valid_match) {
+      return str;
+    }
+    string out_str;
+    /* Example: `const float &var = value;` */
+    regex regex_ref(R"(\ ?(?:const)?\s*\w+\s+\@(\w+) =\s*([^;]+);)");
+
+    smatch match;
+    while (regex_search(next_str, match, regex_ref)) {
+      const string definition = match[0].str();
+      const string name = match[1].str();
+      const string value = match[2].str();
+      const string prefix = match.prefix().str();
+      const string suffix = match.suffix().str();
+
+      out_str += prefix;
+      /** IMPORTANT: `match` is invalid after the assignment. */
+      next_str = definition + suffix;
+
+      /* Assert definition doesn't contain any side effect. */
+      if (value.find("++") != string::npos || value.find("--") != string::npos) {
+        report_error(match, "Reference definitions cannot have side effects.");
+        return str;
+      }
+      if (value.find("(") != string::npos) {
+        report_error(match, "Reference definitions cannot contain function calls.");
+        return str;
+      }
+      if (value.find("[") != string::npos) {
+        const string index_var = get_content_between_balanced_pair(value, '[', ']');
+
+        if (index_var.find(' ') != string::npos) {
+          report_error(match,
+                       "Array subscript inside reference declaration must be a single variable or "
+                       "a constant, not an expression.");
+          return str;
+        }
+
+        /* Add a space to avoid empty scope breaking the loop. */
+        string scope_depth = " }";
+        bool found_var = false;
+        while (!found_var) {
+          string scope = get_content_between_balanced_pair(out_str + scope_depth, '{', '}', true);
+          scope_depth += '}';
+
+          if (scope.empty()) {
+            break;
+          }
+          /* Remove nested scopes. Avoid variable shadowing to mess with the detection. */
+          scope = regex_replace(scope, regex(R"(\{[^\}]*\})"), "{}");
+          /* Search if index variable definition qualifies it as `const`. */
+          regex regex_definition(R"((const)? \w+ )" + index_var + " =");
+          smatch match_definition;
+          if (regex_search(scope, match_definition, regex_definition)) {
+            found_var = true;
+            if (match_definition[1].matched == false) {
+              report_error(match, "Array subscript variable must be declared as const qualified.");
+              return str;
+            }
+          }
+        }
+        if (!found_var) {
+          report_error(match,
+                       "Cannot locate array subscript variable declaration. "
+                       "If it is a global variable, assign it to a temporary const variable for "
+                       "indexing inside the reference.");
+          return str;
+        }
+      }
+
+      /* Find scope this definition is active in. */
+      const string scope = get_content_between_balanced_pair('{' + suffix, '{', '}');
+      if (scope.empty()) {
+        report_error(match, "Reference is defined inside a global or unterminated scope.");
+        return str;
+      }
+      string original = definition + scope;
+      string modified = original;
+
+      /* Replace definition by nothing. Keep number of lines. */
+      string newlines(line_count(definition), '\n');
+      replace_all(modified, definition, newlines);
+      /* Replace every occurrence of the reference. Avoid matching other symbols like class members
+       * and functions with the same name. */
+      modified = regex_replace(
+          modified, regex(R"(([^\.])\b)" + name + R"(\b([^(]))"), "$1" + value + "$2");
+
+      /* Replace whole modified scope in output string. */
+      replace_all(next_str, original, modified);
+    }
+    out_str += next_str;
+    return out_str;
+  }
+
   std::string argument_decorator_macro_injection(const std::string &str)
   {
     /* Example: `out float var[2]` > `out float _out_sta var _out_end[2]` */
@@ -952,8 +1064,7 @@ class Preprocessor {
   }
 
   /* Assume formatted source with our code style. Cannot be applied to python shaders. */
-  template<typename ReportErrorF>
-  void global_scope_constant_linting(const std::string &str, const ReportErrorF &report_error)
+  void global_scope_constant_linting(const std::string &str, report_callback report_error)
   {
     /* Example: `const uint global_var = 1u;`. Matches if not indented (i.e. inside a scope). */
     std::regex regex(R"(const \w+ \w+ =)");
@@ -978,8 +1089,7 @@ class Preprocessor {
     });
   }
 
-  template<typename ReportErrorF>
-  void array_constructor_linting(const std::string &str, const ReportErrorF &report_error)
+  void array_constructor_linting(const std::string &str, report_callback report_error)
   {
     std::regex regex(R"(=\s*(\w+)\s*\[[^\]]*\]\s*\()");
     regex_global_search(str, regex, [&](const std::smatch &match) {
@@ -1253,7 +1363,7 @@ class Preprocessor {
           char next_char = str[pos + 1];
           /* Validate it is not an operator (`&`, `&&`, `&=`). */
           if (prev_char == ' ' || prev_char == '(') {
-            if (next_char != ' ' && next_char != '&' && next_char != '=') {
+            if (next_char != ' ' && next_char != '\n' && next_char != '&' && next_char != '=') {
               callback(parenthesis_depth, bracket_depth, c);
             }
           }
