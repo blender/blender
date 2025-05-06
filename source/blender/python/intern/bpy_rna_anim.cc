@@ -698,6 +698,7 @@ PyObject *pyrna_struct_driver_remove(BPy_StructRNA *self, PyObject *args)
 
   bContext *context = BPY_context_get();
   WM_event_add_notifier(context, NC_ANIMATION | ND_FCURVES_ORDER, nullptr);
+  DEG_id_tag_update(self->ptr->owner_id, ID_RECALC_ANIMATION);
   DEG_relations_tag_update(CTX_data_main(context));
 
   return PyBool_FromLong(result);

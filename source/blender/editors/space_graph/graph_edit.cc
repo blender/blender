@@ -3242,6 +3242,7 @@ static wmOperatorStatus graph_driver_delete_invalid_exec(bContext *C, wmOperator
       break;
     }
     deleted += 1;
+    DEG_id_tag_update(ale->id, ID_RECALC_ANIMATION);
   }
 
   /* Cleanup. */
