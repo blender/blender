@@ -514,6 +514,19 @@ def floating_checkout_update(
 
     return skip_msg
 
+def floating_libraries_update(args: argparse.Namespace, branch: "str | None") -> str:
+    """Update libraries checkouts which are floating (not attached as Git submodules)"""
+    msg = ""
+
+    msg += floating_checkout_update(
+        args,
+        "benchmarks",
+        Path("tests") / "benchmarks",
+        branch,
+        only_update=True,
+    )
+
+    return msg
 
 def add_submodule_push_url(args: argparse.Namespace) -> None:
     """
@@ -557,6 +570,7 @@ def submodules_lib_update(args: argparse.Namespace, branch: "str | None") -> str
     print_stage("Updating Libraries")
 
     msg = ""
+    msg += floating_libraries_update(args, branch)
 
     submodule_directories = get_submodule_directories(args)
     for submodule_path in submodule_directories:
