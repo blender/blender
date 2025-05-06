@@ -189,11 +189,6 @@ void VKVertexBuffer::device_format_ensure()
   }
 }
 
-const GPUVertFormat &VKVertexBuffer::device_format_get() const
-{
-  return vertex_format_converter.device_format_get();
-}
-
 void VKVertexBuffer::allocate()
 {
   VkBufferUsageFlags vk_buffer_usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT |

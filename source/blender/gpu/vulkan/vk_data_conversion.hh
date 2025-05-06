@@ -194,6 +194,18 @@ struct VertexFormatConverter {
                          const GPUVertAttr &source_attribute) const;
 };
 
+inline const GPUVertFormat &VertexFormatConverter::device_format_get() const
+{
+  BLI_assert(this->is_initialized());
+  return *device_format_;
+}
+
+inline bool VertexFormatConverter::needs_conversion() const
+{
+  BLI_assert(is_initialized());
+  return needs_conversion_;
+}
+
 inline bool VertexFormatConverter::is_initialized() const
 {
   return device_format_ != nullptr;

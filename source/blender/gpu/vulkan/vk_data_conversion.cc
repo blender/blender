@@ -1290,18 +1290,6 @@ void VertexFormatConverter::init(const GPUVertFormat *vertex_format,
   }
 }
 
-const GPUVertFormat &VertexFormatConverter::device_format_get() const
-{
-  BLI_assert(is_initialized());
-  return *device_format_;
-}
-
-bool VertexFormatConverter::needs_conversion() const
-{
-  BLI_assert(is_initialized());
-  return needs_conversion_;
-}
-
 void VertexFormatConverter::update_conversion_flags(const GPUVertFormat &vertex_format,
                                                     const VKWorkarounds &workarounds)
 {
