@@ -45,6 +45,11 @@ ViewerPathElem *viewer_path_elem_for_compute_context(const ComputeContext &compu
   if (const auto *context = dynamic_cast<const bke::GroupNodeComputeContext *>(&compute_context)) {
     GroupNodeViewerPathElem *elem = BKE_viewer_path_elem_new_group_node();
     elem->node_id = context->node_id();
+    if (const bNode *caller_node = context->caller_group_node()) {
+      if (const bNodeTree *group = reinterpret_cast<const bNodeTree *>(caller_node->id)) {
+        elem->base.ui_name = BLI_strdup(BKE_id_name(group->id));
+      }
+    }
     return &elem->base;
   }
   if (const auto *context = dynamic_cast<const bke::SimulationZoneComputeContext *>(
@@ -451,6 +456,13 @@ UpdateActiveGeometryNodesViewerResult update_active_geometry_nodes_viewer(const 
           std::swap(viewer_path, tmp_viewer_path);
           /* Make sure the viewed data becomes available. */
           DEG_id_tag_update(snode.id, ID_RECALC_GEOMETRY);
+          return UpdateActiveGeometryNodesViewerResult::Updated;
+        }
+        if (!BKE_viewer_path_equal(
+                &viewer_path, &tmp_viewer_path, VIEWER_PATH_EQUAL_FLAG_CONSIDER_UI_NAME))
+        {
+          /* Only swap, without triggering a depsgraph update.*/
+          std::swap(viewer_path, tmp_viewer_path);
           return UpdateActiveGeometryNodesViewerResult::Updated;
         }
         return UpdateActiveGeometryNodesViewerResult::StillActive;
