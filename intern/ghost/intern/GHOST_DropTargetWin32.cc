@@ -169,9 +169,14 @@ GHOST_TDragnDropTypes GHOST_DropTargetWin32::getGhostType(IDataObject *p_data_ob
   }
 
   /* Text
-   * NOTE: Unicode text is available as CF_TEXT too, the system can do the
-   * conversion, but we do the conversion our self with #WC_NO_BEST_FIT_CHARS.
+   * NOTE: Unlike the clipboard, Windows will not synthesize missing text formats for drag and
+   * drop operations, so we need to check for both CF_UNICODETEXT and CF_TEXT.
    */
+  fmtetc.cfFormat = CF_UNICODETEXT;
+  if (p_data_object->QueryGetData(&fmtetc) == S_OK) {
+    return GHOST_kDragnDropTypeString;
+  }
+
   fmtetc.cfFormat = CF_TEXT;
   if (p_data_object->QueryGetData(&fmtetc) == S_OK) {
     return GHOST_kDragnDropTypeString;
