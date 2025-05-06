@@ -514,6 +514,7 @@ def floating_checkout_update(
 
     return skip_msg
 
+
 def floating_libraries_update(args: argparse.Namespace, branch: "str | None") -> str:
     """Update libraries checkouts which are floating (not attached as Git submodules)"""
     msg = ""
@@ -527,6 +528,7 @@ def floating_libraries_update(args: argparse.Namespace, branch: "str | None") ->
     )
 
     return msg
+
 
 def add_submodule_push_url(args: argparse.Namespace) -> None:
     """
