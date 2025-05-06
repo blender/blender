@@ -859,7 +859,7 @@ bool stroke_is_dyntopo(const Object &object, const Brush &brush)
            * dynamic-topology. */
           !(brush.flag & BRUSH_ANCHORED) && !(brush.flag & BRUSH_DRAG_DOT) &&
 
-          SCULPT_BRUSH_TYPE_HAS_DYNTOPO(brush.sculpt_brush_type));
+          bke::brush::supports_dyntopo(brush));
 }
 
 }  // namespace dyntopo

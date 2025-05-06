@@ -1509,6 +1509,30 @@ bool BKE_brush_has_cube_tip(const Brush *brush, PaintMode paint_mode)
  * \{ */
 
 namespace blender::bke::brush {
+bool supports_dyntopo(const Brush &brush)
+{
+  return !ELEM(brush.sculpt_brush_type,
+               /* These brushes, as currently coded, cannot support dynamic topology */
+               SCULPT_BRUSH_TYPE_GRAB,
+               SCULPT_BRUSH_TYPE_ROTATE,
+               SCULPT_BRUSH_TYPE_CLOTH,
+               SCULPT_BRUSH_TYPE_THUMB,
+               SCULPT_BRUSH_TYPE_LAYER,
+               SCULPT_BRUSH_TYPE_DISPLACEMENT_ERASER,
+               SCULPT_BRUSH_TYPE_DRAW_SHARP,
+               SCULPT_BRUSH_TYPE_SLIDE_RELAX,
+               SCULPT_BRUSH_TYPE_ELASTIC_DEFORM,
+               SCULPT_BRUSH_TYPE_BOUNDARY,
+               SCULPT_BRUSH_TYPE_POSE,
+               SCULPT_BRUSH_TYPE_DRAW_FACE_SETS,
+               SCULPT_BRUSH_TYPE_PAINT,
+               SCULPT_BRUSH_TYPE_SMEAR,
+
+               /* These brushes could handle dynamic topology,
+                * but user feedback indicates it's better not to */
+               SCULPT_BRUSH_TYPE_SMOOTH,
+               SCULPT_BRUSH_TYPE_MASK);
+}
 bool supports_accumulate(const Brush &brush)
 {
   return ELEM(brush.sculpt_brush_type,
