@@ -48,6 +48,7 @@ static void set_grease_pencil_resolution(GreasePencil &grease_pencil,
         bke::GreasePencilLayerFieldContext(grease_pencil, AttrDomain::Curve, layer_index),
         selection,
         resolution);
+    drawing->tag_topology_changed();
   }
 }
 
