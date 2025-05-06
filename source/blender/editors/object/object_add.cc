@@ -1411,6 +1411,9 @@ static wmOperatorStatus object_grease_pencil_add_exec(bContext *C, wmOperator *o
 
   Object *object = add_type(C, OB_GREASE_PENCIL, ob_name, loc, rot, false, local_view_bits);
   GreasePencil &grease_pencil_id = *static_cast<GreasePencil *>(object->data);
+  const bool use_in_front = RNA_boolean_get(op->ptr, "use_in_front");
+  const bool use_lights = RNA_boolean_get(op->ptr, "use_lights");
+
   switch (type) {
     case GP_EMPTY: {
       greasepencil::create_blank(*bmain, *object, scene->r.cfra);
@@ -1440,8 +1443,6 @@ static wmOperatorStatus object_grease_pencil_add_exec(bContext *C, wmOperator *o
     case GREASE_PENCIL_LINEART_SCENE:
     case GREASE_PENCIL_LINEART_COLLECTION: {
       const int type = RNA_enum_get(op->ptr, "type");
-      const bool use_in_front = RNA_boolean_get(op->ptr, "use_in_front");
-      const bool use_lights = RNA_boolean_get(op->ptr, "use_lights");
       const int stroke_depth_order = RNA_enum_get(op->ptr, "stroke_depth_order");
       const float stroke_depth_offset = RNA_float_get(op->ptr, "stroke_depth_offset");
 
@@ -1474,18 +1475,7 @@ static wmOperatorStatus object_grease_pencil_add_exec(bContext *C, wmOperator *o
         id_us_plus(&md->target_material->id);
       }
 
-      if (use_lights) {
-        object->dtx |= OB_USE_GPENCIL_LIGHTS;
-      }
-      else {
-        object->dtx &= ~OB_USE_GPENCIL_LIGHTS;
-      }
-
-      /* Stroke object is drawn in front of meshes by default. */
-      if (use_in_front) {
-        object->dtx |= OB_DRAW_IN_FRONT;
-      }
-      else {
+      if (!use_in_front) {
         if (stroke_depth_order == GP_DRAWMODE_3D) {
           grease_pencil->flag |= GREASE_PENCIL_STROKE_ORDER_3D;
         }
@@ -1496,10 +1486,31 @@ static wmOperatorStatus object_grease_pencil_add_exec(bContext *C, wmOperator *o
     }
   }
 
+  SET_FLAG_FROM_TEST(object->dtx, use_in_front, OB_DRAW_IN_FRONT);
+  SET_FLAG_FROM_TEST(object->dtx, use_lights, OB_USE_GPENCIL_LIGHTS);
+
+  for (blender::bke::greasepencil::Layer *layer : grease_pencil_id.layers_for_write()) {
+    SET_FLAG_FROM_TEST(layer->as_node().flag, use_lights, GP_LAYER_TREE_NODE_USE_LIGHTS);
+  }
+
   DEG_id_tag_update(&grease_pencil_id.id, ID_RECALC_GEOMETRY);
   WM_main_add_notifier(NC_GEOM | ND_DATA, &grease_pencil_id.id);
 
   return OPERATOR_FINISHED;
+}
+
+static wmOperatorStatus object_grease_pencil_add_invoke(bContext *C,
+                                                        wmOperator *op,
+                                                        const wmEvent * /*event*/)
+{
+  const int type = RNA_enum_get(op->ptr, "type");
+
+  /* Only disable "use_in_front" if it's one of the non-LineArt types */
+  if (ELEM(type, GP_EMPTY, GP_STROKE, GP_MONKEY)) {
+    RNA_boolean_set(op->ptr, "use_in_front", false);
+  }
+
+  return object_grease_pencil_add_exec(C, op);
 }
 
 void OBJECT_OT_grease_pencil_add(wmOperatorType *ot)
@@ -1511,6 +1522,7 @@ void OBJECT_OT_grease_pencil_add(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = object_grease_pencil_add_exec;
+  ot->invoke = object_grease_pencil_add_invoke;
   ot->poll = ED_operator_objectmode;
 
   /* flags */
