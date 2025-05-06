@@ -161,7 +161,7 @@ static void paint_draw_smooth_cursor(bContext *C,
     immUniformColor4ubv(paint->paint_cursor_col);
 
     immBegin(GPU_PRIM_LINES, 2);
-    immVertex2iv(pos, xy);
+    immVertex2fv(pos, blender::float2(xy));
     immVertex2f(pos,
                 stroke->last_mouse_position[0] + region->winrct.xmin,
                 stroke->last_mouse_position[1] + region->winrct.ymin);

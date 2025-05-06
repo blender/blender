@@ -1748,8 +1748,8 @@ static void annotation_draw_eraser(bContext * /*C*/,
     immUniform1f("udash_factor", 0.5f);
 
     imm_draw_circle_wire_2d(shdr_pos,
-                            xy.y,
                             xy.x,
+                            xy.y,
                             p->radius,
                             /* XXX Dashed shader gives bad results with sets of small segments
                              * currently, temp hack around the issue. :( */
