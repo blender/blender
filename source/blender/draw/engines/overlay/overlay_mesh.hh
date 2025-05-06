@@ -594,18 +594,19 @@ class MeshUVs : Overlay {
       }
       else {
         const bool hide_faces = space_image->flag & SI_NO_DRAWFACES;
-
-        int sel_mode_2d = tool_setting->uv_selectmode;
-        show_vert_ = (sel_mode_2d != UV_SELECT_EDGE);
         show_face_ = !show_mesh_analysis_ && !hide_faces;
-        show_face_dots_ = (sel_mode_2d & UV_SELECT_FACE) && !hide_faces;
 
         if (tool_setting->uv_flag & UV_SYNC_SELECTION) {
-          int sel_mode_3d = tool_setting->selectmode;
+          const char sel_mode_3d = tool_setting->selectmode;
           /* NOTE: Ignore #SCE_SELECT_VERTEX because a single selected edge
            * on the mesh may cause single UV vertices to be selected. */
           show_vert_ = true /* (sel_mode_3d & SCE_SELECT_VERTEX) */;
           show_face_dots_ = (sel_mode_3d & SCE_SELECT_FACE) && !hide_faces;
+        }
+        else {
+          const char sel_mode_2d = tool_setting->uv_selectmode;
+          show_vert_ = (sel_mode_2d != UV_SELECT_EDGE);
+          show_face_dots_ = (sel_mode_2d & UV_SELECT_FACE) && !hide_faces;
         }
       }
 
@@ -677,7 +678,7 @@ class MeshUVs : Overlay {
     }
 
     if (show_vert_) {
-      const float point_size = UI_GetThemeValuef(TH_VERTEX_SIZE) * UI_SCALE_FAC;
+      const float dot_size = UI_GetThemeValuef(TH_VERTEX_SIZE) * UI_SCALE_FAC;
       float4 theme_color;
       UI_GetThemeColor4fv(TH_VERTEX, theme_color);
       srgb_to_linearrgb_v4(theme_color, theme_color);
@@ -689,13 +690,13 @@ class MeshUVs : Overlay {
       pass.shader_set(res.shaders->uv_edit_vert.get());
       pass.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
       pass.bind_ubo(DRW_CLIPPING_UBO_SLOT, &res.clip_planes_buf);
-      pass.push_constant("dot_size", (point_size + 1.5f) * float(M_SQRT2));
+      pass.push_constant("dot_size", (dot_size + 1.5f) * float(M_SQRT2));
       pass.push_constant("outline_width", 0.75f);
       pass.push_constant("color", theme_color);
     }
 
     if (show_face_dots_) {
-      const float point_size = UI_GetThemeValuef(TH_FACEDOT_SIZE) * UI_SCALE_FAC;
+      const float dot_size = UI_GetThemeValuef(TH_FACEDOT_SIZE) * UI_SCALE_FAC;
 
       auto &pass = facedots_ps_;
       pass.init();
@@ -704,7 +705,7 @@ class MeshUVs : Overlay {
       pass.shader_set(res.shaders->uv_edit_facedot.get());
       pass.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
       pass.bind_ubo(DRW_CLIPPING_UBO_SLOT, &res.clip_planes_buf);
-      pass.push_constant("dot_size", point_size);
+      pass.push_constant("dot_size", dot_size);
     }
 
     if (show_face_) {
