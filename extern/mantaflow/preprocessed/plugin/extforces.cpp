@@ -1652,10 +1652,11 @@ void dissolveSmoke(const FlagGrid &flags,
                    Grid<Real> *green = nullptr,
                    Grid<Real> *blue = nullptr,
                    int speed = 5,
-                   bool logFalloff = true)
+                   bool logFalloff = true,
+                   const float dissolveScale = 1.0)
 {
-  float dydx = 1.0f / (float)speed;  // max density/speed = dydx
-  float fac = 1.0f - dydx;
+  const float dydx = dissolveScale / (float)speed;  // max density (1.0) * scale / speed = dydx
+  const float fac = 1.0f - dydx;
   KnDissolveSmoke(flags, density, heat, red, green, blue, speed, logFalloff, dydx, fac);
 }
 static PyObject *_W_11(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
@@ -1676,8 +1677,9 @@ static PyObject *_W_11(PyObject *_self, PyObject *_linargs, PyObject *_kwds)
       Grid<Real> *blue = _args.getPtrOpt<Grid<Real>>("blue", 5, nullptr, &_lock);
       int speed = _args.getOpt<int>("speed", 6, 5, &_lock);
       bool logFalloff = _args.getOpt<bool>("logFalloff", 7, true, &_lock);
+      const float dissolveScale = _args.getOpt<float>("dissolveScale", 8, 1.0, &_lock);
       _retval = getPyNone();
-      dissolveSmoke(flags, density, heat, red, green, blue, speed, logFalloff);
+      dissolveSmoke(flags, density, heat, red, green, blue, speed, logFalloff, dissolveScale);
       _args.check();
     }
     pbFinalizePlugin(parent, "dissolveSmoke", !noTiming);
