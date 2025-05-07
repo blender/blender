@@ -155,6 +155,13 @@ struct uiLayout : uiItem {
   /** Add a new list box sub-layout. */
   uiLayout &list_box(uiList *ui_list, PointerRNA *actptr, PropertyRNA *actprop);
 
+  /**
+   * Add a pie menu layout, buttons are arranged around a center.
+   * Only one pie menu per layout root can be added, if it's already initialized it will be
+   * returned instead of adding a new one.
+   */
+  uiLayout &menu_pie();
+
   /** Add a new overlap sub-layout. */
   uiLayout &overlap();
 
@@ -395,9 +402,6 @@ void uiLayoutListItemAddPadding(uiLayout *layout);
 /* Layout create functions. */
 
 bool uiLayoutEndsWithPanelHeader(const uiLayout &layout);
-
-/** Pie menu layout: Buttons are arranged around a center. */
-uiLayout *uiLayoutRadial(uiLayout *layout);
 
 enum class LayoutSeparatorType : int8_t {
   Auto,

@@ -106,7 +106,7 @@ enum class ItemType : int8_t {
   LayoutAbsolute,
   LayoutSplit,
   LayoutOverlap,
-  LayoutRadial,
+  LayoutRadial, /* AKA: menu pie. */
 
   LayoutRoot,
 #if 0
@@ -837,7 +837,7 @@ static void ui_item_enum_expand_exec(uiLayout *layout,
   uiLayout *layout_radial = nullptr;
   if (radial) {
     if (layout->root_->layout == layout) {
-      layout_radial = uiLayoutRadial(layout);
+      layout_radial = &layout->menu_pie();
       UI_block_layout_set_current(block, layout_radial);
     }
     else {
@@ -1486,7 +1486,7 @@ void uiItemsFullEnumO_items(uiLayout *layout,
   const bool radial = ui_layout_is_radial(layout);
 
   if (radial) {
-    target = uiLayoutRadial(layout);
+    target = &layout->menu_pie();
   }
   else if ((uiLayoutGetLocalDir(layout) == UI_LAYOUT_HORIZONTAL) && (flag & UI_ITEM_R_ICON_ONLY)) {
     target = layout;
@@ -5141,30 +5141,30 @@ static uiLayoutItemBx *ui_layout_box(uiLayout *layout, int type)
   return box;
 }
 
-uiLayout *uiLayoutRadial(uiLayout *layout)
+uiLayout &uiLayout::menu_pie()
 {
   /* radial layouts are only valid for radial menus */
-  if (layout->root_->type != UI_LAYOUT_PIEMENU) {
-    return ui_item_local_sublayout(layout, layout, false);
+  if (root_->type != UI_LAYOUT_PIEMENU) {
+    return *ui_item_local_sublayout(this, this, false);
   }
 
   /* only one radial wheel per root layout is allowed, so check and return that, if it exists */
-  for (uiItem *item : layout->root_->layout->items_) {
+  for (uiItem *item : root_->layout->items_) {
     if (item->type_ == uiItemType::LayoutRadial) {
       uiLayout *litem = static_cast<uiLayout *>(item);
-      UI_block_layout_set_current(layout->root_->block, litem);
-      return litem;
+      UI_block_layout_set_current(root_->block, litem);
+      return *litem;
     }
   }
 
   uiLayout *litem = MEM_new<uiLayout>(__func__);
-  ui_litem_init_from_parent(litem, layout, false);
+  ui_litem_init_from_parent(litem, this, false);
 
   litem->type_ = uiItemType::LayoutRadial;
 
-  UI_block_layout_set_current(layout->root_->block, litem);
+  UI_block_layout_set_current(root_->block, litem);
 
-  return litem;
+  return *litem;
 }
 
 uiLayout &uiLayout::box()
