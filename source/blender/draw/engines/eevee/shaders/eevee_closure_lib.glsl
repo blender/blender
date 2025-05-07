@@ -25,6 +25,7 @@ float closure_apparent_roughness_get(ClosureUndetermined cl)
     case CLOSURE_NONE_ID:
       return 0.0f;
   }
+  return 0.0f;
 }
 
 float closure_evaluate_pdf(ClosureUndetermined cl, float3 L, float3 V, float thickness)
