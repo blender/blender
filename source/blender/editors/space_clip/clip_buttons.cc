@@ -452,7 +452,7 @@ void uiTemplateMarker(uiLayout *layout,
 
     if (track->flag & TRACK_LOCKED) {
       uiLayoutSetActive(layout, false);
-      uiBlock *block = uiLayoutAbsoluteBlock(layout);
+      uiBlock *block = layout->absolute_block();
       uiDefBut(block,
                UI_BTYPE_LABEL,
                0,
@@ -488,7 +488,7 @@ void uiTemplateMarker(uiLayout *layout,
 
     cb->marker_flag = marker->flag;
 
-    uiBlock *block = uiLayoutAbsoluteBlock(layout);
+    uiBlock *block = layout->absolute_block();
     UI_block_func_handle_set(block, marker_block_handler, cb);
     UI_block_funcN_set(block, marker_update_cb, cb, nullptr);
 
@@ -520,7 +520,7 @@ void uiTemplateMarker(uiLayout *layout,
     uiLayout *col = &layout->column(true);
     uiLayoutSetActive(col, (cb->marker_flag & MARKER_DISABLED) == 0);
 
-    block = uiLayoutAbsoluteBlock(col);
+    block = col->absolute_block();
     UI_block_align_begin(block);
 
     uiDefBut(block,

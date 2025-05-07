@@ -244,7 +244,7 @@ uiBlock *template_common_search_menu(const bContext *C,
 
 void uiTemplateHeader(uiLayout *layout, bContext *C)
 {
-  uiBlock *block = uiLayoutAbsoluteBlock(layout);
+  uiBlock *block = layout->absolute_block();
   ED_area_header_switchbutton(C, block, 0);
 }
 

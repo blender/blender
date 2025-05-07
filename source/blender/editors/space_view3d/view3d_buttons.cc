@@ -310,7 +310,7 @@ static void v3d_editvertex_buts(
     const bContext *C, uiLayout *layout, View3D *v3d, Object *ob, float lim)
 {
   using namespace blender;
-  uiBlock *block = (layout) ? uiLayoutAbsoluteBlock(layout) : nullptr;
+  uiBlock *block = (layout) ? layout->absolute_block() : nullptr;
   TransformProperties *tfp = v3d_transform_props_ensure(v3d);
   TransformMedian median_basis, ve_median_basis;
   int tot, totedgedata, totcurvedata, totlattdata, totcurvebweight;
@@ -1311,7 +1311,7 @@ static void v3d_editvertex_buts(
 
 static void v3d_object_dimension_buts(bContext *C, uiLayout *layout, View3D *v3d, Object *ob)
 {
-  uiBlock *block = (layout) ? uiLayoutAbsoluteBlock(layout) : nullptr;
+  uiBlock *block = (layout) ? layout->absolute_block() : nullptr;
   TransformProperties *tfp = v3d_transform_props_ensure(v3d);
   const bool is_editable = ID_IS_EDITABLE(&ob->id);
 
@@ -1428,7 +1428,7 @@ static void update_active_vertex_weight(bContext *C, void *arg1, void * /*arg2*/
 
 static void view3d_panel_vgroup(const bContext *C, Panel *panel)
 {
-  uiBlock *block = uiLayoutAbsoluteBlock(panel->layout);
+  uiBlock *block = panel->layout->absolute_block();
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   BKE_view_layer_synced_ensure(scene, view_layer);

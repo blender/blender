@@ -413,7 +413,7 @@ void uiTemplateColorRamp(uiLayout *layout,
   rect.ymin = 0;
   rect.ymax = 19.5f * UI_UNIT_X;
 
-  uiBlock *block = uiLayoutAbsoluteBlock(layout);
+  uiBlock *block = layout->absolute_block();
 
   ID *id = cptr.owner_id;
   UI_block_lock_set(block, (id && !ID_IS_EDITABLE(id)), ERROR_LIBDATA_MESSAGE);

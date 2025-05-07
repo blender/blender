@@ -59,7 +59,7 @@ void uiTemplateReportsBanner(uiLayout *layout, bContext *C)
     return;
   }
 
-  uiLayout *ui_abs = uiLayoutAbsolute(layout, false);
+  uiLayout *ui_abs = &layout->absolute(false);
   uiBlock *block = uiLayoutGetBlock(ui_abs);
   blender::ui::EmbossType previous_emboss = UI_block_emboss_get(block);
 
@@ -518,7 +518,7 @@ void uiTemplateStatusInfo(uiLayout *layout, bContext *C)
   }
 
   const uiStyle *style = UI_style_get();
-  uiLayout *ui_abs = uiLayoutAbsolute(layout, false);
+  uiLayout *ui_abs = &layout->absolute(false);
   uiBlock *block = uiLayoutGetBlock(ui_abs);
   blender::ui::EmbossType previous_emboss = UI_block_emboss_get(block);
 
