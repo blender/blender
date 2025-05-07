@@ -917,7 +917,7 @@ void DRWContext::engines_data_validate()
   DRW_view_data_free_unused(this->view_data_active);
 }
 
-bool gpencil_object_is_excluded(View3D *v3d)
+static bool gpencil_object_is_excluded(View3D *v3d)
 {
   if (v3d) {
     return ((v3d->object_type_exclude_viewport & (1 << OB_GREASE_PENCIL)) != 0);
