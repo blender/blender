@@ -36,7 +36,6 @@ set(SRC
   intern/versioning_userdef.cc
   intern/writefile.cc
 
-  BLO_blend_defs.hh
   BLO_blend_validate.hh
   BLO_read_write.hh
   BLO_readfile.hh
@@ -51,6 +50,7 @@ set(LIB
   PRIVATE bf::animrig
   PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
+  PUBLIC bf::blenloader_core
   PRIVATE bf::blentranslation
   PRIVATE bf::bmesh
   PRIVATE bf::depsgraph

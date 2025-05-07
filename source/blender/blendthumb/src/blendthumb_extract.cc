@@ -19,7 +19,8 @@
 #include "BLI_filereader.h"
 #include "BLI_string.h"
 
-#include "BLO_readfile.hh"
+#include "BLO_core_bhead.hh"
+#include "BLO_core_blend_header.hh"
 
 #include "blendthumb.hh"
 
