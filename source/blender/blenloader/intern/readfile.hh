@@ -248,6 +248,7 @@ void blo_do_versions_290(FileData *fd, Library *lib, Main *bmain);
 void blo_do_versions_300(FileData *fd, Library *lib, Main *bmain);
 void blo_do_versions_400(FileData *fd, Library *lib, Main *bmain);
 void blo_do_versions_410(FileData *fd, Library *lib, Main *bmain);
+void blo_do_versions_420(FileData *fd, Library *lib, Main *bmain);
 void blo_do_versions_450(FileData *fd, Library *lib, Main *bmain);
 
 void do_versions_after_linking_250(Main *bmain);
@@ -258,6 +259,7 @@ void do_versions_after_linking_290(FileData *fd, Main *bmain);
 void do_versions_after_linking_300(FileData *fd, Main *bmain);
 void do_versions_after_linking_400(FileData *fd, Main *bmain);
 void do_versions_after_linking_410(FileData *fd, Main *bmain);
+void do_versions_after_linking_420(FileData *fd, Main *bmain);
 void do_versions_after_linking_450(FileData *fd, Main *bmain);
 
 void do_versions_after_setup(Main *new_bmain,

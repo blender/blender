@@ -189,3 +189,4 @@ void version_update_node_input(
     FunctionRef<void(bNode *, bNodeSocket *, bNode *, bNodeSocket *)> update_input_link);
 
 bNode *version_eevee_output_node_get(bNodeTree *ntree, int16_t node_type);
+bool all_scenes_use(Main *bmain, const blender::Span<const char *> engines);

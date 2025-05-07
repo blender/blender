@@ -49,8 +49,6 @@
 
 #include "versioning_common.hh"
 
-bool all_scenes_use(Main *bmain, const blender::Span<const char *> engines);
-
 /**
  * Exit NLA tweakmode when the AnimData struct has insufficient information.
  *
