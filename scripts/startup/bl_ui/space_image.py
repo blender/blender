@@ -444,6 +444,10 @@ class IMAGE_MT_uvs(Menu):
 
         layout.separator()
 
+        layout.operator("uv.rip_move")
+
+        layout.separator()
+
         layout.prop(uv, "use_live_unwrap")
         layout.menu("IMAGE_MT_uvs_unwrap")
 
