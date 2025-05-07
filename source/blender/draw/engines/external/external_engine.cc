@@ -203,7 +203,7 @@ class Instance : public DrawEngine {
   void init() final
   {
     draw_ctx = DRW_context_get();
-    do_prepass = DRW_gpencil_engine_needed(draw_ctx->depsgraph, draw_ctx->v3d);
+    do_prepass = DRW_gpencil_engine_needed_viewport(draw_ctx->depsgraph, draw_ctx->v3d);
   }
 
   void begin_sync() final
