@@ -158,7 +158,6 @@ struct TaskPool {
   TaskPoolType type;
   bool use_threads;
 
-  ThreadMutex user_mutex;
   void *userdata;
 
 #ifdef WITH_TBB
@@ -184,8 +183,6 @@ struct TaskPool {
     if (this->type == TASK_POOL_BACKGROUND && this->use_threads) {
       this->type = TASK_POOL_TBB;
     }
-
-    BLI_mutex_init(&this->user_mutex);
 
     switch (this->type) {
       case TASK_POOL_TBB:
@@ -229,8 +226,6 @@ struct TaskPool {
         break;
       }
     }
-
-    BLI_mutex_end(&this->user_mutex);
   }
 
   TaskPool(TaskPool &&other) = delete;
@@ -551,9 +546,4 @@ bool BLI_task_pool_current_canceled(TaskPool *pool)
 void *BLI_task_pool_user_data(TaskPool *pool)
 {
   return pool->userdata;
-}
-
-ThreadMutex *BLI_task_pool_user_mutex(TaskPool *pool)
-{
-  return &pool->user_mutex;
 }

@@ -120,11 +120,6 @@ bool BLI_task_pool_current_canceled(TaskPool *pool);
  */
 void *BLI_task_pool_user_data(TaskPool *pool);
 
-/**
- * Optional mutex to use from run function.
- */
-ThreadMutex *BLI_task_pool_user_mutex(TaskPool *pool);
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
