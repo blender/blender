@@ -28,6 +28,7 @@
 #include "BKE_anim_data.hh"
 #include "BKE_global.hh"
 #include "BKE_idtype.hh"
+#include "BKE_image.hh"
 #include "BKE_lib_override.hh"
 #include "BKE_node.hh"
 #include "BKE_scene.hh"
@@ -680,7 +681,7 @@ static void set_id_update_count(ID *id)
   if (GS(id->name) == ID_IM) {
     Image *image = reinterpret_cast<Image *>(id);
     static std::atomic<uint64_t> global_image_update_count = 0;
-    image->runtime.update_count = global_image_update_count.fetch_add(1) + 1;
+    image->runtime->update_count = global_image_update_count.fetch_add(1) + 1;
   }
 }
 

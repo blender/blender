@@ -354,7 +354,7 @@ static void WIDGETGROUP_node_crop_refresh(const bContext *C, wmGizmoGroup *gzgro
   if (ibuf) {
     crop_group->state.dims[0] = (ibuf->x > 0) ? ibuf->x : 64.0f;
     crop_group->state.dims[1] = (ibuf->y > 0) ? ibuf->y : 64.0f;
-    copy_v2_v2(crop_group->state.offset, ima->runtime.backdrop_offset);
+    copy_v2_v2(crop_group->state.offset, ima->runtime->backdrop_offset);
 
     RNA_float_set_array(gz->ptr, "dimensions", crop_group->state.dims);
     WM_gizmo_set_flag(gz, WM_GIZMO_HIDDEN, false);
@@ -550,7 +550,7 @@ static void WIDGETGROUP_node_mask_refresh(const bContext *C, wmGizmoGroup *gzgro
   if (ibuf) {
     mask_group->state.dims[0] = (ibuf->x > 0) ? ibuf->x : 64.0f;
     mask_group->state.dims[1] = (ibuf->y > 0) ? ibuf->y : 64.0f;
-    copy_v2_v2(mask_group->state.offset, ima->runtime.backdrop_offset);
+    copy_v2_v2(mask_group->state.offset, ima->runtime->backdrop_offset);
 
     RNA_float_set_array(gz->ptr, "dimensions", mask_group->state.dims);
     WM_gizmo_set_flag(gz, WM_GIZMO_HIDDEN, false);
@@ -724,7 +724,7 @@ static void WIDGETGROUP_node_sbeam_refresh(const bContext *C, wmGizmoGroup *gzgr
   if (ibuf) {
     sbeam_group->state.dims[0] = (ibuf->x > 0) ? ibuf->x : 64.0f;
     sbeam_group->state.dims[1] = (ibuf->y > 0) ? ibuf->y : 64.0f;
-    copy_v2_v2(sbeam_group->state.offset, ima->runtime.backdrop_offset);
+    copy_v2_v2(sbeam_group->state.offset, ima->runtime->backdrop_offset);
 
     SpaceNode *snode = CTX_wm_space_node(C);
     bNode *node = bke::node_get_active(*snode->edittree);
@@ -838,7 +838,7 @@ static void WIDGETGROUP_node_corner_pin_refresh(const bContext *C, wmGizmoGroup 
   if (ibuf) {
     cpin_group->state.dims[0] = (ibuf->x > 0) ? ibuf->x : 64.0f;
     cpin_group->state.dims[1] = (ibuf->y > 0) ? ibuf->y : 64.0f;
-    copy_v2_v2(cpin_group->state.offset, ima->runtime.backdrop_offset);
+    copy_v2_v2(cpin_group->state.offset, ima->runtime->backdrop_offset);
 
     SpaceNode *snode = CTX_wm_space_node(C);
     bNode *node = bke::node_get_active(*snode->edittree);

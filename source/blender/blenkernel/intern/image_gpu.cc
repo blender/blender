@@ -315,7 +315,7 @@ static void image_gpu_texture_partial_update_changes_available(
 
 static void image_gpu_texture_try_partial_update(Image *image, ImageUser *iuser)
 {
-  PartialUpdateChecker<ImageTileData> checker(image, iuser, image->runtime.partial_update_user);
+  PartialUpdateChecker<ImageTileData> checker(image, iuser, image->runtime->partial_update_user);
   PartialUpdateChecker<ImageTileData>::CollectResult changes = checker.collect_changes();
   switch (changes.get_result_code()) {
     case ePartialUpdateCollectResult::FullUpdateNeeded: {
@@ -389,8 +389,8 @@ static ImageGPUTextures image_get_gpu_texture(Image *ima,
   }
 #undef GPU_FLAGS_TO_CHECK
 
-  if (ima->runtime.partial_update_user == nullptr) {
-    ima->runtime.partial_update_user = BKE_image_partial_update_create(ima);
+  if (ima->runtime->partial_update_user == nullptr) {
+    ima->runtime->partial_update_user = BKE_image_partial_update_create(ima);
   }
 
   image_gpu_texture_try_partial_update(ima, iuser);
