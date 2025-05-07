@@ -54,6 +54,7 @@
 #  include "BLI_kdopbvh.hh"
 #  include "BLI_kdtree.h"
 #  include "BLI_math_vector.hh"
+#  include "BLI_mutex.hh"
 #  include "BLI_threads.h"
 #  include "BLI_voxel.h"
 
@@ -96,7 +97,7 @@ static CLG_LogRef LOG = {"bke.fluid"};
 /** \name Fluid API
  * \{ */
 
-static ThreadMutex object_update_lock = BLI_MUTEX_INITIALIZER;
+static blender::Mutex object_update_lock;
 
 #  define ADD_IF_LOWER_POS(a, b) min_ff((a) + (b), max_ff((a), (b)))
 #  define ADD_IF_LOWER_NEG(a, b) max_ff((a) + (b), min_ff((a), (b)))
@@ -3481,7 +3482,7 @@ static int manta_step(
   /* Keep track of original total time to correct small errors at end of step. */
   time_total_old = fds->time_total;
 
-  BLI_mutex_lock(&object_update_lock);
+  std::scoped_lock lock(object_update_lock);
 
   /* Loop as long as time_per_frame (sum of sub dt's) does not exceed actual frame-length. */
   while (time_per_frame + FLT_EPSILON < frame_length) {
@@ -3535,7 +3536,6 @@ static int manta_step(
         fds, DEG_get_evaluated_scene(depsgraph), DEG_get_evaluated_view_layer(depsgraph));
   }
 
-  BLI_mutex_unlock(&object_update_lock);
   return result;
 }
 
@@ -3545,12 +3545,10 @@ static void manta_guiding(
   FluidDomainSettings *fds = fmd->domain;
   float dt = DT_DEFAULT * (25.0f / FPS) * fds->time_scale;
 
-  BLI_mutex_lock(&object_update_lock);
+  std::scoped_lock lock(object_update_lock);
 
   update_obstacles(depsgraph, scene, ob, fds, dt, dt, frame, dt);
   manta_bake_guiding(fds->fluid, fmd, frame);
-
-  BLI_mutex_unlock(&object_update_lock);
 }
 
 static void fluid_modifier_processFlow(FluidModifierData *fmd,

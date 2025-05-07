@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BLI_threads.h"
+#include "BLI_mutex.hh"
 
 #include "BLT_translation.hh"
 
@@ -15,10 +15,7 @@
 
 static constexpr float COM_PREVIEW_SIZE = 140.0f;
 
-static struct {
-  bool is_initialized = false;
-  ThreadMutex mutex;
-} g_compositor;
+static blender::Mutex g_compositor_mutex;
 
 /* Make sure node tree has previews.
  * Don't create previews in advance, this is done when adding preview operations.
@@ -57,20 +54,11 @@ void COM_execute(Render *render,
                  blender::compositor::Profiler *profiler,
                  blender::compositor::OutputTypes needed_outputs)
 {
-  /* Initialize mutex, TODO: this mutex init is actually not thread safe and
-   * should be done somewhere as part of blender startup, all the other
-   * initializations can be done lazily. */
-  if (!g_compositor.is_initialized) {
-    BLI_mutex_init(&g_compositor.mutex);
-    g_compositor.is_initialized = true;
-  }
-
-  BLI_mutex_lock(&g_compositor.mutex);
+  std::scoped_lock lock(g_compositor_mutex);
 
   if (node_tree->runtime->test_break(node_tree->runtime->tbh)) {
     /* During editing multiple compositor executions can be triggered.
      * Make sure this is the most recent one. */
-    BLI_mutex_unlock(&g_compositor.mutex);
     return;
   }
 
@@ -85,16 +73,6 @@ void COM_execute(Render *render,
                         render_context,
                         profiler,
                         needed_outputs);
-
-  BLI_mutex_unlock(&g_compositor.mutex);
 }
 
-void COM_deinitialize()
-{
-  if (g_compositor.is_initialized) {
-    BLI_mutex_lock(&g_compositor.mutex);
-    g_compositor.is_initialized = false;
-    BLI_mutex_unlock(&g_compositor.mutex);
-    BLI_mutex_end(&g_compositor.mutex);
-  }
-}
+void COM_deinitialize() {}

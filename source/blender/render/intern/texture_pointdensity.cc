@@ -42,7 +42,7 @@
 
 #include "RE_texture.h"
 
-static ThreadMutex sample_mutex = PTHREAD_MUTEX_INITIALIZER;
+static blender::Mutex sample_mutex;
 
 enum {
   POINT_DATA_VEL = 1 << 0,
@@ -811,9 +811,8 @@ void RE_point_density_cache(Depsgraph *depsgraph, PointDensity *pd)
   Scene *scene = DEG_get_evaluated_scene(depsgraph);
 
   /* Same matrices/resolution as dupli_render_particle_set(). */
-  BLI_mutex_lock(&sample_mutex);
+  std::scoped_lock lock(sample_mutex);
   cache_pointdensity(depsgraph, scene, pd);
-  BLI_mutex_unlock(&sample_mutex);
 }
 
 void RE_point_density_minmax(Depsgraph *depsgraph,
@@ -924,9 +923,10 @@ void RE_point_density_sample(Depsgraph *depsgraph,
     return;
   }
 
-  BLI_mutex_lock(&sample_mutex);
-  RE_point_density_minmax(depsgraph, pd, min, max);
-  BLI_mutex_unlock(&sample_mutex);
+  {
+    std::scoped_lock lock(sample_mutex);
+    RE_point_density_minmax(depsgraph, pd, min, max);
+  }
   sub_v3_v3v3(dim, max, min);
   if (dim[0] <= 0.0f || dim[1] <= 0.0f || dim[2] <= 0.0f) {
     sample_dummy_point_density(resolution, values);

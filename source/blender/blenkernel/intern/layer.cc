@@ -346,10 +346,10 @@ ViewLayer *BKE_view_layer_find_from_collection(const Scene *scene, LayerCollecti
 
 static void view_layer_bases_hash_create(ViewLayer *view_layer, const bool do_base_duplicates_fix)
 {
-  static ThreadMutex hash_lock = BLI_MUTEX_INITIALIZER;
+  static blender::Mutex hash_lock;
 
   if (view_layer->object_bases_hash == nullptr) {
-    BLI_mutex_lock(&hash_lock);
+    std::scoped_lock lock(hash_lock);
 
     if (view_layer->object_bases_hash == nullptr) {
       GHash *hash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, __func__);
@@ -383,8 +383,6 @@ static void view_layer_bases_hash_create(ViewLayer *view_layer, const bool do_ba
       /* Assign pointer only after hash is complete. */
       view_layer->object_bases_hash = hash;
     }
-
-    BLI_mutex_unlock(&hash_lock);
   }
 }
 

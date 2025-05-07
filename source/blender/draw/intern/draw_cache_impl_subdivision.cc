@@ -21,7 +21,7 @@
 #include "BKE_subdiv_modifier.hh"
 
 #include "BLI_linklist.h"
-#include "BLI_threads.h"
+#include "BLI_mutex.hh"
 #include "BLI_virtual_array.hh"
 
 #include "DRW_engine.hh"
@@ -1754,7 +1754,7 @@ void DRW_subdivide_loose_geom(DRWSubdivCache &subdiv_cache, const MeshBufferCach
  * This is kind of garbage collection.
  */
 static LinkNode *gpu_subdiv_free_queue = nullptr;
-static ThreadMutex gpu_subdiv_queue_mutex = BLI_MUTEX_INITIALIZER;
+static blender::Mutex gpu_subdiv_queue_mutex;
 
 void DRW_create_subdivision(Object &ob,
                             Mesh &mesh,
@@ -1804,33 +1804,32 @@ void DRW_create_subdivision(Object &ob,
 
 void DRW_subdiv_cache_free(bke::subdiv::Subdiv *subdiv)
 {
-  BLI_mutex_lock(&gpu_subdiv_queue_mutex);
+  std::scoped_lock lock(gpu_subdiv_queue_mutex);
   BLI_linklist_prepend(&gpu_subdiv_free_queue, subdiv);
-  BLI_mutex_unlock(&gpu_subdiv_queue_mutex);
 }
 
 void DRW_cache_free_old_subdiv()
 {
-  BLI_mutex_lock(&gpu_subdiv_queue_mutex);
+  {
+    std::scoped_lock lock(gpu_subdiv_queue_mutex);
 
-  while (gpu_subdiv_free_queue != nullptr) {
-    bke::subdiv::Subdiv *subdiv = static_cast<bke::subdiv::Subdiv *>(
-        BLI_linklist_pop(&gpu_subdiv_free_queue));
+    while (gpu_subdiv_free_queue != nullptr) {
+      bke::subdiv::Subdiv *subdiv = static_cast<bke::subdiv::Subdiv *>(
+          BLI_linklist_pop(&gpu_subdiv_free_queue));
 
-    {
-      std::scoped_lock lock(g_subdiv_eval_mutex);
-      if (subdiv->evaluator != nullptr) {
-        g_subdiv_evaluator_users--;
+      {
+        std::scoped_lock lock(g_subdiv_eval_mutex);
+        if (subdiv->evaluator != nullptr) {
+          g_subdiv_evaluator_users--;
+        }
       }
-    }
 #ifdef WITH_OPENSUBDIV
-    /* Set the type to CPU so that we do actually free the cache. */
-    subdiv->evaluator->type = OPENSUBDIV_EVALUATOR_CPU;
+      /* Set the type to CPU so that we do actually free the cache. */
+      subdiv->evaluator->type = OPENSUBDIV_EVALUATOR_CPU;
 #endif
-    bke::subdiv::free(subdiv);
+      bke::subdiv::free(subdiv);
+    }
   }
-
-  BLI_mutex_unlock(&gpu_subdiv_queue_mutex);
 
   {
     std::scoped_lock lock(g_subdiv_eval_mutex);

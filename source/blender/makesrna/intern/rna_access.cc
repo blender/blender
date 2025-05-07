@@ -24,8 +24,8 @@
 #include "BLI_dynstr.h"
 #include "BLI_ghash.h"
 #include "BLI_listbase.h"
+#include "BLI_mutex.hh"
 #include "BLI_string.h"
-#include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.hh"
@@ -4038,7 +4038,7 @@ PointerRNA RNA_property_pointer_get(PointerRNA *ptr, PropertyRNA *prop)
   PointerPropertyRNA *pprop = (PointerPropertyRNA *)prop;
   IDProperty *idprop;
 
-  static ThreadMutex lock = BLI_MUTEX_INITIALIZER;
+  static blender::Mutex mutex;
 
   BLI_assert(RNA_property_type(prop) == PROP_POINTER);
 
@@ -4063,11 +4063,10 @@ PointerRNA RNA_property_pointer_get(PointerRNA *ptr, PropertyRNA *prop)
     /* NOTE: While creating/writing data in an accessor is really bad design-wise, this is
      * currently very difficult to avoid in that case. So a global mutex is used to keep ensuring
      * thread safety. */
-    BLI_mutex_lock(&lock);
+    std::scoped_lock lock(mutex);
     /* NOTE: We do not need to check again for existence of the pointer after locking here, since
      * this is also done in #RNA_property_pointer_add itself. */
     RNA_property_pointer_add(ptr, prop);
-    BLI_mutex_unlock(&lock);
     return RNA_property_pointer_get(ptr, prop);
   }
   return PointerRNA_NULL;

@@ -28,6 +28,7 @@
 #include "BLI_fileops.h"
 #include "BLI_listbase.h"
 #include "BLI_map.hh"
+#include "BLI_mutex.hh"
 #include "BLI_rect.h"
 #include "BLI_set.hh"
 #include "BLI_string.h"
@@ -207,8 +208,8 @@ static void stats_background(void * /*arg*/, RenderStats *rs)
 
   /* Compositor calls this from multiple threads, mutex lock to ensure we don't
    * get garbled output. */
-  static ThreadMutex mutex = BLI_MUTEX_INITIALIZER;
-  BLI_mutex_lock(&mutex);
+  static blender::Mutex mutex;
+  std::scoped_lock lock(mutex);
 
   char *message = BLI_sprintfN(RPT_("Fra:%d Mem:%.2fM (Peak %.2fM) | Time:%s | %s"),
                                rs->cfra,
@@ -233,8 +234,6 @@ static void stats_background(void * /*arg*/, RenderStats *rs)
   }
 
   MEM_freeN(message);
-
-  BLI_mutex_unlock(&mutex);
 }
 
 void RE_ReferenceRenderResult(RenderResult *rr)

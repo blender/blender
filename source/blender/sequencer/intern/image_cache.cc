@@ -22,6 +22,7 @@
 #include "BLI_ghash.h"
 #include "BLI_math_base.h"
 #include "BLI_mempool.h"
+#include "BLI_mutex.hh"
 #include "BLI_threads.h"
 
 #include "BKE_main.hh"
@@ -78,7 +79,7 @@ struct SeqCacheItem {
   ImBuf *ibuf;
 };
 
-static ThreadMutex cache_create_lock = BLI_MUTEX_INITIALIZER;
+static blender::Mutex cache_create_lock;
 
 static bool seq_cmp_render_data(const RenderData *a, const RenderData *b)
 {
@@ -492,7 +493,7 @@ static void seq_cache_set_temp_cache_linked(Scene *scene, SeqCacheKey *base)
 
 static void seq_cache_create(Main *bmain, Scene *scene)
 {
-  BLI_mutex_lock(&cache_create_lock);
+  std::scoped_lock lock(cache_create_lock);
   if (scene->ed->cache == nullptr) {
     SeqCache *cache = MEM_callocN<SeqCache>("SeqCache");
     cache->keys_pool = BLI_mempool_create(sizeof(SeqCacheKey), 0, 64, BLI_MEMPOOL_NOP);
@@ -507,7 +508,6 @@ static void seq_cache_create(Main *bmain, Scene *scene)
       scene->ed->disk_cache_timestamp = time(nullptr);
     }
   }
-  BLI_mutex_unlock(&cache_create_lock);
 }
 
 static void seq_cache_populate_key(SeqCacheKey *key,

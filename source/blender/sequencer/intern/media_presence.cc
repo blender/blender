@@ -9,9 +9,9 @@
 #include "BLI_fileops.h"
 #include "BLI_listbase.h"
 #include "BLI_map.hh"
+#include "BLI_mutex.hh"
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"
-#include "BLI_threads.h"
 
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
@@ -24,7 +24,7 @@
 
 namespace blender::seq {
 
-static ThreadMutex presence_lock = BLI_MUTEX_INITIALIZER;
+static blender::Mutex presence_lock;
 
 static const char *strip_base_path_get(const Strip *strip)
 {
@@ -105,7 +105,7 @@ bool media_presence_is_missing(Scene *scene, const Strip *strip)
     return false;
   }
 
-  BLI_mutex_lock(&presence_lock);
+  std::scoped_lock lock(presence_lock);
 
   MediaPresence *presence = get_media_presence_cache(scene);
 
@@ -137,7 +137,6 @@ bool media_presence_is_missing(Scene *scene, const Strip *strip)
     }
   }
 
-  BLI_mutex_unlock(&presence_lock);
   return missing;
 }
 
@@ -147,7 +146,7 @@ void media_presence_set_missing(Scene *scene, const Strip *strip, bool missing)
     return;
   }
 
-  BLI_mutex_lock(&presence_lock);
+  std::scoped_lock lock(presence_lock);
 
   MediaPresence *presence = get_media_presence_cache(scene);
 
@@ -158,36 +157,31 @@ void media_presence_set_missing(Scene *scene, const Strip *strip, bool missing)
   else {
     presence->map_seq.add_overwrite(strip, missing);
   }
-
-  BLI_mutex_unlock(&presence_lock);
 }
 
 void media_presence_invalidate_strip(Scene *scene, const Strip *strip)
 {
-  BLI_mutex_lock(&presence_lock);
+  std::scoped_lock lock(presence_lock);
   if (scene != nullptr && scene->ed != nullptr && scene->ed->runtime.media_presence != nullptr) {
     scene->ed->runtime.media_presence->map_seq.remove(strip);
   }
-  BLI_mutex_unlock(&presence_lock);
 }
 
 void media_presence_invalidate_sound(Scene *scene, const bSound *sound)
 {
-  BLI_mutex_lock(&presence_lock);
+  std::scoped_lock lock(presence_lock);
   if (scene != nullptr && scene->ed != nullptr && scene->ed->runtime.media_presence != nullptr) {
     scene->ed->runtime.media_presence->map_sound.remove(sound);
   }
-  BLI_mutex_unlock(&presence_lock);
 }
 
 void media_presence_free(Scene *scene)
 {
-  BLI_mutex_lock(&presence_lock);
+  std::scoped_lock lock(presence_lock);
   if (scene != nullptr && scene->ed != nullptr && scene->ed->runtime.media_presence != nullptr) {
     MEM_delete(scene->ed->runtime.media_presence);
     scene->ed->runtime.media_presence = nullptr;
   }
-  BLI_mutex_unlock(&presence_lock);
 }
 
 }  // namespace blender::seq

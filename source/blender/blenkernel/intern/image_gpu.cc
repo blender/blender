@@ -503,7 +503,7 @@ ImageGPUTextures BKE_image_get_gpu_material_texture(Image *image,
  * \{ */
 
 static LinkNode *gpu_texture_free_queue = nullptr;
-static ThreadMutex gpu_texture_queue_mutex = BLI_MUTEX_INITIALIZER;
+static blender::Mutex gpu_texture_queue_mutex;
 
 static void gpu_free_unused_buffers()
 {
@@ -511,14 +511,12 @@ static void gpu_free_unused_buffers()
     return;
   }
 
-  BLI_mutex_lock(&gpu_texture_queue_mutex);
+  std::scoped_lock lock(gpu_texture_queue_mutex);
 
   while (gpu_texture_free_queue != nullptr) {
     GPUTexture *tex = static_cast<GPUTexture *>(BLI_linklist_pop(&gpu_texture_free_queue));
     GPU_texture_free(tex);
   }
-
-  BLI_mutex_unlock(&gpu_texture_queue_mutex);
 }
 
 void BKE_image_free_unused_gpu_textures()
@@ -543,9 +541,8 @@ static void image_free_gpu(Image *ima, const bool immediate)
           GPU_texture_free(ima->gputexture[i][eye]);
         }
         else {
-          BLI_mutex_lock(&gpu_texture_queue_mutex);
+          std::scoped_lock lock(gpu_texture_queue_mutex);
           BLI_linklist_prepend(&gpu_texture_free_queue, ima->gputexture[i][eye]);
-          BLI_mutex_unlock(&gpu_texture_queue_mutex);
         }
 
         ima->gputexture[i][eye] = nullptr;
