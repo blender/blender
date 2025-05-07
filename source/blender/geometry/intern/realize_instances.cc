@@ -1680,7 +1680,12 @@ static void copy_vertex_group_names(Mesh &dst_mesh,
   for (const Mesh *mesh : src_meshes) {
     LISTBASE_FOREACH (const bDeformGroup *, src, &mesh->vertex_group_names) {
       const StringRef src_name = src->name;
-      const int attribute_index = ordered_attributes.ids.index_of(src_name);
+      const int attribute_index = ordered_attributes.ids.index_of_try(src_name);
+      if (attribute_index == -1) {
+        /* The attribute is not propagated to the result (possibly because the mesh isn't included
+         * in the realized output because of the #VariedDepthOptions input). */
+        continue;
+      }
       const bke::AttributeDomainAndType kind = ordered_attributes.kinds[attribute_index];
       if (kind.domain != bke::AttrDomain::Point || kind.data_type != CD_PROP_FLOAT) {
         /* Prefer using the highest priority domain and type from all input meshes. */
