@@ -2,13 +2,13 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include <mutex>
 #include <optional>
 
 #include "BLI_fileops.hh"
 #include "BLI_hash.hh"
 #include "BLI_map.hh"
 #include "BLI_memory_cache_file_load.hh"
+#include "BLI_mutex.hh"
 #include "BLI_task.hh"
 #include "BLI_vector.hh"
 #include "BLI_vector_set.hh"
@@ -76,7 +76,7 @@ static std::optional<int64_t> get_file_modification_time(const StringRefNull pat
 }
 
 struct FileStatMap {
-  std::mutex mutex;
+  Mutex mutex;
   Map<std::string, std::optional<int64_t>> map;
 };
 
