@@ -10,6 +10,7 @@
 
 #include "BLI_function_ref.hh"
 #include "BLI_map.hh"
+#include "BLI_string_ref.hh"
 
 #include "DNA_node_types.h"
 
@@ -82,6 +83,8 @@ void version_node_output_socket_name(bNodeTree *ntree,
                                      int node_type,
                                      const char *old_name,
                                      const char *new_name);
+
+blender::StringRef legacy_socket_idname_to_socket_type(blender::StringRef idname);
 
 /**
  * Adds a new node for versioning purposes. This is intended to be used to create raw DNA that

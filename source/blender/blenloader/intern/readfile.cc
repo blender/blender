@@ -3093,6 +3093,9 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
     blo_do_versions_300(fd, lib, main);
   }
   if (!main->is_read_invalid) {
+    blo_do_versions_400(fd, lib, main);
+  }
+  if (!main->is_read_invalid) {
     blo_do_versions_450(fd, lib, main);
   }
 
@@ -3136,6 +3139,9 @@ static void do_versions_after_linking(FileData *fd, Main *main)
   }
   if (!main->is_read_invalid) {
     do_versions_after_linking_300(fd, main);
+  }
+  if (!main->is_read_invalid) {
+    do_versions_after_linking_400(fd, main);
   }
   if (!main->is_read_invalid) {
     do_versions_after_linking_450(fd, main);
