@@ -237,7 +237,7 @@ CRAWL_DELAY = 2
 last_checked_time = None
 
 
-def set_crawl_delay():
+def set_crawl_delay() -> None:
     global CRAWL_DELAY
     # Conform to Blenders crawl delay request:
     # https://projects.blender.org/robots.txt
@@ -246,6 +246,7 @@ def set_crawl_delay():
         projects.read()
         projects_crawl_delay = projects.crawl_delay("*")
         if projects_crawl_delay is not None:
+            assert isinstance(projects_crawl_delay, int)
             CRAWL_DELAY = projects_crawl_delay
     except:
         pass
