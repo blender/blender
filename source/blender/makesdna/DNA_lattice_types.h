@@ -37,7 +37,7 @@ typedef struct Lattice {
 #ifdef __cplusplus
   DNA_DEFINE_CXX_METHODS(Lattice)
   /** See #ID_Type comment for why this is here. */
-  static constexpr ID_Type id_type = ID_LA;
+  static constexpr ID_Type id_type = ID_LT;
 #endif
 
   ID id;
