@@ -345,6 +345,8 @@ void BLO_update_defaults_workspace(WorkSpace *workspace, const char *app_templat
 
 static void blo_update_defaults_scene(Main *bmain, Scene *scene)
 {
+  ToolSettings *ts = scene->toolsettings;
+
   STRNCPY(scene->r.engine, RE_engine_id_BLENDER_EEVEE_NEXT);
 
   scene->r.cfra = 1.0f;
@@ -380,14 +382,13 @@ static void blo_update_defaults_scene(Main *bmain, Scene *scene)
 
   /* Default Rotate Increment. */
   const float default_snap_angle_increment = DEG2RADF(5.0f);
-  scene->toolsettings->snap_angle_increment_2d = default_snap_angle_increment;
-  scene->toolsettings->snap_angle_increment_3d = default_snap_angle_increment;
+  ts->snap_angle_increment_2d = default_snap_angle_increment;
+  ts->snap_angle_increment_3d = default_snap_angle_increment;
   const float default_snap_angle_increment_precision = DEG2RADF(1.0f);
-  scene->toolsettings->snap_angle_increment_2d_precision = default_snap_angle_increment_precision;
-  scene->toolsettings->snap_angle_increment_3d_precision = default_snap_angle_increment_precision;
+  ts->snap_angle_increment_2d_precision = default_snap_angle_increment_precision;
+  ts->snap_angle_increment_3d_precision = default_snap_angle_increment_precision;
 
   /* Be sure `curfalloff` and primitive are initialized. */
-  ToolSettings *ts = scene->toolsettings;
   if (ts->gp_sculpt.cur_falloff == nullptr) {
     ts->gp_sculpt.cur_falloff = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
     CurveMapping *gp_falloff_curve = ts->gp_sculpt.cur_falloff;
