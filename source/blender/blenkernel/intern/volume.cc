@@ -72,7 +72,6 @@ using blender::bke::GVolumeGrid;
 
 #ifdef WITH_OPENVDB
 #  include <list>
-#  include <mutex>
 
 #  include <openvdb/openvdb.h>
 #  include <openvdb/points/PointDataGrid.h>
@@ -110,7 +109,7 @@ struct VolumeGridVector : public std::list<GVolumeGrid> {
 
   /* Mutex for file loading of grids list. `const` write access to the fields after this must be
    * protected by locking with this mutex. */
-  mutable std::mutex mutex;
+  mutable blender::Mutex mutex;
   /* Absolute file path that grids have been loaded from. */
   char filepath[FILE_MAX];
   /* File loading error message. */
@@ -480,7 +479,7 @@ bool BKE_volume_load(const Volume *volume, const Main *bmain)
   }
 
   /* Double-checked lock. */
-  std::lock_guard<std::mutex> lock(const_grids.mutex);
+  std::lock_guard lock(const_grids.mutex);
   if (BKE_volume_is_loaded(volume)) {
     return const_grids.error_msg.empty();
   }

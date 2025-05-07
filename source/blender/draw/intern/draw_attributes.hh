@@ -10,10 +10,9 @@
 
 #pragma once
 
-#include <mutex>
-
 #include "DNA_customdata_types.h"
 
+#include "BLI_mutex.hh"
 #include "BLI_sys_types.h"
 
 #include "GPU_shader.hh"
@@ -55,9 +54,7 @@ static_assert(sizeof(DRW_MeshCDMask) <= sizeof(uint32_t), "DRW_MeshCDMask exceed
 
 void drw_attributes_clear(DRW_Attributes *attributes);
 
-void drw_attributes_merge(DRW_Attributes *dst,
-                          const DRW_Attributes *src,
-                          std::mutex &render_mutex);
+void drw_attributes_merge(DRW_Attributes *dst, const DRW_Attributes *src, Mutex &render_mutex);
 
 /* Return true if all requests in b are in a. */
 bool drw_attributes_overlap(const DRW_Attributes *a, const DRW_Attributes *b);

@@ -48,7 +48,7 @@ void drw_attributes_clear(DRW_Attributes *attributes)
   *attributes = {};
 }
 
-void drw_attributes_merge(DRW_Attributes *dst, const DRW_Attributes *src, std::mutex &render_mutex)
+void drw_attributes_merge(DRW_Attributes *dst, const DRW_Attributes *src, Mutex &render_mutex)
 {
   if (src->num_requests == 0) {
     return;

@@ -9,7 +9,6 @@
  */
 
 #include <iosfwd>
-#include <mutex>
 
 #include "BLI_bounds_types.hh"
 #include "BLI_function_ref.hh"
@@ -17,6 +16,7 @@
 #include "BLI_map.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_memory_counter_fwd.hh"
+#include "BLI_mutex.hh"
 
 /* For #Map. */
 #include "BKE_attribute.hh"
@@ -605,7 +605,7 @@ class CurveComponent : public GeometryComponent {
    * even when the new curve data structure is used.
    */
   mutable Curve *curve_for_render_ = nullptr;
-  mutable std::mutex curve_for_render_mutex_;
+  mutable Mutex curve_for_render_mutex_;
 
  public:
   CurveComponent();

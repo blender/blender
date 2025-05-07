@@ -7,12 +7,12 @@
  */
 
 #include <atomic>
-#include <mutex>
 #include <optional>
 
 #include "BLI_concurrent_map.hh"
 #include "BLI_memory_cache.hh"
 #include "BLI_memory_counter.hh"
+#include "BLI_mutex.hh"
 
 namespace blender::memory_cache {
 
@@ -43,7 +43,7 @@ struct Cache {
    */
   std::atomic<int64_t> size_in_bytes = 0;
 
-  std::mutex global_mutex;
+  Mutex global_mutex;
   /** Amount of memory currently used in the cache. */
   MemoryCount memory;
   /**

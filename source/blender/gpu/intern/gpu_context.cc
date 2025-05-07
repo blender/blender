@@ -53,7 +53,7 @@ using namespace blender::gpu;
 
 static thread_local Context *active_ctx = nullptr;
 
-static std::mutex backend_users_mutex;
+static blender::Mutex backend_users_mutex;
 static int num_backend_users = 0;
 
 static void gpu_backend_create();
@@ -271,7 +271,7 @@ void GPU_context_end_frame(GPUContext *ctx)
  * Used to avoid crash on some old drivers.
  * \{ */
 
-static std::mutex main_context_mutex;
+static blender::Mutex main_context_mutex;
 
 void GPU_context_main_lock()
 {

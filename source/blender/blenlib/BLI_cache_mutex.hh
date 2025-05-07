@@ -21,7 +21,7 @@
  * protected data should generally be placed next to each other.
  *
  * Each #CacheMutex protects exactly one cache, so multiple cache mutexes have to be used when a
- * class has multiple caches. That is contrary to a "custom" solution using `std::mutex` where one
+ * class has multiple caches. That is contrary to a "custom" solution using `Mutex` where one
  * mutex could protect multiple caches at the cost of higher lock contention.
  *
  * To make sure the cache is up to date, call `CacheMutex::ensure` and pass in the function that
@@ -63,15 +63,15 @@
  */
 
 #include <atomic>
-#include <mutex>
 
 #include "BLI_function_ref.hh"
+#include "BLI_mutex.hh"
 
 namespace blender {
 
 class CacheMutex {
  private:
-  std::mutex mutex_;
+  Mutex mutex_;
   std::atomic<bool> cache_valid_ = false;
 
  public:

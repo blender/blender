@@ -186,7 +186,7 @@ static bake::BakeSocketConfig make_bake_socket_config(const Span<NodeGeometryBak
  */
 struct DummyDataBlockMap : public bake::BakeDataBlockMap {
  private:
-  std::mutex mutex_;
+  Mutex mutex_;
   Map<bake::BakeDataBlockID, ID *> map_;
 
  public:

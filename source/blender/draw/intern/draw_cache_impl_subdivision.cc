@@ -1580,7 +1580,7 @@ static void draw_subdiv_cache_ensure_mat_offsets(DRWSubdivCache &cache,
 static OpenSubdiv_EvaluatorCache *g_subdiv_evaluator_cache = nullptr;
 static uint64_t g_subdiv_evaluator_users = 0;
 /* The evaluator cache is global, so we cannot allow concurrent usage and need synchronization. */
-static std::mutex g_subdiv_eval_mutex;
+static Mutex g_subdiv_eval_mutex;
 
 static bool draw_subdiv_create_requested_buffers(Object &ob,
                                                  Mesh &mesh,

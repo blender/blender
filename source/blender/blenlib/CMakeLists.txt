@@ -337,6 +337,7 @@ set(SRC
   BLI_mesh_intersect.hh
   BLI_mmap.h
   BLI_multi_value_map.hh
+  BLI_mutex.hh
   BLI_noise.h
   BLI_noise.hh
   BLI_offset_indices.hh

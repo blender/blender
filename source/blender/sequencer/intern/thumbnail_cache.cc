@@ -8,6 +8,7 @@
 
 #include "BLI_map.hh"
 #include "BLI_math_base.h"
+#include "BLI_mutex.hh"
 #include "BLI_path_utils.hh"
 #include "BLI_set.hh"
 #include "BLI_task.hh"
@@ -38,7 +39,7 @@ static constexpr int MAX_THUMBNAILS = 5000;
 
 // #define DEBUG_PRINT_THUMB_JOB_TIMES
 
-static std::mutex thumb_cache_mutex;
+static Mutex thumb_cache_mutex;
 
 /* Thumbnail cache is a map keyed by media file path, with values being
  * the various thumbnails that are loaded for it (mostly images would contain just

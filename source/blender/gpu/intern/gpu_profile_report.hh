@@ -3,7 +3,9 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_map.hh"
+#include "BLI_mutex.hh"
 #include "BLI_string_ref.hh"
+
 #include <fmt/format.h>
 #include <fstream>
 #include <iostream>
@@ -16,7 +18,7 @@ namespace blender::gpu {
 class ProfileReport {
  private:
   std::fstream _report;
-  std::mutex _mutex;
+  Mutex _mutex;
   Map<size_t, int> _thread_ids;
 
   ProfileReport()

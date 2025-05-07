@@ -100,7 +100,7 @@ struct CurvesBatchCache {
    * some locking would be necessary because multiple objects can use the same curves data with
    * different materials, etc. This is a placeholder to make multi-threading easier in the future.
    */
-  std::mutex render_mutex;
+  Mutex render_mutex;
 };
 
 static bool batch_cache_is_dirty(const Curves &curves)

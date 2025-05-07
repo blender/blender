@@ -332,7 +332,7 @@ void Instances::remove_unused_references()
   const Span<int> reference_handles = this->reference_handles();
 
   Array<bool> usage_by_handle(tot_references_before, false);
-  std::mutex mutex;
+  Mutex mutex;
 
   /* Loop over all instances to see which references are used. */
   threading::parallel_for(IndexRange(tot_instances), 1000, [&](IndexRange range) {

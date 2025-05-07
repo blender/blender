@@ -12,6 +12,7 @@
 #  include <cstdint>
 #  include <mutex>
 
+#  include "BLI_mutex.hh"
 #  include "BLI_threads.h"
 #  include "BLI_vector.hh"
 
@@ -39,7 +40,7 @@ struct SwscaleContext {
   bool is_used = false;
 };
 
-static std::mutex swscale_cache_lock;
+static blender::Mutex swscale_cache_lock;
 static int64_t swscale_cache_timestamp = 0;
 static blender::Vector<SwscaleContext> *swscale_cache = nullptr;
 

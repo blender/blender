@@ -5,9 +5,9 @@
 #pragma once
 
 #include <cstdint>
-#include <mutex>
 
 #include "BLI_compute_context.hh"
+#include "BLI_mutex.hh"
 #include "BLI_vector.hh"
 
 struct bNodeTree;
@@ -32,7 +32,7 @@ struct ClosureSourceLocation {
 };
 
 struct ClosureEvalLog {
-  std::mutex mutex;
+  Mutex mutex;
   Vector<ClosureEvalLocation> evaluations;
 };
 

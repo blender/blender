@@ -9,11 +9,11 @@
 #pragma once
 
 #include <memory>
-#include <mutex>
 
 #include "BLI_cache_mutex.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_multi_value_map.hh"
+#include "BLI_mutex.hh"
 #include "BLI_set.hh"
 #include "BLI_utility_mixins.hh"
 #include "BLI_vector.hh"
@@ -70,7 +70,7 @@ struct NodeLinkError {
 };
 
 struct LoggedZoneGraphs {
-  std::mutex mutex;
+  Mutex mutex;
   /**
    * Technically there can be more than one graph per zone because the zone can be invoked in
    * different contexts. However, for the purpose of logging here, we only need one at a time
@@ -158,7 +158,7 @@ class bNodeTreeRuntime : NonCopyable, NonMovable {
    * evaluate the node group. Caching it here allows us to reuse the preprocessed node tree in case
    * its used multiple times.
    */
-  std::mutex geometry_nodes_lazy_function_graph_info_mutex;
+  Mutex geometry_nodes_lazy_function_graph_info_mutex;
   std::unique_ptr<nodes::GeometryNodesLazyFunctionGraphInfo>
       geometry_nodes_lazy_function_graph_info;
 

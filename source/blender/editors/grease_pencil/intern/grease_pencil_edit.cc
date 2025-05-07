@@ -2407,7 +2407,7 @@ static struct Clipboard {
 } *grease_pencil_clipboard = nullptr;
 
 /** The clone brush accesses the clipboard from multiple threads. Protect from parallel access. */
-std::mutex grease_pencil_clipboard_lock;
+blender::Mutex grease_pencil_clipboard_lock;
 
 static Clipboard &ensure_grease_pencil_clipboard()
 {

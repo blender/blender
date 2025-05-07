@@ -238,7 +238,7 @@ struct StepData {
 
   bool applied;
 
-  std::mutex nodes_mutex;
+  Mutex nodes_mutex;
 
   /**
    * #undo::Node is stored per #pbvh::Node to reduce data storage needed for changes only impacting

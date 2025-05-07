@@ -950,7 +950,7 @@ static void check_property_socket_sync(const Object *ob,
 
 class NodesModifierBakeDataBlockMap : public bake::BakeDataBlockMap {
   /** Protects access to `new_mappings` which may be added to from multiple threads. */
-  std::mutex mutex_;
+  Mutex mutex_;
 
  public:
   Map<bake::BakeDataBlockID, ID *> old_mappings;

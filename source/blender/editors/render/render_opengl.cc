@@ -9,7 +9,6 @@
 #include <condition_variable>
 #include <cstddef>
 #include <cstring>
-#include <mutex>
 
 #include "MEM_guardedalloc.h"
 
@@ -17,6 +16,7 @@
 #include "BLI_fileops.h"
 #include "BLI_listbase.h"
 #include "BLI_math_color_blend.h"
+#include "BLI_mutex.hh"
 #include "BLI_string.h"
 #include "BLI_task.h"
 #include "BLI_task.hh"
@@ -113,7 +113,7 @@ struct OGLRender : public RenderJobBase {
 
   GPUViewport *viewport = nullptr;
 
-  std::mutex reports_mutex;
+  blender::Mutex reports_mutex;
   ReportList *reports = nullptr;
 
   int cfrao = 0;

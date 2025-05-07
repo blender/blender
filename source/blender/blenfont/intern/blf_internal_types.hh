@@ -10,13 +10,13 @@
 
 #include <atomic>
 #include <cmath>
-#include <mutex>
 
 #include "DNA_vec_types.h"
 
 #include "BLF_api.hh"
 
 #include "BLI_map.hh"
+#include "BLI_mutex.hh"
 #include "BLI_vector.hh"
 
 #include "GPU_texture.hh"
@@ -397,5 +397,5 @@ struct FontBLF {
   FontBufInfoBLF buf_info;
 
   /** Mutex lock for glyph cache. */
-  std::mutex glyph_cache_mutex;
+  blender::Mutex glyph_cache_mutex;
 };

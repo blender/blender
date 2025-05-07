@@ -90,7 +90,7 @@ struct PointCloudBatchCache {
    * some locking would be necessary because multiple objects can use the same object data with
    * different materials, etc. This is a placeholder to make multi-threading easier in the future.
    */
-  std::mutex render_mutex;
+  Mutex render_mutex;
 };
 
 static PointCloudBatchCache *pointcloud_batch_cache_get(PointCloud &pointcloud)

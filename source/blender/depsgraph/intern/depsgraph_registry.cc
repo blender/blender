@@ -6,9 +6,8 @@
  * \ingroup depsgraph
  */
 
-#include <mutex>
-
 #include "BLI_map.hh"
+#include "BLI_mutex.hh"
 #include "BLI_vector_set.hh"
 
 #include "intern/depsgraph_registry.hh"
@@ -27,7 +26,7 @@ namespace blender::deg {
 using GraphSetPtr = std::unique_ptr<VectorSet<Depsgraph *>>;
 struct GraphRegistry {
   Map<Main *, GraphSetPtr> map;
-  std::mutex mutex;
+  Mutex mutex;
 };
 
 static GraphRegistry &get_graph_registry()
@@ -41,7 +40,7 @@ void register_graph(Depsgraph *depsgraph)
   GraphRegistry &graph_registry = get_graph_registry();
   Main *bmain = depsgraph->bmain;
 
-  std::lock_guard<std::mutex> lock{graph_registry.mutex};
+  std::lock_guard lock{graph_registry.mutex};
   graph_registry.map
       .lookup_or_add_cb(bmain, []() { return std::make_unique<VectorSet<Depsgraph *>>(); })
       ->add_new(depsgraph);
@@ -52,7 +51,7 @@ void unregister_graph(Depsgraph *depsgraph)
   Main *bmain = depsgraph->bmain;
   GraphRegistry &graph_registry = get_graph_registry();
 
-  std::lock_guard<std::mutex> lock{graph_registry.mutex};
+  std::lock_guard lock{graph_registry.mutex};
   GraphSetPtr &graphs = graph_registry.map.lookup(bmain);
   graphs->remove(depsgraph);
 
@@ -65,7 +64,7 @@ void unregister_graph(Depsgraph *depsgraph)
 Span<Depsgraph *> get_all_registered_graphs(Main *bmain)
 {
   GraphRegistry &graph_registry = get_graph_registry();
-  std::lock_guard<std::mutex> lock{graph_registry.mutex};
+  std::lock_guard lock{graph_registry.mutex};
   GraphSetPtr *graphs = graph_registry.map.lookup_ptr(bmain);
   if (graphs) {
     return **graphs;

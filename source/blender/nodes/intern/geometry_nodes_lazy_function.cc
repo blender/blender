@@ -1738,7 +1738,7 @@ class GeometryNodesLazyFunctionLogger : public lf::GraphExecutor::Logger {
     }
   }
 
-  static inline std::mutex dump_error_context_mutex;
+  static inline Mutex dump_error_context_mutex;
 
   void dump_when_outputs_are_missing(const lf::FunctionNode &node,
                                      Span<const lf::OutputSocket *> missing_sockets,

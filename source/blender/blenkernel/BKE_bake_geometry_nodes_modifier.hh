@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "BLI_mutex.hh"
 #include "BLI_sub_frame.hh"
 
 #include "BKE_bake_items.hh"
@@ -98,7 +99,7 @@ struct BakeNodeCache {
 };
 
 struct ModifierCache {
-  mutable std::mutex mutex;
+  mutable Mutex mutex;
   /**
    * Set of nested node IDs (see #bNestedNodeRef) that is expected to be baked in the next
    * evaluation. This is filled and cleared by the bake operator.

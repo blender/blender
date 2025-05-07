@@ -14,7 +14,6 @@
 #  include <functional>
 #  include <iostream>
 #  include <memory>
-#  include <mutex>
 #  include <numeric>
 
 #  include "BLI_array.hh"
@@ -28,6 +27,7 @@
 #  include "BLI_math_vector.h"
 #  include "BLI_math_vector_mpq_types.hh"
 #  include "BLI_math_vector_types.hh"
+#  include "BLI_mutex.hh"
 #  include "BLI_polyfill_2d.h"
 #  include "BLI_set.hh"
 #  include "BLI_sort.hh"
@@ -329,7 +329,7 @@ class IMeshArena::IMeshArenaImpl : NonCopyable, NonMovable {
   int next_face_id_ = 0;
 
   /* Need a lock when multi-threading to protect allocation of new elements. */
-  std::mutex mutex_;
+  Mutex mutex_;
 
  public:
   void reserve(int vert_num_hint, int face_num_hint)

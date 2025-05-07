@@ -9,7 +9,6 @@
 #include <cerrno>
 #include <cstddef>
 #include <fcntl.h>
-#include <mutex>
 #include <sys/types.h>
 
 #ifndef WIN32
@@ -25,6 +24,7 @@
 
 #include "BLI_fileops.h"
 #include "BLI_listbase.h"
+#include "BLI_mutex.hh"
 #include "BLI_rect.h"
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
@@ -682,7 +682,7 @@ struct PrefetchQueue {
    */
   bool forward;
 
-  std::mutex mutex;
+  blender::Mutex mutex;
 
   bool *stop;
   bool *do_update;

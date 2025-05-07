@@ -62,7 +62,7 @@ struct FileCache {
  * Singleton cache that's shared throughout the application.
  */
 struct GlobalCache {
-  std::mutex mutex;
+  Mutex mutex;
   Map<std::string, FileCache> file_map;
 };
 

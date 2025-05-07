@@ -15,16 +15,16 @@
 
 #include "BLI_listbase.h"
 #include "BLI_map.hh"
+#include "BLI_mutex.hh"
 #include "BLI_vector_set.hh"
 
 #include <cstring>
-#include <mutex>
 
 #include "MEM_guardedalloc.h"
 
 namespace blender::seq {
 
-static std::mutex lookup_lock;
+static Mutex lookup_lock;
 
 struct StripLookup {
   blender::Map<std::string, Strip *> strip_by_name;

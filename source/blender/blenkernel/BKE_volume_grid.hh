@@ -13,13 +13,13 @@
 #ifdef WITH_OPENVDB
 
 #  include <functional>
-#  include <mutex>
 #  include <optional>
 
 #  include "BKE_volume_enums.hh"
 #  include "BKE_volume_grid_type_traits.hh"
 
 #  include "BLI_implicit_sharing_ptr.hh"
+#  include "BLI_mutex.hh"
 #  include "BLI_string_ref.hh"
 
 #  include "openvdb_fwd.hh"
@@ -80,7 +80,7 @@ class VolumeGridData : public ImplicitSharingMixin {
   /**
    * A mutex that needs to be locked whenever working with the data members below.
    */
-  mutable std::mutex mutex_;
+  mutable Mutex mutex_;
   /**
    * The actual grid. Depending on the current state, is in one of multiple possible states:
    * - Empty: When the grid is lazy-loaded and no meta-data is provided.
