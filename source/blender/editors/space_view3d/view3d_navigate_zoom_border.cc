@@ -37,7 +37,6 @@ static wmOperatorStatus view3d_zoom_border_exec(bContext *C, wmOperator *op)
   /* Zooms in on a border drawn by the user */
   rcti rect;
   float dvec[3], vb[2], xscale, yscale;
-  float dist_range[2];
 
   /* SMOOTHVIEW */
   float dist_new;
@@ -56,7 +55,7 @@ static wmOperatorStatus view3d_zoom_border_exec(bContext *C, wmOperator *op)
   /* check if zooming in/out view */
   const bool zoom_in = !RNA_boolean_get(op->ptr, "zoom_out");
 
-  ED_view3d_dist_range_get(v3d, dist_range);
+  const blender::Bounds<float> dist_range = ED_view3d_dist_soft_range_get(v3d, rv3d->is_persp);
 
   ED_view3d_depth_override(CTX_data_ensure_evaluated_depsgraph(C),
                            region,
@@ -114,9 +113,6 @@ static wmOperatorStatus view3d_zoom_border_exec(bContext *C, wmOperator *op)
 
     /* Account for the lens, without this a narrow lens zooms in too close. */
     dist_new *= (v3d->lens / DEFAULT_SENSOR_WIDTH);
-
-    /* ignore dist_range min */
-    dist_range[0] = v3d->clip_start * 1.5f;
   }
   else { /* orthographic */
     /* find the current window width and height */
@@ -163,7 +159,7 @@ static wmOperatorStatus view3d_zoom_border_exec(bContext *C, wmOperator *op)
   }
 
   /* clamp after because we may have been zooming out */
-  CLAMP(dist_new, dist_range[0], dist_range[1]);
+  CLAMP(dist_new, dist_range.min, dist_range.max);
 
   const bool is_camera_lock = ED_view3d_camera_lock_check(v3d, rv3d);
   if (rv3d->persp == RV3D_CAMOB) {

@@ -148,10 +148,17 @@ Camera *ED_view3d_camera_data_get(View3D *v3d, RegionView3D *rv3d)
   return nullptr;
 }
 
-void ED_view3d_dist_range_get(const View3D *v3d, float r_dist_range[2])
+float ED_view3d_dist_soft_min_get(const View3D *v3d, const bool use_persp_range)
 {
-  r_dist_range[0] = v3d->grid * 0.001f;
-  r_dist_range[1] = v3d->clip_end * 10.0f;
+  return use_persp_range ? (v3d->clip_start * 1.5f) : v3d->grid * 0.001f;
+}
+
+blender::Bounds<float> ED_view3d_dist_soft_range_get(const View3D *v3d, const bool use_persp_range)
+{
+  return {
+      ED_view3d_dist_soft_min_get(v3d, use_persp_range),
+      v3d->clip_end * 10.0f,
+  };
 }
 
 bool ED_view3d_clip_range_get(const Depsgraph *depsgraph,

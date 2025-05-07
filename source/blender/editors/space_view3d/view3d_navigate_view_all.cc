@@ -134,8 +134,9 @@ static void view3d_from_minmax(bContext *C,
       dist_new = ED_view3d_radius_to_dist(
           v3d, region, depsgraph, persp, true, (size / 2) * VIEW3D_MARGIN);
       if (rv3d->is_persp) {
-        /* don't zoom closer than the near clipping plane */
-        dist_new = max_ff(dist_new, v3d->clip_start * 1.5f);
+        /* Don't zoom closer than the near clipping plane. */
+        const float dist_min = ED_view3d_dist_soft_min_get(v3d, true);
+        CLAMP_MIN(dist_new, dist_min);
       }
     }
   }

@@ -75,7 +75,13 @@ typedef struct RegionView3D {
 
   /** View rotation, must be kept normalized. */
   float viewquat[4];
-  /** Distance from 'ofs' along -viewinv[2] vector, where result is negative as is 'ofs'. */
+  /**
+   * Distance from `ofs` along `-viewinv[2]` vector, where result is negative as is `ofs`.
+   *
+   * \note Besides being above zero, the range of this value is not strictly defined,
+   * see #ED_view3d_dist_soft_range_get to calculate a working range
+   * viewport "zoom" functons to use.
+   */
   float dist;
   /** Camera view offsets, 1.0 = viewplane moves entire width/height. */
   float camdx, camdy;
