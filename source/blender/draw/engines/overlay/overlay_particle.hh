@@ -43,7 +43,7 @@ class Particles : Overlay {
  public:
   void begin_sync(Resources &res, const State &state) final
   {
-    enabled_ = state.is_space_v3d() && state.has_particles;
+    enabled_ = state.is_space_v3d();
 
     if (!enabled_) {
       return;

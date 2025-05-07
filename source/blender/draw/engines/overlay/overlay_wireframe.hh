@@ -100,22 +100,10 @@ class Wireframe : Overlay {
 
       auto coloring_pass = [&](ColoringPass &ps, bool use_color) {
         overlay::ShaderModule &sh = *res.shaders;
-        ps.mesh_ps_ = nullptr;
-        if (state.has_mesh) {
-          ps.mesh_ps_ = shader_pass(sh.wireframe_mesh.get(), "Mesh", use_color, wire_threshold);
-        }
-        ps.mesh_all_edges_ps_ = nullptr;
-        if (state.has_mesh || state.has_volume) {
-          ps.mesh_all_edges_ps_ = shader_pass(sh.wireframe_mesh.get(), "Wire", use_color, 1.0f);
-        }
-        ps.pointcloud_ps_ = nullptr;
-        if (state.has_ptcloud || state.has_volume || state.has_mesh) {
-          ps.pointcloud_ps_ = shader_pass(sh.wireframe_points.get(), "PtCloud", use_color, 1.0f);
-        }
-        ps.curves_ps_ = nullptr;
-        if (state.has_curve) {
-          ps.curves_ps_ = shader_pass(sh.wireframe_curve.get(), "Curve", use_color, 1.0f);
-        }
+        ps.mesh_ps_ = shader_pass(sh.wireframe_mesh.get(), "Mesh", use_color, wire_threshold);
+        ps.mesh_all_edges_ps_ = shader_pass(sh.wireframe_mesh.get(), "Wire", use_color, 1.0f);
+        ps.pointcloud_ps_ = shader_pass(sh.wireframe_points.get(), "PtCloud", use_color, 1.0f);
+        ps.curves_ps_ = shader_pass(sh.wireframe_curve.get(), "Curve", use_color, 1.0f);
       };
 
       coloring_pass(non_colored, false);

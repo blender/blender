@@ -122,16 +122,6 @@ void Instance::init()
     ED_space_image_get_aspect(space_image, &state.image_aspect.x, &state.image_aspect.y);
   }
 
-  state.has_mesh = DEG_id_type_any_exists(state.depsgraph, ID_ME);
-  state.has_curve = DEG_id_type_any_exists(state.depsgraph, ID_CV) ||
-                    DEG_id_type_any_exists(state.depsgraph, ID_CU_LEGACY);
-  state.has_volume = DEG_id_type_any_exists(state.depsgraph, ID_VO);
-  state.has_gpencil = DEG_id_type_any_exists(state.depsgraph, ID_GP);
-  state.has_armature = DEG_id_type_any_exists(state.depsgraph, ID_AR);
-  state.has_particles = DEG_id_type_any_exists(state.depsgraph, ID_PA);
-  state.has_lattice = DEG_id_type_any_exists(state.depsgraph, ID_LT);
-  state.has_ptcloud = DEG_id_type_any_exists(state.depsgraph, ID_PT);
-
   resources.update_theme_settings(ctx, state);
   resources.update_clip_planes(state);
 

@@ -54,9 +54,7 @@ class Curves : Overlay {
  public:
   void begin_sync(Resources &res, const State &state) final
   {
-    enabled_ =
-        state.is_space_v3d() && state.has_curve &&
-        ELEM(state.ctx_mode, CTX_MODE_EDIT_CURVE, CTX_MODE_EDIT_CURVES, CTX_MODE_EDIT_SURFACE);
+    enabled_ = state.is_space_v3d();
 
     if (!enabled_) {
       return;

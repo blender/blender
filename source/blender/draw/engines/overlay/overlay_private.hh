@@ -169,15 +169,6 @@ struct State {
   float2 image_uv_aspect = float2(0.0f);
   float2 image_aspect = float2(0.0f);
 
-  bool has_mesh;
-  bool has_curve;
-  bool has_volume;
-  bool has_gpencil;
-  bool has_armature;
-  bool has_particles;
-  bool has_lattice;
-  bool has_ptcloud;
-
   View::OffsetData offset_data_get() const
   {
     if (rv3d == nullptr) {

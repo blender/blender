@@ -69,43 +69,37 @@ class Outline : Overlay {
       pass.clear_color_depth_stencil(float4(0.0f), 1.0f, 0x0);
       pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL,
                      state.clipping_plane_count);
-      prepass_curves_ps_ = nullptr;
-      if (state.has_curve) {
+      {
         auto &sub = pass.sub("Curves");
         sub.shader_set(res.shaders->outline_prepass_curves.get());
         sub.push_constant("is_transform", is_transform);
         prepass_curves_ps_ = &sub;
       }
-      prepass_pointcloud_ps_ = nullptr;
-      if (state.has_ptcloud) {
+      {
         auto &sub = pass.sub("PointCloud");
         sub.shader_set(res.shaders->outline_prepass_pointcloud.get());
         sub.push_constant("is_transform", is_transform);
         prepass_pointcloud_ps_ = &sub;
       }
-      prepass_gpencil_ps_ = nullptr;
-      if (state.has_gpencil) {
+      {
         auto &sub = pass.sub("GreasePencil");
         sub.shader_set(res.shaders->outline_prepass_gpencil.get());
         sub.push_constant("is_transform", is_transform);
         prepass_gpencil_ps_ = &sub;
       }
-      prepass_mesh_ps_ = nullptr;
-      if (state.has_mesh) {
+      {
         auto &sub = pass.sub("Mesh");
         sub.shader_set(res.shaders->outline_prepass_mesh.get());
         sub.push_constant("is_transform", is_transform);
         prepass_mesh_ps_ = &sub;
       }
-      prepass_volume_ps_ = nullptr;
-      if (state.has_volume) {
+      {
         auto &sub = pass.sub("Volume");
         sub.shader_set(res.shaders->outline_prepass_mesh.get());
         sub.push_constant("is_transform", is_transform);
         prepass_volume_ps_ = &sub;
       }
-      prepass_wire_ps_ = nullptr;
-      if (state.has_mesh) {
+      {
         auto &sub = pass.sub("Wire");
         sub.shader_set(res.shaders->outline_prepass_wire.get());
         sub.push_constant("is_transform", is_transform);

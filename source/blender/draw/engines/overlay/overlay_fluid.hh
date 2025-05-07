@@ -36,18 +36,11 @@ class Fluids : Overlay {
 
   int dominant_axis = -1;
 
-  bool enabled_ = false;
-
  public:
   Fluids(const SelectionType selection_type) : selection_type_(selection_type){};
 
   void begin_sync(Resources &res, const State &state) final
   {
-    enabled_ = state.has_volume;
-    if (!enabled_) {
-      return;
-    }
-
     /* Against design. Should not sync depending on view. */
     float3 camera_direction = blender::draw::View::default_get().viewinv().z_axis();
     dominant_axis = math::dominant_axis(camera_direction);
@@ -88,10 +81,6 @@ class Fluids : Overlay {
                    Resources &res,
                    const State &state) final
   {
-    if (!enabled_) {
-      return;
-    }
-
     Object *ob = ob_ref.object;
 
     /* Do not show for dupli objects as the fluid is baked for the original object. */
@@ -247,10 +236,6 @@ class Fluids : Overlay {
 
   void end_sync(Resources &res, const State & /*state*/) final
   {
-    if (!enabled_) {
-      return;
-    }
-
     fluid_ps_.shader_set(res.shaders->extra_shape.get());
     fluid_ps_.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
     fluid_ps_.bind_ubo(DRW_CLIPPING_UBO_SLOT, &res.clip_planes_buf);
@@ -260,10 +245,6 @@ class Fluids : Overlay {
 
   void draw_line(Framebuffer &framebuffer, Manager &manager, View &view) final
   {
-    if (!enabled_) {
-      return;
-    }
-
     GPU_framebuffer_bind(framebuffer);
     manager.submit(fluid_ps_, view);
   }
