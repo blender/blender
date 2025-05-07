@@ -54,7 +54,7 @@ int uiTemplateStatusBarModalItem(uiLayout *layout,
     return 1;
   }
 
-  /* Try to merge some known XYZ items to save horizontal space. */
+  /* Try to merge some known triplet items to save horizontal space. */
   const EnumPropertyItem *item_y = (item[1].identifier) ? item + 1 : nullptr;
   const EnumPropertyItem *item_z = (item_y && item[2].identifier) ? item + 2 : nullptr;
   const wmKeyMapItem *kmi_y = keymap_item_from_enum_item(keymap, item_y);
@@ -91,22 +91,62 @@ int uiTemplateStatusBarModalItem(uiLayout *layout,
         }
       }
       uiItemL(layout, "", icon);
-      uiItemS_ex(layout, -0.4f);
+      uiItemS_ex(layout, ui_event_icon_offset(icon));
 
 #ifndef WITH_HEADLESS
       icon = UI_icon_from_keymap_item(kmi_y, icon_mod);
 #endif
       uiItemL(layout, "", icon);
-      uiItemS_ex(layout, -0.4f);
+      uiItemS_ex(layout, ui_event_icon_offset(icon));
 
 #ifndef WITH_HEADLESS
       icon = UI_icon_from_keymap_item(kmi_z, icon_mod);
 #endif
       uiItemL(layout, "", icon);
-      uiItemS_ex(layout, -0.18f);
+      uiItemS_ex(layout, ui_event_icon_offset(icon));
+      uiItemS_ex(layout, 0.2f);
       uiItemL(layout, xyz_label, ICON_NONE);
       uiItemS_ex(layout, 0.6f);
       return 3;
+    }
+  }
+
+  /* Try to merge some known paired items to save horizontal space. */
+  if (kmi_y && keymap_item_can_collapse(kmi, kmi_y)) {
+    const char *ab_label = nullptr;
+
+    if (STREQ(item->identifier, "PROPORTIONAL_SIZE_UP") &&
+        STREQ(item_y->identifier, "PROPORTIONAL_SIZE_DOWN"))
+    {
+      ab_label = IFACE_("Proportional Size");
+    }
+
+    if (ab_label) {
+      int icon_mod[KM_MOD_NUM] = {0};
+#ifdef WITH_HEADLESS
+      int icon = 0;
+#else
+      int icon = UI_icon_from_keymap_item(kmi, icon_mod);
+#endif
+      for (int j = 0; j < ARRAY_SIZE(icon_mod) && icon_mod[j]; j++) {
+        uiItemL(layout, "", icon_mod[j]);
+        const float offset = ui_event_icon_offset(icon_mod[j]);
+        if (offset != 0.0f) {
+          uiItemS_ex(layout, offset);
+        }
+      }
+      uiItemL(layout, "", icon);
+      uiItemS_ex(layout, ui_event_icon_offset(icon));
+
+#ifndef WITH_HEADLESS
+      icon = UI_icon_from_keymap_item(kmi_y, icon_mod);
+#endif
+      uiItemL(layout, "", icon);
+      uiItemS_ex(layout, ui_event_icon_offset(icon));
+      uiItemS_ex(layout, 0.2f);
+      uiItemL(layout, ab_label, ICON_NONE);
+      uiItemS_ex(layout, 0.6f);
+      return 2;
     }
   }
 
