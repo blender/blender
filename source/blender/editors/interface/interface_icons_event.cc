@@ -142,6 +142,8 @@ float ui_event_icon_offset(const int icon_id)
            ICON_EVENT_DEL,
            ICON_EVENT_HOME,
            ICON_EVENT_END,
+           ICON_EVENT_PAGEUP,
+           ICON_EVENT_PAGEDOWN,
            ICON_EVENT_BACKSPACE,
            ICON_EVENT_PAUSE,
            ICON_EVENT_INSERT,
@@ -280,10 +282,12 @@ void icon_draw_rect_input(const float x,
     icon_draw_rect_input_text(&rect, IFACE_("Esc"), aspect, alpha, inverted, ICON_KEY_EMPTY2);
   }
   else if (icon_id == ICON_EVENT_PAGEUP) {
-    icon_draw_rect_input_text(&rect, "P" BLI_STR_UTF8_UPWARDS_ARROW, aspect, alpha, inverted);
+    icon_draw_rect_input_text(
+        &rect, "Pg" BLI_STR_UTF8_UPWARDS_ARROW, aspect, alpha, inverted, ICON_KEY_EMPTY2);
   }
   else if (icon_id == ICON_EVENT_PAGEDOWN) {
-    icon_draw_rect_input_text(&rect, "P" BLI_STR_UTF8_DOWNWARDS_ARROW, aspect, alpha, inverted);
+    icon_draw_rect_input_text(
+        &rect, "Pg" BLI_STR_UTF8_DOWNWARDS_ARROW, aspect, alpha, inverted, ICON_KEY_EMPTY2);
   }
   else if (icon_id == ICON_EVENT_LEFT_ARROW) {
     icon_draw_rect_input_text(&rect, BLI_STR_UTF8_LEFTWARDS_ARROW, aspect, alpha, inverted);
