@@ -730,9 +730,8 @@ static wmGizmo *gizmo_find_intersected_3d(bContext *C,
         /* Use a small value so it's possible to accurately pick a gizmo
          * when multiple are overlapping. */
         int(3.0f * UI_SCALE_FAC),
-        /* Use a larger value as a fallback so wire gizmos aren't difficult to click on.
-         * This value has been selected for both mouse & tablet motion, see !136847. */
-        int(12.0f * UI_SCALE_FAC),
+        /* Use a larger value as a fallback so wire gizmos aren't difficult to click on. */
+        int(10.0f * UI_SCALE_FAC),
     };
     for (int i = 0; i < ARRAY_SIZE(hotspot_radii); i++) {
       hit = gizmo_find_intersected_3d_intern(
