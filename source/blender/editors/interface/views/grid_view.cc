@@ -387,7 +387,7 @@ void GridViewLayoutBuilder::build_grid_tile(const bContext &C,
                                             uiLayout &grid_layout,
                                             AbstractGridViewItem &item) const
 {
-  uiLayout *overlap = uiLayoutOverlap(&grid_layout);
+  uiLayout *overlap = &grid_layout.overlap();
   uiLayoutSetFixedSize(overlap, true);
 
   item.add_grid_tile_button(block_);

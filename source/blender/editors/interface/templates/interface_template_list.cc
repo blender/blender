@@ -732,7 +732,7 @@ static void ui_template_list_layout_draw(const bContext *C,
   switch (ui_list->layout_type) {
     case UILST_LAYOUT_DEFAULT: {
       /* layout */
-      box = uiLayoutListBox(layout, ui_list, &input_data->active_dataptr, input_data->activeprop);
+      box = &layout->list_box(ui_list, &input_data->active_dataptr, input_data->activeprop);
       glob = &box->column(true);
       row = &glob->row(false);
       col = &row->column(true);
@@ -755,7 +755,7 @@ static void ui_template_list_layout_draw(const bContext *C,
           const int flt_flag = items->item_vec[i].flt_flag;
           uiBlock *subblock = uiLayoutGetBlock(col);
 
-          overlap = uiLayoutOverlap(col);
+          overlap = &col->overlap();
 
           UI_block_flag_enable(subblock, UI_BLOCK_LIST_ITEM);
 
@@ -895,7 +895,7 @@ static void ui_template_list_layout_draw(const bContext *C,
       }
       break;
     case UILST_LAYOUT_GRID: {
-      box = uiLayoutListBox(layout, ui_list, &input_data->active_dataptr, input_data->activeprop);
+      box = &layout->list_box(ui_list, &input_data->active_dataptr, input_data->activeprop);
       glob = &box->column(true);
       row = &glob->row(false);
       col = &row->column(true);
@@ -917,7 +917,7 @@ static void ui_template_list_layout_draw(const bContext *C,
           }
 
           uiBlock *subblock = uiLayoutGetBlock(subrow);
-          overlap = uiLayoutOverlap(subrow);
+          overlap = &subrow->overlap();
 
           UI_block_flag_enable(subblock, UI_BLOCK_LIST_ITEM);
 
@@ -992,7 +992,7 @@ static void ui_template_list_layout_draw(const bContext *C,
       break;
     }
     case UILST_LAYOUT_BIG_PREVIEW_GRID:
-      box = uiLayoutListBox(layout, ui_list, &input_data->active_dataptr, input_data->activeprop);
+      box = &layout->list_box(ui_list, &input_data->active_dataptr, input_data->activeprop);
       /* For grip button. */
       glob = &box->column(true);
       /* For scroll-bar. */
@@ -1018,7 +1018,7 @@ static void ui_template_list_layout_draw(const bContext *C,
           const int org_i = items->item_vec[i].org_idx;
           const int flt_flag = items->item_vec[i].flt_flag;
 
-          overlap = uiLayoutOverlap(grid);
+          overlap = &grid->overlap();
           col = &overlap->column(false);
 
           uiBlock *subblock = uiLayoutGetBlock(col);

@@ -5187,13 +5187,10 @@ void ui_layout_list_set_labels_active(uiLayout *layout)
   }
 }
 
-uiLayout *uiLayoutListBox(uiLayout *layout,
-                          uiList *ui_list,
-                          PointerRNA *actptr,
-                          PropertyRNA *actprop)
+uiLayout &uiLayout::list_box(uiList *ui_list, PointerRNA *actptr, PropertyRNA *actprop)
 {
-  uiLayoutItemBx *box = ui_layout_box(layout, UI_BTYPE_LISTBOX);
-  uiBut *but = box->roundbox;
+  uiLayoutItemBx *item_box = ui_layout_box(this, UI_BTYPE_LISTBOX);
+  uiBut *but = item_box->roundbox;
 
   but->custom_data = ui_list;
 
@@ -5205,7 +5202,7 @@ uiLayout *uiLayoutListBox(uiLayout *layout,
     but->tip = RNA_property_description(actprop);
   }
 
-  return (uiLayout *)box;
+  return *item_box;
 }
 
 uiLayout &uiLayout::absolute(bool align)
@@ -5228,16 +5225,16 @@ uiBlock *uiLayout::absolute_block()
   return block;
 }
 
-uiLayout *uiLayoutOverlap(uiLayout *layout)
+uiLayout &uiLayout::overlap()
 {
   uiLayout *litem = MEM_new<uiLayout>(__func__);
-  ui_litem_init_from_parent(litem, layout, false);
+  ui_litem_init_from_parent(litem, this, false);
 
   litem->type_ = uiItemType::LayoutOverlap;
 
-  UI_block_layout_set_current(layout->root_->block, litem);
+  UI_block_layout_set_current(root_->block, litem);
 
-  return litem;
+  return *litem;
 }
 
 uiLayout &uiLayout::split(float percentage, bool align)
