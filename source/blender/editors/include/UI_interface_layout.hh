@@ -182,6 +182,12 @@ struct uiLayout : uiItem {
                        PointerRNA *open_prop_owner,
                        blender::StringRefNull open_prop_name,
                        blender::StringRef label);
+  PanelLayout panel_prop_with_bool_header(const bContext *C,
+                                          PointerRNA *open_prop_owner,
+                                          blender::StringRefNull open_prop_name,
+                                          PointerRNA *bool_prop_owner,
+                                          blender::StringRefNull bool_prop_name,
+                                          std::optional<blender::StringRefNull> label);
   /**
    * Variant of #panel_prop that automatically stores the open-close-state in the root
    * panel. When a dynamic number of panels is required, it's recommended to use #panel_prop
@@ -378,14 +384,6 @@ int uiLayoutListItemPaddingWidth();
 void uiLayoutListItemAddPadding(uiLayout *layout);
 
 /* Layout create functions. */
-
-PanelLayout uiLayoutPanelPropWithBoolHeader(const bContext *C,
-                                            uiLayout *layout,
-                                            PointerRNA *open_prop_owner,
-                                            blender::StringRefNull open_prop_name,
-                                            PointerRNA *bool_prop_owner,
-                                            blender::StringRefNull bool_prop_name,
-                                            std::optional<blender::StringRefNull> label);
 
 bool uiLayoutEndsWithPanelHeader(const uiLayout &layout);
 

@@ -289,12 +289,9 @@ static void panel_draw(const bContext *C, Panel *panel)
   }
 
   uiItemR(layout, ptr, "overshoot_factor", UI_ITEM_R_SLIDER, IFACE_("Used Length"), ICON_NONE);
-
-  if (uiLayout *random_layout =
-          uiLayoutPanelPropWithBoolHeader(
-              C, layout, ptr, "open_random_panel", ptr, "use_random", IFACE_("Randomize"))
-              .body)
-  {
+  PanelLayout random_panel_layout = layout->panel_prop_with_bool_header(
+      C, ptr, "open_random_panel", ptr, "use_random", IFACE_("Randomize"));
+  if (uiLayout *random_layout = random_panel_layout.body) {
     uiLayout *subcol = &random_layout->column(false);
     uiLayoutSetPropSep(subcol, true);
     uiLayoutSetActive(subcol, RNA_boolean_get(ptr, "use_random"));
@@ -306,12 +303,9 @@ static void panel_draw(const bContext *C, Panel *panel)
     uiItemR(subcol, ptr, "random_offset", UI_ITEM_NONE, IFACE_("Noise Offset"), ICON_NONE);
     uiItemR(subcol, ptr, "seed", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
-
-  if (uiLayout *curvature_layout =
-          uiLayoutPanelPropWithBoolHeader(
-              C, layout, ptr, "open_curvature_panel", ptr, "use_curvature", IFACE_("Curvature"))
-              .body)
-  {
+  PanelLayout curvature_panel_layout = layout->panel_prop_with_bool_header(
+      C, ptr, "open_curvature_panel", ptr, "use_curvature", IFACE_("Curvature"));
+  if (uiLayout *curvature_layout = curvature_panel_layout.body) {
     uiLayout *subcol = &curvature_layout->column(false);
     uiLayoutSetPropSep(subcol, true);
     uiLayoutSetActive(subcol, RNA_boolean_get(ptr, "use_curvature"));

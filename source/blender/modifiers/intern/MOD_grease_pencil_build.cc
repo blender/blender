@@ -790,28 +790,23 @@ static void panel_draw(const bContext *C, Panel *panel)
   }
   uiItemS(layout);
   uiItemR(layout, ptr, "object", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-
-  if (uiLayout *panel = uiLayoutPanelPropWithBoolHeader(C,
-                                                        layout,
-                                                        ptr,
-                                                        "open_frame_range_panel",
-                                                        ptr,
-                                                        "use_restrict_frame_range",
-                                                        IFACE_("Effective Range"))
-                            .body)
-  {
+  PanelLayout restrict_frame_range_layout = layout->panel_prop_with_bool_header(
+      C,
+      ptr,
+      "open_frame_range_panel",
+      ptr,
+      "use_restrict_frame_range",
+      IFACE_("Effective Range"));
+  if (uiLayout *panel = restrict_frame_range_layout.body) {
     const bool active = RNA_boolean_get(ptr, "use_restrict_frame_range");
     uiLayout *col = &panel->column(false);
     uiLayoutSetActive(col, active);
     uiItemR(col, ptr, "frame_start", UI_ITEM_NONE, IFACE_("Start"), ICON_NONE);
     uiItemR(col, ptr, "frame_end", UI_ITEM_NONE, IFACE_("End"), ICON_NONE);
   }
-
-  if (uiLayout *panel =
-          uiLayoutPanelPropWithBoolHeader(
-              C, layout, ptr, "open_fading_panel", ptr, "use_fading", IFACE_("Fading"))
-              .body)
-  {
+  PanelLayout fading_layout = layout->panel_prop_with_bool_header(
+      C, ptr, "open_fading_panel", ptr, "use_fading", IFACE_("Fading"));
+  if (uiLayout *panel = fading_layout.body) {
     const bool active = RNA_boolean_get(ptr, "use_fading");
     uiLayout *col = &panel->column(false);
     uiLayoutSetActive(col, active);
