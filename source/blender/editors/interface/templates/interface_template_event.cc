@@ -76,6 +76,13 @@ int uiTemplateStatusBarModalItem(uiLayout *layout,
       xyz_label = IFACE_("Plane");
     }
 
+    if (STREQ(item->identifier, "PROPORTIONAL_SIZE_UP") &&
+        STREQ(item_y->identifier, "PROPORTIONAL_SIZE_DOWN") &&
+        STREQ(item_z->identifier, "PROPORTIONAL_SIZE"))
+    {
+      xyz_label = IFACE_("Proportional Size");
+    }
+
     if (xyz_label) {
       int icon_mod[KM_MOD_NUM] = {0};
 #ifdef WITH_HEADLESS
