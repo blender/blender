@@ -101,8 +101,8 @@ static void view3d_from_minmax(bContext *C,
   ED_view3d_smooth_view_force_finish(C, v3d, region);
 
   /* SMOOTHVIEW */
-  float new_ofs[3];
-  float new_dist;
+  float ofs_new[3];
+  float dist_new;
 
   sub_v3_v3v3(afm, max, min);
   size = max_fff(afm[0], afm[1], afm[2]);
@@ -131,21 +131,21 @@ static void view3d_from_minmax(bContext *C,
 
     if (do_zoom) {
       Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-      new_dist = ED_view3d_radius_to_dist(
+      dist_new = ED_view3d_radius_to_dist(
           v3d, region, depsgraph, persp, true, (size / 2) * VIEW3D_MARGIN);
       if (rv3d->is_persp) {
         /* don't zoom closer than the near clipping plane */
-        new_dist = max_ff(new_dist, v3d->clip_start * 1.5f);
+        dist_new = max_ff(dist_new, v3d->clip_start * 1.5f);
       }
     }
   }
 
-  mid_v3_v3v3(new_ofs, min, max);
-  negate_v3(new_ofs);
+  mid_v3_v3v3(ofs_new, min, max);
+  negate_v3(ofs_new);
 
   V3D_SmoothParams sview = {nullptr};
-  sview.ofs = new_ofs;
-  sview.dist = do_zoom ? &new_dist : nullptr;
+  sview.ofs = ofs_new;
+  sview.dist = do_zoom ? &dist_new : nullptr;
   /* The caller needs to use undo begin/end calls. */
   sview.undo_str = nullptr;
 
