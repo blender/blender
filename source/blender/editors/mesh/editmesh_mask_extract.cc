@@ -337,11 +337,11 @@ static void geometry_extract_props(StructRNA *srna)
                   "Extract the mask as a solid object with a solidify modifier");
 }
 
-void MESH_OT_paint_mask_extract(wmOperatorType *ot)
+void SCULPT_OT_paint_mask_extract(wmOperatorType *ot)
 {
   ot->name = "Mask Extract";
   ot->description = "Create a new mesh object from the current paint mask";
-  ot->idname = "MESH_OT_paint_mask_extract";
+  ot->idname = "SCULPT_OT_paint_mask_extract";
 
   ot->poll = geometry_extract_poll;
   ot->invoke = paint_mask_extract_invoke;
@@ -389,11 +389,11 @@ static wmOperatorStatus face_set_extract_invoke(bContext *C, wmOperator *op, con
   return geometry_extract_apply(C, op, geometry_extract_tag_face_set, &params);
 }
 
-void MESH_OT_face_set_extract(wmOperatorType *ot)
+void SCULPT_OT_face_set_extract(wmOperatorType *ot)
 {
   ot->name = "Face Set Extract";
   ot->description = "Create a new mesh object from the selected Face Set";
-  ot->idname = "MESH_OT_face_set_extract";
+  ot->idname = "SCULPT_OT_face_set_extract";
 
   ot->poll = geometry_extract_poll;
   ot->invoke = face_set_extract_invoke;
@@ -552,13 +552,13 @@ static wmOperatorStatus paint_mask_slice_exec(bContext *C, wmOperator *op)
   return OPERATOR_FINISHED;
 }
 
-void MESH_OT_paint_mask_slice(wmOperatorType *ot)
+void SCULPT_OT_paint_mask_slice(wmOperatorType *ot)
 {
   PropertyRNA *prop;
 
   ot->name = "Mask Slice";
   ot->description = "Slices the paint mask from the mesh";
-  ot->idname = "MESH_OT_paint_mask_slice";
+  ot->idname = "SCULPT_OT_paint_mask_slice";
 
   ot->poll = geometry_extract_poll;
   ot->exec = paint_mask_slice_exec;
