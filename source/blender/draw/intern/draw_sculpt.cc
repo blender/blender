@@ -16,6 +16,7 @@
 
 #include "BKE_attribute.hh"
 #include "BKE_customdata.hh"
+#include "BKE_material.hh"
 #include "BKE_object.hh"
 #include "BKE_paint.hh"
 
@@ -114,11 +115,14 @@ static Vector<SculptBatch> sculpt_batches_get_ex(const Object *ob,
 
   const Span<int> material_indices = draw_data.ensure_material_indices(*ob);
 
+  const int max_material = BKE_object_material_count_eval(ob);
   Vector<SculptBatch> result_batches(visible_nodes.size());
   visible_nodes.foreach_index([&](const int i, const int pos) {
     result_batches[pos] = {};
     result_batches[pos].batch = batches[i];
-    result_batches[pos].material_slot = material_indices.is_empty() ? 0 : material_indices[i];
+    result_batches[pos].material_slot = material_indices.is_empty() ?
+                                            0 :
+                                            std::min(material_indices[i], max_material);
     result_batches[pos].debug_index = pos;
   });
 
