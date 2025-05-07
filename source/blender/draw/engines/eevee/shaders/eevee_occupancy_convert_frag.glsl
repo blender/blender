@@ -57,7 +57,7 @@ void main()
 #endif
 
   /* Convert to occupancy bits. */
-  OccupancyBits occupancy = occupancy_new();
+  occupancy::Bits occupancy = occupancy::occupancy_new();
   /* True if last interface was a volume entry. */
   /* Initialized to front facing if first hit is a backface to support camera inside the volume. */
   bool last_frontfacing = !is_front_face_hit(hit_ordered[0]);
@@ -74,8 +74,8 @@ void main()
     }
     last_frontfacing = frontfacing;
 
-    int occupancy_bit_n = occupancy_bit_index_from_depth(abs(hit_ordered[i]),
-                                                         uniform_buf.volumes.tex_size.z);
+    int occupancy_bit_n = occupancy::bit_index_from_depth(abs(hit_ordered[i]),
+                                                          uniform_buf.volumes.tex_size.z);
     if (last_bit == occupancy_bit_n) {
       /* We did not cross a new voxel center. Do nothing. */
       continue;
@@ -85,10 +85,10 @@ void main()
     last_bit = occupancy_bit_n;
 
     if (last_frontfacing == false) {
-      /* OccupancyBits is cleared by default. No need to do anything for empty regions. */
+      /* occupancy::Bits is cleared by default. No need to do anything for empty regions. */
       continue;
     }
-    occupancy = occupancy_set_bits_high(occupancy, bit_start, bit_count);
+    occupancy = occupancy::set_bits_high(occupancy, bit_start, bit_count);
   }
 
   /* Write the occupancy bits */
