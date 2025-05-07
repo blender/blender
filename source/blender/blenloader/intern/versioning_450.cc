@@ -4580,7 +4580,7 @@ static bool all_scenes_use(Main *bmain, const blender::Span<const char *> engine
   return true;
 }
 
-void do_versions_after_linking_400(FileData *fd, Main *bmain)
+void do_versions_after_linking_450(FileData *fd, Main *bmain)
 {
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 400, 9)) {
     /* Fix area light scaling. */
@@ -7790,7 +7790,7 @@ static void version_convert_sculpt_planar_brushes(Main *bmain)
   }
 }
 
-void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
+void blo_do_versions_450(FileData *fd, Library * /*lib*/, Main *bmain)
 {
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 400, 1)) {
     LISTBASE_FOREACH (Mesh *, mesh, &bmain->meshes) {
