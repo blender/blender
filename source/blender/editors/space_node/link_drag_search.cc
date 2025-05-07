@@ -438,7 +438,7 @@ static uiBlock *create_search_popup_block(bContext *C, ARegion *region, void *ar
                               ICON_VIEWZOOM,
                               sizeof(storage.search),
                               storage.in_out() == SOCK_OUT ? 10 : 10 - UI_searchbox_size_x(),
-                              10,
+                              0,
                               UI_searchbox_size_x(),
                               UI_UNIT_Y,
                               "");

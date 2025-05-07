@@ -5644,13 +5644,16 @@ void ui_draw_tooltip_background(const uiStyle * /*style*/, uiBlock * /*block*/, 
 
 void ui_draw_menu_item(const uiFontStyle *fstyle,
                        rcti *rect,
+                       rcti *back_rect,
+                       const float zoom,
+                       const bool use_unpadded,
                        const char *name,
                        int iconid,
                        int but_flag,
                        uiMenuItemSeparatorType separator_type,
                        int *r_xmax)
 {
-  uiWidgetType *wt = widget_type(UI_WTYPE_MENU_ITEM);
+  uiWidgetType *wt = widget_type(use_unpadded ? UI_WTYPE_MENU_ITEM_UNPADDED : UI_WTYPE_MENU_ITEM);
   const rcti _rect = *rect;
   const int row_height = BLI_rcti_size_y(rect);
   int max_hint_width = INT_MAX;
@@ -5661,7 +5664,10 @@ void ui_draw_menu_item(const uiFontStyle *fstyle,
   state.but_flag = but_flag;
 
   wt->state(wt, &state, blender::ui::EmbossType::Undefined);
-  wt->draw(&wt->wcol, rect, &STATE_INFO_NULL, 0, 1.0f);
+
+  if (back_rect) {
+    wt->draw(&wt->wcol, back_rect, &STATE_INFO_NULL, 0, zoom);
+  }
 
   UI_fontstyle_set(fstyle);
 
@@ -5733,15 +5739,12 @@ void ui_draw_menu_item(const uiFontStyle *fstyle,
   *rect = _rect;
 
   if (iconid) {
-    float height, aspect;
-    const int xs = rect->xmin + 0.2f * UI_UNIT_X;
-    const int ys = rect->ymin + 0.1f * BLI_rcti_size_y(rect);
+    const int xs = rect->xmin + 0.2f * UI_UNIT_X * zoom;
+    const int ys = rect->ymin + 0.5f * (BLI_rcti_size_y(rect) - UI_ICON_SIZE * zoom);
 
-    height = ICON_SIZE_FROM_BUTRECT(rect);
-    aspect = ICON_DEFAULT_HEIGHT / height;
+    const float aspect = U.inv_scale_factor / zoom;
 
     GPU_blend(GPU_BLEND_ALPHA);
-    /* XXX scale weak get from fstyle? */
     UI_icon_draw_ex(
         xs, ys, iconid, aspect, 1.0f, 0.0f, wt->wcol.text, false, UI_NO_ICON_OVERLAY_TEXT);
     GPU_blend(GPU_BLEND_NONE);
@@ -5768,7 +5771,7 @@ void ui_draw_menu_item(const uiFontStyle *fstyle,
         }
       }
 
-      rect->xmax = _rect.xmax - 5;
+      rect->xmax = _rect.xmax - padding;
       uiFontStyleDraw_Params params{};
       params.align = UI_STYLE_TEXT_RIGHT;
       UI_fontstyle_draw(fstyle, rect, hint_drawstr, sizeof(hint_drawstr), wt->wcol.text, &params);
@@ -5829,6 +5832,7 @@ void ui_draw_preview_item_stateless(const uiFontStyle *fstyle,
 
 void ui_draw_preview_item(const uiFontStyle *fstyle,
                           rcti *rect,
+                          const float zoom,
                           const char *name,
                           int iconid,
                           int but_flag,
@@ -5841,7 +5845,7 @@ void ui_draw_preview_item(const uiFontStyle *fstyle,
 
   /* drawing button background */
   wt->state(wt, &state, blender::ui::EmbossType::Undefined);
-  wt->draw(&wt->wcol, rect, &STATE_INFO_NULL, 0, 1.0f);
+  wt->draw(&wt->wcol, rect, &STATE_INFO_NULL, 0, zoom);
 
   ui_draw_preview_item_stateless(fstyle, rect, name, iconid, wt->wcol.text, text_align, true);
 }

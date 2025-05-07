@@ -1771,6 +1771,8 @@ void UI_but_func_search_set_listen(uiBut *but, uiButSearchListenFn listen_fn);
 void UI_but_func_search_set_sep_string(uiBut *but, const char *search_sep_string);
 void UI_but_func_search_set_results_are_suggestions(uiBut *but, bool value);
 
+#define UI_SEARCHBOX_BOUNDS (6.0f * UI_SCALE_FAC)
+#define UI_SEARCHBOX_TRIA_H (12.0f * UI_SCALE_FAC)
 /**
  * Height in pixels, it's using hard-coded values still.
  */
