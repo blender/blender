@@ -562,7 +562,7 @@ endif()
 add_bundled_libraries(opensubdiv/lib)
 
 if(WITH_TBB)
-  find_package_wrapper(TBB)
+  find_package_wrapper(TBB 2021.13.0)
   if(TBB_FOUND)
     get_target_property(TBB_LIBRARIES TBB::tbb LOCATION)
     get_target_property(TBB_INCLUDE_DIRS TBB::tbb INTERFACE_INCLUDE_DIRECTORIES)
