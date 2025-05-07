@@ -67,8 +67,6 @@
 
 #include "CLG_log.h"
 
-static CLG_LogRef LOG = {"bke.sound"};
-
 static void sound_free_audio(bSound *sound);
 
 static void sound_copy_data(Main * /*bmain*/,
@@ -346,6 +344,7 @@ static void sound_free_audio(bSound *sound)
 }
 
 #ifdef WITH_AUDASPACE
+static CLG_LogRef LOG = {"bke.sound"};
 
 namespace {
 
@@ -1538,6 +1537,7 @@ void BKE_sound_create_scene(Scene * /*scene*/) {}
 void BKE_sound_destroy_scene(Scene * /*scene*/) {}
 void BKE_sound_lock() {}
 void BKE_sound_unlock() {}
+void BKE_sound_refresh_callback_bmain(Main * /*bmain*/) {}
 void BKE_sound_reset_scene_specs(Scene * /*scene*/) {}
 void BKE_sound_mute_scene(Scene * /*scene*/, int /*muted*/) {}
 void *BKE_sound_scene_add_scene_sound(Scene * /*scene*/,
