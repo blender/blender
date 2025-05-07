@@ -120,6 +120,17 @@ static void icon_draw_rect_input_text(const rctf *rect,
   BLF_draw(font_id, str, BLF_DRAW_STR_DUMMY_MAX);
 }
 
+static void icon_draw_rect_input_icon(const rctf *rect,
+                                      const int icon,
+                                      const float aspect,
+                                      const float alpha,
+                                      const bool inverted,
+                                      const int icon_bg = ICON_KEY_EMPTY1)
+{
+  icon_draw_icon(rect, icon_bg, aspect, alpha, inverted);
+  icon_draw_icon(rect, icon, aspect, alpha, false);
+}
+
 float ui_event_icon_offset(const int icon_id)
 {
   const enum {
@@ -468,6 +479,15 @@ void icon_draw_rect_input(const float x,
   }
   else if (icon_id == ICON_EVENT_RIGHTBRACKET) {
     icon_draw_rect_input_text(&rect, "]", aspect, alpha, inverted);
+  }
+  else if (icon_id == ICON_EVENT_PAD_PAN) {
+    icon_draw_rect_input_icon(&rect, ICON_GESTURE_PAN, aspect, alpha, inverted);
+  }
+  else if (icon_id == ICON_EVENT_PAD_ROTATE) {
+    icon_draw_rect_input_icon(&rect, ICON_GESTURE_ROTATE, aspect, alpha, inverted);
+  }
+  else if (icon_id == ICON_EVENT_PAD_ZOOM) {
+    icon_draw_rect_input_icon(&rect, ICON_GESTURE_ZOOM, aspect, alpha, inverted);
   }
   else if (icon_id >= ICON_EVENT_NDOF_BUTTON_V1 && icon_id <= ICON_EVENT_NDOF_BUTTON_MINUS) {
     if (/* `(icon_id >= ICON_EVENT_NDOF_BUTTON_V1) &&` */ (icon_id <= ICON_EVENT_NDOF_BUTTON_V3)) {

@@ -388,6 +388,9 @@ if(WITH_BLENDER)
       fund
       geometry_nodes
       geometry_set
+      gesture_pan
+      gesture_rotate
+      gesture_zoom
       ghost_disabled
       ghost_enabled
       gizmo
