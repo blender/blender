@@ -3044,28 +3044,28 @@ struct TodoDir {
 };
 
 struct FileListReadJob {
-  ThreadMutex lock;
-  char main_filepath[FILE_MAX];
-  Main *current_main;
-  FileList *filelist;
+  blender::Mutex lock;
+  char main_filepath[FILE_MAX] = "";
+  Main *current_main = nullptr;
+  FileList *filelist = nullptr;
 
   /** The path currently being read, relative to the filelist root directory. Needed for recursive
    * reading. The full file path is then composed like: `<filelist root>/<cur_relbase>/<file name>.
    * (whereby the file name may also be a library path within a .blend, e.g.
    * `Materials/Material.001`). */
-  char cur_relbase[FILE_MAX_LIBEXTRA];
+  char cur_relbase[FILE_MAX_LIBEXTRA] = "";
 
   /** The current asset library to load. Usually the same as #FileList.asset_library, however
    * sometimes the #FileList one is a combination of multiple other ones ("All" asset library),
    * which need to be loaded individually. Then this can be set to override the #FileList library.
    * Use this in all loading code. */
-  asset_system::AssetLibrary *load_asset_library;
+  asset_system::AssetLibrary *load_asset_library = nullptr;
   /** Set to request a partial read that only adds files representing #Main data (IDs). Used when
    * #Main may have received changes of interest (e.g. asset removed or renamed). */
-  bool only_main_data;
+  bool only_main_data = false;
   /** Trigger a call to #AS_asset_library_load() to update asset catalogs (won't reload the actual
    * assets) */
-  bool reload_asset_library;
+  bool reload_asset_library = false;
 
   /** Shallow copy of #filelist for thread-safe access.
    *
@@ -3077,7 +3077,7 @@ struct FileListReadJob {
    *
    * NOTE: #tmp_filelist is freed in #filelist_readjob_free, so any copied pointers need to be
    * set to nullptr to avoid double-freeing them. */
-  FileList *tmp_filelist;
+  FileList *tmp_filelist = nullptr;
 };
 
 /**
@@ -3657,10 +3657,9 @@ static bool filelist_readjob_append_entries(FileListReadJob *job_params,
   }
 
   FileList *filelist = job_params->tmp_filelist; /* Use the thread-safe filelist queue. */
-  BLI_mutex_lock(&job_params->lock);
+  std::scoped_lock lock(job_params->lock);
   BLI_movelisttolist(&filelist->filelist.entries, from_entries);
   filelist->filelist.entries_num += from_entries_num;
-  BLI_mutex_unlock(&job_params->lock);
 
   return true;
 }
@@ -4115,31 +4114,30 @@ static void filelist_readjob_startjob(void *flrjv, wmJobWorkerStatus *worker_sta
   //  printf("START filelist reading (%d files, main thread: %d)\n",
   //         flrj->filelist->filelist.entries_num, BLI_thread_is_main());
 
-  BLI_mutex_lock(&flrj->lock);
+  {
+    std::scoped_lock lock(flrj->lock);
+    BLI_assert((flrj->tmp_filelist == nullptr) && flrj->filelist);
 
-  BLI_assert((flrj->tmp_filelist == nullptr) && flrj->filelist);
+    flrj->tmp_filelist = static_cast<FileList *>(MEM_dupallocN(flrj->filelist));
 
-  flrj->tmp_filelist = static_cast<FileList *>(MEM_dupallocN(flrj->filelist));
+    BLI_listbase_clear(&flrj->tmp_filelist->filelist.entries);
+    flrj->tmp_filelist->filelist.entries_num = FILEDIR_NBR_ENTRIES_UNSET;
 
-  BLI_listbase_clear(&flrj->tmp_filelist->filelist.entries);
-  flrj->tmp_filelist->filelist.entries_num = FILEDIR_NBR_ENTRIES_UNSET;
+    flrj->tmp_filelist->filelist_intern.filtered = nullptr;
+    BLI_listbase_clear(&flrj->tmp_filelist->filelist_intern.entries);
+    if (filelist_readjob_is_partial_read(flrj)) {
+      /* Don't unset the current UID on partial read, would give duplicates otherwise. */
+    }
+    else {
+      filelist_uid_unset(&flrj->tmp_filelist->filelist_intern.curr_uid);
+    }
 
-  flrj->tmp_filelist->filelist_intern.filtered = nullptr;
-  BLI_listbase_clear(&flrj->tmp_filelist->filelist_intern.entries);
-  if (filelist_readjob_is_partial_read(flrj)) {
-    /* Don't unset the current UID on partial read, would give duplicates otherwise. */
+    flrj->tmp_filelist->libfiledata = nullptr;
+    memset(&flrj->tmp_filelist->filelist_cache, 0, sizeof(flrj->tmp_filelist->filelist_cache));
+    flrj->tmp_filelist->selection_state = nullptr;
+    flrj->tmp_filelist->asset_library_ref = nullptr;
+    flrj->tmp_filelist->filter_data.asset_catalog_filter = nullptr;
   }
-  else {
-    filelist_uid_unset(&flrj->tmp_filelist->filelist_intern.curr_uid);
-  }
-
-  flrj->tmp_filelist->libfiledata = nullptr;
-  memset(&flrj->tmp_filelist->filelist_cache, 0, sizeof(flrj->tmp_filelist->filelist_cache));
-  flrj->tmp_filelist->selection_state = nullptr;
-  flrj->tmp_filelist->asset_library_ref = nullptr;
-  flrj->tmp_filelist->filter_data.asset_catalog_filter = nullptr;
-
-  BLI_mutex_unlock(&flrj->lock);
 
   flrj->tmp_filelist->read_job_fn(
       flrj, &worker_status->stop, &worker_status->do_update, &worker_status->progress);
@@ -4160,24 +4158,23 @@ static void filelist_readjob_update(void *flrjv)
   BLI_movelisttolist(&new_entries, &fl_intern->entries);
   entries_num = flrj->filelist->filelist.entries_num;
 
-  BLI_mutex_lock(&flrj->lock);
+  {
+    std::scoped_lock lock(flrj->lock);
+    if (flrj->tmp_filelist->filelist.entries_num > 0) {
+      /* We just move everything out of 'thread context' into final list. */
+      new_entries_num = flrj->tmp_filelist->filelist.entries_num;
+      BLI_movelisttolist(&new_entries, &flrj->tmp_filelist->filelist.entries);
+      flrj->tmp_filelist->filelist.entries_num = 0;
+    }
 
-  if (flrj->tmp_filelist->filelist.entries_num > 0) {
-    /* We just move everything out of 'thread context' into final list. */
-    new_entries_num = flrj->tmp_filelist->filelist.entries_num;
-    BLI_movelisttolist(&new_entries, &flrj->tmp_filelist->filelist.entries);
-    flrj->tmp_filelist->filelist.entries_num = 0;
+    if (flrj->tmp_filelist->asset_library) {
+      flrj->filelist->asset_library = flrj->tmp_filelist->asset_library;
+    }
+
+    /* Important for partial reads: Copy increased UID counter back to the real list. */
+    fl_intern->curr_uid = std::max(flrj->tmp_filelist->filelist_intern.curr_uid,
+                                   fl_intern->curr_uid);
   }
-
-  if (flrj->tmp_filelist->asset_library) {
-    flrj->filelist->asset_library = flrj->tmp_filelist->asset_library;
-  }
-
-  /* Important for partial reads: Copy increased UID counter back to the real list. */
-  fl_intern->curr_uid = std::max(flrj->tmp_filelist->filelist_intern.curr_uid,
-                                 fl_intern->curr_uid);
-
-  BLI_mutex_unlock(&flrj->lock);
 
   if (new_entries_num) {
     /* Do not clear selection cache, we can assume already 'selected' UIDs are still valid! Keep
@@ -4218,9 +4215,7 @@ static void filelist_readjob_free(void *flrjv)
     filelist_free(flrj->tmp_filelist);
   }
 
-  BLI_mutex_end(&flrj->lock);
-
-  MEM_freeN(flrj);
+  MEM_delete(flrj);
 }
 
 static eWM_JobType filelist_jobtype_get(const FileList *filelist)
@@ -4252,7 +4247,7 @@ static void filelist_readjob_start_ex(FileList *filelist,
   }
 
   /* prepare job data */
-  flrj = MEM_callocN<FileListReadJob>(__func__);
+  flrj = MEM_new<FileListReadJob>(__func__);
   flrj->filelist = filelist;
   flrj->current_main = bmain;
   STRNCPY(flrj->main_filepath, BKE_main_blendfile_path(bmain));
@@ -4268,9 +4263,6 @@ static void filelist_readjob_start_ex(FileList *filelist,
   filelist->flags &= ~(FL_FORCE_RESET | FL_FORCE_RESET_MAIN_FILES | FL_RELOAD_ASSET_LIBRARY |
                        FL_IS_READY);
   filelist->flags |= FL_IS_PENDING;
-
-  /* Init even for single threaded execution. Called functions use it. */
-  BLI_mutex_init(&flrj->lock);
 
   /* The file list type may not support threading so execute immediately. Same when only rereading
    * #Main data (which we do quite often on changes to #Main, since it's the easiest and safest way
