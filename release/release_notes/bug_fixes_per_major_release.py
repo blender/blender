@@ -162,6 +162,7 @@ import subprocess
 import argparse
 import urllib.error
 import urllib.request
+import urllib.robotparser
 
 from time import time, sleep
 from typing import Any
@@ -232,17 +233,29 @@ assert len(set(LIST_OF_OFFICIAL_BLENDER_VERSIONS)) == len(LIST_OF_OFFICIAL_BLEND
 # -----------------------------------------------------------------------------
 # Private Utilities
 
-# Conform to Blenders crawl delay request:
-# https://projects.blender.org/robots.txt
-crawl_delay = 2
+CRAWL_DELAY = 2
 last_checked_time = None
+
+
+def set_crawl_delay():
+    global CRAWL_DELAY
+    # Conform to Blenders crawl delay request:
+    # https://projects.blender.org/robots.txt
+    try:
+        projects = urllib.robotparser.RobotFileParser(url="https://projects.blender.org/robots.txt")
+        projects.read()
+        projects_crawl_delay = projects.crawl_delay("*")
+        if projects_crawl_delay is not None:
+            CRAWL_DELAY = projects_crawl_delay
+    except:
+        pass
 
 
 def url_json_get(url: str) -> Any:
     global last_checked_time
 
     if last_checked_time is not None:
-        sleep(max(crawl_delay - (time() - last_checked_time), 0))
+        sleep(max(CRAWL_DELAY - (time() - last_checked_time), 0))
     last_checked_time = time()
 
     try:
@@ -1064,6 +1077,8 @@ def main() -> int:
 
     if not validate_arguments(args):
         return 0
+
+    set_crawl_delay()
 
     list_of_commits = get_fix_commits(
         current_release_tag=args.current_release_tag,
