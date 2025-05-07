@@ -74,6 +74,10 @@ class Context {
   /** Texture pool used to recycle temporary texture (or render target) memory. */
   TexturePool *texture_pool = nullptr;
 
+  /** Global state to avoid setting the srgb builtin uniform for every shader bind. */
+  int shader_builtin_srgb_transform = 0;
+  bool shader_builtin_srgb_is_dirty = false;
+
  protected:
   /** Thread on which this context is active. */
   pthread_t thread_;

@@ -131,8 +131,7 @@ class Shader {
     return parent_shader_;
   }
 
-  static bool srgb_uniform_dirty_get();
-  static void set_srgb_uniform(GPUShader *shader);
+  static void set_srgb_uniform(Context *ctx, GPUShader *shader);
   static void set_framebuffer_srgb_target(int use_srgb_to_linear);
 
  protected:
