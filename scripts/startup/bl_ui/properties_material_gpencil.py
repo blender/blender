@@ -40,6 +40,7 @@ class GPENCIL_MT_material_context_menu(Menu):
         ).only_active = False
 
         layout.operator("object.material_slot_remove_unused")
+        layout.operator("object.material_slot_remove_all")
 
 
 class GPENCIL_UL_matslots(UIList):

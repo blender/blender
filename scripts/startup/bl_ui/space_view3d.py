@@ -3351,6 +3351,7 @@ class VIEW3D_MT_object_cleanup(Menu):
         layout.separator()
 
         layout.operator("object.material_slot_remove_unused", text="Remove Unused Material Slots")
+        layout.operator("object.material_slot_remove_all", text="Remove All Materials")
 
 
 class VIEW3D_MT_object_asset(Menu):

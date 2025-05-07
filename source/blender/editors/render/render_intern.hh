@@ -24,6 +24,7 @@ void OBJECT_OT_material_slot_deselect(wmOperatorType *ot);
 void OBJECT_OT_material_slot_copy(wmOperatorType *ot);
 void OBJECT_OT_material_slot_move(wmOperatorType *ot);
 void OBJECT_OT_material_slot_remove_unused(wmOperatorType *ot);
+void OBJECT_OT_material_slot_remove_all(wmOperatorType *ot);
 
 void MATERIAL_OT_new(wmOperatorType *ot);
 void TEXTURE_OT_new(wmOperatorType *ot);

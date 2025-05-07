@@ -21,6 +21,7 @@ class MATERIAL_MT_context_menu(Menu):
         layout.operator("object.material_slot_copy")
         layout.operator("material.paste", icon='PASTEDOWN')
         layout.operator("object.material_slot_remove_unused")
+        layout.operator("object.material_slot_remove_all")
 
 
 class MATERIAL_UL_matslots(UIList):
