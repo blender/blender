@@ -45,7 +45,7 @@ class CurveFromGeometry : NonMovable, NonCopyable {
   void create_nurbs(Curve *curve, const OBJImportParams &import_params);
 
   short detect_knot_mode(const OBJImportParams &import_params,
-                         int degree,
+                         int8_t degree,
                          Span<int> indices,
                          Span<float> knots,
                          float2 range);
