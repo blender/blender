@@ -1432,6 +1432,7 @@ static wmOperatorStatus bake(const BakeAPIRender *bkr,
   BakeTargets targets = {nullptr};
 
   const bool preserve_origindex = (bkr->target == R_BAKE_TARGET_VERTEX_COLORS);
+  const bool check_valid_uv_map = (bkr->target == R_BAKE_TARGET_IMAGE_TEXTURES);
 
   RE_bake_engine_set_engine_parameters(re, bmain, scene);
 
@@ -1516,7 +1517,7 @@ static wmOperatorStatus bake(const BakeAPIRender *bkr,
    * it is populated later with the cage mesh (smoothed version of the mesh). */
   pixel_array_low = MEM_malloc_arrayN<BakePixel>(targets.pixels_num, "bake pixels low poly");
   if ((bkr->is_selected_to_active && (ob_cage == nullptr) && bkr->is_cage) == false) {
-    if (!CustomData_has_layer(&me_low_eval->corner_data, CD_PROP_FLOAT2)) {
+    if (check_valid_uv_map && !CustomData_has_layer(&me_low_eval->corner_data, CD_PROP_FLOAT2)) {
       BKE_reportf(reports,
                   RPT_ERROR,
                   "No UV map found in the evaluated object \"%s\"",
@@ -1576,7 +1577,8 @@ static wmOperatorStatus bake(const BakeAPIRender *bkr,
 
       me_cage_eval = BKE_mesh_new_from_object(
           nullptr, ob_low_eval, false, preserve_origindex, true);
-      if (!CustomData_has_layer(&me_cage_eval->corner_data, CD_PROP_FLOAT2)) {
+      if (check_valid_uv_map && !CustomData_has_layer(&me_cage_eval->corner_data, CD_PROP_FLOAT2))
+      {
         BKE_reportf(reports,
                     RPT_ERROR,
                     "No UV map found in the evaluated object \"%s\"",
@@ -1763,7 +1765,9 @@ static wmOperatorStatus bake(const BakeAPIRender *bkr,
 
             /* Evaluate modifiers again. */
             me_nores = BKE_mesh_new_from_object(nullptr, ob_low_eval, false, false, true);
-            if (!CustomData_has_layer(&me_nores->corner_data, CD_PROP_FLOAT2)) {
+            if (check_valid_uv_map &&
+                !CustomData_has_layer(&me_nores->corner_data, CD_PROP_FLOAT2))
+            {
               BKE_reportf(reports,
                           RPT_ERROR,
                           "No UV map found in the evaluated object \"%s\"",
