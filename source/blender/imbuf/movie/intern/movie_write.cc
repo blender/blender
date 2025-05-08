@@ -803,7 +803,33 @@ static AVStream *alloc_video_stream(MovieWriter *context,
   }
 
   if (codec_id == AV_CODEC_ID_FFV1) {
-    c->pix_fmt = AV_PIX_FMT_RGB32;
+    if (rd->im_format.planes == R_IMF_PLANES_BW) {
+      c->pix_fmt = AV_PIX_FMT_GRAY8;
+      if (is_10_bpp) {
+        c->pix_fmt = AV_PIX_FMT_GRAY10;
+      }
+      else if (is_12_bpp) {
+        c->pix_fmt = AV_PIX_FMT_GRAY12;
+      }
+    }
+    else if (rd->im_format.planes == R_IMF_PLANES_RGBA) {
+      c->pix_fmt = AV_PIX_FMT_RGB32;
+      if (is_10_bpp) {
+        c->pix_fmt = AV_PIX_FMT_GBRAP10;
+      }
+      else if (is_12_bpp) {
+        c->pix_fmt = AV_PIX_FMT_GBRAP12;
+      }
+    }
+    else { /* RGB */
+      c->pix_fmt = AV_PIX_FMT_0RGB32;
+      if (is_10_bpp) {
+        c->pix_fmt = AV_PIX_FMT_GBRP10;
+      }
+      else if (is_12_bpp) {
+        c->pix_fmt = AV_PIX_FMT_GBRP12;
+      }
+    }
   }
 
   if (codec_id == AV_CODEC_ID_QTRLE) {
