@@ -682,9 +682,11 @@ void Instance::draw_viewport_image_render()
   if (skip_render_) {
     return;
   }
-  while (!sampling.finished_viewport()) {
+
+  do {
+    /* Render at least once to blit the finished image. */
     this->render_sample();
-  }
+  } while (!sampling.finished_viewport());
   velocity.step_swap();
 
   if (is_viewport_compositor_enabled) {
