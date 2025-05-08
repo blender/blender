@@ -193,7 +193,7 @@ def report_personal_weekly_get(
 
                         hash_value = commits["Sha1"]
                         if hash_length > 0:
-                            hash_value[:hash_length]
+                            hash_value = hash_value[:hash_length]
                         commits_main.append(f"{title} ({repo_fullname}@{hash_value})")
 
     date_end = date_curr
