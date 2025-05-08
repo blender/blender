@@ -4986,19 +4986,20 @@ ImagePool *BKE_image_pool_new()
 void BKE_image_pool_free(ImagePool *pool)
 {
   /* Use single lock to dereference all the image buffers. */
-  std::scoped_lock lock(pool->mutex);
-  for (ImagePoolItem *item = static_cast<ImagePoolItem *>(pool->image_buffers.first);
-       item != nullptr;
-       item = item->next)
   {
-    if (item->ibuf != nullptr) {
-      std::scoped_lock lock(item->image->runtime->cache_mutex);
-      IMB_freeImBuf(item->ibuf);
+    std::scoped_lock lock(pool->mutex);
+    for (ImagePoolItem *item = static_cast<ImagePoolItem *>(pool->image_buffers.first);
+         item != nullptr;
+         item = item->next)
+    {
+      if (item->ibuf != nullptr) {
+        std::scoped_lock lock(item->image->runtime->cache_mutex);
+        IMB_freeImBuf(item->ibuf);
+      }
     }
+
+    BLI_mempool_destroy(pool->memory_pool);
   }
-
-  BLI_mempool_destroy(pool->memory_pool);
-
   MEM_delete(pool);
 }
 
