@@ -370,3 +370,17 @@ void BKE_animsys_eval_driver(struct Depsgraph *depsgraph,
 void BKE_animsys_update_driver_array(struct ID *id);
 
 /* ************************************* */
+
+void BKE_time_markers_blend_write(BlendWriter *writer, ListBase /* TimeMarker */ &markers);
+void BKE_time_markers_blend_read(BlendDataReader *reader, ListBase /* TimeMarker */ &markers);
+
+/**
+ * Copy a list of time markers.
+ *
+ * Note: this is meant to be called in the context of duplicating an ID.
+ *
+ * \param flag: ID copy flags. Corresponds to the `flag` parameter of `BKE_id_copy_ex()`.
+ */
+void BKE_copy_time_markers(ListBase /* TimeMarker */ &markers_dst,
+                           const ListBase /* TimeMarker */ &markers_src,
+                           int flag);
