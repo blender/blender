@@ -528,6 +528,13 @@ class Instance : public DrawEngine {
                          GPUTexture *color_tx,
                          RenderEngine *engine = nullptr)
   {
+    if (scene_state_.render_finished) {
+      /* This can happen in viewport animation renders, if the scene didn't have any updates
+       * between frames. */
+      this->draw(manager, depth_tx, depth_in_front_tx, color_tx);
+      return;
+    }
+
     BLI_assert(scene_state_.sample == 0);
     for (auto i : IndexRange(scene_state_.samples_len)) {
       if (engine && RE_engine_test_break(engine)) {
