@@ -415,6 +415,15 @@ static MenuSearch_Data *menu_items_from_ui_create(bContext *C,
   blender::Map<MenuType *, const char *> menu_display_name_map;
   const uiStyle *style = UI_style_get_dpi();
 
+  const bContextStore *old_context_store = CTX_store_get(C);
+  BLI_SCOPED_DEFER([&]() { CTX_store_set(C, old_context_store); });
+  bContextStore context_store;
+  if (old_context_store) {
+    context_store = *old_context_store;
+  }
+  context_store.entries.append({"is_menu_search", true});
+  CTX_store_set(C, &context_store);
+
   /* Convert into non-ui structure. */
   MenuSearch_Data *data = MEM_new<MenuSearch_Data>(__func__);
   ResourceScope &scope = data->scope;

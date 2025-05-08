@@ -3088,13 +3088,7 @@ void uiItemMContents(uiLayout *layout, const StringRef menuname)
     return;
   }
 
-  const bContextStore *previous_ctx = CTX_store_get(C);
   UI_menutype_draw(C, mt, layout);
-
-  /* Restore context that was cleared by `UI_menutype_draw`. */
-  if (layout->context_) {
-    CTX_store_set(C, previous_ctx);
-  }
 }
 
 void uiItemDecoratorR_prop(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, int index)
@@ -6216,15 +6210,19 @@ void UI_menutype_draw(bContext *C, MenuType *mt, uiLayout *layout)
     ui_block_add_dynamic_listener(block, mt->listener);
   }
 
+  bContextStore context_store;
   if (layout->context_) {
-    CTX_store_set(C, layout->context_);
+    context_store = *layout->context_;
   }
+  const bContextStore *previous_context_store = CTX_store_get(C);
+  if (previous_context_store) {
+    context_store.entries.extend(previous_context_store->entries);
+  }
+  CTX_store_set(C, &context_store);
 
   mt->draw(C, &menu);
 
-  if (layout->context_) {
-    CTX_store_set(C, nullptr);
-  }
+  CTX_store_set(C, previous_context_store);
 }
 
 static bool ui_layout_has_panel_label(const uiLayout *layout, const PanelType *pt)
