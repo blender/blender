@@ -158,6 +158,7 @@ float ui_event_icon_offset(const int icon_id)
            ICON_EVENT_BACKSPACE,
            ICON_EVENT_PAUSE,
            ICON_EVENT_INSERT,
+           ICON_EVENT_HYPER,
            ICON_EVENT_APP))
   {
     return 1.07f;
