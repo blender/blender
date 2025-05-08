@@ -110,6 +110,7 @@ set(SRC
   nodes/node_shader_volume_info.cc
   nodes/node_shader_volume_principled.cc
   nodes/node_shader_volume_scatter.cc
+  nodes/node_shader_volume_coefficients.cc
   nodes/node_shader_wavelength.cc
   nodes/node_shader_wireframe.cc
 

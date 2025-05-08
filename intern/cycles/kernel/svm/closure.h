@@ -1053,6 +1053,78 @@ ccl_device
   return offset;
 }
 
+ccl_device_inline void svm_alloc_closure_volume_scatter(ccl_private ShaderData *sd,
+                                                        ccl_private float *stack,
+                                                        Spectrum weight,
+                                                        const uint type,
+                                                        const uint param1_offset,
+                                                        const uint param_extra)
+{
+  switch (type) {
+    case CLOSURE_VOLUME_HENYEY_GREENSTEIN_ID: {
+      ccl_private HenyeyGreensteinVolume *volume = (ccl_private HenyeyGreensteinVolume *)
+          bsdf_alloc(sd, sizeof(HenyeyGreensteinVolume), weight);
+      if (volume) {
+        volume->g = stack_valid(param1_offset) ? stack_load_float(stack, param1_offset) :
+                                                 __uint_as_float(param_extra);
+        sd->flag |= volume_henyey_greenstein_setup(volume);
+      }
+    } break;
+    case CLOSURE_VOLUME_FOURNIER_FORAND_ID: {
+      ccl_private FournierForandVolume *volume = (ccl_private FournierForandVolume *)bsdf_alloc(
+          sd, sizeof(FournierForandVolume), weight);
+      if (volume) {
+        const float IOR = stack_load_float(stack, param1_offset);
+        const float B = stack_load_float(stack, param_extra);
+        sd->flag |= volume_fournier_forand_setup(volume, B, IOR);
+      }
+    } break;
+    case CLOSURE_VOLUME_RAYLEIGH_ID: {
+      ccl_private RayleighVolume *volume = (ccl_private RayleighVolume *)bsdf_alloc(
+          sd, sizeof(RayleighVolume), weight);
+      if (volume) {
+        sd->flag |= volume_rayleigh_setup(volume);
+      }
+      break;
+    }
+    case CLOSURE_VOLUME_DRAINE_ID: {
+      ccl_private DraineVolume *volume = (ccl_private DraineVolume *)bsdf_alloc(
+          sd, sizeof(DraineVolume), weight);
+      if (volume) {
+        volume->g = stack_load_float(stack, param1_offset);
+        volume->alpha = stack_load_float(stack, param_extra);
+        sd->flag |= volume_draine_setup(volume);
+      }
+    } break;
+    case CLOSURE_VOLUME_MIE_ID: {
+      const float d = stack_valid(param1_offset) ? stack_load_float(stack, param1_offset) :
+                                                   __uint_as_float(param_extra);
+      float g_HG;
+      float g_D;
+      float alpha;
+      float mixture;
+      phase_mie_fitted_parameters(d, &g_HG, &g_D, &alpha, &mixture);
+      ccl_private HenyeyGreensteinVolume *hg = (ccl_private HenyeyGreensteinVolume *)bsdf_alloc(
+          sd, sizeof(HenyeyGreensteinVolume), weight * (1.0f - mixture));
+      if (hg) {
+        hg->g = g_HG;
+        sd->flag |= volume_henyey_greenstein_setup(hg);
+      }
+      ccl_private DraineVolume *draine = (ccl_private DraineVolume *)bsdf_alloc(
+          sd, sizeof(DraineVolume), weight * mixture);
+      if (draine) {
+        draine->g = g_D;
+        draine->alpha = alpha;
+        sd->flag |= volume_draine_setup(draine);
+      }
+    } break;
+    default: {
+      kernel_assert(0);
+      break;
+    }
+  }
+}
+
 template<ShaderType shader_type>
 ccl_device_noinline void svm_node_closure_volume(KernelGlobals kg,
                                                  ccl_private ShaderData *sd,
@@ -1093,73 +1165,67 @@ ccl_device_noinline void svm_node_closure_volume(KernelGlobals kg,
 
   /* Add closure for volume scattering. */
   if (CLOSURE_IS_VOLUME_SCATTER(type)) {
-    switch (type) {
-      case CLOSURE_VOLUME_HENYEY_GREENSTEIN_ID: {
-        ccl_private HenyeyGreensteinVolume *volume = (ccl_private HenyeyGreensteinVolume *)
-            bsdf_alloc(sd, sizeof(HenyeyGreensteinVolume), weight);
-        if (volume) {
-          volume->g = stack_valid(param1_offset) ? stack_load_float(stack, param1_offset) :
-                                                   __uint_as_float(node.w);
-          sd->flag |= volume_henyey_greenstein_setup(volume);
-        }
-      } break;
-      case CLOSURE_VOLUME_FOURNIER_FORAND_ID: {
-        ccl_private FournierForandVolume *volume = (ccl_private FournierForandVolume *)bsdf_alloc(
-            sd, sizeof(FournierForandVolume), weight);
-        if (volume) {
-          const float IOR = stack_load_float(stack, param1_offset);
-          const float B = stack_load_float(stack, node.w);
-          sd->flag |= volume_fournier_forand_setup(volume, B, IOR);
-        }
-      } break;
-      case CLOSURE_VOLUME_RAYLEIGH_ID: {
-        ccl_private RayleighVolume *volume = (ccl_private RayleighVolume *)bsdf_alloc(
-            sd, sizeof(RayleighVolume), weight);
-        if (volume) {
-          sd->flag |= volume_rayleigh_setup(volume);
-        }
-        break;
-      }
-      case CLOSURE_VOLUME_DRAINE_ID: {
-        ccl_private DraineVolume *volume = (ccl_private DraineVolume *)bsdf_alloc(
-            sd, sizeof(DraineVolume), weight);
-        if (volume) {
-          volume->g = stack_load_float(stack, param1_offset);
-          volume->alpha = stack_load_float(stack, node.w);
-          sd->flag |= volume_draine_setup(volume);
-        }
-      } break;
-      case CLOSURE_VOLUME_MIE_ID: {
-        const float d = stack_valid(param1_offset) ? stack_load_float(stack, param1_offset) :
-                                                     __uint_as_float(node.w);
-        float g_HG;
-        float g_D;
-        float alpha;
-        float mixture;
-        phase_mie_fitted_parameters(d, &g_HG, &g_D, &alpha, &mixture);
-        ccl_private HenyeyGreensteinVolume *hg = (ccl_private HenyeyGreensteinVolume *)bsdf_alloc(
-            sd, sizeof(HenyeyGreensteinVolume), weight * (1.0f - mixture));
-        if (hg) {
-          hg->g = g_HG;
-          sd->flag |= volume_henyey_greenstein_setup(hg);
-        }
-        ccl_private DraineVolume *draine = (ccl_private DraineVolume *)bsdf_alloc(
-            sd, sizeof(DraineVolume), weight * mixture);
-        if (draine) {
-          draine->g = g_D;
-          draine->alpha = alpha;
-          sd->flag |= volume_draine_setup(draine);
-        }
-      } break;
-      default: {
-        kernel_assert(0);
-        break;
-      }
-    }
+    svm_alloc_closure_volume_scatter(sd, stack, weight, type, param1_offset, node.w);
   }
 
   /* Sum total extinction weight. */
   volume_extinction_setup(sd, weight);
+#endif
+}
+
+template<ShaderType shader_type>
+ccl_device_noinline void svm_node_volume_coefficients(KernelGlobals kg,
+                                                      ccl_private ShaderData *sd,
+                                                      ccl_private float *stack,
+                                                      Spectrum scatter_coeffs,
+                                                      const uint4 node,
+                                                      const uint32_t path_flag)
+{
+#ifdef __VOLUME__
+  /* Only sum extinction for volumes, variable is shared with surface transparency. */
+  if (shader_type != SHADER_TYPE_VOLUME) {
+    return;
+  }
+
+  uint type;
+  uint empty_offset;
+  uint param1_offset;
+  uint mix_weight_offset;
+  svm_unpack_node_uchar4(node.y, &type, &empty_offset, &param1_offset, &mix_weight_offset);
+  const float mix_weight = (stack_valid(mix_weight_offset) ?
+                                stack_load_float(stack, mix_weight_offset) :
+                                1.0f);
+  if (mix_weight == 0.0f) {
+    return;
+  }
+
+  /* Compute scattering coefficient. */
+  const float weight = mix_weight * object_volume_density(kg, sd->object);
+
+  /* Add closure for volume scattering. */
+  if (!is_zero(scatter_coeffs) && CLOSURE_IS_VOLUME_SCATTER(type)) {
+    svm_alloc_closure_volume_scatter(
+        sd, stack, weight * scatter_coeffs, type, param1_offset, node.z);
+  }
+  uint absorption_coeffs_offset;
+  uint emission_coeffs_offset;
+  svm_unpack_node_uchar4(
+      node.w, &absorption_coeffs_offset, &emission_coeffs_offset, &empty_offset, &empty_offset);
+  const float3 absorption_coeffs = stack_load_float3(stack, absorption_coeffs_offset);
+  volume_extinction_setup(sd, weight * (scatter_coeffs + absorption_coeffs));
+
+  const float3 emission_coeffs = stack_load_float3(stack, emission_coeffs_offset);
+  /* Compute emission. */
+  if (path_flag & PATH_RAY_SHADOW) {
+    /* Don't need emission for shadows. */
+    return;
+  }
+
+  if (is_zero(emission_coeffs)) {
+    return;
+  }
+  emission_setup(sd, weight * emission_coeffs);
+
 #endif
 }
 

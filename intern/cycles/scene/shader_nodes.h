@@ -836,6 +836,7 @@ class AbsorptionVolumeNode : public VolumeNode {
 
 class ScatterVolumeNode : public VolumeNode {
  public:
+  ScatterVolumeNode(const NodeType *node_type);
   SHADER_NODE_CLASS(ScatterVolumeNode)
 
   NODE_SOCKET_API(float, anisotropy)
@@ -844,6 +845,15 @@ class ScatterVolumeNode : public VolumeNode {
   NODE_SOCKET_API(float, alpha)
   NODE_SOCKET_API(float, diameter)
   NODE_SOCKET_API(ClosureType, phase)
+};
+
+class VolumeCoefficientsNode : public ScatterVolumeNode {
+ public:
+  SHADER_NODE_CLASS(VolumeCoefficientsNode)
+
+  NODE_SOCKET_API(float3, scatter_coeffs)
+  NODE_SOCKET_API(float3, absorption_coeffs)
+  NODE_SOCKET_API(float3, emission_coeffs)
 };
 
 class PrincipledVolumeNode : public VolumeNode {

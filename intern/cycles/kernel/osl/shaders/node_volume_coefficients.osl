@@ -1,0 +1,26 @@
+/* SPDX-FileCopyrightText: 2011-2022 Blender Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 */
+
+#include "node_scatter.h"
+
+shader node_volume_coefficients(string phase = "Henyey-Greenstein",
+                                vector AbsorptionCoefficients = vector(1.0, 1.0, 1.0),
+                                vector ScatterCoefficients = vector(1.0, 1.0, 1.0),
+                                float Anisotropy = 0.0,
+                                float IOR = 1.33,
+                                float Backscatter = 0.1,
+                                float Alpha = 0.5,
+                                float Diameter = 20.0,
+                                vector EmissionCoefficients = vector(0.0, 0.0, 0.0),
+                                output closure color Volume = 0)
+{
+  closure color scatter_closure = scatter(phase, Anisotropy, IOR, Backscatter, Alpha, Diameter);
+
+  /* Add scattering and absorption closures. */
+  Volume = color(ScatterCoefficients) * scatter_closure +
+           color(AbsorptionCoefficients) * absorption();
+
+  /* Compute emission. */
+  Volume += color(EmissionCoefficients) * emission();
+}
