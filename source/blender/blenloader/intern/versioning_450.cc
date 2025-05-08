@@ -4927,6 +4927,15 @@ void blo_do_versions_450(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 68)) {
+    /* Fix brush->tip_scale_x which should never be zero. */
+    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
+      if (brush->tip_scale_x == 0.0f) {
+        brush->tip_scale_x = 1.0f;
+      }
+    }
+  }
+
   /* Always run this versioning (keep at the bottom of the function). Meshes are written with the
    * legacy format which always needs to be converted to the new format on file load. To be moved
    * to a subversion check in 5.0. */
