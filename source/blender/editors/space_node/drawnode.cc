@@ -68,6 +68,7 @@
 #include "NOD_node_declaration.hh"
 #include "NOD_partial_eval.hh"
 #include "NOD_socket.hh"
+#include "NOD_socket_declarations.hh"
 #include "node_intern.hh" /* own include */
 
 namespace blender::ed::space_node {
@@ -1374,6 +1375,14 @@ static void std_node_socket_draw(
           uiItemL(row, IFACE_("No Items"), ICON_NONE);
         }
         else {
+          if (const auto *socket_decl = dynamic_cast<const nodes::decl::Menu *>(
+                  sock->runtime->declaration))
+          {
+            if (socket_decl->is_expanded) {
+              uiItemR(layout, ptr, "default_value", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+              break;
+            }
+          }
           uiItemR(layout, ptr, "default_value", DEFAULT_FLAGS, "", ICON_NONE);
         }
       }
@@ -1496,6 +1505,7 @@ static void std_node_socket_interface_draw(ID *id,
     }
     case SOCK_MENU: {
       uiItemR(col, &ptr, "default_value", DEFAULT_FLAGS, IFACE_("Default"), ICON_NONE);
+      uiItemR(col, &ptr, "menu_expanded", DEFAULT_FLAGS, IFACE_("Expanded"), ICON_NONE);
       break;
     }
     case SOCK_SHADER:

@@ -2387,6 +2387,15 @@ static void draw_property_for_socket(DrawGroupInputsContext &ctx,
                    name);
       break;
     }
+    case SOCK_MENU: {
+      if (socket.flag & NODE_INTERFACE_SOCKET_MENU_EXPANDED) {
+        uiItemR(row, ctx.md_ptr, rna_path, UI_ITEM_R_EXPAND, name, ICON_NONE);
+      }
+      else {
+        uiItemR(row, ctx.md_ptr, rna_path, UI_ITEM_NONE, name, ICON_NONE);
+      }
+      break;
+    }
     case SOCK_BOOLEAN: {
       if (is_layer_selection_field(socket)) {
         add_layer_name_search_button(ctx, row, socket_id_esc, socket);

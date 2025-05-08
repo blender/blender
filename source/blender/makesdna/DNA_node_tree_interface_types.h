@@ -67,6 +67,8 @@ typedef enum NodeTreeInterfaceSocketFlag {
   NODE_INTERFACE_SOCKET_INSPECT = 1 << 7,
   /* Socket is used in the panel header as a toggle. */
   NODE_INTERFACE_SOCKET_PANEL_TOGGLE = 1 << 8,
+  /* Menu socket should be drawn expanded instead of as drop-down menu. */
+  NODE_INTERFACE_SOCKET_MENU_EXPANDED = 1 << 9,
 } NodeTreeInterfaceSocketFlag;
 ENUM_OPERATORS(NodeTreeInterfaceSocketFlag, NODE_INTERFACE_SOCKET_PANEL_TOGGLE);
 
