@@ -1052,6 +1052,13 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
     requireExtension(extensions_available, extensions_enabled, VK_KHR_SURFACE_EXTENSION_NAME);
     requireExtension(extensions_available, extensions_enabled, native_surface_extension_name);
 
+    /* TODO: VK_EXT_swapchain_maintenance1 needs to be reviewed. It has several issues including
+     * - X11 doesn't use the correct swapchain offset, flipping can squash the first frames.
+     * - VVL complains of incorrect usage of fences.
+     *
+     * For now disabling it until we have figured out what is wrong.
+     */
+#if 0
     /* Required instance extension dependency of VK_EXT_SWAPCHAIN_MAINTENANCE_1_EXTENSION_NAME */
     if (contains_extension(extensions_available, VK_EXT_SURFACE_MAINTENANCE_1_EXTENSION_NAME) &&
         contains_extension(extensions_available, VK_KHR_GET_SURFACE_CAPABILITIES_2_EXTENSION_NAME))
@@ -1063,6 +1070,7 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
                        VK_KHR_GET_SURFACE_CAPABILITIES_2_EXTENSION_NAME);
       optional_device_extensions.push_back(VK_EXT_SWAPCHAIN_MAINTENANCE_1_EXTENSION_NAME);
     }
+#endif
 
     required_device_extensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
   }
