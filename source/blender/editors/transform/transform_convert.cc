@@ -753,18 +753,35 @@ static void init_proportional_edit(TransInfo *t)
                   &TransConvertType_MeshVertCData))
     {
       if (t->flag & T_PROP_CONNECTED) {
-        /* Already calculated by transform_convert_mesh_connectivity_distance. */
+        /* Already calculated by #transform_convert_mesh_connectivity_distance. */
       }
       else {
         set_prop_dist(t, false);
       }
     }
     else if (t->data_type == &TransConvertType_MeshUV && t->flag & T_PROP_CONNECTED) {
-      /* Already calculated by uv_set_connectivity_distance. */
+      /* Already calculated by #uv_set_connectivity_distance. */
     }
-    else if (ELEM(t->data_type, &TransConvertType_Curve, &curves::TransConvertType_Curves)) {
-      BLI_assert(t->obedit_type == OB_CURVES_LEGACY || t->obedit_type == OB_CURVES);
-      set_prop_dist(t, false);
+    else if (t->data_type == &TransConvertType_Curve) {
+      BLI_assert(t->obedit_type == OB_CURVES_LEGACY);
+      if (t->flag & T_PROP_CONNECTED) {
+        /* Already calculated by #calc_distanceCurveVerts. */
+      }
+      else {
+        set_prop_dist(t, false);
+      }
+    }
+    else if (ELEM(t->data_type,
+                  &curves::TransConvertType_Curves,
+                  &greasepencil::TransConvertType_GreasePencil))
+    {
+      BLI_assert(t->obedit_type == OB_CURVES || t->obedit_type == OB_GREASE_PENCIL);
+      if (t->flag & T_PROP_CONNECTED) {
+        /* Already calculated by #calculate_curve_point_distances_for_proportional_editing. */
+      }
+      else {
+        set_prop_dist(t, false);
+      }
     }
     else {
       set_prop_dist(t, true);
