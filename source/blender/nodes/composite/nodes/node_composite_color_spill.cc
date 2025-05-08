@@ -36,25 +36,20 @@ static void cmp_node_color_spill_declare(NodeDeclarationBuilder &b)
   b.add_layout([](uiLayout *layout, bContext * /*C*/, PointerRNA *ptr) {
     layout->label(IFACE_("Despill Channel:"), ICON_NONE);
     uiLayout *row = &layout->row(false);
-    uiItemR(row,
-            ptr,
-            "channel",
-            UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_EXPAND,
-            std::nullopt,
-            ICON_NONE);
+    row->prop(
+        ptr, "channel", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
     uiLayout *col = &layout->column(false);
-    uiItemR(col, ptr, "limit_method", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+    col->prop(ptr, "limit_method", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 
     if (RNA_enum_get(ptr, "limit_method") == 0) {
       col->label(IFACE_("Limiting Channel:"), ICON_NONE);
       row = &col->row(false);
-      uiItemR(row,
-              ptr,
-              "limit_channel",
-              UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_EXPAND,
-              std::nullopt,
-              ICON_NONE);
+      row->prop(ptr,
+                "limit_channel",
+                UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_EXPAND,
+                std::nullopt,
+                ICON_NONE);
     }
   });
 

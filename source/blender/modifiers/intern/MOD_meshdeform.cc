@@ -516,14 +516,14 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   col = &layout->column(true);
   uiLayoutSetEnabled(col, !is_bound);
-  uiItemR(col, ptr, "object", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  col->prop(ptr, "object", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", std::nullopt);
 
   col = &layout->column(false);
   uiLayoutSetEnabled(col, !is_bound);
-  uiItemR(col, ptr, "precision", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  uiItemR(col, ptr, "use_dynamic_bind", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  col->prop(ptr, "precision", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  col->prop(ptr, "use_dynamic_bind", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   uiItemO(layout,
           is_bound ? IFACE_("Unbind") : IFACE_("Bind"),

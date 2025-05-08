@@ -47,7 +47,7 @@ static void node_composit_init_setalpha(bNodeTree * /*ntree*/, bNode *node)
 
 static void node_composit_buts_set_alpha(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  uiItemR(layout, ptr, "mode", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "mode", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 }
 
 using namespace blender::compositor;

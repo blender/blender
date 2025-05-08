@@ -44,21 +44,21 @@ static void node_layout_ex(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 
   {
     uiLayout *row = &layout->column(true, IFACE_("Translation"));
-    uiItemR(row, ptr, "use_translation_x", UI_ITEM_NONE, IFACE_("X"), ICON_NONE);
-    uiItemR(row, ptr, "use_translation_y", UI_ITEM_NONE, IFACE_("Y"), ICON_NONE);
-    uiItemR(row, ptr, "use_translation_z", UI_ITEM_NONE, IFACE_("Z"), ICON_NONE);
+    row->prop(ptr, "use_translation_x", UI_ITEM_NONE, IFACE_("X"), ICON_NONE);
+    row->prop(ptr, "use_translation_y", UI_ITEM_NONE, IFACE_("Y"), ICON_NONE);
+    row->prop(ptr, "use_translation_z", UI_ITEM_NONE, IFACE_("Z"), ICON_NONE);
   }
   {
     uiLayout *row = &layout->column(true, IFACE_("Rotation"));
-    uiItemR(row, ptr, "use_rotation_x", UI_ITEM_NONE, IFACE_("X"), ICON_NONE);
-    uiItemR(row, ptr, "use_rotation_y", UI_ITEM_NONE, IFACE_("Y"), ICON_NONE);
-    uiItemR(row, ptr, "use_rotation_z", UI_ITEM_NONE, IFACE_("Z"), ICON_NONE);
+    row->prop(ptr, "use_rotation_x", UI_ITEM_NONE, IFACE_("X"), ICON_NONE);
+    row->prop(ptr, "use_rotation_y", UI_ITEM_NONE, IFACE_("Y"), ICON_NONE);
+    row->prop(ptr, "use_rotation_z", UI_ITEM_NONE, IFACE_("Z"), ICON_NONE);
   }
   {
     uiLayout *row = &layout->column(true, IFACE_("Scale"));
-    uiItemR(row, ptr, "use_scale_x", UI_ITEM_NONE, IFACE_("X"), ICON_NONE);
-    uiItemR(row, ptr, "use_scale_y", UI_ITEM_NONE, IFACE_("Y"), ICON_NONE);
-    uiItemR(row, ptr, "use_scale_z", UI_ITEM_NONE, IFACE_("Z"), ICON_NONE);
+    row->prop(ptr, "use_scale_x", UI_ITEM_NONE, IFACE_("X"), ICON_NONE);
+    row->prop(ptr, "use_scale_y", UI_ITEM_NONE, IFACE_("Y"), ICON_NONE);
+    row->prop(ptr, "use_scale_z", UI_ITEM_NONE, IFACE_("Z"), ICON_NONE);
   }
 }
 

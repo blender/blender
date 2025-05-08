@@ -272,12 +272,12 @@ static void panel_draw(const bContext *C, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, ptr, "object", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "object", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   modifier::greasepencil::draw_vertex_group_settings(C, layout, ptr);
 
   uiLayout *col = &layout->column(true, IFACE_("Bind To"));
-  uiItemR(col, ptr, "use_vertex_groups", UI_ITEM_NONE, IFACE_("Vertex Groups"), ICON_NONE);
-  uiItemR(col, ptr, "use_bone_envelopes", UI_ITEM_NONE, IFACE_("Bone Envelopes"), ICON_NONE);
+  col->prop(ptr, "use_vertex_groups", UI_ITEM_NONE, IFACE_("Vertex Groups"), ICON_NONE);
+  col->prop(ptr, "use_bone_envelopes", UI_ITEM_NONE, IFACE_("Bone Envelopes"), ICON_NONE);
 
   modifier_panel_end(layout, ptr);
 }

@@ -609,10 +609,10 @@ static void geometry_color_attribute_add_ui(bContext * /*C*/, wmOperator *op)
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
 
-  uiItemR(layout, op->ptr, "name", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  uiItemR(layout, op->ptr, "domain", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
-  uiItemR(layout, op->ptr, "data_type", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
-  uiItemR(layout, op->ptr, "color", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(op->ptr, "name", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(op->ptr, "domain", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  layout->prop(op->ptr, "data_type", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  layout->prop(op->ptr, "color", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
 void GEOMETRY_OT_color_attribute_add(wmOperatorType *ot)
@@ -844,7 +844,7 @@ static void geometry_attribute_convert_ui(bContext *C, wmOperator *op)
 
   Object *ob = object::context_object(C);
   if (ob->type == OB_MESH) {
-    uiItemR(layout, op->ptr, "mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    layout->prop(op->ptr, "mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
   const ConvertAttributeMode mode = ob->type == OB_MESH ?
@@ -853,9 +853,9 @@ static void geometry_attribute_convert_ui(bContext *C, wmOperator *op)
 
   if (mode == ConvertAttributeMode::Generic) {
     if (ob->type != OB_POINTCLOUD) {
-      uiItemR(layout, op->ptr, "domain", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+      layout->prop(op->ptr, "domain", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     }
-    uiItemR(layout, op->ptr, "data_type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    layout->prop(op->ptr, "data_type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 }
 
@@ -972,8 +972,8 @@ static void geometry_color_attribute_convert_ui(bContext * /*C*/, wmOperator *op
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
 
-  uiItemR(layout, op->ptr, "domain", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
-  uiItemR(layout, op->ptr, "data_type", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  layout->prop(op->ptr, "domain", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  layout->prop(op->ptr, "data_type", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 }
 
 void GEOMETRY_OT_color_attribute_convert(wmOperatorType *ot)

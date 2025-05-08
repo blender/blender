@@ -60,34 +60,33 @@ static void node_composit_buts_blur(uiLayout *layout, bContext * /*C*/, PointerR
   col = &layout->column(false);
   const int filter = RNA_enum_get(ptr, "filter_type");
 
-  uiItemR(col, ptr, "filter_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  col->prop(ptr, "filter_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
   if (filter != R_FILTER_FAST_GAUSS) {
-    uiItemR(col, ptr, "use_bokeh", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
-    uiItemR(col, ptr, "use_gamma_correction", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+    col->prop(ptr, "use_bokeh", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+    col->prop(ptr, "use_gamma_correction", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   }
 
-  uiItemR(col, ptr, "use_relative", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+  col->prop(ptr, "use_relative", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 
   if (RNA_boolean_get(ptr, "use_relative")) {
     col->label(IFACE_("Aspect Correction"), ICON_NONE);
     row = &layout->row(true);
-    uiItemR(row,
-            ptr,
-            "aspect_correction",
-            UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_EXPAND,
-            std::nullopt,
-            ICON_NONE);
+    row->prop(ptr,
+              "aspect_correction",
+              UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_EXPAND,
+              std::nullopt,
+              ICON_NONE);
 
     col = &layout->column(true);
-    uiItemR(col, ptr, "factor_x", UI_ITEM_R_SPLIT_EMPTY_NAME, IFACE_("X"), ICON_NONE);
-    uiItemR(col, ptr, "factor_y", UI_ITEM_R_SPLIT_EMPTY_NAME, IFACE_("Y"), ICON_NONE);
+    col->prop(ptr, "factor_x", UI_ITEM_R_SPLIT_EMPTY_NAME, IFACE_("X"), ICON_NONE);
+    col->prop(ptr, "factor_y", UI_ITEM_R_SPLIT_EMPTY_NAME, IFACE_("Y"), ICON_NONE);
   }
   else {
     col = &layout->column(true);
-    uiItemR(col, ptr, "size_x", UI_ITEM_R_SPLIT_EMPTY_NAME, IFACE_("X"), ICON_NONE);
-    uiItemR(col, ptr, "size_y", UI_ITEM_R_SPLIT_EMPTY_NAME, IFACE_("Y"), ICON_NONE);
+    col->prop(ptr, "size_x", UI_ITEM_R_SPLIT_EMPTY_NAME, IFACE_("X"), ICON_NONE);
+    col->prop(ptr, "size_y", UI_ITEM_R_SPLIT_EMPTY_NAME, IFACE_("Y"), ICON_NONE);
   }
-  uiItemR(col, ptr, "use_extended_bounds", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+  col->prop(ptr, "use_extended_bounds", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 }
 
 using namespace blender::compositor;

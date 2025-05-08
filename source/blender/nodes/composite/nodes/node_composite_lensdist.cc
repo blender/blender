@@ -81,7 +81,7 @@ static void node_composit_init_lensdist(bNodeTree * /*ntree*/, bNode *node)
 
 static void node_composit_buts_lensdist(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  uiItemR(layout, ptr, "distortion_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  layout->prop(ptr, "distortion_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 }
 
 static void node_update(bNodeTree *ntree, bNode *node)

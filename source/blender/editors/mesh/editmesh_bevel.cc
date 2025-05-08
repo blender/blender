@@ -899,63 +899,62 @@ static void edbm_bevel_ui(bContext *C, wmOperator *op)
   uiLayoutSetPropDecorate(layout, false);
 
   row = &layout->row(false);
-  uiItemR(row, op->ptr, "affect", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  row->prop(op->ptr, "affect", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
   uiItemS(layout);
 
-  uiItemR(layout, op->ptr, "offset_type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(op->ptr, "offset_type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   if (offset_type == BEVEL_AMT_PERCENT) {
-    uiItemR(layout, op->ptr, "offset_pct", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    layout->prop(op->ptr, "offset_pct", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
   else {
-    uiItemR(layout, op->ptr, "offset", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    layout->prop(op->ptr, "offset", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
-  uiItemR(layout, op->ptr, "segments", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(op->ptr, "segments", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   if (ELEM(profile_type, BEVEL_PROFILE_SUPERELLIPSE, BEVEL_PROFILE_CUSTOM)) {
-    uiItemR(layout,
-            op->ptr,
-            "profile",
-            UI_ITEM_R_SLIDER,
-            (profile_type == BEVEL_PROFILE_SUPERELLIPSE) ? IFACE_("Profile Shape") :
-                                                           IFACE_("Miter Profile Shape"),
-            ICON_NONE);
+    layout->prop(op->ptr,
+                 "profile",
+                 UI_ITEM_R_SLIDER,
+                 (profile_type == BEVEL_PROFILE_SUPERELLIPSE) ? IFACE_("Profile Shape") :
+                                                                IFACE_("Miter Profile Shape"),
+                 ICON_NONE);
   }
-  uiItemR(layout, op->ptr, "material", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(op->ptr, "material", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   col = &layout->column(true);
-  uiItemR(col, op->ptr, "harden_normals", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  uiItemR(col, op->ptr, "clamp_overlap", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  uiItemR(col, op->ptr, "loop_slide", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  col->prop(op->ptr, "harden_normals", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  col->prop(op->ptr, "clamp_overlap", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  col->prop(op->ptr, "loop_slide", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   col = &layout->column(true, IFACE_("Mark"));
   uiLayoutSetActive(col, affect_type == BEVEL_AFFECT_EDGES);
-  uiItemR(col, op->ptr, "mark_seam", UI_ITEM_NONE, IFACE_("Seams"), ICON_NONE);
-  uiItemR(col, op->ptr, "mark_sharp", UI_ITEM_NONE, IFACE_("Sharp"), ICON_NONE);
+  col->prop(op->ptr, "mark_seam", UI_ITEM_NONE, IFACE_("Seams"), ICON_NONE);
+  col->prop(op->ptr, "mark_sharp", UI_ITEM_NONE, IFACE_("Sharp"), ICON_NONE);
 
   uiItemS(layout);
 
   col = &layout->column(false);
   uiLayoutSetActive(col, affect_type == BEVEL_AFFECT_EDGES);
-  uiItemR(col, op->ptr, "miter_outer", UI_ITEM_NONE, IFACE_("Miter Outer"), ICON_NONE);
-  uiItemR(col, op->ptr, "miter_inner", UI_ITEM_NONE, IFACE_("Inner"), ICON_NONE);
+  col->prop(op->ptr, "miter_outer", UI_ITEM_NONE, IFACE_("Miter Outer"), ICON_NONE);
+  col->prop(op->ptr, "miter_inner", UI_ITEM_NONE, IFACE_("Inner"), ICON_NONE);
   if (RNA_enum_get(op->ptr, "miter_inner") == BEVEL_MITER_ARC) {
-    uiItemR(col, op->ptr, "spread", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col->prop(op->ptr, "spread", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
   uiItemS(layout);
 
   col = &layout->column(false);
   uiLayoutSetActive(col, affect_type == BEVEL_AFFECT_EDGES);
-  uiItemR(col, op->ptr, "vmesh_method", UI_ITEM_NONE, IFACE_("Intersection Type"), ICON_NONE);
+  col->prop(op->ptr, "vmesh_method", UI_ITEM_NONE, IFACE_("Intersection Type"), ICON_NONE);
 
-  uiItemR(layout, op->ptr, "face_strength_mode", UI_ITEM_NONE, IFACE_("Face Strength"), ICON_NONE);
+  layout->prop(op->ptr, "face_strength_mode", UI_ITEM_NONE, IFACE_("Face Strength"), ICON_NONE);
 
   uiItemS(layout);
 
   row = &layout->row(false);
-  uiItemR(row, op->ptr, "profile_type", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  row->prop(op->ptr, "profile_type", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
   if (profile_type == BEVEL_PROFILE_CUSTOM) {
     /* Get an RNA pointer to ToolSettings to give to the curve profile template code. */
     Scene *scene = CTX_data_scene(C);

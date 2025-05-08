@@ -64,8 +64,8 @@ static void node_composit_buts_distance_matte(uiLayout *layout, bContext * /*C*/
 {
   layout->label(IFACE_("Color Space:"), ICON_NONE);
   uiLayout *row = &layout->row(false);
-  uiItemR(
-      row, ptr, "channel", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  row->prop(
+      ptr, "channel", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 }
 
 using namespace blender::compositor;

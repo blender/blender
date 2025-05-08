@@ -66,7 +66,7 @@ static void node_composit_buts_stabilize2d(uiLayout *layout, bContext *C, Pointe
     return;
   }
 
-  uiItemR(layout, ptr, "filter_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  layout->prop(ptr, "filter_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 }
 
 using namespace blender::compositor;

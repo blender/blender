@@ -191,7 +191,7 @@ void ED_buttons_visible_tabs_menu(bContext *C, uiLayout *layout, void * /*arg*/)
   };
 
   for (blender::StringRefNull item : filter_items) {
-    uiItemR(layout, &ptr, item, UI_ITEM_R_TOGGLE, std::nullopt, ICON_NONE);
+    layout->prop(&ptr, item, UI_ITEM_R_TOGGLE, std::nullopt, ICON_NONE);
   }
 }
 

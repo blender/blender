@@ -20,16 +20,15 @@ static void node_shader_buts_script(uiLayout *layout, bContext * /*C*/, PointerR
   uiLayout *row;
 
   row = &layout->row(false);
-  uiItemR(
-      row, ptr, "mode", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  row->prop(ptr, "mode", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
   row = &layout->row(true);
 
   if (RNA_enum_get(ptr, "mode") == NODE_SCRIPT_INTERNAL) {
-    uiItemR(row, ptr, "script", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+    row->prop(ptr, "script", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
   }
   else {
-    uiItemR(row, ptr, "filepath", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+    row->prop(ptr, "filepath", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
   }
 
   uiItemO(row, "", ICON_FILE_REFRESH, "node.shader_script_update");
@@ -43,7 +42,7 @@ static void node_shader_buts_script_ex(uiLayout *layout, bContext *C, PointerRNA
 
 #if 0 /* not implemented yet */
   if (RNA_enum_get(ptr, "mode") == NODE_SCRIPT_EXTERNAL) {
-    uiItemR(layout, ptr, "use_auto_update", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+    layout->prop(ptr, "use_auto_update", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   }
 #endif
 }

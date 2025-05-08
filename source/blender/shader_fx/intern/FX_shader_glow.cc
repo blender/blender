@@ -51,23 +51,23 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, ptr, "mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  uiItemR(layout, ptr, "threshold", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "threshold", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   if (mode == eShaderFxGlowMode_Color) {
-    uiItemR(layout, ptr, "select_color", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    layout->prop(ptr, "select_color", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
-  uiItemR(layout, ptr, "glow_color", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "glow_color", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   uiItemS(layout);
 
-  uiItemR(layout, ptr, "blend_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  uiItemR(layout, ptr, "opacity", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  uiItemR(layout, ptr, "size", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  uiItemR(layout, ptr, "rotation", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  uiItemR(layout, ptr, "samples", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  uiItemR(layout, ptr, "use_glow_under", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "blend_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "opacity", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "size", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "rotation", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "samples", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "use_glow_under", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   shaderfx_panel_end(layout, ptr);
 }

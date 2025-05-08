@@ -94,9 +94,9 @@ static void node_composit_buts_denoise(uiLayout *layout, bContext * /*C*/, Point
 #endif
 
   layout->label(IFACE_("Prefilter:"), ICON_NONE);
-  uiItemR(layout, ptr, "prefilter", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "prefilter", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   layout->label(IFACE_("Quality:"), ICON_NONE);
-  uiItemR(layout, ptr, "quality", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "quality", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 }
 
 using namespace blender::compositor;

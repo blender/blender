@@ -529,20 +529,20 @@ static void panel_draw(const bContext *C, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, ptr, "mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   col = &layout->column(false);
 
   const char *text = use_fixed_offset ? IFACE_("Frame") : IFACE_("Frame Offset");
-  uiItemR(col, ptr, "offset", UI_ITEM_NONE, text, ICON_NONE);
+  col->prop(ptr, "offset", UI_ITEM_NONE, text, ICON_NONE);
 
   row = &col->row(false);
   uiLayoutSetActive(row, !use_fixed_offset);
-  uiItemR(row, ptr, "frame_scale", UI_ITEM_NONE, IFACE_("Scale"), ICON_NONE);
+  row->prop(ptr, "frame_scale", UI_ITEM_NONE, IFACE_("Scale"), ICON_NONE);
 
   row = &layout->row(false);
   uiLayoutSetActive(row, !use_fixed_offset);
-  uiItemR(row, ptr, "use_keep_loop", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  row->prop(ptr, "use_keep_loop", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   if (mode == MOD_GREASE_PENCIL_TIME_MODE_CHAIN) {
     row = &layout->row(false);
@@ -586,11 +586,11 @@ static void panel_draw(const bContext *C, Panel *panel)
           &tmd->segments()[tmd->segment_active_index]);
 
       sub = &layout->column(true);
-      uiItemR(sub, &segment_ptr, "segment_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+      sub->prop(&segment_ptr, "segment_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
       sub = &layout->column(true);
-      uiItemR(sub, &segment_ptr, "segment_start", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-      uiItemR(sub, &segment_ptr, "segment_end", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-      uiItemR(sub, &segment_ptr, "segment_repeat", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+      sub->prop(&segment_ptr, "segment_start", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+      sub->prop(&segment_ptr, "segment_end", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+      sub->prop(&segment_ptr, "segment_repeat", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     }
   }
 
@@ -598,15 +598,15 @@ static void panel_draw(const bContext *C, Panel *panel)
   if (uiLayout *header = custom_range_panel_layout.header) {
     uiLayoutSetPropSep(header, false);
     uiLayoutSetActive(header, use_custom_range);
-    uiItemR(header, ptr, "use_custom_frame_range", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    header->prop(ptr, "use_custom_frame_range", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
   if (uiLayout *body = custom_range_panel_layout.body) {
     uiLayoutSetPropSep(body, true);
     uiLayoutSetActive(body, use_custom_range && RNA_boolean_get(ptr, "use_custom_frame_range"));
 
     col = &body->column(true);
-    uiItemR(col, ptr, "frame_start", UI_ITEM_NONE, IFACE_("Frame Start"), ICON_NONE);
-    uiItemR(col, ptr, "frame_end", UI_ITEM_NONE, IFACE_("End"), ICON_NONE);
+    col->prop(ptr, "frame_start", UI_ITEM_NONE, IFACE_("Frame Start"), ICON_NONE);
+    col->prop(ptr, "frame_end", UI_ITEM_NONE, IFACE_("End"), ICON_NONE);
   }
 
   if (uiLayout *influence_panel = layout->panel_prop(
@@ -630,7 +630,7 @@ static void segment_list_item_draw(uiList * /*ui_list*/,
                                    int /*flt_flag*/)
 {
   uiLayout *row = &layout->row(true);
-  uiItemR(row, itemptr, "name", UI_ITEM_R_NO_BG, "", ICON_NONE);
+  row->prop(itemptr, "name", UI_ITEM_R_NO_BG, "", ICON_NONE);
 }
 
 static void panel_register(ARegionType *region_type)

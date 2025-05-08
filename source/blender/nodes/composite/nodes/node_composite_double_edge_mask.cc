@@ -43,9 +43,9 @@ static void node_composit_buts_double_edge_mask(uiLayout *layout,
   col = &layout->column(false);
 
   col->label(IFACE_("Inner Edge:"), ICON_NONE);
-  uiItemR(col, ptr, "inner_mode", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  col->prop(ptr, "inner_mode", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
   col->label(IFACE_("Buffer Edge:"), ICON_NONE);
-  uiItemR(col, ptr, "edge_mode", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  col->prop(ptr, "edge_mode", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 }
 
 using namespace blender::compositor;

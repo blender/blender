@@ -40,7 +40,7 @@ static void draw_item_in_list(uiList * /*ui_list*/,
     uiTemplateNodeSocket(row, const_cast<bContext *>(C), color);
   }
   uiLayoutSetEmboss(row, blender::ui::EmbossType::None);
-  uiItemR(row, itemptr, "name", UI_ITEM_NONE, "", ICON_NONE);
+  row->prop(itemptr, "name", UI_ITEM_NONE, "", ICON_NONE);
 }
 
 /**

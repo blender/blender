@@ -745,12 +745,8 @@ static void ui_node_draw_recursive(uiLayout &layout,
     uiLayoutSetPropDecorate(panel_layout.header, false);
     PointerRNA toggle_ptr = RNA_pointer_create_discrete(
         &ntree.id, &RNA_NodeSocket, &node.socket_by_decl(*panel_toggle_decl));
-    uiItemR(panel_layout.header,
-            &toggle_ptr,
-            "default_value",
-            UI_ITEM_NONE,
-            panel_decl.name,
-            ICON_NONE);
+    panel_layout.header->prop(
+        &toggle_ptr, "default_value", UI_ITEM_NONE, panel_decl.name, ICON_NONE);
   }
   else {
     panel_layout.header->label(panel_decl.name, ICON_NONE);
@@ -866,7 +862,7 @@ static void ui_node_draw_input(uiLayout &layout,
                     (lnode->typeinfo->draw_buttons && lnode->type_legacy != NODE_GROUP)))
       {
         int icon = (input.flag & SOCK_COLLAPSED) ? ICON_RIGHTARROW : ICON_DOWNARROW_HLT;
-        uiItemR(sub, &inputptr, "show_expanded", UI_ITEM_R_ICON_ONLY, "", icon);
+        sub->prop(&inputptr, "show_expanded", UI_ITEM_R_ICON_ONLY, "", icon);
       }
 
       UI_block_emboss_set(block, blender::ui::EmbossType::Emboss);
@@ -914,7 +910,7 @@ static void ui_node_draw_input(uiLayout &layout,
         case SOCK_ROTATION:
         case SOCK_BOOLEAN:
         case SOCK_RGBA:
-          uiItemR(sub, &inputptr, "default_value", UI_ITEM_NONE, "", ICON_NONE);
+          sub->prop(&inputptr, "default_value", UI_ITEM_NONE, "", ICON_NONE);
           if (split_wrapper.decorate_column) {
             uiItemDecoratorR(
                 split_wrapper.decorate_column, &inputptr, "default_value", RNA_NO_INDEX);
@@ -929,7 +925,7 @@ static void ui_node_draw_input(uiLayout &layout,
             node_geometry_add_attribute_search_button(C, node, inputptr, *sub);
           }
           else {
-            uiItemR(sub, &inputptr, "default_value", UI_ITEM_NONE, "", ICON_NONE);
+            sub->prop(&inputptr, "default_value", UI_ITEM_NONE, "", ICON_NONE);
           }
           if (split_wrapper.decorate_column) {
             uiItemDecoratorR(

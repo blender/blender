@@ -274,12 +274,12 @@ static void panel_draw(const bContext *C, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, ptr, "thickness", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  uiItemR(layout, ptr, "use_keep_shape", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  uiItemR(layout, ptr, "subdivision", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  uiItemR(layout, ptr, "sample_length", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  uiItemR(layout, ptr, "outline_material", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  uiItemR(layout, ptr, "object", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "thickness", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "use_keep_shape", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "subdivision", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "sample_length", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "outline_material", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "object", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   Scene *scene = CTX_data_scene(C);
   if (scene->camera == nullptr) {

@@ -1304,12 +1304,12 @@ static void mask_from_cavity_ui(bContext *C, wmOperator *op)
 
   switch (source) {
     case MaskSettingsSource::Operator: {
-      uiItemR(layout, op->ptr, "mix_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-      uiItemR(layout, op->ptr, "mix_factor", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-      uiItemR(layout, op->ptr, "factor", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-      uiItemR(layout, op->ptr, "blur_steps", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-      uiItemR(layout, op->ptr, "invert", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-      uiItemR(layout, op->ptr, "use_curve", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+      layout->prop(op->ptr, "mix_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+      layout->prop(op->ptr, "mix_factor", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+      layout->prop(op->ptr, "factor", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+      layout->prop(op->ptr, "blur_steps", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+      layout->prop(op->ptr, "invert", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+      layout->prop(op->ptr, "use_curve", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
       if (sd && RNA_boolean_get(op->ptr, "use_curve")) {
         PointerRNA sculpt_ptr = RNA_pointer_create_discrete(&scene->id, &RNA_Sculpt, sd);
@@ -1320,8 +1320,8 @@ static void mask_from_cavity_ui(bContext *C, wmOperator *op)
     }
     case MaskSettingsSource::Brush:
     case MaskSettingsSource::Scene:
-      uiItemR(layout, op->ptr, "mix_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-      uiItemR(layout, op->ptr, "mix_factor", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+      layout->prop(op->ptr, "mix_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+      layout->prop(op->ptr, "mix_factor", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
       break;
   }
@@ -1486,16 +1486,16 @@ static void mask_from_boundary_ui(bContext *C, wmOperator *op)
 
   switch (source) {
     case MaskSettingsSource::Operator: {
-      uiItemR(layout, op->ptr, "mix_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-      uiItemR(layout, op->ptr, "mix_factor", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-      uiItemR(layout, op->ptr, "boundary_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-      uiItemR(layout, op->ptr, "propagation_steps", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+      layout->prop(op->ptr, "mix_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+      layout->prop(op->ptr, "mix_factor", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+      layout->prop(op->ptr, "boundary_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+      layout->prop(op->ptr, "propagation_steps", UI_ITEM_NONE, std::nullopt, ICON_NONE);
       break;
     }
     case MaskSettingsSource::Brush:
     case MaskSettingsSource::Scene:
-      uiItemR(layout, op->ptr, "mix_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-      uiItemR(layout, op->ptr, "mix_factor", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+      layout->prop(op->ptr, "mix_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+      layout->prop(op->ptr, "mix_factor", UI_ITEM_NONE, std::nullopt, ICON_NONE);
       break;
   }
 }

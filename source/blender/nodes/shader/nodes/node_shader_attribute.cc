@@ -23,7 +23,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_shader_buts_attribute(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  uiItemR(layout, ptr, "attribute_type", UI_ITEM_NONE, "", ICON_NONE);
+  layout->prop(ptr, "attribute_type", UI_ITEM_NONE, "", ICON_NONE);
   uiItemFullR(layout,
               ptr,
               RNA_struct_find_property(ptr, "attribute_name"),

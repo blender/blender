@@ -315,19 +315,19 @@ class LayerViewItem : public AbstractTreeViewItem {
 
     sub = &row.row(true);
     uiLayoutSetActive(sub, layer_.parent_group().use_masks());
-    uiItemR(sub, &layer_ptr, "use_masks", UI_ITEM_R_ICON_ONLY, std::nullopt, ICON_NONE);
+    sub->prop(&layer_ptr, "use_masks", UI_ITEM_R_ICON_ONLY, std::nullopt, ICON_NONE);
 
     sub = &row.row(true);
     uiLayoutSetActive(sub, layer_.parent_group().use_onion_skinning());
-    uiItemR(sub, &layer_ptr, "use_onion_skinning", UI_ITEM_R_ICON_ONLY, std::nullopt, ICON_NONE);
+    sub->prop(&layer_ptr, "use_onion_skinning", UI_ITEM_R_ICON_ONLY, std::nullopt, ICON_NONE);
 
     sub = &row.row(true);
     uiLayoutSetActive(sub, layer_.parent_group().is_visible());
-    uiItemR(sub, &layer_ptr, "hide", UI_ITEM_R_ICON_ONLY, std::nullopt, ICON_NONE);
+    sub->prop(&layer_ptr, "hide", UI_ITEM_R_ICON_ONLY, std::nullopt, ICON_NONE);
 
     sub = &row.row(true);
     uiLayoutSetActive(sub, !layer_.parent_group().is_locked());
-    uiItemR(sub, &layer_ptr, "lock", UI_ITEM_R_ICON_ONLY, std::nullopt, ICON_NONE);
+    sub->prop(&layer_ptr, "lock", UI_ITEM_R_ICON_ONLY, std::nullopt, ICON_NONE);
   }
 };
 
@@ -480,25 +480,25 @@ class LayerGroupViewItem : public AbstractTreeViewItem {
     if (group_.as_node().parent_group()) {
       uiLayoutSetActive(sub, group_.as_node().parent_group()->use_masks());
     }
-    uiItemR(sub, &group_ptr, "use_masks", UI_ITEM_R_ICON_ONLY, std::nullopt, ICON_NONE);
+    sub->prop(&group_ptr, "use_masks", UI_ITEM_R_ICON_ONLY, std::nullopt, ICON_NONE);
 
     sub = &row.row(true);
     if (group_.as_node().parent_group()) {
       uiLayoutSetActive(sub, group_.as_node().parent_group()->use_onion_skinning());
     }
-    uiItemR(sub, &group_ptr, "use_onion_skinning", UI_ITEM_R_ICON_ONLY, std::nullopt, ICON_NONE);
+    sub->prop(&group_ptr, "use_onion_skinning", UI_ITEM_R_ICON_ONLY, std::nullopt, ICON_NONE);
 
     sub = &row.row(true);
     if (group_.as_node().parent_group()) {
       uiLayoutSetActive(sub, group_.as_node().parent_group()->is_visible());
     }
-    uiItemR(sub, &group_ptr, "hide", UI_ITEM_R_ICON_ONLY, std::nullopt, ICON_NONE);
+    sub->prop(&group_ptr, "hide", UI_ITEM_R_ICON_ONLY, std::nullopt, ICON_NONE);
 
     sub = &row.row(true);
     if (group_.as_node().parent_group()) {
       uiLayoutSetActive(sub, !group_.as_node().parent_group()->is_locked());
     }
-    uiItemR(sub, &group_ptr, "lock", UI_ITEM_R_ICON_ONLY, std::nullopt, ICON_NONE);
+    sub->prop(&group_ptr, "lock", UI_ITEM_R_ICON_ONLY, std::nullopt, ICON_NONE);
   }
 };
 

@@ -75,19 +75,18 @@ static void node_composite_update_scale(bNodeTree *ntree, bNode *node)
 
 static void node_composit_buts_scale(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  uiItemR(layout, ptr, "interpolation", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
-  uiItemR(layout, ptr, "space", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  layout->prop(ptr, "interpolation", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  layout->prop(ptr, "space", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 
   if (RNA_enum_get(ptr, "space") == CMP_NODE_SCALE_RENDER_SIZE) {
-    uiItemR(layout,
-            ptr,
-            "frame_method",
-            UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_EXPAND,
-            std::nullopt,
-            ICON_NONE);
+    layout->prop(ptr,
+                 "frame_method",
+                 UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_EXPAND,
+                 std::nullopt,
+                 ICON_NONE);
     uiLayout *row = &layout->row(true);
-    uiItemR(row, ptr, "offset_x", UI_ITEM_R_SPLIT_EMPTY_NAME, "X", ICON_NONE);
-    uiItemR(row, ptr, "offset_y", UI_ITEM_R_SPLIT_EMPTY_NAME, "Y", ICON_NONE);
+    row->prop(ptr, "offset_x", UI_ITEM_R_SPLIT_EMPTY_NAME, "X", ICON_NONE);
+    row->prop(ptr, "offset_y", UI_ITEM_R_SPLIT_EMPTY_NAME, "Y", ICON_NONE);
   }
 }
 

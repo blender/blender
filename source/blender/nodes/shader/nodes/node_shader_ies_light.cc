@@ -29,16 +29,15 @@ static void node_shader_buts_ies(uiLayout *layout, bContext * /*C*/, PointerRNA 
   uiLayout *row;
 
   row = &layout->row(false);
-  uiItemR(
-      row, ptr, "mode", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  row->prop(ptr, "mode", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
   row = &layout->row(true);
 
   if (RNA_enum_get(ptr, "mode") == NODE_IES_INTERNAL) {
-    uiItemR(row, ptr, "ies", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+    row->prop(ptr, "ies", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
   }
   else {
-    uiItemR(row, ptr, "filepath", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+    row->prop(ptr, "filepath", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
   }
 }
 

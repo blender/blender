@@ -830,14 +830,14 @@ static void add_attribute_search_or_value_buttons(uiLayout *layout,
 
   if (use_attribute) {
     /* TODO: Add attribute search. */
-    uiItemR(prop_row, md_ptr, rna_path_attribute_name, UI_ITEM_NONE, "", ICON_NONE);
+    prop_row->prop(md_ptr, rna_path_attribute_name, UI_ITEM_NONE, "", ICON_NONE);
   }
   else {
     const char *name = socket_type == SOCK_BOOLEAN ? (socket.name ? socket.name : "") : "";
-    uiItemR(prop_row, md_ptr, rna_path, UI_ITEM_NONE, name, ICON_NONE);
+    prop_row->prop(md_ptr, rna_path, UI_ITEM_NONE, name, ICON_NONE);
   }
 
-  uiItemR(prop_row, md_ptr, rna_path_use_attribute, UI_ITEM_R_ICON_ONLY, "", ICON_SPREADSHEET);
+  prop_row->prop(md_ptr, rna_path_use_attribute, UI_ITEM_R_ICON_ONLY, "", ICON_SPREADSHEET);
 }
 
 static void draw_property_for_socket(const bNodeTree &node_tree,
@@ -871,7 +871,7 @@ static void draw_property_for_socket(const bNodeTree &node_tree,
   uiLayoutSetActive(row, affects_output);
   uiLayoutSetPropDecorate(row, false);
 
-  /* Use #uiItemPointerR to draw pointer properties because #uiItemR would not have enough
+  /* Use #uiItemPointerR to draw pointer properties because #uiLayout::prop would not have enough
    * information about what type of ID to select for editing the values. This is because
    * pointer IDProperties contain no information about their type. */
   const char *name = socket.name ? socket.name : "";
@@ -894,10 +894,10 @@ static void draw_property_for_socket(const bNodeTree &node_tree,
       break;
     case SOCK_MENU: {
       if (socket.flag & NODE_INTERFACE_SOCKET_MENU_EXPANDED) {
-        uiItemR(row, op_ptr, rna_path, UI_ITEM_R_EXPAND, name, ICON_NONE);
+        row->prop(op_ptr, rna_path, UI_ITEM_R_EXPAND, name, ICON_NONE);
       }
       else {
-        uiItemR(row, op_ptr, rna_path, UI_ITEM_NONE, name, ICON_NONE);
+        row->prop(op_ptr, rna_path, UI_ITEM_NONE, name, ICON_NONE);
       }
       break;
     }
@@ -906,7 +906,7 @@ static void draw_property_for_socket(const bNodeTree &node_tree,
         add_attribute_search_or_value_buttons(row, op_ptr, socket_id_esc, rna_path, socket);
       }
       else {
-        uiItemR(row, op_ptr, rna_path, UI_ITEM_NONE, name, ICON_NONE);
+        row->prop(op_ptr, rna_path, UI_ITEM_NONE, name, ICON_NONE);
       }
   }
   if (!nodes::input_has_attribute_toggle(node_tree, socket_index)) {

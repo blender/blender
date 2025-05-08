@@ -1610,15 +1610,15 @@ static void sequencer_split_ui(bContext * /*C*/, wmOperator *op)
   uiLayoutSetPropDecorate(layout, false);
 
   uiLayout *row = &layout->row(false);
-  uiItemR(row, op->ptr, "type", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
-  uiItemR(layout, op->ptr, "frame", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  uiItemR(layout, op->ptr, "side", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  row->prop(op->ptr, "type", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  layout->prop(op->ptr, "frame", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(op->ptr, "side", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   uiItemS(layout);
 
-  uiItemR(layout, op->ptr, "use_cursor_position", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(op->ptr, "use_cursor_position", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   if (RNA_boolean_get(op->ptr, "use_cursor_position")) {
-    uiItemR(layout, op->ptr, "channel", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    layout->prop(op->ptr, "channel", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 }
 

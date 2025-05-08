@@ -50,13 +50,13 @@ static void sh_node_map_range_declare(NodeDeclarationBuilder &b)
 
 static void node_shader_buts_map_range(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  uiItemR(layout, ptr, "data_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
-  uiItemR(layout, ptr, "interpolation_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  layout->prop(ptr, "data_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  layout->prop(ptr, "interpolation_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
   if (!ELEM(RNA_enum_get(ptr, "interpolation_type"),
             NODE_MAP_RANGE_SMOOTHSTEP,
             NODE_MAP_RANGE_SMOOTHERSTEP))
   {
-    uiItemR(layout, ptr, "clamp", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+    layout->prop(ptr, "clamp", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   }
 }
 

@@ -132,10 +132,10 @@ static void draw_constraint_header(uiLayout *layout, Object *ob, bConstraint *co
 
   uiLayout *row = &layout->row(true);
 
-  uiItemR(row, &ptr, "name", UI_ITEM_NONE, "", ICON_NONE);
+  row->prop(&ptr, "name", UI_ITEM_NONE, "", ICON_NONE);
 
   /* Enabled eye icon. */
-  uiItemR(row, &ptr, "enabled", UI_ITEM_NONE, "", ICON_NONE);
+  row->prop(&ptr, "enabled", UI_ITEM_NONE, "", ICON_NONE);
 
   /* Extra operators menu. */
   uiItemMenuF(row, "", ICON_DOWNARROW_HLT, constraint_ops_extra_draw, con);

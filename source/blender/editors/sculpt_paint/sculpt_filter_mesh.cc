@@ -2530,11 +2530,11 @@ static void sculpt_mesh_ui_exec(bContext * /*C*/, wmOperator *op)
 {
   uiLayout *layout = op->layout;
 
-  uiItemR(layout, op->ptr, "strength", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  uiItemR(layout, op->ptr, "iteration_count", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  uiItemR(layout, op->ptr, "orientation", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(op->ptr, "strength", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(op->ptr, "iteration_count", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(op->ptr, "orientation", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   layout = &layout->row(true);
-  uiItemR(layout, op->ptr, "deform_axis", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  layout->prop(op->ptr, "deform_axis", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 }
 
 void SCULPT_OT_mesh_filter(wmOperatorType *ot)

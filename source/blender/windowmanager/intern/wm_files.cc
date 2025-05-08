@@ -3334,7 +3334,7 @@ static void wm_open_mainfile_ui(bContext * /*C*/, wmOperator *op)
   uiLayout *layout = op->layout;
   const char *autoexec_text;
 
-  uiItemR(layout, op->ptr, "load_ui", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(op->ptr, "load_ui", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   uiLayout *col = &layout->column(false);
   if (file_info->is_untrusted) {
@@ -3346,7 +3346,7 @@ static void wm_open_mainfile_ui(bContext * /*C*/, wmOperator *op)
     autoexec_text = IFACE_("Trusted Source");
   }
 
-  uiItemR(col, op->ptr, "use_scripts", UI_ITEM_NONE, autoexec_text, ICON_NONE);
+  col->prop(op->ptr, "use_scripts", UI_ITEM_NONE, autoexec_text, ICON_NONE);
 }
 
 static void wm_open_mainfile_def_property_use_scripts(wmOperatorType *ot)
@@ -4022,7 +4022,7 @@ static void wm_clear_recent_files_ui(bContext * /*C*/, wmOperator *op)
   uiLayoutSetPropDecorate(layout, false);
 
   uiItemS(layout);
-  uiItemR(layout, op->ptr, "remove", UI_ITEM_R_TOGGLE, std::nullopt, ICON_NONE);
+  layout->prop(op->ptr, "remove", UI_ITEM_R_TOGGLE, std::nullopt, ICON_NONE);
   uiItemS(layout);
 }
 
@@ -4138,7 +4138,7 @@ static uiBlock *block_create_autorun_warning(bContext *C, ARegion *region, void 
   uiItemS(layout);
 
   PointerRNA pref_ptr = RNA_pointer_create_discrete(nullptr, &RNA_PreferencesFilePaths, &U);
-  uiItemR(layout, &pref_ptr, "use_scripts_auto_execute", UI_ITEM_NONE, checkbox_text, ICON_NONE);
+  layout->prop(&pref_ptr, "use_scripts_auto_execute", UI_ITEM_NONE, checkbox_text, ICON_NONE);
 
   uiItemS_ex(layout, 2.0f);
 

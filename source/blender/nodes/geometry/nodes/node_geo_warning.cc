@@ -73,7 +73,7 @@ static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
-  uiItemR(layout, ptr, "warning_type", UI_ITEM_NONE, "", ICON_NONE);
+  layout->prop(ptr, "warning_type", UI_ITEM_NONE, "", ICON_NONE);
 }
 
 static void node_rna(StructRNA *srna)

@@ -68,8 +68,8 @@ static void cmp_node_glare_declare(NodeDeclarationBuilder &b)
     }
 #endif
 
-    uiItemR(layout, ptr, "glare_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
-    uiItemR(layout, ptr, "quality", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+    layout->prop(ptr, "glare_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+    layout->prop(ptr, "quality", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
   });
 
   b.add_input<decl::Color>("Image")

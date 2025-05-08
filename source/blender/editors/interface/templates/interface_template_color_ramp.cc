@@ -295,12 +295,12 @@ static void colorband_buttons_layout(uiLayout *layout,
   row = &split->row(false);
 
   UI_block_align_begin(block);
-  uiItemR(row, &ptr, "color_mode", UI_ITEM_NONE, "", ICON_NONE);
+  row->prop(&ptr, "color_mode", UI_ITEM_NONE, "", ICON_NONE);
   if (ELEM(coba->color_mode, COLBAND_BLEND_HSV, COLBAND_BLEND_HSL)) {
-    uiItemR(row, &ptr, "hue_interpolation", UI_ITEM_NONE, "", ICON_NONE);
+    row->prop(&ptr, "hue_interpolation", UI_ITEM_NONE, "", ICON_NONE);
   }
   else { /* COLBAND_BLEND_RGB */
-    uiItemR(row, &ptr, "interpolation", UI_ITEM_NONE, "", ICON_NONE);
+    row->prop(&ptr, "interpolation", UI_ITEM_NONE, "", ICON_NONE);
   }
   UI_block_align_end(block);
 
@@ -338,10 +338,10 @@ static void colorband_buttons_layout(uiLayout *layout,
       UI_but_number_step_size_set(bt, 1);
 
       row = &split->row(false);
-      uiItemR(row, &ptr, "position", UI_ITEM_NONE, IFACE_("Pos"), ICON_NONE);
+      row->prop(&ptr, "position", UI_ITEM_NONE, IFACE_("Pos"), ICON_NONE);
 
       row = &layout->row(false);
-      uiItemR(row, &ptr, "color", UI_ITEM_NONE, "", ICON_NONE);
+      row->prop(&ptr, "color", UI_ITEM_NONE, "", ICON_NONE);
     }
     else {
       split = &layout->split(0.5f, false);
@@ -363,10 +363,10 @@ static void colorband_buttons_layout(uiLayout *layout,
       UI_but_number_step_size_set(bt, 1);
 
       row = &subsplit->row(false);
-      uiItemR(row, &ptr, "position", UI_ITEM_R_SLIDER, IFACE_("Pos"), ICON_NONE);
+      row->prop(&ptr, "position", UI_ITEM_R_SLIDER, IFACE_("Pos"), ICON_NONE);
 
       row = &split->row(false);
-      uiItemR(row, &ptr, "color", UI_ITEM_NONE, "", ICON_NONE);
+      row->prop(&ptr, "color", UI_ITEM_NONE, "", ICON_NONE);
     }
 
     /* Some special (rather awkward) treatment to update UI state on certain property changes. */

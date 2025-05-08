@@ -585,14 +585,14 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, ptr, "mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  uiItemR(layout, ptr, "weight", UI_ITEM_NONE, IFACE_("Weight"), ICON_NONE);
-  uiItemR(layout, ptr, "thresh", UI_ITEM_NONE, IFACE_("Threshold"), ICON_NONE);
+  layout->prop(ptr, "weight", UI_ITEM_NONE, IFACE_("Weight"), ICON_NONE);
+  layout->prop(ptr, "thresh", UI_ITEM_NONE, IFACE_("Threshold"), ICON_NONE);
 
   col = &layout->column(false);
-  uiItemR(col, ptr, "keep_sharp", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  uiItemR(col, ptr, "use_face_influence", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  col->prop(ptr, "keep_sharp", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  col->prop(ptr, "use_face_influence", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", std::nullopt);
 

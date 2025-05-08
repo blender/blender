@@ -72,7 +72,7 @@ static void cmp_node_planetrackdeform_declare(NodeDeclarationBuilder &b)
             col, ptr, "plane_track_name", &object_ptr, "plane_tracks", "", ICON_ANIM_DATA);
       }
       else {
-        uiItemR(layout, ptr, "plane_track_name", UI_ITEM_NONE, "", ICON_ANIM_DATA);
+        layout->prop(ptr, "plane_track_name", UI_ITEM_NONE, "", ICON_ANIM_DATA);
       }
     }
   });

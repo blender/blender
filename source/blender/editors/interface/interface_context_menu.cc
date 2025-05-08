@@ -200,7 +200,7 @@ static uiBlock *menu_change_shortcut(bContext *C, ARegion *region, void *arg)
                                      style);
 
   layout->label(CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Change Shortcut"), ICON_HAND);
-  uiItemR(layout, &ptr, "type", UI_ITEM_R_FULL_EVENT | UI_ITEM_R_IMMEDIATE, "", ICON_NONE);
+  layout->prop(&ptr, "type", UI_ITEM_R_FULL_EVENT | UI_ITEM_R_IMMEDIATE, "", ICON_NONE);
 
   const int bounds_offset[2] = {int(-100 * UI_SCALE_FAC), int(36 * UI_SCALE_FAC)};
   UI_block_bounds_set_popup(block, 6 * UI_SCALE_FAC, bounds_offset);
@@ -260,7 +260,7 @@ static uiBlock *menu_add_shortcut(bContext *C, ARegion *region, void *arg)
                                      style);
 
   layout->label(CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Assign Shortcut"), ICON_HAND);
-  uiItemR(layout, &ptr, "type", UI_ITEM_R_FULL_EVENT | UI_ITEM_R_IMMEDIATE, "", ICON_NONE);
+  layout->prop(&ptr, "type", UI_ITEM_R_FULL_EVENT | UI_ITEM_R_IMMEDIATE, "", ICON_NONE);
 
   const int bounds_offset[2] = {int(-100 * UI_SCALE_FAC), int(36 * UI_SCALE_FAC)};
   UI_block_bounds_set_popup(block, 6 * UI_SCALE_FAC, bounds_offset);
@@ -1445,7 +1445,7 @@ void ui_popup_context_menu_for_panel(bContext *C, ARegion *region, Panel *panel)
   if (has_panel_category) {
     char tmpstr[80];
     SNPRINTF(tmpstr, "%s" UI_SEP_CHAR_S "%s", IFACE_("Pin"), IFACE_("Shift Left Mouse"));
-    uiItemR(layout, &ptr, "use_pin", UI_ITEM_NONE, tmpstr, ICON_NONE);
+    layout->prop(&ptr, "use_pin", UI_ITEM_NONE, tmpstr, ICON_NONE);
 
     /* evil, force shortcut flag */
     {

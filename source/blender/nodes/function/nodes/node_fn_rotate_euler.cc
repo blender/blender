@@ -50,8 +50,8 @@ static void node_update(bNodeTree *ntree, bNode *node)
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  uiItemR(layout, ptr, "rotation_type", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
-  uiItemR(layout, ptr, "space", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "rotation_type", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "space", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 }
 
 static const mf::MultiFunction *get_multi_function(const bNode &bnode)

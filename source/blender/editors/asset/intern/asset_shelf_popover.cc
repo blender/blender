@@ -251,13 +251,12 @@ static void popover_panel_draw(const bContext *C, Panel *panel)
   uiLayout *sub = &right_col->row(false);
   /* Same as file/asset browser header. */
   PointerRNA shelf_ptr = RNA_pointer_create_discrete(&screen->id, &RNA_AssetShelf, shelf);
-  uiItemR(sub,
-          &shelf_ptr,
-          "search_filter",
-          /* Force the button to be active in a semi-modal state. */
-          UI_ITEM_R_TEXT_BUT_FORCE_SEMI_MODAL_ACTIVE,
-          "",
-          ICON_VIEWZOOM);
+  sub->prop(&shelf_ptr,
+            "search_filter",
+            /* Force the button to be active in a semi-modal state. */
+            UI_ITEM_R_TEXT_BUT_FORCE_SEMI_MODAL_ACTIVE,
+            "",
+            ICON_VIEWZOOM);
 
   uiLayout *asset_view_col = &right_col->column(false);
   BLI_assert((layout_width_units - LEFT_COL_WIDTH_UNITS) > 0);

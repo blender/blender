@@ -189,7 +189,7 @@ void library_selector_draw(const bContext *C, uiLayout *layout, AssetShelf &shel
       &CTX_wm_screen(C)->id, &RNA_AssetShelf, &shelf);
 
   uiLayout *row = &layout->row(true);
-  uiItemR(row, &shelf_ptr, "asset_library_reference", UI_ITEM_NONE, "", ICON_NONE);
+  row->prop(&shelf_ptr, "asset_library_reference", UI_ITEM_NONE, "", ICON_NONE);
   if (shelf.settings.asset_library_reference.type != ASSET_LIBRARY_LOCAL) {
     uiItemO(row, "", ICON_FILE_REFRESH, "ASSET_OT_library_refresh");
   }

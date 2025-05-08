@@ -42,7 +42,7 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *current_no
           C, panel, ntree, output_node);
       socket_items::ui::draw_active_item_props<ClosureInputItemsAccessor>(
           ntree, output_node, [&](PointerRNA *item_ptr) {
-            uiItemR(panel, item_ptr, "socket_type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+            panel->prop(item_ptr, "socket_type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
           });
     }
   }
@@ -52,7 +52,7 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *current_no
           C, panel, ntree, output_node);
       socket_items::ui::draw_active_item_props<ClosureOutputItemsAccessor>(
           ntree, output_node, [&](PointerRNA *item_ptr) {
-            uiItemR(panel, item_ptr, "socket_type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+            panel->prop(item_ptr, "socket_type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
           });
     }
   }

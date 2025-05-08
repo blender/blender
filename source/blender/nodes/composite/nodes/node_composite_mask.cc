@@ -31,7 +31,7 @@ static void cmp_node_mask_declare(NodeDeclarationBuilder &b)
 
   b.add_layout([](uiLayout *layout, bContext *C, PointerRNA *ptr) {
     uiTemplateID(layout, C, ptr, "mask", nullptr, nullptr, nullptr);
-    uiItemR(layout, ptr, "size_source", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+    layout->prop(ptr, "size_source", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
   });
 
   b.add_input<decl::Int>("Size X")

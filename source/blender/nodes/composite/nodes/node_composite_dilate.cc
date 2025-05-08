@@ -64,9 +64,9 @@ static void node_composit_init_dilateerode(bNodeTree * /*ntree*/, bNode *node)
 
 static void node_composit_buts_dilateerode(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  uiItemR(layout, ptr, "mode", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "mode", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   if (RNA_enum_get(ptr, "mode") == CMP_NODE_DILATE_ERODE_DISTANCE_FEATHER) {
-    uiItemR(layout, ptr, "falloff", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+    layout->prop(ptr, "falloff", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   }
 }
 

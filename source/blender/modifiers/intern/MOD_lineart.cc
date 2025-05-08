@@ -231,18 +231,18 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   uiLayoutSetEnabled(layout, !is_baked);
 
   if (!is_first_lineart(*static_cast<const GreasePencilLineartModifierData *>(ptr->data))) {
-    uiItemR(layout, ptr, "use_cache", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    layout->prop(ptr, "use_cache", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
-  uiItemR(layout, ptr, "source_type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "source_type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   if (source_type == LINEART_SOURCE_OBJECT) {
-    uiItemR(layout, ptr, "source_object", UI_ITEM_NONE, std::nullopt, ICON_OBJECT_DATA);
+    layout->prop(ptr, "source_object", UI_ITEM_NONE, std::nullopt, ICON_OBJECT_DATA);
   }
   else if (source_type == LINEART_SOURCE_COLLECTION) {
     uiLayout *sub = &layout->row(true);
-    uiItemR(sub, ptr, "source_collection", UI_ITEM_NONE, std::nullopt, ICON_OUTLINER_COLLECTION);
-    uiItemR(sub, ptr, "use_invert_collection", UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);
+    sub->prop(ptr, "source_collection", UI_ITEM_NONE, std::nullopt, ICON_OUTLINER_COLLECTION);
+    sub->prop(ptr, "use_invert_collection", UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);
   }
   else {
     /* Source is Scene. */
@@ -260,8 +260,8 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
       col, ptr, "target_material", &obj_data_ptr, "materials", std::nullopt, ICON_MATERIAL);
 
   col = &layout->column(false);
-  uiItemR(col, ptr, "thickness", UI_ITEM_R_SLIDER, IFACE_("Line Thickness"), ICON_NONE);
-  uiItemR(col, ptr, "opacity", UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
+  col->prop(ptr, "thickness", UI_ITEM_R_SLIDER, IFACE_("Line Thickness"), ICON_NONE);
+  col->prop(ptr, "opacity", UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
 
   modifier_panel_end(layout, ptr);
 }
@@ -284,58 +284,52 @@ static void edge_types_panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayout *sub = &layout->row(false);
   uiLayoutSetActive(sub, has_light);
-  uiItemR(sub,
-          ptr,
-          "shadow_region_filtering",
-          UI_ITEM_NONE,
-          IFACE_("Illumination Filtering"),
-          ICON_NONE);
+  sub->prop(
+      ptr, "shadow_region_filtering", UI_ITEM_NONE, IFACE_("Illumination Filtering"), ICON_NONE);
 
   uiLayout *col = &layout->column(true);
 
   sub = &col->row(false, IFACE_("Create"));
-  uiItemR(sub, ptr, "use_contour", UI_ITEM_NONE, "", ICON_NONE);
+  sub->prop(ptr, "use_contour", UI_ITEM_NONE, "", ICON_NONE);
 
   uiLayout *entry = &sub->row(true);
   uiLayoutSetActive(entry, RNA_boolean_get(ptr, "use_contour"));
-  uiItemR(entry, ptr, "silhouette_filtering", UI_ITEM_NONE, "", ICON_NONE);
+  entry->prop(ptr, "silhouette_filtering", UI_ITEM_NONE, "", ICON_NONE);
 
   const int silhouette_filtering = RNA_enum_get(ptr, "silhouette_filtering");
   if (silhouette_filtering != LINEART_SILHOUETTE_FILTER_NONE) {
-    uiItemR(entry, ptr, "use_invert_silhouette", UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);
+    entry->prop(ptr, "use_invert_silhouette", UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);
   }
 
   sub = &col->row(false);
   if (use_cache && !is_first) {
-    uiItemR(sub, ptr, "use_crease", UI_ITEM_NONE, IFACE_("Crease (Angle Cached)"), ICON_NONE);
+    sub->prop(ptr, "use_crease", UI_ITEM_NONE, IFACE_("Crease (Angle Cached)"), ICON_NONE);
   }
   else {
-    uiItemR(sub, ptr, "use_crease", UI_ITEM_NONE, "", ICON_NONE);
-    uiItemR(sub,
-            ptr,
-            "crease_threshold",
-            UI_ITEM_R_SLIDER | UI_ITEM_R_FORCE_BLANK_DECORATE,
-            std::nullopt,
-            ICON_NONE);
+    sub->prop(ptr, "use_crease", UI_ITEM_NONE, "", ICON_NONE);
+    sub->prop(ptr,
+              "crease_threshold",
+              UI_ITEM_R_SLIDER | UI_ITEM_R_FORCE_BLANK_DECORATE,
+              std::nullopt,
+              ICON_NONE);
   }
 
-  uiItemR(col, ptr, "use_intersection", UI_ITEM_NONE, IFACE_("Intersections"), ICON_NONE);
-  uiItemR(col, ptr, "use_material", UI_ITEM_NONE, IFACE_("Material Borders"), ICON_NONE);
-  uiItemR(col, ptr, "use_edge_mark", UI_ITEM_NONE, IFACE_("Edge Marks"), ICON_NONE);
-  uiItemR(col, ptr, "use_loose", UI_ITEM_NONE, IFACE_("Loose"), ICON_NONE);
+  col->prop(ptr, "use_intersection", UI_ITEM_NONE, IFACE_("Intersections"), ICON_NONE);
+  col->prop(ptr, "use_material", UI_ITEM_NONE, IFACE_("Material Borders"), ICON_NONE);
+  col->prop(ptr, "use_edge_mark", UI_ITEM_NONE, IFACE_("Edge Marks"), ICON_NONE);
+  col->prop(ptr, "use_loose", UI_ITEM_NONE, IFACE_("Loose"), ICON_NONE);
 
   entry = &col->column(false);
   uiLayoutSetActive(entry, has_light);
 
   sub = &entry->row(false);
-  uiItemR(sub, ptr, "use_light_contour", UI_ITEM_NONE, IFACE_("Light Contour"), ICON_NONE);
+  sub->prop(ptr, "use_light_contour", UI_ITEM_NONE, IFACE_("Light Contour"), ICON_NONE);
 
-  uiItemR(entry,
-          ptr,
-          "use_shadow",
-          UI_ITEM_NONE,
-          CTX_IFACE_(BLT_I18NCONTEXT_ID_GPENCIL, "Cast Shadow"),
-          ICON_NONE);
+  entry->prop(ptr,
+              "use_shadow",
+              UI_ITEM_NONE,
+              CTX_IFACE_(BLT_I18NCONTEXT_ID_GPENCIL, "Cast Shadow"),
+              ICON_NONE);
 
   layout->label(IFACE_("Options"), ICON_NONE);
 
@@ -344,12 +338,11 @@ static void edge_types_panel_draw(const bContext * /*C*/, Panel *panel)
     sub->label(IFACE_("Type overlapping cached"), ICON_INFO);
   }
   else {
-    uiItemR(sub,
-            ptr,
-            "use_overlap_edge_type_support",
-            UI_ITEM_NONE,
-            IFACE_("Allow Overlapping Types"),
-            ICON_NONE);
+    sub->prop(ptr,
+              "use_overlap_edge_type_support",
+              UI_ITEM_NONE,
+              IFACE_("Allow Overlapping Types"),
+              ICON_NONE);
   }
 }
 
@@ -373,16 +366,16 @@ static void options_light_reference_draw(const bContext * /*C*/, Panel *panel)
     return;
   }
 
-  uiItemR(layout, ptr, "light_contour_object", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "light_contour_object", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   uiLayout *remaining = &layout->column(false);
   uiLayoutSetActive(remaining, has_light);
 
-  uiItemR(remaining, ptr, "shadow_camera_size", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  remaining->prop(ptr, "shadow_camera_size", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   uiLayout *col = &remaining->column(true);
-  uiItemR(col, ptr, "shadow_camera_near", UI_ITEM_NONE, IFACE_("Near"), ICON_NONE);
-  uiItemR(col, ptr, "shadow_camera_far", UI_ITEM_NONE, IFACE_("Far"), ICON_NONE);
+  col->prop(ptr, "shadow_camera_near", UI_ITEM_NONE, IFACE_("Near"), ICON_NONE);
+  col->prop(ptr, "shadow_camera_far", UI_ITEM_NONE, IFACE_("Far"), ICON_NONE);
 }
 
 static void options_panel_draw(const bContext * /*C*/, Panel *panel)
@@ -405,30 +398,22 @@ static void options_panel_draw(const bContext * /*C*/, Panel *panel)
   }
 
   uiLayout *row = &layout->row(false, IFACE_("Custom Camera"));
-  uiItemR(row, ptr, "use_custom_camera", UI_ITEM_NONE, "", ICON_NONE);
+  row->prop(ptr, "use_custom_camera", UI_ITEM_NONE, "", ICON_NONE);
   uiLayout *subrow = &row->row(true);
   uiLayoutSetActive(subrow, RNA_boolean_get(ptr, "use_custom_camera"));
   uiLayoutSetPropSep(subrow, true);
-  uiItemR(subrow, ptr, "source_camera", UI_ITEM_NONE, "", ICON_OBJECT_DATA);
+  subrow->prop(ptr, "source_camera", UI_ITEM_NONE, "", ICON_OBJECT_DATA);
 
   uiLayout *col = &layout->column(true);
 
-  uiItemR(col,
-          ptr,
-          "use_edge_overlap",
-          UI_ITEM_NONE,
-          IFACE_("Overlapping Edges As Contour"),
-          ICON_NONE);
-  uiItemR(col, ptr, "use_object_instances", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  uiItemR(col, ptr, "use_clip_plane_boundaries", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  uiItemR(col, ptr, "use_crease_on_smooth", UI_ITEM_NONE, IFACE_("Crease On Smooth"), ICON_NONE);
-  uiItemR(col, ptr, "use_crease_on_sharp", UI_ITEM_NONE, IFACE_("Crease On Sharp"), ICON_NONE);
-  uiItemR(col,
-          ptr,
-          "use_back_face_culling",
-          UI_ITEM_NONE,
-          IFACE_("Force Backface Culling"),
-          ICON_NONE);
+  col->prop(
+      ptr, "use_edge_overlap", UI_ITEM_NONE, IFACE_("Overlapping Edges As Contour"), ICON_NONE);
+  col->prop(ptr, "use_object_instances", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  col->prop(ptr, "use_clip_plane_boundaries", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  col->prop(ptr, "use_crease_on_smooth", UI_ITEM_NONE, IFACE_("Crease On Smooth"), ICON_NONE);
+  col->prop(ptr, "use_crease_on_sharp", UI_ITEM_NONE, IFACE_("Crease On Sharp"), ICON_NONE);
+  col->prop(
+      ptr, "use_back_face_culling", UI_ITEM_NONE, IFACE_("Force Backface Culling"), ICON_NONE);
 }
 
 static void occlusion_panel_draw(const bContext * /*C*/, Panel *panel)
@@ -452,15 +437,15 @@ static void occlusion_panel_draw(const bContext * /*C*/, Panel *panel)
   layout = &layout->column(false);
   uiLayoutSetActive(layout, show_in_front);
 
-  uiItemR(layout, ptr, "use_multiple_levels", UI_ITEM_NONE, IFACE_("Range"), ICON_NONE);
+  layout->prop(ptr, "use_multiple_levels", UI_ITEM_NONE, IFACE_("Range"), ICON_NONE);
 
   if (use_multiple_levels) {
     uiLayout *col = &layout->column(true);
-    uiItemR(col, ptr, "level_start", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    uiItemR(col, ptr, "level_end", UI_ITEM_NONE, IFACE_("End"), ICON_NONE);
+    col->prop(ptr, "level_start", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col->prop(ptr, "level_end", UI_ITEM_NONE, IFACE_("End"), ICON_NONE);
   }
   else {
-    uiItemR(layout, ptr, "level_start", UI_ITEM_NONE, IFACE_("Level"), ICON_NONE);
+    layout->prop(ptr, "level_start", UI_ITEM_NONE, IFACE_("Level"), ICON_NONE);
   }
 }
 
@@ -487,7 +472,7 @@ static void material_mask_panel_draw_header(const bContext * /*C*/, Panel *panel
   uiLayoutSetEnabled(layout, !is_baked);
   uiLayoutSetActive(layout, show_in_front && anything_showing_through(ptr));
 
-  uiItemR(layout, ptr, "use_material_mask", UI_ITEM_NONE, IFACE_("Material Mask"), ICON_NONE);
+  layout->prop(ptr, "use_material_mask", UI_ITEM_NONE, IFACE_("Material Mask"), ICON_NONE);
 }
 
 static void material_mask_panel_draw(const bContext * /*C*/, Panel *panel)
@@ -514,7 +499,7 @@ static void material_mask_panel_draw(const bContext * /*C*/, Panel *panel)
     }
   }
 
-  uiItemR(layout, ptr, "use_material_mask_match", UI_ITEM_NONE, IFACE_("Exact Match"), ICON_NONE);
+  layout->prop(ptr, "use_material_mask_match", UI_ITEM_NONE, IFACE_("Exact Match"), ICON_NONE);
 }
 
 static void intersection_panel_draw(const bContext * /*C*/, Panel *panel)
@@ -540,7 +525,7 @@ static void intersection_panel_draw(const bContext * /*C*/, Panel *panel)
     }
   }
 
-  uiItemR(layout, ptr, "use_intersection_match", UI_ITEM_NONE, IFACE_("Exact Match"), ICON_NONE);
+  layout->prop(ptr, "use_intersection_match", UI_ITEM_NONE, IFACE_("Exact Match"), ICON_NONE);
 }
 
 static void face_mark_panel_draw_header(const bContext * /*C*/, Panel *panel)
@@ -556,7 +541,7 @@ static void face_mark_panel_draw_header(const bContext * /*C*/, Panel *panel)
 
   if (!use_cache || is_first) {
     uiLayoutSetEnabled(layout, !is_baked);
-    uiItemR(layout, ptr, "use_face_mark", UI_ITEM_NONE, IFACE_("Face Mark Filtering"), ICON_NONE);
+    layout->prop(ptr, "use_face_mark", UI_ITEM_NONE, IFACE_("Face Mark Filtering"), ICON_NONE);
   }
   else {
     layout->label(IFACE_("Face Mark Filtering"), ICON_NONE);
@@ -586,9 +571,9 @@ static void face_mark_panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayoutSetActive(layout, use_mark);
 
-  uiItemR(layout, ptr, "use_face_mark_invert", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  uiItemR(layout, ptr, "use_face_mark_boundaries", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  uiItemR(layout, ptr, "use_face_mark_keep_contour", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "use_face_mark_invert", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "use_face_mark_boundaries", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "use_face_mark_keep_contour", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
 static void chaining_panel_draw(const bContext * /*C*/, Panel *panel)
@@ -613,23 +598,23 @@ static void chaining_panel_draw(const bContext * /*C*/, Panel *panel)
   }
 
   uiLayout *col = &layout->column(true, IFACE_("Chain"));
-  uiItemR(col, ptr, "use_fuzzy_intersections", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  uiItemR(col, ptr, "use_fuzzy_all", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  uiItemR(col, ptr, "use_loose_edge_chain", UI_ITEM_NONE, IFACE_("Loose Edges"), ICON_NONE);
-  uiItemR(
-      col, ptr, "use_loose_as_contour", UI_ITEM_NONE, IFACE_("Loose Edges As Contour"), ICON_NONE);
-  uiItemR(col, ptr, "use_detail_preserve", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  uiItemR(col, ptr, "use_geometry_space_chain", UI_ITEM_NONE, IFACE_("Geometry Space"), ICON_NONE);
+  col->prop(ptr, "use_fuzzy_intersections", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  col->prop(ptr, "use_fuzzy_all", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  col->prop(ptr, "use_loose_edge_chain", UI_ITEM_NONE, IFACE_("Loose Edges"), ICON_NONE);
+  col->prop(
+      ptr, "use_loose_as_contour", UI_ITEM_NONE, IFACE_("Loose Edges As Contour"), ICON_NONE);
+  col->prop(ptr, "use_detail_preserve", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  col->prop(ptr, "use_geometry_space_chain", UI_ITEM_NONE, IFACE_("Geometry Space"), ICON_NONE);
 
-  uiItemR(layout,
-          ptr,
-          "chaining_image_threshold",
-          UI_ITEM_NONE,
-          is_geom ? std::make_optional<StringRefNull>(IFACE_("Geometry Threshold")) : std::nullopt,
-          ICON_NONE);
+  layout->prop(ptr,
+               "chaining_image_threshold",
+               UI_ITEM_NONE,
+               is_geom ? std::make_optional<StringRefNull>(IFACE_("Geometry Threshold")) :
+                         std::nullopt,
+               ICON_NONE);
 
-  uiItemR(layout, ptr, "smooth_tolerance", UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
-  uiItemR(layout, ptr, "split_angle", UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "smooth_tolerance", UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "split_angle", UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
 }
 
 static void vgroup_panel_draw(const bContext * /*C*/, Panel *panel)
@@ -656,12 +641,10 @@ static void vgroup_panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayout *row = &col->row(true);
 
-  uiItemR(
-      row, ptr, "source_vertex_group", UI_ITEM_NONE, IFACE_("Filter Source"), ICON_GROUP_VERTEX);
-  uiItemR(row, ptr, "invert_source_vertex_group", UI_ITEM_R_TOGGLE, "", ICON_ARROW_LEFTRIGHT);
+  row->prop(ptr, "source_vertex_group", UI_ITEM_NONE, IFACE_("Filter Source"), ICON_GROUP_VERTEX);
+  row->prop(ptr, "invert_source_vertex_group", UI_ITEM_R_TOGGLE, "", ICON_ARROW_LEFTRIGHT);
 
-  uiItemR(
-      col, ptr, "use_output_vertex_group_match_by_name", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  col->prop(ptr, "use_output_vertex_group_match_by_name", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   uiItemPointerR(col, ptr, "vertex_group", &ob_ptr, "vertex_groups", IFACE_("Target"), ICON_NONE);
 }
@@ -680,8 +663,7 @@ static void bake_panel_draw(const bContext * /*C*/, Panel *panel)
     uiLayout *col = &layout->column(false);
     uiLayoutSetPropSep(col, false);
     col->label(TIP_("Modifier has baked data"), ICON_NONE);
-    uiItemR(
-        col, ptr, "is_baked", UI_ITEM_R_TOGGLE, IFACE_("Continue Without Clearing"), ICON_NONE);
+    col->prop(ptr, "is_baked", UI_ITEM_R_TOGGLE, IFACE_("Continue Without Clearing"), ICON_NONE);
   }
 
   uiLayout *col = &layout->column(false);
@@ -707,8 +689,8 @@ static void composition_panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, ptr, "overscan", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  uiItemR(layout, ptr, "use_image_boundary_trimming", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "overscan", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "use_image_boundary_trimming", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   if (show_in_front) {
     layout->label(TIP_("Object is shown in front"), ICON_ERROR);
@@ -717,13 +699,12 @@ static void composition_panel_draw(const bContext * /*C*/, Panel *panel)
   uiLayout *col = &layout->column(false);
   uiLayoutSetActive(col, !show_in_front);
 
-  uiItemR(col, ptr, "stroke_depth_offset", UI_ITEM_R_SLIDER, IFACE_("Depth Offset"), ICON_NONE);
-  uiItemR(col,
-          ptr,
-          "use_offset_towards_custom_camera",
-          UI_ITEM_NONE,
-          IFACE_("Towards Custom Camera"),
-          ICON_NONE);
+  col->prop(ptr, "stroke_depth_offset", UI_ITEM_R_SLIDER, IFACE_("Depth Offset"), ICON_NONE);
+  col->prop(ptr,
+            "use_offset_towards_custom_camera",
+            UI_ITEM_NONE,
+            IFACE_("Towards Custom Camera"),
+            ICON_NONE);
 }
 
 static void panel_register(ARegionType *region_type)

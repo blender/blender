@@ -1176,21 +1176,21 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
       layout, ptr, "particle_uv", &obj_data_ptr, "uv_layers", std::nullopt, ICON_GROUP_UVS);
 
   row = &layout->row(true, IFACE_("Show"));
-  uiItemR(row, ptr, "show_alive", toggles_flag, std::nullopt, ICON_NONE);
-  uiItemR(row, ptr, "show_dead", toggles_flag, std::nullopt, ICON_NONE);
-  uiItemR(row, ptr, "show_unborn", toggles_flag, std::nullopt, ICON_NONE);
+  row->prop(ptr, "show_alive", toggles_flag, std::nullopt, ICON_NONE);
+  row->prop(ptr, "show_dead", toggles_flag, std::nullopt, ICON_NONE);
+  row->prop(ptr, "show_unborn", toggles_flag, std::nullopt, ICON_NONE);
 
   uiLayoutSetPropSep(layout, true);
 
   col = &layout->column(false);
-  uiItemR(col, ptr, "use_edge_cut", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  uiItemR(col, ptr, "use_size", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  col->prop(ptr, "use_edge_cut", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  col->prop(ptr, "use_size", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", std::nullopt);
 
   row = &layout->row(false);
   uiLayoutSetActive(row, has_vertex_group);
-  uiItemR(row, ptr, "protect", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  row->prop(ptr, "protect", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   uiItemO(layout, IFACE_("Refresh"), ICON_NONE, "OBJECT_OT_explode_refresh");
 

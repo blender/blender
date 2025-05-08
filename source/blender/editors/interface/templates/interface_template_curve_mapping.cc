@@ -347,7 +347,7 @@ static void curvemap_buttons_layout(uiLayout *layout,
 
   if (tone) {
     uiLayout *split = &layout->split(0.0f, false);
-    uiItemR(&split->row(false), ptr, "tone", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+    split->row(false).prop(ptr, "tone", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
   }
 
   /* curve chooser */
@@ -726,8 +726,8 @@ static void curvemap_buttons_layout(uiLayout *layout,
   /* black/white levels */
   if (levels) {
     uiLayout *split = &layout->split(0.0f, false);
-    uiItemR(&split->column(false), ptr, "black_level", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
-    uiItemR(&split->column(false), ptr, "white_level", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+    split->column(false).prop(ptr, "black_level", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+    split->column(false).prop(ptr, "white_level", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
     layout->row(false);
     bt = uiDefBut(block,

@@ -182,17 +182,17 @@ static void shaderfx_panel_header(const bContext * /*C*/, Panel *panel)
   /* Effect name. */
   row = &layout->row(true);
   if (!narrow_panel) {
-    uiItemR(row, ptr, "name", UI_ITEM_NONE, "", ICON_NONE);
+    row->prop(ptr, "name", UI_ITEM_NONE, "", ICON_NONE);
   }
 
   /* Mode enabling buttons. */
   if (fxti->flags & eShaderFxTypeFlag_SupportsEditmode) {
     uiLayout *sub = &row->row(true);
     uiLayoutSetActive(sub, false);
-    uiItemR(sub, ptr, "show_in_editmode", UI_ITEM_NONE, "", ICON_NONE);
+    sub->prop(ptr, "show_in_editmode", UI_ITEM_NONE, "", ICON_NONE);
   }
-  uiItemR(row, ptr, "show_viewport", UI_ITEM_NONE, "", ICON_NONE);
-  uiItemR(row, ptr, "show_render", UI_ITEM_NONE, "", ICON_NONE);
+  row->prop(ptr, "show_viewport", UI_ITEM_NONE, "", ICON_NONE);
+  row->prop(ptr, "show_render", UI_ITEM_NONE, "", ICON_NONE);
 
   /* Extra operators. */
   uiItemMenuF(row, "", ICON_DOWNARROW_HLT, gpencil_shaderfx_ops_extra_draw, fx);

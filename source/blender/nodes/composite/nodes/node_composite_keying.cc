@@ -135,7 +135,7 @@ static void cmp_node_keying_declare(NodeDeclarationBuilder &b)
           "means dilation")
       .compositor_expects_single_value();
   postprocess_panel.add_layout([](uiLayout *layout, bContext * /*C*/, PointerRNA *ptr) {
-    uiItemR(layout, ptr, "feather_falloff", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+    layout->prop(ptr, "feather_falloff", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   });
 
   PanelDeclarationBuilder &despill_panel = b.add_panel("Despill").default_closed(true);

@@ -42,7 +42,7 @@ static void node_composit_init_view_levels(bNodeTree * /*ntree*/, bNode *node)
 
 static void node_composit_buts_view_levels(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  uiItemR(layout, ptr, "channel", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  layout->prop(ptr, "channel", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 }
 
 using namespace blender::compositor;

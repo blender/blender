@@ -111,16 +111,16 @@ void draw_layer_filter_settings(const bContext * /*C*/, uiLayout *layout, Pointe
                  std::nullopt,
                  ICON_OUTLINER_DATA_GP_LAYER);
   sub = &row->row(true);
-  uiItemR(sub, ptr, "invert_layer_filter", UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);
+  sub->prop(ptr, "invert_layer_filter", UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);
 
   row = &col->row(true, IFACE_("Layer Pass"));
   uiLayoutSetPropDecorate(row, false);
   sub = &row->row(true);
-  uiItemR(sub, ptr, "use_layer_pass_filter", UI_ITEM_NONE, "", ICON_NONE);
+  sub->prop(ptr, "use_layer_pass_filter", UI_ITEM_NONE, "", ICON_NONE);
   subsub = &sub->row(true);
   uiLayoutSetActive(subsub, use_layer_pass);
-  uiItemR(subsub, ptr, "layer_pass_filter", UI_ITEM_NONE, "", ICON_NONE);
-  uiItemR(subsub, ptr, "invert_layer_pass_filter", UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);
+  subsub->prop(ptr, "layer_pass_filter", UI_ITEM_NONE, "", ICON_NONE);
+  subsub->prop(ptr, "invert_layer_pass_filter", UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);
 }
 
 void draw_material_filter_settings(const bContext * /*C*/, uiLayout *layout, PointerRNA *ptr)
@@ -138,16 +138,16 @@ void draw_material_filter_settings(const bContext * /*C*/, uiLayout *layout, Poi
   uiItemPointerR(
       row, ptr, "material_filter", &obj_data_ptr, "materials", std::nullopt, ICON_SHADING_TEXTURE);
   sub = &row->row(true);
-  uiItemR(sub, ptr, "invert_material_filter", UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);
+  sub->prop(ptr, "invert_material_filter", UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);
 
   row = &col->row(true, IFACE_("Material Pass"));
   uiLayoutSetPropDecorate(row, false);
   sub = &row->row(true);
-  uiItemR(sub, ptr, "use_material_pass_filter", UI_ITEM_NONE, "", ICON_NONE);
+  sub->prop(ptr, "use_material_pass_filter", UI_ITEM_NONE, "", ICON_NONE);
   subsub = &sub->row(true);
   uiLayoutSetActive(subsub, use_material_pass);
-  uiItemR(subsub, ptr, "material_pass_filter", UI_ITEM_NONE, "", ICON_NONE);
-  uiItemR(subsub, ptr, "invert_material_pass_filter", UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);
+  subsub->prop(ptr, "material_pass_filter", UI_ITEM_NONE, "", ICON_NONE);
+  subsub->prop(ptr, "invert_material_pass_filter", UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);
 }
 
 void draw_vertex_group_settings(const bContext * /*C*/, uiLayout *layout, PointerRNA *ptr)
@@ -165,7 +165,7 @@ void draw_vertex_group_settings(const bContext * /*C*/, uiLayout *layout, Pointe
   sub = &row->row(true);
   uiLayoutSetActive(sub, has_vertex_group);
   uiLayoutSetPropDecorate(sub, false);
-  uiItemR(sub, ptr, "invert_vertex_group", UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);
+  sub->prop(ptr, "invert_vertex_group", UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);
 }
 
 void draw_custom_curve_settings(const bContext * /*C*/, uiLayout *layout, PointerRNA *ptr)
@@ -176,7 +176,7 @@ void draw_custom_curve_settings(const bContext * /*C*/, uiLayout *layout, Pointe
   uiLayoutSetPropSep(layout, true);
   row = &layout->row(true);
   uiLayoutSetPropDecorate(row, false);
-  uiItemR(row, ptr, "use_custom_curve", UI_ITEM_NONE, IFACE_("Custom Curve"), ICON_NONE);
+  row->prop(ptr, "use_custom_curve", UI_ITEM_NONE, IFACE_("Custom Curve"), ICON_NONE);
   if (use_custom_curve) {
     uiTemplateCurveMapping(layout, ptr, "custom_curve", 0, false, false, false, false);
   }

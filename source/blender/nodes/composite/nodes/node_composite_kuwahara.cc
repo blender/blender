@@ -85,7 +85,7 @@ static void node_composit_init_kuwahara(bNodeTree * /*ntree*/, bNode *node)
 
 static void node_composit_buts_kuwahara(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  uiItemR(layout, ptr, "variation", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "variation", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
 static void node_update(bNodeTree *ntree, bNode *node)

@@ -408,7 +408,7 @@ static void draw_exporter_item(uiList * /*ui_list*/,
 {
   uiLayout *row = &layout->row(false);
   uiLayoutSetEmboss(row, blender::ui::EmbossType::None);
-  uiItemR(row, itemptr, "name", UI_ITEM_NONE, "", ICON_NONE);
+  row->prop(itemptr, "name", UI_ITEM_NONE, "", ICON_NONE);
 }
 
 void uiTemplateCollectionExporters(uiLayout *layout, bContext *C)

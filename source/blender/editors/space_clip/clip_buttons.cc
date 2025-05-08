@@ -134,7 +134,7 @@ void uiTemplateMovieClip(uiLayout *layout,
     uiLayout *split = &row->split(0.0f, false);
     row = &split->row(true);
 
-    uiItemR(row, &clipptr, "filepath", UI_ITEM_NONE, "", ICON_NONE);
+    row->prop(&clipptr, "filepath", UI_ITEM_NONE, "", ICON_NONE);
     uiItemO(row, "", ICON_FILE_REFRESH, "clip.reload");
 
     uiLayout *col = &layout->column(false);

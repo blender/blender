@@ -385,11 +385,11 @@ static void panel_draw(const bContext *C, Panel *panel)
   }
 
   if (RNA_enum_get(&ob_ptr, "type") == OB_MESH) {
-    uiItemR(layout, ptr, "read_data", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
-    uiItemR(layout, ptr, "use_vertex_interpolation", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    layout->prop(ptr, "read_data", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+    layout->prop(ptr, "use_vertex_interpolation", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
   else if (RNA_enum_get(&ob_ptr, "type") == OB_CURVES) {
-    uiItemR(layout, ptr, "use_vertex_interpolation", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    layout->prop(ptr, "use_vertex_interpolation", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
   modifier_panel_end(layout, ptr);
@@ -409,7 +409,7 @@ static void velocity_panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
   uiTemplateCacheFileVelocity(layout, &fileptr);
-  uiItemR(layout, ptr, "velocity_scale", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "velocity_scale", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
 static void time_panel_draw(const bContext * /*C*/, Panel *panel)

@@ -2429,7 +2429,7 @@ static void outliner_orphans_purge_ui(bContext * /*C*/, wmOperator *op)
   std::string unused_message;
   unused_message_gen(unused_message, data.num_local);
   uiLayout *column = &layout->column(true);
-  uiItemR(column, ptr, "do_local_ids", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  column->prop(ptr, "do_local_ids", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   uiLayout *row = &column->row(true);
   uiItemS_ex(row, 2.67f);
   row->label(unused_message, ICON_NONE);
@@ -2437,12 +2437,12 @@ static void outliner_orphans_purge_ui(bContext * /*C*/, wmOperator *op)
   unused_message = "";
   unused_message_gen(unused_message, data.num_linked);
   column = &layout->column(true);
-  uiItemR(column, ptr, "do_linked_ids", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  column->prop(ptr, "do_linked_ids", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   row = &column->row(true);
   uiItemS_ex(row, 2.67f);
   row->label(unused_message, ICON_NONE);
 
-  uiItemR(layout, ptr, "do_recursive", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "do_recursive", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
 void OUTLINER_OT_orphans_purge(wmOperatorType *ot)

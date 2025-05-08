@@ -321,17 +321,17 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   sub = &layout->column(true);
   uiLayoutSetActive(sub, has_camera);
-  uiItemR(sub, ptr, "aspect_x", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  uiItemR(sub, ptr, "aspect_y", UI_ITEM_NONE, IFACE_("Y"), ICON_NONE);
+  sub->prop(ptr, "aspect_x", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  sub->prop(ptr, "aspect_y", UI_ITEM_NONE, IFACE_("Y"), ICON_NONE);
 
   sub = &layout->column(true);
   uiLayoutSetActive(sub, has_camera);
-  uiItemR(sub, ptr, "scale_x", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  uiItemR(sub, ptr, "scale_y", UI_ITEM_NONE, IFACE_("Y"), ICON_NONE);
+  sub->prop(ptr, "scale_x", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  sub->prop(ptr, "scale_y", UI_ITEM_NONE, IFACE_("Y"), ICON_NONE);
 
-  uiItemR(layout, ptr, "projector_count", UI_ITEM_NONE, IFACE_("Projectors"), ICON_NONE);
+  layout->prop(ptr, "projector_count", UI_ITEM_NONE, IFACE_("Projectors"), ICON_NONE);
   RNA_BEGIN (ptr, projector_ptr, "projectors") {
-    uiItemR(layout, &projector_ptr, "object", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    layout->prop(&projector_ptr, "object", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
   RNA_END;
 

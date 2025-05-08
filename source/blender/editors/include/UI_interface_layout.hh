@@ -58,6 +58,9 @@ struct uiItem {
   uiItem(const uiItem &) = default;
   virtual ~uiItem() = default;
 };
+
+enum eUI_Item_Flag : uint16_t;
+
 /**
  * NOTE: `uiLayout` properties should be considered private outside `interface_layout.cc`,
  * incoming refactors would remove public access and add public read/write function methods.
@@ -238,6 +241,13 @@ struct uiLayout : uiItem {
 
   /** Adds a label item that will display text and/or icon in the layout. */
   void label(blender::StringRef name, int icon);
+
+  /** Adds a RNA property item, and exposes it into the layout. */
+  void prop(PointerRNA *ptr,
+            blender::StringRefNull propname,
+            eUI_Item_Flag flag,
+            std::optional<blender::StringRefNull> name,
+            int icon);
 };
 
 enum {
@@ -261,7 +271,7 @@ enum {
   UI_LAYOUT_ALIGN_RIGHT = 3,
 };
 
-enum eUI_Item_Flag {
+enum eUI_Item_Flag : uint16_t {
   /* UI_ITEM_O_RETURN_PROPS = 1 << 0, */ /* UNUSED */
   UI_ITEM_R_EXPAND = 1 << 1,
   UI_ITEM_R_SLIDER = 1 << 2,
@@ -500,12 +510,6 @@ void uiItemFullOMenuHold_ptr(uiLayout *layout,
                              const char *menu_id, /* extra menu arg. */
                              PointerRNA *r_opptr);
 
-void uiItemR(uiLayout *layout,
-             PointerRNA *ptr,
-             blender::StringRefNull propname,
-             eUI_Item_Flag flag,
-             std::optional<blender::StringRefNull> name,
-             int icon);
 void uiItemFullR(uiLayout *layout,
                  PointerRNA *ptr,
                  PropertyRNA *prop,

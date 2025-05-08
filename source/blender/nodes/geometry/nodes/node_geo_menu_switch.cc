@@ -98,7 +98,7 @@ static void node_declare(blender::nodes::NodeDeclarationBuilder &b)
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  uiItemR(layout, ptr, "data_type", UI_ITEM_NONE, "", ICON_NONE);
+  layout->prop(ptr, "data_type", UI_ITEM_NONE, "", ICON_NONE);
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
@@ -365,7 +365,7 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *ptr)
   bNodeTree &tree = *reinterpret_cast<bNodeTree *>(ptr->owner_id);
   bNode &node = *static_cast<bNode *>(ptr->data);
 
-  uiItemR(layout, ptr, "data_type", UI_ITEM_NONE, "", ICON_NONE);
+  layout->prop(ptr, "data_type", UI_ITEM_NONE, "", ICON_NONE);
 
   if (uiLayout *panel = layout->panel(C, "menu_switch_items", false, IFACE_("Menu Items"))) {
     socket_items::ui::draw_items_list_with_operators<MenuSwitchItemsAccessor>(
@@ -374,7 +374,7 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *ptr)
         tree, node, [&](PointerRNA *item_ptr) {
           uiLayoutSetPropSep(panel, true);
           uiLayoutSetPropDecorate(panel, false);
-          uiItemR(panel, item_ptr, "description", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+          panel->prop(item_ptr, "description", UI_ITEM_NONE, std::nullopt, ICON_NONE);
         });
   }
 }

@@ -272,7 +272,7 @@ void uiTemplatePathBuilder(uiLayout *layout,
   uiLayout *row = &layout->row(true);
 
   /* Path (existing string) Widget */
-  uiItemR(row, ptr, propname, UI_ITEM_NONE, text, ICON_RNA);
+  row->prop(ptr, propname, UI_ITEM_NONE, text, ICON_RNA);
 
   /* TODO: attach something to this to make allow
    * searching of nested properties to 'build' the path */

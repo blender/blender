@@ -58,7 +58,7 @@ static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
-  uiItemR(layout, ptr, "domain", UI_ITEM_NONE, "", ICON_NONE);
+  layout->prop(ptr, "domain", UI_ITEM_NONE, "", ICON_NONE);
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
@@ -73,7 +73,7 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *ptr)
   bNodeTree &tree = *reinterpret_cast<bNodeTree *>(ptr->owner_id);
   bNode &node = *static_cast<bNode *>(ptr->data);
 
-  uiItemR(layout, ptr, "domain", UI_ITEM_NONE, "", ICON_NONE);
+  layout->prop(ptr, "domain", UI_ITEM_NONE, "", ICON_NONE);
 
   if (uiLayout *panel = layout->panel(
           C, "capture_attribute_items", false, IFACE_("Capture Items")))
@@ -84,7 +84,7 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *ptr)
         tree, node, [&](PointerRNA *item_ptr) {
           uiLayoutSetPropSep(panel, true);
           uiLayoutSetPropDecorate(panel, false);
-          uiItemR(panel, item_ptr, "data_type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+          panel->prop(item_ptr, "data_type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
         });
   }
 }

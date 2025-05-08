@@ -137,7 +137,7 @@ void modifier_vgroup_ui(uiLayout *layout,
     uiLayout *sub = &row->row(true);
     uiLayoutSetActive(sub, has_vertex_group);
     uiLayoutSetPropDecorate(sub, false);
-    uiItemR(sub, ptr, *invert_vgroup_prop, UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);
+    sub->prop(ptr, *invert_vgroup_prop, UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);
   }
 }
 
@@ -147,7 +147,7 @@ void modifier_grease_pencil_curve_header_draw(const bContext * /*C*/, Panel *pan
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
-  uiItemR(layout, ptr, "use_custom_curve", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "use_custom_curve", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
 void modifier_grease_pencil_curve_panel_draw(const bContext * /*C*/, Panel *panel)
@@ -307,7 +307,7 @@ static void modifier_ops_extra_draw(bContext *C, uiLayout *layout, void *md_v)
 
   uiItemS(layout);
 
-  uiItemR(layout, &ptr, "use_pin_to_last", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(&ptr, "use_pin_to_last", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   if (md->type == eModifierType_Nodes) {
     uiItemS(layout);
@@ -319,7 +319,7 @@ static void modifier_ops_extra_draw(bContext *C, uiLayout *layout, void *md_v)
                 WM_OP_INVOKE_DEFAULT,
                 UI_ITEM_NONE,
                 &op_ptr);
-    uiItemR(layout, &ptr, "show_group_selector", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    layout->prop(&ptr, "show_group_selector", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 }
 
@@ -368,7 +368,7 @@ static void modifier_panel_header(const bContext *C, Panel *panel)
       if (index < cage_index || !BKE_modifier_couldbe_cage(scene, md)) {
         uiLayoutSetActive(sub, false);
       }
-      uiItemR(sub, ptr, "show_on_cage", UI_ITEM_NONE, "", ICON_NONE);
+      sub->prop(ptr, "show_on_cage", UI_ITEM_NONE, "", ICON_NONE);
       buttons_number++;
     }
   } /* Tessellation point for curve-typed objects. */
@@ -422,7 +422,7 @@ static void modifier_panel_header(const bContext *C, Panel *panel)
     }
     else if (mti->type != ModifierTypeType::Constructive) {
       /* Constructive modifiers tessellates curve before applying. */
-      uiItemR(row, ptr, "use_apply_on_spline", UI_ITEM_NONE, "", ICON_NONE);
+      row->prop(ptr, "use_apply_on_spline", UI_ITEM_NONE, "", ICON_NONE);
       buttons_number++;
     }
   }
@@ -431,11 +431,11 @@ static void modifier_panel_header(const bContext *C, Panel *panel)
     if (mti->flags & eModifierTypeFlag_SupportsEditmode) {
       sub = &row->row(true);
       uiLayoutSetActive(sub, (md->mode & eModifierMode_Realtime));
-      uiItemR(sub, ptr, "show_in_editmode", UI_ITEM_NONE, "", ICON_NONE);
+      sub->prop(ptr, "show_in_editmode", UI_ITEM_NONE, "", ICON_NONE);
       buttons_number++;
     }
-    uiItemR(row, ptr, "show_viewport", UI_ITEM_NONE, "", ICON_NONE);
-    uiItemR(row, ptr, "show_render", UI_ITEM_NONE, "", ICON_NONE);
+    row->prop(ptr, "show_viewport", UI_ITEM_NONE, "", ICON_NONE);
+    row->prop(ptr, "show_render", UI_ITEM_NONE, "", ICON_NONE);
     buttons_number += 2;
   }
 
@@ -464,7 +464,7 @@ static void modifier_panel_header(const bContext *C, Panel *panel)
 
   bool display_name = (panel->sizex / UI_UNIT_X - buttons_number > 5) || (panel->sizex == 0);
   if (display_name) {
-    uiItemR(name_row, ptr, "name", UI_ITEM_NONE, "", ICON_NONE);
+    name_row->prop(ptr, "name", UI_ITEM_NONE, "", ICON_NONE);
   }
   else {
     uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_RIGHT);

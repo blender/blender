@@ -5215,7 +5215,7 @@ void ED_screens_header_tools_menu_create(bContext *C, uiLayout *layout, void * /
     PointerRNA ptr = RNA_pointer_create_discrete(
         (ID *)CTX_wm_screen(C), &RNA_Space, area->spacedata.first);
     if (!ELEM(area->spacetype, SPACE_TOPBAR)) {
-      uiItemR(layout, &ptr, "show_region_header", UI_ITEM_NONE, IFACE_("Show Header"), ICON_NONE);
+      layout->prop(&ptr, "show_region_header", UI_ITEM_NONE, IFACE_("Show Header"), ICON_NONE);
     }
 
     ARegion *region_header = BKE_area_find_region_type(area, RGN_TYPE_HEADER);
@@ -5223,12 +5223,8 @@ void ED_screens_header_tools_menu_create(bContext *C, uiLayout *layout, void * /
     uiLayoutSetActive(col, (region_header->flag & RGN_FLAG_HIDDEN) == 0);
 
     if (BKE_area_find_region_type(area, RGN_TYPE_TOOL_HEADER)) {
-      uiItemR(col,
-              &ptr,
-              "show_region_tool_header",
-              UI_ITEM_NONE,
-              IFACE_("Show Tool Settings"),
-              ICON_NONE);
+      col->prop(
+          &ptr, "show_region_tool_header", UI_ITEM_NONE, IFACE_("Show Tool Settings"), ICON_NONE);
     }
 
     uiItemO(col,
@@ -5252,7 +5248,7 @@ void ED_screens_footer_tools_menu_create(bContext *C, uiLayout *layout, void * /
   {
     PointerRNA ptr = RNA_pointer_create_discrete(
         (ID *)CTX_wm_screen(C), &RNA_Space, area->spacedata.first);
-    uiItemR(layout, &ptr, "show_region_footer", UI_ITEM_NONE, IFACE_("Show Footer"), ICON_NONE);
+    layout->prop(&ptr, "show_region_footer", UI_ITEM_NONE, IFACE_("Show Footer"), ICON_NONE);
   }
 
   ED_screens_region_flip_menu_create(C, layout, nullptr);
@@ -5278,26 +5274,16 @@ void ED_screens_region_flip_menu_create(bContext *C, uiLayout *layout, void * /*
 static void ed_screens_statusbar_menu_create(uiLayout *layout, void * /*arg*/)
 {
   PointerRNA ptr = RNA_pointer_create_discrete(nullptr, &RNA_PreferencesView, &U);
-  uiItemR(
-      layout, &ptr, "show_statusbar_stats", UI_ITEM_NONE, IFACE_("Scene Statistics"), ICON_NONE);
-  uiItemR(layout,
-          &ptr,
-          "show_statusbar_scene_duration",
-          UI_ITEM_NONE,
-          IFACE_("Scene Duration"),
-          ICON_NONE);
-  uiItemR(layout, &ptr, "show_statusbar_memory", UI_ITEM_NONE, IFACE_("System Memory"), ICON_NONE);
+  layout->prop(&ptr, "show_statusbar_stats", UI_ITEM_NONE, IFACE_("Scene Statistics"), ICON_NONE);
+  layout->prop(
+      &ptr, "show_statusbar_scene_duration", UI_ITEM_NONE, IFACE_("Scene Duration"), ICON_NONE);
+  layout->prop(&ptr, "show_statusbar_memory", UI_ITEM_NONE, IFACE_("System Memory"), ICON_NONE);
   if (GPU_mem_stats_supported()) {
-    uiItemR(layout, &ptr, "show_statusbar_vram", UI_ITEM_NONE, IFACE_("Video Memory"), ICON_NONE);
+    layout->prop(&ptr, "show_statusbar_vram", UI_ITEM_NONE, IFACE_("Video Memory"), ICON_NONE);
   }
-  uiItemR(layout,
-          &ptr,
-          "show_extensions_updates",
-          UI_ITEM_NONE,
-          IFACE_("Extensions Updates"),
-          ICON_NONE);
-  uiItemR(
-      layout, &ptr, "show_statusbar_version", UI_ITEM_NONE, IFACE_("Blender Version"), ICON_NONE);
+  layout->prop(
+      &ptr, "show_extensions_updates", UI_ITEM_NONE, IFACE_("Extensions Updates"), ICON_NONE);
+  layout->prop(&ptr, "show_statusbar_version", UI_ITEM_NONE, IFACE_("Blender Version"), ICON_NONE);
 }
 
 static wmOperatorStatus screen_context_menu_invoke(bContext *C,

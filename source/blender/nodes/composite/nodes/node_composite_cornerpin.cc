@@ -62,7 +62,7 @@ static void node_composit_init_cornerpin(bNodeTree * /*ntree*/, bNode *node)
 
 static void node_composit_buts_cornerpin(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  uiItemR(layout, ptr, "interpolation", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  layout->prop(ptr, "interpolation", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 }
 
 using namespace blender::compositor;

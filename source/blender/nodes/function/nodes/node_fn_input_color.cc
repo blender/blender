@@ -19,7 +19,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiTemplateColorPicker(layout, ptr, "value", true, false, false, true);
-  uiItemR(layout, ptr, "value", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  layout->prop(ptr, "value", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 }
 
 static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)

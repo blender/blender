@@ -74,7 +74,7 @@ static void node_composit_buts_moviedistortion(uiLayout *layout, bContext *C, Po
     return;
   }
 
-  uiItemR(layout, ptr, "distortion_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  layout->prop(ptr, "distortion_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 }
 
 using namespace blender::compositor;

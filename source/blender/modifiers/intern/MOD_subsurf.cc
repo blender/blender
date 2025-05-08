@@ -391,15 +391,15 @@ static void panel_draw(const bContext *C, Panel *panel)
   UNUSED_VARS(C);
 #endif
 
-  uiItemR(layout, ptr, "subdivision_type", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "subdivision_type", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
   uiLayoutSetPropSep(layout, true);
 
   uiLayout *col = &layout->column(true);
-  uiItemR(col, ptr, "levels", UI_ITEM_NONE, IFACE_("Levels Viewport"), ICON_NONE);
-  uiItemR(col, ptr, "render_levels", UI_ITEM_NONE, IFACE_("Render"), ICON_NONE);
+  col->prop(ptr, "levels", UI_ITEM_NONE, IFACE_("Levels Viewport"), ICON_NONE);
+  col->prop(ptr, "render_levels", UI_ITEM_NONE, IFACE_("Render"), ICON_NONE);
 
-  uiItemR(layout, ptr, "show_only_control_edges", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "show_only_control_edges", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   SubsurfModifierData *smd = static_cast<SubsurfModifierData *>(ptr->data);
@@ -434,12 +434,8 @@ static void panel_draw(const bContext *C, Panel *panel)
         IFACE_("Adaptive Subdivision"));
     if (adaptive_panel.body) {
       uiLayoutSetActive(adaptive_panel.body, ob_use_adaptive_subdivision);
-      uiItemR(adaptive_panel.body,
-              &ob_cycles_ptr,
-              "dicing_rate",
-              UI_ITEM_NONE,
-              std::nullopt,
-              ICON_NONE);
+      adaptive_panel.body->prop(
+          &ob_cycles_ptr, "dicing_rate", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
       float render = std::max(RNA_float_get(&cycles_ptr, "dicing_rate") *
                                   RNA_float_get(&ob_cycles_ptr, "dicing_rate"),
@@ -461,17 +457,17 @@ static void panel_draw(const bContext *C, Panel *panel)
   {
     uiLayoutSetPropSep(advanced_layout, true);
 
-    uiItemR(advanced_layout, ptr, "use_limit_surface", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    advanced_layout->prop(ptr, "use_limit_surface", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
     uiLayout *col = &advanced_layout->column(true);
     uiLayoutSetActive(col,
                       ob_use_adaptive_subdivision || RNA_boolean_get(ptr, "use_limit_surface"));
-    uiItemR(col, ptr, "quality", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col->prop(ptr, "quality", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-    uiItemR(advanced_layout, ptr, "uv_smooth", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    uiItemR(advanced_layout, ptr, "boundary_smooth", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    uiItemR(advanced_layout, ptr, "use_creases", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    uiItemR(advanced_layout, ptr, "use_custom_normals", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    advanced_layout->prop(ptr, "uv_smooth", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    advanced_layout->prop(ptr, "boundary_smooth", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    advanced_layout->prop(ptr, "use_creases", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    advanced_layout->prop(ptr, "use_custom_normals", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
   modifier_panel_end(layout, ptr);
