@@ -159,7 +159,7 @@ bool Session::ready_to_reset()
 
 void Session::run_main_render_loop()
 {
-  path_trace_->clear_display();
+  path_trace_->zero_display();
 
   while (true) {
     RenderWork render_work = run_update_for_next_iteration();

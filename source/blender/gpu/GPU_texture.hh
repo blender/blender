@@ -1357,6 +1357,13 @@ size_t GPU_pixel_buffer_size(GPUPixelBuffer *pixel_buf);
 
 /**
  * Return the native handle of the \a pix_buf to use for graphic interoperability registration.
+ *
+ * - OpenGL: pixel buffer object ID.
+ * - Vulkan on Windows: opaque handle for VkBuffer.
+ * - Vulkan on Unix: opaque file descriptor for VkBuffer.
+ * - Metal: MTLBuffer with unified memory.
+ *
+ * For Vulkan, the caller is responsible for closing the handle.
  */
 struct GPUPixelBufferNativeHandle {
   int64_t handle = 0;

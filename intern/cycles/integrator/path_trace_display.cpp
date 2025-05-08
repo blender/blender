@@ -5,6 +5,7 @@
 #include "integrator/path_trace_display.h"
 
 #include "session/buffers.h"
+#include "session/display_driver.h"
 
 #include "util/log.h"
 
@@ -191,26 +192,30 @@ GraphicsInteropDevice PathTraceDisplay::graphics_interop_get_device()
   return driver_->graphics_interop_get_device();
 }
 
-GraphicsInteropBuffer PathTraceDisplay::graphics_interop_get_buffer()
+GraphicsInteropBuffer &PathTraceDisplay::graphics_interop_get_buffer()
 {
+  GraphicsInteropBuffer &interop_buffer = driver_->graphics_interop_get_buffer();
   DCHECK(!texture_buffer_state_.is_mapped);
   DCHECK(update_state_.is_active);
 
   if (texture_buffer_state_.is_mapped) {
     LOG(ERROR)
         << "Attempt to use graphics interoperability mode while the texture buffer is mapped.";
-    return GraphicsInteropBuffer();
+    interop_buffer.clear();
+    return interop_buffer;
   }
 
   if (!update_state_.is_active) {
     LOG(ERROR) << "Attempt to use graphics interoperability outside of PathTraceDisplay update.";
-    return GraphicsInteropBuffer();
+    interop_buffer.clear();
+    return interop_buffer;
   }
 
   /* Assume that interop will write new values to the texture. */
   mark_texture_updated();
 
-  return driver_->graphics_interop_get_buffer();
+  driver_->graphics_interop_update_buffer();
+  return interop_buffer;
 }
 
 void PathTraceDisplay::graphics_interop_activate()
@@ -227,9 +232,9 @@ void PathTraceDisplay::graphics_interop_deactivate()
  * Drawing.
  */
 
-void PathTraceDisplay::clear()
+void PathTraceDisplay::zero()
 {
-  driver_->clear();
+  driver_->zero();
 }
 
 bool PathTraceDisplay::draw()

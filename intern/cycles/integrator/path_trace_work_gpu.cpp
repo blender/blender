@@ -1041,7 +1041,7 @@ bool PathTraceWorkGPU::copy_to_display_interop(PathTraceDisplay *display,
     device_graphics_interop_ = queue_->graphics_interop_create();
   }
 
-  const GraphicsInteropBuffer interop_buffer = display->graphics_interop_get_buffer();
+  GraphicsInteropBuffer &interop_buffer = display->graphics_interop_get_buffer();
   device_graphics_interop_->set_buffer(interop_buffer);
 
   const device_ptr d_rgba_half = device_graphics_interop_->map();

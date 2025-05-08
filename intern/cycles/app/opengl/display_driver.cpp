@@ -77,7 +77,8 @@ bool OpenGLDisplayDriver::update_begin(const Params &params,
 
     /* Texture did change, and no pixel storage was provided. Tag for an explicit zeroing out to
      * avoid undefined content. */
-    texture_.need_clear = true;
+    texture_.need_zero = true;
+    graphics_interop_buffer_.clear();
   }
 
   /* Update PBO dimensions if needed.
@@ -128,13 +129,13 @@ half4 *OpenGLDisplayDriver::map_texture_buffer()
     LOG(ERROR) << "Error mapping OpenGLDisplayDriver pixel buffer object.";
   }
 
-  if (texture_.need_clear) {
+  if (texture_.need_zero) {
     const int64_t texture_width = texture_.width;
     const int64_t texture_height = texture_.height;
     memset(reinterpret_cast<void *>(mapped_rgba_pixels),
            0,
            texture_width * texture_height * sizeof(half4));
-    texture_.need_clear = false;
+    texture_.need_zero = false;
   }
 
   return mapped_rgba_pixels;
@@ -158,20 +159,19 @@ GraphicsInteropDevice OpenGLDisplayDriver::graphics_interop_get_device()
   return interop_device;
 }
 
-GraphicsInteropBuffer OpenGLDisplayDriver::graphics_interop_get_buffer()
+void OpenGLDisplayDriver::graphics_interop_update_buffer()
 {
-  GraphicsInteropBuffer interop_buffer;
+  if (graphics_interop_buffer_.is_empty()) {
+    graphics_interop_buffer_.assign(GraphicsInteropDevice::OPENGL,
+                                    texture_.gl_pbo_id,
+                                    texture_.buffer_width * texture_.buffer_height *
+                                        sizeof(half4));
+  }
 
-  interop_buffer.width = texture_.buffer_width;
-  interop_buffer.height = texture_.buffer_height;
-  interop_buffer.type = GraphicsInteropDevice::OPENGL;
-  interop_buffer.handle = texture_.gl_pbo_id;
-  interop_buffer.size = texture_.buffer_width * texture_.buffer_height * sizeof(half4);
-
-  interop_buffer.need_clear = texture_.need_clear;
-  texture_.need_clear = false;
-
-  return interop_buffer;
+  if (texture_.need_zero) {
+    graphics_interop_buffer_.zero();
+    texture_.need_zero = false;
+  }
 }
 
 void OpenGLDisplayDriver::graphics_interop_activate()
@@ -190,13 +190,13 @@ void OpenGLDisplayDriver::graphics_interop_deactivate()
 
 void OpenGLDisplayDriver::clear()
 {
-  texture_.need_clear = true;
+  texture_.need_zero = true;
 }
 
 void OpenGLDisplayDriver::draw(const Params &params)
 {
   /* See do_update_begin() for why no locking is required here. */
-  if (texture_.need_clear) {
+  if (texture_.need_zero) {
     /* Texture is requested to be cleared and was not yet cleared.
      * Do early return which should be equivalent of drawing all-zero texture. */
     return;
@@ -346,6 +346,7 @@ bool OpenGLDisplayDriver::gl_texture_resources_ensure()
 
   /* Creation finished with a success. */
   texture_.is_created = true;
+  graphics_interop_buffer_.clear();
 
   return true;
 }

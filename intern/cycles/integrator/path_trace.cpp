@@ -654,10 +654,10 @@ void PathTrace::set_display_driver(unique_ptr<DisplayDriver> driver)
   }
 }
 
-void PathTrace::clear_display()
+void PathTrace::zero_display()
 {
   if (display_) {
-    display_->clear();
+    display_->zero();
   }
 }
 

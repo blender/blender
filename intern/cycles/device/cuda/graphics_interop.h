@@ -30,7 +30,7 @@ class CUDADeviceGraphicsInterop : public DeviceGraphicsInterop {
   CUDADeviceGraphicsInterop &operator=(const CUDADeviceGraphicsInterop &other) = delete;
   CUDADeviceGraphicsInterop &operator=(CUDADeviceGraphicsInterop &&other) = delete;
 
-  void set_buffer(const GraphicsInteropBuffer &interop_buffer) override;
+  void set_buffer(GraphicsInteropBuffer &interop_buffer) override;
 
   device_ptr map() override;
   void unmap() override;
@@ -39,21 +39,21 @@ class CUDADeviceGraphicsInterop : public DeviceGraphicsInterop {
   CUDADeviceQueue *queue_ = nullptr;
   CUDADevice *device_ = nullptr;
 
-  /* Native handle. */
-  GraphicsInteropDevice::Type native_type_ = GraphicsInteropDevice::NONE;
-  int64_t native_handle_ = 0;
-  size_t native_size_ = 0;
-
-  /* Buffer area in pixels of the corresponding PBO. */
-  int64_t buffer_area_ = 0;
+  /* Size of the buffer in bytes. */
+  size_t buffer_size_ = 0;
 
   /* The destination was requested to be cleared. */
-  bool need_clear_ = false;
+  bool need_zero_ = false;
 
   /* CUDA resources. */
   CUgraphicsResource cu_graphics_resource_ = nullptr;
   CUexternalMemory cu_external_memory_ = nullptr;
   CUdeviceptr cu_external_memory_ptr_ = 0;
+
+  /* Vulkan handle to free. */
+#  ifdef _WIN32
+  int64_t vulkan_windows_handle_ = 0;
+#  endif
 
   void free();
 };
