@@ -2238,7 +2238,7 @@ void BKE_bone_parent_transform_apply(const BoneParentTransform *bpt,
   rescale_m4(outmat, bpt->post_scale);
 }
 
-void BKE_armature_mat_pose_to_bone(bPoseChannel *pchan,
+void BKE_armature_mat_pose_to_bone(const bPoseChannel *pchan,
                                    const float inmat[4][4],
                                    float outmat[4][4])
 {
@@ -2249,7 +2249,7 @@ void BKE_armature_mat_pose_to_bone(bPoseChannel *pchan,
   BKE_bone_parent_transform_apply(&bpt, inmat, outmat);
 }
 
-void BKE_armature_mat_bone_to_pose(bPoseChannel *pchan,
+void BKE_armature_mat_bone_to_pose(const bPoseChannel *pchan,
                                    const float inmat[4][4],
                                    float outmat[4][4])
 {
@@ -2259,7 +2259,9 @@ void BKE_armature_mat_bone_to_pose(bPoseChannel *pchan,
   BKE_bone_parent_transform_apply(&bpt, inmat, outmat);
 }
 
-void BKE_armature_loc_pose_to_bone(bPoseChannel *pchan, const float inloc[3], float outloc[3])
+void BKE_armature_loc_pose_to_bone(const bPoseChannel *pchan,
+                                   const float inloc[3],
+                                   float outloc[3])
 {
   float xLocMat[4][4];
   float nLocMat[4][4];
@@ -2283,7 +2285,7 @@ void BKE_armature_loc_pose_to_bone(bPoseChannel *pchan, const float inloc[3], fl
 
 void BKE_armature_mat_pose_to_bone_ex(Depsgraph *depsgraph,
                                       Object *ob,
-                                      bPoseChannel *pchan,
+                                      const bPoseChannel *pchan,
                                       const float inmat[4][4],
                                       float outmat[4][4])
 {

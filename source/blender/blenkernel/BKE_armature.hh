@@ -313,7 +313,7 @@ void BKE_armature_loc_world_to_pose(Object *ob, const float inloc[3], float outl
  * \note this cannot be used to convert to pose-space transforms of the supplied
  * pose-channel into its local space (i.e. *visual*-keyframing).
  */
-void BKE_armature_mat_pose_to_bone(bPoseChannel *pchan,
+void BKE_armature_mat_pose_to_bone(const bPoseChannel *pchan,
                                    const float inmat[4][4],
                                    float outmat[4][4]);
 /**
@@ -321,11 +321,13 @@ void BKE_armature_mat_pose_to_bone(bPoseChannel *pchan,
  * \note this cannot be used to convert to pose-space location of the supplied
  * pose-channel into its local space (i.e. *visual*-keyframing).
  */
-void BKE_armature_loc_pose_to_bone(bPoseChannel *pchan, const float inloc[3], float outloc[3]);
+void BKE_armature_loc_pose_to_bone(const bPoseChannel *pchan,
+                                   const float inloc[3],
+                                   float outloc[3]);
 /**
  * Convert Bone-Space Matrix to Pose-Space Matrix.
  */
-void BKE_armature_mat_bone_to_pose(bPoseChannel *pchan,
+void BKE_armature_mat_bone_to_pose(const bPoseChannel *pchan,
                                    const float inmat[4][4],
                                    float outmat[4][4]);
 /**
@@ -339,7 +341,7 @@ void BKE_armature_mat_pose_to_delta(float delta_mat[4][4],
 
 void BKE_armature_mat_pose_to_bone_ex(Depsgraph *depsgraph,
                                       Object *ob,
-                                      bPoseChannel *pchan,
+                                      const bPoseChannel *pchan,
                                       const float inmat[4][4],
                                       float outmat[4][4]);
 
