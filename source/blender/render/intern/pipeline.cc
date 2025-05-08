@@ -508,6 +508,12 @@ void RE_ResultGet32(Render *re, uint *rect)
   RE_ReleaseResultImageViews(re, &rres);
 }
 
+bool RE_ResultIsMultiView(RenderResult *rr)
+{
+  RenderView *view = static_cast<RenderView *>(rr->views.first);
+  return (view && (view->next || view->name[0]));
+}
+
 RenderStats *RE_GetStats(Render *re)
 {
   return &re->i;
@@ -2219,7 +2225,7 @@ bool RE_WriteRenderViewsMovie(ReportList *reports,
   ImageFormatData image_format;
   BKE_image_format_init_for_write(&image_format, scene, nullptr);
 
-  const bool is_mono = BLI_listbase_count_at_most(&rr->views, 2) < 2;
+  const bool is_mono = !RE_ResultIsMultiView(rr);
   const float dither = scene->r.dither_intensity;
 
   if (is_mono || (image_format.views_format == R_IMF_VIEWS_INDIVIDUAL)) {
