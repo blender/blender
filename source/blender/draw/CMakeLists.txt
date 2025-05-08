@@ -248,7 +248,7 @@ set(SRC
   engines/overlay/overlay_camera.hh
   engines/overlay/overlay_cursor.hh
   engines/overlay/overlay_curve.hh
-  engines/overlay/overlay_edit_text.hh
+  engines/overlay/overlay_text.hh
   engines/overlay/overlay_empty.hh
   engines/overlay/overlay_engine.h
   engines/overlay/overlay_facing.hh

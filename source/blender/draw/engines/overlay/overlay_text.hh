@@ -19,7 +19,7 @@ namespace blender::draw::overlay {
  * Text objects related overlays.
  * Currently only display cursor and selection of text edit mode.
  */
-class EditText : Overlay {
+class Text : Overlay {
 
  private:
   PassSimple ps_ = {"TextEdit"};
@@ -37,7 +37,7 @@ class EditText : Overlay {
   gpu::Batch *quad_wire = nullptr;
 
  public:
-  EditText(SelectionType selection_type) : box_line_buf_(selection_type, "box_line_buf_") {}
+  Text(SelectionType selection_type) : box_line_buf_(selection_type, "box_line_buf_") {}
 
   void begin_sync(Resources &res, const State &state) final
   {
