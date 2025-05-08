@@ -324,15 +324,15 @@ gpu::Batch *curves_sub_pass_setup_implementation(PassT &sub_ps,
     sub_ps.bind_texture("l", curves_cache->proc_length_buf);
   }
 
-  int curve_data_render_uv = 0;
-  int point_data_render_uv = 0;
+  StringRef curve_data_render_uv;
+  StringRef point_data_render_uv;
   if (CustomData_has_layer(&curves_id.geometry.curve_data, CD_PROP_FLOAT2)) {
-    curve_data_render_uv = CustomData_get_render_layer(&curves_id.geometry.curve_data,
-                                                       CD_PROP_FLOAT2);
+    curve_data_render_uv = CustomData_get_render_layer_name(&curves_id.geometry.curve_data,
+                                                            CD_PROP_FLOAT2);
   }
   if (CustomData_has_layer(&curves_id.geometry.point_data, CD_PROP_FLOAT2)) {
-    point_data_render_uv = CustomData_get_render_layer(&curves_id.geometry.point_data,
-                                                       CD_PROP_FLOAT2);
+    point_data_render_uv = CustomData_get_render_layer_name(&curves_id.geometry.point_data,
+                                                            CD_PROP_FLOAT2);
   }
 
   const DRW_Attributes &attrs = curves_cache->final.attr_used;
@@ -346,7 +346,7 @@ gpu::Batch *curves_sub_pass_setup_implementation(PassT &sub_ps,
         continue;
       }
       sub_ps.bind_texture(sampler_name, curves_cache->proc_attributes_buf[i]);
-      if (request.cd_type == CD_PROP_FLOAT2 && request.layer_index == curve_data_render_uv) {
+      if (request.cd_type == CD_PROP_FLOAT2 && request.attribute_name == curve_data_render_uv) {
         sub_ps.bind_texture("a", curves_cache->proc_attributes_buf[i]);
       }
     }
@@ -355,7 +355,7 @@ gpu::Batch *curves_sub_pass_setup_implementation(PassT &sub_ps,
         continue;
       }
       sub_ps.bind_texture(sampler_name, curves_cache->final.attributes_buf[i]);
-      if (request.cd_type == CD_PROP_FLOAT2 && request.layer_index == point_data_render_uv) {
+      if (request.cd_type == CD_PROP_FLOAT2 && request.attribute_name == point_data_render_uv) {
         sub_ps.bind_texture("a", curves_cache->final.attributes_buf[i]);
       }
     }

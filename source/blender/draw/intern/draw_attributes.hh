@@ -25,7 +25,6 @@ namespace blender::draw {
 
 struct DRW_AttributeRequest {
   eCustomDataType cd_type;
-  int layer_index;
   blender::bke::AttrDomain domain;
   char attribute_name[64];
 };
@@ -62,7 +61,6 @@ bool drw_attributes_overlap(const DRW_Attributes *a, const DRW_Attributes *b);
 void drw_attributes_add_request(DRW_Attributes *attrs,
                                 const char *name,
                                 eCustomDataType data_type,
-                                int layer_index,
                                 blender::bke::AttrDomain domain);
 
 bool drw_custom_data_match_attribute(const CustomData &custom_data,

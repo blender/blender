@@ -819,7 +819,7 @@ static bool ensure_attributes(const Curves &curves,
           }
 
           if (layer != -1 && domain.has_value()) {
-            drw_attributes_add_request(&attrs_needed, name, CD_PROP_FLOAT2, layer, *domain);
+            drw_attributes_add_request(&attrs_needed, name, CD_PROP_FLOAT2, *domain);
           }
           break;
         }
@@ -840,7 +840,7 @@ static bool ensure_attributes(const Curves &curves,
         case CD_PROP_FLOAT:
         case CD_PROP_FLOAT2: {
           if (layer != -1 && domain.has_value()) {
-            drw_attributes_add_request(&attrs_needed, name, type, layer, *domain);
+            drw_attributes_add_request(&attrs_needed, name, type, *domain);
           }
           break;
         }
@@ -894,11 +894,8 @@ static void request_attribute(Curves &curves, const char *name)
   }
   const bke::AttrDomain domain = meta_data->domain;
   const eCustomDataType type = meta_data->data_type;
-  const CustomData &custom_data = domain == bke::AttrDomain::Point ? curves.geometry.point_data :
-                                                                     curves.geometry.curve_data;
 
-  drw_attributes_add_request(
-      &attributes, name, type, CustomData_get_named_layer(&custom_data, type, name), domain);
+  drw_attributes_add_request(&attributes, name, type, domain);
 
   drw_attributes_merge(&final_cache.attr_used, &attributes, cache.render_mutex);
 }

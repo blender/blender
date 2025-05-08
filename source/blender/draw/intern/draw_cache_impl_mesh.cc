@@ -305,7 +305,7 @@ static DRW_MeshCDMask mesh_cd_calc_used_gpu_layers(const Object &object,
         case CD_PROP_FLOAT:
         case CD_PROP_FLOAT2: {
           if (layer != -1 && domain.has_value()) {
-            drw_attributes_add_request(attributes, name, type, layer, *domain);
+            drw_attributes_add_request(attributes, name, type, *domain);
           }
           break;
         }
@@ -700,10 +700,10 @@ static void request_active_and_default_color_attributes(const Object &object,
       int layer_index;
       eCustomDataType type;
       if (drw_custom_data_match_attribute(cd_vdata, name, &layer_index, &type)) {
-        drw_attributes_add_request(&attributes, name, type, layer_index, bke::AttrDomain::Point);
+        drw_attributes_add_request(&attributes, name, type, bke::AttrDomain::Point);
       }
       else if (drw_custom_data_match_attribute(cd_ldata, name, &layer_index, &type)) {
-        drw_attributes_add_request(&attributes, name, type, layer_index, bke::AttrDomain::Corner);
+        drw_attributes_add_request(&attributes, name, type, bke::AttrDomain::Corner);
       }
     }
   };

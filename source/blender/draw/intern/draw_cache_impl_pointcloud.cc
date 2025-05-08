@@ -347,6 +347,7 @@ gpu::Batch **pointcloud_surface_shaded_get(PointCloud *pointcloud,
                                            GPUMaterial **gpu_materials,
                                            int mat_len)
 {
+  const bke::AttributeAccessor attributes = pointcloud->attributes();
   PointCloudBatchCache *cache = pointcloud_batch_cache_get(*pointcloud);
   DRW_Attributes attrs_needed;
   drw_attributes_clear(&attrs_needed);
@@ -355,15 +356,12 @@ gpu::Batch **pointcloud_surface_shaded_get(PointCloud *pointcloud,
     ListBase gpu_attrs = GPU_material_attributes(gpu_material);
     LISTBASE_FOREACH (GPUMaterialAttribute *, gpu_attr, &gpu_attrs) {
       const char *name = gpu_attr->name;
-
-      int layer_index;
-      eCustomDataType type;
-      bke::AttrDomain domain = bke::AttrDomain::Point;
-      if (!drw_custom_data_match_attribute(pointcloud->pdata, name, &layer_index, &type)) {
+      const std::optional<bke::AttributeMetaData> meta_data = attributes.lookup_meta_data(name);
+      if (!meta_data) {
         continue;
       }
 
-      drw_attributes_add_request(&attrs_needed, name, type, layer_index, domain);
+      drw_attributes_add_request(&attrs_needed, name, meta_data->data_type, meta_data->domain);
     }
   }
 
@@ -407,15 +405,17 @@ gpu::VertBuf *DRW_pointcloud_position_and_radius_buffer_get(Object *ob)
 
 gpu::VertBuf **DRW_pointcloud_evaluated_attribute(PointCloud *pointcloud, const char *name)
 {
+  const bke::AttributeAccessor attributes = pointcloud->attributes();
   PointCloudBatchCache &cache = *pointcloud_batch_cache_get(*pointcloud);
 
-  int layer_index;
-  eCustomDataType type;
-  bke::AttrDomain domain = bke::AttrDomain::Point;
-  if (drw_custom_data_match_attribute(pointcloud->pdata, name, &layer_index, &type)) {
-    DRW_Attributes attributes{};
-    drw_attributes_add_request(&attributes, name, type, layer_index, domain);
-    drw_attributes_merge(&cache.eval_cache.attr_used, &attributes, cache.render_mutex);
+  const std::optional<bke::AttributeMetaData> meta_data = attributes.lookup_meta_data(name);
+  if (!meta_data) {
+    return nullptr;
+  }
+  {
+    DRW_Attributes requests{};
+    drw_attributes_add_request(&requests, name, meta_data->data_type, meta_data->domain);
+    drw_attributes_merge(&cache.eval_cache.attr_used, &requests, cache.render_mutex);
   }
 
   int request_i = -1;
