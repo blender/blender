@@ -16,6 +16,7 @@
 #include "UI_resources.hh"
 
 #include "tree_display.hh"
+#include "tree_element_action_slot.hh"
 #include "tree_element_anim_data.hh"
 #include "tree_element_bone.hh"
 #include "tree_element_bone_collection.hh"
@@ -200,6 +201,9 @@ std::unique_ptr<AbstractTreeElement> AbstractTreeElement::create_from_type(const
           legacy_te,
           *reinterpret_cast<bArmature *>(owner_id),
           *static_cast<BoneCollection *>(create_data));
+    case TSE_ACTION_SLOT:
+      return std::make_unique<TreeElementActionSlot>(
+          legacy_te, *reinterpret_cast<blender::animrig::Slot *>(create_data));
 
     default:
       break;

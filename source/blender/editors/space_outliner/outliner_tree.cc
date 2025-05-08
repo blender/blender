@@ -308,6 +308,9 @@ TreeElement *AbstractTreeDisplay::add_element(ListBase *lb,
   else if (ELEM(type, TSE_ANIM_DATA, TSE_NLA, TSE_NLA_TRACK, TSE_DRIVER_BASE)) {
     /* pass */
   }
+  else if (ELEM(type, TSE_ACTION_SLOT)) {
+    /* pass */
+  }
   else if (ELEM(type, TSE_GP_LAYER, TSE_GREASE_PENCIL_NODE)) {
     /* pass */
   }
