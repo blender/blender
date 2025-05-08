@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "BLI_string_ref.hh"
+
 struct ARegion;
 struct DRWData;
 struct DRWInstanceDataList;
@@ -189,6 +191,6 @@ void DRW_gpu_context_activate(bool drw_state);
 void DRW_cdlayer_attr_aliases_add(GPUVertFormat *format,
                                   const char *base_name,
                                   int data_type,
-                                  const char *layer_name,
+                                  blender::StringRef layer_name,
                                   bool is_active_render,
                                   bool is_active_layer);

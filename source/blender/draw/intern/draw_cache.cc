@@ -646,7 +646,7 @@ void DRW_batch_cache_free_old(Object *ob, int ctime)
 void DRW_cdlayer_attr_aliases_add(GPUVertFormat *format,
                                   const char *base_name,
                                   const int data_type,
-                                  const char *layer_name,
+                                  const blender::StringRef layer_name,
                                   bool is_active_render,
                                   bool is_active_layer)
 {
