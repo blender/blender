@@ -720,7 +720,7 @@ bool paintface_minmax(Object *ob, float r_min[3], float r_max[3])
 
 bool paintface_mouse_select(bContext *C,
                             const int mval[2],
-                            const SelectPick_Params *params,
+                            const SelectPick_Params &params,
                             Object *ob)
 {
   using namespace blender;
@@ -745,11 +745,11 @@ bool paintface_mouse_select(bContext *C,
     }
   }
 
-  if (params->sel_op == SEL_OP_SET) {
-    if ((found && params->select_passthrough) && select_poly.varray[index]) {
+  if (params.sel_op == SEL_OP_SET) {
+    if ((found && params.select_passthrough) && select_poly.varray[index]) {
       found = false;
     }
-    else if (found || params->deselect_all) {
+    else if (found || params.deselect_all) {
       /* Deselect everything. */
       changed |= paintface_deselect_all_visible(C, ob, SEL_DESELECT, false);
     }
@@ -758,7 +758,7 @@ bool paintface_mouse_select(bContext *C,
   if (found) {
     mesh->act_face = int(index);
 
-    switch (params->sel_op) {
+    switch (params.sel_op) {
       case SEL_OP_SET:
       case SEL_OP_ADD:
         select_poly.varray.set(index, true);

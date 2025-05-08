@@ -515,7 +515,7 @@ void node_select_single(bContext &C, bNode &node)
 static bool node_mouse_select(bContext *C,
                               wmOperator *op,
                               const int2 mval,
-                              SelectPick_Params *params)
+                              const SelectPick_Params &params)
 {
   Main &bmain = *CTX_data_main(C);
   SpaceNode &snode = *CTX_wm_space_node(C);
@@ -528,7 +528,7 @@ static bool node_mouse_select(bContext *C,
   bNodeSocket *sock = nullptr;
 
   /* Always do socket_select when extending selection. */
-  const bool socket_select = (params->sel_op == SEL_OP_XOR) ||
+  const bool socket_select = (params.sel_op == SEL_OP_XOR) ||
                              RNA_boolean_get(op->ptr, "socket_select");
   bool changed = false;
   bool found = false;
@@ -541,7 +541,7 @@ static bool node_mouse_select(bContext *C,
   /* First do socket selection, these generally overlap with nodes. */
   if (socket_select) {
     /* NOTE: unlike nodes #SelectPick_Params isn't fully supported. */
-    const bool extend = (params->sel_op == SEL_OP_XOR);
+    const bool extend = (params.sel_op == SEL_OP_XOR);
     sock = node_find_indicated_socket(snode, region, cursor, SOCK_IN);
     if (sock) {
       node = &sock->owner_node();
@@ -601,18 +601,18 @@ static bool node_mouse_select(bContext *C,
     found = (node != nullptr);
     node_was_selected = node && (node->flag & SELECT);
 
-    if (params->sel_op == SEL_OP_SET) {
-      if ((found && params->select_passthrough) && (node->flag & SELECT)) {
+    if (params.sel_op == SEL_OP_SET) {
+      if ((found && params.select_passthrough) && (node->flag & SELECT)) {
         found = false;
       }
-      else if (found || params->deselect_all) {
+      else if (found || params.deselect_all) {
         /* Deselect everything. */
         changed = node_deselect_all(node_tree);
       }
     }
 
     if (found) {
-      switch (params->sel_op) {
+      switch (params.sel_op) {
         case SEL_OP_ADD:
           bke::node_set_selected(*node, true);
           break;
@@ -653,7 +653,7 @@ static bool node_mouse_select(bContext *C,
 
   bool active_texture_changed = false;
   bool viewer_node_changed = false;
-  if ((node != nullptr) && (node_was_selected == false || params->select_passthrough == false)) {
+  if ((node != nullptr) && (node_was_selected == false || params.select_passthrough == false)) {
     viewer_node_changed = (node->flag & NODE_DO_OUTPUT) == 0 &&
                           node->type_legacy == GEO_NODE_VIEWER;
     ED_node_set_active(&bmain, &snode, snode.edittree, node, &active_texture_changed);
@@ -681,11 +681,10 @@ static wmOperatorStatus node_select_exec(bContext *C, wmOperator *op)
   int2 mval;
   RNA_int_get_array(op->ptr, "location", mval);
 
-  SelectPick_Params params = {};
-  ED_select_pick_params_from_operator(op->ptr, &params);
+  const SelectPick_Params params = ED_select_pick_params_from_operator(op->ptr);
 
   /* Perform the selection. */
-  const bool changed = node_mouse_select(C, op, mval, &params);
+  const bool changed = node_mouse_select(C, op, mval, params);
 
   if (changed) {
     return OPERATOR_PASS_THROUGH | OPERATOR_FINISHED;

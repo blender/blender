@@ -267,7 +267,7 @@ bool EDBM_unified_findnearest_from_raycast(ViewContext *vc,
                                            BMEdge **r_eed,
                                            BMFace **r_efa);
 
-bool EDBM_select_pick(bContext *C, const int mval[2], const SelectPick_Params *params);
+bool EDBM_select_pick(bContext *C, const int mval[2], const SelectPick_Params &params);
 
 /**
  * When switching select mode, makes sure selection is consistent for editing
@@ -395,7 +395,7 @@ void paintface_flush_flags(bContext *C, Object *ob, bool flush_selection, bool f
  */
 bool paintface_mouse_select(bContext *C,
                             const int mval[2],
-                            const SelectPick_Params *params,
+                            const SelectPick_Params &params,
                             Object *ob);
 bool paintface_deselect_all_visible(bContext *C, Object *ob, int action, bool flush_flags);
 void paintface_select_linked(bContext *C, Object *ob, const int mval[2], bool select);

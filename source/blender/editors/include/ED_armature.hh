@@ -162,11 +162,11 @@ bool ED_armature_edit_deselect_all_visible_multi(bContext *C);
  * \return True when pick finds an element or the selection changed.
  */
 bool ED_armature_edit_select_pick_bone(
-    bContext *C, Base *basact, EditBone *ebone, int selmask, const SelectPick_Params *params);
+    bContext *C, Base *basact, EditBone *ebone, int selmask, const SelectPick_Params &params);
 /**
  * Bone selection picking for armature edit-mode in the view3d.
  */
-bool ED_armature_edit_select_pick(bContext *C, const int mval[2], const SelectPick_Params *params);
+bool ED_armature_edit_select_pick(bContext *C, const int mval[2], const SelectPick_Params &params);
 /**
  * Perform a selection operation on elements which have been 'touched',
  * use for lasso & border select but can be used elsewhere too.
@@ -288,8 +288,7 @@ bool ED_armature_pose_select_pick_bone(const Scene *scene,
                                        View3D *v3d,
                                        Object *ob,
                                        Bone *bone,
-                                       const SelectPick_Params *params)
-    ATTR_NONNULL(1, 2, 3, 4, 6);
+                                       const SelectPick_Params &params) ATTR_NONNULL(1, 2, 3, 4);
 /**
  * Called for mode-less pose selection.
  * assumes the active object is still on old situation.
@@ -302,8 +301,8 @@ bool ED_armature_pose_select_pick_with_buffer(const Scene *scene,
                                               Base *base,
                                               const GPUSelectResult *hit_results,
                                               int hits,
-                                              const SelectPick_Params *params,
-                                              bool do_nearest) ATTR_NONNULL(1, 2, 3, 4, 5, 7);
+                                              const SelectPick_Params &params,
+                                              bool do_nearest) ATTR_NONNULL(1, 2, 3, 4, 5);
 /**
  * While in weight-paint mode, a single pose may be active as well.
  * While not common, it's possible we have multiple armatures deforming a mesh.

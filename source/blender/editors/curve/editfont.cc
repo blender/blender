@@ -2581,7 +2581,7 @@ bool ED_curve_editfont_select_pick(
     bContext *C,
     const int mval[2],
     /* NOTE: `params->deselect_all` is ignored as only one text-box is active at once. */
-    const SelectPick_Params *params)
+    const SelectPick_Params &params)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Object *obedit = CTX_data_edit_object(C);

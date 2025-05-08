@@ -2123,7 +2123,7 @@ void MESH_OT_select_interior_faces(wmOperatorType *ot)
  * Gets called via generic mouse select operator.
  * \{ */
 
-bool EDBM_select_pick(bContext *C, const int mval[2], const SelectPick_Params *params)
+bool EDBM_select_pick(bContext *C, const int mval[2], const SelectPick_Params &params)
 {
   int base_index_active = -1;
   BMVert *eve = nullptr;
@@ -2141,12 +2141,12 @@ bool EDBM_select_pick(bContext *C, const int mval[2], const SelectPick_Params *p
   bool changed = false;
   bool found = unified_findnearest(&vc, bases, &base_index_active, &eve, &eed, &efa);
 
-  if (params->sel_op == SEL_OP_SET) {
+  if (params.sel_op == SEL_OP_SET) {
     BMElem *ele = efa ? (BMElem *)efa : (eed ? (BMElem *)eed : (BMElem *)eve);
-    if ((found && params->select_passthrough) && BM_elem_flag_test(ele, BM_ELEM_SELECT)) {
+    if ((found && params.select_passthrough) && BM_elem_flag_test(ele, BM_ELEM_SELECT)) {
       found = false;
     }
-    else if (found || params->deselect_all) {
+    else if (found || params.deselect_all) {
       /* Deselect everything. */
       for (Base *base_iter : bases) {
         Object *ob_iter = base_iter->object;
@@ -2166,7 +2166,7 @@ bool EDBM_select_pick(bContext *C, const int mval[2], const SelectPick_Params *p
     BMesh *bm = em->bm;
 
     if (efa) {
-      switch (params->sel_op) {
+      switch (params.sel_op) {
         case SEL_OP_ADD: {
           BM_mesh_active_face_set(bm, efa);
 
@@ -2211,7 +2211,7 @@ bool EDBM_select_pick(bContext *C, const int mval[2], const SelectPick_Params *p
     }
     else if (eed) {
 
-      switch (params->sel_op) {
+      switch (params.sel_op) {
         case SEL_OP_ADD: {
           /* Work-around: deselect first, so we can guarantee it will
            * be active even if it was already selected. */
@@ -2251,7 +2251,7 @@ bool EDBM_select_pick(bContext *C, const int mval[2], const SelectPick_Params *p
       }
     }
     else if (eve) {
-      switch (params->sel_op) {
+      switch (params.sel_op) {
         case SEL_OP_ADD: {
           /* Work-around: deselect first, so we can guarantee it will
            * be active even if it was already selected. */

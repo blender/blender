@@ -1694,7 +1694,7 @@ static bool object_mouse_select_menu(bContext *C,
                                      const ViewContext *vc,
                                      const blender::Span<GPUSelectResult> hit_results,
                                      const int mval[2],
-                                     const SelectPick_Params *params,
+                                     const SelectPick_Params &params,
                                      Base **r_basact)
 {
 
@@ -1790,9 +1790,9 @@ static bool object_mouse_select_menu(bContext *C,
   PointerRNA ptr;
 
   WM_operator_properties_create_ptr(&ptr, ot);
-  RNA_boolean_set(&ptr, "extend", params->sel_op == SEL_OP_ADD);
-  RNA_boolean_set(&ptr, "deselect", params->sel_op == SEL_OP_SUB);
-  RNA_boolean_set(&ptr, "toggle", params->sel_op == SEL_OP_XOR);
+  RNA_boolean_set(&ptr, "extend", params.sel_op == SEL_OP_ADD);
+  RNA_boolean_set(&ptr, "deselect", params.sel_op == SEL_OP_SUB);
+  RNA_boolean_set(&ptr, "toggle", params.sel_op == SEL_OP_XOR);
   WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &ptr, nullptr);
   WM_operator_properties_free(&ptr);
 
@@ -1823,12 +1823,11 @@ static wmOperatorStatus bone_select_menu_exec(bContext *C, wmOperator *op)
 
   if (basact->object->mode & OB_MODE_EDIT) {
     EditBone *ebone = (EditBone *)object_mouse_select_menu_data[name_index].item_ptr;
-    ED_armature_edit_select_pick_bone(C, basact, ebone, BONE_SELECTED, &params);
+    ED_armature_edit_select_pick_bone(C, basact, ebone, BONE_SELECTED, params);
   }
   else {
     bPoseChannel *pchan = (bPoseChannel *)object_mouse_select_menu_data[name_index].item_ptr;
-    ED_armature_pose_select_pick_bone(
-        scene, view_layer, v3d, basact->object, pchan->bone, &params);
+    ED_armature_pose_select_pick_bone(scene, view_layer, v3d, basact->object, pchan->bone, params);
   }
 
   /* Weak but ensures we activate the menu again before using the enum. */
@@ -1907,7 +1906,7 @@ void VIEW3D_OT_bone_select_menu(wmOperatorType *ot)
 static bool bone_mouse_select_menu(bContext *C,
                                    const blender::Span<GPUSelectResult> hit_results,
                                    const bool is_editmode,
-                                   const SelectPick_Params *params)
+                                   const SelectPick_Params &params)
 {
   int bone_count = 0;
 
@@ -2040,9 +2039,9 @@ static bool bone_mouse_select_menu(bContext *C,
   PointerRNA ptr;
 
   WM_operator_properties_create_ptr(&ptr, ot);
-  RNA_boolean_set(&ptr, "extend", params->sel_op == SEL_OP_ADD);
-  RNA_boolean_set(&ptr, "deselect", params->sel_op == SEL_OP_SUB);
-  RNA_boolean_set(&ptr, "toggle", params->sel_op == SEL_OP_XOR);
+  RNA_boolean_set(&ptr, "extend", params.sel_op == SEL_OP_ADD);
+  RNA_boolean_set(&ptr, "deselect", params.sel_op == SEL_OP_SUB);
+  RNA_boolean_set(&ptr, "toggle", params.sel_op == SEL_OP_XOR);
   WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &ptr, nullptr);
   WM_operator_properties_free(&ptr);
 
@@ -2501,7 +2500,7 @@ static bool ed_object_select_pick_camera_track(bContext *C,
                                                MovieClip *clip,
                                                const GPUSelectBuffer &buffer,
                                                const short hits,
-                                               const SelectPick_Params *params)
+                                               const SelectPick_Params &params)
 {
   bool changed = false;
   bool found = false;
@@ -2530,13 +2529,13 @@ static bool ed_object_select_pick_camera_track(bContext *C,
     break;
   }
 
-  /* Note `params->deselect_all` is ignored for tracks as in this case
+  /* Note `params.deselect_all` is ignored for tracks as in this case
    * all objects will be de-selected (not tracks). */
-  if (params->sel_op == SEL_OP_SET) {
-    if ((found && params->select_passthrough) && TRACK_SELECTED(track)) {
+  if (params.sel_op == SEL_OP_SET) {
+    if ((found && params.select_passthrough) && TRACK_SELECTED(track)) {
       found = false;
     }
-    else if (found /* `|| params->deselect_all` */) {
+    else if (found /* `|| params.deselect_all` */) {
       /* Deselect everything. */
       deselect_all_tracks(tracking);
       changed = true;
@@ -2544,7 +2543,7 @@ static bool ed_object_select_pick_camera_track(bContext *C,
   }
 
   if (found) {
-    switch (params->sel_op) {
+    switch (params.sel_op) {
       case SEL_OP_ADD: {
         BKE_tracking_track_select(tracksbase, track, TRACK_AREA_ALL, true);
         break;
@@ -2597,7 +2596,7 @@ static bool ed_object_select_pick_camera_track(bContext *C,
  */
 static bool ed_object_select_pick(bContext *C,
                                   const int mval[2],
-                                  const SelectPick_Params *params,
+                                  const SelectPick_Params &params,
                                   const bool center,
                                   const bool enumerate,
                                   const bool object_only)
@@ -2919,14 +2918,14 @@ static bool ed_object_select_pick(bContext *C,
      *   so it makes sense to disable pass-through logic in this case.
      *
      * See: #115181 for details. */
-    const bool select_passthrough = params->select_passthrough && (changed_object_mode == false);
+    const bool select_passthrough = params.select_passthrough && (changed_object_mode == false);
 
     bool found = (basact != nullptr) && BASE_SELECTABLE(v3d, basact);
-    if (params->sel_op == SEL_OP_SET) {
+    if (params.sel_op == SEL_OP_SET) {
       if ((found && select_passthrough) && (basact->flag & BASE_SELECTED)) {
         found = false;
       }
-      else if (found || params->deselect_all) {
+      else if (found || params.deselect_all) {
         /* Deselect everything. */
         /* `basact` may be nullptr. */
         if (object_deselect_all_except(scene, view_layer, basact)) {
@@ -2938,7 +2937,7 @@ static bool ed_object_select_pick(bContext *C,
     if (found) {
       use_activate_selected_base |= (oldbasact != basact) && (is_obedit == false);
 
-      switch (params->sel_op) {
+      switch (params.sel_op) {
         case SEL_OP_ADD: {
           blender::ed::object::base_select(basact, blender::ed::object::BA_SELECT);
           break;
@@ -3010,7 +3009,7 @@ static bool ed_object_select_pick(bContext *C,
  */
 static bool ed_wpaint_vertex_select_pick(bContext *C,
                                          const int mval[2],
-                                         const SelectPick_Params *params,
+                                         const SelectPick_Params &params,
                                          Object *obact)
 {
   using namespace blender;
@@ -3027,18 +3026,18 @@ static bool ed_wpaint_vertex_select_pick(bContext *C,
   bke::AttributeWriter<bool> select_vert = attributes.lookup_or_add_for_write<bool>(
       ".select_vert", bke::AttrDomain::Point);
 
-  if (params->sel_op == SEL_OP_SET) {
-    if ((found && params->select_passthrough) && select_vert.varray[index]) {
+  if (params.sel_op == SEL_OP_SET) {
+    if ((found && params.select_passthrough) && select_vert.varray[index]) {
       found = false;
     }
-    else if (found || params->deselect_all) {
+    else if (found || params.deselect_all) {
       /* Deselect everything. */
       changed |= paintface_deselect_all_visible(C, obact, SEL_DESELECT, false);
     }
   }
 
   if (found) {
-    switch (params->sel_op) {
+    switch (params.sel_op) {
       case SEL_OP_ADD: {
         select_vert.varray.set(index, true);
         break;
@@ -3490,8 +3489,7 @@ static wmOperatorStatus view3d_select_exec(bContext *C, wmOperator *op)
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   const ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
 
-  SelectPick_Params params{};
-  ED_select_pick_params_from_operator(op->ptr, &params);
+  const SelectPick_Params params = ED_select_pick_params_from_operator(op->ptr);
 
   bool center = RNA_boolean_get(op->ptr, "center");
   bool enumerate = RNA_boolean_get(op->ptr, "enumerate");
@@ -3535,7 +3533,7 @@ static wmOperatorStatus view3d_select_exec(bContext *C, wmOperator *op)
 
   if (obedit && object_only == false) {
     if (obedit->type == OB_MESH) {
-      changed = EDBM_select_pick(C, mval, &params);
+      changed = EDBM_select_pick(C, mval, params);
     }
     else if (obedit->type == OB_ARMATURE) {
       if (enumerate) {
@@ -3543,23 +3541,23 @@ static wmOperatorStatus view3d_select_exec(bContext *C, wmOperator *op)
         const int hits = mixed_bones_object_selectbuffer(
             &vc, &buffer, mval, VIEW3D_SELECT_FILTER_NOP, false, true, false);
         changed = bone_mouse_select_menu(
-            C, buffer.storage.as_span().take_front(hits), true, &params);
+            C, buffer.storage.as_span().take_front(hits), true, params);
       }
       if (!changed) {
-        changed = ED_armature_edit_select_pick(C, mval, &params);
+        changed = ED_armature_edit_select_pick(C, mval, params);
       }
     }
     else if (obedit->type == OB_LATTICE) {
-      changed = ED_lattice_select_pick(C, mval, &params);
+      changed = ED_lattice_select_pick(C, mval, params);
     }
     else if (ELEM(obedit->type, OB_CURVES_LEGACY, OB_SURF)) {
-      changed = ED_curve_editnurb_select_pick(C, mval, ED_view3d_select_dist_px(), &params);
+      changed = ED_curve_editnurb_select_pick(C, mval, ED_view3d_select_dist_px(), params);
     }
     else if (obedit->type == OB_MBALL) {
-      changed = ED_mball_select_pick(C, mval, &params);
+      changed = ED_mball_select_pick(C, mval, params);
     }
     else if (obedit->type == OB_FONT) {
-      changed = ED_curve_editfont_select_pick(C, mval, &params);
+      changed = ED_curve_editfont_select_pick(C, mval, params);
     }
     else if (obedit->type == OB_POINTCLOUD) {
       changed = pointcloud_select_pick(*C, mval, params);
@@ -3572,19 +3570,19 @@ static wmOperatorStatus view3d_select_exec(bContext *C, wmOperator *op)
     }
   }
   else if (obact && obact->mode & OB_MODE_PARTICLE_EDIT) {
-    changed = PE_mouse_particles(C, mval, &params);
+    changed = PE_mouse_particles(C, mval, params);
   }
   else if (obact && BKE_paint_select_face_test(obact)) {
-    changed = paintface_mouse_select(C, mval, &params, obact);
+    changed = paintface_mouse_select(C, mval, params, obact);
   }
   else if (BKE_paint_select_vert_test(obact)) {
-    changed = ed_wpaint_vertex_select_pick(C, mval, &params, obact);
+    changed = ed_wpaint_vertex_select_pick(C, mval, params, obact);
   }
   else if (BKE_paint_select_grease_pencil_test(obact)) {
     changed = ed_grease_pencil_select_pick(C, mval, params);
   }
   else {
-    changed = ed_object_select_pick(C, mval, &params, center, enumerate, object_only);
+    changed = ed_object_select_pick(C, mval, params, center, enumerate, object_only);
   }
 
   /* Pass-through flag may be cleared, see #WM_operator_flag_only_pass_through_on_press. */

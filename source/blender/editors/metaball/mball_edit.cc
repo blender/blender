@@ -850,7 +850,7 @@ static bool ed_mball_findnearest_metaelem(bContext *C,
   return found;
 }
 
-bool ED_mball_select_pick(bContext *C, const int mval[2], const SelectPick_Params *params)
+bool ED_mball_select_pick(bContext *C, const int mval[2], const SelectPick_Params &params)
 {
   Base *base = nullptr;
   MetaElem *ml = nullptr;
@@ -860,11 +860,11 @@ bool ED_mball_select_pick(bContext *C, const int mval[2], const SelectPick_Param
 
   bool found = ed_mball_findnearest_metaelem(C, mval, true, &base, &ml, &selmask);
 
-  if (params->sel_op == SEL_OP_SET) {
-    if ((found && params->select_passthrough) && (ml->flag & SELECT)) {
+  if (params.sel_op == SEL_OP_SET) {
+    if ((found && params.select_passthrough) && (ml->flag & SELECT)) {
       found = false;
     }
-    else if (found || params->deselect_all) {
+    else if (found || params.deselect_all) {
       /* Deselect everything. */
       changed |= ED_mball_deselect_all_multi(C);
     }
@@ -878,7 +878,7 @@ bool ED_mball_select_pick(bContext *C, const int mval[2], const SelectPick_Param
       ml->flag &= ~MB_SCALE_RAD;
     }
 
-    switch (params->sel_op) {
+    switch (params.sel_op) {
       case SEL_OP_ADD: {
         ml->flag |= SELECT;
         break;

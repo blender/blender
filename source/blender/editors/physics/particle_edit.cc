@@ -1873,7 +1873,7 @@ static bool pe_nearest_point_and_key(bContext *C,
   return found;
 }
 
-bool PE_mouse_particles(bContext *C, const int mval[2], const SelectPick_Params *params)
+bool PE_mouse_particles(bContext *C, const int mval[2], const SelectPick_Params &params)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Scene *scene = CTX_data_scene(C);
@@ -1891,18 +1891,18 @@ bool PE_mouse_particles(bContext *C, const int mval[2], const SelectPick_Params 
   bool changed = false;
   bool found = pe_nearest_point_and_key(C, mval, &point, &key);
 
-  if (params->sel_op == SEL_OP_SET) {
-    if ((found && params->select_passthrough) && (key->flag & PEK_SELECT)) {
+  if (params.sel_op == SEL_OP_SET) {
+    if ((found && params.select_passthrough) && (key->flag & PEK_SELECT)) {
       found = false;
     }
-    else if (found || params->deselect_all) {
+    else if (found || params.deselect_all) {
       /* Deselect everything. */
       changed |= PE_deselect_all_visible_ex(edit);
     }
   }
 
   if (found) {
-    switch (params->sel_op) {
+    switch (params.sel_op) {
       case SEL_OP_ADD: {
         if ((key->flag & PEK_SELECT) == 0) {
           key->flag |= PEK_SELECT;

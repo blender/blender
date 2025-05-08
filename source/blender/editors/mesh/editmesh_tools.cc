@@ -8434,7 +8434,7 @@ static wmOperatorStatus edbm_point_normals_modal(bContext *C, wmOperator *op, co
         view3d_operator_needs_gpu(C);
         SelectPick_Params params{};
         params.sel_op = SEL_OP_SET;
-        if (EDBM_select_pick(C, event->mval, &params)) {
+        if (EDBM_select_pick(C, event->mval, params)) {
           /* Point to newly selected active. */
           blender::ed::object::calc_active_center_for_editmode(obedit, false, target);
 
