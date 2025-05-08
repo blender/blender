@@ -343,7 +343,7 @@ static void do_item_rename(ARegion *region,
            TSE_RNA_PROPERTY,
            TSE_RNA_ARRAY_ELEM,
            TSE_ID_BASE) ||
-      ELEM(tselem->type, TSE_SCENE_OBJECTS_BASE, TSE_GENERIC_LABEL))
+      ELEM(tselem->type, TSE_SCENE_OBJECTS_BASE, TSE_GENERIC_LABEL, TSE_GPENCIL_EFFECT_BASE))
   {
     BKE_report(reports, RPT_INFO, "Not an editable name");
   }
