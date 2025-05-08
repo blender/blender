@@ -3286,6 +3286,55 @@ static void do_version_alpha_over_node_options_to_inputs_animation(bNodeTree *no
   });
 }
 
+/* Turns all instances of "{" and "}" in a string into "{{" and "}}", escaping
+ * them for strings that are processed with templates so that they don't
+ * erroneously get interepreted as template expressions. */
+static void version_escape_curly_braces(char string[], const int string_array_length)
+{
+  int bytes_processed = 0;
+  while (bytes_processed < string_array_length && string[bytes_processed] != '\0') {
+    if (string[bytes_processed] == '{') {
+      BLI_string_replace_range(
+          string, string_array_length, bytes_processed, bytes_processed + 1, "{{");
+      bytes_processed += 2;
+      continue;
+    }
+    if (string[bytes_processed] == '}') {
+      BLI_string_replace_range(
+          string, string_array_length, bytes_processed, bytes_processed + 1, "}}");
+      bytes_processed += 2;
+      continue;
+    }
+    bytes_processed++;
+  }
+}
+
+/* Escapes all instances of "{" and "}" in the paths in a compositor node tree's
+ * File Output nodes.
+ *
+ * If the passed node tree is not a compositor node tree, does nothing. */
+static void version_escape_curly_braces_in_compositor_file_output_nodes(bNodeTree &nodetree)
+{
+  if (nodetree.type != NTREE_COMPOSIT) {
+    return;
+  }
+
+  LISTBASE_FOREACH (bNode *, node, &nodetree.nodes) {
+    if (strcmp(node->idname, "CompositorNodeOutputFile") != 0) {
+      continue;
+    }
+
+    NodeImageMultiFile *node_data = static_cast<NodeImageMultiFile *>(node->storage);
+    version_escape_curly_braces(node_data->base_path, FILE_MAX);
+
+    LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
+      NodeImageMultiFileSocket *socket_data = static_cast<NodeImageMultiFileSocket *>(
+          sock->storage);
+      version_escape_curly_braces(socket_data->path, FILE_MAX);
+    }
+  }
+}
+
 void do_versions_after_linking_450(FileData * /*fd*/, Main *bmain)
 {
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 8)) {
@@ -4857,6 +4906,23 @@ void blo_do_versions_450(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
             space_sequencer->draw_flag &= ~SEQ_DRAW_UNUSED_0;
           }
         }
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 67)) {
+    /* Version render output paths (both primary on scene as well as those in
+     * the File Output compositor node) to escape curly braces. */
+    {
+      LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+        version_escape_curly_braces(scene->r.pic, FILE_MAX);
+        if (scene->nodetree) {
+          version_escape_curly_braces_in_compositor_file_output_nodes(*scene->nodetree);
+        }
+      }
+
+      LISTBASE_FOREACH (bNodeTree *, nodetree, &bmain->nodetrees) {
+        version_escape_curly_braces_in_compositor_file_output_nodes(*nodetree);
       }
     }
   }

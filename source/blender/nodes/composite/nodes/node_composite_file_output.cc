@@ -53,6 +53,8 @@
 
 #include "node_composite_util.hh"
 
+namespace path_templates = blender::bke::path_templates;
+
 /* **************** OUTPUT FILE ******************** */
 
 /* find unique path */
@@ -539,7 +541,14 @@ class FileOutputOperation : public NodeOperation {
 
       char base_path[FILE_MAX];
       const auto &socket = *static_cast<NodeImageMultiFileSocket *>(input->storage);
-      get_single_layer_image_base_path(socket.path, base_path);
+
+      if (!get_single_layer_image_base_path(socket.path, base_path)) {
+        /* TODO: propagate this error to the render pipeline and UI. */
+        BKE_report(nullptr,
+                   RPT_ERROR,
+                   "Invalid path template in File Output node. Skipping writing file.");
+        continue;
+      }
 
       /* The image saving code expects EXR images to have a different structure than standard
        * images. In particular, in EXR images, the buffers need to be stored in passes that are, in
@@ -584,7 +593,11 @@ class FileOutputOperation : public NodeOperation {
      * name does not contain a view suffix. */
     char image_path[FILE_MAX];
     const char *path_view = has_views ? "" : context().get_view_name().data();
-    get_multi_layer_exr_image_path(base_path, path_view, image_path);
+
+    if (!get_multi_layer_exr_image_path(base_path, path_view, false, image_path)) {
+      BLI_assert_unreachable();
+      return;
+    }
 
     const int2 size = result.domain().size;
     FileOutput &file_output = context().render_context()->get_file_output(
@@ -612,7 +625,12 @@ class FileOutputOperation : public NodeOperation {
      * sure the file name does not contain a view suffix. */
     char image_path[FILE_MAX];
     const char *write_view = store_views_in_single_file ? "" : view;
-    get_multi_layer_exr_image_path(get_base_path(), write_view, image_path);
+    if (!get_multi_layer_exr_image_path(get_base_path(), write_view, true, image_path)) {
+      /* TODO: propagate this error to the render pipeline and UI. */
+      BKE_report(
+          nullptr, RPT_ERROR, "Invalid path template in File Output node. Skipping writing file.");
+      return;
+    }
 
     const int2 size = compute_domain().size;
     const ImageFormatData format = node_storage(bnode()).format;
@@ -845,29 +863,76 @@ class FileOutputOperation : public NodeOperation {
     }
   }
 
-  /* Get the base path of the image to be saved, based on the base path of the node. The base name
-   * is an optional initial name of the image, which will later be concatenated with other
-   * information like the frame number, view, and extension. If the base name is empty, then the
-   * base path represents a directory, so a trailing slash is ensured. */
-  void get_single_layer_image_base_path(const char *base_name, char *base_path)
+  /**
+   * Get the base path of the image to be saved, based on the base path of the
+   * node. The base name is an optional initial name of the image, which will
+   * later be concatenated with other information like the frame number, view,
+   * and extension. If the base name is empty, then the base path represents a
+   * directory, so a trailing slash is ensured.
+   *
+   * Note: this takes care of path template expansion as well.
+   *
+   * If there are any errors processing the path, `bath_base` will be set to an
+   * empty string.
+   *
+   * \return True on success, false if there were any errors processing the
+   * path.
+   */
+  bool get_single_layer_image_base_path(const char *base_name, char *r_base_path)
   {
+    const path_templates::VariableMap template_variables = BKE_build_template_variables(
+        BKE_main_blendfile_path_from_global(), &context().get_render_data());
+
+    /* Do template expansion on the node's base path. */
+    char node_base_path[FILE_MAX] = "";
+    BLI_strncpy(node_base_path, get_base_path(), FILE_MAX);
+    {
+      blender::Vector<path_templates::Error> errors = BKE_path_apply_template(
+          node_base_path, FILE_MAX, template_variables);
+      if (!errors.is_empty()) {
+        r_base_path[0] = '\0';
+        return false;
+      }
+    }
+
     if (base_name[0]) {
-      BLI_path_join(base_path, FILE_MAX, get_base_path(), base_name);
+      /* Do template expansion on the socket's sub path ("base name"). */
+      char sub_path[FILE_MAX] = "";
+      BLI_strncpy(sub_path, base_name, FILE_MAX);
+      {
+        blender::Vector<path_templates::Error> errors = BKE_path_apply_template(
+            sub_path, FILE_MAX, template_variables);
+        if (!errors.is_empty()) {
+          r_base_path[0] = '\0';
+          return false;
+        }
+      }
+
+      /* Combine the base path and sub path. */
+      BLI_path_join(r_base_path, FILE_MAX, node_base_path, sub_path);
     }
     else {
-      BLI_strncpy(base_path, get_base_path(), FILE_MAX);
-      BLI_path_slash_ensure(base_path, FILE_MAX);
+      /* Just use the base path, as a directory. */
+      BLI_strncpy(r_base_path, node_base_path, FILE_MAX);
+      BLI_path_slash_ensure(r_base_path, FILE_MAX);
     }
+
+    return true;
   }
 
   /* Get the path of the image to be saved based on the given format. */
   void get_single_layer_image_path(const char *base_path,
                                    const ImageFormatData &format,
-                                   char *image_path)
+                                   char *r_image_path)
   {
-    BKE_image_path_from_imformat(image_path,
+    BKE_image_path_from_imformat(r_image_path,
                                  base_path,
                                  BKE_main_blendfile_path_from_global(),
+                                 /* No variables, because path templating is
+                                  * already done by
+                                  * `get_single_layer_image_base_path()` before
+                                  * this is called. */
+                                 nullptr,
                                  context().get_frame_number(),
                                  &format,
                                  use_file_extension(),
@@ -875,19 +940,47 @@ class FileOutputOperation : public NodeOperation {
                                  nullptr);
   }
 
-  /* Get the path of the EXR image to be saved. If the given view is not empty, its corresponding
-   * file suffix will be appended to the name. */
-  void get_multi_layer_exr_image_path(const char *base_path, const char *view, char *image_path)
+  /**
+   * Get the path of the EXR image to be saved. If the given view is not empty,
+   * its corresponding file suffix will be appended to the name.
+   *
+   * If there are any errors processing the path, the resulting path will be
+   * empty.
+   *
+   * \param apply_template Whether to run templating on the path or not. This is
+   * needed because this function is called from more than one place, some of
+   * which have already applied templating to the path and some of which
+   * haven't. Double-applying templating can give incorrect results.
+   *
+   * \return True on success, false if there were any errors processing the
+   * path.
+   */
+  bool get_multi_layer_exr_image_path(const char *base_path,
+                                      const char *view,
+                                      const bool apply_template,
+                                      char *r_image_path)
   {
-    const char *suffix = BKE_scene_multiview_view_suffix_get(&context().get_render_data(), view);
-    BKE_image_path_from_imtype(image_path,
-                               base_path,
-                               BKE_main_blendfile_path_from_global(),
-                               context().get_frame_number(),
-                               R_IMF_IMTYPE_MULTILAYER,
-                               use_file_extension(),
-                               true,
-                               suffix);
+    const RenderData &render_data = context().get_render_data();
+    const char *suffix = BKE_scene_multiview_view_suffix_get(&render_data, view);
+    const char *relbase = BKE_main_blendfile_path_from_global();
+    const path_templates::VariableMap template_variables = BKE_build_template_variables(
+        relbase, &render_data);
+    blender::Vector<path_templates::Error> errors = BKE_image_path_from_imtype(
+        r_image_path,
+        base_path,
+        relbase,
+        apply_template ? &template_variables : nullptr,
+        context().get_frame_number(),
+        R_IMF_IMTYPE_MULTILAYER,
+        use_file_extension(),
+        true,
+        suffix);
+
+    if (!errors.is_empty()) {
+      r_image_path[0] = '\0';
+    }
+
+    return errors.is_empty();
   }
 
   bool is_multi_layer()

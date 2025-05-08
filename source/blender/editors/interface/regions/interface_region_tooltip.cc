@@ -46,6 +46,7 @@
 #include "BKE_library.hh"
 #include "BKE_main.hh"
 #include "BKE_paint.hh"
+#include "BKE_path_templates.hh"
 #include "BKE_screen.hh"
 #include "BKE_vfont.hh"
 
@@ -1043,13 +1044,15 @@ static std::unique_ptr<uiTooltipData> ui_tooltip_data_from_button_or_extra_icon(
     }
   }
 
-  /* Warn if relative paths are used when unsupported (will already display red-alert). */
+  /* Warn on path validity errors. */
   if (ELEM(but->type, UI_BTYPE_TEXT) &&
       /* Check red-alert, if the flag is not set, then this was suppressed. */
       (but->flag & UI_BUT_REDALERT))
   {
     if (rnaprop) {
       PropertySubType subtype = RNA_property_subtype(rnaprop);
+
+      /* If relative paths are used when unsupported (will already display red-alert). */
       if (ELEM(subtype, PROP_FILEPATH, PROP_DIRPATH)) {
         if ((RNA_property_flag(rnaprop) & PROP_PATH_SUPPORTS_BLEND_RELATIVE) == 0) {
           if (BLI_path_is_rel(but->drawstr.c_str())) {
@@ -1059,6 +1062,27 @@ static std::unique_ptr<uiTooltipData> ui_tooltip_data_from_button_or_extra_icon(
                                       {},
                                       UI_TIP_STYLE_NORMAL,
                                       UI_TIP_LC_ALERT);
+          }
+        }
+      }
+
+      /* We include PROP_NONE here because some plain string properties are used
+       * as parts of paths. For example, the sub-paths in the compositor's File
+       * Output node. */
+      if (ELEM(subtype, PROP_FILEPATH, PROP_DIRPATH, PROP_NONE)) {
+        /* Template parse errors, for paths that support it. */
+        if ((RNA_property_flag(rnaprop) & PROP_PATH_SUPPORTS_TEMPLATES) != 0) {
+          const blender::StringRef path = but->drawstr;
+          const blender::Vector<blender::bke::path_templates::Error> errors =
+              BKE_validate_template_syntax(path);
+
+          if (!errors.is_empty()) {
+            std::string error_message("Syntax error(s):");
+            for (const blender::bke::path_templates::Error &error : errors) {
+              error_message += "\n  - " + BKE_path_template_error_to_string(error, path);
+            }
+            UI_tooltip_text_field_add(
+                *data, error_message, {}, UI_TIP_STYLE_NORMAL, UI_TIP_LC_ALERT);
           }
         }
       }

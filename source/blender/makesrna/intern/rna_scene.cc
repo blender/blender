@@ -7251,7 +7251,8 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
                            "Output Path",
                            "Directory/name to save animations, # characters define the position "
                            "and padding of frame numbers");
-  RNA_def_property_flag(prop, PROP_PATH_OUTPUT | PROP_PATH_SUPPORTS_BLEND_RELATIVE);
+  RNA_def_property_flag(
+      prop, PROP_PATH_OUTPUT | PROP_PATH_SUPPORTS_BLEND_RELATIVE | PROP_PATH_SUPPORTS_TEMPLATES);
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, nullptr);
 
   /* Render result EXR cache. */

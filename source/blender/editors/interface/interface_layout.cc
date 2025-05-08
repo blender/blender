@@ -32,6 +32,7 @@
 #include "BKE_global.hh"
 #include "BKE_idprop.hh"
 #include "BKE_lib_id.hh"
+#include "BKE_path_templates.hh"
 #include "BKE_screen.hh"
 
 #include "RNA_access.hh"
@@ -1110,6 +1111,20 @@ static uiBut *ui_item_with_label(uiLayout *layout,
                                                  std::nullopt :
                                                  std::make_optional<StringRefNull>("");
     but = uiDefAutoButR(block, ptr, prop, index, str, icon, x, y, prop_but_width, h);
+  }
+
+  /* Highlight in red on path template validity errors. */
+  if (but != nullptr && ELEM(but->type, UI_BTYPE_TEXT)) {
+    /* We include PROP_NONE here because some plain string properties are used
+     * as parts of paths. For example, the sub-paths in the compositor's File
+     * Output node. */
+    if (ELEM(subtype, PROP_FILEPATH, PROP_DIRPATH, PROP_NONE)) {
+      if ((RNA_property_flag(prop) & PROP_PATH_SUPPORTS_TEMPLATES) != 0) {
+        if (!BKE_validate_template_syntax(but->drawstr.c_str()).is_empty()) {
+          UI_but_flag_enable(but, UI_BUT_REDALERT);
+        }
+      }
+    }
   }
 
   if (flag & UI_ITEM_R_IMMEDIATE) {

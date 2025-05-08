@@ -22,6 +22,9 @@
 
 #include "BKE_colortools.hh"
 #include "BKE_image_format.hh"
+#include "BKE_path_templates.hh"
+
+namespace path_templates = blender::bke::path_templates;
 
 /* Init/Copy/Free */
 
@@ -597,20 +600,31 @@ int BKE_image_path_ext_from_imtype_ensure(char *filepath,
   return do_ensure_image_extension(filepath, filepath_maxncpy, imtype, nullptr);
 }
 
-static void do_makepicstring(char filepath[FILE_MAX],
-                             const char *base,
-                             const char *relbase,
-                             int frame,
-                             const char imtype,
-                             const ImageFormatData *im_format,
-                             const bool use_ext,
-                             const bool use_frames,
-                             const char *suffix)
+static blender::Vector<path_templates::Error> do_makepicstring(
+    char filepath[FILE_MAX],
+    const char *base,
+    const char *relbase,
+    const path_templates::VariableMap *template_variables,
+    int frame,
+    const char imtype,
+    const ImageFormatData *im_format,
+    const bool use_ext,
+    const bool use_frames,
+    const char *suffix)
 {
   if (filepath == nullptr) {
-    return;
+    return {};
   }
   BLI_strncpy(filepath, base, FILE_MAX - 10); /* weak assumption */
+
+  if (template_variables) {
+    const blender::Vector<path_templates::Error> variable_errors = BKE_path_apply_template(
+        filepath, FILE_MAX, *template_variables);
+    if (!variable_errors.is_empty()) {
+      return variable_errors;
+    }
+  }
+
   BLI_path_abs(filepath, relbase);
 
   if (use_frames) {
@@ -624,31 +638,54 @@ static void do_makepicstring(char filepath[FILE_MAX],
   if (use_ext) {
     do_ensure_image_extension(filepath, FILE_MAX, imtype, im_format);
   }
+
+  return {};
 }
 
-void BKE_image_path_from_imformat(char *filepath,
-                                  const char *base,
-                                  const char *relbase,
-                                  int frame,
-                                  const ImageFormatData *im_format,
-                                  const bool use_ext,
-                                  const bool use_frames,
-                                  const char *suffix)
+blender::Vector<path_templates::Error> BKE_image_path_from_imformat(
+    char *filepath,
+    const char *base,
+    const char *relbase,
+    const path_templates::VariableMap *template_variables,
+    int frame,
+    const ImageFormatData *im_format,
+    const bool use_ext,
+    const bool use_frames,
+    const char *suffix)
 {
-  do_makepicstring(
-      filepath, base, relbase, frame, im_format->imtype, im_format, use_ext, use_frames, suffix);
+  return do_makepicstring(filepath,
+                          base,
+                          relbase,
+                          template_variables,
+                          frame,
+                          im_format->imtype,
+                          im_format,
+                          use_ext,
+                          use_frames,
+                          suffix);
 }
 
-void BKE_image_path_from_imtype(char *filepath,
-                                const char *base,
-                                const char *relbase,
-                                int frame,
-                                const char imtype,
-                                const bool use_ext,
-                                const bool use_frames,
-                                const char *suffix)
+blender::Vector<path_templates::Error> BKE_image_path_from_imtype(
+    char *filepath,
+    const char *base,
+    const char *relbase,
+    const path_templates::VariableMap *template_variables,
+    int frame,
+    const char imtype,
+    const bool use_ext,
+    const bool use_frames,
+    const char *suffix)
 {
-  do_makepicstring(filepath, base, relbase, frame, imtype, nullptr, use_ext, use_frames, suffix);
+  return do_makepicstring(filepath,
+                          base,
+                          relbase,
+                          template_variables,
+                          frame,
+                          imtype,
+                          nullptr,
+                          use_ext,
+                          use_frames,
+                          suffix);
 }
 
 /* ImBuf Conversion */

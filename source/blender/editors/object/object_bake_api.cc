@@ -924,14 +924,19 @@ static bool bake_targets_output_external(const BakeAPIRender *bkr,
     BakeData *bake = &bkr->scene->r.bake;
     char filepath[FILE_MAX];
 
-    BKE_image_path_from_imtype(filepath,
-                               bkr->filepath,
-                               BKE_main_blendfile_path(bkr->main),
-                               0,
-                               bake->im_format.imtype,
-                               true,
-                               false,
-                               nullptr);
+    const blender::Vector<bke::path_templates::Error> errors = BKE_image_path_from_imtype(
+        filepath,
+        bkr->filepath,
+        BKE_main_blendfile_path(bkr->main),
+        nullptr,
+        0,
+        bake->im_format.imtype,
+        true,
+        false,
+        nullptr);
+    BLI_assert_msg(errors.is_empty(),
+                   "Path parsing errors should only occur when a variable map is provided.");
+    UNUSED_VARS_NDEBUG(errors);
 
     if (bkr->is_automatic_name) {
       BLI_path_suffix(filepath, FILE_MAX, ob->id.name + 2, "_");

@@ -38,4 +38,5 @@ void MOV_write_end(MovieWriter *writer);
 void MOV_filepath_from_settings(char filepath[/*FILE_MAX*/ 1024],
                                 const RenderData *rd,
                                 bool preview,
-                                const char *suffix);
+                                const char *suffix,
+                                ReportList *reports);
