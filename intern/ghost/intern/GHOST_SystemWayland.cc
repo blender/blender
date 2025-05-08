@@ -6372,13 +6372,6 @@ static void output_handle_mode(void *data,
   GWL_Output *output = static_cast<GWL_Output *>(data);
   output->size_native[0] = width;
   output->size_native[1] = height;
-
-  /* Don't rotate this yet, `wl-output` coordinates are transformed in
-   * handle_done and `xdg-output` coordinates are pre-transformed. */
-  if (!output->has_size_logical) {
-    output->size_logical[0] = width;
-    output->size_logical[1] = height;
-  }
 }
 
 /**
