@@ -1501,12 +1501,7 @@ elseif(WIN32)
 
   windows_install_shared_manifest(
     FILES ${LIBDIR}/shaderc/bin/shaderc_shared.dll
-    RELEASE
-  )
-
-  windows_install_shared_manifest(
-    FILES ${LIBDIR}/shaderc/bin/shaderc_shared_d.dll
-    DEBUG
+    ALL
   )
 
   windows_install_shared_manifest(
