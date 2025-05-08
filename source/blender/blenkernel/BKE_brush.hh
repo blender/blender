@@ -26,8 +26,6 @@ struct Paint;
 struct Scene;
 struct UnifiedPaintSettings;
 
-// enum eCurveMappingPreset;
-
 /* Globals for brush execution. */
 
 void BKE_brush_system_init();
@@ -77,7 +75,7 @@ void BKE_brush_randomize_texture_coords(UnifiedPaintSettings *ups, bool mask);
 /**
  * Library Operations
  */
-void BKE_brush_curve_preset(Brush *b, enum eCurveMappingPreset preset);
+void BKE_brush_curve_preset(Brush *b, eCurveMappingPreset preset);
 
 /**
  * Combine the brush strength based on the distances and brush settings with the existing factors.
