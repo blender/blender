@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_string.h"
+
 #include "node_shader_util.hh"
 
 #include "UI_interface.hh"
@@ -31,7 +33,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 #define SOCK_ABSORPTION_COEFFICIENTS_ID 1
   PanelDeclarationBuilder &sca = b.add_panel("Scatter").default_closed(false);
   sca.add_layout([](uiLayout *layout, bContext * /*C*/, PointerRNA *ptr) {
-    uiItemR(layout, ptr, "phase", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+    layout->prop(ptr, "phase", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
   });
   sca.add_input<decl::Vector>("Scatter Coefficients")
       .default_value({1.0f, 1.0f, 1.0f})
