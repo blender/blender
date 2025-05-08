@@ -3877,8 +3877,8 @@ static void metadata_panel_draw_field(const char *field, const char *value, void
 {
   MetadataPanelDrawContext *ctx = (MetadataPanelDrawContext *)ctx_v;
   uiLayout *row = &ctx->layout->row(false);
-  uiItemL(row, field, ICON_NONE);
-  uiItemL(row, value, ICON_NONE);
+  row->label(field, ICON_NONE);
+  row->label(value, ICON_NONE);
 }
 
 void ED_region_image_metadata_panel_draw(ImBuf *ibuf, uiLayout *layout)

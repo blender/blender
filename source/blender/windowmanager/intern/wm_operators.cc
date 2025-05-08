@@ -1581,7 +1581,7 @@ static uiBlock *wm_block_dialog_create(bContext *C, ARegion *region, void *user_
     uiLayoutSetScaleY(lines, 0.65f);
     uiItemS_ex(lines, 0.1f);
     for (auto &st : message_lines) {
-      uiItemL(lines, st, ICON_NONE);
+      lines->label(st, ICON_NONE);
     }
   }
 

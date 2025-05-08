@@ -337,11 +337,11 @@ static void edge_types_panel_draw(const bContext * /*C*/, Panel *panel)
           CTX_IFACE_(BLT_I18NCONTEXT_ID_GPENCIL, "Cast Shadow"),
           ICON_NONE);
 
-  uiItemL(layout, IFACE_("Options"), ICON_NONE);
+  layout->label(IFACE_("Options"), ICON_NONE);
 
   sub = &layout->column(false);
   if (use_cache && !is_first) {
-    uiItemL(sub, IFACE_("Type overlapping cached"), ICON_INFO);
+    sub->label(IFACE_("Type overlapping cached"), ICON_INFO);
   }
   else {
     uiItemR(sub,
@@ -369,7 +369,7 @@ static void options_light_reference_draw(const bContext * /*C*/, Panel *panel)
   uiLayoutSetEnabled(layout, !is_baked);
 
   if (use_cache && !is_first) {
-    uiItemL(layout, RPT_("Cached from the first Line Art modifier."), ICON_INFO);
+    layout->label(RPT_("Cached from the first Line Art modifier."), ICON_INFO);
     return;
   }
 
@@ -400,7 +400,7 @@ static void options_panel_draw(const bContext * /*C*/, Panel *panel)
   uiLayoutSetEnabled(layout, !is_baked);
 
   if (use_cache && !is_first) {
-    uiItemL(layout, TIP_("Cached from the first Line Art modifier"), ICON_INFO);
+    layout->label(TIP_("Cached from the first Line Art modifier"), ICON_INFO);
     return;
   }
 
@@ -446,7 +446,7 @@ static void occlusion_panel_draw(const bContext * /*C*/, Panel *panel)
   uiLayoutSetEnabled(layout, !is_baked);
 
   if (!show_in_front) {
-    uiItemL(layout, TIP_("Object is not in front"), ICON_INFO);
+    layout->label(TIP_("Object is not in front"), ICON_INFO);
   }
 
   layout = &layout->column(false);
@@ -559,7 +559,7 @@ static void face_mark_panel_draw_header(const bContext * /*C*/, Panel *panel)
     uiItemR(layout, ptr, "use_face_mark", UI_ITEM_NONE, IFACE_("Face Mark Filtering"), ICON_NONE);
   }
   else {
-    uiItemL(layout, IFACE_("Face Mark Filtering"), ICON_NONE);
+    layout->label(IFACE_("Face Mark Filtering"), ICON_NONE);
   }
 }
 
@@ -578,7 +578,7 @@ static void face_mark_panel_draw(const bContext * /*C*/, Panel *panel)
   uiLayoutSetEnabled(layout, !is_baked);
 
   if (use_cache && !is_first) {
-    uiItemL(layout, TIP_("Cached from the first Line Art modifier"), ICON_INFO);
+    layout->label(TIP_("Cached from the first Line Art modifier"), ICON_INFO);
     return;
   }
 
@@ -608,7 +608,7 @@ static void chaining_panel_draw(const bContext * /*C*/, Panel *panel)
   uiLayoutSetEnabled(layout, !is_baked);
 
   if (use_cache && !is_first) {
-    uiItemL(layout, TIP_("Cached from the first Line Art modifier"), ICON_INFO);
+    layout->label(TIP_("Cached from the first Line Art modifier"), ICON_INFO);
     return;
   }
 
@@ -648,7 +648,7 @@ static void vgroup_panel_draw(const bContext * /*C*/, Panel *panel)
   uiLayoutSetEnabled(layout, !is_baked);
 
   if (use_cache && !is_first) {
-    uiItemL(layout, TIP_("Cached from the first Line Art modifier"), ICON_INFO);
+    layout->label(TIP_("Cached from the first Line Art modifier"), ICON_INFO);
     return;
   }
 
@@ -679,7 +679,7 @@ static void bake_panel_draw(const bContext * /*C*/, Panel *panel)
   if (is_baked) {
     uiLayout *col = &layout->column(false);
     uiLayoutSetPropSep(col, false);
-    uiItemL(col, TIP_("Modifier has baked data"), ICON_NONE);
+    col->label(TIP_("Modifier has baked data"), ICON_NONE);
     uiItemR(
         col, ptr, "is_baked", UI_ITEM_R_TOGGLE, IFACE_("Continue Without Clearing"), ICON_NONE);
   }
@@ -711,7 +711,7 @@ static void composition_panel_draw(const bContext * /*C*/, Panel *panel)
   uiItemR(layout, ptr, "use_image_boundary_trimming", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   if (show_in_front) {
-    uiItemL(layout, TIP_("Object is shown in front"), ICON_ERROR);
+    layout->label(TIP_("Object is shown in front"), ICON_ERROR);
   }
 
   uiLayout *col = &layout->column(false);

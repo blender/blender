@@ -341,14 +341,14 @@ static void grease_pencil_export_svg_draw(bContext * /*C*/, wmOperator *op)
   box = &layout->box();
 
   row = &box->row(false);
-  uiItemL(row, IFACE_("Scene Options"), ICON_NONE);
+  row->label(IFACE_("Scene Options"), ICON_NONE);
 
   row = &box->row(false);
   uiItemR(row, op->ptr, "selected_object_type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   box = &layout->box();
   row = &box->row(false);
-  uiItemL(row, IFACE_("Export Options"), ICON_NONE);
+  row->label(IFACE_("Export Options"), ICON_NONE);
 
   uiLayout *col = &box->column(false);
   uiItemR(col, op->ptr, "stroke_sample", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -500,14 +500,14 @@ static void ui_gpencil_export_pdf_settings(uiLayout *layout, PointerRNA *imfptr)
   box = &layout->box();
 
   row = &box->row(false);
-  uiItemL(row, IFACE_("Scene Options"), ICON_NONE);
+  row->label(IFACE_("Scene Options"), ICON_NONE);
 
   row = &box->row(false);
   uiItemR(row, imfptr, "selected_object_type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   box = &layout->box();
   row = &box->row(false);
-  uiItemL(row, IFACE_("Export Options"), ICON_NONE);
+  row->label(IFACE_("Export Options"), ICON_NONE);
 
   col = &box->column(false);
   sub = &col->column(true);

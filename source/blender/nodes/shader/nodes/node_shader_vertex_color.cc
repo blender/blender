@@ -39,7 +39,7 @@ static void node_shader_buts_vertex_color(uiLayout *layout, bContext *C, Pointer
   }
 
   uiItemR(layout, ptr, "layer_name", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_GROUP_VCOL);
-  uiItemL(layout, RPT_("No mesh in active object"), ICON_ERROR);
+  layout->label(RPT_("No mesh in active object"), ICON_ERROR);
 }
 
 static void node_shader_init_vertex_color(bNodeTree * /*ntree*/, bNode *node)

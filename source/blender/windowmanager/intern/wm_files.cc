@@ -4133,7 +4133,7 @@ static uiBlock *block_create_autorun_warning(bContext *C, ARegion *region, void 
   uiLayout *col = &layout->column(true);
   uiItemL_ex(col, title, ICON_NONE, true, false);
   uiItemL_ex(col, G.autoexec_fail, ICON_NONE, false, true);
-  uiItemL(col, message, ICON_NONE);
+  col->label(message, ICON_NONE);
 
   uiItemS(layout);
 
@@ -4340,8 +4340,8 @@ static void file_overwrite_detailed_info_show(uiLayout *parent_layout, Main *bma
     SNPRINTF(message_line2,
              RPT_("Saving it with this Blender (%s) may cause loss of data."),
              current_ver_str);
-    uiItemL(layout, message_line1, ICON_NONE);
-    uiItemL(layout, message_line2, ICON_NONE);
+    layout->label(message_line1, ICON_NONE);
+    layout->label(message_line2, ICON_NONE);
   }
 
   if (bmain->is_asset_edit_file) {
@@ -4349,10 +4349,9 @@ static void file_overwrite_detailed_info_show(uiLayout *parent_layout, Main *bma
       uiItemS_ex(layout, 1.4f);
     }
 
-    uiItemL(layout,
-            RPT_("This file is managed by the Blender asset system. It can only be"),
-            ICON_NONE);
-    uiItemL(layout, RPT_("saved as a new, regular file."), ICON_NONE);
+    layout->label(RPT_("This file is managed by the Blender asset system. It can only be"),
+                  ICON_NONE);
+    layout->label(RPT_("saved as a new, regular file."), ICON_NONE);
   }
 }
 
@@ -4492,7 +4491,7 @@ static uiBlock *block_create_save_file_overwrite_dialog(bContext *C, ARegion *re
      * should never be empty. */
     BLI_assert_unreachable();
   }
-  uiItemL(layout, filename, ICON_NONE);
+  layout->label(filename, ICON_NONE);
 
   /* Detailed message info. */
   file_overwrite_detailed_info_show(layout, bmain);
@@ -4709,7 +4708,7 @@ static uiBlock *block_create__close_file_dialog(bContext *C, ARegion *region, vo
   else {
     SNPRINTF(filename, "%s.blend", DATA_("Untitled"));
   }
-  uiItemL(layout, filename, ICON_NONE);
+  layout->label(filename, ICON_NONE);
 
   /* Potential forward compatibility issues message. */
   if (needs_overwrite_confirm) {

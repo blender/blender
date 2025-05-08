@@ -261,7 +261,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
     uiItemR(col, ptr, "delimit", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     uiItemR(layout, ptr, "use_dissolve_boundaries", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
-  uiItemL(layout, count_info, ICON_NONE);
+  layout->label(count_info, ICON_NONE);
 
   modifier_panel_end(layout, ptr);
 }

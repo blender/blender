@@ -199,7 +199,7 @@ static uiBlock *menu_change_shortcut(bContext *C, ARegion *region, void *arg)
                                      0,
                                      style);
 
-  uiItemL(layout, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Change Shortcut"), ICON_HAND);
+  layout->label(CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Change Shortcut"), ICON_HAND);
   uiItemR(layout, &ptr, "type", UI_ITEM_R_FULL_EVENT | UI_ITEM_R_IMMEDIATE, "", ICON_NONE);
 
   const int bounds_offset[2] = {int(-100 * UI_SCALE_FAC), int(36 * UI_SCALE_FAC)};
@@ -259,7 +259,7 @@ static uiBlock *menu_add_shortcut(bContext *C, ARegion *region, void *arg)
                                      0,
                                      style);
 
-  uiItemL(layout, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Assign Shortcut"), ICON_HAND);
+  layout->label(CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Assign Shortcut"), ICON_HAND);
   uiItemR(layout, &ptr, "type", UI_ITEM_R_FULL_EVENT | UI_ITEM_R_IMMEDIATE, "", ICON_NONE);
 
   const int bounds_offset[2] = {int(-100 * UI_SCALE_FAC), int(36 * UI_SCALE_FAC)};

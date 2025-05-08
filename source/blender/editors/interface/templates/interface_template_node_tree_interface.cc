@@ -117,7 +117,7 @@ class NodeSocketViewItem : public BasicTreeViewItem {
     }
     else {
       /* Blank item to align output socket labels with inputs. */
-      uiItemL(input_socket_layout, "", ICON_BLANK1);
+      input_socket_layout->label("", ICON_BLANK1);
     }
 
     this->add_label(row);
@@ -131,7 +131,7 @@ class NodeSocketViewItem : public BasicTreeViewItem {
     }
     else {
       /* Blank item to align input socket labels with outputs. */
-      uiItemL(output_socket_layout, "", ICON_BLANK1);
+      output_socket_layout->label("", ICON_BLANK1);
     }
   }
 

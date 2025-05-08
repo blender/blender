@@ -2432,7 +2432,7 @@ static void outliner_orphans_purge_ui(bContext * /*C*/, wmOperator *op)
   uiItemR(column, ptr, "do_local_ids", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   uiLayout *row = &column->row(true);
   uiItemS_ex(row, 2.67f);
-  uiItemL(row, unused_message, ICON_NONE);
+  row->label(unused_message, ICON_NONE);
 
   unused_message = "";
   unused_message_gen(unused_message, data.num_linked);
@@ -2440,7 +2440,7 @@ static void outliner_orphans_purge_ui(bContext * /*C*/, wmOperator *op)
   uiItemR(column, ptr, "do_linked_ids", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   row = &column->row(true);
   uiItemS_ex(row, 2.67f);
-  uiItemL(row, unused_message, ICON_NONE);
+  row->label(unused_message, ICON_NONE);
 
   uiItemR(layout, ptr, "do_recursive", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }

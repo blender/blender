@@ -314,7 +314,7 @@ static void fmodifier_panel_header(const bContext *C, Panel *panel)
     uiItemR(sub, ptr, "name", UI_ITEM_NONE, "", ICON_NONE);
   }
   else {
-    uiItemL(sub, IFACE_("<Unknown Modifier>"), ICON_NONE);
+    sub->label(IFACE_("<Unknown Modifier>"), ICON_NONE);
   }
   /* Right align. */
   sub = &layout->row(true);
@@ -397,8 +397,8 @@ static void generator_panel_draw(const bContext *C, Panel *panel)
         split->column(false);
         uiLayout *title_col = &split->column(false);
         uiLayout *title_row = &title_col->row(true);
-        uiItemL(title_row, CTX_IFACE_(BLT_I18NCONTEXT_ID_ACTION, "A"), ICON_NONE);
-        uiItemL(title_row, CTX_IFACE_(BLT_I18NCONTEXT_ID_ACTION, "B"), ICON_NONE);
+        title_row->label(CTX_IFACE_(BLT_I18NCONTEXT_ID_ACTION, "A"), ICON_NONE);
+        title_row->label(CTX_IFACE_(BLT_I18NCONTEXT_ID_ACTION, "B"), ICON_NONE);
       }
 
       uiLayout *first_row = &col->row(true);

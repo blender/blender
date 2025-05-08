@@ -28,7 +28,7 @@ static void template_keymap_item_properties(uiLayout *layout, const char *title,
   uiItemS(layout);
 
   if (title) {
-    uiItemL(layout, title, ICON_NONE);
+    layout->label(title, ICON_NONE);
   }
 
   uiLayout *flow = &layout->column_flow(2, false);

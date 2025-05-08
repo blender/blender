@@ -64,7 +64,7 @@ static void cmp_node_glare_declare(NodeDeclarationBuilder &b)
 #ifndef WITH_FFTW3
     const int glare_type = RNA_enum_get(ptr, "glare_type");
     if (glare_type == CMP_NODE_GLARE_FOG_GLOW) {
-      uiItemL(layout, RPT_("Disabled, built without FFTW"), ICON_ERROR);
+      layout->label(RPT_("Disabled, built without FFTW"), ICON_ERROR);
     }
 #endif
 

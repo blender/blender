@@ -170,7 +170,7 @@ static void unassigned_assets_draw(const bContext *C, Menu *menu)
       add_separator = false;
     }
     if (first) {
-      uiItemL(layout, IFACE_("Non-Assets"), ICON_NONE);
+      layout->label(IFACE_("Non-Assets"), ICON_NONE);
       first = false;
     }
 
@@ -206,7 +206,7 @@ static void root_catalogs_draw(const bContext *C, Menu *menu)
   uiItemS(layout);
 
   if (!loading_finished) {
-    uiItemL(layout, IFACE_("Loading Asset Libraries"), ICON_INFO);
+    layout->label(IFACE_("Loading Asset Libraries"), ICON_INFO);
   }
 
   Set<std::string> all_builtin_menus = [&]() {

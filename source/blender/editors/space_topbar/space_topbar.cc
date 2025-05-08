@@ -193,7 +193,7 @@ static void recent_files_menu_draw(const bContext * /*C*/, Menu *menu)
     uiItemO(layout, IFACE_("Clear Recent Files List..."), ICON_TRASH, "WM_OT_clear_recent_files");
   }
   else {
-    uiItemL(layout, IFACE_("No Recent Files"), ICON_NONE);
+    layout->label(IFACE_("No Recent Files"), ICON_NONE);
   }
 }
 

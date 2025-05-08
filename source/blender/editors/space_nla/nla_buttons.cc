@@ -324,9 +324,9 @@ static void nla_panel_animdata(const bContext *C, Panel *panel)
     row = &layout->row(true);
     uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_LEFT);
 
-    uiItemL(row, id->name + 2, RNA_struct_ui_icon(id_ptr.type)); /* id-block (src) */
-    uiItemL(row, "", ICON_RIGHTARROW);                           /* expander */
-    uiItemL(row, IFACE_("Animation Data"), ICON_ANIM_DATA);      /* animdata */
+    row->label(id->name + 2, RNA_struct_ui_icon(id_ptr.type)); /* id-block (src) */
+    row->label("", ICON_RIGHTARROW);                           /* expander */
+    row->label(IFACE_("Animation Data"), ICON_ANIM_DATA);      /* animdata */
 
     uiItemS(layout);
   }
@@ -377,16 +377,16 @@ static void nla_panel_stripname(const bContext *C, Panel *panel)
   /* strip type */
   row = &layout->row(false);
   if (RNA_enum_get(&strip_ptr, "type") == NLASTRIP_TYPE_CLIP) {
-    uiItemL(row, "", ICON_ANIM);
+    row->label("", ICON_ANIM);
   }
   else if (RNA_enum_get(&strip_ptr, "type") == NLASTRIP_TYPE_TRANSITION) {
-    uiItemL(row, "", ICON_ARROW_LEFTRIGHT);
+    row->label("", ICON_ARROW_LEFTRIGHT);
   }
   else if (RNA_enum_get(&strip_ptr, "type") == NLASTRIP_TYPE_META) {
-    uiItemL(row, "", ICON_SEQ_STRIP_META);
+    row->label("", ICON_SEQ_STRIP_META);
   }
   else if (RNA_enum_get(&strip_ptr, "type") == NLASTRIP_TYPE_SOUND) {
-    uiItemL(row, "", ICON_SOUND);
+    row->label("", ICON_SOUND);
   }
 
   uiItemR(row, &strip_ptr, "name", UI_ITEM_NONE, "", ICON_NLA);

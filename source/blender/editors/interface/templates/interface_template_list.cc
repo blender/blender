@@ -104,7 +104,7 @@ static void uilist_draw_item_default(uiList *ui_list,
   /* Simplest one! */
   switch (ui_list->layout_type) {
     case UILST_LAYOUT_GRID:
-      uiItemL(layout, "", icon);
+      layout->label("", icon);
       break;
     case UILST_LAYOUT_DEFAULT:
     case UILST_LAYOUT_COMPACT:
@@ -113,7 +113,7 @@ static void uilist_draw_item_default(uiList *ui_list,
         uiItemFullR(layout, itemptr, nameprop, RNA_NO_INDEX, 0, UI_ITEM_R_NO_BG, "", icon);
       }
       else {
-        uiItemL(layout, "", icon);
+        layout->label("", icon);
       }
       break;
   }
@@ -821,7 +821,7 @@ static void ui_template_list_layout_draw(const bContext *C,
 
       /* add dummy buttons to fill space */
       for (; i < visual_info.start_idx + visual_info.visual_items; i++) {
-        uiItemL(col, "", ICON_NONE);
+        col->label("", ICON_NONE);
       }
 
       /* Add scroll-bar. */
@@ -870,7 +870,7 @@ static void ui_template_list_layout_draw(const bContext *C,
       }
       /* if list is empty, add in dummy button */
       else {
-        uiItemL(row, "", ICON_NONE);
+        row->label("", ICON_NONE);
       }
 
       /* next/prev button */
@@ -968,7 +968,7 @@ static void ui_template_list_layout_draw(const bContext *C,
         if (!(i % layout_data->columns)) {
           subrow = &col->row(false);
         }
-        uiItemL(subrow, "", ICON_NONE);
+        subrow->label("", ICON_NONE);
       }
 
       /* Add scroll-bar. */

@@ -75,7 +75,7 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *ptr)
     uiLayout *col = &panel->column(false);
     for (const int i : IndexRange(storage.items_num)) {
       uiLayout *row = &col->row(false);
-      uiItemL(row, node.input_socket(i + 1).name, ICON_NONE);
+      row->label(node.input_socket(i + 1).name, ICON_NONE);
       uiItemIntO(row, "", ICON_REMOVE, "node.index_switch_item_remove", "index", i);
     }
   }

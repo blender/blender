@@ -215,7 +215,7 @@ static void graph_panel_properties(const bContext *C, Panel *panel)
       icon = ICON_NLA;
     }
   }
-  uiItemL(col, name, icon);
+  col->label(name, icon);
 
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
@@ -389,8 +389,8 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
     col = &layout->column(false);
     if (fcu->flag & FCURVE_DISCRETE_VALUES) {
       uiLayout *split = &col->split(0.33f, true);
-      uiItemL(split, IFACE_("Interpolation:"), ICON_NONE);
-      uiItemL(split, IFACE_("None for Enum/Boolean"), ICON_IPO_CONSTANT);
+      split->label(IFACE_("Interpolation:"), ICON_NONE);
+      split->label(IFACE_("None for Enum/Boolean"), ICON_IPO_CONSTANT);
     }
     else {
       uiItemR(col, &bezt_ptr, "interpolation", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -577,17 +577,16 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
   else {
     if ((fcu->bezt == nullptr) && (fcu->modifiers.first)) {
       /* modifiers only - so no keyframes to be active */
-      uiItemL(layout, RPT_("F-Curve only has F-Modifiers"), ICON_NONE);
-      uiItemL(layout, RPT_("See Modifiers panel below"), ICON_INFO);
+      layout->label(RPT_("F-Curve only has F-Modifiers"), ICON_NONE);
+      layout->label(RPT_("See Modifiers panel below"), ICON_INFO);
     }
     else if (fcu->fpt) {
       /* samples only */
-      uiItemL(layout,
-              RPT_("F-Curve doesn't have any keyframes as it only contains sampled points"),
-              ICON_NONE);
+      layout->label(RPT_("F-Curve doesn't have any keyframes as it only contains sampled points"),
+                    ICON_NONE);
     }
     else {
-      uiItemL(layout, RPT_("No active keyframe on F-Curve"), ICON_NONE);
+      layout->label(RPT_("No active keyframe on F-Curve"), ICON_NONE);
     }
   }
 
@@ -676,30 +675,28 @@ static void driver_dvar_invalid_name_query_cb(bContext *C, void *dvar_v, void * 
   DriverVar *dvar = (DriverVar *)dvar_v;
 
   if (dvar->flag & DVAR_FLAG_INVALID_EMPTY) {
-    uiItemL(layout, RPT_("It cannot be left blank"), ICON_ERROR);
+    layout->label(RPT_("It cannot be left blank"), ICON_ERROR);
   }
   if (dvar->flag & DVAR_FLAG_INVALID_START_NUM) {
-    uiItemL(layout, RPT_("It cannot start with a number"), ICON_ERROR);
+    layout->label(RPT_("It cannot start with a number"), ICON_ERROR);
   }
   if (dvar->flag & DVAR_FLAG_INVALID_START_CHAR) {
-    uiItemL(layout,
-            RPT_("It cannot start with a special character,"
-                 " including '$', '@', '!', '~', '+', '-', '_', '.', or ' '"),
-            ICON_NONE);
+    layout->label(RPT_("It cannot start with a special character,"
+                       " including '$', '@', '!', '~', '+', '-', '_', '.', or ' '"),
+                  ICON_NONE);
   }
   if (dvar->flag & DVAR_FLAG_INVALID_HAS_SPACE) {
-    uiItemL(layout, RPT_("It cannot contain spaces (e.g. 'a space')"), ICON_ERROR);
+    layout->label(RPT_("It cannot contain spaces (e.g. 'a space')"), ICON_ERROR);
   }
   if (dvar->flag & DVAR_FLAG_INVALID_HAS_DOT) {
-    uiItemL(layout, RPT_("It cannot contain dots (e.g. 'a.dot')"), ICON_ERROR);
+    layout->label(RPT_("It cannot contain dots (e.g. 'a.dot')"), ICON_ERROR);
   }
   if (dvar->flag & DVAR_FLAG_INVALID_HAS_SPECIAL) {
-    uiItemL(layout,
-            RPT_("It cannot contain special (non-alphabetical/numeric) characters"),
-            ICON_ERROR);
+    layout->label(RPT_("It cannot contain special (non-alphabetical/numeric) characters"),
+                  ICON_ERROR);
   }
   if (dvar->flag & DVAR_FLAG_INVALID_PY_KEYWORD) {
-    uiItemL(layout, RPT_("It cannot be a reserved keyword in Python"), ICON_INFO);
+    layout->label(RPT_("It cannot be a reserved keyword in Python"), ICON_INFO);
   }
 
   UI_popup_menu_end(C, pup);
@@ -983,11 +980,11 @@ static void graph_draw_driven_property_panel(uiLayout *layout, ID *id, FCurve *f
   /* -> user friendly 'name' for datablock that owns F-Curve */
   /* XXX: Actually, we may need the datablock icons only...
    * (e.g. right now will show bone for bone props). */
-  uiItemL(row, id->name + 2, icon);
+  row->label(id->name + 2, icon);
 
   /* -> user friendly 'name' for F-Curve/driver target */
-  uiItemL(row, "", ICON_RIGHTARROW);
-  uiItemL(row, name, ICON_RNA);
+  row->label("", ICON_RIGHTARROW);
+  row->label(name, ICON_RNA);
 }
 
 /* UI properties panel layout for driver settings - shared for Drivers Editor and for */
@@ -1018,9 +1015,9 @@ static void graph_draw_driver_settings_panel(uiLayout *layout,
 
     /* value of driver */
     row = &col->row(true);
-    uiItemL(row, IFACE_("Driver Value:"), ICON_NONE);
+    row->label(IFACE_("Driver Value:"), ICON_NONE);
     SNPRINTF(valBuf, "%.3f", driver->curval);
-    uiItemL(row, valBuf, ICON_NONE);
+    row->label(valBuf, ICON_NONE);
   }
 
   uiItemS(layout);
@@ -1037,7 +1034,7 @@ static void graph_draw_driver_settings_panel(uiLayout *layout,
     col = &layout->column(true);
     block = uiLayoutGetBlock(col);
 
-    uiItemL(col, IFACE_("Expression:"), ICON_NONE);
+    col->label(IFACE_("Expression:"), ICON_NONE);
     uiItemR(col, &driver_ptr, "expression", UI_ITEM_NONE, "", ICON_NONE);
     uiItemR(col, &driver_ptr, "use_self", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
@@ -1047,26 +1044,26 @@ static void graph_draw_driver_settings_panel(uiLayout *layout,
 
     if (driver->flag & DRIVER_FLAG_PYTHON_BLOCKED) {
       /* TODO: Add button to enable? */
-      uiItemL(col, RPT_("Python restricted for security"), ICON_ERROR);
-      uiItemL(col, RPT_("Slow Python expression"), ICON_INFO);
+      col->label(RPT_("Python restricted for security"), ICON_ERROR);
+      col->label(RPT_("Slow Python expression"), ICON_INFO);
     }
     else if (driver->flag & DRIVER_FLAG_INVALID) {
-      uiItemL(col, RPT_("ERROR: Invalid Python expression"), ICON_CANCEL);
+      col->label(RPT_("ERROR: Invalid Python expression"), ICON_CANCEL);
     }
     else if (!BKE_driver_has_simple_expression(driver)) {
-      uiItemL(col, RPT_("Slow Python expression"), ICON_INFO);
+      col->label(RPT_("Slow Python expression"), ICON_INFO);
     }
 
     /* Explicit bpy-references are evil. Warn about these to prevent errors */
     /* TODO: put these in a box? */
     if (bpy_data_expr_error || bpy_ctx_expr_error) {
-      uiItemL(col, RPT_("WARNING: Driver expression may not work correctly"), ICON_HELP);
+      col->label(RPT_("WARNING: Driver expression may not work correctly"), ICON_HELP);
 
       if (bpy_data_expr_error) {
-        uiItemL(col, RPT_("TIP: Use variables instead of bpy.data paths (see below)"), ICON_ERROR);
+        col->label(RPT_("TIP: Use variables instead of bpy.data paths (see below)"), ICON_ERROR);
       }
       if (bpy_ctx_expr_error) {
-        uiItemL(col, RPT_("TIP: bpy.context is not safe for renderfarm usage"), ICON_ERROR);
+        col->label(RPT_("TIP: bpy.context is not safe for renderfarm usage"), ICON_ERROR);
       }
     }
   }
@@ -1076,7 +1073,7 @@ static void graph_draw_driver_settings_panel(uiLayout *layout,
     block = uiLayoutGetBlock(col);
 
     if (driver->flag & DRIVER_FLAG_INVALID) {
-      uiItemL(col, RPT_("ERROR: Invalid target channel(s)"), ICON_ERROR);
+      col->label(RPT_("ERROR: Invalid target channel(s)"), ICON_ERROR);
     }
 
     /* Warnings about a lack of variables
@@ -1086,11 +1083,11 @@ static void graph_draw_driver_settings_panel(uiLayout *layout,
      *       property animation
      */
     if (BLI_listbase_is_empty(&driver->variables)) {
-      uiItemL(col, RPT_("ERROR: Driver is useless without any inputs"), ICON_ERROR);
+      col->label(RPT_("ERROR: Driver is useless without any inputs"), ICON_ERROR);
 
       if (!BLI_listbase_is_empty(&fcu->modifiers)) {
-        uiItemL(col, RPT_("TIP: Use F-Curves for procedural animation instead"), ICON_INFO);
-        uiItemL(col, RPT_("F-Modifiers can generate curves for those too"), ICON_INFO);
+        col->label(RPT_("TIP: Use F-Curves for procedural animation instead"), ICON_INFO);
+        col->label(RPT_("F-Modifiers can generate curves for those too"), ICON_INFO);
       }
     }
   }
@@ -1232,7 +1229,7 @@ static void graph_draw_driver_settings_panel(uiLayout *layout,
 
       box = &col->box();
       row = &box->row(true);
-      uiItemL(row, IFACE_("Value:"), ICON_NONE);
+      row->label(IFACE_("Value:"), ICON_NONE);
 
       if ((dvar->type == DVAR_TYPE_ROT_DIFF) ||
           (dvar->type == DVAR_TYPE_TRANSFORM_CHAN &&
@@ -1252,7 +1249,7 @@ static void graph_draw_driver_settings_panel(uiLayout *layout,
         SNPRINTF(valBuf, "%.3f", dvar->curval);
       }
 
-      uiItemL(row, valBuf, ICON_NONE);
+      row->label(valBuf, ICON_NONE);
     }
   }
   /* Quiet warning about old value being unused before re-assigned. */
@@ -1360,7 +1357,7 @@ static void graph_panel_drivers_popover(const bContext *C, Panel *panel)
       uiLayoutSetContextPointer(layout, "active_editable_fcurve", &ptr_fcurve);
 
       /* Driven Property Settings */
-      uiItemL(layout, IFACE_("Driven Property:"), ICON_NONE);
+      layout->label(IFACE_("Driven Property:"), ICON_NONE);
       graph_draw_driven_property_panel(panel->layout, id, fcu);
       /* TODO: All vs Single */
 

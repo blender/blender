@@ -84,7 +84,7 @@ static void node_socket_button_label(bContext * /*C*/,
                                      PointerRNA * /*node_ptr*/,
                                      const StringRefNull text)
 {
-  uiItemL(layout, text, ICON_NONE);
+  layout->label(text, ICON_NONE);
 }
 
 /* ****************** BUTTON CALLBACKS FOR ALL TREES ***************** */
@@ -334,7 +334,7 @@ static void node_buts_image_user(uiLayout *layout,
     char numstr[32];
     const int framenr = BKE_image_user_frame_get(iuser, scene->r.cfra, nullptr);
     SNPRINTF(numstr, IFACE_("Frame: %d"), framenr);
-    uiItemL(layout, numstr, ICON_NONE);
+    layout->label(numstr, ICON_NONE);
   }
 
   if (ELEM(source, IMA_SRC_SEQUENCE, IMA_SRC_MOVIE)) {
@@ -356,12 +356,12 @@ static void node_buts_image_user(uiLayout *layout,
   if (show_color_management) {
     uiLayout *split = &layout->split(0.33f, true);
     PointerRNA colorspace_settings_ptr = RNA_pointer_get(imaptr, "colorspace_settings");
-    uiItemL(split, IFACE_("Color Space"), ICON_NONE);
+    split->label(IFACE_("Color Space"), ICON_NONE);
     uiItemR(split, &colorspace_settings_ptr, "name", DEFAULT_FLAGS, "", ICON_NONE);
 
     if (image->source != IMA_SRC_GENERATED) {
       split = &layout->split(0.33f, true);
-      uiItemL(split, IFACE_("Alpha"), ICON_NONE);
+      split->label(IFACE_("Alpha"), ICON_NONE);
       uiItemR(split, imaptr, "alpha_mode", DEFAULT_FLAGS, "", ICON_NONE);
 
       bool is_data = IMB_colormanagement_space_name_is_data(image->colorspace_settings.name);
@@ -598,7 +598,7 @@ static void node_composit_buts_cryptomatte_legacy(uiLayout *layout,
 {
   uiLayout *col = &layout->column(true);
 
-  uiItemL(col, IFACE_("Matte Objects:"), ICON_NONE);
+  col->label(IFACE_("Matte Objects:"), ICON_NONE);
 
   uiLayout *row = &col->row(true);
   uiTemplateCryptoPicker(row, ptr, "add", ICON_ADD);
@@ -641,7 +641,7 @@ static void node_composit_buts_cryptomatte(uiLayout *layout, bContext *C, Pointe
 
   col = &layout->column(true);
   uiItemR(col, ptr, "layer_name", UI_ITEM_NONE, "", ICON_NONE);
-  uiItemL(col, IFACE_("Matte ID:"), ICON_NONE);
+  col->label(IFACE_("Matte ID:"), ICON_NONE);
 
   row = &col->row(true);
   uiItemR(row, ptr, "matte_id", DEFAULT_FLAGS, "", ICON_NONE);
@@ -949,7 +949,7 @@ static void node_socket_undefined_draw(bContext * /*C*/,
                                        PointerRNA * /*node_ptr*/,
                                        StringRefNull /*text*/)
 {
-  uiItemL(layout, IFACE_("Undefined Socket Type"), ICON_ERROR);
+  layout->label(IFACE_("Undefined Socket Type"), ICON_ERROR);
 }
 
 static void node_socket_undefined_draw_color(bContext * /*C*/,
@@ -977,7 +977,7 @@ static void node_socket_undefined_interface_draw(ID * /*id*/,
                                                  bContext * /*C*/,
                                                  uiLayout *layout)
 {
-  uiItemL(layout, IFACE_("Undefined Socket Type"), ICON_ERROR);
+  layout->label(IFACE_("Undefined Socket Type"), ICON_ERROR);
 }
 
 /** \} */
@@ -1108,14 +1108,14 @@ static void node_file_output_socket_draw(bContext *C,
     NodeImageMultiFileSocket *input = (NodeImageMultiFileSocket *)sock->storage;
     inputptr = RNA_pointer_create_discrete(&ntree->id, &RNA_NodeOutputFileSlotLayer, input);
 
-    uiItemL(row, input->layer, ICON_NONE);
+    row->label(input->layer, ICON_NONE);
   }
   else {
     NodeImageMultiFileSocket *input = (NodeImageMultiFileSocket *)sock->storage;
     uiBlock *block;
     inputptr = RNA_pointer_create_discrete(&ntree->id, &RNA_NodeOutputFileSlotFile, input);
 
-    uiItemL(row, input->path, ICON_NONE);
+    row->label(input->path, ICON_NONE);
 
     if (!RNA_boolean_get(&inputptr, "use_node_format")) {
       imfptr = RNA_pointer_get(&inputptr, "format");
@@ -1127,7 +1127,7 @@ static void node_file_output_socket_draw(bContext *C,
         C, &imfptr, imtype_prop, RNA_property_enum_get(&imfptr, imtype_prop), &imtype_name);
     block = uiLayoutGetBlock(row);
     UI_block_emboss_set(block, blender::ui::EmbossType::Pulldown);
-    uiItemL(row, imtype_name, ICON_NONE);
+    row->label(imtype_name, ICON_NONE);
     UI_block_emboss_set(block, blender::ui::EmbossType::None);
   }
 }
@@ -1185,7 +1185,7 @@ static void draw_node_socket_name_editable(uiLayout *layout,
       return;
     }
   }
-  uiItemL(layout, text, ICON_NONE);
+  layout->label(text, ICON_NONE);
 }
 
 static void draw_node_socket_without_value(uiLayout *layout,
@@ -1235,7 +1235,7 @@ static void std_node_socket_draw(
         uiLayout *row = &layout->row(false);
         uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_RIGHT);
         node_socket_button_label(C, row, ptr, node_ptr, text);
-        uiItemL(row, "", ICON_GIZMO);
+        row->label("", ICON_GIZMO);
       }
       else if (nodes::partial_eval::is_supported_value_node(*node)) {
         uiLayout *row = &layout->row(false);
@@ -1319,7 +1319,7 @@ static void std_node_socket_draw(
       }
       else {
         uiLayout *row = &layout->split(0.4f, false);
-        uiItemL(row, text, ICON_NONE);
+        row->label(text, ICON_NONE);
         uiItemR(row, ptr, "default_value", DEFAULT_FLAGS, "", ICON_NONE);
       }
       break;
@@ -1331,7 +1331,7 @@ static void std_node_socket_draw(
         }
         else {
           uiLayout *row = &layout->split(0.4f, false);
-          uiItemL(row, text, ICON_NONE);
+          row->label(text, ICON_NONE);
           node_geometry_add_attribute_search_button(*C, *node, *ptr, *row);
         }
       }
@@ -1341,7 +1341,7 @@ static void std_node_socket_draw(
         }
         else {
           uiLayout *row = &layout->split(0.4f, false);
-          uiItemL(row, text, ICON_NONE);
+          row->label(text, ICON_NONE);
           node_geometry_add_layer_search_button(*C, *node, *ptr, *row);
         }
       }
@@ -1359,7 +1359,7 @@ static void std_node_socket_draw(
         }
         else {
           uiLayout *row = &layout->split(0.4f, false);
-          uiItemL(row, text, ICON_NONE);
+          row->label(text, ICON_NONE);
           uiItemR(row, ptr, "default_value", DEFAULT_FLAGS, "", ICON_NONE);
         }
       }
@@ -1371,8 +1371,8 @@ static void std_node_socket_draw(
       if (default_value->enum_items) {
         if (default_value->enum_items->items.is_empty()) {
           uiLayout *row = &layout->split(0.4f, false);
-          uiItemL(row, text, ICON_NONE);
-          uiItemL(row, IFACE_("No Items"), ICON_NONE);
+          row->label(text, ICON_NONE);
+          row->label(IFACE_("No Items"), ICON_NONE);
         }
         else {
           if (const auto *socket_decl = dynamic_cast<const nodes::decl::Menu *>(
@@ -1387,10 +1387,10 @@ static void std_node_socket_draw(
         }
       }
       else if (default_value->has_conflict()) {
-        uiItemL(layout, IFACE_("Menu Error"), ICON_ERROR);
+        layout->label(IFACE_("Menu Error"), ICON_ERROR);
       }
       else {
-        uiItemL(layout, IFACE_("Menu Undefined"), ICON_QUESTION);
+        layout->label(IFACE_("Menu Undefined"), ICON_QUESTION);
       }
       break;
     }
@@ -1417,7 +1417,7 @@ static void std_node_socket_draw(
         else {
           /* 0.3 split ratio is inconsistent, but use it here because the "New" button is large. */
           uiLayout *row = &layout->split(0.3f, false);
-          uiItemL(row, text, ICON_NONE);
+          row->label(text, ICON_NONE);
           uiTemplateID(row, C, ptr, "default_value", "image.new", "image.open", nullptr);
         }
       }
@@ -1433,7 +1433,7 @@ static void std_node_socket_draw(
       else {
         /* 0.3 split ratio is inconsistent, but use it here because the "New" button is large. */
         uiLayout *row = &layout->split(0.3f, false);
-        uiItemL(row, text, ICON_NONE);
+        row->label(text, ICON_NONE);
         uiTemplateID(row, C, ptr, "default_value", "texture.new", nullptr, nullptr);
       }
 

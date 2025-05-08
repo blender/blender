@@ -394,7 +394,7 @@ eAutoPropButsReturn uiDefAutoButsRNA(uiLayout *layout,
           col = &layout->column(true);
 
           if (!is_boolean) {
-            uiItemL(col, *name, ICON_NONE);
+            col->label(*name, ICON_NONE);
           }
         }
         else {

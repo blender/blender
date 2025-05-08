@@ -66,21 +66,19 @@ void uiTemplateCacheFileProcedural(uiLayout *layout, const bContext *C, PointerR
 
   if (!is_alembic) {
     row = &layout->row(false);
-    uiItemL(row, RPT_("Only Alembic Procedurals supported"), ICON_INFO);
+    row->label(RPT_("Only Alembic Procedurals supported"), ICON_INFO);
   }
   else if (!engine_supports_procedural) {
     row = &layout->row(false);
     /* For Cycles, verify that experimental features are enabled. */
     if (BKE_scene_uses_cycles(scene) && !BKE_scene_uses_cycles_experimental_features(scene)) {
-      uiItemL(
-          row,
+      row->label(
           RPT_(
               "The Cycles Alembic Procedural is only available with the experimental feature set"),
           ICON_INFO);
     }
     else {
-      uiItemL(
-          row, RPT_("The active render engine does not have an Alembic Procedural"), ICON_INFO);
+      row->label(RPT_("The active render engine does not have an Alembic Procedural"), ICON_INFO);
     }
   }
 

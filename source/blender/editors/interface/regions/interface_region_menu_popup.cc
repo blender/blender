@@ -588,7 +588,7 @@ void UI_popup_menu_reports(bContext *C, ReportList *reports)
         BLI_strncpy(buf, msg, std::min(sizeof(buf), size_t(msg_next - msg)));
         msg = buf;
       }
-      uiItemL(layout, msg, icon);
+      layout->label(msg, icon);
       icon = ICON_NONE;
     } while ((msg = msg_next) && *msg);
   }

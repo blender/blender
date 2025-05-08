@@ -111,7 +111,7 @@ static void ui_fbx_import_settings(const bContext *C, uiLayout *layout, PointerR
     PanelLayout panel = layout->panel(C, "FBX_import_anim", true);
     uiLayoutSetPropSep(panel.header, false);
     uiItemR(panel.header, ptr, "use_anim", UI_ITEM_NONE, "", ICON_NONE);
-    uiItemL(panel.header, IFACE_("Animation"), ICON_NONE);
+    panel.header->label(IFACE_("Animation"), ICON_NONE);
     if (panel.body) {
       uiLayout *col = &panel.body->column(false);
       uiItemR(col, ptr, "anim_offset", UI_ITEM_NONE, std::nullopt, ICON_NONE);

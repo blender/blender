@@ -86,16 +86,16 @@ static bool is_oidn_supported()
 static void node_composit_buts_denoise(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
 #ifndef WITH_OPENIMAGEDENOISE
-  uiItemL(layout, RPT_("Disabled. Built without OpenImageDenoise"), ICON_ERROR);
+  layout->label(RPT_("Disabled. Built without OpenImageDenoise"), ICON_ERROR);
 #else
   if (!is_oidn_supported()) {
-    uiItemL(layout, RPT_("Disabled. Platform not supported"), ICON_ERROR);
+    layout->label(RPT_("Disabled. Platform not supported"), ICON_ERROR);
   }
 #endif
 
-  uiItemL(layout, IFACE_("Prefilter:"), ICON_NONE);
+  layout->label(IFACE_("Prefilter:"), ICON_NONE);
   uiItemR(layout, ptr, "prefilter", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
-  uiItemL(layout, IFACE_("Quality:"), ICON_NONE);
+  layout->label(IFACE_("Quality:"), ICON_NONE);
   uiItemR(layout, ptr, "quality", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 }
 

@@ -1793,11 +1793,11 @@ void uiTemplateAnyID(uiLayout *layout,
   /* Label - either use the provided text, or will become "ID-Block:" */
   if (text) {
     if (!text->is_empty()) {
-      uiItemL(row, *text, ICON_NONE);
+      row->label(*text, ICON_NONE);
     }
   }
   else {
-    uiItemL(row, IFACE_("ID-Block:"), ICON_NONE);
+    row->label(IFACE_("ID-Block:"), ICON_NONE);
   }
 
   /* SECOND PART ................................................ */

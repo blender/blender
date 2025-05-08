@@ -535,7 +535,7 @@ static void wm_usd_export_draw(bContext *C, wmOperator *op)
     PanelLayout panel = layout->panel(C, "USD_export_materials", true);
     uiLayoutSetPropSep(panel.header, false);
     uiItemR(panel.header, ptr, "export_materials", UI_ITEM_NONE, "", ICON_NONE);
-    uiItemL(panel.header, IFACE_("Materials"), ICON_NONE);
+    panel.header->label(IFACE_("Materials"), ICON_NONE);
     if (panel.body) {
       const bool export_materials = RNA_boolean_get(ptr, "export_materials");
       uiLayoutSetActive(panel.body, export_materials);

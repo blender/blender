@@ -871,7 +871,7 @@ static void ui_item_enum_expand_exec(uiLayout *layout,
           if (!is_first) {
             uiItemS(block->curlayout);
           }
-          uiItemL(block->curlayout, item->name, item->icon);
+          block->curlayout->label(item->name, item->icon);
         }
         else if (radial && layout_radial) {
           uiItemS(layout_radial);
@@ -1134,7 +1134,7 @@ static uiBut *ui_item_with_label(uiLayout *layout,
 #ifdef UI_PROP_DECORATE
   /* Only for alignment. */
   if (use_prop_decorate) { /* Note that sep flag may have been unset meanwhile. */
-    uiItemL(layout_prop_decorate ? layout_prop_decorate : sub, nullptr, ICON_BLANK1);
+    (layout_prop_decorate ? layout_prop_decorate : sub)->label(nullptr, ICON_BLANK1);
   }
 #endif /* UI_PROP_DECORATE */
 
@@ -1348,8 +1348,8 @@ static void ui_item_menu_hold(bContext *C, ARegion *butregion, uiBut *but)
     UI_menutype_draw(C, mt, layout);
   }
   else {
-    uiItemL(layout, RPT_("Menu Missing:"), ICON_NONE);
-    uiItemL(layout, menu_id, ICON_NONE);
+    layout->label(RPT_("Menu Missing:"), ICON_NONE);
+    layout->label(menu_id, ICON_NONE);
   }
   UI_popup_menu_end(C, pup);
 }
@@ -1591,12 +1591,12 @@ void uiItemsFullEnumO_items(uiLayout *layout,
 
         uiBut *but;
         if (item->icon || radial) {
-          uiItemL(target, item->name, item->icon);
+          target->label(item->name, item->icon);
 
           but = block->buttons.last().get();
         }
         else {
-          /* Do not use uiItemL here, as our root layout is a menu one,
+          /* Do not use uiLayout::label here, as our root layout is a menu one,
            * it will add a fake blank icon! */
           but = uiDefBut(block,
                          UI_BTYPE_LABEL,
@@ -2046,7 +2046,7 @@ static void ui_layout_heading_label_add(uiLayout *layout,
     uiItemL_respect_property_split(layout, heading_layout->heading_, ICON_NONE);
   }
   else {
-    uiItemL(layout, heading_layout->heading_, ICON_NONE);
+    layout->label(heading_layout->heading_, ICON_NONE);
   }
   /* After adding the heading label, we have to mark it somehow as added, so it's not added again
    * for other items in this layout. For now just clear it. */
@@ -2745,7 +2745,7 @@ void uiItemsEnumR(uiLayout *layout, PointerRNA *ptr, const StringRefNull propnam
           column = &split->column(false);
         }
 
-        uiItemL(column, item[i].name, ICON_NONE);
+        column->label(item[i].name, ICON_NONE);
         uiBut *bt = block->buttons.last().get();
         bt->drawflag = UI_BUT_TEXT_LEFT;
 
@@ -3331,9 +3331,9 @@ uiBut *uiItemL_ex(
   return but;
 }
 
-void uiItemL(uiLayout *layout, const StringRef name, int icon)
+void uiLayout::label(const StringRef name, int icon)
 {
-  uiItemL_(layout, name, icon);
+  uiItemL_(this, name, icon);
 }
 
 uiPropertySplitWrapper uiItemPropertySplitWrapperCreate(uiLayout *parent_layout)
@@ -5039,7 +5039,7 @@ uiLayout *uiLayout::panel_prop(const bContext *C,
                                const StringRef label)
 {
   PanelLayout panel_layout = this->panel_prop(C, open_prop_owner, open_prop_name);
-  uiItemL(panel_layout.header, label, ICON_NONE);
+  panel_layout.header->label(label, ICON_NONE);
 
   return panel_layout.body;
 }
@@ -5062,7 +5062,7 @@ uiLayout *uiLayout::panel(const bContext *C,
                           const StringRef label)
 {
   PanelLayout panel_layout = this->panel(C, idname, default_closed);
-  uiItemL(panel_layout.header, label, ICON_NONE);
+  panel_layout.header->label(label, ICON_NONE);
 
   return panel_layout.body;
 }
@@ -6294,7 +6294,7 @@ static void ui_paneltype_draw_impl(bContext *C, PanelType *pt, uiLayout *layout,
      * the label is disconnected from the checkbox, adding a weird looking gap. As workaround, let
      * the checkbox add the label instead. */
     if (!ui_layout_has_panel_label(row, pt)) {
-      uiItemL(row, CTX_IFACE_(pt->translation_context, pt->label), ICON_NONE);
+      row->label(CTX_IFACE_(pt->translation_context, pt->label), ICON_NONE);
     }
   }
 

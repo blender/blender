@@ -143,7 +143,7 @@ class AssetCatalogSelectorTree : public ui::AbstractTreeView {
 
       uiLayout *subrow = &row.row(false);
       uiLayoutSetActive(subrow, catalog_path_enabled_);
-      uiItemL(subrow, catalog_item_.get_name(), ICON_NONE);
+      subrow->label(catalog_item_.get_name(), ICON_NONE);
       UI_block_layout_set_current(block, &row);
 
       uiBut *toggle_but = uiDefButC(block,

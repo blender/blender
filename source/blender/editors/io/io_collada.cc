@@ -264,7 +264,7 @@ static void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
 
     box = &layout->box();
     row = &box->row(false);
-    uiItemL(row, IFACE_("Global Orientation"), ICON_ORIENTATION_GLOBAL);
+    row->label(IFACE_("Global Orientation"), ICON_ORIENTATION_GLOBAL);
 
     uiItemR(box, imfptr, "apply_global_orientation", UI_ITEM_NONE, IFACE_("Apply"), ICON_NONE);
     uiItemR(box,
@@ -277,7 +277,7 @@ static void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
 
     /* Texture options */
     box = &layout->box();
-    uiItemL(box, IFACE_("Texture Options"), ICON_TEXTURE_DATA);
+    box->label(IFACE_("Texture Options"), ICON_TEXTURE_DATA);
 
     col = &box->column(false);
     uiItemR(col, imfptr, "use_texture_copies", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -286,7 +286,7 @@ static void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
   }
   else if (ui_section == BC_UI_SECTION_GEOMETRY) {
     box = &layout->box();
-    uiItemL(box, IFACE_("Export Data Options"), ICON_MESH_DATA);
+    box->label(IFACE_("Export Data Options"), ICON_MESH_DATA);
 
     col = &box->column(false);
 
@@ -318,7 +318,7 @@ static void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
   else if (ui_section == BC_UI_SECTION_ARMATURE) {
     /* Armature options */
     box = &layout->box();
-    uiItemL(box, IFACE_("Armature Options"), ICON_ARMATURE_DATA);
+    box->label(IFACE_("Armature Options"), ICON_ARMATURE_DATA);
 
     col = &box->column(false);
     uiItemR(col, imfptr, "deform_bones_only", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -374,7 +374,7 @@ static void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
     /* Collada options: */
     box = &layout->box();
     row = &box->row(false);
-    uiItemL(row, IFACE_("Collada Options"), ICON_MODIFIER);
+    row->label(IFACE_("Collada Options"), ICON_MODIFIER);
 
     col = &box->column(false);
     uiItemR(col, imfptr, "use_object_instantiation", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -776,13 +776,13 @@ static void wm_collada_import_settings(uiLayout *layout, PointerRNA *imfptr)
 
   /* Import Options: */
   box = &layout->box();
-  uiItemL(box, IFACE_("Import Data Options"), ICON_MESH_DATA);
+  box->label(IFACE_("Import Data Options"), ICON_MESH_DATA);
 
   uiItemR(box, imfptr, "import_units", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   uiItemR(box, imfptr, "custom_normals", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   box = &layout->box();
-  uiItemL(box, IFACE_("Armature Options"), ICON_ARMATURE_DATA);
+  box->label(IFACE_("Armature Options"), ICON_ARMATURE_DATA);
 
   col = &box->column(false);
   uiItemR(col, imfptr, "fix_orientation", UI_ITEM_NONE, std::nullopt, ICON_NONE);

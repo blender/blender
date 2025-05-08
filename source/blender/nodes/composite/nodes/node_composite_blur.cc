@@ -69,7 +69,7 @@ static void node_composit_buts_blur(uiLayout *layout, bContext * /*C*/, PointerR
   uiItemR(col, ptr, "use_relative", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 
   if (RNA_boolean_get(ptr, "use_relative")) {
-    uiItemL(col, IFACE_("Aspect Correction"), ICON_NONE);
+    col->label(IFACE_("Aspect Correction"), ICON_NONE);
     row = &layout->row(true);
     uiItemR(row,
             ptr,

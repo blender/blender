@@ -375,7 +375,7 @@ static uiBlock *wm_block_splash_create(bContext *C, ARegion *region, void * /*ar
     uiLayout *row1 = &split->row(true);
     uiLayout *row2 = &split->row(true);
 
-    uiItemL(row1, RPT_("Intel binary detected. Expect reduced performance."), ICON_ERROR);
+    row1->label(RPT_("Intel binary detected. Expect reduced performance."), ICON_ERROR);
 
     PointerRNA op_ptr;
     uiItemFullO(row2,

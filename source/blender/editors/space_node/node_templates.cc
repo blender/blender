@@ -541,7 +541,7 @@ static void ui_node_menu_column(NodeLinkArg *arg, int nclass, const char *cname)
         column = &layout->column(false);
         UI_block_layout_set_current(block, column);
 
-        uiItemL(column, IFACE_(cname), ICON_NODE);
+        column->label(IFACE_(cname), ICON_NODE);
         but = block->buttons.last().get();
 
         first = 0;
@@ -550,7 +550,7 @@ static void ui_node_menu_column(NodeLinkArg *arg, int nclass, const char *cname)
       if (num > 1) {
         if (!cur_node_name || !STREQ(cur_node_name, item.node_name)) {
           cur_node_name = item.node_name;
-          /* XXX Do not use uiItemL here,
+          /* XXX Do not use uiLayout::label here,
            * it would add an empty icon as we are in a menu! */
           uiDefBut(block,
                    UI_BTYPE_LABEL,
@@ -630,7 +630,7 @@ static void ui_template_node_link_menu(bContext *C, uiLayout *layout, void *but_
   UI_block_layout_set_current(block, column);
 
   if (sock->link) {
-    uiItemL(column, IFACE_("Link"), ICON_NONE);
+    column->label(IFACE_("Link"), ICON_NONE);
     but = block->buttons.last().get();
     but->drawflag = UI_BUT_TEXT_LEFT;
 
@@ -753,7 +753,7 @@ static void ui_node_draw_recursive(uiLayout &layout,
             ICON_NONE);
   }
   else {
-    uiItemL(panel_layout.header, panel_decl.name, ICON_NONE);
+    panel_layout.header->label(panel_decl.name, ICON_NONE);
   }
 
   if (!panel_layout.body) {
@@ -874,11 +874,11 @@ static void ui_node_draw_input(uiLayout &layout,
 
     sub = &sub->row(true);
     uiLayoutSetAlignment(sub, UI_LAYOUT_ALIGN_RIGHT);
-    uiItemL(sub, node_socket_get_label(&input, panel_label), ICON_NONE);
+    sub->label(node_socket_get_label(&input, panel_label), ICON_NONE);
   }
 
   if (dependency_loop) {
-    uiItemL(row, RPT_("Dependency Loop"), ICON_ERROR);
+    row->label(RPT_("Dependency Loop"), ICON_ERROR);
     add_dummy_decorator = true;
   }
   else if (lnode) {
@@ -938,7 +938,7 @@ static void ui_node_draw_input(uiLayout &layout,
           break;
         }
         case SOCK_MENU:
-          uiItemL(sub, RPT_("Unsupported Menu Socket"), ICON_NONE);
+          sub->label(RPT_("Unsupported Menu Socket"), ICON_NONE);
           break;
         case SOCK_CUSTOM:
           input.typeinfo->draw(&C, sub, &inputptr, &nodeptr, input.name);

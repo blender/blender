@@ -470,7 +470,7 @@ static void rna_uiItemL(uiLayout *layout,
     icon = icon_value;
   }
 
-  uiItemL(layout, text.value_or(""), icon);
+  layout->label(text.value_or(""), icon);
 }
 
 static void rna_uiItemM(uiLayout *layout,

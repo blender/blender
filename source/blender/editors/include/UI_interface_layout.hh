@@ -233,6 +233,11 @@ struct uiLayout : uiItem {
    * \param percentage: Width percent to split.
    */
   uiLayout &split(float percentage, bool align);
+
+  /** Items. */
+
+  /** Adds a label item that will display text and/or icon in the layout. */
+  void label(blender::StringRef name, int icon);
 };
 
 enum {
@@ -614,7 +619,6 @@ struct uiPropertySplitWrapper {
  */
 uiPropertySplitWrapper uiItemPropertySplitWrapperCreate(uiLayout *parent_layout);
 
-void uiItemL(uiLayout *layout, blender::StringRef name, int icon); /* label */
 uiBut *uiItemL_ex(
     uiLayout *layout, blender::StringRef name, int icon, bool highlight, bool redalert);
 /**

@@ -126,7 +126,7 @@ static void draw_constraint_header(uiLayout *layout, Object *ob, bConstraint *co
   uiLayout *sub = &layout->row(false);
   uiLayoutSetEmboss(sub, blender::ui::EmbossType::Emboss);
   uiLayoutSetRedAlert(sub, (con->flag & CONSTRAINT_DISABLE));
-  uiItemL(sub, "", RNA_struct_ui_icon(ptr.type));
+  sub->label("", RNA_struct_ui_icon(ptr.type));
 
   UI_block_emboss_set(block, blender::ui::EmbossType::Emboss);
 

@@ -147,10 +147,10 @@ static void spreadsheet_filter_panel_draw_header(const bContext *C, Panel *panel
   uiItemR(row, filter_ptr, "enabled", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
 
   if (column_name.is_empty()) {
-    uiItemL(row, IFACE_("Filter"), ICON_NONE);
+    row->label(IFACE_("Filter"), ICON_NONE);
   }
   else if (column == nullptr) {
-    uiItemL(row, column_name.data(), ICON_NONE);
+    row->label(column_name.data(), ICON_NONE);
   }
   else {
     const eSpreadsheetColumnValueType data_type = (eSpreadsheetColumnValueType)column->data_type;
@@ -160,7 +160,7 @@ static void spreadsheet_filter_panel_draw_header(const bContext *C, Panel *panel
     ss << operation_string(data_type, operation);
     ss << " ";
     ss << value_string(*filter, data_type);
-    uiItemL(row, ss.str(), ICON_NONE);
+    row->label(ss.str(), ICON_NONE);
   }
 
   row = &layout->row(true);
@@ -253,7 +253,7 @@ static void spreadsheet_filter_panel_draw(const bContext *C, Panel *panel)
     case SPREADSHEET_VALUE_TYPE_UNKNOWN:
     case SPREADSHEET_VALUE_TYPE_QUATERNION:
     case SPREADSHEET_VALUE_TYPE_FLOAT4X4:
-      uiItemL(layout, IFACE_("Unsupported column type"), ICON_ERROR);
+      layout->label(IFACE_("Unsupported column type"), ICON_ERROR);
       break;
   }
 }

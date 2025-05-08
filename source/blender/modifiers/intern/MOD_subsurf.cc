@@ -407,9 +407,8 @@ static void panel_draw(const bContext *C, Panel *panel)
   if (ob->type == OB_MESH && BKE_subsurf_modifier_force_disable_gpu_evaluation_for_mesh(
                                  smd, static_cast<const Mesh *>(ob->data)))
   {
-    uiItemL(layout,
-            RPT_("Sharp edges or custom normals detected, disabling GPU subdivision"),
-            ICON_INFO);
+    layout->label(RPT_("Sharp edges or custom normals detected, disabling GPU subdivision"),
+                  ICON_INFO);
   }
   else if (Object *ob_eval = DEG_get_evaluated(depsgraph, ob)) {
     if (ModifierData *md_eval = BKE_modifiers_findby_name(ob_eval, smd->modifier.name)) {
@@ -418,7 +417,7 @@ static void panel_draw(const bContext *C, Panel *panel)
 
         if (runtime_data && runtime_data->used_gpu) {
           if (runtime_data->used_cpu) {
-            uiItemL(layout, RPT_("Using both CPU and GPU subdivision"), ICON_INFO);
+            layout->label(RPT_("Using both CPU and GPU subdivision"), ICON_INFO);
           }
         }
       }
@@ -450,10 +449,10 @@ static void panel_draw(const bContext *C, Panel *panel)
                                0.1f);
 
       uiLayout *split = &adaptive_panel.body->split(0.4f, false);
-      uiItemL(&split->column(true), "", ICON_NONE);
+      split->column(true).label("", ICON_NONE);
       uiLayout *col = &split->column(true);
-      uiItemL(col, fmt::format(RPT_("Viewport {:.2f} px"), preview), ICON_NONE);
-      uiItemL(col, fmt::format(RPT_("Render {:.2f} px"), render), ICON_NONE);
+      col->label(fmt::format(RPT_("Viewport {:.2f} px"), preview), ICON_NONE);
+      col->label(fmt::format(RPT_("Render {:.2f} px"), render), ICON_NONE);
     }
   }
 

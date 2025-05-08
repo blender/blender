@@ -1029,7 +1029,7 @@ void uiTemplateImageSettings(uiLayout *layout, PointerRNA *imfptr, bool color_ma
 
   if (imf->imtype == R_IMF_IMTYPE_CINEON) {
 #if 1
-    uiItemL(col, RPT_("Hard coded Non-Linear, Gamma:1.7"), ICON_NONE);
+    col->label(RPT_("Hard coded Non-Linear, Gamma:1.7"), ICON_NONE);
 #else
     uiItemR(col, imfptr, "use_cineon_log", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     uiItemR(col, imfptr, "cineon_black", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -1192,7 +1192,7 @@ void uiTemplateImageInfo(uiLayout *layout, bContext *C, Image *ima, ImageUser *i
   uiLayoutSetAlignment(col, UI_LAYOUT_ALIGN_RIGHT);
 
   if (ibuf == nullptr) {
-    uiItemL(col, RPT_("Can't Load Image"), ICON_NONE);
+    col->label(RPT_("Can't Load Image"), ICON_NONE);
   }
   else {
     char str[MAX_IMAGE_INFO_LEN] = {0};
@@ -1227,7 +1227,7 @@ void uiTemplateImageInfo(uiLayout *layout, bContext *C, Image *ima, ImageUser *i
     const char *texture_format_description = GPU_texture_format_name(texture_format);
     ofs += BLI_snprintf_rlen(str + ofs, len - ofs, RPT_(", %s"), texture_format_description);
 
-    uiItemL(col, str, ICON_NONE);
+    col->label(str, ICON_NONE);
   }
 
   /* Frame number, even if we can't load the image. */
@@ -1259,7 +1259,7 @@ void uiTemplateImageInfo(uiLayout *layout, bContext *C, Image *ima, ImageUser *i
       SNPRINTF(str, RPT_("Frame %d"), framenr);
     }
 
-    uiItemL(col, str, ICON_NONE);
+    col->label(str, ICON_NONE);
   }
 
   BKE_image_release_ibuf(ima, ibuf, lock);

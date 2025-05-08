@@ -219,7 +219,7 @@ static void ui_template_palette_menu(bContext * /*C*/, uiLayout *layout, void * 
 {
   uiLayout *row;
 
-  uiItemL(layout, IFACE_("Sort By:"), ICON_NONE);
+  layout->label(IFACE_("Sort By:"), ICON_NONE);
   row = &layout->row(false);
   uiItemEnumO_value(row, IFACE_("Hue"), ICON_NONE, "PALETTE_OT_sort", "type", 1);
   row = &layout->row(false);

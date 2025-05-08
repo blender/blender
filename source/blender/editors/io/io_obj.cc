@@ -184,7 +184,7 @@ static void ui_obj_export_settings(const bContext *C, uiLayout *layout, PointerR
   PanelLayout panel = layout->panel(C, "OBJ_export_materials", false);
   uiLayoutSetPropSep(panel.header, false);
   uiItemR(panel.header, ptr, "export_materials", UI_ITEM_NONE, "", ICON_NONE);
-  uiItemL(panel.header, IFACE_("Materials"), ICON_NONE);
+  panel.header->label(IFACE_("Materials"), ICON_NONE);
   if (panel.body) {
     uiLayout *col = &panel.body->column(false);
     uiLayoutSetEnabled(col, export_materials);
@@ -197,7 +197,7 @@ static void ui_obj_export_settings(const bContext *C, uiLayout *layout, PointerR
   panel = layout->panel(C, "OBJ_export_animation", true);
   uiLayoutSetPropSep(panel.header, false);
   uiItemR(panel.header, ptr, "export_animation", UI_ITEM_NONE, "", ICON_NONE);
-  uiItemL(panel.header, IFACE_("Animation"), ICON_NONE);
+  panel.header->label(IFACE_("Animation"), ICON_NONE);
   if (panel.body) {
     uiLayout *col = &panel.body->column(false);
     uiLayoutSetEnabled(col, export_animation);

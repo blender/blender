@@ -238,7 +238,7 @@ class BoneCollectionItem : public AbstractTreeViewItem {
       else {
         icon = ICON_BLANK1;
       }
-      uiItemL(sub, "", icon);
+      sub->label("", icon);
     }
 
     /* Visibility eye icon. */

@@ -143,7 +143,7 @@ static void node_composit_buts_colorbalance(uiLayout *layout, bContext * /*C*/, 
 
     col = &split->column(false);
     row = &col->row(true);
-    uiItemL(row, IFACE_("Input"), ICON_NONE);
+    row->label(IFACE_("Input"), ICON_NONE);
     uiTemplateCryptoPicker(row, ptr, "input_whitepoint", ICON_EYEDROPPER);
     uiItemR(col,
             ptr,
@@ -155,7 +155,7 @@ static void node_composit_buts_colorbalance(uiLayout *layout, bContext * /*C*/, 
 
     col = &split->column(false);
     row = &col->row(true);
-    uiItemL(row, IFACE_("Output"), ICON_NONE);
+    row->label(IFACE_("Output"), ICON_NONE);
     uiTemplateCryptoPicker(row, ptr, "output_whitepoint", ICON_EYEDROPPER);
     uiItemR(col,
             ptr,

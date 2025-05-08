@@ -2714,7 +2714,7 @@ static void image_new_draw(bContext * /*C*/, wmOperator *op)
 
 #if 0
   if (is_multiview) {
-    uiItemL(col[0], "", ICON_NONE);
+    col[0].label("", ICON_NONE);
     uiItemR(col[1], op->ptr, "use_stereo_3d", 0, std::nullopt, ICON_NONE);
   }
 #endif

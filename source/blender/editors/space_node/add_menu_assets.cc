@@ -259,7 +259,7 @@ static void add_root_catalogs_draw(const bContext *C, Menu *menu)
   uiItemS(layout);
 
   if (!loading_finished) {
-    uiItemL(layout, IFACE_("Loading Asset Libraries"), ICON_INFO);
+    layout->label(IFACE_("Loading Asset Libraries"), ICON_INFO);
   }
 
   const Set<StringRef> all_builtin_menus = get_builtin_menus(edit_tree->type);

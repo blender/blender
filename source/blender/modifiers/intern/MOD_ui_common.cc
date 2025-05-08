@@ -93,7 +93,7 @@ void modifier_panel_end(uiLayout *layout, PointerRNA *ptr)
   ModifierData *md = static_cast<ModifierData *>(ptr->data);
   if (md->error) {
     uiLayout *row = &layout->row(false);
-    uiItemL(row, RPT_(md->error), ICON_ERROR);
+    row->label(RPT_(md->error), ICON_ERROR);
   }
 }
 

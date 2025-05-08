@@ -61,7 +61,7 @@ void template_breadcrumbs(uiLayout &layout, Span<ContextPathItem> context_path)
     uiLayoutSetAlignment(sub_row, UI_LAYOUT_ALIGN_LEFT);
 
     if (i > 0) {
-      uiItemL(sub_row, "", ICON_RIGHTARROW_THIN);
+      sub_row->label("", ICON_RIGHTARROW_THIN);
     }
     uiBut *but = uiItemL_ex(
         sub_row, context_path[i].name.c_str(), context_path[i].icon, false, false);

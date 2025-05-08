@@ -64,7 +64,7 @@ static void node_composit_buts_defocus(uiLayout *layout, bContext *C, PointerRNA
   uiLayout *sub, *col;
 
   col = &layout->column(false);
-  uiItemL(col, IFACE_("Bokeh Type:"), ICON_NONE);
+  col->label(IFACE_("Bokeh Type:"), ICON_NONE);
   uiItemR(col, ptr, "bokeh", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
   uiItemR(col, ptr, "angle", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 

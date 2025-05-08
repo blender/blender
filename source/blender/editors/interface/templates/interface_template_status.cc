@@ -153,30 +153,30 @@ void uiTemplateReportsBanner(uiLayout *layout, bContext *C)
 static bool uiTemplateInputStatusAzone(uiLayout *layout, const AZone *az, const ARegion *region)
 {
   if (az->type == AZONE_AREA) {
-    uiItemL(layout, nullptr, ICON_MOUSE_LMB_DRAG);
+    layout->label(nullptr, ICON_MOUSE_LMB_DRAG);
     uiItemS_ex(layout, -0.2f);
-    uiItemL(layout, IFACE_("Split/Dock"), ICON_NONE);
+    layout->label(IFACE_("Split/Dock"), ICON_NONE);
     uiItemS_ex(layout, 0.6f);
-    uiItemL(layout, "", ICON_EVENT_SHIFT);
+    layout->label("", ICON_EVENT_SHIFT);
     uiItemS_ex(layout, -0.4f);
-    uiItemL(layout, nullptr, ICON_MOUSE_LMB_DRAG);
+    layout->label(nullptr, ICON_MOUSE_LMB_DRAG);
     uiItemS_ex(layout, -0.2f);
-    uiItemL(layout, IFACE_("Duplicate into Window"), ICON_NONE);
+    layout->label(IFACE_("Duplicate into Window"), ICON_NONE);
     uiItemS_ex(layout, 0.6f);
-    uiItemL(layout, "", ICON_EVENT_CTRL);
+    layout->label("", ICON_EVENT_CTRL);
     uiItemS_ex(layout, ui_event_icon_offset(ICON_EVENT_CTRL));
-    uiItemL(layout, nullptr, ICON_MOUSE_LMB_DRAG);
+    layout->label(nullptr, ICON_MOUSE_LMB_DRAG);
     uiItemS_ex(layout, -0.2f);
-    uiItemL(layout, IFACE_("Swap Areas"), ICON_NONE);
+    layout->label(IFACE_("Swap Areas"), ICON_NONE);
     return true;
   }
 
   if (az->type == AZONE_REGION) {
-    uiItemL(layout, nullptr, ICON_MOUSE_LMB_DRAG);
+    layout->label(nullptr, ICON_MOUSE_LMB_DRAG);
     uiItemS_ex(layout, -0.2f);
-    uiItemL(layout,
-            (region->runtime->visible) ? IFACE_("Resize Region") : IFACE_("Show Hidden Region"),
-            ICON_NONE);
+    layout->label((region->runtime->visible) ? IFACE_("Resize Region") :
+                                               IFACE_("Show Hidden Region"),
+                  ICON_NONE);
     return true;
   }
 
@@ -195,14 +195,14 @@ static bool uiTemplateInputStatusBorder(wmWindow *win, uiLayout *row)
     BLI_rcti_pad(&win_rect, 0, pad * -3);
     if (BLI_rcti_isect_pt_v(&win_rect, win->eventstate->xy)) {
       /* No resize at top and bottom. */
-      uiItemL(row, nullptr, ICON_MOUSE_LMB_DRAG);
+      row->label(nullptr, ICON_MOUSE_LMB_DRAG);
       uiItemS_ex(row, -0.2f);
-      uiItemL(row, IFACE_("Resize"), ICON_NONE);
+      row->label(IFACE_("Resize"), ICON_NONE);
       uiItemS_ex(row, 0.6f);
     }
-    uiItemL(row, nullptr, ICON_MOUSE_RMB);
+    row->label(nullptr, ICON_MOUSE_RMB);
     uiItemS_ex(row, -0.9f);
-    uiItemL(row, IFACE_("Options"), ICON_NONE);
+    row->label(IFACE_("Options"), ICON_NONE);
     return true;
   }
   return false;
@@ -214,13 +214,13 @@ static bool uiTemplateInputStatusHeader(ARegion *region, uiLayout *row)
     return false;
   }
   /* Over a header region. */
-  uiItemL(row, nullptr, ICON_MOUSE_MMB_DRAG);
+  row->label(nullptr, ICON_MOUSE_MMB_DRAG);
   uiItemS_ex(row, -0.2f);
-  uiItemL(row, IFACE_("Pan"), ICON_NONE);
+  row->label(IFACE_("Pan"), ICON_NONE);
   uiItemS_ex(row, 0.6f);
-  uiItemL(row, nullptr, ICON_MOUSE_RMB);
+  row->label(nullptr, ICON_MOUSE_RMB);
   uiItemS_ex(row, -0.9f);
-  uiItemL(row, IFACE_("Options"), ICON_NONE);
+  row->label(IFACE_("Options"), ICON_NONE);
   return true;
 }
 
@@ -233,9 +233,9 @@ static bool uiTemplateInputStatus3DView(bContext *C, uiLayout *row)
 
   if (is_negative_m4(ob->object_to_world().ptr())) {
     uiItemS_ex(row, 1.0f);
-    uiItemL(row, "", ICON_ERROR);
+    row->label("", ICON_ERROR);
     uiItemS_ex(row, -0.2f);
-    uiItemL(row, IFACE_("Active object has negative scale"), ICON_NONE);
+    row->label(IFACE_("Active object has negative scale"), ICON_NONE);
     uiItemS_ex(row, 0.5f, LayoutSeparatorType::Line);
     uiItemS_ex(row, 0.5f);
     /* Return false to allow other items to be added after. */
@@ -245,9 +245,9 @@ static bool uiTemplateInputStatus3DView(bContext *C, uiLayout *row)
   if (!(fabsf(ob->scale[0] - ob->scale[1]) < 1e-4f && fabsf(ob->scale[1] - ob->scale[2]) < 1e-4f))
   {
     uiItemS_ex(row, 1.0f);
-    uiItemL(row, "", ICON_ERROR);
+    row->label("", ICON_ERROR);
     uiItemS_ex(row, -0.2f);
-    uiItemL(row, IFACE_("Active object has non-uniform scale"), ICON_NONE);
+    row->label(IFACE_("Active object has non-uniform scale"), ICON_NONE);
     uiItemS_ex(row, 0.5f, LayoutSeparatorType::Line);
     uiItemS_ex(row, 0.5f);
     /* Return false to allow other items to be added after. */
@@ -352,16 +352,16 @@ void uiTemplateInputStatus(uiLayout *layout, bContext *C)
                                       WM_window_cursor_keymap_status_get(win, i, 1));
 
     if (msg) {
-      uiItemL(row, "", (ICON_MOUSE_LMB + i));
+      row->label("", (ICON_MOUSE_LMB + i));
       uiItemS_ex(row, -0.9f);
-      uiItemL(row, msg, ICON_NONE);
+      row->label(msg, ICON_NONE);
       uiItemS_ex(row, 0.6f);
     }
 
     if (msg_drag) {
-      uiItemL(row, "", (ICON_MOUSE_LMB_DRAG + i));
+      row->label("", (ICON_MOUSE_LMB_DRAG + i));
       uiItemS_ex(row, -0.4f);
-      uiItemL(row, msg_drag, ICON_NONE);
+      row->label(msg_drag, ICON_NONE);
       uiItemS_ex(row, 0.6f);
     }
   }
@@ -406,7 +406,7 @@ void uiTemplateStatusInfo(uiLayout *layout, bContext *C)
   bool has_status_info = false;
 
   if (status_info_txt[0]) {
-    uiItemL(row, status_info_txt, ICON_NONE);
+    row->label(status_info_txt, ICON_NONE);
     has_status_info = true;
   }
 
@@ -417,7 +417,7 @@ void uiTemplateStatusInfo(uiLayout *layout, bContext *C)
     if (wm->extensions_blocked > 0) {
       if (has_status_info) {
         uiItemS_ex(row, -0.5f);
-        uiItemL(row, "|", ICON_NONE);
+        row->label("|", ICON_NONE);
         uiItemS_ex(row, -0.5f);
       }
       uiLayoutSetEmboss(row, blender::ui::EmbossType::None);
@@ -438,12 +438,12 @@ void uiTemplateStatusInfo(uiLayout *layout, bContext *C)
     if ((G.f & G_FLAG_INTERNET_ALLOW) == 0) {
       if (has_status_info) {
         uiItemS_ex(row, -0.5f);
-        uiItemL(row, "|", ICON_NONE);
+        row->label("|", ICON_NONE);
         uiItemS_ex(row, -0.5f);
       }
 
       if ((G.f & G_FLAG_INTERNET_OVERRIDE_PREF_OFFLINE) != 0) {
-        uiItemL(row, "", ICON_INTERNET_OFFLINE);
+        row->label("", ICON_INTERNET_OFFLINE);
       }
       else {
         uiLayoutSetEmboss(row, blender::ui::EmbossType::None);
@@ -467,7 +467,7 @@ void uiTemplateStatusInfo(uiLayout *layout, bContext *C)
 
       if (has_status_info) {
         uiItemS_ex(row, -0.5f);
-        uiItemL(row, "|", ICON_NONE);
+        row->label("|", ICON_NONE);
         uiItemS_ex(row, -0.5f);
       }
       uiLayoutSetEmboss(row, blender::ui::EmbossType::None);
@@ -491,12 +491,12 @@ void uiTemplateStatusInfo(uiLayout *layout, bContext *C)
     if (U.statusbar_flag & STATUSBAR_SHOW_VERSION) {
       if (has_status_info) {
         uiItemS_ex(row, -0.5f);
-        uiItemL(row, "|", ICON_NONE);
+        row->label("|", ICON_NONE);
         uiItemS_ex(row, -0.5f);
       }
       const char *status_info_d_txt = ED_info_statusbar_string_ex(
           bmain, scene, view_layer, STATUSBAR_SHOW_VERSION);
-      uiItemL(row, status_info_d_txt, ICON_NONE);
+      row->label(status_info_d_txt, ICON_NONE);
     }
     return;
   }
@@ -513,7 +513,7 @@ void uiTemplateStatusInfo(uiLayout *layout, bContext *C)
   else {
     /* For other issues, still show the version if enabled. */
     if (U.statusbar_flag & STATUSBAR_SHOW_VERSION) {
-      uiItemL(layout, version_string, ICON_NONE);
+      layout->label(version_string, ICON_NONE);
     }
   }
 

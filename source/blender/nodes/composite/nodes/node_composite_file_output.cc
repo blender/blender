@@ -309,10 +309,10 @@ static void node_composit_buts_file_output(uiLayout *layout, bContext * /*C*/, P
   const bool multilayer = RNA_enum_get(&imfptr, "file_format") == R_IMF_IMTYPE_MULTILAYER;
 
   if (multilayer) {
-    uiItemL(layout, IFACE_("Path:"), ICON_NONE);
+    layout->label(IFACE_("Path:"), ICON_NONE);
   }
   else {
-    uiItemL(layout, IFACE_("Base Path:"), ICON_NONE);
+    layout->label(IFACE_("Base Path:"), ICON_NONE);
   }
   uiItemR(layout, ptr, "base_path", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 }
@@ -413,7 +413,7 @@ static void node_composit_buts_file_output_ex(uiLayout *layout, bContext *C, Poi
     if (multilayer) {
       col = &layout->column(true);
 
-      uiItemL(col, IFACE_("Layer:"), ICON_NONE);
+      col->label(IFACE_("Layer:"), ICON_NONE);
       row = &col->row(false);
       uiItemR(row, &active_input_ptr, "name", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
       uiItemFullO(row,
@@ -428,7 +428,7 @@ static void node_composit_buts_file_output_ex(uiLayout *layout, bContext *C, Poi
     else {
       col = &layout->column(true);
 
-      uiItemL(col, IFACE_("File Subpath:"), ICON_NONE);
+      col->label(IFACE_("File Subpath:"), ICON_NONE);
       row = &col->row(false);
       uiItemR(row, &active_input_ptr, "path", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
       uiItemFullO(row,
@@ -444,7 +444,7 @@ static void node_composit_buts_file_output_ex(uiLayout *layout, bContext *C, Poi
       imfptr = RNA_pointer_get(&active_input_ptr, "format");
 
       col = &layout->column(true);
-      uiItemL(col, IFACE_("Format:"), ICON_NONE);
+      col->label(IFACE_("Format:"), ICON_NONE);
       uiItemR(col,
               &active_input_ptr,
               "use_node_format",

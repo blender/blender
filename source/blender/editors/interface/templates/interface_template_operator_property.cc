@@ -84,7 +84,7 @@ static eAutoPropButsReturn template_operator_property_buts_draw_single(
   UI_block_lock_clear(block);
 
   if (layout_flags & UI_TEMPLATE_OP_PROPS_SHOW_TITLE) {
-    uiItemL(layout, WM_operatortype_name(op->type, op->ptr), ICON_NONE);
+    layout->label(WM_operatortype_name(op->type, op->ptr), ICON_NONE);
   }
 
   /* menu */
@@ -143,7 +143,7 @@ static eAutoPropButsReturn template_operator_property_buts_draw_single(
     if ((return_info & UI_PROP_BUTS_NONE_ADDED) &&
         (layout_flags & UI_TEMPLATE_OP_PROPS_SHOW_EMPTY))
     {
-      uiItemL(layout, IFACE_("No Properties"), ICON_NONE);
+      layout->label(IFACE_("No Properties"), ICON_NONE);
     }
   }
 
@@ -351,7 +351,7 @@ static wmOperator *minimal_operator_create(wmOperatorType *ot, PointerRNA *prope
 static void draw_export_controls(
     bContext *C, uiLayout *layout, const std::string &label, int index, bool valid)
 {
-  uiItemL(layout, label, ICON_NONE);
+  layout->label(label, ICON_NONE);
   if (valid) {
     uiLayout *row = &layout->row(false);
     uiLayoutSetEmboss(row, blender::ui::EmbossType::None);

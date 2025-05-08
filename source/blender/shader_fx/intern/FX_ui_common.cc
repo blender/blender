@@ -87,7 +87,7 @@ void shaderfx_panel_end(uiLayout *layout, PointerRNA *ptr)
   ShaderFxData *fx = static_cast<ShaderFxData *>(ptr->data);
   if (fx->error) {
     uiLayout *row = &layout->row(false);
-    uiItemL(row, RPT_(fx->error), ICON_ERROR);
+    row->label(RPT_(fx->error), ICON_ERROR);
   }
 }
 
@@ -177,7 +177,7 @@ static void shaderfx_panel_header(const bContext * /*C*/, Panel *panel)
   if (fxti->is_disabled && fxti->is_disabled(fx, false)) {
     uiLayoutSetRedAlert(row, true);
   }
-  uiItemL(row, "", RNA_struct_ui_icon(ptr->type));
+  row->label("", RNA_struct_ui_icon(ptr->type));
 
   /* Effect name. */
   row = &layout->row(true);
