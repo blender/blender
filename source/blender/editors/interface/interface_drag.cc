@@ -125,4 +125,8 @@ void ui_but_drag_start(bContext *C, uiBut *but)
   if (ELEM(but->dragtype, WM_DRAG_ASSET, WM_DRAG_ID)) {
     WM_event_start_drag(C, ICON_NONE, WM_DRAG_ASSET_LIST, nullptr, WM_DRAG_NOP);
   }
+
+  if (but->dragtype == WM_DRAG_PATH) {
+    WM_event_drag_path_override_poin_data_with_space_file_paths(C, drag);
+  }
 }
