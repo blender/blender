@@ -1107,8 +1107,13 @@ static bool region_background_is_transparent(const ScrArea *area, const ARegion 
 
 static void region_azone_edge(const ScrArea *area, AZone *az, const ARegion *region)
 {
-  const bool is_header = RGN_TYPE_IS_HEADER_ANY(region->regiontype);
-  const bool transparent = !is_header && region->overlap &&
+  /* Narrow regions like headers and Properties NavBar need
+   * a smaller hitspace that does not interfere with content. */
+  const bool is_narrow = RGN_TYPE_IS_HEADER_ANY(region->regiontype) ||
+                         (region->regiontype == RGN_TYPE_NAV_BAR &&
+                          area->spacetype == SPACE_PROPERTIES);
+
+  const bool transparent = !is_narrow && region->overlap &&
                            region_background_is_transparent(area, region);
 
   /* Only scale the padding inside the region, not outside. */
@@ -1116,8 +1121,8 @@ static void region_azone_edge(const ScrArea *area, AZone *az, const ARegion *reg
                        (BLI_rcti_size_y(&region->v2d.mask) + 1);
 
   /* Different padding inside and outside the region. */
-  const int pad_out = (is_header ? 2.0f : 3.0f) * UI_SCALE_FAC;
-  const int pad_in = (is_header ? 1.0f : (transparent ? 8.0f : 4.0f)) * UI_SCALE_FAC / aspect;
+  const int pad_out = (is_narrow ? 2.0f : 3.0f) * UI_SCALE_FAC;
+  const int pad_in = (is_narrow ? 1.0f : (transparent ? 8.0f : 4.0f)) * UI_SCALE_FAC / aspect;
 
   switch (az->edge) {
     case AE_TOP_TO_BOTTOMRIGHT:
