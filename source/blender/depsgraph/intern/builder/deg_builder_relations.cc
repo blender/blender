@@ -1845,6 +1845,7 @@ void DepsgraphRelationBuilder::build_action(bAction *dna_action)
 
   const BuilderStack::ScopedEntry stack_entry = stack_.trace(dna_action->id);
 
+  build_parameters(&dna_action->id);
   build_idproperties(dna_action->id.properties);
 
   blender::animrig::Action &action = dna_action->wrap();

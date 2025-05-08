@@ -1305,6 +1305,10 @@ void DepsgraphNodeBuilder::build_action(bAction *action)
   if (built_map_.check_is_built_and_tag(action)) {
     return;
   }
+
+  /* To make it possible to use animation data as a variable for drivers: */
+  build_parameters(&action->id);
+
   build_idproperties(action->id.properties);
   add_operation_node(&action->id, NodeType::ANIMATION, OperationCode::ANIMATION_EVAL);
 }
