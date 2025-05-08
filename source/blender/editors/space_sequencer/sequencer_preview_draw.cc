@@ -856,7 +856,7 @@ static bool sequencer_calc_scopes(const SpaceSeq &space_sequencer,
   return true;
 }
 
-bool sequencer_draw_get_transform_preview(const SpaceSeq &sseq, const Scene &scene)
+static bool sequencer_draw_get_transform_preview(const SpaceSeq &sseq, const Scene &scene)
 {
   Strip *last_seq = seq::select_active_get(&scene);
   if (last_seq == nullptr) {
@@ -1229,9 +1229,9 @@ static void preview_draw_overlay_begin(ARegion &region)
  * The position denotes coordinates of a rectangle used to display the texture.
  * The texture_coord contains UV coordinates of the input texture which are mapped to the corners
  * of the rectangle. */
-void preview_draw_texture_simple(GPUTexture &texture,
-                                 const rctf &position,
-                                 const rctf &texture_coord)
+static void preview_draw_texture_simple(GPUTexture &texture,
+                                        const rctf &position,
+                                        const rctf &texture_coord)
 {
   GPUVertFormat *imm_format = immVertexFormat();
   const uint pos = GPU_vertformat_attr_add(imm_format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
@@ -1255,11 +1255,11 @@ void preview_draw_texture_simple(GPUTexture &texture,
  * The position denotes coordinates of a rectangle used to display the texture.
  * The texture_coord contains UV coordinates of the input texture which are mapped to the corners
  * of the rectangle. */
-void preview_draw_texture_to_linear(GPUTexture &texture,
-                                    const char *texture_colorspace_name,
-                                    const bool predivide,
-                                    const rctf &position,
-                                    const rctf &texture_coord)
+static void preview_draw_texture_to_linear(GPUTexture &texture,
+                                           const char *texture_colorspace_name,
+                                           const bool predivide,
+                                           const rctf &position,
+                                           const rctf &texture_coord)
 {
   GPUVertFormat *imm_format = immVertexFormat();
   const uint pos = GPU_vertformat_attr_add(imm_format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
@@ -1285,10 +1285,10 @@ void preview_draw_texture_to_linear(GPUTexture &texture,
 }
 
 /* Draw overlays for the currently displayed images in the preview. */
-void preview_draw_all_image_overlays(const bContext *C,
-                                     const Scene *scene,
-                                     const Editing &editing,
-                                     const int timeline_frame)
+static void preview_draw_all_image_overlays(const bContext *C,
+                                            const Scene *scene,
+                                            const Editing &editing,
+                                            const int timeline_frame)
 {
   ListBase *channels = seq::channels_displayed_get(&editing);
   VectorSet strips = seq::query_rendered_strips(
