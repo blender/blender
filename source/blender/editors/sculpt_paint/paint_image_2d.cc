@@ -1839,15 +1839,14 @@ void paint_2d_bucket_fill(const bContext *C,
   }
 
   do_float = (ibuf->float_buffer.data != nullptr);
-  /* first check if our image is float. If it is not we should correct the color to
-   * be in gamma space. strictly speaking this is not correct, but blender does not paint
-   * byte images in linear space */
+  /* First check if our image is float. If it is we should correct the color to be in linear space.
+   */
   if (!do_float) {
-    linearrgb_to_srgb_uchar3((uchar *)&color_b, color);
+    rgb_float_to_uchar((uchar *)&color_b, color);
     *(((char *)&color_b) + 3) = strength * 255;
   }
   else {
-    copy_v3_v3(color_f, color);
+    srgb_to_linearrgb_v3_v3(color_f, color);
     color_f[3] = strength;
   }
 
