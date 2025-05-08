@@ -1543,447 +1543,55 @@ MTLComputePipelineStateInstance *MTLShader::bake_compute_pipeline_state(
 }
 /** \} */
 
-/* Since this is going to be compiling shaders in a multi-threaded fashion we
- * don't want to create an instance per context as we want to restrict the
- * number of simultaneous compilation threads to ensure system responsiveness.
- * Hence the global shared instance. */
-MTLParallelShaderCompiler *g_shared_parallel_shader_compiler = nullptr;
-std::mutex g_shared_parallel_shader_compiler_mutex;
-
-MTLParallelShaderCompiler *get_shared_parallel_shader_compiler()
-{
-  std::scoped_lock lock(g_shared_parallel_shader_compiler_mutex);
-
-  if (!g_shared_parallel_shader_compiler) {
-    g_shared_parallel_shader_compiler = new MTLParallelShaderCompiler();
-  }
-  else {
-    g_shared_parallel_shader_compiler->increment_ref_count();
-  }
-  return g_shared_parallel_shader_compiler;
-}
-
-void release_shared_parallel_shader_compiler()
-{
-  std::scoped_lock lock(g_shared_parallel_shader_compiler_mutex);
-
-  if (!g_shared_parallel_shader_compiler) {
-    return;
-  }
-
-  g_shared_parallel_shader_compiler->decrement_ref_count();
-  if (g_shared_parallel_shader_compiler->get_ref_count() == 0) {
-    delete g_shared_parallel_shader_compiler;
-    g_shared_parallel_shader_compiler = nullptr;
-  }
-}
-
-/* -------------------------------------------------------------------- */
-/** \name MTLParallelShaderCompiler
- * \{ */
-
-MTLParallelShaderCompiler::MTLParallelShaderCompiler()
-{
-  BLI_assert(GPU_use_parallel_compilation());
-
-  terminate_compile_threads = false;
-}
-
-MTLParallelShaderCompiler::~MTLParallelShaderCompiler()
-{
-  /* Shutdown the compiler threads. */
-  terminate_compile_threads = true;
-  cond_var.notify_all();
-
-  for (auto &thread : compile_threads) {
-    thread.join();
-  }
-
-  /* Mark any unprocessed work items as ready so we can move
-   * them into a batch for cleanup. */
-  if (!parallel_work_queue.empty()) {
-    std::unique_lock<std::mutex> lock(queue_mutex);
-    while (!parallel_work_queue.empty()) {
-      ParallelWork *work_item = parallel_work_queue.front();
-      work_item->is_ready = true;
-      parallel_work_queue.pop_front();
-    }
-  }
-
-  /* Clean up any outstanding batches. */
-  for (BatchHandle handle : batches.keys()) {
-    Vector<Shader *> shaders = batch_finalize(handle);
-    /* Delete any shaders in the batch. */
-    for (Shader *shader : shaders) {
-      if (shader) {
-        delete shader;
-      }
-    }
-  }
-  BLI_assert(batches.is_empty());
-}
-
-void MTLParallelShaderCompiler::create_compile_threads()
-{
-  std::unique_lock<std::mutex> lock(queue_mutex);
-
-  /* Return if the compilation threads already exist */
-  if (!compile_threads.empty()) {
-    return;
-  }
-
-  /* Limit to the number of compiler threads to (performance cores - 1) to
-   * leave one thread free for main thread/UI responsiveness */
-  const MTLCapabilities &capabilities = MTLBackend::get_capabilities();
-  int max_mtlcompiler_threads = capabilities.num_performance_cores - 1;
-
-  /* Save the main thread context */
-  GPUContext *main_thread_context = GPU_context_active_get();
-  MTLContext *metal_context = static_cast<MTLContext *>(unwrap(main_thread_context));
-  id<MTLDevice> metal_device = metal_context->device;
-
-#if defined(MAC_OS_VERSION_13_3)
-  /* Clamp the number of threads if necessary. */
-  if (@available(macOS 13.3, *)) {
-    /* Check we've set the flag to allow more than 2 compile threads. */
-    BLI_assert(metal_device.shouldMaximizeConcurrentCompilation);
-    max_mtlcompiler_threads = MIN(int([metal_device maximumConcurrentCompilationTaskCount]),
-                                  max_mtlcompiler_threads);
-  }
-#endif
-
-  /* GPU settings for context creation. */
-  GHOST_GPUSettings gpuSettings = {0};
-  gpuSettings.context_type = GHOST_kDrawingContextTypeMetal;
-  if (G.debug & G_DEBUG_GPU) {
-    gpuSettings.flags |= GHOST_gpuDebugContext;
-  }
-  gpuSettings.preferred_device.index = U.gpu_preferred_index;
-  gpuSettings.preferred_device.vendor_id = U.gpu_preferred_vendor_id;
-  gpuSettings.preferred_device.device_id = U.gpu_preferred_device_id;
-
-  /* Spawn the compiler threads. */
-  for (int i = 0; i < max_mtlcompiler_threads; i++) {
-
-    /* Grab the system handle. */
-    GHOST_SystemHandle ghost_system = reinterpret_cast<GHOST_SystemHandle>(
-        GPU_backend_ghost_system_get());
-    BLI_assert(ghost_system);
-
-    /* Create a Ghost GPU Context using the system handle. */
-    GHOST_ContextHandle ghost_gpu_context = GHOST_CreateGPUContext(ghost_system, gpuSettings);
-
-    /* Create a GPU context for the compile thread to use. */
-    GPUContext *per_thread_context = GPU_context_create(nullptr, ghost_gpu_context);
-
-    /* Restore the main thread context.
-     * (required as the above context creation also makes it active). */
-    GPU_context_active_set(main_thread_context);
-
-    /* Create a new thread */
-    compile_threads.push_back(std::thread([this, per_thread_context, ghost_gpu_context] {
-      this->parallel_compilation_thread_func(per_thread_context, ghost_gpu_context);
-    }));
-  }
-}
-
-void MTLParallelShaderCompiler::parallel_compilation_thread_func(
-    GPUContext *blender_gpu_context, GHOST_ContextHandle ghost_gpu_context)
-{
-  /* Contexts can only be created on the main thread so we have to
-   * pass one in and make it active here  */
-  GPU_context_active_set(blender_gpu_context);
-
-  MTLContext *metal_context = static_cast<MTLContext *>(unwrap(blender_gpu_context));
-  MTLShaderCompiler *shader_compiler = static_cast<MTLShaderCompiler *>(
-      metal_context->get_compiler());
-
-  /* This context is only for compilation, it does not need it's own instance of the compiler */
-  shader_compiler->release_parallel_shader_compiler();
-
-  /* Loop until we get the terminate signal */
-  while (!terminate_compile_threads) {
-    /* Grab the next shader off of the queue or wait... */
-    ParallelWork *work_item = nullptr;
-    {
-      std::unique_lock<std::mutex> lock(queue_mutex);
-      cond_var.wait(lock,
-                    [&] { return terminate_compile_threads || !parallel_work_queue.empty(); });
-      if (terminate_compile_threads || parallel_work_queue.empty()) {
-        continue;
-      }
-      work_item = parallel_work_queue.front();
-      parallel_work_queue.pop_front();
-    }
-
-    /* Compile a shader */
-    if (work_item->work_type == PARALLELWORKTYPE_COMPILE_SHADER) {
-      BLI_assert(work_item->info);
-
-      const shader::ShaderCreateInfo *shader_info = work_item->info;
-      work_item->shader = static_cast<MTLShader *>(
-          work_item->shader_compiler->compile(*shader_info, true));
-
-      if (work_item->shader) {
-        /* Generate and cache any render PSOs if possible (typically materials only)
-         * (Finalize() will already bake a Compute PSO if possible) */
-        work_item->shader->warm_cache(-1);
-      }
-    }
-    /* Bake PSO */
-    else if (work_item->work_type == PARALLELWORKTYPE_BAKE_PSO) {
-      MTLShader *shader = work_item->shader;
-      /* Currently only support Compute */
-      BLI_assert(shader && shader->has_compute_shader_lib());
-
-      /* Create descriptor using these specialization constants. */
-      MTLComputePipelineStateDescriptor compute_pipeline_descriptor(
-          work_item->specialization_values);
-
-      shader->bake_compute_pipeline_state(metal_context, compute_pipeline_descriptor);
-    }
-    else {
-      BLI_assert(false);
-    }
-    work_item->is_ready = true;
-  }
-
-  GPU_context_discard(blender_gpu_context);
-
-  GHOST_SystemHandle ghost_system = reinterpret_cast<GHOST_SystemHandle>(
-      GPU_backend_ghost_system_get());
-  BLI_assert(ghost_system);
-  GHOST_DisposeGPUContext(ghost_system, ghost_gpu_context);
-}
-
-BatchHandle MTLParallelShaderCompiler::create_batch(size_t batch_size)
-{
-  std::scoped_lock lock(batch_mutex);
-  BatchHandle batch_handle = next_batch_handle++;
-  batches.add(batch_handle, {});
-  Batch &batch = batches.lookup(batch_handle);
-  if (batch_size) {
-    batch.items.reserve(batch_size);
-  }
-  batch.is_ready = false;
-  shader_debug_printf("Created batch %llu\n", batch_handle);
-  return batch_handle;
-}
-
-void MTLParallelShaderCompiler::add_item_to_batch(ParallelWork *work_item,
-                                                  BatchHandle batch_handle)
-{
-  std::scoped_lock lock(batch_mutex);
-  Batch &batch = batches.lookup(batch_handle);
-  batch.items.append(work_item);
-}
-
-void MTLParallelShaderCompiler::add_parallel_item_to_queue(ParallelWork *work_item,
-                                                           BatchHandle batch_handle)
-{
-  shader_debug_printf("Request add shader work\n");
-  if (!terminate_compile_threads) {
-
-    /* Defer creation of compilation threads until required */
-    if (compile_threads.empty()) {
-      create_compile_threads();
-    }
-
-    add_item_to_batch(work_item, batch_handle);
-    std::lock_guard<std::mutex> lock(queue_mutex);
-    parallel_work_queue.push_back(work_item);
-    cond_var.notify_one();
-  }
-}
-
-BatchHandle MTLParallelShaderCompiler::batch_compile(MTLShaderCompiler *shader_compiler,
-                                                     Span<const shader::ShaderCreateInfo *> &infos)
-{
-  BLI_assert(GPU_use_parallel_compilation());
-
-  BatchHandle batch_handle = create_batch(infos.size());
-
-  shader_debug_printf("Batch compile %llu shaders (Batch = %llu)\n", infos.size(), batch_handle);
-
-  /* Have to finalize all shaderInfos *before* any parallel compilation as
-   * ShaderCreateInfo::finalize() is not thread safe */
-  for (const shader::ShaderCreateInfo *info : infos) {
-    const_cast<ShaderCreateInfo *>(info)->finalize();
-  }
-
-  for (const shader::ShaderCreateInfo *info : infos) {
-    ParallelWork *work_item = new ParallelWork;
-    work_item->info = info;
-    work_item->shader_compiler = shader_compiler;
-    work_item->is_ready = false;
-    work_item->shader = nullptr;
-    work_item->work_type = PARALLELWORKTYPE_COMPILE_SHADER;
-    add_parallel_item_to_queue(work_item, batch_handle);
-  }
-
-  return batch_handle;
-}
-
-bool MTLParallelShaderCompiler::batch_is_ready(BatchHandle handle)
-{
-  std::scoped_lock lock(batch_mutex);
-  Batch &batch = batches.lookup(handle);
-  if (batch.is_ready) {
-    return true;
-  }
-
-  for (ParallelWork *item : batch.items) {
-    if (item->is_ready) {
-      continue;
-    }
-    else {
-      return false;
-    }
-  }
-
-  batch.is_ready = true;
-  shader_debug_printf("Batch %llu is now ready\n", handle);
-  return batch.is_ready;
-}
-
-Vector<Shader *> MTLParallelShaderCompiler::batch_finalize(BatchHandle &handle)
-{
-  while (!batch_is_ready(handle)) {
-    BLI_time_sleep_ms(1);
-  }
-  std::scoped_lock lock(batch_mutex);
-
-  Batch batch = batches.pop(handle);
-  Vector<Shader *> result;
-  for (ParallelWork *item : batch.items) {
-    result.append(item->shader);
-    delete item;
-  }
-  handle = 0;
-  return result;
-}
-
-SpecializationBatchHandle MTLParallelShaderCompiler::precompile_specializations(
-    Span<ShaderSpecialization> specializations)
-{
-  BLI_assert(GPU_use_parallel_compilation());
-  /* Zero indicates no batch was created */
-  SpecializationBatchHandle batch_handle = 0;
-
-  for (auto &specialization : specializations) {
-    MTLShader *sh = static_cast<MTLShader *>(unwrap(specialization.shader));
-
-    /* Specialization constants only take effect when we create the PSO.
-     * We don't have the relevant info to create a Render PSO Descriptor unless
-     * the shader has a has_parent_shader() but in that case it would (currently) be
-     * invalid to apply specialization constants. For those reasons we currently only
-     * support pre-compilation of Compute shaders.
-     * (technically we could call makeFunction but the benefit would likely be minimal) */
-    if (!sh->has_compute_shader_lib()) {
-      continue;
-    }
-
-    BLI_assert_msg(sh->is_valid(), "Shader must be finalized before precompiling specializations");
-
-    /* Defer batch creation until we have some work to do */
-    if (!batch_handle) {
-      batch_handle = create_batch(1);
-    }
-
-    ParallelWork *work_item = new ParallelWork;
-    work_item->info = nullptr;
-    work_item->is_ready = false;
-    work_item->shader = sh;
-    work_item->work_type = PARALLELWORKTYPE_BAKE_PSO;
-
-    /* Add the specialization constants to the work-item */
-    for (const SpecializationConstant &constant : specialization.constants) {
-      const ShaderInput *input = sh->interface->constant_get(constant.name.c_str());
-      BLI_assert_msg(input != nullptr, "The specialization constant doesn't exists");
-      work_item->specialization_values[input->location].u = constant.value.u;
-    }
-    sh->constants.is_dirty = true;
-
-    add_parallel_item_to_queue(work_item, batch_handle);
-  }
-  return batch_handle;
-}
-
-bool MTLParallelShaderCompiler::specialization_batch_is_ready(SpecializationBatchHandle &handle)
-{
-  /* Check empty batch case where we have no handle */
-  if (!handle) {
-    return true;
-  }
-
-  std::scoped_lock lock(batch_mutex);
-  Batch &batch = batches.lookup(handle);
-  if (batch.is_ready) {
-    return true;
-  }
-
-  for (ParallelWork *item : batch.items) {
-    if (item->is_ready) {
-      continue;
-    }
-    else {
-      return false;
-    }
-  }
-
-  /* Handle is zeroed once the batch is ready */
-  handle = 0;
-  batch.is_ready = true;
-  shader_debug_printf("Specialization Batch %llu is now ready\n", handle);
-  return batch.is_ready;
-}
-
-/** \} */
-
 /* -------------------------------------------------------------------- */
 /** \name MTLShaderCompiler
  * \{ */
 
 MTLShaderCompiler::MTLShaderCompiler()
+    : ShaderCompiler(GPU_max_parallel_compilations(), GPUWorker::ContextType::PerThread, true)
 {
-  parallel_shader_compiler = get_shared_parallel_shader_compiler();
+  BLI_assert(GPU_use_parallel_compilation());
 }
 
-MTLShaderCompiler::~MTLShaderCompiler()
+Shader *MTLShaderCompiler::compile_shader(const shader::ShaderCreateInfo &info)
 {
-  release_parallel_shader_compiler();
-}
+  MTLShader *shader = static_cast<MTLShader *>(compile(info, true));
 
-void MTLShaderCompiler::release_parallel_shader_compiler()
-{
-  if (parallel_shader_compiler) {
-    release_shared_parallel_shader_compiler();
-    parallel_shader_compiler = nullptr;
+  if (shader) {
+    /* Generate and cache any render PSOs if possible (typically materials only)
+     * (Finalize() will already bake a Compute PSO if possible) */
+    shader->warm_cache(-1);
   }
+
+  return shader;
 }
 
-BatchHandle MTLShaderCompiler::batch_compile(Span<const shader::ShaderCreateInfo *> &infos)
+void MTLShaderCompiler::specialize_shader(ShaderSpecialization &specialization)
 {
-  BLI_assert(parallel_shader_compiler);
-  return parallel_shader_compiler->batch_compile(this, infos);
-}
-bool MTLShaderCompiler::batch_is_ready(BatchHandle handle)
-{
-  return parallel_shader_compiler->batch_is_ready(handle);
-}
-Vector<Shader *> MTLShaderCompiler::batch_finalize(BatchHandle &handle)
-{
-  return parallel_shader_compiler->batch_finalize(handle);
-}
-SpecializationBatchHandle MTLShaderCompiler::precompile_specializations(
-    Span<ShaderSpecialization> specializations)
-{
-  return parallel_shader_compiler->precompile_specializations(specializations);
-}
+  MTLShader *shader = static_cast<MTLShader *>(unwrap(specialization.shader));
 
-bool MTLShaderCompiler::specialization_batch_is_ready(SpecializationBatchHandle &handle)
-{
-  return parallel_shader_compiler->specialization_batch_is_ready(handle);
+  BLI_assert_msg(shader->is_valid(),
+                 "Shader must be finalized before precompiling specializations");
+
+  if (!shader->has_compute_shader_lib()) {
+    /* Currently only support Compute */
+    return;
+  }
+
+  Vector<Shader::Constants::Value> specialization_values(shader->interface->constant_len_);
+
+  for (const SpecializationConstant &constant : specialization.constants) {
+    const ShaderInput *input = shader->interface->constant_get(constant.name.c_str());
+    BLI_assert_msg(input != nullptr, "The specialization constant doesn't exists");
+    specialization_values[input->location].u = constant.value.u;
+  }
+  shader->constants.is_dirty = true;
+
+  /* Create descriptor using these specialization constants. */
+  MTLComputePipelineStateDescriptor compute_pipeline_descriptor(specialization_values);
+
+  MTLContext *metal_context = static_cast<MTLContext *>(Context::get());
+  shader->bake_compute_pipeline_state(metal_context, compute_pipeline_descriptor);
 }
 
 /** \} */

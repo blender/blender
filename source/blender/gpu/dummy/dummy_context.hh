@@ -32,11 +32,6 @@ class DummyContext : public Context {
   void flush() override {}
   void finish() override {}
 
-  ShaderCompiler *get_compiler() override
-  {
-    return nullptr;
-  }
-
   void memory_statistics_get(int * /*r_total_mem*/, int * /*r_free_mem*/) override {}
 
   void debug_group_begin(const char * /*unused*/, int /*unused*/) override {}

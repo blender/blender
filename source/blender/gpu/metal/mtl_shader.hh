@@ -321,94 +321,12 @@ class MTLShader : public Shader {
   MEM_CXX_CLASS_ALLOC_FUNCS("MTLShader");
 };
 
-class MTLParallelShaderCompiler {
- private:
-  enum ParallelWorkType {
-    PARALLELWORKTYPE_UNSPECIFIED,
-    PARALLELWORKTYPE_COMPILE_SHADER,
-    PARALLELWORKTYPE_BAKE_PSO,
-  };
-
-  struct ParallelWork {
-    const shader::ShaderCreateInfo *info = nullptr;
-    class MTLShaderCompiler *shader_compiler = nullptr;
-    MTLShader *shader = nullptr;
-    Vector<Shader::Constants::Value> specialization_values;
-
-    ParallelWorkType work_type = PARALLELWORKTYPE_UNSPECIFIED;
-    bool is_ready = false;
-  };
-
-  struct Batch {
-    Vector<ParallelWork *> items;
-    bool is_ready = false;
-  };
-
-  std::mutex batch_mutex;
-  BatchHandle next_batch_handle = 1;
-  Map<BatchHandle, Batch> batches;
-
-  std::vector<std::thread> compile_threads;
-
-  volatile bool terminate_compile_threads;
-  std::condition_variable cond_var;
-  std::mutex queue_mutex;
-  std::deque<ParallelWork *> parallel_work_queue;
-
-  void parallel_compilation_thread_func(GPUContext *blender_gpu_context,
-                                        GHOST_ContextHandle ghost_gpu_context);
-  BatchHandle create_batch(size_t batch_size);
-  void add_item_to_batch(ParallelWork *work_item, BatchHandle batch_handle);
-  void add_parallel_item_to_queue(ParallelWork *add_parallel_item_to_queuework_item,
-                                  BatchHandle batch_handle);
-
-  std::atomic<int> ref_count = 1;
-
- public:
-  MTLParallelShaderCompiler();
-  ~MTLParallelShaderCompiler();
-
-  void create_compile_threads();
-  BatchHandle batch_compile(MTLShaderCompiler *shade_compiler,
-                            Span<const shader::ShaderCreateInfo *> &infos);
-  bool batch_is_ready(BatchHandle handle);
-  Vector<Shader *> batch_finalize(BatchHandle &handle);
-
-  SpecializationBatchHandle precompile_specializations(Span<ShaderSpecialization> specializations);
-  bool specialization_batch_is_ready(SpecializationBatchHandle &handle);
-
-  void increment_ref_count()
-  {
-    ref_count++;
-  }
-  void decrement_ref_count()
-  {
-    BLI_assert(ref_count > 0);
-    ref_count--;
-  }
-  int get_ref_count()
-  {
-    return ref_count;
-  }
-};
-
 class MTLShaderCompiler : public ShaderCompiler {
- private:
-  MTLParallelShaderCompiler *parallel_shader_compiler;
-
  public:
   MTLShaderCompiler();
-  virtual ~MTLShaderCompiler() override;
 
-  virtual BatchHandle batch_compile(Span<const shader::ShaderCreateInfo *> &infos) override;
-  virtual bool batch_is_ready(BatchHandle handle) override;
-  virtual Vector<Shader *> batch_finalize(BatchHandle &handle) override;
-
-  virtual SpecializationBatchHandle precompile_specializations(
-      Span<ShaderSpecialization> specializations) override;
-  virtual bool specialization_batch_is_ready(SpecializationBatchHandle &handle) override;
-
-  void release_parallel_shader_compiler();
+  Shader *compile_shader(const shader::ShaderCreateInfo &info) override;
+  void specialize_shader(ShaderSpecialization &specialization) override;
 };
 
 /* Vertex format conversion.

@@ -14,6 +14,7 @@
 
 #include "CLG_log.h"
 
+#include "GPU_capabilities.hh"
 #include "gpu_capabilities_private.hh"
 #include "gpu_platform_private.hh"
 
@@ -447,8 +448,16 @@ void VKBackend::platform_exit()
   }
 }
 
-void VKBackend::init_resources() {}
-void VKBackend::delete_resources() {}
+void VKBackend::init_resources()
+{
+  compiler_ = MEM_new<ShaderCompiler>(
+      __func__, GPU_max_parallel_compilations(), GPUWorker::ContextType::Main);
+}
+
+void VKBackend::delete_resources()
+{
+  MEM_delete(compiler_);
+}
 
 void VKBackend::samplers_update()
 {

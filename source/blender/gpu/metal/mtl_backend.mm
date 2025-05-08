@@ -41,6 +41,21 @@ thread_local int g_autoreleasepool_depth = 0;
 /** \name Metal Backend
  * \{ */
 
+void MTLBackend::init_resources()
+{
+  if (GPU_use_parallel_compilation()) {
+    compiler_ = MEM_new<MTLShaderCompiler>(__func__);
+  }
+  else {
+    compiler_ = MEM_new<ShaderCompiler>(__func__);
+  }
+}
+
+void MTLBackend::delete_resources()
+{
+  MEM_delete(compiler_);
+}
+
 void MTLBackend::samplers_update(){
     /* Placeholder -- Handled in MTLContext. */
 };

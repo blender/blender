@@ -127,7 +127,7 @@ bool ShaderModule::request_specializations(bool block_until_ready,
 
   std::lock_guard lock(mutex_);
 
-  SpecializationBatchHandle specialization_handle = specialization_handles_.lookup_or_add_cb(
+  SpecializationBatchHandle &specialization_handle = specialization_handles_.lookup_or_add_cb(
       {render_buffers_shadow_id, shadow_ray_count, shadow_ray_step_count}, [&]() {
         Vector<ShaderSpecialization> specializations;
         for (int i = 0; i < 3; i++) {

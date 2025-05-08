@@ -16,6 +16,7 @@
 #include "BLI_subprocess.hh"
 #include "BLI_utility_mixins.hh"
 
+#include "GPU_capabilities.hh"
 #include "gpu_shader_create_info.hh"
 #include "gpu_shader_private.hh"
 
@@ -233,14 +234,14 @@ class GLCompilerWorker {
     /* The worker is not currently in use and can be acquired. */
     AVAILABLE
   };
-  eState state_ = AVAILABLE;
+  std::atomic<eState> state_ = AVAILABLE;
   double compilation_start = 0;
 
   GLCompilerWorker();
   ~GLCompilerWorker();
 
   void compile(const GLSourcesBaked &sources);
-  bool is_ready();
+  void block_until_ready();
   bool load_program_binary(GLint program);
   void release();
 
@@ -250,77 +251,26 @@ class GLCompilerWorker {
 
 class GLShaderCompiler : public ShaderCompiler {
  private:
-  std::mutex mutex_;
   Vector<GLCompilerWorker *> workers_;
-
-  struct CompilationWork {
-    const shader::ShaderCreateInfo *info = nullptr;
-    GLShader *shader = nullptr;
-    GLSourcesBaked sources;
-
-    GLCompilerWorker *worker = nullptr;
-    bool do_async_compilation = false;
-    bool is_ready = false;
-  };
-
-  struct Batch {
-    Vector<CompilationWork> items;
-    bool is_ready = false;
-  };
-
-  Map<BatchHandle, Batch> batches;
-
-  struct SpecializationRequest {
-    BatchHandle handle;
-    Vector<ShaderSpecialization> specializations;
-  };
-
-  Vector<SpecializationRequest> specialization_queue;
-
-  struct SpecializationWork {
-    GLShader *shader = nullptr;
-    Vector<shader::SpecializationConstant> constants;
-    GLSourcesBaked sources;
-
-    GLShader::GLProgram *program_get();
-
-    GLCompilerWorker *worker = nullptr;
-    bool do_async_compilation = false;
-    bool is_ready = false;
-  };
-
-  struct SpecializationBatch {
-    SpecializationBatchHandle handle = 0;
-    Vector<SpecializationWork> items;
-    bool is_ready = true;
-  };
-
-  SpecializationBatch current_specialization_batch;
-  void prepare_next_specialization_batch();
-
-  /* Shared across regular and specialization batches,
-   * to prevent the use of a wrong handle type. */
-  int64_t next_batch_handle = 1;
+  std::mutex workers_mutex_;
 
   GLCompilerWorker *get_compiler_worker(const GLSourcesBaked &sources);
-  bool worker_is_lost(GLCompilerWorker *&worker);
+  bool check_worker_is_lost(GLCompilerWorker *&worker);
+
+  GLShader::GLProgram *specialization_program_get(ShaderSpecialization &specialization);
 
  public:
+  GLShaderCompiler()
+      : ShaderCompiler(GPU_max_parallel_compilations(), GPUWorker::ContextType::PerThread, true){};
   virtual ~GLShaderCompiler() override;
 
-  virtual BatchHandle batch_compile(Span<const shader::ShaderCreateInfo *> &infos) override;
-  virtual bool batch_is_ready(BatchHandle handle) override;
-  virtual Vector<Shader *> batch_finalize(BatchHandle &handle) override;
-
-  virtual SpecializationBatchHandle precompile_specializations(
-      Span<ShaderSpecialization> specializations) override;
-
-  virtual bool specialization_batch_is_ready(SpecializationBatchHandle &handle) override;
+  virtual Shader *compile_shader(const shader::ShaderCreateInfo &info) override;
+  virtual void specialize_shader(ShaderSpecialization &specialization) override;
 };
 
 #else
 
-class GLShaderCompiler : public ShaderCompilerGeneric {};
+class GLShaderCompiler : public ShaderCompiler {};
 
 #endif
 
