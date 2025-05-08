@@ -39,6 +39,7 @@ class ImagePrepass : Overlay {
     ps_.init();
     ps_.state_set(DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_ALWAYS);
     ps_.shader_set(res.shaders->mesh_edit_depth.get());
+    ps_.push_constant("retopology_offset", 0.0f);
     ps_.draw(res.shapes.image_quad.get());
   }
 
