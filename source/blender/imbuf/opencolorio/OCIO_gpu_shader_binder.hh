@@ -17,6 +17,8 @@
 #include <memory>
 #include <string>
 
+#include "BLI_array.hh"
+#include "BLI_span.hh"
 #include "BLI_string_ref.hh"
 
 struct CurveMapping;
@@ -104,7 +106,8 @@ class GPUShaderBinder {
    * Returns true if the shader was successfully created.
    */
   static bool create_gpu_shader(internal::GPUDisplayShader &display_shader,
-                                StringRefNull fragment_source);
+                                StringRefNull fragment_source,
+                                Span<std::array<StringRefNull, 2>> additional_defines);
 };
 
 }  // namespace blender::ocio

@@ -444,8 +444,10 @@ void GPUShaderBinder::unbind() const
   immUnbindProgram();
 }
 
-bool GPUShaderBinder::create_gpu_shader(internal::GPUDisplayShader &display_shader,
-                                        StringRefNull fragment_source)
+bool GPUShaderBinder::create_gpu_shader(
+    internal::GPUDisplayShader &display_shader,
+    StringRefNull fragment_source,
+    const Span<std::array<StringRefNull, 2>> additional_defines)
 {
   using namespace blender::gpu::shader;
 
@@ -453,6 +455,10 @@ bool GPUShaderBinder::create_gpu_shader(internal::GPUDisplayShader &display_shad
   iface.smooth(Type::float2_t, "texCoord_interp");
 
   ShaderCreateInfo info("OCIO_Display");
+
+  for (const auto &additional_define : additional_defines) {
+    info.define(additional_define[0], additional_define[1]);
+  }
 
   /* Work around OpenColorIO not supporting latest GLSL yet. */
   info.define("texture1D", "texture");

@@ -204,6 +204,11 @@ float4 OCIO_ProcessColor(float4 col, float4 col_overlay)
   /* Convert to scene linear (usually a no-op). */
   col = OCIO_to_scene_linear(col);
 
+  /* Skip the rest of the transformation when the shader is only used to transform the input
+   * texture to the scene linear space.
+   * This will simplify the shader code, potentially making it faster. More importantly doing so
+   * avoids math that might lead to nan values: such as applying exposure on negative values. */
+#ifndef USE_TO_SCENE_LINEAR_ONLY
   /* Apply exposure and white balance in scene linear. */
   col = parameters.scene_linear_matrix * col;
 
@@ -239,6 +244,7 @@ float4 OCIO_ProcessColor(float4 col, float4 col_overlay)
     uint2 texel = get_pixel_coord(image_texture, texCoord_interp.st);
     col = apply_dither(col, texel);
   }
+#endif
 
   return col;
 }

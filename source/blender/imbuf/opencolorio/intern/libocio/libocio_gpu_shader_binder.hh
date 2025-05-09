@@ -23,8 +23,9 @@ class LibOCIOGPUShaderBinder : public GPUShaderBinder {
  private:
   void construct_shader_for_processors(
       internal::GPUDisplayShader &display_shader,
-      OCIO_NAMESPACE::ConstProcessorRcPtr &processor_to_scene_linear,
-      OCIO_NAMESPACE::ConstProcessorRcPtr processor_to_display) const;
+      const OCIO_NAMESPACE::ConstProcessorRcPtr &processor_to_scene_linear,
+      const OCIO_NAMESPACE::ConstProcessorRcPtr &processor_to_display,
+      Span<std::array<StringRefNull, 2>> additional_defines) const;
 
  protected:
   void construct_display_shader(internal::GPUDisplayShader &display_shader) const override;

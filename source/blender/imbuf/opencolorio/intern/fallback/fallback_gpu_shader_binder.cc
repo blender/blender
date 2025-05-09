@@ -78,7 +78,7 @@ void FallbackGPUShaderBinder::construct_display_shader(
 {
   const std::string fragment_source = generate_display_fragment_source(display_shader);
 
-  if (!create_gpu_shader(display_shader, fragment_source)) {
+  if (!create_gpu_shader(display_shader, fragment_source, {})) {
     display_shader.is_valid = false;
     return;
   }
@@ -93,7 +93,7 @@ void FallbackGPUShaderBinder::construct_scene_linear_shader(
 
   const std::string fragment_source = generate_scene_linear_fragment_source(display_shader);
 
-  if (!create_gpu_shader(display_shader, fragment_source)) {
+  if (!create_gpu_shader(display_shader, fragment_source, {{"USE_TO_SCENE_LINEAR_ONLY", ""}})) {
     display_shader.is_valid = false;
   }
 }
