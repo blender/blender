@@ -24,28 +24,15 @@ namespace blender::nodes::node_composite_bokehblur_cc {
 
 static void cmp_node_bokehblur_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Color>("Image")
-      .default_value({0.8f, 0.8f, 0.8f, 1.0f})
-      .compositor_domain_priority(0);
+  b.add_input<decl::Color>("Image").default_value({0.8f, 0.8f, 0.8f, 1.0f});
   b.add_input<decl::Color>("Bokeh")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
       .compositor_realization_mode(CompositorInputRealizationMode::Transforms);
-  b.add_input<decl::Float>("Size")
-      .default_value(1.0f)
-      .min(0.0f)
-      .max(10.0f)
-      .compositor_domain_priority(1);
-  b.add_input<decl::Float>("Bounding box")
-      .default_value(1.0f)
-      .min(0.0f)
-      .max(1.0f)
-      .compositor_domain_priority(2);
-  b.add_output<decl::Color>("Image");
-}
+  b.add_input<decl::Float>("Size").default_value(1.0f).min(0.0f).max(10.0f);
+  b.add_input<decl::Float>("Bounding box").default_value(1.0f).min(0.0f).max(1.0f);
+  b.add_input<decl::Bool>("Extend Bounds").default_value(false).compositor_expects_single_value();
 
-static void node_composit_buts_bokehblur(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
-{
-  layout->prop(ptr, "use_extended_bounds", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+  b.add_output<decl::Color>("Image");
 }
 
 using namespace blender::compositor;
@@ -378,7 +365,7 @@ class BokehBlurOperation : public NodeOperation {
 
   bool get_extend_bounds()
   {
-    return bnode().custom1 & CMP_NODEFLAG_BLUR_EXTEND_BOUNDS;
+    return this->get_input("Extend Bounds").get_single_value_default(false);
   }
 };
 
@@ -403,7 +390,6 @@ void register_node_type_cmp_bokehblur()
   ntype.enum_name_legacy = "BOKEHBLUR";
   ntype.nclass = NODE_CLASS_OP_FILTER;
   ntype.declare = file_ns::cmp_node_bokehblur_declare;
-  ntype.draw_buttons = file_ns::node_composit_buts_bokehblur;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
   blender::bke::node_register_type(ntype);

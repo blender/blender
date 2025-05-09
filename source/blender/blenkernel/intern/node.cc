@@ -1022,6 +1022,10 @@ static void write_compositor_legacy_properties(bNodeTree &node_tree)
     if (node->type_legacy == CMP_NODE_ALPHAOVER) {
       write_input_to_property_bool_short("Straight Alpha", node->custom1);
     }
+
+    if (node->type_legacy == CMP_NODE_BOKEHBLUR) {
+      write_input_to_property_bool_int16_flag("Extend Bounds", node->custom1, (1 << 1));
+    }
   }
 }
 
