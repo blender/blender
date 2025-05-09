@@ -1674,9 +1674,9 @@ void draw_nodespace_back_pix(const bContext &C,
   GPU_matrix_pop();
 }
 
-static float2 socket_link_connection_location(const bNode &node,
-                                              const bNodeSocket &socket,
-                                              const bNodeLink &link)
+float2 socket_link_connection_location(const bNode &node,
+                                       const bNodeSocket &socket,
+                                       const bNodeLink &link)
 {
   const float2 socket_location = socket.runtime->location;
   if (socket.is_multi_input() && socket.is_input() && !(node.flag & NODE_HIDDEN)) {

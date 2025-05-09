@@ -229,6 +229,10 @@ void NODE_OT_backimage_sample(wmOperatorType *ot);
 
 /* `drawnode.cc` */
 
+float2 socket_link_connection_location(const bNode &node,
+                                       const bNodeSocket &socket,
+                                       const bNodeLink &link);
+
 NodeResizeDirection node_get_resize_direction(const SpaceNode &snode,
                                               const bNode *node,
                                               int x,

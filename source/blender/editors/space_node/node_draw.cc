@@ -3068,41 +3068,6 @@ static void node_get_compositor_extra_info(TreeDrawContext &tree_draw_ctx,
   }
 }
 
-static void node_get_invalid_links_extra_info(const SpaceNode &snode,
-                                              const bNode &node,
-                                              Vector<NodeExtraInfoRow> &rows)
-{
-  const bNodeTree &tree = *snode.edittree;
-  const Span<bke::NodeLinkError> link_errors = tree.runtime->link_errors_by_target_node.lookup(
-      node.identifier);
-  if (link_errors.is_empty()) {
-    return;
-  }
-  NodeExtraInfoRow row;
-  row.text = IFACE_("Invalid Link");
-
-  row.tooltip_fn = [](bContext *C, void *arg, const StringRef /*tip*/) {
-    const bNodeTree &tree = *CTX_wm_space_node(C)->edittree;
-    const bNode &node = *static_cast<const bNode *>(arg);
-    const Span<bke::NodeLinkError> link_errors = tree.runtime->link_errors_by_target_node.lookup(
-        node.identifier);
-    std::stringstream ss;
-    Set<StringRef> already_added_errors;
-    for (const int i : link_errors.index_range()) {
-      const StringRefNull tooltip = link_errors[i].tooltip;
-      if (already_added_errors.add_as(tooltip)) {
-        ss << "\u2022 " << tooltip << "\n";
-      }
-    }
-    ss << "\n";
-    ss << "Any invalid links are highlighted";
-    return ss.str();
-  };
-  row.tooltip_fn_arg = const_cast<bNode *>(&node);
-  row.icon = ICON_ERROR;
-  rows.append(std::move(row));
-}
-
 static Vector<NodeExtraInfoRow> node_get_extra_info(const bContext &C,
                                                     TreeDrawContext &tree_draw_ctx,
                                                     const SpaceNode &snode,
@@ -3122,8 +3087,6 @@ static Vector<NodeExtraInfoRow> node_get_extra_info(const bContext &C,
     row.tooltip = TIP_(node.typeinfo->deprecation_notice);
     rows.append(std::move(row));
   }
-
-  node_get_invalid_links_extra_info(snode, node, rows);
 
   if (snode.edittree->type == NTREE_COMPOSIT) {
     node_get_compositor_extra_info(tree_draw_ctx, snode, node, rows);
@@ -4855,6 +4818,168 @@ static void draw_frame_overlays(const bContext &C,
   }
 }
 
+/**
+ * Tries to find a position on the link where we can draw link information like an error icon. If
+ * the link center is not visible, it finds the closest point to the link center that's still
+ * visible with some padding if possible. If none such point is found, nullopt is returned.
+ */
+static std::optional<float2> find_visible_center_of_link(const View2D &v2d,
+                                                         const bNodeLink &link,
+                                                         const float radius,
+                                                         const float region_padding)
+{
+  /* Compute center of the link because that's used as "ideal" position. */
+  const float2 start = socket_link_connection_location(*link.fromnode, *link.fromsock, link);
+  const float2 end = socket_link_connection_location(*link.tonode, *link.tosock, link);
+  const float2 center = math::midpoint(start, end);
+
+  /* The rectangle that we would like to stay within if possible. */
+  rctf inner_rect = v2d.cur;
+  BLI_rctf_pad(&inner_rect, -(region_padding + radius), -(region_padding + radius));
+
+  if (BLI_rctf_isect_pt_v(&inner_rect, center)) {
+    /* The center is visible. */
+    return center;
+  }
+
+  /* The rectangle containing all points which are valid result positions. */
+  rctf outer_rect = v2d.cur;
+  BLI_rctf_pad(&outer_rect, radius, radius);
+
+  /* Get the straight individual link segments. */
+  std::array<float2, NODE_LINK_RESOL + 1> link_points;
+  node_link_bezier_points_evaluated(link, link_points);
+
+  const float required_socket_distance = UI_UNIT_X;
+  /* Define a cost function that returns a value that is larger the worse the given position is.
+   * The point on the link with the lowest cost will be picked. */
+  const auto cost_function = [&](const float2 &p) -> float {
+    const float distance_to_inner_rect = std::max(BLI_rctf_length_x(&inner_rect, p.x),
+                                                  BLI_rctf_length_y(&inner_rect, p.y));
+    const float distance_to_center = math::distance(p, center);
+
+    /* Set a high cost when the point is close to a socket. The distance to the center still has to
+     * be taken account though. Otherwise there is bad behavior when both sockets are close to the
+     * point. */
+    const float distance_to_socket = std::min(math::distance(p, start), math::distance(p, end));
+    if (distance_to_socket < required_socket_distance) {
+      return 1e5f + distance_to_center;
+    }
+    return
+        /* The larger the distance to the link center, the higher the cost. The importance of this
+           distance decreases the further the center is away. */
+        std::sqrt(distance_to_center)
+        /* The larger the distance to the inner rectangle, the higher the cost. Apply an additional
+         * factor because it's more important that the position stays visible than that it is at
+         * the center. */
+        + 10.0f * distance_to_inner_rect;
+  };
+
+  /* Iterate over visible points on the link, compute the cost of each and pick the best one. A
+   * more direct algorithm to find a good position would be nice. However, that seems to be
+   * surprisingly tricky to achieve without resulting in very "jumpy" positions, especially when
+   * the link is colinear to the region border. */
+  float best_cost;
+  std::optional<float2> best_position;
+  for (const int i : IndexRange(link_points.size() - 1)) {
+    float2 p0 = link_points[i];
+    float2 p1 = link_points[i + 1];
+    if (!BLI_rctf_clamp_segment(&outer_rect, p0, p1)) {
+      continue;
+    }
+    const float length = math::distance(p0, p1);
+    const float point_distance = 1.0f;
+    /* Might be possible to do a smarter scan of the cost function using some sort of binary sort,
+     * but it's not entirely straight forward because the cost function is not monotonic. */
+    const int points_to_check = std::max(2, 1 + int(length / point_distance));
+    for (const int j : IndexRange(points_to_check)) {
+      const float t = float(j) / (points_to_check - 1);
+      const float2 p = math::interpolate(p0, p1, t);
+      const float cost = cost_function(p);
+      if (!best_position.has_value() || cost < best_cost) {
+        best_cost = cost;
+        best_position = p;
+      }
+    }
+  }
+  return best_position;
+}
+
+static void draw_link_errors(const bContext &C,
+                             SpaceNode &snode,
+                             const bNodeLink &link,
+                             const Span<bke::NodeLinkError> errors,
+                             uiBlock &invalid_links_block)
+{
+  const ARegion &region = *CTX_wm_region(&C);
+  if (errors.is_empty()) {
+    return;
+  }
+  if (!link.fromsock || !link.tosock || !link.fromnode || !link.tonode) {
+    /* Likely because the link is being dragged. */
+    return;
+  }
+
+  /* Generate full tooltip from potentially multiple errors. */
+  std::string error_tooltip;
+  if (errors.size() == 1) {
+    error_tooltip = errors[0].tooltip;
+  }
+  else {
+    for (const bke::NodeLinkError &error : errors) {
+      error_tooltip += fmt::format("\u2022 {}\n", error.tooltip);
+    }
+  }
+
+  const float bg_radius = UI_UNIT_X * 0.5f;
+  const float bg_corner_radius = UI_UNIT_X * 0.2f;
+  const float icon_size = UI_UNIT_X;
+  const float region_padding = UI_UNIT_X * 0.5f;
+
+  /* Compute error icon location. */
+  std::optional<float2> draw_position_opt = find_visible_center_of_link(
+      region.v2d, link, bg_radius, region_padding);
+  if (!draw_position_opt.has_value()) {
+    return;
+  }
+  const int2 draw_position = int2(draw_position_opt.value());
+
+  /* Draw a background for the error icon. */
+  rctf bg_rect;
+  BLI_rctf_init_pt_radius(&bg_rect, float2(draw_position), bg_radius);
+  ColorTheme4f bg_color;
+  UI_GetThemeColor4fv(TH_REDALERT, bg_color);
+  UI_draw_roundbox_corner_set(UI_CNR_ALL);
+  ui_draw_dropshadow(&bg_rect, bg_corner_radius, UI_UNIT_X * 0.2f, snode.runtime->aspect, 0.5f);
+  UI_draw_roundbox_4fv(&bg_rect, true, bg_corner_radius, bg_color);
+
+  /* Draw the icon itself with a tooltip. */
+  UI_block_emboss_set(&invalid_links_block, ui::EmbossType::None);
+  uiBut *but = uiDefIconBut(&invalid_links_block,
+                            UI_BTYPE_BUT,
+                            0,
+                            ICON_ERROR,
+                            draw_position.x - icon_size / 2,
+                            draw_position.y - icon_size / 2,
+                            icon_size,
+                            icon_size,
+                            nullptr,
+                            0,
+                            0,
+                            std::nullopt);
+  UI_but_func_tooltip_label_set(
+      but, [tooltip = std::move(error_tooltip)](const uiBut * /*but*/) { return tooltip; });
+}
+
+static uiBlock &invalid_links_uiblock_init(const bContext &C)
+{
+  Scene *scene = CTX_data_scene(&C);
+  wmWindow *window = CTX_wm_window(&C);
+  ARegion *region = CTX_wm_region(&C);
+  return *UI_block_begin(
+      &C, scene, window, region, "invalid_links", blender::ui::EmbossType::None);
+}
+
 #define USE_DRAW_TOT_UPDATE
 
 static void node_draw_nodetree(const bContext &C,
@@ -4896,6 +5021,7 @@ static void node_draw_nodetree(const bContext &C,
   }
 
   nodelink_batch_end(snode);
+
   GPU_blend(GPU_BLEND_NONE);
 
   draw_frame_overlays(C, tree_draw_ctx, region, snode, ntree, blocks);
@@ -4911,6 +5037,15 @@ static void node_draw_nodetree(const bContext &C,
     const bNodeInstanceKey key = bke::node_instance_key(parent_key, &ntree, &node);
     node_draw(C, tree_draw_ctx, region, snode, ntree, node, *blocks[node.index()], key);
   }
+
+  uiBlock &invalid_links_block = invalid_links_uiblock_init(C);
+  for (auto &&item : ntree.runtime->link_errors.items()) {
+    if (const bNodeLink *link = item.key.try_find(ntree)) {
+      draw_link_errors(C, snode, *link, item.value, invalid_links_block);
+    }
+  }
+  UI_block_end(&C, &invalid_links_block);
+  UI_block_draw(&C, &invalid_links_block);
 }
 
 /* Draw the breadcrumb on the top of the editor. */
