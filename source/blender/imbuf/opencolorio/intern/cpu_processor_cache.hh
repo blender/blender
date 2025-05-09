@@ -8,6 +8,8 @@
 #include <memory>
 #include <mutex>
 
+#include "BLI_mutex.hh"
+
 #include "OCIO_cpu_processor.hh"
 
 namespace blender::ocio {
@@ -20,7 +22,7 @@ class CPUProcessorCache {
    *
    * If the mutex is per-object then this doesn't work as the mutex deletes the move constructor.
    */
-  static inline std::mutex mutex_;
+  static inline Mutex mutex_;
 
   mutable bool processor_created_ = false;
   mutable std::unique_ptr<const CPUProcessor> cpu_processor_;
