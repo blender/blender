@@ -1070,6 +1070,8 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
                        VK_KHR_GET_SURFACE_CAPABILITIES_2_EXTENSION_NAME);
       optional_device_extensions.push_back(VK_EXT_SWAPCHAIN_MAINTENANCE_1_EXTENSION_NAME);
     }
+#else
+    (void)contains_extension;
 #endif
 
     required_device_extensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);

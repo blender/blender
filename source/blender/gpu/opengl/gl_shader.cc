@@ -1772,7 +1772,7 @@ GLCompilerWorker *GLShaderCompiler::get_compiler_worker(const GLSourcesBaked &so
 
   GLCompilerWorker *result = nullptr;
   while (true) {
-    if (result = try_get_compiler_worker()) {
+    if ((result = try_get_compiler_worker())) {
       BLI_time_sleep_ms(1);
       break;
     }
