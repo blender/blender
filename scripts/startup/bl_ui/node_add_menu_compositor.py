@@ -128,17 +128,14 @@ class NODE_MT_category_compositor_color_mix(Menu):
     bl_idname = "NODE_MT_category_compositor_color_mix"
     bl_label = "Mix"
 
-    def draw(self, _context):
+    def draw(self, context):
         layout = self.layout
         node_add_menu.add_node_type(layout, "CompositorNodeAlphaOver")
         layout.separator()
         node_add_menu.add_node_type(layout, "CompositorNodeCombineColor")
         node_add_menu.add_node_type(layout, "CompositorNodeSeparateColor")
         layout.separator()
-        props = node_add_menu.add_node_type(layout, "ShaderNodeMix", label=iface_("Mix Color"))
-        ops = props.settings.add()
-        ops.name = "data_type"
-        ops.value = "'RGBA'"
+        node_add_menu.add_color_mix_node(context, layout)
         node_add_menu.add_node_type(layout, "CompositorNodeZcombine")
         node_add_menu.draw_assets_for_catalog(layout, "Color/Mix")
 

@@ -78,6 +78,24 @@ def add_node_type_with_searchable_enum(context, layout, node_idname, property_na
             prop.value = repr(item.identifier)
 
 
+def add_color_mix_node(context, layout):
+    label = iface_("Mix Color")
+    props = node_add_menu.add_node_type(layout, "ShaderNodeMix", label=label)
+    ops = props.settings.add()
+    ops.name = "data_type"
+    ops.value = "'RGBA'"
+
+    if getattr(context, "is_menu_search", False):
+        for item in bpy.types.ShaderNodeMix.bl_rna.properties["blend_type"].enum_items_static:
+            props = node_add_menu.add_node_type(layout, "ShaderNodeMix", label=label + " ▸ " + item.name)
+            prop = props.settings.add()
+            prop.name = "data_type"
+            prop.value = "'RGBA'"
+            prop = props.settings.add()
+            prop.name = "blend_type"
+            prop.value = repr(item.identifier)
+
+
 def add_simulation_zone(layout, label):
     """Add simulation zone to a menu."""
     props = layout.operator("node.add_simulation_zone", text=label, text_ctxt=i18n_contexts.default)
