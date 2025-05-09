@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include <fmt/format.h>
+
 #include "BLT_translation.hh"
 
 #include "BKE_path_templates.hh"
@@ -239,15 +241,22 @@ static int format_int_to_string(const FormatSpecifier &format,
 
   switch (format.type) {
     case FormatSpecifierType::NONE: {
-      output_length = sprintf(r_output_string, "%ld", integer_value);
+      output_length =
+          fmt::format_to_n(r_output_string, FORMAT_BUFFER_SIZE - 1, "{}", integer_value).size;
+      r_output_string[output_length] = '\0';
       break;
     }
 
     case FormatSpecifierType::INTEGER: {
       BLI_assert(format.integer_digit_count.has_value());
       BLI_assert(*format.integer_digit_count > 0);
-      output_length = sprintf(
-          r_output_string, "%0*ld", *format.integer_digit_count, integer_value);
+      output_length = fmt::format_to_n(r_output_string,
+                                       FORMAT_BUFFER_SIZE - 1,
+                                       "{:0{}}",
+                                       integer_value,
+                                       *format.integer_digit_count)
+                          .size;
+      r_output_string[output_length] = '\0';
       break;
     }
 
@@ -261,17 +270,22 @@ static int format_int_to_string(const FormatSpecifier &format,
 
       if (format.integer_digit_count.has_value()) {
         BLI_assert(*format.integer_digit_count > 0);
-        output_length = sprintf(
-            r_output_string, "%0*ld", *format.integer_digit_count, integer_value);
+        output_length = fmt::format_to_n(r_output_string,
+                                         FORMAT_BUFFER_SIZE - 1,
+                                         "{:0{}}",
+                                         integer_value,
+                                         *format.integer_digit_count)
+                            .size;
       }
       else {
-        output_length = sprintf(r_output_string, "%ld", integer_value);
+        output_length =
+            fmt::format_to_n(r_output_string, FORMAT_BUFFER_SIZE - 1, "{}", integer_value).size;
       }
 
       r_output_string[output_length] = '.';
       output_length++;
 
-      for (int i = 0; i < *format.fractional_digit_count; i++) {
+      for (int i = 0; i < *format.fractional_digit_count && i < (FORMAT_BUFFER_SIZE - 1); i++) {
         r_output_string[output_length] = '0';
         output_length++;
       }
@@ -311,12 +325,13 @@ static int format_float_to_string(const FormatSpecifier &format,
 
   switch (format.type) {
     case FormatSpecifierType::NONE: {
-      /* When no format specification is given, we attempt to approximate
-       * Python's behavior in the same situation. We can't exactly match via
-       * `sprintf()`, but we can get pretty close. The only major thing we can't
-       * replicate via `sprintf()` is that in Python whole numbers are printed
-       * with a trailing ".0". So we handle that bit manually. */
-      output_length = sprintf(r_output_string, "%.16g", float_value);
+      /* When no format specification is given, we attempt to replicate Python's
+       * behavior in the same situation. The only major thing we can't replicate
+       * via libfmt is that in Python whole numbers are printed with a trailing
+       * ".0". So we handle that bit manually. */
+      output_length =
+          fmt::format_to_n(r_output_string, FORMAT_BUFFER_SIZE - 1, "{}", float_value).size;
+      r_output_string[output_length] = '\0';
 
       /* If the string consists only of digits and a possible negative sign, then
        * we append a ".0" to match Python. */
@@ -343,16 +358,25 @@ static int format_float_to_string(const FormatSpecifier &format,
       if (format.integer_digit_count.has_value()) {
         /* Both integer and fractional component lengths are specified. */
         BLI_assert(*format.integer_digit_count > 0);
-        output_length = sprintf(r_output_string,
-                                "%0*.*f",
-                                *format.integer_digit_count + *format.fractional_digit_count + 1,
-                                *format.fractional_digit_count,
-                                float_value);
+        output_length = fmt::format_to_n(r_output_string,
+                                         FORMAT_BUFFER_SIZE - 1,
+                                         "{:0{}.{}f}",
+                                         float_value,
+                                         *format.integer_digit_count +
+                                             *format.fractional_digit_count + 1,
+                                         *format.fractional_digit_count)
+                            .size;
+        r_output_string[output_length] = '\0';
       }
       else {
         /* Only fractional component length is specified. */
-        output_length = sprintf(
-            r_output_string, "%.*f", *format.fractional_digit_count, float_value);
+        output_length = fmt::format_to_n(r_output_string,
+                                         FORMAT_BUFFER_SIZE - 1,
+                                         "{:.{}f}",
+                                         float_value,
+                                         *format.fractional_digit_count)
+                            .size;
+        r_output_string[output_length] = '\0';
       }
 
       break;
