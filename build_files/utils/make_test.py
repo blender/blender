@@ -17,7 +17,6 @@ import sys
 
 import make_utils
 from make_utils import call
-from pathlib import Path
 
 
 # Parse arguments.

@@ -5,7 +5,6 @@
 from bpy.types import Menu
 from bl_ui import node_add_menu
 from bpy.app.translations import (
-    pgettext_iface as iface_,
     contexts as i18n_contexts,
 )
 
