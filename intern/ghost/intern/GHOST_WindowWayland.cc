@@ -2791,6 +2791,17 @@ bool GHOST_WindowWayland::outputs_changed_update_scale()
     /* Leave `window_->frame_pending` as-is, so changes are detected and updates are applied. */
     do_frame_resize = false;
     do_frame_update = true;
+
+    /* If the buffer scale changes, the window size (and underlying buffer-size)
+     * must always be a multiple of the buffer size. Resizing ensures this is the case.
+     * See replies to #135764 for details.
+     *
+     * NOTE: We could skip resize if the current window size is a multiple of the buffer scale,
+     * avoids this as it will result in unpredictable behavior based on single pixel differences
+     * in window size. */
+    if (window_->frame_pending.buffer_scale != window_->frame.buffer_scale) {
+      do_frame_resize = true;
+    }
   }
   else {
     /* Test if the scale changed. */
