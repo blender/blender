@@ -8632,11 +8632,11 @@ void UI_but_tooltip_timer_remove(bContext *C, uiBut *but)
 static ARegion *ui_but_tooltip_init(
     bContext *C, ARegion *region, int *pass, double *r_pass_delay, bool *r_exit_on_event)
 {
-  bool is_label = false;
+  bool is_quick_tip = false;
   if (*pass == 1) {
-    is_label = true;
+    is_quick_tip = true;
     (*pass)--;
-    (*r_pass_delay) = UI_TOOLTIP_DELAY - UI_TOOLTIP_DELAY_LABEL;
+    (*r_pass_delay) = UI_TOOLTIP_DELAY - UI_TOOLTIP_DELAY_QUICK;
   }
 
   uiBut *but = UI_region_active_but_get(region);
@@ -8646,7 +8646,7 @@ static ARegion *ui_but_tooltip_init(
     uiButExtraOpIcon *extra_icon = ui_but_extra_operator_icon_mouse_over_get(
         but, but->active ? but->active->region : region, win->eventstate);
 
-    return UI_tooltip_create_from_button_or_extra_icon(C, region, but, extra_icon, is_label);
+    return UI_tooltip_create_from_button_or_extra_icon(C, region, but, extra_icon, is_quick_tip);
   }
   return nullptr;
 }
@@ -8661,11 +8661,11 @@ static void button_tooltip_timer_reset(bContext *C, uiBut *but)
   if ((U.flag & USER_TOOLTIPS) || (data->tooltip_force)) {
     if (!but->block->tooltipdisabled) {
       if (!wm->drags.first) {
-        const bool is_label = UI_but_has_tooltip_label(but);
-        const double delay = is_label ? UI_TOOLTIP_DELAY_LABEL : UI_TOOLTIP_DELAY;
+        const bool is_quick_tip = UI_but_has_quick_tooltip(but);
+        const double delay = is_quick_tip ? UI_TOOLTIP_DELAY_QUICK : UI_TOOLTIP_DELAY;
         WM_tooltip_timer_init_ex(
             C, data->window, data->area, data->region, ui_but_tooltip_init, delay);
-        if (is_label) {
+        if (is_quick_tip) {
           bScreen *screen = WM_window_get_active_screen(data->window);
           if (screen->tool_tip) {
             screen->tool_tip->pass = screen->tool_tip->region ? 0 : 1;
@@ -8984,7 +8984,7 @@ static void button_activate_init(bContext *C,
     ui_numedit_set_active(but);
   }
 
-  if (UI_but_has_tooltip_label(but)) {
+  if (UI_but_has_quick_tooltip(but)) {
     /* Show a label for this button. */
     bScreen *screen = WM_window_get_active_screen(data->window);
     if ((BLI_time_now_seconds() - WM_tooltip_time_closed()) < 0.1) {

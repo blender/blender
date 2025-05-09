@@ -486,7 +486,7 @@ void PreviewGridItem::build_grid_tile_button(uiLayout &layout,
   const GridViewStyle &style = this->get_view().get_style();
   uiBlock *block = uiLayoutGetBlock(&layout);
 
-  UI_but_func_tooltip_label_set(this->view_item_button(),
+  UI_but_func_quick_tooltip_set(this->view_item_button(),
                                 [this](const uiBut * /*but*/) { return label; });
 
   uiBut *but = uiDefBut(block,

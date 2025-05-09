@@ -928,7 +928,7 @@ static void ui_item_enum_expand_tabs(uiLayout *layout,
     uiBut *tab = block->buttons[i].get();
     UI_but_drawflag_enable(tab, ui_but_align_opposite_to_area_align_get(CTX_wm_region(C)));
     if (icon_only) {
-      UI_but_drawflag_enable(tab, UI_BUT_HAS_TOOLTIP_LABEL);
+      UI_but_drawflag_enable(tab, UI_BUT_HAS_QUICK_TOOLTIP);
     }
   }
 

@@ -239,7 +239,7 @@ struct uiBut {
   void *tip_arg = nullptr;
   uiFreeArgFunc tip_arg_free = nullptr;
   /** Function to override the label to be displayed in the tooltip. */
-  std::function<std::string(const uiBut *)> tip_label_func;
+  std::function<std::string(const uiBut *)> tip_quick_func;
 
   uiButToolTipCustomFunc tip_custom_func = nullptr;
 

@@ -2753,7 +2753,7 @@ static void node_add_error_message_button(const TreeDrawContext &tree_draw_ctx,
                             0,
                             0,
                             nullptr);
-  UI_but_func_tooltip_label_set(
+  UI_but_func_quick_tooltip_set(
       but, [warnings](const uiBut * /*but*/) { return node_errors_tooltip_fn(warnings); });
   UI_block_emboss_set(&block, blender::ui::EmbossType::Emboss);
 }
@@ -4969,7 +4969,7 @@ static void draw_link_errors(const bContext &C,
                             0,
                             0,
                             std::nullopt);
-  UI_but_func_tooltip_label_set(
+  UI_but_func_quick_tooltip_set(
       but, [tooltip = std::move(error_tooltip)](const uiBut * /*but*/) { return tooltip; });
 }
 
