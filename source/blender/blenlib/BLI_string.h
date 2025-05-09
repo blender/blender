@@ -14,6 +14,10 @@
 #include "BLI_compiler_attrs.h"
 #include "BLI_utildefines.h"
 
+#ifdef __cplusplus
+#  include <string>
+#endif
+
 /* Buffer size of maximum `uint64` plus commas and terminator. */
 #define BLI_STR_FORMAT_UINT64_GROUPED_SIZE 27
 
@@ -230,6 +234,12 @@ char *BLI_vsprintfN(const char *__restrict format, va_list args) ATTR_NONNULL(1,
  */
 size_t BLI_str_escape(char *__restrict dst, const char *__restrict src, size_t dst_maxncpy)
     ATTR_NONNULL(1, 2);
+
+#ifdef __cplusplus
+/** Same as above, but returns an std::string. */
+std::string BLI_str_escape(const char *str);
+#endif
+
 /**
  * This roughly matches C and Python's string escaping with double quotes - `"`.
  *

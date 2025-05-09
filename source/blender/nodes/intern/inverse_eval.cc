@@ -24,6 +24,7 @@
 #include "BLI_map.hh"
 #include "BLI_math_euler.hh"
 #include "BLI_set.hh"
+#include "BLI_string.h"
 
 #include "DEG_depsgraph.hh"
 
@@ -474,7 +475,7 @@ static bool set_socket_value(bContext &C,
   bNodeTree &tree = socket.owner_tree();
 
   const std::string default_value_rna_path = fmt::format(
-      "nodes[\"{}\"].inputs[{}].default_value", node.name, socket.index());
+      "nodes[\"{}\"].inputs[{}].default_value", BLI_str_escape(node.name), socket.index());
 
   switch (socket.type) {
     case SOCK_FLOAT: {
@@ -505,32 +506,34 @@ static bool set_socket_value(bContext &C,
 static bool set_value_node_value(bContext &C, bNode &node, const SocketValueVariant &value_variant)
 {
   bNodeTree &tree = node.owner_tree();
+
   switch (node.type_legacy) {
     case SH_NODE_VALUE: {
       const float value = value_variant.get<float>();
       const std::string rna_path = fmt::format("nodes[\"{}\"].outputs[0].default_value",
-                                               node.name);
+                                               BLI_str_escape(node.name));
       return set_rna_property(C, tree.id, rna_path, value);
     }
     case FN_NODE_INPUT_INT: {
       const int value = value_variant.get<int>();
-      const std::string rna_path = fmt::format("nodes[\"{}\"].integer", node.name);
+      const std::string rna_path = fmt::format("nodes[\"{}\"].integer", BLI_str_escape(node.name));
       return set_rna_property(C, tree.id, rna_path, value);
     }
     case FN_NODE_INPUT_BOOL: {
       const bool value = value_variant.get<bool>();
-      const std::string rna_path = fmt::format("nodes[\"{}\"].boolean", node.name);
+      const std::string rna_path = fmt::format("nodes[\"{}\"].boolean", BLI_str_escape(node.name));
       return set_rna_property(C, tree.id, rna_path, value);
     }
     case FN_NODE_INPUT_VECTOR: {
       const float3 value = value_variant.get<float3>();
-      const std::string rna_path = fmt::format("nodes[\"{}\"].vector", node.name);
+      const std::string rna_path = fmt::format("nodes[\"{}\"].vector", BLI_str_escape(node.name));
       return set_rna_property_float3(C, tree.id, rna_path, value);
     }
     case FN_NODE_INPUT_ROTATION: {
       const math::Quaternion rotation = value_variant.get<math::Quaternion>();
       const float3 euler = float3(math::to_euler(rotation));
-      const std::string rna_path = fmt::format("nodes[\"{}\"].rotation_euler", node.name);
+      const std::string rna_path = fmt::format("nodes[\"{}\"].rotation_euler",
+                                               BLI_str_escape(node.name));
       return set_rna_property_float3(C, tree.id, rna_path, euler);
     }
   }
@@ -546,7 +549,7 @@ static bool set_modifier_value(bContext &C,
   DEG_id_tag_update(&object.id, ID_RECALC_GEOMETRY);
 
   const std::string main_prop_rna_path = fmt::format(
-      "modifiers[\"{}\"][\"{}\"]", nmd.modifier.name, interface_socket.identifier);
+      "modifiers[\"{}\"][\"{}\"]", BLI_str_escape(nmd.modifier.name), interface_socket.identifier);
 
   switch (interface_socket.socket_typeinfo()->type) {
     case SOCK_FLOAT: {
