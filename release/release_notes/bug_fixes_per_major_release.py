@@ -893,7 +893,8 @@ def cached_commits_store(list_of_commits: list[CommitInfo]) -> None:
     # on commits that are already sorted (and they're not interested in).
     data_to_cache = {}
     for commit in list_of_commits:
-        if (commit.classification not in (NEEDS_MANUAL_SORTING, IGNORED)) and not (commit.has_been_overwritten):
+        if (commit.classification not in (NEEDS_MANUAL_SORTING, IGNORED)) and not (
+                commit.has_been_overwritten) and (commit.module != UNKNOWN):
             commit_hash, data = commit.prepare_for_cache()
             data_to_cache[commit_hash] = data
 
