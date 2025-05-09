@@ -2661,17 +2661,11 @@ static geo_log::NodeWarningType node_error_highest_priority(Span<geo_log::NodeWa
   return highest_priority_type;
 }
 
-struct NodeErrorsTooltipData {
-  Span<geo_log::NodeWarning> warnings;
-};
-
-static std::string node_errors_tooltip_fn(bContext * /*C*/, void *argN, const StringRef /*tip*/)
+static std::string node_errors_tooltip_fn(const Span<geo_log::NodeWarning> warnings)
 {
-  NodeErrorsTooltipData &data = *(NodeErrorsTooltipData *)argN;
-
   std::string complete_string;
 
-  for (const geo_log::NodeWarning &warning : data.warnings.drop_back(1)) {
+  for (const geo_log::NodeWarning &warning : warnings.drop_back(1)) {
     complete_string += warning.message;
     /* Adding the period is not ideal for multi-line messages, but it is consistent
      * with other tooltip implementations in Blender, so it is added here. */
@@ -2680,7 +2674,7 @@ static std::string node_errors_tooltip_fn(bContext * /*C*/, void *argN, const St
   }
 
   /* Let the tooltip system automatically add the last period. */
-  complete_string += data.warnings.last().message;
+  complete_string += warnings.last().message;
 
   return complete_string;
 }
@@ -2744,8 +2738,6 @@ static void node_add_error_message_button(const TreeDrawContext &tree_draw_ctx,
   }
 
   const geo_log::NodeWarningType display_type = node_error_highest_priority(warnings);
-  NodeErrorsTooltipData *tooltip_data = MEM_new<NodeErrorsTooltipData>(__func__);
-  tooltip_data->warnings = warnings;
 
   icon_offset -= NODE_HEADER_ICON_SIZE;
   UI_block_emboss_set(&block, blender::ui::EmbossType::None);
@@ -2761,9 +2753,8 @@ static void node_add_error_message_button(const TreeDrawContext &tree_draw_ctx,
                             0,
                             0,
                             nullptr);
-  UI_but_func_tooltip_set(but, node_errors_tooltip_fn, tooltip_data, [](void *arg) {
-    MEM_delete(static_cast<NodeErrorsTooltipData *>(arg));
-  });
+  UI_but_func_tooltip_label_set(
+      but, [warnings](const uiBut * /*but*/) { return node_errors_tooltip_fn(warnings); });
   UI_block_emboss_set(&block, blender::ui::EmbossType::Emboss);
 }
 
