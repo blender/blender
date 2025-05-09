@@ -55,6 +55,8 @@ set(SRC
   intern/asset_weak_reference.cc
   intern/attribute.cc
   intern/attribute_access.cc
+  intern/attribute_legacy_convert.cc
+  intern/attribute_storage.cc
   intern/attribute_math.cc
   intern/autoexec.cc
   intern/bake_data_block_map.cc
@@ -333,7 +335,10 @@ set(SRC
   BKE_attribute.hh
   BKE_attribute_filter.hh
   BKE_attribute_filters.hh
+  BKE_attribute_legacy_convert.hh
   BKE_attribute_math.hh
+  BKE_attribute_storage.hh
+  BKE_attribute_storage_blend_write.hh
   BKE_autoexec.hh
   BKE_bake_data_block_id.hh
   BKE_bake_data_block_map.hh
@@ -818,6 +823,7 @@ add_dependencies(bf_blenkernel bf_rna)
 if(WITH_GTESTS)
   set(TEST_SRC
     intern/action_test.cc
+    intern/attribute_storage_test.cc
     intern/armature_test.cc
     intern/asset_metadata_test.cc
     intern/bpath_test.cc

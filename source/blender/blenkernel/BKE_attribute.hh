@@ -32,6 +32,33 @@ class GField;
 
 namespace blender::bke {
 
+/** Some storage types are only relevant for certain attribute types. */
+enum class AttrStorageType : int8_t {
+  /** #AttributeDataArray. */
+  Array,
+  /** A single value for the whole attribute. */
+  Single,
+};
+
+enum class AttrType : int16_t {
+  Bool,
+  Int8,
+  Int16_2D,
+  Int32,
+  Int32_2D,
+  Float,
+  Float2,
+  Float3,
+  Float4x4,
+  ColorByte,
+  ColorFloat,
+  Quaternion,
+  String,
+};
+
+const CPPType &attribute_type_to_cpp_type(AttrType type);
+AttrType cpp_type_to_attribute_type(const CPPType &type);
+
 enum class AttrDomain : int8_t {
   /* Used to choose automatically based on other data. */
   Auto = -1,

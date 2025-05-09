@@ -29,6 +29,7 @@
 #include "BLI_memory_counter.hh"
 #include "BLI_mempool.h"
 #include "BLI_path_utils.hh"
+#include "BLI_resource_scope.hh"
 #include "BLI_set.hh"
 #include "BLI_span.hh"
 #include "BLI_string.h"
@@ -44,7 +45,9 @@
 #include "BLT_translation.hh"
 
 #include "BKE_anonymous_attribute_id.hh"
+#include "BKE_attribute_legacy_convert.hh"
 #include "BKE_attribute_math.hh"
+#include "BKE_attribute_storage.hh"
 #include "BKE_customdata.hh"
 #include "BKE_customdata_file.h"
 #include "BKE_deform.hh"
@@ -5113,18 +5116,47 @@ static void get_type_file_write_info(const eCustomDataType type,
 }
 
 void CustomData_blend_write_prepare(CustomData &data,
+                                    const blender::bke::AttrDomain domain,
+                                    const int domain_size,
                                     Vector<CustomDataLayer, 16> &layers_to_write,
-                                    const Set<std::string> &skip_names)
+                                    blender::bke::AttributeStorage::BlendWriteData &write_data)
 {
+  using namespace blender::bke;
   for (const CustomDataLayer &layer : Span(data.layers, data.totlayer)) {
     if (layer.flag & CD_FLAG_NOCOPY) {
       continue;
     }
-    if (blender::bke::attribute_name_is_anonymous(layer.name)) {
+    const StringRef name = layer.name;
+    if (attribute_name_is_anonymous(name)) {
       continue;
     }
-    if (skip_names.contains(layer.name)) {
-      continue;
+    if (U.experimental.use_attribute_storage_write) {
+      /* When this experimental option is turned on, we always write the data in the new
+       * #AttributeStorage format, even though it's not yet used at runtime. This is meant for
+       * testing the forward compatibility capabilities meant to be shipped in version 4.5, in
+       * other words, the ability to read #AttributeStorage and convert it to #CustomData. This
+       * block should be removed when the new format is used at runtime. */
+      const eCustomDataType data_type = eCustomDataType(layer.type);
+      if (const std::optional<AttrType> type = custom_data_type_to_attr_type(data_type)) {
+        ::Attribute attribute_dna{};
+        attribute_dna.name = layer.name;
+        attribute_dna.data_type = int16_t(*type);
+        attribute_dna.domain = int8_t(domain);
+        attribute_dna.storage_type = int8_t(AttrStorageType::Array);
+
+        /* Do not increase the user count; #::AttributeArray does not act as an owner of the
+         * attribute data, since it's only used temporarily for writing files. Changing the user
+         * count would be okay too, but it's unnecessary because none of this data should be
+         * modified while it's being written anyway. */
+        auto &array_dna = write_data.scope.construct<::AttributeArray>();
+        array_dna.data = layer.data;
+        array_dna.sharing_info = layer.sharing_info;
+        array_dna.size = domain_size;
+        attribute_dna.data = &array_dna;
+
+        write_data.attributes.append(attribute_dna);
+        continue;
+      }
     }
     layers_to_write.append(layer);
   }

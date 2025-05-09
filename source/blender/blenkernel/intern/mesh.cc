@@ -29,6 +29,7 @@
 #include "BLI_math_matrix.hh"
 #include "BLI_math_vector.hh"
 #include "BLI_memory_counter.hh"
+#include "BLI_resource_scope.hh"
 #include "BLI_set.hh"
 #include "BLI_span.hh"
 #include "BLI_string.h"
@@ -43,6 +44,9 @@
 #include "BKE_anim_data.hh"
 #include "BKE_anonymous_attribute_id.hh"
 #include "BKE_attribute.hh"
+#include "BKE_attribute_legacy_convert.hh"
+#include "BKE_attribute_storage.hh"
+#include "BKE_attribute_storage_blend_write.hh"
 #include "BKE_bake_data_block_id.hh"
 #include "BKE_bpath.hh"
 #include "BKE_deform.hh"
@@ -93,6 +97,7 @@ static void mesh_init_data(ID *id)
   CustomData_reset(&mesh->face_data);
   CustomData_reset(&mesh->corner_data);
 
+  new (&mesh->attribute_storage.wrap()) blender::bke::AttributeStorage();
   mesh->runtime = new blender::bke::MeshRuntime();
 
   mesh->face_sets_color_seed = BLI_hash_int(BLI_time_now_seconds_i() & UINT_MAX);
@@ -205,6 +210,8 @@ static void mesh_copy_data(Main *bmain,
       &mesh_src->corner_data, &mesh_dst->corner_data, mask.lmask, mesh_dst->corners_num);
   CustomData_init_from(
       &mesh_src->face_data, &mesh_dst->face_data, mask.pmask, mesh_dst->faces_num);
+  new (&mesh_dst->attribute_storage.wrap())
+      blender::bke::AttributeStorage(mesh_src->attribute_storage.wrap());
   blender::implicit_sharing::copy_shared_pointer(mesh_src->face_offset_indices,
                                                  mesh_src->runtime->face_offsets_sharing_info,
                                                  &mesh_dst->face_offset_indices,
@@ -241,6 +248,7 @@ static void mesh_free_data(ID *id)
   BLI_freelistN(&mesh->vertex_group_names);
   MEM_SAFE_FREE(mesh->active_color_attribute);
   MEM_SAFE_FREE(mesh->default_color_attribute);
+  mesh->attribute_storage.wrap().~AttributeStorage();
   if (mesh->face_offset_indices) {
     blender::implicit_sharing::free_shared_data(&mesh->face_offset_indices,
                                                 &mesh->runtime->face_offsets_sharing_info);
@@ -330,10 +338,12 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
   Mesh *mesh = reinterpret_cast<Mesh *>(id);
   const bool is_undo = BLO_write_is_undo(writer);
 
+  ResourceScope scope;
   Vector<CustomDataLayer, 16> vert_layers;
   Vector<CustomDataLayer, 16> edge_layers;
   Vector<CustomDataLayer, 16> loop_layers;
   Vector<CustomDataLayer, 16> face_layers;
+  bke::AttributeStorage::BlendWriteData attribute_data{scope};
 
   /* Cache only - don't write. */
   mesh->mface = nullptr;
@@ -356,10 +366,22 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
     mesh->face_offset_indices = nullptr;
   }
   else {
-    CustomData_blend_write_prepare(mesh->vert_data, vert_layers, {});
-    CustomData_blend_write_prepare(mesh->edge_data, edge_layers, {});
-    CustomData_blend_write_prepare(mesh->corner_data, loop_layers, {});
-    CustomData_blend_write_prepare(mesh->face_data, face_layers, {});
+    attribute_storage_blend_write_prepare(mesh->attribute_storage.wrap(),
+                                          {{AttrDomain::Point, &vert_layers},
+                                           {AttrDomain::Edge, &edge_layers},
+                                           {AttrDomain::Face, &face_layers},
+                                           {AttrDomain::Corner, &loop_layers}},
+                                          attribute_data);
+    CustomData_blend_write_prepare(
+        mesh->vert_data, AttrDomain::Point, mesh->verts_num, vert_layers, attribute_data);
+    CustomData_blend_write_prepare(
+        mesh->edge_data, AttrDomain::Edge, mesh->edges_num, edge_layers, attribute_data);
+    CustomData_blend_write_prepare(
+        mesh->face_data, AttrDomain::Face, mesh->faces_num, face_layers, attribute_data);
+    CustomData_blend_write_prepare(
+        mesh->corner_data, AttrDomain::Corner, mesh->corners_num, loop_layers, attribute_data);
+    mesh->attribute_storage.dna_attributes = attribute_data.attributes.data();
+    mesh->attribute_storage.dna_attributes_num = attribute_data.attributes.size();
     if (!is_undo) {
       /* Write forward compatible format. To be removed in 5.0. */
       rename_seam_layer_to_old_name(
@@ -393,6 +415,8 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
       writer, &mesh->corner_data, loop_layers, mesh->corners_num, CD_MASK_MESH.lmask, &mesh->id);
   CustomData_blend_write(
       writer, &mesh->face_data, face_layers, mesh->faces_num, CD_MASK_MESH.pmask, &mesh->id);
+
+  mesh->attribute_storage.wrap().blend_write(*writer, attribute_data);
 
   if (mesh->face_offset_indices) {
     BLO_write_shared(
@@ -432,6 +456,7 @@ static void mesh_blend_read_data(BlendDataReader *reader, ID *id)
   CustomData_blend_read(reader, &mesh->fdata_legacy, mesh->totface_legacy);
   CustomData_blend_read(reader, &mesh->corner_data, mesh->corners_num);
   CustomData_blend_read(reader, &mesh->face_data, mesh->faces_num);
+  mesh->attribute_storage.wrap().blend_read(*reader);
   if (mesh->deform_verts().is_empty()) {
     /* Vertex group data was also an owning pointer in old Blender versions.
      * Don't read them again if they were read as part of #CustomData. */
@@ -439,6 +464,9 @@ static void mesh_blend_read_data(BlendDataReader *reader, ID *id)
   }
   BLO_read_string(reader, &mesh->active_color_attribute);
   BLO_read_string(reader, &mesh->default_color_attribute);
+
+  /* Forward compatibility. To be removed when runtime format changes. */
+  blender::bke::mesh_convert_storage_to_customdata(*mesh);
 
   mesh->texspace_flag &= ~ME_TEXSPACE_FLAG_AUTO_EVALUATED;
 
@@ -629,6 +657,7 @@ static void mesh_clear_geometry(Mesh &mesh)
   CustomData_free(&mesh.fdata_legacy);
   CustomData_free(&mesh.corner_data);
   CustomData_free(&mesh.face_data);
+  mesh.attribute_storage.wrap() = blender::bke::AttributeStorage();
   if (mesh.face_offset_indices) {
     blender::implicit_sharing::free_shared_data(&mesh.face_offset_indices,
                                                 &mesh.runtime->face_offsets_sharing_info);

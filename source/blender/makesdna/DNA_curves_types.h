@@ -9,6 +9,7 @@
 #pragma once
 
 #include "DNA_ID.h"
+#include "DNA_attribute_types.h"
 #include "DNA_customdata_types.h"
 #include "DNA_listBase.h"
 
@@ -115,6 +116,12 @@ typedef struct CurvesGeometry {
    * \note This is *not* stored as an attribute because its size is one larger than #curve_num.
    */
   int *curve_offsets;
+
+  /**
+   * Curve and point domain attributes. Currently unused at runtime, but used for forward
+   * compatibility when reading files (see #122398).
+   */
+  struct AttributeStorage attribute_storage;
 
   /**
    * All attributes stored on control points (#AttrDomain::Point).

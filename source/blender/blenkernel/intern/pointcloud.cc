@@ -18,11 +18,15 @@
 #include "BLI_bounds.hh"
 #include "BLI_index_range.hh"
 #include "BLI_rand.h"
+#include "BLI_resource_scope.hh"
 #include "BLI_span.hh"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
 
 #include "BKE_anim_data.hh"
+#include "BKE_attribute_legacy_convert.hh"
+#include "BKE_attribute_storage.hh"
+#include "BKE_attribute_storage_blend_write.hh"
 #include "BKE_bake_data_block_id.hh"
 #include "BKE_customdata.hh"
 #include "BKE_geometry_set.hh"
@@ -63,6 +67,7 @@ static void pointcloud_init_data(ID *id)
 
   MEMCPY_STRUCT_AFTER(pointcloud, DNA_struct_default_get(PointCloud), id);
 
+  new (&pointcloud->attribute_storage.wrap()) blender::bke::AttributeStorage();
   pointcloud->runtime = new blender::bke::PointCloudRuntime();
 
   CustomData_reset(&pointcloud->pdata);
@@ -82,6 +87,8 @@ static void pointcloud_copy_data(Main * /*bmain*/,
 
   CustomData_init_from(
       &pointcloud_src->pdata, &pointcloud_dst->pdata, CD_MASK_ALL, pointcloud_dst->totpoint);
+  new (&pointcloud_dst->attribute_storage.wrap())
+      blender::bke::AttributeStorage(pointcloud_src->attribute_storage.wrap());
 
   pointcloud_dst->runtime = new blender::bke::PointCloudRuntime();
   pointcloud_dst->runtime->bounds_cache = pointcloud_src->runtime->bounds_cache;
@@ -103,6 +110,7 @@ static void pointcloud_free_data(ID *id)
   BKE_animdata_free(&pointcloud->id, false);
   BKE_pointcloud_batch_cache_free(pointcloud);
   CustomData_free(&pointcloud->pdata);
+  pointcloud->attribute_storage.wrap().~AttributeStorage();
   MEM_SAFE_FREE(pointcloud->mat);
   delete pointcloud->runtime;
 }
@@ -117,10 +125,19 @@ static void pointcloud_foreach_id(ID *id, LibraryForeachIDData *data)
 
 static void pointcloud_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
+  using namespace blender;
+  using namespace blender::bke;
   PointCloud *pointcloud = (PointCloud *)id;
 
+  ResourceScope scope;
   Vector<CustomDataLayer, 16> point_layers;
-  CustomData_blend_write_prepare(pointcloud->pdata, point_layers);
+  bke::AttributeStorage::BlendWriteData attribute_data{scope};
+  attribute_storage_blend_write_prepare(
+      pointcloud->attribute_storage.wrap(), {{AttrDomain::Point, &point_layers}}, attribute_data);
+  CustomData_blend_write_prepare(
+      pointcloud->pdata, AttrDomain::Point, pointcloud->totpoint, point_layers, attribute_data);
+  pointcloud->attribute_storage.dna_attributes = attribute_data.attributes.data();
+  pointcloud->attribute_storage.dna_attributes_num = attribute_data.attributes.size();
 
   /* Write LibData */
   BLO_write_id_struct(writer, PointCloud, id_address, &pointcloud->id);
@@ -133,6 +150,7 @@ static void pointcloud_blend_write(BlendWriter *writer, ID *id, const void *id_a
                          pointcloud->totpoint,
                          CD_MASK_ALL,
                          &pointcloud->id);
+  pointcloud->attribute_storage.wrap().blend_write(*writer, attribute_data);
 
   BLO_write_pointer_array(writer, pointcloud->totcol, pointcloud->mat);
 }
@@ -143,6 +161,10 @@ static void pointcloud_blend_read_data(BlendDataReader *reader, ID *id)
 
   /* Geometry */
   CustomData_blend_read(reader, &pointcloud->pdata, pointcloud->totpoint);
+  pointcloud->attribute_storage.wrap().blend_read(*reader);
+
+  /* Forward compatibility. To be removed when runtime format changes. */
+  blender::bke::pointcloud_convert_storage_to_customdata(*pointcloud);
 
   /* Materials */
   BLO_read_pointer_array(reader, pointcloud->totcol, (void **)&pointcloud->mat);

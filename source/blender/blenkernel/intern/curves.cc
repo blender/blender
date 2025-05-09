@@ -19,13 +19,16 @@
 #include "BLI_index_range.hh"
 #include "BLI_math_matrix.hh"
 #include "BLI_rand.hh"
+#include "BLI_resource_scope.hh"
 #include "BLI_span.hh"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
 
 #include "BKE_anim_data.hh"
+#include "BKE_attribute_legacy_convert.hh"
 #include "BKE_curves.hh"
+#include "BKE_customdata.hh"
 #include "BKE_geometry_fields.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_idtype.hh"
@@ -108,8 +111,9 @@ static void curves_blend_write(BlendWriter *writer, ID *id, const void *id_addre
   /* Only for forward compatibility. */
   curves->attributes_active_index_legacy = curves->geometry.attributes_active_index;
 
-  blender::bke::CurvesGeometry::BlendWriteData write_data =
-      curves->geometry.wrap().blend_write_prepare();
+  blender::ResourceScope scope;
+  blender::bke::CurvesGeometry::BlendWriteData write_data(scope);
+  curves->geometry.wrap().blend_write_prepare(write_data);
 
   /* Write LibData */
   BLO_write_id_struct(writer, Curves, id_address, &curves->id);
