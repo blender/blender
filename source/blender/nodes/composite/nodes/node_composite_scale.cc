@@ -39,18 +39,10 @@ static void cmp_node_scale_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Color>("Image")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
-      .compositor_realization_mode(CompositorInputRealizationMode::None)
-      .compositor_domain_priority(0);
-  b.add_input<decl::Float>("X")
-      .default_value(1.0f)
-      .min(0.0001f)
-      .max(CMP_SCALE_MAX)
-      .compositor_domain_priority(1);
-  b.add_input<decl::Float>("Y")
-      .default_value(1.0f)
-      .min(0.0001f)
-      .max(CMP_SCALE_MAX)
-      .compositor_domain_priority(2);
+      .compositor_realization_mode(CompositorInputRealizationMode::None);
+  b.add_input<decl::Float>("X").default_value(1.0f).min(0.0001f).max(CMP_SCALE_MAX);
+  b.add_input<decl::Float>("Y").default_value(1.0f).min(0.0001f).max(CMP_SCALE_MAX);
+
   b.add_output<decl::Color>("Image");
 }
 
@@ -84,9 +76,6 @@ static void node_composit_buts_scale(uiLayout *layout, bContext * /*C*/, Pointer
                  UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_EXPAND,
                  std::nullopt,
                  ICON_NONE);
-    uiLayout *row = &layout->row(true);
-    row->prop(ptr, "offset_x", UI_ITEM_R_SPLIT_EMPTY_NAME, "X", ICON_NONE);
-    row->prop(ptr, "offset_y", UI_ITEM_R_SPLIT_EMPTY_NAME, "Y", ICON_NONE);
   }
 }
 
@@ -109,10 +98,7 @@ class ScaleOperation : public NodeOperation {
   void execute_constant_size()
   {
     const float2 scale = this->get_scale();
-    const math::AngleRadian rotation = 0.0f;
-    const float2 translation = this->get_translation();
-    const float3x3 transformation = math::from_loc_rot_scale<float3x3>(
-        translation, rotation, scale);
+    const float3x3 transformation = math::from_scale<float3x3>(scale);
 
     const Result &input = this->get_input("Image");
     Result &output = this->get_result("Image");
@@ -314,18 +300,6 @@ class ScaleOperation : public NodeOperation {
     return float2(math::max(scale.x, scale.y));
   }
 
-  float2 get_translation()
-  {
-    /* Only the render size option supports offset translation. */
-    if (get_scale_method() != CMP_NODE_SCALE_RENDER_SIZE) {
-      return float2(0.0f);
-    }
-
-    /* Translate by the offset factor relative to the new size. */
-    const float2 input_size = float2(get_input("Image").domain().size);
-    return get_offset() * input_size * get_scale();
-  }
-
   bool is_variable_size()
   {
     /* Only relative scaling can be variable. */
@@ -344,11 +318,6 @@ class ScaleOperation : public NodeOperation {
   CMPNodeScaleRenderSizeMethod get_scale_render_size_method()
   {
     return static_cast<CMPNodeScaleRenderSizeMethod>(bnode().custom2);
-  }
-
-  float2 get_offset()
-  {
-    return float2(bnode().custom3, bnode().custom4);
   }
 };
 

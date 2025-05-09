@@ -8010,12 +8010,18 @@ static void def_cmp_scale(BlenderRNA * /*brna*/, StructRNA *srna)
 
   prop = RNA_def_property(srna, "offset_x", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, nullptr, "custom3");
-  RNA_def_property_ui_text(prop, "X Offset", "Offset image horizontally (factor of image size)");
+  RNA_def_property_ui_text(prop,
+                           "X Offset",
+                           "Offset image horizontally (factor of image size). (Deprecated: Use a "
+                           "Translate node instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "offset_y", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, nullptr, "custom4");
-  RNA_def_property_ui_text(prop, "Y Offset", "Offset image vertically (factor of image size)");
+  RNA_def_property_ui_text(
+      prop,
+      "Y Offset",
+      "Offset image vertically (factor of image size). (Deprecated: Use Translate node instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   RNA_def_struct_sdna_from(srna, "NodeScaleData", "storage");
