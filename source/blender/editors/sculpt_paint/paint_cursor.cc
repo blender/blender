@@ -177,7 +177,7 @@ static void load_tex_task_cb_ex(void *__restrict userdata,
   const float radius = data->radius;
 
   bool convert_to_linear = false;
-  ColorSpace *colorspace = nullptr;
+  const ColorSpace *colorspace = nullptr;
 
   const int thread_id = BLI_task_parallel_thread_id(tls);
 

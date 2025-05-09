@@ -161,6 +161,7 @@ set(LIB
   PRIVATE bf::blenlib
   PRIVATE bf::dna
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::dependencies::optional::opencolorio
 )
 
 set(GLSL_SRC
@@ -352,20 +353,6 @@ if(WITH_OPENIMAGEDENOISE)
   list(APPEND LIB
     ${OPENIMAGEDENOISE_LIBRARIES}
     ${TBB_LIBRARIES}
-  )
-endif()
-
-if(WITH_OPENCOLORIO)
-  add_definitions(
-    -DWITH_OCIO
-  )
-
-  list(APPEND INC_SYS
-    ${OPENCOLORIO_INCLUDE_DIRS}
-  )
-
-  list(APPEND LIB
-    ${OPENCOLORIO_LIBRARIES}
   )
 endif()
 

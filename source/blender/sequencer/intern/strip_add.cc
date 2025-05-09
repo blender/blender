@@ -117,7 +117,7 @@ static void strip_add_set_view_transform(Scene *scene, Strip *strip, LoadData *l
     role_colorspace_byte = IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DEFAULT_BYTE);
 
     if (STREQ(strip_colorspace, role_colorspace_byte)) {
-      ColorManagedDisplay *display = IMB_colormanagement_display_get_named(
+      const ColorManagedDisplay *display = IMB_colormanagement_display_get_named(
           scene->display_settings.display_device);
       const char *default_view_transform =
           IMB_colormanagement_display_get_default_view_transform_name(display);

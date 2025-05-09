@@ -5,6 +5,46 @@
 /* Blender OpenColorIO implementation */
 
 /* -------------------------------------------------------------------- */
+/** \name Hardcoded color space conversion for fallback implementation
+ *
+ * NOTE: It is tempting to include gpu_shader_common_color_utils.glsl, but it should not be done
+ * here as that header is intended to be used from the node shaders, and the source processor does
+ * much more than simply including the file (it also follows some implicit dependencies that is
+ * undesired here, and might break since we do not use node shaders here.
+ * \{ */
+
+float srgb_to_linear_rgb(float color)
+{
+  if (color < 0.04045f) {
+    return (color < 0.0f) ? 0.0f : color * (1.0f / 12.92f);
+  }
+  return pow((color + 0.055f) * (1.0f / 1.055f), 2.4f);
+}
+
+float3 srgb_to_linear_rgb(float3 color)
+{
+  return float3(
+      srgb_to_linear_rgb(color.r), srgb_to_linear_rgb(color.g), srgb_to_linear_rgb(color.b));
+}
+
+float linear_rgb_to_srgb(float color)
+{
+  if (color < 0.0031308f) {
+    return (color < 0.0f) ? 0.0f : color * 12.92f;
+  }
+
+  return 1.055f * pow(color, 1.0f / 2.4f) - 0.055f;
+}
+
+float3 linear_rgb_to_srgb(float3 color)
+{
+  return float3(
+      linear_rgb_to_srgb(color.r), linear_rgb_to_srgb(color.g), linear_rgb_to_srgb(color.b));
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Curve Mapping Implementation
  * \{ */
 
@@ -15,7 +55,7 @@ float read_curve_mapping(int table, int index)
   return texelFetch(curve_mapping_texture, index, 0)[table];
 }
 
-float curvemap_calc_extend(int table, float x, vec2 first, vec2 last)
+float curvemap_calc_extend(int table, float x, float2 first, float2 last)
 {
   if (x <= first[0]) {
     if (curve_mapping.use_extend_extrapolate == 0) {
@@ -62,8 +102,8 @@ float curvemap_evaluateF(int table, float value)
   if (fi < 0.0 || fi > float(CM_TABLE)) {
     return curvemap_calc_extend(table,
                                 value,
-                                vec2(curve_mapping.first_x[table], curve_mapping.first_y[table]),
-                                vec2(curve_mapping.last_x[table], curve_mapping.last_y[table]));
+                                float2(curve_mapping.first_x[table], curve_mapping.first_y[table]),
+                                float2(curve_mapping.last_x[table], curve_mapping.last_y[table]));
   }
   else {
     if (i < 0) {
@@ -79,11 +119,11 @@ float curvemap_evaluateF(int table, float value)
   }
 }
 
-vec4 curvemapping_evaluate_premulRGBF(vec4 col)
+float4 curvemapping_evaluate_premulRGBF(float4 col)
 {
   col.rgb = (col.rgb - curve_mapping.black.rgb) * curve_mapping.bwmul.rgb;
 
-  vec4 result;
+  float4 result;
   result.r = curvemap_evaluateF(0, col.r);
   result.g = curvemap_evaluateF(1, col.g);
   result.b = curvemap_evaluateF(2, col.b);
@@ -101,9 +141,9 @@ vec4 curvemapping_evaluate_premulRGBF(vec4 col)
 
 /* 2D hash (iqint3) recommended from "Hash Functions for GPU Rendering" JCGT Vol. 9, No. 3, 2020
  * https://jcgt.org/published/0009/03/02/ */
-float hash_iqint3_f(uvec2 x)
+float hash_iqint3_f(uint2 x)
 {
-  uvec2 q = 1103515245u * ((x >> 1u) ^ (x.yx));
+  uint2 q = 1103515245u * ((x >> 1u) ^ (x.yx));
   uint n = 1103515245u * ((q.x) ^ (q.y >> 3u));
   return float(n) * (1.0 / float(0xffffffffu));
 }
@@ -112,7 +152,7 @@ float hash_iqint3_f(uvec2 x)
  * Triangle distribution which gives a more final uniform noise,
  * see "Banding in Games: A Noisy Rant" by Mikkel Gjoel (slide 27)
  * https://loopit.dk/banding_in_games.pdf */
-float dither_random_value(uvec2 co)
+float dither_random_value(uint2 co)
 {
   float v = hash_iqint3_f(co);
   /* Convert uniform distribution into triangle-shaped distribution. Based on
@@ -122,13 +162,13 @@ float dither_random_value(uvec2 co)
   return v;
 }
 
-uvec2 get_pixel_coord(sampler2D tex, vec2 uv)
+uint2 get_pixel_coord(sampler2D tex, float2 uv)
 {
-  vec2 size = vec2(textureSize(tex, 0));
-  return uvec2(uv * size);
+  float2 size = float2(textureSize(tex, 0));
+  return uint2(uv * size);
 }
 
-vec4 apply_dither(vec4 col, uvec2 uv)
+float4 apply_dither(float4 col, uint2 uv)
 {
   col.rgb += dither_random_value(uv) * 0.0033 * parameters.dither;
   return col;
@@ -142,11 +182,11 @@ vec4 apply_dither(vec4 col, uvec2 uv)
 
 /* Prototypes: Implementation is generated and defined after. */
 #ifndef GPU_METAL /* Forward declaration invalid in MSL. */
-vec4 OCIO_to_scene_linear(vec4 pixel);
-vec4 OCIO_to_display(vec4 pixel);
+float4 OCIO_to_scene_linear(float4 pixel);
+float4 OCIO_to_display(float4 pixel);
 #endif
 
-vec4 OCIO_ProcessColor(vec4 col, vec4 col_overlay)
+float4 OCIO_ProcessColor(float4 col, float4 col_overlay)
 {
 #ifdef USE_CURVE_MAPPING
   col = curvemapping_evaluate_premulRGBF(col);
@@ -158,10 +198,8 @@ vec4 OCIO_ProcessColor(vec4 col, vec4 col_overlay)
     }
   }
 
-  /* NOTE: This is true we only do de-pre-multiply here and NO pre-multiply
-   *       and the reason is simple -- opengl is always configured
-   *       for straight alpha at this moment
-   */
+  /* NOTE: This is true we only do de-pre-multiply here and NO pre-multiply and the reason is
+   * simple -- opengl is always configured for straight alpha at this moment. */
 
   /* Convert to scene linear (usually a no-op). */
   col = OCIO_to_scene_linear(col);
@@ -174,12 +212,11 @@ vec4 OCIO_ProcessColor(vec4 col, vec4 col_overlay)
 
   /* Blend with overlay in UI color-space.
    *
-   * UI color-space here refers to the display linear color space,
-   * i.e: The linear color space w.r.t. display chromaticity and radiometry.
-   * We separate the color-management process into two steps to be able to
-   * merge UI using alpha blending in the correct color space. */
-  if (parameters.use_overlay) {
-    col.rgb = pow(col.rgb, vec3(parameters.exponent * 2.2));
+   * UI color-space here refers to the display linear color space, i.e: The linear color space
+   * w.r.t. display chromaticity and radiometry. We separate the color-management process into two
+   * steps to be able to merge UI using alpha blending in the correct color space. */
+  if (parameters.do_overlay_merge) {
+    col.rgb = pow(col.rgb, float3(parameters.exponent * 2.2));
 
     if (!parameters.use_hdr) {
       /* If we're not using an extended color space, clamp the color 0..1. */
@@ -192,14 +229,14 @@ vec4 OCIO_ProcessColor(vec4 col, vec4 col_overlay)
     }
     col *= 1.0 - col_overlay.a;
     col += col_overlay; /* Assumed unassociated alpha. */
-    col.rgb = pow(col.rgb, vec3(1.0 / 2.2));
+    col.rgb = pow(col.rgb, float3(1.0 / 2.2));
   }
   else {
-    col.rgb = pow(col.rgb, vec3(parameters.exponent));
+    col.rgb = pow(col.rgb, float3(parameters.exponent));
   }
 
   if (parameters.dither > 0.0) {
-    uvec2 texel = get_pixel_coord(image_texture, texCoord_interp.st);
+    uint2 texel = get_pixel_coord(image_texture, texCoord_interp.st);
     col = apply_dither(col, texel);
   }
 
@@ -210,8 +247,8 @@ vec4 OCIO_ProcessColor(vec4 col, vec4 col_overlay)
 
 void main()
 {
-  vec4 col = texture(image_texture, texCoord_interp.st);
-  vec4 col_overlay = texture(overlay_texture, texCoord_interp.st);
+  float4 col = texture(image_texture, texCoord_interp.st);
+  float4 col_overlay = texture(overlay_texture, texCoord_interp.st);
 
   fragColor = OCIO_ProcessColor(col, col_overlay);
 }

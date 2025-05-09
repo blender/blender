@@ -24,7 +24,7 @@
 #include "COM_ocio_color_space_conversion_shader.hh"
 #include "COM_result.hh"
 
-#if defined(WITH_OCIO)
+#if defined(WITH_OPENCOLORIO)
 #  include <OpenColorIO/OpenColorIO.h>
 #endif
 
@@ -55,7 +55,7 @@ bool operator==(const OCIOColorSpaceConversionShaderKey &a,
  * GPU Shader Creator.
  */
 
-#if defined(WITH_OCIO)
+#if defined(WITH_OPENCOLORIO)
 
 namespace OCIO = OCIO_NAMESPACE;
 using namespace blender::gpu::shader;
@@ -486,7 +486,7 @@ OCIOColorSpaceConversionShader::OCIOColorSpaceConversionShader(Context &context,
    * processor. */
   shader_creator_ = GPUShaderCreator::Create(context.get_precision());
 
-#if defined(WITH_OCIO)
+#if defined(WITH_OPENCOLORIO)
   /* Get a GPU processor that transforms the source color space to the target color space. */
   try {
     OCIO::ConstConfigRcPtr config = OCIO::GetCurrentConfig();
@@ -543,7 +543,7 @@ OCIOColorSpaceConversionShader &OCIOColorSpaceConversionShaderContainer::get(Con
                                                                              std::string source,
                                                                              std::string target)
 {
-#if defined(WITH_OCIO)
+#if defined(WITH_OPENCOLORIO)
   /* Use the config cache ID in the cache key in case the configuration changed at runtime. */
   std::string config_cache_id = OCIO::GetCurrentConfig()->getCacheID();
 #else

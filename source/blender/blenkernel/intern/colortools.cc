@@ -1886,8 +1886,9 @@ void BKE_color_managed_view_settings_init_render(
     const ColorManagedDisplaySettings *display_settings,
     const char *view_transform)
 {
-  ColorManagedDisplay *display = IMB_colormanagement_display_get_named(
+  const ColorManagedDisplay *display = IMB_colormanagement_display_get_named(
       display_settings->display_device);
+  BLI_assert(display);
 
   if (!view_transform) {
     view_transform = IMB_colormanagement_display_get_default_view_transform_name(display);

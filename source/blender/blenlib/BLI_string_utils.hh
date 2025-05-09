@@ -41,6 +41,13 @@ char *BLI_string_replaceN(const char *__restrict str,
     ATTR_NONNULL(1, 2, 3) ATTR_MALLOC;
 
 /**
+ * In-place replacement all occurrences of needle in haystack with other.
+ */
+void BLI_string_replace(std::string &haystack,
+                        blender::StringRef needle,
+                        blender::StringRef other);
+
+/**
  * In-place replace every \a src to \a dst in \a str.
  *
  * \param str: The string to operate on.

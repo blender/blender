@@ -103,9 +103,9 @@ static void engine_tag_update(RenderEngine *engine)
   engine->flag |= RE_ENGINE_DO_UPDATE;
 }
 
-static bool engine_support_display_space_shader(RenderEngine * /*engine*/, Scene *scene)
+static bool engine_support_display_space_shader(RenderEngine * /*engine*/, Scene * /*scene*/)
 {
-  return IMB_colormanagement_support_glsl_draw(&scene->view_settings);
+  return true;
 }
 
 static int engine_get_preview_pixel_size(RenderEngine * /*engine*/, Scene *scene)

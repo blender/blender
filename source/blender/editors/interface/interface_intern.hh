@@ -26,7 +26,6 @@ struct AnimationEvalContext;
 struct ARegion;
 struct bContext;
 struct bContextStore;
-struct ColorManagedDisplay;
 struct CurveMapping;
 struct CurveProfile;
 namespace blender::gpu {
@@ -49,6 +48,11 @@ struct wmEvent;
 struct wmKeyConfig;
 struct wmOperatorType;
 struct wmTimer;
+
+namespace blender::ocio {
+class Display;
+}  // namespace blender::ocio
+using ColorManagedDisplay = blender::ocio::Display;
 
 /* ****************** general defines ************** */
 
@@ -865,7 +869,7 @@ void ui_but_override_flag(Main *bmain, uiBut *but);
 
 void ui_block_bounds_calc(uiBlock *block);
 
-ColorManagedDisplay *ui_block_cm_display_get(uiBlock *block);
+const ColorManagedDisplay *ui_block_cm_display_get(uiBlock *block);
 void ui_block_cm_to_display_space_v3(uiBlock *block, float pixel[3]);
 
 /* `interface_regions.cc` */

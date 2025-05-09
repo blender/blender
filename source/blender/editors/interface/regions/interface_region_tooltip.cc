@@ -1205,7 +1205,7 @@ static std::unique_ptr<uiTooltipData> ui_tooltip_data_from_button_or_extra_icon(
     image_data.border = true;
     image_data.premultiplied = false;
 
-    ColorManagedDisplay *display = ui_block_cm_display_get(but->block);
+    const ColorManagedDisplay *display = ui_block_cm_display_get(but->block);
     if (color[3] == 1.0f) {
       /* No transparency so draw the entire area solid without checkerboard. */
       image_data.background = uiTooltipImageBackground::None;

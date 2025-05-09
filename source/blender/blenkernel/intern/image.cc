@@ -2010,7 +2010,7 @@ void BKE_image_stamp_buf(Scene *scene,
   int x, y, y_ofs;
   int h_fixed;
   const int mono = blf_mono_font_render; /* XXX */
-  ColorManagedDisplay *display;
+  const ColorManagedDisplay *display;
   const char *display_device;
 
   /* vars for calculating wordwrap */

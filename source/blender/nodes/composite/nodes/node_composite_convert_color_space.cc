@@ -53,7 +53,7 @@ static void node_composit_buts_convert_colorspace(uiLayout *layout,
                                                   bContext * /*C*/,
                                                   PointerRNA *ptr)
 {
-#ifndef WITH_OCIO
+#ifndef WITH_OPENCOLORIO
   layout->label(RPT_("Disabled, built without OpenColorIO"), ICON_ERROR);
 #endif
 

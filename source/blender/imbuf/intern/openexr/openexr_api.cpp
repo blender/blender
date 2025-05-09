@@ -513,9 +513,9 @@ static void openexr_header_metadata(Header *header, ImBuf *ibuf)
   }
 
   /* Write chromaticities for ACES-2065-1, as required by ACES container format. */
-  ColorSpace *colorspace = (ibuf->float_buffer.data) ? ibuf->float_buffer.colorspace :
-                           (ibuf->byte_buffer.data)  ? ibuf->byte_buffer.colorspace :
-                                                       nullptr;
+  const ColorSpace *colorspace = (ibuf->float_buffer.data) ? ibuf->float_buffer.colorspace :
+                                 (ibuf->byte_buffer.data)  ? ibuf->byte_buffer.colorspace :
+                                                             nullptr;
   if (colorspace) {
     const char *aces_colorspace = IMB_colormanagement_role_colorspace_name_get(
         COLOR_ROLE_ACES_INTERCHANGE);

@@ -60,7 +60,7 @@
 #include "eyedropper_intern.hh"
 
 struct Eyedropper {
-  ColorManagedDisplay *display = nullptr;
+  const ColorManagedDisplay *display = nullptr;
 
   PointerRNA ptr = {};
   PropertyRNA *prop = nullptr;
@@ -493,7 +493,7 @@ bool eyedropper_color_sample_fl(bContext *C,
       WM_window_pixels_read_sample_from_offscreen(C, win, event_xy_win, r_col);
     }
     const char *display_device = CTX_data_scene(C)->display_settings.display_device;
-    ColorManagedDisplay *display = IMB_colormanagement_display_get_named(display_device);
+    const ColorManagedDisplay *display = IMB_colormanagement_display_get_named(display_device);
     IMB_colormanagement_display_to_scene_linear_v3(r_col, display);
     return true;
   }

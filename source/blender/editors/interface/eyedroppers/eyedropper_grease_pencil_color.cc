@@ -61,7 +61,7 @@ enum class MaterialMode : int8_t {
 };
 
 struct EyedropperGreasePencil {
-  ColorManagedDisplay *display = nullptr;
+  const ColorManagedDisplay *display = nullptr;
 
   bool accum_start = false; /* has mouse been pressed */
   float3 accum_col = {};

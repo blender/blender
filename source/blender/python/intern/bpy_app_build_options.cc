@@ -273,7 +273,7 @@ static PyObject *make_builtopts_info()
   SetObjIncref(Py_False);
 #endif
 
-#ifdef WITH_OCIO
+#ifdef WITH_OPENCOLORIO
   SetObjIncref(Py_True);
 #else
   SetObjIncref(Py_False);

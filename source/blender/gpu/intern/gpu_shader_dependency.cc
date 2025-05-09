@@ -37,9 +37,7 @@ extern "C" {
 #include "glsl_compositor_source_list.h"
 #include "glsl_draw_source_list.h"
 #include "glsl_gpu_source_list.h"
-#ifdef WITH_OCIO
-#  include "glsl_ocio_source_list.h"
-#endif
+#include "glsl_ocio_source_list.h"
 #ifdef WITH_OPENSUBDIV
 #  include "glsl_osd_source_list.h"
 #endif
@@ -371,9 +369,7 @@ namespace shader {
 #include "glsl_compositor_metadata_list.hh"
 #include "glsl_draw_metadata_list.hh"
 #include "glsl_gpu_metadata_list.hh"
-#ifdef WITH_OCIO
-#  include "glsl_ocio_metadata_list.hh"
-#endif
+#include "glsl_ocio_metadata_list.hh"
 #ifdef WITH_OPENSUBDIV
 #  include "glsl_osd_metadata_list.hh"
 #endif
@@ -407,9 +403,7 @@ void gpu_shader_dependency_init()
 #include "glsl_compositor_source_list.h"
 #include "glsl_draw_source_list.h"
 #include "glsl_gpu_source_list.h"
-#ifdef WITH_OCIO
-#  include "glsl_ocio_source_list.h"
-#endif
+#include "glsl_ocio_source_list.h"
 #ifdef WITH_OPENSUBDIV
 #  include "glsl_osd_source_list.h"
 #endif

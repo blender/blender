@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 add_subdirectory(movie)
+add_subdirectory(opencolorio)
 
 set(INC
   PUBLIC .
@@ -78,7 +79,7 @@ set(LIB
   PRIVATE bf::intern::atomic
   PRIVATE bf::intern::guardedalloc
   bf_intern_memutil
-  bf_intern_opencolorio
+  PRIVATE bf::imbuf::opencolorio
   PRIVATE bf::extern::nanosvg
 
   ${JPEG_LIBRARIES}
@@ -141,10 +142,6 @@ if(WITH_IMAGE_WEBP)
   )
   add_definitions(-DWITH_IMAGE_WEBP)
 endif()
-
-list(APPEND INC
-  ../../../intern/opencolorio
-)
 
 if(WIN32)
   list(APPEND INC

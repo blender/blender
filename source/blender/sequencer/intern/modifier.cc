@@ -818,14 +818,16 @@ static void tonemapmodifier_init_data(StripModifierData *smd)
 }
 
 /* Convert chunk of float image pixels to scene linear space, in-place. */
-static void pixels_to_scene_linear_float(ColorSpace *colorspace, float4 *pixels, int64_t count)
+static void pixels_to_scene_linear_float(const ColorSpace *colorspace,
+                                         float4 *pixels,
+                                         int64_t count)
 {
   IMB_colormanagement_colorspace_to_scene_linear(
       (float *)(pixels), int(count), 1, 4, colorspace, false);
 }
 
 /* Convert chunk of byte image pixels to scene linear space, into a destination array. */
-static void pixels_to_scene_linear_byte(ColorSpace *colorspace,
+static void pixels_to_scene_linear_byte(const ColorSpace *colorspace,
                                         const uchar *pixels,
                                         float4 *dst,
                                         int64_t count)
@@ -843,7 +845,7 @@ static void pixels_to_scene_linear_byte(ColorSpace *colorspace,
 
 static void scene_linear_to_image_chunk_float(ImBuf *ibuf, IndexRange range)
 {
-  ColorSpace *colorspace = ibuf->float_buffer.colorspace;
+  const ColorSpace *colorspace = ibuf->float_buffer.colorspace;
   float4 *fptr = reinterpret_cast<float4 *>(ibuf->float_buffer.data);
   IMB_colormanagement_scene_linear_to_colorspace(
       (float *)(fptr + range.first()), int(range.size()), 1, 4, colorspace);
@@ -851,7 +853,7 @@ static void scene_linear_to_image_chunk_float(ImBuf *ibuf, IndexRange range)
 
 static void scene_linear_to_image_chunk_byte(float4 *src, ImBuf *ibuf, IndexRange range)
 {
-  ColorSpace *colorspace = ibuf->byte_buffer.colorspace;
+  const ColorSpace *colorspace = ibuf->byte_buffer.colorspace;
   IMB_colormanagement_scene_linear_to_colorspace(
       (float *)src, int(range.size()), 1, 4, colorspace);
   const float4 *src_ptr = src;

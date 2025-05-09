@@ -135,11 +135,8 @@ set(LIB
   bf_compositor
   PRIVATE bf::render
   PRIVATE bf::windowmanager
+  PRIVATE bf::dependencies::optional::opencolorio
 )
-
-if(WITH_OPENCOLORIO)
-  add_definitions(-DWITH_OCIO)
-endif()
 
 if(WITH_IMAGE_OPENEXR)
   add_definitions(-DWITH_IMAGE_OPENEXR)

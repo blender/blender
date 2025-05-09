@@ -12,6 +12,21 @@
 
 namespace blender {
 
+TEST(BLI_string_utils, BLI_string_replace)
+{
+  {
+    std::string s = "foo bar baz";
+    BLI_string_replace(s, "bar", "hello");
+    EXPECT_EQ(s, "foo hello baz");
+  }
+
+  {
+    std::string s = "foo bar baz world bar";
+    BLI_string_replace(s, "bar", "hello");
+    EXPECT_EQ(s, "foo hello baz world hello");
+  }
+}
+
 TEST(BLI_string_utils, BLI_uniquename_cb)
 {
   const Vector<std::string> current_names{"Foo", "Bar", "Bar.003", "Baz.001", "Big.999"};
