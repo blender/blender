@@ -64,7 +64,7 @@ class ActionLayersTest : public testing::Test {
   void SetUp() override
   {
     bmain = BKE_main_new();
-    action = static_cast<Action *>(BKE_id_new(bmain, ID_AC, "ACÄnimåtië"));
+    action = BKE_id_new<Action>(bmain, "ACÄnimåtië");
     cube = BKE_object_add_only_object(bmain, OB_EMPTY, "Küüübus");
     suzanne = BKE_object_add_only_object(bmain, OB_EMPTY, "OBSuzanne");
     bob = BKE_object_add_only_object(bmain, OB_EMPTY, "OBBob");
@@ -115,7 +115,7 @@ TEST_F(ActionLayersTest, remove_layer)
   layer2.strip_add(*action, Strip::Type::Keyframe);
 
   { /* Test removing a layer that is not owned. */
-    Action *other_anim = static_cast<Action *>(BKE_id_new(bmain, ID_AC, "ACOtherAnim"));
+    Action *other_anim = BKE_id_new<Action>(bmain, "ACOtherAnim");
     Layer &other_layer = other_anim->layer_add("Another Layer");
     EXPECT_FALSE(action->layer_remove(other_layer))
         << "Removing a layer not owned by the Action should be gracefully rejected";
@@ -565,7 +565,7 @@ TEST_F(ActionLayersTest, action_assign_id)
       << "Expecting Suzanne to be registered as animated by the Cube slot.";
 
   { /* Assign Cube to another action+slot without unassigning first. */
-    Action *another_anim = static_cast<Action *>(BKE_id_new(bmain, ID_AC, "ACOtherAnim"));
+    Action *another_anim = BKE_id_new<Action>(bmain, "ACOtherAnim");
     Slot &another_slot = another_anim->slot_add();
     ASSERT_EQ(assign_action_and_slot(another_anim, &another_slot, cube->id),
               ActionSlotAssignmentResult::OK);
@@ -1130,8 +1130,8 @@ TEST_F(ActionLayersTest, conversion_to_layered)
   ASSERT_TRUE(bag->fcurve_array[0]->modifiers.first == nullptr);
   ASSERT_TRUE(bag->fcurve_array[1]->modifiers.first != nullptr);
 
-  Action *long_name_action = static_cast<Action *>(BKE_id_new(
-      bmain, ID_AC, "name_for_an_action_that_is_exactly_64_chars_which_is_MAX_ID_NAME"));
+  Action *long_name_action = BKE_id_new<Action>(
+      bmain, "name_for_an_action_that_is_exactly_64_chars_which_is_MAX_ID_NAME");
   action_fcurve_ensure_legacy(bmain, long_name_action, "Long", nullptr, {"location", 0});
   converted = convert_to_layered_action(*bmain, *long_name_action);
   /* AC gets added automatically by Blender, the long name is shortened to make space for
@@ -1196,7 +1196,7 @@ TEST_F(ActionLayersTest, empty_to_layered)
 
 TEST_F(ActionLayersTest, action_move_slot)
 {
-  Action *action_2 = static_cast<Action *>(BKE_id_new(bmain, ID_AC, "Action 2"));
+  Action *action_2 = BKE_id_new<Action>(bmain, "Action 2");
   EXPECT_TRUE(action->is_empty());
 
   Slot &slot_cube = action->slot_add();
@@ -1250,7 +1250,7 @@ TEST_F(ActionLayersTest, action_move_slot)
 
 TEST_F(ActionLayersTest, action_move_slot_without_channelbag)
 {
-  Action *action_2 = static_cast<Action *>(BKE_id_new(bmain, ID_AC, "Action 2"));
+  Action *action_2 = BKE_id_new<Action>(bmain, "Action 2");
   EXPECT_TRUE(action->is_empty());
 
   Slot &slot_cube = action->slot_add();
@@ -1442,7 +1442,7 @@ class ActionQueryTest : public testing::Test {
 
   Action &action_new()
   {
-    return *static_cast<Action *>(BKE_id_new(bmain, ID_AC, "ACÄnimåtië"));
+    return *BKE_id_new<Action>(bmain, "ACÄnimåtië");
   }
 };
 

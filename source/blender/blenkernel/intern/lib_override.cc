@@ -1598,8 +1598,7 @@ static void lib_override_library_create_post_process(Main *bmain,
             if (ID_REAL_USERS(ob_new) != 0) {
               continue;
             }
-            default_instantiating_collection = static_cast<Collection *>(
-                BKE_id_new(bmain, ID_GR, "OVERRIDE_HIDDEN"));
+            default_instantiating_collection = BKE_id_new<Collection>(bmain, "OVERRIDE_HIDDEN");
             id_us_min(&default_instantiating_collection->id);
             /* Hide the collection from viewport and render. */
             default_instantiating_collection->flag |= COLLECTION_HIDE_VIEWPORT |

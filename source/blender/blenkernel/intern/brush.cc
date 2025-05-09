@@ -529,7 +529,7 @@ static void brush_defaults(Brush *brush)
 
 Brush *BKE_brush_add(Main *bmain, const char *name, const eObjectMode ob_mode)
 {
-  Brush *brush = (Brush *)BKE_id_new(bmain, ID_BR, name);
+  Brush *brush = BKE_id_new<Brush>(bmain, name);
 
   brush->ob_mode = ob_mode;
 

@@ -2953,7 +2953,7 @@ static Object *convert_curves_component_to_curves(Base &base,
     newob = get_object_for_conversion(base, info, r_new_base);
 
     const Curves *curves_eval = geometry.get_curves();
-    Curves *new_curves = static_cast<Curves *>(BKE_id_new(info.bmain, ID_CV, newob->id.name + 2));
+    Curves *new_curves = BKE_id_new<Curves>(info.bmain, newob->id.name + 2);
 
     newob->data = new_curves;
     newob->type = OB_CURVES;
@@ -2990,7 +2990,7 @@ static Object *convert_grease_pencil_component_to_curves(Base &base,
   if (geometry.has_grease_pencil()) {
     newob = get_object_for_conversion(base, info, r_new_base);
 
-    Curves *new_curves = static_cast<Curves *>(BKE_id_new(info.bmain, ID_CV, newob->id.name + 2));
+    Curves *new_curves = BKE_id_new<Curves>(info.bmain, newob->id.name + 2);
     newob->data = new_curves;
     newob->type = OB_CURVES;
 
@@ -3370,7 +3370,7 @@ static Object *convert_curves_to_mesh(Base &base, ObjectConversionInfo &info, Ba
 
   if (mesh_eval || curves_eval) {
     newob = get_object_for_conversion(base, info, r_new_base);
-    new_mesh = static_cast<Mesh *>(BKE_id_new(info.bmain, ID_ME, newob->id.name + 2));
+    new_mesh = BKE_id_new<Mesh>(info.bmain, newob->id.name + 2);
     newob->data = new_mesh;
     newob->type = OB_MESH;
   }
@@ -3422,8 +3422,7 @@ static Object *convert_curves_to_grease_pencil(Base &base,
 
   if (grease_pencil_eval || curves_eval) {
     newob = get_object_for_conversion(base, info, r_new_base);
-    new_grease_pencil = static_cast<GreasePencil *>(
-        BKE_id_new(info.bmain, ID_GP, newob->id.name + 2));
+    new_grease_pencil = BKE_id_new<GreasePencil>(info.bmain, newob->id.name + 2);
     newob->data = new_grease_pencil;
     newob->type = OB_GREASE_PENCIL;
   }
@@ -3497,7 +3496,7 @@ static Object *convert_grease_pencil_to_mesh(Base &base,
     newob = get_object_for_conversion(base, info, r_new_base);
 
     const Curves *curves_eval = geometry.get_curves();
-    Curves *new_curves = static_cast<Curves *>(BKE_id_new(info.bmain, ID_CV, newob->id.name + 2));
+    Curves *new_curves = BKE_id_new<Curves>(info.bmain, newob->id.name + 2);
 
     newob->data = new_curves;
     newob->type = OB_CURVES;
@@ -3547,7 +3546,7 @@ static Object *convert_grease_pencil_to_mesh(Base &base,
       }
     }
 
-    Mesh *new_mesh = static_cast<Mesh *>(BKE_id_new(info.bmain, ID_ME, newob->id.name + 2));
+    Mesh *new_mesh = BKE_id_new<Mesh>(info.bmain, newob->id.name + 2);
     newob->data = new_mesh;
     newob->type = OB_MESH;
 

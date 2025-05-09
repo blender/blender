@@ -304,7 +304,7 @@ Material *BKE_material_add(Main *bmain, const char *name)
 {
   Material *ma;
 
-  ma = static_cast<Material *>(BKE_id_new(bmain, ID_MA, name));
+  ma = BKE_id_new<Material>(bmain, name);
 
   return ma;
 }

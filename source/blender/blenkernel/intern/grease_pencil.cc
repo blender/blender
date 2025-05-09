@@ -2000,7 +2000,7 @@ bool BKE_grease_pencil_drawing_attribute_required(const GreasePencilDrawing * /*
 
 GreasePencil *BKE_grease_pencil_add(Main *bmain, const char *name)
 {
-  GreasePencil *grease_pencil = reinterpret_cast<GreasePencil *>(BKE_id_new(bmain, ID_GP, name));
+  GreasePencil *grease_pencil = BKE_id_new<GreasePencil>(bmain, name);
 
   return grease_pencil;
 }

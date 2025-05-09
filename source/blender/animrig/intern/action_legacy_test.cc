@@ -48,7 +48,7 @@ class ActionLegacyTest : public testing::Test {
 
   bAction *create_empty_action()
   {
-    return static_cast<bAction *>(BKE_id_new(bmain, ID_AC, "ACAction"));
+    return BKE_id_new<bAction>(bmain, "ACAction");
   }
 
   FCurve *fcurve_add_legacy(bAction *action, const StringRefNull rna_path, const int array_index)

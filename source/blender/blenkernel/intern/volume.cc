@@ -317,7 +317,7 @@ void BKE_volume_init_grids(Volume *volume)
 
 Volume *BKE_volume_add(Main *bmain, const char *name)
 {
-  Volume *volume = (Volume *)BKE_id_new(bmain, ID_VO, name);
+  Volume *volume = BKE_id_new<Volume>(bmain, name);
 
   return volume;
 }

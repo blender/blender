@@ -432,7 +432,7 @@ static Collection *collection_add(Main *bmain,
   }
 
   /* Create new collection. */
-  Collection *collection = static_cast<Collection *>(BKE_id_new(bmain, ID_GR, name));
+  Collection *collection = BKE_id_new<Collection>(bmain, name);
 
   /* We increase collection user count when linking to Collections. */
   id_us_min(&collection->id);

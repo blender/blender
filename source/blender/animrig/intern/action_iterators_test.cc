@@ -41,7 +41,7 @@ class ActionIteratorsTest : public testing::Test {
   void SetUp() override
   {
     bmain = BKE_main_new();
-    action = static_cast<Action *>(BKE_id_new(bmain, ID_AC, "ACLayeredAction"));
+    action = BKE_id_new<Action>(bmain, "ACLayeredAction");
   }
 
   void TearDown() override
@@ -114,13 +114,12 @@ TEST_F(ActionIteratorsTest, iterate_all_fcurves_of_slot)
 TEST_F(ActionIteratorsTest, foreach_action_slot_use_with_references)
 {
   /* Create a cube and assign the Action + a slot. */
-  Object *cube = static_cast<Object *>(BKE_id_new(bmain, ID_OB, "OBCube"));
+  Object *cube = BKE_id_new<Object>(bmain, "OBCube");
   Slot *slot_cube = assign_action_ensure_slot_for_keying(*action, cube->id);
   ASSERT_NE(slot_cube, nullptr);
 
   /* Create another Action with slot to assign. */
-  Action &other_action =
-      static_cast<bAction *>(BKE_id_new(bmain, ID_AC, "ACAnotherAction"))->wrap();
+  Action &other_action = BKE_id_new<bAction>(bmain, "ACAnotherAction")->wrap();
   Slot &another_slot = other_action.slot_add();
 
   std::optional<ActionSlotAssignmentResult> slot_assignment_result;
@@ -162,7 +161,7 @@ TEST_F(ActionIteratorsTest, foreach_action_slot_use_with_references)
 TEST_F(ActionIteratorsTest, foreach_action_slot_use_with_rna)
 {
   /* Create a cube and assign the Action + a slot. */
-  Object *cube = static_cast<Object *>(BKE_id_new(bmain, ID_OB, "OBCube"));
+  Object *cube = BKE_id_new<Object>(bmain, "OBCube");
   Slot *slot_cube = assign_action_ensure_slot_for_keying(*action, cube->id);
   ASSERT_NE(slot_cube, nullptr);
   Slot &another_slot = action->slot_add();

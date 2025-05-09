@@ -59,7 +59,7 @@ class AnimationEvaluationTest : public testing::Test {
   void SetUp() override
   {
     bmain = BKE_main_new();
-    action = static_cast<Action *>(BKE_id_new(bmain, ID_AC, "ACÄnimåtië"));
+    action = BKE_id_new<Action>(bmain, "ACÄnimåtië");
 
     cube = BKE_object_add_only_object(bmain, OB_EMPTY, "Küüübus");
 

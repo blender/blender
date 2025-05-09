@@ -129,6 +129,13 @@ void BKE_lib_libblock_session_uid_renew(ID *id);
  * \param name: can be NULL, in which case we get default name for this ID type.
  */
 void *BKE_id_new(Main *bmain, short type, const char *name);
+
+template<typename T> inline T *BKE_id_new(Main *bmain, const char *name)
+{
+  const ID_Type id_type = T::id_type;
+  return static_cast<T *>(BKE_id_new(bmain, id_type, name));
+}
+
 /**
  * Same as for #BKE_id_new, but allows creating a data-block for (within) a given owner library.
  *

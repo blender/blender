@@ -177,7 +177,7 @@ IDTypeInfo IDType_ID_MB = {
 
 MetaBall *BKE_mball_add(Main *bmain, const char *name)
 {
-  MetaBall *mb = static_cast<MetaBall *>(BKE_id_new(bmain, ID_MB, name));
+  MetaBall *mb = BKE_id_new<MetaBall>(bmain, name);
   return mb;
 }
 

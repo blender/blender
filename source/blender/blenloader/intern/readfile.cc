@@ -543,8 +543,7 @@ static Main *blo_find_main(FileData *fd, const char *filepath, const char *relab
 
   /* Add library data-block itself to 'main' Main, since libraries are **never** linked data.
    * Fixes bug where you could end with all ID_LI data-blocks having the same name... */
-  lib = static_cast<Library *>(
-      BKE_id_new(static_cast<Main *>(mainlist->first), ID_LI, BLI_path_basename(filepath)));
+  lib = BKE_id_new<Library>(static_cast<Main *>(mainlist->first), BLI_path_basename(filepath));
 
   /* Important, consistency with main ID reading code from read_libblock(). */
   lib->id.us = ID_FAKE_USERS(lib);

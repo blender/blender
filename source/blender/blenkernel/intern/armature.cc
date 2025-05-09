@@ -509,7 +509,7 @@ bArmature *BKE_armature_add(Main *bmain, const char *name)
 {
   bArmature *arm;
 
-  arm = static_cast<bArmature *>(BKE_id_new(bmain, ID_AR, name));
+  arm = BKE_id_new<bArmature>(bmain, name);
   return arm;
 }
 

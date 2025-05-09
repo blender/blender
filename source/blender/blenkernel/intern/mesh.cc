@@ -678,7 +678,7 @@ static void mesh_tessface_clear_intern(Mesh *mesh, int free_customdata)
 
 Mesh *BKE_mesh_add(Main *bmain, const char *name)
 {
-  return static_cast<Mesh *>(BKE_id_new(bmain, ID_ME, name));
+  return BKE_id_new<Mesh>(bmain, name);
 }
 
 void BKE_mesh_face_offsets_ensure_alloc(Mesh *mesh)

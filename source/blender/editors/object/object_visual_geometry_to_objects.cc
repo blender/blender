@@ -194,7 +194,7 @@ class GeometryToObjectsBuilder {
                                  const StringRefNull name)
   {
     return new_object_by_generated_geometry_.lookup_or_add_cb(&src_mesh.id, [&]() {
-      Mesh *new_mesh = reinterpret_cast<Mesh *>(BKE_id_new(&bmain_, ID_ME, name.c_str()));
+      Mesh *new_mesh = BKE_id_new<Mesh>(&bmain_, name.c_str());
       Object *new_ob = BKE_object_add_only_object(&bmain_, OB_MESH, name.c_str());
       new_ob->data = new_mesh;
 
@@ -212,7 +212,7 @@ class GeometryToObjectsBuilder {
                                    const StringRefNull name)
   {
     return new_object_by_generated_geometry_.lookup_or_add_cb(&src_curves.id, [&]() {
-      Curves *new_curves = reinterpret_cast<Curves *>(BKE_id_new(&bmain_, ID_CV, name.c_str()));
+      Curves *new_curves = BKE_id_new<Curves>(&bmain_, name.c_str());
       Object *new_ob = BKE_object_add_only_object(&bmain_, OB_CURVES, name.c_str());
       new_ob->data = new_curves;
 
@@ -228,8 +228,7 @@ class GeometryToObjectsBuilder {
                                        const StringRefNull name)
   {
     return new_object_by_generated_geometry_.lookup_or_add_cb(&src_pointcloud.id, [&]() {
-      PointCloud *new_pointcloud = reinterpret_cast<PointCloud *>(
-          BKE_id_new(&bmain_, ID_PT, name.c_str()));
+      PointCloud *new_pointcloud = BKE_id_new<PointCloud>(&bmain_, name.c_str());
       Object *new_ob = BKE_object_add_only_object(&bmain_, OB_POINTCLOUD, name.c_str());
       new_ob->data = new_pointcloud;
 
@@ -247,8 +246,7 @@ class GeometryToObjectsBuilder {
                                           const StringRefNull name)
   {
     return new_object_by_generated_geometry_.lookup_or_add_cb(&src_grease_pencil.id, [&]() {
-      GreasePencil *new_grease_pencil = reinterpret_cast<GreasePencil *>(
-          BKE_id_new(&bmain_, ID_GP, name.c_str()));
+      GreasePencil *new_grease_pencil = BKE_id_new<GreasePencil>(&bmain_, name.c_str());
       Object *new_ob = BKE_object_add_only_object(&bmain_, OB_GREASE_PENCIL, name.c_str());
       new_ob->data = new_grease_pencil;
 

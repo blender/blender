@@ -290,7 +290,7 @@ Camera *BKE_camera_add(Main *bmain, const char *name)
 {
   Camera *cam;
 
-  cam = static_cast<Camera *>(BKE_id_new(bmain, ID_CA, name));
+  cam = BKE_id_new<Camera>(bmain, name);
 
   return cam;
 }

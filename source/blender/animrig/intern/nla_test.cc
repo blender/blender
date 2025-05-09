@@ -46,7 +46,7 @@ class NLASlottedActionTest : public testing::Test {
   void SetUp() override
   {
     bmain = BKE_main_new();
-    action = static_cast<Action *>(BKE_id_new(bmain, ID_AC, "ACÄnimåtië"));
+    action = BKE_id_new<Action>(bmain, "ACÄnimåtië");
     action->id.us = 0; /* Nothing references this yet. */
     cube = BKE_object_add_only_object(bmain, OB_EMPTY, "Küüübus");
     cube->id.us = 0; /* Nothing references this yet. */

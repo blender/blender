@@ -190,7 +190,7 @@ Light *BKE_light_add(Main *bmain, const char *name)
 {
   Light *la;
 
-  la = static_cast<Light *>(BKE_id_new(bmain, ID_LA, name));
+  la = BKE_id_new<Light>(bmain, name);
 
   return la;
 }

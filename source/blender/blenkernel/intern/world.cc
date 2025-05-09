@@ -211,7 +211,7 @@ World *BKE_world_add(Main *bmain, const char *name)
 {
   World *wrld;
 
-  wrld = static_cast<World *>(BKE_id_new(bmain, ID_WO, name));
+  wrld = BKE_id_new<World>(bmain, name);
 
   return wrld;
 }

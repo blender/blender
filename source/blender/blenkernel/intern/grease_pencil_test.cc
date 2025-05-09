@@ -40,7 +40,7 @@ TEST(greasepencil, create_grease_pencil_id)
 {
   GreasePencilIDTestContext ctx;
 
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(BKE_id_new(ctx.bmain, ID_GP, "GP"));
+  GreasePencil &grease_pencil = *BKE_id_new<GreasePencil>(ctx.bmain, "GP");
   EXPECT_EQ(grease_pencil.drawings().size(), 0);
   EXPECT_EQ(grease_pencil.root_group().num_nodes_total(), 0);
 }
@@ -51,7 +51,7 @@ TEST(greasepencil, create_grease_pencil_id)
 TEST(greasepencil, add_empty_drawings)
 {
   GreasePencilIDTestContext ctx;
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(BKE_id_new(ctx.bmain, ID_GP, "GP"));
+  GreasePencil &grease_pencil = *BKE_id_new<GreasePencil>(ctx.bmain, "GP");
   grease_pencil.add_empty_drawings(3);
   EXPECT_EQ(grease_pencil.drawings().size(), 3);
 }
@@ -59,7 +59,7 @@ TEST(greasepencil, add_empty_drawings)
 TEST(greasepencil, remove_drawings)
 {
   GreasePencilIDTestContext ctx;
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(BKE_id_new(ctx.bmain, ID_GP, "GP"));
+  GreasePencil &grease_pencil = *BKE_id_new<GreasePencil>(ctx.bmain, "GP");
   grease_pencil.add_empty_drawings(3);
 
   GreasePencilDrawing *drawing = reinterpret_cast<GreasePencilDrawing *>(grease_pencil.drawing(1));

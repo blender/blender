@@ -393,7 +393,7 @@ Lattice *BKE_lattice_add(Main *bmain, const char *name)
 {
   Lattice *lt;
 
-  lt = static_cast<Lattice *>(BKE_id_new(bmain, ID_LT, name));
+  lt = BKE_id_new<Lattice>(bmain, name);
 
   return lt;
 }

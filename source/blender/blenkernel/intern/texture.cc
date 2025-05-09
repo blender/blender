@@ -375,7 +375,7 @@ Tex *BKE_texture_add(Main *bmain, const char *name)
 {
   Tex *tex;
 
-  tex = static_cast<Tex *>(BKE_id_new(bmain, ID_TE, name));
+  tex = BKE_id_new<Tex>(bmain, name);
 
   return tex;
 }

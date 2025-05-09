@@ -168,7 +168,7 @@ IDTypeInfo IDType_ID_CV = {
 
 Curves *BKE_curves_add(Main *bmain, const char *name)
 {
-  Curves *curves = static_cast<Curves *>(BKE_id_new(bmain, ID_CV, name));
+  Curves *curves = BKE_id_new<Curves>(bmain, name);
 
   return curves;
 }

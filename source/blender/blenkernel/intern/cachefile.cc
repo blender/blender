@@ -307,7 +307,7 @@ static void cachefile_handle_free(CacheFile *cache_file)
 
 void *BKE_cachefile_add(Main *bmain, const char *name)
 {
-  CacheFile *cache_file = static_cast<CacheFile *>(BKE_id_new(bmain, ID_CF, name));
+  CacheFile *cache_file = BKE_id_new<CacheFile>(bmain, name);
 
   return cache_file;
 }

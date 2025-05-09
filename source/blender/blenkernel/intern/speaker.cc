@@ -82,7 +82,7 @@ Speaker *BKE_speaker_add(Main *bmain, const char *name)
 {
   Speaker *spk;
 
-  spk = static_cast<Speaker *>(BKE_id_new(bmain, ID_SPK, name));
+  spk = BKE_id_new<Speaker>(bmain, name);
 
   return spk;
 }
