@@ -4279,8 +4279,17 @@ static void frame_node_draw_background(const ARegion &region,
   const rctf &rct = node.runtime->draw_bounds;
   UI_draw_roundbox_corner_set(UI_CNR_ALL);
   UI_draw_roundbox_4fv(&rct, true, BASIS_RAD, color);
+}
 
-  /* Outline active and selected emphasis. */
+static void frame_node_draw_outline(const ARegion &region, const bNode &node)
+{
+  /* Skip if out of view. */
+  const rctf &rct = node.runtime->draw_bounds;
+  if (BLI_rctf_isect(&rct, &region.v2d.cur, nullptr) == false) {
+    return;
+  }
+
+  float color[4];
   if (node.flag & SELECT) {
     if (node.flag & NODE_ACTIVE) {
       UI_GetThemeColorShadeAlpha4fv(TH_ACTIVE, 0, -40, color);
@@ -4770,28 +4779,30 @@ static void node_draw_zones_and_frames(const ARegion &region,
 
   /* Draw all the contour lines after to prevent them from getting hidden by overlapping zones. */
   for (const ZoneOrNode &zone_or_node : draw_order) {
-    const bNodeTreeZone *const *zone_p = std::get_if<const bNodeTreeZone *>(&zone_or_node);
-    if (!zone_p) {
-      continue;
+    if (const bNodeTreeZone *const *zone_p = std::get_if<const bNodeTreeZone *>(&zone_or_node)) {
+      const bNodeTreeZone &zone = **zone_p;
+      const int zone_i = zone.index;
+      const Span<float3> fillet_boundary_positions = fillet_curve_by_zone[zone_i].positions();
+      /* Draw the contour lines. */
+      immBindBuiltinProgram(GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR);
+
+      immUniform2fv("viewportSize", &viewport[2]);
+      immUniform1f("lineWidth", line_width * U.pixelsize);
+
+      immUniformThemeColorAlpha(get_theme_id(zone_i), 1.0f);
+      immBegin(GPU_PRIM_LINE_STRIP, fillet_boundary_positions.size() + 1);
+      for (const float3 &p : fillet_boundary_positions) {
+        immVertex3fv(pos, p);
+      }
+      immVertex3fv(pos, fillet_boundary_positions[0]);
+      immEnd();
+
+      immUnbindProgram();
     }
-    const bNodeTreeZone &zone = **zone_p;
-    const int zone_i = zone.index;
-    const Span<float3> fillet_boundary_positions = fillet_curve_by_zone[zone_i].positions();
-    /* Draw the contour lines. */
-    immBindBuiltinProgram(GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR);
-
-    immUniform2fv("viewportSize", &viewport[2]);
-    immUniform1f("lineWidth", line_width * U.pixelsize);
-
-    immUniformThemeColorAlpha(get_theme_id(zone_i), 1.0f);
-    immBegin(GPU_PRIM_LINE_STRIP, fillet_boundary_positions.size() + 1);
-    for (const float3 &p : fillet_boundary_positions) {
-      immVertex3fv(pos, p);
+    if (const bNode *const *node_p = std::get_if<const bNode *>(&zone_or_node)) {
+      const bNode &node = **node_p;
+      frame_node_draw_outline(region, node);
     }
-    immVertex3fv(pos, fillet_boundary_positions[0]);
-    immEnd();
-
-    immUnbindProgram();
   }
 
   GPU_blend(GPU_BLEND_NONE);
