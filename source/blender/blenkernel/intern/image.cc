@@ -3172,7 +3172,7 @@ void BKE_image_signal(Main *bmain, Image *ima, ImageUser *iuser, int signal)
     return;
   }
 
-  std::scoped_lock lock(ima->runtime->cache_mutex);
+  ima->runtime->cache_mutex.lock();
 
   switch (signal) {
     case IMA_SIGNAL_FREE:
@@ -3355,6 +3355,10 @@ void BKE_image_signal(Main *bmain, Image *ima, ImageUser *iuser, int signal)
       BKE_image_free_buffers(ima);
       break;
   }
+
+  /* NOTE: It is important that the image is unlocked before calling the node tree updates since
+   * its update functions might need to acquire image buffers from this image. */
+  ima->runtime->cache_mutex.unlock();
 
   BKE_ntree_update_tag_id_changed(bmain, &ima->id);
   BKE_ntree_update(*bmain);
