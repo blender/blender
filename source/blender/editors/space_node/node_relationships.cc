@@ -581,9 +581,18 @@ static void finalize_viewer_link(const bContext &C,
   viewer_link.flag &= ~NODE_LINK_MUTED;
   viewer_node.flag &= ~NODE_MUTED;
   viewer_node.flag |= NODE_DO_OUTPUT;
+
   if (snode.edittree->type == NTREE_GEOMETRY) {
     viewer_path::activate_geometry_node(*bmain, snode, viewer_node);
   }
+  else if (snode.edittree->type == NTREE_COMPOSIT) {
+    for (bNode *node : snode.nodetree->all_nodes()) {
+      if (node->is_type("CompositorNodeViewer") && node != &viewer_node) {
+        node->flag &= ~NODE_DO_OUTPUT;
+      }
+    }
+  }
+  BKE_ntree_update_tag_active_output_changed(snode.edittree);
   BKE_main_ensure_invariants(*bmain, snode.edittree->id);
 }
 
