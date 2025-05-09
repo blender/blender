@@ -4884,13 +4884,19 @@ static int ui_do_but_TAB(
   return WM_UI_HANDLER_CONTINUE;
 }
 
-/* Increment or decrement an integer value within
- * the text of a button while hovering over it. */
+/**
+ * Increment or decrement an integer value within
+ * the text of a button while hovering over it.
+ */
 static int ui_do_but_text_value_cycle(bContext *C,
                                       uiBut *but,
                                       uiHandleButtonData *data,
                                       const int inc_value)
 {
+  /* The allocated string only increases in length by 1,
+   * only support incrementing by one. */
+  BLI_assert(ELEM(inc_value, -1, 1));
+
   if (data->state != BUTTON_STATE_HIGHLIGHT) {
     /* This function assumes the mouse is only hovering over the input. */
     return WM_UI_HANDLER_CONTINUE;
@@ -4898,14 +4904,15 @@ static int ui_do_but_text_value_cycle(bContext *C,
 
   /* Retrieve the string. */
   char *but_string;
-  int str_len = ui_but_string_get_maxncpy(but);
+  int str_maxncpy = ui_but_string_get_maxncpy(but);
   bool no_zero_strip = false;
-  if (str_len != 0) {
-    but_string = MEM_calloc_arrayN<char>(str_len, __func__);
-    ui_but_string_get_ex(but, but_string, str_len, UI_PRECISION_FLOAT_MAX, true, &no_zero_strip);
+  if (str_maxncpy != 0) {
+    but_string = MEM_calloc_arrayN<char>(str_maxncpy, __func__);
+    ui_but_string_get_ex(
+        but, but_string, str_maxncpy, UI_PRECISION_FLOAT_MAX, true, &no_zero_strip);
   }
   else {
-    but_string = ui_but_string_get_dynamic(but, &str_len);
+    but_string = ui_but_string_get_dynamic(but, &str_maxncpy);
   }
 
   if (but_string[0] == '\0') {
@@ -4915,13 +4922,13 @@ static int ui_do_but_text_value_cycle(bContext *C,
   }
 
   /* More space needed for an added digit. */
-  str_len += 1;
-  char *head = MEM_calloc_arrayN<char>(str_len, __func__);
-  char *tail = MEM_calloc_arrayN<char>(str_len, __func__);
+  str_maxncpy += 1;
+  char *head = MEM_calloc_arrayN<char>(str_maxncpy, __func__);
+  char *tail = MEM_calloc_arrayN<char>(str_maxncpy, __func__);
   ushort digits;
 
   /* Decode the string, parsing head, digits, tail. */
-  int num = BLI_path_sequence_decode(but_string, head, str_len, tail, str_len, &digits);
+  int num = BLI_path_sequence_decode(but_string, head, str_maxncpy, tail, str_maxncpy, &digits);
   MEM_freeN(but_string);
   if (num == 0 && digits == 0) {
     BLI_str_rstrip_digits(head);
@@ -4931,8 +4938,8 @@ static int ui_do_but_text_value_cycle(bContext *C,
   num += inc_value;
 
   /* Encode the new string with the changed value. */
-  char *string = MEM_calloc_arrayN<char>(str_len, __func__);
-  BLI_path_sequence_encode(string, str_len, head, tail, digits, num);
+  char *string = MEM_calloc_arrayN<char>(str_maxncpy, __func__);
+  BLI_path_sequence_encode(string, str_maxncpy, head, tail, digits, num);
 
   /* Save this new string to the button. */
   ui_but_set_string_interactive(C, but, string);
