@@ -111,7 +111,7 @@ void TreeElementIDObject::expand_gpencil_effects() const
 
 void TreeElementIDObject::expand_vertex_groups() const
 {
-  if (!ELEM(object_.type, OB_MESH, OB_LATTICE)) {
+  if (!ELEM(object_.type, OB_MESH, OB_LATTICE, OB_GREASE_PENCIL)) {
     return;
   }
   const ListBase *defbase = BKE_object_defgroup_list(&object_);
