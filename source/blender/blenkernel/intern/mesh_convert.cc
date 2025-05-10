@@ -534,6 +534,8 @@ void BKE_mesh_to_curve(Main *bmain, Depsgraph *depsgraph, Scene * /*scene*/, Obj
 
 void BKE_mesh_to_pointcloud(Main *bmain, Depsgraph *depsgraph, Scene * /*scene*/, Object *ob)
 {
+  using namespace blender;
+  using namespace blender::bke;
   BLI_assert(ob->type == OB_MESH);
   const Object *ob_eval = DEG_get_evaluated(depsgraph, ob);
   if (!ob_eval) {
@@ -545,11 +547,12 @@ void BKE_mesh_to_pointcloud(Main *bmain, Depsgraph *depsgraph, Scene * /*scene*/
   }
 
   PointCloud *pointcloud = BKE_pointcloud_add(bmain, ob->id.name + 2);
-
-  CustomData_free(&pointcloud->pdata);
   pointcloud->totpoint = mesh_eval->verts_num;
-  CustomData_merge(
-      &mesh_eval->vert_data, &pointcloud->pdata, CD_MASK_PROP_ALL, mesh_eval->verts_num);
+  copy_attributes(mesh_eval->attributes(),
+                  AttrDomain::Point,
+                  AttrDomain::Point,
+                  {},
+                  pointcloud->attributes_for_write());
 
   BKE_id_materials_copy(bmain, (ID *)ob->data, (ID *)pointcloud);
 
@@ -562,17 +565,21 @@ void BKE_mesh_to_pointcloud(Main *bmain, Depsgraph *depsgraph, Scene * /*scene*/
 
 void BKE_pointcloud_to_mesh(Main *bmain, Depsgraph *depsgraph, Scene * /*scene*/, Object *ob)
 {
+  using namespace blender;
+  using namespace blender::bke;
   BLI_assert(ob->type == OB_POINTCLOUD);
 
   const Object *ob_eval = DEG_get_evaluated(depsgraph, ob);
-  const blender::bke::GeometrySet geometry = blender::bke::object_get_evaluated_geometry_set(
-      *ob_eval);
+  const GeometrySet geometry = object_get_evaluated_geometry_set(*ob_eval);
 
   Mesh *mesh = BKE_mesh_add(bmain, ob->id.name + 2);
-
   if (const PointCloud *points = geometry.get_pointcloud()) {
     mesh->verts_num = points->totpoint;
-    CustomData_merge(&points->pdata, &mesh->vert_data, CD_MASK_PROP_ALL, points->totpoint);
+    copy_attributes(points->attributes(),
+                    AttrDomain::Point,
+                    AttrDomain::Point,
+                    {},
+                    mesh->attributes_for_write());
   }
 
   BKE_id_materials_copy(bmain, (ID *)ob->data, (ID *)mesh);
