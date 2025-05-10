@@ -14,8 +14,6 @@
     - 0 0 0 0 0 ... 0 0 0 0 0 
   - attr 'material_index' INT FACE
     - 0 0 0 0 0 ... 0 0 0 0 0 
-  - attr 'sharp_face' BOOLEAN FACE
-    - 1 1 1 1 1 ... 1 1 1 1 1 
   - attr 'custom_normal' INT16_2D CORNER
     - (0, 0)
     - (0, 0)
@@ -48,8 +46,6 @@
     - 1 1 1 1 1 ... 1 1 1 1 1 
   - attr 'material_index' INT FACE
     - 0 0 0 0 0 0 0 0 0 
-  - attr 'sharp_face' BOOLEAN FACE
-    - 1 1 1 1 1 1 1 1 1 
   - attr 'custom_normal' INT16_2D CORNER
     - (0, 0)
     - (0, 0)
@@ -90,8 +86,6 @@
     - 1 1 1 1 1 ... 1 1 1 1 1 
   - attr 'material_index' INT FACE
     - 0 0 0 0 0 0 
-  - attr 'sharp_face' BOOLEAN FACE
-    - 1 1 1 1 1 1 
   - attr 'custom_normal' INT16_2D CORNER
     - (0, 0)
     - (0, 0)
@@ -132,8 +126,6 @@
     - 1 1 1 1 1 ... 1 1 1 1 1 
   - attr 'material_index' INT FACE
     - 0 0 0 0 0 0 0 0 0 0 
-  - attr 'sharp_face' BOOLEAN FACE
-    - 1 1 1 1 1 1 1 1 1 1 
   - attr 'custom_normal' INT16_2D CORNER
     - (0, 0)
     - (0, 0)
@@ -171,8 +163,6 @@
     - 0 0 0 0 
   - attr 'material_index' INT FACE
     - 0 
-  - attr 'sharp_face' BOOLEAN FACE
-    - 1 
   - attr 'custom_normal' INT16_2D CORNER
     - (0, 0)
     - (0, 0)
@@ -204,8 +194,6 @@
     - 1 1 1 1 1 ... 1 1 1 1 1 
   - attr 'material_index' INT FACE
     - 0 0 0 0 0 ... 0 0 0 0 0 
-  - attr 'sharp_face' BOOLEAN FACE
-    - 1 1 1 1 1 ... 1 1 1 1 1 
   - attr 'custom_normal' INT16_2D CORNER
     - (0, 0)
     - (0, 0)

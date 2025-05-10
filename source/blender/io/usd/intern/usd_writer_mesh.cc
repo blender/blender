@@ -157,7 +157,13 @@ void USDGenericMeshWriter::write_custom_data(const Object *obj,
      * Skip edge domain because USD doesn't have a good conversion for them. */
     if (iter.name[0] == '.' || bke::attribute_name_is_anonymous(iter.name) ||
         iter.domain == bke::AttrDomain::Edge ||
-        ELEM(iter.name, "position", "material_index", "velocity", "crease_vert", "custom_normal"))
+        ELEM(iter.name,
+             "position",
+             "material_index",
+             "velocity",
+             "crease_vert",
+             "custom_normal",
+             "sharp_face"))
     {
       return;
     }
