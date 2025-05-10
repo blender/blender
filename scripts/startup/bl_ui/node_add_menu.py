@@ -67,12 +67,18 @@ def draw_root_assets(layout):
     layout.menu_contents("NODE_MT_node_add_root_catalogs")
 
 
-def add_node_type_with_searchable_enum(context, layout, node_idname, property_name):
-    add_node_type(layout, node_idname)
+def add_node_type_with_searchable_enum(context, layout, node_idname, property_name, search_weight=0.0):
+    add_node_type(layout, node_idname, search_weight=search_weight)
     if getattr(context, "is_menu_search", False):
         node_type = getattr(bpy.types, node_idname)
         for item in node_type.bl_rna.properties[property_name].enum_items_static:
-            props = node_add_menu.add_node_type(layout, node_idname, label=node_type.bl_rna.name + " ▸ " + item.name)
+            props = add_node_type(
+                layout,
+                node_idname,
+                label=node_type.bl_rna.name +
+                " ▸ " +
+                item.name,
+                search_weight=search_weight)
             prop = props.settings.add()
             prop.name = property_name
             prop.value = repr(item.identifier)
