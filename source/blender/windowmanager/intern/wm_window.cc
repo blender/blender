@@ -1059,8 +1059,11 @@ wmWindow *WM_window_open(bContext *C,
   ViewLayer *view_layer = CTX_data_view_layer(C);
   int x = rect_unscaled->xmin;
   int y = rect_unscaled->ymin;
-  int sizex = BLI_rcti_size_x(rect_unscaled);
-  int sizey = BLI_rcti_size_y(rect_unscaled);
+  /* Duplicated windows are created at Area size, so duplicated
+   * minimized areas can init at 2 pixels high before being
+   * resized at the end of window creation. Therefore minimums. */
+  int sizex = std::max(BLI_rcti_size_x(rect_unscaled), 200);
+  int sizey = std::max(BLI_rcti_size_y(rect_unscaled), 150);
   rcti rect;
 
   const float native_pixel_size = GHOST_GetNativePixelSize(
