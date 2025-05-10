@@ -1021,6 +1021,7 @@ if(TEST_SRC_DIR_EXISTS)
     foreach_geometry_element_zone
     geometry
     grease_pencil
+    import
     instance
     repeat_zone
     mesh_primitives
