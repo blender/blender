@@ -4273,7 +4273,17 @@ static void frame_node_draw_background(const ARegion &region,
     rgba_float_args_set(color, node.color[0], node.color[1], node.color[2], alpha);
   }
   else {
-    UI_GetThemeColor4fv(TH_NODE_FRAME, color);
+    int depth = 0;
+    for (const bNode *parent = node.parent; parent; parent = parent->parent) {
+      depth++;
+    }
+
+    if (depth % 2 == 0) {
+      UI_GetThemeColor4fv(TH_NODE_FRAME, color);
+    }
+    else {
+      UI_GetThemeColorShade4fv(TH_NODE_FRAME, 20, color);
+    }
   }
 
   const rctf &rct = node.runtime->draw_bounds;
