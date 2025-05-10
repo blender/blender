@@ -611,9 +611,8 @@ static PointCloud *try_load_pointcloud(const DictionaryValue &io_geometry,
   if (!io_attributes) {
     return nullptr;
   }
-  PointCloud *pointcloud = BKE_pointcloud_new_nomain(0);
-  CustomData_free_layer_named(&pointcloud->pdata, "position");
-  pointcloud->totpoint = io_pointcloud->lookup_int("num_points").value_or(0);
+  const int points_num = io_pointcloud->lookup_int("num_points").value_or(0);
+  PointCloud *pointcloud = bke::pointcloud_new_no_attributes(points_num);
 
   auto cancel = [&]() {
     BKE_id_free(nullptr, pointcloud);

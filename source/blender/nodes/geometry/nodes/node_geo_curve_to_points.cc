@@ -116,9 +116,7 @@ static PointCloud *curves_to_points(
 {
   const AttributeAccessor curve_attributes = curves.attributes();
 
-  PointCloud *pointcloud = BKE_pointcloud_new_nomain(0);
-  CustomData_free(&pointcloud->pdata);
-  pointcloud->totpoint = curves.points_num();
+  PointCloud *pointcloud = bke::pointcloud_new_no_attributes(curves.points_num());
   MutableAttributeAccessor point_attributes = pointcloud->attributes_for_write();
 
   const bke::AttributeFilterFromFunc filter = [&](const StringRef name) {

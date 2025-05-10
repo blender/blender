@@ -65,8 +65,6 @@ static void pointcloud_init_data(ID *id)
   pointcloud->runtime = new blender::bke::PointCloudRuntime();
 
   CustomData_reset(&pointcloud->pdata);
-  pointcloud->attributes_for_write().add<float3>(
-      "position", blender::bke::AttrDomain::Point, blender::bke::AttributeInitConstruct());
 }
 
 static void pointcloud_copy_data(Main * /*bmain*/,
@@ -278,8 +276,10 @@ PointCloud *BKE_pointcloud_new_nomain(const int totpoint)
 
   BKE_libblock_init_empty(&pointcloud->id);
 
-  CustomData_realloc(&pointcloud->pdata, 0, totpoint);
   pointcloud->totpoint = totpoint;
+
+  pointcloud->attributes_for_write().add<float3>(
+      "position", blender::bke::AttrDomain::Point, blender::bke::AttributeInitConstruct());
 
   return pointcloud;
 }
@@ -495,9 +495,8 @@ namespace blender::bke {
 
 PointCloud *pointcloud_new_no_attributes(int totpoint)
 {
-  PointCloud *pointcloud = BKE_pointcloud_new_nomain(0);
+  PointCloud *pointcloud = BKE_id_new_nomain<PointCloud>(nullptr);
   pointcloud->totpoint = totpoint;
-  CustomData_free_layer_named(&pointcloud->pdata, "position");
   return pointcloud;
 }
 
