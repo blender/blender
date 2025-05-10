@@ -1810,7 +1810,7 @@ void uiTemplateAnyID(uiLayout *layout,
   uiLayout *sub = &row->row(true);
   uiLayoutSetAlignment(sub, UI_LAYOUT_ALIGN_LEFT);
 
-  uiItemFullR(sub, ptr, propType, 0, 0, UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
+  sub->prop(ptr, propType, 0, 0, UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
 
   /* ID-Block Selector - just use pointer widget... */
 
@@ -1819,5 +1819,5 @@ void uiTemplateAnyID(uiLayout *layout,
   sub = &row->row(true);
   uiLayoutSetAlignment(sub, UI_LAYOUT_ALIGN_EXPAND);
 
-  uiItemFullR(sub, ptr, propID, 0, 0, UI_ITEM_NONE, "", ICON_NONE);
+  sub->prop(ptr, propID, 0, 0, UI_ITEM_NONE, "", ICON_NONE);
 }

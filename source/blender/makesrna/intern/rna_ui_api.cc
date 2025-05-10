@@ -150,7 +150,7 @@ static void rna_uiItemR(uiLayout *layout,
     flag |= UI_ITEM_R_CHECKBOX_INVERT;
   }
 
-  uiItemFullR(layout, ptr, prop, index, 0, flag, text, icon, placeholder_str);
+  layout->prop(ptr, prop, index, 0, flag, text, icon, placeholder_str);
 }
 
 static void rna_uiItemR_with_popover(uiLayout *layout,

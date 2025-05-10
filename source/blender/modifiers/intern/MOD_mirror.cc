@@ -147,22 +147,22 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   prop = RNA_struct_find_property(ptr, "use_axis");
   row = &col->row(true, IFACE_("Axis"));
-  uiItemFullR(row, ptr, prop, 0, 0, toggles_flag, IFACE_("X"), ICON_NONE);
-  uiItemFullR(row, ptr, prop, 1, 0, toggles_flag, IFACE_("Y"), ICON_NONE);
-  uiItemFullR(row, ptr, prop, 2, 0, toggles_flag, IFACE_("Z"), ICON_NONE);
+  row->prop(ptr, prop, 0, 0, toggles_flag, IFACE_("X"), ICON_NONE);
+  row->prop(ptr, prop, 1, 0, toggles_flag, IFACE_("Y"), ICON_NONE);
+  row->prop(ptr, prop, 2, 0, toggles_flag, IFACE_("Z"), ICON_NONE);
 
   prop = RNA_struct_find_property(ptr, "use_bisect_axis");
   row = &col->row(true, IFACE_("Bisect"));
-  uiItemFullR(row, ptr, prop, 0, 0, toggles_flag, IFACE_("X"), ICON_NONE);
-  uiItemFullR(row, ptr, prop, 1, 0, toggles_flag, IFACE_("Y"), ICON_NONE);
-  uiItemFullR(row, ptr, prop, 2, 0, toggles_flag, IFACE_("Z"), ICON_NONE);
+  row->prop(ptr, prop, 0, 0, toggles_flag, IFACE_("X"), ICON_NONE);
+  row->prop(ptr, prop, 1, 0, toggles_flag, IFACE_("Y"), ICON_NONE);
+  row->prop(ptr, prop, 2, 0, toggles_flag, IFACE_("Z"), ICON_NONE);
 
   prop = RNA_struct_find_property(ptr, "use_bisect_flip_axis");
   row = &col->row(true, IFACE_("Flip"));
   uiLayoutSetActive(row, has_bisect);
-  uiItemFullR(row, ptr, prop, 0, 0, toggles_flag, IFACE_("X"), ICON_NONE);
-  uiItemFullR(row, ptr, prop, 1, 0, toggles_flag, IFACE_("Y"), ICON_NONE);
-  uiItemFullR(row, ptr, prop, 2, 0, toggles_flag, IFACE_("Z"), ICON_NONE);
+  row->prop(ptr, prop, 0, 0, toggles_flag, IFACE_("X"), ICON_NONE);
+  row->prop(ptr, prop, 1, 0, toggles_flag, IFACE_("Y"), ICON_NONE);
+  row->prop(ptr, prop, 2, 0, toggles_flag, IFACE_("Z"), ICON_NONE);
 
   uiItemS(col);
 

@@ -115,7 +115,7 @@ struct uiLayout : uiItem {
    * Add a new column sub-layout, items placed in this sub-layout are added vertically one under
    * each other in a column.
    * \param heading: Heading label to set to the first child element added in the sub-layout
-   * through #uiItemFullR. When property split is used, this heading label is set in the split
+   * through #uiLayout::prop. When property split is used, this heading label is set in the split
    * label column when there is no label defined.
    */
   uiLayout &column(bool align, blender::StringRef heading);
@@ -129,7 +129,7 @@ struct uiLayout : uiItem {
    * Add a new row sub-layout, items placed in this sub-layout are added horizontally next to each
    * other in row.
    * \param heading: Heading label to set to the first child element added in the sub-layout
-   * through #uiItemFullR. When property split is used, this heading label is set in the split
+   * through #uiLayout::prop. When property split is used, this heading label is set in the split
    * label column when there is no label defined.
    */
   uiLayout &row(bool align, blender::StringRef heading);
@@ -242,6 +242,21 @@ struct uiLayout : uiItem {
   /** Adds a label item that will display text and/or icon in the layout. */
   void label(blender::StringRef name, int icon);
 
+  /**
+   * Adds a RNA property item, and exposes it into the layout.
+   * \param ptr: RNA pointer to the struct owner of \a prop.
+   * \param prop: The property in \a ptr to add.
+   * \param index: When \a prop is a array property, indicates what entry to expose through the
+   * layout, #RNA_NO_INDEX (-1) means all.
+   */
+  void prop(PointerRNA *ptr,
+            PropertyRNA *prop,
+            int index,
+            int value,
+            eUI_Item_Flag flag,
+            std::optional<blender::StringRefNull> name_opt,
+            int icon,
+            std::optional<blender::StringRefNull> placeholder = std::nullopt);
   /** Adds a RNA property item, and exposes it into the layout. */
   void prop(PointerRNA *ptr,
             blender::StringRefNull propname,
@@ -510,15 +525,6 @@ void uiItemFullOMenuHold_ptr(uiLayout *layout,
                              const char *menu_id, /* extra menu arg. */
                              PointerRNA *r_opptr);
 
-void uiItemFullR(uiLayout *layout,
-                 PointerRNA *ptr,
-                 PropertyRNA *prop,
-                 int index,
-                 int value,
-                 eUI_Item_Flag flag,
-                 std::optional<blender::StringRefNull> name_opt,
-                 int icon,
-                 std::optional<blender::StringRefNull> placeholder = std::nullopt);
 /**
  * Use a wrapper function since re-implementing all the logic in this function would be messy.
  */
@@ -614,8 +620,8 @@ struct uiPropertySplitWrapper {
 };
 
 /**
- * Normally, we handle the split layout in #uiItemFullR(), but there are other cases where the
- * logic is needed. Ideally, #uiItemFullR() could just call this, but it currently has too many
+ * Normally, we handle the split layout in #uiLayout::prop(), but there are other cases where the
+ * logic is needed. Ideally, #uiLayout::prop() could just call this, but it currently has too many
  * special needs.
  *
  * The returned #uiPropertySplitWrapper.decorator_column may be null when decorators are disabled

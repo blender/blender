@@ -812,15 +812,14 @@ void draw_common_bake_settings(bContext *C, BakeDrawContext &ctx, uiLayout *layo
       }
     }
 
-    uiItemFullR(subsubcol,
-                &ctx.bake_rna,
-                RNA_struct_find_property(&ctx.bake_rna, "directory"),
-                -1,
-                0,
-                UI_ITEM_NONE,
-                IFACE_("Path"),
-                ICON_NONE,
-                placeholder_path);
+    subsubcol->prop(&ctx.bake_rna,
+                    RNA_struct_find_property(&ctx.bake_rna, "directory"),
+                    -1,
+                    0,
+                    UI_ITEM_NONE,
+                    IFACE_("Path"),
+                    ICON_NONE,
+                    placeholder_path);
   }
   {
     uiLayout *col = &settings_col->column(true);

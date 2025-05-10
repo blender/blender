@@ -267,7 +267,7 @@ wmOperatorStatus UI_pie_menu_invoke_from_rna_enum(bContext *C,
   layout = UI_pie_menu_layout(pie);
 
   layout = &layout->menu_pie();
-  uiItemFullR(layout, &r_ptr, r_prop, RNA_NO_INDEX, 0, UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  layout->prop(&r_ptr, r_prop, RNA_NO_INDEX, 0, UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
   UI_pie_menu_end(C, pie);
 

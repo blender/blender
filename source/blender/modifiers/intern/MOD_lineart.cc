@@ -493,7 +493,7 @@ static void material_mask_panel_draw(const bContext * /*C*/, Panel *panel)
 
   PropertyRNA *prop = RNA_struct_find_property(ptr, "use_material_mask_bits");
   for (int i = 0; i < 8; i++) {
-    uiItemFullR(sub, ptr, prop, i, 0, UI_ITEM_R_TOGGLE, " ", ICON_NONE);
+    sub->prop(ptr, prop, i, 0, UI_ITEM_R_TOGGLE, " ", ICON_NONE);
     if (i == 3) {
       sub = &col->row(true);
     }
@@ -519,7 +519,7 @@ static void intersection_panel_draw(const bContext * /*C*/, Panel *panel)
 
   PropertyRNA *prop = RNA_struct_find_property(ptr, "use_intersection_mask");
   for (int i = 0; i < 8; i++) {
-    uiItemFullR(sub, ptr, prop, i, 0, UI_ITEM_R_TOGGLE, " ", ICON_NONE);
+    sub->prop(ptr, prop, i, 0, UI_ITEM_R_TOGGLE, " ", ICON_NONE);
     if (i == 3) {
       sub = &col->row(true);
     }

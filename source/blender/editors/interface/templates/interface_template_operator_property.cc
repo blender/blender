@@ -377,15 +377,14 @@ static void draw_export_properties(bContext *C,
   PropertyRNA *prop = RNA_struct_find_property(&exporter_ptr, "filepath");
 
   std::string placeholder = "//" + filename;
-  uiItemFullR(col,
-              &exporter_ptr,
-              prop,
-              RNA_NO_INDEX,
-              0,
-              UI_ITEM_NONE,
-              std::nullopt,
-              ICON_NONE,
-              placeholder.c_str());
+  col->prop(&exporter_ptr,
+            prop,
+            RNA_NO_INDEX,
+            0,
+            UI_ITEM_NONE,
+            std::nullopt,
+            ICON_NONE,
+            placeholder.c_str());
 
   template_operator_property_buts_draw_single(C,
                                               op,

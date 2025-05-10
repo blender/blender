@@ -110,7 +110,7 @@ static void uilist_draw_item_default(uiList *ui_list,
     case UILST_LAYOUT_COMPACT:
     default:
       if (nameprop) {
-        uiItemFullR(layout, itemptr, nameprop, RNA_NO_INDEX, 0, UI_ITEM_R_NO_BG, "", icon);
+        layout->prop(itemptr, nameprop, RNA_NO_INDEX, 0, UI_ITEM_R_NO_BG, "", icon);
       }
       else {
         layout->label("", icon);
