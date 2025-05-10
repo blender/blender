@@ -5315,6 +5315,11 @@ static wmOperatorStatus screen_context_menu_invoke(bContext *C,
     else if (region->regiontype == RGN_TYPE_NAV_BAR) {
       uiPopupMenu *pup = UI_popup_menu_begin(C, IFACE_("Navigation Bar"), ICON_NONE);
       uiLayout *layout = UI_popup_menu_layout(pup);
+
+      /* We need WM_OP_INVOKE_DEFAULT in case menu item is over another area. */
+      uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_DEFAULT);
+      uiItemO(layout, IFACE_("Hide"), ICON_NONE, "SCREEN_OT_region_toggle");
+
       ED_screens_region_flip_menu_create(C, layout, nullptr);
       const ScrArea *area = CTX_wm_area(C);
       if (area && area->spacetype == SPACE_PROPERTIES) {

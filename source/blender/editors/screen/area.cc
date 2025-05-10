@@ -1107,12 +1107,9 @@ static bool region_background_is_transparent(const ScrArea *area, const ARegion 
 
 static void region_azone_edge(const ScrArea *area, AZone *az, const ARegion *region)
 {
-  /* Narrow regions like headers and Properties NavBar need
-   * a smaller hitspace that does not interfere with content. */
-  const bool is_narrow = RGN_TYPE_IS_HEADER_ANY(region->regiontype) ||
-                         (region->regiontype == RGN_TYPE_NAV_BAR &&
-                          area->spacetype == SPACE_PROPERTIES);
-
+  /* Narrow regions like headers need a smaller hitspace that
+   * does not interfere with content. */
+  const bool is_narrow = RGN_TYPE_IS_HEADER_ANY(region->regiontype);
   const bool transparent = !is_narrow && region->overlap &&
                            region_background_is_transparent(area, region);
 
@@ -1192,7 +1189,9 @@ static void region_azone_tab_plus(ScrArea *area, AZone *az, ARegion *region)
   BLI_rcti_init(&az->rect, az->x1, az->x2, az->y1, az->y2);
 }
 
-static bool region_azone_edge_poll(const ARegion *region, const bool is_fullscreen)
+static bool region_azone_edge_poll(const ScrArea *area,
+                                   const ARegion *region,
+                                   const bool is_fullscreen)
 {
   if (region->flag & RGN_FLAG_POLL_FAILED) {
     return false;
@@ -1211,6 +1210,10 @@ static bool region_azone_edge_poll(const ARegion *region, const bool is_fullscre
     return false;
   }
   if (!is_hidden && ELEM(region->regiontype, RGN_TYPE_HEADER, RGN_TYPE_TOOL_HEADER)) {
+    return false;
+  }
+  if (!is_hidden && region->regiontype == RGN_TYPE_NAV_BAR && area->spacetype == SPACE_PROPERTIES)
+  {
     return false;
   }
 
@@ -1232,7 +1235,7 @@ static void region_azone_edge_init(ScrArea *area,
 {
   const bool is_hidden = (region->flag & (RGN_FLAG_HIDDEN | RGN_FLAG_TOO_SMALL));
 
-  if (!region_azone_edge_poll(region, is_fullscreen)) {
+  if (!region_azone_edge_poll(area, region, is_fullscreen)) {
     return;
   }
 
