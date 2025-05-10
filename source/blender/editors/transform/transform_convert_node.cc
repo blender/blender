@@ -144,7 +144,7 @@ static VectorSet<bNode *> get_transformed_nodes(bNodeTree &node_tree)
   return nodes;
 }
 
-static void createTransNodeData(bContext * /*C*/, TransInfo *t)
+static void createTransNodeData(bContext *C, TransInfo *t)
 {
   SpaceNode *snode = static_cast<SpaceNode *>(t->area->spacedata.first);
   bNodeTree *node_tree = snode->edittree;
@@ -167,6 +167,7 @@ static void createTransNodeData(bContext * /*C*/, TransInfo *t)
 
   space_node::node_insert_on_link_flags_set(
       *snode, *t->region, t->modifiers & MOD_NODE_ATTACH, customdata->is_new_node);
+  space_node::node_insert_on_frame_flag_set(*C, *snode, int2(t->mval));
 
   t->custom.type.data = customdata;
   t->custom.type.use_free = true;
@@ -313,6 +314,7 @@ static void flushTransNodes(TransInfo *t)
       space_node::node_insert_on_link_flags_set(
           *snode, *t->region, t->modifiers & MOD_NODE_ATTACH, customdata->is_new_node);
     }
+    space_node::node_insert_on_frame_flag_set(*t->context, *snode, int2(t->mval));
   }
 }
 
@@ -351,6 +353,7 @@ static void special_aftertrans_update__node(bContext *C, TransInfo *t)
   }
 
   space_node::node_insert_on_link_flags_clear(*ntree);
+  space_node::node_insert_on_frame_flag_clear(*snode);
 
   wmOperatorType *ot = WM_operatortype_find("NODE_OT_insert_offset", true);
   BLI_assert(ot);

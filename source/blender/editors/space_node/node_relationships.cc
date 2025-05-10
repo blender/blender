@@ -2131,6 +2131,26 @@ static bNode *node_find_frame_to_attach(ARegion &region, bNodeTree &ntree, const
   return nullptr;
 }
 
+static bool can_attach_node_to_frame(const bNode &node, const bNode &frame)
+{
+  /* Disallow moving a parent into its child. */
+  if (node.is_frame() && bke::node_is_parent_and_child(node, frame)) {
+    return false;
+  }
+  if (node.parent == nullptr) {
+    return true;
+  }
+  if (node.parent == &frame) {
+    return false;
+  }
+  /* Attach nodes which share parent with the frame. */
+  const bool share_parent = bke::node_is_parent_and_child(*node.parent, frame);
+  if (!share_parent) {
+    return false;
+  }
+  return true;
+}
+
 static wmOperatorStatus node_attach_invoke(bContext *C, wmOperator * /*op*/, const wmEvent *event)
 {
   ARegion &region = *CTX_wm_region(C);
@@ -2148,28 +2168,9 @@ static wmOperatorStatus node_attach_invoke(bContext *C, wmOperator * /*op*/, con
     if (!(node->flag & NODE_SELECT)) {
       continue;
     }
-
-    /* Disallow moving a parent into its child. */
-    if (node->is_frame() && bke::node_is_parent_and_child(*node, *frame)) {
+    if (!can_attach_node_to_frame(*node, *frame)) {
       continue;
     }
-
-    if (node->parent == nullptr) {
-      bke::node_attach_node(ntree, *node, *frame);
-      changed = true;
-      continue;
-    }
-
-    if (node->parent == frame) {
-      continue;
-    }
-
-    /* Attach nodes which share parent with the frame. */
-    const bool share_parent = bke::node_is_parent_and_child(*node->parent, *frame);
-    if (!share_parent) {
-      continue;
-    }
-
     bke::node_detach_node(ntree, *node);
     bke::node_attach_node(ntree, *node, *frame);
     changed = true;
@@ -2407,6 +2408,35 @@ void node_insert_on_link_flags_set(SpaceNode &snode,
       selink->flag |= NODE_LINK_INSERT_TARGET_INVALID;
     }
   }
+}
+
+void node_insert_on_frame_flag_set(bContext &C, SpaceNode &snode, const int2 &cursor)
+{
+  snode.runtime->frame_identifier_to_highlight.reset();
+
+  ARegion &region = *CTX_wm_region(&C);
+
+  snode.edittree->ensure_topology_cache();
+  const bNode *frame = node_find_frame_to_attach(region, *snode.edittree, cursor);
+  if (!frame) {
+    return;
+  }
+  for (const bNode *node : snode.edittree->all_nodes()) {
+    if (!(node->flag & NODE_SELECT)) {
+      continue;
+    }
+    if (!can_attach_node_to_frame(*node, *frame)) {
+      continue;
+    }
+    /* We detected that a node can be attached to the frame, so highlight it. */
+    snode.runtime->frame_identifier_to_highlight = frame->identifier;
+    return;
+  }
+}
+
+void node_insert_on_frame_flag_clear(SpaceNode &snode)
+{
+  snode.runtime->frame_identifier_to_highlight.reset();
 }
 
 void node_insert_on_link_flags_clear(bNodeTree &node_tree)
