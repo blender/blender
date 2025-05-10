@@ -35,12 +35,12 @@
 namespace blender::ed::transform {
 
 struct TransCustomDataNode {
-  View2DEdgePanData edgepan_data;
+  View2DEdgePanData edgepan_data{};
 
   /* Compare if the view has changed so we can update with `transformViewUpdate`. */
-  rctf viewrect_prev;
+  rctf viewrect_prev{};
 
-  bool is_new_node;
+  bool is_new_node = false;
 };
 
 /* -------------------------------------------------------------------- */
@@ -153,7 +153,7 @@ static void createTransNodeData(bContext *C, TransInfo *t)
   }
 
   /* Custom data to enable edge panning during the node transform. */
-  TransCustomDataNode *customdata = MEM_callocN<TransCustomDataNode>(__func__);
+  TransCustomDataNode *customdata = MEM_new<TransCustomDataNode>(__func__);
   UI_view2d_edge_pan_init(t->context,
                           &customdata->edgepan_data,
                           NODE_EDGE_PAN_INSIDE_PAD,
@@ -170,7 +170,11 @@ static void createTransNodeData(bContext *C, TransInfo *t)
   space_node::node_insert_on_frame_flag_set(*C, *snode, int2(t->mval));
 
   t->custom.type.data = customdata;
-  t->custom.type.use_free = true;
+  t->custom.type.free_cb = [](TransInfo *, TransDataContainer *, TransCustomData *custom_data) {
+    TransCustomDataNode *data = static_cast<TransCustomDataNode *>(custom_data->data);
+    MEM_delete(data);
+    custom_data->data = nullptr;
+  };
 
   TransDataContainer *tc = TRANS_DATA_CONTAINER_FIRST_SINGLE(t);
 
