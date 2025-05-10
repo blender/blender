@@ -19,6 +19,7 @@
 #include "BLI_listbase.h"
 #include "BLI_rect.h"
 #include "BLI_string.h"
+#include "BLI_task.hh"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.hh"
@@ -36,6 +37,8 @@
 #include "BLT_translation.hh"
 
 #include "ED_screen.hh"
+
+#include "BLF_api.hh"
 
 #include "GPU_state.hh"
 #include "interface_intern.hh"
@@ -174,6 +177,47 @@ int UI_searchbox_size_y()
 int UI_searchbox_size_x()
 {
   return 12 * UI_UNIT_X;
+}
+
+int UI_searchbox_size_x_guess(const bContext *C, const uiButSearchUpdateFn update_fn)
+{
+  using namespace blender;
+
+  uiSearchItems items{};
+  /* Upper bound on the number of item names that are checked. */
+  items.maxitem = 1000;
+  items.maxstrlen = 256;
+
+  /* Prepare name buffers. */
+  Array<char> names_buffer(items.maxitem * items.maxstrlen);
+  Array<char *> names(items.maxitem);
+  items.names = names.data();
+  for (int i : IndexRange(items.maxitem)) {
+    names[i] = names_buffer.data() + i * items.maxstrlen;
+  }
+
+  /* Gather the names shown in the search box. */
+  update_fn(C, nullptr, "", &items, true);
+
+  /* Compute the width of each item. */
+  Array<int> item_widths(items.totitem);
+  threading::parallel_for(item_widths.index_range(), 256, [&](const IndexRange range) {
+    for (const int i : range) {
+      const blender::StringRefNull name = items.names[i];
+      const float text_width = BLF_width(BLF_default(), name.c_str(), name.size(), nullptr);
+      const float padding = UI_UNIT_X;
+      item_widths[i] = int(text_width + padding);
+    }
+  });
+
+  /* Compute the final width of the search box. */
+  int box_width = UI_searchbox_size_x();
+  for (const int width : item_widths) {
+    box_width = std::max(box_width, width);
+  }
+  /* Avoid extremely wide boxes. */
+  box_width = std::min(box_width, UI_searchbox_size_x() * 5);
+  return box_width;
 }
 
 int UI_search_items_find_index(const uiSearchItems *items, const char *name)
