@@ -60,7 +60,7 @@ bool AbcPointsReader::accepts_object_type(
 
 void AbcPointsReader::readObjectData(Main *bmain, const Alembic::Abc::ISampleSelector &sample_sel)
 {
-  PointCloud *pointcloud = BKE_pointcloud_add_default(bmain, m_data_name.c_str());
+  PointCloud *pointcloud = BKE_pointcloud_add(bmain, m_data_name.c_str());
 
   bke::GeometrySet geometry_set = bke::GeometrySet::from_pointcloud(
       pointcloud, bke::GeometryOwnershipType::Editable);

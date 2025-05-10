@@ -36,6 +36,7 @@
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector_types.hh"
+#include "BLI_rand.hh"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
@@ -2133,23 +2134,38 @@ static wmOperatorStatus object_pointcloud_add_exec(bContext *C, wmOperator *op)
   float loc[3], rot[3];
   add_generic_get_opts(C, op, 'Z', loc, rot, nullptr, nullptr, &local_view_bits, nullptr);
 
-  add_type(C, OB_POINTCLOUD, nullptr, loc, rot, false, local_view_bits);
+  Object *object = add_type(C, OB_POINTCLOUD, nullptr, loc, rot, false, local_view_bits);
+  PointCloud &pointcloud = *static_cast<PointCloud *>(object->data);
+  pointcloud.totpoint = 400;
+  CustomData_realloc(&pointcloud.pdata, 0, pointcloud.totpoint);
+
+  bke::MutableAttributeAccessor attributes = pointcloud.attributes_for_write();
+  bke::SpanAttributeWriter<float3> position = attributes.lookup_or_add_for_write_only_span<float3>(
+      "position", bke::AttrDomain::Point);
+  bke::SpanAttributeWriter<float> radii = attributes.lookup_or_add_for_write_only_span<float>(
+      "radius", bke::AttrDomain::Point);
+
+  RandomNumberGenerator rng(0);
+  for (const int i : position.span.index_range()) {
+    position.span[i] = float3(rng.get_float(), rng.get_float(), rng.get_float()) * 2.0f - 1.0f;
+    radii.span[i] = 0.05f * rng.get_float();
+  }
+
+  position.finish();
+  radii.finish();
 
   return OPERATOR_FINISHED;
 }
 
-void OBJECT_OT_pointcloud_add(wmOperatorType *ot)
+void OBJECT_OT_pointcloud_random_add(wmOperatorType *ot)
 {
-  /* identifiers */
   ot->name = "Add Point Cloud";
   ot->description = "Add a point cloud object to the scene";
-  ot->idname = "OBJECT_OT_pointcloud_add";
+  ot->idname = "OBJECT_OT_pointcloud_random_add";
 
-  /* api callbacks */
   ot->exec = object_pointcloud_add_exec;
   ot->poll = ED_operator_objectmode;
 
-  /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   add_generic_props(ot, false);

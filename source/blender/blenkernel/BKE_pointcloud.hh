@@ -50,7 +50,6 @@ PointCloud *pointcloud_new_no_attributes(int totpoint);
 }  // namespace blender::bke
 
 PointCloud *BKE_pointcloud_add(Main *bmain, const char *name);
-PointCloud *BKE_pointcloud_add_default(Main *bmain, const char *name);
 PointCloud *BKE_pointcloud_new_nomain(int totpoint);
 void BKE_pointcloud_nomain_to_pointcloud(PointCloud *pointcloud_src, PointCloud *pointcloud_dst);
 

@@ -17,7 +17,6 @@
 
 #include "BLI_bounds.hh"
 #include "BLI_index_range.hh"
-#include "BLI_rand.h"
 #include "BLI_resource_scope.hh"
 #include "BLI_span.hh"
 #include "BLI_utildefines.h"
@@ -53,12 +52,7 @@ using blender::StringRef;
 using blender::VArray;
 using blender::Vector;
 
-/* PointCloud datablock */
-
-static void pointcloud_random(PointCloud *pointcloud);
-
 constexpr StringRef ATTR_POSITION = "position";
-constexpr StringRef ATTR_RADIUS = "radius";
 
 static void pointcloud_init_data(ID *id)
 {
@@ -202,33 +196,6 @@ IDTypeInfo IDType_ID_PT = {
     /*lib_override_apply_post*/ nullptr,
 };
 
-static void pointcloud_random(PointCloud *pointcloud)
-{
-  using namespace blender;
-  using namespace blender::bke;
-  BLI_assert(pointcloud->totpoint == 0);
-  pointcloud->totpoint = 400;
-  CustomData_realloc(&pointcloud->pdata, 0, pointcloud->totpoint);
-
-  RNG *rng = BLI_rng_new(0);
-
-  MutableAttributeAccessor attributes = pointcloud->attributes_for_write();
-  MutableSpan<float3> positions = pointcloud->positions_for_write();
-  SpanAttributeWriter<float> radii = attributes.lookup_or_add_for_write_only_span<float>(
-      ATTR_RADIUS, AttrDomain::Point);
-
-  for (const int i : positions.index_range()) {
-    positions[i] = float3(BLI_rng_get_float(rng), BLI_rng_get_float(rng), BLI_rng_get_float(rng)) *
-                       2.0f -
-                   1.0f;
-    radii.span[i] = 0.05f * BLI_rng_get_float(rng);
-  }
-
-  radii.finish();
-
-  BLI_rng_free(rng);
-}
-
 template<typename T>
 static VArray<T> get_varray_attribute(const PointCloud &pointcloud,
                                       const StringRef name,
@@ -300,15 +267,6 @@ MutableSpan<float> PointCloud::radius_for_write()
 PointCloud *BKE_pointcloud_add(Main *bmain, const char *name)
 {
   PointCloud *pointcloud = BKE_id_new<PointCloud>(bmain, name);
-
-  return pointcloud;
-}
-
-PointCloud *BKE_pointcloud_add_default(Main *bmain, const char *name)
-{
-  PointCloud *pointcloud = BKE_id_new<PointCloud>(bmain, name);
-
-  pointcloud_random(pointcloud);
 
   return pointcloud;
 }
