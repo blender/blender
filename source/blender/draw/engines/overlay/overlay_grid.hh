@@ -233,13 +233,16 @@ class Grid : Overlay {
     }
     else {
       if (ELEM(rv3d->view, RV3D_VIEW_RIGHT, RV3D_VIEW_LEFT)) {
-        grid_flag_ = PLANE_YZ | (show_axis_y ? SHOW_AXIS_Y : 0) | (show_axis_z ? SHOW_AXIS_Z : 0);
+        grid_flag_ = PLANE_YZ | (show_axis_y ? SHOW_AXIS_Y : OVERLAY_GridBits(0)) |
+                     (show_axis_z ? SHOW_AXIS_Z : OVERLAY_GridBits(0));
       }
       else if (ELEM(rv3d->view, RV3D_VIEW_TOP, RV3D_VIEW_BOTTOM)) {
-        grid_flag_ = PLANE_XY | (show_axis_x ? SHOW_AXIS_X : 0) | (show_axis_y ? SHOW_AXIS_Y : 0);
+        grid_flag_ = PLANE_XY | (show_axis_x ? SHOW_AXIS_X : OVERLAY_GridBits(0)) |
+                     (show_axis_y ? SHOW_AXIS_Y : OVERLAY_GridBits(0));
       }
       else if (ELEM(rv3d->view, RV3D_VIEW_FRONT, RV3D_VIEW_BACK)) {
-        grid_flag_ = PLANE_XZ | (show_axis_x ? SHOW_AXIS_X : 0) | (show_axis_z ? SHOW_AXIS_Z : 0);
+        grid_flag_ = PLANE_XZ | (show_axis_x ? SHOW_AXIS_X : OVERLAY_GridBits(0)) |
+                     (show_axis_z ? SHOW_AXIS_Z : OVERLAY_GridBits(0));
       }
       if (show_ortho_grid) {
         grid_flag_ |= SHOW_GRID | GRID_BACK;
