@@ -192,6 +192,8 @@ class NODE_OT_connect_to_output(Operator, NodeEditorBase):
         out_i = None
         valid_outputs = []
         for i, out in enumerate(node.outputs):
+            if out.select:
+                return i
             if is_visible_socket(out) and (not check_type or out.type == socket_type):
                 valid_outputs.append(i)
         if valid_outputs:
@@ -259,7 +261,7 @@ class NODE_OT_connect_to_output(Operator, NodeEditorBase):
 
         mlocx = event.mouse_region_x
         mlocy = event.mouse_region_y
-        select_node = bpy.ops.node.select(location=(mlocx, mlocy), extend=False)
+        select_node = bpy.ops.node.select(location=(mlocx, mlocy), extend=False, socket_select=True)
         if 'FINISHED' not in select_node:  # only run if mouse click is on a node.
             return {'CANCELLED'}
 
