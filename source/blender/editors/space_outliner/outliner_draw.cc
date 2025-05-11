@@ -3182,7 +3182,8 @@ static void outliner_draw_iconrow(uiBlock *block,
                 TSE_POSE_CHANNEL,
                 TSE_BONE_COLLECTION,
                 TSE_DEFGROUP,
-                TSE_ACTION_SLOT))
+                TSE_ACTION_SLOT,
+                TSE_NLA_TRACK))
       {
         outliner_draw_iconrow_doit(block, te, xmax, offsx, ys, alpha_fac, active, 1);
       }
