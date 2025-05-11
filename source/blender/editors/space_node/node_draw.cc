@@ -113,6 +113,9 @@ using blender::nodes::NodeExtraInfoRow;
 
 namespace blender::ed::space_node {
 
+#define NODE_ZONE_PADDING UI_UNIT_X
+#define ZONE_ZONE_PADDING 0.3f * UI_UNIT_X
+
 /**
  * This is passed to many functions which draw the node editor.
  */
@@ -4071,7 +4074,12 @@ static float frame_node_label_height(const NodeFrame &frame_data)
 static rctf calc_node_frame_dimensions(bNode &node)
 {
   if (!node.is_frame()) {
-    return node.runtime->draw_bounds;
+    rctf node_bounds = node.runtime->draw_bounds;
+    if (bke::zone_type_by_node_type(node.type_legacy) != nullptr) {
+      node_bounds.ymax += NODE_ZONE_PADDING;
+      node_bounds.ymin -= NODE_ZONE_PADDING;
+    }
+    return node_bounds;
   }
 
   NodeFrame *data = (NodeFrame *)node.storage;
@@ -4207,7 +4215,7 @@ static void frame_node_draw_label(TreeDrawContext &tree_draw_ctx,
 
   const rctf &rct = node.runtime->draw_bounds;
   const float label_x = BLI_rctf_cent_x(&rct) - (0.5f * width);
-  const float label_y = rct.ymax - label_height - (0.5f * margin);
+  const float label_y = rct.ymax - label_height - (0.25f * margin);
 
   /* Label. */
   const bool has_label = node.label[0] != '\0';
@@ -4620,8 +4628,8 @@ static void find_bounds_by_zone_recursive(const SpaceNode &snode,
                                           const Span<const bNodeTreeZone *> all_zones,
                                           MutableSpan<Vector<float2>> r_bounds_by_zone)
 {
-  const float node_padding = UI_UNIT_X;
-  const float zone_padding = 0.3f * UI_UNIT_X;
+  const float node_padding = NODE_ZONE_PADDING;
+  const float zone_padding = ZONE_ZONE_PADDING;
 
   Vector<float2> &bounds = r_bounds_by_zone[zone.index];
   if (!bounds.is_empty()) {
