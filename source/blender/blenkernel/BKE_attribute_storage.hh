@@ -134,7 +134,7 @@ class AttributeStorage : public ::AttributeStorage {
   void foreach(FunctionRef<void(const Attribute &)> fn) const;
 
   /**
-   * Try to find the attribute with a givin name. The non-const overload does not make the
+   * Try to find the attribute with a given name. The non-const overload does not make the
    * attribute data itself mutable.
    */
   Attribute *lookup(StringRef name);

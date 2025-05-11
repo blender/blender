@@ -32,18 +32,18 @@ def strip_libs(strip_dir: Path) -> None:
     prev_print_len = 0
     for shared_lib in strip_dir.rglob("*.so*"):
         if shared_lib.suffix == ".py":
-            # Work around badly named sycl scripts.
+            # Work around badly named `sycl` scripts.
             continue
 
         if shared_lib.is_symlink():
-            # Don't strip symlinks as we don't want to strip the same library multiple times.
+            # Don't strip symbolic-links as we don't want to strip the same library multiple times.
             continue
 
         prev_print_len = print_strip_lib(shared_lib, prev_print_len)
         subprocess.check_call(["strip", "-s", "--enable-deterministic-archives", shared_lib])
     for static_lib in strip_dir.rglob("*.a"):
         if static_lib.is_symlink():
-            # Don't strip symlinks as we don't want to strip the same library multiple times.
+            # Don't strip symbolic-links as we don't want to strip the same library multiple times.
             continue
 
         prev_print_len = print_strip_lib(static_lib, prev_print_len)

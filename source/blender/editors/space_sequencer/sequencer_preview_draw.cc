@@ -1608,7 +1608,7 @@ static void sequencer_preview_draw_overlays(const bContext *C,
   if (show_imbuf && (space_sequencer.flag & SEQ_SHOW_OVERLAY)) {
     sequencer_draw_borders_overlay(space_sequencer, region.v2d, scene);
 
-    /* Various overlays like stirp selection and text editing. */
+    /* Various overlays like strip selection and text editing. */
     preview_draw_all_image_overlays(C, scene, editing, timeline_frame);
 
     if ((space_sequencer.preview_overlay.flag & SEQ_PREVIEW_SHOW_GPENCIL) && space_sequencer.gpd) {

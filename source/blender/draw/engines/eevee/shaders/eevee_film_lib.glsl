@@ -702,7 +702,7 @@ void film_process_data(int2 texel_film, out float4 out_color, out float out_dept
     else {
       out_depth = imageLoadFast(depth_img, texel_film).r;
       if (display_id == -1) {
-        /* Noop. */
+        /* NOP. */
       }
       else if (display_id == normal_id) {
         out_color = imageLoadFast(color_accum_img, int3(texel_film, display_id));

@@ -5047,7 +5047,7 @@ static int ui_do_but_TOG(bContext *C, uiBut *but, uiHandleButtonData *data, cons
                UI_BTYPE_CHECKBOX,
                UI_BTYPE_CHECKBOX_N))
       {
-        /* Support Ctrl-Wheel to cycle toggles and checkboxes. */
+        /* Support Ctrl-Wheel to cycle toggles and check-boxes. */
         button_activate_state(C, but, BUTTON_STATE_EXIT);
         return WM_UI_HANDLER_BREAK;
       }

@@ -1107,7 +1107,7 @@ static bool region_background_is_transparent(const ScrArea *area, const ARegion 
 
 static void region_azone_edge(const ScrArea *area, AZone *az, const ARegion *region)
 {
-  /* Narrow regions like headers need a smaller hitspace that
+  /* Narrow regions like headers need a smaller hit-space that
    * does not interfere with content. */
   const bool is_narrow = RGN_TYPE_IS_HEADER_ANY(region->regiontype);
   const bool transparent = !is_narrow && region->overlap &&

@@ -3373,9 +3373,11 @@ static void do_version_scale_node_remove_translate(bNodeTree *node_tree)
   }
 }
 
-/* Turns all instances of "{" and "}" in a string into "{{" and "}}", escaping
+/**
+ * Turns all instances of `{` and `}` in a string into `{{` and `}}`, escaping
  * them for strings that are processed with templates so that they don't
- * erroneously get interepreted as template expressions. */
+ * erroneously get interpreted as template expressions.
+ */
 static void version_escape_curly_braces(char string[], const int string_array_length)
 {
   int bytes_processed = 0;
@@ -3396,10 +3398,12 @@ static void version_escape_curly_braces(char string[], const int string_array_le
   }
 }
 
-/* Escapes all instances of "{" and "}" in the paths in a compositor node tree's
+/**
+ * Escapes all instances of `{` and `}` in the paths in a compositor node tree's
  * File Output nodes.
  *
- * If the passed node tree is not a compositor node tree, does nothing. */
+ * If the passed node tree is not a compositor node tree, does nothing.
+ */
 static void version_escape_curly_braces_in_compositor_file_output_nodes(bNodeTree &nodetree)
 {
   if (nodetree.type != NTREE_COMPOSIT) {

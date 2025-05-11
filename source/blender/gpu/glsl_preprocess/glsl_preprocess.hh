@@ -353,10 +353,11 @@ class Preprocessor {
         macro_body = std::regex_replace(macro_body, std::regex(R"(\n)"), " \\\n");
 
         std::string macro_args = get_content_between_balanced_pair(macro_body, '(', ')');
-        /* Find function arg list. Skip first 10 chars to skip "_TEMPLATE" and the arg list. */
+        /* Find function argument list.
+         * Skip first 10 chars to skip "_TEMPLATE" and the argument list. */
         std::string fn_args = get_content_between_balanced_pair(
             macro_body.substr(10 + macro_args.length() + 1), '(', ')');
-        /* Remove whitespaces. */
+        /* Remove white-spaces. */
         macro_args = std::regex_replace(macro_args, std::regex(R"(\s)"), "");
         std::vector<std::string> macro_args_split = split_string(macro_args, ',');
         /* Append arguments inside the function name. */
@@ -385,7 +386,7 @@ class Preprocessor {
       /* Only `template ret_t fn<T>(args);` syntax is supported. */
       std::regex regex_instance(R"(template \w+ (\w+)<([\w+, \n]+)>\(([\w+ ,\n]+)\);)");
       /* Notice the stupid way of keeping the number of lines the same by copying the argument list
-       * inside a multiline comment. */
+       * inside a multi-line comment. */
       out_str = std::regex_replace(out_str, regex_instance, "$1_TEMPLATE($2)/*$3*/");
     }
     {

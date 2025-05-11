@@ -49,7 +49,7 @@ def main():
         os.remove(file)
         sys.exit(0)
 
-    # Find existing rpaths and delete them one by one.
+    # Find existing RPATHS and delete them one by one.
     p = subprocess.run(['otool', '-l', file], capture_output=True)
     tokens = p.stdout.split()
 

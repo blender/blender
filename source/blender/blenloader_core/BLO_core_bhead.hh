@@ -107,7 +107,7 @@ enum {
 
 /**
  * Parse the next #BHead in the file, increasing the file reader to after the #BHead.
- * This automaticaly converts the stored BHead (one of #BHeadType) to the runtime #BHead type.
+ * This automatically converts the stored BHead (one of #BHeadType) to the runtime #BHead type.
  *
  * \return The next #BHEad or #std::nullopt if the file is exhausted.
  */

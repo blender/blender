@@ -37,8 +37,8 @@ BlenderHeaderVariant BLO_readfile_blender_header_decode(FileReader *file)
     return BlenderHeaderInvalid{};
   }
   /* If the first 7 bytes are BLENDER, it is very likely that this is a newer version of the
-   * blendfile format. If the rest of the decode fails, we can still report that this was a Blender
-   * file of a potentially future version. */
+   * blend-file format. If the rest of the decode fails, we can still report that this was a
+   * Blender file of a potentially future version. */
 
   BlenderHeader header;
   /* In the old header format, the next bytes indicate the pointer size. In the new format a

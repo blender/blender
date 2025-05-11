@@ -327,7 +327,7 @@ static int format_float_to_string(const FormatSpecifier &format,
     case FormatSpecifierType::NONE: {
       /* When no format specification is given, we attempt to replicate Python's
        * behavior in the same situation. The only major thing we can't replicate
-       * via libfmt is that in Python whole numbers are printed with a trailing
+       * via `libfmt` is that in Python whole numbers are printed with a trailing
        * ".0". So we handle that bit manually. */
       output_length =
           fmt::format_to_n(r_output_string, FORMAT_BUFFER_SIZE - 1, "{}", float_value).size;

@@ -80,7 +80,7 @@ typedef struct RegionView3D {
    *
    * \note Besides being above zero, the range of this value is not strictly defined,
    * see #ED_view3d_dist_soft_range_get to calculate a working range
-   * viewport "zoom" functons to use.
+   * viewport "zoom" functions to use.
    */
   float dist;
   /** Camera view offsets, 1.0 = viewplane moves entire width/height. */

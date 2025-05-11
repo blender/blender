@@ -46,7 +46,7 @@ class NOOPDisplayCPUProcessor : public CPUProcessor {
 
 class BaseDisplayCPUProcessor : public CPUProcessor {
  public:
-  /* Matrix transform which is applied in the linear smace.
+  /* Matrix transform which is applied in the linear space.
    *
    * NOTE: The matrix is inversed when the processor is configured to go from display space to
    * linear. */
