@@ -100,6 +100,13 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *ptr)
   }
 }
 
+static const bNodeSocket *node_internally_linked_input(const bNodeTree & /*tree*/,
+                                                       const bNode & /*node*/,
+                                                       const bNodeSocket &output_socket)
+{
+  return evaluate_closure_node_internally_linked_input(output_socket);
+}
+
 static void node_operators()
 {
   socket_items::ops::make_common_operators<EvaluateClosureInputItemsAccessor>();
@@ -117,6 +124,7 @@ static void node_register()
   ntype.initfunc = node_init;
   ntype.insert_link = node_insert_link;
   ntype.draw_buttons_ex = node_layout_ex;
+  ntype.internally_linked_input = node_internally_linked_input;
   ntype.register_operators = node_operators;
   bke::node_type_storage(
       ntype, "NodeGeometryEvaluateClosure", node_free_storage, node_copy_storage);

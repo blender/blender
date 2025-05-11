@@ -564,6 +564,14 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
   });
 }
 
+static const bNodeSocket *node_internally_linked_input(const bNodeTree & /*tree*/,
+                                                       const bNode &node,
+                                                       const bNodeSocket &output_socket)
+{
+  /* Internal links should always map corresponding input and output sockets. */
+  return &node.input_by_identifier(output_socket.identifier);
+}
+
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
@@ -580,6 +588,7 @@ static void node_register()
   ntype.get_extra_info = node_extra_info;
   ntype.register_operators = node_operators;
   ntype.gather_link_search_ops = node_gather_link_searches;
+  ntype.internally_linked_input = node_internally_linked_input;
   blender::bke::node_type_storage(ntype, "NodeGeometryBake", node_free_storage, node_copy_storage);
   blender::bke::node_register_type(ntype);
 }
