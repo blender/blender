@@ -1349,6 +1349,7 @@ static void rna_def_node_socket_string(BlenderRNA *brna,
   RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 
   if (subtype == PROP_FILEPATH) {
+    RNA_def_property_flag(prop, PROP_PATH_SUPPORTS_BLEND_RELATIVE);
     RNA_def_property_string_filepath_filter_func(prop, "rna_NodeSocketString_filepath_filter");
   }
 
