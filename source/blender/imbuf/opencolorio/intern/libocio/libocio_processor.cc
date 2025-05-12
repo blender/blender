@@ -36,7 +36,7 @@ OCIO_NAMESPACE::ConstProcessorRcPtr create_ocio_processor_silent(
         from_colorspace.c_str(), to_colorspace.c_str());
     return processor;
   }
-  catch (OCIO_NAMESPACE::Exception &exception) {
+  catch (OCIO_NAMESPACE::Exception & /*exception*/) {
   }
   return nullptr;
 }
