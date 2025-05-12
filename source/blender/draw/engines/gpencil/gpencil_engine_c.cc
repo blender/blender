@@ -98,6 +98,7 @@ void Instance::init()
   /* Small HACK: we don't want the global pool to be reused,
    * so we set the last light pool to nullptr. */
   this->last_light_pool = nullptr;
+  this->is_sorted = false;
 
   bool use_scene_lights = false;
   bool use_scene_world = false;

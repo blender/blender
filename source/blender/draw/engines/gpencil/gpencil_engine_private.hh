@@ -204,6 +204,9 @@ struct Instance final : public DrawEngine {
   struct {
     tObject *first, *last;
   } tobjects, tobjects_infront;
+  /* Used to record whether the `tobjects` list is sorted. Do not sort drawings again in separate
+   * pass rendering to avoid generating infinite lists. */
+  bool is_sorted;
   /* Pointer to dtxl->depth */
   GPUTexture *scene_depth_tx;
   GPUFrameBuffer *scene_fb;
