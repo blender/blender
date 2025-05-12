@@ -491,7 +491,7 @@ static void histogram_draw_one(float r,
 
 #define HISTOGRAM_TOT_GRID_LINES 4
 
-void ui_draw_but_HISTOGRAM(ARegion * /*region*/,
+void ui_draw_but_HISTOGRAM(ARegion *region,
                            uiBut *but,
                            const uiWidgetColors * /*wcol*/,
                            const rcti *recti)
@@ -525,10 +525,17 @@ void ui_draw_but_HISTOGRAM(ARegion * /*region*/,
   /* need scissor test, histogram can draw outside of boundary */
   int scissor[4];
   GPU_scissor_get(scissor);
-  GPU_scissor((rect.xmin - 1),
-              (rect.ymin - 1),
-              (rect.xmax + 1) - (rect.xmin - 1),
-              (rect.ymax + 1) - (rect.ymin - 1));
+  rcti scissor_new{};
+  scissor_new.xmin = rect.xmin;
+  scissor_new.ymin = rect.ymin;
+  scissor_new.xmax = rect.xmax;
+  scissor_new.ymax = rect.ymax;
+  const rcti scissor_region = {0, region->winx, 0, region->winy};
+  BLI_rcti_isect(&scissor_new, &scissor_region, &scissor_new);
+  GPU_scissor(scissor_new.xmin,
+              scissor_new.ymin,
+              BLI_rcti_size_x(&scissor_new),
+              BLI_rcti_size_y(&scissor_new));
 
   GPUVertFormat *format = immVertexFormat();
   const uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
@@ -668,7 +675,7 @@ static void circle_draw_rgb(float *points, int tot_points, const float *col, GPU
   GPU_batch_discard(batch);
 }
 
-void ui_draw_but_WAVEFORM(ARegion * /*region*/,
+void ui_draw_but_WAVEFORM(ARegion *region,
                           uiBut *but,
                           const uiWidgetColors * /*wcol*/,
                           const rcti *recti)
@@ -728,10 +735,17 @@ void ui_draw_but_WAVEFORM(ARegion * /*region*/,
 
   /* need scissor test, waveform can draw outside of boundary */
   GPU_scissor_get(scissor);
-  GPU_scissor((rect.xmin - 1),
-              (rect.ymin - 1),
-              (rect.xmax + 1) - (rect.xmin - 1),
-              (rect.ymax + 1) - (rect.ymin - 1));
+  rcti scissor_new{};
+  scissor_new.xmin = rect.xmin;
+  scissor_new.ymin = rect.ymin;
+  scissor_new.xmax = rect.xmax;
+  scissor_new.ymax = rect.ymax;
+  const rcti scissor_region = {0, region->winx, 0, region->winy};
+  BLI_rcti_isect(&scissor_new, &scissor_region, &scissor_new);
+  GPU_scissor(scissor_new.xmin,
+              scissor_new.ymin,
+              BLI_rcti_size_x(&scissor_new),
+              BLI_rcti_size_y(&scissor_new));
 
   /* draw scale numbers first before binding any shader */
   for (int i = 0; i < 6; i++) {
@@ -976,7 +990,7 @@ static void vectorscope_draw_target(
   immEnd();
 }
 
-void ui_draw_but_VECTORSCOPE(ARegion * /*region*/,
+void ui_draw_but_VECTORSCOPE(ARegion *region,
                              uiBut *but,
                              const uiWidgetColors * /*wcol*/,
                              const rcti *recti)
@@ -1025,10 +1039,17 @@ void ui_draw_but_VECTORSCOPE(ARegion * /*region*/,
   /* need scissor test, vectorscope can draw outside of boundary */
   int scissor[4];
   GPU_scissor_get(scissor);
-  GPU_scissor((rect.xmin - 1),
-              (rect.ymin - 1),
-              (rect.xmax + 1) - (rect.xmin - 1),
-              (rect.ymax + 1) - (rect.ymin - 1));
+  rcti scissor_new{};
+  scissor_new.xmin = rect.xmin;
+  scissor_new.ymin = rect.ymin;
+  scissor_new.xmax = rect.xmax;
+  scissor_new.ymax = rect.ymax;
+  const rcti scissor_region = {0, region->winx, 0, region->winy};
+  BLI_rcti_isect(&scissor_new, &scissor_region, &scissor_new);
+  GPU_scissor(scissor_new.xmin,
+              scissor_new.ymin,
+              BLI_rcti_size_x(&scissor_new),
+              BLI_rcti_size_y(&scissor_new));
 
   GPUVertFormat *format = immVertexFormat();
   const uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
@@ -2138,7 +2159,7 @@ void ui_draw_but_CURVEPROFILE(ARegion *region,
   immUnbindProgram();
 }
 
-void ui_draw_but_TRACKPREVIEW(ARegion * /*region*/,
+void ui_draw_but_TRACKPREVIEW(ARegion *region,
                               uiBut *but,
                               const uiWidgetColors * /*wcol*/,
                               const rcti *recti)
@@ -2160,10 +2181,17 @@ void ui_draw_but_TRACKPREVIEW(ARegion * /*region*/,
   /* need scissor test, preview image can draw outside of boundary */
   int scissor[4];
   GPU_scissor_get(scissor);
-  GPU_scissor((rect.xmin - 1),
-              (rect.ymin - 1),
-              (rect.xmax + 1) - (rect.xmin - 1),
-              (rect.ymax + 1) - (rect.ymin - 1));
+  rcti scissor_new{};
+  scissor_new.xmin = rect.xmin;
+  scissor_new.ymin = rect.ymin;
+  scissor_new.xmax = rect.xmax;
+  scissor_new.ymax = rect.ymax;
+  const rcti scissor_region = {0, region->winx, 0, region->winy};
+  BLI_rcti_isect(&scissor_new, &scissor_region, &scissor_new);
+  GPU_scissor(scissor_new.xmin,
+              scissor_new.ymin,
+              BLI_rcti_size_x(&scissor_new),
+              BLI_rcti_size_y(&scissor_new));
 
   if (scopes->track_disabled) {
     const float color[4] = {0.7f, 0.3f, 0.3f, 0.3f};
