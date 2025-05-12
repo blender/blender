@@ -216,10 +216,11 @@ TEST(obj_exporter_writer, format_handler_buffer_chunking)
   h.write_obj_curve_begin();
   h.write_obj_newline();
   h.write_obj_nurbs_parm_begin();
+  h.write_obj_nurbs_parm(0.0f);
   h.write_obj_newline();
 
   size_t got_blocks = h.get_block_count();
-  ASSERT_EQ(got_blocks, 7);
+  ASSERT_EQ(got_blocks, 6);
 
   std::string got_string = h.get_as_string();
   using namespace std::string_literals;
@@ -229,8 +230,8 @@ o abcde
 o abcdef
 o 012345678901234567890123456789abcd
 o 123
-curv 0.0 1.0
-parm u 0.0
+curv
+parm u 0.000000
 )";
   ASSERT_EQ(got_string, expected);
 }

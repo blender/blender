@@ -140,7 +140,7 @@ class FormatHandler : NonCopyable, NonMovable {
   }
   void write_obj_curve_begin()
   {
-    write_impl("curv 0.0 1.0");
+    write_impl("curv");
   }
   void write_obj_curve_end()
   {
@@ -148,7 +148,7 @@ class FormatHandler : NonCopyable, NonMovable {
   }
   void write_obj_nurbs_parm_begin()
   {
-    write_impl("parm u 0.0");
+    write_impl("parm u");
   }
   void write_obj_nurbs_parm(float v)
   {
@@ -156,7 +156,7 @@ class FormatHandler : NonCopyable, NonMovable {
   }
   void write_obj_nurbs_parm_end()
   {
-    write_impl(" 1.0\n");
+    write_impl("\n");
   }
   void write_obj_nurbs_group_end()
   {

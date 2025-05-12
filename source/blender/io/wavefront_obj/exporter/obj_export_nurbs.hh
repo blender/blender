@@ -36,6 +36,7 @@ class OBJCurve : NonCopyable {
 
   const char *get_curve_name() const;
   int total_splines() const;
+  const Nurb *get_spline(int spline_index) const;
   /**
    * \param spline_index: Zero-based index of spline of interest.
    * \return Total vertices in a spline.
@@ -46,18 +47,29 @@ class OBJCurve : NonCopyable {
    */
   float3 vertex_coordinates(int spline_index, int vertex_index, float global_scale) const;
   /**
-   * Get total control points of the NURBS spline at the given index. This is different than total
-   * vertices of a spline.
+   * Get the number of control points on the U-dimension.
    */
-  int total_spline_control_points(int spline_index) const;
+  int num_control_points_u(int spline_index) const;
   /**
-   * Get the degree of the NURBS spline at the given index.
+   * Get the number of control points on the V-dimension.
    */
-  int get_nurbs_degree(int spline_index) const;
+  int num_control_points_v(int spline_index) const;
+  /**
+   * Get the degree of the NURBS spline for the U-dimension.
+   */
+  int get_nurbs_degree_u(int spline_index) const;
+  /**
+   * Get the degree of the NURBS spline for the V-dimension.
+   */
+  int get_nurbs_degree_v(int spline_index) const;
   /**
    * Get the U flags (CU_NURB_*) of the NURBS spline at the given index.
    */
   short get_nurbs_flagu(int spline_index) const;
+  /**
+   * Get the knot vector for the U-dimension. Computes knots using the buffer if necessary.
+   */
+  Span<float> get_knots_u(int spline_index, Vector<float> &buffer) const;
 
  private:
   /**

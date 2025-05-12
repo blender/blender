@@ -9,6 +9,7 @@
 #include "BKE_lib_id.hh"
 #include "BKE_object.hh"
 
+#include "BLI_array_utils.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_vector.h"
 
@@ -126,16 +127,7 @@ void CurveFromGeometry::create_nurbs(Curve *curve, const OBJImportParams &import
 
   if (nurb->flagu & CU_NURB_CUSTOM) {
     BKE_nurb_knot_alloc_u(nurb);
-    Span<float> knots = nurbs_geometry.parm.as_span();
-    if (nurb->flagu & CU_NURB_CYCLIC) {
-      knots = knots.drop_front(degree);
-      const float last_real_knot = knots[nurb->pntsu + degree];
-      MutableSpan<float> virtual_knots(nurb->knotsu + degree + 1, degree);
-      for (const int i : IndexRange(degree)) {
-        virtual_knots[i] = last_real_knot + knots[degree + 1 + i] - knots[degree];
-      }
-    }
-    std::copy_n(knots.data(), knots.size(), nurb->knotsu);
+    array_utils::copy<float>(nurbs_geometry.parm, MutableSpan<float>{nurb->knotsu, KNOTSU(nurb)});
   }
   else {
     BKE_nurb_knot_calc_u(nurb);
