@@ -436,19 +436,7 @@ int get_channels_num(const VolumeGridType type)
 float4x4 get_transform_matrix(const VolumeGridData &grid)
 {
 #ifdef WITH_OPENVDB
-  const openvdb::math::Transform &transform = grid.transform();
-
-  /* Perspective not supported for now, getAffineMap() will leave out the
-   * perspective part of the transform. */
-  openvdb::math::Mat4f matrix = transform.baseMap()->getAffineMap()->getMat4();
-  /* Blender column-major and OpenVDB right-multiplication conventions match. */
-  float4x4 result;
-  for (int col = 0; col < 4; col++) {
-    for (int row = 0; row < 4; row++) {
-      result[col][row] = matrix(col, row);
-    }
-  }
-  return result;
+  return BKE_volume_transform_to_blender(grid.transform());
 #else
   UNUSED_VARS(grid);
   return float4x4::identity();
@@ -458,15 +446,7 @@ float4x4 get_transform_matrix(const VolumeGridData &grid)
 void set_transform_matrix(VolumeGridData &grid, const float4x4 &matrix)
 {
 #ifdef WITH_OPENVDB
-  openvdb::math::Mat4f matrix_openvdb;
-  for (int col = 0; col < 4; col++) {
-    for (int row = 0; row < 4; row++) {
-      matrix_openvdb(col, row) = matrix[col][row];
-    }
-  }
-
-  grid.transform_for_write() = openvdb::math::Transform(
-      std::make_shared<openvdb::math::AffineMap>(matrix_openvdb));
+  grid.transform_for_write() = BKE_volume_transform_to_openvdb(matrix);
 #else
   UNUSED_VARS(grid, matrix);
 #endif

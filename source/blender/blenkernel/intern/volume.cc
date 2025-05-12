@@ -1092,6 +1092,32 @@ openvdb::GridBase::ConstPtr BKE_volume_grid_shallow_transform(openvdb::GridBase:
   return grid->copyGridReplacingTransform(grid_transform);
 }
 
+blender::float4x4 BKE_volume_transform_to_blender(const openvdb::math::Transform &transform)
+{
+  /* Perspective not supported for now, getAffineMap() will leave out the
+   * perspective part of the transform. */
+  const openvdb::math::Mat4f matrix = transform.baseMap()->getAffineMap()->getMat4();
+  /* Blender column-major and OpenVDB right-multiplication conventions match. */
+  float4x4 result;
+  for (int col = 0; col < 4; col++) {
+    for (int row = 0; row < 4; row++) {
+      result[col][row] = matrix(col, row);
+    }
+  }
+  return result;
+}
+
+openvdb::math::Transform BKE_volume_transform_to_openvdb(const blender::float4x4 &transform)
+{
+  openvdb::math::Mat4f matrix_openvdb;
+  for (int col = 0; col < 4; col++) {
+    for (int row = 0; row < 4; row++) {
+      matrix_openvdb(col, row) = transform[col][row];
+    }
+  }
+  return openvdb::math::Transform(std::make_shared<openvdb::math::AffineMap>(matrix_openvdb));
+}
+
 /* Changing the resolution of a grid. */
 
 /**
