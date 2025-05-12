@@ -954,6 +954,9 @@ static void ui_but_update_old_active_from_new(uiBut *oldbut, uiBut *but)
     std::swap(oldbut->func_argN, but->func_argN);
   }
 
+  std::swap(oldbut->rename_full_func, but->rename_full_func);
+  std::swap(oldbut->pushed_state_func, but->pushed_state_func);
+
   /* Move tooltip from new to old. */
   std::swap(oldbut->tip_func, but->tip_func);
   std::swap(oldbut->tip_arg, but->tip_arg);
