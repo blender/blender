@@ -284,7 +284,6 @@ namespace blender::nodes {
 
 StructRNA *RepeatItemsAccessor::item_srna = &RNA_RepeatItem;
 int RepeatItemsAccessor::node_type = GEO_NODE_REPEAT_OUTPUT;
-int RepeatItemsAccessor::item_dna_type = dna::sdna_struct_id_get<NodeRepeatItem>();
 
 void RepeatItemsAccessor::blend_write_item(BlendWriter *writer, const ItemT &item)
 {

@@ -453,7 +453,6 @@ std::unique_ptr<LazyFunction> get_menu_switch_node_socket_usage_lazy_function(co
 
 StructRNA *MenuSwitchItemsAccessor::item_srna = &RNA_NodeEnumItem;
 int MenuSwitchItemsAccessor::node_type = GEO_NODE_MENU_SWITCH;
-int MenuSwitchItemsAccessor::item_dna_type = dna::sdna_struct_id_get<NodeEnumItem>();
 
 void MenuSwitchItemsAccessor::blend_write_item(BlendWriter *writer, const ItemT &item)
 {

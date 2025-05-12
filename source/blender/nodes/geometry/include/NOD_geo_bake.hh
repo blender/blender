@@ -31,7 +31,6 @@ struct BakeItemsAccessor {
   using ItemT = NodeGeometryBakeItem;
   static StructRNA *item_srna;
   static int node_type;
-  static int item_dna_type;
   static constexpr const char *node_idname = "GeometryNodeBake";
   static constexpr bool has_type = true;
   static constexpr bool has_name = true;
