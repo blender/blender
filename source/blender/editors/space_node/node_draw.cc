@@ -3070,7 +3070,7 @@ static Vector<NodeExtraInfoRow> node_get_extra_info(const bContext &C,
   Vector<NodeExtraInfoRow> rows;
 
   if (node.typeinfo->get_extra_info) {
-    nodes::NodeExtraInfoParams params{rows, node, C};
+    nodes::NodeExtraInfoParams params{rows, *snode.edittree, node, C};
     node.typeinfo->get_extra_info(params);
   }
 

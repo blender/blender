@@ -33,10 +33,14 @@
 
 #include "NOD_common.hh"
 #include "NOD_node_declaration.hh"
+#include "NOD_node_extra_info.hh"
 #include "NOD_register.hh"
 #include "NOD_socket.hh"
 #include "NOD_socket_declarations.hh"
 #include "NOD_socket_declarations_geometry.hh"
+
+#include "UI_resources.hh"
+
 #include "node_common.h"
 #include "node_util.hh"
 
@@ -875,6 +879,23 @@ bNodeSocket *node_group_output_find_socket(bNode *node, const StringRef identifi
   return nullptr;
 }
 
+static void node_group_output_extra_info(blender::nodes::NodeExtraInfoParams &params)
+{
+  const blender::Span<const bNode *> group_output_nodes = params.tree.nodes_by_type(
+      "NodeGroupOutput");
+  if (group_output_nodes.size() <= 1) {
+    return;
+  }
+  if (params.node.flag & NODE_DO_OUTPUT) {
+    return;
+  }
+  blender::nodes::NodeExtraInfoRow row;
+  row.text = IFACE_("Unused Output");
+  row.icon = ICON_ERROR;
+  row.tooltip = TIP_("There are multiple group output nodes and this one is not active");
+  params.rows.append(std::move(row));
+}
+
 void register_node_type_group_output()
 {
   /* used for all tree types, needs dynamic allocation */
@@ -889,6 +910,7 @@ void register_node_type_group_output()
   blender::bke::node_type_size(*ntype, 140, 80, 400);
   ntype->declare = blender::nodes::group_output_declare;
   ntype->insert_link = blender::nodes::group_output_insert_link;
+  ntype->get_extra_info = node_group_output_extra_info;
 
   ntype->no_muting = true;
 
