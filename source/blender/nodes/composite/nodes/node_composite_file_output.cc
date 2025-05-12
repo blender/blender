@@ -354,7 +354,7 @@ static void node_composit_buts_file_output_ex(uiLayout *layout, bContext *C, Poi
 
   uiItemS(layout);
 
-  uiItemO(layout, IFACE_("Add Input"), ICON_ADD, "NODE_OT_output_file_add_socket");
+  layout->op("NODE_OT_output_file_add_socket", IFACE_("Add Input"), ICON_ADD);
 
   row = &layout->row(false);
   col = &row->column(true);

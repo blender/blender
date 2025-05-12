@@ -71,7 +71,7 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *ptr)
   bNode &node = *static_cast<bNode *>(ptr->data);
   NodeIndexSwitch &storage = node_storage(node);
   if (uiLayout *panel = layout->panel(C, "index_switch_items", false, IFACE_("Items"))) {
-    uiItemO(panel, IFACE_("Add Item"), ICON_ADD, "node.index_switch_item_add");
+    panel->op("node.index_switch_item_add", IFACE_("Add Item"), ICON_ADD);
     uiLayout *col = &panel->column(false);
     for (const int i : IndexRange(storage.items_num)) {
       uiLayout *row = &col->row(false);

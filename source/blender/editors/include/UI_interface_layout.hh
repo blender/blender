@@ -243,6 +243,13 @@ struct uiLayout : uiItem {
   void label(blender::StringRef name, int icon);
 
   /**
+   * Adds a operator item, places a button in the layout to call the operator.
+   * \param opname: Operator id name.
+   * \param name: Text to show in the layout.
+   */
+  void op(blender::StringRefNull opname, std::optional<blender::StringRef> name, int icon);
+
+  /**
    * Adds a RNA property item, and exposes it into the layout.
    * \param ptr: RNA pointer to the struct owner of \a prop.
    * \param prop: The property in \a ptr to add.
@@ -440,10 +447,7 @@ enum class LayoutSeparatorType : int8_t {
 };
 
 /* items */
-void uiItemO(uiLayout *layout,
-             std::optional<blender::StringRef> name,
-             int icon,
-             blender::StringRefNull opname);
+
 void uiItemEnumO_ptr(uiLayout *layout,
                      wmOperatorType *ot,
                      std::optional<blender::StringRef> name,

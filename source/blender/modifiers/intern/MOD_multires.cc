@@ -374,8 +374,8 @@ static void subdivisions_panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiItemS(layout);
 
-  uiItemO(layout, IFACE_("Unsubdivide"), ICON_NONE, "OBJECT_OT_multires_unsubdivide");
-  uiItemO(layout, IFACE_("Delete Higher"), ICON_NONE, "OBJECT_OT_multires_higher_levels_delete");
+  layout->op("OBJECT_OT_multires_unsubdivide", IFACE_("Unsubdivide"), ICON_NONE);
+  layout->op("OBJECT_OT_multires_higher_levels_delete", IFACE_("Delete Higher"), ICON_NONE);
 }
 
 static void shape_panel_draw(const bContext * /*C*/, Panel *panel)
@@ -389,8 +389,8 @@ static void shape_panel_draw(const bContext * /*C*/, Panel *panel)
   uiLayoutSetEnabled(layout, RNA_enum_get(&ob_ptr, "mode") != OB_MODE_EDIT);
 
   row = &layout->row(false);
-  uiItemO(row, IFACE_("Reshape"), ICON_NONE, "OBJECT_OT_multires_reshape");
-  uiItemO(row, IFACE_("Apply Base"), ICON_NONE, "OBJECT_OT_multires_base_apply");
+  row->op("OBJECT_OT_multires_reshape", IFACE_("Reshape"), ICON_NONE);
+  row->op("OBJECT_OT_multires_base_apply", IFACE_("Apply Base"), ICON_NONE);
 }
 
 static void generate_panel_draw(const bContext * /*C*/, Panel *panel)
@@ -404,20 +404,19 @@ static void generate_panel_draw(const bContext * /*C*/, Panel *panel)
   bool is_external = RNA_boolean_get(ptr, "is_external");
 
   if (mmd->totlvl == 0) {
-    uiItemO(
-        layout, IFACE_("Rebuild Subdivisions"), ICON_NONE, "OBJECT_OT_multires_rebuild_subdiv");
+    layout->op("OBJECT_OT_multires_rebuild_subdiv", IFACE_("Rebuild Subdivisions"), ICON_NONE);
   }
 
   col = &layout->column(false);
   row = &col->row(false);
   if (is_external) {
-    uiItemO(row, IFACE_("Pack External"), ICON_NONE, "OBJECT_OT_multires_external_pack");
+    row->op("OBJECT_OT_multires_external_pack", IFACE_("Pack External"), ICON_NONE);
     uiLayoutSetPropSep(col, true);
     row = &col->row(false);
     row->prop(ptr, "filepath", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
   else {
-    uiItemO(col, IFACE_("Save External..."), ICON_NONE, "OBJECT_OT_multires_external_save");
+    col->op("OBJECT_OT_multires_external_save", IFACE_("Save External..."), ICON_NONE);
   }
 }
 

@@ -135,7 +135,7 @@ void uiTemplateMovieClip(uiLayout *layout,
     row = &split->row(true);
 
     row->prop(&clipptr, "filepath", UI_ITEM_NONE, "", ICON_NONE);
-    uiItemO(row, "", ICON_FILE_REFRESH, "clip.reload");
+    row->op("clip.reload", "", ICON_FILE_REFRESH);
 
     uiLayout *col = &layout->column(false);
     uiTemplateColorspaceSettings(col, &clipptr, "colorspace_settings");

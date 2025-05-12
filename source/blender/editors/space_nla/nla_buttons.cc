@@ -517,7 +517,7 @@ static void nla_panel_actclip(const bContext *C, Panel *panel)
 
   row = &layout->row(false, IFACE_("Sync Length"));
   row->prop(&strip_ptr, "use_sync_length", UI_ITEM_NONE, "", ICON_NONE);
-  uiItemO(row, IFACE_("Now"), ICON_FILE_REFRESH, "NLA_OT_action_sync_length");
+  row->op("NLA_OT_action_sync_length", IFACE_("Now"), ICON_FILE_REFRESH);
 
   /* action usage */
   column = &layout->column(true);
@@ -641,8 +641,8 @@ static void nla_panel_modifiers(const bContext *C, Panel *panel)
 
     /* copy/paste (as sub-row) */
     row = &row->row(true);
-    uiItemO(row, "", ICON_COPYDOWN, "NLA_OT_fmodifier_copy");
-    uiItemO(row, "", ICON_PASTEDOWN, "NLA_OT_fmodifier_paste");
+    row->op("NLA_OT_fmodifier_copy", "", ICON_COPYDOWN);
+    row->op("NLA_OT_fmodifier_paste", "", ICON_PASTEDOWN);
   }
 
   ANIM_fmodifier_panels(C, strip_ptr.owner_id, &strip->modifiers, nla_fmodifier_panel_id);

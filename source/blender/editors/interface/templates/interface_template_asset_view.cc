@@ -248,7 +248,7 @@ void uiTemplateAssetView(uiLayout *layout,
     row->prop(
         asset_library_dataptr, asset_library_prop, RNA_NO_INDEX, 0, UI_ITEM_NONE, "", ICON_NONE);
     if (asset_library_ref.type != ASSET_LIBRARY_LOCAL) {
-      uiItemO(row, "", ICON_FILE_REFRESH, "ASSET_OT_library_refresh");
+      row->op("ASSET_OT_library_refresh", "", ICON_FILE_REFRESH);
     }
   }
 

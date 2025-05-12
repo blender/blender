@@ -270,7 +270,7 @@ static void spreadsheet_row_filters_layout(const bContext *C, Panel *panel)
     uiLayoutSetActive(layout, false);
   }
 
-  uiItemO(layout, std::nullopt, ICON_ADD, "SPREADSHEET_OT_add_row_filter_rule");
+  layout->op("SPREADSHEET_OT_add_row_filter_rule", std::nullopt, ICON_ADD);
 
   const bool panels_match = UI_panel_list_matches_data(region, row_filters, filter_panel_id_fn);
 

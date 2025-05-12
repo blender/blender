@@ -180,14 +180,14 @@ void uiTemplateCacheFileLayers(uiLayout *layout, const bContext *C, PointerRNA *
                  UI_TEMPLATE_LIST_FLAG_NONE);
 
   col = &row->column(true);
-  uiItemO(col, "", ICON_ADD, "cachefile.layer_add");
-  uiItemO(col, "", ICON_REMOVE, "cachefile.layer_remove");
+  col->op("cachefile.layer_add", "", ICON_ADD);
+  col->op("cachefile.layer_remove", "", ICON_REMOVE);
 
   CacheFile *file = static_cast<CacheFile *>(fileptr->data);
   if (BLI_listbase_count(&file->layers) > 1) {
     uiItemS_ex(col, 1.0f);
-    uiItemO(col, "", ICON_TRIA_UP, "cachefile.layer_move");
-    uiItemO(col, "", ICON_TRIA_DOWN, "cachefile.layer_move");
+    col->op("cachefile.layer_move", "", ICON_TRIA_UP);
+    col->op("cachefile.layer_move", "", ICON_TRIA_DOWN);
   }
 }
 
@@ -250,7 +250,7 @@ void uiTemplateCacheFile(uiLayout *layout,
   row = &layout->row(true);
   row->prop(&fileptr, "filepath", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   sub = &row->row(true);
-  uiItemO(sub, "", ICON_FILE_REFRESH, "cachefile.reload");
+  sub->op("cachefile.reload", "", ICON_FILE_REFRESH);
 
   if (sbuts->mainb == BCONTEXT_CONSTRAINT) {
     row = &layout->row(false);

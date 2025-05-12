@@ -1011,9 +1011,9 @@ static bool override_idtemplate_menu_poll(const bContext *C_const, MenuType * /*
 static void override_idtemplate_menu_draw(const bContext * /*C*/, Menu *menu)
 {
   uiLayout *layout = menu->layout;
-  uiItemO(layout, IFACE_("Make"), ICON_NONE, "UI_OT_override_idtemplate_make");
-  uiItemO(layout, IFACE_("Reset"), ICON_NONE, "UI_OT_override_idtemplate_reset");
-  uiItemO(layout, IFACE_("Clear"), ICON_NONE, "UI_OT_override_idtemplate_clear");
+  layout->op("UI_OT_override_idtemplate_make", IFACE_("Make"), ICON_NONE);
+  layout->op("UI_OT_override_idtemplate_reset", IFACE_("Reset"), ICON_NONE);
+  layout->op("UI_OT_override_idtemplate_clear", IFACE_("Clear"), ICON_NONE);
 }
 
 static void override_idtemplate_menu()

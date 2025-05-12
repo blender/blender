@@ -1606,11 +1606,11 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   col = &layout->column(false);
   if (is_bound) {
-    uiItemO(col, IFACE_("Unbind"), ICON_NONE, "OBJECT_OT_surfacedeform_bind");
+    col->op("OBJECT_OT_surfacedeform_bind", IFACE_("Unbind"), ICON_NONE);
   }
   else {
     uiLayoutSetActive(col, !RNA_pointer_is_null(&target_ptr));
-    uiItemO(col, IFACE_("Bind"), ICON_NONE, "OBJECT_OT_surfacedeform_bind");
+    col->op("OBJECT_OT_surfacedeform_bind", IFACE_("Bind"), ICON_NONE);
   }
   modifier_panel_end(layout, ptr);
 }

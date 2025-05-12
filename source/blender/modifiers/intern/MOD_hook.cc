@@ -471,11 +471,11 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   if (RNA_enum_get(&ob_ptr, "mode") == OB_MODE_EDIT) {
     row = &layout->row(true);
-    uiItemO(row, IFACE_("Reset"), ICON_NONE, "OBJECT_OT_hook_reset");
-    uiItemO(row, IFACE_("Recenter"), ICON_NONE, "OBJECT_OT_hook_recenter");
+    row->op("OBJECT_OT_hook_reset", IFACE_("Reset"), ICON_NONE);
+    row->op("OBJECT_OT_hook_recenter", IFACE_("Recenter"), ICON_NONE);
     row = &layout->row(true);
-    uiItemO(row, IFACE_("Select"), ICON_NONE, "OBJECT_OT_hook_select");
-    uiItemO(row, IFACE_("Assign"), ICON_NONE, "OBJECT_OT_hook_assign");
+    row->op("OBJECT_OT_hook_select", IFACE_("Select"), ICON_NONE);
+    row->op("OBJECT_OT_hook_assign", IFACE_("Assign"), ICON_NONE);
   }
 
   modifier_panel_end(layout, ptr);

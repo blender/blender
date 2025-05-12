@@ -1887,13 +1887,9 @@ void uiItemStringO(uiLayout *layout,
                   nullptr);
 }
 
-void uiItemO(uiLayout *layout,
-             const std::optional<StringRef> name,
-             int icon,
-             const StringRefNull opname)
+void uiLayout::op(const StringRefNull opname, const std::optional<StringRef> name, int icon)
 {
-  uiItemFullO(
-      layout, opname, name, icon, nullptr, layout->root_->opcontext, UI_ITEM_NONE, nullptr);
+  uiItemFullO(this, opname, name, icon, nullptr, root_->opcontext, UI_ITEM_NONE, nullptr);
 }
 
 /* RNA property items */

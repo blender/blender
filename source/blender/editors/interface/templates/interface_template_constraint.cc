@@ -52,21 +52,18 @@ static void constraint_ops_extra_draw(bContext *C, uiLayout *layout, void *con_v
   uiLayoutSetUnitsX(layout, 4.0f);
 
   /* Apply. */
-  uiItemO(layout,
-          CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Apply"),
-          ICON_CHECKMARK,
-          "CONSTRAINT_OT_apply");
+  layout->op("CONSTRAINT_OT_apply",
+             CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Apply"),
+             ICON_CHECKMARK);
 
   /* Duplicate. */
-  uiItemO(layout,
-          CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Duplicate"),
-          ICON_DUPLICATE,
-          "CONSTRAINT_OT_copy");
+  layout->op("CONSTRAINT_OT_copy",
+             CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Duplicate"),
+             ICON_DUPLICATE);
 
-  uiItemO(layout,
-          CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Copy to Selected"),
-          0,
-          "CONSTRAINT_OT_copy_to_selected");
+  layout->op("CONSTRAINT_OT_copy_to_selected",
+             CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Copy to Selected"),
+             0);
 
   uiItemS(layout);
 
@@ -144,7 +141,7 @@ static void draw_constraint_header(uiLayout *layout, Object *ob, bConstraint *co
   sub = &row->row(false);
   uiLayoutSetEmboss(sub, blender::ui::EmbossType::None);
   uiLayoutSetOperatorContext(sub, WM_OP_INVOKE_DEFAULT);
-  uiItemO(sub, "", ICON_X, "CONSTRAINT_OT_delete");
+  sub->op("CONSTRAINT_OT_delete", "", ICON_X);
 
   /* Some extra padding at the end, so the 'x' icon isn't too close to drag button. */
   uiItemS(layout);

@@ -2031,8 +2031,8 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   layout->prop(ptr, "use_smooth_shade", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   row = &layout->row(false);
-  uiItemO(row, IFACE_("Create Armature"), ICON_NONE, "OBJECT_OT_skin_armature_create");
-  uiItemO(row, std::nullopt, ICON_NONE, "MESH_OT_customdata_skin_add");
+  row->op("OBJECT_OT_skin_armature_create", IFACE_("Create Armature"), ICON_NONE);
+  row->op("MESH_OT_customdata_skin_add", std::nullopt, ICON_NONE);
 
   row = &layout->row(false);
   uiItemFullO(row,
@@ -2054,8 +2054,8 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
               &op_ptr);
   RNA_enum_set(&op_ptr, "action", 1); /* SKIN_LOOSE_CLEAR */
 
-  uiItemO(layout, IFACE_("Mark Root"), ICON_NONE, "OBJECT_OT_skin_root_mark");
-  uiItemO(layout, IFACE_("Equalize Radii"), ICON_NONE, "OBJECT_OT_skin_radii_equalize");
+  layout->op("OBJECT_OT_skin_root_mark", IFACE_("Mark Root"), ICON_NONE);
+  layout->op("OBJECT_OT_skin_radii_equalize", IFACE_("Equalize Radii"), ICON_NONE);
 
   modifier_panel_end(layout, ptr);
 }

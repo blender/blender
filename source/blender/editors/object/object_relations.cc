@@ -1011,8 +1011,7 @@ static wmOperatorStatus parent_set_invoke_menu(bContext *C, wmOperatorType *ot)
   }
   else if (parent->type == OB_MESH) {
     if (can_support.attach_surface) {
-      uiItemO(
-          layout, IFACE_("Object (Attach Curves to Surface)"), ICON_NONE, "CURVES_OT_surface_set");
+      layout->op("CURVES_OT_surface_set", IFACE_("Object (Attach Curves to Surface)"), ICON_NONE);
     }
   }
 

@@ -810,8 +810,8 @@ void uiTemplateImage(uiLayout *layout,
   const bool is_dirty = BKE_image_is_dirty(ima);
   if (is_dirty) {
     uiLayout *row = &layout->row(true);
-    uiItemO(row, IFACE_("Save"), ICON_NONE, "image.save");
-    uiItemO(row, IFACE_("Discard"), ICON_NONE, "image.reload");
+    row->op("image.save", IFACE_("Save"), ICON_NONE);
+    row->op("image.reload", IFACE_("Discard"), ICON_NONE);
     uiItemS(layout);
   }
 
@@ -835,10 +835,10 @@ void uiTemplateImage(uiLayout *layout,
 
     uiLayout *row = &layout->row(true);
     if (is_packed) {
-      uiItemO(row, "", ICON_PACKAGE, "image.unpack");
+      row->op("image.unpack", "", ICON_PACKAGE);
     }
     else {
-      uiItemO(row, "", ICON_UGLYPACKAGE, "image.pack");
+      row->op("image.pack", "", ICON_UGLYPACKAGE);
     }
 
     row = &row->row(true);
@@ -846,8 +846,8 @@ void uiTemplateImage(uiLayout *layout,
 
     prop = RNA_struct_find_property(&imaptr, "filepath");
     uiDefAutoButR(block, &imaptr, prop, -1, "", ICON_NONE, 0, 0, 200, UI_UNIT_Y);
-    uiItemO(row, "", ICON_FILEBROWSER, "image.file_browse");
-    uiItemO(row, "", ICON_FILE_REFRESH, "image.reload");
+    row->op("image.file_browse", "", ICON_FILEBROWSER);
+    row->op("image.reload", "", ICON_FILE_REFRESH);
   }
 
   /* Image layers and Info */
@@ -892,7 +892,7 @@ void uiTemplateImage(uiLayout *layout,
     uiLayout *sub = &col->column(true);
     uiLayout *row = &sub->row(true);
     row->prop(userptr, "frame_duration", UI_ITEM_NONE, IFACE_("Frames"), ICON_NONE);
-    uiItemO(row, "", ICON_FILE_REFRESH, "IMAGE_OT_match_movie_length");
+    row->op("IMAGE_OT_match_movie_length", "", ICON_FILE_REFRESH);
 
     sub->prop(userptr, "frame_start", UI_ITEM_NONE, IFACE_("Start"), ICON_NONE);
     sub->prop(userptr, "frame_offset", UI_ITEM_NONE, std::nullopt, ICON_NONE);

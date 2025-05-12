@@ -222,10 +222,9 @@ static void modifier_ops_extra_draw(bContext *C, uiLayout *layout, void *md_v)
 
   /* Apply. */
   if (ob->type == OB_GREASE_PENCIL) {
-    uiItemO(layout,
-            CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Apply (Active Keyframe)"),
-            ICON_CHECKMARK,
-            "OBJECT_OT_modifier_apply");
+    layout->op("OBJECT_OT_modifier_apply",
+               CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Apply (Active Keyframe)"),
+               ICON_CHECKMARK);
 
     uiItemFullO(layout,
                 "OBJECT_OT_modifier_apply",
@@ -238,10 +237,9 @@ static void modifier_ops_extra_draw(bContext *C, uiLayout *layout, void *md_v)
     RNA_boolean_set(&op_ptr, "all_keyframes", true);
   }
   else {
-    uiItemO(layout,
-            CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Apply"),
-            ICON_CHECKMARK,
-            "OBJECT_OT_modifier_apply");
+    layout->op("OBJECT_OT_modifier_apply",
+               CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Apply"),
+               ICON_CHECKMARK);
   }
 
   /* Apply as shapekey. */
@@ -270,16 +268,14 @@ static void modifier_ops_extra_draw(bContext *C, uiLayout *layout, void *md_v)
             eModifierType_Cloth,
             eModifierType_Fluid))
   {
-    uiItemO(layout,
-            CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Duplicate"),
-            ICON_DUPLICATE,
-            "OBJECT_OT_modifier_copy");
+    layout->op("OBJECT_OT_modifier_copy",
+               CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Duplicate"),
+               ICON_DUPLICATE);
   }
 
-  uiItemO(layout,
-          CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Copy to Selected"),
-          0,
-          "OBJECT_OT_modifier_copy_to_selected");
+  layout->op("OBJECT_OT_modifier_copy_to_selected",
+             CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Copy to Selected"),
+             0);
 
   uiItemS(layout);
 
@@ -446,7 +442,7 @@ static void modifier_panel_header(const bContext *C, Panel *panel)
   if (modifier_can_delete(md) && !modifier_is_simulation(md)) {
     sub = &row->row(false);
     uiLayoutSetEmboss(sub, blender::ui::EmbossType::None);
-    uiItemO(sub, "", ICON_X, "OBJECT_OT_modifier_remove");
+    sub->op("OBJECT_OT_modifier_remove", "", ICON_X);
     buttons_number++;
   }
 

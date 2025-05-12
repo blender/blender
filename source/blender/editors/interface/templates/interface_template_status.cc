@@ -422,7 +422,7 @@ void uiTemplateStatusInfo(uiLayout *layout, bContext *C)
       }
       uiLayoutSetEmboss(row, blender::ui::EmbossType::None);
       /* This operator also works fine for blocked extensions. */
-      uiItemO(row, "", ICON_ERROR, "EXTENSIONS_OT_userpref_show_for_update");
+      row->op("EXTENSIONS_OT_userpref_show_for_update", "", ICON_ERROR);
       uiBut *but = uiLayoutGetBlock(layout)->buttons.last().get();
       uchar color[4];
       UI_GetThemeColor4ubv(TH_TEXT, color);
@@ -447,7 +447,7 @@ void uiTemplateStatusInfo(uiLayout *layout, bContext *C)
       }
       else {
         uiLayoutSetEmboss(row, blender::ui::EmbossType::None);
-        uiItemO(row, "", ICON_INTERNET_OFFLINE, "EXTENSIONS_OT_userpref_show_online");
+        row->op("EXTENSIONS_OT_userpref_show_online", "", ICON_INTERNET_OFFLINE);
         uiBut *but = uiLayoutGetBlock(layout)->buttons.last().get();
         uchar color[4];
         UI_GetThemeColor4ubv(TH_TEXT, color);
@@ -471,7 +471,7 @@ void uiTemplateStatusInfo(uiLayout *layout, bContext *C)
         uiItemS_ex(row, -0.5f);
       }
       uiLayoutSetEmboss(row, blender::ui::EmbossType::None);
-      uiItemO(row, "", icon, "EXTENSIONS_OT_userpref_show_for_update");
+      row->op("EXTENSIONS_OT_userpref_show_for_update", "", icon);
       uiBut *but = uiLayoutGetBlock(layout)->buttons.last().get();
       uchar color[4];
       UI_GetThemeColor4ubv(TH_TEXT, color);

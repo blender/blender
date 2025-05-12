@@ -112,7 +112,7 @@ static void file_panel_execution_cancel_button(uiLayout *layout)
   uiLayout *row = &layout->row(false);
   uiLayoutSetScaleX(row, 0.8f);
   uiLayoutSetFixedSize(row, true);
-  uiItemO(row, IFACE_("Cancel"), ICON_NONE, "FILE_OT_cancel");
+  row->op("FILE_OT_cancel", IFACE_("Cancel"), ICON_NONE);
 }
 
 static void file_panel_execution_execute_button(uiLayout *layout, const char *title)
@@ -122,7 +122,7 @@ static void file_panel_execution_execute_button(uiLayout *layout, const char *ti
   uiLayoutSetFixedSize(row, true);
   /* Just a display hint. */
   uiLayoutSetActiveDefault(row, true);
-  uiItemO(row, title, ICON_NONE, "FILE_OT_execute");
+  row->op("FILE_OT_execute", title, ICON_NONE);
 }
 
 static void file_panel_execution_buttons_draw(const bContext *C, Panel *panel)
@@ -249,7 +249,7 @@ static void file_panel_asset_catalog_buttons_draw(const bContext *C, Panel *pane
     CTX_free(mutable_ctx);
   }
   else {
-    uiItemO(row, "", ICON_FILE_REFRESH, "ASSET_OT_library_refresh");
+    row->op("ASSET_OT_library_refresh", "", ICON_FILE_REFRESH);
   }
 
   uiItemS(col);

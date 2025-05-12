@@ -156,8 +156,8 @@ static void graph_panel_cursor(const bContext *C, Panel *panel)
   sub->prop(&spaceptr, "cursor_position_y", UI_ITEM_NONE, IFACE_("Y"), ICON_NONE);
 
   sub = &col->column(true);
-  uiItemO(sub, IFACE_("Cursor to Selection"), ICON_NONE, "GRAPH_OT_frame_jump");
-  uiItemO(sub, IFACE_("Cursor Value to Selection"), ICON_NONE, "GRAPH_OT_snap_cursor_value");
+  sub->op("GRAPH_OT_frame_jump", IFACE_("Cursor to Selection"), ICON_NONE);
+  sub->op("GRAPH_OT_snap_cursor_value", IFACE_("Cursor Value to Selection"), ICON_NONE);
 }
 
 /** \} */
@@ -1119,15 +1119,15 @@ static void graph_draw_driver_settings_panel(uiLayout *layout,
   if (is_popover) {
     /* add driver variable - add using eyedropper */
     /* XXX: will this operator work like this? */
-    uiItemO(row, "", ICON_EYEDROPPER, "UI_OT_eyedropper_driver");
+    row->op("UI_OT_eyedropper_driver", "", ICON_EYEDROPPER);
   }
 
   /* copy/paste (as sub-row) */
   row = &row_outer->row(true);
   block = uiLayoutGetBlock(row);
 
-  uiItemO(row, "", ICON_COPYDOWN, "GRAPH_OT_driver_variables_copy");
-  uiItemO(row, "", ICON_PASTEDOWN, "GRAPH_OT_driver_variables_paste");
+  row->op("GRAPH_OT_driver_variables_copy", "", ICON_COPYDOWN);
+  row->op("GRAPH_OT_driver_variables_paste", "", ICON_PASTEDOWN);
 
   /* loop over targets, drawing them */
   LISTBASE_FOREACH (DriverVar *, dvar, &driver->variables) {
@@ -1371,7 +1371,7 @@ static void graph_panel_drivers_popover(const bContext *C, Panel *panel)
   }
 
   /* Show drivers editor is always visible */
-  uiItemO(layout, IFACE_("Show in Drivers Editor"), ICON_DRIVER, "SCREEN_OT_drivers_editor_show");
+  layout->op("SCREEN_OT_drivers_editor_show", IFACE_("Show in Drivers Editor"), ICON_DRIVER);
 }
 
 /** \} */
@@ -1429,8 +1429,8 @@ static void graph_panel_modifiers(const bContext *C, Panel *panel)
 
     /* copy/paste (as sub-row) */
     row = &row->row(true);
-    uiItemO(row, "", ICON_COPYDOWN, "GRAPH_OT_fmodifier_copy");
-    uiItemO(row, "", ICON_PASTEDOWN, "GRAPH_OT_fmodifier_paste");
+    row->op("GRAPH_OT_fmodifier_copy", "", ICON_COPYDOWN);
+    row->op("GRAPH_OT_fmodifier_paste", "", ICON_PASTEDOWN);
   }
 
   ANIM_fmodifier_panels(C, ale->fcurve_owner_id, &fcu->modifiers, graph_fmodifier_panel_id);

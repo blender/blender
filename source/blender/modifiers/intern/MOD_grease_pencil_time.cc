@@ -566,8 +566,8 @@ static void panel_draw(const bContext *C, Panel *panel)
     col = &row->column(false);
 
     uiLayout *sub = &col->column(true);
-    uiItemO(sub, "", ICON_ADD, "OBJECT_OT_grease_pencil_time_modifier_segment_add");
-    uiItemO(sub, "", ICON_REMOVE, "OBJECT_OT_grease_pencil_time_modifier_segment_remove");
+    sub->op("OBJECT_OT_grease_pencil_time_modifier_segment_add", "", ICON_ADD);
+    sub->op("OBJECT_OT_grease_pencil_time_modifier_segment_remove", "", ICON_REMOVE);
     uiItemS(col);
     sub = &col->column(true);
     uiItemEnumO_string(

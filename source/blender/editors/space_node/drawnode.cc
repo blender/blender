@@ -611,8 +611,8 @@ static void node_composit_buts_cryptomatte_legacy_ex(uiLayout *layout,
                                                      bContext * /*C*/,
                                                      PointerRNA * /*ptr*/)
 {
-  uiItemO(layout, IFACE_("Add Crypto Layer"), ICON_ADD, "NODE_OT_cryptomatte_layer_add");
-  uiItemO(layout, IFACE_("Remove Crypto Layer"), ICON_REMOVE, "NODE_OT_cryptomatte_layer_remove");
+  layout->op("NODE_OT_cryptomatte_layer_add", IFACE_("Add Crypto Layer"), ICON_ADD);
+  layout->op("NODE_OT_cryptomatte_layer_remove", IFACE_("Remove Crypto Layer"), ICON_REMOVE);
 }
 
 static void node_composit_buts_cryptomatte(uiLayout *layout, bContext *C, PointerRNA *ptr)
