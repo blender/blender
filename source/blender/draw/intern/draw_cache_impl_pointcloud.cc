@@ -316,7 +316,7 @@ static void pointcloud_extract_attribute(const PointCloud &pointcloud,
    * similar texture state swizzle to map the attribute correctly as for volume attributes, so we
    * can control the conversion ourselves. */
   bke::AttributeReader<ColorGeometry4f> attribute = attributes.lookup_or_default<ColorGeometry4f>(
-      request.attribute_name, request.domain, {0.0f, 0.0f, 0.0f, 1.0f});
+      request.attribute_name, bke::AttrDomain::Point, {0.0f, 0.0f, 0.0f, 1.0f});
 
   static const GPUVertFormat format = [&]() {
     GPUVertFormat format{};
@@ -361,7 +361,7 @@ gpu::Batch **pointcloud_surface_shaded_get(PointCloud *pointcloud,
         continue;
       }
 
-      drw_attributes_add_request(&attrs_needed, name, meta_data->data_type, meta_data->domain);
+      drw_attributes_add_request(&attrs_needed, name, meta_data->data_type);
     }
   }
 
@@ -414,7 +414,7 @@ gpu::VertBuf **DRW_pointcloud_evaluated_attribute(PointCloud *pointcloud, const 
   }
   {
     DRW_Attributes requests{};
-    drw_attributes_add_request(&requests, name, meta_data->data_type, meta_data->domain);
+    drw_attributes_add_request(&requests, name, meta_data->data_type);
     drw_attributes_merge(&cache.eval_cache.attr_used, &requests, cache.render_mutex);
   }
 

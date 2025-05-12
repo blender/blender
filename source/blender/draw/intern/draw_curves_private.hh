@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <array>
+
 #include "GPU_shader.hh"
 
 #include "draw_attributes.hh"
@@ -84,6 +86,7 @@ struct CurvesEvalCache {
   /* For point attributes, which need subdivision, these buffers contain the input data.
    * For curve domain attributes, which do not need subdivision, these are the final data. */
   gpu::VertBuf *proc_attributes_buf[GPU_MAX_ATTR];
+  std::array<bool, GPU_MAX_ATTR> proc_attributes_point_domain;
 
   int curves_num;
   int points_num;
@@ -98,6 +101,6 @@ bool curves_ensure_procedural_data(Curves *curves_id,
                                    int subdiv,
                                    int thickness_res);
 
-void drw_curves_get_attribute_sampler_name(const char *layer_name, char r_sampler_name[32]);
+void drw_curves_get_attribute_sampler_name(StringRef layer_name, char r_sampler_name[32]);
 
 }  // namespace blender::draw

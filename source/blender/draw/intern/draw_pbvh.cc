@@ -307,7 +307,7 @@ static const GPUVertFormat &face_set_format()
 }
 
 static GPUVertFormat attribute_format(const OrigMeshData &orig_mesh_data,
-                                      const StringRefNull name,
+                                      const StringRef name,
                                       const eCustomDataType data_type)
 {
   GPUVertFormat format = draw::init_format_for_attribute(data_type, "data");
@@ -326,30 +326,8 @@ static GPUVertFormat attribute_format(const OrigMeshData &orig_mesh_data,
     is_render = orig_mesh_data.default_uv_map == name;
   }
 
-  DRW_cdlayer_attr_aliases_add(&format, prefix, data_type, name.c_str(), is_render, is_active);
+  DRW_cdlayer_attr_aliases_add(&format, prefix, data_type, name, is_render, is_active);
   return format;
-}
-
-static bool pbvh_attr_supported(const AttributeRequest &request)
-{
-  if (std::holds_alternative<CustomRequest>(request)) {
-    return true;
-  }
-  const GenericRequest &attr = std::get<GenericRequest>(request);
-  if (!ELEM(attr.domain, bke::AttrDomain::Point, bke::AttrDomain::Face, bke::AttrDomain::Corner)) {
-    /* blender::bke::pbvh::Tree drawing does not support edge domain attributes. */
-    return false;
-  }
-  bool type_supported = false;
-  bke::attribute_math::convert_to_static_type(attr.type, [&](auto dummy) {
-    using T = decltype(dummy);
-    using Converter = AttributeConverter<T>;
-    using VBOType = typename Converter::VBOType;
-    if constexpr (!std::is_void_v<VBOType>) {
-      type_supported = true;
-    }
-  });
-  return type_supported;
 }
 
 inline short4 normal_float_to_short(const float3 &value)
@@ -484,20 +462,6 @@ void extract_data_corner_bmesh(const Set<BMFace *, 0> &faces,
     data++;
     *data = Converter::convert(bmesh_cd_loop_get<T>(*l->next, cd_offset));
     data++;
-  }
-}
-
-static const CustomData *get_cdata(const BMesh &bm, const bke::AttrDomain domain)
-{
-  switch (domain) {
-    case bke::AttrDomain::Point:
-      return &bm.vdata;
-    case bke::AttrDomain::Corner:
-      return &bm.ldata;
-    case bke::AttrDomain::Face:
-      return &bm.pdata;
-    default:
-      return nullptr;
   }
 }
 
@@ -728,7 +692,7 @@ BLI_NOINLINE static void update_face_sets_mesh(const Object &object,
 BLI_NOINLINE static void update_generic_attribute_mesh(const Object &object,
                                                        const OrigMeshData &orig_mesh_data,
                                                        const IndexMask &node_mask,
-                                                       const GenericRequest &attr,
+                                                       const StringRef name,
                                                        MutableSpan<gpu::VertBufPtr> vbos)
 {
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
@@ -736,19 +700,20 @@ BLI_NOINLINE static void update_generic_attribute_mesh(const Object &object,
   const Mesh &mesh = DRW_object_get_data_for_drawing<Mesh>(object);
   const OffsetIndices<int> faces = mesh.faces();
   const Span<int> corner_verts = mesh.corner_verts();
-  const StringRefNull name = attr.name;
-  const bke::AttrDomain domain = attr.domain;
-  const eCustomDataType data_type = attr.type;
   const bke::AttributeAccessor attributes = orig_mesh_data.attributes;
-  const GVArraySpan attribute = *attributes.lookup_or_default(name, domain, data_type);
+  const bke::GAttributeReader attr = attributes.lookup(name);
+  if (!attr || attr.domain == bke::AttrDomain::Edge) {
+    return;
+  }
+  const eCustomDataType data_type = bke::cpp_type_to_custom_data_type(attr.varray.type());
   ensure_vbos_allocated_mesh(
       object, attribute_format(orig_mesh_data, name, data_type), node_mask, vbos);
   node_mask.foreach_index(GrainSize(1), [&](const int i) {
-    bke::attribute_math::convert_to_static_type(attribute.type(), [&](auto dummy) {
+    bke::attribute_math::convert_to_static_type(attr.varray.type(), [&](auto dummy) {
       using T = decltype(dummy);
       if constexpr (!std::is_void_v<typename AttributeConverter<T>::VBOType>) {
-        const Span<T> src = attribute.typed<T>();
-        switch (domain) {
+        const VArraySpan<T> src = attr.varray.typed<T>();
+        switch (attr.domain) {
           case bke::AttrDomain::Point:
             extract_data_vert_mesh<T>(faces, corner_verts, src, nodes[i].faces(), *vbos[i]);
             break;
@@ -1088,35 +1053,70 @@ BLI_NOINLINE static void update_face_sets_bmesh(const Object &object,
   }
 }
 
+struct BMeshAttributeLookup {
+  const int offset = -1;
+  bke::AttrDomain domain;
+  eCustomDataType type;
+  operator bool() const
+  {
+    return offset != -1;
+  }
+};
+
+static BMeshAttributeLookup lookup_bmesh_attribute(const BMesh &bm, const StringRef name)
+{
+  for (const CustomDataLayer &layer : Span(bm.vdata.layers, bm.vdata.totlayer)) {
+    if (layer.name == name) {
+      return {layer.offset, bke::AttrDomain::Point, eCustomDataType(layer.type)};
+    }
+  }
+  for (const CustomDataLayer &layer : Span(bm.edata.layers, bm.edata.totlayer)) {
+    if (layer.name == name) {
+      return {layer.offset, bke::AttrDomain::Edge, eCustomDataType(layer.type)};
+    }
+  }
+  for (const CustomDataLayer &layer : Span(bm.pdata.layers, bm.pdata.totlayer)) {
+    if (layer.name == name) {
+      return {layer.offset, bke::AttrDomain::Face, eCustomDataType(layer.type)};
+    }
+  }
+  for (const CustomDataLayer &layer : Span(bm.ldata.layers, bm.ldata.totlayer)) {
+    if (layer.name == name) {
+      return {layer.offset, bke::AttrDomain::Corner, eCustomDataType(layer.type)};
+    }
+  }
+  return {};
+}
+
 BLI_NOINLINE static void update_generic_attribute_bmesh(const Object &object,
                                                         const OrigMeshData &orig_mesh_data,
                                                         const IndexMask &node_mask,
-                                                        const GenericRequest &attr,
+                                                        const StringRef name,
                                                         const MutableSpan<gpu::VertBufPtr> vbos)
 {
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   const Span<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();
   const BMesh &bm = *object.sculpt->bm;
-  const bke::AttrDomain domain = attr.domain;
-  const eCustomDataType data_type = attr.type;
-  const CustomData &custom_data = *get_cdata(bm, domain);
-  const int offset = CustomData_get_offset_named(&custom_data, data_type, attr.name);
+  const BMeshAttributeLookup attr = lookup_bmesh_attribute(bm, name);
+  if (!attr || attr.domain == bke::AttrDomain::Edge) {
+    return;
+  }
   ensure_vbos_allocated_bmesh(
-      object, attribute_format(orig_mesh_data, attr.name, data_type), node_mask, vbos);
+      object, attribute_format(orig_mesh_data, name, attr.type), node_mask, vbos);
   node_mask.foreach_index(GrainSize(1), [&](const int i) {
-    bke::attribute_math::convert_to_static_type(data_type, [&](auto dummy) {
+    bke::attribute_math::convert_to_static_type(attr.type, [&](auto dummy) {
       using T = decltype(dummy);
       const auto &faces = BKE_pbvh_bmesh_node_faces(&const_cast<bke::pbvh::BMeshNode &>(nodes[i]));
       if constexpr (!std::is_void_v<typename AttributeConverter<T>::VBOType>) {
-        switch (domain) {
+        switch (attr.domain) {
           case bke::AttrDomain::Point:
-            extract_data_vert_bmesh<T>(faces, offset, *vbos[i]);
+            extract_data_vert_bmesh<T>(faces, attr.offset, *vbos[i]);
             break;
           case bke::AttrDomain::Face:
-            extract_data_face_bmesh<T>(faces, offset, *vbos[i]);
+            extract_data_face_bmesh<T>(faces, attr.offset, *vbos[i]);
             break;
           case bke::AttrDomain::Corner:
-            extract_data_corner_bmesh<T>(faces, offset, *vbos[i]);
+            extract_data_corner_bmesh<T>(faces, attr.offset, *vbos[i]);
             break;
           default:
             BLI_assert_unreachable();
@@ -1679,9 +1679,6 @@ Span<gpu::VertBufPtr> DrawCacheImpl::ensure_attribute_data(const Object &object,
                                                            const AttributeRequest &attr,
                                                            const IndexMask &node_mask)
 {
-  if (!pbvh_attr_supported(attr)) {
-    return {};
-  }
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   AttributeData &data = attribute_vbos_.lookup_or_add_default(attr);
   Vector<gpu::VertBufPtr> &vbos = data.vbos;
@@ -1720,7 +1717,7 @@ Span<gpu::VertBufPtr> DrawCacheImpl::ensure_attribute_data(const Object &object,
       }
       else {
         update_generic_attribute_mesh(
-            object, orig_mesh_data, mask, std::get<GenericRequest>(attr), vbos);
+            object, orig_mesh_data, mask, std::get<GenericRequest>(attr).name, vbos);
       }
       break;
     }
@@ -1771,7 +1768,7 @@ Span<gpu::VertBufPtr> DrawCacheImpl::ensure_attribute_data(const Object &object,
       }
       else {
         update_generic_attribute_bmesh(
-            object, orig_mesh_data, mask, std::get<GenericRequest>(attr), vbos);
+            object, orig_mesh_data, mask, std::get<GenericRequest>(attr).name, vbos);
       }
       break;
     }

@@ -579,61 +579,60 @@ static void alloc_final_attribute_vbo(CurvesEvalCache &cache,
                          cache.final.resolution * cache.curves_num);
 }
 
-static void ensure_control_point_attribute(const Curves &curves,
-                                           CurvesEvalCache &cache,
-                                           const DRW_AttributeRequest &request,
-                                           const int index,
-                                           const GPUVertFormat &format)
+static gpu::VertBufPtr ensure_control_point_attribute(const Curves &curves_id,
+                                                      const StringRef name,
+                                                      const GPUVertFormat &format,
+                                                      bool &r_is_point_domain)
 {
-  if (cache.proc_attributes_buf[index] != nullptr) {
-    return;
-  }
+  gpu::VertBufPtr vbo = gpu::VertBufPtr(GPU_vertbuf_create_with_format_ex(
+      format, GPU_USAGE_STATIC | GPU_USAGE_FLAG_BUFFER_TEXTURE_ONLY));
 
-  GPU_VERTBUF_DISCARD_SAFE(cache.proc_attributes_buf[index]);
-
-  cache.proc_attributes_buf[index] = GPU_vertbuf_create_with_format_ex(
-      format, GPU_USAGE_STATIC | GPU_USAGE_FLAG_BUFFER_TEXTURE_ONLY);
-  gpu::VertBuf &attr_vbo = *cache.proc_attributes_buf[index];
-
-  GPU_vertbuf_data_alloc(attr_vbo,
-                         request.domain == bke::AttrDomain::Point ? curves.geometry.point_num :
-                                                                    curves.geometry.curve_num);
-
-  const bke::AttributeAccessor attributes = curves.geometry.wrap().attributes();
+  const bke::CurvesGeometry &curves = curves_id.geometry.wrap();
+  const bke::AttributeAccessor attributes = curves.wrap().attributes();
 
   /* TODO(@kevindietrich): float4 is used for scalar attributes as the implicit conversion done
    * by OpenGL to float4 for a scalar `s` will produce a `float4(s, 0, 0, 1)`. However, following
    * the Blender convention, it should be `float4(s, s, s, 1)`. This could be resolved using a
    * similar texture state swizzle to map the attribute correctly as for volume attributes, so we
    * can control the conversion ourselves. */
-  bke::AttributeReader<ColorGeometry4f> attribute = attributes.lookup_or_default<ColorGeometry4f>(
-      request.attribute_name, request.domain, {0.0f, 0.0f, 0.0f, 1.0f});
+  const bke::AttributeReader<ColorGeometry4f> attribute = attributes.lookup<ColorGeometry4f>(name);
+  if (!attribute) {
+    GPU_vertbuf_data_alloc(*vbo, curves.curves_num());
+    vbo->data<ColorGeometry4f>().fill({0.0f, 0.0f, 0.0f, 1.0f});
+    r_is_point_domain = false;
+    return vbo;
+  }
 
-  MutableSpan<ColorGeometry4f> vbo_span = attr_vbo.data<ColorGeometry4f>();
-
-  attribute.varray.materialize(vbo_span);
+  r_is_point_domain = attribute.domain == bke::AttrDomain::Point;
+  GPU_vertbuf_data_alloc(*vbo, r_is_point_domain ? curves.points_num() : curves.curves_num());
+  attribute.varray.materialize(vbo->data<ColorGeometry4f>());
+  return vbo;
 }
 
 static void ensure_final_attribute(const Curves &curves,
-                                   CurvesEvalCache &cache,
-                                   const DRW_AttributeRequest &request,
-                                   const int index)
+                                   const StringRef name,
+                                   const int index,
+                                   CurvesEvalCache &cache)
 {
   char sampler_name[32];
-  drw_curves_get_attribute_sampler_name(request.attribute_name, sampler_name);
+  drw_curves_get_attribute_sampler_name(name, sampler_name);
 
   GPUVertFormat format = {0};
   /* All attributes use float4, see comment below. */
   GPU_vertformat_attr_add(&format, sampler_name, GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
 
-  ensure_control_point_attribute(curves, cache, request, index, format);
+  if (!cache.proc_attributes_buf[index]) {
+    gpu::VertBufPtr vbo = ensure_control_point_attribute(
+        curves, name, format, cache.proc_attributes_point_domain[index]);
+    cache.proc_attributes_buf[index] = vbo.release();
+  }
 
   /* Existing final data may have been for a different attribute (with a different name or domain),
    * free the data. */
   GPU_VERTBUF_DISCARD_SAFE(cache.final.attributes_buf[index]);
 
   /* Ensure final data for points. */
-  if (request.domain == bke::AttrDomain::Point) {
+  if (cache.proc_attributes_point_domain[index]) {
     alloc_final_attribute_vbo(cache, format, index, sampler_name);
   }
 }
@@ -819,7 +818,7 @@ static bool ensure_attributes(const Curves &curves,
           }
 
           if (layer != -1 && domain.has_value()) {
-            drw_attributes_add_request(&attrs_needed, name, CD_PROP_FLOAT2, *domain);
+            drw_attributes_add_request(&attrs_needed, name, CD_PROP_FLOAT2);
           }
           break;
         }
@@ -840,7 +839,7 @@ static bool ensure_attributes(const Curves &curves,
         case CD_PROP_FLOAT:
         case CD_PROP_FLOAT2: {
           if (layer != -1 && domain.has_value()) {
-            drw_attributes_add_request(&attrs_needed, name, type, *domain);
+            drw_attributes_add_request(&attrs_needed, name, type);
           }
           break;
         }
@@ -869,11 +868,10 @@ static bool ensure_attributes(const Curves &curves,
       continue;
     }
 
-    if (request.domain == bke::AttrDomain::Point) {
+    ensure_final_attribute(curves, request.attribute_name, i, cache.eval_cache);
+    if (cache.eval_cache.proc_attributes_point_domain[i]) {
       need_tf_update = true;
     }
-
-    ensure_final_attribute(curves, cache.eval_cache, request, i);
   }
 
   return need_tf_update;
@@ -892,15 +890,12 @@ static void request_attribute(Curves &curves, const char *name)
   if (!meta_data) {
     return;
   }
-  const bke::AttrDomain domain = meta_data->domain;
-  const eCustomDataType type = meta_data->data_type;
-
-  drw_attributes_add_request(&attributes, name, type, domain);
+  drw_attributes_add_request(&attributes, name, meta_data->data_type);
 
   drw_attributes_merge(&final_cache.attr_used, &attributes, cache.render_mutex);
 }
 
-void drw_curves_get_attribute_sampler_name(const char *layer_name, char r_sampler_name[32])
+void drw_curves_get_attribute_sampler_name(const StringRef layer_name, char r_sampler_name[32])
 {
   char attr_safe_name[GPU_MAX_SAFE_ATTR_NAME];
   GPU_vertformat_safe_attr_name(layer_name, attr_safe_name, GPU_MAX_SAFE_ATTR_NAME);
@@ -1062,17 +1057,12 @@ gpu::VertBuf **DRW_curves_texture_for_evaluated_attribute(Curves *curves,
     *r_is_point_domain = false;
     return nullptr;
   }
-  switch (final_cache.attr_used.requests[request_i].domain) {
-    case bke::AttrDomain::Point:
-      *r_is_point_domain = true;
-      return &final_cache.attributes_buf[request_i];
-    case bke::AttrDomain::Curve:
-      *r_is_point_domain = false;
-      return &cache.eval_cache.proc_attributes_buf[request_i];
-    default:
-      BLI_assert_unreachable();
-      return nullptr;
+  if (cache.eval_cache.proc_attributes_point_domain[request_i]) {
+    *r_is_point_domain = true;
+    return &final_cache.attributes_buf[request_i];
   }
+  *r_is_point_domain = false;
+  return &cache.eval_cache.proc_attributes_buf[request_i];
 }
 
 static void create_edit_points_position_vbo(

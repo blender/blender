@@ -124,11 +124,9 @@ static void drw_curves_cache_update_compute(CurvesEvalCache *cache)
 
   const DRW_Attributes &attrs = cache->final.attr_used;
   for (int i = 0; i < attrs.num_requests; i++) {
-    /* Only refine point attributes. */
-    if (attrs.requests[i].domain == bke::AttrDomain::Curve) {
+    if (!cache->proc_attributes_point_domain[i]) {
       continue;
     }
-
     drw_curves_cache_update_compute(
         cache, curves_num, cache->final.attributes_buf[i], cache->proc_attributes_buf[i]);
   }
@@ -248,7 +246,7 @@ static CurvesEvalCache *curves_cache_get(Curves &curves,
     const DRW_Attributes &attrs = cache->final.attr_used;
     for (int i : IndexRange(attrs.num_requests)) {
       /* Only refine point attributes. */
-      if (attrs.requests[i].domain != bke::AttrDomain::Curve) {
+      if (cache->proc_attributes_point_domain[i]) {
         cache_update(cache->final.attributes_buf[i], cache->proc_attributes_buf[i]);
       }
     }
@@ -341,7 +339,7 @@ gpu::Batch *curves_sub_pass_setup_implementation(PassT &sub_ps,
     char sampler_name[32];
     drw_curves_get_attribute_sampler_name(request.attribute_name, sampler_name);
 
-    if (request.domain == bke::AttrDomain::Curve) {
+    if (!curves_cache->proc_attributes_point_domain[i]) {
       if (!curves_cache->proc_attributes_buf[i]) {
         continue;
       }
@@ -366,7 +364,7 @@ gpu::Batch *curves_sub_pass_setup_implementation(PassT &sub_ps,
      * attributes. */
     const int index = attribute_index_in_material(gpu_material, request.attribute_name);
     if (index != -1) {
-      curves_infos.is_point_attribute[index][0] = request.domain == bke::AttrDomain::Point;
+      curves_infos.is_point_attribute[index][0] = curves_cache->proc_attributes_point_domain[i];
     }
   }
 
