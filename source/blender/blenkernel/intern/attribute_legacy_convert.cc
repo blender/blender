@@ -21,8 +21,9 @@ namespace blender::bke {
 std::optional<AttrType> custom_data_type_to_attr_type(const eCustomDataType data_type)
 {
   switch (data_type) {
+    case CD_NUMTYPES:
     case CD_AUTO_FROM_NAME:
-      /* This type is not used for actual #CustomData layers. */
+      /* These type is not used for actual #CustomData layers. */
       BLI_assert_unreachable();
       return std::nullopt;
     case CD_MVERT:
@@ -38,7 +39,8 @@ std::optional<AttrType> custom_data_type_to_attr_type(const eCustomDataType data
     case CD_PAINT_MASK:
     case CD_CUSTOMLOOPNORMAL:
     case CD_SCULPT_FACE_SETS:
-    case CD_NUMTYPES:
+    case CD_MTFACE:
+    case CD_TESSLOOPNORMAL:
       /* These types are only used for versioning old files. */
       return std::nullopt;
     /* These types are only used for #BMesh. */
@@ -48,7 +50,6 @@ std::optional<AttrType> custom_data_type_to_attr_type(const eCustomDataType data
       return std::nullopt;
     case CD_MDEFORMVERT:
     case CD_MFACE:
-    case CD_MTFACE:
     case CD_MCOL:
     case CD_ORIGINDEX:
     case CD_NORMAL:
@@ -63,7 +64,6 @@ std::optional<AttrType> custom_data_type_to_attr_type(const eCustomDataType data
     case CD_FREESTYLE_EDGE:
     case CD_FREESTYLE_FACE:
     case CD_MLOOPTANGENT:
-    case CD_TESSLOOPNORMAL:
       /* These types are not generic. They will either be moved to some generic data type or
        * #AttributeStorage will be extended to be able to support a similar format. */
       return std::nullopt;
