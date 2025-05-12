@@ -28,6 +28,8 @@
 #include "BKE_screen.hh"
 #include "BKE_shader_fx.h"
 
+#include "BLT_translation.hh"
+
 #include "ED_buttons.hh"
 #include "ED_screen.hh"
 #include "ED_space_api.hh"
@@ -193,6 +195,13 @@ void ED_buttons_visible_tabs_menu(bContext *C, uiLayout *layout, void * /*arg*/)
   for (blender::StringRefNull item : filter_items) {
     layout->prop(&ptr, item, UI_ITEM_R_TOGGLE, std::nullopt, ICON_NONE);
   }
+}
+
+void ED_buttons_navbar_menu(bContext *C, uiLayout *layout, void * /*arg*/)
+{
+  ED_screens_region_flip_menu_create(C, layout, nullptr);
+  uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_DEFAULT);
+  layout->op("SCREEN_OT_region_toggle", IFACE_("Hide"), ICON_NONE);
 }
 
 blender::Vector<eSpaceButtons_Context> ED_buttons_tabs_list(const SpaceProperties *sbuts,

@@ -26,6 +26,7 @@ struct uiLayout;
 blender::Vector<eSpaceButtons_Context> ED_buttons_tabs_list(const SpaceProperties *sbuts,
                                                             bool apply_filter = true);
 void ED_buttons_visible_tabs_menu(bContext *C, uiLayout *layout, void * /*arg*/);
+void ED_buttons_navbar_menu(bContext *C, uiLayout *layout, void * /*arg*/);
 bool ED_buttons_tab_has_search_result(SpaceProperties *sbuts, int index);
 
 void ED_buttons_search_string_set(SpaceProperties *sbuts, const char *value);

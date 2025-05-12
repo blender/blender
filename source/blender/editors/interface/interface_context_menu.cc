@@ -1357,11 +1357,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
           layout, IFACE_("Header"), ICON_NONE, ED_screens_header_tools_menu_create, nullptr);
     }
     else if (region->regiontype == RGN_TYPE_NAV_BAR) {
-      uiItemMenuF(layout,
-                  IFACE_("Navigation Bar"),
-                  ICON_NONE,
-                  ED_screens_region_flip_menu_create,
-                  nullptr);
+      uiItemMenuF(layout, IFACE_("Navigation Bar"), ICON_NONE, ED_buttons_navbar_menu, nullptr);
       const ScrArea *area = CTX_wm_area(C);
       if (area && area->spacetype == SPACE_PROPERTIES) {
         uiItemMenuF(
