@@ -380,6 +380,11 @@ Vector<GPUShader *> GPU_shader_batch_finalize(BatchHandle &handle)
   return reinterpret_cast<Vector<GPUShader *> &>(result);
 }
 
+void GPU_shader_batch_cancel(BatchHandle &handle)
+{
+  GPUBackend::get()->get_compiler()->batch_cancel(handle);
+}
+
 void GPU_shader_compile_static()
 {
   printf("Compiling all static GPU shaders. This process takes a while.\n");
@@ -550,6 +555,11 @@ SpecializationBatchHandle GPU_shader_batch_specializations(
 bool GPU_shader_batch_specializations_is_ready(SpecializationBatchHandle &handle)
 {
   return GPUBackend::get()->get_compiler()->specialization_batch_is_ready(handle);
+}
+
+void GPU_shader_batch_specializations_cancel(SpecializationBatchHandle &handle)
+{
+  GPUBackend::get()->get_compiler()->batch_cancel(handle);
 }
 
 /** \} */
@@ -1002,7 +1012,7 @@ BatchHandle ShaderCompiler::batch_compile(Span<const shader::ShaderCreateInfo *>
 
 void ShaderCompiler::batch_cancel(BatchHandle &handle)
 {
-  std::lock_guard lock(mutex_);
+  std::unique_lock lock(mutex_);
 
   Batch *batch = batches_.pop(handle);
 
@@ -1015,7 +1025,14 @@ void ShaderCompiler::batch_cancel(BatchHandle &handle)
 
   compilation_queue_.erase(std::remove_if(compilation_queue_.begin(),
                                           compilation_queue_.end(),
-                                          [](const ParallelWork &work) { return !work.batch; }));
+                                          [](const ParallelWork &work) { return !work.batch; }),
+                           compilation_queue_.end());
+
+  if (batch->is_specialization_batch()) {
+    /* For specialization batches, we block until ready, since base shader compilation may be
+     * cancelled afterwards, leaving the specialization with a deleted base shader. */
+    compilation_finished_notification_.wait(lock, [&]() { return batch->is_ready(); });
+  }
 
   if (batch->is_ready()) {
     batch->free_shaders();

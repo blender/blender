@@ -1740,6 +1740,9 @@ void GLCompilerWorker::release()
 
 GLShaderCompiler::~GLShaderCompiler()
 {
+  /* Must be called before we destruct the GLCompilerWorkers. */
+  destruct_compilation_worker();
+
   for (GLCompilerWorker *worker : workers_) {
     delete worker;
   }

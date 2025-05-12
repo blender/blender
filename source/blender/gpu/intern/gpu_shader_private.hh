@@ -211,6 +211,14 @@ class ShaderCompiler {
 
   BatchHandle next_batch_handle_ = 1;
 
+ protected:
+  /* Must be called earlier from the destructor of the subclass if the compilation process relies
+   * on subclass resources. */
+  void destruct_compilation_worker()
+  {
+    compilation_worker_.reset();
+  }
+
  public:
   ShaderCompiler(uint32_t threads_count = 1,
                  GPUWorker::ContextType context_type = GPUWorker::ContextType::PerThread,
