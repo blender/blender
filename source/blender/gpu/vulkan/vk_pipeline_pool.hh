@@ -36,6 +36,14 @@ struct VKComputeInfo {
            vk_pipeline_layout == other.vk_pipeline_layout &&
            specialization_constants == other.specialization_constants;
   };
+
+  uint64_t hash() const
+  {
+    uint64_t hash = uint64_t(vk_shader_module);
+    hash = hash * 33 ^ uint64_t(vk_pipeline_layout);
+    hash = hash * 33 ^ specialization_constants.hash();
+    return hash;
+  }
 };
 
 /**
@@ -199,7 +207,7 @@ struct VKGraphicsInfo {
     hash = hash * 33 ^ fragment_shader.hash();
     hash = hash * 33 ^ fragment_out.hash();
     hash = hash * 33 ^ uint64_t(vk_pipeline_layout);
-    hash = hash * 33 ^ get_default_hash(specialization_constants);
+    hash = hash * 33 ^ specialization_constants.hash();
     hash = hash * 33 ^ state.data;
     hash = hash * 33 ^ mutable_state.data[0];
     hash = hash * 33 ^ mutable_state.data[1];
@@ -208,19 +216,6 @@ struct VKGraphicsInfo {
   }
 };
 
-}  // namespace gpu
-
-template<> struct DefaultHash<gpu::VKComputeInfo> {
-  uint64_t operator()(const gpu::VKComputeInfo &key) const
-  {
-    uint64_t hash = uint64_t(key.vk_shader_module);
-    hash = hash * 33 ^ uint64_t(key.vk_pipeline_layout);
-    hash = hash * 33 ^ get_default_hash(key.specialization_constants);
-    return hash;
-  }
-};
-
-namespace gpu {
 class VKDevice;
 
 /**
