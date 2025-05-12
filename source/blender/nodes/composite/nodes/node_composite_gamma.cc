@@ -63,7 +63,7 @@ static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &
 
 }  // namespace blender::nodes::node_composite_gamma_cc
 
-void register_node_type_cmp_gamma()
+static void register_node_type_cmp_gamma()
 {
   namespace file_ns = blender::nodes::node_composite_gamma_cc;
 
@@ -80,3 +80,4 @@ void register_node_type_cmp_gamma()
 
   blender::bke::node_register_type(ntype);
 }
+NOD_REGISTER_NODE(register_node_type_cmp_gamma)

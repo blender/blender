@@ -2,6 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "NOD_composite.hh"
 #include "NOD_geometry.hh"
 #include "NOD_register.hh"
 #include "NOD_socket.hh"
@@ -141,13 +142,14 @@ void register_nodes()
   register_standard_node_socket_types();
 
   register_node_tree_type_geo();
+  register_node_tree_type_cmp();
 
   register_node_type_frame();
   register_node_type_reroute();
   register_node_type_group_input();
   register_node_type_group_output();
 
-  register_composite_nodes();
+  register_compositor_nodes();
   register_shader_nodes();
   register_texture_nodes();
   register_geometry_nodes();

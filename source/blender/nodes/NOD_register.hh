@@ -12,7 +12,7 @@ void register_node_type_reroute();
 void register_node_type_group_input();
 void register_node_type_group_output();
 
-void register_composite_nodes();
+void register_compositor_nodes();
 void register_function_nodes();
 void register_geometry_nodes();
 void register_shader_nodes();

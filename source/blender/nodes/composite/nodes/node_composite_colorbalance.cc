@@ -365,7 +365,7 @@ static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &
 
 }  // namespace blender::nodes::node_composite_colorbalance_cc
 
-void register_node_type_cmp_colorbalance()
+static void register_node_type_cmp_colorbalance()
 {
   namespace file_ns = blender::nodes::node_composite_colorbalance_cc;
 
@@ -388,3 +388,4 @@ void register_node_type_cmp_colorbalance()
 
   blender::bke::node_register_type(ntype);
 }
+NOD_REGISTER_NODE(register_node_type_cmp_colorbalance)

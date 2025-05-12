@@ -190,7 +190,7 @@ static NodeOperation *get_compositor_operation(Context &context, DNode node)
 
 }  // namespace blender::nodes::node_composite_convert_color_space_cc
 
-void register_node_type_cmp_convert_color_space()
+static void register_node_type_cmp_convert_color_space()
 {
   namespace file_ns = blender::nodes::node_composite_convert_color_space_cc;
   static blender::bke::bNodeType ntype;
@@ -210,3 +210,4 @@ void register_node_type_cmp_convert_color_space()
 
   blender::bke::node_register_type(ntype);
 }
+NOD_REGISTER_NODE(register_node_type_cmp_convert_color_space)

@@ -449,7 +449,7 @@ static NodeOperation *get_compositor_operation(Context &context, DNode node)
 
 }  // namespace blender::nodes::node_composite_planetrackdeform_cc
 
-void register_node_type_cmp_planetrackdeform()
+static void register_node_type_cmp_planetrackdeform()
 {
   namespace file_ns = blender::nodes::node_composite_planetrackdeform_cc;
 
@@ -470,3 +470,4 @@ void register_node_type_cmp_planetrackdeform()
 
   blender::bke::node_register_type(ntype);
 }
+NOD_REGISTER_NODE(register_node_type_cmp_planetrackdeform)

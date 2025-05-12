@@ -131,7 +131,7 @@ static NodeOperation *get_compositor_operation(Context &context, DNode node)
 
 }  // namespace blender::nodes::node_composite_bokehimage_cc
 
-void register_node_type_cmp_bokehimage()
+static void register_node_type_cmp_bokehimage()
 {
   namespace file_ns = blender::nodes::node_composite_bokehimage_cc;
 
@@ -151,3 +151,4 @@ void register_node_type_cmp_bokehimage()
 
   blender::bke::node_register_type(ntype);
 }
+NOD_REGISTER_NODE(register_node_type_cmp_bokehimage)

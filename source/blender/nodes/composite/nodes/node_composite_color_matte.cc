@@ -126,7 +126,7 @@ static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &
 
 }  // namespace blender::nodes::node_composite_color_matte_cc
 
-void register_node_type_cmp_color_matte()
+static void register_node_type_cmp_color_matte()
 {
   namespace file_ns = blender::nodes::node_composite_color_matte_cc;
 
@@ -147,3 +147,4 @@ void register_node_type_cmp_color_matte()
 
   blender::bke::node_register_type(ntype);
 }
+NOD_REGISTER_NODE(register_node_type_cmp_color_matte)
