@@ -569,6 +569,12 @@ static bool rna_BrushCapabilitiesSculpt_has_tilt_get(PointerRNA *ptr)
   return blender::bke::brush::supports_tilt(*br);
 }
 
+static bool rna_BrushCapabilitiesSculpt_has_dyntopo_get(PointerRNA *ptr)
+{
+  const Brush *br = static_cast<const Brush *>(ptr->data);
+  return blender::bke::brush::supports_dyntopo(*br);
+}
+
 static bool rna_BrushCapabilitiesImagePaint_has_accumulate_get(PointerRNA *ptr)
 {
   /* only support for draw brush */
@@ -1192,6 +1198,7 @@ static void rna_def_sculpt_capabilities(BlenderRNA *brna)
   SCULPT_BRUSH_CAPABILITY(has_direction, "Has Direction");
   SCULPT_BRUSH_CAPABILITY(has_gravity, "Has Gravity");
   SCULPT_BRUSH_CAPABILITY(has_tilt, "Has Tilt");
+  SCULPT_BRUSH_CAPABILITY(has_dyntopo, "Has Dyntopo");
 
 #  undef SCULPT_CAPABILITY
 }
