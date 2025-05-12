@@ -43,22 +43,6 @@ void matrix_to_m44(const ufbx_matrix &src, float dst[4][4])
   dst[3][3] = 1.0f;
 }
 
-void m44_to_matrix(const float src[4][4], ufbx_matrix &dst)
-{
-  dst.m00 = src[0][0];
-  dst.m01 = src[1][0];
-  dst.m02 = src[2][0];
-  dst.m03 = src[3][0];
-  dst.m10 = src[0][1];
-  dst.m11 = src[1][1];
-  dst.m12 = src[2][1];
-  dst.m13 = src[3][1];
-  dst.m20 = src[0][2];
-  dst.m21 = src[1][2];
-  dst.m22 = src[2][2];
-  dst.m23 = src[3][2];
-}
-
 ufbx_matrix calc_bone_pose_matrix(const ufbx_transform &local_xform,
                                   const ufbx_node &node,
                                   const ufbx_matrix &local_bind_inv_matrix)

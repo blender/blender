@@ -202,7 +202,7 @@ static void create_transform_curve_desc(const FbxElementMapping &mapping,
   bool is_bone = false;
   std::string group_name_str = get_fbx_name(anim.fbx_elem->name);
   const ufbx_node *fnode = ufbx_as_node(anim.fbx_elem);
-  if (fnode != nullptr && fnode->bone != nullptr) {
+  if (fnode != nullptr && fnode->bone != nullptr && !fnode->bone->is_root) {
     is_bone = true;
     group_name_str = mapping.node_to_name.lookup_default(fnode, "");
     rna_prefix = std::string("pose.bones[\"") + group_name_str + "\"].";
@@ -255,7 +255,7 @@ static void create_transform_curve_data(const FbxElementMapping &mapping,
   bool is_bone = false;
   const ufbx_node *fnode = ufbx_as_node(anim.fbx_elem);
   ufbx_matrix bone_xform = ufbx_identity_matrix;
-  if (fnode != nullptr && fnode->bone != nullptr) {
+  if (fnode != nullptr && fnode->bone != nullptr && !fnode->bone->is_root) {
     is_bone = true;
 
     /* Bone transform curves need to be transformed to the bind transform
@@ -268,9 +268,8 @@ static void create_transform_curve_data(const FbxElementMapping &mapping,
     if (!bone_at_scene_root) {
       Object *arm_obj = mapping.bone_to_armature.lookup_default(fnode, nullptr);
       if (arm_obj != nullptr) {
-        ufbx_matrix arm_to_world;
-        m44_to_matrix(arm_obj->runtime->object_to_world.ptr(), arm_to_world);
-        world_to_arm = ufbx_matrix_invert(&arm_to_world);
+        world_to_arm = mapping.armature_world_to_arm_pose_matrix.lookup_default(
+            arm_obj, ufbx_identity_matrix);
       }
     }
 

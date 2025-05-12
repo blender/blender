@@ -8,8 +8,8 @@
 
 #include "BKE_action.hh"
 #include "BKE_armature.hh"
+#include "BKE_lib_id.hh"
 #include "BKE_object.hh"
-#include "BKE_object_types.hh"
 
 #include "BLI_math_vector.hh"
 
@@ -75,11 +75,29 @@ Object *ArmatureImportContext::create_armature_for_node(const ufbx_node *node)
       read_custom_properties(node->props, obj->id, this->params.props_enum_as_string);
     }
     node_matrix_to_obj(node, obj, this->mapping);
+
+    /* Record world to fbx node matrix for the armature object. */
+    ufbx_matrix world_to_arm = ufbx_matrix_invert(&node->node_to_world);
+    this->mapping.armature_world_to_arm_node_matrix.add(obj, world_to_arm);
+
+    /* Record world to posed root node matrix. */
+    if (node->bind_pose && node->bind_pose->is_bind_pose) {
+      for (const ufbx_bone_pose &pose : node->bind_pose->bone_poses) {
+        if (pose.bone_node == node) {
+          world_to_arm = ufbx_matrix_invert(&pose.bone_to_world);
+          break;
+        }
+      }
+    }
+    this->mapping.armature_world_to_arm_pose_matrix.add(obj, world_to_arm);
   }
   else {
     /* For armatures created at root, make them have the same rotation/scale
      * as done by ufbx for all regular nodes. */
     ufbx_matrix_to_obj(this->mapping.global_conv_matrix, obj);
+    ufbx_matrix world_to_arm = ufbx_matrix_invert(&this->mapping.global_conv_matrix);
+    this->mapping.armature_world_to_arm_pose_matrix.add(obj, world_to_arm);
+    this->mapping.armature_world_to_arm_node_matrix.add(obj, world_to_arm);
   }
   return obj;
 }
@@ -94,40 +112,47 @@ void ArmatureImportContext::create_armature_bones(const ufbx_node *node,
 {
   bArmature *arm = static_cast<bArmature *>(arm_obj->data);
 
-  EditBone *bone = ED_armature_ebone_add(arm, get_fbx_name(node->name, "Bone"));
-  this->mapping.node_to_name.add(node, bone->name);
   arm_bones.add(node);
   /* For all bone nodes, record the whole armature as the owning object. */
   this->mapping.el_to_object.add(&node->element, arm_obj);
-  bone->flag |= BONE_SELECTED;
-  bone->parent = parent_bone;
-  if (node->inherit_mode == UFBX_INHERIT_MODE_IGNORE_PARENT_SCALE) {
-    bone->inherit_scale_mode = BONE_INHERIT_SCALE_NONE;
+
+  ufbx_matrix bone_mtx = ufbx_identity_matrix;
+  EditBone *bone = nullptr;
+  if (node->bone == nullptr || node->bone->is_root) {
+    /* For root bone, the armature object itself is created, so it will not have the EditBone. */
+    this->mapping.node_to_name.add(node, BKE_id_name(arm_obj->id));
   }
-
-  this->mapping.bone_to_armature.add(node, arm_obj);
-
+  else {
+    /* For regular non-root bones, create an EditBone. */
+    bone = ED_armature_ebone_add(arm, get_fbx_name(node->name, "Bone"));
+    this->mapping.node_to_name.add(node, bone->name);
+    bone->flag |= BONE_SELECTED;
+    bone->parent = parent_bone;
+    if (node->inherit_mode == UFBX_INHERIT_MODE_IGNORE_PARENT_SCALE) {
+      bone->inherit_scale_mode = BONE_INHERIT_SCALE_NONE;
+    }
 #ifdef FBX_DEBUG_PRINT
-  fprintf(g_debug_file,
-          "create BONE %s (parent %s) parent_mtx:\n",
-          node->name.data,
-          parent_bone ? parent_bone->name : "");
-  print_matrix(parent_mtx);
+    fprintf(g_debug_file,
+            "create BONE %s (parent %s) parent_mtx:\n",
+            node->name.data,
+            parent_bone ? parent_bone->name : "");
+    print_matrix(parent_mtx);
 #endif
 
-  const ufbx_matrix *bind_mtx = this->mapping.bone_to_bind_matrix.lookup_ptr(node);
-  BLI_assert_msg(bind_mtx, "fbx: did not find bind matrix for bone");
-  ufbx_matrix bone_mtx = bind_mtx ? *bind_mtx : ufbx_identity_matrix;
-
-#ifdef FBX_DEBUG_PRINT
-  // fprintf(g_debug_file, "  local_bind_mtx:\n");
-  // print_matrix(bone_mtx);
-#endif
+    const ufbx_matrix *bind_mtx = this->mapping.bone_to_bind_matrix.lookup_ptr(node);
+    BLI_assert_msg(bind_mtx, "fbx: did not find bind matrix for bone");
+    if (bind_mtx != nullptr) {
+      bone_mtx = *bind_mtx;
+    }
+  }
 
   bone_mtx = ufbx_matrix_mul(&world_to_arm, &bone_mtx);
   bone_mtx.cols[0] = ufbx_vec3_normalize(bone_mtx.cols[0]);
   bone_mtx.cols[1] = ufbx_vec3_normalize(bone_mtx.cols[1]);
   bone_mtx.cols[2] = ufbx_vec3_normalize(bone_mtx.cols[2]);
+
+  this->mapping.bone_to_armature.add(node, arm_obj);
+
 #ifdef FBX_DEBUG_PRINT
   fprintf(g_debug_file, "  bone_mtx:\n");
   print_matrix(bone_mtx);
@@ -177,31 +202,36 @@ void ArmatureImportContext::create_armature_bones(const ufbx_node *node,
   /* Zero length bones are automatically collapsed into their parent when you leave edit mode,
    * so enforce a minimum length. */
   bone_size = math::max(bone_size, 0.01f);
-  bone->tail[0] = 0.0f;
-  bone->tail[1] = bone_size;
-  bone->tail[2] = 0.0f;
   this->mapping.bone_to_length.add(node, bone_size);
 
-  /* Set bone matrix. */
-  float bone_matrix[4][4];
-  matrix_to_m44(bone_mtx, bone_matrix);
-  ED_armature_ebone_from_mat4(bone, bone_matrix);
+  if (bone != nullptr) {
+    bone->tail[0] = 0.0f;
+    bone->tail[1] = bone_size;
+    bone->tail[2] = 0.0f;
+    /* Set bone matrix. */
+    float bone_matrix[4][4];
+    matrix_to_m44(bone_mtx, bone_matrix);
+    ED_armature_ebone_from_mat4(bone, bone_matrix);
+  }
+
 #ifdef FBX_DEBUG_PRINT
-  fprintf(g_debug_file,
-          "  length %.3f head (%.3f %.3f %.3f) tail (%.3f %.3f %.3f)\n",
-          adjf(bone_size),
-          adjf(bone->head[0]),
-          adjf(bone->head[1]),
-          adjf(bone->head[2]),
-          adjf(bone->tail[0]),
-          adjf(bone->tail[1]),
-          adjf(bone->tail[2]));
+  if (bone != nullptr) {
+    fprintf(g_debug_file,
+            "  length %.3f head (%.3f %.3f %.3f) tail (%.3f %.3f %.3f)\n",
+            adjf(bone_size),
+            adjf(bone->head[0]),
+            adjf(bone->head[1]),
+            adjf(bone->head[2]),
+            adjf(bone->tail[0]),
+            adjf(bone->tail[1]),
+            adjf(bone->tail[2]));
+  }
 #endif
 
   /* Mark bone as connected to parent if head approximately in the same place as parent tail, in
    * both rest pose and current pose. */
   if (parent_bone != nullptr) {
-    float3 self_head_rest(bone->head);
+    float3 self_head_rest = bone ? float3(bone->head) : float3(0);
     float3 par_tail_rest(parent_bone->tail);
     const float connect_dist = 1.0e-4f;
     const float connect_dist_sq = connect_dist * connect_dist;
@@ -218,7 +248,7 @@ void ArmatureImportContext::create_armature_bones(const ufbx_node *node,
       float3 par_tail_cur(par_tail_cur_u.x, par_tail_cur_u.y, par_tail_cur_u.z);
       float dist_sq_cur = math::distance_squared(self_head_cur, par_tail_cur);
 
-      if (dist_sq_cur < connect_dist_sq) {
+      if (dist_sq_cur < connect_dist_sq && bone != nullptr) {
         /* Connected in both cases. */
         bone->flag |= BONE_CONNECTED;
       }
@@ -251,10 +281,10 @@ void ArmatureImportContext::create_armature_bones(const ufbx_node *node,
 
 void ArmatureImportContext::find_armatures(const ufbx_node *node)
 {
-  /* Need to create armature if we are root bone, or any child is bone. */
+  /* Need to create armature if we are root bone, or any child is a non-root bone. */
   bool needs_arm = false;
   for (const ufbx_node *fchild : node->children) {
-    if (fchild->attrib_type == UFBX_ELEMENT_BONE) {
+    if (fchild->bone && !fchild->bone->is_root) {
       needs_arm = true;
       break;
     }
@@ -274,17 +304,22 @@ void ArmatureImportContext::find_armatures(const ufbx_node *node)
     }
 
     /* Create bones in edit mode. */
-    ufbx_matrix arm_to_world;
-    m44_to_matrix(arm_obj->runtime->object_to_world.ptr(), arm_to_world);
-    ufbx_matrix world_to_arm = ufbx_matrix_invert(&arm_to_world);
+    ufbx_matrix world_to_arm = this->mapping.armature_world_to_arm_pose_matrix.lookup_default(
+        arm_obj, ufbx_identity_matrix);
 
     Set<const ufbx_node *> arm_bones;
     bArmature *arm = static_cast<bArmature *>(arm_obj->data);
     ED_armature_to_edit(arm);
-    for (const ufbx_node *fchild : node->children) {
-      if (fchild->attrib_type == UFBX_ELEMENT_BONE) {
-        create_armature_bones(
-            fchild, arm_obj, arm_bones, nullptr, ufbx_identity_matrix, world_to_arm, 1.0f);
+    if (node->bone && node->bone->is_root) {
+      create_armature_bones(
+          node, arm_obj, arm_bones, nullptr, ufbx_identity_matrix, world_to_arm, 1.0f);
+    }
+    else {
+      for (const ufbx_node *fchild : node->children) {
+        if (fchild->bone) {
+          create_armature_bones(
+              fchild, arm_obj, arm_bones, nullptr, ufbx_identity_matrix, world_to_arm, 1.0f);
+        }
       }
     }
     ED_armature_from_edit(&this->bmain, arm);
@@ -327,9 +362,9 @@ void ArmatureImportContext::find_armatures(const ufbx_node *node)
     }
   }
 
-  /* Recurse into non-bone children. */
+  /* Recurse into non-bone or root-bone children. */
   for (const ufbx_node *fchild : node->children) {
-    if (fchild->attrib_type != UFBX_ELEMENT_BONE) {
+    if (fchild->bone == nullptr || fchild->bone->is_root) {
       this->find_armatures(fchild);
     }
   }

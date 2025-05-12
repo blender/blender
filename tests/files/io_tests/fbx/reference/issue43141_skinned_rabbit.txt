@@ -1,0 +1,387 @@
+==== Meshes: 1
+- Mesh 'Mesh' vtx:517 face:1022 loop:3066 edge:1536
+    - 2 3 1 1 0 ... 235 478 478 233 234 
+    - 0/1 0/2 8/9 8/10 16/17 ... 7/287 7/395 199/453 199/455 199/461 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-0.540, -0.735, -0.314)
+    - (-0.584, -0.373, -0.289)
+    - (-0.500, -0.569, -0.051)
+      ...
+    - (0.104, -1.180, 0.138)
+    - (0.016, 1.165, -0.265)
+    - (0.024, 1.181, -0.230)
+  - vertex groups:
+    - 0=1.000
+    - 0=1.000
+    - 2=1.000
+    - 2=1.000
+    - 2=1.000
+
+==== Objects: 2
+- Obj 'Bip001' ARMATURE data:'Bip001'
+  - pos 0.000, 8.048, 8.117
+  - rot 0.000, 1.480, -1.571 (XYZ)
+  - scl 0.025, 0.025, 0.025
+  - posed bone 'Bip001 Head'
+      0.996 0.070 -0.048 0.542
+      -0.070 0.997 -0.012 -0.068
+      0.047 0.015 0.999 0.000
+  - posed bone 'Bip001 L Calf'
+      0.757 0.654 0.000 0.000
+      -0.654 0.757 0.000 0.000
+      0.000 0.000 1.000 0.000
+  - posed bone 'Bip001 L Clavicle'
+      0.992 0.000 -0.127 8.624
+      0.000 1.000 0.000 0.000
+      0.127 0.000 0.992 1.640
+  - posed bone 'Bip001 L Foot'
+      0.540 -0.841 0.040 0.000
+      0.837 0.531 -0.133 0.000
+      0.090 0.105 0.990 0.000
+  - posed bone 'Bip001 L Forearm'
+      0.996 0.094 0.000 0.000
+      -0.094 0.996 0.000 0.000
+      0.000 0.000 1.000 0.000
+  - posed bone 'Bip001 L Hand'
+      0.947 0.320 0.015 0.000
+      -0.319 0.947 -0.045 0.000
+      -0.028 0.038 0.999 0.000
+  - posed bone 'Bip001 L HorseLink'
+      0.869 0.494 0.000 0.000
+      -0.494 0.869 0.000 0.000
+      0.000 0.000 1.000 0.000
+  - posed bone 'Bip001 L Thigh'
+      0.977 -0.214 0.008 17.106
+      0.213 0.977 0.029 -3.535
+      -0.014 -0.027 1.000 -2.016
+  - posed bone 'Bip001 L UpperArm'
+      0.951 -0.308 -0.030 0.000
+      0.307 0.951 -0.035 0.000
+      0.040 0.024 0.999 0.000
+  - posed bone 'Bip001 Neck'
+      0.992 -0.126 0.000 0.006
+      0.126 0.992 0.000 -0.134
+      0.000 0.000 1.000 0.000
+  - posed bone 'Bip001 R Calf'
+      0.757 0.654 0.000 0.000
+      -0.654 0.757 0.000 0.000
+      0.000 0.000 1.000 0.000
+  - posed bone 'Bip001 R Clavicle'
+      0.992 0.000 0.127 8.624
+      0.000 1.000 0.000 0.000
+      -0.127 0.000 0.992 -1.640
+  - posed bone 'Bip001 R Foot'
+      0.540 -0.841 -0.040 0.000
+      0.837 0.531 0.133 0.000
+      -0.090 -0.105 0.990 0.000
+  - posed bone 'Bip001 R Forearm'
+      0.997 0.079 0.000 0.000
+      -0.079 0.997 0.000 0.000
+      0.000 0.000 1.000 0.000
+  - posed bone 'Bip001 R Hand'
+      0.949 0.315 -0.012 0.000
+      -0.315 0.948 0.049 0.000
+      0.027 -0.043 0.999 0.000
+  - posed bone 'Bip001 R HorseLink'
+      0.869 0.494 0.000 0.000
+      -0.494 0.869 0.000 0.000
+      0.000 0.000 1.000 0.000
+  - posed bone 'Bip001 R Thigh'
+      0.977 -0.214 -0.008 17.106
+      0.213 0.977 -0.029 -3.536
+      0.014 0.027 1.000 2.016
+  - posed bone 'Bip001 R UpperArm'
+      0.951 -0.304 0.063 0.000
+      0.302 0.953 0.033 0.000
+      -0.070 -0.012 0.997 0.000
+  - posed bone 'Bip001 Spine'
+      0.990 -0.144 0.000 0.015
+      0.144 0.990 0.000 0.001
+      0.000 0.000 1.000 0.000
+  - posed bone 'Bip001 Spine1'
+      0.998 0.063 0.000 -0.008
+      -0.063 0.998 0.000 0.000
+      0.000 0.000 1.000 0.000
+  - posed bone 'Bone001'
+      0.880 0.309 -0.361 0.000
+      -0.410 0.878 -0.249 0.000
+      0.240 0.367 0.899 0.000
+  - posed bone 'Bone006'
+      0.852 0.342 -0.397 0.000
+      -0.443 0.875 -0.196 0.000
+      0.280 0.343 0.896 0.000
+  - anim act:Take 001 slot:OBBip001 blend:REPLACE drivers:0
+- Obj 'obj4aa7ee80_obj' MESH data:'Mesh' par:'Bip001'
+  - matrix_parent_inverse:
+      0.116 0.000 -0.993 221.665
+      0.000 1.000 0.000 0.000
+      0.993 0.000 0.116 245.374
+  - pos -39.850, 4.381, 246.491
+  - rot 0.021, 0.000, -1.571 (XYZ)
+  - scl 342.509, 342.509, 342.509
+  - 33 vertex groups
+    - 'Bip001 L Thigh' 'Bip001 L Toe0' 'Bip001 Pelvis' 'Bip001 R Toe0' 'Bip001 Spine' ... 'Bip001 R Hand' 'Bone001' 'Bone003' 'Bone002' 'Bone004' 
+  - 1 modifiers
+    - ARMATURE 'Bip001'
+
+==== Actions: 1
+- Action 'Take 001' curverange:(1.0 .. 87.0) layers:1
+- ActionLayer Layer strips:1
+ - Keyframe strip channelbags:1
+ - Channelbag slot 'OBBip001' curves:339
+  - fcu 'location[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:7 grp:'Bip001'
+    - (1.000, 0.000) lh:(0.667, 0.000 AUTO_CLAMPED) rh:(1.333, 0.000 AUTO_CLAMPED)
+    - (2.000, 0.000) lh:(1.667, 0.000 AUTO_CLAMPED) rh:(2.333, 0.000 AUTO_CLAMPED)
+    - (3.000, 0.000) lh:(2.667, 0.000 AUTO_CLAMPED) rh:(3.333, 0.000 AUTO_CLAMPED)
+      ...
+    - (5.000, 0.000) lh:(4.667, 0.000 AUTO_CLAMPED) rh:(5.333, 0.000 AUTO_CLAMPED)
+    - (6.000, 0.000) lh:(5.667, 0.000 AUTO_CLAMPED) rh:(6.333, 0.000 AUTO_CLAMPED)
+    - (7.000, 0.000) lh:(6.667, 0.000 AUTO_CLAMPED) rh:(7.333, 0.000 AUTO_CLAMPED)
+  - fcu 'location[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:7 grp:'Bip001'
+    - (1.000, 8.048) lh:(0.667, 8.048 AUTO_CLAMPED) rh:(1.333, 8.048 AUTO_CLAMPED)
+    - (2.000, 8.048) lh:(1.667, 8.048 AUTO_CLAMPED) rh:(2.333, 8.048 AUTO_CLAMPED)
+    - (3.000, 8.048) lh:(2.667, 8.048 AUTO_CLAMPED) rh:(3.333, 8.048 AUTO_CLAMPED)
+      ...
+    - (5.000, 8.048) lh:(4.667, 8.048 AUTO_CLAMPED) rh:(5.333, 8.048 AUTO_CLAMPED)
+    - (6.000, 8.048) lh:(5.667, 8.048 AUTO_CLAMPED) rh:(6.333, 8.048 AUTO_CLAMPED)
+    - (7.000, 8.048) lh:(6.667, 8.048 AUTO_CLAMPED) rh:(7.333, 8.048 AUTO_CLAMPED)
+  - fcu 'location[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:7 grp:'Bip001'
+    - (1.000, 8.117) lh:(0.667, 8.117 AUTO_CLAMPED) rh:(1.333, 8.117 AUTO_CLAMPED)
+    - (2.000, 9.493) lh:(1.667, 8.900 AUTO_CLAMPED) rh:(2.333, 10.086 AUTO_CLAMPED)
+    - (3.000, 10.869) lh:(2.667, 10.489 AUTO_CLAMPED) rh:(3.333, 11.249 AUTO_CLAMPED)
+      ...
+    - (5.000, 12.409) lh:(4.667, 12.278 AUTO_CLAMPED) rh:(5.333, 12.541 AUTO_CLAMPED)
+    - (6.000, 12.725) lh:(5.667, 12.646 AUTO_CLAMPED) rh:(6.333, 12.804 AUTO_CLAMPED)
+    - (7.000, 12.856) lh:(6.667, 12.856 AUTO_CLAMPED) rh:(7.333, 12.856 AUTO_CLAMPED)
+  - fcu 'pose.bones["Bip001 Head"].location[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:7 grp:'Bip001 Head'
+    - (1.000, 0.542) lh:(0.667, 0.542 AUTO_CLAMPED) rh:(1.333, 0.542 AUTO_CLAMPED)
+    - (2.000, 0.542) lh:(1.667, 0.542 AUTO_CLAMPED) rh:(2.333, 0.542 AUTO_CLAMPED)
+    - (3.000, 0.542) lh:(2.667, 0.542 AUTO_CLAMPED) rh:(3.333, 0.542 AUTO_CLAMPED)
+      ...
+    - (5.000, 0.542) lh:(4.667, 0.542 AUTO_CLAMPED) rh:(5.333, 0.542 AUTO_CLAMPED)
+    - (6.000, 0.542) lh:(5.667, 0.542 AUTO_CLAMPED) rh:(6.333, 0.542 AUTO_CLAMPED)
+    - (7.000, 0.542) lh:(6.667, 0.542 AUTO_CLAMPED) rh:(7.333, 0.542 AUTO_CLAMPED)
+  - fcu 'pose.bones["Bip001 Head"].location[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:7 grp:'Bip001 Head'
+    - (1.000, -0.068) lh:(0.667, -0.068 AUTO_CLAMPED) rh:(1.333, -0.068 AUTO_CLAMPED)
+    - (2.000, -0.068) lh:(1.667, -0.068 AUTO_CLAMPED) rh:(2.333, -0.068 AUTO_CLAMPED)
+    - (3.000, -0.068) lh:(2.667, -0.068 AUTO_CLAMPED) rh:(3.333, -0.068 AUTO_CLAMPED)
+      ...
+    - (5.000, -0.068) lh:(4.667, -0.068 AUTO_CLAMPED) rh:(5.333, -0.068 AUTO_CLAMPED)
+    - (6.000, -0.068) lh:(5.667, -0.068 AUTO_CLAMPED) rh:(6.333, -0.068 AUTO_CLAMPED)
+    - (7.000, -0.068) lh:(6.667, -0.068 AUTO_CLAMPED) rh:(7.333, -0.068 AUTO_CLAMPED)
+  - fcu 'pose.bones["Bip001 Head"].location[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:7 grp:'Bip001 Head'
+    - (1.000, 0.000) lh:(0.667, 0.000 AUTO_CLAMPED) rh:(1.333, 0.000 AUTO_CLAMPED)
+    - (2.000, 0.000) lh:(1.667, 0.000 AUTO_CLAMPED) rh:(2.333, 0.000 AUTO_CLAMPED)
+    - (3.000, 0.000) lh:(2.667, 0.000 AUTO_CLAMPED) rh:(3.333, 0.000 AUTO_CLAMPED)
+      ...
+    - (5.000, 0.000) lh:(4.667, 0.000 AUTO_CLAMPED) rh:(5.333, 0.000 AUTO_CLAMPED)
+    - (6.000, 0.000) lh:(5.667, 0.000 AUTO_CLAMPED) rh:(6.333, 0.000 AUTO_CLAMPED)
+    - (7.000, 0.000) lh:(6.667, 0.000 AUTO_CLAMPED) rh:(7.333, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Bip001 Head"].rotation_quaternion[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:7 grp:'Bip001 Head'
+    - (1.000, 0.999) lh:(0.667, 0.999 AUTO_CLAMPED) rh:(1.333, 0.999 AUTO_CLAMPED)
+    - (2.000, 1.000) lh:(1.667, 1.000 AUTO_CLAMPED) rh:(2.333, 1.000 AUTO_CLAMPED)
+    - (3.000, 0.999) lh:(2.667, 0.999 AUTO_CLAMPED) rh:(3.333, 0.998 AUTO_CLAMPED)
+      ...
+    - (5.000, 0.998) lh:(4.667, 0.997 AUTO_CLAMPED) rh:(5.333, 0.998 AUTO_CLAMPED)
+    - (6.000, 0.999) lh:(5.667, 0.999 AUTO_CLAMPED) rh:(6.333, 0.999 AUTO_CLAMPED)
+    - (7.000, 1.000) lh:(6.667, 1.000 AUTO_CLAMPED) rh:(7.333, 1.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Bip001 Head"].rotation_quaternion[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:7 grp:'Bip001 Head'
+    - (1.000, 0.007) lh:(0.667, 0.007 AUTO_CLAMPED) rh:(1.333, 0.007 AUTO_CLAMPED)
+    - (2.000, 0.008) lh:(1.667, 0.007 AUTO_CLAMPED) rh:(2.333, 0.008 AUTO_CLAMPED)
+    - (3.000, 0.009) lh:(2.667, 0.008 AUTO_CLAMPED) rh:(3.333, 0.009 AUTO_CLAMPED)
+      ...
+    - (5.000, 0.009) lh:(4.667, 0.009 AUTO_CLAMPED) rh:(5.333, 0.009 AUTO_CLAMPED)
+    - (6.000, 0.008) lh:(5.667, 0.009 AUTO_CLAMPED) rh:(6.333, 0.008 AUTO_CLAMPED)
+    - (7.000, 0.008) lh:(6.667, 0.008 AUTO_CLAMPED) rh:(7.333, 0.008 AUTO_CLAMPED)
+  - fcu 'pose.bones["Bip001 Head"].rotation_quaternion[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:7 grp:'Bip001 Head'
+    - (1.000, -0.024) lh:(0.667, -0.024 AUTO_CLAMPED) rh:(1.333, -0.024 AUTO_CLAMPED)
+    - (2.000, -0.024) lh:(1.667, -0.024 AUTO_CLAMPED) rh:(2.333, -0.023 AUTO_CLAMPED)
+    - (3.000, -0.023) lh:(2.667, -0.023 AUTO_CLAMPED) rh:(3.333, -0.023 AUTO_CLAMPED)
+      ...
+    - (5.000, -0.023) lh:(4.667, -0.023 AUTO_CLAMPED) rh:(5.333, -0.023 AUTO_CLAMPED)
+    - (6.000, -0.023) lh:(5.667, -0.023 AUTO_CLAMPED) rh:(6.333, -0.023 AUTO_CLAMPED)
+    - (7.000, -0.023) lh:(6.667, -0.023 AUTO_CLAMPED) rh:(7.333, -0.023 AUTO_CLAMPED)
+  - fcu 'pose.bones["Bip001 Head"].rotation_quaternion[3]' smooth:CONT_ACCEL extra:CONSTANT keyframes:7 grp:'Bip001 Head'
+    - (1.000, -0.035) lh:(0.667, -0.035 AUTO_CLAMPED) rh:(1.333, -0.035 AUTO_CLAMPED)
+    - (2.000, 0.006) lh:(1.667, -0.012 AUTO_CLAMPED) rh:(2.333, 0.023 AUTO_CLAMPED)
+    - (3.000, 0.047) lh:(2.667, 0.035 AUTO_CLAMPED) rh:(3.333, 0.058 AUTO_CLAMPED)
+      ...
+    - (5.000, 0.062) lh:(4.667, 0.069 AUTO_CLAMPED) rh:(5.333, 0.056 AUTO_CLAMPED)
+    - (6.000, 0.034) lh:(5.667, 0.045 AUTO_CLAMPED) rh:(6.333, 0.023 AUTO_CLAMPED)
+    - (7.000, 0.011) lh:(6.667, 0.011 AUTO_CLAMPED) rh:(7.333, 0.011 AUTO_CLAMPED)
+  - fcu 'pose.bones["Bip001 Head"].scale[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:7 grp:'Bip001 Head'
+    - (1.000, 1.000) lh:(0.667, 1.000 AUTO_CLAMPED) rh:(1.333, 1.000 AUTO_CLAMPED)
+    - (2.000, 1.000) lh:(1.667, 1.000 AUTO_CLAMPED) rh:(2.333, 1.000 AUTO_CLAMPED)
+    - (3.000, 1.000) lh:(2.667, 1.000 AUTO_CLAMPED) rh:(3.333, 1.000 AUTO_CLAMPED)
+      ...
+    - (5.000, 1.000) lh:(4.667, 1.000 AUTO_CLAMPED) rh:(5.333, 1.000 AUTO_CLAMPED)
+    - (6.000, 1.000) lh:(5.667, 1.000 AUTO_CLAMPED) rh:(6.333, 1.000 AUTO_CLAMPED)
+    - (7.000, 1.000) lh:(6.667, 1.000 AUTO_CLAMPED) rh:(7.333, 1.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Bip001 Head"].scale[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:7 grp:'Bip001 Head'
+    - (1.000, 1.000) lh:(0.667, 1.000 AUTO_CLAMPED) rh:(1.333, 1.000 AUTO_CLAMPED)
+    - (2.000, 1.000) lh:(1.667, 1.000 AUTO_CLAMPED) rh:(2.333, 1.000 AUTO_CLAMPED)
+    - (3.000, 1.000) lh:(2.667, 1.000 AUTO_CLAMPED) rh:(3.333, 1.000 AUTO_CLAMPED)
+      ...
+    - (5.000, 1.000) lh:(4.667, 1.000 AUTO_CLAMPED) rh:(5.333, 1.000 AUTO_CLAMPED)
+    - (6.000, 1.000) lh:(5.667, 1.000 AUTO_CLAMPED) rh:(6.333, 1.000 AUTO_CLAMPED)
+    - (7.000, 1.000) lh:(6.667, 1.000 AUTO_CLAMPED) rh:(7.333, 1.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Bip001 Head"].scale[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:7 grp:'Bip001 Head'
+    - (1.000, 1.000) lh:(0.667, 1.000 AUTO_CLAMPED) rh:(1.333, 1.000 AUTO_CLAMPED)
+    - (2.000, 1.000) lh:(1.667, 1.000 AUTO_CLAMPED) rh:(2.333, 1.000 AUTO_CLAMPED)
+    - (3.000, 1.000) lh:(2.667, 1.000 AUTO_CLAMPED) rh:(3.333, 1.000 AUTO_CLAMPED)
+      ...
+    - (5.000, 1.000) lh:(4.667, 1.000 AUTO_CLAMPED) rh:(5.333, 1.000 AUTO_CLAMPED)
+    - (6.000, 1.000) lh:(5.667, 1.000 AUTO_CLAMPED) rh:(6.333, 1.000 AUTO_CLAMPED)
+    - (7.000, 1.000) lh:(6.667, 1.000 AUTO_CLAMPED) rh:(7.333, 1.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Bip001 L Calf"].location[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:7 grp:'Bip001 L Calf'
+    - (1.000, 0.000) lh:(0.667, 0.000 AUTO_CLAMPED) rh:(1.333, 0.000 AUTO_CLAMPED)
+    - (2.000, 0.000) lh:(1.667, 0.000 AUTO_CLAMPED) rh:(2.333, 0.000 AUTO_CLAMPED)
+    - (3.000, 0.000) lh:(2.667, 0.000 AUTO_CLAMPED) rh:(3.333, 0.000 AUTO_CLAMPED)
+      ...
+    - (5.000, 0.000) lh:(4.667, 0.000 AUTO_CLAMPED) rh:(5.333, 0.000 AUTO_CLAMPED)
+    - (6.000, 0.000) lh:(5.667, 0.000 AUTO_CLAMPED) rh:(6.333, 0.000 AUTO_CLAMPED)
+    - (7.000, 0.000) lh:(6.667, 0.000 AUTO_CLAMPED) rh:(7.333, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Bip001 L Calf"].location[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:7 grp:'Bip001 L Calf'
+    - (1.000, 0.000) lh:(0.667, 0.000 AUTO_CLAMPED) rh:(1.333, 0.000 AUTO_CLAMPED)
+    - (2.000, 0.000) lh:(1.667, 0.000 AUTO_CLAMPED) rh:(2.333, 0.000 AUTO_CLAMPED)
+    - (3.000, 0.000) lh:(2.667, 0.000 AUTO_CLAMPED) rh:(3.333, 0.000 AUTO_CLAMPED)
+      ...
+    - (5.000, 0.000) lh:(4.667, 0.000 AUTO_CLAMPED) rh:(5.333, 0.000 AUTO_CLAMPED)
+    - (6.000, 0.000) lh:(5.667, 0.000 AUTO_CLAMPED) rh:(6.333, 0.000 AUTO_CLAMPED)
+    - (7.000, 0.000) lh:(6.667, 0.000 AUTO_CLAMPED) rh:(7.333, 0.000 AUTO_CLAMPED)
+
+==== Armatures: 1
+- Armature 'Bip001' 33 bones
+  - bone 'Bip001 Head' parent:'Bip001 Neck' h:(38.602, -85.889, 0.000) t:(38.698, 34.591, 0.000) radius h:0.100 t:0.050
+      -0.174 0.985 0.000 12.071
+      0.000 0.000 1.000 0.000
+      0.985 0.174 0.000 452.823
+  - bone 'Bip001 L Calf' parent:'Bip001 L Thigh' h:(196.253, -196.253, 0.000) t:(389.660, -125.695, 0.000) radius h:0.100 t:0.050
+      0.582 0.805 -0.115 187.559
+      -0.065 -0.095 -0.993 135.788
+      -0.810 0.586 -0.003 53.483
+  - bone 'Bip001 L Clavicle' parent:'Bip001 Neck' h:(-55.090, -44.085, 84.940) t:(-55.090, -44.085, 164.797) radius h:0.100 t:0.050
+      0.766 0.000 -0.643 69.442
+      0.000 1.000 0.000 84.940
+      0.643 0.000 0.766 367.768
+  - bone 'Bip001 L Foot' parent:'Bip001 L HorseLink' h:(122.856, -122.856, 0.000) t:(124.886, -50.097, 8.242) radius h:0.100 t:0.050
+      0.174 -0.985 0.000 325.381
+      0.000 0.000 -1.000 119.998
+      0.985 0.174 0.000 8.136
+  - bone 'Bip001 L Forearm' parent:'Bip001 L UpperArm' h:(154.407, -154.407, 0.000) t:(286.684, -163.625, 0.000) radius h:0.100 t:0.050
+      0.713 0.701 0.010 230.891
+      -0.077 0.064 0.995 95.636
+      0.697 -0.711 0.099 302.171
+  - bone 'Bip001 L Hand' parent:'Bip001 L Forearm' h:(132.598, -132.598, 0.000) t:(217.830, -31.399, -8.748) radius h:0.100 t:0.050
+      0.098 0.993 0.070 325.484
+      -0.044 -0.066 0.997 85.486
+      0.994 -0.101 0.037 394.537
+  - bone 'Bip001 L HorseLink' parent:'Bip001 L Calf' h:(205.876, -205.876, 0.000) t:(120.006, -293.739, 0.000) radius h:0.100 t:0.050
+      0.146 -0.983 -0.115 307.412
+      -0.020 0.113 -0.993 122.425
+      0.989 0.148 -0.003 -113.375
+  - bone 'Bip001 L Thigh' parent:'Bip001 Spine' h:(-114.724, -135.564, 157.608) t:(44.428, -250.256, 163.207) radius h:0.100 t:0.050
+      0.956 -0.271 -0.115 0.000
+      -0.111 0.029 -0.993 157.608
+      0.273 0.962 -0.003 0.000
+  - bone 'Bip001 L Toe0' parent:'Bip001 L Foot' h:(64.923, -39.327, 0.000) t:(-8.330, -39.327, 0.000) radius h:0.100 t:0.050
+      -0.985 -0.174 0.000 303.244
+      0.000 0.000 -1.000 119.998
+      0.174 -0.985 0.000 77.964
+  - bone 'Bip001 L UpperArm' parent:'Bip001 L Clavicle' h:(79.857, -79.857, 0.000) t:(-74.148, -68.755, -0.884) radius h:0.100 t:0.050
+      0.649 -0.760 0.010 130.616
+      0.069 0.072 0.995 84.940
+      -0.757 -0.645 0.099 419.099
+  - bone 'Bip001 Neck' parent:'Bip001 Spine1' h:(166.931, -195.982, 0.000) t:(181.778, -111.386, 0.000) radius h:0.100 t:0.050
+      -0.173 0.985 0.000 18.744
+      0.000 0.000 1.000 0.000
+      0.985 0.173 0.000 414.802
+  - bone 'Bip001 Pelvis' h:(0.000, 0.000, 0.000) t:(122.159, 0.000, 0.000) radius h:0.100 t:0.050
+      0.000 1.000 0.000 0.000
+      0.000 0.000 1.000 0.000
+      1.000 0.000 0.000 0.000
+  - bone 'Bip001 R Calf' parent:'Bip001 R Thigh' h:(196.252, -196.252, 0.000) t:(389.660, -125.695, 0.000) radius h:0.100 t:0.050
+      0.582 0.805 0.115 187.559
+      0.065 0.095 -0.993 -135.788
+      -0.810 0.586 0.003 53.483
+  - bone 'Bip001 R Clavicle' parent:'Bip001 Neck' h:(-55.090, -44.084, -84.940) t:(-55.090, -44.084, -164.797) radius h:0.100 t:0.050
+      0.766 0.000 0.643 69.442
+      0.000 -1.000 0.000 -84.940
+      0.643 0.000 -0.766 367.768
+  - bone 'Bip001 R Foot' parent:'Bip001 R HorseLink' h:(122.856, -122.856, 0.000) t:(124.886, -50.097, -8.242) radius h:0.100 t:0.050
+      0.174 -0.985 0.000 325.381
+      0.000 0.000 -1.000 -119.998
+      0.985 0.174 0.000 8.136
+  - bone 'Bip001 R Forearm' parent:'Bip001 R UpperArm' h:(154.407, -154.407, 0.000) t:(286.684, -163.625, 0.000) radius h:0.100 t:0.050
+      0.713 0.701 -0.010 230.891
+      0.077 -0.064 0.995 -95.636
+      0.697 -0.711 -0.099 302.171
+  - bone 'Bip001 R Hand' parent:'Bip001 R Forearm' h:(132.598, -132.598, 0.000) t:(217.830, -31.399, 8.748) radius h:0.100 t:0.050
+      0.098 0.993 -0.070 325.484
+      0.044 0.066 0.997 -85.486
+      0.994 -0.101 -0.037 394.537
+  - bone 'Bip001 R HorseLink' parent:'Bip001 R Calf' h:(205.876, -205.876, 0.000) t:(120.006, -293.739, 0.000) radius h:0.100 t:0.050
+      0.146 -0.983 0.115 307.412
+      0.020 -0.113 -0.993 -122.425
+      0.989 0.148 0.003 -113.375
+  - bone 'Bip001 R Thigh' parent:'Bip001 Spine' h:(-114.724, -135.563, -157.608) t:(44.428, -250.256, -163.207) radius h:0.100 t:0.050
+      0.956 -0.271 0.115 0.000
+      0.111 -0.029 -0.993 -157.608
+      0.273 0.962 0.003 0.000
+  - bone 'Bip001 R Toe0' parent:'Bip001 R Foot' h:(64.923, -39.327, 0.000) t:(-8.330, -39.327, 0.000) radius h:0.100 t:0.050
+      -0.985 -0.174 0.000 303.244
+      0.000 0.000 -1.000 -119.998
+      0.174 -0.985 0.000 77.964
+  - bone 'Bip001 R UpperArm' parent:'Bip001 R Clavicle' h:(79.857, -79.857, 0.000) t:(-74.148, -68.754, 0.884) radius h:0.100 t:0.050
+      0.649 -0.760 -0.010 130.616
+      -0.069 -0.072 0.995 -84.940
+      -0.757 -0.645 -0.099 419.099
+  - bone 'Bip001 Spine' parent:'Bip001 Pelvis' h:(122.159, -122.259, 0.000) t:(61.307, 44.516, -0.001) radius h:0.100 t:0.050
+      0.343 0.939 0.000 -0.100
+      0.000 0.000 1.000 0.000
+      0.939 -0.343 0.000 122.159
+  - bone 'Bip001 Spine1' parent:'Bip001 Spine' h:(133.776, -177.649, 0.000) t:(191.732, -18.809, 0.000) radius h:0.100 t:0.050
+      0.000 1.000 0.000 45.642
+      0.000 0.000 1.000 0.000
+      1.000 0.000 0.000 247.871
+  - bone 'Bone001' parent:'Bip001 Head' h:(69.921, -200.036, -52.691) t:(10.537, -175.195, -52.691) radius h:0.100 t:0.050
+      -0.813 0.540 0.218 -78.418
+      -0.259 0.000 -0.966 -52.691
+      -0.522 -0.842 0.140 507.867
+  - bone 'Bone002' parent:'Bone001' h:(64.370, -64.370, 0.000) t:(67.685, 31.255, 0.000) radius h:0.100 t:0.050
+      -0.831 0.512 0.218 -130.740
+      -0.259 -0.009 -0.966 -69.351
+      -0.492 -0.859 0.140 474.277
+  - bone 'Bone003' parent:'Bone002' h:(95.682, -95.682, 0.000) t:(110.770, -22.141, 0.000) radius h:0.100 t:0.050
+      -0.917 0.334 0.218 -210.259
+      -0.252 -0.061 -0.966 -94.100
+      -0.310 -0.941 0.140 427.167
+  - bone 'Bone004' parent:'Bone003' h:(75.072, -75.072, 0.000) t:(73.734, 61.235, 0.000) radius h:0.100 t:0.050
+      -0.914 0.343 0.218 -279.097
+      -0.252 -0.058 -0.966 -112.987
+      -0.319 -0.937 0.140 403.921
+  - bone 'Bone005' parent:'Bone004' h:(136.314, -136.314, 0.000) t:(136.314, 0.000, 0.000) radius h:0.100 t:0.050
+      -0.914 0.343 0.218 -403.639
+      -0.252 -0.058 -0.966 -147.361
+      -0.319 -0.937 0.140 360.455
+  - bone 'Bone006' parent:'Bip001 Head' h:(69.921, -200.036, 61.870) t:(10.537, -175.196, 61.870) radius h:0.100 t:0.050
+      -0.490 0.540 0.684 -78.417
+      -0.813 0.000 -0.583 61.870
+      -0.315 -0.842 0.439 507.867
+  - bone 'Bone007' parent:'Bone006' h:(22.687, -64.370, -60.239) t:(23.855, 31.255, -63.342) radius h:0.100 t:0.050
+      -0.473 0.512 0.717 -130.740
+      -0.832 0.009 -0.555 78.531
+      -0.291 -0.859 0.421 474.277
+  - bone 'Bone008' parent:'Bone007' h:(30.721, -95.682, -90.616) t:(35.565, -22.141, -104.905) radius h:0.100 t:0.050
+      -0.156 0.334 0.929 -210.258
+      -0.981 0.061 -0.186 103.280
+      -0.119 -0.941 0.318 427.167
+  - bone 'Bone009' parent:'Bone008' h:(-5.015, -75.072, -74.905) t:(-4.925, 61.235, -73.569) radius h:0.100 t:0.050
+      -0.541 0.343 0.768 -279.097
+      -0.804 0.058 -0.592 122.167
+      -0.248 -0.937 0.244 403.921
+  - bone 'Bone010' parent:'Bone009' h:(50.491, -136.314, -126.618) t:(50.491, 0.000, -126.618) radius h:0.100 t:0.050
+      -0.889 0.343 -0.304 -403.638
+      0.343 0.058 -0.937 156.541
+      -0.304 -0.937 -0.170 360.455
+

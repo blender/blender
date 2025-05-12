@@ -490,6 +490,13 @@ class Report:
                     if obj.parent_type == 'BONE':
                         desc.write(f" par_bone:'{obj.parent_bone}'")
                 desc.write(f"\n")
+                mtx = obj.matrix_parent_inverse
+                if not is_approx_identity(mtx):
+                    desc.write(f"  - matrix_parent_inverse:\n")
+                    desc.write(f"      {fmtf(mtx[0][0])} {fmtf(mtx[0][1])} {fmtf(mtx[0][2])} {fmtf(mtx[0][3])}\n")
+                    desc.write(f"      {fmtf(mtx[1][0])} {fmtf(mtx[1][1])} {fmtf(mtx[1][2])} {fmtf(mtx[1][3])}\n")
+                    desc.write(f"      {fmtf(mtx[2][0])} {fmtf(mtx[2][1])} {fmtf(mtx[2][2])} {fmtf(mtx[2][3])}\n")
+
                 desc.write(f"  - pos {fmtf(obj.location[0])}, {fmtf(obj.location[1])}, {fmtf(obj.location[2])}\n")
                 desc.write(
                     f"  - rot {fmtrot(obj.rotation_euler[0])}, {fmtrot(obj.rotation_euler[1])}, {fmtrot(obj.rotation_euler[2])} ({obj.rotation_mode})\n")

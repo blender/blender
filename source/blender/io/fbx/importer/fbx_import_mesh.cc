@@ -14,7 +14,6 @@
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"
 #include "BKE_object_deform.h"
-#include "BKE_object_types.hh"
 
 #include "BLI_color.hh"
 #include "BLI_listbase.h"
@@ -33,6 +32,8 @@
 #include "fbx_import_mesh.hh"
 
 namespace blender::io::fbx {
+
+static constexpr const char *temp_custom_normals_name = "fbx_temp_custom_normals";
 
 static const ufbx_skin_deformer *get_skin_from_mesh(const ufbx_mesh *mesh)
 {
@@ -253,18 +254,23 @@ static void import_colors(const ufbx_mesh *fmesh,
   }
 }
 
-static void import_normals(const ufbx_mesh *fmesh, Mesh *mesh)
+static bool import_normals_into_temp_attribute(const ufbx_mesh *fmesh,
+                                               Mesh *mesh,
+                                               bke::MutableAttributeAccessor &attributes)
 {
-  if (fmesh->vertex_normal.exists) {
-    BLI_assert(fmesh->vertex_normal.indices.count == mesh->corners_num);
-    Array<float3> normals(mesh->corners_num);
-    for (int i = 0; i < mesh->corners_num; i++) {
-      int val_idx = fmesh->vertex_normal.indices[i];
-      const ufbx_vec3 &normal = fmesh->vertex_normal.values[val_idx];
-      normals[i] = float3(normal.x, normal.y, normal.z);
-    }
-    bke::mesh_set_custom_normals(*mesh, normals);
+  if (!fmesh->vertex_normal.exists) {
+    return false;
   }
+  bke::SpanAttributeWriter<float3> normals = attributes.lookup_or_add_for_write_only_span<float3>(
+      temp_custom_normals_name, bke::AttrDomain::Corner);
+  BLI_assert(fmesh->vertex_normal.indices.count == mesh->corners_num);
+  BLI_assert(fmesh->vertex_normal.indices.count == normals.span.size());
+  for (int i = 0; i < mesh->corners_num; i++) {
+    int val_idx = fmesh->vertex_normal.indices[i];
+    const ufbx_vec3 &normal = fmesh->vertex_normal.values[val_idx];
+    normals.span[i] = float3(normal.x, normal.y, normal.z);
+  }
+  return true;
 }
 
 static void import_skin_vertex_groups(const ufbx_mesh *fmesh,
@@ -368,8 +374,12 @@ void import_meshes(Main &bmain,
     if (params.vertex_colors != eFBXVertexColorMode::None) {
       import_colors(fmesh, mesh, attributes, attr_owner, params.vertex_colors);
     }
+    bool has_custom_normals = false;
     if (params.use_custom_normals) {
-      import_normals(fmesh, mesh);
+      /* Mesh validation below can alter the mesh, so we first write custom normals
+       * into a temporary custom corner domain attribute, and then re-apply that
+       * data as custom normals after the validation. */
+      has_custom_normals = import_normals_into_temp_attribute(fmesh, mesh, attributes);
     }
     const ufbx_skin_deformer *skin = get_skin_from_mesh(fmesh);
     if (skin != nullptr) {
@@ -384,6 +394,16 @@ void import_meshes(Main &bmain,
 #endif
       BKE_mesh_validate(mesh, verbose_validate, false);
     }
+
+    if (has_custom_normals) {
+      /* Actually set custom normals after the validation. */
+      bke::SpanAttributeWriter<float3> normals =
+          attributes.lookup_or_add_for_write_only_span<float3>(temp_custom_normals_name,
+                                                               bke::AttrDomain::Corner);
+      bke::mesh_set_custom_normals(*mesh, normals.span);
+      attributes.remove(temp_custom_normals_name);
+    }
+
     meshes[index] = mesh;
   });
 
@@ -449,14 +469,25 @@ void import_meshes(Main &bmain,
           obj->parent = parent_to_arm;
 
           /* We are setting mesh parent to the armature, so set the matrix that is
-           * armature-local. */
-          ufbx_matrix arm_to_world;
-          m44_to_matrix(parent_to_arm->runtime->object_to_world.ptr(), arm_to_world);
-          ufbx_matrix world_to_arm = ufbx_matrix_invert(&arm_to_world);
-          ufbx_matrix mtx = ufbx_matrix_mul(&node->node_to_world, &node->geometry_to_node);
-          mtx = ufbx_matrix_mul(&world_to_arm, &mtx);
+           * armature-local. Note that the matrix needs to be relative to the FBX
+           * node matrix (not the root bone pose matrix). */
+          ufbx_matrix world_to_arm = mapping.armature_world_to_arm_node_matrix.lookup_default(
+              parent_to_arm, ufbx_identity_matrix);
+          ufbx_matrix world_to_arm_pose = mapping.armature_world_to_arm_pose_matrix.lookup_default(
+              parent_to_arm, ufbx_identity_matrix);
+
+          ufbx_matrix mtx = ufbx_matrix_mul(&world_to_arm, &node->geometry_to_world);
           ufbx_matrix_to_obj(mtx, obj);
           matrix_already_set = true;
+
+          /* Setup parent inverse matrix of the mesh, to account for the mesh possibly being in
+           * different bind pose than what the node is at. */
+          ufbx_matrix mtx_inv = ufbx_matrix_invert(&mtx);
+          ufbx_matrix mtx_world = mapping.bone_to_bind_matrix.lookup_default(
+              node, node->geometry_to_world);
+          ufbx_matrix mtx_parent_inverse = ufbx_matrix_mul(&mtx_world, &mtx_inv);
+          mtx_parent_inverse = ufbx_matrix_mul(&world_to_arm_pose, &mtx_parent_inverse);
+          matrix_to_m44(mtx_parent_inverse, obj->parentinv);
         }
       }
 

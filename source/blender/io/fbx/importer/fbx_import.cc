@@ -218,7 +218,7 @@ void FbxImportContext::import_empties()
 {
   /* Create empties for fbx nodes. */
   for (const ufbx_node *node : this->fbx.nodes) {
-    /* Ignore root, and bones and nodes for which we have created objects already. */
+    /* Ignore root, bones and nodes for which we have created objects already. */
     if (node->is_root || node->bone || this->mapping.el_to_object.contains(&node->element)) {
       continue;
     }
@@ -253,9 +253,9 @@ void FbxImportContext::setup_hierarchy()
     if (node == nullptr) {
       continue;
     }
-    if (node->bone != nullptr) {
-      /* If this node is for a bone, do not try to setup object parenting for it
-       * (the object for bone bones is whole armature). */
+    if (node->bone != nullptr && !node->bone->is_root) {
+      /* If this node is for a non-root bone, do not try to setup object parenting
+       * for it (the object for bone bones is whole armature). */
       continue;
     }
     if (node->parent) {
