@@ -21,7 +21,7 @@ void main()
 
   /* Vertex, Face-dot and Face case. */
   VertOut vert_out = vertex_main(vert_in);
-
+  view_clipping_distances(vert_out.world_position);
   gl_Position = vert_out.gpu_position;
   final_color = vert_out.final_color;
 }
