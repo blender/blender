@@ -71,7 +71,6 @@ set(SRC
   algorithms/intern/compute_preview.cc
   algorithms/intern/deriche_gaussian_blur.cc
   algorithms/intern/extract_alpha.cc
-  algorithms/intern/gamma_correct.cc
   algorithms/intern/jump_flooding.cc
   algorithms/intern/morphological_blur.cc
   algorithms/intern/morphological_distance.cc
@@ -87,7 +86,6 @@ set(SRC
   algorithms/COM_algorithm_compute_preview.hh
   algorithms/COM_algorithm_deriche_gaussian_blur.hh
   algorithms/COM_algorithm_extract_alpha.hh
-  algorithms/COM_algorithm_gamma_correct.hh
   algorithms/COM_algorithm_jump_flooding.hh
   algorithms/COM_algorithm_morphological_blur.hh
   algorithms/COM_algorithm_morphological_distance.hh

@@ -7416,7 +7416,10 @@ static void def_cmp_blur(BlenderRNA * /*brna*/, StructRNA *srna)
 
   prop = RNA_def_property(srna, "use_gamma_correction", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "gamma", 1);
-  RNA_def_property_ui_text(prop, "Gamma", "Apply filter on gamma corrected values");
+  RNA_def_property_ui_text(
+      prop,
+      "Gamma",
+      "Apply filter on gamma corrected values. (Deprecated: Unused. Use Gamma node instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
@@ -8599,8 +8602,10 @@ static void def_cmp_defocus(BlenderRNA * /*brna*/, StructRNA *srna)
 
   prop = RNA_def_property(srna, "use_gamma_correction", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "gamco", 1);
-  RNA_def_property_ui_text(
-      prop, "Gamma Correction", "Enable gamma correction before and after main process");
+  RNA_def_property_ui_text(prop,
+                           "Gamma Correction",
+                           "Enable gamma correction before and after main process. (Deprecated: "
+                           "Unused. Use Gamma node instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   /* TODO */
