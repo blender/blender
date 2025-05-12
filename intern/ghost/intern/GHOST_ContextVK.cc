@@ -882,6 +882,19 @@ GHOST_TSuccess GHOST_ContextVK::recreateSwapchain()
     }
   }
 
+  /* Windows/NVIDIA doesn't support creating a surface image with resolution 0,0. Minimuzed windows
+   * have an extent of 0,0. Although it fits in the specs returned by
+   * vkGetPhysicalDeviceSurfaceCapabilitiesKHR.
+   *
+   * Ref #138032
+   */
+  if (m_render_extent.width == 0) {
+    m_render_extent.width = 1;
+  }
+  if (m_render_extent.height == 0) {
+    m_render_extent.height = 1;
+  }
+
   /* Use double buffering when using FIFO. Increasing the number of images could stall when doing
    * actions that require low latency (paint cursor, UI resizing). MAILBOX prefers triple
    * buffering. */
