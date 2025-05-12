@@ -139,8 +139,8 @@ namespace blender::nodes {
 StructRNA *EvaluateClosureInputItemsAccessor::item_srna =
     &RNA_NodeGeometryEvaluateClosureInputItem;
 int EvaluateClosureInputItemsAccessor::node_type = GEO_NODE_EVALUATE_CLOSURE;
-int EvaluateClosureInputItemsAccessor::item_dna_type = SDNA_TYPE_FROM_STRUCT(
-    NodeGeometryEvaluateClosureInputItem);
+int EvaluateClosureInputItemsAccessor::item_dna_type =
+    dna::sdna_struct_id_get<NodeGeometryEvaluateClosureInputItem>();
 
 void EvaluateClosureInputItemsAccessor::blend_write_item(BlendWriter *writer, const ItemT &item)
 {
@@ -155,8 +155,8 @@ void EvaluateClosureInputItemsAccessor::blend_read_data_item(BlendDataReader *re
 StructRNA *EvaluateClosureOutputItemsAccessor::item_srna =
     &RNA_NodeGeometryEvaluateClosureOutputItem;
 int EvaluateClosureOutputItemsAccessor::node_type = GEO_NODE_EVALUATE_CLOSURE;
-int EvaluateClosureOutputItemsAccessor::item_dna_type = SDNA_TYPE_FROM_STRUCT(
-    NodeGeometryEvaluateClosureOutputItem);
+int EvaluateClosureOutputItemsAccessor::item_dna_type =
+    dna::sdna_struct_id_get<NodeGeometryEvaluateClosureOutputItem>();
 
 void EvaluateClosureOutputItemsAccessor::blend_write_item(BlendWriter *writer, const ItemT &item)
 {

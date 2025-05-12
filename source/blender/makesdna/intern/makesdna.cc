@@ -1262,10 +1262,8 @@ void print_struct_sizes()
   printf("*** End of list\n");
 }
 
-static int make_structDNA(const char *base_directory,
-                          FILE *file,
-                          FILE *file_offsets,
-                          FILE *file_verify)
+static int make_structDNA(
+    const char *base_directory, FILE *file, FILE *file_offsets, FILE *file_verify, FILE *file_ids)
 {
   if (debugSDNA > 0) {
     fflush(stdout);
@@ -1483,6 +1481,26 @@ static int make_structDNA(const char *base_directory,
     fprintf(file_offsets, "};\n\n");
   }
 
+  {
+    fprintf(file_ids, "\n\nnamespace blender::dna {\n\n");
+    fprintf(file_ids, "template<typename T> int sdna_struct_id_get();\n\n");
+    fprintf(file_ids, "int sdna_struct_id_get_max();\n");
+    fprintf(file_ids, "int sdna_struct_id_get_max() { return %d; }\n", structs_num - 1);
+    fprintf(file_ids, "\n}\n");
+
+    /* Starting at 1, because 0 is "raw data". */
+    for (int i = 1; i < structs_num; i++) {
+      const short *structpoin = structs[i];
+      const int struct_type_index = structpoin[0];
+      const char *name = version_struct_alias_from_static(types[struct_type_index]);
+      fprintf(file_ids, "struct %s;\n", name);
+      fprintf(file_ids,
+              "template<> int blender::dna::sdna_struct_id_get<%s>() { return %d; }\n",
+              name,
+              i);
+    }
+  }
+
   /* Check versioning errors which could cause duplicate names,
    * do last because names are stripped. */
   {
@@ -1557,14 +1575,15 @@ int main(int argc, char **argv)
 {
   int return_status = 0;
 
-  if (!ELEM(argc, 4, 5)) {
-    printf("Usage: %s dna.c dna_struct_offsets.h [base directory]\n", argv[0]);
+  if (!ELEM(argc, 5, 6)) {
+    printf("Usage: %s dna.c dna_struct_offsets.h dna_struct_ids.cc [base directory]\n", argv[0]);
     return_status = 1;
   }
   else {
     FILE *file_dna = fopen(argv[1], "w");
     FILE *file_dna_offsets = fopen(argv[2], "w");
     FILE *file_dna_verify = fopen(argv[3], "w");
+    FILE *file_dna_ids = fopen(argv[4], "w");
     if (!file_dna) {
       printf("Unable to open file: %s\n", argv[1]);
       return_status = 1;
@@ -1577,11 +1596,15 @@ int main(int argc, char **argv)
       printf("Unable to open file: %s\n", argv[3]);
       return_status = 1;
     }
+    else if (!file_dna_ids) {
+      printf("Unable to open file: %s\n", argv[4]);
+      return_status = 1;
+    }
     else {
       const char *base_directory;
 
-      if (argc == 5) {
-        base_directory = argv[4];
+      if (argc == 6) {
+        base_directory = argv[5];
       }
       else {
         base_directory = BASE_HEADER;
@@ -1599,7 +1622,9 @@ int main(int argc, char **argv)
       fprintf(file_dna, "const unsigned char" FORCE_ALIGN_4 "DNAstr[] = {\n");
 #undef FORCE_ALIGN_4
 
-      if (make_structDNA(base_directory, file_dna, file_dna_offsets, file_dna_verify)) {
+      if (make_structDNA(
+              base_directory, file_dna, file_dna_offsets, file_dna_verify, file_dna_ids))
+      {
         /* error */
         fclose(file_dna);
         file_dna = nullptr;
@@ -1621,6 +1646,9 @@ int main(int argc, char **argv)
     }
     if (file_dna_verify) {
       fclose(file_dna_verify);
+    }
+    if (file_dna_ids) {
+      fclose(file_dna_ids);
     }
   }
 

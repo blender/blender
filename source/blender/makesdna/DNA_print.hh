@@ -7,8 +7,7 @@
 #include <cstdint>
 #include <iosfwd>
 
-/* For #SDNA_TYPE_FROM_STRUCT macro. */
-#include "dna_type_offsets.h"
+#include "DNA_sdna_type_ids.hh"
 
 struct SDNA;
 struct SDNA_Struct;
@@ -47,4 +46,4 @@ void print_struct_by_id(int struct_id, const void *data);
  *   DNA_print_struct(bNode, node);
  */
 #define DNA_print_struct(struct_name, data_ptr) \
-  blender::dna::print_struct_by_id(SDNA_TYPE_FROM_STRUCT(struct_name), data_ptr)
+  blender::dna::print_struct_by_id(blender::dna::sdna_struct_id_get<struct_name>(), data_ptr)
