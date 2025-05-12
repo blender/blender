@@ -146,7 +146,9 @@ void VKPipelinePool::init()
   VkPipelineCacheCreateInfo create_info = {};
   create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO;
   vkCreatePipelineCache(device.vk_handle(), &create_info, nullptr, &vk_pipeline_cache_static_);
+  debug::object_label(vk_pipeline_cache_static_, "VkPipelineCache.Static");
   vkCreatePipelineCache(device.vk_handle(), &create_info, nullptr, &vk_pipeline_cache_non_static_);
+  debug::object_label(vk_pipeline_cache_non_static_, "VkPipelineCache.Dynamic");
 }
 
 VkSpecializationInfo *VKPipelinePool::specialization_info_update(
