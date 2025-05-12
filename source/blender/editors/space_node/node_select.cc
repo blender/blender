@@ -23,6 +23,7 @@
 
 #include "BKE_context.hh"
 #include "BKE_main.hh"
+#include "BKE_main_invariants.hh"
 #include "BKE_node.hh"
 #include "BKE_node_legacy_types.hh"
 #include "BKE_node_runtime.hh"
@@ -671,6 +672,8 @@ static bool node_mouse_select(bContext *C,
 
   WM_event_add_notifier(C, NC_NODE | NA_SELECTED, nullptr);
   WM_event_add_notifier(C, NC_NODE | ND_NODE_GIZMO, nullptr);
+
+  BKE_main_ensure_invariants(bmain, node_tree.id);
 
   return true;
 }
