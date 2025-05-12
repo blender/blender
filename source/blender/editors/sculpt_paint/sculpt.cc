@@ -5311,6 +5311,15 @@ static void store_sculpt_entire_mesh(const wmOperator &op,
   BKE_sculptsession_free_pbvh(object);
 }
 
+static const ImplicitSharingInfo *get_vertex_group_sharing_info(const Mesh &mesh)
+{
+  const int layer_index = CustomData_get_layer_index(&mesh.vert_data, CD_MDEFORMVERT);
+  if (layer_index == -1) {
+    return nullptr;
+  }
+  return mesh.vert_data.layers[layer_index].sharing_info;
+}
+
 void store_mesh_from_eval(const wmOperator &op,
                           const Scene &scene,
                           const Depsgraph &depsgraph,
@@ -5329,9 +5338,18 @@ void store_mesh_from_eval(const wmOperator &op,
   }
   else {
     /* Detect attributes present in the new mesh which no longer match the original. */
+    VectorSet<StringRef> vertex_group_names;
+    LISTBASE_FOREACH (const bDeformGroup *, vertex_group, &mesh.vertex_group_names) {
+      vertex_group_names.add(vertex_group->name);
+    }
+
     VectorSet<StringRef> changed_attributes;
     new_mesh->attributes().foreach_attribute([&](const bke::AttributeIter &iter) {
       if (ELEM(iter.name, ".edge_verts", ".corner_vert", ".corner_edge")) {
+        return;
+      }
+      if (vertex_group_names.contains(iter.name)) {
+        /* Vertex group changes are handled separately. */
         return;
       }
       const bke::GAttributeReader attribute = iter.get();
@@ -5346,6 +5364,14 @@ void store_mesh_from_eval(const wmOperator &op,
         changed_attributes.add(iter.name);
       }
     });
+
+    /* Vertex groups aren't handled fully by the attribute system, we need to use CustomData. */
+    const bool vertex_groups_changed = get_vertex_group_sharing_info(mesh) !=
+                                       get_vertex_group_sharing_info(*new_mesh);
+
+    if (vertex_groups_changed) {
+      changed_attributes.add_multiple(vertex_group_names);
+    }
 
     /* Try to use the few specialized sculpt undo types that result in better performance, mainly
      * because redo avoids clearing the BVH, but also because some other updates can be skipped. */

@@ -175,6 +175,15 @@ static void find_socket_log_contexts(const Main &bmain,
   }
 }
 
+static const ImplicitSharingInfo *get_vertex_group_sharing_info(const Mesh &mesh)
+{
+  const int layer_index = CustomData_get_layer_index(&mesh.vert_data, CD_MDEFORMVERT);
+  if (layer_index == -1) {
+    return nullptr;
+  }
+  return mesh.vert_data.layers[layer_index].sharing_info;
+}
+
 /**
  * This class adds a user to shared mesh data, requiring modifications of the mesh to reallocate
  * the data and its sharing info. This allows tracking which data is modified without having to
@@ -182,6 +191,7 @@ static void find_socket_log_contexts(const Main &bmain,
  */
 class MeshState {
   VectorSet<const ImplicitSharingInfo *> sharing_infos_;
+  const ImplicitSharingInfo *vertex_group_sharing_info_ = nullptr;
 
  public:
   MeshState(const Mesh &mesh)
@@ -194,8 +204,13 @@ class MeshState {
       if (attribute.varray.size() == 0) {
         return;
       }
-      this->freeze_shared_state(*attribute.sharing_info);
+      if (attribute.sharing_info) {
+        this->freeze_shared_state(*attribute.sharing_info);
+      }
     });
+    if (const ImplicitSharingInfo *sharing_info = get_vertex_group_sharing_info(mesh)) {
+      this->freeze_shared_state(*sharing_info);
+    }
   }
 
   void freeze_shared_state(const ImplicitSharingInfo &sharing_info)
@@ -209,6 +224,9 @@ class MeshState {
   {
     for (const ImplicitSharingInfo *sharing_info : sharing_infos_) {
       sharing_info->remove_user_and_delete_if_last();
+    }
+    if (vertex_group_sharing_info_) {
+      vertex_group_sharing_info_->remove_user_and_delete_if_last();
     }
   }
 };
