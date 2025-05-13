@@ -19,8 +19,9 @@
 
 #include "vk_common.hh"
 
-namespace blender {
-namespace gpu {
+namespace blender::gpu {
+class VKDevice;
+class VKDiscardPool;
 
 /**
  * Struct containing key information to identify a compute pipeline.
@@ -216,8 +217,6 @@ struct VKGraphicsInfo {
   }
 };
 
-class VKDevice;
-
 /**
  * Pipelines are lazy initialized and same pipelines should share their handle.
  *
@@ -317,9 +316,9 @@ class VKPipelinePool : public NonCopyable {
                                              VkPipeline vk_pipeline_base);
 
   /**
-   * Remove all shader pipelines that uses the given shader_module.
+   * Discard all pipelines that uses the given pipeline_layout.
    */
-  void remove(Span<VkShaderModule> vk_shader_modules);
+  void discard(VKDiscardPool &discard_pool, VkPipelineLayout vk_pipeline_layout);
 
   /**
    * Destroy all created pipelines.
@@ -367,6 +366,4 @@ class VKPipelinePool : public NonCopyable {
   void specialization_info_reset();
 };
 
-}  // namespace gpu
-
-}  // namespace blender
+}  // namespace blender::gpu
