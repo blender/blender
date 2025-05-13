@@ -432,6 +432,7 @@ short BKE_curve_type_get(const Curve *cu)
     LISTBASE_FOREACH (Nurb *, nu, &cu->nurb) {
       if (nu->pntsv > 1) {
         type = OB_SURF;
+        break;
       }
     }
   }
