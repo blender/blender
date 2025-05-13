@@ -766,6 +766,7 @@ static AVStream *alloc_video_stream(MovieWriter *context,
 
   const bool is_10_bpp = rd->im_format.depth == R_IMF_CHAN_DEPTH_10;
   const bool is_12_bpp = rd->im_format.depth == R_IMF_CHAN_DEPTH_12;
+  const bool is_16_bpp = rd->im_format.depth == R_IMF_CHAN_DEPTH_16;
   if (is_10_bpp) {
     c->pix_fmt = AV_PIX_FMT_YUV420P10LE;
   }
@@ -813,6 +814,9 @@ static AVStream *alloc_video_stream(MovieWriter *context,
       else if (is_12_bpp) {
         c->pix_fmt = AV_PIX_FMT_GRAY12;
       }
+      else if (is_16_bpp) {
+        c->pix_fmt = AV_PIX_FMT_GRAY16;
+      }
     }
     else if (rd->im_format.planes == R_IMF_PLANES_RGBA) {
       c->pix_fmt = AV_PIX_FMT_RGB32;
@@ -822,6 +826,9 @@ static AVStream *alloc_video_stream(MovieWriter *context,
       else if (is_12_bpp) {
         c->pix_fmt = AV_PIX_FMT_GBRAP12;
       }
+      else if (is_16_bpp) {
+        c->pix_fmt = AV_PIX_FMT_GBRAP16;
+      }
     }
     else { /* RGB */
       c->pix_fmt = AV_PIX_FMT_0RGB32;
@@ -830,6 +837,9 @@ static AVStream *alloc_video_stream(MovieWriter *context,
       }
       else if (is_12_bpp) {
         c->pix_fmt = AV_PIX_FMT_GBRP12;
+      }
+      else if (is_16_bpp) {
+        c->pix_fmt = AV_PIX_FMT_GBRP16;
       }
     }
   }
@@ -954,7 +964,8 @@ static AVStream *alloc_video_stream(MovieWriter *context,
   }
   else {
     /* Output pixel format is different, allocate frame for conversion. */
-    AVPixelFormat src_format = is_10_bpp || is_12_bpp ? AV_PIX_FMT_GBRAPF32LE : AV_PIX_FMT_RGBA;
+    AVPixelFormat src_format = is_10_bpp || is_12_bpp || is_16_bpp ? AV_PIX_FMT_GBRAPF32LE :
+                                                                     AV_PIX_FMT_RGBA;
     context->img_convert_frame = alloc_frame(src_format, c->width, c->height);
     context->img_convert_ctx = ffmpeg_sws_get_context(
         c->width, c->height, src_format, c->width, c->height, c->pix_fmt, SWS_BICUBIC);
