@@ -315,6 +315,18 @@ inline bNodeTreeInterfaceSocket *add_interface_socket_from_node(bNodeTree &ntree
       ntree, from_node, from_sock, from_sock.typeinfo->idname, from_sock.name);
 }
 
+/**
+ * Reference to a node tree's interface item.
+ *
+ * Used by the node interface drag controller to reorder interface items and
+ * the node space drop-boxes to drop Group Input/Output nodes into the node
+ * editor with selected sockets.
+ */
+struct bNodeTreeInterfaceItemReference {
+  bNodeTree *tree;
+  bNodeTreeInterfaceItem *item;
+};
+
 }  // namespace node_interface
 
 }  // namespace blender::bke
