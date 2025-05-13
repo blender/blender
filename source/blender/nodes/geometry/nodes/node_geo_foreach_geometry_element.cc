@@ -13,6 +13,7 @@
 
 #include "NOD_geo_foreach_geometry_element.hh"
 #include "NOD_node_extra_info.hh"
+#include "NOD_socket_items_blend.hh"
 #include "NOD_socket_items_ops.hh"
 #include "NOD_socket_items_ui.hh"
 #include "NOD_socket_search_link.hh"
@@ -420,6 +421,20 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
   }
 }
 
+static void node_blend_write(const bNodeTree & /*tree*/, const bNode &node, BlendWriter &writer)
+{
+  socket_items::blend_write<ForeachGeometryElementInputItemsAccessor>(&writer, node);
+  socket_items::blend_write<ForeachGeometryElementGenerationItemsAccessor>(&writer, node);
+  socket_items::blend_write<ForeachGeometryElementMainItemsAccessor>(&writer, node);
+}
+
+static void node_blend_read(bNodeTree & /*tree*/, bNode &node, BlendDataReader &reader)
+{
+  socket_items::blend_read_data<ForeachGeometryElementInputItemsAccessor>(&reader, node);
+  socket_items::blend_read_data<ForeachGeometryElementMainItemsAccessor>(&reader, node);
+  socket_items::blend_read_data<ForeachGeometryElementGenerationItemsAccessor>(&reader, node);
+}
+
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
@@ -438,6 +453,8 @@ static void node_register()
   ntype.gather_link_search_ops = node_gather_link_searches;
   ntype.get_extra_info = node_extra_info;
   ntype.no_muting = true;
+  ntype.blend_write_storage_content = node_blend_write;
+  ntype.blend_data_read_storage_content = node_blend_read;
   blender::bke::node_type_storage(
       ntype, "NodeGeometryForeachGeometryElementOutput", node_free_storage, node_copy_storage);
   blender::bke::node_register_type(ntype);

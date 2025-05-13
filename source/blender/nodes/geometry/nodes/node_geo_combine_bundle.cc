@@ -5,6 +5,7 @@
 #include "node_geometry_util.hh"
 
 #include "NOD_geo_bundle.hh"
+#include "NOD_socket_items_blend.hh"
 #include "NOD_socket_items_ops.hh"
 #include "NOD_socket_items_ui.hh"
 
@@ -116,6 +117,16 @@ static void node_geo_exec(GeoNodeExecParams params)
   params.set_output("Bundle", std::move(bundle_ptr));
 }
 
+static void node_blend_write(const bNodeTree & /*tree*/, const bNode &node, BlendWriter &writer)
+{
+  socket_items::blend_write<CombineBundleItemsAccessor>(&writer, node);
+}
+
+static void node_blend_read(bNodeTree & /*tree*/, bNode &node, BlendDataReader &reader)
+{
+  socket_items::blend_read_data<CombineBundleItemsAccessor>(&reader, node);
+}
+
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
@@ -130,6 +141,8 @@ static void node_register()
   ntype.insert_link = node_insert_link;
   ntype.draw_buttons_ex = node_layout_ex;
   ntype.register_operators = node_operators;
+  ntype.blend_write_storage_content = node_blend_write;
+  ntype.blend_data_read_storage_content = node_blend_read;
   bke::node_type_storage(ntype, "NodeGeometryCombineBundle", node_free_storage, node_copy_storage);
   blender::bke::node_register_type(ntype);
 }

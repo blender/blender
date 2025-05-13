@@ -139,6 +139,10 @@ using NodeInverseEvalFunction = void (*)(blender::nodes::inverse_eval::InverseEv
 using NodeInternallyLinkedInputFunction = const bNodeSocket *(*)(const bNodeTree &tree,
                                                                  const bNode &node,
                                                                  const bNodeSocket &output_socket);
+using NodeBlendWriteFunction = void (*)(const bNodeTree &tree,
+                                        const bNode &node,
+                                        BlendWriter &writer);
+using NodeBlendDataReadFunction = void (*)(bNodeTree &tree, bNode &node, BlendDataReader &reader);
 
 /**
  * \brief Defines a socket type.
@@ -370,6 +374,13 @@ struct bNodeType {
 
   /** Get the internally linked input socket for the case when the node is muted. */
   NodeInternallyLinkedInputFunction internally_linked_input = nullptr;
+
+  /**
+   * Read and write the content of the node storage. Writing the storage struct itself is handled
+   * by generic code by reading and writing bNodeType::storagename.
+   */
+  NodeBlendWriteFunction blend_write_storage_content = nullptr;
+  NodeBlendDataReadFunction blend_data_read_storage_content = nullptr;
 
   /**
    * "Abstract" evaluation of the node. It tells the caller which parts of the inputs affect which

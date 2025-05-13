@@ -24,6 +24,7 @@
 #include "NOD_geo_simulation.hh"
 #include "NOD_node_extra_info.hh"
 #include "NOD_socket.hh"
+#include "NOD_socket_items_blend.hh"
 #include "NOD_socket_items_ops.hh"
 #include "NOD_socket_items_ui.hh"
 #include "NOD_socket_search_link.hh"
@@ -881,6 +882,16 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
   });
 }
 
+static void node_blend_write(const bNodeTree & /*tree*/, const bNode &node, BlendWriter &writer)
+{
+  socket_items::blend_write<SimulationItemsAccessor>(&writer, node);
+}
+
+static void node_blend_read(bNodeTree & /*tree*/, bNode &node, BlendDataReader &reader)
+{
+  socket_items::blend_read_data<SimulationItemsAccessor>(&reader, node);
+}
+
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
@@ -899,6 +910,8 @@ static void node_register()
   ntype.no_muting = true;
   ntype.register_operators = node_operators;
   ntype.get_extra_info = node_extra_info;
+  ntype.blend_write_storage_content = node_blend_write;
+  ntype.blend_data_read_storage_content = node_blend_read;
   blender::bke::node_type_storage(
       ntype, "NodeGeometrySimulationOutput", node_free_storage, node_copy_storage);
   blender::bke::node_register_type(ntype);

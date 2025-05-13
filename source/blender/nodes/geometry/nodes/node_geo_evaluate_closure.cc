@@ -6,6 +6,7 @@
 #include "UI_resources.hh"
 
 #include "NOD_geo_closure.hh"
+#include "NOD_socket_items_blend.hh"
 #include "NOD_socket_items_ops.hh"
 #include "NOD_socket_items_ui.hh"
 
@@ -113,6 +114,18 @@ static void node_operators()
   socket_items::ops::make_common_operators<EvaluateClosureOutputItemsAccessor>();
 }
 
+static void node_blend_write(const bNodeTree & /*tree*/, const bNode &node, BlendWriter &writer)
+{
+  socket_items::blend_write<EvaluateClosureInputItemsAccessor>(&writer, node);
+  socket_items::blend_write<EvaluateClosureOutputItemsAccessor>(&writer, node);
+}
+
+static void node_blend_read(bNodeTree & /*tree*/, bNode &node, BlendDataReader &reader)
+{
+  socket_items::blend_read_data<EvaluateClosureInputItemsAccessor>(&reader, node);
+  socket_items::blend_read_data<EvaluateClosureOutputItemsAccessor>(&reader, node);
+}
+
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
@@ -126,6 +139,8 @@ static void node_register()
   ntype.draw_buttons_ex = node_layout_ex;
   ntype.internally_linked_input = node_internally_linked_input;
   ntype.register_operators = node_operators;
+  ntype.blend_write_storage_content = node_blend_write;
+  ntype.blend_data_read_storage_content = node_blend_read;
   bke::node_type_storage(
       ntype, "NodeGeometryEvaluateClosure", node_free_storage, node_copy_storage);
   blender::bke::node_register_type(ntype);
