@@ -209,6 +209,7 @@ class Preprocessor {
         include_parse(str);
       }
       str = preprocessor_directive_mutation(str);
+      str = swizzle_function_mutation(str);
       if (language == BLENDER_GLSL) {
         str = loop_unroll(str, report_error);
         str = assert_processing(str, filename);
@@ -811,6 +812,14 @@ class Preprocessor {
     /* Remove unsupported directives.` */
     std::regex regex(R"(#\s*(?:include|pragma once)[^\n]*)");
     return std::regex_replace(str, regex, "");
+  }
+
+  std::string swizzle_function_mutation(const std::string &str)
+  {
+    /* Change C++ swizzle functions into plain swizzle. */
+    std::regex regex(R"((\.[rgbaxyzw]{2,4})\(\))");
+    /* Keep character count the same. Replace parenthesis by spaces. */
+    return std::regex_replace(str, regex, "$1  ");
   }
 
   void threadgroup_variables_parsing(const std::string &str)

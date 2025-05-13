@@ -685,4 +685,20 @@ using C = B::func;
 }
 GPU_TEST(preprocess_namespace);
 
+static void test_preprocess_swizzle()
+{
+  using namespace shader;
+  using namespace std;
+
+  {
+    string input = R"(a.xyzw().aaa().xxx().grba().yzww; aaaa();)";
+    string expect = R"(a.xyzw  .aaa  .xxx  .grba  .yzww; aaaa();)";
+    string error;
+    string output = process_test_string(input, error);
+    EXPECT_EQ(output, expect);
+    EXPECT_EQ(error, "");
+  }
+}
+GPU_TEST(preprocess_swizzle);
+
 }  // namespace blender::gpu::tests
