@@ -1844,7 +1844,9 @@ bool file_draw_hint_if_invalid(const bContext *C, const SpaceFile *sfile, ARegio
       return false;
     }();
 
-    if (is_remote_library && ((G.f & G_FLAG_INTERNET_ALLOW) == 0)) {
+    if (is_remote_library && ((G.f & G_FLAG_INTERNET_ALLOW) == 0) &&
+        ((U.extension_flag & USER_EXTENSION_FLAG_ONLINE_ACCESS_HANDLED) == 0))
+    {
       file_draw_asset_library_internet_access_required_hint(C, sfile, region);
       return true;
     }
