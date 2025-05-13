@@ -2039,7 +2039,7 @@ void Armatures::draw_armature_edit(Armatures::DrawContext *ctx)
        eBone;
        eBone = eBone->next, index += 0x10000)
   {
-    if (!EBONE_VISIBLE(&arm, eBone)) {
+    if (!ANIM_bone_is_visible_editbone(&arm, eBone)) {
       continue;
     }
 
@@ -2047,7 +2047,7 @@ void Armatures::draw_armature_edit(Armatures::DrawContext *ctx)
 
     /* catch exception for bone with hidden parent */
     eBone_Flag boneflag = eBone_Flag(eBone->flag);
-    if ((eBone->parent) && !EBONE_VISIBLE(&arm, eBone->parent)) {
+    if ((eBone->parent) && !ANIM_bone_is_visible_editbone(&arm, eBone->parent)) {
       boneflag &= ~BONE_CONNECTED;
     }
 

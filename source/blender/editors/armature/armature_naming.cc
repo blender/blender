@@ -451,7 +451,7 @@ static wmOperatorStatus armature_flip_names_exec(bContext *C, wmOperator *op)
     ListBase bones_names = {nullptr};
 
     LISTBASE_FOREACH (EditBone *, ebone, arm->edbo) {
-      if (EBONE_VISIBLE(arm, ebone)) {
+      if (ANIM_bone_is_visible_editbone(arm, ebone)) {
         if (ebone->flag & BONE_SELECTED) {
           BLI_addtail(&bones_names, BLI_genericNodeN(ebone->name));
 

@@ -403,7 +403,7 @@ static bool snap_selected_to_location_rotation(bContext *C,
       mul_v3_m4v3(target_loc_local, ob->world_to_object().ptr(), target_loc_global);
 
       LISTBASE_FOREACH (bPoseChannel *, pchan, &ob->pose->chanbase) {
-        if ((pchan->bone->flag & BONE_SELECTED) && PBONE_VISIBLE(arm, pchan->bone) &&
+        if ((pchan->bone->flag & BONE_SELECTED) && ANIM_bone_is_visible_pchan(arm, pchan) &&
             /* if the bone has a parent and is connected to the parent,
              * don't do anything - will break chain unless we do auto-ik.
              */

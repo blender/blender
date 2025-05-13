@@ -40,11 +40,8 @@ struct wmOperator;
 #define BONESEL_BONE (1u << 31)
 #define BONESEL_ANY (BONESEL_TIP | BONESEL_ROOT | BONESEL_BONE)
 
-/* useful macros, be sure to #include "ANIM_bone_collections.hh". */
-#define EBONE_VISIBLE(arm, ebone) ANIM_bone_is_visible_editbone(arm, ebone)
-
 #define EBONE_SELECTABLE(arm, ebone) \
-  (EBONE_VISIBLE(arm, ebone) && !((ebone)->flag & BONE_UNSELECTABLE))
+  (ANIM_bone_is_visible_editbone(arm, ebone) && !((ebone)->flag & BONE_UNSELECTABLE))
 
 #define EBONE_EDITABLE(ebone) \
   (CHECK_TYPE_INLINE(ebone, EditBone *), \
