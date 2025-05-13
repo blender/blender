@@ -2250,7 +2250,6 @@ void ED_curve_editfont_make(Object *obedit)
 {
   Curve *cu = static_cast<Curve *>(obedit->data);
   EditFont *ef = cu->editfont;
-  int len_char32;
 
   if (ef == nullptr) {
     ef = cu->editfont = MEM_callocN<EditFont>("editfont");
@@ -2261,10 +2260,12 @@ void ED_curve_editfont_make(Object *obedit)
   }
 
   /* Convert the original text to chat32_t. */
-  len_char32 = BLI_str_utf8_as_utf32(ef->textbuf, cu->str, MAXTEXT + 4);
-  BLI_assert(len_char32 == cu->len_char32);
-  ef->len = len_char32;
-  BLI_assert(ef->len >= 0);
+  if (cu->str) {
+    int len_char32 = BLI_str_utf8_as_utf32(ef->textbuf, cu->str, MAXTEXT + 4);
+    BLI_assert(len_char32 == cu->len_char32);
+    ef->len = len_char32;
+    BLI_assert(ef->len >= 0);
+  }
 
   /* Old files may not have this initialized (v2.34). Leaving zeroed is OK. */
   if (cu->strinfo) {
