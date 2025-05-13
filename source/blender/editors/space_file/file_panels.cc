@@ -238,7 +238,7 @@ static void file_panel_asset_catalog_buttons_draw(const bContext *C, Panel *pane
   if (params->asset_library_ref.type == ASSET_LIBRARY_LOCAL) {
     bContext *mutable_ctx = CTX_copy(C);
     if (WM_operator_name_poll(mutable_ctx, "asset.bundle_install")) {
-      uiItemS(col);
+      col->separator();
       uiItemMenuEnumO(col,
                       C,
                       "asset.bundle_install",
@@ -252,7 +252,7 @@ static void file_panel_asset_catalog_buttons_draw(const bContext *C, Panel *pane
     row->op("ASSET_OT_library_refresh", "", ICON_FILE_REFRESH);
   }
 
-  uiItemS(col);
+  col->separator();
 
   blender::ed::asset_browser::file_create_asset_catalog_tree_view_in_layout(
       C, asset_library, col, sfile, params);

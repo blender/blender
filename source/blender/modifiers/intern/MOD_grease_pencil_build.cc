@@ -763,7 +763,7 @@ static void panel_draw(const bContext *C, Panel *panel)
     }
     layout->prop(ptr, "transition", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
-  uiItemS(layout);
+  layout->separator();
 
   /* Second: Time mode and time settings. */
 
@@ -788,7 +788,7 @@ static void panel_draw(const bContext *C, Panel *panel)
     default:
       break;
   }
-  uiItemS(layout);
+  layout->separator();
   layout->prop(ptr, "object", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   PanelLayout restrict_frame_range_layout = layout->panel_prop_with_bool_header(
       C,

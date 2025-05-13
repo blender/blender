@@ -328,7 +328,7 @@ static void nla_panel_animdata(const bContext *C, Panel *panel)
     row->label("", ICON_RIGHTARROW);                           /* expander */
     row->label(IFACE_("Animation Data"), ICON_ANIM_DATA);      /* animdata */
 
-    uiItemS(layout);
+    layout->separator();
   }
 
   /* Active Action Properties ------------------------------------- */
@@ -441,7 +441,7 @@ static void nla_panel_properties(const bContext *C, Panel *panel)
      * - blend in/out can only be set when auto-blending is off.
      */
 
-    uiItemS(layout);
+    layout->separator();
 
     column = &layout->column(true);
     uiLayoutSetActive(column, RNA_boolean_get(&strip_ptr, "use_auto_blend") == false);

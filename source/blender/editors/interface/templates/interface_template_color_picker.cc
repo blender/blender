@@ -117,7 +117,7 @@ void uiTemplateColorPicker(uiLayout *layout,
   if (value_slider) {
     switch (U.color_picker_type) {
       case USER_CP_CIRCLE_HSL:
-        uiItemS(row);
+        row->separator();
         hsv_but = (uiButHSVCube *)uiDefButR_prop(block,
                                                  UI_BTYPE_HSVCUBE,
                                                  0,
@@ -135,7 +135,7 @@ void uiTemplateColorPicker(uiLayout *layout,
         hsv_but->gradient_type = UI_GRAD_L_ALT;
         break;
       case USER_CP_SQUARE_SV:
-        uiItemS(col);
+        col->separator();
         hsv_but = (uiButHSVCube *)uiDefButR_prop(block,
                                                  UI_BTYPE_HSVCUBE,
                                                  0,
@@ -153,7 +153,7 @@ void uiTemplateColorPicker(uiLayout *layout,
         hsv_but->gradient_type = eButGradientType(UI_GRAD_SV + 3);
         break;
       case USER_CP_SQUARE_HS:
-        uiItemS(col);
+        col->separator();
         hsv_but = (uiButHSVCube *)uiDefButR_prop(block,
                                                  UI_BTYPE_HSVCUBE,
                                                  0,
@@ -171,7 +171,7 @@ void uiTemplateColorPicker(uiLayout *layout,
         hsv_but->gradient_type = eButGradientType(UI_GRAD_HS + 3);
         break;
       case USER_CP_SQUARE_HV:
-        uiItemS(col);
+        col->separator();
         hsv_but = (uiButHSVCube *)uiDefButR_prop(block,
                                                  UI_BTYPE_HSVCUBE,
                                                  0,
@@ -192,7 +192,7 @@ void uiTemplateColorPicker(uiLayout *layout,
         /* user default */
       case USER_CP_CIRCLE_HSV:
       default:
-        uiItemS(row);
+        row->separator();
         hsv_but = (uiButHSVCube *)uiDefButR_prop(block,
                                                  UI_BTYPE_HSVCUBE,
                                                  0,

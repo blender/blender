@@ -181,7 +181,7 @@ static void node_add_catalog_assets_draw(const bContext *C, Menu *menu)
 
   for (const asset_system::AssetRepresentation *asset : assets) {
     if (add_separator) {
-      uiItemS(layout);
+      layout->separator();
       add_separator = false;
     }
     PointerRNA op_ptr;
@@ -203,7 +203,7 @@ static void node_add_catalog_assets_draw(const bContext *C, Menu *menu)
       return;
     }
     if (add_separator) {
-      uiItemS(layout);
+      layout->separator();
       add_separator = false;
     }
     asset::draw_menu_for_catalog(item, "NODE_MT_node_add_catalog_assets", *layout);
@@ -256,7 +256,7 @@ static void add_root_catalogs_draw(const bContext *C, Menu *menu)
     return;
   }
 
-  uiItemS(layout);
+  layout->separator();
 
   if (!loading_finished) {
     layout->label(IFACE_("Loading Asset Libraries"), ICON_INFO);
@@ -271,7 +271,7 @@ static void add_root_catalogs_draw(const bContext *C, Menu *menu)
   });
 
   if (!tree.unassigned_assets.is_empty()) {
-    uiItemS(layout);
+    layout->separator();
     uiItemM(layout, "NODE_MT_node_add_unassigned_assets", IFACE_("Unassigned"), ICON_FILE_HIDDEN);
   }
 }

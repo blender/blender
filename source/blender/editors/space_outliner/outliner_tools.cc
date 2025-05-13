@@ -3625,7 +3625,7 @@ static wmOperatorStatus outliner_operator_menu(bContext *C, const char *opname)
   if (WM_operator_poll(C, ot)) {
     uiItemsEnumO(layout, ot->idname, RNA_property_identifier(ot->prop));
 
-    uiItemS(layout);
+    layout->separator();
   }
 
   uiItemMContents(layout, "OUTLINER_MT_context_menu");

@@ -252,7 +252,7 @@ static void delete_fmodifier_cb(bContext *C, void *ctx_v, void *fcm_v)
 static void fmodifier_influence_draw(uiLayout *layout, PointerRNA *ptr)
 {
   FModifier *fcm = static_cast<FModifier *>(ptr->data);
-  uiItemS(layout);
+  layout->separator();
 
   uiLayout *row = &layout->row(true, IFACE_("Influence"));
   row->prop(ptr, "use_influence", UI_ITEM_NONE, "", ICON_NONE);
@@ -344,7 +344,7 @@ static void fmodifier_panel_header(const bContext *C, Panel *panel)
 
   UI_but_funcN_set(but, delete_fmodifier_cb, ctx, fcm);
 
-  uiItemS(layout);
+  layout->separator();
 }
 
 /** \} */

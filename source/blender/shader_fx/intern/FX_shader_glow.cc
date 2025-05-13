@@ -60,7 +60,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   layout->prop(ptr, "glow_color", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  uiItemS(layout);
+  layout->separator();
 
   layout->prop(ptr, "blend_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   layout->prop(ptr, "opacity", UI_ITEM_NONE, std::nullopt, ICON_NONE);

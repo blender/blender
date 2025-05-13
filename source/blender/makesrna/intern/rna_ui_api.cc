@@ -543,7 +543,7 @@ static void rna_uiItemProgress(uiLayout *layout,
 
 static void rna_uiItemSeparator(uiLayout *layout, float factor, int type)
 {
-  uiItemS_ex(layout, factor, LayoutSeparatorType(type));
+  layout->separator(factor, LayoutSeparatorType(type));
 }
 
 static void rna_uiTemplateID(uiLayout *layout,

@@ -3598,7 +3598,7 @@ void ED_region_header_layout(const bContext *C, ARegion *region)
       header.layout = layout;
       ht->draw(C, &header);
       if (ht->next) {
-        uiItemS(layout);
+        layout->separator();
       }
 
       /* for view2d */

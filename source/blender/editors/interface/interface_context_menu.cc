@@ -553,7 +553,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
     uiButTab *tab = (uiButTab *)but;
     if (tab->menu) {
       UI_menutype_draw(C, tab->menu, layout);
-      uiItemS(layout);
+      layout->separator();
     }
   }
   else if (but->rnapoin.data && but->rnaprop) {
@@ -628,7 +628,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
       }
 
       /* keyframe settings */
-      uiItemS(layout);
+      layout->separator();
     }
     else if (but->flag & UI_BUT_DRIVEN) {
       /* pass */
@@ -684,7 +684,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
     }
 
     if (but->flag & UI_BUT_ANIMATED) {
-      uiItemS(layout);
+      layout->separator();
       if (is_array_component) {
         PointerRNA op_ptr;
         wmOperatorType *ot;
@@ -729,7 +729,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
 
     /* Drivers */
     if (but->flag & UI_BUT_DRIVEN) {
-      uiItemS(layout);
+      layout->separator();
 
       if (is_array_component) {
         uiItemBooleanO(layout,
@@ -800,7 +800,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
       /* pass */
     }
     else if (is_anim) {
-      uiItemS(layout);
+      layout->separator();
 
       layout->op("ANIM_OT_driver_button_add",
                  CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Add Driver"),
@@ -822,7 +822,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
     /* Keying Sets */
     /* TODO: check on modifiability of Keying Set when doing this. */
     if (is_anim) {
-      uiItemS(layout);
+      layout->separator();
 
       if (is_array_component) {
         uiItemBooleanO(layout,
@@ -858,7 +858,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
       wmOperatorType *ot;
       PointerRNA op_ptr;
       /* Override Operators */
-      uiItemS(layout);
+      layout->separator();
 
       if (but->flag & UI_BUT_OVERRIDDEN) {
         if (is_array_component) {
@@ -946,7 +946,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
       }
     }
 
-    uiItemS(layout);
+    layout->separator();
 
     /* Property Operators */
 
@@ -981,7 +981,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
                  CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Assign Value as Default"),
                  ICON_NONE);
 
-      uiItemS(layout);
+      layout->separator();
     }
 
     if (is_array_component) {
@@ -1025,11 +1025,11 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
                  ICON_NONE);
     }
 
-    uiItemS(layout);
+    layout->separator();
 
     if (type == PROP_STRING && ELEM(subtype, PROP_FILEPATH, PROP_DIRPATH)) {
       if (ui_but_menu_add_path_operators(layout, ptr, prop)) {
-        uiItemS(layout);
+        layout->separator();
       }
     }
   }
@@ -1057,7 +1057,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
                         UI_ITEM_NONE,
                         &props_ptr);
         RNA_string_set(&props_ptr, "filepath", dir);
-        uiItemS(layout);
+        layout->separator();
       }
     }
   }
@@ -1080,7 +1080,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
       /* Reset context. */
       CTX_store_set(C, prev_ctx);
 
-      uiItemS(layout);
+      layout->separator();
     }
   }
 
@@ -1106,14 +1106,14 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
       sub->op("ASSET_OT_clear_single",
               CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Clear Asset"),
               ICON_NONE);
-      uiItemS(layout);
+      layout->separator();
     }
 
     MenuType *mt_idtemplate_liboverride = WM_menutype_find("UI_MT_idtemplate_liboverride", true);
     if (mt_idtemplate_liboverride && mt_idtemplate_liboverride->poll(C, mt_idtemplate_liboverride))
     {
       uiItemM_ptr(layout, mt_idtemplate_liboverride, IFACE_("Library Override"), ICON_NONE);
-      uiItemS(layout);
+      layout->separator();
     }
   }
 
@@ -1129,7 +1129,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
       layout->op("UI_OT_jump_to_target_button",
                  CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Jump to Target"),
                  ICON_NONE);
-      uiItemS(layout);
+      layout->separator();
     }
   }
 
@@ -1195,7 +1195,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
       });
     }
 
-    uiItemS(layout);
+    layout->separator();
   }
 
   /* Shortcut menu */
@@ -1303,7 +1303,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
     /* Set the operator pointer for python access */
     uiLayoutSetContextFromBut(layout, but);
 
-    uiItemS(layout);
+    layout->separator();
   }
 
   { /* Docs */

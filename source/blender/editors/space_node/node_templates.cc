@@ -884,7 +884,7 @@ static void ui_node_draw_input(uiLayout &layout,
 
     if (depth == 0 || !(input.flag & SOCK_COLLAPSED)) {
       if (depth == 0) {
-        uiItemS(&layout);
+        layout.separator();
       }
 
       ui_node_draw_node(layout, C, ntree, *lnode, depth);
@@ -902,7 +902,7 @@ static void ui_node_draw_input(uiLayout &layout,
     else {
       switch (input.type) {
         case SOCK_VECTOR:
-          uiItemS(sub);
+          sub->separator();
           sub = &sub->column(true);
           ATTR_FALLTHROUGH;
         case SOCK_FLOAT:

@@ -94,26 +94,26 @@ int uiTemplateStatusBarModalItem(uiLayout *layout,
         layout->label("", icon_mod[j]);
         const float offset = ui_event_icon_offset(icon_mod[j]);
         if (offset != 0.0f) {
-          uiItemS_ex(layout, offset);
+          layout->separator(offset);
         }
       }
       layout->label("", icon);
-      uiItemS_ex(layout, ui_event_icon_offset(icon));
+      layout->separator(ui_event_icon_offset(icon));
 
 #ifndef WITH_HEADLESS
       icon = UI_icon_from_keymap_item(kmi_y, icon_mod);
 #endif
       layout->label("", icon);
-      uiItemS_ex(layout, ui_event_icon_offset(icon));
+      layout->separator(ui_event_icon_offset(icon));
 
 #ifndef WITH_HEADLESS
       icon = UI_icon_from_keymap_item(kmi_z, icon_mod);
 #endif
       layout->label("", icon);
-      uiItemS_ex(layout, ui_event_icon_offset(icon));
-      uiItemS_ex(layout, 0.2f);
+      layout->separator(ui_event_icon_offset(icon));
+      layout->separator(0.2f);
       layout->label(xyz_label, ICON_NONE);
-      uiItemS_ex(layout, 0.6f);
+      layout->separator(0.6f);
       return 3;
     }
   }
@@ -139,20 +139,20 @@ int uiTemplateStatusBarModalItem(uiLayout *layout,
         layout->label("", icon_mod[j]);
         const float offset = ui_event_icon_offset(icon_mod[j]);
         if (offset != 0.0f) {
-          uiItemS_ex(layout, offset);
+          layout->separator(offset);
         }
       }
       layout->label("", icon);
-      uiItemS_ex(layout, ui_event_icon_offset(icon));
+      layout->separator(ui_event_icon_offset(icon));
 
 #ifndef WITH_HEADLESS
       icon = UI_icon_from_keymap_item(kmi_y, icon_mod);
 #endif
       layout->label("", icon);
-      uiItemS_ex(layout, ui_event_icon_offset(icon));
-      uiItemS_ex(layout, 0.2f);
+      layout->separator(ui_event_icon_offset(icon));
+      layout->separator(0.2f);
       layout->label(ab_label, ICON_NONE);
-      uiItemS_ex(layout, 0.6f);
+      layout->separator(0.6f);
       return 2;
     }
   }
@@ -179,7 +179,7 @@ bool uiTemplateEventFromKeymapItem(uiLayout *layout,
       layout->label("", icon_mod[j]);
       const float offset = ui_event_icon_offset(icon_mod[j]);
       if (offset != 0.0f) {
-        uiItemS_ex(layout, offset);
+        layout->separator(offset);
       }
     }
 
@@ -188,24 +188,24 @@ bool uiTemplateEventFromKeymapItem(uiLayout *layout,
     layout->label("", icon);
     if (icon >= ICON_MOUSE_LMB && icon <= ICON_MOUSE_MMB_SCROLL) {
       /* Negative space after narrow mice icons. */
-      uiItemS_ex(layout, -0.68f);
+      layout->separator(-0.68f);
     }
 
     const float offset = ui_event_icon_offset(icon);
     if (offset != 0.0f) {
-      uiItemS_ex(layout, offset);
+      layout->separator(offset);
     }
 
-    uiItemS_ex(layout, 0.2f);
+    layout->separator(0.2f);
     layout->label(CTX_IFACE_(BLT_I18NCONTEXT_ID_WINDOWMANAGER, text.c_str()), ICON_NONE);
-    uiItemS_ex(layout, 0.6f);
+    layout->separator(0.6f);
     ok = true;
   }
   else if (text_fallback) {
     const char *event_text = WM_key_event_string(kmi->type, true);
     layout->label(event_text, ICON_NONE);
     layout->label(CTX_IFACE_(BLT_I18NCONTEXT_ID_WINDOWMANAGER, text.c_str()), ICON_NONE);
-    uiItemS_ex(layout, 0.6f);
+    layout->separator(0.6f);
     ok = true;
   }
   return ok;

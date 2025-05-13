@@ -323,7 +323,7 @@ static void panel_draw(const bContext *C, Panel *panel)
   }
 
   if (mode == MOD_GREASE_PENCIL_TEXTURE_STROKE_AND_FILL) {
-    uiItemS(layout);
+    layout->separator();
   }
 
   if (ELEM(mode, MOD_GREASE_PENCIL_TEXTURE_FILL, MOD_GREASE_PENCIL_TEXTURE_STROKE_AND_FILL)) {

@@ -4583,7 +4583,7 @@ static void ui_def_but_rna__menu(bContext *C, uiLayout *layout, void *but_p)
     /* Show title when no categories and calling button has no text or prior label. */
     uiDefBut(
         block, UI_BTYPE_LABEL, 0, title, 0, 0, UI_UNIT_X * 5, UI_UNIT_Y, nullptr, 0.0, 0.0, "");
-    uiItemS(layout);
+    layout->separator();
   }
 
   /* NOTE: `item_array[...]` is reversed on access. */
@@ -4619,7 +4619,7 @@ static void ui_def_but_rna__menu(bContext *C, uiLayout *layout, void *but_p)
 
     if (new_column && (categories > 0) && (columns > 1) && item->identifier[0]) {
       column->label("", ICON_NONE);
-      uiItemS(column);
+      column->separator();
     }
 
     if (!item->identifier[0]) {
@@ -4644,7 +4644,7 @@ static void ui_def_but_rna__menu(bContext *C, uiLayout *layout, void *but_p)
                    "");
         }
       }
-      uiItemS(column);
+      column->separator();
     }
     else {
       int icon = item->icon;

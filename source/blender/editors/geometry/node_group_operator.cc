@@ -1432,7 +1432,7 @@ static void catalog_assets_draw(const bContext *C, Menu *menu)
   wmOperatorType *ot = WM_operatortype_find("GEOMETRY_OT_execute_node_group", true);
   for (const asset_system::AssetRepresentation *asset : assets) {
     if (add_separator) {
-      uiItemS(layout);
+      layout->separator();
       add_separator = false;
     }
     PointerRNA props_ptr;
@@ -1461,7 +1461,7 @@ static void catalog_assets_draw(const bContext *C, Menu *menu)
       return;
     }
     if (add_separator) {
-      uiItemS(layout);
+      layout->separator();
       add_separator = false;
     }
     asset::draw_menu_for_catalog(item, "GEO_MT_node_operator_catalog_assets", *layout);
@@ -1544,7 +1544,7 @@ static void catalog_assets_draw_unassigned(const bContext *C, Menu *menu)
     }
 
     if (add_separator) {
-      uiItemS(layout);
+      layout->separator();
       add_separator = false;
     }
     if (first) {

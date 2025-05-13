@@ -250,14 +250,14 @@ static void edbm_intersect_ui(bContext * /*C*/, wmOperator *op)
   uiLayoutSetPropDecorate(layout, false);
   row = &layout->row(false);
   row->prop(op->ptr, "mode", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
-  uiItemS(layout);
+  layout->separator();
   row = &layout->row(false);
   row->prop(op->ptr, "separate_mode", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
-  uiItemS(layout);
+  layout->separator();
 
   row = &layout->row(false);
   row->prop(op->ptr, "solver", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
-  uiItemS(layout);
+  layout->separator();
 
   if (!use_exact) {
     layout->prop(op->ptr, "threshold", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -411,11 +411,11 @@ static void edbm_intersect_boolean_ui(bContext * /*C*/, wmOperator *op)
 
   row = &layout->row(false);
   row->prop(op->ptr, "operation", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
-  uiItemS(layout);
+  layout->separator();
 
   row = &layout->row(false);
   row->prop(op->ptr, "solver", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
-  uiItemS(layout);
+  layout->separator();
 
   layout->prop(op->ptr, "use_swap", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   layout->prop(op->ptr, "use_self", UI_ITEM_NONE, std::nullopt, ICON_NONE);

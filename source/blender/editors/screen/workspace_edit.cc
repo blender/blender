@@ -500,7 +500,7 @@ static void workspace_add_menu(bContext * /*C*/, uiLayout *layout, void *templat
 
       if (!has_title) {
         if (has_startup_items) {
-          uiItemS(layout);
+          layout->separator();
         }
         has_title = true;
       }
@@ -543,7 +543,7 @@ static wmOperatorStatus workspace_add_invoke(bContext *C,
 
   BLI_freelistN(&templates);
 
-  uiItemS(layout);
+  layout->separator();
   layout->op("WORKSPACE_OT_duplicate",
              CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Duplicate Current"),
              ICON_DUPLICATE);

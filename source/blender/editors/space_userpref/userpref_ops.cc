@@ -435,7 +435,7 @@ static void preferences_extension_repo_add_ui(bContext * /*C*/, wmOperator *op)
       layout->prop(op->ptr, "remote_url", UI_ITEM_R_IMMEDIATE, std::nullopt, ICON_NONE);
       layout->prop(op->ptr, "use_sync_on_startup", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-      uiItemS_ex(layout, 0.2f, LayoutSeparatorType::Line);
+      layout->separator(0.2f, LayoutSeparatorType::Line);
 
       const bool use_access_token = RNA_boolean_get(ptr, "use_access_token");
       const int token_icon = (use_access_token && RNA_string_length(op->ptr, "access_token")) ?
@@ -449,7 +449,7 @@ static void preferences_extension_repo_add_ui(bContext * /*C*/, wmOperator *op)
       /* Use "immediate" flag to refresh the icon. */
       col->prop(op->ptr, "access_token", UI_ITEM_R_IMMEDIATE, std::nullopt, token_icon);
 
-      uiItemS_ex(layout, 0.2f, LayoutSeparatorType::Line);
+      layout->separator(0.2f, LayoutSeparatorType::Line);
 
       break;
     }

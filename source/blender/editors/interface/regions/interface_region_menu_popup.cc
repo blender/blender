@@ -463,7 +463,7 @@ static void create_title_button(uiLayout *layout, const char *title, int icon)
     but->drawflag = UI_BUT_TEXT_LEFT;
   }
 
-  uiItemS(layout);
+  layout->separator();
 }
 
 uiPopupMenu *UI_popup_menu_begin_ex(bContext *C,
@@ -574,7 +574,7 @@ void UI_popup_menu_reports(bContext *C, ReportList *reports)
       layout = UI_popup_menu_layout(pup);
     }
     else {
-      uiItemS(layout);
+      layout->separator();
     }
 
     /* split each newline into a label */

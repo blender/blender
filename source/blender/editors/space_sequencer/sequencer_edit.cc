@@ -1614,7 +1614,7 @@ static void sequencer_split_ui(bContext * /*C*/, wmOperator *op)
   layout->prop(op->ptr, "frame", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   layout->prop(op->ptr, "side", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  uiItemS(layout);
+  layout->separator();
 
   layout->prop(op->ptr, "use_cursor_position", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   if (RNA_boolean_get(op->ptr, "use_cursor_position")) {

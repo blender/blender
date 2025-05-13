@@ -164,7 +164,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   row->prop(ptr, prop, 1, 0, toggles_flag, IFACE_("Y"), ICON_NONE);
   row->prop(ptr, prop, 2, 0, toggles_flag, IFACE_("Z"), ICON_NONE);
 
-  uiItemS(col);
+  col->separator();
 
   col->prop(ptr, "mirror_object", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 

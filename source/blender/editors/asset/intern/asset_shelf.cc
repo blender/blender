@@ -809,7 +809,7 @@ static void add_catalog_tabs(AssetShelf &shelf, uiLayout &layout)
     });
   }
 
-  uiItemS(&layout);
+  layout.separator();
 
   /* Regular catalog tabs. */
   settings_foreach_enabled_catalog_path(shelf, [&](const asset_system::AssetCatalogPath &path) {
@@ -845,7 +845,7 @@ static void asset_shelf_header_draw(const bContext *C, Header *header)
   uiItemPopoverPanel(layout, C, "ASSETSHELF_PT_catalog_selector", "", ICON_COLLAPSEMENU);
   UI_block_emboss_set(block, blender::ui::EmbossType::Emboss);
 
-  uiItemS(layout);
+  layout->separator();
 
   PointerRNA shelf_ptr = active_shelf_ptr_from_context(C);
   if (AssetShelf *shelf = static_cast<AssetShelf *>(shelf_ptr.data)) {

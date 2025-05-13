@@ -439,7 +439,7 @@ static void panel_draw(const bContext *C, Panel *panel)
       uiLayout *col = &layout->column(false);
       uiLayoutSetPropSep(col, false);
       uiTemplateColorRamp(col, ptr, "color_ramp", true);
-      uiItemS(layout);
+      layout->separator();
       layout->prop(ptr, "object", UI_ITEM_NONE, std::nullopt, ICON_NONE);
       layout->prop(ptr, "radius", UI_ITEM_NONE, std::nullopt, ICON_NONE);
       break;

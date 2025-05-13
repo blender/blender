@@ -309,7 +309,7 @@ static void screen_user_menu_draw(const bContext *C, Menu *menu)
         }
       }
       else if (umi->type == USER_MENU_TYPE_SEP) {
-        uiItemS(menu->layout);
+        menu->layout->separator();
       }
     }
   }

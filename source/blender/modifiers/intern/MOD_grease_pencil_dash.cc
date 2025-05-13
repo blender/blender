@@ -421,7 +421,7 @@ static void panel_draw(const bContext *C, Panel *panel)
   uiLayout *sub = &col->column(true);
   sub->op("OBJECT_OT_grease_pencil_dash_modifier_segment_add", "", ICON_ADD);
   sub->op("OBJECT_OT_grease_pencil_dash_modifier_segment_remove", "", ICON_REMOVE);
-  uiItemS(col);
+  col->separator();
   sub = &col->column(true);
   uiItemEnumO_string(
       sub, "", ICON_TRIA_UP, "OBJECT_OT_grease_pencil_dash_modifier_segment_move", "type", "UP");

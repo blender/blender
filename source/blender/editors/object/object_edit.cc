@@ -2347,7 +2347,7 @@ static void move_to_collection_menu_create(bContext *C, uiLayout *layout, void *
                   UI_ITEM_NONE,
                   nullptr);
 
-  uiItemS(layout);
+  layout->separator();
 
   Scene *scene = CTX_data_scene(C);
   const int icon = (menu->collection == scene->master_collection) ?

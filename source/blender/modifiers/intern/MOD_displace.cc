@@ -373,7 +373,7 @@ static void panel_draw(const bContext *C, Panel *panel)
     uiItemPointerR(col, ptr, "uv_layer", &obj_data_ptr, "uv_layers", std::nullopt, ICON_GROUP_UVS);
   }
 
-  uiItemS(layout);
+  layout->separator();
 
   col = &layout->column(false);
   col->prop(ptr, "direction", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -386,7 +386,7 @@ static void panel_draw(const bContext *C, Panel *panel)
     col->prop(ptr, "space", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
-  uiItemS(layout);
+  layout->separator();
 
   col = &layout->column(false);
   col->prop(ptr, "strength", UI_ITEM_NONE, std::nullopt, ICON_NONE);

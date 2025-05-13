@@ -305,7 +305,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   layout->prop(ptr, "segments", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  uiItemS(layout);
+  layout->separator();
 
   col = &layout->column(false);
   col->prop(ptr, "limit_method", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -386,7 +386,7 @@ static void geometry_panel_draw(const bContext * /*C*/, Panel *panel)
     uiLayoutSetActive(row, edge_bevel);
     row->prop(ptr, "spread", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
-  uiItemS(layout);
+  layout->separator();
 
   row = &layout->row(false);
   uiLayoutSetActive(row, edge_bevel);

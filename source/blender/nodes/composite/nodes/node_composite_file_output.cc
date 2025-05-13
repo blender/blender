@@ -352,7 +352,7 @@ static void node_composit_buts_file_output_ex(uiLayout *layout, bContext *C, Poi
     uiTemplateImageFormatViews(layout, &imfptr, nullptr);
   }
 
-  uiItemS(layout);
+  layout->separator();
 
   layout->op("NODE_OT_output_file_add_socket", IFACE_("Add Input"), ICON_ADD);
 

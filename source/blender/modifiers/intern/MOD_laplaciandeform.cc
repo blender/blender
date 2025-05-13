@@ -798,7 +798,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", std::nullopt);
 
-  uiItemS(layout);
+  layout->separator();
 
   row = &layout->row(true);
   uiLayoutSetEnabled(row, has_vertex_group);

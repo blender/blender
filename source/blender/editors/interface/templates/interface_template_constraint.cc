@@ -65,7 +65,7 @@ static void constraint_ops_extra_draw(bContext *C, uiLayout *layout, void *con_v
              CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Copy to Selected"),
              0);
 
-  uiItemS(layout);
+  layout->separator();
 
   /* Move to first. */
   row = &layout->column(false);
@@ -144,7 +144,7 @@ static void draw_constraint_header(uiLayout *layout, Object *ob, bConstraint *co
   sub->op("CONSTRAINT_OT_delete", "", ICON_X);
 
   /* Some extra padding at the end, so the 'x' icon isn't too close to drag button. */
-  uiItemS(layout);
+  layout->separator();
 
   /* clear any locks set up for proxies/lib-linking */
   UI_block_lock_clear(block);
