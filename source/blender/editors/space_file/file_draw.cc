@@ -1671,21 +1671,19 @@ static void file_draw_asset_library_internet_access_required_hint(const bContext
   int sx = v2d->tot.xmin + pad_x;
   int sy = v2d->tot.ymax - pad_y;
 
-  const int box_width = std::min(available_width, UI_UNIT_X * 28);
-
-  uiBlock *block = UI_block_begin(C, region, __func__, blender::ui::EmbossType::Emboss);
-
-  const int heading_height = UI_UNIT_Y;
   const char *message = RPT_(
       "Allow Online Access in order to browse and download online assets, or turn off the "
       "\"Remote Assets\" filter to show only the downloaded assets.\n\nYou can adjust this "
       "later from the \"System\" preferences.");
+
+  const int box_width = std::min(available_width, UI_UNIT_X * 28);
   /* The width we have available inside the box. */
   const int wrap_width = box_width - 2 * pad_x;
   const rcti message_textbox = file_measure_string_multiline(message, wrap_width);
   /* The text box doesn't seem to encompass all text, apparently half a line too little. */
   const int message_height = BLI_rcti_size_y(&message_textbox) + 0.5f * line_height;
 
+  const int heading_height = UI_UNIT_Y;
   const int box_height = heading_height + message_height +
                          /* Extra spacing after header and after main message. */
                          2 * pad_y +
@@ -1693,6 +1691,8 @@ static void file_draw_asset_library_internet_access_required_hint(const bContext
                          UI_UNIT_Y +
                          /* Top and bottom padding. */
                          2 * pad_y;
+
+  uiBlock *block = UI_block_begin(C, region, __func__, blender::ui::EmbossType::Emboss);
 
   uiDefBut(block,
            UI_BTYPE_ROUNDBOX,
