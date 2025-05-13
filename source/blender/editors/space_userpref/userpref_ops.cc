@@ -219,7 +219,9 @@ static wmOperatorStatus preferences_asset_library_add_exec(bContext *C, wmOperat
   return OPERATOR_FINISHED;
 }
 
-static wmOperatorStatus preferences_asset_library_add_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static wmOperatorStatus preferences_asset_library_add_invoke(bContext *C,
+                                                             wmOperator *op,
+                                                             const wmEvent *event)
 {
   const bUserAssetLibraryAddType library_type = bUserAssetLibraryAddType(
       RNA_enum_get(op->ptr, "type"));
@@ -237,7 +239,6 @@ static wmOperatorStatus preferences_asset_library_add_invoke(bContext *C, wmOper
 
 static void preferences_asset_library_add_ui(bContext * /*C*/, wmOperator *op)
 {
-
   uiLayout *layout = op->layout;
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
@@ -247,12 +248,12 @@ static void preferences_asset_library_add_ui(bContext * /*C*/, wmOperator *op)
       RNA_enum_get(ptr, "type"));
   switch (library_type) {
     case bUserAssetLibraryAddType::Remote: {
-      uiItemR(layout, op->ptr, "remote_url", UI_ITEM_R_IMMEDIATE, std::nullopt, ICON_NONE);
+      layout->prop(op->ptr, "remote_url", UI_ITEM_R_IMMEDIATE, std::nullopt, ICON_NONE);
       break;
     }
     case bUserAssetLibraryAddType::Local: {
       BLI_assert_unreachable();
-      uiItemR(layout, op->ptr, "name", UI_ITEM_R_IMMEDIATE, std::nullopt, ICON_NONE);
+      layout->prop(op->ptr, "name", UI_ITEM_R_IMMEDIATE, std::nullopt, ICON_NONE);
       break;
     }
   }
