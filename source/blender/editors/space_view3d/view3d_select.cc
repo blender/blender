@@ -1208,7 +1208,7 @@ static bool do_lasso_select_grease_pencil(const ViewContext *vc,
       });
 }
 
-struct LassoSelectUserData_ForMeshVert {
+struct LassoSelectUserData_ForMeshObjectVert {
   LassoSelectUserData lasso_data;
   blender::MutableSpan<bool> select_vert;
 };
@@ -1217,7 +1217,7 @@ static void do_lasso_select_meshobject__doSelectVert(void *user_data,
                                                      int index)
 {
   using namespace blender;
-  LassoSelectUserData_ForMeshVert *mesh_data = static_cast<LassoSelectUserData_ForMeshVert *>(
+  LassoSelectUserData_ForMeshObjectVert *mesh_data = static_cast<LassoSelectUserData_ForMeshObjectVert *>(
       user_data);
   LassoSelectUserData *data = &mesh_data->lasso_data;
   const bool is_select = mesh_data->select_vert[index];
@@ -1273,7 +1273,7 @@ static bool do_lasso_select_paintvert(const ViewContext *vc,
     bke::SpanAttributeWriter<bool> select_vert = attributes.lookup_or_add_for_write_span<bool>(
         ".select_vert", bke::AttrDomain::Point);
 
-    LassoSelectUserData_ForMeshVert data;
+    LassoSelectUserData_ForMeshObjectVert data;
     data.select_vert = select_vert.span;
 
     view3d_userdata_lassoselect_init(&data.lasso_data, vc, &rect, mcoords, sel_op);
@@ -3705,7 +3705,7 @@ bool edge_inside_circle(const float cent[2],
   return (dist_squared_to_line_segment_v2(cent, screen_co_a, screen_co_b) < radius_squared);
 }
 
-struct BoxSelectUserData_ForMeshVert {
+struct BoxSelectUserData_ForMeshObjectVert {
   BoxSelectUserData box_data;
   blender::MutableSpan<bool> select_vert;
 };
@@ -3713,7 +3713,7 @@ static void do_paintvert_box_select__doSelectVert(void *user_data,
                                                   const float screen_co[2],
                                                   int index)
 {
-  BoxSelectUserData_ForMeshVert *mesh_data = static_cast<BoxSelectUserData_ForMeshVert *>(
+  BoxSelectUserData_ForMeshObjectVert *mesh_data = static_cast<BoxSelectUserData_ForMeshObjectVert *>(
       user_data);
   BoxSelectUserData *data = &mesh_data->box_data;
   const bool is_select = mesh_data->select_vert[index];
@@ -3762,7 +3762,7 @@ static bool do_paintvert_box_select(const ViewContext *vc,
     bke::SpanAttributeWriter<bool> select_vert = attributes.lookup_or_add_for_write_span<bool>(
         ".select_vert", bke::AttrDomain::Point);
 
-    BoxSelectUserData_ForMeshVert data;
+    BoxSelectUserData_ForMeshObjectVert data;
     data.select_vert = select_vert.span;
 
     view3d_userdata_boxselect_init(&data.box_data, vc, rect, sel_op);
@@ -4820,7 +4820,7 @@ static bool paint_facesel_circle_select(const ViewContext *vc,
   return changed;
 }
 
-struct CircleSelectUserData_ForMeshVert {
+struct CircleSelectUserData_ForMeshObjectVert {
   CircleSelectUserData circle_data;
   blender::MutableSpan<bool> select_vert;
 };
@@ -4828,7 +4828,7 @@ static void paint_vertsel_circle_select_doSelectVert(void *user_data,
                                                      const float screen_co[2],
                                                      int index)
 {
-  CircleSelectUserData_ForMeshVert *mesh_data = static_cast<CircleSelectUserData_ForMeshVert *>(
+  CircleSelectUserData_ForMeshObjectVert *mesh_data = static_cast<CircleSelectUserData_ForMeshObjectVert *>(
       user_data);
   CircleSelectUserData *data = &mesh_data->circle_data;
 
@@ -4879,7 +4879,7 @@ static bool paint_vertsel_circle_select(const ViewContext *vc,
     bke::SpanAttributeWriter<bool> select_vert = attributes.lookup_or_add_for_write_span<bool>(
         ".select_vert", bke::AttrDomain::Point);
 
-    CircleSelectUserData_ForMeshVert data;
+    CircleSelectUserData_ForMeshObjectVert data;
     data.select_vert = select_vert.span;
 
     ED_view3d_init_mats_rv3d(vc->obact, vc->rv3d); /* for foreach's screen/vert projection */
