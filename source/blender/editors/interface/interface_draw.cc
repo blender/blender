@@ -236,6 +236,9 @@ void ui_draw_but_TAB_outline(const rcti *rect,
                              uchar highlight[3],
                              uchar highlight_fade[3])
 {
+  /* NOTE: based on `UI_draw_roundbox` functions
+   * check on making a version which allows us to skip some sides. */
+
   GPUVertFormat *format = immVertexFormat();
   const uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   const uint col = GPU_vertformat_attr_add(
