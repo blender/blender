@@ -812,7 +812,7 @@ static std::string run_node_group_get_description(bContext *C,
 }
 
 static void add_attribute_search_or_value_buttons(uiLayout *layout,
-                                                  PointerRNA *md_ptr,
+                                                  PointerRNA *op_ptr,
                                                   const StringRef socket_id_esc,
                                                   const StringRefNull rna_path,
                                                   const bNodeTreeInterfaceSocket &socket)
@@ -832,7 +832,7 @@ static void add_attribute_search_or_value_buttons(uiLayout *layout,
   uiLayout *name_row = &split->row(false);
   uiLayoutSetAlignment(name_row, UI_LAYOUT_ALIGN_RIGHT);
 
-  const bool use_attribute = RNA_boolean_get(md_ptr, rna_path_use_attribute.c_str());
+  const bool use_attribute = RNA_boolean_get(op_ptr, rna_path_use_attribute.c_str());
   if (socket_type == SOCK_BOOLEAN && !use_attribute) {
     name_row->label("", ICON_NONE);
   }
@@ -848,14 +848,14 @@ static void add_attribute_search_or_value_buttons(uiLayout *layout,
 
   if (use_attribute) {
     /* TODO: Add attribute search. */
-    prop_row->prop(md_ptr, rna_path_attribute_name, UI_ITEM_NONE, "", ICON_NONE);
+    prop_row->prop(op_ptr, rna_path_attribute_name, UI_ITEM_NONE, "", ICON_NONE);
   }
   else {
     const char *name = socket_type == SOCK_BOOLEAN ? (socket.name ? socket.name : "") : "";
-    prop_row->prop(md_ptr, rna_path, UI_ITEM_NONE, name, ICON_NONE);
+    prop_row->prop(op_ptr, rna_path, UI_ITEM_NONE, name, ICON_NONE);
   }
 
-  prop_row->prop(md_ptr, rna_path_use_attribute, UI_ITEM_R_ICON_ONLY, "", ICON_SPREADSHEET);
+  prop_row->prop(op_ptr, rna_path_use_attribute, UI_ITEM_R_ICON_ONLY, "", ICON_SPREADSHEET);
 }
 
 static void draw_property_for_socket(const bNodeTree &node_tree,
