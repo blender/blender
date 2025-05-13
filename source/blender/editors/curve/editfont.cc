@@ -2291,7 +2291,9 @@ void ED_curve_editfont_load(Object *obedit)
   EditFont *ef = cu->editfont;
 
   /* Free the old curve string */
-  MEM_freeN(cu->str);
+  if (cu->str) {
+    MEM_freeN(cu->str);
+  }
 
   /* Calculate the actual string length in UTF-8 variable characters */
   cu->len_char32 = ef->len;
