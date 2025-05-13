@@ -1203,7 +1203,7 @@ static bool modifier_apply_obdata(ReportList *reports,
     }
 
     bke::GeometrySet geometry_set = bke::GeometrySet::from_pointcloud(
-        &points, bke::GeometryOwnershipType::ReadOnly);
+        BKE_pointcloud_copy_for_eval(&points));
 
     ModifierEvalContext mectx = {depsgraph, ob, MOD_APPLY_TO_ORIGINAL};
     mti->modify_geometry_set(md_eval, &mectx, &geometry_set);
