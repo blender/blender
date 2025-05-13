@@ -184,8 +184,7 @@ void VKVertexBuffer::upload_data()
 void VKVertexBuffer::device_format_ensure()
 {
   if (!vertex_format_converter.is_initialized()) {
-    const VKWorkarounds &workarounds = VKBackend::get().device.workarounds_get();
-    vertex_format_converter.init(&format, workarounds);
+    vertex_format_converter.init(&format);
   }
 }
 
