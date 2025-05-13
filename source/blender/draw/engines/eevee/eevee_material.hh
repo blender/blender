@@ -129,10 +129,10 @@ static inline uint64_t shader_uuid_from_material_type(
     eMaterialThickness thickness_type = MAT_THICKNESS_SPHERE,
     char blend_flags = 0)
 {
-  BLI_assert(displacement_type < (1 << 1));
-  BLI_assert(thickness_type < (1 << 1));
-  BLI_assert(geometry_type < (1 << 4));
-  BLI_assert(pipeline_type < (1 << 4));
+  BLI_assert(int64_t(displacement_type) < (1 << 1));
+  BLI_assert(int64_t(thickness_type) < (1 << 1));
+  BLI_assert(int64_t(geometry_type) < (1 << 4));
+  BLI_assert(int64_t(pipeline_type) < (1 << 4));
   uint64_t transparent_shadows = blend_flags & MA_BL_TRANSPARENT_SHADOW ? 1 : 0;
 
   uint64_t uuid;
