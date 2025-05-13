@@ -224,7 +224,9 @@ class RayTraceModule {
   RaytraceEEVEE ray_tracing_options_;
   int fast_gi_ray_count_ = 0;
   int fast_gi_step_count_ = 0;
-  bool fast_gi_ao_only_ = 0;
+  bool fast_gi_ao_only_ = false;
+
+  bool use_raytracing_ = false;
 
   RaytraceEEVEE_Method tracing_method_ = RAYTRACE_EEVEE_METHOD_PROBE;
 
@@ -272,6 +274,11 @@ class RayTraceModule {
 
   void debug_pass_sync();
   void debug_draw(View &view, GPUFrameBuffer *view_fb);
+
+  bool use_raytracing() const
+  {
+    return use_raytracing_;
+  }
 
  private:
   RayTraceResultTexture trace(int closure_index,

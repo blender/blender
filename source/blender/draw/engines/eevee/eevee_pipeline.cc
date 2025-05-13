@@ -556,28 +556,38 @@ void DeferredLayer::begin_sync()
   this->gbuffer_pass_sync(inst_);
 }
 
+bool DeferredLayer::do_merge_direct_indirect_eval(const Instance &inst)
+{
+  return !inst.raytracing.use_raytracing();
+}
+
+bool DeferredLayer::do_split_direct_indirect_radiance(const Instance &inst)
+{
+  return do_merge_direct_indirect_eval(inst) &&
+         (inst.sampling.use_clamp_direct() || inst.sampling.use_clamp_indirect());
+}
+
 void DeferredLayer::end_sync(bool is_first_pass,
                              bool is_last_pass,
                              bool next_layer_has_transmission)
 {
-  const SceneEEVEE &sce_eevee = inst_.scene->eevee;
   const bool has_any_closure = closure_bits_ != 0;
   /* We need the feedback output in case of refraction in the next pass (see #126455). */
   const bool is_layer_refracted = (next_layer_has_transmission && has_any_closure);
   const bool has_transmit_closure = (closure_bits_ & (CLOSURE_REFRACTION | CLOSURE_TRANSLUCENT));
   const bool has_reflect_closure = (closure_bits_ & (CLOSURE_REFLECTION | CLOSURE_DIFFUSE));
   use_raytracing_ = (has_transmit_closure || has_reflect_closure) &&
-                    (sce_eevee.flag & SCE_EEVEE_SSR_ENABLED) != 0;
-
-  use_clamp_direct_ = sce_eevee.clamp_surface_direct != 0.0f;
-  use_clamp_indirect_ = sce_eevee.clamp_surface_indirect != 0.0f;
+                    inst_.raytracing.use_raytracing();
+  use_clamp_direct_ = inst_.sampling.use_clamp_direct();
+  use_clamp_indirect_ = inst_.sampling.use_clamp_indirect();
+  /* Is the radiance split for the combined pass. */
+  use_split_radiance_ = use_raytracing_ || (use_clamp_direct_ || use_clamp_indirect_);
 
   /* The first pass will never have any surfaces behind it. Nothing is refracted except the
    * environment. So in this case, disable tracing and fallback to probe. */
   use_screen_transmission_ = use_raytracing_ && has_transmit_closure && !is_first_pass;
   use_screen_reflection_ = use_raytracing_ && has_reflect_closure;
 
-  use_split_radiance_ = use_raytracing_ || (use_clamp_direct_ || use_clamp_indirect_);
   use_feedback_output_ = (use_raytracing_ || is_layer_refracted) &&
                          (!is_last_pass || use_screen_reflection_);
 
@@ -651,7 +661,8 @@ void DeferredLayer::end_sync(bool is_first_pass,
       }
       {
         const bool use_transmission = (closure_bits_ & CLOSURE_TRANSMISSION) != 0;
-        const bool use_split_indirect = !use_raytracing_ && use_split_radiance_;
+        const bool use_split_indirect = do_split_direct_indirect_radiance(inst_);
+        const bool use_lightprobe_eval = do_merge_direct_indirect_eval(inst_);
         PassSimple::Sub &sub = pass.sub("Eval.Light");
         /* Use depth test to reject background pixels which have not been stencil cleared. */
         /* WORKAROUND: Avoid rasterizer discard by enabling stencil write, but the shaders actually
@@ -664,12 +675,9 @@ void DeferredLayer::end_sync(bool is_first_pass,
          * See page 78 of "SIGGRAPH 2023: Unreal Engine Substrate" by Hillaire & de Rousiers. */
         for (int i = min_ii(3, closure_count_) - 1; i >= 0; i--) {
           GPUShader *sh = inst_.shaders.static_shader_get(eShaderType(DEFERRED_LIGHT_SINGLE + i));
-          /* TODO(fclem): Could specialize directly with the pass index but this would break it for
-           * OpenGL and Vulkan implementation which aren't fully supporting the specialize
-           * constant. */
           sub.specialize_constant(sh, "render_pass_shadow_id", rbuf_data.shadow_id);
           sub.specialize_constant(sh, "use_split_indirect", use_split_indirect);
-          sub.specialize_constant(sh, "use_lightprobe_eval", !use_raytracing_);
+          sub.specialize_constant(sh, "use_lightprobe_eval", use_lightprobe_eval);
           sub.specialize_constant(sh, "use_transmission", false);
           const ShadowSceneData &shadow_scene = inst_.shadows.get_data();
           sub.specialize_constant(sh, "shadow_ray_count", &shadow_scene.ray_count);
