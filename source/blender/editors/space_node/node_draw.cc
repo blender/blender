@@ -4058,12 +4058,54 @@ static void count_multi_input_socket_links(bNodeTree &ntree, SpaceNode &snode)
   }
 }
 
-static float frame_node_label_height(const NodeFrame &frame_data)
-{
-  return frame_data.label_size * UI_SCALE_FAC;
-}
+struct FrameNodeLayout {
+  float margin = 0;
+  float margin_top = 0;
+  float label_height = 0;
+  float label_baseline = 0;
+  bool has_label = 0;
+};
 
-#define NODE_FRAME_MARGIN (1.5f * U.widget_unit)
+static FrameNodeLayout frame_node_layout(const bNode &frame_node)
+{
+  BLI_assert(frame_node.is_frame());
+
+  const NodeFrame *frame_data = (NodeFrame *)frame_node.storage;
+
+  FrameNodeLayout frame_layout;
+
+  frame_layout.has_label = frame_node.label[0] != '\0';
+
+  /* This is not the actual height of the letters in the label, but an approximation that includes
+   * some of the whitespace above and below the actual letters. */
+  frame_layout.label_height = frame_data->label_size * UI_SCALE_FAC;
+
+  /* The side and bottom margins are 50% bigger than the widget unit */
+  frame_layout.margin = 1.5f * U.widget_unit;
+
+  if (frame_layout.has_label) {
+    /* The label takes up 1.5 times the label height plus .2 times the margin.
+     * These coefficients are selected to provide good layout and spacing for descenders. */
+    float room_for_label = 1.5f * frame_layout.label_height + 0.2f * frame_layout.margin;
+
+    /* Make top margin bigger, if needed for the label, but never smaller than the side margins. */
+    frame_layout.margin_top = std::max(frame_layout.margin, room_for_label);
+
+    /* This adjustment approximately centers the cap height in the margin.
+     * This is achieved by finding the y value that is the center of the top margin, then lowering
+     * that by 35% of the label height. Since font cap heights are typically about 70% of the total
+     * line height, moving the text by half that achieves rough centering. */
+    frame_layout.label_baseline = 0.5f * frame_layout.margin_top +
+                                  0.35f * frame_layout.label_height;
+  }
+  else {
+    /* If there is no label, the top margin is the same as the sides. */
+    frame_layout.margin_top = frame_layout.margin;
+    frame_layout.label_baseline = 0;
+  }
+
+  return frame_layout;
+}
 
 /**
  * Does a bounding box update by iterating over all children.
@@ -4084,13 +4126,7 @@ static rctf calc_node_frame_dimensions(bNode &node)
 
   NodeFrame *data = (NodeFrame *)node.storage;
 
-  const float margin = NODE_FRAME_MARGIN;
-  const float has_label = node.label[0] != '\0';
-
-  const float label_height = frame_node_label_height(*data);
-  /* Add an additional 25% to account for the glyphs descender.
-   * This works well in most cases. */
-  const float margin_top = 0.5f * margin + (has_label ? 1.25f * label_height : 0.5f * margin);
+  const FrameNodeLayout frame_layout = frame_node_layout(node);
 
   /* Initialize rect from current frame size. */
   rctf rect;
@@ -4104,10 +4140,10 @@ static rctf calc_node_frame_dimensions(bNode &node)
   for (bNode *child : node.direct_children_in_frame()) {
     /* Add margin to node rect. */
     rctf noderect = calc_node_frame_dimensions(*child);
-    noderect.xmin -= margin;
-    noderect.xmax += margin;
-    noderect.ymin -= margin;
-    noderect.ymax += margin_top;
+    noderect.xmin -= frame_layout.margin;
+    noderect.xmax += frame_layout.margin;
+    noderect.ymin -= frame_layout.margin;
+    noderect.ymax += frame_layout.margin_top;
 
     /* First child initializes frame. */
     if (bbinit) {
@@ -4187,21 +4223,22 @@ static void node_update_nodetree(const bContext &C,
 }
 
 static void frame_node_draw_label(TreeDrawContext &tree_draw_ctx,
-                                  const bNodeTree &ntree,
                                   const bNode &node,
                                   const SpaceNode &snode)
 {
-  const float aspect = snode.runtime->aspect;
   /* XXX font id is crap design */
   const int fontid = UI_style_get()->widget.uifont_id;
   const NodeFrame *data = (const NodeFrame *)node.storage;
-  const float font_size = data->label_size / aspect;
 
-  const std::string label = bke::node_label(ntree, node);
-
+  /* Setting BLF_aspect() and then counter-scaling by aspect in BLF_size() has no effect on the
+   * rendered text size, because the two adjustments cancel each other out. But, using aspect
+   * renders the text at higher resolution, which sharpens the rasterization of the text. */
+  const float aspect = snode.runtime->aspect;
   BLF_enable(fontid, BLF_ASPECT);
   BLF_aspect(fontid, aspect, aspect, 1.0f);
-  BLF_size(fontid, font_size * UI_SCALE_FAC);
+  BLF_size(fontid, data->label_size * UI_SCALE_FAC / aspect);
+
+  const FrameNodeLayout frame_layout = frame_node_layout(node);
 
   /* Title color. */
   int color_id = node_get_colorid(tree_draw_ctx, node);
@@ -4209,35 +4246,32 @@ static void frame_node_draw_label(TreeDrawContext &tree_draw_ctx,
   UI_GetThemeColorBlendShade3ubv(TH_TEXT, color_id, 0.4f, 10, color);
   BLF_color3ubv(fontid, color);
 
-  const float margin = NODE_FRAME_MARGIN;
-  const float width = BLF_width(fontid, label.c_str(), label.size());
-  const int label_height = frame_node_label_height(*data);
+  const float label_width = BLF_width(fontid, node.label, strlen(node.label));
 
   const rctf &rct = node.runtime->draw_bounds;
-  const float label_x = BLI_rctf_cent_x(&rct) - (0.5f * width);
-  const float label_y = rct.ymax - label_height - (0.25f * margin);
+  const float label_x = BLI_rctf_cent_x(&rct) - (0.5f * label_width);
+  const float label_y = rct.ymax - frame_layout.label_baseline;
 
   /* Label. */
-  const bool has_label = node.label[0] != '\0';
-  if (has_label) {
+  if (frame_layout.has_label) {
     BLF_position(fontid, label_x, label_y, 0);
-    BLF_draw(fontid, label.c_str(), label.size());
+    BLF_draw(fontid, node.label, strlen(node.label));
   }
 
   /* Draw text body. */
   if (node.id) {
     const Text *text = (const Text *)node.id;
-    const int line_height_max = BLF_height_max(fontid);
-    const float line_spacing = (line_height_max * aspect);
-    const float line_width = (BLI_rctf_size_x(&rct) - 2 * margin) / aspect;
+    const float line_spacing = BLF_height_max(fontid);
+    const float line_width = (BLI_rctf_size_x(&rct) - 2 * frame_layout.margin);
 
-    const float x = rct.xmin + margin;
-    float y = rct.ymax - label_height - (has_label ? line_spacing + margin : 0);
+    const float x = rct.xmin + frame_layout.margin;
+    float y = rct.ymax - frame_layout.label_height -
+              (frame_layout.has_label ? line_spacing + frame_layout.margin : 0);
 
-    const int y_min = rct.ymin + margin;
+    const int y_min = rct.ymin + frame_layout.margin;
 
     BLF_enable(fontid, BLF_CLIPPING | BLF_WORD_WRAP);
-    BLF_clipping(fontid, rct.xmin, rct.ymin + margin, rct.xmax, rct.ymax);
+    BLF_clipping(fontid, rct.xmin, rct.ymin + frame_layout.margin, rct.xmax, rct.ymax);
 
     BLF_wordwrap(fontid, line_width);
 
@@ -4335,7 +4369,6 @@ static void frame_node_draw_overlay(const bContext &C,
                                     TreeDrawContext &tree_draw_ctx,
                                     const ARegion &region,
                                     const SpaceNode &snode,
-                                    const bNodeTree &ntree,
                                     const bNode &node,
                                     uiBlock &block)
 {
@@ -4352,7 +4385,7 @@ static void frame_node_draw_overlay(const bContext &C,
   }
 
   /* Label and text. */
-  frame_node_draw_label(tree_draw_ctx, ntree, node, snode);
+  frame_node_draw_label(tree_draw_ctx, node, snode);
 
   node_draw_extra_info_panel(C, tree_draw_ctx, snode, node, nullptr, block);
 
@@ -4845,7 +4878,7 @@ static void draw_frame_overlays(const bContext &C,
                                 Span<uiBlock *> blocks)
 {
   for (const bNode *node : ntree.nodes_by_type("NodeFrame")) {
-    frame_node_draw_overlay(C, tree_draw_ctx, region, snode, ntree, *node, *blocks[node->index()]);
+    frame_node_draw_overlay(C, tree_draw_ctx, region, snode, *node, *blocks[node->index()]);
   }
 }
 
