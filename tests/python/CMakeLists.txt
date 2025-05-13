@@ -662,7 +662,8 @@ if((WITH_CYCLES OR WITH_GPU_RENDER_TESTS) AND TEST_SRC_DIR_EXISTS)
     list(APPEND render_tests motion_blur reports volume)
   endif()
 
-  if(WITH_OPENVDB)
+  if(WITH_OPENVDB AND WITH_MOD_FLUID)
+    # Some tests in the OpenVDB folder make use of fluid simulations to generate smoke
     list(APPEND render_tests openvdb)
   endif()
 
