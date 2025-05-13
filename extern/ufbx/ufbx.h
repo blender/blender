@@ -267,7 +267,7 @@ struct ufbx_converter { };
 // `ufbx_source_version` contains the version of the corresponding source file.
 // HINT: The version can be compared numerically to the result of `ufbx_pack_version()`,
 // for example `#if UFBX_VERSION >= ufbx_pack_version(0, 12, 0)`.
-#define UFBX_HEADER_VERSION ufbx_pack_version(0, 18, 1)
+#define UFBX_HEADER_VERSION ufbx_pack_version(0, 19, 0)
 #define UFBX_VERSION UFBX_HEADER_VERSION
 
 // -- Basic types
@@ -400,12 +400,12 @@ UFBX_LIST_TYPE(ufbx_string_list, ufbx_string);
 typedef enum ufbx_dom_value_type UFBX_ENUM_REPR {
 	UFBX_DOM_VALUE_NUMBER,
 	UFBX_DOM_VALUE_STRING,
-	UFBX_DOM_VALUE_ARRAY_I8,
+	UFBX_DOM_VALUE_BLOB,
 	UFBX_DOM_VALUE_ARRAY_I32,
 	UFBX_DOM_VALUE_ARRAY_I64,
 	UFBX_DOM_VALUE_ARRAY_F32,
 	UFBX_DOM_VALUE_ARRAY_F64,
-	UFBX_DOM_VALUE_ARRAY_RAW_STRING,
+	UFBX_DOM_VALUE_ARRAY_BLOB,
 	UFBX_DOM_VALUE_ARRAY_IGNORED,
 
 	UFBX_ENUM_FORCE_WIDTH(UFBX_DOM_VALUE_TYPE)
@@ -414,6 +414,12 @@ typedef enum ufbx_dom_value_type UFBX_ENUM_REPR {
 UFBX_ENUM_TYPE(ufbx_dom_value_type, UFBX_DOM_VALUE_TYPE, UFBX_DOM_VALUE_ARRAY_IGNORED);
 
 typedef struct ufbx_dom_node ufbx_dom_node;
+
+UFBX_LIST_TYPE(ufbx_int32_list, int32_t);
+UFBX_LIST_TYPE(ufbx_int64_list, int64_t);
+UFBX_LIST_TYPE(ufbx_float_list, float);
+UFBX_LIST_TYPE(ufbx_double_list, double);
+UFBX_LIST_TYPE(ufbx_blob_list, ufbx_blob);
 
 typedef struct ufbx_dom_value {
 	ufbx_dom_value_type type;
@@ -2097,6 +2103,10 @@ struct ufbx_blend_shape {
 	ufbx_uint32_list offset_vertices; // < Indices to `ufbx_mesh.vertices[]`
 	ufbx_vec3_list position_offsets;  // < Always specified per-vertex offsets
 	ufbx_vec3_list normal_offsets;    // < Empty if not specified
+
+	// Optional weights for the offsets.
+	// NOTE: These are technically not supported in FBX and are only written by Blender.
+	ufbx_real_list offset_weights;
 };
 
 typedef enum ufbx_cache_file_format UFBX_ENUM_REPR {
@@ -5777,6 +5787,16 @@ ufbx_abi ufbx_audio_layer *ufbx_as_audio_layer(const ufbx_element *element);
 ufbx_abi ufbx_audio_clip *ufbx_as_audio_clip(const ufbx_element *element);
 ufbx_abi ufbx_pose *ufbx_as_pose(const ufbx_element *element);
 ufbx_abi ufbx_metadata_object *ufbx_as_metadata_object(const ufbx_element *element);
+
+// Functions for interfacing with DOM lists
+ufbx_abi bool ufbx_dom_is_array(const ufbx_dom_node *node);
+ufbx_abi size_t ufbx_dom_array_size(const ufbx_dom_node *node);
+ufbx_abi ufbx_int32_list ufbx_dom_as_int32_list(const ufbx_dom_node *node);
+ufbx_abi ufbx_int64_list ufbx_dom_as_int64_list(const ufbx_dom_node *node);
+ufbx_abi ufbx_float_list ufbx_dom_as_float_list(const ufbx_dom_node *node);
+ufbx_abi ufbx_double_list ufbx_dom_as_double_list(const ufbx_dom_node *node);
+ufbx_abi ufbx_real_list ufbx_dom_as_real_list(const ufbx_dom_node *node);
+ufbx_abi ufbx_blob_list ufbx_dom_as_blob_list(const ufbx_dom_node *node);
 
 #ifdef __cplusplus
 }
