@@ -879,11 +879,8 @@ static void draw_property_for_socket(const bNodeTree &node_tree,
     return;
   }
 
-  char socket_id_esc[MAX_NAME * 2];
-  BLI_str_escape(socket_id_esc, socket.identifier, sizeof(socket_id_esc));
-
-  char rna_path[sizeof(socket_id_esc) + 4];
-  SNPRINTF(rna_path, "[\"%s\"]", socket_id_esc);
+  const std::string socket_id_esc = BLI_str_escape(socket.identifier);
+  const std::string rna_path = fmt::format("[\"{}\"]", socket_id_esc);
 
   uiLayout *row = &layout->row(true);
   uiLayoutSetActive(row, affects_output);
