@@ -7,6 +7,8 @@
 
 #include <fmt/format.h>
 
+#include "BLF_api.hh"
+
 #include "BLI_math_matrix.hh"
 #include "BLI_math_quaternion_types.hh"
 #include "BLI_math_vector_types.hh"
@@ -431,6 +433,127 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
     return spreadsheet_layout_.columns[column_index].width;
   }
 };
+
+template<typename T>
+static float estimate_max_column_width(const float min_width,
+                                       const int fontid,
+                                       const VArray<T> &data,
+                                       FunctionRef<std::string(const T &)> to_string)
+{
+  if (const std::optional<T> value = data.get_if_single()) {
+    const std::string str = to_string(*value);
+    return std::max(min_width, BLF_width(fontid, str.c_str(), str.size()));
+  }
+  const int max_sample_size = 100;
+  float width = min_width;
+  for (const int i : data.index_range().take_front(max_sample_size)) {
+    const std::string str = to_string(data[i]);
+    const float value_width = BLF_width(fontid, str.c_str(), str.size());
+    width = std::max(width, value_width);
+  }
+  return width;
+}
+
+float ColumnValues::initial_width_px() const
+{
+  const int fontid = BLF_default();
+  BLF_size(fontid, UI_DEFAULT_TEXT_POINTS * UI_SCALE_FAC);
+
+  const eSpreadsheetColumnValueType column_type = this->type();
+  switch (column_type) {
+    case SPREADSHEET_VALUE_TYPE_BOOL: {
+      return 2.0f * SPREADSHEET_WIDTH_UNIT;
+    }
+    case SPREADSHEET_VALUE_TYPE_FLOAT4X4: {
+      return 2.0f * SPREADSHEET_WIDTH_UNIT;
+    }
+    case SPREADSHEET_VALUE_TYPE_INT8: {
+      return 3.0f * SPREADSHEET_WIDTH_UNIT;
+    }
+    case SPREADSHEET_VALUE_TYPE_INT32: {
+      return estimate_max_column_width<int>(
+          3 * SPREADSHEET_WIDTH_UNIT, fontid, data_.typed<int>(), [](const int value) {
+            return fmt::format("{}", value);
+          });
+    }
+    case SPREADSHEET_VALUE_TYPE_FLOAT: {
+      return estimate_max_column_width<float>(
+          3 * SPREADSHEET_WIDTH_UNIT, fontid, data_.typed<float>(), [](const float value) {
+            return fmt::format("{:.3f}", value);
+          });
+    }
+    case SPREADSHEET_VALUE_TYPE_INT32_2D: {
+      return estimate_max_column_width<int2>(
+          3 * SPREADSHEET_WIDTH_UNIT, fontid, data_.typed<int2>(), [](const int2 value) {
+            return fmt::format("{}  {}", value.x, value.y);
+          });
+    }
+    case SPREADSHEET_VALUE_TYPE_FLOAT2: {
+      return estimate_max_column_width<float2>(
+          6 * SPREADSHEET_WIDTH_UNIT, fontid, data_.typed<float2>(), [](const float2 value) {
+            return fmt::format("{:.3f}  {:.3f}", value.x, value.y);
+          });
+    }
+    case SPREADSHEET_VALUE_TYPE_FLOAT3: {
+      return estimate_max_column_width<float3>(
+          9 * SPREADSHEET_WIDTH_UNIT, fontid, data_.typed<float3>(), [](const float3 value) {
+            return fmt::format("{:.3f}  {:.3f}  {:.3f}", value.x, value.y, value.z);
+          });
+    }
+    case SPREADSHEET_VALUE_TYPE_COLOR: {
+      return estimate_max_column_width<ColorGeometry4f>(
+          12 * SPREADSHEET_WIDTH_UNIT,
+          fontid,
+          data_.typed<ColorGeometry4f>(),
+          [](const ColorGeometry4f value) {
+            return fmt::format(
+                "{:.3f}  {:.3f}  {:.3f}  {:.3f}", value.r, value.g, value.b, value.a);
+          });
+    }
+    case SPREADSHEET_VALUE_TYPE_BYTE_COLOR: {
+      return estimate_max_column_width<ColorGeometry4b>(
+          12 * SPREADSHEET_WIDTH_UNIT,
+          fontid,
+          data_.typed<ColorGeometry4b>(),
+          [](const ColorGeometry4b value) {
+            return fmt::format("{}  {}  {}  {}", value.r, value.g, value.b, value.a);
+          });
+    }
+    case SPREADSHEET_VALUE_TYPE_QUATERNION: {
+      return estimate_max_column_width<math::Quaternion>(
+          12 * SPREADSHEET_WIDTH_UNIT,
+          fontid,
+          data_.typed<math::Quaternion>(),
+          [](const math::Quaternion value) {
+            return fmt::format(
+                "{:.3f}  {:.3f}  {:.3f}  {:.3f}", value.x, value.y, value.z, value.w);
+          });
+    }
+    case SPREADSHEET_VALUE_TYPE_INSTANCES: {
+      return 24 * SPREADSHEET_WIDTH_UNIT;
+    }
+    case SPREADSHEET_VALUE_TYPE_STRING: {
+      if (data_.type().is<std::string>()) {
+        return estimate_max_column_width<std::string>(SPREADSHEET_WIDTH_UNIT,
+                                                      fontid,
+                                                      data_.typed<std::string>(),
+                                                      [](const StringRef value) { return value; });
+      }
+      if (data_.type().is<MStringProperty>()) {
+        return estimate_max_column_width<MStringProperty>(
+            SPREADSHEET_WIDTH_UNIT,
+            fontid,
+            data_.typed<MStringProperty>(),
+            [](const MStringProperty &value) { return StringRef(value.s, value.s_len); });
+      }
+      break;
+    }
+    case SPREADSHEET_VALUE_TYPE_UNKNOWN: {
+      break;
+    }
+  }
+  return 2.0f * SPREADSHEET_WIDTH_UNIT;
+}
 
 std::unique_ptr<SpreadsheetDrawer> spreadsheet_drawer_from_layout(
     const SpreadsheetLayout &spreadsheet_layout)

@@ -52,8 +52,7 @@ class ColumnValues final {
     return data_;
   }
 
-  /* The default width of newly created columns, in UI units. */
-  float default_width = 0.0f;
+  float initial_width_px() const;
 };
 
 }  // namespace blender::ed::spreadsheet
