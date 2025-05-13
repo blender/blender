@@ -36,13 +36,7 @@ class Tree;
 
 namespace blender::draw::pbvh {
 
-class GenericRequest {
- public:
-  std::string name;
-  eCustomDataType type;
-  GenericRequest(const StringRef name, const eCustomDataType type) : name(name), type(type) {}
-  BLI_STRUCT_EQUALITY_OPERATORS_2(GenericRequest, type, name);
-};
+using GenericRequest = std::string;
 
 enum class CustomRequest : int8_t {
   Position,

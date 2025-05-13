@@ -818,7 +818,7 @@ static bool ensure_attributes(const Curves &curves,
           }
 
           if (layer != -1 && domain.has_value()) {
-            drw_attributes_add_request(&attrs_needed, name, CD_PROP_FLOAT2);
+            drw_attributes_add_request(&attrs_needed, name);
           }
           break;
         }
@@ -839,7 +839,7 @@ static bool ensure_attributes(const Curves &curves,
         case CD_PROP_FLOAT:
         case CD_PROP_FLOAT2: {
           if (layer != -1 && domain.has_value()) {
-            drw_attributes_add_request(&attrs_needed, name, type);
+            drw_attributes_add_request(&attrs_needed, name);
           }
           break;
         }
@@ -885,12 +885,10 @@ static void request_attribute(Curves &curves, const char *name)
   DRW_Attributes attributes{};
 
   bke::CurvesGeometry &curves_geometry = curves.geometry.wrap();
-  std::optional<bke::AttributeMetaData> meta_data = curves_geometry.attributes().lookup_meta_data(
-      name);
-  if (!meta_data) {
+  if (!curves_geometry.attributes().contains(name)) {
     return;
   }
-  drw_attributes_add_request(&attributes, name, meta_data->data_type);
+  drw_attributes_add_request(&attributes, name);
 
   drw_attributes_merge(&final_cache.attr_used, &attributes, cache.render_mutex);
 }

@@ -344,7 +344,7 @@ gpu::Batch *curves_sub_pass_setup_implementation(PassT &sub_ps,
         continue;
       }
       sub_ps.bind_texture(sampler_name, curves_cache->proc_attributes_buf[i]);
-      if (request.cd_type == CD_PROP_FLOAT2 && request.attribute_name == curve_data_render_uv) {
+      if (request.attribute_name == curve_data_render_uv) {
         sub_ps.bind_texture("a", curves_cache->proc_attributes_buf[i]);
       }
     }
@@ -353,7 +353,7 @@ gpu::Batch *curves_sub_pass_setup_implementation(PassT &sub_ps,
         continue;
       }
       sub_ps.bind_texture(sampler_name, curves_cache->final.attributes_buf[i]);
-      if (request.cd_type == CD_PROP_FLOAT2 && request.attribute_name == point_data_render_uv) {
+      if (request.attribute_name == point_data_render_uv) {
         sub_ps.bind_texture("a", curves_cache->final.attributes_buf[i]);
       }
     }

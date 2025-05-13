@@ -46,7 +46,7 @@ template<> struct DefaultHash<draw::pbvh::AttributeRequest> {
       return get_default_hash(*request_type);
     }
     const GenericRequest &attr = std::get<GenericRequest>(value);
-    return get_default_hash(attr.name);
+    return get_default_hash(attr);
   }
 };
 
@@ -239,7 +239,7 @@ void DrawCacheImpl::tag_attribute_changed(const IndexMask &node_mask, StringRef 
 {
   for (const auto &[data_request, data] : attribute_vbos_.items()) {
     if (const GenericRequest *request = std::get_if<GenericRequest>(&data_request)) {
-      if (request->name == attribute_name) {
+      if (*request == attribute_name) {
         data.tag_dirty(node_mask);
       }
     }
@@ -1717,7 +1717,7 @@ Span<gpu::VertBufPtr> DrawCacheImpl::ensure_attribute_data(const Object &object,
       }
       else {
         update_generic_attribute_mesh(
-            object, orig_mesh_data, mask, std::get<GenericRequest>(attr).name, vbos);
+            object, orig_mesh_data, mask, std::get<GenericRequest>(attr), vbos);
       }
       break;
     }
@@ -1768,7 +1768,7 @@ Span<gpu::VertBufPtr> DrawCacheImpl::ensure_attribute_data(const Object &object,
       }
       else {
         update_generic_attribute_bmesh(
-            object, orig_mesh_data, mask, std::get<GenericRequest>(attr).name, vbos);
+            object, orig_mesh_data, mask, std::get<GenericRequest>(attr), vbos);
       }
       break;
     }

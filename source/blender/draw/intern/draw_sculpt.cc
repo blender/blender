@@ -177,11 +177,11 @@ Vector<SculptBatch> sculpt_batches_get(const Object *ob, SculptBatchFeature feat
       {
         if (ss.bm) {
           if (bmesh_attribute_exists(*ss.bm, *meta_data, name)) {
-            attrs.append(pbvh::GenericRequest{name, meta_data->data_type});
+            attrs.append(pbvh::GenericRequest(name));
           }
         }
         else {
-          attrs.append(pbvh::GenericRequest{name, meta_data->data_type});
+          attrs.append(pbvh::GenericRequest(name));
         }
       }
     }
@@ -214,7 +214,7 @@ Vector<SculptBatch> sculpt_batches_per_material_get(const Object *ob,
 
   for (int i = 0; i < draw_attrs.num_requests; i++) {
     const DRW_AttributeRequest &req = draw_attrs.requests[i];
-    attrs.append(pbvh::GenericRequest{req.attribute_name, req.cd_type});
+    attrs.append(pbvh::GenericRequest(req.attribute_name));
   }
 
   /* UV maps are not in attribute requests. */
@@ -223,7 +223,7 @@ Vector<SculptBatch> sculpt_batches_per_material_get(const Object *ob,
       int layer_i = CustomData_get_layer_index_n(&mesh.corner_data, CD_PROP_FLOAT2, i);
       CustomDataLayer *layer = layer_i != -1 ? mesh.corner_data.layers + layer_i : nullptr;
       if (layer) {
-        attrs.append(pbvh::GenericRequest{layer->name, CD_PROP_FLOAT2});
+        attrs.append(pbvh::GenericRequest(layer->name));
       }
     }
   }
