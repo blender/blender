@@ -242,7 +242,7 @@ void ui_draw_but_TAB_outline(const rcti *rect,
   GPUVertFormat *format = immVertexFormat();
   const uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   const uint col = GPU_vertformat_attr_add(
-      format, "color", GPU_COMP_U8, 3, GPU_FETCH_INT_TO_FLOAT_UNIT);
+      format, "color", GPU_COMP_U8, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
   /* add a 1px offset, looks nicer */
   const int minx = rect->xmin + U.pixelsize, maxx = rect->xmax - U.pixelsize;
   const int miny = rect->ymin + U.pixelsize, maxy = rect->ymax - U.pixelsize;
@@ -262,7 +262,7 @@ void ui_draw_but_TAB_outline(const rcti *rect,
   immBindBuiltinProgram(GPU_SHADER_3D_SMOOTH_COLOR);
   immBeginAtMost(GPU_PRIM_LINE_STRIP, 25);
 
-  immAttr3ubv(col, highlight);
+  immAttr4ub(col, UNPACK3(highlight), 255);
 
   /* start with corner left-top */
   if (roundboxtype & UI_CNR_TOP_LEFT) {
@@ -288,7 +288,7 @@ void ui_draw_but_TAB_outline(const rcti *rect,
     immVertex2f(pos, maxx, maxy);
   }
 
-  immAttr3ubv(col, highlight_fade);
+  immAttr4ub(col, UNPACK3(highlight_fade), 255);
 
   /* corner right-bottom */
   if (roundboxtype & UI_CNR_BOTTOM_RIGHT) {
@@ -314,7 +314,7 @@ void ui_draw_but_TAB_outline(const rcti *rect,
     immVertex2f(pos, minx, miny);
   }
 
-  immAttr3ubv(col, highlight);
+  immAttr4ub(col, UNPACK3(highlight), 255);
 
   /* back to corner left-top */
   immVertex2f(pos, minx, (roundboxtype & UI_CNR_TOP_LEFT) ? (maxy - rad) : maxy);

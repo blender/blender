@@ -770,7 +770,7 @@ static int particle_batch_cache_fill_strands_data(ParticleSystem *psys,
     }
 
     *(uint *)GPU_vertbuf_raw_step(data_step) = curr_point;
-    *(ushort *)GPU_vertbuf_raw_step(seg_step) = path->segments;
+    *(uint *)GPU_vertbuf_raw_step(seg_step) = path->segments;
     curr_point += path->segments + 1;
 
     if (psmd != nullptr) {
@@ -884,7 +884,7 @@ static void particle_batch_cache_ensure_procedural_strand_data(PTCacheEdit *edit
   uint data_id = GPU_vertformat_attr_add(&format_data, "data", GPU_COMP_U32, 1, GPU_FETCH_INT);
 
   GPUVertFormat format_seg = {0};
-  uint seg_id = GPU_vertformat_attr_add(&format_seg, "data", GPU_COMP_U16, 1, GPU_FETCH_INT);
+  uint seg_id = GPU_vertformat_attr_add(&format_seg, "data", GPU_COMP_U32, 1, GPU_FETCH_INT);
 
   GPUVertFormat format_uv = {0};
   uint uv_id = GPU_vertformat_attr_add(&format_uv, "uv", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
@@ -1086,7 +1086,7 @@ static void particle_batch_cache_ensure_procedural_indices(PTCacheEdit *edit,
   GPUPrimType prim_type = (thickness_res == 1) ? GPU_PRIM_LINE_STRIP : GPU_PRIM_TRI_STRIP;
 
   static const GPUVertFormat format = GPU_vertformat_from_attribute(
-      "dummy", GPU_COMP_U32, 1, GPU_FETCH_INT_TO_FLOAT_UNIT);
+      "dummy", GPU_COMP_U32, 1, GPU_FETCH_INT);
 
   gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(format);
   GPU_vertbuf_data_alloc(*vbo, 1);
