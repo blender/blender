@@ -2648,7 +2648,7 @@ class USERPREF_PT_assets(AssetsPanel, Panel):
 
             # Text wrapping isn't supported, manually wrap.
             for line in (
-                    rpt_("Internet access is required to see and download online assets."),
+                    rpt_("Internet access is required to browse and download online assets."),
                     rpt_("You can adjust this later from \"System\" preferences."),
             ):
                 box.label(text=line, translate=False)
