@@ -217,6 +217,8 @@ class VKDevice : public NonCopyable {
  public:
   render_graph::VKResourceStateTracker resources;
   VKDiscardPool orphaned_data;
+  /** Discard pool for resources that could still be used during rendering. */
+  VKDiscardPool orphaned_data_render;
   VKPipelinePool pipelines;
   /** Buffer to bind to unbound resource locations. */
   VKBuffer dummy_buffer;
