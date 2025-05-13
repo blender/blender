@@ -1360,7 +1360,11 @@ static void std_node_socket_draw(
               break;
             }
           }
-          layout->prop(ptr, "default_value", DEFAULT_FLAGS, "", ICON_NONE);
+          const char *name = "";
+          if (node->is_type("GeometryNodeMenuSwitch") && sock->index() > 0) {
+            name = sock->name;
+          }
+          layout->prop(ptr, "default_value", DEFAULT_FLAGS, name, ICON_NONE);
         }
       }
       else if (default_value->has_conflict()) {
