@@ -49,7 +49,7 @@ static void speaker_blend_write(BlendWriter *writer, ID *id, const void *id_addr
 }
 
 IDTypeInfo IDType_ID_SPK = {
-    /*id_code*/ ID_SPK,
+    /*id_code*/ Speaker::id_type,
     /*id_filter*/ FILTER_ID_SPK,
     /*dependencies_id_types*/ FILTER_ID_SO,
     /*main_listbase_index*/ INDEX_ID_SPK,
@@ -82,7 +82,7 @@ Speaker *BKE_speaker_add(Main *bmain, const char *name)
 {
   Speaker *spk;
 
-  spk = static_cast<Speaker *>(BKE_id_new(bmain, ID_SPK, name));
+  spk = BKE_id_new<Speaker>(bmain, name);
 
   return spk;
 }

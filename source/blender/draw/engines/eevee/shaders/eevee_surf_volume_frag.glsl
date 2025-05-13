@@ -126,7 +126,7 @@ void main()
 #endif
 
 #ifndef MAT_GEOM_WORLD
-  OccupancyBits occupancy;
+  occupancy::Bits occupancy;
   for (int j = 0; j < 8; j++) {
     occupancy.bits[j] = imageLoad(occupancy_img, int3(froxel.xy, j)).r;
   }

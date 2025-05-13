@@ -8,11 +8,12 @@ import bpy
 from ....io.com import gltf2_io
 from ....io.com.gltf2_io_extensions import Extension
 from ....io.exp.user_extensions import export_user_extensions
-from ...com.extras import generate_extras
 from ..cache import cached, cached_by_key
 from . import unlit as gltf2_unlit
 from . import texture_info as gltf2_blender_gather_texture_info
 from . import pbr_metallic_roughness as gltf2_pbr_metallic_roughness
+from .material_utils import gather_extras, gather_name
+from .material_viewport import export_viewport_material
 from .extensions.volume import export_volume
 from .extensions.emission import export_emission_factor, \
     export_emission_texture, export_emission_strength_extension
@@ -29,7 +30,6 @@ from .search_node_tree import \
     get_node_socket, \
     get_material_nodes, \
     NodeSocket, \
-    get_vertex_color_info, \
     gather_alpha_info
 
 
@@ -58,6 +58,12 @@ def gather_material(blender_material, export_settings):
     if not __filter_material(blender_material, export_settings):
         return None, {"uv_info": {}, "vc_info": {'color': None, 'alpha': None,
                                                  'color_type': None, 'alpha_type': None, 'alpha_mode': "OPAQUE"}, "udim_info": {}}
+
+
+    if export_settings['gltf_materials'] == "VIEWPORT":
+        return export_viewport_material(blender_material, export_settings), {"uv_info": {}, "vc_info": {'color': None, 'alpha': None,
+                                                 'color_type': None, 'alpha_type': None, 'alpha_mode': "OPAQUE"}, "udim_info": {}}
+
 
     # Reset exported images / textures nodes
     export_settings['exported_texture_nodes'] = []
@@ -107,8 +113,8 @@ def gather_material(blender_material, export_settings):
         emissive_factor=emissive_factor,
         emissive_texture=emissive_texture,
         extensions=extensions,
-        extras=__gather_extras(blender_material, export_settings),
-        name=__gather_name(blender_material, export_settings),
+        extras=gather_extras(blender_material, export_settings),
+        name=gather_name(blender_material, export_settings),
         normal_texture=normal_texture,
         occlusion_texture=occlusion_texture,
         pbr_metallic_roughness=pbr_metallic_roughness
@@ -316,16 +322,6 @@ def __gather_extensions(blender_material, emissive_factor, export_settings):
     return extensions, uvmap_infos, udim_infos
 
 
-def __gather_extras(blender_material, export_settings):
-    if export_settings['gltf_extras']:
-        return generate_extras(blender_material)
-    return None
-
-
-def __gather_name(blender_material, export_settings):
-    return blender_material.name
-
-
 def __gather_normal_texture(blender_material, export_settings):
     normal = get_socket(blender_material.node_tree, blender_material.use_nodes, "Normal")
     normal_texture, uvmap_info, udim_info, _ = gltf2_blender_gather_texture_info.gather_material_normal_texture_info_class(
@@ -483,22 +479,22 @@ def __export_unlit(blender_material, export_settings):
     else:
         alpha_info = gather_alpha_info(None)
 
-    vc_info = get_vertex_color_info(info.get('rgb_socket'), info.get('alpha_socket'), export_settings)
+    base_color_factor, vc_info = gltf2_unlit.gather_base_color_factor(info, export_settings)
 
     material = gltf2_io.Material(
         alpha_cutoff=__gather_alpha_cutoff(alpha_info, export_settings),
         alpha_mode=__gather_alpha_mode(alpha_info, export_settings),
         double_sided=__gather_double_sided(blender_material, {}, export_settings),
         extensions={"KHR_materials_unlit": Extension("KHR_materials_unlit", {}, required=False)},
-        extras=__gather_extras(blender_material, export_settings),
-        name=__gather_name(blender_material, export_settings),
+        extras=gather_extras(blender_material, export_settings),
+        name=gather_name(blender_material, export_settings),
         emissive_factor=None,
         emissive_texture=None,
         normal_texture=None,
         occlusion_texture=None,
 
         pbr_metallic_roughness=gltf2_io.MaterialPBRMetallicRoughness(
-            base_color_factor=gltf2_unlit.gather_base_color_factor(info, export_settings),
+            base_color_factor=base_color_factor,
             base_color_texture=base_color_texture,
             metallic_factor=0.0,
             roughness_factor=0.9,
@@ -669,7 +665,7 @@ def __get_final_material_with_indices(blender_material, base_material, caching_i
 
 def get_material_from_idx(material_idx, materials, export_settings):
     mat = None
-    if export_settings['gltf_materials'] == "EXPORT" and material_idx is not None:
+    if export_settings['gltf_materials'] in ["EXPORT", "VIEWPORT"] and material_idx is not None:
         if materials:
             i = material_idx if material_idx < len(materials) else -1
             mat = materials[i]

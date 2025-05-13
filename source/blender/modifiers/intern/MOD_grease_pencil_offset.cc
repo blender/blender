@@ -390,56 +390,52 @@ static void panel_draw(const bContext *C, Panel *panel)
   const auto offset_mode = GreasePencilOffsetModifierMode(RNA_enum_get(ptr, "offset_mode"));
 
   uiLayoutSetPropSep(layout, true);
-  if (uiLayout *general_panel = uiLayoutPanelProp(
-          C, layout, ptr, "open_general_panel", IFACE_("General")))
+  if (uiLayout *general_panel = layout->panel_prop(
+          C, ptr, "open_general_panel", IFACE_("General")))
   {
     uiLayoutSetPropSep(general_panel, true);
-    uiItemR(general_panel, ptr, "location", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    uiItemR(general_panel, ptr, "rotation", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    uiItemR(general_panel, ptr, "scale", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    general_panel->prop(ptr, "location", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    general_panel->prop(ptr, "rotation", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    general_panel->prop(ptr, "scale", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
   LayoutPanelState *advanced_panel_state = BKE_panel_layout_panel_state_ensure(
       panel, "advanced", true);
   PointerRNA advanced_state_ptr = RNA_pointer_create_discrete(
       nullptr, &RNA_LayoutPanelState, advanced_panel_state);
-  if (uiLayout *advanced_panel = uiLayoutPanelProp(
-          C, layout, &advanced_state_ptr, "is_open", IFACE_("Advanced")))
+  if (uiLayout *advanced_panel = layout->panel_prop(
+          C, &advanced_state_ptr, "is_open", IFACE_("Advanced")))
   {
-    uiItemR(advanced_panel, ptr, "offset_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    advanced_panel->prop(ptr, "offset_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-    uiItemR(advanced_panel, ptr, "stroke_location", UI_ITEM_NONE, IFACE_("Offset"), ICON_NONE);
-    uiItemR(advanced_panel, ptr, "stroke_rotation", UI_ITEM_NONE, IFACE_("Rotation"), ICON_NONE);
-    uiItemR(advanced_panel, ptr, "stroke_scale", UI_ITEM_NONE, IFACE_("Scale"), ICON_NONE);
+    advanced_panel->prop(ptr, "stroke_location", UI_ITEM_NONE, IFACE_("Offset"), ICON_NONE);
+    advanced_panel->prop(ptr, "stroke_rotation", UI_ITEM_NONE, IFACE_("Rotation"), ICON_NONE);
+    advanced_panel->prop(ptr, "stroke_scale", UI_ITEM_NONE, IFACE_("Scale"), ICON_NONE);
 
     uiLayout *col = &advanced_panel->column(true);
     switch (offset_mode) {
       case MOD_GREASE_PENCIL_OFFSET_RANDOM:
-        uiItemR(advanced_panel,
-                ptr,
-                "use_uniform_random_scale",
-                UI_ITEM_NONE,
-                std::nullopt,
-                ICON_NONE);
-        uiItemR(advanced_panel, ptr, "seed", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+        advanced_panel->prop(
+            ptr, "use_uniform_random_scale", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+        advanced_panel->prop(ptr, "seed", UI_ITEM_NONE, std::nullopt, ICON_NONE);
         break;
       case MOD_GREASE_PENCIL_OFFSET_STROKE:
-        uiItemR(col, ptr, "stroke_step", UI_ITEM_NONE, IFACE_("Stroke Step"), ICON_NONE);
-        uiItemR(col, ptr, "stroke_start_offset", UI_ITEM_NONE, IFACE_("Offset"), ICON_NONE);
+        col->prop(ptr, "stroke_step", UI_ITEM_NONE, IFACE_("Stroke Step"), ICON_NONE);
+        col->prop(ptr, "stroke_start_offset", UI_ITEM_NONE, IFACE_("Offset"), ICON_NONE);
         break;
       case MOD_GREASE_PENCIL_OFFSET_MATERIAL:
-        uiItemR(col, ptr, "stroke_step", UI_ITEM_NONE, IFACE_("Material Step"), ICON_NONE);
-        uiItemR(col, ptr, "stroke_start_offset", UI_ITEM_NONE, IFACE_("Offset"), ICON_NONE);
+        col->prop(ptr, "stroke_step", UI_ITEM_NONE, IFACE_("Material Step"), ICON_NONE);
+        col->prop(ptr, "stroke_start_offset", UI_ITEM_NONE, IFACE_("Offset"), ICON_NONE);
         break;
       case MOD_GREASE_PENCIL_OFFSET_LAYER:
-        uiItemR(col, ptr, "stroke_step", UI_ITEM_NONE, IFACE_("Layer Step"), ICON_NONE);
-        uiItemR(col, ptr, "stroke_start_offset", UI_ITEM_NONE, IFACE_("Offset"), ICON_NONE);
+        col->prop(ptr, "stroke_step", UI_ITEM_NONE, IFACE_("Layer Step"), ICON_NONE);
+        col->prop(ptr, "stroke_start_offset", UI_ITEM_NONE, IFACE_("Offset"), ICON_NONE);
         break;
     }
   }
 
-  if (uiLayout *influence_panel = uiLayoutPanelProp(
-          C, layout, ptr, "open_influence_panel", IFACE_("Influence")))
+  if (uiLayout *influence_panel = layout->panel_prop(
+          C, ptr, "open_influence_panel", IFACE_("Influence")))
   {
     modifier::greasepencil::draw_layer_filter_settings(C, influence_panel, ptr);
     modifier::greasepencil::draw_material_filter_settings(C, influence_panel, ptr);

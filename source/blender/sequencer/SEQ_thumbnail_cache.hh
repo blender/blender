@@ -19,7 +19,7 @@ namespace blender::seq {
 static constexpr int THUMB_SIZE = 256;
 
 /**
- * Get a thumbnail image for given strip `seq` at `timeline_frame`.
+ * Get a thumbnail image for given `strip` at `timeline_frame`.
  *
  * The function can return null if a strip type does not have a thumbnail, a source media file is
  * not found, or the thumbnail has not been loaded yet.

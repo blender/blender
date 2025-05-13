@@ -99,71 +99,63 @@ static void node_composit_buts_colorbalance(uiLayout *layout, bContext * /*C*/, 
 {
   uiLayout *split, *col, *row;
 
-  uiItemR(layout, ptr, "correction_method", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "correction_method", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 
   const int method = RNA_enum_get(ptr, "correction_method");
 
   if (method == CMP_NODE_COLOR_BALANCE_LGG) {
-    split = uiLayoutSplit(layout, 0.0f, false);
+    split = &layout->split(0.0f, false);
     col = &split->column(false);
     uiTemplateColorPicker(col, ptr, "lift", true, true, false, true);
     row = &col->row(false);
-    uiItemR(row, ptr, "lift", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+    row->prop(ptr, "lift", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 
     col = &split->column(false);
     uiTemplateColorPicker(col, ptr, "gamma", true, true, true, true);
     row = &col->row(false);
-    uiItemR(row, ptr, "gamma", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+    row->prop(ptr, "gamma", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 
     col = &split->column(false);
     uiTemplateColorPicker(col, ptr, "gain", true, true, true, true);
     row = &col->row(false);
-    uiItemR(row, ptr, "gain", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+    row->prop(ptr, "gain", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   }
   else if (method == CMP_NODE_COLOR_BALANCE_ASC_CDL) {
-    split = uiLayoutSplit(layout, 0.0f, false);
+    split = &layout->split(0.0f, false);
     col = &split->column(false);
     uiTemplateColorPicker(col, ptr, "offset", true, true, false, true);
     row = &col->row(false);
-    uiItemR(row, ptr, "offset", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
-    uiItemR(col, ptr, "offset_basis", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+    row->prop(ptr, "offset", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+    col->prop(ptr, "offset_basis", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 
     col = &split->column(false);
     uiTemplateColorPicker(col, ptr, "power", true, true, false, true);
     row = &col->row(false);
-    uiItemR(row, ptr, "power", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+    row->prop(ptr, "power", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 
     col = &split->column(false);
     uiTemplateColorPicker(col, ptr, "slope", true, true, false, true);
     row = &col->row(false);
-    uiItemR(row, ptr, "slope", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+    row->prop(ptr, "slope", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   }
   else if (method == CMP_NODE_COLOR_BALANCE_WHITEPOINT) {
-    split = uiLayoutSplit(layout, 0.0f, false);
+    split = &layout->split(0.0f, false);
 
     col = &split->column(false);
     row = &col->row(true);
-    uiItemL(row, IFACE_("Input"), ICON_NONE);
+    row->label(IFACE_("Input"), ICON_NONE);
     uiTemplateCryptoPicker(row, ptr, "input_whitepoint", ICON_EYEDROPPER);
-    uiItemR(col,
-            ptr,
-            "input_temperature",
-            UI_ITEM_R_SPLIT_EMPTY_NAME,
-            IFACE_("Temperature"),
-            ICON_NONE);
-    uiItemR(col, ptr, "input_tint", UI_ITEM_R_SPLIT_EMPTY_NAME, IFACE_("Tint"), ICON_NONE);
+    col->prop(
+        ptr, "input_temperature", UI_ITEM_R_SPLIT_EMPTY_NAME, IFACE_("Temperature"), ICON_NONE);
+    col->prop(ptr, "input_tint", UI_ITEM_R_SPLIT_EMPTY_NAME, IFACE_("Tint"), ICON_NONE);
 
     col = &split->column(false);
     row = &col->row(true);
-    uiItemL(row, IFACE_("Output"), ICON_NONE);
+    row->label(IFACE_("Output"), ICON_NONE);
     uiTemplateCryptoPicker(row, ptr, "output_whitepoint", ICON_EYEDROPPER);
-    uiItemR(col,
-            ptr,
-            "output_temperature",
-            UI_ITEM_R_SPLIT_EMPTY_NAME,
-            IFACE_("Temperature"),
-            ICON_NONE);
-    uiItemR(col, ptr, "output_tint", UI_ITEM_R_SPLIT_EMPTY_NAME, IFACE_("Tint"), ICON_NONE);
+    col->prop(
+        ptr, "output_temperature", UI_ITEM_R_SPLIT_EMPTY_NAME, IFACE_("Temperature"), ICON_NONE);
+    col->prop(ptr, "output_tint", UI_ITEM_R_SPLIT_EMPTY_NAME, IFACE_("Tint"), ICON_NONE);
   }
   else {
     BLI_assert(false);
@@ -172,36 +164,35 @@ static void node_composit_buts_colorbalance(uiLayout *layout, bContext * /*C*/, 
 
 static void node_composit_buts_colorbalance_ex(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  uiItemR(layout, ptr, "correction_method", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "correction_method", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 
   const int method = RNA_enum_get(ptr, "correction_method");
 
   if (method == CMP_NODE_COLOR_BALANCE_LGG) {
     uiTemplateColorPicker(layout, ptr, "lift", true, true, false, true);
-    uiItemR(layout, ptr, "lift", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+    layout->prop(ptr, "lift", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 
     uiTemplateColorPicker(layout, ptr, "gamma", true, true, true, true);
-    uiItemR(layout, ptr, "gamma", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+    layout->prop(ptr, "gamma", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 
     uiTemplateColorPicker(layout, ptr, "gain", true, true, true, true);
-    uiItemR(layout, ptr, "gain", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+    layout->prop(ptr, "gain", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   }
   else if (method == CMP_NODE_COLOR_BALANCE_ASC_CDL) {
     uiTemplateColorPicker(layout, ptr, "offset", true, true, false, true);
-    uiItemR(layout, ptr, "offset", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+    layout->prop(ptr, "offset", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 
     uiTemplateColorPicker(layout, ptr, "power", true, true, false, true);
-    uiItemR(layout, ptr, "power", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+    layout->prop(ptr, "power", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 
     uiTemplateColorPicker(layout, ptr, "slope", true, true, false, true);
-    uiItemR(layout, ptr, "slope", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+    layout->prop(ptr, "slope", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   }
   else if (method == CMP_NODE_COLOR_BALANCE_WHITEPOINT) {
-    uiItemR(layout, ptr, "input_temperature", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
-    uiItemR(layout, ptr, "input_tint", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
-    uiItemR(
-        layout, ptr, "output_temperature", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
-    uiItemR(layout, ptr, "output_tint", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+    layout->prop(ptr, "input_temperature", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+    layout->prop(ptr, "input_tint", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+    layout->prop(ptr, "output_temperature", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+    layout->prop(ptr, "output_tint", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   }
   else {
     BLI_assert(false);
@@ -374,7 +365,7 @@ static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &
 
 }  // namespace blender::nodes::node_composite_colorbalance_cc
 
-void register_node_type_cmp_colorbalance()
+static void register_node_type_cmp_colorbalance()
 {
   namespace file_ns = blender::nodes::node_composite_colorbalance_cc;
 
@@ -397,3 +388,4 @@ void register_node_type_cmp_colorbalance()
 
   blender::bke::node_register_type(ntype);
 }
+NOD_REGISTER_NODE(register_node_type_cmp_colorbalance)

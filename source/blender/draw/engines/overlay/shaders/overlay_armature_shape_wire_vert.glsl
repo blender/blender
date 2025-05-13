@@ -131,9 +131,9 @@ void geometry_main(VertOut geom_in[2],
   screen_space_pos[0] = pos0.xy / pos0.w;
   screen_space_pos[1] = pos1.xy / pos1.w;
 
-  /* `sizeEdge` is defined as the distance from the center to the outer edge. As such to get the
-   total width it needs to be doubled. */
-  wire_width = geom_in[0].wire_width * (sizeEdge * 2);
+  /* `theme.sizes.edge` is defined as the distance from the center to the outer edge.
+   * As such to get the total width it needs to be doubled. */
+  wire_width = geom_in[0].wire_width * (theme.sizes.edge * 2);
   float half_size = max(wire_width / 2.0f, 0.5f);
 
   if (do_smooth_wire) {
@@ -141,9 +141,9 @@ void geometry_main(VertOut geom_in[2],
     half_size += 0.5f;
   }
 
-  float2 line = (screen_space_pos[0] - screen_space_pos[1]) * sizeViewport;
+  float2 line = (screen_space_pos[0] - screen_space_pos[1]) * uniform_buf.size_viewport;
   float2 line_norm = normalize(float2(line[1], -line[0]));
-  float2 edge_ofs = (half_size * line_norm) * sizeViewportInv;
+  float2 edge_ofs = (half_size * line_norm) * uniform_buf.size_viewport_inv;
 
   float4 final_color = geom_in[0].final_color;
   do_vertex(0,

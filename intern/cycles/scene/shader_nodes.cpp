@@ -3513,6 +3513,11 @@ NODE_DEFINE(ScatterVolumeNode)
   return type;
 }
 
+ScatterVolumeNode::ScatterVolumeNode(const NodeType *node_type) : VolumeNode(node_type)
+{
+  closure = CLOSURE_VOLUME_HENYEY_GREENSTEIN_ID;
+}
+
 ScatterVolumeNode::ScatterVolumeNode() : VolumeNode(get_node_type())
 {
   closure = CLOSURE_VOLUME_HENYEY_GREENSTEIN_ID;
@@ -3548,6 +3553,111 @@ void ScatterVolumeNode::compile(OSLCompiler &compiler)
 {
   compiler.parameter(this, "phase");
   compiler.add(this, "node_scatter_volume");
+}
+
+/* Volume Coefficients Closure */
+
+NODE_DEFINE(VolumeCoefficientsNode)
+{
+  NodeType *type = NodeType::add("volume_coefficients", create, NodeType::SHADER);
+
+  SOCKET_IN_VECTOR(scatter_coeffs, "Scatter Coefficients", make_float3(1.0f, 1.0f, 1.0f));
+  SOCKET_IN_VECTOR(absorption_coeffs, "Absorption Coefficients", make_float3(1.0f, 1.0f, 1.0f));
+  SOCKET_IN_FLOAT(anisotropy, "Anisotropy", 0.0f);
+  SOCKET_IN_FLOAT(IOR, "IOR", 1.33f);
+  SOCKET_IN_FLOAT(backscatter, "Backscatter", 0.1f);
+  SOCKET_IN_FLOAT(alpha, "Alpha", 0.5f);
+  SOCKET_IN_FLOAT(diameter, "Diameter", 20.0f);
+  SOCKET_IN_VECTOR(emission_coeffs, "Emission Coefficients", make_float3(0.0f, 0.0f, 0.0f));
+
+  static NodeEnum phase_enum;
+  phase_enum.insert("Henyey-Greenstein", CLOSURE_VOLUME_HENYEY_GREENSTEIN_ID);
+  phase_enum.insert("Fournier-Forand", CLOSURE_VOLUME_FOURNIER_FORAND_ID);
+  phase_enum.insert("Draine", CLOSURE_VOLUME_DRAINE_ID);
+  phase_enum.insert("Rayleigh", CLOSURE_VOLUME_RAYLEIGH_ID);
+  phase_enum.insert("Mie", CLOSURE_VOLUME_MIE_ID);
+  SOCKET_ENUM(phase, "Phase", phase_enum, CLOSURE_VOLUME_HENYEY_GREENSTEIN_ID);
+
+  SOCKET_IN_FLOAT(volume_mix_weight, "VolumeMixWeight", 0.0f, SocketType::SVM_INTERNAL);
+
+  SOCKET_OUT_CLOSURE(volume, "Volume");
+
+  return type;
+}
+
+VolumeCoefficientsNode::VolumeCoefficientsNode() : ScatterVolumeNode(get_node_type())
+{
+  closure = CLOSURE_VOLUME_HENYEY_GREENSTEIN_ID;
+}
+
+void VolumeCoefficientsNode::compile(SVMCompiler &compiler)
+{
+  closure = phase;
+  ShaderInput *param1 = nullptr;
+  ShaderInput *param2 = nullptr;
+
+  switch (phase) {
+    case CLOSURE_VOLUME_HENYEY_GREENSTEIN_ID:
+      param1 = input("Anisotropy");
+      break;
+    case CLOSURE_VOLUME_FOURNIER_FORAND_ID:
+      param1 = input("IOR");
+      param2 = input("Backscatter");
+      break;
+    case CLOSURE_VOLUME_RAYLEIGH_ID:
+      break;
+    case CLOSURE_VOLUME_DRAINE_ID:
+      param1 = input("Anisotropy");
+      param2 = input("Alpha");
+      break;
+    case CLOSURE_VOLUME_MIE_ID:
+      param1 = input("Diameter");
+      break;
+    default:
+      assert(false);
+      break;
+  }
+  ShaderInput *coeffs_in = input("Scatter Coefficients");
+  ShaderInput *absorption_coeffs_in = input("Absorption Coefficients");
+  ShaderInput *emission_coeffs_in = input("Emission Coefficients");
+
+  if (coeffs_in->link) {
+    compiler.add_node(NODE_CLOSURE_WEIGHT, compiler.stack_assign(coeffs_in));
+  }
+  else {
+    compiler.add_node(NODE_CLOSURE_SET_WEIGHT, scatter_coeffs);
+  }
+
+  const uint mix_weight_ofs = compiler.closure_mix_weight_offset();
+
+  if (param2 == nullptr) {
+    /* More efficient packing if we don't need the second parameter. */
+    const uint param1_ofs = (param1) ? compiler.stack_assign_if_linked(param1) : SVM_STACK_INVALID;
+    compiler.add_node(NODE_VOLUME_COEFFICIENTS,
+                      compiler.encode_uchar4(closure, 0, param1_ofs, mix_weight_ofs),
+                      __float_as_int((param1) ? get_float(param1->socket_type) : 0.0f),
+                      compiler.encode_uchar4(compiler.stack_assign(absorption_coeffs_in),
+                                             compiler.stack_assign(emission_coeffs_in),
+                                             0,
+                                             0));
+  }
+  else {
+    const uint param1_ofs = (param1) ? compiler.stack_assign(param1) : SVM_STACK_INVALID;
+    const uint param2_ofs = (param2) ? compiler.stack_assign(param2) : SVM_STACK_INVALID;
+    compiler.add_node(NODE_VOLUME_COEFFICIENTS,
+                      compiler.encode_uchar4(closure, 0, param1_ofs, mix_weight_ofs),
+                      param2_ofs,
+                      compiler.encode_uchar4(compiler.stack_assign(absorption_coeffs_in),
+                                             compiler.stack_assign(emission_coeffs_in),
+                                             0,
+                                             0));
+  }
+}
+
+void VolumeCoefficientsNode::compile(OSLCompiler &compiler)
+{
+  compiler.parameter(this, "phase");
+  compiler.add(this, "node_volume_coefficients");
 }
 
 /* Principled Volume Closure */

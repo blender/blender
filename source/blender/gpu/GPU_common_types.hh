@@ -181,6 +181,11 @@ struct SpecializationConstant {
     {
       return u == other.u;
     }
+
+    uint64_t hash() const
+    {
+      return uint64_t(u);
+    }
   };
 
   Type type;

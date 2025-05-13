@@ -83,28 +83,27 @@ struct SelectPick_Params {
    * - #SEL_OP_AND (never used for picking).
    * - #SEL_OP_SET use when "extend", "deselect" and "toggle" are all disabled.
    */
-  eSelectOp sel_op;
+  eSelectOp sel_op = SEL_OP_SET;
   /** Deselect all, even when there is nothing found at the cursor location. */
-  bool deselect_all;
+  bool deselect_all = false;
   /**
    * When selecting an element that is already selected, do nothing (passthrough).
    * don't even make it active.
    * Use to implement tweaking to move the selection without first de-selecting.
    */
-  bool select_passthrough;
+  bool select_passthrough = false;
 };
 
 /**
  * Utility to get #eSelectPickMode from booleans for convenience.
  */
-eSelectOp ED_select_op_from_operator(PointerRNA *ptr) ATTR_NONNULL(1) ATTR_WARN_UNUSED_RESULT;
+eSelectOp ED_select_op_from_operator(PointerRNA *ptr) ATTR_WARN_UNUSED_RESULT;
 
 /**
  * Initialize `params` from `op`,
  * these properties are defined by #WM_operator_properties_mouse_select.
  */
-void ED_select_pick_params_from_operator(PointerRNA *ptr, SelectPick_Params *params)
-    ATTR_NONNULL(1, 2);
+SelectPick_Params ED_select_pick_params_from_operator(PointerRNA *ptr) ATTR_NONNULL(1);
 
 /**
  * Get-name callback for #wmOperatorType.get_name, this is mainly useful so the selection

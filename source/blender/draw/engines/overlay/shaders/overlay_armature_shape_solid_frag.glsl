@@ -14,7 +14,7 @@ void main()
    * but needed for view clarity in X-ray mode and support
    * for inverted bone matrices. */
   if ((inverted == 1) == gl_FrontFacing) {
-    discard;
+    gpu_discard_fragment();
     return;
   }
   frag_color = float4(final_color.rgb, alpha);

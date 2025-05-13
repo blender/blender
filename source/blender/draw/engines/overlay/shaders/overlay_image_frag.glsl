@@ -21,7 +21,7 @@ void main()
     /* Arbitrary discard anything below 5% opacity.
      * Note that this could be exposed to the User. */
     if (tex_color.a < 0.05f) {
-      discard;
+      gpu_discard_fragment();
     }
     else {
       frag_color.a = 1.0f;

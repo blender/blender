@@ -175,7 +175,7 @@ static void workspace_blend_read_after_liblink(BlendLibReader *reader, ID *id)
 }
 
 IDTypeInfo IDType_ID_WS = {
-    /*id_code*/ ID_WS,
+    /*id_code*/ WorkSpace::id_type,
     /*id_filter*/ FILTER_ID_WS,
     /*dependencies_id_types*/ FILTER_ID_SCE,
     /*main_listbase_index*/ INDEX_ID_WS,
@@ -316,7 +316,7 @@ static bool UNUSED_FUNCTION(workspaces_is_screen_used)
 
 WorkSpace *BKE_workspace_add(Main *bmain, const char *name)
 {
-  WorkSpace *new_workspace = static_cast<WorkSpace *>(BKE_id_new(bmain, ID_WS, name));
+  WorkSpace *new_workspace = BKE_id_new<WorkSpace>(bmain, name);
   id_us_ensure_real(&new_workspace->id);
   return new_workspace;
 }

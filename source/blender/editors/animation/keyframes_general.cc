@@ -1657,7 +1657,7 @@ static SlotMatchMethod get_slot_match_method(const bool from_single,
 /**
  * Return the first item in the copy buffer that matches the given bAnimListElem.
  *
- * \param ale_to_paste_into must be an ALE that represents an F-Curve. The entire ALE is passed
+ * \param ale_to_paste_into: must be an ALE that represents an F-Curve. The entire ALE is passed
  * (instead of just the F-Curve) as it provides information about the Action & Slot it came from.
  */
 static const FCurve *pastebuf_find_matching_copybuf_item(const pastebuf_match_func strategy,

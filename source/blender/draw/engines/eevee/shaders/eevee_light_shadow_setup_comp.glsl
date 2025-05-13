@@ -43,7 +43,7 @@ void orthographic_sync(int tilemap_id,
     tilemaps_clip_buf[clip_index].object_to_world = object_to_world;
   }
   else {
-    /* Same light direction but camera might have moved. Shift tilemap grid.  */
+    /* Same light direction but camera might have moved. Shift tilemap grid. */
     tilemaps_buf[tilemap_id].grid_shift = origin_offset -
                                           tilemaps_clip_buf[clip_index].grid_offset;
   }

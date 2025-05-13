@@ -59,7 +59,7 @@ static NodeOperation *get_compositor_operation(Context &context, DNode node)
 
 }  // namespace blender::nodes
 
-void register_node_type_cmp_scene_time()
+static void register_node_type_cmp_scene_time()
 {
   static blender::bke::bNodeType ntype;
 
@@ -73,3 +73,4 @@ void register_node_type_cmp_scene_time()
 
   blender::bke::node_register_type(ntype);
 }
+NOD_REGISTER_NODE(register_node_type_cmp_scene_time)

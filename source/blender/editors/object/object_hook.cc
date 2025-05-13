@@ -594,7 +594,7 @@ static int add_hook_object(const bContext *C,
    */
   /*        (parentinv) */
   Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
-  Object *object_eval = DEG_get_evaluated_object(depsgraph, ob);
+  Object *object_eval = DEG_get_evaluated(depsgraph, ob);
   BKE_object_transform_copy(object_eval, ob);
   BKE_object_where_is_calc(depsgraph, scene_eval, object_eval);
 

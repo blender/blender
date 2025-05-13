@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'1f4cae0c4623')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'a7d2b7850ef2')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-28 09:32+0000\n"
+"POT-Creation-Date: 2025-05-05 08:47+0000\n"
 "PO-Revision-Date: 2025-04-14 08:41+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Serbian (Latin script) <https://translate.blender.org/projects/blender-ui/ui/sr_Latn/>\n"
@@ -8581,8 +8581,44 @@ msgid "Material slot name"
 msgstr "Naziv slota materijala"
 
 
+msgid "Select Linked"
+msgstr "Izaberi povezano"
+
+
+msgid "Metaball"
+msgstr "Meta lopta"
+
+
+msgid "Light"
+msgstr "Svetlost"
+
+
+msgid "Relations"
+msgstr "Odnosi"
+
+
+msgid "Rigid Body"
+msgstr "Kruto telo"
+
+
+msgid "Apply"
+msgstr "Primeni"
+
+
+msgid "Track"
+msgstr "Staza"
+
+
+msgid "Quick Effects"
+msgstr "Brzi efekti"
+
+
 msgid "Show/Hide"
 msgstr "Prikaži/sakrij"
+
+
+msgid "Hooks"
+msgstr "Udice"
 
 
 msgid "Clear Transform"
@@ -8599,10 +8635,6 @@ msgstr "Prenesi"
 
 msgid "Names"
 msgstr "Imena"
-
-
-msgid "Apply"
-msgstr "Primeni"
 
 
 msgid "Toggle Bone Options"
@@ -8627,10 +8659,6 @@ msgstr "Sjedini"
 
 msgid "Special Characters"
 msgstr "Specijalni znaci"
-
-
-msgid "Metaball"
-msgstr "Meta lopta"
 
 
 msgid "Bone Roll"
@@ -8659,34 +8687,6 @@ msgstr "Navigacija"
 
 msgid "Align View"
 msgstr "Poravnaj pogled"
-
-
-msgid "Select Linked"
-msgstr "Izaberi povezano"
-
-
-msgid "Light"
-msgstr "Svetlost"
-
-
-msgid "Relations"
-msgstr "Odnosi"
-
-
-msgid "Rigid Body"
-msgstr "Kruto telo"
-
-
-msgid "Track"
-msgstr "Staza"
-
-
-msgid "Quick Effects"
-msgstr "Brzi efekti"
-
-
-msgid "Hooks"
-msgstr "Udice"
 
 
 msgid "Basic"
@@ -10667,20 +10667,8 @@ msgid "Box Mask"
 msgstr "Maska kutije"
 
 
-msgid "Height of the box"
-msgstr "Visina kutije"
-
-
 msgid "Not"
 msgstr "Ne"
-
-
-msgid "Width of the box"
-msgstr "Širina kutije"
-
-
-msgid "Rotation angle of the box"
-msgstr "Ugao rotacije kutije"
 
 
 msgid "Channel Key"
@@ -10731,23 +10719,11 @@ msgid "Shadows Contrast"
 msgstr "Kontrast senki"
 
 
-msgid "Shadows contrast"
-msgstr "Kontrast senki"
-
-
 msgid "Shadows Gamma"
 msgstr "Gama senki"
 
 
-msgid "Shadows gamma"
-msgstr "Gama senki"
-
-
 msgid "Shadows Saturation"
-msgstr "Zasićenost senki"
-
-
-msgid "Shadows saturation"
 msgstr "Zasićenost senki"
 
 
@@ -10897,18 +10873,6 @@ msgstr "Zadrži u"
 
 msgid "Ellipse Mask"
 msgstr "Eliptična maska"
-
-
-msgid "Height of the ellipse"
-msgstr "Visina elipse"
-
-
-msgid "Width of the ellipse"
-msgstr "Širina elipse"
-
-
-msgid "Rotation angle of the ellipse"
-msgstr "Ugao rotacije elipse"
 
 
 msgid "Filter Type"
@@ -23610,6 +23574,10 @@ msgid "Lock Invert All"
 msgstr "Zaključaj sve obrnuto"
 
 
+msgid "Auto Normalize"
+msgstr "Auto-normalizacija"
+
+
 msgid "Detail"
 msgstr "Detaljnost"
 
@@ -24676,10 +24644,6 @@ msgid "Parents"
 msgstr "Roditelji"
 
 
-msgid "Auto Normalize"
-msgstr "Auto-normalizacija"
-
-
 msgid "Multi-Paint"
 msgstr "Višestruko bojenje"
 
@@ -25731,10 +25695,6 @@ msgstr "Uređivač video isečaka"
 
 msgid "Mask not found"
 msgstr "Maskiraj pozadinu"
-
-
-msgid "No active sequence!"
-msgstr "Bez aktivne sekvence!"
 
 
 msgid "unknown error writing file"

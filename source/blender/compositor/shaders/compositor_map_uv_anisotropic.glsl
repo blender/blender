@@ -49,18 +49,6 @@ void main()
    * utilize the anisotropic filtering capabilities of the sampler. */
   float4 sampled_color = textureGrad(input_tx, uv_coordinates, x_gradient, y_gradient);
 
-  /* The UV coordinates might be defined in only a subset area of the UV textures, in which case,
-   * the gradients would be infinite at the boundary of that area, which would produce erroneous
-   * results due to anisotropic filtering. To workaround this, we attenuate the result if its
-   * computed gradients are too high such that the result tends to zero when the magnitude of the
-   * gradients tends to one, that is when their sum tends to 2. One is chosen as the threshold
-   * because that's the maximum gradient magnitude when the boundary is the maximum sampler value
-   * of one and the out of bound values are zero. Additionally, the user supplied gradient
-   * attenuation factor can be used to control this attenuation or even disable it when it is zero,
-   * ranging between zero and one. */
-  float gradient_magnitude = (length(x_gradient) + length(y_gradient)) / 2.0f;
-  float gradient_attenuation = max(0.0f, 1.0f - gradient_attenuation_factor * gradient_magnitude);
-
   /* The UV texture is assumed to contain an alpha channel as its third channel, since the UV
    * coordinates might be defined in only a subset area of the UV texture as mentioned. In that
    * case, the alpha is typically opaque at the subset area and transparent everywhere else, and
@@ -68,7 +56,7 @@ void main()
    * coordinates is the format used by UV passes in render engines, hence the mentioned logic. */
   float alpha = texture_load(uv_tx, texel).z;
 
-  float4 result = sampled_color * gradient_attenuation * alpha;
+  float4 result = sampled_color * alpha;
 
   imageStore(output_img, texel, result);
 }

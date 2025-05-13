@@ -176,28 +176,30 @@ uiBlock *template_common_search_menu(const bContext *C,
   /* preview thumbnails */
   if (preview_rows > 0 && preview_cols > 0) {
     const int w = 4 * U.widget_unit * preview_cols * scale;
-    const int h = 5 * U.widget_unit * preview_rows * scale;
+    const int h = 5 * U.widget_unit * preview_rows * scale + 2 * UI_SEARCHBOX_TRIA_H -
+                  UI_SEARCHBOX_BOUNDS;
 
     /* fake button, it holds space for search items */
-    uiDefBut(block, UI_BTYPE_LABEL, 0, "", 10, 26, w, h, nullptr, 0, 0, std::nullopt);
+    uiDefBut(block, UI_BTYPE_LABEL, 0, "", 0, UI_UNIT_Y, w, h, nullptr, 0, 0, std::nullopt);
 
-    but = uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, sizeof(search), 10, 0, w, UI_UNIT_Y, "");
+    but = uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, sizeof(search), 0, 0, w, UI_UNIT_Y, "");
     UI_but_search_preview_grid_size_set(but, preview_rows, preview_cols);
   }
   /* list view */
   else {
     const int searchbox_width = int(float(UI_searchbox_size_x()) * 1.4f);
     const int searchbox_height = UI_searchbox_size_y();
+    const int search_but_height = UI_UNIT_Y - 1.0f * UI_SCALE_FAC;
 
     /* fake button, it holds space for search items */
     uiDefBut(block,
              UI_BTYPE_LABEL,
              0,
              "",
-             10,
-             15,
+             0,
+             search_but_height,
              searchbox_width,
-             searchbox_height,
+             searchbox_height - UI_SEARCHBOX_BOUNDS,
              nullptr,
              0,
              0,
@@ -207,10 +209,10 @@ uiBlock *template_common_search_menu(const bContext *C,
                          0,
                          ICON_VIEWZOOM,
                          sizeof(search),
-                         10,
+                         0,
                          0,
                          searchbox_width,
-                         UI_UNIT_Y - 1,
+                         search_but_height,
                          "");
   }
   UI_but_func_search_set(but,
@@ -223,7 +225,7 @@ uiBlock *template_common_search_menu(const bContext *C,
                          active_item);
   UI_but_func_search_set_tooltip(but, item_tooltip_fn);
 
-  UI_block_bounds_set_normal(block, 0.3f * U.widget_unit);
+  UI_block_bounds_set_normal(block, UI_SEARCHBOX_BOUNDS);
   UI_block_direction_set(block, UI_DIR_DOWN);
 
   /* give search-field focus */
@@ -242,7 +244,7 @@ uiBlock *template_common_search_menu(const bContext *C,
 
 void uiTemplateHeader(uiLayout *layout, bContext *C)
 {
-  uiBlock *block = uiLayoutAbsoluteBlock(layout);
+  uiBlock *block = layout->absolute_block();
   ED_area_header_switchbutton(C, block, 0);
 }
 
@@ -270,7 +272,7 @@ void uiTemplatePathBuilder(uiLayout *layout,
   uiLayout *row = &layout->row(true);
 
   /* Path (existing string) Widget */
-  uiItemR(row, ptr, propname, UI_ITEM_NONE, text, ICON_RNA);
+  row->prop(ptr, propname, UI_ITEM_NONE, text, ICON_RNA);
 
   /* TODO: attach something to this to make allow
    * searching of nested properties to 'build' the path */

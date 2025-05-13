@@ -275,7 +275,7 @@ struct MeshNormalInfo {
     }
     if (custom_normal->data_type == CD_PROP_FLOAT3) {
       if (custom_normal->domain == bke::AttrDomain::Edge) {
-        /* Skip invalid storage on the edge domain.*/
+        /* Skip invalid storage on the edge domain. */
         this->add_no_custom_normals(mesh.normals_domain());
         return;
       }
@@ -1037,6 +1037,8 @@ static OrderedAttributes gather_generic_instance_attributes_to_propagate(
   Map<StringRef, AttributeDomainAndType> attributes_to_propagate = gather_attributes_to_propagate(
       in_geometry_set, bke::GeometryComponent::Type::Instance, options, varied_depth_option);
   attributes_to_propagate.pop_try("id");
+  attributes_to_propagate.pop_try("instance_transform");
+  attributes_to_propagate.pop_try(".reference_index");
   OrderedAttributes ordered_attributes;
   for (const auto item : attributes_to_propagate.items()) {
     ordered_attributes.ids.add_new(item.key);
@@ -1047,9 +1049,9 @@ static OrderedAttributes gather_generic_instance_attributes_to_propagate(
 
 static void execute_instances_tasks(
     const Span<bke::GeometryComponentPtr> src_components,
-    Span<blender::float4x4> src_base_transforms,
-    OrderedAttributes all_instances_attributes,
-    Span<blender::geometry::AttributeFallbacksArray> attribute_fallback,
+    const Span<blender::float4x4> src_base_transforms,
+    const OrderedAttributes &all_instances_attributes,
+    const Span<blender::geometry::AttributeFallbacksArray> attribute_fallback,
     bke::GeometrySet &r_realized_geometry)
 {
   BLI_assert(src_components.size() == src_base_transforms.size() &&
@@ -1678,7 +1680,12 @@ static void copy_vertex_group_names(Mesh &dst_mesh,
   for (const Mesh *mesh : src_meshes) {
     LISTBASE_FOREACH (const bDeformGroup *, src, &mesh->vertex_group_names) {
       const StringRef src_name = src->name;
-      const int attribute_index = ordered_attributes.ids.index_of(src_name);
+      const int attribute_index = ordered_attributes.ids.index_of_try(src_name);
+      if (attribute_index == -1) {
+        /* The attribute is not propagated to the result (possibly because the mesh isn't included
+         * in the realized output because of the #VariedDepthOptions input). */
+        continue;
+      }
       const bke::AttributeDomainAndType kind = ordered_attributes.kinds[attribute_index];
       if (kind.domain != bke::AttrDomain::Point || kind.data_type != CD_PROP_FLOAT) {
         /* Prefer using the highest priority domain and type from all input meshes. */

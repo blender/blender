@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'1f4cae0c4623')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'a7d2b7850ef2')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-28 09:32+0000\n"
-"PO-Revision-Date: 2025-04-27 12:52+0000\n"
+"POT-Creation-Date: 2025-05-05 08:47+0000\n"
+"PO-Revision-Date: 2025-05-05 08:14+0000\n"
 "Last-Translator: Ye Gui <ziweidao@foxmail.com>\n"
 "Language-Team: Chinese (Simplified Han script) <https://translate.blender.org/projects/blender-ui/ui/zh_Hans/>\n"
 "Language: zh_HANS\n"
@@ -19852,16 +19852,6 @@ msgstr "折痕"
 
 
 msgctxt "Brush"
-msgid "Flatten"
-msgstr "平化"
-
-
-msgctxt "Brush"
-msgid "Scrape"
-msgstr "刮削"
-
-
-msgctxt "Brush"
 msgid "Plane"
 msgstr "平面"
 
@@ -20896,8 +20886,40 @@ msgid "Camera near clipping distance"
 msgstr "摄像机近裁距离"
 
 
+msgid "Custom File Path"
+msgstr "自定义文件路径"
+
+
+msgid "Path to the shader defining the custom camera"
+msgstr "自定义摄像机的着色器的路径"
+
+
+msgid "Custom shader source"
+msgstr "自定义着色器源"
+
+
 msgid "Use internal text data-block"
 msgstr "使用内部文本数据块"
+
+
+msgid "Use external file"
+msgstr "使用外部文件"
+
+
+msgid "Custom Shader"
+msgstr "自定义着色器"
+
+
+msgid "Shader defining the custom camera"
+msgstr "定义摄像机的着色器"
+
+
+msgid "Cycles Custom Camera Settings"
+msgstr "Cycles 自定义摄像机设置"
+
+
+msgid "Parameters for custom (OSL-based) Cameras"
+msgstr "自定义 (基于 OSL) 摄像机的参数"
 
 
 msgid "Apparent size of the Camera object in the 3D View"
@@ -34469,6 +34491,102 @@ msgid "Editor menu containing buttons"
 msgstr "包含按钮的编辑器菜单"
 
 
+msgid "Select Similar"
+msgstr "选择相似"
+
+
+msgid "Select All by Trait"
+msgstr "按特征全选"
+
+
+msgid "Select More/Less"
+msgstr "扩展/缩减选择"
+
+
+msgid "Select Linked"
+msgstr "选择相连元素"
+
+
+msgid "Select Loops"
+msgstr "选择循环"
+
+
+msgid "Assign Material"
+msgstr "指定材质"
+
+
+msgid "Metaball"
+msgstr "融球"
+
+
+msgid "Light"
+msgstr "灯光"
+
+
+msgid "Light Probe"
+msgstr "光照探头"
+
+
+msgid "Add Image"
+msgstr "添加图像"
+
+
+msgid "Relations"
+msgstr "关系"
+
+
+msgid "Rigid Body"
+msgstr "刚体"
+
+
+msgid "Apply"
+msgstr "应用"
+
+
+msgid "Track"
+msgstr "追踪"
+
+
+msgid "Quick Effects"
+msgstr "快速效果"
+
+
+msgid "Show/Hide"
+msgstr "显示 / 隐藏"
+
+
+msgid "Clean Up"
+msgstr "清理"
+
+
+msgid "Asset"
+msgstr "资产"
+
+
+msgid "Make Single User"
+msgstr "使其独立化"
+
+
+msgid "Convert"
+msgstr "转换"
+
+
+msgid "Link/Transfer Data"
+msgstr "关联/传递数据"
+
+
+msgid "Hooks"
+msgstr "钩挂"
+
+
+msgid "Vertex Group Locks"
+msgstr "顶点组锁"
+
+
+msgid "Trim/Add"
+msgstr "修剪 / 添加"
+
+
 msgid "Sculpt Set Pivot"
 msgstr "雕刻集轴心点"
 
@@ -34479,10 +34597,6 @@ msgstr "面组初始化"
 
 msgid "Random Mask"
 msgstr "随机遮罩"
-
-
-msgid "Show/Hide"
-msgstr "显示 / 隐藏"
 
 
 msgid "Clear Transform"
@@ -34503,10 +34617,6 @@ msgstr "骨骼集合"
 
 msgid "Names"
 msgstr "名称"
-
-
-msgid "Apply"
-msgstr "应用"
 
 
 msgid "Toggle Bone Options"
@@ -34537,10 +34647,6 @@ msgid "Set Face Strength"
 msgstr "设置面强度"
 
 
-msgid "Clean Up"
-msgstr "清理"
-
-
 msgid "Merge"
 msgstr "合并"
 
@@ -34555,10 +34661,6 @@ msgstr "字距"
 
 msgid "Text"
 msgstr "文本"
-
-
-msgid "Metaball"
-msgstr "融球"
 
 
 msgid "Bone Roll"
@@ -34587,10 +34689,6 @@ msgstr "自动遮罩"
 
 msgid "Face Sets Edit"
 msgstr "面组编辑"
-
-
-msgid "Vertex Group Locks"
-msgstr "顶点组锁"
 
 
 msgid "Mirror"
@@ -34623,82 +34721,6 @@ msgstr "视图对齐活动项"
 
 msgid "View Regions"
 msgstr "视图框"
-
-
-msgid "Select More/Less"
-msgstr "扩展/缩减选择"
-
-
-msgid "Select Similar"
-msgstr "选择相似"
-
-
-msgid "Select All by Trait"
-msgstr "按特征全选"
-
-
-msgid "Select Linked"
-msgstr "选择相连元素"
-
-
-msgid "Select Loops"
-msgstr "选择循环"
-
-
-msgid "Assign Material"
-msgstr "指定材质"
-
-
-msgid "Light"
-msgstr "灯光"
-
-
-msgid "Light Probe"
-msgstr "光照探头"
-
-
-msgid "Add Image"
-msgstr "添加图像"
-
-
-msgid "Relations"
-msgstr "关系"
-
-
-msgid "Rigid Body"
-msgstr "刚体"
-
-
-msgid "Track"
-msgstr "追踪"
-
-
-msgid "Quick Effects"
-msgstr "快速效果"
-
-
-msgid "Asset"
-msgstr "资产"
-
-
-msgid "Make Single User"
-msgstr "使其独立化"
-
-
-msgid "Convert"
-msgstr "转换"
-
-
-msgid "Link/Transfer Data"
-msgstr "关联/传递数据"
-
-
-msgid "Hooks"
-msgstr "钩挂"
-
-
-msgid "Trim/Add"
-msgstr "修剪 / 添加"
 
 
 msgid "Keyframe Insert Pie"
@@ -37133,8 +37155,24 @@ msgid "Method for calculating booleans"
 msgstr "布尔的运算方法"
 
 
+msgid "Simple solver with good performance, without support for overlapping geometry"
+msgstr "简单的解算器，可获得最佳性能，不支持重叠的几何体"
+
+
 msgid "Exact"
 msgstr "准确"
+
+
+msgid "Slower solver with the best results for coplanar faces"
+msgstr "较慢的解算器，但共面求解结果最佳"
+
+
+msgid "Manifold"
+msgstr "流形"
+
+
+msgid "Fastest solver that works only on manifold meshes but gives better results"
+msgstr "最快的解算器，只适用于流形网格，但结果更好"
 
 
 msgid "Hole Tolerant"
@@ -44534,10 +44572,6 @@ msgid "Variable Size"
 msgstr "可变尺寸"
 
 
-msgid "Support variable blur per pixel when using an image for size input"
-msgstr "当使用图像作为输入'尺寸'时, 支持每像素的模糊可变"
-
-
 msgid "Bokeh Blur"
 msgstr "散景模糊"
 
@@ -44606,10 +44640,6 @@ msgid "Create rectangular mask suitable for use as a simple matte"
 msgstr "创建用作简单选区的矩形遮罩"
 
 
-msgid "Height of the box"
-msgstr "矩形盒的高度"
-
-
 msgid "Mask Type"
 msgstr "遮罩类型"
 
@@ -44618,32 +44648,12 @@ msgid "Not"
 msgstr "非"
 
 
-msgid "Width of the box"
-msgstr "矩形盒的宽度"
-
-
-msgid "Rotation angle of the box"
-msgstr "矩形盒的旋转角度"
-
-
-msgid "X position of the middle of the box"
-msgstr "矩形盒中心的 X 位置"
-
-
-msgid "Y position of the middle of the box"
-msgstr "矩形盒中心的 Y 位置"
-
-
 msgid "Brightness/Contrast"
 msgstr "亮度/对比度"
 
 
 msgid "Adjust brightness and contrast"
 msgstr "调整亮度与对比度"
-
-
-msgid "Keep output image premultiplied alpha"
-msgstr "保留输出图像预乘alpha"
 
 
 msgid "Channel Key"
@@ -44857,19 +44867,7 @@ msgid "Adjust the color of an image, separately in several tonal ranges (highlig
 msgstr "在多个色调范围（高光、中间色和阴影）中分别调整图像的颜色"
 
 
-msgid "Blue channel active"
-msgstr "活动的蓝色通道"
-
-
-msgid "Green channel active"
-msgstr "活动的绿色通道"
-
-
 msgid "Highlights Contrast"
-msgstr "高亮对比度"
-
-
-msgid "Highlights contrast"
 msgstr "高亮对比度"
 
 
@@ -44877,15 +44875,7 @@ msgid "Highlights Gain"
 msgstr "高亮增益"
 
 
-msgid "Highlights gain"
-msgstr "高亮增益"
-
-
 msgid "Highlights Gamma"
-msgstr "高亮伽玛值"
-
-
-msgid "Highlights gamma"
 msgstr "高亮伽玛值"
 
 
@@ -44893,15 +44883,7 @@ msgid "Highlights Lift"
 msgstr "高亮亮度提升"
 
 
-msgid "Highlights lift"
-msgstr "亮调提升"
-
-
 msgid "Highlights Saturation"
-msgstr "高亮饱和度"
-
-
-msgid "Highlights saturation"
 msgstr "高亮饱和度"
 
 
@@ -44909,23 +44891,11 @@ msgid "Master Contrast"
 msgstr "主对比度"
 
 
-msgid "Master contrast"
-msgstr "主对比度"
-
-
 msgid "Master Gain"
 msgstr "主增益"
 
 
-msgid "Master gain"
-msgstr "主色调增益"
-
-
 msgid "Master Gamma"
-msgstr "主伽玛值"
-
-
-msgid "Master gamma"
 msgstr "主伽玛值"
 
 
@@ -44933,15 +44903,7 @@ msgid "Master Lift"
 msgstr "主调提升"
 
 
-msgid "Master lift"
-msgstr "主色调提升"
-
-
 msgid "Master Saturation"
-msgstr "主色调饱和度"
-
-
-msgid "Master saturation"
 msgstr "主色调饱和度"
 
 
@@ -44949,23 +44911,11 @@ msgid "Midtones Contrast"
 msgstr "中间调对比度"
 
 
-msgid "Midtones contrast"
-msgstr "中间调对比度"
-
-
 msgid "Midtones End"
 msgstr "中间调末端"
 
 
-msgid "End of midtones"
-msgstr "中间调的尾部"
-
-
 msgid "Midtones Gain"
-msgstr "中间调增益"
-
-
-msgid "Midtones gain"
 msgstr "中间调增益"
 
 
@@ -44973,15 +44923,7 @@ msgid "Midtones Gamma"
 msgstr "中间调伽玛"
 
 
-msgid "Midtones gamma"
-msgstr "中间调伽玛"
-
-
 msgid "Midtones Lift"
-msgstr "中间调提升"
-
-
-msgid "Midtones lift"
 msgstr "中间调提升"
 
 
@@ -44989,27 +44931,11 @@ msgid "Midtones Saturation"
 msgstr "中间调饱和度"
 
 
-msgid "Midtones saturation"
-msgstr "中间调饱和度"
-
-
 msgid "Midtones Start"
 msgstr "中间调开始"
 
 
-msgid "Start of midtones"
-msgstr "中间调起始位置"
-
-
-msgid "Red channel active"
-msgstr "活动的红色通道"
-
-
 msgid "Shadows Contrast"
-msgstr "阴影对比度"
-
-
-msgid "Shadows contrast"
 msgstr "阴影对比度"
 
 
@@ -45017,15 +44943,7 @@ msgid "Shadows Gain"
 msgstr "阴影增益"
 
 
-msgid "Shadows gain"
-msgstr "阴影增益"
-
-
 msgid "Shadows Gamma"
-msgstr "阴影伽玛值"
-
-
-msgid "Shadows gamma"
 msgstr "阴影伽玛值"
 
 
@@ -45033,16 +44951,8 @@ msgid "Shadows Lift"
 msgstr "阴影提升"
 
 
-msgid "Shadows lift"
-msgstr "阴影提升"
-
-
 msgid "Shadows Saturation"
 msgstr "暗调饱和度"
-
-
-msgid "Shadows saturation"
-msgstr "阴影饱和度"
 
 
 msgid "Color Key"
@@ -45179,10 +45089,6 @@ msgstr "合成"
 
 msgid "Final render output"
 msgstr "最终渲染输出"
-
-
-msgid "Colors are treated alpha premultiplied, or colors output straight (alpha gets set to 1)"
-msgstr "经预乘Alpha处理的颜色, 或输出为直通alpha的颜色 (alpha值设为1)"
 
 
 msgid "Convert Colorspace"
@@ -45421,6 +45327,10 @@ msgid "Center Y"
 msgstr "中心Y"
 
 
+msgid "(Deprecated: Use Samples input instead.)"
+msgstr "(已弃用: 使用采样输入代替.)"
+
+
 msgid "Spin"
 msgstr "旋绕"
 
@@ -45493,20 +45403,12 @@ msgid "Scene from which to select the active camera (render scene if undefined)"
 msgstr "从中选择活动摄像机的场景 (如果未定义, 则渲染场景)"
 
 
-msgid "CoC radius threshold, prevents background bleed on in-focus midground, 0 is disabled"
-msgstr "模糊圈半径阈值, 避免背景溢出到间景的非焦点区, 0= 关闭"
-
-
 msgid "Gamma Correction"
 msgstr "伽玛校正"
 
 
 msgid "Enable gamma correction before and after main process"
 msgstr "在主过程前后启用伽玛校正"
-
-
-msgid "Enable low quality mode, useful for preview"
-msgstr "启用低质量模式, 有助于预览"
 
 
 msgid "Use Z-Buffer"
@@ -45708,26 +45610,6 @@ msgstr "椭圆遮罩"
 
 msgid "Create elliptical mask suitable for use as a simple matte or vignette mask"
 msgstr "创建适合用作简单蒙版或渐晕遮罩的椭圆蒙版"
-
-
-msgid "Height of the ellipse"
-msgstr "椭圆遮罩的高度"
-
-
-msgid "Width of the ellipse"
-msgstr "椭圆遮罩的宽度"
-
-
-msgid "Rotation angle of the ellipse"
-msgstr "椭圆遮罩的旋转角度"
-
-
-msgid "X position of the middle of the ellipse"
-msgstr "椭圆遮罩中心点的 X 向位置"
-
-
-msgid "Y position of the middle of the ellipse"
-msgstr "椭圆遮罩中心点的 Y 向位置"
 
 
 msgid "Adjust brightness using a camera exposure parameter"
@@ -46015,6 +45897,10 @@ msgid "Create plates for use as a color reference for keying nodes"
 msgstr "创建用作抠像节点颜色参考的色板"
 
 
+msgid "(Deprecated: Use Smoothness input instead.)"
+msgstr "(已弃用: 使用平滑度输入代替.)"
+
+
 msgid "Tracking Object"
 msgstr "追踪物体"
 
@@ -46079,25 +45965,13 @@ msgid "Simulate distortion and dispersion from camera lenses"
 msgstr "模拟相机镜头的畸变和色散"
 
 
-msgid "For positive distortion factor only: scale image such that black areas are not visible"
-msgstr "仅用于正畸变系数: 缩放图像, 直到黑色区域不可见"
-
-
 msgctxt "NodeTree"
 msgid "Jitter"
 msgstr "抖动"
 
 
-msgid "Enable/disable jittering (faster, but also noisier)"
-msgstr "开启/关闭抖动 (较快, 但噪点较多)"
-
-
 msgid "Projector"
 msgstr "投影源"
-
-
-msgid "Enable/disable projector mode (the effect is applied in horizontal direction only)"
-msgstr "开启/关闭投影器模式 (效果仅在水平方向上应用)"
 
 
 msgid "Compute average and standard deviation of pixel values"
@@ -46908,14 +46782,6 @@ msgid "Ray Length"
 msgstr "射线长度"
 
 
-msgid "Length of rays as a factor of the image size"
-msgstr "作为图像尺寸系数的射线长度值"
-
-
-msgid "Source point of rays as a factor of the image width and height"
-msgstr "作为图像宽高系数的射线源点"
-
-
 msgid "Switch"
 msgstr "切换"
 
@@ -47130,6 +46996,10 @@ msgstr "模糊系数"
 
 msgid "Max Speed"
 msgstr "最大速度"
+
+
+msgid "Maximum speed, or zero for none. (Deprecated.)"
+msgstr "最大速度, 或用 0 表示无. (已弃用.)"
 
 
 msgid "Min Speed"
@@ -55628,10 +55498,6 @@ msgstr "为视觉或音频片段添加或更新淡入淡出动画"
 msgctxt "Operator"
 msgid "Add Fades"
 msgstr "添加淡化"
-
-
-msgid "Removes fade animation from selected sequences"
-msgstr "从所选序列中删除淡入淡出动画"
 
 
 msgctxt "Operator"
@@ -71497,6 +71363,15 @@ msgstr "将中间的顶点吸附至坐标轴中心"
 
 
 msgctxt "Operator"
+msgid "Triangles to Quads"
+msgstr "三角面 -> 四边面"
+
+
+msgid "Merge triangles into four sided polygons where possible"
+msgstr "尽可能将三角形合并为四边多边形"
+
+
+msgctxt "Operator"
 msgid "Un-Subdivide"
 msgstr "反细分"
 
@@ -73730,6 +73605,15 @@ msgstr "向场景中添加一个摄像机物体"
 
 
 msgctxt "Operator"
+msgid "Custom Camera Update"
+msgstr "自定义摄像机更新"
+
+
+msgid "Update custom camera with new parameters from the shader"
+msgstr "使用着色器中的新参数更新自定义摄像机"
+
+
+msgctxt "Operator"
 msgid "Clear Library Override"
 msgstr "清除库重写"
 
@@ -74548,10 +74432,6 @@ msgstr "将选中的物体合并到活动物体"
 msgctxt "Operator"
 msgid "Join as Shapes"
 msgstr "合并为形变"
-
-
-msgid "Copy the current resulting shape of another selected object to this one"
-msgstr "复制另一个选定物体的当前结果形状到此物体"
 
 
 msgctxt "Operator"
@@ -82798,16 +82678,8 @@ msgid "From Current Frame"
 msgstr "自当前帧"
 
 
-msgid "Fade from the time cursor to the end of overlapping sequences"
-msgstr "从时间轴光标处淡化至重叠序列的末尾"
-
-
 msgid "To Current Frame"
 msgstr "至当前帧"
-
-
-msgid "Fade from the start of sequences under the time cursor to the current frame"
-msgstr "从时间轴光标下的序列开始淡化至当前帧"
 
 
 msgctxt "Operator"
@@ -83062,10 +82934,6 @@ msgstr "将片段长度调整到其数据长度"
 msgctxt "Operator"
 msgid "Set Render Size"
 msgstr "设置渲染尺寸"
-
-
-msgid "Set render size and aspect from active sequence"
-msgstr "按照活动序列设置渲染的尺寸及宽高比"
 
 
 msgctxt "Operator"
@@ -84511,6 +84379,15 @@ msgstr "取消缩进选定的文本"
 
 msgid "Unlink active text data-block"
 msgstr "断开活动文本数据块的关联"
+
+
+msgctxt "Operator"
+msgid "Shader Update"
+msgstr "着色器更新"
+
+
+msgid "Update users of this shader, such as custom cameras and script nodes, with its new sockets and options"
+msgstr "使用新接口和选项更新此着色器的使用者，如自定义摄像机和脚本节点"
 
 
 msgctxt "Operator"
@@ -88543,6 +88420,18 @@ msgid "Apply current scene's unit (as defined by unit scale) to imported data"
 msgstr "应用当前场景单位(由单位比例定义)导入数据"
 
 
+msgid "Relocate a linked ID, i.e. select another ID to link, and remap its local usages to that newly linked data-block). Currently only designed as an internal operator, not directly exposed to the user"
+msgstr "重新定位关联 ID，即选择另一个 ID 进行关联，并将其本地使用重新映射到新关联的数据块。目前只设计为内部操作符，不直接面向用户"
+
+
+msgid "Linked ID Session UID"
+msgstr "关联 ID 会话 UID"
+
+
+msgid "Unique runtime identifier for the linked ID to relocate"
+msgstr "要重新定位的关联 ID 的唯一运行时标识符"
+
+
 msgctxt "Operator"
 msgid "Reload Library"
 msgstr "重载库"
@@ -91362,104 +91251,12 @@ msgid "Panel containing UI elements"
 msgstr "面板包含用户界面元素"
 
 
-msgid "glTF Variants"
-msgstr "glTF 变体"
-
-
-msgid "glTF Material Variants"
-msgstr "glTF 材质变体"
-
-
-msgid "Active Tool"
-msgstr "活动工具"
-
-
-msgid "View Lock"
-msgstr "视图锁定"
-
-
-msgid "Selectability & Visibility"
-msgstr "可选择性 & 可见性"
-
-
-msgid "Wire Color"
-msgstr "线框颜色"
-
-
-msgid "Shadow Settings"
-msgstr "阴影设置"
-
-
-msgid "SSAO Settings"
-msgstr "SSAO设置"
-
-
-msgid "Cavity"
-msgstr "Cavity"
-
-
-msgid "Render Pass"
-msgstr "渲染通道"
-
-
-msgid "Compositor"
-msgstr "合成器"
-
-
-msgid "glTF"
-msgstr "glTF"
-
-
-msgid "glTF Animations"
-msgstr "glTF 动画"
-
-
-msgid "Overlays"
-msgstr "叠加"
+msgid "Drawing Plane"
+msgstr "绘制平面"
 
 
 msgid "Guides"
 msgstr "引导"
-
-
-msgid "Viewer Node"
-msgstr "预览器节点"
-
-
-msgid "Motion Tracking"
-msgstr "运动追踪"
-
-
-msgid "Mesh Edit Mode"
-msgstr "网格编辑模式"
-
-
-msgid "Measurement"
-msgstr "测量"
-
-
-msgid "Curve Edit Mode"
-msgstr "曲线编辑模式"
-
-
-msgid "Curves Edit Mode"
-msgstr "曲线编辑模式"
-
-
-msgid "Snapping"
-msgstr "吸附"
-
-
-msgid "Transform Orientations"
-msgstr "变换坐标系"
-
-
-msgid "Stroke Placement"
-msgstr "笔画放置"
-
-
-msgid "Drawing Plane"
-msgstr "绘制平面"
 
 
 msgid "Grease Pencil Options"
@@ -91502,12 +91299,104 @@ msgid "Viewport Debug"
 msgstr "视口调试"
 
 
+msgid "Stroke Placement"
+msgstr "笔画放置"
+
+
 msgid "VR"
 msgstr "VR"
 
 
 msgid "VR Info"
 msgstr "VR 信息"
+
+
+msgid "glTF Variants"
+msgstr "glTF 变体"
+
+
+msgid "glTF Material Variants"
+msgstr "glTF 材质变体"
+
+
+msgid "glTF"
+msgstr "glTF"
+
+
+msgid "glTF Animations"
+msgstr "glTF 动画"
+
+
+msgid "Active Tool"
+msgstr "活动工具"
+
+
+msgid "View Lock"
+msgstr "视图锁定"
+
+
+msgid "Selectability & Visibility"
+msgstr "可选择性 & 可见性"
+
+
+msgid "Wire Color"
+msgstr "线框颜色"
+
+
+msgid "Shadow Settings"
+msgstr "阴影设置"
+
+
+msgid "SSAO Settings"
+msgstr "SSAO设置"
+
+
+msgid "Cavity"
+msgstr "Cavity"
+
+
+msgid "Render Pass"
+msgstr "渲染通道"
+
+
+msgid "Compositor"
+msgstr "合成器"
+
+
+msgid "Overlays"
+msgstr "叠加"
+
+
+msgid "Viewer Node"
+msgstr "预览器节点"
+
+
+msgid "Motion Tracking"
+msgstr "运动追踪"
+
+
+msgid "Mesh Edit Mode"
+msgstr "网格编辑模式"
+
+
+msgid "Measurement"
+msgstr "测量"
+
+
+msgid "Curve Edit Mode"
+msgstr "曲线编辑模式"
+
+
+msgid "Curves Edit Mode"
+msgstr "曲线编辑模式"
+
+
+msgid "Snapping"
+msgstr "吸附"
+
+
+msgid "Transform Orientations"
+msgstr "变换坐标系"
 
 
 msgid "Import Settings"
@@ -91657,6 +91546,10 @@ msgstr "导出器"
 
 msgid "Aperture"
 msgstr "光圈"
+
+
+msgid "Parameters"
+msgstr "参数"
 
 
 msgid "Beam Shape"
@@ -96107,10 +96000,6 @@ msgid "Use Metal backend"
 msgstr "使用Metal后端"
 
 
-msgid "Vulkan (experimental)"
-msgstr "Vulkan (实验性)"
-
-
 msgid "Use Vulkan backend"
 msgstr "使用 Vulkan 后端"
 
@@ -99158,30 +99047,6 @@ msgid "When using adaptive sampling highlight pixels which are being sampled"
 msgstr "在使用自适应采样时，高亮显示采样中的像素"
 
 
-msgid "Object visibility for camera rays"
-msgstr "物体对于摄像机光线的可见性"
-
-
-msgid "Object visibility for diffuse reflection rays"
-msgstr "物体对于漫反射光线的可见性"
-
-
-msgid "Object visibility for glossy reflection rays"
-msgstr "物体对于光泽反射光线的可见性"
-
-
-msgid "Object visibility for volume scatter rays"
-msgstr "物体对于体积散射光线的可见性"
-
-
-msgid "Object visibility for shadow rays"
-msgstr "物体对于阴影光线的可见性"
-
-
-msgid "Object visibility for transmission rays"
-msgstr "物体对于透射光线的可见性"
-
-
 msgid "Maximum number of bounces the background light will contribute to the render"
 msgstr "背景灯光对渲染贡献的最大反弹次数"
 
@@ -100616,6 +100481,10 @@ msgstr "视图层名称"
 
 msgid "Render Ambient Occlusion in this Layer"
 msgstr "在当前层中渲染AO"
+
+
+msgid "Render Grease Pencil on this layer"
+msgstr "渲染该层中的蜡笔"
 
 
 msgid "Render motion blur in this Layer, if enabled in the scene"
@@ -111191,10 +111060,6 @@ msgid "Weight Paint Auto-Normalize"
 msgstr "自动规格化权重绘制"
 
 
-msgid "Ensure all bone-deforming vertex groups add up to 1.0 while weight painting"
-msgstr "确保全部骨骼封套顶点组在权重绘制时增加至1.0"
-
-
 msgid "Changing edge seams recalculates UV unwrap"
 msgstr "修改缝合边将重新计算 UV 展开"
 
@@ -118003,6 +117868,10 @@ msgid "OSL script compilation failed, see console for errors"
 msgstr "OSL 脚本编译失败, 错误详见控制台"
 
 
+msgid "Custom Camera shader compilation failed, see console for errors"
+msgstr "自定义摄像机着色器编译失败, 错误详见控制台"
+
+
 msgid "No text or file specified in node, nothing to compile"
 msgstr "未在节点中指定文本或文件, 无可编译对象"
 
@@ -120261,20 +120130,16 @@ msgstr ""
 "{:s}"
 
 
+msgid "The selected strips don't overlap"
+msgstr "所选片段不重叠"
+
+
 msgid "Added fade animation to {:d} {:s}"
 msgstr "向 {:d} {:s} 添加淡入淡出动画"
 
 
 msgid "Select 2 sound strips"
 msgstr "选择 2个音频片段"
-
-
-msgid "The selected strips don't overlap"
-msgstr "所选片段不重叠"
-
-
-msgid "No sequences selected"
-msgstr "无选中序列"
 
 
 msgid "Current frame not within strip framerange"
@@ -121400,6 +121265,10 @@ msgid "Move to Bottom"
 msgstr "移至底部"
 
 
+msgid "Auto Normalize"
+msgstr "自动规格化"
+
+
 msgid "Name collisions: "
 msgstr "名称冲突: "
 
@@ -121741,6 +121610,10 @@ msgstr "与顶点法向对齐"
 
 msgid "Show Instancer"
 msgstr "显示实例"
+
+
+msgid "Normal Offset"
+msgstr "法向偏移"
 
 
 msgid "Shading Offset"
@@ -122471,10 +122344,6 @@ msgid "Is Resumable"
 msgstr "是否可恢复"
 
 
-msgid "Format Volumes"
-msgstr "格式 体积"
-
-
 msgid "Resolution Divisions"
 msgstr "细分精度"
 
@@ -122505,14 +122374,6 @@ msgstr "下限"
 
 msgid "Guide Parent"
 msgstr "引导父级"
-
-
-msgid "Compression Volumes"
-msgstr "压缩体积"
-
-
-msgid "Precision Volumes"
-msgstr "体积精度"
 
 
 msgid "Enable Guides first! Defaulting to Fluid Velocity"
@@ -123459,6 +123320,14 @@ msgstr "新建文件夹"
 
 msgid "Asset Details"
 msgstr "资产详情"
+
+
+msgid "When Linking"
+msgstr "当关联时"
+
+
+msgid "When Appendind"
+msgstr "当追加时"
 
 
 msgctxt "Operator"
@@ -124658,6 +124527,11 @@ msgstr "高斯模糊"
 
 
 msgctxt "Operator"
+msgid "Show Hidden Strips"
+msgstr "显示隐藏的片段"
+
+
+msgctxt "Operator"
 msgid "Reload Strips and Adjust Length"
 msgstr "重新加载片段并调节长度"
 
@@ -125729,10 +125603,6 @@ msgstr "Cycles 在本版本中被禁用"
 
 msgid "A restart of Blender is required"
 msgstr "需要重新启动 Blender"
-
-
-msgid "The Vulkan backend is experimental:"
-msgstr "Vulkan 后端尚在实验中:"
 
 
 msgid "• USD/Hydra is not supported"
@@ -128072,10 +127942,6 @@ msgstr "分块偏移"
 
 msgid "Symmetrize"
 msgstr "对称"
-
-
-msgid "Auto Normalize"
-msgstr "自动规格化"
 
 
 msgid "Lock-Relative"
@@ -133240,6 +133106,14 @@ msgid "Object '%s' has no evaluated curves data"
 msgstr "物体 '%s' 无已解算曲线数据"
 
 
+msgid "%s \"%s\""
+msgstr "%s \"%s\""
+
+
+msgid "%s %d %s \"%s\""
+msgstr "%s %d %s \"%s\""
+
+
 msgid "Cannot edit object '%s' as it is used by override collections"
 msgstr "无法编辑物体 '%s', 因为它被重写集合所使用"
 
@@ -134272,12 +134146,12 @@ msgid "Invert locks of unselected vertex groups of the active object"
 msgstr "反转锁定活动物体的未选中顶点组"
 
 
-msgid "No vertex groups to operate on"
-msgstr "无可供操作的顶点组"
-
-
 msgid "All groups are locked"
 msgstr "全部组均已锁定"
+
+
+msgid "No vertex groups to operate on"
+msgstr "无可供操作的顶点组"
 
 
 msgid "Editmode lattice is not supported yet"
@@ -135347,6 +135221,22 @@ msgstr "无活动笔刷"
 
 msgid "Dynamic Topology found: %s, disabled"
 msgstr "发现动态拓扑: %s, 已禁用"
+
+
+msgid "Solver requires a manifold mesh"
+msgstr "解算器需要流形网格"
+
+
+msgid "Boolean result is too big for solver to handle"
+msgstr "布尔结果过大，解算器无法处理"
+
+
+msgid "Boolean solver not available (compiled without it)"
+msgstr "布尔解算器不可用（编译时未使用）"
+
+
+msgid "Unknown boolean error"
+msgstr "未知布尔错误"
 
 
 msgid "Compiled without sound support"
@@ -137334,6 +137224,10 @@ msgid "No data to paste"
 msgstr "没有可供粘贴的数据"
 
 
+msgid "There is no active data-block"
+msgstr "没有活动的数据块"
+
+
 msgid "Operation requires an active keying set"
 msgstr "操作需要一个活动的插帧集"
 
@@ -137376,6 +137270,14 @@ msgstr "拷贝 %d 个选中数据块"
 
 msgid "%d data-block(s) pasted"
 msgstr "已粘贴 %d 个数据块"
+
+
+msgid "The active data-block '%s' is not a valid linked one"
+msgstr "活动数据块 '%s' 不是有效的关联块"
+
+
+msgid "The active data-block '%s' is used by other linked data"
+msgstr "活动数据块 '%s' 被其他关联数据使用"
 
 
 msgid "Cannot relocate indirectly linked library '%s'"
@@ -137736,10 +137638,6 @@ msgstr "选择 (连接的控制柄)"
 msgctxt "Operator"
 msgid "Select (Side of Frame)"
 msgstr "选择 (帧的一侧)"
-
-
-msgid "No active sequence!"
-msgstr "没有活动的序列!"
 
 
 msgid "Rows:"
@@ -141416,8 +141314,20 @@ msgid "Cannot execute, intersect only available using exact solver"
 msgstr "无法执行，相交只能使用准确解算器"
 
 
+msgid "Cannot execute, non-exact solver and empty collection"
+msgstr "无法执行，非精解算器且有空集合"
+
+
 msgid "Cannot execute, the selected collection contains non mesh objects"
 msgstr "无法执行，所选集合包含非网格物体"
+
+
+msgid "Cannot execute, non-manifold inputs"
+msgstr "无法执行，存在非流形输入"
+
+
+msgid "Cannot execute, unknown error"
+msgstr "无法执行，未知错误"
 
 
 msgid "Cannot execute boolean operation"
@@ -142241,6 +142151,10 @@ msgid "Bounding box"
 msgstr "边界框"
 
 
+msgid "Catadioptric Size"
+msgstr "折反射尺寸"
+
+
 msgid "Color Shift"
 msgstr "颜色偏移"
 
@@ -142279,6 +142193,26 @@ msgstr "关键色彩"
 
 msgid "Despill Channel:"
 msgstr "非溢出通道:"
+
+
+msgid "Limit Strength"
+msgstr "限制强度"
+
+
+msgid "Use Spill Strength"
+msgstr "使用溢出强度"
+
+
+msgid "Specifies the limiting strength of the limit channel"
+msgstr "指定限定通道的限制强度"
+
+
+msgid "Specifies the spilling strength of each color channel"
+msgstr "指定每个颜色通道的溢出强度"
+
+
+msgid "Spill Strength"
+msgstr "溢出强度"
 
 
 msgid "Master"
@@ -142357,6 +142291,18 @@ msgid "Disabled. Platform not supported"
 msgstr "已禁用, 平台不支持"
 
 
+msgid "Neighbor Threshold"
+msgstr "临近阈值"
+
+
+msgid "Pixels are despeckled only if their color difference from the average color of their neighbors exceeds this threshold"
+msgstr "只有当像素与邻近像素平均颜色的色差超过该阈值时，才会对像素进行去斑处理"
+
+
+msgid "Pixels are despeckled only if the number of pixels in their neighborhood that are different exceed this ratio threshold relative to the total number of neighbors. Neighbors are considered different if they exceed the color threshold input"
+msgstr "只有当像素邻域中不同像素的数量相对于邻域总数超过该比率阈值时，像素才会被去斑。如果相邻像素的颜色超过了输入的颜色阈值，就会被认为是不同的"
+
+
 msgid "Image 1"
 msgstr "图像 1"
 
@@ -142365,8 +142311,16 @@ msgid "Image 2"
 msgstr "图像 2"
 
 
-msgid "Center:"
-msgstr "中心:"
+msgid "Falloff Size"
+msgstr "衰减尺寸"
+
+
+msgid "The size of dilation/erosion in pixels. Positive values dilates and negative values erodes"
+msgstr "以像素为单位的膨胀/侵蚀大小。正值为膨胀，负值为侵蚀"
+
+
+msgid "The size of the falloff from the edges in pixels. If less than two pixels, the edges will be anti-aliased"
+msgstr "边缘衰减的大小，像素单位。如果小于两个像素，将对边缘进行抗锯齿处理"
 
 
 msgid "Inner Edge:"
@@ -142415,6 +142369,10 @@ msgid ""
 msgstr ""
 "伽玛校正值, 以 color^gamma 的形式应用.\n"
 "通常用于将伽玛编码转换为线性色彩空间, 或反向转换为 1/gamma"
+
+
+msgid "Ghost"
+msgstr "残影"
 
 
 msgid "Disabled, built without FFTW"
@@ -142517,6 +142475,14 @@ msgid "Viewport compositor setup not fully supported"
 msgstr "尚未完全支持视图合成器设置"
 
 
+msgid "The size of the inpaint in pixels"
+msgstr "瑕疵的尺寸，像素单位"
+
+
+msgid "Blur Size"
+msgstr "模糊尺寸"
+
+
 msgid "Balance"
 msgstr "均衡"
 
@@ -142527,6 +142493,26 @@ msgstr "垃圾遮片"
 
 msgid "Core Matte"
 msgstr "核心遮片"
+
+
+msgid "Dilate Size"
+msgstr "膨胀尺寸"
+
+
+msgid "Feather Size"
+msgstr "羽化尺寸"
+
+
+msgid "Preprocess"
+msgstr "预处理"
+
+
+msgid "Postprocess"
+msgstr "后处理"
+
+
+msgid "The size of the filter in pixels"
+msgstr "滤镜的尺寸，像素单位"
 
 
 msgid "Controls the uniformity of the direction of the filter. Higher values produces more uniform directions"
@@ -142976,6 +142962,14 @@ msgstr "对所有元素执行模糊该值的次数"
 
 msgid "Relative mix weight of neighboring elements"
 msgstr "相邻元素的相对混合权重"
+
+
+msgid "An input was not manifold"
+msgstr "有一项输入为非流形"
+
+
+msgid "Unknown Boolean error"
+msgstr "未知布尔错误"
 
 
 msgid "Mesh 1"
@@ -143650,6 +143644,14 @@ msgstr "生成的几何体"
 
 msgid "For Each Element"
 msgstr "For Each 遍历元素"
+
+
+msgid "For Each Element  Main"
+msgstr "For Each 遍历元素  主要"
+
+
+msgid "For Each Element  Generated"
+msgstr "For Each 遍历元素  生成的"
 
 
 msgid "Each output field has to correspond to a geometry that is above it"
@@ -146321,6 +146323,18 @@ msgid "Missing 'window' in context"
 msgstr "上下文中缺少'window'"
 
 
+msgid "Overwrite Startup File"
+msgstr "覆写启动文件"
+
+
+msgid "Blender will start next time as it is now."
+msgstr "Blender 将于下一次按现在的状态启动。"
+
+
+msgid "Template \"{}\" will start next time as it is now."
+msgstr "模板将于下一次按现在的状态启动。"
+
+
 msgid "Overwrite Template Startup File"
 msgstr "覆写临时启动文件"
 
@@ -146427,14 +146441,6 @@ msgstr "这可能会导致意外的行为"
 
 msgid "Permanently allow execution of scripts"
 msgstr "永久允许执行脚本"
-
-
-msgid "This file was saved by a newer version of Blender (%s)"
-msgstr "此文件由较新版本的 Blender (%s) 保存"
-
-
-msgid "Saving it with this Blender (%s) may cause loss of data"
-msgstr "使用此版 Blender (%s) 保存可能会导致数据丢失"
 
 
 msgid "This file is managed by the Blender asset system. It can only be"
@@ -146595,6 +146601,18 @@ msgstr "'%s': 不是一个库"
 
 msgid "Scene '%s' is linked, instantiation of objects is disabled"
 msgstr "场景 '%s' 已被关联，物体实例化已禁用"
+
+
+msgid "No valid existing linked ID given to relocate"
+msgstr "未提供有效的现有关联 ID 以进行重定位"
+
+
+msgid "Selected ID '%s' is a %s, cannot be used to relocate existing linked ID '%s' which is a %s"
+msgstr "所选 ID '%s' 是 %s，不能用于重新定位现有关联 ID '%s'，后者是 %s"
+
+
+msgid "Selected ID '%s' seems to be the same as the relocated ID '%s', use 'Reload' operation instead"
+msgstr "所选 ID '%s' 似乎与重新定位的 ID '%s' 相同，请使用 '重载' 操作来代替"
 
 
 msgid "'%s' is not a valid library filepath"

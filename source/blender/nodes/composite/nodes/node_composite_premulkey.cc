@@ -33,7 +33,7 @@ static void cmp_node_premulkey_declare(NodeDeclarationBuilder &b)
 
 static void node_composit_buts_premulkey(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  uiItemR(layout, ptr, "mapping", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  layout->prop(ptr, "mapping", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 }
 
 using namespace blender::compositor;
@@ -88,7 +88,7 @@ static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &
 
 }  // namespace blender::nodes::node_composite_premulkey_cc
 
-void register_node_type_cmp_premulkey()
+static void register_node_type_cmp_premulkey()
 {
   namespace file_ns = blender::nodes::node_composite_premulkey_cc;
 
@@ -106,3 +106,4 @@ void register_node_type_cmp_premulkey()
 
   blender::bke::node_register_type(ntype);
 }
+NOD_REGISTER_NODE(register_node_type_cmp_premulkey)

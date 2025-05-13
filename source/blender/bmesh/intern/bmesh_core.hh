@@ -172,7 +172,7 @@ void bmesh_face_swap_data(BMFace *f_a, BMFace *f_b);
  * \param bm: The bmesh.
  * \param faces: An array of faces to join.
  * \param totfaces: The length of the face array to join.
- * \param do_del if true, remove the original faces, internal edges, and internal verts such that
+ * \param do_del: if true, remove the original faces, internal edges, and internal verts such that
  *    they are replaced by the new face.
  * \param r_double: A pointer to a BMFace* that is controls processing of doubled faces.
  * - When `r_double` is nullptr:

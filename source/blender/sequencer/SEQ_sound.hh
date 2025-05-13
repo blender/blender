@@ -13,7 +13,7 @@ struct Main;
 struct Scene;
 struct Strip;
 struct bSound;
-struct SequenceModifierData;
+struct StripModifierData;
 struct BlendWriter;
 struct BlendDataReader;
 struct ListBase;
@@ -23,7 +23,7 @@ namespace blender::seq {
 
 struct SoundModifierWorkerInfo {
   int type;
-  void *(*recreator)(Strip *strip, SequenceModifierData *smd, void *sound);
+  void *(*recreator)(Strip *strip, StripModifierData *smd, void *sound);
 };
 
 #define SOUND_EQUALIZER_DEFAULT_MIN_FREQ 30.0
@@ -41,12 +41,12 @@ EQCurveMappingData *sound_equalizer_add(SoundEqualizerModifierData *semd, float 
 void sound_blend_write(BlendWriter *writer, ListBase *soundbase);
 void sound_blend_read_data(BlendDataReader *reader, ListBase *lb);
 
-void *sound_modifier_recreator(Strip *strip, SequenceModifierData *smd, void *sound);
+void *sound_modifier_recreator(Strip *strip, StripModifierData *smd, void *sound);
 
-void sound_equalizermodifier_init_data(SequenceModifierData *smd);
-void sound_equalizermodifier_free(SequenceModifierData *smd);
-void sound_equalizermodifier_copy_data(SequenceModifierData *target, SequenceModifierData *smd);
-void *sound_equalizermodifier_recreator(Strip *strip, SequenceModifierData *smd, void *sound);
+void sound_equalizermodifier_init_data(StripModifierData *smd);
+void sound_equalizermodifier_free(StripModifierData *smd);
+void sound_equalizermodifier_copy_data(StripModifierData *target, StripModifierData *smd);
+void *sound_equalizermodifier_recreator(Strip *strip, StripModifierData *smd, void *sound);
 void sound_equalizermodifier_set_graphs(SoundEqualizerModifierData *semd, int number);
 const SoundModifierWorkerInfo *sound_modifier_worker_info_get(int type);
 EQCurveMappingData *sound_equalizermodifier_add_graph(SoundEqualizerModifierData *semd,

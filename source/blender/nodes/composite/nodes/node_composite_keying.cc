@@ -135,7 +135,7 @@ static void cmp_node_keying_declare(NodeDeclarationBuilder &b)
           "means dilation")
       .compositor_expects_single_value();
   postprocess_panel.add_layout([](uiLayout *layout, bContext * /*C*/, PointerRNA *ptr) {
-    uiItemR(layout, ptr, "feather_falloff", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+    layout->prop(ptr, "feather_falloff", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   });
 
   PanelDeclarationBuilder &despill_panel = b.add_panel("Despill").default_closed(true);
@@ -809,7 +809,7 @@ static NodeOperation *get_compositor_operation(Context &context, DNode node)
 
 }  // namespace blender::nodes::node_composite_keying_cc
 
-void register_node_type_cmp_keying()
+static void register_node_type_cmp_keying()
 {
   namespace file_ns = blender::nodes::node_composite_keying_cc;
 
@@ -830,3 +830,4 @@ void register_node_type_cmp_keying()
 
   blender::bke::node_register_type(ntype);
 }
+NOD_REGISTER_NODE(register_node_type_cmp_keying)

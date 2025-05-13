@@ -27,7 +27,7 @@ struct GreasePencilIDTestContext {
   {
     BKE_idtype_init();
     this->bmain = BKE_main_new();
-    this->grease_pencil = static_cast<GreasePencil *>(BKE_id_new(this->bmain, ID_GP, "GP"));
+    this->grease_pencil = BKE_id_new<GreasePencil>(this->bmain, "GP");
   }
   ~GreasePencilIDTestContext()
   {

@@ -630,9 +630,7 @@ float film_display_depth_amend(int2 texel, float depth)
    * twice. One for X and one for Y direction. */
   /* TODO(fclem): This could be improved as it gives flickering result at depth discontinuity.
    * But this is the quickest stable result I could come with for now. */
-#ifdef GPU_FRAGMENT_SHADER
-  depth += fwidth(depth);
-#endif
+  depth += gpu_fwidth(depth);
   /* Small offset to avoid depth test lessEqual failing because of all the conversions loss. */
   depth += 2.4e-7f * 4.0f;
   return saturate(depth);
@@ -703,8 +701,14 @@ void film_process_data(int2 texel_film, out float4 out_color, out float out_dept
     }
     else {
       out_depth = imageLoadFast(depth_img, texel_film).r;
-      if (display_id != -1 && display_id == normal_id) {
+      if (display_id == -1) {
+        /* NOP. */
+      }
+      else if (display_id == normal_id) {
         out_color = imageLoadFast(color_accum_img, int3(texel_film, display_id));
+      }
+      else if (display_id == uniform_buf.film.position_id) {
+        out_color = imageLoadFast(color_accum_img, int3(texel_film, uniform_buf.film.position_id));
       }
     }
   }

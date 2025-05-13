@@ -182,17 +182,6 @@ void GLContext::finish()
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name ShaderCompiler
- * \{ */
-
-ShaderCompiler *GLContext::get_compiler()
-{
-  return GLBackend::get()->get_compiler();
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Safe object deletion
  *
  * GPU objects can be freed when the context is not bound.

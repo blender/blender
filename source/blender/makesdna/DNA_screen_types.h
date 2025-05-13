@@ -50,6 +50,11 @@ typedef struct FileHandlerTypeHandle FileHandlerTypeHandle;
 #define AREAMAP_FROM_SCREEN(screen) ((ScrAreaMap *)&(screen)->vertbase)
 
 typedef struct bScreen {
+#ifdef __cplusplus
+  /** See #ID_Type comment for why this is here. */
+  static constexpr ID_Type id_type = ID_SCR;
+#endif
+
   ID id;
 
   /* TODO: Should become ScrAreaMap now.
@@ -182,7 +187,8 @@ typedef struct Panel {
 
   /**
    * List of #LayoutPanelState. This stores the open-close-state of layout-panels created with
-   * `layout.panel(...)` in Python. For more information on layout-panels, see `uiLayoutPanelProp`.
+   * `layout.panel(...)` in Python. For more information on layout-panels, see
+   * `uiLayout::panel_prop`.
    */
   ListBase layout_panel_states;
   /**

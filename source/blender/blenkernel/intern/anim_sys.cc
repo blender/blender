@@ -43,6 +43,7 @@
 #include "BKE_context.hh"
 #include "BKE_fcurve.hh"
 #include "BKE_global.hh"
+#include "BKE_idprop.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
 #include "BKE_main.hh"
@@ -453,7 +454,9 @@ bool BKE_animsys_read_from_rna_path(PathResolvedRNA *anim_rna, float *r_value)
   return true;
 }
 
-bool BKE_animsys_write_to_rna_path(PathResolvedRNA *anim_rna, const float value)
+bool BKE_animsys_write_to_rna_path(PathResolvedRNA *anim_rna,
+                                   const float value,
+                                   const bool force_write)
 {
   PropertyRNA *prop = anim_rna->prop;
   PointerRNA *ptr = &anim_rna->ptr;
@@ -462,13 +465,15 @@ bool BKE_animsys_write_to_rna_path(PathResolvedRNA *anim_rna, const float value)
   /* caller must ensure this is animatable */
   BLI_assert(RNA_property_animateable(ptr, prop) || ptr->owner_id == nullptr);
 
-  /* Check whether value is new. Otherwise we skip all the updates. */
-  float old_value;
-  if (!BKE_animsys_read_from_rna_path(anim_rna, &old_value)) {
-    return false;
-  }
-  if (old_value == value) {
-    return true;
+  if (!force_write) {
+    /* Check whether value is new. Otherwise we skip all the updates. */
+    float old_value;
+    if (!BKE_animsys_read_from_rna_path(anim_rna, &old_value)) {
+      return false;
+    }
+    if (old_value == value) {
+      return true;
+    }
   }
 
   switch (RNA_property_type(prop)) {
@@ -4184,6 +4189,37 @@ void BKE_animsys_update_driver_array(ID *id)
   }
 }
 
+void BKE_animsys_eval_driver_unshare(Depsgraph *depsgraph, ID *id_eval)
+{
+  BLI_assert(DEG_is_evaluated(id_eval));
+
+  AnimData *adt = BKE_animdata_from_id(id_eval);
+  PointerRNA id_ptr = RNA_id_pointer_create(id_eval);
+  const bool is_active_depsgraph = DEG_is_active(depsgraph);
+
+  LISTBASE_FOREACH (FCurve *, fcu, &adt->drivers) {
+    /* Resolve the driver RNA path. */
+    PathResolvedRNA anim_rna;
+    if (!BKE_animsys_rna_path_resolve(&id_ptr, fcu->rna_path, fcu->array_index, &anim_rna)) {
+      continue;
+    }
+
+    /* Write the current value back to RNA. */
+    float curval;
+    if (!BKE_animsys_read_from_rna_path(&anim_rna, &curval)) {
+      continue;
+    }
+    if (!BKE_animsys_write_to_rna_path(&anim_rna, curval, /*force_write=*/true)) {
+      continue;
+    }
+
+    if (is_active_depsgraph) {
+      /* Also un-share the original data, as the driver evaluation will write here too. */
+      animsys_write_orig_anim_rna(&id_ptr, fcu->rna_path, fcu->array_index, curval);
+    }
+  }
+}
+
 void BKE_animsys_eval_driver(Depsgraph *depsgraph, ID *id, int driver_index, FCurve *fcu_orig)
 {
   BLI_assert(fcu_orig != nullptr);
@@ -4256,6 +4292,38 @@ void BKE_animsys_eval_driver(Depsgraph *depsgraph, ID *id, int driver_index, FCu
         CLOG_WARN(&LOG, "invalid driver - %s[%d]", fcu->rna_path, fcu->array_index);
         driver_orig->flag |= DRIVER_FLAG_INVALID;
       }
+    }
+  }
+}
+
+void BKE_time_markers_blend_write(BlendWriter *writer, ListBase /* TimeMarker */ &markers)
+{
+  LISTBASE_FOREACH (TimeMarker *, marker, &markers) {
+    BLO_write_struct(writer, TimeMarker, marker);
+
+    if (marker->prop != nullptr) {
+      IDP_BlendWrite(writer, marker->prop);
+    }
+  }
+}
+
+void BKE_time_markers_blend_read(BlendDataReader *reader, ListBase /* TimeMarker */ &markers)
+{
+  BLO_read_struct_list(reader, TimeMarker, &markers);
+  LISTBASE_FOREACH (TimeMarker *, marker, &markers) {
+    BLO_read_struct(reader, IDProperty, &marker->prop);
+    IDP_BlendDataRead(reader, &marker->prop);
+  }
+}
+
+void BKE_copy_time_markers(ListBase /* TimeMarker */ &markers_dst,
+                           const ListBase /* TimeMarker */ &markers_src,
+                           const int flag)
+{
+  BLI_duplicatelist(&markers_dst, &markers_src);
+  LISTBASE_FOREACH (TimeMarker *, marker, &markers_dst) {
+    if (marker->prop != nullptr) {
+      marker->prop = IDP_CopyProperty_ex(marker->prop, flag);
     }
   }
 }

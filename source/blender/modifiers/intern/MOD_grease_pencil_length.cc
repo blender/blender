@@ -275,55 +275,49 @@ static void panel_draw(const bContext *C, Panel *panel)
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
   uiLayoutSetPropSep(layout, true);
-  uiItemR(layout, ptr, "mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   uiLayout *col = &layout->column(true);
 
   if (RNA_enum_get(ptr, "mode") == GP_LENGTH_RELATIVE) {
-    uiItemR(col, ptr, "start_factor", UI_ITEM_NONE, IFACE_("Start"), ICON_NONE);
-    uiItemR(col, ptr, "end_factor", UI_ITEM_NONE, IFACE_("End"), ICON_NONE);
+    col->prop(ptr, "start_factor", UI_ITEM_NONE, IFACE_("Start"), ICON_NONE);
+    col->prop(ptr, "end_factor", UI_ITEM_NONE, IFACE_("End"), ICON_NONE);
   }
   else {
-    uiItemR(col, ptr, "start_length", UI_ITEM_NONE, IFACE_("Start"), ICON_NONE);
-    uiItemR(col, ptr, "end_length", UI_ITEM_NONE, IFACE_("End"), ICON_NONE);
+    col->prop(ptr, "start_length", UI_ITEM_NONE, IFACE_("Start"), ICON_NONE);
+    col->prop(ptr, "end_length", UI_ITEM_NONE, IFACE_("End"), ICON_NONE);
   }
 
-  uiItemR(layout, ptr, "overshoot_factor", UI_ITEM_R_SLIDER, IFACE_("Used Length"), ICON_NONE);
-
-  if (uiLayout *random_layout =
-          uiLayoutPanelPropWithBoolHeader(
-              C, layout, ptr, "open_random_panel", ptr, "use_random", IFACE_("Randomize"))
-              .body)
-  {
+  layout->prop(ptr, "overshoot_factor", UI_ITEM_R_SLIDER, IFACE_("Used Length"), ICON_NONE);
+  PanelLayout random_panel_layout = layout->panel_prop_with_bool_header(
+      C, ptr, "open_random_panel", ptr, "use_random", IFACE_("Randomize"));
+  if (uiLayout *random_layout = random_panel_layout.body) {
     uiLayout *subcol = &random_layout->column(false);
     uiLayoutSetPropSep(subcol, true);
     uiLayoutSetActive(subcol, RNA_boolean_get(ptr, "use_random"));
 
-    uiItemR(subcol, ptr, "step", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    subcol->prop(ptr, "step", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-    uiItemR(subcol, ptr, "random_start_factor", UI_ITEM_NONE, IFACE_("Offset Start"), ICON_NONE);
-    uiItemR(subcol, ptr, "random_end_factor", UI_ITEM_NONE, IFACE_("End"), ICON_NONE);
-    uiItemR(subcol, ptr, "random_offset", UI_ITEM_NONE, IFACE_("Noise Offset"), ICON_NONE);
-    uiItemR(subcol, ptr, "seed", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    subcol->prop(ptr, "random_start_factor", UI_ITEM_NONE, IFACE_("Offset Start"), ICON_NONE);
+    subcol->prop(ptr, "random_end_factor", UI_ITEM_NONE, IFACE_("End"), ICON_NONE);
+    subcol->prop(ptr, "random_offset", UI_ITEM_NONE, IFACE_("Noise Offset"), ICON_NONE);
+    subcol->prop(ptr, "seed", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
-
-  if (uiLayout *curvature_layout =
-          uiLayoutPanelPropWithBoolHeader(
-              C, layout, ptr, "open_curvature_panel", ptr, "use_curvature", IFACE_("Curvature"))
-              .body)
-  {
+  PanelLayout curvature_panel_layout = layout->panel_prop_with_bool_header(
+      C, ptr, "open_curvature_panel", ptr, "use_curvature", IFACE_("Curvature"));
+  if (uiLayout *curvature_layout = curvature_panel_layout.body) {
     uiLayout *subcol = &curvature_layout->column(false);
     uiLayoutSetPropSep(subcol, true);
     uiLayoutSetActive(subcol, RNA_boolean_get(ptr, "use_curvature"));
 
-    uiItemR(subcol, ptr, "point_density", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    uiItemR(subcol, ptr, "segment_influence", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    uiItemR(subcol, ptr, "max_angle", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    uiItemR(subcol, ptr, "invert_curvature", UI_ITEM_NONE, IFACE_("Invert"), ICON_NONE);
+    subcol->prop(ptr, "point_density", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    subcol->prop(ptr, "segment_influence", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    subcol->prop(ptr, "max_angle", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    subcol->prop(ptr, "invert_curvature", UI_ITEM_NONE, IFACE_("Invert"), ICON_NONE);
   }
 
-  if (uiLayout *influence_panel = uiLayoutPanelProp(
-          C, layout, ptr, "open_influence_panel", IFACE_("Influence")))
+  if (uiLayout *influence_panel = layout->panel_prop(
+          C, ptr, "open_influence_panel", IFACE_("Influence")))
   {
     modifier::greasepencil::draw_layer_filter_settings(C, influence_panel, ptr);
     modifier::greasepencil::draw_material_filter_settings(C, influence_panel, ptr);

@@ -301,7 +301,7 @@ void AntiAliasingPass::draw(const DRWContext *draw_ctx,
                         GPU_RG8,
                         GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT);
 
-  if (!draw_ctx->is_image_render() || last_sample) {
+  if (!draw_ctx->is_image_render() || last_sample || taa_finished) {
     /* After a certain point SMAA is no longer necessary. */
     if (smaa_mix_factor_ > 0.0f) {
       smaa_edge_fb_.ensure(GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_TEXTURE(smaa_edge_tx_));

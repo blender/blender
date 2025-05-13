@@ -42,7 +42,7 @@ void main()
 
   /* Display surfels as circles. */
   if (distance(P, surfel.position) > debug_surfel_radius) {
-    discard;
+    gpu_discard_fragment();
     return;
   }
 }

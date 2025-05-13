@@ -14,6 +14,11 @@ struct AnimData;
 struct bSound;
 
 typedef struct Speaker {
+#ifdef __cplusplus
+  /** See #ID_Type comment for why this is here. */
+  static constexpr ID_Type id_type = ID_SPK;
+#endif
+
   ID id;
   /** Animation data (must be immediately after id for utilities to use it). */
   struct AnimData *adt;

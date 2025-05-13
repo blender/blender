@@ -687,24 +687,24 @@ static void panel_draw(const bContext *C, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, ptr, "mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  uiItemR(layout, ptr, "spread", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  uiItemR(layout, ptr, "thickness", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "spread", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "thickness", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   switch (mode) {
     case MOD_GREASE_PENCIL_ENVELOPE_DEFORM:
       break;
     case MOD_GREASE_PENCIL_ENVELOPE_FILLS:
     case MOD_GREASE_PENCIL_ENVELOPE_SEGMENTS:
-      uiItemR(layout, ptr, "strength", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-      uiItemR(layout, ptr, "mat_nr", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-      uiItemR(layout, ptr, "skip", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+      layout->prop(ptr, "strength", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+      layout->prop(ptr, "mat_nr", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+      layout->prop(ptr, "skip", UI_ITEM_NONE, std::nullopt, ICON_NONE);
       break;
   }
 
-  if (uiLayout *influence_panel = uiLayoutPanelProp(
-          C, layout, ptr, "open_influence_panel", IFACE_("Influence")))
+  if (uiLayout *influence_panel = layout->panel_prop(
+          C, ptr, "open_influence_panel", IFACE_("Influence")))
   {
     modifier::greasepencil::draw_layer_filter_settings(C, influence_panel, ptr);
     modifier::greasepencil::draw_material_filter_settings(C, influence_panel, ptr);

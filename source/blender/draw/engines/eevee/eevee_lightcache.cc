@@ -8,8 +8,6 @@
  * Contains everything about light baking.
  */
 
-#include <mutex>
-
 #include "DRW_engine.hh"
 #include "DRW_render.hh"
 
@@ -18,6 +16,7 @@
 
 #include "DNA_lightprobe_types.h"
 
+#include "BLI_mutex.hh"
 #include "BLI_threads.h"
 #include "BLI_time.h"
 
@@ -74,7 +73,7 @@ class LightBake {
   Vector<Object *> original_probes_;
   /** Frame to copy to original objects during update. This is needed to avoid race conditions. */
   Vector<LightProbeGridCacheFrame *> bake_result_;
-  std::mutex result_mutex_;
+  Mutex result_mutex_;
 
  public:
   LightBake(Main *bmain,
@@ -160,7 +159,7 @@ class LightBake {
     context_disable();
 
     for (auto i : original_probes_.index_range()) {
-      Object *eval_ob = DEG_get_evaluated_object(depsgraph_, original_probes_[i]);
+      Object *eval_ob = DEG_get_evaluated(depsgraph_, original_probes_[i]);
 
       instance_->light_bake_irradiance(
           *eval_ob,

@@ -6,7 +6,7 @@ import bpy
 from bpy.types import Menu, Panel, UIList
 from rna_prop_ui import PropertyPanel
 from bl_ui.utils import PresetPanel
-from .space_properties import PropertiesAnimationMixin
+from bl_ui.space_properties import PropertiesAnimationMixin
 
 from bl_ui.properties_grease_pencil_common import (
     GreasePencilMaterialsPanel,
@@ -40,6 +40,7 @@ class GPENCIL_MT_material_context_menu(Menu):
         ).only_active = False
 
         layout.operator("object.material_slot_remove_unused")
+        layout.operator("object.material_slot_remove_all")
 
 
 class GPENCIL_UL_matslots(UIList):

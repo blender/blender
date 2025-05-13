@@ -139,25 +139,31 @@ ccl_device float volume_channel_get(Spectrum value, const int channel)
   return GET_SPECTRUM_CHANNEL(value, channel);
 }
 
+/* Sample color channel proportional to throughput and single scattering albedo, to significantly
+ * reduce noise with many bounce, following:
+ *
+ * "Practical and Controllable Subsurface Scattering for Production Path Tracing".
+ * Matt Jen-Yuan Chiang, Peter Kutz, Brent Burley. SIGGRAPH 2016. */
+ccl_device_inline Spectrum volume_sample_channel_pdf(Spectrum albedo, Spectrum throughput)
+{
+  const Spectrum weights = fabs(throughput * albedo);
+  const float sum_weights = reduce_add(weights);
+
+  if ((1.0f - sum_weights) < 1.0f) {
+    /* The same as `sum_weights > 0.0f`, but avoids the case where `sum_weight` is denormal, which
+     * could produce `nan` after division. */
+    return weights / sum_weights;
+  }
+
+  return make_spectrum(1.0f / SPECTRUM_CHANNELS);
+}
+
 ccl_device int volume_sample_channel(Spectrum albedo,
                                      Spectrum throughput,
                                      ccl_private float *rand,
                                      ccl_private Spectrum *pdf)
 {
-  /* Sample color channel proportional to throughput and single scattering
-   * albedo, to significantly reduce noise with many bounce, following:
-   *
-   * "Practical and Controllable Subsurface Scattering for Production Path
-   *  Tracing". Matt Jen-Yuan Chiang, Peter Kutz, Brent Burley. SIGGRAPH 2016. */
-  const Spectrum weights = fabs(throughput * albedo);
-  const float sum_weights = reduce_add(weights);
-
-  if (sum_weights > 0.0f) {
-    *pdf = weights / sum_weights;
-  }
-  else {
-    *pdf = make_spectrum(1.0f / SPECTRUM_CHANNELS);
-  }
+  *pdf = volume_sample_channel_pdf(albedo, throughput);
 
   float pdf_sum = 0.0f;
   FOREACH_SPECTRUM_CHANNEL (i) {

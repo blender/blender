@@ -42,7 +42,7 @@ static void node_composit_init_view_levels(bNodeTree * /*ntree*/, bNode *node)
 
 static void node_composit_buts_view_levels(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  uiItemR(layout, ptr, "channel", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  layout->prop(ptr, "channel", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 }
 
 using namespace blender::compositor;
@@ -192,7 +192,7 @@ static NodeOperation *get_compositor_operation(Context &context, DNode node)
 
 }  // namespace blender::nodes::node_composite_levels_cc
 
-void register_node_type_cmp_view_levels()
+static void register_node_type_cmp_view_levels()
 {
   namespace file_ns = blender::nodes::node_composite_levels_cc;
 
@@ -211,3 +211,4 @@ void register_node_type_cmp_view_levels()
 
   blender::bke::node_register_type(ntype);
 }
+NOD_REGISTER_NODE(register_node_type_cmp_view_levels)

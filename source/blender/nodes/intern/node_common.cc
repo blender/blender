@@ -33,10 +33,14 @@
 
 #include "NOD_common.hh"
 #include "NOD_node_declaration.hh"
+#include "NOD_node_extra_info.hh"
 #include "NOD_register.hh"
 #include "NOD_socket.hh"
 #include "NOD_socket_declarations.hh"
 #include "NOD_socket_declarations_geometry.hh"
+
+#include "UI_resources.hh"
+
 #include "node_common.h"
 #include "node_util.hh"
 
@@ -210,12 +214,12 @@ static std::function<ID *(const bNode &node)> get_default_id_getter(
     }
     const bNodeTree &ntree = *reinterpret_cast<const bNodeTree *>(node.id);
     const bNodeTreeInterfaceItem *io_item = ntree.tree_interface.get_item_at_index(item_index);
-    if (io_item == nullptr || io_item->item_type != NODE_INTERFACE_SOCKET) {
+    const bNodeTreeInterfaceSocket *io_socket =
+        node_interface::get_item_as<bNodeTreeInterfaceSocket>(io_item);
+    if (!io_socket) {
       return nullptr;
     }
-    const bNodeTreeInterfaceSocket &io_socket =
-        node_interface::get_item_as<bNodeTreeInterfaceSocket>(*io_item);
-    return *static_cast<ID **>(io_socket.socket_data);
+    return *static_cast<ID **>(io_socket->socket_data);
   };
 }
 
@@ -325,7 +329,9 @@ static BaseSocketDeclarationBuilder &build_interface_socket_declaration(
       }
       case SOCK_MENU: {
         const auto &value = node_interface::get_socket_data_as<bNodeSocketValueMenu>(io_socket);
-        decl = &b.add_socket<decl::Menu>(name, identifier, in_out).default_value(value.value);
+        decl = &b.add_socket<decl::Menu>(name, identifier, in_out)
+                    .default_value(value.value)
+                    .expanded(io_socket.flag & NODE_INTERFACE_SOCKET_MENU_EXPANDED);
         break;
       }
       case SOCK_OBJECT: {
@@ -873,6 +879,23 @@ bNodeSocket *node_group_output_find_socket(bNode *node, const StringRef identifi
   return nullptr;
 }
 
+static void node_group_output_extra_info(blender::nodes::NodeExtraInfoParams &params)
+{
+  const blender::Span<const bNode *> group_output_nodes = params.tree.nodes_by_type(
+      "NodeGroupOutput");
+  if (group_output_nodes.size() <= 1) {
+    return;
+  }
+  if (params.node.flag & NODE_DO_OUTPUT) {
+    return;
+  }
+  blender::nodes::NodeExtraInfoRow row;
+  row.text = IFACE_("Unused Output");
+  row.icon = ICON_ERROR;
+  row.tooltip = TIP_("There are multiple group output nodes and this one is not active");
+  params.rows.append(std::move(row));
+}
+
 void register_node_type_group_output()
 {
   /* used for all tree types, needs dynamic allocation */
@@ -887,6 +910,7 @@ void register_node_type_group_output()
   blender::bke::node_type_size(*ntype, 140, 80, 400);
   ntype->declare = blender::nodes::group_output_declare;
   ntype->insert_link = blender::nodes::group_output_insert_link;
+  ntype->get_extra_info = node_group_output_extra_info;
 
   ntype->no_muting = true;
 

@@ -31,7 +31,7 @@ static void cmp_node_mask_declare(NodeDeclarationBuilder &b)
 
   b.add_layout([](uiLayout *layout, bContext *C, PointerRNA *ptr) {
     uiTemplateID(layout, C, ptr, "mask", nullptr, nullptr, nullptr);
-    uiItemR(layout, ptr, "size_source", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+    layout->prop(ptr, "size_source", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
   });
 
   b.add_input<decl::Int>("Size X")
@@ -205,7 +205,7 @@ static NodeOperation *get_compositor_operation(Context &context, DNode node)
 
 }  // namespace blender::nodes::node_composite_mask_cc
 
-void register_node_type_cmp_mask()
+static void register_node_type_cmp_mask()
 {
   namespace file_ns = blender::nodes::node_composite_mask_cc;
 
@@ -227,3 +227,4 @@ void register_node_type_cmp_mask()
 
   blender::bke::node_register_type(ntype);
 }
+NOD_REGISTER_NODE(register_node_type_cmp_mask)

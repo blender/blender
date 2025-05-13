@@ -46,11 +46,11 @@ bool seq_cache_put_if_possible(
 bool seq_cache_recycle_item(Scene *scene);
 void seq_cache_free_temp_cache(Scene *scene, short id, int timeline_frame);
 void seq_cache_destruct(Scene *scene);
-void seq_cache_cleanup_sequence(Scene *scene,
-                                Strip *strip,
-                                Strip *strip_changed,
-                                int invalidate_types,
-                                bool force_seq_changed_range);
+void seq_cache_cleanup_strip(Scene *scene,
+                             Strip *strip,
+                             Strip *strip_changed,
+                             int invalidate_types,
+                             bool force_seq_changed_range);
 bool seq_cache_is_full();
 
 }  // namespace blender::seq

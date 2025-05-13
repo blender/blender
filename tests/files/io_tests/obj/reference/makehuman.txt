@@ -1,0 +1,56 @@
+==== Meshes: 1
+- Mesh 'makehuman' vtx:15340 face:14812 loop:58256 edge:29818
+    - 6526 4323 4320 6525 8679 ... 14792 6660 6661 6672 6671 
+    - 4320/4323 4320/6525 5904/5906 2536/4327 2536/5886 ... 6639/6652 6655/6666 14823/14825 14791/14793 6671/6672 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (0.313, 8.214, 0.596)
+    - (0.352, 8.175, 0.596)
+    - (0.313, 8.136, 0.596)
+      ...
+    - (0.069, 9.074, -0.610)
+    - (0.000, 9.074, -0.541)
+    - (0.000, 9.074, -0.679)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 0 0 0 0 0 ... 0 0 0 0 0 
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 ... 0 0 0 0 0 
+  - attr 'sharp_face' BOOLEAN FACE
+    - 0 0 0 0 0 ... 0 0 0 0 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (128, 29865)
+    - (390, 16462)
+    - (564, 5849)
+      ...
+    - (587, 10871)
+    - (988, 18914)
+    - (2037, 5266)
+  - attr 'UVMap' FLOAT2 CORNER
+    - (0.141, 0.486)
+    - (0.126, 0.480)
+    - (0.126, 0.468)
+      ...
+    - (0.405, 0.948)
+    - (0.406, 0.945)
+    - (0.415, 0.948)
+  - 1 materials
+    - 'basic' 
+
+==== Objects: 1
+- Obj 'makehuman' MESH data:'makehuman'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+
+==== Materials: 1
+- Mat 'basic'
+  - base color (0.800, 0.800, 0.800)
+  - specular ior 0.000
+  - specular tint (1.000, 1.000, 1.000)
+  - roughness 1.000
+  - metallic 0.000
+  - ior 1.500
+  - viewport diffuse (0.800, 0.800, 0.800, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 0.500
+  - viewport metallic 0.000, roughness 1.000
+  - backface False probe True shadow False
+

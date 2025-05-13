@@ -268,6 +268,8 @@ struct RenderStats *RE_GetStats(struct Render *re);
 void RE_ResultGet32(struct Render *re, unsigned int *rect);
 void RE_ResultGetFloat(struct Render *re, float *rect);
 
+bool RE_ResultIsMultiView(struct RenderResult *rr);
+
 void RE_render_result_full_channel_name(char *fullname,
                                         const char *layname,
                                         const char *passname,

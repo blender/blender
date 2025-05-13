@@ -735,7 +735,7 @@ float2 SMAALumaEdgeDetectionPS(float2 texcoord,
 #    ifndef SMAA_NO_DISCARD
   // Then discard if there is no edge:
   if (dot(edges, float2(1.0f, 1.0f)) == 0.0f) {
-    discard;
+    gpu_discard_fragment();
     return float2(0.0f, 0.0f);
   }
 #    endif
@@ -810,7 +810,7 @@ float2 SMAAColorEdgeDetectionPS(float2 texcoord,
 #    ifdef GPU_FRAGMENT_SHADER
   // Then discard if there is no edge:
   if (dot(edges, float2(1.0f, 1.0f)) == 0.0f) {
-    discard;
+    gpu_discard_fragment();
     return float2(0.0f, 0.0f);
   }
 #    endif
@@ -858,7 +858,7 @@ float2 SMAADepthEdgeDetectionPS(float2 texcoord, float4 offset[3], SMAATexture2D
 
 #  ifdef GPU_FRAGMENT_SHADER
   if (dot(edges, float2(1.0f, 1.0f)) == 0.0f) {
-    discard;
+    gpu_discard_fragment();
     return float2(0.0f, 0.0f);
   }
 #  endif

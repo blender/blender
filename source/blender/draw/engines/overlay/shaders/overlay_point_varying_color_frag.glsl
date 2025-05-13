@@ -16,7 +16,7 @@ void main()
 
   /* Round point with jagged edges. */
   if (dist_squared > rad_squared) {
-    discard;
+    gpu_discard_fragment();
     return;
   }
 
@@ -25,7 +25,7 @@ void main()
 
   float midStroke = 0.5f * rad_squared;
   if (vertex_crease > 0.0f && dist_squared > midStroke) {
-    frag_color.rgb = mix(final_color.rgb, colorEdgeCrease.rgb, vertex_crease);
+    frag_color.rgb = mix(final_color.rgb, theme.colors.edge_crease.rgb, vertex_crease);
   }
 #else
   frag_color = final_color;

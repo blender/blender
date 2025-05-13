@@ -53,6 +53,8 @@ static void test_immediate_one_plane()
   }
 
   GPU_offscreen_free(offscreen);
+
+  immUnbindProgram();
 }
 GPU_TEST(immediate_one_plane)
 
@@ -121,6 +123,8 @@ static void test_immediate_two_planes()
   EXPECT_TRUE(color2_num > 0);
 
   GPU_offscreen_free(offscreen);
+
+  immUnbindProgram();
 }
 GPU_TEST(immediate_two_planes)
 

@@ -240,7 +240,7 @@ void main()
   constexpr uint in_front_stencil_bits = 1u << 1;
   if (do_depth_test && (stencil & in_front_stencil_bits) != 0) {
     /* Don't draw on top of "in front" objects. */
-    discard;
+    gpu_discard_fragment();
     return;
   }
 
@@ -255,7 +255,7 @@ void main()
      * Adding a return call eliminates undefined behavior and a later out-of-bounds read causing
      * a crash on AMD platforms.
      * This behavior can also affect OpenGL on certain devices. */
-    discard;
+    gpu_discard_fragment();
     return;
   }
 
@@ -305,7 +305,7 @@ void main()
   if (dot(ls_ray_dir, ls_vol_isect) < 0.0f) {
     /* Start is further away than the end.
      * That means no volume is intersected. */
-    discard;
+    gpu_discard_fragment();
     return;
   }
 

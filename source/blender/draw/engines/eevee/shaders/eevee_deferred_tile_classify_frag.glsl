@@ -28,7 +28,7 @@ void main()
    * Discard fragments that do not have a number of closure whose bit-pattern
    * overlap the current stencil un-masked bit. */
   if ((current_bit & (closure_count | has_transmission)) == 0) {
-    discard;
+    gpu_discard_fragment();
     return;
   }
 #endif

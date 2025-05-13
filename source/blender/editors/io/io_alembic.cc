@@ -151,86 +151,81 @@ static void ui_alembic_export_settings(const bContext *C, uiLayout *layout, Poin
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
 
-  if (uiLayout *panel = uiLayoutPanel(C, layout, "ABC_export_general", false, IFACE_("General"))) {
+  if (uiLayout *panel = layout->panel(C, "ABC_export_general", false, IFACE_("General"))) {
     uiLayout *col = &panel->column(false);
-    uiItemR(col, ptr, "global_scale", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col->prop(ptr, "global_scale", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
     col = &panel->column(false);
     if (CTX_wm_space_file(C)) {
       uiLayout *sub = &col->column(true, IFACE_("Include"));
-      uiItemR(sub, ptr, "selected", UI_ITEM_NONE, IFACE_("Selection Only"), ICON_NONE);
-      uiItemR(sub, ptr, "visible_objects_only", UI_ITEM_NONE, IFACE_("Visible Only"), ICON_NONE);
+      sub->prop(ptr, "selected", UI_ITEM_NONE, IFACE_("Selection Only"), ICON_NONE);
+      sub->prop(ptr, "visible_objects_only", UI_ITEM_NONE, IFACE_("Visible Only"), ICON_NONE);
     }
   }
 
   /* Scene Options */
-  if (uiLayout *panel = uiLayoutPanel(C, layout, "ABC_export_scene", false, IFACE_("Scene"))) {
+  if (uiLayout *panel = layout->panel(C, "ABC_export_scene", false, IFACE_("Scene"))) {
     uiLayout *col = &panel->column(false);
 
     uiLayout *sub = &col->column(true);
-    uiItemR(sub, ptr, "start", UI_ITEM_NONE, IFACE_("Frame Start"), ICON_NONE);
-    uiItemR(sub, ptr, "end", UI_ITEM_NONE, IFACE_("End"), ICON_NONE);
+    sub->prop(ptr, "start", UI_ITEM_NONE, IFACE_("Frame Start"), ICON_NONE);
+    sub->prop(ptr, "end", UI_ITEM_NONE, IFACE_("End"), ICON_NONE);
 
     sub = &col->column(true);
-    uiItemR(sub, ptr, "xsamples", UI_ITEM_NONE, IFACE_("Samples Transform"), ICON_NONE);
-    uiItemR(sub, ptr, "gsamples", UI_ITEM_NONE, IFACE_("Geometry"), ICON_NONE);
+    sub->prop(ptr, "xsamples", UI_ITEM_NONE, IFACE_("Samples Transform"), ICON_NONE);
+    sub->prop(ptr, "gsamples", UI_ITEM_NONE, IFACE_("Geometry"), ICON_NONE);
 
     sub = &col->column(true);
-    uiItemR(sub, ptr, "sh_open", UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
-    uiItemR(sub, ptr, "sh_close", UI_ITEM_R_SLIDER, IFACE_("Close"), ICON_NONE);
+    sub->prop(ptr, "sh_open", UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
+    sub->prop(ptr, "sh_close", UI_ITEM_R_SLIDER, IFACE_("Close"), ICON_NONE);
 
     uiItemS(col);
 
-    uiItemR(col, ptr, "use_instancing", UI_ITEM_NONE, IFACE_("Use Instancing"), ICON_NONE);
-    uiItemR(col,
-            ptr,
-            "export_custom_properties",
-            UI_ITEM_NONE,
-            IFACE_("Custom Properties"),
-            ICON_NONE);
-    uiItemR(col, ptr, "flatten", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col->prop(ptr, "use_instancing", UI_ITEM_NONE, IFACE_("Use Instancing"), ICON_NONE);
+    col->prop(
+        ptr, "export_custom_properties", UI_ITEM_NONE, IFACE_("Custom Properties"), ICON_NONE);
+    col->prop(ptr, "flatten", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
     col = &panel->column(true);
-    uiItemR(col, ptr, "evaluation_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col->prop(ptr, "evaluation_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
   /* Object Data */
-  if (uiLayout *panel = uiLayoutPanel(C, layout, "ABC_export_geometry", false, IFACE_("Geometry")))
-  {
+  if (uiLayout *panel = layout->panel(C, "ABC_export_geometry", false, IFACE_("Geometry"))) {
     uiLayout *col = &panel->column(true);
-    uiItemR(col, ptr, "uvs", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col->prop(ptr, "uvs", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
     uiLayout *row = &col->row(false);
     uiLayoutSetActive(row, RNA_boolean_get(ptr, "uvs"));
-    uiItemR(row, ptr, "packuv", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    row->prop(ptr, "packuv", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-    uiItemR(col, ptr, "normals", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    uiItemR(col, ptr, "vcolors", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    uiItemR(col, ptr, "orcos", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    uiItemR(col, ptr, "face_sets", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    uiItemR(col, ptr, "curves_as_mesh", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col->prop(ptr, "normals", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col->prop(ptr, "vcolors", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col->prop(ptr, "orcos", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col->prop(ptr, "face_sets", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col->prop(ptr, "curves_as_mesh", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
     uiItemS(col);
 
     uiLayout *sub = &col->column(true, IFACE_("Subdivision"));
-    uiItemR(sub, ptr, "apply_subdiv", UI_ITEM_NONE, IFACE_("Apply"), ICON_NONE);
-    uiItemR(sub, ptr, "subdiv_schema", UI_ITEM_NONE, IFACE_("Use Schema"), ICON_NONE);
+    sub->prop(ptr, "apply_subdiv", UI_ITEM_NONE, IFACE_("Apply"), ICON_NONE);
+    sub->prop(ptr, "subdiv_schema", UI_ITEM_NONE, IFACE_("Use Schema"), ICON_NONE);
 
     col = &panel->column(false);
-    uiItemR(col, ptr, "triangulate", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col->prop(ptr, "triangulate", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     sub = &col->column(false);
     uiLayoutSetActive(sub, RNA_boolean_get(ptr, "triangulate"));
-    uiItemR(sub, ptr, "quad_method", UI_ITEM_NONE, IFACE_("Method Quads"), ICON_NONE);
-    uiItemR(sub, ptr, "ngon_method", UI_ITEM_NONE, IFACE_("Polygons"), ICON_NONE);
+    sub->prop(ptr, "quad_method", UI_ITEM_NONE, IFACE_("Method Quads"), ICON_NONE);
+    sub->prop(ptr, "ngon_method", UI_ITEM_NONE, IFACE_("Polygons"), ICON_NONE);
   }
 
   /* Particle Data */
-  if (uiLayout *panel = uiLayoutPanel(
-          C, layout, "ABC_export_particles", false, IFACE_("Particle Systems")))
+  if (uiLayout *panel = layout->panel(
+          C, "ABC_export_particles", false, IFACE_("Particle Systems")))
   {
     uiLayout *col = &panel->column(true);
-    uiItemR(col, ptr, "export_hair", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    uiItemR(col, ptr, "export_particles", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col->prop(ptr, "export_hair", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col->prop(ptr, "export_particles", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 }
 
@@ -569,18 +564,18 @@ static void ui_alembic_import_settings(const bContext *C, uiLayout *layout, Poin
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
 
-  if (uiLayout *panel = uiLayoutPanel(C, layout, "ABC_import_general", false, IFACE_("General"))) {
+  if (uiLayout *panel = layout->panel(C, "ABC_import_general", false, IFACE_("General"))) {
     uiLayout *col = &panel->column(false);
-    uiItemR(col, ptr, "scale", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col->prop(ptr, "scale", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
-  if (uiLayout *panel = uiLayoutPanel(C, layout, "ABC_import_options", false, IFACE_("Options"))) {
+  if (uiLayout *panel = layout->panel(C, "ABC_import_options", false, IFACE_("Options"))) {
     uiLayout *col = &panel->column(false);
-    uiItemR(col, ptr, "relative_path", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    uiItemR(col, ptr, "set_frame_range", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    uiItemR(col, ptr, "is_sequence", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    uiItemR(col, ptr, "validate_meshes", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    uiItemR(col, ptr, "always_add_cache_reader", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col->prop(ptr, "relative_path", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col->prop(ptr, "set_frame_range", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col->prop(ptr, "is_sequence", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col->prop(ptr, "validate_meshes", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col->prop(ptr, "always_add_cache_reader", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 }
 

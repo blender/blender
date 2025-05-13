@@ -2649,7 +2649,7 @@ GPUPixelBufferNativeHandle MTLPixelBuffer::get_native_handle()
 {
   GPUPixelBufferNativeHandle native_handle;
 
-  /* Only spported with unified memory currently. */
+  /* Only supported with unified memory currently. */
   MTLContext *ctx = MTLContext::get();
   BLI_assert(ctx);
   if (![ctx->device hasUnifiedMemory]) {

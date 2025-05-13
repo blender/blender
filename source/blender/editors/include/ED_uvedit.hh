@@ -237,6 +237,7 @@ void uvedit_edge_select_set_noflush(const Scene *scene,
  */
 void ED_uvedit_selectmode_clean(const Scene *scene, Object *obedit);
 void ED_uvedit_selectmode_clean_multi(bContext *C);
+void ED_uvedit_sticky_selectmode_update(bContext *C);
 
 /**
  * \brief UV Select Mode Flush

@@ -140,7 +140,7 @@ class RootGeometryViewItem : public InstancesTreeViewItem {
 
   void build_row(uiLayout &row) override
   {
-    uiItemL(&row, label_, ICON_GEOMETRY_SET);
+    row.label(label_, ICON_GEOMETRY_SET);
   }
 };
 
@@ -165,7 +165,7 @@ class InstanceReferenceViewItem : public InstancesTreeViewItem {
     if (name.is_empty()) {
       name = IFACE_("(Geometry)");
     }
-    uiItemL(&row, name, icon);
+    row.label(name, icon);
     draw_count(*this, user_count_);
   }
 
@@ -246,7 +246,7 @@ class MeshViewItem : public DataSetViewItem {
     if (!has_mesh_) {
       uiLayoutSetActive(&row, false);
     }
-    uiItemL(&row, label_, ICON_MESH_DATA);
+    row.label(label_, ICON_MESH_DATA);
   }
 };
 
@@ -269,7 +269,7 @@ class MeshDomainViewItem : public DataSetViewItem {
   void build_row(uiLayout &row) override
   {
     const BIFIconID icon = mesh_domain_to_icon(domain_);
-    uiItemL(&row, label_, icon);
+    row.label(label_, icon);
 
     const int count = mesh_ ? mesh_->attributes().domain_size(domain_) : 0;
     draw_count(*this, count);
@@ -291,7 +291,7 @@ class CurvesViewItem : public DataSetViewItem {
     if (!has_curves_) {
       uiLayoutSetActive(&row, false);
     }
-    uiItemL(&row, label_, ICON_CURVE_DATA);
+    row.label(label_, ICON_CURVE_DATA);
   }
 };
 
@@ -315,7 +315,7 @@ class CurvesDomainViewItem : public DataSetViewItem {
   void build_row(uiLayout &row) override
   {
     const BIFIconID icon = curves_domain_to_icon(domain_);
-    uiItemL(&row, label_, icon);
+    row.label(label_, icon);
 
     const int count = curves_ ? curves_->geometry.wrap().attributes().domain_size(domain_) : 0;
     draw_count(*this, count);
@@ -336,7 +336,7 @@ class GreasePencilViewItem : public DataSetViewItem {
     if (!has_grease_pencil_) {
       uiLayoutSetActive(&row, false);
     }
-    uiItemL(&row, label_, ICON_OUTLINER_DATA_GREASEPENCIL);
+    row.label(label_, ICON_OUTLINER_DATA_GREASEPENCIL);
   }
 };
 
@@ -359,7 +359,7 @@ class GreasePencilLayersViewItem : public DataSetViewItem {
   void build_row(uiLayout &row) override
   {
     const int count = grease_pencil_ ? grease_pencil_->layers().size() : 0;
-    uiItemL(&row, label_, ICON_OUTLINER_DATA_GP_LAYER);
+    row.label(label_, ICON_OUTLINER_DATA_GP_LAYER);
     draw_count(*this, count);
   }
 };
@@ -381,7 +381,7 @@ class GreasePencilLayerViewItem : public DataSetViewItem {
     if (name.is_empty()) {
       name = IFACE_("(Layer)");
     }
-    uiItemL(&row, name, ICON_CURVE_DATA);
+    row.label(name, ICON_CURVE_DATA);
   }
 };
 
@@ -409,7 +409,7 @@ class GreasePencilLayerCurvesDomainViewItem : public DataSetViewItem {
   void build_row(uiLayout &row) override
   {
     const BIFIconID icon = curves_domain_to_icon(domain_);
-    uiItemL(&row, label_, icon);
+    row.label(label_, icon);
 
     const bke::greasepencil::Drawing *drawing = grease_pencil_.get_eval_drawing(
         grease_pencil_.layer(layer_index_));
@@ -433,7 +433,7 @@ class PointCloudViewItem : public DataSetViewItem {
     if (!has_pointcloud_) {
       uiLayoutSetActive(&row, false);
     }
-    uiItemL(&row, label_, ICON_POINTCLOUD_DATA);
+    row.label(label_, ICON_POINTCLOUD_DATA);
   }
 };
 
@@ -455,7 +455,7 @@ class PointsViewItem : public DataSetViewItem {
 
   void build_row(uiLayout &row) override
   {
-    uiItemL(&row, label_, ICON_POINTCLOUD_POINT);
+    row.label(label_, ICON_POINTCLOUD_POINT);
     const int count = pointcloud_ ? pointcloud_->totpoint : 0;
     draw_count(*this, count);
   }
@@ -482,7 +482,7 @@ class VolumeGridsViewItem : public DataSetViewItem {
     if (!volume_) {
       uiLayoutSetActive(&row, false);
     }
-    uiItemL(&row, label_, ICON_VOLUME_DATA);
+    row.label(label_, ICON_VOLUME_DATA);
     if (volume_) {
       draw_count(*this, BKE_volume_num_grids(volume_));
     }
@@ -510,7 +510,7 @@ class InstancesViewItem : public DataSetViewItem {
     if (!instances_) {
       uiLayoutSetActive(&row, false);
     }
-    uiItemL(&row, label_, ICON_EMPTY_AXIS);
+    row.label(label_, ICON_EMPTY_AXIS);
     if (instances_) {
       draw_count(*this, instances_->instances_num());
     }
@@ -766,7 +766,7 @@ void spreadsheet_data_set_panel_draw(const bContext *C, Panel *panel)
   const bke::GeometrySet root_geometry = spreadsheet_get_display_geometry_set(sspreadsheet,
                                                                               object);
 
-  if (uiLayout *panel = uiLayoutPanel(C, layout, "instance tree", false, IFACE_("Geometry"))) {
+  if (uiLayout *panel = layout->panel(C, "instance tree", false, IFACE_("Geometry"))) {
     ui::AbstractTreeView *tree_view = UI_block_add_view(
         *block,
         "Instances Tree View",
@@ -774,9 +774,7 @@ void spreadsheet_data_set_panel_draw(const bContext *C, Panel *panel)
     tree_view->set_context_menu_title("Instance");
     ui::TreeViewBuilder::build_tree_view(*C, *tree_view, *panel, {}, false);
   }
-  if (uiLayout *panel = uiLayoutPanel(
-          C, layout, "geometry_domain_tree_view", false, IFACE_("Domain")))
-  {
+  if (uiLayout *panel = layout->panel(C, "geometry_domain_tree_view", false, IFACE_("Domain"))) {
     bke::GeometrySet instance_geometry = get_geometry_set_for_instance_ids(
         root_geometry, {sspreadsheet->instance_ids, sspreadsheet->instance_ids_num});
     ui::AbstractTreeView *tree_view = UI_block_add_view(

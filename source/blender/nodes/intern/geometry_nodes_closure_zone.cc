@@ -792,7 +792,7 @@ void evaluate_closure_eagerly(const Closure &closure, ClosureEagerEvalParams &pa
     }
     lf_output_values[indices.outputs.input_usages[main_input_i]] = allocator.allocate<bool>();
   }
-  /* Set remaining output usages to false.*/
+  /* Set remaining output usages to false. */
   for (const int output_usage_i : indices.inputs.output_usages.index_range()) {
     const int lf_input_i = indices.inputs.output_usages[output_usage_i];
     if (!lf_input_values[lf_input_i]) {

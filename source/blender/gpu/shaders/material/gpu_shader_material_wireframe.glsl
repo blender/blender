@@ -20,8 +20,8 @@ void node_wireframe_screenspace(float size, out float fac)
 
 #ifdef GPU_FRAGMENT_SHADER
   size *= (1.0f / 3.0f);
-  float3 dx = dFdx(barys);
-  float3 dy = dFdy(barys);
+  float3 dx = gpu_dfdx(barys);
+  float3 dy = gpu_dfdy(barys);
   float3 deltas = sqrt(dx * dx + dy * dy);
 
   float3 s = step(-deltas * size, -barys);

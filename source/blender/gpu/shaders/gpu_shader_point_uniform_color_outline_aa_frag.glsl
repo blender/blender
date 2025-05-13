@@ -33,6 +33,6 @@ void main()
   }
 
   if (fragColor.a == 0.0f) {
-    discard;
+    gpu_discard_fragment();
   }
 }

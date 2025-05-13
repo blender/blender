@@ -154,7 +154,7 @@ class MotionPath : Overlay {
     if ((eMotionPath_BakeFlag(avs.path_bakeflag) & MOTIONPATH_BAKE_CAMERA_SPACE) &&
         state.v3d->camera)
     {
-      camera_eval = DEG_get_evaluated_object(state.depsgraph, state.v3d->camera);
+      camera_eval = DEG_get_evaluated(state.depsgraph, state.v3d->camera);
     }
 
     /* Draw curve-line of path. */

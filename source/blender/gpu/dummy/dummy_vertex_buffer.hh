@@ -36,7 +36,6 @@ class DummyVertexBuffer : public VertBuf {
     MEM_SAFE_FREE(data_);
   }
   void upload_data() override {}
-  void duplicate_data(VertBuf * /*dst*/) override {}
 };
 
 }  // namespace blender::gpu

@@ -50,7 +50,7 @@ void main()
 
   float transparency = average(g_transmittance);
   if (transparency > threshold) {
-    discard;
+    gpu_discard_fragment();
     return;
   }
 #endif
@@ -60,7 +60,7 @@ void main()
    * This would in turn create a discrepancy between the pre-pass depth and the G-buffer depth
    * which exhibits missing pixels data. */
   if (clip_interp.clip_distance > 0.0f) {
-    discard;
+    gpu_discard_fragment();
     return;
   }
 #endif

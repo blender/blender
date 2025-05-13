@@ -71,15 +71,70 @@ endif()
 add_subdirectory(gtests)
 
 if(WITH_COMPILER_CODE_COVERAGE)
-  set(COVERAGE_SCRIPT_PATH ${CMAKE_CURRENT_SOURCE_DIR}/coverage/coverage.py)
+  if(CMAKE_COMPILER_IS_GNUCC)
+    set(COVERAGE_SCRIPT_PATH ${CMAKE_CURRENT_SOURCE_DIR}/coverage/coverage.py)
 
-  add_custom_target(coverage-report
-    ${PYTHON_EXECUTABLE} ${COVERAGE_SCRIPT_PATH} report --build-directory ${CMAKE_BINARY_DIR}
-    USES_TERMINAL
-  )
+    add_custom_target(coverage-report
+      ${PYTHON_EXECUTABLE} ${COVERAGE_SCRIPT_PATH} report --build-directory ${CMAKE_BINARY_DIR} --no-browser
+      USES_TERMINAL
+    )
 
-  add_custom_target(coverage-reset
-    ${PYTHON_EXECUTABLE} ${COVERAGE_SCRIPT_PATH} reset --build-directory ${CMAKE_BINARY_DIR}
-    USES_TERMINAL
-  )
+    add_custom_target(coverage-show
+      ${PYTHON_EXECUTABLE} ${COVERAGE_SCRIPT_PATH} report --build-directory ${CMAKE_BINARY_DIR}
+      USES_TERMINAL
+    )
+
+    add_custom_target(coverage-reset
+      ${PYTHON_EXECUTABLE} ${COVERAGE_SCRIPT_PATH} reset --build-directory ${CMAKE_BINARY_DIR}
+      USES_TERMINAL
+    )
+  elseif(CMAKE_C_COMPILER_ID MATCHES "Clang")
+    add_custom_target(coverage-reset
+      COMMAND ${CMAKE_COMMAND} -E
+        remove_directory ${COMPILER_CODE_COVERAGE_DATA_DIR}
+      USES_TERMINAL
+    )
+    add_custom_target(coverage-merge
+      COMMENT "Merging code-coverage data."
+      BYPRODUCTS "${COMPILER_CODE_COVERAGE_DATA_DIR}/blender.profdata"
+      COMMAND "${LLVM_PROFDATA}"
+        merge
+        -sparse
+        ${COMPILER_CODE_COVERAGE_DATA_DIR}/raw/*.profraw
+        -o ${COMPILER_CODE_COVERAGE_DATA_DIR}/blender.profdata
+    )
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 18.1 OR
+       (CMAKE_C_COMPILER_ID MATCHES "AppleClang" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 17.0)
+      )
+      # Available clang on 18.1+ only , Apple's compiler doesn't map 1:1 to clang
+      # versions so on apple we check for version 17+ which maps to clang
+      # version 19.1.4, given this is somewhat unintuitive there is a handy table on
+      # https://en.wikipedia.org/wiki/Xcode#Xcode_15.0_-_(since_visionOS_support)_2
+      set(_cov_extra_args -show-directory-coverage)
+    endif()
+    add_custom_target(coverage-report
+      BYPRODUCTS "${COMPILER_CODE_COVERAGE_DATA_DIR}/report/index.html"
+      SOURCES "${COMPILER_CODE_COVERAGE_DATA_DIR}/blender.profdata"
+      COMMENT "Generating code-coverage report."
+      COMMAND "${LLVM_COV}" show 
+        -format=html
+        -show-instantiations=true
+        -show-line-counts-or-regions
+        ${_cov_extra_args}
+        -instr-profile=${COMPILER_CODE_COVERAGE_DATA_DIR}/blender.profdata
+        --output-dir=${COMPILER_CODE_COVERAGE_DATA_DIR}/report
+        $<TARGET_FILE:blender>
+      USES_TERMINAL
+    )
+    if(NOT WIN32)
+      set(_open_cmd "open")
+    endif()
+    add_custom_target(coverage-show
+      COMMENT "Starting browser for ${COMPILER_CODE_COVERAGE_DATA_DIR}/report/index.html"
+      COMMAND ${_open_cmd} "${COMPILER_CODE_COVERAGE_DATA_DIR}/report/index.html"
+      SOURCES "${COMPILER_CODE_COVERAGE_DATA_DIR}/report/index.html"
+    )
+    unset(_cov_extra_args)
+    unset(_open_cmd)
+  endif()
 endif()

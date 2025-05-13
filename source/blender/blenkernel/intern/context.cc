@@ -1145,7 +1145,7 @@ Main *CTX_data_main(const bContext *C)
 void CTX_data_main_set(bContext *C, Main *bmain)
 {
   C->data.main = bmain;
-  BKE_sound_init_main(bmain);
+  BKE_sound_refresh_callback_bmain(bmain);
 }
 
 Scene *CTX_data_scene(const bContext *C)

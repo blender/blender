@@ -79,26 +79,8 @@ float gpencil_stroke_thickness_modulate(float thickness, float4 ndc_pos, float4 
   /* Modify stroke thickness by object scale. */
   thickness = length(to_float3x3(drw_modelmat()) * float3(thickness * M_SQRT1_3));
 
-  /* For compatibility, thickness has to be clamped after being multiplied by this factor.
-   * This clamping was introduced to reduce aliasing issue by instead fading the lines alpha at
-   * smaller radii. This can be removed in major release if compatibility is not a concern. */
-  const float legacy_radius_conversion_factor = 2000.0f;
-  thickness *= legacy_radius_conversion_factor;
-  thickness = max(1.0f, thickness);
-  thickness /= legacy_radius_conversion_factor;
-
   /* World space point size. */
   thickness *= drw_view().winmat[1][1] * viewport_res.y;
-
-  return thickness;
-}
-
-float gpencil_clamp_small_stroke_thickness(float thickness, float4 ndc_pos)
-{
-  /* To avoid aliasing artifacts, we clamp the line thickness and
-   * reduce its opacity in the fragment shader. */
-  float min_thickness = ndc_pos.w * 1.3f;
-  thickness = max(min_thickness, thickness);
 
   return thickness;
 }
@@ -253,7 +235,9 @@ float4 gpencil_vertex(float4 viewport_res,
 
     float thickness = abs((use_curr) ? thickness1 : thickness2);
     thickness = gpencil_stroke_thickness_modulate(thickness, out_ndc, viewport_res);
-    float clamped_thickness = gpencil_clamp_small_stroke_thickness(thickness, out_ndc);
+    /* The radius attribute can have negative values. Make sure that it's not negative by clamping
+     * to 0. */
+    float clamped_thickness = max(0.0f, thickness);
 
     out_uv = float2(x, y) * 0.5f + 0.5f;
     out_hardness = gpencil_decode_hardness(use_curr ? hardness1 : hardness2);

@@ -88,8 +88,6 @@ static void material_init_data(ID *id)
   BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(material, id));
 
   MEMCPY_STRUCT_AFTER(material, DNA_struct_default_get(Material), id);
-
-  *((short *)id->name) = ID_MA;
 }
 
 static void material_copy_data(Main *bmain,
@@ -233,7 +231,7 @@ static void material_blend_read_data(BlendDataReader *reader, ID *id)
 }
 
 IDTypeInfo IDType_ID_MA = {
-    /*id_code*/ ID_MA,
+    /*id_code*/ Material::id_type,
     /*id_filter*/ FILTER_ID_MA,
     /*dependencies_id_types*/ FILTER_ID_TE | FILTER_ID_GR,
     /*main_listbase_index*/ INDEX_ID_MA,
@@ -306,7 +304,7 @@ Material *BKE_material_add(Main *bmain, const char *name)
 {
   Material *ma;
 
-  ma = static_cast<Material *>(BKE_id_new(bmain, ID_MA, name));
+  ma = BKE_id_new<Material>(bmain, name);
 
   return ma;
 }
@@ -746,7 +744,7 @@ Material *BKE_object_material_get_eval(Object *ob, short act)
 
 const Material *BKE_object_material_get_eval(const Object &ob, const ID &data, const short act)
 {
-  BLI_assert(DEG_is_evaluated_object(&ob));
+  BLI_assert(DEG_is_evaluated(&ob));
 
   const int slots_num = BKE_object_material_count_eval(ob, data);
 
@@ -786,7 +784,7 @@ const Material *BKE_object_material_get_eval(const Object &ob, const ID &data, c
 
 int BKE_object_material_count_eval(const Object *ob)
 {
-  BLI_assert(DEG_is_evaluated_object(ob));
+  BLI_assert(DEG_is_evaluated(ob));
   if (ob->type == OB_EMPTY) {
     return 0;
   }
@@ -798,7 +796,7 @@ int BKE_object_material_count_eval(const Object *ob)
 
 int BKE_object_material_count_eval(const Object &ob, const ID &data)
 {
-  BLI_assert(DEG_is_evaluated_object(&ob));
+  BLI_assert(DEG_is_evaluated(&ob));
   if (ob.type == OB_EMPTY) {
     return 0;
   }
@@ -937,6 +935,8 @@ Material *BKE_gpencil_material(Object *ob, short act)
     return ma;
   }
 
+  /* XXX FIXME This is critical abuse of the 'default material' feature, these IDs should never be
+   * used/returned as 'regular' data. */
   return BKE_material_default_gpencil();
 }
 
@@ -2016,29 +2016,36 @@ void BKE_material_eval(Depsgraph *depsgraph, Material *material)
  * Used for rendering when objects have no materials assigned, and initializing
  * default shader nodes. */
 
-static Material default_material_empty;
-static Material default_material_holdout;
-static Material default_material_surface;
-static Material default_material_volume;
-static Material default_material_gpencil;
+static Material *default_material_empty = nullptr;
+static Material *default_material_holdout = nullptr;
+static Material *default_material_surface = nullptr;
+static Material *default_material_volume = nullptr;
+static Material *default_material_gpencil = nullptr;
 
-static Material *default_materials[] = {&default_material_empty,
-                                        &default_material_holdout,
-                                        &default_material_surface,
-                                        &default_material_volume,
-                                        &default_material_gpencil,
-                                        nullptr};
+static Material **default_materials[] = {&default_material_empty,
+                                         &default_material_holdout,
+                                         &default_material_surface,
+                                         &default_material_volume,
+                                         &default_material_gpencil,
+                                         nullptr};
 
-static void material_default_gpencil_init(Material *ma)
+static Material *material_default_create(Material **ma_p, const char *name)
 {
-  BLI_strncpy(ma->id.name + 2, "Default GPencil", MAX_NAME);
+  *ma_p = BKE_id_new_nomain<Material>(name);
+  return *ma_p;
+}
+
+static void material_default_gpencil_init(Material **ma_p)
+{
+  Material *ma = material_default_create(ma_p, "Default GPencil");
+
   BKE_gpencil_material_attr_init(ma);
   add_v3_fl(&ma->gp_style->stroke_rgba[0], 0.6f);
 }
 
-static void material_default_surface_init(Material *ma)
+static void material_default_surface_init(Material **ma_p)
 {
-  BLI_strncpy(ma->id.name + 2, "Default Surface", MAX_NAME);
+  Material *ma = material_default_create(ma_p, "Default Surface");
 
   bNodeTree *ntree = blender::bke::node_tree_add_tree_embedded(
       nullptr, &ma->id, "Shader Nodetree", ntreeType_Shader->idname);
@@ -2064,9 +2071,9 @@ static void material_default_surface_init(Material *ma)
   blender::bke::node_set_active(*ntree, *output);
 }
 
-static void material_default_volume_init(Material *ma)
+static void material_default_volume_init(Material **ma_p)
 {
-  BLI_strncpy(ma->id.name + 2, "Default Volume", MAX_NAME);
+  Material *ma = material_default_create(ma_p, "Default Volume");
 
   bNodeTree *ntree = blender::bke::node_tree_add_tree_embedded(
       nullptr, &ma->id, "Shader Nodetree", ntreeType_Shader->idname);
@@ -2090,9 +2097,9 @@ static void material_default_volume_init(Material *ma)
   blender::bke::node_set_active(*ntree, *output);
 }
 
-static void material_default_holdout_init(Material *ma)
+static void material_default_holdout_init(Material **ma_p)
 {
-  BLI_strncpy(ma->id.name + 2, "Default Holdout", MAX_NAME);
+  Material *ma = material_default_create(ma_p, "Default Holdout");
 
   bNodeTree *ntree = blender::bke::node_tree_add_tree_embedded(
       nullptr, &ma->id, "Shader Nodetree", ntreeType_Shader->idname);
@@ -2117,34 +2124,34 @@ static void material_default_holdout_init(Material *ma)
 
 Material *BKE_material_default_empty()
 {
-  return &default_material_empty;
+  return default_material_empty;
 }
 
 Material *BKE_material_default_holdout()
 {
-  return &default_material_holdout;
+  return default_material_holdout;
 }
 
 Material *BKE_material_default_surface()
 {
-  return &default_material_surface;
+  return default_material_surface;
 }
 
 Material *BKE_material_default_volume()
 {
-  return &default_material_volume;
+  return default_material_volume;
 }
 
 Material *BKE_material_default_gpencil()
 {
-  return &default_material_gpencil;
+  return default_material_gpencil;
 }
 
 void BKE_material_defaults_free_gpu()
 {
   for (int i = 0; default_materials[i]; i++) {
-    Material *ma = default_materials[i];
-    if (ma->gpumaterial.first) {
+    Material *ma = *default_materials[i];
+    if (ma && ma->gpumaterial.first) {
       GPU_material_free(&ma->gpumaterial);
     }
   }
@@ -2155,9 +2162,12 @@ void BKE_material_defaults_free_gpu()
 void BKE_materials_init()
 {
   for (int i = 0; default_materials[i]; i++) {
-    material_init_data(&default_materials[i]->id);
+    BLI_assert_msg(*default_materials[i] == nullptr,
+                   "Default material pointers should always be null when initializing them, maybe "
+                   "missing a call to `BKE_materials_exit` first?");
   }
 
+  material_default_create(&default_material_empty, "Default Empty");
   material_default_surface_init(&default_material_surface);
   material_default_volume_init(&default_material_volume);
   material_default_holdout_init(&default_material_holdout);
@@ -2167,6 +2177,10 @@ void BKE_materials_init()
 void BKE_materials_exit()
 {
   for (int i = 0; default_materials[i]; i++) {
-    material_free_data(&default_materials[i]->id);
+    Material *ma = *default_materials[i];
+    *default_materials[i] = nullptr;
+    if (ma) {
+      BKE_id_free(nullptr, &ma->id);
+    }
   }
 }

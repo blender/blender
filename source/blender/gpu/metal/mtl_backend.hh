@@ -11,6 +11,7 @@
 #include "BLI_vector.hh"
 
 #include "gpu_backend.hh"
+#include "gpu_shader_private.hh"
 #include "mtl_capabilities.hh"
 
 namespace blender::gpu {
@@ -40,15 +41,9 @@ class MTLBackend : public GPUBackend {
     MTLBackend::platform_exit();
   }
 
-  void init_resources() override
-  {
-    /* Create any resources with context active. */
-  }
+  void init_resources() override;
 
-  void delete_resources() override
-  {
-    /* Delete any resources with context active. */
-  }
+  void delete_resources() override;
 
   static bool metal_is_supported();
   static MTLBackend *get()

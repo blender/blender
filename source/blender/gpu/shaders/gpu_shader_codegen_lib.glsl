@@ -136,30 +136,31 @@ float4 tangent_get(float4 attr, float3x3 normalmat)
 #endif
 
 /* Can't use enum here because not a header file. But would be great to do. */
-#ifdef GPU_METAL
-using ClosureType = uchar;
-#else
-#  define ClosureType uint
-#endif
-#define CLOSURE_NONE_ID 0u
-/* Diffuse */
-#define CLOSURE_BSDF_DIFFUSE_ID 1u
-#define CLOSURE_BSDF_OREN_NAYAR_ID 2u   /* TODO */
-#define CLOSURE_BSDF_SHEEN_ID 4u        /* TODO */
-#define CLOSURE_BSDF_DIFFUSE_TOON_ID 5u /* TODO */
-#define CLOSURE_BSDF_TRANSLUCENT_ID 6u
-/* Glossy */
-#define CLOSURE_BSDF_MICROFACET_GGX_REFLECTION_ID 7u
-#define CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ID 8u /* TODO */
-#define CLOSURE_BSDF_ASHIKHMIN_VELVET_ID 9u  /* TODO */
-#define CLOSURE_BSDF_GLOSSY_TOON_ID 10u      /* TODO */
-#define CLOSURE_BSDF_HAIR_REFLECTION_ID 11u  /* TODO */
-/* Transmission */
-#define CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID 12u
-/* Glass */
-#define CLOSURE_BSDF_HAIR_HUANG_ID 13u /* TODO */
-/* BSSRDF */
-#define CLOSURE_BSSRDF_BURLEY_ID 14u
+enum ClosureType : uchar {
+  CLOSURE_NONE_ID = 0u,
+  /* Diffuse */
+  CLOSURE_BSDF_DIFFUSE_ID = 1u,
+  // CLOSURE_BSDF_OREN_NAYAR_ID = 2u,   /* TODO */
+  // CLOSURE_BSDF_SHEEN_ID = 4u,        /* TODO */
+  // CLOSURE_BSDF_DIFFUSE_TOON_ID = 5u, /* TODO */
+  CLOSURE_BSDF_TRANSLUCENT_ID = 6u,
+
+  /* Glossy */
+  CLOSURE_BSDF_MICROFACET_GGX_REFLECTION_ID = 7u,
+  // CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ID = 8u, /* TODO */
+  // CLOSURE_BSDF_ASHIKHMIN_VELVET_ID = 9u,  /* TODO */
+  // CLOSURE_BSDF_GLOSSY_TOON_ID = 10u,      /* TODO */
+  // CLOSURE_BSDF_HAIR_REFLECTION_ID = 11u,  /* TODO */
+
+  /* Transmission */
+  CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID = 12u,
+
+  /* Glass */
+  // CLOSURE_BSDF_HAIR_HUANG_ID = 13u, /* TODO */
+
+  /* BSSRDF */
+  CLOSURE_BSSRDF_BURLEY_ID = 14u,
+};
 
 struct ClosureUndetermined {
   packed_float3 color;
@@ -339,8 +340,8 @@ void dF_branch(float fn, out float2 result)
 {
   /* NOTE: this function is currently unused, once it is used we need to check if
    * `g_derivative_filter_width` needs to be applied. */
-  result.x = dFdx(fn);
-  result.y = dFdy(fn);
+  result.x = gpu_dfdx(fn);
+  result.y = gpu_dfdy(fn);
 }
 
 #else
@@ -353,10 +354,10 @@ int g_derivative_flag = 0;
 float3 dF_impl(float3 v)
 {
   if (g_derivative_flag > 0) {
-    return dFdx(v) * g_derivative_filter_width;
+    return gpu_dfdx(v) * g_derivative_filter_width;
   }
   else if (g_derivative_flag < 0) {
-    return dFdy(v) * g_derivative_filter_width;
+    return gpu_dfdy(v) * g_derivative_filter_width;
   }
   return float3(0.0f);
 }

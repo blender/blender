@@ -150,6 +150,20 @@ def git_is_remote_repository(git_command: str, repo: str) -> bool:
     return exit_code == 0
 
 
+def git_get_remotes(git_command: str) -> Sequence[str]:
+    """Get a list of git remotes"""
+    # Additional check if the remote exists, for safety in case the output of this command
+    # changes in the future.
+    remotes = check_output([git_command, "remote"]).split()
+    return [remote for remote in remotes if git_remote_exist(git_command, remote)]
+
+
+def git_add_remote(git_command: str, name: str, url: str, push_url: str) -> None:
+    """Add a git remote"""
+    call((git_command, "remote", "add", name, url), silent=True)
+    call((git_command, "remote", "set-url", "--push", name, push_url), silent=True)
+
+
 def git_branch(git_command: str) -> str:
     """Get current branch name."""
 

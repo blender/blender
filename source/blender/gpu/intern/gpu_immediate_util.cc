@@ -10,8 +10,11 @@
 
 #include <cstring>
 
+#include "DNA_userdef_types.h"
+
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
+#include "BLI_rect.h"
 #include "BLI_utildefines.h"
 
 #include "GPU_immediate.hh"
@@ -116,6 +119,23 @@ void immRecti_fast_with_color(
   immVertex2i(pos, x2, y2);
   immAttr4fv(col, color);
   immVertex2i(pos, x1, y2);
+}
+
+void immRectf_with_texco(const uint pos, const uint tex_coord, const rctf &p, const rctf &uv)
+{
+  immBegin(GPU_PRIM_TRI_FAN, 4);
+  immAttr2f(tex_coord, uv.xmin, uv.ymin);
+  immVertex2f(pos, p.xmin, p.ymin);
+
+  immAttr2f(tex_coord, uv.xmin, uv.ymax);
+  immVertex2f(pos, p.xmin, p.ymax);
+
+  immAttr2f(tex_coord, uv.xmax, uv.ymax);
+  immVertex2f(pos, p.xmax, p.ymax);
+
+  immAttr2f(tex_coord, uv.xmax, uv.ymin);
+  immVertex2f(pos, p.xmax, p.ymin);
+  immEnd();
 }
 
 #if 0 /* more complete version in case we want that */
@@ -469,7 +489,7 @@ void imm_draw_box_checker_2d(float x1, float y1, float x2, float y2)
   float checker_secondary[4];
   UI_GetThemeColor4fv(TH_TRANSPARENT_CHECKER_PRIMARY, checker_primary);
   UI_GetThemeColor4fv(TH_TRANSPARENT_CHECKER_SECONDARY, checker_secondary);
-  int checker_size = UI_GetThemeValue(TH_TRANSPARENT_CHECKER_SIZE);
+  int checker_size = UI_GetThemeValue(TH_TRANSPARENT_CHECKER_SIZE) * U.pixelsize;
   imm_draw_box_checker_2d_ex(x1, y1, x2, y2, checker_primary, checker_secondary, checker_size);
 }
 

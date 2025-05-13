@@ -152,9 +152,9 @@ bool UI_but_is_tool(const uiBut *but)
   return false;
 }
 
-bool UI_but_has_tooltip_label(const uiBut *but)
+bool UI_but_has_quick_tooltip(const uiBut *but)
 {
-  return (but->drawflag & UI_BUT_HAS_TOOLTIP_LABEL) != 0;
+  return (but->drawflag & UI_BUT_HAS_QUICK_TOOLTIP) != 0;
 }
 
 int ui_but_icon(const uiBut *but)

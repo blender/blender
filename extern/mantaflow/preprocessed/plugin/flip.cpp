@@ -1012,6 +1012,7 @@ struct ComputeAveragedLevelsetWeight : public KernelBase {
                  const ParticleIndexSystem &indexSys,
                  LevelsetGrid &phi,
                  const Real radius,
+                 const Real sradiusInv,
                  const ParticleDataImpl<int> *ptype,
                  const int exclude,
                  Grid<Vec3> *save_pAcc = nullptr,
@@ -1021,7 +1022,6 @@ struct ComputeAveragedLevelsetWeight : public KernelBase {
     Real phiv = radius * 1.0;                        // outside
 
     // loop over neighborhood, similar to ComputeUnionLevelsetPindex
-    const Real sradiusInv = 1. / (4. * radius * radius);
     const int r = int(radius) + 1;
     // accumulators
     Real wacc = 0.;
@@ -1120,17 +1120,18 @@ struct ComputeAveragedLevelsetWeight : public KernelBase {
   {
     const int _maxX = maxX;
     const int _maxY = maxY;
+    const Real sradiusInv = 1. / (4. * radius * radius);
     if (maxZ > 1) {
       for (int k = __r.begin(); k != (int)__r.end(); k++)
         for (int j = 0; j < _maxY; j++)
           for (int i = 0; i < _maxX; i++)
-            op(i, j, k, parts, index, indexSys, phi, radius, ptype, exclude, save_pAcc, save_rAcc);
+            op(i, j, k, parts, index, indexSys, phi, radius, sradiusInv, ptype, exclude, save_pAcc, save_rAcc);
     }
     else {
       const int k = 0;
       for (int j = __r.begin(); j != (int)__r.end(); j++)
         for (int i = 0; i < _maxX; i++)
-          op(i, j, k, parts, index, indexSys, phi, radius, ptype, exclude, save_pAcc, save_rAcc);
+          op(i, j, k, parts, index, indexSys, phi, radius, sradiusInv, ptype, exclude, save_pAcc, save_rAcc);
     }
   }
   void run()

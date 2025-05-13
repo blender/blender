@@ -147,12 +147,13 @@ eSelectOp ED_select_op_from_operator(PointerRNA *ptr)
   return SEL_OP_SET;
 }
 
-void ED_select_pick_params_from_operator(PointerRNA *ptr, SelectPick_Params *params)
+SelectPick_Params ED_select_pick_params_from_operator(PointerRNA *ptr)
 {
-  memset(params, 0x0, sizeof(*params));
-  params->sel_op = ED_select_op_from_operator(ptr);
-  params->deselect_all = RNA_boolean_get(ptr, "deselect_all");
-  params->select_passthrough = RNA_boolean_get(ptr, "select_passthrough");
+  SelectPick_Params params = {};
+  params.sel_op = ED_select_op_from_operator(ptr);
+  params.deselect_all = RNA_boolean_get(ptr, "deselect_all");
+  params.select_passthrough = RNA_boolean_get(ptr, "select_passthrough");
+  return params;
 }
 
 /* -------------------------------------------------------------------- */
@@ -164,8 +165,7 @@ std::string ED_select_pick_get_name(wmOperatorType * /*ot*/, PointerRNA *ptr)
   PropertyRNA *prop = RNA_struct_find_property(ptr, "enumerate");
   const bool enumerate = (prop && RNA_property_boolean_get(ptr, prop));
 
-  SelectPick_Params params = {eSelectOp(0)};
-  ED_select_pick_params_from_operator(ptr, &params);
+  const SelectPick_Params params = ED_select_pick_params_from_operator(ptr);
   switch (params.sel_op) {
     case SEL_OP_ADD:
       if (enumerate) {

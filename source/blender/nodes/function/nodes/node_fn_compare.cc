@@ -60,11 +60,11 @@ static void node_declare(NodeDeclarationBuilder &b)
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   const NodeFunctionCompare &data = node_storage(*static_cast<const bNode *>(ptr->data));
-  uiItemR(layout, ptr, "data_type", UI_ITEM_NONE, "", ICON_NONE);
+  layout->prop(ptr, "data_type", UI_ITEM_NONE, "", ICON_NONE);
   if (data.data_type == SOCK_VECTOR) {
-    uiItemR(layout, ptr, "mode", UI_ITEM_NONE, "", ICON_NONE);
+    layout->prop(ptr, "mode", UI_ITEM_NONE, "", ICON_NONE);
   }
-  uiItemR(layout, ptr, "operation", UI_ITEM_NONE, "", ICON_NONE);
+  layout->prop(ptr, "operation", UI_ITEM_NONE, "", ICON_NONE);
 }
 
 static void node_update(bNodeTree *ntree, bNode *node)

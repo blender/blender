@@ -1,0 +1,218 @@
+==== Meshes: 1
+- Mesh 'Cylinder' vtx:226 face:224 loop:896 edge:448
+    - 24 146 170 80 146 ... 121 127 225 121 47 
+    - 24/146 146/170 80/170 24/80 0/146 ... 128/224 81/225 127/225 152/225 121/225 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (0.000, 0.863, 3.034)
+    - (0.615, 0.615, 3.026)
+    - (0.863, 0.000, 3.034)
+      ...
+    - (0.346, 0.836, 1.749)
+    - (-0.833, -0.345, 2.251)
+    - (0.833, 0.345, 2.251)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 1 1 1 1 1 ... 1 1 0 0 1 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'UVMap' FLOAT2 CORNER
+    - (1.000, 0.875)
+    - (1.000, 0.938)
+    - (0.938, 0.938)
+      ...
+    - (0.000, 0.000)
+    - (0.000, 0.000)
+    - (0.000, 0.000)
+  - vertex groups:
+    - 2=0.704 3=0.207 1=0.087
+    - 2=0.841 1=0.105 3=0.051
+    - 2=0.867 1=0.105
+    - 2=0.841 1=0.104 3=0.052
+    - 2=0.703 3=0.208 1=0.086
+
+==== Objects: 2
+- Obj 'Armature' ARMATURE data:'Armature'
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+  - anim act:Armature|ArmatureAction slot:OBArmature blend:REPLACE drivers:0
+- Obj 'Cylinder' MESH data:'Cylinder' par:'Armature'
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+  - 5 vertex groups
+    - 'Bone' 'Bone.002' 'Bone.001' 'armTip.R' 'armTip.L.010' 
+  - 1 modifiers
+    - ARMATURE 'Armature'
+
+==== Actions: 1
+- Action 'Armature|ArmatureAction' curverange:(1.0 .. 16.0) layers:1
+- ActionLayer Layer strips:1
+ - Keyframe strip channelbags:1
+ - Channelbag slot 'OBArmature' curves:169
+  - fcu 'location[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Armature'
+    - (1.000, 0.000) lh:(-4.000, 0.000 AUTO_CLAMPED) rh:(6.000, 0.000 AUTO_CLAMPED)
+    - (16.000, 0.000) lh:(11.000, 0.000 AUTO_CLAMPED) rh:(21.000, 0.000 AUTO_CLAMPED)
+  - fcu 'location[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Armature'
+    - (1.000, 0.000) lh:(-4.000, 0.000 AUTO_CLAMPED) rh:(6.000, 0.000 AUTO_CLAMPED)
+    - (16.000, 0.000) lh:(11.000, 0.000 AUTO_CLAMPED) rh:(21.000, 0.000 AUTO_CLAMPED)
+  - fcu 'location[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Armature'
+    - (1.000, 0.000) lh:(-4.000, 0.000 AUTO_CLAMPED) rh:(6.000, 0.000 AUTO_CLAMPED)
+    - (16.000, 0.000) lh:(11.000, 0.000 AUTO_CLAMPED) rh:(21.000, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Bone"].location[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:4 grp:'Bone'
+    - (1.000, 0.000) lh:(-0.667, 0.000 AUTO_CLAMPED) rh:(2.667, 0.000 AUTO_CLAMPED)
+    - (6.000, 0.000) lh:(4.333, 0.000 AUTO_CLAMPED) rh:(7.667, 0.000 AUTO_CLAMPED)
+    - (11.000, 0.000) lh:(9.333, 0.000 AUTO_CLAMPED) rh:(12.667, 0.000 AUTO_CLAMPED)
+    - (16.000, 0.000) lh:(14.333, 0.000 AUTO_CLAMPED) rh:(17.667, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Bone"].location[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:4 grp:'Bone'
+    - (1.000, 0.000) lh:(-0.667, 0.000 AUTO_CLAMPED) rh:(2.667, 0.000 AUTO_CLAMPED)
+    - (6.000, 0.000) lh:(4.333, 0.000 AUTO_CLAMPED) rh:(7.667, 0.000 AUTO_CLAMPED)
+    - (11.000, 0.000) lh:(9.333, 0.000 AUTO_CLAMPED) rh:(12.667, 0.000 AUTO_CLAMPED)
+    - (16.000, 0.000) lh:(14.333, 0.000 AUTO_CLAMPED) rh:(17.667, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Bone"].location[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:4 grp:'Bone'
+    - (1.000, 0.000) lh:(-0.667, 0.000 AUTO_CLAMPED) rh:(2.667, 0.000 AUTO_CLAMPED)
+    - (6.000, 0.000) lh:(4.333, 0.000 AUTO_CLAMPED) rh:(7.667, 0.000 AUTO_CLAMPED)
+    - (11.000, 0.000) lh:(9.333, 0.000 AUTO_CLAMPED) rh:(12.667, 0.000 AUTO_CLAMPED)
+    - (16.000, 0.000) lh:(14.333, 0.000 AUTO_CLAMPED) rh:(17.667, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Bone"].rotation_quaternion[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:4 grp:'Bone'
+    - (1.000, 1.000) lh:(-0.667, 1.000 AUTO_CLAMPED) rh:(2.667, 1.000 AUTO_CLAMPED)
+    - (6.000, 0.998) lh:(4.333, 1.000 AUTO_CLAMPED) rh:(7.667, 0.996 AUTO_CLAMPED)
+    - (11.000, 0.979) lh:(9.333, 0.992 AUTO_CLAMPED) rh:(12.667, 0.967 AUTO_CLAMPED)
+    - (16.000, 0.945) lh:(14.333, 0.945 AUTO_CLAMPED) rh:(17.667, 0.945 AUTO_CLAMPED)
+  - fcu 'pose.bones["Bone"].rotation_quaternion[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:4 grp:'Bone'
+    - (1.000, 0.000) lh:(-0.667, 0.000 AUTO_CLAMPED) rh:(2.667, 0.000 AUTO_CLAMPED)
+    - (6.000, 0.053) lh:(4.333, 0.023 AUTO_CLAMPED) rh:(7.667, 0.084 AUTO_CLAMPED)
+    - (11.000, 0.169) lh:(9.333, 0.121 AUTO_CLAMPED) rh:(12.667, 0.217 AUTO_CLAMPED)
+    - (16.000, 0.274) lh:(14.333, 0.274 AUTO_CLAMPED) rh:(17.667, 0.274 AUTO_CLAMPED)
+  - fcu 'pose.bones["Bone"].rotation_quaternion[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:4 grp:'Bone'
+    - (1.000, 0.000) lh:(-0.667, 0.000 AUTO_CLAMPED) rh:(2.667, 0.000 AUTO_CLAMPED)
+    - (6.000, 0.035) lh:(4.333, 0.015 AUTO_CLAMPED) rh:(7.667, 0.054 AUTO_CLAMPED)
+    - (11.000, 0.110) lh:(9.333, 0.079 AUTO_CLAMPED) rh:(12.667, 0.141 AUTO_CLAMPED)
+    - (16.000, 0.179) lh:(14.333, 0.179 AUTO_CLAMPED) rh:(17.667, 0.179 AUTO_CLAMPED)
+  - fcu 'pose.bones["Bone"].rotation_quaternion[3]' smooth:CONT_ACCEL extra:CONSTANT keyframes:4 grp:'Bone'
+    - (1.000, 0.000) lh:(-0.667, 0.000 AUTO_CLAMPED) rh:(2.667, 0.000 AUTO_CLAMPED)
+    - (6.000, 0.000) lh:(4.333, 0.000 AUTO_CLAMPED) rh:(7.667, 0.000 AUTO_CLAMPED)
+    - (11.000, 0.000) lh:(9.333, 0.000 AUTO_CLAMPED) rh:(12.667, 0.000 AUTO_CLAMPED)
+    - (16.000, 0.000) lh:(14.333, 0.000 AUTO_CLAMPED) rh:(17.667, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Bone"].scale[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:4 grp:'Bone'
+    - (1.000, 1.000) lh:(-0.667, 1.000 AUTO_CLAMPED) rh:(2.667, 1.000 AUTO_CLAMPED)
+    - (6.000, 1.000) lh:(4.333, 1.000 AUTO_CLAMPED) rh:(7.667, 1.000 AUTO_CLAMPED)
+    - (11.000, 1.000) lh:(9.333, 1.000 AUTO_CLAMPED) rh:(12.667, 1.000 AUTO_CLAMPED)
+    - (16.000, 1.000) lh:(14.333, 1.000 AUTO_CLAMPED) rh:(17.667, 1.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Bone"].scale[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:4 grp:'Bone'
+    - (1.000, 1.000) lh:(-0.667, 1.000 AUTO_CLAMPED) rh:(2.667, 1.000 AUTO_CLAMPED)
+    - (6.000, 1.000) lh:(4.333, 1.000 AUTO_CLAMPED) rh:(7.667, 1.000 AUTO_CLAMPED)
+    - (11.000, 1.000) lh:(9.333, 1.000 AUTO_CLAMPED) rh:(12.667, 1.000 AUTO_CLAMPED)
+    - (16.000, 1.000) lh:(14.333, 1.000 AUTO_CLAMPED) rh:(17.667, 1.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Bone"].scale[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:4 grp:'Bone'
+    - (1.000, 1.000) lh:(-0.667, 1.000 AUTO_CLAMPED) rh:(2.667, 1.000 AUTO_CLAMPED)
+    - (6.000, 1.000) lh:(4.333, 1.000 AUTO_CLAMPED) rh:(7.667, 1.000 AUTO_CLAMPED)
+    - (11.000, 1.000) lh:(9.333, 1.000 AUTO_CLAMPED) rh:(12.667, 1.000 AUTO_CLAMPED)
+    - (16.000, 1.000) lh:(14.333, 1.000 AUTO_CLAMPED) rh:(17.667, 1.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Bone.001"].location[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:4 grp:'Bone.001'
+    - (1.000, 0.000) lh:(-0.667, 0.000 AUTO_CLAMPED) rh:(2.667, 0.000 AUTO_CLAMPED)
+    - (6.000, 0.000) lh:(4.333, 0.000 AUTO_CLAMPED) rh:(7.667, 0.000 AUTO_CLAMPED)
+    - (11.000, 0.000) lh:(9.333, 0.000 AUTO_CLAMPED) rh:(12.667, 0.000 AUTO_CLAMPED)
+    - (16.000, 0.000) lh:(14.333, 0.000 AUTO_CLAMPED) rh:(17.667, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Bone.001"].location[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:4 grp:'Bone.001'
+    - (1.000, 0.000) lh:(-0.667, 0.000 AUTO_CLAMPED) rh:(2.667, 0.000 AUTO_CLAMPED)
+    - (6.000, 0.000) lh:(4.333, 0.000 AUTO_CLAMPED) rh:(7.667, 0.000 AUTO_CLAMPED)
+    - (11.000, 0.000) lh:(9.333, 0.000 AUTO_CLAMPED) rh:(12.667, 0.000 AUTO_CLAMPED)
+    - (16.000, 0.000) lh:(14.333, 0.000 AUTO_CLAMPED) rh:(17.667, 0.000 AUTO_CLAMPED)
+
+==== Armatures: 1
+- Armature 'Armature' 22 bones
+  - bone 'Bone' h:(0.000, 0.000, 0.318) t:(0.000, 0.000, 1.399) radius h:0.100 t:0.050
+      1.000 0.000 0.000 0.000
+      0.000 0.000 -1.000 0.000
+      0.000 1.000 0.000 0.318
+  - bone 'Bone.001' parent:'Bone.002' h:(0.000, 0.109, 0.000) t:(0.000, 1.190, 0.000) radius h:0.100 t:0.050
+      1.000 0.000 0.000 0.000
+      0.000 0.000 -1.000 0.000
+      0.000 1.000 0.000 2.481
+  - bone 'Bone.001_end' parent:'Bone.001' h:(0.000, 0.000, 0.000) t:(0.000, 1.081, 0.000) connect radius h:0.100 t:0.050
+      1.000 0.000 0.000 0.000
+      0.000 0.000 -1.000 0.000
+      0.000 1.000 0.000 3.562
+  - bone 'Bone.002' parent:'Bone' h:(0.000, 0.000, 0.000) t:(0.000, 0.972, 0.000) connect radius h:0.100 t:0.050
+      1.000 0.000 0.000 0.000
+      0.000 0.000 -1.000 0.000
+      0.000 1.000 0.000 1.399
+  - bone 'arm.L' parent:'Bone.002' h:(0.244, -0.964, 0.000) t:(0.734, 0.000, 0.000) radius h:0.100 t:0.050
+      0.891 0.453 0.000 0.244
+      0.000 0.000 -1.000 0.000
+      -0.453 0.891 0.000 1.408
+  - bone 'arm.L.001' parent:'Bone.002' h:(2.110, -1.933, 0.065) t:(2.674, -0.825, 0.065) radius h:0.100 t:0.050
+      0.891 0.453 0.000 2.110
+      0.000 0.000 -1.000 -0.065
+      -0.453 0.891 0.000 0.439
+  - bone 'arm.R' parent:'Bone.002' h:(-0.244, -0.964, 0.000) t:(-0.734, 0.000, 0.000) radius h:0.100 t:0.050
+      0.891 -0.453 0.000 -0.244
+      0.000 0.000 -1.000 0.000
+      0.453 0.891 0.000 1.408
+  - bone 'armTip.L' parent:'arm.L' h:(0.000, 0.000, 0.000) t:(-0.825, 0.715, 0.000) connect radius h:0.100 t:0.050
+      0.926 -0.377 0.000 0.734
+      0.000 0.000 -1.000 0.000
+      0.377 0.926 0.000 2.372
+  - bone 'armTip.L.001' parent:'arm.L.001' h:(0.000, -0.162, 0.000) t:(-0.828, 0.544, 0.000) radius h:0.100 t:0.050
+      0.923 -0.384 0.000 2.600
+      0.000 0.000 -1.000 -0.065
+      0.384 0.923 0.000 1.403
+  - bone 'armTip.L.002' parent:'armTip.L.001' h:(0.000, 0.000, 0.000) t:(0.600, 0.526, 0.000) connect radius h:0.100 t:0.050
+      0.897 0.442 0.000 2.183
+      0.000 0.000 -1.000 -0.065
+      -0.442 0.897 0.000 2.408
+  - bone 'armTip.L.003' parent:'armTip.L.002' h:(0.000, 0.000, 0.000) t:(-0.615, 0.680, 0.000) connect radius h:0.100 t:0.050
+      0.962 -0.274 0.000 2.535
+      0.000 0.000 -1.000 -0.065
+      0.274 0.962 0.000 3.123
+  - bone 'armTip.L.003_end' parent:'armTip.L.003' h:(0.000, 0.000, 0.000) t:(0.000, 0.916, 0.000) connect radius h:0.100 t:0.050
+      0.962 -0.274 0.000 2.284
+      0.000 0.000 -1.000 -0.065
+      0.274 0.962 0.000 4.005
+  - bone 'armTip.L.004' parent:'armTip.L.001' h:(0.000, 0.000, 0.000) t:(-0.263, 0.884, 0.000) connect radius h:0.100 t:0.050
+      0.776 -0.631 0.000 2.183
+      0.000 0.000 -1.000 -0.065
+      0.631 0.776 0.000 2.408
+  - bone 'armTip.L.005' parent:'armTip.L.004' h:(0.000, 0.000, 0.000) t:(0.508, 0.785, 0.000) connect radius h:0.100 t:0.050
+      0.994 -0.109 0.000 1.601
+      0.000 0.000 -1.000 -0.065
+      0.109 0.994 0.000 3.123
+  - bone 'armTip.L.005_end' parent:'armTip.L.005' h:(0.000, 0.000, 0.000) t:(0.000, 0.935, 0.000) connect radius h:0.100 t:0.050
+      0.994 -0.109 0.000 1.499
+      0.000 0.000 -1.000 -0.065
+      0.109 0.994 0.000 4.053
+  - bone 'armTip.L.006' parent:'arm.L.001' h:(0.432, 0.094, 0.000) t:(0.328, 1.181, 0.000) radius h:0.100 t:0.050
+      0.930 0.366 0.000 3.101
+      0.000 0.000 -1.000 -0.065
+      -0.366 0.930 0.000 1.435
+  - bone 'armTip.L.009' parent:'armTip.L.006' h:(0.000, 0.000, 0.000) t:(-0.269, 0.882, 0.000) connect radius h:0.100 t:0.050
+      0.997 0.079 0.000 3.501
+      0.000 0.000 -1.000 -0.065
+      -0.079 0.997 0.000 2.451
+  - bone 'armTip.L.010' parent:'armTip.L.009' h:(0.000, 0.000, 0.000) t:(0.508, 0.785, 0.000) connect radius h:0.100 t:0.050
+      0.794 0.608 0.000 3.574
+      0.000 0.000 -1.000 -0.065
+      -0.608 0.794 0.000 3.371
+  - bone 'armTip.L.010_end' parent:'armTip.L.010' h:(0.000, 0.000, 0.000) t:(0.000, 0.935, 0.000) connect radius h:0.100 t:0.050
+      0.794 0.608 0.000 4.142
+      0.000 0.000 -1.000 -0.065
+      -0.608 0.794 0.000 4.113
+  - bone 'armTip.L_end' parent:'armTip.L' h:(0.000, 0.000, 0.000) t:(0.000, 1.091, 0.000) connect radius h:0.100 t:0.050
+      0.926 -0.377 0.000 0.323
+      0.000 0.000 -1.000 0.000
+      0.377 0.926 0.000 3.383
+  - bone 'armTip.R' parent:'arm.R' h:(0.000, 0.000, 0.000) t:(0.825, 0.715, 0.000) connect radius h:0.100 t:0.050
+      0.926 0.377 0.000 -0.734
+      0.000 0.000 -1.000 0.000
+      -0.377 0.926 0.000 2.372
+  - bone 'armTip.R_end' parent:'armTip.R' h:(0.000, 0.000, 0.000) t:(0.000, 1.091, 0.000) connect radius h:0.100 t:0.050
+      0.926 0.377 0.000 -0.323
+      0.000 0.000 -1.000 0.000
+      -0.377 0.926 0.000 3.383
+

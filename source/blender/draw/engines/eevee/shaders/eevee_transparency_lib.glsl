@@ -20,7 +20,7 @@ float transparency_hash_3d(float3 a)
 float transparency_hashed_alpha_threshold(float hash_scale, float hash_offset, float3 P)
 {
   /* Find the discretized derivatives of our coordinates. */
-  float max_deriv = max(length(dFdx(P)), length(dFdy(P)));
+  float max_deriv = max(length(gpu_dfdx(P)), length(gpu_dfdy(P)));
   float pix_scale = 1.0f / (hash_scale * max_deriv);
   /* Find two nearest log-discretized noise scales. */
   float pix_scale_log = log2(pix_scale);

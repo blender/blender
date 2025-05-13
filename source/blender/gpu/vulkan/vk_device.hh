@@ -208,7 +208,10 @@ class VKDevice : public NonCopyable {
   VKWorkarounds workarounds_;
   VKExtensions extensions_;
 
-  std::string glsl_patch_;
+  std::string glsl_vert_patch_;
+  std::string glsl_geom_patch_;
+  std::string glsl_frag_patch_;
+  std::string glsl_comp_patch_;
   Vector<VKThreadData *> thread_data_;
 
  public:
@@ -361,7 +364,10 @@ class VKDevice : public NonCopyable {
     return extensions_;
   }
 
-  const char *glsl_patch_get() const;
+  const char *glsl_vertex_patch_get() const;
+  const char *glsl_geometry_patch_get() const;
+  const char *glsl_fragment_patch_get() const;
+  const char *glsl_compute_patch_get() const;
   void init_glsl_patch();
 
   /* -------------------------------------------------------------------- */

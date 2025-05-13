@@ -851,7 +851,7 @@ ID *BKE_id_copy_for_use_in_bmain(Main *bmain, const ID *id)
   /* Shape keys reference on evaluated ID is preserved to keep driver paths available, but the key
    * data is likely to be invalid now due to modifiers, so clear the shape key reference avoiding
    * any possible shape corruption. */
-  if (DEG_is_evaluated_id(id)) {
+  if (DEG_is_evaluated(id)) {
     Key **key_p = BKE_key_from_id_p(newid);
     if (key_p) {
       *key_p = nullptr;
@@ -2526,6 +2526,10 @@ static bool id_order_compare(ID *a, ID *b)
 {
   int *order_a = id_order_get(a);
   int *order_b = id_order_get(b);
+
+  /* In practice either both or neither are set,
+   * failing to do this would result in a logically invalid sort function, see #137712. */
+  BLI_assert((order_a && order_b) || (!order_a && !order_b));
 
   if (order_a && order_b) {
     if (*order_a < *order_b) {

@@ -183,7 +183,8 @@ struct Instance : public DrawEngine {
       select_id_vert_ps.init();
       select_vert = nullptr;
       if (e_data.context.select_mode & SCE_SELECT_VERTEX) {
-        const float vertex_size = blender::draw::overlay::Resources::vertex_size_get();
+        const float vertex_size = U.pixelsize *
+                                  blender::draw::overlay::Resources::vertex_size_get();
         auto &sub = select_id_vert_ps.sub("Sub");
         sub.state_set(state, clipping_plane_count);
         sub.shader_set(sh->select_id_flat);

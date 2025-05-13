@@ -504,7 +504,7 @@ void BKE_mesh_to_curve_nurblist(const Mesh *mesh, ListBase *nurblist, const int 
 
 void BKE_mesh_to_curve(Main *bmain, Depsgraph *depsgraph, Scene * /*scene*/, Object *ob)
 {
-  const Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+  const Object *ob_eval = DEG_get_evaluated(depsgraph, ob);
   if (!ob_eval) {
     return;
   }
@@ -534,8 +534,10 @@ void BKE_mesh_to_curve(Main *bmain, Depsgraph *depsgraph, Scene * /*scene*/, Obj
 
 void BKE_mesh_to_pointcloud(Main *bmain, Depsgraph *depsgraph, Scene * /*scene*/, Object *ob)
 {
+  using namespace blender;
+  using namespace blender::bke;
   BLI_assert(ob->type == OB_MESH);
-  const Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+  const Object *ob_eval = DEG_get_evaluated(depsgraph, ob);
   if (!ob_eval) {
     return;
   }
@@ -545,11 +547,12 @@ void BKE_mesh_to_pointcloud(Main *bmain, Depsgraph *depsgraph, Scene * /*scene*/
   }
 
   PointCloud *pointcloud = BKE_pointcloud_add(bmain, ob->id.name + 2);
-
-  CustomData_free(&pointcloud->pdata);
   pointcloud->totpoint = mesh_eval->verts_num;
-  CustomData_merge(
-      &mesh_eval->vert_data, &pointcloud->pdata, CD_MASK_PROP_ALL, mesh_eval->verts_num);
+  copy_attributes(mesh_eval->attributes(),
+                  AttrDomain::Point,
+                  AttrDomain::Point,
+                  {},
+                  pointcloud->attributes_for_write());
 
   BKE_id_materials_copy(bmain, (ID *)ob->data, (ID *)pointcloud);
 
@@ -562,17 +565,21 @@ void BKE_mesh_to_pointcloud(Main *bmain, Depsgraph *depsgraph, Scene * /*scene*/
 
 void BKE_pointcloud_to_mesh(Main *bmain, Depsgraph *depsgraph, Scene * /*scene*/, Object *ob)
 {
+  using namespace blender;
+  using namespace blender::bke;
   BLI_assert(ob->type == OB_POINTCLOUD);
 
-  const Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
-  const blender::bke::GeometrySet geometry = blender::bke::object_get_evaluated_geometry_set(
-      *ob_eval);
+  const Object *ob_eval = DEG_get_evaluated(depsgraph, ob);
+  const GeometrySet geometry = object_get_evaluated_geometry_set(*ob_eval);
 
   Mesh *mesh = BKE_mesh_add(bmain, ob->id.name + 2);
-
   if (const PointCloud *points = geometry.get_pointcloud()) {
     mesh->verts_num = points->totpoint;
-    CustomData_merge(&points->pdata, &mesh->vert_data, CD_MASK_PROP_ALL, points->totpoint);
+    copy_attributes(points->attributes(),
+                    AttrDomain::Point,
+                    AttrDomain::Point,
+                    {},
+                    mesh->attributes_for_write());
   }
 
   BKE_id_materials_copy(bmain, (ID *)ob->data, (ID *)mesh);
@@ -717,7 +724,7 @@ static Mesh *mesh_new_from_curve_type_object(const Object *object)
 {
   /* If the object is evaluated, it should either have an evaluated mesh or curve data already.
    * The mesh can be duplicated, or the curve converted to wire mesh edges. */
-  if (DEG_is_evaluated_object(object)) {
+  if (DEG_is_evaluated(object)) {
     return mesh_new_from_evaluated_curve_type_object(object);
   }
 
@@ -754,13 +761,13 @@ static Mesh *mesh_new_from_mball_object(Object *object)
    * ball).
    *
    * Create empty mesh so script-authors don't run into None objects. */
-  if (!DEG_is_evaluated_object(object)) {
-    return (Mesh *)BKE_id_new_nomain(ID_ME, ((ID *)object->data)->name + 2);
+  if (!DEG_is_evaluated(object)) {
+    return BKE_id_new_nomain<Mesh>(((ID *)object->data)->name + 2);
   }
 
   const Mesh *mesh_eval = BKE_object_get_evaluated_mesh(object);
   if (mesh_eval == nullptr) {
-    return (Mesh *)BKE_id_new_nomain(ID_ME, ((ID *)object->data)->name + 2);
+    return BKE_id_new_nomain<Mesh>(((ID *)object->data)->name + 2);
   }
 
   return BKE_mesh_copy_for_eval(*mesh_eval);
@@ -790,7 +797,7 @@ static Mesh *mesh_new_from_mesh_object_with_layers(Depsgraph *depsgraph,
                                                    const bool preserve_origindex,
                                                    const bool ensure_subdivision)
 {
-  if (DEG_is_original_id(&object->id)) {
+  if (DEG_is_original(object)) {
     return mesh_new_from_mesh(object, (Mesh *)object->data, ensure_subdivision);
   }
 

@@ -32,8 +32,8 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  Image *image = params.get_input<Image *>("Image");
-  const int frame = params.get_input<int>("Frame");
+  Image *image = params.extract_input<Image *>("Image");
+  const int frame = params.extract_input<int>("Frame");
   if (!image) {
     params.set_default_remaining_outputs();
     return;

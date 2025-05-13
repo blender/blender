@@ -119,8 +119,7 @@ struct PaintStroke {
   bool pen_flip;
 
   /* Tilt, as read from the event. */
-  float x_tilt;
-  float y_tilt;
+  float2 tilt;
 
   /* line constraint */
   bool constrain_line;
@@ -137,10 +136,8 @@ struct PaintStroke {
 
 /*** Cursors ***/
 static void paint_draw_smooth_cursor(bContext *C,
-                                     const int x,
-                                     const int y,
-                                     const float /*x_tilt*/,
-                                     const float /*y_tilt*/,
+                                     const blender::int2 &xy,
+                                     const blender::float2 & /*tilt*/,
                                      void *customdata)
 {
   const Paint *paint = BKE_paint_get_active_from_context(C);
@@ -164,7 +161,7 @@ static void paint_draw_smooth_cursor(bContext *C,
     immUniformColor4ubv(paint->paint_cursor_col);
 
     immBegin(GPU_PRIM_LINES, 2);
-    immVertex2f(pos, x, y);
+    immVertex2fv(pos, blender::float2(xy));
     immVertex2f(pos,
                 stroke->last_mouse_position[0] + region->winrct.xmin,
                 stroke->last_mouse_position[1] + region->winrct.ymin);
@@ -179,10 +176,8 @@ static void paint_draw_smooth_cursor(bContext *C,
 }
 
 static void paint_draw_line_cursor(bContext *C,
-                                   const int x,
-                                   const int y,
-                                   const float /*x_tilt*/,
-                                   const float /*y_tilt*/,
+                                   const blender::int2 &xy,
+                                   const blender::float2 & /*tilt*/,
                                    void *customdata)
 {
   const Paint *paint = BKE_paint_get_active_from_context(C);
@@ -224,7 +219,7 @@ static void paint_draw_line_cursor(bContext *C,
                 stroke->last_mouse_position[0] + region->winrct.xmin,
                 stroke->last_mouse_position[1] + region->winrct.ymin);
 
-    immVertex2f(shdr_pos, x, y);
+    immVertex2iv(shdr_pos, xy);
   }
 
   immEnd();
@@ -644,8 +639,8 @@ static void paint_brush_stroke_add_step(
     /* Original mouse coordinates. */
     RNA_float_set_array(&itemptr, "mouse_event", mval);
     RNA_float_set(&itemptr, "pressure", pressure);
-    RNA_float_set(&itemptr, "x_tilt", stroke->x_tilt);
-    RNA_float_set(&itemptr, "y_tilt", stroke->y_tilt);
+    RNA_float_set(&itemptr, "x_tilt", stroke->tilt.x);
+    RNA_float_set(&itemptr, "y_tilt", stroke->tilt.y);
 
     stroke->update_step(C, op, stroke, &itemptr);
 
@@ -1506,8 +1501,7 @@ wmOperatorStatus paint_stroke_modal(bContext *C,
 
   /* Tilt. */
   if (WM_event_is_tablet(event)) {
-    stroke->x_tilt = event->tablet.x_tilt;
-    stroke->y_tilt = event->tablet.y_tilt;
+    stroke->tilt = event->tablet.tilt;
   }
 
 #ifdef WITH_INPUT_NDOF

@@ -254,6 +254,12 @@ float GPU_line_width_get()
   return state.line_width;
 }
 
+bool GPU_line_smooth_get()
+{
+  const GPUState &state = Context::get()->state_manager->state;
+  return bool(state.line_smooth);
+}
+
 void GPU_scissor_get(int coords[4])
 {
   Context::get()->active_fb->scissor_get(coords);

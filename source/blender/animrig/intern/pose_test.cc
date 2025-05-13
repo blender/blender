@@ -55,7 +55,7 @@ class PoseTest : public testing::Test {
   void SetUp() override
   {
     bmain = BKE_main_new();
-    pose_action = static_cast<Action *>(BKE_id_new(bmain, ID_AC, "pose_data"));
+    pose_action = BKE_id_new<Action>(bmain, "pose_data");
     Layer &layer = pose_action->layer_add("first_layer");
     Strip &strip = layer.strip_add(*pose_action, Strip::Type::Keyframe);
     keyframe_data = &strip.data<StripKeyframeData>(*pose_action);

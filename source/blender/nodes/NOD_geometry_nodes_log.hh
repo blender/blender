@@ -50,6 +50,7 @@
 
 struct SpaceNode;
 struct NodesModifierData;
+struct Report;
 
 namespace blender::nodes::geo_eval_log {
 
@@ -68,6 +69,9 @@ int node_warning_type_severity(NodeWarningType type);
 struct NodeWarning {
   NodeWarningType type;
   std::string message;
+
+  NodeWarning(NodeWarningType type, StringRef message) : type(type), message(message) {}
+  NodeWarning(const Report &report);
 
   uint64_t hash() const
   {

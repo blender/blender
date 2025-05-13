@@ -67,7 +67,6 @@ class MTLVertBuf : public VertBuf {
   void resize_data() override;
   void release_data() override;
   void upload_data() override;
-  void duplicate_data(VertBuf *dst) override;
   void bind_as_ssbo(uint binding) override;
   void bind_as_texture(uint binding) override;
 

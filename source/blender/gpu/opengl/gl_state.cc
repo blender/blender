@@ -415,6 +415,13 @@ void GLStateManager::set_blend(const eGPUBlend value)
       dst_alpha = GL_SRC1_ALPHA;
       break;
     }
+    case GPU_BLEND_OVERLAY_MASK_FROM_ALPHA: {
+      src_rgb = GL_ZERO;
+      dst_rgb = GL_ONE_MINUS_SRC_ALPHA;
+      src_alpha = GL_ZERO;
+      dst_alpha = GL_ONE_MINUS_SRC_ALPHA;
+      break;
+    }
   }
 
   if (value == GPU_BLEND_SUBTRACT) {

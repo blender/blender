@@ -128,7 +128,7 @@ void OBJECT_OT_camera_add(wmOperatorType *ot);
 void OBJECT_OT_speaker_add(wmOperatorType *ot);
 void OBJECT_OT_curves_random_add(wmOperatorType *ot);
 void OBJECT_OT_curves_empty_hair_add(wmOperatorType *ot);
-void OBJECT_OT_pointcloud_add(wmOperatorType *ot);
+void OBJECT_OT_pointcloud_random_add(wmOperatorType *ot);
 /**
  * Only used as menu.
  */
@@ -141,6 +141,7 @@ void OBJECT_OT_duplicate(wmOperatorType *ot);
 void OBJECT_OT_delete(wmOperatorType *ot);
 void OBJECT_OT_join(wmOperatorType *ot);
 void OBJECT_OT_join_shapes(wmOperatorType *ot);
+void OBJECT_OT_update_shapes(wmOperatorType *ot);
 void OBJECT_OT_convert(wmOperatorType *ot);
 
 /* `object_volume.cc` */

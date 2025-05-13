@@ -4,7 +4,7 @@
 
 from bpy.types import Header, Panel
 from rna_prop_ui import PropertyPanel
-from . import anim
+from bl_ui import anim
 
 
 class PROPERTIES_HT_header(Header):

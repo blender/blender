@@ -21,6 +21,7 @@ struct BlendfileLinkAppendContext;
 struct BlendHandle;
 struct BlendThumbnail;
 struct FileData;
+struct FileReader;
 struct ID;
 struct Library;
 struct LinkNode;
@@ -386,9 +387,12 @@ enum eBLOLibLinkFlags {
   BLO_LIBLINK_OBDATA_INSTANCE = 1 << 24,
   /** Instantiate collections as empties, instead of linking them into current view layer. */
   BLO_LIBLINK_COLLECTION_INSTANCE = 1 << 25,
-  /** Do not rebuild collections hierarchy runtime data (mainly the parents info) as part of
-     #BLO_library_link_end. Needed when some IDs have been temporarily removed from Main, see e.g.
-     #BKE_blendfile_library_relocate. */
+  /**
+   * Do not rebuild collections hierarchy runtime data (mainly the parents info)
+   * as part of #BLO_library_link_end.
+   * Needed when some IDs have been temporarily removed from Main,
+   * see e.g. #BKE_blendfile_library_relocate.
+   */
   BLO_LIBLINK_COLLECTION_NO_HIERARCHY_REBUILD = 1 << 26,
 };
 
@@ -591,7 +595,7 @@ ID_Readfile_Data::Tags BLO_readfile_id_runtime_tags(ID &id);
 ID_Readfile_Data::Tags &BLO_readfile_id_runtime_tags_for_write(ID &id);
 
 /**
- * Free the ID_Readfile_Data of all IDs in this bmain and all their embedded IDs.
+ * Free the #ID_Readfile_Data of all IDs in this bmain and all their embedded IDs.
  *
  * This is typically called at the end of the versioning process, as after that
  * `ID.runtime.readfile_data` should no longer be needed.
@@ -599,6 +603,8 @@ ID_Readfile_Data::Tags &BLO_readfile_id_runtime_tags_for_write(ID &id);
 void BLO_readfile_id_runtime_data_free_all(Main &bmain);
 
 /**
- *  Free the ID_Readfile_Data of this ID. Does _not_ deal with embedded IDs.
+ *  Free the #ID_Readfile_Data of this ID. Does _not_ deal with embedded IDs.
  */
 void BLO_readfile_id_runtime_data_free(ID &id);
+
+#define BLEN_THUMB_MEMSIZE_FILE(_x, _y) (sizeof(int) * (2 + (size_t)(_x) * (size_t)(_y)))

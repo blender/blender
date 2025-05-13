@@ -1,0 +1,622 @@
+==== Meshes: 1
+- Mesh 'Mesh' vtx:804 face:826 loop:3256 edge:1628
+    - 0 26 40 29 0 ... 801 458 95 795 99 
+    - 0/26 26/40 29/40 0/29 29/39 ... 455/799 472/800 454/801 454/458 95/99 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (0.411, -0.201, 3.453)
+    - (0.177, 0.493, 3.516)
+    - (0.177, 0.493, 3.070)
+      ...
+    - (-0.146, 0.148, 0.810)
+    - (-0.360, 0.146, 0.842)
+    - (-0.144, -0.056, 0.772)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 0 0 0 0 0 ... 0 0 0 0 0 
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 ... 0 0 0 0 0 
+  - attr 'Col' BYTE_COLOR CORNER
+    - (1.000, 1.000, 1.000, 1.000)
+    - (1.000, 1.000, 1.000, 1.000)
+    - (1.000, 1.000, 1.000, 1.000)
+      ...
+    - (1.000, 1.000, 1.000, 1.000)
+    - (1.000, 1.000, 1.000, 1.000)
+    - (1.000, 1.000, 1.000, 1.000)
+  - attr 'custom_normal' INT16_2D CORNER
+    - (325, 5754)
+    - (164, 32150)
+    - (197, 24394)
+      ...
+    - (4831, 15939)
+    - (10172, 222)
+    - (21846, 9738)
+  - attr 'UVMap' FLOAT2 CORNER
+    - (0.425, 0.840)
+    - (0.423, 0.794)
+    - (0.462, 0.792)
+      ...
+    - (0.841, 0.123)
+    - (0.820, 0.108)
+    - (0.841, 0.096)
+  - vertex groups:
+    - 5=1.000
+    - 5=1.000
+    - 5=1.000
+    - 5=1.000
+    - 5=1.000
+  - 1 materials
+    - 'skin' 
+
+==== Objects: 2
+- Obj 'characterMedium' MESH data:'Mesh' par:'Root'
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+  - 32 vertex groups
+    - 'Hips' 'Spine' 'Chest' 'UpperChest' 'Neck' ... 'LeftToes' 'RightUpLeg' 'RightLeg' 'RightFoot' 'RightToes' 
+  - 1 modifiers
+    - ARMATURE 'Root'
+  - props: str:currentUVSet='UVMap'
+- Obj 'Root' ARMATURE data:'Root'
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+  - posed bone 'Chest'
+    - props: int:lockInfluenceWeights=False
+  - posed bone 'Head'
+      1.000 0.025 0.000 0.000
+      -0.024 0.950 0.311 0.000
+      0.008 -0.311 0.950 0.000
+    - props: int:lockInfluenceWeights=False
+  - posed bone 'Hips'
+    - props: int:lockInfluenceWeights=False
+  - posed bone 'HipsCtrl'
+      1.000 -0.025 0.000 0.005
+      0.025 1.000 0.000 0.088
+      0.000 0.000 1.000 -0.007
+    - props: int:lockInfluenceWeights=False
+  - posed bone 'LeftArm'
+      0.442 0.814 -0.376 0.000
+      -0.887 0.459 -0.049 0.000
+      0.133 0.355 0.925 0.000
+    - props: int:lockInfluenceWeights=False
+  - posed bone 'LeftFoot'
+      0.962 0.272 -0.025 0.000
+      -0.229 0.750 -0.621 0.000
+      -0.150 0.603 0.783 0.000
+    - props: int:lockInfluenceWeights=False
+  - posed bone 'LeftFootCtrl'
+      -0.280 0.960 0.000 0.571
+      -0.960 -0.280 0.000 -0.455
+      0.000 0.000 1.000 0.119
+    - props: int:lockInfluenceWeights=False
+  - posed bone 'LeftFootIK'
+    - props: int:lockInfluenceWeights=False
+  - posed bone 'LeftFootRollCtrl'
+    - props: int:lockInfluenceWeights=False
+  - posed bone 'LeftForeArm'
+      0.870 -0.060 -0.489 0.000
+      -0.492 -0.151 -0.857 0.000
+      -0.023 0.987 -0.161 0.000
+    - props: int:lockInfluenceWeights=False
+  - posed bone 'LeftHand'
+      1.000 -0.002 0.000 0.000
+      0.002 1.000 -0.031 0.000
+      0.000 0.031 1.000 0.000
+    - props: int:lockInfluenceWeights=False
+  - posed bone 'LeftHandIndex1'
+      1.000 -0.006 0.000 0.000
+      0.006 0.997 0.081 -0.043
+      0.000 -0.081 0.997 0.005
+    - props: int:lockInfluenceWeights=False
+  - posed bone 'LeftHandIndex2'
+      0.997 -0.059 0.051 0.000
+      0.059 0.137 -0.989 0.042
+      0.051 0.989 0.140 -0.007
+    - props: int:lockInfluenceWeights=False
+  - posed bone 'LeftHandIndex3'
+      1.000 0.000 0.000 0.000
+      0.000 0.707 -0.707 0.000
+      0.000 0.707 0.707 0.000
+    - props: int:lockInfluenceWeights=False
+  - posed bone 'LeftHandThumb1'
+      0.996 -0.085 -0.024 -0.004
+      0.071 0.935 -0.347 0.034
+      0.052 0.344 0.937 0.005
+    - props: int:lockInfluenceWeights=False
+  - posed bone 'LeftHandThumb2'
+      0.996 -0.088 -0.003 0.000
+      0.079 0.913 -0.399 0.000
+      0.037 0.397 0.917 0.000
+    - props: int:lockInfluenceWeights=False
+  - posed bone 'LeftHeelRoll'
+    - props: int:lockInfluenceWeights=False
+  - posed bone 'LeftKneeCtrl'
+      1.000 0.000 0.000 -0.102
+      0.000 1.000 0.000 0.000
+      0.000 0.000 1.000 0.000
+    - props: int:lockInfluenceWeights=False
+  - posed bone 'LeftLeg'
+      0.939 -0.311 0.149 0.000
+      0.311 0.577 -0.756 0.000
+      0.149 0.756 0.638 0.000
+    - props: int:lockInfluenceWeights=False
+  - posed bone 'LeftShoulder'
+    - props: int:lockInfluenceWeights=False
+  - posed bone 'LeftToeRoll'
+    - props: int:lockInfluenceWeights=False
+  - posed bone 'LeftToes'
+    - props: int:lockInfluenceWeights=False
+  - posed bone 'LeftUpLeg'
+      0.967 -0.056 0.249 0.000
+      0.112 0.970 -0.217 0.000
+      -0.229 0.237 0.944 0.000
+    - props: int:lockInfluenceWeights=False
+  - posed bone 'Neck'
+    - props: int:lockInfluenceWeights=False
+  - posed bone 'RightArm'
+      0.960 0.275 -0.059 0.000
+      -0.094 0.512 0.854 0.000
+      0.265 -0.814 0.517 0.000
+    - props: int:lockInfluenceWeights=False
+  - posed bone 'RightFoot'
+      0.973 -0.226 -0.055 0.000
+      0.233 0.954 0.189 0.000
+      0.010 -0.197 0.980 0.000
+    - props: int:lockInfluenceWeights=False
+  - posed bone 'RightFootCtrl'
+      1.000 0.000 0.000 -0.594
+      0.000 1.000 0.000 -0.013
+      0.000 0.000 1.000 -0.118
+    - props: int:lockInfluenceWeights=False
+  - posed bone 'RightFootIK'
+    - props: int:lockInfluenceWeights=False
+  - posed bone 'RightFootRollCtrl'
+      1.000 0.000 0.000 0.000
+      0.000 0.913 0.408 0.000
+      0.000 -0.408 0.913 0.000
+    - props: int:lockInfluenceWeights=False
+  - posed bone 'RightForeArm'
+      0.979 -0.103 -0.177 0.000
+      0.142 0.964 0.225 0.000
+      0.147 -0.245 0.958 0.000
+    - props: int:lockInfluenceWeights=False
+  - posed bone 'RightHand'
+      0.977 -0.002 0.215 0.000
+      -0.008 0.999 0.045 0.000
+      -0.215 -0.045 0.976 0.000
+    - props: int:lockInfluenceWeights=False
+  - posed bone 'RightHandIndex1'
+      1.000 0.006 0.000 0.000
+      -0.006 0.997 -0.081 -0.043
+      0.000 0.081 0.997 -0.005
+    - props: int:lockInfluenceWeights=False
+  - posed bone 'RightHandIndex2'
+      0.996 0.059 0.069 0.000
+      -0.059 -0.158 0.986 0.042
+      0.069 -0.986 -0.154 0.007
+    - props: int:lockInfluenceWeights=False
+  - posed bone 'RightHandIndex3'
+      1.000 0.000 0.000 0.000
+      0.000 0.961 0.275 0.000
+      0.000 -0.275 0.961 0.000
+    - props: int:lockInfluenceWeights=False
+  - posed bone 'RightHandThumb1'
+      0.989 -0.145 0.021 -0.005
+      0.132 0.942 0.307 0.034
+      -0.065 -0.301 0.951 -0.004
+    - props: int:lockInfluenceWeights=False
+  - posed bone 'RightHandThumb2'
+      0.969 -0.246 -0.006 0.000
+      0.226 0.880 0.417 0.000
+      -0.097 -0.405 0.909 0.000
+    - props: int:lockInfluenceWeights=False
+  - posed bone 'RightHeelRoll'
+      1.000 0.000 0.000 0.000
+      0.000 0.913 -0.408 0.000
+      0.000 0.408 0.913 0.000
+    - props: int:lockInfluenceWeights=False
+  - posed bone 'RightKneeCtrl'
+      1.000 0.000 0.000 0.160
+      0.000 1.000 0.000 -0.105
+      0.000 0.000 1.000 0.000
+    - props: int:lockInfluenceWeights=False
+  - posed bone 'RightLeg'
+      0.978 0.202 -0.053 0.000
+      -0.202 0.848 -0.490 0.000
+      -0.053 0.490 0.870 0.000
+    - props: int:lockInfluenceWeights=False
+  - posed bone 'RightShoulder'
+    - props: int:lockInfluenceWeights=False
+  - posed bone 'RightToeRoll'
+    - props: int:lockInfluenceWeights=False
+  - posed bone 'RightToes'
+    - props: int:lockInfluenceWeights=False
+  - posed bone 'RightUpLeg'
+      0.992 -0.017 -0.126 0.000
+      0.102 0.701 0.706 0.000
+      0.076 -0.713 0.697 0.000
+    - props: int:lockInfluenceWeights=False
+  - posed bone 'Spine'
+      1.000 0.000 0.000 0.000
+      0.000 0.950 -0.311 0.000
+      0.000 0.311 0.950 0.000
+    - props: int:lockInfluenceWeights=False
+  - posed bone 'UpperChest'
+    - props: int:lockInfluenceWeights=False
+  - anim act:Take 001 slot:OBRoot blend:REPLACE drivers:0
+
+==== Materials: 1
+- Mat 'skin'
+  - base color (0.800, 0.800, 0.800)
+  - specular ior 1.000
+  - specular tint (0.250, 0.250, 0.250)
+  - roughness 0.690
+  - metallic 0.000
+  - ior 1.500
+  - viewport diffuse (0.800, 0.800, 0.800, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 1.000
+  - viewport metallic 0.000, roughness 0.690
+  - backface False probe True shadow False
+
+==== Actions: 1
+- Action 'Take 001' curverange:(1.0 .. 17.0) layers:1
+- ActionLayer Layer strips:1
+ - Keyframe strip channelbags:1
+ - Channelbag slot 'OBRoot' curves:459
+  - fcu 'location[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:17 grp:'Root'
+    - (1.000, 0.000) lh:(0.667, 0.000 AUTO_CLAMPED) rh:(1.333, 0.000 AUTO_CLAMPED)
+    - (2.000, 0.000) lh:(1.667, 0.000 AUTO_CLAMPED) rh:(2.333, 0.000 AUTO_CLAMPED)
+    - (3.000, 0.000) lh:(2.667, 0.000 AUTO_CLAMPED) rh:(3.333, 0.000 AUTO_CLAMPED)
+      ...
+    - (15.000, 0.000) lh:(14.667, 0.000 AUTO_CLAMPED) rh:(15.333, 0.000 AUTO_CLAMPED)
+    - (16.000, 0.000) lh:(15.667, 0.000 AUTO_CLAMPED) rh:(16.333, 0.000 AUTO_CLAMPED)
+    - (17.000, 0.000) lh:(16.667, 0.000 AUTO_CLAMPED) rh:(17.333, 0.000 AUTO_CLAMPED)
+  - fcu 'location[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:17 grp:'Root'
+    - (1.000, 0.000) lh:(0.667, 0.000 AUTO_CLAMPED) rh:(1.333, 0.000 AUTO_CLAMPED)
+    - (2.000, 0.000) lh:(1.667, 0.000 AUTO_CLAMPED) rh:(2.333, 0.000 AUTO_CLAMPED)
+    - (3.000, 0.000) lh:(2.667, 0.000 AUTO_CLAMPED) rh:(3.333, 0.000 AUTO_CLAMPED)
+      ...
+    - (15.000, 0.000) lh:(14.667, 0.000 AUTO_CLAMPED) rh:(15.333, 0.000 AUTO_CLAMPED)
+    - (16.000, 0.000) lh:(15.667, 0.000 AUTO_CLAMPED) rh:(16.333, 0.000 AUTO_CLAMPED)
+    - (17.000, 0.000) lh:(16.667, 0.000 AUTO_CLAMPED) rh:(17.333, 0.000 AUTO_CLAMPED)
+  - fcu 'location[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:17 grp:'Root'
+    - (1.000, 0.000) lh:(0.667, 0.000 AUTO_CLAMPED) rh:(1.333, 0.000 AUTO_CLAMPED)
+    - (2.000, 0.000) lh:(1.667, 0.000 AUTO_CLAMPED) rh:(2.333, 0.000 AUTO_CLAMPED)
+    - (3.000, 0.000) lh:(2.667, 0.000 AUTO_CLAMPED) rh:(3.333, 0.000 AUTO_CLAMPED)
+      ...
+    - (15.000, 0.000) lh:(14.667, 0.000 AUTO_CLAMPED) rh:(15.333, 0.000 AUTO_CLAMPED)
+    - (16.000, 0.000) lh:(15.667, 0.000 AUTO_CLAMPED) rh:(16.333, 0.000 AUTO_CLAMPED)
+    - (17.000, 0.000) lh:(16.667, 0.000 AUTO_CLAMPED) rh:(17.333, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Chest"].location[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:17 grp:'Chest'
+    - (1.000, 0.000) lh:(0.667, 0.000 AUTO_CLAMPED) rh:(1.333, 0.000 AUTO_CLAMPED)
+    - (2.000, 0.000) lh:(1.667, 0.000 AUTO_CLAMPED) rh:(2.333, 0.000 AUTO_CLAMPED)
+    - (3.000, 0.000) lh:(2.667, 0.000 AUTO_CLAMPED) rh:(3.333, 0.000 AUTO_CLAMPED)
+      ...
+    - (15.000, 0.000) lh:(14.667, 0.000 AUTO_CLAMPED) rh:(15.333, 0.000 AUTO_CLAMPED)
+    - (16.000, 0.000) lh:(15.667, 0.000 AUTO_CLAMPED) rh:(16.333, 0.000 AUTO_CLAMPED)
+    - (17.000, 0.000) lh:(16.667, 0.000 AUTO_CLAMPED) rh:(17.333, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Chest"].location[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:17 grp:'Chest'
+    - (1.000, 0.000) lh:(0.667, 0.000 AUTO_CLAMPED) rh:(1.333, 0.000 AUTO_CLAMPED)
+    - (2.000, 0.000) lh:(1.667, 0.000 AUTO_CLAMPED) rh:(2.333, 0.000 AUTO_CLAMPED)
+    - (3.000, 0.000) lh:(2.667, 0.000 AUTO_CLAMPED) rh:(3.333, 0.000 AUTO_CLAMPED)
+      ...
+    - (15.000, 0.000) lh:(14.667, 0.000 AUTO_CLAMPED) rh:(15.333, 0.000 AUTO_CLAMPED)
+    - (16.000, 0.000) lh:(15.667, 0.000 AUTO_CLAMPED) rh:(16.333, 0.000 AUTO_CLAMPED)
+    - (17.000, 0.000) lh:(16.667, 0.000 AUTO_CLAMPED) rh:(17.333, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Chest"].location[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:17 grp:'Chest'
+    - (1.000, 0.000) lh:(0.667, 0.000 AUTO_CLAMPED) rh:(1.333, 0.000 AUTO_CLAMPED)
+    - (2.000, 0.000) lh:(1.667, 0.000 AUTO_CLAMPED) rh:(2.333, 0.000 AUTO_CLAMPED)
+    - (3.000, 0.000) lh:(2.667, 0.000 AUTO_CLAMPED) rh:(3.333, 0.000 AUTO_CLAMPED)
+      ...
+    - (15.000, 0.000) lh:(14.667, 0.000 AUTO_CLAMPED) rh:(15.333, 0.000 AUTO_CLAMPED)
+    - (16.000, 0.000) lh:(15.667, 0.000 AUTO_CLAMPED) rh:(16.333, 0.000 AUTO_CLAMPED)
+    - (17.000, 0.000) lh:(16.667, 0.000 AUTO_CLAMPED) rh:(17.333, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Chest"].rotation_quaternion[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:17 grp:'Chest'
+    - (1.000, 1.000) lh:(0.667, 1.000 AUTO_CLAMPED) rh:(1.333, 1.000 AUTO_CLAMPED)
+    - (2.000, 1.000) lh:(1.667, 1.000 AUTO_CLAMPED) rh:(2.333, 1.000 AUTO_CLAMPED)
+    - (3.000, 1.000) lh:(2.667, 1.000 AUTO_CLAMPED) rh:(3.333, 1.000 AUTO_CLAMPED)
+      ...
+    - (15.000, 1.000) lh:(14.667, 1.000 AUTO_CLAMPED) rh:(15.333, 1.000 AUTO_CLAMPED)
+    - (16.000, 1.000) lh:(15.667, 1.000 AUTO_CLAMPED) rh:(16.333, 1.000 AUTO_CLAMPED)
+    - (17.000, 1.000) lh:(16.667, 1.000 AUTO_CLAMPED) rh:(17.333, 1.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Chest"].rotation_quaternion[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:17 grp:'Chest'
+    - (1.000, 0.000) lh:(0.667, 0.000 AUTO_CLAMPED) rh:(1.333, 0.000 AUTO_CLAMPED)
+    - (2.000, 0.000) lh:(1.667, 0.000 AUTO_CLAMPED) rh:(2.333, 0.000 AUTO_CLAMPED)
+    - (3.000, 0.000) lh:(2.667, 0.000 AUTO_CLAMPED) rh:(3.333, 0.000 AUTO_CLAMPED)
+      ...
+    - (15.000, 0.000) lh:(14.667, 0.000 AUTO_CLAMPED) rh:(15.333, 0.000 AUTO_CLAMPED)
+    - (16.000, 0.000) lh:(15.667, 0.000 AUTO_CLAMPED) rh:(16.333, 0.000 AUTO_CLAMPED)
+    - (17.000, 0.000) lh:(16.667, 0.000 AUTO_CLAMPED) rh:(17.333, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Chest"].rotation_quaternion[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:17 grp:'Chest'
+    - (1.000, 0.000) lh:(0.667, 0.000 AUTO_CLAMPED) rh:(1.333, 0.000 AUTO_CLAMPED)
+    - (2.000, 0.000) lh:(1.667, 0.000 AUTO_CLAMPED) rh:(2.333, 0.000 AUTO_CLAMPED)
+    - (3.000, 0.000) lh:(2.667, 0.000 AUTO_CLAMPED) rh:(3.333, 0.000 AUTO_CLAMPED)
+      ...
+    - (15.000, 0.000) lh:(14.667, 0.000 AUTO_CLAMPED) rh:(15.333, 0.000 AUTO_CLAMPED)
+    - (16.000, 0.000) lh:(15.667, 0.000 AUTO_CLAMPED) rh:(16.333, 0.000 AUTO_CLAMPED)
+    - (17.000, 0.000) lh:(16.667, 0.000 AUTO_CLAMPED) rh:(17.333, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Chest"].rotation_quaternion[3]' smooth:CONT_ACCEL extra:CONSTANT keyframes:17 grp:'Chest'
+    - (1.000, 0.000) lh:(0.667, 0.000 AUTO_CLAMPED) rh:(1.333, 0.000 AUTO_CLAMPED)
+    - (2.000, 0.000) lh:(1.667, 0.000 AUTO_CLAMPED) rh:(2.333, 0.000 AUTO_CLAMPED)
+    - (3.000, 0.000) lh:(2.667, 0.000 AUTO_CLAMPED) rh:(3.333, 0.000 AUTO_CLAMPED)
+      ...
+    - (15.000, 0.000) lh:(14.667, 0.000 AUTO_CLAMPED) rh:(15.333, 0.000 AUTO_CLAMPED)
+    - (16.000, 0.000) lh:(15.667, 0.000 AUTO_CLAMPED) rh:(16.333, 0.000 AUTO_CLAMPED)
+    - (17.000, 0.000) lh:(16.667, 0.000 AUTO_CLAMPED) rh:(17.333, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Chest"].scale[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:17 grp:'Chest'
+    - (1.000, 1.000) lh:(0.667, 1.000 AUTO_CLAMPED) rh:(1.333, 1.000 AUTO_CLAMPED)
+    - (2.000, 1.000) lh:(1.667, 1.000 AUTO_CLAMPED) rh:(2.333, 1.000 AUTO_CLAMPED)
+    - (3.000, 1.000) lh:(2.667, 1.000 AUTO_CLAMPED) rh:(3.333, 1.000 AUTO_CLAMPED)
+      ...
+    - (15.000, 1.000) lh:(14.667, 1.000 AUTO_CLAMPED) rh:(15.333, 1.000 AUTO_CLAMPED)
+    - (16.000, 1.000) lh:(15.667, 1.000 AUTO_CLAMPED) rh:(16.333, 1.000 AUTO_CLAMPED)
+    - (17.000, 1.000) lh:(16.667, 1.000 AUTO_CLAMPED) rh:(17.333, 1.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Chest"].scale[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:17 grp:'Chest'
+    - (1.000, 1.000) lh:(0.667, 1.000 AUTO_CLAMPED) rh:(1.333, 1.000 AUTO_CLAMPED)
+    - (2.000, 1.000) lh:(1.667, 1.000 AUTO_CLAMPED) rh:(2.333, 1.000 AUTO_CLAMPED)
+    - (3.000, 1.000) lh:(2.667, 1.000 AUTO_CLAMPED) rh:(3.333, 1.000 AUTO_CLAMPED)
+      ...
+    - (15.000, 1.000) lh:(14.667, 1.000 AUTO_CLAMPED) rh:(15.333, 1.000 AUTO_CLAMPED)
+    - (16.000, 1.000) lh:(15.667, 1.000 AUTO_CLAMPED) rh:(16.333, 1.000 AUTO_CLAMPED)
+    - (17.000, 1.000) lh:(16.667, 1.000 AUTO_CLAMPED) rh:(17.333, 1.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Chest"].scale[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:17 grp:'Chest'
+    - (1.000, 1.000) lh:(0.667, 1.000 AUTO_CLAMPED) rh:(1.333, 1.000 AUTO_CLAMPED)
+    - (2.000, 1.000) lh:(1.667, 1.000 AUTO_CLAMPED) rh:(2.333, 1.000 AUTO_CLAMPED)
+    - (3.000, 1.000) lh:(2.667, 1.000 AUTO_CLAMPED) rh:(3.333, 1.000 AUTO_CLAMPED)
+      ...
+    - (15.000, 1.000) lh:(14.667, 1.000 AUTO_CLAMPED) rh:(15.333, 1.000 AUTO_CLAMPED)
+    - (16.000, 1.000) lh:(15.667, 1.000 AUTO_CLAMPED) rh:(16.333, 1.000 AUTO_CLAMPED)
+    - (17.000, 1.000) lh:(16.667, 1.000 AUTO_CLAMPED) rh:(17.333, 1.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Head"].location[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:17 grp:'Head'
+    - (1.000, 0.000) lh:(0.667, 0.000 AUTO_CLAMPED) rh:(1.333, 0.000 AUTO_CLAMPED)
+    - (2.000, 0.000) lh:(1.667, 0.000 AUTO_CLAMPED) rh:(2.333, 0.000 AUTO_CLAMPED)
+    - (3.000, 0.000) lh:(2.667, 0.000 AUTO_CLAMPED) rh:(3.333, 0.000 AUTO_CLAMPED)
+      ...
+    - (15.000, 0.000) lh:(14.667, 0.000 AUTO_CLAMPED) rh:(15.333, 0.000 AUTO_CLAMPED)
+    - (16.000, 0.000) lh:(15.667, 0.000 AUTO_CLAMPED) rh:(16.333, 0.000 AUTO_CLAMPED)
+    - (17.000, 0.000) lh:(16.667, 0.000 AUTO_CLAMPED) rh:(17.333, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Head"].location[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:17 grp:'Head'
+    - (1.000, 0.000) lh:(0.667, 0.000 AUTO_CLAMPED) rh:(1.333, 0.000 AUTO_CLAMPED)
+    - (2.000, 0.000) lh:(1.667, 0.000 AUTO_CLAMPED) rh:(2.333, 0.000 AUTO_CLAMPED)
+    - (3.000, 0.000) lh:(2.667, 0.000 AUTO_CLAMPED) rh:(3.333, 0.000 AUTO_CLAMPED)
+      ...
+    - (15.000, 0.000) lh:(14.667, 0.000 AUTO_CLAMPED) rh:(15.333, 0.000 AUTO_CLAMPED)
+    - (16.000, 0.000) lh:(15.667, 0.000 AUTO_CLAMPED) rh:(16.333, 0.000 AUTO_CLAMPED)
+    - (17.000, 0.000) lh:(16.667, 0.000 AUTO_CLAMPED) rh:(17.333, 0.000 AUTO_CLAMPED)
+
+==== Armatures: 1
+- Armature 'Root' 58 bones
+  - bone 'Chest' parent:'Spine' h:(0.000, 0.000, 0.000) t:(0.000, 0.305, 0.007) connect radius h:0.100 t:0.050
+      1.000 0.000 0.000 0.000
+      0.000 0.098 -0.995 0.004
+      0.000 0.995 0.098 1.849
+  - bone 'Head' parent:'Neck' h:(0.000, 0.000, 0.000) t:(0.000, 0.993, -0.149) connect radius h:0.100 t:0.050
+      1.000 0.000 0.000 0.000
+      0.000 -0.005 -1.000 -0.009
+      0.000 1.000 -0.005 2.698
+  - bone 'Head_end' parent:'Head' h:(0.000, 0.000, 0.000) t:(0.000, 1.004, 0.000) connect radius h:0.100 t:0.050
+      1.000 0.000 0.000 0.000
+      0.000 -0.005 -1.000 -0.014
+      0.000 1.000 -0.005 3.703
+  - bone 'Hips' parent:'HipsCtrl' h:(0.000, 0.000, 0.000) t:(0.000, -0.247, 0.000) radius h:0.100 t:0.050
+      1.000 0.000 0.000 0.000
+      0.000 0.000 -1.000 -0.031
+      0.000 1.000 0.000 1.242
+  - bone 'HipsCtrl' h:(0.000, -0.031, 1.564) t:(0.001, -0.031, 1.242) radius h:0.100 t:0.050
+      -1.000 0.003 0.000 0.000
+      0.000 0.000 -1.000 -0.031
+      -0.003 -1.000 0.000 1.564
+  - bone 'LeftArm' parent:'LeftShoulder' h:(0.000, 0.000, 0.000) t:(0.016, 0.461, 0.096) connect radius h:0.100 t:0.050
+      -0.089 0.996 0.026 0.336
+      0.004 0.027 -1.000 -0.017
+      -0.996 -0.088 -0.006 2.359
+  - bone 'LeftFoot' parent:'LeftLeg' h:(0.000, 0.000, 0.000) t:(0.046, 0.114, -0.275) connect radius h:0.100 t:0.050
+      0.985 0.170 0.033 0.303
+      0.115 -0.784 0.611 0.149
+      0.129 -0.598 -0.791 0.193
+  - bone 'LeftFootCtrl' h:(0.303, 0.149, 0.193) t:(0.303, 0.149, -0.156) radius h:0.100 t:0.050
+      0.000 0.000 -1.000 0.303
+      1.000 0.000 0.000 0.149
+      0.000 -1.000 0.000 0.193
+  - bone 'LeftFootIK' parent:'LeftToeRoll' h:(-0.002, -0.060, 0.180) t:(0.000, -0.301, 0.000) radius h:0.100 t:0.050
+      0.985 0.170 0.033 0.303
+      0.115 -0.784 0.611 0.149
+      0.129 -0.598 -0.791 0.193
+  - bone 'LeftFootIK_end' parent:'LeftFootIK' h:(0.000, 0.000, 0.000) t:(0.000, 0.301, 0.000) connect radius h:0.100 t:0.050
+      0.985 0.170 0.033 0.354
+      0.115 -0.784 0.611 -0.087
+      0.129 -0.598 -0.791 0.013
+  - bone 'LeftFootRollCtrl' parent:'LeftFootCtrl' h:(0.000, -0.349, 0.000) t:(0.293, -0.349, 0.000) radius h:0.100 t:0.050
+      1.000 0.000 0.000 0.303
+      0.000 1.000 0.000 0.149
+      0.000 0.000 1.000 0.193
+  - bone 'LeftFootRollCtrl_end' parent:'LeftFootRollCtrl' h:(0.000, 0.000, 0.000) t:(0.000, 0.293, 0.000) connect radius h:0.100 t:0.050
+      1.000 0.000 0.000 0.303
+      0.000 1.000 0.000 0.442
+      0.000 0.000 1.000 0.193
+  - bone 'LeftForeArm' parent:'LeftArm' h:(0.000, 0.000, 0.000) t:(-0.005, 0.525, 0.049) connect radius h:0.100 t:0.050
+      -0.077 0.995 -0.069 0.805
+      0.029 -0.067 -0.997 -0.004
+      -0.997 -0.079 -0.024 2.317
+  - bone 'LeftHand' parent:'LeftForeArm' h:(0.000, 0.000, 0.000) t:(-0.001, 0.110, -0.007) connect radius h:0.100 t:0.050
+      0.005 0.998 -0.068 1.329
+      0.997 0.000 0.080 -0.040
+      0.080 -0.068 -0.994 2.276
+  - bone 'LeftHandIndex1' parent:'LeftHand' h:(0.000, 0.028, 0.000) t:(-0.001, 0.140, 0.013) radius h:0.100 t:0.050
+      -0.014 0.984 -0.180 1.467
+      0.997 0.000 -0.075 -0.040
+      -0.074 -0.181 -0.981 2.266
+  - bone 'LeftHandIndex2' parent:'LeftHandIndex1' h:(0.000, 0.000, 0.000) t:(0.001, 0.101, 0.017) radius h:0.100 t:0.050
+      0.020 0.941 -0.337 1.578
+      0.998 0.000 0.059 -0.040
+      0.056 -0.338 -0.940 2.246
+  - bone 'LeftHandIndex3' parent:'LeftHandIndex2' h:(0.000, 0.000, 0.000) t:(0.000, 0.130, 0.008) connect radius h:0.100 t:0.050
+      -0.001 0.919 -0.395 1.674
+      1.000 0.000 -0.002 -0.040
+      -0.002 -0.395 -0.919 2.211
+  - bone 'LeftHandIndex3_end' parent:'LeftHandIndex3' h:(0.000, 0.000, 0.000) t:(0.000, 0.130, 0.000) connect radius h:0.100 t:0.050
+      -0.001 0.919 -0.395 1.794
+      1.000 0.000 -0.002 -0.040
+      -0.002 -0.395 -0.919 2.160
+  - bone 'LeftHandThumb1' parent:'LeftHand' h:(-0.065, -0.060, 0.002) t:(-0.161, -0.020, 0.024) radius h:0.100 t:0.050
+      0.122 0.355 0.927 1.379
+      -0.273 -0.886 0.375 -0.104
+      0.954 -0.299 -0.011 2.264
+  - bone 'LeftHandThumb2' parent:'LeftHandThumb1' h:(0.000, 0.000, 0.000) t:(-0.002, 0.121, 0.052) radius h:0.100 t:0.050
+      0.149 0.690 0.708 1.417
+      -0.264 -0.663 0.701 -0.198
+      0.953 -0.292 0.084 2.233
+  - bone 'LeftHandThumb2_end' parent:'LeftHandThumb2' h:(0.000, 0.000, 0.000) t:(0.000, 0.132, 0.000) connect radius h:0.100 t:0.050
+      0.149 0.690 0.708 1.508
+      -0.264 -0.663 0.701 -0.285
+      0.953 -0.292 0.084 2.194
+  - bone 'LeftHeelRoll' parent:'LeftFootCtrl' h:(0.071, -0.169, -0.022) t:(-0.237, -0.169, -0.022) radius h:0.100 t:0.050
+      -0.999 0.001 0.032 0.325
+      -0.001 -1.000 -0.001 0.220
+      0.032 -0.001 0.999 0.013
+  - bone 'LeftKneeCtrl' parent:'LeftFootCtrl' h:(-0.618, -0.936, 0.026) t:(-0.618, -1.273, 0.026) radius h:0.100 t:0.050
+      1.000 0.000 0.000 0.277
+      0.000 0.000 -1.000 -0.469
+      0.000 1.000 0.000 0.780
+  - bone 'LeftKneeCtrl_end' parent:'LeftKneeCtrl' h:(0.000, 0.000, 0.000) t:(0.000, 0.337, 0.000) connect radius h:0.100 t:0.050
+      1.000 0.000 0.000 0.277
+      0.000 0.000 -1.000 -0.469
+      0.000 1.000 0.000 1.117
+  - bone 'LeftLeg' parent:'LeftUpLeg' h:(0.000, 0.000, 0.000) t:(-0.047, 0.591, 0.140) connect radius h:0.100 t:0.050
+      0.999 0.047 0.000 0.274
+      -0.012 0.263 0.965 -0.011
+      0.046 -0.964 0.263 0.780
+  - bone 'LeftShoulder' parent:'UpperChest' h:(0.088, -0.010, 0.065) t:(0.336, -0.085, 0.050) radius h:0.100 t:0.050
+      0.061 0.955 0.289 0.089
+      -0.998 0.056 0.026 -0.031
+      0.009 -0.290 0.957 2.434
+  - bone 'LeftToeRoll' parent:'LeftHeelRoll' h:(-0.029, -0.001, 0.001) t:(0.033, -0.296, -0.001) radius h:0.100 t:0.050
+      0.979 -0.204 0.000 0.354
+      0.204 0.979 0.000 -0.087
+      0.000 0.000 1.000 0.013
+  - bone 'LeftToes' parent:'LeftFoot' h:(0.000, 0.000, 0.000) t:(0.000, 0.175, -0.122) connect radius h:0.100 t:0.050
+      -0.993 0.120 0.005 0.354
+      -0.120 -0.992 -0.039 -0.087
+      0.000 -0.040 0.999 0.013
+  - bone 'LeftToes_end' parent:'LeftToes' h:(0.000, 0.000, 0.000) t:(0.000, 0.213, 0.000) connect radius h:0.100 t:0.050
+      -0.993 0.120 0.005 0.379
+      -0.120 -0.992 -0.039 -0.299
+      0.000 -0.040 0.999 0.005
+  - bone 'LeftUpLeg' parent:'Hips' h:(0.202, -0.189, 0.000) t:(0.274, -0.710, -0.020) radius h:0.100 t:0.050
+      0.989 0.138 -0.044 0.202
+      0.040 0.038 0.998 -0.031
+      0.139 -0.990 0.032 1.301
+  - bone 'Neck' parent:'UpperChest' h:(0.000, -0.021, 0.000) t:(0.000, 0.254, 0.042) radius h:0.100 t:0.050
+      1.000 0.000 0.000 0.000
+      0.000 -0.153 -0.988 0.034
+      0.000 0.988 -0.153 2.424
+  - bone 'RightArm' parent:'RightShoulder' h:(0.000, 0.000, 0.000) t:(-0.024, 0.461, -0.094) connect radius h:0.100 t:0.050
+      0.034 -0.996 -0.086 -0.335
+      0.996 0.027 0.088 -0.017
+      -0.086 -0.088 0.992 2.359
+  - bone 'RightFoot' parent:'RightLeg' h:(0.000, 0.000, 0.000) t:(-0.046, 0.114, -0.275) connect radius h:0.100 t:0.050
+      0.985 -0.170 0.033 -0.302
+      -0.155 -0.784 0.602 0.149
+      -0.076 -0.598 -0.798 0.193
+  - bone 'RightFootCtrl' h:(-0.302, 0.149, 0.193) t:(-0.302, 0.149, -0.156) radius h:0.100 t:0.050
+      0.000 0.000 -1.000 -0.302
+      1.000 0.000 0.000 0.149
+      0.000 -1.000 0.000 0.193
+  - bone 'RightFootIK' parent:'RightToeRoll' h:(0.002, -0.060, 0.180) t:(0.000, -0.301, 0.000) radius h:0.100 t:0.050
+      0.985 -0.170 0.033 -0.302
+      -0.155 -0.784 0.602 0.149
+      -0.076 -0.598 -0.798 0.193
+  - bone 'RightFootIK_end' parent:'RightFootIK' h:(0.000, 0.000, 0.000) t:(0.000, 0.301, 0.000) connect radius h:0.100 t:0.050
+      0.985 -0.170 0.033 -0.353
+      -0.155 -0.784 0.602 -0.087
+      -0.076 -0.598 -0.798 0.013
+  - bone 'RightFootRollCtrl' parent:'RightFootCtrl' h:(0.000, -0.349, 0.000) t:(0.293, -0.349, 0.000) radius h:0.100 t:0.050
+      1.000 0.000 0.000 -0.302
+      0.000 1.000 0.000 0.149
+      0.000 0.000 1.000 0.193
+  - bone 'RightFootRollCtrl_end' parent:'RightFootRollCtrl' h:(0.000, 0.000, 0.000) t:(0.000, 0.293, 0.000) connect radius h:0.100 t:0.050
+      1.000 0.000 0.000 -0.302
+      0.000 1.000 0.000 0.442
+      0.000 0.000 1.000 0.193
+  - bone 'RightForeArm' parent:'RightArm' h:(0.000, 0.000, 0.000) t:(-0.050, 0.525, 0.001) connect radius h:0.100 t:0.050
+      -0.060 -0.995 -0.084 -0.804
+      0.995 -0.067 0.079 -0.004
+      -0.084 -0.079 0.993 2.317
+  - bone 'RightHand' parent:'RightForeArm' h:(0.000, 0.000, 0.000) t:(0.007, 0.110, 0.002) connect radius h:0.100 t:0.050
+      0.005 -0.998 -0.068 -1.328
+      0.997 0.000 0.080 -0.040
+      -0.080 -0.068 0.994 2.276
+  - bone 'RightHandIndex1' parent:'RightHand' h:(0.000, 0.028, 0.000) t:(0.001, 0.140, -0.013) radius h:0.100 t:0.050
+      -0.014 -0.984 -0.180 -1.467
+      0.997 0.000 -0.075 -0.040
+      0.074 -0.181 0.981 2.266
+  - bone 'RightHandIndex2' parent:'RightHandIndex1' h:(0.000, 0.000, 0.000) t:(-0.001, 0.101, -0.017) radius h:0.100 t:0.050
+      0.020 -0.941 -0.337 -1.578
+      0.998 0.000 0.059 -0.040
+      -0.056 -0.338 0.940 2.246
+  - bone 'RightHandIndex3' parent:'RightHandIndex2' h:(0.000, 0.000, 0.000) t:(0.000, 0.130, -0.008) connect radius h:0.100 t:0.050
+      -0.001 -0.918 -0.396 -1.674
+      1.000 0.000 -0.002 -0.040
+      0.002 -0.396 0.918 2.211
+  - bone 'RightHandIndex3_end' parent:'RightHandIndex3' h:(0.000, 0.000, 0.000) t:(0.000, 0.130, 0.000) connect radius h:0.100 t:0.050
+      -0.001 -0.918 -0.396 -1.794
+      1.000 0.000 -0.002 -0.040
+      0.002 -0.396 0.918 2.160
+  - bone 'RightHandThumb1' parent:'RightHand' h:(-0.064, -0.060, -0.013) t:(-0.155, -0.020, -0.049) radius h:0.100 t:0.050
+      0.122 -0.355 0.927 -1.379
+      -0.361 -0.886 -0.292 -0.104
+      0.925 -0.299 -0.236 2.264
+  - bone 'RightHandThumb2' parent:'RightHandThumb1' h:(0.000, 0.000, 0.000) t:(-0.015, 0.121, -0.050) radius h:0.100 t:0.050
+      0.097 -0.690 0.717 -1.416
+      -0.484 -0.663 -0.571 -0.198
+      0.869 -0.292 -0.399 2.233
+  - bone 'RightHandThumb2_end' parent:'RightHandThumb2' h:(0.000, 0.000, 0.000) t:(0.000, 0.132, 0.000) connect radius h:0.100 t:0.050
+      0.097 -0.690 0.717 -1.507
+      -0.484 -0.663 -0.571 -0.285
+      0.869 -0.292 -0.399 2.194
+  - bone 'RightHeelRoll' parent:'RightFootCtrl' h:(0.071, -0.169, 0.022) t:(-0.237, -0.169, 0.022) radius h:0.100 t:0.050
+      -1.000 -0.001 0.031 -0.325
+      0.000 -1.000 -0.001 0.220
+      0.031 -0.001 1.000 0.013
+  - bone 'RightKneeCtrl' parent:'RightFootCtrl' h:(-0.618, -0.936, -0.029) t:(-0.618, -1.273, -0.029) radius h:0.100 t:0.050
+      1.000 0.000 0.000 -0.273
+      0.000 0.000 -1.000 -0.469
+      0.000 1.000 0.000 0.780
+  - bone 'RightKneeCtrl_end' parent:'RightKneeCtrl' h:(0.000, 0.000, 0.000) t:(0.000, 0.337, 0.000) connect radius h:0.100 t:0.050
+      1.000 0.000 0.000 -0.273
+      0.000 0.000 -1.000 -0.469
+      0.000 1.000 0.000 1.117
+  - bone 'RightLeg' parent:'RightUpLeg' h:(0.000, 0.000, 0.000) t:(0.059, 0.591, 0.135) connect radius h:0.100 t:0.050
+      0.999 -0.047 0.000 -0.274
+      0.013 0.263 0.965 -0.011
+      -0.045 -0.964 0.263 0.780
+  - bone 'RightShoulder' parent:'UpperChest' h:(-0.088, -0.010, 0.065) t:(-0.336, -0.085, 0.050) radius h:0.100 t:0.050
+      0.061 -0.955 0.289 -0.088
+      -0.922 0.056 0.382 -0.031
+      -0.381 -0.290 -0.878 2.434
+  - bone 'RightToeRoll' parent:'RightHeelRoll' h:(0.029, -0.001, -0.001) t:(-0.033, -0.296, 0.001) radius h:0.100 t:0.050
+      0.979 0.204 0.000 -0.353
+      -0.204 0.979 0.000 -0.087
+      0.000 0.000 1.000 0.013
+  - bone 'RightToes' parent:'RightFoot' h:(0.000, 0.000, 0.000) t:(0.008, 0.175, -0.121) connect radius h:0.100 t:0.050
+      -0.993 -0.120 0.005 -0.353
+      0.119 -0.992 -0.040 -0.087
+      0.010 -0.040 0.999 0.013
+  - bone 'RightToes_end' parent:'RightToes' h:(0.000, 0.000, 0.000) t:(0.000, 0.213, 0.000) connect radius h:0.100 t:0.050
+      -0.993 -0.120 0.005 -0.379
+      0.119 -0.992 -0.040 -0.299
+      0.010 -0.040 0.999 0.005
+  - bone 'RightUpLeg' parent:'Hips' h:(-0.202, -0.189, 0.000) t:(-0.274, -0.710, -0.020) radius h:0.100 t:0.050
+      0.989 -0.138 -0.044 -0.201
+      0.050 0.038 0.998 -0.031
+      -0.136 -0.990 0.045 1.301
+  - bone 'Spine' parent:'Hips' h:(0.000, 0.075, 0.000) t:(0.000, 0.360, -0.035) radius h:0.100 t:0.050
+      1.000 0.000 0.000 0.000
+      0.000 0.122 -0.993 -0.031
+      0.000 0.993 0.122 1.564
+  - bone 'UpperChest' parent:'Chest' h:(0.000, 0.000, 0.000) t:(0.000, 0.290, 0.029) connect radius h:0.100 t:0.050
+      1.000 0.000 0.000 0.000
+      0.000 0.000 -1.000 0.034
+      0.000 1.000 0.000 2.153
+

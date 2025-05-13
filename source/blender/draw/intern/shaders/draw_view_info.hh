@@ -9,7 +9,6 @@
 #  include "gpu_glsl_cpp_stubs.hh"
 
 #  include "draw_command_shared.hh"
-#  include "draw_common_shader_shared.hh"
 #  include "draw_shader_shared.hh"
 
 /* Define stub defines for C++ test compilation. */

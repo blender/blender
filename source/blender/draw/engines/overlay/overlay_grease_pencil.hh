@@ -236,8 +236,8 @@ class GreasePencil : Overlay {
 
       const float4x4 grid_mat = grid_matrix_get(*ob_ref.object, state.scene) * transform_mat;
 
-      grid_ps_.push_constant("x_axis", grid_mat.x_axis());
-      grid_ps_.push_constant("y_axis", grid_mat.y_axis());
+      grid_ps_.push_constant("axis_x", grid_mat.x_axis());
+      grid_ps_.push_constant("axis_y", grid_mat.y_axis());
       grid_ps_.push_constant("origin", grid_mat.location());
       grid_ps_.push_constant("half_line_count", line_count / 2);
       grid_ps_.draw_procedural(GPU_PRIM_LINES, 1, line_count * 2);

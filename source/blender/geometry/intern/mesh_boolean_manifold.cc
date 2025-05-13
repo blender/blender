@@ -730,7 +730,7 @@ static Array<Vector<int, face_group_inline>> get_face_groups(const MeshGL &mgl,
  * in \a mesh.
  * Return 2 if it is the same but with the normal reversed.
  * Return 0 otherwise.
-  */
+ */
 static uchar check_original_face(const Vector<int, face_group_inline> &group,
                                  const MeshGL &mgl,
                                  const Mesh *mesh,
@@ -1266,7 +1266,7 @@ static void interpolate_corner_attributes(bke::MutableAttributeAccessor &output_
   Vector<bke::GAttributeReader> readers;
   Vector<GVArraySpan> srcs;
   Vector<GMutableSpan> dsts;
-  /* For each index of srcs and dest, we need to know if it is a "normal"-like attribute. */
+  /* For each index of `srcs` and `dsts`, we need to know if it is a "normal"-like attribute. */
   Vector<bool> is_normal_attribute;
   input_attrs.foreach_attribute([&](const bke::AttributeIter &iter) {
     if (iter.domain != bke::AttrDomain::Corner || ELEM(iter.name, ".corner_vert", ".corner_edge"))

@@ -18,7 +18,6 @@ struct RepeatItemsAccessor {
   using ItemT = NodeRepeatItem;
   static StructRNA *item_srna;
   static int node_type;
-  static int item_dna_type;
   static constexpr const char *node_idname = "GeometryNodeRepeatOutput";
   static constexpr bool has_type = true;
   static constexpr bool has_name = true;

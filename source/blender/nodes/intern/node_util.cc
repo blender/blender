@@ -191,9 +191,11 @@ void node_image_label(const bNodeTree * /*ntree*/,
                       char *label,
                       int label_maxncpy)
 {
-  /* If there is no loaded image, return an empty string,
-   * and let blender::bke::nodeLabel() fill in the proper type translation. */
-  BLI_strncpy(label, (node->id) ? node->id->name + 2 : "", label_maxncpy);
+  if (node->id == nullptr) {
+    BLI_strncpy(label, IFACE_(node->typeinfo->ui_name.c_str()), label_maxncpy);
+    return;
+  }
+  BLI_strncpy(label, node->id->name + 2, label_maxncpy);
 }
 
 void node_math_label(const bNodeTree * /*ntree*/,

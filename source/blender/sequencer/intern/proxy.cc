@@ -431,7 +431,7 @@ bool proxy_rebuild_context(Main *bmain,
                            bool build_only_on_bad_performance)
 {
   IndexBuildContext *context;
-  Strip *nseq;
+  Strip *strip_new;
   LinkData *link;
   int num_files;
   int i;
@@ -460,29 +460,29 @@ bool proxy_rebuild_context(Main *bmain,
       continue;
     }
 
-    relations_sequence_free_anim(strip);
+    relations_strip_free_anim(strip);
 
     context = MEM_callocN<IndexBuildContext>("strip proxy rebuild context");
 
-    nseq = sequence_dupli_recursive(scene, scene, nullptr, strip, 0);
+    strip_new = strip_duplicate_recursive(scene, scene, nullptr, strip, 0);
 
-    context->tc_flags = nseq->data->proxy->build_tc_flags;
-    context->size_flags = nseq->data->proxy->build_size_flags;
-    context->quality = nseq->data->proxy->quality;
-    context->overwrite = (nseq->data->proxy->build_flags & SEQ_PROXY_SKIP_EXISTING) == 0;
+    context->tc_flags = strip_new->data->proxy->build_tc_flags;
+    context->size_flags = strip_new->data->proxy->build_size_flags;
+    context->quality = strip_new->data->proxy->quality;
+    context->overwrite = (strip_new->data->proxy->build_flags & SEQ_PROXY_SKIP_EXISTING) == 0;
 
     context->bmain = bmain;
     context->depsgraph = depsgraph;
     context->scene = scene;
     context->orig_seq = strip;
     context->orig_seq_uid = strip->runtime.session_uid;
-    context->strip = nseq;
+    context->strip = strip_new;
 
     context->view_id = i; /* only for images */
 
-    if (nseq->type == STRIP_TYPE_MOVIE) {
-      strip_open_anim_file(scene, nseq, true);
-      sanim = static_cast<StripAnim *>(BLI_findlink(&nseq->anims, i));
+    if (strip_new->type == STRIP_TYPE_MOVIE) {
+      strip_open_anim_file(scene, strip_new, true);
+      sanim = static_cast<StripAnim *>(BLI_findlink(&strip_new->anims, i));
 
       if (sanim->anim) {
         context->proxy_builder = MOV_proxy_builder_start(sanim->anim,
@@ -586,7 +586,7 @@ void proxy_rebuild_finish(IndexBuildContext *context, bool stop)
     MOV_proxy_builder_finish(context->proxy_builder, stop);
   }
 
-  seq_free_sequence_recurse(nullptr, context->strip, true);
+  seq_free_strip_recurse(nullptr, context->strip, true);
 
   MEM_freeN(context);
 }
@@ -614,7 +614,7 @@ void seq_proxy_index_dir_set(MovieReader *anim, const char *base_dir)
   MOV_set_custom_proxy_dir(anim, dirname);
 }
 
-void free_proxy_seq(Strip *strip)
+void free_strip_proxy(Strip *strip)
 {
   if (strip->data && strip->data->proxy && strip->data->proxy->anim) {
     MOV_close(strip->data->proxy->anim);

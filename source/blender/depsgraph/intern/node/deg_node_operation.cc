@@ -43,6 +43,8 @@ const char *operationCodeAsString(OperationCode opcode)
       return "ANIMATION_EXIT";
     case OperationCode::DRIVER:
       return "DRIVER";
+    case OperationCode::DRIVER_UNSHARE:
+      return "DRIVER_UNSHARE";
     /* Scene related. */
     case OperationCode::SCENE_EVAL:
       return "SCENE_EVAL";

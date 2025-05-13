@@ -14,6 +14,7 @@
 
 #include "BLI_bounds_types.hh"
 #include "BLI_index_mask.hh"
+#include "BLI_math_matrix.hh"
 #include "BLI_math_vector.hh"
 #include "BLI_task.hh"
 #include "BLI_virtual_array.hh"
@@ -181,6 +182,45 @@ template<typename T> inline std::optional<T> max(const VArray<T> &values)
         return current_max;
       },
       [](const int a, const int b) { return std::max(a, b); });
+}
+
+/**
+ * Return the eight corners of a 3D bounding box.
+ */
+template<typename T>
+inline std::array<VecBase<T, 3>, 8> corners(const Bounds<VecBase<T, 3>> &bounds)
+{
+  return {
+      VecBase<T, 3>{bounds.min[0], bounds.min[1], bounds.min[2]},
+      VecBase<T, 3>{bounds.min[0], bounds.min[1], bounds.max[2]},
+      VecBase<T, 3>{bounds.min[0], bounds.max[1], bounds.min[2]},
+      VecBase<T, 3>{bounds.min[0], bounds.max[1], bounds.max[2]},
+      VecBase<T, 3>{bounds.max[0], bounds.min[1], bounds.min[2]},
+      VecBase<T, 3>{bounds.max[0], bounds.min[1], bounds.max[2]},
+      VecBase<T, 3>{bounds.max[0], bounds.max[1], bounds.min[2]},
+      VecBase<T, 3>{bounds.max[0], bounds.max[1], bounds.max[2]},
+  };
+}
+
+/**
+ * Transform a 3D bounding box.
+ *
+ * Note: this necessarily grows the bounding box, to ensure that the transformed
+ * bounding box fully contains the original. Therefore, calling this iteratively
+ * to transform from space A to space B, and then from space B to space C, etc.,
+ * will also iteratively grow the bounding box on each call. Try to avoid doing
+ * that, and instead first compose the transform matrices and then use that to
+ * transform the bounding box.
+ */
+template<typename T, int D>
+inline Bounds<VecBase<T, 3>> transform_bounds(const MatBase<T, D, D> &matrix,
+                                              const Bounds<VecBase<T, 3>> &bounds)
+{
+  std::array<VecBase<T, 3>, 8> points = corners(bounds);
+  for (VecBase<T, 3> &p : points) {
+    p = math::transform_point(matrix, p);
+  }
+  return {math::min(Span(points)), math::max(Span(points))};
 }
 
 }  // namespace bounds

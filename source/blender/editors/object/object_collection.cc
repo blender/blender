@@ -837,7 +837,7 @@ static void collection_exporter_menu_draw(const bContext * /*C*/, Menu *menu)
   }
 
   if (!at_least_one) {
-    uiItemL(layout, IFACE_("No file handlers available"), ICON_NONE);
+    layout->label(IFACE_("No file handlers available"), ICON_NONE);
   }
 }
 

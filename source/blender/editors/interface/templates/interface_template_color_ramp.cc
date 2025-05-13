@@ -152,7 +152,7 @@ static uiBlock *colorband_tools_fn(bContext *C, ARegion *region, void *cb_v)
 
   uiItemS(layout);
 
-  uiItemO(layout, IFACE_("Eyedropper"), ICON_EYEDROPPER, "UI_OT_eyedropper_colorramp");
+  layout->op("UI_OT_eyedropper_colorramp", IFACE_("Eyedropper"), ICON_EYEDROPPER);
 
   uiItemS(layout);
 
@@ -228,7 +228,7 @@ static void colorband_buttons_layout(uiLayout *layout,
 
   PointerRNA ptr = RNA_pointer_create_discrete(cb.ptr.owner_id, &RNA_ColorRamp, coba);
 
-  uiLayout *split = uiLayoutSplit(layout, 0.4f, false);
+  uiLayout *split = &layout->split(0.4f, false);
 
   UI_block_emboss_set(block, blender::ui::EmbossType::None);
   UI_block_align_begin(block);
@@ -295,12 +295,12 @@ static void colorband_buttons_layout(uiLayout *layout,
   row = &split->row(false);
 
   UI_block_align_begin(block);
-  uiItemR(row, &ptr, "color_mode", UI_ITEM_NONE, "", ICON_NONE);
+  row->prop(&ptr, "color_mode", UI_ITEM_NONE, "", ICON_NONE);
   if (ELEM(coba->color_mode, COLBAND_BLEND_HSV, COLBAND_BLEND_HSL)) {
-    uiItemR(row, &ptr, "hue_interpolation", UI_ITEM_NONE, "", ICON_NONE);
+    row->prop(&ptr, "hue_interpolation", UI_ITEM_NONE, "", ICON_NONE);
   }
   else { /* COLBAND_BLEND_RGB */
-    uiItemR(row, &ptr, "interpolation", UI_ITEM_NONE, "", ICON_NONE);
+    row->prop(&ptr, "interpolation", UI_ITEM_NONE, "", ICON_NONE);
   }
   UI_block_align_end(block);
 
@@ -320,7 +320,7 @@ static void colorband_buttons_layout(uiLayout *layout,
     ptr = RNA_pointer_create_discrete(cb.ptr.owner_id, &RNA_ColorRampElement, cbd);
 
     if (!expand) {
-      split = uiLayoutSplit(layout, 0.3f, false);
+      split = &layout->split(0.3f, false);
 
       row = &split->row(false);
       bt = uiDefButS(block,
@@ -338,14 +338,14 @@ static void colorband_buttons_layout(uiLayout *layout,
       UI_but_number_step_size_set(bt, 1);
 
       row = &split->row(false);
-      uiItemR(row, &ptr, "position", UI_ITEM_NONE, IFACE_("Pos"), ICON_NONE);
+      row->prop(&ptr, "position", UI_ITEM_NONE, IFACE_("Pos"), ICON_NONE);
 
       row = &layout->row(false);
-      uiItemR(row, &ptr, "color", UI_ITEM_NONE, "", ICON_NONE);
+      row->prop(&ptr, "color", UI_ITEM_NONE, "", ICON_NONE);
     }
     else {
-      split = uiLayoutSplit(layout, 0.5f, false);
-      uiLayout *subsplit = uiLayoutSplit(split, 0.35f, false);
+      split = &layout->split(0.5f, false);
+      uiLayout *subsplit = &split->split(0.35f, false);
 
       row = &subsplit->row(false);
       bt = uiDefButS(block,
@@ -363,10 +363,10 @@ static void colorband_buttons_layout(uiLayout *layout,
       UI_but_number_step_size_set(bt, 1);
 
       row = &subsplit->row(false);
-      uiItemR(row, &ptr, "position", UI_ITEM_R_SLIDER, IFACE_("Pos"), ICON_NONE);
+      row->prop(&ptr, "position", UI_ITEM_R_SLIDER, IFACE_("Pos"), ICON_NONE);
 
       row = &split->row(false);
-      uiItemR(row, &ptr, "color", UI_ITEM_NONE, "", ICON_NONE);
+      row->prop(&ptr, "color", UI_ITEM_NONE, "", ICON_NONE);
     }
 
     /* Some special (rather awkward) treatment to update UI state on certain property changes. */
@@ -413,7 +413,7 @@ void uiTemplateColorRamp(uiLayout *layout,
   rect.ymin = 0;
   rect.ymax = 19.5f * UI_UNIT_X;
 
-  uiBlock *block = uiLayoutAbsoluteBlock(layout);
+  uiBlock *block = layout->absolute_block();
 
   ID *id = cptr.owner_id;
   UI_block_lock_set(block, (id && !ID_IS_EDITABLE(id)), ERROR_LIBDATA_MESSAGE);

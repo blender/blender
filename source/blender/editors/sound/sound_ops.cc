@@ -777,7 +777,7 @@ static bool sound_poll(bContext *C)
 {
   Editing *ed = CTX_data_scene(C)->ed;
 
-  if (!ed || !ed->act_seq || ed->act_seq->type != STRIP_TYPE_SOUND_RAM) {
+  if (!ed || !ed->act_strip || ed->act_strip->type != STRIP_TYPE_SOUND_RAM) {
     return false;
   }
 
@@ -791,11 +791,11 @@ static wmOperatorStatus sound_pack_exec(bContext *C, wmOperator *op)
   Editing *ed = CTX_data_scene(C)->ed;
   bSound *sound;
 
-  if (!ed || !ed->act_seq || ed->act_seq->type != STRIP_TYPE_SOUND_RAM) {
+  if (!ed || !ed->act_strip || ed->act_strip->type != STRIP_TYPE_SOUND_RAM) {
     return OPERATOR_CANCELLED;
   }
 
-  sound = ed->act_seq->sound;
+  sound = ed->act_strip->sound;
 
   if (!sound || sound->packedfile) {
     return OPERATOR_CANCELLED;
@@ -868,11 +868,11 @@ static wmOperatorStatus sound_unpack_invoke(bContext *C, wmOperator *op, const w
     return sound_unpack_exec(C, op);
   }
 
-  if (!ed || !ed->act_seq || ed->act_seq->type != STRIP_TYPE_SOUND_RAM) {
+  if (!ed || !ed->act_strip || ed->act_strip->type != STRIP_TYPE_SOUND_RAM) {
     return OPERATOR_CANCELLED;
   }
 
-  sound = ed->act_seq->sound;
+  sound = ed->act_strip->sound;
 
   if (!sound || !sound->packedfile) {
     return OPERATOR_CANCELLED;

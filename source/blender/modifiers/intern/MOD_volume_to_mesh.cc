@@ -83,26 +83,26 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   {
     uiLayout *col = &layout->column(false);
-    uiItemR(col, ptr, "object", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    uiItemR(col, ptr, "grid_name", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col->prop(ptr, "object", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col->prop(ptr, "grid_name", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
   {
     uiLayout *col = &layout->column(false);
-    uiItemR(col, ptr, "resolution_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col->prop(ptr, "resolution_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     if (vmmd->resolution_mode == VOLUME_TO_MESH_RESOLUTION_MODE_VOXEL_AMOUNT) {
-      uiItemR(col, ptr, "voxel_amount", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+      col->prop(ptr, "voxel_amount", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     }
     else if (vmmd->resolution_mode == VOLUME_TO_MESH_RESOLUTION_MODE_VOXEL_SIZE) {
-      uiItemR(col, ptr, "voxel_size", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+      col->prop(ptr, "voxel_size", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     }
   }
 
   {
     uiLayout *col = &layout->column(false);
-    uiItemR(col, ptr, "threshold", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    uiItemR(col, ptr, "adaptivity", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    uiItemR(col, ptr, "use_smooth_shade", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col->prop(ptr, "threshold", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col->prop(ptr, "adaptivity", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col->prop(ptr, "use_smooth_shade", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
   modifier_panel_end(layout, ptr);

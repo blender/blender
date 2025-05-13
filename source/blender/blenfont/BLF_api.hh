@@ -25,10 +25,14 @@
 /* File name of the default fixed-pitch font. */
 #define BLF_DEFAULT_MONOSPACED_FONT "DejaVuSansMono.woff2"
 
-struct ColorManagedDisplay;
 struct ListBase;
 struct ResultBLF;
 struct rcti;
+
+namespace blender::ocio {
+class Display;
+}  // namespace blender::ocio
+using ColorManagedDisplay = blender::ocio::Display;
 
 enum class FontShadowType {
   None = 0,
@@ -349,8 +353,12 @@ void BLF_shadow_offset(int fontid, int x, int y);
  * The image is assumed to have 4 color channels (RGBA) per pixel.
  * When done, call this function with null buffer pointers.
  */
-void BLF_buffer(
-    int fontid, float *fbuf, unsigned char *cbuf, int w, int h, ColorManagedDisplay *display);
+void BLF_buffer(int fontid,
+                float *fbuf,
+                unsigned char *cbuf,
+                int w,
+                int h,
+                const ColorManagedDisplay *display);
 
 /**
  * Opaque structure used to push/pop values set by the #BLF_buffer function.

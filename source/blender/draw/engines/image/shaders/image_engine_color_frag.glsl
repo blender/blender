@@ -18,7 +18,7 @@ void main()
   int2 uvs_clamped = int2(uv_screen);
   float depth = texelFetch(depth_tx, uvs_clamped, 0).r;
   if (depth == 1.0f) {
-    discard;
+    gpu_discard_fragment();
     return;
   }
 

@@ -509,7 +509,7 @@ bool parent_set(ReportList *reports,
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   bPoseChannel *pchan = nullptr;
   bPoseChannel *pchan_eval = nullptr;
-  Object *parent_eval = DEG_get_evaluated_object(depsgraph, par);
+  Object *parent_eval = DEG_get_evaluated(depsgraph, par);
 
   /* Preconditions. */
   if (ob == par) {
@@ -865,7 +865,7 @@ static bool parent_set_vertex_parent(bContext *C, ParentingContext *parenting_co
   int tree_tot;
 
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-  Object *par_eval = DEG_get_evaluated_object(depsgraph, parenting_context->par);
+  Object *par_eval = DEG_get_evaluated(depsgraph, parenting_context->par);
 
   tree = BKE_object_as_kdtree(par_eval, &tree_tot);
   BLI_assert(tree != nullptr);
@@ -1011,8 +1011,7 @@ static wmOperatorStatus parent_set_invoke_menu(bContext *C, wmOperatorType *ot)
   }
   else if (parent->type == OB_MESH) {
     if (can_support.attach_surface) {
-      uiItemO(
-          layout, IFACE_("Object (Attach Curves to Surface)"), ICON_NONE, "CURVES_OT_surface_set");
+      layout->op("CURVES_OT_surface_set", IFACE_("Object (Attach Curves to Surface)"), ICON_NONE);
     }
   }
 

@@ -64,6 +64,10 @@ class Film {
   /** Are we using the compute shader/pipeline. */
   bool use_compute_;
 
+  /** Copy of v3d->shading properties used to detect viewport settings update. */
+  eViewLayerEEVEEPassType ui_render_pass_ = eViewLayerEEVEEPassType(-1);
+  std::string ui_aov_name_;
+
   /**
    * Main accumulation textures containing every render-pass except depth, cryptomatte and
    * combined.

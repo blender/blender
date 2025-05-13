@@ -56,7 +56,7 @@ bool BM_disk_dissolve(BMesh *bm, BMVert *v);
  * \param bm: The bmesh.
  * \param l_a: First loop of an adjacent face pair that will be joined.
  * \param l_b: Second loop of an adjacent face pair that will be joined.
- * \param do_del If true, remove the original faces, internal edges,
+ * \param do_del: If true, remove the original faces, internal edges,
  * and internal verts such that they are replaced by the new face.
  * \param r_double: A pointer to a BMFace* that controls processing of doubled faces.
  * See #BM_faces_join_pair `r_double` argument for details.

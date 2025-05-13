@@ -19,6 +19,17 @@ from bpy.app.translations import (
 )
 
 
+def _is_operator_available(idname):
+    module, _, operator = idname.partition(".")
+
+    # Check if the module and operator exist.
+    return (
+        module and
+        operator and
+        getattr(getattr(bpy.ops, module, None), operator, None) is not None
+    )
+
+
 def _indented_layout(layout, level):
     indentpx = 16
     if level == 0:
@@ -110,6 +121,7 @@ def draw_km(display_keymaps, kc, km, children, layout, level):
 
 def draw_kmi(display_keymaps, kc, km, kmi, layout, level):
     map_type = kmi.map_type
+    is_op_available = _is_operator_available(kmi.idname)
 
     col = _indented_layout(layout, level)
 
@@ -128,9 +140,19 @@ def draw_kmi(display_keymaps, kc, km, kmi, layout, level):
 
     if km.is_modal:
         row.separator()
+        row.alert = not kmi.propvalue
         row.prop(kmi, "propvalue", text="")
     else:
-        row.label(text=kmi.name)
+        if is_op_available:
+            row.label(text=kmi.name)
+        # The default item when adding a new item is "none"
+        # so consider this unassigned along with an empty string.
+        elif kmi.idname in {"none", ""}:
+            row.alert = True
+            row.label(text="(Unassigned)")
+        else:
+            row.alert = True
+            row.label(text="{:s} (unavailable)".format(kmi.idname), icon='WARNING_LARGE')
 
     row = split.row()
     row.prop(kmi, "map_type", text="")
@@ -173,9 +195,12 @@ def draw_kmi(display_keymaps, kc, km, kmi, layout, level):
         sub = split.row()
 
         if km.is_modal:
+            sub.alert = not kmi.propvalue
             sub.prop(kmi, "propvalue", text="")
         else:
-            sub.prop(kmi, "idname", text="")
+            subrow = sub.row()
+            subrow.alert = not is_op_available
+            subrow.prop(kmi, "idname", text="", placeholder="Operator")
 
         if map_type not in {'TEXTINPUT', 'TIMER'}:
             from sys import platform

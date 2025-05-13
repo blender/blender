@@ -21,7 +21,7 @@
  *
  * data-blocks: (also see struct #BHead).
  * <pre>
- * `bh.code`       `char[4]` see `BLO_blend_defs.hh` for a list of known types.
+ * `bh.code`       `char[4]` see `BLO_core_bhead.hh` for a list of known types.
  * `bh.len`        `int32` length data after #BHead in bytes.
  * `bh.old`        `void *` old pointer (the address at the time of writing the file).
  * `bh.SDNAnr`     `int32` struct index of structs stored in #DNA1 data.
@@ -64,6 +64,8 @@
 #include <cstdlib>
 #include <cstring>
 #include <fcntl.h>
+#include <iomanip>
+#include <sstream>
 
 #ifdef WIN32
 #  include "BLI_winstuff.h"
@@ -123,7 +125,6 @@
 
 #include "DRW_engine.hh"
 
-#include "BLO_blend_defs.hh"
 #include "BLO_blend_validate.hh"
 #include "BLO_read_write.hh"
 #include "BLO_readfile.hh"
@@ -729,7 +730,39 @@ static bool write_at_address_validate(WriteData *wd, const int filecode, const v
 
 static void write_bhead(WriteData *wd, const BHead &bhead)
 {
-  mywrite(wd, &bhead, sizeof(BHead));
+  if constexpr (sizeof(void *) == 4) {
+    /* Always write #BHead4 in 32 bit builds. */
+    BHead4 bh;
+    bh.code = bhead.code;
+    bh.old = uint32_t(uintptr_t(bhead.old));
+    bh.nr = bhead.nr;
+    bh.SDNAnr = bhead.SDNAnr;
+    bh.len = bhead.len;
+    mywrite(wd, &bh, sizeof(bh));
+    return;
+  }
+  /* Write new #LargeBHead8 headers if enabled. Older Blender versions can't read those. */
+  if (USER_EXPERIMENTAL_TEST(&U, write_large_blend_file_blocks)) {
+    if (SYSTEM_SUPPORTS_WRITING_FILE_VERSION_1) {
+      static_assert(sizeof(BHead) == sizeof(LargeBHead8));
+      mywrite(wd, &bhead, sizeof(bhead));
+      return;
+    }
+  }
+  /* Write older #SmallBHead8 headers so that Blender versions that don't support #LargeBHead8 can
+   * read the file. */
+  SmallBHead8 bh;
+  bh.code = bhead.code;
+  bh.old = uint64_t(bhead.old);
+  bh.nr = bhead.nr;
+  bh.SDNAnr = bhead.SDNAnr;
+  bh.len = bhead.len;
+  /* Check that the written buffer size is compatible with the limits of #SmallBHead8. */
+  if (bhead.len > std::numeric_limits<decltype(bh.len)>::max()) {
+    CLOG_ERROR(&LOG, "Written .blend file is corrupt, because a memory block is too large.");
+    return;
+  }
+  mywrite(wd, &bh, sizeof(bh));
 }
 
 static void writestruct_at_address_nr(WriteData *wd,
@@ -739,7 +772,7 @@ static void writestruct_at_address_nr(WriteData *wd,
                                       const void *adr,
                                       const void *data)
 {
-  BLI_assert(struct_nr > 0 && struct_nr < SDNA_TYPE_MAX);
+  BLI_assert(struct_nr > 0 && struct_nr <= blender::dna::sdna_struct_id_get_max());
 
   if (adr == nullptr || data == nullptr || nr == 0) {
     return;
@@ -750,9 +783,13 @@ static void writestruct_at_address_nr(WriteData *wd,
   }
 
   const int64_t len_in_bytes = nr * DNA_struct_size(wd->sdna, struct_nr);
-  if (len_in_bytes > INT32_MAX) {
-    CLOG_ERROR(&LOG, "Cannot write chunks bigger than INT_MAX.");
-    return;
+  if (!SYSTEM_SUPPORTS_WRITING_FILE_VERSION_1 ||
+      !USER_EXPERIMENTAL_TEST(&U, write_large_blend_file_blocks))
+  {
+    if (len_in_bytes > INT32_MAX) {
+      CLOG_ERROR(&LOG, "Cannot write chunks bigger than INT_MAX.");
+      return;
+    }
   }
 
   BHead bh;
@@ -819,7 +856,10 @@ static void writedata(WriteData *wd, const int filecode, const size_t len, const
     return;
   }
 
-  if (len > INT_MAX) {
+  if ((!SYSTEM_SUPPORTS_WRITING_FILE_VERSION_1 ||
+       !USER_EXPERIMENTAL_TEST(&U, write_large_blend_file_blocks)) &&
+      len > INT_MAX)
+  {
     BLI_assert_msg(0, "Cannot write chunks bigger than INT_MAX.");
     return;
   }
@@ -830,7 +870,7 @@ static void writedata(WriteData *wd, const int filecode, const size_t len, const
   bh.nr = 1;
   BLI_STATIC_ASSERT(SDNA_RAW_DATA_STRUCT_INDEX == 0, "'raw data' SDNA struct index should be 0")
   bh.SDNAnr = SDNA_RAW_DATA_STRUCT_INDEX;
-  bh.len = int(len);
+  bh.len = int64_t(len);
 
   if (wd->debug_dst) {
     write_raw_data_in_debug_file(wd, len, adr);
@@ -877,10 +917,11 @@ static void writelist_id(WriteData *wd, const int filecode, const char *structna
 #endif
 
 #define writestruct_at_address(wd, filecode, struct_id, nr, adr, data) \
-  writestruct_at_address_nr(wd, filecode, SDNA_TYPE_FROM_STRUCT(struct_id), nr, adr, data)
+  writestruct_at_address_nr( \
+      wd, filecode, blender::dna::sdna_struct_id_get<struct_id>(), nr, adr, data)
 
 #define writestruct(wd, filecode, struct_id, nr, adr) \
-  writestruct_nr(wd, filecode, SDNA_TYPE_FROM_STRUCT(struct_id), nr, adr)
+  writestruct_nr(wd, filecode, blender::dna::sdna_struct_id_get<struct_id>(), nr, adr)
 
 /** \} */
 
@@ -1317,16 +1358,45 @@ static int write_id_direct_linked_data_process_cb(LibraryIDLinkCallbackData *cb_
   return IDWALK_RET_NOP;
 }
 
+static std::string get_blend_file_header()
+{
+  if (SYSTEM_SUPPORTS_WRITING_FILE_VERSION_1 &&
+      USER_EXPERIMENTAL_TEST(&U, write_large_blend_file_blocks))
+  {
+    const int header_size_in_bytes = SIZEOFBLENDERHEADER_VERSION_1;
+
+    /* New blend file header format. */
+    std::stringstream ss;
+    ss << "BLENDER";
+    ss << header_size_in_bytes;
+    ss << '-';
+    ss << std::setfill('0') << std::setw(2) << BLEND_FILE_FORMAT_VERSION_1;
+    ss << 'v';
+    ss << std::setfill('0') << std::setw(4) << BLENDER_FILE_VERSION;
+
+    const std::string header = ss.str();
+    BLI_assert(header.size() == header_size_in_bytes);
+    return header;
+  }
+
+  const char pointer_size_char = sizeof(void *) == 8 ? '-' : '_';
+  const char endian_char = ENDIAN_ORDER == B_ENDIAN ? 'V' : 'v';
+
+  /* Legacy blend file header format. */
+  std::stringstream ss;
+  ss << "BLENDER";
+  ss << pointer_size_char;
+  ss << endian_char;
+  ss << BLENDER_FILE_VERSION;
+  const std::string header = ss.str();
+  BLI_assert(header.size() == SIZEOFBLENDERHEADER_VERSION_0);
+  return header;
+}
+
 static void write_blend_file_header(WriteData *wd)
 {
-  char buf[16];
-  SNPRINTF(buf,
-           "BLENDER%c%c%.3d",
-           (sizeof(void *) == 8) ? '-' : '_',
-           (ENDIAN_ORDER == B_ENDIAN) ? 'V' : 'v',
-           BLENDER_FILE_VERSION);
-
-  mywrite(wd, buf, 12);
+  const std::string header = get_blend_file_header();
+  mywrite(wd, header.data(), header.size());
 }
 
 /**

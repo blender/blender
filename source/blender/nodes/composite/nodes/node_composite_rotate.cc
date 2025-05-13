@@ -43,7 +43,7 @@ static void node_composit_init_rotate(bNodeTree * /*ntree*/, bNode *node)
 
 static void node_composit_buts_rotate(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  uiItemR(layout, ptr, "filter_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  layout->prop(ptr, "filter_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 }
 
 using namespace blender::compositor;
@@ -87,7 +87,7 @@ static NodeOperation *get_compositor_operation(Context &context, DNode node)
 
 }  // namespace blender::nodes::node_composite_rotate_cc
 
-void register_node_type_cmp_rotate()
+static void register_node_type_cmp_rotate()
 {
   namespace file_ns = blender::nodes::node_composite_rotate_cc;
 
@@ -105,3 +105,4 @@ void register_node_type_cmp_rotate()
 
   blender::bke::node_register_type(ntype);
 }
+NOD_REGISTER_NODE(register_node_type_cmp_rotate)

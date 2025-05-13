@@ -48,12 +48,12 @@ static LinkNode *knifeproject_poly_from_object(const bContext *C, Object *ob, Li
   bool mesh_eval_needs_free;
 
   if (ob->type == OB_MESH || ob->runtime->data_eval) {
-    const Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+    const Object *ob_eval = DEG_get_evaluated(depsgraph, ob);
     mesh_eval = BKE_object_get_evaluated_mesh(ob_eval);
     mesh_eval_needs_free = false;
   }
   else if (ELEM(ob->type, OB_FONT, OB_CURVES_LEGACY, OB_SURF)) {
-    const Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+    const Object *ob_eval = DEG_get_evaluated(depsgraph, ob);
     mesh_eval = BKE_mesh_new_nomain_from_curve(ob_eval);
     mesh_eval_needs_free = true;
   }

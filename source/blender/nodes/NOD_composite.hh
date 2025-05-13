@@ -26,6 +26,9 @@ struct ViewLayer;
 
 extern blender::bke::bNodeTreeType *ntreeType_Composite;
 
+void register_node_tree_type_cmp();
+void register_node_type_cmp_custom_group(blender::bke::bNodeType *ntype);
+
 void node_cmp_rlayers_outputs(bNodeTree *ntree, bNode *node);
 void node_cmp_rlayers_register_pass(bNodeTree *ntree,
                                     bNode *node,
@@ -34,8 +37,6 @@ void node_cmp_rlayers_register_pass(bNodeTree *ntree,
                                     const char *name,
                                     eNodeSocketDatatype type);
 const char *node_cmp_rlayers_sock_to_pass(int sock_index);
-
-void register_node_type_cmp_custom_group(blender::bke::bNodeType *ntype);
 
 /**
  * Called from render pipeline, to tag render input and output.

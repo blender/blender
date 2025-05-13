@@ -170,7 +170,7 @@ void main()
     /* Relative to DPI scaling. Have constant screen size. */
     float3 screen_pos = drw_view().viewinv[0].xyz * vpos.x + drw_view().viewinv[1].xyz * vpos.y;
     float3 p = (obmat * float4(vofs, 1.0f)).xyz;
-    float screen_size = mul_project_m4_v3_zfac(globalsBlock.pixel_fac, p) * sizePixel;
+    float screen_size = mul_project_m4_v3_zfac(uniform_buf.pixel_fac, p) * theme.sizes.pixel;
     world_pos = p + screen_pos * screen_size;
   }
   else if ((vclass & VCLASS_SCREENALIGNED) != 0) {
@@ -210,13 +210,15 @@ void main()
   gl_Position = drw_point_world_to_homogenous(world_pos);
 
   /* Convert to screen position [0..sizeVp]. */
-  edge_pos = edge_start = ((gl_Position.xy / gl_Position.w) * 0.5f + 0.5f) * sizeViewport;
+  edge_pos = edge_start = ((gl_Position.xy / gl_Position.w) * 0.5f + 0.5f) *
+                          uniform_buf.size_viewport;
 
 #if defined(SELECT_ENABLE)
   /* HACK: to avoid losing sub-pixel object in selections, we add a bit of randomness to the
    * wire to at least create one fragment that will pass the occlusion query. */
   /* TODO(fclem): Limit this workaround to selection. It's not very noticeable but still... */
-  gl_Position.xy += sizeViewportInv * gl_Position.w * ((gl_VertexID % 2 == 0) ? -1.0f : 1.0f);
+  gl_Position.xy += uniform_buf.size_viewport_inv * gl_Position.w *
+                    ((gl_VertexID % 2 == 0) ? -1.0f : 1.0f);
 #endif
 
   view_clipping_distances(world_pos);

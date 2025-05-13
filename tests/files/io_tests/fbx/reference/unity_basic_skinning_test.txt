@@ -1,0 +1,293 @@
+==== Meshes: 1
+- Mesh 'Mesh' vtx:1002 face:964 loop:3856 edge:1960
+    - 0 1 3 2 2 ... 997 1000 994 996 998 
+    - 0/1 2/3 4/5 6/7 0/2 ... 997/999 998/1000 999/1001 994/1000 995/1001 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (195.000, -50.000, 50.000)
+    - (205.000, -50.000, 50.000)
+    - (195.000, 50.000, 50.000)
+      ...
+    - (-195.000, 50.000, -50.000)
+    - (-205.000, -50.000, -50.000)
+    - (-195.000, -50.000, -50.000)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 1 1 1 1 1 ... 1 1 1 1 1 
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 ... 0 0 0 0 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'map1' FLOAT2 CORNER
+    - (0.375, 0.000)
+    - (0.625, 0.000)
+    - (0.625, 0.250)
+      ...
+    - (0.375, 0.000)
+    - (0.375, 0.250)
+    - (0.125, 0.250)
+  - vertex groups:
+    - 6=0.500 7=0.500
+    - 6=0.500 7=0.500
+    - 6=0.500 7=0.500
+    - 6=0.500 7=0.500
+    - 6=0.500 7=0.500
+  - 1 materials
+    - 'lambert1' 
+
+==== Objects: 3
+- Obj 'Armature' ARMATURE data:'Armature'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 0.010, 0.010, 0.010
+  - posed bone 'left_arm_1'
+    - props: int:lockInfluenceWeights=False
+  - posed bone 'left_arm_2'
+    - props: int:lockInfluenceWeights=False
+  - posed bone 'left_arm_3'
+    - props: int:lockInfluenceWeights=False
+  - posed bone 'left_arm_4'
+    - props: int:lockInfluenceWeights=False
+  - posed bone 'left_arm_5'
+    - props: int:lockInfluenceWeights=False
+  - posed bone 'left_arm_end'
+    - props: int:lockInfluenceWeights=False
+  - posed bone 'left_arm_end_detail'
+    - props: int:lockInfluenceWeights=False
+  - posed bone 'right_arm_1'
+    - props: int:lockInfluenceWeights=False
+  - posed bone 'right_arm_2'
+    - props: int:lockInfluenceWeights=False
+  - posed bone 'right_arm_3'
+    - props: int:lockInfluenceWeights=False
+  - posed bone 'right_arm_4'
+    - props: int:lockInfluenceWeights=False
+  - posed bone 'right_arm_5'
+    - props: int:lockInfluenceWeights=False
+  - posed bone 'right_arm_end'
+    - props: int:lockInfluenceWeights=False
+  - posed bone 'right_arm_end_detail'
+    - props: int:lockInfluenceWeights=False
+  - posed bone 'root_bone'
+    - props: int:lockInfluenceWeights=False
+  - anim act:Take 001 slot:OBArmature blend:REPLACE drivers:0
+- Obj 'cube_test_mesh' MESH data:'Mesh' par:'Armature'
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+  - 15 vertex groups
+    - 'root_bone' 'left_arm_1' 'left_arm_2' 'left_arm_3' 'left_arm_4' ... 'right_arm_3' 'right_arm_4' 'right_arm_5' 'right_arm_end' 'right_arm_end_detail' 
+  - 1 modifiers
+    - ARMATURE 'Armature'
+  - props: str:currentUVSet='map1'
+- Obj 'models' EMPTY
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 0.010, 0.010, 0.010
+
+==== Materials: 1
+- Mat 'lambert1'
+  - base color (0.676, 0.676, 0.676)
+  - specular ior 0.500
+  - specular tint (1.000, 1.000, 1.000)
+  - roughness 0.500
+  - metallic 0.000
+  - ior 1.500
+  - viewport diffuse (0.676, 0.676, 0.676, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 0.500
+  - viewport metallic 0.000, roughness 0.500
+  - backface False probe True shadow False
+
+==== Actions: 1
+- Action 'Take 001' curverange:(2.0 .. 181.0) layers:1
+- ActionLayer Layer strips:1
+ - Keyframe strip channelbags:1
+ - Channelbag slot 'OBArmature' curves:150
+  - fcu 'pose.bones["left_arm_1"].location[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:7 grp:'left_arm_1'
+    - (2.000, 0.000) lh:(-7.667, 0.000 AUTO_CLAMPED) rh:(11.667, 0.000 AUTO_CLAMPED)
+    - (31.000, 0.000) lh:(21.333, 0.000 AUTO_CLAMPED) rh:(41.000, 0.000 AUTO_CLAMPED)
+    - (61.000, 0.000) lh:(51.000, 0.000 AUTO_CLAMPED) rh:(71.000, 0.000 AUTO_CLAMPED)
+      ...
+    - (121.000, 0.000) lh:(111.000, 0.000 AUTO_CLAMPED) rh:(131.000, 0.000 AUTO_CLAMPED)
+    - (151.000, 0.000) lh:(141.000, 0.000 AUTO_CLAMPED) rh:(161.000, 0.000 AUTO_CLAMPED)
+    - (181.000, 0.000) lh:(171.000, 0.000 AUTO_CLAMPED) rh:(191.000, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["left_arm_1"].location[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:7 grp:'left_arm_1'
+    - (2.000, 0.000) lh:(-7.667, 0.000 AUTO_CLAMPED) rh:(11.667, 0.000 AUTO_CLAMPED)
+    - (31.000, 0.000) lh:(21.333, 0.000 AUTO_CLAMPED) rh:(41.000, 0.000 AUTO_CLAMPED)
+    - (61.000, 0.000) lh:(51.000, 0.000 AUTO_CLAMPED) rh:(71.000, 0.000 AUTO_CLAMPED)
+      ...
+    - (121.000, 0.000) lh:(111.000, 0.000 AUTO_CLAMPED) rh:(131.000, 0.000 AUTO_CLAMPED)
+    - (151.000, 0.000) lh:(141.000, 0.000 AUTO_CLAMPED) rh:(161.000, 0.000 AUTO_CLAMPED)
+    - (181.000, 0.000) lh:(171.000, 0.000 AUTO_CLAMPED) rh:(191.000, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["left_arm_1"].location[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:7 grp:'left_arm_1'
+    - (2.000, 0.000) lh:(-7.667, 0.000 AUTO_CLAMPED) rh:(11.667, 0.000 AUTO_CLAMPED)
+    - (31.000, 0.000) lh:(21.333, 0.000 AUTO_CLAMPED) rh:(41.000, 0.000 AUTO_CLAMPED)
+    - (61.000, 0.000) lh:(51.000, 0.000 AUTO_CLAMPED) rh:(71.000, 0.000 AUTO_CLAMPED)
+      ...
+    - (121.000, 0.000) lh:(111.000, 0.000 AUTO_CLAMPED) rh:(131.000, 0.000 AUTO_CLAMPED)
+    - (151.000, 0.000) lh:(141.000, 0.000 AUTO_CLAMPED) rh:(161.000, 0.000 AUTO_CLAMPED)
+    - (181.000, 0.000) lh:(171.000, 0.000 AUTO_CLAMPED) rh:(191.000, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["left_arm_1"].rotation_quaternion[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:7 grp:'left_arm_1'
+    - (2.000, 1.000) lh:(-7.667, 1.000 AUTO_CLAMPED) rh:(11.667, 1.000 AUTO_CLAMPED)
+    - (31.000, 0.991) lh:(21.333, 0.991 AUTO_CLAMPED) rh:(41.000, 0.991 AUTO_CLAMPED)
+    - (61.000, 1.000) lh:(51.000, 1.000 AUTO_CLAMPED) rh:(71.000, 1.000 AUTO_CLAMPED)
+      ...
+    - (121.000, 1.000) lh:(111.000, 1.000 AUTO_CLAMPED) rh:(131.000, 1.000 AUTO_CLAMPED)
+    - (151.000, 0.966) lh:(141.000, 0.966 AUTO_CLAMPED) rh:(161.000, 0.966 AUTO_CLAMPED)
+    - (181.000, 1.000) lh:(171.000, 1.000 AUTO_CLAMPED) rh:(191.000, 1.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["left_arm_1"].rotation_quaternion[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:7 grp:'left_arm_1'
+    - (2.000, 0.000) lh:(-7.667, 0.000 AUTO_CLAMPED) rh:(11.667, 0.000 AUTO_CLAMPED)
+    - (31.000, 0.000) lh:(21.333, 0.000 AUTO_CLAMPED) rh:(41.000, 0.000 AUTO_CLAMPED)
+    - (61.000, 0.000) lh:(51.000, 0.000 AUTO_CLAMPED) rh:(71.000, 0.000 AUTO_CLAMPED)
+      ...
+    - (121.000, 0.000) lh:(111.000, 0.000 AUTO_CLAMPED) rh:(131.000, 0.000 AUTO_CLAMPED)
+    - (151.000, -0.259) lh:(141.000, -0.259 AUTO_CLAMPED) rh:(161.000, -0.259 AUTO_CLAMPED)
+    - (181.000, 0.000) lh:(171.000, 0.000 AUTO_CLAMPED) rh:(191.000, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["left_arm_1"].rotation_quaternion[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:7 grp:'left_arm_1'
+    - (2.000, 0.000) lh:(-7.667, 0.000 AUTO_CLAMPED) rh:(11.667, 0.000 AUTO_CLAMPED)
+    - (31.000, 0.000) lh:(21.333, 0.000 AUTO_CLAMPED) rh:(41.000, 0.000 AUTO_CLAMPED)
+    - (61.000, 0.000) lh:(51.000, 0.000 AUTO_CLAMPED) rh:(71.000, 0.000 AUTO_CLAMPED)
+      ...
+    - (121.000, 0.000) lh:(111.000, 0.000 AUTO_CLAMPED) rh:(131.000, 0.000 AUTO_CLAMPED)
+    - (151.000, 0.000) lh:(141.000, 0.000 AUTO_CLAMPED) rh:(161.000, 0.000 AUTO_CLAMPED)
+    - (181.000, 0.000) lh:(171.000, 0.000 AUTO_CLAMPED) rh:(191.000, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["left_arm_1"].rotation_quaternion[3]' smooth:CONT_ACCEL extra:CONSTANT keyframes:7 grp:'left_arm_1'
+    - (2.000, 0.000) lh:(-7.667, 0.000 AUTO_CLAMPED) rh:(11.667, 0.000 AUTO_CLAMPED)
+    - (31.000, 0.131) lh:(21.333, 0.131 AUTO_CLAMPED) rh:(41.000, 0.131 AUTO_CLAMPED)
+    - (61.000, 0.000) lh:(51.000, 0.065 AUTO_CLAMPED) rh:(71.000, -0.065 AUTO_CLAMPED)
+      ...
+    - (121.000, 0.000) lh:(111.000, 0.000 AUTO_CLAMPED) rh:(131.000, 0.000 AUTO_CLAMPED)
+    - (151.000, 0.000) lh:(141.000, 0.000 AUTO_CLAMPED) rh:(161.000, 0.000 AUTO_CLAMPED)
+    - (181.000, 0.000) lh:(171.000, 0.000 AUTO_CLAMPED) rh:(191.000, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["left_arm_1"].scale[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:7 grp:'left_arm_1'
+    - (2.000, 1.000) lh:(-7.667, 1.000 AUTO_CLAMPED) rh:(11.667, 1.000 AUTO_CLAMPED)
+    - (31.000, 1.000) lh:(21.333, 1.000 AUTO_CLAMPED) rh:(41.000, 1.000 AUTO_CLAMPED)
+    - (61.000, 1.000) lh:(51.000, 1.000 AUTO_CLAMPED) rh:(71.000, 1.000 AUTO_CLAMPED)
+      ...
+    - (121.000, 1.000) lh:(111.000, 1.000 AUTO_CLAMPED) rh:(131.000, 1.000 AUTO_CLAMPED)
+    - (151.000, 1.000) lh:(141.000, 1.000 AUTO_CLAMPED) rh:(161.000, 1.000 AUTO_CLAMPED)
+    - (181.000, 1.000) lh:(171.000, 1.000 AUTO_CLAMPED) rh:(191.000, 1.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["left_arm_1"].scale[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:7 grp:'left_arm_1'
+    - (2.000, 1.000) lh:(-7.667, 1.000 AUTO_CLAMPED) rh:(11.667, 1.000 AUTO_CLAMPED)
+    - (31.000, 1.000) lh:(21.333, 1.000 AUTO_CLAMPED) rh:(41.000, 1.000 AUTO_CLAMPED)
+    - (61.000, 1.000) lh:(51.000, 1.000 AUTO_CLAMPED) rh:(71.000, 1.000 AUTO_CLAMPED)
+      ...
+    - (121.000, 1.000) lh:(111.000, 1.000 AUTO_CLAMPED) rh:(131.000, 1.000 AUTO_CLAMPED)
+    - (151.000, 1.000) lh:(141.000, 1.000 AUTO_CLAMPED) rh:(161.000, 1.000 AUTO_CLAMPED)
+    - (181.000, 1.000) lh:(171.000, 1.000 AUTO_CLAMPED) rh:(191.000, 1.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["left_arm_1"].scale[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:7 grp:'left_arm_1'
+    - (2.000, 1.000) lh:(-7.667, 1.000 AUTO_CLAMPED) rh:(11.667, 1.000 AUTO_CLAMPED)
+    - (31.000, 1.000) lh:(21.333, 1.000 AUTO_CLAMPED) rh:(41.000, 1.000 AUTO_CLAMPED)
+    - (61.000, 1.000) lh:(51.000, 1.000 AUTO_CLAMPED) rh:(71.000, 1.000 AUTO_CLAMPED)
+      ...
+    - (121.000, 1.000) lh:(111.000, 1.000 AUTO_CLAMPED) rh:(131.000, 1.000 AUTO_CLAMPED)
+    - (151.000, 1.000) lh:(141.000, 1.000 AUTO_CLAMPED) rh:(161.000, 1.000 AUTO_CLAMPED)
+    - (181.000, 1.000) lh:(171.000, 1.000 AUTO_CLAMPED) rh:(191.000, 1.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["left_arm_2"].location[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:7 grp:'left_arm_2'
+    - (2.000, 0.000) lh:(-7.667, 0.000 AUTO_CLAMPED) rh:(11.667, 0.000 AUTO_CLAMPED)
+    - (31.000, 0.000) lh:(21.333, 0.000 AUTO_CLAMPED) rh:(41.000, 0.000 AUTO_CLAMPED)
+    - (61.000, 0.000) lh:(51.000, 0.000 AUTO_CLAMPED) rh:(71.000, 0.000 AUTO_CLAMPED)
+      ...
+    - (121.000, 0.000) lh:(111.000, 0.000 AUTO_CLAMPED) rh:(131.000, 0.000 AUTO_CLAMPED)
+    - (151.000, 0.000) lh:(141.000, 0.000 AUTO_CLAMPED) rh:(161.000, 0.000 AUTO_CLAMPED)
+    - (181.000, 0.000) lh:(171.000, 0.000 AUTO_CLAMPED) rh:(191.000, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["left_arm_2"].location[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:7 grp:'left_arm_2'
+    - (2.000, 0.000) lh:(-7.667, 0.000 AUTO_CLAMPED) rh:(11.667, 0.000 AUTO_CLAMPED)
+    - (31.000, 0.000) lh:(21.333, 0.000 AUTO_CLAMPED) rh:(41.000, 0.000 AUTO_CLAMPED)
+    - (61.000, 0.000) lh:(51.000, 0.000 AUTO_CLAMPED) rh:(71.000, 0.000 AUTO_CLAMPED)
+      ...
+    - (121.000, 0.000) lh:(111.000, 0.000 AUTO_CLAMPED) rh:(131.000, 0.000 AUTO_CLAMPED)
+    - (151.000, 0.000) lh:(141.000, 0.000 AUTO_CLAMPED) rh:(161.000, 0.000 AUTO_CLAMPED)
+    - (181.000, 0.000) lh:(171.000, 0.000 AUTO_CLAMPED) rh:(191.000, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["left_arm_2"].location[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:7 grp:'left_arm_2'
+    - (2.000, 0.000) lh:(-7.667, 0.000 AUTO_CLAMPED) rh:(11.667, 0.000 AUTO_CLAMPED)
+    - (31.000, 0.000) lh:(21.333, 0.000 AUTO_CLAMPED) rh:(41.000, 0.000 AUTO_CLAMPED)
+    - (61.000, 0.000) lh:(51.000, 0.000 AUTO_CLAMPED) rh:(71.000, 0.000 AUTO_CLAMPED)
+      ...
+    - (121.000, 0.000) lh:(111.000, 0.000 AUTO_CLAMPED) rh:(131.000, 0.000 AUTO_CLAMPED)
+    - (151.000, 0.000) lh:(141.000, 0.000 AUTO_CLAMPED) rh:(161.000, 0.000 AUTO_CLAMPED)
+    - (181.000, 0.000) lh:(171.000, 0.000 AUTO_CLAMPED) rh:(191.000, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["left_arm_2"].rotation_quaternion[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:7 grp:'left_arm_2'
+    - (2.000, 1.000) lh:(-7.667, 1.000 AUTO_CLAMPED) rh:(11.667, 1.000 AUTO_CLAMPED)
+    - (31.000, 0.991) lh:(21.333, 0.991 AUTO_CLAMPED) rh:(41.000, 0.991 AUTO_CLAMPED)
+    - (61.000, 1.000) lh:(51.000, 1.000 AUTO_CLAMPED) rh:(71.000, 1.000 AUTO_CLAMPED)
+      ...
+    - (121.000, 1.000) lh:(111.000, 1.000 AUTO_CLAMPED) rh:(131.000, 1.000 AUTO_CLAMPED)
+    - (151.000, 0.966) lh:(141.000, 0.966 AUTO_CLAMPED) rh:(161.000, 0.966 AUTO_CLAMPED)
+    - (181.000, 1.000) lh:(171.000, 1.000 AUTO_CLAMPED) rh:(191.000, 1.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["left_arm_2"].rotation_quaternion[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:7 grp:'left_arm_2'
+    - (2.000, 0.000) lh:(-7.667, 0.000 AUTO_CLAMPED) rh:(11.667, 0.000 AUTO_CLAMPED)
+    - (31.000, 0.000) lh:(21.333, 0.000 AUTO_CLAMPED) rh:(41.000, 0.000 AUTO_CLAMPED)
+    - (61.000, 0.000) lh:(51.000, 0.000 AUTO_CLAMPED) rh:(71.000, 0.000 AUTO_CLAMPED)
+      ...
+    - (121.000, 0.000) lh:(111.000, 0.000 AUTO_CLAMPED) rh:(131.000, 0.000 AUTO_CLAMPED)
+    - (151.000, -0.259) lh:(141.000, -0.259 AUTO_CLAMPED) rh:(161.000, -0.259 AUTO_CLAMPED)
+    - (181.000, 0.000) lh:(171.000, 0.000 AUTO_CLAMPED) rh:(191.000, 0.000 AUTO_CLAMPED)
+
+==== Armatures: 1
+- Armature 'Armature' 15 bones
+  - bone 'left_arm_1' parent:'root_bone' h:(50.000, -50.000, 0.000) t:(50.000, -20.000, 0.000) inh_scale:NONE radius h:0.100 t:0.050
+      1.000 0.000 0.000 50.000
+      0.000 1.000 0.000 0.000
+      0.000 0.000 1.000 0.000
+  - bone 'left_arm_2' parent:'left_arm_1' h:(30.000, -30.000, 0.000) t:(30.000, 0.000, 0.000) inh_scale:NONE radius h:0.100 t:0.050
+      1.000 0.000 0.000 80.000
+      0.000 1.000 0.000 0.000
+      0.000 0.000 1.000 0.000
+  - bone 'left_arm_3' parent:'left_arm_2' h:(30.000, -30.000, 0.000) t:(30.000, 0.000, 0.000) inh_scale:NONE radius h:0.100 t:0.050
+      1.000 0.000 0.000 110.000
+      0.000 1.000 0.000 0.000
+      0.000 0.000 1.000 0.000
+  - bone 'left_arm_4' parent:'left_arm_3' h:(30.000, -30.000, 0.000) t:(30.000, 0.000, 0.000) inh_scale:NONE radius h:0.100 t:0.050
+      1.000 0.000 0.000 140.000
+      0.000 1.000 0.000 0.000
+      0.000 0.000 1.000 0.000
+  - bone 'left_arm_5' parent:'left_arm_4' h:(30.000, -30.000, 0.000) t:(30.000, 0.000, 0.000) inh_scale:NONE radius h:0.100 t:0.050
+      1.000 0.000 0.000 170.000
+      0.000 1.000 0.000 0.000
+      0.000 0.000 1.000 0.000
+  - bone 'left_arm_end' parent:'left_arm_5' h:(30.000, -30.000, 0.000) t:(30.000, -25.000, 0.000) inh_scale:NONE radius h:0.100 t:0.050
+      1.000 0.000 0.000 200.000
+      0.000 1.000 0.000 0.000
+      0.000 0.000 1.000 0.000
+  - bone 'left_arm_end_detail' parent:'left_arm_end' h:(5.000, -5.000, 0.000) t:(5.000, 0.000, 0.000) inh_scale:NONE radius h:0.100 t:0.050
+      1.000 0.000 0.000 205.000
+      0.000 1.000 0.000 0.000
+      0.000 0.000 1.000 0.000
+  - bone 'right_arm_1' parent:'root_bone' h:(-50.000, -50.000, 0.000) t:(-50.000, -80.000, 0.000) inh_scale:NONE radius h:0.100 t:0.050
+      1.000 0.000 0.000 -50.000
+      0.000 -1.000 0.000 0.000
+      0.000 0.000 -1.000 0.000
+  - bone 'right_arm_2' parent:'right_arm_1' h:(-30.000, -30.000, 0.000) t:(-30.000, 0.000, 0.000) inh_scale:NONE radius h:0.100 t:0.050
+      1.000 0.000 0.000 -80.000
+      0.000 -1.000 0.000 0.000
+      0.000 0.000 -1.000 0.000
+  - bone 'right_arm_3' parent:'right_arm_2' h:(-30.000, -30.000, 0.000) t:(-30.000, 0.000, 0.000) inh_scale:NONE radius h:0.100 t:0.050
+      1.000 0.000 0.000 -110.000
+      0.000 -1.000 0.000 0.000
+      0.000 0.000 -1.000 0.000
+  - bone 'right_arm_4' parent:'right_arm_3' h:(-30.000, -30.000, 0.000) t:(-30.000, 0.000, 0.000) inh_scale:NONE radius h:0.100 t:0.050
+      1.000 0.000 0.000 -140.000
+      0.000 -1.000 0.000 0.000
+      0.000 0.000 -1.000 0.000
+  - bone 'right_arm_5' parent:'right_arm_4' h:(-30.000, -30.000, 0.000) t:(-30.000, 0.000, 0.000) inh_scale:NONE radius h:0.100 t:0.050
+      1.000 0.000 0.000 -170.000
+      0.000 -1.000 0.000 0.000
+      0.000 0.000 -1.000 0.000
+  - bone 'right_arm_end' parent:'right_arm_5' h:(-30.000, -30.000, 0.000) t:(-30.000, -25.000, 0.000) inh_scale:NONE radius h:0.100 t:0.050
+      1.000 0.000 0.000 -200.000
+      0.000 -1.000 0.000 0.000
+      0.000 0.000 -1.000 0.000
+  - bone 'right_arm_end_detail' parent:'right_arm_end' h:(-5.000, -5.000, 0.000) t:(-5.000, 0.000, 0.000) inh_scale:NONE radius h:0.100 t:0.050
+      1.000 0.000 0.000 -205.000
+      0.000 -1.000 0.000 0.000
+      0.000 0.000 -1.000 0.000
+  - bone 'root_bone' h:(0.000, 0.000, 0.000) t:(0.000, 50.000, 0.000) radius h:0.100 t:0.050
+      1.000 0.000 0.000 0.000
+      0.000 1.000 0.000 0.000
+      0.000 0.000 1.000 0.000
+

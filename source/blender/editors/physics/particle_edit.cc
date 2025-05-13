@@ -532,7 +532,7 @@ static void PE_set_view3d_data(bContext *C, PEData *data)
 
 static bool PE_create_shape_tree(PEData *data, Object *shapeob)
 {
-  Object *shapeob_eval = DEG_get_evaluated_object(data->depsgraph, shapeob);
+  Object *shapeob_eval = DEG_get_evaluated(data->depsgraph, shapeob);
   const Mesh *mesh = BKE_object_get_evaluated_mesh(shapeob_eval);
 
   if (!mesh) {
@@ -1873,7 +1873,7 @@ static bool pe_nearest_point_and_key(bContext *C,
   return found;
 }
 
-bool PE_mouse_particles(bContext *C, const int mval[2], const SelectPick_Params *params)
+bool PE_mouse_particles(bContext *C, const int mval[2], const SelectPick_Params &params)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Scene *scene = CTX_data_scene(C);
@@ -1891,18 +1891,18 @@ bool PE_mouse_particles(bContext *C, const int mval[2], const SelectPick_Params 
   bool changed = false;
   bool found = pe_nearest_point_and_key(C, mval, &point, &key);
 
-  if (params->sel_op == SEL_OP_SET) {
-    if ((found && params->select_passthrough) && (key->flag & PEK_SELECT)) {
+  if (params.sel_op == SEL_OP_SET) {
+    if ((found && params.select_passthrough) && (key->flag & PEK_SELECT)) {
       found = false;
     }
-    else if (found || params->deselect_all) {
+    else if (found || params.deselect_all) {
       /* Deselect everything. */
       changed |= PE_deselect_all_visible_ex(edit);
     }
   }
 
   if (found) {
-    switch (params->sel_op) {
+    switch (params.sel_op) {
       case SEL_OP_ADD: {
         if ((key->flag & PEK_SELECT) == 0) {
           key->flag |= PEK_SELECT;
@@ -3393,8 +3393,10 @@ void PARTICLE_OT_weight_set(wmOperatorType *ot)
 /** \name Cursor Drawing
  * \{ */
 
-static void brush_drawcursor(
-    bContext *C, int x, int y, float /*x_tilt*/, float /*y_tilt*/, void * /*customdata*/)
+static void brush_drawcursor(bContext *C,
+                             const blender::int2 &xy,
+                             const blender::float2 & /*tilt*/,
+                             void * /*customdata*/)
 {
   Scene *scene = CTX_data_scene(C);
   ParticleEditSettings *pset = PE_settings(scene);
@@ -3415,7 +3417,7 @@ static void brush_drawcursor(
     GPU_line_smooth(true);
     GPU_blend(GPU_BLEND_ALPHA);
 
-    imm_draw_circle_wire_2d(pos, float(x), float(y), pe_brush_size_get(scene, brush), 40);
+    imm_draw_circle_wire_2d(pos, float(xy.x), float(xy.y), pe_brush_size_get(scene, brush), 40);
 
     GPU_blend(GPU_BLEND_NONE);
     GPU_line_smooth(false);
@@ -4168,7 +4170,7 @@ static int particle_intersect_mesh(Depsgraph *depsgraph,
   if (mesh == nullptr) {
     psys_disable_all(ob);
 
-    Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+    Object *ob_eval = DEG_get_evaluated(depsgraph, ob);
     mesh = BKE_object_get_evaluated_mesh(ob_eval);
     if (mesh == nullptr) {
       return 0;
@@ -5304,7 +5306,7 @@ void PARTICLE_OT_shape_cut(wmOperatorType *ot)
 void PE_create_particle_edit(
     Depsgraph *depsgraph, Scene *scene, Object *ob, PointCache *cache, ParticleSystem *psys)
 {
-  Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+  Object *ob_eval = DEG_get_evaluated(depsgraph, ob);
   PTCacheEdit *edit;
   ParticleSystemModifierData *psmd = (psys) ? psys_get_modifier(ob, psys) : nullptr;
   ParticleSystemModifierData *psmd_eval = nullptr;
@@ -5482,7 +5484,7 @@ void ED_object_particle_edit_mode_enter_ex(Depsgraph *depsgraph, Scene *scene, O
     /* Make sure pointer to the evaluated modifier data is up to date,
      * with possible changes applied when object was outside of the
      * edit mode. */
-    Object *object_eval = DEG_get_evaluated_object(depsgraph, ob);
+    Object *object_eval = DEG_get_evaluated(depsgraph, ob);
     edit->psmd_eval = (ParticleSystemModifierData *)BKE_modifiers_findby_name(
         object_eval, edit->psmd->modifier.name);
     recalc_emitter_field(depsgraph, ob, edit->psys);

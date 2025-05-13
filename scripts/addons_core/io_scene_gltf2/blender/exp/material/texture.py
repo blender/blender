@@ -107,6 +107,7 @@ def __gather_extensions(blender_shader_sockets, source, webp_image, image_data, 
             )
             buffer_view = None
             name = source.uri.name
+            image.set_real_uri(uri, export_settings) # Note: image, here, is the imported image python file
 
         else:
             buffer_view = BinaryData(data=new_data)
@@ -228,6 +229,8 @@ def __gather_source(blender_shader_sockets, use_tile, export_settings):
                     name=source.uri.name
                 )
                 name = source.uri.name
+
+                image.set_real_uri(uri, export_settings) # Note: image, here, is the imported image python file
 
             else:
                 uri = None

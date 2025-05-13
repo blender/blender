@@ -1,0 +1,65 @@
+The bones are named Top, Middle, and Bottom for simplicity.
+
+All bones are selected, multi-paint is active,
+ but the bone combinations are covered at the different edge loops.
+
+To do the test, paint over the vertices that are in the top ortho view
+ with the provided Add brush (weight and strength 1.0)
+
+For the first, highest set of vertices,
+ you should be able to sample these weights from each different bone
+ (Ctrl+LMB with the corresponding bone selected):
+	Top weight: 	1.000
+	Middle Weight:	0.667
+	Bottom weight:	0.333
+
+The second ring down will have
+	Top weight: 	1.000
+	Middle Weight:	0.667
+	Bottom weight:	0.000
+
+The third ring will have
+	Top weight: 	1.000
+	Middle Weight:	0.000
+	Bottom weight:	0.333
+
+And the fourth and final ring will have
+	Top weight: 	0.000
+	Middle Weight:	1.000
+	Bottom weight:	0.500
+
+
+For the next case, enable auto normalize.
+ You can switch to the bottom ortho view for an unaltered set of vertices,
+ but it will not change the final results.
+
+Make sure all of the bones are selected.
+
+Paint over the vertices in the view with the same Add brush as before.
+
+The first, top ring will have:
+	Top weight: 	0.5
+	Middle Weight:	0.333
+	Bottom weight:	0.167
+
+The second ring down will have
+	Top weight: 	0.600
+	Middle Weight:	0.400
+	Bottom weight:	0.000
+
+The third ring will have
+	Top weight: 	0.750
+	Middle Weight:	0.000
+	Bottom weight:	0.250
+
+And the fourth and final ring will have
+	Top weight: 	0.000
+	Middle Weight:	0.667
+	Bottom weight:	0.333
+
+
+For any case:
+
+Weights of zero should always remain zero.
+
+Having only one bone selected should behave like a regular paint.

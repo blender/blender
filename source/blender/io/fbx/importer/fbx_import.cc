@@ -14,6 +14,7 @@
 
 #include "BLI_fileops.h"
 #include "BLI_math_rotation.h"
+#include "BLI_task.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
@@ -217,7 +218,7 @@ void FbxImportContext::import_empties()
 {
   /* Create empties for fbx nodes. */
   for (const ufbx_node *node : this->fbx.nodes) {
-    /* Ignore root, and bones and nodes for which we have created objects already. */
+    /* Ignore root, bones and nodes for which we have created objects already. */
     if (node->is_root || node->bone || this->mapping.el_to_object.contains(&node->element)) {
       continue;
     }
@@ -252,9 +253,9 @@ void FbxImportContext::setup_hierarchy()
     if (node == nullptr) {
       continue;
     }
-    if (node->bone != nullptr) {
-      /* If this node is for a bone, do not try to setup object parenting for it
-       * (the object for bone bones is whole armature). */
+    if (node->bone != nullptr && !node->bone->is_root) {
+      /* If this node is for a non-root bone, do not try to setup object parenting
+       * for it (the object for bone bones is whole armature). */
       continue;
     }
     if (node->parent) {
@@ -264,6 +265,26 @@ void FbxImportContext::setup_hierarchy()
       }
     }
   }
+}
+
+static void fbx_task_run_fn(void * /* user */,
+                            ufbx_thread_pool_context ctx,
+                            uint32_t /* group */,
+                            uint32_t start_index,
+                            uint32_t count)
+{
+  threading::parallel_for_each(IndexRange(start_index, count), [&](const int64_t index) {
+    ufbx_thread_pool_run_task(ctx, index);
+  });
+}
+
+static void fbx_task_wait_fn(void * /* user */,
+                             ufbx_thread_pool_context /* ctx */,
+                             uint32_t /* group */,
+                             uint32_t /* max_index */)
+{
+  /* Empty implementation; #fbx_task_run_fn already waits for the tasks.
+   * This means that only one fbx "task group" is effectively scheduled at once. */
 }
 
 void importer_main(Main *bmain, Scene *scene, ViewLayer *view_layer, const FBXImportParams &params)
@@ -289,7 +310,6 @@ void importer_main(Main *bmain, Scene *scene, ViewLayer *view_layer, const FBXIm
    * cause armatures/skins to not import correctly, when inserted in the middle of bone chain. */
   opts.geometry_transform_handling = UFBX_GEOMETRY_TRANSFORM_HANDLING_MODIFY_GEOMETRY_NO_FALLBACK;
 
-  //@TODO: axes according to import settings
   opts.space_conversion = UFBX_SPACE_CONVERSION_ADJUST_TRANSFORMS;
   opts.target_axes.right = UFBX_COORDINATE_AXIS_POSITIVE_X;
   opts.target_axes.up = UFBX_COORDINATE_AXIS_POSITIVE_Z;
@@ -302,6 +322,10 @@ void importer_main(Main *bmain, Scene *scene, ViewLayer *view_layer, const FBXIm
   opts.target_light_axes.right = UFBX_COORDINATE_AXIS_POSITIVE_X;
   opts.target_light_axes.up = UFBX_COORDINATE_AXIS_POSITIVE_Y;
   opts.target_light_axes.front = UFBX_COORDINATE_AXIS_POSITIVE_Z;
+
+  /* Setup ufbx threading to go through our own task system. */
+  opts.thread_opts.pool.run_fn = fbx_task_run_fn;
+  opts.thread_opts.pool.wait_fn = fbx_task_wait_fn;
 
   ufbx_error fbx_error;
   ufbx_scene *fbx = ufbx_load_stdio(file, &opts, &fbx_error);

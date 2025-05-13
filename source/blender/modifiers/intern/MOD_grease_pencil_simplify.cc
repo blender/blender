@@ -204,24 +204,24 @@ static void panel_draw(const bContext *C, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, ptr, "mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   if (mode == MOD_GREASE_PENCIL_SIMPLIFY_FIXED) {
-    uiItemR(layout, ptr, "step", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    layout->prop(ptr, "step", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
   else if (mode == MOD_GREASE_PENCIL_SIMPLIFY_ADAPTIVE) {
-    uiItemR(layout, ptr, "factor", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    layout->prop(ptr, "factor", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
   else if (mode == MOD_GREASE_PENCIL_SIMPLIFY_SAMPLE) {
-    uiItemR(layout, ptr, "length", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    uiItemR(layout, ptr, "sharp_threshold", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    layout->prop(ptr, "length", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    layout->prop(ptr, "sharp_threshold", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
   else if (mode == MOD_GREASE_PENCIL_SIMPLIFY_MERGE) {
-    uiItemR(layout, ptr, "distance", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    layout->prop(ptr, "distance", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
-  if (uiLayout *influence_panel = uiLayoutPanelProp(
-          C, layout, ptr, "open_influence_panel", IFACE_("Influence")))
+  if (uiLayout *influence_panel = layout->panel_prop(
+          C, ptr, "open_influence_panel", IFACE_("Influence")))
   {
     modifier::greasepencil::draw_layer_filter_settings(C, influence_panel, ptr);
     modifier::greasepencil::draw_material_filter_settings(C, influence_panel, ptr);

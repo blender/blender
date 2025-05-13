@@ -965,8 +965,7 @@ static void WIDGETGROUP_geometry_nodes_refresh(const bContext *C, wmGizmoGroup *
           /* Can't create gizmos without any logged data. */
           return;
         }
-        Object *object_eval = DEG_get_evaluated_object(depsgraph,
-                                                       const_cast<Object *>(&object_orig));
+        Object *object_eval = DEG_get_evaluated(depsgraph, const_cast<Object *>(&object_orig));
         if (!object_eval) {
           return;
         }

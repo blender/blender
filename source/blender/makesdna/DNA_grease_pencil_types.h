@@ -9,6 +9,7 @@
 #pragma once
 
 #include "DNA_ID.h"
+#include "DNA_attribute_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_curves_types.h"
 #include "DNA_listBase.h"
@@ -441,6 +442,11 @@ typedef struct GreasePencilOnionSkinningSettings {
  * The grease pencil data-block.
  */
 typedef struct GreasePencil {
+#ifdef __cplusplus
+  /** See #ID_Type comment for why this is here. */
+  static constexpr ID_Type id_type = ID_GP;
+#endif
+
   ID id;
   /** Animation data. */
   struct AnimData *adt;
@@ -461,6 +467,13 @@ typedef struct GreasePencil {
    * All attributes stored on the grease pencil layers (#AttrDomain::Layer).
    */
   CustomData layers_data;
+
+  /**
+   * Layer domain attributes. Currently unused at runtime, but used for forward
+   * compatibility when reading files (see #122398).
+   */
+  struct AttributeStorage attribute_storage;
+
   /**
    * The index of the active attribute in the UI.
    *

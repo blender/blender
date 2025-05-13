@@ -130,7 +130,7 @@ static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &
 
 }  // namespace blender::nodes::node_composite_color_ramp_cc
 
-void register_node_type_cmp_valtorgb()
+static void register_node_type_cmp_valtorgb()
 {
   namespace file_ns = blender::nodes::node_composite_color_ramp_cc;
 
@@ -151,6 +151,7 @@ void register_node_type_cmp_valtorgb()
 
   blender::bke::node_register_type(ntype);
 }
+NOD_REGISTER_NODE(register_node_type_cmp_valtorgb)
 
 /* **************** RGBTOBW ******************** */
 
@@ -196,7 +197,7 @@ static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &
 
 }  // namespace blender::nodes::node_composite_rgb_to_bw_cc
 
-void register_node_type_cmp_rgbtobw()
+static void register_node_type_cmp_rgbtobw()
 {
   namespace file_ns = blender::nodes::node_composite_rgb_to_bw_cc;
 
@@ -215,3 +216,4 @@ void register_node_type_cmp_rgbtobw()
 
   blender::bke::node_register_type(ntype);
 }
+NOD_REGISTER_NODE(register_node_type_cmp_rgbtobw)

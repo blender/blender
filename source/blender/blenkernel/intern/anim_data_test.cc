@@ -23,7 +23,7 @@ TEST(anim_data, BKE_fcurves_id_cb_test)
   BKE_idtype_init();
 
   Main *bmain = BKE_main_new();
-  Action *action = static_cast<Action *>(BKE_id_new(bmain, ID_AC, "ACÄnimåtië"));
+  Action *action = BKE_id_new<Action>(bmain, "ACÄnimåtië");
   Object *cube = BKE_object_add_only_object(bmain, OB_EMPTY, "Küüübus");
   Object *suzanne = BKE_object_add_only_object(bmain, OB_EMPTY, "OBSuzanne");
 

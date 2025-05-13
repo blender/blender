@@ -55,7 +55,7 @@ class GeometryDataSource : public DataSource {
   /* Some data is computed on the fly only when it is requested. Computing it does not change the
    * logical state of this data source. Therefore, the corresponding methods are const and need to
    * be protected with a mutex. */
-  mutable std::mutex mutex_;
+  mutable Mutex mutex_;
   mutable ResourceScope scope_;
 
  public:

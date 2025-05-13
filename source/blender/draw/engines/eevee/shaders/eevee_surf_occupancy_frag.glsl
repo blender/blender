@@ -57,7 +57,8 @@ void main()
   float volume_z = view_z_to_volume_z(vPz) + jitter;
 
   if (use_fast_method) {
-    OccupancyBits occupancy_bits = occupancy_from_depth(volume_z, uniform_buf.volumes.tex_size.z);
+    occupancy::Bits occupancy_bits = occupancy::bits_from_depth(volume_z,
+                                                                uniform_buf.volumes.tex_size.z);
     for (int i = 0; i < imageSize(occupancy_img).z; i++) {
       /* Negate occupancy bits before XORing so that meshes clipped by the near plane fill the
        * space between the inner part of the mesh and the near plane.

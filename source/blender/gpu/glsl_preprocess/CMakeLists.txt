@@ -17,3 +17,4 @@ endif()
 
 # `SRC_DNA_INC` is defined in the parent directory.
 add_executable(glsl_preprocess ${SRC})
+optimize_debug_target(glsl_preprocess)

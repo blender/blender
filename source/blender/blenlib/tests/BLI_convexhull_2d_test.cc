@@ -355,7 +355,7 @@ TEST(convexhull_2d, Complex)
     for (float2 &p : points) {
       BLI_assert(p[0] >= 0.0 && p[0] <= 1.0f);
       BLI_assert(p[1] >= 0.0 && p[1] <= 1.0f);
-      /* Center from [-0.5..0.5], apply size, rotate & translate.  */
+      /* Center from [-0.5..0.5], apply size, rotate & translate. */
       p = (((p - float2(0.5f, 0.5f)) * size) * rot_mat) + translation;
     }
 

@@ -269,13 +269,13 @@ void object_xform_skip_child_container_update_all(XFormObjectSkipChild_Container
 
     if (xf->mode == XFORM_OB_SKIP_CHILD_PARENT_IS_XFORM) {
       /* Parent is transformed, this isn't so compensate. */
-      Object *ob_parent_eval = DEG_get_evaluated_object(depsgraph, ob->parent);
+      Object *ob_parent_eval = DEG_get_evaluated(depsgraph, ob->parent);
       mul_m4_m4m4(dmat, xf->parent_obmat_inv_orig, ob_parent_eval->object_to_world().ptr());
       invert_m4(dmat);
     }
     else if (xf->mode == XFORM_OB_SKIP_CHILD_PARENT_IS_XFORM_INDIRECT) {
       /* Calculate parent matrix (from the root transform). */
-      Object *ob_parent_recurse_eval = DEG_get_evaluated_object(depsgraph, xf->ob_parent_recurse);
+      Object *ob_parent_recurse_eval = DEG_get_evaluated(depsgraph, xf->ob_parent_recurse);
       float parent_recurse_obmat_inv[4][4];
       invert_m4_m4(parent_recurse_obmat_inv, ob_parent_recurse_eval->object_to_world().ptr());
       mul_m4_m4m4(dmat, xf->parent_recurse_obmat_orig, parent_recurse_obmat_inv);
@@ -290,7 +290,7 @@ void object_xform_skip_child_container_update_all(XFormObjectSkipChild_Container
     else {
       BLI_assert(xf->mode == XFORM_OB_SKIP_CHILD_PARENT_APPLY);
       /* Transform this - without transform data. */
-      Object *ob_parent_recurse_eval = DEG_get_evaluated_object(depsgraph, xf->ob_parent_recurse);
+      Object *ob_parent_recurse_eval = DEG_get_evaluated(depsgraph, xf->ob_parent_recurse);
       float parent_recurse_obmat_inv[4][4];
       invert_m4_m4(parent_recurse_obmat_inv, ob_parent_recurse_eval->object_to_world().ptr());
       mul_m4_m4m4(dmat, xf->parent_recurse_obmat_orig, parent_recurse_obmat_inv);
@@ -372,7 +372,7 @@ void data_xform_container_update_all(XFormObjectData_Container *xds,
       continue;
     }
 
-    Object *ob_eval = DEG_get_evaluated_object(depsgraph, xf->ob);
+    Object *ob_eval = DEG_get_evaluated(depsgraph, xf->ob);
     float4x4 imat, dmat;
     invert_m4_m4(imat.ptr(), xf->obmat_orig);
     mul_m4_m4m4(dmat.ptr(), imat.ptr(), ob_eval->object_to_world().ptr());

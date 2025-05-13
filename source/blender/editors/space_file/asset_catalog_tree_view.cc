@@ -315,7 +315,7 @@ void AssetCatalogTreeViewItem::build_context_menu(bContext &C, uiLayout &column)
               UI_ITEM_NONE,
               &props);
   RNA_string_set(&props, "catalog_id", catalog_item_.get_catalog_id().str().c_str());
-  uiItemO(&column, IFACE_("Rename"), ICON_NONE, "UI_OT_view_item_rename");
+  column.op("UI_OT_view_item_rename", IFACE_("Rename"), ICON_NONE);
 
   /* Doesn't actually exist right now, but could be defined in Python. Reason that this isn't done
    * in Python yet is that catalogs are not exposed in BPY, and we'd somehow pass the clicked on

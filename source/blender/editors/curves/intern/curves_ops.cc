@@ -528,7 +528,7 @@ static wmOperatorStatus curves_convert_from_particle_system_exec(bContext *C, wm
   if (psys_orig == nullptr) {
     return OPERATOR_CANCELLED;
   }
-  Object *ob_from_eval = DEG_get_evaluated_object(&depsgraph, ob_from_orig);
+  Object *ob_from_eval = DEG_get_evaluated(&depsgraph, ob_from_orig);
   ParticleSystem *psys_eval = nullptr;
   LISTBASE_FOREACH (ModifierData *, md, &ob_from_eval->modifiers) {
     if (md->type != eModifierType_ParticleSystem) {
@@ -937,8 +937,8 @@ static void select_random_ui(bContext * /*C*/, wmOperator *op)
 {
   uiLayout *layout = op->layout;
 
-  uiItemR(layout, op->ptr, "seed", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  uiItemR(layout, op->ptr, "probability", UI_ITEM_R_SLIDER, IFACE_("Probability"), ICON_NONE);
+  layout->prop(op->ptr, "seed", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(op->ptr, "probability", UI_ITEM_R_SLIDER, IFACE_("Probability"), ICON_NONE);
 }
 
 static void CURVES_OT_select_random(wmOperatorType *ot)
@@ -1018,8 +1018,8 @@ static void select_ends_ui(bContext * /*C*/, wmOperator *op)
 
   uiLayout *col = &layout->column(true);
   uiLayoutSetPropDecorate(col, false);
-  uiItemR(col, op->ptr, "amount_start", UI_ITEM_NONE, IFACE_("Amount Start"), ICON_NONE);
-  uiItemR(col, op->ptr, "amount_end", UI_ITEM_NONE, IFACE_("End"), ICON_NONE);
+  col->prop(op->ptr, "amount_start", UI_ITEM_NONE, IFACE_("Amount Start"), ICON_NONE);
+  col->prop(op->ptr, "amount_end", UI_ITEM_NONE, IFACE_("End"), ICON_NONE);
 }
 
 static void CURVES_OT_select_ends(wmOperatorType *ot)

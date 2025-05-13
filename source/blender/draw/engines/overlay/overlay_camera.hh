@@ -292,7 +292,7 @@ class Cameras : Overlay {
     const RegionView3D *rv3d = state.rv3d;
 
     const Camera &cam = DRW_object_get_data_for_drawing<Camera>(*ob);
-    const Object *camera_object = DEG_get_evaluated_object(state.depsgraph, v3d->camera);
+    const Object *camera_object = DEG_get_evaluated(state.depsgraph, v3d->camera);
     const bool is_select = res.is_selection();
     const bool is_active = (ob == camera_object);
     const bool is_camera_view = (is_active && (rv3d->persp == RV3D_CAMOB));
@@ -434,8 +434,8 @@ class Cameras : Overlay {
     int track_index = 1;
 
     float4 bundle_color_custom;
-    float *bundle_color_solid = res.theme_settings.color_bundle_solid;
-    float *bundle_color_unselected = res.theme_settings.color_wire;
+    float *bundle_color_solid = res.theme.colors.bundle_solid;
+    float *bundle_color_unselected = res.theme.colors.wire;
     uchar4 text_color_selected, text_color_unselected;
     /* Color Management: Exception here as texts are drawn in sRGB space directly. */
     UI_GetThemeColor4ubv(TH_SELECT, text_color_selected);
@@ -560,7 +560,7 @@ class Cameras : Overlay {
   {
     Object *ob = ob_ref.object;
     const Camera &cam = DRW_object_get_data_for_drawing<Camera>(*ob_ref.object);
-    const Object *camera_object = DEG_get_evaluated_object(state.depsgraph, state.v3d->camera);
+    const Object *camera_object = DEG_get_evaluated(state.depsgraph, state.v3d->camera);
 
     const bool is_active = ob_ref.object == camera_object;
     const bool is_camera_view = (is_active && (state.rv3d->persp == RV3D_CAMOB));
@@ -664,7 +664,8 @@ class Cameras : Overlay {
     translate[3][1] = bgpic->offset[1];
     translate[3][2] = cam_corners[0][2];
     if (cam->type == CAM_ORTHO) {
-      translate[3].xy() *= cam->ortho_scale;
+      translate[3][0] *= cam->ortho_scale;
+      translate[3][1] *= cam->ortho_scale;
     }
     /* These lines are for keeping 2.80 behavior and could be removed to keep 2.79 behavior. */
     translate[3][0] *= min_ff(1.0f, cam_aspect);
@@ -812,7 +813,7 @@ class Cameras : Overlay {
         /* Connecting line between cameras. */
         call_buffers_.stereo_connect_lines.append(stereodata.matrix.location(),
                                                   instdata.object_to_world.location(),
-                                                  res.theme_settings.color_wire,
+                                                  res.theme.colors.wire,
                                                   cam_select_id);
       }
 

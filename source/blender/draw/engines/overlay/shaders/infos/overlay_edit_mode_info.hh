@@ -6,7 +6,6 @@
 #  pragma once
 #  include "gpu_glsl_cpp_stubs.hh"
 
-#  include "draw_common_shader_shared.hh"
 #  include "draw_object_infos_info.hh"
 #  include "draw_view_info.hh"
 
@@ -513,7 +512,9 @@ VERTEX_IN(1, uint, data)
 VERTEX_OUT(overlay_edit_flat_color_iface)
 PUSH_CONSTANT(bool, show_curve_handles)
 PUSH_CONSTANT(int, curve_handle_display)
+DEFINE("LINE_OUTPUT")
 FRAGMENT_OUT(0, float4, frag_color)
+FRAGMENT_OUT(1, float4, line_output)
 VERTEX_SOURCE("overlay_edit_curve_point_vert.glsl")
 FRAGMENT_SOURCE("overlay_point_varying_color_frag.glsl")
 ADDITIONAL_INFO(draw_view)
@@ -531,7 +532,9 @@ VERTEX_IN(2, float3, tangent)
 VERTEX_IN(3, float, rad)
 PUSH_CONSTANT(float, normal_size)
 VERTEX_OUT(overlay_edit_flat_color_iface)
+DEFINE("LINE_OUTPUT")
 FRAGMENT_OUT(0, float4, frag_color)
+FRAGMENT_OUT(1, float4, line_output)
 VERTEX_SOURCE("overlay_edit_curve_wire_vert.glsl")
 FRAGMENT_SOURCE("overlay_varying_color.glsl")
 ADDITIONAL_INFO(draw_view)
@@ -554,7 +557,9 @@ PUSH_CONSTANT(int2, gpu_attr_3)
 PUSH_CONSTANT(float, normal_size)
 PUSH_CONSTANT(bool, use_hq_normals)
 VERTEX_OUT(overlay_edit_flat_color_iface)
+DEFINE("LINE_OUTPUT")
 FRAGMENT_OUT(0, float4, frag_color)
+FRAGMENT_OUT(1, float4, line_output)
 VERTEX_SOURCE("overlay_edit_curve_normals_vert.glsl")
 FRAGMENT_SOURCE("overlay_varying_color.glsl")
 ADDITIONAL_INFO(draw_view)

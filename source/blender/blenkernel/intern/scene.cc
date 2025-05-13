@@ -252,16 +252,6 @@ static void scene_init_data(ID *id)
   scene->runtime = MEM_new<SceneRuntime>(__func__);
 }
 
-static void scene_copy_markers(Scene *scene_dst, const Scene *scene_src, const int flag)
-{
-  BLI_duplicatelist(&scene_dst->markers, &scene_src->markers);
-  LISTBASE_FOREACH (TimeMarker *, marker, &scene_dst->markers) {
-    if (marker->prop != nullptr) {
-      marker->prop = IDP_CopyProperty_ex(marker->prop, flag);
-    }
-  }
-}
-
 static void scene_copy_data(Main *bmain,
                             std::optional<Library *> owner_library,
                             ID *id_dst,
@@ -302,7 +292,7 @@ static void scene_copy_data(Main *bmain,
     BKE_view_layer_copy_data(scene_dst, scene_src, view_layer_dst, view_layer_src, flag_subdata);
   }
 
-  scene_copy_markers(scene_dst, scene_src, flag);
+  BKE_copy_time_markers(scene_dst->markers, scene_src->markers, flag);
 
   BLI_duplicatelist(&(scene_dst->transform_spaces), &(scene_src->transform_spaces));
   BLI_duplicatelist(&(scene_dst->r.views), &(scene_src->r.views));
@@ -358,12 +348,12 @@ static void scene_copy_data(Main *bmain,
     scene_dst->ed->show_missing_media_flag = scene_src->ed->show_missing_media_flag;
     scene_dst->ed->proxy_storage = scene_src->ed->proxy_storage;
     STRNCPY(scene_dst->ed->proxy_dir, scene_src->ed->proxy_dir);
-    blender::seq::sequence_base_dupli_recursive(scene_src,
-                                                scene_dst,
-                                                &scene_dst->ed->seqbase,
-                                                &scene_src->ed->seqbase,
-                                                STRIP_DUPE_ALL,
-                                                flag_subdata);
+    blender::seq::seqbase_duplicate_recursive(scene_src,
+                                              scene_dst,
+                                              &scene_dst->ed->seqbase,
+                                              &scene_src->ed->seqbase,
+                                              STRIP_DUPE_ALL,
+                                              flag_subdata);
     BLI_duplicatelist(&scene_dst->ed->channels, &scene_src->ed->channels);
     scene_dst->ed->displayed_channels = &scene_dst->ed->channels;
   }
@@ -823,7 +813,7 @@ static bool strip_foreach_member_id_cb(Strip *strip, void *user_data)
   IDP_foreach_property(strip->prop, IDP_TYPE_FILTER_ID, [&](IDProperty *prop) {
     BKE_lib_query_idpropertiesForeachIDLink_callback(prop, data);
   });
-  LISTBASE_FOREACH (SequenceModifierData *, smd, &strip->modifiers) {
+  LISTBASE_FOREACH (StripModifierData *, smd, &strip->modifiers) {
     FOREACHID_PROCESS_IDSUPER(data, smd->mask_id, IDWALK_CB_USER);
   }
 
@@ -1102,13 +1092,7 @@ static void scene_blend_write(BlendWriter *writer, ID *id, const void *id_addres
   }
 
   /* writing dynamic list of TimeMarkers to the blend file */
-  LISTBASE_FOREACH (TimeMarker *, marker, &sce->markers) {
-    BLO_write_struct(writer, TimeMarker, marker);
-
-    if (marker->prop != nullptr) {
-      IDP_BlendWrite(writer, marker->prop);
-    }
-  }
+  BKE_time_markers_blend_write(writer, sce->markers);
 
   /* writing dynamic list of TransformOrientations to the blend file */
   LISTBASE_FOREACH (TransformOrientation *, ts, &sce->transform_spaces) {
@@ -1180,14 +1164,14 @@ static void link_recurs_seq(BlendDataReader *reader, ListBase *lb)
 {
   BLO_read_struct_list(reader, Strip, lb);
 
-  LISTBASE_FOREACH_MUTABLE (Strip *, seq, lb) {
+  LISTBASE_FOREACH_MUTABLE (Strip *, strip, lb) {
     /* Sanity check. */
-    if (!blender::seq::is_valid_strip_channel(seq)) {
-      BLI_freelinkN(lb, seq);
+    if (!blender::seq::is_valid_strip_channel(strip)) {
+      BLI_freelinkN(lb, strip);
       BLO_read_data_reports(reader)->count.sequence_strips_skipped++;
     }
-    else if (seq->seqbase.first) {
-      link_recurs_seq(reader, &seq->seqbase);
+    else if (strip->seqbase.first) {
+      link_recurs_seq(reader, &strip->seqbase);
     }
   }
 }
@@ -1298,8 +1282,8 @@ static void scene_blend_read_data(BlendDataReader *reader, ID *id)
     BLO_read_struct(reader, Editing, &sce->ed);
     Editing *ed = sce->ed;
 
-    ed->act_seq = static_cast<Strip *>(
-        BLO_read_get_new_data_address_no_us(reader, ed->act_seq, sizeof(Strip)));
+    ed->act_strip = static_cast<Strip *>(
+        BLO_read_get_new_data_address_no_us(reader, ed->act_strip, sizeof(Strip)));
     ed->cache = nullptr;
     ed->prefetch_job = nullptr;
     ed->runtime.strip_lookup = nullptr;
@@ -1371,7 +1355,7 @@ static void scene_blend_read_data(BlendDataReader *reader, ID *id)
       BLO_read_struct_list(reader, MetaStack, &(ed->metastack));
 
       LISTBASE_FOREACH (MetaStack *, ms, &ed->metastack) {
-        BLO_read_struct(reader, Strip, &ms->parseq);
+        BLO_read_struct(reader, Strip, &ms->parent_strip);
 
         if (ms->oldbasep == old_seqbasep) {
           ms->oldbasep = &ed->seqbase;
@@ -1409,11 +1393,7 @@ static void scene_blend_read_data(BlendDataReader *reader, ID *id)
   /* Runtime */
   sce->r.mode &= ~R_NO_CAMERA_SWITCH;
 
-  BLO_read_struct_list(reader, TimeMarker, &(sce->markers));
-  LISTBASE_FOREACH (TimeMarker *, marker, &sce->markers) {
-    BLO_read_struct(reader, IDProperty, &marker->prop);
-    IDP_BlendDataRead(reader, &marker->prop);
-  }
+  BKE_time_markers_blend_read(reader, sce->markers);
 
   BLO_read_struct_list(reader, TransformOrientation, &(sce->transform_spaces));
   BLO_read_struct_list(reader, SceneRenderLayer, &(sce->r.layers));
@@ -1948,7 +1928,7 @@ bool BKE_scene_can_be_removed(const Main *bmain, const Scene *scene)
 
 Scene *BKE_scene_add(Main *bmain, const char *name)
 {
-  Scene *sce = static_cast<Scene *>(BKE_id_new(bmain, ID_SCE, name));
+  Scene *sce = BKE_id_new<Scene>(bmain, name);
   id_us_min(&sce->id);
   id_us_ensure_real(&sce->id);
 
@@ -2471,7 +2451,7 @@ void BKE_scene_update_sound(Depsgraph *depsgraph, Main *bmain)
 
 void BKE_scene_update_tag_audio_volume(Depsgraph * /*depsgraph*/, Scene *scene)
 {
-  BLI_assert(DEG_is_evaluated_id(&scene->id));
+  BLI_assert(DEG_is_evaluated(scene));
   /* The volume is actually updated in BKE_scene_update_sound(), from either
    * scene_graph_update_tagged() or from BKE_scene_graph_update_for_newframe(). */
   scene->id.recalc |= ID_RECALC_AUDIO_VOLUME;

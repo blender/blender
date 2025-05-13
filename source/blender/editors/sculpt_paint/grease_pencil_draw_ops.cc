@@ -1844,7 +1844,7 @@ static wmOperatorStatus grease_pencil_erase_lasso_exec(bContext *C, wmOperator *
   const Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   const ARegion *region = CTX_wm_region(C);
   Object *object = CTX_data_active_object(C);
-  const Object *ob_eval = DEG_get_evaluated_object(depsgraph, object);
+  const Object *ob_eval = DEG_get_evaluated(depsgraph, object);
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
 
   const Array<int2> lasso = WM_gesture_lasso_path_to_array(C, op);
@@ -1963,7 +1963,7 @@ static wmOperatorStatus grease_pencil_erase_box_exec(bContext *C, wmOperator *op
   const Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   const ARegion *region = CTX_wm_region(C);
   Object *object = CTX_data_active_object(C);
-  const Object *ob_eval = DEG_get_evaluated_object(depsgraph, object);
+  const Object *ob_eval = DEG_get_evaluated(depsgraph, object);
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
 
   const Bounds<int2> box_bounds = WM_operator_properties_border_to_bounds(op);

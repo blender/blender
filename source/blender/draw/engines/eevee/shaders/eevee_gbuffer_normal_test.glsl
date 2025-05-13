@@ -112,7 +112,7 @@ void main()
   cl3.color = float3(1);
   cl3.N = normalize(float3(0.3f, 0.2f, 0.1f));
 
-  ClosureUndetermined cl_none = closure_new(CLOSURE_NONE);
+  ClosureUndetermined cl_none = closure_new(CLOSURE_NONE_ID);
   cl_none.weight = 1.0f;
   cl_none.color = float3(1);
   cl_none.N = normalize(float3(0.0f, 0.0f, 1.0f));

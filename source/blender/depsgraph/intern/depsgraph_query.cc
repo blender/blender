@@ -206,19 +206,6 @@ ViewLayer *DEG_get_evaluated_view_layer(const Depsgraph *graph)
   return view_layer_cow;
 }
 
-Object *DEG_get_evaluated_object(const Depsgraph *depsgraph, Object *object)
-{
-  if (object == nullptr) {
-    return nullptr;
-  }
-  return (Object *)DEG_get_evaluated_id(depsgraph, &object->id);
-}
-
-const Object *DEG_get_evaluated_object(const Depsgraph *depsgraph, const Object *object)
-{
-  return DEG_get_evaluated_object(depsgraph, const_cast<Object *>(object));
-}
-
 ID *DEG_get_evaluated_id(const Depsgraph *depsgraph, ID *id)
 {
   return deg::get_evaluated_id(reinterpret_cast<const deg::Depsgraph *>(depsgraph), id);
@@ -323,19 +310,9 @@ bool DEG_is_original_id(const ID *id)
   return true;
 }
 
-bool DEG_is_original_object(const Object *object)
-{
-  return DEG_is_original_id(&object->id);
-}
-
 bool DEG_is_evaluated_id(const ID *id)
 {
   return !DEG_is_original_id(id);
-}
-
-bool DEG_is_evaluated_object(const Object *object)
-{
-  return !DEG_is_original_object(object);
 }
 
 bool DEG_is_fully_evaluated(const Depsgraph *depsgraph)

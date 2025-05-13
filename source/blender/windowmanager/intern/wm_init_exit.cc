@@ -524,7 +524,7 @@ void WM_exit_ex(bContext *C, const bool do_python_exit, const bool do_user_exit_
    * Which can happen when the GPU backend fails to initialize.
    */
   if (C && CTX_py_init_get(C)) {
-    /* Calls `addon_utils.disable_all()` as well as unregistering all "startup" modules.  */
+    /* Calls `addon_utils.disable_all()` as well as unregistering all "startup" modules. */
     const char *imports[] = {"bpy", "bpy.utils", nullptr};
     BPY_run_string_eval(C, imports, "bpy.utils._on_exit()");
   }
@@ -672,7 +672,7 @@ void WM_exit_ex(bContext *C, const bool do_python_exit, const bool do_user_exit_
 
   /* No need to call this early, rather do it late so that other
    * pieces of Blender using sound may exit cleanly, see also #50676. */
-  BKE_sound_exit();
+  BKE_sound_exit_once();
 
   BKE_appdir_exit();
 

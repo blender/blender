@@ -16,7 +16,7 @@ struct Strip;
 
 namespace blender::seq {
 
-void strip_update_sound_bounds_recursive(const Scene *scene, Strip *metaseq);
+void strip_update_sound_bounds_recursive(const Scene *scene, Strip *strip_meta);
 
 /* Describes gap between strips in timeline. */
 struct GapInfo {

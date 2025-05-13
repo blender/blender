@@ -27,13 +27,19 @@ class GPUWorker {
   std::atomic<bool> terminate_ = false;
 
  public:
+  enum class ContextType {
+    /* Use the main GPU context on the worker threads. */
+    Main,
+    /* Use a different secondary GPU context for each worker thread. */
+    PerThread,
+  };
+
   /**
    * \param threads_count: Number of threads to span.
-   * \param share_context: If true, all threads will use the same secondary GPUContext,
-   *  otherwise each thread will have its own unique GPUContext.
+   * \param context_type: The type of context each thread uses.
    * \param run_cb: The callback function that will be called by a thread on `wake_up()`.
    */
-  GPUWorker(uint32_t threads_count, bool share_context, std::function<void()> run_cb);
+  GPUWorker(uint32_t threads_count, ContextType context_type, std::function<void()> run_cb);
   ~GPUWorker();
 
   /* Wake up a single thread. */

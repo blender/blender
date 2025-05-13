@@ -20,12 +20,10 @@
 #include "vk_shader_compiler.hh"
 
 namespace blender::gpu {
-std::optional<std::string> VKShaderCompiler::cache_dir;
 
 static std::optional<std::string> cache_dir_get()
 {
-  static std::optional<std::string> result;
-  if (!result.has_value()) {
+  static std::optional<std::string> result = []() -> std::optional<std::string> {
     static char tmp_dir_buffer[FILE_MAX];
     /* Shader builder doesn't return the correct appdir. */
     if (!BKE_appdir_folder_caches(tmp_dir_buffer, sizeof(tmp_dir_buffer))) {
@@ -34,23 +32,10 @@ static std::optional<std::string> cache_dir_get()
 
     std::string cache_dir = std::string(tmp_dir_buffer) + "vk-spirv-cache" + SEP_STR;
     BLI_dir_create_recursive(cache_dir.c_str());
-    result = cache_dir;
-  }
+    return cache_dir;
+  }();
 
   return result;
-}
-
-VKShaderCompiler::VKShaderCompiler()
-{
-  task_pool_ = BLI_task_pool_create(nullptr, TASK_PRIORITY_HIGH);
-  cache_dir = cache_dir_get();
-}
-
-VKShaderCompiler::~VKShaderCompiler()
-{
-  BLI_task_pool_work_and_wait(task_pool_);
-  BLI_task_pool_free(task_pool_);
-  task_pool_ = nullptr;
 }
 
 /* -------------------------------------------------------------------- */
@@ -68,14 +53,13 @@ static bool read_spirv_from_disk(VKShaderModule &shader_module)
     /* RenderDoc uses spirv shaders including debug information. */
     return false;
   }
-  if (!VKShaderCompiler::cache_dir.has_value()) {
+  if (!cache_dir_get().has_value()) {
     return false;
   }
   shader_module.build_sources_hash();
-  std::string spirv_path = (*VKShaderCompiler::cache_dir) + SEP_STR + shader_module.sources_hash +
-                           ".spv";
-  std::string sidecar_path = (*VKShaderCompiler::cache_dir) + SEP_STR +
-                             shader_module.sources_hash + ".sidecar.bin";
+  std::string spirv_path = (*cache_dir_get()) + SEP_STR + shader_module.sources_hash + ".spv";
+  std::string sidecar_path = (*cache_dir_get()) + SEP_STR + shader_module.sources_hash +
+                             ".sidecar.bin";
 
   if (!BLI_exists(spirv_path.c_str()) || !BLI_exists(sidecar_path.c_str())) {
     return false;
@@ -111,13 +95,12 @@ static void write_spirv_to_disk(VKShaderModule &shader_module)
   if (G.debug & G_DEBUG_GPU_RENDERDOC) {
     return;
   }
-  if (!VKShaderCompiler::cache_dir.has_value()) {
+  if (!cache_dir_get().has_value()) {
     return;
   }
 
   /* Write the spirv binary */
-  std::string spirv_path = (*VKShaderCompiler::cache_dir) + SEP_STR + shader_module.sources_hash +
-                           ".spv";
+  std::string spirv_path = (*cache_dir_get()) + SEP_STR + shader_module.sources_hash + ".spv";
   size_t size = (shader_module.compilation_result.end() -
                  shader_module.compilation_result.begin()) *
                 sizeof(uint32_t);
@@ -126,20 +109,20 @@ static void write_spirv_to_disk(VKShaderModule &shader_module)
 
   /* Write the sidecar */
   SPIRVSidecar sidecar = {size};
-  std::string sidecar_path = (*VKShaderCompiler::cache_dir) + SEP_STR +
-                             shader_module.sources_hash + ".sidecar.bin";
+  std::string sidecar_path = (*cache_dir_get()) + SEP_STR + shader_module.sources_hash +
+                             ".sidecar.bin";
   fstream sidecar_file(sidecar_path, std::ios::binary | std::ios::out);
   sidecar_file.write(reinterpret_cast<const char *>(&sidecar), sizeof(SPIRVSidecar));
 }
 
 void VKShaderCompiler::cache_dir_clear_old()
 {
-  if (!cache_dir.has_value()) {
+  if (!cache_dir_get().has_value()) {
     return;
   }
 
   direntry *entries = nullptr;
-  uint32_t dir_len = BLI_filelist_dir_contents(cache_dir->c_str(), &entries);
+  uint32_t dir_len = BLI_filelist_dir_contents(cache_dir_get()->c_str(), &entries);
   for (int i : blender::IndexRange(dir_len)) {
     direntry entry = entries[i];
     if (S_ISDIR(entry.s.st_mode)) {
@@ -159,22 +142,6 @@ void VKShaderCompiler::cache_dir_clear_old()
 /* -------------------------------------------------------------------- */
 /** \name Compilation
  * \{ */
-
-BatchHandle VKShaderCompiler::batch_compile(Span<const shader::ShaderCreateInfo *> &infos)
-{
-  std::scoped_lock lock(mutex_);
-  BatchHandle handle = next_batch_handle_++;
-  VKBatch &batch = batches_.lookup_or_add_default(handle);
-  batch.shaders.reserve(infos.size());
-  for (const shader::ShaderCreateInfo *info : infos) {
-    Shader *shader = compile(*info, true);
-    batch.shaders.append(shader);
-  }
-  for (Shader *shader : batch.shaders) {
-    BLI_task_pool_push(task_pool_, run, shader, false, nullptr);
-  }
-  return handle;
-}
 
 static StringRef to_stage_name(shaderc_shader_kind stage)
 {
@@ -234,72 +201,6 @@ bool VKShaderCompiler::compile_module(VKShader &shader,
 {
   shaderc::Compiler compiler;
   return compile_ex(compiler, shader, stage, shader_module);
-}
-
-void VKShaderCompiler::run(TaskPool *__restrict /*pool*/, void *task_data)
-{
-  VKShader &shader = *static_cast<VKShader *>(task_data);
-  shaderc::Compiler compiler;
-
-  bool has_not_succeeded = false;
-  if (!shader.vertex_module.is_ready) {
-    bool compilation_succeeded = compile_ex(
-        compiler, shader, shaderc_vertex_shader, shader.vertex_module);
-    has_not_succeeded |= !compilation_succeeded;
-    shader.vertex_module.is_ready = true;
-  }
-  if (!shader.geometry_module.is_ready) {
-    bool compilation_succeeded = compile_ex(
-        compiler, shader, shaderc_geometry_shader, shader.geometry_module);
-    has_not_succeeded |= !compilation_succeeded;
-    shader.geometry_module.is_ready = true;
-  }
-  if (!shader.fragment_module.is_ready) {
-    bool compilation_succeeded = compile_ex(
-        compiler, shader, shaderc_fragment_shader, shader.fragment_module);
-    has_not_succeeded |= !compilation_succeeded;
-    shader.fragment_module.is_ready = true;
-  }
-  if (!shader.compute_module.is_ready) {
-    bool compilation_succeeded = compile_ex(
-        compiler, shader, shaderc_compute_shader, shader.compute_module);
-    has_not_succeeded |= !compilation_succeeded;
-    shader.compute_module.is_ready = true;
-  }
-  if (has_not_succeeded) {
-    shader.compilation_failed = true;
-  }
-  shader.finalize_post();
-  /* Setting compilation finished needs to be the last step. It is used to detect if a compilation
-   * action of a batch has finished. See `VKShaderCompiler::batch_is_ready` */
-  shader.compilation_finished = true;
-}
-
-bool VKShaderCompiler::batch_is_ready(BatchHandle handle)
-{
-  std::scoped_lock lock(mutex_);
-  BLI_assert(batches_.contains(handle));
-  VKBatch &batch = batches_.lookup(handle);
-  for (Shader *shader_ : batch.shaders) {
-    VKShader &shader = *unwrap(shader_);
-    if (!shader.is_ready()) {
-      return false;
-    }
-  }
-  return true;
-}
-
-Vector<Shader *> VKShaderCompiler::batch_finalize(BatchHandle &handle)
-{
-  while (!batch_is_ready(handle)) {
-    BLI_time_sleep_ms(1);
-  }
-  std::scoped_lock lock(mutex_);
-
-  BLI_assert(batches_.contains(handle));
-  VKBatch batch = batches_.pop(handle);
-  handle = 0;
-  return batch.shaders;
 }
 
 /** \} */

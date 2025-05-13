@@ -214,8 +214,8 @@ static void CurveProfile_buttons_layout(uiLayout *layout, PointerRNA *ptr, const
   uiLayoutSetPropSep(layout, false);
 
   /* Preset selector */
-  /* There is probably potential to use simpler "uiItemR" functions here, but automatic updating
-   * after a preset is selected would be more complicated. */
+  /* There is probably potential to use simpler "uiLayout::prop" functions here, but automatic
+   * updating after a preset is selected would be more complicated. */
   uiLayout *row = &layout->row(true);
   RNAUpdateCb *presets_cb = MEM_new<RNAUpdateCb>(__func__, cb);
   bt = uiDefBlockBut(block,
@@ -435,14 +435,13 @@ static void CurveProfile_buttons_layout(uiLayout *layout, PointerRNA *ptr, const
     PointerRNA point_ptr = RNA_pointer_create_discrete(
         ptr->owner_id, &RNA_CurveProfilePoint, point);
     PropertyRNA *prop_handle_type = RNA_struct_find_property(&point_ptr, "handle_type_1");
-    uiItemFullR(row,
-                &point_ptr,
-                prop_handle_type,
-                RNA_NO_INDEX,
-                0,
-                UI_ITEM_R_EXPAND | UI_ITEM_R_ICON_ONLY,
-                "",
-                ICON_NONE);
+    row->prop(&point_ptr,
+              prop_handle_type,
+              RNA_NO_INDEX,
+              0,
+              UI_ITEM_R_EXPAND | UI_ITEM_R_ICON_ONLY,
+              "",
+              ICON_NONE);
 
     /* Position */
     bt = uiDefButF(block,
@@ -511,8 +510,8 @@ static void CurveProfile_buttons_layout(uiLayout *layout, PointerRNA *ptr, const
     }
   }
 
-  uiItemR(layout, ptr, "use_sample_straight_edges", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  uiItemR(layout, ptr, "use_sample_even_lengths", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "use_sample_straight_edges", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "use_sample_even_lengths", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   UI_block_funcN_set(block, nullptr, nullptr, nullptr);
 }

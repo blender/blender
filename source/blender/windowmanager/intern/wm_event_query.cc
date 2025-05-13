@@ -168,8 +168,8 @@ void WM_event_print(const wmEvent *event)
       printf(", tablet: active: %d, pressure %.4f, tilt: (%.4f %.4f)",
              wmtab->active,
              wmtab->pressure,
-             wmtab->x_tilt,
-             wmtab->y_tilt);
+             wmtab->tilt.x,
+             wmtab->tilt.y);
     }
     printf("\n");
   }
@@ -585,8 +585,7 @@ float wm_pressure_curve(float raw_pressure)
 float WM_event_tablet_data(const wmEvent *event, bool *r_pen_flip, float r_tilt[2])
 {
   if (r_tilt) {
-    r_tilt[0] = event->tablet.x_tilt;
-    r_tilt[1] = event->tablet.y_tilt;
+    copy_v2_v2(r_tilt, event->tablet.tilt);
   }
 
   if (r_pen_flip) {

@@ -19,7 +19,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_layout_ex(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  uiItemR(layout, ptr, "legacy_corner_normals", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "legacy_corner_normals", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
 static void node_geo_exec(GeoNodeExecParams params)

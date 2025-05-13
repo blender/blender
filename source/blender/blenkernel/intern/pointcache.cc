@@ -3358,7 +3358,7 @@ void BKE_ptcache_bake(PTCacheBaker *baker)
            * PTCacheID is in a fully evaluated state. */
           PTCacheID pid_eval;
           Object *ob = reinterpret_cast<Object *>(pid->owner_id);
-          Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+          Object *ob_eval = DEG_get_evaluated(depsgraph, ob);
           ParticleSystem *psys = static_cast<ParticleSystem *>(pid->calldata);
           ParticleSystem *psys_eval = psys_eval_get(depsgraph, ob, psys);
           BKE_ptcache_id_from_particles(&pid_eval, ob_eval, psys_eval);
@@ -3401,7 +3401,7 @@ void BKE_ptcache_bake(PTCacheBaker *baker)
                * PTCacheID is in a fully evaluated state. */
               PTCacheID pid_eval;
               Object *ob = reinterpret_cast<Object *>(pid->owner_id);
-              Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+              Object *ob_eval = DEG_get_evaluated(depsgraph, ob);
               ParticleSystem *psys = static_cast<ParticleSystem *>(pid->calldata);
               ParticleSystem *psys_eval = psys_eval_get(depsgraph, ob, psys);
               BKE_ptcache_id_from_particles(&pid_eval, ob_eval, psys_eval);

@@ -957,7 +957,7 @@ bool ED_armature_edit_deselect_all_visible_multi(bContext *C)
  * \{ */
 
 bool ED_armature_edit_select_pick_bone(
-    bContext *C, Base *basact, EditBone *ebone, const int selmask, const SelectPick_Params *params)
+    bContext *C, Base *basact, EditBone *ebone, const int selmask, const SelectPick_Params &params)
 {
   const Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -972,13 +972,13 @@ bool ED_armature_edit_select_pick_bone(
     }
   }
 
-  if (params->sel_op == SEL_OP_SET) {
-    if ((found && params->select_passthrough) &&
+  if (params.sel_op == SEL_OP_SET) {
+    if ((found && params.select_passthrough) &&
         (ED_armature_ebone_selectflag_get(ebone) & selmask))
     {
       found = false;
     }
-    else if (found || params->deselect_all) {
+    else if (found || params.deselect_all) {
       /* Deselect everything. */
       Vector<Base *> bases = BKE_view_layer_array_from_bases_in_edit_mode_unique_data(
           scene, view_layer, v3d);
@@ -998,7 +998,7 @@ bool ED_armature_edit_select_pick_bone(
       if (ebone->parent && (ebone->flag & BONE_CONNECTED)) {
 
         /* Bone is in a chain. */
-        switch (params->sel_op) {
+        switch (params.sel_op) {
           case SEL_OP_ADD: {
             /* Select this bone. */
             ebone->flag |= BONE_TIPSEL;
@@ -1044,7 +1044,7 @@ bool ED_armature_edit_select_pick_bone(
         }
       }
       else {
-        switch (params->sel_op) {
+        switch (params.sel_op) {
           case SEL_OP_ADD: {
             ebone->flag |= (BONE_TIPSEL | BONE_ROOTSEL);
             break;
@@ -1075,7 +1075,7 @@ bool ED_armature_edit_select_pick_bone(
       }
     }
     else {
-      switch (params->sel_op) {
+      switch (params.sel_op) {
         case SEL_OP_ADD: {
           ebone->flag |= selmask;
           break;
@@ -1128,7 +1128,7 @@ bool ED_armature_edit_select_pick_bone(
   return changed || found;
 }
 
-bool ED_armature_edit_select_pick(bContext *C, const int mval[2], const SelectPick_Params *params)
+bool ED_armature_edit_select_pick(bContext *C, const int mval[2], const SelectPick_Params &params)
 
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);

@@ -9,6 +9,8 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
+#include "BLO_read_write.hh"
+
 namespace blender::nodes::node_fn_input_string_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
@@ -20,7 +22,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   PropertyRNA *prop = RNA_struct_find_property(ptr, "string");
-  uiItemFullR(layout, ptr, prop, -1, 0, UI_ITEM_NONE, "", ICON_NONE, IFACE_("String"));
+  layout->prop(ptr, prop, -1, 0, UI_ITEM_NONE, "", ICON_NONE, IFACE_("String"));
 }
 
 static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
@@ -60,6 +62,18 @@ static void node_storage_copy(bNodeTree * /*dst_ntree*/, bNode *dest_node, const
   dest_node->storage = destination_storage;
 }
 
+static void node_blend_write(const bNodeTree & /*tree*/, const bNode &node, BlendWriter &writer)
+{
+  const NodeInputString *storage = static_cast<const NodeInputString *>(node.storage);
+  BLO_write_string(&writer, storage->string);
+}
+
+static void node_blend_read(bNodeTree & /*tree*/, bNode &node, BlendDataReader &reader)
+{
+  NodeInputString *storage = static_cast<NodeInputString *>(node.storage);
+  BLO_read_string(&reader, &storage->string);
+}
+
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
@@ -73,6 +87,8 @@ static void node_register()
   blender::bke::node_type_storage(ntype, "NodeInputString", node_storage_free, node_storage_copy);
   ntype.build_multi_function = node_build_multi_function;
   ntype.draw_buttons = node_layout;
+  ntype.blend_write_storage_content = node_blend_write;
+  ntype.blend_data_read_storage_content = node_blend_read;
   blender::bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)

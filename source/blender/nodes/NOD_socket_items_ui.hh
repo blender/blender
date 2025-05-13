@@ -40,7 +40,7 @@ static void draw_item_in_list(uiList * /*ui_list*/,
     uiTemplateNodeSocket(row, const_cast<bContext *>(C), color);
   }
   uiLayoutSetEmboss(row, blender::ui::EmbossType::None);
-  uiItemR(row, itemptr, "name", UI_ITEM_NONE, "", ICON_NONE);
+  row->prop(itemptr, "name", UI_ITEM_NONE, "", ICON_NONE);
 }
 
 /**
@@ -84,8 +84,8 @@ static void draw_items_list_with_operators(const bContext *C,
   uiLayout *ops_col = &row->column(false);
   {
     uiLayout *add_remove_col = &ops_col->column(true);
-    uiItemO(add_remove_col, "", ICON_ADD, Accessor::operator_idnames::add_item);
-    uiItemO(add_remove_col, "", ICON_REMOVE, Accessor::operator_idnames::remove_item);
+    add_remove_col->op(Accessor::operator_idnames::add_item, "", ICON_ADD);
+    add_remove_col->op(Accessor::operator_idnames::remove_item, "", ICON_REMOVE);
   }
   {
     uiLayout *up_down_col = &ops_col->column(true);

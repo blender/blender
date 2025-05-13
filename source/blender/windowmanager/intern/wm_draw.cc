@@ -150,12 +150,7 @@ static void wm_paintcursor_draw(bContext *C, ScrArea *area, ARegion *region)
         xy = xy_buf;
       }
 
-      pc->draw(C,
-               xy[0],
-               xy[1],
-               win->eventstate->tablet.x_tilt,
-               win->eventstate->tablet.y_tilt,
-               pc->customdata);
+      pc->draw(C, xy, win->eventstate->tablet.tilt, pc->customdata);
       GPU_scissor_test(false);
     }
   }
@@ -461,9 +456,6 @@ static bool wm_draw_region_stereo_set(Main *bmain,
 
       if (region->regiontype == RGN_TYPE_PREVIEW) {
         return true;
-      }
-      if (region->regiontype == RGN_TYPE_WINDOW) {
-        return (sseq->draw_flag & SEQ_DRAW_BACKDROP) != 0;
       }
     }
   }

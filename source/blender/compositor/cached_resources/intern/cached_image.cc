@@ -418,7 +418,7 @@ Result CachedImageContainer::get(Context &context,
 
   /* Invalidate the cache for that image if it was changed since it was cached. */
   if (!cached_images_for_id.is_empty() &&
-      image->runtime.update_count != update_counts_.lookup(id_key))
+      image->runtime->update_count != update_counts_.lookup(id_key))
   {
     cached_images_for_id.clear();
   }
@@ -428,7 +428,7 @@ Result CachedImageContainer::get(Context &context,
   });
 
   /* Store the current update count to later compare to and check if the image changed. */
-  update_counts_.add_overwrite(id_key, image->runtime.update_count);
+  update_counts_.add_overwrite(id_key, image->runtime->update_count);
 
   cached_image.needed = true;
   return cached_image.result;

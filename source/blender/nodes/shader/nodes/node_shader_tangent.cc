@@ -23,7 +23,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_shader_buts_tangent(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
-  uiItemR(layout, ptr, "direction_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  layout->prop(ptr, "direction_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 
   if (RNA_enum_get(ptr, "direction_type") == SHD_TANGENT_UVMAP) {
     PointerRNA obptr = CTX_data_pointer_get(C, "active_object");
@@ -33,22 +33,18 @@ static void node_shader_buts_tangent(uiLayout *layout, bContext *C, PointerRNA *
       Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
 
       if (depsgraph) {
-        Object *object_eval = DEG_get_evaluated_object(depsgraph, object);
+        Object *object_eval = DEG_get_evaluated(depsgraph, object);
         PointerRNA dataptr = RNA_id_pointer_create(static_cast<ID *>(object_eval->data));
         uiItemPointerR(layout, ptr, "uv_map", &dataptr, "uv_layers", "", ICON_GROUP_UVS);
         return;
       }
     }
 
-    uiItemR(layout, ptr, "uv_map", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_GROUP_UVS);
+    layout->prop(ptr, "uv_map", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_GROUP_UVS);
   }
   else {
-    uiItemR(layout,
-            ptr,
-            "axis",
-            UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_EXPAND,
-            std::nullopt,
-            ICON_NONE);
+    layout->prop(
+        ptr, "axis", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
   }
 }
 

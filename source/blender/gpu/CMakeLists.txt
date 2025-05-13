@@ -397,6 +397,7 @@ set(LIB
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::extern::fmtlib
   PRIVATE bf::nodes
+  PRIVATE bf::dependencies::optional::opencolorio
 )
 
 # Select Backend source based on availability
@@ -629,6 +630,7 @@ set(GLSL_SRC
   shaders/material/gpu_shader_material_volume_absorption.glsl
   shaders/material/gpu_shader_material_volume_principled.glsl
   shaders/material/gpu_shader_material_volume_scatter.glsl
+  shaders/material/gpu_shader_material_volume_coefficients.glsl
   shaders/material/gpu_shader_material_voronoi.glsl
   shaders/material/gpu_shader_material_wireframe.glsl
   shaders/material/gpu_shader_material_world_normals.glsl
@@ -710,29 +712,31 @@ if(WITH_METAL_BACKEND)
 endif()
 
 blender_add_lib(bf_gpu_shaders "${SHADER_C}" "" "" "")
+blender_set_target_unity_build(bf_gpu_shaders 10)
 
 list(APPEND LIB
   bf_gpu_shaders
 )
 
 set(GLSL_SOURCE_CONTENT "")
+set(GLSL_METADATA_CONTENT "")
 foreach(GLSL_FILE ${GLSL_SRC})
   get_filename_component(GLSL_FILE_NAME ${GLSL_FILE} NAME)
   string(REPLACE "." "_" GLSL_FILE_NAME_UNDERSCORES ${GLSL_FILE_NAME})
-  string(APPEND GLSL_SOURCE_CONTENT "SHADER_SOURCE\(datatoc_${GLSL_FILE_NAME_UNDERSCORES}, \"${GLSL_FILE_NAME}\", \"${GLSL_FILE}\"\)\n")
+  string(APPEND GLSL_SOURCE_CONTENT "SHADER_SOURCE\(${GLSL_FILE_NAME_UNDERSCORES}, \"${GLSL_FILE_NAME}\", \"${GLSL_FILE}\"\)\n")
+  string(APPEND GLSL_METADATA_CONTENT "#include \"${GLSL_FILE}.hh\"\n")
 endforeach()
 
 set(glsl_source_list_file "${CMAKE_CURRENT_BINARY_DIR}/glsl_gpu_source_list.h")
 file(GENERATE OUTPUT ${glsl_source_list_file} CONTENT "${GLSL_SOURCE_CONTENT}")
 list(APPEND SRC ${glsl_source_list_file})
+set(glsl_metadata_list_file "${CMAKE_CURRENT_BINARY_DIR}/glsl_gpu_metadata_list.hh")
+file(GENERATE OUTPUT ${glsl_metadata_list_file} CONTENT "${GLSL_METADATA_CONTENT}")
+list(APPEND SRC ${glsl_metadata_list_file})
 list(APPEND INC ${CMAKE_CURRENT_BINARY_DIR})
 
 if(WITH_MOD_FLUID)
   add_definitions(-DWITH_FLUID)
-endif()
-
-if(WITH_OPENCOLORIO)
-  add_definitions(-DWITH_OCIO)
 endif()
 
 if(WITH_OPENSUBDIV)
@@ -753,14 +757,11 @@ target_link_libraries(bf_gpu PUBLIC
   bf_compositor_shaders
   bf_draw_shaders
   bf_gpu_shaders
+  bf_imbuf_opencolorio_shaders
 )
 
 if(WITH_OPENGL_BACKEND AND UNIX)
   target_link_libraries(bf_gpu PUBLIC rt)
-endif()
-
-if(WITH_OPENCOLORIO)
-  target_link_libraries(bf_gpu PUBLIC bf_ocio_shaders)
 endif()
 
 if(WITH_OPENSUBDIV)
@@ -796,6 +797,7 @@ if(WITH_GTESTS)
       tests/push_constants_test.cc
       tests/shader_create_info_test.cc
       tests/shader_test.cc
+      tests/shader_preprocess_test.cc
       tests/specialization_constants_test.cc
       tests/state_blend_test.cc
       tests/storage_buffer_test.cc

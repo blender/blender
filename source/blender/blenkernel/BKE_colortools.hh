@@ -208,6 +208,14 @@ void BKE_color_managed_view_settings_init_default(
 
 void BKE_color_managed_view_settings_copy(ColorManagedViewSettings *new_settings,
                                           const ColorManagedViewSettings *settings);
+
+/**
+ * Copy view settings that are not related to the curve mapping. Keep the curve mapping unchanged
+ * in the new_settings.
+ */
+void BKE_color_managed_view_settings_copy_keep_curve_mapping(
+    ColorManagedViewSettings *new_settings, const ColorManagedViewSettings *settings);
+
 void BKE_color_managed_view_settings_free(ColorManagedViewSettings *settings);
 
 void BKE_color_managed_view_settings_blend_write(BlendWriter *writer,

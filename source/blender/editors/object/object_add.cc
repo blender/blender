@@ -36,6 +36,7 @@
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector_types.hh"
+#include "BLI_rand.hh"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
@@ -1411,6 +1412,9 @@ static wmOperatorStatus object_grease_pencil_add_exec(bContext *C, wmOperator *o
 
   Object *object = add_type(C, OB_GREASE_PENCIL, ob_name, loc, rot, false, local_view_bits);
   GreasePencil &grease_pencil_id = *static_cast<GreasePencil *>(object->data);
+  const bool use_in_front = RNA_boolean_get(op->ptr, "use_in_front");
+  const bool use_lights = RNA_boolean_get(op->ptr, "use_lights");
+
   switch (type) {
     case GP_EMPTY: {
       greasepencil::create_blank(*bmain, *object, scene->r.cfra);
@@ -1440,8 +1444,6 @@ static wmOperatorStatus object_grease_pencil_add_exec(bContext *C, wmOperator *o
     case GREASE_PENCIL_LINEART_SCENE:
     case GREASE_PENCIL_LINEART_COLLECTION: {
       const int type = RNA_enum_get(op->ptr, "type");
-      const bool use_in_front = RNA_boolean_get(op->ptr, "use_in_front");
-      const bool use_lights = RNA_boolean_get(op->ptr, "use_lights");
       const int stroke_depth_order = RNA_enum_get(op->ptr, "stroke_depth_order");
       const float stroke_depth_offset = RNA_float_get(op->ptr, "stroke_depth_offset");
 
@@ -1474,18 +1476,7 @@ static wmOperatorStatus object_grease_pencil_add_exec(bContext *C, wmOperator *o
         id_us_plus(&md->target_material->id);
       }
 
-      if (use_lights) {
-        object->dtx |= OB_USE_GPENCIL_LIGHTS;
-      }
-      else {
-        object->dtx &= ~OB_USE_GPENCIL_LIGHTS;
-      }
-
-      /* Stroke object is drawn in front of meshes by default. */
-      if (use_in_front) {
-        object->dtx |= OB_DRAW_IN_FRONT;
-      }
-      else {
+      if (!use_in_front) {
         if (stroke_depth_order == GP_DRAWMODE_3D) {
           grease_pencil->flag |= GREASE_PENCIL_STROKE_ORDER_3D;
         }
@@ -1496,10 +1487,31 @@ static wmOperatorStatus object_grease_pencil_add_exec(bContext *C, wmOperator *o
     }
   }
 
+  SET_FLAG_FROM_TEST(object->dtx, use_in_front, OB_DRAW_IN_FRONT);
+  SET_FLAG_FROM_TEST(object->dtx, use_lights, OB_USE_GPENCIL_LIGHTS);
+
+  for (blender::bke::greasepencil::Layer *layer : grease_pencil_id.layers_for_write()) {
+    SET_FLAG_FROM_TEST(layer->as_node().flag, use_lights, GP_LAYER_TREE_NODE_USE_LIGHTS);
+  }
+
   DEG_id_tag_update(&grease_pencil_id.id, ID_RECALC_GEOMETRY);
   WM_main_add_notifier(NC_GEOM | ND_DATA, &grease_pencil_id.id);
 
   return OPERATOR_FINISHED;
+}
+
+static wmOperatorStatus object_grease_pencil_add_invoke(bContext *C,
+                                                        wmOperator *op,
+                                                        const wmEvent * /*event*/)
+{
+  const int type = RNA_enum_get(op->ptr, "type");
+
+  /* Only disable "use_in_front" if it's one of the non-LineArt types */
+  if (ELEM(type, GP_EMPTY, GP_STROKE, GP_MONKEY)) {
+    RNA_boolean_set(op->ptr, "use_in_front", false);
+  }
+
+  return object_grease_pencil_add_exec(C, op);
 }
 
 void OBJECT_OT_grease_pencil_add(wmOperatorType *ot)
@@ -1511,6 +1523,7 @@ void OBJECT_OT_grease_pencil_add(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = object_grease_pencil_add_exec;
+  ot->invoke = object_grease_pencil_add_invoke;
   ot->poll = ED_operator_objectmode;
 
   /* flags */
@@ -2121,23 +2134,38 @@ static wmOperatorStatus object_pointcloud_add_exec(bContext *C, wmOperator *op)
   float loc[3], rot[3];
   add_generic_get_opts(C, op, 'Z', loc, rot, nullptr, nullptr, &local_view_bits, nullptr);
 
-  add_type(C, OB_POINTCLOUD, nullptr, loc, rot, false, local_view_bits);
+  Object *object = add_type(C, OB_POINTCLOUD, nullptr, loc, rot, false, local_view_bits);
+  PointCloud &pointcloud = *static_cast<PointCloud *>(object->data);
+  pointcloud.totpoint = 400;
+  CustomData_realloc(&pointcloud.pdata, 0, pointcloud.totpoint);
+
+  bke::MutableAttributeAccessor attributes = pointcloud.attributes_for_write();
+  bke::SpanAttributeWriter<float3> position = attributes.lookup_or_add_for_write_only_span<float3>(
+      "position", bke::AttrDomain::Point);
+  bke::SpanAttributeWriter<float> radii = attributes.lookup_or_add_for_write_only_span<float>(
+      "radius", bke::AttrDomain::Point);
+
+  RandomNumberGenerator rng(0);
+  for (const int i : position.span.index_range()) {
+    position.span[i] = float3(rng.get_float(), rng.get_float(), rng.get_float()) * 2.0f - 1.0f;
+    radii.span[i] = 0.05f * rng.get_float();
+  }
+
+  position.finish();
+  radii.finish();
 
   return OPERATOR_FINISHED;
 }
 
-void OBJECT_OT_pointcloud_add(wmOperatorType *ot)
+void OBJECT_OT_pointcloud_random_add(wmOperatorType *ot)
 {
-  /* identifiers */
   ot->name = "Add Point Cloud";
   ot->description = "Add a point cloud object to the scene";
-  ot->idname = "OBJECT_OT_pointcloud_add";
+  ot->idname = "OBJECT_OT_pointcloud_random_add";
 
-  /* api callbacks */
   ot->exec = object_pointcloud_add_exec;
   ot->poll = ED_operator_objectmode;
 
-  /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   add_generic_props(ot, false);
@@ -2462,7 +2490,7 @@ static void make_object_duplilist_real(bContext *C,
   ViewLayer *view_layer = CTX_data_view_layer(C);
   GHash *parent_gh = nullptr, *instancer_gh = nullptr;
 
-  Object *object_eval = DEG_get_evaluated_object(depsgraph, base->object);
+  Object *object_eval = DEG_get_evaluated(depsgraph, base->object);
 
   if (!(base->object->transflag & OB_DUPLI) &&
       !bke::object_has_geometry_set_instances(*object_eval))
@@ -2765,7 +2793,7 @@ static const EnumPropertyItem *convert_target_itemf(bContext *C,
 
 static void object_data_convert_curve_to_mesh(Main *bmain, Depsgraph *depsgraph, Object *ob)
 {
-  Object *object_eval = DEG_get_evaluated_object(depsgraph, ob);
+  Object *object_eval = DEG_get_evaluated(depsgraph, ob);
   Curve *curve = static_cast<Curve *>(ob->data);
 
   Mesh *mesh = BKE_mesh_new_from_object_to_bmain(bmain, depsgraph, object_eval, true);
@@ -2931,7 +2959,7 @@ static Object *convert_curves_component_to_curves(Base &base,
   Object *ob = base.object, *newob = nullptr;
   ob->flag |= OB_DONE;
 
-  Object *ob_eval = DEG_get_evaluated_object(info.depsgraph, ob);
+  Object *ob_eval = DEG_get_evaluated(info.depsgraph, ob);
   bke::GeometrySet geometry;
   if (ob_eval->runtime->geometry_set_eval != nullptr) {
     geometry = *ob_eval->runtime->geometry_set_eval;
@@ -2941,7 +2969,7 @@ static Object *convert_curves_component_to_curves(Base &base,
     newob = get_object_for_conversion(base, info, r_new_base);
 
     const Curves *curves_eval = geometry.get_curves();
-    Curves *new_curves = static_cast<Curves *>(BKE_id_new(info.bmain, ID_CV, newob->id.name + 2));
+    Curves *new_curves = BKE_id_new<Curves>(info.bmain, newob->id.name + 2);
 
     newob->data = new_curves;
     newob->type = OB_CURVES;
@@ -2969,7 +2997,7 @@ static Object *convert_grease_pencil_component_to_curves(Base &base,
   Object *ob = base.object, *newob = nullptr;
   ob->flag |= OB_DONE;
 
-  Object *ob_eval = DEG_get_evaluated_object(info.depsgraph, ob);
+  Object *ob_eval = DEG_get_evaluated(info.depsgraph, ob);
   bke::GeometrySet geometry;
   if (ob_eval->runtime->geometry_set_eval != nullptr) {
     geometry = *ob_eval->runtime->geometry_set_eval;
@@ -2978,7 +3006,7 @@ static Object *convert_grease_pencil_component_to_curves(Base &base,
   if (geometry.has_grease_pencil()) {
     newob = get_object_for_conversion(base, info, r_new_base);
 
-    Curves *new_curves = static_cast<Curves *>(BKE_id_new(info.bmain, ID_CV, newob->id.name + 2));
+    Curves *new_curves = BKE_id_new<Curves>(info.bmain, newob->id.name + 2);
     newob->data = new_curves;
     newob->type = OB_CURVES;
 
@@ -2992,7 +3020,7 @@ static Object *convert_grease_pencil_component_to_curves(Base &base,
       if (drawings.size() > 0) {
         Array<bke::GeometrySet> geometries(drawings.size());
         for (const int i : drawings.index_range()) {
-          Curves *curves_id = static_cast<Curves *>(BKE_id_new_nomain(ID_CV, nullptr));
+          Curves *curves_id = BKE_id_new_nomain<Curves>(nullptr);
           curves_id->geometry.wrap() = drawings[i].drawing.strokes();
           geometries[i] = bke::GeometrySet::from_curves(curves_id);
         }
@@ -3054,7 +3082,7 @@ static Object *convert_mesh_to_mesh(Base &base, ObjectConversionInfo &info, Base
   /* NOTE: get the mesh from the original, not from the copy in some
    * cases this doesn't give correct results (when MDEF is used for eg)
    */
-  const Object *ob_eval = DEG_get_evaluated_object(info.depsgraph, ob);
+  const Object *ob_eval = DEG_get_evaluated(info.depsgraph, ob);
   const Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob_eval);
   Mesh *new_mesh = mesh_eval ? BKE_mesh_copy_for_eval(*mesh_eval) :
                                BKE_mesh_new_nomain(0, 0, 0, 0);
@@ -3272,7 +3300,7 @@ static Object *convert_mesh_to_grease_pencil(Base &base,
   const float stroke_radius = float(thickness) / 2 *
                               bke::greasepencil::LEGACY_RADIUS_CONVERSION_FACTOR;
 
-  Object *ob_eval = DEG_get_evaluated_object(info.depsgraph, ob);
+  Object *ob_eval = DEG_get_evaluated(info.depsgraph, ob);
   const Mesh *mesh_eval = BKE_object_get_evaluated_mesh(ob_eval);
 
   VectorSet<FillColorRecord> fill_colors;
@@ -3346,7 +3374,7 @@ static Object *convert_curves_to_mesh(Base &base, ObjectConversionInfo &info, Ba
   Object *ob = base.object, *newob = nullptr;
   ob->flag |= OB_DONE;
 
-  Object *ob_eval = DEG_get_evaluated_object(info.depsgraph, ob);
+  Object *ob_eval = DEG_get_evaluated(info.depsgraph, ob);
   bke::GeometrySet geometry;
   if (ob_eval->runtime->geometry_set_eval != nullptr) {
     geometry = *ob_eval->runtime->geometry_set_eval;
@@ -3358,7 +3386,7 @@ static Object *convert_curves_to_mesh(Base &base, ObjectConversionInfo &info, Ba
 
   if (mesh_eval || curves_eval) {
     newob = get_object_for_conversion(base, info, r_new_base);
-    new_mesh = static_cast<Mesh *>(BKE_id_new(info.bmain, ID_ME, newob->id.name + 2));
+    new_mesh = BKE_id_new<Mesh>(info.bmain, newob->id.name + 2);
     newob->data = new_mesh;
     newob->type = OB_MESH;
   }
@@ -3398,7 +3426,7 @@ static Object *convert_curves_to_grease_pencil(Base &base,
   Object *ob = base.object, *newob = nullptr;
   ob->flag |= OB_DONE;
 
-  Object *ob_eval = DEG_get_evaluated_object(info.depsgraph, ob);
+  Object *ob_eval = DEG_get_evaluated(info.depsgraph, ob);
   bke::GeometrySet geometry;
   if (ob_eval->runtime->geometry_set_eval != nullptr) {
     geometry = *ob_eval->runtime->geometry_set_eval;
@@ -3410,8 +3438,7 @@ static Object *convert_curves_to_grease_pencil(Base &base,
 
   if (grease_pencil_eval || curves_eval) {
     newob = get_object_for_conversion(base, info, r_new_base);
-    new_grease_pencil = static_cast<GreasePencil *>(
-        BKE_id_new(info.bmain, ID_GP, newob->id.name + 2));
+    new_grease_pencil = BKE_id_new<GreasePencil>(info.bmain, newob->id.name + 2);
     newob->data = new_grease_pencil;
     newob->type = OB_GREASE_PENCIL;
   }
@@ -3475,7 +3502,7 @@ static Object *convert_grease_pencil_to_mesh(Base &base,
 
   /* Mostly same as converting to OB_CURVES, the mesh will be converted from Curves afterwards. */
 
-  Object *ob_eval = DEG_get_evaluated_object(info.depsgraph, ob);
+  Object *ob_eval = DEG_get_evaluated(info.depsgraph, ob);
   bke::GeometrySet geometry;
   if (ob_eval->runtime->geometry_set_eval != nullptr) {
     geometry = *ob_eval->runtime->geometry_set_eval;
@@ -3485,7 +3512,7 @@ static Object *convert_grease_pencil_to_mesh(Base &base,
     newob = get_object_for_conversion(base, info, r_new_base);
 
     const Curves *curves_eval = geometry.get_curves();
-    Curves *new_curves = static_cast<Curves *>(BKE_id_new(info.bmain, ID_CV, newob->id.name + 2));
+    Curves *new_curves = BKE_id_new<Curves>(info.bmain, newob->id.name + 2);
 
     newob->data = new_curves;
     newob->type = OB_CURVES;
@@ -3500,7 +3527,7 @@ static Object *convert_grease_pencil_to_mesh(Base &base,
     newob = get_object_for_conversion(base, info, r_new_base);
 
     /* Do not link `new_curves` to `bmain` since it's temporary. */
-    Curves *new_curves = static_cast<Curves *>(BKE_id_new_nomain(ID_CV, newob->id.name + 2));
+    Curves *new_curves = BKE_id_new_nomain<Curves>(newob->id.name + 2);
 
     newob->data = new_curves;
     newob->type = OB_CURVES;
@@ -3514,7 +3541,7 @@ static Object *convert_grease_pencil_to_mesh(Base &base,
           ed::greasepencil::retrieve_visible_drawings(*info.scene, *grease_pencil, false);
       Array<bke::GeometrySet> geometries(drawings.size());
       for (const int i : drawings.index_range()) {
-        Curves *curves_id = static_cast<Curves *>(BKE_id_new_nomain(ID_CV, nullptr));
+        Curves *curves_id = BKE_id_new_nomain<Curves>(nullptr);
         curves_id->geometry.wrap() = drawings[i].drawing.strokes();
         const int layer_index = drawings[i].layer_index;
         const bke::greasepencil::Layer *layer = grease_pencil->layers()[layer_index];
@@ -3535,7 +3562,7 @@ static Object *convert_grease_pencil_to_mesh(Base &base,
       }
     }
 
-    Mesh *new_mesh = static_cast<Mesh *>(BKE_id_new(info.bmain, ID_ME, newob->id.name + 2));
+    Mesh *new_mesh = BKE_id_new<Mesh>(info.bmain, newob->id.name + 2);
     newob->data = new_mesh;
     newob->type = OB_MESH;
 
@@ -3582,7 +3609,7 @@ static Object *convert_font_to_curve_legacy_generic(Object *ob,
 {
   Curve *cu = static_cast<Curve *>(newob->data);
 
-  Object *ob_eval = DEG_get_evaluated_object(info.depsgraph, ob);
+  Object *ob_eval = DEG_get_evaluated(info.depsgraph, ob);
   BKE_vfont_to_curve_ex(ob_eval,
                         static_cast<Curve *>(ob_eval->data),
                         FO_EDIT,
@@ -3853,7 +3880,7 @@ static Object *convert_mball_to_mesh(Base &base,
     id_us_min(&mb->id);
 
     /* Find the evaluated mesh of the basis metaball object. */
-    Object *object_eval = DEG_get_evaluated_object(info.depsgraph, baseob);
+    Object *object_eval = DEG_get_evaluated(info.depsgraph, baseob);
     Mesh *mesh = BKE_mesh_new_from_object_to_bmain(info.bmain, info.depsgraph, object_eval, true);
 
     id_us_plus(&mesh->id);
@@ -4175,17 +4202,17 @@ static void object_convert_ui(bContext * /*C*/, wmOperator *op)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, op->ptr, "target", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  uiItemR(layout, op->ptr, "keep_original", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(op->ptr, "target", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(op->ptr, "keep_original", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   const int target = RNA_enum_get(op->ptr, "target");
   if (target == OB_MESH) {
-    uiItemR(layout, op->ptr, "merge_customdata", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    layout->prop(op->ptr, "merge_customdata", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
   else if (target == OB_GREASE_PENCIL) {
-    uiItemR(layout, op->ptr, "thickness", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    uiItemR(layout, op->ptr, "offset", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    uiItemR(layout, op->ptr, "faces", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    layout->prop(op->ptr, "thickness", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    layout->prop(op->ptr, "offset", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    layout->prop(op->ptr, "faces", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 }
 
@@ -4847,66 +4874,70 @@ void OBJECT_OT_join(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Join as Shape Key Operator
+/** \name Join Key Data Operators
  * \{ */
 
-static bool join_shapes_poll(bContext *C)
+static bool active_shape_key_editable_poll(bContext *C)
 {
   Object *ob = CTX_data_active_object(C);
-
-  if (ob == nullptr || ob->data == nullptr || !ID_IS_EDITABLE(ob) || ID_IS_OVERRIDE_LIBRARY(ob) ||
-      ID_IS_OVERRIDE_LIBRARY(ob->data))
-  {
+  if (!ob) {
+    return false;
+  }
+  if (ob->type != OB_MESH) {
     return false;
   }
 
-  /* only meshes supported at the moment */
-  if (ob->type == OB_MESH) {
-    return ED_operator_screenactive(C);
+  if (ob->mode & OB_MODE_EDIT) {
+    CTX_wm_operator_poll_msg_set(C, "This operation is not supported in edit mode");
+    return false;
   }
-  return false;
+  if (BKE_object_obdata_is_libdata(ob)) {
+    CTX_wm_operator_poll_msg_set(C, "Cannot edit external library data");
+    return false;
+  }
+  Main &bmain = *CTX_data_main(C);
+  if (!BKE_lib_override_library_id_is_user_deletable(&bmain, &ob->id)) {
+    CTX_wm_operator_poll_msg_set(C, "Cannot edit object used by override collections");
+    return false;
+  }
+  return true;
 }
 
 static wmOperatorStatus join_shapes_exec(bContext *C, wmOperator *op)
 {
-  Main *bmain = CTX_data_main(C);
-  Object *ob = CTX_data_active_object(C);
-
-  if (ob->mode & OB_MODE_EDIT) {
-    BKE_report(op->reports, RPT_ERROR, "This data does not support joining in edit mode");
-    return OPERATOR_CANCELLED;
-  }
-  if (BKE_object_obdata_is_libdata(ob)) {
-    BKE_report(op->reports, RPT_ERROR, "Cannot edit external library data");
-    return OPERATOR_CANCELLED;
-  }
-  if (!BKE_lib_override_library_id_is_user_deletable(bmain, &ob->id)) {
-    BKE_reportf(op->reports,
-                RPT_WARNING,
-                "Cannot edit object '%s' as it is used by override collections",
-                ob->id.name + 2);
-    return OPERATOR_CANCELLED;
-  }
-
-  if (ob->type == OB_MESH) {
-    return ED_mesh_shapes_join_objects_exec(C, op->reports);
-  }
-
-  return OPERATOR_CANCELLED;
+  return ED_mesh_shapes_join_objects_exec(C, true, op->reports);
 }
 
 void OBJECT_OT_join_shapes(wmOperatorType *ot)
 {
-  /* identifiers */
   ot->name = "Join as Shapes";
-  ot->description = "Copy the current resulting shape of another selected object to this one";
+  ot->description =
+      "Add the vertex positions of selected objects as shape keys or update existing shape keys "
+      "with matching names";
   ot->idname = "OBJECT_OT_join_shapes";
 
-  /* api callbacks */
   ot->exec = join_shapes_exec;
-  ot->poll = join_shapes_poll;
+  ot->poll = active_shape_key_editable_poll;
 
-  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+static wmOperatorStatus update_all_shape_keys_exec(bContext *C, wmOperator *op)
+{
+  return ED_mesh_shapes_join_objects_exec(C, false, op->reports);
+}
+
+void OBJECT_OT_update_shapes(wmOperatorType *ot)
+{
+  ot->name = "Update from Objects";
+  ot->description =
+      "Update existing shape keys with the vertex positions of selected objects with matching "
+      "names";
+  ot->idname = "OBJECT_OT_update_shapes";
+
+  ot->exec = update_all_shape_keys_exec;
+  ot->poll = active_shape_key_editable_poll;
+
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 

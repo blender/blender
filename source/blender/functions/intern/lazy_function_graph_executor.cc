@@ -42,10 +42,10 @@
  */
 
 #include <atomic>
-#include <mutex>
 
 #include "BLI_enumerable_thread_specific.hh"
 #include "BLI_function_ref.hh"
+#include "BLI_mutex.hh"
 #include "BLI_stack.hh"
 #include "BLI_task.h"
 #include "BLI_task.hh"
@@ -131,11 +131,6 @@ struct OutputState {
 
 struct NodeState {
   /**
-   * Needs to be locked when any data in this state is accessed that is not explicitly marked as
-   * not needing the lock.
-   */
-  mutable std::mutex mutex;
-  /**
    * States of the individual input and output sockets. One can index into these arrays without
    * locking. However, to access data inside, a lock is needed unless noted otherwise.
    * Those are not stored as #Span to reduce memory usage. The number of inputs and outputs is
@@ -149,6 +144,11 @@ struct NodeState {
    * cases.
    */
   int missing_required_inputs = 0;
+  /**
+   * Needs to be locked when any data in this state is accessed that is not explicitly marked as
+   * not needing the lock.
+   */
+  mutable Mutex mutex;
   /**
    * Is set to true once the node is done with its work, i.e. when all outputs that may be used
    * have been computed.
@@ -274,7 +274,7 @@ struct CurrentTask {
   /**
    * Mutex used to protect #scheduled_nodes when the executor uses multi-threading.
    */
-  std::mutex mutex;
+  Mutex mutex;
   /**
    * Nodes that have been scheduled to execute next.
    */

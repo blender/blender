@@ -124,15 +124,15 @@ static bool seq_prefetch_job_is_waiting(Scene *scene)
   return pfjob->waiting;
 }
 
-static Strip *sequencer_prefetch_get_original_sequence(Strip *strip, ListBase *seqbase)
+static Strip *seq_prefetch_original_strip_get_impl(Strip *strip, ListBase *seqbase)
 {
-  LISTBASE_FOREACH (Strip *, seq_orig, seqbase) {
-    if (STREQ(strip->name, seq_orig->name)) {
-      return seq_orig;
+  LISTBASE_FOREACH (Strip *, strip_orig, seqbase) {
+    if (STREQ(strip->name, strip_orig->name)) {
+      return strip_orig;
     }
 
-    if (seq_orig->type == STRIP_TYPE_META) {
-      Strip *match = sequencer_prefetch_get_original_sequence(strip, &seq_orig->seqbase);
+    if (strip_orig->type == STRIP_TYPE_META) {
+      Strip *match = seq_prefetch_original_strip_get_impl(strip, &strip_orig->seqbase);
       if (match != nullptr) {
         return match;
       }
@@ -142,13 +142,13 @@ static Strip *sequencer_prefetch_get_original_sequence(Strip *strip, ListBase *s
   return nullptr;
 }
 
-Strip *seq_prefetch_get_original_sequence(Strip *strip, Scene *scene)
+Strip *seq_prefetch_original_strip_get(Strip *strip, Scene *scene)
 {
   Editing *ed = scene->ed;
-  return sequencer_prefetch_get_original_sequence(strip, &ed->seqbase);
+  return seq_prefetch_original_strip_get_impl(strip, &ed->seqbase);
 }
 
-RenderData *seq_prefetch_get_original_context(const RenderData *context)
+RenderData *seq_prefetch_original_context_get(const RenderData *context)
 {
   PrefetchJob *pfjob = seq_prefetch_job_get(context->scene);
 
@@ -314,11 +314,11 @@ static void seq_prefetch_update_active_seqbase(PrefetchJob *pfjob)
   Editing *ed_eval = editing_get(pfjob->scene_eval);
 
   if (ms_orig != nullptr) {
-    Strip *meta_eval = seq_prefetch_get_original_sequence(ms_orig->parseq, pfjob->scene_eval);
-    seqbase_active_set(ed_eval, &meta_eval->seqbase);
+    Strip *meta_eval = seq_prefetch_original_strip_get(ms_orig->parent_strip, pfjob->scene_eval);
+    active_seqbase_set(ed_eval, &meta_eval->seqbase);
   }
   else {
-    seqbase_active_set(ed_eval, &ed_eval->seqbase);
+    active_seqbase_set(ed_eval, &ed_eval->seqbase);
   }
 }
 
@@ -350,9 +350,9 @@ void seq_prefetch_free(Scene *scene)
   MEM_delete(pfjob);
 }
 
-static bool seq_prefetch_seq_has_disk_cache(PrefetchJob *pfjob,
-                                            Strip *strip,
-                                            bool can_have_final_image)
+static bool seq_prefetch_strip_has_disk_cache(PrefetchJob *pfjob,
+                                              Strip *strip,
+                                              bool can_have_final_image)
 {
   RenderData *ctx = &pfjob->context_cpy;
   float cfra = seq_prefetch_cfra(pfjob);
@@ -389,7 +389,7 @@ static bool seq_prefetch_scene_strip_is_rendered(PrefetchJob *pfjob,
                                                  bool is_recursive_check)
 {
   float cfra = seq_prefetch_cfra(pfjob);
-  blender::Vector<Strip *> strips = seq_get_shown_sequences(
+  blender::Vector<Strip *> strips = seq_shown_strips_get(
       pfjob->scene_eval, channels, seqbase, cfra, 0);
 
   /* Iterate over rendered strips. */
@@ -403,7 +403,7 @@ static bool seq_prefetch_scene_strip_is_rendered(PrefetchJob *pfjob,
 
     /* Disable prefetching 3D scene strips, but check for disk cache. */
     if (strip->type == STRIP_TYPE_SCENE && (strip->flag & SEQ_SCENE_STRIPS) == 0 &&
-        !seq_prefetch_seq_has_disk_cache(pfjob, strip, !is_recursive_check))
+        !seq_prefetch_strip_has_disk_cache(pfjob, strip, !is_recursive_check))
     {
       return true;
     }

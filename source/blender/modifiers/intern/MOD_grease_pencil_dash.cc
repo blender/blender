@@ -397,7 +397,7 @@ static void panel_draw(const bContext *C, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, ptr, "dash_offset", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "dash_offset", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   uiLayout *row = &layout->row(false);
   uiLayoutSetPropSep(row, false);
@@ -419,8 +419,8 @@ static void panel_draw(const bContext *C, Panel *panel)
 
   uiLayout *col = &row->column(false);
   uiLayout *sub = &col->column(true);
-  uiItemO(sub, "", ICON_ADD, "OBJECT_OT_grease_pencil_dash_modifier_segment_add");
-  uiItemO(sub, "", ICON_REMOVE, "OBJECT_OT_grease_pencil_dash_modifier_segment_remove");
+  sub->op("OBJECT_OT_grease_pencil_dash_modifier_segment_add", "", ICON_ADD);
+  sub->op("OBJECT_OT_grease_pencil_dash_modifier_segment_remove", "", ICON_REMOVE);
   uiItemS(col);
   sub = &col->column(true);
   uiItemEnumO_string(
@@ -438,18 +438,18 @@ static void panel_draw(const bContext *C, Panel *panel)
                                                     &dmd->segments()[dmd->segment_active_index]);
 
     sub = &layout->column(true);
-    uiItemR(sub, &ds_ptr, "dash", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    uiItemR(sub, &ds_ptr, "gap", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    sub->prop(&ds_ptr, "dash", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    sub->prop(&ds_ptr, "gap", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
     sub = &layout->column(false);
-    uiItemR(sub, &ds_ptr, "radius", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    uiItemR(sub, &ds_ptr, "opacity", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    uiItemR(sub, &ds_ptr, "material_index", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    uiItemR(sub, &ds_ptr, "use_cyclic", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    sub->prop(&ds_ptr, "radius", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    sub->prop(&ds_ptr, "opacity", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    sub->prop(&ds_ptr, "material_index", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    sub->prop(&ds_ptr, "use_cyclic", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
-  if (uiLayout *influence_panel = uiLayoutPanelProp(
-          C, layout, ptr, "open_influence_panel", IFACE_("Influence")))
+  if (uiLayout *influence_panel = layout->panel_prop(
+          C, ptr, "open_influence_panel", IFACE_("Influence")))
   {
     modifier::greasepencil::draw_layer_filter_settings(C, influence_panel, ptr);
     modifier::greasepencil::draw_material_filter_settings(C, influence_panel, ptr);
@@ -470,7 +470,7 @@ static void segment_list_item_draw(uiList * /*ui_list*/,
                                    int /*flt_flag*/)
 {
   uiLayout *row = &layout->row(true);
-  uiItemR(row, itemptr, "name", UI_ITEM_R_NO_BG, "", ICON_NONE);
+  row->prop(itemptr, "name", UI_ITEM_R_NO_BG, "", ICON_NONE);
 }
 
 static void panel_register(ARegionType *region_type)

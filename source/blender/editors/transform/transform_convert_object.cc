@@ -201,7 +201,7 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
    * evaluate that, and access matrix of that evaluated copy of the object.
    * Might be more tricky than it sounds, if some logic later on accesses the
    * object matrix via td->ob->object_to_world().ptr(). */
-  Object *object_eval = DEG_get_evaluated_object(t->depsgraph, ob);
+  Object *object_eval = DEG_get_evaluated(t->depsgraph, ob);
   if (skip_invert == false && constinv == false) {
     object_eval->transflag |= OB_NO_CONSTRAINTS; /* #BKE_object_where_is_calc checks this. */
     /* It is possible to have transform data initialization prior to a

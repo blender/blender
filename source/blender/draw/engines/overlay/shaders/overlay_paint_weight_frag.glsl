@@ -79,7 +79,7 @@ void main()
 
   /* Missing vertex group alert color. Uniform in practice. */
   if (alert > 1.1f) {
-    color = apply_color_fac(colorVertexMissingData);
+    color = apply_color_fac(theme.colors.vert_missing_data);
   }
   /* Weights are available */
   else {
@@ -90,7 +90,7 @@ void main()
     /* Contour display */
     if (draw_contours) {
       /* This must be executed uniformly for all fragments */
-      float weight_gradient = length(float2(dFdx(weight), dFdy(weight)));
+      float weight_gradient = length(float2(gpu_dfdx(weight), gpu_dfdy(weight)));
 
       float4 grid = contour_grid(weight, weight_gradient);
 
@@ -98,7 +98,7 @@ void main()
     }
 
     /* Zero weight alert color. Nonlinear blend to reduce impact. */
-    float4 color_unreferenced = apply_color_fac(colorVertexUnreferenced);
+    float4 color_unreferenced = apply_color_fac(theme.colors.vert_unreferenced);
     color = mix(weight_color, color_unreferenced, alert * alert);
   }
 

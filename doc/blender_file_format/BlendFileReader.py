@@ -93,7 +93,7 @@ def openBlendFile(filename):
 
 def Align(handle):
     '''
-    Aligns the filehandle on 4 bytes
+    Aligns the file-handle on 4 bytes
     '''
     offset = handle.tell()
     trim = offset % 4
@@ -107,7 +107,7 @@ def Align(handle):
 
 class BlendFile:
     '''
-    Reads a blend-file and store the header, all the file-blocks, and catalogue
+    Reads a blend-file and store the header, all the file-blocks, and catalog
     structs found in the DNA file-block
 
     - BlendFile.Header  (BlendFileHeader instance)

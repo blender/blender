@@ -112,7 +112,7 @@ struct SocketUsageInferencer {
       const SocketInContext &socket = usage_tasks_.peek();
       this->usage_task(socket);
       if (&socket == &usage_tasks_.peek()) {
-        /* The task is finished if it hasn't added any new task it depends on.*/
+        /* The task is finished if it hasn't added any new task it depends on. */
         usage_tasks_.pop();
       }
     }
@@ -137,7 +137,7 @@ struct SocketUsageInferencer {
       const SocketInContext &socket = value_tasks_.peek();
       this->value_task(socket);
       if (&socket == &value_tasks_.peek()) {
-        /* The task is finished if it hasn't added any new task it depends on.*/
+        /* The task is finished if it hasn't added any new task it depends on. */
         value_tasks_.pop();
       }
     }
@@ -536,7 +536,7 @@ struct SocketUsageInferencer {
     }
     const CPPType *base_type = socket->typeinfo->base_cpp_type;
     if (!base_type) {
-      /* The socket type is unknown for some reason (maybe a socket type from the future?).*/
+      /* The socket type is unknown for some reason (maybe a socket type from the future?). */
       all_socket_values_.add_new(socket, nullptr);
       return;
     }
@@ -705,7 +705,7 @@ struct SocketUsageInferencer {
     const NodeInContext node = socket.owner_node();
     const int inputs_num = node->input_sockets().size();
 
-    /* Gather all input values are return early if any of them is not known.*/
+    /* Gather all input values are return early if any of them is not known. */
     Vector<const void *> input_values(inputs_num);
     for (const int input_i : IndexRange(inputs_num)) {
       const SocketInContext input_socket = node.input_socket(input_i);

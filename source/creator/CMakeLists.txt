@@ -21,6 +21,7 @@ set(LIB
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::render
   PRIVATE bf::windowmanager
+  PRIVATE bf::dependencies::optional::opencolorio
 )
 
 if(HAVE_FEENABLEEXCEPT)
@@ -133,10 +134,6 @@ endif()
 if(WITH_GMP)
   list(APPEND INC ${GMP_INCLUDE_DIRS})
   add_definitions(-DWITH_GMP)
-endif()
-
-if(WITH_OPENCOLORIO)
-  add_definitions(-DWITH_OCIO)
 endif()
 
 # Setup the EXE sources and `buildinfo`.
@@ -1501,12 +1498,7 @@ elseif(WIN32)
 
   windows_install_shared_manifest(
     FILES ${LIBDIR}/shaderc/bin/shaderc_shared.dll
-    RELEASE
-  )
-
-  windows_install_shared_manifest(
-    FILES ${LIBDIR}/shaderc/bin/shaderc_shared_d.dll
-    DEBUG
+    ALL
   )
 
   windows_install_shared_manifest(
@@ -1832,7 +1824,7 @@ install(
 # -----------------------------------------------------------------------------
 # Bundle assets
 
-set(ASSET_BUNDLE_DIR ${CMAKE_SOURCE_DIR}/release/datafiles/assets/publish/)
+set(ASSET_BUNDLE_DIR ${CMAKE_SOURCE_DIR}/assets/)
 
 if(EXISTS "${ASSET_BUNDLE_DIR}")
   install(

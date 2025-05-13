@@ -275,7 +275,7 @@ void ED_view3d_smooth_view_ex(
   }
 
   if (sview->camera) {
-    Object *ob_camera_eval = DEG_get_evaluated_object(depsgraph, sview->camera);
+    Object *ob_camera_eval = DEG_get_evaluated(depsgraph, sview->camera);
     if (sview->ofs != nullptr) {
       sms.dst.dist = ED_view3d_offset_distance(
           ob_camera_eval->object_to_world().ptr(), sview->ofs, VIEW3D_DIST_FALLBACK);
@@ -301,7 +301,7 @@ void ED_view3d_smooth_view_ex(
 
     /* Original values. */
     if (sview->camera_old) {
-      Object *ob_camera_old_eval = DEG_get_evaluated_object(depsgraph, sview->camera_old);
+      Object *ob_camera_old_eval = DEG_get_evaluated(depsgraph, sview->camera_old);
       if (sview->ofs != nullptr) {
         sms.src.dist = ED_view3d_offset_distance(
             ob_camera_old_eval->object_to_world().ptr(), sview->ofs, 0.0f);
@@ -329,7 +329,7 @@ void ED_view3d_smooth_view_ex(
     /* Ensure it shows correct. */
     if (sms.to_camera) {
       /* Use orthographic if we move from an orthographic view to an orthographic camera. */
-      Object *ob_camera_eval = DEG_get_evaluated_object(depsgraph, sview->camera);
+      Object *ob_camera_eval = DEG_get_evaluated(depsgraph, sview->camera);
       rv3d->persp = ((rv3d->is_persp == false) && (ob_camera_eval->type == OB_CAMERA) &&
                      (static_cast<Camera *>(ob_camera_eval->data)->type == CAM_ORTHO)) ?
                         RV3D_ORTHO :

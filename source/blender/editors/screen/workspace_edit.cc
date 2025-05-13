@@ -544,10 +544,9 @@ static wmOperatorStatus workspace_add_invoke(bContext *C,
   BLI_freelistN(&templates);
 
   uiItemS(layout);
-  uiItemO(layout,
-          CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Duplicate Current"),
-          ICON_DUPLICATE,
-          "WORKSPACE_OT_duplicate");
+  layout->op("WORKSPACE_OT_duplicate",
+             CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Duplicate Current"),
+             ICON_DUPLICATE);
 
   UI_popup_menu_end(C, pup);
 

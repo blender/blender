@@ -125,7 +125,10 @@ def material_caching(data, action_name, slot_identifier, frame, export_settings)
         if len(export_settings['KHR_animation_pointer']['materials'][mat]['paths']) == 0:
             continue
 
-        blender_material = [m for m in bpy.data.materials if id(m) == mat]
+        if export_settings['gltf_animation_mode'] == "NLA_TRACKS" and export_settings['gltf_apply'] is True:
+            blender_material = [export_settings['material_identifiers'][mat]]
+        else:
+            blender_material = [m for m in bpy.data.materials if id(m) == mat]
         if len(blender_material) == 0:
             # This is not a material from Blender (coming from Geometry Node for example, so no animation on it)
             continue
@@ -180,7 +183,10 @@ def material_nodetree_caching(data, action_name, slot_identifier, frame, export_
         if len(export_settings['KHR_animation_pointer']['materials'][mat]['paths']) == 0:
             continue
 
-        blender_material = [m for m in bpy.data.materials if id(m) == mat]
+        if export_settings['gltf_animation_mode'] == "NLA_TRACKS" and export_settings['gltf_apply'] is True:
+            blender_material = [export_settings['material_identifiers'][mat]]
+        else:
+            blender_material = [m for m in bpy.data.materials if id(m) == mat]
         if len(blender_material) == 0:
             # This is not a material from Blender (coming from Geometry Node for example, so no animation on it)
             continue
@@ -346,11 +352,20 @@ def material_nodetree_caching(data, action_name, slot_identifier, frame, export_
                         "/",
                         1)[0] and export_settings['KHR_animation_pointer']['materials'][mat]['paths'][i]['path'].rsplit(
                         "/",
-                        1)[1] == "specularColorFactor"][0]
-                val_colorfactor = blender_material.path_resolve(colorfactor_path)
+                        1)[1] == "specularColorFactor"]
+                if len(colorfactor_path) == 0:
+                    # No specularColorFactor, so using default value
+                    val_colorfactor = [1.0, 1.0, 1.0]
+                else:
+                    val_colorfactor = blender_material.path_resolve(colorfactor_path[0])
+                    colorfactor_path = colorfactor_path[0]
                 if fac > 1.0:
                     val_colorfactor = [i * fac for i in val_colorfactor]
-                data[key1][key2][key3][key4][colorfactor_path][frame] = val_colorfactor
+                    if len(colorfactor_path) == 0:
+                        export_settings['log'].warning(
+                            "SpecularFactor is greater than 1.0, but no specularColorFactor found. Using default value for specularColorFactor.")
+                if len(colorfactor_path) != 0:
+                    data[key1][key2][key3][key4][colorfactor_path][frame] = val_colorfactor
             elif export_settings['KHR_animation_pointer']['materials'][mat]['paths'][path]['path'] == "/materials/XXX/extensions/KHR_materials_specular/specularColorFactor":
                 # Already handled by specularFactor
                 continue

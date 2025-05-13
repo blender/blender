@@ -13,11 +13,14 @@
 #include <optional>
 
 #include "BLI_bounds_types.hh"
+#include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_memory_counter_fwd.hh"
 #include "BLI_string_ref.hh"
 
 #include "BKE_volume_grid_fwd.hh"
+
+#include "DNA_volume_types.h"
 
 struct Depsgraph;
 struct Main;
@@ -116,6 +119,8 @@ void BKE_volume_grid_add(Volume *volume, const blender::bke::VolumeGridData &gri
  * OpenVDB crashes when the determinant of the transform matrix becomes too small.
  */
 bool BKE_volume_grid_determinant_valid(double determinant);
+bool BKE_volume_voxel_size_valid(const blender::float3 &voxel_size);
+bool BKE_volume_grid_transform_valid(const blender::float4x4 &transform);
 
 /* Simplify */
 int BKE_volume_simplify_level(const Depsgraph *depsgraph);

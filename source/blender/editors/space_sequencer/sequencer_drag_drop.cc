@@ -221,18 +221,18 @@ static float update_overlay_strip_position_data(bContext *C, const int mval[2])
 
   /* Check if there is a strip that would intersect with the new strip(s). */
   coords->is_intersecting = false;
-  Strip dummy_seq{};
-  seq::strip_channel_set(&dummy_seq, coords->channel);
-  dummy_seq.start = coords->start_frame;
-  dummy_seq.len = coords->strip_len;
-  dummy_seq.speed_factor = 1.0f;
-  dummy_seq.media_playback_rate = coords->playback_rate;
-  dummy_seq.flag = SEQ_AUTO_PLAYBACK_RATE;
+  Strip dummy_strip{};
+  seq::strip_channel_set(&dummy_strip, coords->channel);
+  dummy_strip.start = coords->start_frame;
+  dummy_strip.len = coords->strip_len;
+  dummy_strip.speed_factor = 1.0f;
+  dummy_strip.media_playback_rate = coords->playback_rate;
+  dummy_strip.flag = SEQ_AUTO_PLAYBACK_RATE;
   Editing *ed = seq::editing_ensure(scene);
 
   for (int i = 0; i < coords->channel_len && !coords->is_intersecting; i++) {
-    coords->is_intersecting = seq::transform_test_overlap(scene, ed->seqbasep, &dummy_seq);
-    seq::strip_channel_set(&dummy_seq, dummy_seq.machine + 1);
+    coords->is_intersecting = seq::transform_test_overlap(scene, ed->seqbasep, &dummy_strip);
+    seq::strip_channel_set(&dummy_strip, dummy_strip.machine + 1);
   }
 
   return strip_len;

@@ -98,7 +98,7 @@ class Instance : public DrawEngine {
     float image_resolution[2] = {image_buffer ? image_buffer->x : 1024.0f,
                                  image_buffer ? image_buffer->y : 1024.0f};
     space_->init_ss_to_texture_matrix(
-        region, state.image->runtime.backdrop_offset, image_resolution, state.ss_to_texture);
+        region, state.image->runtime->backdrop_offset, image_resolution, state.ss_to_texture);
 
     const Scene *scene = DRW_context_get()->scene;
     state.sh_params.update(space_.get(), scene, state.image, image_buffer);

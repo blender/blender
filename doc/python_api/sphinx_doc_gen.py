@@ -2628,7 +2628,7 @@ def main():
             BPY_LOGGER.debug("    %s.py", f)
         BPY_LOGGER.debug("  %d total\n", len(EXAMPLE_SET_UNUSED))
 
-    # Eventually, build the html docs.
+    # Eventually, build the HTML docs.
     if ARGS.sphinx_build:
         import subprocess
         subprocess.call(SPHINX_BUILD)

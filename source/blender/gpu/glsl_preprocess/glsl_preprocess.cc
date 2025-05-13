@@ -15,13 +15,15 @@
 
 int main(int argc, char **argv)
 {
-  if (argc != 3) {
-    std::cerr << "Usage: glsl_preprocess <data_file_from> <data_file_to>" << std::endl;
+  if (argc != 4) {
+    std::cerr << "Usage: glsl_preprocess <data_file_from> <data_file_to> <metadata_file_to>"
+              << std::endl;
     exit(1);
   }
 
   const char *input_file_name = argv[1];
   const char *output_file_name = argv[2];
+  const char *metadata_file_name = argv[3];
 
   /* Open the input file for reading */
   std::ifstream input_file(input_file_name);
@@ -34,6 +36,14 @@ int main(int argc, char **argv)
   std::ofstream output_file(output_file_name, std::ofstream::out | std::ofstream::binary);
   if (!output_file) {
     std::cerr << "Error: Could not open output file " << output_file_name << std::endl;
+    input_file.close();
+    exit(1);
+  }
+
+  /* Open the output file for writing */
+  std::ofstream metadata_file(metadata_file_name, std::ofstream::out | std::ofstream::binary);
+  if (!output_file) {
+    std::cerr << "Error: Could not open output file " << metadata_file_name << std::endl;
     input_file.close();
     exit(1);
   }
@@ -103,11 +113,21 @@ int main(int argc, char **argv)
     language = Preprocessor::SourceLanguage::BLENDER_GLSL;
   }
 
+  blender::gpu::shader::metadata::Source metadata;
   output_file << processor.process(
-      language, buffer.str(), input_file_name, is_library, is_shared, report_error);
+      language, buffer.str(), input_file_name, is_library, is_shared, report_error, metadata);
+
+  /* TODO(fclem): Don't use regex for that. */
+  std::string metadata_function_name = "metadata_" +
+                                       std::regex_replace(
+                                           filename, std::regex(R"((?:.*)\/(.*))"), "$1");
+  std::replace(metadata_function_name.begin(), metadata_function_name.end(), '.', '_');
+
+  metadata_file << metadata.serialize(metadata_function_name);
 
   input_file.close();
   output_file.close();
+  metadata_file.close();
 
   return error;
 }

@@ -26,14 +26,10 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_shader_buts_vect_transform(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  uiItemR(layout,
-          ptr,
-          "vector_type",
-          UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_EXPAND,
-          std::nullopt,
-          ICON_NONE);
-  uiItemR(layout, ptr, "convert_from", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
-  uiItemR(layout, ptr, "convert_to", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  layout->prop(
+      ptr, "vector_type", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "convert_from", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  layout->prop(ptr, "convert_to", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 }
 
 static void node_shader_init_vect_transform(bNodeTree * /*ntree*/, bNode *node)

@@ -1733,7 +1733,7 @@ bool transform_snap_increment_ex(const TransInfo *t, bool use_local_space, float
   }
 
   if (t->spacetype == SPACE_SEQ) {
-    /* Sequencer has its own dedicated enum for snap_mode with increment snap bit overridden.  */
+    /* Sequencer has its own dedicated enum for snap_mode with increment snap bit overridden. */
     return false;
   }
 

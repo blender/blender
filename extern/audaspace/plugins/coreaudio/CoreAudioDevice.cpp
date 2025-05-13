@@ -46,17 +46,48 @@ OSStatus CoreAudioDevice::CoreAudio_mix(void* data, AudioUnitRenderActionFlags* 
 		device->notifyMixingThread();
 	}
 
+	if (!device->m_audio_clock_ready) {
+		// Workaround CoreAudio quirk that corrupts the clock time data when the first mix callback occurs.
+		// Both the start time and current time will be invalid. We need to reset them.
+		if(device->isSynchronizerPlaying())
+			CAClockStop(device->m_clock_ref);
+
+		CAClockTime clock_time;
+		clock_time.format = kCAClockTimeFormat_Seconds;
+		clock_time.time.seconds = device->m_synchronizerStartTime;
+		CAClockSetCurrentTime(device->m_clock_ref, &clock_time);
+
+		if(device->isSynchronizerPlaying())
+			CAClockStart(device->m_clock_ref);
+		device->m_audio_clock_ready = true;
+	}
+
 	return noErr;
+}
+
+void CoreAudioDevice::preMixingWork(bool playing)
+{
+	if(!playing)
+	{
+		if((getRingBuffer().getReadSize() == 0) && m_active)
+		{
+			AudioOutputUnitStop(m_audio_unit);
+			m_active = false;
+		}
+	}
 }
 
 void CoreAudioDevice::playing(bool playing)
 {
+	MixingThreadDevice::playing(playing);
+
 	if(m_playback != playing)
 	{
 		if(playing)
+		{
 			AudioOutputUnitStart(m_audio_unit);
-		else
-			AudioOutputUnitStop(m_audio_unit);
+			m_active = true;
+		}
 	}
 
 	m_playback = playing;
@@ -208,12 +239,6 @@ CoreAudioDevice::CoreAudioDevice(DeviceSpecs specs, int buffersize) : m_buffersi
 		throw;
 	}
 
-	/* Workaround CoreAudio quirk that makes the Clock (m_clock_ref) be in an invalid state
-	 * after we try to re-init the device. (It is fine the first time we init the device...)
-	 * We have to do a start/stop toggle to get it into a valid state again. */
-	AudioOutputUnitStart(m_audio_unit);
-	AudioOutputUnitStop(m_audio_unit);
-
 	create();
 
 	startMixingThread(buffersize * 2 * AUD_DEVICE_SAMPLE_SIZE(specs));
@@ -225,14 +250,10 @@ CoreAudioDevice::~CoreAudioDevice()
 
 	destroy();
 
-	// NOTE: Keep the device open for buggy MacOS versions (see blender issue #121911).
-	if(__builtin_available(macOS 15.2, *))
-	{
-		CAClockDispose(m_clock_ref);
-		AudioOutputUnitStop(m_audio_unit);
-		AudioUnitUninitialize(m_audio_unit);
-		AudioComponentInstanceDispose(m_audio_unit);
-	}
+	CAClockDispose(m_clock_ref);
+	AudioOutputUnitStop(m_audio_unit);
+	AudioUnitUninitialize(m_audio_unit);
+	AudioComponentInstanceDispose(m_audio_unit);
 }
 
 void CoreAudioDevice::seekSynchronizer(double time)
@@ -244,6 +265,7 @@ void CoreAudioDevice::seekSynchronizer(double time)
 	clock_time.format = kCAClockTimeFormat_Seconds;
 	clock_time.time.seconds = time;
 	CAClockSetCurrentTime(m_clock_ref, &clock_time);
+	m_synchronizerStartTime = time;
 
 	if(isSynchronizerPlaying())
 		CAClockStart(m_clock_ref);
@@ -257,7 +279,7 @@ double CoreAudioDevice::getSynchronizerPosition()
 
 	OSStatus status;
 
-	if(isSynchronizerPlaying())
+	if(isSynchronizerPlaying() && m_audio_clock_ready)
 		status = CAClockGetCurrentTime(m_clock_ref, kCAClockTimeFormat_Seconds, &clock_time);
 	else
 		status = CAClockGetStartTime(m_clock_ref, kCAClockTimeFormat_Seconds, &clock_time);

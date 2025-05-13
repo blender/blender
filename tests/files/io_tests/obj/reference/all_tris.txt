@@ -1,0 +1,56 @@
+==== Meshes: 1
+- Mesh 'Cube' vtx:8 face:12 loop:36 edge:18
+    - 4 0 7 0 3 ... 1 2 0 2 3 
+    - 4/7 0/4 0/7 0/3 3/7 ... 0/1 1/4 4/5 4/6 0/2 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (1.000, -1.000, -1.000)
+    - (1.000, -1.000, 1.000)
+    - (-1.000, -1.000, 1.000)
+      ...
+    - (1.000, 1.000, 1.000)
+    - (-1.000, 1.000, 1.000)
+    - (-1.000, 1.000, -1.000)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 1 1 0 1 1 ... 1 0 1 0 0 
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 ... 0 0 0 0 0 
+  - attr 'sharp_face' BOOLEAN FACE
+    - 0 0 0 0 0 ... 0 0 0 0 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'UVMap' FLOAT2 CORNER
+    - (0.000, 0.000)
+    - (1.000, 0.000)
+    - (0.000, 1.000)
+      ...
+    - (0.000, 0.000)
+    - (1.000, 1.000)
+    - (0.000, 1.000)
+  - 1 materials
+    - 'Material' 
+
+==== Objects: 1
+- Obj 'Cube' MESH data:'Cube'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+
+==== Materials: 1
+- Mat 'Material'
+  - base color (0.800, 0.800, 0.800)
+  - specular ior 0.000
+  - specular tint (1.000, 1.000, 1.000)
+  - roughness 1.000
+  - metallic 0.000
+  - ior 1.500
+  - viewport diffuse (0.800, 0.800, 0.800, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 0.500
+  - viewport metallic 0.000, roughness 1.000
+  - backface False probe True shadow False
+

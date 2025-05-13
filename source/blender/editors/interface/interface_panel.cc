@@ -1575,6 +1575,30 @@ void UI_panel_category_draw_all(ARegion *region, const char *category_id_active)
 
 /** \} */
 
+static int ui_panel_category_show_active_tab(ARegion *region, const int mval[2])
+{
+  if (!ED_region_panel_category_gutter_isect_xy(region, mval)) {
+    return WM_UI_HANDLER_CONTINUE;
+  }
+  const View2D *v2d = &region->v2d;
+  LISTBASE_FOREACH (PanelCategoryDyn *, pc_dyn, &region->runtime->panels_category) {
+    const bool is_active = STREQ(pc_dyn->idname, region->runtime->category);
+    if (!is_active) {
+      continue;
+    }
+    const rcti *rct = &pc_dyn->rect;
+    region->category_scroll = v2d->mask.ymax - (rct->ymax - region->category_scroll);
+
+    if (pc_dyn->next) {
+      const PanelCategoryDyn *pc_dyn_next = static_cast<PanelCategoryDyn *>(pc_dyn->next);
+      const int tab_v_pad = rct->ymin - pc_dyn_next->rect.ymax;
+      region->category_scroll -= tab_v_pad;
+    }
+    break;
+  }
+  ED_region_tag_redraw(region);
+  return WM_UI_HANDLER_BREAK;
+}
 /* -------------------------------------------------------------------- */
 /** \name Panel Alignment
  * \{ */
@@ -2510,6 +2534,9 @@ int ui_handler_panel_region(bContext *C,
     {
       /* Cycle tabs. */
       retval = ui_handle_panel_category_cycling(event, region, active_but);
+    }
+    if (event->type == EVT_PADPERIOD) {
+      retval = ui_panel_category_show_active_tab(region, event->xy);
     }
   }
 

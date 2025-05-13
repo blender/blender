@@ -1,0 +1,15 @@
+==== Objects: 1
+- Obj 'Armature' ARMATURE data:'Armature'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 0.010, 0.010, 0.010
+  - posed bone 'root'
+    - props: int:param_bool=True str:param_enum='Green' fl:param_float=15.000 int:param_int=42 str:param_string='it must be bunnies' f3:param_vec=(2.000, 4.000, 6.000)
+
+==== Armatures: 1
+- Armature 'Armature' 1 bones
+  - bone 'root' h:(0.000, 0.000, 0.000) t:(0.000, 0.000, 1.000) radius h:0.100 t:0.050
+      1.000 0.000 0.000 0.000
+      0.000 0.000 -1.000 0.000
+      0.000 1.000 0.000 0.000
+

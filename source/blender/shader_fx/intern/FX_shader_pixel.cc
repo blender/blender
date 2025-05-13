@@ -47,10 +47,10 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   /* Add the X, Y labels manually because size is a #PROP_PIXEL. */
   col = &layout->column(true);
   PropertyRNA *prop = RNA_struct_find_property(ptr, "size");
-  uiItemFullR(col, ptr, prop, 0, 0, UI_ITEM_NONE, IFACE_("Size X"), ICON_NONE);
-  uiItemFullR(col, ptr, prop, 1, 0, UI_ITEM_NONE, IFACE_("Y"), ICON_NONE);
+  col->prop(ptr, prop, 0, 0, UI_ITEM_NONE, IFACE_("Size X"), ICON_NONE);
+  col->prop(ptr, prop, 1, 0, UI_ITEM_NONE, IFACE_("Y"), ICON_NONE);
 
-  uiItemR(layout, ptr, "use_antialiasing", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "use_antialiasing", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   shaderfx_panel_end(layout, ptr);
 }

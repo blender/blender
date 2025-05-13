@@ -1,0 +1,23 @@
+==== Meshes: 1
+- Mesh 'type_aliases_be_b' vtx:4 face:1 loop:4 edge:4
+    - 0 1 2 3 
+    - 0/3 0/1 1/2 2/3 
+  - attr 'Col' FLOAT_COLOR POINT
+    - (0.716, 0.007, 0.007, 1.000)
+    - (0.021, 0.352, 0.021, 1.000)
+    - (0.021, 0.045, 0.578, 1.000)
+    - (0.216, 0.216, 0.216, 1.000)
+  - attr 'position' FLOAT_VECTOR POINT
+    - (1.000, 0.000, 1.000)
+    - (1.000, 0.000, -1.000)
+    - (-1.000, 0.000, -1.000)
+    - (-1.000, 0.000, 1.000)
+  - attr 'sharp_face' BOOLEAN FACE
+    - 1 
+
+==== Objects: 1
+- Obj 'type_aliases_be_b' MESH data:'type_aliases_be_b'
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+

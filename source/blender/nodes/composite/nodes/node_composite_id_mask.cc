@@ -130,7 +130,7 @@ static NodeOperation *get_compositor_operation(Context &context, DNode node)
 
 }  // namespace blender::nodes::node_composite_id_mask_cc
 
-void register_node_type_cmp_idmask()
+static void register_node_type_cmp_idmask()
 {
   namespace file_ns = blender::nodes::node_composite_id_mask_cc;
 
@@ -146,3 +146,4 @@ void register_node_type_cmp_idmask()
 
   blender::bke::node_register_type(ntype);
 }
+NOD_REGISTER_NODE(register_node_type_cmp_idmask)

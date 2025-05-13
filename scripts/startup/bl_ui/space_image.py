@@ -444,6 +444,10 @@ class IMAGE_MT_uvs(Menu):
 
         layout.separator()
 
+        layout.operator("uv.rip_move")
+
+        layout.separator()
+
         layout.prop(uv, "use_live_unwrap")
         layout.menu("IMAGE_MT_uvs_unwrap")
 
@@ -469,7 +473,9 @@ class IMAGE_MT_uvs(Menu):
         layout.separator()
 
         layout.operator("uv.minimize_stretch")
+        layout.operator_context = 'INVOKE_REGION_WIN'
         layout.operator("uv.stitch")
+        layout.operator_context = 'EXEC_REGION_WIN'
         layout.menu("IMAGE_MT_uvs_align")
         layout.operator("uv.align_rotation")
 
@@ -588,7 +594,9 @@ class IMAGE_MT_uvs_context_menu(Menu):
 
             # Remove
             layout.menu("IMAGE_MT_uvs_merge")
+            layout.operator_context = 'INVOKE_REGION_WIN'
             layout.operator("uv.stitch")
+            layout.operator_context = 'EXEC_REGION_WIN'
             layout.menu("IMAGE_MT_uvs_split")
 
 
@@ -855,6 +863,12 @@ class IMAGE_HT_header(Header):
 
             if tool_settings.use_uv_select_sync:
                 layout.template_edit_mode_selection()
+
+                # Currently this only works for edge-select & face-select modes.
+                row = layout.row()
+                if tool_settings.mesh_select_mode[0]:
+                    row.active = False
+                row.prop(tool_settings, "uv_sticky_select_mode", icon_only=True)
             else:
                 row = layout.row(align=True)
                 uv_select_mode = tool_settings.uv_select_mode[:]

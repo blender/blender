@@ -149,7 +149,6 @@ OPERATOR_IGNORE = (
     "text.selection_set",
     "ui.*",
     "uv.rip",
-    "uv.rip_move",
     "uv.select",
     "uv.select_edge_ring",
     "uv.select_lasso",

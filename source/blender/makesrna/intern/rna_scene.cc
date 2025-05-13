@@ -2051,6 +2051,12 @@ static void rna_Scene_uv_select_mode_update(bContext *C, PointerRNA * /*ptr*/)
   ED_uvedit_selectmode_clean_multi(C);
 }
 
+static void rna_Scene_uv_sticky_select_mode_update(bContext *C, PointerRNA * /*ptr*/)
+{
+  /* Some changes to sticky select mode require rebuilding. */
+  ED_uvedit_sticky_selectmode_update(C);
+}
+
 static void object_simplify_update(Scene *scene,
                                    Object *ob,
                                    bool update_normals,
@@ -2067,7 +2073,7 @@ static void object_simplify_update(Scene *scene,
 
   for (md = static_cast<ModifierData *>(ob->modifiers.first); md; md = md->next) {
     if (md->type == eModifierType_Nodes && depsgraph != nullptr) {
-      Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+      Object *ob_eval = DEG_get_evaluated(depsgraph, ob);
       const blender::bke::GeometrySet *geometry_set = ob_eval->runtime->geometry_set_eval;
       if (geometry_set != nullptr && geometry_set->has_volume()) {
         DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
@@ -3266,7 +3272,7 @@ static void rna_def_tool_settings(BlenderRNA *brna)
   RNA_def_property_ui_text(prop,
                            "Weight Paint Auto-Normalize",
                            "Ensure all bone-deforming vertex groups add up "
-                           "to 1.0 while weight painting");
+                           "to 1.0 while weight painting or assigning to vertices");
   RNA_def_property_update(prop, 0, "rna_Scene_update_active_object_data");
 
   prop = RNA_def_property(srna, "use_lock_relative", PROP_BOOLEAN, PROP_NONE);
@@ -4105,7 +4111,9 @@ static void rna_def_tool_settings(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, uv_sticky_mode_items);
   RNA_def_property_ui_text(
       prop, "Sticky Selection Mode", "Method for extending UV vertex selection");
-  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, nullptr);
+  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+  RNA_def_property_update(
+      prop, NC_SPACE | ND_SPACE_IMAGE, "rna_Scene_uv_sticky_select_mode_update");
 
   prop = RNA_def_property(srna, "use_uv_select_sync", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "uv_flag", UV_SYNC_SELECTION);
@@ -6971,7 +6979,11 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_range(prop, 1e-5f, 1e6f);
   RNA_def_property_ui_range(prop, 0.0001f, 10000.0f, 2, 2);
-  RNA_def_property_ui_text(prop, "PPM Factor", "The unit multiplier for pixels per meter");
+  RNA_def_property_ui_text(prop,
+                           "PPM Factor",
+                           "The pixel density meta-data written to supported image formats. "
+                           "This value is multiplied by the PPM-base which defines the unit "
+                           "(typically inches or meters)");
 
   prop = RNA_def_property(srna, "ppm_base", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, nullptr, "ppm_base");
@@ -7239,7 +7251,8 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
                            "Output Path",
                            "Directory/name to save animations, # characters define the position "
                            "and padding of frame numbers");
-  RNA_def_property_flag(prop, PROP_PATH_OUTPUT | PROP_PATH_SUPPORTS_BLEND_RELATIVE);
+  RNA_def_property_flag(
+      prop, PROP_PATH_OUTPUT | PROP_PATH_SUPPORTS_BLEND_RELATIVE | PROP_PATH_SUPPORTS_TEMPLATES);
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, nullptr);
 
   /* Render result EXR cache. */

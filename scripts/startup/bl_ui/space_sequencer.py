@@ -464,9 +464,7 @@ class SEQUENCER_MT_view(Menu):
             layout.prop(st, "show_region_channels")
         layout.separator()
 
-        if is_sequencer_only:
-            layout.prop(st, "show_backdrop", text="Preview as Backdrop")
-        if is_preview or st.show_backdrop:
+        if is_preview:
             layout.prop(st, "show_transform_preview", text="Preview During Transform")
         layout.separator()
 
@@ -584,7 +582,10 @@ class SEQUENCER_MT_select(Menu):
             context.scene.sequence_editor is not None and
             context.scene.sequence_editor.selected_retiming_keys
         )
-
+        if has_preview:
+            layout.operator_context = 'INVOKE_REGION_PREVIEW'
+        else:
+            layout.operator_context = 'INVOKE_REGION_WIN'
         layout.operator("sequencer.select_all", text="All").action = 'SELECT'
         layout.operator("sequencer.select_all", text="None").action = 'DESELECT'
         layout.operator("sequencer.select_all", text="Invert").action = 'INVERT'
@@ -1177,6 +1178,8 @@ class SEQUENCER_MT_image_transform(Menu):
         layout.operator("transform.translate")
         layout.operator("transform.rotate")
         layout.operator("transform.resize", text="Scale")
+        layout.separator()
+        layout.operator("transform.translate", text="Move Origin").translate_origin = True
 
 
 class SEQUENCER_MT_image_clear(Menu):
@@ -1435,7 +1438,7 @@ class SequencerButtonsPanel_Output:
     @staticmethod
     def has_preview(context):
         st = context.space_data
-        return (st.view_type in {'PREVIEW', 'SEQUENCER_PREVIEW'}) or st.show_backdrop
+        return (st.view_type in {'PREVIEW', 'SEQUENCER_PREVIEW'})
 
     @classmethod
     def poll(cls, context):

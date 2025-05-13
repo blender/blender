@@ -52,7 +52,7 @@ void main()
 #if defined(VERT)
   vertex_crease = float(m_data.z >> 4) / 15.0f;
   final_color = EDIT_MESH_vertex_color(m_data.y, vertex_crease);
-  gl_PointSize = sizeVertex * ((vertex_crease > 0.0f) ? 3.0f : 2.0f);
+  gl_PointSize = theme.sizes.vert * ((vertex_crease > 0.0f) ? 3.0f : 2.0f);
   /* Make selected and active vertex always on top. */
   if ((data.x & VERT_SELECTED) != 0u) {
     gl_Position.z -= 5e-7f * abs(gl_Position.w);
@@ -96,7 +96,7 @@ void main()
 
   /* Bias Face-dot Z position in clip-space. */
   gl_Position.z -= (drw_view().winmat[3][3] == 0.0f) ? 0.00035f : 1e-6f;
-  gl_PointSize = sizeFaceDot;
+  gl_PointSize = theme.sizes.face_dot;
 
   bool occluded = test_occlusion();
 
@@ -113,9 +113,10 @@ void main()
   facing = 1.0f - abs(facing) * 0.2f;
 
   /* Do interpolation in a non-linear space to have a better visual result. */
-  final_color.rgb = mix(final_color.rgb,
-                        non_linear_blend_color(colorEditMeshMiddle.rgb, final_color.rgb, facing),
-                        fresnelMixEdit);
+  final_color.rgb = mix(
+      final_color.rgb,
+      non_linear_blend_color(theme.colors.edit_mesh_middle.rgb, final_color.rgb, facing),
+      theme.fresnel_mix_edit);
 #endif
 
   gl_Position.z -= ndc_offset_factor * ndc_offset;

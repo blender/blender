@@ -7619,6 +7619,14 @@ static void rna_def_userdef_experimental(BlenderRNA *brna)
                            "pop-over");
   RNA_def_property_update(prop, 0, "rna_userdef_ui_update");
 
+  prop = RNA_def_property(srna, "write_large_blend_file_blocks", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "write_large_blend_file_blocks", 1);
+  RNA_def_property_ui_text(
+      prop,
+      "Write Large Blend File Blocks",
+      "Enables support for writing .blend files that contain buffers larger than 2 GB. If "
+      "enabled, any saved files can not be opened by older Blender versions");
+
   prop = RNA_def_property(srna, "use_all_linked_data_direct", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_ui_text(
       prop,
@@ -7652,6 +7660,12 @@ static void rna_def_userdef_experimental(BlenderRNA *brna)
                            "Recompute all ID usercounts before saving to a blendfile. Allows to "
                            "work around invalid usercount handling in code that may lead to loss "
                            "of data due to wrongly detected unused data-blocks");
+
+  prop = RNA_def_property(srna, "use_attribute_storage_write", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_ui_text(prop,
+                           "Write New Attribute Storage Format",
+                           "Instead of writing with the older \"CustomData\" format for forward "
+                           "compatibility, use the new \"AttributeStorage\" format");
 }
 
 static void rna_def_userdef_addon_collection(BlenderRNA *brna, PropertyRNA *cprop)

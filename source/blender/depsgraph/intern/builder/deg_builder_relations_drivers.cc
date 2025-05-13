@@ -240,4 +240,18 @@ void DepsgraphRelationBuilder::build_driver_relations(IDNode *id_node)
   }
 }
 
+bool data_path_maybe_shared(const ID &id, const StringRef data_path)
+{
+  /* As it is hard to generally detect implicit sharing, this is implemented as
+   * a 'known to not share' list. */
+
+  if (GS(id.name) == ID_OB) {
+    const Object &ob = *reinterpret_cast<const Object *>(&id);
+    const bool is_thread_safe = (ob.type == OB_ARMATURE && data_path.startswith("pose.bones["));
+    return !is_thread_safe;
+  }
+
+  return true;
+}
+
 }  // namespace blender::deg

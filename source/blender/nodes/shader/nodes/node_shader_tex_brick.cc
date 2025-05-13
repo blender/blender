@@ -81,19 +81,13 @@ static void node_shader_buts_tex_brick(uiLayout *layout, bContext * /*C*/, Point
   uiLayout *col;
 
   col = &layout->column(true);
-  uiItemR(col,
-          ptr,
-          "offset",
-          UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER,
-          IFACE_("Offset"),
-          ICON_NONE);
-  uiItemR(
-      col, ptr, "offset_frequency", UI_ITEM_R_SPLIT_EMPTY_NAME, IFACE_("Frequency"), ICON_NONE);
+  col->prop(
+      ptr, "offset", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER, IFACE_("Offset"), ICON_NONE);
+  col->prop(ptr, "offset_frequency", UI_ITEM_R_SPLIT_EMPTY_NAME, IFACE_("Frequency"), ICON_NONE);
 
   col = &layout->column(true);
-  uiItemR(col, ptr, "squash", UI_ITEM_R_SPLIT_EMPTY_NAME, IFACE_("Squash"), ICON_NONE);
-  uiItemR(
-      col, ptr, "squash_frequency", UI_ITEM_R_SPLIT_EMPTY_NAME, IFACE_("Frequency"), ICON_NONE);
+  col->prop(ptr, "squash", UI_ITEM_R_SPLIT_EMPTY_NAME, IFACE_("Squash"), ICON_NONE);
+  col->prop(ptr, "squash_frequency", UI_ITEM_R_SPLIT_EMPTY_NAME, IFACE_("Frequency"), ICON_NONE);
 }
 
 static void node_shader_init_tex_brick(bNodeTree * /*ntree*/, bNode *node)

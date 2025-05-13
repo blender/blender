@@ -381,7 +381,7 @@ static void particle_settings_blend_read_after_liblink(BlendLibReader * /*reader
 }
 
 IDTypeInfo IDType_ID_PA = {
-    /*id_code*/ ID_PA,
+    /*id_code*/ ParticleSettings::id_type,
     /*id_filter*/ FILTER_ID_PA,
     /*dependencies_id_types*/ FILTER_ID_OB | FILTER_ID_GR | FILTER_ID_TE,
     /*main_listbase_index*/ INDEX_ID_PA,
@@ -666,7 +666,7 @@ ParticleSystem *psys_orig_get(ParticleSystem *psys)
 
 ParticleSystem *psys_eval_get(Depsgraph *depsgraph, Object *object, ParticleSystem *psys)
 {
-  Object *object_eval = DEG_get_evaluated_object(depsgraph, object);
+  Object *object_eval = DEG_get_evaluated(depsgraph, object);
   if (object_eval == object) {
     return psys;
   }
@@ -4087,7 +4087,7 @@ ParticleSettings *BKE_particlesettings_add(Main *bmain, const char *name)
 {
   ParticleSettings *part;
 
-  part = static_cast<ParticleSettings *>(BKE_id_new(bmain, ID_PA, name));
+  part = BKE_id_new<ParticleSettings>(bmain, name);
 
   return part;
 }

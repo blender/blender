@@ -367,6 +367,19 @@ size_t BLI_str_escape(char *__restrict dst, const char *__restrict src, const si
   return len;
 }
 
+std::string BLI_str_escape(const char *str)
+{
+  if (!str) {
+    return {};
+  }
+  const size_t max_result_size = strlen(str) * 2 + 1;
+  std::string result;
+  result.resize(max_result_size);
+  const size_t result_size = BLI_str_escape(result.data(), str, max_result_size);
+  result.resize(result_size);
+  return result;
+}
+
 BLI_INLINE bool str_unescape_pair(char c_next, char *r_out)
 {
 #define CASE_PAIR(value_src, value_dst) \

@@ -28,6 +28,7 @@
 #include "BLI_fileops.h"
 #include "BLI_listbase.h"
 #include "BLI_map.hh"
+#include "BLI_mutex.hh"
 #include "BLI_rect.h"
 #include "BLI_set.hh"
 #include "BLI_string.h"
@@ -98,6 +99,8 @@
 #include "pipeline.hh"
 #include "render_result.h"
 #include "render_types.h"
+
+namespace path_templates = blender::bke::path_templates;
 
 /* render flow
  *
@@ -207,8 +210,8 @@ static void stats_background(void * /*arg*/, RenderStats *rs)
 
   /* Compositor calls this from multiple threads, mutex lock to ensure we don't
    * get garbled output. */
-  static ThreadMutex mutex = BLI_MUTEX_INITIALIZER;
-  BLI_mutex_lock(&mutex);
+  static blender::Mutex mutex;
+  std::scoped_lock lock(mutex);
 
   char *message = BLI_sprintfN(RPT_("Fra:%d Mem:%.2fM (Peak %.2fM) | Time:%s | %s"),
                                rs->cfra,
@@ -233,8 +236,6 @@ static void stats_background(void * /*arg*/, RenderStats *rs)
   }
 
   MEM_freeN(message);
-
-  BLI_mutex_unlock(&mutex);
 }
 
 void RE_ReferenceRenderResult(RenderResult *rr)
@@ -505,6 +506,12 @@ void RE_ResultGet32(Render *re, uint *rect)
                                 &re->scene->display_settings,
                                 view_id);
   RE_ReleaseResultImageViews(re, &rres);
+}
+
+bool RE_ResultIsMultiView(RenderResult *rr)
+{
+  RenderView *view = static_cast<RenderView *>(rr->views.first);
+  return (view && (view->next || view->name[0]));
 }
 
 RenderStats *RE_GetStats(Render *re)
@@ -1437,7 +1444,7 @@ static void renderresult_stampinfo(Render *re)
     RE_AcquireResultImage(re, &rres, nr);
 
     if (rres.ibuf != nullptr) {
-      Object *ob_camera_eval = DEG_get_evaluated_object(re->pipeline_depsgraph, RE_GetCamera(re));
+      Object *ob_camera_eval = DEG_get_evaluated(re->pipeline_depsgraph, RE_GetCamera(re));
       BKE_image_stamp_buf(re->scene,
                           ob_camera_eval,
                           (re->scene->r.stamp & R_STAMP_STRIPMETA) ? rres.stamp_data : nullptr,
@@ -1460,8 +1467,10 @@ bool RE_seq_render_active(Scene *scene, RenderData *rd)
     return false;
   }
 
-  LISTBASE_FOREACH (Strip *, seq, &ed->seqbase) {
-    if (seq->type != STRIP_TYPE_SOUND_RAM && !blender::seq::render_is_muted(&ed->channels, seq)) {
+  LISTBASE_FOREACH (Strip *, strip, &ed->seqbase) {
+    if (strip->type != STRIP_TYPE_SOUND_RAM &&
+        !blender::seq::render_is_muted(&ed->channels, strip))
+    {
       return true;
     }
   }
@@ -1653,7 +1662,7 @@ static void do_render_full_pipeline(Render *re)
   if (re->result != nullptr) {
     /* sequence rendering should have taken care of that already */
     if (!(render_seq && (re->scene->r.stamp & R_STAMP_STRIPMETA))) {
-      Object *ob_camera_eval = DEG_get_evaluated_object(re->pipeline_depsgraph, RE_GetCamera(re));
+      Object *ob_camera_eval = DEG_get_evaluated(re->pipeline_depsgraph, RE_GetCamera(re));
       BKE_render_result_stamp_info(re->scene, ob_camera_eval, re->result, false);
     }
 
@@ -1751,23 +1760,24 @@ static int check_valid_camera(Scene *scene, Object *camera_override, ReportList 
 
   if (RE_seq_render_active(scene, &scene->r)) {
     if (scene->ed) {
-      LISTBASE_FOREACH (Strip *, seq, &scene->ed->seqbase) {
-        if ((seq->type == STRIP_TYPE_SCENE) && ((seq->flag & SEQ_SCENE_STRIPS) == 0) &&
-            (seq->scene != nullptr))
+      LISTBASE_FOREACH (Strip *, strip, &scene->ed->seqbase) {
+        if ((strip->type == STRIP_TYPE_SCENE) && ((strip->flag & SEQ_SCENE_STRIPS) == 0) &&
+            (strip->scene != nullptr))
         {
-          if (!seq->scene_camera) {
-            if (!seq->scene->camera &&
-                !BKE_view_layer_camera_find(seq->scene, BKE_view_layer_default_render(seq->scene)))
+          if (!strip->scene_camera) {
+            if (!strip->scene->camera &&
+                !BKE_view_layer_camera_find(strip->scene,
+                                            BKE_view_layer_default_render(strip->scene)))
             {
               /* camera could be unneeded due to composite nodes */
-              Object *override = (seq->scene == scene) ? camera_override : nullptr;
+              Object *override = (strip->scene == scene) ? camera_override : nullptr;
 
-              if (!check_valid_compositing_camera(seq->scene, override, reports)) {
+              if (!check_valid_compositing_camera(strip->scene, override, reports)) {
                 return false;
               }
             }
           }
-          else if (!check_valid_camera_multiview(seq->scene, seq->scene_camera, reports)) {
+          else if (!check_valid_camera_multiview(strip->scene, strip->scene_camera, reports)) {
             return false;
           }
         }
@@ -2086,15 +2096,26 @@ void RE_RenderFrame(Render *re,
       }
       else {
         char filepath_override[FILE_MAX];
-        BKE_image_path_from_imformat(filepath_override,
-                                     rd.pic,
-                                     BKE_main_blendfile_path(bmain),
-                                     scene->r.cfra,
-                                     &rd.im_format,
-                                     (rd.scemode & R_EXTENSION) != 0,
-                                     false,
-                                     nullptr);
-        do_write_image_or_movie(re, bmain, scene, 0, filepath_override);
+        const char *relbase = BKE_main_blendfile_path(bmain);
+        const path_templates::VariableMap template_variables = BKE_build_template_variables(
+            relbase, &scene->r);
+        const blender::Vector<path_templates::Error> errors = BKE_image_path_from_imformat(
+            filepath_override,
+            rd.pic,
+            relbase,
+            &template_variables,
+            scene->r.cfra,
+            &rd.im_format,
+            (rd.scemode & R_EXTENSION) != 0,
+            false,
+            nullptr);
+
+        if (errors.is_empty()) {
+          do_write_image_or_movie(re, bmain, scene, 0, filepath_override);
+        }
+        else {
+          BKE_report_path_template_errors(re->reports, RPT_ERROR, rd.pic, errors);
+        }
       }
     }
 
@@ -2204,7 +2225,7 @@ bool RE_WriteRenderViewsMovie(ReportList *reports,
   ImageFormatData image_format;
   BKE_image_format_init_for_write(&image_format, scene, nullptr);
 
-  const bool is_mono = BLI_listbase_count_at_most(&rr->views, 2) < 2;
+  const bool is_mono = !RE_ResultIsMultiView(rr);
   const float dither = scene->r.dither_intensity;
 
   if (is_mono || (image_format.views_format == R_IMF_VIEWS_INDIVIDUAL)) {
@@ -2307,18 +2328,29 @@ static bool do_write_image_or_movie(
         STRNCPY(filepath, filepath_override);
       }
       else {
-        BKE_image_path_from_imformat(filepath,
-                                     scene->r.pic,
-                                     BKE_main_blendfile_path(bmain),
-                                     scene->r.cfra,
-                                     &scene->r.im_format,
-                                     (scene->r.scemode & R_EXTENSION) != 0,
-                                     true,
-                                     nullptr);
+        const char *relbase = BKE_main_blendfile_path(bmain);
+        const path_templates::VariableMap template_variables = BKE_build_template_variables(
+            relbase, &scene->r);
+        const blender::Vector<path_templates::Error> errors = BKE_image_path_from_imformat(
+            filepath,
+            scene->r.pic,
+            relbase,
+            &template_variables,
+            scene->r.cfra,
+            &scene->r.im_format,
+            (scene->r.scemode & R_EXTENSION) != 0,
+            true,
+            nullptr);
+        if (!errors.is_empty()) {
+          BKE_report_path_template_errors(re->reports, RPT_ERROR, scene->r.pic, errors);
+          ok = false;
+        }
       }
 
       /* write images as individual images or stereo */
-      ok = BKE_image_render_write(re->reports, &rres, scene, true, filepath);
+      if (ok) {
+        ok = BKE_image_render_write(re->reports, &rres, scene, true, filepath);
+      }
     }
 
     RE_ReleaseResultImageViews(re, &rres);
@@ -2330,7 +2362,7 @@ static bool do_write_image_or_movie(
   BLI_timecode_string_from_time_simple(filepath, sizeof(filepath), re->i.lastframetime);
   std::string message = fmt::format("Time: {}", filepath);
 
-  if (do_write_file) {
+  if (do_write_file && ok) {
     BLI_timecode_string_from_time_simple(
         filepath, sizeof(filepath), re->i.lastframetime - render_time);
     message = fmt::format("{} (Saving: {})", message, filepath);
@@ -2499,15 +2531,28 @@ void RE_RenderAnim(Render *re,
 
     /* Touch/NoOverwrite options are only valid for image's */
     if (is_movie == false && do_write_file) {
-      if (rd.mode & (R_NO_OVERWRITE | R_TOUCH)) {
-        BKE_image_path_from_imformat(filepath,
-                                     rd.pic,
-                                     BKE_main_blendfile_path(bmain),
-                                     scene->r.cfra,
-                                     &rd.im_format,
-                                     (rd.scemode & R_EXTENSION) != 0,
-                                     true,
-                                     nullptr);
+      const char *relbase = BKE_main_blendfile_path(bmain);
+      const path_templates::VariableMap template_variables = BKE_build_template_variables(relbase,
+                                                                                          &rd);
+      const blender::Vector<path_templates::Error> errors = BKE_image_path_from_imformat(
+          filepath,
+          rd.pic,
+          BKE_main_blendfile_path(bmain),
+          &template_variables,
+          scene->r.cfra,
+          &rd.im_format,
+          (rd.scemode & R_EXTENSION) != 0,
+          true,
+          nullptr);
+
+      /* The filepath cannot be parsed, so we can't save the renders anywhere.
+       * So we just cancel. */
+      if (!errors.is_empty()) {
+        BKE_report_path_template_errors(re->reports, RPT_ERROR, rd.pic, errors);
+        /* We have to set the `is_break` flag here so that final cleanup code
+         * recognizes that the render has failed. */
+        G.is_break = true;
+        break;
       }
 
       if (rd.mode & R_NO_OVERWRITE) {

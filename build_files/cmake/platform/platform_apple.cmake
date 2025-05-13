@@ -340,7 +340,7 @@ endif()
 add_bundled_libraries(osl/lib)
 
 if(WITH_CYCLES AND WITH_CYCLES_EMBREE)
-  find_package(Embree 3.8.0 REQUIRED)
+  find_package(Embree 4.0.0 REQUIRED)
 endif()
 add_bundled_libraries(embree/lib)
 
@@ -350,7 +350,7 @@ if(WITH_OPENIMAGEDENOISE)
 endif()
 
 if(WITH_TBB)
-  find_package(TBB REQUIRED)
+  find_package(TBB 2021.13.0 REQUIRED)
   if(TBB_FOUND)
     get_target_property(TBB_LIBRARIES TBB::tbb LOCATION)
     get_target_property(TBB_INCLUDE_DIRS TBB::tbb INTERFACE_INCLUDE_DIRECTORIES)

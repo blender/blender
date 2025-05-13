@@ -519,9 +519,11 @@ void VKShader::init(const shader::ShaderCreateInfo &info, bool is_batch_compilat
 
 VKShader::~VKShader()
 {
+  VKDevice &device = VKBackend::get().device;
   VKDiscardPool &discard_pool = VKDiscardPool::discard_pool_get();
 
   if (vk_pipeline_layout != VK_NULL_HANDLE) {
+    device.pipelines.discard(discard_pool, vk_pipeline_layout);
     discard_pool.discard_pipeline_layout(vk_pipeline_layout);
     vk_pipeline_layout = VK_NULL_HANDLE;
   }
@@ -533,15 +535,29 @@ void VKShader::build_shader_module(MutableSpan<StringRefNull> sources,
                                    shaderc_shader_kind stage,
                                    VKShaderModule &r_shader_module)
 {
-  BLI_assert_msg(ELEM(stage,
-                      shaderc_vertex_shader,
-                      shaderc_geometry_shader,
-                      shaderc_fragment_shader,
-                      shaderc_compute_shader),
-                 "Only forced ShaderC shader kinds are supported.");
   r_shader_module.is_ready = false;
   const VKDevice &device = VKBackend::get().device;
-  sources[SOURCES_INDEX_VERSION] = device.glsl_patch_get();
+  const char *source_patch = nullptr;
+
+  switch (stage) {
+    case shaderc_vertex_shader:
+      source_patch = device.glsl_vertex_patch_get();
+      break;
+    case shaderc_geometry_shader:
+      source_patch = device.glsl_geometry_patch_get();
+      break;
+    case shaderc_fragment_shader:
+      source_patch = device.glsl_fragment_patch_get();
+      break;
+    case shaderc_compute_shader:
+      source_patch = device.glsl_compute_patch_get();
+      break;
+    default:
+      BLI_assert_msg(0, "Only forced ShaderC shader kinds are supported.");
+      break;
+  }
+
+  sources[SOURCES_INDEX_VERSION] = source_patch;
   r_shader_module.combined_sources = combine_sources(sources);
   if (!use_batch_compilation_) {
     VKShaderCompiler::compile_module(*this, stage, r_shader_module);
@@ -692,6 +708,8 @@ bool VKShader::finalize_pipeline_layout(VkDevice vk_device,
   {
     return false;
   };
+
+  debug::object_label(vk_pipeline_layout, name_get());
 
   return true;
 }
@@ -1298,6 +1316,7 @@ VkPipeline VKShader::ensure_and_get_compute_pipeline()
   VkPipeline vk_pipeline = device.pipelines.get_or_create_compute_pipeline(
       compute_info, is_static_shader_, vk_pipeline_base_);
   if (vk_pipeline_base_ == VK_NULL_HANDLE) {
+    debug::object_label(vk_pipeline, name_get());
     vk_pipeline_base_ = vk_pipeline;
   }
   return vk_pipeline;
@@ -1348,6 +1367,7 @@ VkPipeline VKShader::ensure_and_get_graphics_pipeline(GPUPrimType primitive,
   VkPipeline vk_pipeline = device.pipelines.get_or_create_graphics_pipeline(
       graphics_info, is_static_shader_, vk_pipeline_base_);
   if (vk_pipeline_base_ == VK_NULL_HANDLE) {
+    debug::object_label(vk_pipeline, name_get());
     vk_pipeline_base_ = vk_pipeline;
   }
   return vk_pipeline;

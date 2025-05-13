@@ -251,7 +251,7 @@ static void camera_blend_read_data(BlendDataReader *reader, ID *id)
 }
 
 IDTypeInfo IDType_ID_CA = {
-    /*id_code*/ ID_CA,
+    /*id_code*/ Camera::id_type,
     /*id_filter*/ FILTER_ID_CA,
     /*dependencies_id_types*/ FILTER_ID_OB | FILTER_ID_IM,
     /*main_listbase_index*/ INDEX_ID_CA,
@@ -290,7 +290,7 @@ Camera *BKE_camera_add(Main *bmain, const char *name)
 {
   Camera *cam;
 
-  cam = static_cast<Camera *>(BKE_id_new(bmain, ID_CA, name));
+  cam = BKE_id_new<Camera>(bmain, name);
 
   return cam;
 }
@@ -417,7 +417,7 @@ void BKE_camera_params_from_view3d(CameraParams *params,
 
   if (rv3d->persp == RV3D_CAMOB) {
     /* camera view */
-    const Object *ob_camera_eval = DEG_get_evaluated_object(depsgraph, v3d->camera);
+    const Object *ob_camera_eval = DEG_get_evaluated(depsgraph, v3d->camera);
     BKE_camera_params_from_object(params, ob_camera_eval);
 
     params->zoom = BKE_screen_view3d_zoom_to_fac(rv3d->camzoom);
@@ -898,7 +898,7 @@ bool BKE_camera_view_frame_fit_to_coords(const Depsgraph *depsgraph,
                                          float *r_scale)
 {
   Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
-  Object *camera_ob_eval = DEG_get_evaluated_object(depsgraph, camera_ob);
+  Object *camera_ob_eval = DEG_get_evaluated(depsgraph, camera_ob);
   CameraParams params;
   CameraViewFrameData data_cb;
 

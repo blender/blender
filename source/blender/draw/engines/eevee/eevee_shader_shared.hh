@@ -1903,7 +1903,7 @@ enum GBufferMode : uint32_t {
   /** None mode for pixels not rendered. */
   GBUF_NONE = 0u,
 
-  /* Reflection.  */
+  /* Reflection. */
   GBUF_DIFFUSE = 1u,
   GBUF_REFLECTION = 2u,
   GBUF_REFLECTION_COLORLESS = 3u,

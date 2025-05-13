@@ -5186,10 +5186,9 @@ static void screen_area_menu_items(ScrArea *area, uiLayout *layout)
 
   uiItemS(layout);
 
-  uiItemO(layout,
-          area->full ? IFACE_("Restore Areas") : IFACE_("Maximize Area"),
-          ICON_NONE,
-          "SCREEN_OT_screen_full_area");
+  layout->op("SCREEN_OT_screen_full_area",
+             area->full ? IFACE_("Restore Areas") : IFACE_("Maximize Area"),
+             ICON_NONE);
 
   if (area->spacetype != SPACE_FILE && !area->full) {
     uiItemFullO(layout,
@@ -5203,9 +5202,9 @@ static void screen_area_menu_items(ScrArea *area, uiLayout *layout)
     RNA_boolean_set(&ptr, "use_hide_panels", true);
   }
 
-  uiItemO(layout, std::nullopt, ICON_NONE, "SCREEN_OT_area_dupli");
+  layout->op("SCREEN_OT_area_dupli", std::nullopt, ICON_NONE);
   uiItemS(layout);
-  uiItemO(layout, std::nullopt, ICON_X, "SCREEN_OT_area_close");
+  layout->op("SCREEN_OT_area_close", std::nullopt, ICON_X);
 }
 
 void ED_screens_header_tools_menu_create(bContext *C, uiLayout *layout, void * /*arg*/)
@@ -5215,7 +5214,7 @@ void ED_screens_header_tools_menu_create(bContext *C, uiLayout *layout, void * /
     PointerRNA ptr = RNA_pointer_create_discrete(
         (ID *)CTX_wm_screen(C), &RNA_Space, area->spacedata.first);
     if (!ELEM(area->spacetype, SPACE_TOPBAR)) {
-      uiItemR(layout, &ptr, "show_region_header", UI_ITEM_NONE, IFACE_("Show Header"), ICON_NONE);
+      layout->prop(&ptr, "show_region_header", UI_ITEM_NONE, IFACE_("Show Header"), ICON_NONE);
     }
 
     ARegion *region_header = BKE_area_find_region_type(area, RGN_TYPE_HEADER);
@@ -5223,18 +5222,13 @@ void ED_screens_header_tools_menu_create(bContext *C, uiLayout *layout, void * /
     uiLayoutSetActive(col, (region_header->flag & RGN_FLAG_HIDDEN) == 0);
 
     if (BKE_area_find_region_type(area, RGN_TYPE_TOOL_HEADER)) {
-      uiItemR(col,
-              &ptr,
-              "show_region_tool_header",
-              UI_ITEM_NONE,
-              IFACE_("Show Tool Settings"),
-              ICON_NONE);
+      col->prop(
+          &ptr, "show_region_tool_header", UI_ITEM_NONE, IFACE_("Show Tool Settings"), ICON_NONE);
     }
 
-    uiItemO(col,
+    col->op("SCREEN_OT_header_toggle_menus",
             IFACE_("Show Menus"),
-            (area->flag & HEADER_NO_PULLDOWN) ? ICON_CHECKBOX_DEHLT : ICON_CHECKBOX_HLT,
-            "SCREEN_OT_header_toggle_menus");
+            (area->flag & HEADER_NO_PULLDOWN) ? ICON_CHECKBOX_DEHLT : ICON_CHECKBOX_HLT);
   }
 
   if (!ELEM(area->spacetype, SPACE_TOPBAR)) {
@@ -5252,7 +5246,7 @@ void ED_screens_footer_tools_menu_create(bContext *C, uiLayout *layout, void * /
   {
     PointerRNA ptr = RNA_pointer_create_discrete(
         (ID *)CTX_wm_screen(C), &RNA_Space, area->spacedata.first);
-    uiItemR(layout, &ptr, "show_region_footer", UI_ITEM_NONE, IFACE_("Show Footer"), ICON_NONE);
+    layout->prop(&ptr, "show_region_footer", UI_ITEM_NONE, IFACE_("Show Footer"), ICON_NONE);
   }
 
   ED_screens_region_flip_menu_create(C, layout, nullptr);
@@ -5272,32 +5266,22 @@ void ED_screens_region_flip_menu_create(bContext *C, uiLayout *layout, void * /*
   /* default is WM_OP_INVOKE_REGION_WIN, which we don't want here. */
   uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_DEFAULT);
 
-  uiItemO(layout, but_flip_str, ICON_NONE, "SCREEN_OT_region_flip");
+  layout->op("SCREEN_OT_region_flip", but_flip_str, ICON_NONE);
 }
 
 static void ed_screens_statusbar_menu_create(uiLayout *layout, void * /*arg*/)
 {
   PointerRNA ptr = RNA_pointer_create_discrete(nullptr, &RNA_PreferencesView, &U);
-  uiItemR(
-      layout, &ptr, "show_statusbar_stats", UI_ITEM_NONE, IFACE_("Scene Statistics"), ICON_NONE);
-  uiItemR(layout,
-          &ptr,
-          "show_statusbar_scene_duration",
-          UI_ITEM_NONE,
-          IFACE_("Scene Duration"),
-          ICON_NONE);
-  uiItemR(layout, &ptr, "show_statusbar_memory", UI_ITEM_NONE, IFACE_("System Memory"), ICON_NONE);
+  layout->prop(&ptr, "show_statusbar_stats", UI_ITEM_NONE, IFACE_("Scene Statistics"), ICON_NONE);
+  layout->prop(
+      &ptr, "show_statusbar_scene_duration", UI_ITEM_NONE, IFACE_("Scene Duration"), ICON_NONE);
+  layout->prop(&ptr, "show_statusbar_memory", UI_ITEM_NONE, IFACE_("System Memory"), ICON_NONE);
   if (GPU_mem_stats_supported()) {
-    uiItemR(layout, &ptr, "show_statusbar_vram", UI_ITEM_NONE, IFACE_("Video Memory"), ICON_NONE);
+    layout->prop(&ptr, "show_statusbar_vram", UI_ITEM_NONE, IFACE_("Video Memory"), ICON_NONE);
   }
-  uiItemR(layout,
-          &ptr,
-          "show_extensions_updates",
-          UI_ITEM_NONE,
-          IFACE_("Extensions Updates"),
-          ICON_NONE);
-  uiItemR(
-      layout, &ptr, "show_statusbar_version", UI_ITEM_NONE, IFACE_("Blender Version"), ICON_NONE);
+  layout->prop(
+      &ptr, "show_extensions_updates", UI_ITEM_NONE, IFACE_("Extensions Updates"), ICON_NONE);
+  layout->prop(&ptr, "show_statusbar_version", UI_ITEM_NONE, IFACE_("Blender Version"), ICON_NONE);
 }
 
 static wmOperatorStatus screen_context_menu_invoke(bContext *C,
@@ -5329,6 +5313,11 @@ static wmOperatorStatus screen_context_menu_invoke(bContext *C,
     else if (region->regiontype == RGN_TYPE_NAV_BAR) {
       uiPopupMenu *pup = UI_popup_menu_begin(C, IFACE_("Navigation Bar"), ICON_NONE);
       uiLayout *layout = UI_popup_menu_layout(pup);
+
+      /* We need WM_OP_INVOKE_DEFAULT in case menu item is over another area. */
+      uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_DEFAULT);
+      layout->op("SCREEN_OT_region_toggle", IFACE_("Hide"), ICON_NONE);
+
       ED_screens_region_flip_menu_create(C, layout, nullptr);
       const ScrArea *area = CTX_wm_area(C);
       if (area && area->spacetype == SPACE_PROPERTIES) {
@@ -5523,8 +5512,7 @@ static void screen_animation_region_tag_redraw(
     }
 
     if (area->spacetype == SPACE_SEQ) {
-      const SpaceSeq *sseq = static_cast<const SpaceSeq *>(area->spacedata.first);
-      if (!blender::ed::vse::has_playback_animation(sseq, scene)) {
+      if (!blender::ed::vse::has_playback_animation(scene)) {
         return;
       }
     }

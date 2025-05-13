@@ -1,0 +1,39 @@
+==== Meshes: 2
+- Mesh 'NoColor' vtx:3 face:1 loop:3 edge:3
+    - 0 1 2 
+    - 0/2 0/1 1/2 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (0.000, 0.000, 1.000)
+    - (0.000, 1.000, 1.000)
+    - (1.000, 0.000, 1.000)
+  - attr 'material_index' INT FACE
+    - 0 
+  - attr 'sharp_face' BOOLEAN FACE
+    - 1 
+
+- Mesh 'Red' vtx:3 face:1 loop:3 edge:3
+    - 0 1 2 
+    - 0/2 0/1 1/2 
+  - attr 'Color' FLOAT_COLOR POINT
+    - (1.000, 0.000, 0.000, 1.000)
+    - (1.000, 0.000, 0.000, 1.000)
+    - (1.000, 0.000, 0.000, 1.000)
+  - attr 'position' FLOAT_VECTOR POINT
+    - (0.000, 0.000, 0.000)
+    - (0.000, 1.000, 0.000)
+    - (1.000, 0.000, 0.000)
+  - attr 'material_index' INT FACE
+    - 0 
+  - attr 'sharp_face' BOOLEAN FACE
+    - 1 
+
+==== Objects: 2
+- Obj 'NoColor' MESH data:'NoColor'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'Red' MESH data:'Red'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+

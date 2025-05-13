@@ -1,0 +1,476 @@
+==== Meshes: 3
+- Mesh 'Scene' vtx:121 face:200 loop:600 edge:320
+    - 9 10 21 9 21 ... 14 25 14 26 25 
+    - 9/21 9/10 10/21 9/20 20/21 ... 25/36 25/37 25/26 13/25 14/25 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-500.000, 0.000, 500.000)
+    - (-400.000, 0.000, 500.000)
+    - (-300.000, 0.000, 500.000)
+      ...
+    - (300.000, 0.000, -500.000)
+    - (400.000, 0.000, -500.000)
+    - (500.000, 0.000, -500.000)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 0 0 0 0 0 ... 0 0 0 0 0 
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 ... 0 0 0 0 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'UVSet0' FLOAT2 CORNER
+    - (0.900, 0.000)
+    - (1.000, 0.000)
+    - (1.000, 0.100)
+      ...
+    - (0.300, 0.100)
+    - (0.400, 0.200)
+    - (0.300, 0.200)
+  - 1 materials
+    - 'GroundMat' 
+
+- Mesh 'Scene.001' vtx:418 face:832 loop:2496 edge:1248
+    - 178 8 109 177 178 ... 95 377 68 6 95 
+    - 109/178 8/178 8/109 109/177 177/178 ... 377/378 96/377 68/377 95/377 68/95 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (28.859, -78.874, 28.859)
+    - (28.859, -78.901, -28.859)
+    - (-28.859, -78.874, 28.859)
+      ...
+    - (-28.090, -50.015, 41.345)
+    - (-19.612, -50.015, 45.976)
+    - (-10.106, -50.015, 48.952)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 0 0 0 0 0 ... 0 0 0 0 0 
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 ... 0 0 0 0 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (13, 16386)
+    - (0, 0)
+    - (23, 4209)
+      ...
+    - (211, 2748)
+    - (173, 16384)
+    - (249, 22623)
+  - attr 'UVSet0' FLOAT2 CORNER
+    - (0.375, 0.017)
+    - (0.248, 0.001)
+    - (0.500, 0.013)
+      ...
+    - (0.144, 0.899)
+    - (0.124, 0.888)
+    - (0.124, 0.865)
+  - attr 'UVSet1' FLOAT2 CORNER
+    - (0.395, 0.707)
+    - (0.367, 0.679)
+    - (0.395, 0.679)
+      ...
+    - (0.194, 0.000)
+    - (0.222, 0.000)
+    - (0.222, 0.028)
+  - 1 materials
+    - 'CapsuleMat' 
+
+- Mesh 'Scene.002' vtx:8 face:12 loop:36 edge:18
+    - 0 3 2 0 1 ... 2 4 6 0 2 
+    - 0/2 0/3 2/3 0/1 1/3 ... 0/6 1/6 1/7 1/5 2/6 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-50.000, -50.000, 50.000)
+    - (50.000, -50.000, 50.000)
+    - (-50.000, 50.000, 50.000)
+      ...
+    - (50.000, 50.000, -50.000)
+    - (-50.000, -50.000, -50.000)
+    - (50.000, -50.000, -50.000)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 1 0 1 1 1 ... 1 0 1 0 0 
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 ... 0 0 0 0 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'UVSet0' FLOAT2 CORNER
+    - (0.000, 0.000)
+    - (1.000, 1.000)
+    - (0.000, 1.000)
+      ...
+    - (0.000, 0.000)
+    - (1.000, 0.000)
+    - (1.000, 1.000)
+  - attr 'UVSet1' FLOAT2 CORNER
+    - (0.691, 0.347)
+    - (0.997, 0.653)
+    - (0.691, 0.653)
+      ...
+    - (0.310, 0.004)
+    - (0.310, 0.310)
+    - (0.004, 0.310)
+  - 1 materials
+    - 'Default_Material' 
+
+==== Objects: 15
+- Obj 'Capsule' MESH data:'Scene.001'
+  - pos 1.198, -0.976, -1.131
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 0.010, 0.010, 0.010
+- Obj 'Capsule_Anim_Xform' MESH data:'Scene.001'
+  - pos 2.020, -2.090, 0.950
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 0.010, 0.010, 0.010
+  - anim act:CapsuleAnim slot:OBCapsule_Anim_Xform blend:REPLACE drivers:0
+- Obj 'CubeAnim' MESH data:'Scene.002'
+  - pos -4.000, -4.500, 0.500
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 0.010, 0.010, 0.010
+  - anim act:CubeAnim slot:OBCubeAnim blend:REPLACE drivers:0
+- Obj 'CubeCh' MESH data:'Scene.002' par:'CubePar'
+  - pos 30.000, -50.000, -70.000
+  - rot 1.172, 0.167, -0.871 (XYZ)
+  - scl 0.900, 0.600, 0.300
+- Obj 'CubeMirror' MESH data:'Scene.002'
+  - pos -0.802, -5.476, -1.581
+  - rot -1.571, 0.000, 0.000 (XYZ)
+  - scl -0.010, -0.010, -0.010
+- Obj 'CubePar' MESH data:'Scene.002'
+  - pos 1.198, -5.476, -1.581
+  - rot -2.836, -0.172, 1.195 (XYZ)
+  - scl 0.005, 0.010, 0.015
+- Obj 'Main_Camera' CAMERA data:'Main Camera'
+  - pos -6.198, 6.052, 2.476
+  - rot 1.029, 0.000, -2.401 (XYZ)
+  - scl 0.010, 0.010, 0.010
+- Obj 'Plane' MESH data:'Scene'
+  - pos 1.198, -0.976, -2.081
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 0.010, 0.010, 0.010
+- Obj 'Point_Light_Blue' LIGHT data:'Point Light Blue'
+  - pos 2.988, -2.086, 0.549
+  - rot -1.571, 0.000, 0.000 (XYZ)
+  - scl 0.010, 0.010, 0.010
+- Obj 'Point_Light_Green' LIGHT data:'Point Light Green'
+  - pos 0.488, -3.976, -0.461
+  - rot -1.571, 0.000, 0.000 (XYZ)
+  - scl 0.010, 0.010, 0.010
+- Obj 'Point_Light_Red' LIGHT data:'Point Light Red'
+  - pos -0.662, -0.706, -0.461
+  - rot -1.571, 0.000, 0.000 (XYZ)
+  - scl 0.010, 0.010, 0.010
+- Obj 'Spot_Light_Anim_Angle' LIGHT data:'Spot Light Anim Angle'
+  - pos 3.348, 3.794, 0.609
+  - rot -0.599, 0.000, 0.000 (XYZ)
+  - scl 0.010, 0.010, 0.010
+- Obj 'Spot_Light_Anim_Color' LIGHT data:'Spot Light Anim Color'
+  - pos 4.758, 3.794, 0.609
+  - rot -0.599, 0.000, 0.000 (XYZ)
+  - scl 0.010, 0.010, 0.010
+- Obj 'Spot_Light_Anim_Intensity' LIGHT data:'Spot Light Anim Intensity'
+  - pos 1.728, 3.804, 0.609
+  - rot -0.599, 0.000, 0.000 (XYZ)
+  - scl 0.010, 0.010, 0.010
+- Obj 'Spot_Light_Anim_Xform' LIGHT data:'Spot Light Anim Xform'
+  - pos -1.160, 4.780, 2.690
+  - rot -0.605, 0.000, 0.000 (XYZ)
+  - scl 0.010, 0.010, 0.010
+  - anim act:SpotLightAnimXform slot:OBSpot_Light_Anim_Xform blend:REPLACE drivers:0
+
+==== Cameras: 1
+- Cam 'Main Camera' PERSP lens:13.5 MILLIMETERS near:3.000 far:20.0 orthosize:1.0
+  - fov 1.431 (h 1.431 v 1.047)
+  - sensor 23.4x15.5 shift 0.000,0.000
+
+==== Lights: 7
+- Light 'Point Light Blue' POINT col:(0.545, 0.664, 1.000) energy:1.500
+- Light 'Point Light Green' POINT col:(0.623, 1.000, 0.545) energy:0.500
+- Light 'Point Light Red' POINT col:(1.000, 0.544, 0.544) energy:1.000
+- Light 'Spot Light Anim Angle' SPOT col:(0.991, 1.000, 0.406) energy:7.000
+  - spot 0.524 blend 0.000
+- Light 'Spot Light Anim Color' SPOT col:(0.991, 1.000, 0.406) energy:7.000
+  - spot 0.524 blend 0.000
+- Light 'Spot Light Anim Intensity' SPOT col:(0.991, 1.000, 0.406) energy:7.000
+  - spot 0.524 blend 0.000
+- Light 'Spot Light Anim Xform' SPOT col:(0.991, 1.000, 0.406) energy:7.000
+  - spot 0.524 blend 0.000
+
+==== Materials: 3
+- Mat 'CapsuleMat'
+  - base color (0.918, 0.546, 0.546)
+  - specular ior 0.500
+  - specular tint (1.000, 1.000, 1.000)
+  - roughness 0.500
+  - metallic 0.000
+  - ior 1.500
+  - viewport diffuse (0.918, 0.546, 0.546, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 0.500
+  - viewport metallic 0.000, roughness 0.500
+  - backface False probe True shadow False
+
+- Mat 'Default_Material'
+  - base color (1.000, 1.000, 1.000)
+  - specular ior 0.500
+  - specular tint (1.000, 1.000, 1.000)
+  - roughness 0.500
+  - metallic 0.000
+  - ior 1.500
+  - viewport diffuse (1.000, 1.000, 1.000, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 0.500
+  - viewport metallic 0.000, roughness 0.500
+  - backface False probe True shadow False
+
+- Mat 'GroundMat'
+  - base color (0.557, 0.635, 0.572) tex:'ground_tex.png' (ground_tex.png) a:False
+  - specular ior 1.000
+  - specular tint (0.612, 0.616, 0.254)
+  - roughness 0.553
+  - metallic 0.000
+  - ior 1.500
+  - normalmap 0.200 tex:'normal_tex.png' (normal_tex.png) a:False data
+  - viewport diffuse (0.557, 0.635, 0.572, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 1.000
+  - viewport metallic 0.000, roughness 0.553
+  - backface False probe True shadow False
+
+==== Actions: 3
+- Action 'CapsuleAnim' curverange:(1.0 .. 91.0) layers:1
+- ActionLayer Layer strips:1
+ - Keyframe strip channelbags:1
+ - Channelbag slot 'OBCapsule_Anim_Xform' curves:9
+  - fcu 'location[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:7 grp:'Capsule_Anim_Xform'
+    - (1.000, 2.020) lh:(-4.333, 2.020 AUTO_CLAMPED) rh:(6.333, 2.020 AUTO_CLAMPED)
+    - (17.000, 2.020) lh:(11.667, 2.020 AUTO_CLAMPED) rh:(18.000, 2.020 AUTO_CLAMPED)
+    - (20.000, 2.020) lh:(19.000, 2.020 AUTO_CLAMPED) rh:(25.333, 2.020 AUTO_CLAMPED)
+      ...
+    - (49.000, 2.020) lh:(44.667, 2.020 AUTO_CLAMPED) rh:(52.667, 2.020 AUTO_CLAMPED)
+    - (60.000, 2.020) lh:(56.333, 2.020 AUTO_CLAMPED) rh:(70.333, 2.020 AUTO_CLAMPED)
+    - (91.000, 2.020) lh:(80.667, 2.020 AUTO_CLAMPED) rh:(101.333, 2.020 AUTO_CLAMPED)
+  - fcu 'location[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:7 grp:'Capsule_Anim_Xform'
+    - (1.000, -2.090) lh:(-4.333, -2.090 AUTO_CLAMPED) rh:(6.333, -2.090 AUTO_CLAMPED)
+    - (17.000, -2.090) lh:(11.667, -2.090 AUTO_CLAMPED) rh:(18.000, -2.090 AUTO_CLAMPED)
+    - (20.000, -2.090) lh:(19.000, -2.090 AUTO_CLAMPED) rh:(25.333, -2.090 AUTO_CLAMPED)
+      ...
+    - (49.000, -2.090) lh:(44.667, -2.090 AUTO_CLAMPED) rh:(52.667, -2.090 AUTO_CLAMPED)
+    - (60.000, -2.090) lh:(56.333, -2.090 AUTO_CLAMPED) rh:(70.333, -2.090 AUTO_CLAMPED)
+    - (91.000, -2.090) lh:(80.667, -2.090 AUTO_CLAMPED) rh:(101.333, -2.090 AUTO_CLAMPED)
+  - fcu 'location[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:7 grp:'Capsule_Anim_Xform'
+    - (1.000, 0.950) lh:(-4.333, 0.950 AUTO_CLAMPED) rh:(6.333, 0.950 AUTO_CLAMPED)
+    - (17.000, 1.700) lh:(11.667, 1.700 AUTO_CLAMPED) rh:(18.000, 1.700 AUTO_CLAMPED)
+    - (20.000, 1.598) lh:(19.000, 1.647 AUTO_CLAMPED) rh:(25.333, 1.339 AUTO_CLAMPED)
+      ...
+    - (49.000, 0.613) lh:(44.667, 0.778 AUTO_CLAMPED) rh:(52.667, 0.475 AUTO_CLAMPED)
+    - (60.000, 0.240) lh:(56.333, 0.325 AUTO_CLAMPED) rh:(70.333, 0.000 AUTO_CLAMPED)
+    - (91.000, 0.000) lh:(80.667, 0.000 AUTO_CLAMPED) rh:(101.333, 0.000 AUTO_CLAMPED)
+  - fcu 'rotation_euler[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:7 grp:'Capsule_Anim_Xform'
+    - (1.000, 1.571) lh:(-4.333, 1.571 AUTO_CLAMPED) rh:(6.333, 1.571 AUTO_CLAMPED)
+    - (17.000, 1.571) lh:(11.667, 1.571 AUTO_CLAMPED) rh:(18.000, 1.571 AUTO_CLAMPED)
+    - (20.000, 1.571) lh:(19.000, 1.571 AUTO_CLAMPED) rh:(25.333, 1.571 AUTO_CLAMPED)
+      ...
+    - (49.000, 1.571) lh:(44.667, 1.571 AUTO_CLAMPED) rh:(52.667, 1.571 AUTO_CLAMPED)
+    - (60.000, 1.571) lh:(56.333, 1.571 AUTO_CLAMPED) rh:(70.333, 1.571 AUTO_CLAMPED)
+    - (91.000, -1.571) lh:(80.667, -1.571 AUTO_CLAMPED) rh:(101.333, -1.571 AUTO_CLAMPED)
+  - fcu 'rotation_euler[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:7 grp:'Capsule_Anim_Xform'
+    - (1.000, 0.000) lh:(-4.333, 0.000 AUTO_CLAMPED) rh:(6.333, 0.000 AUTO_CLAMPED)
+    - (17.000, 0.284) lh:(11.667, 0.179 AUTO_CLAMPED) rh:(18.000, 0.304 AUTO_CLAMPED)
+    - (20.000, 0.337) lh:(19.000, 0.321 AUTO_CLAMPED) rh:(25.333, 0.425 AUTO_CLAMPED)
+      ...
+    - (49.000, 0.852) lh:(44.667, 0.852 AUTO_CLAMPED) rh:(52.667, 0.852 AUTO_CLAMPED)
+    - (60.000, 0.852) lh:(56.333, 0.852 AUTO_CLAMPED) rh:(70.333, 0.852 AUTO_CLAMPED)
+    - (91.000, 2.290) lh:(80.667, 2.290 AUTO_CLAMPED) rh:(101.333, 2.290 AUTO_CLAMPED)
+  - fcu 'rotation_euler[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:7 grp:'Capsule_Anim_Xform'
+    - (1.000, 0.000) lh:(-4.333, 0.000 AUTO_CLAMPED) rh:(6.333, 0.000 AUTO_CLAMPED)
+    - (17.000, 0.000) lh:(11.667, 0.000 AUTO_CLAMPED) rh:(18.000, 0.000 AUTO_CLAMPED)
+    - (20.000, 0.000) lh:(19.000, 0.000 AUTO_CLAMPED) rh:(25.333, 0.000 AUTO_CLAMPED)
+      ...
+    - (49.000, 0.000) lh:(44.667, 0.000 AUTO_CLAMPED) rh:(52.667, 0.000 AUTO_CLAMPED)
+    - (60.000, -0.845) lh:(56.333, -0.845 AUTO_CLAMPED) rh:(70.333, -0.845 AUTO_CLAMPED)
+    - (91.000, -0.086) lh:(80.667, -0.086 AUTO_CLAMPED) rh:(101.333, -0.086 AUTO_CLAMPED)
+  - fcu 'scale[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:7 grp:'Capsule_Anim_Xform'
+    - (1.000, 0.010) lh:(-4.333, 0.010 AUTO_CLAMPED) rh:(6.333, 0.010 AUTO_CLAMPED)
+    - (17.000, 0.015) lh:(11.667, 0.013 AUTO_CLAMPED) rh:(18.000, 0.016 AUTO_CLAMPED)
+    - (20.000, 0.016) lh:(19.000, 0.016 AUTO_CLAMPED) rh:(25.333, 0.016 AUTO_CLAMPED)
+      ...
+    - (49.000, 0.010) lh:(44.667, 0.010 AUTO_CLAMPED) rh:(52.667, 0.010 AUTO_CLAMPED)
+    - (60.000, 0.010) lh:(56.333, 0.010 AUTO_CLAMPED) rh:(70.333, 0.010 AUTO_CLAMPED)
+    - (91.000, 0.010) lh:(80.667, 0.010 AUTO_CLAMPED) rh:(101.333, 0.010 AUTO_CLAMPED)
+  - fcu 'scale[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:7 grp:'Capsule_Anim_Xform'
+    - (1.000, 0.010) lh:(-4.333, 0.010 AUTO_CLAMPED) rh:(6.333, 0.010 AUTO_CLAMPED)
+    - (17.000, 0.010) lh:(11.667, 0.010 AUTO_CLAMPED) rh:(18.000, 0.010 AUTO_CLAMPED)
+    - (20.000, 0.010) lh:(19.000, 0.010 AUTO_CLAMPED) rh:(25.333, 0.010 AUTO_CLAMPED)
+      ...
+    - (49.000, 0.010) lh:(44.667, 0.010 AUTO_CLAMPED) rh:(52.667, 0.010 AUTO_CLAMPED)
+    - (60.000, 0.010) lh:(56.333, 0.010 AUTO_CLAMPED) rh:(70.333, 0.010 AUTO_CLAMPED)
+    - (91.000, 0.010) lh:(80.667, 0.010 AUTO_CLAMPED) rh:(101.333, 0.010 AUTO_CLAMPED)
+  - fcu 'scale[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:7 grp:'Capsule_Anim_Xform'
+    - (1.000, 0.010) lh:(-4.333, 0.010 AUTO_CLAMPED) rh:(6.333, 0.010 AUTO_CLAMPED)
+    - (17.000, 0.010) lh:(11.667, 0.010 AUTO_CLAMPED) rh:(18.000, 0.010 AUTO_CLAMPED)
+    - (20.000, 0.010) lh:(19.000, 0.010 AUTO_CLAMPED) rh:(25.333, 0.010 AUTO_CLAMPED)
+      ...
+    - (49.000, 0.010) lh:(44.667, 0.010 AUTO_CLAMPED) rh:(52.667, 0.010 AUTO_CLAMPED)
+    - (60.000, 0.010) lh:(56.333, 0.010 AUTO_CLAMPED) rh:(70.333, 0.010 AUTO_CLAMPED)
+    - (91.000, 0.010) lh:(80.667, 0.010 AUTO_CLAMPED) rh:(101.333, 0.010 AUTO_CLAMPED)
+
+- Action 'CubeAnim' curverange:(1.0 .. 241.0) layers:1
+- ActionLayer Layer strips:1
+ - Keyframe strip channelbags:1
+ - Channelbag slot 'OBCubeAnim' curves:9
+  - fcu 'location[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:7 grp:'CubeAnim'
+    - (1.000, -4.000) lh:(-19.000, -4.000 AUTO_CLAMPED) rh:(21.000, -4.000 AUTO_CLAMPED)
+    - (61.000, -3.478) lh:(41.000, -3.739 AUTO_CLAMPED) rh:(70.667, -3.351 AUTO_CLAMPED)
+    - (90.000, -3.225) lh:(80.333, -3.225 AUTO_CLAMPED) rh:(100.333, -3.225 AUTO_CLAMPED)
+      ...
+    - (181.000, -3.688) lh:(161.000, -3.547 AUTO_CLAMPED) rh:(191.000, -3.758 AUTO_CLAMPED)
+    - (211.000, -3.844) lh:(201.000, -3.783 AUTO_CLAMPED) rh:(221.000, -3.904 AUTO_CLAMPED)
+    - (241.000, -4.000) lh:(231.000, -4.000 AUTO_CLAMPED) rh:(251.000, -4.000 AUTO_CLAMPED)
+  - fcu 'location[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:7 grp:'CubeAnim'
+    - (1.000, -4.500) lh:(-19.000, -4.500 AUTO_CLAMPED) rh:(21.000, -4.500 AUTO_CLAMPED)
+    - (61.000, -3.536) lh:(41.000, -3.913 AUTO_CLAMPED) rh:(70.667, -3.353 AUTO_CLAMPED)
+    - (90.000, -3.069) lh:(80.333, -3.220 AUTO_CLAMPED) rh:(100.333, -2.909 AUTO_CLAMPED)
+      ...
+    - (181.000, -1.607) lh:(161.000, -2.038 AUTO_CLAMPED) rh:(191.000, -1.391 AUTO_CLAMPED)
+    - (211.000, -1.125) lh:(201.000, -1.125 AUTO_CLAMPED) rh:(221.000, -1.125 AUTO_CLAMPED)
+    - (241.000, -1.125) lh:(231.000, -1.125 AUTO_CLAMPED) rh:(251.000, -1.125 AUTO_CLAMPED)
+  - fcu 'location[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:7 grp:'CubeAnim'
+    - (1.000, 0.500) lh:(-19.000, 0.500 AUTO_CLAMPED) rh:(21.000, 0.500 AUTO_CLAMPED)
+    - (61.000, 2.008) lh:(41.000, 2.008 AUTO_CLAMPED) rh:(70.667, 2.008 AUTO_CLAMPED)
+    - (90.000, 1.572) lh:(80.333, 1.766 AUTO_CLAMPED) rh:(100.333, 1.364 AUTO_CLAMPED)
+      ...
+    - (181.000, 0.803) lh:(161.000, 0.876 AUTO_CLAMPED) rh:(191.000, 0.767 AUTO_CLAMPED)
+    - (211.000, 0.652) lh:(201.000, 0.718 AUTO_CLAMPED) rh:(221.000, 0.585 AUTO_CLAMPED)
+    - (241.000, 0.500) lh:(231.000, 0.500 AUTO_CLAMPED) rh:(251.000, 0.500 AUTO_CLAMPED)
+  - fcu 'rotation_euler[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:7 grp:'CubeAnim'
+    - (1.000, 1.571) lh:(-19.000, 1.571 AUTO_CLAMPED) rh:(21.000, 1.571 AUTO_CLAMPED)
+    - (61.000, 1.571) lh:(41.000, 1.571 AUTO_CLAMPED) rh:(70.667, 1.571 AUTO_CLAMPED)
+    - (90.000, 1.571) lh:(80.333, 1.571 AUTO_CLAMPED) rh:(100.333, 1.571 AUTO_CLAMPED)
+      ...
+    - (181.000, 1.571) lh:(161.000, 1.571 AUTO_CLAMPED) rh:(191.000, 1.571 AUTO_CLAMPED)
+    - (211.000, 1.571) lh:(201.000, 1.571 AUTO_CLAMPED) rh:(221.000, 1.571 AUTO_CLAMPED)
+    - (241.000, 1.571) lh:(231.000, 1.571 AUTO_CLAMPED) rh:(251.000, 1.571 AUTO_CLAMPED)
+  - fcu 'rotation_euler[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:7 grp:'CubeAnim'
+    - (1.000, 0.000) lh:(-19.000, 0.000 AUTO_CLAMPED) rh:(21.000, 0.000 AUTO_CLAMPED)
+    - (61.000, 0.000) lh:(41.000, 0.000 AUTO_CLAMPED) rh:(70.667, 0.000 AUTO_CLAMPED)
+    - (90.000, 0.000) lh:(80.333, 0.000 AUTO_CLAMPED) rh:(100.333, 0.000 AUTO_CLAMPED)
+      ...
+    - (181.000, 0.000) lh:(161.000, 0.000 AUTO_CLAMPED) rh:(191.000, 0.000 AUTO_CLAMPED)
+    - (211.000, 0.000) lh:(201.000, 0.000 AUTO_CLAMPED) rh:(221.000, 0.000 AUTO_CLAMPED)
+    - (241.000, 0.000) lh:(231.000, 0.000 AUTO_CLAMPED) rh:(251.000, 0.000 AUTO_CLAMPED)
+  - fcu 'rotation_euler[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:7 grp:'CubeAnim'
+    - (1.000, 0.000) lh:(-19.000, 0.000 AUTO_CLAMPED) rh:(21.000, 0.000 AUTO_CLAMPED)
+    - (61.000, 0.000) lh:(41.000, 0.000 AUTO_CLAMPED) rh:(70.667, 0.000 AUTO_CLAMPED)
+    - (90.000, 0.000) lh:(80.333, 0.000 AUTO_CLAMPED) rh:(100.333, 0.000 AUTO_CLAMPED)
+      ...
+    - (181.000, 0.000) lh:(161.000, 0.000 AUTO_CLAMPED) rh:(191.000, 0.000 AUTO_CLAMPED)
+    - (211.000, 0.000) lh:(201.000, 0.000 AUTO_CLAMPED) rh:(221.000, 0.000 AUTO_CLAMPED)
+    - (241.000, 0.000) lh:(231.000, 0.000 AUTO_CLAMPED) rh:(251.000, 0.000 AUTO_CLAMPED)
+  - fcu 'scale[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:7 grp:'CubeAnim'
+    - (1.000, 0.010) lh:(-19.000, 0.010 AUTO_CLAMPED) rh:(21.000, 0.010 AUTO_CLAMPED)
+    - (61.000, 0.010) lh:(41.000, 0.010 AUTO_CLAMPED) rh:(70.667, 0.010 AUTO_CLAMPED)
+    - (90.000, 0.010) lh:(80.333, 0.010 AUTO_CLAMPED) rh:(100.333, 0.010 AUTO_CLAMPED)
+      ...
+    - (181.000, 0.010) lh:(161.000, 0.010 AUTO_CLAMPED) rh:(191.000, 0.010 AUTO_CLAMPED)
+    - (211.000, 0.010) lh:(201.000, 0.010 AUTO_CLAMPED) rh:(221.000, 0.010 AUTO_CLAMPED)
+    - (241.000, 0.010) lh:(231.000, 0.010 AUTO_CLAMPED) rh:(251.000, 0.010 AUTO_CLAMPED)
+  - fcu 'scale[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:7 grp:'CubeAnim'
+    - (1.000, 0.010) lh:(-19.000, 0.010 AUTO_CLAMPED) rh:(21.000, 0.010 AUTO_CLAMPED)
+    - (61.000, 0.010) lh:(41.000, 0.010 AUTO_CLAMPED) rh:(70.667, 0.010 AUTO_CLAMPED)
+    - (90.000, 0.010) lh:(80.333, 0.010 AUTO_CLAMPED) rh:(100.333, 0.010 AUTO_CLAMPED)
+      ...
+    - (181.000, 0.010) lh:(161.000, 0.010 AUTO_CLAMPED) rh:(191.000, 0.010 AUTO_CLAMPED)
+    - (211.000, 0.010) lh:(201.000, 0.010 AUTO_CLAMPED) rh:(221.000, 0.010 AUTO_CLAMPED)
+    - (241.000, 0.010) lh:(231.000, 0.010 AUTO_CLAMPED) rh:(251.000, 0.010 AUTO_CLAMPED)
+  - fcu 'scale[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:7 grp:'CubeAnim'
+    - (1.000, 0.010) lh:(-19.000, 0.010 AUTO_CLAMPED) rh:(21.000, 0.010 AUTO_CLAMPED)
+    - (61.000, 0.010) lh:(41.000, 0.010 AUTO_CLAMPED) rh:(70.667, 0.010 AUTO_CLAMPED)
+    - (90.000, 0.010) lh:(80.333, 0.010 AUTO_CLAMPED) rh:(100.333, 0.010 AUTO_CLAMPED)
+      ...
+    - (181.000, 0.010) lh:(161.000, 0.010 AUTO_CLAMPED) rh:(191.000, 0.010 AUTO_CLAMPED)
+    - (211.000, 0.010) lh:(201.000, 0.010 AUTO_CLAMPED) rh:(221.000, 0.010 AUTO_CLAMPED)
+    - (241.000, 0.010) lh:(231.000, 0.010 AUTO_CLAMPED) rh:(251.000, 0.010 AUTO_CLAMPED)
+
+- Action 'SpotLightAnimXform' curverange:(1.0 .. 164.0) layers:1
+- ActionLayer Layer strips:1
+ - Keyframe strip channelbags:1
+ - Channelbag slot 'OBSpot_Light_Anim_Xform' curves:9
+  - fcu 'location[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:7 grp:'Spot_Light_Anim_Xform'
+    - (1.000, -1.160) lh:(-9.333, -1.160 AUTO_CLAMPED) rh:(11.333, -1.160 AUTO_CLAMPED)
+    - (32.000, -1.160) lh:(21.667, -1.160 AUTO_CLAMPED) rh:(40.667, -1.160 AUTO_CLAMPED)
+    - (58.000, -1.160) lh:(49.333, -1.160 AUTO_CLAMPED) rh:(67.667, -1.160 AUTO_CLAMPED)
+      ...
+    - (100.000, -1.160) lh:(95.667, -1.160 AUTO_CLAMPED) rh:(104.667, -1.160 AUTO_CLAMPED)
+    - (114.000, -1.825) lh:(109.333, -1.493 AUTO_CLAMPED) rh:(130.667, -3.012 AUTO_CLAMPED)
+    - (164.000, -4.200) lh:(147.333, -4.200 AUTO_CLAMPED) rh:(180.667, -4.200 AUTO_CLAMPED)
+  - fcu 'location[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:7 grp:'Spot_Light_Anim_Xform'
+    - (1.000, 4.780) lh:(-9.333, 4.780 AUTO_CLAMPED) rh:(11.333, 4.780 AUTO_CLAMPED)
+    - (32.000, 4.780) lh:(21.667, 4.780 AUTO_CLAMPED) rh:(40.667, 4.780 AUTO_CLAMPED)
+    - (58.000, 4.780) lh:(49.333, 4.780 AUTO_CLAMPED) rh:(67.667, 4.780 AUTO_CLAMPED)
+      ...
+    - (100.000, 4.780) lh:(95.667, 4.780 AUTO_CLAMPED) rh:(104.667, 4.780 AUTO_CLAMPED)
+    - (114.000, 4.780) lh:(109.333, 4.780 AUTO_CLAMPED) rh:(130.667, 4.780 AUTO_CLAMPED)
+    - (164.000, 4.780) lh:(147.333, 4.780 AUTO_CLAMPED) rh:(180.667, 4.780 AUTO_CLAMPED)
+  - fcu 'location[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:7 grp:'Spot_Light_Anim_Xform'
+    - (1.000, 2.690) lh:(-9.333, 2.690 AUTO_CLAMPED) rh:(11.333, 2.690 AUTO_CLAMPED)
+    - (32.000, 2.690) lh:(21.667, 2.690 AUTO_CLAMPED) rh:(40.667, 2.690 AUTO_CLAMPED)
+    - (58.000, 2.690) lh:(49.333, 2.690 AUTO_CLAMPED) rh:(67.667, 2.690 AUTO_CLAMPED)
+      ...
+    - (100.000, 2.690) lh:(95.667, 2.690 AUTO_CLAMPED) rh:(104.667, 2.690 AUTO_CLAMPED)
+    - (114.000, 2.690) lh:(109.333, 2.690 AUTO_CLAMPED) rh:(130.667, 2.690 AUTO_CLAMPED)
+    - (164.000, 2.690) lh:(147.333, 2.690 AUTO_CLAMPED) rh:(180.667, 2.690 AUTO_CLAMPED)
+  - fcu 'rotation_euler[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:7 grp:'Spot_Light_Anim_Xform'
+    - (1.000, -0.605) lh:(-9.333, -0.605 AUTO_CLAMPED) rh:(11.333, -0.605 AUTO_CLAMPED)
+    - (32.000, -0.077) lh:(21.667, -0.077 AUTO_CLAMPED) rh:(40.667, -0.077 AUTO_CLAMPED)
+    - (58.000, -0.077) lh:(49.333, -0.077 AUTO_CLAMPED) rh:(67.667, -0.077 AUTO_CLAMPED)
+      ...
+    - (100.000, -0.393) lh:(95.667, -0.263 AUTO_CLAMPED) rh:(104.667, -0.532 AUTO_CLAMPED)
+    - (114.000, -0.605) lh:(109.333, -0.605 AUTO_CLAMPED) rh:(130.667, -0.605 AUTO_CLAMPED)
+    - (164.000, -0.605) lh:(147.333, -0.605 AUTO_CLAMPED) rh:(180.667, -0.605 AUTO_CLAMPED)
+  - fcu 'rotation_euler[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:7 grp:'Spot_Light_Anim_Xform'
+    - (1.000, 0.000) lh:(-9.333, 0.000 AUTO_CLAMPED) rh:(11.333, 0.000 AUTO_CLAMPED)
+    - (32.000, 0.000) lh:(21.667, 0.000 AUTO_CLAMPED) rh:(40.667, 0.000 AUTO_CLAMPED)
+    - (58.000, -0.442) lh:(49.333, -0.442 AUTO_CLAMPED) rh:(67.667, -0.442 AUTO_CLAMPED)
+      ...
+    - (100.000, 0.325) lh:(95.667, 0.404 AUTO_CLAMPED) rh:(104.667, 0.240 AUTO_CLAMPED)
+    - (114.000, 0.000) lh:(109.333, 0.000 AUTO_CLAMPED) rh:(130.667, 0.000 AUTO_CLAMPED)
+    - (164.000, 0.000) lh:(147.333, 0.000 AUTO_CLAMPED) rh:(180.667, 0.000 AUTO_CLAMPED)
+  - fcu 'rotation_euler[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:7 grp:'Spot_Light_Anim_Xform'
+    - (1.000, 0.000) lh:(-9.333, 0.000 AUTO_CLAMPED) rh:(11.333, 0.000 AUTO_CLAMPED)
+    - (32.000, 0.000) lh:(21.667, 0.000 AUTO_CLAMPED) rh:(40.667, 0.000 AUTO_CLAMPED)
+    - (58.000, 0.000) lh:(49.333, 0.000 AUTO_CLAMPED) rh:(67.667, 0.000 AUTO_CLAMPED)
+      ...
+    - (100.000, -0.057) lh:(95.667, -0.057 AUTO_CLAMPED) rh:(104.667, -0.057 AUTO_CLAMPED)
+    - (114.000, 0.000) lh:(109.333, 0.000 AUTO_CLAMPED) rh:(130.667, 0.000 AUTO_CLAMPED)
+    - (164.000, 0.000) lh:(147.333, 0.000 AUTO_CLAMPED) rh:(180.667, 0.000 AUTO_CLAMPED)
+  - fcu 'scale[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:7 grp:'Spot_Light_Anim_Xform'
+    - (1.000, 0.010) lh:(-9.333, 0.010 AUTO_CLAMPED) rh:(11.333, 0.010 AUTO_CLAMPED)
+    - (32.000, 0.010) lh:(21.667, 0.010 AUTO_CLAMPED) rh:(40.667, 0.010 AUTO_CLAMPED)
+    - (58.000, 0.010) lh:(49.333, 0.010 AUTO_CLAMPED) rh:(67.667, 0.010 AUTO_CLAMPED)
+      ...
+    - (100.000, 0.010) lh:(95.667, 0.010 AUTO_CLAMPED) rh:(104.667, 0.010 AUTO_CLAMPED)
+    - (114.000, 0.010) lh:(109.333, 0.010 AUTO_CLAMPED) rh:(130.667, 0.010 AUTO_CLAMPED)
+    - (164.000, 0.010) lh:(147.333, 0.010 AUTO_CLAMPED) rh:(180.667, 0.010 AUTO_CLAMPED)
+  - fcu 'scale[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:7 grp:'Spot_Light_Anim_Xform'
+    - (1.000, 0.010) lh:(-9.333, 0.010 AUTO_CLAMPED) rh:(11.333, 0.010 AUTO_CLAMPED)
+    - (32.000, 0.010) lh:(21.667, 0.010 AUTO_CLAMPED) rh:(40.667, 0.010 AUTO_CLAMPED)
+    - (58.000, 0.010) lh:(49.333, 0.010 AUTO_CLAMPED) rh:(67.667, 0.010 AUTO_CLAMPED)
+      ...
+    - (100.000, 0.010) lh:(95.667, 0.010 AUTO_CLAMPED) rh:(104.667, 0.010 AUTO_CLAMPED)
+    - (114.000, 0.010) lh:(109.333, 0.010 AUTO_CLAMPED) rh:(130.667, 0.010 AUTO_CLAMPED)
+    - (164.000, 0.010) lh:(147.333, 0.010 AUTO_CLAMPED) rh:(180.667, 0.010 AUTO_CLAMPED)
+  - fcu 'scale[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:7 grp:'Spot_Light_Anim_Xform'
+    - (1.000, 0.010) lh:(-9.333, 0.010 AUTO_CLAMPED) rh:(11.333, 0.010 AUTO_CLAMPED)
+    - (32.000, 0.010) lh:(21.667, 0.010 AUTO_CLAMPED) rh:(40.667, 0.010 AUTO_CLAMPED)
+    - (58.000, 0.010) lh:(49.333, 0.010 AUTO_CLAMPED) rh:(67.667, 0.010 AUTO_CLAMPED)
+      ...
+    - (100.000, 0.010) lh:(95.667, 0.010 AUTO_CLAMPED) rh:(104.667, 0.010 AUTO_CLAMPED)
+    - (114.000, 0.010) lh:(109.333, 0.010 AUTO_CLAMPED) rh:(130.667, 0.010 AUTO_CLAMPED)
+    - (164.000, 0.010) lh:(147.333, 0.010 AUTO_CLAMPED) rh:(180.667, 0.010 AUTO_CLAMPED)
+
+==== Images: 2
+- Image 'ground_tex.png' 32x32 24bpp
+- Image 'normal_tex.png' 32x32 24bpp
+

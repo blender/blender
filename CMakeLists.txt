@@ -302,6 +302,12 @@ Use pre-compiled headers to speed up compilation."
   endif()
 endif()
 
+option(WITH_OPTIMIZED_BUILD_TOOLS "\
+Enable optimizations even on Debug builds for executables used for the build process"
+  ON
+)
+mark_as_advanced(WITH_OPTIMIZED_BUILD_TOOLS)
+
 option(WITH_IK_ITASC "\
 Enable ITASC IK solver (only disable for development & for incompatible C++ compilers)"
   ON
@@ -1027,25 +1033,43 @@ Build and link with code coverage support (only for Debug targets)."
 mark_as_advanced(WITH_COMPILER_CODE_COVERAGE)
 
 if(WITH_COMPILER_CODE_COVERAGE)
-  if(NOT CMAKE_COMPILER_IS_GNUCC)
-    message(WARNING "WITH_COMPILER_CODE_COVERAGE only works with GCC currently.")
+  if(CMAKE_COMPILER_IS_GNUCC)
+    set(_code_coverage_defaults "--coverage")
+  elseif(CMAKE_C_COMPILER_ID MATCHES "Clang")
+    get_filename_component(COMPILER_DIRECTORY ${CMAKE_CXX_COMPILER} DIRECTORY)
+    find_program(LLVM_COV "llvm-cov" ${COMPILER_DIRECTORY} NO_DEFAULT_PATH)
+    find_program(LLVM_PROFDATA "llvm-profdata" ${COMPILER_DIRECTORY} NO_DEFAULT_PATH)
+    if(NOT LLVM_COV OR NOT LLVM_PROFDATA)
+       message(WARNING "Could not find code coverage tools, disabling code coverage. You may explicitly specify LLVM_COV and LLVM_PROFDATA to work around this warning.")
+       set(WITH_COMPILER_CODE_COVERAGE OFF)
+    else()
+      set(_code_coverage_defaults "-fprofile-instr-generate -fcoverage-mapping")
+    endif()
+  else()
+    message("unsupported compiler ${CMAKE_C_COMPILER_ID} for WITH_COMPILER_CODE_COVERAGE, disabling.")
     set(WITH_COMPILER_CODE_COVERAGE OFF)
   endif()
-endif()
 
-if(WITH_COMPILER_CODE_COVERAGE)
-  set(_code_coverage_defaults "--coverage")
+  # The code above could have disabled the feature, so check again.
+  if(WITH_COMPILER_CODE_COVERAGE)
   set(COMPILER_CODE_COVERAGE_CFLAGS
     ${_code_coverage_defaults} CACHE STRING
     "C flags for code coverage"
   )
-  mark_as_advanced(COMPILER_CODE_COVERAGE_CFLAGS)
-  set(COMPILER_CODE_COVERAGE_
-    CXXFLAGS ${_code_coverage_defaults} CACHE STRING
+    mark_as_advanced(COMPILER_CODE_COVERAGE_CFLAGS)
+  set(COMPILER_CODE_COVERAGE_CXXFLAGS
+    ${_code_coverage_defaults} CACHE STRING
     "C++ flags for code coverage"
   )
-  mark_as_advanced(COMPILER_CODE_COVERAGE_CXXFLAGS)
-  unset(_code_coverage_defaults)
+    mark_as_advanced(COMPILER_CODE_COVERAGE_CXXFLAGS)
+    if(CMAKE_C_COMPILER_ID MATCHES "Clang")
+      set(_code_coverage_dir_default "${CMAKE_BINARY_DIR}/coverage")
+      set(COMPILER_CODE_COVERAGE_DATA_DIR ${_code_coverage_dir_default} CACHE STRING "Directory for code coverage data")
+      mark_as_advanced(COMPILER_CODE_COVERAGE_DATA_DIR)
+      unset(_code_coverage_dir_default)
+    endif()
+    unset(_code_coverage_defaults)
+  endif()
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
@@ -1457,8 +1481,15 @@ set(PLATFORM_LINKFLAGS_RELEASE "")
 set(PLATFORM_LINKFLAGS_EXECUTABLE "")
 
 if(WITH_COMPILER_CODE_COVERAGE)
-  string(APPEND CMAKE_C_FLAGS_DEBUG " ${COMPILER_CODE_COVERAGE_CFLAGS}")
-  string(APPEND CMAKE_CXX_FLAGS_DEBUG " ${COMPILER_CODE_COVERAGE_CXXFLAGS}")
+  if(CMAKE_COMPILER_IS_GNUCC)
+    # GCC only supports this on debug builds.
+    string(APPEND CMAKE_C_FLAGS_DEBUG " ${COMPILER_CODE_COVERAGE_CFLAGS}")
+    string(APPEND CMAKE_CXX_FLAGS_DEBUG " ${COMPILER_CODE_COVERAGE_CXXFLAGS}")
+  elseif(CMAKE_C_COMPILER_ID MATCHES "Clang")
+    # Clang will allow it on all builds.
+    string(APPEND CMAKE_C_FLAGS " ${COMPILER_CODE_COVERAGE_CFLAGS}")
+    string(APPEND CMAKE_CXX_FLAGS " ${COMPILER_CODE_COVERAGE_CXXFLAGS}")
+  endif()
 endif()
 
 if(NOT CMAKE_BUILD_TYPE MATCHES "Release")
@@ -2503,10 +2534,10 @@ if(WITH_PYTHON)
       set(_numpy_include "_core/include")
       if(PYTHON_VERSION VERSION_LESS "3.13")
         set(_numpy_include "core/include")
-      endif()
+    endif()
       find_python_package(numpy "${_numpy_include}")
       unset(_numpy_include)
-    endif()
+  endif()
   endif()
 
   if(WIN32 OR APPLE)
@@ -2757,6 +2788,7 @@ if(FIRST_RUN)
 
   info_cfg_text("Compiler Options:")
   info_cfg_option(WITH_BUILDINFO)
+  info_cfg_option(WITH_OPTIMIZED_BUILD_TOOLS)
 
   info_cfg_text("System Options:")
   info_cfg_option(WITH_INSTALL_PORTABLE)

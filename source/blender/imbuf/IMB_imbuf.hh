@@ -20,11 +20,14 @@ struct ImBuf;
 struct rctf;
 struct rcti;
 
-struct ColorManagedDisplay;
-
 struct GSet;
 struct ImageFormatData;
 struct Stereo3dFormat;
+
+namespace blender::ocio {
+class Display;
+}  // namespace blender::ocio
+using ColorManagedDisplay = blender::ocio::Display;
 
 /**
  * Module init/exit.
@@ -495,8 +498,13 @@ void IMB_rectfill(ImBuf *drect, const float col[4]);
  * order the area between x1 and x2, and y1 and y2 is filled.
  * \param display: color-space reference for display space.
  */
-void IMB_rectfill_area(
-    ImBuf *ibuf, const float col[4], int x1, int y1, int x2, int y2, ColorManagedDisplay *display);
+void IMB_rectfill_area(ImBuf *ibuf,
+                       const float col[4],
+                       int x1,
+                       int y1,
+                       int x2,
+                       int y2,
+                       const ColorManagedDisplay *display);
 /**
  * Replace pixels of image area with solid color.
  * \param ibuf: an image to be filled with color. It must be 4 channel image.
@@ -519,7 +527,7 @@ void buf_rectfill_area(unsigned char *rect,
                        int width,
                        int height,
                        const float col[4],
-                       ColorManagedDisplay *display,
+                       const ColorManagedDisplay *display,
                        int x1,
                        int y1,
                        int x2,

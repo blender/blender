@@ -34,6 +34,9 @@ SOURCE_EXT = (
 def sort_struct_lists(fn: str, data_src: str) -> str | None:
     import re
 
+    # Disable for now.
+    use_datatoc_match = False
+
     # eg:
     #    struct Foo;
     re_match_struct = re.compile(r"struct\s+[A-Za-z_][A-Za-z_0-9]*\s*;")
@@ -47,9 +50,10 @@ def sort_struct_lists(fn: str, data_src: str) -> str | None:
 
     re_match_enum = re.compile(r"enum\s+[A-Za-z_][A-Za-z_0-9]*\s*;")
 
-    # eg:
-    #    extern char datatoc_splash_png[];
-    # re_match_datatoc = re.compile(r"extern\s+(char)\s+datatoc_[A-Za-z_].*;")
+    if use_datatoc_match:
+        # eg:
+        #    `extern char datatoc_splash_png[];`
+        re_match_datatoc = re.compile(r"extern\s+(char)\s+datatoc_[A-Za-z_].*;")
 
     lines = data_src.splitlines(keepends=True)
 
@@ -62,9 +66,9 @@ def sort_struct_lists(fn: str, data_src: str) -> str | None:
             return 3
         if re_match_enum.match(l):
             return 4
-        # Disable for now.
-        # if re_match_datatoc.match(l):
-        #     return 5
+        if use_datatoc_match:
+            if re_match_datatoc.match(l):
+                return 5
         return None
 
     i = 0

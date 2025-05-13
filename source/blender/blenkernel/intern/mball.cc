@@ -144,7 +144,7 @@ static void metaball_blend_read_data(BlendDataReader *reader, ID *id)
 }
 
 IDTypeInfo IDType_ID_MB = {
-    /*id_code*/ ID_MB,
+    /*id_code*/ MetaBall::id_type,
     /*id_filter*/ FILTER_ID_MB,
     /*dependencies_id_types*/ FILTER_ID_MA,
     /*main_listbase_index*/ INDEX_ID_MB,
@@ -177,7 +177,7 @@ IDTypeInfo IDType_ID_MB = {
 
 MetaBall *BKE_mball_add(Main *bmain, const char *name)
 {
-  MetaBall *mb = static_cast<MetaBall *>(BKE_id_new(bmain, ID_MB, name));
+  MetaBall *mb = BKE_id_new<MetaBall>(bmain, name);
   return mb;
 }
 

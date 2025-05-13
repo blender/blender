@@ -127,6 +127,7 @@ struct MeshNode : public Node {
    * order to use 32 bit integers for slot values. .
    */
   using LocalVertMap = VectorSet<int,
+                                 0,
                                  DefaultProbingStrategy,
                                  DefaultHash<int>,
                                  DefaultEquality<int>,

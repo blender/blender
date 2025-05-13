@@ -130,10 +130,10 @@ class ImagePaintMode : public AbstractPaintMode {
   {
     float color[3];
     if (paint_stroke_inverted(stroke)) {
-      srgb_to_linearrgb_v3_v3(color, BKE_brush_secondary_color_get(scene, paint, brush));
+      copy_v3_v3(color, BKE_brush_secondary_color_get(scene, paint, brush));
     }
     else {
-      srgb_to_linearrgb_v3_v3(color, BKE_brush_color_get(scene, paint, brush));
+      copy_v3_v3(color, BKE_brush_color_get(scene, paint, brush));
     }
     paint_2d_bucket_fill(C, color, brush, mouse_start, mouse_end, stroke_handle);
   }
@@ -242,8 +242,10 @@ struct PaintOperation : public PaintModeData {
   }
 };
 
-static void gradient_draw_line(
-    bContext * /*C*/, int x, int y, float /*x_tilt*/, float /*y_tilt*/, void *customdata)
+static void gradient_draw_line(bContext * /*C*/,
+                               const blender::int2 &xy,
+                               const blender::float2 & /*tilt*/,
+                               void *customdata)
 {
   PaintOperation *pop = (PaintOperation *)customdata;
 
@@ -262,7 +264,7 @@ static void gradient_draw_line(
     immUniformColor4ub(0, 0, 0, 255);
 
     immBegin(GPU_PRIM_LINES, 2);
-    immVertex2i(pos, x, y);
+    immVertex2iv(pos, xy);
     immVertex2i(
         pos, pop->startmouse[0] + region->winrct.xmin, pop->startmouse[1] + region->winrct.ymin);
     immEnd();
@@ -271,7 +273,7 @@ static void gradient_draw_line(
     immUniformColor4ub(255, 255, 255, 255);
 
     immBegin(GPU_PRIM_LINES, 2);
-    immVertex2i(pos, x, y);
+    immVertex2iv(pos, xy);
     immVertex2i(
         pos, pop->startmouse[0] + region->winrct.xmin, pop->startmouse[1] + region->winrct.ymin);
     immEnd();

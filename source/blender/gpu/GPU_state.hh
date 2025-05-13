@@ -102,6 +102,9 @@ enum eGPUBlend {
    * NOTE: Can only be used with _ONE_ Draw Buffer and shader needs to be specialized. */
   GPU_BLEND_CUSTOM,
   GPU_BLEND_ALPHA_UNDER_PREMUL,
+  /** Multiplies every channel (alpha included) by `1 - SRC.a`. Used for piercing a hole using an
+   * image alpha channel. */
+  GPU_BLEND_OVERLAY_MASK_FROM_ALPHA,
 };
 
 enum eGPUDepthTest {
@@ -201,6 +204,7 @@ eGPUStencilTest GPU_stencil_test_get();
  * \note Already pre-multiplied by `U.pixelsize`.
  */
 float GPU_line_width_get();
+bool GPU_line_smooth_get();
 
 void GPU_flush();
 void GPU_finish();

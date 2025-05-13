@@ -283,64 +283,41 @@ static void panel_draw(const bContext *C, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, ptr, "count", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  uiItemR(layout, ptr, "replace_material", UI_ITEM_NONE, IFACE_("Material Override"), ICON_NONE);
-
-  if (uiLayout *sub = uiLayoutPanelPropWithBoolHeader(C,
-                                                      layout,
-                                                      ptr,
-                                                      "open_relative_offset_panel",
-                                                      ptr,
-                                                      "use_relative_offset",
-                                                      IFACE_("Relative Offset"))
-                          .body)
-  {
+  layout->prop(ptr, "count", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "replace_material", UI_ITEM_NONE, IFACE_("Material Override"), ICON_NONE);
+  PanelLayout relative_offset_layout = layout->panel_prop_with_bool_header(
+      C, ptr, "open_relative_offset_panel", ptr, "use_relative_offset", IFACE_("Relative Offset"));
+  if (uiLayout *sub = relative_offset_layout.body) {
     uiLayout *col = &sub->column(false);
     uiLayoutSetActive(col, RNA_boolean_get(ptr, "use_relative_offset"));
-    uiItemR(col, ptr, "relative_offset", UI_ITEM_NONE, IFACE_("Factor"), ICON_NONE);
+    col->prop(ptr, "relative_offset", UI_ITEM_NONE, IFACE_("Factor"), ICON_NONE);
   }
-
-  if (uiLayout *sub = uiLayoutPanelPropWithBoolHeader(C,
-                                                      layout,
-                                                      ptr,
-                                                      "open_constant_offset_panel",
-                                                      ptr,
-                                                      "use_constant_offset",
-                                                      IFACE_("Constant Offset"))
-                          .body)
-  {
+  PanelLayout constant_offset_layout = layout->panel_prop_with_bool_header(
+      C, ptr, "open_constant_offset_panel", ptr, "use_constant_offset", IFACE_("Constant Offset"));
+  if (uiLayout *sub = constant_offset_layout.body) {
     uiLayout *col = &sub->column(false);
     uiLayoutSetActive(col, RNA_boolean_get(ptr, "use_constant_offset"));
-    uiItemR(col, ptr, "constant_offset", UI_ITEM_NONE, IFACE_("Distance"), ICON_NONE);
+    col->prop(ptr, "constant_offset", UI_ITEM_NONE, IFACE_("Distance"), ICON_NONE);
   }
-
-  if (uiLayout *sub = uiLayoutPanelPropWithBoolHeader(C,
-                                                      layout,
-                                                      ptr,
-                                                      "open_object_offset_panel",
-                                                      ptr,
-                                                      "use_object_offset",
-                                                      IFACE_("Object Offset"))
-                          .body)
-  {
+  PanelLayout object_offset_layout = layout->panel_prop_with_bool_header(
+      C, ptr, "open_object_offset_panel", ptr, "use_object_offset", IFACE_("Object Offset"));
+  if (uiLayout *sub = object_offset_layout.body) {
     uiLayout *col = &sub->column(false);
     uiLayoutSetActive(col, RNA_boolean_get(ptr, "use_object_offset"));
-    uiItemR(col, ptr, "offset_object", UI_ITEM_NONE, IFACE_("Object"), ICON_NONE);
+    col->prop(ptr, "offset_object", UI_ITEM_NONE, IFACE_("Object"), ICON_NONE);
   }
 
-  if (uiLayout *sub = uiLayoutPanelProp(
-          C, layout, ptr, "open_randomize_panel", IFACE_("Randomize")))
-  {
+  if (uiLayout *sub = layout->panel_prop(C, ptr, "open_randomize_panel", IFACE_("Randomize"))) {
     uiLayoutSetPropSep(sub, true);
-    uiItemR(sub, ptr, "random_offset", UI_ITEM_NONE, IFACE_("Offset"), ICON_NONE);
-    uiItemR(sub, ptr, "random_rotation", UI_ITEM_NONE, IFACE_("Rotation"), ICON_NONE);
-    uiItemR(sub, ptr, "random_scale", UI_ITEM_NONE, IFACE_("Scale"), ICON_NONE);
-    uiItemR(sub, ptr, "use_uniform_random_scale", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    uiItemR(sub, ptr, "seed", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    sub->prop(ptr, "random_offset", UI_ITEM_NONE, IFACE_("Offset"), ICON_NONE);
+    sub->prop(ptr, "random_rotation", UI_ITEM_NONE, IFACE_("Rotation"), ICON_NONE);
+    sub->prop(ptr, "random_scale", UI_ITEM_NONE, IFACE_("Scale"), ICON_NONE);
+    sub->prop(ptr, "use_uniform_random_scale", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    sub->prop(ptr, "seed", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
-  if (uiLayout *influence_panel = uiLayoutPanelProp(
-          C, layout, ptr, "open_influence_panel", IFACE_("Influence")))
+  if (uiLayout *influence_panel = layout->panel_prop(
+          C, ptr, "open_influence_panel", IFACE_("Influence")))
   {
     modifier::greasepencil::draw_layer_filter_settings(C, influence_panel, ptr);
     modifier::greasepencil::draw_material_filter_settings(C, influence_panel, ptr);

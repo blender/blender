@@ -269,9 +269,8 @@ void Instance::update_eval_members()
 {
   scene = DEG_get_evaluated_scene(depsgraph);
   view_layer = DEG_get_evaluated_view_layer(depsgraph);
-  camera_eval_object = (camera_orig_object) ?
-                           DEG_get_evaluated_object(depsgraph, camera_orig_object) :
-                           nullptr;
+  camera_eval_object = (camera_orig_object) ? DEG_get_evaluated(depsgraph, camera_orig_object) :
+                                              nullptr;
 }
 
 /** \} */
@@ -683,9 +682,11 @@ void Instance::draw_viewport_image_render()
   if (skip_render_) {
     return;
   }
-  while (!sampling.finished_viewport()) {
+
+  do {
+    /* Render at least once to blit the finished image. */
     this->render_sample();
-  }
+  } while (!sampling.finished_viewport());
   velocity.step_swap();
 
   if (is_viewport_compositor_enabled) {

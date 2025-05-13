@@ -17,6 +17,7 @@
 #include "BLI_utildefines.h"
 
 #include "GPU_batch.hh"
+#include "GPU_state.hh"
 
 #include "../generic/py_capi_utils.hh"
 #include "../generic/python_compat.hh"
@@ -185,7 +186,7 @@ static PyObject *pygpu_batch_program_set(BPyGPUBatch *self, BPyGPUShader *py_sha
 {
   static bool deprecation_warning_issued = false;
 
-  /* Deprecation warning raised when calling `gpu.types.GPUBatch.program_set`.  */
+  /* Deprecation warning raised when calling `gpu.types.GPUBatch.program_set`. */
   if (!deprecation_warning_issued) {
     PyErr_WarnEx(PyExc_DeprecationWarning,
                  "Calls to GPUBatch.program_set are deprecated."
@@ -295,6 +296,7 @@ static PyObject *pygpu_batch_draw(BPyGPUBatch *self, PyObject *args)
   static bool deprecation_warning_issued = false;
 
   BPyGPUShader *py_shader = nullptr;
+  GPUShader *shader = nullptr;
 
   if (!PyArg_ParseTuple(args, "|O!:GPUBatch.draw", &BPyGPUShader_Type, &py_shader)) {
     return nullptr;
@@ -314,8 +316,37 @@ static PyObject *pygpu_batch_draw(BPyGPUBatch *self, PyObject *args)
       return nullptr;
     }
   }
-  else if (self->batch->shader != py_shader->shader) {
-    GPU_batch_set_shader(self->batch, py_shader->shader);
+  else {
+    shader = py_shader->shader;
+    /* Switch shaders to use its polyline variant when drawing lines. */
+    if (py_shader->is_builtin &&
+        ELEM(self->batch->prim_type, GPU_PRIM_LINES, GPU_PRIM_LINE_STRIP, GPU_PRIM_LINE_LOOP))
+    {
+      if (shader == GPU_shader_get_builtin_shader(GPU_SHADER_3D_CLIPPED_UNIFORM_COLOR)) {
+        shader = GPU_shader_get_builtin_shader(GPU_SHADER_3D_POLYLINE_CLIPPED_UNIFORM_COLOR);
+      }
+      else if (shader == GPU_shader_get_builtin_shader(GPU_SHADER_3D_UNIFORM_COLOR)) {
+        shader = GPU_shader_get_builtin_shader(GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR);
+      }
+      else if (shader == GPU_shader_get_builtin_shader(GPU_SHADER_3D_FLAT_COLOR)) {
+        shader = GPU_shader_get_builtin_shader(GPU_SHADER_3D_POLYLINE_FLAT_COLOR);
+      }
+      else if (shader == GPU_shader_get_builtin_shader(GPU_SHADER_3D_SMOOTH_COLOR)) {
+        shader = GPU_shader_get_builtin_shader(GPU_SHADER_3D_POLYLINE_SMOOTH_COLOR);
+      }
+    }
+
+    if (self->batch->shader != shader) {
+      GPU_batch_set_shader(self->batch, shader);
+    }
+
+    /* Uniforms can only be set after the correct shader has been bound to the batch. */
+    if (shader != py_shader->shader) {
+      float viewport[4];
+      GPU_viewport_size_get_f(viewport);
+      GPU_batch_uniform_2fv(self->batch, "viewportSize", &viewport[2]);
+      GPU_batch_uniform_1f(self->batch, "lineWidth", GPU_line_width_get());
+    }
   }
 
   if (const char *error = pygpu_shader_check_compatibility(self->batch)) {

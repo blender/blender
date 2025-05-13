@@ -123,6 +123,11 @@ class VExportTree:
 
     def construct(self, blender_scene):
         bpy.context.window.scene = blender_scene
+
+        # Make sure the active object is in object mode
+        if bpy.context.active_object and bpy.context.active_object.mode != 'OBJECT':
+            bpy.ops.object.mode_set(mode='OBJECT')
+
         depsgraph = bpy.context.evaluated_depsgraph_get()
 
         # Gather parent/children information once, as calling bobj.children is
@@ -922,6 +927,8 @@ class VExportTree:
                     self.nodes[self.nodes[bone].parent_uuid].children.remove(bone)
                     self.nodes[bone].parent_uuid = arma
                     self.nodes[arma].children.append(bone)
+                    self.nodes[arma].children_type[bone] = VExportNode.CHILDREN_REAL
+                    self.nodes[bone].parent_bone_uuid = None
 
     def break_obj_hierarchy(self):
         # Can be usefull when matrix is not decomposable

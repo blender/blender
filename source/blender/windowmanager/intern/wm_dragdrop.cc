@@ -21,8 +21,10 @@
 
 #include "BLT_translation.hh"
 
+#include "BLI_linear_allocator.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_color.h"
+#include "BLI_path_utils.hh"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
 
@@ -358,6 +360,32 @@ void WM_event_drag_image(wmDrag *drag, const ImBuf *imb, float scale)
 {
   drag->imb = imb;
   drag->imbuf_scale = scale;
+}
+
+void WM_event_drag_path_override_poin_data_with_space_file_paths(const bContext *C, wmDrag *drag)
+{
+  BLI_assert(drag->type == WM_DRAG_PATH);
+  if (!CTX_wm_space_file(C)) {
+    return;
+  }
+  char dirpath[FILE_MAX];
+  BLI_path_split_dir_part(WM_drag_get_single_path(drag), dirpath, FILE_MAX);
+
+  blender::LinearAllocator<> allocator;
+  blender::Vector<const char *> paths;
+  const blender::Vector<PointerRNA> files = CTX_data_collection_get(C, "selected_files");
+  for (const PointerRNA &file_ptr : files) {
+    const FileDirEntry *file = static_cast<const FileDirEntry *>(file_ptr.data);
+    char filepath[FILE_MAX];
+    BLI_path_join(filepath, sizeof(filepath), dirpath, file->name);
+
+    paths.append(allocator.copy_string(filepath).c_str());
+  }
+  if (paths.is_empty()) {
+    return;
+  }
+  WM_drag_data_free(drag->type, drag->poin);
+  drag->poin = WM_drag_create_path_data(paths);
 }
 
 void WM_event_drag_preview_icon(wmDrag *drag, int icon_id)
@@ -1035,7 +1063,7 @@ static int wm_drag_imbuf_icon_height_get(const wmDrag *drag)
 
 static int wm_drag_preview_icon_size_get()
 {
-  return UI_preview_tile_size_x();
+  return int(PREVIEW_DRAG_DRAW_SIZE * UI_SCALE_FAC);
 }
 
 static void wm_drag_draw_icon(bContext * /*C*/, wmWindow * /*win*/, wmDrag *drag, const int xy[2])
@@ -1072,7 +1100,7 @@ static void wm_drag_draw_icon(bContext * /*C*/, wmWindow * /*win*/, wmDrag *drag
     x = xy[0] - (size / 2);
     y = xy[1] - (size / 2);
 
-    UI_icon_draw_preview(x, y, drag->preview_icon_id, UI_INV_SCALE_FAC, 0.8, size);
+    UI_icon_draw_preview(x, y, drag->preview_icon_id, 1.0, 0.8, size);
   }
   else {
     int padding = 4 * UI_SCALE_FAC;

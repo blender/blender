@@ -290,34 +290,34 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   bool edge_bevel = RNA_enum_get(ptr, "affect") != MOD_BEVEL_AFFECT_VERTICES;
 
-  uiItemR(layout, ptr, "affect", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "affect", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
   uiLayoutSetPropSep(layout, true);
 
   col = &layout->column(false);
-  uiItemR(col, ptr, "offset_type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  col->prop(ptr, "offset_type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   if (RNA_enum_get(ptr, "offset_type") == BEVEL_AMT_PERCENT) {
-    uiItemR(col, ptr, "width_pct", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col->prop(ptr, "width_pct", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
   else {
-    uiItemR(col, ptr, "width", UI_ITEM_NONE, IFACE_("Amount"), ICON_NONE);
+    col->prop(ptr, "width", UI_ITEM_NONE, IFACE_("Amount"), ICON_NONE);
   }
 
-  uiItemR(layout, ptr, "segments", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "segments", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   uiItemS(layout);
 
   col = &layout->column(false);
-  uiItemR(col, ptr, "limit_method", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  col->prop(ptr, "limit_method", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   int limit_method = RNA_enum_get(ptr, "limit_method");
   if (limit_method == MOD_BEVEL_ANGLE) {
     sub = &col->column(false);
     uiLayoutSetActive(sub, edge_bevel);
-    uiItemR(col, ptr, "angle_limit", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col->prop(ptr, "angle_limit", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
   else if (limit_method == MOD_BEVEL_WEIGHT) {
     const char *prop_name = edge_bevel ? "edge_weight" : "vertex_weight";
-    uiItemR(col, ptr, prop_name, UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col->prop(ptr, prop_name, UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
   else if (limit_method == MOD_BEVEL_VGROUP) {
     modifier_vgroup_ui(col, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", std::nullopt);
@@ -338,7 +338,7 @@ static void profile_panel_draw(const bContext * /*C*/, Panel *panel)
   int miter_outer = RNA_enum_get(ptr, "miter_outer");
   bool edge_bevel = RNA_enum_get(ptr, "affect") != MOD_BEVEL_AFFECT_VERTICES;
 
-  uiItemR(layout, ptr, "profile_type", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "profile_type", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
   uiLayoutSetPropSep(layout, true);
 
@@ -349,13 +349,12 @@ static void profile_panel_draw(const bContext * /*C*/, Panel *panel)
         profile_type == MOD_BEVEL_PROFILE_SUPERELLIPSE ||
             (profile_type == MOD_BEVEL_PROFILE_CUSTOM && edge_bevel &&
              !((miter_inner == MOD_BEVEL_MITER_SHARP) && (miter_outer == MOD_BEVEL_MITER_SHARP))));
-    uiItemR(row,
-            ptr,
-            "profile",
-            UI_ITEM_R_SLIDER,
-            (profile_type == MOD_BEVEL_PROFILE_SUPERELLIPSE) ? IFACE_("Shape") :
-                                                               IFACE_("Miter Shape"),
-            ICON_NONE);
+    row->prop(ptr,
+              "profile",
+              UI_ITEM_R_SLIDER,
+              (profile_type == MOD_BEVEL_PROFILE_SUPERELLIPSE) ? IFACE_("Shape") :
+                                                                 IFACE_("Miter Shape"),
+              ICON_NONE);
 
     if (profile_type == MOD_BEVEL_PROFILE_CUSTOM) {
       uiLayout *sub = &layout->column(false);
@@ -378,24 +377,24 @@ static void geometry_panel_draw(const bContext * /*C*/, Panel *panel)
 
   row = &layout->row(false);
   uiLayoutSetActive(row, edge_bevel);
-  uiItemR(row, ptr, "miter_outer", UI_ITEM_NONE, IFACE_("Miter Outer"), ICON_NONE);
+  row->prop(ptr, "miter_outer", UI_ITEM_NONE, IFACE_("Miter Outer"), ICON_NONE);
   row = &layout->row(false);
   uiLayoutSetActive(row, edge_bevel);
-  uiItemR(row, ptr, "miter_inner", UI_ITEM_NONE, IFACE_("Inner"), ICON_NONE);
+  row->prop(ptr, "miter_inner", UI_ITEM_NONE, IFACE_("Inner"), ICON_NONE);
   if (RNA_enum_get(ptr, "miter_inner") == BEVEL_MITER_ARC) {
     row = &layout->row(false);
     uiLayoutSetActive(row, edge_bevel);
-    uiItemR(row, ptr, "spread", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    row->prop(ptr, "spread", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
   uiItemS(layout);
 
   row = &layout->row(false);
   uiLayoutSetActive(row, edge_bevel);
-  uiItemR(row, ptr, "vmesh_method", UI_ITEM_NONE, IFACE_("Intersections"), ICON_NONE);
-  uiItemR(layout, ptr, "use_clamp_overlap", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  row->prop(ptr, "vmesh_method", UI_ITEM_NONE, IFACE_("Intersections"), ICON_NONE);
+  layout->prop(ptr, "use_clamp_overlap", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   row = &layout->row(false);
   uiLayoutSetActive(row, edge_bevel);
-  uiItemR(row, ptr, "loop_slide", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  row->prop(ptr, "loop_slide", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
 static void shading_panel_draw(const bContext * /*C*/, Panel *panel)
@@ -409,15 +408,15 @@ static void shading_panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, ptr, "harden_normals", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "harden_normals", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   col = &layout->column(true, IFACE_("Mark"));
   uiLayoutSetActive(col, edge_bevel);
-  uiItemR(col, ptr, "mark_seam", UI_ITEM_NONE, IFACE_("Seam"), ICON_NONE);
-  uiItemR(col, ptr, "mark_sharp", UI_ITEM_NONE, IFACE_("Sharp"), ICON_NONE);
+  col->prop(ptr, "mark_seam", UI_ITEM_NONE, IFACE_("Seam"), ICON_NONE);
+  col->prop(ptr, "mark_sharp", UI_ITEM_NONE, IFACE_("Sharp"), ICON_NONE);
 
-  uiItemR(layout, ptr, "material", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  uiItemR(layout, ptr, "face_strength_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "material", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "face_strength_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
 static void panel_register(ARegionType *region_type)

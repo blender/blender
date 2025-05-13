@@ -25,6 +25,7 @@
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.hh"
 #include "BLI_rand.h"
+#include "BLI_set.hh"
 #include "BLI_span.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
@@ -71,6 +72,7 @@ using blender::Array;
 using blender::float2;
 using blender::float3;
 using blender::float4x4;
+using blender::Set;
 using blender::Span;
 using blender::Vector;
 using blender::bke::GeometrySet;
@@ -122,6 +124,11 @@ struct DupliContext {
    */
   Vector<short> *dupli_gen_type_stack;
 
+  /**
+   * If not null, then only instance objects that are in this set.
+   */
+  Set<const Object *> *include_objects;
+
   int persistent_id[MAX_DUPLI_RECUR];
   int64_t instance_idx[MAX_DUPLI_RECUR];
   const GeometrySet *instance_data[MAX_DUPLI_RECUR];
@@ -149,6 +156,7 @@ static void init_context(DupliContext *r_ctx,
                          Scene *scene,
                          Object *ob,
                          const float space_mat[4][4],
+                         blender::Set<const Object *> *include_objects,
                          Vector<Object *> &instance_stack,
                          Vector<short> &dupli_gen_type_stack)
 {
@@ -177,6 +185,8 @@ static void init_context(DupliContext *r_ctx,
   r_ctx->duplilist = nullptr;
   r_ctx->preview_instance_index = -1;
   r_ctx->preview_base_geometry = nullptr;
+
+  r_ctx->include_objects = include_objects;
 }
 
 /**
@@ -535,17 +545,25 @@ static void make_duplis_collection(const DupliContext *ctx)
 
   eEvaluationMode mode = DEG_get_mode(ctx->depsgraph);
   FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_BEGIN (collection, cob, mode) {
-    if (cob != ob) {
-      float mat[4][4];
-
-      /* Collection dupli-offset, should apply after everything else. */
-      mul_m4_m4m4(mat, collection_mat, cob->object_to_world().ptr());
-
-      make_dupli(ctx, cob, mat, _base_id);
-
-      /* Recursion. */
-      make_recursive_duplis(ctx, cob, collection_mat, _base_id);
+    if (cob == ob) {
+      continue;
     }
+
+    if (ctx->include_objects) {
+      if (!ctx->include_objects->contains(cob)) {
+        continue;
+      }
+    }
+
+    float mat[4][4];
+
+    /* Collection dupli-offset, should apply after everything else. */
+    mul_m4_m4m4(mat, collection_mat, cob->object_to_world().ptr());
+
+    make_dupli(ctx, cob, mat, _base_id);
+
+    /* Recursion. */
+    make_recursive_duplis(ctx, cob, collection_mat, _base_id);
   }
   FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_END;
 }
@@ -844,7 +862,7 @@ static void make_duplis_font(const DupliContext *ctx)
   family_gh = BLI_ghash_int_new_ex(__func__, 256);
 
   /* Safety check even if it might fail badly when called for original object. */
-  const bool is_eval_curve = DEG_is_evaluated_id(&cu->id);
+  const bool is_eval_curve = DEG_is_evaluated(cu);
 
   /* Advance matching BLI_str_utf8_as_utf32. */
   for (a = 0; a < text_len; a++, ct++) {
@@ -856,7 +874,7 @@ static void make_duplis_font(const DupliContext *ctx)
 
     if (is_eval_curve) {
       /* Workaround for the above hack. */
-      ob = DEG_get_evaluated_object(ctx->depsgraph, ob);
+      ob = DEG_get_evaluated(ctx->depsgraph, ob);
     }
 
     if (ob) {
@@ -1784,14 +1802,18 @@ static const DupliGenerator *get_dupli_generator(const DupliContext *ctx)
 /** \name Dupli-Container Implementation
  * \{ */
 
-ListBase *object_duplilist(Depsgraph *depsgraph, Scene *sce, Object *ob)
+ListBase *object_duplilist(Depsgraph *depsgraph,
+                           Scene *sce,
+                           Object *ob,
+                           Set<const Object *> *include_objects)
 {
   ListBase *duplilist = MEM_callocN<ListBase>("duplilist");
   DupliContext ctx;
   Vector<Object *> instance_stack;
   Vector<short> dupli_gen_type_stack({0});
   instance_stack.append(ob);
-  init_context(&ctx, depsgraph, sce, ob, nullptr, instance_stack, dupli_gen_type_stack);
+  init_context(
+      &ctx, depsgraph, sce, ob, nullptr, include_objects, instance_stack, dupli_gen_type_stack);
   if (ctx.gen) {
     ctx.duplilist = duplilist;
     ctx.gen->make_duplis(&ctx);
@@ -1810,7 +1832,8 @@ ListBase *object_duplilist_preview(Depsgraph *depsgraph,
   Vector<Object *> instance_stack;
   Vector<short> dupli_gen_type_stack({0});
   instance_stack.append(ob_eval);
-  init_context(&ctx, depsgraph, sce, ob_eval, nullptr, instance_stack, dupli_gen_type_stack);
+  init_context(
+      &ctx, depsgraph, sce, ob_eval, nullptr, nullptr, instance_stack, dupli_gen_type_stack);
   ctx.duplilist = duplilist;
 
   Object *ob_orig = DEG_get_original(ob_eval);
@@ -1848,7 +1871,8 @@ blender::bke::Instances object_duplilist_legacy_instances(Depsgraph &depsgraph,
   Vector<Object *> instance_stack({&ob});
   Vector<short> dupli_gen_type_stack({0});
 
-  init_context(&ctx, &depsgraph, &scene, &ob, nullptr, instance_stack, dupli_gen_type_stack);
+  init_context(
+      &ctx, &depsgraph, &scene, &ob, nullptr, nullptr, instance_stack, dupli_gen_type_stack);
   if (ctx.gen == &gen_dupli_geometry_set) {
     /* These are not legacy instances. */
     return {};

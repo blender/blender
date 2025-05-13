@@ -5,6 +5,7 @@
 #pragma once
 
 #include "BLI_index_mask.hh"
+#include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
 
 #include <optional>
@@ -53,11 +54,16 @@ void do_clay_strips_brush(const Depsgraph &depsgraph,
                           const float3 &plane_normal,
                           const float3 &plane_center);
 namespace clay_strips {
+float4x4 calc_local_matrix(const Brush &brush,
+                           const StrokeCache &cache,
+                           const float3 &plane_normal,
+                           const float3 &plane_center,
+                           const bool flip);
 CursorSampleResult calc_node_mask(const Depsgraph &depsgraph,
                                   Object &ob,
                                   const Brush &brush,
                                   IndexMaskMemory &memory);
-}
+}  // namespace clay_strips
 void do_clay_thumb_brush(const Depsgraph &depsgraph,
                          const Sculpt &sd,
                          Object &ob,
@@ -113,14 +119,6 @@ void do_enhance_details_brush(const Depsgraph &depsgraph,
                               const Sculpt &sd,
                               Object &object,
                               const IndexMask &node_mask);
-void do_fill_brush(const Depsgraph &depsgraph,
-                   const Sculpt &sd,
-                   Object &object,
-                   const IndexMask &node_mask);
-void do_flatten_brush(const Depsgraph &depsgraph,
-                      const Sculpt &sd,
-                      Object &ob,
-                      const IndexMask &node_mask);
 void do_plane_brush(const Depsgraph &depsgraph,
                     const Sculpt &sd,
                     Object &object,
@@ -179,10 +177,6 @@ void do_relax_face_sets_brush(const Depsgraph &depsgraph,
                               Object &object,
                               const IndexMask &node_mask);
 void do_rotate_brush(const Depsgraph &depsgraph,
-                     const Sculpt &sd,
-                     Object &object,
-                     const IndexMask &node_mask);
-void do_scrape_brush(const Depsgraph &depsgraph,
                      const Sculpt &sd,
                      Object &object,
                      const IndexMask &node_mask);

@@ -9,6 +9,7 @@
 #pragma once
 
 #include "DNA_ID.h"
+#include "DNA_attribute_types.h"
 #include "DNA_customdata_types.h"
 #include "DNA_defs.h"
 #include "DNA_session_uid_types.h"
@@ -55,7 +56,11 @@ struct MFace;
 struct Material;
 
 typedef struct Mesh {
+#ifdef __cplusplus
   DNA_DEFINE_CXX_METHODS(Mesh)
+  /** See #ID_Type comment for why this is here. */
+  static constexpr ID_Type id_type = ID_ME;
+#endif
 
   ID id;
   /** Animation data (must be immediately after id for utilities to use it). */
@@ -88,6 +93,12 @@ typedef struct Mesh {
    * Avoid accessing directly when possible.
    */
   int *face_offset_indices;
+
+  /**
+   * Vertex, edge, face, and corner generic attributes. Currently unused at runtime, but used for
+   * forward compatibility when reading files (see #122398).
+   */
+  struct AttributeStorage attribute_storage;
 
   CustomData vert_data;
   CustomData edge_data;

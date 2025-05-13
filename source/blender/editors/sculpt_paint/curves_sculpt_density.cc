@@ -119,7 +119,7 @@ struct DensityAddOperationExecutor {
       return;
     }
 
-    surface_ob_eval_ = DEG_get_evaluated_object(ctx_.depsgraph, surface_ob_orig_);
+    surface_ob_eval_ = DEG_get_evaluated(ctx_.depsgraph, surface_ob_orig_);
     if (surface_ob_eval_ == nullptr) {
       return;
     }
@@ -550,7 +550,7 @@ struct DensitySubtractOperationExecutor {
     }
     surface_orig_ = static_cast<Mesh *>(surface_ob_orig_->data);
 
-    surface_ob_eval_ = DEG_get_evaluated_object(ctx_.depsgraph, surface_ob_orig_);
+    surface_ob_eval_ = DEG_get_evaluated(ctx_.depsgraph, surface_ob_orig_);
     if (surface_ob_eval_ == nullptr) {
       return;
     }
@@ -823,7 +823,7 @@ static bool use_add_density_mode(const BrushStrokeMode brush_mode,
   if (surface_ob_orig == nullptr) {
     return true;
   }
-  Object *surface_ob_eval = DEG_get_evaluated_object(&depsgraph, surface_ob_orig);
+  Object *surface_ob_eval = DEG_get_evaluated(&depsgraph, surface_ob_orig);
   if (surface_ob_eval == nullptr) {
     return true;
   }

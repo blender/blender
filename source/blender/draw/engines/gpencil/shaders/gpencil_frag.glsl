@@ -102,7 +102,7 @@ void main()
     revealColor = float4(0.0f, 0.0f, 0.0f, frag_color.a);
 
     if (frag_color.a < 0.001f) {
-      discard;
+      gpu_discard_fragment();
       return;
     }
   }
@@ -113,7 +113,7 @@ void main()
   /* Manual depth test */
   float scene_depth = texture(gp_scene_depth_tx, uvs).r;
   if (gl_FragCoord.z > scene_depth) {
-    discard;
+    gpu_discard_fragment();
     return;
   }
 
@@ -121,7 +121,7 @@ void main()
    * depth written where the mask obliterate the layer. */
   float mask = texture(gp_mask_tx, uvs).r;
   if (mask < 0.001f) {
-    discard;
+    gpu_discard_fragment();
     return;
   }
 

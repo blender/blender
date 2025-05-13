@@ -216,7 +216,7 @@ void action_slots_user_cache_invalidate(Main &bmain);
  * \note This performs a full scan of all Actions (direct assignment and each
  * NLA Action strip), as well as all drivers.
  *
- * \param adt can be nullptr, in which case the function will return false.
+ * \param adt: can be nullptr, in which case the function will return false.
  */
 bool prop_is_animated(const AnimData *adt, StringRefNull rna_path, int array_index);
 

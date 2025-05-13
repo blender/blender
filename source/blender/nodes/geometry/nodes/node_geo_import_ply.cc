@@ -4,7 +4,9 @@
 
 #include "node_geometry_util.hh"
 
+#include "BLI_generic_key_string.hh"
 #include "BLI_listbase.h"
+#include "BLI_memory_cache_file_load.hh"
 #include "BLI_string.h"
 
 #include "BKE_report.hh"
@@ -24,6 +26,17 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Geometry>("Mesh");
 }
 
+class LoadPlyCache : public memory_cache::CachedValue {
+ public:
+  GeometrySet geometry;
+  Vector<geo_eval_log::NodeWarning> warnings;
+
+  void count_memory(MemoryCounter &counter) const override
+  {
+    this->geometry.count_memory(counter);
+  }
+};
+
 static void node_geo_exec(GeoNodeExecParams params)
 {
 #ifdef WITH_IO_PLY
@@ -34,31 +47,33 @@ static void node_geo_exec(GeoNodeExecParams params)
     return;
   }
 
-  PLYImportParams import_params;
-  STRNCPY(import_params.filepath, path->c_str());
-  import_params.import_attributes = true;
+  std::shared_ptr<const LoadPlyCache> cached_value = memory_cache::get_loaded<LoadPlyCache>(
+      GenericStringKey{"import_ply_node"}, {StringRefNull(*path)}, [&]() {
+        PLYImportParams import_params;
+        STRNCPY(import_params.filepath, path->c_str());
+        import_params.import_attributes = true;
 
-  ReportList reports;
-  BKE_reports_init(&reports, RPT_STORE);
-  BLI_SCOPED_DEFER([&]() { BKE_reports_free(&reports); })
-  import_params.reports = &reports;
+        ReportList reports;
+        BKE_reports_init(&reports, RPT_STORE);
+        BLI_SCOPED_DEFER([&]() { BKE_reports_free(&reports); });
+        import_params.reports = &reports;
 
-  Mesh *mesh = PLY_import_mesh(import_params);
+        Mesh *mesh = PLY_import_mesh(import_params);
 
-  LISTBASE_FOREACH (Report *, report, &(import_params.reports)->list) {
-    NodeWarningType type;
-    switch (report->type) {
-      case RPT_ERROR:
-        type = NodeWarningType::Error;
-        break;
-      default:
-        type = NodeWarningType::Info;
-        break;
-    }
-    params.error_message_add(type, TIP_(report->message));
+        auto cached_value = std::make_unique<LoadPlyCache>();
+        cached_value->geometry = GeometrySet::from_mesh(mesh);
+
+        LISTBASE_FOREACH (Report *, report, &(import_params.reports)->list) {
+          cached_value->warnings.append_as(*report);
+        }
+        return cached_value;
+      });
+
+  for (const geo_eval_log::NodeWarning &warning : cached_value->warnings) {
+    params.error_message_add(warning.type, warning.message);
   }
 
-  params.set_output("Mesh", GeometrySet::from_mesh(mesh));
+  params.set_output("Mesh", cached_value->geometry);
 
 #else
   params.error_message_add(NodeWarningType::Error,

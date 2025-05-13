@@ -24,43 +24,43 @@ def gather_image(
     if not __filter_image(blender_shader_sockets, export_settings):
         return None, None, None, None
 
-    image_data, udim_image = __get_image_data(blender_shader_sockets, use_tile, export_settings)
+    export_image, udim_image = __get_image_data(blender_shader_sockets, use_tile, export_settings)
 
     if udim_image is not None:
         # We are in a UDIM case, so we return no image data
         # This will be used later to create multiple primitives/material/texture with UDIM information
         return None, None, None, udim_image
 
-    if image_data.empty():
+    if export_image.empty():
         # The export image has no data
         return None, None, None, None
 
-    mime_type = __gather_mime_type(blender_shader_sockets, image_data, export_settings)
-    name = __gather_name(image_data, use_tile, export_settings)
+    mime_type = __gather_mime_type(blender_shader_sockets, export_image, export_settings)
+    name = __gather_name(export_image, use_tile, export_settings)
 
     if use_tile is not None:
         name = name.replace("<UDIM>", str(export_settings['current_udim_info']['tile']))
 
     factor = None
 
-    if image_data.original is None:
-        uri, factor_uri = __gather_uri(image_data, mime_type, name, export_settings)
+    if export_image.original is None:
+        image_data, factor_uri = __gather_uri(export_image, mime_type, name, export_settings)
     else:
         # Retrieve URI relative to exported glTF files
-        uri = __gather_original_uri(
-            image_data.original.filepath,
+        image_data = __gather_original_uri(
+            export_image.original.filepath,
             blender_shader_sockets[0].socket.id_data.library,
             export_settings
         )
         # In case we can't retrieve image (for example packed images, with original moved)
         # We don't create invalid image without uri
         factor_uri = None
-        if uri is None:
+        if image_data is None:
             return None, None, None, None
 
-    buffer_view, factor_buffer_view = __gather_buffer_view(image_data, mime_type, name, export_settings)
+    buffer_view, factor_buffer_view = __gather_buffer_view(export_image, mime_type, name, export_settings)
 
-    factor = factor_uri if uri is not None else factor_buffer_view
+    factor = factor_uri if image_data is not None else factor_buffer_view
 
     image = __make_image(
         buffer_view,
@@ -68,14 +68,14 @@ def gather_image(
         __gather_extras(blender_shader_sockets, export_settings),
         mime_type,
         name,
-        uri,
+        image_data,
         export_settings
     )
 
-    export_user_extensions('gather_image_hook', export_settings, image, blender_shader_sockets)
+    export_user_extensions('gather_image_hook', export_settings, image, export_image, blender_shader_sockets)
 
     # We also return image_data, as it can be used to generate same file with another extension for WebP management
-    return image, image_data, factor, None
+    return image, export_image, factor, None
 
 
 def __gather_original_uri(original_uri, library, export_settings):
@@ -95,14 +95,14 @@ def __gather_original_uri(original_uri, library, export_settings):
 
 
 @cached
-def __make_image(buffer_view, extensions, extras, mime_type, name, uri, export_settings):
+def __make_image(buffer_view, extensions, extras, mime_type, name, image_data, export_settings):
     return gltf2_io.Image(
         buffer_view=buffer_view,
         extensions=extensions,
         extras=extras,
         mime_type=mime_type,
         name=name,
-        uri=uri
+        uri=image_data
     )
 
 
@@ -198,16 +198,40 @@ def __gather_name(export_image, use_tile, export_settings):
 
 @cached
 def __gather_uri(image_data, mime_type, name, export_settings):
+    # This function return an image data, that will be converted to uri later in exporter process
+    # This is the uri that will be used in the glTF file (if using GLTF_SEPARATE)
+    # Or will be converted to buffer_view (if using GLB)
     if export_settings['gltf_format'] == 'GLTF_SEPARATE':
         # as usual we just store the data in place instead of already resolving the references
         data, factor = image_data.encode(mime_type, export_settings)
-        return gltf2_io_image_data.ImageData(
+        image =  gltf2_io_image_data.ImageData(
             data=data,
             mime_type=mime_type,
             name=name
-        ), factor
+        )
+
+        # We need to set the "final" uri here, to be able to modify it in a hook if necessary
+        set_real_uri(image, export_settings)
+
+        return image, factor
 
     return None, None
+
+def set_real_uri(image, export_settings):
+    # We need to set the "final" uri here, to be able to modify it in a hook if necessary
+    # This is the uri that will be used in the glTF file (if using GLTF_SEPARATE)
+    adj_name = image.set_adjusted_name(export_settings['image_names'])
+    export_settings['image_names'].append(adj_name)
+
+    texture_dir = export_settings['gltf_texturedirectory']
+    abs_path = os.path.join(texture_dir, adj_name)
+    rel_path = os.path.relpath(
+        abs_path,
+        start=export_settings['gltf_filedirectory'],
+    )
+
+    uri = path_to_uri(adj_name)
+    image.uri = uri
 
 
 def __get_image_data(sockets, use_tile, export_settings) -> ExportImage:
@@ -443,13 +467,13 @@ def __is_blender_image_a_webp(image: bpy.types.Image) -> bool:
 
 
 def get_gltf_image_from_blender_image(blender_image_name, export_settings):
-    image_data = ExportImage.from_blender_image(bpy.data.images[blender_image_name])
+    export_image = ExportImage.from_blender_image(bpy.data.images[blender_image_name])
 
-    name = __gather_name(image_data, None, export_settings)
+    name = __gather_name(export_image, None, export_settings)
     mime_type = __get_mime_type_of_image(blender_image_name, export_settings)
 
-    uri, _ = __gather_uri(image_data, mime_type, name, export_settings)
-    buffer_view, _ = __gather_buffer_view(image_data, mime_type, name, export_settings)
+    image_data, _ = __gather_uri(export_image, mime_type, name, export_settings)
+    buffer_view, _ = __gather_buffer_view(export_image, mime_type, name, export_settings)
 
     return gltf2_io.Image(
         buffer_view=buffer_view,
@@ -457,7 +481,7 @@ def get_gltf_image_from_blender_image(blender_image_name, export_settings):
         extras=None,
         mime_type=mime_type,
         name=name,
-        uri=uri
+        uri=image_data
     )
 
 

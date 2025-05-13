@@ -20,6 +20,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_math_base.h"
+#include "BLI_rect.h"
 #include "BLI_string.h"
 
 #include "BLF_api.hh"
@@ -29,6 +30,9 @@
 #include "BKE_lib_remap.hh"
 #include "BKE_screen.hh"
 
+#include "IMB_colormanagement.hh"
+#include "IMB_imbuf.hh"
+
 #include "GPU_state.hh"
 
 #include "ED_markers.hh"
@@ -37,7 +41,7 @@
 #include "ED_space_api.hh"
 #include "ED_time_scrub_ui.hh"
 #include "ED_transform.hh"
-#include "ED_view3d.hh"
+#include "ED_util.hh"
 #include "ED_view3d_offscreen.hh" /* Only for sequencer view3d drawing callback. */
 
 #include "WM_api.hh"
@@ -55,9 +59,6 @@
 #include "UI_view2d.hh"
 
 #include "BLO_read_write.hh"
-
-/* Only for cursor drawing. */
-#include "DRW_engine.hh"
 
 /* Own include. */
 #include "sequencer_intern.hh"
@@ -197,7 +198,7 @@ static SpaceLink *sequencer_create(const ScrArea * /*area*/, const Scene *scene)
   region->v2d.keepzoom = V2D_KEEPZOOM;
   region->v2d.keepofs = V2D_KEEPOFS_X | V2D_KEEPOFS_Y;
   region->v2d.keeptot = V2D_KEEPTOT_FREE;
-  region->v2d.flag |= V2D_VIEWSYNC_AREA_VERTICAL;
+  region->v2d.flag |= V2D_VIEWSYNC_AREA_VERTICAL | V2D_ZOOM_IGNORE_KEEPOFS;
   region->v2d.align = V2D_ALIGN_NO_NEG_Y;
 
   return (SpaceLink *)sseq;
@@ -840,172 +841,6 @@ static void sequencer_preview_region_view2d_changed(const bContext *C, ARegion *
 {
   SpaceSeq *sseq = CTX_wm_space_seq(C);
   sseq->flag &= ~SEQ_ZOOM_TO_FIT;
-}
-
-static bool is_cursor_visible(const SpaceSeq *sseq)
-{
-  if (G.moving & G_TRANSFORM_CURSOR) {
-    return true;
-  }
-
-  if ((sseq->flag & SEQ_SHOW_OVERLAY) &&
-      (sseq->preview_overlay.flag & SEQ_PREVIEW_SHOW_2D_CURSOR) != 0)
-  {
-    return true;
-  }
-  return false;
-}
-
-/**
- * We may want to move this into a more general location.
- */
-static void draw_cursor_2d(const ARegion *region, const blender::float2 &cursor)
-{
-  int co[2];
-  UI_view2d_view_to_region(&region->v2d, cursor[0], cursor[1], &co[0], &co[1]);
-
-  /* Draw nice Anti Aliased cursor. */
-  GPU_blend(GPU_BLEND_ALPHA);
-
-  /* Draw lines */
-  float original_proj[4][4];
-  GPU_matrix_projection_get(original_proj);
-  GPU_matrix_push();
-  ED_region_pixelspace(region);
-  GPU_matrix_translate_2f(co[0] + 0.5f, co[1] + 0.5f);
-  GPU_matrix_scale_2f(U.widget_unit, U.widget_unit);
-
-  float viewport[4];
-  GPU_viewport_size_get_f(viewport);
-
-  GPUVertFormat *format = immVertexFormat();
-  struct {
-    uint pos, col;
-  } attr_id{};
-  attr_id.pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-  attr_id.col = GPU_vertformat_attr_add(format, "color", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
-  immBindBuiltinProgram(GPU_SHADER_3D_POLYLINE_FLAT_COLOR);
-  immUniform2fv("viewportSize", &viewport[2]);
-  immUniform1f("lineWidth", U.pixelsize);
-
-  const float f5 = 0.25f;
-  const float f10 = 0.5f;
-  const float f20 = 1.0f;
-
-  const float red[3] = {1.0f, 0.0f, 0.0f};
-  const float white[3] = {1.0f, 1.0f, 1.0f};
-
-  const int segments = 16;
-  immBegin(GPU_PRIM_LINE_STRIP, segments + 1);
-  for (int i = 0; i < segments + 1; i++) {
-    float angle = float(2 * M_PI) * (float(i) / float(segments));
-    float x = f10 * cosf(angle);
-    float y = f10 * sinf(angle);
-
-    immAttr3fv(attr_id.col, (i % 2 == 0) ? red : white);
-    immVertex2f(attr_id.pos, x, y);
-  }
-  immEnd();
-
-  float crosshair_color[3];
-  UI_GetThemeColor3fv(TH_VIEW_OVERLAY, crosshair_color);
-
-  immBegin(GPU_PRIM_LINES, 8);
-  immAttr3fv(attr_id.col, crosshair_color);
-  immVertex2f(attr_id.pos, -f20, 0);
-  immAttr3fv(attr_id.col, crosshair_color);
-  immVertex2f(attr_id.pos, -f5, 0);
-
-  immAttr3fv(attr_id.col, crosshair_color);
-  immVertex2f(attr_id.pos, +f20, 0);
-  immAttr3fv(attr_id.col, crosshair_color);
-  immVertex2f(attr_id.pos, +f5, 0);
-
-  immAttr3fv(attr_id.col, crosshair_color);
-  immVertex2f(attr_id.pos, 0, -f20);
-  immAttr3fv(attr_id.col, crosshair_color);
-  immVertex2f(attr_id.pos, 0, -f5);
-
-  immAttr3fv(attr_id.col, crosshair_color);
-  immVertex2f(attr_id.pos, 0, +f20);
-  immAttr3fv(attr_id.col, crosshair_color);
-  immVertex2f(attr_id.pos, 0, +f5);
-  immEnd();
-
-  immUnbindProgram();
-
-  GPU_blend(GPU_BLEND_NONE);
-
-  GPU_matrix_pop();
-  GPU_matrix_projection_set(original_proj);
-}
-
-static void sequencer_preview_region_draw(const bContext *C, ARegion *region)
-{
-  ScrArea *area = CTX_wm_area(C);
-  SpaceSeq *sseq = static_cast<SpaceSeq *>(area->spacedata.first);
-  Scene *scene = CTX_data_scene(C);
-  wmWindowManager *wm = CTX_wm_manager(C);
-  const bool draw_overlay = sseq->flag & SEQ_SHOW_OVERLAY;
-  const bool draw_frame_overlay = (scene->ed &&
-                                   (scene->ed->overlay_frame_flag & SEQ_EDIT_OVERLAY_FRAME_SHOW) &&
-                                   draw_overlay);
-  const bool is_playing = ED_screen_animation_playing(wm);
-
-  if (!(draw_frame_overlay && (sseq->overlay_frame_type == SEQ_OVERLAY_FRAME_TYPE_REFERENCE))) {
-    sequencer_draw_preview(C, scene, region, sseq, scene->r.cfra, 0, false, false);
-  }
-
-  if (draw_frame_overlay && sseq->overlay_frame_type != SEQ_OVERLAY_FRAME_TYPE_CURRENT) {
-    int over_cfra;
-
-    if (scene->ed->overlay_frame_flag & SEQ_EDIT_OVERLAY_FRAME_ABS) {
-      over_cfra = scene->ed->overlay_frame_abs;
-    }
-    else {
-      over_cfra = scene->r.cfra + scene->ed->overlay_frame_ofs;
-    }
-
-    if ((over_cfra != scene->r.cfra) || (sseq->overlay_frame_type != SEQ_OVERLAY_FRAME_TYPE_RECT))
-    {
-      sequencer_draw_preview(
-          C, scene, region, sseq, scene->r.cfra, over_cfra - scene->r.cfra, true, false);
-    }
-  }
-
-  /* No need to show the cursor for scopes. */
-  if ((is_playing == false) && (sseq->mainb == SEQ_DRAW_IMG_IMBUF) && is_cursor_visible(sseq)) {
-    GPU_color_mask(true, true, true, true);
-    GPU_depth_mask(false);
-    GPU_depth_test(GPU_DEPTH_NONE);
-
-    const blender::float2 cursor_pixel = seq::image_preview_unit_to_px(scene, sseq->cursor);
-    draw_cursor_2d(region, cursor_pixel);
-  }
-
-  if ((is_playing == false) && (sseq->gizmo_flag & SEQ_GIZMO_HIDE) == 0) {
-    WM_gizmomap_draw(region->runtime->gizmo_map, C, WM_GIZMOMAP_DRAWSTEP_2D);
-  }
-
-  if ((U.uiflag & USER_SHOW_FPS) && ED_screen_animation_no_scrub(wm)) {
-    const rcti *rect = ED_region_visible_rect(region);
-    int xoffset = rect->xmin + U.widget_unit;
-    int yoffset = rect->ymax;
-
-    /* #ED_scene_draw_fps does not set text/shadow colors, except when
-     * frame-rate is too low, then it sets text color to red.
-     * Make sure the "normal case" also has legible colors. */
-    const int font_id = BLF_default();
-    float text_color[4] = {1, 1, 1, 1}, shadow_color[4] = {0, 0, 0, 0.8f};
-    BLF_color4fv(font_id, text_color);
-    BLF_enable(font_id, BLF_SHADOW);
-    BLF_shadow_offset(font_id, 0, 0);
-    BLF_shadow(font_id, FontShadowType::Outline, shadow_color);
-
-    ED_scene_draw_fps(scene, xoffset, &yoffset);
-
-    BLF_disable(font_id, BLF_SHADOW);
-  }
 }
 
 static void sequencer_preview_region_listener(const wmRegionListenerParams *params)

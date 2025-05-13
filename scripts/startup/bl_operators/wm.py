@@ -3031,6 +3031,10 @@ class WM_OT_batch_rename(Operator):
                     "name",
                     descr,
                 )
+
+        if data is None:
+            return None
+
         data = ([it for it in data[0] if _is_editable(it)], data[1], data[2])
 
         return data

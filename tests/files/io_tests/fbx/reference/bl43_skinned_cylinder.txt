@@ -1,0 +1,218 @@
+==== Meshes: 1
+- Mesh 'Cylinder' vtx:160 face:130 loop:576 edge:288
+    - 96 1 3 97 97 ... 0 60 157 158 62 
+    - 1/96 1/3 3/97 96/97 3/5 ... 54/154 56/155 58/156 60/157 62/158 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (0.000, 1.000, 0.000)
+    - (0.000, 1.000, 4.000)
+    - (0.195, 0.981, 0.000)
+      ...
+    - (-0.383, 0.924, 1.000)
+    - (-0.195, 0.981, 1.000)
+    - (0.000, 1.000, 1.000)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 1 1 1 0 1 ... 1 1 1 1 1 
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 ... 0 0 0 0 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'UVMap' FLOAT2 CORNER
+    - (0.000, 0.000)
+    - (1.000, 0.000)
+    - (1.000, 1.000)
+      ...
+    - (1.000, 0.000)
+    - (1.000, 1.000)
+    - (0.000, 1.000)
+  - vertex groups:
+    - 0=0.603 1=0.383
+    - 3=0.593 2=0.389
+    - 0=0.657 1=0.329
+    - 3=0.520 2=0.462
+    - 0=0.698 1=0.287
+  - 1 materials
+    - 'Cylinder' 
+
+==== Objects: 3
+- Obj 'Camera' CAMERA data:'Camera'
+  - pos 11.030, -9.817, 9.933
+  - rot 1.109, 0.011, 0.815 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'Cylinder' MESH data:'Cylinder' par:'Root'
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+  - 4 vertex groups
+    - 'Joint_One' 'Joint_Two' 'Joint_Three' 'Joint_Four' 
+  - 1 modifiers
+    - ARMATURE 'Root'
+- Obj 'Root' ARMATURE data:'Root'
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+  - posed bone 'Joint_Four'
+      1.000 0.000 0.000 0.000
+      0.000 0.966 -0.259 0.000
+      0.000 0.259 0.966 0.000
+  - posed bone 'Joint_Three'
+      1.000 0.000 0.000 0.000
+      0.000 0.866 -0.500 0.000
+      0.000 0.500 0.866 0.000
+  - anim act:Root|SkeletonAnimation slot:OBRoot blend:REPLACE drivers:0
+
+==== Cameras: 1
+- Cam 'Camera' PERSP lens:35.0 MILLIMETERS near:0.100 far:100.0 orthosize:7.3
+  - fov 0.858 (h 0.858 v 0.503)
+  - sensor 32.0x18.0 shift 0.000,0.000
+  - anim act:Root|SkeletonAnimation slot:CACamera blend:REPLACE drivers:0
+
+==== Materials: 1
+- Mat 'Cylinder'
+  - base color (0.000, 0.800, 0.800)
+  - specular ior 0.500
+  - specular tint (1.000, 1.000, 1.000)
+  - roughness 0.500
+  - metallic 0.000
+  - ior 1.500
+  - viewport diffuse (0.000, 0.800, 0.800, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 0.500
+  - viewport metallic 0.000, roughness 0.500
+  - backface False probe True shadow False
+
+==== Actions: 1
+- Action 'Root|SkeletonAnimation' curverange:(1.0 .. 121.0) layers:1
+- ActionLayer Layer strips:1
+ - Keyframe strip channelbags:2
+ - Channelbag slot 'CACamera' curves:2
+  - fcu 'dof.focus_distance[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2
+    - (1.000, 0.000) lh:(-39.000, 0.000 AUTO_CLAMPED) rh:(41.000, 0.000 AUTO_CLAMPED)
+    - (121.000, 0.000) lh:(81.000, 0.000 AUTO_CLAMPED) rh:(161.000, 0.000 AUTO_CLAMPED)
+  - fcu 'lens[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2
+    - (1.000, 35.000) lh:(-39.000, 35.000 AUTO_CLAMPED) rh:(41.000, 35.000 AUTO_CLAMPED)
+    - (121.000, 35.000) lh:(81.000, 35.000 AUTO_CLAMPED) rh:(161.000, 35.000 AUTO_CLAMPED)
+ - Channelbag slot 'OBRoot' curves:49
+  - fcu 'location[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Root'
+    - (1.000, 0.000) lh:(-39.000, 0.000 AUTO_CLAMPED) rh:(41.000, 0.000 AUTO_CLAMPED)
+    - (121.000, 0.000) lh:(81.000, 0.000 AUTO_CLAMPED) rh:(161.000, 0.000 AUTO_CLAMPED)
+  - fcu 'location[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Root'
+    - (1.000, 0.000) lh:(-39.000, 0.000 AUTO_CLAMPED) rh:(41.000, 0.000 AUTO_CLAMPED)
+    - (121.000, 0.000) lh:(81.000, 0.000 AUTO_CLAMPED) rh:(161.000, 0.000 AUTO_CLAMPED)
+  - fcu 'location[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Root'
+    - (1.000, 0.000) lh:(-39.000, 0.000 AUTO_CLAMPED) rh:(41.000, 0.000 AUTO_CLAMPED)
+    - (121.000, 0.000) lh:(81.000, 0.000 AUTO_CLAMPED) rh:(161.000, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Joint_Four"].location[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:119 grp:'Joint_Four'
+    - (1.000, 0.000) lh:(0.333, 0.000 AUTO_CLAMPED) rh:(1.667, 0.000 AUTO_CLAMPED)
+    - (3.000, 0.000) lh:(2.333, 0.000 AUTO_CLAMPED) rh:(3.333, 0.000 AUTO_CLAMPED)
+    - (4.000, 0.000) lh:(3.667, 0.000 AUTO_CLAMPED) rh:(4.333, 0.000 AUTO_CLAMPED)
+      ...
+    - (118.000, 0.000) lh:(117.667, 0.000 AUTO_CLAMPED) rh:(118.333, 0.000 AUTO_CLAMPED)
+    - (119.000, 0.000) lh:(118.667, 0.000 AUTO_CLAMPED) rh:(119.667, 0.000 AUTO_CLAMPED)
+    - (121.000, 0.000) lh:(120.333, 0.000 AUTO_CLAMPED) rh:(121.667, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Joint_Four"].location[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:119 grp:'Joint_Four'
+    - (1.000, 0.000) lh:(0.333, 0.000 AUTO_CLAMPED) rh:(1.667, 0.000 AUTO_CLAMPED)
+    - (3.000, 0.000) lh:(2.333, 0.000 AUTO_CLAMPED) rh:(3.333, 0.000 AUTO_CLAMPED)
+    - (4.000, 0.000) lh:(3.667, 0.000 AUTO_CLAMPED) rh:(4.333, 0.000 AUTO_CLAMPED)
+      ...
+    - (118.000, 0.000) lh:(117.667, 0.000 AUTO_CLAMPED) rh:(118.333, 0.000 AUTO_CLAMPED)
+    - (119.000, 0.000) lh:(118.667, 0.000 AUTO_CLAMPED) rh:(119.667, 0.000 AUTO_CLAMPED)
+    - (121.000, 0.000) lh:(120.333, 0.000 AUTO_CLAMPED) rh:(121.667, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Joint_Four"].location[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:119 grp:'Joint_Four'
+    - (1.000, 0.000) lh:(0.333, 0.000 AUTO_CLAMPED) rh:(1.667, 0.000 AUTO_CLAMPED)
+    - (3.000, 0.000) lh:(2.333, 0.000 AUTO_CLAMPED) rh:(3.333, 0.000 AUTO_CLAMPED)
+    - (4.000, 0.000) lh:(3.667, 0.000 AUTO_CLAMPED) rh:(4.333, 0.000 AUTO_CLAMPED)
+      ...
+    - (118.000, 0.000) lh:(117.667, 0.000 AUTO_CLAMPED) rh:(118.333, 0.000 AUTO_CLAMPED)
+    - (119.000, 0.000) lh:(118.667, 0.000 AUTO_CLAMPED) rh:(119.667, 0.000 AUTO_CLAMPED)
+    - (121.000, 0.000) lh:(120.333, 0.000 AUTO_CLAMPED) rh:(121.667, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Joint_Four"].rotation_quaternion[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:119 grp:'Joint_Four'
+    - (1.000, 0.991) lh:(0.333, 0.991 AUTO_CLAMPED) rh:(1.667, 0.991 AUTO_CLAMPED)
+    - (3.000, 0.991) lh:(2.333, 0.991 AUTO_CLAMPED) rh:(3.333, 0.992 AUTO_CLAMPED)
+    - (4.000, 0.992) lh:(3.667, 0.992 AUTO_CLAMPED) rh:(4.333, 0.992 AUTO_CLAMPED)
+      ...
+    - (118.000, 0.992) lh:(117.667, 0.992 AUTO_CLAMPED) rh:(118.333, 0.992 AUTO_CLAMPED)
+    - (119.000, 0.991) lh:(118.667, 0.992 AUTO_CLAMPED) rh:(119.667, 0.991 AUTO_CLAMPED)
+    - (121.000, 0.991) lh:(120.333, 0.991 AUTO_CLAMPED) rh:(121.667, 0.991 AUTO_CLAMPED)
+  - fcu 'pose.bones["Joint_Four"].rotation_quaternion[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:119 grp:'Joint_Four'
+    - (1.000, 0.131) lh:(0.333, 0.131 AUTO_CLAMPED) rh:(1.667, 0.131 AUTO_CLAMPED)
+    - (3.000, 0.130) lh:(2.333, 0.130 AUTO_CLAMPED) rh:(3.333, 0.130 AUTO_CLAMPED)
+    - (4.000, 0.130) lh:(3.667, 0.130 AUTO_CLAMPED) rh:(4.333, 0.130 AUTO_CLAMPED)
+      ...
+    - (118.000, 0.130) lh:(117.667, 0.130 AUTO_CLAMPED) rh:(118.333, 0.130 AUTO_CLAMPED)
+    - (119.000, 0.130) lh:(118.667, 0.130 AUTO_CLAMPED) rh:(119.667, 0.130 AUTO_CLAMPED)
+    - (121.000, 0.131) lh:(120.333, 0.131 AUTO_CLAMPED) rh:(121.667, 0.131 AUTO_CLAMPED)
+  - fcu 'pose.bones["Joint_Four"].rotation_quaternion[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:119 grp:'Joint_Four'
+    - (1.000, 0.000) lh:(0.333, 0.000 AUTO_CLAMPED) rh:(1.667, 0.000 AUTO_CLAMPED)
+    - (3.000, 0.000) lh:(2.333, 0.000 AUTO_CLAMPED) rh:(3.333, 0.000 AUTO_CLAMPED)
+    - (4.000, 0.000) lh:(3.667, 0.000 AUTO_CLAMPED) rh:(4.333, 0.000 AUTO_CLAMPED)
+      ...
+    - (118.000, 0.000) lh:(117.667, 0.000 AUTO_CLAMPED) rh:(118.333, 0.000 AUTO_CLAMPED)
+    - (119.000, 0.000) lh:(118.667, 0.000 AUTO_CLAMPED) rh:(119.667, 0.000 AUTO_CLAMPED)
+    - (121.000, 0.000) lh:(120.333, 0.000 AUTO_CLAMPED) rh:(121.667, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Joint_Four"].rotation_quaternion[3]' smooth:CONT_ACCEL extra:CONSTANT keyframes:119 grp:'Joint_Four'
+    - (1.000, 0.000) lh:(0.333, 0.000 AUTO_CLAMPED) rh:(1.667, 0.000 AUTO_CLAMPED)
+    - (3.000, 0.000) lh:(2.333, 0.000 AUTO_CLAMPED) rh:(3.333, 0.000 AUTO_CLAMPED)
+    - (4.000, 0.000) lh:(3.667, 0.000 AUTO_CLAMPED) rh:(4.333, 0.000 AUTO_CLAMPED)
+      ...
+    - (118.000, 0.000) lh:(117.667, 0.000 AUTO_CLAMPED) rh:(118.333, 0.000 AUTO_CLAMPED)
+    - (119.000, 0.000) lh:(118.667, 0.000 AUTO_CLAMPED) rh:(119.667, 0.000 AUTO_CLAMPED)
+    - (121.000, 0.000) lh:(120.333, 0.000 AUTO_CLAMPED) rh:(121.667, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Joint_Four"].scale[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:119 grp:'Joint_Four'
+    - (1.000, 1.000) lh:(0.333, 1.000 AUTO_CLAMPED) rh:(1.667, 1.000 AUTO_CLAMPED)
+    - (3.000, 1.000) lh:(2.333, 1.000 AUTO_CLAMPED) rh:(3.333, 1.000 AUTO_CLAMPED)
+    - (4.000, 1.000) lh:(3.667, 1.000 AUTO_CLAMPED) rh:(4.333, 1.000 AUTO_CLAMPED)
+      ...
+    - (118.000, 1.000) lh:(117.667, 1.000 AUTO_CLAMPED) rh:(118.333, 1.000 AUTO_CLAMPED)
+    - (119.000, 1.000) lh:(118.667, 1.000 AUTO_CLAMPED) rh:(119.667, 1.000 AUTO_CLAMPED)
+    - (121.000, 1.000) lh:(120.333, 1.000 AUTO_CLAMPED) rh:(121.667, 1.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Joint_Four"].scale[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:119 grp:'Joint_Four'
+    - (1.000, 1.000) lh:(0.333, 1.000 AUTO_CLAMPED) rh:(1.667, 1.000 AUTO_CLAMPED)
+    - (3.000, 1.000) lh:(2.333, 1.000 AUTO_CLAMPED) rh:(3.333, 1.000 AUTO_CLAMPED)
+    - (4.000, 1.000) lh:(3.667, 1.000 AUTO_CLAMPED) rh:(4.333, 1.000 AUTO_CLAMPED)
+      ...
+    - (118.000, 1.000) lh:(117.667, 1.000 AUTO_CLAMPED) rh:(118.333, 1.000 AUTO_CLAMPED)
+    - (119.000, 1.000) lh:(118.667, 1.000 AUTO_CLAMPED) rh:(119.667, 1.000 AUTO_CLAMPED)
+    - (121.000, 1.000) lh:(120.333, 1.000 AUTO_CLAMPED) rh:(121.667, 1.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Joint_Four"].scale[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:119 grp:'Joint_Four'
+    - (1.000, 1.000) lh:(0.333, 1.000 AUTO_CLAMPED) rh:(1.667, 1.000 AUTO_CLAMPED)
+    - (3.000, 1.000) lh:(2.333, 1.000 AUTO_CLAMPED) rh:(3.333, 1.000 AUTO_CLAMPED)
+    - (4.000, 1.000) lh:(3.667, 1.000 AUTO_CLAMPED) rh:(4.333, 1.000 AUTO_CLAMPED)
+      ...
+    - (118.000, 1.000) lh:(117.667, 1.000 AUTO_CLAMPED) rh:(118.333, 1.000 AUTO_CLAMPED)
+    - (119.000, 1.000) lh:(118.667, 1.000 AUTO_CLAMPED) rh:(119.667, 1.000 AUTO_CLAMPED)
+    - (121.000, 1.000) lh:(120.333, 1.000 AUTO_CLAMPED) rh:(121.667, 1.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Joint_One"].location[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Joint_One'
+    - (1.000, 0.000) lh:(-39.000, 0.000 AUTO_CLAMPED) rh:(41.000, 0.000 AUTO_CLAMPED)
+    - (121.000, 0.000) lh:(81.000, 0.000 AUTO_CLAMPED) rh:(161.000, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Joint_One"].location[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Joint_One'
+    - (1.000, 0.000) lh:(-39.000, 0.000 AUTO_CLAMPED) rh:(41.000, 0.000 AUTO_CLAMPED)
+    - (121.000, 0.000) lh:(81.000, 0.000 AUTO_CLAMPED) rh:(161.000, 0.000 AUTO_CLAMPED)
+
+==== Armatures: 1
+- Armature 'Root' 5 bones
+  - bone 'Joint_Four' parent:'Joint_Three' h:(0.000, 0.000, 0.000) t:(0.000, 1.000, 0.000) connect radius h:0.100 t:0.050
+      1.000 0.000 0.000 0.000
+      0.000 0.000 -1.000 0.000
+      0.000 1.000 0.000 3.000
+  - bone 'Joint_Four_end' parent:'Joint_Four' h:(0.000, 0.000, 0.000) t:(0.000, 1.000, 0.000) connect radius h:0.100 t:0.050
+      1.000 0.000 0.000 0.000
+      0.000 0.000 -1.000 0.000
+      0.000 1.000 0.000 4.000
+  - bone 'Joint_One' h:(0.000, 0.000, 0.000) t:(0.000, 0.000, 1.000) radius h:0.100 t:0.050
+      1.000 0.000 0.000 0.000
+      0.000 0.000 -1.000 0.000
+      0.000 1.000 0.000 0.000
+  - bone 'Joint_Three' parent:'Joint_Two' h:(0.000, 0.000, 0.000) t:(0.000, 1.000, 0.000) connect radius h:0.100 t:0.050
+      1.000 0.000 0.000 0.000
+      0.000 0.000 -1.000 0.000
+      0.000 1.000 0.000 2.000
+  - bone 'Joint_Two' parent:'Joint_One' h:(0.000, 0.000, 0.000) t:(0.000, 1.000, 0.000) connect radius h:0.100 t:0.050
+      1.000 0.000 0.000 0.000
+      0.000 0.000 -1.000 0.000
+      0.000 1.000 0.000 1.000
+

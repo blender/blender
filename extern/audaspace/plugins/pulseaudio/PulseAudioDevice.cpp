@@ -77,6 +77,7 @@ void PulseAudioDevice::PulseAudio_request(pa_stream* stream, size_t total_bytes,
 
 		total_bytes -= num_bytes;
 	}
+	AUD_pa_threaded_mainloop_signal(device->m_mainloop, 0);
 }
 
 void PulseAudioDevice::playing(bool playing)
@@ -205,7 +206,7 @@ PulseAudioDevice::PulseAudioDevice(const std::string& name, DeviceSpecs specs, i
 	buffer_attr.prebuf = -1U;
 	buffer_attr.tlength = buffersize;
 
-	if(AUD_pa_stream_connect_playback(m_stream, nullptr, &buffer_attr, static_cast<pa_stream_flags_t>(PA_STREAM_INTERPOLATE_TIMING | PA_STREAM_ADJUST_LATENCY | PA_STREAM_AUTO_TIMING_UPDATE), nullptr, nullptr) < 0)
+	if(AUD_pa_stream_connect_playback(m_stream, nullptr, &buffer_attr, static_cast<pa_stream_flags_t>(PA_STREAM_INTERPOLATE_TIMING | PA_STREAM_ADJUST_LATENCY | PA_STREAM_AUTO_TIMING_UPDATE | PA_STREAM_START_CORKED), nullptr, nullptr) < 0)
 	{
 		AUD_pa_threaded_mainloop_unlock(m_mainloop);
 		AUD_pa_threaded_mainloop_stop(m_mainloop);
@@ -216,6 +217,30 @@ PulseAudioDevice::PulseAudioDevice(const std::string& name, DeviceSpecs specs, i
 		AUD_pa_threaded_mainloop_free(m_mainloop);
 
 		AUD_THROW(DeviceException, "Could not connect PulseAudio stream.");
+	}
+
+	/* Make sure that the stream is ready to be used before we proceed. */
+	int stream_state;
+	while((stream_state = AUD_pa_stream_get_state(m_stream)) != PA_STREAM_READY)
+	{
+		switch(stream_state)
+		{
+		case PA_STREAM_FAILED:
+		case PA_STREAM_TERMINATED:
+			AUD_pa_threaded_mainloop_unlock(m_mainloop);
+			AUD_pa_threaded_mainloop_stop(m_mainloop);
+
+			AUD_pa_context_disconnect(m_context);
+			AUD_pa_context_unref(m_context);
+
+			AUD_pa_threaded_mainloop_free(m_mainloop);
+
+			AUD_THROW(DeviceException, "Could not connect to PulseAudio.");
+			break;
+		default:
+			AUD_pa_threaded_mainloop_wait(m_mainloop);
+			break;
+		}
 	}
 
 	AUD_pa_threaded_mainloop_unlock(m_mainloop);

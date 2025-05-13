@@ -41,6 +41,7 @@ set(SRC
   tree/tree_display_sequencer.cc
   tree/tree_display_view_layer.cc
   tree/tree_element.cc
+  tree/tree_element_action_slot.cc
   tree/tree_element_anim_data.cc
   tree/tree_element_bone.cc
   tree/tree_element_bone_collection.cc
@@ -53,6 +54,7 @@ set(SRC
   tree/tree_element_gpencil_layer.cc
   tree/tree_element_grease_pencil_node.cc
   tree/tree_element_id.cc
+  tree/tree_element_id_action.cc
   tree/tree_element_id_armature.cc
   tree/tree_element_id_collection.cc
   tree/tree_element_id_curve.cc
@@ -85,6 +87,7 @@ set(SRC
   tree/common.hh
   tree/tree_display.hh
   tree/tree_element.hh
+  tree/tree_element_action_slot.hh
   tree/tree_element_anim_data.hh
   tree/tree_element_bone.hh
   tree/tree_element_bone_collection.hh
@@ -97,6 +100,7 @@ set(SRC
   tree/tree_element_gpencil_layer.hh
   tree/tree_element_grease_pencil_node.hh
   tree/tree_element_id.hh
+  tree/tree_element_id_action.hh
   tree/tree_element_id_armature.hh
   tree/tree_element_id_collection.hh
   tree/tree_element_id_curve.hh

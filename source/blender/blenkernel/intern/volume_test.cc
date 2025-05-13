@@ -40,7 +40,7 @@ class VolumeTest : public ::testing::Test {
 
 TEST_F(VolumeTest, add_grid_with_name_and_find)
 {
-  Volume *volume = static_cast<Volume *>(BKE_id_new(bmain, ID_VO, nullptr));
+  Volume *volume = BKE_id_new<Volume>(bmain, nullptr);
   GVolumeGrid grid{VOLUME_GRID_FLOAT};
   grid.get_for_write().set_name("My Grid");
   const VolumeGridData *grid_data = grid.release();
@@ -52,8 +52,8 @@ TEST_F(VolumeTest, add_grid_with_name_and_find)
 
 TEST_F(VolumeTest, add_grid_in_two_volumes)
 {
-  Volume *volume_a = static_cast<Volume *>(BKE_id_new(bmain, ID_VO, nullptr));
-  Volume *volume_b = static_cast<Volume *>(BKE_id_new(bmain, ID_VO, nullptr));
+  Volume *volume_a = BKE_id_new<Volume>(bmain, nullptr);
+  Volume *volume_b = BKE_id_new<Volume>(bmain, nullptr);
   GVolumeGrid grid{VOLUME_GRID_FLOAT};
   grid.get_for_write().set_name("My Grid");
   const VolumeGridData *grid_data = grid.release();

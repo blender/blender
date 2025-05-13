@@ -216,7 +216,7 @@ static void multires_mdisps_subdivide_hidden(MDisps *md, const int new_level)
 
 Mesh *BKE_multires_create_mesh(Depsgraph *depsgraph, Object *object, MultiresModifierData *mmd)
 {
-  Object *object_eval = DEG_get_evaluated_object(depsgraph, object);
+  Object *object_eval = DEG_get_evaluated(depsgraph, object);
   Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
   Mesh *deformed_mesh = blender::bke::mesh_get_eval_deform(
       depsgraph, scene_eval, object_eval, &CD_MASK_BAREMESH);
@@ -238,7 +238,7 @@ blender::Array<blender::float3> BKE_multires_create_deformed_base_mesh_vert_coor
     Depsgraph *depsgraph, Object *object, MultiresModifierData *mmd)
 {
   Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
-  Object *object_eval = DEG_get_evaluated_object(depsgraph, object);
+  Object *object_eval = DEG_get_evaluated(depsgraph, object);
 
   Object object_for_eval = blender::dna::shallow_copy(*object_eval);
   blender::bke::ObjectRuntime runtime = *object_eval->runtime;
@@ -376,7 +376,7 @@ void multires_mark_as_modified(Depsgraph *depsgraph,
    * do an actual update.
    *
    * In a longer term maybe special dependency graph tag can help sanitizing this a bit. */
-  Object *object_eval = DEG_get_evaluated_object(depsgraph, object);
+  Object *object_eval = DEG_get_evaluated(depsgraph, object);
   Mesh *mesh = static_cast<Mesh *>(object_eval->data);
   SubdivCCG *subdiv_ccg = mesh->runtime->subdiv_ccg.get();
   if (subdiv_ccg == nullptr) {

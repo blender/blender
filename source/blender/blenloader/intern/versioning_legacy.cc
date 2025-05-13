@@ -2567,9 +2567,9 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     while (sce) {
       ed = sce->ed;
       if (ed) {
-        LISTBASE_FOREACH (Strip *, seq, blender::seq::active_seqbase_get(ed)) {
-          if (seq->data && seq->data->proxy) {
-            seq->data->proxy->quality = 90;
+        LISTBASE_FOREACH (Strip *, strip, blender::seq::active_seqbase_get(ed)) {
+          if (strip->data && strip->data->proxy) {
+            strip->data->proxy->quality = 90;
           }
         }
       }

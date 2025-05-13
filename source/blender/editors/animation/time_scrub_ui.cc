@@ -246,8 +246,8 @@ void ED_time_scrub_channel_search_draw(const bContext *C, ARegion *region, bDope
   uiLayoutSetScaleY(layout, (UI_UNIT_Y - padding_y) / UI_UNIT_Y);
   UI_block_layout_set_current(block, layout);
   UI_block_align_begin(block);
-  uiItemR(layout, &ptr, "filter_text", UI_ITEM_NONE, "", ICON_NONE);
-  uiItemR(layout, &ptr, "use_filter_invert", UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);
+  layout->prop(&ptr, "filter_text", UI_ITEM_NONE, "", ICON_NONE);
+  layout->prop(&ptr, "use_filter_invert", UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);
   UI_block_align_end(block);
   UI_block_layout_resolve(block, nullptr, nullptr);
 

@@ -28,7 +28,7 @@ float parallelMax(const float value)
 {
   uint thread_id = gl_LocalInvocationIndex;
   array_of_values[thread_id] = value;
-  threadgroup_barrier(mem_flags::mem_threadgroup);
+  barrier();
 
   for (uint i = threadgroup_size; i > 0; i >>= 1) {
     uint half_width = i >> 1;
@@ -36,7 +36,7 @@ float parallelMax(const float value)
       array_of_values[thread_id] = max(array_of_values[thread_id],
                                        array_of_values[thread_id + half_width]);
     }
-    threadgroup_barrier(mem_flags::mem_threadgroup);
+    barrier();
   }
 
   return array_of_values[0];

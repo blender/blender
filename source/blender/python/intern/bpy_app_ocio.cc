@@ -13,9 +13,9 @@
 
 #include "../generic/py_capi_utils.hh"
 
-#ifdef WITH_OCIO
-#  include "ocio_capi.h"
-#endif
+#include "OCIO_version.hh"
+
+namespace ocio = blender::ocio;
 
 static PyTypeObject BlenderAppOCIOType;
 
@@ -38,28 +38,23 @@ static PyObject *make_ocio_info()
   PyObject *ocio_info;
   int pos = 0;
 
-#ifdef WITH_OCIO
-  int curversion;
-#endif
-
   ocio_info = PyStructSequence_New(&BlenderAppOCIOType);
   if (ocio_info == nullptr) {
     return nullptr;
   }
 
-#ifndef WITH_OCIO
+#ifndef WITH_OPENCOLORIO
 #  define SetStrItem(str) PyStructSequence_SET_ITEM(ocio_info, pos++, PyUnicode_FromString(str))
 #endif
 
 #define SetObjItem(obj) PyStructSequence_SET_ITEM(ocio_info, pos++, obj)
 
-#ifdef WITH_OCIO
-  curversion = OCIO_getVersionHex();
+#ifdef WITH_OPENCOLORIO
+  const ocio::Version ocio_version = ocio::get_version();
   SetObjItem(PyBool_FromLong(1));
-  SetObjItem(
-      PyC_Tuple_Pack_I32({curversion >> 24, (curversion >> 16) % 256, (curversion >> 8) % 256}));
+  SetObjItem(PyC_Tuple_Pack_I32({ocio_version.major, ocio_version.minor, ocio_version.patch}));
   SetObjItem(PyUnicode_FromFormat(
-      "%2d, %2d, %2d", curversion >> 24, (curversion >> 16) % 256, (curversion >> 8) % 256));
+      "%2d, %2d, %2d", ocio_version.major, ocio_version.minor, ocio_version.patch));
 #else
   SetObjItem(PyBool_FromLong(0));
   SetObjItem(PyC_Tuple_Pack_I32({0, 0, 0}));

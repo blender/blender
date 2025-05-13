@@ -967,16 +967,7 @@ class Texture : NonCopyable {
   void free()
   {
     GPU_TEXTURE_FREE_SAFE(tx_);
-    for (GPUTexture *&view : mip_views_) {
-      GPU_TEXTURE_FREE_SAFE(view);
-    }
-    for (GPUTexture *&view : layer_views_) {
-      GPU_TEXTURE_FREE_SAFE(view);
-    }
-    GPU_TEXTURE_FREE_SAFE(stencil_view_);
-    GPU_TEXTURE_FREE_SAFE(layer_range_view_);
-    mip_views_.clear();
-    layer_views_.clear();
+    free_texture_views();
   }
 
   /**
@@ -990,6 +981,21 @@ class Texture : NonCopyable {
     std::swap(a.layer_range_view_, b.layer_range_view_);
     std::swap(a.mip_views_, b.mip_views_);
     std::swap(a.layer_views_, b.layer_views_);
+  }
+
+ protected:
+  void free_texture_views()
+  {
+    for (GPUTexture *&view : mip_views_) {
+      GPU_TEXTURE_FREE_SAFE(view);
+    }
+    for (GPUTexture *&view : layer_views_) {
+      GPU_TEXTURE_FREE_SAFE(view);
+    }
+    GPU_TEXTURE_FREE_SAFE(stencil_view_);
+    GPU_TEXTURE_FREE_SAFE(layer_range_view_);
+    mip_views_.clear();
+    layer_views_.clear();
   }
 
  private:
@@ -1138,7 +1144,9 @@ class TextureRef : public Texture {
 
   void wrap(GPUTexture *tex)
   {
-    this->tx_ = tex;
+    if (assign_if_different(this->tx_, tex)) {
+      free_texture_views();
+    }
   }
 
   /** Remove methods that are forbidden with this type of textures. */

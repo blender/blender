@@ -176,8 +176,8 @@ static void image_sample_apply(bContext *C, wmOperator *op, const wmEvent *event
   }
 
   int offset[2];
-  offset[0] = image->runtime.backdrop_offset[0];
-  offset[1] = image->runtime.backdrop_offset[1];
+  offset[0] = image->runtime->backdrop_offset[0];
+  offset[1] = image->runtime->backdrop_offset[1];
 
   int x = int(uv[0] * ibuf->x), y = int(uv[1] * ibuf->y);
 
@@ -198,8 +198,8 @@ static void image_sample_apply(bContext *C, wmOperator *op, const wmEvent *event
     info->use_default_view = (image->flag & IMA_VIEW_AS_RENDER) ? false : true;
 
     rcti sample_rect;
-    sample_rect.xmin = max_ii(0, x - image->runtime.backdrop_offset[0] - info->sample_size / 2);
-    sample_rect.ymin = max_ii(0, y - image->runtime.backdrop_offset[1] - info->sample_size / 2);
+    sample_rect.xmin = max_ii(0, x - image->runtime->backdrop_offset[0] - info->sample_size / 2);
+    sample_rect.ymin = max_ii(0, y - image->runtime->backdrop_offset[1] - info->sample_size / 2);
     /* image_sample_rect_color_*() expects a rect, but we only want to retrieve a single value, so
      * create a sample rect with size 1. */
     sample_rect.xmax = sample_rect.xmin;
@@ -278,7 +278,7 @@ static void sequencer_sample_apply(bContext *C, wmOperator *op, const wmEvent *e
 {
   Scene *scene = CTX_data_scene(C);
   ARegion *region = CTX_wm_region(C);
-  ImBuf *ibuf = blender::ed::vse::sequencer_ibuf_get(C, scene->r.cfra, 0, nullptr);
+  ImBuf *ibuf = blender::ed::vse::sequencer_ibuf_get(C, scene->r.cfra, nullptr);
   ImageSampleInfo *info = static_cast<ImageSampleInfo *>(op->customdata);
   float fx, fy;
 

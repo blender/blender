@@ -34,6 +34,85 @@
 
 namespace blender::bke {
 
+const CPPType &attribute_type_to_cpp_type(const AttrType type)
+{
+  switch (type) {
+    case AttrType::Bool:
+      return CPPType::get<bool>();
+    case AttrType::Int8:
+      return CPPType::get<int8_t>();
+    case AttrType::Int16_2D:
+      return CPPType::get<short2>();
+    case AttrType::Int32:
+      return CPPType::get<int>();
+    case AttrType::Int32_2D:
+      return CPPType::get<int2>();
+    case AttrType::Float:
+      return CPPType::get<float>();
+    case AttrType::Float2:
+      return CPPType::get<float2>();
+    case AttrType::Float3:
+      return CPPType::get<float3>();
+    case AttrType::Float4x4:
+      return CPPType::get<float4x4>();
+    case AttrType::ColorByte:
+      return CPPType::get<ColorGeometry4b>();
+    case AttrType::ColorFloat:
+      return CPPType::get<ColorGeometry4f>();
+    case AttrType::Quaternion:
+      return CPPType::get<math::Quaternion>();
+    case AttrType::String:
+      return CPPType::get<MStringProperty>();
+  }
+  BLI_assert_unreachable();
+  return CPPType::get<bool>();
+}
+
+AttrType cpp_type_to_attribute_type(const CPPType &type)
+{
+  if (type.is<float>()) {
+    return AttrType::Float;
+  }
+  if (type.is<float2>()) {
+    return AttrType::Float2;
+  }
+  if (type.is<float3>()) {
+    return AttrType::Float3;
+  }
+  if (type.is<int>()) {
+    return AttrType::Int32;
+  }
+  if (type.is<int2>()) {
+    return AttrType::Int32_2D;
+  }
+  if (type.is<ColorGeometry4f>()) {
+    return AttrType::ColorFloat;
+  }
+  if (type.is<bool>()) {
+    return AttrType::Bool;
+  }
+  if (type.is<int8_t>()) {
+    return AttrType::Int8;
+  }
+  if (type.is<ColorGeometry4b>()) {
+    return AttrType::ColorByte;
+  }
+  if (type.is<math::Quaternion>()) {
+    return AttrType::Quaternion;
+  }
+  if (type.is<float4x4>()) {
+    return AttrType::Float4x4;
+  }
+  if (type.is<short2>()) {
+    return AttrType::Int16_2D;
+  }
+  if (type.is<MStringProperty>()) {
+    return AttrType::String;
+  }
+  BLI_assert_unreachable();
+  return AttrType::Bool;
+}
+
 const blender::CPPType *custom_data_type_to_cpp_type(const eCustomDataType type)
 {
   switch (type) {

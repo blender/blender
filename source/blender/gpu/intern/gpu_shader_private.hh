@@ -84,8 +84,7 @@ class Shader {
   Shader(const char *name);
   virtual ~Shader();
 
-  /* `is_batch_compilation` is true when the shader is being compiled as part of a
-   * `GPU_shader_batch`. Backends that use the `ShaderCompilerGeneric` can ignore it. */
+  /* TODO: Remove `is_batch_compilation`. */
   virtual void init(const shader::ShaderCreateInfo &info, bool is_batch_compilation) = 0;
 
   virtual void vertex_shader_from_glsl(MutableSpan<StringRefNull> sources) = 0;
@@ -131,8 +130,7 @@ class Shader {
     return parent_shader_;
   }
 
-  static bool srgb_uniform_dirty_get();
-  static void set_srgb_uniform(GPUShader *shader);
+  static void set_srgb_uniform(Context *ctx, GPUShader *shader);
   static void set_framebuffer_srgb_target(int use_srgb_to_linear);
 
  protected:
@@ -158,7 +156,6 @@ static inline const Shader *unwrap(const GPUShader *vert)
 }
 
 class ShaderCompiler {
- protected:
   struct Sources {
     std::string vert;
     std::string geom;
@@ -166,53 +163,81 @@ class ShaderCompiler {
     std::string comp;
   };
 
- public:
-  virtual ~ShaderCompiler() = default;
-
-  Shader *compile(const shader::ShaderCreateInfo &info, bool is_batch_compilation);
-
-  virtual BatchHandle batch_compile(Span<const shader::ShaderCreateInfo *> &infos) = 0;
-  virtual bool batch_is_ready(BatchHandle handle) = 0;
-  virtual Vector<Shader *> batch_finalize(BatchHandle &handle) = 0;
-
-  virtual SpecializationBatchHandle precompile_specializations(
-      Span<ShaderSpecialization> /*specializations*/)
-  {
-    /* No-op. */
-    return 0;
-  };
-
-  virtual bool specialization_batch_is_ready(SpecializationBatchHandle &handle)
-  {
-    handle = 0;
-    return true;
-  };
-};
-
-/* Generic implementation used as fallback. */
-class ShaderCompilerGeneric : public ShaderCompiler {
- private:
   struct Batch {
     Vector<Shader *> shaders;
     Vector<const shader::ShaderCreateInfo *> infos;
-    std::atomic_bool is_ready = false;
-  };
-  BatchHandle next_batch_handle_ = 1;
-  Map<BatchHandle, std::unique_ptr<Batch>> batches_;
-  std::mutex mutex_;
 
-  std::deque<Batch *> compilation_queue_;
-  std::unique_ptr<GPUWorker> compilation_thread_;
+    Vector<ShaderSpecialization> specializations;
+
+    std::atomic<int> pending_compilations = 0;
+    std::atomic<bool> is_cancelled = false;
+
+    bool is_specialization_batch()
+    {
+      return !specializations.is_empty();
+    }
+
+    bool is_ready()
+    {
+      BLI_assert(pending_compilations >= 0);
+      return pending_compilations == 0;
+    }
+
+    void free_shaders()
+    {
+      for (Shader *shader : shaders) {
+        if (shader) {
+          GPU_shader_free(wrap(shader));
+        }
+      }
+      shaders.clear();
+    }
+  };
+  Map<BatchHandle, Batch *> batches_;
+  std::mutex mutex_;
+  std::condition_variable compilation_finished_notification_;
+
+  struct ParallelWork {
+    Batch *batch = nullptr;
+    int shader_index = 0;
+  };
+  std::deque<ParallelWork> compilation_queue_;
+
+  std::unique_ptr<GPUWorker> compilation_worker_;
+
+  bool support_specializations_;
 
   void run_thread();
 
- public:
-  ShaderCompilerGeneric();
-  ~ShaderCompilerGeneric() override;
+  BatchHandle next_batch_handle_ = 1;
 
-  BatchHandle batch_compile(Span<const shader::ShaderCreateInfo *> &infos) override;
-  bool batch_is_ready(BatchHandle handle) override;
-  Vector<Shader *> batch_finalize(BatchHandle &handle) override;
+ protected:
+  /* Must be called earlier from the destructor of the subclass if the compilation process relies
+   * on subclass resources. */
+  void destruct_compilation_worker()
+  {
+    compilation_worker_.reset();
+  }
+
+ public:
+  ShaderCompiler(uint32_t threads_count = 1,
+                 GPUWorker::ContextType context_type = GPUWorker::ContextType::PerThread,
+                 bool support_specializations = false);
+  virtual ~ShaderCompiler();
+
+  Shader *compile(const shader::ShaderCreateInfo &info, bool is_batch_compilation);
+
+  virtual Shader *compile_shader(const shader::ShaderCreateInfo &info);
+  virtual void specialize_shader(ShaderSpecialization & /*specialization*/){};
+
+  BatchHandle batch_compile(Span<const shader::ShaderCreateInfo *> &infos);
+  void batch_cancel(BatchHandle &handle);
+  bool batch_is_ready(BatchHandle handle);
+  Vector<Shader *> batch_finalize(BatchHandle &handle);
+
+  SpecializationBatchHandle precompile_specializations(Span<ShaderSpecialization> specializations);
+
+  bool specialization_batch_is_ready(SpecializationBatchHandle &handle);
 };
 
 enum class Severity {

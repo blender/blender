@@ -383,7 +383,7 @@ static void menu_items_from_all_operators(bContext *C, MenuSearch_Data *data)
       char uiname[256];
       WM_operator_py_idname(idname_as_py, ot->idname);
 
-      SNPRINTF(uiname, "%s " UI_MENU_ARROW_SEP "%s", idname_as_py, ot_ui_name);
+      SNPRINTF(uiname, "%s " UI_MENU_ARROW_SEP " %s", idname_as_py, ot_ui_name);
 
       item.drawwstr_full = scope.allocator().copy_string(uiname);
       item.drawstr = ot_ui_name;
@@ -414,6 +414,15 @@ static MenuSearch_Data *menu_items_from_ui_create(bContext *C,
 {
   blender::Map<MenuType *, const char *> menu_display_name_map;
   const uiStyle *style = UI_style_get_dpi();
+
+  const bContextStore *old_context_store = CTX_store_get(C);
+  BLI_SCOPED_DEFER([&]() { CTX_store_set(C, old_context_store); });
+  bContextStore context_store;
+  if (old_context_store) {
+    context_store = *old_context_store;
+  }
+  context_store.entries.append({"is_menu_search", true});
+  CTX_store_set(C, &context_store);
 
   /* Convert into non-ui structure. */
   MenuSearch_Data *data = MEM_new<MenuSearch_Data>(__func__);

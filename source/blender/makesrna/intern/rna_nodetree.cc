@@ -1593,7 +1593,7 @@ static void rna_NodeTree_debug_lazy_function_graph(bNodeTree *tree,
 {
   *r_len = 0;
   *r_str = nullptr;
-  if (DEG_is_original_id(&tree->id)) {
+  if (DEG_is_original(tree)) {
     /* The graph is only stored on the evaluated data. */
     Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
     tree = DEG_get_evaluated(depsgraph, tree);
@@ -1613,7 +1613,7 @@ static void rna_NodeTree_debug_zone_body_lazy_function_graph(
   *r_len = 0;
   *r_str = nullptr;
   bNodeTree *tree = reinterpret_cast<bNodeTree *>(tree_id);
-  if (DEG_is_original_id(&tree->id)) {
+  if (DEG_is_original(tree)) {
     /* The graph is only stored on the evaluated data. */
     Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
     tree = DEG_get_evaluated(depsgraph, tree);
@@ -2207,6 +2207,15 @@ static void rna_GeometryNodeTree_is_mode_sculpt_set(PointerRNA *ptr, bool value)
   geometry_node_asset_trait_flag_set(ptr, GEO_NODE_ASSET_SCULPT, value);
 }
 
+static bool rna_GeometryNodeTree_is_mode_paint_get(PointerRNA *ptr)
+{
+  return geometry_node_asset_trait_flag_get(ptr, GEO_NODE_ASSET_PAINT);
+}
+static void rna_GeometryNodeTree_is_mode_paint_set(PointerRNA *ptr, bool value)
+{
+  geometry_node_asset_trait_flag_set(ptr, GEO_NODE_ASSET_PAINT, value);
+}
+
 static bool rna_GeometryNodeTree_is_type_mesh_get(PointerRNA *ptr)
 {
   return geometry_node_asset_trait_flag_get(ptr, GEO_NODE_ASSET_MESH);
@@ -2241,6 +2250,15 @@ static bool rna_GeometryNodeTree_use_wait_for_click_get(PointerRNA *ptr)
 static void rna_GeometryNodeTree_use_wait_for_click_set(PointerRNA *ptr, bool value)
 {
   geometry_node_asset_trait_flag_set(ptr, GEO_NODE_ASSET_WAIT_FOR_CURSOR, value);
+}
+
+static bool rna_GeometryNodeTree_is_type_grease_pencil_get(PointerRNA *ptr)
+{
+  return geometry_node_asset_trait_flag_get(ptr, GEO_NODE_ASSET_GREASE_PENCIL);
+}
+static void rna_GeometryNodeTree_is_type_grease_pencil_set(PointerRNA *ptr, bool value)
+{
+  geometry_node_asset_trait_flag_set(ptr, GEO_NODE_ASSET_GREASE_PENCIL, value);
 }
 
 static bool random_value_type_supported(const EnumPropertyItem *item)
@@ -3857,6 +3875,75 @@ static void rna_NodeColorSpill_unspill_blue_set(PointerRNA *ptr, const float val
   RNA_float_set_array(&input_rna_pointer, "default_value", spill_strength);
 }
 
+static bool rna_NodeLensDistortion_projector_get(PointerRNA *ptr)
+{
+  return RNA_enum_get(ptr, "distortion_type") == CMP_NODE_LENS_DISTORTION_HORIZONTAL;
+}
+
+static void rna_NodeLensDistortion_projector_set(PointerRNA *ptr, const bool value)
+{
+  RNA_enum_set(ptr,
+               "distortion_type",
+               value ? CMP_NODE_LENS_DISTORTION_HORIZONTAL : CMP_NODE_LENS_DISTORTION_RADIAL);
+}
+
+static float rna_NodeDirectionalBlur_scale_get(PointerRNA *ptr)
+{
+  bNode *node = static_cast<bNode *>(ptr->data);
+  bNodeSocket *input = blender::bke::node_find_socket(*node, SOCK_IN, "Scale");
+  PointerRNA input_rna_pointer = RNA_pointer_create_discrete(
+      ptr->owner_id, &RNA_NodeSocket, input);
+  /* Scale was previously minus 1. */
+  return RNA_float_get(&input_rna_pointer, "default_value") - 1.0f;
+}
+
+static void rna_NodeDirectionalBlur_scale_set(PointerRNA *ptr, const float value)
+{
+  bNode *node = static_cast<bNode *>(ptr->data);
+  bNodeSocket *input = blender::bke::node_find_socket(*node, SOCK_IN, "Scale");
+  PointerRNA input_rna_pointer = RNA_pointer_create_discrete(
+      ptr->owner_id, &RNA_NodeSocket, input);
+  /* Scale was previously minus 1. */
+  RNA_float_set(&input_rna_pointer, "default_value", value + 1.0f);
+}
+
+static float rna_NodeBilateralBlur_threshold_get(PointerRNA *ptr)
+{
+  bNode *node = static_cast<bNode *>(ptr->data);
+  bNodeSocket *input = blender::bke::node_find_socket(*node, SOCK_IN, "Threshold");
+  PointerRNA input_rna_pointer = RNA_pointer_create_discrete(
+      ptr->owner_id, &RNA_NodeSocket, input);
+  /* Threshold was previously multiplied by 3. */
+  return RNA_float_get(&input_rna_pointer, "default_value") * 3.0f;
+}
+
+static void rna_NodeBilateralBlur_threshold_set(PointerRNA *ptr, const float value)
+{
+  bNode *node = static_cast<bNode *>(ptr->data);
+  bNodeSocket *input = blender::bke::node_find_socket(*node, SOCK_IN, "Threshold");
+  PointerRNA input_rna_pointer = RNA_pointer_create_discrete(
+      ptr->owner_id, &RNA_NodeSocket, input);
+  /* Threshold was previously multiplied by 3. */
+  RNA_float_set(&input_rna_pointer, "default_value", value / 3.0f);
+}
+
+static float rna_NodeBilateralBlur_sigma_space_get(PointerRNA * /*ptr*/)
+{
+  /* Sigma Space no longer exists. */
+  return 0.0f;
+}
+
+static void rna_NodeBilateralBlur_sigma_space_set(PointerRNA *ptr, const float value)
+{
+  bNode *node = static_cast<bNode *>(ptr->data);
+  bNodeSocket *input = blender::bke::node_find_socket(*node, SOCK_IN, "Size");
+  PointerRNA input_rna_pointer = RNA_pointer_create_discrete(
+      ptr->owner_id, &RNA_NodeSocket, input);
+  const int size = input->default_value_typed<bNodeSocketValueInt>()->value;
+  /* The size input is ceil(iterations + sigma_space). */
+  RNA_int_set(&input_rna_pointer, "default_value", size + int(std::ceil(value)));
+}
+
 /* A getter that returns the value of the input socket with the given template identifier and type.
  * The RNA pointer is assumed to represent a node. */
 template<typename T, const char *identifier>
@@ -3902,6 +3989,84 @@ static void rna_node_property_to_input_setter(PointerRNA *ptr, const T value)
   else {
     BLI_assert_unreachable();
   }
+}
+
+/* A getter that returns the value of the array input socket with the given template identifier and
+ * type. The RNA pointer is assumed to represent a node. */
+template<typename T, const char *identifier>
+static void rna_node_array_property_to_input_getter(PointerRNA *ptr, T *value)
+{
+  bNode *node = ptr->data_as<bNode>();
+  bNodeSocket *input = blender::bke::node_find_socket(*node, SOCK_IN, identifier);
+  PointerRNA input_rna_pointer = RNA_pointer_create_discrete(
+      ptr->owner_id, &RNA_NodeSocket, input);
+  if constexpr (std::is_same_v<T, bool>) {
+    return RNA_boolean_get_array(&input_rna_pointer, "default_value", value);
+  }
+  else if constexpr (std::is_same_v<T, int>) {
+    return RNA_int_get_array(&input_rna_pointer, "default_value", value);
+  }
+  else if constexpr (std::is_same_v<T, float>) {
+    return RNA_float_get_array(&input_rna_pointer, "default_value", value);
+  }
+  else {
+    BLI_assert_unreachable();
+    return T(0);
+  }
+}
+
+/* A setter that sets the given value to the array input socket with the given template identifier
+ * and type. The RNA pointer is assumed to represent a node. */
+template<typename T, const char *identifier>
+static void rna_node_array_property_to_input_setter(PointerRNA *ptr, const T *value)
+{
+  bNode *node = ptr->data_as<bNode>();
+  bNodeSocket *input = blender::bke::node_find_socket(*node, SOCK_IN, identifier);
+  PointerRNA input_rna_pointer = RNA_pointer_create_discrete(
+      ptr->owner_id, &RNA_NodeSocket, input);
+  if constexpr (std::is_same_v<T, bool>) {
+    RNA_boolean_set_array(&input_rna_pointer, "default_value", value);
+  }
+  else if constexpr (std::is_same_v<T, int>) {
+    RNA_int_set_array(&input_rna_pointer, "default_value", value);
+  }
+  else if constexpr (std::is_same_v<T, float>) {
+    RNA_float_set_array(&input_rna_pointer, "default_value", value);
+  }
+  else {
+    BLI_assert_unreachable();
+  }
+}
+
+/* A getter that returns the value of the component of the vector input socket with the given
+ * template identifier and component index. The RNA pointer is assumed to represent a node. */
+template<const char *identifier, int index>
+static float rna_node_property_to_vector_input_getter(PointerRNA *ptr)
+{
+  bNode *node = ptr->data_as<bNode>();
+  bNodeSocket *input = blender::bke::node_find_socket(*node, SOCK_IN, identifier);
+  PointerRNA input_rna_pointer = RNA_pointer_create_discrete(
+      ptr->owner_id, &RNA_NodeSocket, input);
+
+  float vector[4];
+  RNA_float_get_array(&input_rna_pointer, "default_value", vector);
+  return vector[index];
+}
+
+/* A setter that sets the given value to the component of the input vector socket with the given
+ * template identifier and component index. The RNA pointer is assumed to represent a node. */
+template<const char *identifier, int index>
+static void rna_node_property_to_vector_input_setter(PointerRNA *ptr, const float value)
+{
+  bNode *node = ptr->data_as<bNode>();
+  bNodeSocket *input = blender::bke::node_find_socket(*node, SOCK_IN, identifier);
+  PointerRNA input_rna_pointer = RNA_pointer_create_discrete(
+      ptr->owner_id, &RNA_NodeSocket, input);
+
+  float vector[4];
+  RNA_float_get_array(&input_rna_pointer, "default_value", vector);
+  vector[index] = value;
+  RNA_float_set_array(&input_rna_pointer, "default_value", vector);
 }
 
 /* The following are global static strings used as template arguments to
@@ -4041,6 +4206,29 @@ static const char node_input_midtones_end[] = "Midtones End";
 static const char node_input_apply_on_red[] = "Apply On Red";
 static const char node_input_apply_on_green[] = "Apply On Green";
 static const char node_input_apply_on_blue[] = "Apply On Blue";
+
+/* Lens Distortion node. */
+static const char node_input_fit[] = "Fit";
+static const char node_input_jitter[] = "Jitter";
+
+/* Box Mask node. */
+static const char node_input_position[] = "Position";
+static const char node_input_rotation[] = "Rotation";
+
+/* Sun Beams node. */
+static const char node_input_source[] = "Source";
+static const char node_input_length[] = "Length";
+
+/* Directional Blur node. */
+static const char node_input_center[] = "Center";
+static const char node_input_translation_amount[] = "Translation Amount";
+static const char node_input_translation_direction[] = "Translation Direction";
+
+/* Alpha Over node. */
+static const char node_input_straight_alpha[] = "Straight Alpha";
+
+/* Bokeh Blur node. */
+static const char node_input_extend_bounds[] = "Extend Bounds";
 
 /* --------------------------------------------------------------------
  * White Balance Node.
@@ -6677,6 +6865,17 @@ static void def_scatter(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
+static void def_volume_coefficients(BlenderRNA * /*brna*/, StructRNA *srna)
+{
+  PropertyRNA *prop;
+
+  prop = RNA_def_property(srna, "phase", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, nullptr, "custom1");
+  RNA_def_property_enum_items(prop, node_scatter_phase_items);
+  RNA_def_property_ui_text(prop, "Phase", "Phase function for the scattered light");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+}
+
 static void def_toon(BlenderRNA * /*brna*/, StructRNA *srna)
 {
   PropertyRNA *prop;
@@ -7103,10 +7302,13 @@ static void def_cmp_alpha_over(BlenderRNA * /*brna*/, StructRNA *srna)
 {
   PropertyRNA *prop;
 
-  /* XXX: Tooltip */
   prop = RNA_def_property(srna, "use_premultiply", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "custom1", 1);
-  RNA_def_property_ui_text(prop, "Convert Premultiplied", "");
+  RNA_def_property_boolean_funcs(
+      prop,
+      "rna_node_property_to_input_getter<bool, node_input_straight_alpha>",
+      "rna_node_property_to_input_setter<bool, node_input_straight_alpha>");
+  RNA_def_property_ui_text(
+      prop, "Convert Premultiplied", "(Deprecated: Use Straight Alpha input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   RNA_def_struct_sdna_from(srna, "NodeTwoFloats", "storage");
@@ -7114,7 +7316,7 @@ static void def_cmp_alpha_over(BlenderRNA * /*brna*/, StructRNA *srna)
   prop = RNA_def_property(srna, "premul", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_float_sdna(prop, nullptr, "x");
   RNA_def_property_range(prop, 0.0f, 1.0f);
-  RNA_def_property_ui_text(prop, "Premultiplied", "Mix Factor");
+  RNA_def_property_ui_text(prop, "Premultiplied", "Mix Factor. (Deprecated: Unused.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
@@ -7143,9 +7345,11 @@ static void def_cmp_blur(BlenderRNA * /*brna*/, StructRNA *srna)
 
   /* duplicated in def_cmp_bokehblur */
   prop = RNA_def_property(srna, "use_variable_size", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "custom1", CMP_NODEFLAG_BLUR_VARIABLE_SIZE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "custom1", 1);
   RNA_def_property_ui_text(
-      prop, "Variable Size", "Support variable blur per pixel when using an image for size input");
+      prop,
+      "Variable Size",
+      "Support variable blur per pixel when using an image for size input. (Deprecated: Unused.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "use_extended_bounds", PROP_BOOLEAN, PROP_NONE);
@@ -7212,7 +7416,10 @@ static void def_cmp_blur(BlenderRNA * /*brna*/, StructRNA *srna)
 
   prop = RNA_def_property(srna, "use_gamma_correction", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "gamma", 1);
-  RNA_def_property_ui_text(prop, "Gamma", "Apply filter on gamma corrected values");
+  RNA_def_property_ui_text(
+      prop,
+      "Gamma",
+      "Apply filter on gamma corrected values. (Deprecated: Unused. Use Gamma node instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
@@ -7534,6 +7741,7 @@ static void rna_def_cmp_output_file_slot_file(BlenderRNA *brna)
   RNA_def_struct_name_property(srna, prop);
   RNA_def_property_ui_text(prop, "Path", "Subpath used for this slot");
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_EDITOR_FILEBROWSER);
+  RNA_def_property_flag(prop, PROP_PATH_OUTPUT | PROP_PATH_SUPPORTS_TEMPLATES);
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, nullptr);
 }
 static void rna_def_cmp_output_file_slot_layer(BlenderRNA *brna)
@@ -7602,12 +7810,16 @@ static void def_cmp_output_file(BlenderRNA *brna, StructRNA *srna)
 {
   PropertyRNA *prop;
 
+  rna_def_cmp_output_file_slot_file(brna);
+  rna_def_cmp_output_file_slot_layer(brna);
+
   RNA_def_struct_sdna_from(srna, "NodeImageMultiFile", "storage");
 
   prop = RNA_def_property(srna, "base_path", PROP_STRING, PROP_FILEPATH);
   RNA_def_property_string_sdna(prop, nullptr, "base_path");
   RNA_def_property_ui_text(prop, "Base Path", "Base output path for the image");
-  RNA_def_property_flag(prop, PROP_PATH_OUTPUT | PROP_PATH_SUPPORTS_BLEND_RELATIVE);
+  RNA_def_property_flag(
+      prop, PROP_PATH_OUTPUT | PROP_PATH_SUPPORTS_BLEND_RELATIVE | PROP_PATH_SUPPORTS_TEMPLATES);
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "active_input_index", PROP_INT, PROP_NONE);
@@ -7804,12 +8016,18 @@ static void def_cmp_scale(BlenderRNA * /*brna*/, StructRNA *srna)
 
   prop = RNA_def_property(srna, "offset_x", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, nullptr, "custom3");
-  RNA_def_property_ui_text(prop, "X Offset", "Offset image horizontally (factor of image size)");
+  RNA_def_property_ui_text(prop,
+                           "X Offset",
+                           "Offset image horizontally (factor of image size). (Deprecated: Use a "
+                           "Translate node instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "offset_y", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, nullptr, "custom4");
-  RNA_def_property_ui_text(prop, "Y Offset", "Offset image vertically (factor of image size)");
+  RNA_def_property_ui_text(
+      prop,
+      "Y Offset",
+      "Offset image vertically (factor of image size). (Deprecated: Use Translate node instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   RNA_def_struct_sdna_from(srna, "NodeScaleData", "storage");
@@ -8096,7 +8314,9 @@ static void def_cmp_brightcontrast(BlenderRNA * /*brna*/, StructRNA *srna)
 
   prop = RNA_def_property(srna, "use_premultiply", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "custom1", 1);
-  RNA_def_property_ui_text(prop, "Convert Premultiplied", "Keep output image premultiplied alpha");
+  RNA_def_property_ui_text(prop,
+                           "Convert Premultiplied",
+                           "Keep output image premultiplied alpha. (Deprecated: Unused.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
@@ -8333,7 +8553,7 @@ static void def_cmp_map_uv(BlenderRNA * /*brna*/, StructRNA *srna)
   prop = RNA_def_property(srna, "alpha", PROP_INT, PROP_FACTOR);
   RNA_def_property_int_sdna(prop, nullptr, "custom1");
   RNA_def_property_range(prop, 0, 100);
-  RNA_def_property_ui_text(prop, "Alpha", "");
+  RNA_def_property_ui_text(prop, "Alpha", "(Deprecated: Unused.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "filter_type", PROP_ENUM, PROP_NONE);
@@ -8385,8 +8605,10 @@ static void def_cmp_defocus(BlenderRNA * /*brna*/, StructRNA *srna)
 
   prop = RNA_def_property(srna, "use_gamma_correction", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "gamco", 1);
-  RNA_def_property_ui_text(
-      prop, "Gamma Correction", "Enable gamma correction before and after main process");
+  RNA_def_property_ui_text(prop,
+                           "Gamma Correction",
+                           "Enable gamma correction before and after main process. (Deprecated: "
+                           "Unused. Use Gamma node instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   /* TODO */
@@ -8409,15 +8631,16 @@ static void def_cmp_defocus(BlenderRNA * /*brna*/, StructRNA *srna)
   prop = RNA_def_property(srna, "threshold", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, nullptr, "bthresh");
   RNA_def_property_range(prop, 0.0f, 100.0f);
-  RNA_def_property_ui_text(
-      prop,
-      "Threshold",
-      "CoC radius threshold, prevents background bleed on in-focus midground, 0 is disabled");
+  RNA_def_property_ui_text(prop,
+                           "Threshold",
+                           "CoC radius threshold, prevents background bleed on in-focus "
+                           "midground, 0 is disabled. (Deprecated: Unused.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "use_preview", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "preview", 1);
-  RNA_def_property_ui_text(prop, "Preview", "Enable low quality mode, useful for preview");
+  RNA_def_property_ui_text(
+      prop, "Preview", "Enable low quality mode, useful for preview. (Deprecated: Unused.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "use_zbuffer", PROP_BOOLEAN, PROP_NONE);
@@ -8537,48 +8760,69 @@ static void def_cmp_dblur(BlenderRNA * /*brna*/, StructRNA *srna)
 {
   PropertyRNA *prop;
 
-  RNA_def_struct_sdna_from(srna, "NodeDBlurData", "storage");
-
   prop = RNA_def_property(srna, "iterations", PROP_INT, PROP_NONE);
-  RNA_def_property_int_sdna(prop, nullptr, "iter");
+  RNA_def_property_int_funcs(prop,
+                             "rna_node_property_to_input_getter<int, node_input_samples>",
+                             "rna_node_property_to_input_setter<int, node_input_samples>",
+                             nullptr);
   RNA_def_property_range(prop, 1, 32);
-  RNA_def_property_ui_text(prop, "Iterations", "");
+  RNA_def_property_ui_text(prop, "Iterations", "(Deprecated: Use Samples input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "center_x", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "center_x");
+  RNA_def_property_float_funcs(prop,
+                               "rna_node_property_to_vector_input_getter<node_input_center, 0>",
+                               "rna_node_property_to_vector_input_setter<node_input_center, 0>",
+                               nullptr);
   RNA_def_property_range(prop, 0.0f, 1.0f);
-  RNA_def_property_ui_text(prop, "Center X", "");
+  RNA_def_property_ui_text(prop, "Center X", "(Deprecated: Use Center input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "center_y", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "center_y");
+  RNA_def_property_float_funcs(prop,
+                               "rna_node_property_to_vector_input_getter<node_input_center, 1>",
+                               "rna_node_property_to_vector_input_setter<node_input_center, 1>",
+                               nullptr);
   RNA_def_property_range(prop, 0.0f, 1.0f);
-  RNA_def_property_ui_text(prop, "Center Y", "");
+  RNA_def_property_ui_text(prop, "Center Y", "(Deprecated: Use Center input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "distance", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "distance");
+  RNA_def_property_float_funcs(
+      prop,
+      "rna_node_property_to_input_getter<float, node_input_translation_amount>",
+      "rna_node_property_to_input_setter<float, node_input_translation_amount>",
+      nullptr);
   RNA_def_property_range(prop, -1.0f, 1.0f);
-  RNA_def_property_ui_text(prop, "Distance", "");
+  RNA_def_property_ui_text(
+      prop, "Distance", "(Deprecated: Use Translation Amount input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "angle", PROP_FLOAT, PROP_ANGLE);
-  RNA_def_property_float_sdna(prop, nullptr, "angle");
+  RNA_def_property_float_funcs(
+      prop,
+      "rna_node_property_to_input_getter<float, node_input_translation_direction>",
+      "rna_node_property_to_input_setter<float, node_input_translation_direction>",
+      nullptr);
   RNA_def_property_range(prop, 0.0f, DEG2RADF(360.0f));
-  RNA_def_property_ui_text(prop, "Angle", "");
+  RNA_def_property_ui_text(
+      prop, "Angle", "(Deprecated: Use Translation Direction input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "spin", PROP_FLOAT, PROP_ANGLE);
-  RNA_def_property_float_sdna(prop, nullptr, "spin");
+  RNA_def_property_float_funcs(prop,
+                               "rna_node_property_to_input_getter<float, node_input_rotation>",
+                               "rna_node_property_to_input_setter<float, node_input_rotation>",
+                               nullptr);
   RNA_def_property_range(prop, DEG2RADF(-360.0f), DEG2RADF(360.0f));
-  RNA_def_property_ui_text(prop, "Spin", "");
+  RNA_def_property_ui_text(prop, "Spin", "(Deprecated: Use Rotation input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "zoom", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "zoom");
+  RNA_def_property_float_funcs(
+      prop, "rna_NodeDirectionalBlur_scale_get", "rna_NodeDirectionalBlur_scale_set", nullptr);
   RNA_def_property_range(prop, 0.0f, 100.0f);
-  RNA_def_property_ui_text(prop, "Zoom", "");
+  RNA_def_property_ui_text(prop, "Zoom", "(Deprecated: Use Scale input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
@@ -8586,24 +8830,29 @@ static void def_cmp_bilateral_blur(BlenderRNA * /*brna*/, StructRNA *srna)
 {
   PropertyRNA *prop;
 
-  RNA_def_struct_sdna_from(srna, "NodeBilateralBlurData", "storage");
-
   prop = RNA_def_property(srna, "iterations", PROP_INT, PROP_NONE);
-  RNA_def_property_int_sdna(prop, nullptr, "iter");
+  RNA_def_property_int_funcs(prop,
+                             "rna_node_property_to_input_getter<int, node_input_size>",
+                             "rna_node_property_to_input_setter<int, node_input_size>",
+                             nullptr);
   RNA_def_property_range(prop, 1, 128);
-  RNA_def_property_ui_text(prop, "Iterations", "");
+  RNA_def_property_ui_text(prop, "Iterations", "(Deprecated: Use Size input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "sigma_color", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "sigma_color");
+  RNA_def_property_float_funcs(
+      prop, "rna_NodeBilateralBlur_threshold_get", "rna_NodeBilateralBlur_threshold_set", nullptr);
   RNA_def_property_range(prop, 0.01f, 3.0f);
-  RNA_def_property_ui_text(prop, "Color Sigma", "");
+  RNA_def_property_ui_text(prop, "Color Sigma", "(Deprecated: Use Threshold input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "sigma_space", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "sigma_space");
+  RNA_def_property_float_funcs(prop,
+                               "rna_NodeBilateralBlur_sigma_space_get",
+                               "rna_NodeBilateralBlur_sigma_space_set",
+                               nullptr);
   RNA_def_property_range(prop, 0.01f, 30.0f);
-  RNA_def_property_ui_text(prop, "Space Sigma", "");
+  RNA_def_property_ui_text(prop, "Space Sigma", "(Deprecated: Use Size input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
@@ -8847,28 +9096,56 @@ static void def_cmp_lensdist(BlenderRNA * /*brna*/, StructRNA *srna)
 {
   PropertyRNA *prop;
 
+  static const EnumPropertyItem type_items[] = {
+      {CMP_NODE_LENS_DISTORTION_RADIAL,
+       "RADIAL",
+       0,
+       "Radial",
+       "Radially distorts the image to create a barrel or a Pincushion distortion"},
+      {CMP_NODE_LENS_DISTORTION_HORIZONTAL,
+       "HORIZONTAL",
+       0,
+       "Horizontal",
+       "Horizontally distorts the image to create a channel/color shifting effect"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
   RNA_def_struct_sdna_from(srna, "NodeLensDist", "storage");
 
+  prop = RNA_def_property(srna, "distortion_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, nullptr, "distortion_type");
+  RNA_def_property_enum_items(prop, type_items);
+  RNA_def_property_ui_text(prop, "Type", "");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
   prop = RNA_def_property(srna, "use_projector", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "proj", 1);
-  RNA_def_property_ui_text(
-      prop,
-      "Projector",
-      "Enable/disable projector mode (the effect is applied in horizontal direction only)");
+  RNA_def_property_boolean_funcs(
+      prop, "rna_NodeLensDistortion_projector_get", "rna_NodeLensDistortion_projector_set");
+  RNA_def_property_ui_text(prop,
+                           "Projector",
+                           "Enable/disable projector mode (the effect is applied in horizontal "
+                           "direction only). (Deprecated: Use distortion_type property instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "use_jitter", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "jit", 1);
-  RNA_def_property_ui_text(prop, "Jitter", "Enable/disable jittering (faster, but also noisier)");
+  RNA_def_property_boolean_funcs(prop,
+                                 "rna_node_property_to_input_getter<bool, node_input_jitter>",
+                                 "rna_node_property_to_input_setter<bool, node_input_jitter>");
+  RNA_def_property_ui_text(prop,
+                           "Jitter",
+                           "Enable/disable jittering (faster, but also noisier). (Deprecated: Use "
+                           "Jitter input instead.)");
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_NODETREE);
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "use_fit", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "fit", 1);
-  RNA_def_property_ui_text(
-      prop,
-      "Fit",
-      "For positive distortion factor only: scale image such that black areas are not visible");
+  RNA_def_property_boolean_funcs(prop,
+                                 "rna_node_property_to_input_getter<bool, node_input_fit>",
+                                 "rna_node_property_to_input_setter<bool, node_input_fit>");
+  RNA_def_property_ui_text(prop,
+                           "Fit",
+                           "For positive distortion factor only: scale image such that black "
+                           "areas are not visible. (Deprecated: Use Fit input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
@@ -9311,41 +9588,59 @@ static void def_cmp_boxmask(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_ui_text(prop, "Mask Type", "");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
-  RNA_def_struct_sdna_from(srna, "NodeBoxMask", "storage");
-
   prop = RNA_def_property(srna, "x", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "x");
+  RNA_def_property_float_funcs(prop,
+                               "rna_node_property_to_vector_input_getter<node_input_position, 0>",
+                               "rna_node_property_to_vector_input_setter<node_input_position, 0>",
+                               nullptr);
   RNA_def_property_float_default(prop, 0.5f);
   RNA_def_property_range(prop, -1.0f, 2.0f);
-  RNA_def_property_ui_text(prop, "X", "X position of the middle of the box");
+  RNA_def_property_ui_text(
+      prop, "X", "X position of the middle of the box. (Deprecated: Use Position input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "y", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "y");
+  RNA_def_property_float_funcs(prop,
+                               "rna_node_property_to_vector_input_getter<node_input_position, 1>",
+                               "rna_node_property_to_vector_input_setter<node_input_position, 1>",
+                               nullptr);
   RNA_def_property_float_default(prop, 0.5f);
   RNA_def_property_range(prop, -1.0f, 2.0f);
-  RNA_def_property_ui_text(prop, "Y", "Y position of the middle of the box");
+  RNA_def_property_ui_text(
+      prop, "Y", "Y position of the middle of the box. (Deprecated: Use Position input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "mask_width", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "width");
+  RNA_def_property_float_funcs(prop,
+                               "rna_node_property_to_vector_input_getter<node_input_size, 0>",
+                               "rna_node_property_to_vector_input_setter<node_input_size, 0>",
+                               nullptr);
   RNA_def_property_float_default(prop, 0.3f);
   RNA_def_property_range(prop, 0.0f, 2.0f);
-  RNA_def_property_ui_text(prop, "Width", "Width of the box");
+  RNA_def_property_ui_text(
+      prop, "Width", "Width of the box. (Deprecated: Use Size input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "mask_height", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "height");
+  RNA_def_property_float_funcs(prop,
+                               "rna_node_property_to_vector_input_getter<node_input_size, 1>",
+                               "rna_node_property_to_vector_input_setter<node_input_size, 1>",
+                               nullptr);
   RNA_def_property_float_default(prop, 0.2f);
   RNA_def_property_range(prop, 0.0f, 2.0f);
-  RNA_def_property_ui_text(prop, "Height", "Height of the box");
+  RNA_def_property_ui_text(
+      prop, "Height", "Height of the box. (Deprecated: Use Size input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "rotation", PROP_FLOAT, PROP_ANGLE);
-  RNA_def_property_float_sdna(prop, nullptr, "rotation");
+  RNA_def_property_float_funcs(prop,
+                               "rna_node_property_to_input_getter<float, node_input_rotation>",
+                               "rna_node_property_to_input_setter<float, node_input_rotation>",
+                               nullptr);
   RNA_def_property_float_default(prop, 0.0f);
   RNA_def_property_range(prop, DEG2RADF(-1800.0f), DEG2RADF(1800.0f));
-  RNA_def_property_ui_text(prop, "Rotation", "Rotation angle of the box");
+  RNA_def_property_ui_text(
+      prop, "Rotation", "Rotation angle of the box. (Deprecated: Use Rotation input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
@@ -9358,41 +9653,65 @@ static void def_cmp_ellipsemask(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_ui_text(prop, "Mask Type", "");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
-  RNA_def_struct_sdna_from(srna, "NodeEllipseMask", "storage");
-
   prop = RNA_def_property(srna, "x", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "x");
+  RNA_def_property_float_funcs(prop,
+                               "rna_node_property_to_vector_input_getter<node_input_position, 0>",
+                               "rna_node_property_to_vector_input_setter<node_input_position, 0>",
+                               nullptr);
   RNA_def_property_float_default(prop, 0.5f);
   RNA_def_property_range(prop, -1.0f, 2.0f);
-  RNA_def_property_ui_text(prop, "X", "X position of the middle of the ellipse");
+  RNA_def_property_ui_text(
+      prop,
+      "X",
+      "X position of the middle of the ellipse. (Deprecated: Use Position input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "y", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "y");
+  RNA_def_property_float_funcs(prop,
+                               "rna_node_property_to_vector_input_getter<node_input_position, 1>",
+                               "rna_node_property_to_vector_input_setter<node_input_position, 1>",
+                               nullptr);
   RNA_def_property_float_default(prop, 0.5f);
   RNA_def_property_range(prop, -1.0f, 2.0f);
-  RNA_def_property_ui_text(prop, "Y", "Y position of the middle of the ellipse");
+  RNA_def_property_ui_text(
+      prop,
+      "Y",
+      "Y position of the middle of the ellipse. (Deprecated: Use Position input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "mask_width", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "width");
+  RNA_def_property_float_funcs(prop,
+                               "rna_node_property_to_vector_input_getter<node_input_size, 0>",
+                               "rna_node_property_to_vector_input_setter<node_input_size, 0>",
+                               nullptr);
   RNA_def_property_float_default(prop, 0.3f);
   RNA_def_property_range(prop, 0.0f, 2.0f);
-  RNA_def_property_ui_text(prop, "Width", "Width of the ellipse");
+  RNA_def_property_ui_text(
+      prop, "Width", "Width of the ellipse. (Deprecated: Use Size input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "mask_height", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "height");
+  RNA_def_property_float_funcs(prop,
+                               "rna_node_property_to_vector_input_getter<node_input_size, 1>",
+                               "rna_node_property_to_vector_input_setter<node_input_size, 1>",
+                               nullptr);
   RNA_def_property_float_default(prop, 0.2f);
   RNA_def_property_range(prop, 0.0f, 2.0f);
-  RNA_def_property_ui_text(prop, "Height", "Height of the ellipse");
+  RNA_def_property_ui_text(
+      prop, "Height", "Height of the ellipse. (Deprecated: Use Size input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "rotation", PROP_FLOAT, PROP_ANGLE);
-  RNA_def_property_float_sdna(prop, nullptr, "rotation");
+  RNA_def_property_float_funcs(prop,
+                               "rna_node_property_to_input_getter<float, node_input_rotation>",
+                               "rna_node_property_to_input_setter<float, node_input_rotation>",
+                               nullptr);
   RNA_def_property_float_default(prop, 0.0f);
   RNA_def_property_range(prop, DEG2RADF(-1800.0f), DEG2RADF(1800.0f));
-  RNA_def_property_ui_text(prop, "Rotation", "Rotation angle of the ellipse");
+  RNA_def_property_ui_text(
+      prop,
+      "Rotation",
+      "Rotation angle of the ellipse. (Deprecated: Use Rotation input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
@@ -9402,33 +9721,29 @@ static void def_cmp_bokehblur(BlenderRNA * /*brna*/, StructRNA *srna)
 
   /* duplicated in def_cmp_blur */
   prop = RNA_def_property(srna, "use_variable_size", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "custom1", CMP_NODEFLAG_BLUR_VARIABLE_SIZE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "custom1", 1);
   RNA_def_property_ui_text(
-      prop, "Variable Size", "Support variable blur per pixel when using an image for size input");
+      prop,
+      "Variable Size",
+      "Support variable blur per pixel when using an image for size input. (Deprecated: Unused.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "use_extended_bounds", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "custom1", CMP_NODEFLAG_BLUR_EXTEND_BOUNDS);
-  RNA_def_property_ui_text(
-      prop, "Extend Bounds", "Extend bounds of the input image to fully fit blurred image");
-  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
-
-#  if 0
-  prop = RNA_def_property(srna, "f_stop", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "custom3");
-  RNA_def_property_range(prop, 0.0f, 128.0f);
-  RNA_def_property_ui_text(
+  RNA_def_property_boolean_funcs(
       prop,
-      "F-Stop",
-      "Amount of focal blur, 128 (infinity) is perfect focus, half the value doubles "
-      "the blur radius");
+      "rna_node_property_to_input_getter<bool, node_input_extend_bounds>",
+      "rna_node_property_to_input_setter<bool, node_input_extend_bounds>");
+  RNA_def_property_ui_text(prop,
+                           "Extend Bounds",
+                           "Extend bounds of the input image to fully fit blurred image. "
+                           "(Deprecated: Use Extend Bounds input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
-#  endif
 
   prop = RNA_def_property(srna, "blur_max", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, nullptr, "custom4");
   RNA_def_property_range(prop, 0.0f, 10000.0f);
-  RNA_def_property_ui_text(prop, "Max Blur", "Blur limit, maximum CoC radius");
+  RNA_def_property_ui_text(
+      prop, "Max Blur", "Blur limit, maximum CoC radius. (Deprecated: Unused.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
@@ -9864,10 +10179,10 @@ static void def_cmp_viewer(BlenderRNA * /*brna*/, StructRNA *srna)
 
   prop = RNA_def_property(srna, "use_alpha", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_negative_sdna(prop, nullptr, "custom2", CMP_NODE_OUTPUT_IGNORE_ALPHA);
-  RNA_def_property_ui_text(
-      prop,
-      "Use Alpha",
-      "Colors are treated alpha premultiplied, or colors output straight (alpha gets set to 1)");
+  RNA_def_property_ui_text(prop,
+                           "Use Alpha",
+                           "Colors are treated alpha premultiplied, or colors output straight "
+                           "(alpha gets set to 1). (Deprecated: Unused.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "ui_shortcut", PROP_INT, PROP_NONE);
@@ -9885,10 +10200,10 @@ static void def_cmp_composite(BlenderRNA * /*brna*/, StructRNA *srna)
 
   prop = RNA_def_property(srna, "use_alpha", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_negative_sdna(prop, nullptr, "custom2", CMP_NODE_OUTPUT_IGNORE_ALPHA);
-  RNA_def_property_ui_text(
-      prop,
-      "Use Alpha",
-      "Colors are treated alpha premultiplied, or colors output straight (alpha gets set to 1)");
+  RNA_def_property_ui_text(prop,
+                           "Use Alpha",
+                           "Colors are treated alpha premultiplied, or colors output straight "
+                           "(alpha gets set to 1). (Deprecated: Unused.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
@@ -10256,21 +10571,31 @@ static void def_cmp_sunbeams(BlenderRNA * /*brna*/, StructRNA *srna)
 {
   PropertyRNA *prop;
 
-  RNA_def_struct_sdna_from(srna, "NodeSunBeams", "storage");
-
   prop = RNA_def_property(srna, "source", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "source");
+  RNA_def_property_array(prop, 2);
+  RNA_def_property_float_funcs(prop,
+                               "rna_node_array_property_to_input_getter<float, node_input_source>",
+                               "rna_node_array_property_to_input_setter<float, node_input_source>",
+                               nullptr);
   RNA_def_property_range(prop, -100.0f, 100.0f);
   RNA_def_property_ui_range(prop, -10.0f, 10.0f, 10, 3);
-  RNA_def_property_ui_text(
-      prop, "Source", "Source point of rays as a factor of the image width and height");
+  RNA_def_property_ui_text(prop,
+                           "Source",
+                           "Source point of rays as a factor of the image width and height. "
+                           "(Deprecated: Use Source input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "ray_length", PROP_FLOAT, PROP_UNSIGNED);
-  RNA_def_property_float_sdna(prop, nullptr, "ray_length");
+  RNA_def_property_float_funcs(prop,
+                               "rna_node_property_to_input_getter<float, node_input_length>",
+                               "rna_node_property_to_input_setter<float, node_input_length>",
+                               nullptr);
   RNA_def_property_range(prop, 0.0f, 100.0f);
   RNA_def_property_ui_range(prop, 0.0f, 1.0f, 10, 3);
-  RNA_def_property_ui_text(prop, "Ray Length", "Length of rays as a factor of the image size");
+  RNA_def_property_ui_text(
+      prop,
+      "Ray Length",
+      "Length of rays as a factor of the image size. (Deprecated: Use Length input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
@@ -10935,7 +11260,7 @@ static void rna_def_node_item_array_new_with_socket_and_name(StructRNA *srna,
   RNA_def_function_return(func, parm);
 }
 
-static void rna_def_simulation_state_item(BlenderRNA *brna)
+static void rna_def_geo_simulation_state_item(BlenderRNA *brna)
 {
   PropertyRNA *prop;
 
@@ -10958,7 +11283,7 @@ static void rna_def_simulation_state_item(BlenderRNA *brna)
       prop, NC_NODE | NA_EDITED, "rna_Node_ItemArray_item_update<SimulationItemsAccessor>");
 }
 
-static void rna_def_geo_simulation_output_items(BlenderRNA *brna)
+static void rna_def_geo_simulation_state_items(BlenderRNA *brna)
 {
   StructRNA *srna;
 
@@ -10971,9 +11296,12 @@ static void rna_def_geo_simulation_output_items(BlenderRNA *brna)
   rna_def_node_item_array_common_functions(srna, "SimulationStateItem", "SimulationItemsAccessor");
 }
 
-static void def_geo_simulation_output(BlenderRNA * /*brna*/, StructRNA *srna)
+static void def_geo_simulation_output(BlenderRNA *brna, StructRNA *srna)
 {
   PropertyRNA *prop;
+
+  rna_def_geo_simulation_state_item(brna);
+  rna_def_geo_simulation_state_items(brna);
 
   RNA_def_struct_sdna_from(srna, "NodeGeometrySimulationOutput", "storage");
 
@@ -11002,7 +11330,7 @@ static void def_geo_simulation_output(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE, nullptr);
 }
 
-static void rna_def_repeat_item(BlenderRNA *brna)
+static void rna_def_geo_repeat_item(BlenderRNA *brna)
 {
   StructRNA *srna = RNA_def_struct(brna, "RepeatItem", nullptr);
   RNA_def_struct_ui_text(srna, "Repeat Item", "");
@@ -11011,7 +11339,7 @@ static void rna_def_repeat_item(BlenderRNA *brna)
   rna_def_node_item_array_socket_item_common(srna, "RepeatItemsAccessor", true);
 }
 
-static void rna_def_geo_repeat_output_items(BlenderRNA *brna)
+static void rna_def_geo_repeat_items(BlenderRNA *brna)
 {
   StructRNA *srna;
 
@@ -11023,9 +11351,12 @@ static void rna_def_geo_repeat_output_items(BlenderRNA *brna)
   rna_def_node_item_array_common_functions(srna, "RepeatItem", "RepeatItemsAccessor");
 }
 
-static void def_geo_repeat_output(BlenderRNA * /*brna*/, StructRNA *srna)
+static void def_geo_repeat_output(BlenderRNA *brna, StructRNA *srna)
 {
   PropertyRNA *prop;
+
+  rna_def_geo_repeat_item(brna);
+  rna_def_geo_repeat_items(brna);
 
   RNA_def_struct_sdna_from(srna, "NodeGeometryRepeatOutput", "storage");
 
@@ -11150,9 +11481,18 @@ static void rna_def_geo_foreach_geometry_element_generation_items(BlenderRNA *br
                                            "ForeachGeometryElementGenerationItemsAccessor");
 }
 
-static void def_geo_foreach_geometry_element_output(BlenderRNA * /*brna*/, StructRNA *srna)
+static void def_geo_foreach_geometry_element_output(BlenderRNA *brna, StructRNA *srna)
 {
   PropertyRNA *prop;
+
+  rna_def_geo_foreach_geometry_element_input_item(brna);
+  rna_def_geo_foreach_geometry_element_input_items(brna);
+
+  rna_def_geo_foreach_geometry_element_main_item(brna);
+  rna_def_geo_foreach_geometry_element_main_items(brna);
+
+  rna_def_geo_foreach_geometry_element_generation_items(brna);
+  rna_def_geo_foreach_geometry_element_generation_item(brna);
 
   RNA_def_struct_sdna_from(srna, "NodeGeometryForeachGeometryElementOutput", "storage");
 
@@ -11249,9 +11589,15 @@ static void rna_def_geo_closure_output_items(BlenderRNA *brna)
       srna, "NodeGeometryClosureOutputItem", "ClosureOutputItemsAccessor");
 }
 
-static void def_geo_closure_output(BlenderRNA * /*brna*/, StructRNA *srna)
+static void def_geo_closure_output(BlenderRNA *brna, StructRNA *srna)
 {
   PropertyRNA *prop;
+
+  rna_def_geo_closure_input_item(brna);
+  rna_def_geo_closure_input_items(brna);
+
+  rna_def_geo_closure_output_item(brna);
+  rna_def_geo_closure_output_items(brna);
 
   RNA_def_struct_sdna_from(srna, "NodeGeometryClosureOutput", "storage");
 
@@ -11309,9 +11655,12 @@ static void rna_def_geo_capture_attribute_items(BlenderRNA *brna)
       srna, "NodeGeometryCaptureAttributeItem", "CaptureAttributeItemsAccessor");
 }
 
-static void rna_def_geo_capture_attribute(BlenderRNA * /*brna*/, StructRNA *srna)
+static void rna_def_geo_capture_attribute(BlenderRNA *brna, StructRNA *srna)
 {
   PropertyRNA *prop;
+
+  rna_def_geo_capture_attribute_item(brna);
+  rna_def_geo_capture_attribute_items(brna);
 
   RNA_def_struct_sdna_from(srna, "NodeGeometryAttributeCapture", "storage");
 
@@ -11395,9 +11744,15 @@ static void rna_def_geo_evaluate_closure_output_items(BlenderRNA *brna)
       srna, "NodeGeometryEvaluateClosureOutputItem", "EvaluateClosureOutputItemsAccessor");
 }
 
-static void def_geo_evaluate_closure(BlenderRNA * /*brna*/, StructRNA *srna)
+static void def_geo_evaluate_closure(BlenderRNA *brna, StructRNA *srna)
 {
   PropertyRNA *prop;
+
+  rna_def_geo_evaluate_closure_input_item(brna);
+  rna_def_geo_evaluate_closure_input_items(brna);
+
+  rna_def_geo_evaluate_closure_output_item(brna);
+  rna_def_geo_evaluate_closure_output_items(brna);
 
   RNA_def_struct_sdna_from(srna, "NodeGeometryEvaluateClosure", "storage");
 
@@ -11455,7 +11810,7 @@ static void rna_def_geo_bake_item(BlenderRNA *brna)
       prop, NC_NODE | NA_EDITED, "rna_Node_ItemArray_item_update<BakeItemsAccessor>");
 }
 
-static void rna_def_bake_items(BlenderRNA *brna)
+static void rna_def_geo_bake_items(BlenderRNA *brna)
 {
   StructRNA *srna;
 
@@ -11468,9 +11823,12 @@ static void rna_def_bake_items(BlenderRNA *brna)
   rna_def_node_item_array_common_functions(srna, "NodeGeometryBakeItem", "BakeItemsAccessor");
 }
 
-static void rna_def_geo_bake(BlenderRNA * /*brna*/, StructRNA *srna)
+static void rna_def_geo_bake(BlenderRNA *brna, StructRNA *srna)
 {
   PropertyRNA *prop;
+
+  rna_def_geo_bake_item(brna);
+  rna_def_geo_bake_items(brna);
 
   RNA_def_struct_sdna_from(srna, "NodeGeometryBake", "storage");
 
@@ -11520,9 +11878,12 @@ static void rna_def_geo_combine_bundle_items(BlenderRNA *brna)
       srna, "NodeGeometryCombineBundleItem", "CombineBundleItemsAccessor");
 }
 
-static void rna_def_geo_combine_bundle(BlenderRNA * /*brna*/, StructRNA *srna)
+static void rna_def_geo_combine_bundle(BlenderRNA *brna, StructRNA *srna)
 {
   PropertyRNA *prop;
+
+  rna_def_geo_combine_bundle_item(brna);
+  rna_def_geo_combine_bundle_items(brna);
 
   RNA_def_struct_sdna_from(srna, "NodeGeometryCombineBundle", "storage");
 
@@ -11560,9 +11921,12 @@ static void rna_def_geo_separate_bundle_items(BlenderRNA *brna)
       srna, "NodeGeometrySeparateBundleItem", "SeparateBundleItemsAccessor");
 }
 
-static void rna_def_geo_separate_bundle(BlenderRNA * /*brna*/, StructRNA *srna)
+static void rna_def_geo_separate_bundle(BlenderRNA *brna, StructRNA *srna)
 {
   PropertyRNA *prop;
+
+  rna_def_geo_separate_bundle_item(brna);
+  rna_def_geo_separate_bundle_items(brna);
 
   RNA_def_struct_sdna_from(srna, "NodeGeometrySeparateBundle", "storage");
 
@@ -11615,9 +11979,12 @@ static void rna_def_geo_index_switch_items(BlenderRNA *brna)
   rna_def_node_item_array_common_functions(srna, "IndexSwitchItem", "IndexSwitchItemsAccessor");
 }
 
-static void def_geo_index_switch(BlenderRNA * /*brna*/, StructRNA *srna)
+static void def_geo_index_switch(BlenderRNA *brna, StructRNA *srna)
 {
   PropertyRNA *prop;
+
+  rna_def_index_switch_item(brna);
+  rna_def_geo_index_switch_items(brna);
 
   RNA_def_struct_sdna_from(srna, "NodeIndexSwitch", "storage");
 
@@ -11939,7 +12306,7 @@ static void def_geo_string_to_curves(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
-static void rna_def_menu_switch_item(BlenderRNA *brna)
+static void rna_def_geo_menu_switch_item(BlenderRNA *brna)
 {
   PropertyRNA *prop;
 
@@ -11984,9 +12351,12 @@ static void rna_def_geo_menu_switch_items(BlenderRNA *brna)
   rna_def_node_item_array_common_functions(srna, "NodeEnumItem", "MenuSwitchItemsAccessor");
 }
 
-static void def_geo_menu_switch(BlenderRNA * /*brna*/, StructRNA *srna)
+static void def_geo_menu_switch(BlenderRNA *brna, StructRNA *srna)
 {
   PropertyRNA *prop;
+
+  rna_def_geo_menu_switch_item(brna);
+  rna_def_geo_menu_switch_items(brna);
 
   RNA_def_struct_sdna_from(srna, "NodeMenuSwitch", "storage");
 
@@ -13080,6 +13450,14 @@ static void rna_def_geometry_nodetree(BlenderRNA *brna)
       prop, "rna_GeometryNodeTree_is_mode_sculpt_get", "rna_GeometryNodeTree_is_mode_sculpt_set");
   RNA_def_property_update(prop, NC_NODE | ND_DISPLAY, "rna_NodeTree_update_asset");
 
+  prop = RNA_def_property(srna, "is_mode_paint", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", GEO_NODE_ASSET_PAINT);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_ui_text(prop, "Paint", "The node group is used in paint mode");
+  RNA_def_property_boolean_funcs(
+      prop, "rna_GeometryNodeTree_is_mode_paint_get", "rna_GeometryNodeTree_is_mode_paint_set");
+  RNA_def_property_update(prop, NC_NODE | ND_DISPLAY, "rna_NodeTree_update_asset");
+
   prop = RNA_def_property(srna, "is_type_mesh", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", GEO_NODE_ASSET_MESH);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
@@ -13114,6 +13492,15 @@ static void rna_def_geometry_nodetree(BlenderRNA *brna)
   RNA_def_property_boolean_funcs(prop,
                                  "rna_GeometryNodeTree_use_wait_for_click_get",
                                  "rna_GeometryNodeTree_use_wait_for_click_set");
+  RNA_def_property_update(prop, NC_NODE | ND_DISPLAY, "rna_NodeTree_update_asset");
+
+  prop = RNA_def_property(srna, "is_type_grease_pencil", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", GEO_NODE_ASSET_GREASE_PENCIL);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_ui_text(prop, "Grease Pencil", "The node group is used for Grease Pencil");
+  RNA_def_property_boolean_funcs(prop,
+                                 "rna_GeometryNodeTree_is_type_grease_pencil_get",
+                                 "rna_GeometryNodeTree_is_type_grease_pencil_set");
   RNA_def_property_update(prop, NC_NODE | ND_DISPLAY, "rna_NodeTree_update_asset");
 }
 
@@ -13297,6 +13684,7 @@ static void rna_def_nodes(BlenderRNA *brna)
   define("ShaderNode", "ShaderNodeVolumeInfo");
   define("ShaderNode", "ShaderNodeVolumePrincipled");
   define("ShaderNode", "ShaderNodeVolumeScatter", def_scatter);
+  define("ShaderNode", "ShaderNodeVolumeCoefficients", def_volume_coefficients);
   define("ShaderNode", "ShaderNodeWavelength");
   define("ShaderNode", "ShaderNodeWireframe", def_sh_tex_wireframe);
 
@@ -13491,7 +13879,10 @@ static void rna_def_nodes(BlenderRNA *brna)
   define("GeometryNode", "GeometryNodeBoundBox");
   define("GeometryNode", "GeometryNodeCameraInfo");
   define("GeometryNode", "GeometryNodeCaptureAttribute", rna_def_geo_capture_attribute);
+  define("GeometryNode", "GeometryNodeClosureInput", def_geo_closure_input);
+  define("GeometryNode", "GeometryNodeClosureOutput", def_geo_closure_output);
   define("GeometryNode", "GeometryNodeCollectionInfo");
+  define("GeometryNode", "GeometryNodeCombineBundle", rna_def_geo_combine_bundle);
   define("GeometryNode", "GeometryNodeConvexHull");
   define("GeometryNode", "GeometryNodeCornersOfEdge");
   define("GeometryNode", "GeometryNodeCornersOfFace");
@@ -13525,6 +13916,7 @@ static void rna_def_nodes(BlenderRNA *brna)
   define("GeometryNode", "GeometryNodeEdgesOfCorner");
   define("GeometryNode", "GeometryNodeEdgesOfVertex");
   define("GeometryNode", "GeometryNodeEdgesToFaceGroups");
+  define("GeometryNode", "GeometryNodeEvaluateClosure", def_geo_evaluate_closure);
   define("GeometryNode", "GeometryNodeExtrudeMesh");
   define("GeometryNode", "GeometryNodeFaceOfCorner");
   define("GeometryNode", "GeometryNodeFieldAtIndex");
@@ -13543,14 +13935,16 @@ static void rna_def_nodes(BlenderRNA *brna)
   define("GeometryNode", "GeometryNodeGizmoLinear");
   define("GeometryNode", "GeometryNodeGizmoTransform", rna_def_geo_gizmo_transform);
   define("GeometryNode", "GeometryNodeGreasePencilToCurves");
+  define("GeometryNode", "GeometryNodeGridInfo");
   define("GeometryNode", "GeometryNodeGridToMesh");
   define("GeometryNode", "GeometryNodeImageInfo");
   define("GeometryNode", "GeometryNodeImageTexture", def_geo_image_texture);
+  define("GeometryNode", "GeometryNodeImportCSV");
   define("GeometryNode", "GeometryNodeImportOBJ");
   define("GeometryNode", "GeometryNodeImportPLY");
   define("GeometryNode", "GeometryNodeImportSTL");
-  define("GeometryNode", "GeometryNodeImportCSV");
   define("GeometryNode", "GeometryNodeImportText");
+  define("GeometryNode", "GeometryNodeImportVDB");
   define("GeometryNode", "GeometryNodeIndexOfNearest");
   define("GeometryNode", "GeometryNodeIndexSwitch", def_geo_index_switch);
   define("GeometryNode", "GeometryNodeInputActiveCamera");
@@ -13641,6 +14035,7 @@ static void rna_def_nodes(BlenderRNA *brna)
   define("GeometryNode", "GeometryNodeScaleInstances");
   define("GeometryNode", "GeometryNodeSDFGridBoolean");
   define("GeometryNode", "GeometryNodeSelfObject");
+  define("GeometryNode", "GeometryNodeSeparateBundle", rna_def_geo_separate_bundle);
   define("GeometryNode", "GeometryNodeSeparateComponents");
   define("GeometryNode", "GeometryNodeSeparateGeometry");
   define("GeometryNode", "GeometryNodeSetCurveHandlePositions");
@@ -13648,6 +14043,8 @@ static void rna_def_nodes(BlenderRNA *brna)
   define("GeometryNode", "GeometryNodeSetCurveRadius");
   define("GeometryNode", "GeometryNodeSetCurveTilt");
   define("GeometryNode", "GeometryNodeSetGeometryName");
+  define("GeometryNode", "GeometryNodeSetGreasePencilColor");
+  define("GeometryNode", "GeometryNodeSetGreasePencilDepth");
   define("GeometryNode", "GeometryNodeSetID");
   define("GeometryNode", "GeometryNodeSetInstanceTransform");
   define("GeometryNode", "GeometryNodeSetMaterial");
@@ -13658,8 +14055,6 @@ static void rna_def_nodes(BlenderRNA *brna)
   define("GeometryNode", "GeometryNodeSetShadeSmooth");
   define("GeometryNode", "GeometryNodeSetSplineCyclic");
   define("GeometryNode", "GeometryNodeSetSplineResolution");
-  define("GeometryNode", "GeometryNodeSetGreasePencilColor");
-  define("GeometryNode", "GeometryNodeSetGreasePencilDepth");
   define("GeometryNode", "GeometryNodeSimulationInput", def_geo_simulation_input);
   define("GeometryNode", "GeometryNodeSimulationOutput", def_geo_simulation_output);
   define("GeometryNode", "GeometryNodeSortElements");
@@ -13694,11 +14089,6 @@ static void rna_def_nodes(BlenderRNA *brna)
   define("GeometryNode", "GeometryNodeVolumeCube");
   define("GeometryNode", "GeometryNodeVolumeToMesh");
   define("GeometryNode", "GeometryNodeWarning");
-  define("GeometryNode", "GeometryNodeSeparateBundle", rna_def_geo_separate_bundle);
-  define("GeometryNode", "GeometryNodeCombineBundle", rna_def_geo_combine_bundle);
-  define("GeometryNode", "GeometryNodeClosureInput", def_geo_closure_input);
-  define("GeometryNode", "GeometryNodeClosureOutput", def_geo_closure_output);
-  define("GeometryNode", "GeometryNodeEvaluateClosure", def_geo_evaluate_closure);
 
 
   /* Node group types are currently defined for each tree type individually. */
@@ -13729,22 +14119,6 @@ void RNA_def_nodetree(BlenderRNA *brna)
   rna_def_texture_nodetree(brna);
   rna_def_geometry_nodetree(brna);
 
-  rna_def_simulation_state_item(brna);
-  rna_def_repeat_item(brna);
-  rna_def_geo_foreach_geometry_element_input_item(brna);
-  rna_def_geo_foreach_geometry_element_main_item(brna);
-  rna_def_geo_foreach_geometry_element_generation_item(brna);
-  rna_def_index_switch_item(brna);
-  rna_def_menu_switch_item(brna);
-  rna_def_geo_bake_item(brna);
-  rna_def_geo_combine_bundle_item(brna);
-  rna_def_geo_separate_bundle_item(brna);
-  rna_def_geo_closure_input_item(brna);
-  rna_def_geo_closure_output_item(brna);
-  rna_def_geo_evaluate_closure_input_item(brna);
-  rna_def_geo_evaluate_closure_output_item(brna);
-  rna_def_geo_capture_attribute_item(brna);
-
   rna_def_nodes(brna);
 
   def_custom_group(brna,
@@ -13771,25 +14145,6 @@ void RNA_def_nodetree(BlenderRNA *brna)
                    "Geometry Custom Group",
                    "Custom Geometry Group Node for Python nodes",
                    "rna_GeometryNodeCustomGroup_register");
-
-  /* special socket types */
-  rna_def_cmp_output_file_slot_file(brna);
-  rna_def_cmp_output_file_slot_layer(brna);
-  rna_def_geo_simulation_output_items(brna);
-  rna_def_geo_repeat_output_items(brna);
-  rna_def_geo_foreach_geometry_element_input_items(brna);
-  rna_def_geo_foreach_geometry_element_main_items(brna);
-  rna_def_geo_foreach_geometry_element_generation_items(brna);
-  rna_def_geo_index_switch_items(brna);
-  rna_def_geo_menu_switch_items(brna);
-  rna_def_bake_items(brna);
-  rna_def_geo_combine_bundle_items(brna);
-  rna_def_geo_separate_bundle_items(brna);
-  rna_def_geo_closure_input_items(brna);
-  rna_def_geo_closure_output_items(brna);
-  rna_def_geo_evaluate_closure_input_items(brna);
-  rna_def_geo_evaluate_closure_output_items(brna);
-  rna_def_geo_capture_attribute_items(brna);
 
   rna_def_node_instance_hash(brna);
 }

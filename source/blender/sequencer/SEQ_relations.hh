@@ -20,13 +20,13 @@ struct Strip;
 namespace blender::seq {
 
 /**
- * Check if one sequence is input to the other.
+ * Check if one strip is input to the other.
  */
 bool relation_is_effect_of_strip(const Strip *effect, const Strip *input);
 /**
  * Function to free imbuf and anim data on changes.
  */
-void relations_sequence_free_anim(Strip *strip);
+void relations_strip_free_anim(Strip *strip);
 bool relations_check_scene_recursion(Scene *scene, ReportList *reports);
 /**
  * Check if "strip_main" (indirectly) uses strip "strip".
@@ -48,14 +48,14 @@ void relations_invalidate_cache_in_range(Scene *scene,
  */
 void relations_free_all_anim_ibufs(Scene *scene, int timeline_frame);
 /**
- * A debug and development function which checks whether sequences have unique UIDs.
+ * A debug and development function which checks whether strips have unique UIDs.
  * Errors will be reported to the console.
  */
 void relations_check_uids_unique_and_report(const Scene *scene);
 /**
- * Generate new UID for the given sequence.
+ * Generate new UID for the given strip.
  */
-void relations_session_uid_generate(Strip *sequence);
+void relations_session_uid_generate(Strip *strip);
 
 void cache_cleanup(Scene *scene);
 void cache_iterate(

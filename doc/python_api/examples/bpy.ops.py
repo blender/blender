@@ -16,7 +16,9 @@ saving an undo history entry.
 
 If operator was cancelled but there wasn't any reports from it with ``{'ERROR'}`` type,
 it will just return ``{'CANCELLED'}`` without raising any exceptions.
-If it had error reports, then it will raise a ``RuntimeError`` including all report messages.
+However, if there are error reports, a ``RuntimeError`` will be raised
+after the operator finishes execution, including all error report messages,
+regardless of the return status (even if it was ``{'FINISHED'}``).
 
 Calling an operator in the wrong context will raise a ``RuntimeError``,
 there is a poll() method to avoid this problem.

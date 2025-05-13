@@ -1,0 +1,278 @@
+==== Meshes: 6
+- Mesh 'Plane' vtx:4 face:1 loop:4 edge:4
+    - 0 1 3 2 
+    - 0/1 1/3 2/3 0/2 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.000, -1.000)
+    - (1.000, 0.000, -1.000)
+    - (-1.000, 0.000, 1.000)
+    - (1.000, 0.000, 1.000)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 0 0 0 0 
+  - attr 'material_index' INT FACE
+    - 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'UVMap' FLOAT2 CORNER
+    - (0.000, 0.000)
+    - (1.000, 0.000)
+    - (1.000, 1.000)
+    - (0.000, 1.000)
+  - 1 materials
+    - 'BaseColor' 
+
+- Mesh 'Plane.001' vtx:4 face:1 loop:4 edge:4
+    - 0 1 3 2 
+    - 0/1 1/3 2/3 0/2 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.000, -1.000)
+    - (1.000, 0.000, -1.000)
+    - (-1.000, 0.000, 1.000)
+    - (1.000, 0.000, 1.000)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 0 0 0 0 
+  - attr 'material_index' INT FACE
+    - 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'UVMap' FLOAT2 CORNER
+    - (0.000, 0.000)
+    - (1.000, 0.000)
+    - (1.000, 1.000)
+    - (0.000, 1.000)
+  - 1 materials
+    - 'BaseTexture' 
+
+- Mesh 'Plane.002' vtx:4 face:1 loop:4 edge:4
+    - 0 1 3 2 
+    - 0/1 1/3 2/3 0/2 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.000, -1.000)
+    - (1.000, 0.000, -1.000)
+    - (-1.000, 0.000, 1.000)
+    - (1.000, 0.000, 1.000)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 0 0 0 0 
+  - attr 'material_index' INT FACE
+    - 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'UVMap' FLOAT2 CORNER
+    - (0.000, 0.000)
+    - (1.000, 0.000)
+    - (1.000, 1.000)
+    - (0.000, 1.000)
+  - 1 materials
+    - 'EmissiveColor' 
+
+- Mesh 'Plane.003' vtx:4 face:1 loop:4 edge:4
+    - 0 1 3 2 
+    - 0/1 1/3 2/3 0/2 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.000, -1.000)
+    - (1.000, 0.000, -1.000)
+    - (-1.000, 0.000, 1.000)
+    - (1.000, 0.000, 1.000)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 0 0 0 0 
+  - attr 'material_index' INT FACE
+    - 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'UVMap' FLOAT2 CORNER
+    - (0.000, 0.000)
+    - (1.000, 0.000)
+    - (1.000, 1.000)
+    - (0.000, 1.000)
+  - 1 materials
+    - 'EmissiveFactor' 
+
+- Mesh 'Plane.004' vtx:4 face:1 loop:4 edge:4
+    - 0 1 3 2 
+    - 0/1 1/3 2/3 0/2 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.000, -1.000)
+    - (1.000, 0.000, -1.000)
+    - (-1.000, 0.000, 1.000)
+    - (1.000, 0.000, 1.000)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 0 0 0 0 
+  - attr 'material_index' INT FACE
+    - 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'UVMap' FLOAT2 CORNER
+    - (0.000, 0.000)
+    - (1.000, 0.000)
+    - (1.000, 1.000)
+    - (0.000, 1.000)
+  - 1 materials
+    - 'EmissiveTexture' 
+
+- Mesh 'Plane.005' vtx:4 face:1 loop:4 edge:4
+    - 0 1 3 2 
+    - 0/1 1/3 2/3 0/2 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.000, -1.000)
+    - (1.000, 0.000, -1.000)
+    - (-1.000, 0.000, 1.000)
+    - (1.000, 0.000, 1.000)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 0 0 0 0 
+  - attr 'material_index' INT FACE
+    - 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'UVMap' FLOAT2 CORNER
+    - (0.000, 0.000)
+    - (1.000, 0.000)
+    - (1.000, 1.000)
+    - (0.000, 1.000)
+  - 1 materials
+    - 'EmissiveTextureFactor' 
+
+==== Objects: 8
+- Obj 'BaseColor' MESH data:'Plane'
+  - pos -2.000, 0.000, -1.000
+  - rot 0.000, 1.571, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'BaseTexture' MESH data:'Plane.001'
+  - pos -2.000, 0.000, 1.000
+  - rot 0.000, 1.571, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'Camera' CAMERA data:'Camera.002'
+  - pos 0.000, -10.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'EmissiveColor' MESH data:'Plane.002'
+  - pos 0.000, 0.000, -1.000
+  - rot 0.000, 1.571, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'EmissiveFactor' MESH data:'Plane.003'
+  - pos 0.000, 0.000, 1.000
+  - rot 0.000, 1.571, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'EmissiveTexture' MESH data:'Plane.004'
+  - pos 2.000, 0.000, -1.000
+  - rot 0.000, 1.571, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'EmissiveTextureFactor' MESH data:'Plane.005'
+  - pos 2.000, 0.000, 1.000
+  - rot 0.000, 1.571, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'Sun' LIGHT data:'Sun'
+  - pos 0.000, -5.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+
+==== Cameras: 1
+- Cam 'Camera.002' ORTHO lens:50.0 MILLIMETERS near:0.100 far:1000.0 orthosize:8.0
+  - fov 0.691 (h 0.691 v 0.471)
+  - sensor 36.0x24.0 shift 0.000,0.000
+
+==== Lights: 1
+- Light 'Sun' SUN col:(1.000, 1.000, 1.000) energy:3.142
+
+==== Materials: 6
+- Mat 'BaseColor'
+  - base color (0.250, 0.125, 0.500)
+  - specular ior 0.500
+  - specular tint (1.000, 1.000, 1.000)
+  - roughness 0.000
+  - metallic 0.000
+  - ior 1.500
+  - viewport diffuse (0.250, 0.125, 0.500, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 0.500
+  - viewport metallic 0.000, roughness 0.000
+  - backface False probe True shadow False
+
+- Mat 'BaseTexture'
+  - base color (0.125, 0.250, 0.500) tex:'chart_purple_srgb.png' (blender_402_material_chart_7400_binary.fbm/chart_purple_srgb.png) a:False
+  - specular ior 0.500
+  - specular tint (1.000, 1.000, 1.000)
+  - roughness 0.000
+  - metallic 0.000
+  - ior 1.500
+  - viewport diffuse (0.125, 0.250, 0.500, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 0.500
+  - viewport metallic 0.000, roughness 0.000
+  - backface False probe True shadow False
+
+- Mat 'EmissiveColor'
+  - base color (0.000, 0.000, 0.000)
+  - specular ior 0.500
+  - specular tint (1.000, 1.000, 1.000)
+  - roughness 0.000
+  - metallic 0.000
+  - ior 1.500
+  - emission color (0.250, 0.125, 0.500)
+  - emission strength 1.000
+  - viewport diffuse (0.000, 0.000, 0.000, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 0.500
+  - viewport metallic 0.000, roughness 0.000
+  - backface False probe True shadow False
+
+- Mat 'EmissiveFactor'
+  - base color (0.000, 0.000, 0.000)
+  - specular ior 0.500
+  - specular tint (1.000, 1.000, 1.000)
+  - roughness 0.000
+  - metallic 0.000
+  - ior 1.500
+  - emission color (0.500, 0.250, 1.000)
+  - emission strength 0.500
+  - viewport diffuse (0.000, 0.000, 0.000, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 0.500
+  - viewport metallic 0.000, roughness 0.000
+  - backface False probe True shadow False
+
+- Mat 'EmissiveTexture'
+  - base color (0.000, 0.000, 0.000)
+  - specular ior 0.500
+  - specular tint (1.000, 1.000, 1.000)
+  - roughness 0.000
+  - metallic 0.000
+  - ior 1.500
+  - emission color (0.125, 0.250, 0.500) tex:'chart_purple_srgb.png' (blender_402_material_chart_7400_binary.fbm/chart_purple_srgb.png) a:False
+  - emission strength 1.000
+  - viewport diffuse (0.000, 0.000, 0.000, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 0.500
+  - viewport metallic 0.000, roughness 0.000
+  - backface False probe True shadow False
+
+- Mat 'EmissiveTextureFactor'
+  - base color (0.000, 0.000, 0.000)
+  - specular ior 0.500
+  - specular tint (1.000, 1.000, 1.000)
+  - roughness 0.000
+  - metallic 0.000
+  - ior 1.500
+  - emission color (0.125, 0.250, 0.500) tex:'chart_bright_purple_srgb.png' (blender_402_material_chart_7400_binary.fbm/chart_bright_purple_srgb.png) a:False
+  - emission strength 0.500
+  - viewport diffuse (0.000, 0.000, 0.000, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 0.500
+  - viewport metallic 0.000, roughness 0.000
+  - backface False probe True shadow False
+
+==== Images: 2
+- Image 'chart_bright_purple_srgb.png' 4x4 32bpp
+- Image 'chart_purple_srgb.png' 4x4 24bpp
+

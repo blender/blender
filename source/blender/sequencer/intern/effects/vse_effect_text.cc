@@ -572,7 +572,7 @@ static void text_draw(const TextVarsRuntime *runtime, float color[4])
 static rcti draw_text_outline(const RenderData *context,
                               const TextVars *data,
                               const TextVarsRuntime *runtime,
-                              ColorManagedDisplay *display,
+                              const ColorManagedDisplay *display,
                               ImBuf *out)
 {
   /* Outline width of 1.0 maps to half of text line height. */
@@ -1026,7 +1026,7 @@ static ImBuf *do_text_effect(const RenderData *context,
   TextVars *data = static_cast<TextVars *>(strip->effectdata);
 
   const char *display_device = context->scene->display_settings.display_device;
-  ColorManagedDisplay *display = IMB_colormanagement_display_get_named(display_device);
+  const ColorManagedDisplay *display = IMB_colormanagement_display_get_named(display_device);
   const int font_flags = ((data->flag & SEQ_TEXT_BOLD) ? BLF_BOLD : 0) |
                          ((data->flag & SEQ_TEXT_ITALIC) ? BLF_ITALIC : 0);
 

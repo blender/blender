@@ -24,6 +24,7 @@
 
 #include "BLI_fileops.h"
 #include "BLI_listbase.h"
+#include "BLI_mutex.hh"
 #include "BLI_rect.h"
 #include "BLI_task.h"
 #include "BLI_utildefines.h"
@@ -681,7 +682,7 @@ struct PrefetchQueue {
    */
   bool forward;
 
-  SpinLock spin;
+  blender::Mutex mutex;
 
   bool *stop;
   bool *do_update;
@@ -780,7 +781,7 @@ static uchar *prefetch_thread_next_frame(PrefetchQueue *queue,
 {
   uchar *mem = nullptr;
 
-  BLI_spin_lock(&queue->spin);
+  std::lock_guard lock(queue->mutex);
   if (!*queue->stop && !check_prefetch_break() &&
       IN_RANGE_INCL(queue->current_frame, queue->start_frame, queue->end_frame))
   {
@@ -831,7 +832,6 @@ static uchar *prefetch_thread_next_frame(PrefetchQueue *queue,
       *queue->progress = float(frames_processed) / (queue->end_frame - queue->start_frame);
     }
   }
-  BLI_spin_unlock(&queue->spin);
 
   return mem;
 }
@@ -896,8 +896,6 @@ static void start_prefetch_threads(MovieClip *clip,
 
   /* initialize queue */
   PrefetchQueue queue;
-  BLI_spin_init(&queue.spin);
-
   queue.current_frame = current_frame;
   queue.initial_frame = current_frame;
   queue.start_frame = start_frame;
@@ -916,8 +914,6 @@ static void start_prefetch_threads(MovieClip *clip,
   }
   BLI_task_pool_work_and_wait(task_pool);
   BLI_task_pool_free(task_pool);
-
-  BLI_spin_end(&queue.spin);
 }
 
 /* NOTE: Reading happens from `clip_local` into `clip->cache`. */

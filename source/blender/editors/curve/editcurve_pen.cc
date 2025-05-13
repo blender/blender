@@ -1562,9 +1562,10 @@ static wmOperatorStatus curve_pen_modal(bContext *C, wmOperator *op, const wmEve
   BPoint *bp = nullptr;
   Nurb *nu = nullptr;
 
-  SelectPick_Params params{};
-  params.sel_op = SEL_OP_SET;
-  params.deselect_all = false;
+  const SelectPick_Params params = {
+      /*sel_op*/ SEL_OP_SET,
+      /*deselect_all*/ false,
+  };
 
   wmOperatorStatus ret = OPERATOR_RUNNING_MODAL;
 
@@ -1657,7 +1658,7 @@ static wmOperatorStatus curve_pen_modal(bContext *C, wmOperator *op, const wmEve
   else if (ELEM(event->type, LEFTMOUSE)) {
     if (ELEM(event->val, KM_RELEASE, KM_DBL_CLICK)) {
       if (delete_point && !cpd->new_point && !cpd->dragging) {
-        if (ED_curve_editnurb_select_pick(C, event->mval, threshold_dist_px, &params)) {
+        if (ED_curve_editnurb_select_pick(C, event->mval, threshold_dist_px, params)) {
           cpd->changed = delete_point_under_mouse(&vc, event);
         }
       }
@@ -1718,7 +1719,7 @@ static wmOperatorStatus curve_pen_modal(bContext *C, wmOperator *op, const wmEve
           }
         }
         else if (select_point) {
-          ED_curve_editnurb_select_pick(C, event->mval, threshold_dist_px, &params);
+          ED_curve_editnurb_select_pick(C, event->mval, threshold_dist_px, params);
         }
       }
 

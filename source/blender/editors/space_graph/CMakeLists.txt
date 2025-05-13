@@ -18,15 +18,15 @@ set(SRC
   graph_draw.cc
   graph_edit.cc
   graph_ops.cc
+  graph_query.cc
   graph_select.cc
   graph_slider_ops.cc
   graph_utils.cc
   graph_view.cc
-  graph_query.cc
   space_graph.cc
 
-  graph_intern.hh
   ED_space_graph.hh
+  graph_intern.hh
 )
 
 set(LIB

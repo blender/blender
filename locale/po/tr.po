@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'1f4cae0c4623')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'a7d2b7850ef2')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-28 09:32+0000\n"
+"POT-Creation-Date: 2025-05-05 08:47+0000\n"
 "PO-Revision-Date: 2025-04-14 08:43+0000\n"
 "Last-Translator: VertexSelection <amacsizk2021@gmail.com>\n"
 "Language-Team: Turkish <https://translate.blender.org/projects/blender-ui/ui/tr/>\n"
@@ -16432,16 +16432,6 @@ msgstr "Kırışıklık"
 
 
 msgctxt "Brush"
-msgid "Flatten"
-msgstr "Düzleştirmek"
-
-
-msgctxt "Brush"
-msgid "Scrape"
-msgstr "Kazımak"
-
-
-msgctxt "Brush"
 msgid "Multi-plane Scrape"
 msgstr "Çoklu düzlem kazıma"
 
@@ -29267,6 +29257,102 @@ msgid "Editor menu containing buttons"
 msgstr "Düğmeler içeren düzenleyici menüsü"
 
 
+msgid "Select Similar"
+msgstr "Benzerini Seç"
+
+
+msgid "Select All by Trait"
+msgstr "Özelliğe Göre Tümünü Seç"
+
+
+msgid "Select More/Less"
+msgstr "Daha Fazla/Daha Az Seç"
+
+
+msgid "Select Linked"
+msgstr "Bağlantılıyı Seç"
+
+
+msgid "Select Loops"
+msgstr "Döngüleri Seç"
+
+
+msgid "Assign Material"
+msgstr "Malzeme Atamak"
+
+
+msgid "Metaball"
+msgstr "Metabol"
+
+
+msgid "Light"
+msgstr "Işık"
+
+
+msgid "Light Probe"
+msgstr "Işık Sondası"
+
+
+msgid "Add Image"
+msgstr "Resim Ekle"
+
+
+msgid "Relations"
+msgstr "İlişkiler"
+
+
+msgid "Rigid Body"
+msgstr "Sert Gövde"
+
+
+msgid "Apply"
+msgstr "Uygula"
+
+
+msgid "Track"
+msgstr "İzlemek"
+
+
+msgid "Quick Effects"
+msgstr "Hızlı Etkiler"
+
+
+msgid "Show/Hide"
+msgstr "Göster/Gizle"
+
+
+msgid "Clean Up"
+msgstr "Temizle"
+
+
+msgid "Asset"
+msgstr "Varlık"
+
+
+msgid "Make Single User"
+msgstr "Tek Kullanıcı Yap"
+
+
+msgid "Convert"
+msgstr "Çevir"
+
+
+msgid "Link/Transfer Data"
+msgstr "Veriyi Bağlantıla/Aktar"
+
+
+msgid "Hooks"
+msgstr "Kancalar"
+
+
+msgid "Vertex Group Locks"
+msgstr "Vertex Grup Kilitleri"
+
+
+msgid "Trim/Add"
+msgstr "Kırp/Ekle"
+
+
 msgid "Sculpt Set Pivot"
 msgstr "Heykel Seti Pivot"
 
@@ -29277,10 +29363,6 @@ msgstr "Yüz Setleri Başlatma"
 
 msgid "Random Mask"
 msgstr "Rastgele Maske"
-
-
-msgid "Show/Hide"
-msgstr "Göster/Gizle"
 
 
 msgid "Clear Transform"
@@ -29301,10 +29383,6 @@ msgstr "Kemik Koleksiyonları"
 
 msgid "Names"
 msgstr "Adlar"
-
-
-msgid "Apply"
-msgstr "Uygula"
 
 
 msgid "Toggle Bone Options"
@@ -29335,10 +29413,6 @@ msgid "Set Face Strength"
 msgstr "Yüz Gücünü Ayarla"
 
 
-msgid "Clean Up"
-msgstr "Temizle"
-
-
 msgid "Merge"
 msgstr "Birleştir"
 
@@ -29353,10 +29427,6 @@ msgstr "Harf aralığı"
 
 msgid "Text"
 msgstr "Metin"
-
-
-msgid "Metaball"
-msgstr "Metabol"
 
 
 msgid "Bone Roll"
@@ -29385,10 +29455,6 @@ msgstr "Otomatik maskeleme"
 
 msgid "Face Sets Edit"
 msgstr "Yüz Setleri Düzenle"
-
-
-msgid "Vertex Group Locks"
-msgstr "Vertex Grup Kilitleri"
 
 
 msgid "Mirror"
@@ -29421,82 +29487,6 @@ msgstr "Görünümü Etkin Olarak Hizala"
 
 msgid "View Regions"
 msgstr "Bölgeleri Görüntüle"
-
-
-msgid "Select More/Less"
-msgstr "Daha Fazla/Daha Az Seç"
-
-
-msgid "Select Similar"
-msgstr "Benzerini Seç"
-
-
-msgid "Select All by Trait"
-msgstr "Özelliğe Göre Tümünü Seç"
-
-
-msgid "Select Linked"
-msgstr "Bağlantılıyı Seç"
-
-
-msgid "Select Loops"
-msgstr "Döngüleri Seç"
-
-
-msgid "Assign Material"
-msgstr "Malzeme Atamak"
-
-
-msgid "Light"
-msgstr "Işık"
-
-
-msgid "Light Probe"
-msgstr "Işık Sondası"
-
-
-msgid "Add Image"
-msgstr "Resim Ekle"
-
-
-msgid "Relations"
-msgstr "İlişkiler"
-
-
-msgid "Rigid Body"
-msgstr "Sert Gövde"
-
-
-msgid "Track"
-msgstr "İzlemek"
-
-
-msgid "Quick Effects"
-msgstr "Hızlı Etkiler"
-
-
-msgid "Asset"
-msgstr "Varlık"
-
-
-msgid "Make Single User"
-msgstr "Tek Kullanıcı Yap"
-
-
-msgid "Convert"
-msgstr "Çevir"
-
-
-msgid "Link/Transfer Data"
-msgstr "Veriyi Bağlantıla/Aktar"
-
-
-msgid "Hooks"
-msgstr "Kancalar"
-
-
-msgid "Trim/Add"
-msgstr "Kırp/Ekle"
 
 
 msgid "Keyframe Insert Pie"
@@ -38281,10 +38271,6 @@ msgid "Variable Size"
 msgstr "Değişken Boyut"
 
 
-msgid "Support variable blur per pixel when using an image for size input"
-msgstr "Boyut girişi için bir görüntü kullanıldığında piksel başına değişken bulanıklığı destekleyin"
-
-
 msgid "Bokeh Blur"
 msgstr "Bokeh Bulanıklığı"
 
@@ -38325,10 +38311,6 @@ msgid "Create rectangular mask suitable for use as a simple matte"
 msgstr "Basit bir mat olarak kullanılmaya uygun dikdörtgen bir maske oluşturun"
 
 
-msgid "Height of the box"
-msgstr "Kutunun yüksekliği"
-
-
 msgid "Mask Type"
 msgstr "Maske Türü"
 
@@ -38337,32 +38319,12 @@ msgid "Not"
 msgstr "Olumsuz"
 
 
-msgid "Width of the box"
-msgstr "Kutunun genişliği"
-
-
-msgid "Rotation angle of the box"
-msgstr "Kutunun dönüş açısı"
-
-
-msgid "X position of the middle of the box"
-msgstr "Kutunun ortasındaki X pozisyonu"
-
-
-msgid "Y position of the middle of the box"
-msgstr "Kutunun ortasındaki Y pozisyonu"
-
-
 msgid "Brightness/Contrast"
 msgstr "Parlaklık/Kontrast"
 
 
 msgid "Adjust brightness and contrast"
 msgstr "Parlaklığı ve kontrastı ayarlayın"
-
-
-msgid "Keep output image premultiplied alpha"
-msgstr "Çıkış görüntüsünü önceden çarpılmış alfa ile koru"
 
 
 msgid "Channel Key"
@@ -38534,192 +38496,92 @@ msgid "Color Correction"
 msgstr "Renk Düzeltme"
 
 
-msgid "Blue channel active"
-msgstr "Mavi kanal aktif"
-
-
-msgid "Green channel active"
-msgstr "Yeşil kanal aktif"
-
-
 msgid "Highlights Contrast"
 msgstr "Vurgular Kontrast"
-
-
-msgid "Highlights contrast"
-msgstr "Vurgular kontrast"
 
 
 msgid "Highlights Gain"
 msgstr "Önemli Noktalar Kazanç"
 
 
-msgid "Highlights gain"
-msgstr "Önemli noktalar kazanç"
-
-
 msgid "Highlights Gamma"
 msgstr "Önemli Noktalar Gamma"
-
-
-msgid "Highlights gamma"
-msgstr "Vurgular gama"
 
 
 msgid "Highlights Lift"
 msgstr "Önemli Noktalar Kaldırma"
 
 
-msgid "Highlights lift"
-msgstr "Vurgular kaldır"
-
-
 msgid "Highlights Saturation"
 msgstr "Vurgular Doygunluk"
-
-
-msgid "Highlights saturation"
-msgstr "Vurgular doygunluk"
 
 
 msgid "Master Contrast"
 msgstr "Ana Kontrast"
 
 
-msgid "Master contrast"
-msgstr "Ana kontrast"
-
-
 msgid "Master Gain"
 msgstr "Usta Kazanç"
-
-
-msgid "Master gain"
-msgstr "Usta kazanç"
 
 
 msgid "Master Gamma"
 msgstr "Usta Gama"
 
 
-msgid "Master gamma"
-msgstr "Usta gama"
-
-
 msgid "Master Lift"
 msgstr "Ana Asansör"
-
-
-msgid "Master lift"
-msgstr "Ana asansör"
 
 
 msgid "Master Saturation"
 msgstr "Usta Doygunluk"
 
 
-msgid "Master saturation"
-msgstr "Usta doygunluk"
-
-
 msgid "Midtones Contrast"
 msgstr "Orta Ton Kontrastı"
-
-
-msgid "Midtones contrast"
-msgstr "Orta ton kontrastı"
 
 
 msgid "Midtones End"
 msgstr "Orta Tonlar Sonu"
 
 
-msgid "End of midtones"
-msgstr "Orta tonların sonu"
-
-
 msgid "Midtones Gain"
 msgstr "Orta Ton Kazancı"
-
-
-msgid "Midtones gain"
-msgstr "Orta tonlar kazancı"
 
 
 msgid "Midtones Gamma"
 msgstr "Orta Tonlar Gama"
 
 
-msgid "Midtones gamma"
-msgstr "Orta tonlar gama"
-
-
 msgid "Midtones Lift"
 msgstr "Orta Tonlar Kaldırma"
-
-
-msgid "Midtones lift"
-msgstr "Orta tonlar yükselir"
 
 
 msgid "Midtones Saturation"
 msgstr "Orta Tonların Doygunluğu"
 
 
-msgid "Midtones saturation"
-msgstr "Orta ton doygunluğu"
-
-
 msgid "Midtones Start"
 msgstr "Orta Tonlar Başlıyor"
-
-
-msgid "Start of midtones"
-msgstr "Orta tonların başlangıcı"
-
-
-msgid "Red channel active"
-msgstr "Kırmızı kanal aktif"
 
 
 msgid "Shadows Contrast"
 msgstr "Gölgeler Kontrast"
 
 
-msgid "Shadows contrast"
-msgstr "Gölgeler kontrast oluşturuyor"
-
-
 msgid "Shadows Gain"
 msgstr "Gölgeler Kazanç"
-
-
-msgid "Shadows gain"
-msgstr "Gölgeler kazanır"
 
 
 msgid "Shadows Gamma"
 msgstr "Gölgeler Gama"
 
 
-msgid "Shadows gamma"
-msgstr "Gölgeler gama"
-
-
 msgid "Shadows Lift"
 msgstr "Gölgeler Kaldırılıyor"
 
 
-msgid "Shadows lift"
-msgstr "Gölgeler yükselir"
-
-
 msgid "Shadows Saturation"
 msgstr "Gölgeler Doygunluk"
-
-
-msgid "Shadows saturation"
-msgstr "Gölgelerin doygunluğu"
 
 
 msgid "Color Key"
@@ -39066,20 +38928,12 @@ msgid "Scene from which to select the active camera (render scene if undefined)"
 msgstr "Etkin kameranın seçileceği sahne (tanımlanmamışsa sahneyi işle)"
 
 
-msgid "CoC radius threshold, prevents background bleed on in-focus midground, 0 is disabled"
-msgstr "CoC yarıçap eşiği, odakta orta planda arka plan kanamasını önler, 0 devre dışıdır"
-
-
 msgid "Gamma Correction"
 msgstr "Gamma Düzeltmesi"
 
 
 msgid "Enable gamma correction before and after main process"
 msgstr "Ana işlemden önce ve sonra gama düzeltmesini etkinleştir"
-
-
-msgid "Enable low quality mode, useful for preview"
-msgstr "Düşük kalite modunu etkinleştirin, önizleme için yararlıdır"
 
 
 msgid "Use Z-Buffer"
@@ -39221,26 +39075,6 @@ msgstr "Sadece bitişik"
 
 msgid "Ellipse Mask"
 msgstr "Elips Maskesi"
-
-
-msgid "Height of the ellipse"
-msgstr "Elipsin yüksekliği"
-
-
-msgid "Width of the ellipse"
-msgstr "Elipsin genişliği"
-
-
-msgid "Rotation angle of the ellipse"
-msgstr "Elipsin dönüş açısı"
-
-
-msgid "X position of the middle of the ellipse"
-msgstr "Elipsin ortasındaki X konumu"
-
-
-msgid "Y position of the middle of the ellipse"
-msgstr "Elipsin ortasındaki Y konumu"
 
 
 msgid "Adjust brightness using a camera exposure parameter"
@@ -39501,16 +39335,8 @@ msgid "Jitter"
 msgstr "Titreme"
 
 
-msgid "Enable/disable jittering (faster, but also noisier)"
-msgstr "Titremeyi etkinleştir/devre dışı bırak (daha hızlı, ancak aynı zamanda daha gürültülü)"
-
-
 msgid "Projector"
 msgstr "Projektör"
-
-
-msgid "Enable/disable projector mode (the effect is applied in horizontal direction only)"
-msgstr "Projektör modunu etkinleştir/devre dışı bırak (efekt yalnızca yatay yönde uygulanır)"
 
 
 msgid "Compute average and standard deviation of pixel values"
@@ -40235,10 +40061,6 @@ msgstr "Görüntü parlaklığına göre güneş ışınları oluşturun"
 
 msgid "Ray Length"
 msgstr "Işın Uzunluğu"
-
-
-msgid "Length of rays as a factor of the image size"
-msgstr "Görüntü boyutunun bir faktörü olarak ışınların uzunluğu"
 
 
 msgid "Switch"
@@ -47173,10 +46995,6 @@ msgstr "Görsel veya ses şeritleri için bir kaybolma animasyonu ekler veya gü
 msgctxt "Operator"
 msgid "Add Fades"
 msgstr "Solma Ekle"
-
-
-msgid "Removes fade animation from selected sequences"
-msgstr "Seçili dizilerden solma animasyonunu kaldırır"
 
 
 msgctxt "Operator"
@@ -63878,10 +63696,6 @@ msgid "Join as Shapes"
 msgstr "Şekiller Olarak Katıl"
 
 
-msgid "Copy the current resulting shape of another selected object to this one"
-msgstr "Seçili başka bir nesnenin mevcut sonuç şeklini buna kopyala"
-
-
 msgctxt "Operator"
 msgid "Laplacian Deform Bind"
 msgstr "Laplacian Deform Bağlama"
@@ -71456,10 +71270,6 @@ msgid "From Current Frame"
 msgstr "Mevcut Çerçeveden"
 
 
-msgid "Fade from the time cursor to the end of overlapping sequences"
-msgstr "Zaman imlecinden örtüşen dizilerin sonuna doğru kaybolma"
-
-
 msgid "To Current Frame"
 msgstr "Mevcut Çerçeveye"
 
@@ -71696,10 +71506,6 @@ msgstr "Şeritlerin uzunluğunu veri uzunluklarına göre ayarlayın"
 msgctxt "Operator"
 msgid "Set Render Size"
 msgstr "Render Boyutunu Ayarla"
-
-
-msgid "Set render size and aspect from active sequence"
-msgstr "Etkin diziden render boyutunu ve görünümünü ayarlayın"
 
 
 msgctxt "Operator"
@@ -78976,6 +78782,62 @@ msgid "Panel containing UI elements"
 msgstr "UI öğelerini içeren panel"
 
 
+msgid "Drawing Plane"
+msgstr "Çizim düzlemi"
+
+
+msgid "Guides"
+msgstr "Rehberler"
+
+
+msgid "Quad View"
+msgstr "Dörtlü Görünüm"
+
+
+msgid "Onion Skin"
+msgstr "Soğan Kabuğu"
+
+
+msgid "Stereoscopy"
+msgstr "Stereoskopi"
+
+
+msgid "Multi Frame"
+msgstr "Çoklu Çerçeve"
+
+
+msgid "Auto-Masking"
+msgstr "Otomatik Maskeleme"
+
+
+msgid "Curves Sculpt Add Curve Options"
+msgstr "Eğriler Heykel Eğri Seçenekleri Ekle"
+
+
+msgid "Curves Sculpt Parameter Falloff"
+msgstr "Eğriler Şekil Parametresi Düşüşü"
+
+
+msgid "Curves Grow/Shrink Scaling"
+msgstr "Eğriler Büyüyor/Küçülüyor Ölçekleme"
+
+
+msgid "Viewport Debug"
+msgstr "Görüş Alanı Hata Ayıklaması"
+
+
+msgid "Stroke Placement"
+msgstr "İnme Yerleşimi"
+
+
+msgid "VR"
+msgstr "Sanal Gerçeklik"
+
+
+msgid "VR Info"
+msgstr "VR Bilgisi"
+
+
 msgid "glTF Variants"
 msgstr "glTF Çeşitleri"
 
@@ -79024,10 +78886,6 @@ msgid "Overlays"
 msgstr "Kaplamalar"
 
 
-msgid "Guides"
-msgstr "Rehberler"
-
-
 msgid "Viewer Node"
 msgstr "Görüntüleyici Düğümü"
 
@@ -79054,58 +78912,6 @@ msgstr "Çıtlama"
 
 msgid "Transform Orientations"
 msgstr "Dönüştürme Yönlendirmeleri"
-
-
-msgid "Stroke Placement"
-msgstr "İnme Yerleşimi"
-
-
-msgid "Drawing Plane"
-msgstr "Çizim düzlemi"
-
-
-msgid "Quad View"
-msgstr "Dörtlü Görünüm"
-
-
-msgid "Onion Skin"
-msgstr "Soğan Kabuğu"
-
-
-msgid "Stereoscopy"
-msgstr "Stereoskopi"
-
-
-msgid "Multi Frame"
-msgstr "Çoklu Çerçeve"
-
-
-msgid "Auto-Masking"
-msgstr "Otomatik Maskeleme"
-
-
-msgid "Curves Sculpt Add Curve Options"
-msgstr "Eğriler Heykel Eğri Seçenekleri Ekle"
-
-
-msgid "Curves Sculpt Parameter Falloff"
-msgstr "Eğriler Şekil Parametresi Düşüşü"
-
-
-msgid "Curves Grow/Shrink Scaling"
-msgstr "Eğriler Büyüyor/Küçülüyor Ölçekleme"
-
-
-msgid "Viewport Debug"
-msgstr "Görüş Alanı Hata Ayıklaması"
-
-
-msgid "VR"
-msgstr "Sanal Gerçeklik"
-
-
-msgid "VR Info"
-msgstr "VR Bilgisi"
 
 
 msgid "Chain Scaling"
@@ -83248,10 +83054,6 @@ msgid "Use Metal backend"
 msgstr "Metal arka ucunu kullan"
 
 
-msgid "Vulkan (experimental)"
-msgstr "Vulkan (deneysel)"
-
-
 msgid "Use Vulkan backend"
 msgstr "Vulkan arka ucunu kullanın"
 
@@ -85564,30 +85366,6 @@ msgstr "Aktif Pikselleri Göster"
 
 msgid "When using adaptive sampling highlight pixels which are being sampled"
 msgstr "Uyarlamalı örnekleme kullanıldığında, örneklenen pikselleri vurgulayın"
-
-
-msgid "Object visibility for camera rays"
-msgstr "Kamera ışınları için nesne görünürlüğü"
-
-
-msgid "Object visibility for diffuse reflection rays"
-msgstr "Dağınık yansıma ışınları için nesne görünürlüğü"
-
-
-msgid "Object visibility for glossy reflection rays"
-msgstr "Parlak yansıma ışınları için nesne görünürlüğü"
-
-
-msgid "Object visibility for volume scatter rays"
-msgstr "Hacimsel dağılım ışınları için nesne görünürlüğü"
-
-
-msgid "Object visibility for shadow rays"
-msgstr "Gölge ışınları için nesne görünürlüğü"
-
-
-msgid "Object visibility for transmission rays"
-msgstr "İletim ışınları için nesne görünürlüğü"
 
 
 msgid "Map Resolution"
@@ -104301,20 +104079,16 @@ msgid "File {!r} not found"
 msgstr "Dosya {!r} bulunamadı"
 
 
+msgid "The selected strips don't overlap"
+msgstr "Seçilen şeritler üst üste gelmiyor"
+
+
 msgid "Added fade animation to {:d} {:s}"
 msgstr "{:d} {:s}'e solma animasyonu eklendi"
 
 
 msgid "Select 2 sound strips"
 msgstr "2 ses şeridi seçin"
-
-
-msgid "The selected strips don't overlap"
-msgstr "Seçilen şeritler üst üste gelmiyor"
-
-
-msgid "No sequences selected"
-msgstr "Hiçbir dizi seçilmedi"
 
 
 msgid "Current frame not within strip framerange"
@@ -105340,6 +105114,10 @@ msgid "Move to Bottom"
 msgstr "Alt tarafa taşı"
 
 
+msgid "Auto Normalize"
+msgstr "Otomatik Normalleştir"
+
+
 msgid "Name collisions: "
 msgstr "İsim çakışmaları: "
 
@@ -106358,10 +106136,6 @@ msgid "Is Resumable"
 msgstr "Devam Edilebilir"
 
 
-msgid "Format Volumes"
-msgstr "Biçim Ciltleri"
-
-
 msgid "Resolution Divisions"
 msgstr "Çözünürlük Bölümleri"
 
@@ -106392,14 +106166,6 @@ msgstr "Daha düşük"
 
 msgid "Guide Parent"
 msgstr "Rehber Ebeveyn"
-
-
-msgid "Compression Volumes"
-msgstr "Sıkıştırma Hacimleri"
-
-
-msgid "Precision Volumes"
-msgstr "Hassas Hacimler"
 
 
 msgid "Enable Guides first! Defaulting to Fluid Velocity"
@@ -109399,10 +109165,6 @@ msgid "A restart of Blender is required"
 msgstr "Blender'ın yeniden başlatılması gerekiyor"
 
 
-msgid "The Vulkan backend is experimental:"
-msgstr "Vulkan arka ucu deneyseldir:"
-
-
 msgid "Open blend files with this Blender version"
 msgstr "Blender dosyalarını bu Blender sürümüyle aç"
 
@@ -111630,10 +111392,6 @@ msgstr "Fayans Ofseti"
 
 msgid "Symmetrize"
 msgstr "Simetrikleştirmek"
-
-
-msgid "Auto Normalize"
-msgstr "Otomatik Normalleştir"
 
 
 msgid "Lock-Relative"
@@ -116538,12 +116296,12 @@ msgid "Invert locks of unselected vertex groups of the active object"
 msgstr "Etkin nesnenin seçilmemiş tepe noktası gruplarının kilitlerini ters çevir"
 
 
-msgid "No vertex groups to operate on"
-msgstr "Üzerinde işlem yapılacak tepe noktası grubu yok"
-
-
 msgid "All groups are locked"
 msgstr "Tüm gruplar kilitli"
+
+
+msgid "No vertex groups to operate on"
+msgstr "Üzerinde işlem yapılacak tepe noktası grubu yok"
 
 
 msgid "Editmode lattice is not supported yet"
@@ -119321,10 +119079,6 @@ msgstr "Hiçbir anahtar veya şerit seçilmedi"
 
 msgid "This strip type cannot be retimed"
 msgstr "Bu şerit türü yeniden zamanlanamaz"
-
-
-msgid "No active sequence!"
-msgstr "Aktif dizi yok!"
 
 
 msgid "Rows:"
@@ -123185,10 +122939,6 @@ msgid "Image 2"
 msgstr "Resim 2"
 
 
-msgid "Center:"
-msgstr "Merkez:"
-
-
 msgid "Inner Edge:"
 msgstr "İç Kenar:"
 
@@ -126121,14 +125871,6 @@ msgstr "Bu, beklenmeyen davranışlara yol açabilir"
 
 msgid "Permanently allow execution of scripts"
 msgstr "Betiklerin yürütülmesine kalıcı olarak izin ver"
-
-
-msgid "This file was saved by a newer version of Blender (%s)"
-msgstr "Bu dosya Blender'ın daha yeni bir sürümüyle kaydedildi (%s)"
-
-
-msgid "Saving it with this Blender (%s) may cause loss of data"
-msgstr "Bunu Blender (%s) ile kaydetmek veri kaybına neden olabilir"
 
 
 msgid "saved as a new, regular file."

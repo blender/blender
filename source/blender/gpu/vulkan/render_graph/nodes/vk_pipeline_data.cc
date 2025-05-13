@@ -94,6 +94,7 @@ void vk_vertex_buffer_bindings_build_links(VKResourceStateTracker &resources,
                                            VKRenderGraphNodeLinks &node_links,
                                            const VKVertexBufferBindings &vertex_buffers)
 {
+  node_links.inputs.reserve(node_links.inputs.size() + vertex_buffers.buffer_count);
   for (const VkBuffer vk_buffer :
        Span<VkBuffer>(vertex_buffers.buffer, vertex_buffers.buffer_count))
   {

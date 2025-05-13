@@ -377,7 +377,7 @@ static ImBuf *brush_painter_imbuf_new(
   BrushPainterCache *cache = &tile->cache;
 
   const char *display_device = scene->display_settings.display_device;
-  ColorManagedDisplay *display = IMB_colormanagement_display_get_named(display_device);
+  const ColorManagedDisplay *display = IMB_colormanagement_display_get_named(display_device);
 
   rctf tex_mapping = painter->tex_mapping;
   ImagePool *pool = painter->pool;
@@ -468,7 +468,7 @@ static void brush_painter_imbuf_update(BrushPainter *painter,
   BrushPainterCache *cache = &tile->cache;
 
   const char *display_device = scene->display_settings.display_device;
-  ColorManagedDisplay *display = IMB_colormanagement_display_get_named(display_device);
+  const ColorManagedDisplay *display = IMB_colormanagement_display_get_named(display_device);
 
   rctf tex_mapping = painter->tex_mapping;
   ImagePool *pool = painter->pool;
@@ -1839,15 +1839,14 @@ void paint_2d_bucket_fill(const bContext *C,
   }
 
   do_float = (ibuf->float_buffer.data != nullptr);
-  /* first check if our image is float. If it is not we should correct the color to
-   * be in gamma space. strictly speaking this is not correct, but blender does not paint
-   * byte images in linear space */
+  /* First check if our image is float. If it is we should correct the color to be in linear space.
+   */
   if (!do_float) {
-    linearrgb_to_srgb_uchar3((uchar *)&color_b, color);
+    rgb_float_to_uchar((uchar *)&color_b, color);
     *(((char *)&color_b) + 3) = strength * 255;
   }
   else {
-    copy_v3_v3(color_f, color);
+    srgb_to_linearrgb_v3_v3(color_f, color);
     color_f[3] = strength;
   }
 

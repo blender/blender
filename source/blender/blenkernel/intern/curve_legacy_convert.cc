@@ -64,7 +64,7 @@ static NormalMode normal_mode_from_legacy(const short twist_mode)
   return NORMAL_MODE_MINIMUM_TWIST;
 }
 
-static KnotsMode knots_mode_from_legacy(const short flag)
+KnotsMode knots_mode_from_legacy(const short flag)
 {
   if (flag & CU_NURB_CUSTOM) {
     return NURBS_KNOT_MODE_CUSTOM;

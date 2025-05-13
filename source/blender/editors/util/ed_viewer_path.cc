@@ -45,6 +45,11 @@ ViewerPathElem *viewer_path_elem_for_compute_context(const ComputeContext &compu
   if (const auto *context = dynamic_cast<const bke::GroupNodeComputeContext *>(&compute_context)) {
     GroupNodeViewerPathElem *elem = BKE_viewer_path_elem_new_group_node();
     elem->node_id = context->node_id();
+    if (const bNode *caller_node = context->caller_group_node()) {
+      if (const bNodeTree *group = reinterpret_cast<const bNodeTree *>(caller_node->id)) {
+        elem->base.ui_name = BLI_strdup(BKE_id_name(group->id));
+      }
+    }
     return &elem->base;
   }
   if (const auto *context = dynamic_cast<const bke::SimulationZoneComputeContext *>(
@@ -79,7 +84,7 @@ ViewerPathElem *viewer_path_elem_for_compute_context(const ComputeContext &compu
             context->closure_source_location())
     {
       elem->source_output_node_id = source->closure_output_node_id;
-      BLI_assert(DEG_is_original_id(&source->tree->id));
+      BLI_assert(DEG_is_original(source->tree));
       elem->source_node_tree = const_cast<bNodeTree *>(source->tree);
     }
     return &elem->base;
@@ -120,7 +125,7 @@ static void viewer_path_for_geometry_node(const SpaceNode &snode,
 
   ViewerNodeViewerPathElem *viewer_node_elem = BKE_viewer_path_elem_new_viewer_node();
   viewer_node_elem->node_id = node.identifier;
-  viewer_node_elem->base.ui_name = BLI_strdup(node.name);
+  viewer_node_elem->base.ui_name = BLI_strdup(bke::node_label(*snode.edittree, node).c_str());
   BLI_addtail(&r_dst.path, viewer_node_elem);
 }
 
@@ -451,6 +456,13 @@ UpdateActiveGeometryNodesViewerResult update_active_geometry_nodes_viewer(const 
           std::swap(viewer_path, tmp_viewer_path);
           /* Make sure the viewed data becomes available. */
           DEG_id_tag_update(snode.id, ID_RECALC_GEOMETRY);
+          return UpdateActiveGeometryNodesViewerResult::Updated;
+        }
+        if (!BKE_viewer_path_equal(
+                &viewer_path, &tmp_viewer_path, VIEWER_PATH_EQUAL_FLAG_CONSIDER_UI_NAME))
+        {
+          /* Only swap, without triggering a depsgraph update.*/
+          std::swap(viewer_path, tmp_viewer_path);
           return UpdateActiveGeometryNodesViewerResult::Updated;
         }
         return UpdateActiveGeometryNodesViewerResult::StillActive;

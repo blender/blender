@@ -2,9 +2,9 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#if !defined(GPU_SHADER) && !defined(GLSL_CPP_STUBS)
-#  pragma once
+#pragma once
 
+#if !defined(GPU_SHADER) && !defined(GLSL_CPP_STUBS)
 #  include "GPU_shader_shared_utils.hh"
 
 #  include "DNA_action_types.h"
@@ -86,6 +86,28 @@ enum StickBoneFlag {
 ENUM_OPERATORS(StickBoneFlag, POS_BONE)
 #endif
 
+/* TODO(fclem): Convert into enum. */
+/* See: 'draw_cache_impl.hh' for matching includes. */
+#define VERT_GPENCIL_BEZT_HANDLE (1u << 30)
+/* data[0] (1st byte flags) */
+#define FACE_ACTIVE (1u << 0)
+#define FACE_SELECTED (1u << 1)
+#define FACE_FREESTYLE (1u << 2)
+#define VERT_UV_SELECT (1u << 3)
+#define VERT_UV_PINNED (1u << 4)
+#define EDGE_UV_SELECT (1u << 5)
+#define FACE_UV_ACTIVE (1u << 6)
+#define FACE_UV_SELECT (1u << 7)
+/* data[1] (2st byte flags) */
+#define VERT_ACTIVE (1u << 0)
+#define VERT_SELECTED (1u << 1)
+#define VERT_SELECTED_BEZT_HANDLE (1u << 2)
+#define EDGE_ACTIVE (1u << 3)
+#define EDGE_SELECTED (1u << 4)
+#define EDGE_SEAM (1u << 5)
+#define EDGE_SHARP (1u << 6)
+#define EDGE_FREESTYLE (1u << 7)
+
 static inline uint outline_id_pack(uint outline_id, uint object_id)
 {
   /* Replace top 2 bits (of the 16bit output) by outline_id.
@@ -146,115 +168,158 @@ BLI_STATIC_ASSERT(MOTIONPATH_VERT_SEL == (1u << 0), "Ensure value is sync");
 BLI_STATIC_ASSERT(MOTIONPATH_VERT_KEY == (1u << 1), "Ensure value is sync");
 #endif
 
-struct ThemeColorData {
-  float4 color_wire;
-  float4 color_wire_edit;
-  float4 color_active;
-  float4 color_select;
-  float4 color_library_select;
-  float4 color_library;
-  float4 color_transform;
-  float4 color_light;
-  float4 color_speaker;
-  float4 color_camera;
-  float4 color_camera_path;
-  float4 color_empty;
-  float4 color_vertex;
-  float4 color_vertex_select;
-  float4 color_vertex_unreferenced;
-  float4 color_vertex_missing_data;
-  float4 color_edit_mesh_active;
-  /** For edge selection, not edge select mode. */
-  float4 color_edge_select;
-  /** For edge mode selection. */
-  float4 color_edge_mode_select;
-  float4 color_edge_seam;
-  float4 color_edge_sharp;
-  float4 color_edge_crease;
-  float4 color_edge_bweight;
-  float4 color_edge_face_select;
-  float4 color_edge_freestyle;
-  float4 color_face;
-  /** For face selection, not face select mode. */
-  float4 color_face_select;
-  /** For face mode selection. */
-  float4 color_face_mode_select;
-  float4 color_face_freestyle;
-  float4 color_gpencil_vertex;
-  float4 color_gpencil_vertex_select;
-  float4 color_normal;
-  float4 color_vnormal;
-  float4 color_lnormal;
-  float4 color_facedot;
-  float4 color_skinroot;
+/* All colors in this struct are converted to display linear RGB color-space. */
+struct ThemeColors {
+  /* UBOs data needs to be 16 byte aligned (size of float4) */
+  float4 wire;
+  float4 wire_edit;
+  float4 active_object; /* "active" is reserved keyword in GLSL. */
+  float4 object_select; /* "select" is defined as a macro for GLSL. */
+  float4 library_select;
+  float4 library;
+  float4 transform;
+  float4 light;
+  float4 speaker;
+  float4 camera;
+  float4 camera_path;
+  float4 empty;
+  float4 vert; /* "vertex" is reserved keyword in MSL. */
+  float4 vert_select;
+  float4 vert_unreferenced;
+  float4 vert_missing_data;
+  float4 edit_mesh_active;
+  float4 edge_select;      /* Stands for edge selection, not edge select mode. */
+  float4 edge_mode_select; /* Stands for edge mode selection. */
+  float4 edge_seam;
+  float4 edge_sharp;
+  float4 edge_crease;
+  float4 edge_bweight;
+  float4 edge_face_select;
+  float4 edge_freestyle;
+  float4 face;
+  float4 face_select;      /* Stands for face selection, not face select mode. */
+  float4 face_mode_select; /* Stands for face mode selection. */
+  float4 face_retopology;
+  float4 face_freestyle;
+  float4 gpencil_vertex;
+  float4 gpencil_vertex_select;
+  float4 normal;
+  float4 vnormal;
+  float4 lnormal;
+  float4 facedot;
+  float4 skinroot;
 
-  float4 color_deselect;
-  float4 color_outline;
-  float4 color_light_no_alpha;
+  float4 deselect;
+  float4 outline;
+  float4 light_no_alpha;
 
-  float4 color_background;
-  float4 color_background_gradient;
-  float4 color_checker_primary;
-  float4 color_checker_secondary;
-  float4 color_clipping_border;
-  float4 color_edit_mesh_middle;
+  float4 background;
+  float4 background_gradient;
+  float4 checker_primary;
+  float4 checker_secondary;
+  float4 clipping_border;
+  float4 edit_mesh_middle;
 
-  float4 color_handle_free;
-  float4 color_handle_auto;
-  float4 color_handle_vect;
-  float4 color_handle_align;
-  float4 color_handle_autoclamp;
-  float4 color_handle_sel_free;
-  float4 color_handle_sel_auto;
-  float4 color_handle_sel_vect;
-  float4 color_handle_sel_align;
-  float4 color_handle_sel_autoclamp;
-  float4 color_nurb_uline;
-  float4 color_nurb_vline;
-  float4 color_nurb_sel_uline;
-  float4 color_nurb_sel_vline;
-  float4 color_active_spline;
+  float4 handle_free;
+  float4 handle_auto;
+  float4 handle_vect;
+  float4 handle_align;
+  float4 handle_autoclamp;
+  float4 handle_sel_free;
+  float4 handle_sel_auto;
+  float4 handle_sel_vect;
+  float4 handle_sel_align;
+  float4 handle_sel_autoclamp;
+  float4 nurb_uline;
+  float4 nurb_vline;
+  float4 nurb_sel_uline;
+  float4 nurb_sel_vline;
+  float4 active_spline;
 
-  float4 color_bone_pose;
-  float4 color_bone_pose_active;
-  float4 color_bone_pose_active_unsel;
-  float4 color_bone_pose_constraint;
-  float4 color_bone_pose_ik;
-  float4 color_bone_pose_spline_ik;
-  float4 color_bone_pose_no_target;
-  float4 color_bone_solid;
-  float4 color_bone_locked;
-  float4 color_bone_active;
-  float4 color_bone_active_unsel;
-  float4 color_bone_select;
-  float4 color_bone_ik_line;
-  float4 color_bone_ik_line_no_target;
-  float4 color_bone_ik_line_spline;
+  float4 bone_pose;
+  float4 bone_pose_active;
+  float4 bone_pose_active_unsel;
+  float4 bone_pose_constraint;
+  float4 bone_pose_ik;
+  float4 bone_pose_spline_ik;
+  float4 bone_pose_no_target;
+  float4 bone_solid;
+  float4 bone_locked;
+  float4 bone_active;
+  float4 bone_active_unsel;
+  float4 bone_select;
+  float4 bone_ik_line;
+  float4 bone_ik_line_no_target;
+  float4 bone_ik_line_spline;
 
-  float4 color_text;
-  float4 color_text_hi;
+  float4 text;
+  float4 text_hi;
 
-  float4 color_bundle_solid;
+  float4 bundle_solid;
 
-  float4 color_mball_radius;
-  float4 color_mball_radius_select;
-  float4 color_mball_stiffness;
-  float4 color_mball_stiffness_select;
+  float4 mball_radius;
+  float4 mball_radius_select;
+  float4 mball_stiffness;
+  float4 mball_stiffness_select;
 
-  float4 color_current_frame;
+  float4 current_frame;
+  float4 before_frame;
+  float4 after_frame;
 
-  float4 color_grid;
-  float4 color_grid_emphasis;
-  float4 color_grid_axis_x;
-  float4 color_grid_axis_y;
-  float4 color_grid_axis_z;
+  float4 grid;
+  float4 grid_emphasis;
+  float4 grid_axis_x;
+  float4 grid_axis_y;
+  float4 grid_axis_z;
 
-  float4 color_face_back;
-  float4 color_face_front;
+  float4 face_back;
+  float4 face_front;
 
-  float4 color_uv_shadow;
+  float4 uv_shadow;
 };
-BLI_STATIC_ASSERT_ALIGN(ThemeColorData, 16)
+BLI_STATIC_ASSERT_ALIGN(ThemeColors, 16)
+
+/* All values in this struct are premultiplied by U.pixelsize. */
+struct ThemeSizes {
+  float pixel; /* Equivalent to U.pixelsize. */
+
+  float object_center;
+
+  float light_center;
+  float light_circle;
+  float light_circle_shadow;
+
+  float vert; /* "vertex" is reserved keyword in MSL. */
+  float edge;
+  float face_dot;
+
+  float checker;
+  float vertex_gpencil;
+  float _pad1, _pad2;
+};
+BLI_STATIC_ASSERT_ALIGN(ThemeSizes, 16)
+
+struct UniformData {
+  ThemeColors colors;
+  ThemeSizes sizes;
+
+  /** Other global states. */
+
+  float2 size_viewport;
+  float2 size_viewport_inv;
+
+  float fresnel_mix_edit;
+  float pixel_fac;
+  bool32_t backface_culling;
+  float _pad1;
+};
+BLI_STATIC_ASSERT_ALIGN(UniformData, 16)
+
+#ifdef GPU_SHADER
+/* The uniform_buf mostly contains theme properties.
+ * This alias has better semantic and shorter syntax. */
+#  define theme uniform_buf
+#endif
 
 struct ExtraInstanceData {
   float4 color_;

@@ -1,0 +1,55 @@
+==== Meshes: 1
+- Mesh 'Cube.001' vtx:8 face:6 loop:24 edge:12
+    - 0 1 3 2 2 ... 0 7 3 1 5 
+    - 0/1 1/3 2/3 0/2 3/7 ... 5/7 4/5 4/6 1/5 0/4 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, -1.000, -1.000)
+    - (-1.000, -1.000, 1.000)
+    - (-1.000, 1.000, -1.000)
+      ...
+    - (1.000, -1.000, 1.000)
+    - (1.000, 1.000, -1.000)
+    - (1.000, 1.000, 1.000)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 1 1 1 1 1 ... 1 1 1 1 1 
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - 1 materials
+    - 'Material.001' 
+
+==== Objects: 1
+- Obj 'Cube' MESH data:'Cube.001'
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+
+==== Materials: 1
+- Mat 'Material.001'
+  - base color (0.800, 0.800, 0.800) tex:'checkerboard_diffuse.png' (textures/checkerboard_diffuse.png) a:False
+  - specular ior 0.500 tex:'checkerboard_weight.png' (textures/checkerboard_weight.png) a:False
+  - specular tint (1.000, 1.000, 1.000) tex:'checkerboard_specular.png' (textures/checkerboard_specular.png) a:False
+  - roughness 0.690
+  - metallic 0.000
+  - ior 1.500
+  - alpha 1.000 tex:'checkerboard_diffuse.png' (textures/checkerboard_diffuse.png) a:True
+  - emission color (0.800, 0.800, 0.800)
+  - emission strength 0.000 tex:'checkerboard_emissive.png' (textures/checkerboard_emissive.png) a:False
+  - viewport diffuse (0.800, 0.800, 0.800, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 0.500
+  - viewport metallic 0.000, roughness 0.690
+  - backface False probe True shadow False
+
+==== Images: 4
+- Image 'checkerboard_diffuse.png' 128x128 32bpp
+- Image 'checkerboard_emissive.png' 128x128 32bpp
+- Image 'checkerboard_specular.png' 128x128 32bpp
+- Image 'checkerboard_weight.png' 128x128 32bpp
+

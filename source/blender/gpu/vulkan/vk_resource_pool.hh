@@ -83,6 +83,7 @@ class VKDiscardPool {
   TimelineResources<VkImageView> image_views_;
   TimelineResources<VkBufferView> buffer_views_;
   TimelineResources<VkShaderModule> shader_modules_;
+  TimelineResources<VkPipeline> pipelines_;
   TimelineResources<VkPipelineLayout> pipeline_layouts_;
   TimelineResources<VkRenderPass> render_passes_;
   TimelineResources<VkFramebuffer> framebuffers_;
@@ -100,6 +101,7 @@ class VKDiscardPool {
   void discard_buffer(VkBuffer vk_buffer, VmaAllocation vma_allocation);
   void discard_buffer_view(VkBufferView vk_buffer_view);
   void discard_shader_module(VkShaderModule vk_shader_module);
+  void discard_pipeline(VkPipeline vk_pipeline);
   void discard_pipeline_layout(VkPipelineLayout vk_pipeline_layout);
   void discard_framebuffer(VkFramebuffer vk_framebuffer);
   void discard_render_pass(VkRenderPass vk_render_pass);

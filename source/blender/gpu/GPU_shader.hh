@@ -100,6 +100,11 @@ bool GPU_shader_batch_is_ready(BatchHandle handle);
  * WARNING: The handle will be invalidated by this call, you can't request the same batch twice.
  */
 blender::Vector<GPUShader *> GPU_shader_batch_finalize(BatchHandle &handle);
+/**
+ * Cancel the compilation of the batch.
+ * WARNING: The handle will be invalidated by this call.
+ */
+void GPU_shader_batch_cancel(BatchHandle &handle);
 
 /** \} */
 
@@ -266,6 +271,12 @@ SpecializationBatchHandle GPU_shader_batch_specializations(
  * WARNING: Invalidates the handle if it returns true.
  */
 bool GPU_shader_batch_specializations_is_ready(SpecializationBatchHandle &handle);
+
+/**
+ * Cancel the specialization batch.
+ * WARNING: The handle will be invalidated by this call.
+ */
+void GPU_shader_batch_specializations_cancel(SpecializationBatchHandle &handle);
 
 /** \} */
 

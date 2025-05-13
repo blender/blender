@@ -12,7 +12,7 @@ VERTEX_SHADER_CREATE_INFO(overlay_edit_pointcloud)
 
 void main()
 {
-  final_color = colorVertexSelect;
+  final_color = theme.colors.vert_select;
 
   float radius = pos_rad.w;
   float3 world_pos = drw_point_object_to_world(pos_rad.xyz);
@@ -26,6 +26,6 @@ void main()
   /* Small offset in Z for depth precision. */
   gl_Position.z -= 3e-4f;
 
-  gl_PointSize = sizeVertex * 2.0f;
+  gl_PointSize = theme.sizes.vert * 2.0f;
   view_clipping_distances(world_pos);
 }

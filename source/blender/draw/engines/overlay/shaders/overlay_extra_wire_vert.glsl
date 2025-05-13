@@ -14,7 +14,7 @@ VERTEX_SHADER_CREATE_INFO(draw_modelmat)
 
 float2 screen_position(float4 p)
 {
-  return ((p.xy / p.w) * 0.5f + 0.5f) * sizeViewport;
+  return ((p.xy / p.w) * 0.5f + 0.5f) * uniform_buf.size_viewport;
 }
 
 void main()
@@ -32,7 +32,8 @@ void main()
   /* HACK: to avoid losing sub-pixel object in selections, we add a bit of randomness to the
    * wire to at least create one fragment that will pass the occlusion query. */
   /* TODO(fclem): Limit this workaround to selection. It's not very noticeable but still... */
-  gl_Position.xy += sizeViewportInv * gl_Position.w * ((gl_VertexID % 2 == 0) ? -1.0f : 1.0f);
+  gl_Position.xy += uniform_buf.size_viewport_inv * gl_Position.w *
+                    ((gl_VertexID % 2 == 0) ? -1.0f : 1.0f);
 #endif
 
   stipple_coord = stipple_start = screen_position(gl_Position);
@@ -46,7 +47,7 @@ void main()
   if (colorid != 0) {
     /* TH_CAMERA_PATH is the only color code at the moment.
      * Checking `colorid != 0` to avoid having to sync its value with the GLSL code. */
-    final_color = colorCameraPath;
+    final_color = theme.colors.camera_path;
     final_color.a = 0.0f; /* No Stipple */
   }
   else {

@@ -20,11 +20,6 @@ VKBuffer::~VKBuffer()
   }
 }
 
-bool VKBuffer::is_allocated() const
-{
-  return allocation_ != VK_NULL_HANDLE;
-}
-
 bool VKBuffer::create(size_t size_in_bytes,
                       VkBufferUsageFlags buffer_usage,
                       VkMemoryPropertyFlags required_flags,
@@ -164,17 +159,6 @@ void VKBuffer::read(VKContext &context, void *data) const
                              RenderGraphFlushFlags::WAIT_FOR_COMPLETION |
                              RenderGraphFlushFlags::RENEW_RENDER_GRAPH);
   memcpy(data, mapped_memory_, size_in_bytes_);
-}
-
-void *VKBuffer::mapped_memory_get() const
-{
-  BLI_assert_msg(is_mapped(), "Cannot access a non-mapped buffer.");
-  return mapped_memory_;
-}
-
-bool VKBuffer::is_mapped() const
-{
-  return mapped_memory_ != nullptr;
 }
 
 bool VKBuffer::map()

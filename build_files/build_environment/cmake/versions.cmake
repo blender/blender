@@ -421,11 +421,25 @@ set(CERTIFI_VERSION 2021.10.8)
 set(REQUESTS_VERSION 2.27.1)
 # Needed by: Python's `numpy` module (used by some add-ons).
 set(CYTHON_VERSION 3.0.11)
+set(CYTHON_URI
+https://github.com/cython/cython/releases/download/${CYTHON_VERSION}-1/cython-${CYTHON_VERSION}.tar.gz)
+set(CYTHON_HASH 388b85b7c23f501320d19d991b169f5d)
+set(CYTHON_HASH_TYPE MD5)
+set(CYTHON_FILE cython-${CYTHON_VERSION}.tar.gz)
+set(CYTHON_HOMEPAGE https://cython.org/)
+set(CYTHON_LICENSE SPDX:Apache-2.0)
 # Needed by: Python scripts that read `.blend` files, as files may use Z-standard compression.
 # The version of the ZSTD library used to build the Python package should match ZSTD_VERSION
 # defined below. At this time of writing, 0.17.0 was already released,
 # but built against ZSTD 1.5.1, while we use 1.5.0.
 set(ZSTANDARD_VERSION 0.16.0)
+set(ZSTANDARD_URI
+https://github.com/indygreg/python-zstandard/releases/download/${ZSTANDARD_VERSION}/zstandard-${ZSTANDARD_VERSION}.tar.gz)
+set(ZSTANDARD_HASH 19b1b12edcd66165d86f25e2a2277517)
+set(ZSTANDARD_HASH_TYPE MD5)
+set(ZSTANDARD_FILE cython-${ZSTANDARD_VERSION}.tar.gz)
+set(ZSTANDARD_HOMEPAGE https://cython.org/)
+set(ZSTANDARD_LICENSE SPDX:BSD-3-Clause)
 # Auto-format Python source (developer tool, not used by Blender at run-time).
 set(AUTOPEP8_VERSION 2.3.1)
 # Needed by: `autopep8` (so the version doesn't change on rebuild).

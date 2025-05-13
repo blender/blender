@@ -267,7 +267,7 @@ bool EDBM_unified_findnearest_from_raycast(ViewContext *vc,
                                            BMEdge **r_eed,
                                            BMFace **r_efa);
 
-bool EDBM_select_pick(bContext *C, const int mval[2], const SelectPick_Params *params);
+bool EDBM_select_pick(bContext *C, const int mval[2], const SelectPick_Params &params);
 
 /**
  * When switching select mode, makes sure selection is consistent for editing
@@ -291,7 +291,15 @@ void EDBM_selectmode_set(BMEditMesh *em);
 void EDBM_selectmode_convert(BMEditMesh *em, short selectmode_old, short selectmode_new);
 
 /**
- * User access this.
+ * Select-mode setting utility.
+ * This operates on tool-settings and all objects passed in.
+ */
+bool EDBM_selectmode_set_multi_ex(Scene *scene,
+                                  blender::Span<Object *> objects,
+                                  const short selectmode);
+/**
+ * High level select-mode setting utility.
+ * This operates on tool-settings and all edit-mode objects.
  */
 bool EDBM_selectmode_set_multi(bContext *C, short selectmode);
 /**
@@ -387,7 +395,7 @@ void paintface_flush_flags(bContext *C, Object *ob, bool flush_selection, bool f
  */
 bool paintface_mouse_select(bContext *C,
                             const int mval[2],
-                            const SelectPick_Params *params,
+                            const SelectPick_Params &params,
                             Object *ob);
 bool paintface_deselect_all_visible(bContext *C, Object *ob, int action, bool flush_flags);
 void paintface_select_linked(bContext *C, Object *ob, const int mval[2], bool select);
@@ -518,7 +526,9 @@ void EDBM_redo_state_free(BMBackup *backup) ATTR_NONNULL(1);
 /* `meshtools.cc` */
 
 wmOperatorStatus ED_mesh_join_objects_exec(bContext *C, wmOperator *op);
-wmOperatorStatus ED_mesh_shapes_join_objects_exec(bContext *C, ReportList *reports);
+wmOperatorStatus ED_mesh_shapes_join_objects_exec(bContext *C,
+                                                  bool ensure_keys_exist,
+                                                  ReportList *reports);
 
 /* mirror lookup api */
 

@@ -237,17 +237,17 @@ static void panel_draw(const bContext *C, Panel *panel)
   bool has_output = RNA_string_length(ptr, "target_vertex_group") != 0;
   uiLayoutSetPropDecorate(sub, false);
   uiLayoutSetActive(sub, has_output);
-  uiItemR(sub, ptr, "use_invert_output", UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);
+  sub->prop(ptr, "use_invert_output", UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);
 
-  uiItemR(layout, ptr, "angle", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  uiItemR(layout, ptr, "axis", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  uiItemR(layout, ptr, "space", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "angle", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "axis", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "space", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  uiItemR(layout, ptr, "minimum_weight", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  uiItemR(layout, ptr, "use_multiply", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "minimum_weight", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "use_multiply", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  if (uiLayout *influence_panel = uiLayoutPanelProp(
-          C, layout, ptr, "open_influence_panel", IFACE_("Influence")))
+  if (uiLayout *influence_panel = layout->panel_prop(
+          C, ptr, "open_influence_panel", IFACE_("Influence")))
   {
     modifier::greasepencil::draw_layer_filter_settings(C, influence_panel, ptr);
     modifier::greasepencil::draw_material_filter_settings(C, influence_panel, ptr);

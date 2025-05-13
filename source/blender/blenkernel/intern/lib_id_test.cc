@@ -735,4 +735,20 @@ TEST(lib_id_main_unique_name, name_huge_number_suffix)
   EXPECT_EQ(ctx.bmain->name_map_global, nullptr);
 }
 
+TEST(lib_id_make_local, brush)
+{
+  LibIDMainSortTestContext ctx;
+
+  Library *lib_a = static_cast<Library *>(BKE_id_new(ctx.bmain, ID_LI, "LI_A"));
+  ID *br_a = static_cast<ID *>(BKE_id_new(ctx.bmain, ID_BR, "BR_A"));
+
+  change_lib(ctx.bmain, br_a, lib_a);
+
+  EXPECT_TRUE(BKE_lib_id_make_local(ctx.bmain, br_a, LIB_ID_MAKELOCAL_FORCE_COPY));
+  EXPECT_NE(br_a->newid, nullptr);
+
+  EXPECT_TRUE(br_a->newid->flag & ID_FLAG_FAKEUSER);
+  EXPECT_EQ(br_a->newid->us, 1);
+}
+
 }  // namespace blender::bke::tests

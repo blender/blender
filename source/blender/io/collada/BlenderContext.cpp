@@ -133,7 +133,7 @@ Scene *BlenderContext::get_evaluated_scene()
 
 Object *BlenderContext::get_evaluated_object(Object *ob)
 {
-  Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+  Object *ob_eval = DEG_get_evaluated(depsgraph, ob);
   return ob_eval;
 }
 

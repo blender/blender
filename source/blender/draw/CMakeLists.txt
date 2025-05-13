@@ -164,7 +164,6 @@ set(SRC
   intern/draw_command.hh
   intern/draw_common.hh
   intern/draw_common_c.hh
-  intern/draw_common_shader_shared.hh
   intern/draw_context_private.hh
   intern/draw_curves_private.hh
   intern/draw_debug.hh
@@ -238,7 +237,6 @@ set(SRC
   engines/image/image_state.hh
   engines/image/image_texture_info.hh
   engines/image/image_usage.hh
-  engines/overlay/overlay_engine.h
   engines/overlay/overlay_antialiasing.hh
   engines/overlay/overlay_armature.hh
   engines/overlay/overlay_attribute_text.hh
@@ -250,8 +248,9 @@ set(SRC
   engines/overlay/overlay_camera.hh
   engines/overlay/overlay_cursor.hh
   engines/overlay/overlay_curve.hh
-  engines/overlay/overlay_edit_text.hh
+  engines/overlay/overlay_text.hh
   engines/overlay/overlay_empty.hh
+  engines/overlay/overlay_engine.h
   engines/overlay/overlay_facing.hh
   engines/overlay/overlay_fade.hh
   engines/overlay/overlay_fluid.hh
@@ -572,7 +571,6 @@ set(GLSL_SRC
   intern/shaders/draw_visibility_comp.glsl
 
   intern/draw_command_shared.hh
-  intern/draw_common_shader_shared.hh
   intern/draw_defines.hh
   intern/draw_pointcloud_private.hh
   intern/draw_shader_shared.hh
@@ -735,6 +733,7 @@ foreach(GLSL_FILE ${GLSL_SRC})
 endforeach()
 
 blender_add_lib(bf_draw_shaders "${GLSL_C}" "" "" "")
+blender_set_target_unity_build(bf_draw_shaders 10)
 
 list(APPEND LIB
   PRIVATE bf::animrig
@@ -742,16 +741,20 @@ list(APPEND LIB
 )
 
 set(GLSL_SOURCE_CONTENT "")
-
+set(GLSL_METADATA_CONTENT "")
 foreach(GLSL_FILE ${GLSL_SRC})
   get_filename_component(GLSL_FILE_NAME ${GLSL_FILE} NAME)
   string(REPLACE "." "_" GLSL_FILE_NAME_UNDERSCORES ${GLSL_FILE_NAME})
-  string(APPEND GLSL_SOURCE_CONTENT "SHADER_SOURCE\(datatoc_${GLSL_FILE_NAME_UNDERSCORES}, \"${GLSL_FILE_NAME}\", \"${GLSL_FILE}\"\)\n")
+  string(APPEND GLSL_SOURCE_CONTENT "SHADER_SOURCE\(${GLSL_FILE_NAME_UNDERSCORES}, \"${GLSL_FILE_NAME}\", \"${GLSL_FILE}\"\)\n")
+  string(APPEND GLSL_METADATA_CONTENT "#include \"${GLSL_FILE}.hh\"\n")
 endforeach()
 
 set(glsl_source_list_file "${CMAKE_CURRENT_BINARY_DIR}/glsl_draw_source_list.h")
 file(GENERATE OUTPUT ${glsl_source_list_file} CONTENT "${GLSL_SOURCE_CONTENT}")
 list(APPEND SRC ${glsl_source_list_file})
+set(glsl_metadata_list_file "${CMAKE_CURRENT_BINARY_DIR}/glsl_draw_metadata_list.hh")
+file(GENERATE OUTPUT ${glsl_metadata_list_file} CONTENT "${GLSL_METADATA_CONTENT}")
+list(APPEND SRC ${glsl_metadata_list_file})
 list(APPEND INC ${CMAKE_CURRENT_BINARY_DIR})
 
 target_include_directories(bf_draw_shaders PUBLIC ${CMAKE_CURRENT_BINARY_DIR})

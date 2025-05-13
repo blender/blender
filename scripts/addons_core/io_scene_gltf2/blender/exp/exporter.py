@@ -161,7 +161,7 @@ class GlTF2Exporter:
             os.makedirs(output_path, exist_ok=True)
 
         for name, image in self.__images.items():
-            dst_path = output_path + "/" + name
+            dst_path = output_path + "/" + image.uri
             with open(dst_path, 'wb') as f:
                 f.write(image.data)
 
@@ -340,7 +340,7 @@ class GlTF2Exporter:
 
         The scene should be built up with the generated glTF classes
         :param scene: gltf2_io.Scene type. Root node of the scene graph
-        :param active: If true, sets the glTD.scene index to the added scene
+        :param active: If true, sets the glTF.scene index to the added scene
         :return: nothing
         """
         if self.__finalized:
@@ -420,28 +420,9 @@ class GlTF2Exporter:
             return index
 
     def __add_image(self, image: gltf2_io_image_data.ImageData):
-        name = image.adjusted_name()
-        count = 1
-        regex = re.compile(r"-\d+$")
-        while name + image.file_extension in self.__images.keys():
-            regex_found = re.findall(regex, name)
-            if regex_found:
-                name = re.sub(regex, "-" + str(count), name)
-            else:
-                name += "-" + str(count)
+        self.__images[image.adjusted_name] = image
 
-            count += 1
-        # TODO: allow embedding of images (base64)
-
-        self.__images[name + image.file_extension] = image
-
-        texture_dir = self.export_settings['gltf_texturedirectory']
-        abs_path = os.path.join(texture_dir, name + image.file_extension)
-        rel_path = os.path.relpath(
-            abs_path,
-            start=self.export_settings['gltf_filedirectory'],
-        )
-        return path_to_uri(rel_path)
+        return image.uri
 
     @classmethod
     def __get_key_path(cls, d: dict, keypath: List[str], default):

@@ -336,12 +336,30 @@ class NodeNav:
 
         # Check for a constant in the next node
         nav = self.peek_back()
-        if nav.moved:
+        # Dev warning: because of loopbacks, this can be an infinite loop if not careful
+        # Please check all branches of your if statements
+        while True:
+            if not nav.moved:
+                break
+
             if self.in_socket.type == 'RGBA':
+
+                # RGB node
                 if nav.node.type == 'RGB':
                     color = list(nav.out_socket.default_value)
                     color = color[:3]  # drop unused alpha component (assumes shader tree)
                     return color, "node_tree." + nav.out_socket.path_from_id() + ".default_value"
+                # Ambient Occlusion node, not linked
+                elif nav.node.type == 'AMBIENT_OCCLUSION' and not nav.node.inputs['Color'].is_linked:
+                    color = list(nav.node.inputs['Color'].default_value)
+                    color = color[:3] # drop unused alpha component (assumes shader tree)
+                    return color, "node_tree." + nav.node.inputs['Color'].path_from_id() + ".default_value"
+                # Ambient Occlusion node, linked, so check the next node
+                elif nav.node.type == "AMBIENT_OCCLUSION" and nav.node.inputs['Color'].is_linked:
+                    nav.move_back('Color')
+                    continue
+                else:
+                    break
 
             elif self.in_socket.type == 'SHADER':
                 # Historicaly, we manage RGB node plugged into a shader socket (output node)
@@ -349,10 +367,25 @@ class NodeNav:
                     color = list(nav.out_socket.default_value)
                     color = color[:3]
                     return color, "node_tree." + nav.out_socket.path_from_id() + ".default_value"
+                # Ambient Occlusion node, not linked
+                elif nav.node.type == 'AMBIENT_OCCLUSION' and not nav.node.inputs['Color'].is_linked:
+                    color = list(nav.node.inputs['Color'].default_value)
+                    color = color[:3] # drop unused alpha component (assumes shader tree)
+                    return color, "node_tree." + nav.node.inputs['Color'].path_from_id() + ".default_value"
+                # Ambient Occlusion node, linked, so check the next node
+                elif nav.node.type == "AMBIENT_OCCLUSION" and nav.node.inputs['Color'].is_linked:
+                    nav.move_back('Color')
+                    continue
+                else:
+                    break
 
             elif self.in_socket.type == 'VALUE':
                 if nav.node.type == 'VALUE':
                     return nav.out_socket.default_value, "node_tree." + nav.out_socket.path_from_id() + ".default_value"
+                else:
+                    break
+            else:
+                break
 
         return None, None
 
@@ -934,56 +967,6 @@ def check_if_is_linked_to_active_output(shader_socket, group_path):
                 return True
 
     return False
-
-
-def get_vertex_color_info(color_socket, alpha_socket, export_settings):
-
-    attribute_color = None
-    attribute_alpha = None
-    attribute_color_type = None
-    attribute_alpha_type = None
-    alpha_mode = "OPAQUE"
-
-    # Retrieve Attribute used as vertex color for Color
-    if color_socket is not None and color_socket.socket is not None:
-        node = previous_node(color_socket)
-        if node.node is not None:
-            if node.node.type == 'MIX' and node.node.data_type == "RGBA" and node.node.blend_type == 'MULTIPLY':
-                use_vc, attribute_color, use_active = get_attribute_name(
-                    NodeSocket(node.node.inputs[6], node.group_path), export_settings)
-                if use_vc is False:
-                    use_vc, attribute_color, use_active = get_attribute_name(
-                        NodeSocket(node.node.inputs[7], node.group_path), export_settings)
-                if use_vc is True and use_active is True:
-                    attribute_color_type = "active"
-                elif use_vc is True and use_active is None and attribute_color is not None:
-                    attribute_color_type = "name"
-            elif node.node.type in ["ATTRIBUTE", "VERTEX_COLOR"]:
-                use_vc, attribute_color, use_active = get_attribute_name(
-                    NodeSocket(node.node.outputs[0], node.group_path), export_settings)
-                if use_vc is True and use_active is True:
-                    attribute_color_type = "active"
-                elif use_vc is True and use_active is None and attribute_color is not None:
-                    attribute_color_type = "name"
-
-    if alpha_socket is not None and alpha_socket.socket is not None:
-        alpha_info = gather_alpha_info(alpha_socket.to_node_nav())
-
-        if alpha_info['alphaColorAttrib'] == '':
-            attribute_alpha = None
-            attribute_alpha_type = 'active'
-        elif alpha_info['alphaColorAttrib'] is not None:
-            attribute_alpha = alpha_info['alphaColorAttrib']
-            attribute_alpha_type = 'name'
-        alpha_mode = alpha_info['alphaMode']
-
-    return {
-        "color": attribute_color,
-        "alpha": attribute_alpha,
-        "color_type": attribute_color_type,
-        "alpha_type": attribute_alpha_type,
-        'alpha_mode': alpha_mode}
-
 
 def get_attribute_name(socket, export_settings):
     node = previous_node(socket)

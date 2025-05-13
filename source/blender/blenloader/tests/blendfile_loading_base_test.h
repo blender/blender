@@ -25,10 +25,10 @@ class BlendfileLoadingBaseTest : public testing::Test {
   /* Frees the depsgraph & blendfile. */
   virtual void TearDown();
 
-  /* Loads a blend file from the tests/data directory from SVN.
+  /* Loads a blend file from the tests/files directory from SVN.
    * Returns 'ok' flag (true=good, false=bad) and sets `this->bfile`.
    * Fails the test if the file cannot be loaded (still returns though).
-   * Requires the CLI argument `--test-asset-dir` to point to `../tests/data`.
+   * Requires the CLI argument `--test-asset-dir` to point to `../tests/files`.
    *
    * WARNING: only files saved with Blender 2.80+ can be loaded. Since Blender
    * is only partially initialized (most importantly, without window manager),

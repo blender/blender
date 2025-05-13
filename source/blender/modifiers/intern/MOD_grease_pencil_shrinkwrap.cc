@@ -193,7 +193,7 @@ static void ensure_shrinkwrap_cache_data(GreasePencilShrinkwrapModifierData &smd
     MEM_delete(smd.cache_data);
     smd.cache_data = nullptr;
   }
-  Object *target_ob = DEG_get_evaluated_object(ctx.depsgraph, smd.target);
+  Object *target_ob = DEG_get_evaluated(ctx.depsgraph, smd.target);
   Mesh *target_mesh = BKE_modifier_get_evaluated_mesh_from_evaluated_object(target_ob);
 
   smd.cache_data = MEM_new<ShrinkwrapTreeData>(__func__);
@@ -249,50 +249,50 @@ static void panel_draw(const bContext *C, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, ptr, "wrap_method", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "wrap_method", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   if (ELEM(wrap_method,
            MOD_SHRINKWRAP_PROJECT,
            MOD_SHRINKWRAP_NEAREST_SURFACE,
            MOD_SHRINKWRAP_TARGET_PROJECT))
   {
-    uiItemR(layout, ptr, "wrap_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    layout->prop(ptr, "wrap_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
   if (wrap_method == MOD_SHRINKWRAP_PROJECT) {
-    uiItemR(layout, ptr, "project_limit", UI_ITEM_NONE, IFACE_("Limit"), ICON_NONE);
-    uiItemR(layout, ptr, "subsurf_levels", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    layout->prop(ptr, "project_limit", UI_ITEM_NONE, IFACE_("Limit"), ICON_NONE);
+    layout->prop(ptr, "subsurf_levels", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
     col = &layout->column(false);
     row = &col->row(true, IFACE_("Axis"));
-    uiItemR(row, ptr, "use_project_x", toggles_flag, std::nullopt, ICON_NONE);
-    uiItemR(row, ptr, "use_project_y", toggles_flag, std::nullopt, ICON_NONE);
-    uiItemR(row, ptr, "use_project_z", toggles_flag, std::nullopt, ICON_NONE);
+    row->prop(ptr, "use_project_x", toggles_flag, std::nullopt, ICON_NONE);
+    row->prop(ptr, "use_project_y", toggles_flag, std::nullopt, ICON_NONE);
+    row->prop(ptr, "use_project_z", toggles_flag, std::nullopt, ICON_NONE);
 
-    uiItemR(col, ptr, "use_negative_direction", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    uiItemR(col, ptr, "use_positive_direction", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col->prop(ptr, "use_negative_direction", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col->prop(ptr, "use_positive_direction", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-    uiItemR(layout, ptr, "cull_face", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+    layout->prop(ptr, "cull_face", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
     col = &layout->column(false);
     uiLayoutSetActive(col,
                       RNA_boolean_get(ptr, "use_negative_direction") &&
                           RNA_enum_get(ptr, "cull_face") != 0);
-    uiItemR(col, ptr, "use_invert_cull", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col->prop(ptr, "use_invert_cull", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
-  uiItemR(layout, ptr, "target", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "target", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   if (wrap_method == MOD_SHRINKWRAP_PROJECT) {
-    uiItemR(layout, ptr, "auxiliary_target", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    layout->prop(ptr, "auxiliary_target", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
-  uiItemR(layout, ptr, "offset", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "offset", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, ptr, "smooth_factor", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  uiItemR(layout, ptr, "smooth_step", UI_ITEM_NONE, IFACE_("Repeat"), ICON_NONE);
+  layout->prop(ptr, "smooth_factor", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "smooth_step", UI_ITEM_NONE, IFACE_("Repeat"), ICON_NONE);
 
-  if (uiLayout *influence_panel = uiLayoutPanelProp(
-          C, layout, ptr, "open_influence_panel", IFACE_("Influence")))
+  if (uiLayout *influence_panel = layout->panel_prop(
+          C, ptr, "open_influence_panel", IFACE_("Influence")))
   {
     modifier::greasepencil::draw_layer_filter_settings(C, influence_panel, ptr);
     modifier::greasepencil::draw_material_filter_settings(C, influence_panel, ptr);

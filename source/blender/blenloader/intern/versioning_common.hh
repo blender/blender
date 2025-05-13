@@ -10,7 +10,11 @@
 
 #include "BLI_function_ref.hh"
 #include "BLI_map.hh"
+#include "BLI_string_ref.hh"
 
+#include "BKE_fcurve.hh"
+
+#include "DNA_anim_types.h"
 #include "DNA_node_types.h"
 
 struct ARegion;
@@ -82,6 +86,8 @@ void version_node_output_socket_name(bNodeTree *ntree,
                                      int node_type,
                                      const char *old_name,
                                      const char *new_name);
+
+blender::StringRef legacy_socket_idname_to_socket_type(blender::StringRef idname);
 
 /**
  * Adds a new node for versioning purposes. This is intended to be used to create raw DNA that
@@ -186,3 +192,45 @@ void version_update_node_input(
     FunctionRef<void(bNode *, bNodeSocket *, bNode *, bNodeSocket *)> update_input_link);
 
 bNode *version_eevee_output_node_get(bNodeTree *ntree, int16_t node_type);
+bool all_scenes_use(Main *bmain, const blender::Span<const char *> engines);
+
+/* Adjust the values of the given FCurve key frames by applying the given function. The function is
+ * expected to get and return a float representing the value of the key frame. The FCurve is
+ * potentially changed to have the given property type, if not already the case. */
+template<typename Function>
+static void adjust_fcurve_key_frame_values(FCurve *fcurve,
+                                           const PropertyType property_type,
+                                           const Function &function)
+{
+  /* Adjust key frames. */
+  if (fcurve->bezt) {
+    for (int i = 0; i < fcurve->totvert; i++) {
+      fcurve->bezt[i].vec[0][1] = function(fcurve->bezt[i].vec[0][1]);
+      fcurve->bezt[i].vec[1][1] = function(fcurve->bezt[i].vec[1][1]);
+      fcurve->bezt[i].vec[2][1] = function(fcurve->bezt[i].vec[2][1]);
+    }
+  }
+
+  /* Adjust baked key frames. */
+  if (fcurve->fpt) {
+    for (int i = 0; i < fcurve->totvert; i++) {
+      fcurve->fpt[i].vec[1] = function(fcurve->fpt[i].vec[1]);
+    }
+  }
+
+  /* Setup the flags based on the property type. */
+  fcurve->flag &= ~(FCURVE_INT_VALUES | FCURVE_DISCRETE_VALUES);
+  switch (property_type) {
+    case PROP_FLOAT:
+      break;
+    case PROP_INT:
+      fcurve->flag |= FCURVE_INT_VALUES;
+      break;
+    default:
+      fcurve->flag |= (FCURVE_DISCRETE_VALUES | FCURVE_INT_VALUES);
+      break;
+  }
+
+  /* Recalculate the automatic handles of the FCurve after adjustments. */
+  BKE_fcurve_handles_recalc(fcurve);
+}

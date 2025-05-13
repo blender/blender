@@ -12,6 +12,8 @@
 
 #include "BKE_node.hh"
 
+#include "GPU_debug.hh"
+
 #include "COM_algorithm_compute_preview.hh"
 #include "COM_context.hh"
 #include "COM_input_descriptor.hh"
@@ -48,11 +50,17 @@ NodeOperation::NodeOperation(Context &context, DNode node) : Operation(context),
 
 void NodeOperation::evaluate()
 {
+  if (context().use_gpu()) {
+    GPU_debug_group_begin(node().bnode()->typeinfo->idname.c_str());
+  }
   const timeit::TimePoint before_time = timeit::Clock::now();
   Operation::evaluate();
   const timeit::TimePoint after_time = timeit::Clock::now();
   if (context().profiler()) {
     context().profiler()->set_node_evaluation_time(node_.instance_key(), after_time - before_time);
+  }
+  if (context().use_gpu()) {
+    GPU_debug_group_end();
   }
 }
 

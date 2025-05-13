@@ -12,6 +12,7 @@
 #include "DNA_scene_types.h"
 
 #include "BLI_map.hh"
+#include "BLI_set.hh"
 #include "BLI_task.hh"
 
 #include "GPU_capabilities.hh"

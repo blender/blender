@@ -12,6 +12,15 @@
 #include "DNA_color_types.h" /* for color management */
 #include "DNA_defs.h"
 
+#ifdef __cplusplus
+namespace blender::bke {
+struct ImageRuntime;
+}  // namespace blender::bke
+using ImageRuntimeHandle = blender::bke::ImageRuntime;
+#else
+typedef struct ImageRuntimeHandle ImageRuntimeHandle;
+#endif
+
 struct GPUTexture;
 struct MovieReader;
 struct MovieCache;
@@ -120,31 +129,12 @@ typedef enum eGPUTextureTarget {
   TEXTARGET_COUNT,
 } eGPUTextureTarget;
 
-/* Defined in BKE_image.hh. */
-struct PartialUpdateRegister;
-struct PartialUpdateUser;
-
-typedef struct Image_Runtime {
-  /* Mutex used to guarantee thread-safe access to the cached ImBuf of the corresponding image ID.
-   */
-  void *cache_mutex;
-
-  /** \brief Register containing partial updates. */
-  struct PartialUpdateRegister *partial_update_register;
-  /** \brief Partial update user for GPUTextures stored inside the Image. */
-  struct PartialUpdateUser *partial_update_user;
-
-  void *_pad;
-
-  /* The image's current update count. See deg::set_id_update_count for more information. */
-  uint64_t update_count;
-
-  /* Compositor viewer might be translated, and that translation will be stored in this runtime
-   * vector by the compositor so that the editor draw code can draw the image translated. */
-  float backdrop_offset[2];
-} Image_Runtime;
-
 typedef struct Image {
+#ifdef __cplusplus
+  /** See #ID_Type comment for why this is here. */
+  static constexpr ID_Type id_type = ID_IM;
+#endif
+
   ID id;
   struct AnimData *adt;
 
@@ -214,7 +204,7 @@ typedef struct Image {
   ListBase views;
   struct Stereo3dFormat *stereo3d_format;
 
-  Image_Runtime runtime;
+  ImageRuntimeHandle *runtime;
 } Image;
 
 /* **************** IMAGE ********************* */

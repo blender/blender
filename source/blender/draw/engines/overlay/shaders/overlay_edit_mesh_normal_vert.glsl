@@ -63,7 +63,7 @@ void main()
   }
 #  endif
 
-  final_color = colorNormal;
+  final_color = theme.colors.normal;
 
 #elif defined(VERT_NORMAL)
 #  if defined(FLOAT_NORMAL)
@@ -72,7 +72,7 @@ void main()
 #  else
   nor = gpu_attr_load_uint_1010102_snorm(vnor, gpu_attr_0, vert_i).xyz;
 #  endif
-  final_color = colorVNormal;
+  final_color = theme.colors.vnormal;
 
 #elif defined(LOOP_NORMAL)
 #  if defined(FLOAT_NORMAL)
@@ -86,7 +86,7 @@ void main()
     nor = gpu_attr_load_uint_1010102_snorm(lnor, gpu_attr_0, vert_i).xyz;
   }
 #  endif
-  final_color = colorLNormal;
+  final_color = theme.colors.lnormal;
 
 #else
 
@@ -96,21 +96,21 @@ void main()
       return;
     }
     nor = lnor.xyz;
-    final_color = colorLNormal;
+    final_color = theme.colors.lnormal;
   }
   else if (!all(equal(vnor.xyz, float3(0)))) {
     if (vnor.w < 0.0f) {
       return;
     }
     nor = vnor.xyz;
-    final_color = colorVNormal;
+    final_color = theme.colors.vnormal;
   }
   else {
     nor = norAndFlag.xyz;
     if (all(equal(nor, float3(0)))) {
       return;
     }
-    final_color = colorNormal;
+    final_color = theme.colors.normal;
   }
   float3 ls_pos = pos;
 #endif
@@ -124,11 +124,11 @@ void main()
       if (is_persp) {
         float dist_fac = length(drw_view_position() - world_pos);
         float cos_fac = dot(drw_view_forward(), drw_world_incident_vector(world_pos));
-        world_pos += n * normal_screen_size * dist_fac * cos_fac * globalsBlock.pixel_fac *
-                     sizePixel;
+        world_pos += n * normal_screen_size * dist_fac * cos_fac * uniform_buf.pixel_fac *
+                     theme.sizes.pixel;
       }
       else {
-        float frustrum_fac = mul_project_m4_v3_zfac(globalsBlock.pixel_fac, n) * sizePixel;
+        float frustrum_fac = mul_project_m4_v3_zfac(uniform_buf.pixel_fac, n) * theme.sizes.pixel;
         world_pos += n * normal_screen_size * frustrum_fac;
       }
     }

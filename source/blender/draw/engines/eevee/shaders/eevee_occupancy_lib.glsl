@@ -6,11 +6,13 @@
 
 #include "gpu_shader_utildefines_lib.glsl"
 
-struct OccupancyBits {
+namespace occupancy {
+
+struct Bits {
   uint bits[8];
 };
 
-int occupancy_bit_index_from_depth(float depth, int bit_count)
+int bit_index_from_depth(float depth, int bit_count)
 {
   /* We want the occupancy at the center of each range a bit covers.
    * So we round the depth to the nearest bit. */
@@ -27,13 +29,13 @@ int occupancy_bit_index_from_depth(float depth, int bit_count)
  * \a depth in [0..1] range.
  * \a bit_count in [1..256] range.
  */
-OccupancyBits occupancy_from_depth(float depth, int bit_count)
+Bits bits_from_depth(float depth, int bit_count)
 {
   /* We want the occupancy at the center of each range a bit covers.
    * So we round the depth to the nearest bit. */
-  int depth_bit_index = occupancy_bit_index_from_depth(depth, bit_count);
+  int depth_bit_index = bit_index_from_depth(depth, bit_count);
 
-  OccupancyBits occupancy;
+  Bits occupancy;
   for (int i = 0; i < 8; i++) {
     int shift = clamp(depth_bit_index - i * 32, 0, 32);
     /* Cannot bit shift more than 31 positions. */
@@ -45,9 +47,9 @@ OccupancyBits occupancy_from_depth(float depth, int bit_count)
 /**
  * Returns an empty structure, cleared to 0.
  */
-OccupancyBits occupancy_new()
+Bits occupancy_new()
 {
-  OccupancyBits occupancy;
+  Bits occupancy;
   for (int i = 0; i < 8; i++) {
     occupancy.bits[i] = 0x0u;
   }
@@ -64,13 +66,13 @@ OccupancyBits occupancy_new()
  * \a depth in [0..1] range.
  * \a bit_count in [1..256] range.
  */
-OccupancyBits occupancy_bit_from_depth(float depth, int bit_count)
+Bits bit_from_depth(float depth, int bit_count)
 {
   /* We want the occupancy at the center of each range a bit covers.
    * So we round the depth to the nearest bit. */
-  int depth_bit_index = occupancy_bit_index_from_depth(depth, bit_count);
+  int depth_bit_index = bit_index_from_depth(depth, bit_count);
 
-  OccupancyBits occupancy;
+  Bits occupancy;
   for (int i = 0; i < 8; i++) {
     int shift = depth_bit_index - i * 32;
     /* Cannot bit shift more than 31 positions. */
@@ -80,11 +82,11 @@ OccupancyBits occupancy_bit_from_depth(float depth, int bit_count)
 }
 
 /**
- * Same as binary OR but for the whole OccupancyBits structure.
+ * Same as binary OR but for the whole Bits structure.
  */
-OccupancyBits occupancy_or(OccupancyBits a, OccupancyBits b)
+Bits bitwise_or(Bits a, Bits b)
 {
-  OccupancyBits occupancy;
+  Bits occupancy;
   for (int i = 0; i < 8; i++) {
     occupancy.bits[i] = a.bits[i] | b.bits[i];
   }
@@ -92,9 +94,9 @@ OccupancyBits occupancy_or(OccupancyBits a, OccupancyBits b)
 }
 
 /**
- * Set a series of bits high inside the given OccupancyBits.
+ * Set a series of bits high inside the given Bits.
  */
-OccupancyBits occupancy_set_bits_high(OccupancyBits occupancy, int bit_start, int bit_count)
+Bits set_bits_high(Bits occupancy, int bit_start, int bit_count)
 {
   for (int i = 0; i < bit_count; i++) {
     int bit = bit_start + i;
@@ -104,9 +106,9 @@ OccupancyBits occupancy_set_bits_high(OccupancyBits occupancy, int bit_start, in
 }
 
 /**
- * Same as findLSB but for the whole OccupancyBits structure.
+ * Same as findLSB but for the whole Bits structure.
  */
-int occupancy_find_lsb(OccupancyBits occupancy)
+int find_lsb(Bits occupancy)
 {
   for (int i = 0; i < 8; i++) {
     if (occupancy.bits[i] != 0) {
@@ -119,7 +121,7 @@ int occupancy_find_lsb(OccupancyBits occupancy)
 /**
  * Converts the first four occupancy words to a uint4.
  */
-uint4 occupancy_to_uint4(OccupancyBits occupancy)
+uint4 to_uint4(Bits occupancy)
 {
   return uint4(occupancy.bits[0], occupancy.bits[1], occupancy.bits[2], occupancy.bits[3]);
 }
@@ -127,10 +129,10 @@ uint4 occupancy_to_uint4(OccupancyBits occupancy)
 /**
  * From a entry and exit occupancy tuple, returns if a specific bit is inside the volume.
  */
-bool occupancy_bit_resolve(OccupancyBits entry, OccupancyBits exit, int bit_n, int bit_count)
+bool bit_resolve(Bits entry, Bits exit, int bit_n, int bit_count)
 {
-  int first_exit = occupancy_find_lsb(exit);
-  int first_entry = occupancy_find_lsb(entry);
+  int first_exit = find_lsb(exit);
+  int first_entry = find_lsb(entry);
   first_exit = (first_exit == -1) ? 99999 : first_exit;
   /* Check if the first surface is an exit. If it is, initialize as inside the volume. */
   bool inside_volume = first_exit < first_entry;
@@ -161,17 +163,19 @@ bool occupancy_bit_resolve(OccupancyBits entry, OccupancyBits exit, int bit_n, i
 /**
  * From a entry and exit occupancy tuple, returns the full occupancy map.
  */
-OccupancyBits occupancy_resolve(OccupancyBits entry, OccupancyBits exit, int bit_count)
+Bits resolve(Bits entry, Bits exit, int bit_count)
 {
-  OccupancyBits occupancy;
+  Bits occupancy;
   for (int j = 0; j < 8; j++) {
     for (int i = 0; i < 32; i++) {
       bool test = false;
       if (i < bit_count - j * 32) {
-        test = occupancy_bit_resolve(entry, exit, i + j * 32, bit_count);
+        test = bit_resolve(entry, exit, i + j * 32, bit_count);
       }
       set_flag_from_test(occupancy.bits[j], test, 1u << uint(i));
     }
   }
   return occupancy;
 }
+
+}  // namespace occupancy

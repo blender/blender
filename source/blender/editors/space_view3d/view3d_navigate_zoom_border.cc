@@ -37,11 +37,10 @@ static wmOperatorStatus view3d_zoom_border_exec(bContext *C, wmOperator *op)
   /* Zooms in on a border drawn by the user */
   rcti rect;
   float dvec[3], vb[2], xscale, yscale;
-  float dist_range[2];
 
   /* SMOOTHVIEW */
-  float new_dist;
-  float new_ofs[3];
+  float dist_new;
+  float ofs_new[3];
 
   /* ZBuffer depth vars */
   float depth_close = FLT_MAX;
@@ -56,7 +55,7 @@ static wmOperatorStatus view3d_zoom_border_exec(bContext *C, wmOperator *op)
   /* check if zooming in/out view */
   const bool zoom_in = !RNA_boolean_get(op->ptr, "zoom_out");
 
-  ED_view3d_dist_range_get(v3d, dist_range);
+  const blender::Bounds<float> dist_range = ED_view3d_dist_soft_range_get(v3d, rv3d->is_persp);
 
   ED_view3d_depth_override(CTX_data_ensure_evaluated_depsgraph(C),
                            region,
@@ -108,38 +107,35 @@ static wmOperatorStatus view3d_zoom_border_exec(bContext *C, wmOperator *op)
     }
 
     sub_v3_v3v3(dvec, p, p_corner);
-    negate_v3_v3(new_ofs, p);
+    negate_v3_v3(ofs_new, p);
 
-    new_dist = len_v3(dvec);
+    dist_new = len_v3(dvec);
 
     /* Account for the lens, without this a narrow lens zooms in too close. */
-    new_dist *= (v3d->lens / DEFAULT_SENSOR_WIDTH);
-
-    /* ignore dist_range min */
-    dist_range[0] = v3d->clip_start * 1.5f;
+    dist_new *= (v3d->lens / DEFAULT_SENSOR_WIDTH);
   }
   else { /* orthographic */
     /* find the current window width and height */
     vb[0] = region->winx;
     vb[1] = region->winy;
 
-    new_dist = rv3d->dist;
+    dist_new = rv3d->dist;
 
     /* convert the drawn rectangle into 3d space */
     if (depth_close != FLT_MAX && ED_view3d_unproject_v3(region, cent[0], cent[1], depth_close, p))
     {
-      negate_v3_v3(new_ofs, p);
+      negate_v3_v3(ofs_new, p);
     }
     else {
       float xy_delta[2];
       float zfac;
 
       /* We can't use the depth, fallback to the old way that doesn't set the center depth */
-      copy_v3_v3(new_ofs, rv3d->ofs);
+      copy_v3_v3(ofs_new, rv3d->ofs);
 
       {
         float tvec[3];
-        negate_v3_v3(tvec, new_ofs);
+        negate_v3_v3(tvec, ofs_new);
         zfac = ED_view3d_calc_zfac(rv3d, tvec);
       }
 
@@ -147,23 +143,23 @@ static wmOperatorStatus view3d_zoom_border_exec(bContext *C, wmOperator *op)
       xy_delta[1] = (rect.ymin + rect.ymax - vb[1]) / 2.0f;
       ED_view3d_win_to_delta(region, xy_delta, zfac, dvec);
       /* center the view to the center of the rectangle */
-      sub_v3_v3(new_ofs, dvec);
+      sub_v3_v3(ofs_new, dvec);
     }
 
     /* work out the ratios, so that everything selected fits when we zoom */
     xscale = (BLI_rcti_size_x(&rect) / vb[0]);
     yscale = (BLI_rcti_size_y(&rect) / vb[1]);
-    new_dist *= max_ff(xscale, yscale);
+    dist_new *= max_ff(xscale, yscale);
   }
 
   if (!zoom_in) {
-    sub_v3_v3v3(dvec, new_ofs, rv3d->ofs);
-    new_dist = rv3d->dist * (rv3d->dist / new_dist);
-    add_v3_v3v3(new_ofs, rv3d->ofs, dvec);
+    sub_v3_v3v3(dvec, ofs_new, rv3d->ofs);
+    dist_new = rv3d->dist * (rv3d->dist / dist_new);
+    add_v3_v3v3(ofs_new, rv3d->ofs, dvec);
   }
 
   /* clamp after because we may have been zooming out */
-  CLAMP(new_dist, dist_range[0], dist_range[1]);
+  CLAMP(dist_new, dist_range.min, dist_range.max);
 
   const bool is_camera_lock = ED_view3d_camera_lock_check(v3d, rv3d);
   if (rv3d->persp == RV3D_CAMOB) {
@@ -176,8 +172,8 @@ static wmOperatorStatus view3d_zoom_border_exec(bContext *C, wmOperator *op)
     }
   }
   V3D_SmoothParams sview_params = {};
-  sview_params.ofs = new_ofs;
-  sview_params.dist = &new_dist;
+  sview_params.ofs = ofs_new;
+  sview_params.dist = &dist_new;
   sview_params.undo_str = op->type->name;
 
   ED_view3d_smooth_view(C, v3d, region, smooth_viewtx, &sview_params);

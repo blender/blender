@@ -6,6 +6,7 @@
 #include "BKE_attribute_filters.hh"
 #include "BKE_attribute_math.hh"
 #include "BKE_curves.hh"
+#include "BKE_deform.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_instances.hh"
 #include "BKE_mesh.hh"
@@ -343,6 +344,7 @@ bke::CurvesGeometry reorder_curves_geometry(const bke::CurvesGeometry &src_curve
 {
   bke::CurvesGeometry dst_curves = bke::curves_new_no_attributes(src_curves.points_num(),
                                                                  src_curves.curves_num());
+  BKE_defgroup_copy_list(&dst_curves.vertex_group_names, &src_curves.vertex_group_names);
   copy_and_reorder_curves(src_curves, old_by_new_map, attribute_filter, dst_curves);
   return dst_curves;
 }

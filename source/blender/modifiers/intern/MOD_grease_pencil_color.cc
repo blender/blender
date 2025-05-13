@@ -209,14 +209,14 @@ static void panel_draw(const bContext *C, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, ptr, "color_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "color_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  uiItemR(layout, ptr, "hue", UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
-  uiItemR(layout, ptr, "saturation", UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
-  uiItemR(layout, ptr, "value", UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "hue", UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "saturation", UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "value", UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
 
-  if (uiLayout *influence_panel = uiLayoutPanelProp(
-          C, layout, ptr, "open_influence_panel", IFACE_("Influence")))
+  if (uiLayout *influence_panel = layout->panel_prop(
+          C, ptr, "open_influence_panel", IFACE_("Influence")))
   {
     modifier::greasepencil::draw_layer_filter_settings(C, influence_panel, ptr);
     modifier::greasepencil::draw_material_filter_settings(C, influence_panel, ptr);

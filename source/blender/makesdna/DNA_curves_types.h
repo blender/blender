@@ -9,6 +9,7 @@
 #pragma once
 
 #include "DNA_ID.h"
+#include "DNA_attribute_types.h"
 #include "DNA_customdata_types.h"
 #include "DNA_listBase.h"
 
@@ -117,6 +118,12 @@ typedef struct CurvesGeometry {
   int *curve_offsets;
 
   /**
+   * Curve and point domain attributes. Currently unused at runtime, but used for forward
+   * compatibility when reading files (see #122398).
+   */
+  struct AttributeStorage attribute_storage;
+
+  /**
    * All attributes stored on control points (#AttrDomain::Point).
    * This might not contain a layer for positions if there are no points.
    */
@@ -175,6 +182,11 @@ typedef struct CurvesGeometry {
  * interaction) is embedded in the #CurvesGeometry struct.
  */
 typedef struct Curves {
+#ifdef __cplusplus
+  /** See #ID_Type comment for why this is here. */
+  static constexpr ID_Type id_type = ID_CV;
+#endif
+
   ID id;
   /** Animation data (must be immediately after #id). */
   struct AnimData *adt;

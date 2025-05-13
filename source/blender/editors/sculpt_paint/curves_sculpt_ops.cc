@@ -469,15 +469,15 @@ static void select_random_ui(bContext * /*C*/, wmOperator *op)
 {
   uiLayout *layout = op->layout;
 
-  uiItemR(layout, op->ptr, "seed", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  uiItemR(layout, op->ptr, "constant_per_curve", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  uiItemR(layout, op->ptr, "partial", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(op->ptr, "seed", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(op->ptr, "constant_per_curve", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(op->ptr, "partial", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   if (RNA_boolean_get(op->ptr, "partial")) {
-    uiItemR(layout, op->ptr, "min", UI_ITEM_R_SLIDER, IFACE_("Min"), ICON_NONE);
+    layout->prop(op->ptr, "min", UI_ITEM_R_SLIDER, IFACE_("Min"), ICON_NONE);
   }
   else {
-    uiItemR(layout, op->ptr, "probability", UI_ITEM_R_SLIDER, IFACE_("Probability"), ICON_NONE);
+    layout->prop(op->ptr, "probability", UI_ITEM_R_SLIDER, IFACE_("Probability"), ICON_NONE);
   }
 }
 
@@ -912,8 +912,10 @@ static int calculate_points_per_side(bContext *C, MinDistanceEditData &op_data)
   return std::min(300, needed_points);
 }
 
-static void min_distance_edit_draw(
-    bContext *C, int /*x*/, int /*y*/, float /*x_tilt*/, float /*y_tilt*/, void *customdata)
+static void min_distance_edit_draw(bContext *C,
+                                   const blender::int2 & /*xy*/,
+                                   const blender::float2 & /*tilt*/,
+                                   void *customdata)
 {
   Scene *scene = CTX_data_scene(C);
   MinDistanceEditData &op_data = *static_cast<MinDistanceEditData *>(customdata);
@@ -1028,7 +1030,7 @@ static wmOperatorStatus min_distance_edit_invoke(bContext *C, wmOperator *op, co
   Object &curves_ob_orig = *CTX_data_active_object(C);
   Curves &curves_id_orig = *static_cast<Curves *>(curves_ob_orig.data);
   Object &surface_ob_orig = *curves_id_orig.surface;
-  Object *surface_ob_eval = DEG_get_evaluated_object(depsgraph, &surface_ob_orig);
+  Object *surface_ob_eval = DEG_get_evaluated(depsgraph, &surface_ob_orig);
   if (surface_ob_eval == nullptr) {
     return OPERATOR_CANCELLED;
   }

@@ -20,7 +20,6 @@
 #include "overlay_camera.hh"
 #include "overlay_cursor.hh"
 #include "overlay_curve.hh"
-#include "overlay_edit_text.hh"
 #include "overlay_empty.hh"
 #include "overlay_facing.hh"
 #include "overlay_fade.hh"
@@ -45,6 +44,7 @@
 #include "overlay_relation.hh"
 #include "overlay_sculpt.hh"
 #include "overlay_speaker.hh"
+#include "overlay_text.hh"
 #include "overlay_wireframe.hh"
 #include "overlay_xray_fade.hh"
 
@@ -82,7 +82,7 @@ class Instance : public DrawEngine {
     Bounds bounds = {selection_type_};
     Cameras cameras = {selection_type_};
     Curves curves;
-    EditText edit_text = {selection_type_};
+    Text text = {selection_type_};
     Empties empties = {selection_type_};
     Facing facing;
     Fade fade;

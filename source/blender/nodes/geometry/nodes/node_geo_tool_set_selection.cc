@@ -45,8 +45,8 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  uiItemR(layout, ptr, "domain", UI_ITEM_NONE, "", ICON_NONE);
-  uiItemR(layout, ptr, "selection_type", UI_ITEM_NONE, "", ICON_NONE);
+  layout->prop(ptr, "domain", UI_ITEM_NONE, "", ICON_NONE);
+  layout->prop(ptr, "selection_type", UI_ITEM_NONE, "", ICON_NONE);
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
@@ -85,9 +85,9 @@ static void node_geo_exec(GeoNodeExecParams params)
   }
   GeometrySet geometry = params.extract_input<GeometrySet>("Geometry");
   const eObjectMode mode = params.user_data()->call_data->operator_data->mode;
-  if (mode == OB_MODE_OBJECT) {
+  if (ELEM(mode, OB_MODE_OBJECT, OB_MODE_PAINT_GREASE_PENCIL)) {
     params.error_message_add(NodeWarningType::Error,
-                             "Selection control is not supported in object mode");
+                             "Selection control is not supported in this mode");
     params.set_output("Geometry", std::move(geometry));
     return;
   }
@@ -165,6 +165,17 @@ static void node_geo_exec(GeoNodeExecParams params)
       if (domain == AttrDomain::Point) {
         bke::try_capture_field_on_geometry(
             geometry.get_component_for_write<PointCloudComponent>(), ".selection", domain, field);
+      }
+    }
+    if (geometry.has_grease_pencil()) {
+      /* Grease Pencil only supports boolean selection. */
+      const Field<bool> field = conversions.try_convert(selection, CPPType::get<bool>());
+      if (ELEM(domain, AttrDomain::Point, AttrDomain::Curve)) {
+        bke::try_capture_field_on_geometry(
+            geometry.get_component_for_write<GreasePencilComponent>(),
+            ".selection",
+            domain,
+            field);
       }
     }
   });

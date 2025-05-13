@@ -7,7 +7,6 @@ import bpy
 from ....io.com import gltf2_io
 from ....io.exp.user_extensions import export_user_extensions
 from ..cache import cached
-from .search_node_tree import get_vertex_color_info
 from .texture_info import gather_texture_info
 from .search_node_tree import \
     get_socket_from_gltf_material_node, \

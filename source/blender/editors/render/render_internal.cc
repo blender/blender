@@ -89,7 +89,6 @@ struct RenderJob : public RenderJobBase {
   ScrArea *area;
   ColorManagedViewSettings view_settings;
   ColorManagedDisplaySettings display_settings;
-  bool supports_glsl_draw;
   bool interface_locked;
 };
 
@@ -659,9 +658,7 @@ static void image_rect_update(void *rjv, RenderResult *rr, rcti *renrect)
      * this case GLSL doesn't have original float buffer to
      * operate with.
      */
-    if (!rj->supports_glsl_draw || ibuf->channels == 1 ||
-        ED_draw_imbuf_method(ibuf) != IMAGE_DRAW_METHOD_GLSL)
-    {
+    if (ibuf->channels == 1 || ED_draw_imbuf_method(ibuf) != IMAGE_DRAW_METHOD_GLSL) {
       image_buffer_rect_update(rj, rr, ibuf, &rj->iuser, &tile_rect, offset_x, offset_y, viewname);
     }
     ImageTile *image_tile = BKE_image_get_tile(ima, 0);
@@ -1048,7 +1045,6 @@ static wmOperatorStatus screen_render_invoke(bContext *C, wmOperator *op, const 
   rj->orig_layer = 0;
   rj->last_layer = 0;
   rj->area = area;
-  rj->supports_glsl_draw = IMB_colormanagement_support_glsl_draw(&scene->view_settings);
 
   BKE_color_managed_display_settings_copy(&rj->display_settings, &scene->display_settings);
   BKE_color_managed_view_settings_copy(&rj->view_settings, &scene->view_settings);

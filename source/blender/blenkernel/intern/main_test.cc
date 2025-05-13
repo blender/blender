@@ -67,8 +67,8 @@ TEST_F(BMainMergeTest, basics)
   EXPECT_TRUE(BLI_listbase_is_empty(&bmain_src->objects));
 
   BKE_id_new(bmain_dst, ID_GR, "Coll_dst");
-  Collection *coll = static_cast<Collection *>(BKE_id_new(bmain_src, ID_GR, "Coll_src"));
-  Object *ob = static_cast<Object *>(BKE_id_new(bmain_src, ID_OB, "Ob_src"));
+  Collection *coll = BKE_id_new<Collection>(bmain_src, "Coll_src");
+  Object *ob = BKE_id_new<Object>(bmain_src, "Ob_src");
   BKE_collection_object_add(bmain_src, coll, ob);
 
   EXPECT_EQ(1, BLI_listbase_count(&bmain_dst->collections));
@@ -88,8 +88,8 @@ TEST_F(BMainMergeTest, basics)
   EXPECT_EQ(nullptr, bmain_src);
 
   bmain_src = BKE_main_new();
-  Collection *coll_2 = static_cast<Collection *>(BKE_id_new(bmain_src, ID_GR, "Coll_src_2"));
-  Object *ob_2 = static_cast<Object *>(BKE_id_new(bmain_src, ID_OB, "Ob_src"));
+  Collection *coll_2 = BKE_id_new<Collection>(bmain_src, "Coll_src_2");
+  Object *ob_2 = BKE_id_new<Object>(bmain_src, "Ob_src");
   BKE_collection_object_add(bmain_src, coll_2, ob_2);
 
   EXPECT_EQ(2, BLI_listbase_count(&bmain_dst->collections));
@@ -142,12 +142,12 @@ TEST_F(BMainMergeTest, linked_data)
   STRNCPY(bmain_dst->filepath, DST_PATH);
   STRNCPY(bmain_src->filepath, SRC_PATH);
 
-  BKE_id_new(bmain_dst, ID_GR, "Coll_dst");
+  BKE_id_new<Collection>(bmain_dst, "Coll_dst");
 
-  Collection *coll_1 = static_cast<Collection *>(BKE_id_new(bmain_src, ID_GR, "Coll_src"));
-  Object *ob_1 = static_cast<Object *>(BKE_id_new(bmain_src, ID_OB, "Ob_src"));
+  Collection *coll_1 = BKE_id_new<Collection>(bmain_src, "Coll_src");
+  Object *ob_1 = BKE_id_new<Object>(bmain_src, "Ob_src");
   BKE_collection_object_add(bmain_src, coll_1, ob_1);
-  Library *lib_src_1 = static_cast<Library *>(BKE_id_new(bmain_src, ID_LI, LIB_PATH));
+  Library *lib_src_1 = BKE_id_new<Library>(bmain_src, LIB_PATH);
   BKE_library_filepath_set(bmain_src, lib_src_1, LIB_PATH);
   ob_1->id.lib = lib_src_1;
 
@@ -178,10 +178,10 @@ TEST_F(BMainMergeTest, linked_data)
   bmain_src = BKE_main_new();
   STRNCPY(bmain_src->filepath, SRC_PATH);
 
-  Collection *coll_2 = static_cast<Collection *>(BKE_id_new(bmain_src, ID_GR, "Coll_src_2"));
-  Object *ob_2 = static_cast<Object *>(BKE_id_new(bmain_src, ID_OB, "Ob_src_2"));
+  Collection *coll_2 = BKE_id_new<Collection>(bmain_src, "Coll_src_2");
+  Object *ob_2 = BKE_id_new<Object>(bmain_src, "Ob_src_2");
   BKE_collection_object_add(bmain_src, coll_2, ob_2);
-  Library *lib_src_2 = static_cast<Library *>(BKE_id_new(bmain_src, ID_LI, LIB_PATH));
+  Library *lib_src_2 = BKE_id_new<Library>(bmain_src, LIB_PATH);
   BKE_library_filepath_set(bmain_src, lib_src_2, LIB_PATH);
   std::cout << lib_src_1->runtime->filepath_abs << "\n";
   std::cout << lib_src_2->runtime->filepath_abs << "\n";
@@ -214,10 +214,10 @@ TEST_F(BMainMergeTest, linked_data)
   bmain_src = BKE_main_new();
   STRNCPY(bmain_src->filepath, SRC_PATH);
 
-  Collection *coll_3 = static_cast<Collection *>(BKE_id_new(bmain_src, ID_GR, "Coll_src_3"));
-  Object *ob_3 = static_cast<Object *>(BKE_id_new(bmain_src, ID_OB, "Ob_src"));
+  Collection *coll_3 = BKE_id_new<Collection>(bmain_src, "Coll_src_3");
+  Object *ob_3 = BKE_id_new<Object>(bmain_src, "Ob_src");
   BKE_collection_object_add(bmain_src, coll_3, ob_3);
-  Library *lib_src_3 = static_cast<Library *>(BKE_id_new(bmain_src, ID_LI, LIB_PATH_RELATIVE));
+  Library *lib_src_3 = BKE_id_new<Library>(bmain_src, LIB_PATH_RELATIVE);
   BKE_library_filepath_set(bmain_src, lib_src_3, LIB_PATH_RELATIVE);
   ob_3->id.lib = lib_src_3;
 
@@ -254,10 +254,10 @@ TEST_F(BMainMergeTest, linked_data)
   bmain_src = BKE_main_new();
   STRNCPY(bmain_src->filepath, SRC_PATH);
 
-  Collection *coll_4 = static_cast<Collection *>(BKE_id_new(bmain_src, ID_GR, "Coll_src"));
-  Object *ob_4 = static_cast<Object *>(BKE_id_new(bmain_src, ID_OB, "Ob_src_4"));
+  Collection *coll_4 = BKE_id_new<Collection>(bmain_src, "Coll_src");
+  Object *ob_4 = BKE_id_new<Object>(bmain_src, "Ob_src_4");
   BKE_collection_object_add(bmain_src, coll_4, ob_4);
-  Library *lib_src_4 = static_cast<Library *>(BKE_id_new(bmain_src, ID_LI, DST_PATH));
+  Library *lib_src_4 = BKE_id_new<Library>(bmain_src, DST_PATH);
   BKE_library_filepath_set(bmain_src, lib_src_4, DST_PATH);
   coll_4->id.lib = lib_src_4;
   ob_4->id.lib = lib_src_4;

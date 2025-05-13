@@ -71,6 +71,11 @@ typedef struct Camera_Runtime {
 } Camera_Runtime;
 
 typedef struct Camera {
+#ifdef __cplusplus
+  /** See #ID_Type comment for why this is here. */
+  static constexpr ID_Type id_type = ID_CA;
+#endif
+
   ID id;
   /** Animation data (must be immediately after id for utilities to use it). */
   struct AnimData *adt;

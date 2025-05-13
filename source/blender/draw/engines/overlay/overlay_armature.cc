@@ -290,7 +290,7 @@ static void drw_shgroup_bone_envelope_distance(const Armatures::DrawContext *ctx
     head_sph[3] += *distance * obscale;
     tail_sph[3] = *radius_tail * obscale;
     tail_sph[3] += *distance * obscale;
-    /* TODO(fclem): Cleanup these casts when Overlay Next is shipped.  */
+    /* TODO(fclem): Cleanup these casts when Overlay Next is shipped. */
     ctx->bone_buf->envelope_distance_buf.append(
         {*(float4 *)head_sph, *(float4 *)tail_sph, *(float3 *)xaxis},
         draw::select::SelectMap::select_invalid_id());
@@ -355,7 +355,7 @@ static void drw_shgroup_bone_envelope(const Armatures::DrawContext *ctx,
       interp_v4_v4v4(tail_sph, tmp_sph, tail_sph, fac_tail);
 
       if (ctx->is_filled) {
-        /* TODO(fclem): Cleanup these casts when Overlay Next is shipped.  */
+        /* TODO(fclem): Cleanup these casts when Overlay Next is shipped. */
         ctx->bone_buf->envelope_fill_buf.append({*(float4 *)head_sph,
                                                  *(float4 *)tail_sph,
                                                  *(float3 *)bone_col,
@@ -663,32 +663,32 @@ static void drw_shgroup_bone_relationship_lines(const Armatures::DrawContext *ct
                                                 const float start[3],
                                                 const float end[3])
 {
-  const GlobalsUboStorage &theme = ctx->res->theme_settings;
-  drw_shgroup_bone_relationship_lines_ex(ctx, start, end, theme.color_wire);
+  const UniformData &theme = ctx->res->theme;
+  drw_shgroup_bone_relationship_lines_ex(ctx, start, end, theme.colors.wire);
 }
 
 static void drw_shgroup_bone_ik_lines(const Armatures::DrawContext *ctx,
                                       const float start[3],
                                       const float end[3])
 {
-  const GlobalsUboStorage &theme = ctx->res->theme_settings;
-  drw_shgroup_bone_relationship_lines_ex(ctx, start, end, theme.color_bone_ik_line);
+  const UniformData &theme = ctx->res->theme;
+  drw_shgroup_bone_relationship_lines_ex(ctx, start, end, theme.colors.bone_ik_line);
 }
 
 static void drw_shgroup_bone_ik_no_target_lines(const Armatures::DrawContext *ctx,
                                                 const float start[3],
                                                 const float end[3])
 {
-  const GlobalsUboStorage &theme = ctx->res->theme_settings;
-  drw_shgroup_bone_relationship_lines_ex(ctx, start, end, theme.color_bone_ik_line_no_target);
+  const UniformData &theme = ctx->res->theme;
+  drw_shgroup_bone_relationship_lines_ex(ctx, start, end, theme.colors.bone_ik_line_no_target);
 }
 
 static void drw_shgroup_bone_ik_spline_lines(const Armatures::DrawContext *ctx,
                                              const float start[3],
                                              const float end[3])
 {
-  const GlobalsUboStorage &theme = ctx->res->theme_settings;
-  drw_shgroup_bone_relationship_lines_ex(ctx, start, end, theme.color_bone_ik_line_spline);
+  const UniformData &theme = ctx->res->theme;
+  drw_shgroup_bone_relationship_lines_ex(ctx, start, end, theme.colors.bone_ik_line_spline);
 }
 
 /** \} */
@@ -751,7 +751,7 @@ static void use_bone_color(float *r_color, const uint8_t *color_from_theme, cons
   srgb_to_linearrgb_v4(r_color, r_color);
 };
 
-static void get_pchan_color_wire(const GlobalsUboStorage &theme,
+static void get_pchan_color_wire(const UniformData &theme,
                                  const ThemeWireColor *bcolor,
                                  const eArmatureDrawMode draw_mode,
                                  const eBone_Flag boneflag,
@@ -778,22 +778,22 @@ static void get_pchan_color_wire(const GlobalsUboStorage &theme,
   }
   else {
     if (draw_active && draw_selected) {
-      wire_color = is_edit ? theme.color_bone_active : theme.color_bone_pose_active;
+      wire_color = is_edit ? theme.colors.bone_active : theme.colors.bone_pose_active;
     }
     else if (draw_active) {
-      wire_color = is_edit ? theme.color_bone_active_unsel : theme.color_bone_pose_active_unsel;
+      wire_color = is_edit ? theme.colors.bone_active_unsel : theme.colors.bone_pose_active_unsel;
     }
     else if (draw_selected) {
-      wire_color = is_edit ? theme.color_bone_select : theme.color_bone_pose;
+      wire_color = is_edit ? theme.colors.bone_select : theme.colors.bone_pose;
     }
     else {
-      wire_color = is_edit ? theme.color_wire_edit : theme.color_wire;
+      wire_color = is_edit ? theme.colors.wire_edit : theme.colors.wire;
     }
     copy_v4_v4(r_color, wire_color);
   }
 }
 
-static void get_pchan_color_solid(const GlobalsUboStorage &theme,
+static void get_pchan_color_solid(const UniformData &theme,
                                   const ThemeWireColor *bcolor,
                                   float r_color[4])
 {
@@ -802,11 +802,11 @@ static void get_pchan_color_solid(const GlobalsUboStorage &theme,
     use_bone_color(r_color, bcolor->solid, 0);
   }
   else {
-    copy_v4_v4(r_color, theme.color_bone_solid);
+    copy_v4_v4(r_color, theme.colors.bone_solid);
   }
 }
 
-static void get_pchan_color_constraint(const GlobalsUboStorage &theme,
+static void get_pchan_color_constraint(const UniformData &theme,
                                        const ThemeWireColor *bcolor,
                                        const UnifiedBonePtr bone,
                                        float r_color[4])
@@ -828,16 +828,16 @@ static void get_pchan_color_constraint(const GlobalsUboStorage &theme,
 
   float4 constraint_color;
   if (constflag & PCHAN_HAS_NO_TARGET) {
-    constraint_color = theme.color_bone_pose_no_target;
+    constraint_color = theme.colors.bone_pose_no_target;
   }
   else if (constflag & PCHAN_HAS_IK) {
-    constraint_color = theme.color_bone_pose_ik;
+    constraint_color = theme.colors.bone_pose_ik;
   }
   else if (constflag & PCHAN_HAS_SPLINEIK) {
-    constraint_color = theme.color_bone_pose_spline_ik;
+    constraint_color = theme.colors.bone_pose_spline_ik;
   }
   else if (constflag & PCHAN_HAS_CONST) {
-    constraint_color = theme.color_bone_pose_constraint;
+    constraint_color = theme.colors.bone_pose_constraint;
   }
   interp_v4_v4v4(r_color, solid_color, constraint_color, 0.5f);
 }
@@ -848,9 +848,9 @@ static void get_pchan_color_constraint(const GlobalsUboStorage &theme,
 /** \name Drawing Color Helpers
  * \{ */
 
-static void bone_locked_color_shade(const GlobalsUboStorage &theme, float color[4])
+static void bone_locked_color_shade(const UniformData &theme, float color[4])
 {
-  const float *locked_color = theme.color_bone_locked;
+  const float *locked_color = theme.colors.bone_locked;
 
   interp_v3_v3v3(color, color, locked_color, locked_color[3]);
 }
@@ -858,9 +858,9 @@ static void bone_locked_color_shade(const GlobalsUboStorage &theme, float color[
 static const float *get_bone_solid_color(const Armatures::DrawContext *ctx,
                                          const eBone_Flag boneflag)
 {
-  const GlobalsUboStorage &theme = ctx->res->theme_settings;
+  const UniformData &theme = ctx->res->theme;
   if (ctx->const_color) {
-    return theme.color_bone_solid;
+    return theme.colors.bone_solid;
   }
 
   static float disp_color[4];
@@ -877,9 +877,9 @@ static const float *get_bone_solid_with_consts_color(const Armatures::DrawContex
                                                      const UnifiedBonePtr bone,
                                                      const eBone_Flag boneflag)
 {
-  const GlobalsUboStorage &theme = ctx->res->theme_settings;
+  const UniformData &theme = ctx->res->theme;
   if (ctx->const_color) {
-    return theme.color_bone_solid;
+    return theme.colors.bone_solid;
   }
 
   const float *col = get_bone_solid_color(ctx, boneflag);
@@ -914,7 +914,7 @@ static const float *get_bone_wire_color(const Armatures::DrawContext *ctx,
     copy_v3_v3(disp_color, ctx->const_color);
   }
   else {
-    const GlobalsUboStorage &theme = ctx->res->theme_settings;
+    const UniformData &theme = ctx->res->theme;
     switch (ctx->draw_mode) {
       case ARM_DRAW_MODE_EDIT:
         get_pchan_color_wire(theme, ctx->bcolor, ctx->draw_mode, boneflag, disp_color);
@@ -927,7 +927,7 @@ static const float *get_bone_wire_color(const Armatures::DrawContext *ctx,
         }
         break;
       case ARM_DRAW_MODE_OBJECT:
-        copy_v3_v3(disp_color, theme.color_vertex);
+        copy_v3_v3(disp_color, theme.colors.vert);
         break;
     }
   }
@@ -952,7 +952,7 @@ static const float *get_bone_hint_color(const Armatures::DrawContext *ctx,
   static float hint_color[4] = {0.0f, 0.0f, 0.0f, 1.0f};
 
   if (ctx->const_color) {
-    bone_hint_color_shade(hint_color, ctx->res->theme_settings.color_bone_solid);
+    bone_hint_color_shade(hint_color, ctx->res->theme.colors.bone_solid);
   }
   else {
     const float *wire_color = get_bone_wire_color(ctx, boneflag);
@@ -1223,8 +1223,8 @@ static void draw_axes(const Armatures::DrawContext *ctx,
 {
   float final_col[4];
   const float *col = (ctx->const_color)            ? ctx->const_color :
-                     (bone.flag() & BONE_SELECTED) ? &ctx->res->theme_settings.color_text_hi.x :
-                                                     &ctx->res->theme_settings.color_text.x;
+                     (bone.flag() & BONE_SELECTED) ? &ctx->res->theme.colors.text_hi.x :
+                                                     &ctx->res->theme.colors.text.x;
   copy_v4_v4(final_col, col);
   /* Mix with axes color. */
   final_col[3] = (ctx->const_color) ? 1.0 : (bone.flag() & BONE_SELECTED) ? 0.1 : 0.65;
@@ -1259,10 +1259,10 @@ static void draw_points(const Armatures::DrawContext *ctx,
   float col_wire_root[4], col_wire_tail[4];
   float col_hint_root[4], col_hint_tail[4];
 
-  const GlobalsUboStorage &theme = ctx->res->theme_settings;
+  const UniformData &theme = ctx->res->theme;
 
-  copy_v4_v4(col_wire_root, (ctx->const_color) ? ctx->const_color : &theme.color_vertex.x);
-  copy_v4_v4(col_wire_tail, (ctx->const_color) ? ctx->const_color : &theme.color_vertex.x);
+  copy_v4_v4(col_wire_root, (ctx->const_color) ? ctx->const_color : &theme.colors.vert.x);
+  copy_v4_v4(col_wire_tail, (ctx->const_color) ? ctx->const_color : &theme.colors.vert.x);
 
   const bool is_envelope_draw = (ctx->drawtype == ARM_ENVELOPE);
   const float envelope_ignore = -1.0f;
@@ -1273,10 +1273,10 @@ static void draw_points(const Armatures::DrawContext *ctx,
   if (ctx->draw_mode == ARM_DRAW_MODE_EDIT) {
     const EditBone *eBone = bone.as_editbone();
     if (eBone->flag & BONE_ROOTSEL) {
-      copy_v3_v3(col_wire_root, theme.color_vertex_select);
+      copy_v3_v3(col_wire_root, theme.colors.vert_select);
     }
     if (eBone->flag & BONE_TIPSEL) {
-      copy_v3_v3(col_wire_tail, theme.color_vertex_select);
+      copy_v3_v3(col_wire_tail, theme.colors.vert_select);
     }
   }
   else if (ctx->draw_mode == ARM_DRAW_MODE_POSE) {
@@ -1285,10 +1285,12 @@ static void draw_points(const Armatures::DrawContext *ctx,
     copy_v4_v4(col_wire_root, wire_color);
   }
 
-  const float *hint_color_shade_root = (ctx->const_color) ? (const float *)theme.color_bone_solid :
-                                                            col_wire_root;
-  const float *hint_color_shade_tail = (ctx->const_color) ? (const float *)theme.color_bone_solid :
-                                                            col_wire_tail;
+  const float *hint_color_shade_root = (ctx->const_color) ?
+                                           (const float *)theme.colors.bone_solid :
+                                           col_wire_root;
+  const float *hint_color_shade_tail = (ctx->const_color) ?
+                                           (const float *)theme.colors.bone_solid :
+                                           col_wire_tail;
   bone_hint_color_shade(col_hint_root, hint_color_shade_root);
   bone_hint_color_shade(col_hint_tail, hint_color_shade_tail);
 
@@ -1743,17 +1745,17 @@ class ArmatureBoneDrawStrategyLine : public ArmatureBoneDrawStrategy {
       col_bone = col_head = col_tail = ctx->const_color;
     }
     else {
-      const GlobalsUboStorage &theme = ctx->res->theme_settings;
+      const UniformData &theme = ctx->res->theme;
 
       if (bone.is_editbone() && bone.flag() & BONE_TIPSEL) {
-        col_tail = &theme.color_vertex_select.x;
+        col_tail = &theme.colors.vert_select.x;
       }
 
       /* Draw root point if we are not connected to our parent. */
       if (!(bone.has_parent() && (boneflag & BONE_CONNECTED))) {
 
         if (bone.is_editbone()) {
-          col_head = (bone.flag() & BONE_ROOTSEL) ? &theme.color_vertex_select.x : col_bone;
+          col_head = (bone.flag() & BONE_ROOTSEL) ? &theme.colors.vert_select.x : col_bone;
         }
         else {
           col_head = col_bone;

@@ -1,0 +1,25 @@
+At the fold where there is not yet a value, paint with the given brush 
+(should have 0.250 Weight, 1.000 Strength, Add).
+
+The shape should still look geometrically identical to the background one.
+
+Sample the weight you altered, it should read 0.250
+(See the lockTestStage1 image for where to paint and what it should look like)
+
+Sample the weight of the same vertex on Bone.001, it should also read 0.250
+
+Paint the spot again on Bone
+
+It should still appear geometrically identical to the background object.
+
+Resample:
+Now Bone's weight at the fold should have gone up to 0.500
+(See the lockTestStage2 image for where to paint and what it should look like)
+
+Bone.001's weight for that vertex will be at 0.000
+
+Any further attempts to add to Bone should not alter the weight
+(0.500 will always be the sum of Bone's and Bone.001's weights at the fold)
+
+You should not be able to paint the highest part of the object,
+ and you should not be able to paint onto Bone.002

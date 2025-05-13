@@ -917,15 +917,26 @@ void DRWContext::engines_data_validate()
   DRW_view_data_free_unused(this->view_data_active);
 }
 
-/* Fast check to see if gpencil drawing engine is needed.
- * For slow exact check use `DRW_render_check_grease_pencil` */
-bool DRW_gpencil_engine_needed(Depsgraph *depsgraph, View3D *v3d)
+static bool gpencil_object_is_excluded(View3D *v3d)
 {
-  const bool exclude_gpencil_rendering = v3d ? ((v3d->object_type_exclude_viewport &
-                                                 (1 << OB_GREASE_PENCIL)) != 0) :
-                                               false;
-  return (!exclude_gpencil_rendering) && (DEG_id_type_any_exists(depsgraph, ID_GD_LEGACY) ||
-                                          DEG_id_type_any_exists(depsgraph, ID_GP));
+  if (v3d) {
+    return ((v3d->object_type_exclude_viewport & (1 << OB_GREASE_PENCIL)) != 0);
+  }
+  return false;
+}
+
+static bool gpencil_any_exists(Depsgraph *depsgraph)
+{
+  return (DEG_id_type_any_exists(depsgraph, ID_GD_LEGACY) ||
+          DEG_id_type_any_exists(depsgraph, ID_GP));
+}
+
+bool DRW_gpencil_engine_needed_viewport(Depsgraph *depsgraph, View3D *v3d)
+{
+  if (gpencil_object_is_excluded(v3d)) {
+    return false;
+  }
+  return gpencil_any_exists(depsgraph);
 }
 
 /* -------------------------------------------------------------------- */
@@ -1186,7 +1197,7 @@ static void drw_draw_render_loop_3d(DRWContext &draw_ctx, RenderEngineType *engi
   const bool internal_engine = (engine_type->flag & RE_INTERNAL) != 0;
   const bool draw_type_render = v3d->shading.type == OB_RENDER;
   const bool overlays_on = (v3d->flag2 & V3D_HIDE_OVERLAYS) == 0;
-  const bool gpencil_engine_needed = DRW_gpencil_engine_needed(depsgraph, v3d);
+  const bool gpencil_engine_needed = DRW_gpencil_engine_needed_viewport(depsgraph, v3d);
   const bool do_populate_loop = internal_engine || overlays_on || !draw_type_render ||
                                 gpencil_engine_needed;
 
@@ -1376,8 +1387,8 @@ void DRW_draw_render_loop_offscreen(Depsgraph *depsgraph,
 
 bool DRW_render_check_grease_pencil(Depsgraph *depsgraph)
 {
-  if (!DRW_gpencil_engine_needed(depsgraph, nullptr)) {
-    return false;
+  if (gpencil_any_exists(depsgraph)) {
+    return true;
   }
 
   DEGObjectIterSettings deg_iter_settings = {nullptr};
@@ -1687,7 +1698,8 @@ void DRW_draw_select_loop(Depsgraph *depsgraph,
     }
   }
 
-  bool use_gpencil = !use_obedit && !draw_surface && DRW_gpencil_engine_needed(depsgraph, v3d);
+  bool use_gpencil = !use_obedit && !draw_surface &&
+                     DRW_gpencil_engine_needed_viewport(depsgraph, v3d);
 
   DRWContext::Mode mode = do_material_sub_selection ? DRWContext::SELECT_OBJECT_MATERIAL :
                                                       DRWContext::SELECT_OBJECT;

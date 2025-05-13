@@ -37,7 +37,7 @@ namespace blender::geometry {
 #define param_warning(message) \
   {/* `printf("Warning %s:%d: %s\n", __FILE__, __LINE__, message);` */}(void)0
 
-/* Prevent unused function warnings when slim is disabled.  */
+/* Prevent unused function warnings when slim is disabled. */
 #ifdef WITH_UV_SLIM
 #  define UNUSED_FUNCTION_NO_SLIM(x) x
 #else

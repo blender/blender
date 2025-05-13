@@ -1,0 +1,18 @@
+==== Objects: 2
+- Obj 'forwardCamera' CAMERA data:'forwardCamera'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 0.010, 0.010, 0.010
+- Obj 'forwardLight' LIGHT data:'Light'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 0.010, 0.010, 0.010
+
+==== Cameras: 1
+- Cam 'forwardCamera' PERSP lens:35.0 MILLIMETERS near:0.001 far:100.0 orthosize:1.0
+  - fov 0.950 (h 0.950 v 0.661)
+  - sensor 36.0x24.0 shift 0.000,0.000
+
+==== Lights: 1
+- Light 'Light' SUN col:(1.000, 1.000, 1.000) energy:1.000
+

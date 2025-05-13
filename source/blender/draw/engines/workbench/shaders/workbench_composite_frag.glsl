@@ -23,7 +23,7 @@ void main()
   float depth = texture(depth_tx, uv).r;
   if (depth == 1.0f) {
     /* Skip the background. */
-    discard;
+    gpu_discard_fragment();
     return;
   }
 

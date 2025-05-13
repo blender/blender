@@ -40,7 +40,7 @@ TEST(greasepencil, create_grease_pencil_id)
 {
   GreasePencilIDTestContext ctx;
 
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(BKE_id_new(ctx.bmain, ID_GP, "GP"));
+  GreasePencil &grease_pencil = *BKE_id_new<GreasePencil>(ctx.bmain, "GP");
   EXPECT_EQ(grease_pencil.drawings().size(), 0);
   EXPECT_EQ(grease_pencil.root_group().num_nodes_total(), 0);
 }
@@ -51,7 +51,7 @@ TEST(greasepencil, create_grease_pencil_id)
 TEST(greasepencil, add_empty_drawings)
 {
   GreasePencilIDTestContext ctx;
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(BKE_id_new(ctx.bmain, ID_GP, "GP"));
+  GreasePencil &grease_pencil = *BKE_id_new<GreasePencil>(ctx.bmain, "GP");
   grease_pencil.add_empty_drawings(3);
   EXPECT_EQ(grease_pencil.drawings().size(), 3);
 }
@@ -59,7 +59,7 @@ TEST(greasepencil, add_empty_drawings)
 TEST(greasepencil, remove_drawings)
 {
   GreasePencilIDTestContext ctx;
-  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(BKE_id_new(ctx.bmain, ID_GP, "GP"));
+  GreasePencil &grease_pencil = *BKE_id_new<GreasePencil>(ctx.bmain, "GP");
   grease_pencil.add_empty_drawings(3);
 
   GreasePencilDrawing *drawing = reinterpret_cast<GreasePencilDrawing *>(grease_pencil.drawing(1));
@@ -93,8 +93,7 @@ TEST(greasepencil, remove_drawings)
 
 TEST(greasepencil, remove_drawings_last_unused)
 {
-  GreasePencil *grease_pencil = reinterpret_cast<GreasePencil *>(
-      BKE_id_new_nomain(ID_GP, "Grease Pencil test"));
+  GreasePencil *grease_pencil = BKE_id_new_nomain<GreasePencil>("Grease Pencil test");
 
   /* Regression test for #129900: unused drawing at the end causes crash. */
 
@@ -480,8 +479,7 @@ TEST(greasepencil, remove_frame_fixed_duration_overwrite_end)
 
 TEST(greasepencil, remove_drawings_no_change)
 {
-  GreasePencil *grease_pencil = reinterpret_cast<GreasePencil *>(
-      BKE_id_new_nomain(ID_GP, "Grease Pencil test"));
+  GreasePencil *grease_pencil = BKE_id_new_nomain<GreasePencil>("Grease Pencil test");
 
   grease_pencil->add_empty_drawings(3);
 
@@ -522,8 +520,7 @@ TEST(greasepencil, remove_drawings_no_change)
 
 TEST(greasepencil, remove_drawings_with_no_users)
 {
-  GreasePencil *grease_pencil = reinterpret_cast<GreasePencil *>(
-      BKE_id_new_nomain(ID_GP, "Grease Pencil test"));
+  GreasePencil *grease_pencil = BKE_id_new_nomain<GreasePencil>("Grease Pencil test");
 
   /* Test drawing index correctness: Removing users from drawings should remove those drawings, and
    * all index references should get updated to match the changed drawing indices. */

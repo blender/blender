@@ -14,34 +14,34 @@
 
 namespace blender::deg {
 
-SequenceBackup::SequenceBackup(const Depsgraph * /*depsgraph*/)
+StripBackup::StripBackup(const Depsgraph * /*depsgraph*/)
 {
   reset();
 }
 
-void SequenceBackup::reset()
+void StripBackup::reset()
 {
   scene_sound = nullptr;
   BLI_listbase_clear(&anims);
 }
 
-void SequenceBackup::init_from_sequence(Strip *sequence)
+void StripBackup::init_from_strip(Strip *strip)
 {
-  scene_sound = sequence->scene_sound;
-  anims = sequence->anims;
+  scene_sound = strip->scene_sound;
+  anims = strip->anims;
 
-  sequence->scene_sound = nullptr;
-  BLI_listbase_clear(&sequence->anims);
+  strip->scene_sound = nullptr;
+  BLI_listbase_clear(&strip->anims);
 }
 
-void SequenceBackup::restore_to_sequence(Strip *sequence)
+void StripBackup::restore_to_strip(Strip *strip)
 {
-  sequence->scene_sound = scene_sound;
-  sequence->anims = anims;
+  strip->scene_sound = scene_sound;
+  strip->anims = anims;
   reset();
 }
 
-bool SequenceBackup::isEmpty() const
+bool StripBackup::isEmpty() const
 {
   return (scene_sound == nullptr) && BLI_listbase_is_empty(&anims);
 }

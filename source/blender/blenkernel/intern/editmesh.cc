@@ -185,7 +185,7 @@ Span<float3> BKE_editmesh_vert_coords_when_deformed(
     Depsgraph *depsgraph, BMEditMesh *em, Scene *scene, Object *ob, Array<float3> &r_alloc)
 {
 
-  const Object *object_eval = DEG_get_evaluated_object(depsgraph, ob);
+  const Object *object_eval = DEG_get_evaluated(depsgraph, ob);
   const Mesh *editmesh_eval_final = BKE_object_get_editmesh_eval_final(object_eval);
   const Mesh *mesh_cage = BKE_object_get_editmesh_eval_cage(ob);
 

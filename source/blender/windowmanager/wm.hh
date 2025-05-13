@@ -10,6 +10,8 @@
 
 #include "BLI_compiler_attrs.h"
 
+#include "BLI_math_vector_types.hh"
+
 struct wmOperator;
 struct wmTimer;
 struct wmWindow;
@@ -24,7 +26,10 @@ struct wmPaintCursor {
   void *customdata;
 
   bool (*poll)(bContext *C);
-  void (*draw)(bContext *C, int, int, float, float, void *customdata);
+  void (*draw)(bContext *C,
+               const blender::int2 &xy,
+               const blender::float2 &tilt,
+               void *customdata);
 
   short space_type;
   short region_type;

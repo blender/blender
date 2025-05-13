@@ -33,8 +33,8 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  uiItemR(layout, ptr, "interpolation", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
-  uiItemR(layout, ptr, "extension", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  layout->prop(ptr, "interpolation", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  layout->prop(ptr, "extension", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
@@ -382,7 +382,7 @@ class ImageFieldsFunction : public mf::MultiFunction {
 
 static void node_geo_exec(GeoNodeExecParams params)
 {
-  Image *image = params.get_input<Image *>("Image");
+  Image *image = params.extract_input<Image *>("Image");
   if (image == nullptr) {
     params.set_default_remaining_outputs();
     return;
@@ -395,7 +395,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   image_user.cycl = false;
   image_user.frames = INT_MAX;
   image_user.sfra = 1;
-  image_user.framenr = BKE_image_is_animated(image) ? params.get_input<int>("Frame") : 0;
+  image_user.framenr = BKE_image_is_animated(image) ? params.extract_input<int>("Frame") : 0;
 
   std::unique_ptr<ImageFieldsFunction> image_fn;
   try {

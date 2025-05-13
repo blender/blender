@@ -16,7 +16,7 @@ float3 weight_to_rgb(float t)
 {
   if (t == no_active_weight) {
     /* No weight. */
-    return colorWire.rgb;
+    return theme.colors.wire.rgb;
   }
   if (t > 1.0f || t < 0.0f) {
     /* Error color */
@@ -36,8 +36,9 @@ void main()
     final_color = float4(weight_to_rgb(selection), 1.0f);
   }
   else {
-    float4 use_color = use_grease_pencil ? colorGpencilVertexSelect : colorVertexSelect;
-    final_color = mix(colorWireEdit, use_color, selection);
+    float4 use_color = use_grease_pencil ? theme.colors.gpencil_vertex_select :
+                                           theme.colors.vert_select;
+    final_color = mix(theme.colors.wire_edit, use_color, selection);
   }
 
   view_clipping_distances(world_pos);

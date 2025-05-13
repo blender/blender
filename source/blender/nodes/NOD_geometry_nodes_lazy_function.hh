@@ -207,6 +207,7 @@ struct GeoNodesOperatorData {
   int active_point_index = -1;
   int active_edge_index = -1;
   int active_face_index = -1;
+  int active_layer_index = -1;
 };
 
 struct GeoNodesCallData {

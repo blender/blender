@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'1f4cae0c4623')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'a7d2b7850ef2')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-28 09:32+0000\n"
+"POT-Creation-Date: 2025-05-05 08:47+0000\n"
 "PO-Revision-Date: 2025-04-14 08:41+0000\n"
 "Last-Translator: Marcus Edmark Lindh <marcus.lindh@outlook.com>\n"
 "Language-Team: Swedish <https://translate.blender.org/projects/blender-ui/ui/sv/>\n"
@@ -5193,28 +5193,60 @@ msgid "Mask"
 msgstr "Mask"
 
 
-msgid "Show/Hide"
-msgstr "Visa/dölj"
+msgid "Select More/Less"
+msgstr "Markera mera/mindre"
 
 
-msgid "Names"
-msgstr "Namn"
+msgid "Metaball"
+msgstr "Metaboll"
+
+
+msgid "Light"
+msgstr "Ljus"
+
+
+msgid "Light Probe"
+msgstr "Ljussond"
+
+
+msgid "Add Image"
+msgstr "Lägg till bild"
+
+
+msgid "Relations"
+msgstr "Relationer"
+
+
+msgid "Rigid Body"
+msgstr "Rigid kropp"
 
 
 msgid "Apply"
 msgstr "Applicera"
 
 
+msgid "Quick Effects"
+msgstr "Snabbeffekter"
+
+
+msgid "Show/Hide"
+msgstr "Visa/dölj"
+
+
 msgid "Clean Up"
 msgstr "Städa upp"
 
 
+msgid "Asset"
+msgstr "Tillgång"
+
+
+msgid "Names"
+msgstr "Namn"
+
+
 msgid "Text"
 msgstr "Text"
-
-
-msgid "Metaball"
-msgstr "Metaboll"
 
 
 msgid "Pivot Point"
@@ -5239,38 +5271,6 @@ msgstr "Justera vy"
 
 msgid "Align View to Active"
 msgstr "Justera vy till aktiv"
-
-
-msgid "Select More/Less"
-msgstr "Markera mera/mindre"
-
-
-msgid "Light"
-msgstr "Ljus"
-
-
-msgid "Light Probe"
-msgstr "Ljussond"
-
-
-msgid "Add Image"
-msgstr "Lägg till bild"
-
-
-msgid "Relations"
-msgstr "Relationer"
-
-
-msgid "Rigid Body"
-msgstr "Rigid kropp"
-
-
-msgid "Quick Effects"
-msgstr "Snabbeffekter"
-
-
-msgid "Asset"
-msgstr "Tillgång"
 
 
 msgid "Catalog"
@@ -16471,10 +16471,6 @@ msgstr "Spara som..."
 
 msgid "Don't Save"
 msgstr "Spara inte"
-
-
-msgid "This file was saved by a newer version of Blender (%s)"
-msgstr "Denna fil har sparats av en nyare version av Blender (%s)"
 
 
 msgid "Save changes before closing?"

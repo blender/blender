@@ -146,6 +146,9 @@ static int gpencil_tobject_dist_sort(const void *a, const void *b)
 
 void gpencil_object_cache_sort(Instance *inst)
 {
+  if (inst->is_sorted) {
+    return;
+  }
   /* Sort object by distance to the camera. */
   if (inst->tobjects.first) {
     inst->tobjects.first = gpencil_tobject_sort_fn_r(inst->tobjects.first,
@@ -169,13 +172,16 @@ void gpencil_object_cache_sort(Instance *inst)
     if (inst->tobjects.last != nullptr) {
       inst->tobjects.last->next = inst->tobjects_infront.first;
       inst->tobjects.last = inst->tobjects_infront.last;
+      inst->tobjects_infront.first = inst->tobjects.last = nullptr;
     }
     else {
       /* Only in front objects. */
       inst->tobjects.first = inst->tobjects_infront.first;
       inst->tobjects.last = inst->tobjects_infront.last;
+      inst->tobjects_infront.first = inst->tobjects.last = nullptr;
     }
   }
+  inst->is_sorted = true;
 }
 
 /** \} */

@@ -160,13 +160,13 @@ void uiTemplatePreview(uiLayout *layout,
 
       col = &row->column(true);
       uiLayoutSetScaleX(col, 1.5);
-      uiItemR(col, &material_ptr, "preview_render_type", UI_ITEM_R_EXPAND, "", ICON_NONE);
+      col->prop(&material_ptr, "preview_render_type", UI_ITEM_R_EXPAND, "", ICON_NONE);
 
       /* EEVEE preview file has baked lighting so use_preview_world has no effect,
        * just hide the option until this feature is supported. */
       if (!BKE_scene_uses_blender_eevee(CTX_data_scene(C))) {
         uiItemS(col);
-        uiItemR(col, &material_ptr, "use_preview_world", UI_ITEM_NONE, "", ICON_WORLD);
+        col->prop(&material_ptr, "use_preview_world", UI_ITEM_NONE, "", ICON_WORLD);
       }
     }
 
@@ -259,7 +259,7 @@ void uiTemplatePreview(uiLayout *layout,
       /* Alpha button for texture preview */
       if (*pr_texture != TEX_PR_OTHER) {
         row = &layout->row(false);
-        uiItemR(row, &texture_ptr, "use_preview_alpha", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+        row->prop(&texture_ptr, "use_preview_alpha", UI_ITEM_NONE, std::nullopt, ICON_NONE);
       }
     }
   }

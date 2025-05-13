@@ -344,6 +344,11 @@ bool BKE_viewer_path_elem_equal(const ViewerPathElem *a,
   if (a->type != b->type) {
     return false;
   }
+  if (flag & VIEWER_PATH_EQUAL_FLAG_CONSIDER_UI_NAME) {
+    if (StringRef(a->ui_name) != StringRef(b->ui_name)) {
+      return false;
+    }
+  }
   switch (ViewerPathElemType(a->type)) {
     case VIEWER_PATH_ELEM_TYPE_ID: {
       const auto *a_elem = reinterpret_cast<const IDViewerPathElem *>(a);

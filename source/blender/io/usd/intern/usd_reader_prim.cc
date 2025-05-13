@@ -56,11 +56,10 @@ USDPrimReader::USDPrimReader(const pxr::UsdPrim &prim,
                              const USDImportParams &import_params,
                              const ImportSettings &settings)
     : name_(prim.GetName().GetString()),
-      prim_path_(prim.GetPrimPath()),
       object_(nullptr),
       prim_(prim),
-      import_params_(import_params),
       parent_reader_(nullptr),
+      import_params_(import_params),
       settings_(&settings),
       refcount_(0),
       is_in_instancer_proto_(false)

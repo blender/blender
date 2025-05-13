@@ -4822,7 +4822,7 @@ void CURVE_OT_make_segment(wmOperatorType *ot)
 bool ED_curve_editnurb_select_pick(bContext *C,
                                    const int mval[2],
                                    const int dist_px,
-                                   const SelectPick_Params *params)
+                                   const SelectPick_Params &params)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Nurb *nu;
@@ -4840,13 +4840,13 @@ bool ED_curve_editnurb_select_pick(bContext *C,
 
   bool found = ED_curve_pick_vert_ex(&vc, true, dist_px, &nu, &bezt, &bp, &hand, &basact);
 
-  if (params->sel_op == SEL_OP_SET) {
-    if ((found && params->select_passthrough) &&
+  if (params.sel_op == SEL_OP_SET) {
+    if ((found && params.select_passthrough) &&
         (((bezt ? (&bezt->f1)[hand] : bp->f1) & SELECT) != 0))
     {
       found = false;
     }
-    else if (found || params->deselect_all) {
+    else if (found || params.deselect_all) {
       /* Deselect everything. */
       Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
           vc.scene, vc.view_layer, vc.v3d);
@@ -4866,7 +4866,7 @@ bool ED_curve_editnurb_select_pick(bContext *C,
     ListBase *editnurb = object_editcurve_get(obedit);
     const void *vert = BKE_curve_vert_active_get(cu);
 
-    switch (params->sel_op) {
+    switch (params.sel_op) {
       case SEL_OP_ADD: {
         if (bezt) {
           if (hand == 1) {
@@ -7155,7 +7155,7 @@ static wmOperatorStatus match_texture_space_exec(bContext *C, wmOperator * /*op*
   (void)depsgraph;
 
   Object *object = CTX_data_active_object(C);
-  Object *object_eval = DEG_get_evaluated_object(depsgraph, object);
+  Object *object_eval = DEG_get_evaluated(depsgraph, object);
   Curve *curve = (Curve *)object->data;
   float min[3], max[3], texspace_size[3], texspace_location[3];
   int a;

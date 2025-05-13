@@ -10,10 +10,9 @@
 
 #include "DNA_vec_types.h"
 
+#include "BLI_mutex.hh"
 #include "BLI_set.hh"
 #include "BLI_vector.hh"
-
-#include <mutex>
 
 struct RenderResult;
 
@@ -57,7 +56,7 @@ class TilesHighlight {
   void highlight_tile(const Tile &tile);
   void unhighlight_tile(const Tile &tile);
 
-  mutable std::mutex mutex_;
+  mutable Mutex mutex_;
   Set<Tile> highlighted_tiles_set_;
 
   /* Cached flat list of currently highlighted tiles for a fast access via API. */

@@ -1367,7 +1367,7 @@ void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd,
   calc.invert_vgroup = (smd->shrinkOpts & MOD_SHRINKWRAP_INVERT_VGROUP) != 0;
 
   if (smd->target != nullptr) {
-    Object *ob_target = DEG_get_evaluated_object(ctx->depsgraph, smd->target);
+    Object *ob_target = DEG_get_evaluated(ctx->depsgraph, smd->target);
     calc.target = BKE_modifier_get_evaluated_mesh_from_evaluated_object(ob_target);
 
     /* TODO: there might be several "bugs" with non-uniform scales matrices
@@ -1378,7 +1378,7 @@ void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd,
     /* TODO: smd->keepDist is in global units.. must change to local */
     calc.keepDist = smd->keepDist;
   }
-  calc.aux_target = DEG_get_evaluated_object(ctx->depsgraph, smd->auxTarget);
+  calc.aux_target = DEG_get_evaluated(ctx->depsgraph, smd->auxTarget);
 
   if (mesh != nullptr && smd->shrinkType == MOD_SHRINKWRAP_PROJECT) {
     /* Setup arrays to get vertex positions, normals and deform weights */

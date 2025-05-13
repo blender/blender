@@ -8,7 +8,7 @@ from bpy.app.translations import contexts as i18n_contexts
 from rna_prop_ui import PropertyPanel
 from bpy_extras.node_utils import find_node_input
 
-from .space_properties import PropertiesAnimationMixin
+from bl_ui.space_properties import PropertiesAnimationMixin
 
 
 class MATERIAL_MT_context_menu(Menu):
@@ -21,6 +21,7 @@ class MATERIAL_MT_context_menu(Menu):
         layout.operator("object.material_slot_copy")
         layout.operator("material.paste", icon='PASTEDOWN')
         layout.operator("object.material_slot_remove_unused")
+        layout.operator("object.material_slot_remove_all")
 
 
 class MATERIAL_UL_matslots(UIList):

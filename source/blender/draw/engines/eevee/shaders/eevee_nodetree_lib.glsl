@@ -621,7 +621,7 @@ float2 bsdf_lut(float cos_theta, float roughness, float ior, bool do_multiscatte
 /* Return new shading normal. */
 float3 displacement_bump()
 {
-#  if defined(GPU_FRAGMENT_SHADER) && !defined(MAT_GEOM_CURVES)
+#  if !defined(MAT_GEOM_CURVES)
   /* This is the filter width for automatic displacement + bump mapping, which is fixed.
    * NOTE: keep the same as default bump node filter width. */
   constexpr float bump_filter_width = 0.1f;
@@ -629,8 +629,8 @@ float3 displacement_bump()
   float2 dHd;
   dF_branch(dot(nodetree_displacement(), g_data.N + dF_impl(g_data.N)), bump_filter_width, dHd);
 
-  float3 dPdx = dFdx(g_data.P);
-  float3 dPdy = dFdy(g_data.P);
+  float3 dPdx = gpu_dfdx(g_data.P);
+  float3 dPdy = gpu_dfdy(g_data.P);
 
   /* Get surface tangents from normal. */
   float3 Rx = cross(dPdy, g_data.N);

@@ -17,7 +17,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiLayout *col = &layout->column(true);
-  uiItemR(col, ptr, "integer", UI_ITEM_R_EXPAND, "", ICON_NONE);
+  col->prop(ptr, "integer", UI_ITEM_R_EXPAND, "", ICON_NONE);
 }
 
 static void node_build_multi_function(NodeMultiFunctionBuilder &builder)

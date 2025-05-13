@@ -101,8 +101,8 @@ static void view3d_from_minmax(bContext *C,
   ED_view3d_smooth_view_force_finish(C, v3d, region);
 
   /* SMOOTHVIEW */
-  float new_ofs[3];
-  float new_dist;
+  float ofs_new[3];
+  float dist_new;
 
   sub_v3_v3v3(afm, max, min);
   size = max_fff(afm[0], afm[1], afm[2]);
@@ -131,21 +131,22 @@ static void view3d_from_minmax(bContext *C,
 
     if (do_zoom) {
       Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-      new_dist = ED_view3d_radius_to_dist(
+      dist_new = ED_view3d_radius_to_dist(
           v3d, region, depsgraph, persp, true, (size / 2) * VIEW3D_MARGIN);
       if (rv3d->is_persp) {
-        /* don't zoom closer than the near clipping plane */
-        new_dist = max_ff(new_dist, v3d->clip_start * 1.5f);
+        /* Don't zoom closer than the near clipping plane. */
+        const float dist_min = ED_view3d_dist_soft_min_get(v3d, true);
+        CLAMP_MIN(dist_new, dist_min);
       }
     }
   }
 
-  mid_v3_v3v3(new_ofs, min, max);
-  negate_v3(new_ofs);
+  mid_v3_v3v3(ofs_new, min, max);
+  negate_v3(ofs_new);
 
   V3D_SmoothParams sview = {nullptr};
-  sview.ofs = new_ofs;
-  sview.dist = do_zoom ? &new_dist : nullptr;
+  sview.ofs = ofs_new;
+  sview.dist = do_zoom ? &dist_new : nullptr;
   /* The caller needs to use undo begin/end calls. */
   sview.undo_str = nullptr;
 
@@ -317,8 +318,10 @@ std::optional<blender::Bounds<float3>> view3d_calc_minmax_selected(Depsgraph *de
     {
       const std::optional<blender::Bounds<float3>> bounds = BKE_pose_minmax(ob_eval_iter, true);
       if (bounds) {
-        minmax_v3v3_v3(min, max, bounds->min);
-        minmax_v3v3_v3(min, max, bounds->max);
+        const blender::Bounds<float3> world_bounds = blender::bounds::transform_bounds(
+            ob_eval->object_to_world(), *bounds);
+        minmax_v3v3_v3(min, max, world_bounds.min);
+        minmax_v3v3_v3(min, max, world_bounds.max);
         changed = true;
       }
     }
@@ -386,7 +389,7 @@ bool view3d_calc_point_in_selected_bounds(Depsgraph *depsgraph,
       continue;
     }
     Object *ob = base->object;
-    BLI_assert(!DEG_is_original_id(&ob->id));
+    BLI_assert(!DEG_is_original(ob));
 
     float3 min, max;
     view3d_object_calc_minmax(depsgraph, scene, ob, false, min, max);

@@ -6257,7 +6257,7 @@ static void xdg_output_handle_logical_size(void *data,
   CLOG_INFO(LOG, 2, "logical_size [%d, %d]", width, height);
 
   GWL_Output *output = static_cast<GWL_Output *>(data);
-  if (output->size_logical[0] != 0 && output->size_logical[1] != 0) {
+  if (output->size_native[0] != 0 && output->size_native[1] != 0) {
     /* Original comment from SDL. */
     /* FIXME(@flibit): GNOME has a bug where the logical size does not account for
      * scale, resulting in bogus viewport sizes.
@@ -6265,9 +6265,8 @@ static void xdg_output_handle_logical_size(void *data,
      * Until this is fixed, validate that _some_ kind of scaling is being
      * done (we can't match exactly because fractional scaling can't be
      * detected otherwise), then override if necessary. */
-    if ((output->size_logical[0] == width) &&
-        (output->scale_fractional == (1 * FRACTIONAL_DENOMINATOR)))
-    {
+    int width_native = output->size_native[(output->transform & WL_OUTPUT_TRANSFORM_90) ? 1 : 0];
+    if ((width_native == width) && (output->scale_fractional == (1 * FRACTIONAL_DENOMINATOR))) {
       GHOST_PRINT("xdg_output scale did not match, overriding with wl_output scale\n");
 
 #ifdef USE_GNOME_CONFINE_HACK
@@ -6373,13 +6372,6 @@ static void output_handle_mode(void *data,
   GWL_Output *output = static_cast<GWL_Output *>(data);
   output->size_native[0] = width;
   output->size_native[1] = height;
-
-  /* Don't rotate this yet, `wl-output` coordinates are transformed in
-   * handle_done and `xdg-output` coordinates are pre-transformed. */
-  if (!output->has_size_logical) {
-    output->size_logical[0] = width;
-    output->size_logical[1] = height;
-  }
 }
 
 /**
@@ -6396,7 +6388,7 @@ static void output_handle_done(void *data, wl_output * /*wl_output*/)
 
   GWL_Output *output = static_cast<GWL_Output *>(data);
   int32_t size_native[2] = {UNPACK2(output->size_native)};
-  if (ELEM(output->transform, WL_OUTPUT_TRANSFORM_90, WL_OUTPUT_TRANSFORM_270)) {
+  if (output->transform & WL_OUTPUT_TRANSFORM_90) {
     std::swap(size_native[0], size_native[1]);
   }
 
@@ -8320,7 +8312,7 @@ void GHOST_SystemWayland::getMainDisplayDimensions(uint32_t &width, uint32_t &he
     /* We assume first output as main. */
     const GWL_Output *output = display_->outputs[0];
     int32_t size_native[2] = {UNPACK2(output->size_native)};
-    if (ELEM(output->transform, WL_OUTPUT_TRANSFORM_90, WL_OUTPUT_TRANSFORM_270)) {
+    if (output->transform & WL_OUTPUT_TRANSFORM_90) {
       std::swap(size_native[0], size_native[1]);
     }
     width = uint32_t(size_native[0]);
@@ -8344,7 +8336,7 @@ void GHOST_SystemWayland::getAllDisplayDimensions(uint32_t &width, uint32_t &hei
         xy[0] = output->position_logical[0];
         xy[1] = output->position_logical[1];
       }
-      if (ELEM(output->transform, WL_OUTPUT_TRANSFORM_90, WL_OUTPUT_TRANSFORM_270)) {
+      if (output->transform & WL_OUTPUT_TRANSFORM_90) {
         std::swap(size_native[0], size_native[1]);
       }
       xy_min[0] = std::min(xy_min[0], xy[0]);

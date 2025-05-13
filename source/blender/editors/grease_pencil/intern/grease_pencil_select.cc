@@ -217,7 +217,7 @@ bool selection_update(const ViewContext *vc,
   using namespace blender;
 
   Object *object = (vc->obedit ? vc->obedit : vc->obact);
-  const Object *ob_eval = DEG_get_evaluated_object(vc->depsgraph, object);
+  const Object *ob_eval = DEG_get_evaluated(vc->depsgraph, object);
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
 
   /* Get selection domain from tool settings. */

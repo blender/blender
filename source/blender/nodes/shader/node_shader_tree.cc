@@ -969,6 +969,7 @@ static void ntree_shader_weight_tree_invert(bNodeTree *ntree, bNode *output_node
             case SH_NODE_VOLUME_ABSORPTION:
             case SH_NODE_VOLUME_PRINCIPLED:
             case SH_NODE_VOLUME_SCATTER:
+            case SH_NODE_VOLUME_COEFFICIENTS:
               fromsock = ntree_shader_node_find_input(fromnode, "Weight");
               /* Make "weight" sockets available so that links to it are available as well and are
                * not ignored in other places. */
@@ -1035,6 +1036,7 @@ static bool closure_node_filter(const bNode *node)
     case SH_NODE_VOLUME_ABSORPTION:
     case SH_NODE_VOLUME_PRINCIPLED:
     case SH_NODE_VOLUME_SCATTER:
+    case SH_NODE_VOLUME_COEFFICIENTS:
       return true;
     default:
       return false;

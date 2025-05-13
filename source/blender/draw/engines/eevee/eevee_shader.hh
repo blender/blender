@@ -14,7 +14,9 @@
 #include <array>
 #include <string>
 
+#include "BLI_mutex.hh"
 #include "BLI_string_ref.hh"
+
 #include "DRW_render.hh"
 #include "GPU_material.hh"
 #include "GPU_shader.hh"
@@ -170,7 +172,7 @@ class ShaderModule {
  private:
   std::array<StaticShader, MAX_SHADER_TYPE> shaders_;
   BatchHandle compilation_handle_ = 0;
-  std::mutex mutex_;
+  Mutex mutex_;
 
   class SpecializationsKey {
    private:

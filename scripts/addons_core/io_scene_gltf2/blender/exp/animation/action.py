@@ -698,6 +698,14 @@ def gather_action_animations(obj_uuid: int,
                 extensions=None
             )
 
+            # Hook for user extensions
+            export_user_extensions(
+                'animation_action_hook',
+                export_settings,
+                animation,
+                blender_object,
+                action_data)
+
             link_samplers(animation, export_settings)
             animations.append(animation)
 

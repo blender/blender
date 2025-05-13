@@ -95,7 +95,7 @@ static uiBlock *ui_icon_view_menu_cb(bContext *C, ARegion *region, void *arg_lit
 
 void uiTemplateIcon(uiLayout *layout, int icon_value, float icon_scale)
 {
-  uiBlock *block = uiLayoutAbsoluteBlock(layout);
+  uiBlock *block = layout->absolute_block();
   uiBut *but = uiDefIconBut(block,
                             UI_BTYPE_LABEL,
                             0,
@@ -127,7 +127,7 @@ void uiTemplateIconView(uiLayout *layout,
     return;
   }
 
-  uiBlock *block = uiLayoutAbsoluteBlock(layout);
+  uiBlock *block = layout->absolute_block();
 
   int tot_items;
   bool free_items;

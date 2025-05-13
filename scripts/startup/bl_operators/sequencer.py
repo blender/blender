@@ -16,11 +16,11 @@ from bpy.props import (
 from bpy.app.translations import pgettext_rpt as rpt_
 
 
-def _animated_properties_get(sequence):
+def _animated_properties_get(strip):
     animated_properties = []
-    if hasattr(sequence, "volume"):
+    if hasattr(strip, "volume"):
         animated_properties.append("volume")
-    if hasattr(sequence, "blend_alpha"):
+    if hasattr(strip, "blend_alpha"):
         animated_properties.append("blend_alpha")
     return animated_properties
 
@@ -39,38 +39,38 @@ class SequencerCrossfadeSounds(Operator):
 
     def execute(self, context):
         scene = context.scene
-        seq1 = None
-        seq2 = None
+        strip1 = None
+        strip2 = None
         for strip in scene.sequence_editor.strips_all:
             if strip.select and strip.type == 'SOUND':
-                if seq1 is None:
-                    seq1 = strip
-                elif seq2 is None:
-                    seq2 = strip
+                if strip1 is None:
+                    strip1 = strip
+                elif strip2 is None:
+                    strip2 = strip
                 else:
-                    seq2 = None
+                    strip2 = None
                     break
-        if seq2 is None:
+        if strip2 is None:
             self.report({'ERROR'}, "Select 2 sound strips")
             return {'CANCELLED'}
-        if seq1.frame_final_start > seq2.frame_final_start:
-            seq1, seq2 = seq2, seq1
-        if seq1.frame_final_end > seq2.frame_final_start:
+        if strip1.frame_final_start > strip2.frame_final_start:
+            strip1, strip2 = strip2, strip1
+        if strip1.frame_final_end > strip2.frame_final_start:
             tempcfra = scene.frame_current
-            scene.frame_current = seq2.frame_final_start
-            seq1.keyframe_insert("volume")
-            scene.frame_current = seq1.frame_final_end
-            seq1.volume = 0
-            seq1.keyframe_insert("volume")
-            seq2.keyframe_insert("volume")
-            scene.frame_current = seq2.frame_final_start
-            seq2.volume = 0
-            seq2.keyframe_insert("volume")
+            scene.frame_current = strip2.frame_final_start
+            strip1.keyframe_insert("volume")
+            scene.frame_current = strip1.frame_final_end
+            strip1.volume = 0
+            strip1.keyframe_insert("volume")
+            strip2.keyframe_insert("volume")
+            scene.frame_current = strip2.frame_final_start
+            strip2.volume = 0
+            strip2.keyframe_insert("volume")
             scene.frame_current = tempcfra
             return {'FINISHED'}
-        else:
-            self.report({'ERROR'}, "The selected strips don't overlap")
-            return {'CANCELLED'}
+
+        self.report({'ERROR'}, "The selected strips don't overlap")
+        return {'CANCELLED'}
 
 
 class SequencerSplitMulticam(Operator):
@@ -134,7 +134,7 @@ class SequencerDeinterlaceSelectedMovies(Operator):
 
 
 class SequencerFadesClear(Operator):
-    """Removes fade animation from selected sequences"""
+    """Removes fade animation from selected strips"""
     bl_idname = "sequencer.fades_clear"
     bl_label = "Clear Fades"
     bl_options = {'REGISTER', 'UNDO'}
@@ -158,14 +158,14 @@ class SequencerFadesClear(Operator):
             for curve in fcurves
             if curve.data_path.startswith("sequence_editor.strips_all")
         }
-        for sequence in context.selected_strips:
-            for animated_property in _animated_properties_get(sequence):
-                data_path = sequence.path_from_id() + "." + animated_property
+        for strip in context.selected_strips:
+            for animated_property in _animated_properties_get(strip):
+                data_path = strip.path_from_id() + "." + animated_property
                 curve = fcurve_map.get(data_path)
                 if curve:
                     fcurves.remove(curve)
-                setattr(sequence, animated_property, 1.0)
-            sequence.invalidate_cache('COMPOSITE')
+                setattr(strip, animated_property, 1.0)
+            strip.invalidate_cache('COMPOSITE')
 
         return {'FINISHED'}
 
@@ -188,9 +188,9 @@ class SequencerFadesAdd(Operator):
             ('IN', "Fade In", "Fade in selected strips"),
             ('OUT', "Fade Out", "Fade out selected strips"),
             ('CURSOR_FROM', "From Current Frame",
-             "Fade from the time cursor to the end of overlapping sequences"),
+             "Fade from the time cursor to the end of overlapping strips"),
             ('CURSOR_TO', "To Current Frame",
-             "Fade from the start of sequences under the time cursor to the current frame"),
+             "Fade from the start of strips under the time cursor to the current frame"),
         ),
         name="Fade Type",
         description="Fade in, out, both in and out, to, or from the current frame. Default is both in and out",
@@ -214,81 +214,81 @@ class SequencerFadesAdd(Operator):
             action = bpy.data.actions.new(scene.name + "Action")
             scene.animation_data.action = action
 
-        sequences = context.selected_strips
+        strips = context.selected_strips
 
-        if not sequences:
-            self.report({'ERROR'}, "No sequences selected")
+        if not strips:
+            self.report({'ERROR'}, "No strips selected")
             return {'CANCELLED'}
 
         if self.type in {'CURSOR_TO', 'CURSOR_FROM'}:
-            sequences = [
-                strip for strip in sequences
+            strips = [
+                strip for strip in strips
                 if strip.frame_final_start < scene.frame_current < strip.frame_final_end
             ]
-            if not sequences:
+            if not strips:
                 self.report({'ERROR'}, "Current frame not within strip framerange")
                 return {'CANCELLED'}
 
-        max_duration = min(sequences, key=lambda strip: strip.frame_final_duration).frame_final_duration
+        max_duration = min(strips, key=lambda strip: strip.frame_final_duration).frame_final_duration
         max_duration = floor(max_duration / 2.0) if self.type == 'IN_OUT' else max_duration
 
-        faded_sequences = []
-        for sequence in sequences:
-            duration = self.calculate_fade_duration(context, sequence)
+        faded_strips = []
+        for strip in strips:
+            duration = self.calculate_fade_duration(context, strip)
             duration = min(duration, max_duration)
-            if not self.is_long_enough(sequence, duration):
+            if not self.is_long_enough(strip, duration):
                 continue
 
-            for animated_property in _animated_properties_get(sequence):
-                fade_fcurve = self.fade_find_or_create_fcurve(context, sequence, animated_property)
-                fades = self.calculate_fades(sequence, fade_fcurve, animated_property, duration)
+            for animated_property in _animated_properties_get(strip):
+                fade_fcurve = self.fade_find_or_create_fcurve(context, strip, animated_property)
+                fades = self.calculate_fades(strip, fade_fcurve, animated_property, duration)
                 self.fade_animation_clear(fade_fcurve, fades)
                 self.fade_animation_create(fade_fcurve, fades)
-            faded_sequences.append(sequence)
-            sequence.invalidate_cache('COMPOSITE')
+            faded_strips.append(strip)
+            strip.invalidate_cache('COMPOSITE')
 
-        sequence_string = "sequence" if len(faded_sequences) == 1 else "sequences"
-        self.report({'INFO'}, rpt_("Added fade animation to {:d} {:s}").format(len(faded_sequences), sequence_string))
+        strip_string = "strip" if len(faded_strips) == 1 else "strips"
+        self.report({'INFO'}, rpt_("Added fade animation to {:d} {:s}").format(len(faded_strips), strip_string))
         return {'FINISHED'}
 
-    def calculate_fade_duration(self, context, sequence):
+    def calculate_fade_duration(self, context, strip):
         scene = context.scene
         frame_current = scene.frame_current
         duration = 0.0
         if self.type == 'CURSOR_TO':
-            duration = abs(frame_current - sequence.frame_final_start)
+            duration = abs(frame_current - strip.frame_final_start)
         elif self.type == 'CURSOR_FROM':
-            duration = abs(sequence.frame_final_end - frame_current)
+            duration = abs(strip.frame_final_end - frame_current)
         else:
             duration = calculate_duration_frames(scene, self.duration_seconds)
         return max(1, duration)
 
-    def is_long_enough(self, sequence, duration=0.0):
+    def is_long_enough(self, strip, duration=0.0):
         minimum_duration = duration * 2 if self.type == 'IN_OUT' else duration
-        return sequence.frame_final_duration >= minimum_duration
+        return strip.frame_final_duration >= minimum_duration
 
-    def calculate_fades(self, sequence, fade_fcurve, animated_property, duration):
+    def calculate_fades(self, strip, fade_fcurve, animated_property, duration):
         """
         Returns a list of Fade objects
         """
         fades = []
         if self.type in {'IN', 'IN_OUT', 'CURSOR_TO'}:
-            fade = Fade(sequence, fade_fcurve, 'IN', animated_property, duration)
+            fade = Fade(strip, fade_fcurve, 'IN', animated_property, duration)
             fades.append(fade)
         if self.type in {'OUT', 'IN_OUT', 'CURSOR_FROM'}:
-            fade = Fade(sequence, fade_fcurve, 'OUT', animated_property, duration)
+            fade = Fade(strip, fade_fcurve, 'OUT', animated_property, duration)
             fades.append(fade)
         return fades
 
-    def fade_find_or_create_fcurve(self, context, sequence, animated_property):
+    def fade_find_or_create_fcurve(self, context, strip, animated_property):
         """
         Iterates over all the fcurves until it finds an fcurve with a data path
-        that corresponds to the sequence.
+        that corresponds to the strip.
         Returns the matching FCurve or creates a new one if the function can't find a match.
         """
         scene = context.scene
         action = scene.animation_data.action
-        searched_data_path = sequence.path_from_id(animated_property)
+        searched_data_path = strip.path_from_id(animated_property)
         return action.fcurve_ensure_for_datablock(scene, searched_data_path)
 
     def fade_animation_clear(self, fade_fcurve, fades):
@@ -333,35 +333,35 @@ class Fade:
         "end",
     )
 
-    def __init__(self, sequence, fade_fcurve, type, animated_property, duration):
+    def __init__(self, strip, fade_fcurve, ty, animated_property, duration):
         from mathutils import Vector
-        self.type = type
+        self.type = ty
         self.animated_property = animated_property
         self.duration = duration
-        self.max_value = self.calculate_max_value(sequence, fade_fcurve)
+        self.max_value = self.calculate_max_value(strip, fade_fcurve)
 
-        if type == 'IN':
-            self.start = Vector((sequence.frame_final_start, 0.0))
-            self.end = Vector((sequence.frame_final_start + self.duration, self.max_value))
-        elif type == 'OUT':
-            self.start = Vector((sequence.frame_final_end - self.duration, self.max_value))
-            self.end = Vector((sequence.frame_final_end, 0.0))
+        if ty == 'IN':
+            self.start = Vector((strip.frame_final_start, 0.0))
+            self.end = Vector((strip.frame_final_start + self.duration, self.max_value))
+        elif ty == 'OUT':
+            self.start = Vector((strip.frame_final_end - self.duration, self.max_value))
+            self.end = Vector((strip.frame_final_end, 0.0))
 
-    def calculate_max_value(self, sequence, fade_fcurve):
+    def calculate_max_value(self, strip, fade_fcurve):
         """
-        Returns the maximum Y coordinate the fade animation should use for a given sequence
-        Uses either the sequence's value for the animated property, or the next keyframe after the fade
+        Returns the maximum Y coordinate the fade animation should use for a given strip
+        Uses either the strip's value for the animated property, or the next keyframe after the fade
         """
         max_value = 0.0
 
         if not fade_fcurve.keyframe_points:
-            max_value = getattr(sequence, self.animated_property, 1.0)
+            max_value = getattr(strip, self.animated_property, 1.0)
         else:
             if self.type == 'IN':
-                fade_end = sequence.frame_final_start + self.duration
+                fade_end = strip.frame_final_start + self.duration
                 keyframes = (k for k in fade_fcurve.keyframe_points if k.co[0] >= fade_end)
             if self.type == 'OUT':
-                fade_start = sequence.frame_final_end - self.duration
+                fade_start = strip.frame_final_end - self.duration
                 keyframes = (k for k in reversed(fade_fcurve.keyframe_points) if k.co[0] <= fade_start)
             try:
                 max_value = next(keyframes).co[1]

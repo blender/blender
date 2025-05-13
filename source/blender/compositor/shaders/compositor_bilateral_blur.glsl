@@ -18,7 +18,7 @@ void main()
   for (int y = -radius; y <= radius; y++) {
     for (int x = -radius; x <= radius; x++) {
       float4 determinator = texture_load(determinator_tx, texel + int2(x, y));
-      float difference = dot(abs(center_determinator - determinator).rgb, float3(1.0f));
+      float difference = dot(abs(center_determinator - determinator).rgb, float3(1.0f)) / 3.0f;
 
       if (difference < threshold) {
         accumulated_weight += 1.0f;

@@ -1,0 +1,192 @@
+#usda 1.0
+(
+    defaultPrim = "root"
+    doc = "Cubic Bezier BasisCurves"
+    metersPerUnit = .01
+    upAxis = "Z"
+)
+
+def Xform "root" (
+)
+{
+    def Xform "bezier_nonperiodic"
+    {
+        float3 xformOp:translate = (0, 0, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+
+        def Xform "single"
+        {
+            float3 xformOp:translate = (0, 0, 0)
+            uniform token[] xformOpOrder = ["xformOp:translate"]
+
+            def BasisCurves "bezier_nonperiodic_single_constant"
+            {
+                float3 xformOp:translate = (0, 0, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+
+                uniform token basis = "bezier"
+                int[] curveVertexCounts = [4]
+                point3f[] points = [(-0.5, 0, 0), (-0.5, 0, 0.2760626), (-0.2760626, 0, 0.5), (0, 0, 0.5)]
+                uniform token type = "cubic"
+                float[] widths = [.2] (interpolation = "constant")
+            }
+            def BasisCurves "bezier_nonperiodic_single_varying"
+            {
+                float3 xformOp:translate = (0, 0, 1.25)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+
+                uniform token basis = "bezier"
+                int[] curveVertexCounts = [4]
+                point3f[] points = [(-0.5, 0, 0), (-0.5, 0, 0.2760626), (-0.2760626, 0, 0.5), (0, 0, 0.5)]
+                uniform token type = "cubic"
+                float[] widths = [.2, .2] (interpolation = "varying")
+            }
+            def BasisCurves "bezier_nonperiodic_single_vertex"
+            {
+                float3 xformOp:translate = (0, 0, 2.5)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+
+                uniform token basis = "bezier"
+                int[] curveVertexCounts = [4]
+                point3f[] points = [(-0.5, 0, 0), (-0.5, 0, 0.2760626), (-0.2760626, 0, 0.5), (0, 0, 0.5)]
+                uniform token type = "cubic"
+                float[] widths = [.2, .3, .3, .2] (interpolation = "vertex")
+            }
+        }
+
+        def Xform "multiple"
+        {
+            float3 xformOp:translate = (2, 0, 0)
+            uniform token[] xformOpOrder = ["xformOp:translate"]
+
+            def BasisCurves "bezier_nonperiodic_multiple_constant"
+            {
+                float3 xformOp:translate = (0, 0, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+
+                uniform token basis = "bezier"
+                int[] curveVertexCounts = [4, 7, 10, 13]
+                point3f[] points = [(-0.5, 0, 0), (-0.5, 0, 0.2760626), (-0.2760626, 0, 0.5), (0, 0, 0.5),    (1, 0, 0), (1, 0, 0.2760626), (1.2678413, 0, 0.6493761), (1.5, 0, 0.5), (2.1151066, 0, 0.10422659), (2.1151063, 0, -0.10422668), (1.5, 0, -0.5),    (2.5, 0, 0), (2.5, 0, 0.2760626), (2.7239375, 0, 0.5), (3, 0, 0.5), (3.2760625, 0, 0.5), (3.5, 0, 0.2760626), (3.5, 0, 0), (3.5, 0, -0.2760626), (3.2760625, 0, -0.5), (3, 0, -0.5),    (4, 0, 0), (4, 0, 0.2760626), (4.244857, 0, 0.60541534), (4.5, 0, 0.5), (4.6800904, 0, 0.4255937), (4.363113, 0, 0.13868104), (4.500897, 0, 0.0008971393), (4.638681, 0, -0.1368868), (4.925594, 0, 0.18009032), (5, 0, 0), (5.1054153, 4.8830998e-8, -0.25514346), (4.7760625, 8.146034e-8, -0.5), (4.5, 0, -0.5)]
+                uniform token type = "cubic"
+                float[] widths = [.2] (interpolation = "constant")
+            }
+            def BasisCurves "bezier_nonperiodic_multiple_varying"
+            {
+                float3 xformOp:translate = (0, 0, 1.25)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+
+                uniform token basis = "bezier"
+                int[] curveVertexCounts = [4, 7, 10, 13]
+                point3f[] points = [(-0.5, 0, 0), (-0.5, 0, 0.2760626), (-0.2760626, 0, 0.5), (0, 0, 0.5),    (1, 0, 0), (1, 0, 0.2760626), (1.2678413, 0, 0.6493761), (1.5, 0, 0.5), (2.1151066, 0, 0.10422659), (2.1151063, 0, -0.10422668), (1.5, 0, -0.5),    (2.5, 0, 0), (2.5, 0, 0.2760626), (2.7239375, 0, 0.5), (3, 0, 0.5), (3.2760625, 0, 0.5), (3.5, 0, 0.2760626), (3.5, 0, 0), (3.5, 0, -0.2760626), (3.2760625, 0, -0.5), (3, 0, -0.5),    (4, 0, 0), (4, 0, 0.2760626), (4.244857, 0, 0.60541534), (4.5, 0, 0.5), (4.6800904, 0, 0.4255937), (4.363113, 0, 0.13868104), (4.500897, 0, 0.0008971393), (4.638681, 0, -0.1368868), (4.925594, 0, 0.18009032), (5, 0, 0), (5.1054153, 4.8830998e-8, -0.25514346), (4.7760625, 8.146034e-8, -0.5), (4.5, 0, -0.5)]
+                uniform token type = "cubic"
+                float[] widths = [.2, .2,    .2, .35, .2,    .2, .35, .35, .2,    .2, .35, .15, .35, .2] (interpolation = "varying")
+            }
+            def BasisCurves "bezier_nonperiodic_multiple_vertex"
+            {
+                float3 xformOp:translate = (0, 0, 2.5)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+
+                uniform token basis = "bezier"
+                int[] curveVertexCounts = [4, 7, 10, 13]
+                point3f[] points = [(-0.5, 0, 0), (-0.5, 0, 0.2760626), (-0.2760626, 0, 0.5), (0, 0, 0.5),    (1, 0, 0), (1, 0, 0.2760626), (1.2678413, 0, 0.6493761), (1.5, 0, 0.5), (2.1151066, 0, 0.10422659), (2.1151063, 0, -0.10422668), (1.5, 0, -0.5),    (2.5, 0, 0), (2.5, 0, 0.2760626), (2.7239375, 0, 0.5), (3, 0, 0.5), (3.2760625, 0, 0.5), (3.5, 0, 0.2760626), (3.5, 0, 0), (3.5, 0, -0.2760626), (3.2760625, 0, -0.5), (3, 0, -0.5),    (4, 0, 0), (4, 0, 0.2760626), (4.244857, 0, 0.60541534), (4.5, 0, 0.5), (4.6800904, 0, 0.4255937), (4.363113, 0, 0.13868104), (4.500897, 0, 0.0008971393), (4.638681, 0, -0.1368868), (4.925594, 0, 0.18009032), (5, 0, 0), (5.1054153, 4.8830998e-8, -0.25514346), (4.7760625, 8.146034e-8, -0.5), (4.5, 0, -0.5)]
+                uniform token type = "cubic"
+                float[] widths = [.2, .3, .3, .2,    .2, .3, .3, .35, .3, .3, .2,    .2, .3, .3, .35, .4, .4, .35, .3, .3, .2,    .2, .3, .3, .35, .2, .2, .15, .2, .2, .35, .3, .3, .2] (interpolation = "vertex")
+            }
+        }
+    }
+
+    def Xform "bezier_periodic"
+    {
+        float3 xformOp:translate = (0, 0, 4.25)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+
+        def Xform "single"
+        {
+            float3 xformOp:translate = (0, 0, 0)
+            uniform token[] xformOpOrder = ["xformOp:translate"]
+
+            def BasisCurves "bezier_periodic_single_constant"
+            {
+                float3 xformOp:translate = (0, 0, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+
+                uniform token basis = "bezier"
+                int[] curveVertexCounts = [6]
+                point3f[] points = [(-0.5, 0, 0), (-0.5, 0, 0.2760626), (-0.2760626, 0, 0.5), (0, 0, 0.5), (1.2415466, 0, 0.5), (-0.5, 0, -1.2415466)]
+                uniform token type = "cubic"
+                float[] widths = [.2] (interpolation = "constant")
+                uniform token wrap = "periodic"
+            }
+            def BasisCurves "bezier_periodic_single_varying"
+            {
+                float3 xformOp:translate = (0, 0, 1.25)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+
+                uniform token basis = "bezier"
+                int[] curveVertexCounts = [6]
+                point3f[] points = [(-0.5, 0, 0), (-0.5, 0, 0.2760626), (-0.2760626, 0, 0.5), (0, 0, 0.5), (1.2415466, 0, 0.5), (-0.5, 0, -1.2415466)]
+                uniform token type = "cubic"
+                float[] widths = [.2, .2] (interpolation = "varying")
+                uniform token wrap = "periodic"
+            }
+            def BasisCurves "bezier_periodic_single_vertex"
+            {
+                float3 xformOp:translate = (0, 0, 2.5)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+
+                uniform token basis = "bezier"
+                int[] curveVertexCounts = [6]
+                point3f[] points = [(-0.5, 0, 0), (-0.5, 0, 0.2760626), (-0.2760626, 0, 0.5), (0, 0, 0.5), (1.2415466, 0, 0.5), (-0.5, 0, -1.2415466)]
+                uniform token type = "cubic"
+                float[] widths = [.2, .05, .05, .2, .05, .05] (interpolation = "vertex")
+                uniform token wrap = "periodic"
+            }
+        }
+
+        def Xform "multiple"
+        {
+            float3 xformOp:translate = (2, 0, 0)
+            uniform token[] xformOpOrder = ["xformOp:translate"]
+
+            def BasisCurves "bezier_periodic_multiple_constant"
+            {
+                float3 xformOp:translate = (0, 0, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+
+                uniform token basis = "bezier"
+                int[] curveVertexCounts = [6, 9, 12, 15]
+                point3f[] points = [(-0.5, 0, 0), (-0.5, 0, 0.2760626), (-0.2760626, 0, 0.5), (0, 0, 0.5), (1.2415466, 0, 0.5), (-0.5, 0, -1.2415466),    (1, 0, 0), (1, 0, 0.2760626), (1.2678413, 0, 0.6493761), (1.5, 0, 0.5), (2.1151066, 0, 0.10422659), (2.1151063, 0, -0.10422668), (1.5, 0, -0.5), (1.2678419, 0, -0.64937574), (1, 0, -0.2760626),    (2.5, 0, 0), (2.5, 0, 0.2760626), (2.7239375, 0, 0.5), (3, 0, 0.5), (3.2760625, 0, 0.5), (3.5, 0, 0.2760626), (3.5, 0, 0), (3.5, 0, -0.2760626), (3.2760625, 0, -0.5), (3, 0, -0.5), (2.7239375, 0, -0.5), (2.5, 0, -0.2760626),    (4, 0, 0), (4, 0, 0.2760626), (4.244857, 0, 0.60541534), (4.5, 0, 0.5), (4.6800904, 0, 0.4255937), (4.363113, 0, 0.13868104), (4.500897, 0, 0.0008971393), (4.638681, 0, -0.1368868), (4.925594, 0, 0.18009032), (5, 0, 0), (5.1054153, 4.8830998e-8, -0.25514346), (4.7760625, 8.146034e-8, -0.5), (4.5, 0, -0.5), (4.2239375, 0, -0.5), (4, 0, -0.2760626)]
+                uniform token type = "cubic"
+                float[] widths = [.2] (interpolation = "constant")
+                uniform token wrap = "periodic"
+            }
+
+            def BasisCurves "bezier_periodic_multiple_varying"
+            {
+                float3 xformOp:translate = (0, 0, 1.25)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+
+                uniform token basis = "bezier"
+                int[] curveVertexCounts = [6, 9, 12, 15]
+                point3f[] points = [(-0.5, 0, 0), (-0.5, 0, 0.2760626), (-0.2760626, 0, 0.5), (0, 0, 0.5), (1.2415466, 0, 0.5), (-0.5, 0, -1.2415466),    (1, 0, 0), (1, 0, 0.2760626), (1.2678413, 0, 0.6493761), (1.5, 0, 0.5), (2.1151066, 0, 0.10422659), (2.1151063, 0, -0.10422668), (1.5, 0, -0.5), (1.2678419, 0, -0.64937574), (1, 0, -0.2760626),    (2.5, 0, 0), (2.5, 0, 0.2760626), (2.7239375, 0, 0.5), (3, 0, 0.5), (3.2760625, 0, 0.5), (3.5, 0, 0.2760626), (3.5, 0, 0), (3.5, 0, -0.2760626), (3.2760625, 0, -0.5), (3, 0, -0.5), (2.7239375, 0, -0.5), (2.5, 0, -0.2760626),    (4, 0, 0), (4, 0, 0.2760626), (4.244857, 0, 0.60541534), (4.5, 0, 0.5), (4.6800904, 0, 0.4255937), (4.363113, 0, 0.13868104), (4.500897, 0, 0.0008971393), (4.638681, 0, -0.1368868), (4.925594, 0, 0.18009032), (5, 0, 0), (5.1054153, 4.8830998e-8, -0.25514346), (4.7760625, 8.146034e-8, -0.5), (4.5, 0, -0.5), (4.2239375, 0, -0.5), (4, 0, -0.2760626)]
+                uniform token type = "cubic"
+                float[] widths = [.2, .2,    .2, .35, .2,    .2, .35, .35, .2,    .2, .35, .15, .35, .2] (interpolation = "varying")
+                uniform token wrap = "periodic"
+            }
+
+            def BasisCurves "bezier_periodic_multiple_vertex"
+            {
+                float3 xformOp:translate = (0, 0, 2.5)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+
+                uniform token basis = "bezier"
+                int[] curveVertexCounts = [6, 9, 12, 15]
+                point3f[] points = [(-0.5, 0, 0), (-0.5, 0, 0.2760626), (-0.2760626, 0, 0.5), (0, 0, 0.5), (1.2415466, 0, 0.5), (-0.5, 0, -1.2415466),    (1, 0, 0), (1, 0, 0.2760626), (1.2678413, 0, 0.6493761), (1.5, 0, 0.5), (2.1151066, 0, 0.10422659), (2.1151063, 0, -0.10422668), (1.5, 0, -0.5), (1.2678419, 0, -0.64937574), (1, 0, -0.2760626),    (2.5, 0, 0), (2.5, 0, 0.2760626), (2.7239375, 0, 0.5), (3, 0, 0.5), (3.2760625, 0, 0.5), (3.5, 0, 0.2760626), (3.5, 0, 0), (3.5, 0, -0.2760626), (3.2760625, 0, -0.5), (3, 0, -0.5), (2.7239375, 0, -0.5), (2.5, 0, -0.2760626),    (4, 0, 0), (4, 0, 0.2760626), (4.244857, 0, 0.60541534), (4.5, 0, 0.5), (4.6800904, 0, 0.4255937), (4.363113, 0, 0.13868104), (4.500897, 0, 0.0008971393), (4.638681, 0, -0.1368868), (4.925594, 0, 0.18009032), (5, 0, 0), (5.1054153, 4.8830998e-8, -0.25514346), (4.7760625, 8.146034e-8, -0.5), (4.5, 0, -0.5), (4.2239375, 0, -0.5), (4, 0, -0.2760626)]
+                uniform token type = "cubic"
+                float[] widths = [.2, .1, .1, .3, .1, .1,    .2, .1, .1, .1, .3, .3, .1, .1, .1,    .2, .1, .1, .1, .1, .3, .3, .3, .1, .1, .1, .1,    .2, .1, .1, .1, .1, .1, .3, .3, .3, .3, .1, .1, .1, .1, .1] (interpolation = "vertex")
+                uniform token wrap = "periodic"
+            }
+        }
+    }
+}
+

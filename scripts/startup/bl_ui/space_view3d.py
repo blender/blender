@@ -1212,6 +1212,7 @@ class VIEW3D_MT_editor_menus(Menu):
             elif mode_string == 'EDIT_GREASE_PENCIL':
                 layout.menu("VIEW3D_MT_edit_greasepencil_point")
                 layout.menu("VIEW3D_MT_edit_greasepencil_stroke")
+                layout.template_node_operator_asset_root_items()
 
         elif obj:
             if mode_string not in {'PAINT_TEXTURE', 'SCULPT_CURVES', 'SCULPT_GREASE_PENCIL', 'VERTEX_GREASE_PENCIL'}:
@@ -1236,6 +1237,7 @@ class VIEW3D_MT_editor_menus(Menu):
                 )
                 if is_selection_mask:
                     layout.menu("VIEW3D_MT_select_edit_grease_pencil")
+                layout.template_node_operator_asset_root_items()
             else:
                 layout.template_node_operator_asset_root_items()
 
@@ -2225,6 +2227,8 @@ class VIEW3D_MT_select_edit_grease_pencil(Menu):
         props.amount_start = 0
         props.amount_end = 1
 
+        layout.template_node_operator_asset_menu_items(catalog_path=self.bl_label)
+
 
 class VIEW3D_MT_paint_grease_pencil(Menu):
     bl_label = "Draw"
@@ -2666,7 +2670,7 @@ class VIEW3D_MT_add(Menu):
         layout.menu("VIEW3D_MT_surface_add", icon='OUTLINER_OB_SURFACE')
         layout.menu("VIEW3D_MT_metaball_add", text="Metaball", icon='OUTLINER_OB_META')
         layout.operator("object.text_add", text="Text", icon='OUTLINER_OB_FONT')
-        layout.operator("object.pointcloud_add", text="Point Cloud", icon='OUTLINER_OB_POINTCLOUD')
+        layout.operator("object.pointcloud_random_add", text="Point Cloud", icon='OUTLINER_OB_POINTCLOUD')
         layout.menu("VIEW3D_MT_volume_add", text="Volume", text_ctxt=i18n_contexts.id_id, icon='OUTLINER_OB_VOLUME')
         layout.menu("VIEW3D_MT_grease_pencil_add", text="Grease Pencil", icon='OUTLINER_OB_GREASEPENCIL')
 
@@ -3347,6 +3351,7 @@ class VIEW3D_MT_object_cleanup(Menu):
         layout.separator()
 
         layout.operator("object.material_slot_remove_unused", text="Remove Unused Material Slots")
+        layout.operator("object.material_slot_remove_all", text="Remove All Materials")
 
 
 class VIEW3D_MT_object_asset(Menu):
@@ -3877,16 +3882,16 @@ class VIEW3D_MT_mask(Menu):
 
         layout.separator()
 
-        props = layout.operator("mesh.paint_mask_extract", text="Mask Extract")
+        props = layout.operator("sculpt.paint_mask_extract", text="Mask Extract")
 
         layout.separator()
 
-        props = layout.operator("mesh.paint_mask_slice", text="Mask Slice")
+        props = layout.operator("sculpt.paint_mask_slice", text="Mask Slice")
         props.fill_holes = False
         props.new_object = False
-        props = layout.operator("mesh.paint_mask_slice", text="Mask Slice and Fill Holes")
+        props = layout.operator("sculpt.paint_mask_slice", text="Mask Slice and Fill Holes")
         props.new_object = False
-        props = layout.operator("mesh.paint_mask_slice", text="Mask Slice to New Object")
+        props = layout.operator("sculpt.paint_mask_slice", text="Mask Slice to New Object")
 
         layout.separator()
 
@@ -3955,7 +3960,7 @@ class VIEW3D_MT_face_sets(Menu):
 
         layout.separator()
 
-        props = layout.operator("mesh.face_set_extract", text="Extract Face Set")
+        props = layout.operator("sculpt.face_set_extract", text="Extract Face Set")
 
         layout.separator()
 
@@ -5777,6 +5782,8 @@ class VIEW3D_MT_edit_greasepencil(Menu):
 
         layout.menu("VIEW3D_MT_edit_greasepencil_delete")
 
+        layout.template_node_operator_asset_menu_items(catalog_path=self.bl_label)
+
 
 class VIEW3D_MT_edit_greasepencil_stroke(Menu):
     bl_label = "Stroke"
@@ -5825,6 +5832,8 @@ class VIEW3D_MT_edit_greasepencil_stroke(Menu):
 
         layout.operator("grease_pencil.reset_uvs")
 
+        layout.template_node_operator_asset_menu_items(catalog_path=self.bl_label)
+
 
 class VIEW3D_MT_edit_greasepencil_point(Menu):
     bl_label = "Point"
@@ -5845,6 +5854,8 @@ class VIEW3D_MT_edit_greasepencil_point(Menu):
         layout.separator()
 
         layout.operator_menu_enum("grease_pencil.set_handle_type", property="type")
+
+        layout.template_node_operator_asset_menu_items(catalog_path=self.bl_label)
 
 
 class VIEW3D_MT_edit_curves_add(Menu):
@@ -6492,11 +6503,6 @@ class VIEW3D_PT_object_type_visibility(Panel):
         for attr, attr_name, attr_icon in attr_object_types:
             if attr is None:
                 col.separator()
-                continue
-
-            if attr == "curves" and not hasattr(bpy.data, "hair_curves"):
-                continue
-            elif attr == "pointcloud" and not hasattr(bpy.data, "pointclouds"):
                 continue
 
             attr_v = "show_object_viewport_" + attr
@@ -7910,7 +7916,12 @@ class VIEW3D_PT_overlay_grease_pencil_options(Panel):
             translate=False
         )
 
-        layout.prop(overlay, "use_gpencil_onion_skin", text="Onion Skin")
+        split = layout.split()
+        col = split.column()
+        col.prop(overlay, "use_gpencil_onion_skin", text="Onion Skin")
+        col = split.column()
+        col.active = overlay.use_gpencil_onion_skin
+        col.prop(overlay, "use_gpencil_onion_skin_active_object", text="Active Object Only")
 
         col = layout.column()
         row = col.row()

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'1f4cae0c4623')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'a7d2b7850ef2')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-28 09:32+0000\n"
+"POT-Creation-Date: 2025-05-05 08:47+0000\n"
 "PO-Revision-Date: 2025-04-14 08:19+0000\n"
 "Last-Translator: soheil ali-pasha <sapachannel.ir@gmail.com>\n"
 "Language-Team: Persian <https://translate.blender.org/projects/blender-ui/ui/fa/>\n"
@@ -2953,8 +2953,20 @@ msgid "Mix"
 msgstr "ﻁﻮﻠﺨﻣ"
 
 
+msgid "Add Image"
+msgstr "ﺮﯾﻮﺼﺗ ﻥﺩﺮﮐ‌ﻪﻓﺎﺿﺍ"
+
+
+msgid "Relations"
+msgstr "ﻂﺑﺍﻭﺭ"
+
+
 msgid "Apply"
 msgstr "ﻝﺎﻤﻋﺍ"
+
+
+msgid "Convert"
+msgstr "ﻞﯾﺪﺒﺗ"
 
 
 msgid "Text"
@@ -2967,18 +2979,6 @@ msgstr "ﺶﺧﺮﭼ ﻪﻄﻘﻧ"
 
 msgid "Mirror"
 msgstr "ﻪﻨﯾﺁ"
-
-
-msgid "Add Image"
-msgstr "ﺮﯾﻮﺼﺗ ﻥﺩﺮﮐ‌ﻪﻓﺎﺿﺍ"
-
-
-msgid "Relations"
-msgstr "ﻂﺑﺍﻭﺭ"
-
-
-msgid "Convert"
-msgstr "ﻞﯾﺪﺒﺗ"
 
 
 msgid "Key"
@@ -4731,6 +4731,10 @@ msgid "Not Set"
 msgstr "ﻩﺪﺸﻧ ﺺﺨﺸﻣ"
 
 
+msgid "Auto Normalize"
+msgstr "ﺭﺎﮐﺩﻮﺧ ﯼﺯﺎﺳ ﯼﺩﺎﻋ"
+
+
 msgctxt "Operator"
 msgid "Search..."
 msgstr "...ﻮﺠﺘﺴﺟ"
@@ -4853,10 +4857,6 @@ msgstr "ﺎﻫ ﻦﯿﭼ"
 
 msgid "Seams"
 msgstr "ﺎﻫ ﺯﺭﺩ"
-
-
-msgid "Auto Normalize"
-msgstr "ﺭﺎﮐﺩﻮﺧ ﯼﺯﺎﺳ ﯼﺩﺎﻋ"
 
 
 msgid "Multi-Paint"

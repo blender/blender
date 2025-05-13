@@ -35,19 +35,20 @@ static void vertex_buffer_fetch_mode(ColorType color)
   GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   GPU_vertformat_attr_add(&format, "color", comp_type, 4, fetch_mode);
 
-  VertBuf *vbo = GPU_vertbuf_create_with_format(format);
-  GPU_vertbuf_data_alloc(*vbo, 4);
-
   struct Vert {
     float2 pos;
     ColorType color;
   };
-  Vert data[4] = {
-      {float2(-1.0, -1.0), color},
-      {float2(3.0, -1.0), color},
-      {float2(-1.0, 3.0), color},
+  std::array<Vert, 3> data = {
+      Vert{float2(-1.0, -1.0), color},
+      Vert{float2(3.0, -1.0), color},
+      Vert{float2(-1.0, 3.0), color},
   };
-  for (int i : IndexRange(4)) {
+
+  VertBuf *vbo = GPU_vertbuf_create_with_format(format);
+  GPU_vertbuf_data_alloc(*vbo, data.size());
+
+  for (int i : IndexRange(data.size())) {
     GPU_vertbuf_vert_set(vbo, i, &data[i]);
   }
 
@@ -60,30 +61,37 @@ static void vertex_buffer_fetch_mode(ColorType color)
 
   /* Read back data and perform some basic tests. */
   Vector<float4> read_data(Size * Size);
+
   GPU_offscreen_read_color(offscreen, GPU_DATA_FLOAT, read_data.data());
-  for (float4 read_color : read_data) {
-    if constexpr (fetch_mode == GPU_FETCH_INT_TO_FLOAT_UNIT) {
-      switch (comp_type) {
-        case GPU_COMP_I8:
-          read_color = read_color * float(127);
-          break;
-        case GPU_COMP_U8:
-          read_color = read_color * float(255);
-          break;
-        case GPU_COMP_I16:
-          read_color = read_color * float(32767);
-          break;
-        case GPU_COMP_U16:
-          read_color = read_color * float(65535);
-          break;
-        case GPU_COMP_I10:
-          read_color = read_color * float4(511, 511, 511, 1);
-          break;
-        default:
-          BLI_assert_unreachable();
-      }
+
+  if constexpr (fetch_mode == GPU_FETCH_INT_TO_FLOAT_UNIT) {
+    switch (comp_type) {
+      case GPU_COMP_I8:
+        read_data[0] = read_data[0] * float(127);
+        break;
+      case GPU_COMP_U8:
+        read_data[0] = read_data[0] * float(255);
+        break;
+      case GPU_COMP_I16:
+        read_data[0] = read_data[0] * float(32767);
+        break;
+      case GPU_COMP_U16:
+        read_data[0] = read_data[0] * float(65535);
+        break;
+      case GPU_COMP_I10:
+        read_data[0] = read_data[0] * float4(511, 511, 511, 1);
+        break;
+      default:
+        BLI_assert_unreachable();
     }
-    EXPECT_EQ(read_color, float4(color));
+  }
+
+  if (fetch_mode == GPU_FETCH_FLOAT) {
+    EXPECT_EQ(read_data[0], float4(color));
+  }
+  else {
+    /* Do integer comparison to avoid floating point inaccuracies from each conversion steps. */
+    EXPECT_EQ(int4(read_data[0]), int4(float4(color)));
   }
 
   GPU_batch_discard(batch);

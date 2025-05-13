@@ -24,6 +24,7 @@
 #include "BKE_context.hh"
 #include "BKE_library.hh"
 #include "BKE_main.hh"
+#include "BKE_path_templates.hh"
 #include "BKE_report.hh"
 #include "BKE_screen.hh"
 
@@ -177,12 +178,6 @@ struct FileBrowseOp {
   PropertyRNA *prop = nullptr;
   bool is_undo = false;
   bool is_userdef = false;
-
-  /**
-   * It would be good if this can be removed, see #UI_context_active_but_prop_get_filebrowser
-   * code comment for details.
-   */
-  bool override_path_supports_blend_relative = false;
 };
 
 static bool file_browse_operator_relative_paths_supported(wmOperator *op)
@@ -192,9 +187,6 @@ static bool file_browse_operator_relative_paths_supported(wmOperator *op)
   if (ELEM(subtype, PROP_FILEPATH, PROP_DIRPATH)) {
     const int flag = RNA_property_flag(fbo->prop);
     if ((flag & PROP_PATH_SUPPORTS_BLEND_RELATIVE) == 0) {
-      if (fbo->override_path_supports_blend_relative) {
-        return true;
-      }
       return false;
     }
   }
@@ -295,7 +287,6 @@ static wmOperatorStatus file_browse_invoke(bContext *C, wmOperator *op, const wm
   PropertyRNA *prop;
   bool is_undo;
   bool is_userdef;
-  bool override_path_supports_blend_relative;
   char *path;
 
   const SpaceFile *sfile = CTX_wm_space_file(C);
@@ -304,14 +295,25 @@ static wmOperatorStatus file_browse_invoke(bContext *C, wmOperator *op, const wm
     return OPERATOR_CANCELLED;
   }
 
-  UI_context_active_but_prop_get_filebrowser(
-      C, &ptr, &prop, &is_undo, &is_userdef, &override_path_supports_blend_relative);
+  UI_context_active_but_prop_get_filebrowser(C, &ptr, &prop, &is_undo, &is_userdef);
 
   if (!prop) {
     return OPERATOR_CANCELLED;
   }
 
   path = RNA_property_string_get_alloc(&ptr, prop, nullptr, 0, nullptr);
+
+  if ((RNA_property_flag(prop) & PROP_PATH_SUPPORTS_TEMPLATES) != 0) {
+    const Scene *scene = CTX_data_scene(C);
+    const blender::Vector<blender::bke::path_templates::Error> errors = BKE_path_apply_template(
+        path,
+        FILE_MAX,
+        BKE_build_template_variables(BKE_main_blendfile_path_from_global(), &scene->r));
+    if (!errors.is_empty()) {
+      BKE_report_path_template_errors(op->reports, RPT_ERROR, path, errors);
+      return OPERATOR_CANCELLED;
+    }
+  }
 
   /* Useful yet irritating feature, Shift+Click to open the file
    * Alt+Click to browse a folder in the OS's browser. */
@@ -357,7 +359,6 @@ static wmOperatorStatus file_browse_invoke(bContext *C, wmOperator *op, const wm
   fbo->prop = prop;
   fbo->is_undo = is_undo;
   fbo->is_userdef = is_userdef;
-  fbo->override_path_supports_blend_relative = override_path_supports_blend_relative;
 
   op->customdata = fbo;
 

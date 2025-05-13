@@ -370,22 +370,22 @@ static void grease_pencil_simplify_ui(bContext *C, wmOperator *op)
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
 
-  uiItemR(layout, &ptr, "mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(&ptr, "mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   const SimplifyMode mode = SimplifyMode(RNA_enum_get(op->ptr, "mode"));
 
   switch (mode) {
     case SimplifyMode::FIXED:
-      uiItemR(layout, &ptr, "steps", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+      layout->prop(&ptr, "steps", UI_ITEM_NONE, std::nullopt, ICON_NONE);
       break;
     case SimplifyMode::ADAPTIVE:
-      uiItemR(layout, &ptr, "factor", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+      layout->prop(&ptr, "factor", UI_ITEM_NONE, std::nullopt, ICON_NONE);
       break;
     case SimplifyMode::SAMPLE:
-      uiItemR(layout, &ptr, "length", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+      layout->prop(&ptr, "length", UI_ITEM_NONE, std::nullopt, ICON_NONE);
       break;
     case SimplifyMode::MERGE:
-      uiItemR(layout, &ptr, "distance", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+      layout->prop(&ptr, "distance", UI_ITEM_NONE, std::nullopt, ICON_NONE);
       break;
     default:
       break;
@@ -2407,7 +2407,7 @@ static struct Clipboard {
 } *grease_pencil_clipboard = nullptr;
 
 /** The clone brush accesses the clipboard from multiple threads. Protect from parallel access. */
-std::mutex grease_pencil_clipboard_lock;
+blender::Mutex grease_pencil_clipboard_lock;
 
 static Clipboard &ensure_grease_pencil_clipboard()
 {
@@ -3271,14 +3271,14 @@ static void grease_pencil_reproject_ui(bContext * /*C*/, wmOperator *op)
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
   row = &layout->row(true);
-  uiItemR(row, op->ptr, "type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  row->prop(op->ptr, "type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   if (type == ReprojectMode::Surface) {
     row = &layout->row(true);
-    uiItemR(row, op->ptr, "offset", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    row->prop(op->ptr, "offset", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
   row = &layout->row(true);
-  uiItemR(row, op->ptr, "keep_original", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  row->prop(op->ptr, "keep_original", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
 static void GREASE_PENCIL_OT_reproject(wmOperatorType *ot)

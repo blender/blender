@@ -936,7 +936,7 @@ static void ui_but_update_old_active_from_new(uiBut *oldbut, uiBut *but)
 
   /* flags from the buttons we want to refresh, may want to add more here... */
   const int flag_copy = UI_BUT_REDALERT | UI_HAS_ICON | UI_SELECT_DRAW;
-  const int drawflag_copy = UI_BUT_HAS_TOOLTIP_LABEL;
+  const int drawflag_copy = UI_BUT_HAS_QUICK_TOOLTIP;
 
   /* still stuff needs to be copied */
   oldbut->rect = but->rect;
@@ -954,11 +954,14 @@ static void ui_but_update_old_active_from_new(uiBut *oldbut, uiBut *but)
     std::swap(oldbut->func_argN, but->func_argN);
   }
 
+  std::swap(oldbut->rename_full_func, but->rename_full_func);
+  std::swap(oldbut->pushed_state_func, but->pushed_state_func);
+
   /* Move tooltip from new to old. */
   std::swap(oldbut->tip_func, but->tip_func);
   std::swap(oldbut->tip_arg, but->tip_arg);
   std::swap(oldbut->tip_arg_free, but->tip_arg_free);
-  std::swap(oldbut->tip_label_func, but->tip_label_func);
+  std::swap(oldbut->tip_quick_func, but->tip_quick_func);
 
   oldbut->flag = (oldbut->flag & ~flag_copy) | (but->flag & flag_copy);
   oldbut->drawflag = (oldbut->drawflag & ~drawflag_copy) | (but->drawflag & drawflag_copy);
@@ -2008,6 +2011,7 @@ bool ui_but_context_poll_operator_ex(bContext *C,
   bool result;
   int old_but_flag = 0;
 
+  const bContextStore *previous_ctx = CTX_store_get(C);
   if (but) {
     old_but_flag = but->flag;
 
@@ -2030,7 +2034,7 @@ bool ui_but_context_poll_operator_ex(bContext *C,
     const_cast<uiBut *>(but)->flag = old_but_flag;
 
     if (but->context) {
-      CTX_store_set(C, nullptr);
+      CTX_store_set(C, previous_ctx);
     }
   }
 
@@ -4170,14 +4174,14 @@ void UI_block_align_end(uiBlock *block)
   block->flag &= ~UI_BUT_ALIGN; /* all 4 flags */
 }
 
-ColorManagedDisplay *ui_block_cm_display_get(uiBlock *block)
+const ColorManagedDisplay *ui_block_cm_display_get(uiBlock *block)
 {
   return IMB_colormanagement_display_get_named(block->display_device);
 }
 
 void ui_block_cm_to_display_space_v3(uiBlock *block, float pixel[3])
 {
-  ColorManagedDisplay *display = ui_block_cm_display_get(block);
+  const ColorManagedDisplay *display = ui_block_cm_display_get(block);
 
   IMB_colormanagement_scene_linear_to_display_v3(pixel, display);
 }
@@ -4585,7 +4589,7 @@ static void ui_def_but_rna__menu(bContext *C, uiLayout *layout, void *but_p)
   /* NOTE: `item_array[...]` is reversed on access. */
 
   /* create items */
-  uiLayout *split = uiLayoutSplit(layout, 0.0f, false);
+  uiLayout *split = &layout->split(0.0f, false);
 
   bool new_column;
 
@@ -4614,17 +4618,17 @@ static void ui_def_but_rna__menu(bContext *C, uiLayout *layout, void *but_p)
     const EnumPropertyItem *item = &item_array[a];
 
     if (new_column && (categories > 0) && (columns > 1) && item->identifier[0]) {
-      uiItemL(column, "", ICON_NONE);
+      column->label("", ICON_NONE);
       uiItemS(column);
     }
 
     if (!item->identifier[0]) {
       if (item->name || columns > 1) {
         if (item->icon) {
-          uiItemL(column, item->name, item->icon);
+          column->label(item->name, item->icon);
         }
         else if (item->name) {
-          /* Do not use uiItemL here, as our root layout is a menu one,
+          /* Do not use uiLayout::label here, as our root layout is a menu one,
            * it will add a fake blank icon! */
           uiDefBut(block,
                    UI_BTYPE_LABEL,
@@ -4718,7 +4722,7 @@ static void ui_def_but_rna__panel_type(bContext *C, uiLayout *layout, void *arg)
     ui_item_paneltype_func(C, layout, panel_type);
   }
   else {
-    uiItemL(layout, RPT_("Missing Panel"), ICON_NONE);
+    layout->label(RPT_("Missing Panel"), ICON_NONE);
   }
 }
 
@@ -4749,7 +4753,7 @@ static void ui_def_but_rna__menu_type(bContext *C, uiLayout *layout, void *but_p
   else {
     char msg[256];
     SNPRINTF(msg, RPT_("Missing Menu: %s"), menu_type);
-    uiItemL(layout, msg, ICON_NONE);
+    layout->label(msg, ICON_NONE);
   }
 }
 
@@ -5024,7 +5028,7 @@ static uiBut *ui_def_but_operator_ptr(uiBlock *block,
 
   /* Enable quick tooltip label if this is a tool button without a label. */
   if (str.is_empty() && !ui_block_is_popover(block) && UI_but_is_tool(but)) {
-    UI_but_drawflag_enable(but, UI_BUT_HAS_TOOLTIP_LABEL);
+    UI_but_drawflag_enable(but, UI_BUT_HAS_QUICK_TOOLTIP);
   }
 
   if (!ot) {
@@ -6258,10 +6262,10 @@ void UI_but_menu_disable_hover_open(uiBut *but)
   but->menu_no_hover_open = true;
 }
 
-void UI_but_func_tooltip_label_set(uiBut *but, std::function<std::string(const uiBut *but)> func)
+void UI_but_func_quick_tooltip_set(uiBut *but, std::function<std::string(const uiBut *but)> func)
 {
-  but->tip_label_func = std::move(func);
-  UI_but_drawflag_enable(but, UI_BUT_HAS_TOOLTIP_LABEL);
+  but->tip_quick_func = std::move(func);
+  UI_but_drawflag_enable(but, UI_BUT_HAS_QUICK_TOOLTIP);
 }
 
 void UI_but_func_tooltip_set(uiBut *but, uiButToolTipFunc func, void *arg, uiFreeArgFunc free_arg)
@@ -6855,10 +6859,10 @@ std::string UI_but_context_menu_title_from_button(uiBut &but)
 
 std::string UI_but_string_get_tooltip_label(const uiBut &but)
 {
-  if (!but.tip_label_func) {
+  if (!but.tip_quick_func) {
     return {};
   }
-  return but.tip_label_func(&but);
+  return but.tip_quick_func(&but);
 }
 
 std::string UI_but_string_get_rna_label(uiBut &but)

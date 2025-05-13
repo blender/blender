@@ -133,7 +133,7 @@ static void action_copy_data(Main * /*bmain*/,
 
   /* Duplicate the lists of groups and markers. */
   BLI_duplicatelist(&action_dst.groups, &action_src.groups);
-  BLI_duplicatelist(&action_dst.markers, &action_src.markers);
+  BKE_copy_time_markers(action_dst.markers, action_src.markers, flag);
 
   /* Copy F-Curves, fixing up the links as we go. */
   BLI_listbase_clear(&action_dst.curves);
@@ -572,9 +572,7 @@ static void action_blend_write(BlendWriter *writer, ID *id, const void *id_addre
     BLO_write_struct(writer, bActionGroup, grp);
   }
 
-  LISTBASE_FOREACH (TimeMarker *, marker, &action.markers) {
-    BLO_write_struct(writer, TimeMarker, marker);
-  }
+  BKE_time_markers_blend_write(writer, action.markers);
 
   BKE_previewimg_blend_write(writer, action.preview);
 }
@@ -732,7 +730,7 @@ static void action_blend_read_data(BlendDataReader *reader, ID *id)
     }
   }
 
-  BLO_read_struct_list(reader, TimeMarker, &action.markers);
+  BKE_time_markers_blend_read(reader, action.markers);
 
   /* End of reading legacy data. */
 
@@ -765,7 +763,7 @@ static AssetTypeInfo AssetType_AC = {
 }  // namespace blender::bke
 
 IDTypeInfo IDType_ID_AC = {
-    /*id_code*/ ID_AC,
+    /*id_code*/ bAction::id_type,
     /*id_filter*/ FILTER_ID_AC,
 
     /* This value will be set dynamically in `BKE_idtype_init()` to only include
@@ -804,7 +802,7 @@ bAction *BKE_action_add(Main *bmain, const char name[])
 {
   bAction *act;
 
-  act = static_cast<bAction *>(BKE_id_new(bmain, ID_AC, name));
+  act = BKE_id_new<bAction>(bmain, name);
 
   return act;
 }

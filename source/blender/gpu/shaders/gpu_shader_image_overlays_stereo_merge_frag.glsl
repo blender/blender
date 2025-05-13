@@ -37,7 +37,7 @@ void main()
 
   if (stereo_display_mode == S3D_DISPLAY_INTERLACE && (interlace(texel) == stereo_interlace_swap))
   {
-    discard;
+    gpu_discard_fragment();
   }
 
   imageColor = texelFetch(imageTexture, texel, 0);

@@ -332,10 +332,9 @@ enum {
   /** Prevent the button to show any tool-tip. */
   UI_BUT_NO_TOOLTIP = 1 << 4,
   /**
-   * Show a quick tool-tip label, that is, a short tool-tip that appears faster than the full one
-   * and only shows the label. After a short delay the full tool-tip is shown if any.
+   * See #UI_but_func_quick_tooltip_set.
    */
-  UI_BUT_HAS_TOOLTIP_LABEL = 1 << 5,
+  UI_BUT_HAS_QUICK_TOOLTIP = 1 << 5,
   /** Do not add the usual horizontal padding for text drawing. */
   UI_BUT_NO_TEXT_PADDING = 1 << 6,
   /** Do not add the usual padding around preview image drawing, use the size of the button. */
@@ -680,7 +679,7 @@ void UI_block_interaction_set(uiBlock *block, uiBlockInteraction_CallbackData *c
 
 /* `interface_query.cc` */
 
-bool UI_but_has_tooltip_label(const uiBut *but);
+bool UI_but_has_quick_tooltip(const uiBut *but);
 bool UI_but_is_tool(const uiBut *but);
 /* file selectors are exempt from utf-8 checks */
 bool UI_but_is_utf8(const uiBut *but);
@@ -1771,11 +1770,20 @@ void UI_but_func_search_set_listen(uiBut *but, uiButSearchListenFn listen_fn);
 void UI_but_func_search_set_sep_string(uiBut *but, const char *search_sep_string);
 void UI_but_func_search_set_results_are_suggestions(uiBut *but, bool value);
 
+#define UI_SEARCHBOX_BOUNDS (6.0f * UI_SCALE_FAC)
+#define UI_SEARCHBOX_TRIA_H (12.0f * UI_SCALE_FAC)
 /**
  * Height in pixels, it's using hard-coded values still.
  */
 int UI_searchbox_size_y();
 int UI_searchbox_size_x();
+/**
+ * Guess a good width for the search box based on the searchable items.
+ *
+ * \note When used with a menu that does full refreshes, it might be beneficial to cache this size
+ * because recomputing it is potentially expensive.
+ */
+int UI_searchbox_size_x_guess(const bContext *C, const uiButSearchUpdateFn update_fn);
 /**
  * Check if a string is in an existing search box.
  */
@@ -1841,11 +1849,15 @@ void UI_but_menu_disable_hover_open(uiBut *but);
 
 void UI_but_func_tooltip_set(uiBut *but, uiButToolTipFunc func, void *arg, uiFreeArgFunc free_arg);
 /**
- * Enable a custom quick tooltip label. That is, a short tooltip that appears faster than the full
- * one and only shows the label string returned by \a func. After a short delay the full tooltip is
- * shown, including the same label.
+ * Enable a tooltip that appears faster than the usual tooltip. If the button has both a quick and
+ * a normal tooltip, the quick one is shown first, and expanded to the full one after the usual
+ * tooltip delay. Quick tooltips are useful in cases like:
+ * - A button doesn't show a label to save space but the label is still relevant. Show the label as
+ *   quick tooltip in that case (like the name of tools in a compact, icon only tool-shelf).
+ * - The only purpose of a button is to display this tooltip (like a warning icon with the warning
+ *   text in the tooltip).
  */
-void UI_but_func_tooltip_label_set(uiBut *but, std::function<std::string(const uiBut *but)> func);
+void UI_but_func_quick_tooltip_set(uiBut *but, std::function<std::string(const uiBut *but)> func);
 
 enum uiTooltipStyle {
   UI_TIP_STYLE_NORMAL = 0, /* Regular text. */
@@ -2725,8 +2737,7 @@ void UI_context_active_but_prop_get_filebrowser(const bContext *C,
                                                 PointerRNA *r_ptr,
                                                 PropertyRNA **r_prop,
                                                 bool *r_is_undo,
-                                                bool *r_is_userdef,
-                                                bool *r_override_path_supports_blend_relative);
+                                                bool *r_is_userdef);
 /**
  * For new/open operators.
  *
@@ -2911,12 +2922,14 @@ std::optional<std::string> UI_key_event_operator_string(const bContext *C,
 /* ui_interface_region_tooltip.c */
 
 /**
- * \param is_label: When true, show a small tip that only shows the name, otherwise show the full
- *                  tooltip.
+ * \param is_quick_tip: See #UI_but_func_quick_tooltip_set for what a quick tooltip is.
  */
-ARegion *UI_tooltip_create_from_button(bContext *C, ARegion *butregion, uiBut *but, bool is_label);
+ARegion *UI_tooltip_create_from_button(bContext *C,
+                                       ARegion *butregion,
+                                       uiBut *but,
+                                       bool is_quick_tip);
 ARegion *UI_tooltip_create_from_button_or_extra_icon(
-    bContext *C, ARegion *butregion, uiBut *but, uiButExtraOpIcon *extra_icon, bool is_label);
+    bContext *C, ARegion *butregion, uiBut *but, uiButExtraOpIcon *extra_icon, bool is_quick_tip);
 ARegion *UI_tooltip_create_from_gizmo(bContext *C, wmGizmo *gz);
 void UI_tooltip_free(bContext *C, bScreen *screen, ARegion *region);
 
@@ -2934,7 +2947,7 @@ ARegion *UI_tooltip_create_from_search_item_generic(bContext *C,
 
 /* How long before a tool-tip shows. */
 #define UI_TOOLTIP_DELAY 0.5
-#define UI_TOOLTIP_DELAY_LABEL 0.2
+#define UI_TOOLTIP_DELAY_QUICK 0.2
 
 /* Float precision helpers */
 

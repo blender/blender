@@ -30,8 +30,7 @@ void uiTemplateColorspaceSettings(uiLayout *layout, PointerRNA *ptr, const Strin
 
   PointerRNA colorspace_settings_ptr = RNA_property_pointer_get(ptr, prop);
 
-  uiItemR(
-      layout, &colorspace_settings_ptr, "name", UI_ITEM_NONE, IFACE_("Color Space"), ICON_NONE);
+  layout->prop(&colorspace_settings_ptr, "name", UI_ITEM_NONE, IFACE_("Color Space"), ICON_NONE);
 }
 
 void uiTemplateColormanagedViewSettings(uiLayout *layout,
@@ -54,29 +53,25 @@ void uiTemplateColormanagedViewSettings(uiLayout *layout,
       view_transform_ptr.data);
 
   uiLayout *col = &layout->column(false);
-  uiItemR(col, &view_transform_ptr, "view_transform", UI_ITEM_NONE, IFACE_("View"), ICON_NONE);
-  uiItemR(col, &view_transform_ptr, "look", UI_ITEM_NONE, IFACE_("Look"), ICON_NONE);
+  col->prop(&view_transform_ptr, "view_transform", UI_ITEM_NONE, IFACE_("View"), ICON_NONE);
+  col->prop(&view_transform_ptr, "look", UI_ITEM_NONE, IFACE_("Look"), ICON_NONE);
 
   col = &layout->column(false);
-  uiItemR(col, &view_transform_ptr, "exposure", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  uiItemR(col, &view_transform_ptr, "gamma", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  col->prop(&view_transform_ptr, "exposure", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  col->prop(&view_transform_ptr, "gamma", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   col = &layout->column(false);
-  uiItemR(col, &view_transform_ptr, "use_curve_mapping", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  col->prop(&view_transform_ptr, "use_curve_mapping", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   if (view_settings->flag & COLORMANAGE_VIEW_USE_CURVES) {
     uiTemplateCurveMapping(
         col, &view_transform_ptr, "curve_mapping", 'c', true, false, false, false);
   }
 
   col = &layout->column(false);
-  uiItemR(col, &view_transform_ptr, "use_white_balance", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  col->prop(&view_transform_ptr, "use_white_balance", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   if (view_settings->flag & COLORMANAGE_VIEW_USE_WHITE_BALANCE) {
-    uiItemR(col,
-            &view_transform_ptr,
-            "white_balance_temperature",
-            UI_ITEM_NONE,
-            std::nullopt,
-            ICON_NONE);
-    uiItemR(col, &view_transform_ptr, "white_balance_tint", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col->prop(
+        &view_transform_ptr, "white_balance_temperature", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col->prop(&view_transform_ptr, "white_balance_tint", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 }

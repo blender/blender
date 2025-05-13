@@ -12,6 +12,7 @@
 #include "BKE_attribute.hh"
 #include "BKE_curves.hh"
 #include "BKE_curves_utils.hh"
+#include "BKE_deform.hh"
 
 #include "GEO_reorder.hh"
 
@@ -51,6 +52,9 @@ static void curve_offsets_from_selection(const Span<IndexRange> selected_points,
                                          Vector<int> &r_dst_offsets,
                                          Vector<int> &r_dst_to_src_curve)
 {
+  if (selected_points.is_empty()) {
+    return;
+  }
   const bool merge_loop = cyclic && selected_points.first().size() < points.size() &&
                           selected_points.first().first() == points.first() &&
                           selected_points.last().last() == points.last();
@@ -79,15 +83,22 @@ static void curve_offsets_from_selection(const Span<IndexRange> selected_points,
 static void append_point_knots(const Span<IndexRange> src_ranges,
                                const OffsetIndices<int> dst_offsets,
                                const Span<int> dst_to_src_curve,
+                               const bke::CurvesGeometry &src_curves,
                                bke::CurvesGeometry &curves)
 {
   curves.nurbs_custom_knots_update_size();
 
+  const Span<int> src_points_by_curve = src_curves.points_by_curve().data();
+  const Span<int> src_knots_by_curve = src_curves.nurbs_custom_knots_by_curve().data();
+  const VArray<int8_t> src_orders = src_curves.nurbs_orders();
   const VArray<int8_t> knot_modes = curves.nurbs_knots_modes();
-  const VArray<int8_t> orders = curves.nurbs_orders();
   const OffsetIndices<int> points_by_curve = curves.points_by_curve();
   const OffsetIndices<int> knots_by_curve = curves.nurbs_custom_knots_by_curve();
-  MutableSpan<float> knots = curves.nurbs_custom_knots_for_write();
+  MutableSpan<float> dst_knots = curves.nurbs_custom_knots_for_write();
+  /* Source knots must be defined after destination knots, because when `src_curves` == `curves`
+   * call to `nurbs_custom_knots_for_write()` might invalidate the result of previously called
+   * `nurbs_custom_knots()`. */
+  const Span<float> src_knots = src_curves.nurbs_custom_knots();
 
   const int old_curves_num = curves.curves_num() - dst_to_src_curve.size();
 
@@ -98,24 +109,25 @@ static void append_point_knots(const Span<IndexRange> src_ranges,
       continue;
     }
     const int src_curve = dst_to_src_curve[appended_curve];
-    const int order = orders[src_curve];
-    const int first_curve_point = points_by_curve.data()[src_curve];
-    const int first_curve_knot = knots_by_curve.data()[src_curve];
+    const int order = src_orders[src_curve];
+    const int first_curve_point = src_points_by_curve[src_curve];
+    const int first_curve_knot = src_knots_by_curve[src_curve];
     const int point_to_knot = -first_curve_point + first_curve_knot;
     const IndexRange src_range = src_ranges[range];
-    const IndexRange src_knots = IndexRange::from_begin_size(src_range.first() + point_to_knot,
-                                                             src_range.size() + order);
-    const IndexRange dst_knots = knots_by_curve[dst_curve];
-    knots.slice(dst_knots.take_front(src_knots.size())).copy_from(knots.slice(src_knots));
+    const IndexRange src_knot_range = IndexRange::from_begin_size(
+        src_range.first() + point_to_knot, src_range.size() + order);
+    const IndexRange dst_knot_range = knots_by_curve[dst_curve];
+    dst_knots.slice(dst_knot_range.take_front(src_knot_range.size()))
+        .copy_from(src_knots.slice(src_knot_range));
     if (dst_offsets[range].size() != points_by_curve[dst_curve].size()) {
       range++;
       const IndexRange merged_tail = src_ranges[range];
       const IndexRange src_tail_knots = merged_tail.shift(point_to_knot + order);
-      const IndexRange dst_tail_knots = dst_knots.take_back(src_tail_knots.size());
-      const float knot_shift = knots[dst_tail_knots.one_before_start()] -
-                               knots[src_tail_knots.one_before_start()];
+      const IndexRange dst_tail_knots = dst_knot_range.take_back(src_tail_knots.size());
+      const float knot_shift = dst_knots[dst_tail_knots.one_before_start()] -
+                               src_knots[src_tail_knots.one_before_start()];
       for (const int i : src_tail_knots.index_range()) {
-        knots[dst_tail_knots[i]] = knots[src_tail_knots[i]] + knot_shift;
+        dst_knots[dst_tail_knots[i]] = src_knots[src_tail_knots[i]] + knot_shift;
       }
     }
     range++;
@@ -217,7 +229,7 @@ void duplicate_points(bke::CurvesGeometry &curves, const IndexMask &mask)
   curves.tag_topology_changed();
 
   if (curves.nurbs_has_custom_knots()) {
-    append_point_knots(src_ranges, dst_offsets.as_span(), dst_to_src_curve, curves);
+    append_point_knots(src_ranges, dst_offsets.as_span(), dst_to_src_curve, curves, curves);
   }
 
   for (const StringRef selection_name : get_curves_selection_attribute_names(curves)) {
@@ -362,15 +374,15 @@ static void extend_range_by_1_within_bounds(const IndexRange universe,
   }
 }
 
-static void copy_data_to_geometry(const bke::CurvesGeometry &src_curves,
-                                  const Span<int> dst_to_src_curve,
-                                  const Span<int> offsets,
-                                  const Span<bool> cyclic,
-                                  const Span<IndexRange> src_ranges,
-                                  const OffsetIndices<int> dst_offsets,
-                                  bke::CurvesGeometry &dst_curves)
+static bke::CurvesGeometry copy_data_to_geometry(const bke::CurvesGeometry &src_curves,
+                                                 const Span<int> dst_to_src_curve,
+                                                 const Span<int> offsets,
+                                                 const Span<bool> cyclic,
+                                                 const Span<IndexRange> src_ranges,
+                                                 const OffsetIndices<int> dst_offsets)
 {
-  dst_curves.resize(offsets.last(), dst_to_src_curve.size());
+  bke::CurvesGeometry dst_curves(offsets.last(), dst_to_src_curve.size());
+  BKE_defgroup_copy_list(&dst_curves.vertex_group_names, &src_curves.vertex_group_names);
 
   array_utils::copy(offsets, dst_curves.offsets_for_write());
   dst_curves.cyclic_for_write().copy_from(cyclic);
@@ -398,7 +410,11 @@ static void copy_data_to_geometry(const bke::CurvesGeometry &src_curves,
   };
 
   dst_curves.update_curve_types();
-  dst_curves.tag_topology_changed();
+
+  if (src_curves.nurbs_has_custom_knots()) {
+    append_point_knots(src_ranges, dst_offsets, dst_to_src_curve, src_curves, dst_curves);
+  }
+  return dst_curves;
 }
 
 bke::CurvesGeometry split_points(const bke::CurvesGeometry &curves,
@@ -423,7 +439,6 @@ bke::CurvesGeometry split_points(const bke::CurvesGeometry &curves,
       points_to_split,
       points_by_curve,
       [&](const int curve, const IndexRange points, const Span<IndexRange> selected_curve_points) {
-        const int points_start = new_offsets.last();
         curve_offsets_from_selection(selected_curve_points,
                                      points,
                                      curve,
@@ -433,7 +448,6 @@ bke::CurvesGeometry split_points(const bke::CurvesGeometry &curves,
                                      src_ranges,
                                      dst_offsets,
                                      curve_map);
-        const int split_points_num = new_offsets.last() - points_start;
         /* Invert ranges to get non selected points. */
         invert_ranges(points, selected_curve_points, unselected_curve_points);
         /* Extended every range to left and right by one point. Any resulting intersection is
@@ -441,11 +455,16 @@ bke::CurvesGeometry split_points(const bke::CurvesGeometry &curves,
         extend_range_by_1_within_bounds(
             points, cyclic[curve], unselected_curve_points, curve_points_to_preserve);
         const int size_before = curve_map.size();
+        /* Unselected part can contain all points from original curve, but have cuts. This happens
+         * when pairs of adjacent points are selected. To prevent loop merge and result curve from
+         * cyclic additional condition is checked. */
+        const bool can_merge_loop = !unselected_curve_points.is_empty() &&
+                                    (unselected_curve_points.first().first() == points.first() ||
+                                     unselected_curve_points.last().last() == points.last());
         curve_offsets_from_selection(curve_points_to_preserve,
                                      points,
                                      curve,
-                                     cyclic[curve] &&
-                                         (split_points_num <= curve_points_to_preserve.size()),
+                                     cyclic[curve] && can_merge_loop,
                                      new_offsets,
                                      new_cyclic,
                                      src_ranges,
@@ -453,24 +472,30 @@ bke::CurvesGeometry split_points(const bke::CurvesGeometry &curves,
                                      curve_map);
         deselect.append(IndexRange::from_begin_end(size_before, curve_map.size()));
       },
-      [&](const IndexRange curves, const IndexRange points) {
+      [&](const IndexRange curves, const IndexRange /*unselected_points*/) {
         deselect.append(IndexRange::from_begin_size(curve_map.size(), curves.size()));
-        src_ranges.append(points);
-        dst_offsets.append(dst_offsets.last() + points.size());
         int last_offset = new_offsets.last();
+        int last_dst_offset = dst_offsets.last();
         for (const int curve : curves) {
-          last_offset += points_by_curve[curve].size();
+          /* Point ranges to `src_ranges` and `dst_offsets` have to be appended curve by curve to
+           * ease custom knots copying. It gives better mapping between `src_ranges` and
+           * `curve_map`. */
+          const IndexRange points = points_by_curve[curve];
+          src_ranges.append(points);
+          last_dst_offset += points.size();
+          dst_offsets.append(last_dst_offset);
+
+          last_offset += points.size();
           new_offsets.append(last_offset);
           curve_map.append(curve);
           new_cyclic.append(cyclic[curve]);
         }
       });
 
-  bke::CurvesGeometry new_curves;
-  copy_data_to_geometry(
-      curves, curve_map, new_offsets, new_cyclic, src_ranges, dst_offsets.as_span(), new_curves);
+  bke::CurvesGeometry new_curves = copy_data_to_geometry(
+      curves, curve_map, new_offsets, new_cyclic, src_ranges, dst_offsets.as_span());
 
-  OffsetIndices<int> new_points_by_curve = new_curves.points_by_curve();
+  const OffsetIndices<int> new_points_by_curve = new_curves.points_by_curve();
   foreach_selection_attribute_writer(
       new_curves, bke::AttrDomain::Point, [&](bke::GSpanAttributeWriter &selection) {
         for (const IndexRange curves : deselect) {
@@ -481,6 +506,111 @@ bke::CurvesGeometry split_points(const bke::CurvesGeometry &curves,
       });
 
   return new_curves;
+}
+
+void separate_points(const bke::CurvesGeometry &curves,
+                     const IndexMask &points_to_separate,
+                     bke::CurvesGeometry &separated,
+                     bke::CurvesGeometry &retained)
+{
+  const OffsetIndices points_by_curve = curves.points_by_curve();
+  const VArray<bool> cyclic = curves.cyclic();
+
+  Vector<int> separated_curve_map;
+  Vector<int> separated_offsets({0});
+  Vector<IndexRange> separated_src_ranges;
+  Vector<int> separated_dst_offsets({0});
+  Vector<bool> separated_cyclic;
+
+  Vector<int> retained_curve_map;
+  Vector<int> retained_offsets({0});
+  Vector<IndexRange> retained_src_ranges;
+  Vector<int> retained_dst_offsets({0});
+  Vector<bool> retained_cyclic;
+
+  Array<IndexRange> unselected_curve_points;
+  Vector<IndexRange> curve_points_to_retain;
+
+  bke::curves::foreach_selected_point_ranges_per_curve(
+      points_to_separate,
+      points_by_curve,
+      [&](const int curve, const IndexRange points, const Span<IndexRange> selected_curve_points) {
+        curve_offsets_from_selection(selected_curve_points,
+                                     points,
+                                     curve,
+                                     cyclic[curve],
+                                     separated_offsets,
+                                     separated_cyclic,
+                                     separated_src_ranges,
+                                     separated_dst_offsets,
+                                     separated_curve_map);
+        /* Invert ranges to get non selected points. */
+        invert_ranges(points, selected_curve_points, unselected_curve_points);
+        /* Extended every range to left and right by one point. Any resulting intersection is
+         * merged. */
+        extend_range_by_1_within_bounds(
+            points, cyclic[curve], unselected_curve_points, curve_points_to_retain);
+        /* Unselected part can contain all points from original curve, but have cuts. This happens
+         * when pairs of adjacent points are selected. To prevent loop merge and result curve from
+         * cyclic additional condition is checked. */
+        const bool can_merge_loop = !unselected_curve_points.is_empty() &&
+                                    (unselected_curve_points.first().first() == points.first() ||
+                                     unselected_curve_points.last().last() == points.last());
+        curve_offsets_from_selection(curve_points_to_retain,
+                                     points,
+                                     curve,
+                                     cyclic[curve] && can_merge_loop,
+                                     retained_offsets,
+                                     retained_cyclic,
+                                     retained_src_ranges,
+                                     retained_dst_offsets,
+                                     retained_curve_map);
+      },
+      [&](const IndexRange curves, const IndexRange /*unselected_points*/) {
+        int last_offset = retained_offsets.last();
+        int last_dst_offset = retained_dst_offsets.last();
+        for (const int curve : curves) {
+          /* Point ranges to `retained_src_ranges` and `retained_dst_offsets` have to be appended
+           * curve by curve to ease custom knots copying. It gives better mapping between
+           * `retained_src_ranges` and `retained_curve_map`. */
+          const IndexRange points = points_by_curve[curve];
+          retained_src_ranges.append(points);
+          last_dst_offset += points.size();
+          retained_dst_offsets.append(last_dst_offset);
+
+          last_offset += points.size();
+          retained_offsets.append(last_offset);
+          retained_curve_map.append(curve);
+          retained_cyclic.append(cyclic[curve]);
+        }
+      });
+  {
+    bke::MutableAttributeAccessor attributes = separated.attributes_for_write();
+    remove_selection_attributes(attributes);
+
+    separated = copy_data_to_geometry(curves,
+                                      separated_curve_map,
+                                      separated_offsets,
+                                      separated_cyclic,
+                                      separated_src_ranges,
+                                      separated_dst_offsets.as_span());
+  }
+  {
+    bke::MutableAttributeAccessor attributes = retained.attributes_for_write();
+    remove_selection_attributes(attributes);
+
+    retained = copy_data_to_geometry(curves,
+                                     retained_curve_map,
+                                     retained_offsets,
+                                     retained_cyclic,
+                                     retained_src_ranges,
+                                     retained_dst_offsets.as_span());
+  }
+
+  foreach_selection_attribute_writer(
+      retained, bke::AttrDomain::Point, [&](bke::GSpanAttributeWriter &selection) {
+        fill_selection_false(selection.span);
+      });
 }
 
 void add_curves(bke::CurvesGeometry &curves, const Span<int> new_sizes)

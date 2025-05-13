@@ -3,7 +3,7 @@ Advanced UIList Example - Filtering and Reordering
 ++++++++++++++++++++++++++++++++++++++++++++++++++
 
 This script is an extended version of the ``UIList`` subclass used to show vertex groups. It is not used 'as is',
-because iterating over all vertices in a 'draw' function is a very bad idea for UI performances! However, it's a good
+because iterating over all vertices in a 'draw' function is a very bad idea for UI performance! However, it's a good
 example of how to create/use filtering/reordering callbacks.
 """
 import bpy
@@ -32,6 +32,12 @@ class MESH_UL_vgroups_slow(bpy.types.UIList):
         default=False,
         options=set(),
         description="Reverse name filtering",
+    )
+    use_filter_orderby_invert: bpy.props.BoolProperty(
+        name="Reverse Order",
+        default=False,
+        options=set(),
+        description="Reverse order filtering",
     )
 
     # This allows us to have mutually exclusive options, which are also all disable-able!
@@ -102,7 +108,7 @@ class MESH_UL_vgroups_slow(bpy.types.UIList):
 
     def filter_items_empty_vgroups(self, context, vgroups):
         # This helper function checks vgroups to find out whether they are empty, and what's their average weights.
-        # TODO: This should be RNA helper actually (a vgroup prop like "raw_data: ((vidx, vweight), etc.)").
+        # TODO: This should be RNA helper actually (a vgroup prop like `"raw_data: ((vidx, vweight), etc.)"`).
         #       Too slow for Python!
         obj_data = context.active_object.data
         ret = {vg.index: [True, 0.0] for vg in vgroups}
@@ -125,7 +131,7 @@ class MESH_UL_vgroups_slow(bpy.types.UIList):
                         ret[vg.group][0] = False
                         ret[vg.group][1] += vg.weight * fact
         elif hasattr(obj_data, "points"):  # Lattice data
-            # XXX no access to lattice editdata?
+            # XXX: no access to lattice edit-data?
             fact = 1 / len(obj_data.points)
             for v in obj_data.points:
                 for vg in v.groups:
@@ -136,11 +142,11 @@ class MESH_UL_vgroups_slow(bpy.types.UIList):
     def filter_items(self, context, data, propname):
         # This function gets the collection property (as the usual tuple (data, propname)), and must return two lists:
         # * The first one is for filtering, it must contain 32bit integers were self.bitflag_filter_item marks the
-        #   matching item as filtered (i.e. to be shown). The upper 16 bits (including self.bitflag_filter_item) are
+        #   matching item as filtered (i.e. to be shown). The upper 16 bits (including `self.bitflag_filter_item`) are
         #   reserved for internal use, the lower 16 bits are free for custom use. Here we use the first bit to mark
         #   VGROUP_EMPTY.
         # * The second one is for reordering, it must return a list containing the new indices of the items (which
-        #   gives us a mapping org_idx -> new_idx).
+        #   gives us a mapping `org_idx -> new_idx`).
         # Please note that the default UI_UL_list defines helper functions for common tasks (see its doc for more info).
         # If you do not make filtering and/or ordering, return empty list(s) (this will be more efficient than
         # returning full lists doing nothing!).
@@ -173,9 +179,12 @@ class MESH_UL_vgroups_slow(bpy.types.UIList):
         # Reorder by name or average weight.
         if self.use_order_name:
             flt_neworder = helper_funcs.sort_items_by_name(vgroups, "name")
+            if self.use_filter_orderby_invert:
+                flt_neworder.reverse()
         elif self.use_order_importance:
             _sort = [(idx, vgroups_empty[vg.index][1]) for idx, vg in enumerate(vgroups)]
-            flt_neworder = helper_funcs.sort_items_helper(_sort, lambda e: e[1], True)
+            highest_first = not self.use_filter_orderby_invert
+            flt_neworder = helper_funcs.sort_items_helper(_sort, lambda e: e[1], highest_first)
 
         return flt_flags, flt_neworder
 

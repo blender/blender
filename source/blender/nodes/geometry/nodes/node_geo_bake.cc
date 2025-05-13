@@ -6,6 +6,7 @@
 
 #include "NOD_geo_bake.hh"
 #include "NOD_node_extra_info.hh"
+#include "NOD_socket_items_blend.hh"
 #include "NOD_socket_items_ops.hh"
 #include "NOD_socket_items_ui.hh"
 #include "NOD_socket_search_link.hh"
@@ -134,17 +135,17 @@ static void draw_bake_items(const bContext *C, uiLayout *layout, PointerRNA node
   bNode &node = *static_cast<bNode *>(node_ptr.data);
   NodeGeometryBake &storage = node_storage(node);
 
-  if (uiLayout *panel = uiLayoutPanel(C, layout, "bake_items", false, IFACE_("Bake Items"))) {
+  if (uiLayout *panel = layout->panel(C, "bake_items", false, IFACE_("Bake Items"))) {
     socket_items::ui::draw_items_list_with_operators<BakeItemsAccessor>(C, panel, tree, node);
     socket_items::ui::draw_active_item_props<BakeItemsAccessor>(
         tree, node, [&](PointerRNA *item_ptr) {
           const NodeGeometryBakeItem &active_item = storage.items[storage.active_index];
           uiLayoutSetPropSep(panel, true);
           uiLayoutSetPropDecorate(panel, false);
-          uiItemR(panel, item_ptr, "socket_type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+          panel->prop(item_ptr, "socket_type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
           if (socket_type_supports_fields(eNodeSocketDatatype(active_item.socket_type))) {
-            uiItemR(panel, item_ptr, "attribute_domain", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-            uiItemR(panel, item_ptr, "is_attribute", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+            panel->prop(item_ptr, "attribute_domain", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+            panel->prop(item_ptr, "is_attribute", UI_ITEM_NONE, std::nullopt, ICON_NONE);
           }
         });
   }
@@ -186,7 +187,7 @@ static bake::BakeSocketConfig make_bake_socket_config(const Span<NodeGeometryBak
  */
 struct DummyDataBlockMap : public bake::BakeDataBlockMap {
  private:
-  std::mutex mutex_;
+  Mutex mutex_;
   Map<bake::BakeDataBlockID, ID *> map_;
 
  public:
@@ -506,7 +507,7 @@ static void node_layout(uiLayout *layout, bContext *C, PointerRNA *ptr)
   {
     uiLayout *row = &col->row(true);
     uiLayoutSetEnabled(row, !ctx.is_baked);
-    uiItemR(row, &ctx.bake_rna, "bake_mode", UI_ITEM_R_EXPAND, IFACE_("Mode"), ICON_NONE);
+    row->prop(&ctx.bake_rna, "bake_mode", UI_ITEM_R_EXPAND, IFACE_("Mode"), ICON_NONE);
   }
   draw_bake_button_row(ctx, col);
 }
@@ -528,13 +529,13 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *ptr)
     {
       uiLayout *row = &col->row(true);
       uiLayoutSetEnabled(row, !ctx.is_baked);
-      uiItemR(row, &ctx.bake_rna, "bake_mode", UI_ITEM_R_EXPAND, IFACE_("Mode"), ICON_NONE);
+      row->prop(&ctx.bake_rna, "bake_mode", UI_ITEM_R_EXPAND, IFACE_("Mode"), ICON_NONE);
     }
 
     draw_bake_button_row(ctx, col, true);
     if (const std::optional<std::string> bake_state_str = get_bake_state_string(ctx)) {
       uiLayout *row = &col->row(true);
-      uiItemL(row, *bake_state_str, ICON_NONE);
+      row->label(*bake_state_str, ICON_NONE);
     }
   }
 
@@ -564,6 +565,24 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
   });
 }
 
+static const bNodeSocket *node_internally_linked_input(const bNodeTree & /*tree*/,
+                                                       const bNode &node,
+                                                       const bNodeSocket &output_socket)
+{
+  /* Internal links should always map corresponding input and output sockets. */
+  return &node.input_by_identifier(output_socket.identifier);
+}
+
+static void node_blend_write(const bNodeTree & /*tree*/, const bNode &node, BlendWriter &writer)
+{
+  socket_items::blend_write<BakeItemsAccessor>(&writer, node);
+}
+
+static void node_blend_read(bNodeTree & /*tree*/, bNode &node, BlendDataReader &reader)
+{
+  socket_items::blend_read_data<BakeItemsAccessor>(&reader, node);
+}
+
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
@@ -580,6 +599,9 @@ static void node_register()
   ntype.get_extra_info = node_extra_info;
   ntype.register_operators = node_operators;
   ntype.gather_link_search_ops = node_gather_link_searches;
+  ntype.internally_linked_input = node_internally_linked_input;
+  ntype.blend_write_storage_content = node_blend_write;
+  ntype.blend_data_read_storage_content = node_blend_read;
   blender::bke::node_type_storage(ntype, "NodeGeometryBake", node_free_storage, node_copy_storage);
   blender::bke::node_register_type(ntype);
 }
@@ -791,11 +813,10 @@ void draw_common_bake_settings(bContext *C, BakeDrawContext &ctx, uiLayout *layo
   uiLayoutSetActive(settings_col, !ctx.is_baked);
   {
     uiLayout *col = &settings_col->column(true);
-    uiItemR(col, &ctx.bake_rna, "bake_target", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col->prop(&ctx.bake_rna, "bake_target", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     uiLayout *subcol = &col->column(true);
     uiLayoutSetActive(subcol, ctx.bake_target == NODES_MODIFIER_BAKE_TARGET_DISK);
-    uiItemR(
-        subcol, &ctx.bake_rna, "use_custom_path", UI_ITEM_NONE, IFACE_("Custom Path"), ICON_NONE);
+    subcol->prop(&ctx.bake_rna, "use_custom_path", UI_ITEM_NONE, IFACE_("Custom Path"), ICON_NONE);
     uiLayout *subsubcol = &subcol->column(true);
     const bool use_custom_path = ctx.bake->flag & NODES_MODIFIER_BAKE_CUSTOM_PATH;
     uiLayoutSetActive(subsubcol, use_custom_path);
@@ -813,28 +834,26 @@ void draw_common_bake_settings(bContext *C, BakeDrawContext &ctx, uiLayout *layo
       }
     }
 
-    uiItemFullR(subsubcol,
-                &ctx.bake_rna,
-                RNA_struct_find_property(&ctx.bake_rna, "directory"),
-                -1,
-                0,
-                UI_ITEM_NONE,
-                IFACE_("Path"),
-                ICON_NONE,
-                placeholder_path);
+    subsubcol->prop(&ctx.bake_rna,
+                    RNA_struct_find_property(&ctx.bake_rna, "directory"),
+                    -1,
+                    0,
+                    UI_ITEM_NONE,
+                    IFACE_("Path"),
+                    ICON_NONE,
+                    placeholder_path);
   }
   {
     uiLayout *col = &settings_col->column(true);
-    uiItemR(col,
-            &ctx.bake_rna,
-            "use_custom_simulation_frame_range",
-            UI_ITEM_NONE,
-            IFACE_("Custom Range"),
-            ICON_NONE);
+    col->prop(&ctx.bake_rna,
+              "use_custom_simulation_frame_range",
+              UI_ITEM_NONE,
+              IFACE_("Custom Range"),
+              ICON_NONE);
     uiLayout *subcol = &col->column(true);
     uiLayoutSetActive(subcol, ctx.bake->flag & NODES_MODIFIER_BAKE_CUSTOM_SIMULATION_FRAME_RANGE);
-    uiItemR(subcol, &ctx.bake_rna, "frame_start", UI_ITEM_NONE, IFACE_("Start"), ICON_NONE);
-    uiItemR(subcol, &ctx.bake_rna, "frame_end", UI_ITEM_NONE, IFACE_("End"), ICON_NONE);
+    subcol->prop(&ctx.bake_rna, "frame_start", UI_ITEM_NONE, IFACE_("Start"), ICON_NONE);
+    subcol->prop(&ctx.bake_rna, "frame_end", UI_ITEM_NONE, IFACE_("End"), ICON_NONE);
   }
 }
 
@@ -860,7 +879,7 @@ static void draw_bake_data_block_list_item(uiList * /*ui_list*/,
     name = fmt::format("{} [{}]", data_block.id_name, data_block.lib_name);
   }
 
-  uiItemR(row, itemptr, "id", UI_ITEM_NONE, name, ICON_NONE);
+  row->prop(itemptr, "id", UI_ITEM_NONE, name, ICON_NONE);
 }
 
 void draw_data_blocks(const bContext *C, uiLayout *layout, PointerRNA &bake_rna)
@@ -876,8 +895,8 @@ void draw_data_blocks(const bContext *C, uiLayout *layout, PointerRNA &bake_rna)
   PointerRNA data_blocks_ptr = RNA_pointer_create_discrete(
       bake_rna.owner_id, &RNA_NodesModifierBakeDataBlocks, bake_rna.data);
 
-  if (uiLayout *panel = uiLayoutPanel(
-          C, layout, "data_block_references", true, IFACE_("Data-Block References")))
+  if (uiLayout *panel = layout->panel(
+          C, "data_block_references", true, IFACE_("Data-Block References")))
   {
     uiTemplateList(panel,
                    C,
@@ -906,7 +925,6 @@ std::unique_ptr<LazyFunction> get_bake_lazy_function(
 
 StructRNA *BakeItemsAccessor::item_srna = &RNA_NodeGeometryBakeItem;
 int BakeItemsAccessor::node_type = GEO_NODE_BAKE;
-int BakeItemsAccessor::item_dna_type = SDNA_TYPE_FROM_STRUCT(NodeGeometryBakeItem);
 
 void BakeItemsAccessor::blend_write_item(BlendWriter *writer, const ItemT &item)
 {

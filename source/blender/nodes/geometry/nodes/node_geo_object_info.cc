@@ -45,7 +45,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  uiItemR(layout, ptr, "transform_space", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "transform_space", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 }
 
 static void node_geo_exec(GeoNodeExecParams params)
@@ -54,7 +54,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   const bool transform_space_relative = (storage.transform_space ==
                                          GEO_NODE_TRANSFORM_SPACE_RELATIVE);
 
-  Object *object = params.get_input<Object *>("Object");
+  Object *object = params.extract_input<Object *>("Object");
 
   const Object *self_object = params.self_object();
   if (object == nullptr) {
@@ -136,7 +136,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   }
 
   GeometrySet geometry_set;
-  if (params.get_input<bool>("As Instance")) {
+  if (params.extract_input<bool>("As Instance")) {
     std::unique_ptr<bke::Instances> instances = std::make_unique<bke::Instances>();
     const int handle = instances->add_reference(*object);
     if (transform_space_relative) {

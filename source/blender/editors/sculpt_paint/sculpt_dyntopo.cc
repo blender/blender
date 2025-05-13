@@ -228,8 +228,8 @@ static wmOperatorStatus dyntopo_warning_popup(bContext *C, wmOperatorType *ot, e
   if (flag & (VDATA | EDATA | LDATA)) {
     const char *msg_error = RPT_("Attribute Data Detected");
     const char *msg = RPT_("Dyntopo will not preserve colors, UVs, or other attributes");
-    uiItemL(layout, msg_error, ICON_INFO);
-    uiItemL(layout, msg, ICON_NONE);
+    layout->label(msg_error, ICON_INFO);
+    layout->label(msg, ICON_NONE);
     uiItemS(layout);
   }
 
@@ -238,8 +238,8 @@ static wmOperatorStatus dyntopo_warning_popup(bContext *C, wmOperatorType *ot, e
     const char *msg = RPT_(
         "Keeping the modifiers will increase polycount when returning to object mode");
 
-    uiItemL(layout, msg_error, ICON_INFO);
-    uiItemL(layout, msg, ICON_NONE);
+    layout->label(msg_error, ICON_INFO);
+    layout->label(msg, ICON_NONE);
     uiItemS(layout);
   }
 

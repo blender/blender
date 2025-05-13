@@ -1,0 +1,9 @@
+==== Objects: 1
+- Obj 'pointLight1' LIGHT data:'Light'
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 0.010, 0.010, 0.010
+
+==== Lights: 1
+- Light 'Light' POINT col:(0.148, 0.095, 0.440) energy:3.072
+

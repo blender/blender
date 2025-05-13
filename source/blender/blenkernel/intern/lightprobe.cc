@@ -50,7 +50,7 @@ static void lightprobe_blend_write(BlendWriter *writer, ID *id, const void *id_a
 }
 
 IDTypeInfo IDType_ID_LP = {
-    /*id_code*/ ID_LP,
+    /*id_code*/ LightProbe::id_type,
     /*id_filter*/ FILTER_ID_LP,
     /*dependencies_id_types*/ FILTER_ID_IM,
     /*main_listbase_index*/ INDEX_ID_LP,
@@ -107,7 +107,7 @@ LightProbe *BKE_lightprobe_add(Main *bmain, const char *name)
 {
   LightProbe *probe;
 
-  probe = static_cast<LightProbe *>(BKE_id_new(bmain, ID_LP, name));
+  probe = BKE_id_new<LightProbe>(bmain, name);
 
   return probe;
 }

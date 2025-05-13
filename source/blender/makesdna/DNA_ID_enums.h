@@ -112,6 +112,11 @@ typedef enum eIDPropertyFlag {
  * Written to #BHead.code (for file IO)
  * and the first 2 bytes of #ID.name (for runtime checks, see #GS macro).
  *
+ * These types should also be available on their corresponding DNA struct.
+ * It must be a static `constexpr` data member so that it can be used in
+ * compile-time expressions and does not take up space in the struct.
+ * This is used by e.g. #BKE_id_new_nomain for improved type safety.
+ *
  * Update #ID_TYPE_IS_DEPRECATED() when deprecating types.
  */
 typedef enum ID_Type {
@@ -130,7 +135,7 @@ typedef enum ID_Type {
   ID_IP = MAKE_ID2('I', 'P'),        /* Ipo (depreciated, replaced by FCurves) */
   ID_KE = MAKE_ID2('K', 'E'),        /* Key (shape key) */
   ID_WO = MAKE_ID2('W', 'O'),        /* World */
-  ID_SCR = MAKE_ID2('S', 'R'),       /* Screen */
+  ID_SCR = MAKE_ID2('S', 'R'),       /* bScreen */
   ID_VF = MAKE_ID2('V', 'F'),        /* VFont (Vector Font) */
   ID_TXT = MAKE_ID2('T', 'X'),       /* Text */
   ID_SPK = MAKE_ID2('S', 'K'),       /* Speaker */
@@ -142,7 +147,7 @@ typedef enum ID_Type {
   ID_BR = MAKE_ID2('B', 'R'),        /* Brush */
   ID_PA = MAKE_ID2('P', 'A'),        /* ParticleSettings */
   ID_GD_LEGACY = MAKE_ID2('G', 'D'), /* bGPdata, (legacy Grease Pencil) */
-  ID_WM = MAKE_ID2('W', 'M'),        /* WindowManager */
+  ID_WM = MAKE_ID2('W', 'M'),        /* wmWindowManager */
   ID_MC = MAKE_ID2('M', 'C'),        /* MovieClip */
   ID_MSK = MAKE_ID2('M', 'S'),       /* Mask */
   ID_LS = MAKE_ID2('L', 'S'),        /* FreestyleLineStyle */

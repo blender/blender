@@ -1,0 +1,9 @@
+This directory serves as the root of a project. It has the following contents:
+- .blender_project/:
+    The existence of this marks its parent directory as project root.
+- .blender_project/settings.json
+    Project settings that tests can use (but shouldn't write to)
+- some_project_file.blend: A copy of the startup.blend that should be considered part of the
+    project.
+- unicode_subdirectory_новый/another_subdirectory/some_nested_project_file.blend: A copy of the
+    startup.blend that should be considered part of the project.

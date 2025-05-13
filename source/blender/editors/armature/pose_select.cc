@@ -132,7 +132,7 @@ bool ED_armature_pose_select_pick_bone(const Scene *scene,
                                        View3D *v3d,
                                        Object *ob,
                                        Bone *bone,
-                                       const SelectPick_Params *params)
+                                       const SelectPick_Params &params)
 {
   bool found = false;
   bool changed = false;
@@ -143,11 +143,11 @@ bool ED_armature_pose_select_pick_bone(const Scene *scene,
     }
   }
 
-  if (params->sel_op == SEL_OP_SET) {
-    if ((found && params->select_passthrough) && (bone->flag & BONE_SELECTED)) {
+  if (params.sel_op == SEL_OP_SET) {
+    if ((found && params.select_passthrough) && (bone->flag & BONE_SELECTED)) {
       found = false;
     }
-    else if (found || params->deselect_all) {
+    else if (found || params.deselect_all) {
       /* Deselect everything. */
       /* Don't use #BKE_object_pose_base_array_get_unique
        * because we may be selecting from object mode. */
@@ -181,13 +181,13 @@ bool ED_armature_pose_select_pick_bone(const Scene *scene,
     {
       /* When we are entering into posemode via toggle-select,
        * from another active object - always select the bone. */
-      if (params->sel_op == SEL_OP_SET) {
+      if (params.sel_op == SEL_OP_SET) {
         /* Re-select the bone again later in this function. */
         bone->flag &= ~BONE_SELECTED;
       }
     }
 
-    switch (params->sel_op) {
+    switch (params.sel_op) {
       case SEL_OP_ADD: {
         bone->flag |= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
         arm->act_bone = bone;
@@ -258,7 +258,7 @@ bool ED_armature_pose_select_pick_with_buffer(const Scene *scene,
                                               Base *base,
                                               const GPUSelectResult *hit_results,
                                               const int hits,
-                                              const SelectPick_Params *params,
+                                              const SelectPick_Params &params,
                                               bool do_nearest)
 {
   Object *ob = base->object;

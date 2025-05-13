@@ -189,7 +189,7 @@ static void texture_blend_read_data(BlendDataReader *reader, ID *id)
 }
 
 IDTypeInfo IDType_ID_TE = {
-    /*id_code*/ ID_TE,
+    /*id_code*/ Tex::id_type,
     /*id_filter*/ FILTER_ID_TE,
     /*dependencies_id_types*/ FILTER_ID_IM | FILTER_ID_OB,
     /*main_listbase_index*/ INDEX_ID_TE,
@@ -375,7 +375,7 @@ Tex *BKE_texture_add(Main *bmain, const char *name)
 {
   Tex *tex;
 
-  tex = static_cast<Tex *>(BKE_id_new(bmain, ID_TE, name));
+  tex = BKE_id_new<Tex>(bmain, name);
 
   return tex;
 }

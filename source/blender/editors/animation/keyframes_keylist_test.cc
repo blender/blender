@@ -186,7 +186,7 @@ class KeylistSummaryTest : public testing::Test {
     bmain = BKE_main_new();
     G_MAIN = bmain; /* For BKE_animdata_free(). */
 
-    action = &static_cast<bAction *>(BKE_id_new(bmain, ID_AC, "ACÄnimåtië"))->wrap();
+    action = &BKE_id_new<bAction>(bmain, "ACÄnimåtië")->wrap();
     cube = BKE_object_add_only_object(bmain, OB_EMPTY, "Küüübus");
 
     armature_data = BKE_armature_add(bmain, "ARArmature");

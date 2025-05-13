@@ -312,14 +312,14 @@ static void panel_draw(const bContext *C, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, ptr, "mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   if (ELEM(mode, MOD_GREASE_PENCIL_TEXTURE_STROKE, MOD_GREASE_PENCIL_TEXTURE_STROKE_AND_FILL)) {
     col = &layout->column(false);
-    uiItemR(col, ptr, "fit_method", UI_ITEM_NONE, IFACE_("Stroke Fit Method"), ICON_NONE);
-    uiItemR(col, ptr, "uv_offset", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    uiItemR(col, ptr, "alignment_rotation", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    uiItemR(col, ptr, "uv_scale", UI_ITEM_NONE, IFACE_("Scale"), ICON_NONE);
+    col->prop(ptr, "fit_method", UI_ITEM_NONE, IFACE_("Stroke Fit Method"), ICON_NONE);
+    col->prop(ptr, "uv_offset", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col->prop(ptr, "alignment_rotation", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col->prop(ptr, "uv_scale", UI_ITEM_NONE, IFACE_("Scale"), ICON_NONE);
   }
 
   if (mode == MOD_GREASE_PENCIL_TEXTURE_STROKE_AND_FILL) {
@@ -328,13 +328,13 @@ static void panel_draw(const bContext *C, Panel *panel)
 
   if (ELEM(mode, MOD_GREASE_PENCIL_TEXTURE_FILL, MOD_GREASE_PENCIL_TEXTURE_STROKE_AND_FILL)) {
     col = &layout->column(false);
-    uiItemR(col, ptr, "fill_rotation", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    uiItemR(col, ptr, "fill_offset", UI_ITEM_NONE, IFACE_("Offset"), ICON_NONE);
-    uiItemR(col, ptr, "fill_scale", UI_ITEM_NONE, IFACE_("Scale"), ICON_NONE);
+    col->prop(ptr, "fill_rotation", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col->prop(ptr, "fill_offset", UI_ITEM_NONE, IFACE_("Offset"), ICON_NONE);
+    col->prop(ptr, "fill_scale", UI_ITEM_NONE, IFACE_("Scale"), ICON_NONE);
   }
 
-  if (uiLayout *influence_panel = uiLayoutPanelProp(
-          C, layout, ptr, "open_influence_panel", IFACE_("Influence")))
+  if (uiLayout *influence_panel = layout->panel_prop(
+          C, ptr, "open_influence_panel", IFACE_("Influence")))
   {
     modifier::greasepencil::draw_layer_filter_settings(C, influence_panel, ptr);
     modifier::greasepencil::draw_material_filter_settings(C, influence_panel, ptr);

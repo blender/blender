@@ -59,7 +59,7 @@ float3 workbench_image_color(float2 uvs)
 
 #  ifdef GPU_FRAGMENT_SHADER
   if (color.a < image_transparency_cutoff) {
-    discard;
+    gpu_discard_fragment();
   }
 #  endif
 

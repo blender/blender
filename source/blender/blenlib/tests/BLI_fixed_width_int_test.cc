@@ -10,7 +10,7 @@
 
 #include "testing/testing.h"
 
-/* See `BLI_fixed_width_int_str.hh` for why this is necessary.  */
+/* See `BLI_fixed_width_int_str.hh` for why this is necessary. */
 #ifdef WITH_GMP
 
 namespace blender::fixed_width_int::tests {

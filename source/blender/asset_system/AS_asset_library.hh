@@ -9,13 +9,13 @@
 #pragma once
 
 #include <memory>
-#include <mutex>
 #include <optional>
 
 #include "AS_asset_catalog.hh"
 
 #include "DNA_asset_types.h"
 
+#include "BLI_mutex.hh"
 #include "BLI_set.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
@@ -82,7 +82,7 @@ class AssetLibrary {
    * within the catalog service may still happen without the mutex being locked. They should be
    * protected separately. */
   std::unique_ptr<AssetCatalogService> catalog_service_;
-  std::mutex catalog_service_mutex_;
+  Mutex catalog_service_mutex_;
 
   std::optional<eAssetImportMethod> import_method_;
   /** Assets owned by this library may be imported with a different method than set in

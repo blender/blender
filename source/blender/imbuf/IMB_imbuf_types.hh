@@ -16,9 +16,13 @@
 #include "IMB_imbuf_enums.h"
 
 struct ColormanageCache;
-struct ColorSpace;
 struct GPUTexture;
 struct IDProperty;
+
+namespace blender::ocio {
+class ColorSpace;
+}
+using ColorSpace = blender::ocio::ColorSpace;
 
 #define IMB_MIPMAP_LEVELS 20
 #define IMB_FILEPATH_SIZE 1024
@@ -146,14 +150,14 @@ struct ImBufByteBuffer {
   uint8_t *data;
   ImBufOwnership ownership;
 
-  ColorSpace *colorspace;
+  const ColorSpace *colorspace;
 };
 
 struct ImBufFloatBuffer {
   float *data;
   ImBufOwnership ownership;
 
-  ColorSpace *colorspace;
+  const ColorSpace *colorspace;
 };
 
 struct ImBufGPU {
@@ -239,9 +243,8 @@ struct ImBuf {
   /** The absolute file path associated with this image. */
   char filepath[IMB_FILEPATH_SIZE];
 
-  /* memory cache limiter */
   /** reference counter for multiple users */
-  int refcounter;
+  int32_t refcounter;
 
   /* some parameters to pass along for packing images */
   /** Compressed image only used with PNG and EXR currently. */

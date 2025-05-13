@@ -169,46 +169,66 @@ static void extract_data_bmesh_loop(const BMesh &bm, const int cd_offset, gpu::V
   }
 }
 
-static const CustomData *get_custom_data_for_domain(const BMesh &bm, bke::AttrDomain domain)
-{
-  switch (domain) {
-    case bke::AttrDomain::Point:
-      return &bm.vdata;
-    case bke::AttrDomain::Corner:
-      return &bm.ldata;
-    case bke::AttrDomain::Face:
-      return &bm.pdata;
-    case bke::AttrDomain::Edge:
-      return &bm.edata;
-    default:
-      return nullptr;
+struct BMeshAttributeLookup {
+  const int offset = -1;
+  bke::AttrDomain domain;
+  eCustomDataType type;
+  operator bool() const
+  {
+    return offset != -1;
   }
+};
+
+static BMeshAttributeLookup lookup_bmesh_attribute(const BMesh &bm, const StringRef name)
+{
+  for (const CustomDataLayer &layer : Span(bm.vdata.layers, bm.vdata.totlayer)) {
+    if (layer.name == name) {
+      return {layer.offset, bke::AttrDomain::Point, eCustomDataType(layer.type)};
+    }
+  }
+  for (const CustomDataLayer &layer : Span(bm.edata.layers, bm.edata.totlayer)) {
+    if (layer.name == name) {
+      return {layer.offset, bke::AttrDomain::Edge, eCustomDataType(layer.type)};
+    }
+  }
+  for (const CustomDataLayer &layer : Span(bm.pdata.layers, bm.pdata.totlayer)) {
+    if (layer.name == name) {
+      return {layer.offset, bke::AttrDomain::Face, eCustomDataType(layer.type)};
+    }
+  }
+  for (const CustomDataLayer &layer : Span(bm.ldata.layers, bm.ldata.totlayer)) {
+    if (layer.name == name) {
+      return {layer.offset, bke::AttrDomain::Corner, eCustomDataType(layer.type)};
+    }
+  }
+  return {};
 }
 
 static void extract_attribute_no_init(const MeshRenderData &mr,
-                                      const DRW_AttributeRequest &request,
+                                      const StringRef name,
                                       gpu::VertBuf &vbo)
 {
   if (mr.extract_type == MeshExtractType::BMesh) {
-    const CustomData &custom_data = *get_custom_data_for_domain(*mr.bm, request.domain);
-    const char *name = request.attribute_name;
-    const int cd_offset = CustomData_get_offset_named(&custom_data, request.cd_type, name);
+    const BMeshAttributeLookup attr = lookup_bmesh_attribute(*mr.bm, name);
+    if (!attr) {
+      return;
+    }
 
-    bke::attribute_math::convert_to_static_type(request.cd_type, [&](auto dummy) {
+    bke::attribute_math::convert_to_static_type(attr.type, [&](auto dummy) {
       using T = decltype(dummy);
       if constexpr (!std::is_void_v<typename AttributeConverter<T>::VBOType>) {
-        switch (request.domain) {
+        switch (attr.domain) {
           case bke::AttrDomain::Point:
-            extract_data_bmesh_vert<T>(*mr.bm, cd_offset, vbo);
+            extract_data_bmesh_vert<T>(*mr.bm, attr.offset, vbo);
             break;
           case bke::AttrDomain::Edge:
-            extract_data_bmesh_edge<T>(*mr.bm, cd_offset, vbo);
+            extract_data_bmesh_edge<T>(*mr.bm, attr.offset, vbo);
             break;
           case bke::AttrDomain::Face:
-            extract_data_bmesh_face<T>(*mr.bm, cd_offset, vbo);
+            extract_data_bmesh_face<T>(*mr.bm, attr.offset, vbo);
             break;
           case bke::AttrDomain::Corner:
-            extract_data_bmesh_loop<T>(*mr.bm, cd_offset, vbo);
+            extract_data_bmesh_loop<T>(*mr.bm, attr.offset, vbo);
             break;
           default:
             BLI_assert_unreachable();
@@ -218,25 +238,26 @@ static void extract_attribute_no_init(const MeshRenderData &mr,
   }
   else {
     const bke::AttributeAccessor attributes = mr.mesh->attributes();
-    const StringRef name = request.attribute_name;
-    const eCustomDataType data_type = request.cd_type;
-    const GVArraySpan attribute = *attributes.lookup_or_default(name, request.domain, data_type);
+    const bke::GAttributeReader attr = attributes.lookup(name);
+    if (!attr) {
+      return;
+    }
 
-    bke::attribute_math::convert_to_static_type(request.cd_type, [&](auto dummy) {
+    bke::attribute_math::convert_to_static_type(attr.varray.type(), [&](auto dummy) {
       using T = decltype(dummy);
       if constexpr (!std::is_void_v<typename AttributeConverter<T>::VBOType>) {
-        switch (request.domain) {
+        switch (attr.domain) {
           case bke::AttrDomain::Point:
-            extract_data_mesh_mapped_corner(attribute.typed<T>(), mr.corner_verts, vbo);
+            extract_data_mesh_mapped_corner(GVArraySpan(*attr).typed<T>(), mr.corner_verts, vbo);
             break;
           case bke::AttrDomain::Edge:
-            extract_data_mesh_mapped_corner(attribute.typed<T>(), mr.corner_edges, vbo);
+            extract_data_mesh_mapped_corner(GVArraySpan(*attr).typed<T>(), mr.corner_edges, vbo);
             break;
           case bke::AttrDomain::Face:
-            extract_data_mesh_face(mr.faces, attribute.typed<T>(), vbo);
+            extract_data_mesh_face(mr.faces, GVArraySpan(*attr).typed<T>(), vbo);
             break;
           case bke::AttrDomain::Corner:
-            vertbuf_data_extract_direct(attribute.typed<T>(), vbo);
+            vertbuf_data_extract_direct(GVArraySpan(*attr).typed<T>(), vbo);
             break;
           default:
             BLI_assert_unreachable();
@@ -250,7 +271,7 @@ gpu::VertBufPtr extract_attribute(const MeshRenderData &mr, const DRW_AttributeR
 {
   gpu::VertBuf *vbo = GPU_vertbuf_calloc();
   init_vbo_for_attribute(mr, *vbo, request, false, uint32_t(mr.corners_num));
-  extract_attribute_no_init(mr, request, *vbo);
+  extract_attribute_no_init(mr, request.attribute_name, *vbo);
   return gpu::VertBufPtr(vbo);
 }
 
@@ -267,7 +288,7 @@ gpu::VertBufPtr extract_attribute_subdiv(const MeshRenderData &mr,
   GPU_vertbuf_init_with_format_ex(*src_data, coarse_format, GPU_USAGE_STATIC);
   GPU_vertbuf_data_alloc(*src_data, uint32_t(coarse_mesh->corners_num));
 
-  extract_attribute_no_init(mr, request, *src_data);
+  extract_attribute_no_init(mr, request.attribute_name, *src_data);
 
   gpu::VertBuf *vbo = GPU_vertbuf_calloc();
   init_vbo_for_attribute(mr, *vbo, request, true, subdiv_cache.num_subdiv_loops);

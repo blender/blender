@@ -597,7 +597,7 @@ static BPoint *findnearestLattvert(ViewContext *vc, bool select, Base **r_base)
   return data.bp;
 }
 
-bool ED_lattice_select_pick(bContext *C, const int mval[2], const SelectPick_Params *params)
+bool ED_lattice_select_pick(bContext *C, const int mval[2], const SelectPick_Params &params)
 {
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   BPoint *bp = nullptr;
@@ -611,11 +611,11 @@ bool ED_lattice_select_pick(bContext *C, const int mval[2], const SelectPick_Par
   bp = findnearestLattvert(&vc, true, &basact);
   bool found = (bp != nullptr);
 
-  if (params->sel_op == SEL_OP_SET) {
-    if ((found && params->select_passthrough) && (bp->f1 & SELECT)) {
+  if (params.sel_op == SEL_OP_SET) {
+    if ((found && params.select_passthrough) && (bp->f1 & SELECT)) {
       found = false;
     }
-    else if (found || params->deselect_all) {
+    else if (found || params.deselect_all) {
       /* Deselect everything. */
       Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
           vc.scene, vc.view_layer, vc.v3d);
@@ -633,7 +633,7 @@ bool ED_lattice_select_pick(bContext *C, const int mval[2], const SelectPick_Par
     ED_view3d_viewcontext_init_object(&vc, basact->object);
     Lattice *lt = ((Lattice *)vc.obedit->data)->editlatt->latt;
 
-    switch (params->sel_op) {
+    switch (params.sel_op) {
       case SEL_OP_ADD: {
         bp->f1 |= SELECT;
         break;

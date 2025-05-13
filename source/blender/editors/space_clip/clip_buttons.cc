@@ -131,11 +131,11 @@ void uiTemplateMovieClip(uiLayout *layout,
     uiDefBut(block, UI_BTYPE_LABEL, 0, IFACE_("File Path:"), 0, 19, 145, 19, nullptr, 0, 0, "");
 
     row = &layout->row(false);
-    uiLayout *split = uiLayoutSplit(row, 0.0f, false);
+    uiLayout *split = &row->split(0.0f, false);
     row = &split->row(true);
 
-    uiItemR(row, &clipptr, "filepath", UI_ITEM_NONE, "", ICON_NONE);
-    uiItemO(row, "", ICON_FILE_REFRESH, "clip.reload");
+    row->prop(&clipptr, "filepath", UI_ITEM_NONE, "", ICON_NONE);
+    row->op("clip.reload", "", ICON_FILE_REFRESH);
 
     uiLayout *col = &layout->column(false);
     uiTemplateColorspaceSettings(col, &clipptr, "colorspace_settings");
@@ -452,7 +452,7 @@ void uiTemplateMarker(uiLayout *layout,
 
     if (track->flag & TRACK_LOCKED) {
       uiLayoutSetActive(layout, false);
-      uiBlock *block = uiLayoutAbsoluteBlock(layout);
+      uiBlock *block = layout->absolute_block();
       uiDefBut(block,
                UI_BTYPE_LABEL,
                0,
@@ -488,7 +488,7 @@ void uiTemplateMarker(uiLayout *layout,
 
     cb->marker_flag = marker->flag;
 
-    uiBlock *block = uiLayoutAbsoluteBlock(layout);
+    uiBlock *block = layout->absolute_block();
     UI_block_func_handle_set(block, marker_block_handler, cb);
     UI_block_funcN_set(block, marker_update_cb, cb, nullptr);
 
@@ -520,7 +520,7 @@ void uiTemplateMarker(uiLayout *layout,
     uiLayout *col = &layout->column(true);
     uiLayoutSetActive(col, (cb->marker_flag & MARKER_DISABLED) == 0);
 
-    block = uiLayoutAbsoluteBlock(col);
+    block = col->absolute_block();
     UI_block_align_begin(block);
 
     uiDefBut(block,
@@ -803,7 +803,7 @@ void uiTemplateMovieclipInformation(uiLayout *layout,
   }
   UNUSED_VARS(ofs);
 
-  uiItemL(col, str, ICON_NONE);
+  col->label(str, ICON_NONE);
 
   /* Display current frame number. */
   int framenr = BKE_movieclip_remap_scene_to_clip_frame(clip, user->framenr);
@@ -813,7 +813,7 @@ void uiTemplateMovieclipInformation(uiLayout *layout,
   else {
     SNPRINTF(str, RPT_("Frame: - / %d"), clip->len);
   }
-  uiItemL(col, str, ICON_NONE);
+  col->label(str, ICON_NONE);
 
   /* Display current file name if it's a sequence clip. */
   if (clip->source == MCLIP_SRC_SEQUENCE) {
@@ -830,7 +830,7 @@ void uiTemplateMovieclipInformation(uiLayout *layout,
 
     SNPRINTF(str, RPT_("File: %s"), file);
 
-    uiItemL(col, str, ICON_NONE);
+    col->label(str, ICON_NONE);
   }
 
   IMB_freeImBuf(ibuf);

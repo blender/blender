@@ -34,7 +34,6 @@ struct CombineBundleItemsAccessor {
   using ItemT = NodeGeometryCombineBundleItem;
   static StructRNA *item_srna;
   static int node_type;
-  static int item_dna_type;
   static constexpr const char *node_idname = "GeometryNodeCombineBundle";
   static constexpr bool has_type = true;
   static constexpr bool has_name = true;
@@ -108,7 +107,6 @@ struct SeparateBundleItemsAccessor {
   using ItemT = NodeGeometrySeparateBundleItem;
   static StructRNA *item_srna;
   static int node_type;
-  static int item_dna_type;
   static constexpr const char *node_idname = "GeometryNodeSeparateBundle";
   static constexpr bool has_type = true;
   static constexpr bool has_name = true;

@@ -12,31 +12,6 @@ COMPUTE_SHADER_CREATE_INFO(eevee_lightprobe_sphere_remap)
 #include "eevee_lightprobe_sphere_mapping_lib.glsl"
 #include "eevee_spherical_harmonics_lib.glsl"
 
-/* OpenGL/Intel drivers have known issues where it isn't able to compile barriers inside for loops.
- * Macros are needed as driver can decide to not unroll in shaders with more complexity. */
-#define PARALLEL_SUM_INNER() \
-  barrier(); \
-  if (local_index < stride) { \
-    local_radiance[local_index] += local_radiance[local_index + stride]; \
-  } \
-  stride /= 2;
-
-#define PARALLEL_SUM \
-  { \
-    uint stride = group_size / 2; \
-    PARALLEL_SUM_INNER(); \
-    PARALLEL_SUM_INNER(); \
-    PARALLEL_SUM_INNER(); \
-    PARALLEL_SUM_INNER(); \
-    PARALLEL_SUM_INNER(); \
-    PARALLEL_SUM_INNER(); \
-    PARALLEL_SUM_INNER(); \
-    PARALLEL_SUM_INNER(); \
-    PARALLEL_SUM_INNER(); \
-    PARALLEL_SUM_INNER(); \
-    barrier(); \
-  }
-
 shared float4 local_radiance[gl_WorkGroupSize.x * gl_WorkGroupSize.y];
 
 float triangle_solid_angle(float3 A, float3 B, float3 C)
@@ -159,7 +134,16 @@ void main()
   if (extract_sun) {
     /* Parallel sum. Result is stored inside local_radiance[0]. */
     local_radiance[local_index] = radiance_sun.xyzz * sample_weight;
-    PARALLEL_SUM
+    /* OpenGL/Intel drivers have known issues where it isn't able to compile barriers inside for
+     * loops. Unroll is needed as driver might decide to not unroll in shaders with more
+     * complexity. */
+    [[gpu::unroll(10)]] for (uint stride = group_size / 2; stride > 0; stride /= 2)
+    {
+      barrier();
+      if (local_index < stride) {
+        local_radiance[local_index] += local_radiance[local_index + stride];
+      }
+    }
 
     if (gl_LocalInvocationIndex == 0u) {
       out_sun[work_group_index].radiance = local_radiance[0].xyz;
@@ -167,12 +151,24 @@ void main()
     barrier();
 
     /* Reusing local_radiance for directions. */
-    local_radiance[local_index] = float4(normalize(direction), 1.0f) * sample_weight *
-                                  length(radiance_sun.xyz);
-    PARALLEL_SUM
+    auto &local_direction = local_radiance;
+
+    local_direction[local_index] = float4(normalize(direction), 1.0f) * sample_weight *
+                                   length(radiance_sun.xyz);
+    /* OpenGL/Intel drivers have known issues where it isn't able to compile barriers inside for
+     * loops. Unroll is needed as driver might decide to not unroll in shaders with more
+     * complexity. */
+    [[gpu::unroll(10)]] for (uint stride = group_size / 2; stride > 0; stride /= 2)
+    {
+      barrier();
+      if (local_index < stride) {
+        local_direction[local_index] += local_direction[local_index + stride];
+      }
+    }
+    barrier();
 
     if (gl_LocalInvocationIndex == 0u) {
-      out_sun[work_group_index].direction = local_radiance[0];
+      out_sun[work_group_index].direction = local_direction[0];
     }
     barrier();
   }
@@ -180,7 +176,16 @@ void main()
   if (extract_sh) {
     /* Parallel sum. Result is stored inside local_radiance[0]. */
     local_radiance[local_index] = radiance.xyzz * sample_weight;
-    PARALLEL_SUM
+    /* OpenGL/Intel drivers have known issues where it isn't able to compile barriers inside for
+     * loops. Unroll is needed as driver might decide to not unroll in shaders with more
+     * complexity. */
+    [[gpu::unroll(10)]] for (uint stride = group_size / 2; stride > 0; stride /= 2)
+    {
+      barrier();
+      if (local_index < stride) {
+        local_radiance[local_index] += local_radiance[local_index + stride];
+      }
+    }
 
     if (gl_LocalInvocationIndex == 0u) {
       /* Find the middle point of the whole thread-group. Use it as light vector.

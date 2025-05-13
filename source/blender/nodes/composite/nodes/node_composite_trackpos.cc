@@ -89,16 +89,16 @@ static void node_composit_buts_trackpos(uiLayout *layout, bContext *C, PointerRN
       uiItemPointerR(col, ptr, "track_name", &object_ptr, "tracks", "", ICON_ANIM_DATA);
     }
     else {
-      uiItemR(layout, ptr, "track_name", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_ANIM_DATA);
+      layout->prop(ptr, "track_name", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_ANIM_DATA);
     }
 
-    uiItemR(layout, ptr, "position", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+    layout->prop(ptr, "position", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 
     if (ELEM(node->custom1,
              CMP_NODE_TRACK_POSITION_RELATIVE_FRAME,
              CMP_NODE_TRACK_POSITION_ABSOLUTE_FRAME))
     {
-      uiItemR(layout, ptr, "frame_relative", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+      layout->prop(ptr, "frame_relative", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
     }
   }
 }
@@ -352,7 +352,7 @@ static NodeOperation *get_compositor_operation(Context &context, DNode node)
 
 }  // namespace blender::nodes::node_composite_trackpos_cc
 
-void register_node_type_cmp_trackpos()
+static void register_node_type_cmp_trackpos()
 {
   namespace file_ns = blender::nodes::node_composite_trackpos_cc;
 
@@ -373,3 +373,4 @@ void register_node_type_cmp_trackpos()
 
   blender::bke::node_register_type(ntype);
 }
+NOD_REGISTER_NODE(register_node_type_cmp_trackpos)

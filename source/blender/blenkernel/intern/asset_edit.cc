@@ -67,7 +67,7 @@ static ID *asset_link_id(Main &global_main,
 
   BKE_blendfile_link_append_context_free(lapp_context);
 
-  /* Verify that the name matches. It must for referencing the same asset again to work.  */
+  /* Verify that the name matches. It must for referencing the same asset again to work. */
   BLI_assert(local_asset == nullptr || STREQ(local_asset->name + 2, asset_name));
 
   /* Tag library as being editable. */

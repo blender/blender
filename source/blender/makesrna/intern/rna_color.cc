@@ -80,7 +80,7 @@ static bool seq_update_modifier_curve(Strip *strip, void *user_data)
   /* Invalidate cache of any strips that have modifiers using this
    * curve mapping. */
   SeqCurveMappingUpdateData *data = static_cast<SeqCurveMappingUpdateData *>(user_data);
-  LISTBASE_FOREACH (SequenceModifierData *, smd, &strip->modifiers) {
+  LISTBASE_FOREACH (StripModifierData *, smd, &strip->modifiers) {
     if (smd->type == seqModifierType_Curves) {
       CurvesModifierData *cmd = reinterpret_cast<CurvesModifierData *>(smd);
       if (&cmd->curve_mapping == data->curve) {
@@ -495,16 +495,28 @@ static void rna_ColorManagedDisplaySettings_display_device_update(Main *bmain,
 
 static int rna_ColorManagedViewSettings_view_transform_get(PointerRNA *ptr)
 {
+  const ID *id = ptr->owner_id;
+  BLI_assert(GS(id->name) == ID_SCE);
+
+  const Scene *scene = reinterpret_cast<const Scene *>(id);
+
   ColorManagedViewSettings *view = (ColorManagedViewSettings *)ptr->data;
 
-  return IMB_colormanagement_view_get_named_index(view->view_transform);
+  return IMB_colormanagement_view_get_named_index(scene->display_settings.display_device,
+                                                  view->view_transform);
 }
 
 static void rna_ColorManagedViewSettings_view_transform_set(PointerRNA *ptr, int value)
 {
+  const ID *id = ptr->owner_id;
+  BLI_assert(GS(id->name) == ID_SCE);
+
+  const Scene *scene = reinterpret_cast<const Scene *>(id);
+
   ColorManagedViewSettings *view = (ColorManagedViewSettings *)ptr->data;
 
-  const char *view_name = IMB_colormanagement_view_get_indexed_name(value);
+  const char *view_name = IMB_colormanagement_view_get_indexed_name(
+      scene->display_settings.display_device, value);
   if (!view_name) {
     return;
   }
@@ -713,7 +725,7 @@ static void rna_ColorManagedColorspaceSettings_reload_update(Main *bmain,
         Strip *strip = cb_data.r_seq;
 
         if (strip) {
-          blender::seq::relations_sequence_free_anim(strip);
+          blender::seq::relations_strip_free_anim(strip);
 
           if (strip->data->proxy && strip->data->proxy->anim) {
             MOV_close(strip->data->proxy->anim);

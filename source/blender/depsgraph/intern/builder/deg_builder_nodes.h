@@ -221,6 +221,7 @@ class DepsgraphNodeBuilder : public DepsgraphBuilder {
   virtual void build_animation_images(ID *id);
   virtual void build_action(bAction *action);
 
+  virtual void build_animdata_drivers(ID *id, AnimData *adt);
   /**
    * Build graph node(s) for Driver
    * \param id: ID-Block that driver is attached to

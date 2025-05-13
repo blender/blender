@@ -477,31 +477,31 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   uiLayoutSetPropSep(layout, true);
 
   col = &layout->column(false);
-  uiItemR(col, ptr, "geometry_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  col->prop(ptr, "geometry_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   if (RNA_enum_get(ptr, "geometry_mode") == MOD_OCEAN_GEOM_GENERATE) {
     sub = &col->column(true);
-    uiItemR(sub, ptr, "repeat_x", UI_ITEM_NONE, IFACE_("Repeat X"), ICON_NONE);
-    uiItemR(sub, ptr, "repeat_y", UI_ITEM_NONE, IFACE_("Y"), ICON_NONE);
+    sub->prop(ptr, "repeat_x", UI_ITEM_NONE, IFACE_("Repeat X"), ICON_NONE);
+    sub->prop(ptr, "repeat_y", UI_ITEM_NONE, IFACE_("Y"), ICON_NONE);
   }
 
   sub = &col->column(true);
-  uiItemR(sub, ptr, "viewport_resolution", UI_ITEM_NONE, IFACE_("Resolution Viewport"), ICON_NONE);
-  uiItemR(sub, ptr, "resolution", UI_ITEM_NONE, IFACE_("Render"), ICON_NONE);
+  sub->prop(ptr, "viewport_resolution", UI_ITEM_NONE, IFACE_("Resolution Viewport"), ICON_NONE);
+  sub->prop(ptr, "resolution", UI_ITEM_NONE, IFACE_("Render"), ICON_NONE);
 
-  uiItemR(col, ptr, "time", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  col->prop(ptr, "time", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  uiItemR(col, ptr, "depth", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  uiItemR(col, ptr, "size", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  uiItemR(col, ptr, "spatial_size", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  col->prop(ptr, "depth", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  col->prop(ptr, "size", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  col->prop(ptr, "spatial_size", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  uiItemR(col, ptr, "random_seed", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  col->prop(ptr, "random_seed", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  uiItemR(col, ptr, "use_normals", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  col->prop(ptr, "use_normals", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   modifier_panel_end(layout, ptr);
 
 #else  /* WITH_OCEANSIM */
-  uiItemL(layout, RPT_("Built without Ocean modifier"), ICON_NONE);
+  layout->label(RPT_("Built without Ocean modifier"), ICON_NONE);
 #endif /* WITH_OCEANSIM */
 }
 
@@ -516,19 +516,19 @@ static void waves_panel_draw(const bContext * /*C*/, Panel *panel)
   uiLayoutSetPropSep(layout, true);
 
   col = &layout->column(false);
-  uiItemR(col, ptr, "wave_scale", UI_ITEM_NONE, IFACE_("Scale"), ICON_NONE);
-  uiItemR(col, ptr, "wave_scale_min", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  uiItemR(col, ptr, "choppiness", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  uiItemR(col, ptr, "wind_velocity", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  col->prop(ptr, "wave_scale", UI_ITEM_NONE, IFACE_("Scale"), ICON_NONE);
+  col->prop(ptr, "wave_scale_min", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  col->prop(ptr, "choppiness", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  col->prop(ptr, "wind_velocity", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   uiItemS(layout);
 
   col = &layout->column(false);
-  uiItemR(col, ptr, "wave_alignment", UI_ITEM_R_SLIDER, IFACE_("Alignment"), ICON_NONE);
+  col->prop(ptr, "wave_alignment", UI_ITEM_R_SLIDER, IFACE_("Alignment"), ICON_NONE);
   sub = &col->column(false);
   uiLayoutSetActive(sub, RNA_float_get(ptr, "wave_alignment") > 0.0f);
-  uiItemR(sub, ptr, "wave_direction", UI_ITEM_NONE, IFACE_("Direction"), ICON_NONE);
-  uiItemR(sub, ptr, "damping", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  sub->prop(ptr, "wave_direction", UI_ITEM_NONE, IFACE_("Direction"), ICON_NONE);
+  sub->prop(ptr, "damping", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
 static void foam_panel_draw_header(const bContext * /*C*/, Panel *panel)
@@ -537,7 +537,7 @@ static void foam_panel_draw_header(const bContext * /*C*/, Panel *panel)
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
-  uiItemR(layout, ptr, "use_foam", UI_ITEM_NONE, IFACE_("Foam"), ICON_NONE);
+  layout->prop(ptr, "use_foam", UI_ITEM_NONE, IFACE_("Foam"), ICON_NONE);
 }
 
 static void foam_panel_draw(const bContext * /*C*/, Panel *panel)
@@ -553,8 +553,8 @@ static void foam_panel_draw(const bContext * /*C*/, Panel *panel)
 
   col = &layout->column(false);
   uiLayoutSetActive(col, use_foam);
-  uiItemR(col, ptr, "foam_layer_name", UI_ITEM_NONE, IFACE_("Data Layer"), ICON_NONE);
-  uiItemR(col, ptr, "foam_coverage", UI_ITEM_NONE, IFACE_("Coverage"), ICON_NONE);
+  col->prop(ptr, "foam_layer_name", UI_ITEM_NONE, IFACE_("Data Layer"), ICON_NONE);
+  col->prop(ptr, "foam_coverage", UI_ITEM_NONE, IFACE_("Coverage"), ICON_NONE);
 }
 
 static void spray_panel_draw_header(const bContext * /*C*/, Panel *panel)
@@ -568,12 +568,8 @@ static void spray_panel_draw_header(const bContext * /*C*/, Panel *panel)
 
   row = &layout->row(false);
   uiLayoutSetActive(row, use_foam);
-  uiItemR(row,
-          ptr,
-          "use_spray",
-          UI_ITEM_NONE,
-          CTX_IFACE_(BLT_I18NCONTEXT_ID_MESH, "Spray"),
-          ICON_NONE);
+  row->prop(
+      ptr, "use_spray", UI_ITEM_NONE, CTX_IFACE_(BLT_I18NCONTEXT_ID_MESH, "Spray"), ICON_NONE);
 }
 
 static void spray_panel_draw(const bContext * /*C*/, Panel *panel)
@@ -590,8 +586,8 @@ static void spray_panel_draw(const bContext * /*C*/, Panel *panel)
 
   col = &layout->column(false);
   uiLayoutSetActive(col, use_foam && use_spray);
-  uiItemR(col, ptr, "spray_layer_name", UI_ITEM_NONE, IFACE_("Data Layer"), ICON_NONE);
-  uiItemR(col, ptr, "invert_spray", UI_ITEM_NONE, IFACE_("Invert"), ICON_NONE);
+  col->prop(ptr, "spray_layer_name", UI_ITEM_NONE, IFACE_("Data Layer"), ICON_NONE);
+  col->prop(ptr, "invert_spray", UI_ITEM_NONE, IFACE_("Invert"), ICON_NONE);
 }
 
 static void spectrum_panel_draw(const bContext * /*C*/, Panel *panel)
@@ -606,10 +602,10 @@ static void spectrum_panel_draw(const bContext * /*C*/, Panel *panel)
   uiLayoutSetPropSep(layout, true);
 
   col = &layout->column(false);
-  uiItemR(col, ptr, "spectrum", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  col->prop(ptr, "spectrum", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   if (ELEM(spectrum, MOD_OCEAN_SPECTRUM_TEXEL_MARSEN_ARSLOE, MOD_OCEAN_SPECTRUM_JONSWAP)) {
-    uiItemR(col, ptr, "sharpen_peak_jonswap", UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
-    uiItemR(col, ptr, "fetch_jonswap", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col->prop(ptr, "sharpen_peak_jonswap", UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
+    col->prop(ptr, "fetch_jonswap", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 }
 
@@ -650,16 +646,16 @@ static void bake_panel_draw(const bContext * /*C*/, Panel *panel)
     RNA_boolean_set(&op_ptr, "free", false);
   }
 
-  uiItemR(layout, ptr, "filepath", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "filepath", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   col = &layout->column(true);
   uiLayoutSetEnabled(col, !is_cached);
-  uiItemR(col, ptr, "frame_start", UI_ITEM_NONE, IFACE_("Frame Start"), ICON_NONE);
-  uiItemR(col, ptr, "frame_end", UI_ITEM_NONE, IFACE_("End"), ICON_NONE);
+  col->prop(ptr, "frame_start", UI_ITEM_NONE, IFACE_("Frame Start"), ICON_NONE);
+  col->prop(ptr, "frame_end", UI_ITEM_NONE, IFACE_("End"), ICON_NONE);
 
   col = &layout->column(false);
   uiLayoutSetActive(col, use_foam);
-  uiItemR(col, ptr, "bake_foam_fade", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  col->prop(ptr, "bake_foam_fade", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 #endif /* WITH_OCEANSIM */
 

@@ -64,8 +64,8 @@ class BPathTest : public testing::Test {
     bmain = BKE_main_new();
     STRNCPY(bmain->filepath, BLENDFILE_PATH);
 
-    BKE_id_new(bmain, ID_TXT, nullptr);
-    BKE_id_new(bmain, ID_MC, nullptr);
+    BKE_id_new<Text>(bmain, nullptr);
+    BKE_id_new<MovieClip>(bmain, nullptr);
   }
 
   void TearDown() override

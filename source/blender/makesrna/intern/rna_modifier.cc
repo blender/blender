@@ -1603,7 +1603,7 @@ static const EnumPropertyItem *rna_DataTransferModifier_layers_select_src_itemf(
       int num_data, i;
 
       Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-      const Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob_src);
+      const Object *ob_eval = DEG_get_evaluated(depsgraph, ob_src);
       if (!ob_eval) {
         RNA_enum_item_end(&item, &totitem);
         *r_free = true;
@@ -1640,7 +1640,7 @@ static const EnumPropertyItem *rna_DataTransferModifier_layers_select_src_itemf(
                                    bke::AttrDomain::Corner;
 
       Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-      const Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob_src);
+      const Object *ob_eval = DEG_get_evaluated(depsgraph, ob_src);
       if (!ob_eval) {
         RNA_enum_item_end(&item, &totitem);
         *r_free = true;
@@ -6981,6 +6981,7 @@ static void rna_def_modifier_meshseqcache(BlenderRNA *brna)
       {MOD_MESHSEQ_READ_POLY, "POLY", 0, "Faces", ""},
       {MOD_MESHSEQ_READ_UV, "UV", 0, "UV", ""},
       {MOD_MESHSEQ_READ_COLOR, "COLOR", 0, "Color", ""},
+      {MOD_MESHSEQ_READ_ATTRIBUTES, "ATTRIBUTES", 0, "Attributes", ""},
       {0, nullptr, 0, nullptr, nullptr},
   };
 

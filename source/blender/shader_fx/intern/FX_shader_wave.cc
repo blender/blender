@@ -43,10 +43,10 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, ptr, "orientation", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
-  uiItemR(layout, ptr, "amplitude", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  uiItemR(layout, ptr, "period", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  uiItemR(layout, ptr, "phase", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "orientation", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "amplitude", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "period", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "phase", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   shaderfx_panel_end(layout, ptr);
 }

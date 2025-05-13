@@ -1,0 +1,43 @@
+# Blender 3.6.0 Alpha MTL File: 'cubes_with_textures.blend'
+# www.blender.org
+
+newmtl Mat_BaseMul
+Ka 0.300000 0.300000 0.300000
+Kd 0.800000 0.200000 0.200000
+Ks 0.200000 0.200000 0.200000
+Ni 1.450000
+d 1.000000
+illum 3
+map_Ns ../blend_geometry/texture_checker.png
+map_Ke ../blend_geometry/texture_illum.png
+
+newmtl Mat_BaseRoughEmissNormal10
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd ../blend_geometry/texture_checker.png
+map_Ke ../blend_geometry/texture_illum.png
+map_Bump -bm 2.000000 ../blend_geometry/texture_normal.png
+
+newmtl Mat_BaseTiled
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd -o 0.1 0.2 0.3 -s 1.5 3 1 ../blend_geometry/texture_checker.png
+
+newmtl Mat_EmissTiledAnotherFolder
+Ns 490.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.023071 0.010764 0.040447
+Ks 0.700000 0.700000 0.700000
+Ni 1.200000
+d 0.400000
+illum 9
+map_Ke -o 0 -0.4 0 -s 4 3 1 texture.png

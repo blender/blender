@@ -182,15 +182,20 @@ static bool bake_strokes(Object *ob,
     return false;
   }
 
-  LineartCache *local_lc = *lc;
+  LineartCache *local_lc = nullptr;
+  const bool should_compute_again = is_first || !(lmd->flags & MOD_LINEART_USE_CACHE);
   if (!(*lc)) {
     MOD_lineart_compute_feature_lines_v3(dg, *lmd, lc, !(ob->dtx & OB_DRAW_IN_FRONT));
     MOD_lineart_destroy_render_data_v3(lmd);
   }
   else {
-    if (is_first || !(lmd->flags & MOD_LINEART_USE_CACHE)) {
+    if (should_compute_again) {
       MOD_lineart_compute_feature_lines_v3(dg, *lmd, &local_lc, !(ob->dtx & OB_DRAW_IN_FRONT));
       MOD_lineart_destroy_render_data_v3(lmd);
+    }
+    else {
+      /* Use the cached result, `*lc` is already valid. */
+      local_lc = *lc;
     }
     MOD_lineart_chain_clear_picked_flag(local_lc);
     lmd->cache = local_lc;
@@ -220,11 +225,8 @@ static bool bake_strokes(Object *ob,
       lmd->flags,
       lmd->calculation_flags);
 
-  if (!(lmd->flags & MOD_LINEART_USE_CACHE)) {
-    /* Clear local cache. */
-    if (!is_first) {
-      MOD_lineart_clear_cache(&local_lc);
-    }
+  if (should_compute_again) {
+    MOD_lineart_clear_cache(&local_lc);
   }
 
   return true;

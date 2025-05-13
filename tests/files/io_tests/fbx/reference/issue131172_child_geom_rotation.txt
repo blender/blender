@@ -1,0 +1,142 @@
+==== Meshes: 2
+- Mesh 'Mesh' vtx:9 face:6 loop:24 edge:12
+    - 0 1 2 3 7 ... 7 5 0 3 4 
+    - 0/1 1/2 2/3 0/3 6/7 ... 4/7 2/7 1/6 0/5 3/4 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (1.263, 12.443, 0.159)
+    - (1.263, 12.442, 0.967)
+    - (1.248, -5.312, 4.272)
+      ...
+    - (-2.185, 12.442, 0.967)
+    - (-2.200, -5.312, 4.272)
+    - (-1.902, 0.144, 0.138)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 1 1 1 1 1 ... 1 1 1 1 1 
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (66, -21526)
+    - (66, -32429)
+    - (66, 1053)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'UVChannel_1' FLOAT2 CORNER
+    - (1.000, 0.000)
+    - (1.000, 1.000)
+    - (0.704, 1.000)
+      ...
+    - (1.000, 0.000)
+    - (0.704, 0.000)
+    - (0.704, 0.000)
+  - 1 materials
+    - 'Material #25' 
+
+- Mesh 'Mesh.001' vtx:47 face:51 loop:192 edge:96
+    - 0 1 3 2 15 ... 36 45 43 42 46 
+    - 0/1 1/3 2/3 0/2 12/15 ... 32/44 42/46 39/45 36/45 43/46 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-2.777, -2.777, -2.777)
+    - (-2.777, -2.777, 2.777)
+    - (-2.777, 2.777, -2.777)
+      ...
+    - (0.000, 7.566, 0.000)
+    - (7.566, 0.000, 0.000)
+    - (0.000, 0.000, 7.566)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 1 1 1 1 1 ... 1 1 1 1 1 
+  - attr 'material_index' INT FACE
+    - 3 0 1 3 3 ... 2 1 0 0 2 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'UVMap' FLOAT2 CORNER
+    - (0.375, 0.000)
+    - (0.625, 0.000)
+    - (0.625, 0.250)
+      ...
+    - (0.762, 0.637)
+    - (0.738, 0.637)
+    - (0.750, 0.625)
+  - 4 materials
+    - 'Red' 'Material' 'Material.001' 'Material.002' 
+
+==== Objects: 2
+- Obj 'Child_Debug_Cube' MESH data:'Mesh.001' par:'Parent'
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+  - props: str:MapChannel:1='UVMap' int:MaxHandle=3
+- Obj 'Parent' MESH data:'Mesh'
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 0.010, 0.010, 0.010
+  - props: str:MapChannel:1='UVChannel_1' int:MaxHandle=2
+
+==== Materials: 5
+- Mat 'Material'
+  - base color (0.000, 1.000, 0.000)
+  - specular ior 0.500
+  - specular tint (0.000, 1.000, 0.000)
+  - roughness 0.500
+  - metallic 0.000
+  - ior 1.500
+  - viewport diffuse (0.000, 1.000, 0.000, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 0.500
+  - viewport metallic 0.000, roughness 0.500
+  - backface False probe True shadow False
+
+- Mat 'Material #25'
+  - base color (1.000, 1.000, 1.000)
+  - specular ior 0.000
+  - specular tint (0.000, 0.000, 0.000)
+  - roughness 0.900
+  - metallic 0.000
+  - ior 1.500
+  - viewport diffuse (1.000, 1.000, 1.000, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 0.000
+  - viewport metallic 0.000, roughness 0.900
+  - backface False probe True shadow False
+
+- Mat 'Material.001'
+  - base color (0.000, 0.000, 1.000)
+  - specular ior 0.500
+  - specular tint (0.000, 0.000, 1.000)
+  - roughness 0.500
+  - metallic 0.000
+  - ior 1.500
+  - viewport diffuse (0.000, 0.000, 1.000, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 0.500
+  - viewport metallic 0.000, roughness 0.500
+  - backface False probe True shadow False
+
+- Mat 'Material.002'
+  - base color (0.800, 0.800, 0.800)
+  - specular ior 0.500
+  - specular tint (0.800, 0.800, 0.800)
+  - roughness 0.500
+  - metallic 0.000
+  - ior 1.500
+  - viewport diffuse (0.800, 0.800, 0.800, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 0.500
+  - viewport metallic 0.000, roughness 0.500
+  - backface False probe True shadow False
+
+- Mat 'Red'
+  - base color (1.000, 0.000, 0.000)
+  - specular ior 0.500
+  - specular tint (1.000, 0.000, 0.000)
+  - roughness 0.500
+  - metallic 0.000
+  - ior 1.500
+  - viewport diffuse (1.000, 0.000, 0.000, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 0.500
+  - viewport metallic 0.000, roughness 0.500
+  - backface False probe True shadow False
+

@@ -210,7 +210,7 @@ static void change_frame_seq_preview_begin(bContext *C, const wmEvent *event, Sp
 {
   BLI_assert(sseq != nullptr);
   ARegion *region = CTX_wm_region(C);
-  if (blender::ed::vse::check_show_strip(sseq) && !ED_time_scrub_event_in_region(region, event)) {
+  if (blender::ed::vse::check_show_strip(*sseq) && !ED_time_scrub_event_in_region(region, event)) {
     blender::ed::vse::special_preview_set(C, event->mval);
   }
 }

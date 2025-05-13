@@ -108,24 +108,24 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, ptr, "thickness", UI_ITEM_NONE, IFACE_("Thickness"), ICON_NONE);
-  uiItemR(layout, ptr, "offset", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "thickness", UI_ITEM_NONE, IFACE_("Thickness"), ICON_NONE);
+  layout->prop(ptr, "offset", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   col = &layout->column(true);
-  uiItemR(col, ptr, "use_boundary", UI_ITEM_NONE, IFACE_("Boundary"), ICON_NONE);
-  uiItemR(col, ptr, "use_replace", UI_ITEM_NONE, IFACE_("Replace Original"), ICON_NONE);
+  col->prop(ptr, "use_boundary", UI_ITEM_NONE, IFACE_("Boundary"), ICON_NONE);
+  col->prop(ptr, "use_replace", UI_ITEM_NONE, IFACE_("Replace Original"), ICON_NONE);
 
   col = &layout->column(true, IFACE_("Thickness"));
-  uiItemR(col, ptr, "use_even_offset", UI_ITEM_NONE, IFACE_("Even"), ICON_NONE);
-  uiItemR(col, ptr, "use_relative_offset", UI_ITEM_NONE, IFACE_("Relative"), ICON_NONE);
+  col->prop(ptr, "use_even_offset", UI_ITEM_NONE, IFACE_("Even"), ICON_NONE);
+  col->prop(ptr, "use_relative_offset", UI_ITEM_NONE, IFACE_("Relative"), ICON_NONE);
 
   row = &layout->row(true, IFACE_("Crease Edges"));
-  uiItemR(row, ptr, "use_crease", UI_ITEM_NONE, "", ICON_NONE);
+  row->prop(ptr, "use_crease", UI_ITEM_NONE, "", ICON_NONE);
   sub = &row->row(true);
   uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_crease"));
-  uiItemR(sub, ptr, "crease_weight", UI_ITEM_R_SLIDER, "", ICON_NONE);
+  sub->prop(ptr, "crease_weight", UI_ITEM_R_SLIDER, "", ICON_NONE);
 
-  uiItemR(layout, ptr, "material_offset", UI_ITEM_NONE, IFACE_("Material Offset"), ICON_NONE);
+  layout->prop(ptr, "material_offset", UI_ITEM_NONE, IFACE_("Material Offset"), ICON_NONE);
 
   modifier_panel_end(layout, ptr);
 }
@@ -146,7 +146,7 @@ static void vertex_group_panel_draw(const bContext * /*C*/, Panel *panel)
 
   row = &layout->row(true);
   uiLayoutSetActive(row, has_vertex_group);
-  uiItemR(row, ptr, "thickness_vertex_group", UI_ITEM_NONE, IFACE_("Factor"), ICON_NONE);
+  row->prop(ptr, "thickness_vertex_group", UI_ITEM_NONE, IFACE_("Factor"), ICON_NONE);
 }
 
 static void panel_register(ARegionType *region_type)

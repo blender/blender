@@ -16,7 +16,9 @@
 #include <cstdlib>
 
 #include "BLI_math_base.h"
+#include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
+#include "BLI_math_vector.hh"
 #include "BLI_rect.h"
 #include "BLI_utildefines.h"
 
@@ -1125,5 +1127,67 @@ void BLI_rctf_rotate_expand(rctf *dst, const rctf *src, const float angle)
 }
 
 #undef ROTATE_SINCOS
+
+bool BLI_rctf_clamp_segment(const struct rctf *rect, float s1[2], float s2[2])
+{
+  using namespace blender;
+
+  const bool p1_inside = BLI_rctf_isect_pt_v(rect, s1);
+  const bool p2_inside = BLI_rctf_isect_pt_v(rect, s2);
+  if (p1_inside && p2_inside) {
+    return true;
+  }
+
+  const std::array<float2, 2> top_line = {float2{rect->xmin, rect->ymax},
+                                          float2{rect->xmax, rect->ymax}};
+  const std::array<float2, 2> bottom_line = {float2{rect->xmin, rect->ymin},
+                                             float2{rect->xmax, rect->ymin}};
+  const std::array<float2, 2> left_line = {float2{rect->xmin, rect->ymin},
+                                           float2{rect->xmin, rect->ymax}};
+  const std::array<float2, 2> right_line = {float2{rect->xmax, rect->ymin},
+                                            float2{rect->xmax, rect->ymax}};
+  const std::array<std::array<float2, 2>, 4> lines = {
+      top_line, bottom_line, left_line, right_line};
+
+  if (p1_inside && !p2_inside) {
+    for (const std::array<float2, 2> &line : lines) {
+      float2 intersection;
+      if (isect_seg_seg_v2_point(s1, s2, line[0], line[1], intersection) == 1) {
+        copy_v2_v2(s2, intersection);
+      }
+    }
+    return true;
+  }
+  if (!p1_inside && p2_inside) {
+    for (const std::array<float2, 2> &line : lines) {
+      float2 intersection;
+      if (isect_seg_seg_v2_point(s1, s2, line[0], line[1], intersection) == 1) {
+        copy_v2_v2(s1, intersection);
+      }
+    }
+    return true;
+  }
+
+  for (const std::array<float2, 2> &line : lines) {
+    float2 intersection;
+    if (isect_seg_seg_v2_point(s1, s2, line[0], line[1], intersection) == 1) {
+      copy_v2_v2(s1, intersection);
+    }
+    else {
+      return false;
+    }
+  }
+  for (const std::array<float2, 2> &line : lines) {
+    float2 intersection;
+    if (isect_seg_seg_v2_point(s2, s1, line[0], line[1], intersection) == 1) {
+      copy_v2_v2(s2, intersection);
+    }
+    else {
+      return false;
+    }
+  }
+
+  return true;
+}
 
 /** \} */

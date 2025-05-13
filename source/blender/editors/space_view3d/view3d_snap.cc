@@ -584,7 +584,7 @@ static bool snap_selected_to_location_rotation(bContext *C,
         /* Use the evaluated object here because sometimes
          * `ob->parent->runtime->curve_cache` is required. */
         BKE_scene_graph_evaluated_ensure(depsgraph, bmain);
-        Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+        Object *ob_eval = DEG_get_evaluated(depsgraph, ob);
 
         BKE_object_get_parent_matrix(ob_eval, ob_eval->parent, parentmat);
         mul_m3_m4m4(originmat, parentmat, ob->parentinv);
@@ -921,7 +921,7 @@ static bool snap_curs_to_sel_ex(bContext *C, const int pivot_point, float r_curs
 
       count += tvs.transverts_tot;
       if (tvs.transverts_tot != 0) {
-        Object *obedit_eval = DEG_get_evaluated_object(depsgraph, obedit);
+        Object *obedit_eval = DEG_get_evaluated(depsgraph, obedit);
         copy_m3_m4(bmat, obedit_eval->object_to_world().ptr());
 
         tv = tvs.transverts;
@@ -940,7 +940,7 @@ static bool snap_curs_to_sel_ex(bContext *C, const int pivot_point, float r_curs
     Object *obact = CTX_data_active_object(C);
 
     if (obact && (obact->mode & OB_MODE_POSE)) {
-      Object *obact_eval = DEG_get_evaluated_object(depsgraph, obact);
+      Object *obact_eval = DEG_get_evaluated(depsgraph, obact);
       bArmature *arm = static_cast<bArmature *>(obact_eval->data);
       LISTBASE_FOREACH (bPoseChannel *, pchan, &obact_eval->pose->chanbase) {
         if (ANIM_bonecoll_is_visible_pchan(arm, pchan)) {

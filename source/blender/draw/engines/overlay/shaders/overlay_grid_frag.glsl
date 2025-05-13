@@ -43,8 +43,8 @@ float3 get_axes(float3 co, float3 fwidthCos, float line_size)
 void main()
 {
   float3 P = local_pos * grid_buf.size.xyz;
-  float3 dFdxPos = dFdx(P);
-  float3 dFdyPos = dFdy(P);
+  float3 dFdxPos = gpu_dfdx(P);
+  float3 dFdyPos = gpu_dfdy(P);
   float3 fwidthPos = abs(dFdxPos) + abs(dFdyPos);
   P += drw_view_position() * plane_axes;
 
@@ -147,13 +147,13 @@ void main()
     float gridB = get_grid(grid_pos, grid_fwidth, float2(scaleBx, scaleBy));
     float gridC = get_grid(grid_pos, grid_fwidth, float2(scaleCx, scaleCy));
 
-    out_color = colorGrid;
+    out_color = theme.colors.grid;
     out_color.a *= gridA * blend;
-    out_color = mix(out_color, mix(colorGrid, colorGridEmphasis, blend), gridB);
-    out_color = mix(out_color, colorGridEmphasis, gridC);
+    out_color = mix(out_color, mix(theme.colors.grid, theme.colors.grid_emphasis, blend), gridB);
+    out_color = mix(out_color, theme.colors.grid_emphasis, gridC);
   }
   else {
-    out_color = float4(colorGrid.rgb, 0.0f);
+    out_color = float4(theme.colors.grid.rgb, 0.0f);
   }
 
   if (flag_test(grid_flag, (SHOW_AXIS_X | SHOW_AXIS_Y | SHOW_AXIS_Z))) {
@@ -178,15 +178,15 @@ void main()
 
     if (flag_test(grid_flag, SHOW_AXIS_X)) {
       out_color.a = max(out_color.a, axes.x);
-      out_color.rgb = (axes.x < 1e-8f) ? out_color.rgb : colorGridAxisX.rgb;
+      out_color.rgb = (axes.x < 1e-8f) ? out_color.rgb : theme.colors.grid_axis_x.rgb;
     }
     if (flag_test(grid_flag, SHOW_AXIS_Y)) {
       out_color.a = max(out_color.a, axes.y);
-      out_color.rgb = (axes.y < 1e-8f) ? out_color.rgb : colorGridAxisY.rgb;
+      out_color.rgb = (axes.y < 1e-8f) ? out_color.rgb : theme.colors.grid_axis_y.rgb;
     }
     if (flag_test(grid_flag, SHOW_AXIS_Z)) {
       out_color.a = max(out_color.a, axes.z);
-      out_color.rgb = (axes.z < 1e-8f) ? out_color.rgb : colorGridAxisZ.rgb;
+      out_color.rgb = (axes.z < 1e-8f) ? out_color.rgb : theme.colors.grid_axis_z.rgb;
     }
   }
 
@@ -210,7 +210,7 @@ void main()
      * (avoids popping visuals due to depth buffer precision) */
     /* Harder settings tend to flicker more,
      * but have less "see through" appearance. */
-    float bias = max(fwidth(gl_FragCoord.z), 2.4e-7f);
+    float bias = max(gpu_fwidth(gl_FragCoord.z), 2.4e-7f);
     fade *= linearstep(grid_depth, grid_depth + bias, scene_depth);
   }
 

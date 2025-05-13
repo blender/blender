@@ -53,6 +53,8 @@
 
 #include "node_composite_util.hh"
 
+namespace path_templates = blender::bke::path_templates;
+
 /* **************** OUTPUT FILE ******************** */
 
 /* find unique path */
@@ -307,12 +309,12 @@ static void node_composit_buts_file_output(uiLayout *layout, bContext * /*C*/, P
   const bool multilayer = RNA_enum_get(&imfptr, "file_format") == R_IMF_IMTYPE_MULTILAYER;
 
   if (multilayer) {
-    uiItemL(layout, IFACE_("Path:"), ICON_NONE);
+    layout->label(IFACE_("Path:"), ICON_NONE);
   }
   else {
-    uiItemL(layout, IFACE_("Base Path:"), ICON_NONE);
+    layout->label(IFACE_("Base Path:"), ICON_NONE);
   }
-  uiItemR(layout, ptr, "base_path", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  layout->prop(ptr, "base_path", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 }
 
 static void node_composit_buts_file_output_ex(uiLayout *layout, bContext *C, PointerRNA *ptr)
@@ -330,7 +332,7 @@ static void node_composit_buts_file_output_ex(uiLayout *layout, bContext *C, Poi
     uiLayout *column = &layout->column(true);
     uiLayoutSetPropSep(column, true);
     uiLayoutSetPropDecorate(column, false);
-    uiItemR(column, ptr, "save_as_render", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+    column->prop(ptr, "save_as_render", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   }
   const bool save_as_render = RNA_boolean_get(ptr, "save_as_render");
   uiTemplateImageSettings(layout, &imfptr, save_as_render);
@@ -341,7 +343,7 @@ static void node_composit_buts_file_output_ex(uiLayout *layout, bContext *C, Poi
     uiLayoutSetPropDecorate(col, false);
 
     PointerRNA linear_settings_ptr = RNA_pointer_get(&imfptr, "linear_colorspace_settings");
-    uiItemR(col, &linear_settings_ptr, "name", UI_ITEM_NONE, IFACE_("Color Space"), ICON_NONE);
+    col->prop(&linear_settings_ptr, "name", UI_ITEM_NONE, IFACE_("Color Space"), ICON_NONE);
   }
 
   /* disable stereo output for multilayer, too much work for something that no one will use */
@@ -352,7 +354,7 @@ static void node_composit_buts_file_output_ex(uiLayout *layout, bContext *C, Poi
 
   uiItemS(layout);
 
-  uiItemO(layout, IFACE_("Add Input"), ICON_ADD, "NODE_OT_output_file_add_socket");
+  layout->op("NODE_OT_output_file_add_socket", IFACE_("Add Input"), ICON_ADD);
 
   row = &layout->row(false);
   col = &row->column(true);
@@ -411,9 +413,9 @@ static void node_composit_buts_file_output_ex(uiLayout *layout, bContext *C, Poi
     if (multilayer) {
       col = &layout->column(true);
 
-      uiItemL(col, IFACE_("Layer:"), ICON_NONE);
+      col->label(IFACE_("Layer:"), ICON_NONE);
       row = &col->row(false);
-      uiItemR(row, &active_input_ptr, "name", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+      row->prop(&active_input_ptr, "name", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
       uiItemFullO(row,
                   "NODE_OT_output_file_remove_active_socket",
                   "",
@@ -426,9 +428,9 @@ static void node_composit_buts_file_output_ex(uiLayout *layout, bContext *C, Poi
     else {
       col = &layout->column(true);
 
-      uiItemL(col, IFACE_("File Subpath:"), ICON_NONE);
+      col->label(IFACE_("File Subpath:"), ICON_NONE);
       row = &col->row(false);
-      uiItemR(row, &active_input_ptr, "path", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+      row->prop(&active_input_ptr, "path", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
       uiItemFullO(row,
                   "NODE_OT_output_file_remove_active_socket",
                   "",
@@ -442,13 +444,12 @@ static void node_composit_buts_file_output_ex(uiLayout *layout, bContext *C, Poi
       imfptr = RNA_pointer_get(&active_input_ptr, "format");
 
       col = &layout->column(true);
-      uiItemL(col, IFACE_("Format:"), ICON_NONE);
-      uiItemR(col,
-              &active_input_ptr,
-              "use_node_format",
-              UI_ITEM_R_SPLIT_EMPTY_NAME,
-              std::nullopt,
-              ICON_NONE);
+      col->label(IFACE_("Format:"), ICON_NONE);
+      col->prop(&active_input_ptr,
+                "use_node_format",
+                UI_ITEM_R_SPLIT_EMPTY_NAME,
+                std::nullopt,
+                ICON_NONE);
 
       const bool use_node_format = RNA_boolean_get(&active_input_ptr, "use_node_format");
 
@@ -457,12 +458,11 @@ static void node_composit_buts_file_output_ex(uiLayout *layout, bContext *C, Poi
           uiLayout *column = &layout->column(true);
           uiLayoutSetPropSep(column, true);
           uiLayoutSetPropDecorate(column, false);
-          uiItemR(column,
-                  &active_input_ptr,
-                  "save_as_render",
-                  UI_ITEM_R_SPLIT_EMPTY_NAME,
-                  std::nullopt,
-                  ICON_NONE);
+          column->prop(&active_input_ptr,
+                       "save_as_render",
+                       UI_ITEM_R_SPLIT_EMPTY_NAME,
+                       std::nullopt,
+                       ICON_NONE);
         }
 
         const bool use_color_management = RNA_boolean_get(&active_input_ptr, "save_as_render");
@@ -476,8 +476,7 @@ static void node_composit_buts_file_output_ex(uiLayout *layout, bContext *C, Poi
           uiLayoutSetPropDecorate(col, false);
 
           PointerRNA linear_settings_ptr = RNA_pointer_get(&imfptr, "linear_colorspace_settings");
-          uiItemR(
-              col, &linear_settings_ptr, "name", UI_ITEM_NONE, IFACE_("Color Space"), ICON_NONE);
+          col->prop(&linear_settings_ptr, "name", UI_ITEM_NONE, IFACE_("Color Space"), ICON_NONE);
         }
 
         if (is_multiview) {
@@ -539,7 +538,14 @@ class FileOutputOperation : public NodeOperation {
 
       char base_path[FILE_MAX];
       const auto &socket = *static_cast<NodeImageMultiFileSocket *>(input->storage);
-      get_single_layer_image_base_path(socket.path, base_path);
+
+      if (!get_single_layer_image_base_path(socket.path, base_path)) {
+        /* TODO: propagate this error to the render pipeline and UI. */
+        BKE_report(nullptr,
+                   RPT_ERROR,
+                   "Invalid path template in File Output node. Skipping writing file.");
+        continue;
+      }
 
       /* The image saving code expects EXR images to have a different structure than standard
        * images. In particular, in EXR images, the buffers need to be stored in passes that are, in
@@ -584,7 +590,11 @@ class FileOutputOperation : public NodeOperation {
      * name does not contain a view suffix. */
     char image_path[FILE_MAX];
     const char *path_view = has_views ? "" : context().get_view_name().data();
-    get_multi_layer_exr_image_path(base_path, path_view, image_path);
+
+    if (!get_multi_layer_exr_image_path(base_path, path_view, false, image_path)) {
+      BLI_assert_unreachable();
+      return;
+    }
 
     const int2 size = result.domain().size;
     FileOutput &file_output = context().render_context()->get_file_output(
@@ -612,7 +622,12 @@ class FileOutputOperation : public NodeOperation {
      * sure the file name does not contain a view suffix. */
     char image_path[FILE_MAX];
     const char *write_view = store_views_in_single_file ? "" : view;
-    get_multi_layer_exr_image_path(get_base_path(), write_view, image_path);
+    if (!get_multi_layer_exr_image_path(get_base_path(), write_view, true, image_path)) {
+      /* TODO: propagate this error to the render pipeline and UI. */
+      BKE_report(
+          nullptr, RPT_ERROR, "Invalid path template in File Output node. Skipping writing file.");
+      return;
+    }
 
     const int2 size = compute_domain().size;
     const ImageFormatData format = node_storage(bnode()).format;
@@ -845,29 +860,76 @@ class FileOutputOperation : public NodeOperation {
     }
   }
 
-  /* Get the base path of the image to be saved, based on the base path of the node. The base name
-   * is an optional initial name of the image, which will later be concatenated with other
-   * information like the frame number, view, and extension. If the base name is empty, then the
-   * base path represents a directory, so a trailing slash is ensured. */
-  void get_single_layer_image_base_path(const char *base_name, char *base_path)
+  /**
+   * Get the base path of the image to be saved, based on the base path of the
+   * node. The base name is an optional initial name of the image, which will
+   * later be concatenated with other information like the frame number, view,
+   * and extension. If the base name is empty, then the base path represents a
+   * directory, so a trailing slash is ensured.
+   *
+   * Note: this takes care of path template expansion as well.
+   *
+   * If there are any errors processing the path, `bath_base` will be set to an
+   * empty string.
+   *
+   * \return True on success, false if there were any errors processing the
+   * path.
+   */
+  bool get_single_layer_image_base_path(const char *base_name, char *r_base_path)
   {
+    const path_templates::VariableMap template_variables = BKE_build_template_variables(
+        BKE_main_blendfile_path_from_global(), &context().get_render_data());
+
+    /* Do template expansion on the node's base path. */
+    char node_base_path[FILE_MAX] = "";
+    BLI_strncpy(node_base_path, get_base_path(), FILE_MAX);
+    {
+      blender::Vector<path_templates::Error> errors = BKE_path_apply_template(
+          node_base_path, FILE_MAX, template_variables);
+      if (!errors.is_empty()) {
+        r_base_path[0] = '\0';
+        return false;
+      }
+    }
+
     if (base_name[0]) {
-      BLI_path_join(base_path, FILE_MAX, get_base_path(), base_name);
+      /* Do template expansion on the socket's sub path ("base name"). */
+      char sub_path[FILE_MAX] = "";
+      BLI_strncpy(sub_path, base_name, FILE_MAX);
+      {
+        blender::Vector<path_templates::Error> errors = BKE_path_apply_template(
+            sub_path, FILE_MAX, template_variables);
+        if (!errors.is_empty()) {
+          r_base_path[0] = '\0';
+          return false;
+        }
+      }
+
+      /* Combine the base path and sub path. */
+      BLI_path_join(r_base_path, FILE_MAX, node_base_path, sub_path);
     }
     else {
-      BLI_strncpy(base_path, get_base_path(), FILE_MAX);
-      BLI_path_slash_ensure(base_path, FILE_MAX);
+      /* Just use the base path, as a directory. */
+      BLI_strncpy(r_base_path, node_base_path, FILE_MAX);
+      BLI_path_slash_ensure(r_base_path, FILE_MAX);
     }
+
+    return true;
   }
 
   /* Get the path of the image to be saved based on the given format. */
   void get_single_layer_image_path(const char *base_path,
                                    const ImageFormatData &format,
-                                   char *image_path)
+                                   char *r_image_path)
   {
-    BKE_image_path_from_imformat(image_path,
+    BKE_image_path_from_imformat(r_image_path,
                                  base_path,
                                  BKE_main_blendfile_path_from_global(),
+                                 /* No variables, because path templating is
+                                  * already done by
+                                  * `get_single_layer_image_base_path()` before
+                                  * this is called. */
+                                 nullptr,
                                  context().get_frame_number(),
                                  &format,
                                  use_file_extension(),
@@ -875,19 +937,47 @@ class FileOutputOperation : public NodeOperation {
                                  nullptr);
   }
 
-  /* Get the path of the EXR image to be saved. If the given view is not empty, its corresponding
-   * file suffix will be appended to the name. */
-  void get_multi_layer_exr_image_path(const char *base_path, const char *view, char *image_path)
+  /**
+   * Get the path of the EXR image to be saved. If the given view is not empty,
+   * its corresponding file suffix will be appended to the name.
+   *
+   * If there are any errors processing the path, the resulting path will be
+   * empty.
+   *
+   * \param apply_template Whether to run templating on the path or not. This is
+   * needed because this function is called from more than one place, some of
+   * which have already applied templating to the path and some of which
+   * haven't. Double-applying templating can give incorrect results.
+   *
+   * \return True on success, false if there were any errors processing the
+   * path.
+   */
+  bool get_multi_layer_exr_image_path(const char *base_path,
+                                      const char *view,
+                                      const bool apply_template,
+                                      char *r_image_path)
   {
-    const char *suffix = BKE_scene_multiview_view_suffix_get(&context().get_render_data(), view);
-    BKE_image_path_from_imtype(image_path,
-                               base_path,
-                               BKE_main_blendfile_path_from_global(),
-                               context().get_frame_number(),
-                               R_IMF_IMTYPE_MULTILAYER,
-                               use_file_extension(),
-                               true,
-                               suffix);
+    const RenderData &render_data = context().get_render_data();
+    const char *suffix = BKE_scene_multiview_view_suffix_get(&render_data, view);
+    const char *relbase = BKE_main_blendfile_path_from_global();
+    const path_templates::VariableMap template_variables = BKE_build_template_variables(
+        relbase, &render_data);
+    blender::Vector<path_templates::Error> errors = BKE_image_path_from_imtype(
+        r_image_path,
+        base_path,
+        relbase,
+        apply_template ? &template_variables : nullptr,
+        context().get_frame_number(),
+        R_IMF_IMTYPE_MULTILAYER,
+        use_file_extension(),
+        true,
+        suffix);
+
+    if (!errors.is_empty()) {
+      r_image_path[0] = '\0';
+    }
+
+    return errors.is_empty();
   }
 
   bool is_multi_layer()
@@ -929,7 +1019,7 @@ static NodeOperation *get_compositor_operation(Context &context, DNode node)
 
 }  // namespace blender::nodes::node_composite_file_output_cc
 
-void register_node_type_cmp_output_file()
+static void register_node_type_cmp_output_file()
 {
   namespace file_ns = blender::nodes::node_composite_file_output_cc;
 
@@ -951,3 +1041,4 @@ void register_node_type_cmp_output_file()
 
   blender::bke::node_register_type(ntype);
 }
+NOD_REGISTER_NODE(register_node_type_cmp_output_file)

@@ -413,6 +413,7 @@ class ExportImage:
             return _encode_temp_image(tmp_image, self.file_format, export_settings)
 
     def __encode_from_image_tile(self, udim_image, tile, export_settings):
+        data = None
         src_path = bpy.path.abspath(udim_image.filepath_raw).replace("<UDIM>", tile)
 
         if os.path.isfile(src_path):
@@ -433,6 +434,7 @@ class ExportImage:
         # We don't manage UDIM packed image, so this could not happen to be here
         # Lets display an error
         export_settings['log'].error("UDIM packed images are not supported for export. Please unpack them before exporting.")
+        return b''
 
 
 def _encode_temp_image(tmp_image: bpy.types.Image, file_format: str, export_settings) -> bytes:

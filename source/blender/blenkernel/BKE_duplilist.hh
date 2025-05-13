@@ -26,7 +26,10 @@ struct ViewerPath;
 /**
  * \return a #ListBase of #DupliObject.
  */
-ListBase *object_duplilist(Depsgraph *depsgraph, Scene *sce, Object *ob);
+ListBase *object_duplilist(Depsgraph *depsgraph,
+                           Scene *sce,
+                           Object *ob,
+                           blender::Set<const Object *> *include_objects = nullptr);
 /**
  * \return a #ListBase of #DupliObject for the preview geometry referenced by the #ViewerPath.
  */

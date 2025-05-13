@@ -141,25 +141,3 @@ typedef struct SDNA {
  * code would assume that the `0` value was raw data, so keep it at this value.
  */
 #define SDNA_RAW_DATA_STRUCT_INDEX 0
-
-#
-#
-typedef struct BHead {
-  int code, len;
-  const void *old;
-  int SDNAnr, nr;
-} BHead;
-#
-#
-typedef struct BHead4 {
-  int code, len;
-  uint old;
-  int SDNAnr, nr;
-} BHead4;
-#
-#
-typedef struct BHead8 {
-  int code, len;
-  uint64_t old;
-  int SDNAnr, nr;
-} BHead8;

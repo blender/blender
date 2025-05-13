@@ -116,6 +116,7 @@ set(SRC
   intern/math_vector.cc
   intern/math_vector_inline.cc
   intern/memory_cache.cc
+  intern/memory_cache_file_load.cc
   intern/memory_counter.cc
   intern/memory_utils.cc
   intern/mesh_boolean.cc
@@ -239,6 +240,7 @@ set(SRC
   BLI_function_ref.hh
   BLI_generic_array.hh
   BLI_generic_key.hh
+  BLI_generic_key_string.hh
   BLI_generic_pointer.hh
   BLI_generic_span.hh
   BLI_generic_value_map.hh
@@ -325,6 +327,7 @@ set(SRC
   BLI_memblock.h
   BLI_memiter.h
   BLI_memory_cache.hh
+  BLI_memory_cache_file_load.hh
   BLI_memory_counter.hh
   BLI_memory_counter_fwd.hh
   BLI_memory_utils.h
@@ -334,6 +337,7 @@ set(SRC
   BLI_mesh_intersect.hh
   BLI_mmap.h
   BLI_multi_value_map.hh
+  BLI_mutex.hh
   BLI_noise.h
   BLI_noise.hh
   BLI_offset_indices.hh

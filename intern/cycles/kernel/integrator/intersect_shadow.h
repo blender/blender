@@ -59,7 +59,7 @@ ccl_device_forceinline int integrate_shadow_max_transparent_hits(KernelGlobals k
   const int transparent_max_bounce = kernel_data.integrator.transparent_max_bounce;
   const int transparent_bounce = INTEGRATOR_STATE(state, shadow_path, transparent_bounce);
 
-  return max(transparent_max_bounce - transparent_bounce - 1, 0);
+  return max(transparent_max_bounce - transparent_bounce, 0);
 }
 
 #ifdef __TRANSPARENT_SHADOWS__

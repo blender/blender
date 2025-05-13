@@ -1,0 +1,206 @@
+==== Meshes: 1
+- Mesh 'Mesh' vtx:290 face:288 loop:1152 edge:576
+    - 0 4 5 1 1 ... 161 161 212 282 266 
+    - 0/1 0/4 4/5 1/5 1/166 ... 160/269 156/161 157/161 161/266 161/212 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-0.938, 0.000, 5.250)
+    - (-0.875, -0.375, 5.250)
+    - (-0.938, 0.000, 5.625)
+      ...
+    - (0.688, -0.688, 4.500)
+    - (0.688, -0.688, 3.000)
+    - (0.688, -0.688, 1.500)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 0 1 0 1 0 ... 1 1 0 1 0 
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 ... 0 0 0 0 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - vertex groups:
+    - 2=0.959 1=0.041
+    - 2=0.959 1=0.041
+    - 2=0.979 1=0.021
+    - 2=0.959 1=0.041
+    - 2=0.939 1=0.061
+  - 1 materials
+    - 'unnamed' 
+
+==== Objects: 10
+- Obj 'Armature' ARMATURE data:'Armature'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 0.010, 0.010, 0.010
+  - posed bone 'Bottom'
+      2.000 0.000 0.000 0.000
+      0.000 1.000 0.000 0.000
+      0.000 0.000 1.000 0.000
+  - posed bone 'Middle'
+      0.707 1.414 0.000 0.000
+      -0.707 1.414 0.000 0.000
+      0.000 0.000 1.000 0.000
+  - posed bone 'Skeleton'
+    - props: int:Look=1
+  - posed bone 'Top'
+      0.707 0.707 0.000 0.000
+      -0.707 0.707 0.000 0.000
+      0.000 0.000 1.000 0.000
+  - anim act:Take 001 slot:OBArmature blend:REPLACE drivers:0
+- Obj 'Camera Switcher' EMPTY
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 0.010, 0.010, 0.010
+- Obj 'Producer Back' CAMERA data:'Producer Back'
+  - pos 0.000, 40.000, 0.000
+  - rot 1.571, 0.000, 3.142 (XYZ)
+  - scl 0.010, 0.010, 0.010
+- Obj 'Producer Bottom' CAMERA data:'Producer Bottom'
+  - pos 0.000, 0.000, -40.000
+  - rot 0.000, 3.142, 0.000 (XYZ)
+  - scl 0.010, 0.010, 0.010
+- Obj 'Producer Front' CAMERA data:'Producer Front'
+  - pos 0.000, -40.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 0.010, 0.010, 0.010
+- Obj 'Producer Left' CAMERA data:'Producer Left'
+  - pos -40.000, 0.000, 0.000
+  - rot 1.571, 0.000, -1.571 (XYZ)
+  - scl 0.010, 0.010, 0.010
+- Obj 'Producer Perspective' CAMERA data:'Producer Perspective'
+  - pos -0.045, -0.528, 0.093
+  - rot 1.476, 0.000, -0.175 (XYZ)
+  - scl 0.010, 0.010, 0.010
+- Obj 'Producer Right' CAMERA data:'Producer Right'
+  - pos 40.000, 0.000, 0.000
+  - rot 1.571, 0.000, 1.571 (XYZ)
+  - scl 0.010, 0.010, 0.010
+- Obj 'Producer Top' CAMERA data:'Producer Top'
+  - pos 0.000, 0.000, 40.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 0.010, 0.010, 0.010
+- Obj 'Skin' MESH data:'Mesh' par:'Armature'
+  - matrix_parent_inverse:
+      0.000 -1.000 0.000 0.000
+      0.000 0.000 1.000 0.000
+      -1.000 0.000 0.000 0.000
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+  - 3 vertex groups
+    - 'Bottom' 'Middle' 'Top' 
+  - 1 modifiers
+    - ARMATURE 'Armature'
+  - props: int:Look=1 fl:Size=100.000
+
+==== Cameras: 7
+- Cam 'Producer Back' ORTHO lens:21.4 MILLIMETERS near:0.010 far:300.0 orthosize:1.0
+  - fov 0.904 (h 0.904 v 0.698)
+  - sensor 20.7x15.5 shift 0.000,0.000
+- Cam 'Producer Bottom' ORTHO lens:21.4 MILLIMETERS near:0.010 far:300.0 orthosize:1.0
+  - fov 0.904 (h 0.904 v 0.698)
+  - sensor 20.7x15.5 shift 0.000,0.000
+- Cam 'Producer Front' ORTHO lens:21.4 MILLIMETERS near:0.010 far:300.0 orthosize:1.0
+  - fov 0.904 (h 0.904 v 0.698)
+  - sensor 20.7x15.5 shift 0.000,0.000
+- Cam 'Producer Left' ORTHO lens:21.4 MILLIMETERS near:0.010 far:300.0 orthosize:1.0
+  - fov 0.904 (h 0.904 v 0.698)
+  - sensor 20.7x15.5 shift 0.000,0.000
+- Cam 'Producer Perspective' PERSP lens:21.4 MILLIMETERS near:0.100 far:40.0 orthosize:1.0
+  - fov 0.904 (h 0.904 v 0.698)
+  - sensor 20.7x15.5 shift 0.000,0.000
+- Cam 'Producer Right' ORTHO lens:21.4 MILLIMETERS near:0.010 far:300.0 orthosize:1.0
+  - fov 0.904 (h 0.904 v 0.698)
+  - sensor 20.7x15.5 shift 0.000,0.000
+- Cam 'Producer Top' ORTHO lens:21.4 MILLIMETERS near:0.010 far:300.0 orthosize:1.0
+  - fov 0.904 (h 0.904 v 0.698)
+  - sensor 20.7x15.5 shift 0.000,0.000
+
+==== Materials: 1
+- Mat 'unnamed'
+  - base color (0.800, 0.800, 0.800)
+  - specular ior 1.000
+  - specular tint (1.000, 1.000, 1.000)
+  - roughness 0.649
+  - metallic 0.000
+  - ior 1.500
+  - viewport diffuse (0.800, 0.800, 0.800, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 1.000
+  - viewport metallic 0.000, roughness 0.649
+  - backface False probe True shadow False
+  - props: f3:Ambient=(1.000, 1.000, 1.000) f3:Diffuse=(0.640, 0.640, 0.640) f3:Emissive=(0.000, 0.000, 0.000) fl:Opacity=1.000 fl:Reflectivity=0.000 fl:Shininess=12.300 f3:Specular=(0.500, 0.500, 0.500)
+
+==== Actions: 1
+- Action 'Take 001' curverange:(1.0 .. 49.0) layers:1
+- ActionLayer Layer strips:1
+ - Keyframe strip channelbags:1
+ - Channelbag slot 'OBArmature' curves:20
+  - fcu 'pose.bones["Bottom"].location[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Bottom'
+    - (1.000, 0.000) lh:(-7.000, 0.000 AUTO_CLAMPED) rh:(9.000, 0.000 AUTO_CLAMPED)
+    - (25.000, 0.000) lh:(17.000, 0.000 AUTO_CLAMPED) rh:(33.000, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Bottom"].location[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Bottom'
+    - (1.000, 0.000) lh:(-7.000, 0.000 AUTO_CLAMPED) rh:(9.000, 0.000 AUTO_CLAMPED)
+    - (25.000, 0.000) lh:(17.000, 0.000 AUTO_CLAMPED) rh:(33.000, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Bottom"].location[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Bottom'
+    - (1.000, 0.000) lh:(-7.000, 0.000 AUTO_CLAMPED) rh:(9.000, 0.000 AUTO_CLAMPED)
+    - (25.000, 0.000) lh:(17.000, 0.000 AUTO_CLAMPED) rh:(33.000, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Bottom"].rotation_quaternion[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Bottom'
+    - (1.000, 1.000) lh:(-7.000, 1.000 AUTO_CLAMPED) rh:(9.000, 1.000 AUTO_CLAMPED)
+    - (25.000, 1.000) lh:(17.000, 1.000 AUTO_CLAMPED) rh:(33.000, 1.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Bottom"].rotation_quaternion[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Bottom'
+    - (1.000, 0.000) lh:(-7.000, 0.000 AUTO_CLAMPED) rh:(9.000, 0.000 AUTO_CLAMPED)
+    - (25.000, 0.000) lh:(17.000, 0.000 AUTO_CLAMPED) rh:(33.000, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Bottom"].rotation_quaternion[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Bottom'
+    - (1.000, 0.000) lh:(-7.000, 0.000 AUTO_CLAMPED) rh:(9.000, 0.000 AUTO_CLAMPED)
+    - (25.000, 0.000) lh:(17.000, 0.000 AUTO_CLAMPED) rh:(33.000, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Bottom"].rotation_quaternion[3]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Bottom'
+    - (1.000, 0.000) lh:(-7.000, 0.000 AUTO_CLAMPED) rh:(9.000, 0.000 AUTO_CLAMPED)
+    - (25.000, 0.000) lh:(17.000, 0.000 AUTO_CLAMPED) rh:(33.000, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Bottom"].scale[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Bottom'
+    - (1.000, 2.000) lh:(-7.000, 2.000 AUTO_CLAMPED) rh:(9.000, 2.000 AUTO_CLAMPED)
+    - (25.000, 3.000) lh:(17.000, 3.000 AUTO_CLAMPED) rh:(33.000, 3.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Bottom"].scale[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Bottom'
+    - (1.000, 1.000) lh:(-7.000, 1.000 AUTO_CLAMPED) rh:(9.000, 1.000 AUTO_CLAMPED)
+    - (25.000, 1.000) lh:(17.000, 1.000 AUTO_CLAMPED) rh:(33.000, 1.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Bottom"].scale[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Bottom'
+    - (1.000, 1.000) lh:(-7.000, 1.000 AUTO_CLAMPED) rh:(9.000, 1.000 AUTO_CLAMPED)
+    - (25.000, 1.000) lh:(17.000, 1.000 AUTO_CLAMPED) rh:(33.000, 1.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Middle"].location[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Middle'
+    - (1.000, 0.000) lh:(-15.000, 0.000 AUTO_CLAMPED) rh:(17.000, 0.000 AUTO_CLAMPED)
+    - (49.000, 0.000) lh:(33.000, 0.000 AUTO_CLAMPED) rh:(65.000, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Middle"].location[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Middle'
+    - (1.000, 0.000) lh:(-15.000, 0.000 AUTO_CLAMPED) rh:(17.000, 0.000 AUTO_CLAMPED)
+    - (49.000, 0.000) lh:(33.000, 0.000 AUTO_CLAMPED) rh:(65.000, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Middle"].location[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Middle'
+    - (1.000, 0.000) lh:(-15.000, 0.000 AUTO_CLAMPED) rh:(17.000, 0.000 AUTO_CLAMPED)
+    - (49.000, 0.000) lh:(33.000, 0.000 AUTO_CLAMPED) rh:(65.000, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["Middle"].rotation_quaternion[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Middle'
+    - (1.000, 0.924) lh:(-15.000, 0.924 AUTO_CLAMPED) rh:(17.000, 0.924 AUTO_CLAMPED)
+    - (49.000, 0.924) lh:(33.000, 0.924 AUTO_CLAMPED) rh:(65.000, 0.924 AUTO_CLAMPED)
+  - fcu 'pose.bones["Middle"].rotation_quaternion[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Middle'
+    - (1.000, 0.000) lh:(-15.000, 0.000 AUTO_CLAMPED) rh:(17.000, 0.000 AUTO_CLAMPED)
+    - (49.000, 0.000) lh:(33.000, 0.000 AUTO_CLAMPED) rh:(65.000, 0.000 AUTO_CLAMPED)
+
+==== Armatures: 1
+- Armature 'Armature' 4 bones
+  - bone 'Bottom' parent:'Skeleton' h:(0.000, -0.010, 0.000) t:(-1.900, -0.010, 0.000) radius h:0.100 t:0.050
+      0.000 -1.000 0.000 0.000
+      1.000 0.000 0.000 0.000
+      0.000 0.000 1.000 0.000
+  - bone 'Middle' parent:'Bottom' h:(1.900, -1.900, 0.000) t:(1.900, 0.000, 0.000) radius h:0.100 t:0.050
+      0.000 -1.000 0.000 0.000
+      1.000 0.000 0.000 1.900
+      0.000 0.000 1.000 0.000
+  - bone 'Skeleton' h:(0.000, 0.000, 0.000) t:(0.000, 0.000, -0.010) radius h:0.100 t:0.050
+      1.000 0.000 0.000 0.000
+      0.000 0.000 1.000 0.000
+      0.000 -1.000 0.000 0.000
+  - bone 'Top' parent:'Middle' h:(1.900, -1.900, 0.000) t:(1.900, 0.000, 0.000) radius h:0.100 t:0.050
+      0.000 -1.000 0.000 0.000
+      1.000 0.000 0.000 3.800
+      0.000 0.000 1.000 0.000
+

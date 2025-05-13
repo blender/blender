@@ -27,13 +27,17 @@ namespace blender::draw::overlay {
 class Curves : Overlay {
  private:
   PassSimple edit_curves_ps_ = {"Curve Edit"};
-  PassSimple::Sub *edit_curves_points_ = nullptr;
   PassSimple::Sub *edit_curves_lines_ = nullptr;
+
+  PassSimple edit_legacy_curve_handles_ps_ = {"Curve Edit Handles"};
+  PassSimple::Sub *edit_curves_points_ = nullptr;
   PassSimple::Sub *edit_curves_handles_ = nullptr;
 
   PassSimple edit_legacy_curve_ps_ = {"Legacy Curve Edit"};
   PassSimple::Sub *edit_legacy_curve_wires_ = nullptr;
   PassSimple::Sub *edit_legacy_curve_normals_ = nullptr;
+
+  PassSimple edit_curves_handles_ps_ = {"Legacy Curve Edit Handles"};
   PassSimple::Sub *edit_legacy_curve_points_ = nullptr;
   PassSimple::Sub *edit_legacy_curve_handles_ = nullptr;
 
@@ -74,6 +78,13 @@ class Curves : Overlay {
         sub.push_constant("use_grease_pencil", false);
         edit_curves_lines_ = &sub;
       }
+    }
+
+    {
+      auto &pass = edit_curves_handles_ps_;
+      pass.init();
+      pass.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
+      pass.bind_ubo(DRW_CLIPPING_UBO_SLOT, &res.clip_planes_buf);
       {
         auto &sub = pass.sub("Handles");
         sub.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA, state.clipping_plane_count);
@@ -125,6 +136,13 @@ class Curves : Overlay {
       else {
         edit_legacy_curve_normals_ = nullptr;
       }
+    }
+
+    {
+      auto &pass = edit_legacy_curve_handles_ps_;
+      pass.init();
+      pass.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
+      pass.bind_ubo(DRW_CLIPPING_UBO_SLOT, &res.clip_planes_buf);
       {
         auto &sub = pass.sub("Handles");
         sub.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA, state.clipping_plane_count);
@@ -245,6 +263,8 @@ class Curves : Overlay {
     view_edit_cage.sync(view.viewmat(), offset_data_.winmat_polygon_offset(view.winmat(), 0.5f));
 
     GPU_framebuffer_bind(framebuffer);
+    manager.submit(edit_legacy_curve_ps_, view);
+    manager.submit(edit_curves_ps_, view_edit_cage);
     manager.submit(edit_legacy_surface_handles_ps, view);
   }
 
@@ -257,8 +277,8 @@ class Curves : Overlay {
     view_edit_cage.sync(view.viewmat(), offset_data_.winmat_polygon_offset(view.winmat(), 0.5f));
 
     GPU_framebuffer_bind(framebuffer);
-    manager.submit(edit_legacy_curve_ps_, view);
-    manager.submit(edit_curves_ps_, view_edit_cage);
+    manager.submit(edit_legacy_curve_handles_ps_, view);
+    manager.submit(edit_curves_handles_ps_, view_edit_cage);
   }
 };
 

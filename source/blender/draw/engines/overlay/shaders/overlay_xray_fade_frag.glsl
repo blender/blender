@@ -18,7 +18,7 @@ void main()
       return;
     }
 
-    discard;
+    gpu_discard_fragment();
     return;
   }
 
@@ -34,6 +34,6 @@ void main()
     return;
   }
 
-  discard;
+  gpu_discard_fragment();
   return;
 }

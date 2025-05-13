@@ -1,0 +1,534 @@
+[
+    "Master Collection",
+    {
+        "collections": {
+            "1": {
+                "collections": {
+                    "sub-zero": {
+                        "collections": {
+                            "scorpion": {
+                                "collections": {},
+                                "name": "scorpion",
+                                "objects": [
+                                    "T.3c"
+                                ]
+                            }
+                        },
+                        "name": "sub-zero",
+                        "objects": [
+                            "T.3b"
+                        ]
+                    }
+                },
+                "name": "1",
+                "objects": [
+                    "T.1a",
+                    "Torus"
+                ]
+            },
+            "2": {
+                "collections": {},
+                "name": "2",
+                "objects": [
+                    "T.2a"
+                ]
+            },
+            "3": {
+                "collections": {},
+                "name": "3",
+                "objects": [
+                    "T.3,5a",
+                    "T.3d",
+                    "T.3c",
+                    "T.3b",
+                    "T.3a"
+                ]
+            },
+            "4": {
+                "collections": {},
+                "name": "4",
+                "objects": [
+                    "T.4a"
+                ]
+            },
+            "5": {
+                "collections": {},
+                "name": "5",
+                "objects": [
+                    "T.3,5a",
+                    "T.5a"
+                ]
+            }
+        },
+        "name": "Master Collection",
+        "objects": []
+    }
+]{
+    "1,2": {
+        "active_object": "",
+        "collections": {
+            "1": {
+                "collections": {
+                    "sub-zero": {
+                        "collections": {
+                            "scorpion": {
+                                "collections": {},
+                                "is_disabled": false,
+                                "is_selectable": true,
+                                "is_visible": true,
+                                "name": "scorpion",
+                                "objects": [
+                                    "T.3c"
+                                ]
+                            }
+                        },
+                        "is_disabled": false,
+                        "is_selectable": true,
+                        "is_visible": true,
+                        "name": "sub-zero",
+                        "objects": [
+                            "T.3b"
+                        ]
+                    }
+                },
+                "is_disabled": false,
+                "is_selectable": true,
+                "is_visible": true,
+                "name": "1",
+                "objects": [
+                    "T.1a",
+                    "Torus"
+                ]
+            }
+        },
+        "engine": "BLENDER_EEVEE",
+        "name": "1,2",
+        "objects": [
+            "T.1a",
+            "T.3b",
+            "T.3c",
+            "Torus"
+        ]
+    },
+    "1-3": {
+        "active_object": "T.3,5a",
+        "collections": {
+            "1": {
+                "collections": {
+                    "sub-zero": {
+                        "collections": {
+                            "scorpion": {
+                                "collections": {},
+                                "is_disabled": false,
+                                "is_selectable": true,
+                                "is_visible": true,
+                                "name": "scorpion",
+                                "objects": [
+                                    "T.3c"
+                                ]
+                            }
+                        },
+                        "is_disabled": false,
+                        "is_selectable": true,
+                        "is_visible": true,
+                        "name": "sub-zero",
+                        "objects": [
+                            "T.3b"
+                        ]
+                    }
+                },
+                "is_disabled": false,
+                "is_selectable": true,
+                "is_visible": true,
+                "name": "1",
+                "objects": [
+                    "T.1a",
+                    "Torus"
+                ]
+            },
+            "3": {
+                "collections": {},
+                "is_disabled": false,
+                "is_selectable": true,
+                "is_visible": true,
+                "name": "3",
+                "objects": [
+                    "T.3,5a",
+                    "T.3d",
+                    "T.3c",
+                    "T.3b",
+                    "T.3a"
+                ]
+            }
+        },
+        "engine": "BLENDER_EEVEE",
+        "name": "1-3",
+        "objects": [
+            "T.1a",
+            "T.3,5a",
+            "T.3d",
+            "T.3c",
+            "T.3b",
+            "T.3a",
+            "Torus"
+        ]
+    },
+    "3": {
+        "active_object": "T.3,5a",
+        "collections": {
+            "3": {
+                "collections": {},
+                "is_disabled": false,
+                "is_selectable": true,
+                "is_visible": true,
+                "name": "3",
+                "objects": [
+                    "T.3,5a",
+                    "T.3d",
+                    "T.3c",
+                    "T.3b",
+                    "T.3a"
+                ]
+            }
+        },
+        "engine": "BLENDER_EEVEE",
+        "name": "3",
+        "objects": [
+            "T.3,5a",
+            "T.3d",
+            "T.3c",
+            "T.3b",
+            "T.3a"
+        ]
+    },
+    "4,5": {
+        "active_object": "T.3,5a",
+        "collections": {
+            "5": {
+                "collections": {},
+                "is_disabled": false,
+                "is_selectable": true,
+                "is_visible": true,
+                "name": "5",
+                "objects": [
+                    "T.3,5a",
+                    "T.5a"
+                ]
+            }
+        },
+        "engine": "BLENDER_EEVEE",
+        "name": "4,5",
+        "objects": [
+            "T.3,5a",
+            "T.5a"
+        ]
+    },
+    "All": {
+        "active_object": "T.3,5a",
+        "collections": {
+            "1": {
+                "collections": {
+                    "sub-zero": {
+                        "collections": {
+                            "scorpion": {
+                                "collections": {},
+                                "is_disabled": false,
+                                "is_selectable": true,
+                                "is_visible": true,
+                                "name": "scorpion",
+                                "objects": [
+                                    "T.3c"
+                                ]
+                            }
+                        },
+                        "is_disabled": false,
+                        "is_selectable": true,
+                        "is_visible": true,
+                        "name": "sub-zero",
+                        "objects": [
+                            "T.3b"
+                        ]
+                    }
+                },
+                "is_disabled": false,
+                "is_selectable": true,
+                "is_visible": true,
+                "name": "1",
+                "objects": [
+                    "T.1a",
+                    "Torus"
+                ]
+            },
+            "3": {
+                "collections": {},
+                "is_disabled": false,
+                "is_selectable": true,
+                "is_visible": true,
+                "name": "3",
+                "objects": [
+                    "T.3,5a",
+                    "T.3d",
+                    "T.3c",
+                    "T.3b",
+                    "T.3a"
+                ]
+            },
+            "5": {
+                "collections": {},
+                "is_disabled": false,
+                "is_selectable": true,
+                "is_visible": true,
+                "name": "5",
+                "objects": [
+                    "T.3,5a",
+                    "T.5a"
+                ]
+            }
+        },
+        "engine": "BLENDER_EEVEE",
+        "name": "All",
+        "objects": [
+            "T.1a",
+            "T.3,5a",
+            "T.3d",
+            "T.3c",
+            "T.3b",
+            "T.3a",
+            "T.5a",
+            "Torus"
+        ]
+    },
+    "Fresh new Layer": {
+        "active_object": "Torus",
+        "collections": {
+            "Master Collection": {
+                "collections": {
+                    "1": {
+                        "collections": {
+                            "sub-zero": {
+                                "collections": {
+                                    "scorpion": {
+                                        "collections": {},
+                                        "is_disabled": false,
+                                        "is_selectable": true,
+                                        "is_visible": true,
+                                        "name": "scorpion",
+                                        "objects": [
+                                            "T.3c"
+                                        ]
+                                    }
+                                },
+                                "is_disabled": false,
+                                "is_selectable": true,
+                                "is_visible": true,
+                                "name": "sub-zero",
+                                "objects": [
+                                    "T.3b"
+                                ]
+                            }
+                        },
+                        "is_disabled": false,
+                        "is_selectable": true,
+                        "is_visible": true,
+                        "name": "1",
+                        "objects": [
+                            "T.1a",
+                            "Torus"
+                        ]
+                    },
+                    "2": {
+                        "collections": {},
+                        "is_disabled": false,
+                        "is_selectable": true,
+                        "is_visible": true,
+                        "name": "2",
+                        "objects": [
+                            "T.2a"
+                        ]
+                    },
+                    "3": {
+                        "collections": {},
+                        "is_disabled": false,
+                        "is_selectable": true,
+                        "is_visible": true,
+                        "name": "3",
+                        "objects": [
+                            "T.3,5a",
+                            "T.3d",
+                            "T.3c",
+                            "T.3b",
+                            "T.3a"
+                        ]
+                    },
+                    "4": {
+                        "collections": {},
+                        "is_disabled": false,
+                        "is_selectable": true,
+                        "is_visible": true,
+                        "name": "4",
+                        "objects": [
+                            "T.4a"
+                        ]
+                    },
+                    "5": {
+                        "collections": {},
+                        "is_disabled": false,
+                        "is_selectable": true,
+                        "is_visible": true,
+                        "name": "5",
+                        "objects": [
+                            "T.3,5a",
+                            "T.5a"
+                        ]
+                    }
+                },
+                "is_disabled": false,
+                "is_selectable": true,
+                "is_visible": true,
+                "name": "Master Collection",
+                "objects": []
+            },
+            "sub-zero": {
+                "collections": {
+                    "scorpion": {
+                        "collections": {},
+                        "is_disabled": false,
+                        "is_selectable": true,
+                        "is_visible": true,
+                        "name": "scorpion",
+                        "objects": [
+                            "T.3c"
+                        ]
+                    }
+                },
+                "is_disabled": false,
+                "is_selectable": true,
+                "is_visible": true,
+                "name": "sub-zero",
+                "objects": [
+                    "T.3b"
+                ]
+            }
+        },
+        "engine": "BLENDER_EEVEE",
+        "name": "Fresh new Layer",
+        "objects": [
+            "T.1a",
+            "T.3b",
+            "T.3c",
+            "T.2a",
+            "T.3,5a",
+            "T.3d",
+            "T.3a",
+            "T.4a",
+            "T.5a",
+            "Torus"
+        ]
+    },
+    "Viewport": {
+        "active_object": "T.3,5a",
+        "collections": {
+            "Master Collection": {
+                "collections": {
+                    "1": {
+                        "collections": {
+                            "sub-zero": {
+                                "collections": {
+                                    "scorpion": {
+                                        "collections": {},
+                                        "is_disabled": false,
+                                        "is_selectable": true,
+                                        "is_visible": true,
+                                        "name": "scorpion",
+                                        "objects": [
+                                            "T.3c"
+                                        ]
+                                    }
+                                },
+                                "is_disabled": false,
+                                "is_selectable": true,
+                                "is_visible": true,
+                                "name": "sub-zero",
+                                "objects": [
+                                    "T.3b"
+                                ]
+                            }
+                        },
+                        "is_disabled": false,
+                        "is_selectable": true,
+                        "is_visible": true,
+                        "name": "1",
+                        "objects": [
+                            "T.1a",
+                            "Torus"
+                        ]
+                    },
+                    "2": {
+                        "collections": {},
+                        "is_disabled": true,
+                        "is_selectable": true,
+                        "is_visible": true,
+                        "name": "2",
+                        "objects": [
+                            "T.2a"
+                        ]
+                    },
+                    "3": {
+                        "collections": {},
+                        "is_disabled": false,
+                        "is_selectable": true,
+                        "is_visible": true,
+                        "name": "3",
+                        "objects": [
+                            "T.3,5a",
+                            "T.3d",
+                            "T.3c",
+                            "T.3b",
+                            "T.3a"
+                        ]
+                    },
+                    "4": {
+                        "collections": {},
+                        "is_disabled": true,
+                        "is_selectable": true,
+                        "is_visible": true,
+                        "name": "4",
+                        "objects": [
+                            "T.4a"
+                        ]
+                    },
+                    "5": {
+                        "collections": {},
+                        "is_disabled": false,
+                        "is_selectable": true,
+                        "is_visible": true,
+                        "name": "5",
+                        "objects": [
+                            "T.3,5a",
+                            "T.5a"
+                        ]
+                    }
+                },
+                "is_disabled": false,
+                "is_selectable": true,
+                "is_visible": true,
+                "name": "Master Collection",
+                "objects": []
+            }
+        },
+        "engine": "BLENDER_EEVEE",
+        "name": "Viewport",
+        "objects": [
+            "T.1a",
+            "T.2a",
+            "T.3,5a",
+            "T.3d",
+            "T.3c",
+            "T.3b",
+            "T.3a",
+            "T.4a",
+            "T.5a",
+            "Torus"
+        ]
+    }
+}

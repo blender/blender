@@ -1,0 +1,232 @@
+==== Meshes: 1
+- Mesh 'Mesh' vtx:8 face:6 loop:24 edge:12
+    - 0 2 3 1 4 ... 7 2 0 4 6 
+    - 0/2 2/3 1/3 0/1 4/5 ... 4/6 1/5 0/4 3/7 2/6 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-9.563, -2.555, 0.000)
+    - (9.563, -2.555, 0.000)
+    - (-9.563, 2.555, 0.000)
+      ...
+    - (9.563, -2.555, 6.394)
+    - (-9.563, 2.555, 6.394)
+    - (9.563, 2.555, 6.394)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 1 1 1 1 1 ... 1 1 1 1 1 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'UVChannel_1' FLOAT2 CORNER
+    - (1.000, 0.000)
+    - (1.000, 1.000)
+    - (0.000, 1.000)
+      ...
+    - (1.000, 0.000)
+    - (1.000, 1.000)
+    - (0.000, 1.000)
+
+==== Objects: 5
+- Obj 'Box001' MESH data:'Mesh'
+  - pos 0.009, 0.011, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 0.025, 0.025, 0.025
+  - props: int:MaxHandle=3
+- Obj 'Camera001' CAMERA data:'Camera'
+  - pos -1.106, -0.696, 0.484
+  - rot 1.571, -0.443, -2.345 (XYZ)
+  - scl 0.025, 0.025, 0.025
+  - anim act:Take 001 slot:OBCamera001 blend:REPLACE drivers:0
+  - props: int:MaxHandle=4
+- Obj 'Camera001.Target' EMPTY
+  - pos -0.392, 0.033, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 0.025, 0.025, 0.025
+  - anim act:Take 001 slot:OBCamera001.Target blend:REPLACE drivers:0
+  - props: int:MaxHandle=5
+- Obj 'SpotLight001' LIGHT data:'Light'
+  - pos 0.542, -0.586, 0.000
+  - rot 1.571, 0.000, 0.289 (XYZ)
+  - scl 0.025, 0.025, 0.025
+  - anim act:Take 001 slot:OBSpotLight001 blend:REPLACE drivers:0
+- Obj 'SpotLight001.Target' EMPTY
+  - pos 0.364, 0.014, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 0.025, 0.025, 0.025
+  - anim act:Take 001 slot:OBSpotLight001.Target blend:REPLACE drivers:0
+  - props: int:MaxHandle=9
+
+==== Cameras: 1
+- Cam 'Camera' PERSP lens:60.0 MILLIMETERS near:0.254 far:101.6 orthosize:1.0
+  - fov 0.583 (h 0.583 v 0.334)
+  - sensor 36.0x20.3 shift 0.000,0.000
+
+==== Lights: 1
+- Light 'Light' SPOT col:(0.860, 0.674, 0.561) energy:4774.640
+  - spot 1.047 blend 0.500
+
+==== Actions: 1
+- Action 'Take 001' curverange:(1.0 .. 101.0) layers:1
+- ActionLayer Layer strips:1
+ - Keyframe strip channelbags:4
+ - Channelbag slot 'OBCamera001' curves:9
+  - fcu 'location[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Camera001'
+    - (1.000, -1.106) lh:(-2.333, -1.106 AUTO_CLAMPED) rh:(4.333, -1.106 AUTO_CLAMPED)
+    - (11.000, -0.190) lh:(7.667, -0.190 AUTO_CLAMPED) rh:(14.333, -0.190 AUTO_CLAMPED)
+  - fcu 'location[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Camera001'
+    - (1.000, -0.696) lh:(-2.333, -0.696 AUTO_CLAMPED) rh:(4.333, -0.696 AUTO_CLAMPED)
+    - (11.000, 0.427) lh:(7.667, 0.427 AUTO_CLAMPED) rh:(14.333, 0.427 AUTO_CLAMPED)
+  - fcu 'location[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Camera001'
+    - (1.000, 0.484) lh:(-2.333, 0.484 AUTO_CLAMPED) rh:(4.333, 0.484 AUTO_CLAMPED)
+    - (11.000, 0.224) lh:(7.667, 0.224 AUTO_CLAMPED) rh:(14.333, 0.224 AUTO_CLAMPED)
+  - fcu 'rotation_euler[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Camera001'
+    - (1.000, 1.571) lh:(-2.333, 1.571 AUTO_CLAMPED) rh:(4.333, 1.571 AUTO_CLAMPED)
+    - (11.000, 1.571) lh:(7.667, 1.571 AUTO_CLAMPED) rh:(14.333, 1.571 AUTO_CLAMPED)
+  - fcu 'rotation_euler[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Camera001'
+    - (1.000, -0.443) lh:(-2.333, -0.443 AUTO_CLAMPED) rh:(4.333, -0.443 AUTO_CLAMPED)
+    - (11.000, -0.443) lh:(7.667, -0.443 AUTO_CLAMPED) rh:(14.333, -0.443 AUTO_CLAMPED)
+  - fcu 'rotation_euler[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Camera001'
+    - (1.000, -2.345) lh:(-2.333, -2.345 AUTO_CLAMPED) rh:(4.333, -2.345 AUTO_CLAMPED)
+    - (11.000, -2.345) lh:(7.667, -2.345 AUTO_CLAMPED) rh:(14.333, -2.345 AUTO_CLAMPED)
+  - fcu 'scale[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Camera001'
+    - (1.000, 0.025) lh:(-2.333, 0.025 AUTO_CLAMPED) rh:(4.333, 0.025 AUTO_CLAMPED)
+    - (11.000, 0.025) lh:(7.667, 0.025 AUTO_CLAMPED) rh:(14.333, 0.025 AUTO_CLAMPED)
+  - fcu 'scale[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Camera001'
+    - (1.000, 0.025) lh:(-2.333, 0.025 AUTO_CLAMPED) rh:(4.333, 0.025 AUTO_CLAMPED)
+    - (11.000, 0.025) lh:(7.667, 0.025 AUTO_CLAMPED) rh:(14.333, 0.025 AUTO_CLAMPED)
+  - fcu 'scale[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Camera001'
+    - (1.000, 0.025) lh:(-2.333, 0.025 AUTO_CLAMPED) rh:(4.333, 0.025 AUTO_CLAMPED)
+    - (11.000, 0.025) lh:(7.667, 0.025 AUTO_CLAMPED) rh:(14.333, 0.025 AUTO_CLAMPED)
+ - Channelbag slot 'OBCamera001.Target' curves:9
+  - fcu 'location[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Camera001.Target'
+    - (1.000, -0.392) lh:(-2.333, -0.392 AUTO_CLAMPED) rh:(4.333, -0.392 AUTO_CLAMPED)
+    - (11.000, 0.238) lh:(7.667, 0.238 AUTO_CLAMPED) rh:(14.333, 0.238 AUTO_CLAMPED)
+  - fcu 'location[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Camera001.Target'
+    - (1.000, 0.033) lh:(-2.333, 0.033 AUTO_CLAMPED) rh:(4.333, 0.033 AUTO_CLAMPED)
+    - (11.000, 0.033) lh:(7.667, 0.033 AUTO_CLAMPED) rh:(14.333, 0.033 AUTO_CLAMPED)
+  - fcu 'location[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Camera001.Target'
+    - (1.000, 0.000) lh:(-2.333, 0.000 AUTO_CLAMPED) rh:(4.333, 0.000 AUTO_CLAMPED)
+    - (11.000, 0.000) lh:(7.667, 0.000 AUTO_CLAMPED) rh:(14.333, 0.000 AUTO_CLAMPED)
+  - fcu 'rotation_euler[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Camera001.Target'
+    - (1.000, 0.000) lh:(-2.333, 0.000 AUTO_CLAMPED) rh:(4.333, 0.000 AUTO_CLAMPED)
+    - (11.000, 0.000) lh:(7.667, 0.000 AUTO_CLAMPED) rh:(14.333, 0.000 AUTO_CLAMPED)
+  - fcu 'rotation_euler[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Camera001.Target'
+    - (1.000, 0.000) lh:(-2.333, 0.000 AUTO_CLAMPED) rh:(4.333, 0.000 AUTO_CLAMPED)
+    - (11.000, 0.000) lh:(7.667, 0.000 AUTO_CLAMPED) rh:(14.333, 0.000 AUTO_CLAMPED)
+  - fcu 'rotation_euler[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Camera001.Target'
+    - (1.000, 0.000) lh:(-2.333, 0.000 AUTO_CLAMPED) rh:(4.333, 0.000 AUTO_CLAMPED)
+    - (11.000, 0.000) lh:(7.667, 0.000 AUTO_CLAMPED) rh:(14.333, 0.000 AUTO_CLAMPED)
+  - fcu 'scale[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Camera001.Target'
+    - (1.000, 0.025) lh:(-2.333, 0.025 AUTO_CLAMPED) rh:(4.333, 0.025 AUTO_CLAMPED)
+    - (11.000, 0.025) lh:(7.667, 0.025 AUTO_CLAMPED) rh:(14.333, 0.025 AUTO_CLAMPED)
+  - fcu 'scale[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Camera001.Target'
+    - (1.000, 0.025) lh:(-2.333, 0.025 AUTO_CLAMPED) rh:(4.333, 0.025 AUTO_CLAMPED)
+    - (11.000, 0.025) lh:(7.667, 0.025 AUTO_CLAMPED) rh:(14.333, 0.025 AUTO_CLAMPED)
+  - fcu 'scale[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'Camera001.Target'
+    - (1.000, 0.025) lh:(-2.333, 0.025 AUTO_CLAMPED) rh:(4.333, 0.025 AUTO_CLAMPED)
+    - (11.000, 0.025) lh:(7.667, 0.025 AUTO_CLAMPED) rh:(14.333, 0.025 AUTO_CLAMPED)
+ - Channelbag slot 'OBSpotLight001' curves:9
+  - fcu 'location[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:101 grp:'SpotLight001'
+    - (1.000, 0.542) lh:(0.667, 0.542 AUTO_CLAMPED) rh:(1.333, 0.542 AUTO_CLAMPED)
+    - (2.000, 0.503) lh:(1.667, 0.528 AUTO_CLAMPED) rh:(2.333, 0.477 AUTO_CLAMPED)
+    - (3.000, 0.395) lh:(2.667, 0.440 AUTO_CLAMPED) rh:(3.333, 0.350 AUTO_CLAMPED)
+      ...
+    - (99.000, -0.873) lh:(98.667, -0.873 AUTO_CLAMPED) rh:(99.333, -0.873 AUTO_CLAMPED)
+    - (100.000, -0.873) lh:(99.667, -0.873 AUTO_CLAMPED) rh:(100.333, -0.873 AUTO_CLAMPED)
+    - (101.000, -0.873) lh:(100.667, -0.873 AUTO_CLAMPED) rh:(101.333, -0.873 AUTO_CLAMPED)
+  - fcu 'location[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:101 grp:'SpotLight001'
+    - (1.000, -0.586) lh:(0.667, -0.586 AUTO_CLAMPED) rh:(1.333, -0.586 AUTO_CLAMPED)
+    - (2.000, -0.586) lh:(1.667, -0.586 AUTO_CLAMPED) rh:(2.333, -0.586 AUTO_CLAMPED)
+    - (3.000, -0.586) lh:(2.667, -0.586 AUTO_CLAMPED) rh:(3.333, -0.586 AUTO_CLAMPED)
+      ...
+    - (99.000, -0.586) lh:(98.667, -0.586 AUTO_CLAMPED) rh:(99.333, -0.586 AUTO_CLAMPED)
+    - (100.000, -0.586) lh:(99.667, -0.586 AUTO_CLAMPED) rh:(100.333, -0.586 AUTO_CLAMPED)
+    - (101.000, -0.586) lh:(100.667, -0.586 AUTO_CLAMPED) rh:(101.333, -0.586 AUTO_CLAMPED)
+  - fcu 'location[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:101 grp:'SpotLight001'
+    - (1.000, 0.000) lh:(0.667, 0.000 AUTO_CLAMPED) rh:(1.333, 0.000 AUTO_CLAMPED)
+    - (2.000, 0.017) lh:(1.667, 0.006 AUTO_CLAMPED) rh:(2.333, 0.027 AUTO_CLAMPED)
+    - (3.000, 0.061) lh:(2.667, 0.042 AUTO_CLAMPED) rh:(3.333, 0.080 AUTO_CLAMPED)
+      ...
+    - (99.000, 0.589) lh:(98.667, 0.589 AUTO_CLAMPED) rh:(99.333, 0.589 AUTO_CLAMPED)
+    - (100.000, 0.589) lh:(99.667, 0.589 AUTO_CLAMPED) rh:(100.333, 0.589 AUTO_CLAMPED)
+    - (101.000, 0.589) lh:(100.667, 0.589 AUTO_CLAMPED) rh:(101.333, 0.589 AUTO_CLAMPED)
+  - fcu 'rotation_euler[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:101 grp:'SpotLight001'
+    - (1.000, 1.571) lh:(0.667, 1.571 AUTO_CLAMPED) rh:(1.333, 1.571 AUTO_CLAMPED)
+    - (2.000, 1.544) lh:(1.667, 1.561 AUTO_CLAMPED) rh:(2.333, 1.527 AUTO_CLAMPED)
+    - (3.000, 1.470) lh:(2.667, 1.502 AUTO_CLAMPED) rh:(3.333, 1.439 AUTO_CLAMPED)
+      ...
+    - (99.000, 0.978) lh:(98.667, 0.978 AUTO_CLAMPED) rh:(99.333, 0.978 AUTO_CLAMPED)
+    - (100.000, 0.978) lh:(99.667, 0.978 AUTO_CLAMPED) rh:(100.333, 0.978 AUTO_CLAMPED)
+    - (101.000, 0.978) lh:(100.667, 0.978 AUTO_CLAMPED) rh:(101.333, 0.978 AUTO_CLAMPED)
+  - fcu 'rotation_euler[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:101 grp:'SpotLight001'
+    - (1.000, 0.000) lh:(0.667, 0.000 AUTO_CLAMPED) rh:(1.333, 0.000 AUTO_CLAMPED)
+    - (2.000, 0.000) lh:(1.667, 0.000 AUTO_CLAMPED) rh:(2.333, 0.000 AUTO_CLAMPED)
+    - (3.000, 0.000) lh:(2.667, 0.000 AUTO_CLAMPED) rh:(3.333, 0.000 AUTO_CLAMPED)
+      ...
+    - (99.000, 0.000) lh:(98.667, 0.000 AUTO_CLAMPED) rh:(99.333, 0.000 AUTO_CLAMPED)
+    - (100.000, 0.000) lh:(99.667, 0.000 AUTO_CLAMPED) rh:(100.333, 0.000 AUTO_CLAMPED)
+    - (101.000, 0.000) lh:(100.667, 0.000 AUTO_CLAMPED) rh:(101.333, 0.000 AUTO_CLAMPED)
+  - fcu 'rotation_euler[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:101 grp:'SpotLight001'
+    - (1.000, 0.289) lh:(0.667, 0.289 AUTO_CLAMPED) rh:(1.333, 0.289 AUTO_CLAMPED)
+    - (2.000, 0.254) lh:(1.667, 0.277 AUTO_CLAMPED) rh:(2.333, 0.231 AUTO_CLAMPED)
+    - (3.000, 0.155) lh:(2.667, 0.197 AUTO_CLAMPED) rh:(3.333, 0.112 AUTO_CLAMPED)
+      ...
+    - (99.000, -0.817) lh:(98.667, -0.817 AUTO_CLAMPED) rh:(99.333, -0.817 AUTO_CLAMPED)
+    - (100.000, -0.817) lh:(99.667, -0.817 AUTO_CLAMPED) rh:(100.333, -0.817 AUTO_CLAMPED)
+    - (101.000, -0.817) lh:(100.667, -0.817 AUTO_CLAMPED) rh:(101.333, -0.817 AUTO_CLAMPED)
+  - fcu 'scale[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:101 grp:'SpotLight001'
+    - (1.000, 0.025) lh:(0.667, 0.025 AUTO_CLAMPED) rh:(1.333, 0.025 AUTO_CLAMPED)
+    - (2.000, 0.025) lh:(1.667, 0.025 AUTO_CLAMPED) rh:(2.333, 0.025 AUTO_CLAMPED)
+    - (3.000, 0.025) lh:(2.667, 0.025 AUTO_CLAMPED) rh:(3.333, 0.025 AUTO_CLAMPED)
+      ...
+    - (99.000, 0.025) lh:(98.667, 0.025 AUTO_CLAMPED) rh:(99.333, 0.025 AUTO_CLAMPED)
+    - (100.000, 0.025) lh:(99.667, 0.025 AUTO_CLAMPED) rh:(100.333, 0.025 AUTO_CLAMPED)
+    - (101.000, 0.025) lh:(100.667, 0.025 AUTO_CLAMPED) rh:(101.333, 0.025 AUTO_CLAMPED)
+  - fcu 'scale[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:101 grp:'SpotLight001'
+    - (1.000, 0.025) lh:(0.667, 0.025 AUTO_CLAMPED) rh:(1.333, 0.025 AUTO_CLAMPED)
+    - (2.000, 0.025) lh:(1.667, 0.025 AUTO_CLAMPED) rh:(2.333, 0.025 AUTO_CLAMPED)
+    - (3.000, 0.025) lh:(2.667, 0.025 AUTO_CLAMPED) rh:(3.333, 0.025 AUTO_CLAMPED)
+      ...
+    - (99.000, 0.025) lh:(98.667, 0.025 AUTO_CLAMPED) rh:(99.333, 0.025 AUTO_CLAMPED)
+    - (100.000, 0.025) lh:(99.667, 0.025 AUTO_CLAMPED) rh:(100.333, 0.025 AUTO_CLAMPED)
+    - (101.000, 0.025) lh:(100.667, 0.025 AUTO_CLAMPED) rh:(101.333, 0.025 AUTO_CLAMPED)
+  - fcu 'scale[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:101 grp:'SpotLight001'
+    - (1.000, 0.025) lh:(0.667, 0.025 AUTO_CLAMPED) rh:(1.333, 0.025 AUTO_CLAMPED)
+    - (2.000, 0.025) lh:(1.667, 0.025 AUTO_CLAMPED) rh:(2.333, 0.025 AUTO_CLAMPED)
+    - (3.000, 0.025) lh:(2.667, 0.025 AUTO_CLAMPED) rh:(3.333, 0.025 AUTO_CLAMPED)
+      ...
+    - (99.000, 0.025) lh:(98.667, 0.025 AUTO_CLAMPED) rh:(99.333, 0.025 AUTO_CLAMPED)
+    - (100.000, 0.025) lh:(99.667, 0.025 AUTO_CLAMPED) rh:(100.333, 0.025 AUTO_CLAMPED)
+    - (101.000, 0.025) lh:(100.667, 0.025 AUTO_CLAMPED) rh:(101.333, 0.025 AUTO_CLAMPED)
+ - Channelbag slot 'OBSpotLight001.Target' curves:9
+  - fcu 'location[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'SpotLight001.Target'
+    - (1.000, 0.364) lh:(-2.333, 0.364 AUTO_CLAMPED) rh:(4.333, 0.364 AUTO_CLAMPED)
+    - (11.000, -0.235) lh:(7.667, -0.235 AUTO_CLAMPED) rh:(14.333, -0.235 AUTO_CLAMPED)
+  - fcu 'location[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'SpotLight001.Target'
+    - (1.000, 0.014) lh:(-2.333, 0.014 AUTO_CLAMPED) rh:(4.333, 0.014 AUTO_CLAMPED)
+    - (11.000, 0.014) lh:(7.667, 0.014 AUTO_CLAMPED) rh:(14.333, 0.014 AUTO_CLAMPED)
+  - fcu 'location[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'SpotLight001.Target'
+    - (1.000, 0.000) lh:(-2.333, 0.000 AUTO_CLAMPED) rh:(4.333, 0.000 AUTO_CLAMPED)
+    - (11.000, 0.000) lh:(7.667, 0.000 AUTO_CLAMPED) rh:(14.333, 0.000 AUTO_CLAMPED)
+  - fcu 'rotation_euler[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'SpotLight001.Target'
+    - (1.000, 0.000) lh:(-2.333, 0.000 AUTO_CLAMPED) rh:(4.333, 0.000 AUTO_CLAMPED)
+    - (11.000, 0.000) lh:(7.667, 0.000 AUTO_CLAMPED) rh:(14.333, 0.000 AUTO_CLAMPED)
+  - fcu 'rotation_euler[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'SpotLight001.Target'
+    - (1.000, 0.000) lh:(-2.333, 0.000 AUTO_CLAMPED) rh:(4.333, 0.000 AUTO_CLAMPED)
+    - (11.000, 0.000) lh:(7.667, 0.000 AUTO_CLAMPED) rh:(14.333, 0.000 AUTO_CLAMPED)
+  - fcu 'rotation_euler[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'SpotLight001.Target'
+    - (1.000, 0.000) lh:(-2.333, 0.000 AUTO_CLAMPED) rh:(4.333, 0.000 AUTO_CLAMPED)
+    - (11.000, 0.000) lh:(7.667, 0.000 AUTO_CLAMPED) rh:(14.333, 0.000 AUTO_CLAMPED)
+  - fcu 'scale[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'SpotLight001.Target'
+    - (1.000, 0.025) lh:(-2.333, 0.025 AUTO_CLAMPED) rh:(4.333, 0.025 AUTO_CLAMPED)
+    - (11.000, 0.025) lh:(7.667, 0.025 AUTO_CLAMPED) rh:(14.333, 0.025 AUTO_CLAMPED)
+  - fcu 'scale[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'SpotLight001.Target'
+    - (1.000, 0.025) lh:(-2.333, 0.025 AUTO_CLAMPED) rh:(4.333, 0.025 AUTO_CLAMPED)
+    - (11.000, 0.025) lh:(7.667, 0.025 AUTO_CLAMPED) rh:(14.333, 0.025 AUTO_CLAMPED)
+  - fcu 'scale[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'SpotLight001.Target'
+    - (1.000, 0.025) lh:(-2.333, 0.025 AUTO_CLAMPED) rh:(4.333, 0.025 AUTO_CLAMPED)
+    - (11.000, 0.025) lh:(7.667, 0.025 AUTO_CLAMPED) rh:(14.333, 0.025 AUTO_CLAMPED)
+

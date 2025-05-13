@@ -6,7 +6,6 @@
 #  pragma once
 #  include "gpu_glsl_cpp_stubs.hh"
 
-#  include "draw_common_shader_shared.hh"
 #  include "draw_object_infos_info.hh"
 #  include "draw_view_info.hh"
 
@@ -290,8 +289,8 @@ GPU_SHADER_CREATE_INFO(overlay_gpencil_canvas)
 DO_STATIC_COMPILATION()
 VERTEX_OUT(overlay_extra_iface)
 PUSH_CONSTANT(float4, color)
-PUSH_CONSTANT(float3, x_axis)
-PUSH_CONSTANT(float3, y_axis)
+PUSH_CONSTANT(float3, axis_x)
+PUSH_CONSTANT(float3, axis_y)
 PUSH_CONSTANT(float3, origin)
 PUSH_CONSTANT(int, half_line_count)
 FRAGMENT_OUT(0, float4, frag_color)

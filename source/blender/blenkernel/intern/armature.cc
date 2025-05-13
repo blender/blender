@@ -469,7 +469,7 @@ static void armature_undo_preserve(BlendLibReader * /*reader*/, ID *id_new, ID *
 }
 
 IDTypeInfo IDType_ID_AR = {
-    /*id_code*/ ID_AR,
+    /*id_code*/ bArmature::id_type,
     /*id_filter*/ FILTER_ID_AR,
     /* IDProps of armature bones can use any type of ID. */
     /*dependencies_id_types*/ FILTER_ID_ALL,
@@ -509,7 +509,7 @@ bArmature *BKE_armature_add(Main *bmain, const char *name)
 {
   bArmature *arm;
 
-  arm = static_cast<bArmature *>(BKE_id_new(bmain, ID_AR, name));
+  arm = BKE_id_new<bArmature>(bmain, name);
   return arm;
 }
 
@@ -2238,7 +2238,7 @@ void BKE_bone_parent_transform_apply(const BoneParentTransform *bpt,
   rescale_m4(outmat, bpt->post_scale);
 }
 
-void BKE_armature_mat_pose_to_bone(bPoseChannel *pchan,
+void BKE_armature_mat_pose_to_bone(const bPoseChannel *pchan,
                                    const float inmat[4][4],
                                    float outmat[4][4])
 {
@@ -2249,7 +2249,7 @@ void BKE_armature_mat_pose_to_bone(bPoseChannel *pchan,
   BKE_bone_parent_transform_apply(&bpt, inmat, outmat);
 }
 
-void BKE_armature_mat_bone_to_pose(bPoseChannel *pchan,
+void BKE_armature_mat_bone_to_pose(const bPoseChannel *pchan,
                                    const float inmat[4][4],
                                    float outmat[4][4])
 {
@@ -2259,7 +2259,9 @@ void BKE_armature_mat_bone_to_pose(bPoseChannel *pchan,
   BKE_bone_parent_transform_apply(&bpt, inmat, outmat);
 }
 
-void BKE_armature_loc_pose_to_bone(bPoseChannel *pchan, const float inloc[3], float outloc[3])
+void BKE_armature_loc_pose_to_bone(const bPoseChannel *pchan,
+                                   const float inloc[3],
+                                   float outloc[3])
 {
   float xLocMat[4][4];
   float nLocMat[4][4];
@@ -2283,7 +2285,7 @@ void BKE_armature_loc_pose_to_bone(bPoseChannel *pchan, const float inloc[3], fl
 
 void BKE_armature_mat_pose_to_bone_ex(Depsgraph *depsgraph,
                                       Object *ob,
-                                      bPoseChannel *pchan,
+                                      const bPoseChannel *pchan,
                                       const float inmat[4][4],
                                       float outmat[4][4])
 {
@@ -3094,18 +3096,7 @@ void BKE_pose_where_is(Depsgraph *depsgraph, Scene *scene, Object *ob)
 
 std::optional<blender::Bounds<blender::float3>> BKE_armature_min_max(const Object *ob)
 {
-  std::optional<blender::Bounds<blender::float3>> bounds_world = BKE_pose_minmax(ob, false);
-
-  if (!bounds_world) {
-    return std::nullopt;
-  }
-
-  /* NOTE: this is not correct (after rotation the AABB may not be the smallest enclosing AABB any
-   * more), but acceptable because this is called via BKE_object_boundbox_get(), which is called by
-   * BKE_object_minmax(), which does the opposite transform. */
-  return blender::Bounds<blender::float3>{
-      math::transform_point(ob->world_to_object(), bounds_world->min),
-      math::transform_point(ob->world_to_object(), bounds_world->max)};
+  return BKE_pose_minmax(ob, false);
 }
 
 void BKE_pchan_minmax(const Object *ob,
@@ -3142,17 +3133,14 @@ void BKE_pchan_minmax(const Object *ob,
                  pchan->custom_translation[0],
                  pchan->custom_translation[1],
                  pchan->custom_translation[2]);
-    mul_m4_series(mat.ptr(), ob->object_to_world().ptr(), tmp.ptr(), rmat.ptr(), smat.ptr());
+    mul_m4_series(mat.ptr(), tmp.ptr(), rmat.ptr(), smat.ptr());
     BoundBox bb;
     BKE_boundbox_init_from_minmax(&bb, bb_custom->min, bb_custom->max);
     BKE_boundbox_minmax(bb, mat, r_min, r_max);
   }
   else {
-    float vec[3];
-    mul_v3_m4v3(vec, ob->object_to_world().ptr(), pchan_tx->pose_head);
-    minmax_v3v3_v3(r_min, r_max, vec);
-    mul_v3_m4v3(vec, ob->object_to_world().ptr(), pchan_tx->pose_tail);
-    minmax_v3v3_v3(r_min, r_max, vec);
+    minmax_v3v3_v3(r_min, r_max, pchan_tx->pose_head);
+    minmax_v3v3_v3(r_min, r_max, pchan_tx->pose_tail);
   }
 }
 

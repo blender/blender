@@ -394,13 +394,13 @@ eAutoPropButsReturn uiDefAutoButsRNA(uiLayout *layout,
           col = &layout->column(true);
 
           if (!is_boolean) {
-            uiItemL(col, *name, ICON_NONE);
+            col->label(*name, ICON_NONE);
           }
         }
         else {
           BLI_assert(label_align == UI_BUT_LABEL_ALIGN_SPLIT_COLUMN);
           col = &layout->column(true);
-          /* Let uiItemFullR() create the split layout. */
+          /* Let uiLayout::prop() create the split layout. */
           uiLayoutSetPropSep(col, true);
         }
 
@@ -421,8 +421,7 @@ eAutoPropButsReturn uiDefAutoButsRNA(uiLayout *layout,
       uiLayoutSetActivateInit(col, true);
     }
 
-    uiItemFullR(
-        col, ptr, prop, -1, 0, compact ? UI_ITEM_R_COMPACT : UI_ITEM_NONE, name, ICON_NONE);
+    col->prop(ptr, prop, -1, 0, compact ? UI_ITEM_R_COMPACT : UI_ITEM_NONE, name, ICON_NONE);
     return_info &= ~UI_PROP_BUTS_NONE_ADDED;
 
     if (use_activate_init) {

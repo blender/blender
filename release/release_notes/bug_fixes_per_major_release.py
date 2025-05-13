@@ -162,6 +162,7 @@ import subprocess
 import argparse
 import urllib.error
 import urllib.request
+import urllib.robotparser
 
 from time import time, sleep
 from typing import Any
@@ -232,17 +233,30 @@ assert len(set(LIST_OF_OFFICIAL_BLENDER_VERSIONS)) == len(LIST_OF_OFFICIAL_BLEND
 # -----------------------------------------------------------------------------
 # Private Utilities
 
-# Conform to Blenders crawl delay request:
-# https://projects.blender.org/robots.txt
-crawl_delay = 2
+CRAWL_DELAY = 2
 last_checked_time = None
+
+
+def set_crawl_delay() -> None:
+    global CRAWL_DELAY
+    # Conform to Blenders crawl delay request:
+    # https://projects.blender.org/robots.txt
+    try:
+        projects = urllib.robotparser.RobotFileParser(url="https://projects.blender.org/robots.txt")
+        projects.read()
+        projects_crawl_delay = projects.crawl_delay("*")
+        if projects_crawl_delay is not None:
+            assert isinstance(projects_crawl_delay, int)
+            CRAWL_DELAY = projects_crawl_delay
+    except:
+        pass
 
 
 def url_json_get(url: str) -> Any:
     global last_checked_time
 
     if last_checked_time is not None:
-        sleep(max(crawl_delay - (time() - last_checked_time), 0))
+        sleep(max(CRAWL_DELAY - (time() - last_checked_time), 0))
     last_checked_time = time()
 
     try:
@@ -412,8 +426,15 @@ class CommitInfo:
         formatted_string = (
             f" * {title} [[{self.hash[:11]}](https://projects.blender.org/blender/blender/commit/{self.hash})]"
         )
+
         if len(self.backport_list) > 0:
-            formatted_string += f" - Backported to {' & '.join(self.backport_list)}"
+            formatted_string += f" - Backported to "
+            if len(self.backport_list) > 2:
+                # In case of three or more backports, create a list that looks like:
+                # "Backported to 3.6, 4.2, and 4.3"
+                formatted_string += f"{', '.join(self.backport_list[:-1])}, and {self.backport_list[-1]}"
+            else:
+                formatted_string += " and ".join(self.backport_list)
         formatted_string += "\n"
 
         return formatted_string
@@ -879,7 +900,8 @@ def cached_commits_store(list_of_commits: list[CommitInfo]) -> None:
     # on commits that are already sorted (and they're not interested in).
     data_to_cache = {}
     for commit in list_of_commits:
-        if (commit.classification not in (NEEDS_MANUAL_SORTING, IGNORED)) and not (commit.has_been_overwritten):
+        if (commit.classification not in (NEEDS_MANUAL_SORTING, IGNORED)) and not (
+                commit.has_been_overwritten) and (commit.module != UNKNOWN):
             commit_hash, data = commit.prepare_for_cache()
             data_to_cache[commit_hash] = data
 
@@ -1064,6 +1086,8 @@ def main() -> int:
 
     if not validate_arguments(args):
         return 0
+
+    set_crawl_delay()
 
     list_of_commits = get_fix_commits(
         current_release_tag=args.current_release_tag,

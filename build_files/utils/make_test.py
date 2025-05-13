@@ -17,7 +17,6 @@ import sys
 
 import make_utils
 from make_utils import call
-from pathlib import Path
 
 
 # Parse arguments.
@@ -46,24 +45,6 @@ def main() -> int:
     if make_utils.command_missing(git_command):
         sys.stderr.write("git not found, can't run tests\n")
         return 1
-
-    # Test if we are building a specific release version.
-    lib_tests_dirpath = Path("tests") / "data"
-
-    if not (lib_tests_dirpath / ".git").exists():
-        print("Tests files not found, downloading...")
-
-        if make_utils.command_missing(cmake_command):
-            sys.stderr.write("cmake not found, can't checkout test files\n")
-            return 1
-
-        # Ensure the test data files sub-module is configured and present.
-        make_utils.git_enable_submodule(git_command, Path("tests") / "data")
-        make_utils.git_update_submodule(args.git_command, lib_tests_dirpath)
-
-        # Run cmake again to detect tests files.
-        os.chdir(build_dir)
-        call([cmake_command, "."])
 
     # Run tests
     tests_dir = os.path.join(build_dir, "tests")

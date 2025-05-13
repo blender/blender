@@ -35,12 +35,12 @@
 namespace blender::ed::transform {
 
 struct TransCustomDataNode {
-  View2DEdgePanData edgepan_data;
+  View2DEdgePanData edgepan_data{};
 
   /* Compare if the view has changed so we can update with `transformViewUpdate`. */
-  rctf viewrect_prev;
+  rctf viewrect_prev{};
 
-  bool is_new_node;
+  bool is_new_node = false;
 };
 
 /* -------------------------------------------------------------------- */
@@ -144,7 +144,7 @@ static VectorSet<bNode *> get_transformed_nodes(bNodeTree &node_tree)
   return nodes;
 }
 
-static void createTransNodeData(bContext * /*C*/, TransInfo *t)
+static void createTransNodeData(bContext *C, TransInfo *t)
 {
   SpaceNode *snode = static_cast<SpaceNode *>(t->area->spacedata.first);
   bNodeTree *node_tree = snode->edittree;
@@ -153,7 +153,7 @@ static void createTransNodeData(bContext * /*C*/, TransInfo *t)
   }
 
   /* Custom data to enable edge panning during the node transform. */
-  TransCustomDataNode *customdata = MEM_callocN<TransCustomDataNode>(__func__);
+  TransCustomDataNode *customdata = MEM_new<TransCustomDataNode>(__func__);
   UI_view2d_edge_pan_init(t->context,
                           &customdata->edgepan_data,
                           NODE_EDGE_PAN_INSIDE_PAD,
@@ -167,9 +167,14 @@ static void createTransNodeData(bContext * /*C*/, TransInfo *t)
 
   space_node::node_insert_on_link_flags_set(
       *snode, *t->region, t->modifiers & MOD_NODE_ATTACH, customdata->is_new_node);
+  space_node::node_insert_on_frame_flag_set(*C, *snode, int2(t->mval));
 
   t->custom.type.data = customdata;
-  t->custom.type.use_free = true;
+  t->custom.type.free_cb = [](TransInfo *, TransDataContainer *, TransCustomData *custom_data) {
+    TransCustomDataNode *data = static_cast<TransCustomDataNode *>(custom_data->data);
+    MEM_delete(data);
+    custom_data->data = nullptr;
+  };
 
   TransDataContainer *tc = TRANS_DATA_CONTAINER_FIRST_SINGLE(t);
 
@@ -313,6 +318,7 @@ static void flushTransNodes(TransInfo *t)
       space_node::node_insert_on_link_flags_set(
           *snode, *t->region, t->modifiers & MOD_NODE_ATTACH, customdata->is_new_node);
     }
+    space_node::node_insert_on_frame_flag_set(*t->context, *snode, int2(t->mval));
   }
 }
 
@@ -351,6 +357,7 @@ static void special_aftertrans_update__node(bContext *C, TransInfo *t)
   }
 
   space_node::node_insert_on_link_flags_clear(*ntree);
+  space_node::node_insert_on_frame_flag_clear(*snode);
 
   wmOperatorType *ot = WM_operatortype_find("NODE_OT_insert_offset", true);
   BLI_assert(ot);

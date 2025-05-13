@@ -28,7 +28,7 @@ static wmOperatorStatus viewcenter_pick_invoke(bContext *C, wmOperator *op, cons
 
   if (rv3d) {
     Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
-    float new_ofs[3];
+    float ofs_new[3];
     const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
 
     ED_view3d_smooth_view_force_finish(C, v3d, region);
@@ -38,18 +38,18 @@ static wmOperatorStatus viewcenter_pick_invoke(bContext *C, wmOperator *op, cons
     /* Ensure the depth buffer is updated for #ED_view3d_autodist. */
     ED_view3d_depth_override(depsgraph, region, v3d, nullptr, V3D_DEPTH_NO_GPENCIL, true, nullptr);
 
-    if (ED_view3d_autodist(region, v3d, event->mval, new_ofs, nullptr)) {
+    if (ED_view3d_autodist(region, v3d, event->mval, ofs_new, nullptr)) {
       /* pass */
     }
     else {
       /* fallback to simple pan */
-      negate_v3_v3(new_ofs, rv3d->ofs);
-      ED_view3d_win_to_3d_int(v3d, region, new_ofs, event->mval, new_ofs);
+      negate_v3_v3(ofs_new, rv3d->ofs);
+      ED_view3d_win_to_3d_int(v3d, region, ofs_new, event->mval, ofs_new);
     }
-    negate_v3(new_ofs);
+    negate_v3(ofs_new);
 
     V3D_SmoothParams sview = {nullptr};
-    sview.ofs = new_ofs;
+    sview.ofs = ofs_new;
     sview.undo_str = op->type->name;
 
     ED_view3d_smooth_view(C, v3d, region, smooth_viewtx, &sview);

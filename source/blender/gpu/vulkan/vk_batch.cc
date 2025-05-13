@@ -142,19 +142,4 @@ void VKBatch::multi_draw_indirect(const VkBuffer indirect_buffer,
   }
 }
 
-VKVertexBuffer *VKBatch::vertex_buffer_get(int index)
-{
-  return unwrap(verts_(index));
-}
-
-VKVertexBuffer *VKBatch::instance_buffer_get(int index)
-{
-  return unwrap(inst_(index));
-}
-
-VKIndexBuffer *VKBatch::index_buffer_get()
-{
-  return unwrap(unwrap(elem));
-}
-
 }  // namespace blender::gpu

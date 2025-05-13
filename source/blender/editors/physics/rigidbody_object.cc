@@ -480,7 +480,7 @@ static wmOperatorStatus rigidbody_objects_calc_mass_exec(bContext *C, wmOperator
       /* mass is calculated from the approximate volume of the object,
        * and the density of the material we're simulating
        */
-      Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+      Object *ob_eval = DEG_get_evaluated(depsgraph, ob);
       BKE_rigidbody_calc_volume(ob_eval, &volume);
       mass = volume * density;
 

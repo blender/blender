@@ -17,9 +17,7 @@ static bool drw_attributes_has_request(const DRW_Attributes *requests,
 {
   for (int i = 0; i < requests->num_requests; i++) {
     const DRW_AttributeRequest &src_req = requests->requests[i];
-    if (src_req.domain == req.domain && src_req.layer_index == req.layer_index &&
-        src_req.cd_type == req.cd_type)
-    {
+    if (STREQ(src_req.attribute_name, req.attribute_name) && src_req.cd_type == req.cd_type) {
       return true;
     }
   }
@@ -48,7 +46,7 @@ void drw_attributes_clear(DRW_Attributes *attributes)
   *attributes = {};
 }
 
-void drw_attributes_merge(DRW_Attributes *dst, const DRW_Attributes *src, std::mutex &render_mutex)
+void drw_attributes_merge(DRW_Attributes *dst, const DRW_Attributes *src, Mutex &render_mutex)
 {
   if (src->num_requests == 0) {
     return;
@@ -70,21 +68,16 @@ bool drw_attributes_overlap(const DRW_Attributes *a, const DRW_Attributes *b)
 
 void drw_attributes_add_request(DRW_Attributes *attrs,
                                 const char *name,
-                                const eCustomDataType type,
-                                const int layer_index,
-                                const blender::bke::AttrDomain domain)
+                                const eCustomDataType type)
 {
-  if (attrs->num_requests >= GPU_MAX_ATTR ||
-      drw_attributes_has_request(attrs, {type, layer_index, domain}))
-  {
+  DRW_AttributeRequest req{};
+  req.cd_type = type;
+  STRNCPY(req.attribute_name, name);
+  if (attrs->num_requests >= GPU_MAX_ATTR || drw_attributes_has_request(attrs, req)) {
     return;
   }
 
-  DRW_AttributeRequest *req = &attrs->requests[attrs->num_requests];
-  req->cd_type = type;
-  STRNCPY(req->attribute_name, name);
-  req->layer_index = layer_index;
-  req->domain = domain;
+  attrs->requests[attrs->num_requests] = req;
   attrs->num_requests += 1;
 }
 

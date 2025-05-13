@@ -24,38 +24,15 @@ namespace blender::nodes::node_composite_bokehblur_cc {
 
 static void cmp_node_bokehblur_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Color>("Image")
-      .default_value({0.8f, 0.8f, 0.8f, 1.0f})
-      .compositor_domain_priority(0);
+  b.add_input<decl::Color>("Image").default_value({0.8f, 0.8f, 0.8f, 1.0f});
   b.add_input<decl::Color>("Bokeh")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
       .compositor_realization_mode(CompositorInputRealizationMode::Transforms);
-  b.add_input<decl::Float>("Size")
-      .default_value(1.0f)
-      .min(0.0f)
-      .max(10.0f)
-      .compositor_domain_priority(1);
-  b.add_input<decl::Float>("Bounding box")
-      .default_value(1.0f)
-      .min(0.0f)
-      .max(1.0f)
-      .compositor_domain_priority(2);
+  b.add_input<decl::Float>("Size").default_value(1.0f).min(0.0f).max(10.0f);
+  b.add_input<decl::Float>("Bounding box").default_value(1.0f).min(0.0f).max(1.0f);
+  b.add_input<decl::Bool>("Extend Bounds").default_value(false).compositor_expects_single_value();
+
   b.add_output<decl::Color>("Image");
-}
-
-static void node_composit_init_bokehblur(bNodeTree * /*ntree*/, bNode *node)
-{
-  node->custom3 = 4.0f;
-  node->custom4 = 16.0f;
-}
-
-static void node_composit_buts_bokehblur(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
-{
-  uiItemR(layout, ptr, "use_variable_size", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
-  // uiItemR(layout, ptr, "f_stop", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE); /* UNUSED
-  // */
-  uiItemR(layout, ptr, "blur_max", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
-  uiItemR(layout, ptr, "use_extended_bounds", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 }
 
 using namespace blender::compositor;
@@ -73,7 +50,7 @@ class BokehBlurOperation : public NodeOperation {
       return;
     }
 
-    if (get_input("Size").is_single_value() || !get_variable_size()) {
+    if (this->get_input("Size").is_single_value()) {
       execute_constant_size();
     }
     else {
@@ -349,7 +326,7 @@ class BokehBlurOperation : public NodeOperation {
     const float maximum_size = maximum_float(context(), input_size);
 
     const float base_size = compute_blur_radius();
-    return math::clamp(int(maximum_size * base_size), 0, get_max_size());
+    return math::max(0, int(maximum_size * base_size));
   }
 
   float compute_blur_radius()
@@ -388,17 +365,7 @@ class BokehBlurOperation : public NodeOperation {
 
   bool get_extend_bounds()
   {
-    return bnode().custom1 & CMP_NODEFLAG_BLUR_EXTEND_BOUNDS;
-  }
-
-  bool get_variable_size()
-  {
-    return bnode().custom1 & CMP_NODEFLAG_BLUR_VARIABLE_SIZE;
-  }
-
-  int get_max_size()
-  {
-    return int(bnode().custom4);
+    return this->get_input("Extend Bounds").get_single_value_default(false);
   }
 };
 
@@ -409,7 +376,7 @@ static NodeOperation *get_compositor_operation(Context &context, DNode node)
 
 }  // namespace blender::nodes::node_composite_bokehblur_cc
 
-void register_node_type_cmp_bokehblur()
+static void register_node_type_cmp_bokehblur()
 {
   namespace file_ns = blender::nodes::node_composite_bokehblur_cc;
 
@@ -423,9 +390,8 @@ void register_node_type_cmp_bokehblur()
   ntype.enum_name_legacy = "BOKEHBLUR";
   ntype.nclass = NODE_CLASS_OP_FILTER;
   ntype.declare = file_ns::cmp_node_bokehblur_declare;
-  ntype.draw_buttons = file_ns::node_composit_buts_bokehblur;
-  ntype.initfunc = file_ns::node_composit_init_bokehblur;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
   blender::bke::node_register_type(ntype);
 }
+NOD_REGISTER_NODE(register_node_type_cmp_bokehblur)

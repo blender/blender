@@ -27,6 +27,7 @@ class VKBatch;
 class VKStateManager;
 class VKShader;
 class VKThreadData;
+class VKDevice;
 
 enum RenderGraphFlushFlags {
   NONE = 0,
@@ -37,6 +38,8 @@ enum RenderGraphFlushFlags {
 ENUM_OPERATORS(RenderGraphFlushFlags, RenderGraphFlushFlags::WAIT_FOR_COMPLETION);
 
 class VKContext : public Context, NonCopyable {
+  friend class VKDevice;
+
  private:
   VkExtent2D vk_extent_ = {};
   VkSurfaceFormatKHR swap_chain_format_ = {};
@@ -78,8 +81,6 @@ class VKContext : public Context, NonCopyable {
       VkSemaphore signal_semaphore = VK_NULL_HANDLE,
       VkFence signal_fence = VK_NULL_HANDLE);
   void finish() override;
-
-  ShaderCompiler *get_compiler() override;
 
   void memory_statistics_get(int *r_total_mem_kb, int *r_free_mem_kb) override;
 

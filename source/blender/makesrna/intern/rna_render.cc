@@ -103,9 +103,9 @@ static void engine_tag_update(RenderEngine *engine)
   engine->flag |= RE_ENGINE_DO_UPDATE;
 }
 
-static bool engine_support_display_space_shader(RenderEngine * /*engine*/, Scene *scene)
+static bool engine_support_display_space_shader(RenderEngine * /*engine*/, Scene * /*scene*/)
 {
-  return IMB_colormanagement_support_glsl_draw(&scene->view_settings);
+  return true;
 }
 
 static int engine_get_preview_pixel_size(RenderEngine * /*engine*/, Scene *scene)
@@ -446,7 +446,7 @@ static PointerRNA rna_RenderEngine_camera_override_get(PointerRNA *ptr)
   /* TODO(sergey): Shouldn't engine point to an evaluated datablocks already? */
   if (engine->re) {
     Object *cam = RE_GetCamera(engine->re);
-    Object *cam_eval = DEG_get_evaluated_object(engine->depsgraph, cam);
+    Object *cam_eval = DEG_get_evaluated(engine->depsgraph, cam);
     return RNA_id_pointer_create(reinterpret_cast<ID *>(cam_eval));
   }
   else {

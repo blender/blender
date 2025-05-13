@@ -44,7 +44,7 @@ void main()
   shapes = saturate(1.0f - linearstep(-0.8f, 0.8f, shapes));
   /* Outside of bokeh shape. Try to avoid overloading ROPs. */
   if (reduce_max(shapes) == 0.0f) {
-    discard;
+    gpu_discard_fragment();
     return;
   }
 

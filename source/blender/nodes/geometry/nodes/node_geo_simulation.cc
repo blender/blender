@@ -24,6 +24,7 @@
 #include "NOD_geo_simulation.hh"
 #include "NOD_node_extra_info.hh"
 #include "NOD_socket.hh"
+#include "NOD_socket_items_blend.hh"
 #include "NOD_socket_items_ops.hh"
 #include "NOD_socket_items_ui.hh"
 #include "NOD_socket_search_link.hh"
@@ -182,8 +183,8 @@ static void draw_simulation_state(const bContext *C,
                                   bNodeTree &ntree,
                                   bNode &output_node)
 {
-  if (uiLayout *panel = uiLayoutPanel(
-          C, layout, "simulation_state_items", false, IFACE_("Simulation State")))
+  if (uiLayout *panel = layout->panel(
+          C, "simulation_state_items", false, IFACE_("Simulation State")))
   {
     socket_items::ui::draw_items_list_with_operators<SimulationItemsAccessor>(
         C, panel, ntree, output_node);
@@ -193,9 +194,9 @@ static void draw_simulation_state(const bContext *C,
           NodeSimulationItem &active_item = storage.items[storage.active_index];
           uiLayoutSetPropSep(panel, true);
           uiLayoutSetPropDecorate(panel, false);
-          uiItemR(panel, item_ptr, "socket_type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+          panel->prop(item_ptr, "socket_type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
           if (socket_type_supports_fields(eNodeSocketDatatype(active_item.socket_type))) {
-            uiItemR(panel, item_ptr, "attribute_domain", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+            panel->prop(item_ptr, "attribute_domain", UI_ITEM_NONE, std::nullopt, ICON_NONE);
           }
         });
   }
@@ -237,7 +238,7 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *current_no
     draw_bake_button_row(ctx, col, true);
     if (const std::optional<std::string> bake_state_str = get_bake_state_string(ctx)) {
       uiLayout *row = &col->row(true);
-      uiItemL(row, *bake_state_str, ICON_NONE);
+      row->label(*bake_state_str, ICON_NONE);
     }
   }
   draw_common_bake_settings(C, ctx, layout);
@@ -881,6 +882,16 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
   });
 }
 
+static void node_blend_write(const bNodeTree & /*tree*/, const bNode &node, BlendWriter &writer)
+{
+  socket_items::blend_write<SimulationItemsAccessor>(&writer, node);
+}
+
+static void node_blend_read(bNodeTree & /*tree*/, bNode &node, BlendDataReader &reader)
+{
+  socket_items::blend_read_data<SimulationItemsAccessor>(&reader, node);
+}
+
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
@@ -899,6 +910,8 @@ static void node_register()
   ntype.no_muting = true;
   ntype.register_operators = node_operators;
   ntype.get_extra_info = node_extra_info;
+  ntype.blend_write_storage_content = node_blend_write;
+  ntype.blend_data_read_storage_content = node_blend_read;
   blender::bke::node_type_storage(
       ntype, "NodeGeometrySimulationOutput", node_free_storage, node_copy_storage);
   blender::bke::node_register_type(ntype);
@@ -980,7 +993,6 @@ void mix_baked_data_item(const eNodeSocketDatatype socket_type,
 
 StructRNA *SimulationItemsAccessor::item_srna = &RNA_SimulationStateItem;
 int SimulationItemsAccessor::node_type = GEO_NODE_SIMULATION_OUTPUT;
-int SimulationItemsAccessor::item_dna_type = SDNA_TYPE_FROM_STRUCT(NodeSimulationItem);
 
 void SimulationItemsAccessor::blend_write_item(BlendWriter *writer, const ItemT &item)
 {

@@ -247,7 +247,7 @@ static void screen_user_menu_draw(const bContext *C, Menu *menu)
         else {
           if (show_missing) {
             SNPRINTF(label, RPT_("Missing: %s"), umi_op->op_idname);
-            uiItemL(menu->layout, label, ICON_NONE);
+            menu->layout->label(label, ICON_NONE);
           }
         }
       }
@@ -261,7 +261,7 @@ static void screen_user_menu_draw(const bContext *C, Menu *menu)
         else {
           if (show_missing) {
             SNPRINTF(label, RPT_("Missing: %s"), umi_mt->mt_idname);
-            uiItemL(menu->layout, label, ICON_NONE);
+            menu->layout->label(label, ICON_NONE);
           }
         }
       }
@@ -295,14 +295,8 @@ static void screen_user_menu_draw(const bContext *C, Menu *menu)
             prop = RNA_struct_find_property(&prop_ptr, umi_pr->prop_id);
             if (prop) {
               ok = true;
-              uiItemFullR(menu->layout,
-                          &prop_ptr,
-                          prop,
-                          umi_pr->prop_index,
-                          0,
-                          UI_ITEM_NONE,
-                          ui_name,
-                          ICON_NONE);
+              menu->layout->prop(
+                  &prop_ptr, prop, umi_pr->prop_index, 0, UI_ITEM_NONE, ui_name, ICON_NONE);
               is_empty = false;
             }
           }
@@ -310,7 +304,7 @@ static void screen_user_menu_draw(const bContext *C, Menu *menu)
         if (!ok) {
           if (show_missing) {
             SNPRINTF(label, RPT_("Missing: %s.%s"), umi_pr->context_data_path, umi_pr->prop_id);
-            uiItemL(menu->layout, label, ICON_NONE);
+            menu->layout->label(label, ICON_NONE);
           }
         }
       }
@@ -324,8 +318,8 @@ static void screen_user_menu_draw(const bContext *C, Menu *menu)
   }
 
   if (is_empty) {
-    uiItemL(menu->layout, RPT_("No menu items found"), ICON_NONE);
-    uiItemL(menu->layout, RPT_("Right click on buttons to add them to this menu"), ICON_NONE);
+    menu->layout->label(RPT_("No menu items found"), ICON_NONE);
+    menu->layout->label(RPT_("Right click on buttons to add them to this menu"), ICON_NONE);
   }
 }
 

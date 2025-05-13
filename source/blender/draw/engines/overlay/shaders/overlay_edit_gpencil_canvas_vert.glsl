@@ -22,7 +22,7 @@ void main()
 
   pos -= 0.5f;
 
-  float3 world_pos = x_axis * pos.x + y_axis * pos.y + origin;
+  float3 world_pos = axis_x * pos.x + axis_y * pos.y + origin;
 
   gl_Position = drw_point_world_to_homogenous(world_pos);
 
@@ -31,5 +31,6 @@ void main()
   final_color = color;
 
   /* Convert to screen position [0..sizeVp]. */
-  edge_pos = edge_start = ((gl_Position.xy / gl_Position.w) * 0.5f + 0.5f) * sizeViewport;
+  edge_pos = edge_start = ((gl_Position.xy / gl_Position.w) * 0.5f + 0.5f) *
+                          uniform_buf.size_viewport;
 }

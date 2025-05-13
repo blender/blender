@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
+#include <cstdint> /* Needed before `sdlexec.h` for `int32_t` with GCC 15.1. */
+
 #include <OSL/oslexec.h>
 
 #include "kernel/osl/globals.h"

@@ -51,7 +51,6 @@ static IndexMask apply_row_filter(const SpreadsheetRowFilter &row_filter,
             [&](const float cell) { return cell > value; },
             prev_mask,
             memory);
-        break;
       }
       case SPREADSHEET_ROW_FILTER_LESS: {
         return apply_filter_operation(
@@ -59,7 +58,6 @@ static IndexMask apply_row_filter(const SpreadsheetRowFilter &row_filter,
             [&](const float cell) { return cell < value; },
             prev_mask,
             memory);
-        break;
       }
     }
   }
@@ -80,7 +78,6 @@ static IndexMask apply_row_filter(const SpreadsheetRowFilter &row_filter,
             [&](const int cell) { return cell == value; },
             prev_mask,
             memory);
-        break;
       }
       case SPREADSHEET_ROW_FILTER_GREATER: {
         return apply_filter_operation(
@@ -88,7 +85,6 @@ static IndexMask apply_row_filter(const SpreadsheetRowFilter &row_filter,
             [value](const int cell) { return cell > value; },
             prev_mask,
             memory);
-        break;
       }
       case SPREADSHEET_ROW_FILTER_LESS: {
         return apply_filter_operation(
@@ -96,7 +92,6 @@ static IndexMask apply_row_filter(const SpreadsheetRowFilter &row_filter,
             [&](const int cell) { return cell < value; },
             prev_mask,
             memory);
-        break;
       }
     }
   }
@@ -109,7 +104,6 @@ static IndexMask apply_row_filter(const SpreadsheetRowFilter &row_filter,
             [&](const int cell) { return cell == value; },
             prev_mask,
             memory);
-        break;
       }
       case SPREADSHEET_ROW_FILTER_GREATER: {
         return apply_filter_operation(
@@ -117,7 +111,6 @@ static IndexMask apply_row_filter(const SpreadsheetRowFilter &row_filter,
             [value](const int cell) { return cell > value; },
             prev_mask,
             memory);
-        break;
       }
       case SPREADSHEET_ROW_FILTER_LESS: {
         return apply_filter_operation(
@@ -125,7 +118,6 @@ static IndexMask apply_row_filter(const SpreadsheetRowFilter &row_filter,
             [&](const int cell) { return cell < value; },
             prev_mask,
             memory);
-        break;
       }
     }
   }
@@ -133,29 +125,25 @@ static IndexMask apply_row_filter(const SpreadsheetRowFilter &row_filter,
     const int2 value = row_filter.value_int2;
     switch (row_filter.operation) {
       case SPREADSHEET_ROW_FILTER_EQUAL: {
-        const float threshold_sq = pow2f(row_filter.threshold);
-        apply_filter_operation(
+        return apply_filter_operation(
             column_data.typed<int2>(),
-            [&](const int2 cell) { return math::distance_squared(cell, value) <= threshold_sq; },
+            [&](const int2 cell) { return cell == value; },
             prev_mask,
             memory);
-        break;
       }
       case SPREADSHEET_ROW_FILTER_GREATER: {
-        apply_filter_operation(
+        return apply_filter_operation(
             column_data.typed<int2>(),
             [&](const int2 cell) { return cell.x > value.x && cell.y > value.y; },
             prev_mask,
             memory);
-        break;
       }
       case SPREADSHEET_ROW_FILTER_LESS: {
-        apply_filter_operation(
+        return apply_filter_operation(
             column_data.typed<int2>(),
             [&](const int2 cell) { return cell.x < value.x && cell.y < value.y; },
             prev_mask,
             memory);
-        break;
       }
     }
   }
@@ -163,29 +151,25 @@ static IndexMask apply_row_filter(const SpreadsheetRowFilter &row_filter,
     const short2 value = short2(int2(row_filter.value_int2));
     switch (row_filter.operation) {
       case SPREADSHEET_ROW_FILTER_EQUAL: {
-        const float threshold_sq = pow2f(row_filter.threshold);
-        apply_filter_operation(
+        return apply_filter_operation(
             column_data.typed<short2>(),
-            [&](const short2 cell) { return math::distance_squared(cell, value) <= threshold_sq; },
+            [&](const short2 cell) { return cell == value; },
             prev_mask,
             memory);
-        break;
       }
       case SPREADSHEET_ROW_FILTER_GREATER: {
-        apply_filter_operation(
+        return apply_filter_operation(
             column_data.typed<short2>(),
             [&](const short2 cell) { return cell.x > value.x && cell.y > value.y; },
             prev_mask,
             memory);
-        break;
       }
       case SPREADSHEET_ROW_FILTER_LESS: {
-        apply_filter_operation(
+        return apply_filter_operation(
             column_data.typed<short2>(),
             [&](const short2 cell) { return cell.x < value.x && cell.y < value.y; },
             prev_mask,
             memory);
-        break;
       }
     }
   }
@@ -199,7 +183,6 @@ static IndexMask apply_row_filter(const SpreadsheetRowFilter &row_filter,
             [&](const float2 cell) { return math::distance_squared(cell, value) <= threshold_sq; },
             prev_mask,
             memory);
-        break;
       }
       case SPREADSHEET_ROW_FILTER_GREATER: {
         return apply_filter_operation(
@@ -207,7 +190,6 @@ static IndexMask apply_row_filter(const SpreadsheetRowFilter &row_filter,
             [&](const float2 cell) { return cell.x > value.x && cell.y > value.y; },
             prev_mask,
             memory);
-        break;
       }
       case SPREADSHEET_ROW_FILTER_LESS: {
         return apply_filter_operation(
@@ -215,7 +197,6 @@ static IndexMask apply_row_filter(const SpreadsheetRowFilter &row_filter,
             [&](const float2 cell) { return cell.x < value.x && cell.y < value.y; },
             prev_mask,
             memory);
-        break;
       }
     }
   }
@@ -229,7 +210,6 @@ static IndexMask apply_row_filter(const SpreadsheetRowFilter &row_filter,
             [&](const float3 cell) { return math::distance_squared(cell, value) <= threshold_sq; },
             prev_mask,
             memory);
-        break;
       }
       case SPREADSHEET_ROW_FILTER_GREATER: {
         return apply_filter_operation(
@@ -239,7 +219,6 @@ static IndexMask apply_row_filter(const SpreadsheetRowFilter &row_filter,
             },
             prev_mask,
             memory);
-        break;
       }
       case SPREADSHEET_ROW_FILTER_LESS: {
         return apply_filter_operation(
@@ -249,7 +228,6 @@ static IndexMask apply_row_filter(const SpreadsheetRowFilter &row_filter,
             },
             prev_mask,
             memory);
-        break;
       }
     }
   }
@@ -265,7 +243,6 @@ static IndexMask apply_row_filter(const SpreadsheetRowFilter &row_filter,
             },
             prev_mask,
             memory);
-        break;
       }
       case SPREADSHEET_ROW_FILTER_GREATER: {
         return apply_filter_operation(
@@ -275,7 +252,6 @@ static IndexMask apply_row_filter(const SpreadsheetRowFilter &row_filter,
             },
             prev_mask,
             memory);
-        break;
       }
       case SPREADSHEET_ROW_FILTER_LESS: {
         return apply_filter_operation(
@@ -285,7 +261,6 @@ static IndexMask apply_row_filter(const SpreadsheetRowFilter &row_filter,
             },
             prev_mask,
             memory);
-        break;
       }
     }
   }
@@ -306,7 +281,6 @@ static IndexMask apply_row_filter(const SpreadsheetRowFilter &row_filter,
             },
             prev_mask,
             memory);
-        break;
       }
       case SPREADSHEET_ROW_FILTER_GREATER: {
         return apply_filter_operation(
@@ -317,7 +291,6 @@ static IndexMask apply_row_filter(const SpreadsheetRowFilter &row_filter,
             },
             prev_mask,
             memory);
-        break;
       }
       case SPREADSHEET_ROW_FILTER_LESS: {
         return apply_filter_operation(
@@ -328,7 +301,6 @@ static IndexMask apply_row_filter(const SpreadsheetRowFilter &row_filter,
             },
             prev_mask,
             memory);
-        break;
       }
     }
   }
@@ -345,7 +317,7 @@ static IndexMask apply_row_filter(const SpreadsheetRowFilter &row_filter,
               return value == (reinterpret_cast<ID &>(cell.collection()).name + 2);
             }
             case bke::InstanceReference::Type::GeometrySet: {
-              return false;
+              return value == cell.geometry_set().name;
             }
             case bke::InstanceReference::Type::None: {
               return false;

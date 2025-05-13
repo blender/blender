@@ -53,7 +53,7 @@ using namespace blender::gpu;
 
 static thread_local Context *active_ctx = nullptr;
 
-static std::mutex backend_users_mutex;
+static blender::Mutex backend_users_mutex;
 static int num_backend_users = 0;
 
 static void gpu_backend_create();
@@ -271,7 +271,7 @@ void GPU_context_end_frame(GPUContext *ctx)
  * Used to avoid crash on some old drivers.
  * \{ */
 
-static std::mutex main_context_mutex;
+static blender::Mutex main_context_mutex;
 
 void GPU_context_main_lock()
 {
@@ -554,7 +554,7 @@ GPUSecondaryContext::GPUSecondaryContext()
   gpu_settings.preferred_device.vendor_id = U.gpu_preferred_vendor_id;
   gpu_settings.preferred_device.device_id = U.gpu_preferred_device_id;
 
-  /* Grab the system handle.  */
+  /* Grab the system handle. */
   GHOST_SystemHandle ghost_system = reinterpret_cast<GHOST_SystemHandle>(
       GPU_backend_ghost_system_get());
   BLI_assert(ghost_system);

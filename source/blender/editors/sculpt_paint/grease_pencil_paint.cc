@@ -149,7 +149,7 @@ class PaintOperation : public GreasePencilStrokeOperation {
   /* Temporary vector of curve fitted screen space coordinates per input sample from the active
    * smoothing window. The length of this depends on `active_smooth_start_index_`. */
   Vector<Vector<float2>> screen_space_curve_fitted_coords_;
-  /* Temporary vector of screen space offsets  */
+  /* Temporary vector of screen space offsets. */
   Vector<float2> screen_space_jitter_offsets_;
   /* Projection planes for every point in "Stroke" placement mode. */
   Vector<std::optional<float>> stroke_placement_depths_;
@@ -1064,7 +1064,7 @@ void PaintOperation::on_stroke_begin(const bContext &C, const InputSample &start
   View3D *view3d = CTX_wm_view3d(&C);
   Scene *scene = CTX_data_scene(&C);
   Object *object = CTX_data_active_object(&C);
-  Object *eval_object = DEG_get_evaluated_object(depsgraph, object);
+  Object *eval_object = DEG_get_evaluated(depsgraph, object);
   GreasePencil *grease_pencil = static_cast<GreasePencil *>(object->data);
 
   Paint *paint = &scene->toolsettings->gp_paint->paint;

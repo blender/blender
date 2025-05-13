@@ -1233,7 +1233,7 @@ static void buttons_panel_context_draw(const bContext *C, Panel *panel)
 
     /* Add > triangle. */
     if (!first) {
-      uiItemL(row, "", ICON_RIGHTARROW);
+      row->label("", ICON_RIGHTARROW);
     }
 
     /* Add icon and name. */
@@ -1249,7 +1249,7 @@ static void buttons_panel_context_draw(const bContext *C, Panel *panel)
       }
     }
     else {
-      uiItemL(row, "", icon);
+      row->label("", icon);
     }
 
     first = false;
@@ -1259,10 +1259,8 @@ static void buttons_panel_context_draw(const bContext *C, Panel *panel)
   uiLayoutSetAlignment(pin_row, UI_LAYOUT_ALIGN_RIGHT);
   uiItemSpacer(pin_row);
   uiLayoutSetEmboss(pin_row, blender::ui::EmbossType::None);
-  uiItemO(pin_row,
-          "",
-          (sbuts->flag & SB_PIN_CONTEXT) ? ICON_PINNED : ICON_UNPINNED,
-          "BUTTONS_OT_toggle_pin");
+  pin_row->op(
+      "BUTTONS_OT_toggle_pin", "", (sbuts->flag & SB_PIN_CONTEXT) ? ICON_PINNED : ICON_UNPINNED);
 }
 
 void buttons_context_register(ARegionType *art)

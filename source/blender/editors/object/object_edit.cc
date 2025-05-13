@@ -1003,7 +1003,11 @@ static wmOperatorStatus editmode_toggle_exec(bContext *C, wmOperator *op)
 
 static bool editmode_toggle_poll(bContext *C)
 {
-  Object *ob = CTX_data_active_object(C);
+  /* Get object the same way as in editmode_toggle_exec(). Otherwise overriding context can crash,
+   * see #137998. */
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  BKE_view_layer_synced_ensure(CTX_data_scene(C), view_layer);
+  Object *ob = BKE_view_layer_active_object_get(view_layer);
 
   /* Covers liboverrides too. */
   if (ELEM(nullptr, ob, ob->data) || !ID_IS_EDITABLE(ob->data) || ID_IS_OVERRIDE_LIBRARY(ob) ||
@@ -1928,11 +1932,11 @@ static void shade_auto_smooth_ui(bContext * /*C*/, wmOperator *op)
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
 
-  uiItemR(layout, op->ptr, "use_auto_smooth", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(op->ptr, "use_auto_smooth", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   uiLayout *col = &layout->column(false);
   uiLayoutSetActive(col, RNA_boolean_get(op->ptr, "use_auto_smooth"));
-  uiItemR(layout, op->ptr, "angle", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(op->ptr, "angle", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
 void OBJECT_OT_shade_auto_smooth(wmOperatorType *ot)

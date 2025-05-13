@@ -48,7 +48,7 @@ VertOut vertex_main(VertIn v_in)
   v_out.ws_P = transform_point(model_mat, v_in.ls_P);
   v_out.vs_P = drw_point_world_to_view(v_out.ws_P);
   v_out.hs_P = drw_point_view_to_homogenous(v_out.vs_P);
-  v_out.ss_P = drw_perspective_divide(v_out.hs_P).xy * sizeViewport;
+  v_out.ss_P = drw_perspective_divide(v_out.hs_P).xy * uniform_buf.size_viewport;
   v_out.inverted = int(dot(cross(model_mat[0].xyz, model_mat[1].xyz), model_mat[2].xyz) < 0.0f);
   v_out.color_size = bone_color;
 
@@ -77,11 +77,12 @@ void emit_vertex(const uint strip_index,
 
   gl_Position = hs_P;
   /* Offset away from the center to avoid overlap with solid shape. */
-  gl_Position.xy += offset * sizeViewportInv * gl_Position.w;
+  gl_Position.xy += offset * uniform_buf.size_viewport_inv * gl_Position.w;
   /* Improve AA bleeding inside bone silhouette. */
   gl_Position.z -= (is_persp) ? 1e-4f : 1e-6f;
 
-  edge_start = edge_pos = ((gl_Position.xy / gl_Position.w) * 0.5f + 0.5f) * sizeViewport;
+  edge_start = edge_pos = ((gl_Position.xy / gl_Position.w) * 0.5f + 0.5f) *
+                          uniform_buf.size_viewport;
 
   view_clipping_distances(ws_P);
 }

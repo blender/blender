@@ -122,6 +122,22 @@ class VKBuffer : public NonCopyable {
   void unmap();
 };
 
+inline void *VKBuffer::mapped_memory_get() const
+{
+  BLI_assert_msg(this->is_mapped(), "Cannot access a non-mapped buffer.");
+  return mapped_memory_;
+}
+
+inline bool VKBuffer::is_mapped() const
+{
+  return mapped_memory_ != nullptr;
+}
+
+inline bool VKBuffer::is_allocated() const
+{
+  return allocation_ != VK_NULL_HANDLE;
+}
+
 /**
  * Helper struct to enable buffers to be bound with an offset.
  *

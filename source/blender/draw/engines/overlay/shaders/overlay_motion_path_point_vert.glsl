@@ -22,7 +22,7 @@ void main()
 
   int frame = gl_VertexID + cacheStart;
   bool use_custom_color = custom_color_pre.x >= 0.0f;
-  final_color = (use_custom_color) ? float4(custom_color_pre, 1.0f) : colorVertex;
+  final_color = (use_custom_color) ? float4(custom_color_pre, 1.0f) : theme.colors.vert;
 
   /* Bias to reduce z fighting with the path */
   gl_Position.z -= 1e-4f;
@@ -34,7 +34,7 @@ void main()
   /* Draw special dot where the current frame is. */
   if (frame == frameCurrent) {
     gl_PointSize = float(pt_size + 8);
-    final_color = colorCurrentFrame;
+    final_color = theme.colors.current_frame;
     /* Bias more to get these on top of keyframes */
     gl_Position.z -= 1e-4f;
   }
@@ -54,13 +54,13 @@ void main()
     /* Overrides the color to highlight points that are keyframes. */
     if ((uint(flag) & MOTIONPATH_VERT_KEY) != 0u) {
       gl_PointSize = float(pt_size + 5);
-      final_color = colorVertexSelect;
+      final_color = theme.colors.vert_select;
       /* Bias more to get these on top of regular points */
       gl_Position.z -= 1e-4f;
     }
   }
 
-  gl_PointSize *= sizePixel;
+  gl_PointSize *= theme.sizes.pixel;
 
   view_clipping_distances(pos);
 }

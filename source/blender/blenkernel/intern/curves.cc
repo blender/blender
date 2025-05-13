@@ -19,13 +19,16 @@
 #include "BLI_index_range.hh"
 #include "BLI_math_matrix.hh"
 #include "BLI_rand.hh"
+#include "BLI_resource_scope.hh"
 #include "BLI_span.hh"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
 
 #include "BKE_anim_data.hh"
+#include "BKE_attribute_legacy_convert.hh"
 #include "BKE_curves.hh"
+#include "BKE_customdata.hh"
 #include "BKE_geometry_fields.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_idtype.hh"
@@ -108,8 +111,9 @@ static void curves_blend_write(BlendWriter *writer, ID *id, const void *id_addre
   /* Only for forward compatibility. */
   curves->attributes_active_index_legacy = curves->geometry.attributes_active_index;
 
-  blender::bke::CurvesGeometry::BlendWriteData write_data =
-      curves->geometry.wrap().blend_write_prepare();
+  blender::ResourceScope scope;
+  blender::bke::CurvesGeometry::BlendWriteData write_data(scope);
+  curves->geometry.wrap().blend_write_prepare(write_data);
 
   /* Write LibData */
   BLO_write_id_struct(writer, Curves, id_address, &curves->id);
@@ -137,7 +141,7 @@ static void curves_blend_read_data(BlendDataReader *reader, ID *id)
 }
 
 IDTypeInfo IDType_ID_CV = {
-    /*id_code*/ ID_CV,
+    /*id_code*/ Curves::id_type,
     /*id_filter*/ FILTER_ID_CV,
     /*dependencies_id_types*/ FILTER_ID_MA | FILTER_ID_OB,
     /*main_listbase_index*/ INDEX_ID_CV,
@@ -168,7 +172,7 @@ IDTypeInfo IDType_ID_CV = {
 
 Curves *BKE_curves_add(Main *bmain, const char *name)
 {
-  Curves *curves = static_cast<Curves *>(BKE_id_new(bmain, ID_CV, name));
+  Curves *curves = BKE_id_new<Curves>(bmain, name);
 
   return curves;
 }
@@ -278,7 +282,7 @@ Curves *curves_new_nomain(const int points_num, const int curves_num)
 {
   BLI_assert(points_num >= 0);
   BLI_assert(curves_num >= 0);
-  Curves *curves_id = static_cast<Curves *>(BKE_id_new_nomain(ID_CV, nullptr));
+  Curves *curves_id = BKE_id_new_nomain<Curves>(nullptr);
   CurvesGeometry &curves = curves_id->geometry.wrap();
   curves.resize(points_num, curves_num);
   return curves_id;
@@ -295,7 +299,7 @@ Curves *curves_new_nomain_single(const int points_num, const CurveType type)
 
 Curves *curves_new_nomain(CurvesGeometry curves)
 {
-  Curves *curves_id = static_cast<Curves *>(BKE_id_new_nomain(ID_CV, nullptr));
+  Curves *curves_id = BKE_id_new_nomain<Curves>(nullptr);
   curves_id->geometry.wrap() = std::move(curves);
   return curves_id;
 }

@@ -147,43 +147,39 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   prop = RNA_struct_find_property(ptr, "use_axis");
   row = &col->row(true, IFACE_("Axis"));
-  uiItemFullR(row, ptr, prop, 0, 0, toggles_flag, IFACE_("X"), ICON_NONE);
-  uiItemFullR(row, ptr, prop, 1, 0, toggles_flag, IFACE_("Y"), ICON_NONE);
-  uiItemFullR(row, ptr, prop, 2, 0, toggles_flag, IFACE_("Z"), ICON_NONE);
+  row->prop(ptr, prop, 0, 0, toggles_flag, IFACE_("X"), ICON_NONE);
+  row->prop(ptr, prop, 1, 0, toggles_flag, IFACE_("Y"), ICON_NONE);
+  row->prop(ptr, prop, 2, 0, toggles_flag, IFACE_("Z"), ICON_NONE);
 
   prop = RNA_struct_find_property(ptr, "use_bisect_axis");
   row = &col->row(true, IFACE_("Bisect"));
-  uiItemFullR(row, ptr, prop, 0, 0, toggles_flag, IFACE_("X"), ICON_NONE);
-  uiItemFullR(row, ptr, prop, 1, 0, toggles_flag, IFACE_("Y"), ICON_NONE);
-  uiItemFullR(row, ptr, prop, 2, 0, toggles_flag, IFACE_("Z"), ICON_NONE);
+  row->prop(ptr, prop, 0, 0, toggles_flag, IFACE_("X"), ICON_NONE);
+  row->prop(ptr, prop, 1, 0, toggles_flag, IFACE_("Y"), ICON_NONE);
+  row->prop(ptr, prop, 2, 0, toggles_flag, IFACE_("Z"), ICON_NONE);
 
   prop = RNA_struct_find_property(ptr, "use_bisect_flip_axis");
   row = &col->row(true, IFACE_("Flip"));
   uiLayoutSetActive(row, has_bisect);
-  uiItemFullR(row, ptr, prop, 0, 0, toggles_flag, IFACE_("X"), ICON_NONE);
-  uiItemFullR(row, ptr, prop, 1, 0, toggles_flag, IFACE_("Y"), ICON_NONE);
-  uiItemFullR(row, ptr, prop, 2, 0, toggles_flag, IFACE_("Z"), ICON_NONE);
+  row->prop(ptr, prop, 0, 0, toggles_flag, IFACE_("X"), ICON_NONE);
+  row->prop(ptr, prop, 1, 0, toggles_flag, IFACE_("Y"), ICON_NONE);
+  row->prop(ptr, prop, 2, 0, toggles_flag, IFACE_("Z"), ICON_NONE);
 
   uiItemS(col);
 
-  uiItemR(col, ptr, "mirror_object", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  col->prop(ptr, "mirror_object", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  uiItemR(col,
-          ptr,
-          "use_clip",
-          UI_ITEM_NONE,
-          CTX_IFACE_(BLT_I18NCONTEXT_ID_MESH, "Clipping"),
-          ICON_NONE);
+  col->prop(
+      ptr, "use_clip", UI_ITEM_NONE, CTX_IFACE_(BLT_I18NCONTEXT_ID_MESH, "Clipping"), ICON_NONE);
 
   row = &col->row(true, IFACE_("Merge"));
-  uiItemR(row, ptr, "use_mirror_merge", UI_ITEM_NONE, "", ICON_NONE);
+  row->prop(ptr, "use_mirror_merge", UI_ITEM_NONE, "", ICON_NONE);
   sub = &row->row(true);
   uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_mirror_merge"));
-  uiItemR(sub, ptr, "merge_threshold", UI_ITEM_NONE, "", ICON_NONE);
+  sub->prop(ptr, "merge_threshold", UI_ITEM_NONE, "", ICON_NONE);
 
   sub = &col->row(true);
   uiLayoutSetActive(sub, has_bisect);
-  uiItemR(sub, ptr, "bisect_threshold", UI_ITEM_NONE, IFACE_("Bisect Distance"), ICON_NONE);
+  sub->prop(ptr, "bisect_threshold", UI_ITEM_NONE, IFACE_("Bisect Distance"), ICON_NONE);
 
   modifier_panel_end(layout, ptr);
 }
@@ -201,28 +197,27 @@ static void data_panel_draw(const bContext * /*C*/, Panel *panel)
   row = &col->row(true, IFACE_("Mirror U"));
   uiLayoutSetPropDecorate(row, false);
   sub = &row->row(true);
-  uiItemR(sub, ptr, "use_mirror_u", UI_ITEM_NONE, "", ICON_NONE);
+  sub->prop(ptr, "use_mirror_u", UI_ITEM_NONE, "", ICON_NONE);
   sub = &sub->row(true);
   uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_mirror_u"));
-  uiItemR(sub, ptr, "mirror_offset_u", UI_ITEM_R_SLIDER, "", ICON_NONE);
+  sub->prop(ptr, "mirror_offset_u", UI_ITEM_R_SLIDER, "", ICON_NONE);
   uiItemDecoratorR(row, ptr, "mirror_offset_u", 0);
 
   row = &col->row(true, IFACE_("V"));
   uiLayoutSetPropDecorate(row, false);
   sub = &row->row(true);
-  uiItemR(sub, ptr, "use_mirror_v", UI_ITEM_NONE, "", ICON_NONE);
+  sub->prop(ptr, "use_mirror_v", UI_ITEM_NONE, "", ICON_NONE);
   sub = &sub->row(true);
   uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_mirror_v"));
-  uiItemR(sub, ptr, "mirror_offset_v", UI_ITEM_R_SLIDER, "", ICON_NONE);
+  sub->prop(ptr, "mirror_offset_v", UI_ITEM_R_SLIDER, "", ICON_NONE);
   uiItemDecoratorR(row, ptr, "mirror_offset_v", 0);
 
   col = &layout->column(true);
-  uiItemR(col, ptr, "offset_u", UI_ITEM_R_SLIDER, IFACE_("Offset U"), ICON_NONE);
-  uiItemR(col, ptr, "offset_v", UI_ITEM_R_SLIDER, IFACE_("V"), ICON_NONE);
+  col->prop(ptr, "offset_u", UI_ITEM_R_SLIDER, IFACE_("Offset U"), ICON_NONE);
+  col->prop(ptr, "offset_v", UI_ITEM_R_SLIDER, IFACE_("V"), ICON_NONE);
 
-  uiItemR(
-      layout, ptr, "use_mirror_vertex_groups", UI_ITEM_NONE, IFACE_("Vertex Groups"), ICON_NONE);
-  uiItemR(layout, ptr, "use_mirror_udim", UI_ITEM_NONE, IFACE_("Flip UDIM"), ICON_NONE);
+  layout->prop(ptr, "use_mirror_vertex_groups", UI_ITEM_NONE, IFACE_("Vertex Groups"), ICON_NONE);
+  layout->prop(ptr, "use_mirror_udim", UI_ITEM_NONE, IFACE_("Flip UDIM"), ICON_NONE);
 }
 
 static void panel_register(ARegionType *region_type)

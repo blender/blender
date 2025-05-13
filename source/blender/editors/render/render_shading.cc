@@ -740,6 +740,71 @@ void OBJECT_OT_material_slot_remove_unused(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
+static wmOperatorStatus material_slot_remove_all_exec(bContext *C, wmOperator *op)
+{
+  /* Removing material slots in edit mode screws things up, see bug #21822. */
+  Object *ob_active = CTX_data_active_object(C);
+  if (ob_active && BKE_object_is_in_editmode(ob_active)) {
+    BKE_report(op->reports, RPT_ERROR, "Unable to remove material slot in edit mode");
+    return OPERATOR_CANCELLED;
+  }
+  Main *bmain = CTX_data_main(C);
+  int removed = 0;
+
+  Vector<Object *> objects = object_array_for_shading_edit_mode_disabled(C);
+  for (Object *ob : objects) {
+    int actcol = ob->actcol;
+    for (int slot = 1; slot <= ob->totcol; slot++) {
+      while (slot <= ob->totcol) {
+        ob->actcol = slot;
+        BKE_object_material_slot_remove(bmain, ob);
+
+        if (actcol >= slot) {
+          actcol--;
+        }
+
+        removed++;
+      }
+    }
+    ob->actcol = actcol;
+
+    DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
+  }
+
+  if (!removed) {
+    return OPERATOR_CANCELLED;
+  }
+
+  BKE_reportf(op->reports, RPT_INFO, "Removed %d materials", removed);
+
+  if (ob_active->mode == OB_MODE_TEXTURE_PAINT) {
+    Scene *scene = CTX_data_scene(C);
+    ED_paint_proj_mesh_data_check(*scene, *ob_active, nullptr, nullptr, nullptr, nullptr);
+    WM_event_add_notifier(C, NC_SCENE | ND_TOOLSETTINGS, nullptr);
+  }
+
+  WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob_active);
+  WM_event_add_notifier(C, NC_OBJECT | ND_OB_SHADING, ob_active);
+  WM_event_add_notifier(C, NC_MATERIAL | ND_SHADING_PREVIEW, ob_active);
+
+  return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_material_slot_remove_all(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "Remove All Materials";
+  ot->idname = "OBJECT_OT_material_slot_remove_all";
+  ot->description = "Remove all materials";
+
+  /* api callbacks */
+  ot->exec = material_slot_remove_all_exec;
+  ot->poll = object_materials_supported_poll;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

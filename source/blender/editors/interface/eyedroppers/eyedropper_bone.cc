@@ -505,6 +505,18 @@ static bool bonedropper_poll(bContext *C)
     return false;
   }
 
+  const Object *active_object = CTX_data_active_object(C);
+
+  if (!active_object || active_object->type != OB_ARMATURE) {
+    CTX_wm_operator_poll_msg_set(C, "The active object needs to be an armature");
+    return false;
+  }
+
+  if (!ELEM(active_object->mode, OB_MODE_POSE, OB_MODE_EDIT)) {
+    CTX_wm_operator_poll_msg_set(C, "The armature needs to be in Pose mode or Edit mode");
+    return false;
+  }
+
   uiBut *but = UI_context_active_but_prop_get(C, &ptr, &prop, &index_dummy);
 
   if (!but) {

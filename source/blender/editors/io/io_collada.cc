@@ -246,111 +246,106 @@ static void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
 
   /* Export Options: */
   row = &layout->row(false);
-  uiItemR(row, imfptr, "prop_bc_export_ui_section", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  row->prop(imfptr, "prop_bc_export_ui_section", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
 
   if (ui_section == BC_UI_SECTION_MAIN) {
     /* Export data options. */
-    box = uiLayoutBox(layout);
+    box = &layout->box();
     col = &box->column(false);
-    uiItemR(col, imfptr, "selected", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col->prop(imfptr, "selected", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     sub = &col->column(false);
     uiLayoutSetEnabled(sub, RNA_boolean_get(imfptr, "selected"));
-    uiItemR(sub, imfptr, "include_children", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    uiItemR(sub, imfptr, "include_armatures", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    uiItemR(sub, imfptr, "include_shapekeys", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    sub->prop(imfptr, "include_children", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    sub->prop(imfptr, "include_armatures", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    sub->prop(imfptr, "include_shapekeys", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-    box = uiLayoutBox(layout);
+    box = &layout->box();
     row = &box->row(false);
-    uiItemL(row, IFACE_("Global Orientation"), ICON_ORIENTATION_GLOBAL);
+    row->label(IFACE_("Global Orientation"), ICON_ORIENTATION_GLOBAL);
 
-    uiItemR(box, imfptr, "apply_global_orientation", UI_ITEM_NONE, IFACE_("Apply"), ICON_NONE);
-    uiItemR(box,
-            imfptr,
-            "export_global_forward_selection",
-            UI_ITEM_NONE,
-            IFACE_("Forward Axis"),
-            ICON_NONE);
-    uiItemR(box, imfptr, "export_global_up_selection", UI_ITEM_NONE, IFACE_("Up Axis"), ICON_NONE);
+    box->prop(imfptr, "apply_global_orientation", UI_ITEM_NONE, IFACE_("Apply"), ICON_NONE);
+    box->prop(imfptr,
+              "export_global_forward_selection",
+              UI_ITEM_NONE,
+              IFACE_("Forward Axis"),
+              ICON_NONE);
+    box->prop(imfptr, "export_global_up_selection", UI_ITEM_NONE, IFACE_("Up Axis"), ICON_NONE);
 
     /* Texture options */
-    box = uiLayoutBox(layout);
-    uiItemL(box, IFACE_("Texture Options"), ICON_TEXTURE_DATA);
+    box = &layout->box();
+    box->label(IFACE_("Texture Options"), ICON_TEXTURE_DATA);
 
     col = &box->column(false);
-    uiItemR(col, imfptr, "use_texture_copies", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col->prop(imfptr, "use_texture_copies", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     row = &col->row(true, IFACE_("UV"));
-    uiItemR(row, imfptr, "active_uv_only", UI_ITEM_NONE, IFACE_("Only Selected Map"), ICON_NONE);
+    row->prop(imfptr, "active_uv_only", UI_ITEM_NONE, IFACE_("Only Selected Map"), ICON_NONE);
   }
   else if (ui_section == BC_UI_SECTION_GEOMETRY) {
-    box = uiLayoutBox(layout);
-    uiItemL(box, IFACE_("Export Data Options"), ICON_MESH_DATA);
+    box = &layout->box();
+    box->label(IFACE_("Export Data Options"), ICON_MESH_DATA);
 
     col = &box->column(false);
 
-    uiItemR(col, imfptr, "triangulate", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col->prop(imfptr, "triangulate", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
     row = &col->row(true, IFACE_("Apply Modifiers"));
-    uiItemR(row, imfptr, "apply_modifiers", UI_ITEM_NONE, "", ICON_NONE);
+    row->prop(imfptr, "apply_modifiers", UI_ITEM_NONE, "", ICON_NONE);
     sub = &row->column(false);
     uiLayoutSetActive(sub, RNA_boolean_get(imfptr, "apply_modifiers"));
-    uiItemR(sub, imfptr, "export_mesh_type_selection", UI_ITEM_NONE, "", ICON_NONE);
+    sub->prop(imfptr, "export_mesh_type_selection", UI_ITEM_NONE, "", ICON_NONE);
 
     if (RNA_boolean_get(imfptr, "include_animations")) {
-      uiItemR(col,
-              imfptr,
-              "export_animation_transformation_type_selection",
-              UI_ITEM_NONE,
-              std::nullopt,
-              ICON_NONE);
+      col->prop(imfptr,
+                "export_animation_transformation_type_selection",
+                UI_ITEM_NONE,
+                std::nullopt,
+                ICON_NONE);
     }
     else {
-      uiItemR(col,
-              imfptr,
-              "export_object_transformation_type_selection",
-              UI_ITEM_NONE,
-              std::nullopt,
-              ICON_NONE);
+      col->prop(imfptr,
+                "export_object_transformation_type_selection",
+                UI_ITEM_NONE,
+                std::nullopt,
+                ICON_NONE);
     }
   }
   else if (ui_section == BC_UI_SECTION_ARMATURE) {
     /* Armature options */
-    box = uiLayoutBox(layout);
-    uiItemL(box, IFACE_("Armature Options"), ICON_ARMATURE_DATA);
+    box = &layout->box();
+    box->label(IFACE_("Armature Options"), ICON_ARMATURE_DATA);
 
     col = &box->column(false);
-    uiItemR(col, imfptr, "deform_bones_only", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    uiItemR(col, imfptr, "open_sim", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col->prop(imfptr, "deform_bones_only", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col->prop(imfptr, "open_sim", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
   else if (ui_section == BC_UI_SECTION_ANIMATION) {
     /* Animation options. */
-    box = uiLayoutBox(layout);
-    uiItemR(box, imfptr, "include_animations", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    box = &layout->box();
+    box->prop(imfptr, "include_animations", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
     col = &box->column(false);
     row = &col->row(false);
     uiLayoutSetActive(row, include_animations);
-    uiItemR(
-        row, imfptr, "export_animation_type_selection", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+    row->prop(
+        imfptr, "export_animation_type_selection", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
     uiLayoutSetActive(row, include_animations && animation_type == BC_ANIMATION_EXPORT_SAMPLES);
     if (RNA_boolean_get(imfptr, "include_animations")) {
-      uiItemR(box,
-              imfptr,
-              "export_animation_transformation_type_selection",
-              UI_ITEM_NONE,
-              std::nullopt,
-              ICON_NONE);
+      box->prop(imfptr,
+                "export_animation_transformation_type_selection",
+                UI_ITEM_NONE,
+                std::nullopt,
+                ICON_NONE);
     }
     else {
-      uiItemR(box,
-              imfptr,
-              "export_object_transformation_type_selection",
-              UI_ITEM_NONE,
-              std::nullopt,
-              ICON_NONE);
+      box->prop(imfptr,
+                "export_object_transformation_type_selection",
+                UI_ITEM_NONE,
+                std::nullopt,
+                ICON_NONE);
     }
 
     row = &col->column(false);
@@ -358,30 +353,30 @@ static void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
                       include_animations &&
                           (animation_transformation_type == BC_TRANSFORMATION_TYPE_DECOMPOSED ||
                            animation_type == BC_ANIMATION_EXPORT_KEYS));
-    uiItemR(row, imfptr, "keep_smooth_curves", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    row->prop(imfptr, "keep_smooth_curves", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
     sub = &col->column(false);
     uiLayoutSetActive(sub, sampling && include_animations);
-    uiItemR(sub, imfptr, "sampling_rate", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    uiItemR(sub, imfptr, "keep_keyframes", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    sub->prop(imfptr, "sampling_rate", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    sub->prop(imfptr, "keep_keyframes", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
     sub = &col->column(false);
     uiLayoutSetActive(sub, include_animations);
-    uiItemR(sub, imfptr, "keep_flat_curves", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    uiItemR(sub, imfptr, "include_all_actions", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    sub->prop(imfptr, "keep_flat_curves", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    sub->prop(imfptr, "include_all_actions", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
   else if (ui_section == BC_UI_SECTION_COLLADA) {
     /* Collada options: */
-    box = uiLayoutBox(layout);
+    box = &layout->box();
     row = &box->row(false);
-    uiItemL(row, IFACE_("Collada Options"), ICON_MODIFIER);
+    row->label(IFACE_("Collada Options"), ICON_MODIFIER);
 
     col = &box->column(false);
-    uiItemR(col, imfptr, "use_object_instantiation", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    uiItemR(col, imfptr, "use_blender_profile", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    uiItemR(col, imfptr, "sort_by_name", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    uiItemR(col, imfptr, "keep_bind_info", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    uiItemR(col, imfptr, "limit_precision", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col->prop(imfptr, "use_object_instantiation", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col->prop(imfptr, "use_blender_profile", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col->prop(imfptr, "sort_by_name", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col->prop(imfptr, "keep_bind_info", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col->prop(imfptr, "limit_precision", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 }
 
@@ -775,24 +770,24 @@ static void wm_collada_import_settings(uiLayout *layout, PointerRNA *imfptr)
   uiLayoutSetPropDecorate(layout, false);
 
   /* Import Options: */
-  box = uiLayoutBox(layout);
-  uiItemL(box, IFACE_("Import Data Options"), ICON_MESH_DATA);
+  box = &layout->box();
+  box->label(IFACE_("Import Data Options"), ICON_MESH_DATA);
 
-  uiItemR(box, imfptr, "import_units", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  uiItemR(box, imfptr, "custom_normals", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  box->prop(imfptr, "import_units", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  box->prop(imfptr, "custom_normals", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  box = uiLayoutBox(layout);
-  uiItemL(box, IFACE_("Armature Options"), ICON_ARMATURE_DATA);
+  box = &layout->box();
+  box->label(IFACE_("Armature Options"), ICON_ARMATURE_DATA);
 
   col = &box->column(false);
-  uiItemR(col, imfptr, "fix_orientation", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  uiItemR(col, imfptr, "find_chains", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  uiItemR(col, imfptr, "auto_connect", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  uiItemR(col, imfptr, "min_chain_length", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  col->prop(imfptr, "fix_orientation", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  col->prop(imfptr, "find_chains", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  col->prop(imfptr, "auto_connect", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  col->prop(imfptr, "min_chain_length", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  box = uiLayoutBox(layout);
+  box = &layout->box();
 
-  uiItemR(box, imfptr, "keep_bind_info", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  box->prop(imfptr, "keep_bind_info", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
 static void wm_collada_import_draw(bContext * /*C*/, wmOperator *op)

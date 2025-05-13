@@ -16,9 +16,6 @@ struct Main;
 struct Object;
 struct Scene;
 
-void BKE_cachefiles_init();
-void BKE_cachefiles_exit();
-
 void *BKE_cachefile_add(Main *bmain, const char *name);
 
 void BKE_cachefile_reload(Depsgraph *depsgraph, CacheFile *cache_file);

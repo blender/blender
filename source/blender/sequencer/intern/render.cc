@@ -86,7 +86,7 @@ static ImBuf *seq_render_strip_stack(const RenderData *context,
                                      float timeline_frame,
                                      int chanshown);
 
-static ThreadMutex seq_render_mutex = BLI_MUTEX_INITIALIZER;
+static blender::Mutex seq_render_mutex;
 DrawViewFn view3d_fn = nullptr; /* nullptr in background mode */
 
 /* -------------------------------------------------------------------- */
@@ -249,11 +249,11 @@ StripElem *render_give_stripelem(const Scene *scene, const Strip *strip, int tim
   return se;
 }
 
-Vector<Strip *> seq_get_shown_sequences(const Scene *scene,
-                                        ListBase *channels,
-                                        ListBase *seqbase,
-                                        const int timeline_frame,
-                                        const int chanshown)
+Vector<Strip *> seq_shown_strips_get(const Scene *scene,
+                                     ListBase *channels,
+                                     ListBase *seqbase,
+                                     const int timeline_frame,
+                                     const int chanshown)
 {
   VectorSet strips = query_rendered_strips(scene, channels, seqbase, timeline_frame, chanshown);
   const int strip_count = strips.size();
@@ -1471,7 +1471,7 @@ static ImBuf *seq_render_scene_strip(const RenderData *context,
     /* opengl offscreen render */
     depsgraph = BKE_scene_ensure_depsgraph(context->bmain, scene, view_layer);
     BKE_scene_graph_update_for_newframe(depsgraph);
-    Object *camera_eval = DEG_get_evaluated_object(depsgraph, camera);
+    Object *camera_eval = DEG_get_evaluated(depsgraph, camera);
     ibuf = view3d_fn(
         /* set for OpenGL render (nullptr when scrubbing) */
         depsgraph,
@@ -1609,7 +1609,7 @@ static ImBuf *do_render_strip_seqbase(const RenderData *context,
   ListBase *channels = nullptr;
   int offset;
 
-  seqbase = get_seqbase_from_sequence(strip, &channels, &offset);
+  seqbase = get_seqbase_from_strip(strip, &channels, &offset);
 
   if (seqbase && !BLI_listbase_is_empty(seqbase)) {
 
@@ -1823,7 +1823,7 @@ static bool is_opaque_alpha_over(const Strip *strip)
   if (strip->mul < 1.0f && (strip->flag & SEQ_MULTIPLY_ALPHA) != 0) {
     return false;
   }
-  LISTBASE_FOREACH (SequenceModifierData *, smd, &strip->modifiers) {
+  LISTBASE_FOREACH (StripModifierData *, smd, &strip->modifiers) {
     /* Assume result is not opaque if there is an enabled Mask modifier. */
     if ((smd->flag & SEQUENCE_MODIFIER_MUTE) == 0 && smd->type == seqModifierType_Mask) {
       return false;
@@ -1839,7 +1839,7 @@ static ImBuf *seq_render_strip_stack(const RenderData *context,
                                      float timeline_frame,
                                      int chanshown)
 {
-  Vector<Strip *> strips = seq_get_shown_sequences(
+  Vector<Strip *> strips = seq_shown_strips_get(
       context->scene, channels, seqbasep, timeline_frame, chanshown);
   if (strips.is_empty()) {
     return nullptr;
@@ -1982,7 +1982,7 @@ ImBuf *render_give_ibuf(const RenderData *context, float timeline_frame, int cha
   SeqRenderState state;
   ImBuf *out = nullptr;
 
-  Vector<Strip *> strips = seq_get_shown_sequences(
+  Vector<Strip *> strips = seq_shown_strips_get(
       scene, channels, seqbasep, timeline_frame, chanshown);
 
   if (!strips.is_empty()) {
@@ -1994,7 +1994,7 @@ ImBuf *render_give_ibuf(const RenderData *context, float timeline_frame, int cha
   relations_free_all_anim_ibufs(context->scene, timeline_frame);
 
   if (!strips.is_empty() && !out) {
-    BLI_mutex_lock(&seq_render_mutex);
+    std::scoped_lock lock(seq_render_mutex);
     out = seq_render_strip_stack(context, &state, channels, seqbasep, timeline_frame, chanshown);
 
     if (context->is_prefetch_render) {
@@ -2004,7 +2004,6 @@ ImBuf *render_give_ibuf(const RenderData *context, float timeline_frame, int cha
       seq_cache_put_if_possible(
           context, strips.last(), timeline_frame, SEQ_CACHE_STORE_FINAL_OUT, out);
     }
-    BLI_mutex_unlock(&seq_render_mutex);
   }
 
   seq_prefetch_start(context, timeline_frame);

@@ -87,14 +87,14 @@ void cut_one_way_connections(Strip *strip)
   }
 }
 
-void connect(Strip *seq1, Strip *seq2)
+void connect(Strip *strip1, Strip *strip2)
 {
-  if (seq1 == nullptr || seq2 == nullptr) {
+  if (strip1 == nullptr || strip2 == nullptr) {
     return;
   }
   blender::VectorSet<Strip *> strip_list;
-  strip_list.add(seq1);
-  strip_list.add(seq2);
+  strip_list.add(strip1);
+  strip_list.add(strip2);
 
   connect(strip_list);
 }
@@ -116,7 +116,7 @@ void connect(blender::VectorSet<Strip *> &strip_list)
   }
 }
 
-blender::VectorSet<Strip *> get_connected_strips(const Strip *strip)
+blender::VectorSet<Strip *> connected_strips_get(const Strip *strip)
 {
   blender::VectorSet<Strip *> connections;
   if (strip != nullptr) {
@@ -139,7 +139,7 @@ bool are_strips_connected_together(blender::VectorSet<Strip *> &strip_list)
 {
   const int expected_connection_num = strip_list.size() - 1;
   for (Strip *seq1 : strip_list) {
-    blender::VectorSet<Strip *> connections = get_connected_strips(seq1);
+    blender::VectorSet<Strip *> connections = connected_strips_get(seq1);
     int found_connection_num = connections.size();
     if (found_connection_num != expected_connection_num) {
       return false;

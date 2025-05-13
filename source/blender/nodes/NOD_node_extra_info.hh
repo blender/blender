@@ -22,6 +22,7 @@ struct NodeExtraInfoRow {
 
 struct NodeExtraInfoParams {
   Vector<NodeExtraInfoRow> &rows;
+  const bNodeTree &tree;
   const bNode &node;
   const bContext &C;
 };

@@ -236,6 +236,9 @@ void ui_draw_but_TAB_outline(const rcti *rect,
                              uchar highlight[3],
                              uchar highlight_fade[3])
 {
+  /* NOTE: based on `UI_draw_roundbox` functions
+   * check on making a version which allows us to skip some sides. */
+
   GPUVertFormat *format = immVertexFormat();
   const uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   const uint col = GPU_vertformat_attr_add(
@@ -491,7 +494,7 @@ static void histogram_draw_one(float r,
 
 #define HISTOGRAM_TOT_GRID_LINES 4
 
-void ui_draw_but_HISTOGRAM(ARegion * /*region*/,
+void ui_draw_but_HISTOGRAM(ARegion *region,
                            uiBut *but,
                            const uiWidgetColors * /*wcol*/,
                            const rcti *recti)
@@ -525,10 +528,17 @@ void ui_draw_but_HISTOGRAM(ARegion * /*region*/,
   /* need scissor test, histogram can draw outside of boundary */
   int scissor[4];
   GPU_scissor_get(scissor);
-  GPU_scissor((rect.xmin - 1),
-              (rect.ymin - 1),
-              (rect.xmax + 1) - (rect.xmin - 1),
-              (rect.ymax + 1) - (rect.ymin - 1));
+  rcti scissor_new{};
+  scissor_new.xmin = rect.xmin;
+  scissor_new.ymin = rect.ymin;
+  scissor_new.xmax = rect.xmax;
+  scissor_new.ymax = rect.ymax;
+  const rcti scissor_region = {0, region->winx, 0, region->winy};
+  BLI_rcti_isect(&scissor_new, &scissor_region, &scissor_new);
+  GPU_scissor(scissor_new.xmin,
+              scissor_new.ymin,
+              BLI_rcti_size_x(&scissor_new),
+              BLI_rcti_size_y(&scissor_new));
 
   GPUVertFormat *format = immVertexFormat();
   const uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
@@ -668,7 +678,7 @@ static void circle_draw_rgb(float *points, int tot_points, const float *col, GPU
   GPU_batch_discard(batch);
 }
 
-void ui_draw_but_WAVEFORM(ARegion * /*region*/,
+void ui_draw_but_WAVEFORM(ARegion *region,
                           uiBut *but,
                           const uiWidgetColors * /*wcol*/,
                           const rcti *recti)
@@ -728,10 +738,17 @@ void ui_draw_but_WAVEFORM(ARegion * /*region*/,
 
   /* need scissor test, waveform can draw outside of boundary */
   GPU_scissor_get(scissor);
-  GPU_scissor((rect.xmin - 1),
-              (rect.ymin - 1),
-              (rect.xmax + 1) - (rect.xmin - 1),
-              (rect.ymax + 1) - (rect.ymin - 1));
+  rcti scissor_new{};
+  scissor_new.xmin = rect.xmin;
+  scissor_new.ymin = rect.ymin;
+  scissor_new.xmax = rect.xmax;
+  scissor_new.ymax = rect.ymax;
+  const rcti scissor_region = {0, region->winx, 0, region->winy};
+  BLI_rcti_isect(&scissor_new, &scissor_region, &scissor_new);
+  GPU_scissor(scissor_new.xmin,
+              scissor_new.ymin,
+              BLI_rcti_size_x(&scissor_new),
+              BLI_rcti_size_y(&scissor_new));
 
   /* draw scale numbers first before binding any shader */
   for (int i = 0; i < 6; i++) {
@@ -976,7 +993,7 @@ static void vectorscope_draw_target(
   immEnd();
 }
 
-void ui_draw_but_VECTORSCOPE(ARegion * /*region*/,
+void ui_draw_but_VECTORSCOPE(ARegion *region,
                              uiBut *but,
                              const uiWidgetColors * /*wcol*/,
                              const rcti *recti)
@@ -1025,10 +1042,17 @@ void ui_draw_but_VECTORSCOPE(ARegion * /*region*/,
   /* need scissor test, vectorscope can draw outside of boundary */
   int scissor[4];
   GPU_scissor_get(scissor);
-  GPU_scissor((rect.xmin - 1),
-              (rect.ymin - 1),
-              (rect.xmax + 1) - (rect.xmin - 1),
-              (rect.ymax + 1) - (rect.ymin - 1));
+  rcti scissor_new{};
+  scissor_new.xmin = rect.xmin;
+  scissor_new.ymin = rect.ymin;
+  scissor_new.xmax = rect.xmax;
+  scissor_new.ymax = rect.ymax;
+  const rcti scissor_region = {0, region->winx, 0, region->winy};
+  BLI_rcti_isect(&scissor_new, &scissor_region, &scissor_new);
+  GPU_scissor(scissor_new.xmin,
+              scissor_new.ymin,
+              BLI_rcti_size_x(&scissor_new),
+              BLI_rcti_size_y(&scissor_new));
 
   GPUVertFormat *format = immVertexFormat();
   const uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
@@ -1227,7 +1251,7 @@ static void ui_draw_colorband_handle(uint shdr_pos,
                                      const rcti *rect,
                                      float x,
                                      const float rgb[3],
-                                     ColorManagedDisplay *display,
+                                     const ColorManagedDisplay *display,
                                      bool active)
 {
   const float sizey = BLI_rcti_size_y(rect);
@@ -1328,7 +1352,7 @@ static void ui_draw_colorband_handle(uint shdr_pos,
 
 void ui_draw_but_COLORBAND(uiBut *but, const uiWidgetColors *wcol, const rcti *rect)
 {
-  ColorManagedDisplay *display = ui_block_cm_display_get(but->block);
+  const ColorManagedDisplay *display = ui_block_cm_display_get(but->block);
   uint pos_id, col_id;
 
   uiButColorBand *but_coba = (uiButColorBand *)but;
@@ -2138,7 +2162,7 @@ void ui_draw_but_CURVEPROFILE(ARegion *region,
   immUnbindProgram();
 }
 
-void ui_draw_but_TRACKPREVIEW(ARegion * /*region*/,
+void ui_draw_but_TRACKPREVIEW(ARegion *region,
                               uiBut *but,
                               const uiWidgetColors * /*wcol*/,
                               const rcti *recti)
@@ -2160,10 +2184,17 @@ void ui_draw_but_TRACKPREVIEW(ARegion * /*region*/,
   /* need scissor test, preview image can draw outside of boundary */
   int scissor[4];
   GPU_scissor_get(scissor);
-  GPU_scissor((rect.xmin - 1),
-              (rect.ymin - 1),
-              (rect.xmax + 1) - (rect.xmin - 1),
-              (rect.ymax + 1) - (rect.ymin - 1));
+  rcti scissor_new{};
+  scissor_new.xmin = rect.xmin;
+  scissor_new.ymin = rect.ymin;
+  scissor_new.xmax = rect.xmax;
+  scissor_new.ymax = rect.ymax;
+  const rcti scissor_region = {0, region->winx, 0, region->winy};
+  BLI_rcti_isect(&scissor_new, &scissor_region, &scissor_new);
+  GPU_scissor(scissor_new.xmin,
+              scissor_new.ymin,
+              BLI_rcti_size_x(&scissor_new),
+              BLI_rcti_size_y(&scissor_new));
 
   if (scopes->track_disabled) {
     const float color[4] = {0.7f, 0.3f, 0.3f, 0.3f};

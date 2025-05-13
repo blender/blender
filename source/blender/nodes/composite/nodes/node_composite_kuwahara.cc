@@ -85,7 +85,7 @@ static void node_composit_init_kuwahara(bNodeTree * /*ntree*/, bNode *node)
 
 static void node_composit_buts_kuwahara(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  uiItemR(layout, ptr, "variation", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "variation", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
 static void node_update(bNodeTree *ntree, bNode *node)
@@ -829,7 +829,7 @@ static NodeOperation *get_compositor_operation(Context &context, DNode node)
 
 }  // namespace blender::nodes::node_composite_kuwahara_cc
 
-void register_node_type_cmp_kuwahara()
+static void register_node_type_cmp_kuwahara()
 {
   namespace file_ns = blender::nodes::node_composite_kuwahara_cc;
 
@@ -851,3 +851,4 @@ void register_node_type_cmp_kuwahara()
 
   blender::bke::node_register_type(ntype);
 }
+NOD_REGISTER_NODE(register_node_type_cmp_kuwahara)

@@ -8,7 +8,7 @@
 #  pragma once
 #  include "gpu_glsl_cpp_stubs.hh"
 
-#  include "draw_common_shader_shared.hh"
+#  include "overlay_shader_shared.hh"
 #  include "select_shader_shared.hh"
 #endif
 
@@ -17,8 +17,8 @@
 #include "gpu_shader_create_info.hh"
 
 GPU_SHADER_CREATE_INFO(draw_globals)
-TYPEDEF_SOURCE("draw_common_shader_shared.hh")
-UNIFORM_BUF_FREQ(OVERLAY_GLOBALS_SLOT, GlobalsUboStorage, globalsBlock, PASS)
+TYPEDEF_SOURCE("overlay_shader_shared.hh")
+UNIFORM_BUF_FREQ(OVERLAY_GLOBALS_SLOT, UniformData, uniform_buf, PASS)
 GPU_SHADER_CREATE_END()
 
 GPU_SHADER_INTERFACE_INFO(select_id_patch_iface)

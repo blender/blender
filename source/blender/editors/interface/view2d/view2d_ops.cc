@@ -751,6 +751,7 @@ static void view_zoomstep_apply_ex(bContext *C,
   View2D *v2d = &region->v2d;
   const rctf cur_old = v2d->cur;
   const int snap_test = ED_region_snap_size_test(region);
+  const bool do_keepofs = !(v2d->flag & V2D_ZOOM_IGNORE_KEEPOFS);
 
   /* calculate amount to move view by, ensuring symmetry so the
    * old zoom level is restored after zooming back the same amount
@@ -765,12 +766,12 @@ static void view_zoomstep_apply_ex(bContext *C,
     dy = (BLI_rctf_size_y(&v2d->cur) / (1.0f + 2.0f * facy)) * facy;
   }
 
-  /* only resize view on an axis if change is allowed */
+  /* Only resize view on an axis if change is allowed. */
   if ((v2d->keepzoom & V2D_LOCKZOOM_X) == 0) {
-    if (v2d->keepofs & V2D_LOCKOFS_X) {
+    if ((v2d->keepofs & V2D_LOCKOFS_X) && do_keepofs) {
       v2d->cur.xmax -= 2 * dx;
     }
-    else if (v2d->keepofs & V2D_KEEPOFS_X) {
+    else if ((v2d->keepofs & V2D_KEEPOFS_X) && do_keepofs) {
       if (v2d->align & V2D_ALIGN_NO_POS_X) {
         v2d->cur.xmin += 2 * dx;
       }
@@ -803,10 +804,10 @@ static void view_zoomstep_apply_ex(bContext *C,
     }
   }
   if ((v2d->keepzoom & V2D_LOCKZOOM_Y) == 0) {
-    if (v2d->keepofs & V2D_LOCKOFS_Y) {
+    if ((v2d->keepofs & V2D_LOCKOFS_Y) && do_keepofs) {
       v2d->cur.ymax -= 2 * dy;
     }
-    else if (v2d->keepofs & V2D_KEEPOFS_Y) {
+    else if ((v2d->keepofs & V2D_KEEPOFS_Y) && do_keepofs) {
       if (v2d->align & V2D_ALIGN_NO_POS_Y) {
         v2d->cur.ymin += 2 * dy;
       }

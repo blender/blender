@@ -1,0 +1,271 @@
+==== Meshes: 5
+- Mesh 'Mesh' vtx:8 face:6 loop:24 edge:12
+    - 0 2 3 1 4 ... 7 2 0 4 6 
+    - 0/2 2/3 1/3 0/1 4/5 ... 4/6 1/5 0/4 3/7 2/6 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-0.500, -0.500, 0.000)
+    - (0.500, -0.500, 0.000)
+    - (-0.500, 0.500, 0.000)
+      ...
+    - (0.500, -0.500, 1.000)
+    - (-0.500, 0.500, 1.000)
+    - (0.500, 0.500, 1.000)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 1 1 1 1 1 ... 1 1 1 1 1 
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'UVChannel_1' FLOAT2 CORNER
+    - (1.000, 0.000)
+    - (1.000, 1.000)
+    - (0.000, 1.000)
+      ...
+    - (1.000, 0.000)
+    - (1.000, 1.000)
+    - (0.000, 1.000)
+  - 1 materials
+    - 'PhysMat_rough0.25_mtl0.7_a0.2' 
+
+- Mesh 'Mesh.001' vtx:8 face:6 loop:24 edge:12
+    - 0 2 3 1 4 ... 7 2 0 4 6 
+    - 0/2 2/3 1/3 0/1 4/5 ... 4/6 1/5 0/4 3/7 2/6 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-0.500, -0.500, 0.000)
+    - (0.500, -0.500, 0.000)
+    - (-0.500, 0.500, 0.000)
+      ...
+    - (0.500, -0.500, 1.000)
+    - (-0.500, 0.500, 1.000)
+    - (0.500, 0.500, 1.000)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 1 1 1 1 1 ... 1 1 1 1 1 
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'UVChannel_1' FLOAT2 CORNER
+    - (1.000, 0.000)
+    - (1.000, 1.000)
+    - (0.000, 1.000)
+      ...
+    - (1.000, 0.000)
+    - (1.000, 1.000)
+    - (0.000, 1.000)
+  - 1 materials
+    - 'glTF2Mat_rough0.25_mtl0.7_ao0.4_sheen0.3' 
+
+- Mesh 'Mesh.002' vtx:8 face:6 loop:24 edge:12
+    - 0 2 3 1 4 ... 7 2 0 4 6 
+    - 0/2 2/3 1/3 0/1 4/5 ... 4/6 1/5 0/4 3/7 2/6 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-0.500, -0.500, 0.000)
+    - (0.500, -0.500, 0.000)
+    - (-0.500, 0.500, 0.000)
+      ...
+    - (0.500, -0.500, 1.000)
+    - (-0.500, 0.500, 1.000)
+    - (0.500, 0.500, 1.000)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 1 1 1 1 1 ... 1 1 1 1 1 
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'UVChannel_1' FLOAT2 CORNER
+    - (1.000, 0.000)
+    - (1.000, 1.000)
+    - (0.000, 1.000)
+      ...
+    - (1.000, 0.000)
+    - (1.000, 1.000)
+    - (0.000, 1.000)
+  - 1 materials
+    - 'OpenPBRMat_mtl0.2_rough0.7_ior1.2' 
+
+- Mesh 'Mesh.003' vtx:8 face:6 loop:24 edge:12
+    - 0 2 3 1 4 ... 7 2 0 4 6 
+    - 0/2 2/3 1/3 0/1 4/5 ... 4/6 1/5 0/4 3/7 2/6 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-0.500, -0.500, 0.000)
+    - (0.500, -0.500, 0.000)
+    - (-0.500, 0.500, 0.000)
+      ...
+    - (0.500, -0.500, 1.000)
+    - (-0.500, 0.500, 1.000)
+    - (0.500, 0.500, 1.000)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 1 1 1 1 1 ... 1 1 1 1 1 
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'UVChannel_1' FLOAT2 CORNER
+    - (1.000, 0.000)
+    - (1.000, 1.000)
+    - (0.000, 1.000)
+      ...
+    - (1.000, 0.000)
+    - (1.000, 1.000)
+    - (0.000, 1.000)
+  - 1 materials
+    - 'PBRMtlRoughMat_mtl0.6_rough0.35' 
+
+- Mesh 'Mesh.004' vtx:8 face:6 loop:24 edge:12
+    - 0 2 3 1 4 ... 7 2 0 4 6 
+    - 0/2 2/3 1/3 0/1 4/5 ... 4/6 1/5 0/4 3/7 2/6 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-0.500, -0.500, 0.000)
+    - (0.500, -0.500, 0.000)
+    - (-0.500, 0.500, 0.000)
+      ...
+    - (0.500, -0.500, 1.000)
+    - (-0.500, 0.500, 1.000)
+    - (0.500, 0.500, 1.000)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 1 1 1 1 1 ... 1 1 1 1 1 
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'UVChannel_1' FLOAT2 CORNER
+    - (1.000, 0.000)
+    - (1.000, 1.000)
+    - (0.000, 1.000)
+      ...
+    - (1.000, 0.000)
+    - (1.000, 1.000)
+    - (0.000, 1.000)
+  - 1 materials
+    - 'PBRMatSpecGloss_gloss0.8' 
+
+==== Objects: 5
+- Obj 'BoxGltfMat' MESH data:'Mesh.001'
+  - pos 0.000, 0.031, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 0.025, 0.025, 0.025
+  - props: int:MaxHandle=2
+- Obj 'BoxOpenPBR' MESH data:'Mesh.002'
+  - pos 0.000, -0.031, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 0.025, 0.025, 0.025
+  - props: int:MaxHandle=3
+- Obj 'BoxPBRMetalRoughMat' MESH data:'Mesh.003'
+  - pos 0.000, -0.061, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 0.025, 0.025, 0.025
+  - props: int:MaxHandle=4
+- Obj 'BoxPBRMetalRoughMat001' MESH data:'Mesh.004'
+  - pos 0.000, -0.092, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 0.025, 0.025, 0.025
+  - props: int:MaxHandle=5
+- Obj 'BoxPhysMat' MESH data:'Mesh'
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 0.025, 0.025, 0.025
+  - props: int:MaxHandle=1
+
+==== Materials: 5
+- Mat 'glTF2Mat_rough0.25_mtl0.7_ao0.4_sheen0.3'
+  - base color (0.668, 0.958, 0.552) tex:'checker16.png' (checker16.png) a:False
+  - specular ior 0.500
+  - specular tint (1.000, 1.000, 1.000)
+  - roughness 0.250 tex:'checker16.png' (checker16.png) a:False
+  - metallic 0.700
+  - ior 1.500
+  - normalmap 1.000 tex:'normalmap64.png' (normalmap64.png) a:False data
+  - viewport diffuse (0.668, 0.958, 0.552, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 0.500
+  - viewport metallic 0.700, roughness 0.250
+  - backface False probe True shadow False
+
+- Mat 'OpenPBRMat_mtl0.2_rough0.7_ior1.2'
+  - base color (0.354, 0.365, 0.818) tex:'checker16.png' (checker16.png) a:False
+  - specular ior 1.000
+  - specular tint (1.000, 1.000, 1.000)
+  - roughness 0.700 tex:'checker16.png' (checker16.png) a:False
+  - metallic 0.200
+  - ior 1.200
+  - normalmap 1.000 tex:'normalmap64.png' (normalmap64.png) a:False data
+  - viewport diffuse (0.354, 0.365, 0.818, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 1.000
+  - viewport metallic 0.200, roughness 0.700
+  - backface False probe True shadow False
+  - props: int:caustics=False int:dielectric_priority=0 int:exit_to_background=False fl:indirect_diffuse=1.000 fl:indirect_specular=1.000 int:internal_reflections=True
+
+- Mat 'PBRMatSpecGloss_gloss0.8'
+  - base color (0.775, 0.463, 0.935) tex:'checker16.png' (checker16.png) a:False
+  - specular ior 0.500
+  - specular tint (0.436, 0.451, 0.148)
+  - roughness 0.500
+  - metallic 0.000
+  - ior 1.500
+  - normalmap 1.000 tex:'normalmap64.png' (normalmap64.png) a:False data
+  - viewport diffuse (0.775, 0.463, 0.935, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 0.500
+  - viewport metallic 0.000, roughness 0.500
+  - backface False probe True shadow False
+
+- Mat 'PBRMtlRoughMat_mtl0.6_rough0.35'
+  - base color (0.926, 0.880, 0.375) tex:'checker16.png' (checker16.png) a:False
+  - specular ior 0.500
+  - specular tint (1.000, 1.000, 1.000)
+  - roughness 0.350 tex:'checker16.png' (checker16.png) a:False
+  - metallic 0.600
+  - ior 1.500
+  - normalmap 1.000 tex:'normalmap64.png' (normalmap64.png) a:False data
+  - viewport diffuse (0.926, 0.880, 0.375, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 0.500
+  - viewport metallic 0.600, roughness 0.350
+  - backface False probe True shadow False
+
+- Mat 'PhysMat_rough0.25_mtl0.7_a0.2'
+  - base color (0.664, 0.553, 0.512) tex:'checker16.png' (checker16.png) a:False
+  - specular ior 1.000
+  - specular tint (1.000, 1.000, 1.000)
+  - roughness 0.250 tex:'checker16.png' (checker16.png) a:False
+  - metallic 0.700
+  - ior 1.520
+  - transmission 0.200
+  - normalmap 1.000 tex:'normalmap64.png' (normalmap64.png) a:False data
+  - viewport diffuse (0.664, 0.553, 0.512, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 1.000
+  - viewport metallic 0.700, roughness 0.250
+  - backface False probe True shadow False
+  - props: int:caustics=False int:dielectric_priority=0 int:exit_to_background=False fl:indirect_diffuse=1.000 fl:indirect_specular=1.000 int:internal_reflections=True
+
+==== Images: 2
+- Image 'checker16.png' 16x16 24bpp
+- Image 'normalmap64.png' 64x64 24bpp
+

@@ -1,0 +1,122 @@
+==== Meshes: 3
+- Mesh 'materials' vtx:8 face:6 loop:24 edge:12
+    - 3 2 1 0 0 ... 0 4 5 6 7 
+    - 0/3 2/3 1/2 0/1 0/4 ... 2/6 5/6 3/7 6/7 4/7 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, -1.000, 1.000)
+    - (-1.000, 1.000, 1.000)
+    - (1.000, 1.000, 1.000)
+      ...
+    - (-1.000, 1.000, -1.000)
+    - (1.000, 1.000, -1.000)
+    - (1.000, -1.000, -1.000)
+  - attr 'material_index' INT FACE
+    - 0 1 2 3 3 3 
+  - attr 'sharp_face' BOOLEAN FACE
+    - 1 1 1 1 1 1 
+  - 4 materials
+    - 'no_textures_red' 'four_maps' 'Clay' 'Hat' 
+
+- Mesh 'ObjMtlAfter' vtx:3 face:1 loop:3 edge:3
+    - 0 1 2 
+    - 0/2 0/1 1/2 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (3.000, 0.000, 0.000)
+    - (4.000, 0.000, 2.000)
+    - (5.000, 0.000, 0.000)
+  - attr 'material_index' INT FACE
+    - 0 
+  - attr 'sharp_face' BOOLEAN FACE
+    - 1 
+  - 2 materials
+    - 'no_textures_red' 'Clay' 
+
+- Mesh 'ObjMtlBefore' vtx:3 face:1 loop:3 edge:3
+    - 0 1 2 
+    - 0/2 0/1 1/2 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (6.000, 0.000, 0.000)
+    - (7.000, 0.000, 2.000)
+    - (8.000, 0.000, 0.000)
+  - attr 'material_index' INT FACE
+    - 0 
+  - attr 'sharp_face' BOOLEAN FACE
+    - 1 
+  - 1 materials
+    - 'Clay' 
+
+==== Objects: 3
+- Obj 'materials' MESH data:'materials'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'ObjMtlAfter' MESH data:'ObjMtlAfter'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'ObjMtlBefore' MESH data:'ObjMtlBefore'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+
+==== Materials: 4
+- Mat 'Clay'
+  - base color (0.800, 0.683, 0.536)
+  - specular ior 0.500
+  - specular tint (1.000, 1.000, 1.000)
+  - roughness 0.336
+  - metallic 0.000
+  - ior 1.450
+  - viewport diffuse (0.800, 0.683, 0.536, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 0.500
+  - viewport metallic 0.000, roughness 0.336
+  - backface False probe True shadow False
+
+- Mat 'four_maps'
+  - base color (0.800, 0.800, 0.800) tex:'texture.png' (//obj/texture.png) a:False
+  - specular ior 0.500
+  - specular tint (1.000, 1.000, 1.000)
+  - roughness 0.000 tex:'sometexture_Roughness.png' (sometexture_Roughness.png) a:False
+  - metallic 0.000 tex:'sometexture_Metallic.png' (sometexture_Metallic.png) a:False
+  - ior 1.450
+  - normalmap 1.000 tex:'sometexture_Normal.png' (sometexture_Normal.png) a:False data
+  - viewport diffuse (0.800, 0.800, 0.800, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 0.500
+  - viewport metallic 0.000, roughness 0.000
+  - backface False probe True shadow False
+
+- Mat 'Hat'
+  - base color (0.800, 0.800, 0.800) tex:'someHatTexture_BaseColor.jpg' (someHatTexture_BaseColor.jpg) a:False
+  - specular ior 0.500
+  - specular tint (1.000, 1.000, 1.000)
+  - roughness 0.106 tex:'someHatTexture_Roughness.jpg' (someHatTexture_Roughness.jpg) a:False
+  - metallic 0.000 tex:'someHatTexture_Metalness.jpg' (someHatTexture_Metalness.jpg) a:False
+  - ior 1.500
+  - normalmap 0.500 tex:'someHatTexture_Normal.jpg' (someHatTexture_Normal.jpg) a:False data
+  - viewport diffuse (0.800, 0.800, 0.800, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 0.500
+  - viewport metallic 0.000, roughness 0.106
+  - backface False probe True shadow False
+
+- Mat 'no_textures_red'
+  - base color (0.800, 0.300, 0.100)
+  - specular ior 0.000
+  - specular tint (1.000, 1.000, 1.000)
+  - roughness 0.925
+  - metallic 0.000
+  - ior 1.500
+  - viewport diffuse (0.800, 0.300, 0.100, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 0.500
+  - viewport metallic 0.000, roughness 0.925
+  - backface False probe True shadow False
+
+==== Images: 8
+- Image 'someHatTexture_BaseColor.jpg' 0x0 0bpp
+- Image 'someHatTexture_Metalness.jpg' 0x0 0bpp
+- Image 'someHatTexture_Normal.jpg' 0x0 0bpp
+- Image 'someHatTexture_Roughness.jpg' 0x0 0bpp
+- Image 'sometexture_Metallic.png' 0x0 0bpp
+- Image 'sometexture_Normal.png' 0x0 0bpp
+- Image 'sometexture_Roughness.png' 0x0 0bpp
+- Image 'texture.png' 4x4 24bpp
+

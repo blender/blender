@@ -309,7 +309,7 @@ typedef enum eGPDstroke_Flag {
   GP_STROKE_NEEDS_CURVE_UPDATE = (1 << 9),
   /* Flag to indicate that a stroke is used only for help, and will not affect rendering or fill */
   GP_STROKE_HELP = (1 << 10),
-  /* Flag to indicate that a extend stroke collide (fill tool)  */
+  /* Flag to indicate that a extend stroke collide (fill tool). */
   GP_STROKE_COLLIDE = (1 << 11),
   /* only for use with stroke-buffer (while drawing arrows) */
   GP_STROKE_USE_ARROW_START = (1 << 12),
@@ -611,7 +611,11 @@ typedef struct bGPgrid {
 
 /** Grease-Pencil Annotations - 'DataBlock'. */
 typedef struct bGPdata {
+#ifdef __cplusplus
   DNA_DEFINE_CXX_METHODS(bGPdata)
+  /** See #ID_Type comment for why this is here. */
+  static constexpr ID_Type id_type = ID_GD_LEGACY;
+#endif
 
   /** Grease Pencil data is a data-block. */
   ID id;

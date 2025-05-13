@@ -53,26 +53,27 @@ static void seq_proxy_build_job(const bContext *C, ReportList *reports)
   blender::Set<std::string> processed_paths;
   bool selected = false; /* Check for no selected strips */
 
-  LISTBASE_FOREACH (Strip *, seq, seq::active_seqbase_get(ed)) {
-    if (!ELEM(seq->type, STRIP_TYPE_MOVIE, STRIP_TYPE_IMAGE) || (seq->flag & SELECT) == 0) {
+  LISTBASE_FOREACH (Strip *, strip, seq::active_seqbase_get(ed)) {
+    if (!ELEM(strip->type, STRIP_TYPE_MOVIE, STRIP_TYPE_IMAGE) || (strip->flag & SELECT) == 0) {
       continue;
     }
 
     selected = true;
-    if (!(seq->flag & SEQ_USE_PROXY)) {
-      BKE_reportf(reports, RPT_WARNING, "Proxy is not enabled for %s, skipping", seq->name);
+    if (!(strip->flag & SEQ_USE_PROXY)) {
+      BKE_reportf(reports, RPT_WARNING, "Proxy is not enabled for %s, skipping", strip->name);
       continue;
     }
-    if (seq->data->proxy->build_size_flags == 0) {
-      BKE_reportf(reports, RPT_WARNING, "Resolution is not selected for %s, skipping", seq->name);
+    if (strip->data->proxy->build_size_flags == 0) {
+      BKE_reportf(
+          reports, RPT_WARNING, "Resolution is not selected for %s, skipping", strip->name);
       continue;
     }
 
     bool success = seq::proxy_rebuild_context(
-        pj->main, pj->depsgraph, pj->scene, seq, &processed_paths, &pj->queue, false);
+        pj->main, pj->depsgraph, pj->scene, strip, &processed_paths, &pj->queue, false);
 
-    if (!success && (seq->data->proxy->build_flags & SEQ_PROXY_SKIP_EXISTING) != 0) {
-      BKE_reportf(reports, RPT_WARNING, "Overwrite is not checked for %s, skipping", seq->name);
+    if (!success && (strip->data->proxy->build_flags & SEQ_PROXY_SKIP_EXISTING) != 0) {
+      BKE_reportf(reports, RPT_WARNING, "Overwrite is not checked for %s, skipping", strip->name);
     }
   }
 
@@ -111,11 +112,11 @@ static wmOperatorStatus sequencer_rebuild_proxy_exec(bContext *C, wmOperator * /
 
   blender::Set<std::string> processed_paths;
 
-  LISTBASE_FOREACH (Strip *, seq, seq::active_seqbase_get(ed)) {
-    if (seq->flag & SELECT) {
+  LISTBASE_FOREACH (Strip *, strip, seq::active_seqbase_get(ed)) {
+    if (strip->flag & SELECT) {
       ListBase queue = {nullptr, nullptr};
 
-      seq::proxy_rebuild_context(bmain, depsgraph, scene, seq, &processed_paths, &queue, false);
+      seq::proxy_rebuild_context(bmain, depsgraph, scene, strip, &processed_paths, &queue, false);
 
       wmJobWorkerStatus worker_status = {};
       LISTBASE_FOREACH (LinkData *, link, &queue) {
@@ -174,47 +175,47 @@ static wmOperatorStatus sequencer_enable_proxies_exec(bContext *C, wmOperator *o
     turnon = false;
   }
 
-  LISTBASE_FOREACH (Strip *, seq, seq::active_seqbase_get(ed)) {
-    if (seq->flag & SELECT) {
-      if (ELEM(seq->type, STRIP_TYPE_MOVIE, STRIP_TYPE_IMAGE)) {
-        seq::proxy_set(seq, turnon);
-        if (seq->data->proxy == nullptr) {
+  LISTBASE_FOREACH (Strip *, strip, seq::active_seqbase_get(ed)) {
+    if (strip->flag & SELECT) {
+      if (ELEM(strip->type, STRIP_TYPE_MOVIE, STRIP_TYPE_IMAGE)) {
+        seq::proxy_set(strip, turnon);
+        if (strip->data->proxy == nullptr) {
           continue;
         }
 
         if (proxy_25) {
-          seq->data->proxy->build_size_flags |= SEQ_PROXY_IMAGE_SIZE_25;
+          strip->data->proxy->build_size_flags |= SEQ_PROXY_IMAGE_SIZE_25;
         }
         else {
-          seq->data->proxy->build_size_flags &= ~SEQ_PROXY_IMAGE_SIZE_25;
+          strip->data->proxy->build_size_flags &= ~SEQ_PROXY_IMAGE_SIZE_25;
         }
 
         if (proxy_50) {
-          seq->data->proxy->build_size_flags |= SEQ_PROXY_IMAGE_SIZE_50;
+          strip->data->proxy->build_size_flags |= SEQ_PROXY_IMAGE_SIZE_50;
         }
         else {
-          seq->data->proxy->build_size_flags &= ~SEQ_PROXY_IMAGE_SIZE_50;
+          strip->data->proxy->build_size_flags &= ~SEQ_PROXY_IMAGE_SIZE_50;
         }
 
         if (proxy_75) {
-          seq->data->proxy->build_size_flags |= SEQ_PROXY_IMAGE_SIZE_75;
+          strip->data->proxy->build_size_flags |= SEQ_PROXY_IMAGE_SIZE_75;
         }
         else {
-          seq->data->proxy->build_size_flags &= ~SEQ_PROXY_IMAGE_SIZE_75;
+          strip->data->proxy->build_size_flags &= ~SEQ_PROXY_IMAGE_SIZE_75;
         }
 
         if (proxy_100) {
-          seq->data->proxy->build_size_flags |= SEQ_PROXY_IMAGE_SIZE_100;
+          strip->data->proxy->build_size_flags |= SEQ_PROXY_IMAGE_SIZE_100;
         }
         else {
-          seq->data->proxy->build_size_flags &= ~SEQ_PROXY_IMAGE_SIZE_100;
+          strip->data->proxy->build_size_flags &= ~SEQ_PROXY_IMAGE_SIZE_100;
         }
 
         if (!overwrite) {
-          seq->data->proxy->build_flags |= SEQ_PROXY_SKIP_EXISTING;
+          strip->data->proxy->build_flags |= SEQ_PROXY_SKIP_EXISTING;
         }
         else {
-          seq->data->proxy->build_flags &= ~SEQ_PROXY_SKIP_EXISTING;
+          strip->data->proxy->build_flags &= ~SEQ_PROXY_SKIP_EXISTING;
         }
       }
     }

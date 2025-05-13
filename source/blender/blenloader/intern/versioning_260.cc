@@ -1004,7 +1004,7 @@ static bool strip_colorbalance_update_cb(Strip *strip, void * /*user_data*/)
   StripData *data = strip->data;
 
   if (data && data->color_balance) {
-    SequenceModifierData *smd = blender::seq::modifier_new(
+    StripModifierData *smd = blender::seq::modifier_new(
         strip, nullptr, seqModifierType_ColorBalance);
     ColorBalanceModifierData *cbmd = (ColorBalanceModifierData *)smd;
 

@@ -66,7 +66,12 @@ struct GPUViewport {
   GPUTexture *depth_tx;
   /** Compositing framebuffer for stereo viewport. */
   GPUFrameBuffer *stereo_comp_fb;
-  /** Overlay framebuffer for drawing outside of DRW module. */
+  /** Color render and overlay frame-buffers for drawing outside of DRW module.
+   * The render framebuffer is expected to be in the linear space and viewport will perform color
+   * management on it to bring it to the display space.
+   * The overlay frame-buffer is expected to be in the display space and viewport does not do any
+   * color management on it. */
+  GPUFrameBuffer *render_fb;
   GPUFrameBuffer *overlay_fb;
 
   /* Color management. */
@@ -178,6 +183,7 @@ static void gpu_viewport_textures_create(GPUViewport *viewport)
 static void gpu_viewport_textures_free(GPUViewport *viewport)
 {
   GPU_FRAMEBUFFER_FREE_SAFE(viewport->stereo_comp_fb);
+  GPU_FRAMEBUFFER_FREE_SAFE(viewport->render_fb);
   GPU_FRAMEBUFFER_FREE_SAFE(viewport->overlay_fb);
 
   for (int i = 0; i < 2; i++) {
@@ -230,7 +236,7 @@ void GPU_viewport_bind_from_offscreen(GPUViewport *viewport, GPUOffScreen *ofs, 
 }
 
 void GPU_viewport_colorspace_set(GPUViewport *viewport,
-                                 ColorManagedViewSettings *view_settings,
+                                 const ColorManagedViewSettings *view_settings,
                                  const ColorManagedDisplaySettings *display_settings,
                                  float dither)
 {
@@ -256,19 +262,11 @@ void GPU_viewport_colorspace_set(GPUViewport *viewport,
     BKE_color_managed_view_settings_free(&viewport->view_settings);
   }
   /* Don't copy the curve mapping already. */
-  CurveMapping *tmp_curve_mapping = view_settings->curve_mapping;
-  CurveMapping *tmp_curve_mapping_vp = viewport->view_settings.curve_mapping;
-  view_settings->curve_mapping = nullptr;
-  viewport->view_settings.curve_mapping = nullptr;
-
-  BKE_color_managed_view_settings_copy(&viewport->view_settings, view_settings);
-  /* Restore. */
-  view_settings->curve_mapping = tmp_curve_mapping;
-  viewport->view_settings.curve_mapping = tmp_curve_mapping_vp;
+  BKE_color_managed_view_settings_copy_keep_curve_mapping(&viewport->view_settings, view_settings);
   /* Only copy curve-mapping if needed. Avoid unneeded OCIO cache miss. */
-  if (tmp_curve_mapping && viewport->view_settings.curve_mapping == nullptr) {
+  if (view_settings->curve_mapping && viewport->view_settings.curve_mapping == nullptr) {
     BKE_color_managed_view_settings_free(&viewport->view_settings);
-    viewport->view_settings.curve_mapping = BKE_curvemapping_copy(tmp_curve_mapping);
+    viewport->view_settings.curve_mapping = BKE_curvemapping_copy(view_settings->curve_mapping);
   }
 
   BKE_color_managed_display_settings_copy(&viewport->display_settings, display_settings);
@@ -597,6 +595,17 @@ GPUTexture *GPU_viewport_overlay_texture(GPUViewport *viewport, int view)
 GPUTexture *GPU_viewport_depth_texture(GPUViewport *viewport)
 {
   return viewport->depth_tx;
+}
+
+GPUFrameBuffer *GPU_viewport_framebuffer_render_get(GPUViewport *viewport)
+{
+  GPU_framebuffer_ensure_config(
+      &viewport->render_fb,
+      {
+          GPU_ATTACHMENT_TEXTURE(viewport->depth_tx),
+          GPU_ATTACHMENT_TEXTURE(viewport->color_render_tx[viewport->active_view]),
+      });
+  return viewport->render_fb;
 }
 
 GPUFrameBuffer *GPU_viewport_framebuffer_overlay_get(GPUViewport *viewport)

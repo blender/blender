@@ -23,7 +23,7 @@ void main()
   float3 world_pos = drw_point_object_to_world(final_pos);
   gl_Position = drw_point_world_to_homogenous(world_pos);
 
-  final_color = colorWireEdit;
+  final_color = theme.colors.wire_edit;
 
   view_clipping_distances(world_pos);
 }

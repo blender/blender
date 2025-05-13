@@ -60,7 +60,7 @@ static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &
 
 }  // namespace blender::nodes::node_composite_posterize_cc
 
-void register_node_type_cmp_posterize()
+static void register_node_type_cmp_posterize()
 {
   namespace file_ns = blender::nodes::node_composite_posterize_cc;
 
@@ -78,3 +78,4 @@ void register_node_type_cmp_posterize()
 
   blender::bke::node_register_type(ntype);
 }
+NOD_REGISTER_NODE(register_node_type_cmp_posterize)

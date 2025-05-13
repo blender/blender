@@ -29,13 +29,13 @@ void main()
 
   float theta = M_TAU * (float(vert_id) / 63.0f);
   float3 circle_P = float3(cos(theta), 0.0f, sin(theta));
-  final_color = colorSkinRoot;
+  final_color = theme.colors.skinroot;
 #else
   float3 lP = local_pos;
   float circle_size = size;
   float3 circle_P = pos;
   /* Manual stipple: one segment out of 2 is transparent. */
-  final_color = ((gl_VertexID & 1) == 0) ? colorSkinRoot : float4(0.0f);
+  final_color = ((gl_VertexID & 1) == 0) ? theme.colors.skinroot : float4(0.0f);
 #endif
   float3 screen_pos = (right * circle_P.x + up * circle_P.z) * circle_size;
   float4 pos_4d = drw_modelmat() * float4(lP + screen_pos, 1.0f);

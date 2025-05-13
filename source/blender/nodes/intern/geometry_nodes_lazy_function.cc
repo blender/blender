@@ -1738,7 +1738,7 @@ class GeometryNodesLazyFunctionLogger : public lf::GraphExecutor::Logger {
     }
   }
 
-  static inline std::mutex dump_error_context_mutex;
+  static inline Mutex dump_error_context_mutex;
 
   void dump_when_outputs_are_missing(const lf::FunctionNode &node,
                                      Span<const lf::OutputSocket *> missing_sockets,
@@ -4274,8 +4274,8 @@ const Object *GeoNodesCallData::self_object() const
     return this->modifier_data->self_object;
   }
   if (this->operator_data) {
-    return DEG_get_evaluated_object(this->operator_data->depsgraphs->active,
-                                    const_cast<Object *>(this->operator_data->self_object_orig));
+    return DEG_get_evaluated(this->operator_data->depsgraphs->active,
+                             const_cast<Object *>(this->operator_data->self_object_orig));
   }
   return nullptr;
 }

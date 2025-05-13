@@ -471,7 +471,7 @@ static wmOperatorStatus set_plane_exec(bContext *C, wmOperator *op)
 
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
-  Object *object_eval = DEG_get_evaluated_object(depsgraph, object);
+  Object *object_eval = DEG_get_evaluated(depsgraph, object);
   BKE_object_transform_copy(object_eval, object);
   BKE_object_where_is_calc(depsgraph, scene_eval, object_eval);
   BKE_object_transform_copy(object, object_eval);

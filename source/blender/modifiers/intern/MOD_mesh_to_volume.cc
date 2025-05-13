@@ -71,21 +71,21 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, ptr, "object", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  uiItemR(layout, ptr, "density", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "object", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "density", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   {
     uiLayout *col = &layout->column(false);
-    uiItemR(col, ptr, "interior_band_width", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col->prop(ptr, "interior_band_width", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
   {
     uiLayout *col = &layout->column(false);
-    uiItemR(col, ptr, "resolution_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    col->prop(ptr, "resolution_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     if (mvmd->resolution_mode == MESH_TO_VOLUME_RESOLUTION_MODE_VOXEL_AMOUNT) {
-      uiItemR(col, ptr, "voxel_amount", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+      col->prop(ptr, "voxel_amount", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     }
     else {
-      uiItemR(col, ptr, "voxel_size", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+      col->prop(ptr, "voxel_size", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     }
   }
 
@@ -146,7 +146,7 @@ static Volume *mesh_to_volume(ModifierData *md,
   /* Create a new volume. */
   Volume *volume;
   if (input_volume == nullptr) {
-    volume = static_cast<Volume *>(BKE_id_new_nomain(ID_VO, "Volume"));
+    volume = BKE_id_new_nomain<Volume>("Volume");
   }
   else {
     volume = BKE_volume_new_for_eval(input_volume);

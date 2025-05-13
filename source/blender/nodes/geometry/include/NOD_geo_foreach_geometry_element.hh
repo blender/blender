@@ -14,7 +14,6 @@ struct ForeachGeometryElementInputItemsAccessor {
   using ItemT = NodeForeachGeometryElementInputItem;
   static StructRNA *item_srna;
   static int node_type;
-  static int item_dna_type;
   static constexpr const char *node_idname = "GeometryNodeForeachGeometryElementOutput";
   static constexpr bool has_type = true;
   static constexpr bool has_name = true;
@@ -101,7 +100,6 @@ struct ForeachGeometryElementMainItemsAccessor {
   using ItemT = NodeForeachGeometryElementMainItem;
   static StructRNA *item_srna;
   static int node_type;
-  static int item_dna_type;
   static constexpr const char *node_idname = "GeometryNodeForeachGeometryElementOutput";
   static constexpr bool has_type = true;
   static constexpr bool has_name = true;
@@ -187,7 +185,6 @@ struct ForeachGeometryElementGenerationItemsAccessor {
   using ItemT = NodeForeachGeometryElementGenerationItem;
   static StructRNA *item_srna;
   static int node_type;
-  static int item_dna_type;
   static constexpr const char *node_idname = "GeometryNodeForeachGeometryElementOutput";
   static constexpr bool has_type = true;
   static constexpr bool has_name = true;

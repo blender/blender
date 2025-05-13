@@ -23,8 +23,8 @@ float edge_step(float dist)
 
 void main()
 {
-  float dist = abs(geometry_noperspective_out.edge_coord) - max(sizeEdge - 0.5f, 0.0f);
-  float dist_outer = dist - max(sizeEdge, 1.0f);
+  float dist = abs(geometry_noperspective_out.edge_coord) - max(theme.sizes.edge - 0.5f, 0.0f);
+  float dist_outer = dist - max(theme.sizes.edge, 1.0f);
   float mix_w = edge_step(dist);
   float mix_w_outer = edge_step(dist_outer);
   /* Line color & alpha. */

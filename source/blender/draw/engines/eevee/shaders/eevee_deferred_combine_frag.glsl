@@ -95,6 +95,9 @@ void main()
         specular_direct += closure_direct_light;
         specular_indirect += closure_indirect_light;
         break;
+      case CLOSURE_NONE_ID:
+        assert(0);
+        break;
     }
 
     if ((cl.type == CLOSURE_BSDF_TRANSLUCENT_ID ||

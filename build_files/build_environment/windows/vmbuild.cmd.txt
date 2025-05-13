@@ -11,8 +11,8 @@ set CMAKE_GENERATOR_INSTANCE=c:\vs2019bt\
 set CMAKE_GENERATOR=Visual Studio 16 2019
 set NODEBUG=
 set TMPDIR=c:\t\
-set ROCM_PATH=c:\tools\rocm\5.7
-set HIP_PATH=c:\tools\rocm\5.7
+set ROCM_PATH=c:\tools\hip
+set HIP_PATH=c:\tools\hip
 set PERL=c:\db\build\downloads\perl\perl\bin\perl.exe
 set path=%path%;c:\db\build\downloads\perl\perl\bin\;
 if not exist c:\db\ (

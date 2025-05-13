@@ -134,7 +134,7 @@ static NodeOperation *get_compositor_operation(Context &context, DNode node)
 
 }  // namespace blender::nodes::node_composite_image_info_cc
 
-void register_node_type_cmp_image_info()
+static void register_node_type_cmp_image_info()
 {
   namespace file_ns = blender::nodes::node_composite_image_info_cc;
 
@@ -149,3 +149,4 @@ void register_node_type_cmp_image_info()
 
   blender::bke::node_register_type(ntype);
 }
+NOD_REGISTER_NODE(register_node_type_cmp_image_info)

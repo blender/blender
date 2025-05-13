@@ -300,17 +300,17 @@ static void panel_draw(const bContext *C, Panel *panel)
   uiLayoutSetPropSep(layout, true);
 
   col = &layout->column(true);
-  uiItemR(col, ptr, "levels", UI_ITEM_NONE, IFACE_("Levels Viewport"), ICON_NONE);
-  uiItemR(col, ptr, "sculpt_levels", UI_ITEM_NONE, IFACE_("Sculpt"), ICON_NONE);
-  uiItemR(col, ptr, "render_levels", UI_ITEM_NONE, IFACE_("Render"), ICON_NONE);
+  col->prop(ptr, "levels", UI_ITEM_NONE, IFACE_("Levels Viewport"), ICON_NONE);
+  col->prop(ptr, "sculpt_levels", UI_ITEM_NONE, IFACE_("Sculpt"), ICON_NONE);
+  col->prop(ptr, "render_levels", UI_ITEM_NONE, IFACE_("Render"), ICON_NONE);
 
   const bool is_sculpt_mode = CTX_data_active_object(C)->mode & OB_MODE_SCULPT;
   uiBlock *block = uiLayoutGetBlock(panel->layout);
   UI_block_lock_set(block, !is_sculpt_mode, N_("Sculpt Base Mesh"));
-  uiItemR(col, ptr, "use_sculpt_base_mesh", UI_ITEM_NONE, IFACE_("Sculpt Base Mesh"), ICON_NONE);
+  col->prop(ptr, "use_sculpt_base_mesh", UI_ITEM_NONE, IFACE_("Sculpt Base Mesh"), ICON_NONE);
   UI_block_lock_clear(block);
 
-  uiItemR(layout, ptr, "show_only_control_edges", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "show_only_control_edges", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   modifier_panel_end(layout, ptr);
 }
@@ -374,8 +374,8 @@ static void subdivisions_panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiItemS(layout);
 
-  uiItemO(layout, IFACE_("Unsubdivide"), ICON_NONE, "OBJECT_OT_multires_unsubdivide");
-  uiItemO(layout, IFACE_("Delete Higher"), ICON_NONE, "OBJECT_OT_multires_higher_levels_delete");
+  layout->op("OBJECT_OT_multires_unsubdivide", IFACE_("Unsubdivide"), ICON_NONE);
+  layout->op("OBJECT_OT_multires_higher_levels_delete", IFACE_("Delete Higher"), ICON_NONE);
 }
 
 static void shape_panel_draw(const bContext * /*C*/, Panel *panel)
@@ -389,8 +389,8 @@ static void shape_panel_draw(const bContext * /*C*/, Panel *panel)
   uiLayoutSetEnabled(layout, RNA_enum_get(&ob_ptr, "mode") != OB_MODE_EDIT);
 
   row = &layout->row(false);
-  uiItemO(row, IFACE_("Reshape"), ICON_NONE, "OBJECT_OT_multires_reshape");
-  uiItemO(row, IFACE_("Apply Base"), ICON_NONE, "OBJECT_OT_multires_base_apply");
+  row->op("OBJECT_OT_multires_reshape", IFACE_("Reshape"), ICON_NONE);
+  row->op("OBJECT_OT_multires_base_apply", IFACE_("Apply Base"), ICON_NONE);
 }
 
 static void generate_panel_draw(const bContext * /*C*/, Panel *panel)
@@ -404,20 +404,19 @@ static void generate_panel_draw(const bContext * /*C*/, Panel *panel)
   bool is_external = RNA_boolean_get(ptr, "is_external");
 
   if (mmd->totlvl == 0) {
-    uiItemO(
-        layout, IFACE_("Rebuild Subdivisions"), ICON_NONE, "OBJECT_OT_multires_rebuild_subdiv");
+    layout->op("OBJECT_OT_multires_rebuild_subdiv", IFACE_("Rebuild Subdivisions"), ICON_NONE);
   }
 
   col = &layout->column(false);
   row = &col->row(false);
   if (is_external) {
-    uiItemO(row, IFACE_("Pack External"), ICON_NONE, "OBJECT_OT_multires_external_pack");
+    row->op("OBJECT_OT_multires_external_pack", IFACE_("Pack External"), ICON_NONE);
     uiLayoutSetPropSep(col, true);
     row = &col->row(false);
-    uiItemR(row, ptr, "filepath", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    row->prop(ptr, "filepath", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
   else {
-    uiItemO(col, IFACE_("Save External..."), ICON_NONE, "OBJECT_OT_multires_external_save");
+    col->op("OBJECT_OT_multires_external_save", IFACE_("Save External..."), ICON_NONE);
   }
 }
 
@@ -434,15 +433,15 @@ static void advanced_panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayoutSetActive(layout, !has_displacement);
 
-  uiItemR(layout, ptr, "quality", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "quality", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   col = &layout->column(false);
   uiLayoutSetActive(col, true);
-  uiItemR(col, ptr, "uv_smooth", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  uiItemR(col, ptr, "boundary_smooth", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  col->prop(ptr, "uv_smooth", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  col->prop(ptr, "boundary_smooth", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  uiItemR(layout, ptr, "use_creases", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  uiItemR(layout, ptr, "use_custom_normals", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "use_creases", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "use_custom_normals", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
 static void panel_register(ARegionType *region_type)

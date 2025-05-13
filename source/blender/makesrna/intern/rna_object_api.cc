@@ -342,7 +342,7 @@ static void rna_Object_calc_matrix_camera(Object *ob,
                                           float scalex,
                                           float scaley)
 {
-  const Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+  const Object *ob_eval = DEG_get_evaluated(depsgraph, ob);
   CameraParams params;
 
   /* setup parameters */
@@ -569,7 +569,7 @@ static Object *eval_object_ensure(Object *ob,
       depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
     }
     if (depsgraph != nullptr) {
-      ob = DEG_get_evaluated_object(depsgraph, ob);
+      ob = DEG_get_evaluated(depsgraph, ob);
     }
     if (ob == nullptr || BKE_object_get_evaluated_mesh(ob) == nullptr) {
       BKE_reportf(

@@ -92,7 +92,7 @@ blender::Array<blender::float3> BKE_crazyspace_get_mapped_editverts(Depsgraph *d
                                                                     Object *obedit)
 {
   Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
-  Object *obedit_eval = DEG_get_evaluated_object(depsgraph, obedit);
+  Object *obedit_eval = DEG_get_evaluated(depsgraph, obedit);
   const int cageIndex = BKE_modifiers_get_cage_index(scene_eval, obedit_eval, nullptr, true);
 
   /* Disable subsurf temporal, get mapped cos, and enable it. */
@@ -303,7 +303,7 @@ static void crazyspace_init_object_for_eval(Depsgraph *depsgraph,
                                             Object *object,
                                             Object *object_crazy)
 {
-  Object *object_eval = DEG_get_evaluated_object(depsgraph, object);
+  Object *object_eval = DEG_get_evaluated(depsgraph, object);
   *object_crazy = blender::dna::shallow_copy(*object_eval);
   object_crazy->runtime = MEM_new<blender::bke::ObjectRuntime>(__func__, *object_eval->runtime);
   if (object_crazy->runtime->data_orig != nullptr) {
@@ -620,7 +620,7 @@ GeometryDeformation get_evaluated_curves_deformation(const Object *ob_eval, cons
 GeometryDeformation get_evaluated_curves_deformation(const Depsgraph &depsgraph,
                                                      const Object &ob_orig)
 {
-  const Object *ob_eval = DEG_get_evaluated_object(&depsgraph, &ob_orig);
+  const Object *ob_eval = DEG_get_evaluated(&depsgraph, &ob_orig);
   return get_evaluated_curves_deformation(ob_eval, ob_orig);
 }
 
@@ -706,7 +706,7 @@ GeometryDeformation get_evaluated_grease_pencil_drawing_deformation(const Depsgr
                                                                     const int layer_index,
                                                                     const int frame)
 {
-  const Object *ob_eval = DEG_get_evaluated_object(&depsgraph, &ob_orig);
+  const Object *ob_eval = DEG_get_evaluated(&depsgraph, &ob_orig);
   return get_evaluated_grease_pencil_drawing_deformation(ob_eval, ob_orig, layer_index, frame);
 }
 

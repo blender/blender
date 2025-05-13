@@ -28,9 +28,9 @@
 #else
 #  include <atomic>
 #  include <functional>
-#  include <mutex>
 
 #  include "BLI_map.hh"
+#  include "BLI_mutex.hh"
 #endif
 
 #include "BLI_utility_mixins.hh"
@@ -81,7 +81,7 @@ template<typename T> class EnumerableThreadSpecific : NonCopyable, NonMovable {
 #else /* WITH_TBB */
 
  private:
-  std::mutex mutex_;
+  Mutex mutex_;
   /* Maps thread ids to their corresponding values. The values are not embedded in the map, so that
    * their addresses do not change when the map grows. */
   Map<int, std::reference_wrapper<T>> values_;

@@ -143,7 +143,7 @@ TRIVIAL_DEFAULT_INT_HASH(uint64_t);
 template<> struct DefaultHash<float> {
   uint64_t operator()(float value) const
   {
-    /* Explicit `uint64_t` cast to suppress CPPCHECK warning.  */
+    /* Explicit `uint64_t` cast to suppress CPPCHECK warning. */
     return uint64_t(*reinterpret_cast<uint32_t *>(&value));
   }
 };

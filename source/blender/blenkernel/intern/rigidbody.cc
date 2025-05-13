@@ -12,7 +12,6 @@
 #include <cmath>
 #include <cstdio>
 #include <cstring>
-#include <mutex>
 
 #include "CLG_log.h"
 
@@ -22,6 +21,7 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
+#include "BLI_mutex.hh"
 
 #ifdef WITH_BULLET
 #  include "RBI_api.h"
@@ -83,7 +83,7 @@ static void RB_constraint_delete(void * /*con*/) {}
 
 struct RigidBodyWorld_Runtime {
   rbDynamicsWorld *physics_world = nullptr;
-  std::mutex mutex;
+  blender::Mutex mutex;
 
   ~RigidBodyWorld_Runtime()
   {

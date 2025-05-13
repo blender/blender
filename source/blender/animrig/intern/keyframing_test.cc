@@ -92,7 +92,7 @@ class KeyframingTest : public testing::Test {
 
     object_with_nla = BKE_object_add_only_object(bmain, OB_EMPTY, "EmptyWithNLA");
     object_with_nla_rna_pointer = RNA_id_pointer_create(&object_with_nla->id);
-    nla_action = static_cast<bAction *>(BKE_id_new(bmain, ID_AC, "NLAAction"));
+    nla_action = BKE_id_new<bAction>(bmain, "NLAAction");
     this->ensure_action_is_legacy(*nla_action);
 
     cube = BKE_object_add_only_object(bmain, OB_MESH, "cube");
@@ -659,7 +659,7 @@ TEST_F(KeyframingTest, insert_keyframes__baklava_legacy_action)
 
   /* Create a legacy Action and assign it the legacy way. */
   {
-    bAction *action = reinterpret_cast<bAction *>(BKE_id_new(bmain, ID_AC, "LegacyAction"));
+    bAction *action = BKE_id_new<bAction>(bmain, "LegacyAction");
     action_fcurve_ensure_legacy(bmain, action, nullptr, nullptr, {"testprop", 47});
     BKE_animdata_ensure_id(&object->id)->action = action;
   }

@@ -116,6 +116,8 @@ ccl_device_inline void path_state_next(KernelGlobals kg,
 
     flag |= PATH_RAY_TRANSPARENT;
     if (transparent_bounce >= kernel_data.integrator.transparent_max_bounce) {
+      /* FIXME: `transparent_max_bounce` could be 0, but `transparent_bounce` is at least 1 when we
+       * enter this path. */
       flag |= PATH_RAY_TERMINATE_ON_NEXT_SURFACE;
     }
 

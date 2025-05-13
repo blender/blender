@@ -26,8 +26,6 @@ struct Paint;
 struct Scene;
 struct UnifiedPaintSettings;
 
-// enum eCurveMappingPreset;
-
 /* Globals for brush execution. */
 
 void BKE_brush_system_init();
@@ -77,7 +75,7 @@ void BKE_brush_randomize_texture_coords(UnifiedPaintSettings *ups, bool mask);
 /**
  * Library Operations
  */
-void BKE_brush_curve_preset(Brush *b, enum eCurveMappingPreset preset);
+void BKE_brush_curve_preset(Brush *b, eCurveMappingPreset preset);
 
 /**
  * Combine the brush strength based on the distances and brush settings with the existing factors.
@@ -195,6 +193,7 @@ void BKE_brush_debug_print_state(Brush *br);
  * \{ */
 
 namespace blender::bke::brush {
+bool supports_dyntopo(const Brush &brush);
 bool supports_accumulate(const Brush &brush);
 bool supports_topology_rake(const Brush &brush);
 bool supports_auto_smooth(const Brush &brush);

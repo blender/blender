@@ -162,7 +162,7 @@ static CLG_LogRef LOG = {"bke.object"};
 #define VPARENT_THREADING_HACK
 
 #ifdef VPARENT_THREADING_HACK
-static ThreadMutex vparent_lock = BLI_MUTEX_INITIALIZER;
+static blender::Mutex vparent_lock;
 #endif
 
 static void copy_object_pose(Object *obn, const Object *ob, const int flag);
@@ -1062,7 +1062,7 @@ static AssetTypeInfo AssetType_OB = {
 };
 
 IDTypeInfo IDType_ID_OB = {
-    /*id_code*/ ID_OB,
+    /*id_code*/ Object::id_type,
     /*id_filter*/ FILTER_ID_OB,
     /* Could be more specific, but simpler to just always say 'yes' here. */
     /*dependencies_id_types*/ FILTER_ID_ALL,
@@ -2018,7 +2018,7 @@ void *BKE_object_obdata_add_from_type(Main *bmain, int type, const char *name)
     case OB_CURVES:
       return BKE_curves_add(bmain, name);
     case OB_POINTCLOUD:
-      return BKE_pointcloud_add_default(bmain, name);
+      return BKE_pointcloud_add(bmain, name);
     case OB_VOLUME:
       return BKE_volume_add(bmain, name);
     case OB_GREASE_PENCIL:
@@ -3059,11 +3059,10 @@ static void give_parvert(const Object *par, int nr, float vec[3], const bool use
         numVerts = em->bm->totvert;
         if (em->bm->elem_table_dirty & BM_VERT) {
 #ifdef VPARENT_THREADING_HACK
-          BLI_mutex_lock(&vparent_lock);
+          std::scoped_lock lock(vparent_lock);
           if (em->bm->elem_table_dirty & BM_VERT) {
             BM_mesh_elem_table_ensure(em->bm, BM_VERT);
           }
-          BLI_mutex_unlock(&vparent_lock);
 #else
           BLI_assert_msg(0, "Not safe for threading");
           BM_mesh_elem_table_ensure(em->bm, BM_VERT);
@@ -3359,7 +3358,7 @@ blender::float4x4 BKE_object_calc_parent(Depsgraph *depsgraph, Scene *scene, Obj
 
   /* Since this is used while calculating parenting,
    * at this moment ob_eval->parent is still nullptr. */
-  workob.parent = DEG_get_evaluated_object(depsgraph, ob->parent);
+  workob.parent = DEG_get_evaluated(depsgraph, ob->parent);
 
   workob.trackflag = ob->trackflag;
   workob.upflag = ob->upflag;
@@ -3546,7 +3545,8 @@ std::optional<Bounds<float3>> BKE_object_boundbox_eval_cached_get(const Object *
 std::optional<Bounds<float3>> BKE_object_evaluated_geometry_bounds(const Object *ob)
 {
   if (const blender::bke::GeometrySet *geometry = ob->runtime->geometry_set_eval) {
-    return geometry->compute_boundbox_without_instances();
+    const bool use_radius = ob->type != OB_CURVES_LEGACY;
+    return geometry->compute_boundbox_without_instances(use_radius);
   }
   if (const CurveCache *curve_cache = ob->runtime->curve_cache) {
     float3 min(std::numeric_limits<float>::max());
@@ -4229,7 +4229,7 @@ Mesh *BKE_object_get_original_mesh(const Object *object)
 
 const Mesh *BKE_object_get_editmesh_eval_final(const Object *object)
 {
-  BLI_assert(!DEG_is_original_id(&object->id));
+  BLI_assert(!DEG_is_original(object));
   BLI_assert(object->type == OB_MESH);
 
   const Mesh *mesh = static_cast<const Mesh *>(object->data);
@@ -4244,7 +4244,7 @@ const Mesh *BKE_object_get_editmesh_eval_final(const Object *object)
 
 const Mesh *BKE_object_get_editmesh_eval_cage(const Object *object)
 {
-  BLI_assert(!DEG_is_original_id(&object->id));
+  BLI_assert(!DEG_is_original(object));
   BLI_assert(object->type == OB_MESH);
 
   return object->runtime->editmesh_eval_cage;
@@ -4252,7 +4252,7 @@ const Mesh *BKE_object_get_editmesh_eval_cage(const Object *object)
 
 const Mesh *BKE_object_get_mesh_deform_eval(const Object *object)
 {
-  BLI_assert(!DEG_is_original_id(&object->id));
+  BLI_assert(!DEG_is_original(object));
   BLI_assert(object->type == OB_MESH);
   return object->runtime->mesh_deform_eval;
 }

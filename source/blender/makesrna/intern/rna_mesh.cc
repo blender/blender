@@ -2045,10 +2045,12 @@ static void rna_def_mvert(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_funcs(prop, "rna_MeshVertex_select_get", "rna_MeshVertex_select_set");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(prop, "Select", "");
   RNA_def_property_update(prop, 0, "rna_Mesh_update_select");
 
   prop = RNA_def_property(srna, "hide", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(prop, "Hide", "");
   RNA_def_property_boolean_funcs(prop, "rna_MeshVertex_hide_get", "rna_MeshVertex_hide_set");
   RNA_def_property_update(prop, 0, "rna_Mesh_update_select");
@@ -2097,15 +2099,18 @@ static void rna_def_medge(BlenderRNA *brna)
   prop = RNA_def_property(srna, "vertices", PROP_INT, PROP_UNSIGNED);
   RNA_def_property_int_sdna(prop, nullptr, "x");
   RNA_def_property_array(prop, 2);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(prop, "Vertices", "Vertex indices");
   /* XXX allows creating invalid meshes */
 
   prop = RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_funcs(prop, "rna_MeshEdge_select_get", "rna_MeshEdge_select_set");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(prop, "Select", "");
   RNA_def_property_update(prop, 0, "rna_Mesh_update_select");
 
   prop = RNA_def_property(srna, "hide", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(prop, "Hide", "");
   RNA_def_property_boolean_funcs(prop, "rna_MeshEdge_hide_get", "rna_MeshEdge_hide_set");
   RNA_def_property_update(prop, 0, "rna_Mesh_update_select");
@@ -2219,11 +2224,13 @@ static void rna_def_mloop(BlenderRNA *brna)
   prop = RNA_def_property(srna, "vertex_index", PROP_INT, PROP_UNSIGNED);
   RNA_def_property_int_funcs(
       prop, "rna_MeshLoop_vertex_index_get", "rna_MeshLoop_vertex_index_set", nullptr);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(prop, "Vertex", "Vertex index");
 
   prop = RNA_def_property(srna, "edge_index", PROP_INT, PROP_UNSIGNED);
   RNA_def_property_int_funcs(
       prop, "rna_MeshLoop_edge_index_get", "rna_MeshLoop_edge_index_set", nullptr);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(prop, "Edge", "Edge index");
 
   prop = RNA_def_property(srna, "index", PROP_INT, PROP_UNSIGNED);
@@ -2296,11 +2303,13 @@ static void rna_def_mpolygon(BlenderRNA *brna)
   RNA_def_property_dynamic_array_funcs(prop, "rna_MeshPoly_vertices_get_length");
   RNA_def_property_int_funcs(
       prop, "rna_MeshPoly_vertices_get", "rna_MeshPoly_vertices_set", nullptr);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(prop, "Vertices", "Vertex indices");
 
   /* these are both very low level access */
   prop = RNA_def_property(srna, "loop_start", PROP_INT, PROP_UNSIGNED);
   RNA_def_property_int_sdna(prop, nullptr, "i");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(prop, "Loop Start", "Index of the first loop of this face");
   /* also low level */
   prop = RNA_def_property(srna, "loop_total", PROP_INT, PROP_UNSIGNED);
@@ -2319,10 +2328,12 @@ static void rna_def_mpolygon(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_funcs(prop, "rna_MeshPolygon_select_get", "rna_MeshPolygon_select_set");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(prop, "Select", "");
   RNA_def_property_update(prop, 0, "rna_Mesh_update_select");
 
   prop = RNA_def_property(srna, "hide", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(prop, "Hide", "");
   RNA_def_property_boolean_funcs(prop, "rna_MeshPolygon_hide_get", "rna_MeshPolygon_hide_set");
   RNA_def_property_update(prop, 0, "rna_Mesh_update_select");
@@ -2405,6 +2416,7 @@ static void rna_def_mloopuv(BlenderRNA *brna)
   prop = RNA_def_property(srna, "active", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_funcs(
       prop, "rna_MeshUVLoopLayer_active_get", "rna_MeshUVLoopLayer_active_set");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(prop, "Active", "Set the map as active for display and editing");
   RNA_def_property_update(prop, 0, "rna_Mesh_update_data_legacy_deg_tag_all");
 
@@ -2412,6 +2424,7 @@ static void rna_def_mloopuv(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, nullptr, "active_rnd", 0);
   RNA_def_property_boolean_funcs(
       prop, "rna_MeshUVLoopLayer_active_render_get", "rna_MeshUVLoopLayer_active_render_set");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(prop, "Active Render", "Set the UV map as active for rendering");
   RNA_def_property_update(prop, 0, "rna_Mesh_update_data_legacy_deg_tag_all");
 
@@ -2419,6 +2432,7 @@ static void rna_def_mloopuv(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, nullptr, "active_clone", 0);
   RNA_def_property_boolean_funcs(
       prop, "rna_MeshUVLoopLayer_clone_get", "rna_MeshUVLoopLayer_clone_set");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(prop, "Active Clone", "Set the map as active for cloning");
   RNA_def_property_update(prop, 0, "rna_Mesh_update_data_legacy_deg_tag_all");
 
@@ -2438,6 +2452,7 @@ static void rna_def_mloopuv(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "vertex_selection", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_struct_type(prop, "BoolAttributeValue");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(
       prop, "UV Vertex Selection", "Selection state of the face corner the UV editor");
   RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
@@ -2453,6 +2468,7 @@ static void rna_def_mloopuv(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "edge_selection", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_struct_type(prop, "BoolAttributeValue");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(
       prop, "UV Edge Selection", "Selection state of the edge in the UV editor");
   RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
@@ -2468,6 +2484,7 @@ static void rna_def_mloopuv(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "pin", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_struct_type(prop, "BoolAttributeValue");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(prop, "UV Pin", "UV pinned state in the UV editor");
   RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
   RNA_def_property_collection_funcs(prop,
@@ -2492,15 +2509,18 @@ static void rna_def_mloopuv(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "pin_uv", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_funcs(prop, "rna_MeshUVLoop_pin_uv_get", "rna_MeshUVLoop_pin_uv_set");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(prop, "UV Pinned", "");
 
   prop = RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_funcs(prop, "rna_MeshUVLoop_select_get", "rna_MeshUVLoop_select_set");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(prop, "UV Select", "");
 
   prop = RNA_def_property(srna, "select_edge", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_funcs(
       prop, "rna_MeshUVLoop_select_edge_get", "rna_MeshUVLoop_select_edge_set");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(prop, "UV Edge Select", "");
 }
 
@@ -2525,6 +2545,7 @@ static void rna_def_mloopcol(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "active", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_funcs(prop, "rna_mesh_color_active_get", "rna_mesh_color_active_set");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(prop, "Active", "Sets the layer as active for display and editing");
   RNA_def_property_update(prop, 0, "rna_Mesh_update_data_legacy_deg_tag_all");
 
@@ -2532,6 +2553,7 @@ static void rna_def_mloopcol(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, nullptr, "active_rnd", 0);
   RNA_def_property_boolean_funcs(
       prop, "rna_mesh_color_active_render_get", "rna_mesh_color_active_render_set");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(prop, "Active Render", "Sets the layer as active for rendering");
   RNA_def_property_update(prop, 0, "rna_Mesh_update_data_legacy_deg_tag_all");
 
@@ -2711,6 +2733,7 @@ static void rna_def_mesh_polygons(BlenderRNA *brna, PropertyRNA *cprop)
 
   prop = RNA_def_property(srna, "active", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, nullptr, "act_face");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(prop, "Active Polygon", "The active face for this mesh");
 
   func = RNA_def_function(srna, "add", "ED_mesh_faces_add");
@@ -2783,6 +2806,7 @@ static void rna_def_loop_colors(BlenderRNA *brna, PropertyRNA *cprop)
                              "rna_Mesh_vertex_color_active_index_get",
                              "rna_Mesh_vertex_color_active_index_set",
                              "rna_Mesh_vertex_color_index_range");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(prop, "Active Vertex Color Index", "Active vertex color index");
   RNA_def_property_update(prop, 0, "rna_Mesh_update_data_edit_active_color");
 }
@@ -2815,7 +2839,7 @@ static void rna_def_uv_layers(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_function_return(func, parm);
 
   func = RNA_def_function(srna, "remove", "rna_Mesh_uv_layers_remove");
-  RNA_def_function_ui_description(func, "Remove a vertex color layer");
+  RNA_def_function_ui_description(func, "Remove a UV map layer");
   RNA_def_function_flag(func, FUNC_USE_REPORTS);
   parm = RNA_def_pointer(func, "layer", "MeshUVLoopLayer", "", "The layer to remove");
   RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
@@ -2824,6 +2848,7 @@ static void rna_def_uv_layers(BlenderRNA *brna, PropertyRNA *cprop)
   RNA_def_property_struct_type(prop, "MeshUVLoopLayer");
   RNA_def_property_pointer_funcs(
       prop, "rna_Mesh_uv_layer_active_get", "rna_Mesh_uv_layer_active_set", nullptr, nullptr);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_flag(prop, PROP_EDITABLE | PROP_NEVER_UNLINK);
   RNA_def_property_ui_text(prop, "Active UV Map Layer", "Active UV Map layer");
   RNA_def_property_update(prop, 0, "rna_Mesh_update_data_legacy_deg_tag_all");
@@ -2833,6 +2858,7 @@ static void rna_def_uv_layers(BlenderRNA *brna, PropertyRNA *cprop)
                              "rna_Mesh_uv_layer_active_index_get",
                              "rna_Mesh_uv_layer_active_index_set",
                              "rna_Mesh_uv_layer_index_range");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(prop, "Active UV Map Index", "Active UV map index");
   RNA_def_property_update(prop, 0, "rna_Mesh_update_data_legacy_deg_tag_all");
 }
@@ -3123,6 +3149,7 @@ static void rna_def_mesh(BlenderRNA *brna)
                              "rna_Mesh_uv_layer_clone_index_get",
                              "rna_Mesh_uv_layer_clone_index_set",
                              "rna_Mesh_uv_layer_index_range");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(prop, "Clone UV Loop Layer Index", "Clone UV loop layer index");
 
   prop = RNA_def_property(srna, "uv_layer_stencil", PROP_POINTER, PROP_NONE);
@@ -3138,6 +3165,7 @@ static void rna_def_mesh(BlenderRNA *brna)
                              "rna_Mesh_uv_layer_stencil_index_get",
                              "rna_Mesh_uv_layer_stencil_index_set",
                              "rna_Mesh_uv_layer_index_range");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(prop, "Mask UV Loop Layer Index", "Mask UV loop layer index");
   RNA_def_property_update(prop, 0, "rna_Mesh_update_data_legacy_deg_tag_all");
 
@@ -3195,6 +3223,7 @@ static void rna_def_mesh(BlenderRNA *brna)
                            "Size of the voxel in object space used for volume evaluation. Lower "
                            "values preserve finer details.");
   RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
 
   prop = RNA_def_property(srna, "remesh_voxel_adaptivity", PROP_FLOAT, PROP_DISTANCE);
@@ -3207,12 +3236,14 @@ static void rna_def_mesh(BlenderRNA *brna)
       "Reduces the final face count by simplifying geometry where detail is not needed, "
       "generating triangles. A value greater than 0 disables Fix Poles.");
   RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
 
   prop = RNA_def_property(srna, "use_remesh_fix_poles", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", ME_REMESH_FIX_POLES);
   RNA_def_property_ui_text(prop, "Fix Poles", "Produces fewer poles and a better topology flow");
   RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
 
   prop = RNA_def_property(srna, "use_remesh_preserve_volume", PROP_BOOLEAN, PROP_NONE);
@@ -3222,12 +3253,14 @@ static void rna_def_mesh(BlenderRNA *brna)
       "Preserve Volume",
       "Projects the mesh to preserve the volume and details of the original mesh");
   RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
 
   prop = RNA_def_property(srna, "use_remesh_preserve_attributes", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", ME_REMESH_REPROJECT_ATTRIBUTES);
   RNA_def_property_ui_text(prop, "Preserve Attributes", "Transfer all attributes to the new mesh");
   RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
 
   prop = RNA_def_property(srna, "remesh_mode", PROP_ENUM, PROP_NONE);
@@ -3235,6 +3268,7 @@ static void rna_def_mesh(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, rna_enum_mesh_remesh_mode_items);
   RNA_def_property_ui_text(prop, "Remesh Mode", "");
   RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
 
   /* End remesh */
@@ -3242,21 +3276,25 @@ static void rna_def_mesh(BlenderRNA *brna)
   /* Symmetry */
   prop = RNA_def_property(srna, "use_mirror_x", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "symmetry", ME_SYMMETRY_X);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(prop, "X", "Enable symmetry in the X axis");
   RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
 
   prop = RNA_def_property(srna, "use_mirror_y", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "symmetry", ME_SYMMETRY_Y);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(prop, "Y", "Enable symmetry in the Y axis");
   RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
 
   prop = RNA_def_property(srna, "use_mirror_z", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "symmetry", ME_SYMMETRY_Z);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(prop, "Z", "Enable symmetry in the Z axis");
   RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
 
   prop = RNA_def_property(srna, "use_mirror_vertex_groups", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "editflag", ME_EDIT_MIRROR_VERTEX_GROUPS);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(prop,
                            "Mirror Vertex Groups",
                            "Mirror the left/right vertex groups when painting. The symmetry axis "
@@ -3308,6 +3346,7 @@ static void rna_def_mesh(BlenderRNA *brna)
   /* editflag */
   prop = RNA_def_property(srna, "use_mirror_topology", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "editflag", ME_EDIT_MIRROR_TOPO);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(prop,
                            "Topology Mirror",
                            "Use topology based mirroring "
@@ -3316,18 +3355,21 @@ static void rna_def_mesh(BlenderRNA *brna)
   prop = RNA_def_property(srna, "use_paint_bone_selection", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_negative_sdna(
       prop, nullptr, "editflag", ME_EDIT_PAINT_FACE_SEL | ME_EDIT_PAINT_VERT_SEL);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(prop, "Bone Selection", "Bone selection during painting");
   RNA_def_property_ui_icon(prop, ICON_BONE_DATA, 0);
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_Mesh_update_bone_selection_mode");
 
   prop = RNA_def_property(srna, "use_paint_mask", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "editflag", ME_EDIT_PAINT_FACE_SEL);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(prop, "Paint Mask", "Face selection masking for painting");
   RNA_def_property_ui_icon(prop, ICON_FACESEL, 0);
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_Mesh_update_facemask");
 
   prop = RNA_def_property(srna, "use_paint_mask_vertex", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "editflag", ME_EDIT_PAINT_VERT_SEL);
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(prop, "Vertex Selection", "Vertex selection masking for painting");
   RNA_def_property_ui_icon(prop, ICON_VERTEXSEL, 0);
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_Mesh_update_vertmask");

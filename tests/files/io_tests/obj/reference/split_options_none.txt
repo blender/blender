@@ -1,0 +1,23 @@
+==== Meshes: 1
+- Mesh 'split_options_none' vtx:13 face:11 loop:40 edge:20
+    - 0 4 6 2 3 ... 11 12 11 8 12 
+    - 0/2 0/4 4/6 2/6 3/7 ... 10/11 8/12 9/12 10/12 11/12 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (1.000, 1.000, -1.000)
+    - (1.000, -1.000, -1.000)
+    - (1.000, 1.000, 1.000)
+      ...
+    - (5.000, -1.000, -1.000)
+    - (3.000, -1.000, -1.000)
+    - (4.000, 0.000, 2.000)
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 ... 0 0 0 0 0 
+  - attr 'sharp_face' BOOLEAN FACE
+    - 1 1 1 1 1 ... 1 1 1 1 1 
+
+==== Objects: 1
+- Obj 'split_options_none' MESH data:'split_options_none'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+

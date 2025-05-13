@@ -564,10 +564,10 @@ static void sculpt_color_filter_ui(bContext * /*C*/, wmOperator *op)
 {
   uiLayout *layout = op->layout;
 
-  uiItemR(layout, op->ptr, "strength", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  layout->prop(op->ptr, "strength", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   if (FilterType(RNA_enum_get(op->ptr, "type")) == FilterType::Fill) {
-    uiItemR(layout, op->ptr, "fill_color", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    layout->prop(op->ptr, "fill_color", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 }
 

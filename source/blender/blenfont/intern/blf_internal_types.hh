@@ -10,13 +10,13 @@
 
 #include <atomic>
 #include <cmath>
-#include <mutex>
 
 #include "DNA_vec_types.h"
 
 #include "BLF_api.hh"
 
 #include "BLI_map.hh"
+#include "BLI_mutex.hh"
 #include "BLI_vector.hh"
 
 #include "GPU_texture.hh"
@@ -24,7 +24,6 @@
 
 #include <ft2build.h>
 
-struct ColorManagedDisplay;
 struct FontBLF;
 struct GlyphCacheBLF;
 struct GlyphBLF;
@@ -34,6 +33,11 @@ class Batch;
 class VertBuf;
 }  // namespace blender::gpu
 struct GPUVertBufRaw;
+
+namespace blender::ocio {
+class Display;
+}  // namespace blender::ocio
+using ColorManagedDisplay = blender::ocio::Display;
 
 #include FT_MULTIPLE_MASTERS_H /* Variable font support. */
 
@@ -227,7 +231,7 @@ struct FontBufInfoBLF {
   int dims[2];
 
   /** Display device used for color management. */
-  ColorManagedDisplay *display;
+  const ColorManagedDisplay *display;
 
   /** The color, the alphas is get from the glyph! (color is sRGB space). */
   float col_init[4];
@@ -397,5 +401,5 @@ struct FontBLF {
   FontBufInfoBLF buf_info;
 
   /** Mutex lock for glyph cache. */
-  std::mutex glyph_cache_mutex;
+  blender::Mutex glyph_cache_mutex;
 };

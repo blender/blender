@@ -1,0 +1,233 @@
+#usda 1.0
+(
+    defaultPrim = "root"
+    metersPerUnit = 1
+    upAxis = "Z"
+    startFrame = 1
+    endFrame = 2
+)
+
+def Xform "root" (
+)
+{
+    def Xform "Pill"
+    {
+        matrix4d xformOp:transform = ( (1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1) )
+        uniform token[] xformOpOrder = ["xformOp:transform"]
+
+        def Capsule "capsule"
+        {
+            double radius = 0.5
+            double radius.timeSamples = {
+                1: 0.5,
+                2: 0.6,
+            }
+
+            double height = 0.5
+            double height.timeSamples = {
+                1: 0.5,
+                2: 1.0,
+            }
+
+            token axis = "Z"
+            token axis.timeSamples = {
+                1: "Z",
+                2: "X",
+            }
+        }
+    }
+
+    def Xform "Pill_1"
+    {
+        matrix4d xformOp:transform = ( (1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 2, 0, 1) )
+        uniform token[] xformOpOrder = ["xformOp:transform"]
+
+        def Capsule_1 "capsule_1"
+        {
+            double radiusTop = 0.5
+            double radiusTop.timeSamples = {
+                1: 0.5,
+                2: 0.6,
+            }
+
+            double radiusBottom = 0.5
+            double radiusBottom.timeSamples = {
+                1: 0.5,
+                2: 0.6,
+            }
+
+            double height = 0.5
+            double height.timeSamples = {
+                1: 0.5,
+                2: 1.0,
+            }
+
+            token axis = "Z"
+            token axis.timeSamples = {
+                1: "Z",
+                2: "X",
+            }
+        }
+    }
+
+    def Xform "PillColor"
+    {
+        matrix4d xformOp:transform = ( (1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (-2, 0, 0, 1) )
+        uniform token[] xformOpOrder = ["xformOp:transform"]
+
+        def Capsule "capsule_color"
+        {
+            color3f[] primvars:displayColor = [(0.8, 1, 0)]
+            color3f[] primvars:displayColor.timeSamples = {
+                1: [(0.8, 1, 0)],
+                2: [(0.1, 0.8, 0)],
+            }
+        }
+    }
+
+
+    def Xform "Hat"
+    {
+        matrix4d xformOp:transform = ( (1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (2, 0, 0, 1) )
+        uniform token[] xformOpOrder = ["xformOp:transform"]
+
+        def Cone "cone"
+        {
+            double radius = 0.5
+            double radius.timeSamples = {
+                1: 0.5,
+                2: 0.6,
+            }
+
+            double height = 0.5
+            double height.timeSamples = {
+                1: 0.5,
+                2: 1.0,
+            }
+
+            token axis = "Z"
+            token axis.timeSamples = {
+                1: "Z",
+                2: "X",
+            }
+        }
+    }
+
+    def Xform "Box"
+    {
+        matrix4d xformOp:transform = ( (1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (4, 0, 0, 1) )
+        uniform token[] xformOpOrder = ["xformOp:transform"]
+
+        def Cube "cube"
+        {
+            double size = 0.5
+            double size.timeSamples = {
+                1: 0.5,
+                2: 0.6,
+            }
+        }
+    }
+
+    def Xform "Tube"
+    {
+        matrix4d xformOp:transform = ( (1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (6, 0, 0, 1) )
+        uniform token[] xformOpOrder = ["xformOp:transform"]
+
+        def Cylinder "cylinder"
+        {
+            double radius = 0.5
+            double radius.timeSamples = {
+                1: 0.5,
+                2: 0.6,
+            }
+
+            double height = 0.5
+            double height.timeSamples = {
+                1: 0.5,
+                2: 1.0,
+            }
+
+            token axis = "Z"
+            token axis.timeSamples = {
+                1: "Z",
+                2: "X",
+            }
+        }
+    }
+
+    def Xform "Tube_1"
+    {
+        matrix4d xformOp:transform = ( (1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (6, 2, 0, 1) )
+        uniform token[] xformOpOrder = ["xformOp:transform"]
+
+        def Cylinder_1 "cylinder_1"
+        {
+            double radiusTop = 0.5
+            double radiusTop.timeSamples = {
+                1: 0.5,
+                2: 0.6,
+            }
+
+            double radiusBottom = 0.5
+            double radiusBottom.timeSamples = {
+                1: 0.5,
+                2: 0.6,
+            }
+
+            double height = 0.5
+            double height.timeSamples = {
+                1: 0.5,
+                2: 1.0,
+            }
+
+            token axis = "Z"
+            token axis.timeSamples = {
+                1: "Z",
+                2: "X",
+            }
+        }
+    }
+
+    def Xform "Ball"
+    {
+        matrix4d xformOp:transform = ( (1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (8, 0, 0, 1) )
+        uniform token[] xformOpOrder = ["xformOp:transform"]
+
+        def Sphere "sphere"
+        {
+            double radius = 0.5
+            double radius.timeSamples = {
+                1: 0.5,
+                2: 0.6,
+            }
+        }
+    }
+
+    def Xform "Ground"
+    {
+        matrix4d xformOp:transform = ( (1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (10, 0, 0, 1) )
+        uniform token[] xformOpOrder = ["xformOp:transform"]
+
+        def Plane "plane"
+        {
+            double width = 0.5
+            double width.timeSamples = {
+                1: 0.5,
+                2: 0.6,
+            }
+
+            double length = 0.5
+            double length.timeSamples = {
+                1: 0.5,
+                2: 0.6,
+            }
+
+            token axis = "Z"
+            token axis.timeSamples = {
+                1: "Z",
+                2: "X",
+            }
+        }
+    }
+}
+

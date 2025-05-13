@@ -858,7 +858,7 @@ static void asset_shelf_header_draw(const bContext *C, Header *header)
   uiLayout *sub = &layout->row(false);
   /* Same as file/asset browser header. */
   uiLayoutSetUnitsX(sub, 8);
-  uiItemR(sub, &shelf_ptr, "search_filter", UI_ITEM_NONE, "", ICON_VIEWZOOM);
+  sub->prop(&shelf_ptr, "search_filter", UI_ITEM_NONE, "", ICON_VIEWZOOM);
 }
 
 static void header_regiontype_register(ARegionType *region_type, const int space_type)

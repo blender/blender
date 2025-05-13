@@ -370,6 +370,13 @@ static bool rna_NodeSocket_is_output_get(PointerRNA *ptr)
   return sock->in_out == SOCK_OUT;
 }
 
+static bool rna_NodeSocket_select_get(PointerRNA *ptr)
+{
+  const bNodeSocket *socket = ptr->data_as<bNodeSocket>();
+
+  return (socket->flag & SELECT) != 0;
+}
+
 static int rna_NodeSocket_link_limit_get(PointerRNA *ptr)
 {
   bNodeSocket *sock = static_cast<bNodeSocket *>(ptr->data);
@@ -672,6 +679,11 @@ static void rna_def_node_socket(BlenderRNA *brna)
   RNA_def_property_boolean_funcs(prop, "rna_NodeSocket_is_output_get", nullptr);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(prop, "Is Output", "True if the socket is an output, otherwise input");
+
+  prop = RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_funcs(prop, "rna_NodeSocket_select_get", nullptr);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_ui_text(prop, "Select", "True if the socket is selected");
 
   prop = RNA_def_property(srna, "hide", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", SOCK_HIDDEN);
@@ -1349,6 +1361,7 @@ static void rna_def_node_socket_string(BlenderRNA *brna,
   RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 
   if (subtype == PROP_FILEPATH) {
+    RNA_def_property_flag(prop, PROP_PATH_SUPPORTS_BLEND_RELATIVE);
     RNA_def_property_string_filepath_filter_func(prop, "rna_NodeSocketString_filepath_filter");
   }
 

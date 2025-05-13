@@ -73,7 +73,7 @@ else()
   #
   # Also removes versioned symlinks, which give errors with macOS notarization.
   if(APPLE)
-    set(set_rpath_cmd python3 ${CMAKE_CURRENT_SOURCE_DIR}/darwin/set_rpath.py @loader_path)
+    set(set_rpath_cmd python3 ${CMAKE_CURRENT_SOURCE_DIR}/utils/set_rpath.py @loader_path)
   else()
     set(set_rpath_cmd patchelf --set-rpath $ORIGIN)
   endif()
@@ -120,5 +120,10 @@ else()
           execute_process(COMMAND ${set_rpath_cmd}/\${relative_dir}../lib \${f}) \n
         endif()\n
       endforeach()")
+  endfunction()
+
+  # Strip all shared/static libraries in the HARVEST_TARGET location.
+  function(harvest_strip_all_libraries)
+    install(CODE "execute_process(COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/utils/strip_libraries.py ${HARVEST_TARGET})")
   endfunction()
 endif()

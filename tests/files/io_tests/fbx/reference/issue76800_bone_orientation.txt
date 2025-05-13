@@ -1,0 +1,418 @@
+==== Objects: 1
+- Obj 'Armature' ARMATURE data:'Armature'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 0.010, 0.010, 0.010
+  - posed bone 'RigChest'
+    - props: int:MaxHandle=125 fl:mr displacement edge length=2.000 fl:mr displacement max displace=20.000 int:mr displacement method=6 int:mr displacement parametric subdivision level=5 int:mr displacement smoothing on=True int:mr displacement use global settings=True int:mr displacement view dependent=True
+  - posed bone 'RigHead'
+    - props: int:MaxHandle=134 fl:mr displacement edge length=2.000 fl:mr displacement max displace=20.000 int:mr displacement method=6 int:mr displacement parametric subdivision level=5 int:mr displacement smoothing on=True int:mr displacement use global settings=True int:mr displacement view dependent=True
+  - posed bone 'RigJaw1'
+    - props: int:MaxHandle=135 fl:mr displacement edge length=2.000 fl:mr displacement max displace=20.000 int:mr displacement method=6 int:mr displacement parametric subdivision level=5 int:mr displacement smoothing on=True int:mr displacement use global settings=True int:mr displacement view dependent=True
+  - posed bone 'RigLBLeg1'
+    - props: int:MaxHandle=118 fl:mr displacement edge length=2.000 fl:mr displacement max displace=20.000 int:mr displacement method=6 int:mr displacement parametric subdivision level=5 int:mr displacement smoothing on=True int:mr displacement use global settings=True int:mr displacement view dependent=True
+  - posed bone 'RigLBLeg2'
+    - props: int:MaxHandle=119 fl:mr displacement edge length=2.000 fl:mr displacement max displace=20.000 int:mr displacement method=6 int:mr displacement parametric subdivision level=5 int:mr displacement smoothing on=True int:mr displacement use global settings=True int:mr displacement view dependent=True
+  - posed bone 'RigLBLeg3'
+    - props: int:MaxHandle=120 fl:mr displacement edge length=2.000 fl:mr displacement max displace=20.000 int:mr displacement method=6 int:mr displacement parametric subdivision level=5 int:mr displacement smoothing on=True int:mr displacement use global settings=True int:mr displacement view dependent=True
+  - posed bone 'RigLBLegAnkle'
+    - props: int:MaxHandle=121 fl:mr displacement edge length=2.000 fl:mr displacement max displace=20.000 int:mr displacement method=6 int:mr displacement parametric subdivision level=5 int:mr displacement smoothing on=True int:mr displacement use global settings=True int:mr displacement view dependent=True
+  - posed bone 'RigLEar1'
+    - props: int:MaxHandle=139 fl:mr displacement edge length=2.000 fl:mr displacement max displace=20.000 int:mr displacement method=6 int:mr displacement parametric subdivision level=5 int:mr displacement smoothing on=True int:mr displacement use global settings=True int:mr displacement view dependent=True
+  - posed bone 'RigLEye1'
+    - props: int:MaxHandle=141 fl:mr displacement edge length=2.000 fl:mr displacement max displace=20.000 int:mr displacement method=6 int:mr displacement parametric subdivision level=5 int:mr displacement smoothing on=True int:mr displacement use global settings=True int:mr displacement view dependent=True
+  - posed bone 'RigLEyelid1'
+    - props: int:MaxHandle=143 fl:mr displacement edge length=2.000 fl:mr displacement max displace=20.000 int:mr displacement method=6 int:mr displacement parametric subdivision level=5 int:mr displacement smoothing on=True int:mr displacement use global settings=True int:mr displacement view dependent=True
+  - posed bone 'RigLFLeg1'
+    - props: int:MaxHandle=127 fl:mr displacement edge length=2.000 fl:mr displacement max displace=20.000 int:mr displacement method=6 int:mr displacement parametric subdivision level=5 int:mr displacement smoothing on=True int:mr displacement use global settings=True int:mr displacement view dependent=True
+  - posed bone 'RigLFLeg2'
+    - props: int:MaxHandle=128 fl:mr displacement edge length=2.000 fl:mr displacement max displace=20.000 int:mr displacement method=6 int:mr displacement parametric subdivision level=5 int:mr displacement smoothing on=True int:mr displacement use global settings=True int:mr displacement view dependent=True
+  - posed bone 'RigLFLeg3'
+    - props: int:MaxHandle=129 fl:mr displacement edge length=2.000 fl:mr displacement max displace=20.000 int:mr displacement method=6 int:mr displacement parametric subdivision level=5 int:mr displacement smoothing on=True int:mr displacement use global settings=True int:mr displacement view dependent=True
+  - posed bone 'RigLFLegAnkle'
+    - props: int:MaxHandle=130 fl:mr displacement edge length=2.000 fl:mr displacement max displace=20.000 int:mr displacement method=6 int:mr displacement parametric subdivision level=5 int:mr displacement smoothing on=True int:mr displacement use global settings=True int:mr displacement view dependent=True
+  - posed bone 'RigLFLegCollarbone'
+    - props: int:MaxHandle=126 fl:mr displacement edge length=2.000 fl:mr displacement max displace=20.000 int:mr displacement method=6 int:mr displacement parametric subdivision level=5 int:mr displacement smoothing on=True int:mr displacement use global settings=True int:mr displacement view dependent=True
+  - posed bone 'RigLShoulderBlade'
+    - props: int:MaxHandle=151 fl:mr displacement edge length=2.000 fl:mr displacement max displace=20.000 int:mr displacement method=6 int:mr displacement parametric subdivision level=5 int:mr displacement smoothing on=True int:mr displacement use global settings=True int:mr displacement view dependent=True
+  - posed bone 'RigNeck1'
+    - props: int:MaxHandle=131 fl:mr displacement edge length=2.000 fl:mr displacement max displace=20.000 int:mr displacement method=6 int:mr displacement parametric subdivision level=5 int:mr displacement smoothing on=True int:mr displacement use global settings=True int:mr displacement view dependent=True
+  - posed bone 'RigNeck2'
+    - props: int:MaxHandle=132
+  - posed bone 'RigNeck3'
+    - props: int:MaxHandle=133
+  - posed bone 'RigNose'
+    - props: int:MaxHandle=145 fl:mr displacement edge length=2.000 fl:mr displacement max displace=20.000 int:mr displacement method=6 int:mr displacement parametric subdivision level=5 int:mr displacement smoothing on=True int:mr displacement use global settings=True int:mr displacement view dependent=True
+  - posed bone 'RigPelvis'
+    - props: int:MaxHandle=117 fl:mr displacement edge length=2.000 fl:mr displacement max displace=20.000 int:mr displacement method=6 int:mr displacement parametric subdivision level=5 int:mr displacement smoothing on=True int:mr displacement use global settings=True int:mr displacement view dependent=True
+  - posed bone 'RigRBLeg1'
+    - props: int:MaxHandle=153 fl:mr displacement edge length=2.000 fl:mr displacement max displace=20.000 int:mr displacement method=6 int:mr displacement parametric subdivision level=5 int:mr displacement smoothing on=True int:mr displacement use global settings=True int:mr displacement view dependent=True
+  - posed bone 'RigRBLeg2'
+    - props: int:MaxHandle=154 fl:mr displacement edge length=2.000 fl:mr displacement max displace=20.000 int:mr displacement method=6 int:mr displacement parametric subdivision level=5 int:mr displacement smoothing on=True int:mr displacement use global settings=True int:mr displacement view dependent=True
+  - posed bone 'RigRBLeg3'
+    - props: int:MaxHandle=155
+  - posed bone 'RigRBLegAnkle'
+    - props: int:MaxHandle=156
+  - posed bone 'RigREar1'
+    - props: int:MaxHandle=140 fl:mr displacement edge length=2.000 fl:mr displacement max displace=20.000 int:mr displacement method=6 int:mr displacement parametric subdivision level=5 int:mr displacement smoothing on=True int:mr displacement use global settings=True int:mr displacement view dependent=True
+  - posed bone 'RigREye1'
+    - props: int:MaxHandle=142 fl:mr displacement edge length=2.000 fl:mr displacement max displace=20.000 int:mr displacement method=6 int:mr displacement parametric subdivision level=5 int:mr displacement smoothing on=True int:mr displacement use global settings=True int:mr displacement view dependent=True
+  - posed bone 'RigREyelid1'
+    - props: int:MaxHandle=144 fl:mr displacement edge length=2.000 fl:mr displacement max displace=20.000 int:mr displacement method=6 int:mr displacement parametric subdivision level=5 int:mr displacement smoothing on=True int:mr displacement use global settings=True int:mr displacement view dependent=True
+  - posed bone 'RigRFLeg1'
+    - props: int:MaxHandle=147 fl:mr displacement edge length=2.000 fl:mr displacement max displace=20.000 int:mr displacement method=6 int:mr displacement parametric subdivision level=5 int:mr displacement smoothing on=True int:mr displacement use global settings=True int:mr displacement view dependent=True
+  - posed bone 'RigRFLeg2'
+    - props: int:MaxHandle=148 fl:mr displacement edge length=2.000 fl:mr displacement max displace=20.000 int:mr displacement method=6 int:mr displacement parametric subdivision level=5 int:mr displacement smoothing on=True int:mr displacement use global settings=True int:mr displacement view dependent=True
+  - posed bone 'RigRFLeg3'
+    - props: int:MaxHandle=149
+  - posed bone 'RigRFLegAnkle'
+    - props: int:MaxHandle=150
+  - posed bone 'RigRFLegCollarbone'
+    - props: int:MaxHandle=146 fl:mr displacement edge length=2.000 fl:mr displacement max displace=20.000 int:mr displacement method=6 int:mr displacement parametric subdivision level=5 int:mr displacement smoothing on=True int:mr displacement use global settings=True int:mr displacement view dependent=True
+  - posed bone 'RigRShoulderBlade'
+    - props: int:MaxHandle=152 fl:mr displacement edge length=2.000 fl:mr displacement max displace=20.000 int:mr displacement method=6 int:mr displacement parametric subdivision level=5 int:mr displacement smoothing on=True int:mr displacement use global settings=True int:mr displacement view dependent=True
+  - posed bone 'RigRoot'
+    - props: int:MaxHandle=116 fl:mr displacement edge length=2.000 fl:mr displacement max displace=20.000 int:mr displacement method=6 int:mr displacement parametric subdivision level=5 int:mr displacement smoothing on=True int:mr displacement use global settings=True int:mr displacement view dependent=True
+  - posed bone 'RigSpine1'
+    - props: int:MaxHandle=122 fl:mr displacement edge length=2.000 fl:mr displacement max displace=20.000 int:mr displacement method=6 int:mr displacement parametric subdivision level=5 int:mr displacement smoothing on=True int:mr displacement use global settings=True int:mr displacement view dependent=True
+  - posed bone 'RigSpine2'
+    - props: int:MaxHandle=123
+  - posed bone 'RigSpine3'
+    - props: int:MaxHandle=124
+  - posed bone 'RigTail1'
+    - props: int:MaxHandle=157 fl:mr displacement edge length=2.000 fl:mr displacement max displace=20.000 int:mr displacement method=6 int:mr displacement parametric subdivision level=5 int:mr displacement smoothing on=True int:mr displacement use global settings=True int:mr displacement view dependent=True
+  - posed bone 'RigTail2'
+    - props: int:MaxHandle=158 fl:mr displacement edge length=2.000 fl:mr displacement max displace=20.000 int:mr displacement method=6 int:mr displacement parametric subdivision level=5 int:mr displacement smoothing on=True int:mr displacement use global settings=True int:mr displacement view dependent=True
+  - posed bone 'RigTail3'
+    - props: int:MaxHandle=159 fl:mr displacement edge length=2.000 fl:mr displacement max displace=20.000 int:mr displacement method=6 int:mr displacement parametric subdivision level=5 int:mr displacement smoothing on=True int:mr displacement use global settings=True int:mr displacement view dependent=True
+  - posed bone 'RigTail4'
+    - props: int:MaxHandle=160 fl:mr displacement edge length=2.000 fl:mr displacement max displace=20.000 int:mr displacement method=6 int:mr displacement parametric subdivision level=5 int:mr displacement smoothing on=True int:mr displacement use global settings=True int:mr displacement view dependent=True
+  - posed bone 'RigTail5'
+    - props: int:MaxHandle=161 fl:mr displacement edge length=2.000 fl:mr displacement max displace=20.000 int:mr displacement method=6 int:mr displacement parametric subdivision level=5 int:mr displacement smoothing on=True int:mr displacement use global settings=True int:mr displacement view dependent=True
+  - posed bone 'RigTail6'
+    - props: int:MaxHandle=162 fl:mr displacement edge length=2.000 fl:mr displacement max displace=20.000 int:mr displacement method=6 int:mr displacement parametric subdivision level=5 int:mr displacement smoothing on=True int:mr displacement use global settings=True int:mr displacement view dependent=True
+  - posed bone 'RigTongue1'
+    - props: int:MaxHandle=136 fl:mr displacement edge length=2.000 fl:mr displacement max displace=20.000 int:mr displacement method=6 int:mr displacement parametric subdivision level=5 int:mr displacement smoothing on=True int:mr displacement use global settings=True int:mr displacement view dependent=True
+  - posed bone 'RigTongue2'
+    - props: int:MaxHandle=137 fl:mr displacement edge length=2.000 fl:mr displacement max displace=20.000 int:mr displacement method=6 int:mr displacement parametric subdivision level=5 int:mr displacement smoothing on=True int:mr displacement use global settings=True int:mr displacement view dependent=True
+  - posed bone 'RigTongue3'
+    - props: int:MaxHandle=138 fl:mr displacement edge length=2.000 fl:mr displacement max displace=20.000 int:mr displacement method=6 int:mr displacement parametric subdivision level=5 int:mr displacement smoothing on=True int:mr displacement use global settings=True int:mr displacement view dependent=True
+  - anim act:Add_Hit_ChestL_Heavy slot:OBArmature blend:REPLACE drivers:0
+
+==== Actions: 1
+- Action 'Add_Hit_ChestL_Heavy' curverange:(1.0 .. 81.0) layers:1
+- ActionLayer Layer strips:1
+ - Keyframe strip channelbags:1
+ - Channelbag slot 'OBArmature' curves:470
+  - fcu 'pose.bones["RigChest"].location[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:41 grp:'RigChest'
+    - (1.000, 0.000) lh:(0.333, 0.000 AUTO_CLAMPED) rh:(1.667, 0.000 AUTO_CLAMPED)
+    - (3.000, 0.000) lh:(2.333, 0.000 AUTO_CLAMPED) rh:(3.667, 0.000 AUTO_CLAMPED)
+    - (5.000, 0.000) lh:(4.333, 0.000 AUTO_CLAMPED) rh:(5.667, 0.000 AUTO_CLAMPED)
+      ...
+    - (77.000, 0.000) lh:(76.333, 0.000 AUTO_CLAMPED) rh:(77.667, 0.000 AUTO_CLAMPED)
+    - (79.000, 0.000) lh:(78.333, 0.000 AUTO_CLAMPED) rh:(79.667, 0.000 AUTO_CLAMPED)
+    - (81.000, 0.000) lh:(80.333, 0.000 AUTO_CLAMPED) rh:(81.667, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["RigChest"].location[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:41 grp:'RigChest'
+    - (1.000, 0.000) lh:(0.333, 0.000 AUTO_CLAMPED) rh:(1.667, 0.000 AUTO_CLAMPED)
+    - (3.000, 0.000) lh:(2.333, 0.000 AUTO_CLAMPED) rh:(3.667, 0.000 AUTO_CLAMPED)
+    - (5.000, 0.000) lh:(4.333, 0.000 AUTO_CLAMPED) rh:(5.667, 0.000 AUTO_CLAMPED)
+      ...
+    - (77.000, 0.000) lh:(76.333, 0.000 AUTO_CLAMPED) rh:(77.667, 0.000 AUTO_CLAMPED)
+    - (79.000, 0.000) lh:(78.333, 0.000 AUTO_CLAMPED) rh:(79.667, 0.000 AUTO_CLAMPED)
+    - (81.000, 0.000) lh:(80.333, 0.000 AUTO_CLAMPED) rh:(81.667, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["RigChest"].location[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:41 grp:'RigChest'
+    - (1.000, 0.000) lh:(0.333, 0.000 AUTO_CLAMPED) rh:(1.667, 0.000 AUTO_CLAMPED)
+    - (3.000, 0.000) lh:(2.333, 0.000 AUTO_CLAMPED) rh:(3.667, 0.000 AUTO_CLAMPED)
+    - (5.000, 0.000) lh:(4.333, 0.000 AUTO_CLAMPED) rh:(5.667, 0.000 AUTO_CLAMPED)
+      ...
+    - (77.000, 0.000) lh:(76.333, 0.000 AUTO_CLAMPED) rh:(77.667, 0.000 AUTO_CLAMPED)
+    - (79.000, 0.000) lh:(78.333, 0.000 AUTO_CLAMPED) rh:(79.667, 0.000 AUTO_CLAMPED)
+    - (81.000, 0.000) lh:(80.333, 0.000 AUTO_CLAMPED) rh:(81.667, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["RigChest"].rotation_quaternion[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:41 grp:'RigChest'
+    - (1.000, 1.000) lh:(0.333, 1.000 AUTO_CLAMPED) rh:(1.667, 1.000 AUTO_CLAMPED)
+    - (3.000, 1.000) lh:(2.333, 1.000 AUTO_CLAMPED) rh:(3.667, 0.999 AUTO_CLAMPED)
+    - (5.000, 0.999) lh:(4.333, 0.999 AUTO_CLAMPED) rh:(5.667, 0.998 AUTO_CLAMPED)
+      ...
+    - (77.000, 1.000) lh:(76.333, 1.000 AUTO_CLAMPED) rh:(77.667, 1.000 AUTO_CLAMPED)
+    - (79.000, 1.000) lh:(78.333, 1.000 AUTO_CLAMPED) rh:(79.667, 1.000 AUTO_CLAMPED)
+    - (81.000, 1.000) lh:(80.333, 1.000 AUTO_CLAMPED) rh:(81.667, 1.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["RigChest"].rotation_quaternion[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:41 grp:'RigChest'
+    - (1.000, 0.000) lh:(0.333, 0.000 AUTO_CLAMPED) rh:(1.667, 0.000 AUTO_CLAMPED)
+    - (3.000, 0.001) lh:(2.333, 0.001 AUTO_CLAMPED) rh:(3.667, 0.001 AUTO_CLAMPED)
+    - (5.000, 0.000) lh:(4.333, 0.001 AUTO_CLAMPED) rh:(5.667, -0.001 AUTO_CLAMPED)
+      ...
+    - (77.000, 0.000) lh:(76.333, 0.000 AUTO_CLAMPED) rh:(77.667, 0.000 AUTO_CLAMPED)
+    - (79.000, 0.000) lh:(78.333, 0.000 AUTO_CLAMPED) rh:(79.667, 0.000 AUTO_CLAMPED)
+    - (81.000, 0.000) lh:(80.333, 0.000 AUTO_CLAMPED) rh:(81.667, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["RigChest"].rotation_quaternion[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:41 grp:'RigChest'
+    - (1.000, 0.000) lh:(0.333, 0.000 AUTO_CLAMPED) rh:(1.667, 0.000 AUTO_CLAMPED)
+    - (3.000, -0.009) lh:(2.333, -0.004 AUTO_CLAMPED) rh:(3.667, -0.014 AUTO_CLAMPED)
+    - (5.000, -0.027) lh:(4.333, -0.019 AUTO_CLAMPED) rh:(5.667, -0.034 AUTO_CLAMPED)
+      ...
+    - (77.000, 0.000) lh:(76.333, -0.001 AUTO_CLAMPED) rh:(77.667, 0.000 AUTO_CLAMPED)
+    - (79.000, 0.000) lh:(78.333, 0.000 AUTO_CLAMPED) rh:(79.667, 0.000 AUTO_CLAMPED)
+    - (81.000, 0.000) lh:(80.333, 0.000 AUTO_CLAMPED) rh:(81.667, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["RigChest"].rotation_quaternion[3]' smooth:CONT_ACCEL extra:CONSTANT keyframes:41 grp:'RigChest'
+    - (1.000, 0.000) lh:(0.333, 0.000 AUTO_CLAMPED) rh:(1.667, 0.000 AUTO_CLAMPED)
+    - (3.000, -0.024) lh:(2.333, -0.014 AUTO_CLAMPED) rh:(3.667, -0.034 AUTO_CLAMPED)
+    - (5.000, -0.045) lh:(4.333, -0.040 AUTO_CLAMPED) rh:(5.667, -0.049 AUTO_CLAMPED)
+      ...
+    - (77.000, 0.001) lh:(76.333, 0.002 AUTO_CLAMPED) rh:(77.667, 0.001 AUTO_CLAMPED)
+    - (79.000, 0.000) lh:(78.333, 0.001 AUTO_CLAMPED) rh:(79.667, 0.000 AUTO_CLAMPED)
+    - (81.000, 0.000) lh:(80.333, 0.000 AUTO_CLAMPED) rh:(81.667, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["RigChest"].scale[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:41 grp:'RigChest'
+    - (1.000, 1.000) lh:(0.333, 1.000 AUTO_CLAMPED) rh:(1.667, 1.000 AUTO_CLAMPED)
+    - (3.000, 1.000) lh:(2.333, 1.000 AUTO_CLAMPED) rh:(3.667, 1.000 AUTO_CLAMPED)
+    - (5.000, 1.000) lh:(4.333, 1.000 AUTO_CLAMPED) rh:(5.667, 1.000 AUTO_CLAMPED)
+      ...
+    - (77.000, 1.000) lh:(76.333, 1.000 AUTO_CLAMPED) rh:(77.667, 1.000 AUTO_CLAMPED)
+    - (79.000, 1.000) lh:(78.333, 1.000 AUTO_CLAMPED) rh:(79.667, 1.000 AUTO_CLAMPED)
+    - (81.000, 1.000) lh:(80.333, 1.000 AUTO_CLAMPED) rh:(81.667, 1.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["RigChest"].scale[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:41 grp:'RigChest'
+    - (1.000, 1.000) lh:(0.333, 1.000 AUTO_CLAMPED) rh:(1.667, 1.000 AUTO_CLAMPED)
+    - (3.000, 1.000) lh:(2.333, 1.000 AUTO_CLAMPED) rh:(3.667, 1.000 AUTO_CLAMPED)
+    - (5.000, 1.000) lh:(4.333, 1.000 AUTO_CLAMPED) rh:(5.667, 1.000 AUTO_CLAMPED)
+      ...
+    - (77.000, 1.000) lh:(76.333, 1.000 AUTO_CLAMPED) rh:(77.667, 1.000 AUTO_CLAMPED)
+    - (79.000, 1.000) lh:(78.333, 1.000 AUTO_CLAMPED) rh:(79.667, 1.000 AUTO_CLAMPED)
+    - (81.000, 1.000) lh:(80.333, 1.000 AUTO_CLAMPED) rh:(81.667, 1.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["RigChest"].scale[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:41 grp:'RigChest'
+    - (1.000, 1.000) lh:(0.333, 1.000 AUTO_CLAMPED) rh:(1.667, 1.000 AUTO_CLAMPED)
+    - (3.000, 1.000) lh:(2.333, 1.000 AUTO_CLAMPED) rh:(3.667, 1.000 AUTO_CLAMPED)
+    - (5.000, 1.000) lh:(4.333, 1.000 AUTO_CLAMPED) rh:(5.667, 1.000 AUTO_CLAMPED)
+      ...
+    - (77.000, 1.000) lh:(76.333, 1.000 AUTO_CLAMPED) rh:(77.667, 1.000 AUTO_CLAMPED)
+    - (79.000, 1.000) lh:(78.333, 1.000 AUTO_CLAMPED) rh:(79.667, 1.000 AUTO_CLAMPED)
+    - (81.000, 1.000) lh:(80.333, 1.000 AUTO_CLAMPED) rh:(81.667, 1.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["RigHead"].location[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:41 grp:'RigHead'
+    - (1.000, 0.000) lh:(0.333, 0.000 AUTO_CLAMPED) rh:(1.667, 0.000 AUTO_CLAMPED)
+    - (3.000, 0.000) lh:(2.333, 0.000 AUTO_CLAMPED) rh:(3.667, 0.000 AUTO_CLAMPED)
+    - (5.000, 0.000) lh:(4.333, 0.000 AUTO_CLAMPED) rh:(5.667, 0.000 AUTO_CLAMPED)
+      ...
+    - (77.000, 0.002) lh:(76.333, 0.003 AUTO_CLAMPED) rh:(77.667, 0.002 AUTO_CLAMPED)
+    - (79.000, 0.001) lh:(78.333, 0.001 AUTO_CLAMPED) rh:(79.667, 0.000 AUTO_CLAMPED)
+    - (81.000, 0.000) lh:(80.333, 0.000 AUTO_CLAMPED) rh:(81.667, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["RigHead"].location[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:41 grp:'RigHead'
+    - (1.000, 0.000) lh:(0.333, 0.000 AUTO_CLAMPED) rh:(1.667, 0.000 AUTO_CLAMPED)
+    - (3.000, 0.000) lh:(2.333, 0.000 AUTO_CLAMPED) rh:(3.667, 0.000 AUTO_CLAMPED)
+    - (5.000, 0.000) lh:(4.333, 0.000 AUTO_CLAMPED) rh:(5.667, 0.000 AUTO_CLAMPED)
+      ...
+    - (77.000, 0.000) lh:(76.333, 0.000 AUTO_CLAMPED) rh:(77.667, 0.000 AUTO_CLAMPED)
+    - (79.000, 0.000) lh:(78.333, 0.000 AUTO_CLAMPED) rh:(79.667, 0.000 AUTO_CLAMPED)
+    - (81.000, 0.000) lh:(80.333, 0.000 AUTO_CLAMPED) rh:(81.667, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["RigHead"].location[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:41 grp:'RigHead'
+    - (1.000, 0.000) lh:(0.333, 0.000 AUTO_CLAMPED) rh:(1.667, 0.000 AUTO_CLAMPED)
+    - (3.000, 0.000) lh:(2.333, 0.000 AUTO_CLAMPED) rh:(3.667, 0.000 AUTO_CLAMPED)
+    - (5.000, 0.000) lh:(4.333, 0.000 AUTO_CLAMPED) rh:(5.667, 0.000 AUTO_CLAMPED)
+      ...
+    - (77.000, 0.000) lh:(76.333, 0.000 AUTO_CLAMPED) rh:(77.667, 0.000 AUTO_CLAMPED)
+    - (79.000, 0.000) lh:(78.333, 0.000 AUTO_CLAMPED) rh:(79.667, 0.000 AUTO_CLAMPED)
+    - (81.000, 0.000) lh:(80.333, 0.000 AUTO_CLAMPED) rh:(81.667, 0.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["RigHead"].rotation_quaternion[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:41 grp:'RigHead'
+    - (1.000, 1.000) lh:(0.333, 1.000 AUTO_CLAMPED) rh:(1.667, 1.000 AUTO_CLAMPED)
+    - (3.000, 1.000) lh:(2.333, 1.000 AUTO_CLAMPED) rh:(3.667, 0.999 AUTO_CLAMPED)
+    - (5.000, 0.999) lh:(4.333, 0.999 AUTO_CLAMPED) rh:(5.667, 0.999 AUTO_CLAMPED)
+      ...
+    - (77.000, 1.000) lh:(76.333, 1.000 AUTO_CLAMPED) rh:(77.667, 1.000 AUTO_CLAMPED)
+    - (79.000, 1.000) lh:(78.333, 1.000 AUTO_CLAMPED) rh:(79.667, 1.000 AUTO_CLAMPED)
+    - (81.000, 1.000) lh:(80.333, 1.000 AUTO_CLAMPED) rh:(81.667, 1.000 AUTO_CLAMPED)
+  - fcu 'pose.bones["RigHead"].rotation_quaternion[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:41 grp:'RigHead'
+    - (1.000, 0.000) lh:(0.333, 0.000 AUTO_CLAMPED) rh:(1.667, 0.000 AUTO_CLAMPED)
+    - (3.000, 0.000) lh:(2.333, 0.000 AUTO_CLAMPED) rh:(3.667, 0.000 AUTO_CLAMPED)
+    - (5.000, 0.004) lh:(4.333, 0.004 AUTO_CLAMPED) rh:(5.667, 0.004 AUTO_CLAMPED)
+      ...
+    - (77.000, 0.000) lh:(76.333, -0.001 AUTO_CLAMPED) rh:(77.667, 0.000 AUTO_CLAMPED)
+    - (79.000, 0.000) lh:(78.333, 0.000 AUTO_CLAMPED) rh:(79.667, 0.000 AUTO_CLAMPED)
+    - (81.000, 0.000) lh:(80.333, 0.000 AUTO_CLAMPED) rh:(81.667, 0.000 AUTO_CLAMPED)
+
+==== Armatures: 1
+- Armature 'Armature' 47 bones
+  - bone 'RigChest' parent:'RigSpine3' h:(11.821, -11.821, 0.000) t:(11.821, 1.596, 0.000) radius h:0.100 t:0.050
+      0.000 0.000 1.000 0.000
+      0.000 -1.000 0.000 64.700
+      1.000 0.000 0.000 15.753
+  - bone 'RigHead' parent:'RigNeck3' h:(6.513, -6.513, 0.000) t:(6.513, 10.312, 0.000) radius h:0.100 t:0.050
+      0.000 0.000 1.000 0.000
+      0.000 -1.000 0.000 61.552
+      1.000 0.000 0.000 47.721
+  - bone 'RigJaw1' parent:'RigHead' h:(8.464, -12.286, 0.000) t:(-1.554, -2.780, 0.000) radius h:0.100 t:0.050
+      0.000 0.000 1.000 0.000
+      -0.725 -0.688 0.000 57.013
+      0.688 -0.725 0.000 56.185
+  - bone 'RigLBLeg1' parent:'RigPelvis' h:(-5.414, -15.736, 11.386) t:(2.952, 3.808, 11.800) radius h:0.100 t:0.050
+      -0.007 0.019 -1.000 11.386
+      -0.919 0.393 0.014 59.286
+      0.394 0.919 0.015 -35.487
+  - bone 'RigLBLeg2' parent:'RigLBLeg1' h:(21.263, -21.263, 0.000) t:(41.340, -10.581, -0.006) radius h:0.100 t:0.050
+      -0.021 0.004 -1.000 11.248
+      -0.779 -0.627 0.014 39.739
+      -0.626 0.779 0.016 -27.116
+  - bone 'RigLBLeg3' parent:'RigLBLeg2' h:(22.742, -22.742, 0.000) t:(11.319, -13.119, 0.016) radius h:0.100 t:0.050
+      -0.012 0.017 -1.000 10.768
+      -0.981 0.192 0.016 22.020
+      0.192 0.981 0.015 -41.364
+  - bone 'RigLBLegAnkle' parent:'RigLBLeg3' h:(14.935, -14.935, 0.000) t:(6.354, -2.716, 0.321) radius h:0.100 t:0.050
+      0.001 0.000 -1.000 10.582
+      -0.693 0.721 -0.001 7.365
+      0.721 0.693 0.001 -38.491
+  - bone 'RigLEar1' parent:'RigHead' h:(3.228, -26.820, 9.230) t:(18.467, -20.003, 11.323) radius h:0.100 t:0.050
+      0.809 0.124 0.574 9.230
+      0.570 -0.405 -0.715 71.547
+      0.144 0.906 -0.399 50.948
+  - bone 'RigLEye1' parent:'RigHead' h:(14.017, -17.016, 6.042) t:(12.464, -0.335, 4.489) radius h:0.100 t:0.050
+      0.701 -0.092 0.707 6.042
+      -0.131 -0.991 0.000 61.743
+      0.701 -0.092 -0.707 61.737
+  - bone 'RigLEyelid1' parent:'RigHead' h:(13.716, -16.707, 5.741) t:(18.316, -2.059, 12.621) radius h:0.100 t:0.050
+      0.621 0.409 0.669 5.741
+      0.485 -0.871 0.082 61.434
+      0.616 0.273 -0.739 61.436
+  - bone 'RigLFLeg1' parent:'RigLFLegCollarbone' h:(21.721, -21.721, 0.000) t:(27.038, -12.445, -21.889) radius h:0.100 t:0.050
+      -0.086 -0.035 -0.996 15.221
+      -0.892 -0.443 0.093 54.289
+      -0.444 0.896 0.007 29.518
+  - bone 'RigLFLeg2' parent:'RigLFLeg1' h:(24.361, -24.361, 0.000) t:(15.073, -10.293, 0.000) radius h:0.100 t:0.050
+      -0.091 0.019 -0.996 13.120
+      -0.988 0.122 0.093 32.561
+      0.123 0.992 0.007 18.703
+  - bone 'RigLFLeg3' parent:'RigLFLeg2' h:(16.857, -16.857, 0.000) t:(18.135, -8.789, -0.002) radius h:0.100 t:0.050
+      -0.093 0.004 -0.996 11.582
+      -0.995 -0.034 0.093 15.904
+      -0.033 0.999 0.008 20.781
+  - bone 'RigLFLegAnkle' parent:'RigLFLeg3' h:(8.168, -8.168, 0.000) t:(2.827, -2.010, 0.526) radius h:0.100 t:0.050
+      0.000 0.000 -1.000 10.820
+      -0.776 0.631 0.000 7.776
+      0.631 0.776 0.000 20.507
+  - bone 'RigLFLegCollarbone' parent:'RigChest' h:(13.478, -14.573, -3.161) t:(13.180, 3.811, -14.725) radius h:0.100 t:0.050
+      0.846 -0.532 0.018 -3.161
+      -0.533 -0.846 0.005 65.856
+      0.013 -0.014 -1.000 29.231
+  - bone 'RigLShoulderBlade' parent:'RigChest' h:(5.839, -22.960, -7.081) t:(5.839, -9.543, -7.081) radius h:0.100 t:0.050
+      1.000 0.000 0.000 -7.080
+      0.000 -1.000 0.000 74.243
+      0.000 0.000 -1.000 21.591
+  - bone 'RigNeck1' parent:'RigChest' h:(12.428, -10.269, 0.000) t:(12.428, -3.756, 0.000) radius h:0.100 t:0.050
+      0.000 0.000 1.000 0.000
+      0.000 -1.000 0.000 61.552
+      1.000 0.000 0.000 28.181
+  - bone 'RigNeck2' parent:'RigNeck1' h:(6.513, -6.513, 0.000) t:(6.513, 0.000, 0.000) radius h:0.100 t:0.050
+      0.000 0.000 1.000 0.000
+      0.000 -1.000 0.000 61.552
+      1.000 0.000 0.000 34.694
+  - bone 'RigNeck3' parent:'RigNeck2' h:(6.513, -6.513, 0.000) t:(6.513, 0.000, 0.000) radius h:0.100 t:0.050
+      0.000 0.000 1.000 0.000
+      0.000 -1.000 0.000 61.552
+      1.000 0.000 0.000 41.207
+  - bone 'RigNose' parent:'RigHead' h:(31.514, 2.106, 0.000) t:(36.152, 18.279, 0.000) radius h:0.100 t:0.050
+      0.000 0.000 1.000 0.000
+      0.276 -0.961 0.000 42.621
+      0.961 0.276 0.000 79.235
+  - bone 'RigPelvis' parent:'RigRoot' h:(0.000, -39.867, 64.700) t:(0.000, -52.684, 64.700) radius h:0.100 t:0.050
+      0.000 0.000 1.000 0.000
+      1.000 0.000 0.000 64.700
+      0.000 1.000 0.000 -32.567
+  - bone 'RigRBLeg1' parent:'RigPelvis' h:(-5.414, -15.736, -11.386) t:(2.955, 3.807, -11.800) radius h:0.100 t:0.050
+      0.006 -0.019 -1.000 -11.386
+      -0.919 0.394 -0.014 59.286
+      0.394 0.919 -0.015 -35.486
+  - bone 'RigRBLeg2' parent:'RigRBLeg1' h:(21.263, -21.263, 0.000) t:(41.343, -10.586, 0.006) radius h:0.100 t:0.050
+      0.021 -0.004 -1.000 -11.248
+      -0.779 -0.627 -0.014 39.741
+      -0.627 0.779 -0.016 -27.113
+  - bone 'RigRBLeg3' parent:'RigRBLeg2' h:(22.742, -22.742, 0.000) t:(11.319, -13.119, -0.016) radius h:0.100 t:0.050
+      0.013 -0.017 -1.000 -10.768
+      -0.981 0.192 -0.016 22.023
+      0.192 0.981 -0.015 -41.362
+  - bone 'RigRBLegAnkle' parent:'RigRBLeg3' h:(14.935, -14.935, 0.000) t:(6.358, -2.713, -0.323) radius h:0.100 t:0.050
+      -0.001 0.000 -1.000 -10.579
+      -0.693 0.721 0.001 7.368
+      0.721 0.693 -0.001 -38.490
+  - bone 'RigREar1' parent:'RigHead' h:(3.228, -26.820, -9.230) t:(18.467, -20.003, -11.323) radius h:0.100 t:0.050
+      -0.809 -0.124 0.574 -9.230
+      0.570 -0.405 0.715 71.547
+      0.144 0.906 0.399 50.948
+  - bone 'RigREye1' parent:'RigHead' h:(14.017, -17.016, -6.042) t:(12.464, -0.335, -4.489) radius h:0.100 t:0.050
+      -0.701 0.092 0.707 -6.042
+      -0.131 -0.991 0.000 61.743
+      0.701 -0.092 0.707 61.737
+  - bone 'RigREyelid1' parent:'RigHead' h:(13.716, -16.707, -5.741) t:(18.316, -2.059, -12.621) radius h:0.100 t:0.050
+      -0.621 -0.409 0.669 -5.741
+      0.485 -0.871 -0.082 61.434
+      0.616 0.273 0.739 61.436
+  - bone 'RigRFLeg1' parent:'RigRFLegCollarbone' h:(21.721, -21.721, 0.000) t:(27.038, -12.445, 21.889) radius h:0.100 t:0.050
+      0.086 0.035 -0.996 -15.220
+      -0.892 -0.443 -0.093 54.289
+      -0.444 0.896 -0.007 29.518
+  - bone 'RigRFLeg2' parent:'RigRFLeg1' h:(24.361, -24.361, 0.000) t:(15.073, -10.293, 0.000) radius h:0.100 t:0.050
+      0.091 -0.019 -0.996 -13.120
+      -0.988 0.122 -0.093 32.562
+      0.123 0.992 -0.007 18.703
+  - bone 'RigRFLeg3' parent:'RigRFLeg2' h:(16.857, -16.857, 0.000) t:(18.135, -8.789, 0.002) radius h:0.100 t:0.050
+      0.094 -0.004 -0.996 -11.583
+      -0.995 -0.034 -0.094 15.904
+      -0.034 0.999 -0.008 20.780
+  - bone 'RigRFLegAnkle' parent:'RigRFLeg3' h:(8.168, -8.168, 0.000) t:(2.827, -2.011, -0.529) radius h:0.100 t:0.050
+      0.000 0.000 -1.000 -10.817
+      -0.776 0.631 0.000 7.776
+      0.631 0.776 0.000 20.507
+  - bone 'RigRFLegCollarbone' parent:'RigChest' h:(13.478, -14.573, 3.161) t:(13.180, 3.811, 14.725) radius h:0.100 t:0.050
+      -0.846 0.532 0.019 3.162
+      -0.533 -0.846 -0.005 65.856
+      0.013 -0.014 1.000 29.231
+  - bone 'RigRShoulderBlade' parent:'RigChest' h:(5.839, -22.960, 7.081) t:(5.839, -9.543, 7.081) radius h:0.100 t:0.050
+      -1.000 0.000 0.000 7.081
+      0.000 -1.000 0.000 74.243
+      0.000 0.000 1.000 21.591
+  - bone 'RigRoot' h:(0.000, 0.000, 0.000) t:(0.000, 0.000, -72.434) radius h:0.100 t:0.050
+      1.000 0.000 0.000 0.000
+      0.000 0.000 1.000 0.000
+      0.000 -1.000 0.000 0.000
+  - bone 'RigSpine1' parent:'RigPelvis' h:(0.000, 0.039, 0.000) t:(-11.821, 0.039, 0.000) radius h:0.100 t:0.050
+      0.000 0.000 1.000 0.000
+      0.000 -1.000 0.000 64.700
+      1.000 0.000 0.000 -19.711
+  - bone 'RigSpine2' parent:'RigSpine1' h:(11.821, -11.821, 0.000) t:(11.821, 0.000, 0.000) radius h:0.100 t:0.050
+      0.000 0.000 1.000 0.000
+      0.000 -1.000 0.000 64.700
+      1.000 0.000 0.000 -7.890
+  - bone 'RigSpine3' parent:'RigSpine2' h:(11.821, -11.821, 0.000) t:(11.821, 0.000, 0.000) radius h:0.100 t:0.050
+      0.000 0.000 1.000 0.000
+      0.000 -1.000 0.000 64.700
+      1.000 0.000 0.000 3.931
+  - bone 'RigTail1' parent:'RigPelvis' h:(1.166, -25.290, 0.000) t:(6.607, -27.713, 0.000) radius h:0.100 t:0.050
+      0.000 0.000 1.000 0.000
+      -0.407 0.914 0.000 65.866
+      -0.914 -0.407 0.000 -45.041
+  - bone 'RigTail2' parent:'RigTail1' h:(5.956, -5.956, 0.000) t:(5.099, -0.090, 0.000) radius h:0.100 t:0.050
+      0.000 0.000 1.000 0.000
+      -0.270 0.963 0.000 63.444
+      -0.963 -0.270 0.000 -50.482
+  - bone 'RigTail3' parent:'RigTail2' h:(5.929, -5.929, 0.000) t:(5.581, 0.019, 0.000) radius h:0.100 t:0.050
+      0.000 0.000 1.000 0.000
+      -0.214 0.977 0.000 61.841
+      -0.977 -0.214 0.000 -56.190
+  - bone 'RigTail4' parent:'RigTail3' h:(5.958, -5.958, 0.000) t:(5.767, -0.005, 0.000) radius h:0.100 t:0.050
+      0.000 0.000 1.000 0.000
+      -0.182 0.983 0.000 60.568
+      -0.983 -0.182 0.000 -62.010
+  - bone 'RigTail5' parent:'RigTail4' h:(5.956, -5.956, 0.000) t:(5.800, -0.002, 0.000) radius h:0.100 t:0.050
+      0.000 0.000 1.000 0.000
+      -0.156 0.988 0.000 59.483
+      -0.988 -0.156 0.000 -67.866
+  - bone 'RigTail6' parent:'RigTail5' h:(5.956, -5.956, 0.000) t:(5.852, -0.001, 0.000) radius h:0.100 t:0.050
+      0.000 0.000 1.000 0.000
+      -0.139 0.990 0.000 58.551
+      -0.990 -0.139 0.000 -73.749
+  - bone 'RigTongue1' parent:'RigJaw1' h:(13.806, -14.146, 0.000) t:(14.416, -9.092, 0.000) radius h:0.100 t:0.050
+      0.000 0.000 1.000 0.000
+      -0.638 -0.770 0.000 47.229
+      0.770 -0.638 0.000 65.932
+  - bone 'RigTongue2' parent:'RigTongue1' h:(5.091, -5.091, 0.000) t:(5.403, -0.882, 0.000) radius h:0.100 t:0.050
+      0.000 0.000 1.000 0.000
+      -0.579 -0.815 0.000 43.983
+      0.815 -0.579 0.000 69.853
+  - bone 'RigTongue3' parent:'RigTongue2' h:(4.220, -4.220, 0.000) t:(4.137, -0.001, 0.000) radius h:0.100 t:0.050
+      0.000 0.000 1.000 0.000
+      -0.595 -0.804 0.000 41.540
+      0.804 -0.595 0.000 73.294
+

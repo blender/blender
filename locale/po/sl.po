@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'1f4cae0c4623')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'a7d2b7850ef2')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-28 09:32+0000\n"
+"POT-Creation-Date: 2025-05-05 08:47+0000\n"
 "PO-Revision-Date: 2025-04-18 18:56+0000\n"
 "Last-Translator: Gorazd Gorup <gorupgorazd@gmail.com>\n"
 "Language-Team: Slovenian <https://translate.blender.org/projects/blender-ui/ui/sl/>\n"
@@ -16418,16 +16418,6 @@ msgstr "Pregibanje"
 
 
 msgctxt "Brush"
-msgid "Flatten"
-msgstr "Ravnanje"
-
-
-msgctxt "Brush"
-msgid "Scrape"
-msgstr "Strganje"
-
-
-msgctxt "Brush"
 msgid "Plane"
 msgstr "Ravnina"
 
@@ -23678,12 +23668,100 @@ msgid "Mask"
 msgstr "Maska"
 
 
-msgid "Random Mask"
-msgstr "Naključna maska"
+msgid "Select Similar"
+msgstr "Izberi sorodne"
+
+
+msgid "Select All by Trait"
+msgstr "Izberi vse po značilnosti"
+
+
+msgid "Select More/Less"
+msgstr "Izberi več / manj"
+
+
+msgid "Select Linked"
+msgstr "Izberi povezano"
+
+
+msgid "Select Loops"
+msgstr "Izberi zanke"
+
+
+msgid "Assign Material"
+msgstr "Dodeli material"
+
+
+msgid "Metaball"
+msgstr "Metažoga"
+
+
+msgid "Light"
+msgstr "Luč"
+
+
+msgid "Light Probe"
+msgstr "Svetlobna sonda"
+
+
+msgid "Add Image"
+msgstr "Dodaj sliko"
+
+
+msgid "Relations"
+msgstr "Razmerja"
+
+
+msgid "Rigid Body"
+msgstr "Togo telo"
+
+
+msgid "Apply"
+msgstr "Uveljavi"
+
+
+msgid "Track"
+msgstr "Obriši"
+
+
+msgid "Quick Effects"
+msgstr "Učinki na hitro"
 
 
 msgid "Show/Hide"
 msgstr "Pokaži / skrij"
+
+
+msgid "Clean Up"
+msgstr "Počisti"
+
+
+msgid "Asset"
+msgstr "Sredstvo"
+
+
+msgid "Make Single User"
+msgstr "Naredi edinstveno uporabniku"
+
+
+msgid "Convert"
+msgstr "Pretvori"
+
+
+msgid "Link/Transfer Data"
+msgstr "Poveži / prenesi podatke"
+
+
+msgid "Hooks"
+msgstr "Kavlji"
+
+
+msgid "Trim/Add"
+msgstr "Poreži / dodaj"
+
+
+msgid "Random Mask"
+msgstr "Naključna maska"
 
 
 msgid "Clear Transform"
@@ -23706,10 +23784,6 @@ msgid "Names"
 msgstr "Imena"
 
 
-msgid "Apply"
-msgstr "Uveljavi"
-
-
 msgid "Face Data"
 msgstr "Podatki lic"
 
@@ -23720,10 +23794,6 @@ msgstr "Izberi glede na moč lica"
 
 msgid "Set Face Strength"
 msgstr "Nastavi moč lica"
-
-
-msgid "Clean Up"
-msgstr "Počisti"
 
 
 msgid "Merge"
@@ -23740,10 +23810,6 @@ msgstr "Spodsekavanje"
 
 msgid "Text"
 msgstr "Besedilo"
-
-
-msgid "Metaball"
-msgstr "Metažoga"
 
 
 msgid "Bone Roll"
@@ -23796,82 +23862,6 @@ msgstr "Poravnaj pogled na aktivno"
 
 msgid "View Regions"
 msgstr "Področja pogleda"
-
-
-msgid "Select More/Less"
-msgstr "Izberi več / manj"
-
-
-msgid "Select Similar"
-msgstr "Izberi sorodne"
-
-
-msgid "Select All by Trait"
-msgstr "Izberi vse po značilnosti"
-
-
-msgid "Select Linked"
-msgstr "Izberi povezano"
-
-
-msgid "Select Loops"
-msgstr "Izberi zanke"
-
-
-msgid "Assign Material"
-msgstr "Dodeli material"
-
-
-msgid "Light"
-msgstr "Luč"
-
-
-msgid "Light Probe"
-msgstr "Svetlobna sonda"
-
-
-msgid "Add Image"
-msgstr "Dodaj sliko"
-
-
-msgid "Relations"
-msgstr "Razmerja"
-
-
-msgid "Rigid Body"
-msgstr "Togo telo"
-
-
-msgid "Track"
-msgstr "Obriši"
-
-
-msgid "Quick Effects"
-msgstr "Učinki na hitro"
-
-
-msgid "Asset"
-msgstr "Sredstvo"
-
-
-msgid "Make Single User"
-msgstr "Naredi edinstveno uporabniku"
-
-
-msgid "Convert"
-msgstr "Pretvori"
-
-
-msgid "Link/Transfer Data"
-msgstr "Poveži / prenesi podatke"
-
-
-msgid "Hooks"
-msgstr "Kavlji"
-
-
-msgid "Trim/Add"
-msgstr "Poreži / dodaj"
 
 
 msgid "Animals"
@@ -27958,15 +27948,7 @@ msgid "Highlights Contrast"
 msgstr "Kontrast svetlih tonov"
 
 
-msgid "Highlights contrast"
-msgstr "Kontrast svetlih tonov"
-
-
 msgid "Highlights Gain"
-msgstr "Ojačanje svetlih tonov"
-
-
-msgid "Highlights gain"
 msgstr "Ojačanje svetlih tonov"
 
 
@@ -27974,15 +27956,7 @@ msgid "Highlights Gamma"
 msgstr "Gama svetlih tonov"
 
 
-msgid "Highlights gamma"
-msgstr "Gama svetlih tonov"
-
-
 msgid "Highlights Lift"
-msgstr "Privzdig svetlih tonov"
-
-
-msgid "Highlights lift"
 msgstr "Privzdig svetlih tonov"
 
 
@@ -27990,15 +27964,7 @@ msgid "Highlights Saturation"
 msgstr "Nasičenje svetlih tonov"
 
 
-msgid "Highlights saturation"
-msgstr "Nasičenje svetlih tonov"
-
-
 msgid "Master Contrast"
-msgstr "Glavni kontrast"
-
-
-msgid "Master contrast"
 msgstr "Glavni kontrast"
 
 
@@ -28006,15 +27972,7 @@ msgid "Master Gain"
 msgstr "Glavno ojačanje"
 
 
-msgid "Master gain"
-msgstr "Glavno ojačanje"
-
-
 msgid "Master Gamma"
-msgstr "Glavna gama"
-
-
-msgid "Master gamma"
 msgstr "Glavna gama"
 
 
@@ -28022,23 +27980,11 @@ msgid "Master Lift"
 msgstr "Glavni privzdig"
 
 
-msgid "Master lift"
-msgstr "Glavni privzdig"
-
-
 msgid "Master Saturation"
 msgstr "Glavno nasičenje"
 
 
-msgid "Master saturation"
-msgstr "Glavno nasičenje"
-
-
 msgid "Midtones Contrast"
-msgstr "Kontrast srednjih tonov"
-
-
-msgid "Midtones contrast"
 msgstr "Kontrast srednjih tonov"
 
 
@@ -28050,15 +27996,7 @@ msgid "Midtones Gain"
 msgstr "Ojačanje srednjih tonov"
 
 
-msgid "Midtones gain"
-msgstr "Ojačanje srednjih tonov"
-
-
 msgid "Midtones Gamma"
-msgstr "Gama srednjih tonov"
-
-
-msgid "Midtones gamma"
 msgstr "Gama srednjih tonov"
 
 
@@ -28066,15 +28004,7 @@ msgid "Midtones Lift"
 msgstr "Privzdig srednjih tonov"
 
 
-msgid "Midtones lift"
-msgstr "Privzdig srednjih tonov"
-
-
 msgid "Midtones Saturation"
-msgstr "Nasičenje srednjih tonov"
-
-
-msgid "Midtones saturation"
 msgstr "Nasičenje srednjih tonov"
 
 
@@ -28086,15 +28016,7 @@ msgid "Shadows Contrast"
 msgstr "Kontrast senc"
 
 
-msgid "Shadows contrast"
-msgstr "Kontrast senc"
-
-
 msgid "Shadows Gain"
-msgstr "Ojačanje senc"
-
-
-msgid "Shadows gain"
 msgstr "Ojačanje senc"
 
 
@@ -28102,23 +28024,11 @@ msgid "Shadows Gamma"
 msgstr "Gama senc"
 
 
-msgid "Shadows gamma"
-msgstr "Gama senc"
-
-
 msgid "Shadows Lift"
 msgstr "Privzdig senc"
 
 
-msgid "Shadows lift"
-msgstr "Privzdig senc"
-
-
 msgid "Shadows Saturation"
-msgstr "Nasičenje senc"
-
-
-msgid "Shadows saturation"
 msgstr "Nasičenje senc"
 
 
@@ -28673,16 +28583,8 @@ msgid "Jitter"
 msgstr "Tresenje"
 
 
-msgid "Enable/disable jittering (faster, but also noisier)"
-msgstr "Omogoči/onemogoči tresenje (hitrejše, vendar tudi bolj šumno)"
-
-
 msgid "Projector"
 msgstr "Projektor"
-
-
-msgid "Enable/disable projector mode (the effect is applied in horizontal direction only)"
-msgstr "Omogoči/onemogoči način projektorja (učinek deluje le v vodoravni smeri)"
 
 
 msgid "Compute average and standard deviation of pixel values"
@@ -46939,6 +46841,62 @@ msgid "Panel containing UI elements"
 msgstr "Plošča, ki vsebuje elemente uporabniškega vmesnika"
 
 
+msgid "Drawing Plane"
+msgstr "Risalna ravnina"
+
+
+msgid "Guides"
+msgstr "Vodnice"
+
+
+msgid "Grease Pencil Options"
+msgstr "Možnosti Grease Pencil"
+
+
+msgid "Quad View"
+msgstr "Četverni pogled"
+
+
+msgid "Onion Skin"
+msgstr "Čebuljenje"
+
+
+msgid "Stereoscopy"
+msgstr "Stereoskopija"
+
+
+msgid "Multi Frame"
+msgstr "Multiokvir"
+
+
+msgid "Auto-Masking"
+msgstr "Samodejno maskiranje"
+
+
+msgid "Viewport Debug"
+msgstr "Razhroščevanje 3D pogleda"
+
+
+msgid "Stroke Placement"
+msgstr "Postavitev poteze"
+
+
+msgid "VR"
+msgstr "VR"
+
+
+msgid "VR Info"
+msgstr "Informacije VR"
+
+
+msgid "glTF"
+msgstr "glTF"
+
+
+msgid "glTF Animations"
+msgstr "Animacije glTF"
+
+
 msgid "Active Tool"
 msgstr "Aktivno orodje"
 
@@ -46975,20 +46933,8 @@ msgid "Compositor"
 msgstr "Stavitelj slik"
 
 
-msgid "glTF"
-msgstr "glTF"
-
-
-msgid "glTF Animations"
-msgstr "Animacije glTF"
-
-
 msgid "Overlays"
 msgstr "Pomagala"
-
-
-msgid "Guides"
-msgstr "Vodnice"
 
 
 msgid "Viewer Node"
@@ -47021,50 +46967,6 @@ msgstr "Pritrjevanje"
 
 msgid "Transform Orientations"
 msgstr "Usmerjenost transformacij"
-
-
-msgid "Stroke Placement"
-msgstr "Postavitev poteze"
-
-
-msgid "Drawing Plane"
-msgstr "Risalna ravnina"
-
-
-msgid "Grease Pencil Options"
-msgstr "Možnosti Grease Pencil"
-
-
-msgid "Quad View"
-msgstr "Četverni pogled"
-
-
-msgid "Onion Skin"
-msgstr "Čebuljenje"
-
-
-msgid "Stereoscopy"
-msgstr "Stereoskopija"
-
-
-msgid "Multi Frame"
-msgstr "Multiokvir"
-
-
-msgid "Auto-Masking"
-msgstr "Samodejno maskiranje"
-
-
-msgid "Viewport Debug"
-msgstr "Razhroščevanje 3D pogleda"
-
-
-msgid "VR"
-msgstr "VR"
-
-
-msgid "VR Info"
-msgstr "Informacije VR"
 
 
 msgid "Import Settings"
@@ -49489,10 +49391,6 @@ msgstr "OpenGL"
 
 msgid "Metal"
 msgstr "Metal"
-
-
-msgid "Vulkan (experimental)"
-msgstr "Vulkan (poskusno)"
 
 
 msgid "Device"
@@ -58215,6 +58113,10 @@ msgid "Move to Bottom"
 msgstr "Premakni na dno"
 
 
+msgid "Auto Normalize"
+msgstr "Samodejno normaliziraj"
+
+
 msgid "Name collisions: "
 msgstr "Sovpadajoča imena: "
 
@@ -59180,10 +59082,6 @@ msgid "Is Resumable"
 msgstr "Se lahko nadaljuje"
 
 
-msgid "Format Volumes"
-msgstr "Format za volumne"
-
-
 msgid "Resolution Divisions"
 msgstr "Ločljivostne delitve"
 
@@ -59214,14 +59112,6 @@ msgstr "Spodnje"
 
 msgid "Guide Parent"
 msgstr "Vodniški starš"
-
-
-msgid "Compression Volumes"
-msgstr "Stiskanje za volumne"
-
-
-msgid "Precision Volumes"
-msgstr "Natančnost za volumne"
 
 
 msgid "Enable Guides first! Defaulting to Fluid Velocity"
@@ -62384,10 +62274,6 @@ msgid "A restart of Blender is required"
 msgstr "Blender je treba ponovno zagnati"
 
 
-msgid "The Vulkan backend is experimental:"
-msgstr "Zaledje Vulkan je v poskusni fazi:"
-
-
 msgid "Open blend files with this Blender version"
 msgstr "Odpri datoteke blend s to različico Blenderja"
 
@@ -64706,10 +64592,6 @@ msgstr "Ploščični odmik"
 
 msgid "Symmetrize"
 msgstr "Uveljavi simetrijo"
-
-
-msgid "Auto Normalize"
-msgstr "Samodejno normaliziraj"
 
 
 msgid "Lock-Relative"
@@ -67788,10 +67670,6 @@ msgid "Select (Linked Time)"
 msgstr "Izberi (povezan čas)"
 
 
-msgid "No active sequence!"
-msgstr "Ni aktivne sekvence!"
-
-
 msgid "Rows:"
 msgstr "Vrstice:"
 
@@ -69108,10 +68986,6 @@ msgstr "Slika 1"
 
 msgid "Image 2"
 msgstr "Slika 2"
-
-
-msgid "Center:"
-msgstr "Središče:"
 
 
 msgid "Inner Edge:"

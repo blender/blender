@@ -39,7 +39,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  uiItemR(layout, ptr, "mode", UI_ITEM_NONE, "", ICON_NONE);
+  layout->prop(ptr, "mode", UI_ITEM_NONE, "", ICON_NONE);
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
@@ -88,9 +88,7 @@ static void geometry_set_mesh_to_points(GeometrySet &geometry_set,
   PointCloud *pointcloud;
   if (share_position) {
     /* Create an empty point cloud so the positions can be shared. */
-    pointcloud = BKE_pointcloud_new_nomain(0);
-    CustomData_free_layer_named(&pointcloud->pdata, "position");
-    pointcloud->totpoint = mesh->verts_num;
+    pointcloud = bke::pointcloud_new_no_attributes(mesh->verts_num);
     const bke::AttributeReader src = src_attributes.lookup<float3>("position");
     const bke::AttributeInitShared init(src.varray.get_internal_span().data(), *src.sharing_info);
     pointcloud->attributes_for_write().add<float3>("position", AttrDomain::Point, init);

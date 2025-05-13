@@ -203,7 +203,7 @@ static void shapekey_blend_read_after_liblink(BlendLibReader * /*reader*/, ID *i
 }
 
 IDTypeInfo IDType_ID_KE = {
-    /*id_code*/ ID_KE,
+    /*id_code*/ Key::id_type,
     /*id_filter*/ FILTER_ID_KE,
     /* Warning! key->from, could be more types in future? */
     /*dependencies_id_types*/ FILTER_ID_ME | FILTER_ID_CU_LEGACY | FILTER_ID_LT,
@@ -260,7 +260,7 @@ Key *BKE_key_add(Main *bmain, ID *id) /* common function */
   Key *key;
   char *el;
 
-  key = static_cast<Key *>(BKE_id_new(bmain, ID_KE, "Key"));
+  key = BKE_id_new<Key>(bmain, "Key");
 
   key->type = KEY_NORMAL;
   key->from = id;

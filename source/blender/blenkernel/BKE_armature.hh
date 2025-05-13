@@ -159,7 +159,7 @@ void BKE_armature_transform(bArmature *arm, const float mat[4][4], bool do_props
 std::optional<blender::Bounds<blender::float3>> BKE_armature_min_max(const Object *ob);
 
 /**
- * Calculate the axis-aligned bounds of `pchan` in world-space,
+ * Calculate the axis-aligned bounds of `pchan` in object-space,
  * taking into account custom transform when set.
  *
  * `r_min` and `r_max` are expanded to fit `pchan` so the caller must initialize them
@@ -179,7 +179,7 @@ void BKE_pchan_minmax(const Object *ob,
                       blender::float3 &r_min,
                       blender::float3 &r_max);
 /**
- * Calculate the axis aligned bounds of the pose of `ob` in world-space.
+ * Calculate the axis aligned bounds of the pose of `ob` in object-space.
  *
  * This only considers visible bones. When they are either directly (via a flag on the bone) or
  * indirectly (via bone collections) hidden, they are not part of the bounds calculation. When a
@@ -313,7 +313,7 @@ void BKE_armature_loc_world_to_pose(Object *ob, const float inloc[3], float outl
  * \note this cannot be used to convert to pose-space transforms of the supplied
  * pose-channel into its local space (i.e. *visual*-keyframing).
  */
-void BKE_armature_mat_pose_to_bone(bPoseChannel *pchan,
+void BKE_armature_mat_pose_to_bone(const bPoseChannel *pchan,
                                    const float inmat[4][4],
                                    float outmat[4][4]);
 /**
@@ -321,11 +321,13 @@ void BKE_armature_mat_pose_to_bone(bPoseChannel *pchan,
  * \note this cannot be used to convert to pose-space location of the supplied
  * pose-channel into its local space (i.e. *visual*-keyframing).
  */
-void BKE_armature_loc_pose_to_bone(bPoseChannel *pchan, const float inloc[3], float outloc[3]);
+void BKE_armature_loc_pose_to_bone(const bPoseChannel *pchan,
+                                   const float inloc[3],
+                                   float outloc[3]);
 /**
  * Convert Bone-Space Matrix to Pose-Space Matrix.
  */
-void BKE_armature_mat_bone_to_pose(bPoseChannel *pchan,
+void BKE_armature_mat_bone_to_pose(const bPoseChannel *pchan,
                                    const float inmat[4][4],
                                    float outmat[4][4]);
 /**
@@ -339,7 +341,7 @@ void BKE_armature_mat_pose_to_delta(float delta_mat[4][4],
 
 void BKE_armature_mat_pose_to_bone_ex(Depsgraph *depsgraph,
                                       Object *ob,
-                                      bPoseChannel *pchan,
+                                      const bPoseChannel *pchan,
                                       const float inmat[4][4],
                                       float outmat[4][4]);
 

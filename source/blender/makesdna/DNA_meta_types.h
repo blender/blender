@@ -47,6 +47,11 @@ typedef struct MetaElem {
 } MetaElem;
 
 typedef struct MetaBall {
+#ifdef __cplusplus
+  /** See #ID_Type comment for why this is here. */
+  static constexpr ID_Type id_type = ID_MB;
+#endif
+
   ID id;
   struct AnimData *adt;
 

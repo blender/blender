@@ -55,7 +55,6 @@ class VKVertexBuffer : public VertBuf {
   void resize_data() override;
   void release_data() override;
   void upload_data() override;
-  void duplicate_data(VertBuf *dst) override;
 
  private:
   void allocate();
@@ -66,6 +65,11 @@ class VKVertexBuffer : public VertBuf {
   /* VKTexture requires access to `buffer_` to convert a vertex buffer to a texture. */
   friend class VKTexture;
 };
+
+inline const GPUVertFormat &VKVertexBuffer::device_format_get() const
+{
+  return vertex_format_converter.device_format_get();
+}
 
 BLI_INLINE VKVertexBuffer *unwrap(VertBuf *vertex_buffer)
 {

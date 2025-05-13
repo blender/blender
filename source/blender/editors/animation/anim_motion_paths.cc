@@ -180,7 +180,7 @@ static void motionpaths_calc_bake_targets(blender::Span<MPathTarget *> targets,
     }
 
     if (mpath->flag & MOTIONPATH_FLAG_BAKE_CAMERA && camera) {
-      Object *cam_eval = DEG_get_evaluated_object(depsgraph, camera);
+      Object *cam_eval = DEG_get_evaluated(depsgraph, camera);
       /* Convert point to camera space. */
       float3 co_camera_space = math::transform_point(cam_eval->world_to_object(), float3(mpv->co));
       copy_v3_v3(mpv->co, co_camera_space);
@@ -459,7 +459,7 @@ void animviz_calc_motionpaths(Depsgraph *depsgraph,
   }
 
   for (MPathTarget *mpt : targets) {
-    mpt->ob_eval = DEG_get_evaluated_object(depsgraph, mpt->ob);
+    mpt->ob_eval = DEG_get_evaluated(depsgraph, mpt->ob);
 
     AnimData *adt = BKE_animdata_from_id(&mpt->ob_eval->id);
 

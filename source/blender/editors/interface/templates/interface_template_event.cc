@@ -54,7 +54,7 @@ int uiTemplateStatusBarModalItem(uiLayout *layout,
     return 1;
   }
 
-  /* Try to merge some known XYZ items to save horizontal space. */
+  /* Try to merge some known triplet items to save horizontal space. */
   const EnumPropertyItem *item_y = (item[1].identifier) ? item + 1 : nullptr;
   const EnumPropertyItem *item_z = (item_y && item[2].identifier) ? item + 2 : nullptr;
   const wmKeyMapItem *kmi_y = keymap_item_from_enum_item(keymap, item_y);
@@ -76,6 +76,13 @@ int uiTemplateStatusBarModalItem(uiLayout *layout,
       xyz_label = IFACE_("Plane");
     }
 
+    if (STREQ(item->identifier, "PROPORTIONAL_SIZE_UP") &&
+        STREQ(item_y->identifier, "PROPORTIONAL_SIZE_DOWN") &&
+        STREQ(item_z->identifier, "PROPORTIONAL_SIZE"))
+    {
+      xyz_label = IFACE_("Proportional Size");
+    }
+
     if (xyz_label) {
       int icon_mod[KM_MOD_NUM] = {0};
 #ifdef WITH_HEADLESS
@@ -84,29 +91,69 @@ int uiTemplateStatusBarModalItem(uiLayout *layout,
       int icon = UI_icon_from_keymap_item(kmi, icon_mod);
 #endif
       for (int j = 0; j < ARRAY_SIZE(icon_mod) && icon_mod[j]; j++) {
-        uiItemL(layout, "", icon_mod[j]);
+        layout->label("", icon_mod[j]);
         const float offset = ui_event_icon_offset(icon_mod[j]);
         if (offset != 0.0f) {
           uiItemS_ex(layout, offset);
         }
       }
-      uiItemL(layout, "", icon);
-      uiItemS_ex(layout, -0.4f);
+      layout->label("", icon);
+      uiItemS_ex(layout, ui_event_icon_offset(icon));
 
 #ifndef WITH_HEADLESS
       icon = UI_icon_from_keymap_item(kmi_y, icon_mod);
 #endif
-      uiItemL(layout, "", icon);
-      uiItemS_ex(layout, -0.4f);
+      layout->label("", icon);
+      uiItemS_ex(layout, ui_event_icon_offset(icon));
 
 #ifndef WITH_HEADLESS
       icon = UI_icon_from_keymap_item(kmi_z, icon_mod);
 #endif
-      uiItemL(layout, "", icon);
-      uiItemS_ex(layout, -0.18f);
-      uiItemL(layout, xyz_label, ICON_NONE);
+      layout->label("", icon);
+      uiItemS_ex(layout, ui_event_icon_offset(icon));
+      uiItemS_ex(layout, 0.2f);
+      layout->label(xyz_label, ICON_NONE);
       uiItemS_ex(layout, 0.6f);
       return 3;
+    }
+  }
+
+  /* Try to merge some known paired items to save horizontal space. */
+  if (kmi_y && keymap_item_can_collapse(kmi, kmi_y)) {
+    const char *ab_label = nullptr;
+
+    if (STREQ(item->identifier, "PROPORTIONAL_SIZE_UP") &&
+        STREQ(item_y->identifier, "PROPORTIONAL_SIZE_DOWN"))
+    {
+      ab_label = IFACE_("Proportional Size");
+    }
+
+    if (ab_label) {
+      int icon_mod[KM_MOD_NUM] = {0};
+#ifdef WITH_HEADLESS
+      int icon = 0;
+#else
+      int icon = UI_icon_from_keymap_item(kmi, icon_mod);
+#endif
+      for (int j = 0; j < ARRAY_SIZE(icon_mod) && icon_mod[j]; j++) {
+        layout->label("", icon_mod[j]);
+        const float offset = ui_event_icon_offset(icon_mod[j]);
+        if (offset != 0.0f) {
+          uiItemS_ex(layout, offset);
+        }
+      }
+      layout->label("", icon);
+      uiItemS_ex(layout, ui_event_icon_offset(icon));
+
+#ifndef WITH_HEADLESS
+      icon = UI_icon_from_keymap_item(kmi_y, icon_mod);
+#endif
+      layout->label("", icon);
+      uiItemS_ex(layout, ui_event_icon_offset(icon));
+      uiItemS_ex(layout, 0.2f);
+      layout->label(ab_label, ICON_NONE);
+      uiItemS_ex(layout, 0.6f);
+      return 2;
     }
   }
 
@@ -129,7 +176,7 @@ bool uiTemplateEventFromKeymapItem(uiLayout *layout,
 #endif
   if (icon != 0) {
     for (int j = 0; j < ARRAY_SIZE(icon_mod) && icon_mod[j]; j++) {
-      uiItemL(layout, "", icon_mod[j]);
+      layout->label("", icon_mod[j]);
       const float offset = ui_event_icon_offset(icon_mod[j]);
       if (offset != 0.0f) {
         uiItemS_ex(layout, offset);
@@ -138,7 +185,7 @@ bool uiTemplateEventFromKeymapItem(uiLayout *layout,
 
     /* Icon and text separately is closer together with aligned layout. */
 
-    uiItemL(layout, "", icon);
+    layout->label("", icon);
     if (icon >= ICON_MOUSE_LMB && icon <= ICON_MOUSE_MMB_SCROLL) {
       /* Negative space after narrow mice icons. */
       uiItemS_ex(layout, -0.68f);
@@ -150,14 +197,14 @@ bool uiTemplateEventFromKeymapItem(uiLayout *layout,
     }
 
     uiItemS_ex(layout, 0.2f);
-    uiItemL(layout, CTX_IFACE_(BLT_I18NCONTEXT_ID_WINDOWMANAGER, text.c_str()), ICON_NONE);
+    layout->label(CTX_IFACE_(BLT_I18NCONTEXT_ID_WINDOWMANAGER, text.c_str()), ICON_NONE);
     uiItemS_ex(layout, 0.6f);
     ok = true;
   }
   else if (text_fallback) {
     const char *event_text = WM_key_event_string(kmi->type, true);
-    uiItemL(layout, event_text, ICON_NONE);
-    uiItemL(layout, CTX_IFACE_(BLT_I18NCONTEXT_ID_WINDOWMANAGER, text.c_str()), ICON_NONE);
+    layout->label(event_text, ICON_NONE);
+    layout->label(CTX_IFACE_(BLT_I18NCONTEXT_ID_WINDOWMANAGER, text.c_str()), ICON_NONE);
     uiItemS_ex(layout, 0.6f);
     ok = true;
   }

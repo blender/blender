@@ -1,0 +1,392 @@
+==== Meshes: 6
+- Mesh 'background' vtx:65 face:48 loop:192 edge:112
+    - 64 29 7 37 63 ... 49 52 16 29 64 
+    - 37/64 29/64 7/29 7/37 38/63 ... 15/38 48/63 49/64 14/37 52/64 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-2.000, 0.000, 2.000)
+    - (6.000, 0.000, -2.000)
+    - (2.000, 0.000, 2.000)
+      ...
+    - (-5.000, 0.000, -1.000)
+    - (-1.000, 0.000, -1.000)
+    - (3.000, 0.000, -1.000)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 0 0 0 0 0 ... 0 0 0 0 0 
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 ... 0 0 0 0 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'st' FLOAT2 CORNER
+    - (0.750, 0.250)
+    - (0.667, 0.250)
+    - (0.667, 0.000)
+      ...
+    - (0.667, 0.500)
+    - (0.667, 0.250)
+    - (0.750, 0.250)
+
+- Mesh 'Cone' vtx:9 face:9 loop:32 edge:16
+    - 0 8 1 1 8 ... 8 7 7 8 0 
+    - 0/1 0/8 1/8 1/2 2/8 ... 5/6 6/8 0/7 6/7 7/8 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (0.000, 0.500, -0.500)
+    - (0.354, 0.354, -0.500)
+    - (0.500, 0.000, -0.500)
+      ...
+    - (-0.500, 0.000, -0.500)
+    - (-0.354, 0.354, -0.500)
+    - (0.000, 0.000, 0.500)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 1 1 1 1 1 ... 1 1 1 1 1 
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 0 0 0 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'displayColor' FLOAT_COLOR CORNER
+    - (0.554, 0.673, 0.078, 1.000)
+    - (0.554, 0.673, 0.078, 1.000)
+    - (0.554, 0.673, 0.078, 1.000)
+      ...
+    - (0.554, 0.673, 0.078, 1.000)
+    - (0.554, 0.673, 0.078, 1.000)
+    - (0.554, 0.673, 0.078, 1.000)
+  - attr 'st' FLOAT2 CORNER
+    - (0.250, 0.490)
+    - (0.250, 0.250)
+    - (0.420, 0.420)
+      ...
+    - (0.080, 0.420)
+    - (0.250, 0.250)
+    - (0.250, 0.490)
+
+- Mesh 'Cube' vtx:8 face:6 loop:24 edge:12
+    - 0 1 3 2 2 ... 0 7 3 1 5 
+    - 0/2 0/1 1/3 2/3 2/6 ... 4/6 5/7 4/5 0/4 1/5 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-0.500, -0.500, -0.500)
+    - (-0.500, -0.500, 0.500)
+    - (-0.500, 0.500, -0.500)
+      ...
+    - (0.500, -0.500, 0.500)
+    - (0.500, 0.500, -0.500)
+    - (0.500, 0.500, 0.500)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 1 1 1 1 1 ... 1 1 1 1 1 
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'displayColor' FLOAT_COLOR CORNER
+    - (0.673, 0.078, 0.078, 1.000)
+    - (0.673, 0.078, 0.078, 1.000)
+    - (0.673, 0.078, 0.078, 1.000)
+      ...
+    - (0.673, 0.078, 0.078, 1.000)
+    - (0.673, 0.078, 0.078, 1.000)
+    - (0.673, 0.078, 0.078, 1.000)
+  - attr 'st' FLOAT2 CORNER
+    - (0.375, 0.000)
+    - (0.625, 0.000)
+    - (0.625, 0.250)
+      ...
+    - (0.875, 0.500)
+    - (0.875, 0.750)
+    - (0.625, 0.750)
+
+- Mesh 'Cylinder' vtx:16 face:10 loop:48 edge:24
+    - 0 1 3 2 2 ... 6 8 10 12 14 
+    - 0/2 0/1 1/3 2/3 2/4 ... 1/15 13/15 12/14 14/15 0/14 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (0.000, 0.500, -0.250)
+    - (0.000, 0.500, 0.250)
+    - (0.354, 0.354, -0.250)
+      ...
+    - (-0.500, 0.000, 0.250)
+    - (-0.354, 0.354, -0.250)
+    - (-0.354, 0.354, 0.250)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 1 1 1 1 1 ... 1 1 1 1 1 
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 0 0 0 0 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'displayColor' FLOAT_COLOR CORNER
+    - (0.078, 0.673, 0.214, 1.000)
+    - (0.078, 0.673, 0.214, 1.000)
+    - (0.078, 0.673, 0.214, 1.000)
+      ...
+    - (0.078, 0.673, 0.214, 1.000)
+    - (0.078, 0.673, 0.214, 1.000)
+    - (0.078, 0.673, 0.214, 1.000)
+  - attr 'st' FLOAT2 CORNER
+    - (1.000, 0.500)
+    - (1.000, 1.000)
+    - (0.875, 1.000)
+      ...
+    - (0.580, 0.080)
+    - (0.510, 0.250)
+    - (0.580, 0.420)
+
+- Mesh 'Plane' vtx:4 face:1 loop:4 edge:4
+    - 0 1 3 2 
+    - 0/2 0/1 1/3 2/3 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, 0.000, -1.000)
+    - (1.000, 0.000, -1.000)
+    - (-1.000, 0.000, 1.000)
+    - (1.000, 0.000, 1.000)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 0 0 0 0 
+  - attr 'material_index' INT FACE
+    - 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'displayColor' FLOAT_COLOR CORNER
+    - (0.078, 0.387, 0.673, 1.000)
+    - (0.078, 0.387, 0.673, 1.000)
+    - (0.078, 0.387, 0.673, 1.000)
+    - (0.078, 0.387, 0.673, 1.000)
+  - attr 'st' FLOAT2 CORNER
+    - (0.000, 0.000)
+    - (1.000, 0.000)
+    - (1.000, 1.000)
+    - (0.000, 1.000)
+
+- Mesh 'Sphere' vtx:62 face:72 loop:264 edge:132
+    - 61 1 5 6 60 ... 1 55 54 59 0 
+    - 6/61 1/61 1/5 5/6 4/60 ... 58/61 1/57 56/60 0/55 54/59 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (0.000, 0.433, 0.250)
+    - (0.000, 0.433, -0.250)
+    - (0.125, 0.217, 0.433)
+      ...
+    - (0.000, 0.250, 0.433)
+    - (0.000, 0.500, 0.000)
+    - (0.000, 0.250, -0.433)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 1 1 1 1 1 ... 1 1 1 1 1 
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 0 ... 0 0 0 0 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'displayColor' FLOAT_COLOR CORNER
+    - (0.673, 0.435, 0.078, 1.000)
+    - (0.673, 0.435, 0.078, 1.000)
+    - (0.673, 0.435, 0.078, 1.000)
+      ...
+    - (0.673, 0.435, 0.078, 1.000)
+    - (0.673, 0.435, 0.078, 1.000)
+    - (0.673, 0.435, 0.078, 1.000)
+  - attr 'st' FLOAT2 CORNER
+    - (0.750, 0.167)
+    - (0.750, 0.333)
+    - (0.667, 0.333)
+      ...
+    - (0.833, 0.833)
+    - (0.750, 0.833)
+    - (0.750, 0.667)
+
+==== Objects: 12
+- Obj 'background' MESH data:'background' par:'viz_targets'
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'CamA' CAMERA data:'CamA'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'CamB' CAMERA data:'CamB'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'CamC' CAMERA data:'CamC'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'CamD' CAMERA data:'CamD'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'CamE' CAMERA data:'CamE'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'Cone' MESH data:'Cone' par:'viz_targets'
+  - pos 0.000, -1.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'Cube' MESH data:'Cube' par:'viz_targets'
+  - pos -4.000, -1.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'Cylinder' MESH data:'Cylinder' par:'viz_targets'
+  - pos 2.000, -1.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'Plane' MESH data:'Plane' par:'viz_targets'
+  - pos 4.000, -1.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'Sphere' MESH data:'Sphere' par:'viz_targets'
+  - pos -2.000, -1.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'viz_targets' EMPTY
+  - pos 0.000, 12.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+
+==== Cameras: 5
+- Cam 'CamA' PERSP lens:50.0 MILLIMETERS near:0.100 far:1000.0 orthosize:6.0
+  - fov 0.691 (h 0.691 v 0.400)
+  - sensor 36.0x20.2 shift 0.000,0.000
+  - dof dist:10.000 fstop:2.8 blades:0
+  - anim act:CamAAction slot:CACamA blend:REPLACE drivers:0
+- Cam 'CamB' PERSP lens:50.0 MILLIMETERS near:0.100 far:10.0 orthosize:6.0
+  - fov 0.691 (h 0.691 v 0.400)
+  - sensor 36.0x20.2 shift 0.000,0.000
+  - anim act:CamBAction slot:CACamB blend:REPLACE drivers:0
+- Cam 'CamC' PERSP lens:50.0 MILLIMETERS near:0.100 far:1000.0 orthosize:6.0
+  - fov 0.691 (h 0.691 v 0.400)
+  - sensor 36.0x20.2 shift 0.000,0.000
+  - anim act:CamCAction slot:CACamC blend:REPLACE drivers:0
+- Cam 'CamD' PERSP lens:50.0 MILLIMETERS near:0.100 far:1000.0 orthosize:6.0
+  - fov 0.691 (h 0.691 v 0.471)
+  - sensor 36.0x24.0 shift 0.000,0.000
+  - anim act:CamDAction slot:CACamD blend:REPLACE drivers:0
+- Cam 'CamE' PERSP lens:50.0 MILLIMETERS near:0.100 far:1000.0 orthosize:6.0
+  - fov 0.691 (h 0.691 v 0.400)
+  - sensor 36.0x20.2 shift 0.000,0.000
+
+==== Materials: 1
+- Mat 'Dots Stroke'
+  - base color (0.800, 0.800, 0.800)
+  - specular ior 0.500
+  - specular tint (0.000, 0.000, 0.000)
+  - roughness 0.400
+  - metallic 0.000
+  - ior 1.000
+  - viewport diffuse (0.800, 0.800, 0.800, 1.000)
+  - viewport specular (1.000, 1.000, 1.000), intensity 0.500
+  - viewport metallic 0.000, roughness 0.400
+  - backface False probe True shadow False
+
+==== Actions: 4
+- Action 'CamAAction' curverange:(1.0 .. 5.0) layers:1
+- ActionLayer Layer strips:1
+ - Keyframe strip channelbags:1
+ - Channelbag slot 'CACamA' curves:3
+  - fcu 'dof.aperture_fstop[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:4
+    - (1.000, 2.800) lh:(0.333, 2.800 AUTO) rh:(1.667, 2.800 AUTO)
+    - (3.000, 2.800) lh:(2.333, 2.145 AUTO) rh:(3.333, 3.127 AUTO)
+    - (4.000, 5.000) lh:(3.667, 3.782 AUTO) rh:(4.333, 6.218 AUTO)
+    - (5.000, 8.000) lh:(4.667, 8.000 AUTO) rh:(5.333, 8.000 AUTO)
+  - fcu 'dof.focus_distance[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:4
+    - (1.000, 10.000) lh:(0.333, 10.000 AUTO) rh:(1.667, 10.000 AUTO)
+    - (3.000, 10.000) lh:(2.333, 8.182 AUTO) rh:(3.333, 10.909 AUTO)
+    - (4.000, 15.000) lh:(3.667, 12.727 AUTO) rh:(4.333, 17.273 AUTO)
+    - (5.000, 20.000) lh:(4.667, 20.000 AUTO) rh:(5.333, 20.000 AUTO)
+  - fcu 'lens[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:4
+    - (1.000, 50.000) lh:(0.667, 50.000 AUTO) rh:(1.333, 50.000 AUTO)
+    - (2.000, 60.000) lh:(1.667, 56.000 AUTO) rh:(2.333, 64.000 AUTO)
+    - (3.000, 70.000) lh:(2.667, 66.000 AUTO) rh:(3.333, 74.000 AUTO)
+    - (4.000, 80.000) lh:(3.667, 80.000 AUTO) rh:(4.333, 80.000 AUTO)
+
+- Action 'CamBAction' curverange:(1.0 .. 5.0) layers:1
+- ActionLayer Layer strips:1
+ - Keyframe strip channelbags:1
+ - Channelbag slot 'CACamB' curves:2
+  - fcu 'clip_end[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:5
+    - (1.000, 10.000) lh:(0.667, 10.000 AUTO) rh:(1.333, 10.000 AUTO)
+    - (2.000, 11.000) lh:(1.667, 10.339 AUTO) rh:(2.333, 11.661 AUTO)
+    - (3.000, 13.000) lh:(2.667, 12.643 AUTO) rh:(3.333, 13.357 AUTO)
+    - (4.000, 13.000) lh:(3.667, 13.089 AUTO) rh:(4.333, 12.911 AUTO)
+    - (5.000, 13.000) lh:(4.667, 13.000 AUTO) rh:(5.333, 13.000 AUTO)
+  - fcu 'clip_start[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:5
+    - (1.000, 0.100) lh:(0.667, 0.100 AUTO) rh:(1.333, 0.100 AUTO)
+    - (2.000, 0.100) lh:(1.667, 0.652 AUTO) rh:(2.333, -0.452 AUTO)
+    - (3.000, 0.100) lh:(2.667, -2.107 AUTO) rh:(3.333, 2.307 AUTO)
+    - (4.000, 10.550) lh:(3.667, 8.377 AUTO) rh:(4.333, 12.723 AUTO)
+    - (5.000, 11.000) lh:(4.667, 11.000 AUTO) rh:(5.333, 11.000 AUTO)
+
+- Action 'CamCAction' curverange:(1.0 .. 5.0) layers:1
+- ActionLayer Layer strips:1
+ - Keyframe strip channelbags:1
+ - Channelbag slot 'CACamC' curves:2
+  - fcu 'shift_x[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:3
+    - (1.000, -0.200) lh:(0.667, -0.200 AUTO) rh:(1.333, -0.200 AUTO)
+    - (2.000, 0.000) lh:(1.667, -0.100 AUTO) rh:(2.333, 0.100 AUTO)
+    - (3.000, 0.200) lh:(2.667, 0.200 AUTO) rh:(3.333, 0.200 AUTO)
+  - fcu 'shift_y[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:3
+    - (3.000, 0.000) lh:(2.667, 0.000 AUTO) rh:(3.333, 0.000 AUTO)
+    - (4.000, 0.150) lh:(3.667, 0.188 AUTO) rh:(4.333, 0.112 AUTO)
+    - (5.000, -0.150) lh:(4.667, -0.150 AUTO) rh:(5.333, -0.150 AUTO)
+
+- Action 'CamDAction' curverange:(1.0 .. 5.0) layers:1
+- ActionLayer Layer strips:1
+ - Keyframe strip channelbags:1
+ - Channelbag slot 'CACamD' curves:5
+  - fcu 'sensor_fit[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:5
+    - (1.000, 1.000) lh:(0.667, 1.000 AUTO) rh:(1.333, 1.000 AUTO)
+    - (2.000, 1.000) lh:(1.667, 1.000 AUTO) rh:(2.333, 1.000 AUTO)
+    - (3.000, 1.000) lh:(2.667, 1.000 AUTO) rh:(3.333, 1.000 AUTO)
+    - (4.000, 1.000) lh:(3.667, 1.000 AUTO) rh:(4.333, 1.000 AUTO)
+    - (5.000, 1.000) lh:(4.667, 1.000 AUTO) rh:(5.333, 1.000 AUTO)
+  - fcu 'sensor_height[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:5
+    - (1.000, 20.250) lh:(0.667, 20.250 AUTO) rh:(1.333, 20.250 AUTO)
+    - (2.000, 24.188) lh:(1.667, 21.924 AUTO) rh:(2.333, 26.451 AUTO)
+    - (3.000, 28.125) lh:(2.667, 29.304 AUTO) rh:(3.333, 26.946 AUTO)
+    - (4.000, 24.000) lh:(3.667, 21.737 AUTO) rh:(4.333, 26.263 AUTO)
+    - (5.000, 36.000) lh:(4.667, 36.000 AUTO) rh:(5.333, 36.000 AUTO)
+  - fcu 'sensor_width[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:5
+    - (1.000, 36.000) lh:(0.667, 36.000 AUTO) rh:(1.333, 36.000 AUTO)
+    - (2.000, 43.000) lh:(1.667, 38.976 AUTO) rh:(2.333, 47.024 AUTO)
+    - (3.000, 50.000) lh:(2.667, 52.095 AUTO) rh:(3.333, 47.905 AUTO)
+    - (4.000, 42.667) lh:(3.667, 38.643 AUTO) rh:(4.333, 46.690 AUTO)
+    - (5.000, 64.000) lh:(4.667, 64.000 AUTO) rh:(5.333, 64.000 AUTO)
+  - fcu 'shift_x[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:5
+    - (1.000, -0.200) lh:(0.667, -0.200 AUTO) rh:(1.333, -0.200 AUTO)
+    - (2.000, 0.000) lh:(1.667, -0.098 AUTO) rh:(2.333, 0.098 AUTO)
+    - (3.000, 0.200) lh:(2.667, 0.190 AUTO) rh:(3.333, 0.210 AUTO)
+    - (4.000, 0.112) lh:(3.667, 0.137 AUTO) rh:(4.333, 0.088 AUTO)
+    - (5.000, 0.113) lh:(4.667, 0.113 AUTO) rh:(5.333, 0.113 AUTO)
+  - fcu 'shift_y[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:5
+    - (1.000, 0.150) lh:(0.667, 0.150 AUTO) rh:(1.333, 0.150 AUTO)
+    - (2.000, 0.150) lh:(1.667, 0.146 AUTO) rh:(2.333, 0.154 AUTO)
+    - (3.000, 0.150) lh:(2.667, 0.164 AUTO) rh:(3.333, 0.136 AUTO)
+    - (4.000, 0.084) lh:(3.667, 0.097 AUTO) rh:(4.333, 0.071 AUTO)
+    - (5.000, 0.084) lh:(4.667, 0.084 AUTO) rh:(5.333, 0.084 AUTO)
+

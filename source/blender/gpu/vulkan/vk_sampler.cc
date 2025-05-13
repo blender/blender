@@ -32,7 +32,7 @@ void VKSampler::create(const GPUSamplerState &sampler_state)
   sampler_info.addressModeV = sampler_info.addressModeW = to_vk_sampler_address_mode(
       sampler_state.extend_yz);
   sampler_info.minLod = 0;
-  sampler_info.maxLod = 1000;
+  sampler_info.maxLod = 0;
 
   if (sampler_state.type == GPU_SAMPLER_STATE_TYPE_PARAMETERS) {
     /* Apply filtering. */
@@ -42,6 +42,8 @@ void VKSampler::create(const GPUSamplerState &sampler_state)
     }
     if (sampler_state.filtering & GPU_SAMPLER_FILTERING_MIPMAP) {
       sampler_info.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+      sampler_info.minLod = 0;
+      sampler_info.maxLod = 1000;
     }
     if ((sampler_state.filtering & GPU_SAMPLER_FILTERING_ANISOTROPIC) &&
         (U.anisotropic_filter > 1) &&

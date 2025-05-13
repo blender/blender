@@ -28,6 +28,8 @@ blender::bke::VolumeGridData *BKE_volume_grid_add_vdb(Volume &volume,
                                                       blender::StringRef name,
                                                       openvdb::GridBase::Ptr vdb_grid);
 
+void BKE_volume_metadata_set(Volume &volume, openvdb::MetaMap::Ptr metadata);
+
 std::optional<blender::Bounds<blender::float3>> BKE_volume_grid_bounds(
     openvdb::GridBase::ConstPtr grid);
 
@@ -38,6 +40,9 @@ std::optional<blender::Bounds<blender::float3>> BKE_volume_grid_bounds(
  */
 openvdb::GridBase::ConstPtr BKE_volume_grid_shallow_transform(openvdb::GridBase::ConstPtr grid,
                                                               const blender::float4x4 &transform);
+
+blender::float4x4 BKE_volume_transform_to_blender(const openvdb::math::Transform &transform);
+openvdb::math::Transform BKE_volume_transform_to_openvdb(const blender::float4x4 &transform);
 
 template<typename OpType>
 auto BKE_volume_grid_type_operation(const VolumeGridType grid_type, OpType &&op)

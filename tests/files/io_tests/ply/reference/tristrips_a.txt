@@ -1,0 +1,20 @@
+==== Meshes: 1
+- Mesh 'tristrips_a' vtx:6 face:4 loop:12 edge:9
+    - 0 1 3 3 1 ... 2 4 0 1 5 
+    - 0/3 0/1 1/3 2/3 1/2 3/4 2/4 0/5 1/5 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (1.000, 0.000, 1.000)
+    - (1.000, 0.000, -1.000)
+    - (-1.000, 0.000, -1.000)
+    - (-1.000, 0.000, 1.000)
+    - (-3.000, 0.000, -1.000)
+    - (-3.000, 0.000, 1.000)
+  - attr 'sharp_face' BOOLEAN FACE
+    - 1 1 1 1 
+
+==== Objects: 1
+- Obj 'tristrips_a' MESH data:'tristrips_a'
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+

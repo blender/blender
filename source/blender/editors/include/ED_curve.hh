@@ -58,7 +58,7 @@ void ED_curve_editnurb_free(Object *obedit);
 bool ED_curve_editnurb_select_pick(bContext *C,
                                    const int mval[2],
                                    int dist_px,
-                                   const SelectPick_Params *params);
+                                   const SelectPick_Params &params);
 
 Nurb *ED_curve_add_nurbs_primitive(
     bContext *C, Object *obedit, float mat[4][4], int type, int newob);
@@ -114,7 +114,7 @@ bool ED_curve_active_center(Curve *cu, float center[3]);
  */
 bool ED_curve_editfont_select_pick(bContext *C,
                                    const int mval[2],
-                                   const SelectPick_Params *params);
+                                   const SelectPick_Params &params);
 
 /* `editfont_undo.cc` */
 

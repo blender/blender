@@ -15,7 +15,7 @@ then passing it to the `run_test(permutations)` function.
 The `run_test` function also checks for a `--test` argument in `sys.argv`.
 When set, it will reproduce the state of a given test number.
 So:
-`blender "(...)/tests/data/overlay/<test>.blend" -P "(...)/tests/python/overlay/<test>.py" -- --test <test-number>`
+`blender "(...)/tests/files/overlay/<test>.blend" -P "(...)/tests/python/overlay/<test>.py" -- --test <test-number>`
 will open the blend file and set its state to the <test-number> permutation, instead of running the tests.
 
 Common permutations can also be declared inside this file.

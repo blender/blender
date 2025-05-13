@@ -292,7 +292,7 @@ static void movieclip_blend_read_data(BlendDataReader *reader, ID *id)
 }
 
 IDTypeInfo IDType_ID_MC = {
-    /*id_code*/ ID_MC,
+    /*id_code*/ MovieClip::id_type,
     /*id_filter*/ FILTER_ID_MC,
     /*dependencies_id_types*/ FILTER_ID_GD_LEGACY | FILTER_ID_IM,
     /*main_listbase_index*/ INDEX_ID_MC,
@@ -914,7 +914,7 @@ static MovieClip *movieclip_alloc(Main *bmain, const char *name)
 {
   MovieClip *clip;
 
-  clip = static_cast<MovieClip *>(BKE_id_new(bmain, ID_MC, name));
+  clip = BKE_id_new<MovieClip>(bmain, name);
 
   return clip;
 }

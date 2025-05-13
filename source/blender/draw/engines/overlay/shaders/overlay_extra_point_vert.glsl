@@ -19,17 +19,17 @@ void main()
   float3 world_pos = drw_point_object_to_world(data_buf[gl_VertexID].pos_.xyz);
   gl_Position = drw_point_world_to_homogenous(world_pos);
 
-  gl_PointSize = sizeObjectCenter;
-  float radius = 0.5f * sizeObjectCenter;
-  float outline_width = sizePixel;
+  gl_PointSize = theme.sizes.object_center;
+  float radius = 0.5f * theme.sizes.object_center;
+  float outline_width = theme.sizes.pixel;
   radii[0] = radius;
   radii[1] = radius - 1.0f;
   radii[2] = radius - outline_width;
   radii[3] = radius - outline_width - 1.0f;
-  radii /= sizeObjectCenter;
+  radii /= theme.sizes.object_center;
 
   fill_color = data_buf[gl_VertexID].color_;
-  outline_color = colorOutline;
+  outline_color = theme.colors.outline;
 
 #ifdef SELECT_ENABLE
   /* Selection frame-buffer can be very small.

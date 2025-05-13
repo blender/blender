@@ -28,6 +28,13 @@ struct FbxElementMapping {
   Map<const ufbx_element *, Key *> el_to_shape_key;
   Map<const ufbx_material *, Material *> mat_to_material;
   Map<const ufbx_node *, Object *> bone_to_armature;
+
+  /* For the armatures we create, for different use cases we need transform
+   * from world space to the root bone, either in posed transform or in
+   * node transform. */
+  Map<const Object *, ufbx_matrix> armature_world_to_arm_pose_matrix;
+  Map<const Object *, ufbx_matrix> armature_world_to_arm_node_matrix;
+
   /* Mapping of ufbx node to object name used within blender. If names are too long
    * or duplicate, they might not match what was in FBX file. */
   Map<const ufbx_node *, std::string> node_to_name;
@@ -72,11 +79,14 @@ struct FbxElementMapping {
 };
 
 void matrix_to_m44(const ufbx_matrix &src, float dst[4][4]);
-void m44_to_matrix(const float src[4][4], ufbx_matrix &dst);
 void ufbx_matrix_to_obj(const ufbx_matrix &mtx, Object *obj);
 void node_matrix_to_obj(const ufbx_node *node, Object *obj, const FbxElementMapping &mapping);
 void read_custom_properties(const ufbx_props &props, ID &id, bool enums_as_strings);
 void read_custom_properties(const ufbx_props &props, bPoseChannel &pchan, bool enums_as_strings);
+
+ufbx_matrix calc_bone_pose_matrix(const ufbx_transform &local_xform,
+                                  const ufbx_node &node,
+                                  const ufbx_matrix &local_bind_inv_matrix);
 
 //@TODO remove debug file print once things are working properly
 // #define FBX_DEBUG_PRINT

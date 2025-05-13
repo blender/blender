@@ -74,7 +74,7 @@ bNodeTree *DefaultSurfaceNodeTree::nodetree_get(::Material *ma)
 MaterialModule::MaterialModule(Instance &inst) : inst_(inst)
 {
   {
-    diffuse_mat = (::Material *)BKE_id_new_nomain(ID_MA, "EEVEE default diffuse");
+    diffuse_mat = BKE_id_new_nomain<::Material>("EEVEE default diffuse");
     bNodeTree *ntree = bke::node_tree_add_tree_embedded(
         nullptr, &diffuse_mat->id, "Shader Nodetree", ntreeType_Shader->idname);
     diffuse_mat->use_nodes = true;
@@ -97,7 +97,7 @@ MaterialModule::MaterialModule(Instance &inst) : inst_(inst)
     bke::node_set_active(*ntree, *output);
   }
   {
-    metallic_mat = (::Material *)BKE_id_new_nomain(ID_MA, "EEVEE default metal");
+    metallic_mat = BKE_id_new_nomain<::Material>("EEVEE default metal");
     bNodeTree *ntree = bke::node_tree_add_tree_embedded(
         nullptr, &metallic_mat->id, "Shader Nodetree", ntreeType_Shader->idname);
     metallic_mat->use_nodes = true;
@@ -120,7 +120,7 @@ MaterialModule::MaterialModule(Instance &inst) : inst_(inst)
     bke::node_set_active(*ntree, *output);
   }
   {
-    error_mat_ = (::Material *)BKE_id_new_nomain(ID_MA, "EEVEE default error");
+    error_mat_ = BKE_id_new_nomain<::Material>("EEVEE default error");
     bNodeTree *ntree = bke::node_tree_add_tree_embedded(
         nullptr, &error_mat_->id, "Shader Nodetree", ntreeType_Shader->idname);
     error_mat_->use_nodes = true;

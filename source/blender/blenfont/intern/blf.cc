@@ -14,7 +14,6 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <mutex>
 
 #include <ft2build.h>
 
@@ -49,7 +48,7 @@ FontBLF *global_font[BLF_MAX_FONT] = {nullptr};
 int blf_mono_font = -1;
 int blf_mono_font_render = -1;
 
-static std::mutex g_blf_load_mutex;
+static blender::Mutex g_blf_load_mutex;
 
 static FontBLF *blf_get(int fontid)
 {
@@ -948,7 +947,8 @@ void BLF_shadow_offset(int fontid, int x, int y)
   }
 }
 
-void BLF_buffer(int fontid, float *fbuf, uchar *cbuf, int w, int h, ColorManagedDisplay *display)
+void BLF_buffer(
+    int fontid, float *fbuf, uchar *cbuf, int w, int h, const ColorManagedDisplay *display)
 {
   FontBLF *font = blf_get(fontid);
 

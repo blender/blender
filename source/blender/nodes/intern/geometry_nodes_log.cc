@@ -2,6 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "DNA_windowmanager_types.h"
 #include "NOD_geometry_nodes_bundle.hh"
 #include "NOD_geometry_nodes_closure.hh"
 #include "NOD_geometry_nodes_log.hh"
@@ -244,6 +245,19 @@ ClosureValueLog::ClosureValueLog(Vector<Item> inputs,
                           source_location->closure_output_node_id,
                           source_location->compute_context_hash};
   }
+}
+
+NodeWarning::NodeWarning(const Report &report)
+{
+  switch (report.type) {
+    case RPT_ERROR:
+      this->type = NodeWarningType::Error;
+      break;
+    default:
+      this->type = NodeWarningType::Info;
+      break;
+  }
+  this->message = report.message;
 }
 
 /* Avoid generating these in every translation unit. */
@@ -732,7 +746,7 @@ static std::optional<uint32_t> get_original_session_uid(const ID *id)
   if (!id) {
     return {};
   }
-  if (DEG_is_original_id(id)) {
+  if (DEG_is_original(id)) {
     return id->session_uid;
   }
   if (const ID *id_orig = DEG_get_original(id)) {
@@ -794,7 +808,7 @@ GeoTreeLogger &GeoModifierLog::get_local_tree_logger(const ComputeContext &compu
     const std::optional<nodes::ClosureSourceLocation> &location =
         context->closure_source_location();
     if (location.has_value()) {
-      BLI_assert(DEG_is_evaluated_id(&location->tree->id));
+      BLI_assert(DEG_is_evaluated(location->tree));
       tree_logger.tree_orig_session_uid = DEG_get_original_id(&location->tree->id)->session_uid;
     }
   }

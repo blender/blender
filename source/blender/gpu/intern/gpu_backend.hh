@@ -25,12 +25,16 @@ class IndexBuf;
 class PixelBuffer;
 class QueryPool;
 class Shader;
+class ShaderCompiler;
 class Texture;
 class UniformBuf;
 class StorageBuf;
 class VertBuf;
 
 class GPUBackend {
+ protected:
+  ShaderCompiler *compiler_;
+
  public:
   virtual ~GPUBackend() = default;
 
@@ -40,6 +44,11 @@ class GPUBackend {
   virtual void delete_resources() = 0;
 
   static GPUBackend *get();
+
+  ShaderCompiler *get_compiler()
+  {
+    return compiler_;
+  }
 
   virtual void samplers_update() = 0;
   virtual void compute_dispatch(int groups_x_len, int groups_y_len, int groups_z_len) = 0;

@@ -77,7 +77,7 @@ static void calc_local_positions(const float4x4 &mat,
  * the z-distances are divided by `height`, effectively scaling the
  * z-distances so that a vertex of local coordinates
  * `(0, 0, height)` has a z-distance of 1.
- .
+ *
  * When `height` is 0, the local distances are set to 1. In object space, this is
  * equivalent to setting the distances equal to the radius, resulting in
  * a falloff strength of 0 (no displacement).

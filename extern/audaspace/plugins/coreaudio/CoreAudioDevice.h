@@ -53,9 +53,12 @@ private:
 	 * The CoreAudio AudioUnit.
 	 */
 	AudioUnit m_audio_unit;
+	bool m_active{false};
 
 	/// The CoreAudio clock referene.
 	CAClockRef m_clock_ref;
+	bool m_audio_clock_ready{false};
+	double m_synchronizerStartTime{0};
 
 	/**
 	 * Mixes the next bytes into the buffer.
@@ -72,6 +75,7 @@ private:
 	CoreAudioDevice(const CoreAudioDevice&) = delete;
 	CoreAudioDevice& operator=(const CoreAudioDevice&) = delete;
 
+	AUD_LOCAL void preMixingWork(bool playing) override;
 	void playing(bool playing) override;
 
 public:

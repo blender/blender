@@ -192,7 +192,7 @@ EQCurveMappingData *sound_equalizer_add(SoundEqualizerModifierData *semd, float 
 
 void sound_equalizermodifier_set_graphs(SoundEqualizerModifierData *semd, int number)
 {
-  sound_equalizermodifier_free((SequenceModifierData *)semd);
+  sound_equalizermodifier_free((StripModifierData *)semd);
   if (number == 1) {
     sound_equalizer_add(semd, SOUND_EQUALIZER_DEFAULT_MIN_FREQ, SOUND_EQUALIZER_DEFAULT_MAX_FREQ);
   }
@@ -230,14 +230,14 @@ void sound_equalizermodifier_remove_graph(SoundEqualizerModifierData *semd,
   MEM_freeN(eqcmd);
 }
 
-void sound_equalizermodifier_init_data(SequenceModifierData *smd)
+void sound_equalizermodifier_init_data(StripModifierData *smd)
 {
   SoundEqualizerModifierData *semd = (SoundEqualizerModifierData *)smd;
 
   sound_equalizer_add(semd, SOUND_EQUALIZER_DEFAULT_MIN_FREQ, SOUND_EQUALIZER_DEFAULT_MAX_FREQ);
 }
 
-void sound_equalizermodifier_free(SequenceModifierData *smd)
+void sound_equalizermodifier_free(StripModifierData *smd)
 {
   SoundEqualizerModifierData *semd = (SoundEqualizerModifierData *)smd;
   LISTBASE_FOREACH_MUTABLE (EQCurveMappingData *, eqcmd, &semd->graphics) {
@@ -247,7 +247,7 @@ void sound_equalizermodifier_free(SequenceModifierData *smd)
   BLI_listbase_clear(&semd->graphics);
 }
 
-void sound_equalizermodifier_copy_data(SequenceModifierData *target, SequenceModifierData *smd)
+void sound_equalizermodifier_copy_data(StripModifierData *target, StripModifierData *smd)
 {
   SoundEqualizerModifierData *semd = (SoundEqualizerModifierData *)smd;
   SoundEqualizerModifierData *semd_target = (SoundEqualizerModifierData *)target;
@@ -264,7 +264,7 @@ void sound_equalizermodifier_copy_data(SequenceModifierData *target, SequenceMod
   }
 }
 
-void *sound_equalizermodifier_recreator(Strip *strip, SequenceModifierData *smd, void *sound)
+void *sound_equalizermodifier_recreator(Strip *strip, StripModifierData *smd, void *sound)
 {
 #ifdef WITH_CONVOLUTION
   UNUSED_VARS(strip);
@@ -336,7 +336,7 @@ const SoundModifierWorkerInfo *sound_modifier_worker_info_get(int type)
   return nullptr;
 }
 
-void *sound_modifier_recreator(Strip *strip, SequenceModifierData *smd, void *sound)
+void *sound_modifier_recreator(Strip *strip, StripModifierData *smd, void *sound)
 {
 
   if (!(smd->flag & SEQUENCE_MODIFIER_MUTE)) {

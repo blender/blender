@@ -74,6 +74,10 @@ class Context {
   /** Texture pool used to recycle temporary texture (or render target) memory. */
   TexturePool *texture_pool = nullptr;
 
+  /** Global state to avoid setting the srgb builtin uniform for every shader bind. */
+  int shader_builtin_srgb_transform = 0;
+  bool shader_builtin_srgb_is_dirty = false;
+
  protected:
   /** Thread on which this context is active. */
   pthread_t thread_;
@@ -96,8 +100,6 @@ class Context {
   virtual void flush() = 0;
   /* Will wait until the GPU has finished executing all command. */
   virtual void finish() = 0;
-
-  virtual ShaderCompiler *get_compiler() = 0;
 
   virtual void memory_statistics_get(int *r_total_mem, int *r_free_mem) = 0;
 

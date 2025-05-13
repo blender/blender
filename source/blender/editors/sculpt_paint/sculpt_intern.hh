@@ -337,7 +337,7 @@ struct StrokeCache {
   /* Clay Thumb brush */
   struct {
     /* Angle of the front tilting plane of the brush to simulate clay accumulation. */
-    float front_angle;
+    float front_angle = 0.0f;
     /* Stores the last 10 pressure samples to get a stabilized strength and radius variation. */
     std::array<float, 10> pressure_stabilizer;
     int stabilizer_index = 0;

@@ -38,7 +38,7 @@ namespace blender::io::obj {
 OBJMesh::OBJMesh(Depsgraph *depsgraph, const OBJExportParams &export_params, Object *mesh_object)
 {
   /* We need to copy the object because it may be in temporary space. */
-  Object *obj_eval = DEG_get_evaluated_object(depsgraph, mesh_object);
+  Object *obj_eval = DEG_get_evaluated(depsgraph, mesh_object);
   object_name_ = obj_eval->id.name + 2;
   export_mesh_ = nullptr;
 

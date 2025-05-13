@@ -232,7 +232,7 @@ std::ostream &operator<<(std::ostream &stream, const GeometrySet &geometry_set)
     if (mesh->runtime->subsurf_runtime_data) {
       const int resolution = mesh->runtime->subsurf_runtime_data->resolution;
       if (is_power_of_2_i(resolution - 1)) {
-        /* Display the resolution as subdiv levels if possible because that's more common.*/
+        /* Display the resolution as subdiv levels if possible because that's more common. */
         const int level = log2_floor(resolution - 1);
         parts.append(std::to_string(level) + " subdiv levels");
       }

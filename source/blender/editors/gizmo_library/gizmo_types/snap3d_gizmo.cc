@@ -70,11 +70,12 @@ void ED_gizmotypes_snap_3d_data_get(const bContext *C,
     const wmEvent *event = CTX_wm_window(C)->eventstate;
     if (event) {
       ARegion *region = CTX_wm_region(C);
-      int x = event->xy[0] - region->winrct.xmin;
-      int y = event->xy[1] - region->winrct.ymin;
-
+      const blender::int2 mval = {
+          event->xy[0] - region->winrct.xmin,
+          event->xy[1] - region->winrct.ymin,
+      };
       SnapGizmo3D *snap_gizmo = (SnapGizmo3D *)gz;
-      ED_view3d_cursor_snap_data_update(snap_gizmo->snap_state, C, region, x, y);
+      ED_view3d_cursor_snap_data_update(snap_gizmo->snap_state, C, region, mval);
     }
   }
 
@@ -257,19 +258,20 @@ static int snap_gizmo_test_select(bContext *C, wmGizmo *gz, const int mval[2])
   const ARegion *region = CTX_wm_region(C);
 
   /* Snap values are updated too late at the cursor. Be sure to update ahead of time. */
-  int x, y;
+  blender::int2 mval_copy;
   {
     const wmEvent *event = CTX_wm_window(C)->eventstate;
     if (event) {
-      x = event->xy[0] - region->winrct.xmin;
-      y = event->xy[1] - region->winrct.ymin;
+      mval_copy = {
+          event->xy[0] - region->winrct.xmin,
+          event->xy[1] - region->winrct.ymin,
+      };
     }
     else {
-      x = mval[0];
-      y = mval[1];
+      mval_copy = mval;
     }
   }
-  ED_view3d_cursor_snap_data_update(snap_gizmo->snap_state, C, region, x, y);
+  ED_view3d_cursor_snap_data_update(snap_gizmo->snap_state, C, region, mval_copy);
   V3DSnapCursorData *snap_data = ED_view3d_cursor_snap_data_get();
 
   if (snap_data->type_target != SCE_SNAP_TO_NONE) {

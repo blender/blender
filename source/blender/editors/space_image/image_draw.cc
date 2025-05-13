@@ -514,9 +514,8 @@ void draw_image_cache(const bContext *C, ARegion *region)
     int num_segments = 0;
     int *points = nullptr;
 
-    BLI_mutex_lock(static_cast<ThreadMutex *>(image->runtime.cache_mutex));
+    std::scoped_lock lock(image->runtime->cache_mutex);
     IMB_moviecache_get_cache_segments(image->cache, IMB_PROXY_NONE, 0, &num_segments, &points);
-    BLI_mutex_unlock(static_cast<ThreadMutex *>(image->runtime.cache_mutex));
 
     ED_region_cache_draw_cached_segments(
         region, num_segments, points, sfra + sima->iuser.offset, efra + sima->iuser.offset);

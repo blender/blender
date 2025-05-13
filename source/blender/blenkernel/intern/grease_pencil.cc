@@ -13,6 +13,9 @@
 #include "BKE_anim_data.hh"
 #include "BKE_animsys.h"
 #include "BKE_asset_edit.hh"
+#include "BKE_attribute_legacy_convert.hh"
+#include "BKE_attribute_storage.hh"
+#include "BKE_attribute_storage_blend_write.hh"
 #include "BKE_bake_data_block_id.hh"
 #include "BKE_curves.hh"
 #include "BKE_customdata.hh"
@@ -44,6 +47,7 @@
 #include "BLI_memarena.h"
 #include "BLI_memory_utils.hh"
 #include "BLI_polyfill_2d.h"
+#include "BLI_resource_scope.hh"
 #include "BLI_span.hh"
 #include "BLI_stack.hh"
 #include "BLI_string.h"
@@ -83,7 +87,9 @@ static const char *ATTR_POSITION = "position";
 
 /* Forward declarations. */
 static void read_drawing_array(GreasePencil &grease_pencil, BlendDataReader *reader);
-static void write_drawing_array(GreasePencil &grease_pencil, BlendWriter *writer);
+static void write_drawing_array(GreasePencil &grease_pencil,
+                                blender::ResourceScope &scope,
+                                BlendWriter *writer);
 static void free_drawing_array(GreasePencil &grease_pencil);
 
 static void read_layer_tree(GreasePencil &grease_pencil, BlendDataReader *reader);
@@ -102,6 +108,7 @@ static void grease_pencil_init_data(ID *id)
   grease_pencil->set_active_node(nullptr);
 
   CustomData_reset(&grease_pencil->layers_data);
+  new (&grease_pencil->attribute_storage.wrap()) blender::bke::AttributeStorage();
 
   grease_pencil->runtime = MEM_new<GreasePencilRuntime>(__func__);
 }
@@ -112,7 +119,7 @@ static void grease_pencil_set_runtime_visibilities(ID &id_dst, GreasePencil &gre
 {
   using namespace blender::bke;
 
-  if (!DEG_is_evaluated_id(&id_dst) || !grease_pencil.adt) {
+  if (!DEG_is_evaluated(&id_dst) || !grease_pencil.adt) {
     return;
   }
 
@@ -197,6 +204,8 @@ static void grease_pencil_copy_data(Main * /*bmain*/,
                        &grease_pencil_dst->layers_data,
                        CD_MASK_ALL,
                        grease_pencil_dst->layers().size());
+  new (&grease_pencil_dst->attribute_storage.wrap())
+      blender::bke::AttributeStorage(grease_pencil_src->attribute_storage.wrap());
 
   BKE_defgroup_copy_list(&grease_pencil_dst->vertex_group_names,
                          &grease_pencil_src->vertex_group_names);
@@ -220,6 +229,7 @@ static void grease_pencil_free_data(ID *id)
   MEM_SAFE_FREE(grease_pencil->material_array);
 
   CustomData_free(&grease_pencil->layers_data);
+  grease_pencil->attribute_storage.wrap().~AttributeStorage();
 
   free_drawing_array(*grease_pencil);
   MEM_delete(&grease_pencil->root_group());
@@ -254,10 +264,24 @@ static void grease_pencil_foreach_id(ID *id, LibraryForeachIDData *data)
 
 static void grease_pencil_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
+  using namespace blender;
+  using namespace blender::bke;
   GreasePencil *grease_pencil = reinterpret_cast<GreasePencil *>(id);
 
+  blender::ResourceScope scope;
+
   blender::Vector<CustomDataLayer, 16> layers_data_layers;
-  CustomData_blend_write_prepare(grease_pencil->layers_data, layers_data_layers);
+  blender::bke::AttributeStorage::BlendWriteData attribute_data{scope};
+  attribute_storage_blend_write_prepare(grease_pencil->attribute_storage.wrap(),
+                                        {{AttrDomain::Layer, &layers_data_layers}},
+                                        attribute_data);
+  CustomData_blend_write_prepare(grease_pencil->layers_data,
+                                 AttrDomain::Layer,
+                                 grease_pencil->layers().size(),
+                                 layers_data_layers,
+                                 attribute_data);
+  grease_pencil->attribute_storage.dna_attributes = attribute_data.attributes.data();
+  grease_pencil->attribute_storage.dna_attributes_num = attribute_data.attributes.size();
 
   /* Write LibData */
   BLO_write_id_struct(writer, GreasePencil, id_address, &grease_pencil->id);
@@ -269,9 +293,10 @@ static void grease_pencil_blend_write(BlendWriter *writer, ID *id, const void *i
                          grease_pencil->layers().size(),
                          CD_MASK_ALL,
                          id);
+  grease_pencil->attribute_storage.wrap().blend_write(*writer, attribute_data);
 
   /* Write drawings. */
-  write_drawing_array(*grease_pencil, writer);
+  write_drawing_array(*grease_pencil, scope, writer);
   /* Write layer tree. */
   write_layer_tree(*grease_pencil, writer);
 
@@ -293,6 +318,10 @@ static void grease_pencil_blend_read_data(BlendDataReader *reader, ID *id)
   read_layer_tree(*grease_pencil, reader);
 
   CustomData_blend_read(reader, &grease_pencil->layers_data, grease_pencil->layers().size());
+  grease_pencil->attribute_storage.wrap().blend_read(*reader);
+
+  /* Forward compatibility. To be removed when runtime format changes. */
+  blender::bke::grease_pencil_convert_storage_to_customdata(*grease_pencil);
 
   /* Read materials. */
   BLO_read_pointer_array(reader,
@@ -305,7 +334,7 @@ static void grease_pencil_blend_read_data(BlendDataReader *reader, ID *id)
 }
 
 IDTypeInfo IDType_ID_GP = {
-    /*id_code*/ ID_GP,
+    /*id_code*/ GreasePencil::id_type,
     /*id_filter*/ FILTER_ID_GP,
     /*dependencies_id_types*/ FILTER_ID_GP | FILTER_ID_MA,
     /*main_listbase_index*/ INDEX_ID_GP,
@@ -1940,6 +1969,15 @@ void LayerGroup::update_from_dna_read()
   }
 }
 
+void ensure_non_empty_layer_names(Main &bmain, GreasePencil &grease_pencil)
+{
+  for (bke::greasepencil::Layer *layer : grease_pencil.layers_for_write()) {
+    if (layer->name().is_empty()) {
+      grease_pencil.rename_node(bmain, layer->as_node(), DATA_("Layer"));
+    }
+  }
+}
+
 }  // namespace blender::bke::greasepencil
 
 namespace blender::bke {
@@ -1991,15 +2029,14 @@ bool BKE_grease_pencil_drawing_attribute_required(const GreasePencilDrawing * /*
 
 GreasePencil *BKE_grease_pencil_add(Main *bmain, const char *name)
 {
-  GreasePencil *grease_pencil = reinterpret_cast<GreasePencil *>(BKE_id_new(bmain, ID_GP, name));
+  GreasePencil *grease_pencil = BKE_id_new<GreasePencil>(bmain, name);
 
   return grease_pencil;
 }
 
 GreasePencil *BKE_grease_pencil_new_nomain()
 {
-  GreasePencil *grease_pencil = reinterpret_cast<GreasePencil *>(
-      BKE_id_new_nomain(ID_GP, nullptr));
+  GreasePencil *grease_pencil = BKE_id_new_nomain<GreasePencil>(nullptr);
   return grease_pencil;
 }
 
@@ -2589,6 +2626,8 @@ Material *BKE_grease_pencil_object_material_ensure_from_brush(Main *bmain,
   }
 
   /* Fall back to default material. */
+  /* XXX FIXME This is critical abuse of the 'default material' feature, these IDs should never be
+   * used/returned as 'regular' data. */
   return BKE_material_default_gpencil();
 }
 
@@ -4202,7 +4241,9 @@ static void read_drawing_array(GreasePencil &grease_pencil, BlendDataReader *rea
   }
 }
 
-static void write_drawing_array(GreasePencil &grease_pencil, BlendWriter *writer)
+static void write_drawing_array(GreasePencil &grease_pencil,
+                                blender::ResourceScope &scope,
+                                BlendWriter *writer)
 {
   using namespace blender;
   BLO_write_pointer_array(writer, grease_pencil.drawing_array_num, grease_pencil.drawing_array);
@@ -4211,10 +4252,13 @@ static void write_drawing_array(GreasePencil &grease_pencil, BlendWriter *writer
     switch (GreasePencilDrawingType(drawing_base->type)) {
       case GP_DRAWING: {
         GreasePencilDrawing *drawing = reinterpret_cast<GreasePencilDrawing *>(drawing_base);
-        bke::CurvesGeometry::BlendWriteData write_data =
-            drawing->wrap().strokes_for_write().blend_write_prepare();
+        bke::CurvesGeometry &curves = drawing->wrap().strokes_for_write();
+
+        bke::CurvesGeometry::BlendWriteData write_data(scope);
+        curves.blend_write_prepare(write_data);
+
         BLO_write_struct(writer, GreasePencilDrawing, drawing);
-        drawing->wrap().strokes_for_write().blend_write(*writer, grease_pencil.id, write_data);
+        curves.blend_write(*writer, grease_pencil.id, write_data);
         break;
       }
       case GP_DRAWING_REFERENCE: {

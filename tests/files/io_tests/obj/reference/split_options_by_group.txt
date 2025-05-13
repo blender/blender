@@ -1,0 +1,110 @@
+==== Meshes: 6
+- Mesh 'BoxOne' vtx:4 face:1 loop:4 edge:4
+    - 2 0 1 3 
+    - 2/3 0/2 0/1 1/3 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (1.000, -1.000, -1.000)
+    - (1.000, -1.000, 1.000)
+    - (-1.000, -1.000, -1.000)
+    - (-1.000, -1.000, 1.000)
+  - attr 'material_index' INT FACE
+    - 0 
+  - attr 'sharp_face' BOOLEAN FACE
+    - 1 
+
+- Mesh 'BoxTwo' vtx:6 face:2 loop:8 edge:7
+    - 1 0 4 5 5 4 2 3 
+    - 1/5 0/1 0/4 4/5 3/5 2/4 2/3 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (1.000, 1.000, 1.000)
+    - (1.000, -1.000, 1.000)
+    - (-1.000, 1.000, -1.000)
+    - (-1.000, -1.000, -1.000)
+    - (-1.000, 1.000, 1.000)
+    - (-1.000, -1.000, 1.000)
+  - attr 'material_index' INT FACE
+    - 0 0 
+  - attr 'sharp_face' BOOLEAN FACE
+    - 1 1 
+
+- Mesh 'BoxTwo.001' vtx:6 face:2 loop:8 edge:7
+    - 1 0 2 3 5 4 0 1 
+    - 1/3 0/1 0/2 2/3 1/5 4/5 0/4 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (1.000, 1.000, -1.000)
+    - (1.000, -1.000, -1.000)
+    - (1.000, 1.000, 1.000)
+    - (1.000, -1.000, 1.000)
+    - (-1.000, 1.000, -1.000)
+    - (-1.000, -1.000, -1.000)
+  - attr 'material_index' INT FACE
+    - 0 0 
+  - attr 'sharp_face' BOOLEAN FACE
+    - 1 1 
+
+- Mesh 'PyrBottom' vtx:4 face:1 loop:4 edge:4
+    - 0 1 2 3 
+    - 0/3 0/1 1/2 2/3 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (3.000, 1.000, -1.000)
+    - (5.000, 1.000, -1.000)
+    - (5.000, -1.000, -1.000)
+    - (3.000, -1.000, -1.000)
+  - attr 'material_index' INT FACE
+    - 0 
+  - attr 'sharp_face' BOOLEAN FACE
+    - 1 
+
+- Mesh 'PyrSides' vtx:5 face:4 loop:12 edge:8
+    - 0 1 4 1 2 ... 3 4 3 0 4 
+    - 0/4 0/1 1/4 1/2 2/4 2/3 3/4 0/3 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (3.000, 1.000, -1.000)
+    - (5.000, 1.000, -1.000)
+    - (5.000, -1.000, -1.000)
+    - (3.000, -1.000, -1.000)
+    - (4.000, 0.000, 2.000)
+  - attr 'material_index' INT FACE
+    - 0 0 0 0 
+  - attr 'sharp_face' BOOLEAN FACE
+    - 1 1 1 1 
+
+- Mesh 'split_options_by_group' vtx:4 face:1 loop:4 edge:4
+    - 0 2 3 1 
+    - 0/1 0/2 2/3 1/3 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (1.000, 1.000, -1.000)
+    - (1.000, 1.000, 1.000)
+    - (-1.000, 1.000, -1.000)
+    - (-1.000, 1.000, 1.000)
+  - attr 'material_index' INT FACE
+    - 0 
+  - attr 'sharp_face' BOOLEAN FACE
+    - 1 
+
+==== Objects: 6
+- Obj 'BoxOne' MESH data:'BoxOne'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'BoxTwo' MESH data:'BoxTwo'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'BoxTwo.001' MESH data:'BoxTwo.001'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'PyrBottom' MESH data:'PyrBottom'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'PyrSides' MESH data:'PyrSides'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'split_options_by_group' MESH data:'split_options_by_group'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+

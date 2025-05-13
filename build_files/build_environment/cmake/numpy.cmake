@@ -28,8 +28,8 @@ ExternalProject_Add(external_numpy
   BUILD_IN_SOURCE 1
 
   BUILD_COMMAND
-    ${PYTHON_BINARY} ${BUILD_DIR}/numpy/src/external_numpy/setup.py
-      build ${NUMPY_BUILD_OPTION}
+    ${PYTHON_BINARY} setup.py
+      build ${NUMPY_BUILD_OPTION} -j${MAKE_THREADS}
       install
       --old-and-unmanageable
 
@@ -40,4 +40,5 @@ add_dependencies(
   external_numpy
   external_python
   external_python_site_packages
+  external_cython
 )

@@ -899,6 +899,13 @@ TREENODE_COMMON_METHODS_FORWARD_IMPL(LayerGroup);
 
 const AttributeAccessorFunctions &get_attribute_accessor_functions();
 
+/**
+ * Renames layers with empty names to "Layer".
+ * \note While original data should not have layers with empty names, we allow layer names to be
+ * empty in evaluated geometry.
+ */
+void ensure_non_empty_layer_names(Main &bmain, GreasePencil &grease_pencil);
+
 }  // namespace greasepencil
 
 class GreasePencilRuntime {

@@ -65,27 +65,6 @@ struct ShadowTracingSample {
 };
 
 /**
- * This need to be instantiated for each `ShadowRay*` type.
- * This way we can implement `shadow_map_trace_sample` for each type without too much code
- * duplication.
- * Most of the code is wrapped into functions to avoid to debug issues inside macro code.
- */
-#define SHADOW_MAP_TRACE_FN(ShadowRayType) \
-  bool shadow_map_trace(ShadowRayType ray, int sample_count, float step_offset) \
-  { \
-    ShadowMapTracingState state = shadow_map_trace_init(sample_count, step_offset); \
-    for (int i = 0; (i <= sample_count) && (i <= SHADOW_MAX_STEP) && (state.hit == false); i++) { \
-      /* Saturate to always cover the shading point position when i == sample_count. */ \
-      state.ray_time = square(saturate(float(i) * state.ray_step_mul + state.ray_step_bias)); \
-\
-      ShadowTracingSample samp = shadow_map_trace_sample(state, ray); \
-\
-      shadow_map_trace_hit_check(state, samp, i == sample_count); \
-    } \
-    return state.hit; \
-  }
-
-/**
  * We trace from a point on the light towards the shading point.
  *
  * This reverse tracing allows to approximate the geometry behind occluders while minimizing
@@ -130,6 +109,27 @@ void shadow_map_trace_hit_check(inout ShadowMapTracingState state,
     /* Intersection test. Intersect if above the ray time. */
     state.hit = is_behind_occluder || (is_last_sample && (samp.occluder.x > state.ray_time));
   }
+}
+
+/**
+ * This need to be instantiated for each `ShadowRay*` type.
+ * This way we can implement `shadow_map_trace_sample` for each type without too much code
+ * duplication.
+ * Most of the code is wrapped into functions to avoid to debug issues inside macro code.
+ */
+template<typename ShadowRayType>
+bool shadow_map_trace(ShadowRayType ray, int sample_count, float step_offset)
+{
+  ShadowMapTracingState state = shadow_map_trace_init(sample_count, step_offset);
+  for (int i = 0; (i <= sample_count) && (i <= SHADOW_MAX_STEP) && (state.hit == false); i++)
+  { /* Saturate to always cover the shading point position when i == sample_count. */
+    state.ray_time = square(saturate(float(i) * state.ray_step_mul + state.ray_step_bias));
+
+    ShadowTracingSample samp = shadow_map_trace_sample(state, ray);
+
+    shadow_map_trace_hit_check(state, samp, i == sample_count);
+  }
+  return state.hit;
 }
 
 /** \} */
@@ -198,7 +198,7 @@ ShadowTracingSample shadow_map_trace_sample(ShadowMapTracingState state,
   return samp;
 }
 
-SHADOW_MAP_TRACE_FN(ShadowRayDirectional)
+template bool shadow_map_trace<ShadowRayDirectional>(ShadowRayDirectional, int, float);
 
 /** \} */
 
@@ -299,7 +299,7 @@ ShadowTracingSample shadow_map_trace_sample(ShadowMapTracingState state,
   return samp;
 }
 
-SHADOW_MAP_TRACE_FN(ShadowRayPunctual)
+template bool shadow_map_trace<ShadowRayPunctual>(ShadowRayPunctual, int, float);
 
 /** \} */
 

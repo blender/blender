@@ -74,7 +74,7 @@ static void node_composit_buts_moviedistortion(uiLayout *layout, bContext *C, Po
     return;
   }
 
-  uiItemR(layout, ptr, "distortion_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  layout->prop(ptr, "distortion_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 }
 
 using namespace blender::compositor;
@@ -163,7 +163,7 @@ static NodeOperation *get_compositor_operation(Context &context, DNode node)
 
 }  // namespace blender::nodes::node_composite_moviedistortion_cc
 
-void register_node_type_cmp_moviedistortion()
+static void register_node_type_cmp_moviedistortion()
 {
   namespace file_ns = blender::nodes::node_composite_moviedistortion_cc;
 
@@ -184,3 +184,4 @@ void register_node_type_cmp_moviedistortion()
 
   blender::bke::node_register_type(ntype);
 }
+NOD_REGISTER_NODE(register_node_type_cmp_moviedistortion)

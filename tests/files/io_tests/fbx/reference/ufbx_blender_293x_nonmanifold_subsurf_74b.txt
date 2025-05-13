@@ -1,0 +1,41 @@
+==== Meshes: 1
+- Mesh 'Plane' vtx:8 face:3 loop:12 edge:10
+    - 4 5 3 2 0 ... 4 4 5 7 6 
+    - 4/5 3/5 2/3 2/4 0/1 1/5 0/4 5/7 6/7 4/6 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-1.000, -1.000, 0.000)
+    - (1.000, -1.000, 0.000)
+    - (-1.000, 1.000, 0.000)
+      ...
+    - (1.000, 0.000, 0.000)
+    - (-1.000, 0.000, 1.000)
+    - (1.000, 0.000, 1.000)
+  - attr 'crease_edge' FLOAT EDGE
+    - 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 0 0 0 0 0 0 0 0 0 0 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - attr 'UVMap' FLOAT2 CORNER
+    - (0.666, 0.667)
+    - (0.000, 0.667)
+    - (0.000, 0.333)
+      ...
+    - (0.000, 1.000)
+    - (0.000, 0.667)
+    - (0.666, 0.667)
+
+==== Objects: 1
+- Obj 'Plane' MESH data:'Plane'
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+  - 1 modifiers
+    - SUBSURF 'Subdivision' levels:1/1 type:CATMULL_CLARK crease:True
+

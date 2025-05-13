@@ -482,7 +482,7 @@ static PyObject *bpy_rna_context_temp_override_exit(BPyContextTempOverride *self
         CTX_wm_region_set(C, self->ctx_init.region);
         is_container_set = true;
       }
-      /* Enable is there is ever data nested within the region.  */
+      /* Enable is there is ever data nested within the region. */
       else if (false && self->ctx_temp.region_is_set) {
         if (self->ctx_init.region == CTX_wm_region(C)) {
           is_container_set = true;

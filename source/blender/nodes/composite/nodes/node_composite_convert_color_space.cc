@@ -53,12 +53,12 @@ static void node_composit_buts_convert_colorspace(uiLayout *layout,
                                                   bContext * /*C*/,
                                                   PointerRNA *ptr)
 {
-#ifndef WITH_OCIO
-  uiItemL(layout, RPT_("Disabled, built without OpenColorIO"), ICON_ERROR);
+#ifndef WITH_OPENCOLORIO
+  layout->label(RPT_("Disabled, built without OpenColorIO"), ICON_ERROR);
 #endif
 
-  uiItemR(layout, ptr, "from_color_space", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
-  uiItemR(layout, ptr, "to_color_space", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "from_color_space", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "to_color_space", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 }
 
 using namespace blender::compositor;
@@ -190,7 +190,7 @@ static NodeOperation *get_compositor_operation(Context &context, DNode node)
 
 }  // namespace blender::nodes::node_composite_convert_color_space_cc
 
-void register_node_type_cmp_convert_color_space()
+static void register_node_type_cmp_convert_color_space()
 {
   namespace file_ns = blender::nodes::node_composite_convert_color_space_cc;
   static blender::bke::bNodeType ntype;
@@ -210,3 +210,4 @@ void register_node_type_cmp_convert_color_space()
 
   blender::bke::node_register_type(ntype);
 }
+NOD_REGISTER_NODE(register_node_type_cmp_convert_color_space)

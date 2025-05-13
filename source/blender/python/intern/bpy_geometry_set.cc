@@ -120,7 +120,7 @@ static BPy_GeometrySet *BPy_GeometrySet_static_from_evaluated_object(PyObject * 
     return nullptr;
   }
   Object *evaluated_object = reinterpret_cast<Object *>(evaluated_object_id);
-  if (!DEG_is_evaluated_object(evaluated_object)) {
+  if (!DEG_is_evaluated(evaluated_object)) {
     PyErr_SetString(PyExc_TypeError, "Expected an evaluated object");
     return nullptr;
   }

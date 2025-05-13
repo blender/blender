@@ -8,9 +8,10 @@
  * \ingroup bke
  */
 
-struct ListBase;
+#include "DNA_curves_types.h"
+
 struct Curve;
-struct Curves;
+struct ListBase;
 
 namespace blender::bke {
 
@@ -23,5 +24,10 @@ Curves *curve_legacy_to_curves(const Curve &curve_legacy);
  * geometry data. Caller owns the returned pointer.
  */
 Curves *curve_legacy_to_curves(const Curve &curve_legacy, const ListBase &nurbs_list);
+
+/**
+ * Determine Curves knot mode from legacy flag.
+ */
+KnotsMode knots_mode_from_legacy(short flag);
 
 }  // namespace blender::bke

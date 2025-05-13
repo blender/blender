@@ -12,6 +12,9 @@
 #include "BLI_math_vector.h"
 #include "BLI_math_vector_types.hh"
 
+#include "BKE_curve_legacy_convert.hh"
+#include "BKE_curves.hh"
+
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
 
@@ -24,7 +27,7 @@ OBJCurve::OBJCurve(const Depsgraph *depsgraph,
                    Object *curve_object)
     : export_object_eval_(curve_object)
 {
-  export_object_eval_ = DEG_get_evaluated_object(depsgraph, curve_object);
+  export_object_eval_ = DEG_get_evaluated(depsgraph, curve_object);
   export_curve_ = static_cast<Curve *>(export_object_eval_->data);
   set_world_axes_transform(export_params.forward_axis, export_params.up_axis);
 }
@@ -52,6 +55,11 @@ int OBJCurve::total_splines() const
   return BLI_listbase_count(&export_curve_->nurb);
 }
 
+const Nurb *OBJCurve::get_spline(const int spline_index) const
+{
+  return static_cast<Nurb *>(BLI_findlink(&export_curve_->nurb, spline_index));
+}
+
 int OBJCurve::total_spline_vertices(const int spline_index) const
 {
   const Nurb *const nurb = static_cast<Nurb *>(BLI_findlink(&export_curve_->nurb, spline_index));
@@ -71,29 +79,53 @@ float3 OBJCurve::vertex_coordinates(const int spline_index,
   return r_coord;
 }
 
-int OBJCurve::total_spline_control_points(const int spline_index) const
+int OBJCurve::num_control_points_u(int spline_index) const
 {
   const Nurb *const nurb = static_cast<Nurb *>(BLI_findlink(&export_curve_->nurb, spline_index));
-  int degree = nurb->type == CU_POLY ? 1 : nurb->orderu - 1;
-  /* Total control points = Number of points in the curve (+ degree of the
-   * curve if it is cyclic). */
-  int tot_control_points = nurb->pntsv * nurb->pntsu;
-  if (nurb->flagu & CU_NURB_CYCLIC) {
-    tot_control_points += degree;
-  }
-  return tot_control_points;
+  return nurb->pntsu + (nurb->flagu & CU_NURB_CYCLIC ? get_nurbs_degree_u(spline_index) : 0);
 }
 
-int OBJCurve::get_nurbs_degree(const int spline_index) const
+int OBJCurve::num_control_points_v(int spline_index) const
+{
+  const Nurb *const nurb = static_cast<Nurb *>(BLI_findlink(&export_curve_->nurb, spline_index));
+  return nurb->pntsv + (nurb->flagv & CU_NURB_CYCLIC ? get_nurbs_degree_v(spline_index) : 0);
+}
+
+int OBJCurve::get_nurbs_degree_u(const int spline_index) const
 {
   const Nurb *const nurb = static_cast<Nurb *>(BLI_findlink(&export_curve_->nurb, spline_index));
   return nurb->type == CU_POLY ? 1 : nurb->orderu - 1;
+}
+
+int OBJCurve::get_nurbs_degree_v(const int spline_index) const
+{
+  const Nurb *const nurb = static_cast<Nurb *>(BLI_findlink(&export_curve_->nurb, spline_index));
+  return nurb->type == CU_POLY ? 1 : nurb->orderv - 1;
 }
 
 short OBJCurve::get_nurbs_flagu(const int spline_index) const
 {
   const Nurb *const nurb = static_cast<Nurb *>(BLI_findlink(&export_curve_->nurb, spline_index));
   return nurb->flagu;
+}
+
+Span<float> OBJCurve::get_knots_u(int spline_index, Vector<float> &knot_buffer) const
+{
+  const Nurb *const nurb = static_cast<Nurb *>(BLI_findlink(&export_curve_->nurb, spline_index));
+  const short flag = nurb->flagu;
+  const int8_t order = get_nurbs_degree_u(spline_index) + 1; /* Use utility in case of POLY */
+  const bool cyclic = flag & CU_NURB_CYCLIC;
+
+  const int knot_count = bke::curves::nurbs::knots_num(nurb->pntsu, order, cyclic);
+
+  if (flag & CU_NURB_CUSTOM) {
+    return Span<float>(nurb->knotsu, knot_count);
+  }
+
+  knot_buffer.resize(knot_count);
+  bke::curves::nurbs::calculate_knots(
+      nurb->pntsu, bke::knots_mode_from_legacy(flag), order, cyclic, knot_buffer);
+  return knot_buffer;
 }
 
 }  // namespace blender::io::obj

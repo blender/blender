@@ -1,0 +1,22 @@
+# Blender 3.6.0 Alpha MTL File: 'materials_pbr.blend'
+# www.blender.org
+
+newmtl Mat1
+Ns 360.000000
+Ka 0.900000 0.900000 0.900000
+Kd 0.800000 0.276449 0.101911
+Ks 0.250000 0.250000 0.250000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 3
+
+newmtl Mat2
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Ns ../blend_geometry/texture_roughness.png
+map_Ke ../blend_geometry/texture_illum.png

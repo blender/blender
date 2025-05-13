@@ -1,0 +1,80 @@
+==== Objects: 2
+- Obj 'CAM_006' CAMERA data:'Camera'
+  - pos -10.415, 6.108, 14.032
+  - rot -1.571, 2.656, -0.023 (XYZ)
+  - scl 0.010, 0.010, 0.010
+  - anim act:Take 001 slot:OBCAM_006 blend:REPLACE drivers:0
+  - props: int:MaxHandle=132
+- Obj 'CAM_006.Target' EMPTY
+  - pos -2.711, 5.929, 18.094
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 0.010, 0.010, 0.010
+  - anim act:Take 001 slot:OBCAM_006.Target blend:REPLACE drivers:0
+  - props: int:MaxHandle=133
+
+==== Cameras: 1
+- Cam 'Camera' PERSP lens:38.0 MILLIMETERS near:0.100 far:40.0 orthosize:1.0
+  - fov 0.886 (h 0.886 v 0.521)
+  - sensor 36.0x20.3 shift 0.000,0.000
+
+==== Actions: 1
+- Action 'Take 001' curverange:(1.0 .. 76.0) layers:1
+- ActionLayer Layer strips:1
+ - Keyframe strip channelbags:2
+ - Channelbag slot 'OBCAM_006' curves:9
+  - fcu 'location[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'CAM_006'
+    - (1.000, -10.415) lh:(-24.000, -10.415 AUTO_CLAMPED) rh:(26.000, -10.415 AUTO_CLAMPED)
+    - (76.000, -10.779) lh:(51.000, -10.779 AUTO_CLAMPED) rh:(101.000, -10.779 AUTO_CLAMPED)
+  - fcu 'location[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'CAM_006'
+    - (1.000, 6.108) lh:(-24.000, 6.108 AUTO_CLAMPED) rh:(26.000, 6.108 AUTO_CLAMPED)
+    - (76.000, 5.566) lh:(51.000, 5.566 AUTO_CLAMPED) rh:(101.000, 5.566 AUTO_CLAMPED)
+  - fcu 'location[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'CAM_006'
+    - (1.000, 14.032) lh:(-24.000, 14.032 AUTO_CLAMPED) rh:(26.000, 14.032 AUTO_CLAMPED)
+    - (76.000, 13.910) lh:(51.000, 13.910 AUTO_CLAMPED) rh:(101.000, 13.910 AUTO_CLAMPED)
+  - fcu 'rotation_euler[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'CAM_006'
+    - (1.000, -1.571) lh:(-24.000, -1.571 AUTO_CLAMPED) rh:(26.000, -1.571 AUTO_CLAMPED)
+    - (76.000, -1.571) lh:(51.000, -1.571 AUTO_CLAMPED) rh:(101.000, -1.571 AUTO_CLAMPED)
+  - fcu 'rotation_euler[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'CAM_006'
+    - (1.000, 2.656) lh:(-24.000, 2.656 AUTO_CLAMPED) rh:(26.000, 2.656 AUTO_CLAMPED)
+    - (76.000, 2.656) lh:(51.000, 2.656 AUTO_CLAMPED) rh:(101.000, 2.656 AUTO_CLAMPED)
+  - fcu 'rotation_euler[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'CAM_006'
+    - (1.000, -0.023) lh:(-24.000, -0.023 AUTO_CLAMPED) rh:(26.000, -0.023 AUTO_CLAMPED)
+    - (76.000, -0.023) lh:(51.000, -0.023 AUTO_CLAMPED) rh:(101.000, -0.023 AUTO_CLAMPED)
+  - fcu 'scale[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'CAM_006'
+    - (1.000, 0.010) lh:(-24.000, 0.010 AUTO_CLAMPED) rh:(26.000, 0.010 AUTO_CLAMPED)
+    - (76.000, 0.010) lh:(51.000, 0.010 AUTO_CLAMPED) rh:(101.000, 0.010 AUTO_CLAMPED)
+  - fcu 'scale[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'CAM_006'
+    - (1.000, 0.010) lh:(-24.000, 0.010 AUTO_CLAMPED) rh:(26.000, 0.010 AUTO_CLAMPED)
+    - (76.000, 0.010) lh:(51.000, 0.010 AUTO_CLAMPED) rh:(101.000, 0.010 AUTO_CLAMPED)
+  - fcu 'scale[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'CAM_006'
+    - (1.000, 0.010) lh:(-24.000, 0.010 AUTO_CLAMPED) rh:(26.000, 0.010 AUTO_CLAMPED)
+    - (76.000, 0.010) lh:(51.000, 0.010 AUTO_CLAMPED) rh:(101.000, 0.010 AUTO_CLAMPED)
+ - Channelbag slot 'OBCAM_006.Target' curves:9
+  - fcu 'location[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'CAM_006.Target'
+    - (1.000, -2.711) lh:(-24.000, -2.711 AUTO_CLAMPED) rh:(26.000, -2.711 AUTO_CLAMPED)
+    - (76.000, -2.754) lh:(51.000, -2.754 AUTO_CLAMPED) rh:(101.000, -2.754 AUTO_CLAMPED)
+  - fcu 'location[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'CAM_006.Target'
+    - (1.000, 5.929) lh:(-24.000, 5.929 AUTO_CLAMPED) rh:(26.000, 5.929 AUTO_CLAMPED)
+    - (76.000, 6.171) lh:(51.000, 6.171 AUTO_CLAMPED) rh:(101.000, 6.171 AUTO_CLAMPED)
+  - fcu 'location[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'CAM_006.Target'
+    - (1.000, 18.094) lh:(-24.000, 18.094 AUTO_CLAMPED) rh:(26.000, 18.094 AUTO_CLAMPED)
+    - (76.000, 18.141) lh:(51.000, 18.141 AUTO_CLAMPED) rh:(101.000, 18.141 AUTO_CLAMPED)
+  - fcu 'rotation_euler[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'CAM_006.Target'
+    - (1.000, 0.000) lh:(-24.000, 0.000 AUTO_CLAMPED) rh:(26.000, 0.000 AUTO_CLAMPED)
+    - (76.000, 0.000) lh:(51.000, 0.000 AUTO_CLAMPED) rh:(101.000, 0.000 AUTO_CLAMPED)
+  - fcu 'rotation_euler[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'CAM_006.Target'
+    - (1.000, 0.000) lh:(-24.000, 0.000 AUTO_CLAMPED) rh:(26.000, 0.000 AUTO_CLAMPED)
+    - (76.000, 0.000) lh:(51.000, 0.000 AUTO_CLAMPED) rh:(101.000, 0.000 AUTO_CLAMPED)
+  - fcu 'rotation_euler[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'CAM_006.Target'
+    - (1.000, 0.000) lh:(-24.000, 0.000 AUTO_CLAMPED) rh:(26.000, 0.000 AUTO_CLAMPED)
+    - (76.000, 0.000) lh:(51.000, 0.000 AUTO_CLAMPED) rh:(101.000, 0.000 AUTO_CLAMPED)
+  - fcu 'scale[0]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'CAM_006.Target'
+    - (1.000, 0.010) lh:(-24.000, 0.010 AUTO_CLAMPED) rh:(26.000, 0.010 AUTO_CLAMPED)
+    - (76.000, 0.010) lh:(51.000, 0.010 AUTO_CLAMPED) rh:(101.000, 0.010 AUTO_CLAMPED)
+  - fcu 'scale[1]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'CAM_006.Target'
+    - (1.000, 0.010) lh:(-24.000, 0.010 AUTO_CLAMPED) rh:(26.000, 0.010 AUTO_CLAMPED)
+    - (76.000, 0.010) lh:(51.000, 0.010 AUTO_CLAMPED) rh:(101.000, 0.010 AUTO_CLAMPED)
+  - fcu 'scale[2]' smooth:CONT_ACCEL extra:CONSTANT keyframes:2 grp:'CAM_006.Target'
+    - (1.000, 0.010) lh:(-24.000, 0.010 AUTO_CLAMPED) rh:(26.000, 0.010 AUTO_CLAMPED)
+    - (76.000, 0.010) lh:(51.000, 0.010 AUTO_CLAMPED) rh:(101.000, 0.010 AUTO_CLAMPED)
+

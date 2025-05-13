@@ -12,10 +12,9 @@
 /* exposed internal in render module only! */
 /* ------------------------------------------------------------------------- */
 
-#include <mutex>
-
 #include "DNA_scene_types.h"
 
+#include "BLI_mutex.hh"
 #include "BLI_threads.h"
 
 #include "RE_compositor.hh"
@@ -216,7 +215,7 @@ struct Render : public BaseRender {
   /* Compositor.
    * NOTE: Use bare pointer instead of smart pointer because the it is a fully opaque type. */
   blender::render::Compositor *compositor = nullptr;
-  std::mutex compositor_mutex;
+  blender::Mutex compositor_mutex;
 
   /* Callbacks for the corresponding base class method implementation. */
   void (*display_init_cb)(void *handle, RenderResult *rr) = nullptr;

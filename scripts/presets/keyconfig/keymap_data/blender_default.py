@@ -3204,6 +3204,8 @@ def km_sequencer_preview(params):
 
         # Transform Actions.
         *_template_items_transform_actions(params, use_mirror=True),
+        ("transform.translate", {"type": 'PERIOD', "ctrl": True, "value": 'PRESS'},
+         {"properties": [("translate_origin", True)]}),
 
         # Edit.
         ("sequencer.strip_transform_clear", {"type": 'G', "alt": True, "value": 'PRESS'},
@@ -4000,7 +4002,7 @@ def km_grease_pencil_edit_mode(params):
         ("grease_pencil.duplicate_move", {"type": 'D', "value": 'PRESS', "shift": True}, None),
 
         # Split Stroke
-        ("grease_pencil.stroke_split", {"type": 'V', "value": 'PRESS'}, None),
+        ("grease_pencil.stroke_split", {"type": 'V', "value": 'PRESS', "shift": True}, None),
 
         # Extrude and move selected points
         op_tool_optional(

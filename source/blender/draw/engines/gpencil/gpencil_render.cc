@@ -51,7 +51,7 @@ static void render_set_view(RenderEngine *engine,
                             const Depsgraph *depsgraph,
                             const float2 aa_offset = float2{0.0f})
 {
-  Object *camera = DEG_get_evaluated_object(depsgraph, RE_GetCamera(engine->re));
+  Object *camera = DEG_get_evaluated(depsgraph, RE_GetCamera(engine->re));
 
   float4x4 winmat, viewinv;
   RE_GetCameraWindow(engine->re, camera, winmat.ptr());
@@ -294,7 +294,7 @@ void Engine::render_to_image(RenderEngine *engine, RenderLayer *render_layer, co
   render_init_buffers(draw_ctx, inst, engine, render_layer, &rect, false);
   inst.init();
 
-  inst.camera = DEG_get_evaluated_object(depsgraph, RE_GetCamera(engine->re));
+  inst.camera = DEG_get_evaluated(depsgraph, RE_GetCamera(engine->re));
 
   manager.begin_sync();
 

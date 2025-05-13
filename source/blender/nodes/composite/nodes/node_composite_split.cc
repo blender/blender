@@ -40,8 +40,7 @@ static void cmp_node_split_declare(NodeDeclarationBuilder &b)
 static void node_composit_buts_split(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiLayout *row = &layout->row(false);
-  uiItemR(
-      row, ptr, "axis", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  row->prop(ptr, "axis", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 }
 
 using namespace blender::compositor;
@@ -143,7 +142,7 @@ static NodeOperation *get_compositor_operation(Context &context, DNode node)
 
 }  // namespace blender::nodes::node_composite_split_cc
 
-void register_node_type_cmp_split()
+static void register_node_type_cmp_split()
 {
   namespace file_ns = blender::nodes::node_composite_split_cc;
 
@@ -165,3 +164,4 @@ void register_node_type_cmp_split()
 
   blender::bke::node_register_type(ntype);
 }
+NOD_REGISTER_NODE(register_node_type_cmp_split)

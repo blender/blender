@@ -127,7 +127,7 @@ struct AddOperationExecutor {
       return;
     }
 
-    surface_ob_eval_ = DEG_get_evaluated_object(ctx_.depsgraph, &surface_ob_orig);
+    surface_ob_eval_ = DEG_get_evaluated(ctx_.depsgraph, &surface_ob_orig);
     if (surface_ob_eval_ == nullptr) {
       return;
     }

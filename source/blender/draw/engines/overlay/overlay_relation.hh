@@ -63,8 +63,8 @@ class Relations : Overlay {
     }
 
     Object *ob = ob_ref.object;
-    const float4 &relation_color = res.theme_settings.color_wire;
-    const float4 &constraint_color = res.theme_settings.color_grid_axis_z; /* ? */
+    const float4 &relation_color = res.theme.colors.wire;
+    const float4 &constraint_color = res.theme.colors.grid_axis_z; /* ? */
 
     if (ob->parent && (DRW_object_visibility_in_active_context(ob->parent) & OB_VISIBLE_SELF)) {
       const float3 &parent_pos = ob->runtime->parent_display_origin;

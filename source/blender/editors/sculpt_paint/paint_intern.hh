@@ -22,7 +22,6 @@ enum class PaintMode : int8_t;
 struct ARegion;
 struct bContext;
 struct Brush;
-struct ColorManagedDisplay;
 struct Depsgraph;
 struct Image;
 struct ImagePool;
@@ -57,7 +56,12 @@ namespace ed::sculpt_paint {
 struct PaintStroke;
 struct StrokeCache;
 }  // namespace ed::sculpt_paint
+
+namespace ocio {
+class Display;
+}
 }  // namespace blender
+using ColorManagedDisplay = blender::ocio::Display;
 
 /* paint_stroke.cc */
 
@@ -316,7 +320,7 @@ void paint_2d_stroke(void *ps,
                      float distance,
                      float base_size);
 /**
- * This function expects linear space color values.
+ * This function expects sRGB space color values.
  */
 void paint_2d_bucket_fill(const bContext *C,
                           const float color[3],
@@ -345,7 +349,7 @@ void paint_brush_color_get(Scene *scene,
                            bool invert,
                            float distance,
                            float pressure,
-                           ColorManagedDisplay *display,
+                           const ColorManagedDisplay *display,
                            float r_color[3]);
 bool paint_use_opacity_masking(Brush *brush);
 void paint_brush_init_tex(Brush *brush);

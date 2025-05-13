@@ -1302,7 +1302,7 @@ static PyObject *bpy_bmesh_from_object(BPy_BMesh *self, PyObject *args, PyObject
 
   const bool use_render = DEG_get_mode(depsgraph) == DAG_EVAL_RENDER;
   scene_eval = DEG_get_evaluated_scene(depsgraph);
-  ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+  ob_eval = DEG_get_evaluated(depsgraph, ob);
   bool need_free = false;
 
   /* Write the display mesh into the dummy mesh */

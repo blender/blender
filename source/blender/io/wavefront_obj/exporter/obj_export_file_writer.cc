@@ -466,8 +466,13 @@ void OBJWriter::write_edges_indices(FormatHandler &fh,
 
 void OBJWriter::write_nurbs_curve(FormatHandler &fh, const OBJCurve &obj_nurbs_data) const
 {
+
   const int total_splines = obj_nurbs_data.total_splines();
   for (int spline_idx = 0; spline_idx < total_splines; spline_idx++) {
+    /* Double check no surface is passed in as they are no supported (this is filtered when parsed)
+     */
+    BLI_assert(obj_nurbs_data.get_spline(spline_idx)->pntsv == 1);
+
     const int total_vertices = obj_nurbs_data.total_spline_vertices(spline_idx);
     for (int vertex_idx = 0; vertex_idx < total_vertices; vertex_idx++) {
       const float3 vertex_coords = obj_nurbs_data.vertex_coordinates(
@@ -476,10 +481,10 @@ void OBJWriter::write_nurbs_curve(FormatHandler &fh, const OBJCurve &obj_nurbs_d
     }
 
     const char *nurbs_name = obj_nurbs_data.get_curve_name();
-    const int nurbs_degree = obj_nurbs_data.get_nurbs_degree(spline_idx);
+    const int degree_u = obj_nurbs_data.get_nurbs_degree_u(spline_idx);
     fh.write_obj_group(nurbs_name);
     fh.write_obj_cstype();
-    fh.write_obj_nurbs_degree(nurbs_degree);
+    fh.write_obj_nurbs_degree(degree_u);
     /**
      * The numbers written here are indices into the vertex coordinates written
      * earlier, relative to the line that is going to be written.
@@ -487,36 +492,24 @@ void OBJWriter::write_nurbs_curve(FormatHandler &fh, const OBJCurve &obj_nurbs_d
      * 0.0 1.0 -1 -2 -3 -4 for a non-cyclic curve with 4 vertices.
      * 0.0 1.0 -1 -2 -3 -4 -1 -2 -3 for a cyclic curve with 4 vertices.
      */
-    const int total_control_points = obj_nurbs_data.total_spline_control_points(spline_idx);
+    const int num_points_u = obj_nurbs_data.num_control_points_u(spline_idx);
+    Vector<float> knot_buffer;
+    Span<float> knotsu = obj_nurbs_data.get_knots_u(spline_idx, knot_buffer);
+
     fh.write_obj_curve_begin();
-    for (int i = 0; i < total_control_points; i++) {
+    fh.write_obj_nurbs_parm(knotsu[degree_u]);
+    fh.write_obj_nurbs_parm(knotsu.last(degree_u));
+
+    for (int i = 0; i < num_points_u; i++) {
       /* "+1" to keep indices one-based, even if they're negative: i.e., -1 refers to the
        * last vertex coordinate, -2 second last. */
       fh.write_obj_face_v(-((i % total_vertices) + 1));
     }
     fh.write_obj_curve_end();
 
-    /**
-     * In `parm u 0 0.1 ..` line:, (total control points + 2) equidistant numbers in the
-     * parameter range are inserted. However for curves with endpoint flag,
-     * first degree+1 numbers are zeroes, and last degree+1 numbers are ones
-     */
-
-    const short flagsu = obj_nurbs_data.get_nurbs_flagu(spline_idx);
-    const bool cyclic = flagsu & CU_NURB_CYCLIC;
-    const bool endpoint = !cyclic && (flagsu & CU_NURB_ENDPOINT);
     fh.write_obj_nurbs_parm_begin();
-    for (int i = 1; i <= total_control_points + 2; i++) {
-      float parm = 1.0f * i / (total_control_points + 2 + 1);
-      if (endpoint) {
-        if (i <= nurbs_degree) {
-          parm = 0;
-        }
-        else if (i > total_control_points + 2 - nurbs_degree) {
-          parm = 1;
-        }
-      }
-      fh.write_obj_nurbs_parm(parm);
+    for (const float &u : knotsu) {
+      fh.write_obj_nurbs_parm(u);
     }
     fh.write_obj_nurbs_parm_end();
     fh.write_obj_nurbs_group_end();
