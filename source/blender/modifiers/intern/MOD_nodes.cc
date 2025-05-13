@@ -2767,7 +2767,7 @@ static void panel_draw(const bContext *C, Panel *panel)
     draw_interface_panel_content(ctx, layout, nmd->node_group->tree_interface.root_panel);
   }
 
-  modifier_panel_end(layout, ptr);
+  modifier_error_message_draw(layout, ptr);
 
   draw_warnings(C, *nmd, layout, ptr);
 

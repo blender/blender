@@ -460,7 +460,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   layout->prop(ptr, "origin", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   layout->prop(ptr, "deform_axis", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
-  modifier_panel_end(layout, ptr);
+  modifier_error_message_draw(layout, ptr);
 }
 
 static void restrictions_panel_draw(const bContext * /*C*/, Panel *panel)

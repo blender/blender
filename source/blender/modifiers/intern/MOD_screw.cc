@@ -1106,7 +1106,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   row->prop(ptr, "use_stretch_u", toggles_flag, IFACE_("U"), ICON_NONE);
   row->prop(ptr, "use_stretch_v", toggles_flag, IFACE_("V"), ICON_NONE);
 
-  modifier_panel_end(layout, ptr);
+  modifier_error_message_draw(layout, ptr);
 }
 
 static void normals_panel_draw(const bContext * /*C*/, Panel *panel)

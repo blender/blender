@@ -566,7 +566,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   row = &layout->row(true);
   row->prop(ptr, "axis", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
-  modifier_panel_end(layout, ptr);
+  modifier_error_message_draw(layout, ptr);
 }
 
 static void path_panel_draw_header(const bContext * /*C*/, Panel *panel)

@@ -88,7 +88,7 @@ static void set_modifier_expand_flag(const bContext * /*C*/, Panel *panel, short
 /** \name Modifier Panel Layouts
  * \{ */
 
-void modifier_panel_end(uiLayout *layout, PointerRNA *ptr)
+void modifier_error_message_draw(uiLayout *layout, PointerRNA *ptr)
 {
   ModifierData *md = static_cast<ModifierData *>(ptr->data);
   if (md->error) {

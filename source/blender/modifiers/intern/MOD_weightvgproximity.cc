@@ -671,7 +671,7 @@ static void falloff_panel_draw(const bContext * /*C*/, Panel *panel)
   if (RNA_enum_get(ptr, "falloff_type") == MOD_WVG_MAPPING_CURVE) {
     uiTemplateCurveMapping(layout, ptr, "map_curve", 0, false, false, false, false);
   }
-  modifier_panel_end(layout, ptr);
+  modifier_error_message_draw(layout, ptr);
 }
 
 static void influence_panel_draw(const bContext *C, Panel *panel)
