@@ -816,6 +816,7 @@ struct DrawOperatorInputsContext {
   PointerRNA *bmain_ptr;
   PointerRNA *op_ptr;
   nodes::PropertiesVectorSet properties;
+  Array<bool> input_usages;
 };
 
 static void add_attribute_search_or_value_buttons(DrawOperatorInputsContext &ctx,
@@ -867,9 +868,7 @@ static void add_attribute_search_or_value_buttons(DrawOperatorInputsContext &ctx
 
 static void draw_property_for_socket(DrawOperatorInputsContext &ctx,
                                      uiLayout *layout,
-                                     const bNodeTreeInterfaceSocket &socket,
-                                     const int socket_index,
-                                     const bool affects_output)
+                                     const bNodeTreeInterfaceSocket &socket)
 {
   bke::bNodeSocketType *typeinfo = bke::node_socket_type_find(socket.socket_type);
   const eNodeSocketDatatype socket_type = eNodeSocketDatatype(typeinfo->type);
@@ -882,6 +881,9 @@ static void draw_property_for_socket(DrawOperatorInputsContext &ctx,
   if (!property || !nodes::id_property_type_matches_socket(socket, *property, true)) {
     return;
   }
+
+  const int socket_index = ctx.ntree.interface_input_index(socket);
+  const bool affects_output = ctx.input_usages[socket_index];
 
   const std::string socket_id_esc = BLI_str_escape(socket.identifier);
   const std::string rna_path = fmt::format("[\"{}\"]", socket_id_esc);
@@ -950,15 +952,12 @@ static void run_node_group_ui(bContext *C, wmOperator *op)
 
   DrawOperatorInputsContext ctx{*node_tree, &bmain_ptr, op->ptr};
   ctx.properties = nodes::build_properties_vector_set(op->properties);
-
-  Array<bool> input_usages(node_tree->interface_inputs().size());
+  ctx.input_usages.reinitialize(node_tree->interface_inputs().size());
   nodes::socket_usage_inference::infer_group_interface_inputs_usage(
-      *node_tree, ctx.properties, input_usages);
+      *node_tree, ctx.properties, ctx.input_usages);
 
-  int input_index = 0;
   for (const bNodeTreeInterfaceSocket *io_socket : node_tree->interface_inputs()) {
-    draw_property_for_socket(ctx, layout, *io_socket, input_index, input_usages[input_index]);
-    ++input_index;
+    draw_property_for_socket(ctx, layout, *io_socket);
   }
 }
 
