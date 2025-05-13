@@ -34,6 +34,7 @@
 
 #include "BKE_blendfile.hh"
 #include "BKE_context.hh"
+#include "BKE_global.hh"
 #include "BKE_preferences.h"
 #include "BKE_report.hh"
 
@@ -519,6 +520,24 @@ static void file_draw_string_mulitline_clipped(const rcti *rect,
   UI_fontstyle_draw_multiline_clipped(&fs, rect, string, col, align);
 }
 
+static rcti file_measure_string_multiline(blender::StringRef string, const int wrap_width)
+{
+  if (string[0] == '\0' || wrap_width < 1) {
+    return {0, 0, 0, 0};
+  }
+
+  const uiStyle *style = UI_style_get();
+  const int font_id = style->widget.uifont_id;
+
+  rcti textbox;
+  BLF_wordwrap(font_id, wrap_width);
+  BLF_enable(font_id, BLF_WORD_WRAP);
+  BLF_boundbox(font_id, string.data(), string.size(), &textbox);
+  BLF_disable(font_id, BLF_WORD_WRAP);
+
+  return textbox;
+}
+
 /**
  * \param r_sx, r_sy: The lower right corner of the last line drawn, plus the height of the last
  *                    line. This is the cursor position on completion to allow drawing more text
@@ -526,7 +545,7 @@ static void file_draw_string_mulitline_clipped(const rcti *rect,
  */
 static void file_draw_string_multiline(int sx,
                                        int sy,
-                                       const char *string,
+                                       blender::StringRef string,
                                        int wrap_width,
                                        int line_height,
                                        const uchar text_col[4],
@@ -540,14 +559,7 @@ static void file_draw_string_multiline(int sx,
   }
 
   const uiStyle *style = UI_style_get();
-  int font_id = style->widget.uifont_id;
-  int len = strlen(string);
-
-  rcti textbox;
-  BLF_wordwrap(font_id, wrap_width);
-  BLF_enable(font_id, BLF_WORD_WRAP);
-  BLF_boundbox(font_id, string, len, &textbox);
-  BLF_disable(font_id, BLF_WORD_WRAP);
+  const rcti textbox = file_measure_string_multiline(string, wrap_width);
 
   /* no text clipping needed, UI_fontstyle_draw does it but is a bit too strict
    * (for buttons it works) */
@@ -563,8 +575,15 @@ static void file_draw_string_multiline(int sx,
   font_style_params.word_wrap = true;
 
   ResultBLF result;
-  UI_fontstyle_draw_ex(
-      &style->widget, &rect, string, len, text_col, &font_style_params, nullptr, nullptr, &result);
+  UI_fontstyle_draw_ex(&style->widget,
+                       &rect,
+                       string.data(),
+                       string.size(),
+                       text_col,
+                       &font_style_params,
+                       nullptr,
+                       nullptr,
+                       &result);
   if (r_sx) {
     *r_sx = result.width;
   }
@@ -1635,6 +1654,121 @@ static void file_draw_invalid_asset_library_hint(const bContext *C,
   }
 }
 
+static void file_draw_asset_library_internet_access_required_hint(const bContext *C,
+                                                                  const SpaceFile *sfile,
+                                                                  ARegion *region)
+{
+  using namespace blender;
+
+  uchar text_col[4];
+  UI_GetThemeColor4ubv(TH_TEXT, text_col);
+
+  const View2D *v2d = &region->v2d;
+  const int pad_x = sfile->layout->tile_border_x * 2;
+  const int pad_y = sfile->layout->tile_border_y * 2;
+  const int available_width = BLI_rctf_size_x(&v2d->tot) - (2 * pad_x);
+  const int line_height = sfile->layout->text_line_height;
+  int sx = v2d->tot.xmin + pad_x;
+  int sy = v2d->tot.ymax - pad_y;
+
+  const int box_width = std::min(available_width, UI_UNIT_X * 28);
+
+  uiBlock *block = UI_block_begin(C, region, __func__, blender::ui::EmbossType::Emboss);
+
+  const int heading_height = UI_UNIT_Y;
+  const char *message = RPT_(
+      "Allow Online Access in order to browse and download online assets, or turn off the "
+      "\"Remote Assets\" filter to show only the downloaded assets.\n\nYou can adjust this "
+      "later from the \"System\" preferences.");
+  /* The width we have available inside the box. */
+  const int wrap_width = box_width - 2 * pad_x;
+  const rcti message_textbox = file_measure_string_multiline(message, wrap_width);
+  /* The text box doesn't seem to encompass all text, apparently half a line too little. */
+  const int message_height = BLI_rcti_size_y(&message_textbox) + 0.5f * line_height;
+
+  const int box_height = heading_height + message_height +
+                         /* Extra spacing after header and after main message. */
+                         2 * pad_y +
+                         /* Button height. */
+                         UI_UNIT_Y +
+                         /* Top and bottom padding. */
+                         2 * pad_y;
+
+  uiDefBut(block,
+           UI_BTYPE_ROUNDBOX,
+           0,
+           "",
+           sx,
+           sy - box_height,
+           box_width,
+           box_height,
+           nullptr,
+           0.0,
+           0.0,
+           "");
+
+  /* Top left padding within the box. */
+  sx += pad_x;
+  sy -= pad_y;
+
+  {
+    uiDefIconTextBut(block,
+                     UI_BTYPE_LABEL,
+                     0,
+                     ICON_INTERNET_OFFLINE,
+                     "Internet Access Required",
+                     sx,
+                     sy - heading_height,
+                     wrap_width,
+                     heading_height,
+                     nullptr,
+                     0.0f,
+                     0.0f,
+                     {});
+
+    const int button_width = (wrap_width - pad_x) * 0.5f;
+    uiBut *but = uiDefIconTextButO(block,
+                                   UI_BTYPE_BUT,
+                                   "WM_OT_context_set_boolean",
+                                   WM_OP_INVOKE_DEFAULT,
+                                   ICON_X,
+                                   "Continue Offline",
+                                   sx,
+                                   sy + pad_y - box_height + pad_y,
+                                   button_width,
+                                   UI_UNIT_Y,
+                                   {});
+    PointerRNA *but_opptr = UI_but_operator_ptr_ensure(but);
+    RNA_string_set(but_opptr, "data_path", "preferences.extensions.use_online_access_handled");
+    RNA_boolean_set(but_opptr, "value", true);
+
+    uiDefIconTextButO(block,
+                      UI_BTYPE_BUT,
+                      "extensions.userpref_allow_online",
+                      WM_OP_INVOKE_DEFAULT,
+                      ICON_CHECKMARK,
+                      "Allow Online Access",
+                      sx + button_width + pad_x,
+                      sy + pad_y - box_height + pad_y,
+                      button_width,
+                      UI_UNIT_Y,
+                      {});
+  }
+
+  UI_block_end(C, block);
+  UI_block_draw(C, block);
+
+  /* Draw multi-line text on top of widget drawing. */
+  file_draw_string_multiline(sx,
+                             sy - heading_height - pad_y,
+                             message,
+                             wrap_width,
+                             line_height,
+                             text_col,
+                             nullptr,
+                             nullptr);
+}
+
 static void file_draw_invalid_library_hint(const bContext * /*C*/,
                                            const SpaceFile *sfile,
                                            ARegion *region,
@@ -1697,21 +1831,28 @@ bool file_draw_hint_if_invalid(const bContext *C, const SpaceFile *sfile, ARegio
   if (is_asset_browser) {
     FileAssetSelectParams *asset_params = ED_fileselect_get_asset_params(sfile);
 
-    const bool is_on_disk_library = [&]() {
-      if (ELEM(asset_params->asset_library_ref.type, ASSET_LIBRARY_LOCAL, ASSET_LIBRARY_ALL)) {
-        return false;
-      }
+    const bool is_remote_library = [&]() {
       if (asset_params->asset_library_ref.type == ASSET_LIBRARY_CUSTOM) {
         if (const bUserAssetLibrary *library = BKE_preferences_asset_library_find_index(
                 &U, asset_params->asset_library_ref.custom_library_index))
         {
           if (library->flag & ASSET_LIBRARY_USE_REMOTE_URL) {
-            return false;
+            return true;
           }
         }
       }
-      return true;
+      return false;
     }();
+
+    if (is_remote_library && ((G.f & G_FLAG_INTERNET_ALLOW) == 0)) {
+      file_draw_asset_library_internet_access_required_hint(C, sfile, region);
+      return true;
+    }
+
+    const bool is_on_disk_library = !ELEM(asset_params->asset_library_ref.type,
+                                          ASSET_LIBRARY_LOCAL,
+                                          ASSET_LIBRARY_ALL) &&
+                                    !is_remote_library;
 
     /* Check if the asset library exists. */
     if (is_on_disk_library && !filelist_is_dir(sfile->files, asset_params->base_params.dir)) {
