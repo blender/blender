@@ -1217,8 +1217,8 @@ static void do_lasso_select_meshobject__doSelectVert(void *user_data,
                                                      int index)
 {
   using namespace blender;
-  LassoSelectUserData_ForMeshObjectVert *mesh_data = static_cast<LassoSelectUserData_ForMeshObjectVert *>(
-      user_data);
+  LassoSelectUserData_ForMeshObjectVert *mesh_data =
+      static_cast<LassoSelectUserData_ForMeshObjectVert *>(user_data);
   LassoSelectUserData *data = &mesh_data->lasso_data;
   const bool is_select = mesh_data->select_vert[index];
   const bool is_inside = (BLI_rctf_isect_pt_v(data->rect_fl, screen_co) &&
@@ -3713,8 +3713,8 @@ static void do_paintvert_box_select__doSelectVert(void *user_data,
                                                   const float screen_co[2],
                                                   int index)
 {
-  BoxSelectUserData_ForMeshObjectVert *mesh_data = static_cast<BoxSelectUserData_ForMeshObjectVert *>(
-      user_data);
+  BoxSelectUserData_ForMeshObjectVert *mesh_data =
+      static_cast<BoxSelectUserData_ForMeshObjectVert *>(user_data);
   BoxSelectUserData *data = &mesh_data->box_data;
   const bool is_select = mesh_data->select_vert[index];
   const bool is_inside = BLI_rctf_isect_pt_v(data->rect_fl, screen_co);
@@ -4828,8 +4828,8 @@ static void paint_vertsel_circle_select_doSelectVert(void *user_data,
                                                      const float screen_co[2],
                                                      int index)
 {
-  CircleSelectUserData_ForMeshObjectVert *mesh_data = static_cast<CircleSelectUserData_ForMeshObjectVert *>(
-      user_data);
+  CircleSelectUserData_ForMeshObjectVert *mesh_data =
+      static_cast<CircleSelectUserData_ForMeshObjectVert *>(user_data);
   CircleSelectUserData *data = &mesh_data->circle_data;
 
   if (len_squared_v2v2(data->mval_fl, screen_co) <= data->radius_squared) {
