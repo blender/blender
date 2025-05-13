@@ -271,7 +271,7 @@ static void image_transform_set(TransInfo *t)
 
     /* Scale. */
     transform->scale_x = tdseq->orig_scale.x * result.scale.x;
-    transform->scale_y = tdseq->orig_scale.x * result.scale.x;
+    transform->scale_y = tdseq->orig_scale.y * result.scale.y;
 
     /* Rotation. Scaling can cause negative rotation. */
     if (t->mode == TFM_ROTATION) {
