@@ -166,7 +166,7 @@ static void drw_volume_wireframe_cb(
     GPUVertFormat format{};
     attr_id.pos_hq_id = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
     attr_id.nor_hq_id = GPU_vertformat_attr_add(
-        &format, "nor", GPU_COMP_I16, 3, GPU_FETCH_INT_TO_FLOAT_UNIT);
+        &format, "nor", GPU_COMP_I16, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
     return format;
   }();
 

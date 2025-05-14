@@ -1444,8 +1444,7 @@ void UI_panel_category_draw_all(ARegion *region, const char *category_id_active)
   /* Begin drawing. */
   GPU_line_smooth(true);
 
-  uint pos = GPU_vertformat_attr_add(
-      immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
+  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   /* Draw the background. */
@@ -1458,11 +1457,11 @@ void UI_panel_category_draw_all(ARegion *region, const char *category_id_active)
   }
 
   if (is_left) {
-    immRecti(
+    immRectf(
         pos, v2d->mask.xmin, v2d->mask.ymin, v2d->mask.xmin + category_tabs_width, v2d->mask.ymax);
   }
   else {
-    immRecti(
+    immRectf(
         pos, v2d->mask.xmax - category_tabs_width, v2d->mask.ymin, v2d->mask.xmax, v2d->mask.ymax);
   }
 
@@ -1492,11 +1491,10 @@ void UI_panel_category_draw_all(ARegion *region, const char *category_id_active)
 #ifdef USE_FLAT_INACTIVE
     /* Draw line between inactive tabs. */
     if (is_active == false && is_active_prev == false && pc_dyn->prev) {
-      pos = GPU_vertformat_attr_add(
-          immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
+      pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
       immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
       immUniformColor3fvAlpha(theme_col_tab_outline, 0.3f);
-      immRecti(pos,
+      immRectf(pos,
                is_left ? v2d->mask.xmin + (category_tabs_width / 5) :
                          v2d->mask.xmax - (category_tabs_width / 5),
                rct->ymax + px,
@@ -1526,12 +1524,11 @@ void UI_panel_category_draw_all(ARegion *region, const char *category_id_active)
       UI_draw_roundbox_4fv(&box_rect, false, tab_curve_radius, theme_col_tab_outline);
 
       /* Disguise the outline on one side to join the tab to the panel. */
-      pos = GPU_vertformat_attr_add(
-          immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
+      pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
       immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
       immUniformColor4fv(is_active ? theme_col_tab_active : theme_col_tab_inactive);
-      immRecti(pos,
+      immRectf(pos,
                is_left ? rct->xmax - px : rct->xmin,
                rct->ymin + px,
                is_left ? rct->xmax : rct->xmin + px,

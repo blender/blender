@@ -182,16 +182,15 @@ static void ui_draw_button_sections_alignment_separator(const ARegion *region,
   /* Separator line. */
   {
     GPUVertFormat *format = immVertexFormat();
-    const uint pos = GPU_vertformat_attr_add(
-        format, "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
+    const uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
     immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
     immUniformColor4fv(bg_color);
 
     if (align == uiButtonSectionsAlign::Top) {
-      immRecti(pos, 0, region->winy - separator_line_width, region->winx, region->winy);
+      immRectf(pos, 0, region->winy - separator_line_width, region->winx, region->winy);
     }
     else if (align == uiButtonSectionsAlign::Bottom) {
-      immRecti(pos, 0, 0, region->winx, separator_line_width);
+      immRectf(pos, 0, 0, region->winx, separator_line_width);
     }
     else {
       BLI_assert_unreachable();
