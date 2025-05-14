@@ -605,7 +605,8 @@ void GHOST_SystemSDL::processEvent(SDL_Event *sdl_event)
       GHOST_WindowSDL *window = findGhostWindow(
           SDL_GetWindowFromID_fallback(sdl_sub_evt.windowID));
       assert(window != nullptr);
-      g_event = new GHOST_EventWheel(event_ms, window, sdl_sub_evt.y);
+      g_event = new GHOST_EventWheel(
+          event_ms, window, GHOST_kEventWheelAxisVertical, sdl_sub_evt.y);
       break;
     }
     case SDL_KEYDOWN:
