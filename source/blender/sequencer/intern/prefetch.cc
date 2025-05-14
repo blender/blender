@@ -43,7 +43,8 @@
 #include "SEQ_render.hh"
 #include "SEQ_sequencer.hh"
 
-#include "image_cache.hh"
+#include "cache/final_image_cache.hh"
+#include "cache/source_image_cache.hh"
 #include "prefetch.hh"
 #include "render.hh"
 
@@ -124,7 +125,7 @@ static bool seq_prefetch_job_is_waiting(Scene *scene)
   return pfjob->waiting;
 }
 
-static Strip *seq_prefetch_original_strip_get_impl(Strip *strip, ListBase *seqbase)
+static Strip *original_strip_get(const Strip *strip, ListBase *seqbase)
 {
   LISTBASE_FOREACH (Strip *, strip_orig, seqbase) {
     if (STREQ(strip->name, strip_orig->name)) {
@@ -132,7 +133,7 @@ static Strip *seq_prefetch_original_strip_get_impl(Strip *strip, ListBase *seqba
     }
 
     if (strip_orig->type == STRIP_TYPE_META) {
-      Strip *match = seq_prefetch_original_strip_get_impl(strip, &strip_orig->seqbase);
+      Strip *match = original_strip_get(strip, &strip_orig->seqbase);
       if (match != nullptr) {
         return match;
       }
@@ -142,28 +143,48 @@ static Strip *seq_prefetch_original_strip_get_impl(Strip *strip, ListBase *seqba
   return nullptr;
 }
 
-Strip *seq_prefetch_original_strip_get(Strip *strip, Scene *scene)
+static Strip *original_strip_get(const Strip *strip, Scene *scene)
 {
   Editing *ed = scene->ed;
-  return seq_prefetch_original_strip_get_impl(strip, &ed->seqbase);
+  return original_strip_get(strip, &ed->seqbase);
 }
 
-RenderData *seq_prefetch_original_context_get(const RenderData *context)
+static RenderData *get_original_context(const RenderData *context)
 {
   PrefetchJob *pfjob = seq_prefetch_job_get(context->scene);
 
   return &pfjob->context;
 }
 
+Scene *prefetch_get_original_scene(const RenderData *context)
+{
+  Scene *scene = context->scene;
+  if (context->is_prefetch_render) {
+    context = get_original_context(context);
+    scene = context->scene;
+  }
+  return scene;
+}
+
+Scene *prefetch_get_original_scene_and_strip(const RenderData *context, const Strip *&strip)
+{
+  Scene *scene = context->scene;
+  if (context->is_prefetch_render) {
+    context = get_original_context(context);
+    scene = context->scene;
+    strip = original_strip_get(strip, scene);
+  }
+  return scene;
+}
+
 static bool seq_prefetch_is_cache_full(Scene *scene)
 {
-  PrefetchJob *pfjob = seq_prefetch_job_get(scene);
-
-  if (!seq_cache_is_full()) {
+  bool full = is_cache_full(scene);
+  if (!full) {
     return false;
   }
-
-  return seq_cache_recycle_item(pfjob->scene) == false;
+  bool evicted = final_image_cache_evict(scene);
+  return !evicted;
 }
 
 static float seq_prefetch_cfra(PrefetchJob *pfjob)
@@ -177,7 +198,17 @@ static AnimationEvalContext seq_prefetch_anim_eval_context(PrefetchJob *pfjob)
 
 void seq_prefetch_get_time_range(Scene *scene, int *r_start, int *r_end)
 {
+  /* When there is no prefetch job, return "impossible" negative values. */
+  *r_start = INT_MIN;
+  *r_end = INT_MIN;
+
   PrefetchJob *pfjob = seq_prefetch_job_get(scene);
+  if (pfjob == nullptr) {
+    return;
+  }
+  if ((scene->ed->cache_flag & SEQ_CACHE_PREFETCH_ENABLE) == 0 || !pfjob->running) {
+    return;
+  }
 
   *r_start = pfjob->cfra;
   *r_end = seq_prefetch_cfra(pfjob);
@@ -314,7 +345,7 @@ static void seq_prefetch_update_active_seqbase(PrefetchJob *pfjob)
   Editing *ed_eval = editing_get(pfjob->scene_eval);
 
   if (ms_orig != nullptr) {
-    Strip *meta_eval = seq_prefetch_original_strip_get(ms_orig->parent_strip, pfjob->scene_eval);
+    Strip *meta_eval = original_strip_get(ms_orig->parent_strip, pfjob->scene_eval);
     active_seqbase_set(ed_eval, &meta_eval->seqbase);
   }
   else {
@@ -350,33 +381,23 @@ void seq_prefetch_free(Scene *scene)
   MEM_delete(pfjob);
 }
 
-static bool seq_prefetch_strip_has_disk_cache(PrefetchJob *pfjob,
-                                              Strip *strip,
-                                              bool can_have_final_image)
+static bool strip_is_cached(PrefetchJob *pfjob, Strip *strip, bool can_have_final_image)
 {
   RenderData *ctx = &pfjob->context_cpy;
   float cfra = seq_prefetch_cfra(pfjob);
 
-  ImBuf *ibuf = seq_cache_get(ctx, strip, cfra, SEQ_CACHE_STORE_PREPROCESSED);
+  ImBuf *ibuf = source_image_cache_get(ctx, strip, cfra);
   if (ibuf != nullptr) {
     IMB_freeImBuf(ibuf);
     return true;
   }
 
-  ibuf = seq_cache_get(ctx, strip, cfra, SEQ_CACHE_STORE_RAW);
-  if (ibuf != nullptr) {
-    IMB_freeImBuf(ibuf);
-    return true;
-  }
-
-  if (!can_have_final_image) {
-    return false;
-  }
-
-  ibuf = seq_cache_get(ctx, strip, cfra, SEQ_CACHE_STORE_FINAL_OUT);
-  if (ibuf != nullptr) {
-    IMB_freeImBuf(ibuf);
-    return true;
+  if (can_have_final_image) {
+    ibuf = final_image_cache_get(pfjob->context.scene, cfra, pfjob->context.view_id);
+    if (ibuf != nullptr) {
+      IMB_freeImBuf(ibuf);
+      return true;
+    }
   }
 
   return false;
@@ -401,9 +422,9 @@ static bool seq_prefetch_scene_strip_is_rendered(PrefetchJob *pfjob,
       return true;
     }
 
-    /* Disable prefetching 3D scene strips, but check for disk cache. */
+    /* A scene strip would be rendered, if it has no cached image for it. */
     if (strip->type == STRIP_TYPE_SCENE && (strip->flag & SEQ_SCENE_STRIPS) == 0 &&
-        !seq_prefetch_strip_has_disk_cache(pfjob, strip, !is_recursive_check))
+        !strip_is_cached(pfjob, strip, !is_recursive_check))
     {
       return true;
     }
@@ -493,7 +514,6 @@ static void *seq_prefetch_frames(void *job)
     }
 
     ImBuf *ibuf = render_give_ibuf(&pfjob->context_cpy, seq_prefetch_cfra(pfjob), 0);
-    seq_cache_free_temp_cache(pfjob->scene, pfjob->context.task_id, seq_prefetch_cfra(pfjob));
     IMB_freeImBuf(ibuf);
 
     /* Suspend thread if there is nothing to be prefetched. */
@@ -513,7 +533,6 @@ static void *seq_prefetch_frames(void *job)
     pfjob->num_frames_prefetched++;
   }
 
-  seq_cache_free_temp_cache(pfjob->scene, pfjob->context.task_id, seq_prefetch_cfra(pfjob));
   pfjob->running = false;
   pfjob->scene_eval->ed->prefetch_job = nullptr;
 
@@ -576,7 +595,7 @@ void seq_prefetch_start(const RenderData *context, float timeline_frame)
      * cache storage enabled, has strips to render, not rendering, not doing modal transform -
      * important, see D7820. */
     if ((ed->cache_flag & SEQ_CACHE_PREFETCH_ENABLE) && !running && !scrubbing && !playing &&
-        ed->cache_flag & SEQ_CACHE_ALL_TYPES && has_strips && !G.is_rendering && !G.moving)
+        (ed->cache_flag & SEQ_CACHE_ALL_TYPES) && has_strips && !G.is_rendering && !G.moving)
     {
       seq_prefetch_start_ex(context, timeline_frame);
     }

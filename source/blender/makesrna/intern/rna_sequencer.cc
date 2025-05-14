@@ -174,7 +174,7 @@ static void rna_Strip_invalidate_preprocessed_update(Main * /*bmain*/,
   if (ed) {
     Strip *strip = (Strip *)ptr->data;
 
-    blender::seq::relations_invalidate_cache_preprocessed(scene, strip);
+    blender::seq::relations_invalidate_cache(scene, strip);
   }
 }
 
@@ -188,7 +188,7 @@ static void UNUSED_FUNCTION(rna_Strip_invalidate_composite_update)(Main * /*bmai
   if (ed) {
     Strip *strip = (Strip *)ptr->data;
 
-    blender::seq::relations_invalidate_cache_composite(scene, strip);
+    blender::seq::relations_invalidate_cache(scene, strip);
   }
 }
 
@@ -463,7 +463,7 @@ static void rna_Strip_start_frame_final_set(PointerRNA *ptr, int value)
 
   blender::seq::time_left_handle_frame_set(scene, strip, value);
   do_strip_frame_change_update(scene, strip);
-  blender::seq::relations_invalidate_cache_composite(scene, strip);
+  blender::seq::relations_invalidate_cache(scene, strip);
 }
 
 static void rna_Strip_end_frame_final_set(PointerRNA *ptr, int value)
@@ -473,7 +473,7 @@ static void rna_Strip_end_frame_final_set(PointerRNA *ptr, int value)
 
   blender::seq::time_right_handle_frame_set(scene, strip, value);
   do_strip_frame_change_update(scene, strip);
-  blender::seq::relations_invalidate_cache_composite(scene, strip);
+  blender::seq::relations_invalidate_cache(scene, strip);
 }
 
 static void rna_Strip_start_frame_set(PointerRNA *ptr, float value)
@@ -483,7 +483,7 @@ static void rna_Strip_start_frame_set(PointerRNA *ptr, float value)
 
   blender::seq::transform_translate_strip(scene, strip, value - strip->start);
   do_strip_frame_change_update(scene, strip);
-  blender::seq::relations_invalidate_cache_composite(scene, strip);
+  blender::seq::relations_invalidate_cache(scene, strip);
 }
 
 static void rna_Strip_frame_offset_start_set(PointerRNA *ptr, float value)
@@ -491,7 +491,7 @@ static void rna_Strip_frame_offset_start_set(PointerRNA *ptr, float value)
   Strip *strip = (Strip *)ptr->data;
   Scene *scene = (Scene *)ptr->owner_id;
 
-  blender::seq::relations_invalidate_cache_composite(scene, strip);
+  blender::seq::relations_invalidate_cache(scene, strip);
   strip->startofs = value;
 }
 
@@ -500,7 +500,7 @@ static void rna_Strip_frame_offset_end_set(PointerRNA *ptr, float value)
   Strip *strip = (Strip *)ptr->data;
   Scene *scene = (Scene *)ptr->owner_id;
 
-  blender::seq::relations_invalidate_cache_composite(scene, strip);
+  blender::seq::relations_invalidate_cache(scene, strip);
   strip->endofs = value;
 }
 
@@ -568,7 +568,7 @@ static void rna_Strip_frame_length_set(PointerRNA *ptr, int value)
   blender::seq::time_right_handle_frame_set(
       scene, strip, blender::seq::time_left_handle_frame_get(scene, strip) + value);
   do_strip_frame_change_update(scene, strip);
-  blender::seq::relations_invalidate_cache_composite(scene, strip);
+  blender::seq::relations_invalidate_cache(scene, strip);
 }
 
 static int rna_Strip_frame_length_get(PointerRNA *ptr)
@@ -606,7 +606,7 @@ static void rna_Strip_channel_set(PointerRNA *ptr, int value)
   if (blender::seq::transform_test_overlap(scene, seqbase, strip)) {
     blender::seq::transform_seqbase_shuffle_ex(seqbase, strip, scene, channel_delta);
   }
-  blender::seq::relations_invalidate_cache_composite(scene, strip);
+  blender::seq::relations_invalidate_cache(scene, strip);
 }
 
 static bool rna_Strip_lock_get(PointerRNA *ptr)
@@ -668,7 +668,7 @@ static void rna_StripTransform_update(Main * /*bmain*/, Scene * /*scene*/, Point
   Editing *ed = blender::seq::editing_get(scene);
   Strip *strip = strip_get_by_transform(ed, static_cast<StripTransform *>(ptr->data));
 
-  blender::seq::relations_invalidate_cache_preprocessed(scene, strip);
+  blender::seq::relations_invalidate_cache(scene, strip);
 }
 
 static bool crop_strip_cmp_fn(Strip *strip, void *arg_pt)
@@ -715,7 +715,7 @@ static void rna_StripCrop_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA
   Editing *ed = blender::seq::editing_get(scene);
   Strip *strip = strip_get_by_crop(ed, static_cast<StripCrop *>(ptr->data));
 
-  blender::seq::relations_invalidate_cache_preprocessed(scene, strip);
+  blender::seq::relations_invalidate_cache(scene, strip);
 }
 
 static void rna_Strip_text_font_set(PointerRNA *ptr,
@@ -1101,7 +1101,7 @@ static void rna_StripProxy_update(Main * /*bmain*/, Scene * /*scene*/, PointerRN
   Scene *scene = (Scene *)ptr->owner_id;
   Editing *ed = blender::seq::editing_get(scene);
   Strip *strip = strip_get_by_proxy(ed, static_cast<StripProxy *>(ptr->data));
-  blender::seq::relations_invalidate_cache_preprocessed(scene, strip);
+  blender::seq::relations_invalidate_cache(scene, strip);
 }
 
 /* do_versions? */
@@ -1202,7 +1202,7 @@ static void rna_StripColorBalance_update(Main * /*bmain*/, Scene * /*scene*/, Po
   StripModifierData *smd;
   Strip *strip = strip_get_by_colorbalance(ed, static_cast<StripColorBalance *>(ptr->data), &smd);
 
-  blender::seq::relations_invalidate_cache_preprocessed(scene, strip);
+  blender::seq::relations_invalidate_cache(scene, strip);
 }
 
 static void rna_SequenceEditor_overlay_lock_set(PointerRNA *ptr, bool value)
@@ -1257,6 +1257,24 @@ static void rna_SequenceEditor_overlay_frame_set(PointerRNA *ptr, int value)
   else {
     ed->overlay_frame_ofs = value;
   }
+}
+
+static int rna_SequenceEditor_get_cache_raw_size(PointerRNA *ptr)
+{
+  Scene *scene = (Scene *)ptr->owner_id;
+  if (scene == nullptr) {
+    return 0;
+  }
+  return int(blender::seq::source_image_cache_calc_memory_size(scene) / 1024 / 1024);
+}
+
+static int rna_SequenceEditor_get_cache_final_size(PointerRNA *ptr)
+{
+  Scene *scene = (Scene *)ptr->owner_id;
+  if (scene == nullptr) {
+    return 0;
+  }
+  return int(blender::seq::final_image_cache_calc_memory_size(scene) / 1024 / 1024);
 }
 
 static void rna_SequenceEditor_display_stack(ID *id,
@@ -1393,7 +1411,7 @@ static void rna_StripModifier_update(Main *bmain, Scene * /*scene*/, PointerRNA 
     DEG_relations_tag_update(bmain);
   }
   else {
-    blender::seq::relations_invalidate_cache_preprocessed(scene, strip);
+    blender::seq::relations_invalidate_cache(scene, strip);
   }
 }
 
@@ -1439,7 +1457,7 @@ static StripModifierData *rna_Strip_modifier_new(
 
     smd = blender::seq::modifier_new(strip, name, type);
 
-    blender::seq::relations_invalidate_cache_preprocessed(scene, strip);
+    blender::seq::relations_invalidate_cache(scene, strip);
 
     WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, nullptr);
 
@@ -1461,7 +1479,7 @@ static void rna_Strip_modifier_remove(Strip *strip,
   }
 
   smd_ptr->invalidate();
-  blender::seq::relations_invalidate_cache_preprocessed(scene, strip);
+  blender::seq::relations_invalidate_cache(scene, strip);
 
   WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, nullptr);
 }
@@ -1472,7 +1490,7 @@ static void rna_Strip_modifier_clear(Strip *strip, bContext *C)
 
   blender::seq::modifier_clear(strip);
 
-  blender::seq::relations_invalidate_cache_preprocessed(scene, strip);
+  blender::seq::relations_invalidate_cache(scene, strip);
 
   WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, nullptr);
 }
@@ -1561,7 +1579,7 @@ static void rna_SequenceTimelineChannel_mute_update(Main *bmain,
   }
 
   LISTBASE_FOREACH (Strip *, strip, seqbase) {
-    blender::seq::relations_invalidate_cache_composite(scene, strip);
+    blender::seq::relations_invalidate_cache(scene, strip);
   }
 
   rna_Strip_sound_update(bmain, active_scene, ptr);
@@ -2305,31 +2323,6 @@ static void rna_def_strip(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Modifiers", "Modifiers affecting this strip");
   rna_def_strip_modifiers(brna, prop);
 
-  prop = RNA_def_property(srna, "use_cache_raw", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "cache_flag", SEQ_CACHE_STORE_RAW);
-  RNA_def_property_ui_text(prop,
-                           "Cache Raw",
-                           "Cache raw images read from disk, for faster tweaking of strip "
-                           "parameters at the cost of memory usage");
-
-  prop = RNA_def_property(srna, "use_cache_preprocessed", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "cache_flag", SEQ_CACHE_STORE_PREPROCESSED);
-  RNA_def_property_ui_text(
-      prop,
-      "Cache Preprocessed",
-      "Cache preprocessed images, for faster tweaking of effects at the cost of memory usage");
-
-  prop = RNA_def_property(srna, "use_cache_composite", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "cache_flag", SEQ_CACHE_STORE_COMPOSITE);
-  RNA_def_property_ui_text(prop,
-                           "Cache Composite",
-                           "Cache intermediate composited images, for faster tweaking of stacked "
-                           "strips at the cost of memory usage");
-
-  prop = RNA_def_property(srna, "override_cache_settings", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "cache_flag", SEQ_CACHE_OVERRIDE);
-  RNA_def_property_ui_text(prop, "Override Cache Settings", "Override global cache settings");
-
   prop = RNA_def_property(srna, "show_retiming_keys", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", SEQ_SHOW_RETIMING);
   RNA_def_property_ui_text(prop, "Show Retiming Keys", "Show retiming keys, so they can be moved");
@@ -2527,20 +2520,6 @@ static void rna_def_editor(BlenderRNA *brna)
                            "Cache raw images read from disk, for faster tweaking of strip "
                            "parameters at the cost of memory usage");
 
-  prop = RNA_def_property(srna, "use_cache_preprocessed", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "cache_flag", SEQ_CACHE_STORE_PREPROCESSED);
-  RNA_def_property_ui_text(
-      prop,
-      "Cache Preprocessed",
-      "Cache preprocessed images, for faster tweaking of effects at the cost of memory usage");
-
-  prop = RNA_def_property(srna, "use_cache_composite", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "cache_flag", SEQ_CACHE_STORE_COMPOSITE);
-  RNA_def_property_ui_text(prop,
-                           "Cache Composite",
-                           "Cache intermediate composited images, for faster tweaking of stacked "
-                           "strips at the cost of memory usage");
-
   prop = RNA_def_property(srna, "use_cache_final", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "cache_flag", SEQ_CACHE_STORE_FINAL_OUT);
   RNA_def_property_ui_text(prop, "Cache Final", "Cache final image for each frame");
@@ -2552,6 +2531,17 @@ static void rna_def_editor(BlenderRNA *brna)
       "Prefetch Frames",
       "Render frames ahead of current frame in the background for faster playback");
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, nullptr);
+
+  prop = RNA_def_property(srna, "cache_raw_size", PROP_INT, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE | PROP_ANIMATABLE);
+  RNA_def_property_int_funcs(prop, "rna_SequenceEditor_get_cache_raw_size", nullptr, nullptr);
+  RNA_def_property_ui_text(prop, "Raw Cache Size", "Size of raw source images cache in megabytes");
+
+  prop = RNA_def_property(srna, "cache_final_size", PROP_INT, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE | PROP_ANIMATABLE);
+  RNA_def_property_int_funcs(prop, "rna_SequenceEditor_get_cache_final_size", nullptr, nullptr);
+  RNA_def_property_ui_text(
+      prop, "Final Cache Size", "Size of final rendered images cache in megabytes");
 
   /* functions */
 

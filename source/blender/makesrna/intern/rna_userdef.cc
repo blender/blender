@@ -6125,25 +6125,6 @@ static void rna_def_userdef_system(BlenderRNA *brna)
       {0, nullptr, 0, nullptr, nullptr},
   };
 
-  static const EnumPropertyItem seq_disk_cache_compression_levels[] = {
-      {USER_SEQ_DISK_CACHE_COMPRESSION_NONE,
-       "NONE",
-       0,
-       "None",
-       "Requires fast storage, but uses minimum CPU resources"},
-      {USER_SEQ_DISK_CACHE_COMPRESSION_LOW,
-       "LOW",
-       0,
-       "Low",
-       "Doesn't require fast storage and uses less CPU resources"},
-      {USER_SEQ_DISK_CACHE_COMPRESSION_HIGH,
-       "HIGH",
-       0,
-       "High",
-       "Works on slower storage devices and uses most CPU resources"},
-      {0, nullptr, 0, nullptr, nullptr},
-  };
-
   static const EnumPropertyItem seq_proxy_setup_options[] = {
       {USER_SEQ_PROXY_SETUP_MANUAL, "MANUAL", 0, "Manual", "Set up proxies manually"},
       {USER_SEQ_PROXY_SETUP_AUTOMATIC,
@@ -6194,30 +6175,6 @@ static void rna_def_userdef_system(BlenderRNA *brna)
   RNA_def_property_range(prop, 0, max_memory_in_megabytes_int());
   RNA_def_property_ui_text(prop, "Memory Cache Limit", "Memory cache limit (in megabytes)");
   RNA_def_property_update(prop, 0, "rna_Userdef_memcache_update");
-
-  /* Sequencer disk cache */
-
-  prop = RNA_def_property(srna, "use_sequencer_disk_cache", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(
-      prop, nullptr, "sequencer_disk_cache_flag", SEQ_CACHE_DISK_CACHE_ENABLE);
-  RNA_def_property_ui_text(prop, "Use Disk Cache", "Store cached images to disk");
-
-  prop = RNA_def_property(srna, "sequencer_disk_cache_dir", PROP_STRING, PROP_DIRPATH);
-  RNA_def_property_string_sdna(prop, nullptr, "sequencer_disk_cache_dir");
-  RNA_def_property_ui_text(prop, "Disk Cache Directory", "Override default directory");
-
-  prop = RNA_def_property(srna, "sequencer_disk_cache_size_limit", PROP_INT, PROP_NONE);
-  RNA_def_property_int_sdna(prop, nullptr, "sequencer_disk_cache_size_limit");
-  RNA_def_property_range(prop, 0, INT_MAX);
-  RNA_def_property_ui_text(prop, "Disk Cache Limit", "Disk cache limit (in gigabytes)");
-
-  prop = RNA_def_property(srna, "sequencer_disk_cache_compression", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_items(prop, seq_disk_cache_compression_levels);
-  RNA_def_property_enum_sdna(prop, nullptr, "sequencer_disk_cache_compression");
-  RNA_def_property_ui_text(
-      prop,
-      "Disk Cache Compression Level",
-      "Smaller compression will result in larger files, but less decoding overhead");
 
   /* Sequencer proxy setup */
 

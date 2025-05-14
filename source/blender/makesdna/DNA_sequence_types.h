@@ -29,26 +29,32 @@ struct bSound;
 
 #ifdef __cplusplus
 namespace blender::seq {
+struct FinalImageCache;
+struct IntraFrameCache;
 struct MediaPresence;
 struct ThumbnailCache;
 struct TextVarsRuntime;
 struct PrefetchJob;
+struct SourceImageCache;
 struct StripLookup;
-struct SeqCache;
 }  // namespace blender::seq
+using FinalImageCache = blender::seq::FinalImageCache;
+using IntraFrameCache = blender::seq::IntraFrameCache;
 using MediaPresence = blender::seq::MediaPresence;
 using ThumbnailCache = blender::seq::ThumbnailCache;
 using TextVarsRuntime = blender::seq::TextVarsRuntime;
 using PrefetchJob = blender::seq::PrefetchJob;
+using SourceImageCache = blender::seq::SourceImageCache;
 using StripLookup = blender::seq::StripLookup;
-using SeqCache = blender::seq::SeqCache;
 #else
+typedef struct FinalImageCache FinalImageCache;
+typedef struct IntraFrameCache IntraFrameCache;
 typedef struct MediaPresence MediaPresence;
 typedef struct ThumbnailCache ThumbnailCache;
 typedef struct TextVarsRuntime TextVarsRuntime;
 typedef struct PrefetchJob PrefetchJob;
+typedef struct SourceImageCache SourceImageCache;
 typedef struct StripLookup StripLookup;
-typedef struct SeqCache SeqCache;
 #endif
 
 /* -------------------------------------------------------------------- */
@@ -280,8 +286,7 @@ typedef struct Strip {
 
   char alpha_mode;
   char _pad2[2];
-
-  int cache_flag;
+  int _pad9;
 
   /* is sfra needed anymore? - it looks like its only used in one place */
   /** Starting frame according to the timeline of the scene. */
@@ -334,7 +339,9 @@ typedef struct EditingRuntime {
   StripLookup *strip_lookup;
   MediaPresence *media_presence;
   ThumbnailCache *thumbnail_cache;
-  void *_pad;
+  IntraFrameCache *intra_frame_cache;
+  SourceImageCache *source_image_cache;
+  FinalImageCache *final_image_cache;
 } EditingRuntime;
 
 typedef struct Editing {
@@ -363,18 +370,9 @@ typedef struct Editing {
   rctf overlay_frame_rect;
 
   int show_missing_media_flag;
-  int _pad1;
-
-  SeqCache *cache;
-
-  /* Cache control */
-  float recycle_max_cost; /* UNUSED only for versioning. */
   int cache_flag;
 
   PrefetchJob *prefetch_job;
-
-  /* Must be initialized only by seq_cache_create() */
-  int64_t disk_cache_timestamp;
 
   EditingRuntime runtime;
 } Editing;
@@ -845,28 +843,16 @@ enum {
   SEQUENCE_MASK_TIME_ABSOLUTE = 1,
 };
 
-/**
- * #Strip.cache_flag
- * - #SEQ_CACHE_STORE_RAW
- * - #SEQ_CACHE_STORE_PREPROCESSED
- * - #SEQ_CACHE_STORE_COMPOSITE
- * - #FINAL_OUT is ignored
- *
- * #Editing.cache_flag
- * all entries
- */
 enum {
   SEQ_CACHE_STORE_RAW = (1 << 0),
-  SEQ_CACHE_STORE_PREPROCESSED = (1 << 1),
-  SEQ_CACHE_STORE_COMPOSITE = (1 << 2),
+  SEQ_CACHE_UNUSED_1 = (1 << 1), /* Was SEQ_CACHE_STORE_PREPROCESSED */
+  SEQ_CACHE_UNUSED_2 = (1 << 2), /* Was SEQ_CACHE_STORE_COMPOSITE */
   SEQ_CACHE_STORE_FINAL_OUT = (1 << 3),
 
   /* For lookup purposes */
-  SEQ_CACHE_ALL_TYPES = SEQ_CACHE_STORE_RAW | SEQ_CACHE_STORE_PREPROCESSED |
-                        SEQ_CACHE_STORE_COMPOSITE | SEQ_CACHE_STORE_FINAL_OUT,
+  SEQ_CACHE_ALL_TYPES = SEQ_CACHE_STORE_RAW | SEQ_CACHE_STORE_FINAL_OUT,
 
-  SEQ_CACHE_OVERRIDE = (1 << 4),
-
+  SEQ_CACHE_UNUSED_4 = (1 << 4), /* Was SEQ_CACHE_OVERRIDE */
   SEQ_CACHE_UNUSED_5 = (1 << 5),
   SEQ_CACHE_UNUSED_6 = (1 << 6),
   SEQ_CACHE_UNUSED_7 = (1 << 7),
@@ -874,7 +860,7 @@ enum {
   SEQ_CACHE_UNUSED_9 = (1 << 9),
 
   SEQ_CACHE_PREFETCH_ENABLE = (1 << 10),
-  SEQ_CACHE_DISK_CACHE_ENABLE = (1 << 11),
+  SEQ_CACHE_UNUSED_11 = (1 << 11), /* Was SEQ_CACHE_DISK_CACHE_ENABLE */
 };
 
 /** #Strip.color_tag. */

@@ -67,8 +67,10 @@
 #include "SEQ_transform.hh"
 #include "SEQ_utils.hh"
 
+#include "cache/final_image_cache.hh"
+#include "cache/intra_frame_cache.hh"
+#include "cache/source_image_cache.hh"
 #include "effects/effects.hh"
-#include "image_cache.hh"
 #include "multiview.hh"
 #include "prefetch.hh"
 #include "proxy.hh"
@@ -710,16 +712,19 @@ static ImBuf *seq_render_preprocess_ibuf(const RenderData *context,
 
   /* Proxies and non-generator effect strips are not stored in cache. */
   const bool is_effect_with_inputs = (strip->type & STRIP_TYPE_EFFECT) != 0 &&
-                                     effect_get_num_inputs(strip->type) != 0;
+                                     (effect_get_num_inputs(strip->type) != 0 ||
+                                      (strip->type == STRIP_TYPE_ADJUSTMENT));
   if (!is_proxy_image && !is_effect_with_inputs) {
-    seq_cache_put(context, strip, timeline_frame, SEQ_CACHE_STORE_RAW, ibuf);
+    Scene *orig_scene = prefetch_get_original_scene(context);
+    if (orig_scene->ed->cache_flag & SEQ_CACHE_STORE_RAW) {
+      source_image_cache_put(context, strip, timeline_frame, ibuf);
+    }
   }
 
   if (use_preprocess) {
     ibuf = input_preprocess(context, strip, timeline_frame, ibuf, is_proxy_image);
   }
 
-  seq_cache_put(context, strip, timeline_frame, SEQ_CACHE_STORE_PREPROCESSED, ibuf);
   return ibuf;
 }
 
@@ -1561,8 +1566,10 @@ static ImBuf *seq_render_scene_strip(const RenderData *context,
       }
 
       if (view_id != context->view_id) {
-        seq_cache_put(
-            &localcontext, strip, timeline_frame, SEQ_CACHE_STORE_RAW, ibufs_arr[view_id]);
+        Scene *orig_scene = prefetch_get_original_scene(context);
+        if (orig_scene->ed->cache_flag & SEQ_CACHE_STORE_RAW) {
+          source_image_cache_put(&localcontext, strip, timeline_frame, ibufs_arr[view_id]);
+        }
       }
 
       RE_ReleaseResultImage(re);
@@ -1735,18 +1742,17 @@ ImBuf *seq_render_strip(const RenderData *context,
                         Strip *strip,
                         float timeline_frame)
 {
-  ImBuf *ibuf = nullptr;
   bool use_preprocess = false;
   bool is_proxy_image = false;
 
-  ibuf = seq_cache_get(context, strip, timeline_frame, SEQ_CACHE_STORE_PREPROCESSED);
+  ImBuf *ibuf = intra_frame_cache_get_preprocessed(context->scene, strip);
   if (ibuf != nullptr) {
     return ibuf;
   }
 
   /* Proxies are not stored in cache. */
   if (!can_use_proxy(context, strip, rendersize_to_proxysize(context->preview_render_size))) {
-    ibuf = seq_cache_get(context, strip, timeline_frame, SEQ_CACHE_STORE_RAW);
+    ibuf = seq::source_image_cache_get(context, strip, timeline_frame);
   }
 
   if (ibuf == nullptr) {
@@ -1757,6 +1763,7 @@ ImBuf *seq_render_strip(const RenderData *context,
     use_preprocess = seq_input_have_to_preprocess(context, strip, timeline_frame);
     ibuf = seq_render_preprocess_ibuf(
         context, strip, ibuf, timeline_frame, use_preprocess, is_proxy_image);
+    intra_frame_cache_put_preprocessed(context->scene, strip, ibuf);
   }
 
   if (ibuf == nullptr) {
@@ -1852,8 +1859,7 @@ static ImBuf *seq_render_strip_stack(const RenderData *context,
   for (i = strips.size() - 1; i >= 0; i--) {
     Strip *strip = strips[i];
 
-    out = seq_cache_get(context, strip, timeline_frame, SEQ_CACHE_STORE_COMPOSITE);
-
+    out = intra_frame_cache_get_composite(context->scene, strip);
     if (out) {
       break;
     }
@@ -1886,7 +1892,7 @@ static ImBuf *seq_render_strip_stack(const RenderData *context,
 
       /* Check whether the raw (before preprocessing, which can add alpha) strip content
        * was opaque. */
-      ImBuf *ibuf_raw = seq_cache_get(context, strip, timeline_frame, SEQ_CACHE_STORE_RAW);
+      ImBuf *ibuf_raw = seq::source_image_cache_get(context, strip, timeline_frame);
       if (ibuf_raw != nullptr) {
         if (ibuf_raw->planes != R_IMF_PLANES_RGBA) {
           opaques.add_occluder(context, strip, i);
@@ -1920,7 +1926,7 @@ static ImBuf *seq_render_strip_stack(const RenderData *context,
           out = seq_render_strip_stack_apply_effect(context, strip, timeline_frame, ibuf1, ibuf2);
           IMB_metadata_copy(out, ibuf2);
 
-          seq_cache_put(context, strips[i], timeline_frame, SEQ_CACHE_STORE_COMPOSITE, out);
+          intra_frame_cache_put_composite(context->scene, strip, out);
 
           IMB_freeImBuf(ibuf1);
           IMB_freeImBuf(ibuf2);
@@ -1951,10 +1957,38 @@ static ImBuf *seq_render_strip_stack(const RenderData *context,
       IMB_freeImBuf(ibuf2);
     }
 
-    seq_cache_put(context, strips[i], timeline_frame, SEQ_CACHE_STORE_COMPOSITE, out);
+    intra_frame_cache_put_composite(context->scene, strip, out);
   }
 
   return out;
+}
+
+static void evict_caches_if_full(Scene *scene)
+{
+  if (!is_cache_full(scene)) {
+    return;
+  }
+
+  /* Cache is full, so we want to remove some images. We always try to remove one final image,
+   * and some amount of source images for each final image, so that ratio of cached images
+   * stays the same. Depending on the frame composition complexity, there can be lots of
+   * source images cached for a single final frame; if we only removed one source image
+   * we'd eventually have the cache still filled only with source images. */
+  const size_t count_final = final_image_cache_get_image_count(scene);
+  const size_t count_source = source_image_cache_get_image_count(scene);
+  const size_t source_per_final = std::max<size_t>(
+      divide_ceil_ul(count_source, std::max<size_t>(count_final, 1)), 1);
+
+  do {
+    bool evicted_final = final_image_cache_evict(scene);
+    bool evicted_source = false;
+    for (size_t i = 0; i < source_per_final; i++) {
+      evicted_source |= source_image_cache_evict(scene);
+    }
+    if (!evicted_final && !evicted_source) {
+      break; /* Can't evict no more. */
+    }
+  } while (is_cache_full(scene));
 }
 
 ImBuf *render_give_ibuf(const RenderData *context, float timeline_frame, int chanshown)
@@ -1979,30 +2013,32 @@ ImBuf *render_give_ibuf(const RenderData *context, float timeline_frame, int cha
     channels = ed->displayed_channels;
   }
 
-  SeqRenderState state;
+  intra_frame_cache_set_cur_frame(scene, timeline_frame, context->view_id);
+
+  Scene *orig_scene = prefetch_get_original_scene(context);
   ImBuf *out = nullptr;
+  if (!context->skip_cache && !context->is_proxy_render) {
+    out = final_image_cache_get(orig_scene, timeline_frame, context->view_id);
+  }
 
   Vector<Strip *> strips = seq_shown_strips_get(
       scene, channels, seqbasep, timeline_frame, chanshown);
 
-  if (!strips.is_empty()) {
-    out = seq_cache_get(context, strips.last(), timeline_frame, SEQ_CACHE_STORE_FINAL_OUT);
-  }
-
-  seq_cache_free_temp_cache(context->scene, context->task_id, timeline_frame);
   /* Make sure we only keep the `anim` data for strips that are in view. */
   relations_free_all_anim_ibufs(context->scene, timeline_frame);
+
+  SeqRenderState state;
 
   if (!strips.is_empty() && !out) {
     std::scoped_lock lock(seq_render_mutex);
     out = seq_render_strip_stack(context, &state, channels, seqbasep, timeline_frame, chanshown);
 
-    if (context->is_prefetch_render) {
-      seq_cache_put(context, strips.last(), timeline_frame, SEQ_CACHE_STORE_FINAL_OUT, out);
-    }
-    else {
-      seq_cache_put_if_possible(
-          context, strips.last(), timeline_frame, SEQ_CACHE_STORE_FINAL_OUT, out);
+    evict_caches_if_full(orig_scene);
+
+    if (out && (orig_scene->ed->cache_flag & SEQ_CACHE_STORE_FINAL_OUT) && !context->skip_cache &&
+        !context->is_proxy_render)
+    {
+      final_image_cache_put(orig_scene, timeline_frame, context->view_id, out);
     }
   }
 

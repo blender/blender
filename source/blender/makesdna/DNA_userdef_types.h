@@ -1140,11 +1140,8 @@ typedef struct UserDef {
   char render_display_type;      /* eUserpref_RenderDisplayType */
   char filebrowser_display_type; /* eUserpref_TempSpaceDisplayType */
 
-  char sequencer_disk_cache_dir[1024];
-  int sequencer_disk_cache_compression; /* eUserpref_DiskCacheCompression */
-  int sequencer_disk_cache_size_limit;
-  short sequencer_disk_cache_flag;
   short sequencer_proxy_setup; /* eUserpref_SeqProxySetup */
+  short _pad1;
 
   float collection_instance_empty_size;
   char text_flag;

@@ -784,16 +784,6 @@ static void do_versions_291_fcurve_handles_limit(FCurve *fcu)
   }
 }
 
-static void do_versions_strip_cache_settings_recursive(const ListBase *seqbase)
-{
-  LISTBASE_FOREACH (Strip *, strip, seqbase) {
-    strip->cache_flag = 0;
-    if (strip->type == STRIP_TYPE_META) {
-      do_versions_strip_cache_settings_recursive(&strip->seqbase);
-    }
-  }
-}
-
 static void version_node_join_geometry_for_multi_input_socket(bNodeTree *ntree)
 {
   LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, &ntree->links) {
@@ -1649,7 +1639,6 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
         continue;
       }
       ed->cache_flag = (SEQ_CACHE_STORE_RAW | SEQ_CACHE_STORE_FINAL_OUT);
-      do_versions_strip_cache_settings_recursive(&ed->seqbase);
     }
   }
 

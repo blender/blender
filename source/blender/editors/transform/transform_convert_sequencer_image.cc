@@ -308,7 +308,7 @@ static void image_transform_set(TransInfo *t)
       autokeyframe_sequencer_image(t->context, t->scene, transform, t->mode);
     }
 
-    seq::relations_invalidate_cache_preprocessed(t->scene, strip);
+    seq::relations_invalidate_cache(t->scene, strip);
   }
 }
 
@@ -373,7 +373,7 @@ static void image_origin_set(TransInfo *t)
     transform->xofs = tdseq->orig_translation.x - delta_translation.x;
     transform->yofs = tdseq->orig_translation.y - delta_translation.y;
 
-    seq::relations_invalidate_cache_preprocessed(t->scene, strip);
+    seq::relations_invalidate_cache(t->scene, strip);
   }
 }
 

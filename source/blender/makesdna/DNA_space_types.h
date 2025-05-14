@@ -659,8 +659,8 @@ typedef struct SequencerCacheOverlay {
 typedef enum eSpaceSeq_SequencerCacheOverlay_Flag {
   SEQ_CACHE_SHOW = (1 << 1),
   SEQ_CACHE_SHOW_RAW = (1 << 2),
-  SEQ_CACHE_SHOW_PREPROCESSED = (1 << 3),
-  SEQ_CACHE_SHOW_COMPOSITE = (1 << 4),
+  /* Was SEQ_CACHE_SHOW_PREPROCESSED = (1 << 3) */
+  /* Was SEQ_CACHE_SHOW_COMPOSITE = (1 << 4) */
   SEQ_CACHE_SHOW_FINAL_OUT = (1 << 5),
 } eSpaceSeq_SequencerCacheOverlay_Flag;
 
