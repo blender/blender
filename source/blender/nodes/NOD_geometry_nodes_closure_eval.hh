@@ -30,7 +30,7 @@ struct ClosureEagerEvalParams {
 
   Vector<InputItem> inputs;
   Vector<OutputItem> outputs;
-  GeoNodesLFUserData *user_data = nullptr;
+  GeoNodesUserData *user_data = nullptr;
 };
 
 void evaluate_closure_eagerly(const Closure &closure, ClosureEagerEvalParams &params);

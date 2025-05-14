@@ -535,7 +535,7 @@ static wmOperatorStatus pose_visual_transform_apply_exec(bContext *C, wmOperator
 
     int i;
     LISTBASE_FOREACH_INDEX (bPoseChannel *, pchan, &ob->pose->chanbase, i) {
-      if (!((pchan->bone->flag & BONE_SELECTED) && PBONE_VISIBLE(arm, pchan->bone))) {
+      if (!((pchan->bone->flag & BONE_SELECTED) && ANIM_bone_is_visible_pchan(arm, pchan))) {
         pchan_xform_array[i].is_set = false;
         continue;
       }

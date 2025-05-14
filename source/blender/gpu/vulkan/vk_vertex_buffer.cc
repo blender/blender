@@ -184,8 +184,7 @@ void VKVertexBuffer::upload_data()
 void VKVertexBuffer::device_format_ensure()
 {
   if (!vertex_format_converter.is_initialized()) {
-    const VKWorkarounds &workarounds = VKBackend::get().device.workarounds_get();
-    vertex_format_converter.init(&format, workarounds);
+    vertex_format_converter.init(&format);
   }
 }
 
@@ -199,8 +198,8 @@ void VKVertexBuffer::allocate()
 
   buffer_.create(size_alloc_get(),
                  vk_buffer_usage,
-                 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
                  0,
+                 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
                  VmaAllocationCreateFlags(0));
   debug::object_label(buffer_.vk_handle(), "VertexBuffer");
 }

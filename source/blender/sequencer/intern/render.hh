@@ -21,7 +21,7 @@ struct Strip;
 
 namespace blender::seq {
 
-/* mutable state for sequencer */
+/* Mutable state while rendering one sequencer frame. */
 struct SeqRenderState {
   LinkNode *scene_parents = nullptr;
 };

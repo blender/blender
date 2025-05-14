@@ -111,7 +111,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   layout->prop(ptr, "min_vertices", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   layout->prop(ptr, "keep_custom_normals", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  modifier_panel_end(layout, ptr);
+  modifier_error_message_draw(layout, ptr);
 }
 
 static void panel_register(ARegionType *region_type)

@@ -939,7 +939,9 @@ def km_view2d(_params):
         ("view2d.pan", {"type": 'MIDDLEMOUSE', "value": 'PRESS', "shift": True}, None),
         ("view2d.pan", {"type": 'TRACKPADPAN', "value": 'ANY'}, None),
         ("view2d.scroll_right", {"type": 'WHEELDOWNMOUSE', "value": 'PRESS', "ctrl": True}, None),
+        ("view2d.scroll_right", {"type": 'WHEELRIGHTMOUSE', "value": 'PRESS'}, None),
         ("view2d.scroll_left", {"type": 'WHEELUPMOUSE', "value": 'PRESS', "ctrl": True}, None),
+        ("view2d.scroll_left", {"type": 'WHEELLEFTMOUSE', "value": 'PRESS'}, None),
         ("view2d.scroll_down", {"type": 'WHEELDOWNMOUSE', "value": 'PRESS', "shift": True}, None),
         ("view2d.scroll_up", {"type": 'WHEELUPMOUSE', "value": 'PRESS', "shift": True}, None),
         ("view2d.ndof", {"type": 'NDOF_MOTION', "value": 'ANY'}, None),
@@ -3604,6 +3606,7 @@ def km_spreadsheet_generic(params):
             sidebar_key={"type": 'N', "value": 'PRESS'},
             channels_key={"type": 'T', "value": 'PRESS'},
         ),
+        ("spreadsheet.resize_column", {"type": 'LEFTMOUSE', "value": 'PRESS'}, None),
     ])
 
     return keymap

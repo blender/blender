@@ -722,7 +722,7 @@ static uiBlock *wm_block_insert_unicode_create(bContext *C, ARegion *region, voi
   /* Hitting Enter in the text input is treated the same as clicking the Confirm button. */
   UI_but_func_set(text_but, text_insert_unicode_confirm, block, edit_string);
 
-  uiItemS(layout);
+  layout->separator();
 
   /* Buttons. */
 

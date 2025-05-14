@@ -542,7 +542,7 @@ void transform_offset_after_frame(Scene *scene,
   LISTBASE_FOREACH (Strip *, strip, seqbase) {
     if (time_left_handle_frame_get(scene, strip) >= timeline_frame) {
       transform_translate_strip(scene, strip, delta);
-      relations_invalidate_cache_preprocessed(scene, strip);
+      relations_invalidate_cache(scene, strip);
     }
   }
 

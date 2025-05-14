@@ -1020,8 +1020,8 @@ static void graph_draw_driver_settings_panel(uiLayout *layout,
     row->label(valBuf, ICON_NONE);
   }
 
-  uiItemS(layout);
-  uiItemS(layout);
+  layout->separator();
+  layout->separator();
 
   /* show expression box if doing scripted drivers,
    * and/or error messages when invalid drivers exist */
@@ -1092,7 +1092,7 @@ static void graph_draw_driver_settings_panel(uiLayout *layout,
     }
   }
 
-  uiItemS(layout);
+  layout->separator();
 
   /* add/copy/paste driver variables */
   row_outer = &layout->row(false);
@@ -1255,8 +1255,8 @@ static void graph_draw_driver_settings_panel(uiLayout *layout,
   /* Quiet warning about old value being unused before re-assigned. */
   UNUSED_VARS(block);
 
-  uiItemS(layout);
-  uiItemS(layout);
+  layout->separator();
+  layout->separator();
 
   /* XXX: This should become redundant. But sometimes the flushing fails,
    * so keep this around for a while longer as a "last resort" */
@@ -1361,8 +1361,8 @@ static void graph_panel_drivers_popover(const bContext *C, Panel *panel)
       graph_draw_driven_property_panel(panel->layout, id, fcu);
       /* TODO: All vs Single */
 
-      uiItemS(layout);
-      uiItemS(layout);
+      layout->separator();
+      layout->separator();
 
       /* Drivers Settings */
       graph_draw_driven_property_enabled_btn(panel->layout, id, fcu, IFACE_("Driver:"));

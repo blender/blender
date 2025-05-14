@@ -87,7 +87,6 @@ defs_precalc = {
     "immAttr3fv": {1: 3},
     "immAttr4fv": {1: 4},
 
-    "immAttr3ubv": {1: 3},
     "immAttr4ubv": {1: 4},
 
     "immUniform2fv": {1: 2},

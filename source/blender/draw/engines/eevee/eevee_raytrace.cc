@@ -35,6 +35,8 @@ void RayTraceModule::init()
   fast_gi_step_count_ = sce_eevee.fast_gi_step_count;
   fast_gi_ao_only_ = (sce_eevee.fast_gi_method == FAST_GI_AO_ONLY);
 
+  use_raytracing_ = (sce_eevee.flag & SCE_EEVEE_SSR_ENABLED) != 0;
+
   float4 data(0.0f);
   radiance_dummy_black_tx_.ensure_2d(
       RAYTRACE_RADIANCE_FORMAT, int2(1), GPU_TEXTURE_USAGE_SHADER_READ, data);

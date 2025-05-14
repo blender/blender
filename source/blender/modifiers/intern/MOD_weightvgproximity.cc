@@ -639,7 +639,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   layout->prop(ptr, "target", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  uiItemS(layout);
+  layout->separator();
 
   layout->prop(ptr, "proximity_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   if (RNA_enum_get(ptr, "proximity_mode") == MOD_WVG_PROXIMITY_GEOMETRY) {
@@ -671,7 +671,7 @@ static void falloff_panel_draw(const bContext * /*C*/, Panel *panel)
   if (RNA_enum_get(ptr, "falloff_type") == MOD_WVG_MAPPING_CURVE) {
     uiTemplateCurveMapping(layout, ptr, "map_curve", 0, false, false, false, false);
   }
-  modifier_panel_end(layout, ptr);
+  modifier_error_message_draw(layout, ptr);
 }
 
 static void influence_panel_draw(const bContext *C, Panel *panel)

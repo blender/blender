@@ -420,22 +420,21 @@ static void vicon_colorset_draw(int index, int x, int y, int w, int h, float /*a
   const int b = x + w / 3 * 2;
   const int c = x + w;
 
-  uint pos = GPU_vertformat_attr_add(
-      immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
+  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   /* XXX: Include alpha into this... */
   /* normal */
   immUniformColor3ubv(cs->solid);
-  immRecti(pos, x, y, a, y + h);
+  immRectf(pos, x, y, a, y + h);
 
   /* selected */
   immUniformColor3ubv(cs->select);
-  immRecti(pos, a, y, b, y + h);
+  immRectf(pos, a, y, b, y + h);
 
   /* active */
   immUniformColor3ubv(cs->active);
-  immRecti(pos, b, y, c, y + h);
+  immRectf(pos, b, y, c, y + h);
 
   immUnbindProgram();
 }
@@ -654,12 +653,11 @@ static void vicon_gplayer_color_draw(Icon *icon, int x, int y, int w, int h)
   /* TODO: Make this have rounded corners, and maybe be a bit smaller.
    * However, UI_draw_roundbox_aa() draws the colors too dark, so can't be used.
    */
-  uint pos = GPU_vertformat_attr_add(
-      immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
+  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   immUniformColor3fv(gpl->color);
-  immRecti(pos, x, y, x + w - 1, y + h - 1);
+  immRectf(pos, x, y, x + w - 1, y + h - 1);
 
   immUnbindProgram();
 }

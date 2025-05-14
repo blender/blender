@@ -332,6 +332,11 @@ class DeferredLayer : DeferredLayerBase {
     return closure_bits_ & CLOSURE_TRANSMISSION;
   }
 
+  /* Do we compute indirect lighting inside the light eval pass. */
+  static bool do_merge_direct_indirect_eval(const Instance &inst);
+  /* Is the radiance split for the lighting pass. */
+  static bool do_split_direct_indirect_radiance(const Instance &inst);
+
   /* Returns the radiance buffer to feed the next layer. */
   GPUTexture *render(View &main_view,
                      View &render_view,

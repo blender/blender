@@ -153,7 +153,6 @@ NOD_REGISTER_NODE(node_register)
 namespace blender::nodes {
 
 StructRNA *CombineBundleItemsAccessor::item_srna = &RNA_NodeGeometryCombineBundleItem;
-int CombineBundleItemsAccessor::node_type = GEO_NODE_COMBINE_BUNDLE;
 
 void CombineBundleItemsAccessor::blend_write_item(BlendWriter *writer, const ItemT &item)
 {

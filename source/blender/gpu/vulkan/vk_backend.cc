@@ -592,9 +592,20 @@ void VKBackend::render_end()
       device.orphaned_data.destroy_discarded_resources(device);
     }
   }
+
+  if (BLI_thread_is_main() && !G.is_rendering) {
+    device.orphaned_data.move_data(device.orphaned_data_render,
+                                   device.orphaned_data.timeline_ + 1);
+  }
 }
 
-void VKBackend::render_step(bool /*force_resource_release*/) {}
+void VKBackend::render_step(bool force_resource_release)
+{
+  if (force_resource_release) {
+    device.orphaned_data.move_data(device.orphaned_data_render,
+                                   device.orphaned_data.timeline_ + 1);
+  }
+}
 
 void VKBackend::capabilities_init(VKDevice &device)
 {

@@ -369,7 +369,7 @@ static uiBlock *wm_block_splash_create(bContext *C, ARegion *region, void * /*ar
   if (proc_id && strncmp(proc_id, "ARM", 3) == 0)
 #  endif
   {
-    uiItemS_ex(layout, 2.0f, LayoutSeparatorType::Line);
+    layout->separator(2.0f, LayoutSeparatorType::Line);
 
     uiLayout *split = &layout->split(0.725, true);
     uiLayout *row1 = &split->row(true);
@@ -398,7 +398,7 @@ static uiBlock *wm_block_splash_create(bContext *C, ARegion *region, void * /*ar
         "https://docs.blender.org/manual/en/latest/getting_started/installing/windows.html");
 #  endif
 
-    uiItemS(layout);
+    layout->separator();
   }
 #endif
 
@@ -458,7 +458,7 @@ static uiBlock *wm_block_about_create(bContext *C, ARegion *region, void * /*arg
 
     /* The top margin. */
     uiLayout *row = &layout->row(false);
-    uiItemS_ex(row, 0.2f);
+    row->separator(0.2f);
 
     /* The logo image. */
     row = &layout->row(false);
@@ -467,7 +467,7 @@ static uiBlock *wm_block_about_create(bContext *C, ARegion *region, void * /*arg
 
     /* Padding below the logo. */
     row = &layout->row(false);
-    uiItemS_ex(row, 2.7f);
+    row->separator(2.7f);
   }
 #endif /* !WITH_HEADLESS */
 

@@ -36,7 +36,7 @@ static void node_shader_buts_script(uiLayout *layout, bContext * /*C*/, PointerR
 
 static void node_shader_buts_script_ex(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
-  uiItemS(layout);
+  layout->separator();
 
   node_shader_buts_script(layout, C, ptr);
 

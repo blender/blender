@@ -54,16 +54,12 @@ void immAttr2i(uint attr_id, int x, int y);
 
 void immAttr1u(uint attr_id, uint x);
 
-void immAttr2s(uint attr_id, short x, short y);
-
 void immAttr2fv(uint attr_id, const float data[2]);
 void immAttr3fv(uint attr_id, const float data[3]);
 void immAttr4fv(uint attr_id, const float data[4]);
 
-void immAttr3ub(uint attr_id, unsigned char r, unsigned char g, unsigned char b);
 void immAttr4ub(uint attr_id, unsigned char r, unsigned char g, unsigned char b, unsigned char a);
 
-void immAttr3ubv(uint attr_id, const unsigned char data[3]);
 void immAttr4ubv(uint attr_id, const unsigned char data[4]);
 
 /* Explicitly skip an attribute.
@@ -79,8 +75,6 @@ void immVertex3f(uint attr_id, float x, float y, float z);
 void immVertex4f(uint attr_id, float x, float y, float z, float w);
 
 void immVertex2i(uint attr_id, int x, int y);
-
-void immVertex2s(uint attr_id, short x, short y);
 
 void immVertex2fv(uint attr_id, const float data[2]);
 void immVertex3fv(uint attr_id, const float data[3]);

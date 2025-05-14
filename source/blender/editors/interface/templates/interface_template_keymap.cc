@@ -25,7 +25,7 @@ static void keymap_item_modified(bContext * /*C*/, void *kmi_p, void * /*unused*
 
 static void template_keymap_item_properties(uiLayout *layout, const char *title, PointerRNA *ptr)
 {
-  uiItemS(layout);
+  layout->separator();
 
   if (title) {
     layout->label(title, ICON_NONE);

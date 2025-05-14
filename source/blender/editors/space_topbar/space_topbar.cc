@@ -189,7 +189,7 @@ static void recent_files_menu_draw(const bContext * /*C*/, Menu *menu)
   uiLayout *layout = menu->layout;
   uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_DEFAULT);
   if (uiTemplateRecentFiles(layout, U.recent_files) != 0) {
-    uiItemS(layout);
+    layout->separator();
     layout->op("WM_OT_clear_recent_files", IFACE_("Clear Recent Files List..."), ICON_TRASH);
   }
   else {

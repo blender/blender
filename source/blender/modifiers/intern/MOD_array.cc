@@ -910,7 +910,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
     layout->prop(ptr, "curve", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
-  modifier_panel_end(layout, ptr);
+  modifier_error_message_draw(layout, ptr);
 }
 
 static void relative_offset_header_draw(const bContext * /*C*/, Panel *panel)

@@ -1268,13 +1268,13 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
       /* process wheel mouse events and break, only pass on press events */
       if (xbe.button == Button4) {
         if (xbe.type == ButtonPress) {
-          g_event = new GHOST_EventWheel(event_ms, window, 1);
+          g_event = new GHOST_EventWheel(event_ms, window, GHOST_kEventWheelAxisVertical, 1);
         }
         break;
       }
       if (xbe.button == Button5) {
         if (xbe.type == ButtonPress) {
-          g_event = new GHOST_EventWheel(event_ms, window, -1);
+          g_event = new GHOST_EventWheel(event_ms, window, GHOST_kEventWheelAxisVertical, -1);
         }
         break;
       }

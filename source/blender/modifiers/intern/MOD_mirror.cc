@@ -164,7 +164,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   row->prop(ptr, prop, 1, 0, toggles_flag, IFACE_("Y"), ICON_NONE);
   row->prop(ptr, prop, 2, 0, toggles_flag, IFACE_("Z"), ICON_NONE);
 
-  uiItemS(col);
+  col->separator();
 
   col->prop(ptr, "mirror_object", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
@@ -181,7 +181,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   uiLayoutSetActive(sub, has_bisect);
   sub->prop(ptr, "bisect_threshold", UI_ITEM_NONE, IFACE_("Bisect Distance"), ICON_NONE);
 
-  modifier_panel_end(layout, ptr);
+  modifier_error_message_draw(layout, ptr);
 }
 
 static void data_panel_draw(const bContext * /*C*/, Panel *panel)

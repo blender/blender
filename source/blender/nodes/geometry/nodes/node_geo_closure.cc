@@ -315,7 +315,6 @@ NOD_REGISTER_NODE(node_register)
 namespace blender::nodes {
 
 StructRNA *ClosureInputItemsAccessor::item_srna = &RNA_NodeGeometryClosureInputItem;
-int ClosureInputItemsAccessor::node_type = GEO_NODE_CLOSURE_OUTPUT;
 
 void ClosureInputItemsAccessor::blend_write_item(BlendWriter *writer, const ItemT &item)
 {
@@ -328,7 +327,6 @@ void ClosureInputItemsAccessor::blend_read_data_item(BlendDataReader *reader, It
 }
 
 StructRNA *ClosureOutputItemsAccessor::item_srna = &RNA_NodeGeometryClosureOutputItem;
-int ClosureOutputItemsAccessor::node_type = GEO_NODE_CLOSURE_OUTPUT;
 
 void ClosureOutputItemsAccessor::blend_write_item(BlendWriter *writer, const ItemT &item)
 {

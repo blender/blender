@@ -80,7 +80,9 @@ bool GHOST_EventPrinter::processEvent(const GHOST_IEvent *event)
     }
     case GHOST_kEventWheel: {
       const GHOST_TEventWheelData *wheelData = static_cast<const GHOST_TEventWheelData *>(data);
-      std::cout << "GHOST_kEventWheel, z: " << wheelData->z;
+      std::cout << "GHOST_kEventWheel, axis: "
+                << (wheelData->axis == GHOST_kEventWheelAxisVertical ? "vertical" : "horizontal")
+                << ", value: " << wheelData->value;
       handled = true;
       break;
     }

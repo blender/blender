@@ -287,8 +287,7 @@ class LazyFunctionForSimulationInputNode final : public LazyFunction {
 
   void execute_impl(lf::Params &params, const lf::Context &context) const final
   {
-    const GeoNodesLFUserData &user_data = *static_cast<const GeoNodesLFUserData *>(
-        context.user_data);
+    const GeoNodesUserData &user_data = *static_cast<const GeoNodesUserData *>(context.user_data);
     if (!user_data.call_data->simulation_params) {
       this->set_default_outputs(params);
       return;
@@ -343,7 +342,7 @@ class LazyFunctionForSimulationInputNode final : public LazyFunction {
   }
 
   void output_simulation_state_copy(lf::Params &params,
-                                    const GeoNodesLFUserData &user_data,
+                                    const GeoNodesUserData &user_data,
                                     bke::bake::BakeDataBlockMap *data_block_map,
                                     const bke::bake::BakeStateRef &zone_state) const
   {
@@ -364,7 +363,7 @@ class LazyFunctionForSimulationInputNode final : public LazyFunction {
   }
 
   void output_simulation_state_move(lf::Params &params,
-                                    const GeoNodesLFUserData &user_data,
+                                    const GeoNodesUserData &user_data,
                                     bke::bake::BakeDataBlockMap *data_block_map,
                                     bke::bake::BakeState zone_state) const
   {
@@ -385,7 +384,7 @@ class LazyFunctionForSimulationInputNode final : public LazyFunction {
   }
 
   void pass_through(lf::Params &params,
-                    const GeoNodesLFUserData &user_data,
+                    const GeoNodesUserData &user_data,
                     bke::bake::BakeDataBlockMap *data_block_map) const
   {
     Array<void *> input_values(inputs_.size());
@@ -560,7 +559,7 @@ class LazyFunctionForSimulationOutputNode final : public LazyFunction {
 
   void execute_impl(lf::Params &params, const lf::Context &context) const final
   {
-    GeoNodesLFUserData &user_data = *static_cast<GeoNodesLFUserData *>(context.user_data);
+    GeoNodesUserData &user_data = *static_cast<GeoNodesUserData *>(context.user_data);
     if (!user_data.call_data->self_object()) {
       /* The self object is currently required for generating anonymous attribute names. */
       this->set_default_outputs(params);
@@ -615,7 +614,7 @@ class LazyFunctionForSimulationOutputNode final : public LazyFunction {
   }
 
   void output_cached_state(lf::Params &params,
-                           GeoNodesLFUserData &user_data,
+                           GeoNodesUserData &user_data,
                            bke::bake::BakeDataBlockMap *data_block_map,
                            const bke::bake::BakeStateRef &state) const
   {
@@ -687,7 +686,7 @@ class LazyFunctionForSimulationOutputNode final : public LazyFunction {
   }
 
   void pass_through(lf::Params &params,
-                    GeoNodesLFUserData &user_data,
+                    GeoNodesUserData &user_data,
                     bke::bake::BakeDataBlockMap *data_block_map) const
   {
     std::optional<bke::bake::BakeState> bake_state = this->get_bake_state_from_inputs(
@@ -714,7 +713,7 @@ class LazyFunctionForSimulationOutputNode final : public LazyFunction {
   }
 
   void store_new_state(lf::Params &params,
-                       GeoNodesLFUserData &user_data,
+                       GeoNodesUserData &user_data,
                        bke::bake::BakeDataBlockMap *data_block_map,
                        const sim_output::StoreNewState &info) const
   {
@@ -992,7 +991,6 @@ void mix_baked_data_item(const eNodeSocketDatatype socket_type,
 }
 
 StructRNA *SimulationItemsAccessor::item_srna = &RNA_SimulationStateItem;
-int SimulationItemsAccessor::node_type = GEO_NODE_SIMULATION_OUTPUT;
 
 void SimulationItemsAccessor::blend_write_item(BlendWriter *writer, const ItemT &item)
 {

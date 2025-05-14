@@ -59,12 +59,12 @@ static void draw_keyframe(int frame, int cfra, int sfra, float framelen, int wid
 
   if (width == 1) {
     immBegin(GPU_PRIM_LINES, 2);
-    immVertex2i(pos, x, 0);
-    immVertex2i(pos, x, height * UI_SCALE_FAC);
+    immVertex2f(pos, x, 0);
+    immVertex2f(pos, x, height * UI_SCALE_FAC);
     immEnd();
   }
   else {
-    immRecti(pos, x, 0, x + width, height * UI_SCALE_FAC);
+    immRectf(pos, x, 0, x + width, height * UI_SCALE_FAC);
   }
 }
 
@@ -145,8 +145,7 @@ static void draw_movieclip_cache(SpaceClip *sc, ARegion *region, MovieClip *clip
   BKE_movieclip_get_cache_segments(clip, &sc->user, &totseg, &points);
   ED_region_cache_draw_cached_segments(region, totseg, points, sfra, efra);
 
-  uint pos = GPU_vertformat_attr_add(
-      immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
+  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   /* track */
@@ -189,7 +188,7 @@ static void draw_movieclip_cache(SpaceClip *sc, ARegion *region, MovieClip *clip
           immUniformColor4ub(255, 255, 0, 96);
         }
 
-        immRecti(pos,
+        immRectf(pos,
                  (i - sfra + clip->start_frame - 1) * framelen,
                  0,
                  (i - sfra + clip->start_frame) * framelen,
@@ -221,7 +220,7 @@ static void draw_movieclip_cache(SpaceClip *sc, ARegion *region, MovieClip *clip
       }
 
       if (!ok) {
-        immRecti(pos,
+        immRectf(pos,
                  (i - sfra + clip->start_frame - 1) * framelen,
                  0,
                  (i - sfra + clip->start_frame) * framelen,
@@ -236,14 +235,14 @@ static void draw_movieclip_cache(SpaceClip *sc, ARegion *region, MovieClip *clip
   x = (sc->user.framenr - sfra) / (efra - sfra + 1) * region->winx;
 
   immUniformThemeColor(TH_CFRAME);
-  immRecti(pos, x, 0, x + ceilf(framelen), 8 * UI_SCALE_FAC);
+  immRectf(pos, x, 0, x + ceilf(framelen), 8 * UI_SCALE_FAC);
 
   immUnbindProgram();
 
   ED_region_cache_draw_curfra_label(
       sc->user.framenr, x + roundf(framelen / 2), 8.0f * UI_SCALE_FAC);
 
-  pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
+  pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   /* solver keyframes */

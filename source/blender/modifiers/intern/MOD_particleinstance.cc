@@ -545,7 +545,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
     layout->prop(ptr, "particle_system_index", UI_ITEM_NONE, IFACE_("Particle System"), ICON_NONE);
   }
 
-  uiItemS(layout);
+  layout->separator();
 
   row = &layout->row(true, IFACE_("Create Instances"));
   row->prop(ptr, "use_normal", toggles_flag, std::nullopt, ICON_NONE);
@@ -560,13 +560,13 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   layout->prop(ptr, "particle_amount", UI_ITEM_NONE, IFACE_("Amount"), ICON_NONE);
   layout->prop(ptr, "particle_offset", UI_ITEM_NONE, IFACE_("Offset"), ICON_NONE);
 
-  uiItemS(layout);
+  layout->separator();
 
   layout->prop(ptr, "space", UI_ITEM_NONE, IFACE_("Coordinate Space"), ICON_NONE);
   row = &layout->row(true);
   row->prop(ptr, "axis", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
-  modifier_panel_end(layout, ptr);
+  modifier_error_message_draw(layout, ptr);
 }
 
 static void path_panel_draw_header(const bContext * /*C*/, Panel *panel)

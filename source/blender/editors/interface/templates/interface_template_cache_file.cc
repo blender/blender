@@ -185,7 +185,7 @@ void uiTemplateCacheFileLayers(uiLayout *layout, const bContext *C, PointerRNA *
 
   CacheFile *file = static_cast<CacheFile *>(fileptr->data);
   if (BLI_listbase_count(&file->layers) > 1) {
-    uiItemS_ex(col, 1.0f);
+    col->separator(1.0f);
     col->op("cachefile.layer_move", "", ICON_TRIA_UP);
     col->op("cachefile.layer_move", "", ICON_TRIA_DOWN);
   }

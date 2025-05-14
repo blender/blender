@@ -117,7 +117,9 @@ bool ShaderModule::static_shaders_are_ready(bool block_until_ready)
 bool ShaderModule::request_specializations(bool block_until_ready,
                                            int render_buffers_shadow_id,
                                            int shadow_ray_count,
-                                           int shadow_ray_step_count)
+                                           int shadow_ray_step_count,
+                                           bool use_split_indirect,
+                                           bool use_lightprobe_eval)
 {
   if (!GPU_use_parallel_compilation()) {
     return true;
@@ -128,22 +130,23 @@ bool ShaderModule::request_specializations(bool block_until_ready,
   std::lock_guard lock(mutex_);
 
   SpecializationBatchHandle &specialization_handle = specialization_handles_.lookup_or_add_cb(
-      {render_buffers_shadow_id, shadow_ray_count, shadow_ray_step_count}, [&]() {
+      {render_buffers_shadow_id,
+       shadow_ray_count,
+       shadow_ray_step_count,
+       use_split_indirect,
+       use_lightprobe_eval},
+      [&]() {
         Vector<ShaderSpecialization> specializations;
         for (int i = 0; i < 3; i++) {
           GPUShader *sh = static_shader_get(eShaderType(DEFERRED_LIGHT_SINGLE + i));
-          for (bool use_split_indirect : {false, true}) {
-            for (bool use_lightprobe_eval : {false, true}) {
-              for (bool use_transmission : {false, true}) {
-                specializations.append({sh,
-                                        {{"render_pass_shadow_id", render_buffers_shadow_id},
-                                         {"use_split_indirect", use_split_indirect},
-                                         {"use_lightprobe_eval", use_lightprobe_eval},
-                                         {"use_transmission", use_transmission},
-                                         {"shadow_ray_count", shadow_ray_count},
-                                         {"shadow_ray_step_count", shadow_ray_step_count}}});
-              }
-            }
+          for (bool use_transmission : {false, true}) {
+            specializations.append({sh,
+                                    {{"render_pass_shadow_id", render_buffers_shadow_id},
+                                     {"use_split_indirect", use_split_indirect},
+                                     {"use_lightprobe_eval", use_lightprobe_eval},
+                                     {"use_transmission", use_transmission},
+                                     {"shadow_ray_count", shadow_ray_count},
+                                     {"shadow_ray_step_count", shadow_ray_step_count}}});
           }
         }
 

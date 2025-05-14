@@ -506,7 +506,7 @@ static wmOperatorStatus insert_key_menu_invoke(bContext *C,
        * NOTE: If in the future the enum includes them, additional layout code can be
        * added to show them - although that doesn't seem likely. */
       BLI_assert(item->name == nullptr);
-      uiItemS(layout);
+      layout->separator();
     }
   }
 

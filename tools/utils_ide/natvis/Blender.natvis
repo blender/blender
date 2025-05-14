@@ -37,6 +37,25 @@
         </ArrayItems>
     </Expand>
   </Type>
+  <!-- visualizer for Map with pointer keys (IntrusiveMapSlot slot type) -->
+  <Type Name="blender::Map&lt;*&gt;" Priority="MediumLow">
+    <DisplayString>Size={occupied_and_removed_slots_ - removed_slots_}</DisplayString>
+    <Expand>
+      <CustomListItems MaxItemsPerView="5000">
+        <Variable Name="slot" InitialValue="slots_.data_"/>
+        <Variable Name="i" InitialValue="0"/>
+        <Loop>
+          <Break Condition="i &gt;= occupied_and_removed_slots_ - removed_slots_"/>
+          <If Condition="(uint64_t)slot-&gt;key_ &lt; 0xfffffffffffffffe">
+            <Item Name="{slot-&gt;key_}">slot-&gt;value_buffer_</Item>
+            <Exec>++i</Exec>
+          </If>
+          <Exec>++slot</Exec>
+        </Loop>
+      </CustomListItems>
+    </Expand>
+  </Type>  
+  <!-- visualizer for regular Map (SimpleMapSlot slot type) -->
   <Type Name="blender::Map&lt;*&gt;">
     <DisplayString>Size={occupied_and_removed_slots_ - removed_slots_}</DisplayString>
     <Expand>
@@ -51,8 +70,48 @@
         </Loop>
       </CustomListItems>
     </Expand>
+  </Type>
+  <!-- visualizer for Set with pointer keys (IntrusiveSetSlot slot type) -->
+  <Type Name="blender::Set&lt;*&gt;" Priority="MediumLow">
+    <DisplayString>Size={occupied_and_removed_slots_ - removed_slots_}</DisplayString>
+    <Expand>
+      <CustomListItems MaxItemsPerView="5000">
+        <Variable Name="slot" InitialValue="slots_.data_"/>
+        <Variable Name="i" InitialValue="0"/>
+        <Loop>
+          <Break Condition="i &gt;= occupied_and_removed_slots_ - removed_slots_"/>
+          <If Condition="(uint64_t)slot-&gt;key_ &lt; 0xfffffffffffffffe">
+            <Item Name="[{i}]">slot-&gt;key_</Item>
+            <Exec>++i</Exec>
+          </If>
+          <Exec>++slot</Exec>
+        </Loop>
+      </CustomListItems>
+    </Expand>
   </Type>  
+  <!-- visualizer for regular Set (SimpleSetSlot slot type) -->
+  <Type Name="blender::Set&lt;*&gt;">
+    <DisplayString>Size={occupied_and_removed_slots_ - removed_slots_}</DisplayString>
+    <Expand>
+      <CustomListItems>
+        <Variable Name="slot" InitialValue="slots_.data_"/>
+        <Variable Name="i" InitialValue="0"/>
+        <Loop>
+          <Break Condition="i &gt;= occupied_and_removed_slots_ - removed_slots_"/>
+          <If Condition="slot-&gt;state_ == 1">
+            <Item Name="[{i}]">slot-&gt;key_buffer_</Item>
+            <Exec>++i</Exec>
+          </If>
+          <Exec>++slot</Exec>
+        </Loop>
+      </CustomListItems>
+    </Expand>
+  </Type>
+
   <Type Name="blender::TypedBuffer&lt;*,*&gt;">
     <DisplayString>{*($T1*)buffer_.buffer_.buffer_}</DisplayString>
+    <Expand>
+      <ExpandedItem>*($T1*)buffer_.buffer_.buffer_,nd</ExpandedItem>
+    </Expand>
   </Type>  
 </AutoVisualizer>

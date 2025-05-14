@@ -78,7 +78,7 @@ void add_load_data_init(LoadData *load_data,
 static void strip_add_generic_update(Scene *scene, Strip *strip)
 {
   strip_unique_name_set(scene, &scene->ed->seqbase, strip);
-  relations_invalidate_cache_composite(scene, strip);
+  relations_invalidate_cache(scene, strip);
   strip_lookup_invalidate(scene->ed);
   strip_time_effect_range_set(scene, strip);
   time_update_meta_strip_range(scene, lookup_meta_by_strip(scene->ed, strip));

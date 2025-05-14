@@ -1077,7 +1077,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   row->prop(ptr, "screw_offset", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   col->prop(ptr, "iterations", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  uiItemS(layout);
+  layout->separator();
   col = &layout->column(false);
   row = &col->row(false);
   row->prop(ptr, "axis", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
@@ -1086,13 +1086,13 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   uiLayoutSetActive(sub, !RNA_pointer_is_null(&screw_obj_ptr));
   sub->prop(ptr, "use_object_screw_offset", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  uiItemS(layout);
+  layout->separator();
 
   col = &layout->column(true);
   col->prop(ptr, "steps", UI_ITEM_NONE, IFACE_("Steps Viewport"), ICON_NONE);
   col->prop(ptr, "render_steps", UI_ITEM_NONE, IFACE_("Render"), ICON_NONE);
 
-  uiItemS(layout);
+  layout->separator();
 
   row = &layout->row(true, IFACE_("Merge"));
   row->prop(ptr, "use_merge_vertices", UI_ITEM_NONE, "", ICON_NONE);
@@ -1100,13 +1100,13 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_merge_vertices"));
   sub->prop(ptr, "merge_threshold", UI_ITEM_NONE, "", ICON_NONE);
 
-  uiItemS(layout);
+  layout->separator();
 
   row = &layout->row(true, IFACE_("Stretch UVs"));
   row->prop(ptr, "use_stretch_u", toggles_flag, IFACE_("U"), ICON_NONE);
   row->prop(ptr, "use_stretch_v", toggles_flag, IFACE_("V"), ICON_NONE);
 
-  modifier_panel_end(layout, ptr);
+  modifier_error_message_draw(layout, ptr);
 }
 
 static void normals_panel_draw(const bContext * /*C*/, Panel *panel)

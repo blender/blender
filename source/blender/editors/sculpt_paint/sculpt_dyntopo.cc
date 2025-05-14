@@ -230,7 +230,7 @@ static wmOperatorStatus dyntopo_warning_popup(bContext *C, wmOperatorType *ot, e
     const char *msg = RPT_("Dyntopo will not preserve colors, UVs, or other attributes");
     layout->label(msg_error, ICON_INFO);
     layout->label(msg, ICON_NONE);
-    uiItemS(layout);
+    layout->separator();
   }
 
   if (flag & MODIFIER) {
@@ -240,7 +240,7 @@ static wmOperatorStatus dyntopo_warning_popup(bContext *C, wmOperatorType *ot, e
 
     layout->label(msg_error, ICON_INFO);
     layout->label(msg, ICON_NONE);
-    uiItemS(layout);
+    layout->separator();
   }
 
   uiItemFullO_ptr(

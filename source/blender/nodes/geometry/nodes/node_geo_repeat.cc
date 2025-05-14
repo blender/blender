@@ -296,7 +296,6 @@ NOD_REGISTER_NODE(node_register)
 namespace blender::nodes {
 
 StructRNA *RepeatItemsAccessor::item_srna = &RNA_RepeatItem;
-int RepeatItemsAccessor::node_type = GEO_NODE_REPEAT_OUTPUT;
 
 void RepeatItemsAccessor::blend_write_item(BlendWriter *writer, const ItemT &item)
 {

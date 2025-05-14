@@ -51,8 +51,7 @@ static void edbm_selectmode_ensure(Scene *scene, BMEditMesh *em, short selectmod
 {
   if ((scene->toolsettings->selectmode & selectmode) == 0) {
     scene->toolsettings->selectmode |= selectmode;
-    em->selectmode = scene->toolsettings->selectmode;
-    EDBM_selectmode_set(em);
+    EDBM_selectmode_set(em, scene->toolsettings->selectmode);
   }
 }
 

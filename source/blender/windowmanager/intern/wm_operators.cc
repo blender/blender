@@ -1441,8 +1441,8 @@ static uiBlock *wm_block_create_redo(bContext *C, ARegion *region, void *arg_op)
   }
 
   uiItemL_ex(layout, WM_operatortype_name(op->type, op->ptr), ICON_NONE, true, false);
-  uiItemS_ex(layout, 0.2f, LayoutSeparatorType::Line);
-  uiItemS_ex(layout, 0.5f);
+  layout->separator(0.2f, LayoutSeparatorType::Line);
+  layout->separator(0.5f);
 
   uiLayout *col = &layout->column(false);
   uiTemplateOperatorPropertyButs(C, col, op, UI_BUT_LABEL_ALIGN_NONE, 0);
@@ -1571,7 +1571,7 @@ static uiBlock *wm_block_dialog_create(bContext *C, ARegion *region, void *user_
 
     /* Line under the title if there are properties but no message body. */
     if (data->include_properties && message_lines.size() == 0) {
-      uiItemS_ex(layout, 0.2f, LayoutSeparatorType::Line);
+      layout->separator(0.2f, LayoutSeparatorType::Line);
     };
   }
 
@@ -1579,18 +1579,18 @@ static uiBlock *wm_block_dialog_create(bContext *C, ARegion *region, void *user_
   if (message_lines.size() > 0) {
     uiLayout *lines = &layout->column(false);
     uiLayoutSetScaleY(lines, 0.65f);
-    uiItemS_ex(lines, 0.1f);
+    lines->separator(0.1f);
     for (auto &st : message_lines) {
       lines->label(st, ICON_NONE);
     }
   }
 
   if (data->include_properties) {
-    uiItemS_ex(layout, 0.5f);
+    layout->separator(0.5f);
     uiTemplateOperatorPropertyButs(C, layout, op, UI_BUT_LABEL_ALIGN_SPLIT_COLUMN, 0);
   }
 
-  uiItemS_ex(layout, small ? 0.1f : 1.8f);
+  layout->separator(small ? 0.1f : 1.8f);
 
   /* Clear so the OK button is left alone. */
   UI_block_func_set(block, nullptr, nullptr, nullptr);

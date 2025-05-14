@@ -795,7 +795,7 @@ void armature_foreachScreenBone(const ViewContext *vc,
   }
 
   LISTBASE_FOREACH (EditBone *, ebone, arm->edbo) {
-    if (!EBONE_VISIBLE(arm, ebone)) {
+    if (!ANIM_bone_is_visible_editbone(arm, ebone)) {
       continue;
     }
 
@@ -867,7 +867,7 @@ void pose_foreachScreenBone(const ViewContext *vc,
   }
 
   LISTBASE_FOREACH (bPoseChannel *, pchan, &pose->chanbase) {
-    if (!PBONE_VISIBLE(arm_eval, pchan->bone)) {
+    if (!ANIM_bone_is_visible_pchan(arm_eval, pchan)) {
       continue;
     }
 

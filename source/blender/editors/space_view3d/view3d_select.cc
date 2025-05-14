@@ -1015,7 +1015,7 @@ static void do_lasso_select_armature__doSelectBone(void *user_data,
 {
   LassoSelectUserData *data = static_cast<LassoSelectUserData *>(user_data);
   const bArmature *arm = static_cast<const bArmature *>(data->vc->obedit->data);
-  if (!EBONE_VISIBLE(arm, ebone)) {
+  if (!ANIM_bone_is_visible_editbone(arm, ebone)) {
     return;
   }
 
@@ -1062,7 +1062,7 @@ static void do_lasso_select_armature__doSelectBone_clip_content(void *user_data,
 {
   LassoSelectUserData *data = static_cast<LassoSelectUserData *>(user_data);
   bArmature *arm = static_cast<bArmature *>(data->vc->obedit->data);
-  if (!EBONE_VISIBLE(arm, ebone)) {
+  if (!ANIM_bone_is_visible_editbone(arm, ebone)) {
     return;
   }
 
@@ -5129,7 +5129,7 @@ static void do_circle_select_armature__doSelectBone(void *user_data,
 {
   CircleSelectUserData *data = static_cast<CircleSelectUserData *>(user_data);
   const bArmature *arm = static_cast<const bArmature *>(data->vc->obedit->data);
-  if (!(data->select ? EBONE_SELECTABLE(arm, ebone) : EBONE_VISIBLE(arm, ebone))) {
+  if (!(data->select ? EBONE_SELECTABLE(arm, ebone) : ANIM_bone_is_visible_editbone(arm, ebone))) {
     return;
   }
 
@@ -5185,7 +5185,7 @@ static void do_circle_select_armature__doSelectBone_clip_content(void *user_data
   CircleSelectUserData *data = static_cast<CircleSelectUserData *>(user_data);
   bArmature *arm = static_cast<bArmature *>(data->vc->obedit->data);
 
-  if (!(data->select ? EBONE_SELECTABLE(arm, ebone) : EBONE_VISIBLE(arm, ebone))) {
+  if (!(data->select ? EBONE_SELECTABLE(arm, ebone) : ANIM_bone_is_visible_editbone(arm, ebone))) {
     return;
   }
 

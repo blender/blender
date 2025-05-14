@@ -7,6 +7,7 @@
  */
 
 #include "BKE_attribute.hh"
+#include "BKE_deform.hh"
 #include "BKE_key.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_material.hh"
@@ -338,11 +339,73 @@ static bool import_blend_shapes(Main &bmain,
         const ufbx_vec3 &delta = fchan->target_shape->position_offsets[i];
         kb_data[idx] += float3(delta.x, delta.y, delta.z);
       }
-
       mapping.el_to_shape_key.add(&fchan->element, mesh_key);
     }
   }
   return mesh_key != nullptr;
+}
+
+/* Handle Blender-specific "FullWeights" that for each blend shape also create
+ * a weighted vertex group for itself. */
+static void import_blend_shape_full_weights(const FbxElementMapping &mapping,
+                                            const ufbx_mesh *fmesh,
+                                            Mesh *mesh,
+                                            Object *obj)
+{
+  for (const ufbx_blend_deformer *fdeformer : fmesh->blend_deformers) {
+    for (const ufbx_blend_channel *fchan : fdeformer->channels) {
+      Key *key = mapping.el_to_shape_key.lookup_default(&fchan->element, nullptr);
+      if (fchan->target_shape == nullptr || key == nullptr) {
+        continue;
+      }
+      if (fchan->target_shape->offset_weights.count != fchan->target_shape->num_offsets) {
+        continue;
+      }
+
+      KeyBlock *kb = BKE_keyblock_find_name(key, fchan->target_shape->name.data);
+      if (kb == nullptr) {
+        continue;
+      }
+
+      /* Ignore cases where all weights are 1.0 (group has no effect),
+       * and cases where any weights are outside of 0..1 range (apparently some files have
+       * invalid negative weights and should be ignored). */
+      bool all_one = true;
+      bool all_unorm = true;
+      for (ufbx_real w : fchan->target_shape->offset_weights) {
+        if (w != 1.0) {
+          all_one = false;
+        }
+        if (w < 0.0 || w > 1.0) {
+          all_unorm = false;
+        }
+      }
+      if (all_one || !all_unorm) {
+        continue;
+      }
+
+      int group_index = BKE_defgroup_name_index(&mesh->vertex_group_names, kb->name);
+      if (group_index < 0) {
+        BKE_object_defgroup_add_name(obj, kb->name);
+        group_index = BKE_defgroup_name_index(&mesh->vertex_group_names, kb->name);
+        if (group_index < 0) {
+          continue;
+        }
+      }
+
+      MutableSpan<MDeformVert> dverts = mesh->deform_verts_for_write();
+      for (int i = 0; i < fchan->target_shape->num_offsets; i++) {
+        const int idx = fchan->target_shape->offset_vertices[i];
+        if (idx >= 0 && idx < dverts.size()) {
+          const float w = fchan->target_shape->offset_weights[i];
+          MDeformWeight *dw = BKE_defvert_ensure_index(&dverts[idx], group_index);
+          dw->weight = w;
+        }
+      }
+
+      STRNCPY(kb->vgroup, kb->name);
+    }
+  }
 }
 
 void import_meshes(Main &bmain,
@@ -489,6 +552,10 @@ void import_meshes(Main &bmain,
           mtx_parent_inverse = ufbx_matrix_mul(&world_to_arm_pose, &mtx_parent_inverse);
           matrix_to_m44(mtx_parent_inverse, obj->parentinv);
         }
+      }
+
+      if (any_shapes) {
+        import_blend_shape_full_weights(mapping, fmesh, mesh, obj);
       }
 
       /* Assign materials. */

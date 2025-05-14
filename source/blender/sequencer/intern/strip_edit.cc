@@ -200,7 +200,7 @@ bool edit_move_strip_to_seqbase(Scene *scene,
   /* Move to meta. */
   BLI_remlink(seqbase, strip);
   BLI_addtail(dst_seqbase, strip);
-  relations_invalidate_cache_preprocessed(scene, strip);
+  relations_invalidate_cache(scene, strip);
 
   /* Update meta. */
   if (transform_test_overlap(scene, dst_seqbase, strip)) {

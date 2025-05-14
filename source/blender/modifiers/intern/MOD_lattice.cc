@@ -144,7 +144,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   layout->prop(ptr, "strength", UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
 
-  modifier_panel_end(layout, ptr);
+  modifier_error_message_draw(layout, ptr);
 }
 
 static void panel_register(ARegionType *region_type)

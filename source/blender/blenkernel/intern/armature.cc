@@ -3164,7 +3164,7 @@ std::optional<blender::Bounds<blender::float3>> BKE_pose_minmax(const Object *ob
     if (!pchan->bone) {
       continue;
     }
-    if (!PBONE_VISIBLE(arm, pchan->bone)) {
+    if (!ANIM_bone_is_visible_pchan(arm, pchan)) {
       continue;
     }
     if (use_select && !(pchan->bone->flag & BONE_SELECTED)) {

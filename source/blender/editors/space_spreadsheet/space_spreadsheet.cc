@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include <cstring>
+#include <fmt/format.h>
 
 #include "BLI_listbase.h"
 #include "BLI_string.h"
@@ -341,58 +342,27 @@ static std::unique_ptr<DataSource> get_data_source(const bContext *C)
   return {};
 }
 
-static float get_default_column_width(const ColumnValues &values)
+static float get_initial_column_width(const ColumnValues &values)
 {
-  if (values.default_width > 0.0f) {
-    return values.default_width;
-  }
-  static const float float_width = 3;
-  switch (values.type()) {
-    case SPREADSHEET_VALUE_TYPE_BOOL:
-    case SPREADSHEET_VALUE_TYPE_FLOAT4X4:
-      return 2.0f;
-    case SPREADSHEET_VALUE_TYPE_INT8:
-    case SPREADSHEET_VALUE_TYPE_INT32:
-      return float_width;
-    case SPREADSHEET_VALUE_TYPE_FLOAT:
-      return float_width;
-    case SPREADSHEET_VALUE_TYPE_INT32_2D:
-    case SPREADSHEET_VALUE_TYPE_FLOAT2:
-      return 2.0f * float_width;
-    case SPREADSHEET_VALUE_TYPE_FLOAT3:
-      return 3.0f * float_width;
-    case SPREADSHEET_VALUE_TYPE_COLOR:
-    case SPREADSHEET_VALUE_TYPE_BYTE_COLOR:
-    case SPREADSHEET_VALUE_TYPE_QUATERNION:
-      return 4.0f * float_width;
-    case SPREADSHEET_VALUE_TYPE_INSTANCES:
-      return 8.0f;
-    case SPREADSHEET_VALUE_TYPE_STRING:
-      return 5.0f;
-    case SPREADSHEET_VALUE_TYPE_UNKNOWN:
-      return 2.0f;
-  }
-  return float_width;
-}
+  const float padding_px = 0.5 * SPREADSHEET_WIDTH_UNIT;
+  const float min_width_px = SPREADSHEET_WIDTH_UNIT;
 
-static float get_column_width(const ColumnValues &values)
-{
-  float data_width = get_default_column_width(values);
-  const int fontid = UI_style_get()->widget.uifont_id;
+  const float data_width_px = values.initial_width_px();
+
+  const int fontid = BLF_default();
   BLF_size(fontid, UI_DEFAULT_TEXT_POINTS * UI_SCALE_FAC);
   const StringRefNull name = values.name();
-  const float name_width = BLF_width(fontid, name.data(), name.size());
-  return std::max<float>(name_width / UI_UNIT_X + 1.0f, data_width);
-}
+  const float name_width_px = BLF_width(fontid, name.data(), name.size());
 
-static float get_column_width_in_pixels(const ColumnValues &values)
-{
-  return get_column_width(values) * SPREADSHEET_WIDTH_UNIT;
+  const float width_px = std::max(min_width_px,
+                                  padding_px + std::max(data_width_px, name_width_px));
+  const float width = width_px / SPREADSHEET_WIDTH_UNIT;
+  return width;
 }
 
 static int get_index_column_width(const int tot_rows)
 {
-  const int fontid = UI_style_get()->widget.uifont_id;
+  const int fontid = BLF_default();
   BLF_size(fontid, UI_style_get_dpi()->widget.points * UI_SCALE_FAC);
   return std::to_string(std::max(0, tot_rows - 1)).size() * BLF_width(fontid, "0", 1) +
          UI_UNIT_X * 0.75;
@@ -452,21 +422,31 @@ static void spreadsheet_main_region_draw(const bContext *C, ARegion *region)
   SpreadsheetLayout spreadsheet_layout;
   ResourceScope scope;
 
+  const int tot_rows = data_source->tot_rows();
+  spreadsheet_layout.index_column_width = get_index_column_width(tot_rows);
+  spreadsheet_layout.row_indices = spreadsheet_filter_rows(
+      *sspreadsheet, spreadsheet_layout, *data_source, scope);
+
+  int x = spreadsheet_layout.index_column_width;
+
   LISTBASE_FOREACH (SpreadsheetColumn *, column, &sspreadsheet->columns) {
     std::unique_ptr<ColumnValues> values_ptr = data_source->get_column_values(*column->id);
     /* Should have been removed before if it does not exist anymore. */
     BLI_assert(values_ptr);
     const ColumnValues *values = scope.add(std::move(values_ptr));
-    const int width = get_column_width_in_pixels(*values);
-    spreadsheet_layout.columns.append({values, width});
+
+    if (column->width <= 0.0f) {
+      column->width = get_initial_column_width(*values);
+    }
+    const int width_in_pixels = column->width * SPREADSHEET_WIDTH_UNIT;
+    spreadsheet_layout.columns.append({values, width_in_pixels});
+
+    column->runtime->left_x = x;
+    x += width_in_pixels;
+    column->runtime->right_x = x;
 
     spreadsheet_column_assign_runtime_data(column, values->type(), values->name());
   }
-
-  const int tot_rows = data_source->tot_rows();
-  spreadsheet_layout.index_column_width = get_index_column_width(tot_rows);
-  spreadsheet_layout.row_indices = spreadsheet_filter_rows(
-      *sspreadsheet, spreadsheet_layout, *data_source, scope);
 
   sspreadsheet->runtime->tot_columns = spreadsheet_layout.columns.size();
   sspreadsheet->runtime->tot_rows = tot_rows;
@@ -474,6 +454,8 @@ static void spreadsheet_main_region_draw(const bContext *C, ARegion *region)
 
   std::unique_ptr<SpreadsheetDrawer> drawer = spreadsheet_drawer_from_layout(spreadsheet_layout);
   draw_spreadsheet_in_region(C, region, *drawer);
+
+  sspreadsheet->runtime->top_row_height = drawer->top_row_height;
 
   /* Tag other regions for redraw, because the main region updates data for them. */
   ARegion *footer = BKE_area_find_region_type(CTX_wm_area(C), RGN_TYPE_FOOTER);
@@ -688,6 +670,7 @@ static void spreadsheet_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
   }
   BLO_read_struct_list(reader, SpreadsheetColumn, &sspreadsheet->columns);
   LISTBASE_FOREACH (SpreadsheetColumn *, column, &sspreadsheet->columns) {
+    column->runtime = MEM_new<SpreadsheetColumnRuntime>(__func__);
     BLO_read_struct(reader, SpreadsheetColumnID, &column->id);
     BLO_read_string(reader, &column->id->name);
     /* While the display name is technically runtime data, it is loaded here, otherwise the row
@@ -727,6 +710,19 @@ static void spreadsheet_blend_write(BlendWriter *writer, SpaceLink *sl)
   BKE_viewer_path_blend_write(writer, &sspreadsheet->viewer_path);
 }
 
+static void spreadsheet_cursor(wmWindow *win, ScrArea *area, ARegion *region)
+{
+  SpaceSpreadsheet &sspreadsheet = *static_cast<SpaceSpreadsheet *>(area->spacedata.first);
+
+  const int2 cursor_re{win->eventstate->xy[0] - region->winrct.xmin,
+                       win->eventstate->xy[1] - region->winrct.ymin};
+  if (find_column_to_resize(sspreadsheet, *region, cursor_re)) {
+    WM_cursor_set(win, WM_CURSOR_X_MOVE);
+    return;
+  }
+  WM_cursor_set(win, WM_CURSOR_DEFAULT);
+}
+
 void register_spacetype()
 {
   std::unique_ptr<SpaceType> st = std::make_unique<SpaceType>();
@@ -756,6 +752,8 @@ void register_spacetype()
   art->init = spreadsheet_main_region_init;
   art->draw = spreadsheet_main_region_draw;
   art->listener = spreadsheet_main_region_listener;
+  art->cursor = spreadsheet_cursor;
+  art->event_cursor = true;
   BLI_addhead(&st->regiontypes, art);
 
   /* regions: header */

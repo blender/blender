@@ -356,12 +356,10 @@ gpu::Batch **pointcloud_surface_shaded_get(PointCloud *pointcloud,
     ListBase gpu_attrs = GPU_material_attributes(gpu_material);
     LISTBASE_FOREACH (GPUMaterialAttribute *, gpu_attr, &gpu_attrs) {
       const char *name = gpu_attr->name;
-      const std::optional<bke::AttributeMetaData> meta_data = attributes.lookup_meta_data(name);
-      if (!meta_data) {
+      if (!attributes.contains(name)) {
         continue;
       }
-
-      drw_attributes_add_request(&attrs_needed, name, meta_data->data_type);
+      drw_attributes_add_request(&attrs_needed, name);
     }
   }
 
@@ -408,13 +406,12 @@ gpu::VertBuf **DRW_pointcloud_evaluated_attribute(PointCloud *pointcloud, const 
   const bke::AttributeAccessor attributes = pointcloud->attributes();
   PointCloudBatchCache &cache = *pointcloud_batch_cache_get(*pointcloud);
 
-  const std::optional<bke::AttributeMetaData> meta_data = attributes.lookup_meta_data(name);
-  if (!meta_data) {
+  if (!attributes.contains(name)) {
     return nullptr;
   }
   {
     DRW_Attributes requests{};
-    drw_attributes_add_request(&requests, name, meta_data->data_type);
+    drw_attributes_add_request(&requests, name);
     drw_attributes_merge(&cache.eval_cache.attr_used, &requests, cache.render_mutex);
   }
 

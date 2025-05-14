@@ -585,7 +585,7 @@ static bool rna_ActionStrip_key_insert(ID *dna_action_id,
   return ok;
 }
 
-static std::optional<std::string> rna_Channelbag_path(const PointerRNA *ptr)
+std::optional<std::string> rna_Channelbag_path(const PointerRNA *ptr)
 {
   animrig::Action &action = rna_action(ptr);
   animrig::Channelbag &cbag_to_find = rna_data_channelbag(ptr);

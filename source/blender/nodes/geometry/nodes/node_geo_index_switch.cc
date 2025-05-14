@@ -435,7 +435,6 @@ std::unique_ptr<LazyFunction> get_index_switch_node_lazy_function(
 }
 
 StructRNA *IndexSwitchItemsAccessor::item_srna = &RNA_IndexSwitchItem;
-int IndexSwitchItemsAccessor::node_type = GEO_NODE_INDEX_SWITCH;
 
 void IndexSwitchItemsAccessor::blend_write_item(BlendWriter * /*writer*/, const ItemT & /*item*/)
 {

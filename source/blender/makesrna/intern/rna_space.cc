@@ -6233,16 +6233,6 @@ static void rna_def_space_sequencer_cache_overlay(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, nullptr, "cache_overlay.flag", SEQ_CACHE_SHOW_RAW);
   RNA_def_property_ui_text(prop, "Raw Images", "Visualize cached raw images");
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, nullptr);
-
-  prop = RNA_def_property(srna, "show_cache_preprocessed", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "cache_overlay.flag", SEQ_CACHE_SHOW_PREPROCESSED);
-  RNA_def_property_ui_text(prop, "Preprocessed Images", "Visualize cached pre-processed images");
-  RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, nullptr);
-
-  prop = RNA_def_property(srna, "show_cache_composite", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "cache_overlay.flag", SEQ_CACHE_SHOW_COMPOSITE);
-  RNA_def_property_ui_text(prop, "Composite Images", "Visualize cached composite images");
-  RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, nullptr);
 }
 
 static void rna_def_space_sequencer(BlenderRNA *brna)

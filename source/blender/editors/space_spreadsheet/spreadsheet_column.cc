@@ -92,6 +92,7 @@ SpreadsheetColumn *spreadsheet_column_new(SpreadsheetColumnID *column_id)
 {
   SpreadsheetColumn *column = MEM_callocN<SpreadsheetColumn>(__func__);
   column->id = column_id;
+  column->runtime = MEM_new<SpreadsheetColumnRuntime>(__func__);
   return column;
 }
 
@@ -111,6 +112,7 @@ SpreadsheetColumn *spreadsheet_column_copy(const SpreadsheetColumn *src_column)
   if (src_column->display_name != nullptr) {
     new_column->display_name = BLI_strdup(src_column->display_name);
   }
+  new_column->width = src_column->width;
   return new_column;
 }
 
@@ -118,6 +120,7 @@ void spreadsheet_column_free(SpreadsheetColumn *column)
 {
   spreadsheet_column_id_free(column->id);
   MEM_SAFE_FREE(column->display_name);
+  MEM_delete(column->runtime);
   MEM_freeN(column);
 }
 

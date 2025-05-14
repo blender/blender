@@ -1602,7 +1602,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   uiLayoutSetActive(col, !is_bound && RNA_string_length(ptr, "vertex_group") != 0);
   col->prop(ptr, "use_sparse_bind", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  uiItemS(layout);
+  layout->separator();
 
   col = &layout->column(false);
   if (is_bound) {
@@ -1612,7 +1612,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
     uiLayoutSetActive(col, !RNA_pointer_is_null(&target_ptr));
     col->op("OBJECT_OT_surfacedeform_bind", IFACE_("Bind"), ICON_NONE);
   }
-  modifier_panel_end(layout, ptr);
+  modifier_error_message_draw(layout, ptr);
 }
 
 static void panel_register(ARegionType *region_type)

@@ -165,7 +165,7 @@ void uiTemplatePreview(uiLayout *layout,
       /* EEVEE preview file has baked lighting so use_preview_world has no effect,
        * just hide the option until this feature is supported. */
       if (!BKE_scene_uses_blender_eevee(CTX_data_scene(C))) {
-        uiItemS(col);
+        col->separator();
         col->prop(&material_ptr, "use_preview_world", UI_ITEM_NONE, "", ICON_WORLD);
       }
     }

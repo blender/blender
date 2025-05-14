@@ -1163,7 +1163,7 @@ static void node_update_basis_from_declaration(
                                                NODE_DY,
                                                0,
                                                UI_style_get_dpi());
-            uiItemS_ex(layout, 1.0, LayoutSeparatorType::Line);
+            layout->separator(1.0, LayoutSeparatorType::Line);
             UI_block_layout_resolve(&block, nullptr, nullptr);
           }
           else if constexpr (std::is_same_v<ItemT, flat_item::PanelHeader>) {

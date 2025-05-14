@@ -371,10 +371,10 @@ gpu::VertBufPtr extract_sculpt_data_subdiv(const MeshRenderData &mr,
 
 gpu::VertBufPtr extract_orco(const MeshRenderData &mr);
 
-gpu::VertBufPtr extract_attribute(const MeshRenderData &mr, const DRW_AttributeRequest &request);
+gpu::VertBufPtr extract_attribute(const MeshRenderData &mr, StringRef name);
 gpu::VertBufPtr extract_attribute_subdiv(const MeshRenderData &mr,
                                          const DRWSubdivCache &subdiv_cache,
-                                         const DRW_AttributeRequest &request);
+                                         StringRef name);
 gpu::VertBufPtr extract_attr_viewer(const MeshRenderData &mr);
 
 }  // namespace blender::draw

@@ -869,15 +869,15 @@ static void ui_item_enum_expand_exec(uiLayout *layout,
          * Add group label for the following items. */
         if (item->name) {
           if (!is_first) {
-            uiItemS(block->curlayout);
+            block->curlayout->separator();
           }
           block->curlayout->label(item->name, item->icon);
         }
         else if (radial && layout_radial) {
-          uiItemS(layout_radial);
+          layout_radial->separator();
         }
         else {
-          uiItemS(block->curlayout);
+          block->curlayout->separator();
         }
       }
       continue;
@@ -1610,7 +1610,7 @@ void uiItemsFullEnumO_items(uiLayout *layout,
                          0.0,
                          0.0,
                          "");
-          uiItemS(target);
+          target->separator();
         }
         ui_but_tip_from_enum_item(but, item);
       }
@@ -1618,11 +1618,11 @@ void uiItemsFullEnumO_items(uiLayout *layout,
         if (radial) {
           /* invisible dummy button to ensure all items are
            * always at the same position */
-          uiItemS(target);
+          target->separator();
         }
         else {
           /* XXX bug here, columns draw bottom item badly */
-          uiItemS(target);
+          target->separator();
         }
       }
     }
@@ -2745,7 +2745,7 @@ void uiItemsEnumR(uiLayout *layout, PointerRNA *ptr, const StringRefNull propnam
         ui_but_tip_from_enum_item(bt, &item[i]);
       }
       else {
-        uiItemS(column);
+        column->separator();
       }
     }
   }
@@ -3377,9 +3377,9 @@ void uiItemLDrag(uiLayout *layout, PointerRNA *ptr, StringRef name, int icon)
   }
 }
 
-void uiItemS_ex(uiLayout *layout, float factor, const LayoutSeparatorType type)
+void uiLayout::separator(float factor, const LayoutSeparatorType type)
 {
-  uiBlock *block = layout->root_->block;
+  uiBlock *block = root_->block;
   const bool is_menu = ui_block_is_menu(block);
   const bool is_pie = ui_block_is_pie_menu(block);
   if (is_menu && !UI_block_can_add_separator(block)) {
@@ -3403,9 +3403,9 @@ void uiItemS_ex(uiLayout *layout, float factor, const LayoutSeparatorType type)
       but_type = UI_BTYPE_SEPR;
   }
 
-  bool is_vertical_bar = (layout->w_ == 0) && but_type == UI_BTYPE_SEPR_LINE;
+  bool is_vertical_bar = (w_ == 0) && but_type == UI_BTYPE_SEPR_LINE;
 
-  UI_block_layout_set_current(block, layout);
+  UI_block_layout_set_current(block, this);
   uiBut *but = uiDefBut(block,
                         but_type,
                         0,
@@ -3423,11 +3423,6 @@ void uiItemS_ex(uiLayout *layout, float factor, const LayoutSeparatorType type)
     uiButSeparatorLine *but_line = static_cast<uiButSeparatorLine *>(but);
     but_line->is_vertical = is_vertical_bar;
   }
-}
-
-void uiItemS(uiLayout *layout)
-{
-  uiItemS_ex(layout, 1.0f);
 }
 
 void uiItemProgressIndicator(uiLayout *layout,
@@ -6305,7 +6300,7 @@ static void ui_paneltype_draw_impl(bContext *C, PanelType *pt, uiLayout *layout,
     if (child_pt->poll == nullptr || child_pt->poll(C, child_pt)) {
       /* Add space if something was added to the layout. */
       if (!layout->items_.is_empty() && item_last != layout->items_.last()) {
-        uiItemS(layout);
+        layout->separator();
         item_last = layout->items_.last();
       }
 

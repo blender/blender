@@ -6257,13 +6257,25 @@ void wm_event_add_ghostevent(wmWindowManager *wm,
           customdata);
 
       int click_step;
-      if (wheelData->z > 0) {
-        event.type = WHEELUPMOUSE;
-        click_step = wheelData->z;
+      if (wheelData->axis == GHOST_kEventWheelAxisVertical) {
+        if (wheelData->value > 0) {
+          event.type = WHEELUPMOUSE;
+          click_step = wheelData->value;
+        }
+        else {
+          event.type = WHEELDOWNMOUSE;
+          click_step = -wheelData->value;
+        }
       }
       else {
-        event.type = WHEELDOWNMOUSE;
-        click_step = -wheelData->z;
+        if (wheelData->value > 0) {
+          event.type = WHEELRIGHTMOUSE;
+          click_step = wheelData->value;
+        }
+        else {
+          event.type = WHEELLEFTMOUSE;
+          click_step = -wheelData->value;
+        }
       }
       BLI_assert(click_step != 0);
 

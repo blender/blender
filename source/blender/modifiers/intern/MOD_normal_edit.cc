@@ -638,7 +638,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   uiLayoutSetActive(col, mode == MOD_NORMALEDIT_MODE_DIRECTIONAL);
   col->prop(ptr, "use_direction_parallel", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  modifier_panel_end(layout, ptr);
+  modifier_error_message_draw(layout, ptr);
 }
 
 /* This panel could be open by default, but it isn't currently. */

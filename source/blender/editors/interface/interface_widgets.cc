@@ -2059,7 +2059,7 @@ static void widget_draw_text(const uiFontStyle *fstyle,
       GPU_blend(GPU_BLEND_ALPHA);
       UI_widgetbase_draw_cache_flush();
       uint pos = GPU_vertformat_attr_add(
-          immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
+          immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
       immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
       immUniformColor4ubv(wcol->item);
       const auto boxes = BLF_str_selection_boxes(
@@ -2069,7 +2069,7 @@ static void widget_draw_text(const uiFontStyle *fstyle,
           (but->selsta >= but->ofs) ? but->selsta - but->ofs : 0,
           but->selend - std::max(but->ofs, but->selsta));
       for (auto bounds : boxes) {
-        immRecti(pos,
+        immRectf(pos,
                  rect->xmin + bounds.min,
                  rect->ymin + U.pixelsize,
                  std::min(rect->xmin + bounds.max, rect->xmax - 2),
@@ -2113,13 +2113,13 @@ static void widget_draw_text(const uiFontStyle *fstyle,
       GPU_blend(GPU_BLEND_NONE);
 
       uint pos = GPU_vertformat_attr_add(
-          immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
+          immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
       immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
       immUniformThemeColor(TH_WIDGET_TEXT_CURSOR);
 
       /* draw cursor */
-      immRecti(pos,
+      immRectf(pos,
                rect->xmin + t,
                rect->ymin + U.pixelsize,
                rect->xmin + t + int(2.0f * U.pixelsize),

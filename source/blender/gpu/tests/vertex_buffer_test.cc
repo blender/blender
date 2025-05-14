@@ -159,17 +159,12 @@ static void test_vertex_buffer_fetch_mode__GPU_COMP_U16__GPU_FETCH_INT_TO_FLOAT(
 GPU_TEST(vertex_buffer_fetch_mode__GPU_COMP_U16__GPU_FETCH_INT_TO_FLOAT);
 #endif
 
+/* Legacy format. Uses software workaround. */
 static void test_vertex_buffer_fetch_mode__GPU_COMP_I32__GPU_FETCH_INT_TO_FLOAT()
 {
   vertex_buffer_fetch_mode<GPU_COMP_I32, GPU_FETCH_INT_TO_FLOAT, int4>(int4(4, 5, 6, 1));
 }
 GPU_TEST(vertex_buffer_fetch_mode__GPU_COMP_I32__GPU_FETCH_INT_TO_FLOAT);
-
-static void test_vertex_buffer_fetch_mode__GPU_COMP_U32__GPU_FETCH_INT_TO_FLOAT()
-{
-  vertex_buffer_fetch_mode<GPU_COMP_U32, GPU_FETCH_INT_TO_FLOAT, uint4>(uint4(4, 5, 6, 1));
-}
-GPU_TEST(vertex_buffer_fetch_mode__GPU_COMP_U32__GPU_FETCH_INT_TO_FLOAT);
 
 static void test_vertex_buffer_fetch_mode__GPU_COMP_F32__GPU_FETCH_FLOAT()
 {

@@ -279,7 +279,7 @@ static void panel_draw(const bContext *C, Panel *panel)
   col->prop(ptr, "use_vertex_groups", UI_ITEM_NONE, IFACE_("Vertex Groups"), ICON_NONE);
   col->prop(ptr, "use_bone_envelopes", UI_ITEM_NONE, IFACE_("Bone Envelopes"), ICON_NONE);
 
-  modifier_panel_end(layout, ptr);
+  modifier_error_message_draw(layout, ptr);
 }
 
 static void panel_register(ARegionType *region_type)

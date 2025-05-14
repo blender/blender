@@ -420,7 +420,7 @@ static void lattice_batch_cache_create_overlay_batches(Lattice *lt)
     static const GPUVertFormat format = [&]() {
       GPUVertFormat format{};
       attr_id.pos = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
-      attr_id.data = GPU_vertformat_attr_add(&format, "data", GPU_COMP_U8, 1, GPU_FETCH_INT);
+      attr_id.data = GPU_vertformat_attr_add(&format, "data", GPU_COMP_U32, 1, GPU_FETCH_INT);
       return format;
     }();
 
@@ -431,7 +431,7 @@ static void lattice_batch_cache_create_overlay_batches(Lattice *lt)
     for (int i = 0; i < vert_len; i++) {
       const BPoint *bp = lattice_render_data_vert_bpoint(rdata, i);
 
-      char vflag = 0;
+      uint32_t vflag = 0;
       if (bp->f1 & SELECT) {
         if (i == rdata->actbp) {
           vflag |= VFLAG_VERT_ACTIVE;

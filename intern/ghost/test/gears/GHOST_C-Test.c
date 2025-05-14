@@ -289,7 +289,7 @@ bool processEvent(GHOST_EventHandle hEvent, GHOST_TUserDataPtr userData)
 #endif
     case GHOST_kEventWheel: {
       wheelData = (GHOST_TEventWheelData *)GHOST_GetEventData(hEvent);
-      if (wheelData->z > 0) {
+      if (wheelData->value > 0) {
         view_rotz += 5.f;
       }
       else {

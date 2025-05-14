@@ -4,7 +4,6 @@
 
 #include "BLI_string.h"
 
-#include "BKE_attribute.hh"
 #include "BKE_customdata.hh"
 
 #include "draw_attributes.hh"
@@ -17,7 +16,7 @@ static bool drw_attributes_has_request(const DRW_Attributes *requests,
 {
   for (int i = 0; i < requests->num_requests; i++) {
     const DRW_AttributeRequest &src_req = requests->requests[i];
-    if (STREQ(src_req.attribute_name, req.attribute_name) && src_req.cd_type == req.cd_type) {
+    if (STREQ(src_req.attribute_name, req.attribute_name)) {
       return true;
     }
   }
@@ -66,12 +65,9 @@ bool drw_attributes_overlap(const DRW_Attributes *a, const DRW_Attributes *b)
   return true;
 }
 
-void drw_attributes_add_request(DRW_Attributes *attrs,
-                                const char *name,
-                                const eCustomDataType type)
+void drw_attributes_add_request(DRW_Attributes *attrs, const char *name)
 {
   DRW_AttributeRequest req{};
-  req.cd_type = type;
   STRNCPY(req.attribute_name, name);
   if (attrs->num_requests >= GPU_MAX_ATTR || drw_attributes_has_request(attrs, req)) {
     return;

@@ -1019,11 +1019,10 @@ static void draw_textscroll(const SpaceText *st, const rcti *scroll, const rcti 
   float rad;
 
   /* Background so highlights don't go behind the scroll-bar. */
-  uint pos = GPU_vertformat_attr_add(
-      immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
+  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
   immUniformThemeColor(TH_BACK);
-  immRecti(pos, back->xmin, back->ymin, back->xmax, back->ymax);
+  immRectf(pos, back->xmin, back->ymin, back->xmax, back->ymax);
   immUnbindProgram();
 
   UI_draw_widget_scroll(&wcol,
@@ -1112,14 +1111,13 @@ static void draw_suggestion_list(const SpaceText *st, const TextDrawContext *tdc
     ui_draw_dropshadow(&rect, 0.0f, 8.0f, 1.0f, 0.5f);
   }
 
-  uint pos = GPU_vertformat_attr_add(
-      immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
+  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   immUniformThemeColor(TH_SHADE1);
-  immRecti(pos, x - 1, y + 1, x + boxw + 1, y - boxh - 1);
+  immRectf(pos, x - 1, y + 1, x + boxw + 1, y - boxh - 1);
   immUniformThemeColorShade(TH_BACK, 16);
-  immRecti(pos, x, y, x + boxw, y - boxh);
+  immRectf(pos, x, y, x + boxw, y - boxh);
 
   immUnbindProgram();
 
@@ -1139,11 +1137,11 @@ static void draw_suggestion_list(const SpaceText *st, const TextDrawContext *tdc
 
     if (item == sel) {
       uint posi = GPU_vertformat_attr_add(
-          immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
+          immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
       immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
       immUniformThemeColor(TH_SHADE2);
-      immRecti(posi, x + margin_x, y - 3, x + margin_x + w, y + lheight - 3);
+      immRectf(posi, x + margin_x, y - 3, x + margin_x + w, y + lheight - 3);
 
       immUnbindProgram();
     }
@@ -1186,8 +1184,7 @@ static void draw_text_decoration(SpaceText *st, ARegion *region)
     return;
   }
 
-  uint pos = GPU_vertformat_attr_add(
-      immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
+  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   /* Draw the selection */
@@ -1211,14 +1208,14 @@ static void draw_text_decoration(SpaceText *st, ARegion *region)
       y -= vcurl * lheight;
 
       if (vcurc < vselc) {
-        immRecti(pos,
+        immRectf(pos,
                  x + vcurc * st->runtime->cwidth_px,
                  y,
                  x + vselc * st->runtime->cwidth_px,
                  y - lheight);
       }
       else {
-        immRecti(pos,
+        immRectf(pos,
                  x + vselc * st->runtime->cwidth_px,
                  y,
                  x + vcurc * st->runtime->cwidth_px,
@@ -1243,17 +1240,17 @@ static void draw_text_decoration(SpaceText *st, ARegion *region)
 
       y -= froml * lheight;
 
-      immRecti(
+      immRectf(
           pos, x + fromc * st->runtime->cwidth_px - U.pixelsize, y, region->winx, y - lheight);
       y -= lheight;
 
       for (int i = froml + 1; i < tol; i++) {
-        immRecti(pos, x - U.pixelsize, y, region->winx, y - lheight);
+        immRectf(pos, x - U.pixelsize, y, region->winx, y - lheight);
         y -= lheight;
       }
 
       if (x + toc * st->runtime->cwidth_px > x) {
-        immRecti(pos, x - U.pixelsize, y, x + toc * st->runtime->cwidth_px, y - lheight);
+        immRectf(pos, x - U.pixelsize, y, x + toc * st->runtime->cwidth_px, y - lheight);
       }
       y -= lheight;
     }
@@ -1289,7 +1286,7 @@ static void draw_text_decoration(SpaceText *st, ARegion *region)
       highlight_color[3] = 0.1f;
       immUniformColor4fv(highlight_color);
       GPU_blend(GPU_BLEND_ALPHA);
-      immRecti(pos, 0, y1, region->winx, y2);
+      immRectf(pos, 0, y1, region->winx, y2);
       GPU_blend(GPU_BLEND_NONE);
     }
   }
@@ -1313,11 +1310,11 @@ static void draw_text_decoration(SpaceText *st, ARegion *region)
         w *= st->tabnumber - (vselc + st->left) % st->tabnumber;
       }
 
-      immRecti(
+      immRectf(
           pos, x, y - lheight - U.pixelsize, x + w + U.pixelsize, y - lheight - (3 * U.pixelsize));
     }
     else {
-      immRecti(pos, x - U.pixelsize, y, x + U.pixelsize, y - lheight);
+      immRectf(pos, x - U.pixelsize, y, x + U.pixelsize, y - lheight);
     }
   }
 
@@ -1573,11 +1570,10 @@ void draw_text_main(SpaceText *st, ARegion *region)
 
   /* draw line numbers background */
   if (st->showlinenrs) {
-    uint pos = GPU_vertformat_attr_add(
-        immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
+    uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
     immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
     immUniformThemeColor(TH_GRID);
-    immRecti(pos, 0, 0, TXT_NUMCOL_WIDTH(st), region->winy);
+    immRectf(pos, 0, 0, TXT_NUMCOL_WIDTH(st), region->winy);
     immUnbindProgram();
   }
   else {
@@ -1634,14 +1630,14 @@ void draw_text_main(SpaceText *st, ARegion *region)
     margin_column_x = x + st->runtime->cwidth_px * (st->margin_column - st->left);
     if (margin_column_x >= x) {
       uint pos = GPU_vertformat_attr_add(
-          immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
+          immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
       immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
       float margin_color[4];
       UI_GetThemeColor4fv(TH_TEXT, margin_color);
       margin_color[3] = 0.2f;
       immUniformColor4fv(margin_color);
       GPU_blend(GPU_BLEND_ALPHA);
-      immRecti(pos, margin_column_x, 0, margin_column_x + U.pixelsize, region->winy);
+      immRectf(pos, margin_column_x, 0, margin_column_x + U.pixelsize, region->winy);
       GPU_blend(GPU_BLEND_NONE);
       immUnbindProgram();
     }

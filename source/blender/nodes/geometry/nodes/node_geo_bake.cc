@@ -235,8 +235,8 @@ class LazyFunctionForBakeNode final : public LazyFunction {
 
   void execute_impl(lf::Params &params, const lf::Context &context) const final
   {
-    GeoNodesLFUserData &user_data = *static_cast<GeoNodesLFUserData *>(context.user_data);
-    GeoNodesLFLocalUserData &local_user_data = *static_cast<GeoNodesLFLocalUserData *>(
+    GeoNodesUserData &user_data = *static_cast<GeoNodesUserData *>(context.user_data);
+    GeoNodesLocalUserData &local_user_data = *static_cast<GeoNodesLocalUserData *>(
         context.local_user_data);
     if (!user_data.call_data->self_object()) {
       /* The self object is currently required for generating anonymous attribute names. */
@@ -300,7 +300,7 @@ class LazyFunctionForBakeNode final : public LazyFunction {
   }
 
   void pass_through(lf::Params &params,
-                    GeoNodesLFUserData &user_data,
+                    GeoNodesUserData &user_data,
                     bke::bake::BakeDataBlockMap *data_block_map) const
   {
     std::optional<bake::BakeState> bake_state = this->get_bake_state_from_inputs(params,
@@ -324,7 +324,7 @@ class LazyFunctionForBakeNode final : public LazyFunction {
   }
 
   void store(lf::Params &params,
-             GeoNodesLFUserData &user_data,
+             GeoNodesUserData &user_data,
              bke::bake::BakeDataBlockMap *data_block_map,
              const sim_output::StoreNewState &info) const
   {
@@ -339,7 +339,7 @@ class LazyFunctionForBakeNode final : public LazyFunction {
   }
 
   void output_cached_state(lf::Params &params,
-                           GeoNodesLFUserData &user_data,
+                           GeoNodesUserData &user_data,
                            bke::bake::BakeDataBlockMap *data_block_map,
                            const bake::BakeStateRef &bake_state) const
   {
@@ -924,7 +924,6 @@ std::unique_ptr<LazyFunction> get_bake_lazy_function(
 }
 
 StructRNA *BakeItemsAccessor::item_srna = &RNA_NodeGeometryBakeItem;
-int BakeItemsAccessor::node_type = GEO_NODE_BAKE;
 
 void BakeItemsAccessor::blend_write_item(BlendWriter *writer, const ItemT &item)
 {

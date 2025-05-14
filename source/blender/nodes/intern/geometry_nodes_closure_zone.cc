@@ -49,7 +49,7 @@ class ClosureIntermediateGraphSideEffectProvider : public lf::GraphExecutorSideE
   Vector<const lf::FunctionNode *> get_nodes_with_side_effects(
       const lf::Context &context) const override
   {
-    const GeoNodesLFUserData &user_data = *dynamic_cast<GeoNodesLFUserData *>(context.user_data);
+    const GeoNodesUserData &user_data = *dynamic_cast<GeoNodesUserData *>(context.user_data);
     const ComputeContextHash &context_hash = user_data.compute_context->hash();
     if (!user_data.call_data->side_effect_nodes) {
       /* There are no requested side effect nodes at all. */
@@ -132,7 +132,7 @@ class LazyFunctionForClosureZone : public LazyFunction {
 
   void execute_impl(lf::Params &params, const lf::Context &context) const override
   {
-    auto &user_data = *static_cast<GeoNodesLFUserData *>(context.user_data);
+    auto &user_data = *static_cast<GeoNodesUserData *>(context.user_data);
 
     /* All border links are captured currently. */
     for (const int i : zone_.border_links.index_range()) {
@@ -335,9 +335,9 @@ class LazyFunctionForEvaluateClosureNode : public LazyFunction {
   {
     const ScopedNodeTimer node_timer{context, bnode_};
 
-    auto &user_data = *static_cast<GeoNodesLFUserData *>(context.user_data);
+    auto &user_data = *static_cast<GeoNodesUserData *>(context.user_data);
     auto &eval_storage = *static_cast<EvaluateClosureEvalStorage *>(context.storage);
-    auto local_user_data = *static_cast<GeoNodesLFLocalUserData *>(context.local_user_data);
+    auto local_user_data = *static_cast<GeoNodesLocalUserData *>(context.local_user_data);
 
     if (!eval_storage.graph_executor) {
       if (this->is_recursive_call(user_data)) {
@@ -376,18 +376,18 @@ class LazyFunctionForEvaluateClosureNode : public LazyFunction {
 
     bke::EvaluateClosureComputeContext closure_compute_context{
         user_data.compute_context, bnode_.identifier, &bnode_, closure_source_location};
-    GeoNodesLFUserData closure_user_data = user_data;
+    GeoNodesUserData closure_user_data = user_data;
     closure_user_data.compute_context = &closure_compute_context;
     closure_user_data.log_socket_values = should_log_socket_values_for_context(
         user_data, closure_compute_context.hash());
-    GeoNodesLFLocalUserData closure_local_user_data{closure_user_data};
+    GeoNodesLocalUserData closure_local_user_data{closure_user_data};
 
     lf::Context eval_graph_context{
         eval_storage.graph_executor_storage, &closure_user_data, &closure_local_user_data};
     eval_storage.graph_executor->execute(params, eval_graph_context);
   }
 
-  bool is_recursive_call(const GeoNodesLFUserData &user_data) const
+  bool is_recursive_call(const GeoNodesUserData &user_data) const
   {
     for (const ComputeContext *context = user_data.compute_context; context;
          context = context->parent())
@@ -418,8 +418,8 @@ class LazyFunctionForEvaluateClosureNode : public LazyFunction {
                                                const lf::Context &context) const
   {
     const auto &node_storage = *static_cast<const NodeGeometryEvaluateClosure *>(bnode_.storage);
-    const auto &user_data = *static_cast<GeoNodesLFUserData *>(context.user_data);
-    const auto &local_user_data = *static_cast<GeoNodesLFLocalUserData *>(context.local_user_data);
+    const auto &user_data = *static_cast<GeoNodesUserData *>(context.user_data);
+    const auto &local_user_data = *static_cast<GeoNodesLocalUserData *>(context.local_user_data);
     geo_eval_log::GeoTreeLogger *tree_logger = local_user_data.try_get_tree_logger(user_data);
     if (tree_logger == nullptr) {
       return;
@@ -729,7 +729,7 @@ void evaluate_closure_eagerly(const Closure &closure, ClosureEagerEvalParams &pa
   ResourceScope scope;
   LinearAllocator<> &allocator = scope.allocator();
 
-  GeoNodesLFLocalUserData local_user_data(*params.user_data);
+  GeoNodesLocalUserData local_user_data(*params.user_data);
   void *storage = fn.init_storage(allocator);
   lf::Context lf_context{storage, params.user_data, &local_user_data};
 

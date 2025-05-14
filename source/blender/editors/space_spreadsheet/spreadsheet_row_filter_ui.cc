@@ -169,7 +169,7 @@ static void spreadsheet_filter_panel_draw_header(const bContext *C, Panel *panel
   uiItemIntO(row, "", ICON_X, "SPREADSHEET_OT_remove_row_filter_rule", "index", current_index);
 
   /* Some padding so the X isn't too close to the drag icon. */
-  uiItemS_ex(layout, 0.25f);
+  layout->separator(0.25f);
 }
 
 static void spreadsheet_filter_panel_draw(const bContext *C, Panel *panel)

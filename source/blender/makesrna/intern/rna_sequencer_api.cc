@@ -656,12 +656,6 @@ static void rna_Strip_invalidate_cache_rnafunc(ID *id, Strip *self, int type)
     case SEQ_CACHE_STORE_RAW:
       blender::seq::relations_invalidate_cache_raw((Scene *)id, self);
       break;
-    case SEQ_CACHE_STORE_PREPROCESSED:
-      blender::seq::relations_invalidate_cache_preprocessed((Scene *)id, self);
-      break;
-    case SEQ_CACHE_STORE_COMPOSITE:
-      blender::seq::relations_invalidate_cache_composite((Scene *)id, self);
-      break;
   }
 }
 
@@ -695,8 +689,6 @@ void RNA_api_strip(StructRNA *srna)
 
   static const EnumPropertyItem strip_cache_type_items[] = {
       {SEQ_CACHE_STORE_RAW, "RAW", 0, "Raw", ""},
-      {SEQ_CACHE_STORE_PREPROCESSED, "PREPROCESSED", 0, "Preprocessed", ""},
-      {SEQ_CACHE_STORE_COMPOSITE, "COMPOSITE", 0, "Composite", ""},
       {0, nullptr, 0, nullptr, nullptr},
   };
 

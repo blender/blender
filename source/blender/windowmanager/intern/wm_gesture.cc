@@ -216,14 +216,14 @@ static void wm_gesture_draw_rect(wmGesture *gt)
   const rcti *rect = static_cast<const rcti *>(gt->customdata);
 
   uint shdr_pos = GPU_vertformat_attr_add(
-      immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
+      immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
   GPU_blend(GPU_BLEND_ALPHA);
 
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
   immUniformColor4f(1.0f, 1.0f, 1.0f, 0.05f);
 
-  immRecti(shdr_pos, rect->xmin, rect->ymin, rect->xmax, rect->ymax);
+  immRectf(shdr_pos, rect->xmin, rect->ymin, rect->xmax, rect->ymax);
 
   immUnbindProgram();
 

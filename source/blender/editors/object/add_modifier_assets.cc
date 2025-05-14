@@ -95,7 +95,7 @@ static void catalog_assets_draw(const bContext *C, Menu *menu)
   }
 
   uiLayout *layout = menu->layout;
-  uiItemS(layout);
+  layout->separator();
 
   wmOperatorType *ot = WM_operatortype_find("OBJECT_OT_modifier_add_node_group", true);
   for (const asset_system::AssetRepresentation *asset : assets) {
@@ -166,7 +166,7 @@ static void unassigned_assets_draw(const bContext *C, Menu *menu)
     }
 
     if (add_separator) {
-      uiItemS(layout);
+      layout->separator();
       add_separator = false;
     }
     if (first) {
@@ -203,7 +203,7 @@ static void root_catalogs_draw(const bContext *C, Menu *menu)
     return;
   }
 
-  uiItemS(layout);
+  layout->separator();
 
   if (!loading_finished) {
     layout->label(IFACE_("Loading Asset Libraries"), ICON_INFO);
@@ -236,7 +236,7 @@ static void root_catalogs_draw(const bContext *C, Menu *menu)
   });
 
   if (!tree.unassigned_assets.is_empty() || unassigned_local_poll(*CTX_data_main(C))) {
-    uiItemS(layout);
+    layout->separator();
     uiItemM(layout,
             "OBJECT_MT_add_modifier_unassigned_assets",
             IFACE_("Unassigned"),
@@ -417,7 +417,7 @@ void ui_template_modifier_asset_menu_items(uiLayout &layout, const StringRef cat
   if (!all_library) {
     return;
   }
-  uiItemS(&layout);
+  layout.separator();
   uiLayout *col = &layout.column(false);
   uiLayoutSetContextString(col, "asset_catalog_path", item->catalog_path().str());
   uiItemMContents(col, "OBJECT_MT_add_modifier_catalog_assets");

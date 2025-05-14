@@ -478,7 +478,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
     row->op("OBJECT_OT_hook_assign", IFACE_("Assign"), ICON_NONE);
   }
 
-  modifier_panel_end(layout, ptr);
+  modifier_error_message_draw(layout, ptr);
 }
 
 static void falloff_panel_draw(const bContext * /*C*/, Panel *panel)

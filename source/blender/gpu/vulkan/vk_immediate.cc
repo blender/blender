@@ -49,9 +49,7 @@ void VKImmediate::deinit(VKDevice &device)
 
 uchar *VKImmediate::begin()
 {
-  const VKDevice &device = VKBackend::get().device;
-  const VKWorkarounds &workarounds = device.workarounds_get();
-  vertex_format_converter.init(&vertex_format, workarounds);
+  vertex_format_converter.init(&vertex_format);
   uint add_vertex = prim_type == GPU_PRIM_LINE_LOOP ? 1 : 0;
   const size_t bytes_needed = vertex_buffer_size(&vertex_format_converter.device_format_get(),
                                                  vertex_len + add_vertex);

@@ -312,7 +312,7 @@ static void panel_draw(const bContext *C, Panel *panel)
 
   layout->prop(ptr, "show_only_control_edges", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  modifier_panel_end(layout, ptr);
+  modifier_error_message_draw(layout, ptr);
 }
 
 static void subdivisions_panel_draw(const bContext * /*C*/, Panel *panel)
@@ -372,7 +372,7 @@ static void subdivisions_panel_draw(const bContext * /*C*/, Panel *panel)
   RNA_enum_set(&op_ptr, "mode", int8_t(MultiresSubdivideModeType::Linear));
   RNA_string_set(&op_ptr, "modifier", ((ModifierData *)mmd)->name);
 
-  uiItemS(layout);
+  layout->separator();
 
   layout->op("OBJECT_OT_multires_unsubdivide", IFACE_("Unsubdivide"), ICON_NONE);
   layout->op("OBJECT_OT_multires_higher_levels_delete", IFACE_("Delete Higher"), ICON_NONE);

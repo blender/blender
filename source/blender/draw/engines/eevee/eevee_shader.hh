@@ -181,14 +181,20 @@ class ShaderModule {
    public:
     SpecializationsKey(int render_buffers_shadow_id,
                        int shadow_ray_count,
-                       int shadow_ray_step_count)
+                       int shadow_ray_step_count,
+                       bool use_split_indirect,
+                       bool use_lightprobe_eval)
     {
       BLI_assert(render_buffers_shadow_id >= -1);
-      BLI_assert(shadow_ray_count >= 1 || shadow_ray_count <= 4);
-      BLI_assert(shadow_ray_step_count >= 1 || shadow_ray_step_count <= 16);
+      BLI_assert(shadow_ray_count >= 1 && shadow_ray_count <= 4);
+      BLI_assert(shadow_ray_step_count >= 1 && shadow_ray_step_count <= 16);
+      BLI_assert(uint64_t(use_split_indirect) >= 0 && uint64_t(use_split_indirect) <= 1);
+      BLI_assert(uint64_t(use_lightprobe_eval) >= 0 && uint64_t(use_lightprobe_eval) <= 1);
       hash_value_ = render_buffers_shadow_id + 1;
       hash_value_ = (hash_value_ << 2) | (shadow_ray_count - 1);
       hash_value_ = (hash_value_ << 4) | (shadow_ray_step_count - 1);
+      hash_value_ = (hash_value_ << 1) | uint64_t(use_split_indirect);
+      hash_value_ = (hash_value_ << 1) | uint64_t(use_lightprobe_eval);
     }
 
     uint64_t hash() const
@@ -224,7 +230,9 @@ class ShaderModule {
   bool request_specializations(bool block_until_ready,
                                int render_buffers_shadow_id,
                                int shadow_ray_count,
-                               int shadow_ray_step_count);
+                               int shadow_ray_step_count,
+                               bool use_split_indirect,
+                               bool use_lightprobe_eval);
 
   GPUShader *static_shader_get(eShaderType shader_type);
   GPUMaterial *material_default_shader_get(eMaterialPipeline pipeline_type,

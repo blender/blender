@@ -154,7 +154,7 @@ static void recalcData_sequencer_retiming(TransInfo *t)
       seq::retiming_key_timeline_frame_set(t->scene, strip, key, td2d->loc[0]);
     }
 
-    seq::relations_invalidate_cache_preprocessed(t->scene, strip);
+    seq::relations_invalidate_cache(t->scene, strip);
   }
 
   /* Test overlap, displays red outline. */

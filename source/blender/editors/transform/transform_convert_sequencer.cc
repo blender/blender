@@ -665,7 +665,7 @@ static void recalcData_sequencer(TransInfo *t)
     Strip *strip = tdsq->strip;
 
     if (strip != strip_prev) {
-      seq::relations_invalidate_cache_composite(t->scene, strip);
+      seq::relations_invalidate_cache(t->scene, strip);
     }
 
     strip_prev = strip;

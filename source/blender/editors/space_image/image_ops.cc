@@ -2057,7 +2057,7 @@ static void image_save_as_draw(bContext * /*C*/, wmOperator *op)
                    UI_BUT_LABEL_ALIGN_NONE,
                    false);
 
-  uiItemS(layout);
+  layout->separator();
 
   /* Image format settings. */
   PointerRNA imf_ptr = RNA_pointer_create_discrete(
@@ -2067,7 +2067,7 @@ static void image_save_as_draw(bContext * /*C*/, wmOperator *op)
   if (!save_as_render) {
     PointerRNA linear_settings_ptr = RNA_pointer_get(&imf_ptr, "linear_colorspace_settings");
     uiLayout *col = &layout->column(true);
-    uiItemS(col);
+    col->separator();
     col->prop(&linear_settings_ptr, "name", UI_ITEM_NONE, IFACE_("Color Space"), ICON_NONE);
   }
 

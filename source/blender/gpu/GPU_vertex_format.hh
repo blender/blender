@@ -15,6 +15,75 @@
 #include "BLI_string_ref.hh"
 #include "BLI_sys_types.h"
 
+#include "GPU_format.hh"
+
+namespace blender::gpu {
+
+enum class VertAttrType : uint8_t {
+  Invalid = 0,
+
+#define DECLARE(a, b, c, blender_enum, d, e, f, g, h) blender_enum = int(DataFormat::blender_enum),
+
+#define GPU_VERTEX_FORMAT_EXPAND(impl) \
+  SNORM_8_8_8_8_(impl) \
+\
+  SNORM_16_16_(impl) \
+  SNORM_16_16_16_16_(impl) \
+\
+  UNORM_8_8_8_8_(impl) \
+\
+  UNORM_16_16_(impl) \
+  UNORM_16_16_16_16_(impl) \
+\
+  SINT_8_8_8_8_(impl) \
+\
+  SINT_16_16_(impl) \
+  SINT_16_16_16_16_(impl) \
+\
+  SINT_32_(impl) \
+  SINT_32_32_(impl) \
+  SINT_32_32_32_(impl) \
+  SINT_32_32_32_32_(impl) \
+\
+  UINT_8_8_8_8_(impl) \
+\
+  UINT_16_16_(impl) \
+  UINT_16_16_16_16_(impl) \
+\
+  UINT_32_(impl) \
+  UINT_32_32_(impl) \
+  UINT_32_32_32_(impl) \
+  UINT_32_32_32_32_(impl) \
+\
+  SFLOAT_32_(impl) \
+  SFLOAT_32_32_(impl) \
+  SFLOAT_32_32_32_(impl) \
+  SFLOAT_32_32_32_32_(impl) \
+\
+  SNORM_10_10_10_2_(impl) \
+  UNORM_10_10_10_2_(impl) \
+\
+  /* Legacy format unsupported by Metal and Vulkan. To be phased out. */ \
+  SINT_TO_FLT_32_(impl) \
+  SINT_TO_FLT_32_32_(impl) \
+  SINT_TO_FLT_32_32_32_(impl) \
+  SINT_TO_FLT_32_32_32_32_(impl) \
+\
+  /* UFLOAT_11_11_10_(impl) Available on Metal (and maybe VK) but not on GL. */ \
+  /* UFLOAT_9_9_9_EXP_5_(impl) Available on Metal (and maybe VK) but not on GL. */
+
+  GPU_VERTEX_FORMAT_EXPAND(DECLARE)
+
+#undef DECLARE
+};
+
+inline constexpr DataFormat to_data_format(VertAttrType format)
+{
+  return DataFormat(int(format));
+}
+
+}  // namespace blender::gpu
+
 struct GPUShader;
 
 constexpr static int GPU_VERT_ATTR_MAX_LEN = 16;
@@ -49,6 +118,9 @@ enum GPUVertFetchMode {
 };
 
 struct GPUVertAttr {
+  /* To replace fetch_mode, comp_type, comp_len, size. */
+  blender::gpu::VertAttrType format;
+#ifndef NO_LEGACY_VERT_TYPE
   /* GPUVertFetchMode */
   uint fetch_mode : 2;
   /* GPUVertCompType */
@@ -57,10 +129,11 @@ struct GPUVertAttr {
   uint comp_len : 5;
   /* size in bytes, 1 to 64 */
   uint size : 7;
+#endif
   /* from beginning of vertex, in bytes */
-  uint offset : 11;
+  uint8_t offset;
   /* up to GPU_VERT_ATTR_MAX_NAMES */
-  uint name_len : 3;
+  uint8_t name_len;
   uchar names[GPU_VERT_ATTR_MAX_NAMES];
 };
 

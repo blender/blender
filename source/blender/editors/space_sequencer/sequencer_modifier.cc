@@ -44,7 +44,7 @@ static wmOperatorStatus strip_modifier_add_exec(bContext *C, wmOperator *op)
 
   seq::modifier_new(strip, nullptr, type);
 
-  seq::relations_invalidate_cache_preprocessed(scene, strip);
+  seq::relations_invalidate_cache(scene, strip);
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 
   return OPERATOR_FINISHED;
@@ -118,7 +118,7 @@ static wmOperatorStatus strip_modifier_remove_exec(bContext *C, wmOperator *op)
     DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS | ID_RECALC_AUDIO);
   }
   else {
-    seq::relations_invalidate_cache_preprocessed(scene, strip);
+    seq::relations_invalidate_cache(scene, strip);
   }
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 
@@ -190,7 +190,7 @@ static wmOperatorStatus strip_modifier_move_exec(bContext *C, wmOperator *op)
     DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS | ID_RECALC_AUDIO);
   }
   else {
-    seq::relations_invalidate_cache_preprocessed(scene, strip);
+    seq::relations_invalidate_cache(scene, strip);
   }
 
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
@@ -286,7 +286,7 @@ static wmOperatorStatus strip_modifier_copy_exec(bContext *C, wmOperator *op)
     DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS | ID_RECALC_AUDIO);
   }
   else {
-    seq::relations_invalidate_cache_preprocessed(scene, strip);
+    seq::relations_invalidate_cache(scene, strip);
   }
 
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
@@ -345,7 +345,7 @@ static wmOperatorStatus strip_modifier_equalizer_redefine_exec(bContext *C, wmOp
 
   seq::sound_equalizermodifier_set_graphs((SoundEqualizerModifierData *)smd, number);
 
-  seq::relations_invalidate_cache_preprocessed(scene, strip);
+  seq::relations_invalidate_cache(scene, strip);
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 
   return OPERATOR_FINISHED;

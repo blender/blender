@@ -24,7 +24,6 @@ enum class AttrDomain : int8_t;
 namespace blender::draw {
 
 struct DRW_AttributeRequest {
-  eCustomDataType cd_type;
   char attribute_name[64];
 };
 
@@ -57,9 +56,7 @@ void drw_attributes_merge(DRW_Attributes *dst, const DRW_Attributes *src, Mutex 
 /* Return true if all requests in b are in a. */
 bool drw_attributes_overlap(const DRW_Attributes *a, const DRW_Attributes *b);
 
-void drw_attributes_add_request(DRW_Attributes *attrs,
-                                const char *name,
-                                eCustomDataType data_type);
+void drw_attributes_add_request(DRW_Attributes *attrs, const char *name);
 
 bool drw_custom_data_match_attribute(const CustomData &custom_data,
                                      const char *name,

@@ -459,7 +459,7 @@ bool Application::processEvent(const GHOST_IEvent *event)
 #endif
     case GHOST_kEventWheel: {
       GHOST_TEventWheelData *wheelData = (GHOST_TEventWheelData *)event->getData();
-      if (wheelData->z > 0) {
+      if (wheelData->value > 0) {
         view_rotz += 5.f;
       }
       else {

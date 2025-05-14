@@ -3016,7 +3016,6 @@ static void do_versions_seq_unique_name_all_strips(Scene *sce, ListBase *seqbase
 static void do_versions_seq_set_cache_defaults(Editing *ed)
 {
   ed->cache_flag = SEQ_CACHE_STORE_FINAL_OUT;
-  ed->recycle_max_cost = 10.0f;
 }
 
 static bool strip_update_flags_cb(Strip *strip, void * /*user_data*/)

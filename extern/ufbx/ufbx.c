@@ -868,7 +868,7 @@ enum { UFBX_MAXIMUM_ALIGNMENT = sizeof(void*) > 8 ? sizeof(void*) : 8 };
 
 // -- Version
 
-#define UFBX_SOURCE_VERSION ufbx_pack_version(0, 18, 1)
+#define UFBX_SOURCE_VERSION ufbx_pack_version(0, 19, 0)
 ufbx_abi_data_def const uint32_t ufbx_source_version = UFBX_SOURCE_VERSION;
 
 ufbx_static_assert(source_header_version, UFBX_SOURCE_VERSION/1000u == UFBX_HEADER_VERSION/1000u);
@@ -3401,7 +3401,7 @@ static ufbxi_noinline void ufbxi_panicf_imp(ufbx_panic *panic, const char *fmt, 
 
 static ufbxi_noinline int ufbxi_fail_imp_err(ufbx_error *err, const char *cond, const char *func, uint32_t line)
 {
-	if (cond[0] == '$') {
+	if (cond && cond[0] == '$') {
 		if (!err->description.data) {
 			err->description.data = cond + 1;
 			err->description.length = strlen(err->description.data);
@@ -3416,6 +3416,8 @@ static ufbxi_noinline int ufbxi_fail_imp_err(ufbx_error *err, const char *cond, 
 	// NOTE: This is the base function all fails boil down to, place a breakpoint here to
 	// break at the first error
 #if UFBXI_FEATURE_ERROR_STACK
+	ufbx_assert(cond);
+	ufbx_assert(func);
 	if (err->stack_size < UFBX_ERROR_STACK_MAX_DEPTH) {
 		ufbx_error_frame *frame = &err->stack[err->stack_size++];
 		frame->description.data = cond;
@@ -3524,14 +3526,21 @@ static ufbxi_noinline void ufbxi_clear_error(ufbx_error *err)
 	#define ufbxi_line __LINE__
 	#define ufbxi_cond_str(cond) #cond
 #else
-	#define ufbxi_function ""
+	#define ufbxi_function NULL
 	#define ufbxi_line 0
 	#define ufbxi_cond_str(cond) ""
 #endif
 
-#define ufbxi_check_err(err, cond) do { if (ufbxi_unlikely(!ufbxi_trace(cond))) { ufbxi_fail_imp_err((err), ufbxi_cond_str(cond), ufbxi_function, ufbxi_line); return 0; } } while (0)
-#define ufbxi_check_return_err(err, cond, ret) do { if (ufbxi_unlikely(!ufbxi_trace(cond))) { ufbxi_fail_imp_err((err), ufbxi_cond_str(cond), ufbxi_function, ufbxi_line); return ret; } } while (0)
-#define ufbxi_fail_err(err, desc) return ufbxi_fail_imp_err(err, desc, ufbxi_function, ufbxi_line)
+#if UFBXI_FEATURE_ERROR_STACK
+	#define ufbxi_fail_err_no_msg(err, cond, func, line) ufbxi_fail_imp_err((err), (cond), (func), (line))
+#else
+	static ufbxi_noinline int ufbxi_fail_imp_err_no_stack(ufbx_error *err) { return ufbxi_fail_imp_err(err, NULL, NULL, 0); }
+	#define ufbxi_fail_err_no_msg(err, cond, func, line) ufbxi_fail_imp_err_no_stack((err))
+#endif
+
+#define ufbxi_check_err(err, cond) do { if (ufbxi_unlikely(!ufbxi_trace(cond))) { ufbxi_fail_err_no_msg((err), ufbxi_cond_str(cond), ufbxi_function, ufbxi_line); return 0; } } while (0)
+#define ufbxi_check_return_err(err, cond, ret) do { if (ufbxi_unlikely(!ufbxi_trace(cond))) { ufbxi_fail_err_no_msg((err), ufbxi_cond_str(cond), ufbxi_function, ufbxi_line); return ret; } } while (0)
+#define ufbxi_fail_err(err, desc) return ufbxi_fail_err_no_msg(err, desc, ufbxi_function, ufbxi_line)
 
 #define ufbxi_check_err_msg(err, cond, msg) do { if (ufbxi_unlikely(!ufbxi_trace(cond))) { ufbxi_fail_imp_err((err), ufbxi_error_msg(ufbxi_cond_str(cond), msg), ufbxi_function, ufbxi_line); return 0; } } while (0)
 #define ufbxi_check_return_err_msg(err, cond, ret, msg) do { if (ufbxi_unlikely(!ufbxi_trace(cond))) { ufbxi_fail_imp_err((err), ufbxi_error_msg(ufbxi_cond_str(cond), msg), ufbxi_function, ufbxi_line); return ret; } } while (0)
@@ -6414,7 +6423,6 @@ typedef struct {
 
 	uint64_t usemtl_fbx_id;
 	uint32_t usemtl_index;
-	ufbx_string usemtl_name;
 
 	uint32_t face_material;
 
@@ -6575,6 +6583,7 @@ typedef struct {
 	bool has_geometry_transform_nodes;
 	bool has_scale_helper_nodes;
 	bool retain_vertex_w;
+	bool blender_full_weights;
 
 	ufbx_mirror_axis mirror_axis;
 
@@ -6626,10 +6635,17 @@ static ufbxi_noinline int ufbxi_fail_imp(ufbxi_context *uc, const char *cond, co
 	return ufbxi_fail_imp_err(&uc->error, cond, func, line);
 }
 
-#define ufbxi_check(cond) if (ufbxi_unlikely(!ufbxi_trace(cond))) return ufbxi_fail_imp(uc, ufbxi_cond_str(cond), ufbxi_function, ufbxi_line)
-#define ufbxi_check_return(cond, ret) do { if (ufbxi_unlikely(!ufbxi_trace(cond))) { ufbxi_fail_imp(uc, ufbxi_cond_str(cond), ufbxi_function, ufbxi_line); return ret; } } while (0)
-#define ufbxi_fail(desc) return ufbxi_fail_imp(uc, desc, ufbxi_function, ufbxi_line)
-#define ufbxi_fail_return(desc, ret) do { ufbxi_fail_imp(uc, desc, ufbxi_function, ufbxi_line); return ret; } while (0)
+#if UFBXI_FEATURE_ERROR_STACK
+	#define ufbxi_fail_no_msg(uc, cond, func, line) ufbxi_fail_imp((uc), (cond), (func), (line))
+#else
+	static ufbxi_noinline int ufbxi_fail_imp_no_stack(ufbxi_context *uc) { return ufbxi_fail_imp_err(&uc->error, NULL, NULL, 0); }
+	#define ufbxi_fail_no_msg(uc, cond, func, line) ufbxi_fail_imp_no_stack((uc))
+#endif
+
+#define ufbxi_check(cond) if (ufbxi_unlikely(!ufbxi_trace(cond))) return ufbxi_fail_no_msg(uc, ufbxi_cond_str(cond), ufbxi_function, ufbxi_line)
+#define ufbxi_check_return(cond, ret) do { if (ufbxi_unlikely(!ufbxi_trace(cond))) { ufbxi_fail_no_msg(uc, ufbxi_cond_str(cond), ufbxi_function, ufbxi_line); return ret; } } while (0)
+#define ufbxi_fail(desc) return ufbxi_fail_no_msg(uc, desc, ufbxi_function, ufbxi_line)
+#define ufbxi_fail_return(desc, ret) do { ufbxi_fail_no_msg(uc, desc, ufbxi_function, ufbxi_line); return ret; } while (0)
 
 #define ufbxi_check_msg(cond, msg) if (ufbxi_unlikely(!ufbxi_trace(cond))) return ufbxi_fail_imp(uc, ufbxi_error_msg(ufbxi_cond_str(cond), msg), ufbxi_function, ufbxi_line)
 #define ufbxi_check_return_msg(cond, ret, msg) do { if (ufbxi_unlikely(!ufbxi_trace(cond))) { ufbxi_fail_imp(uc, ufbxi_error_msg(ufbxi_cond_str(cond), msg), ufbxi_function, ufbxi_line); return ret; } } while (0)
@@ -7934,7 +7950,7 @@ typedef enum {
 
 typedef enum {
 	UFBXI_ARRAY_FLAG_RESULT       = 0x1, // < Allocate the array from the result buffer
-	UFBXI_ARRAY_FLAG_TMP_BUF      = 0x2, // < Allocate the array from the result buffer
+	UFBXI_ARRAY_FLAG_TMP_BUF      = 0x2, // < Allocate the array from the long-term temporary buffer
 	UFBXI_ARRAY_FLAG_PAD_BEGIN    = 0x4, // < Pad the begin of the array with 4 zero elements to guard from invalid -1 index accesses
 	UFBXI_ARRAY_FLAG_ACCURATE_F32 = 0x8, // < Must be parsed as bit-accurate 32-bit floats
 } ufbxi_array_flags;
@@ -8155,7 +8171,7 @@ static bool ufbxi_is_array_node(ufbxi_context *uc, ufbxi_parse_state parent, con
 			// in versions >= 7200 as some of the elements aren't actually floats (!)
 			info->type = uc->from_ascii && uc->version >= 7200 ? 'i' : 'f';
 			if (uc->opts.ignore_animation) info->type = '-';
-			if (uc->from_ascii && uc->version >= 7200) {
+			if (uc->from_ascii && uc->version < 7200) {
 				info->flags |= UFBXI_ARRAY_FLAG_ACCURATE_F32;
 			}
 			return true;
@@ -8403,14 +8419,8 @@ static bool ufbxi_is_array_node(ufbxi_context *uc, ufbxi_parse_state parent, con
 			info->flags = UFBXI_ARRAY_FLAG_RESULT;
 			return true;
 		} else if (name == ufbxi_FullWeights) {
-			// Ignore blend shape FullWeights as it's used in Blender for vertex groups
-			// which we don't currently handle. https://developer.blender.org/T90382
-			// TODO: Should we present this to users anyway somehow?
 			info->type = 'r';
-			if (!uc->opts.disable_quirks && uc->exporter == UFBX_EXPORTER_BLENDER_BINARY) {
-				info->type = '-';
-			}
-			info->flags |= UFBXI_ARRAY_FLAG_TMP_BUF;
+			info->flags = (uint8_t)(info->flags | (uc->blender_full_weights ? UFBXI_ARRAY_FLAG_RESULT : UFBXI_ARRAY_FLAG_TMP_BUF));
 			return true;
 		} else if (!strcmp(name, "TransformAssociateModel")) {
 			info->type = uc->opts.retain_dom ? 'r' : '-';
@@ -10722,14 +10732,14 @@ ufbxi_nodiscard static ufbxi_noinline int ufbxi_retain_dom_node(ufbxi_context *u
 		val->value_float = (double)(val->value_int = (int64_t)arr->size);
 
 		switch (arr->type) {
-		case 'c': val->type = UFBX_DOM_VALUE_ARRAY_I8; break;
-		case 'b': val->type = UFBX_DOM_VALUE_ARRAY_I8; break;
+		case 'c': val->type = UFBX_DOM_VALUE_BLOB; break;
+		case 'b': val->type = UFBX_DOM_VALUE_BLOB; break;
 		case 'i': val->type = UFBX_DOM_VALUE_ARRAY_I32; break;
 		case 'l': val->type = UFBX_DOM_VALUE_ARRAY_I64; break;
 		case 'f': val->type = UFBX_DOM_VALUE_ARRAY_F32; break;
 		case 'd': val->type = UFBX_DOM_VALUE_ARRAY_F64; break;
-		case 's': val->type = UFBX_DOM_VALUE_ARRAY_RAW_STRING; break;
-		case 'C': val->type = UFBX_DOM_VALUE_ARRAY_RAW_STRING; break;
+		case 's': val->type = UFBX_DOM_VALUE_ARRAY_BLOB; break;
+		case 'C': val->type = UFBX_DOM_VALUE_ARRAY_BLOB; break;
 		case '-': val->type = UFBX_DOM_VALUE_ARRAY_IGNORED; break;
 		default: ufbxi_fail("Bad array type");
 		}
@@ -12033,7 +12043,7 @@ static bool ufbxi_match_version_string(const char *fmt, ufbx_string str, uint32_
 	return true;
 }
 
-ufbxi_nodiscard static int ufbxi_match_exporter(ufbxi_context *uc)
+ufbxi_nodiscard ufbxi_noinline static int ufbxi_match_exporter(ufbxi_context *uc)
 {
 	ufbx_string creator = uc->scene.metadata.creator;
 	uint32_t version[3] = { 0 };
@@ -12067,6 +12077,10 @@ ufbxi_nodiscard static int ufbxi_match_exporter(ufbxi_context *uc)
 	if (uc->opts.disable_quirks) {
 		uc->exporter = UFBX_EXPORTER_UNKNOWN;
 		uc->exporter_version = 0;
+	}
+
+	if (uc->exporter == UFBX_EXPORTER_BLENDER_BINARY) {
+		uc->blender_full_weights = true;
 	}
 
 	return 1;
@@ -17088,6 +17102,8 @@ ufbxi_nodiscard static ufbxi_noinline int ufbxi_obj_parse_indices(ufbxi_context 
 				uc->obj.face_material = index - mesh->usemtl_base;
 			}
 			uc->obj.face_material = entry->user_id - mesh->usemtl_base;
+		} else {
+			uc->obj.face_material = UFBX_NO_INDEX;
 		}
 	}
 
@@ -17246,7 +17262,14 @@ ufbxi_nodiscard static ufbxi_noinline int ufbxi_obj_parse_comment(ufbxi_context 
 
 ufbxi_nodiscard static ufbxi_noinline int ufbxi_obj_parse_material(ufbxi_context *uc)
 {
-	ufbxi_check(uc->obj.num_tokens >= 2);
+	uc->obj.material_dirty = true;
+
+	// Allow empty `usemtl` lines to specify "no material".
+	if (uc->obj.num_tokens < 2) {
+		uc->obj.usemtl_fbx_id = 0;
+		return 1;
+	}
+
 	ufbx_string name = ufbxi_obj_span_token(uc, 1, SIZE_MAX);
 
 	ufbxi_check(ufbxi_push_string_place_str(&uc->string_pool, &name, false));
@@ -17257,7 +17280,6 @@ ufbxi_nodiscard static ufbxi_noinline int ufbxi_obj_parse_material(ufbxi_context
 	ufbxi_fbx_id_entry *entry = ufbxi_find_fbx_id(uc, fbx_id);
 
 	uc->obj.usemtl_fbx_id = fbx_id;
-	uc->obj.usemtl_name = name;
 
 	if (!entry) {
 		ufbxi_element_info info = { 0 };
@@ -17275,8 +17297,6 @@ ufbxi_nodiscard static ufbxi_noinline int ufbxi_obj_parse_material(ufbxi_context
 		ufbxi_check(ufbxi_grow_array(&uc->ator_tmp, &uc->obj.tmp_materials, &uc->obj.tmp_materials_cap, id + 1));
 		uc->obj.tmp_materials[id] = material;
 	}
-
-	uc->obj.material_dirty = true;
 
 	return 1;
 }
@@ -17789,7 +17809,8 @@ ufbxi_nodiscard static ufbxi_noinline int ufbxi_obj_parse_mtl(ufbxi_context *uc)
 
 		ufbx_string cmd = uc->obj.tokens[0];
 		if (ufbxi_str_equal(cmd, ufbxi_str_c("newmtl"))) {
-			// HACK: Reuse mesh material parsing
+			// HACK: Reuse mesh material parsing, but don't allow for empty material name
+			ufbxi_check(uc->obj.num_tokens >= 2);
 			ufbxi_check(ufbxi_obj_flush_material(uc));
 			ufbxi_check(ufbxi_obj_parse_material(uc));
 		} else if (cmd.length > 4 && !memcmp(cmd.data, "map_", 4)) {
@@ -21776,10 +21797,23 @@ ufbxi_nodiscard ufbxi_noinline static int ufbxi_finalize_scene(ufbxi_context *uc
 
 		for (size_t i = 0; i < channel->keyframes.count; i++) {
 			ufbx_blend_keyframe *key = &channel->keyframes.data[i];
+			key->target_weight = 1.0f;
 			if (i < full_weights->count) {
-				key->target_weight = full_weights->data[i] / (ufbx_real)100.0;
-			} else {
-				key->target_weight = 1.0f;
+				if (!uc->blender_full_weights) {
+					key->target_weight = full_weights->data[i] / (ufbx_real)100.0;
+				} else if (full_weights->count == key->shape->num_offsets) {
+					if (i == 0) {
+						// Duplicate `index_data` for modification if we retain DOM
+						if (uc->opts.retain_dom) {
+							full_weights->data = ufbxi_push_copy(&uc->result, ufbx_real, full_weights->count, full_weights->data);
+							ufbxi_check(full_weights->data);
+						}
+						ufbxi_for_list(ufbx_real, p_weight, *full_weights) {
+							*p_weight /= (ufbx_real)100.0;
+						}
+					}
+					key->shape->offset_weights = *full_weights;
+				}
 			}
 		}
 
@@ -21790,7 +21824,6 @@ ufbxi_nodiscard ufbxi_noinline static int ufbxi_finalize_scene(ufbxi_context *uc
 			channel->target_shape = channel->keyframes.data[channel->keyframes.count - 1].shape;
 		}
 	}
-	ufbxi_buf_free(&uc->tmp_full_weights);
 
 	{
 		// Generate and patch procedural index buffers
@@ -31817,10 +31850,15 @@ ufbx_abi void ufbx_add_blend_shape_vertex_offsets(const ufbx_blend_shape *shape,
 	size_t num_offsets = shape->num_offsets;
 	uint32_t *vertex_indices = shape->offset_vertices.data;
 	ufbx_vec3 *offsets = shape->position_offsets.data;
+	ufbx_real_list weights = shape->offset_weights;
 	for (size_t i = 0; i < num_offsets; i++) {
 		uint32_t index = vertex_indices[i];
 		if (index < num_vertices) {
-			ufbxi_add_weighted_vec3(&vertices[index], offsets[i], weight);
+			ufbx_real vertex_weight = weight;
+			if (i < weights.count) {
+				vertex_weight *= weights.data[i];
+			}
+			ufbxi_add_weighted_vec3(&vertices[index], offsets[i], vertex_weight);
 		}
 	}
 }
@@ -32818,6 +32856,69 @@ ufbx_abi ufbx_audio_layer *ufbx_as_audio_layer(const ufbx_element *element) { re
 ufbx_abi ufbx_audio_clip *ufbx_as_audio_clip(const ufbx_element *element) { return element && element->type == UFBX_ELEMENT_AUDIO_CLIP ? (ufbx_audio_clip*)element : NULL; }
 ufbx_abi ufbx_pose *ufbx_as_pose(const ufbx_element *element) { return element && element->type == UFBX_ELEMENT_POSE ? (ufbx_pose*)element : NULL; }
 ufbx_abi ufbx_metadata_object *ufbx_as_metadata_object(const ufbx_element *element) { return element && element->type == UFBX_ELEMENT_METADATA_OBJECT ? (ufbx_metadata_object*)element : NULL; }
+
+ufbx_abi bool ufbx_dom_is_array(const ufbx_dom_node *node) {
+	if (!node || node->values.count != 1) return false;
+	ufbx_dom_value v = node->values.data[0];
+	return v.type >= UFBX_DOM_VALUE_ARRAY_I32 && v.type <= UFBX_DOM_VALUE_ARRAY_BLOB;
+}
+ufbx_abi size_t ufbx_dom_array_size(const ufbx_dom_node *node) {
+	return ufbx_dom_is_array(node) ? (size_t)node->values.data[0].value_int : (size_t)0;
+}
+ufbx_abi ufbx_int32_list ufbx_dom_as_int32_list(const ufbx_dom_node *node) {
+	ufbx_int32_list list = { NULL, 0 };
+	if (node && node->values.count == 1 && node->values.data[0].type == UFBX_DOM_VALUE_ARRAY_I32) {
+		ufbx_dom_value value = node->values.data[0];
+		list.data = (int32_t*)value.value_blob.data;
+		list.count = value.value_blob.size / sizeof(int32_t);
+	}
+	return list;
+}
+ufbx_abi ufbx_int64_list ufbx_dom_as_int64_list(const ufbx_dom_node *node) {
+	ufbx_int64_list list = { NULL, 0 };
+	if (node && node->values.count == 1 && node->values.data[0].type == UFBX_DOM_VALUE_ARRAY_I64) {
+		ufbx_dom_value value = node->values.data[0];
+		list.data = (int64_t*)value.value_blob.data;
+		list.count = value.value_blob.size / sizeof(int64_t);
+	}
+	return list;
+}
+ufbx_abi ufbx_float_list ufbx_dom_as_float_list(const ufbx_dom_node *node) {
+	ufbx_float_list list = { NULL, 0 };
+	if (node && node->values.count == 1 && node->values.data[0].type == UFBX_DOM_VALUE_ARRAY_F32) {
+		ufbx_dom_value value = node->values.data[0];
+		list.data = (float*)value.value_blob.data;
+		list.count = value.value_blob.size / sizeof(float);
+	}
+	return list;
+}
+ufbx_abi ufbx_double_list ufbx_dom_as_double_list(const ufbx_dom_node *node) {
+	ufbx_double_list list = { NULL, 0 };
+	if (node && node->values.count == 1 && node->values.data[0].type == UFBX_DOM_VALUE_ARRAY_F64) {
+		ufbx_dom_value value = node->values.data[0];
+		list.data = (double*)value.value_blob.data;
+		list.count = value.value_blob.size / sizeof(double);
+	}
+	return list;
+}
+ufbx_abi ufbx_real_list ufbx_dom_as_real_list(const ufbx_dom_node *node) {
+	ufbx_real_list list = { NULL, 0 };
+	if (node && node->values.count == 1 && node->values.data[0].type == (sizeof(ufbx_real) == sizeof(double) ? UFBX_DOM_VALUE_ARRAY_F64 : UFBX_DOM_VALUE_ARRAY_F32)) {
+		ufbx_dom_value value = node->values.data[0];
+		list.data = (ufbx_real*)value.value_blob.data;
+		list.count = value.value_blob.size / sizeof(ufbx_real);
+	}
+	return list;
+}
+ufbx_abi ufbx_blob_list ufbx_dom_as_blob_list(const ufbx_dom_node *node) {
+	ufbx_blob_list list = { NULL, 0 };
+	if (node && node->values.count == 1 && node->values.data[0].type == UFBX_DOM_VALUE_ARRAY_BLOB) {
+		ufbx_dom_value value = node->values.data[0];
+		list.data = (ufbx_blob*)value.value_blob.data;
+		list.count = value.value_blob.size / sizeof(ufbx_blob);
+	}
+	return list;
+}
 
 // -- String API
 

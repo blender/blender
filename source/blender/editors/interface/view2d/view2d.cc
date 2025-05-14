@@ -1196,7 +1196,7 @@ void UI_view2d_multi_grid_draw(
   GPUVertFormat *format = immVertexFormat();
   const uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
   uint color = GPU_vertformat_attr_add(
-      format, "color", GPU_COMP_U8, 3, GPU_FETCH_INT_TO_FLOAT_UNIT);
+      format, "color", GPU_COMP_U8, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
 
   GPU_line_width(1.0f);
 
@@ -1221,7 +1221,7 @@ void UI_view2d_multi_grid_draw(
 
       immAttrSkip(color);
       immVertex2f(pos, start, v2d->cur.ymin);
-      immAttr3ubv(color, grid_line_color);
+      immAttr4ub(color, UNPACK3(grid_line_color), 255);
       immVertex2f(pos, start, v2d->cur.ymax);
     }
 
@@ -1238,7 +1238,7 @@ void UI_view2d_multi_grid_draw(
 
       immAttrSkip(color);
       immVertex2f(pos, v2d->cur.xmin, start);
-      immAttr3ubv(color, grid_line_color);
+      immAttr4ub(color, UNPACK3(grid_line_color), 255);
       immVertex2f(pos, v2d->cur.xmax, start);
     }
 
@@ -1252,12 +1252,12 @@ void UI_view2d_multi_grid_draw(
 
   immAttrSkip(color);
   immVertex2f(pos, 0.0f, v2d->cur.ymin);
-  immAttr3ubv(color, grid_line_color);
+  immAttr4ub(color, UNPACK3(grid_line_color), 255);
   immVertex2f(pos, 0.0f, v2d->cur.ymax);
 
   immAttrSkip(color);
   immVertex2f(pos, v2d->cur.xmin, 0.0f);
-  immAttr3ubv(color, grid_line_color);
+  immAttr4ub(color, UNPACK3(grid_line_color), 255);
   immVertex2f(pos, v2d->cur.xmax, 0.0f);
 
   immEnd();

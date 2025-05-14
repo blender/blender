@@ -645,7 +645,7 @@ static void fill_curve_offsets_vbos(const OffsetIndices<int> points_by_curve,
     const IndexRange points = points_by_curve[i];
 
     *(uint *)GPU_vertbuf_raw_step(&data_step) = points.start();
-    *(ushort *)GPU_vertbuf_raw_step(&seg_step) = points.size() - 1;
+    *(uint *)GPU_vertbuf_raw_step(&seg_step) = points.size() - 1;
   }
 }
 
@@ -658,7 +658,7 @@ static void create_curve_offsets_vbos(const OffsetIndices<int> points_by_curve,
   uint data_id = GPU_vertformat_attr_add(&format_data, "data", GPU_COMP_U32, 1, GPU_FETCH_INT);
 
   GPUVertFormat format_seg = {0};
-  uint seg_id = GPU_vertformat_attr_add(&format_seg, "data", GPU_COMP_U16, 1, GPU_FETCH_INT);
+  uint seg_id = GPU_vertformat_attr_add(&format_seg, "data", GPU_COMP_U32, 1, GPU_FETCH_INT);
 
   /* Curve Data. */
   cache.proc_strand_buf = GPU_vertbuf_create_with_format_ex(
@@ -717,7 +717,7 @@ static void calc_final_indices(const bke::CurvesGeometry &curves,
   }
 
   static const GPUVertFormat format = GPU_vertformat_from_attribute(
-      "dummy", GPU_COMP_U32, 1, GPU_FETCH_INT_TO_FLOAT_UNIT);
+      "dummy", GPU_COMP_U32, 1, GPU_FETCH_INT);
 
   gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(format);
   GPU_vertbuf_data_alloc(*vbo, 1);
@@ -818,7 +818,7 @@ static bool ensure_attributes(const Curves &curves,
           }
 
           if (layer != -1 && domain.has_value()) {
-            drw_attributes_add_request(&attrs_needed, name, CD_PROP_FLOAT2);
+            drw_attributes_add_request(&attrs_needed, name);
           }
           break;
         }
@@ -839,7 +839,7 @@ static bool ensure_attributes(const Curves &curves,
         case CD_PROP_FLOAT:
         case CD_PROP_FLOAT2: {
           if (layer != -1 && domain.has_value()) {
-            drw_attributes_add_request(&attrs_needed, name, type);
+            drw_attributes_add_request(&attrs_needed, name);
           }
           break;
         }
@@ -885,12 +885,10 @@ static void request_attribute(Curves &curves, const char *name)
   DRW_Attributes attributes{};
 
   bke::CurvesGeometry &curves_geometry = curves.geometry.wrap();
-  std::optional<bke::AttributeMetaData> meta_data = curves_geometry.attributes().lookup_meta_data(
-      name);
-  if (!meta_data) {
+  if (!curves_geometry.attributes().contains(name)) {
     return;
   }
-  drw_attributes_add_request(&attributes, name, meta_data->data_type);
+  drw_attributes_add_request(&attributes, name);
 
   drw_attributes_merge(&final_cache.attr_used, &attributes, cache.render_mutex);
 }

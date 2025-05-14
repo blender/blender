@@ -4021,9 +4021,9 @@ static void wm_clear_recent_files_ui(bContext * /*C*/, wmOperator *op)
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
 
-  uiItemS(layout);
+  layout->separator();
   layout->prop(op->ptr, "remove", UI_ITEM_R_TOGGLE, std::nullopt, ICON_NONE);
-  uiItemS(layout);
+  layout->separator();
 }
 
 void WM_OT_clear_recent_files(wmOperatorType *ot)
@@ -4135,12 +4135,12 @@ static uiBlock *block_create_autorun_warning(bContext *C, ARegion *region, void 
   uiItemL_ex(col, G.autoexec_fail, ICON_NONE, false, true);
   col->label(message, ICON_NONE);
 
-  uiItemS(layout);
+  layout->separator();
 
   PointerRNA pref_ptr = RNA_pointer_create_discrete(nullptr, &RNA_PreferencesFilePaths, &U);
   layout->prop(&pref_ptr, "use_scripts_auto_execute", UI_ITEM_NONE, checkbox_text, ICON_NONE);
 
-  uiItemS_ex(layout, 2.0f);
+  layout->separator(2.0f);
 
   /* Buttons. */
   uiBut *but;
@@ -4149,7 +4149,7 @@ static uiBlock *block_create_autorun_warning(bContext *C, ARegion *region, void 
 
   /* Empty space. */
   col = &split->column(false);
-  uiItemS(col);
+  col->separator();
 
   col = &split->column(false);
 
@@ -4346,7 +4346,7 @@ static void file_overwrite_detailed_info_show(uiLayout *parent_layout, Main *bma
 
   if (bmain->is_asset_edit_file) {
     if (bmain->has_forward_compatibility_issues) {
-      uiItemS_ex(layout, 1.4f);
+      layout->separator(1.4f);
     }
 
     layout->label(RPT_("This file is managed by the Blender asset system. It can only be"),
@@ -4496,7 +4496,7 @@ static uiBlock *block_create_save_file_overwrite_dialog(bContext *C, ARegion *re
   /* Detailed message info. */
   file_overwrite_detailed_info_show(layout, bmain);
 
-  uiItemS_ex(layout, 4.0f);
+  layout->separator(4.0f);
 
   /* Buttons. */
 
@@ -4723,7 +4723,7 @@ static uiBlock *block_create__close_file_dialog(bContext *C, ARegion *region, vo
   LISTBASE_FOREACH (Report *, report, &reports.list) {
     uiLayout *row = &layout->column(false);
     uiLayoutSetScaleY(row, 0.6f);
-    uiItemS(row);
+    row->separator();
 
     /* Error messages created in ED_image_save_all_modified_info() can be long,
      * but are made to separate into two parts at first colon between text and paths.
@@ -4752,7 +4752,7 @@ static uiBlock *block_create__close_file_dialog(bContext *C, ARegion *region, vo
     SNPRINTF(message, "Save %u modified image(s)", modified_images_count);
     /* Only the first checkbox should get extra separation. */
     if (!has_extra_checkboxes) {
-      uiItemS(layout);
+      layout->separator();
     }
     uiDefButBitC(block,
                  UI_BTYPE_CHECKBOX,
@@ -4777,7 +4777,7 @@ static uiBlock *block_create__close_file_dialog(bContext *C, ARegion *region, vo
 
     /* Only the first checkbox should get extra separation. */
     if (!has_extra_checkboxes) {
-      uiItemS(layout);
+      layout->separator();
     }
     uiBut *but = uiDefButBitC(block,
                               UI_BTYPE_CHECKBOX,
@@ -4801,7 +4801,7 @@ static uiBlock *block_create__close_file_dialog(bContext *C, ARegion *region, vo
 
   BKE_reports_free(&reports);
 
-  uiItemS_ex(layout, 2.0f);
+  layout->separator(2.0f);
 
   /* Buttons. */
 #ifdef _WIN32

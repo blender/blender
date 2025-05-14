@@ -49,7 +49,7 @@ eSnapMode snapArmature(SnapObjectContext *sctx,
 
   if (arm->edbo) {
     LISTBASE_FOREACH (EditBone *, eBone, arm->edbo) {
-      if (EBONE_VISIBLE(arm, eBone)) {
+      if (ANIM_bone_is_visible_editbone(arm, eBone)) {
         const bool is_selected = (eBone->flag & (BONE_ROOTSEL | BONE_TIPSEL)) != 0;
         if (is_selected && skip_selected) {
           continue;

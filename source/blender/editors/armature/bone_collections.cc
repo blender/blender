@@ -271,7 +271,7 @@ static void bone_collection_assign_editbones(bContext *C,
   ED_armature_edit_sync_selection(arm->edbo);
 
   LISTBASE_FOREACH (EditBone *, ebone, arm->edbo) {
-    if (!EBONE_EDITABLE(ebone) || !EBONE_VISIBLE(arm, ebone)) {
+    if (!EBONE_EDITABLE(ebone) || !ANIM_bone_is_visible_editbone(arm, ebone)) {
       continue;
     }
     *made_any_changes |= assign_func(bcoll, ebone);
@@ -1104,7 +1104,7 @@ static void move_to_collection_menu_create(bContext *C, uiLayout *layout, void *
              "collection_index",
              parent_bcoll_index);
 
-  uiItemS(layout);
+  layout->separator();
 
   /* The remaining operators in this menu should be executed on click. Invoking
    * them would show this same menu again. */
@@ -1122,7 +1122,7 @@ static void move_to_collection_menu_create(bContext *C, uiLayout *layout, void *
     const BoneCollection *parent = arm->collection_array[parent_bcoll_index];
     menu_add_item_for_move_assign_unassign(
         layout, arm, parent, parent_bcoll_index, is_move_operation);
-    uiItemS(layout);
+    layout->separator();
 
     child_index = parent->child_index;
     child_count = parent->child_count;

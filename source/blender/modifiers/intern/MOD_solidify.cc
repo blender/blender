@@ -106,7 +106,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_rim"));
   sub->prop(ptr, "use_rim_only", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  uiItemS(layout);
+  layout->separator();
 
   modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", std::nullopt);
   row = &layout->row(false);
@@ -119,7 +119,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
     row->prop(ptr, "use_flat_faces", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
-  modifier_panel_end(layout, ptr);
+  modifier_error_message_draw(layout, ptr);
 }
 
 static void normals_panel_draw(const bContext * /*C*/, Panel *panel)

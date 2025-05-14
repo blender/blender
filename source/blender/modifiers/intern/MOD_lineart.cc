@@ -263,7 +263,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   col->prop(ptr, "thickness", UI_ITEM_R_SLIDER, IFACE_("Line Thickness"), ICON_NONE);
   col->prop(ptr, "opacity", UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
 
-  modifier_panel_end(layout, ptr);
+  modifier_error_message_draw(layout, ptr);
 }
 
 static void edge_types_panel_draw(const bContext * /*C*/, Panel *panel)

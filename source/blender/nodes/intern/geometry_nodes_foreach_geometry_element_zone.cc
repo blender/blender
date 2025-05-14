@@ -142,7 +142,7 @@ class ForeachGeometryElementNodeExecuteWrapper : public lf::GraphExecutorNodeExe
                     lf::Params &params,
                     const lf::Context &context) const override
   {
-    GeoNodesLFUserData &user_data = *static_cast<GeoNodesLFUserData *>(context.user_data);
+    GeoNodesUserData &user_data = *static_cast<GeoNodesUserData *>(context.user_data);
     const int index = lf_body_nodes_->index_of_try(const_cast<lf::FunctionNode *>(&node));
     const LazyFunction &fn = node.function();
     if (index == -1) {
@@ -154,12 +154,12 @@ class ForeachGeometryElementNodeExecuteWrapper : public lf::GraphExecutorNodeExe
     /* Setup context for the loop body evaluation. */
     bke::ForeachGeometryElementZoneComputeContext body_compute_context{
         user_data.compute_context, *output_bnode_, index};
-    GeoNodesLFUserData body_user_data = user_data;
+    GeoNodesUserData body_user_data = user_data;
     body_user_data.compute_context = &body_compute_context;
     body_user_data.log_socket_values = should_log_socket_values_for_context(
         user_data, body_compute_context.hash());
 
-    GeoNodesLFLocalUserData body_local_user_data{body_user_data};
+    GeoNodesLocalUserData body_local_user_data{body_user_data};
     lf::Context body_context{context.storage, &body_user_data, &body_local_user_data};
     fn.execute(params, body_context);
   }
@@ -177,7 +177,7 @@ class ForeachGeometryElementZoneSideEffectProvider : public lf::GraphExecutorSid
   Vector<const lf::FunctionNode *> get_nodes_with_side_effects(
       const lf::Context &context) const override
   {
-    GeoNodesLFUserData &user_data = *static_cast<GeoNodesLFUserData *>(context.user_data);
+    GeoNodesUserData &user_data = *static_cast<GeoNodesUserData *>(context.user_data);
     const GeoNodesCallData &call_data = *user_data.call_data;
     if (!call_data.side_effect_nodes) {
       return {};
@@ -324,8 +324,8 @@ class LazyFunctionForForeachGeometryElementZone : public LazyFunction {
   {
     const ScopedNodeTimer node_timer{context, output_bnode_};
 
-    auto &user_data = *static_cast<GeoNodesLFUserData *>(context.user_data);
-    auto &local_user_data = *static_cast<GeoNodesLFLocalUserData *>(context.local_user_data);
+    auto &user_data = *static_cast<GeoNodesUserData *>(context.user_data);
+    auto &local_user_data = *static_cast<GeoNodesLocalUserData *>(context.local_user_data);
 
     const auto &node_storage = *static_cast<const NodeGeometryForeachGeometryElementOutput *>(
         output_bnode_.storage);
@@ -852,7 +852,7 @@ void LazyFunctionForReduceForeachGeometryElement::execute_impl(lf::Params &param
 void LazyFunctionForReduceForeachGeometryElement::handle_main_items_and_geometry(
     lf::Params &params, const lf::Context &context) const
 {
-  auto &user_data = *static_cast<GeoNodesLFUserData *>(context.user_data);
+  auto &user_data = *static_cast<GeoNodesUserData *>(context.user_data);
   const auto &node_storage = *static_cast<NodeGeometryForeachGeometryElementOutput *>(
       parent_.output_bnode_.storage);
   const int body_main_outputs_num = node_storage.main_items.items_num +
@@ -999,7 +999,7 @@ void LazyFunctionForReduceForeachGeometryElement::handle_generation_items_group(
     const int geometry_item_i,
     const IndexRange generation_items_range) const
 {
-  auto &user_data = *static_cast<GeoNodesLFUserData *>(context.user_data);
+  auto &user_data = *static_cast<GeoNodesUserData *>(context.user_data);
   const auto &node_storage = *static_cast<NodeGeometryForeachGeometryElementOutput *>(
       parent_.output_bnode_.storage);
   const int body_main_outputs_num = node_storage.main_items.items_num +

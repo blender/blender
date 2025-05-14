@@ -76,6 +76,7 @@ template<typename Item> class TimelineResources : Vector<std::pair<TimelineValue
  */
 class VKDiscardPool {
   friend class VKDevice;
+  friend class VKBackend;
 
  private:
   TimelineResources<std::pair<VkImage, VmaAllocation>> images_;
@@ -123,7 +124,7 @@ class VKDiscardPool {
    * Returns the discard pool for the current thread.
    *
    * When active thread has a context it uses the context discard pool.
-   * Otherwise the device discard pool is used.
+   * Otherwise a device discard pool is used.
    */
   static VKDiscardPool &discard_pool_get();
 };
