@@ -489,7 +489,7 @@ static void rna_uiItemM(uiLayout *layout,
     icon = icon_value;
   }
 
-  uiItemM(layout, menuname, text, icon);
+  layout->menu(menuname, text, icon);
 }
 
 static void rna_uiItemM_contents(uiLayout *layout, const char *menuname)

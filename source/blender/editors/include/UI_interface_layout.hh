@@ -249,6 +249,17 @@ struct uiLayout : uiItem {
   void label(blender::StringRef name, int icon);
 
   /**
+   * Adds a menu item, which is a button that when active will display a menu.
+   * If menu fails to poll with `WM_menutype_poll` it will not be added into the layout.
+   */
+  void menu(MenuType *mt, std::optional<blender::StringRef> name, int icon);
+  /**
+   * Adds a menu item, which is a button that when active will display a menu.
+   * If menu fails to poll with `WM_menutype_poll` it will not be added into the layout.
+   */
+  void menu(blender::StringRef menuname, std::optional<blender::StringRef> name, int icon);
+
+  /**
    * Adds a operator item, places a button in the layout to call the operator.
    * \param opname: Operator id name.
    * \param name: Text to show in the layout.
@@ -650,14 +661,6 @@ uiLayout *uiItemL_respect_property_split(uiLayout *layout, blender::StringRef te
  * Label icon for dragging.
  */
 void uiItemLDrag(uiLayout *layout, PointerRNA *ptr, blender::StringRef name, int icon);
-/**
- * Menu.
- */
-void uiItemM_ptr(uiLayout *layout, MenuType *mt, std::optional<blender::StringRef> name, int icon);
-void uiItemM(uiLayout *layout,
-             blender::StringRef menuname,
-             std::optional<blender::StringRef> name,
-             int icon);
 /**
  * Menu contents.
  */

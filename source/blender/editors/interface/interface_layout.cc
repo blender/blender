@@ -3045,9 +3045,9 @@ static uiBut *ui_item_menu(uiLayout *layout,
   return but;
 }
 
-void uiItemM_ptr(uiLayout *layout, MenuType *mt, const std::optional<StringRef> name_opt, int icon)
+void uiLayout::menu(MenuType *mt, const std::optional<StringRef> name_opt, int icon)
 {
-  uiBlock *block = layout->root_->block;
+  uiBlock *block = root_->block;
   bContext *C = static_cast<bContext *>(block->evil_C);
   if (WM_menutype_poll(C, mt) == false) {
     return;
@@ -3055,11 +3055,11 @@ void uiItemM_ptr(uiLayout *layout, MenuType *mt, const std::optional<StringRef> 
 
   const StringRef name = name_opt.value_or(CTX_IFACE_(mt->translation_context, mt->label));
 
-  if (layout->root_->type == UI_LAYOUT_MENU && !icon) {
+  if (root_->type == UI_LAYOUT_MENU && !icon) {
     icon = ICON_BLANK1;
   }
 
-  ui_item_menu(layout,
+  ui_item_menu(this,
                name,
                icon,
                ui_item_menutype_func,
@@ -3069,17 +3069,14 @@ void uiItemM_ptr(uiLayout *layout, MenuType *mt, const std::optional<StringRef> 
                false);
 }
 
-void uiItemM(uiLayout *layout,
-             const StringRef menuname,
-             const std::optional<StringRef> name,
-             int icon)
+void uiLayout::menu(const StringRef menuname, const std::optional<StringRef> name, int icon)
 {
   MenuType *mt = WM_menutype_find(menuname, false);
   if (mt == nullptr) {
     RNA_warning("not found %s", std::string(menuname).c_str());
     return;
   }
-  uiItemM_ptr(layout, mt, name, icon);
+  this->menu(mt, name, icon);
 }
 
 void uiItemMContents(uiLayout *layout, const StringRef menuname)

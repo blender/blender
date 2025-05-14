@@ -237,10 +237,8 @@ static void root_catalogs_draw(const bContext *C, Menu *menu)
 
   if (!tree.unassigned_assets.is_empty() || unassigned_local_poll(*CTX_data_main(C))) {
     layout->separator();
-    uiItemM(layout,
-            "OBJECT_MT_add_modifier_unassigned_assets",
-            IFACE_("Unassigned"),
-            ICON_FILE_HIDDEN);
+    layout->menu(
+        "OBJECT_MT_add_modifier_unassigned_assets", IFACE_("Unassigned"), ICON_FILE_HIDDEN);
   }
 }
 
