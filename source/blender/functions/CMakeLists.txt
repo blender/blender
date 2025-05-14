@@ -22,6 +22,7 @@ set(SRC
   intern/multi_function_procedure_builder.cc
   intern/multi_function_procedure_executor.cc
   intern/multi_function_procedure_optimization.cc
+  intern/user_data.cc
 
   FN_field.hh
   FN_lazy_function.hh
@@ -39,6 +40,7 @@ set(SRC
   FN_multi_function_procedure_executor.hh
   FN_multi_function_procedure_optimization.hh
   FN_multi_function_signature.hh
+  FN_user_data.hh
 )
 
 set(LIB

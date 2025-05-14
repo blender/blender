@@ -37,7 +37,7 @@ class RepeatBodyNodeExecuteWrapper : public lf::GraphExecutorNodeExecuteWrapper 
                     lf::Params &params,
                     const lf::Context &context) const override
   {
-    GeoNodesLFUserData &user_data = *static_cast<GeoNodesLFUserData *>(context.user_data);
+    GeoNodesUserData &user_data = *static_cast<GeoNodesUserData *>(context.user_data);
     const int iteration = lf_body_nodes_->index_of_try(const_cast<lf::FunctionNode *>(&node));
     const LazyFunction &fn = node.function();
     if (iteration == -1) {
@@ -49,12 +49,12 @@ class RepeatBodyNodeExecuteWrapper : public lf::GraphExecutorNodeExecuteWrapper 
     /* Setup context for the loop body evaluation. */
     bke::RepeatZoneComputeContext body_compute_context{
         user_data.compute_context, *repeat_output_bnode_, iteration};
-    GeoNodesLFUserData body_user_data = user_data;
+    GeoNodesUserData body_user_data = user_data;
     body_user_data.compute_context = &body_compute_context;
     body_user_data.log_socket_values = should_log_socket_values_for_context(
         user_data, body_compute_context.hash());
 
-    GeoNodesLFLocalUserData body_local_user_data{body_user_data};
+    GeoNodesLocalUserData body_local_user_data{body_user_data};
     lf::Context body_context{context.storage, &body_user_data, &body_local_user_data};
     fn.execute(params, body_context);
   }
@@ -71,7 +71,7 @@ class RepeatZoneSideEffectProvider : public lf::GraphExecutorSideEffectProvider 
   Vector<const lf::FunctionNode *> get_nodes_with_side_effects(
       const lf::Context &context) const override
   {
-    GeoNodesLFUserData &user_data = *static_cast<GeoNodesLFUserData *>(context.user_data);
+    GeoNodesUserData &user_data = *static_cast<GeoNodesUserData *>(context.user_data);
     const GeoNodesCallData &call_data = *user_data.call_data;
     if (!call_data.side_effect_nodes) {
       return {};
@@ -150,8 +150,8 @@ class LazyFunctionForRepeatZone : public LazyFunction {
   {
     const ScopedNodeTimer node_timer{context, repeat_output_bnode_};
 
-    auto &user_data = *static_cast<GeoNodesLFUserData *>(context.user_data);
-    auto &local_user_data = *static_cast<GeoNodesLFLocalUserData *>(context.local_user_data);
+    auto &user_data = *static_cast<GeoNodesUserData *>(context.user_data);
+    auto &local_user_data = *static_cast<GeoNodesLocalUserData *>(context.local_user_data);
 
     const NodeGeometryRepeatOutput &node_storage = *static_cast<const NodeGeometryRepeatOutput *>(
         repeat_output_bnode_.storage);
@@ -191,8 +191,8 @@ class LazyFunctionForRepeatZone : public LazyFunction {
   void initialize_execution_graph(lf::Params &params,
                                   RepeatEvalStorage &eval_storage,
                                   const NodeGeometryRepeatOutput &node_storage,
-                                  GeoNodesLFUserData &user_data,
-                                  GeoNodesLFLocalUserData &local_user_data) const
+                                  GeoNodesUserData &user_data,
+                                  GeoNodesLocalUserData &local_user_data) const
   {
     const int num_repeat_items = node_storage.items_num;
     const int num_border_links = body_fn_.indices.inputs.border_links.size();

@@ -45,6 +45,8 @@
 #include "BLI_linear_allocator.hh"
 #include "BLI_vector.hh"
 
+#include "FN_user_data.hh"
+
 #ifndef NDEBUG
 #  include <atomic>
 #  include <thread>
@@ -71,33 +73,6 @@ enum class ValueUsage : uint8_t {
 };
 
 class LazyFunction;
-
-/**
- * Extension of #UserData that is thread-local. This avoids accessing e.g.
- * `EnumerableThreadSpecific.local()` in every nested lazy-function because the thread local
- * data is passed in by the caller.
- */
-class LocalUserData {
- public:
-  virtual ~LocalUserData() = default;
-};
-
-/**
- * This allows passing arbitrary data into a lazy-function during execution. For that, #UserData
- * has to be subclassed. This mainly exists because it's more type safe than passing a `void *`
- * with no type information attached.
- *
- * Some lazy-functions may expect to find a certain type of user data when executed.
- */
-class UserData {
- public:
-  virtual ~UserData() = default;
-
-  /**
-   * Get thread local data for this user-data and the current thread.
-   */
-  virtual destruct_ptr<LocalUserData> get_local(LinearAllocator<> &allocator);
-};
 
 /**
  * Passed to the lazy-function when it is executed.

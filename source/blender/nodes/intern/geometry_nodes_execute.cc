@@ -844,7 +844,7 @@ bke::GeometrySet execute_geometry_nodes_on_geometry(const bNodeTree &btree,
       .slice(function.outputs.input_usages)
       .fill(lf::ValueUsage::Unused);
 
-  GeoNodesLFUserData user_data;
+  GeoNodesUserData user_data;
   user_data.call_data = &call_data;
   call_data.root_ntree = &btree;
 
@@ -895,7 +895,7 @@ bke::GeometrySet execute_geometry_nodes_on_geometry(const bNodeTree &btree,
     param_outputs[i] = {type, buffer};
   }
 
-  GeoNodesLFLocalUserData local_user_data(user_data);
+  GeoNodesLocalUserData local_user_data(user_data);
 
   lf::Context lf_context(lazy_function.init_storage(allocator), &user_data, &local_user_data);
   lf::BasicParams lf_params{lazy_function,
