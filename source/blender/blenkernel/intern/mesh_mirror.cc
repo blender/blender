@@ -408,11 +408,10 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
     const VArraySpan sharp_edges = *attributes.lookup<bool>("sharp_edge", AttrDomain::Edge);
     const VArraySpan sharp_faces = *attributes.lookup<bool>("sharp_face", AttrDomain::Face);
     blender::bke::mesh::normals_calc_corners(result->vert_positions(),
-                                             result_edges,
                                              result_faces,
                                              result_corner_verts,
                                              result_corner_edges,
-                                             result->corner_to_face_map(),
+                                             result->vert_to_face_map(),
                                              result->face_normals_true(),
                                              sharp_edges,
                                              sharp_faces,

@@ -610,7 +610,6 @@ static int bm_mesh_loops_calc_normals_for_loop(BMesh *bm,
     }
 
     while (true) {
-      /* Much simpler than in sibling code with basic Mesh data! */
       lfan_pivot_next = BM_vert_step_fan_loop(lfan_pivot, &e_next);
       if (lfan_pivot_next) {
         BLI_assert(lfan_pivot_next->v == v_pivot);

@@ -151,12 +151,19 @@ struct CornerNormalSpace {
  */
 struct CornerNormalSpaceArray {
   /**
+   * Results are added from multiple threads. The lock is an easy way to parallelize adding results
+   * for each corner fan. This method means the order of spaces in the `spaces` vector and
+   * `corners_by_face` is non-deterministic. That shouldn't affect the final output for the user
+   * though.
+   */
+  Mutex build_mutex;
+  /**
    * The normal coordinate spaces, potentially shared between multiple face corners in a smooth fan
    * connected to a vertex (and not per face corner). Depending on the mesh (the amount of sharing
    * / number of sharp edges / size of each fan), there may be many fewer spaces than face corners,
-   * so they are stored in a separate array.
+   * so they are stored in a separate vector.
    */
-  Array<CornerNormalSpace> spaces;
+  Vector<CornerNormalSpace> spaces;
 
   /**
    * The index of the data in the #spaces array for each face corner (the array size is the
@@ -168,7 +175,7 @@ struct CornerNormalSpaceArray {
    * A map containing the face corners that make up each space,
    * in the order that they were processed (winding around a vertex).
    */
-  Array<Array<int>> corners_by_space;
+  Vector<Array<int>> corners_by_space;
   /** Whether to create the above map when calculating normals. */
   bool create_corners_by_space = false;
 };
@@ -184,30 +191,29 @@ short2 corner_space_custom_normal_to_data(const CornerNormalSpace &lnor_space,
  * each side of the edge.
  * \param sharp_faces: Optional array of sharp face tags, used to split the evaluated normals on
  * the face's edges.
- * \param r_lnors_spacearr: Optional return data filled with information about the custom
+ * \param r_fan_spaces: Optional return data filled with information about the custom
  * normals spaces for each grouped fan of face corners.
  */
 void normals_calc_corners(Span<float3> vert_positions,
-                          Span<int2> edges,
                           OffsetIndices<int> faces,
                           Span<int> corner_verts,
                           Span<int> corner_edges,
-                          Span<int> corner_to_face_map,
+                          GroupedSpan<int> vert_to_face_map,
                           Span<float3> face_normals,
                           Span<bool> sharp_edges,
                           Span<bool> sharp_faces,
                           Span<short2> custom_normals,
-                          CornerNormalSpaceArray *r_lnors_spacearr,
+                          CornerNormalSpaceArray *r_fan_spaces,
                           MutableSpan<float3> r_corner_normals);
 
 /**
  * \param sharp_faces: Optional array used to mark specific faces for sharp shading.
  */
 void normals_corner_custom_set(Span<float3> vert_positions,
-                               Span<int2> edges,
                                OffsetIndices<int> faces,
                                Span<int> corner_verts,
                                Span<int> corner_edges,
+                               GroupedSpan<int> vert_to_face_map,
                                Span<float3> vert_normals,
                                Span<float3> face_normals,
                                Span<bool> sharp_faces,
@@ -219,10 +225,10 @@ void normals_corner_custom_set(Span<float3> vert_positions,
  * \param sharp_faces: Optional array used to mark specific faces for sharp shading.
  */
 void normals_corner_custom_set_from_verts(Span<float3> vert_positions,
-                                          Span<int2> edges,
                                           OffsetIndices<int> faces,
                                           Span<int> corner_verts,
                                           Span<int> corner_edges,
+                                          GroupedSpan<int> vert_to_face_map,
                                           Span<float3> vert_normals,
                                           Span<float3> face_normals,
                                           Span<bool> sharp_faces,

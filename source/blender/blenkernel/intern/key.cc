@@ -2231,7 +2231,6 @@ void BKE_keyblock_mesh_calc_normals(const KeyBlock *kb,
 
   blender::Array<blender::float3> positions(mesh->vert_positions());
   BKE_keyblock_convert_to_mesh(kb, positions);
-  const blender::Span<blender::int2> edges = mesh->edges();
   const blender::OffsetIndices faces = mesh->faces();
   const blender::Span<int> corner_verts = mesh->corner_verts();
   const blender::Span<int> corner_edges = mesh->corner_edges();
@@ -2277,11 +2276,10 @@ void BKE_keyblock_mesh_calc_normals(const KeyBlock *kb,
                                                                  AttrDomain::Corner);
     mesh::normals_calc_corners(
         positions,
-        edges,
         faces,
         corner_verts,
         corner_edges,
-        mesh->corner_to_face_map(),
+        mesh->vert_to_face_map(),
         {reinterpret_cast<blender::float3 *>(face_normals), faces.size()},
         sharp_edges,
         sharp_faces,
