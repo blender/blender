@@ -2360,14 +2360,15 @@ static void edbm_strip_selections(BMEditMesh *em)
   }
 }
 
-void EDBM_selectmode_set(BMEditMesh *em)
+void EDBM_selectmode_set(BMEditMesh *em, const short selectmode)
 {
   BMVert *eve;
   BMEdge *eed;
   BMFace *efa;
   BMIter iter;
 
-  em->bm->selectmode = em->selectmode;
+  em->selectmode = selectmode;
+  em->bm->selectmode = selectmode;
 
   /* Strip stored selection isn't relevant to the new mode. */
   edbm_strip_selections(em);
@@ -2418,6 +2419,10 @@ void EDBM_selectmode_convert(BMEditMesh *em,
                              const short selectmode_old,
                              const short selectmode_new)
 {
+  /* NOTE: it's important only the selection modes passed in a re used,
+   * not the meshes current selection mode because this is called when the
+   * selection mode is being manipulated (see: #EDBM_selectmode_toggle_multi). */
+
   BMesh *bm = em->bm;
 
   BMVert *eve;
@@ -2522,25 +2527,35 @@ void EDBM_selectmode_convert(BMEditMesh *em,
 }
 
 bool EDBM_selectmode_toggle_multi(bContext *C,
-                                  const short selectmode_new,
+                                  const short selectmode_toggle,
                                   const int action,
                                   const bool use_extend,
                                   const bool use_expand)
 {
+  BLI_assert(ELEM(selectmode_toggle, SCE_SELECT_VERTEX, SCE_SELECT_EDGE, SCE_SELECT_FACE));
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   ToolSettings *ts = CTX_data_tool_settings(C);
-  Object *obedit = CTX_data_edit_object(C);
-  BMEditMesh *em = nullptr;
   bool ret = false;
 
-  if (obedit && obedit->type == OB_MESH) {
-    em = BKE_editmesh_from_object(obedit);
-  }
+  short selectmode_new;
+  /* Avoid mixing up the active/iterable edit-mesh by limiting its scope. */
+  {
+    Object *obedit = CTX_data_edit_object(C);
+    BMEditMesh *em = nullptr;
 
-  if (em == nullptr) {
-    return ret;
+    if (obedit && obedit->type == OB_MESH) {
+      em = BKE_editmesh_from_object(obedit);
+    }
+
+    if (em == nullptr) {
+      return ret;
+    }
+
+    selectmode_new = em->selectmode;
   }
+  /* Assign before the new value is modified. */
+  const short selectmode_old = selectmode_new;
 
   bool only_update = false;
   switch (action) {
@@ -2549,27 +2564,27 @@ bool EDBM_selectmode_toggle_multi(bContext *C,
       break;
     case 0: /* Disable. */
       /* Check we have something to do. */
-      if ((em->selectmode & selectmode_new) == 0) {
+      if ((selectmode_old & selectmode_toggle) == 0) {
         only_update = true;
         break;
       }
-      em->selectmode &= ~selectmode_new;
+      selectmode_new &= ~selectmode_toggle;
       break;
     case 1: /* Enable. */
       /* Check we have something to do. */
-      if ((em->selectmode & selectmode_new) != 0) {
+      if ((selectmode_old & selectmode_toggle) != 0) {
         only_update = true;
         break;
       }
-      em->selectmode |= selectmode_new;
+      selectmode_new |= selectmode_toggle;
       break;
     case 2: /* Toggle. */
       /* Can't disable this flag if its the only one set. */
-      if (em->selectmode == selectmode_new) {
+      if (selectmode_old == selectmode_toggle) {
         only_update = true;
         break;
       }
-      em->selectmode ^= selectmode_new;
+      selectmode_new ^= selectmode_toggle;
       break;
     default:
       BLI_assert(0);
@@ -2579,43 +2594,41 @@ bool EDBM_selectmode_toggle_multi(bContext *C,
   const Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(
       scene, view_layer, CTX_wm_view3d(C));
 
-  for (Object *ob_iter : objects) {
-    BMEditMesh *em_iter = BKE_editmesh_from_object(ob_iter);
-    if (em_iter != em) {
-      em_iter->selectmode = em->selectmode;
-    }
-  }
-
   if (only_update) {
+    for (Object *ob_iter : objects) {
+      BMEditMesh *em_iter = BKE_editmesh_from_object(ob_iter);
+      em_iter->selectmode = selectmode_new;
+    }
+
     return false;
   }
 
-  if (use_extend == 0 || em->selectmode == 0) {
+  if (use_extend == false || selectmode_new == 0) {
     if (use_expand) {
-      const short selmode_max = highest_order_bit_s(ts->selectmode);
+      const short selectmode_max = highest_order_bit_s(selectmode_old);
       for (Object *ob_iter : objects) {
         BMEditMesh *em_iter = BKE_editmesh_from_object(ob_iter);
-        EDBM_selectmode_convert(em_iter, selmode_max, selectmode_new);
+        EDBM_selectmode_convert(em_iter, selectmode_max, selectmode_toggle);
       }
     }
   }
 
-  switch (selectmode_new) {
+  switch (selectmode_toggle) {
     case SCE_SELECT_VERTEX:
-      if (use_extend == 0 || em->selectmode == 0) {
-        em->selectmode = SCE_SELECT_VERTEX;
+      if (use_extend == false || selectmode_new == 0) {
+        selectmode_new = SCE_SELECT_VERTEX;
       }
       ret = true;
       break;
     case SCE_SELECT_EDGE:
-      if (use_extend == 0 || em->selectmode == 0) {
-        em->selectmode = SCE_SELECT_EDGE;
+      if (use_extend == false || selectmode_new == 0) {
+        selectmode_new = SCE_SELECT_EDGE;
       }
       ret = true;
       break;
     case SCE_SELECT_FACE:
-      if (use_extend == 0 || em->selectmode == 0) {
-        em->selectmode = SCE_SELECT_FACE;
+      if (use_extend == false || selectmode_new == 0) {
+        selectmode_new = SCE_SELECT_FACE;
       }
       ret = true;
       break;
@@ -2625,12 +2638,11 @@ bool EDBM_selectmode_toggle_multi(bContext *C,
   }
 
   if (ret == true) {
-    ts->selectmode = em->selectmode;
-    em = nullptr;
+    BLI_assert(selectmode_new != 0);
+    ts->selectmode = selectmode_new;
     for (Object *ob_iter : objects) {
       BMEditMesh *em_iter = BKE_editmesh_from_object(ob_iter);
-      em_iter->selectmode = ts->selectmode;
-      EDBM_selectmode_set(em_iter);
+      EDBM_selectmode_set(em_iter, selectmode_new);
       DEG_id_tag_update(static_cast<ID *>(ob_iter->data),
                         ID_RECALC_SYNC_TO_EVAL | ID_RECALC_SELECT);
       WM_event_add_notifier(C, NC_GEOM | ND_SELECT, ob_iter->data);
@@ -2655,14 +2667,13 @@ bool EDBM_selectmode_set_multi_ex(Scene *scene, Span<Object *> objects, const sh
 
   for (Object *ob_iter : objects) {
     BMEditMesh *em_iter = BKE_editmesh_from_object(ob_iter);
-    if (em_iter->selectmode != selectmode) {
-      em_iter->selectmode = selectmode;
-      EDBM_selectmode_set(em_iter);
-      DEG_id_tag_update(static_cast<ID *>(ob_iter->data),
-                        ID_RECALC_SYNC_TO_EVAL | ID_RECALC_SELECT);
-      WM_main_add_notifier(NC_GEOM | ND_SELECT, ob_iter->data);
-      changed = true;
+    if (em_iter->selectmode == selectmode) {
+      continue;
     }
+    EDBM_selectmode_set(em_iter, selectmode);
+    DEG_id_tag_update(static_cast<ID *>(ob_iter->data), ID_RECALC_SYNC_TO_EVAL | ID_RECALC_SELECT);
+    WM_main_add_notifier(NC_GEOM | ND_SELECT, ob_iter->data);
+    changed = true;
   }
 
   if (changed_toolsettings) {
@@ -2717,8 +2728,7 @@ static bool edbm_selectmode_sync_multi_ex(Span<Object *> objects)
     if (em_active->selectmode == em->selectmode) {
       continue;
     }
-    em->selectmode = em_active->selectmode;
-    EDBM_selectmode_set(em);
+    EDBM_selectmode_set(em, em_active->selectmode);
     changed = true;
 
     DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_SYNC_TO_EVAL | ID_RECALC_SELECT);
@@ -2736,14 +2746,11 @@ bool EDBM_selectmode_disable(Scene *scene,
   /* Not essential, but switch out of vertex mode since the
    * selected regions won't be nicely isolated after flushing. */
   if (em->selectmode & selectmode_disable) {
-    if (em->selectmode == selectmode_disable) {
-      em->selectmode = selectmode_fallback;
-    }
-    else {
-      em->selectmode &= ~selectmode_disable;
-    }
-    scene->toolsettings->selectmode = em->selectmode;
-    EDBM_selectmode_set(em);
+    const short selectmode = (em->selectmode == selectmode_disable) ?
+                                 selectmode_fallback :
+                                 (em->selectmode & ~selectmode_disable);
+    scene->toolsettings->selectmode = selectmode;
+    EDBM_selectmode_set(em, selectmode);
 
     WM_main_add_notifier(NC_SCENE | ND_TOOLSETTINGS, scene);
 

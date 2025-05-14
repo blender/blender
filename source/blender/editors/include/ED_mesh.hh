@@ -273,7 +273,7 @@ bool EDBM_select_pick(bContext *C, const int mval[2], const SelectPick_Params &p
  * When switching select mode, makes sure selection is consistent for editing
  * also for paranoia checks to make sure edge or face mode works.
  */
-void EDBM_selectmode_set(BMEditMesh *em);
+void EDBM_selectmode_set(BMEditMesh *em, short selectmode);
 /**
  * Expand & Contract the Selection
  * (used when changing modes and Ctrl key held)
@@ -303,10 +303,12 @@ bool EDBM_selectmode_set_multi_ex(Scene *scene,
  */
 bool EDBM_selectmode_set_multi(bContext *C, short selectmode);
 /**
- * User facing function, does notification.
+ * User facing function, handles notification.
+ *
+ * \param selectmode_toggle: The mode to adjust based on `action`, must not contain mixed flags.
  */
 bool EDBM_selectmode_toggle_multi(
-    bContext *C, short selectmode_new, int action, bool use_extend, bool use_expand);
+    bContext *C, short selectmode_toggle, int action, bool use_extend, bool use_expand);
 
 /**
  * Use to disable a select-mode if its enabled, Using another mode as a fallback
