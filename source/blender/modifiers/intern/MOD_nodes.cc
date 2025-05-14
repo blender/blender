@@ -2386,7 +2386,13 @@ static void draw_property_for_socket(DrawGroupInputsContext &ctx,
     }
     case SOCK_MENU: {
       if (socket.flag & NODE_INTERFACE_SOCKET_MENU_EXPANDED) {
-        row->prop(ctx.md_ptr, rna_path, UI_ITEM_R_EXPAND, name, ICON_NONE);
+        /* Use a single space when the name is empty to work around a bug with expanded enums. Also
+         * see #ui_item_enum_expand_exec. */
+        row->prop(ctx.md_ptr,
+                  rna_path,
+                  UI_ITEM_R_EXPAND,
+                  StringRef(name).is_empty() ? " " : name,
+                  ICON_NONE);
       }
       else {
         row->prop(ctx.md_ptr, rna_path, UI_ITEM_NONE, name, ICON_NONE);
