@@ -153,7 +153,6 @@ namespace blender::nodes {
 
 StructRNA *EvaluateClosureInputItemsAccessor::item_srna =
     &RNA_NodeGeometryEvaluateClosureInputItem;
-int EvaluateClosureInputItemsAccessor::node_type = GEO_NODE_EVALUATE_CLOSURE;
 
 void EvaluateClosureInputItemsAccessor::blend_write_item(BlendWriter *writer, const ItemT &item)
 {
@@ -167,7 +166,6 @@ void EvaluateClosureInputItemsAccessor::blend_read_data_item(BlendDataReader *re
 
 StructRNA *EvaluateClosureOutputItemsAccessor::item_srna =
     &RNA_NodeGeometryEvaluateClosureOutputItem;
-int EvaluateClosureOutputItemsAccessor::node_type = GEO_NODE_EVALUATE_CLOSURE;
 
 void EvaluateClosureOutputItemsAccessor::blend_write_item(BlendWriter *writer, const ItemT &item)
 {

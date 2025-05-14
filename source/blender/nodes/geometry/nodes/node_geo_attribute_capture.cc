@@ -296,7 +296,6 @@ NOD_REGISTER_NODE(node_register)
 namespace blender::nodes {
 
 StructRNA *CaptureAttributeItemsAccessor::item_srna = &RNA_NodeGeometryCaptureAttributeItem;
-int CaptureAttributeItemsAccessor::node_type = GEO_NODE_CAPTURE_ATTRIBUTE;
 
 void CaptureAttributeItemsAccessor::blend_write_item(BlendWriter *writer, const ItemT &item)
 {

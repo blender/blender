@@ -469,7 +469,6 @@ namespace blender::nodes {
 
 StructRNA *ForeachGeometryElementInputItemsAccessor::item_srna =
     &RNA_ForeachGeometryElementInputItem;
-int ForeachGeometryElementInputItemsAccessor::node_type = GEO_NODE_FOREACH_GEOMETRY_ELEMENT_OUTPUT;
 
 void ForeachGeometryElementInputItemsAccessor::blend_write_item(BlendWriter *writer,
                                                                 const ItemT &item)
@@ -485,7 +484,6 @@ void ForeachGeometryElementInputItemsAccessor::blend_read_data_item(BlendDataRea
 
 StructRNA *ForeachGeometryElementMainItemsAccessor::item_srna =
     &RNA_ForeachGeometryElementMainItem;
-int ForeachGeometryElementMainItemsAccessor::node_type = GEO_NODE_FOREACH_GEOMETRY_ELEMENT_OUTPUT;
 
 void ForeachGeometryElementMainItemsAccessor::blend_write_item(BlendWriter *writer,
                                                                const ItemT &item)
@@ -501,8 +499,6 @@ void ForeachGeometryElementMainItemsAccessor::blend_read_data_item(BlendDataRead
 
 StructRNA *ForeachGeometryElementGenerationItemsAccessor::item_srna =
     &RNA_ForeachGeometryElementGenerationItem;
-int ForeachGeometryElementGenerationItemsAccessor::node_type =
-    GEO_NODE_FOREACH_GEOMETRY_ELEMENT_OUTPUT;
 
 void ForeachGeometryElementGenerationItemsAccessor::blend_write_item(BlendWriter *writer,
                                                                      const ItemT &item)

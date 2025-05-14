@@ -53,7 +53,7 @@ static void draw_items_list_with_operators(const bContext *C,
                                            const bNodeTree &tree,
                                            const bNode &node)
 {
-  BLI_assert(Accessor::node_type == node.type_legacy);
+  BLI_assert(Accessor::node_idname == node.idname);
   PointerRNA node_ptr = RNA_pointer_create_discrete(
       const_cast<ID *>(&tree.id), &RNA_Node, const_cast<bNode *>(&node));
 
@@ -103,7 +103,7 @@ static void draw_active_item_props(const bNodeTree &tree,
                                    const FunctionRef<void(PointerRNA *item_ptr)> draw_item)
 {
   using ItemT = typename Accessor::ItemT;
-  BLI_assert(Accessor::node_type == node.type_legacy);
+  BLI_assert(Accessor::node_idname == node.idname);
 
   SocketItemsRef<ItemT> ref = Accessor::get_items_from_node(const_cast<bNode &>(node));
   if (*ref.active_index < 0) {
