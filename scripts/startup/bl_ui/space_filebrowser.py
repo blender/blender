@@ -734,7 +734,7 @@ class ASSETBROWSER_PT_import_settings(asset_utils.AssetBrowserPanel, Panel):
 
         col = layout.column(heading="Instance Collections")
         col.prop(params, "instance_collections_on_link", text="When Linking")
-        col.prop(params, "instance_collections_on_append", text="When Appendind")
+        col.prop(params, "instance_collections_on_append", text="When Appending")
 
 
 class ASSETBROWSER_PT_metadata(asset_utils.AssetBrowserPanel, Panel):
