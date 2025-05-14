@@ -239,15 +239,15 @@ void face_angles_calc(const Span<float3> vert_positions,
 
 bool BKE_mesh_center_median(const Mesh *mesh, float r_cent[3])
 {
-  const Span<float3> positions = mesh->vert_positions();
-  zero_v3(r_cent);
-  for (const int i : positions.index_range()) {
-    add_v3_v3(r_cent, positions[i]);
-  }
+  float3 center = blender::array_utils::compute_sum<float3>(mesh->vert_positions());
+
   /* otherwise we get NAN for 0 verts */
   if (mesh->verts_num) {
-    mul_v3_fl(r_cent, 1.0f / float(mesh->verts_num));
+    mul_v3_fl(center, 1.0 / float(mesh->verts_num));
   }
+
+  copy_v3_v3(r_cent, center);
+
   return (mesh->verts_num != 0);
 }
 
