@@ -3992,8 +3992,8 @@ static void sculpt_update_cache_invariants(
   cache->initial_location_symm = ss.cursor_location;
   cache->initial_location = ss.cursor_location;
 
-  cache->initial_normal_symm = ss.cursor_normal;
-  cache->initial_normal = ss.cursor_normal;
+  cache->initial_normal_symm = ss.cursor_sampled_normal.value_or(ss.cursor_normal);
+  cache->initial_normal = ss.cursor_sampled_normal.value_or(ss.cursor_normal);
 
   const int mode = RNA_enum_get(op.ptr, "mode");
   cache->pen_flip = RNA_boolean_get(op.ptr, "pen_flip");
@@ -4843,7 +4843,7 @@ bool SCULPT_cursor_geometry_info_update(bContext *C,
           *depsgraph, brush, ob, node_mask))
   {
     copy_v3_v3(out->normal, *sampled_normal);
-    copy_v3_v3(ss.cursor_sampled_normal, *sampled_normal);
+    ss.cursor_sampled_normal = *sampled_normal;
   }
   else {
     /* Use face normal when there are no vertices to sample inside the cursor radius. */

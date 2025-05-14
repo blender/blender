@@ -437,7 +437,7 @@ struct SculptSession : blender::NonCopyable, blender::NonMovable {
   float cursor_radius = 0.0f;
   blender::float3 cursor_location;
   blender::float3 cursor_normal;
-  blender::float3 cursor_sampled_normal;
+  std::optional<blender::float3> cursor_sampled_normal;
   blender::float3 cursor_view_normal;
 
   /* TODO(jbakker): Replace rv3d and v3d with ViewContext */

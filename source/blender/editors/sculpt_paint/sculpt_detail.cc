@@ -867,8 +867,8 @@ static wmOperatorStatus dyntopo_detail_size_edit_invoke(bContext *C,
   translate_m4(cursor_trans, ss.cursor_location[0], ss.cursor_location[1], ss.cursor_location[2]);
 
   float cursor_normal[3];
-  if (!is_zero_v3(ss.cursor_sampled_normal)) {
-    copy_v3_v3(cursor_normal, ss.cursor_sampled_normal);
+  if (ss.cursor_sampled_normal) {
+    copy_v3_v3(cursor_normal, *ss.cursor_sampled_normal);
   }
   else {
     copy_v3_v3(cursor_normal, ss.cursor_normal);
