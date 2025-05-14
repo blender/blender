@@ -85,8 +85,8 @@ float EdgeDice::scale_factor(const SubPatch &sub, const int Mu, const int Mv)
   // XXX does the -sqrt solution matter
   // XXX max(D, 0.0) is highly suspicious, need to test cases
   // where D goes negative
-  const float N = 0.5f * (Ntris - (sub.edge_u0.edge->T + sub.edge_u1.edge->T +
-                                   sub.edge_v0.edge->T + sub.edge_v1.edge->T));
+  const float N = 0.5f * (Ntris - (sub.edges[0].edge->T + sub.edges[2].edge->T +
+                                   sub.edges[3].edge->T + sub.edges[1].edge->T));
   const float D = (4.0f * N * Mu * Mv) + ((Mu + Mv) * (Mu + Mv));
   const float S = (Mu + Mv + sqrtf(max(D, 0.0f))) / (2 * Mu * Mv);
 
@@ -110,7 +110,7 @@ void EdgeDice::set_vertex(const SubPatch &sub, const int index, const float2 uv)
   }
 }
 
-void EdgeDice::add_triangle(const SubPatch &sub,
+void EdgeDice::set_triangle(const SubPatch &sub,
                             const int triangle_index,
                             const int v0,
                             const int v1,
@@ -172,8 +172,8 @@ void EdgeDice::add_grid_triangles_and_stitch(const SubPatch &sub, const int Mu, 
         const float2 uv3 = sub.map_uv(make_float2(u + du, v + dv));
         const float2 uv4 = sub.map_uv(make_float2(u, v + dv));
 
-        add_triangle(sub, triangle_index++, i1, i2, i3, uv1, uv2, uv3);
-        add_triangle(sub, triangle_index++, i1, i3, i4, uv1, uv3, uv4);
+        set_triangle(sub, triangle_index++, i1, i2, i3, uv1, uv2, uv3);
+        set_triangle(sub, triangle_index++, i1, i3, i4, uv1, uv3, uv4);
       }
     }
   }
@@ -257,7 +257,7 @@ void EdgeDice::add_grid_triangles_and_stitch(const SubPatch &sub, const int Mu, 
         }
       }
 
-      add_triangle(sub, triangle_index++, v0, v1, v2, uv0, uv1, uv2);
+      set_triangle(sub, triangle_index++, v0, v1, v2, uv0, uv1, uv2);
     }
   }
 }
@@ -329,7 +329,7 @@ void EdgeDice::add_triangle_strip(const SubPatch &sub, const int left_edge, cons
       }
     }
 
-    add_triangle(sub, triangle_index++, v0, v1, v2, uv0, uv1, uv2);
+    set_triangle(sub, triangle_index++, v0, v1, v2, uv0, uv1, uv2);
   }
 }
 
@@ -370,8 +370,8 @@ void EdgeDice::set_sides(const SubPatch &sub)
 void EdgeDice::dice(const SubPatch &sub)
 {
   /* Compute inner grid size with scale factor. */
-  const int Mu = max(sub.edge_u0.edge->T, sub.edge_u1.edge->T);
-  const int Mv = max(sub.edge_v0.edge->T, sub.edge_v1.edge->T);
+  const int Mu = max(sub.edges[0].edge->T, sub.edges[2].edge->T);
+  const int Mv = max(sub.edges[3].edge->T, sub.edges[1].edge->T);
 
   if (Mv == 1) {
     /* No inner grid, stitch triangles from side to side. */

@@ -121,28 +121,20 @@ class SubPatch {
   };
 
   /*
-   *                edge_u1
-   *          uv01 ←-------- uv11
+   *                edges[2]
+   *         uv3 ←------------ uv2
    *          |                 ↑
-   *  edge_v0 |                 | edge_v1
+   * edges[3] |                 | edges[1]
    *          ↓                 |
-   *          uv00 --------→ uv10
-   *                edge_u0
+   *         uv0 ------------→ uv1
+   *                edges[0]
    */
 
   /* UV within patch, counter-clockwise starting from uv (0, 0) towards (1, 0) etc. */
-  float2 uv00 = zero_float2();
-  float2 uv10 = make_float2(1.0f, 0.0f);
-  float2 uv11 = one_float2();
-  float2 uv01 = make_float2(0.0f, 1.0f);
+  float2 uvs[4] = {zero_float2(), make_float2(1.0f, 0.0f), one_float2(), make_float2(0.0f, 1.0f)};
 
   /* Edges of this subpatch. */
-  union {
-    Edge edges[4] = {};
-    struct {
-      Edge edge_u0, edge_v1, edge_u1, edge_v0;
-    };
-  };
+  Edge edges[4] = {};
 
   explicit SubPatch(const Patch *patch, const int face_index, const int corner = 0)
       : patch(patch), face_index(face_index), corner(corner)
@@ -151,26 +143,26 @@ class SubPatch {
 
   int calc_num_inner_verts() const
   {
-    const int Mu = max(edge_u0.edge->T, edge_u1.edge->T);
-    const int Mv = max(edge_v0.edge->T, edge_v1.edge->T);
+    const int Mu = max(edges[0].edge->T, edges[2].edge->T);
+    const int Mv = max(edges[3].edge->T, edges[1].edge->T);
     return (Mu - 1) * (Mv - 1);
   }
 
   int calc_num_triangles() const
   {
-    const int Mu = max(edge_u0.edge->T, edge_u1.edge->T);
-    const int Mv = max(edge_v0.edge->T, edge_v1.edge->T);
+    const int Mu = max(edges[0].edge->T, edges[2].edge->T);
+    const int Mv = max(edges[3].edge->T, edges[1].edge->T);
 
     if (Mu == 1) {
-      return edge_v0.edge->T + edge_v1.edge->T;
+      return edges[3].edge->T + edges[1].edge->T;
     }
     if (Mv == 1) {
-      return edge_u0.edge->T + edge_u1.edge->T;
+      return edges[0].edge->T + edges[2].edge->T;
     }
 
     const int inner_triangles = (Mu - 2) * (Mv - 2) * 2;
-    const int edge_triangles = edge_u0.edge->T + edge_u1.edge->T + edge_v0.edge->T +
-                               edge_v1.edge->T + ((Mu - 2) * 2) + ((Mv - 2) * 2);
+    const int edge_triangles = edges[0].edge->T + edges[2].edge->T + edges[3].edge->T +
+                               edges[1].edge->T + ((Mu - 2) * 2) + ((Mv - 2) * 2);
 
     return inner_triangles + edge_triangles;
   }
@@ -187,8 +179,8 @@ class SubPatch {
 
   int get_vert_along_grid_edge(const int edge, const int n) const
   {
-    const int Mu = max(edge_u0.edge->T, edge_u1.edge->T);
-    const int Mv = max(edge_v0.edge->T, edge_v1.edge->T);
+    const int Mu = max(edges[0].edge->T, edges[2].edge->T);
+    const int Mv = max(edges[3].edge->T, edges[1].edge->T);
 
     assert(Mu >= 2 && Mv >= 2);
 
@@ -218,8 +210,8 @@ class SubPatch {
   float2 map_uv(float2 uv) const
   {
     /* Map UV from subpatch to patch parametric coordinates. */
-    const float2 d0 = interp(uv00, uv01, uv.y);
-    const float2 d1 = interp(uv10, uv11, uv.y);
+    const float2 d0 = interp(uvs[0], uvs[3], uv.y);
+    const float2 d1 = interp(uvs[1], uvs[2], uv.y);
     return clamp(interp(d0, d1, uv.x), zero_float2(), one_float2());
   }
 };

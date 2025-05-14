@@ -71,10 +71,10 @@ void DiagSplit::alloc_edge(SubPatch::Edge *sub_edge,
 
 void DiagSplit::alloc_subpatch(SubPatch &&sub)
 {
-  assert(sub.edge_u0.edge->T >= 1);
-  assert(sub.edge_v1.edge->T >= 1);
-  assert(sub.edge_u1.edge->T >= 1);
-  assert(sub.edge_v0.edge->T >= 1);
+  assert(sub.edges[0].edge->T >= 1);
+  assert(sub.edges[1].edge->T >= 1);
+  assert(sub.edges[2].edge->T >= 1);
+  assert(sub.edges[3].edge->T >= 1);
 
   sub.inner_grid_vert_offset = alloc_verts(sub.calc_num_inner_verts());
   sub.triangles_offset = num_triangles;
@@ -191,25 +191,25 @@ void DiagSplit::resolve_edge_factors(const SubPatch &sub, const int depth)
 {
   /* Compute edge factor if not already set. Or if DSPLIT_NON_UNIFORM and splitting is
    * no longer possible because the opposite side can't be split. */
-  if (sub.edge_u0.edge->T == 0 ||
-      (sub.edge_u0.edge->T == DSPLIT_NON_UNIFORM && sub.edge_u1.edge->T == 1))
+  if (sub.edges[0].edge->T == 0 ||
+      (sub.edges[0].edge->T == DSPLIT_NON_UNIFORM && sub.edges[2].edge->T == 1))
   {
-    assign_edge_factor(sub.edge_u0.edge, T(sub.patch, sub.uv00, sub.uv10, depth, true));
+    assign_edge_factor(sub.edges[0].edge, T(sub.patch, sub.uvs[0], sub.uvs[1], depth, true));
   }
-  if (sub.edge_v1.edge->T == 0 ||
-      (sub.edge_v1.edge->T == DSPLIT_NON_UNIFORM && sub.edge_v0.edge->T == 1))
+  if (sub.edges[1].edge->T == 0 ||
+      (sub.edges[1].edge->T == DSPLIT_NON_UNIFORM && sub.edges[3].edge->T == 1))
   {
-    assign_edge_factor(sub.edge_v1.edge, T(sub.patch, sub.uv10, sub.uv11, depth, true));
+    assign_edge_factor(sub.edges[1].edge, T(sub.patch, sub.uvs[1], sub.uvs[2], depth, true));
   }
-  if (sub.edge_u1.edge->T == 0 ||
-      (sub.edge_u1.edge->T == DSPLIT_NON_UNIFORM && sub.edge_u0.edge->T == 1))
+  if (sub.edges[2].edge->T == 0 ||
+      (sub.edges[2].edge->T == DSPLIT_NON_UNIFORM && sub.edges[0].edge->T == 1))
   {
-    assign_edge_factor(sub.edge_u1.edge, T(sub.patch, sub.uv11, sub.uv01, depth, true));
+    assign_edge_factor(sub.edges[2].edge, T(sub.patch, sub.uvs[2], sub.uvs[3], depth, true));
   }
-  if (sub.edge_v0.edge->T == 0 ||
-      (sub.edge_v0.edge->T == DSPLIT_NON_UNIFORM && sub.edge_v1.edge->T == 1))
+  if (sub.edges[3].edge->T == 0 ||
+      (sub.edges[3].edge->T == DSPLIT_NON_UNIFORM && sub.edges[1].edge->T == 1))
   {
-    assign_edge_factor(sub.edge_v0.edge, T(sub.patch, sub.uv01, sub.uv00, depth, true));
+    assign_edge_factor(sub.edges[3].edge, T(sub.patch, sub.uvs[3], sub.uvs[0], depth, true));
   }
 }
 
@@ -302,16 +302,16 @@ void DiagSplit::split(SubPatch &&sub, const int depth)
    * - Either edge has more than DSPLIT_MAX_SEGMENTS segments.
    * - The ratio of segments for opposite edges doesn't exceed 1.5.
    *   This reduces over tessellation for some patches. */
-  const int min_T_u = min(sub.edge_u0.edge->T, sub.edge_u1.edge->T);
-  const int max_T_u = max(sub.edge_u0.edge->T, sub.edge_u1.edge->T);
-  const int min_T_v = min(sub.edge_v0.edge->T, sub.edge_v1.edge->T);
-  const int max_T_v = max(sub.edge_v0.edge->T, sub.edge_v1.edge->T);
+  const int min_T_u = min(sub.edges[0].edge->T, sub.edges[2].edge->T);
+  const int max_T_u = max(sub.edges[0].edge->T, sub.edges[2].edge->T);
+  const int min_T_v = min(sub.edges[3].edge->T, sub.edges[1].edge->T);
+  const int max_T_v = max(sub.edges[3].edge->T, sub.edges[1].edge->T);
 
-  bool split_u = sub.edge_u0.edge->T == DSPLIT_NON_UNIFORM ||
-                 sub.edge_u1.edge->T == DSPLIT_NON_UNIFORM ||
+  bool split_u = sub.edges[0].edge->T == DSPLIT_NON_UNIFORM ||
+                 sub.edges[2].edge->T == DSPLIT_NON_UNIFORM ||
                  (min_T_u >= 2 && min_T_v > DSPLIT_MAX_SEGMENTS && max_T_v / min_T_v > 1.5f);
-  bool split_v = sub.edge_v0.edge->T == DSPLIT_NON_UNIFORM ||
-                 sub.edge_v1.edge->T == DSPLIT_NON_UNIFORM ||
+  bool split_v = sub.edges[3].edge->T == DSPLIT_NON_UNIFORM ||
+                 sub.edges[1].edge->T == DSPLIT_NON_UNIFORM ||
                  (min_T_v >= 2 && min_T_u > DSPLIT_MAX_SEGMENTS && max_T_u / min_T_u > 1.5f);
 
   /* Alternate axis. */
@@ -363,25 +363,25 @@ void DiagSplit::split(SubPatch &&sub, const int depth)
      *     -------Pb  Pd-------
      *          sub_across_0
      */
-    sub_across_0 = &sub.edge_u0;
-    sub_across_1 = &sub.edge_u1;
-    sub_a_across_0 = &sub_a.edge_u0;
-    sub_a_across_1 = &sub_a.edge_u1;
-    sub_b_across_0 = &sub_b.edge_u0;
-    sub_b_across_1 = &sub_b.edge_u1;
+    sub_across_0 = &sub.edges[0];
+    sub_across_1 = &sub.edges[2];
+    sub_a_across_0 = &sub_a.edges[0];
+    sub_a_across_1 = &sub_a.edges[2];
+    sub_b_across_0 = &sub_b.edges[0];
+    sub_b_across_1 = &sub_b.edges[2];
 
-    sub_a.edge_v0.own_edge = sub.edge_v0.own_edge;
-    sub_a.edge_v0.own_vertex = sub.edge_v0.own_vertex;
-    sub_b.edge_v1.own_edge = sub.edge_v1.own_edge;
-    sub_b.edge_v1.own_vertex = sub.edge_v1.own_vertex;
+    sub_a.edges[3].own_edge = sub.edges[3].own_edge;
+    sub_a.edges[3].own_vertex = sub.edges[3].own_vertex;
+    sub_b.edges[1].own_edge = sub.edges[1].own_edge;
+    sub_b.edges[1].own_vertex = sub.edges[1].own_vertex;
 
-    sub_a_split = &sub_a.edge_v1;
-    sub_b_split = &sub_b.edge_v0;
+    sub_a_split = &sub_a.edges[1];
+    sub_b_split = &sub_b.edges[3];
 
-    Pa = &sub_a.uv11;
-    Pb = &sub_a.uv10;
-    Pc = &sub_b.uv01;
-    Pd = &sub_b.uv00;
+    Pa = &sub_a.uvs[2];
+    Pb = &sub_a.uvs[1];
+    Pc = &sub_b.uvs[3];
+    Pd = &sub_b.uvs[0];
   }
   else {
     /*
@@ -393,25 +393,25 @@ void DiagSplit::split(SubPatch &&sub, const int depth)
      *                |        B         |
      *                --------------------
      */
-    sub_across_0 = &sub.edge_v0;
-    sub_across_1 = &sub.edge_v1;
-    sub_a_across_0 = &sub_a.edge_v0;
-    sub_a_across_1 = &sub_a.edge_v1;
-    sub_b_across_0 = &sub_b.edge_v0;
-    sub_b_across_1 = &sub_b.edge_v1;
+    sub_across_0 = &sub.edges[3];
+    sub_across_1 = &sub.edges[1];
+    sub_a_across_0 = &sub_a.edges[3];
+    sub_a_across_1 = &sub_a.edges[1];
+    sub_b_across_0 = &sub_b.edges[3];
+    sub_b_across_1 = &sub_b.edges[1];
 
-    sub_a.edge_u1.own_edge = sub.edge_u1.own_edge;
-    sub_a.edge_u1.own_vertex = sub.edge_u1.own_vertex;
-    sub_b.edge_u0.own_edge = sub.edge_u0.own_edge;
-    sub_b.edge_u0.own_vertex = sub.edge_u0.own_vertex;
+    sub_a.edges[2].own_edge = sub.edges[2].own_edge;
+    sub_a.edges[2].own_vertex = sub.edges[2].own_vertex;
+    sub_b.edges[0].own_edge = sub.edges[0].own_edge;
+    sub_b.edges[0].own_vertex = sub.edges[0].own_vertex;
 
-    sub_a_split = &sub_a.edge_u0;
-    sub_b_split = &sub_b.edge_u1;
+    sub_a_split = &sub_a.edges[0];
+    sub_b_split = &sub_b.edges[2];
 
-    Pa = &sub_a.uv10;
-    Pb = &sub_a.uv00;
-    Pc = &sub_b.uv11;
-    Pd = &sub_b.uv01;
+    Pa = &sub_a.uvs[1];
+    Pb = &sub_a.uvs[0];
+    Pc = &sub_b.uvs[2];
+    Pd = &sub_b.uvs[3];
   }
 
   /* Allocate new edges and vertices. */
@@ -452,33 +452,23 @@ void DiagSplit::split(SubPatch &&sub, const int depth)
 
 void DiagSplit::split_quad(const Mesh::SubdFace &face, const int face_index, const Patch *patch)
 {
-  /*
-   *                edge_u1
-   *          uv01 ←-------- uv11
-   *          |                 ↑
-   *  edge_v0 |                 | edge_v1
-   *          ↓                 |
-   *          uv00 --------→ uv10
-   *                edge_u0
-   */
-
   const int *subd_face_corners = params.mesh->get_subd_face_corners().data();
-  const int v00 = subd_face_corners[face.start_corner + 0];
-  const int v10 = subd_face_corners[face.start_corner + 1];
-  const int v11 = subd_face_corners[face.start_corner + 2];
-  const int v01 = subd_face_corners[face.start_corner + 3];
+  const int v0 = subd_face_corners[face.start_corner + 0];
+  const int v1 = subd_face_corners[face.start_corner + 1];
+  const int v2 = subd_face_corners[face.start_corner + 2];
+  const int v3 = subd_face_corners[face.start_corner + 3];
 
   SubPatch subpatch(patch, face_index);
-  alloc_edge(&subpatch.edge_u0, v00, v10, true, true);
-  alloc_edge(&subpatch.edge_v1, v10, v11, true, true);
-  alloc_edge(&subpatch.edge_u1, v11, v01, true, true);
-  alloc_edge(&subpatch.edge_v0, v01, v00, true, true);
+  alloc_edge(&subpatch.edges[0], v0, v1, true, true);
+  alloc_edge(&subpatch.edges[1], v1, v2, true, true);
+  alloc_edge(&subpatch.edges[2], v2, v3, true, true);
+  alloc_edge(&subpatch.edges[3], v3, v0, true, true);
 
   /* Forces a split in both axis for quads, needed to match split of ngons into quads. */
-  subpatch.edge_u0.edge->T = DSPLIT_NON_UNIFORM;
-  subpatch.edge_v0.edge->T = DSPLIT_NON_UNIFORM;
-  subpatch.edge_u1.edge->T = DSPLIT_NON_UNIFORM;
-  subpatch.edge_v1.edge->T = DSPLIT_NON_UNIFORM;
+  subpatch.edges[0].edge->T = DSPLIT_NON_UNIFORM;
+  subpatch.edges[3].edge->T = DSPLIT_NON_UNIFORM;
+  subpatch.edges[2].edge->T = DSPLIT_NON_UNIFORM;
+  subpatch.edges[1].edge->T = DSPLIT_NON_UNIFORM;
 
   split(std::move(subpatch), -2);
 }
@@ -489,7 +479,7 @@ void DiagSplit::split_ngon(const Mesh::SubdFace &face,
                            const size_t patches_byte_stride)
 {
   const int *subd_face_corners = params.mesh->get_subd_face_corners().data();
-  const int v11 = alloc_verts(1);
+  const int v2 = alloc_verts(1);
 
   /* Allocate edges of n-gon. */
   array<SubPatch::Edge> edges(face.num_corners);
@@ -509,32 +499,32 @@ void DiagSplit::split_ngon(const Mesh::SubdFace &face,
 
     /*         v_prev        .
      *           .           .
-     *           .  edge_u1  .
-     *          v01 ←------ v11 . . .
+     *           .   edge2   .
+     *          v3 ←------- v2 . . .
      *           |           ↑
-     *  edge_v0  |           | edge_v1
+     *    edge3  |           | edge1
      *           ↓           |
-     *          v00 ------→ v10 . . v_next
-     *              edge_u0
+     *           v0 ------→ v1 . . v_next
+     *              edge0
      */
-    SubPatch::Edge &edge_v0 = edges[mod(corner + face.num_corners - 1, face.num_corners)];
-    SubPatch::Edge &edge_u0 = edges[corner];
+    SubPatch::Edge &edge3 = edges[mod(corner + face.num_corners - 1, face.num_corners)];
+    SubPatch::Edge &edge0 = edges[corner];
 
     /* Setup edges. */
-    const int v00 = edge_u0.start_vert_index();
-    const int v10 = edge_u0.mid_vert_index();
-    const int v01 = edge_v0.mid_vert_index();
+    const int v0 = edge0.start_vert_index();
+    const int v1 = edge0.mid_vert_index();
+    const int v3 = edge3.mid_vert_index();
 
     SubPatch subpatch(patch, face_index, corner);
-    alloc_edge(&subpatch.edge_u0, v00, v10, false, false);
-    alloc_edge(&subpatch.edge_v1, v10, v11, true, false);
-    alloc_edge(&subpatch.edge_u1, v11, v01, true, corner == 0);
-    alloc_edge(&subpatch.edge_v0, v01, v00, false, false);
+    alloc_edge(&subpatch.edges[0], v0, v1, false, false);
+    alloc_edge(&subpatch.edges[1], v1, v2, true, false);
+    alloc_edge(&subpatch.edges[2], v2, v3, true, corner == 0);
+    alloc_edge(&subpatch.edges[3], v3, v0, false, false);
 
-    subpatch.edge_u0.own_edge = edge_u0.own_edge;
-    subpatch.edge_u0.own_vertex = edge_u0.own_vertex;
-    subpatch.edge_v0.own_edge = edge_v0.own_edge;
-    subpatch.edge_v0.own_vertex = edge_v0.own_edge;
+    subpatch.edges[0].own_edge = edge0.own_edge;
+    subpatch.edges[0].own_vertex = edge0.own_vertex;
+    subpatch.edges[3].own_edge = edge3.own_edge;
+    subpatch.edges[3].own_vertex = edge3.own_edge;
 
     /* Perform split. */
     split(std::move(subpatch), 0);

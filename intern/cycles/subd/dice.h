@@ -59,7 +59,7 @@ class EdgeDice {
   void dice(const SubPatch &sub);
 
   void set_vertex(const SubPatch &sub, const int index, const float2 uv);
-  void add_triangle(const SubPatch &sub,
+  void set_triangle(const SubPatch &sub,
                     const int triangle_index,
                     const int v0,
                     const int v1,
