@@ -150,7 +150,7 @@ static void verttag_set_cb(BMLoop *l, bool val, void *user_data_v)
     if (verttag_filter_cb(l_iter, user_data)) {
       const float *luv_iter = BM_ELEM_CD_GET_FLOAT_P(l_iter, cd_loop_uv_offset);
       if (equals_v2v2(luv, luv_iter)) {
-        uvedit_uv_select_set(scene, bm, l_iter, val, false, user_data->offsets);
+        uvedit_uv_select_set(scene, bm, l_iter, val, user_data->offsets);
       }
     }
   }
@@ -272,7 +272,7 @@ static void edgetag_set_cb(BMLoop *l, bool val, void *user_data_v)
   UserData_UV *user_data = static_cast<UserData_UV *>(user_data_v);
   const Scene *scene = user_data->scene;
   BMesh *bm = user_data->bm;
-  uvedit_edge_select_set_with_sticky(scene, bm, l, val, false, user_data->offsets);
+  uvedit_edge_select_set_with_sticky(scene, bm, l, val, user_data->offsets);
 }
 
 static int mouse_mesh_uv_shortest_path_edge(Scene *scene,
@@ -387,7 +387,7 @@ static void facetag_set_cb(BMFace *f, bool val, void *user_data_v)
   UserData_UV *user_data = static_cast<UserData_UV *>(user_data_v);
   const Scene *scene = user_data->scene;
   BMesh *bm = user_data->bm;
-  uvedit_face_select_set_with_sticky(scene, bm, f, val, false, user_data->offsets);
+  uvedit_face_select_set_with_sticky(scene, bm, f, val, user_data->offsets);
 }
 
 static int mouse_mesh_uv_shortest_path_face(Scene *scene,
