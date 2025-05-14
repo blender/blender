@@ -382,4 +382,29 @@ void all_library_reload_catalogs_if_dirty()
   service->reload_all_library_catalogs_if_dirty();
 }
 
+bool is_or_contains_remote_libraries(const AssetLibraryReference &reference)
+{
+  switch (reference.type) {
+    case ASSET_LIBRARY_ALL:
+      LISTBASE_FOREACH (const bUserAssetLibrary *, asset_library, &U.asset_libraries) {
+        if (asset_library->flag & ASSET_LIBRARY_USE_REMOTE_URL) {
+          return true;
+        }
+      }
+      break;
+    case ASSET_LIBRARY_CUSTOM: {
+      if (bUserAssetLibrary *asset_library =
+              AssetLibraryService::find_custom_asset_library_from_library_ref(reference))
+      {
+        if (asset_library->flag & ASSET_LIBRARY_USE_REMOTE_URL) {
+          return true;
+        }
+      }
+      break;
+    }
+  }
+
+  return false;
+}
+
 }  // namespace blender::asset_system

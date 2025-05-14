@@ -8,6 +8,8 @@
 
 #include <cstring>
 
+#include "AS_asset_library.hh"
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_listbase.h"
@@ -511,6 +513,32 @@ static void file_main_region_message_subscribe(const wmRegionMessageSubscribePar
 
     /* All properties for this space type. */
     WM_msg_subscribe_rna(mbus, &ptr, prop, &msg_sub_value_area_tag_refresh, __func__);
+  }
+
+  /* Use online access option (for remote asset libraries). */
+  {
+    wmMsgSubscribeValue msg_sub_value_region_clear_remote_libraries{};
+    msg_sub_value_region_clear_remote_libraries.owner = region;
+    msg_sub_value_region_clear_remote_libraries.user_data = sfile;
+    msg_sub_value_region_clear_remote_libraries.notify = [](/* Follow wmMsgNotifyFn spec */
+                                                            bContext *C,
+                                                            wmMsgSubscribeKey * /*msg_key*/,
+                                                            wmMsgSubscribeValue *msg_val) {
+      SpaceFile *sfile = static_cast<SpaceFile *>(msg_val->user_data);
+      if (const FileAssetSelectParams *asset_params = ED_fileselect_get_asset_params(sfile)) {
+        if (blender::asset_system::is_or_contains_remote_libraries(
+                asset_params->asset_library_ref))
+        {
+          ED_fileselect_clear(CTX_wm_manager(C), sfile);
+        }
+      }
+    };
+    WM_msg_subscribe_rna_prop(mbus,
+                              nullptr,
+                              &U,
+                              PreferencesSystem,
+                              use_online_access,
+                              &msg_sub_value_region_clear_remote_libraries);
   }
 }
 

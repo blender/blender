@@ -198,6 +198,8 @@ AssetLibraryReference all_library_reference();
 AssetLibraryReference current_file_library_reference();
 void all_library_reload_catalogs_if_dirty();
 
+bool is_or_contains_remote_libraries(const AssetLibraryReference &reference);
+
 }  // namespace blender::asset_system
 
 /**
