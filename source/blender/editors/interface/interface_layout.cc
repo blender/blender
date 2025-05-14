@@ -449,10 +449,10 @@ int uiLayoutGetLocalDir(const uiLayout *layout)
     case uiItemType::LayoutRoot:
     case uiItemType::LayoutOverlap:
     case uiItemType::LayoutPanelHeader:
+    case uiItemType::LayoutGridFlow:
       return UI_LAYOUT_HORIZONTAL;
     case uiItemType::LayoutColumn:
     case uiItemType::LayoutColumnFlow:
-    case uiItemType::LayoutGridFlow:
     case uiItemType::LayoutSplit:
     case uiItemType::LayoutAbsolute:
     case uiItemType::LayoutBox:

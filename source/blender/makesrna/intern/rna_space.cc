@@ -416,7 +416,6 @@ static const EnumPropertyItem rna_enum_viewport_lighting_items[] = {
 
 static const EnumPropertyItem rna_enum_shading_color_type_items[] = {
     {V3D_SHADING_MATERIAL_COLOR, "MATERIAL", 0, "Material", "Show material color"},
-    {V3D_SHADING_SINGLE_COLOR, "SINGLE", 0, "Single", "Show scene in a single color"},
     {V3D_SHADING_OBJECT_COLOR, "OBJECT", 0, "Object", "Show object color"},
     {V3D_SHADING_RANDOM_COLOR, "RANDOM", 0, "Random", "Show random object color"},
     {V3D_SHADING_VERTEX_COLOR, "VERTEX", 0, "Attribute", "Show active color attribute"},
@@ -425,6 +424,7 @@ static const EnumPropertyItem rna_enum_shading_color_type_items[] = {
      0,
      "Texture",
      "Show the texture from the active image texture node using the active UV map coordinates"},
+    {V3D_SHADING_SINGLE_COLOR, "SINGLE", 0, "Custom", "Show scene in a single custom color"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -4253,7 +4253,7 @@ static void rna_def_space_view3d_shading(BlenderRNA *brna)
       {V3D_SHADING_BACKGROUND_VIEWPORT,
        "VIEWPORT",
        0,
-       "Viewport",
+       "Custom",
        "Use a custom color limited to this viewport only"},
       {0, nullptr, 0, nullptr, nullptr},
   };

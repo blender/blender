@@ -959,7 +959,7 @@ class RENDER_PT_opengl_lighting(RenderButtonsPanel, Panel):
 
 
 class RENDER_PT_opengl_color(RenderButtonsPanel, Panel):
-    bl_label = "Color"
+    bl_label = "Object Color"
     COMPAT_ENGINES = {'BLENDER_WORKBENCH'}
 
     @classmethod
