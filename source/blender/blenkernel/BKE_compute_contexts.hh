@@ -36,22 +36,18 @@ class ModifierComputeContext : public ComputeContext {
  private:
   static constexpr const char *s_static_type = "MODIFIER";
 
-  /**
-   * Use modifier name instead of something like `session_uid` for now because:
-   * - It's more obvious that the name matches between the original and evaluated object.
-   * - We might want that the context hash is consistent between sessions in the future.
-   */
-  std::string modifier_name_;
+  /** #ModifierData.persistent_uid. */
+  int modifier_uid_;
   /** The modifier data that this context is for. This may be null. */
   const NodesModifierData *nmd_ = nullptr;
 
  public:
   ModifierComputeContext(const ComputeContext *parent, const NodesModifierData &nmd);
-  ModifierComputeContext(const ComputeContext *parent, std::string modifier_name);
+  ModifierComputeContext(const ComputeContext *parent, int modifier_uid);
 
-  StringRefNull modifier_name() const
+  int modifier_uid() const
   {
-    return modifier_name_;
+    return modifier_uid_;
   }
 
   const NodesModifierData *nmd() const

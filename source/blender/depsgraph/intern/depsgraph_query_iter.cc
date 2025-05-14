@@ -349,7 +349,7 @@ static Object *find_object_with_preview_geometry(const ViewerPath &viewer_path)
   }
   const ModifierViewerPathElem *modifier_elem = reinterpret_cast<const ModifierViewerPathElem *>(
       elem->next);
-  ModifierData *md = BKE_modifiers_findby_name(object, modifier_elem->modifier_name);
+  ModifierData *md = BKE_modifiers_findby_persistent_uid(object, modifier_elem->modifier_uid);
   if (md == nullptr) {
     return nullptr;
   }

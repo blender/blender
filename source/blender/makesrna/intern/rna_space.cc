@@ -8602,8 +8602,8 @@ static void rna_def_modifier_viewer_path_elem(BlenderRNA *brna)
 
   srna = RNA_def_struct(brna, "ModifierViewerPathElem", "ViewerPathElem");
 
-  prop = RNA_def_property(srna, "modifier_name", PROP_STRING, PROP_NONE);
-  RNA_def_property_ui_text(prop, "Modifier Name", "");
+  prop = RNA_def_property(srna, "modifier_uid", PROP_INT, PROP_NONE);
+  RNA_def_property_ui_text(prop, "Modifier UID", "The persistent UID of the modifier");
 }
 
 static void rna_def_group_node_viewer_path_elem(BlenderRNA *brna)

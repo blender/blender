@@ -36,7 +36,9 @@ typedef struct IDViewerPathElem {
 
 typedef struct ModifierViewerPathElem {
   ViewerPathElem base;
-  char *modifier_name;
+  /** #ModifierData.persistent_uid. */
+  int modifier_uid;
+  char _pad[4];
 } ModifierViewerPathElem;
 
 typedef struct GroupNodeViewerPathElem {

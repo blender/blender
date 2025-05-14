@@ -72,7 +72,6 @@ void BKE_viewer_path_blend_write(BlendWriter *writer, const ViewerPath *viewer_p
       case VIEWER_PATH_ELEM_TYPE_MODIFIER: {
         const auto *typed_elem = reinterpret_cast<ModifierViewerPathElem *>(elem);
         BLO_write_struct(writer, ModifierViewerPathElem, typed_elem);
-        BLO_write_string(writer, typed_elem->modifier_name);
         break;
       }
       case VIEWER_PATH_ELEM_TYPE_GROUP_NODE: {
@@ -123,12 +122,8 @@ void BKE_viewer_path_blend_read_data(BlendDataReader *reader, ViewerPath *viewer
       case VIEWER_PATH_ELEM_TYPE_REPEAT_ZONE:
       case VIEWER_PATH_ELEM_TYPE_FOREACH_GEOMETRY_ELEMENT_ZONE:
       case VIEWER_PATH_ELEM_TYPE_EVALUATE_CLOSURE:
+      case VIEWER_PATH_ELEM_TYPE_MODIFIER:
       case VIEWER_PATH_ELEM_TYPE_ID: {
-        break;
-      }
-      case VIEWER_PATH_ELEM_TYPE_MODIFIER: {
-        auto *typed_elem = reinterpret_cast<ModifierViewerPathElem *>(elem);
-        BLO_read_string(reader, &typed_elem->modifier_name);
         break;
       }
     }
@@ -287,9 +282,7 @@ ViewerPathElem *BKE_viewer_path_elem_copy(const ViewerPathElem *src)
     case VIEWER_PATH_ELEM_TYPE_MODIFIER: {
       const auto *old_elem = reinterpret_cast<const ModifierViewerPathElem *>(src);
       auto *new_elem = reinterpret_cast<ModifierViewerPathElem *>(dst);
-      if (old_elem->modifier_name != nullptr) {
-        new_elem->modifier_name = BLI_strdup(old_elem->modifier_name);
-      }
+      new_elem->modifier_uid = old_elem->modifier_uid;
       break;
     }
     case VIEWER_PATH_ELEM_TYPE_GROUP_NODE: {
@@ -358,7 +351,7 @@ bool BKE_viewer_path_elem_equal(const ViewerPathElem *a,
     case VIEWER_PATH_ELEM_TYPE_MODIFIER: {
       const auto *a_elem = reinterpret_cast<const ModifierViewerPathElem *>(a);
       const auto *b_elem = reinterpret_cast<const ModifierViewerPathElem *>(b);
-      return StringRef(a_elem->modifier_name) == StringRef(b_elem->modifier_name);
+      return a_elem->modifier_uid == b_elem->modifier_uid;
     }
     case VIEWER_PATH_ELEM_TYPE_GROUP_NODE: {
       const auto *a_elem = reinterpret_cast<const GroupNodeViewerPathElem *>(a);
@@ -410,12 +403,8 @@ void BKE_viewer_path_elem_free(ViewerPathElem *elem)
     case VIEWER_PATH_ELEM_TYPE_REPEAT_ZONE:
     case VIEWER_PATH_ELEM_TYPE_FOREACH_GEOMETRY_ELEMENT_ZONE:
     case VIEWER_PATH_ELEM_TYPE_EVALUATE_CLOSURE: {
-      break;
-    }
-    case VIEWER_PATH_ELEM_TYPE_MODIFIER: {
-      auto *typed_elem = reinterpret_cast<ModifierViewerPathElem *>(elem);
-      MEM_SAFE_FREE(typed_elem->modifier_name);
-      break;
+      case VIEWER_PATH_ELEM_TYPE_MODIFIER:
+        break;
     }
   }
   if (elem->ui_name) {

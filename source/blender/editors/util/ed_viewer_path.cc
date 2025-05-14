@@ -39,7 +39,10 @@ ViewerPathElem *viewer_path_elem_for_compute_context(const ComputeContext &compu
 {
   if (const auto *context = dynamic_cast<const bke::ModifierComputeContext *>(&compute_context)) {
     ModifierViewerPathElem *elem = BKE_viewer_path_elem_new_modifier();
-    elem->modifier_name = BLI_strdup(context->modifier_name().c_str());
+    elem->modifier_uid = context->modifier_uid();
+    if (const NodesModifierData *nmd = context->nmd()) {
+      elem->base.ui_name = BLI_strdup(nmd->modifier.name);
+    }
     return &elem->base;
   }
   if (const auto *context = dynamic_cast<const bke::GroupNodeComputeContext *>(&compute_context)) {
@@ -233,11 +236,9 @@ std::optional<ViewerPathForGeometryNodesViewer> parse_geometry_nodes_viewer(
   if (modifier_elem.type != VIEWER_PATH_ELEM_TYPE_MODIFIER) {
     return std::nullopt;
   }
-  const char *modifier_name =
-      reinterpret_cast<const ModifierViewerPathElem &>(modifier_elem).modifier_name;
-  if (modifier_name == nullptr) {
-    return std::nullopt;
-  }
+  const int modifier_uid =
+      reinterpret_cast<const ModifierViewerPathElem &>(modifier_elem).modifier_uid;
+
   remaining_elems = remaining_elems.drop_front(1);
   Vector<const ViewerPathElem *> node_path;
   for (const ViewerPathElem *elem : remaining_elems.drop_back(1)) {
@@ -258,7 +259,7 @@ std::optional<ViewerPathForGeometryNodesViewer> parse_geometry_nodes_viewer(
   }
   const int32_t viewer_node_id =
       reinterpret_cast<const ViewerNodeViewerPathElem *>(last_elem)->node_id;
-  return ViewerPathForGeometryNodesViewer{root_ob, modifier_name, node_path, viewer_node_id};
+  return ViewerPathForGeometryNodesViewer{root_ob, modifier_uid, node_path, viewer_node_id};
 }
 
 bool exists_geometry_nodes_viewer(const ViewerPathForGeometryNodesViewer &parsed_viewer_path)
@@ -268,7 +269,7 @@ bool exists_geometry_nodes_viewer(const ViewerPathForGeometryNodesViewer &parsed
     if (md->type != eModifierType_Nodes) {
       continue;
     }
-    if (md->name != parsed_viewer_path.modifier_name) {
+    if (md->persistent_uid != parsed_viewer_path.modifier_uid) {
       continue;
     }
     modifier = reinterpret_cast<const NodesModifierData *>(md);
@@ -512,7 +513,7 @@ bNode *find_geometry_nodes_viewer(const ViewerPath &viewer_path, SpaceNode &snod
     }
     case VIEWER_PATH_ELEM_TYPE_MODIFIER: {
       const auto &elem = reinterpret_cast<const ModifierViewerPathElem &>(elem_generic);
-      return &compute_context_cache.for_modifier(parent_compute_context, elem.modifier_name);
+      return &compute_context_cache.for_modifier(parent_compute_context, elem.modifier_uid);
     }
     case VIEWER_PATH_ELEM_TYPE_GROUP_NODE: {
       const auto &elem = reinterpret_cast<const GroupNodeViewerPathElem &>(elem_generic);
