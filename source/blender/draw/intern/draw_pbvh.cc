@@ -288,7 +288,7 @@ static const GPUVertFormat &position_format()
 static const GPUVertFormat &normal_format()
 {
   static const GPUVertFormat format = GPU_vertformat_from_attribute(
-      "nor", GPU_COMP_I16, 3, GPU_FETCH_INT_TO_FLOAT_UNIT);
+      "nor", GPU_COMP_I16, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
   return format;
 }
 
