@@ -271,6 +271,7 @@ static bool import_normals_into_temp_attribute(const ufbx_mesh *fmesh,
     const ufbx_vec3 &normal = fmesh->vertex_normal.values[val_idx];
     normals.span[i] = float3(normal.x, normal.y, normal.z);
   }
+  normals.finish();
   return true;
 }
 
@@ -464,6 +465,7 @@ void import_meshes(Main &bmain,
           attributes.lookup_or_add_for_write_only_span<float3>(temp_custom_normals_name,
                                                                bke::AttrDomain::Corner);
       bke::mesh_set_custom_normals(*mesh, normals.span);
+      normals.finish();
       attributes.remove(temp_custom_normals_name);
     }
 
