@@ -50,16 +50,16 @@ class VIEW3D_MT_brush_context_menu(Menu):
         if brush.library and brush.library.is_editable:
             layout.operator("brush.asset_save_as", text="Duplicate Asset...", icon='DUPLICATE')
             layout.operator("brush.asset_delete", text="Delete Asset")
-
-            layout.separator()
-
-            layout.operator("brush.asset_edit_metadata", text="Edit Metadata...")
-            layout.operator("brush.asset_load_preview", text="Edit Preview Image...")
-            layout.operator("brush.asset_save", text="Save Changes to Asset")
-            layout.operator("brush.asset_revert", text="Revert to Asset")
         else:
             layout.operator("brush.asset_save_as", text="Save As Asset...", icon='FILE_TICK')
             layout.operator("brush.asset_delete", text="Delete")
+
+        layout.separator()
+
+        layout.operator("brush.asset_edit_metadata", text="Edit Metadata...")
+        layout.operator("brush.asset_load_preview", text="Edit Preview Image...")
+        layout.operator("brush.asset_save", text="Save Changes to Asset")
+        layout.operator("brush.asset_revert", text="Revert to Asset")
 
 
 class VIEW3D_MT_brush_gpencil_context_menu(Menu):
