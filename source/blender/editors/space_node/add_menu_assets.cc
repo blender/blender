@@ -118,8 +118,7 @@ static Set<StringRef> get_builtin_menus(const int tree_type)
               "Utilities/Rotation",
               "Utilities/Deprecated",
               "Group",
-              "Layout",
-              "Unassigned"};
+              "Layout"};
     case NTREE_COMPOSIT:
       return {"Input",
               "Input/Constant",
