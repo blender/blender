@@ -24,6 +24,8 @@
 
 #include "ED_keyframing.hh"
 
+#include <fmt/format.h>
+
 const EnumPropertyItem rna_enum_fmodifier_type_items[] = {
     {FMODIFIER_TYPE_NULL, "NULL", 0, "Invalid", ""},
     {FMODIFIER_TYPE_GENERATOR,
@@ -549,6 +551,34 @@ static void rna_FKeyframe_ctrlpoint_ui_set(PointerRNA *ptr, const float *values)
 }
 
 /* ****************************** */
+
+static std::optional<std::string> rna_FCurve_path(const PointerRNA *ptr)
+{
+  using namespace blender;
+  FCurve *fcurve = reinterpret_cast<FCurve *>(ptr->data);
+  animrig::Action &action = reinterpret_cast<bAction *>(ptr->owner_id)->wrap();
+
+  for (animrig::Layer *layer : action.layers()) {
+    for (animrig::Strip *strip : layer->strips()) {
+      if (strip->type() != animrig::Strip::Type::Keyframe) {
+        continue;
+      }
+
+      animrig::StripKeyframeData &strip_data = strip->data<animrig::StripKeyframeData>(action);
+      for (animrig::Channelbag *channelbag : strip_data.channelbags()) {
+        const int fcurve_index = channelbag->fcurves().first_index_try(fcurve);
+        if (fcurve_index != -1) {
+          PointerRNA channelbag_ptr = RNA_pointer_create_discrete(
+              &action.id, &RNA_ActionChannelbag, channelbag);
+          const std::optional<std::string> channelbag_path = rna_Channelbag_path(&channelbag_ptr);
+          return fmt::format("{}.fcurves[{}]", *channelbag_path, fcurve_index);
+        }
+      }
+    }
+  }
+
+  return std::nullopt;
+}
 
 static void rna_FCurve_RnaPath_get(PointerRNA *ptr, char *value)
 {
@@ -2538,6 +2568,7 @@ static void rna_def_fcurve(BlenderRNA *brna)
   srna = RNA_def_struct(brna, "FCurve", nullptr);
   RNA_def_struct_ui_text(srna, "F-Curve", "F-Curve defining values of a period of time");
   RNA_def_struct_ui_icon(srna, ICON_ANIM_DATA);
+  RNA_def_struct_path_func(srna, "rna_FCurve_path");
 
   /* Enums */
   prop = RNA_def_property(srna, "extrapolation", PROP_ENUM, PROP_NONE);
