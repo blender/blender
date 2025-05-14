@@ -41,11 +41,14 @@ def draw_node_group_add_menu(context, layout):
     if node_tree:
         from nodeitems_builtins import node_tree_group_type
 
+        prefs = bpy.context.preferences
+        show_hidden = prefs.filepaths.show_hidden_files_datablocks
+
         groups = [
             group for group in context.blend_data.node_groups
             if (group.bl_idname == node_tree.bl_idname and
                 not group.contains_tree(node_tree) and
-                not group.name.startswith('.'))
+                (show_hidden or not group.name.startswith('.')))
         ]
         if groups:
             layout.separator()
