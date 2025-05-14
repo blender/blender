@@ -194,7 +194,8 @@ bool final_image_cache_evict(Scene *scene)
    * However, do not try to evict entries from the current prefetch job range -- we need to
    * be able to fully fill the cache from prefetching, and then actually stop the job when it
    * is full and no longer can evict anything. */
-  int cur_prefetch_start = INT_MIN, cur_prefetch_end = INT_MIN;
+  int cur_prefetch_start = std::numeric_limits<int>::min();
+  int cur_prefetch_end = std::numeric_limits<int>::min();
   seq_prefetch_get_time_range(scene, &cur_prefetch_start, &cur_prefetch_end);
 
   const int cur_frame = scene->r.cfra;
