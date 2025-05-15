@@ -9,9 +9,12 @@
 #include <fstream>
 #include <string>
 
+#include <fmt/format.h>
+
 #include "BLI_fileops.h"
 #include "BLI_path_utils.hh"
 #include "BLI_serialize.hh"
+#include "BLI_set.hh"
 
 #include "BKE_asset.hh"
 #include "BKE_idtype.hh"
@@ -24,8 +27,32 @@ namespace blender::ed::asset::index {
 using namespace blender::io::serialize;
 
 /* -------------------------------------------------------------------- */
-/** \name Remote asset listing
+/** \name General functions for reading.
  * \{ */
+
+static std::unique_ptr<Value> read_contents(StringRefNull filepath)
+{
+  JsonFormatter formatter;
+  std::ifstream is;
+  is.open(filepath.c_str());
+  BLI_SCOPED_DEFER([&]() { is.close(); });
+
+  return formatter.deserialize(is);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Remote asset listing page
+ *
+ * The listing is split into multiple .json pages, the following is for reading them.
+ * \{ */
+
+struct AssetLibraryListingPageV1 {
+  static bool read_into_entries_vec(const StringRefNull root_dirpath,
+                                    const StringRefNull page_rel_path,
+                                    Vector<RemoteListingAssetEntry> &io_entries);
+};
 
 RemoteListingAssetEntry::RemoteListingAssetEntry(RemoteListingAssetEntry &&other)
 {
@@ -69,7 +96,7 @@ static std::optional<RemoteListingAssetEntry> listing_entry_from_asset_dictionar
   /* 'type': data-block type, must match the #IDTypeInfo.name of the given type. required string.
    */
   if (const std::optional<StringRefNull> idtype_name = dictionary.lookup_str("id_type")) {
-    listing_entry.idcode = BKE_idtype_idcode_from_name(idtype_name->c_str());
+    listing_entry.idcode = BKE_idtype_idcode_from_name_case_insensitive(idtype_name->c_str());
     if (!BKE_idtype_idcode_is_valid(listing_entry.idcode)) {
       *r_failure_reason = "could not read asset type, 'id_type' field is not a valid type";
       return {};
@@ -94,7 +121,7 @@ static std::optional<RemoteListingAssetEntry> listing_entry_from_asset_dictionar
 
   /* 'metadata': optional dictionary. If all the metadata fields are empty, this can be left out of
    * the listing. Default metadata will then be allocated, with all fields empty/0. */
-  const DictionaryValue *metadata_dict = dictionary.lookup_dict("metadata");
+  const DictionaryValue *metadata_dict = dictionary.lookup_dict("meta");
   listing_entry.datablock_info.asset_data = metadata_dict ?
                                                 asset_metadata_from_dictionary(*metadata_dict) :
                                                 BKE_asset_metadata_create();
@@ -103,15 +130,14 @@ static std::optional<RemoteListingAssetEntry> listing_entry_from_asset_dictionar
   return listing_entry;
 }
 
-static Vector<RemoteListingAssetEntry> listing_entries_from_root(const DictionaryValue &value)
+static bool listing_entries_from_root(const DictionaryValue &value,
+                                      Vector<RemoteListingAssetEntry> &io_entries)
 {
   const ArrayValue *entries = value.lookup_array("assets");
   BLI_assert(entries != nullptr);
   if (entries == nullptr) {
-    return {};
+    return false;
   }
-
-  Vector<RemoteListingAssetEntry> read_entries;
 
   for (const std::shared_ptr<Value> &element : entries->elements()) {
     const char *failure_reason = "";
@@ -123,26 +149,18 @@ static Vector<RemoteListingAssetEntry> listing_entries_from_root(const Dictionar
       continue;
     }
 
-    read_entries.append(std::move(*entry));
+    io_entries.append(std::move(*entry));
   }
 
-  return read_entries;
+  return true;
 }
 
-static std::unique_ptr<Value> read_contents(StringRefNull filepath)
-{
-  JsonFormatter formatter;
-  std::ifstream is;
-  is.open(filepath.c_str());
-  BLI_SCOPED_DEFER([&]() { is.close(); });
-
-  return formatter.deserialize(is);
-}
-
-bool read_remote_listing(StringRefNull root_dirpath, Vector<RemoteListingAssetEntry> *r_entries)
+bool AssetLibraryListingPageV1::read_into_entries_vec(const StringRefNull root_dirpath,
+                                                      const StringRefNull page_rel_path,
+                                                      Vector<RemoteListingAssetEntry> &io_entries)
 {
   char filepath[FILE_MAX];
-  BLI_path_join(filepath, sizeof(filepath), root_dirpath.c_str(), "index.json");
+  BLI_path_join(filepath, sizeof(filepath), root_dirpath.c_str(), page_rel_path.c_str());
 
   if (!BLI_exists(filepath)) {
     /** TODO report error message? */
@@ -161,12 +179,181 @@ bool read_remote_listing(StringRefNull root_dirpath, Vector<RemoteListingAssetEn
     return false;
   }
 
-  *r_entries = listing_entries_from_root(*root);
+  listing_entries_from_root(*root, io_entries);
   // CLOG_INFO(&LOG, 1, "Read %d entries from remote asset listing for [%s].", r_entries.size(),
   // filepath);
   return true;
 }
 
 /** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Meta files
+ * \{ */
+
+struct AssetLibraryMeta {
+  Set<int> api_versions;
+
+  static std::optional<AssetLibraryMeta> read(StringRefNull root_dirpath);
+};
+
+/**
+ * \return the supported API versions read from the `_asset-library-meta.json` file.
+ */
+std::optional<AssetLibraryMeta> AssetLibraryMeta::read(StringRefNull root_dirpath)
+{
+  char filepath[FILE_MAX];
+  BLI_path_join(filepath, sizeof(filepath), root_dirpath.c_str(), "_asset-library-meta.json");
+
+  if (!BLI_exists(filepath)) {
+    /** TODO report error message? */
+    return {};
+  }
+
+  std::unique_ptr<Value> contents = read_contents(filepath);
+  if (!contents) {
+    /** TODO report error message? */
+    return {};
+  }
+
+  const DictionaryValue *root = contents->as_dictionary_value();
+  if (!root) {
+    /** TODO report error message? */
+    return {};
+  }
+
+  const ArrayValue *entries = root->lookup_array("api_versions");
+  BLI_assert(entries != nullptr);
+  if (entries == nullptr) {
+    return {};
+  }
+
+  AssetLibraryMeta library_meta;
+
+  int i = 0;
+  for (const std::shared_ptr<Value> &element : entries->elements()) {
+    const IntValue *version = element->as_int_value();
+    if (!version) {
+      printf(
+          "Error reading asset listing API version at index %i in %s - ignoring\n", i, filepath);
+      i++;
+      continue;
+    }
+    library_meta.api_versions.add(std::move(version->value()));
+    i++;
+  }
+
+  return library_meta;
+}
+
+struct AssetLibraryListingV1 {
+  /** File paths to the individual asset listing files containing the assets, relative to \a
+   * root_dirpath. */
+  Vector<std::string> page_rel_paths;
+
+  static std::optional<AssetLibraryListingV1> read(StringRefNull root_dirpath, int api_version);
+};
+
+std::optional<AssetLibraryListingV1> AssetLibraryListingV1::read(StringRefNull root_dirpath,
+                                                                 const int api_version)
+{
+  const std::string api_version_str = fmt::format("_v{}", api_version);
+
+  char filepath[FILE_MAX];
+  BLI_path_join(filepath,
+                sizeof(filepath),
+                root_dirpath.c_str(),
+                api_version_str.c_str(),
+                /* TODO should be called `asset-listing.json`. */
+                "asset-index.json");
+
+  if (!BLI_exists(filepath)) {
+    /** TODO report error message? */
+    return {};
+  }
+
+  std::unique_ptr<Value> contents = read_contents(filepath);
+  if (!contents) {
+    /** TODO report error message? */
+    return {};
+  }
+
+  const DictionaryValue *root = contents->as_dictionary_value();
+  if (!root) {
+    /** TODO report error message? */
+    return {};
+  }
+
+  const ArrayValue *entries = root->lookup_array("page_urls");
+  BLI_assert(entries != nullptr);
+  if (entries == nullptr) {
+    return {};
+  }
+
+  AssetLibraryListingV1 listing;
+
+  int i = 0;
+  for (const std::shared_ptr<Value> &element : entries->elements()) {
+    const StringValue *page_path = element->as_string_value();
+    if (!page_path) {
+      printf("Error reading asset listing page path at index %i in %s - ignoring\n", i, filepath);
+      i++;
+      continue;
+    }
+    listing.page_rel_paths.append(std::move(page_path->value()));
+    i++;
+  }
+
+  return listing;
+}
+
+/** \} */
+
+static std::optional<int> choose_api_version(const AssetLibraryMeta &library_meta)
+{
+  /* API versions this version of Blender can handle, in descending order (most preferred to least
+   * preferred order). */
+  const Vector readable_versions = {
+      1,
+  };
+
+  for (int version : readable_versions) {
+    if (library_meta.api_versions.contains(version)) {
+      return version;
+    }
+  }
+
+  return {};
+}
+
+bool read_remote_listing(StringRefNull root_dirpath, Vector<RemoteListingAssetEntry> *r_entries)
+{
+  /* TODO: Error reporting for all false return branches. */
+
+  const std::optional<AssetLibraryMeta> meta = AssetLibraryMeta::read(root_dirpath);
+  if (!meta) {
+    return false;
+  }
+
+  const std::optional<int> api_version = choose_api_version(*meta);
+  if (!api_version) {
+    return false;
+  }
+
+  const std::optional<AssetLibraryListingV1> listing = AssetLibraryListingV1::read(root_dirpath,
+                                                                                   *api_version);
+  if (!listing) {
+    return false;
+  }
+
+  Vector<RemoteListingAssetEntry> read_entries{};
+  for (const std::string &page_path : listing->page_rel_paths) {
+    AssetLibraryListingPageV1::read_into_entries_vec(root_dirpath, page_path, read_entries);
+  }
+
+  *r_entries = std::move(read_entries);
+
+  return true;
+}
 
 }  // namespace blender::ed::asset::index

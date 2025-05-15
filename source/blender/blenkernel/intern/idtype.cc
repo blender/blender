@@ -160,6 +160,17 @@ static const IDTypeInfo *idtype_get_info_from_name(const char *idtype_name)
   return nullptr;
 }
 
+static const IDTypeInfo *idtype_get_info_from_name_case_insensitive(const char *idtype_name)
+{
+  for (const IDTypeInfo *id_type : id_types) {
+    if (id_type && STRCASEEQ(idtype_name, id_type->name)) {
+      return id_type;
+    }
+  }
+
+  return nullptr;
+}
+
 /* Various helpers/wrappers around #IDTypeInfo structure. */
 
 const char *BKE_idtype_idcode_to_name(const short idcode)
@@ -186,6 +197,15 @@ const char *BKE_idtype_idcode_to_translation_context(const short idcode)
 short BKE_idtype_idcode_from_name(const char *idtype_name)
 {
   const IDTypeInfo *id_type = idtype_get_info_from_name(idtype_name);
+  BLI_assert(id_type);
+  return id_type != nullptr ? id_type->id_code : 0;
+}
+
+/* TODO: Is this needed? Asset listing uses lower case names. Seems fine to support, or should we
+ * require the right case? */
+short BKE_idtype_idcode_from_name_case_insensitive(const char *idtype_name)
+{
+  const IDTypeInfo *id_type = idtype_get_info_from_name_case_insensitive(idtype_name);
   BLI_assert(id_type);
   return id_type != nullptr ? id_type->id_code : 0;
 }
