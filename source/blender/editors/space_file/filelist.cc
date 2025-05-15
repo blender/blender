@@ -4036,16 +4036,16 @@ static void filelist_readjob_remote_asset_library_index_read(FileListReadJob *jo
     return;
   }
 
-  Vector<index::RemoteIndexAssetEntry> asset_entries;
-  if (!index::read_remote_index(dirpath, &asset_entries)) {
+  Vector<index::RemoteListingAssetEntry> asset_entries;
+  if (!index::read_remote_listing(dirpath, &asset_entries)) {
     return;
   }
 
   /* Reconstruct file hierarchy, so we know which .blend files to expect where, and which assets
    * they should contain. */
-  MultiValueMap<StringRef, index::RemoteIndexAssetEntry *> assets_per_blend_path;
+  MultiValueMap<StringRef, index::RemoteListingAssetEntry *> assets_per_blend_path;
 
-  for (index::RemoteIndexAssetEntry &entry : asset_entries) {
+  for (index::RemoteListingAssetEntry &entry : asset_entries) {
     const char *group_name = BKE_idtype_idcode_to_name(entry.idcode);
     filelist_readjob_list_lib_add_datablock(
         job_params, &entries, &entry.datablock_info, true, entry.idcode, group_name);
@@ -4086,7 +4086,7 @@ static void filelist_readjob_remote_asset_library_index_read(FileListReadJob *jo
       /* Not so nice, but populate #FileIndexerEntries from the asset entries for the indexer
        * to work with. */
       FileIndexerEntries indexer_entries = {nullptr};
-      for (index::RemoteIndexAssetEntry *entry : mapped_asset_entries) {
+      for (index::RemoteListingAssetEntry *entry : mapped_asset_entries) {
         ED_file_indexer_entries_extend_from_datablock_info(
             &indexer_entries, &entry->datablock_info, entry->idcode);
       }

@@ -39,21 +39,21 @@ namespace blender::ed::asset::index {
  */
 extern const FileIndexerType file_indexer_asset;
 
-struct RemoteIndexAssetEntry {
+struct RemoteListingAssetEntry {
   BLODataBlockInfo datablock_info = {};
   short idcode = 0;
 
   std::string archive_url;
   std::string thumbnail_url;
 
-  RemoteIndexAssetEntry() = default;
-  RemoteIndexAssetEntry(const RemoteIndexAssetEntry &) = delete;
-  RemoteIndexAssetEntry &operator=(const RemoteIndexAssetEntry &) = delete;
-  RemoteIndexAssetEntry(RemoteIndexAssetEntry &&);
-  RemoteIndexAssetEntry &operator=(RemoteIndexAssetEntry &&);
-  ~RemoteIndexAssetEntry();
+  RemoteListingAssetEntry() = default;
+  RemoteListingAssetEntry(const RemoteListingAssetEntry &) = delete;
+  RemoteListingAssetEntry &operator=(const RemoteListingAssetEntry &) = delete;
+  RemoteListingAssetEntry(RemoteListingAssetEntry &&);
+  RemoteListingAssetEntry &operator=(RemoteListingAssetEntry &&);
+  ~RemoteListingAssetEntry();
 };
 
-bool read_remote_index(StringRefNull root_dirpath, Vector<RemoteIndexAssetEntry> *r_entries);
+bool read_remote_listing(StringRefNull root_dirpath, Vector<RemoteListingAssetEntry> *r_entries);
 
 }  // namespace blender::ed::asset::index
