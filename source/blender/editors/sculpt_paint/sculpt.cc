@@ -3241,14 +3241,6 @@ static void do_brush_action(const Depsgraph &depsgraph,
       if (auto_mask::is_enabled(sd, ob, &brush)) {
         ss.cache->automasking = auto_mask::cache_init(depsgraph, sd, &brush, ob);
       }
-      /* Initialize surface smooth cache. */
-      if ((brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_SMOOTH) &&
-          (brush.smooth_deform_type == BRUSH_SMOOTH_DEFORM_SURFACE))
-      {
-        BLI_assert(ss.cache->surface_smooth_laplacian_disp.is_empty());
-        ss.cache->surface_smooth_laplacian_disp = Array<float3>(SCULPT_vertex_count_get(ob),
-                                                                float3(0));
-      }
     }
   }
 
