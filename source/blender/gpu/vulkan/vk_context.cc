@@ -352,11 +352,6 @@ void VKContext::swap_buffers_pre_handler(const GHOST_VulkanSwapChainData &swap_c
   blit_image.dst_image = swap_chain_data.image;
   blit_image.filter = VK_FILTER_LINEAR;
 
-  /* Get the extent that will allow the least amount of pixel shifting when resizing windows. */
-  VkExtent2D min_extent = {
-      min_uu(color_attachment->width_get(), swap_chain_data.extent.width),
-      min_uu(color_attachment->height_get(), swap_chain_data.extent.height),
-  };
   VkImageBlit &region = blit_image.region;
   region.srcOffsets[0] = {0, 0, 0};
   region.srcOffsets[1] = {color_attachment->width_get(), color_attachment->height_get(), 1};
