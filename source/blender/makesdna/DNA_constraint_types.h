@@ -842,6 +842,8 @@ typedef enum eActionConstraint_Flags {
 
 /** #bActionConstraint.mix_mode */
 typedef enum eActionConstraint_MixMode {
+  /* Replace the input transformation. */
+  ACTCON_MIX_REPLACE = 6,
   /* Multiply the action transformation on the right. */
   ACTCON_MIX_AFTER_FULL = 0,
   /* Multiply the action transformation on the left. */
