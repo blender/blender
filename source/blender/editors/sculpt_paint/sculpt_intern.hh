@@ -252,7 +252,7 @@ struct StrokeCache {
   SculptRakeData rake_data;
 
   /* The face set being painted. */
-  int paint_face_set = 0;
+  int paint_face_set = SCULPT_FACE_SET_NONE;
 
   /**
    * Symmetry index between 0 and 7 bit combo.
