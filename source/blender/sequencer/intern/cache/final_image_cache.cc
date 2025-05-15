@@ -197,6 +197,7 @@ bool final_image_cache_evict(Scene *scene)
   int cur_prefetch_start = std::numeric_limits<int>::min();
   int cur_prefetch_end = std::numeric_limits<int>::min();
   seq_prefetch_get_time_range(scene, &cur_prefetch_start, &cur_prefetch_end);
+  bool prefetch_loops_around = cur_prefetch_start > cur_prefetch_end;
 
   const int cur_frame = scene->r.cfra;
   std::pair<int, int> best_key = {};
@@ -204,7 +205,17 @@ bool final_image_cache_evict(Scene *scene)
   int best_score = 0;
   for (const auto &item : cache->map_.items()) {
     const int item_frame = item.key.first;
-    if (item_frame >= cur_prefetch_start && item_frame <= cur_prefetch_end) {
+    if (prefetch_loops_around) {
+      int timeline_start = PSFRA;
+      int timeline_end = PEFRA;
+      if (item_frame >= timeline_start && item_frame <= cur_prefetch_end) {
+        continue; /* Within active prefetch range, do not try to remove it. */
+      }
+      if (item_frame >= cur_prefetch_start && item_frame <= timeline_end) {
+        continue; /* Within active prefetch range, do not try to remove it. */
+      }
+    }
+    else if (item_frame >= cur_prefetch_start && item_frame <= cur_prefetch_end) {
       continue; /* Within active prefetch range, do not try to remove it. */
     }
 
