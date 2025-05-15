@@ -556,6 +556,13 @@ static std::optional<std::string> rna_FCurve_path(const PointerRNA *ptr)
 {
   using namespace blender;
   FCurve *fcurve = reinterpret_cast<FCurve *>(ptr->data);
+
+  /* If the F-Curve is not owned by an Action, bail out early. It could be a driver, NLA control
+   * curve, or stored in some place that's yet unknown at the time of writing of this code. */
+  if (GS(ptr->owner_id) != ID_AC) {
+    return {};
+  }
+
   animrig::Action &action = reinterpret_cast<bAction *>(ptr->owner_id)->wrap();
 
   for (animrig::Layer *layer : action.layers()) {
