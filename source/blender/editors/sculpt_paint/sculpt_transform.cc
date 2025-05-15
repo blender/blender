@@ -943,7 +943,7 @@ static wmOperatorStatus set_pivot_position_exec(bContext *C, wmOperator *op)
         RNA_float_get(op->ptr, "mouse_x"),
         RNA_float_get(op->ptr, "mouse_y"),
     };
-    if (SCULPT_stroke_get_location(C, stroke_location, mval, false)) {
+    if (stroke_get_location_bvh(C, stroke_location, mval, false)) {
       copy_v3_v3(ss.pivot_pos, stroke_location);
     }
   }

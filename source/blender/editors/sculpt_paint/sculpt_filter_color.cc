@@ -478,8 +478,8 @@ static int sculpt_color_filter_init(bContext *C, wmOperator *op)
     if (v3d) {
       /* Update the active face set manually as the paint cursor is not enabled when using the Mesh
        * Filter Tool. */
-      SculptCursorGeometryInfo sgi;
-      SCULPT_cursor_geometry_info_update(C, &sgi, mval_fl, false);
+      CursorGeometryInfo cgi;
+      cursor_geometry_info_update(C, &cgi, mval_fl, false);
     }
   }
 

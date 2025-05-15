@@ -237,7 +237,7 @@ static bool calc_view_occlusion_factor(const Depsgraph &depsgraph,
                                        const float3 &vert_position)
 {
   if (automasking.occlusion[vert] == Cache::OcclusionValue::Unknown) {
-    const bool occluded = SCULPT_vertex_is_occluded(depsgraph, object, vert_position, true);
+    const bool occluded = vertex_is_occluded(depsgraph, object, vert_position, true);
     automasking.occlusion[vert] = occluded ? Cache::OcclusionValue::Occluded :
                                              Cache::OcclusionValue::Visible;
   }

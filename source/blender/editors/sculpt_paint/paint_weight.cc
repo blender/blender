@@ -1905,7 +1905,7 @@ static wmOperatorStatus wpaint_invoke(bContext *C, wmOperator *op, const wmEvent
 {
   op->customdata = paint_stroke_new(C,
                                     op,
-                                    SCULPT_stroke_get_location,
+                                    stroke_get_location_bvh,
                                     wpaint_stroke_test_start,
                                     wpaint_stroke_update_step,
                                     nullptr,
@@ -1930,7 +1930,7 @@ static wmOperatorStatus wpaint_exec(bContext *C, wmOperator *op)
 {
   op->customdata = paint_stroke_new(C,
                                     op,
-                                    SCULPT_stroke_get_location,
+                                    stroke_get_location_bvh,
                                     wpaint_stroke_test_start,
                                     wpaint_stroke_update_step,
                                     nullptr,
