@@ -1624,11 +1624,6 @@ static void normal_occlusion_automasking_fill(const Depsgraph &depsgraph,
   }
 }
 
-std::unique_ptr<Cache> cache_init(const Depsgraph &depsgraph, const Sculpt &sd, Object &ob)
-{
-  return cache_init(depsgraph, sd, nullptr, ob);
-}
-
 std::unique_ptr<Cache> cache_init(const Depsgraph &depsgraph,
                                   const Sculpt &sd,
                                   const Brush *brush,
@@ -1715,6 +1710,31 @@ std::unique_ptr<Cache> cache_init(const Depsgraph &depsgraph,
   }
 
   return automasking;
+}
+
+Cache &filter_cache_ensure(const Depsgraph &depsgraph, const Sculpt &sd, Object &ob)
+{
+  BLI_assert(is_enabled(sd, ob, nullptr));
+  if (ob.sculpt->filter_cache->automasking) {
+    return *ob.sculpt->filter_cache->automasking;
+  }
+
+  ob.sculpt->filter_cache->automasking = cache_init(depsgraph, sd, nullptr, ob);
+  return *ob.sculpt->filter_cache->automasking;
+}
+
+Cache &stroke_cache_ensure(const Depsgraph &depsgraph,
+                           const Sculpt &sd,
+                           const Brush *brush,
+                           Object &ob)
+{
+  BLI_assert(is_enabled(sd, ob, brush));
+  if (ob.sculpt->cache->automasking) {
+    return *ob.sculpt->cache->automasking;
+  }
+
+  ob.sculpt->cache->automasking = cache_init(depsgraph, sd, brush, ob);
+  return *ob.sculpt->cache->automasking;
 }
 
 void Cache::calc_cavity_factor(const Depsgraph &depsgraph,

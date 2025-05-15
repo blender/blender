@@ -3234,28 +3234,16 @@ static void do_brush_action(const Depsgraph &depsgraph,
     }
   }
 
-  /* For anchored brushes with spherical falloff, we start off with zero radius, thus we have no
-   * bke::pbvh::Tree nodes on the first brush step. */
-  if (!node_mask.is_empty() ||
-      ((brush.falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE) && (brush.flag & BRUSH_ANCHORED)))
-  {
-    if (SCULPT_stroke_is_first_brush_step(*ss.cache)) {
-      /* Initialize auto-masking cache. */
-      if (auto_mask::is_enabled(sd, ob, &brush)) {
-        ss.cache->automasking = auto_mask::cache_init(depsgraph, sd, &brush, ob);
-      }
-    }
-  }
-
   /* Only act if some verts are inside the brush area. */
   if (node_mask.is_empty()) {
     return;
   }
 
-  if (auto_mask::is_enabled(sd, ob, &brush) && ss.cache->automasking &&
-      ss.cache->automasking->settings.flags & BRUSH_AUTOMASKING_CAVITY_ALL)
-  {
-    ss.cache->automasking->calc_cavity_factor(depsgraph, ob, node_mask);
+  if (auto_mask::is_enabled(sd, ob, &brush)) {
+    auto_mask::Cache &cache = auto_mask::stroke_cache_ensure(depsgraph, sd, &brush, ob);
+    if (cache.settings.flags & BRUSH_AUTOMASKING_CAVITY_ALL) {
+      cache.calc_cavity_factor(depsgraph, ob, node_mask);
+    }
   }
 
   if (!use_pixels) {

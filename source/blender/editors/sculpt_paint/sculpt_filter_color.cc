@@ -509,7 +509,7 @@ static int sculpt_color_filter_init(bContext *C, wmOperator *op)
   const SculptSession &ss = *ob.sculpt;
   filter::Cache *filter_cache = ss.filter_cache;
   filter_cache->active_face_set = SCULPT_FACE_SET_NONE;
-  filter_cache->automasking = auto_mask::cache_init(*depsgraph, sd, ob);
+  auto_mask::filter_cache_ensure(*depsgraph, sd, ob);
 
   return OPERATOR_PASS_THROUGH;
 }
