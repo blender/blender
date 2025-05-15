@@ -28,7 +28,7 @@ ExternalProject_Add(external_cython
 
   BUILD_COMMAND
     ${PYTHON_BINARY} setup.py
-      build ${CYTHON_BUILD_OPTION} -j${MAKE_THREADS}
+      build ${CYTHON_BUILD_OPTION} -j${PYTHON_MAKE_THREADS}
       install
       --old-and-unmanageable
 
