@@ -1,0 +1,11 @@
+{
+  "api_versions": [
+    1
+  ],
+  "name": "Your Asset Library",
+  "contact": {
+    "name": "Your Name",
+    "url": "https://example.org/",
+    "email": "example@example.org"
+  }
+}

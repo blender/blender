@@ -1,0 +1,103 @@
+# This is an Asset Catalog Definition file for Blender.
+#
+# Empty lines and lines starting with `#` will be ignored.
+# The first non-ignored line should be the version indicator.
+# Other lines are of the format "UUID:catalog/path/for/assets:simple catalog name"
+
+# Sort by least specific to most specific!
+# In our add-on, this list is reversed before searching for which catalog to put an asset in.
+
+VERSION 1
+
+
+
+6b43eea6-2dee-4960-8ff0-edfb4f283858:HDRIs:HDRIs
+
+e2328e9a-1cec-4c44-b542-5cd52bfbce19:HDRIs/Indoor:HDRIs-Indoor
+
+1f0e3686-4835-433f-a076-074d204d3a43:HDRIs/Indoor/Natural Light:HDRIs-Indoor-Natural Light
+00459860-c6d8-4632-b5e9-19929853cf3b:HDRIs/Indoor/Natural Light/Medium Contrast:HDRIs-Indoor-Natural Light-Medium Contrast
+7c6ef490-2383-461c-b6ee-dcdd6714a2c4:HDRIs/Indoor/Natural Light/Low Contrast:HDRIs-Indoor-Natural Light-Low Contrast
+5cb78b4d-9bcc-4b91-8a30-ff185da05e18:HDRIs/Indoor/Natural Light/High Contrast:HDRIs-Indoor-Natural Light-High Contrast
+
+768ae7a1-5518-495d-9176-7cccad60a71c:HDRIs/Indoor/Artificial Light:HDRIs-Indoor-Artificial Light
+5f70a139-9202-4fc9-a218-bcea5f9ab263:HDRIs/Indoor/Artificial Light/Medium Contrast:HDRIs-Indoor-Artificial Light-Medium Contrast
+1134e281-8fda-4913-9662-06d42776b3e9:HDRIs/Indoor/Artificial Light/Low Contrast:HDRIs-Indoor-Artificial Light-Low Contrast
+1325556c-7986-4568-a694-1134b6e16d32:HDRIs/Indoor/Artificial Light/High Contrast:HDRIs-Indoor-Artificial Light-High Contrast
+
+f1e775ea-3173-41fe-b0e1-e315a61ab694:HDRIs/Indoor/Studio:HDRIs-Indoor-Studio
+feae2c70-9016-4506-af27-6db147f93d00:HDRIs/Indoor/Studio/Medium Contrast:HDRIs-Indoor-Studio-Medium Contrast
+af336f94-da70-4e9e-b3aa-9444d6b270fc:HDRIs/Indoor/Studio/Low Contrast:HDRIs-Indoor-Studio-Low Contrast
+0ecbbd9d-7504-41d6-988c-1470362f5fc4:HDRIs/Indoor/Studio/High Contrast:HDRIs-Indoor-Studio-High Contrast
+
+a40d8a97-03b5-4a77-aafc-4f31126329fe:HDRIs/Outdoor:HDRIs-Outdoor
+
+eac57a1b-31a6-4542-a7c6-797799cc49c9:HDRIs/Outdoor/Nature:HDRIs-Outdoor-Nature
+41ce4c4f-8ff1-4aa9-ae68-0120b44f0b77:HDRIs/Outdoor/Nature/Midday:HDRIs-Outdoor-Nature-Midday
+8d14dcb5-f464-43ea-bbf5-15df36cf406e:HDRIs/Outdoor/Nature/Morning-afternoon:HDRIs-Outdoor-Nature-Morning-afternoon
+415760a2-a428-4781-bf8e-636735f059fe:HDRIs/Outdoor/Nature/Night:HDRIs-Outdoor-Nature-Night
+0f03b383-10da-4c89-819f-02a29bbc4bce:HDRIs/Outdoor/Nature/Sunrise-sunset:HDRIs-Outdoor-Nature-Sunrise-sunset
+
+8908b21d-a3fe-48ab-a59c-3d1d4553344a:HDRIs/Outdoor/Urban:HDRIs-Outdoor-Urban
+5f2c9621-3c96-4944-8206-d11cef84b586:HDRIs/Outdoor/Urban/Midday:HDRIs-Outdoor-Urban-Midday
+18a3a12c-9d33-404c-9c95-811fe23052a8:HDRIs/Outdoor/Urban/Morning-afternoon:HDRIs-Outdoor-Urban-Morning-afternoon
+44100f90-2dc1-4d97-b8dc-d192afd42b89:HDRIs/Outdoor/Urban/Night:HDRIs-Outdoor-Urban-Night
+b35909d0-be3d-4be5-a888-caf24f881148:HDRIs/Outdoor/Urban/Sunrise-sunset:HDRIs-Outdoor-Urban-Sunrise-sunset
+
+f2d63417-5e13-4efd-9987-93697bbf0a40:HDRIs/Outdoor/Skies:HDRIs-Outdoor-Skies
+ee1c2a23-f241-40e2-a0f1-46f3469b6ac7:HDRIs/Outdoor/Skies/Midday:HDRIs-Outdoor-Skies-Midday
+f21f81e2-3dde-4f2c-b9b4-3180a98d3d2e:HDRIs/Outdoor/Skies/Morning-afternoon:HDRIs-Outdoor-Skies-Morning-afternoon
+8e41e6f9-b630-40c3-8427-3bace6c8268c:HDRIs/Outdoor/Skies/Night:HDRIs-Outdoor-Skies-Night
+e64bbf5b-1ddf-47b2-9a6f-adf38150e68c:HDRIs/Outdoor/Skies/Sunrise-sunset:HDRIs-Outdoor-Skies-Sunrise-sunset
+
+
+
+
+0b4a1940-abfc-435d-ae06-1b1912fcb0fa:Textures:Textures
+
+fc0b7e40-beca-4085-a2c0-62fcff980615:Textures/Rock:Textures-Rock
+
+57a6a6bc-1144-4fb9-9858-226c85c1062d:Textures/Terrain:Textures-Terrain
+f0457b2f-0212-4fb7-968b-35cb79bf6c8b:Textures/Terrain/Aerial:Textures-Terrain-Aerial
+5314108e-cb5a-43a5-aee0-0dc00fc2ed88:Textures/Terrain/Rock:Textures-Terrain-Rock
+c79f5bda-6ad7-4556-972a-8dcc07a2d3f2:Textures/Terrain/Sand:Textures-Terrain-Sand
+8753a952-0631-4b2d-9dbf-1122a725268e:Textures/Terrain/Snow:Textures-Terrain-Snow
+
+eba19344-dabb-4949-b152-04bad720a3f7:Textures/Roofing:Textures-Roofing
+
+e267e464-8444-4213-b8ab-426d0aae55c3:Textures/Wood:Textures-Wood
+
+cb20759c-8417-4047-aca2-19755b99e892:Textures/Brick:Textures-Brick
+
+dde53271-57f5-4d03-9d49-0384142ce2f4:Textures/Fabric:Textures-Fabric
+
+09cf6a6c-a358-4f01-b38e-fe17f027f493:Textures/Metal:Textures-Metal
+
+18ac3bd9-c74b-419b-b275-31047f5ade74:Textures/Plaster-concrete:Textures-Plaster-concrete
+
+
+
+
+38881529-9e8f-474e-81c8-d535cba978f4:Models:Models
+
+419127fb-d621-4dd9-b881-8e0d625119fb:Models/Props:Models-Props
+1082487c-9383-4e5d-bbbd-13fe8007dc9e:Models/Props/Appliances:Models-Props-Appliances
+b02575d8-d0fb-4a8c-8233-ec3ac8b4b052:Models/Props/Electronics:Models-Props-Electronics
+62daa2e2-0e53-4623-a9ed-fee4190c99e0:Models/Props/Tools:Models-Props-Tools
+
+d006c372-76c4-4f2b-b22d-42d60b89d086:Models/Industrial:Models-Industrial
+
+3dfced29-5b6c-4a9c-8e4a-19e1c1330c4c:Models/Lighting:Models-Lighting
+
+ae0813db-d65b-447f-8535-2a4856d98b9a:Models/Nature:Models-Nature
+d88a690f-556e-4936-a8a6-9b675b8c2031:Models/Nature/Food:Models-Nature-Food
+e60a325b-60d7-4b45-9e0d-1bb268c763bb:Models/Nature/Ground Cover:Models-Nature-Ground Cover
+f55affcc-c81f-4e51-9b76-b4273189824a:Models/Nature/Ground Cover/Grass:Models-Nature-Ground Cover-Grass
+35e80462-1b62-4736-95dc-ed8bb0c4cb1a:Models/Nature/Plants:Models-Nature-Plants
+05825054-8739-4c42-8bc7-f70e15625a9b:Models/Nature/Potted Plants:Models-Nature-Potted Plants
+1d68844f-b0e7-40ee-8819-d81eb1ee6baf:Models/Nature/Rocks:Models-Nature-Rocks
+
+5eb59ce6-abcf-4c4c-8b72-d3540ceda629:Models/Furniture:Models-Furniture
+c362fb1a-f3cf-4afc-ab4c-9ac979d7a20d:Models/Furniture/Seating:Models-Furniture-Seating
+f7d9a241-6a68-4104-bdf8-1c13109e8e6c:Models/Furniture/Shelves:Models-Furniture-Shelves
+dac0d06c-3e0d-4530-981c-530b89fb0cb2:Models/Furniture/Table:Models-Furniture-Table
