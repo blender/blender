@@ -201,7 +201,7 @@ static DRW_MeshCDMask mesh_cd_calc_used_gpu_layers(const Object &object,
     }
     ListBase gpu_attrs = GPU_material_attributes(gpumat);
     LISTBASE_FOREACH (GPUMaterialAttribute *, gpu_attr, &gpu_attrs) {
-      const char *name = gpu_attr->name;
+      StringRef name = gpu_attr->name;
       eCustomDataType type = static_cast<eCustomDataType>(gpu_attr->type);
       int layer = -1;
       std::optional<bke::AttrDomain> domain;
@@ -689,8 +689,8 @@ static void request_active_and_default_color_attributes(const Object &object,
   const CustomData &cd_vdata = mesh_cd_vdata_get_from_mesh(me_final);
   const CustomData &cd_ldata = mesh_cd_ldata_get_from_mesh(me_final);
 
-  auto request_color_attribute = [&](const char *name) {
-    if (name) {
+  auto request_color_attribute = [&](const StringRef name) {
+    if (!name.is_empty()) {
       int layer_index;
       eCustomDataType type;
       if (drw_custom_data_match_attribute(cd_vdata, name, &layer_index, &type)) {
