@@ -655,11 +655,11 @@ void ED_node_composit_default(const bContext *C, Scene *sce)
 
   bNode *out = blender::bke::node_add_static_node(C, *sce->nodetree, CMP_NODE_COMPOSITE);
   out->location[0] = 200.0f;
-  out->location[1] = 200.0f;
+  out->location[1] = 0.0f;
 
   bNode *in = blender::bke::node_add_static_node(C, *sce->nodetree, CMP_NODE_R_LAYERS);
-  in->location[0] = -200.0f;
-  in->location[1] = 200.0f;
+  in->location[0] = -150.0f - in->width;
+  in->location[1] = 0.0f;
   blender::bke::node_set_active(*sce->nodetree, *in);
 
   /* Links from color to color. */
