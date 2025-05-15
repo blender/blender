@@ -3488,7 +3488,7 @@ static void version_escape_curly_braces_in_compositor_file_output_nodes(bNodeTre
   }
 
   LISTBASE_FOREACH (bNode *, node, &nodetree.nodes) {
-    if (strcmp(node->idname, "CompositorNodeOutputFile") != 0) {
+    if (!STREQ(node->idname, "CompositorNodeOutputFile")) {
       continue;
     }
 

@@ -59,8 +59,8 @@ static bool add_gpu_lut_1D2D(internal::GPUTextures &textures,
 {
   const char *texture_name = nullptr;
   const char *sampler_name = nullptr;
-  unsigned int width = 0;
-  unsigned int height = 0;
+  uint width = 0;
+  uint height = 0;
 
   GpuShaderCreator::TextureType channel = GpuShaderCreator::TEXTURE_RGB_CHANNEL;
   Interpolation interpolation = INTERP_LINEAR;
@@ -105,7 +105,7 @@ static bool add_gpu_lut_3D(internal::GPUTextures &textures,
 {
   const char *texture_name = nullptr;
   const char *sampler_name = nullptr;
-  unsigned int edgelen = 0;
+  uint edgelen = 0;
   Interpolation interpolation = INTERP_LINEAR;
   shader_desc->get3DTexture(index, texture_name, sampler_name, edgelen, interpolation);
 

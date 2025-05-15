@@ -443,7 +443,7 @@ static wmOperatorStatus sequencer_de_select_all_exec(bContext *C, wmOperator *op
       }
     }
   }
-  if (action == SEL_INVERT || action == SEL_SELECT) {
+  if (ELEM(action, SEL_INVERT, SEL_SELECT)) {
     if (action == SEL_INVERT) {
       for (Strip *strip : strips) {
         if (strip->flag & STRIP_ALLSEL) {

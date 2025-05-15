@@ -38,7 +38,7 @@ static bool color_space_is_invertible(const OCIO_NAMESPACE::ConstColorSpaceRcPtr
 {
   const StringRefNull family = ocio_color_space->getFamily();
 
-  if (family == "rrt" || family == "display") {
+  if (ELEM(family, "rrt", "display")) {
     /* assume display and rrt transformations are not invertible in fact some of them could be,
      * but it doesn't make much sense to allow use them as invertible. */
     return false;
