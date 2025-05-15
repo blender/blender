@@ -24,8 +24,11 @@ class LibOCIOColorSpace : public ColorSpace {
   std::string clean_description_;
   bool is_inveetible_ = false;
 
-  bool is_scene_linear_ = false;
-  bool is_srgb_ = false;
+  /*  Mutable because they are lazily initialized and cached from the is_scene_linear() and
+   * is_srgb(). */
+  mutable bool is_info_cached_ = false;
+  mutable bool is_scene_linear_ = false;
+  mutable bool is_srgb_ = false;
 
   CPUProcessorCache to_scene_linear_cpu_processor_;
   CPUProcessorCache from_scene_linear_cpu_processor_;
@@ -50,14 +53,8 @@ class LibOCIOColorSpace : public ColorSpace {
     return is_inveetible_;
   }
 
-  bool is_scene_linear() const override
-  {
-    return is_scene_linear_;
-  }
-  bool is_srgb() const override
-  {
-    return is_srgb_;
-  }
+  bool is_scene_linear() const override;
+  bool is_srgb() const override;
 
   bool is_data() const override
   {
@@ -68,6 +65,9 @@ class LibOCIOColorSpace : public ColorSpace {
   const CPUProcessor *get_from_scene_linear_cpu_processor() const override;
 
   MEM_CXX_CLASS_ALLOC_FUNCS("LibOCIOColorSpace");
+
+ private:
+  void ensure_srgb_scene_linear_info() const;
 };
 
 }  // namespace blender::ocio
