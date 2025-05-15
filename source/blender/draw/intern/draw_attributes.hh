@@ -10,27 +10,21 @@
 
 #pragma once
 
+#include <string>
+
 #include "DNA_customdata_types.h"
 
 #include "BLI_mutex.hh"
+#include "BLI_string_ref.hh"
 #include "BLI_sys_types.h"
 
-#include "GPU_shader.hh"
+#include "BLI_vector_set.hh"
 
 namespace blender::bke {
 enum class AttrDomain : int8_t;
 }
 
 namespace blender::draw {
-
-struct DRW_AttributeRequest {
-  char attribute_name[64];
-};
-
-struct DRW_Attributes {
-  DRW_AttributeRequest requests[GPU_MAX_ATTR];
-  int num_requests;
-};
 
 struct DRW_MeshCDMask {
   uint32_t uv : 8;
@@ -49,17 +43,19 @@ struct DRW_MeshCDMask {
  * See `mesh_cd_layers_type_*` functions. */
 static_assert(sizeof(DRW_MeshCDMask) <= sizeof(uint32_t), "DRW_MeshCDMask exceeds 32 bits");
 
-void drw_attributes_clear(DRW_Attributes *attributes);
+void drw_attributes_clear(VectorSet<std::string> *attributes);
 
-void drw_attributes_merge(DRW_Attributes *dst, const DRW_Attributes *src, Mutex &render_mutex);
+void drw_attributes_merge(VectorSet<std::string> *dst,
+                          const VectorSet<std::string> *src,
+                          Mutex &render_mutex);
 
 /* Return true if all requests in b are in a. */
-bool drw_attributes_overlap(const DRW_Attributes *a, const DRW_Attributes *b);
+bool drw_attributes_overlap(const VectorSet<std::string> *a, const VectorSet<std::string> *b);
 
-void drw_attributes_add_request(DRW_Attributes *attrs, const char *name);
+void drw_attributes_add_request(VectorSet<std::string> *attrs, StringRef name);
 
 bool drw_custom_data_match_attribute(const CustomData &custom_data,
-                                     const char *name,
+                                     StringRef name,
                                      int *r_layer_index,
                                      eCustomDataType *r_type);
 

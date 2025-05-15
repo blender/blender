@@ -15,6 +15,7 @@
 
 #include "BLI_task.h"
 #include "BLI_threads.h"
+#include "BLI_vector_set.hh"
 
 #include "GPU_batch.hh"
 #include "GPU_context.hh"
@@ -32,7 +33,6 @@ namespace blender::draw {
 struct CurvesModule;
 struct VolumeModule;
 struct PointCloudModule;
-struct DRW_Attributes;
 struct DRW_MeshCDMask;
 class CurveRefinePass;
 class View;
@@ -88,7 +88,7 @@ namespace blender::draw {
 void DRW_mesh_get_attributes(const Object &object,
                              const Mesh &mesh,
                              Span<const GPUMaterial *> materials,
-                             DRW_Attributes *r_attrs,
+                             VectorSet<std::string> *r_attrs,
                              DRW_MeshCDMask *r_cd_needed);
 
 }  // namespace blender::draw

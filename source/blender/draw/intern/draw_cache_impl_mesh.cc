@@ -179,7 +179,7 @@ static void mesh_cd_calc_active_mask_uv_layer(const Object &object,
 static DRW_MeshCDMask mesh_cd_calc_used_gpu_layers(const Object &object,
                                                    const Mesh &mesh,
                                                    const Span<const GPUMaterial *> materials,
-                                                   DRW_Attributes *attributes)
+                                                   VectorSet<std::string> *attributes)
 {
   const Mesh &me_final = editmesh_final_or_this(object, mesh);
   const CustomData &cd_ldata = mesh_cd_ldata_get_from_mesh(me_final);
@@ -683,7 +683,7 @@ static void texpaint_request_active_uv(MeshBatchCache &cache, Object &object, Me
 
 static void request_active_and_default_color_attributes(const Object &object,
                                                         const Mesh &mesh,
-                                                        DRW_Attributes &attributes)
+                                                        VectorSet<std::string> &attributes)
 {
   const Mesh &me_final = editmesh_final_or_this(object, mesh);
   const CustomData &cd_vdata = mesh_cd_vdata_get_from_mesh(me_final);
@@ -774,11 +774,10 @@ gpu::Batch *DRW_mesh_batch_cache_get_edit_mesh_analysis(Mesh &mesh)
 void DRW_mesh_get_attributes(const Object &object,
                              const Mesh &mesh,
                              const Span<const GPUMaterial *> materials,
-                             DRW_Attributes *r_attrs,
+                             VectorSet<std::string> *r_attrs,
                              DRW_MeshCDMask *r_cd_needed)
 {
-  DRW_Attributes attrs_needed;
-  drw_attributes_clear(&attrs_needed);
+  VectorSet<std::string> attrs_needed;
   DRW_MeshCDMask cd_needed = mesh_cd_calc_used_gpu_layers(object, mesh, materials, &attrs_needed);
 
   if (r_attrs) {
@@ -794,8 +793,7 @@ Span<gpu::Batch *> DRW_mesh_batch_cache_get_surface_shaded(
     Object &object, Mesh &mesh, const Span<const GPUMaterial *> materials)
 {
   MeshBatchCache &cache = *mesh_batch_cache_get(mesh);
-  DRW_Attributes attrs_needed;
-  drw_attributes_clear(&attrs_needed);
+  VectorSet<std::string> attrs_needed;
   DRW_MeshCDMask cd_needed = mesh_cd_calc_used_gpu_layers(object, mesh, materials, &attrs_needed);
 
   BLI_assert(materials.size() == cache.mat_len);
@@ -826,7 +824,7 @@ gpu::Batch *DRW_mesh_batch_cache_get_surface_vertpaint(Object &object, Mesh &mes
 {
   MeshBatchCache &cache = *mesh_batch_cache_get(mesh);
 
-  DRW_Attributes attrs_needed{};
+  VectorSet<std::string> attrs_needed{};
   request_active_and_default_color_attributes(object, mesh, attrs_needed);
 
   drw_attributes_merge(&cache.attr_needed, &attrs_needed, mesh.runtime->render_mutex);
@@ -839,7 +837,7 @@ gpu::Batch *DRW_mesh_batch_cache_get_surface_sculpt(Object &object, Mesh &mesh)
 {
   MeshBatchCache &cache = *mesh_batch_cache_get(mesh);
 
-  DRW_Attributes attrs_needed{};
+  VectorSet<std::string> attrs_needed{};
   request_active_and_default_color_attributes(object, mesh, attrs_needed);
 
   drw_attributes_merge(&cache.attr_needed, &attrs_needed, mesh.runtime->render_mutex);
@@ -1311,7 +1309,7 @@ void DRW_mesh_batch_cache_create_requested(TaskGraph &task_graph,
       if (cache.cd_used.uv != 0) {
         batch.vbos.append(VBOType::UVs);
       }
-      for (const int i : IndexRange(cache.attr_used.num_requests)) {
+      for (const int i : cache.attr_used.index_range()) {
         batch.vbos.append(VBOType(int8_t(VBOType::Attr0) + i));
       }
       batch_info.append(std::move(batch));
@@ -1654,7 +1652,7 @@ void DRW_mesh_batch_cache_create_requested(TaskGraph &task_graph,
     ibo_requests[int(BufferList::Final)].add(IBOType::Tris);
     vbo_requests[int(BufferList::Final)].add(VBOType::CornerNormal);
     vbo_requests[int(BufferList::Final)].add(VBOType::Position);
-    for (const int i : IndexRange(cache.attr_used.num_requests)) {
+    for (const int i : cache.attr_used.index_range()) {
       vbo_requests[int(BufferList::Final)].add(VBOType(int8_t(VBOType::Attr0) + i));
     }
     if (cache.cd_used.uv != 0) {
@@ -1765,7 +1763,7 @@ void DRW_mesh_batch_cache_create_requested(TaskGraph &task_graph,
       if (cache.cd_used.orco != 0) {
         GPU_batch_vertbuf_add(batch, buffers.vbos.lookup(VBOType::Orco).get(), false);
       }
-      for (const int i : IndexRange(cache.attr_used.num_requests)) {
+      for (const int i : cache.attr_used.index_range()) {
         GPU_batch_vertbuf_add(
             batch, buffers.vbos.lookup(VBOType(int8_t(VBOType::Attr0) + i)).get(), false);
       }

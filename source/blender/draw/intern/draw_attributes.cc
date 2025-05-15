@@ -2,62 +2,34 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BLI_string.h"
-
 #include "BKE_customdata.hh"
+
+#include "GPU_shader.hh"
 
 #include "draw_attributes.hh"
 
 namespace blender::draw {
 
-/* Return true if the given DRW_AttributeRequest is already in the requests. */
-static bool drw_attributes_has_request(const DRW_Attributes *requests,
-                                       const DRW_AttributeRequest &req)
-{
-  for (int i = 0; i < requests->num_requests; i++) {
-    const DRW_AttributeRequest &src_req = requests->requests[i];
-    if (STREQ(src_req.attribute_name, req.attribute_name)) {
-      return true;
-    }
-  }
-  return false;
-}
-
-static void drw_attributes_merge_requests(const DRW_Attributes *src_requests,
-                                          DRW_Attributes *dst_requests)
-{
-  for (int i = 0; i < src_requests->num_requests; i++) {
-    if (dst_requests->num_requests == GPU_MAX_ATTR) {
-      return;
-    }
-
-    if (drw_attributes_has_request(dst_requests, src_requests->requests[i])) {
-      continue;
-    }
-
-    dst_requests->requests[dst_requests->num_requests] = src_requests->requests[i];
-    dst_requests->num_requests += 1;
-  }
-}
-
-void drw_attributes_clear(DRW_Attributes *attributes)
+void drw_attributes_clear(VectorSet<std::string> *attributes)
 {
   *attributes = {};
 }
 
-void drw_attributes_merge(DRW_Attributes *dst, const DRW_Attributes *src, Mutex &render_mutex)
+void drw_attributes_merge(VectorSet<std::string> *dst,
+                          const VectorSet<std::string> *src,
+                          Mutex &render_mutex)
 {
-  if (src->num_requests == 0) {
+  if (src->is_empty()) {
     return;
   }
   std::lock_guard lock{render_mutex};
-  drw_attributes_merge_requests(src, dst);
+  dst->add_multiple(src->as_span());
 }
 
-bool drw_attributes_overlap(const DRW_Attributes *a, const DRW_Attributes *b)
+bool drw_attributes_overlap(const VectorSet<std::string> *a, const VectorSet<std::string> *b)
 {
-  for (int i = 0; i < b->num_requests; i++) {
-    if (!drw_attributes_has_request(a, b->requests[i])) {
+  for (const std::string &req : b->as_span()) {
+    if (!a->contains(req)) {
       return false;
     }
   }
@@ -65,20 +37,16 @@ bool drw_attributes_overlap(const DRW_Attributes *a, const DRW_Attributes *b)
   return true;
 }
 
-void drw_attributes_add_request(DRW_Attributes *attrs, const char *name)
+void drw_attributes_add_request(VectorSet<std::string> *attrs, const StringRef name)
 {
-  DRW_AttributeRequest req{};
-  STRNCPY(req.attribute_name, name);
-  if (attrs->num_requests >= GPU_MAX_ATTR || drw_attributes_has_request(attrs, req)) {
+  if (attrs->size() >= GPU_MAX_ATTR) {
     return;
   }
-
-  attrs->requests[attrs->num_requests] = req;
-  attrs->num_requests += 1;
+  attrs->add_as(name);
 }
 
 bool drw_custom_data_match_attribute(const CustomData &custom_data,
-                                     const char *name,
+                                     const StringRef name,
                                      int *r_layer_index,
                                      eCustomDataType *r_type)
 {

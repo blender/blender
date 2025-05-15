@@ -9,10 +9,11 @@
 #pragma once
 
 #include <array>
+#include <string>
 
 #include "GPU_shader.hh"
 
-#include "draw_attributes.hh"
+#include "BLI_vector_set.hh"
 
 struct Curves;
 namespace blender::gpu {
@@ -48,13 +49,13 @@ struct CurvesEvalFinalCache {
   int resolution;
 
   /** Attributes currently being drawn or about to be drawn. */
-  DRW_Attributes attr_used;
+  VectorSet<std::string> attr_used;
 
   /**
    * Attributes that were used at some point. This is used for garbage collection, to remove
    * attributes that are not used in shaders anymore due to user edits.
    */
-  DRW_Attributes attr_used_over_time;
+  VectorSet<std::string> attr_used_over_time;
 
   /**
    * The last time in seconds that the `attr_used` and `attr_used_over_time` were exactly the same.

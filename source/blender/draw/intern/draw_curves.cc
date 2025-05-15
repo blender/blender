@@ -122,8 +122,8 @@ static void drw_curves_cache_update_compute(CurvesEvalCache *cache)
 
   drw_curves_cache_update_compute(cache, curves_num, cache->final.proc_buf, cache->proc_point_buf);
 
-  const DRW_Attributes &attrs = cache->final.attr_used;
-  for (int i = 0; i < attrs.num_requests; i++) {
+  const VectorSet<std::string> &attrs = cache->final.attr_used;
+  for (const int i : attrs.index_range()) {
     if (!cache->proc_attributes_point_domain[i]) {
       continue;
     }
@@ -161,7 +161,7 @@ gpu::VertBuf *DRW_curves_pos_buffer_get(Object *object)
   return cache->final.proc_buf;
 }
 
-static int attribute_index_in_material(GPUMaterial *gpu_material, const char *name)
+static int attribute_index_in_material(GPUMaterial *gpu_material, const StringRef name)
 {
   if (!gpu_material) {
     return -1;
@@ -171,7 +171,7 @@ static int attribute_index_in_material(GPUMaterial *gpu_material, const char *na
 
   ListBase gpu_attrs = GPU_material_attributes(gpu_material);
   LISTBASE_FOREACH (GPUMaterialAttribute *, gpu_attr, &gpu_attrs) {
-    if (STREQ(gpu_attr->name, name)) {
+    if (gpu_attr->name == name) {
       return index;
     }
 
@@ -243,8 +243,8 @@ static CurvesEvalCache *curves_cache_get(Curves &curves,
   if (final_points_len > 0) {
     cache_update(cache->final.proc_buf, cache->proc_point_buf);
 
-    const DRW_Attributes &attrs = cache->final.attr_used;
-    for (int i : IndexRange(attrs.num_requests)) {
+    const VectorSet<std::string> &attrs = cache->final.attr_used;
+    for (const int i : attrs.index_range()) {
       /* Only refine point attributes. */
       if (cache->proc_attributes_point_domain[i]) {
         cache_update(cache->final.attributes_buf[i], cache->proc_attributes_buf[i]);
@@ -333,18 +333,18 @@ gpu::Batch *curves_sub_pass_setup_implementation(PassT &sub_ps,
                                                             CD_PROP_FLOAT2);
   }
 
-  const DRW_Attributes &attrs = curves_cache->final.attr_used;
-  for (int i = 0; i < attrs.num_requests; i++) {
-    const DRW_AttributeRequest &request = attrs.requests[i];
+  const VectorSet<std::string> &attrs = curves_cache->final.attr_used;
+  for (const int i : attrs.index_range()) {
+    const StringRef name = attrs[i];
     char sampler_name[32];
-    drw_curves_get_attribute_sampler_name(request.attribute_name, sampler_name);
+    drw_curves_get_attribute_sampler_name(name, sampler_name);
 
     if (!curves_cache->proc_attributes_point_domain[i]) {
       if (!curves_cache->proc_attributes_buf[i]) {
         continue;
       }
       sub_ps.bind_texture(sampler_name, curves_cache->proc_attributes_buf[i]);
-      if (request.attribute_name == curve_data_render_uv) {
+      if (name == curve_data_render_uv) {
         sub_ps.bind_texture("a", curves_cache->proc_attributes_buf[i]);
       }
     }
@@ -353,7 +353,7 @@ gpu::Batch *curves_sub_pass_setup_implementation(PassT &sub_ps,
         continue;
       }
       sub_ps.bind_texture(sampler_name, curves_cache->final.attributes_buf[i]);
-      if (request.attribute_name == point_data_render_uv) {
+      if (name == point_data_render_uv) {
         sub_ps.bind_texture("a", curves_cache->final.attributes_buf[i]);
       }
     }
@@ -362,7 +362,7 @@ gpu::Batch *curves_sub_pass_setup_implementation(PassT &sub_ps,
      * we need to find the right index for this attribute as uniforms defining the scope of the
      * attributes are based on attribute loading order, which is itself based on the material's
      * attributes. */
-    const int index = attribute_index_in_material(gpu_material, request.attribute_name);
+    const int index = attribute_index_in_material(gpu_material, name);
     if (index != -1) {
       curves_infos.is_point_attribute[index][0] = curves_cache->proc_attributes_point_domain[i];
     }
