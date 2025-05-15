@@ -5957,6 +5957,7 @@ def km_transform_modal_map(params):
         ("INSERTOFS_TOGGLE_DIR", {"type": 'T', "value": 'PRESS'}, None),
         ("NODE_ATTACH_ON", {"type": 'LEFT_ALT', "value": 'RELEASE', "any": True}, None),
         ("NODE_ATTACH_OFF", {"type": 'LEFT_ALT', "value": 'PRESS', "any": True}, None),
+        ("NODE_FRAME", {"type": 'F', "value": 'PRESS'}, None),
         ("AUTOCONSTRAIN", {"type": 'MIDDLEMOUSE', "value": 'ANY', **alt_without_navigaton}, None),
         ("AUTOCONSTRAINPLANE", {"type": 'MIDDLEMOUSE', "value": 'ANY', "shift": True, **alt_without_navigaton}, None),
         ("PRECISION", {"type": 'LEFT_SHIFT', "value": 'ANY', "any": True}, None),
