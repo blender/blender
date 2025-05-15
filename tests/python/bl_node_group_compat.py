@@ -48,6 +48,8 @@ subtype_idname = {
     ("BOOLEAN", "NONE"): "NodeSocketBool",
     ("ROTATION", "NONE"): "NodeSocketRotation",
     ("VECTOR", "NONE"): "NodeSocketVector",
+    ("VECTOR", "FACTOR"): "NodeSocketVectorFactor",
+    ("VECTOR", "PERCENTAGE"): "NodeSocketVectorPercentage",
     ("VECTOR", "TRANSLATION"): "NodeSocketVectorTranslation",
     ("VECTOR", "DIRECTION"): "NodeSocketVectorDirection",
     ("VECTOR", "VELOCITY"): "NodeSocketVectorVelocity",
