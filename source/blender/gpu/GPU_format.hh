@@ -237,7 +237,7 @@ enum class DataFormat : uint8_t {
 /* -------------------------------------------------------------------- */
 /** \name Utilities
  *
- * Allow querying informations about the format enum values.
+ * Allow querying information about the format enum values.
  * \{ */
 
 /* NOTE: Compressed format bytesize are rounded up as their actual value is fractional. */

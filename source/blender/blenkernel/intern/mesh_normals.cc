@@ -1004,7 +1004,7 @@ static void add_corner_to_edge(const Span<int> corner_edges,
   }
   else if (const EdgeOneCorner *info_one_edge = std::get_if<EdgeOneCorner>(&info)) {
     /* If the edge ends up being used by faces, we still have to check if the winding direction
-     * changes. Though it's an undesireable situation for the mesh to be in, we shouldn't propogate
+     * changes. Though it's an undesirable situation for the mesh to be in, we shouldn't propagate
      * smooth normals across edges facing opposite directions. Breaking the flow on these winding
      * direction changes also simplifies the fan traversal later on; without it the we couldn't
      * traverse by just continuing to use the next/previous corner. */

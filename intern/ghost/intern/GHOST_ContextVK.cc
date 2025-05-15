@@ -927,9 +927,9 @@ GHOST_TSuccess GHOST_ContextVK::recreateSwapchain()
     }
   }
 
-  /* Windows/NVIDIA doesn't support creating a surface image with resolution 0,0. Minimuzed windows
-   * have an extent of 0,0. Although it fits in the specs returned by
-   * vkGetPhysicalDeviceSurfaceCapabilitiesKHR.
+  /* Windows/NVIDIA doesn't support creating a surface image with resolution 0,0.
+   * Minimized windows have an extent of 0,0. Although it fits in the specs returned by
+   * #vkGetPhysicalDeviceSurfaceCapabilitiesKHR.
    *
    * Ref #138032
    */

@@ -4077,15 +4077,15 @@ static FrameNodeLayout frame_node_layout(const bNode &frame_node)
   frame_layout.has_label = frame_node.label[0] != '\0';
 
   /* This is not the actual height of the letters in the label, but an approximation that includes
-   * some of the whitespace above and below the actual letters. */
+   * some of the white-space above and below the actual letters. */
   frame_layout.label_height = frame_data->label_size * UI_SCALE_FAC;
 
   /* The side and bottom margins are 50% bigger than the widget unit */
   frame_layout.margin = 1.5f * U.widget_unit;
 
   if (frame_layout.has_label) {
-    /* The label takes up 1.5 times the label height plus .2 times the margin.
-     * These coefficients are selected to provide good layout and spacing for descenders. */
+    /* The label takes up 1.5 times the label height plus 0.2 times the margin.
+     * These coefficients are selected to provide good layout and spacing for the descenders. */
     float room_for_label = 1.5f * frame_layout.label_height + 0.2f * frame_layout.margin;
 
     /* Make top margin bigger, if needed for the label, but never smaller than the side margins. */
