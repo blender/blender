@@ -59,17 +59,7 @@ void do_pose_brush(const Depsgraph &depsgraph,
                    const Sculpt &sd,
                    Object &ob,
                    const IndexMask &node_mask);
-/**
- * Calculate the pose origin and (Optionally the pose factor)
- * that is used when using the pose brush.
- *
- * \param r_pose_origin: Must be a valid pointer.
- * \param r_pose_factor: Optional, when set to NULL it won't be calculated.
- */
-void pose_brush_init(const Depsgraph &depsgraph,
-                     Object &ob,
-                     SculptSession &ss,
-                     const Brush &brush);
+
 std::unique_ptr<SculptPoseIKChainPreview> preview_ik_chain_init(const Depsgraph &depsgraph,
                                                                 Object &ob,
                                                                 SculptSession &ss,
