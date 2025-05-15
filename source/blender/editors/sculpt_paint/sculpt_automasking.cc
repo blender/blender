@@ -179,10 +179,6 @@ static bool needs_factors_cache(const Sculpt &sd, const Brush *brush)
     return true;
   }
 
-  if (automasking_flags & BRUSH_AUTOMASKING_VIEW_NORMAL) {
-    return brush && brush->automasking_boundary_edges_propagation_steps != 1;
-  }
-
   if (automasking_flags &
       (BRUSH_AUTOMASKING_BOUNDARY_EDGES | BRUSH_AUTOMASKING_BOUNDARY_FACE_SETS))
   {
