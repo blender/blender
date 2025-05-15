@@ -39,7 +39,6 @@ static PyC_StringEnumItems pygpu_vertfetchmode_items[] = {
     {GPU_FETCH_FLOAT, "FLOAT"},
     {GPU_FETCH_INT, "INT"},
     {GPU_FETCH_INT_TO_FLOAT_UNIT, "INT_TO_FLOAT_UNIT"},
-    {GPU_FETCH_INT_TO_FLOAT, "INT_TO_FLOAT"},
     {0, nullptr},
 };
 
@@ -79,7 +78,7 @@ PyDoc_STRVAR(
     "      This is mainly useful for memory optimizations when you want to store values with\n"
     "      reduced precision. E.g. you can store a float in only 1 byte but it will be\n"
     "      converted to a normal 4 byte float when used.\n"
-    "      Possible values are `FLOAT`, `INT`, `INT_TO_FLOAT_UNIT` and `INT_TO_FLOAT`.\n"
+    "      Possible values are `FLOAT`, `INT`, `INT_TO_FLOAT_UNIT`.\n"
     "   :type fetch_mode: str\n");
 static PyObject *pygpu_vertformat_attr_add(BPyGPUVertFormat *self, PyObject *args, PyObject *kwds)
 {

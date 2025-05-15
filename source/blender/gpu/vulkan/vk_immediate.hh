@@ -34,7 +34,6 @@ class VKImmediate : public Immediate {
 
   VkDeviceSize buffer_offset_ = 0;
   VkDeviceSize current_subbuffer_len_ = 0;
-  VertexFormatConverter vertex_format_converter;
 
   Vector<std::unique_ptr<VKBuffer>> active_buffers_;
   Vector<std::unique_ptr<VKBuffer>> recycling_buffers_;

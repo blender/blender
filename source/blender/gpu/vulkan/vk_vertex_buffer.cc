@@ -67,22 +67,14 @@ void VKVertexBuffer::wrap_handle(uint64_t /*handle*/)
 
 void VKVertexBuffer::update_sub(uint start_offset, uint data_size_in_bytes, const void *data)
 {
-  device_format_ensure();
-  if (buffer_.is_mapped() && !vertex_format_converter.needs_conversion()) {
+  if (buffer_.is_mapped()) {
     buffer_.update_sub_immediately(start_offset, data_size_in_bytes, data);
   }
   else {
     VKContext &context = *VKContext::get();
     VKStagingBuffer staging_buffer(
         buffer_, VKStagingBuffer::Direction::HostToDevice, start_offset, data_size_in_bytes);
-    if (vertex_format_converter.needs_conversion()) {
-      vertex_format_converter.convert(staging_buffer.host_buffer_get().mapped_memory_get(),
-                                      data_,
-                                      data_size_in_bytes / vertex_len);
-    }
-    else {
-      memcpy(staging_buffer.host_buffer_get().mapped_memory_get(), data, data_size_in_bytes);
-    }
+    memcpy(staging_buffer.host_buffer_get().mapped_memory_get(), data, data_size_in_bytes);
     staging_buffer.copy_to_device(context);
   }
 }
@@ -133,17 +125,7 @@ void VKVertexBuffer::release_data()
 
 void VKVertexBuffer::upload_data_direct(const VKBuffer &host_buffer)
 {
-  device_format_ensure();
-  if (vertex_format_converter.needs_conversion()) {
-    if (G.debug & G_DEBUG_GPU) {
-      std::cout << "PERFORMANCE: Vertex buffer requires conversion.\n";
-    }
-    vertex_format_converter.convert(host_buffer.mapped_memory_get(), data_, vertex_len);
-    host_buffer.flush();
-  }
-  else {
-    host_buffer.update_immediately(data_);
-  }
+  host_buffer.update_immediately(data_);
 }
 
 void VKVertexBuffer::upload_data_via_staging_buffer(VKContext &context)
@@ -163,7 +145,6 @@ void VKVertexBuffer::upload_data()
   }
 
   if (flag & GPU_VERTBUF_DATA_DIRTY) {
-    device_format_ensure();
     if (buffer_.is_mapped() && !data_uploaded_) {
       upload_data_direct(buffer_);
     }
@@ -178,13 +159,6 @@ void VKVertexBuffer::upload_data()
 
     flag &= ~GPU_VERTBUF_DATA_DIRTY;
     flag |= GPU_VERTBUF_DATA_UPLOADED;
-  }
-}
-
-void VKVertexBuffer::device_format_ensure()
-{
-  if (!vertex_format_converter.is_initialized()) {
-    vertex_format_converter.init(&format);
   }
 }
 

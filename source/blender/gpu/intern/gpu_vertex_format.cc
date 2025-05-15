@@ -136,18 +136,6 @@ static VertAttrType vertex_format_combine(GPUVertCompType component_type,
               return VertAttrType::SINT_32_32_32_32;
           }
           break;
-        case GPU_FETCH_INT_TO_FLOAT:
-          switch (component_len) {
-            case 1:
-              return VertAttrType::SINT_TO_FLT_32;
-            case 2:
-              return VertAttrType::SINT_TO_FLT_32_32;
-            case 3:
-              return VertAttrType::SINT_TO_FLT_32_32_32;
-            case 4:
-              return VertAttrType::SINT_TO_FLT_32_32_32_32;
-          }
-          break;
         default:
           break;
       }

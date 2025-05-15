@@ -992,9 +992,7 @@ MTLRenderPipelineStateInstance *MTLShader::bake_pipeline_state(
         [values setConstantValue:&MTL_attribute_conversion_mode
                             type:MTLDataTypeInt
                         withName:[NSString stringWithFormat:@"MTL_AttributeConvert%d", i]];
-        if (MTL_attribute_conversion_mode == GPU_FETCH_INT_TO_FLOAT_UNIT ||
-            MTL_attribute_conversion_mode == GPU_FETCH_INT_TO_FLOAT)
-        {
+        if (MTL_attribute_conversion_mode == GPU_FETCH_INT_TO_FLOAT_UNIT) {
           shader_debug_printf(
               "TODO(Metal): Shader %s needs to support internal format conversion\n",
               mtl_interface->get_name());
