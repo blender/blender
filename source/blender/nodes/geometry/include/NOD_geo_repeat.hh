@@ -18,21 +18,21 @@ struct RepeatItemsAccessor {
   using ItemT = NodeRepeatItem;
   static StructRNA *item_srna;
   static int node_type;
-  static constexpr const char *node_idname = "GeometryNodeRepeatOutput";
+  static constexpr StringRefNull node_idname = "GeometryNodeRepeatOutput";
   static constexpr bool has_type = true;
   static constexpr bool has_name = true;
   static constexpr bool has_single_identifier_str = true;
   struct operator_idnames {
-    static constexpr const char *add_item = "NODE_OT_repeat_zone_item_add";
-    static constexpr const char *remove_item = "NODE_OT_repeat_zone_item_remove";
-    static constexpr const char *move_item = "NODE_OT_repeat_zone_item_move";
+    static constexpr StringRefNull add_item = "NODE_OT_repeat_zone_item_add";
+    static constexpr StringRefNull remove_item = "NODE_OT_repeat_zone_item_remove";
+    static constexpr StringRefNull move_item = "NODE_OT_repeat_zone_item_move";
   };
   struct ui_idnames {
-    static constexpr const char *list = "DATA_UL_repeat_zone_state";
+    static constexpr StringRefNull list = "DATA_UL_repeat_zone_state";
   };
   struct rna_names {
-    static constexpr const char *items = "repeat_items";
-    static constexpr const char *active_index = "active_index";
+    static constexpr StringRefNull items = "repeat_items";
+    static constexpr StringRefNull active_index = "active_index";
   };
 
   static socket_items::SocketItemsRef<NodeRepeatItem> get_items_from_node(bNode &node)

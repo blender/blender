@@ -228,16 +228,18 @@ inline void move_active_item(wmOperatorType *ot,
 template<typename Accessor> inline void make_common_operators()
 {
   WM_operatortype_append([](wmOperatorType *ot) {
-    socket_items::ops::add_item<Accessor>(
-        ot, "Add Item", Accessor::operator_idnames::add_item, "Add item below active item");
+    socket_items::ops::add_item<Accessor>(ot,
+                                          "Add Item",
+                                          Accessor::operator_idnames::add_item.c_str(),
+                                          "Add item below active item");
   });
   WM_operatortype_append([](wmOperatorType *ot) {
     socket_items::ops::remove_active_item<Accessor>(
-        ot, "Remove Item", Accessor::operator_idnames::remove_item, "Remove active item");
+        ot, "Remove Item", Accessor::operator_idnames::remove_item.c_str(), "Remove active item");
   });
   WM_operatortype_append([](wmOperatorType *ot) {
     socket_items::ops::move_active_item<Accessor>(
-        ot, "Move Item", Accessor::operator_idnames::move_item, "Move active item");
+        ot, "Move Item", Accessor::operator_idnames::move_item.c_str(), "Move active item");
   });
 }
 

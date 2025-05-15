@@ -18,7 +18,7 @@ struct IndexSwitchItemsAccessor {
   using ItemT = IndexSwitchItem;
   static StructRNA *item_srna;
   static int node_type;
-  static constexpr const char *node_idname = "GeometryNodeIndexSwitch";
+  static constexpr StringRefNull node_idname = "GeometryNodeIndexSwitch";
   static constexpr bool has_type = false;
   static constexpr bool has_name = false;
   static constexpr bool has_single_identifier_str = true;
