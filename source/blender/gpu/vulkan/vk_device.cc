@@ -596,12 +596,19 @@ void VKDevice::debug_print()
   }
   os << "Discard pool\n";
   debug_print(os, orphaned_data);
+  os << "Discard pool (render)\n";
+  debug_print(os, orphaned_data_render);
   os << "\n";
 
   for (const std::reference_wrapper<VKContext> &context : contexts_) {
     os << " VKContext \n";
     debug_print(os, context.get().discard_pool);
   }
+
+  int total_mem_kb;
+  int free_mem_kb;
+  memory_statistics_get(&total_mem_kb, &free_mem_kb);
+  os << "\nMemory: total=" << total_mem_kb << ", free=" << free_mem_kb << "\n";
 }
 
 /** \} */
