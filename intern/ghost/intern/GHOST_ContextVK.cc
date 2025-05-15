@@ -595,14 +595,14 @@ GHOST_TSuccess GHOST_ContextVK::swapBuffers()
    * swapchain image. Other do it when calling vkQueuePresent. */
   VkResult acquire_result = VK_ERROR_OUT_OF_DATE_KHR;
   uint32_t image_index = 0;
-  while (acquire_result == VK_ERROR_OUT_OF_DATE_KHR) {
+  while (acquire_result == VK_ERROR_OUT_OF_DATE_KHR || acquire_result == VK_SUBOPTIMAL_KHR) {
     acquire_result = vkAcquireNextImageKHR(device,
                                            m_swapchain,
                                            UINT64_MAX,
                                            submission_frame_data.acquire_semaphore,
                                            VK_NULL_HANDLE,
                                            &image_index);
-    if (acquire_result == VK_ERROR_OUT_OF_DATE_KHR) {
+    if (acquire_result == VK_ERROR_OUT_OF_DATE_KHR || acquire_result == VK_SUBOPTIMAL_KHR) {
       recreateSwapchain();
     }
   }
@@ -634,9 +634,7 @@ GHOST_TSuccess GHOST_ContextVK::swapBuffers()
     std::scoped_lock lock(vulkan_device->queue_mutex);
     present_result = vkQueuePresentKHR(m_present_queue, &present_info);
   }
-  if (present_result == VK_ERROR_OUT_OF_DATE_KHR || present_result == VK_SUBOPTIMAL_KHR ||
-      acquire_result == VK_SUBOPTIMAL_KHR)
-  {
+  if (present_result == VK_ERROR_OUT_OF_DATE_KHR || present_result == VK_SUBOPTIMAL_KHR) {
     /* Swap-chain is out of date. Recreate swap-chain and skip this frame. */
     recreateSwapchain();
     if (swap_buffers_post_callback_) {
@@ -911,19 +909,17 @@ GHOST_TSuccess GHOST_ContextVK::recreateSwapchain()
     if (capabilities.minImageExtent.height > m_render_extent.height) {
       m_render_extent.height = capabilities.minImageExtent.height;
     }
+  }
 
-    if (vulkan_device->use_vk_ext_swapchain_maintenance_1) {
-      if (vk_surface_present_scaling_capabilities.minScaledImageExtent.width >
-          m_render_extent.width)
-      {
-        m_render_extent.width = vk_surface_present_scaling_capabilities.minScaledImageExtent.width;
-      }
-      if (vk_surface_present_scaling_capabilities.minScaledImageExtent.height >
-          m_render_extent.height)
-      {
-        m_render_extent.height =
-            vk_surface_present_scaling_capabilities.minScaledImageExtent.height;
-      }
+  if (vulkan_device->use_vk_ext_swapchain_maintenance_1) {
+    if (vk_surface_present_scaling_capabilities.minScaledImageExtent.width > m_render_extent.width)
+    {
+      m_render_extent.width = vk_surface_present_scaling_capabilities.minScaledImageExtent.width;
+    }
+    if (vk_surface_present_scaling_capabilities.minScaledImageExtent.height >
+        m_render_extent.height)
+    {
+      m_render_extent.height = vk_surface_present_scaling_capabilities.minScaledImageExtent.height;
     }
   }
 
@@ -958,11 +954,11 @@ GHOST_TSuccess GHOST_ContextVK::recreateSwapchain()
       VK_STRUCTURE_TYPE_SWAPCHAIN_PRESENT_SCALING_CREATE_INFO_EXT,
       &vk_swapchain_present_modes,
       vk_surface_present_scaling_capabilities.supportedPresentScaling &
-          VK_PRESENT_SCALING_STRETCH_BIT_EXT,
+          VK_PRESENT_SCALING_ONE_TO_ONE_BIT_EXT,
       vk_surface_present_scaling_capabilities.supportedPresentGravityX &
-          VK_PRESENT_GRAVITY_CENTERED_BIT_EXT,
+          VK_PRESENT_GRAVITY_MIN_BIT_EXT,
       vk_surface_present_scaling_capabilities.supportedPresentGravityY &
-          VK_PRESENT_GRAVITY_CENTERED_BIT_EXT,
+          VK_PRESENT_GRAVITY_MAX_BIT_EXT,
   };
 
   VkSwapchainKHR old_swapchain = m_swapchain;
@@ -1094,7 +1090,6 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
      *
      * For now disabling it until we have figured out what is wrong.
      */
-#if 0
     /* Required instance extension dependency of VK_EXT_SWAPCHAIN_MAINTENANCE_1_EXTENSION_NAME */
     if (contains_extension(extensions_available, VK_EXT_SURFACE_MAINTENANCE_1_EXTENSION_NAME) &&
         contains_extension(extensions_available, VK_KHR_GET_SURFACE_CAPABILITIES_2_EXTENSION_NAME))
@@ -1106,9 +1101,6 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
                        VK_KHR_GET_SURFACE_CAPABILITIES_2_EXTENSION_NAME);
       optional_device_extensions.push_back(VK_EXT_SWAPCHAIN_MAINTENANCE_1_EXTENSION_NAME);
     }
-#else
-    (void)contains_extension;
-#endif
 
     required_device_extensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
   }
