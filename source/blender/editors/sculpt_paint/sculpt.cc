@@ -2677,9 +2677,6 @@ float3 tilt_apply_to_normal(const Object &object,
                             const float2 &tilt,
                             const float tilt_strength)
 {
-  if (!USER_EXPERIMENTAL_TEST(&U, use_sculpt_tools_tilt)) {
-    return normal;
-  }
   const float3 world_space = math::transform_direction(object.object_to_world(), normal);
 
   /* Tweaked based on initial user feedback, with a value of 1.0, higher brush tilt strength
