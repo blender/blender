@@ -203,7 +203,7 @@ void do_enhance_details_brush(const Depsgraph &depsgraph,
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
 
-  if (SCULPT_stroke_is_first_brush_step(*ss.cache)) {
+  if (ss.cache->detail_directions.is_empty()) {
     ss.cache->detail_directions.reinitialize(SCULPT_vertex_count_get(object));
     IndexMaskMemory memory;
     const IndexMask effective_nodes = bke::pbvh::search_nodes(
