@@ -34,10 +34,13 @@
  *   run on different threads.
  */
 
+#include "BLI_cache_mutex.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_struct_equality_utils.hh"
 
 namespace blender {
+
+class ComputeContext;
 
 /**
  * A hash that uniquely identifies a specific (non-fixed-size) compute context. The hash has to
@@ -54,9 +57,30 @@ struct ComputeContextHash {
 
   BLI_STRUCT_EQUALITY_OPERATORS_2(ComputeContextHash, v1, v2)
 
-  void mix_in(const void *data, int64_t len);
+  /**
+   * Standard way to create a compute context hash.
+   * \param parent: The optional parent context.
+   * \param type_str: A string literal that identifies the context type. This is used to avoid hash
+   * collisions between different context types.
+   * \param args: Additional arguments that affect the hash. Note that only the shallow bytes of
+   * these types are used. So they generally should not contain any padding.
+   */
+  template<size_t N, typename... Args>
+  static ComputeContextHash from(const ComputeContext *parent,
+                                 const char (&type_str)[N],
+                                 Args &&...args);
 
   friend std::ostream &operator<<(std::ostream &stream, const ComputeContextHash &hash);
+
+ private:
+  /**
+   * Compute a context hash by packing all the arguments into a contiguous buffer and hashing
+   * that.
+   */
+  template<typename... Args> static ComputeContextHash from_shallow_bytes(Args &&...args);
+
+  /** Compute a context hash from a contiguous buffer. */
+  static ComputeContextHash from_bytes(const void *data, int64_t len);
 };
 
 /**
@@ -66,41 +90,31 @@ struct ComputeContextHash {
  * This class should be subclassed to implement specific contexts.
  */
 class ComputeContext {
- private:
+ protected:
   /**
-   * Only used for debugging currently.
-   */
-  const char *static_type_;
-  /**
-   * Pointer to the context that this context is child of. That allows nesting compute contexts.
+   * Pointer to the context that this context is child of. That allows nesting compute
+   * contexts.
    */
   const ComputeContext *parent_ = nullptr;
 
- protected:
   /**
    * The hash that uniquely identifies this context. It's a combined hash of this context as well
-   * as all the parent contexts.
+   * as all the parent contexts. It's computed lazily to keep initial construction of compute
+   * contexts very cheap.
    */
-  ComputeContextHash hash_;
+  mutable ComputeContextHash hash_;
+
+ private:
+  mutable CacheMutex hash_mutex_;
 
  public:
-  ComputeContext(const char *static_type, const ComputeContext *parent)
-      : static_type_(static_type), parent_(parent)
-  {
-    if (parent != nullptr) {
-      hash_ = parent_->hash_;
-    }
-  }
+  ComputeContext(const ComputeContext *parent) : parent_(parent) {}
   virtual ~ComputeContext() = default;
 
   const ComputeContextHash &hash() const
   {
+    hash_mutex_.ensure([&]() { hash_ = this->compute_hash(); });
     return hash_;
-  }
-
-  const char *static_type() const
-  {
-    return static_type_;
   }
 
   const ComputeContext *parent() const
@@ -119,6 +133,40 @@ class ComputeContext {
   virtual void print_current_in_line(std::ostream &stream) const = 0;
 
   friend std::ostream &operator<<(std::ostream &stream, const ComputeContext &compute_context);
+
+ private:
+  /** Compute the hash of this context, usually using #ComputeContextHash::from. */
+  virtual ComputeContextHash compute_hash() const = 0;
 };
+
+template<size_t N, typename... Args>
+inline ComputeContextHash ComputeContextHash::from(const ComputeContext *parent,
+                                                   const char (&type_str)[N],
+                                                   Args &&...args)
+{
+  return ComputeContextHash::from_shallow_bytes(
+      parent ? parent->hash() : ComputeContextHash{0, 0}, type_str, args...);
+}
+
+template<typename... Args>
+inline ComputeContextHash ComputeContextHash::from_shallow_bytes(Args &&...args)
+{
+  /* Copy all values into a contiguous buffer. Intentionally don't use std::tuple to avoid any
+   * potential padding.  */
+  constexpr int64_t size_sum = (sizeof(args) + ...);
+  char buffer[size_sum];
+  int64_t offset = 0;
+  (
+      [&] {
+        using Arg = std::remove_reference_t<std::remove_cv_t<Args>>;
+        static_assert(std::has_unique_object_representations_v<Arg>);
+        const Arg &arg = args;
+        memcpy(buffer + offset, &arg, sizeof(Arg));
+        offset += sizeof(Arg);
+      }(),
+      ...);
+  /* Compute the hash of that buffer. */
+  return ComputeContextHash::from_bytes(buffer, offset);
+}
 
 }  // namespace blender
