@@ -26,17 +26,17 @@ enum eStripHandle {
 };
 
 struct StripSelection {
-  Strip *seq1 = nullptr;
-  Strip *seq2 = nullptr;
+  Strip *strip1 = nullptr;
+  Strip *strip2 = nullptr;
   eStripHandle handle = SEQ_HANDLE_NONE;
 };
 
 void select_strip_single(Scene *scene, Strip *strip, bool deselect_all);
 /**
- * Iterates over a scene's sequences and deselects all of them.
+ * Iterates over a scene's strips and deselects all of them.
  *
- * \param scene: scene containing sequences to be deselected.
- * \return true if any sequences were deselected; false otherwise.
+ * \param scene: scene containing strips to be deselected.
+ * \return true if any strips were deselected; false otherwise.
  */
 bool deselect_all_strips(Scene *scene);
 

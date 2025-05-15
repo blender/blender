@@ -42,7 +42,7 @@ namespace blender::seq {
 
 bool relation_is_effect_of_strip(const Strip *effect, const Strip *input)
 {
-  return ELEM(input, effect->seq1, effect->seq2);
+  return ELEM(input, effect->input1, effect->input2);
 }
 
 void cache_cleanup(Scene *scene)
@@ -291,8 +291,8 @@ bool relations_render_loop_check(Strip *strip_main, Strip *strip)
     return true;
   }
 
-  if ((strip_main->seq1 && relations_render_loop_check(strip_main->seq1, strip)) ||
-      (strip_main->seq2 && relations_render_loop_check(strip_main->seq2, strip)))
+  if ((strip_main->input1 && relations_render_loop_check(strip_main->input1, strip)) ||
+      (strip_main->input2 && relations_render_loop_check(strip_main->input2, strip)))
   {
     return true;
   }

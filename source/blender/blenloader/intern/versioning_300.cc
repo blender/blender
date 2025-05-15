@@ -434,10 +434,10 @@ static void do_versions_sequencer_speed_effect_recursive(Scene *scene, const Lis
         }
         else {
           v->speed_control_type = SEQ_SPEED_MULTIPLY;
-          v->speed_fader = globalSpeed * (float(strip->seq1->len) /
+          v->speed_fader = globalSpeed * (float(strip->input1->len) /
                                           max_ff(float(blender::seq::time_right_handle_frame_get(
-                                                           scene, strip->seq1) -
-                                                       strip->seq1->start),
+                                                           scene, strip->input1) -
+                                                       strip->input1->start),
                                                  1.0f));
         }
       }

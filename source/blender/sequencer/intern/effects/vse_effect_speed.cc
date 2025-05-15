@@ -81,7 +81,7 @@ void strip_effect_speed_rebuild_map(Scene *scene, Strip *strip)
   const int effect_strip_length = time_right_handle_frame_get(scene, strip) -
                                   time_left_handle_frame_get(scene, strip);
 
-  if ((strip->seq1 == nullptr) || (effect_strip_length < 1)) {
+  if ((strip->input1 == nullptr) || (effect_strip_length < 1)) {
     return; /* Make COVERITY happy and check for (CID 598) input strip. */
   }
 
@@ -101,7 +101,7 @@ void strip_effect_speed_rebuild_map(Scene *scene, Strip *strip)
   float target_frame = 0;
   for (int frame_index = 1; frame_index < effect_strip_length; frame_index++) {
     target_frame += evaluate_fcurve(fcu, time_left_handle_frame_get(scene, strip) + frame_index);
-    const int target_frame_max = time_strip_length_get(scene, strip->seq1);
+    const int target_frame_max = time_strip_length_get(scene, strip->input1);
     CLAMP(target_frame, 0, target_frame_max);
     v->frameMap[frame_index] = target_frame;
   }
@@ -122,14 +122,14 @@ float strip_speed_effect_target_frame_get(Scene *scene,
                                           float timeline_frame,
                                           int input)
 {
-  if (strip_speed->seq1 == nullptr) {
+  if (strip_speed->input1 == nullptr) {
     return 0.0f;
   }
 
   effect_handle_get(strip_speed); /* Ensure, that data are initialized. */
   int frame_index = round_fl_to_int(give_frame_index(scene, strip_speed, timeline_frame));
   SpeedControlVars *s = (SpeedControlVars *)strip_speed->effectdata;
-  const Strip *source = strip_speed->seq1;
+  const Strip *source = strip_speed->input1;
 
   float target_frame = 0.0f;
   switch (s->speed_control_type) {

@@ -242,8 +242,8 @@ typedef struct Strip {
   /* DEPRECATED, only used for versioning. */
   float speed_fader;
 
-  /* pointers for effects: */
-  struct Strip *seq1, *seq2;
+  /** Effect strip inputs (`nullptr` if not an effect strip). */
+  struct Strip *input1, *input2;
 
   /* This strange padding is needed due to how `seqbasep` de-serialization is
    * done right now in #scene_blend_read_data. */

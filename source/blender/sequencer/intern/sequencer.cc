@@ -318,8 +318,8 @@ void editing_free(Scene *scene, const bool do_id_user)
 static void seq_new_fix_links_recursive(Strip *strip, blender::Map<Strip *, Strip *> strip_map)
 {
   if (strip->type & STRIP_TYPE_EFFECT) {
-    strip->seq1 = strip_map.lookup_default(strip->seq1, strip->seq1);
-    strip->seq2 = strip_map.lookup_default(strip->seq2, strip->seq2);
+    strip->input1 = strip_map.lookup_default(strip->input1, strip->input1);
+    strip->input2 = strip_map.lookup_default(strip->input2, strip->input2);
   }
 
   LISTBASE_FOREACH (StripModifierData *, smd, &strip->modifiers) {
@@ -829,8 +829,8 @@ static bool strip_read_data_cb(Strip *strip, void *user_data)
   /* Do as early as possible, so that other parts of reading can rely on valid session UID. */
   relations_session_uid_generate(strip);
 
-  BLO_read_struct(reader, Strip, &strip->seq1);
-  BLO_read_struct(reader, Strip, &strip->seq2);
+  BLO_read_struct(reader, Strip, &strip->input1);
+  BLO_read_struct(reader, Strip, &strip->input2);
 
   if (strip->effectdata) {
     switch (strip->type) {

@@ -83,7 +83,7 @@ void transform_translate_strip(Scene *evil_scene, Strip *strip, int delta)
     /* Move meta start/end points. */
     strip_time_translate_handles(evil_scene, strip, delta);
   }
-  else if (strip->seq1 == nullptr && strip->seq2 == nullptr) { /* All other strip types. */
+  else if (strip->input1 == nullptr && strip->input2 == nullptr) { /* All other strip types. */
     strip->start += delta;
     /* Only to make files usable in older versions. */
     strip->startdisp = time_left_handle_frame_get(evil_scene, strip);
@@ -248,7 +248,7 @@ static blender::VectorSet<Strip *> extract_standalone_strips(
   blender::VectorSet<Strip *> standalone_strips;
 
   for (Strip *strip : transformed_strips) {
-    if ((strip->type & STRIP_TYPE_EFFECT) == 0 || strip->seq1 == nullptr) {
+    if ((strip->type & STRIP_TYPE_EFFECT) == 0 || strip->input1 == nullptr) {
       standalone_strips.add(strip);
     }
   }

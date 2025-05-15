@@ -51,8 +51,8 @@ static void strip_lookup_build_effect(Strip *strip, StripLookup *lookup)
     return;
   }
 
-  strip_lookup_append_effect(strip->seq1, strip, lookup);
-  strip_lookup_append_effect(strip->seq2, strip, lookup);
+  strip_lookup_append_effect(strip->input1, strip, lookup);
+  strip_lookup_append_effect(strip->input2, strip, lookup);
 }
 
 static void strip_lookup_build_from_seqbase(Strip *parent_meta,
