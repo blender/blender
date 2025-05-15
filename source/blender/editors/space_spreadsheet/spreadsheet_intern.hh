@@ -14,10 +14,13 @@ struct Object;
 struct SpaceSpreadsheet;
 struct ARegion;
 struct SpreadsheetColumn;
+struct bContext;
 
 #define SPREADSHEET_EDGE_ACTION_ZONE (UI_UNIT_X * 0.3f)
 
 namespace blender::ed::spreadsheet {
+
+class DataSource;
 
 struct SpaceSpreadsheet_Runtime {
  public:
@@ -46,8 +49,16 @@ bke::GeometrySet spreadsheet_get_display_geometry_set(const SpaceSpreadsheet *ss
 
 void spreadsheet_data_set_region_panels_register(ARegionType &region_type);
 
-SpreadsheetColumn *find_column_to_resize(SpaceSpreadsheet &sspreadsheet,
-                                         ARegion &region,
-                                         const int2 &cursor_re);
+/**
+ * Find the column that the cursor is hovering over.
+ */
+SpreadsheetColumn *find_hovered_column_edge(SpaceSpreadsheet &sspreadsheet,
+                                            ARegion &region,
+                                            const int2 &cursor_re);
+
+/**
+ * Get the data that is currently displayed in the spreadsheet.
+ */
+std::unique_ptr<DataSource> get_data_source(const bContext &C);
 
 }  // namespace blender::ed::spreadsheet

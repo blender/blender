@@ -52,7 +52,19 @@ class ColumnValues final {
     return data_;
   }
 
-  float initial_width_px() const;
+  /**
+   * Get a good column width for the column name and values.
+   *
+   * \param max_sample_size: If provided, only a subset of the column values is looked at to
+   * determine the width. This is useful when there are lots of rows to avoid unnecessarily long
+   * computations in drawing code. If provided, there is also an enforced minimum width to avoid
+   * very narrow columns when the sampled values all happen to be very short.
+   */
+  float fit_column_width_px(const std::optional<int64_t> &max_sample_size = std::nullopt) const;
+
+  /** Same as above, but only takes the values into account (ignoring the name). */
+  float fit_column_values_width_px(
+      const std::optional<int64_t> &max_sample_size = std::nullopt) const;
 };
 
 }  // namespace blender::ed::spreadsheet

@@ -3607,6 +3607,7 @@ def km_spreadsheet_generic(params):
             channels_key={"type": 'T', "value": 'PRESS'},
         ),
         ("spreadsheet.resize_column", {"type": 'LEFTMOUSE', "value": 'PRESS'}, None),
+        ("spreadsheet.fit_column", {"type": 'LEFTMOUSE', "value": 'DOUBLE_CLICK'}, None),
     ])
 
     return keymap

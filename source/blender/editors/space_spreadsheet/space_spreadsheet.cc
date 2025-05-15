@@ -330,34 +330,16 @@ Object *spreadsheet_get_object_eval(const SpaceSpreadsheet *sspreadsheet,
   return object_eval;
 }
 
-static std::unique_ptr<DataSource> get_data_source(const bContext *C)
+std::unique_ptr<DataSource> get_data_source(const bContext &C)
 {
-  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
-  SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(C);
+  Depsgraph *depsgraph = CTX_data_depsgraph_pointer(&C);
+  SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(&C);
 
   Object *object_eval = spreadsheet_get_object_eval(sspreadsheet, depsgraph);
   if (object_eval) {
-    return data_source_from_geometry(C, object_eval);
+    return data_source_from_geometry(&C, object_eval);
   }
   return {};
-}
-
-static float get_initial_column_width(const ColumnValues &values)
-{
-  const float padding_px = 0.5 * SPREADSHEET_WIDTH_UNIT;
-  const float min_width_px = SPREADSHEET_WIDTH_UNIT;
-
-  const float data_width_px = values.initial_width_px();
-
-  const int fontid = BLF_default();
-  BLF_size(fontid, UI_DEFAULT_TEXT_POINTS * UI_SCALE_FAC);
-  const StringRefNull name = values.name();
-  const float name_width_px = BLF_width(fontid, name.data(), name.size());
-
-  const float width_px = std::max(min_width_px,
-                                  padding_px + std::max(data_width_px, name_width_px));
-  const float width = width_px / SPREADSHEET_WIDTH_UNIT;
-  return width;
 }
 
 static int get_index_column_width(const int tot_rows)
@@ -412,7 +394,7 @@ static void spreadsheet_main_region_draw(const bContext *C, ARegion *region)
   sspreadsheet->runtime->cache.set_all_unused();
   spreadsheet_update_context(C);
 
-  std::unique_ptr<DataSource> data_source = get_data_source(C);
+  std::unique_ptr<DataSource> data_source = get_data_source(*C);
   if (!data_source) {
     data_source = std::make_unique<DataSource>();
   }
@@ -436,7 +418,7 @@ static void spreadsheet_main_region_draw(const bContext *C, ARegion *region)
     const ColumnValues *values = scope.add(std::move(values_ptr));
 
     if (column->width <= 0.0f) {
-      column->width = get_initial_column_width(*values);
+      column->width = values->fit_column_width_px(100) / SPREADSHEET_WIDTH_UNIT;
     }
     const int width_in_pixels = column->width * SPREADSHEET_WIDTH_UNIT;
     spreadsheet_layout.columns.append({values, width_in_pixels});
@@ -716,7 +698,7 @@ static void spreadsheet_cursor(wmWindow *win, ScrArea *area, ARegion *region)
 
   const int2 cursor_re{win->eventstate->xy[0] - region->winrct.xmin,
                        win->eventstate->xy[1] - region->winrct.ymin};
-  if (find_column_to_resize(sspreadsheet, *region, cursor_re)) {
+  if (find_hovered_column_edge(sspreadsheet, *region, cursor_re)) {
     WM_cursor_set(win, WM_CURSOR_X_MOVE);
     return;
   }
