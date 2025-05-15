@@ -1195,13 +1195,6 @@ bool IMB_colormanagement_space_name_is_srgb(const char *name)
 
 const char *IMB_colormanagement_srgb_colorspace_name_get()
 {
-  for (const int colorspace_index : blender::IndexRange(g_config->get_num_color_spaces())) {
-    const ColorSpace *colorspace = g_config->get_color_space_by_index(colorspace_index);
-    if (colorspace->is_srgb()) {
-      return colorspace->name().c_str();
-    }
-  }
-
   /* Make a best effort to find by common names. First two are from the ColorInterop forum. */
   const char *names[] = {"sRGB Encoded Rec.709 (sRGB)",
                          "srgb_rec709_scene",
