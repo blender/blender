@@ -311,7 +311,7 @@ struct StrokeCache {
     float wet_mix = 0.0f;
     float wet_persistence = 0.0f;
 
-    float density_seed = 0.0f;
+    std::optional<float> density_seed;
     float density = 0.0f;
 
     /**
