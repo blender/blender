@@ -5321,8 +5321,7 @@ static wmOperatorStatus screen_context_menu_invoke(bContext *C,
       ED_screens_region_flip_menu_create(C, layout, nullptr);
       const ScrArea *area = CTX_wm_area(C);
       if (area && area->spacetype == SPACE_PROPERTIES) {
-        uiItemMenuF(
-            layout, IFACE_("Visible Tabs"), ICON_NONE, ED_buttons_visible_tabs_menu, nullptr);
+        layout->menu_fn(IFACE_("Visible Tabs"), ICON_NONE, ED_buttons_visible_tabs_menu, nullptr);
       }
       UI_popup_menu_end(C, pup);
     }

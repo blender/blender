@@ -135,7 +135,7 @@ static void draw_constraint_header(uiLayout *layout, Object *ob, bConstraint *co
   row->prop(&ptr, "enabled", UI_ITEM_NONE, "", ICON_NONE);
 
   /* Extra operators menu. */
-  uiItemMenuF(row, "", ICON_DOWNARROW_HLT, constraint_ops_extra_draw, con);
+  row->menu_fn("", ICON_DOWNARROW_HLT, constraint_ops_extra_draw, con);
 
   /* Close 'button' - emboss calls here disable drawing of 'button' behind X */
   sub = &row->row(false);

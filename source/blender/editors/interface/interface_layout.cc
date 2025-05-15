@@ -3495,25 +3495,26 @@ void uiItemSpacer(uiLayout *layout)
            "");
 }
 
-void uiItemMenuF(
-    uiLayout *layout, const StringRefNull name, int icon, uiMenuCreateFunc func, void *arg)
+void uiLayout::menu_fn(const StringRefNull name, int icon, uiMenuCreateFunc func, void *arg)
 {
   if (!func) {
     return;
   }
 
-  ui_item_menu(layout, name, icon, func, arg, nullptr, "", false);
+  ui_item_menu(this, name, icon, func, arg, nullptr, "", false);
 }
 
-void uiItemMenuFN(
-    uiLayout *layout, const StringRefNull name, int icon, uiMenuCreateFunc func, void *argN)
+void uiLayout::menu_fn_argN_free(const StringRefNull name,
+                                 int icon,
+                                 uiMenuCreateFunc func,
+                                 void *argN)
 {
   if (!func) {
     return;
   }
 
   /* Second 'argN' only ensures it gets freed. */
-  ui_item_menu(layout, name, icon, func, argN, argN, "", false);
+  ui_item_menu(this, name, icon, func, argN, argN, "", false);
 }
 
 struct MenuItemLevel {

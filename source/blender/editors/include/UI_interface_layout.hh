@@ -260,6 +260,22 @@ struct uiLayout : uiItem {
   void menu(blender::StringRef menuname, std::optional<blender::StringRef> name, int icon);
 
   /**
+   * Adds a menu item, which is a button that when active will display a menu.
+   * \param name: Label to show in the menu button.
+   * \param func: Function that generates the menu layout.
+   * \param arg: Pointer to data used as last argument in \a func.
+   */
+  void menu_fn(blender::StringRefNull name, int icon, uiMenuCreateFunc func, void *arg);
+  /**
+   * Adds a menu item, which is a button that when active will display a menu.
+   * \param name: Label to show in the menu button.
+   * \param func: Function that generates the menu layout.
+   * \param argN: Pointer to data used as last argument in \a func, it will be
+   * freed with the menu button.
+   */
+  void menu_fn_argN_free(blender::StringRefNull name, int icon, uiMenuCreateFunc func, void *argN);
+
+  /**
    * Adds a operator item, places a button in the layout to call the operator.
    * \param opname: Operator id name.
    * \param name: Text to show in the layout.
@@ -716,13 +732,6 @@ void uiItemPopoverPanelFromGroup(uiLayout *layout,
 /**
  * Level items.
  */
-void uiItemMenuF(
-    uiLayout *layout, blender::StringRefNull, int icon, uiMenuCreateFunc func, void *arg);
-/**
- * Version of #uiItemMenuF that free's `argN`.
- */
-void uiItemMenuFN(
-    uiLayout *layout, blender::StringRefNull, int icon, uiMenuCreateFunc func, void *argN);
 void uiItemMenuEnumFullO_ptr(uiLayout *layout,
                              const bContext *C,
                              wmOperatorType *ot,
