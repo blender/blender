@@ -181,12 +181,7 @@ Scene *prefetch_get_original_scene_and_strip(const RenderData *context, const St
 
 static bool seq_prefetch_is_cache_full(Scene *scene)
 {
-  bool full = is_cache_full(scene);
-  if (!full) {
-    return false;
-  }
-  bool evicted = final_image_cache_evict(scene);
-  return !evicted;
+  return evict_caches_if_full(scene);
 }
 
 static int seq_prefetch_cfra(PrefetchJob *pfjob)

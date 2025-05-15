@@ -196,7 +196,10 @@ bool final_image_cache_evict(Scene *scene)
    * is full and no longer can evict anything. */
   int cur_prefetch_start = std::numeric_limits<int>::min();
   int cur_prefetch_end = std::numeric_limits<int>::min();
-  seq_prefetch_get_time_range(scene, &cur_prefetch_start, &cur_prefetch_end);
+  if (scene->ed->cache_flag & SEQ_CACHE_STORE_FINAL_OUT) {
+    /* Only activate the prefetch guards if the cache is active. */
+    seq_prefetch_get_time_range(scene, &cur_prefetch_start, &cur_prefetch_end);
+  }
   bool prefetch_loops_around = cur_prefetch_start > cur_prefetch_end;
 
   const int cur_frame = scene->r.cfra;
