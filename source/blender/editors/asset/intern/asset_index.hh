@@ -8,14 +8,26 @@
 
 #pragma once
 
+#include "ED_asset_indexer.hh"
+
 struct AssetMetaData;
+namespace blender {
+class StringRefNull;
+}  // namespace blender
 namespace blender::io::serialize {
 class DictionaryValue;
-}
+class Value;
+}  // namespace blender::io::serialize
 
 namespace blender::ed::asset::index {
 
-AssetMetaData *asset_metadata_from_dictionary(
-    const blender::io::serialize::DictionaryValue &entry);
+struct RemoteListingAssetEntry;
 
-}
+std::unique_ptr<io::serialize::Value> read_contents(StringRefNull filepath);
+
+AssetMetaData *asset_metadata_from_dictionary(const io::serialize::DictionaryValue &entry);
+
+bool read_remote_listing_v1(StringRefNull root_dirpath,
+                            Vector<RemoteListingAssetEntry> &io_entries);
+
+}  // namespace blender::ed::asset::index

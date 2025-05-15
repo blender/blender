@@ -22,6 +22,7 @@ set(SRC
   intern/asset_import.cc
   intern/asset_indexer.cc
   intern/asset_indexer_remote_listing.cc
+  intern/asset_indexer_remote_listing_v1.cc
   intern/asset_library_reference_enum.cc
   intern/asset_library_utils.cc
   intern/asset_list.cc
@@ -61,7 +62,6 @@ set(LIB
   PRIVATE bf::blenloader
   PRIVATE bf::blentranslation
   PRIVATE bf::dna
-  PRIVATE bf::extern::fmtlib
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::windowmanager
