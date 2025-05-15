@@ -190,7 +190,7 @@ Vector<SculptBatch> sculpt_batches_get(const Object *ob, SculptBatchFeature feat
   if (features & SCULPT_BATCH_UV) {
     const CustomData *corner_data = ss.bm ? &ss.bm->ldata : &mesh->corner_data;
     if (const char *name = CustomData_get_active_layer_name(corner_data, CD_PROP_FLOAT2)) {
-      attrs.append(pbvh::GenericRequest{name, CD_PROP_FLOAT2});
+      attrs.append(pbvh::GenericRequest(name));
     }
   }
 
