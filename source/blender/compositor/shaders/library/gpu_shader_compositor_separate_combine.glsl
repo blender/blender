@@ -38,7 +38,6 @@ void node_composite_separate_rgba(float4 color, out float r, out float g, out fl
 void node_composite_combine_hsva(float h, float s, float v, float a, out float4 color)
 {
   hsv_to_rgb(float4(h, s, v, a), color);
-  color.rgb = max(color.rgb, float3(0.0f));
 }
 
 void node_composite_separate_hsva(float4 color, out float h, out float s, out float v, out float a)
