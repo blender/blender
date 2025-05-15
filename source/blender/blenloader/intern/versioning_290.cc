@@ -377,9 +377,10 @@ static void seq_update_meta_disp_range(Scene *scene)
 
     /* Recalculate effects using meta strip. */
     LISTBASE_FOREACH (Strip *, strip, ms->oldbasep) {
-      if (strip->seq2) {
-        strip->start = strip->startdisp = max_ii(strip->seq1->startdisp, strip->seq2->startdisp);
-        strip->enddisp = min_ii(strip->seq1->enddisp, strip->seq2->enddisp);
+      if (strip->input2) {
+        strip->start = strip->startdisp = max_ii(strip->input1->startdisp,
+                                                 strip->input2->startdisp);
+        strip->enddisp = min_ii(strip->input1->enddisp, strip->input2->enddisp);
       }
     }
 

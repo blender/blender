@@ -74,7 +74,7 @@ class DisplayCPUProcessor : public BaseDisplayCPUProcessor {
 
   void apply_rgba_predivide(float rgba[4]) const override
   {
-    if (rgba[3] == 1.0f || rgba[3] == 0.0f) {
+    if (ELEM(rgba[3], 1.0f, 0.0f)) {
       process_rgb(rgba);
       return;
     }
@@ -184,7 +184,7 @@ std::shared_ptr<const CPUProcessor> create_fallback_display_cpu_processor(
   if (display_parameters.view != "Standard") {
     return NOOPDisplayCPUProcessor::get();
   }
-  if (display_parameters.look != "" && display_parameters.look != "None") {
+  if (!ELEM(display_parameters.look, "", "None")) {
     return NOOPDisplayCPUProcessor::get();
   }
 

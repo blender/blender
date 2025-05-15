@@ -537,6 +537,10 @@ static StringRef get_legacy_socket_subtype_idname(StringRef idname, const void *
     const bNodeSocketValueVector &vector_data = *static_cast<const bNodeSocketValueVector *>(
         socket_data);
     switch (vector_data.subtype) {
+      case PROP_FACTOR:
+        return "NodeSocketVectorFactor";
+      case PROP_PERCENTAGE:
+        return "NodeSocketVectorPercentage";
       case PROP_TRANSLATION:
         return "NodeSocketVectorTranslation";
       case PROP_DIRECTION:
@@ -2547,6 +2551,10 @@ std::optional<StringRefNull> node_static_socket_type(const int type, const int s
       return "NodeSocketMatrix";
     case SOCK_VECTOR:
       switch (PropertySubType(subtype)) {
+        case PROP_FACTOR:
+          return "NodeSocketVectorFactor";
+        case PROP_PERCENTAGE:
+          return "NodeSocketVectorPercentage";
         case PROP_TRANSLATION:
           return "NodeSocketVectorTranslation";
         case PROP_DIRECTION:
@@ -2648,6 +2656,10 @@ std::optional<StringRefNull> node_static_socket_interface_type_new(const int typ
       return "NodeTreeInterfaceSocketMatrix";
     case SOCK_VECTOR:
       switch (PropertySubType(subtype)) {
+        case PROP_FACTOR:
+          return "NodeTreeInterfaceSocketVectorFactor";
+        case PROP_PERCENTAGE:
+          return "NodeTreeInterfaceSocketVectorPercentage";
         case PROP_TRANSLATION:
           return "NodeTreeInterfaceSocketVectorTranslation";
         case PROP_DIRECTION:

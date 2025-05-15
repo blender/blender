@@ -39,7 +39,8 @@ Object *parse_object_only(const ViewerPath &viewer_path);
  */
 struct ViewerPathForGeometryNodesViewer {
   Object *object;
-  blender::StringRefNull modifier_name;
+  /** #ModifierData.persistent_uid. */
+  int modifier_uid;
   /** Contains only group node and simulation zone elements. */
   blender::Vector<const ViewerPathElem *> node_path;
   int32_t viewer_node_id;

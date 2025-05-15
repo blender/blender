@@ -318,27 +318,27 @@ static int transform_seq_slide_cursor_get(TransInfo *t)
     return transform_seq_slide_strip_cursor_get(strips[0]);
   }
   if (strips.size() == 2) {
-    Strip *seq1 = strips[0];
-    Strip *seq2 = strips[1];
+    Strip *strip1 = strips[0];
+    Strip *strip2 = strips[1];
 
-    if (seq::time_left_handle_frame_get(scene, seq1) >
-        seq::time_left_handle_frame_get(scene, seq2))
+    if (seq::time_left_handle_frame_get(scene, strip1) >
+        seq::time_left_handle_frame_get(scene, strip2))
     {
-      SWAP(Strip *, seq1, seq2);
+      SWAP(Strip *, strip1, strip2);
     }
 
-    if (seq1->machine != seq2->machine) {
+    if (strip1->machine != strip2->machine) {
       return WM_CURSOR_NSEW_SCROLL;
     }
 
-    if (seq::time_right_handle_frame_get(scene, seq1) !=
-        seq::time_left_handle_frame_get(scene, seq2))
+    if (seq::time_right_handle_frame_get(scene, strip1) !=
+        seq::time_left_handle_frame_get(scene, strip2))
     {
       return WM_CURSOR_NSEW_SCROLL;
     }
 
-    const int cursor1 = transform_seq_slide_strip_cursor_get(seq1);
-    const int cursor2 = transform_seq_slide_strip_cursor_get(seq2);
+    const int cursor1 = transform_seq_slide_strip_cursor_get(strip1);
+    const int cursor2 = transform_seq_slide_strip_cursor_get(strip2);
 
     if (cursor1 == WM_CURSOR_RIGHT_HANDLE && cursor2 == WM_CURSOR_LEFT_HANDLE) {
       return WM_CURSOR_BOTH_HANDLES;

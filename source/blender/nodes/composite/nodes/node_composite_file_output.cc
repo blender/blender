@@ -882,7 +882,7 @@ class FileOutputOperation : public NodeOperation {
 
     /* Do template expansion on the node's base path. */
     char node_base_path[FILE_MAX] = "";
-    BLI_strncpy(node_base_path, get_base_path(), FILE_MAX);
+    STRNCPY(node_base_path, get_base_path());
     {
       blender::Vector<path_templates::Error> errors = BKE_path_apply_template(
           node_base_path, FILE_MAX, template_variables);
@@ -895,7 +895,7 @@ class FileOutputOperation : public NodeOperation {
     if (base_name[0]) {
       /* Do template expansion on the socket's sub path ("base name"). */
       char sub_path[FILE_MAX] = "";
-      BLI_strncpy(sub_path, base_name, FILE_MAX);
+      STRNCPY(sub_path, base_name);
       {
         blender::Vector<path_templates::Error> errors = BKE_path_apply_template(
             sub_path, FILE_MAX, template_variables);

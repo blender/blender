@@ -16,21 +16,21 @@ struct CaptureAttributeItemsAccessor {
   using ItemT = NodeGeometryAttributeCaptureItem;
   static StructRNA *item_srna;
   static int node_type;
-  static constexpr const char *node_idname = "GeometryNodeCaptureAttribute";
+  static constexpr StringRefNull node_idname = "GeometryNodeCaptureAttribute";
   static constexpr bool has_type = true;
   static constexpr bool has_name = true;
   static constexpr bool has_single_identifier_str = false;
   struct operator_idnames {
-    static constexpr const char *add_item = "NODE_OT_capture_attribute_item_add";
-    static constexpr const char *remove_item = "NODE_OT_capture_attribute_item_remove";
-    static constexpr const char *move_item = "NODE_OT_capture_attribute_item_move";
+    static constexpr StringRefNull add_item = "NODE_OT_capture_attribute_item_add";
+    static constexpr StringRefNull remove_item = "NODE_OT_capture_attribute_item_remove";
+    static constexpr StringRefNull move_item = "NODE_OT_capture_attribute_item_move";
   };
   struct ui_idnames {
-    static constexpr const char *list = "NODE_UL_capture_items_list";
+    static constexpr StringRefNull list = "NODE_UL_capture_items_list";
   };
   struct rna_names {
-    static constexpr const char *items = "capture_items";
-    static constexpr const char *active_index = "active_index";
+    static constexpr StringRefNull items = "capture_items";
+    static constexpr StringRefNull active_index = "active_index";
   };
 
   static socket_items::SocketItemsRef<NodeGeometryAttributeCaptureItem> get_items_from_node(

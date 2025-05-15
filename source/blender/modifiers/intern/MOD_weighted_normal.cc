@@ -70,11 +70,11 @@ struct WeightedNormalData {
 
   blender::Span<blender::float3> vert_positions;
   blender::Span<blender::float3> vert_normals;
-  blender::Span<blender::int2> edges;
   blender::MutableSpan<bool> sharp_edges;
 
   blender::Span<int> corner_verts;
   blender::Span<int> corner_edges;
+  blender::GroupedSpan<int> vert_to_face_map;
   blender::Span<int> loop_to_face;
   blender::MutableSpan<blender::short2> clnors;
 
@@ -184,7 +184,6 @@ static void apply_weights_vertex_normal(WeightedNormalModifierData *wnmd,
   const int verts_num = wn_data->verts_num;
 
   const blender::Span<blender::float3> positions = wn_data->vert_positions;
-  const blender::Span<int2> edges = wn_data->edges;
   const blender::OffsetIndices faces = wn_data->faces;
   const blender::Span<int> corner_verts = wn_data->corner_verts;
   const blender::Span<int> corner_edges = wn_data->corner_edges;
@@ -215,11 +214,10 @@ static void apply_weights_vertex_normal(WeightedNormalModifierData *wnmd,
      * we do not actually care about computed corner_normals for now... */
     corner_normals.reinitialize(corner_verts.size());
     bke::mesh::normals_calc_corners(positions,
-                                    edges,
                                     faces,
                                     corner_verts,
                                     corner_edges,
-                                    loop_to_face,
+                                    wn_data->vert_to_face_map,
                                     wn_data->face_normals,
                                     wn_data->sharp_edges,
                                     wn_data->sharp_faces,
@@ -299,10 +297,10 @@ static void apply_weights_vertex_normal(WeightedNormalModifierData *wnmd,
     }
 
     blender::bke::mesh::normals_corner_custom_set(positions,
-                                                  edges,
                                                   faces,
                                                   corner_verts,
                                                   corner_edges,
+                                                  wn_data->vert_to_face_map,
                                                   wn_data->vert_normals,
                                                   face_normals,
                                                   wn_data->sharp_faces,
@@ -328,10 +326,10 @@ static void apply_weights_vertex_normal(WeightedNormalModifierData *wnmd,
       }
 
       blender::bke::mesh::normals_corner_custom_set_from_verts(positions,
-                                                               edges,
                                                                faces,
                                                                corner_verts,
                                                                corner_edges,
+                                                               wn_data->vert_to_face_map,
                                                                wn_data->vert_normals,
                                                                face_normals,
                                                                wn_data->sharp_faces,
@@ -342,11 +340,10 @@ static void apply_weights_vertex_normal(WeightedNormalModifierData *wnmd,
     else {
       corner_normals.reinitialize(corner_verts.size());
       blender::bke::mesh::normals_calc_corners(positions,
-                                               edges,
                                                faces,
                                                corner_verts,
                                                corner_edges,
-                                               loop_to_face,
+                                               wn_data->vert_to_face_map,
                                                face_normals,
                                                wn_data->sharp_edges,
                                                wn_data->sharp_faces,
@@ -361,10 +358,10 @@ static void apply_weights_vertex_normal(WeightedNormalModifierData *wnmd,
         }
       }
       blender::bke::mesh::normals_corner_custom_set(positions,
-                                                    edges,
                                                     faces,
                                                     corner_verts,
                                                     corner_edges,
+                                                    wn_data->vert_to_face_map,
                                                     wn_data->vert_normals,
                                                     face_normals,
                                                     wn_data->sharp_faces,
@@ -468,7 +465,6 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
 
   const int verts_num = result->verts_num;
   const blender::Span<blender::float3> positions = mesh->vert_positions();
-  const blender::Span<int2> edges = mesh->edges();
   const OffsetIndices faces = result->faces();
   const blender::Span<int> corner_verts = mesh->corner_verts();
   const blender::Span<int> corner_edges = mesh->corner_edges();
@@ -510,11 +506,11 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
 
   wn_data.vert_positions = positions;
   wn_data.vert_normals = result->vert_normals();
-  wn_data.edges = edges;
   wn_data.sharp_edges = sharp_edges.span;
 
   wn_data.corner_verts = corner_verts;
   wn_data.corner_edges = corner_edges;
+  wn_data.vert_to_face_map = result->vert_to_face_map();
   wn_data.loop_to_face = loop_to_face_map;
   wn_data.clnors = clnors.span;
 

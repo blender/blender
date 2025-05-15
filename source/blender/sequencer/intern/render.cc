@@ -744,8 +744,8 @@ static ImBuf *seq_render_effect_strip_impl(const RenderData *context,
 
   ibuf[0] = ibuf[1] = nullptr;
 
-  input[0] = strip->seq1;
-  input[1] = strip->seq2;
+  input[0] = strip->input1;
+  input[1] = strip->input2;
 
   if (!sh.execute) {
     /* effect not supported in this version... */

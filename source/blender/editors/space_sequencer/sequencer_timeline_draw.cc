@@ -1330,26 +1330,26 @@ static void draw_strips_background(TimelineDrawContext *timeline_ctx,
     {
       data.flags |= GPU_SEQ_FLAG_TRANSITION;
 
-      const Strip *seq1 = strip.strip->seq1;
-      const Strip *seq2 = strip.strip->seq2;
+      const Strip *input1 = strip.strip->input1;
+      const Strip *input2 = strip.strip->input2;
 
       /* Left side. */
-      if (seq1->type == STRIP_TYPE_COLOR) {
-        rgb_float_to_uchar(col, ((const SolidColorVars *)seq1->effectdata)->col);
+      if (input1->type == STRIP_TYPE_COLOR) {
+        rgb_float_to_uchar(col, ((const SolidColorVars *)input1->effectdata)->col);
       }
       else {
-        color3ubv_from_seq(scene, seq1, strip.show_strip_color_tag, strip.is_muted, col);
+        color3ubv_from_seq(scene, input1, strip.show_strip_color_tag, strip.is_muted, col);
       }
       data.col_transition_in = color_pack(col);
 
       /* Right side. */
-      if (seq2->type == STRIP_TYPE_COLOR) {
-        rgb_float_to_uchar(col, ((const SolidColorVars *)seq2->effectdata)->col);
+      if (input2->type == STRIP_TYPE_COLOR) {
+        rgb_float_to_uchar(col, ((const SolidColorVars *)input2->effectdata)->col);
       }
       else {
-        color3ubv_from_seq(scene, seq2, strip.show_strip_color_tag, strip.is_muted, col);
+        color3ubv_from_seq(scene, input2, strip.show_strip_color_tag, strip.is_muted, col);
         /* If the transition inputs are of the same type, draw the right side slightly darker. */
-        if (seq1->type == seq2->type) {
+        if (input1->type == input2->type) {
           UI_GetColorPtrShade3ubv(col, -15, col);
         }
       }
@@ -1440,7 +1440,7 @@ static void strip_data_highlight_flags_set(const StripDrawContext &strip,
   const Strip *special_preview = special_preview_get();
   /* Highlight if strip is an input of an active strip, or if the strip is solo preview. */
   if (act_strip != nullptr && (act_strip->flag & SELECT) != 0) {
-    if (act_strip->seq1 == strip.strip || act_strip->seq2 == strip.strip) {
+    if (act_strip->input1 == strip.strip || act_strip->input2 == strip.strip) {
       data.flags |= GPU_SEQ_FLAG_HIGHLIGHT;
     }
   }

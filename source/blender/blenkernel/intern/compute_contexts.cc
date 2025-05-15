@@ -14,22 +14,24 @@ namespace blender::bke {
 
 ModifierComputeContext::ModifierComputeContext(const ComputeContext *parent,
                                                const NodesModifierData &nmd)
-    : ModifierComputeContext(parent, nmd.modifier.name)
+    : ModifierComputeContext(parent, nmd.modifier.persistent_uid)
 {
   nmd_ = &nmd;
 }
 
 ModifierComputeContext::ModifierComputeContext(const ComputeContext *parent,
-                                               std::string modifier_name)
-    : ComputeContext(s_static_type, parent), modifier_name_(std::move(modifier_name))
+                                               const int modifier_uid)
+    : ComputeContext(s_static_type, parent), modifier_uid_(std::move(modifier_uid))
 {
   hash_.mix_in(s_static_type, strlen(s_static_type));
-  hash_.mix_in(modifier_name_.data(), modifier_name_.size());
+  hash_.mix_in(&modifier_uid_, sizeof(modifier_uid_));
 }
 
 void ModifierComputeContext::print_current_in_line(std::ostream &stream) const
 {
-  stream << "Modifier: " << modifier_name_;
+  if (nmd_) {
+    stream << "Modifier: " << nmd_->modifier.name;
+  }
 }
 
 GroupNodeComputeContext::GroupNodeComputeContext(
@@ -212,15 +214,15 @@ const ModifierComputeContext &ComputeContextCache::for_modifier(const ComputeCon
                                                                 const NodesModifierData &nmd)
 {
   return *modifier_contexts_cache_.lookup_or_add_cb(
-      std::pair{parent, StringRef(nmd.modifier.name)},
+      std::pair{parent, nmd.modifier.persistent_uid},
       [&]() { return &this->for_any_uncached<ModifierComputeContext>(parent, nmd); });
 }
 
 const ModifierComputeContext &ComputeContextCache::for_modifier(const ComputeContext *parent,
-                                                                StringRef modifier_name)
+                                                                const int modifier_uid)
 {
-  return *modifier_contexts_cache_.lookup_or_add_cb(std::pair{parent, modifier_name}, [&]() {
-    return &this->for_any_uncached<ModifierComputeContext>(parent, modifier_name);
+  return *modifier_contexts_cache_.lookup_or_add_cb(std::pair{parent, modifier_uid}, [&]() {
+    return &this->for_any_uncached<ModifierComputeContext>(parent, modifier_uid);
   });
 }
 

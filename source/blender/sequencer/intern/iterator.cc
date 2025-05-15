@@ -219,17 +219,17 @@ void query_strip_effect_chain(const Scene *scene,
 
   /* Find all input strips for `reference_strip`. */
   if (reference_strip->type & STRIP_TYPE_EFFECT) {
-    if (reference_strip->seq1) {
-      query_strip_effect_chain(scene, reference_strip->seq1, seqbase, r_strips);
+    if (reference_strip->input1) {
+      query_strip_effect_chain(scene, reference_strip->input1, seqbase, r_strips);
     }
-    if (reference_strip->seq2) {
-      query_strip_effect_chain(scene, reference_strip->seq2, seqbase, r_strips);
+    if (reference_strip->input2) {
+      query_strip_effect_chain(scene, reference_strip->input2, seqbase, r_strips);
     }
   }
 
   /* Find all effect strips that have `reference_strip` as an input. */
   LISTBASE_FOREACH (Strip *, strip_test, seqbase) {
-    if (strip_test->seq1 == reference_strip || strip_test->seq2 == reference_strip) {
+    if (strip_test->input1 == reference_strip || strip_test->input2 == reference_strip) {
       query_strip_effect_chain(scene, strip_test, seqbase, r_strips);
     }
   }

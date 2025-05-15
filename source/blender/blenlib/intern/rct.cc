@@ -1128,7 +1128,7 @@ void BLI_rctf_rotate_expand(rctf *dst, const rctf *src, const float angle)
 
 #undef ROTATE_SINCOS
 
-bool BLI_rctf_clamp_segment(const struct rctf *rect, float s1[2], float s2[2])
+bool BLI_rctf_clamp_segment(const rctf *rect, float s1[2], float s2[2])
 {
   using namespace blender;
 

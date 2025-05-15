@@ -125,12 +125,6 @@ enum class UpdateType {
 
 }  // namespace blender::ed::sculpt_paint
 
-struct SculptCursorGeometryInfo {
-  blender::float3 location;
-  blender::float3 normal;
-  blender::float3 active_vertex_co;
-};
-
 /* Factor of brush to have rake point following behind
  * (could be configurable but this is reasonable default). */
 #define SCULPT_RAKE_BRUSH_FACTOR 0.25f
@@ -473,51 +467,48 @@ void SCULPT_tag_update_overlays(bContext *C);
 /** \name Stroke Functions
  * \{ */
 
+namespace blender::ed::sculpt_paint {
 /**
  * Do a ray-cast in the tree to find the 3d brush location
  * (This allows us to ignore the GL depth buffer)
- * Returns 0 if the ray doesn't hit the mesh, non-zero otherwise.
  *
- * If check_closest is true and the ray test fails a point closest
- * to the ray will be found. If limit_closest_radius is true then
- * the closest point will be tested against the active brush radius.
+ * TODO: This should be updated to return std::optional<float3>
  */
-bool SCULPT_stroke_get_location_ex(bContext *C,
-                                   float out[3],
-                                   const float mval[2],
-                                   bool force_original,
-                                   bool check_closest,
-                                   bool limit_closest_radius);
+bool stroke_get_location_bvh(bContext *C, float out[3], const float mval[2], bool force_original);
 
-bool SCULPT_stroke_get_location(bContext *C,
-                                float out[3],
-                                const float mval[2],
-                                bool force_original);
+struct CursorGeometryInfo {
+  float3 location;
+  float3 normal;
+  float3 active_vertex_co;
+};
+
 /**
  * Gets the normal, location and active vertex location of the geometry under the cursor. This also
  * updates the active vertex and cursor related data of the SculptSession using the mouse position
+ *
+ * TODO: This should be updated to return `std::optional<CursorGeometryInfo>`
  */
-bool SCULPT_cursor_geometry_info_update(bContext *C,
-                                        SculptCursorGeometryInfo *out,
-                                        const float mval[2],
-                                        bool use_sampled_normal);
-
-namespace blender::ed::sculpt_paint {
+bool cursor_geometry_info_update(bContext *C,
+                                 CursorGeometryInfo *out,
+                                 const float2 &mval,
+                                 bool use_sampled_normal);
 
 void geometry_preview_lines_update(Depsgraph &depsgraph,
                                    Object &object,
                                    SculptSession &ss,
                                    float radius);
 
-}
+}  // namespace blender::ed::sculpt_paint
 
 void SCULPT_stroke_modifiers_check(const bContext *C, Object &ob, const Brush &brush);
-float SCULPT_raycast_init(ViewContext *vc,
-                          const float mval[2],
-                          float ray_start[3],
-                          float ray_end[3],
-                          float ray_normal[3],
-                          bool original);
+namespace blender::ed::sculpt_paint {
+float raycast_init(ViewContext *vc,
+                   const float2 &mval,
+                   float3 &ray_start,
+                   float3 &ray_end,
+                   float3 &ray_normal,
+                   bool original);
+}
 
 /* Symmetry */
 ePaintSymmetryFlags SCULPT_mesh_symmetry_xyz_get(const Object &object);
@@ -561,12 +552,11 @@ void SCULPT_vertex_random_access_ensure(Object &object);
 
 int SCULPT_vertex_count_get(const Object &object);
 
-bool SCULPT_vertex_is_occluded(const Depsgraph &depsgraph,
-                               const Object &object,
-                               const blender::float3 &position,
-                               bool original);
-
 namespace blender::ed::sculpt_paint {
+bool vertex_is_occluded(const Depsgraph &depsgraph,
+                        const Object &object,
+                        const float3 &position,
+                        bool original);
 
 /**
  * Coordinates used for manipulating the base mesh when Grab Active Vertex is enabled.

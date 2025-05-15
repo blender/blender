@@ -1531,16 +1531,16 @@ static wmOperatorStatus sequencer_add_effect_strip_exec(bContext *C, wmOperator 
     deselect_all_strips(scene);
   }
 
-  Strip *seq1 = inputs.size() > 0 ? inputs[0] : nullptr;
-  Strip *seq2 = inputs.size() == 2 ? inputs[1] : nullptr;
+  Strip *input1 = inputs.size() > 0 ? inputs[0] : nullptr;
+  Strip *input2 = inputs.size() == 2 ? inputs[1] : nullptr;
 
-  load_data.effect.seq1 = seq1;
-  load_data.effect.seq2 = seq2;
+  load_data.effect.input1 = input1;
+  load_data.effect.input2 = input2;
 
   /* Set channel. If unset, use lowest free one above strips. */
   if (!RNA_struct_property_is_set(op->ptr, "channel")) {
-    if (seq1 != nullptr) {
-      int chan = max_ii(seq1 ? seq1->machine : 0, seq2 ? seq2->machine : 0);
+    if (input1 != nullptr) {
+      int chan = max_ii(input1 ? input1->machine : 0, input2 ? input2->machine : 0);
       if (chan < seq::MAX_CHANNELS) {
         load_data.channel = chan;
       }

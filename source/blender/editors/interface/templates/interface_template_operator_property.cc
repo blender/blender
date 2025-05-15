@@ -97,7 +97,7 @@ static eAutoPropButsReturn template_operator_property_buts_draw_single(
     UI_block_set_active_operator(block, op, false);
 
     row = &layout->row(true);
-    uiItemM(row, "WM_MT_operator_presets", std::nullopt, ICON_NONE);
+    row->menu("WM_MT_operator_presets", std::nullopt, ICON_NONE);
 
     wmOperatorType *ot = WM_operatortype_find("WM_OT_operator_preset_add", false);
     uiItemFullO_ptr(row, ot, "", ICON_ADD, nullptr, WM_OP_INVOKE_DEFAULT, UI_ITEM_NONE, &op_ptr);
@@ -444,7 +444,7 @@ void uiTemplateCollectionExporters(uiLayout *layout, bContext *C)
                  UI_TEMPLATE_LIST_FLAG_NONE);
 
   uiLayout *col = &row->column(true);
-  uiItemM(col, "COLLECTION_MT_exporter_add", "", ICON_ADD);
+  col->menu("COLLECTION_MT_exporter_add", "", ICON_ADD);
   uiItemIntO(col, "", ICON_REMOVE, "COLLECTION_OT_exporter_remove", "index", index);
 
   col = &layout->column(true);

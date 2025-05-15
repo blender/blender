@@ -103,15 +103,15 @@ void connect(blender::VectorSet<Strip *> &strip_list)
 {
   strip_list.remove_if([&](Strip *strip) { return strip == nullptr; });
 
-  for (Strip *seq1 : strip_list) {
-    disconnect(seq1);
-    for (Strip *seq2 : strip_list) {
-      if (seq1 == seq2) {
+  for (Strip *strip1 : strip_list) {
+    disconnect(strip1);
+    for (Strip *strip2 : strip_list) {
+      if (strip1 == strip2) {
         continue;
       }
       StripConnection *con = MEM_callocN<StripConnection>("stripconnection");
-      con->strip_ref = seq2;
-      BLI_addtail(&seq1->connections, con);
+      con->strip_ref = strip2;
+      BLI_addtail(&strip1->connections, con);
     }
   }
 }
@@ -138,14 +138,14 @@ bool is_strip_connected(const Strip *strip)
 bool are_strips_connected_together(blender::VectorSet<Strip *> &strip_list)
 {
   const int expected_connection_num = strip_list.size() - 1;
-  for (Strip *seq1 : strip_list) {
-    blender::VectorSet<Strip *> connections = connected_strips_get(seq1);
+  for (Strip *strip1 : strip_list) {
+    blender::VectorSet<Strip *> connections = connected_strips_get(strip1);
     int found_connection_num = connections.size();
     if (found_connection_num != expected_connection_num) {
       return false;
     }
-    for (Strip *seq2 : connections) {
-      if (!strip_list.contains(seq2)) {
+    for (Strip *strip2 : connections) {
+      if (!strip_list.contains(strip2)) {
         return false;
       }
     }

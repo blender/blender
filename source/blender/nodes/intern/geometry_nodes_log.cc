@@ -934,7 +934,7 @@ const ViewerNodeLog *GeoModifierLog::find_viewer_node_log_for_path(const ViewerP
   const Object *object = parsed_path->object;
   NodesModifierData *nmd = nullptr;
   LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
-    if (md->name == parsed_path->modifier_name) {
+    if (md->persistent_uid == parsed_path->modifier_uid) {
       if (md->type == eModifierType_Nodes) {
         nmd = reinterpret_cast<NodesModifierData *>(md);
       }

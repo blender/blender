@@ -187,7 +187,8 @@ static void line_plane_from_tri(float *r_plane,
 {
   float3 normal;
   normal_tri_v3(normal, p1, p2, p3);
-  normal = math::transform_direction(gesture_data.vc.obact->world_to_object(), normal);
+  normal = math::normalize(
+      math::transform_direction(gesture_data.vc.obact->world_to_object(), normal));
   if (flip) {
     normal *= -1.0f;
   }

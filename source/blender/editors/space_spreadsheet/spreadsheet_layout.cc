@@ -57,6 +57,13 @@ class SpreadsheetLayoutDrawer : public SpreadsheetDrawer {
                                   0,
                                   0,
                                   std::nullopt);
+    UI_but_func_tooltip_set(
+        but,
+        [](bContext * /*C*/, void *arg, blender::StringRef /*tip*/) {
+          return *static_cast<std::string *>(arg);
+        },
+        MEM_new<std::string>(__func__, name),
+        [](void *arg) { MEM_delete(static_cast<std::string *>(arg)); });
     /* Center-align column headers. */
     UI_but_drawflag_disable(but, UI_BUT_TEXT_LEFT);
     UI_but_drawflag_disable(but, UI_BUT_TEXT_RIGHT);

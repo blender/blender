@@ -774,7 +774,9 @@ void rna_NodeTreeInterfaceSocketInt_default_value_range(
 static const EnumPropertyItem *rna_NodeTreeInterfaceSocketVector_subtype_itemf(
     bContext * /*C*/, PointerRNA * /*ptr*/, PropertyRNA * /*prop*/, bool *r_free)
 {
-  return rna_subtype_filter_itemf({PROP_TRANSLATION,
+  return rna_subtype_filter_itemf({PROP_FACTOR,
+                                   PROP_PERCENTAGE,
+                                   PROP_TRANSLATION,
                                    PROP_DIRECTION,
                                    PROP_VELOCITY,
                                    PROP_ACCELERATION,

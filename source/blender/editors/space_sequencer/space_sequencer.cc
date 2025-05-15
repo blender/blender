@@ -717,22 +717,22 @@ static void sequencer_main_cursor(wmWindow *win, ScrArea *area, ARegion *region)
 
   StripSelection selection = pick_strip_and_handle(scene, &region->v2d, mouse_co_view);
 
-  if (selection.seq1 == nullptr) {
+  if (selection.strip1 == nullptr) {
     WM_cursor_set(win, wmcursor);
     return;
   }
 
-  if (is_mouse_over_retiming_key(scene, selection.seq1, &region->v2d, area, mouse_co_region)) {
+  if (is_mouse_over_retiming_key(scene, selection.strip1, &region->v2d, area, mouse_co_region)) {
     WM_cursor_set(win, wmcursor);
     return;
   }
 
-  if (!can_select_handle(scene, selection.seq1, v2d)) {
+  if (!can_select_handle(scene, selection.strip1, v2d)) {
     WM_cursor_set(win, wmcursor);
     return;
   }
 
-  if (selection.seq1 != nullptr && selection.seq2 != nullptr) {
+  if (selection.strip1 != nullptr && selection.strip2 != nullptr) {
     wmcursor = WM_CURSOR_BOTH_HANDLES;
   }
   else if (selection.handle == SEQ_HANDLE_LEFT) {

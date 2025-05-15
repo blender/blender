@@ -48,8 +48,8 @@ struct LoadData {
   struct {
     int type;
     int end_frame;
-    Strip *seq1;
-    Strip *seq2;
+    Strip *input1;
+    Strip *input2;
   } effect; /* Only for effect strips. */
   eLoadFlags flags;
   eSeqImageFitMethod fit_method;

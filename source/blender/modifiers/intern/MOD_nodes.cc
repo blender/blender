@@ -498,7 +498,7 @@ static void try_add_side_effect_node(const ModifierEvalContext &ctx,
   if (modifier_compute_context == nullptr) {
     return;
   }
-  if (modifier_compute_context->modifier_name() != nmd.modifier.name) {
+  if (modifier_compute_context->modifier_uid() != nmd.modifier.persistent_uid) {
     return;
   }
 
@@ -713,7 +713,7 @@ static void find_side_effect_nodes_for_viewer_path(
   if (parsed_path->object != DEG_get_original(ctx.object)) {
     return;
   }
-  if (parsed_path->modifier_name != nmd.modifier.name) {
+  if (parsed_path->modifier_uid != nmd.modifier.persistent_uid) {
     return;
   }
 

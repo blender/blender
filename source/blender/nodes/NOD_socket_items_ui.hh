@@ -58,8 +58,8 @@ static void draw_items_list_with_operators(const bContext *C,
       const_cast<ID *>(&tree.id), &RNA_Node, const_cast<bNode *>(&node));
 
   static const uiListType *items_list = []() {
-    uiListType *list = MEM_callocN<uiListType>(Accessor::ui_idnames::list);
-    STRNCPY(list->idname, Accessor::ui_idnames::list);
+    uiListType *list = MEM_callocN<uiListType>(Accessor::ui_idnames::list.c_str());
+    STRNCPY(list->idname, Accessor::ui_idnames::list.c_str());
     list->draw_item = draw_item_in_list<Accessor>;
     WM_uilisttype_add(list);
     return list;
@@ -73,7 +73,7 @@ static void draw_items_list_with_operators(const bContext *C,
                  &node_ptr,
                  Accessor::rna_names::items,
                  &node_ptr,
-                 Accessor::rna_names::active_index,
+                 Accessor::rna_names::active_index.c_str(),
                  nullptr,
                  3,
                  5,

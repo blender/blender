@@ -400,13 +400,13 @@ static wmOperatorStatus sequencer_snap_exec(bContext *C, wmOperator *op)
     if (strip->type & STRIP_TYPE_EFFECT) {
       const bool either_handle_selected = (strip->flag & (SEQ_LEFTSEL | SEQ_RIGHTSEL)) != 0;
 
-      if (strip->seq1 && (strip->seq1->flag & SELECT)) {
+      if (strip->input1 && (strip->input1->flag & SELECT)) {
         if (!either_handle_selected) {
           seq::offset_animdata(
               scene, strip, (snap_frame - seq::time_left_handle_frame_get(scene, strip)));
         }
       }
-      else if (strip->seq2 && (strip->seq2->flag & SELECT)) {
+      else if (strip->input2 && (strip->input2->flag & SELECT)) {
         if (!either_handle_selected) {
           seq::offset_animdata(
               scene, strip, (snap_frame - seq::time_left_handle_frame_get(scene, strip)));
@@ -1333,19 +1333,19 @@ static wmOperatorStatus sequencer_reassign_inputs_exec(bContext *C, wmOperator *
     return OPERATOR_CANCELLED;
   }
 
-  Strip *seq1 = inputs[0];
-  Strip *seq2 = inputs.size() == 2 ? inputs[1] : nullptr;
+  Strip *input1 = inputs[0];
+  Strip *input2 = inputs.size() == 2 ? inputs[1] : nullptr;
 
   /* Check if reassigning would create recursivity. */
-  if (seq::relations_render_loop_check(seq1, active_strip) ||
-      seq::relations_render_loop_check(seq2, active_strip))
+  if (seq::relations_render_loop_check(input1, active_strip) ||
+      seq::relations_render_loop_check(input2, active_strip))
   {
     BKE_report(op->reports, RPT_ERROR, "Cannot reassign inputs: recursion detected");
     return OPERATOR_CANCELLED;
   }
 
-  active_strip->seq1 = seq1;
-  active_strip->seq2 = seq2;
+  active_strip->input1 = input1;
+  active_strip->input2 = input2;
 
   int old_start = active_strip->start;
 
@@ -1353,7 +1353,7 @@ static wmOperatorStatus sequencer_reassign_inputs_exec(bContext *C, wmOperator *
    * TODO(Richard): This is because internally startdisp is still used, due to poor performance
    * of mapping effect range to inputs. This mapping could be cached though. */
   seq::strip_lookup_invalidate(scene->ed);
-  seq::time_left_handle_frame_set(scene, seq1, seq::time_left_handle_frame_get(scene, seq1));
+  seq::time_left_handle_frame_set(scene, input1, seq::time_left_handle_frame_get(scene, input1));
 
   seq::relations_invalidate_cache(scene, active_strip);
   seq::offset_animdata(scene, active_strip, (active_strip->start - old_start));
@@ -1404,14 +1404,14 @@ static wmOperatorStatus sequencer_swap_inputs_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   Strip *active_strip = seq::select_active_get(scene);
 
-  if (active_strip->seq1 == nullptr || active_strip->seq2 == nullptr) {
+  if (active_strip->input1 == nullptr || active_strip->input2 == nullptr) {
     BKE_report(op->reports, RPT_ERROR, "No valid inputs to swap");
     return OPERATOR_CANCELLED;
   }
 
-  Strip *strip = active_strip->seq1;
-  active_strip->seq1 = active_strip->seq2;
-  active_strip->seq2 = strip;
+  Strip *strip = active_strip->input1;
+  active_strip->input1 = active_strip->input2;
+  active_strip->input2 = strip;
 
   seq::relations_invalidate_cache(scene, active_strip);
 
@@ -2403,7 +2403,7 @@ static Strip *find_next_prev_strip(Scene *scene, Strip *test, int lr, int sel)
 
 static bool strip_is_parent(const Strip *par, const Strip *strip)
 {
-  return ((par->seq1 == strip) || (par->seq2 == strip));
+  return ((par->input1 == strip) || (par->input2 == strip));
 }
 
 static wmOperatorStatus sequencer_swap_exec(bContext *C, wmOperator *op)
@@ -2425,12 +2425,12 @@ static wmOperatorStatus sequencer_swap_exec(bContext *C, wmOperator *op)
 
     /* Disallow effect strips. */
     if (seq::effect_get_num_inputs(strip->type) >= 1 &&
-        (strip->effectdata || strip->seq1 || strip->seq2))
+        (strip->effectdata || strip->input1 || strip->input2))
     {
       return OPERATOR_CANCELLED;
     }
     if ((seq::effect_get_num_inputs(active_strip->type) >= 1) &&
-        (active_strip->effectdata || active_strip->seq1 || active_strip->seq2))
+        (active_strip->effectdata || active_strip->input1 || active_strip->input2))
     {
       return OPERATOR_CANCELLED;
     }
@@ -2697,7 +2697,7 @@ static wmOperatorStatus sequencer_change_effect_input_exec(bContext *C, wmOperat
   Scene *scene = CTX_data_scene(C);
   Strip *strip = seq::select_active_get(scene);
 
-  Strip **strip_1 = &strip->seq1, **strip_2 = &strip->seq2;
+  Strip **strip_1 = &strip->input1, **strip_2 = &strip->input2;
 
   if (*strip_1 == nullptr || *strip_2 == nullptr) {
     BKE_report(op->reports, RPT_ERROR, "One of the effect inputs is unset, cannot swap");

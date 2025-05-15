@@ -71,7 +71,9 @@ static Set<StringRef> get_builtin_menus(const int tree_type)
       return {"Attribute",
               "Input",
               "Input/Constant",
+              "Input/Gizmo",
               "Input/Group",
+              "Input/Import",
               "Input/Scene",
               "Output",
               "Geometry",
@@ -86,6 +88,10 @@ static Set<StringRef> get_builtin_menus(const int tree_type)
               "Curve/Operations",
               "Curve/Primitives",
               "Curve/Topology",
+              "Grease Pencil",
+              "Grease Pencil/Read",
+              "Grease Pencil/Operations",
+              "Grease Pencil/Write",
               "Instances",
               "Mesh",
               "Mesh/Read",
@@ -112,8 +118,7 @@ static Set<StringRef> get_builtin_menus(const int tree_type)
               "Utilities/Rotation",
               "Utilities/Deprecated",
               "Group",
-              "Layout",
-              "Unassigned"};
+              "Layout"};
     case NTREE_COMPOSIT:
       return {"Input",
               "Input/Constant",
@@ -128,6 +133,7 @@ static Set<StringRef> get_builtin_menus(const int tree_type)
               "Mask",
               "Tracking",
               "Transform",
+              "Texture",
               "Utilities",
               "Vector",
               "Group",
@@ -272,7 +278,7 @@ static void add_root_catalogs_draw(const bContext *C, Menu *menu)
 
   if (!tree.unassigned_assets.is_empty()) {
     layout->separator();
-    uiItemM(layout, "NODE_MT_node_add_unassigned_assets", IFACE_("Unassigned"), ICON_FILE_HIDDEN);
+    layout->menu("NODE_MT_node_add_unassigned_assets", IFACE_("Unassigned"), ICON_FILE_HIDDEN);
   }
 }
 

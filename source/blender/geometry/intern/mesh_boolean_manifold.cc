@@ -132,7 +132,7 @@ static void dump_mesh(const Mesh *mesh, const std::string &name)
     if (ELEM(iter.name, "position", ".edge_verts", ".corner_vert", ".corner_edge")) {
       return;
     }
-    const int di = static_cast<int8_t>(iter.domain);
+    const int di = int8_t(iter.domain);
     const char *domain = (di >= 0 && di < ATTR_DOMAIN_NUM) ? domain_names[di] : "?";
     std::string label = std::string(domain) + ": " + iter.name;
     switch (iter.data_type) {
@@ -913,14 +913,14 @@ static bool is_legal_merge(const OutFace &f1, const OutFace &f2, int v1, int v2)
    * TODO: if the faces are big, sort both together and look for repeats after sorting.
    */
   for (const int v : f1.verts) {
-    if (v != v1 && v != v2) {
+    if (!ELEM(v, v1, v2)) {
       if (f2.find_vert_index(v) != -1) {
         return false;
       }
     }
   }
   for (const int v : f2.verts) {
-    if (v != v1 && v != v2) {
+    if (!ELEM(v, v1, v2)) {
       if (f1.find_vert_index(v) != -1) {
         return false;
       }

@@ -171,16 +171,16 @@ Strip *add_effect_strip(Scene *scene, ListBase *seqbase, LoadData *load_data)
   sh.init(strip);
 
   if (seq::effect_get_num_inputs(strip->type) != 0) {
-    strip->seq1 = load_data->effect.seq1;
-    strip->seq2 = load_data->effect.seq2;
+    strip->input1 = load_data->effect.input1;
+    strip->input2 = load_data->effect.input2;
   }
 
   if (effect_get_num_inputs(strip->type) == 1) {
-    strip->blend_mode = strip->seq1->blend_mode;
-    strip->blend_opacity = strip->seq1->blend_opacity;
+    strip->blend_mode = strip->input1->blend_mode;
+    strip->blend_opacity = strip->input1->blend_opacity;
   }
 
-  if (strip->seq1 == nullptr) {
+  if (strip->input1 == nullptr) {
     strip->len = 1; /* Effect is generator, set non zero length. */
     strip->flag |= SEQ_SINGLE_FRAME_CONTENT;
     time_right_handle_frame_set(scene, strip, load_data->effect.end_frame);

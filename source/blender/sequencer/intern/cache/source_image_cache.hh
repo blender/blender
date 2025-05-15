@@ -11,8 +11,8 @@
  *   any other strips (images, movies, no-input effect strips like
  *   Text and Color).
  * - When full, cache eviction policy is to remove frames furthest
- *   from the current playhead, biasing towards removal of
- *   frames behind the playhead.
+ *   from the current-frame, biasing towards removal of
+ *   frames behind the current-frame.
  * - Invalidated fairly rarely, since the cached items only change
  *   when the source content changes.
  */

@@ -8,8 +8,8 @@
  * Cache of final rendered frames.
  * - Keyed by (timeline frame, view_id).
  * - When full, cache eviction policy is to remove frames furthest
- *   from the current playhead, biasing towards removal of
- *   frames behind the playhead.
+ *   from the current-frame, biasing towards removal of
+ *   frames behind the current-frame.
  * - Invalidated fairly often while editing, basically whenever any
  *   strip overlapping that frame changes.
  */

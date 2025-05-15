@@ -592,7 +592,7 @@ static void paint_brush_stroke_add_step(
   if (paint_stroke_use_scene_spacing(brush, mode)) {
     float3 world_space_position;
 
-    if (SCULPT_stroke_get_location(
+    if (stroke_get_location_bvh(
             C, world_space_position, stroke->last_mouse_position, stroke->original))
     {
       stroke->last_world_space_position = math::transform_point(
@@ -835,7 +835,7 @@ static int paint_space_stroke(bContext *C,
   const bool use_scene_spacing = paint_stroke_use_scene_spacing(brush, mode);
   if (use_scene_spacing) {
     float3 world_space_position;
-    const bool hit = SCULPT_stroke_get_location(
+    const bool hit = stroke_get_location_bvh(
         C, world_space_position, final_mouse, stroke->original);
     world_space_position = math::transform_point(stroke->vc.obact->object_to_world(),
                                                  world_space_position);
@@ -1255,11 +1255,11 @@ static void paint_line_strokes_spacing(bContext *C,
   stroke->last_mouse_position = old_pos;
 
   if (use_scene_spacing) {
-    const bool hit_old = SCULPT_stroke_get_location(
+    const bool hit_old = stroke_get_location_bvh(
         C, world_space_position_old, old_pos, stroke->original);
 
     float3 world_space_position_new;
-    const bool hit_new = SCULPT_stroke_get_location(
+    const bool hit_new = stroke_get_location_bvh(
         C, world_space_position_new, new_pos, stroke->original);
 
     world_space_position_old = math::transform_point(stroke->vc.obact->object_to_world(),
@@ -1404,7 +1404,7 @@ static bool paint_stroke_curve_end(bContext *C, wmOperator *op, PaintStroke *str
         copy_v2_v2(stroke->last_mouse_position, data + 2 * j);
 
         if (paint_stroke_use_scene_spacing(br, BKE_paintmode_get_active_from_context(C))) {
-          stroke->stroke_over_mesh = SCULPT_stroke_get_location(
+          stroke->stroke_over_mesh = stroke_get_location_bvh(
               C, stroke->last_world_space_position, data + 2 * j, stroke->original);
           mul_m4_v3(stroke->vc.obact->object_to_world().ptr(), stroke->last_world_space_position);
         }
@@ -1532,7 +1532,7 @@ wmOperatorStatus paint_stroke_modal(bContext *C,
     stroke->last_pressure = sample_average.pressure;
     stroke->last_mouse_position = sample_average.mouse;
     if (paint_stroke_use_scene_spacing(*br, mode)) {
-      stroke->stroke_over_mesh = SCULPT_stroke_get_location(
+      stroke->stroke_over_mesh = stroke_get_location_bvh(
           C, stroke->last_world_space_position, sample_average.mouse, stroke->original);
       stroke->last_world_space_position = math::transform_point(
           stroke->vc.obact->object_to_world(), stroke->last_world_space_position);
