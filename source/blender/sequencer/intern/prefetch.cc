@@ -76,6 +76,7 @@ struct PrefetchJob {
   int timeline_end = 0;
   int timeline_length = 0;
   int num_frames_prefetched = 0;
+  int cache_flags = 0;
 
   /* Control: */
   /* Set by prefetch. */
@@ -280,6 +281,12 @@ static void seq_prefetch_update_area(PrefetchJob *pfjob)
     /* Reset the number of prefetched frames as we need to re-evaluate which
      * frames to keep in the cache.
      */
+    pfjob->num_frames_prefetched = 1;
+  }
+
+  /* cache flag changes */
+  if (pfjob->cache_flags != scene->ed->cache_flag) {
+    pfjob->cache_flags = scene->ed->cache_flag;
     pfjob->num_frames_prefetched = 1;
   }
 }
@@ -528,7 +535,9 @@ static void *seq_prefetch_frames(void *job)
     if (seq_prefetch_must_skip_frame(pfjob, channels, seqbase)) {
       pfjob->num_frames_prefetched++;
       /* Break instead of keep looping if the job should be terminated. */
-      if (!(pfjob->scene->ed->cache_flag & SEQ_CACHE_PREFETCH_ENABLE) || pfjob->stop) {
+      if (!(pfjob->scene->ed->cache_flag & SEQ_CACHE_PREFETCH_ENABLE) ||
+          !(pfjob->scene->ed->cache_flag & SEQ_CACHE_ALL_TYPES) || pfjob->stop)
+      {
         break;
       }
       continue;
@@ -540,7 +549,9 @@ static void *seq_prefetch_frames(void *job)
     /* Suspend thread if there is nothing to be prefetched. */
     seq_prefetch_do_suspend(pfjob);
 
-    if (!(pfjob->scene->ed->cache_flag & SEQ_CACHE_PREFETCH_ENABLE) || pfjob->stop) {
+    if (!(pfjob->scene->ed->cache_flag & SEQ_CACHE_PREFETCH_ENABLE) ||
+        !(pfjob->scene->ed->cache_flag & SEQ_CACHE_ALL_TYPES) || pfjob->stop)
+    {
       break;
     }
 
@@ -581,6 +592,7 @@ static PrefetchJob *seq_prefetch_start_ex(const RenderData *context, float cfra)
   pfjob->timeline_end = PEFRA;
   pfjob->timeline_length = PEFRA - PSFRA;
   pfjob->num_frames_prefetched = 1;
+  pfjob->cache_flags = scene->ed->cache_flag;
 
   pfjob->waiting = false;
   pfjob->stop = false;
