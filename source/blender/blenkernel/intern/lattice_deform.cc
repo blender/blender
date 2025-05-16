@@ -167,7 +167,7 @@ void BKE_lattice_deform_data_eval_co(LatticeDeformData *lattice_deform_data,
     u = (vec[0] - lt->fu) / lt->du;
     ui = int(floor(u));
     u -= ui;
-    key_curve_position_weights(u, tu, lt->typeu);
+    key_curve_position_weights(u, tu, KeyInterpolationType(lt->typeu));
   }
   else {
     tu[0] = tu[2] = tu[3] = 0.0;
@@ -179,7 +179,7 @@ void BKE_lattice_deform_data_eval_co(LatticeDeformData *lattice_deform_data,
     v = (vec[1] - lt->fv) / lt->dv;
     vi = int(floor(v));
     v -= vi;
-    key_curve_position_weights(v, tv, lt->typev);
+    key_curve_position_weights(v, tv, KeyInterpolationType(lt->typev));
   }
   else {
     tv[0] = tv[2] = tv[3] = 0.0;
@@ -191,7 +191,7 @@ void BKE_lattice_deform_data_eval_co(LatticeDeformData *lattice_deform_data,
     w = (vec[2] - lt->fw) / lt->dw;
     wi = int(floor(w));
     w -= wi;
-    key_curve_position_weights(w, tw, lt->typew);
+    key_curve_position_weights(w, tw, KeyInterpolationType(lt->typew));
   }
   else {
     tw[0] = tw[2] = tw[3] = 0.0;

@@ -46,6 +46,7 @@ typedef struct Lattice {
   short pntsu, pntsv, pntsw, flag;
   short opntsu, opntsv, opntsw;
   char _pad2[3];
+  /* KeyInterpolationType */
   char typeu, typev, typew;
   /** Active element index, unset with LT_ACTBP_NONE. */
   int actbp;
