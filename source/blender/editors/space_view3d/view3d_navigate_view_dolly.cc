@@ -330,7 +330,7 @@ void VIEW3D_OT_dolly(wmOperatorType *ot)
   ot->description = "Dolly in/out in the view";
   ot->idname = ViewOpsType_dolly.idname;
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = viewdolly_invoke;
   ot->exec = viewdolly_exec;
   ot->modal = viewdolly_modal;

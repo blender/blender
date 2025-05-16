@@ -478,7 +478,7 @@ void UI_OT_eyedropper_depth(wmOperatorType *ot)
   ot->idname = "UI_OT_eyedropper_depth";
   ot->description = "Sample depth from the 3D view";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = depthdropper_invoke;
   ot->modal = depthdropper_modal;
   ot->cancel = depthdropper_cancel;

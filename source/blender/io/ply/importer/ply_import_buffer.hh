@@ -16,7 +16,7 @@
 namespace blender::io::ply {
 
 /**
- * Reads underlying PLY file in large chunks, and provides interface for ascii/header
+ * Reads underlying PLY file in large chunks, and provides interface for ASCII/header
  * parsing to read individual lines, and for binary parsing to read chunks of bytes.
  */
 class PlyReadBuffer {
@@ -24,7 +24,7 @@ class PlyReadBuffer {
   PlyReadBuffer(const char *file_path, size_t read_buffer_size = 64 * 1024);
   ~PlyReadBuffer();
 
-  /** After header is parsed, indicate whether the rest of reading will be ascii or binary. */
+  /** After header is parsed, indicate whether the rest of reading will be ASCII or binary. */
   void after_header(bool is_binary);
 
   /**

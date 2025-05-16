@@ -510,7 +510,7 @@ void CURVE_OT_de_select_first(wmOperatorType *ot)
   ot->idname = "CURVE_OT_de_select_first";
   ot->description = "(De)select first of visible part of each NURBS";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = de_select_first_exec;
   ot->poll = ED_operator_editcurve;
 
@@ -542,7 +542,7 @@ void CURVE_OT_de_select_last(wmOperatorType *ot)
   ot->idname = "CURVE_OT_de_select_last";
   ot->description = "(De)select last of visible part of each NURBS";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = de_select_last_exec;
   ot->poll = ED_operator_editcurve;
 
@@ -611,7 +611,7 @@ void CURVE_OT_select_all(wmOperatorType *ot)
   ot->idname = "CURVE_OT_select_all";
   ot->description = "(De)select all control points";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = de_select_all_exec;
   ot->poll = ED_operator_editsurfcurve;
 
@@ -671,7 +671,7 @@ void CURVE_OT_select_linked(wmOperatorType *ot)
   ot->idname = "CURVE_OT_select_linked";
   ot->description = "Select all control points linked to the current selection";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = select_linked_exec;
   ot->invoke = select_linked_invoke;
   ot->poll = ED_operator_editsurfcurve;
@@ -744,7 +744,7 @@ void CURVE_OT_select_linked_pick(wmOperatorType *ot)
   ot->idname = "CURVE_OT_select_linked_pick";
   ot->description = "Select all control points linked to already selected ones";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = select_linked_pick_invoke;
   ot->poll = ED_operator_editsurfcurve_region_view3d;
 
@@ -819,7 +819,7 @@ void CURVE_OT_select_row(wmOperatorType *ot)
       "Select a row of control points including active one. "
       "Successive use on the same point switches between U/V directions";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = select_row_exec;
   ot->poll = ED_operator_editsurf;
 
@@ -858,7 +858,7 @@ void CURVE_OT_select_next(wmOperatorType *ot)
   ot->idname = "CURVE_OT_select_next";
   ot->description = "Select control points following already selected ones along the curves";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = select_next_exec;
   ot->poll = ED_operator_editcurve;
 
@@ -897,7 +897,7 @@ void CURVE_OT_select_previous(wmOperatorType *ot)
   ot->idname = "CURVE_OT_select_previous";
   ot->description = "Select control points preceding already selected ones along the curves";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = select_previous_exec;
   ot->poll = ED_operator_editcurve;
 
@@ -1007,7 +1007,7 @@ void CURVE_OT_select_more(wmOperatorType *ot)
   ot->idname = "CURVE_OT_select_more";
   ot->description = "Select control points at the boundary of each selection region";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = curve_select_more_exec;
   ot->poll = ED_operator_editsurfcurve;
 
@@ -1224,7 +1224,7 @@ void CURVE_OT_select_less(wmOperatorType *ot)
   ot->idname = "CURVE_OT_select_less";
   ot->description = "Deselect control points at the boundary of each selection region";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = curve_select_less_exec;
   ot->poll = ED_operator_editsurfcurve;
 
@@ -1338,7 +1338,7 @@ void CURVE_OT_select_random(wmOperatorType *ot)
   ot->idname = "CURVE_OT_select_random";
   ot->description = "Randomly select some control points";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = curve_select_random_exec;
   ot->poll = ED_operator_editsurfcurve;
 
@@ -1468,7 +1468,7 @@ void CURVE_OT_select_nth(wmOperatorType *ot)
   ot->description = "Deselect every Nth point starting from the active one";
   ot->idname = "CURVE_OT_select_nth";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = select_nth_exec;
   ot->poll = ED_operator_editsurfcurve;
 
@@ -1827,7 +1827,7 @@ void CURVE_OT_select_similar(wmOperatorType *ot)
   ot->idname = "CURVE_OT_select_similar";
   ot->description = "Select similar curve points by property type";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = WM_menu_invoke;
   ot->exec = curve_select_similar_exec;
   ot->poll = ED_operator_editsurfcurve;
@@ -2066,7 +2066,7 @@ void CURVE_OT_shortest_path_pick(wmOperatorType *ot)
   ot->idname = "CURVE_OT_shortest_path_pick";
   ot->description = "Select shortest path between two selections";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = edcu_shortest_path_pick_invoke;
   ot->poll = ED_operator_editsurfcurve_region_view3d;
 

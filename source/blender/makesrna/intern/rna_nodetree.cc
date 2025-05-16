@@ -7268,7 +7268,7 @@ static void def_sh_script(BlenderRNA * /*brna*/, StructRNA *srna)
 
   /* API functions */
 
-#  if 0 /* XXX TODO: use general node api for this. */
+#  if 0 /* XXX TODO: use general node API for this. */
   func = RNA_def_function(srna, "find_socket", "rna_ShaderNodeScript_find_socket");
   RNA_def_function_ui_description(func, "Find a socket by name");
   parm = RNA_def_string(func, "name", nullptr, 0, "Socket name", "");

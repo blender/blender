@@ -277,7 +277,7 @@ static void SCENE_OT_new(wmOperatorType *ot)
   ot->description = "Add new scene by type";
   ot->idname = "SCENE_OT_new";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = scene_new_exec;
   ot->invoke = WM_menu_invoke;
 
@@ -360,7 +360,7 @@ static void SCENE_OT_new_sequencer(wmOperatorType *ot)
   ot->description = "Add new scene by type in the sequence editor and assign to active strip";
   ot->idname = "SCENE_OT_new_sequencer";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = scene_new_sequencer_exec;
   ot->invoke = WM_menu_invoke;
   ot->poll = scene_new_sequencer_poll;
@@ -411,7 +411,7 @@ static void SCENE_OT_delete(wmOperatorType *ot)
   ot->description = "Delete active scene";
   ot->idname = "SCENE_OT_delete";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = scene_delete_exec;
   ot->poll = scene_delete_poll;
 

@@ -5761,9 +5761,8 @@ class GHOST_EventIME : public GHOST_Event {
                  GHOST_TEventImeData *customdata)
       : GHOST_Event(msec, type, window)
   {
-    /* Make sure that we kee a copy of the ime input. Otherwise it might get lost
-     * because we overwrite it before it can be read in Blender. (See #137346)
-     */
+    /* Make sure that we keep a copy of the IME input. Otherwise it might get lost
+     * because we overwrite it before it can be read in Blender. (See #137346). */
     this->event_ime_data = *customdata;
     this->m_data = &this->event_ime_data;
   }

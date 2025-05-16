@@ -260,7 +260,7 @@ void wm_window_free(bContext *C, wmWindowManager *wm, wmWindow *win)
     }
   }
 
-  /* Timer removing, need to call this api function. */
+  /* Timer removing, need to call this API function. */
   LISTBASE_FOREACH_MUTABLE (wmTimer *, wt, &wm->timers) {
     if (wt->flags & WM_TIMER_TAGGED_FOR_REMOVAL) {
       continue;

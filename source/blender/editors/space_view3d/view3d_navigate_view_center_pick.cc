@@ -65,7 +65,7 @@ void VIEW3D_OT_view_center_pick(wmOperatorType *ot)
   ot->description = "Center the view to the Z-depth position under the mouse cursor";
   ot->idname = "VIEW3D_OT_view_center_pick";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = viewcenter_pick_invoke;
   ot->poll = view3d_location_poll;
 

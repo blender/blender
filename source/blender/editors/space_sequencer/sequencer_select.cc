@@ -479,7 +479,7 @@ void SEQUENCER_OT_select_all(wmOperatorType *ot)
   ot->idname = "SEQUENCER_OT_select_all";
   ot->description = "Select or deselect all strips";
 
-  /* Api callbacks. */
+  /* API callbacks. */
   ot->exec = sequencer_de_select_all_exec;
   ot->poll = sequencer_edit_poll;
 
@@ -528,7 +528,7 @@ void SEQUENCER_OT_select_inverse(wmOperatorType *ot)
   ot->idname = "SEQUENCER_OT_select_inverse";
   ot->description = "Select unselected strips";
 
-  /* Api callbacks. */
+  /* API callbacks. */
   ot->exec = sequencer_select_inverse_exec;
   ot->poll = sequencer_edit_poll;
 
@@ -1346,7 +1346,7 @@ void SEQUENCER_OT_select(wmOperatorType *ot)
   ot->idname = "SEQUENCER_OT_select";
   ot->description = "Select a strip (last selected becomes the \"active strip\")";
 
-  /* Api callbacks. */
+  /* API callbacks. */
   ot->exec = sequencer_select_exec;
   ot->invoke = sequencer_select_invoke;
   ot->modal = WM_generic_select_modal;
@@ -1487,7 +1487,7 @@ void SEQUENCER_OT_select_handle(wmOperatorType *ot)
   ot->idname = "SEQUENCER_OT_select_handle";
   ot->description = "Select strip handle";
 
-  /* Api callbacks. */
+  /* API callbacks. */
   ot->exec = sequencer_select_handle_exec;
   ot->invoke = sequencer_select_handle_invoke;
   ot->poll = ED_operator_sequencer_active;
@@ -1615,7 +1615,7 @@ void SEQUENCER_OT_select_more(wmOperatorType *ot)
   ot->idname = "SEQUENCER_OT_select_more";
   ot->description = "Select more strips adjacent to the current selection";
 
-  /* Api callbacks. */
+  /* API callbacks. */
   ot->exec = sequencer_select_more_exec;
   ot->poll = sequencer_edit_poll;
 
@@ -1651,7 +1651,7 @@ void SEQUENCER_OT_select_less(wmOperatorType *ot)
   ot->idname = "SEQUENCER_OT_select_less";
   ot->description = "Shrink the current selection of adjacent selected strips";
 
-  /* Api callbacks. */
+  /* API callbacks. */
   ot->exec = sequencer_select_less_exec;
   ot->poll = sequencer_edit_poll;
 
@@ -1709,7 +1709,7 @@ void SEQUENCER_OT_select_linked_pick(wmOperatorType *ot)
   ot->idname = "SEQUENCER_OT_select_linked_pick";
   ot->description = "Select a chain of linked strips nearest to the mouse pointer";
 
-  /* Api callbacks. */
+  /* API callbacks. */
   ot->invoke = sequencer_select_linked_pick_invoke;
   ot->poll = ED_operator_sequencer_active;
 
@@ -1752,7 +1752,7 @@ void SEQUENCER_OT_select_linked(wmOperatorType *ot)
   ot->idname = "SEQUENCER_OT_select_linked";
   ot->description = "Select all strips adjacent to the current selection";
 
-  /* Api callbacks. */
+  /* API callbacks. */
   ot->exec = sequencer_select_linked_exec;
   ot->poll = sequencer_edit_poll;
 
@@ -1860,7 +1860,7 @@ void SEQUENCER_OT_select_handles(wmOperatorType *ot)
   ot->idname = "SEQUENCER_OT_select_handles";
   ot->description = "Select gizmo handles on the sides of the selected strip";
 
-  /* Api callbacks. */
+  /* API callbacks. */
   ot->exec = sequencer_select_handles_exec;
   ot->poll = sequencer_edit_poll;
 
@@ -1937,7 +1937,7 @@ void SEQUENCER_OT_select_side_of_frame(wmOperatorType *ot)
   ot->idname = "SEQUENCER_OT_select_side_of_frame";
   ot->description = "Select strips relative to the current frame";
 
-  /* Api callbacks. */
+  /* API callbacks. */
   ot->exec = sequencer_select_side_of_frame_exec;
   ot->poll = ED_operator_sequencer_active;
 
@@ -2005,7 +2005,7 @@ void SEQUENCER_OT_select_side(wmOperatorType *ot)
   ot->idname = "SEQUENCER_OT_select_side";
   ot->description = "Select strips on the nominated side of the selected strips";
 
-  /* Api callbacks. */
+  /* API callbacks. */
   ot->exec = sequencer_select_side_exec;
   ot->poll = sequencer_edit_poll;
 
@@ -2223,7 +2223,7 @@ void SEQUENCER_OT_select_box(wmOperatorType *ot)
   ot->idname = "SEQUENCER_OT_select_box";
   ot->description = "Select strips using box selection";
 
-  /* Api callbacks. */
+  /* API callbacks. */
   ot->invoke = sequencer_box_select_invoke;
   ot->exec = sequencer_box_select_exec;
   ot->modal = WM_gesture_box_modal;
@@ -2608,7 +2608,7 @@ void SEQUENCER_OT_select_grouped(wmOperatorType *ot)
   ot->idname = "SEQUENCER_OT_select_grouped";
   ot->description = "Select all strips grouped by various properties";
 
-  /* Api callbacks. */
+  /* API callbacks. */
   ot->invoke = WM_menu_invoke;
   ot->exec = sequencer_select_grouped_exec;
   ot->poll = sequencer_edit_poll;

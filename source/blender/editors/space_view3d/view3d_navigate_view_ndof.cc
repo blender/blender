@@ -710,7 +710,7 @@ void VIEW3D_OT_ndof_orbit(wmOperatorType *ot)
   ot->description = "Orbit the view using the 3D mouse";
   ot->idname = ViewOpsType_ndof_orbit.idname;
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = ndof_orbit_invoke;
   ot->poll = ED_operator_view3d_active;
 
@@ -847,7 +847,7 @@ void VIEW3D_OT_ndof_orbit_zoom(wmOperatorType *ot)
   ot->description = "Orbit and zoom the view using the 3D mouse";
   ot->idname = ViewOpsType_ndof_orbit_zoom.idname;
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = ndof_orbit_zoom_invoke;
   ot->poll = ED_operator_view3d_active;
 
@@ -932,7 +932,7 @@ void VIEW3D_OT_ndof_pan(wmOperatorType *ot)
   ot->description = "Pan the view with the 3D mouse";
   ot->idname = ViewOpsType_ndof_pan.idname;
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = ndof_pan_invoke;
   ot->poll = ED_operator_view3d_active;
 
@@ -983,7 +983,7 @@ void VIEW3D_OT_ndof_all(wmOperatorType *ot)
   ot->description = "Pan and rotate the view with the 3D mouse";
   ot->idname = ViewOpsType_ndof_all.idname;
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = ndof_all_invoke;
   ot->poll = ED_operator_view3d_active;
 

@@ -602,7 +602,7 @@ void POSE_OT_select_all(wmOperatorType *ot)
   ot->idname = "POSE_OT_select_all";
   ot->description = "Toggle selection status of all bones";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = pose_de_select_all_exec;
   ot->poll = ED_operator_posemode;
 
@@ -649,7 +649,7 @@ void POSE_OT_select_parent(wmOperatorType *ot)
   ot->idname = "POSE_OT_select_parent";
   ot->description = "Select bones that are parents of the currently selected bones";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = pose_select_parent_exec;
   ot->poll = ED_operator_posemode;
 
@@ -707,7 +707,7 @@ void POSE_OT_select_constraint_target(wmOperatorType *ot)
   ot->idname = "POSE_OT_select_constraint_target";
   ot->description = "Select bones used as targets for the currently selected bones";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = pose_select_constraint_target_exec;
   ot->poll = ED_operator_posemode;
 
@@ -804,7 +804,7 @@ void POSE_OT_select_hierarchy(wmOperatorType *ot)
   ot->idname = "POSE_OT_select_hierarchy";
   ot->description = "Select immediate parent/children of selected bones";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = pose_select_hierarchy_exec;
   ot->poll = ED_operator_posemode;
 
@@ -1085,7 +1085,7 @@ void POSE_OT_select_grouped(wmOperatorType *ot)
   ot->description = "Select all visible bones grouped by similar properties";
   ot->idname = "POSE_OT_select_grouped";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = WM_menu_invoke;
   ot->exec = pose_select_grouped_exec;
   ot->poll = ED_operator_posemode; /* TODO: expand to support edit mode as well. */
@@ -1202,7 +1202,7 @@ void POSE_OT_select_mirror(wmOperatorType *ot)
   ot->idname = "POSE_OT_select_mirror";
   ot->description = "Mirror the bone selection";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = pose_select_mirror_exec;
   ot->poll = ED_operator_posemode;
 

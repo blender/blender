@@ -519,7 +519,7 @@ void SEQUENCER_OT_scene_strip_add(wmOperatorType *ot)
   ot->idname = "SEQUENCER_OT_scene_strip_add";
   ot->description = "Add a strip to the sequencer using a Blender scene as a source";
 
-  /* Api callbacks. */
+  /* API callbacks. */
   ot->invoke = sequencer_add_scene_strip_invoke;
   ot->exec = sequencer_add_scene_strip_exec;
   ot->poll = ED_operator_sequencer_active_editable;
@@ -638,7 +638,7 @@ void SEQUENCER_OT_scene_strip_add_new(wmOperatorType *ot)
   ot->idname = "SEQUENCER_OT_scene_strip_add_new";
   ot->description = "Create a new Strip and assign a new Scene as source";
 
-  /* Api callbacks. */
+  /* API callbacks. */
   ot->invoke = sequencer_add_scene_strip_new_invoke;
   ot->exec = sequencer_add_scene_strip_new_exec;
   ot->poll = ED_operator_sequencer_active_editable;
@@ -706,7 +706,7 @@ void SEQUENCER_OT_movieclip_strip_add(wmOperatorType *ot)
   ot->idname = "SEQUENCER_OT_movieclip_strip_add";
   ot->description = "Add a movieclip strip to the sequencer";
 
-  /* Api callbacks. */
+  /* API callbacks. */
   ot->invoke = sequencer_add_movieclip_strip_invoke;
   ot->exec = sequencer_add_movieclip_strip_exec;
   ot->poll = ED_operator_sequencer_active_editable;
@@ -772,7 +772,7 @@ void SEQUENCER_OT_mask_strip_add(wmOperatorType *ot)
   ot->idname = "SEQUENCER_OT_mask_strip_add";
   ot->description = "Add a mask strip to the sequencer";
 
-  /* Api callbacks. */
+  /* API callbacks. */
   ot->invoke = sequencer_add_mask_strip_invoke;
   ot->exec = sequencer_add_mask_strip_exec;
   ot->poll = ED_operator_sequencer_active_editable;
@@ -1135,7 +1135,7 @@ void SEQUENCER_OT_movie_strip_add(wmOperatorType *ot)
   ot->idname = "SEQUENCER_OT_movie_strip_add";
   ot->description = "Add a movie strip to the sequencer";
 
-  /* Api callbacks. */
+  /* API callbacks. */
   ot->invoke = sequencer_add_movie_strip_invoke;
   ot->exec = sequencer_add_movie_strip_exec;
   ot->cancel = sequencer_add_cancel;
@@ -1267,7 +1267,7 @@ void SEQUENCER_OT_sound_strip_add(wmOperatorType *ot)
   ot->idname = "SEQUENCER_OT_sound_strip_add";
   ot->description = "Add a sound strip to the sequencer";
 
-  /* Api callbacks. */
+  /* API callbacks. */
   ot->invoke = sequencer_add_sound_strip_invoke;
   ot->exec = sequencer_add_sound_strip_exec;
   ot->poll = ED_operator_sequencer_active_editable;
@@ -1481,7 +1481,7 @@ void SEQUENCER_OT_image_strip_add(wmOperatorType *ot)
   ot->idname = "SEQUENCER_OT_image_strip_add";
   ot->description = "Add an image or image sequence to the sequencer";
 
-  /* Api callbacks. */
+  /* API callbacks. */
   ot->invoke = sequencer_add_image_strip_invoke;
   ot->exec = sequencer_add_image_strip_exec;
   ot->cancel = sequencer_add_cancel;
@@ -1647,7 +1647,7 @@ void SEQUENCER_OT_effect_strip_add(wmOperatorType *ot)
   ot->idname = "SEQUENCER_OT_effect_strip_add";
   ot->description = "Add an effect to the sequencer, most are applied on top of existing strips";
 
-  /* Api callbacks. */
+  /* API callbacks. */
   ot->invoke = sequencer_add_effect_strip_invoke;
   ot->exec = sequencer_add_effect_strip_exec;
   ot->poll = ED_operator_sequencer_active_editable;

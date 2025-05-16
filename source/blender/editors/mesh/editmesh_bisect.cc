@@ -407,7 +407,7 @@ void MESH_OT_bisect(wmOperatorType *ot)
   ot->description = "Cut geometry along a plane (click-drag to define plane)";
   ot->idname = "MESH_OT_bisect";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = mesh_bisect_exec;
   ot->invoke = mesh_bisect_invoke;
   ot->modal = mesh_bisect_modal;

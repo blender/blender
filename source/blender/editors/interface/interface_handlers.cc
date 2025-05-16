@@ -1431,7 +1431,7 @@ static void ui_apply_but_CURVEPROFILE(bContext *C, uiBut *but, uiHandleButtonDat
 
 #ifdef USE_DRAG_MULTINUM
 
-/* small multi-but api */
+/* Small multi-but API. */
 static void ui_multibut_add(uiHandleButtonData *data, uiBut *but)
 {
   BLI_assert(but->flag & UI_BUT_DRAG_MULTI);
@@ -2985,10 +2985,10 @@ void ui_but_clipboard_free()
  * Functions to convert password strings that should not be displayed
  * to asterisk representation (e.g. `mysecretpasswd` -> `*************`)
  *
- * It converts every UTF-8 character to an asterisk, and also remaps
+ * It converts every UTF8 character to an asterisk, and also remaps
  * the cursor position and selection start/end.
  *
- * \note remapping is used, because password could contain UTF-8 characters.
+ * \note remapping is used, because password could contain UTF8 characters.
  *
  * \{ */
 
@@ -3215,7 +3215,7 @@ static void ui_textedit_set_cursor_select(uiBut *but, uiHandleButtonData *data, 
 }
 
 /**
- * This is used for both utf8 and ascii
+ * This is used for both UTF8 and ASCII.
  *
  * For unicode buttons, \a buf is treated as unicode.
  */
@@ -3241,7 +3241,7 @@ static bool ui_textedit_insert_buf(uiBut *but, uiTextEdit &text_edit, const char
 
     if ((len + step >= text_edit.max_string_size) && (text_edit.max_string_size - (len + 1) > 0)) {
       if (UI_but_is_utf8(but)) {
-        /* Shorten 'step' to a utf8 aligned size that fits. */
+        /* Shorten 'step' to a UTF8 aligned size that fits. */
         BLI_strnlen_utf8_ex(buf, text_edit.max_string_size - (len + 1), &step);
       }
       else {

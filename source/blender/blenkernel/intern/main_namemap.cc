@@ -423,7 +423,7 @@ bool BKE_main_namemap_contain_name(Main &bmain, Library *lib, const short id_typ
  *
  * Return `false` in case either the given number is invalid (#NO_AVAILABLE_NUMBER), or the
  * generated final name would be too long. #r_name_final is then set with a new, edited base name:
- *  - Shortened by one (utf-8) char in case of too long name.
+ *  - Shortened by one (UTF8) char in case of too long name.
  *  - Extended by a pseudo-random number in case the base name is short already (should only happen
  *    when #number is #NO_AVAILABLE_NUMBER).
  */
@@ -449,14 +449,14 @@ static bool id_name_final_build(UniqueName_TypeMap &type_map,
    * generated for it. */
   r_name_final = base_name;
 
-  /* If the base name is long enough, shorten it by one (UTF-8) char, until a base name with
+  /* If the base name is long enough, shorten it by one (UTF8) char, until a base name with
    * available number suffixes is found. */
   while (r_name_final.size() > 8) {
     char base_name_modified[MAX_NAME];
 
     BLI_strncpy(base_name_modified, r_name_final.c_str(), r_name_final.size() + 1);
     base_name_modified[r_name_final.size() - 1] = '\0';
-    /* Raw truncation of an utf8 string may generate invalid UTF-8 char-code at the end.
+    /* Raw truncation of an UTF8 string may generate invalid UTF8 char-code at the end.
      * Ensure we get a valid one now. */
     BLI_str_utf8_invalid_strip(base_name_modified, r_name_final.size() - 1);
 

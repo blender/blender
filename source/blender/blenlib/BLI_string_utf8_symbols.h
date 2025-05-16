@@ -7,13 +7,13 @@
 /** \file
  * \ingroup bli
  *
- * Unicode characters as UTF-8 strings.
+ * Unicode characters as UTF8 strings.
  */
 
 /* Notes:
  * - Last portion should include the official assigned name.
  * - Please do not add defines here that are not actually in use.
- * - Use literal UTF-8 encoding as this `u8` prefixes cause both
+ * - Use literal UTF8 encoding as this `u8` prefixes cause both
  *   `-Wc++20-compat` & `-Wc99-compat` warnings under CLANG.
  */
 

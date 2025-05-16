@@ -4,7 +4,7 @@
 
 /** \file
  * \ingroup GHOST
- * %Main interface file for C++ Api with declaration of GHOST_ISystem interface
+ * %Main interface file for C++ API with declaration of GHOST_ISystem interface
  * class.
  * Contains the DOXYGEN documentation main page.
  */

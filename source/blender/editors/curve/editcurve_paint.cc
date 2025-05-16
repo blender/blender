@@ -1216,7 +1216,7 @@ void CURVE_OT_draw(wmOperatorType *ot)
   ot->idname = "CURVE_OT_draw";
   ot->description = "Draw a freehand spline";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = curve_draw_exec;
   ot->invoke = curve_draw_invoke;
   ot->cancel = curve_draw_cancel;

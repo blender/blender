@@ -157,7 +157,7 @@ struct PyC_UnicodeAsBytesAndSize_Data {
  * \param p: Pointer to #PyC_UnicodeAsBytes_Data.
  *
  * \note The Python API docs reference `PyUnicode_FSConverter` however this does not support
- * paths which non utf-8 encoding, see: #111033.
+ * paths which non UTF8 encoding, see: #111033.
  */
 int PyC_ParseUnicodeAsBytesAndSize(PyObject *o, void *p);
 /** A version of #PyC_ParseUnicodeAsBytesAndSize that accepts None. */

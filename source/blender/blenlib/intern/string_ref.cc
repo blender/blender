@@ -29,7 +29,7 @@ void StringRefBase::copy_utf8_truncated(char *dst, const int64_t dst_size) const
 {
   /* Destination must at least hold the null terminator. */
   BLI_assert(dst_size >= 1);
-  /* The current #StringRef is assumed to contain valid UTF-8. */
+  /* The current #StringRef is assumed to contain valid UTF8. */
   BLI_assert(BLI_str_utf8_invalid_byte(data_, size_) == -1);
 
   /* Common case when the string can just be copied over entirely. */

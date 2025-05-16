@@ -833,7 +833,7 @@ void MESH_OT_shortest_path_pick(wmOperatorType *ot)
   ot->idname = "MESH_OT_shortest_path_pick";
   ot->description = "Select shortest path between two selections";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = edbm_shortest_path_pick_invoke;
   ot->exec = edbm_shortest_path_pick_exec;
   ot->poll = ED_operator_editmesh_region_view3d;
@@ -961,7 +961,7 @@ void MESH_OT_shortest_path_select(wmOperatorType *ot)
   ot->idname = "MESH_OT_shortest_path_select";
   ot->description = "Selected shortest path between two vertices/edges/faces";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = edbm_shortest_path_select_exec;
   ot->poll = ED_operator_editmesh;
   ot->poll_property = path_select_poll_property;

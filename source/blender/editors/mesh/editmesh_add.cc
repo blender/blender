@@ -144,7 +144,7 @@ void MESH_OT_primitive_plane_add(wmOperatorType *ot)
   ot->description = "Construct a filled planar mesh with 4 vertices";
   ot->idname = "MESH_OT_primitive_plane_add";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = add_primitive_plane_exec;
   ot->poll = ED_operator_scene_editable;
 
@@ -208,7 +208,7 @@ void MESH_OT_primitive_cube_add(wmOperatorType *ot)
   ot->description = "Construct a cube mesh that consists of six square faces";
   ot->idname = "MESH_OT_primitive_cube_add";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = add_primitive_cube_exec;
   ot->poll = ED_operator_scene_editable;
 
@@ -286,7 +286,7 @@ void MESH_OT_primitive_circle_add(wmOperatorType *ot)
   ot->description = "Construct a circle mesh";
   ot->idname = "MESH_OT_primitive_circle_add";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = add_primitive_circle_exec;
   ot->poll = ED_operator_scene_editable;
 
@@ -361,7 +361,7 @@ void MESH_OT_primitive_cylinder_add(wmOperatorType *ot)
   ot->description = "Construct a cylinder mesh";
   ot->idname = "MESH_OT_primitive_cylinder_add";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = add_primitive_cylinder_exec;
   ot->poll = ED_operator_scene_editable;
 
@@ -438,7 +438,7 @@ void MESH_OT_primitive_cone_add(wmOperatorType *ot)
   ot->description = "Construct a conic mesh";
   ot->idname = "MESH_OT_primitive_cone_add";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = add_primitive_cone_exec;
   ot->poll = ED_operator_scene_editable;
 
@@ -512,7 +512,7 @@ void MESH_OT_primitive_grid_add(wmOperatorType *ot)
   ot->description = "Construct a subdivided plane mesh";
   ot->idname = "MESH_OT_primitive_grid_add";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = add_primitive_grid_exec;
   ot->poll = ED_operator_scene_editable;
 
@@ -586,7 +586,7 @@ void MESH_OT_primitive_monkey_add(wmOperatorType *ot)
   ot->description = "Construct a Suzanne mesh";
   ot->idname = "MESH_OT_primitive_monkey_add";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = add_primitive_monkey_exec;
   ot->poll = ED_operator_scene_editable;
 
@@ -654,7 +654,7 @@ void MESH_OT_primitive_uv_sphere_add(wmOperatorType *ot)
       "bottom";
   ot->idname = "MESH_OT_primitive_uv_sphere_add";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = add_primitive_uvsphere_exec;
   ot->poll = ED_operator_scene_editable;
 
@@ -722,7 +722,7 @@ void MESH_OT_primitive_ico_sphere_add(wmOperatorType *ot)
   ot->description = "Construct a spherical mesh that consists of equally sized triangles";
   ot->idname = "MESH_OT_primitive_ico_sphere_add";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = add_primitive_icosphere_exec;
   ot->poll = ED_operator_scene_editable;
 

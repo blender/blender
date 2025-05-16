@@ -1045,7 +1045,7 @@ void MESH_OT_bevel(wmOperatorType *ot)
   ot->description = "Cut into selected items at an angle to create bevel or chamfer";
   ot->idname = "MESH_OT_bevel";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = edbm_bevel_exec;
   ot->invoke = edbm_bevel_invoke;
   ot->modal = edbm_bevel_modal;

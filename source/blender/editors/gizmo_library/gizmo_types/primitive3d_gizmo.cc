@@ -254,7 +254,7 @@ static void GIZMO_GT_primitive_3d(wmGizmoType *gzt)
   /* identifiers */
   gzt->idname = "GIZMO_GT_primitive_3d";
 
-  /* api callbacks */
+  /* API callbacks. */
   gzt->draw = gizmo_primitive_draw;
   gzt->draw_select = gizmo_primitive_draw_select;
   gzt->setup = gizmo_primitive_setup;

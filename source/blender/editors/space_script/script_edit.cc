@@ -57,7 +57,7 @@ void SCRIPT_OT_python_file_run(wmOperatorType *ot)
   ot->description = "Run Python file";
   ot->idname = "SCRIPT_OT_python_file_run";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = run_pyfile_exec;
 
   /* flags */
@@ -141,6 +141,6 @@ void SCRIPT_OT_reload(wmOperatorType *ot)
   ot->description = "Reload scripts";
   ot->idname = "SCRIPT_OT_reload";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = script_reload_exec;
 }

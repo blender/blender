@@ -653,7 +653,7 @@ void OBJECT_OT_hook_add_selob(wmOperatorType *ot)
   ot->description = "Hook selected vertices to the first selected object";
   ot->idname = "OBJECT_OT_hook_add_selob";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = object_add_hook_selob_exec;
   ot->poll = hook_op_edit_poll;
 
@@ -693,7 +693,7 @@ void OBJECT_OT_hook_add_newob(wmOperatorType *ot)
   ot->description = "Hook selected vertices to a newly created object";
   ot->idname = "OBJECT_OT_hook_add_newob";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = object_add_hook_newob_exec;
   ot->poll = hook_op_edit_poll;
 
@@ -765,7 +765,7 @@ void OBJECT_OT_hook_remove(wmOperatorType *ot)
   ot->idname = "OBJECT_OT_hook_remove";
   ot->description = "Remove a hook from the active object";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = object_hook_remove_exec;
   ot->invoke = WM_menu_invoke;
   ot->poll = hook_op_edit_poll;

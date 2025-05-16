@@ -199,7 +199,7 @@ void UI_OT_eyedropper_driver(wmOperatorType *ot)
   ot->idname = "UI_OT_eyedropper_driver";
   ot->description = "Pick a property to use as a driver target";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = driverdropper_invoke;
   ot->modal = driverdropper_modal;
   ot->cancel = driverdropper_cancel;

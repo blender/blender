@@ -124,7 +124,7 @@ void INFO_OT_report_replay(wmOperatorType *ot)
   ot->description = "Replay selected reports";
   ot->idname = "INFO_OT_report_replay";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->poll = ED_operator_info_active;
   ot->exec = report_replay_exec;
 
@@ -181,7 +181,7 @@ void INFO_OT_select_pick(wmOperatorType *ot)
   ot->description = "Select reports by index";
   ot->idname = "INFO_OT_select_pick";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->poll = ED_operator_info_active;
   ot->invoke = select_report_pick_invoke;
   ot->exec = select_report_pick_exec;
@@ -218,7 +218,7 @@ void INFO_OT_select_all(wmOperatorType *ot)
   ot->description = "Change selection of all visible reports";
   ot->idname = "INFO_OT_select_all";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->poll = ED_operator_info_active;
   ot->exec = report_select_all_exec;
 
@@ -298,7 +298,7 @@ void INFO_OT_select_box(wmOperatorType *ot)
   ot->description = "Toggle box selection";
   ot->idname = "INFO_OT_select_box";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = WM_gesture_box_invoke;
   ot->exec = box_select_exec;
   ot->modal = WM_gesture_box_modal;
@@ -346,7 +346,7 @@ void INFO_OT_report_delete(wmOperatorType *ot)
   ot->description = "Delete selected reports";
   ot->idname = "INFO_OT_report_delete";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->poll = ED_operator_info_active;
   ot->exec = report_delete_exec;
 
@@ -388,7 +388,7 @@ void INFO_OT_report_copy(wmOperatorType *ot)
   ot->description = "Copy selected reports to clipboard";
   ot->idname = "INFO_OT_report_copy";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->poll = ED_operator_info_active;
   ot->exec = report_copy_exec;
 

@@ -681,7 +681,7 @@ void UI_block_interaction_set(uiBlock *block, uiBlockInteraction_CallbackData *c
 
 bool UI_but_has_quick_tooltip(const uiBut *but);
 bool UI_but_is_tool(const uiBut *but);
-/* file selectors are exempt from utf-8 checks */
+/** File selectors are exempt from UTF8 checks. */
 bool UI_but_is_utf8(const uiBut *but);
 #define UI_but_is_decorator(but) ((but)->type == UI_BTYPE_DECORATOR)
 

@@ -1666,7 +1666,7 @@ void VIEW3D_OT_select_menu(wmOperatorType *ot)
   ot->description = "Menu object selection";
   ot->idname = "VIEW3D_OT_select_menu";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = WM_menu_invoke;
   ot->exec = object_select_menu_exec;
   ot->get_name = object_select_menu_get_name;
@@ -1880,7 +1880,7 @@ void VIEW3D_OT_bone_select_menu(wmOperatorType *ot)
   ot->description = "Menu bone selection";
   ot->idname = "VIEW3D_OT_bone_select_menu";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = WM_menu_invoke;
   ot->exec = bone_select_menu_exec;
 
@@ -3616,7 +3616,7 @@ void VIEW3D_OT_select(wmOperatorType *ot)
   ot->description = "Select and activate item(s)";
   ot->idname = "VIEW3D_OT_select";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = view3d_select_invoke;
   ot->exec = view3d_select_exec;
   ot->poll = ED_operator_view3d_active;
@@ -4599,7 +4599,7 @@ void VIEW3D_OT_select_box(wmOperatorType *ot)
   ot->description = "Select items using box selection";
   ot->idname = "VIEW3D_OT_select_box";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = WM_gesture_box_invoke;
   ot->exec = view3d_box_select_exec;
   ot->modal = WM_gesture_box_modal;

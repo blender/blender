@@ -117,7 +117,7 @@ void CLIP_OT_detect_features(wmOperatorType *ot)
   ot->description = "Automatically detect features and place markers to track";
   ot->idname = "CLIP_OT_detect_features";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = detect_features_exec;
   ot->poll = ED_space_clip_tracking_poll;
 

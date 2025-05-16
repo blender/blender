@@ -74,7 +74,7 @@ void VIEW3D_OT_view_pan(wmOperatorType *ot)
   ot->description = "Pan the view in a given direction";
   ot->idname = ViewOpsType_pan.idname;
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = viewpan_invoke;
   ot->poll = view3d_location_poll;
 

@@ -5,7 +5,7 @@
 /** \file
  * \ingroup GHOST
  *
- * C Api for GHOST
+ * C API for GHOST
  */
 
 #include <cstdlib>

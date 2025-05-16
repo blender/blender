@@ -132,7 +132,7 @@ void ARMATURE_OT_collection_add(wmOperatorType *ot)
   ot->idname = "ARMATURE_OT_collection_add";
   ot->description = "Add a new bone collection";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = bone_collection_add_exec;
   ot->poll = bone_collection_add_poll;
 
@@ -160,7 +160,7 @@ void ARMATURE_OT_collection_remove(wmOperatorType *ot)
   ot->idname = "ARMATURE_OT_collection_remove";
   ot->description = "Remove the active bone collection";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = bone_collection_remove_exec;
   ot->poll = active_bone_collection_poll;
 
@@ -200,7 +200,7 @@ void ARMATURE_OT_collection_move(wmOperatorType *ot)
   ot->idname = "ARMATURE_OT_collection_move";
   ot->description = "Change position of active Bone Collection in list of Bone collections";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = bone_collection_move_exec;
   ot->poll = active_bone_collection_poll;
 
@@ -463,7 +463,7 @@ void ARMATURE_OT_collection_assign(wmOperatorType *ot)
   ot->idname = "ARMATURE_OT_collection_assign";
   ot->description = "Add selected bones to the chosen bone collection";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = bone_collection_assign_exec;
   ot->poll = bone_collection_assign_poll;
 
@@ -562,7 +562,7 @@ void ARMATURE_OT_collection_create_and_assign(wmOperatorType *ot)
   ot->idname = "ARMATURE_OT_collection_create_and_assign";
   ot->description = "Create a new bone collection and assign all selected bones";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = bone_collection_create_and_assign_exec;
   ot->poll = bone_collection_create_and_assign_poll;
 
@@ -626,7 +626,7 @@ void ARMATURE_OT_collection_unassign(wmOperatorType *ot)
   ot->idname = "ARMATURE_OT_collection_unassign";
   ot->description = "Remove selected bones from the active bone collection";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = bone_collection_unassign_exec;
   ot->poll = bone_collection_assign_poll;
 
@@ -700,7 +700,7 @@ void ARMATURE_OT_collection_unassign_named(wmOperatorType *ot)
   ot->idname = "ARMATURE_OT_collection_unassign_named";
   ot->description = "Unassign the named bone from this bone collection";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = bone_collection_unassign_named_exec;
   ot->poll = bone_collection_assign_poll;
 
@@ -829,7 +829,7 @@ void ARMATURE_OT_collection_select(wmOperatorType *ot)
   ot->idname = "ARMATURE_OT_collection_select";
   ot->description = "Select bones in active Bone Collection";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = bone_collection_select_exec;
   ot->poll = armature_bone_select_poll;
 
@@ -860,7 +860,7 @@ void ARMATURE_OT_collection_deselect(wmOperatorType *ot)
   ot->idname = "ARMATURE_OT_collection_deselect";
   ot->description = "Deselect bones of active Bone Collection";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = bone_collection_deselect_exec;
   ot->poll = armature_bone_select_poll;
 
@@ -1200,7 +1200,7 @@ void ARMATURE_OT_move_to_collection(wmOperatorType *ot)
   ot->description = "Move bones to a collection";
   ot->idname = "ARMATURE_OT_move_to_collection";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = move_to_collection_exec;
   ot->invoke = move_to_collection_invoke;
   ot->poll = move_to_collection_poll;
@@ -1248,7 +1248,7 @@ void ARMATURE_OT_assign_to_collection(wmOperatorType *ot)
       "active bone is already assigned or not";
   ot->idname = "ARMATURE_OT_assign_to_collection";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = assign_to_collection_exec;
   ot->invoke = move_to_collection_invoke;
   ot->poll = move_to_collection_poll;

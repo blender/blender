@@ -75,7 +75,7 @@ void OBJECT_OT_camera_custom_update(wmOperatorType *ot)
   ot->description = "Update custom camera with new parameters from the shader";
   ot->idname = "OBJECT_OT_camera_custom_update";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = object_camera_custom_update_exec;
   ot->poll = object_camera_custom_update_poll;
 

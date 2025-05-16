@@ -289,7 +289,7 @@ void POSE_OT_paths_calculate(wmOperatorType *ot)
   ot->idname = "POSE_OT_paths_calculate";
   ot->description = "Calculate paths for the selected bones";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = pose_calculate_paths_invoke;
   ot->exec = pose_calculate_paths_exec;
   ot->poll = ED_operator_posemode_exclusive;
@@ -364,7 +364,7 @@ void POSE_OT_paths_update(wmOperatorType *ot)
   ot->idname = "POSE_OT_paths_update";
   ot->description = "Recalculate paths for bones that already have them";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = pose_update_paths_exec;
   ot->poll = pose_update_paths_poll;
 
@@ -442,7 +442,7 @@ void POSE_OT_paths_clear(wmOperatorType *ot)
   ot->name = "Clear Bone Paths";
   ot->idname = "POSE_OT_paths_clear";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = pose_clear_paths_exec;
   ot->poll = ED_operator_posemode_exclusive;
   ot->get_description = pose_clear_paths_get_description;
@@ -537,7 +537,7 @@ void POSE_OT_flip_names(wmOperatorType *ot)
   ot->idname = "POSE_OT_flip_names";
   ot->description = "Flips (and corrects) the axis suffixes of the names of selected bones";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = pose_flip_names_exec;
   ot->poll = ED_operator_posemode_local;
 
@@ -599,7 +599,7 @@ void POSE_OT_autoside_names(wmOperatorType *ot)
       "Automatically renames the selected bones according to which side of the target axis they "
       "fall on";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = WM_menu_invoke;
   ot->exec = pose_autoside_names_exec;
   ot->poll = ED_operator_posemode;
@@ -714,7 +714,7 @@ void POSE_OT_hide(wmOperatorType *ot)
   ot->idname = "POSE_OT_hide";
   ot->description = "Tag selected bones to not be visible in Pose Mode";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = pose_hide_exec;
   ot->poll = ED_operator_posemode;
 
@@ -776,7 +776,7 @@ void POSE_OT_reveal(wmOperatorType *ot)
   ot->idname = "POSE_OT_reveal";
   ot->description = "Reveal all bones hidden in Pose Mode";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = pose_reveal_exec;
   ot->poll = ED_operator_posemode;
 

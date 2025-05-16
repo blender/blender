@@ -1541,7 +1541,7 @@ void NODE_OT_new_node_tree(wmOperatorType *ot)
   ot->idname = "NODE_OT_new_node_tree";
   ot->description = "Create a new node tree";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = new_node_tree_exec;
 
   /* flags */

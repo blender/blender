@@ -10,9 +10,9 @@
 #include "BLI_string_utf8.h"
 #include "BLI_utildefines.h"
 
-/* Note that 'common' utf-8 variants of string functions (like copy, etc.) are tested in
- * BLI_string_test.cc However, tests below are specific utf-8 conformance ones, and since they eat
- * quite their share of lines, they deserved their own file. */
+/* Note that 'common' UTF8 variants of string functions (like copy, etc.) are tested in
+ * `BLI_string_test.cc` However, tests below are specific UTF8 conformance ones,
+ * and since they eat quite their share of lines, they deserved their own file. */
 
 /**
  * Multi byte defies, use when the exact character isn't important,
@@ -69,9 +69,9 @@
 /* clang-format off */
 
 /* Each test is made of a 79 bytes (80 with null char) string to test, expected string result after
- * stripping invalid utf8 bytes, and a single-byte string encoded with expected number of errors.
+ * stripping invalid UTF8 bytes, and a single-byte string encoded with expected number of errors.
  *
- * Based on utf-8 decoder stress-test (https://www.cl.cam.ac.uk/~mgk25/ucs/examples/UTF-8-test.txt)
+ * Based on UTF8 decoder stress-test (https://www.cl.cam.ac.uk/~mgk25/ucs/examples/UTF-8-test.txt)
  *     by Markus Kuhn <http://www.cl.cam.ac.uk/~mgk25/> - 2015-08-28 - CC BY 4.0
  */
 static const char *utf8_invalid_tests[][3] = {

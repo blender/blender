@@ -246,7 +246,7 @@ void BLT_lang_set(const char *str)
   int ulang = ULANGUAGE;
   std::string locale_name = str ? str : LOCALE(ulang);
 
-  /* blender::locale assumes UTF-8, no need to put it in the name. */
+  /* #blender::locale assumes UTF8, no need to put it in the name. */
   const std::optional<std::string> messagepath = BKE_appdir_folder_id(BLENDER_DATAFILES, "locale");
   blender::locale::init(locale_name, {TEXT_DOMAIN_NAME}, {messagepath.value_or("")});
 

@@ -675,7 +675,7 @@ static void GIZMO_GT_dial_3d(wmGizmoType *gzt)
   /* identifiers */
   gzt->idname = "GIZMO_GT_dial_3d";
 
-  /* api callbacks */
+  /* API callbacks. */
   gzt->draw = gizmo_dial_draw;
   gzt->draw_select = gizmo_dial_draw_select;
   gzt->setup = gizmo_dial_setup;

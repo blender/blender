@@ -362,7 +362,7 @@ void SEQUENCER_OT_text_cursor_move(wmOperatorType *ot)
   ot->description = "Move cursor in text";
   ot->idname = "SEQUENCER_OT_text_cursor_move";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = sequencer_text_cursor_move_exec;
   ot->poll = sequencer_text_editing_active_poll;
 
@@ -445,7 +445,7 @@ void SEQUENCER_OT_text_insert(wmOperatorType *ot)
   ot->description = "Insert text at cursor position";
   ot->idname = "SEQUENCER_OT_text_insert";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = sequencer_text_insert_exec;
   ot->invoke = sequencer_text_insert_invoke;
   ot->poll = sequencer_text_editing_active_poll;
@@ -512,7 +512,7 @@ void SEQUENCER_OT_text_delete(wmOperatorType *ot)
   ot->description = "Delete text at cursor position";
   ot->idname = "SEQUENCER_OT_text_delete";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = sequencer_text_delete_exec;
   ot->poll = sequencer_text_editing_active_poll;
 
@@ -548,7 +548,7 @@ void SEQUENCER_OT_text_line_break(wmOperatorType *ot)
   ot->description = "Insert line break at cursor position";
   ot->idname = "SEQUENCER_OT_text_line_break";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = sequencer_text_line_break_exec;
   ot->poll = sequencer_text_editing_active_poll;
 
@@ -573,7 +573,7 @@ void SEQUENCER_OT_text_select_all(wmOperatorType *ot)
   ot->description = "Select all characters";
   ot->idname = "SEQUENCER_OT_text_select_all";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = sequencer_text_select_all_exec;
   ot->poll = sequencer_text_editing_active_poll;
 
@@ -605,7 +605,7 @@ void SEQUENCER_OT_text_deselect_all(wmOperatorType *ot)
   ot->description = "Deselect all characters";
   ot->idname = "SEQUENCER_OT_text_deselect_all";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = sequencer_text_deselect_all_exec;
   ot->poll = sequencer_text_editing_active_poll;
 
@@ -634,7 +634,7 @@ void SEQUENCER_OT_text_edit_mode_toggle(wmOperatorType *ot)
   ot->description = "Toggle text editing";
   ot->idname = "SEQUENCER_OT_text_edit_mode_toggle";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = sequencer_text_edit_mode_toggle_exec;
   ot->poll = sequencer_text_editing_poll;
 
@@ -759,7 +759,7 @@ void SEQUENCER_OT_text_cursor_set(wmOperatorType *ot)
   ot->description = "Set cursor position in text";
   ot->idname = "SEQUENCER_OT_text_cursor_set";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = sequencer_text_cursor_set_invoke;
   ot->modal = sequencer_text_cursor_set_modal;
   ot->poll = sequencer_text_editing_active_poll;
@@ -808,7 +808,7 @@ void SEQUENCER_OT_text_edit_copy(wmOperatorType *ot)
   ot->description = "Copy text to clipboard";
   ot->idname = "SEQUENCER_OT_text_edit_copy";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = sequencer_text_edit_copy_exec;
   ot->poll = sequencer_text_editing_active_poll;
 
@@ -835,7 +835,7 @@ static wmOperatorStatus sequencer_text_edit_paste_exec(bContext *C, wmOperator *
   /* Maximum bytes that can be filled into `data->text`. */
   const int fillable_len = std::min(clipboard_len, max_str_len);
 
-  /* Truncated string could contain invalid utf-8 sequence, thus ensure the length inserted is
+  /* Truncated string could contain invalid UTF8 sequence, thus ensure the length inserted is
    * always valid. */
   size_t valid_str_len;
   const int extra_offset = BLI_strnlen_utf8_ex(clipboard_buf, fillable_len, &valid_str_len);
@@ -861,7 +861,7 @@ void SEQUENCER_OT_text_edit_paste(wmOperatorType *ot)
   ot->description = "Paste text to clipboard";
   ot->idname = "SEQUENCER_OT_text_edit_paste";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = sequencer_text_edit_paste_exec;
   ot->poll = sequencer_text_editing_active_poll;
 
@@ -892,7 +892,7 @@ void SEQUENCER_OT_text_edit_cut(wmOperatorType *ot)
   ot->description = "Cut text to clipboard";
   ot->idname = "SEQUENCER_OT_text_edit_cut";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = sequencer_text_edit_cut_exec;
   ot->poll = sequencer_text_editing_active_poll;
 

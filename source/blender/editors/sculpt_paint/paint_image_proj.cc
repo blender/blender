@@ -6223,7 +6223,7 @@ void PAINT_OT_project_image(wmOperatorType *ot)
   ot->idname = "PAINT_OT_project_image";
   ot->description = "Project an edited render from the active camera back onto the object";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = WM_enum_search_invoke;
   ot->exec = texture_paint_camera_project_exec;
 
@@ -6359,7 +6359,7 @@ void PAINT_OT_image_from_view(wmOperatorType *ot)
   ot->idname = "PAINT_OT_image_from_view";
   ot->description = "Make an image from biggest 3D view for reprojection";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = texture_paint_image_from_view_exec;
   ot->poll = texture_paint_image_from_view_poll;
 
@@ -6917,7 +6917,7 @@ void PAINT_OT_add_texture_paint_slot(wmOperatorType *ot)
   ot->description = "Add a paint slot";
   ot->idname = "PAINT_OT_add_texture_paint_slot";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = texture_paint_add_texture_paint_slot_invoke;
   ot->exec = texture_paint_add_texture_paint_slot_exec;
   ot->poll = ED_operator_object_active_editable_mesh;
@@ -7019,7 +7019,7 @@ void PAINT_OT_add_simple_uvs(wmOperatorType *ot)
   ot->description = "Add cube map UVs on mesh";
   ot->idname = "PAINT_OT_add_simple_uvs";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = add_simple_uvs_exec;
   ot->poll = add_simple_uvs_poll;
 

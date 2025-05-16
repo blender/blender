@@ -42,7 +42,7 @@ enum class FontShadowType {
 };
 
 enum class BLFWrapMode : int {
-  Minimal = 0,            /* Only on ascii space and line feed. Legacy and invariant. */
+  Minimal = 0,            /* Only on ASCII space and line feed. Legacy and invariant. */
   Typographical = 1 << 0, /* Multilingual, informed by Unicode Standard Annex #14. */
   Path = 1 << 1,          /* Wrap on file path separators, space, underscores. */
   HardLimit = 1 << 2,     /* Line break at limit. */
@@ -396,7 +396,7 @@ void BLF_draw_buffer(int fontid, const char *str, size_t str_len, ResultBLF *r_i
 /**
  * This function is used for generating thumbnail previews.
  *
- * \note called from a thread, so it bypasses the normal BLF_* api (which isn't thread-safe).
+ * \note called from a thread, so it bypasses the normal BLF_* API (which isn't thread-safe).
  */
 bool BLF_thumb_preview(const char *filepath, unsigned char *buf, int w, int h, int channels)
     ATTR_NONNULL();

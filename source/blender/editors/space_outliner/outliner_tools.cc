@@ -3233,7 +3233,7 @@ void OUTLINER_OT_action_set(wmOperatorType *ot)
   ot->idname = "OUTLINER_OT_action_set";
   ot->description = "Change the active action used";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = WM_enum_search_invoke;
   ot->exec = outliner_action_set_exec;
   ot->poll = outliner_operation_tree_element_poll;

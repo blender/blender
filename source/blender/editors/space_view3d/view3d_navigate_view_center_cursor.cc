@@ -54,7 +54,7 @@ void VIEW3D_OT_view_center_cursor(wmOperatorType *ot)
   ot->description = "Center the view so that the cursor is in the middle of the view";
   ot->idname = "VIEW3D_OT_view_center_cursor";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = viewcenter_cursor_exec;
   ot->poll = view3d_location_poll;
 

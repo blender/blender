@@ -151,7 +151,7 @@ static void GREASE_PENCIL_OT_vertex_color_brightness_contrast(wmOperatorType *ot
   ot->idname = "GREASE_PENCIL_OT_vertex_color_brightness_contrast";
   ot->description = "Adjust vertex color brightness/contrast";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = grease_pencil_vertex_paint_brightness_contrast_exec;
   ot->poll = grease_pencil_vertex_painting_poll;
 
@@ -225,7 +225,7 @@ static void GREASE_PENCIL_OT_vertex_color_hsv(wmOperatorType *ot)
   ot->idname = "GREASE_PENCIL_OT_vertex_color_hsv";
   ot->description = "Adjust vertex color HSV values";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = grease_pencil_vertex_paint_hsv_exec;
   ot->poll = grease_pencil_vertex_painting_poll;
 
@@ -282,7 +282,7 @@ static void GREASE_PENCIL_OT_vertex_color_invert(wmOperatorType *ot)
   ot->idname = "GREASE_PENCIL_OT_vertex_color_invert";
   ot->description = "Invert RGB values";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = grease_pencil_vertex_paint_invert_exec;
   ot->poll = grease_pencil_vertex_painting_poll;
 
@@ -338,7 +338,7 @@ static void GREASE_PENCIL_OT_vertex_color_levels(wmOperatorType *ot)
   ot->idname = "GREASE_PENCIL_OT_vertex_color_levels";
   ot->description = "Adjust levels of vertex colors";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = grease_pencil_vertex_paint_levels_exec;
   ot->poll = grease_pencil_vertex_painting_poll;
 
@@ -413,7 +413,7 @@ static void GREASE_PENCIL_OT_vertex_color_set(wmOperatorType *ot)
   ot->idname = "GREASE_PENCIL_OT_vertex_color_set";
   ot->description = "Set active color to all selected vertex";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = grease_pencil_vertex_paint_set_exec;
   ot->poll = grease_pencil_vertex_painting_poll;
 

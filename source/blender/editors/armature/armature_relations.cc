@@ -1007,7 +1007,7 @@ void ARMATURE_OT_parent_set(wmOperatorType *ot)
   ot->idname = "ARMATURE_OT_parent_set";
   ot->description = "Set the active bone as the parent of the selected bones";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = armature_parent_set_invoke;
   ot->exec = armature_parent_set_exec;
   ot->poll = ED_operator_editarmature;
@@ -1132,7 +1132,7 @@ void ARMATURE_OT_parent_clear(wmOperatorType *ot)
   ot->description =
       "Remove the parent-child relationship between selected bones and their parents";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = armature_parent_clear_invoke;
   ot->exec = armature_parent_clear_exec;
   ot->poll = ED_operator_editarmature;

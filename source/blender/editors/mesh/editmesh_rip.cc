@@ -1135,7 +1135,7 @@ void MESH_OT_rip(wmOperatorType *ot)
   ot->idname = "MESH_OT_rip";
   ot->description = "Disconnect vertex or edges from connected geometry";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = edbm_rip_invoke;
   ot->poll = EDBM_view3d_poll;
 

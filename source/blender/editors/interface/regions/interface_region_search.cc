@@ -1050,8 +1050,8 @@ ARegion *ui_searchbox_create_generic(bContext *C, ARegion *butregion, uiButSearc
 /**
  * Similar to Python's `str.title` except...
  *
- * - we know words are upper case and ascii only.
- * - '_' are replaces by spaces.
+ * - we know words are upper case and ASCII only.
+ * - `_` are replaced by spaces.
  */
 static void str_tolower_titlecaps_ascii(char *str, const size_t len)
 {

@@ -118,7 +118,7 @@ void MASK_OT_new(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = mask_new_exec;
   ot->poll = ED_maskedit_poll;
 
@@ -151,7 +151,7 @@ void MASK_OT_layer_new(wmOperatorType *ot)
   ot->description = "Add new mask layer for masking";
   ot->idname = "MASK_OT_layer_new";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = mask_layer_new_exec;
   ot->poll = ED_maskedit_mask_poll;
 
@@ -186,7 +186,7 @@ void MASK_OT_layer_remove(wmOperatorType *ot)
   ot->description = "Remove mask layer";
   ot->idname = "MASK_OT_layer_remove";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = mask_layer_remove_exec;
   ot->poll = ED_maskedit_mask_poll;
 
@@ -923,7 +923,7 @@ void MASK_OT_slide_point(wmOperatorType *ot)
   ot->description = "Slide control points";
   ot->idname = "MASK_OT_slide_point";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = slide_point_invoke;
   ot->modal = slide_point_modal;
   ot->poll = ED_maskedit_mask_visible_splines_poll;
@@ -1323,7 +1323,7 @@ void MASK_OT_slide_spline_curvature(wmOperatorType *ot)
   ot->description = "Slide a point on the spline to define its curvature";
   ot->idname = "MASK_OT_slide_spline_curvature";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = slide_spline_curvature_invoke;
   ot->modal = slide_spline_curvature_modal;
   ot->poll = ED_maskedit_mask_visible_splines_poll;
@@ -1363,7 +1363,7 @@ void MASK_OT_cyclic_toggle(wmOperatorType *ot)
   ot->description = "Toggle cyclic for selected splines";
   ot->idname = "MASK_OT_cyclic_toggle";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = cyclic_toggle_exec;
   ot->poll = ED_maskedit_mask_visible_splines_poll;
 
@@ -1539,7 +1539,7 @@ void MASK_OT_delete(wmOperatorType *ot)
   ot->description = "Delete selected control points or splines";
   ot->idname = "MASK_OT_delete";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = delete_invoke;
   ot->exec = delete_exec;
   ot->poll = ED_maskedit_mask_visible_splines_poll;
@@ -1599,7 +1599,7 @@ void MASK_OT_switch_direction(wmOperatorType *ot)
   ot->description = "Switch direction of selected splines";
   ot->idname = "MASK_OT_switch_direction";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = mask_switch_direction_exec;
   ot->poll = ED_maskedit_mask_visible_splines_poll;
 
@@ -1661,7 +1661,7 @@ void MASK_OT_normals_make_consistent(wmOperatorType *ot)
   ot->description = "Recalculate the direction of selected handles";
   ot->idname = "MASK_OT_normals_make_consistent";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = mask_normals_make_consistent_exec;
   ot->poll = ED_maskedit_mask_visible_splines_poll;
 
@@ -1740,7 +1740,7 @@ void MASK_OT_handle_type_set(wmOperatorType *ot)
   ot->description = "Set type of handles for selected control points";
   ot->idname = "MASK_OT_handle_type_set";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = WM_menu_invoke;
   ot->exec = set_handle_type_exec;
   ot->poll = ED_maskedit_mask_visible_splines_poll;
@@ -1785,7 +1785,7 @@ void MASK_OT_hide_view_clear(wmOperatorType *ot)
   ot->description = "Reveal temporarily hidden mask layers";
   ot->idname = "MASK_OT_hide_view_clear";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = mask_hide_view_clear_exec;
   ot->poll = ED_maskedit_mask_poll;
 
@@ -1845,7 +1845,7 @@ void MASK_OT_hide_view_set(wmOperatorType *ot)
   ot->description = "Temporarily hide mask layers";
   ot->idname = "MASK_OT_hide_view_set";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = mask_hide_view_set_exec;
   ot->poll = ED_maskedit_mask_poll;
 
@@ -1897,7 +1897,7 @@ void MASK_OT_feather_weight_clear(wmOperatorType *ot)
   ot->description = "Reset the feather weight to zero";
   ot->idname = "MASK_OT_feather_weight_clear";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = mask_feather_weight_clear_exec;
   ot->poll = ED_maskedit_mask_visible_splines_poll;
 
@@ -1972,7 +1972,7 @@ void MASK_OT_layer_move(wmOperatorType *ot)
   ot->description = "Move the active layer up/down in the list";
   ot->idname = "MASK_OT_layer_move";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = mask_layer_move_exec;
   ot->poll = mask_layer_move_poll;
 
@@ -2115,7 +2115,7 @@ void MASK_OT_duplicate(wmOperatorType *ot)
   ot->description = "Duplicate selected control points and segments between them";
   ot->idname = "MASK_OT_duplicate";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = mask_duplicate_exec;
   ot->poll = ED_maskedit_mask_visible_splines_poll;
 
@@ -2146,7 +2146,7 @@ void MASK_OT_copy_splines(wmOperatorType *ot)
   ot->description = "Copy the selected splines to the internal clipboard";
   ot->idname = "MASK_OT_copy_splines";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = copy_splines_exec;
   ot->poll = ED_maskedit_mask_poll;
 
@@ -2190,7 +2190,7 @@ void MASK_OT_paste_splines(wmOperatorType *ot)
   ot->description = "Paste splines from the internal clipboard";
   ot->idname = "MASK_OT_paste_splines";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = paste_splines_exec;
   ot->poll = paste_splines_poll;
 

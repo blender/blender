@@ -2016,7 +2016,7 @@ void OUTLINER_OT_select_box(wmOperatorType *ot)
   ot->idname = "OUTLINER_OT_select_box";
   ot->description = "Use box selection to select tree elements";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = outliner_box_select_invoke;
   ot->exec = outliner_box_select_exec;
   ot->modal = WM_gesture_box_modal;
@@ -2253,7 +2253,7 @@ void OUTLINER_OT_select_walk(wmOperatorType *ot)
   ot->idname = "OUTLINER_OT_select_walk";
   ot->description = "Use walk navigation to select tree elements";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = outliner_walk_select_invoke;
   ot->poll = ED_operator_outliner_active;
 

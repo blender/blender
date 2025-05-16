@@ -483,7 +483,7 @@ void VIEW3D_OT_view_all(wmOperatorType *ot)
   ot->description = "View all objects in scene";
   ot->idname = "VIEW3D_OT_view_all";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = view3d_all_exec;
   ot->poll = ED_operator_region_view3d_active;
 
@@ -543,7 +543,7 @@ void VIEW3D_OT_view_selected(wmOperatorType *ot)
   ot->description = "Move the view to the selection center";
   ot->idname = "VIEW3D_OT_view_selected";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = viewselected_exec;
   ot->poll = view3d_zoom_or_dolly_poll;
 

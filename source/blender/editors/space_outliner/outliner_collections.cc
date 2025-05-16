@@ -279,7 +279,7 @@ void OUTLINER_OT_collection_new(wmOperatorType *ot)
   ot->idname = "OUTLINER_OT_collection_new";
   ot->description = "Add a new collection inside selected collection";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = collection_new_exec;
   ot->poll = collection_new_poll;
 
@@ -449,7 +449,7 @@ void OUTLINER_OT_collection_hierarchy_delete(wmOperatorType *ot)
   ot->idname = "OUTLINER_OT_collection_hierarchy_delete";
   ot->description = "Delete selected collection hierarchies";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = collection_hierarchy_delete_exec;
   ot->poll = collection_edit_in_active_scene_poll;
 
@@ -544,7 +544,7 @@ void OUTLINER_OT_collection_objects_select(wmOperatorType *ot)
   ot->idname = "OUTLINER_OT_collection_objects_select";
   ot->description = "Select objects in collection";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = collection_objects_select_exec;
   ot->poll = ED_outliner_collections_editor_poll;
 
@@ -559,7 +559,7 @@ void OUTLINER_OT_collection_objects_deselect(wmOperatorType *ot)
   ot->idname = "OUTLINER_OT_collection_objects_deselect";
   ot->description = "Deselect objects in collection";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = collection_objects_select_exec;
   ot->poll = ED_outliner_collections_editor_poll;
 
@@ -682,7 +682,7 @@ void OUTLINER_OT_collection_duplicate_linked(wmOperatorType *ot)
       "Recursively duplicate the collection, all its children and objects, with linked object "
       "data";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = collection_duplicate_exec;
   ot->poll = ED_outliner_collections_editor_poll;
 
@@ -698,7 +698,7 @@ void OUTLINER_OT_collection_duplicate(wmOperatorType *ot)
   ot->description =
       "Recursively duplicate the collection, all its children, objects and object data";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = collection_duplicate_exec;
   ot->poll = ED_outliner_collections_editor_poll;
 
@@ -763,7 +763,7 @@ void OUTLINER_OT_collection_link(wmOperatorType *ot)
   ot->idname = "OUTLINER_OT_collection_link";
   ot->description = "Link selected collections to active scene";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = collection_link_exec;
   ot->poll = collection_edit_in_active_scene_poll;
 
@@ -830,7 +830,7 @@ void OUTLINER_OT_collection_instance(wmOperatorType *ot)
   ot->idname = "OUTLINER_OT_collection_instance";
   ot->description = "Instance selected collections to active scene";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = collection_instance_exec;
   ot->poll = collection_edit_in_active_scene_poll;
 
@@ -975,7 +975,7 @@ void OUTLINER_OT_collection_exclude_set(wmOperatorType *ot)
   ot->idname = "OUTLINER_OT_collection_exclude_set";
   ot->description = "Exclude collection from the active view layer";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = collection_view_layer_exec;
   ot->poll = collections_exclude_set_poll;
 
@@ -990,7 +990,7 @@ void OUTLINER_OT_collection_exclude_clear(wmOperatorType *ot)
   ot->idname = "OUTLINER_OT_collection_exclude_clear";
   ot->description = "Include collection in the active view layer";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = collection_view_layer_exec;
   ot->poll = collections_exclude_clear_poll;
 
@@ -1005,7 +1005,7 @@ void OUTLINER_OT_collection_holdout_set(wmOperatorType *ot)
   ot->idname = "OUTLINER_OT_collection_holdout_set";
   ot->description = "Mask collection in the active view layer";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = collection_view_layer_exec;
   ot->poll = collections_holdout_set_poll;
 
@@ -1020,7 +1020,7 @@ void OUTLINER_OT_collection_holdout_clear(wmOperatorType *ot)
   ot->idname = "OUTLINER_OT_collection_holdout_clear";
   ot->description = "Clear masking of collection in the active view layer";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = collection_view_layer_exec;
   ot->poll = collections_holdout_clear_poll;
 
@@ -1037,7 +1037,7 @@ void OUTLINER_OT_collection_indirect_only_set(wmOperatorType *ot)
       "Set collection to only contribute indirectly (through shadows and reflections) in the view "
       "layer";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = collection_view_layer_exec;
   ot->poll = collections_indirect_only_set_poll;
 
@@ -1052,7 +1052,7 @@ void OUTLINER_OT_collection_indirect_only_clear(wmOperatorType *ot)
   ot->idname = "OUTLINER_OT_collection_indirect_only_clear";
   ot->description = "Clear collection contributing only indirectly in the view layer";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = collection_view_layer_exec;
   ot->poll = collections_indirect_only_clear_poll;
 
@@ -1128,7 +1128,7 @@ void OUTLINER_OT_collection_isolate(wmOperatorType *ot)
   ot->idname = "OUTLINER_OT_collection_isolate";
   ot->description = "Hide all but this collection and its parents";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = collection_isolate_exec;
   ot->invoke = collection_isolate_invoke;
   ot->poll = ED_outliner_collections_editor_poll;
@@ -1198,7 +1198,7 @@ void OUTLINER_OT_collection_show(wmOperatorType *ot)
   ot->idname = "OUTLINER_OT_collection_show";
   ot->description = "Show the collection in this view layer";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = collection_visibility_exec;
   ot->poll = collection_show_poll;
 
@@ -1213,7 +1213,7 @@ void OUTLINER_OT_collection_hide(wmOperatorType *ot)
   ot->idname = "OUTLINER_OT_collection_hide";
   ot->description = "Hide the collection in this view layer";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = collection_visibility_exec;
   ot->poll = collection_hide_poll;
 
@@ -1228,7 +1228,7 @@ void OUTLINER_OT_collection_show_inside(wmOperatorType *ot)
   ot->idname = "OUTLINER_OT_collection_show_inside";
   ot->description = "Show all the objects and collections inside the collection";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = collection_visibility_exec;
   ot->poll = collection_inside_poll;
 
@@ -1243,7 +1243,7 @@ void OUTLINER_OT_collection_hide_inside(wmOperatorType *ot)
   ot->idname = "OUTLINER_OT_collection_hide_inside";
   ot->description = "Hide all the objects and collections inside the collection";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = collection_visibility_exec;
   ot->poll = collection_inside_poll;
 
@@ -1383,7 +1383,7 @@ void OUTLINER_OT_collection_enable(wmOperatorType *ot)
   ot->idname = "OUTLINER_OT_collection_enable";
   ot->description = "Enable viewport display in the view layers";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = collection_flag_exec;
   ot->poll = collection_enable_poll;
 
@@ -1398,7 +1398,7 @@ void OUTLINER_OT_collection_disable(wmOperatorType *ot)
   ot->idname = "OUTLINER_OT_collection_disable";
   ot->description = "Disable viewport display in the view layers";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = collection_flag_exec;
   ot->poll = collection_disable_poll;
 
@@ -1413,7 +1413,7 @@ void OUTLINER_OT_collection_enable_render(wmOperatorType *ot)
   ot->idname = "OUTLINER_OT_collection_enable_render";
   ot->description = "Render the collection";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = collection_flag_exec;
   ot->poll = collection_enable_render_poll;
 
@@ -1428,7 +1428,7 @@ void OUTLINER_OT_collection_disable_render(wmOperatorType *ot)
   ot->idname = "OUTLINER_OT_collection_disable_render";
   ot->description = "Do not render this collection";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = collection_flag_exec;
   ot->poll = collection_disable_render_poll;
 
@@ -1521,7 +1521,7 @@ void OUTLINER_OT_hide(wmOperatorType *ot)
   ot->idname = "OUTLINER_OT_hide";
   ot->description = "Hide selected objects and collections";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = outliner_hide_exec;
   ot->poll = outliner_view_layer_collections_editor_poll;
 
@@ -1560,7 +1560,7 @@ void OUTLINER_OT_unhide_all(wmOperatorType *ot)
   ot->idname = "OUTLINER_OT_unhide_all";
   ot->description = "Unhide all objects and collections";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = outliner_unhide_all_exec;
   ot->poll = outliner_view_layer_collections_editor_poll;
 
@@ -1618,7 +1618,7 @@ void OUTLINER_OT_collection_color_tag_set(wmOperatorType *ot)
   ot->idname = "OUTLINER_OT_collection_color_tag_set";
   ot->description = "Set a color tag for the selected collections";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = outliner_color_tag_set_exec;
   ot->poll = ED_outliner_collections_editor_poll;
 

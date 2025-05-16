@@ -530,7 +530,7 @@ void OBJECT_OT_transfer_mode(wmOperatorType *ot)
       "Switches the active object and assigns the same mode to a new one under the mouse cursor, "
       "leaving the active mode in the current one";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = object_transfer_mode_invoke;
   ot->poll = object_transfer_mode_poll;
 

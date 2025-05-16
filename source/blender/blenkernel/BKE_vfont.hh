@@ -42,7 +42,7 @@ struct EditFont {
   EditFontSelBox *selboxes;
   int selboxes_len;
 
-  /* Positional vars relative to the `textbuf` (not utf8 bytes)
+  /* Positional vars relative to the `textbuf` (not UTF8 bytes)
    * a copy of these is kept in Curve, but use these in edit-mode. */
 
   /** Length of `textbuf`. */

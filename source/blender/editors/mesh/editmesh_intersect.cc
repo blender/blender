@@ -306,7 +306,7 @@ void MESH_OT_intersect(wmOperatorType *ot)
   ot->description = "Cut an intersection into faces";
   ot->idname = "MESH_OT_intersect";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = edbm_intersect_exec;
   ot->poll = ED_operator_editmesh;
   ot->ui = edbm_intersect_ui;
@@ -444,7 +444,7 @@ void MESH_OT_intersect_boolean(wmOperatorType *ot)
   ot->description = "Cut solid geometry from selected to unselected";
   ot->idname = "MESH_OT_intersect_boolean";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = edbm_intersect_boolean_exec;
   ot->poll = ED_operator_editmesh;
   ot->ui = edbm_intersect_boolean_ui;
@@ -1075,7 +1075,7 @@ void MESH_OT_face_split_by_edges(wmOperatorType *ot)
   ot->description = "Weld loose edges into faces (splitting them into new faces)";
   ot->idname = "MESH_OT_face_split_by_edges";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = edbm_face_split_by_edges_exec;
   ot->poll = ED_operator_editmesh;
 

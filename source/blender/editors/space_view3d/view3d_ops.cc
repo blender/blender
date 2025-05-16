@@ -90,7 +90,7 @@ static void VIEW3D_OT_copybuffer(wmOperatorType *ot)
   ot->idname = "VIEW3D_OT_copybuffer";
   ot->description = "Copy the selected objects to the internal clipboard";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = view3d_copybuffer_exec;
   ot->poll = ED_operator_scene;
 }
@@ -137,7 +137,7 @@ static void VIEW3D_OT_pastebuffer(wmOperatorType *ot)
   ot->idname = "VIEW3D_OT_pastebuffer";
   ot->description = "Paste objects from the internal clipboard";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = view3d_pastebuffer_exec;
   ot->poll = ED_operator_scene_editable;
 

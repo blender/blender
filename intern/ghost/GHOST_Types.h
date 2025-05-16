@@ -617,7 +617,7 @@ typedef struct {
 typedef enum {
   GHOST_kDragnDropTypeUnknown = 0,
   GHOST_kDragnDropTypeFilenames, /* Array of strings representing file names (full path). */
-  GHOST_kDragnDropTypeString,    /* Unformatted text UTF-8 string. */
+  GHOST_kDragnDropTypeString,    /* Unformatted text UTF8 string. */
   GHOST_kDragnDropTypeBitmap     /* Bitmap image data. */
 } GHOST_TDragnDropTypes;
 
@@ -639,7 +639,7 @@ typedef struct {
  * All members must remain aligned and the struct size match!
  */
 typedef struct {
-  /** utf8 encoded strings */
+  /** UTF8 encoded strings. */
   std::string result, composite;
   /** Cursor position in the IME composition. */
   int cursor_position;

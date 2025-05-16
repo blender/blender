@@ -1295,12 +1295,12 @@ static void blf_font_wrap_apply(FontBLF *font,
     const uint codepoint_prev = g_prev ? g_prev->c : 0;
 
     /**
-     * Implementation Detail (utf8).
+     * Implementation Detail (UTF8).
      *
      * Take care with single byte offsets here,
-     * since this is utf8 we can't be sure a single byte is a single character.
+     * since this is UTF8 we can't be sure a single byte is a single character.
      *
-     * This is _only_ done when we know for sure the character is ascii (newline or a space).
+     * This is _only_ done when we know for sure the character is ASCII (newline or a space).
      */
     pen_x_next = pen_x + advance_x;
 

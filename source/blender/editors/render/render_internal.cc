@@ -1024,7 +1024,7 @@ static wmOperatorStatus screen_render_invoke(bContext *C, wmOperator *op, const 
   blender::seq::cache_cleanup(scene);
 
   /* store spare
-   * get view3d layer, local layer, make this nice api call to render
+   * get view3d layer, local layer, make this nice API call to render
    * store spare */
 
   /* ensure at least 1 area shows result */
@@ -1149,7 +1149,7 @@ void RENDER_OT_render(wmOperatorType *ot)
   ot->description = "Render active scene";
   ot->idname = "RENDER_OT_render";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = screen_render_invoke;
   ot->modal = screen_render_modal;
   ot->cancel = screen_render_cancel;

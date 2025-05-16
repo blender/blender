@@ -536,7 +536,7 @@ void ARMATURE_OT_select_linked(wmOperatorType *ot)
   ot->idname = "ARMATURE_OT_select_linked";
   ot->description = "Select all bones linked by parent/child connections to the current selection";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = armature_select_linked_exec;
   ot->poll = ED_operator_editarmature;
 
@@ -600,7 +600,7 @@ void ARMATURE_OT_select_linked_pick(wmOperatorType *ot)
   ot->idname = "ARMATURE_OT_select_linked_pick";
   ot->description = "(De)select bones linked by parent/child connections under the mouse cursor";
 
-  /* api callbacks */
+  /* API callbacks. */
   /* leave 'exec' unset */
   ot->invoke = armature_select_linked_pick_invoke;
   ot->poll = armature_select_linked_pick_poll;
@@ -1391,7 +1391,7 @@ void ARMATURE_OT_select_all(wmOperatorType *ot)
   ot->idname = "ARMATURE_OT_select_all";
   ot->description = "Toggle selection status of all bones";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = armature_de_select_all_exec;
   ot->poll = ED_operator_editarmature;
 
@@ -1520,7 +1520,7 @@ void ARMATURE_OT_select_more(wmOperatorType *ot)
   ot->idname = "ARMATURE_OT_select_more";
   ot->description = "Select those bones connected to the initial selection";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = armature_de_select_more_exec;
   ot->poll = ED_operator_editarmature;
 
@@ -1557,7 +1557,7 @@ void ARMATURE_OT_select_less(wmOperatorType *ot)
   ot->idname = "ARMATURE_OT_select_less";
   ot->description = "Deselect those bones at the boundary of each selection region";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = armature_de_select_less_exec;
   ot->poll = ED_operator_editarmature;
 
@@ -2121,7 +2121,7 @@ void ARMATURE_OT_select_hierarchy(wmOperatorType *ot)
   ot->idname = "ARMATURE_OT_select_hierarchy";
   ot->description = "Select immediate parent/children of selected bones";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = armature_select_hierarchy_exec;
   ot->poll = ED_operator_editarmature;
 
@@ -2208,7 +2208,7 @@ void ARMATURE_OT_select_mirror(wmOperatorType *ot)
   ot->idname = "ARMATURE_OT_select_mirror";
   ot->description = "Mirror the bone selection";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = armature_select_mirror_exec;
   ot->poll = ED_operator_editarmature;
 
@@ -2346,7 +2346,7 @@ void ARMATURE_OT_shortest_path_pick(wmOperatorType *ot)
   ot->idname = "ARMATURE_OT_shortest_path_pick";
   ot->description = "Select shortest path between two bones";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = armature_shortest_path_pick_invoke;
   ot->poll = ED_operator_editarmature;
 

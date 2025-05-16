@@ -342,7 +342,7 @@ void GPENCIL_OT_layer_annotation_move(wmOperatorType *ot)
   ot->idname = "GPENCIL_OT_layer_annotation_move";
   ot->description = "Move the active Annotation layer up/down in the list";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = gpencil_layer_move_exec;
   ot->poll = gpencil_active_layer_annotation_poll;
 

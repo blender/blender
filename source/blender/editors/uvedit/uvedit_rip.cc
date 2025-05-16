@@ -960,7 +960,7 @@ void UV_OT_rip(wmOperatorType *ot)
   ot->idname = "UV_OT_rip";
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_DEPENDS_ON_CURSOR;
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = uv_rip_exec;
   ot->invoke = uv_rip_invoke;
   ot->poll = ED_operator_uvedit;

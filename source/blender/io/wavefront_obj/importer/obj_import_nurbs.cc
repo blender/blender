@@ -95,8 +95,8 @@ static int cyclic_repeated_points(const int8_t order, const int end_multiplicity
 }
 
 /**
- * Compute the number of occurences of each unique knot value (so knot multiplicity), forming a
- * sequence for which: sum(multiplicity) == knots.size().
+ * Compute the number of occurrences of each unique knot value (so knot multiplicity),
+ * forming a sequence for which: `sum(multiplicity) == knots.size()`.
  *
  * Example:
  * Knots: [0, 0, 0, 0.1, 0.3, 0.4, 0.4, 0.4]
@@ -200,8 +200,9 @@ static bool detect_knot_mode_cyclic(const int8_t degree,
     return false;
   }
 
-  /* Multiplicity m is continous to the `degree - m` derivative and as such multiplcitiy == order
-   * is discontinous. By allowing it, clamped or Bezier curves can still be considered cyclic but
+  /* Multiplicity m is continuous to the `degree - m` derivative and as such
+   * `multiplicity == order` is discontinuous.
+   * By allowing it, clamped or Bezier curves can still be considered cyclic but
    * ensure [here] that illogical `multiplicities > order` is not considered cyclic.
    */
   if (multiplicity.first() > order || multiplicity.last() > order) {

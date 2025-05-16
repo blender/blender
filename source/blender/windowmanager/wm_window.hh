@@ -18,7 +18,7 @@ struct wmOperatorType;
 struct wmWindow;
 struct wmWindowManager;
 
-/* *************** internal api ************** */
+/* *************** Internal API ************** */
 
 /**
  * \note #bContext can be null in background mode because we don't

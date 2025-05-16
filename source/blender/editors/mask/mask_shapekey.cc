@@ -63,7 +63,7 @@ void MASK_OT_shape_key_insert(wmOperatorType *ot)
   ot->description = "Insert mask shape keyframe for active mask layer at the current frame";
   ot->idname = "MASK_OT_shape_key_insert";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = mask_shape_key_insert_exec;
   ot->poll = ED_maskedit_mask_visible_splines_poll;
 
@@ -109,7 +109,7 @@ void MASK_OT_shape_key_clear(wmOperatorType *ot)
   ot->description = "Remove mask shape keyframe for active mask layer at the current frame";
   ot->idname = "MASK_OT_shape_key_clear";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = mask_shape_key_clear_exec;
   ot->poll = ED_maskedit_mask_visible_splines_poll;
 
@@ -191,7 +191,7 @@ void MASK_OT_shape_key_feather_reset(wmOperatorType *ot)
   ot->description = "Reset feather weights on all selected points animation values";
   ot->idname = "MASK_OT_shape_key_feather_reset";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = mask_shape_key_feather_reset_exec;
   ot->poll = ED_maskedit_mask_visible_splines_poll;
 
@@ -359,7 +359,7 @@ void MASK_OT_shape_key_rekey(wmOperatorType *ot)
       "Recalculate animation data on selected points for frames selected in the dopesheet";
   ot->idname = "MASK_OT_shape_key_rekey";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = mask_shape_key_rekey_exec;
   ot->poll = ED_maskedit_mask_visible_splines_poll;
 

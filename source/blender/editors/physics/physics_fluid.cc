@@ -693,7 +693,7 @@ void FLUID_OT_bake_all(wmOperatorType *ot)
   ot->description = "Bake Entire Fluid Simulation";
   ot->idname = FLUID_JOB_BAKE_ALL;
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = fluid_bake_exec;
   ot->invoke = fluid_bake_invoke;
   ot->modal = fluid_bake_modal;
@@ -707,7 +707,7 @@ void FLUID_OT_free_all(wmOperatorType *ot)
   ot->description = "Free Entire Fluid Simulation";
   ot->idname = FLUID_JOB_FREE_ALL;
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = fluid_free_exec;
   ot->poll = ED_operator_object_active_editable;
 }
@@ -719,7 +719,7 @@ void FLUID_OT_bake_data(wmOperatorType *ot)
   ot->description = "Bake Fluid Data";
   ot->idname = FLUID_JOB_BAKE_DATA;
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = fluid_bake_exec;
   ot->invoke = fluid_bake_invoke;
   ot->modal = fluid_bake_modal;
@@ -733,7 +733,7 @@ void FLUID_OT_free_data(wmOperatorType *ot)
   ot->description = "Free Fluid Data";
   ot->idname = FLUID_JOB_FREE_DATA;
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = fluid_free_exec;
   ot->poll = ED_operator_object_active_editable;
 }
@@ -745,7 +745,7 @@ void FLUID_OT_bake_noise(wmOperatorType *ot)
   ot->description = "Bake Fluid Noise";
   ot->idname = FLUID_JOB_BAKE_NOISE;
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = fluid_bake_exec;
   ot->invoke = fluid_bake_invoke;
   ot->modal = fluid_bake_modal;
@@ -759,7 +759,7 @@ void FLUID_OT_free_noise(wmOperatorType *ot)
   ot->description = "Free Fluid Noise";
   ot->idname = FLUID_JOB_FREE_NOISE;
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = fluid_free_exec;
   ot->poll = ED_operator_object_active_editable;
 }
@@ -771,7 +771,7 @@ void FLUID_OT_bake_mesh(wmOperatorType *ot)
   ot->description = "Bake Fluid Mesh";
   ot->idname = FLUID_JOB_BAKE_MESH;
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = fluid_bake_exec;
   ot->invoke = fluid_bake_invoke;
   ot->modal = fluid_bake_modal;
@@ -785,7 +785,7 @@ void FLUID_OT_free_mesh(wmOperatorType *ot)
   ot->description = "Free Fluid Mesh";
   ot->idname = FLUID_JOB_FREE_MESH;
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = fluid_free_exec;
   ot->poll = ED_operator_object_active_editable;
 }
@@ -797,7 +797,7 @@ void FLUID_OT_bake_particles(wmOperatorType *ot)
   ot->description = "Bake Fluid Particles";
   ot->idname = FLUID_JOB_BAKE_PARTICLES;
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = fluid_bake_exec;
   ot->invoke = fluid_bake_invoke;
   ot->modal = fluid_bake_modal;
@@ -811,7 +811,7 @@ void FLUID_OT_free_particles(wmOperatorType *ot)
   ot->description = "Free Fluid Particles";
   ot->idname = FLUID_JOB_FREE_PARTICLES;
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = fluid_free_exec;
   ot->poll = ED_operator_object_active_editable;
 }
@@ -823,7 +823,7 @@ void FLUID_OT_bake_guides(wmOperatorType *ot)
   ot->description = "Bake Fluid Guiding";
   ot->idname = FLUID_JOB_BAKE_GUIDES;
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = fluid_bake_exec;
   ot->invoke = fluid_bake_invoke;
   ot->modal = fluid_bake_modal;
@@ -837,7 +837,7 @@ void FLUID_OT_free_guides(wmOperatorType *ot)
   ot->description = "Free Fluid Guiding";
   ot->idname = FLUID_JOB_FREE_GUIDES;
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = fluid_free_exec;
   ot->poll = ED_operator_object_active_editable;
 }
@@ -849,7 +849,7 @@ void FLUID_OT_pause_bake(wmOperatorType *ot)
   ot->description = "Pause Bake";
   ot->idname = FLUID_JOB_BAKE_PAUSE;
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = fluid_pause_exec;
   ot->poll = ED_operator_object_active_editable;
 }

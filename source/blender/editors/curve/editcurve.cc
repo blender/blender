@@ -1506,7 +1506,7 @@ void CURVE_OT_separate(wmOperatorType *ot)
   ot->idname = "CURVE_OT_separate";
   ot->description = "Separate selected points from connected unselected points into a new object";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = separate_exec;
   ot->poll = ED_operator_editsurfcurve;
 
@@ -1579,7 +1579,7 @@ void CURVE_OT_split(wmOperatorType *ot)
   ot->idname = "CURVE_OT_split";
   ot->description = "Split off selected points from connected unselected points";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = curve_split_exec;
   ot->poll = ED_operator_editsurfcurve;
 
@@ -2647,7 +2647,7 @@ void CURVE_OT_switch_direction(wmOperatorType *ot)
   ot->description = "Switch direction of selected splines";
   ot->idname = "CURVE_OT_switch_direction";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = switch_direction_exec;
   ot->poll = ED_operator_editsurfcurve;
 
@@ -2706,7 +2706,7 @@ void CURVE_OT_spline_weight_set(wmOperatorType *ot)
   ot->description = "Set softbody goal weight for selected points";
   ot->idname = "CURVE_OT_spline_weight_set";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = set_goal_weight_exec;
   ot->invoke = WM_operator_props_popup;
   ot->poll = ED_operator_editsurfcurve;
@@ -2778,7 +2778,7 @@ void CURVE_OT_radius_set(wmOperatorType *ot)
   ot->description = "Set per-point radius which is used for bevel tapering";
   ot->idname = "CURVE_OT_radius_set";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = set_radius_exec;
   ot->invoke = WM_operator_props_popup;
   ot->poll = ED_operator_editsurfcurve;
@@ -2942,7 +2942,7 @@ void CURVE_OT_smooth(wmOperatorType *ot)
   ot->description = "Flatten angles of selected points";
   ot->idname = "CURVE_OT_smooth";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = smooth_exec;
   ot->poll = ED_operator_editsurfcurve;
 
@@ -3168,7 +3168,7 @@ void CURVE_OT_smooth_weight(wmOperatorType *ot)
   ot->description = "Interpolate weight of selected points";
   ot->idname = "CURVE_OT_smooth_weight";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = curve_smooth_weight_exec;
   ot->poll = ED_operator_editsurfcurve;
 
@@ -3218,7 +3218,7 @@ void CURVE_OT_smooth_radius(wmOperatorType *ot)
   ot->description = "Interpolate radii of selected points";
   ot->idname = "CURVE_OT_smooth_radius";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = curve_smooth_radius_exec;
   ot->poll = ED_operator_editsurfcurve;
 
@@ -3267,7 +3267,7 @@ void CURVE_OT_smooth_tilt(wmOperatorType *ot)
   ot->description = "Interpolate tilt of selected points";
   ot->idname = "CURVE_OT_smooth_tilt";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = curve_smooth_tilt_exec;
   ot->poll = ED_operator_editsurfcurve;
 
@@ -3364,7 +3364,7 @@ void CURVE_OT_hide(wmOperatorType *ot)
   ot->idname = "CURVE_OT_hide";
   ot->description = "Hide (un)selected control points";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = hide_exec;
   ot->poll = ED_operator_editsurfcurve;
 
@@ -3443,7 +3443,7 @@ void CURVE_OT_reveal(wmOperatorType *ot)
   ot->idname = "CURVE_OT_reveal";
   ot->description = "Reveal hidden control points";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = reveal_exec;
   ot->poll = ED_operator_editsurfcurve;
 
@@ -3894,7 +3894,7 @@ void CURVE_OT_subdivide(wmOperatorType *ot)
   ot->description = "Subdivide selected segments";
   ot->idname = "CURVE_OT_subdivide";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = subdivide_exec;
   ot->poll = ED_operator_editsurfcurve;
 
@@ -3980,7 +3980,7 @@ void CURVE_OT_spline_type_set(wmOperatorType *ot)
   ot->description = "Set type of active spline";
   ot->idname = "CURVE_OT_spline_type_set";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = set_spline_type_exec;
   ot->invoke = WM_menu_invoke;
   ot->poll = ED_operator_editcurve;
@@ -4048,7 +4048,7 @@ void CURVE_OT_handle_type_set(wmOperatorType *ot)
   ot->description = "Set type of handles for selected control points";
   ot->idname = "CURVE_OT_handle_type_set";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = WM_menu_invoke;
   ot->exec = set_handle_type_exec;
   ot->poll = ED_operator_editcurve;
@@ -4108,7 +4108,7 @@ void CURVE_OT_normals_make_consistent(wmOperatorType *ot)
   ot->description = "Recalculate the direction of selected handles";
   ot->idname = "CURVE_OT_normals_make_consistent";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = curve_normals_make_consistent_exec;
   ot->poll = ED_operator_editcurve;
 
@@ -4805,7 +4805,7 @@ void CURVE_OT_make_segment(wmOperatorType *ot)
   ot->idname = "CURVE_OT_make_segment";
   ot->description = "Join two curves by their selected ends";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = make_segment_exec;
   ot->poll = ED_operator_editsurfcurve;
 
@@ -5190,7 +5190,7 @@ void CURVE_OT_spin(wmOperatorType *ot)
   ot->idname = "CURVE_OT_spin";
   ot->description = "Extrude selected boundary row around pivot point and current view axis";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = spin_exec;
   ot->invoke = spin_invoke;
   ot->poll = ED_operator_editsurf;
@@ -5744,7 +5744,7 @@ void CURVE_OT_vertex_add(wmOperatorType *ot)
   ot->idname = "CURVE_OT_vertex_add";
   ot->description = "Add a new control point (linked to only selected end-curve one, if any)";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = add_vertex_exec;
   ot->invoke = add_vertex_invoke;
   ot->poll = ED_operator_editcurve;
@@ -5815,7 +5815,7 @@ void CURVE_OT_extrude(wmOperatorType *ot)
   ot->description = "Extrude selected control point(s)";
   ot->idname = "CURVE_OT_extrude";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = curve_extrude_exec;
   ot->poll = ED_operator_editsurfcurve;
 
@@ -5982,7 +5982,7 @@ void CURVE_OT_cyclic_toggle(wmOperatorType *ot)
   ot->description = "Make active spline closed/opened loop";
   ot->idname = "CURVE_OT_cyclic_toggle";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = toggle_cyclic_exec;
   ot->invoke = toggle_cyclic_invoke;
   ot->poll = ED_operator_editsurfcurve;
@@ -6053,7 +6053,7 @@ void CURVE_OT_duplicate(wmOperatorType *ot)
   ot->description = "Duplicate selected control points";
   ot->idname = "CURVE_OT_duplicate";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = duplicate_exec;
   ot->poll = ED_operator_editsurfcurve;
 
@@ -6594,7 +6594,7 @@ void CURVE_OT_delete(wmOperatorType *ot)
   ot->description = "Delete selected control points or segments";
   ot->idname = "CURVE_OT_delete";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = curve_delete_exec;
   ot->invoke = WM_menu_invoke;
   ot->poll = ED_operator_editsurfcurve;
@@ -6748,7 +6748,7 @@ void CURVE_OT_dissolve_verts(wmOperatorType *ot)
   ot->description = "Delete selected control points, correcting surrounding handles";
   ot->idname = "CURVE_OT_dissolve_verts";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = curve_dissolve_exec;
   ot->poll = ED_operator_editcurve;
 
@@ -6840,7 +6840,7 @@ void CURVE_OT_decimate(wmOperatorType *ot)
   ot->description = "Simplify selected curves";
   ot->idname = "CURVE_OT_decimate";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = curve_decimate_exec;
   ot->poll = ED_operator_editcurve;
 
@@ -6900,7 +6900,7 @@ void CURVE_OT_shade_smooth(wmOperatorType *ot)
   ot->idname = "CURVE_OT_shade_smooth";
   ot->description = "Set shading to smooth";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = shade_smooth_exec;
   ot->poll = ED_operator_editsurfcurve;
 
@@ -6915,7 +6915,7 @@ void CURVE_OT_shade_flat(wmOperatorType *ot)
   ot->idname = "CURVE_OT_shade_flat";
   ot->description = "Set shading to flat";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = shade_smooth_exec;
   ot->poll = ED_operator_editsurfcurve;
 
@@ -7114,7 +7114,7 @@ void CURVE_OT_tilt_clear(wmOperatorType *ot)
   ot->idname = "CURVE_OT_tilt_clear";
   ot->description = "Clear the tilt of selected control points";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = clear_tilt_exec;
   ot->poll = ED_operator_editcurve;
 
@@ -7201,7 +7201,7 @@ void CURVE_OT_match_texture_space(wmOperatorType *ot)
   ot->idname = "CURVE_OT_match_texture_space";
   ot->description = "Match texture space to object's bounding box";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = match_texture_space_exec;
   ot->poll = match_texture_space_poll;
 

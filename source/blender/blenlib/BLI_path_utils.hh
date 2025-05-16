@@ -773,7 +773,7 @@ void BLI_setenv_if_new(const char *env, const char *val) ATTR_NONNULL(1);
  * On windows #getenv gets its variables from a static copy of the environment variables taken at
  * process start-up, causing it to not pick up on environment variables created during runtime.
  * This function uses an alternative method to get environment variables that does pick up on
- * runtime environment variables. The result will be UTF-8 encoded.
+ * runtime environment variables. The result will be UTF8 encoded.
  */
 const char *BLI_getenv(const char *env) ATTR_NONNULL(1) ATTR_WARN_UNUSED_RESULT;
 

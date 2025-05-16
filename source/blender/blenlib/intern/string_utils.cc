@@ -434,7 +434,7 @@ void BLI_uniquename_cb(blender::FunctionRef<bool(blender::StringRefNull)> unique
       /* highly unlikely the string only has enough room for the number
        * but support anyway */
       if (UNLIKELY((len == 0) || (numlen + 1 >= name_maxncpy))) {
-        /* number is know not to be utf-8 */
+        /* Number is known not to be UTF8. */
         BLI_strncpy(tempname, numstr, name_maxncpy);
       }
       else {

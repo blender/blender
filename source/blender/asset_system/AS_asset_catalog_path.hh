@@ -30,7 +30,7 @@ namespace blender::asset_system {
  *
  * See https://developer.blender.org/docs/features/asset_system/backend/asset_catalogs/
  *
- * Paths are stored as byte sequences, and assumed to be UTF-8.
+ * Paths are stored as byte sequences, and assumed to be UTF8.
  */
 class AssetCatalogPath {
   friend std::ostream &operator<<(std::ostream &stream, const AssetCatalogPath &path_to_append);

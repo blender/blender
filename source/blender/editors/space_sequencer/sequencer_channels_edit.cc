@@ -42,7 +42,7 @@ void SEQUENCER_OT_rename_channel(wmOperatorType *ot)
   ot->name = "Rename Channel";
   ot->idname = "SEQUENCER_OT_rename_channel";
 
-  /* Api callbacks. */
+  /* API callbacks. */
   ot->invoke = sequencer_rename_channel_invoke;
   ot->poll = sequencer_edit_with_channel_region_poll;
 

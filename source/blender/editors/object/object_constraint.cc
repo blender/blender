@@ -1759,7 +1759,7 @@ void CONSTRAINT_OT_copy_to_selected(wmOperatorType *ot)
   ot->idname = "CONSTRAINT_OT_copy_to_selected";
   ot->description = "Copy constraint to other selected objects/bones";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = constraint_copy_to_selected_exec;
   ot->invoke = constraint_copy_to_selected_invoke;
   ot->poll = constraint_copy_to_selected_poll;
@@ -2081,7 +2081,7 @@ void POSE_OT_constraints_copy(wmOperatorType *ot)
   ot->idname = "POSE_OT_constraints_copy";
   ot->description = "Copy constraints to other selected bones";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = pose_constraint_copy_exec;
   ot->poll = ED_operator_posemode_exclusive;
 
@@ -2126,7 +2126,7 @@ void OBJECT_OT_constraints_copy(wmOperatorType *ot)
   ot->idname = "OBJECT_OT_constraints_copy";
   ot->description = "Copy constraints to other selected objects";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = object_constraint_copy_exec;
   ot->poll = ED_operator_object_active_editable;
 
@@ -2451,7 +2451,7 @@ void OBJECT_OT_constraint_add(wmOperatorType *ot)
   ot->description = "Add a constraint to the active object";
   ot->idname = "OBJECT_OT_constraint_add";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = WM_menu_invoke;
   ot->exec = object_constraint_add_exec;
   ot->poll = ED_operator_object_active_editable;
@@ -2482,7 +2482,7 @@ void OBJECT_OT_constraint_add_with_targets(wmOperatorType *ot)
       "selected objects/bones";
   ot->idname = "OBJECT_OT_constraint_add_with_targets";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = WM_menu_invoke;
   ot->exec = object_constraint_add_exec;
   ot->poll = ED_operator_object_active_editable;
@@ -2503,7 +2503,7 @@ void POSE_OT_constraint_add(wmOperatorType *ot)
   ot->description = "Add a constraint to the active bone";
   ot->idname = "POSE_OT_constraint_add";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = WM_menu_invoke;
   ot->exec = pose_constraint_add_exec;
   ot->poll = ED_operator_posemode_exclusive;
@@ -2524,7 +2524,7 @@ void POSE_OT_constraint_add_with_targets(wmOperatorType *ot)
       "Objects/Bones";
   ot->idname = "POSE_OT_constraint_add_with_targets";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = WM_menu_invoke;
   ot->exec = pose_constraint_add_exec;
   ot->poll = ED_operator_posemode_exclusive;
@@ -2626,7 +2626,7 @@ void POSE_OT_ik_add(wmOperatorType *ot)
   ot->description = "Add IK Constraint to the active Bone";
   ot->idname = "POSE_OT_ik_add";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = pose_ik_add_invoke;
   ot->exec = pose_ik_add_exec;
   ot->poll = ED_operator_posemode_exclusive;
@@ -2690,7 +2690,7 @@ void POSE_OT_ik_clear(wmOperatorType *ot)
   ot->description = "Remove all IK Constraints from selected bones";
   ot->idname = "POSE_OT_ik_clear";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = pose_ik_clear_exec;
   ot->poll = ED_operator_object_active_local_editable_posemode_exclusive;
 

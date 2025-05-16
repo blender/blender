@@ -138,7 +138,7 @@ void SEQUENCER_OT_rebuild_proxy(wmOperatorType *ot)
   ot->idname = "SEQUENCER_OT_rebuild_proxy";
   ot->description = "Rebuild all selected proxies and timecode indices";
 
-  /* Api callbacks. */
+  /* API callbacks. */
   ot->invoke = sequencer_rebuild_proxy_invoke;
   ot->exec = sequencer_rebuild_proxy_exec;
 
@@ -233,7 +233,7 @@ void SEQUENCER_OT_enable_proxies(wmOperatorType *ot)
   ot->idname = "SEQUENCER_OT_enable_proxies";
   ot->description = "Enable selected proxies on all selected Movie and Image strips";
 
-  /* Api callbacks. */
+  /* API callbacks. */
   ot->invoke = sequencer_enable_proxies_invoke;
   ot->exec = sequencer_enable_proxies_exec;
 

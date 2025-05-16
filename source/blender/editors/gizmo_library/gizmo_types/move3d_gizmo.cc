@@ -437,7 +437,7 @@ static void GIZMO_GT_move_3d(wmGizmoType *gzt)
   /* identifiers */
   gzt->idname = "GIZMO_GT_move_3d";
 
-  /* api callbacks */
+  /* API callbacks. */
   gzt->draw = gizmo_move_draw;
   gzt->draw_select = gizmo_move_draw_select;
   gzt->test_select = gizmo_move_test_select;

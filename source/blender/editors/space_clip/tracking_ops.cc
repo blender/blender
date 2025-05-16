@@ -120,7 +120,7 @@ void CLIP_OT_add_marker(wmOperatorType *ot)
   ot->idname = "CLIP_OT_add_marker";
   ot->description = "Place new marker at specified location";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = add_marker_invoke;
   ot->exec = add_marker_exec;
   ot->poll = ED_space_clip_tracking_poll;
@@ -210,7 +210,7 @@ void CLIP_OT_add_marker_at_click(wmOperatorType *ot)
   ot->idname = "CLIP_OT_add_marker_at_click";
   ot->description = "Place new marker at the desired (clicked) position";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = add_marker_at_click_invoke;
   ot->poll = ED_space_clip_tracking_poll;
   ot->modal = add_marker_at_click_modal;
@@ -277,7 +277,7 @@ void CLIP_OT_delete_track(wmOperatorType *ot)
   ot->idname = "CLIP_OT_delete_track";
   ot->description = "Delete selected tracks";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = delete_track_invoke;
   ot->exec = delete_track_exec;
   ot->poll = ED_space_clip_tracking_poll;
@@ -359,7 +359,7 @@ void CLIP_OT_delete_marker(wmOperatorType *ot)
   ot->idname = "CLIP_OT_delete_marker";
   ot->description = "Delete marker for current frame from selected tracks";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = delete_marker_invoke;
   ot->exec = delete_marker_exec;
   ot->poll = ED_space_clip_tracking_poll;
@@ -848,7 +848,7 @@ void CLIP_OT_slide_marker(wmOperatorType *ot)
   ot->description = "Slide marker areas";
   ot->idname = "CLIP_OT_slide_marker";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->poll = ED_space_clip_tracking_poll;
   ot->invoke = slide_marker_invoke;
   ot->modal = slide_marker_modal;
@@ -921,7 +921,7 @@ void CLIP_OT_clear_track_path(wmOperatorType *ot)
   ot->description = "Clear tracks after/before current position or clear the whole track";
   ot->idname = "CLIP_OT_clear_track_path";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = clear_track_path_exec;
   ot->poll = ED_space_clip_tracking_poll;
 
@@ -1000,7 +1000,7 @@ void CLIP_OT_disable_markers(wmOperatorType *ot)
   ot->description = "Disable/enable selected markers";
   ot->idname = "CLIP_OT_disable_markers";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = disable_markers_exec;
   ot->poll = ED_space_clip_tracking_poll;
 
@@ -1068,7 +1068,7 @@ void CLIP_OT_hide_tracks(wmOperatorType *ot)
   ot->description = "Hide selected tracks";
   ot->idname = "CLIP_OT_hide_tracks";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = hide_tracks_exec;
   ot->poll = ED_space_clip_tracking_poll;
 
@@ -1115,7 +1115,7 @@ void CLIP_OT_hide_tracks_clear(wmOperatorType *ot)
   ot->description = "Clear hide selected tracks";
   ot->idname = "CLIP_OT_hide_tracks_clear";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = hide_tracks_clear_exec;
   ot->poll = ED_space_clip_tracking_poll;
 
@@ -1212,7 +1212,7 @@ void CLIP_OT_frame_jump(wmOperatorType *ot)
   ot->description = "Jump to special frame";
   ot->idname = "CLIP_OT_frame_jump";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = frame_jump_exec;
   ot->poll = frame_jump_poll;
 
@@ -1308,7 +1308,7 @@ void CLIP_OT_join_tracks(wmOperatorType *ot)
   ot->description = "Join selected tracks";
   ot->idname = "CLIP_OT_join_tracks";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = join_tracks_exec;
   ot->poll = ED_space_clip_tracking_poll;
 
@@ -1468,7 +1468,7 @@ void CLIP_OT_lock_tracks(wmOperatorType *ot)
   ot->description = "Lock/unlock selected tracks";
   ot->idname = "CLIP_OT_lock_tracks";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = lock_tracks_exec;
   ot->poll = ED_space_clip_tracking_poll;
 
@@ -1524,7 +1524,7 @@ void CLIP_OT_set_solver_keyframe(wmOperatorType *ot)
   ot->description = "Set keyframe used by solver";
   ot->idname = "CLIP_OT_set_solver_keyframe";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = set_solver_keyframe_exec;
   ot->poll = ED_space_clip_tracking_poll;
 
@@ -1575,7 +1575,7 @@ void CLIP_OT_track_copy_color(wmOperatorType *ot)
   ot->description = "Copy color to all selected tracks";
   ot->idname = "CLIP_OT_track_copy_color";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = track_copy_color_exec;
   ot->poll = ED_space_clip_tracking_poll;
 
@@ -1790,7 +1790,7 @@ void CLIP_OT_clean_tracks(wmOperatorType *ot)
   ot->description = "Clean tracks with high error values or few frames";
   ot->idname = "CLIP_OT_clean_tracks";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = clean_tracks_exec;
   ot->invoke = clean_tracks_invoke;
   ot->poll = ED_space_clip_tracking_poll;
@@ -1848,7 +1848,7 @@ void CLIP_OT_tracking_object_new(wmOperatorType *ot)
   ot->description = "Add new object for tracking";
   ot->idname = "CLIP_OT_tracking_object_new";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = tracking_object_new_exec;
   ot->poll = ED_space_clip_tracking_poll;
 
@@ -1889,7 +1889,7 @@ void CLIP_OT_tracking_object_remove(wmOperatorType *ot)
   ot->description = "Remove object for tracking";
   ot->idname = "CLIP_OT_tracking_object_remove";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = tracking_object_remove_exec;
   ot->poll = ED_space_clip_tracking_poll;
 
@@ -1924,7 +1924,7 @@ void CLIP_OT_copy_tracks(wmOperatorType *ot)
   ot->description = "Copy the selected tracks to the internal clipboard";
   ot->idname = "CLIP_OT_copy_tracks";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = copy_tracks_exec;
   ot->poll = ED_space_clip_tracking_poll;
 
@@ -1969,7 +1969,7 @@ void CLIP_OT_paste_tracks(wmOperatorType *ot)
   ot->description = "Paste tracks from the internal clipboard";
   ot->idname = "CLIP_OT_paste_tracks";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = paste_tracks_exec;
   ot->poll = paste_tracks_poll;
 
@@ -2045,7 +2045,7 @@ void CLIP_OT_keyframe_insert(wmOperatorType *ot)
   ot->description = "Insert a keyframe to selected tracks at current frame";
   ot->idname = "CLIP_OT_keyframe_insert";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->poll = ED_space_clip_tracking_poll;
   ot->exec = keyframe_insert_exec;
 
@@ -2072,7 +2072,7 @@ void CLIP_OT_keyframe_delete(wmOperatorType *ot)
   ot->description = "Delete a keyframe from selected tracks at current frame";
   ot->idname = "CLIP_OT_keyframe_delete";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->poll = ED_space_clip_tracking_poll;
   ot->exec = keyframe_delete_exec;
 
@@ -2157,7 +2157,7 @@ void CLIP_OT_new_image_from_plane_marker(wmOperatorType *ot)
   ot->description = "Create new image from the content of the plane marker";
   ot->idname = "CLIP_OT_new_image_from_plane_marker";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->poll = new_image_from_plane_marker_poll;
   ot->exec = new_image_from_plane_marker_exec;
 
@@ -2219,7 +2219,7 @@ void CLIP_OT_update_image_from_plane_marker(wmOperatorType *ot)
       "Update current image used by plane marker from the content of the plane marker";
   ot->idname = "CLIP_OT_update_image_from_plane_marker";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->poll = update_image_from_plane_marker_poll;
   ot->exec = update_image_from_plane_marker_exec;
 

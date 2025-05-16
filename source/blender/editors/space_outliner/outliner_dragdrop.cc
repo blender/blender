@@ -448,7 +448,7 @@ void OUTLINER_OT_parent_drop(wmOperatorType *ot)
   ot->description = "Drag to parent in Outliner";
   ot->idname = "OUTLINER_OT_parent_drop";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = parent_drop_invoke;
 
   ot->poll = ED_operator_region_outliner_active;
@@ -537,7 +537,7 @@ void OUTLINER_OT_parent_clear(wmOperatorType *ot)
   ot->description = "Drag to clear parent in Outliner";
   ot->idname = "OUTLINER_OT_parent_clear";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = parent_clear_invoke;
 
   ot->poll = ED_operator_outliner_active;
@@ -608,7 +608,7 @@ void OUTLINER_OT_scene_drop(wmOperatorType *ot)
   ot->description = "Drag object to scene in Outliner";
   ot->idname = "OUTLINER_OT_scene_drop";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = scene_drop_invoke;
 
   ot->poll = ED_operator_region_outliner_active;
@@ -665,7 +665,7 @@ void OUTLINER_OT_material_drop(wmOperatorType *ot)
   ot->description = "Drag material to object in Outliner";
   ot->idname = "OUTLINER_OT_material_drop";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = material_drop_invoke;
 
   ot->poll = ED_operator_region_outliner_active;
@@ -1081,7 +1081,7 @@ void OUTLINER_OT_datastack_drop(wmOperatorType *ot)
   ot->description = "Copy or reorder modifiers, constraints, and effects";
   ot->idname = "OUTLINER_OT_datastack_drop";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = datastack_drop_invoke;
 
   ot->poll = ED_operator_outliner_active;
@@ -1371,7 +1371,7 @@ void OUTLINER_OT_collection_drop(wmOperatorType *ot)
   ot->description = "Drag to move to collection in Outliner";
   ot->idname = "OUTLINER_OT_collection_drop";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = collection_drop_invoke;
   ot->poll = ED_operator_outliner_active;
 

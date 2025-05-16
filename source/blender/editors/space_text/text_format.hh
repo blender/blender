@@ -62,7 +62,7 @@ int text_check_format_len(TextLine *line, unsigned int len);
 void text_format_fill(const char **str_p, char **fmt_p, char type, int len);
 /**
  * ASCII version of #text_format_fill,
- * use when we no the text being stepped over is ascii (as is the case for most keywords)
+ * use when we no the text being stepped over is ASCII (as is the case for most keywords)
  */
 void text_format_fill_ascii(const char **str_p, char **fmt_p, char type, int len);
 

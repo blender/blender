@@ -523,7 +523,7 @@ static void GIZMO_GT_arrow_3d(wmGizmoType *gzt)
   /* identifiers */
   gzt->idname = "GIZMO_GT_arrow_3d";
 
-  /* api callbacks */
+  /* API callbacks. */
   gzt->draw = gizmo_arrow_draw;
   gzt->draw_select = gizmo_arrow_draw_select;
   gzt->test_select = gizmo_arrow_test_select;

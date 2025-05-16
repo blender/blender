@@ -84,7 +84,7 @@ void DPAINT_OT_surface_slot_add(wmOperatorType *ot)
   ot->idname = "DPAINT_OT_surface_slot_add";
   ot->description = "Add a new Dynamic Paint surface slot";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = surface_slot_add_exec;
   ot->poll = ED_operator_object_active_local_editable;
 
@@ -132,7 +132,7 @@ void DPAINT_OT_surface_slot_remove(wmOperatorType *ot)
   ot->idname = "DPAINT_OT_surface_slot_remove";
   ot->description = "Remove the selected surface slot";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = surface_slot_remove_exec;
   ot->poll = ED_operator_object_active_local_editable;
 
@@ -184,7 +184,7 @@ void DPAINT_OT_type_toggle(wmOperatorType *ot)
   ot->idname = "DPAINT_OT_type_toggle";
   ot->description = "Toggle whether given type is active or not";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = type_toggle_exec;
   ot->poll = ED_operator_object_active_local_editable;
 
@@ -269,7 +269,7 @@ void DPAINT_OT_output_toggle(wmOperatorType *ot)
   ot->idname = "DPAINT_OT_output_toggle";
   ot->description = "Add or remove Dynamic Paint output data layer";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = output_toggle_exec;
   ot->poll = ED_operator_object_active_local_editable;
 
@@ -521,7 +521,7 @@ void DPAINT_OT_bake(wmOperatorType *ot)
   ot->description = "Bake dynamic paint image sequence surface";
   ot->idname = "DPAINT_OT_bake";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = dynamicpaint_bake_exec;
   ot->poll = ED_operator_object_active_local_editable;
 }

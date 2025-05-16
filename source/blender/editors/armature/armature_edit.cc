@@ -468,7 +468,7 @@ void ARMATURE_OT_calculate_roll(wmOperatorType *ot)
   ot->idname = "ARMATURE_OT_calculate_roll";
   ot->description = "Automatically fix alignment of select bones' axes";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = WM_menu_invoke;
   ot->exec = armature_calc_roll_exec;
   ot->poll = ED_operator_editarmature;
@@ -538,7 +538,7 @@ void ARMATURE_OT_roll_clear(wmOperatorType *ot)
   ot->idname = "ARMATURE_OT_roll_clear";
   ot->description = "Clear roll for selected bones";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = armature_roll_clear_exec;
   ot->poll = ED_operator_editarmature;
 
@@ -1015,7 +1015,7 @@ void ARMATURE_OT_switch_direction(wmOperatorType *ot)
   ot->idname = "ARMATURE_OT_switch_direction";
   ot->description = "Change the direction that a chain of bones points in (head and tail swap)";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = armature_switch_direction_exec;
   ot->poll = ED_operator_editarmature;
 
@@ -1163,7 +1163,7 @@ void ARMATURE_OT_align(wmOperatorType *ot)
   ot->idname = "ARMATURE_OT_align";
   ot->description = "Align selected bones to the active bone (or to their parent)";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = armature_align_bones_exec;
   ot->poll = ED_operator_editarmature;
 
@@ -1211,7 +1211,7 @@ void ARMATURE_OT_split(wmOperatorType *ot)
   ot->idname = "ARMATURE_OT_split";
   ot->description = "Split off selected bones from connected unselected bones";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = armature_split_exec;
   ot->poll = ED_operator_editarmature;
 
@@ -1313,7 +1313,7 @@ void ARMATURE_OT_delete(wmOperatorType *ot)
   ot->idname = "ARMATURE_OT_delete";
   ot->description = "Remove selected bones from the armature";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = armature_delete_selected_invoke;
   ot->exec = armature_delete_selected_exec;
   ot->poll = ED_operator_editarmature;
@@ -1489,7 +1489,7 @@ void ARMATURE_OT_dissolve(wmOperatorType *ot)
   ot->idname = "ARMATURE_OT_dissolve";
   ot->description = "Dissolve selected bones from the armature";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = armature_dissolve_selected_exec;
   ot->poll = ED_operator_editarmature;
 
@@ -1548,7 +1548,7 @@ void ARMATURE_OT_hide(wmOperatorType *ot)
   ot->idname = "ARMATURE_OT_hide";
   ot->description = "Tag selected bones to not be visible in Edit Mode";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = armature_hide_exec;
   ot->poll = ED_operator_editarmature;
 
@@ -1606,7 +1606,7 @@ void ARMATURE_OT_reveal(wmOperatorType *ot)
   ot->idname = "ARMATURE_OT_reveal";
   ot->description = "Reveal all bones hidden in Edit Mode";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = armature_reveal_exec;
   ot->poll = ED_operator_editarmature;
 

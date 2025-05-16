@@ -236,7 +236,7 @@ class IFileStream : public Imf::IStream {
  public:
   IFileStream(const char *filepath) : IStream(filepath)
   {
-    /* utf-8 file path support on windows */
+    /* UTF8 file path support on windows. */
 #if defined(WIN32)
     wchar_t *wfilepath = alloc_utf16_from_8(filepath, 0);
     ifs.open(wfilepath, std::ios_base::binary);
@@ -340,7 +340,7 @@ class OFileStream : public OStream {
  public:
   OFileStream(const char *filepath) : OStream(filepath)
   {
-    /* utf-8 file path support on windows */
+    /* UTF8 file path support on windows. */
 #if defined(WIN32)
     wchar_t *wfilepath = alloc_utf16_from_8(filepath, 0);
     ofs.open(wfilepath, std::ios_base::binary);
@@ -562,7 +562,7 @@ static bool imb_save_openexr_half(ImBuf *ibuf, const char *filepath, const int f
 
     FrameBuffer frameBuffer;
 
-    /* manually create ofstream, so we can handle utf-8 filepaths on windows */
+    /* Manually create `ofstream`, so we can handle UTF8 file-paths on windows. */
     if (flags & IB_mem) {
       file_stream = new OMemStream(ibuf);
     }
@@ -664,7 +664,7 @@ static bool imb_save_openexr_float(ImBuf *ibuf, const char *filepath, const int 
 
     FrameBuffer frameBuffer;
 
-    /* manually create ofstream, so we can handle utf-8 filepaths on windows */
+    /* Manually create `ofstream`, so we can handle UTF8 file-paths on windows. */
     if (flags & IB_mem) {
       file_stream = new OMemStream(ibuf);
     }
@@ -1000,8 +1000,8 @@ bool IMB_exr_begin_write(void *handle,
     header.pixelAspectRatio() = blender::math::safe_divide(ppm[1], ppm[0]);
   }
 
-  /* avoid crash/abort when we don't have permission to write here */
-  /* manually create ofstream, so we can handle utf-8 filepaths on windows */
+  /* Avoid crash/abort when we don't have permission to write here. */
+  /* Manually create `ofstream`, so we can handle UTF8 file-paths on windows. */
   try {
     data->ofile_stream = new OFileStream(filepath);
     data->ofile = new OutputFile(*(data->ofile_stream), header);

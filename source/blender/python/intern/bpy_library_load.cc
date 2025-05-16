@@ -6,7 +6,7 @@
  * \ingroup pythonintern
  *
  * This file exposed blend file library appending/linking to python, typically
- * this would be done via RNA api but in this case a hand written python api
+ * this would be done via RNA API but in this case a hand written Python API
  * allows us to use Python's context manager (`__enter__` and `__exit__`).
  *
  * Everything here is exposed via `bpy.data.libraries.load(...)` which returns

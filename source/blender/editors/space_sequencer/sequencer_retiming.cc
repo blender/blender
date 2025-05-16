@@ -117,7 +117,7 @@ void SEQUENCER_OT_retiming_show(wmOperatorType *ot)
   ot->description = "Show retiming keys in selected strips";
   ot->idname = "SEQUENCER_OT_retiming_show";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = sequencer_retiming_data_show_exec;
   ot->poll = sequencer_editing_initialized_and_active;
 
@@ -168,7 +168,7 @@ void SEQUENCER_OT_retiming_reset(wmOperatorType *ot)
   ot->description = "Reset strip retiming";
   ot->idname = "SEQUENCER_OT_retiming_reset";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = sequencer_retiming_reset_exec;
   ot->poll = retiming_poll;
 
@@ -285,7 +285,7 @@ void SEQUENCER_OT_retiming_key_add(wmOperatorType *ot)
   ot->description = "Add retiming Key";
   ot->idname = "SEQUENCER_OT_retiming_key_add";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = sequencer_retiming_key_add_exec;
   ot->poll = retiming_poll;
 
@@ -411,7 +411,7 @@ void SEQUENCER_OT_retiming_freeze_frame_add(wmOperatorType *ot)
   ot->description = "Add freeze frame";
   ot->idname = "SEQUENCER_OT_retiming_freeze_frame_add";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = sequencer_retiming_freeze_frame_add_exec;
   ot->poll = retiming_poll;
 
@@ -520,7 +520,7 @@ void SEQUENCER_OT_retiming_transition_add(wmOperatorType *ot)
   ot->description = "Add smooth transition between 2 retimed segments";
   ot->idname = "SEQUENCER_OT_retiming_transition_add";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = sequencer_retiming_transition_add_exec;
   ot->poll = retiming_poll;
 
@@ -609,7 +609,7 @@ void SEQUENCER_OT_retiming_key_delete(wmOperatorType *ot)
   ot->idname = "SEQUENCER_OT_retiming_key_delete";
   ot->description = "Delete selected retiming keys from the sequencer";
 
-  /* Api callbacks. */
+  /* API callbacks. */
   ot->invoke = sequencer_retiming_key_delete_invoke;
   ot->exec = sequencer_retiming_key_delete_exec;
   ot->poll = retiming_poll;
@@ -741,7 +741,7 @@ void SEQUENCER_OT_retiming_segment_speed_set(wmOperatorType *ot)
   ot->description = "Set speed of retimed segment";
   ot->idname = "SEQUENCER_OT_retiming_segment_speed_set";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = sequencer_retiming_segment_speed_set_invoke;
   ot->exec = sequencer_retiming_segment_speed_set_exec;
   ot->poll = retiming_poll;

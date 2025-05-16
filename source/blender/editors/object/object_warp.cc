@@ -259,7 +259,7 @@ void TRANSFORM_OT_vertex_warp(wmOperatorType *ot)
   ot->description = "Warp vertices around the cursor";
   ot->idname = "TRANSFORM_OT_vertex_warp";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = object_warp_verts_exec;
   ot->poll = ED_transverts_poll;
 

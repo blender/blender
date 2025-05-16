@@ -377,7 +377,7 @@ void VIEW3D_OT_rotate(wmOperatorType *ot)
   ot->description = "Rotate the view";
   ot->idname = ViewOpsType_rotate.idname;
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = viewrotate_invoke;
   ot->modal = view3d_navigate_modal_fn;
   ot->poll = view3d_rotation_poll;

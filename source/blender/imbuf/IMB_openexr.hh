@@ -8,10 +8,10 @@
 
 #pragma once
 
-/* API for reading and writing multilayer EXR files. */
+/* API for reading and writing multi-layer EXR files. */
 
 /* XXX layer+pass name max 64? */
-/* This api also supports max 8 channels per pass now. easy to fix! */
+/* This API also supports max 8 channels per pass now. easy to fix! */
 #define EXR_LAY_MAXNAME 64
 #define EXR_PASS_MAXNAME 64
 #define EXR_VIEW_MAXNAME 64

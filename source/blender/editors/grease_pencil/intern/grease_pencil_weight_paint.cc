@@ -678,7 +678,7 @@ static void GREASE_PENCIL_OT_weight_invert(wmOperatorType *ot)
   ot->idname = "GREASE_PENCIL_OT_weight_invert";
   ot->description = "Invert the weight of active vertex group";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = grease_pencil_weight_invert_exec;
   ot->poll = grease_pencil_vertex_group_weight_poll;
 

@@ -343,7 +343,7 @@ void NLA_OT_channels_click(wmOperatorType *ot)
   ot->idname = "NLA_OT_channels_click";
   ot->description = "Handle clicks to select NLA tracks";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = nlatracks_mouseclick_invoke;
   ot->poll = ED_operator_nla_active;
 
@@ -682,7 +682,7 @@ void NLA_OT_tracks_add(wmOperatorType *ot)
   ot->idname = "NLA_OT_tracks_add";
   ot->description = "Add NLA-Tracks above/after the selected tracks";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = nlaedit_add_tracks_exec;
   ot->poll = nlaop_poll_tweakmode_off;
 
@@ -760,7 +760,7 @@ void NLA_OT_tracks_delete(wmOperatorType *ot)
   ot->idname = "NLA_OT_tracks_delete";
   ot->description = "Delete selected NLA-Tracks and the strips they contain";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = nlaedit_delete_tracks_exec;
   ot->poll = nlaop_poll_tweakmode_off;
 
@@ -815,7 +815,7 @@ void NLA_OT_selected_objects_add(wmOperatorType *ot)
   ot->idname = "NLA_OT_selected_objects_add";
   ot->description = "Make selected objects appear in NLA Editor by adding Animation Data";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = nlaedit_objects_add_exec;
   ot->poll = nlaop_poll_tweakmode_off;
 

@@ -2762,7 +2762,7 @@ void GPENCIL_OT_annotate(wmOperatorType *ot)
   ot->idname = "GPENCIL_OT_annotate";
   ot->description = "Make annotations on the active data";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = annotation_draw_exec;
   ot->invoke = annotation_draw_invoke;
   ot->modal = annotation_draw_modal;

@@ -5446,7 +5446,7 @@ static bConstraintTypeInfo CTI_TRANSFORM_CACHE = {
 };
 
 /* ************************* Constraints Type-Info *************************** */
-/* All of the constraints api functions use bConstraintTypeInfo structs to carry out
+/* All of the constraints API functions use #bConstraintTypeInfo structs to carry out
  * and operations that involve constraint specific code.
  */
 

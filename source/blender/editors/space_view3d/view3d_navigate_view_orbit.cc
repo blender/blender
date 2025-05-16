@@ -143,7 +143,7 @@ void VIEW3D_OT_view_orbit(wmOperatorType *ot)
   ot->description = "Orbit the view";
   ot->idname = ViewOpsType_orbit.idname;
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = vieworbit_exec;
   ot->poll = ED_operator_rv3d_user_region_poll;
 

@@ -3787,7 +3787,7 @@ static void GREASE_PENCIL_OT_texture_gradient(wmOperatorType *ot)
   ot->idname = "GREASE_PENCIL_OT_texture_gradient";
   ot->description = "Draw a line to set the fill material gradient for the selected strokes";
 
-  /* Api callbacks. */
+  /* API callbacks. */
   ot->invoke = grease_pencil_texture_gradient_invoke;
   ot->modal = grease_pencil_texture_gradient_modal;
   ot->exec = grease_pencil_texture_gradient_exec;

@@ -199,7 +199,7 @@ static void GRAPH_OT_cursor_set(wmOperatorType *ot)
   ot->idname = "GRAPH_OT_cursor_set";
   ot->description = "Interactively set the current frame and value cursor";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = graphview_cursor_exec;
   ot->invoke = graphview_cursor_invoke;
   ot->modal = graphview_cursor_modal;
@@ -320,7 +320,7 @@ static void GRAPH_OT_hide(wmOperatorType *ot)
   ot->idname = "GRAPH_OT_hide";
   ot->description = "Hide selected curves from Graph Editor view";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = graphview_curves_hide_exec;
   ot->poll = ED_operator_graphedit_active;
 
@@ -404,7 +404,7 @@ static void GRAPH_OT_reveal(wmOperatorType *ot)
   ot->idname = "GRAPH_OT_reveal";
   ot->description = "Make previously hidden curves visible again in Graph Editor view";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = graphview_curves_reveal_exec;
   ot->poll = ED_operator_graphedit_active;
 

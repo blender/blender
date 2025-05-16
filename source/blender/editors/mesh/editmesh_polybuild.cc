@@ -165,7 +165,7 @@ void MESH_OT_polybuild_transform_at_cursor(wmOperatorType *ot)
   ot->name = "Poly Build Transform at Cursor";
   ot->idname = "MESH_OT_polybuild_transform_at_cursor";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = edbm_polybuild_transform_at_cursor_invoke;
   ot->poll = EDBM_view3d_poll;
 
@@ -252,7 +252,7 @@ void MESH_OT_polybuild_delete_at_cursor(wmOperatorType *ot)
   ot->name = "Poly Build Delete at Cursor";
   ot->idname = "MESH_OT_polybuild_delete_at_cursor";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = edbm_polybuild_delete_at_cursor_invoke;
   ot->poll = EDBM_view3d_poll;
 
@@ -424,7 +424,7 @@ void MESH_OT_polybuild_face_at_cursor(wmOperatorType *ot)
   ot->name = "Poly Build Face at Cursor";
   ot->idname = "MESH_OT_polybuild_face_at_cursor";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = edbm_polybuild_face_at_cursor_invoke;
   ot->poll = EDBM_view3d_poll;
 
@@ -513,7 +513,7 @@ void MESH_OT_polybuild_split_at_cursor(wmOperatorType *ot)
   ot->name = "Poly Build Split at Cursor";
   ot->idname = "MESH_OT_polybuild_split_at_cursor";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = edbm_polybuild_split_at_cursor_invoke;
   ot->poll = EDBM_view3d_poll;
 
@@ -609,7 +609,7 @@ void MESH_OT_polybuild_dissolve_at_cursor(wmOperatorType *ot)
   ot->name = "Poly Build Dissolve at Cursor";
   ot->idname = "MESH_OT_polybuild_dissolve_at_cursor";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = edbm_polybuild_dissolve_at_cursor_invoke;
   ot->poll = EDBM_view3d_poll;
 

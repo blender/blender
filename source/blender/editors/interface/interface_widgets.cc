@@ -1467,7 +1467,7 @@ static void ui_text_clip_right_ex(const uiFontStyle *fstyle,
 {
   BLI_assert(str[0]);
 
-  /* How many BYTES (not characters) of this utf-8 string can fit, along with appended ellipsis. */
+  /* How many BYTES (not characters) of this UTF8 string can fit, along with appended ellipsis. */
   int l_end = BLF_width_to_strlen(
       fstyle->uifont_id, str, max_len, okwidth - sep_strwidth, nullptr);
 

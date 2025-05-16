@@ -18,7 +18,7 @@
 namespace blender {
 
 /**
- * std::fstream subclass that handles UTF-16 encoding on Windows.
+ * std::fstream subclass that handles UTF16 encoding on Windows.
  *
  * For documentation, see https://en.cppreference.com/w/cpp/io/basic_fstream
  */

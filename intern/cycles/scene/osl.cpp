@@ -353,7 +353,7 @@ void OSLManager::shading_system_init()
       OSLRenderServices *services = util_aligned_new<OSLRenderServices>(get_texture_system(),
                                                                         device_type);
 #  ifdef _WIN32
-      /* Annoying thing, Cycles stores paths in UTF-8 codepage, so it can
+      /* Annoying thing, Cycles stores paths in UTF8 code-page, so it can
        * operate with file paths with any character. This requires to use wide
        * char functions, but OSL uses old fashioned ANSI functions which means:
        *

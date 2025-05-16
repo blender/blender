@@ -399,7 +399,7 @@ void OBJECT_OT_location_clear(wmOperatorType *ot)
   ot->description = "Clear the object's location";
   ot->idname = "OBJECT_OT_location_clear";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = object_location_clear_exec;
   ot->poll = ED_operator_scene_editable;
 
@@ -433,7 +433,7 @@ void OBJECT_OT_rotation_clear(wmOperatorType *ot)
   ot->description = "Clear the object's rotation";
   ot->idname = "OBJECT_OT_rotation_clear";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = object_rotation_clear_exec;
   ot->poll = ED_operator_scene_editable;
 
@@ -467,7 +467,7 @@ void OBJECT_OT_scale_clear(wmOperatorType *ot)
   ot->description = "Clear the object's scale";
   ot->idname = "OBJECT_OT_scale_clear";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = object_scale_clear_exec;
   ot->poll = ED_operator_scene_editable;
 
@@ -521,7 +521,7 @@ void OBJECT_OT_origin_clear(wmOperatorType *ot)
   ot->description = "Clear the object's origin";
   ot->idname = "OBJECT_OT_origin_clear";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = object_origin_clear_exec;
   ot->poll = ED_operator_scene_editable;
 
@@ -1140,7 +1140,7 @@ void OBJECT_OT_visual_transform_apply(wmOperatorType *ot)
   ot->description = "Apply the object's visual transformation to its data";
   ot->idname = "OBJECT_OT_visual_transform_apply";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = visual_transform_apply_exec;
   ot->poll = ED_operator_scene_editable;
 
@@ -1198,7 +1198,7 @@ void OBJECT_OT_transform_apply(wmOperatorType *ot)
   ot->description = "Apply the object's transformation to its data";
   ot->idname = "OBJECT_OT_transform_apply";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = object_transform_apply_exec;
   ot->invoke = object_transform_apply_invoke;
   ot->poll = ED_operator_objectmode;
@@ -1253,7 +1253,7 @@ void OBJECT_OT_parent_inverse_apply(wmOperatorType *ot)
   ot->description = "Apply the object's parent inverse to its data";
   ot->idname = "OBJECT_OT_parent_inverse_apply";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = object_parent_inverse_apply_exec;
   ot->poll = ED_operator_objectmode;
 
@@ -1895,7 +1895,7 @@ void OBJECT_OT_origin_set(wmOperatorType *ot)
       "cursor";
   ot->idname = "OBJECT_OT_origin_set";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = WM_menu_invoke;
   ot->exec = object_origin_set_exec;
 
@@ -2374,7 +2374,7 @@ void OBJECT_OT_transform_axis_target(wmOperatorType *ot)
   ot->description = "Interactively point cameras and lights to a location (Ctrl translates)";
   ot->idname = "OBJECT_OT_transform_axis_target";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = object_transform_axis_target_invoke;
   ot->cancel = object_transform_axis_target_cancel;
   ot->modal = object_transform_axis_target_modal;

@@ -494,7 +494,7 @@ void ARMATURE_OT_flip_names(wmOperatorType *ot)
   ot->idname = "ARMATURE_OT_flip_names";
   ot->description = "Flips (and corrects) the axis suffixes of the names of selected bones";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = armature_flip_names_exec;
   ot->poll = ED_operator_editarmature;
 
@@ -590,7 +590,7 @@ void ARMATURE_OT_autoside_names(wmOperatorType *ot)
       "Automatically renames the selected bones according to which side of the target axis they "
       "fall on";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = WM_menu_invoke;
   ot->exec = armature_autoside_names_exec;
   ot->poll = ED_operator_editarmature;

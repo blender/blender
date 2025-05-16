@@ -1278,7 +1278,7 @@ void VIEW3D_GT_ruler_item(wmGizmoType *gzt)
   /* identifiers */
   gzt->idname = "VIEW3D_GT_ruler_item";
 
-  /* api callbacks */
+  /* API callbacks. */
   gzt->draw = gizmo_ruler_draw;
   gzt->test_select = gizmo_ruler_test_select;
   gzt->modal = gizmo_ruler_modal;

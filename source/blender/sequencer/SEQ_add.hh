@@ -31,7 +31,7 @@ enum eLoadFlags {
 };
 ENUM_OPERATORS(eLoadFlags, SEQ_LOAD_SET_VIEW_TRANSFORM)
 
-/* Api for adding new sequence strips. */
+/** API for adding new sequence strips. */
 struct LoadData {
   int start_frame;
   int channel;

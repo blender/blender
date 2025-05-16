@@ -6,9 +6,9 @@
 
 /** \file
  * \ingroup bli
- * \brief Single link-list utility macros. (header only api).
+ * \brief Single link-list utility macros. (header only API).
  *
- * Use this api when the structure defines its own `next` pointer
+ * Use this API when the structure defines its own `next` pointer
  * and a double linked list such as #ListBase isn't needed.
  */
 

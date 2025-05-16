@@ -59,7 +59,7 @@ void OBJECT_OT_volume_add(wmOperatorType *ot)
   ot->description = "Add a volume object to the scene";
   ot->idname = "OBJECT_OT_volume_add";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = object_volume_add_exec;
   ot->poll = ED_operator_objectmode;
 
@@ -152,7 +152,7 @@ void OBJECT_OT_volume_import(wmOperatorType *ot)
   ot->description = "Import OpenVDB volume file";
   ot->idname = "OBJECT_OT_volume_import";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = volume_import_exec;
   ot->invoke = volume_import_invoke;
 

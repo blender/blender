@@ -271,7 +271,7 @@ void VIEW3D_OT_snap_selected_to_grid(wmOperatorType *ot)
   ot->description = "Snap selected item(s) to their nearest grid division";
   ot->idname = "VIEW3D_OT_snap_selected_to_grid";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = snap_sel_to_grid_exec;
   ot->poll = ED_operator_region_view3d_active;
 
@@ -728,7 +728,7 @@ void VIEW3D_OT_snap_selected_to_cursor(wmOperatorType *ot)
   ot->description = "Snap selected item(s) to the 3D cursor";
   ot->idname = "VIEW3D_OT_snap_selected_to_cursor";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = snap_selected_to_cursor_exec;
   ot->poll = ED_operator_view3d_active;
 
@@ -777,7 +777,7 @@ void VIEW3D_OT_snap_selected_to_active(wmOperatorType *ot)
   ot->description = "Snap selected item(s) to the active item";
   ot->idname = "VIEW3D_OT_snap_selected_to_active";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = snap_selected_to_active_exec;
   ot->poll = ED_operator_view3d_active;
 
@@ -819,7 +819,7 @@ void VIEW3D_OT_snap_cursor_to_grid(wmOperatorType *ot)
   ot->description = "Snap 3D cursor to the nearest grid division";
   ot->idname = "VIEW3D_OT_snap_cursor_to_grid";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = snap_curs_to_grid_exec;
   ot->poll = ED_operator_region_view3d_active;
 
@@ -1010,7 +1010,7 @@ void VIEW3D_OT_snap_cursor_to_selected(wmOperatorType *ot)
   ot->description = "Snap 3D cursor to the middle of the selected item(s)";
   ot->idname = "VIEW3D_OT_snap_cursor_to_selected";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = snap_curs_to_sel_exec;
   ot->poll = ED_operator_view3d_active;
 
@@ -1059,7 +1059,7 @@ void VIEW3D_OT_snap_cursor_to_active(wmOperatorType *ot)
   ot->description = "Snap 3D cursor to the active item";
   ot->idname = "VIEW3D_OT_snap_cursor_to_active";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = snap_curs_to_active_exec;
   ot->poll = ED_operator_view3d_active;
 
@@ -1093,7 +1093,7 @@ void VIEW3D_OT_snap_cursor_to_center(wmOperatorType *ot)
   ot->description = "Snap 3D cursor to the world origin";
   ot->idname = "VIEW3D_OT_snap_cursor_to_center";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = snap_curs_to_center_exec;
   ot->poll = ED_operator_view3d_active;
 

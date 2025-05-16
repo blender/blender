@@ -2271,7 +2271,7 @@ void UV_OT_select_more(wmOperatorType *ot)
   ot->idname = "UV_OT_select_more";
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = uv_select_more_exec;
   ot->poll = ED_operator_uvedit_space_image;
 }
@@ -2289,7 +2289,7 @@ void UV_OT_select_less(wmOperatorType *ot)
   ot->idname = "UV_OT_select_less";
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = uv_select_less_exec;
   ot->poll = ED_operator_uvedit_space_image;
 }
@@ -2502,7 +2502,7 @@ void UV_OT_select_all(wmOperatorType *ot)
   ot->idname = "UV_OT_select_all";
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = uv_select_all_exec;
   ot->poll = ED_operator_uvedit;
 
@@ -2814,7 +2814,7 @@ void UV_OT_select(wmOperatorType *ot)
   ot->idname = "UV_OT_select";
   ot->flag = OPTYPE_UNDO;
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = uv_select_exec;
   ot->invoke = uv_select_invoke;
   ot->poll = ED_operator_uvedit; /* requires space image */
@@ -2963,7 +2963,7 @@ void UV_OT_select_loop(wmOperatorType *ot)
   ot->idname = "UV_OT_select_loop";
   ot->flag = OPTYPE_UNDO;
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = uv_select_loop_exec;
   ot->invoke = uv_select_loop_invoke;
   ot->poll = ED_operator_uvedit; /* requires space image */
@@ -3027,7 +3027,7 @@ void UV_OT_select_edge_ring(wmOperatorType *ot)
   ot->idname = "UV_OT_select_edge_ring";
   ot->flag = OPTYPE_UNDO;
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = uv_select_edge_ring_exec;
   ot->invoke = uv_select_edge_ring_invoke;
   ot->poll = ED_operator_uvedit; /* requires space image */
@@ -3136,7 +3136,7 @@ void UV_OT_select_linked(wmOperatorType *ot)
   ot->description = "Select all UV vertices linked to the active UV map";
   ot->idname = "UV_OT_select_linked";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = uv_select_linked_exec;
   ot->poll = ED_operator_uvedit; /* requires space image */
 
@@ -3172,7 +3172,7 @@ void UV_OT_select_linked_pick(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = uv_select_linked_pick_invoke;
   ot->exec = uv_select_linked_pick_exec;
   ot->poll = ED_operator_uvedit; /* requires space image */
@@ -3302,7 +3302,7 @@ void UV_OT_select_split(wmOperatorType *ot)
   ot->idname = "UV_OT_select_split";
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = uv_select_split_exec;
   ot->poll = ED_operator_uvedit; /* requires space image */
 }
@@ -3779,7 +3779,7 @@ void UV_OT_select_box(wmOperatorType *ot)
   ot->description = "Select UV vertices using box selection";
   ot->idname = "UV_OT_select_box";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = WM_gesture_box_invoke;
   ot->exec = uv_box_select_exec;
   ot->modal = WM_gesture_box_modal;
@@ -3994,7 +3994,7 @@ void UV_OT_select_circle(wmOperatorType *ot)
   ot->description = "Select UV vertices using circle selection";
   ot->idname = "UV_OT_select_circle";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = WM_gesture_circle_invoke;
   ot->modal = WM_gesture_circle_modal;
   ot->exec = uv_circle_select_exec;
@@ -4323,7 +4323,7 @@ void UV_OT_select_pinned(wmOperatorType *ot)
   ot->idname = "UV_OT_select_pinned";
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = uv_select_pinned_exec;
   ot->poll = ED_operator_uvedit;
 }
@@ -4614,7 +4614,7 @@ void UV_OT_select_overlap(wmOperatorType *ot)
   ot->idname = "UV_OT_select_overlap";
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = uv_select_overlap_exec;
   ot->poll = ED_operator_uvedit;
 
@@ -5319,7 +5319,7 @@ void UV_OT_select_similar(wmOperatorType *ot)
   ot->description = "Select similar UVs by property types";
   ot->idname = "UV_OT_select_similar";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = WM_menu_invoke;
   ot->exec = uv_select_similar_exec;
   ot->poll = ED_operator_uvedit_space_image;
@@ -5711,7 +5711,7 @@ void UV_OT_select_mode(wmOperatorType *ot)
   ot->description = "Change UV selection mode";
   ot->idname = "UV_OT_select_mode";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = uv_select_mode_invoke;
   ot->exec = uv_select_mode_exec;
   ot->poll = ED_operator_uvedit_space_image;

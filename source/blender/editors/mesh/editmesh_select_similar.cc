@@ -1375,7 +1375,7 @@ void MESH_OT_select_similar(wmOperatorType *ot)
   ot->idname = "MESH_OT_select_similar";
   ot->description = "Select similar vertices, edges or faces by property types";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = WM_menu_invoke;
   ot->exec = edbm_select_similar_exec;
   ot->poll = ED_operator_editmesh;

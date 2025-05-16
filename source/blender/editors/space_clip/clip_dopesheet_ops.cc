@@ -120,7 +120,7 @@ void CLIP_OT_dopesheet_select_channel(wmOperatorType *ot)
   ot->description = "Select movie tracking channel";
   ot->idname = "CLIP_OT_dopesheet_select_channel";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = dopesheet_select_channel_invoke;
   ot->exec = dopesheet_select_channel_exec;
   ot->poll = dopesheet_select_channel_poll;
@@ -189,7 +189,7 @@ void CLIP_OT_dopesheet_view_all(wmOperatorType *ot)
   ot->description = "Reset viewable area to show full keyframe range";
   ot->idname = "CLIP_OT_dopesheet_view_all";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = dopesheet_view_all_exec;
   ot->poll = space_clip_dopesheet_poll;
 

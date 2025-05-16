@@ -478,7 +478,7 @@ void IMAGE_OT_view_pan(wmOperatorType *ot)
   ot->idname = "IMAGE_OT_view_pan";
   ot->description = "Pan the view";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = image_view_pan_exec;
   ot->invoke = image_view_pan_invoke;
   ot->modal = image_view_pan_modal;
@@ -741,7 +741,7 @@ void IMAGE_OT_view_zoom(wmOperatorType *ot)
   ot->idname = "IMAGE_OT_view_zoom";
   ot->description = "Zoom in/out the image";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = image_view_zoom_exec;
   ot->invoke = image_view_zoom_invoke;
   ot->modal = image_view_zoom_modal;
@@ -816,7 +816,7 @@ void IMAGE_OT_view_ndof(wmOperatorType *ot)
   ot->idname = "IMAGE_OT_view_ndof";
   ot->description = "Use a 3D mouse device to pan/zoom the view";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = image_view_ndof_invoke;
   ot->poll = space_image_main_region_poll;
 
@@ -861,7 +861,7 @@ void IMAGE_OT_view_all(wmOperatorType *ot)
   ot->idname = "IMAGE_OT_view_all";
   ot->description = "View the entire image";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = image_view_all_exec;
   ot->poll = space_image_main_region_poll;
 
@@ -907,7 +907,7 @@ void IMAGE_OT_view_cursor_center(wmOperatorType *ot)
   ot->description = "Set 2D Cursor To Center View location";
   ot->idname = "IMAGE_OT_view_cursor_center";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = view_cursor_center_exec;
   ot->poll = ED_space_image_cursor_poll;
 
@@ -941,7 +941,7 @@ void IMAGE_OT_view_center_cursor(wmOperatorType *ot)
   ot->description = "Center the view so that the cursor is in the middle of the view";
   ot->idname = "IMAGE_OT_view_center_cursor";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = view_center_cursor_exec;
   ot->poll = ED_space_image_cursor_poll;
 }
@@ -1012,7 +1012,7 @@ void IMAGE_OT_view_selected(wmOperatorType *ot)
   ot->idname = "IMAGE_OT_view_selected";
   ot->description = "View all selected UVs";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = image_view_selected_exec;
   ot->poll = image_view_selected_poll;
 }
@@ -1062,7 +1062,7 @@ void IMAGE_OT_view_zoom_in(wmOperatorType *ot)
   ot->idname = "IMAGE_OT_view_zoom_in";
   ot->description = "Zoom in the image (centered around 2D cursor)";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = image_view_zoom_in_invoke;
   ot->exec = image_view_zoom_in_exec;
   ot->poll = space_image_main_region_poll;
@@ -1123,7 +1123,7 @@ void IMAGE_OT_view_zoom_out(wmOperatorType *ot)
   ot->idname = "IMAGE_OT_view_zoom_out";
   ot->description = "Zoom out the image (centered around 2D cursor)";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = image_view_zoom_out_invoke;
   ot->exec = image_view_zoom_out_exec;
   ot->poll = space_image_main_region_poll;
@@ -1174,7 +1174,7 @@ void IMAGE_OT_view_zoom_ratio(wmOperatorType *ot)
   ot->idname = "IMAGE_OT_view_zoom_ratio";
   ot->description = "Set zoom ratio of the view";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = image_view_zoom_ratio_exec;
   ot->poll = space_image_main_region_poll;
 
@@ -1240,7 +1240,7 @@ void IMAGE_OT_view_zoom_border(wmOperatorType *ot)
   ot->description = "Zoom in the view to the nearest item contained in the border";
   ot->idname = "IMAGE_OT_view_zoom_border";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = WM_gesture_box_invoke;
   ot->exec = image_view_zoom_border_exec;
   ot->modal = WM_gesture_box_modal;
@@ -1567,7 +1567,7 @@ void IMAGE_OT_open(wmOperatorType *ot)
   ot->description = "Open image";
   ot->idname = "IMAGE_OT_open";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = image_open_exec;
   ot->invoke = image_open_invoke;
   ot->cancel = image_open_cancel;
@@ -1704,7 +1704,7 @@ void IMAGE_OT_file_browse(wmOperatorType *ot)
       "directory";
   ot->idname = "IMAGE_OT_file_browse";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = image_file_browse_exec;
   ot->invoke = image_file_browse_invoke;
   ot->poll = image_file_browse_poll;
@@ -1764,7 +1764,7 @@ void IMAGE_OT_match_movie_length(wmOperatorType *ot)
   ot->description = "Set image's user's length to the one of this video";
   ot->idname = "IMAGE_OT_match_movie_length";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = image_match_len_exec;
 
   /* flags */
@@ -1846,7 +1846,7 @@ void IMAGE_OT_replace(wmOperatorType *ot)
   ot->idname = "IMAGE_OT_replace";
   ot->description = "Replace current image by another one from disk";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = image_replace_exec;
   ot->invoke = image_replace_invoke;
   ot->poll = image_not_packed_poll;
@@ -2103,7 +2103,7 @@ void IMAGE_OT_save_as(wmOperatorType *ot)
   ot->idname = "IMAGE_OT_save_as";
   ot->description = "Save the image with another name and/or settings";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = image_save_as_exec;
   ot->check = image_save_as_check;
   ot->invoke = image_save_as_invoke;
@@ -2245,7 +2245,7 @@ void IMAGE_OT_save(wmOperatorType *ot)
   ot->idname = "IMAGE_OT_save";
   ot->description = "Save the image with current name and settings";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = image_save_exec;
   ot->invoke = image_save_invoke;
   ot->poll = image_save_poll;
@@ -2336,7 +2336,7 @@ void IMAGE_OT_save_sequence(wmOperatorType *ot)
   ot->idname = "IMAGE_OT_save_sequence";
   ot->description = "Save a sequence of images";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = image_save_sequence_exec;
   ot->poll = image_from_context_has_data_poll;
 
@@ -2499,7 +2499,7 @@ void IMAGE_OT_save_all_modified(wmOperatorType *ot)
   ot->idname = "IMAGE_OT_save_all_modified";
   ot->description = "Save all modified images";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = image_save_all_modified_exec;
   ot->poll = image_save_all_modified_poll;
 
@@ -2542,7 +2542,7 @@ void IMAGE_OT_reload(wmOperatorType *ot)
   ot->idname = "IMAGE_OT_reload";
   ot->description = "Reload current image from disk";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = image_reload_exec;
 
   /* flags */
@@ -2735,7 +2735,7 @@ void IMAGE_OT_new(wmOperatorType *ot)
   ot->description = "Create a new image";
   ot->idname = "IMAGE_OT_new";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = image_new_exec;
   ot->invoke = image_new_invoke;
   ot->ui = image_new_draw;
@@ -2883,7 +2883,7 @@ void IMAGE_OT_flip(wmOperatorType *ot)
   ot->idname = "IMAGE_OT_flip";
   ot->description = "Flip the image";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = image_flip_exec;
   ot->poll = image_from_context_editable_has_data_poll_active_tile;
 
@@ -2964,7 +2964,7 @@ void IMAGE_OT_rotate_orthogonal(wmOperatorType *ot)
   ot->idname = "IMAGE_OT_rotate_orthogonal";
   ot->description = "Rotate the image";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = image_rotate_orthogonal_exec;
   ot->poll = image_from_context_editable_has_data_poll_active_tile;
 
@@ -3050,7 +3050,7 @@ void IMAGE_OT_clipboard_copy(wmOperatorType *ot)
   ot->idname = "IMAGE_OT_clipboard_copy";
   ot->description = "Copy the image to the clipboard";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = image_clipboard_copy_exec;
   ot->poll = image_clipboard_copy_poll;
 
@@ -3111,7 +3111,7 @@ void IMAGE_OT_clipboard_paste(wmOperatorType *ot)
   ot->idname = "IMAGE_OT_clipboard_paste";
   ot->description = "Paste new image from the clipboard";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = image_clipboard_paste_exec;
   ot->poll = image_clipboard_paste_poll;
 
@@ -3227,7 +3227,7 @@ void IMAGE_OT_invert(wmOperatorType *ot)
   ot->idname = "IMAGE_OT_invert";
   ot->description = "Invert image's channels";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = image_invert_exec;
   ot->poll = image_from_context_editable_has_data_poll_active_tile;
 
@@ -3360,7 +3360,7 @@ void IMAGE_OT_resize(wmOperatorType *ot)
   ot->idname = "IMAGE_OT_resize";
   ot->description = "Resize the image";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = image_scale_invoke;
   ot->exec = image_scale_exec;
   ot->poll = image_from_context_editable_has_data_poll_active_tile;
@@ -3446,7 +3446,7 @@ void IMAGE_OT_pack(wmOperatorType *ot)
   ot->description = "Pack an image as embedded data into the .blend file";
   ot->idname = "IMAGE_OT_pack";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = image_pack_exec;
   ot->poll = image_pack_poll;
 
@@ -3553,7 +3553,7 @@ void IMAGE_OT_unpack(wmOperatorType *ot)
   ot->description = "Save an image packed in the .blend file to disk";
   ot->idname = "IMAGE_OT_unpack";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = image_unpack_exec;
   ot->invoke = image_unpack_invoke;
   ot->poll = image_pack_poll;
@@ -3652,7 +3652,7 @@ void IMAGE_OT_sample(wmOperatorType *ot)
   ot->idname = "IMAGE_OT_sample";
   ot->description = "Use mouse to sample a color in current image";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = ED_imbuf_sample_invoke;
   ot->modal = ED_imbuf_sample_modal;
   ot->cancel = ED_imbuf_sample_cancel;
@@ -3746,7 +3746,7 @@ void IMAGE_OT_sample_line(wmOperatorType *ot)
   ot->idname = "IMAGE_OT_sample_line";
   ot->description = "Sample a line and show it in Scope panels";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = image_sample_line_invoke;
   ot->modal = WM_gesture_straightline_modal;
   ot->exec = image_sample_line_exec;
@@ -3781,7 +3781,7 @@ void IMAGE_OT_curves_point_set(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = ED_imbuf_sample_invoke;
   ot->modal = ED_imbuf_sample_modal;
   ot->cancel = ED_imbuf_sample_cancel;
@@ -3837,7 +3837,7 @@ void IMAGE_OT_cycle_render_slot(wmOperatorType *ot)
   ot->idname = "IMAGE_OT_cycle_render_slot";
   ot->description = "Cycle through all non-void render slots";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = image_cycle_render_slot_exec;
   ot->poll = image_cycle_render_slot_poll;
 
@@ -3874,7 +3874,7 @@ void IMAGE_OT_clear_render_slot(wmOperatorType *ot)
   ot->idname = "IMAGE_OT_clear_render_slot";
   ot->description = "Clear the currently selected render slot";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = image_clear_render_slot_exec;
   ot->poll = image_cycle_render_slot_poll;
 
@@ -3907,7 +3907,7 @@ void IMAGE_OT_add_render_slot(wmOperatorType *ot)
   ot->idname = "IMAGE_OT_add_render_slot";
   ot->description = "Add a new render slot";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = image_add_render_slot_exec;
   ot->poll = image_cycle_render_slot_poll;
 
@@ -3942,7 +3942,7 @@ void IMAGE_OT_remove_render_slot(wmOperatorType *ot)
   ot->idname = "IMAGE_OT_remove_render_slot";
   ot->description = "Remove the current render slot";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = image_remove_render_slot_exec;
   ot->poll = image_cycle_render_slot_poll;
 
@@ -4062,7 +4062,7 @@ void IMAGE_OT_change_frame(wmOperatorType *ot)
   ot->idname = "IMAGE_OT_change_frame";
   ot->description = "Interactively change the current frame number";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = change_frame_exec;
   ot->invoke = change_frame_invoke;
   ot->modal = change_frame_modal;
@@ -4182,7 +4182,7 @@ void IMAGE_OT_render_border(wmOperatorType *ot)
   ot->description = "Set the boundaries of the render region and enable render region";
   ot->idname = "IMAGE_OT_render_border";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = WM_gesture_box_invoke;
   ot->exec = render_border_exec;
   ot->modal = WM_gesture_box_modal;
@@ -4218,7 +4218,7 @@ void IMAGE_OT_clear_render_border(wmOperatorType *ot)
   ot->description = "Clear the boundaries of the render region and disable render region";
   ot->idname = "IMAGE_OT_clear_render_border";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = clear_render_border_exec;
   ot->poll = image_cycle_render_slot_poll;
 
@@ -4418,7 +4418,7 @@ void IMAGE_OT_tile_add(wmOperatorType *ot)
   ot->description = "Adds a tile to the image";
   ot->idname = "IMAGE_OT_tile_add";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->poll = tile_add_poll;
   ot->exec = tile_add_exec;
   ot->invoke = tile_add_invoke;
@@ -4480,7 +4480,7 @@ void IMAGE_OT_tile_remove(wmOperatorType *ot)
   ot->description = "Removes a tile from the image";
   ot->idname = "IMAGE_OT_tile_remove";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->poll = tile_remove_poll;
   ot->exec = tile_remove_exec;
 
@@ -4542,7 +4542,7 @@ void IMAGE_OT_tile_fill(wmOperatorType *ot)
   ot->description = "Fill the current tile with a generated image";
   ot->idname = "IMAGE_OT_tile_fill";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->poll = tile_fill_poll;
   ot->exec = tile_fill_exec;
   ot->invoke = tile_fill_invoke;

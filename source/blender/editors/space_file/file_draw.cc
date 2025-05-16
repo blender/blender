@@ -1488,7 +1488,7 @@ void file_draw_list(const bContext *C, ARegion *region)
                             float(sizeof(params->renamefile)),
                             "");
       UI_but_func_rename_set(but, renamebutton_cb, file);
-      UI_but_flag_enable(but, UI_BUT_NO_UTF8); /* allow non utf8 names */
+      UI_but_flag_enable(but, UI_BUT_NO_UTF8); /* Allow non UTF8 names. */
       UI_but_flag_disable(but, UI_BUT_UNDO);
       if (false == UI_but_active_only(C, region, block, but)) {
         /* Note that this is the only place where we can also handle a cancelled renaming. */

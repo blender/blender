@@ -181,7 +181,7 @@ void OBJECT_OT_voxel_remesh(wmOperatorType *ot)
       "will be lost";
   ot->idname = "OBJECT_OT_voxel_remesh";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->poll = object_remesh_poll;
   ot->exec = voxel_remesh_exec;
 
@@ -613,7 +613,7 @@ void OBJECT_OT_voxel_size_edit(wmOperatorType *ot)
   ot->description = "Modify the mesh voxel size interactively used in the voxel remesher";
   ot->idname = "OBJECT_OT_voxel_size_edit";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->poll = voxel_size_edit_poll;
   ot->invoke = voxel_size_edit_invoke;
   ot->modal = voxel_size_edit_modal;
@@ -1126,7 +1126,7 @@ void OBJECT_OT_quadriflow_remesh(wmOperatorType *ot)
       "layers will be lost";
   ot->idname = "OBJECT_OT_quadriflow_remesh";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->poll = object_remesh_poll;
   ot->poll_property = quadriflow_poll_property;
   ot->check = quadriflow_check;

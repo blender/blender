@@ -42,7 +42,7 @@ void GHOST_ImeWin32::UpdateInputLanguage()
   /* Get the 2-letter ISO-63901 abbreviation of the input locale name. */
   WCHAR language_u16[W32_ISO639_LEN];
   GetLocaleInfoEx(locale, LOCALE_SISO639LANGNAME, language_u16, W32_ISO639_LEN);
-  /* Store this as a UTF-8 string. */
+  /* Store this as a UTF8 string. */
   WideCharToMultiByte(
       CP_UTF8, 0, language_u16, W32_ISO639_LEN, language_, W32_ISO639_LEN, nullptr, nullptr);
 }
@@ -487,7 +487,7 @@ void GHOST_ImeWin32::UpdateInfo(HWND window_handle)
 {
   int res = this->GetResult(window_handle, GCS_RESULTSTR, &resultInfo);
   int comp = this->GetComposition(window_handle, GCS_COMPSTR | GCS_COMPATTR, &compInfo);
-  /* convert wchar to utf8 */
+  /* Convert wchar to UTF8. */
   if (res) {
     eventImeData.result = std::string(&resultInfo.utf8_buf[0]);
   }

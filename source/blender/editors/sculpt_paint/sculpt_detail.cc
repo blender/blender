@@ -912,7 +912,7 @@ void SCULPT_OT_dyntopo_detail_size_edit(wmOperatorType *ot)
   ot->description = "Modify the detail size of dyntopo interactively";
   ot->idname = "SCULPT_OT_dyntopo_detail_size_edit";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->poll = sculpt_and_dynamic_topology_poll;
   ot->invoke = dyntopo_detail_size_edit_invoke;
   ot->modal = dyntopo_detail_size_edit_modal;

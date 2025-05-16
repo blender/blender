@@ -725,7 +725,7 @@ void OBJECT_OT_add(wmOperatorType *ot)
   ot->description = "Add an object to the scene";
   ot->idname = "OBJECT_OT_add";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = object_add_exec;
   ot->poll = ED_operator_objectmode;
 
@@ -790,7 +790,7 @@ void OBJECT_OT_lightprobe_add(wmOperatorType *ot)
   ot->description = "Add a light probe object";
   ot->idname = "OBJECT_OT_lightprobe_add";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = lightprobe_add_exec;
   ot->poll = ED_operator_objectmode;
 
@@ -902,7 +902,7 @@ void OBJECT_OT_effector_add(wmOperatorType *ot)
   ot->description = "Add an empty object with a physics effector to the scene";
   ot->idname = "OBJECT_OT_effector_add";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = effector_add_exec;
   ot->poll = ED_operator_objectmode;
 
@@ -962,7 +962,7 @@ void OBJECT_OT_camera_add(wmOperatorType *ot)
   ot->description = "Add a camera object to the scene";
   ot->idname = "OBJECT_OT_camera_add";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = object_camera_add_exec;
   ot->poll = ED_operator_objectmode;
 
@@ -1033,7 +1033,7 @@ void OBJECT_OT_metaball_add(wmOperatorType *ot)
   ot->description = "Add an metaball object to the scene";
   ot->idname = "OBJECT_OT_metaball_add";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = WM_menu_invoke;
   ot->exec = object_metaball_add_exec;
   ot->poll = ED_operator_scene_editable;
@@ -1080,7 +1080,7 @@ void OBJECT_OT_text_add(wmOperatorType *ot)
   ot->description = "Add a text object to the scene";
   ot->idname = "OBJECT_OT_text_add";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = object_add_text_exec;
   ot->poll = ED_operator_objectmode;
 
@@ -1153,7 +1153,7 @@ void OBJECT_OT_armature_add(wmOperatorType *ot)
   ot->description = "Add an armature object to the scene";
   ot->idname = "OBJECT_OT_armature_add";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = object_armature_add_exec;
   ot->poll = ED_operator_objectmode;
 
@@ -1196,7 +1196,7 @@ void OBJECT_OT_empty_add(wmOperatorType *ot)
   ot->description = "Add an empty object to the scene";
   ot->idname = "OBJECT_OT_empty_add";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = WM_menu_invoke;
   ot->exec = object_empty_add_exec;
   ot->poll = ED_operator_objectmode;
@@ -1321,7 +1321,7 @@ void OBJECT_OT_empty_image_add(wmOperatorType *ot)
   ot->description = "Add an empty image type to scene with data";
   ot->idname = "OBJECT_OT_empty_image_add";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = object_image_add_invoke;
   ot->exec = object_image_add_exec;
   ot->poll = object_image_add_poll;
@@ -1521,7 +1521,7 @@ void OBJECT_OT_grease_pencil_add(wmOperatorType *ot)
   ot->description = "Add a Grease Pencil object to the scene";
   ot->idname = "OBJECT_OT_grease_pencil_add";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = object_grease_pencil_add_exec;
   ot->invoke = object_grease_pencil_add_invoke;
   ot->poll = ED_operator_objectmode;
@@ -1626,7 +1626,7 @@ void OBJECT_OT_light_add(wmOperatorType *ot)
   ot->description = "Add a light object to the scene";
   ot->idname = "OBJECT_OT_light_add";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = WM_menu_invoke;
   ot->exec = object_light_add_exec;
   ot->poll = ED_operator_objectmode;
@@ -1763,7 +1763,7 @@ void OBJECT_OT_collection_instance_add(wmOperatorType *ot)
   ot->description = "Add a collection instance";
   ot->idname = "OBJECT_OT_collection_instance_add";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = object_instance_add_invoke;
   ot->exec = collection_instance_add_exec;
   ot->poll = ED_operator_objectmode;
@@ -1865,7 +1865,7 @@ void OBJECT_OT_collection_external_asset_drop(wmOperatorType *ot)
   ot->description = "Add the dragged collection to the scene";
   ot->idname = "OBJECT_OT_collection_external_asset_drop";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = object_instance_add_invoke;
   ot->exec = collection_drop_exec;
   ot->poll = ED_operator_objectmode;
@@ -1944,7 +1944,7 @@ void OBJECT_OT_data_instance_add(wmOperatorType *ot)
   ot->description = "Add an object data instance";
   ot->idname = "OBJECT_OT_data_instance_add";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = object_add_drop_xy_generic_invoke;
   ot->exec = object_data_instance_add_exec;
   ot->poll = ED_operator_objectmode;
@@ -2010,7 +2010,7 @@ void OBJECT_OT_speaker_add(wmOperatorType *ot)
   ot->description = "Add a speaker object to the scene";
   ot->idname = "OBJECT_OT_speaker_add";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = object_speaker_add_exec;
   ot->poll = ED_operator_objectmode;
 
@@ -2047,7 +2047,7 @@ void OBJECT_OT_curves_random_add(wmOperatorType *ot)
   ot->description = "Add a curves object with random curves to the scene";
   ot->idname = "OBJECT_OT_curves_random_add";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = object_curves_random_add_exec;
   ot->poll = ED_operator_objectmode;
 
@@ -2319,7 +2319,7 @@ void OBJECT_OT_delete(wmOperatorType *ot)
   ot->description = "Delete selected objects";
   ot->idname = "OBJECT_OT_delete";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = object_delete_invoke;
   ot->exec = object_delete_exec;
   ot->poll = ED_operator_objectmode;
@@ -2711,7 +2711,7 @@ void OBJECT_OT_duplicates_make_real(wmOperatorType *ot)
   ot->description = "Make instanced objects attached to this object real";
   ot->idname = "OBJECT_OT_duplicates_make_real";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = object_duplicates_make_real_exec;
 
   ot->poll = ED_operator_objectmode;
@@ -4225,7 +4225,7 @@ void OBJECT_OT_convert(wmOperatorType *ot)
   ot->description = "Convert selected objects to another type";
   ot->idname = "OBJECT_OT_convert";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = WM_menu_invoke;
   ot->exec = object_convert_exec;
   ot->poll = object_convert_poll;
@@ -4494,7 +4494,7 @@ void OBJECT_OT_duplicate(wmOperatorType *ot)
   ot->description = "Duplicate selected objects";
   ot->idname = "OBJECT_OT_duplicate";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = duplicate_exec;
   ot->poll = ED_operator_objectmode;
 
@@ -4612,7 +4612,7 @@ void OBJECT_OT_add_named(wmOperatorType *ot)
   ot->description = "Add named object";
   ot->idname = "OBJECT_OT_add_named";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = object_add_drop_xy_generic_invoke;
   ot->exec = object_add_named_exec;
   ot->poll = ED_operator_objectmode_poll_msg;
@@ -4722,7 +4722,7 @@ void OBJECT_OT_transform_to_mouse(wmOperatorType *ot)
   ot->description = "Snap selected item(s) to the mouse location";
   ot->idname = "OBJECT_OT_transform_to_mouse";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = object_add_drop_xy_generic_invoke;
   ot->exec = object_transform_to_mouse_exec;
   ot->poll = ED_operator_objectmode_poll_msg;
@@ -4863,7 +4863,7 @@ void OBJECT_OT_join(wmOperatorType *ot)
   ot->description = "Join selected objects into active object";
   ot->idname = "OBJECT_OT_join";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = object_join_exec;
   ot->poll = object_join_poll;
 

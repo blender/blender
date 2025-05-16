@@ -266,9 +266,8 @@ void DRW_text_edit_mesh_measure_stats(const ARegion *region,
                                       const UnitSettings &unit,
                                       DRWTextStore *dt)
 {
-  /* Do not use ascii when using non-default unit system, some unit chars are utf8 (micro, square,
-   * etc.). See bug #36090.
-   */
+  /* Do not use ASCII when using non-default unit system, some unit chars are UTF8
+   * (micro, square, etc.). See #36090. */
   const short txt_flag = DRW_TEXT_CACHE_GLOBALSPACE;
   const Mesh *mesh = BKE_object_get_editmesh_eval_cage(ob);
   if (!mesh) {
