@@ -687,12 +687,17 @@ class Preprocessor {
       std::string out_content = content;
 
       /* Parse all global symbols (struct / functions) inside the content. */
-      std::regex regex(R"(\n(?:const )?\w+ (\w+)\(?)");
+      std::regex regex(R"([\n\>] ?(?:const )?(\w+) (\w+)\(?)");
       regex_global_search(content, regex, [&](const std::smatch &match) {
-        std::string function = match[1].str();
+        std::string return_type = match[1].str();
+        if (return_type == "template") {
+          /* Matched a template instantiation. */
+          return;
+        }
+        std::string function = match[2].str();
         /* Replace all occurrences of the non-namespace specified symbol.
          * Reject symbols that contain the target symbol name. */
-        std::regex regex(R"(([^:\w]))" + function + R"(([\s\(]))");
+        std::regex regex(R"(([^:\w]))" + function + R"(([\s\(\<]))");
         out_content = std::regex_replace(
             out_content, regex, "$1" + namespace_name + "::" + function + "$2");
       });
