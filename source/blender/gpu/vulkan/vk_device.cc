@@ -8,6 +8,8 @@
 
 #include <sstream>
 
+#include "CLG_log.h"
+
 #include "vk_backend.hh"
 #include "vk_context.hh"
 #include "vk_device.hh"
@@ -24,7 +26,29 @@
 
 extern "C" char datatoc_glsl_shader_defines_glsl[];
 
+static CLG_LogRef LOG = {"gpu.vulkan"};
+
 namespace blender::gpu {
+
+void VKExtensions::log() const
+{
+  CLOG_INFO(&LOG,
+            2,
+            "Device features\n"
+            " - [%c] shader output viewport index\n"
+            " - [%c] shader output layer\n"
+            " - [%c] fragment shader barycentric\n"
+            "Device extensions\n"
+            " - [%c] dynamic rendering\n"
+            " - [%c] dynamic rendering local read\n"
+            " - [%c] dynamic rendering unused attachments\n",
+            shader_output_viewport_index ? 'X' : ' ',
+            shader_output_layer ? 'X' : ' ',
+            fragment_shader_barycentric ? 'X' : ' ',
+            dynamic_rendering ? 'X' : ' ',
+            dynamic_rendering_local_read ? 'X' : ' ',
+            dynamic_rendering_unused_attachments ? 'X' : ' ');
+}
 
 void VKDevice::reinit()
 {
