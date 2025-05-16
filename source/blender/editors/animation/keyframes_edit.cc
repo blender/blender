@@ -844,10 +844,19 @@ short bezt_calc_average(KeyframeEditData *ked, BezTriple *bezt)
 short bezt_to_cfraelem(KeyframeEditData *ked, BezTriple *bezt)
 {
   /* only if selected */
-  if (bezt->f2 & SELECT) {
-    CfraElem *ce = MEM_callocN<CfraElem>("cfraElem");
-    BLI_addtail(&ked->list, ce);
+  if ((bezt->f2 & SELECT) == 0) {
+    return 0;
+  }
 
+  CfraElem *ce = MEM_callocN<CfraElem>("cfraElem");
+  BLI_addtail(&ked->list, ce);
+
+  /* bAnimListElem so we can do NLA mapping, we want the cfra to be in "global" time */
+  bAnimListElem *ale = static_cast<bAnimListElem *>(ked->data);
+  if (ale != nullptr) {
+    ce->cfra = ANIM_nla_tweakedit_remap(ale, bezt->vec[1][0], NLATIME_CONVERT_MAP);
+  }
+  else {
     ce->cfra = bezt->vec[1][0];
   }
 

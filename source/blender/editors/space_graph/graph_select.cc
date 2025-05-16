@@ -1219,6 +1219,7 @@ static void columnselect_graph_keys(bAnimContext *ac, short mode)
           ac, &anim_data, eAnimFilter_Flags(filter), ac->data, eAnimCont_Types(ac->datatype));
 
       LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
+        ked.data = ale;
         ANIM_fcurve_keyframes_loop(
             &ked, static_cast<FCurve *>(ale->key_data), nullptr, bezt_to_cfraelem, nullptr);
       }

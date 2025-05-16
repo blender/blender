@@ -166,6 +166,7 @@ ENUM_OPERATORS(eKeyframeIterFlags, KEYFRAME_ITER_HANDLES_DEFAULT_INVISIBLE)
  */
 struct CfraElem {
   CfraElem *next, *prev;
+  /* Expected to be in global scene time (e.g. not NLA unmapped). */
   float cfra;
   int sel;
 };
