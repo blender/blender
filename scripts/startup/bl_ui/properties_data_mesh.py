@@ -524,7 +524,7 @@ class MESH_UL_attributes(UIList):
 
         # Filtering internal attributes
         for idx, item in enumerate(attributes):
-            flags[idx] = 0 if item.is_internal else flags[idx]
+            flags[idx] = self.bitflag_item_never_show if item.is_internal else flags[idx]
 
         # Reorder by name.
         if self.use_filter_sort_alpha:

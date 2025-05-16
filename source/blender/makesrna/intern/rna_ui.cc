@@ -464,6 +464,11 @@ static int rna_UIList_filter_const_FILTER_ITEM_get(PointerRNA * /*ptr*/)
   return UILST_FLT_ITEM;
 }
 
+static int rna_UIList_item_never_show(PointerRNA * /*ptr*/)
+{
+  return UILST_FLT_ITEM_NEVER_SHOW;
+}
+
 static IDProperty **rna_UIList_idprops(PointerRNA *ptr)
 {
   uiList *ui_list = (uiList *)ptr->data;
@@ -2146,6 +2151,11 @@ static void rna_def_uilist(BlenderRNA *brna)
       "FILTER_ITEM",
       "The value of the reserved bitflag 'FILTER_ITEM' (in filter_flags values)");
   RNA_def_property_int_funcs(prop, "rna_UIList_filter_const_FILTER_ITEM_get", nullptr, nullptr);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+  prop = RNA_def_property(srna, "bitflag_item_never_show", PROP_INT, PROP_UNSIGNED);
+  RNA_def_property_ui_text(prop, "ITEM_NEVER_SHOW", "Skip the item from displaying in the list");
+  RNA_def_property_int_funcs(prop, "rna_UIList_item_never_show", nullptr, nullptr);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 }
 
