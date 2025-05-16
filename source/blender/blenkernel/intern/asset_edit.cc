@@ -267,7 +267,7 @@ std::optional<std::string> asset_edit_id_save_as(Main &global_main,
 
 bool asset_edit_id_save(Main &global_main, const ID &id, ReportList &reports)
 {
-  if (!asset_edit_id_is_editable(id)) {
+  if (!asset_edit_id_is_writable(id)) {
     return false;
   }
 
