@@ -495,21 +495,21 @@ const EnumPropertyItem prop_make_parent_types[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-bool parent_set(ReportList *reports,
-                const bContext *C,
-                Scene *scene,
-                Object *const ob,
-                Object *const par,
-                int partype,
-                const bool xmirror,
-                const bool keep_transform,
-                const int vert_par[3])
+static bool parent_set_with_depsgraph(ReportList *reports,
+                                      const bContext *C,
+                                      Scene *scene,
+                                      Depsgraph *depsgraph,
+                                      Object *const ob,
+                                      Object *const par,
+                                      Object *const parent_eval,
+                                      int partype,
+                                      const bool xmirror,
+                                      const bool keep_transform,
+                                      const int vert_par[3])
 {
   Main *bmain = CTX_data_main(C);
-  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   bPoseChannel *pchan = nullptr;
   bPoseChannel *pchan_eval = nullptr;
-  Object *parent_eval = DEG_get_evaluated(depsgraph, par);
 
   /* Preconditions. */
   if (ob == par) {
@@ -766,6 +766,32 @@ bool parent_set(ReportList *reports,
   return true;
 }
 
+bool parent_set(ReportList *reports,
+                const bContext *C,
+                Scene *scene,
+                Object *const ob,
+                Object *const par,
+                int partype,
+                const bool xmirror,
+                const bool keep_transform,
+                const int vert_par[3])
+{
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+  Object *parent_eval = DEG_get_evaluated(depsgraph, par);
+
+  return parent_set_with_depsgraph(reports,
+                                   C,
+                                   scene,
+                                   depsgraph,
+                                   ob,
+                                   par,
+                                   parent_eval,
+                                   partype,
+                                   xmirror,
+                                   keep_transform,
+                                   vert_par);
+}
+
 static void parent_set_vert_find(KDTree_3d *tree, Object *child, int vert_par[3], bool is_tri)
 {
   const float *co_find = child->object_to_world().location();
@@ -803,6 +829,9 @@ struct ParentingContext {
 
 static bool parent_set_nonvertex_parent(bContext *C, ParentingContext *parenting_context)
 {
+  Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
+  Object *parent_eval = DEG_get_evaluated(depsgraph, parenting_context->par);
+
   CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects) {
     if (ob == parenting_context->par) {
       /* parent_set() will fail (and thus return false), but this case
@@ -810,15 +839,17 @@ static bool parent_set_nonvertex_parent(bContext *C, ParentingContext *parenting
       continue;
     }
 
-    if (!parent_set(parenting_context->reports,
-                    C,
-                    parenting_context->scene,
-                    ob,
-                    parenting_context->par,
-                    parenting_context->partype,
-                    parenting_context->xmirror,
-                    parenting_context->keep_transform,
-                    nullptr))
+    if (!parent_set_with_depsgraph(parenting_context->reports,
+                                   C,
+                                   parenting_context->scene,
+                                   depsgraph,
+                                   ob,
+                                   parenting_context->par,
+                                   parent_eval,
+                                   parenting_context->partype,
+                                   parenting_context->xmirror,
+                                   parenting_context->keep_transform,
+                                   nullptr))
     {
       return false;
     }
