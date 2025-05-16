@@ -64,14 +64,14 @@ extern void GHOST_ShowMessageBox(GHOST_SystemHandle systemhandle,
                                  const char *link,
                                  GHOST_DialogOptions dialog_options);
 
-/**
+ /**
  * Creates an event consumer object
  * \param eventCallback: The event callback routine.
  * \param user_data: Pointer to user data returned to the callback routine.
  */
 extern GHOST_EventConsumerHandle GHOST_CreateEventConsumer(
     GHOST_EventCallbackProcPtr eventCallback, GHOST_TUserDataPtr user_data);
-
+ 
 /**
  * Disposes an event consumer object
  * \param consumerhandle: Handle to the event consumer.
