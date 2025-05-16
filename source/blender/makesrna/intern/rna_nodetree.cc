@@ -13735,13 +13735,13 @@ static void rna_def_nodes(BlenderRNA *brna)
   define("CompositorNode", "CompositorNodeHueSat");
   define("CompositorNode", "CompositorNodeIDMask", def_cmp_id_mask);
   define("CompositorNode", "CompositorNodeImage", def_cmp_image);
+  define("CompositorNode", "CompositorNodeImageInfo");
   define("CompositorNode", "CompositorNodeInpaint", def_cmp_inpaint);
   define("CompositorNode", "CompositorNodeInvert", def_cmp_invert);
   define("CompositorNode", "CompositorNodeKeying", def_cmp_keying);
   define("CompositorNode", "CompositorNodeKeyingScreen", def_cmp_keyingscreen);
   define("CompositorNode", "CompositorNodeKuwahara", def_cmp_kuwahara);
   define("CompositorNode", "CompositorNodeLensdist", def_cmp_lensdist);
-  define("CompositorNode", "CompositorNodeImageInfo");
   define("CompositorNode", "CompositorNodeLevels", def_cmp_levels);
   define("CompositorNode", "CompositorNodeLumaMatte", def_cmp_luma_matte);
   define("CompositorNode", "CompositorNodeMapRange", def_cmp_map_range);
