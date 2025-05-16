@@ -69,11 +69,23 @@ static wmOperatorStatus brush_asset_activate_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
+  const bool use_toggle = RNA_boolean_get(op->ptr, "use_toggle");
   AssetWeakReference brush_asset_reference = asset->make_weak_reference();
+  Paint *paint = BKE_paint_get_active_from_context(C);
+  std::optional<AssetWeakReference> asset_to_save;
+  if (use_toggle) {
+    BLI_assert(paint->brush_asset_reference);
+    if (brush_asset_reference == *paint->brush_asset_reference) {
+      if (paint->runtime.previous_active_brush_reference != nullptr) {
+        brush_asset_reference = *paint->runtime.previous_active_brush_reference;
+      }
+    }
+    else {
+      asset_to_save = *paint->brush_asset_reference;
+    }
+  }
   Brush *brush = reinterpret_cast<Brush *>(
       bke::asset_edit_id_from_weak_reference(*bmain, ID_BR, brush_asset_reference));
-
-  Paint *paint = BKE_paint_get_active_from_context(C);
 
   /* Activate brush through tool system rather than calling #BKE_paint_brush_set() directly, to let
    * the tool system switch tools if necessary, and update which brush was the last recently used
@@ -82,6 +94,15 @@ static wmOperatorStatus brush_asset_activate_exec(bContext *C, wmOperator *op)
     /* Note brush datablock was still added, so was not a no-op. */
     BKE_report(op->reports, RPT_WARNING, "Unable to activate brush, wrong object mode");
     return OPERATOR_FINISHED;
+  }
+
+  if (asset_to_save) {
+    BKE_paint_previous_asset_reference_set(paint, std::move(*asset_to_save));
+  }
+  else if (!use_toggle) {
+    /* If we aren't toggling, clear the previous reference so that we don't swap back to an
+     * incorrect "previous" asset */
+    BKE_paint_previous_asset_reference_clear(paint);
   }
 
   WM_main_add_notifier(NC_ASSET | NA_ACTIVATED, nullptr);
@@ -99,6 +120,13 @@ void BRUSH_OT_asset_activate(wmOperatorType *ot)
   ot->exec = brush_asset_activate_exec;
 
   asset::operator_asset_reference_props_register(*ot->srna);
+  PropertyRNA *prop;
+  prop = RNA_def_boolean(ot->srna,
+                         "use_toggle",
+                         false,
+                         "Toggle",
+                         "Switch between the current and assigned brushes on consecutive uses.");
+  RNA_def_property_flag(prop, PropertyFlag(PROP_HIDDEN | PROP_SKIP_SAVE));
 }
 
 static bool brush_asset_save_as_poll(bContext *C)
