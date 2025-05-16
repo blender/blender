@@ -422,7 +422,7 @@ void GHOST_ImeWin32::EndIME(HWND window_handle)
   is_enable = false;
   CleanupComposition(window_handle);
   ::ImmAssociateContextEx(window_handle, nullptr, 0);
-  eventImeData.composite_len = 0;
+  eventImeData.composite.clear();
 }
 
 void GHOST_ImeWin32::BeginIME(HWND window_handle, const GHOST_Rect &caret_rect, bool complete)
@@ -489,23 +489,19 @@ void GHOST_ImeWin32::UpdateInfo(HWND window_handle)
   int comp = this->GetComposition(window_handle, GCS_COMPSTR | GCS_COMPATTR, &compInfo);
   /* convert wchar to utf8 */
   if (res) {
-    eventImeData.result_len = (GHOST_TUserDataPtr)updateUtf8Buf(resultInfo);
-    eventImeData.result = &resultInfo.utf8_buf[0];
+    eventImeData.result = std::string(&resultInfo.utf8_buf[0]);
   }
   else {
-    eventImeData.result = 0;
-    eventImeData.result_len = 0;
+    eventImeData.result = "";
   }
   if (comp) {
-    eventImeData.composite_len = (GHOST_TUserDataPtr)updateUtf8Buf(compInfo);
-    eventImeData.composite = &compInfo.utf8_buf[0];
+    eventImeData.composite = std::string(&compInfo.utf8_buf[0]);
     eventImeData.cursor_position = compInfo.cursor_position;
     eventImeData.target_start = compInfo.target_start;
     eventImeData.target_end = compInfo.target_end;
   }
   else {
-    eventImeData.composite = 0;
-    eventImeData.composite_len = 0;
+    eventImeData.composite = "";
     eventImeData.cursor_position = -1;
     eventImeData.target_start = -1;
     eventImeData.target_end = -1;
