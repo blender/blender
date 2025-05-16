@@ -4024,7 +4024,6 @@ static void filelist_readjob_remote_asset_library_index_read(FileListReadJob *jo
   using namespace ed::asset;
 
   FileList *filelist = job_params->tmp_filelist; /* Use the thread-safe filelist queue. */
-  ListBase entries = {nullptr};
 
   char dirpath[FILE_MAX];
   const bUserAssetLibrary *user_library = BKE_preferences_asset_library_find_index(
@@ -4036,33 +4035,41 @@ static void filelist_readjob_remote_asset_library_index_read(FileListReadJob *jo
     return;
   }
 
-  Vector<index::RemoteListingAssetEntry> asset_entries;
-  if (!index::read_remote_listing(dirpath, &asset_entries)) {
-    return;
-  }
-
   /* Reconstruct file hierarchy, so we know which .blend files to expect where, and which assets
    * they should contain. */
   MultiValueMap<StringRef, index::RemoteListingAssetEntry *> assets_per_blend_path;
+  /* Keeps the entries alive for further processing. These are moved out of #read_remote_listing()
+   * below, which is allowed by the API. */
+  Vector<index::RemoteListingAssetEntry> entries;
 
-  for (index::RemoteListingAssetEntry &entry : asset_entries) {
-    const char *group_name = BKE_idtype_idcode_to_name(entry.idcode);
-    filelist_readjob_list_lib_add_datablock(
-        job_params, &entries, &entry.datablock_info, true, entry.idcode, group_name);
-    assets_per_blend_path.add(entry.archive_url, &entry);
-  }
+  if (!index::read_remote_listing(dirpath, [&](index::RemoteListingAssetEntry &movable_entry) {
+        /* Move into own storage for later access. */
+        entries.append(std::move(movable_entry));
 
-  int entries_num = 0;
-  LISTBASE_FOREACH (FileListInternEntry *, entry, &entries) {
-    entry->uid = filelist_uid_generate(filelist);
-    char dir[FILE_MAX_LIBEXTRA];
-    entry->name = fileentry_uiname(dirpath, entry, dir);
-    entry->free_name = true;
-    entries_num++;
-  }
+        index::RemoteListingAssetEntry &entry = entries.last();
 
-  if (filelist_readjob_append_entries(job_params, &entries, entries_num)) {
-    *do_update = true;
+        const char *group_name = BKE_idtype_idcode_to_name(entry.idcode);
+        ListBase entries = {nullptr};
+
+        filelist_readjob_list_lib_add_datablock(
+            job_params, &entries, &entry.datablock_info, true, entry.idcode, group_name);
+        assets_per_blend_path.add(entry.archive_url, &entry);
+
+        int entries_num = 0;
+        LISTBASE_FOREACH (FileListInternEntry *, entry, &entries) {
+          entry->uid = filelist_uid_generate(filelist);
+          char dir[FILE_MAX_LIBEXTRA];
+          entry->name = fileentry_uiname(dirpath, entry, dir);
+          entry->free_name = true;
+          entries_num++;
+        }
+
+        if (filelist_readjob_append_entries(job_params, &entries, entries_num)) {
+          *do_update = true;
+        }
+      }))
+  {
+    return;
   }
 
   /* Lastly, update local asset index from the current remote index. */

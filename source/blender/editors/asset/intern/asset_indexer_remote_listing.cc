@@ -149,7 +149,7 @@ static std::optional<int> choose_api_version(const AssetLibraryMeta &library_met
   return {};
 }
 
-bool read_remote_listing(StringRefNull root_dirpath, Vector<RemoteListingAssetEntry> *r_entries)
+bool read_remote_listing(StringRefNull root_dirpath, RemoteListingEntryProcessFn process_fn)
 {
   /* TODO: Error reporting for all false return branches. */
 
@@ -165,10 +165,9 @@ bool read_remote_listing(StringRefNull root_dirpath, Vector<RemoteListingAssetEn
     return false;
   }
 
-  Vector<RemoteListingAssetEntry> read_entries{};
   switch (*api_version) {
     case 1:
-      if (!read_remote_listing_v1(root_dirpath, read_entries)) {
+      if (!read_remote_listing_v1(root_dirpath, process_fn)) {
         printf("Couldn't read V1 listing");
         return false;
       }
@@ -178,7 +177,6 @@ bool read_remote_listing(StringRefNull root_dirpath, Vector<RemoteListingAssetEn
       return false;
   }
 
-  *r_entries = std::move(read_entries);
   return true;
 }
 

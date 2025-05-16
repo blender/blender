@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "BLI_function_ref.hh"
 #include "BLI_vector.hh"
 
 #include "ED_file_indexer.hh"
@@ -54,6 +55,7 @@ struct RemoteListingAssetEntry {
   ~RemoteListingAssetEntry();
 };
 
-bool read_remote_listing(StringRefNull root_dirpath, Vector<RemoteListingAssetEntry> *r_entries);
+using RemoteListingEntryProcessFn = FunctionRef<void(RemoteListingAssetEntry &)>;
+bool read_remote_listing(StringRefNull root_dirpath, RemoteListingEntryProcessFn process_fn);
 
 }  // namespace blender::ed::asset::index

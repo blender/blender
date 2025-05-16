@@ -7,6 +7,7 @@
  */
 
 #include "BLI_fileops.h"
+#include "BLI_function_ref.hh"
 #include "BLI_path_utils.hh"
 #include "BLI_serialize.hh"
 #include "BLI_string_ref.hh"
@@ -27,9 +28,9 @@ using namespace blender::io::serialize;
  * \{ */
 
 struct AssetLibraryListingPageV1 {
-  static bool read_into_entries_vec(const StringRefNull root_dirpath,
-                                    const StringRefNull page_rel_path,
-                                    Vector<RemoteListingAssetEntry> &io_entries);
+  static bool read_asset_entries(const StringRefNull root_dirpath,
+                                 const StringRefNull page_rel_path,
+                                 RemoteListingEntryProcessFn process_fn);
 };
 
 static std::optional<RemoteListingAssetEntry> listing_entry_from_asset_dictionary(
@@ -84,7 +85,7 @@ static std::optional<RemoteListingAssetEntry> listing_entry_from_asset_dictionar
 }
 
 static bool listing_entries_from_root(const DictionaryValue &value,
-                                      Vector<RemoteListingAssetEntry> &io_entries)
+                                      RemoteListingEntryProcessFn process_fn)
 {
   const ArrayValue *entries = value.lookup_array("assets");
   BLI_assert(entries != nullptr);
@@ -102,15 +103,15 @@ static bool listing_entries_from_root(const DictionaryValue &value,
       continue;
     }
 
-    io_entries.append(std::move(*entry));
+    process_fn(*entry);
   }
 
   return true;
 }
 
-bool AssetLibraryListingPageV1::read_into_entries_vec(const StringRefNull root_dirpath,
-                                                      const StringRefNull page_rel_path,
-                                                      Vector<RemoteListingAssetEntry> &io_entries)
+bool AssetLibraryListingPageV1::read_asset_entries(const StringRefNull root_dirpath,
+                                                   const StringRefNull page_rel_path,
+                                                   RemoteListingEntryProcessFn process_fn)
 {
   char filepath[FILE_MAX];
   BLI_path_join(filepath, sizeof(filepath), root_dirpath.c_str(), page_rel_path.c_str());
@@ -132,7 +133,7 @@ bool AssetLibraryListingPageV1::read_into_entries_vec(const StringRefNull root_d
     return false;
   }
 
-  listing_entries_from_root(*root, io_entries);
+  listing_entries_from_root(*root, process_fn);
   // CLOG_INFO(&LOG, 1, "Read %d entries from remote asset listing for [%s].", r_entries.size(),
   // filepath);
   return true;
@@ -208,8 +209,7 @@ std::optional<AssetLibraryListingV1> AssetLibraryListingV1::read(StringRefNull r
 
 /** \} */
 
-bool read_remote_listing_v1(StringRefNull root_dirpath,
-                            Vector<RemoteListingAssetEntry> &io_entries)
+bool read_remote_listing_v1(StringRefNull root_dirpath, RemoteListingEntryProcessFn process_fn)
 {
   const std::optional<AssetLibraryListingV1> listing = AssetLibraryListingV1::read(root_dirpath);
   if (!listing) {
@@ -217,7 +217,7 @@ bool read_remote_listing_v1(StringRefNull root_dirpath,
   }
 
   for (const std::string &page_path : listing->page_rel_paths) {
-    AssetLibraryListingPageV1::read_into_entries_vec(root_dirpath, page_path, io_entries);
+    AssetLibraryListingPageV1::read_asset_entries(root_dirpath, page_path, process_fn);
   }
 
   return true;
