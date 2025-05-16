@@ -65,7 +65,7 @@ eSnapMode snapArmature(SnapObjectContext *sctx,
   else if (ob_eval->pose && ob_eval->pose->chanbase.first) {
     LISTBASE_FOREACH (bPoseChannel *, pchan, &ob_eval->pose->chanbase) {
       Bone *bone = pchan->bone;
-      if (!bone || (bone->flag & (BONE_HIDDEN_P | BONE_HIDDEN_PG))) {
+      if (!bone || (bone->flag & BONE_HIDDEN_P)) {
         /* Skip hidden bones. */
         continue;
       }

@@ -2183,7 +2183,7 @@ void Armatures::draw_armature_pose(Armatures::DrawContext *ctx)
     }
 
     eBone_Flag boneflag = eBone_Flag(bone->flag);
-    if (bone->parent && (bone->parent->flag & (BONE_HIDDEN_P | BONE_HIDDEN_PG))) {
+    if (bone->parent && (bone->parent->flag & BONE_HIDDEN_P)) {
       /* Avoid drawing connection line to hidden parent. */
       boneflag &= ~BONE_CONNECTED;
     }

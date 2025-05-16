@@ -452,8 +452,6 @@ typedef enum eBone_Flag {
   /** No parent scale */
   BONE_NO_SCALE = (1 << 15),
 #endif
-  /** hidden bone when drawing PoseChannels (for ghost drawing) */
-  BONE_HIDDEN_PG = (1 << 16),
   /** bone should be drawn as OB_WIRE, regardless of draw-types of view+armature */
   BONE_DRAWWIRE = (1 << 17),
   /** when no parent, bone will not get cyclic offset */

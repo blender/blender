@@ -307,7 +307,7 @@ bool ANIM_bone_in_visible_collection(const bArmature *armature, const Bone *bone
 
 inline bool ANIM_bone_is_visible(const bArmature *armature, const Bone *bone)
 {
-  const bool bone_itself_visible = (bone->flag & (BONE_HIDDEN_P | BONE_HIDDEN_PG)) == 0;
+  const bool bone_itself_visible = (bone->flag & BONE_HIDDEN_P) == 0;
   return bone_itself_visible && ANIM_bone_in_visible_collection(armature, bone);
 }
 
