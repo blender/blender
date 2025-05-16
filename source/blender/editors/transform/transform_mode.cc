@@ -45,7 +45,7 @@ eTfmMode transform_mode_really_used(bContext *C, eTfmMode mode)
       return TFM_RESIZE;
     }
     bArmature *arm = static_cast<bArmature *>(ob->data);
-    if (arm->drawtype == ARM_ENVELOPE) {
+    if (arm->drawtype == ARM_DRAW_TYPE_ENVELOPE) {
       return TFM_BONE_ENVELOPE_DIST;
     }
   }
