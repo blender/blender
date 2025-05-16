@@ -948,20 +948,27 @@ GHOST_TSuccess GHOST_ContextVK::recreateSwapchain()
     image_count_requested = capabilities.maxImageCount;
   }
 
+  VkSwapchainKHR old_swapchain = m_swapchain;
+
+  /* First time we stretch the swapchain image as it can happen that the first frame size isn't
+   * correctly reported by the initial swapchain. All subsequent creations will use one to one as
+   * that can reduce resizing artifacts. */
+  VkPresentScalingFlagBitsEXT vk_present_scaling = old_swapchain == VK_NULL_HANDLE ?
+                                                       VK_PRESENT_SCALING_STRETCH_BIT_EXT :
+                                                       VK_PRESENT_SCALING_ONE_TO_ONE_BIT_EXT;
+
   VkSwapchainPresentModesCreateInfoEXT vk_swapchain_present_modes = {
       VK_STRUCTURE_TYPE_SWAPCHAIN_PRESENT_MODES_CREATE_INFO_EXT, nullptr, 1, &present_mode};
   VkSwapchainPresentScalingCreateInfoEXT vk_swapchain_present_scaling = {
       VK_STRUCTURE_TYPE_SWAPCHAIN_PRESENT_SCALING_CREATE_INFO_EXT,
       &vk_swapchain_present_modes,
-      vk_surface_present_scaling_capabilities.supportedPresentScaling &
-          VK_PRESENT_SCALING_ONE_TO_ONE_BIT_EXT,
+      vk_surface_present_scaling_capabilities.supportedPresentScaling & vk_present_scaling,
       vk_surface_present_scaling_capabilities.supportedPresentGravityX &
           VK_PRESENT_GRAVITY_MIN_BIT_EXT,
       vk_surface_present_scaling_capabilities.supportedPresentGravityY &
           VK_PRESENT_GRAVITY_MAX_BIT_EXT,
   };
 
-  VkSwapchainKHR old_swapchain = m_swapchain;
   VkSwapchainCreateInfoKHR create_info = {};
   create_info.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
   if (vulkan_device->use_vk_ext_swapchain_maintenance_1) {
