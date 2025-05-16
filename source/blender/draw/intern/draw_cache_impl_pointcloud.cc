@@ -153,7 +153,7 @@ static void pointcloud_discard_attributes(PointCloudBatchCache &cache)
     GPU_VERTBUF_DISCARD_SAFE(cache.eval_cache.attributes_buf[j]);
   }
 
-  drw_attributes_clear(&cache.eval_cache.attr_used);
+  cache.eval_cache.attr_used.clear();
 }
 
 static void pointcloud_batch_cache_clear(PointCloud &pointcloud)
@@ -215,7 +215,7 @@ void DRW_pointcloud_batch_cache_free_old(PointCloud *pointcloud, int ctime)
     do_discard = true;
   }
 
-  drw_attributes_clear(&cache->eval_cache.attr_used_over_time);
+  cache->eval_cache.attr_used_over_time.clear();
 
   if (do_discard) {
     pointcloud_discard_attributes(*cache);

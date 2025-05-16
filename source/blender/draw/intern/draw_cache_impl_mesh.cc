@@ -1092,7 +1092,7 @@ void DRW_mesh_batch_cache_free_old(Mesh *mesh, int ctime)
   }
 
   mesh_cd_layers_type_clear(&cache->cd_used_over_time);
-  drw_attributes_clear(&cache->attr_used_over_time);
+  cache->attr_used_over_time.clear();
 }
 
 static void init_empty_dummy_batch(gpu::Batch &batch)
@@ -1209,7 +1209,7 @@ void DRW_mesh_batch_cache_create_requested(TaskGraph &task_graph,
 
     drw_attributes_merge(
         &cache.attr_used_over_time, &cache.attr_needed, mesh.runtime->render_mutex);
-    drw_attributes_clear(&cache.attr_needed);
+    cache.attr_needed.clear();
   }
 
   if ((batch_requested & MBC_EDITUV) || cd_uv_update) {
