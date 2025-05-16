@@ -145,6 +145,11 @@ void GPU_state_set(eGPUWriteMask write_mask,
   state.provoking_vert = uint32_t(provoking_vert);
 }
 
+void GPU_clip_control_unit_range(bool enable)
+{
+  SET_IMMUTABLE_STATE(clip_control, enable);
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -423,6 +428,7 @@ StateManager::StateManager()
   state.invert_facing = false;
   state.shadow_bias = false;
   state.clip_distances = 0;
+  state.clip_control = false;
   state.polygon_smooth = false;
   state.line_smooth = false;
 

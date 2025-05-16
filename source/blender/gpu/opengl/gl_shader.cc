@@ -711,6 +711,13 @@ std::string GLShader::vertex_interface_declare(const ShaderCreateInfo &info) con
       ss << "#define gpu_ViewportIndex gl_ViewportIndex\n";
     }
   }
+  if (bool(info.builtins_ & BuiltinBits::CLIP_CONTROL)) {
+    if (GLContext::clip_control_support && !has_geometry_stage) {
+      /* Assume clip range is set to 0..1 and remap the range just like Vulkan and Metal.
+       * If geometry stage is needed, do that remapping inside the geometry shader stage. */
+      post_main += "gl_Position.z = (gl_Position.z + gl_Position.w) * 0.5;\n";
+    }
+  }
   if (bool(info.builtins_ & BuiltinBits::BARYCENTRIC_COORD)) {
     if (!GLContext::native_barycentric_support) {
       /* Disabled or unsupported. */
@@ -983,6 +990,12 @@ std::string GLShader::workaround_geometry_shader_source_create(
       ss << " vec3(" << int(i == 0) << ", " << int(i == 1) << ", " << int(i == 2) << ");\n";
     }
     ss << "  gl_Position = gl_in[" << i << "].gl_Position;\n";
+    if (bool(info.builtins_ & BuiltinBits::CLIP_CONTROL)) {
+      if (GLContext::clip_control_support) {
+        /* Assume clip range is set to 0..1 and remap the range just like Vulkan and Metal. */
+        ss << "gl_Position.z = (gl_Position.z + gl_Position.w) * 0.5;\n";
+      }
+    }
     if (do_layer_output) {
       ss << "  gl_Layer = gpu_Layer[" << i << "];\n";
     }
