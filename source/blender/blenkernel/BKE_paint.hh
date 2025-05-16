@@ -568,7 +568,7 @@ struct SculptSession : blender::NonCopyable, blender::NonMovable {
   blender::float3 active_vert_position(const Depsgraph &depsgraph, const Object &object) const;
 
   void set_active_vert(ActiveVert vert);
-  void clear_active_vert(bool persist_last_active);
+  void clear_active_elements(bool persist_last_active);
 
   /**
    * Retrieves the current persistent multires data.

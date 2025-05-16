@@ -2090,7 +2090,7 @@ void BKE_sculptsession_free_pbvh(Object &object)
   ss->fake_neighbors.fake_neighbor_index = {};
   ss->topology_island_cache.reset();
 
-  ss->clear_active_vert(false);
+  ss->clear_active_elements(false);
 }
 
 void BKE_sculptsession_bm_to_me_for_render(Object *object)
@@ -2205,7 +2205,7 @@ blender::float3 SculptSession::active_vert_position(const Depsgraph &depsgraph,
   return float3(std::numeric_limits<float>::infinity());
 }
 
-void SculptSession::clear_active_vert(bool persist_last_active)
+void SculptSession::clear_active_elements(bool persist_last_active)
 {
   if (persist_last_active) {
     if (!std::holds_alternative<std::monostate>(active_vert_)) {
@@ -2216,6 +2216,8 @@ void SculptSession::clear_active_vert(bool persist_last_active)
     last_active_vert_ = {};
   }
   active_vert_ = {};
+  active_grid_index.reset();
+  active_face_index.reset();
 }
 
 void SculptSession::set_active_vert(const ActiveVert vert)
