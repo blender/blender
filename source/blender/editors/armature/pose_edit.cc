@@ -41,6 +41,7 @@
 #include "ED_object.hh"
 #include "ED_screen.hh"
 
+#include "ANIM_armature.hh"
 #include "ANIM_bone_collections.hh"
 #include "ANIM_keyframing.hh"
 

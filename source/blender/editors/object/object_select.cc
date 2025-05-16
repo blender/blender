@@ -52,6 +52,7 @@
 #include "ED_screen.hh"
 #include "ED_select_utils.hh"
 
+#include "ANIM_armature.hh"
 #include "ANIM_bone_collections.hh"
 #include "ANIM_keyingsets.hh"
 

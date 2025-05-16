@@ -46,7 +46,7 @@
 #include "ED_armature.hh"
 #include "ED_screen.hh"
 
-#include "ANIM_bone_collections.hh"
+#include "ANIM_armature.hh"
 
 #include "armature_intern.hh"
 
@@ -451,7 +451,7 @@ static wmOperatorStatus armature_flip_names_exec(bContext *C, wmOperator *op)
     ListBase bones_names = {nullptr};
 
     LISTBASE_FOREACH (EditBone *, ebone, arm->edbo) {
-      if (ANIM_bone_is_visible_editbone(arm, ebone)) {
+      if (blender::animrig::bone_is_visible_editbone(arm, ebone)) {
         if (ebone->flag & BONE_SELECTED) {
           BLI_addtail(&bones_names, BLI_genericNodeN(ebone->name));
 

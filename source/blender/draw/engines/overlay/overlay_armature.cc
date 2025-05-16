@@ -36,7 +36,7 @@
 #include "ED_armature.hh"
 #include "ED_view3d.hh"
 
-#include "ANIM_bone_collections.hh"
+#include "ANIM_armature.hh"
 #include "ANIM_bonecolor.hh"
 
 #include "UI_resources.hh"
@@ -2039,7 +2039,7 @@ void Armatures::draw_armature_edit(Armatures::DrawContext *ctx)
        eBone;
        eBone = eBone->next, index += 0x10000)
   {
-    if (!ANIM_bone_is_visible_editbone(&arm, eBone)) {
+    if (!blender::animrig::bone_is_visible_editbone(&arm, eBone)) {
       continue;
     }
 
@@ -2047,7 +2047,7 @@ void Armatures::draw_armature_edit(Armatures::DrawContext *ctx)
 
     /* catch exception for bone with hidden parent */
     eBone_Flag boneflag = eBone_Flag(eBone->flag);
-    if ((eBone->parent) && !ANIM_bone_is_visible_editbone(&arm, eBone->parent)) {
+    if ((eBone->parent) && !blender::animrig::bone_is_visible_editbone(&arm, eBone->parent)) {
       boneflag &= ~BONE_CONNECTED;
     }
 
@@ -2164,7 +2164,7 @@ void Armatures::draw_armature_pose(Armatures::DrawContext *ctx)
        pchan = pchan->next, index += 0x10000)
   {
     Bone *bone = pchan->bone;
-    if (!ANIM_bone_is_visible(&arm, bone)) {
+    if (!blender::animrig::bone_is_visible(&arm, bone)) {
       continue;
     }
 

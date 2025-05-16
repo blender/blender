@@ -98,6 +98,7 @@
 #include "DRW_engine.hh"
 #include "DRW_select_buffer.hh"
 
+#include "ANIM_armature.hh"
 #include "ANIM_bone_collections.hh"
 
 #include "view3d_intern.hh" /* own include */
@@ -1015,7 +1016,7 @@ static void do_lasso_select_armature__doSelectBone(void *user_data,
 {
   LassoSelectUserData *data = static_cast<LassoSelectUserData *>(user_data);
   const bArmature *arm = static_cast<const bArmature *>(data->vc->obedit->data);
-  if (!ANIM_bone_is_visible_editbone(arm, ebone)) {
+  if (!blender::animrig::bone_is_visible_editbone(arm, ebone)) {
     return;
   }
 
@@ -1062,7 +1063,7 @@ static void do_lasso_select_armature__doSelectBone_clip_content(void *user_data,
 {
   LassoSelectUserData *data = static_cast<LassoSelectUserData *>(user_data);
   bArmature *arm = static_cast<bArmature *>(data->vc->obedit->data);
-  if (!ANIM_bone_is_visible_editbone(arm, ebone)) {
+  if (!blender::animrig::bone_is_visible_editbone(arm, ebone)) {
     return;
   }
 
@@ -5129,7 +5130,9 @@ static void do_circle_select_armature__doSelectBone(void *user_data,
 {
   CircleSelectUserData *data = static_cast<CircleSelectUserData *>(user_data);
   const bArmature *arm = static_cast<const bArmature *>(data->vc->obedit->data);
-  if (!(data->select ? EBONE_SELECTABLE(arm, ebone) : ANIM_bone_is_visible_editbone(arm, ebone))) {
+  if (!(data->select ? EBONE_SELECTABLE(arm, ebone) :
+                       blender::animrig::bone_is_visible_editbone(arm, ebone)))
+  {
     return;
   }
 
@@ -5185,7 +5188,9 @@ static void do_circle_select_armature__doSelectBone_clip_content(void *user_data
   CircleSelectUserData *data = static_cast<CircleSelectUserData *>(user_data);
   bArmature *arm = static_cast<bArmature *>(data->vc->obedit->data);
 
-  if (!(data->select ? EBONE_SELECTABLE(arm, ebone) : ANIM_bone_is_visible_editbone(arm, ebone))) {
+  if (!(data->select ? EBONE_SELECTABLE(arm, ebone) :
+                       blender::animrig::bone_is_visible_editbone(arm, ebone)))
+  {
     return;
   }
 

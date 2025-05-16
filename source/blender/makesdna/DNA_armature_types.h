@@ -411,8 +411,9 @@ typedef enum eBone_Flag {
    *
    * However the bone may not be visible to the user since the bones collection
    * may be hidden.
-   * In most cases `ANIM_bone_is_visible_editbone` or `ANIM_bone_is_visible_pchan` should be used
-   * to check if the bone is visible to the user before operating on them.
+   * In most cases `blender::animrig::bone_is_visible_editbone` or
+   * `blender::animrig::bone_is_visible_pchan` should be used to check if the bone is visible to
+   * the user before operating on them.
    */
   BONE_SELECTED = (1 << 0),
   BONE_ROOTSEL = (1 << 1),

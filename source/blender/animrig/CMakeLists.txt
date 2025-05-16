@@ -41,6 +41,7 @@ set(SRC
   ANIM_action_iterators.hh
   ANIM_action_legacy.hh
   ANIM_animdata.hh
+  ANIM_armature.hh
   ANIM_armature_iter.hh
   ANIM_bone_collections.hh
   ANIM_bonecolor.hh
