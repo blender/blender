@@ -34,8 +34,6 @@ namespace blender::bke {
 
 class ModifierComputeContext : public ComputeContext {
  private:
-  static constexpr const char *s_static_type = "MODIFIER";
-
   /** #ModifierData.persistent_uid. */
   int modifier_uid_;
   /** The modifier data that this context is for. This may be null. */
@@ -56,13 +54,12 @@ class ModifierComputeContext : public ComputeContext {
   }
 
  private:
+  ComputeContextHash compute_hash() const override;
   void print_current_in_line(std::ostream &stream) const override;
 };
 
 class GroupNodeComputeContext : public ComputeContext {
  private:
-  static constexpr const char *s_static_type = "NODE_GROUP";
-
   int32_t node_id_;
   /**
    * The caller node tree and group node are not always necessary or even available, but storing
@@ -72,13 +69,10 @@ class GroupNodeComputeContext : public ComputeContext {
   const bNode *caller_group_node_ = nullptr;
 
  public:
-  GroupNodeComputeContext(const ComputeContext *parent,
-                          int32_t node_id,
-                          const std::optional<ComputeContextHash> &cached_hash = {});
+  GroupNodeComputeContext(const ComputeContext *parent, int32_t node_id);
   GroupNodeComputeContext(const ComputeContext *parent,
                           const bNode &caller_group_node,
-                          const bNodeTree &caller_tree,
-                          const std::optional<ComputeContextHash> &cached_hash = {});
+                          const bNodeTree &caller_tree);
 
   int32_t node_id() const
   {
@@ -96,13 +90,12 @@ class GroupNodeComputeContext : public ComputeContext {
   }
 
  private:
+  ComputeContextHash compute_hash() const override;
   void print_current_in_line(std::ostream &stream) const override;
 };
 
 class SimulationZoneComputeContext : public ComputeContext {
  private:
-  static constexpr const char *s_static_type = "SIMULATION_ZONE";
-
   int32_t output_node_id_;
 
  public:
@@ -115,13 +108,12 @@ class SimulationZoneComputeContext : public ComputeContext {
   }
 
  private:
+  ComputeContextHash compute_hash() const override;
   void print_current_in_line(std::ostream &stream) const override;
 };
 
 class RepeatZoneComputeContext : public ComputeContext {
  private:
-  static constexpr const char *s_static_type = "REPEAT_ZONE";
-
   int32_t output_node_id_;
   int iteration_;
 
@@ -140,13 +132,12 @@ class RepeatZoneComputeContext : public ComputeContext {
   }
 
  private:
+  ComputeContextHash compute_hash() const override;
   void print_current_in_line(std::ostream &stream) const override;
 };
 
 class ForeachGeometryElementZoneComputeContext : public ComputeContext {
  private:
-  static constexpr const char *s_static_type = "FOREACH_GEOMETRY_ELEMENT_ZONE";
-
   int32_t output_node_id_;
   int index_;
 
@@ -169,13 +160,12 @@ class ForeachGeometryElementZoneComputeContext : public ComputeContext {
   }
 
  private:
+  ComputeContextHash compute_hash() const override;
   void print_current_in_line(std::ostream &stream) const override;
 };
 
 class EvaluateClosureComputeContext : public ComputeContext {
  private:
-  static constexpr const char *s_static_type = "CLOSURE";
-
   int32_t node_id_;
 
   /**
@@ -207,13 +197,12 @@ class EvaluateClosureComputeContext : public ComputeContext {
   }
 
  private:
+  ComputeContextHash compute_hash() const override;
   void print_current_in_line(std::ostream &stream) const override;
 };
 
 class OperatorComputeContext : public ComputeContext {
  private:
-  static constexpr const char *s_static_type = "OPERATOR";
-
   /** The tree that is executed. May be null. */
   const bNodeTree *tree_ = nullptr;
 
@@ -228,6 +217,7 @@ class OperatorComputeContext : public ComputeContext {
   }
 
  private:
+  ComputeContextHash compute_hash() const override;
   void print_current_in_line(std::ostream &stream) const override;
 };
 

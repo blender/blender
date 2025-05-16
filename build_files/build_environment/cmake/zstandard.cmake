@@ -28,7 +28,7 @@ ExternalProject_Add(external_zstandard
 
   BUILD_COMMAND
     ${PYTHON_BINARY} setup.py
-      build ${ZSTANDARD_BUILD_OPTION} -j${MAKE_THREADS}
+      build ${ZSTANDARD_BUILD_OPTION} -j${PYTHON_MAKE_THREADS}
       install
       --old-and-unmanageable
 
@@ -38,4 +38,5 @@ ExternalProject_Add(external_zstandard
 add_dependencies(
   external_zstandard
   external_python
+  external_zstd
 )

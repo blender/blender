@@ -29,7 +29,7 @@ ExternalProject_Add(external_numpy
 
   BUILD_COMMAND
     ${PYTHON_BINARY} setup.py
-      build ${NUMPY_BUILD_OPTION} -j${MAKE_THREADS}
+      build ${NUMPY_BUILD_OPTION} -j${PYTHON_MAKE_THREADS}
       install
       --old-and-unmanageable
 

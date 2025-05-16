@@ -194,7 +194,7 @@ static void shaderfx_panel_header(const bContext * /*C*/, Panel *panel)
   row->prop(ptr, "show_render", UI_ITEM_NONE, "", ICON_NONE);
 
   /* Extra operators. */
-  uiItemMenuF(row, "", ICON_DOWNARROW_HLT, gpencil_shaderfx_ops_extra_draw, fx);
+  row->menu_fn("", ICON_DOWNARROW_HLT, gpencil_shaderfx_ops_extra_draw, fx);
 
   row = &row->row(false);
   uiLayoutSetEmboss(row, blender::ui::EmbossType::None);

@@ -645,11 +645,15 @@ static Vector<float2> get_viewer_node_position_candidates(const float2 initial,
  * algorithm tries to avoid moving the viewer to a place where it would overlap with other nodes.
  * For that it iterates over many possible locations with increasing distance to the node to view.
  */
-static void position_viewer_node(bNodeTree &tree,
+static void position_viewer_node(const bContext &C,
+                                 bNodeTree &tree,
                                  bNode &viewer_node,
-                                 const bNode &node_to_view,
-                                 const ARegion &region)
+                                 const bNode &node_to_view)
 {
+  ScrArea &area = *CTX_wm_area(&C);
+  ARegion &region = *CTX_wm_region(&C);
+  ARegion &sidebar = *BKE_area_find_region_type(&area, RGN_TYPE_UI);
+
   tree.ensure_topology_cache();
 
   const View2D &v2d = region.v2d;
@@ -658,21 +662,34 @@ static void position_viewer_node(bNodeTree &tree,
   region_rect.xmax = region.winx;
   region_rect.ymin = 0;
   region_rect.ymax = region.winy;
+  if (U.uiflag2 & USER_REGION_OVERLAP) {
+    region_rect.xmax -= sidebar.winx;
+  }
+
   rctf region_bounds;
   UI_view2d_region_to_view_rctf(&v2d, &region_rect, &region_bounds);
 
   viewer_node.ui_order = tree.all_nodes().size();
   tree_draw_order_update(tree);
 
+  const bool is_new_viewer_node = BLI_rctf_size_x(&viewer_node.runtime->draw_bounds) == 0;
+  if (!is_new_viewer_node &&
+      BLI_rctf_inside_rctf(&region_bounds, &viewer_node.runtime->draw_bounds) &&
+      viewer_node.runtime->draw_bounds.xmin > node_to_view.runtime->draw_bounds.xmax)
+  {
+    /* Stay at the old viewer position when the viewer node is still in view and on the right side
+     * of the node-to-view. */
+    return;
+  }
+
   const float default_padding_x = U.node_margin;
   const float default_padding_y = 10;
-  const float viewer_width = BLI_rctf_size_x(&viewer_node.runtime->draw_bounds);
-  float viewer_height = BLI_rctf_size_y(&viewer_node.runtime->draw_bounds);
-  if (viewer_height == 0) {
-    /* Can't use if the viewer node has only just been added and the actual height is not yet
-     * known. */
-    viewer_height = 100;
-  }
+  const float viewer_width = is_new_viewer_node ?
+                                 viewer_node.width * UI_SCALE_FAC :
+                                 BLI_rctf_size_x(&viewer_node.runtime->draw_bounds);
+  const float viewer_height = is_new_viewer_node ?
+                                  100 * UI_SCALE_FAC :
+                                  BLI_rctf_size_y(&viewer_node.runtime->draw_bounds);
 
   const float2 main_candidate{node_to_view.runtime->draw_bounds.xmax + default_padding_x,
                               node_to_view.runtime->draw_bounds.ymax + viewer_height +
@@ -709,29 +726,6 @@ static void position_viewer_node(bNodeTree &tree,
     new_viewer_position = main_candidate;
   }
 
-  const float2 old_position = float2(viewer_node.location) * UI_SCALE_FAC;
-  if (old_position.x > node_to_view.runtime->draw_bounds.xmax) {
-    if (BLI_rctf_inside_rctf(&region_bounds, &viewer_node.runtime->draw_bounds)) {
-      /* Measure distance from right edge of the node to view and the left edge of the
-       * viewer node. */
-      const float2 node_to_view_top_right{node_to_view.runtime->draw_bounds.xmax,
-                                          node_to_view.runtime->draw_bounds.ymax};
-      const float2 node_to_view_bottom_right{node_to_view.runtime->draw_bounds.xmax,
-                                             node_to_view.runtime->draw_bounds.ymin};
-      const float old_distance = dist_seg_seg_v2(old_position,
-                                                 old_position + float2(0, viewer_height),
-                                                 node_to_view_top_right,
-                                                 node_to_view_bottom_right);
-      const float new_distance = dist_seg_seg_v2(*new_viewer_position,
-                                                 *new_viewer_position + float2(0, viewer_height),
-                                                 node_to_view_top_right,
-                                                 node_to_view_bottom_right);
-      if (old_distance <= new_distance) {
-        new_viewer_position = old_position;
-      }
-    }
-  }
-
   viewer_node.location[0] = new_viewer_position->x / UI_SCALE_FAC;
   viewer_node.location[1] = new_viewer_position->y / UI_SCALE_FAC;
   viewer_node.parent = nullptr;
@@ -743,8 +737,6 @@ static int view_socket(const bContext &C,
                        bNode &bnode_to_view,
                        bNodeSocket &bsocket_to_view)
 {
-  ARegion &region = *CTX_wm_region(&C);
-
   bNode *viewer_node = nullptr;
   /* Try to find a viewer that is already active. */
   for (bNode *node : btree.all_nodes()) {
@@ -762,7 +754,7 @@ static int view_socket(const bContext &C,
     bNode &target_node = *link->tonode;
     if (is_viewer_socket(target_socket) && ELEM(viewer_node, nullptr, &target_node)) {
       finalize_viewer_link(C, snode, target_node, *link);
-      position_viewer_node(btree, target_node, bnode_to_view, region);
+      position_viewer_node(C, btree, target_node, bnode_to_view);
       return OPERATOR_FINISHED;
     }
   }
@@ -806,7 +798,7 @@ static int view_socket(const bContext &C,
     BKE_ntree_update_tag_link_changed(&btree);
   }
   finalize_viewer_link(C, snode, *viewer_node, *viewer_link);
-  position_viewer_node(btree, *viewer_node, bnode_to_view, region);
+  position_viewer_node(C, btree, *viewer_node, bnode_to_view);
   return OPERATOR_CANCELLED;
 }
 

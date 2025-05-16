@@ -113,7 +113,6 @@ enum GPUVertFetchMode {
   GPU_FETCH_FLOAT = 0,
   GPU_FETCH_INT,
   GPU_FETCH_INT_TO_FLOAT_UNIT, /* 127 (ubyte) -> 0.5 (and so on for other int types) */
-  GPU_FETCH_INT_TO_FLOAT,      /* 127 (any int type) -> 127.0 */
   /* Warning! adjust GPUVertAttr if changing. */
 };
 

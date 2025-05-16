@@ -1848,6 +1848,12 @@ static void rna_def_constraint_action(BlenderRNA *brna)
   };
 
   static const EnumPropertyItem mix_mode_items[] = {
+      {ACTCON_MIX_REPLACE,
+       "REPLACE",
+       0,
+       "Replace",
+       "Replace the original transformation with the action channels"},
+      RNA_ENUM_ITEM_SEPR,
       {ACTCON_MIX_BEFORE_FULL,
        "BEFORE_FULL",
        0,

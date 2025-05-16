@@ -436,7 +436,7 @@ static void modifier_panel_header(const bContext *C, Panel *panel)
   }
 
   /* Extra operators menu. */
-  uiItemMenuF(row, "", ICON_DOWNARROW_HLT, modifier_ops_extra_draw, md);
+  row->menu_fn("", ICON_DOWNARROW_HLT, modifier_ops_extra_draw, md);
 
   /* Delete button. */
   if (modifier_can_delete(md) && !modifier_is_simulation(md)) {

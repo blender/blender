@@ -1118,8 +1118,6 @@ class LazyFunctionForGroupNode : public LazyFunction {
 
   struct Storage {
     void *group_storage = nullptr;
-    /* To avoid computing the hash more than once. */
-    std::optional<ComputeContextHash> context_hash_cache;
   };
 
  public:
@@ -1174,11 +1172,8 @@ class LazyFunctionForGroupNode : public LazyFunction {
     Storage *storage = static_cast<Storage *>(context.storage);
 
     /* The compute context changes when entering a node group. */
-    bke::GroupNodeComputeContext compute_context{user_data->compute_context,
-                                                 group_node_,
-                                                 group_node_.owner_tree(),
-                                                 storage->context_hash_cache};
-    storage->context_hash_cache = compute_context.hash();
+    bke::GroupNodeComputeContext compute_context{
+        user_data->compute_context, group_node_, group_node_.owner_tree()};
 
     GeoNodesUserData group_user_data = *user_data;
     group_user_data.compute_context = &compute_context;

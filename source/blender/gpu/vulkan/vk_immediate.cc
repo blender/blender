@@ -13,7 +13,6 @@
 
 #include "vk_backend.hh"
 #include "vk_context.hh"
-#include "vk_data_conversion.hh"
 #include "vk_framebuffer.hh"
 #include "vk_immediate.hh"
 #include "vk_state_manager.hh"
@@ -49,10 +48,8 @@ void VKImmediate::deinit(VKDevice &device)
 
 uchar *VKImmediate::begin()
 {
-  vertex_format_converter.init(&vertex_format);
   uint add_vertex = prim_type == GPU_PRIM_LINE_LOOP ? 1 : 0;
-  const size_t bytes_needed = vertex_buffer_size(&vertex_format_converter.device_format_get(),
-                                                 vertex_len + add_vertex);
+  const size_t bytes_needed = vertex_buffer_size(&vertex_format, vertex_len + add_vertex);
   size_t offset_alignment = GPU_storage_buffer_alignment();
   VKBuffer &buffer = ensure_space(bytes_needed, offset_alignment);
 
@@ -72,15 +69,6 @@ void VKImmediate::end()
   BLI_assert_msg(prim_type != GPU_PRIM_NONE, "Illegal state: not between an immBegin/End pair.");
   if (vertex_idx == 0) {
     return;
-  }
-
-  if (vertex_format_converter.needs_conversion()) {
-    /* Determine the start of the subbuffer. The `vertex_data` attribute changes when new vertices
-     * are loaded.
-     */
-    uchar *data = static_cast<uchar *>(active_buffers_.last()->mapped_memory_get()) +
-                  buffer_offset_;
-    vertex_format_converter.convert(data, data, vertex_idx);
   }
 
   if (prim_type == GPU_PRIM_LINE_LOOP) {
@@ -137,7 +125,6 @@ void VKImmediate::end()
 
   buffer_offset_ += current_subbuffer_len_;
   current_subbuffer_len_ = 0;
-  vertex_format_converter.reset();
 }
 
 VKBufferWithOffset VKImmediate::active_buffer() const

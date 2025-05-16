@@ -252,7 +252,7 @@ struct StrokeCache {
   SculptRakeData rake_data;
 
   /* The face set being painted. */
-  int paint_face_set = 0;
+  int paint_face_set = SCULPT_FACE_SET_NONE;
 
   /**
    * Symmetry index between 0 and 7 bit combo.
@@ -311,7 +311,7 @@ struct StrokeCache {
     float wet_mix = 0.0f;
     float wet_persistence = 0.0f;
 
-    float density_seed = 0.0f;
+    std::optional<float> density_seed;
     float density = 0.0f;
 
     /**

@@ -741,11 +741,10 @@ static bool ensure_attributes(const Curves &curves,
 
   if (gpu_material) {
     /* The following code should be kept in sync with `mesh_cd_calc_used_gpu_layers`. */
-    DRW_Attributes attrs_needed;
-    drw_attributes_clear(&attrs_needed);
+    VectorSet<std::string> attrs_needed;
     ListBase gpu_attrs = GPU_material_attributes(gpu_material);
     LISTBASE_FOREACH (const GPUMaterialAttribute *, gpu_attr, &gpu_attrs) {
-      const char *name = gpu_attr->name;
+      StringRef name = gpu_attr->name;
       eCustomDataType type = static_cast<eCustomDataType>(gpu_attr->type);
       int layer = -1;
       std::optional<bke::AttrDomain> domain;
@@ -755,7 +754,7 @@ static bool ensure_attributes(const Curves &curves,
          *
          * We do it based on the specified name.
          */
-        if (name[0] != '\0') {
+        if (!name.is_empty()) {
           layer = CustomData_get_named_layer(&cd_curve, CD_PROP_FLOAT2, name);
           type = CD_MTFACE;
           domain = bke::AttrDomain::Curve;
@@ -796,7 +795,7 @@ static bool ensure_attributes(const Curves &curves,
       switch (type) {
         case CD_MTFACE: {
           if (layer == -1) {
-            layer = (name[0] != '\0') ?
+            layer = !name.is_empty() ?
                         CustomData_get_named_layer(&cd_curve, CD_PROP_FLOAT2, name) :
                         CustomData_get_render_layer(&cd_curve, CD_PROP_FLOAT2);
             if (layer != -1) {
@@ -804,7 +803,7 @@ static bool ensure_attributes(const Curves &curves,
             }
           }
           if (layer == -1) {
-            layer = (name[0] != '\0') ?
+            layer = !name.is_empty() ?
                         CustomData_get_named_layer(&cd_point, CD_PROP_FLOAT2, name) :
                         CustomData_get_render_layer(&cd_point, CD_PROP_FLOAT2);
             if (layer != -1) {
@@ -812,7 +811,7 @@ static bool ensure_attributes(const Curves &curves,
             }
           }
 
-          if (layer != -1 && name[0] == '\0' && domain.has_value()) {
+          if (layer != -1 && !name.is_empty() && domain.has_value()) {
             name = CustomData_get_layer_name(
                 domain == bke::AttrDomain::Curve ? &cd_curve : &cd_point, CD_PROP_FLOAT2, layer);
           }
@@ -861,14 +860,12 @@ static bool ensure_attributes(const Curves &curves,
 
   bool need_tf_update = false;
 
-  for (const int i : IndexRange(final_cache.attr_used.num_requests)) {
-    const DRW_AttributeRequest &request = final_cache.attr_used.requests[i];
-
+  for (const int i : final_cache.attr_used.index_range()) {
     if (cache.eval_cache.final.attributes_buf[i] != nullptr) {
       continue;
     }
 
-    ensure_final_attribute(curves, request.attribute_name, i, cache.eval_cache);
+    ensure_final_attribute(curves, final_cache.attr_used[i], i, cache.eval_cache);
     if (cache.eval_cache.proc_attributes_point_domain[i]) {
       need_tf_update = true;
     }
@@ -877,12 +874,12 @@ static bool ensure_attributes(const Curves &curves,
   return need_tf_update;
 }
 
-static void request_attribute(Curves &curves, const char *name)
+static void request_attribute(Curves &curves, const StringRef name)
 {
   CurvesBatchCache &cache = get_batch_cache(curves);
   CurvesEvalFinalCache &final_cache = cache.eval_cache.final;
 
-  DRW_Attributes attributes{};
+  VectorSet<std::string> attributes{};
 
   bke::CurvesGeometry &curves_geometry = curves.geometry.wrap();
   if (!curves_geometry.attributes().contains(name)) {
@@ -1036,7 +1033,7 @@ gpu::Batch *DRW_curves_batch_cache_get_edit_curves_lines(Curves *curves)
 }
 
 gpu::VertBuf **DRW_curves_texture_for_evaluated_attribute(Curves *curves,
-                                                          const char *name,
+                                                          const StringRef name,
                                                           bool *r_is_point_domain)
 {
   CurvesBatchCache &cache = get_batch_cache(*curves);
@@ -1045,8 +1042,8 @@ gpu::VertBuf **DRW_curves_texture_for_evaluated_attribute(Curves *curves,
   request_attribute(*curves, name);
 
   int request_i = -1;
-  for (const int i : IndexRange(final_cache.attr_used.num_requests)) {
-    if (STREQ(final_cache.attr_used.requests[i].attribute_name, name)) {
+  for (const int i : final_cache.attr_used.index_range()) {
+    if (final_cache.attr_used[i] == name) {
       request_i = i;
       break;
     }

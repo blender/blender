@@ -2677,9 +2677,6 @@ float3 tilt_apply_to_normal(const Object &object,
                             const float2 &tilt,
                             const float tilt_strength)
 {
-  if (!USER_EXPERIMENTAL_TEST(&U, use_sculpt_tools_tilt)) {
-    return normal;
-  }
   const float3 world_space = math::transform_direction(object.object_to_world(), normal);
 
   /* Tweaked based on initial user feedback, with a value of 1.0, higher brush tilt strength
@@ -3217,45 +3214,16 @@ static void do_brush_action(const Depsgraph &depsgraph,
       depsgraph, ob, brush, memory);
   const IndexMask node_mask = cursor_sample_result.node_mask;
 
-  /* Draw Face Sets in draw mode makes a single undo push, in alt-smooth mode deforms the
-   * vertices and uses regular coords undo. */
-  /* It also assigns the paint_face_set here as it needs to be done regardless of the stroke type
-   * and the number of nodes under the brush influence. */
-  if (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_DRAW_FACE_SETS &&
-      SCULPT_stroke_is_first_brush_step(*ss.cache) && !ss.cache->alt_smooth)
-  {
-    if (ss.cache->invert) {
-      /* When inverting the brush, pick the paint face mask ID from the mesh. */
-      ss.cache->paint_face_set = face_set::active_face_set_get(ob);
-    }
-    else {
-      /* By default create a new Face Sets. */
-      ss.cache->paint_face_set = face_set::find_next_available_id(ob);
-    }
-  }
-
-  /* For anchored brushes with spherical falloff, we start off with zero radius, thus we have no
-   * bke::pbvh::Tree nodes on the first brush step. */
-  if (!node_mask.is_empty() ||
-      ((brush.falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE) && (brush.flag & BRUSH_ANCHORED)))
-  {
-    if (SCULPT_stroke_is_first_brush_step(*ss.cache)) {
-      /* Initialize auto-masking cache. */
-      if (auto_mask::is_enabled(sd, ob, &brush)) {
-        ss.cache->automasking = auto_mask::cache_init(depsgraph, sd, &brush, ob);
-      }
-    }
-  }
-
   /* Only act if some verts are inside the brush area. */
   if (node_mask.is_empty()) {
     return;
   }
 
-  if (auto_mask::is_enabled(sd, ob, &brush) && ss.cache->automasking &&
-      ss.cache->automasking->settings.flags & BRUSH_AUTOMASKING_CAVITY_ALL)
-  {
-    ss.cache->automasking->calc_cavity_factor(depsgraph, ob, node_mask);
+  if (auto_mask::is_enabled(sd, ob, &brush)) {
+    auto_mask::Cache &cache = auto_mask::stroke_cache_ensure(depsgraph, sd, &brush, ob);
+    if (cache.settings.flags & BRUSH_AUTOMASKING_CAVITY_ALL) {
+      cache.calc_cavity_factor(depsgraph, ob, node_mask);
+    }
   }
 
   if (!use_pixels) {
@@ -3267,12 +3235,6 @@ static void do_brush_action(const Depsgraph &depsgraph,
   }
 
   update_brush_local_mat(sd, ob);
-
-  if (brush.sculpt_brush_type == SCULPT_BRUSH_TYPE_POSE &&
-      SCULPT_stroke_is_first_brush_step(*ss.cache))
-  {
-    pose::pose_brush_init(depsgraph, ob, ss, brush);
-  }
 
   if (brush.deform_target == BRUSH_DEFORM_TARGET_CLOTH_SIM) {
     if (!ss.cache->cloth_sim) {

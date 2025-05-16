@@ -172,9 +172,9 @@ static wmOperatorStatus resize_column_modal(bContext *C, wmOperator *op, const w
   }
 }
 
-SpreadsheetColumn *find_column_to_resize(SpaceSpreadsheet &sspreadsheet,
-                                         ARegion &region,
-                                         const int2 &cursor_re)
+SpreadsheetColumn *find_hovered_column_edge(SpaceSpreadsheet &sspreadsheet,
+                                            ARegion &region,
+                                            const int2 &cursor_re)
 {
   const int region_height = BLI_rcti_size_y(&region.winrct);
   if (cursor_re.y < region_height - sspreadsheet.runtime->top_row_height) {
@@ -195,7 +195,7 @@ static wmOperatorStatus resize_column_invoke(bContext *C, wmOperator *op, const 
   SpaceSpreadsheet &sspreadsheet = *CTX_wm_space_spreadsheet(C);
 
   const int2 cursor_re{event->mval[0], event->mval[1]};
-  SpreadsheetColumn *column_to_resize = find_column_to_resize(sspreadsheet, region, cursor_re);
+  SpreadsheetColumn *column_to_resize = find_hovered_column_edge(sspreadsheet, region, cursor_re);
   if (!column_to_resize) {
     return OPERATOR_PASS_THROUGH;
   }
@@ -222,12 +222,51 @@ static void SPREADSHEET_OT_resize_column(wmOperatorType *ot)
   ot->flag = OPTYPE_INTERNAL;
 }
 
+static wmOperatorStatus fit_column_invoke(bContext *C, wmOperator * /*op*/, const wmEvent *event)
+{
+  SpaceSpreadsheet &sspreadsheet = *CTX_wm_space_spreadsheet(C);
+  ARegion &region = *CTX_wm_region(C);
+
+  std::unique_ptr<DataSource> data_source = get_data_source(*C);
+  if (!data_source) {
+    return OPERATOR_CANCELLED;
+  }
+  const int2 cursor_re{event->mval[0], event->mval[1]};
+  SpreadsheetColumn *column = find_hovered_column_edge(sspreadsheet, region, cursor_re);
+  if (!column) {
+    return OPERATOR_PASS_THROUGH;
+  }
+
+  std::unique_ptr<ColumnValues> values = data_source->get_column_values(*column->id);
+  if (!values) {
+    return OPERATOR_CANCELLED;
+  }
+
+  const float width_px = values->fit_column_width_px();
+  column->width = width_px / SPREADSHEET_WIDTH_UNIT;
+
+  ED_region_tag_redraw(&region);
+  return OPERATOR_FINISHED;
+}
+
+static void SPREADSHEET_OT_fit_column(wmOperatorType *ot)
+{
+  ot->name = "Fit Column";
+  ot->description = "Resize a spreadsheet column to the width of the data";
+  ot->idname = "SPREADSHEET_OT_fit_column";
+
+  ot->invoke = fit_column_invoke;
+  ot->poll = ED_operator_spreadsheet_active;
+  ot->flag = OPTYPE_INTERNAL;
+}
+
 void spreadsheet_operatortypes()
 {
   WM_operatortype_append(SPREADSHEET_OT_add_row_filter_rule);
   WM_operatortype_append(SPREADSHEET_OT_remove_row_filter_rule);
   WM_operatortype_append(SPREADSHEET_OT_change_spreadsheet_data_source);
   WM_operatortype_append(SPREADSHEET_OT_resize_column);
+  WM_operatortype_append(SPREADSHEET_OT_fit_column);
 }
 
 }  // namespace blender::ed::spreadsheet

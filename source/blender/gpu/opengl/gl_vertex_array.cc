@@ -77,9 +77,6 @@ static uint16_t vbo_bind(const ShaderInterface *interface,
 
         switch (a->fetch_mode) {
           case GPU_FETCH_FLOAT:
-          case GPU_FETCH_INT_TO_FLOAT:
-            glVertexAttribPointer(input->location, a->comp_len, type, GL_FALSE, stride, pointer);
-            break;
           case GPU_FETCH_INT_TO_FLOAT_UNIT:
             glVertexAttribPointer(input->location, a->comp_len, type, GL_TRUE, stride, pointer);
             break;

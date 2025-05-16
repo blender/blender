@@ -1461,8 +1461,11 @@ void UI_panel_category_draw_all(ARegion *region, const char *category_id_active)
         pos, v2d->mask.xmin, v2d->mask.ymin, v2d->mask.xmin + category_tabs_width, v2d->mask.ymax);
   }
   else {
-    immRectf(
-        pos, v2d->mask.xmax - category_tabs_width, v2d->mask.ymin, v2d->mask.xmax, v2d->mask.ymax);
+    immRectf(pos,
+             v2d->mask.xmax - category_tabs_width,
+             v2d->mask.ymin,
+             v2d->mask.xmax + 1,
+             v2d->mask.ymax);
   }
 
   if (is_alpha) {

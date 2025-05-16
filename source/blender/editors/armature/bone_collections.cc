@@ -1016,9 +1016,9 @@ static bool move_to_collection_poll(bContext *C)
  * Encode the parameters into an integer, and return as void*.
  *
  * NOTE(@sybren): This makes it possible to use these values and pass them directly as
- * 'custom data' pointer to `uiItemMenuF()`. This makes it possible to give every menu a unique
- * bone collection index for which it should show the child collections, without having to allocate
- * memory or use static variables.  See `move_to_collection_invoke()` in `object_edit.cc`
+ * 'custom data' pointer to `uiLayout::menu_fn()`. This makes it possible to give every menu a
+ * unique bone collection index for which it should show the child collections, without having to
+ * allocate memory or use static variables.  See `move_to_collection_invoke()` in `object_edit.cc`
  * for the alternative that I wanted to avoid.
  */
 static void *menu_custom_data_encode(const int bcoll_index, const bool is_move_operation)
@@ -1078,9 +1078,10 @@ static void menu_add_item_for_move_assign_unassign(uiLayout *layout,
  * Add menu items to the layout, for a set of bone collections.
  *
  * \param menu_custom_data: Contains two values, encoded as void* to match the signature required
- * by `uiItemMenuF`. It contains the parent bone collection index (either -1 to show all roots, or
- * another value to show the children of that collection), as well as a boolean that indicates
- * whether the menu is created for the "move to collection" or "assign to collection" operator.
+ * by `uiLayout::menu_fn`. It contains the parent bone collection index (either -1 to show all
+ * roots, or another value to show the children of that collection), as well as a boolean that
+ * indicates whether the menu is created for the "move to collection" or "assign to collection"
+ * operator.
  *
  * \see menu_custom_data_encode
  */
@@ -1143,11 +1144,10 @@ static void move_to_collection_menu_create(bContext *C, uiLayout *layout, void *
     }
 
     if (blender::animrig::bonecoll_has_children(bcoll)) {
-      uiItemMenuF(layout,
-                  bcoll->name,
-                  ICON_NONE,
-                  move_to_collection_menu_create,
-                  menu_custom_data_encode(index, is_move_operation));
+      layout->menu_fn(bcoll->name,
+                      ICON_NONE,
+                      move_to_collection_menu_create,
+                      menu_custom_data_encode(index, is_move_operation));
     }
     else {
       menu_add_item_for_move_assign_unassign(layout, arm, bcoll, index, is_move_operation);

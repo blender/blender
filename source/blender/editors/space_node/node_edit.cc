@@ -653,19 +653,42 @@ void ED_node_composit_default(const bContext *C, Scene *sce)
   sce->nodetree = blender::bke::node_tree_add_tree_embedded(
       nullptr, &sce->id, "Compositing Nodetree", ntreeType_Composite->idname);
 
-  bNode *out = blender::bke::node_add_static_node(C, *sce->nodetree, CMP_NODE_COMPOSITE);
-  out->location[0] = 200.0f;
-  out->location[1] = 200.0f;
+  bNode *composite = blender::bke::node_add_static_node(C, *sce->nodetree, CMP_NODE_COMPOSITE);
+  composite->location[0] = 200.0f;
+  composite->location[1] = 0.0f;
 
   bNode *in = blender::bke::node_add_static_node(C, *sce->nodetree, CMP_NODE_R_LAYERS);
-  in->location[0] = -200.0f;
-  in->location[1] = 200.0f;
+  in->location[0] = -150.0f - in->width;
+  in->location[1] = 0.0f;
   blender::bke::node_set_active(*sce->nodetree, *in);
 
-  /* Links from color to color. */
-  bNodeSocket *fromsock = (bNodeSocket *)in->outputs.first;
-  bNodeSocket *tosock = (bNodeSocket *)out->inputs.first;
-  blender::bke::node_add_link(*sce->nodetree, *in, *fromsock, *out, *tosock);
+  bNode *reroute = blender::bke::node_add_static_node(C, *sce->nodetree, NODE_REROUTE);
+  reroute->location[0] = 100.0f;
+  reroute->location[1] = -35.0f;
+
+  bNode *viewer = blender::bke::node_add_static_node(C, *sce->nodetree, CMP_NODE_VIEWER);
+  viewer->location[0] = 200.0f;
+  viewer->location[1] = -60.0f;
+
+  /* Viewer and Composite nodes are linked to Render Layer's output image socket through a reroute
+   * node. */
+  blender::bke::node_add_link(*sce->nodetree,
+                              *in,
+                              *(bNodeSocket *)in->outputs.first,
+                              *reroute,
+                              *(bNodeSocket *)reroute->inputs.first);
+
+  blender::bke::node_add_link(*sce->nodetree,
+                              *reroute,
+                              *(bNodeSocket *)reroute->outputs.first,
+                              *composite,
+                              *(bNodeSocket *)composite->inputs.first);
+
+  blender::bke::node_add_link(*sce->nodetree,
+                              *reroute,
+                              *(bNodeSocket *)reroute->outputs.first,
+                              *viewer,
+                              *(bNodeSocket *)viewer->inputs.first);
 
   BKE_ntree_update_after_single_tree_change(*CTX_data_main(C), *sce->nodetree);
 }

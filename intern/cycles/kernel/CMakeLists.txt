@@ -599,6 +599,12 @@ if(WITH_CYCLES_CUDA_BINARIES)
       else()
         message(STATUS "CUDA binaries for ${arch} require CUDA 11 or earlier, skipped.")
       endif()
+    elseif(${arch} MATCHES "compute_7." AND DEFINED CUDA11_NVCC_EXECUTABLE)
+      # Use CUDA 11 if available for the default PTX kernel. This allows us to
+      # keep the driver requirements for user machines low.
+      set(cuda_nvcc_executable ${CUDA11_NVCC_EXECUTABLE})
+      set(cuda_toolkit_root_dir ${CUDA11_TOOLKIT_ROOT_DIR})
+      set(cuda_version 110)
     elseif(${arch} MATCHES ".*_7." AND "${CUDA_VERSION}" LESS 100)
       message(STATUS "CUDA binaries for ${arch} require CUDA 10.0+, skipped.")
     elseif(${arch} MATCHES ".*_8.")

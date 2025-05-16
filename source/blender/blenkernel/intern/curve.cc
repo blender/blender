@@ -1972,7 +1972,7 @@ static void tilt_bezpart(const BezTriple *prevbezt,
                       (bezt->tilt - prevbezt->tilt) * (3.0f * fac * fac - 2.0f * fac * fac * fac);
       }
       else {
-        key_curve_position_weights(fac, t, nu->tilt_interp);
+        key_curve_position_weights(fac, t, KeyInterpolationType(nu->tilt_interp));
         *tilt_array = t[0] * pprev->tilt + t[1] * prevbezt->tilt + t[2] * bezt->tilt +
                       t[3] * next->tilt;
       }
@@ -1992,7 +1992,7 @@ static void tilt_bezpart(const BezTriple *prevbezt,
 
         /* reuse interpolation from tilt if we can */
         if (tilt_array == nullptr || nu->tilt_interp != nu->radius_interp) {
-          key_curve_position_weights(fac, t, nu->radius_interp);
+          key_curve_position_weights(fac, t, KeyInterpolationType(nu->radius_interp));
         }
         *radius_array = t[0] * pprev->radius + t[1] * prevbezt->radius + t[2] * bezt->radius +
                         t[3] * next->radius;

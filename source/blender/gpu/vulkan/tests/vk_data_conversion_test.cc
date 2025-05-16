@@ -60,36 +60,6 @@ TEST(VulkanDataConversion, infinity_upper)
   EXPECT_EQ(f10_inf, f10_inf_expected);
 }
 
-TEST(VulkanDataConversion, vertex_format_i32_as_float)
-{
-  GPUVertFormat source_format;
-  GPU_vertformat_clear(&source_format);
-  GPU_vertformat_attr_add(&source_format, "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
-  VertexFormat_pack(&source_format);
-
-  union TestData {
-    int2 pos_i;
-    float2 pos_fl;
-  };
-  TestData test_data[4];
-  test_data[0].pos_i = int2(0, 1);
-  test_data[1].pos_i = int2(1, 2);
-  test_data[2].pos_i = int2(2, 3);
-  test_data[3].pos_i = int2(3, 4);
-
-  VertexFormatConverter converter;
-  converter.init(&source_format);
-
-  EXPECT_TRUE(converter.needs_conversion());
-
-  converter.convert(&test_data, &test_data, 4);
-
-  EXPECT_EQ(test_data[0].pos_fl, float2(0.0, 1.0));
-  EXPECT_EQ(test_data[1].pos_fl, float2(1.0, 2.0));
-  EXPECT_EQ(test_data[2].pos_fl, float2(2.0, 3.0));
-  EXPECT_EQ(test_data[3].pos_fl, float2(3.0, 4.0));
-}
-
 TEST(VulkanDataConversion, texture_rgb16f_as_floats_to_rgba16f)
 {
   const size_t num_pixels = 4;

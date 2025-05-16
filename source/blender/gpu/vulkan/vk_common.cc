@@ -362,81 +362,6 @@ static VkFormat to_vk_format_norm(const GPUVertCompType type, const uint32_t siz
 static VkFormat to_vk_format_float(const GPUVertCompType type, const uint32_t size)
 {
   switch (type) {
-    case GPU_COMP_I8:
-      switch (size) {
-        case 1:
-          return VK_FORMAT_R8_SSCALED;
-        case 2:
-          return VK_FORMAT_R8G8_SSCALED;
-        case 3:
-          return VK_FORMAT_R8G8B8_SSCALED;
-        case 4:
-          return VK_FORMAT_R8G8B8A8_SSCALED;
-        default:
-          BLI_assert_unreachable();
-          return VK_FORMAT_R8_SSCALED;
-      }
-    case GPU_COMP_U8:
-      switch (size) {
-        case 1:
-          return VK_FORMAT_R8_USCALED;
-        case 2:
-          return VK_FORMAT_R8G8_USCALED;
-        case 3:
-          return VK_FORMAT_R8G8B8_USCALED;
-        case 4:
-          return VK_FORMAT_R8G8B8A8_USCALED;
-        default:
-          BLI_assert_unreachable();
-          return VK_FORMAT_R8_USCALED;
-      }
-    case GPU_COMP_I16:
-      switch (size) {
-        case 2:
-          return VK_FORMAT_R16_SSCALED;
-        case 4:
-          return VK_FORMAT_R16G16_SSCALED;
-        case 6:
-          return VK_FORMAT_R16G16B16_SSCALED;
-        case 8:
-          return VK_FORMAT_R16G16B16A16_SSCALED;
-        default:
-          BLI_assert_unreachable();
-          return VK_FORMAT_R16_SSCALED;
-      }
-    case GPU_COMP_U16:
-      switch (size) {
-        case 2:
-          return VK_FORMAT_R16_USCALED;
-        case 4:
-          return VK_FORMAT_R16G16_USCALED;
-        case 6:
-          return VK_FORMAT_R16G16B16_USCALED;
-        case 8:
-          return VK_FORMAT_R16G16B16A16_USCALED;
-        default:
-          BLI_assert_unreachable();
-          return VK_FORMAT_R16_USCALED;
-      }
-
-    case GPU_COMP_I32:
-    case GPU_COMP_U32:
-      /* NOTE: GPU_COMP_I32/U32 using GPU_FETCH_INT_TO_FLOAT isn't natively supported. These
-       * are converted on host-side to signed floats. */
-      switch (size) {
-        case 4:
-          return VK_FORMAT_R32_SFLOAT;
-        case 8:
-          return VK_FORMAT_R32G32_SFLOAT;
-        case 12:
-          return VK_FORMAT_R32G32B32_SFLOAT;
-        case 16:
-          return VK_FORMAT_R32G32B32A32_SFLOAT;
-        default:
-          BLI_assert_unreachable();
-          return VK_FORMAT_R32_SFLOAT;
-      }
-
     case GPU_COMP_F32:
       switch (size) {
         case 4:
@@ -453,10 +378,6 @@ static VkFormat to_vk_format_float(const GPUVertCompType type, const uint32_t si
           BLI_assert_unreachable();
           return VK_FORMAT_R32_SFLOAT;
       }
-
-    case GPU_COMP_I10:
-      BLI_assert(size == 4);
-      return VK_FORMAT_A2B10G10R10_SSCALED_PACK32;
 
     default:
       break;
@@ -596,9 +517,7 @@ VkFormat to_vk_format(const GPUVertCompType type, const uint32_t size, GPUVertFe
 {
   switch (fetch_mode) {
     case GPU_FETCH_FLOAT:
-    case GPU_FETCH_INT_TO_FLOAT:
       return to_vk_format_float(type, size);
-      break;
     case GPU_FETCH_INT:
       return to_vk_format_int(type, size);
       break;

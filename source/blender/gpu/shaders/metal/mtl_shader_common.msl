@@ -12,7 +12,6 @@ typedef enum {
   GPU_FETCH_FLOAT = 0,
   GPU_FETCH_INT,
   GPU_FETCH_INT_TO_FLOAT_UNIT,
-  GPU_FETCH_INT_TO_FLOAT,
 } GPUVertFetchMode;
 
 /* Constant to flag base binding index of uniform buffers. */
@@ -82,10 +81,7 @@ constant int MTL_storage_buffer_base_index [[function_constant(26)]];
  * case the value will be read as the type in the shader.
  */
 #define internal_vertex_attribute_convert_read_float(ATTR, v_in, v_out) \
-  if (ATTR == GPU_FETCH_INT_TO_FLOAT) { \
-    v_out = float(as_type<int>(v_in)); \
-  } \
-  else if (ATTR == GPU_FETCH_INT_TO_FLOAT_UNIT) { \
+  if (ATTR == GPU_FETCH_INT_TO_FLOAT_UNIT) { \
     v_out = float(as_type<int>(v_in)) / float(__INT_MAX__); \
   } \
   else { \
@@ -93,10 +89,7 @@ constant int MTL_storage_buffer_base_index [[function_constant(26)]];
   }
 
 #define internal_vertex_attribute_convert_read_float2(ATTR, v_in, v_out) \
-  if (ATTR == GPU_FETCH_INT_TO_FLOAT) { \
-    v_out = float2(as_type<int2>(v_in)); \
-  } \
-  else if (ATTR == GPU_FETCH_INT_TO_FLOAT_UNIT) { \
+  if (ATTR == GPU_FETCH_INT_TO_FLOAT_UNIT) { \
     v_out = float2(as_type<int2>(v_in)) / float2(__INT_MAX__); \
   } \
   else { \
@@ -104,10 +97,7 @@ constant int MTL_storage_buffer_base_index [[function_constant(26)]];
   }
 
 #define internal_vertex_attribute_convert_read_float3(ATTR, v_in, v_out) \
-  if (ATTR == GPU_FETCH_INT_TO_FLOAT) { \
-    v_out = float3(as_type<int3>(v_in)); \
-  } \
-  else if (ATTR == GPU_FETCH_INT_TO_FLOAT_UNIT) { \
+  if (ATTR == GPU_FETCH_INT_TO_FLOAT_UNIT) { \
     v_out = float3(as_type<int3>(v_in)) / float3(__INT_MAX__); \
   } \
   else { \
@@ -115,10 +105,7 @@ constant int MTL_storage_buffer_base_index [[function_constant(26)]];
   }
 
 #define internal_vertex_attribute_convert_read_float4(ATTR, v_in, v_out) \
-  if (ATTR == GPU_FETCH_INT_TO_FLOAT) { \
-    v_out = float4(as_type<int4>(v_in)); \
-  } \
-  else if (ATTR == GPU_FETCH_INT_TO_FLOAT_UNIT) { \
+  if (ATTR == GPU_FETCH_INT_TO_FLOAT_UNIT) { \
     v_out = float4(as_type<int4>(v_in)) / float4(__INT_MAX__); \
   } \
   else { \

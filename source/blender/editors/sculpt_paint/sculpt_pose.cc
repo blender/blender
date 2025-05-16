@@ -1912,7 +1912,10 @@ static std::unique_ptr<IKChain> ik_chain_init(const Depsgraph &depsgraph,
   return ik_chain;
 }
 
-void pose_brush_init(const Depsgraph &depsgraph, Object &ob, SculptSession &ss, const Brush &brush)
+static void pose_brush_init(const Depsgraph &depsgraph,
+                            Object &ob,
+                            SculptSession &ss,
+                            const Brush &brush)
 {
   /* Init the IK chain that is going to be used to deform the vertices. */
   ss.cache->pose_ik_chain = ik_chain_init(
@@ -2061,6 +2064,10 @@ void do_pose_brush(const Depsgraph &depsgraph,
   bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(ob);
   const Brush &brush = *BKE_paint_brush_for_read(&sd.paint);
   const ePaintSymmetryFlags symm = SCULPT_mesh_symmetry_xyz_get(ob);
+
+  if (!ss.cache->pose_ik_chain) {
+    pose_brush_init(depsgraph, ob, ss, brush);
+  }
 
   /* The pose brush applies all enabled symmetry axis in a single iteration, so the rest can be
    * ignored. */

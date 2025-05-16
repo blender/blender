@@ -460,6 +460,47 @@ class ActionConstraintTest(AbstractConstraintTests):
             con.action_slot,
             "Assigning an Action with a virgin slot should automatically select that slot")
 
+    def test_mix_modes(self):
+        owner = bpy.context.scene.objects["Action.owner"]
+        target = bpy.context.scene.objects["Action.target"]
+
+        action = bpy.data.actions.new("Slotted")
+        slot = action.slots.new('OBJECT', "Slot")
+        layer = action.layers.new(name="Layer")
+        strip = layer.strips.new(type='KEYFRAME')
+        strip.key_insert(slot, "location", 0, 2.0, 0.0)
+        strip.key_insert(slot, "location", 0, 7.0, 10.0)
+
+        con = owner.constraints["Action"]
+        con.action = action
+        con.action_slot = slot
+        con.transform_channel = 'LOCATION_X'
+        con.min = -1.0
+        con.max = 1.0
+        con.frame_start = 0
+        con.frame_end = 10
+
+        # Set the constrained object's location to something other than [0,0,0],
+        # so we can verify that it's actually replaced/mixed as appropriate to
+        # the mix mode.
+        owner.location = (2.0, 3.0, 4.0)
+
+        con.mix_mode = 'REPLACE'
+        self.matrix_test("Action.owner", Matrix((
+            (1.0, 0.0, 0.0, 4.5),
+            (0.0, 1.0, 0.0, 0.0),
+            (0.0, 0.0, 1.0, 0.0),
+            (0.0, 0.0, 0.0, 1.0)
+        )))
+
+        con.mix_mode = 'BEFORE_SPLIT'
+        self.matrix_test("Action.owner", Matrix((
+            (1.0, 0.0, 0.0, 6.5),
+            (0.0, 1.0, 0.0, 3.0),
+            (0.0, 0.0, 1.0, 4.0),
+            (0.0, 0.0, 0.0, 1.0)
+        )))
+
 
 def main():
     global args

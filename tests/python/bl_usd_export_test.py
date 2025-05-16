@@ -1150,7 +1150,7 @@ class USDExportTest(AbstractUSDTest):
         self.assertTrue(shader, "Connected prim is not a shader")
 
         shader_id = shader.GetIdAttr().Get()
-        self.assertEqual(shader_id, "ND_standard_surface_surfaceshader", "Shader is not a Standard Surface")
+        self.assertEqual(shader_id, "ND_open_pbr_surface_surfaceshader", "Shader is not an OpenPBR Surface")
 
     def test_hooks(self):
         """Validate USD Hook integration for both import and export"""

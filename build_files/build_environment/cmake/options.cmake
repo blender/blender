@@ -11,6 +11,15 @@ option(FORCE_CHECK_HASH "Force a check of all hashses during CMake the configure
 cmake_host_system_information(RESULT NUM_CORES QUERY NUMBER_OF_LOGICAL_CORES)
 set(MAKE_THREADS ${NUM_CORES} CACHE STRING "Number of threads to run make with")
 
+# Any python module building with setup.py cannot use multiple theads on windows
+# as they will try to write to the same .pdb file simultaniously which causes
+# build errors.
+if(WIN32)
+  set(PYTHON_MAKE_THREADS 1)
+else()
+  set(PYTHON_MAKE_THREADS ${MAKE_THREADS})
+endif()
+
 if(NOT BUILD_MODE)
   set(BUILD_MODE "Release")
   message(STATUS "Build type not specified: defaulting to a release build.")

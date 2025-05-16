@@ -682,6 +682,35 @@ using C = B::func;
               "from the same namespace declared in another scope, potentially from another "
               "file.");
   }
+  {
+    /* Template on the same line as function signature inside a namespace.
+     * Template instantiation with other functions. */
+    string input = R"(
+namespace NS {
+template<typename T> T read(T a)
+{
+  return a;
+}
+template float read<float>(float);
+float write(float a){ return a; }
+}
+)";
+
+    string expect = R"(
+
+#define NS_read_TEMPLATE(T) T NS_read(T a) \
+{ \
+  return a; \
+}
+NS_read_TEMPLATE(float)/*float*/
+float NS_write(float a){ return a; }
+
+)";
+    string error;
+    string output = process_test_string(input, error);
+    EXPECT_EQ(output, expect);
+    EXPECT_EQ(error, "");
+  }
 }
 GPU_TEST(preprocess_namespace);
 

@@ -12,6 +12,7 @@
 
 #include "BLI_math_matrix_types.hh"
 #include "BLI_span.hh"
+#include "BLI_string_ref.hh"
 
 struct GPUMaterial;
 namespace blender::gpu {
@@ -138,7 +139,7 @@ blender::gpu::Batch *DRW_lattice_batch_cache_get_edit_verts(Lattice *lt);
  * stored, which will be filled by #DRW_shgroup_curves_create_sub.
  */
 gpu::VertBuf **DRW_curves_texture_for_evaluated_attribute(Curves *curves,
-                                                          const char *name,
+                                                          StringRef name,
                                                           bool *r_is_point_domain);
 
 blender::gpu::Batch *DRW_curves_batch_cache_get_edit_points(Curves *curves);
@@ -156,7 +157,7 @@ void DRW_curves_batch_cache_create_requested(Object *ob);
 
 gpu::VertBuf *DRW_pointcloud_position_and_radius_buffer_get(Object *ob);
 
-gpu::VertBuf **DRW_pointcloud_evaluated_attribute(PointCloud *pointcloud, const char *name);
+gpu::VertBuf **DRW_pointcloud_evaluated_attribute(PointCloud *pointcloud, StringRef name);
 blender::gpu::Batch *DRW_pointcloud_batch_cache_get_dots(Object *ob);
 blender::gpu::Batch *DRW_pointcloud_batch_cache_get_edit_dots(PointCloud *pointcloud);
 

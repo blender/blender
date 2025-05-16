@@ -25,6 +25,20 @@ def add_node_type(layout, node_type, *, label=None, poll=None, search_weight=0.0
         return props
 
 
+def add_node_type_with_subnames(context, layout, node_type, subnames, *, label=None, search_weight=0.0):
+    bl_rna = bpy.types.Node.bl_rna_get_subclass(node_type)
+    if not label:
+        label = bl_rna.name if bl_rna else "Unknown"
+
+    props = []
+    props.append(add_node_type(layout, node_type, label=label, search_weight=search_weight))
+    if getattr(context, "is_menu_search", False):
+        for subname in subnames:
+            sublabel = "{} ▸ {}".format(iface_(label), iface_(subname))
+            props.append(add_node_type(layout, node_type, label=sublabel, search_weight=search_weight))
+    return props
+
+
 def draw_node_group_add_menu(context, layout):
     """Add items to the layout used for interacting with node groups."""
     space_node = context.space_data

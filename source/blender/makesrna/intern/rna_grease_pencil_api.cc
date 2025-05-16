@@ -162,6 +162,7 @@ static void rna_GreasePencilDrawing_tag_positions_changed(GreasePencilDrawing *d
 
 static void rna_GreasePencilDrawing_vertex_group_assign(ID *id,
                                                         GreasePencilDrawing *drawing_ptr,
+                                                        ReportList *reports,
                                                         const char *vgroup_name,
                                                         const int *indices_ptr,
                                                         int indices_num,
@@ -171,6 +172,13 @@ static void rna_GreasePencilDrawing_vertex_group_assign(ID *id,
   GreasePencil &grease_pencil = *reinterpret_cast<GreasePencil *>(id);
   const int vgroup_index = BKE_defgroup_name_index(&grease_pencil.vertex_group_names, vgroup_name);
   if (vgroup_index == -1) {
+    return;
+  }
+
+  const bDeformGroup *dg = static_cast<const bDeformGroup *>(
+      BLI_findlink(&grease_pencil.vertex_group_names, vgroup_index));
+  if (dg->flag & DG_LOCK_WEIGHT) {
+    BKE_report(reports, RPT_ERROR, "Vertex Group is locked");
     return;
   }
 
@@ -194,6 +202,7 @@ static void rna_GreasePencilDrawing_vertex_group_assign(ID *id,
 
 static void rna_GreasePencilDrawing_vertex_group_remove(ID *id,
                                                         GreasePencilDrawing *drawing_ptr,
+                                                        ReportList *reports,
                                                         const char *vgroup_name,
                                                         const int *indices_ptr,
                                                         int indices_num)
@@ -202,6 +211,13 @@ static void rna_GreasePencilDrawing_vertex_group_remove(ID *id,
   GreasePencil &grease_pencil = *reinterpret_cast<GreasePencil *>(id);
   const int vgroup_index = BKE_defgroup_name_index(&grease_pencil.vertex_group_names, vgroup_name);
   if (vgroup_index == -1) {
+    return;
+  }
+
+  const bDeformGroup *dg = static_cast<const bDeformGroup *>(
+      BLI_findlink(&grease_pencil.vertex_group_names, vgroup_index));
+  if (dg->flag & DG_LOCK_WEIGHT) {
+    BKE_report(reports, RPT_ERROR, "Vertex Group is locked");
     return;
   }
 
@@ -652,7 +668,7 @@ void RNA_api_grease_pencil_drawing(StructRNA *srna)
   func = RNA_def_function(
       srna, "vertex_group_assign", "rna_GreasePencilDrawing_vertex_group_assign");
   RNA_def_function_ui_description(func, "Assign points to vertex group");
-  RNA_def_function_flag(func, FUNC_USE_SELF_ID);
+  RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_REPORTS);
   parm = RNA_def_string(
       func, "vgroup_name", "Group", MAX_NAME, "Vertex Group Name", "Name of the vertex group");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
@@ -673,7 +689,7 @@ void RNA_api_grease_pencil_drawing(StructRNA *srna)
   func = RNA_def_function(
       srna, "vertex_group_remove", "rna_GreasePencilDrawing_vertex_group_remove");
   RNA_def_function_ui_description(func, "Remove points from vertex group");
-  RNA_def_function_flag(func, FUNC_USE_SELF_ID);
+  RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_REPORTS);
   parm = RNA_def_string(
       func, "vgroup_name", "Group", MAX_NAME, "Vertex Group Name", "Name of the vertex group");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);

@@ -295,22 +295,20 @@ struct MeshBatchCache {
 
   DRW_MeshCDMask cd_used, cd_needed, cd_used_over_time;
 
-  DRW_Attributes attr_used, attr_needed, attr_used_over_time;
+  VectorSet<std::string> attr_used, attr_needed, attr_used_over_time;
 
   int lastmatch;
 
   /* Valid only if edge_detection is up to date. */
   bool is_manifold;
 
+  bool no_loose_wire;
+
   /* Total areas for drawing UV Stretching. Contains the summed area in mesh
    * space (`tot_area`) and the summed area in uv space (`tot_uvarea`).
    *
    * Only valid after `DRW_mesh_batch_cache_create_requested` has been called. */
   float tot_area, tot_uv_area;
-
-  bool no_loose_wire;
-
-  eV3DShadingColorType color_type;
 };
 
 #define MBC_EDITUV \
