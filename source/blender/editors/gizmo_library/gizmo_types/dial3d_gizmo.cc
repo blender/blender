@@ -154,7 +154,7 @@ static void dial_geom_draw(const float color[4],
     float viewport[4];
     GPU_viewport_size_get_f(viewport);
     immUniform2fv("viewportSize", &viewport[2]);
-    immUniform1f("lineWidth", line_width * U.pixelsize);
+    immUniform1f("lineWidth", line_width);
 
     if (arc_partial_angle == 0.0f) {
       imm_draw_circle_wire_3d(pos, 0.0f, 0.0f, 1.0f, DIAL_RESOLUTION);
@@ -454,7 +454,9 @@ static void dial_draw_intern(
   params.arc_partial_angle = arc_partial_angle;
   params.arc_inner_factor = arc_inner_factor;
   params.clip_plane = clip_plane;
-  dial_3d_draw_util(matrix_final, gz->line_width, color, select, &params);
+
+  const float line_width = (gz->line_width * U.pixelsize) + WM_gizmo_select_bias(select);
+  dial_3d_draw_util(matrix_final, line_width, color, select, &params);
 }
 
 static void gizmo_dial_draw_select(const bContext *C, wmGizmo *gz, int select_id)

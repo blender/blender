@@ -94,7 +94,7 @@ static void button2d_geom_draw_backdrop(const wmGizmo *gz,
 
     immBindBuiltinProgram(GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR);
     immUniform2fv("viewportSize", &viewport[2]);
-    immUniform1f("lineWidth", gz->line_width * U.pixelsize);
+    immUniform1f("lineWidth", (gz->line_width * U.pixelsize) + WM_gizmo_select_bias(select));
     immUniformColor4fv(color);
     imm_draw_circle_wire_3d(pos, 0.0f, 0.0f, 1.0f, nsegments);
     immUnbindProgram();
@@ -113,7 +113,7 @@ static void button2d_geom_draw_backdrop(const wmGizmo *gz,
     if ((fill_alpha != 1.0f) && (select == false)) {
       immBindBuiltinProgram(GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR);
       immUniform2fv("viewportSize", &viewport[2]);
-      immUniform1f("lineWidth", gz->line_width * U.pixelsize);
+      immUniform1f("lineWidth", (gz->line_width * U.pixelsize) + WM_gizmo_select_bias(select));
       immUniformColor4fv(color);
       imm_draw_circle_wire_3d(pos, 0.0f, 0.0f, 1.0f, nsegments);
       immUnbindProgram();
@@ -176,7 +176,7 @@ static void button2d_draw_intern(const bContext *C,
     uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
     immBindBuiltinProgram(GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR);
     immUniform2fv("viewportSize", &viewport[2]);
-    immUniform1f("lineWidth", gz->line_width * U.pixelsize);
+    immUniform1f("lineWidth", (gz->line_width * U.pixelsize) + WM_gizmo_select_bias(select));
     immUniformColor4fv(color);
     immBegin(GPU_PRIM_LINE_STRIP, 2);
     immVertex3fv(pos, matrix_final[3]);
