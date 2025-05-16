@@ -80,7 +80,7 @@ enum wmEventType : int16_t {
   WHEELLEFTMOUSE = 0x0014,  /* 20 */
   WHEELRIGHTMOUSE = 0x0015, /* 21 */
 
-/* Maximum keyboard value (inclusive). */
+/* Maximum mouse value (inclusive). */
 #define _EVT_MOUSE_MAX 0x0015 /* 21 */
 
   /* IME event, GHOST_kEventImeCompositionStart in ghost. */

@@ -54,7 +54,7 @@ struct WindowRuntime {
    * Only used when `WITH_INPUT_IME` is defined.
    */
   wmIMEData *ime_data = nullptr;
-  char ime_data_is_composing = false;
+  bool ime_data_is_composing = false;
 #endif
 
   WindowRuntime() = default;
