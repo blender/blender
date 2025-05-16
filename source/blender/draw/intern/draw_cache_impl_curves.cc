@@ -795,7 +795,7 @@ static bool ensure_attributes(const Curves &curves,
       switch (type) {
         case CD_MTFACE: {
           if (layer == -1) {
-            layer = (name[0] != '\0') ?
+            layer = !name.is_empty() ?
                         CustomData_get_named_layer(&cd_curve, CD_PROP_FLOAT2, name) :
                         CustomData_get_render_layer(&cd_curve, CD_PROP_FLOAT2);
             if (layer != -1) {
@@ -803,7 +803,7 @@ static bool ensure_attributes(const Curves &curves,
             }
           }
           if (layer == -1) {
-            layer = (name[0] != '\0') ?
+            layer = !name.is_empty() ?
                         CustomData_get_named_layer(&cd_point, CD_PROP_FLOAT2, name) :
                         CustomData_get_render_layer(&cd_point, CD_PROP_FLOAT2);
             if (layer != -1) {
@@ -811,7 +811,7 @@ static bool ensure_attributes(const Curves &curves,
             }
           }
 
-          if (layer != -1 && name[0] == '\0' && domain.has_value()) {
+          if (layer != -1 && !name.is_empty() && domain.has_value()) {
             name = CustomData_get_layer_name(
                 domain == bke::AttrDomain::Curve ? &cd_curve : &cd_point, CD_PROP_FLOAT2, layer);
           }

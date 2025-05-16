@@ -215,7 +215,7 @@ static DRW_MeshCDMask mesh_cd_calc_used_gpu_layers(const Object &object,
          *
          * We do it based on the specified name.
          */
-        if (name[0] != '\0') {
+        if (!name.is_empty()) {
           layer = CustomData_get_named_layer(&cd_ldata, CD_PROP_FLOAT2, name);
           type = CD_MTFACE;
 
@@ -252,7 +252,7 @@ static DRW_MeshCDMask mesh_cd_calc_used_gpu_layers(const Object &object,
       switch (type) {
         case CD_MTFACE: {
           if (layer == -1) {
-            layer = (name[0] != '\0') ?
+            layer = !name.is_empty() ?
                         CustomData_get_named_layer(&cd_ldata, CD_PROP_FLOAT2, name) :
                         CustomData_get_render_layer(&cd_ldata, CD_PROP_FLOAT2);
           }
@@ -263,12 +263,12 @@ static DRW_MeshCDMask mesh_cd_calc_used_gpu_layers(const Object &object,
         }
         case CD_TANGENT: {
           if (layer == -1) {
-            layer = (name[0] != '\0') ?
+            layer = !name.is_empty() ?
                         CustomData_get_named_layer(&cd_ldata, CD_PROP_FLOAT2, name) :
                         CustomData_get_render_layer(&cd_ldata, CD_PROP_FLOAT2);
 
             /* Only fallback to orco (below) when we have no UV layers, see: #56545 */
-            if (layer == -1 && name[0] != '\0') {
+            if (layer == -1 && !name.is_empty()) {
               layer = CustomData_get_render_layer(&cd_ldata, CD_PROP_FLOAT2);
             }
           }
