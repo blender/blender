@@ -1246,7 +1246,7 @@ static void draw_points(const Armatures::DrawContext *ctx,
   copy_v4_v4(col_wire_root, (ctx->const_color) ? ctx->const_color : &theme.colors.vert.x);
   copy_v4_v4(col_wire_tail, (ctx->const_color) ? ctx->const_color : &theme.colors.vert.x);
 
-  const bool is_envelope_draw = (ctx->drawtype == ARM_DRAW_TYPE_ENVELOPE);
+  const bool is_envelope_draw = (ctx->drawtype == ARM_ENVELOPE);
   const float envelope_ignore = -1.0f;
 
   col_wire_tail[3] = col_wire_root[3] = get_bone_wire_thickness(ctx, boneflag);
@@ -1574,19 +1574,19 @@ static void bone_draw(const eArmature_Drawtype drawtype,
   }
 
   switch (drawtype) {
-    case ARM_DRAW_TYPE_OCTA:
+    case ARM_OCTA:
       bone_draw_octa(ctx, bone, boneflag, select_id);
       break;
-    case ARM_DRAW_TYPE_STICK:
+    case ARM_LINE:
       bone_draw_line(ctx, bone, boneflag, select_id);
       break;
-    case ARM_DRAW_TYPE_B_BONE:
+    case ARM_B_BONE:
       bone_draw_b_bone(ctx, bone, boneflag, select_id);
       break;
-    case ARM_DRAW_TYPE_ENVELOPE:
+    case ARM_ENVELOPE:
       bone_draw_envelope(ctx, bone, boneflag, select_id);
       break;
-    case ARM_DRAW_TYPE_WIRE:
+    case ARM_WIRE:
       bone_draw_wire(ctx, bone, boneflag, select_id);
       break;
     default:
@@ -1865,7 +1865,7 @@ static void bone_draw_update_display_matrix(const eArmature_Drawtype drawtype,
   if (use_custom_shape) {
     draw_bone_update_disp_matrix_custom_shape(bone);
   }
-  else if (ELEM(drawtype, ARM_DRAW_TYPE_B_BONE, ARM_DRAW_TYPE_WIRE)) {
+  else if (ELEM(drawtype, ARM_B_BONE, ARM_WIRE)) {
     draw_bone_update_disp_matrix_bbone(bone);
   }
   else {
@@ -1926,7 +1926,7 @@ void Armatures::draw_armature_edit(Armatures::DrawContext *ctx)
       draw_bone_relations(ctx, bone, boneflag);
     }
 
-    const eArmature_Drawtype drawtype = eBone->drawtype == ARM_DRAW_TYPE_ARMATURE_DEFINED ?
+    const eArmature_Drawtype drawtype = eBone->drawtype == ARM_BONE_DEFAULT ?
                                             arm_drawtype :
                                             eArmature_Drawtype(eBone->drawtype);
     bone_draw_update_display_matrix(drawtype, false, bone);
@@ -2060,7 +2060,7 @@ void Armatures::draw_armature_pose(Armatures::DrawContext *ctx)
       draw_bone_relations(ctx, bone_ptr, boneflag);
     }
 
-    const eArmature_Drawtype drawtype = bone->drawtype == ARM_DRAW_TYPE_ARMATURE_DEFINED ?
+    const eArmature_Drawtype drawtype = bone->drawtype == ARM_BONE_DEFAULT ?
                                             arm_drawtype :
                                             eArmature_Drawtype(bone->drawtype);
     bone_draw_update_display_matrix(drawtype, use_custom_shape, bone_ptr);
