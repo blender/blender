@@ -1,10 +1,10 @@
 ==== Curves: 4
 - Curve 'Curve_Cyclic' dim:3D resu:12 resv:12 splines:1
   - spline type:NURBS pts:4x1 order:4x4 cyclic:True,False endp:False,False
-    - (-2.000, 0.000, -2.000) w:1.000
     - (-2.000, 0.000, 2.000) w:1.000
     - (2.000, 0.000, 2.000) w:1.000
     - (2.000, 0.000, -2.000) w:1.000
+    - (-2.000, 0.000, -2.000) w:1.000
 
 - Curve 'Curve_Endpoints' dim:3D resu:12 resv:12 splines:1
   - spline type:NURBS pts:5x1 order:4x4 cyclic:False,False endp:True,False
@@ -12,7 +12,7 @@
     - (2.000, 0.000, 2.000) w:1.000
     - (2.000, 0.000, -2.000) w:1.000
     - (-2.000, 0.000, -2.000) w:1.000
-    - (-2.000, 0.000, 2.000) w:1.000
+    - (2.000, 0.000, 2.000) w:1.000
 
 - Curve 'Curve_NonUniform_Parm' dim:3D resu:12 resv:12 splines:1
   - spline type:NURBS pts:5x1 order:4x4 cyclic:False,False endp:False,False

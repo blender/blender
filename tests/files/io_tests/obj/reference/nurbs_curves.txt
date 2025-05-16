@@ -15,10 +15,10 @@
 
 - Curve 'NurbsCurveCyclic' dim:3D resu:12 resv:12 splines:1
   - spline type:NURBS pts:4x1 order:4x4 cyclic:True,False endp:False,False
-    - (-6.000, -2.000, 0.000) w:1.000
     - (-2.000, -2.000, 0.000) w:1.000
     - (-2.000, 2.000, 0.000) w:1.000
     - (-6.000, 2.000, 0.000) w:1.000
+    - (-6.000, -2.000, 0.000) w:1.000
 
 - Curve 'NurbsCurveDiffWeights' dim:3D resu:12 resv:12 splines:1
   - spline type:NURBS pts:4x1 order:4x4 cyclic:False,False endp:False,False
