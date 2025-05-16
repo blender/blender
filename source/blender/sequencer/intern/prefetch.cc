@@ -502,7 +502,7 @@ static void *seq_prefetch_frames(void *job)
 {
   PrefetchJob *pfjob = (PrefetchJob *)job;
 
-  while (pfjob->num_frames_prefetched < pfjob->timeline_length) {
+  while (true) {
     if (pfjob->cfra < pfjob->timeline_start || pfjob->cfra > pfjob->timeline_end) {
       /* Don't try to prefetch anything when we are outside of the timeline range. */
       break;
@@ -539,13 +539,6 @@ static void *seq_prefetch_frames(void *job)
 
     /* Suspend thread if there is nothing to be prefetched. */
     seq_prefetch_do_suspend(pfjob);
-
-    /* Avoid "collision" with main thread, but make sure to fetch at least few frames */
-    if (pfjob->num_frames_prefetched > 5 &&
-        abs(seq_prefetch_cfra(pfjob) - pfjob->scene->r.cfra) < 2)
-    {
-      break;
-    }
 
     if (!(pfjob->scene->ed->cache_flag & SEQ_CACHE_PREFETCH_ENABLE) || pfjob->stop) {
       break;
