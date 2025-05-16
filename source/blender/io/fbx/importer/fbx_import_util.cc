@@ -86,12 +86,20 @@ void node_matrix_to_obj(const ufbx_node *node, Object *obj, const FbxElementMapp
   /* Handle case of an object parented to a bone: need to set
    * bone as parent, and make transform be at the end of the bone. */
   const ufbx_node *parbone = node->parent;
-  if (obj->parent == nullptr && parbone && parbone->bone) {
+  if (obj->parent == nullptr && parbone && mapping.node_is_blender_bone.contains(parbone)) {
     Object *arm = mapping.bone_to_armature.lookup_default(parbone, nullptr);
     if (arm != nullptr) {
       ufbx_matrix offset_mtx = ufbx_identity_matrix;
       offset_mtx.cols[3].y = -mapping.bone_to_length.lookup_default(parbone, 0.0);
-      mtx = ufbx_matrix_mul(&offset_mtx, &mtx);
+      if (mapping.node_is_blender_bone.contains(node)) {
+        /* The node itself is a "fake bone", in which case parent it to the matching
+         * fake bone, and matrix is just what puts transform at the bone tail. */
+        parbone = node;
+        mtx = offset_mtx;
+      }
+      else {
+        mtx = ufbx_matrix_mul(&offset_mtx, &mtx);
+      }
 
       obj->parent = arm;
       obj->partype = PARBONE;
