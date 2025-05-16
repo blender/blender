@@ -55,7 +55,12 @@ struct RemoteListingAssetEntry {
   ~RemoteListingAssetEntry();
 };
 
-using RemoteListingEntryProcessFn = FunctionRef<void(RemoteListingAssetEntry &)>;
+using RemoteListingEntryProcessFn = FunctionRef<bool(RemoteListingAssetEntry &)>;
+/**
+ * \param process_fn: Called for each asset entry read from the listing. It's fine to move out the
+ * passed #RemoteListingAssetEntry. Returning false will cancel the whole reading process and not
+ * read any further entries.
+ */
 bool read_remote_listing(StringRefNull root_dirpath, RemoteListingEntryProcessFn process_fn);
 
 }  // namespace blender::ed::asset::index

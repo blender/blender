@@ -28,9 +28,9 @@ using namespace blender::io::serialize;
  * \{ */
 
 struct AssetLibraryListingPageV1 {
-  static bool read_asset_entries(const StringRefNull root_dirpath,
-                                 const StringRefNull page_rel_path,
-                                 RemoteListingEntryProcessFn process_fn);
+  static ReadingResult read_asset_entries(const StringRefNull root_dirpath,
+                                          const StringRefNull page_rel_path,
+                                          RemoteListingEntryProcessFn process_fn);
 };
 
 static std::optional<RemoteListingAssetEntry> listing_entry_from_asset_dictionary(
@@ -84,13 +84,13 @@ static std::optional<RemoteListingAssetEntry> listing_entry_from_asset_dictionar
   return listing_entry;
 }
 
-static bool listing_entries_from_root(const DictionaryValue &value,
-                                      RemoteListingEntryProcessFn process_fn)
+static ReadingResult listing_entries_from_root(const DictionaryValue &value,
+                                               RemoteListingEntryProcessFn process_fn)
 {
   const ArrayValue *entries = value.lookup_array("assets");
   BLI_assert(entries != nullptr);
   if (entries == nullptr) {
-    return false;
+    return ReadingResult::Failure;
   }
 
   for (const std::shared_ptr<Value> &element : entries->elements()) {
@@ -103,40 +103,45 @@ static bool listing_entries_from_root(const DictionaryValue &value,
       continue;
     }
 
-    process_fn(*entry);
+    if (!process_fn(*entry)) {
+      return ReadingResult::Cancelled;
+    }
   }
 
-  return true;
+  return ReadingResult::Success;
 }
 
-bool AssetLibraryListingPageV1::read_asset_entries(const StringRefNull root_dirpath,
-                                                   const StringRefNull page_rel_path,
-                                                   RemoteListingEntryProcessFn process_fn)
+ReadingResult AssetLibraryListingPageV1::read_asset_entries(const StringRefNull root_dirpath,
+                                                            const StringRefNull page_rel_path,
+                                                            RemoteListingEntryProcessFn process_fn)
 {
   char filepath[FILE_MAX];
   BLI_path_join(filepath, sizeof(filepath), root_dirpath.c_str(), page_rel_path.c_str());
 
   if (!BLI_exists(filepath)) {
     /** TODO report error message? */
-    return false;
+    return ReadingResult::Failure;
   }
 
   std::unique_ptr<Value> contents = read_contents(filepath);
   if (!contents) {
     /** TODO report error message? */
-    return false;
+    return ReadingResult::Failure;
   }
 
   const DictionaryValue *root = contents->as_dictionary_value();
   if (!root) {
     /** TODO report error message? */
-    return false;
+    return ReadingResult::Failure;
   }
 
-  listing_entries_from_root(*root, process_fn);
+  ReadingResult result = listing_entries_from_root(*root, process_fn);
+  if (result != ReadingResult::Success) {
+    return result;
+  }
   // CLOG_INFO(&LOG, 1, "Read %d entries from remote asset listing for [%s].", r_entries.size(),
   // filepath);
-  return true;
+  return ReadingResult::Success;
 }
 
 /** \} */
@@ -209,18 +214,23 @@ std::optional<AssetLibraryListingV1> AssetLibraryListingV1::read(StringRefNull r
 
 /** \} */
 
-bool read_remote_listing_v1(StringRefNull root_dirpath, RemoteListingEntryProcessFn process_fn)
+ReadingResult read_remote_listing_v1(StringRefNull root_dirpath,
+                                     RemoteListingEntryProcessFn process_fn)
 {
   const std::optional<AssetLibraryListingV1> listing = AssetLibraryListingV1::read(root_dirpath);
   if (!listing) {
-    return false;
+    return ReadingResult::Failure;
   }
 
   for (const std::string &page_path : listing->page_rel_paths) {
-    AssetLibraryListingPageV1::read_asset_entries(root_dirpath, page_path, process_fn);
+    const ReadingResult result = AssetLibraryListingPageV1::read_asset_entries(
+        root_dirpath, page_path, process_fn);
+    if (result != ReadingResult::Success) {
+      return result;
+    }
   }
 
-  return true;
+  return ReadingResult::Success;
 }
 
 }  // namespace blender::ed::asset::index

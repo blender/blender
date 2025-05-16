@@ -4043,6 +4043,11 @@ static void filelist_readjob_remote_asset_library_index_read(FileListReadJob *jo
   Vector<index::RemoteListingAssetEntry> entries;
 
   if (!index::read_remote_listing(dirpath, [&](index::RemoteListingAssetEntry &movable_entry) {
+        if (*stop) {
+          /* Cancel reading when requested. */
+          return false;
+        }
+
         /* Move into own storage for later access. */
         entries.append(std::move(movable_entry));
 
@@ -4067,6 +4072,7 @@ static void filelist_readjob_remote_asset_library_index_read(FileListReadJob *jo
         if (filelist_readjob_append_entries(job_params, &entries, entries_num)) {
           *do_update = true;
         }
+        return true;
       }))
   {
     return;

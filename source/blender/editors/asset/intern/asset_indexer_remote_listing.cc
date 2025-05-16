@@ -166,12 +166,17 @@ bool read_remote_listing(StringRefNull root_dirpath, RemoteListingEntryProcessFn
   }
 
   switch (*api_version) {
-    case 1:
-      if (!read_remote_listing_v1(root_dirpath, process_fn)) {
+    case 1: {
+      const ReadingResult result = read_remote_listing_v1(root_dirpath, process_fn);
+      if (result == ReadingResult::Failure) {
         printf("Couldn't read V1 listing");
         return false;
       }
+      if (result == ReadingResult::Cancelled) {
+        return false;
+      }
       break;
+    }
     default:
       BLI_assert_unreachable();
       return false;

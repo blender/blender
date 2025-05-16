@@ -27,6 +27,16 @@ std::unique_ptr<io::serialize::Value> read_contents(StringRefNull filepath);
 
 AssetMetaData *asset_metadata_from_dictionary(const io::serialize::DictionaryValue &entry);
 
-bool read_remote_listing_v1(StringRefNull root_dirpath, RemoteListingEntryProcessFn process_fn);
+enum class ReadingResult {
+  Success,
+  Failure,
+  Cancelled,
+};
+
+/**
+ * Reading of API schema version 1. See #read_remote_listing() on \a process_fn.
+ */
+ReadingResult read_remote_listing_v1(StringRefNull root_dirpath,
+                                     RemoteListingEntryProcessFn process_fn);
 
 }  // namespace blender::ed::asset::index
