@@ -70,6 +70,7 @@ EditBone *ED_armature_ebone_add(bArmature *arm, const char *name)
   BLI_addtail(arm->edbo, bone);
 
   bone->flag |= BONE_TIPSEL;
+  bone->drawtype = ARM_BONE_DEFAULT;
   bone->weight = 1.0f;
   bone->dist = 0.25f;
   bone->xwidth = 0.1f;
@@ -1668,6 +1669,7 @@ static wmOperatorStatus armature_extrude_exec(bContext *C, wmOperator *op)
           }
 
           newbone->color = ebone->color;
+          newbone->drawtype = ebone->drawtype;
 
           newbone->weight = ebone->weight;
           newbone->dist = ebone->dist;

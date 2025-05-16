@@ -77,8 +77,8 @@ typedef struct Bone {
   float bone_mat[3][3];
 
   int flag;
-
-  char _pad1[4];
+  int8_t drawtype; /* eArmature_Drawtype */
+  char _pad1[3];
   BoneColor color; /* MUST be named the same as in bPoseChannel and EditBone structs. */
 
   char inherit_scale_mode;
@@ -188,7 +188,7 @@ typedef struct bArmature {
   char _pad0[3];
 
   int flag;
-  int drawtype;
+  int drawtype; /* eArmature_Drawtype */
 
   short deformflag;
   short pathflag;
@@ -374,6 +374,7 @@ typedef enum eArmature_Flag {
 
 /* armature->drawtype */
 typedef enum eArmature_Drawtype {
+  ARM_BONE_DEFAULT = -1, /* Use draw type from Armature (only used on Bones). */
   ARM_OCTA = 0,
   ARM_LINE = 1,
   ARM_B_BONE = 2,

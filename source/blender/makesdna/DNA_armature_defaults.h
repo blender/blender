@@ -10,10 +10,6 @@
 
 /* clang-format off */
 
-/* -------------------------------------------------------------------- */
-/** \name bArmature Struct
- * \{ */
-
 #define _DNA_DEFAULT_bArmature \
   { \
     .deformflag = ARM_DEF_VGROUP | ARM_DEF_ENVELOPE, \
@@ -22,6 +18,9 @@
     .drawtype = ARM_OCTA, \
   }
 
-/** \} */
+#define _DNA_DEFAULT_Bone \
+  { \
+    .drawtype = ARM_BONE_DEFAULT, \
+  }
 
 /* clang-format on */

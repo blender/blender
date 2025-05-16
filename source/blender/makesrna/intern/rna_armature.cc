@@ -1363,6 +1363,32 @@ static void rna_def_bone_common(StructRNA *srna, int editbone)
       {0, nullptr, 0, nullptr, nullptr},
   };
 
+  static const EnumPropertyItem prop_drawtype_items[] = {
+      {ARM_BONE_DEFAULT,
+       "USE_ARMATURE_SETTING",
+       0,
+       "Use Armature Setting",
+       "Use display mode from armature (default)"},
+      {ARM_OCTA, "OCTAHEDRAL", 0, "Octahedral", "Display bones as octahedral shape"},
+      {ARM_LINE, "STICK", 0, "Stick", "Display bones as simple 2D lines with dots"},
+      {ARM_B_BONE,
+       "BBONE",
+       0,
+       "B-Bone",
+       "Display bones as boxes, showing subdivision and B-Splines"},
+      {ARM_ENVELOPE,
+       "ENVELOPE",
+       0,
+       "Envelope",
+       "Display bones as extruded spheres, showing deformation influence volume"},
+      {ARM_WIRE,
+       "WIRE",
+       0,
+       "Wire",
+       "Display bones as thin wires, showing subdivision and B-Splines"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
   PropertyRNA *prop;
 
   /* strings */
@@ -1386,6 +1412,13 @@ static void rna_def_bone_common(StructRNA *srna, int editbone)
   if (editbone) {
     RNA_def_property_pointer_funcs(prop, "rna_EditBone_color_get", nullptr, nullptr, nullptr);
   }
+
+  prop = RNA_def_property(srna, "display_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, nullptr, "drawtype");
+  RNA_def_property_enum_items(prop, prop_drawtype_items);
+  RNA_def_property_ui_text(prop, "Display Type", "");
+  RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
+  RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
 
   /* flags */
   prop = RNA_def_property(srna, "use_connect", PROP_BOOLEAN, PROP_NONE);
@@ -2144,6 +2177,7 @@ static void rna_def_armature(BlenderRNA *brna)
        "Display bones as thin wires, showing subdivision and B-Splines"},
       {0, nullptr, 0, nullptr, nullptr},
   };
+
   static const EnumPropertyItem prop_pose_position_items[] = {
       {0, "POSE", 0, "Pose Position", "Show armature in posed state"},
       {ARM_RESTPOS,

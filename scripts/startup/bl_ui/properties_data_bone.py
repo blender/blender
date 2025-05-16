@@ -327,6 +327,7 @@ class BONE_PT_display(BoneButtonsPanel, Panel):
         hide_select_sub = col.column()
         hide_select_sub.active = not bone.hide
         hide_select_sub.prop(bone, "hide_select", invert_checkbox=True)
+        col.prop(bone, "display_type", text="Display As")
 
         # Figure out the pose bone.
         ob = context.object
@@ -359,6 +360,7 @@ class BONE_PT_display(BoneButtonsPanel, Panel):
         hide_select_sub = col.column()
         hide_select_sub.active = not bone.hide
         hide_select_sub.prop(bone, "hide_select", invert_checkbox=True)
+        col.prop(bone, "display_type", text="Display As")
         layout.prop(bone.color, "palette", text="Bone Color")
         self.draw_bone_color_ui(layout, bone.color)
 

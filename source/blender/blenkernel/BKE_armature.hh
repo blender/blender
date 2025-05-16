@@ -64,6 +64,7 @@ struct EditBone {
    */
   int flag;
   int layer;
+  int drawtype; /* eArmature_Drawtype */
   char inherit_scale_mode;
 
   /* Envelope distance & weight */
