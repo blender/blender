@@ -1326,7 +1326,6 @@ static void bone_draw_custom_shape(const Armatures::DrawContext *ctx,
   const float *col_hint = get_bone_hint_color(ctx, boneflag);
   const float(*disp_mat)[4] = bone.disp_mat();
 
-  /* TODO(fclem): Code after this scope should be removed when we remove the legacy code. */
   auto sel_id = ctx->res->select_id(*ctx->ob_ref, select_id | BONESEL_BONE);
 
   /* Custom bone shapes are only supported in pose mode for now. */
