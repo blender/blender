@@ -1114,6 +1114,10 @@ int BKE_grease_pencil_stroke_point_count(const GreasePencil &grease_pencil);
 /**
  * \note Used for "move only origins" in object_data_transform.cc.
  */
+bool BKE_grease_pencil_has_curve_with_type(const GreasePencil &grease_pencil, CurveType type);
+/**
+ * \note Used for "move only origins" in object_data_transform.cc.
+ */
 void BKE_grease_pencil_point_coords_get(const GreasePencil &grease_pencil,
                                         blender::MutableSpan<blender::float3> all_positions,
                                         blender::MutableSpan<float> all_radii);
