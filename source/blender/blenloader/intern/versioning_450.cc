@@ -4343,7 +4343,7 @@ static void version_set_default_bone_drawtype(Main *bmain)
 {
   LISTBASE_FOREACH (bArmature *, arm, &bmain->armatures) {
     blender::animrig::ANIM_armature_foreach_bone(
-        &arm->bonebase, [](Bone *bone) { bone->drawtype = ARM_BONE_DEFAULT; });
+        &arm->bonebase, [](Bone *bone) { bone->drawtype = ARM_DRAW_TYPE_ARMATURE_DEFINED; });
     BLI_assert_msg(!arm->edbo, "Armatures should not be saved in edit mode");
   }
 }

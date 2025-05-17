@@ -318,7 +318,7 @@ std::optional<blender::Bounds<float3>> view3d_calc_minmax_selected(Depsgraph *de
     {
       const std::optional<blender::Bounds<float3>> bounds = BKE_pose_minmax(ob_eval_iter, true);
       if (bounds) {
-        const blender::Bounds<float3> world_bounds = blender::bounds::transform_bounds(
+        const blender::Bounds<float3> world_bounds = blender::bounds::transform_bounds<float, 4>(
             ob_eval->object_to_world(), *bounds);
         minmax_v3v3_v3(min, max, world_bounds.min);
         minmax_v3v3_v3(min, max, world_bounds.max);

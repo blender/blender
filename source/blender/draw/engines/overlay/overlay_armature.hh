@@ -478,7 +478,7 @@ class Armatures : Overlay {
 
     /* Note: can be mutated inside `draw_armature_pose()`. */
     eArmatureDrawMode draw_mode = ARM_DRAW_MODE_OBJECT;
-    eArmature_Drawtype drawtype = ARM_OCTA;
+    eArmature_Drawtype drawtype = ARM_DRAW_TYPE_OCTA;
 
     Armatures::BoneBuffers *bone_buf = nullptr;
     Resources *res = nullptr;

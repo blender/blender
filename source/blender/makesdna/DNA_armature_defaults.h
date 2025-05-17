@@ -15,12 +15,12 @@
     .deformflag = ARM_DEF_VGROUP | ARM_DEF_ENVELOPE, \
     .flag = ARM_COL_CUSTOM,  /* custom bone-group colors */ \
     .layer = 1, \
-    .drawtype = ARM_OCTA, \
+    .drawtype = ARM_DRAW_TYPE_OCTA, \
   }
 
 #define _DNA_DEFAULT_Bone \
   { \
-    .drawtype = ARM_BONE_DEFAULT, \
+    .drawtype = ARM_DRAW_TYPE_ARMATURE_DEFINED, \
   }
 
 /* clang-format on */
