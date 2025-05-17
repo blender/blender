@@ -7,7 +7,7 @@
  */
 
 #include "fmt/core.h"
-#include <cctype> /* For isdigit. */
+
 #include <cerrno>
 #include <cstdarg> /* for va_start/end. */
 #include <cstddef> /* for offsetof. */
