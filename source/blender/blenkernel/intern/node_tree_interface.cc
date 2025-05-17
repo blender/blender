@@ -855,7 +855,7 @@ int bNodeTreeInterfacePanel::find_valid_insert_position_for_item(
   int min_pos = 0;
   for (const int i : items.index_range()) {
     if (must_be_before(*items[i], item)) {
-      min_pos = i;
+      min_pos = i + 1;
     }
   }
   int max_pos = items.size();
