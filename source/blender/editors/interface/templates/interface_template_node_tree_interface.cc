@@ -276,7 +276,7 @@ class NodeTreeInterfaceView : public AbstractTreeView {
       if (item == skip_item) {
         continue;
       }
-      switch (item->item_type) {
+      switch (NodeTreeInterfaceItemType(item->item_type)) {
         case NODE_INTERFACE_SOCKET: {
           bNodeTreeInterfaceSocket *socket = node_interface::get_item_as<bNodeTreeInterfaceSocket>(
               item);
