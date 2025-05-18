@@ -140,12 +140,8 @@ void CurveFromGeometry::create_nurbs(Curve *curve, const OBJImportParams &import
   nurb->resolu = nurb->resolv = curve->resolu;
 
   const Vector<int> multiplicity = calculate_multiplicity_sequence(nurbs_geometry.parm);
-  nurb->flagu = this->detect_knot_mode(import_params,
-                                       degree,
-                                       nurbs_geometry.curv_indices,
-                                       nurbs_geometry.parm,
-                                       multiplicity,
-                                       nurbs_geometry.range);
+  nurb->flagu = this->detect_knot_mode(
+      import_params, degree, nurbs_geometry.curv_indices, nurbs_geometry.parm, multiplicity);
 
   if ((nurb->flagu & (CU_NURB_CUSTOM | CU_NURB_CYCLIC | CU_NURB_ENDPOINT)) == CU_NURB_CUSTOM) {
     /* TODO: If mode is CU_NURB_CUSTOM, but not CU_NURB_CYCLIC and CU_NURB_ENDPOINT, then make
@@ -286,8 +282,7 @@ short CurveFromGeometry::detect_knot_mode(const OBJImportParams &import_params,
                                           const int8_t degree,
                                           const Span<int> indices,
                                           const Span<float> knots,
-                                          const Span<int> multiplicity,
-                                          const float2 parameter_range)
+                                          const Span<int> multiplicity)
 {
   short knot_mode = 0;
 

@@ -48,7 +48,6 @@ class CurveFromGeometry : NonMovable, NonCopyable {
                          int8_t degree,
                          Span<int> indices,
                          Span<float> knots,
-                         Span<int> multiplicity,
-                         float2 range);
+                         Span<int> multiplicity);
 };
 }  // namespace blender::io::obj
