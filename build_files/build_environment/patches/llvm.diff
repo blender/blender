@@ -34,3 +34,434 @@ diff -Naur ll.org/llvm/lib/WindowsManifest/CMakeLists.txt ll/llvm/lib/WindowsMan
 -  get_library_name(${libxml2_library} libxml2_library)
 -  set_property(TARGET LLVMWindowsManifest PROPERTY LLVM_SYSTEM_LIBS ${libxml2_library})
 -endif()
+diff -Naur ll.org/llvm/lib/WindowsManifest/CMakeLists.txt ll/llvm/lib/WindowsManifest/CMakeLists.txt
+--- ll.org/clang/lib/Headers/__clang_cuda_device_functions.h	2025-05-01 18:14:10.942308400 +0200
++++ ll/clang/lib/Headers/__clang_cuda_device_functions.h	2025-05-01 20:13:48.298269900 +0200
+@@ -49,6 +49,7 @@
+ __DEVICE__ int __clz(int __a) { return __nv_clz(__a); }
+ __DEVICE__ int __clzll(long long __a) { return __nv_clzll(__a); }
+ __DEVICE__ float __cosf(float __a) { return __nv_fast_cosf(__a); }
++#if __CUDA_ARCH__ >= 600
+ __DEVICE__ double __dAtomicAdd(double *__p, double __v) {
+   return __nvvm_atom_add_gen_d(__p, __v);
+ }
+@@ -58,6 +59,7 @@
+ __DEVICE__ double __dAtomicAdd_system(double *__p, double __v) {
+   return __nvvm_atom_sys_add_gen_d(__p, __v);
+ }
++#endif
+ __DEVICE__ double __dadd_rd(double __a, double __b) {
+   return __nv_dadd_rd(__a, __b);
+ }
+@@ -176,16 +178,19 @@
+ __DEVICE__ float __fAtomicAdd(float *__p, float __v) {
+   return __nvvm_atom_add_gen_f(__p, __v);
+ }
++#if __CUDA_ARCH__ >= 600
+ __DEVICE__ float __fAtomicAdd_block(float *__p, float __v) {
+   return __nvvm_atom_cta_add_gen_f(__p, __v);
+ }
+ __DEVICE__ float __fAtomicAdd_system(float *__p, float __v) {
+   return __nvvm_atom_sys_add_gen_f(__p, __v);
+ }
++#endif
+ __DEVICE__ float __fAtomicExch(float *__p, float __v) {
+   return __nv_int_as_float(
+       __nvvm_atom_xchg_gen_i((int *)__p, __nv_float_as_int(__v)));
+ }
++#if __CUDA_ARCH__ >= 600
+ __DEVICE__ float __fAtomicExch_block(float *__p, float __v) {
+   return __nv_int_as_float(
+       __nvvm_atom_cta_xchg_gen_i((int *)__p, __nv_float_as_int(__v)));
+@@ -194,6 +199,7 @@
+   return __nv_int_as_float(
+       __nvvm_atom_sys_xchg_gen_i((int *)__p, __nv_float_as_int(__v)));
+ }
++#endif
+ __DEVICE__ float __fadd_rd(float __a, float __b) {
+   return __nv_fadd_rd(__a, __b);
+ }
+@@ -340,93 +346,113 @@
+ __DEVICE__ int __iAtomicAdd(int *__p, int __v) {
+   return __nvvm_atom_add_gen_i(__p, __v);
+ }
++#if __CUDA_ARCH__ >= 600
+ __DEVICE__ int __iAtomicAdd_block(int *__p, int __v) {
+   return __nvvm_atom_cta_add_gen_i(__p, __v);
+ }
+ __DEVICE__ int __iAtomicAdd_system(int *__p, int __v) {
+   return __nvvm_atom_sys_add_gen_i(__p, __v);
+ }
++#endif
+ __DEVICE__ int __iAtomicAnd(int *__p, int __v) {
+   return __nvvm_atom_and_gen_i(__p, __v);
+ }
++#if __CUDA_ARCH__ >= 600
+ __DEVICE__ int __iAtomicAnd_block(int *__p, int __v) {
+   return __nvvm_atom_cta_and_gen_i(__p, __v);
+ }
+ __DEVICE__ int __iAtomicAnd_system(int *__p, int __v) {
+   return __nvvm_atom_sys_and_gen_i(__p, __v);
+ }
++#endif
+ __DEVICE__ int __iAtomicCAS(int *__p, int __cmp, int __v) {
+   return __nvvm_atom_cas_gen_i(__p, __cmp, __v);
+ }
++#if __CUDA_ARCH__ >= 600
+ __DEVICE__ int __iAtomicCAS_block(int *__p, int __cmp, int __v) {
+   return __nvvm_atom_cta_cas_gen_i(__p, __cmp, __v);
+ }
+ __DEVICE__ int __iAtomicCAS_system(int *__p, int __cmp, int __v) {
+   return __nvvm_atom_sys_cas_gen_i(__p, __cmp, __v);
+ }
++#endif
+ __DEVICE__ int __iAtomicExch(int *__p, int __v) {
+   return __nvvm_atom_xchg_gen_i(__p, __v);
+ }
++#if __CUDA_ARCH__ >= 600
+ __DEVICE__ int __iAtomicExch_block(int *__p, int __v) {
+   return __nvvm_atom_cta_xchg_gen_i(__p, __v);
+ }
+ __DEVICE__ int __iAtomicExch_system(int *__p, int __v) {
+   return __nvvm_atom_sys_xchg_gen_i(__p, __v);
+ }
++#endif
+ __DEVICE__ int __iAtomicMax(int *__p, int __v) {
+   return __nvvm_atom_max_gen_i(__p, __v);
+ }
++#if __CUDA_ARCH__ >= 600
+ __DEVICE__ int __iAtomicMax_block(int *__p, int __v) {
+   return __nvvm_atom_cta_max_gen_i(__p, __v);
+ }
+ __DEVICE__ int __iAtomicMax_system(int *__p, int __v) {
+   return __nvvm_atom_sys_max_gen_i(__p, __v);
+ }
++#endif
+ __DEVICE__ int __iAtomicMin(int *__p, int __v) {
+   return __nvvm_atom_min_gen_i(__p, __v);
+ }
++#if __CUDA_ARCH__ >= 600
+ __DEVICE__ int __iAtomicMin_block(int *__p, int __v) {
+   return __nvvm_atom_cta_min_gen_i(__p, __v);
+ }
+ __DEVICE__ int __iAtomicMin_system(int *__p, int __v) {
+   return __nvvm_atom_sys_min_gen_i(__p, __v);
+ }
++#endif
+ __DEVICE__ int __iAtomicOr(int *__p, int __v) {
+   return __nvvm_atom_or_gen_i(__p, __v);
+ }
++#if __CUDA_ARCH__ >= 600
+ __DEVICE__ int __iAtomicOr_block(int *__p, int __v) {
+   return __nvvm_atom_cta_or_gen_i(__p, __v);
+ }
+ __DEVICE__ int __iAtomicOr_system(int *__p, int __v) {
+   return __nvvm_atom_sys_or_gen_i(__p, __v);
+ }
++#endif
+ __DEVICE__ int __iAtomicXor(int *__p, int __v) {
+   return __nvvm_atom_xor_gen_i(__p, __v);
+ }
++#if __CUDA_ARCH__ >= 600
+ __DEVICE__ int __iAtomicXor_block(int *__p, int __v) {
+   return __nvvm_atom_cta_xor_gen_i(__p, __v);
+ }
+ __DEVICE__ int __iAtomicXor_system(int *__p, int __v) {
+   return __nvvm_atom_sys_xor_gen_i(__p, __v);
+ }
++#endif
+ __DEVICE__ long long __illAtomicMax(long long *__p, long long __v) {
+   return __nvvm_atom_max_gen_ll(__p, __v);
+ }
++#if __CUDA_ARCH__ >= 600
+ __DEVICE__ long long __illAtomicMax_block(long long *__p, long long __v) {
+   return __nvvm_atom_cta_max_gen_ll(__p, __v);
+ }
+ __DEVICE__ long long __illAtomicMax_system(long long *__p, long long __v) {
+   return __nvvm_atom_sys_max_gen_ll(__p, __v);
+ }
++#endif
+ __DEVICE__ long long __illAtomicMin(long long *__p, long long __v) {
+   return __nvvm_atom_min_gen_ll(__p, __v);
+ }
++#if __CUDA_ARCH__ >= 600
+ __DEVICE__ long long __illAtomicMin_block(long long *__p, long long __v) {
+   return __nvvm_atom_cta_min_gen_ll(__p, __v);
+ }
+ __DEVICE__ long long __illAtomicMin_system(long long *__p, long long __v) {
+   return __nvvm_atom_sys_min_gen_ll(__p, __v);
+ }
++#endif
+ __DEVICE__ double __int2double_rn(int __a) { return __nv_int2double_rn(__a); }
+ __DEVICE__ float __int2float_rd(int __a) { return __nv_int2float_rd(__a); }
+ __DEVICE__ float __int2float_rn(int __a) { return __nv_int2float_rn(__a); }
+@@ -463,30 +489,36 @@
+ __DEVICE__ long long __llAtomicAnd(long long *__p, long long __v) {
+   return __nvvm_atom_and_gen_ll(__p, __v);
+ }
++#if __CUDA_ARCH__ >= 600
+ __DEVICE__ long long __llAtomicAnd_block(long long *__p, long long __v) {
+   return __nvvm_atom_cta_and_gen_ll(__p, __v);
+ }
+ __DEVICE__ long long __llAtomicAnd_system(long long *__p, long long __v) {
+   return __nvvm_atom_sys_and_gen_ll(__p, __v);
+ }
++#endif
+ __DEVICE__ long long __llAtomicOr(long long *__p, long long __v) {
+   return __nvvm_atom_or_gen_ll(__p, __v);
+ }
++#if __CUDA_ARCH__ >= 600
+ __DEVICE__ long long __llAtomicOr_block(long long *__p, long long __v) {
+   return __nvvm_atom_cta_or_gen_ll(__p, __v);
+ }
+ __DEVICE__ long long __llAtomicOr_system(long long *__p, long long __v) {
+   return __nvvm_atom_sys_or_gen_ll(__p, __v);
+ }
++#endif
+ __DEVICE__ long long __llAtomicXor(long long *__p, long long __v) {
+   return __nvvm_atom_xor_gen_ll(__p, __v);
+ }
++#if __CUDA_ARCH__ >= 600
+ __DEVICE__ long long __llAtomicXor_block(long long *__p, long long __v) {
+   return __nvvm_atom_cta_xor_gen_ll(__p, __v);
+ }
+ __DEVICE__ long long __llAtomicXor_system(long long *__p, long long __v) {
+   return __nvvm_atom_sys_xor_gen_ll(__p, __v);
+ }
++#endif
+ __DEVICE__ float __log10f(float __a) { return __nv_fast_log10f(__a); }
+ __DEVICE__ float __log2f(float __a) { return __nv_fast_log2f(__a); }
+ __DEVICE__ float __logf(float __a) { return __nv_fast_logf(__a); }
+@@ -532,6 +564,7 @@
+ __DEVICE__ unsigned int __uAtomicAdd(unsigned int *__p, unsigned int __v) {
+   return __nvvm_atom_add_gen_i((int *)__p, __v);
+ }
++#if __CUDA_ARCH__ >= 600
+ __DEVICE__ unsigned int __uAtomicAdd_block(unsigned int *__p,
+                                            unsigned int __v) {
+   return __nvvm_atom_cta_add_gen_i((int *)__p, __v);
+@@ -540,9 +573,11 @@
+                                             unsigned int __v) {
+   return __nvvm_atom_sys_add_gen_i((int *)__p, __v);
+ }
++#endif
+ __DEVICE__ unsigned int __uAtomicAnd(unsigned int *__p, unsigned int __v) {
+   return __nvvm_atom_and_gen_i((int *)__p, __v);
+ }
++#if __CUDA_ARCH__ >= 600
+ __DEVICE__ unsigned int __uAtomicAnd_block(unsigned int *__p,
+                                            unsigned int __v) {
+   return __nvvm_atom_cta_and_gen_i((int *)__p, __v);
+@@ -551,10 +586,12 @@
+                                             unsigned int __v) {
+   return __nvvm_atom_sys_and_gen_i((int *)__p, __v);
+ }
++#endif
+ __DEVICE__ unsigned int __uAtomicCAS(unsigned int *__p, unsigned int __cmp,
+                                      unsigned int __v) {
+   return __nvvm_atom_cas_gen_i((int *)__p, __cmp, __v);
+ }
++#if __CUDA_ARCH__ >= 600
+ __DEVICE__ unsigned int
+ __uAtomicCAS_block(unsigned int *__p, unsigned int __cmp, unsigned int __v) {
+   return __nvvm_atom_cta_cas_gen_i((int *)__p, __cmp, __v);
+@@ -563,9 +600,11 @@
+ __uAtomicCAS_system(unsigned int *__p, unsigned int __cmp, unsigned int __v) {
+   return __nvvm_atom_sys_cas_gen_i((int *)__p, __cmp, __v);
+ }
++#endif
+ __DEVICE__ unsigned int __uAtomicDec(unsigned int *__p, unsigned int __v) {
+   return __nvvm_atom_dec_gen_ui(__p, __v);
+ }
++#if __CUDA_ARCH__ >= 600
+ __DEVICE__ unsigned int __uAtomicDec_block(unsigned int *__p,
+                                            unsigned int __v) {
+   return __nvvm_atom_cta_dec_gen_ui(__p, __v);
+@@ -574,9 +613,11 @@
+                                             unsigned int __v) {
+   return __nvvm_atom_sys_dec_gen_ui(__p, __v);
+ }
++#endif
+ __DEVICE__ unsigned int __uAtomicExch(unsigned int *__p, unsigned int __v) {
+   return __nvvm_atom_xchg_gen_i((int *)__p, __v);
+ }
++#if __CUDA_ARCH__ >= 600
+ __DEVICE__ unsigned int __uAtomicExch_block(unsigned int *__p,
+                                             unsigned int __v) {
+   return __nvvm_atom_cta_xchg_gen_i((int *)__p, __v);
+@@ -585,9 +626,11 @@
+                                              unsigned int __v) {
+   return __nvvm_atom_sys_xchg_gen_i((int *)__p, __v);
+ }
++#endif
+ __DEVICE__ unsigned int __uAtomicInc(unsigned int *__p, unsigned int __v) {
+   return __nvvm_atom_inc_gen_ui(__p, __v);
+ }
++#if __CUDA_ARCH__ >= 600
+ __DEVICE__ unsigned int __uAtomicInc_block(unsigned int *__p,
+                                            unsigned int __v) {
+   return __nvvm_atom_cta_inc_gen_ui(__p, __v);
+@@ -596,9 +639,11 @@
+                                             unsigned int __v) {
+   return __nvvm_atom_sys_inc_gen_ui(__p, __v);
+ }
++#endif
+ __DEVICE__ unsigned int __uAtomicMax(unsigned int *__p, unsigned int __v) {
+   return __nvvm_atom_max_gen_ui(__p, __v);
+ }
++#if __CUDA_ARCH__ >= 600
+ __DEVICE__ unsigned int __uAtomicMax_block(unsigned int *__p,
+                                            unsigned int __v) {
+   return __nvvm_atom_cta_max_gen_ui(__p, __v);
+@@ -607,9 +652,11 @@
+                                             unsigned int __v) {
+   return __nvvm_atom_sys_max_gen_ui(__p, __v);
+ }
++#endif
+ __DEVICE__ unsigned int __uAtomicMin(unsigned int *__p, unsigned int __v) {
+   return __nvvm_atom_min_gen_ui(__p, __v);
+ }
++#if __CUDA_ARCH__ >= 600
+ __DEVICE__ unsigned int __uAtomicMin_block(unsigned int *__p,
+                                            unsigned int __v) {
+   return __nvvm_atom_cta_min_gen_ui(__p, __v);
+@@ -618,9 +665,11 @@
+                                             unsigned int __v) {
+   return __nvvm_atom_sys_min_gen_ui(__p, __v);
+ }
++#endif
+ __DEVICE__ unsigned int __uAtomicOr(unsigned int *__p, unsigned int __v) {
+   return __nvvm_atom_or_gen_i((int *)__p, __v);
+ }
++#if __CUDA_ARCH__ >= 600
+ __DEVICE__ unsigned int __uAtomicOr_block(unsigned int *__p, unsigned int __v) {
+   return __nvvm_atom_cta_or_gen_i((int *)__p, __v);
+ }
+@@ -628,9 +677,11 @@
+                                            unsigned int __v) {
+   return __nvvm_atom_sys_or_gen_i((int *)__p, __v);
+ }
++#endif
+ __DEVICE__ unsigned int __uAtomicXor(unsigned int *__p, unsigned int __v) {
+   return __nvvm_atom_xor_gen_i((int *)__p, __v);
+ }
++#if __CUDA_ARCH__ >= 600
+ __DEVICE__ unsigned int __uAtomicXor_block(unsigned int *__p,
+                                            unsigned int __v) {
+   return __nvvm_atom_cta_xor_gen_i((int *)__p, __v);
+@@ -639,6 +690,7 @@
+                                             unsigned int __v) {
+   return __nvvm_atom_sys_xor_gen_i((int *)__p, __v);
+ }
++#endif
+ __DEVICE__ unsigned int __uhadd(unsigned int __a, unsigned int __b) {
+   return __nv_uhadd(__a, __b);
+ }
+@@ -688,6 +740,7 @@
+                                              unsigned long long __v) {
+   return __nvvm_atom_add_gen_ll((long long *)__p, __v);
+ }
++#if __CUDA_ARCH__ >= 600
+ __DEVICE__ unsigned long long __ullAtomicAdd_block(unsigned long long *__p,
+                                                    unsigned long long __v) {
+   return __nvvm_atom_cta_add_gen_ll((long long *)__p, __v);
+@@ -696,10 +749,12 @@
+                                                     unsigned long long __v) {
+   return __nvvm_atom_sys_add_gen_ll((long long *)__p, __v);
+ }
++#endif
+ __DEVICE__ unsigned long long __ullAtomicAnd(unsigned long long *__p,
+                                              unsigned long long __v) {
+   return __nvvm_atom_and_gen_ll((long long *)__p, __v);
+ }
++#if __CUDA_ARCH__ >= 600
+ __DEVICE__ unsigned long long __ullAtomicAnd_block(unsigned long long *__p,
+                                                    unsigned long long __v) {
+   return __nvvm_atom_cta_and_gen_ll((long long *)__p, __v);
+@@ -708,11 +763,13 @@
+                                                     unsigned long long __v) {
+   return __nvvm_atom_sys_and_gen_ll((long long *)__p, __v);
+ }
++#endif
+ __DEVICE__ unsigned long long __ullAtomicCAS(unsigned long long *__p,
+                                              unsigned long long __cmp,
+                                              unsigned long long __v) {
+   return __nvvm_atom_cas_gen_ll((long long *)__p, __cmp, __v);
+ }
++#if __CUDA_ARCH__ >= 600
+ __DEVICE__ unsigned long long __ullAtomicCAS_block(unsigned long long *__p,
+                                                    unsigned long long __cmp,
+                                                    unsigned long long __v) {
+@@ -723,10 +780,12 @@
+                                                     unsigned long long __v) {
+   return __nvvm_atom_sys_cas_gen_ll((long long *)__p, __cmp, __v);
+ }
++#endif
+ __DEVICE__ unsigned long long __ullAtomicExch(unsigned long long *__p,
+                                               unsigned long long __v) {
+   return __nvvm_atom_xchg_gen_ll((long long *)__p, __v);
+ }
++#if __CUDA_ARCH__ >= 600
+ __DEVICE__ unsigned long long __ullAtomicExch_block(unsigned long long *__p,
+                                                     unsigned long long __v) {
+   return __nvvm_atom_cta_xchg_gen_ll((long long *)__p, __v);
+@@ -735,10 +794,12 @@
+                                                      unsigned long long __v) {
+   return __nvvm_atom_sys_xchg_gen_ll((long long *)__p, __v);
+ }
++#endif
+ __DEVICE__ unsigned long long __ullAtomicMax(unsigned long long *__p,
+                                              unsigned long long __v) {
+   return __nvvm_atom_max_gen_ull(__p, __v);
+ }
++#if __CUDA_ARCH__ >= 600
+ __DEVICE__ unsigned long long __ullAtomicMax_block(unsigned long long *__p,
+                                                    unsigned long long __v) {
+   return __nvvm_atom_cta_max_gen_ull(__p, __v);
+@@ -747,10 +808,12 @@
+                                                     unsigned long long __v) {
+   return __nvvm_atom_sys_max_gen_ull(__p, __v);
+ }
++#endif
+ __DEVICE__ unsigned long long __ullAtomicMin(unsigned long long *__p,
+                                              unsigned long long __v) {
+   return __nvvm_atom_min_gen_ull(__p, __v);
+ }
++#if __CUDA_ARCH__ >= 600
+ __DEVICE__ unsigned long long __ullAtomicMin_block(unsigned long long *__p,
+                                                    unsigned long long __v) {
+   return __nvvm_atom_cta_min_gen_ull(__p, __v);
+@@ -759,10 +822,12 @@
+                                                     unsigned long long __v) {
+   return __nvvm_atom_sys_min_gen_ull(__p, __v);
+ }
++#endif
+ __DEVICE__ unsigned long long __ullAtomicOr(unsigned long long *__p,
+                                             unsigned long long __v) {
+   return __nvvm_atom_or_gen_ll((long long *)__p, __v);
+ }
++#if __CUDA_ARCH__ >= 600
+ __DEVICE__ unsigned long long __ullAtomicOr_block(unsigned long long *__p,
+                                                   unsigned long long __v) {
+   return __nvvm_atom_cta_or_gen_ll((long long *)__p, __v);
+@@ -771,10 +836,12 @@
+                                                    unsigned long long __v) {
+   return __nvvm_atom_sys_or_gen_ll((long long *)__p, __v);
+ }
++#endif
+ __DEVICE__ unsigned long long __ullAtomicXor(unsigned long long *__p,
+                                              unsigned long long __v) {
+   return __nvvm_atom_xor_gen_ll((long long *)__p, __v);
+ }
++#if __CUDA_ARCH__ >= 600
+ __DEVICE__ unsigned long long __ullAtomicXor_block(unsigned long long *__p,
+                                                    unsigned long long __v) {
+   return __nvvm_atom_cta_xor_gen_ll((long long *)__p, __v);
+@@ -783,6 +850,7 @@
+                                                     unsigned long long __v) {
+   return __nvvm_atom_sys_xor_gen_ll((long long *)__p, __v);
+ }
++#endif
+ __DEVICE__ unsigned int __umul24(unsigned int __a, unsigned int __b) {
+   return __nv_umul24(__a, __b);
+ }
