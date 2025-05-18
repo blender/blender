@@ -11,11 +11,17 @@ CCL_NAMESPACE_BEGIN
 
 class Patch;
 
+enum {
+  DSPLIT_NON_UNIFORM = -1,
+  DSPLIT_MAX_DEPTH = 16,
+  DSPLIT_MAX_SEGMENTS = 8,
+};
+
 /* SubEdge */
 
 struct SubEdge {
-  SubEdge(const int start_vert_index, const int end_vert_index)
-      : start_vert_index(start_vert_index), end_vert_index(end_vert_index)
+  SubEdge(const int start_vert_index, const int end_vert_index, const int depth)
+      : start_vert_index(start_vert_index), end_vert_index(end_vert_index), depth(depth)
   {
   }
 
@@ -29,8 +35,14 @@ struct SubEdge {
   /* Number of segments the edge will be diced into, see DiagSplit paper. */
   int T = 0;
 
+  /* Estimated length of edge, for determining preferred split direction. */
+  float length = 0.0f;
+
   /* Index of the second vert from this edges corner along the edge towards the next corner. */
   int second_vert_index = -1;
+
+  /* How many times an edge was subdivided to get this edge. */
+  int depth = 0;
 
   SubEdge() = default;
 
@@ -46,6 +58,11 @@ struct SubEdge {
     }
 
     return second_vert_index + n - 1;
+  }
+
+  bool must_split() const
+  {
+    return T == DSPLIT_NON_UNIFORM;
   }
 
   struct Hash {
