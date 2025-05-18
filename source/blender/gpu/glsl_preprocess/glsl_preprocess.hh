@@ -324,7 +324,7 @@ class Preprocessor {
     std::string out_str = str;
     {
       /* Transform template definition into macro declaration. */
-      std::regex regex(R"(template<([\w\d\n, ]+)>(\s\w+\s)(\w+)\()");
+      std::regex regex(R"(template<([\w\d\n\,\ ]+)>(\s\w+\s)(\w+)\()");
       out_str = std::regex_replace(out_str, regex, "#define $3_TEMPLATE($1)$2$3@(");
     }
     {
@@ -385,7 +385,7 @@ class Preprocessor {
     {
       /* Replace explicit instantiation by macro call. */
       /* Only `template ret_t fn<T>(args);` syntax is supported. */
-      std::regex regex_instance(R"(template \w+ (\w+)<([\w+, \n]+)>\(([\w+ ,\n]+)\);)");
+      std::regex regex_instance(R"(template \w+ (\w+)<([\w+\,\ \n]+)>\(([\w+\ \,\n]+)\);)");
       /* Notice the stupid way of keeping the number of lines the same by copying the argument list
        * inside a multi-line comment. */
       out_str = std::regex_replace(out_str, regex_instance, "$1_TEMPLATE($2)/*$3*/");
