@@ -46,13 +46,11 @@ ccl_device_inline float bsdf_ashikhmin_shirley_roughness_to_exponent(const float
 }
 
 ccl_device_forceinline Spectrum bsdf_ashikhmin_shirley_eval(const ccl_private ShaderClosure *sc,
-                                                            const float3 Ng,
                                                             const float3 wi,
                                                             const float3 wo,
                                                             ccl_private float *pdf)
 {
   const ccl_private MicrofacetBsdf *bsdf = (const ccl_private MicrofacetBsdf *)sc;
-  const float cosNgO = dot(Ng, wo);
   const float3 N = bsdf->N;
 
   float NdotI = dot(N, wi);
@@ -60,9 +58,7 @@ ccl_device_forceinline Spectrum bsdf_ashikhmin_shirley_eval(const ccl_private Sh
 
   float out = 0.0f;
 
-  if ((cosNgO < 0.0f) || fmaxf(bsdf->alpha_x, bsdf->alpha_y) <= 1e-4f ||
-      !(NdotI > 0.0f && NdotO > 0.0f))
-  {
+  if (fmaxf(bsdf->alpha_x, bsdf->alpha_y) <= 1e-4f || (NdotI < 0.0f) || (NdotO < 0.0f)) {
     *pdf = 0.0f;
     return zero_spectrum();
   }
@@ -208,6 +204,13 @@ ccl_device int bsdf_ashikhmin_shirley_sample(const ccl_private ShaderClosure *sc
   /* reflect wi on H to get wo */
   *wo = -wi + (2.0f * HdotI) * H;
 
+  /* Check hemisphere. */
+  if (dot(Ng, *wo) < 0.0f) {
+    *pdf = 0.0f;
+    *eval = zero_spectrum();
+    return LABEL_NONE;
+  }
+
   if (fmaxf(bsdf->alpha_x, bsdf->alpha_y) <= 1e-4f) {
     /* Some high number for MIS. */
     *pdf = 1e6f;
@@ -216,7 +219,7 @@ ccl_device int bsdf_ashikhmin_shirley_sample(const ccl_private ShaderClosure *sc
   }
   else {
     /* leave the rest to eval */
-    *eval = bsdf_ashikhmin_shirley_eval(sc, Ng, wi, *wo, pdf);
+    *eval = bsdf_ashikhmin_shirley_eval(sc, wi, *wo, pdf);
   }
 
   return label;
