@@ -206,7 +206,7 @@ class Preprocessor {
         parse_library_functions(str);
       }
       if (language == BLENDER_GLSL) {
-        include_parse(str);
+        include_parse(str, report_error);
       }
       str = preprocessor_directive_mutation(str);
       str = swizzle_function_mutation(str);
@@ -432,13 +432,19 @@ class Preprocessor {
     return std::regex_replace(str, std::regex(R"(["'])"), " ");
   }
 
-  void include_parse(const std::string &str)
+  void include_parse(const std::string &str, report_callback report_error)
   {
     /* Parse include directive before removing them. */
-    std::regex regex(R"(#\s*include\s*\"(\w+\.\w+)\")");
+    std::regex regex(R"(#(\s*)include\s*\"(\w+\.\w+)\")");
 
     regex_global_search(str, regex, [&](const std::smatch &match) {
-      std::string dependency_name = match[1].str();
+      std::string indent = match[1].str();
+      /* Assert that includes are not nested in other preprocessor directives. */
+      if (!indent.empty()) {
+        report_error(match, "#include directives must not be inside #if clause");
+      }
+      std::string dependency_name = match[2].str();
+      /* Assert that includes are at the top of the file. */
       if (dependency_name == "gpu_glsl_cpp_stubs.hh") {
         /* Skip GLSL-C++ stubs. They are only for IDE linting. */
         return;
