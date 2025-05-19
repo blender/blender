@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'a7d2b7850ef2')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'd87e0ecb614e')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-05 08:47+0000\n"
+"POT-Creation-Date: 2025-05-19 11:37+0000\n"
 "PO-Revision-Date: 2025-05-01 10:56+0000\n"
 "Last-Translator: \"Adriel Y.\" <mixnblend@users.noreply.translate.blender.org>\n"
 "Language-Team: Indonesian <https://translate.blender.org/projects/blender-ui/ui/id/>\n"
@@ -4100,6 +4100,26 @@ msgstr "Tulang yang merupakan anak dari tulang ini"
 
 msgid "Bone Collections that contain this bone"
 msgstr "Koleksi Tulang yang mengandung tulang ini"
+
+
+msgid "Display Type"
+msgstr "Tipe Tampilan"
+
+
+msgid "Stick"
+msgstr "Batang"
+
+
+msgid "B-Bone"
+msgstr "Tulang"
+
+
+msgid "Envelope"
+msgstr "Amplop"
+
+
+msgid "Wire"
+msgstr "Kabel"
 
 
 msgid "Envelope Deform Distance"
@@ -10580,10 +10600,6 @@ msgid "Tracer"
 msgstr "Pelacak"
 
 
-msgid "Display Type"
-msgstr "Tipe Tampilan"
-
-
 msgid "Needle"
 msgstr "Jarum"
 
@@ -11540,22 +11556,6 @@ msgstr "Layer"
 
 msgid "Feature Set"
 msgstr "Warna Standar"
-
-
-msgid "Stick"
-msgstr "Batang"
-
-
-msgid "B-Bone"
-msgstr "Tulang"
-
-
-msgid "Envelope"
-msgstr "Amplop"
-
-
-msgid "Wire"
-msgstr "Kabel"
 
 
 msgid "Edit Bones"
@@ -15351,6 +15351,18 @@ msgid "Mask"
 msgstr "Masker"
 
 
+msgid "Mirror"
+msgstr "Cermin"
+
+
+msgid "Snap"
+msgstr "Jepret"
+
+
+msgid "Navigation"
+msgstr "Navigasi"
+
+
 msgid "Select Linked"
 msgstr "Seleksi yang Terhubung"
 
@@ -15401,18 +15413,6 @@ msgstr "Menggabungkan"
 
 msgid "Text"
 msgstr "Teks"
-
-
-msgid "Snap"
-msgstr "Jepret"
-
-
-msgid "Mirror"
-msgstr "Cermin"
-
-
-msgid "Navigation"
-msgstr "Navigasi"
 
 
 msgctxt "MovieClip"
@@ -17655,10 +17655,6 @@ msgid "Extend bounds of the input image to fully fit blurred image"
 msgstr "Memperpanjang batas gambar masukan ke gambar buram yang cukup secara penuh"
 
 
-msgid "Apply filter on gamma corrected values"
-msgstr "Menerapkan filter pada nilai yang dikoreksi gamma"
-
-
 msgid "Use relative (percent) values to define blur radius"
 msgstr "Gunakan nilai relatif (persen) ke definisi radius buram"
 
@@ -17677,10 +17673,6 @@ msgstr "Mengenerasi buram tipe bokeh yang mirip ke Defokus. Tidak seperti defoku
 
 msgid "Max Blur"
 msgstr "Buram Maks"
-
-
-msgid "Blur limit, maximum CoC radius"
-msgstr "Batas buram, maksimum radius CoC"
 
 
 msgid "Bokeh Image"
@@ -18067,6 +18059,10 @@ msgid "Bokeh shape rotation offset"
 msgstr "Offset rotasi bentuk bokeh"
 
 
+msgid "Blur limit, maximum CoC radius"
+msgstr "Batas buram, maksimum radius CoC"
+
+
 msgid "Bokeh Type"
 msgstr "Tipe Bokeh"
 
@@ -18125,10 +18121,6 @@ msgstr "Adegan dimana untuk menyeleksi kamera aktif (render adegan jika tidak te
 
 msgid "Gamma Correction"
 msgstr "Koreksi Gamma"
-
-
-msgid "Enable gamma correction before and after main process"
-msgstr "Mengaktifkan koreksi gamma sebelum dan setelah proses utama"
 
 
 msgid "Use Z-Buffer"
@@ -25503,10 +25495,6 @@ msgid "Restrict painting to vertices in the group"
 msgstr "Membatasi lukisan ke simpul di kelompok"
 
 
-msgid "Wire Color"
-msgstr "Warna Kabel"
-
-
 msgid "Snapping"
 msgstr "Gertakan"
 
@@ -26426,10 +26414,6 @@ msgid "Show Cache"
 msgstr "Tampilkan Cache"
 
 
-msgid "Composite Images"
-msgstr "Gabungkan Gambar"
-
-
 msgid "Final Images"
 msgstr "Gambar Final"
 
@@ -27150,6 +27134,10 @@ msgid "Node Selected"
 msgstr "Modus Sunting"
 
 
+msgid "Wire Color"
+msgstr "Warna Kabel"
+
+
 msgid "Wire Select"
 msgstr "Pilih Kabel"
 
@@ -27420,11 +27408,6 @@ msgstr "Membekukan batas-batas culling tampilan"
 
 msgid "Opacity for edit vertices"
 msgstr "Opasitas untuk mengedit simpul"
-
-
-msgctxt "View3D"
-msgid "Viewport"
-msgstr "Jendela Tampilan"
 
 
 msgid "Blur the studiolight in the background"

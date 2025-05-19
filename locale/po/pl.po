@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'a7d2b7850ef2')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'd87e0ecb614e')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-05 08:47+0000\n"
+"POT-Creation-Date: 2025-05-19 11:37+0000\n"
 "PO-Revision-Date: 2025-04-14 08:34+0000\n"
 "Last-Translator: Kamil <uhkamil@gmail.com>\n"
 "Language-Team: Polish <https://translate.blender.org/projects/blender-ui/ui/pl/>\n"
@@ -3215,6 +3215,14 @@ msgstr "Kości które są potomkami tej kości"
 
 msgid "Bone Collections that contain this bone"
 msgstr "Kolekcje kości, do których należy ta kość"
+
+
+msgid "B-Bone"
+msgstr "Giętka kość"
+
+
+msgid "Envelope"
+msgstr "Obwiednia"
 
 
 msgid "Envelope Deform Distance"
@@ -9359,14 +9367,6 @@ msgid "Feature Set"
 msgstr "Zestaw funkcji"
 
 
-msgid "B-Bone"
-msgstr "Giętka kość"
-
-
-msgid "Envelope"
-msgstr "Obwiednia"
-
-
 msgid "Theme"
 msgstr "Motyw"
 
@@ -11584,6 +11584,26 @@ msgid "Mask"
 msgstr "Maska"
 
 
+msgid "Mirror"
+msgstr "Odbicie lustrzane"
+
+
+msgid "Snap"
+msgstr "Przyciągnij"
+
+
+msgid "Local View"
+msgstr "Widok lokalny"
+
+
+msgid "Viewpoint"
+msgstr "Punkt obserwacji"
+
+
+msgid "Navigation"
+msgstr "Nawigacja"
+
+
 msgid "Select Linked"
 msgstr "Zaznacz powiązane"
 
@@ -11652,28 +11672,8 @@ msgid "Text"
 msgstr "Tekst"
 
 
-msgid "Snap"
-msgstr "Przyciągnij"
-
-
 msgid "Proportional Editing Falloff"
 msgstr "Proporcjonalne edytowanie spadku"
-
-
-msgid "Mirror"
-msgstr "Odbicie lustrzane"
-
-
-msgid "Local View"
-msgstr "Widok lokalny"
-
-
-msgid "Viewpoint"
-msgstr "Punkt obserwacji"
-
-
-msgid "Navigation"
-msgstr "Nawigacja"
 
 
 msgid "Catalog"
@@ -15256,6 +15256,10 @@ msgid "Delete with Reconnect"
 msgstr "Usuń z ponownym połączeniem"
 
 
+msgid "Open a predefined panel"
+msgstr "Otwiera predefiniowany panel"
+
+
 msgid "Clear Viewer"
 msgstr "Wyczyść widok"
 
@@ -16997,10 +17001,6 @@ msgid "Name of the menu"
 msgstr "Nazwa menu"
 
 
-msgid "Open a predefined panel"
-msgstr "Otwiera predefiniowany panel"
-
-
 msgctxt "Operator"
 msgid "Clear Recent Files List"
 msgstr "Wyczyść listę ostatnio otwartych plików"
@@ -17397,18 +17397,6 @@ msgid "Palette Color"
 msgstr "Kolor palety"
 
 
-msgid "Active Tool"
-msgstr "Aktywne narzędzie"
-
-
-msgid "Shadow Settings"
-msgstr "Ustawienia cienia"
-
-
-msgid "Compositor"
-msgstr "Kompozytor"
-
-
 msgid "Motion Tracking"
 msgstr "Śledzenie ruchu"
 
@@ -17431,6 +17419,18 @@ msgstr "Przyciąganie"
 
 msgid "Transform Orientations"
 msgstr "Orientacje przekształcenia"
+
+
+msgid "Active Tool"
+msgstr "Aktywne narzędzie"
+
+
+msgid "Shadow Settings"
+msgstr "Ustawienia cienia"
+
+
+msgid "Compositor"
+msgstr "Kompozytor"
 
 
 msgid "Aperture"
@@ -18022,18 +18022,6 @@ msgstr "Limit pamięci podręcznej"
 
 msgid "Memory cache limit (in megabytes)"
 msgstr "Limit pamięci podręcznej (w megabajtach)"
-
-
-msgid "Requires fast storage, but uses minimum CPU resources"
-msgstr "Wymaga szybkiej pamięci masowej, ale wykorzystuje minimalne zasoby procesora"
-
-
-msgid "Doesn't require fast storage and uses less CPU resources"
-msgstr "Nie wymaga szybkiej pamięci masowej i wykorzystuje mniej zasobów procesora"
-
-
-msgid "Works on slower storage devices and uses most CPU resources"
-msgstr "Działa na wolniejszych urządzeniach pamięci masowej i wykorzystuje większość zasobów procesora"
 
 
 msgid "5 Samples"
@@ -19830,11 +19818,6 @@ msgstr "Świat"
 
 
 msgctxt "View3D"
-msgid "Viewport"
-msgstr "Rzutnia"
-
-
-msgctxt "View3D"
 msgid "Screen"
 msgstr "Ekran"
 
@@ -19846,10 +19829,6 @@ msgstr "Oba"
 
 msgid "Show material color"
 msgstr "Wyświetla kolor materiału"
-
-
-msgid "Show scene in a single color"
-msgstr "Rysuj scenę używając pojedynczego koloru"
 
 
 msgid "Lighting Method for Solid/Texture Viewport Shading"
@@ -22355,10 +22334,6 @@ msgstr "Limit pamięci cofnięć"
 
 msgid "Console Scrollback Lines"
 msgstr "Linie przewijania konsoli"
-
-
-msgid "Cache Limit"
-msgstr "Limit pamięci podręcznej"
 
 
 msgid "View Name"

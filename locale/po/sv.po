@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'a7d2b7850ef2')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'd87e0ecb614e')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-05 08:47+0000\n"
+"POT-Creation-Date: 2025-05-19 11:37+0000\n"
 "PO-Revision-Date: 2025-04-14 08:41+0000\n"
 "Last-Translator: Marcus Edmark Lindh <marcus.lindh@outlook.com>\n"
 "Language-Team: Swedish <https://translate.blender.org/projects/blender-ui/ui/sv/>\n"
@@ -1887,6 +1887,10 @@ msgid "Children"
 msgstr "Barn"
 
 
+msgid "Wire"
+msgstr "Trådmodell"
+
+
 msgid "Head"
 msgstr "Huvud"
 
@@ -3486,10 +3490,6 @@ msgstr "Grupper"
 
 msgid "Layers"
 msgstr "Lager"
-
-
-msgid "Wire"
-msgstr "Trådmodell"
 
 
 msgid "Theme"
@@ -5193,6 +5193,26 @@ msgid "Mask"
 msgstr "Mask"
 
 
+msgid "Mirror"
+msgstr "Spegla"
+
+
+msgid "Snap"
+msgstr "Snäpp"
+
+
+msgid "Local View"
+msgstr "Lokal vy"
+
+
+msgid "Align View"
+msgstr "Justera vy"
+
+
+msgid "Align View to Active"
+msgstr "Justera vy till aktiv"
+
+
 msgid "Select More/Less"
 msgstr "Markera mera/mindre"
 
@@ -5251,26 +5271,6 @@ msgstr "Text"
 
 msgid "Pivot Point"
 msgstr "Fast punkt"
-
-
-msgid "Snap"
-msgstr "Snäpp"
-
-
-msgid "Mirror"
-msgstr "Spegla"
-
-
-msgid "Local View"
-msgstr "Lokal vy"
-
-
-msgid "Align View"
-msgstr "Justera vy"
-
-
-msgid "Align View to Active"
-msgstr "Justera vy till aktiv"
 
 
 msgid "Catalog"
@@ -12403,14 +12403,6 @@ msgid "UI Scale"
 msgstr "Gränssnittsskala"
 
 
-msgid "Use Disk Cache"
-msgstr "Använd disk-cache"
-
-
-msgid "Store cached images to disk"
-msgstr "Lagra cachade bilder på disk"
-
-
 msgid "Edit Studio Light"
 msgstr "Redigera studioljus"
 
@@ -14076,10 +14068,6 @@ msgstr "Ytspänning"
 
 msgid "Velocity Source"
 msgstr "Hastighetskälla"
-
-
-msgid "Is Resumable"
-msgstr "Kan återupptas"
 
 
 msgctxt "Operator"

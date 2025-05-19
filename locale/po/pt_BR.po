@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'a7d2b7850ef2')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'd87e0ecb614e')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2025-05-05 08:47+0000\n"
+"POT-Creation-Date: 2025-05-19 11:37+0000\n"
 "PO-Revision-Date: 2025-04-14 08:36+0000\n"
 "Last-Translator: Ruan da Silva Andrade <ruanandrade818@gmail.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -3452,6 +3452,46 @@ msgstr "Crianças"
 
 msgid "Bones which are children of this bone"
 msgstr "Ossos que são filhos deste osso"
+
+
+msgid "Display Type"
+msgstr "Tipo de amostragem"
+
+
+msgid "Octahedral"
+msgstr "Octaedro"
+
+
+msgid "Stick"
+msgstr "Bastão"
+
+
+msgid "Display bones as simple 2D lines with dots"
+msgstr "Mostra os ossos como simples linhas 2D com pontos."
+
+
+msgid "B-Bone"
+msgstr "Maleável"
+
+
+msgid "Display bones as boxes, showing subdivision and B-Splines"
+msgstr "Mostra os ossos como caixas, mostrando subdivisões e Splines-B."
+
+
+msgid "Envelope"
+msgstr "Envelope"
+
+
+msgid "Display bones as extruded spheres, showing deformation influence volume"
+msgstr "Mostra os ossos como esferas esticadas por extrusão, mostrando os volumes das influências de deformação (alcance)."
+
+
+msgid "Wire"
+msgstr "Aramado"
+
+
+msgid "Display bones as thin wires, showing subdivision and B-Splines"
+msgstr "Mostra os ossos como arames finos, mostrando as subdivisões e Splines-B."
 
 
 msgid "Envelope Deform Distance"
@@ -10433,10 +10473,6 @@ msgid "Tracer"
 msgstr "Traçadoras"
 
 
-msgid "Display Type"
-msgstr "Tipo de amostragem"
-
-
 msgid "Needle"
 msgstr "Agulhas"
 
@@ -11564,44 +11600,8 @@ msgid "Animation data for this data-block"
 msgstr "Dados de animação para este bloco de dados."
 
 
-msgid "Octahedral"
-msgstr "Octaedro"
-
-
 msgid "Display bones as octahedral shape (default)"
 msgstr "Mostra os ossos em formato de octaedros (padrão)."
-
-
-msgid "Stick"
-msgstr "Bastão"
-
-
-msgid "Display bones as simple 2D lines with dots"
-msgstr "Mostra os ossos como simples linhas 2D com pontos."
-
-
-msgid "B-Bone"
-msgstr "Maleável"
-
-
-msgid "Display bones as boxes, showing subdivision and B-Splines"
-msgstr "Mostra os ossos como caixas, mostrando subdivisões e Splines-B."
-
-
-msgid "Envelope"
-msgstr "Envelope"
-
-
-msgid "Display bones as extruded spheres, showing deformation influence volume"
-msgstr "Mostra os ossos como esferas esticadas por extrusão, mostrando os volumes das influências de deformação (alcance)."
-
-
-msgid "Wire"
-msgstr "Aramado"
-
-
-msgid "Display bones as thin wires, showing subdivision and B-Splines"
-msgstr "Mostra os ossos como arames finos, mostrando as subdivisões e Splines-B."
 
 
 msgid "Edit Bones"
@@ -21444,16 +21444,52 @@ msgid "Material slot name"
 msgstr "Nome do compartimento do material."
 
 
+msgid "Mirror"
+msgstr "Espelhar"
+
+
+msgid "Snap"
+msgstr "Atrair"
+
+
+msgid "UV Mapping"
+msgstr "Mapeamento UV"
+
+
+msgid "Local View"
+msgstr "Visão local"
+
+
+msgid "Viewpoint"
+msgstr "Ponto de visualização"
+
+
+msgid "Navigation"
+msgstr "Navegação"
+
+
+msgid "Align View"
+msgstr "Alinhar visualização"
+
+
+msgid "Align View to Active"
+msgstr "Alinhar vista para o ativo"
+
+
+msgid "View Regions"
+msgstr "Visualizar Regiões"
+
+
+msgid "Select More/Less"
+msgstr "Selecionar mais ou menos"
+
+
 msgid "Select Similar"
 msgstr "Selecionar por similaridades"
 
 
 msgid "Select All by Trait"
 msgstr "Selecionar todos por características..."
-
-
-msgid "Select More/Less"
-msgstr "Selecionar mais ou menos"
 
 
 msgid "Select Linked"
@@ -21580,44 +21616,8 @@ msgid "Pivot Point"
 msgstr "Pontos de pivô"
 
 
-msgid "Snap"
-msgstr "Atrair"
-
-
 msgid "Proportional Editing Falloff"
 msgstr "Tipo de decaimento para edição proporcional"
-
-
-msgid "Mirror"
-msgstr "Espelhar"
-
-
-msgid "UV Mapping"
-msgstr "Mapeamento UV"
-
-
-msgid "Local View"
-msgstr "Visão local"
-
-
-msgid "Viewpoint"
-msgstr "Ponto de visualização"
-
-
-msgid "Navigation"
-msgstr "Navegação"
-
-
-msgid "Align View"
-msgstr "Alinhar visualização"
-
-
-msgid "Align View to Active"
-msgstr "Alinhar vista para o ativo"
-
-
-msgid "View Regions"
-msgstr "Visualizar Regiões"
 
 
 msgid "Basic"
@@ -27121,10 +27121,6 @@ msgid "Extend bounds of the input image to fully fit blurred image"
 msgstr "Estende as extremidades da imagem de entrada para preencher completamente a imagem desfocada."
 
 
-msgid "Apply filter on gamma corrected values"
-msgstr "Aplica o filtro em valores corrigidos de gama."
-
-
 msgid "Use relative (percent) values to define blur radius"
 msgstr "Usa valores relativos (percentagem) para definir o raio de desfoque."
 
@@ -27139,10 +27135,6 @@ msgstr "Desfocagem flocada"
 
 msgid "Max Blur"
 msgstr "Desfocagem máxima"
-
-
-msgid "Blur limit, maximum CoC radius"
-msgstr "Define o limite de desfocagem através do raio máximo do círculo de indistinção."
 
 
 msgid "Bokeh Image"
@@ -27485,6 +27477,10 @@ msgid "Bokeh shape rotation offset"
 msgstr "Deslocamento de rotação do formato da flocagem."
 
 
+msgid "Blur limit, maximum CoC radius"
+msgstr "Define o limite de desfocagem através do raio máximo do círculo de indistinção."
+
+
 msgid "Bokeh Type"
 msgstr "Tipo de flocagem"
 
@@ -27539,10 +27535,6 @@ msgstr "Cena a partir da qual selecionar a câmera ativa. Caso não esteja defin
 
 msgid "Gamma Correction"
 msgstr "Correção de gama"
-
-
-msgid "Enable gamma correction before and after main process"
-msgstr "Habilita a correção de gama antes e depois do processo principal."
 
 
 msgid "Use Z-Buffer"
@@ -28004,14 +27996,6 @@ msgstr "Rotacionar"
 
 msgid "Method to use to filter rotation"
 msgstr "Método usado para filtrar a rotação."
-
-
-msgid "Offset image horizontally (factor of image size)"
-msgstr "Desloca a imagem horizontalmente (pelo fator do tamanho da imagem)."
-
-
-msgid "Offset image vertically (factor of image size)"
-msgstr "Desloca a imagem verticalmente (pelo fator do tamanho da imagem)."
 
 
 msgid "Coordinate space to scale relative to"
@@ -38139,11 +38123,6 @@ msgstr "Achatar as faces selecionadas."
 
 
 msgctxt "Operator"
-msgid "Face Set Extract"
-msgstr "Extrair Conjunto de Faces"
-
-
-msgctxt "Operator"
 msgid "Weld Edges into Faces"
 msgstr "Soldar arestas criando faces"
 
@@ -38581,15 +38560,6 @@ msgstr "Desloca os anéis de arestas por deslizamento."
 
 msgid "Offset Edge Loop"
 msgstr "Deslocar anel de arestas"
-
-
-msgctxt "Operator"
-msgid "Mask Extract"
-msgstr "Extrair Máscara"
-
-
-msgid "Fill Holes"
-msgstr "Preencher lacunas"
 
 
 msgctxt "Operator"
@@ -45240,6 +45210,11 @@ msgstr "Editar Conjuntos de Faces"
 
 
 msgctxt "Operator"
+msgid "Face Set Extract"
+msgstr "Extrair Conjunto de Faces"
+
+
+msgctxt "Operator"
 msgid "Mask Filter"
 msgstr "Filtro de Máscara"
 
@@ -45278,6 +45253,15 @@ msgstr "Relaxar"
 
 msgid "Recalculate the sculpt BVH to improve performance"
 msgstr "Recalcula a hierarquia de volume circundante da escultura para melhorar a performance."
+
+
+msgctxt "Operator"
+msgid "Mask Extract"
+msgstr "Extrair Máscara"
+
+
+msgid "Fill Holes"
+msgstr "Preencher lacunas"
 
 
 msgctxt "Operator"
@@ -49661,10 +49645,6 @@ msgid "Detail Percentage"
 msgstr "Porcentagem de detalhes"
 
 
-msgid "Maximum edge length for dynamic topology sculpting (in brush percenage)"
-msgstr "Comprimento máximo de aresta para escultura de topologia dinâmica (em porcentagem do pincel)."
-
-
 msgid "Detail Refine Method"
 msgstr "Método de refinamento de detalhes"
 
@@ -49813,6 +49793,14 @@ msgid "Active Palette Color"
 msgstr "Cor ativa da paleta"
 
 
+msgid "Motion Tracking"
+msgstr "Captura de movimentos"
+
+
+msgid "Transform Orientations"
+msgstr "Orientações de transformação"
+
+
 msgid "Quad View"
 msgstr "Exibição Quadrante"
 
@@ -49821,20 +49809,8 @@ msgid "Stereoscopy"
 msgstr "Estereoscopia"
 
 
-msgid "Wire Color"
-msgstr "Cor dos cabos"
-
-
 msgid "Render Pass"
 msgstr "Passo de renderização"
-
-
-msgid "Motion Tracking"
-msgstr "Captura de movimentos"
-
-
-msgid "Transform Orientations"
-msgstr "Orientações de transformação"
 
 
 msgid "Bone Constraints"
@@ -57169,14 +57145,6 @@ msgid "No display"
 msgstr "Sem exibição"
 
 
-msgid "Use Backdrop"
-msgstr "Usar pano de fundo"
-
-
-msgid "Display result under strips"
-msgstr "Mostrar resultado abaixo das faixas."
-
-
 msgid "Context Gizmo"
 msgstr "Apetrecho de Contexto"
 
@@ -59464,6 +59432,10 @@ msgstr "Nós de vetores"
 
 msgid "Wires"
 msgstr "Cabos"
+
+
+msgid "Wire Color"
+msgstr "Cor dos cabos"
 
 
 msgid "Wire Select"

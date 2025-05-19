@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'a7d2b7850ef2')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'd87e0ecb614e')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-05 08:47+0000\n"
+"POT-Creation-Date: 2025-05-19 11:37+0000\n"
 "PO-Revision-Date: 2025-04-14 08:12+0000\n"
 "Last-Translator: Zdeněk Doležal <Griperis@outlook.cz>\n"
 "Language-Team: Czech <https://translate.blender.org/projects/blender-ui/ui/cs/>\n"
@@ -2562,6 +2562,30 @@ msgstr "Podřazený"
 
 msgid "Bones which are children of this bone"
 msgstr "Kosti, které jsou dětmi této kosti"
+
+
+msgid "Display Type"
+msgstr "Přemístit typ"
+
+
+msgid "Octahedral"
+msgstr "Osmistěn"
+
+
+msgid "Stick"
+msgstr "Vyhladit"
+
+
+msgid "B-Bone"
+msgstr "Kost"
+
+
+msgid "Envelope"
+msgstr "Plášť"
+
+
+msgid "Wire"
+msgstr "Drát"
 
 
 msgid "Envelope Deform Distance"
@@ -7530,10 +7554,6 @@ msgid "Tracer"
 msgstr "Sledování"
 
 
-msgid "Display Type"
-msgstr "Přemístit typ"
-
-
 msgid "Fluid Velocity"
 msgstr "Rychlost Kapaliny"
 
@@ -7975,26 +7995,6 @@ msgstr "Předchozí klíč"
 
 msgid "Feature Set"
 msgstr "Sada Funkcí"
-
-
-msgid "Octahedral"
-msgstr "Osmistěn"
-
-
-msgid "Stick"
-msgstr "Vyhladit"
-
-
-msgid "B-Bone"
-msgstr "Kost"
-
-
-msgid "Envelope"
-msgstr "Plášť"
-
-
-msgid "Wire"
-msgstr "Drát"
 
 
 msgid "Edit Bones"
@@ -13581,6 +13581,30 @@ msgid "Material slot name"
 msgstr "Název okénka materiálu"
 
 
+msgid "Mirror"
+msgstr "Zrcadlit"
+
+
+msgid "Snap"
+msgstr "Přichytit"
+
+
+msgid "UV Mapping"
+msgstr "UV mapování"
+
+
+msgid "Local View"
+msgstr "Lokální pohled"
+
+
+msgid "Navigation"
+msgstr "Navigace"
+
+
+msgid "Align View"
+msgstr "Zarovnat pohled"
+
+
 msgid "Select Linked"
 msgstr "Vybrat Propojené"
 
@@ -13673,32 +13697,8 @@ msgid "Pivot Point"
 msgstr "Bod pro pivot"
 
 
-msgid "Snap"
-msgstr "Přichytit"
-
-
 msgid "Proportional Editing Falloff"
 msgstr "Způsob útlumu"
-
-
-msgid "Mirror"
-msgstr "Zrcadlit"
-
-
-msgid "UV Mapping"
-msgstr "UV mapování"
-
-
-msgid "Local View"
-msgstr "Lokální pohled"
-
-
-msgid "Navigation"
-msgstr "Navigace"
-
-
-msgid "Align View"
-msgstr "Zarovnat pohled"
 
 
 msgid "Basic"
@@ -23821,10 +23821,6 @@ msgid "Offset edge loop slide"
 msgstr "Odsazená smyčka hrany posunout"
 
 
-msgid "Fill Holes"
-msgstr "Vyplnit díry"
-
-
 msgctxt "Operator"
 msgid "Poke Faces"
 msgstr "Strčit Hrany"
@@ -28084,6 +28080,10 @@ msgid "Rebuild BVH"
 msgstr "Přebudovat BVH"
 
 
+msgid "Fill Holes"
+msgstr "Vyplnit díry"
+
+
 msgctxt "Operator"
 msgid "Sculpt Mode"
 msgstr "Řezbářský mód"
@@ -30987,6 +30987,30 @@ msgid "Restrict"
 msgstr "Omezit"
 
 
+msgid "Motion Tracking"
+msgstr "Sledování Pohybu"
+
+
+msgid "Mesh Edit Mode"
+msgstr "Editační Režim Sítě"
+
+
+msgid "Measurement"
+msgstr "Měření"
+
+
+msgid "Curve Edit Mode"
+msgstr "Editační Režim Křivky"
+
+
+msgid "Snapping"
+msgstr "Přichytávání"
+
+
+msgid "Transform Orientations"
+msgstr "Orientace transformací"
+
+
 msgid "Guides"
 msgstr "Vodítka"
 
@@ -31021,30 +31045,6 @@ msgstr "Dutina"
 
 msgid "Overlays"
 msgstr "Překrytí"
-
-
-msgid "Motion Tracking"
-msgstr "Sledování Pohybu"
-
-
-msgid "Mesh Edit Mode"
-msgstr "Editační Režim Sítě"
-
-
-msgid "Measurement"
-msgstr "Měření"
-
-
-msgid "Curve Edit Mode"
-msgstr "Editační Režim Křivky"
-
-
-msgid "Snapping"
-msgstr "Přichytávání"
-
-
-msgid "Transform Orientations"
-msgstr "Orientace transformací"
 
 
 msgid "Chain Scaling"
@@ -38869,10 +38869,6 @@ msgid "Velocity Source"
 msgstr "Zdroj Rychlosti"
 
 
-msgid "Is Resumable"
-msgstr "Je obnovitelný"
-
-
 msgid "Resolution Divisions"
 msgstr "Dělení Rozlišení"
 
@@ -38883,10 +38879,6 @@ msgstr "CFL Číslo"
 
 msgid "Lower"
 msgstr "Smazat nižší"
-
-
-msgid "Using Scene Gravity"
-msgstr "Použít gravitaci scény"
 
 
 msgid "Empty Space"

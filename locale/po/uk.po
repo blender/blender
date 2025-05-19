@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'a7d2b7850ef2')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'd87e0ecb614e')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-05 08:47+0000\n"
+"POT-Creation-Date: 2025-05-19 11:37+0000\n"
 "PO-Revision-Date: 2025-04-14 08:44+0000\n"
 "Last-Translator: Bartosz <gang65@poczta.onet.pl>\n"
 "Language-Team: Ukrainian <https://translate.blender.org/projects/blender-ui/ui/uk/>\n"
@@ -2974,6 +2974,46 @@ msgstr "Нащадок"
 
 msgid "Bones which are children of this bone"
 msgstr "Кістки-нащадки цієї кістки"
+
+
+msgid "Display Type"
+msgstr "Показати тип"
+
+
+msgid "Octahedral"
+msgstr "Восьмигранний"
+
+
+msgid "Stick"
+msgstr "Паличка"
+
+
+msgid "Display bones as simple 2D lines with dots"
+msgstr "Показати кістки у вигляді простих відрізків з точками"
+
+
+msgid "B-Bone"
+msgstr "B-кістка"
+
+
+msgid "Display bones as boxes, showing subdivision and B-Splines"
+msgstr "Показати кістки, як паралелепіпеди, показуючи поділи та B-сплайни"
+
+
+msgid "Envelope"
+msgstr "Оболонка"
+
+
+msgid "Display bones as extruded spheres, showing deformation influence volume"
+msgstr "Показати кістки як екструдовані сфери, що показують об'єм впливу деформації"
+
+
+msgid "Wire"
+msgstr "Каркас"
+
+
+msgid "Display bones as thin wires, showing subdivision and B-Splines"
+msgstr "Показати кістки як тонкі дроти, показуючи поділи і B-сплайни"
 
 
 msgid "Envelope Deform Distance"
@@ -12506,10 +12546,6 @@ msgid "Use Viscosity"
 msgstr "Вжити В'язкість"
 
 
-msgid "Display Type"
-msgstr "Показати тип"
-
-
 msgid "Needle"
 msgstr "Голка"
 
@@ -14354,44 +14390,8 @@ msgid "Animation data for this data-block"
 msgstr "Дані анімації для цього блоку даних"
 
 
-msgid "Octahedral"
-msgstr "Восьмигранний"
-
-
 msgid "Display bones as octahedral shape (default)"
 msgstr "Показати кістки октаедричної форми (стандартно)"
-
-
-msgid "Stick"
-msgstr "Паличка"
-
-
-msgid "Display bones as simple 2D lines with dots"
-msgstr "Показати кістки у вигляді простих відрізків з точками"
-
-
-msgid "B-Bone"
-msgstr "B-кістка"
-
-
-msgid "Display bones as boxes, showing subdivision and B-Splines"
-msgstr "Показати кістки, як паралелепіпеди, показуючи поділи та B-сплайни"
-
-
-msgid "Envelope"
-msgstr "Оболонка"
-
-
-msgid "Display bones as extruded spheres, showing deformation influence volume"
-msgstr "Показати кістки як екструдовані сфери, що показують об'єм впливу деформації"
-
-
-msgid "Wire"
-msgstr "Каркас"
-
-
-msgid "Display bones as thin wires, showing subdivision and B-Splines"
-msgstr "Показати кістки як тонкі дроти, показуючи поділи і B-сплайни"
 
 
 msgid "Edit Bones"
@@ -26583,16 +26583,52 @@ msgid "Material slot name"
 msgstr "Назва гнізда матеріалу"
 
 
+msgid "Mirror"
+msgstr "Дзеркалення"
+
+
+msgid "Snap"
+msgstr "Підхоп"
+
+
+msgid "UV Mapping"
+msgstr "Розкладання UV"
+
+
+msgid "Local View"
+msgstr "Огляд Локально"
+
+
+msgid "Viewpoint"
+msgstr "Точка зору"
+
+
+msgid "Navigation"
+msgstr "Навігація"
+
+
+msgid "Align View"
+msgstr "Вирівняти Огляд"
+
+
+msgid "Align View to Active"
+msgstr "Вирівняти Огляд за Активним"
+
+
+msgid "View Regions"
+msgstr "Регіони Огляду"
+
+
+msgid "Select More/Less"
+msgstr "Вибрати більше/менше"
+
+
 msgid "Select Similar"
 msgstr "Вибрати подібні"
 
 
 msgid "Select All by Trait"
 msgstr "Вибрати все за рисою"
-
-
-msgid "Select More/Less"
-msgstr "Вибрати більше/менше"
 
 
 msgid "Select Linked"
@@ -26751,10 +26787,6 @@ msgid "Pivot Point"
 msgstr "Точка Опертя"
 
 
-msgid "Snap"
-msgstr "Підхоп"
-
-
 msgid "Proportional Editing Falloff"
 msgstr "Спад Пропорційного Редагування"
 
@@ -26769,38 +26801,6 @@ msgstr "Автомаскування"
 
 msgid "Face Sets Edit"
 msgstr "Редагування Наборів Граней"
-
-
-msgid "Mirror"
-msgstr "Дзеркалення"
-
-
-msgid "UV Mapping"
-msgstr "Розкладання UV"
-
-
-msgid "Local View"
-msgstr "Огляд Локально"
-
-
-msgid "Viewpoint"
-msgstr "Точка зору"
-
-
-msgid "Navigation"
-msgstr "Навігація"
-
-
-msgid "Align View"
-msgstr "Вирівняти Огляд"
-
-
-msgid "Align View to Active"
-msgstr "Вирівняти Огляд за Активним"
-
-
-msgid "View Regions"
-msgstr "Регіони Огляду"
 
 
 msgid "Basic"
@@ -34168,10 +34168,6 @@ msgid "Extend bounds of the input image to fully fit blurred image"
 msgstr "Розширити межі ввідного зображення для повної підгонки розмитого зображення"
 
 
-msgid "Apply filter on gamma corrected values"
-msgstr "Застосувати фільтр після гамма-корекції значень"
-
-
 msgid "Use relative (percent) values to define blur radius"
 msgstr "Використати відносні (у відсотках) значення для визначення радіуса розмивання"
 
@@ -34186,10 +34182,6 @@ msgstr "Розмив боке"
 
 msgid "Max Blur"
 msgstr "Макс розмиву"
-
-
-msgid "Blur limit, maximum CoC radius"
-msgstr "Межа розмивання, найбільший радіус CoC"
 
 
 msgid "Bokeh Image"
@@ -34620,6 +34612,10 @@ msgid "Bokeh shape rotation offset"
 msgstr "Кутовий зсув фігури боке"
 
 
+msgid "Blur limit, maximum CoC radius"
+msgstr "Межа розмивання, найбільший радіус CoC"
+
+
 msgid "Bokeh Type"
 msgstr "Тип боке"
 
@@ -34678,10 +34674,6 @@ msgstr "Сцена, з якої вибрати активну камеру (як
 
 msgid "Gamma Correction"
 msgstr "Корекція гамми"
-
-
-msgid "Enable gamma correction before and after main process"
-msgstr "Увімкнути корекцію гамми до і після основного процесу"
 
 
 msgid "Use Z-Buffer"
@@ -35307,14 +35299,6 @@ msgstr "Оберт"
 
 msgid "Method to use to filter rotation"
 msgstr "Метод фільтрації обертання"
-
-
-msgid "Offset image horizontally (factor of image size)"
-msgstr "Змістити зображення по горизонталі (частка розміру зображення)"
-
-
-msgid "Offset image vertically (factor of image size)"
-msgstr "Змістити зображення по вертикалі (частка розміру зображення)"
 
 
 msgid "Coordinate space to scale relative to"
@@ -47818,43 +47802,6 @@ msgstr "Сплощити вибрані грані"
 
 
 msgctxt "Operator"
-msgid "Face Set Extract"
-msgstr "Витягти Набір Граней"
-
-
-msgid "Create a new mesh object from the selected Face Set"
-msgstr "Створити новий об'єкт сіті з вибраного Набору Граней"
-
-
-msgid "Add Boundary Loop"
-msgstr "Додати Рубіжну Петлю"
-
-
-msgid "Add an extra edge loop to better preserve the shape when applying a subdivision surface modifier"
-msgstr "Додати додаткову петлю ребер для кращого зберігання форми при застосуванні модифікатора підподілення поверхні"
-
-
-msgid "Extract as Solid"
-msgstr "Витягти як Суцільне"
-
-
-msgid "Extract the mask as a solid object with a solidify modifier"
-msgstr "Витягти маску як суцільний об'єкт з модифікатором потовщення"
-
-
-msgid "Project to Sculpt"
-msgstr "Проектувати на Ліплення"
-
-
-msgid "Project the extracted mesh into the original sculpt"
-msgstr "Проектувати витягнену сіть на оригінальне ліплення"
-
-
-msgid "Smooth iterations applied to the extracted mesh"
-msgstr "Повтори згладження, застосовувані до витягненої сіті"
-
-
-msgctxt "Operator"
 msgid "Weld Edges into Faces"
 msgstr "Звести ребра у грані"
 
@@ -48410,44 +48357,6 @@ msgstr "Зсув ковзання петлі ребер"
 
 msgid "Offset Edge Loop"
 msgstr "Зсув петлі ребер"
-
-
-msgctxt "Operator"
-msgid "Mask Extract"
-msgstr "Витягнення Маски"
-
-
-msgid "Create a new mesh object from the current paint mask"
-msgstr "Створити новий об'єкт сіті з поточної маски малювання"
-
-
-msgid "Minimum mask value to consider the vertex valid to extract a face from the original mesh"
-msgstr "Мінімальне значення маски для вважання вершини дійсною для витягнення грані з оригінальної сіті"
-
-
-msgctxt "Operator"
-msgid "Mask Slice"
-msgstr "Краяння Маски"
-
-
-msgid "Slices the paint mask from the mesh"
-msgstr "Відкраює мальовану маску від сіті"
-
-
-msgid "Fill Holes"
-msgstr "Заповнити Отвори"
-
-
-msgid "Fill holes after slicing the mask"
-msgstr "Заповнити отвори після відкраювання маски"
-
-
-msgid "Slice to New Object"
-msgstr "Краяння у Новий Об'єкт"
-
-
-msgid "Create a new object from the sliced mask"
-msgstr "Створити новий об'єкт з відкраяної маски"
 
 
 msgctxt "Operator"
@@ -56640,6 +56549,43 @@ msgstr "Модифікувати Сховане"
 
 
 msgctxt "Operator"
+msgid "Face Set Extract"
+msgstr "Витягти Набір Граней"
+
+
+msgid "Create a new mesh object from the selected Face Set"
+msgstr "Створити новий об'єкт сіті з вибраного Набору Граней"
+
+
+msgid "Add Boundary Loop"
+msgstr "Додати Рубіжну Петлю"
+
+
+msgid "Add an extra edge loop to better preserve the shape when applying a subdivision surface modifier"
+msgstr "Додати додаткову петлю ребер для кращого зберігання форми при застосуванні модифікатора підподілення поверхні"
+
+
+msgid "Extract as Solid"
+msgstr "Витягти як Суцільне"
+
+
+msgid "Extract the mask as a solid object with a solidify modifier"
+msgstr "Витягти маску як суцільний об'єкт з модифікатором потовщення"
+
+
+msgid "Project to Sculpt"
+msgstr "Проектувати на Ліплення"
+
+
+msgid "Project the extracted mesh into the original sculpt"
+msgstr "Проектувати витягнену сіть на оригінальне ліплення"
+
+
+msgid "Smooth iterations applied to the extracted mesh"
+msgstr "Повтори згладження, застосовувані до витягненої сіті"
+
+
+msgctxt "Operator"
 msgid "Face Set Lasso Gesture"
 msgstr "Набір Граней Ласо Жестом"
 
@@ -56954,6 +56900,44 @@ msgstr "Перебудувати BVH"
 
 msgid "Recalculate the sculpt BVH to improve performance"
 msgstr "Повторно обчислити BVH ліплення, щоб підвищити продуктивність"
+
+
+msgctxt "Operator"
+msgid "Mask Extract"
+msgstr "Витягнення Маски"
+
+
+msgid "Create a new mesh object from the current paint mask"
+msgstr "Створити новий об'єкт сіті з поточної маски малювання"
+
+
+msgid "Minimum mask value to consider the vertex valid to extract a face from the original mesh"
+msgstr "Мінімальне значення маски для вважання вершини дійсною для витягнення грані з оригінальної сіті"
+
+
+msgctxt "Operator"
+msgid "Mask Slice"
+msgstr "Краяння Маски"
+
+
+msgid "Slices the paint mask from the mesh"
+msgstr "Відкраює мальовану маску від сіті"
+
+
+msgid "Fill Holes"
+msgstr "Заповнити Отвори"
+
+
+msgid "Fill holes after slicing the mask"
+msgstr "Заповнити отвори після відкраювання маски"
+
+
+msgid "Slice to New Object"
+msgstr "Краяння у Новий Об'єкт"
+
+
+msgid "Create a new object from the sliced mask"
+msgstr "Створити новий об'єкт з відкраяної маски"
 
 
 msgctxt "Operator"
@@ -62833,10 +62817,6 @@ msgid "Detail Percentage"
 msgstr "Відсоток детальності"
 
 
-msgid "Maximum edge length for dynamic topology sculpting (in brush percenage)"
-msgstr "Максимум довжини ребра для ліплення з динамічною топологією (у відсотках пензля)"
-
-
 msgid "Detail Refine Method"
 msgstr "Спосіб уточнення деталей"
 
@@ -63001,6 +62981,34 @@ msgid "Panel containing UI elements"
 msgstr "Панель, що містить елементи Інтерфейсу Користувача"
 
 
+msgid "Motion Tracking"
+msgstr "Відстеження руху"
+
+
+msgid "Mesh Edit Mode"
+msgstr "Режим Редагування Сіті"
+
+
+msgid "Measurement"
+msgstr "Вимірювання"
+
+
+msgid "Curve Edit Mode"
+msgstr "Режим Редагування Кривої"
+
+
+msgid "Snapping"
+msgstr "Підхоплення"
+
+
+msgid "Transform Orientations"
+msgstr "Орієнтації Трансформ"
+
+
+msgid "Stroke Placement"
+msgstr "Розміщення Штриха"
+
+
 msgid "Drawing Plane"
 msgstr "Площина Рисування"
 
@@ -63029,10 +63037,6 @@ msgid "Auto-Masking"
 msgstr "Авто-Маскування"
 
 
-msgid "Stroke Placement"
-msgstr "Розміщення Штриха"
-
-
 msgid "VR"
 msgstr "ВР"
 
@@ -63043,10 +63047,6 @@ msgstr "Активний Засіб"
 
 msgid "View Lock"
 msgstr "Блокувати Огляд"
-
-
-msgid "Wire Color"
-msgstr "Колір зв'язку"
 
 
 msgid "Shadow Settings"
@@ -63067,30 +63067,6 @@ msgstr "Прохід Рендера"
 
 msgid "Overlays"
 msgstr "Накладки"
-
-
-msgid "Motion Tracking"
-msgstr "Відстеження руху"
-
-
-msgid "Mesh Edit Mode"
-msgstr "Режим Редагування Сіті"
-
-
-msgid "Measurement"
-msgstr "Вимірювання"
-
-
-msgid "Curve Edit Mode"
-msgstr "Режим Редагування Кривої"
-
-
-msgid "Snapping"
-msgstr "Підхоплення"
-
-
-msgid "Transform Orientations"
-msgstr "Орієнтації Трансформ"
 
 
 msgid "Chain Scaling"
@@ -63785,10 +63761,6 @@ msgstr "Устави замісника"
 
 msgid "Sequencer Overlays"
 msgstr "Накладки Секвенсера"
-
-
-msgid "Strip Cache"
-msgstr "Кеш Смужки"
 
 
 msgid "Strip Proxy & Timecode"
@@ -65864,14 +65836,6 @@ msgid "Enable Cycles debugging options for developers"
 msgstr "Увімкнути опції зневаджування Cycles для розробників"
 
 
-msgid "Sculpt Mode Tilt Support"
-msgstr "Підтримка Відхилу в Режимі Ліплення"
-
-
-msgid "Support for pen tablet tilt events in Sculpt Mode"
-msgstr "Підтримка для подій відхилу графічного планшета у Режимі Ліплення"
-
-
 msgid "Undo Legacy"
 msgstr "Скасування Застаріле"
 
@@ -66668,42 +66632,6 @@ msgid "Maximum number of lines to store for the console buffer"
 msgstr "Найбільша кількість рядків, які зберігаються в буфері консолі"
 
 
-msgid "Disk Cache Compression Level"
-msgstr "Рівень Стиснення Кешу на Диску"
-
-
-msgid "Smaller compression will result in larger files, but less decoding overhead"
-msgstr "Менше стиснення призведе до більших файлів, але й до менших витрат на декодування"
-
-
-msgid "Requires fast storage, but uses minimum CPU resources"
-msgstr "Вимагає швидкого сховища, але використовує мінімум ресурсів CPU"
-
-
-msgid "Doesn't require fast storage and uses less CPU resources"
-msgstr "Не вимагає швидкого сховища та використовує менше ресурсів CPU"
-
-
-msgid "Works on slower storage devices and uses most CPU resources"
-msgstr "Працює на повільніших пристроях сховища та використовує найбільше ресурсів CPU"
-
-
-msgid "Disk Cache Directory"
-msgstr "Каталог кешу на диску"
-
-
-msgid "Override default directory"
-msgstr "Стандартний каталог заміщення"
-
-
-msgid "Disk Cache Limit"
-msgstr "Ліміт кешу на диску"
-
-
-msgid "Disk cache limit (in gigabytes)"
-msgstr "Ліміт кешу на диску (в гігабайтах)"
-
-
 msgid "Manual"
 msgstr "Вручну"
 
@@ -66746,14 +66674,6 @@ msgstr "Увімкнути накладання згладження дроті�
 
 msgid "Region Overlap"
 msgstr "Перекриття областей"
-
-
-msgid "Use Disk Cache"
-msgstr "Вжити кеш на диску"
-
-
-msgid "Store cached images to disk"
-msgstr "Зберігати кешовані зображення на диску"
 
 
 msgid "Edit Studio Light"
@@ -70640,28 +70560,12 @@ msgid "All strips, recursively including those inside metastrips"
 msgstr "Всі смужки рекурсивно, включно з тими, що у метасмужках"
 
 
-msgid "Cache Composite"
-msgstr "Кешувати Складене"
-
-
-msgid "Cache intermediate composited images, for faster tweaking of stacked strips at the cost of memory usage"
-msgstr "Кешувати проміжні скомпоновані зображення для швидшого підправлення наскладаних смужок ціною використання пам'яті"
-
-
 msgid "Cache Final"
 msgstr "Кешувати Фінальне"
 
 
 msgid "Cache final image for each frame"
 msgstr "Кешувати фінальне зображення для кожного кадру"
-
-
-msgid "Cache Preprocessed"
-msgstr "Кешувати Передоброблене"
-
-
-msgid "Cache preprocessed images, for faster tweaking of effects at the cost of memory usage"
-msgstr "Кешувати передоброблені зображення, для швидшого підправлення ефектів ціною використання пам'яті"
 
 
 msgid "Cache Raw"
@@ -70692,24 +70596,12 @@ msgid "Visualize cached images on the timeline"
 msgstr "Візуалізувати кешовані зображення на часолінії"
 
 
-msgid "Composite Images"
-msgstr "Зображення Композиції"
-
-
-msgid "Visualize cached composite images"
-msgstr "Візуалізувати кешовані зображення композиції"
-
-
 msgid "Final Images"
 msgstr "Фінальні Зображення"
 
 
 msgid "Visualize cached complete frames"
 msgstr "Візуалізувати кешовані завершені зображення"
-
-
-msgid "Visualize cached pre-processed images"
-msgstr "Візуалізувати кешовані перед-оброблені зображення"
 
 
 msgid "Raw Images"
@@ -72892,14 +72784,6 @@ msgid "No display"
 msgstr "Не показувати"
 
 
-msgid "Use Backdrop"
-msgstr "Вжити тло"
-
-
-msgid "Display result under strips"
-msgstr "Показати результат над смужками"
-
-
 msgid "Display Frames"
 msgstr "Показ Кадрів"
 
@@ -73670,14 +73554,6 @@ msgstr "Модифікатори, що впливають на цю смужку
 
 msgid "Disable strip so that it cannot be viewed in the output"
 msgstr "Вимкнути смужку, щоб її не було видно при виводі"
-
-
-msgid "Override Cache Settings"
-msgstr "Устави кешу заміщення"
-
-
-msgid "Override global cache settings"
-msgstr "Устави глобального кешу заміщення"
 
 
 msgid "Left Handle Selected"
@@ -75841,6 +75717,10 @@ msgid "Wires"
 msgstr "Зв'язки"
 
 
+msgid "Wire Color"
+msgstr "Колір зв'язку"
+
+
 msgid "Wire Select"
 msgstr "Вибір зв'язку"
 
@@ -77976,10 +77856,6 @@ msgstr "Фактор для западин порожнинності"
 
 msgid "Show material color"
 msgstr "Показати колір матеріалу"
-
-
-msgid "Show scene in a single color"
-msgstr "Показати сцену одним кольором"
 
 
 msgid "Show object color"
@@ -81014,10 +80890,6 @@ msgid "Upres Factor"
 msgstr "Фактор Підвищення Роздільності"
 
 
-msgid "Use Speed Vectors"
-msgstr "Вжити Вектори Швидкості"
-
-
 msgid "Mesh Generator"
 msgstr "Генератор Сіті"
 
@@ -81066,10 +80938,6 @@ msgid "Velocity Source"
 msgstr "Джерело Скорості"
 
 
-msgid "Is Resumable"
-msgstr "Є Відновлюваним"
-
-
 msgid "Resolution Divisions"
 msgstr "Поділи Роздільності"
 
@@ -81104,10 +80972,6 @@ msgstr "Напрямний Предок"
 
 msgid "Enable Guides first! Defaulting to Fluid Velocity"
 msgstr "Увімкніть спершу Напрямні! Відсутність для Скорості Флюїду"
-
-
-msgid "Using Scene Gravity"
-msgstr "Вживання Гравітації Сцени"
 
 
 msgid "Empty Space"
@@ -82532,10 +82396,6 @@ msgid "Set Preview Range to Strips"
 msgstr "Задати Діапазон Передогляду для Смужок"
 
 
-msgid "Preview as Backdrop"
-msgstr "Передогляд як Тло"
-
-
 msgctxt "Operator"
 msgid "Fit Preview in Window"
 msgstr "Підігнати Передогляд під Вікно"
@@ -83257,10 +83117,6 @@ msgstr "Лінії Прокрутки Консолі"
 
 msgid "Garbage Collection Rate"
 msgstr "Частота Збирання Сміття"
-
-
-msgid "Cache Limit"
-msgstr "Ліміт Кешу"
 
 
 msgid "View Name"
