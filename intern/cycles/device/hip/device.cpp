@@ -168,17 +168,10 @@ void device_hip_info(vector<DeviceInfo> &devices)
     info.description = string(name);
     info.num = num;
 
-    const bool is_rdna2_or_newer = hipIsRDNA2OrNewer(num);
-
-    /* Disable MNEE on devices that don't work properly with it.
-     * Common symptoms are either rendering artifacts,
-     * or renders that get stuck in the MNEE kernel.
-     * These are most likely compiler bugs and can be re-enabled in the future. */
-#  ifdef _WIN32
-    info.has_mnee = is_rdna2_or_newer && !hipIsRDNA4OrNewer(num);
-#  else
-    info.has_mnee = is_rdna2_or_newer;
-#  endif
+    /* Disable MNEE as it causes stalls or has rendering artifacts on most AMD GPU configurations
+     * due to compiler bugs. And as further adjustments have been made to other areas of Cycles,
+     * more and more AMD GPUs are affected by these issues. */
+    info.has_mnee = false;
     info.has_nanovdb = true;
 
     info.has_gpu_queue = true;
@@ -192,7 +185,7 @@ void device_hip_info(vector<DeviceInfo> &devices)
     }
 
     /* Disable on RDNA1 due to bug rendering curves in HIP-RT 2.5 or HIP SDK 6.3. */
-    info.use_hardware_raytracing = has_hardware_raytracing && is_rdna2_or_newer;
+    info.use_hardware_raytracing = has_hardware_raytracing && hipIsRDNA2OrNewer(num);
 
     int pci_location[3] = {0, 0, 0};
     hipDeviceGetAttribute(&pci_location[0], hipDeviceAttributePciDomainID, num);
