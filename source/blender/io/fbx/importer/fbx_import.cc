@@ -155,6 +155,7 @@ void FbxImportContext::import_cameras()
     }
     node_matrix_to_obj(node, obj, this->mapping);
     this->mapping.el_to_object.add(&node->element, obj);
+    this->mapping.imported_objects.add(obj);
   }
 }
 
@@ -206,6 +207,7 @@ void FbxImportContext::import_lights()
     }
     node_matrix_to_obj(node, obj, this->mapping);
     this->mapping.el_to_object.add(&node->element, obj);
+    this->mapping.imported_objects.add(obj);
   }
 }
 
@@ -219,7 +221,9 @@ void FbxImportContext::import_empties()
   /* Create empties for fbx nodes. */
   for (const ufbx_node *node : this->fbx.nodes) {
     /* Ignore root, bones and nodes for which we have created objects already. */
-    if (node->is_root || node->bone || this->mapping.el_to_object.contains(&node->element)) {
+    if (node->is_root || this->mapping.node_is_blender_bone.contains(node) ||
+        this->mapping.el_to_object.contains(&node->element))
+    {
       continue;
     }
     Object *obj = BKE_object_add_only_object(this->bmain, OB_EMPTY, get_fbx_name(node->name));
@@ -232,6 +236,7 @@ void FbxImportContext::import_empties()
     }
     node_matrix_to_obj(node, obj, this->mapping);
     this->mapping.el_to_object.add(&node->element, obj);
+    this->mapping.imported_objects.add(obj);
   }
 }
 
@@ -251,11 +256,6 @@ void FbxImportContext::setup_hierarchy()
     }
     const ufbx_node *node = ufbx_as_node(item.key);
     if (node == nullptr) {
-      continue;
-    }
-    if (node->bone != nullptr && !node->bone->is_root) {
-      /* If this node is for a non-root bone, do not try to setup object parenting
-       * for it (the object for bone bones is whole armature). */
       continue;
     }
     if (node->parent) {
@@ -390,14 +390,14 @@ void importer_main(Main *bmain, Scene *scene, ViewLayer *view_layer, const FBXIm
   ufbx_free_scene(fbx);
 
   /* Add objects to collection. */
-  for (Object *obj : ctx.mapping.el_to_object.values()) {
+  for (Object *obj : ctx.mapping.imported_objects) {
     BKE_collection_object_add(bmain, lc->collection, obj);
   }
 
   /* Select objects, sync layers etc. */
   BKE_view_layer_base_deselect_all(scene, view_layer);
   BKE_view_layer_synced_ensure(scene, view_layer);
-  for (Object *obj : ctx.mapping.el_to_object.values()) {
+  for (Object *obj : ctx.mapping.imported_objects) {
     Base *base = BKE_view_layer_base_find(view_layer, obj);
     BKE_view_layer_base_select_and_set_active(view_layer, base);
 

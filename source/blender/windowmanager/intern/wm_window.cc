@@ -260,7 +260,7 @@ void wm_window_free(bContext *C, wmWindowManager *wm, wmWindow *win)
     }
   }
 
-  /* Timer removing, need to call this api function. */
+  /* Timer removing, need to call this API function. */
   LISTBASE_FOREACH_MUTABLE (wmTimer *, wt, &wm->timers) {
     if (wt->flags & WM_TIMER_TAGGED_FOR_REMOVAL) {
       continue;
@@ -3153,11 +3153,12 @@ void wm_window_IME_end(wmWindow *win)
    * Even if no IME events were generated (which assigned `ime_data`).
    * TODO: check if #GHOST_EndIME can run on WIN32 & APPLE without causing problems. */
 #  if defined(WIN32) || defined(__APPLE__)
-  BLI_assert(win->ime_data);
+  BLI_assert(win->runtime->ime_data);
 #  endif
   GHOST_EndIME(static_cast<GHOST_WindowHandle>(win->ghostwin));
-  win->ime_data = nullptr;
-  win->ime_data_is_composing = false;
+  MEM_delete(win->runtime->ime_data);
+  win->runtime->ime_data = nullptr;
+  win->runtime->ime_data_is_composing = false;
 }
 #endif /* WITH_INPUT_IME */
 

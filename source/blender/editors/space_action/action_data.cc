@@ -301,7 +301,7 @@ void ACTION_OT_new(wmOperatorType *ot)
   ot->idname = "ACTION_OT_new";
   ot->description = "Create new action";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = action_new_exec;
   ot->poll = action_new_poll;
 

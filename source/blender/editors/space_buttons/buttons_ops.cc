@@ -487,7 +487,7 @@ void BUTTONS_OT_directory_browse(wmOperatorType *ot)
       "Open a directory browser, hold Shift to open the file, Alt to browse containing directory";
   ot->idname = "BUTTONS_OT_directory_browse";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = file_browse_invoke;
   ot->exec = file_browse_exec;
   ot->cancel = file_browse_cancel;

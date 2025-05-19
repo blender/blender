@@ -11,8 +11,6 @@
  * \note Does not *fix* anything, only reports found errors.
  */
 
-#include <cstring> /* for #strrchr #strncmp #strstr */
-
 #include "CLG_log.h"
 
 #include "BLI_listbase.h"

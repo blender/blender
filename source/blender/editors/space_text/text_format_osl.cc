@@ -338,7 +338,7 @@ static void txtfmt_osl_format_line(SpaceText *st, TextLine *line, const bool do_
         /* clang-format on */
 
         if (i > 0) {
-          if (prev == FMT_TYPE_DIRECTIVE) { /* can contain utf8 */
+          if (prev == FMT_TYPE_DIRECTIVE) { /* May contain UTF8. */
             text_format_fill(&str, &fmt, prev, i);
           }
           else {

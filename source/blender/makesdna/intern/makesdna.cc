@@ -152,7 +152,7 @@ static short *add_struct(int type_index);
 
 /**
  * Remove comments from this buffer. Assumes that the buffer refers to
- * ascii-code text.
+ * ASCII-code text.
  */
 static int preprocess_include(char *maindata, const int maindata_len);
 

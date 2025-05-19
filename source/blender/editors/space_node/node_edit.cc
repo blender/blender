@@ -1201,7 +1201,7 @@ void NODE_OT_resize(wmOperatorType *ot)
   ot->idname = "NODE_OT_resize";
   ot->description = "Resize a node";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = node_resize_invoke;
   ot->modal = node_resize_modal;
   ot->poll = ED_operator_node_active;
@@ -1595,7 +1595,7 @@ void NODE_OT_duplicate(wmOperatorType *ot)
   ot->description = "Duplicate selected nodes";
   ot->idname = "NODE_OT_duplicate";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = node_duplicate_exec;
   ot->poll = ED_operator_node_editable;
 
@@ -2103,7 +2103,7 @@ void NODE_OT_delete(wmOperatorType *ot)
   ot->description = "Remove selected nodes";
   ot->idname = "NODE_OT_delete";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = node_delete_exec;
   ot->poll = ED_operator_node_editable;
 
@@ -2150,7 +2150,7 @@ void NODE_OT_delete_reconnect(wmOperatorType *ot)
   ot->description = "Remove nodes and reconnect nodes as if deletion was muted";
   ot->idname = "NODE_OT_delete_reconnect";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = node_delete_reconnect_exec;
   ot->poll = ED_operator_node_editable;
 
@@ -2380,7 +2380,7 @@ void NODE_OT_node_copy_color(wmOperatorType *ot)
   ot->description = "Copy color to all selected nodes";
   ot->idname = "NODE_OT_node_copy_color";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = node_copy_color_exec;
   ot->poll = ED_operator_node_editable;
 
@@ -2458,7 +2458,7 @@ void NODE_OT_shader_script_update(wmOperatorType *ot)
   ot->description = "Update shader script node with new sockets and options from the script";
   ot->idname = "NODE_OT_shader_script_update";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = node_shader_script_update_exec;
   ot->poll = node_shader_script_update_poll;
 
@@ -2551,7 +2551,7 @@ void NODE_OT_viewer_border(wmOperatorType *ot)
   ot->description = "Set the boundaries for viewer operations";
   ot->idname = "NODE_OT_viewer_border";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = WM_gesture_box_invoke;
   ot->exec = viewer_border_exec;
   ot->modal = WM_gesture_box_modal;
@@ -2584,7 +2584,7 @@ void NODE_OT_clear_viewer_border(wmOperatorType *ot)
   ot->description = "Clear the boundaries for viewer operations";
   ot->idname = "NODE_OT_clear_viewer_border";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = clear_viewer_border_exec;
   ot->poll = composite_node_active;
 

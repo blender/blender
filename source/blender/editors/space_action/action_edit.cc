@@ -298,7 +298,7 @@ void ACTION_OT_previewrange_set(wmOperatorType *ot)
   ot->idname = "ACTION_OT_previewrange_set";
   ot->description = "Set Preview Range based on extents of selected Keyframes";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = actkeys_previewrange_exec;
   ot->poll = ED_operator_action_active;
 
@@ -455,7 +455,7 @@ void ACTION_OT_view_all(wmOperatorType *ot)
   ot->idname = "ACTION_OT_view_all";
   ot->description = "Reset viewable area to show full keyframe range";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = actkeys_viewall_exec;
   ot->poll = ED_operator_action_active;
 
@@ -470,7 +470,7 @@ void ACTION_OT_view_selected(wmOperatorType *ot)
   ot->idname = "ACTION_OT_view_selected";
   ot->description = "Reset viewable area to show selected keyframes range";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = actkeys_viewsel_exec;
   ot->poll = ED_operator_action_active;
 
@@ -499,7 +499,7 @@ void ACTION_OT_view_frame(wmOperatorType *ot)
   ot->idname = "ACTION_OT_view_frame";
   ot->description = "Move the view to the current frame";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = actkeys_view_frame_exec;
   ot->poll = ED_operator_action_active;
 
@@ -648,7 +648,7 @@ void ACTION_OT_copy(wmOperatorType *ot)
   ot->idname = "ACTION_OT_copy";
   ot->description = "Copy selected keyframes to the internal clipboard";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = actkeys_copy_exec;
   ot->poll = ED_operator_action_active;
 
@@ -751,7 +751,7 @@ void ACTION_OT_paste(wmOperatorType *ot)
       "current "
       "frame";
 
-  /* api callbacks */
+  /* API callbacks. */
   //  ot->invoke = WM_operator_props_popup; /* Better wait for action redo panel. */
   ot->get_description = actkeys_paste_get_description;
   ot->exec = actkeys_paste_exec;
@@ -1011,7 +1011,7 @@ void ACTION_OT_keyframe_insert(wmOperatorType *ot)
   ot->idname = "ACTION_OT_keyframe_insert";
   ot->description = "Insert keyframes for the specified channels";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = WM_menu_invoke;
   ot->exec = actkeys_insertkey_exec;
   ot->poll = ED_operator_action_active;
@@ -1099,7 +1099,7 @@ void ACTION_OT_duplicate(wmOperatorType *ot)
   ot->idname = "ACTION_OT_duplicate";
   ot->description = "Make a copy of all selected keyframes";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = actkeys_duplicate_exec;
   ot->poll = ED_operator_action_active;
 
@@ -1214,7 +1214,7 @@ void ACTION_OT_delete(wmOperatorType *ot)
   ot->idname = "ACTION_OT_delete";
   ot->description = "Remove all selected keyframes";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = actkeys_delete_invoke;
   ot->exec = actkeys_delete_exec;
   ot->poll = ED_operator_action_active;
@@ -1295,7 +1295,7 @@ void ACTION_OT_clean(wmOperatorType *ot)
   ot->idname = "ACTION_OT_clean";
   ot->description = "Simplify F-Curves by removing closely spaced keyframes";
 
-  /* api callbacks */
+  /* API callbacks. */
   // ot->invoke =  /* XXX we need that number popup for this! */
   ot->exec = actkeys_clean_exec;
   ot->poll = ED_operator_action_active;
@@ -1369,7 +1369,7 @@ void ACTION_OT_bake_keys(wmOperatorType *ot)
   ot->idname = "ACTION_OT_bake_keys";
   ot->description = "Add keyframes on every frame between the selected keyframes";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = actkeys_bake_exec;
   ot->poll = ED_operator_action_active;
 
@@ -1500,7 +1500,7 @@ void ACTION_OT_extrapolation_type(wmOperatorType *ot)
   ot->idname = "ACTION_OT_extrapolation_type";
   ot->description = "Set extrapolation mode for selected F-Curves";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = WM_menu_invoke;
   ot->exec = actkeys_expo_exec;
   ot->poll = ED_operator_action_active;
@@ -1557,7 +1557,7 @@ void ACTION_OT_interpolation_type(wmOperatorType *ot)
   ot->description =
       "Set interpolation mode for the F-Curve segments starting from the selected keyframes";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = WM_menu_invoke;
   ot->exec = actkeys_ipo_exec;
   ot->poll = ED_operator_action_active;
@@ -1611,7 +1611,7 @@ void ACTION_OT_easing_type(wmOperatorType *ot)
   ot->description =
       "Set easing type for the F-Curve segments starting from the selected keyframes";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = WM_menu_invoke;
   ot->exec = actkeys_easing_exec;
   ot->poll = ED_operator_action_active;
@@ -1700,7 +1700,7 @@ void ACTION_OT_handle_type(wmOperatorType *ot)
   ot->idname = "ACTION_OT_handle_type";
   ot->description = "Set type of handle for selected keyframes";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = WM_menu_invoke;
   ot->exec = actkeys_handletype_exec;
   ot->poll = ED_operator_action_active;
@@ -1794,7 +1794,7 @@ void ACTION_OT_keyframe_type(wmOperatorType *ot)
   ot->idname = "ACTION_OT_keyframe_type";
   ot->description = "Set type of keyframe for the selected keyframes";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = WM_menu_invoke;
   ot->exec = actkeys_keytype_exec;
   ot->poll = ED_operator_action_active;
@@ -1907,7 +1907,7 @@ void ACTION_OT_frame_jump(wmOperatorType *ot)
   ot->idname = "ACTION_OT_frame_jump";
   ot->description = "Set the current frame to the average frame value of selected keyframes";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = actkeys_framejump_exec;
   ot->poll = actkeys_framejump_poll;
 
@@ -2041,7 +2041,7 @@ void ACTION_OT_snap(wmOperatorType *ot)
   ot->idname = "ACTION_OT_snap";
   ot->description = "Snap selected keyframes to the times specified";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = WM_menu_invoke;
   ot->exec = actkeys_snap_exec;
   ot->poll = ED_operator_action_active;
@@ -2175,7 +2175,7 @@ void ACTION_OT_mirror(wmOperatorType *ot)
   ot->idname = "ACTION_OT_mirror";
   ot->description = "Flip selected keyframes over the selected mirror line";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = WM_menu_invoke;
   ot->exec = actkeys_mirror_exec;
   ot->poll = ED_operator_action_active;

@@ -978,6 +978,8 @@ typedef struct Paint_Runtime {
   unsigned int initialized;
   unsigned short ob_mode;
   char _pad[2];
+  /** The last brush that was active. Used to support toggling. */
+  struct AssetWeakReference *previous_active_brush_reference;
 } Paint_Runtime;
 
 typedef struct NamedBrushAssetReference {

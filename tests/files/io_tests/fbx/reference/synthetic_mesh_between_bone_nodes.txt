@@ -1,0 +1,46 @@
+==== Meshes: 2
+- Mesh 'MeshUnderChild' vtx:3 face:1 loop:3 edge:3
+    - 0 1 2 
+    - 0/2 0/1 1/2 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (0.000, 0.000, 0.000)
+    - (1.000, 0.000, 0.000)
+    - (0.000, 1.000, 0.000)
+
+- Mesh 'MeshUnderRoot' vtx:3 face:1 loop:3 edge:3
+    - 0 1 2 
+    - 0/2 0/1 1/2 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (0.000, 0.000, 0.000)
+    - (1.000, 0.000, 0.000)
+    - (0.000, 1.000, 0.000)
+
+==== Objects: 3
+- Obj 'Armature' ARMATURE data:'Armature'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 0.010, 0.010, 0.010
+- Obj 'MeshUnderChild' MESH data:'MeshUnderChild' par:'Armature' par_type:BONE par_bone:'ChildBone'
+  - pos 0.000, -1.000, -1.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'MeshUnderRoot' MESH data:'MeshUnderRoot' par:'Armature' par_type:BONE par_bone:'MeshUnderRoot'
+  - pos 0.000, -1.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+
+==== Armatures: 1
+- Armature 'Armature' 3 bones
+  - bone 'ChildBone' parent:'MeshUnderRoot' h:(0.000, -2.000, 0.000) t:(0.000, -1.000, 0.000) radius h:0.100 t:0.050
+      1.000 0.000 0.000 0.000
+      0.000 1.000 0.000 1.000
+      0.000 0.000 1.000 3.000
+  - bone 'MeshUnderRoot' parent:'RootBone' h:(-1.000, -1.000, 0.000) t:(-1.000, 0.000, 0.000) radius h:0.100 t:0.050
+      1.000 0.000 0.000 0.000
+      0.000 1.000 0.000 2.000
+      0.000 0.000 1.000 3.000
+  - bone 'RootBone' h:(1.000, 2.000, 3.000) t:(1.000, 3.000, 3.000) radius h:0.100 t:0.050
+      1.000 0.000 0.000 1.000
+      0.000 1.000 0.000 2.000
+      0.000 0.000 1.000 3.000
+

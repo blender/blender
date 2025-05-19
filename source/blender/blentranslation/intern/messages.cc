@@ -539,7 +539,7 @@ class MOMessages {
       return false;
     }
 
-    /* Only support UTF-8 encoded files, as created by our msgfmt tool. */
+    /* Only support UTF8 encoded files, as created by our msgfmt tool. */
     const std::string mo_encoding = extract(mo.value(0), "charset=", " \r\n;");
     if (mo_encoding.empty()) {
       error_ = "Invalid mo-format, encoding is not specified";

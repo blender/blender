@@ -1030,14 +1030,14 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
       char ascii;
 
 #if defined(WITH_X11_XINPUT) && defined(X_HAVE_UTF8_STRING)
-      /* utf8_array[] is initial buffer used for Xutf8LookupString().
-       * if the length of the utf8 string exceeds this array, allocate
-       * another memory area and call Xutf8LookupString() again.
+      /* `utf8_array[]` is initial buffer used for #Xutf8LookupString().
+       * if the length of the UTF8 string exceeds this array, allocate
+       * another memory area and call #Xutf8LookupString() again.
        * the last 5 bytes are used to avoid segfault that might happen
-       * at the end of this buffer when the constructor of GHOST_EventKey
+       * at the end of this buffer when the constructor of #GHOST_EventKey
        * reads 6 bytes regardless of the effective data length. */
-      char utf8_array[16 * 6 + 5]; /* 16 utf8 characters */
-      int len = 1;                 /* at least one null character will be stored */
+      char utf8_array[16 * 6 + 5]; /* 16 UTF8 characters. */
+      int len = 1;                 /* At least one null character will be stored. */
 #else
       char utf8_array[sizeof(GHOST_TEventKeyData::utf8_buf)] = {'\0'};
 #endif
@@ -1050,7 +1050,7 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
        * - In keyboards like Latin ones, numbers need a 'Shift' to be accessed but key_sym
        *   is unmodified (or anyone swapping the keys with `xmodmap`).
        * - #XLookupKeysym seems to always use first defined key-map (see #47228), which generates
-       *   key-codes unusable by ghost_key_from_keysym for non-Latin-compatible key-maps.
+       *   key-codes unusable by #ghost_key_from_keysym for non-Latin-compatible key-maps.
        *
        * To address this, we:
        * - Try to get a 'number' key_sym using #XLookupKeysym (with virtual shift modifier),
@@ -1145,7 +1145,7 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
        * Here we look at the 'Shifted' version of the key.
        * If it is a number, then we take it instead of the normal key.
        *
-       * The modified key is sent in the 'ascii's variable anyway.
+       * The modified key is sent in the `ascii`s variable anyway.
        */
       if ((xke->keycode >= 10 && xke->keycode < 20) &&
           ((key_sym = XLookupKeysym(xke, ShiftMask)) >= XK_0) && (key_sym <= XK_9))
@@ -1177,7 +1177,7 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
         if (xic) {
           Status status;
 
-          /* Use utf8 because its not locale repentant, from XORG docs. */
+          /* Use UTF8 because its not locale repentant, from XORG docs. */
           if (!(len = Xutf8LookupString(
                     xic, xke, utf8_buf, sizeof(utf8_array) - 5, &key_sym, &status)))
           {
@@ -1223,8 +1223,8 @@ void GHOST_SystemX11::processEvent(XEvent *xe)
       g_event = new GHOST_EventKey(event_ms, type, window, gkey, is_repeat, utf8_buf);
 
 #if defined(WITH_X11_XINPUT) && defined(X_HAVE_UTF8_STRING)
-      /* when using IM for some languages such as Japanese,
-       * one event inserts multiple utf8 characters */
+      /* When using IM for some languages such as Japanese,
+       * one event inserts multiple UTF8 characters. */
       if (xke->type == KeyPress && xic) {
         uchar c;
         int i = 0;

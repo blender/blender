@@ -543,7 +543,7 @@ void PAINT_OT_image_paint(wmOperatorType *ot)
   ot->idname = "PAINT_OT_image_paint";
   ot->description = "Paint a stroke into the image";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = paint_invoke;
   ot->modal = paint_modal;
   ot->exec = paint_exec;

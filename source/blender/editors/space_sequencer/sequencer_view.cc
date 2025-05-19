@@ -50,7 +50,7 @@ void SEQUENCER_OT_sample(wmOperatorType *ot)
   ot->idname = "SEQUENCER_OT_sample";
   ot->description = "Use mouse to sample color in current frame";
 
-  /* Api callbacks. */
+  /* API callbacks. */
   ot->invoke = ED_imbuf_sample_invoke;
   ot->modal = ED_imbuf_sample_modal;
   ot->cancel = ED_imbuf_sample_cancel;
@@ -129,7 +129,7 @@ void SEQUENCER_OT_view_all(wmOperatorType *ot)
   ot->idname = "SEQUENCER_OT_view_all";
   ot->description = "View all the strips in the sequencer";
 
-  /* Api callbacks. */
+  /* API callbacks. */
   ot->exec = sequencer_view_all_exec;
   ot->poll = ED_operator_sequencer_active;
 
@@ -158,7 +158,7 @@ void SEQUENCER_OT_view_frame(wmOperatorType *ot)
   ot->idname = "SEQUENCER_OT_view_frame";
   ot->description = "Move the view to the current frame";
 
-  /* Api callbacks. */
+  /* API callbacks. */
   ot->exec = sequencer_view_frame_exec;
   ot->poll = ED_operator_sequencer_active;
 
@@ -228,7 +228,7 @@ void SEQUENCER_OT_view_all_preview(wmOperatorType *ot)
   ot->idname = "SEQUENCER_OT_view_all_preview";
   ot->description = "Zoom preview to fit in the area";
 
-  /* Api callbacks. */
+  /* API callbacks. */
   ot->exec = sequencer_view_all_preview_exec;
   ot->poll = ED_operator_sequencer_active;
 
@@ -271,7 +271,7 @@ void SEQUENCER_OT_view_zoom_ratio(wmOperatorType *ot)
   ot->idname = "SEQUENCER_OT_view_zoom_ratio";
   ot->description = "Change zoom ratio of sequencer preview";
 
-  /* Api callbacks. */
+  /* API callbacks. */
   ot->exec = sequencer_view_zoom_ratio_exec;
   ot->poll = ED_operator_sequencer_active;
 
@@ -421,7 +421,7 @@ void SEQUENCER_OT_view_selected(wmOperatorType *ot)
   ot->idname = "SEQUENCER_OT_view_selected";
   ot->description = "Zoom the sequencer on the selected strips";
 
-  /* Api callbacks. */
+  /* API callbacks. */
   ot->exec = sequencer_view_selected_exec;
   ot->poll = sequencer_editing_initialized_and_active;
 
@@ -476,7 +476,7 @@ void SEQUENCER_OT_view_ghost_border(wmOperatorType *ot)
   ot->idname = "SEQUENCER_OT_view_ghost_border";
   ot->description = "Set the boundaries of the border used for offset view";
 
-  /* Api callbacks. */
+  /* API callbacks. */
   ot->invoke = WM_gesture_box_invoke;
   ot->exec = view_ghost_border_exec;
   ot->modal = WM_gesture_box_modal;

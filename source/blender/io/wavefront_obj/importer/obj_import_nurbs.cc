@@ -82,6 +82,46 @@ static int8_t get_valid_nurbs_degree(const NurbsElement &element)
                                                            int8_t(degree);
 }
 
+/**
+ * Get the number of control points repeated for a cyclic curve given the multiplicity at the end
+ * of the knot vectors (multiplicity at both ends need to match).
+ */
+static int cyclic_repeated_points(const int8_t order, const int end_multiplicity)
+{
+  /* Since multiplicity == order is considered 'cyclic' even if it is only C0 continuous in
+   * principle (it is technically discontinuous!), it needs to be clamped to 1.
+   */
+  return std::max<int>(order - end_multiplicity, 1);
+}
+
+/**
+ * Compute the number of occurrences of each unique knot value (so knot multiplicity),
+ * forming a sequence for which: `sum(multiplicity) == knots.size()`.
+ *
+ * Example:
+ * Knots: [0, 0, 0, 0.1, 0.3, 0.4, 0.4, 0.4]
+ * Result: [3, 1, 1, 3]
+ */
+static Vector<int> calculate_multiplicity_sequence(const Span<float> knots)
+{
+  Vector<int> multiplicity;
+  multiplicity.reserve(knots.size());
+
+  int m = 1;
+  for (const int64_t i : knots.index_range().drop_front(1)) {
+    /* Only consider multiplicity for exact matching values. */
+    if (knots[i - 1] == knots[i]) {
+      m++;
+    }
+    else {
+      multiplicity.append(m);
+      m = 1;
+    }
+  }
+  multiplicity.append(m);
+  return multiplicity;
+}
+
 void CurveFromGeometry::create_nurbs(Curve *curve, const OBJImportParams &import_params)
 {
   const NurbsElement &nurbs_geometry = curve_geometry_.nurbs_element_;
@@ -99,11 +139,9 @@ void CurveFromGeometry::create_nurbs(Curve *curve, const OBJImportParams &import
   nurb->orderu = nurb->orderv = degree + 1;
   nurb->resolu = nurb->resolv = curve->resolu;
 
-  nurb->flagu = this->detect_knot_mode(import_params,
-                                       degree,
-                                       nurbs_geometry.curv_indices,
-                                       nurbs_geometry.parm,
-                                       nurbs_geometry.range);
+  const Vector<int> multiplicity = calculate_multiplicity_sequence(nurbs_geometry.parm);
+  nurb->flagu = this->detect_knot_mode(
+      import_params, degree, nurbs_geometry.curv_indices, nurbs_geometry.parm, multiplicity);
 
   if ((nurb->flagu & (CU_NURB_CUSTOM | CU_NURB_CYCLIC | CU_NURB_ENDPOINT)) == CU_NURB_CUSTOM) {
     /* TODO: If mode is CU_NURB_CUSTOM, but not CU_NURB_CYCLIC and CU_NURB_ENDPOINT, then make
@@ -111,9 +149,11 @@ void CurveFromGeometry::create_nurbs(Curve *curve, const OBJImportParams &import
     nurb->flagu &= ~CU_NURB_CUSTOM;
   }
 
+  const int repeated_points = nurb->flagu & CU_NURB_CYCLIC ?
+                                  cyclic_repeated_points(nurb->orderu, multiplicity.first()) :
+                                  0;
   const Span<int> indices = nurbs_geometry.curv_indices.as_span().slice(
-      nurbs_geometry.curv_indices.index_range().drop_front(nurb->flagu & CU_NURB_CYCLIC ? degree :
-                                                                                          0));
+      nurbs_geometry.curv_indices.index_range().drop_back(repeated_points));
 
   BKE_nurb_points_add(nurb, indices.size());
   for (const int i : indices.index_range()) {
@@ -134,21 +174,104 @@ void CurveFromGeometry::create_nurbs(Curve *curve, const OBJImportParams &import
   }
 }
 
-static bool detect_knot_mode_cyclic(const int degree,
-                                    const Span<int> indices,
-                                    const Span<float> knots)
+static bool detect_clamped_endpoint(const int8_t degree, const Span<int> multiplicity)
 {
-  const Span<int> indices_tail = indices.take_back(degree);
-  for (const int i : IndexRange(degree)) {
+  const int8_t order = degree + 1;
+  return multiplicity.first() == order && multiplicity.last() == order;
+}
+
+static bool detect_knot_mode_cyclic(const int8_t degree,
+                                    const Span<int> indices,
+                                    const Span<float> knots,
+                                    const Span<int> multiplicity)
+{
+  constexpr float epsilon = 1e-7;
+  const int8_t order = degree + 1;
+
+  /* This is a good distinction between the 'cyclic' property and a true periodic NURBS curve. A
+   * periodic curve should be smooth to the degree - 1 derivative (which is the maximum possible).
+   * Allowing matching `multiplicity > 1` is not a periodic NURBS but can be considered cyclic.
+   */
+  if (multiplicity.first() != multiplicity.last()) {
+    return false;
+  }
+
+  /* Multiplicity m is continuous to the `degree - m` derivative and as such
+   * `multiplicity == order` is discontinuous.
+   * By allowing it, clamped or Bezier curves can still be considered cyclic but
+   * ensure [here] that illogical `multiplicities > order` is not considered cyclic.
+   */
+  if (multiplicity.first() > order || multiplicity.last() > order) {
+
+    return false;
+  }
+
+  const int repeated_points = cyclic_repeated_points(order, multiplicity.first());
+  const Span<int> indices_tail = indices.take_back(repeated_points);
+  for (const int64_t i : indices_tail.index_range()) {
     if (indices[i] != indices_tail[i]) {
       return false;
     }
   }
-  const Span<float> knots_tail = knots.take_back(2 * degree + 1);
-  for (const int i : IndexRange(degree - 1)) {
+
+  if (multiplicity.first() >= degree) {
+    /* There is no overlap in the knot spans. */
+    return true;
+  }
+
+  /* Ensure it matches on both of the knot spans adjacent to the start/end of the parameter range.
+   */
+  const Span<float> knots_tail = knots.take_back(order + degree);
+  for (const int64_t i : knots_tail.index_range().drop_back(1)) {
     const float head_span = knots[i + 1] - knots[i];
     const float tail_span = knots_tail[i + 1] - knots_tail[i];
-    if (abs(head_span - tail_span) > 0.0001f) {
+    if (abs(head_span - tail_span) > epsilon) {
+      return false;
+    }
+  }
+  return true;
+}
+
+static bool detect_knot_mode_bezier(const int8_t degree, const Span<int> multiplicity)
+{
+  const int8_t order = degree + 1;
+  if (multiplicity.first() != order || multiplicity.last() != order) {
+    return false;
+  }
+
+  for (const int m : multiplicity.drop_front(1).drop_back(1)) {
+    if (m != degree) {
+      return false;
+    }
+  }
+  return true;
+}
+
+static bool detect_knot_mode_uniform(const int8_t degree,
+                                     const Span<float> knots,
+                                     const Span<int> multiplicity,
+                                     bool clamped)
+{
+  constexpr float epsilon = 1e-7;
+
+  /* Check if knot count matches multiplicity adjusted for clamped ends. For a uniform non-clamped
+   * curve, all multiplicity entries equals 1 and the array size should match.
+   */
+  const int clamped_offset = clamped * degree;
+  if (knots.size() != multiplicity.size() - 2 * clamped_offset) {
+    return false;
+  }
+
+  /* Ensure it's not a single segment with clamped ends (it would be a Bezier segment). */
+  const Span<float> unclamped_knots = knots.drop_front(clamped_offset).drop_back(clamped_offset);
+  if (!unclamped_knots.size()) {
+    return false;
+  }
+
+  /* Verify spacing is uniform (excluding clamped ends). */
+  const float uniform_delta = unclamped_knots[1] - unclamped_knots[0];
+  for (const int64_t i : knots.index_range().drop_front(2)) {
+    if (abs((knots[i] - knots[i - 1]) - uniform_delta) < epsilon) {
       return false;
     }
   }
@@ -159,61 +282,33 @@ short CurveFromGeometry::detect_knot_mode(const OBJImportParams &import_params,
                                           const int8_t degree,
                                           const Span<int> indices,
                                           const Span<float> knots,
-                                          const float2 range)
+                                          const Span<int> multiplicity)
 {
   short knot_mode = 0;
 
   if (import_params.close_spline_loops && indices.size() > degree) {
-    SET_FLAG_FROM_TEST(knot_mode, detect_knot_mode_cyclic(degree, indices, knots), CU_NURB_CYCLIC);
+    SET_FLAG_FROM_TEST(
+        knot_mode, detect_knot_mode_cyclic(degree, indices, knots, multiplicity), CU_NURB_CYCLIC);
   }
 
-  /* Figure out whether curve should have U endpoint flag set:
-   * the parameters should have at least (degree+1) values on each end,
-   * and their values should match curve range. */
-  bool do_endpoints = false;
-  const int8_t order = degree + 1;
-  if (knots.size() >= order * 2) {
-    do_endpoints = true;
-    for (int i = 0; i < order; ++i) {
-      if (abs(knots[i] - range.x) > 0.0001f || abs(knots.last(i) - range.y) > 0.0001f) {
-        do_endpoints = false;
-        break;
-      }
-    }
+  if (detect_knot_mode_bezier(degree, multiplicity)) {
+    /* Currently endpoint flag is not parsed for Bezier, mainly because a clamped Bezier curve in
+     * Blender is either:
+     * a) A valid Bezier curve for given degree/order with correct number of points to form one.
+     * b) Not a valid Bezier curve for given degree, last span/segment is of a lower degree Bezier.
+     *
+     * Set ENDPOINT to true since legacy Bezier NURBS only validates and compute knots if it
+     * contains order + 1 control points unless endpoint is set...?
+     */
+    SET_FLAG_FROM_TEST(knot_mode, true, CU_NURB_ENDPOINT);
+    SET_FLAG_FROM_TEST(knot_mode, true, CU_NURB_BEZIER);
   }
-  IndexRange inner_knots = knots.index_range();
-  if (do_endpoints) {
-    knot_mode |= CU_NURB_ENDPOINT;
-    inner_knots = inner_knots.size() > 2 * degree ?
-                      inner_knots.drop_front(degree).drop_back(degree) :
-                      IndexRange();
-  }
-  if (!inner_knots.is_empty()) {
-    const float first_step = knots[inner_knots.first() + 1] - knots[inner_knots.first()];
-    bool is_spacing_equal = true;
-    bool is_bezier_knot = degree > 1;
-    int repeats = 0;
-    for (const int i : inner_knots.drop_front(1).drop_back(1)) {
-      const float step = knots[i + 1] - knots[i];
-      if (abs(step - first_step) > 0.0001f) {
-        is_spacing_equal = false;
-        if (step == 0.0f) {
-          repeats++;
-          if (repeats > degree - 1) {
-            is_bezier_knot = false;
-          }
-        }
-      }
-      else if (repeats == degree - 1) {
-        repeats = 0;
-      }
-      else {
-        is_bezier_knot = false;
-      }
-    }
-    if (!is_spacing_equal) {
-      knot_mode |= is_bezier_knot ? CU_NURB_BEZIER : CU_NURB_CUSTOM;
-    }
+  else {
+    const bool clamped = detect_clamped_endpoint(degree, multiplicity);
+    SET_FLAG_FROM_TEST(knot_mode, clamped, CU_NURB_ENDPOINT);
+    SET_FLAG_FROM_TEST(knot_mode,
+                       !detect_knot_mode_uniform(degree, knots, multiplicity, clamped),
+                       CU_NURB_CUSTOM);
   }
   return knot_mode;
 }

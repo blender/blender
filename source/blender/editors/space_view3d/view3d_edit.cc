@@ -102,7 +102,7 @@ void VIEW3D_OT_view_lock_clear(wmOperatorType *ot)
   ot->description = "Clear all view locking";
   ot->idname = "VIEW3D_OT_view_lock_clear";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = view_lock_clear_exec;
   ot->poll = ED_operator_region_view3d_active;
 
@@ -159,7 +159,7 @@ void VIEW3D_OT_view_lock_to_active(wmOperatorType *ot)
   ot->description = "Lock the view to the active object/bone";
   ot->idname = "VIEW3D_OT_view_lock_to_active";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = view_lock_to_active_exec;
   ot->poll = ED_operator_region_view3d_active;
 
@@ -211,7 +211,7 @@ void VIEW3D_OT_view_center_camera(wmOperatorType *ot)
   ot->description = "Center the camera view, resizing the view to fit its bounds";
   ot->idname = "VIEW3D_OT_view_center_camera";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = view3d_center_camera_exec;
   ot->poll = view3d_camera_user_poll;
 
@@ -243,7 +243,7 @@ void VIEW3D_OT_view_center_lock(wmOperatorType *ot)
   ot->description = "Center the view lock offset";
   ot->idname = "VIEW3D_OT_view_center_lock";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = view3d_center_lock_exec;
   ot->poll = view3d_lock_poll;
 
@@ -338,7 +338,7 @@ void VIEW3D_OT_render_border(wmOperatorType *ot)
   ot->description = "Set the boundaries of the border render and enable border render";
   ot->idname = "VIEW3D_OT_render_border";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = WM_gesture_box_invoke;
   ot->exec = render_border_exec;
   ot->modal = WM_gesture_box_modal;
@@ -401,7 +401,7 @@ void VIEW3D_OT_clear_render_border(wmOperatorType *ot)
   ot->description = "Clear the boundaries of the border render and disable border render";
   ot->idname = "VIEW3D_OT_clear_render_border";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = clear_render_border_exec;
   ot->poll = ED_operator_view3d_active;
 
@@ -464,7 +464,7 @@ void VIEW3D_OT_zoom_camera_1_to_1(wmOperatorType *ot)
   ot->description = "Match the camera to 1:1 to the render output";
   ot->idname = "VIEW3D_OT_zoom_camera_1_to_1";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = view3d_zoom_1_to_1_camera_exec;
   ot->poll = view3d_camera_user_poll;
 
@@ -511,7 +511,7 @@ void VIEW3D_OT_view_persportho(wmOperatorType *ot)
   ot->description = "Switch the current view from perspective/orthographic projection";
   ot->idname = "VIEW3D_OT_view_persportho";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = viewpersportho_exec;
   ot->poll = ED_operator_rv3d_user_region_poll;
 
@@ -554,7 +554,7 @@ void VIEW3D_OT_navigate(wmOperatorType *ot)
       "Interactively navigate around the scene (uses the mode (walk/fly) preference)";
   ot->idname = "VIEW3D_OT_navigate";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = view3d_navigate_invoke;
   ot->poll = ED_operator_view3d_active;
 }
@@ -611,7 +611,7 @@ void VIEW3D_OT_camera_background_image_add(wmOperatorType *ot)
   ot->description = "Add a new background image to the active camera";
   ot->idname = "VIEW3D_OT_camera_background_image_add";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = camera_background_image_add_exec;
   ot->poll = camera_background_image_add_poll;
 
@@ -678,7 +678,7 @@ void VIEW3D_OT_camera_background_image_remove(wmOperatorType *ot)
   ot->description = "Remove a background image from the camera";
   ot->idname = "VIEW3D_OT_camera_background_image_remove";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = camera_background_image_remove_exec;
   ot->poll = ED_operator_camera_poll;
 
@@ -731,7 +731,7 @@ void VIEW3D_OT_drop_world(wmOperatorType *ot)
   ot->description = "Drop a world into the scene";
   ot->idname = "VIEW3D_OT_drop_world";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = drop_world_exec;
   ot->poll = drop_world_poll;
 
@@ -812,7 +812,7 @@ void VIEW3D_OT_clip_border(wmOperatorType *ot)
   ot->description = "Set the view clipping region";
   ot->idname = "VIEW3D_OT_clip_border";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = view3d_clipping_invoke;
   ot->exec = view3d_clipping_exec;
   ot->modal = WM_gesture_box_modal;
@@ -1103,7 +1103,7 @@ void VIEW3D_OT_cursor3d(wmOperatorType *ot)
   ot->description = "Set the location of the 3D cursor";
   ot->idname = "VIEW3D_OT_cursor3d";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = view3d_cursor3d_invoke;
 
   ot->poll = ED_operator_region_view3d_active;
@@ -1198,7 +1198,7 @@ void VIEW3D_OT_toggle_shading(wmOperatorType *ot)
   ot->description = "Toggle shading type in 3D viewport";
   ot->idname = "VIEW3D_OT_toggle_shading";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = toggle_shading_exec;
   ot->poll = ED_operator_view3d_active;
 
@@ -1252,7 +1252,7 @@ void VIEW3D_OT_toggle_xray(wmOperatorType *ot)
   ot->idname = "VIEW3D_OT_toggle_xray";
   ot->description = "Transparent scene display. Allow selecting through items";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = toggle_xray_exec;
   ot->poll = ED_operator_view3d_active;
 }

@@ -77,8 +77,8 @@ typedef struct Bone {
   float bone_mat[3][3];
 
   int flag;
-
-  char _pad1[4];
+  int8_t drawtype; /* eArmature_Drawtype */
+  char _pad1[3];
   BoneColor color; /* MUST be named the same as in bPoseChannel and EditBone structs. */
 
   char inherit_scale_mode;
@@ -188,7 +188,7 @@ typedef struct bArmature {
   char _pad0[3];
 
   int flag;
-  int drawtype;
+  int drawtype; /* eArmature_Drawtype */
 
   short deformflag;
   short pathflag;
@@ -374,11 +374,12 @@ typedef enum eArmature_Flag {
 
 /* armature->drawtype */
 typedef enum eArmature_Drawtype {
-  ARM_OCTA = 0,
-  ARM_LINE = 1,
-  ARM_B_BONE = 2,
-  ARM_ENVELOPE = 3,
-  ARM_WIRE = 4,
+  ARM_DRAW_TYPE_ARMATURE_DEFINED = -1, /* Use draw type from Armature (only used on Bones). */
+  ARM_DRAW_TYPE_OCTA = 0,
+  ARM_DRAW_TYPE_STICK = 1,
+  ARM_DRAW_TYPE_B_BONE = 2,
+  ARM_DRAW_TYPE_ENVELOPE = 3,
+  ARM_DRAW_TYPE_WIRE = 4,
 } eArmature_Drawtype;
 
 /* armature->deformflag */
@@ -411,8 +412,9 @@ typedef enum eBone_Flag {
    *
    * However the bone may not be visible to the user since the bones collection
    * may be hidden.
-   * In most cases `ANIM_bone_is_visible_editbone` or `ANIM_bone_is_visible_pchan` should be used
-   * to check if the bone is visible to the user before operating on them.
+   * In most cases `blender::animrig::bone_is_visible_editbone` or
+   * `blender::animrig::bone_is_visible_pchan` should be used to check if the bone is visible to
+   * the user before operating on them.
    */
   BONE_SELECTED = (1 << 0),
   BONE_ROOTSEL = (1 << 1),
@@ -452,8 +454,6 @@ typedef enum eBone_Flag {
   /** No parent scale */
   BONE_NO_SCALE = (1 << 15),
 #endif
-  /** hidden bone when drawing PoseChannels (for ghost drawing) */
-  BONE_HIDDEN_PG = (1 << 16),
   /** bone should be drawn as OB_WIRE, regardless of draw-types of view+armature */
   BONE_DRAWWIRE = (1 << 17),
   /** when no parent, bone will not get cyclic offset */

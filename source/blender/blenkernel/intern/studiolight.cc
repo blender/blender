@@ -245,7 +245,7 @@ static void studiolight_write_solid_light(StudioLight *sl)
   if (fp) {
     DynStr *str = BLI_dynstr_new();
 
-    /* Very dumb ascii format. One value per line separated by a space. */
+    /* Very dumb ASCII format. One value per line separated by a space. */
     WRITE_IVAL(str, "version", STUDIOLIGHT_FILE_VERSION);
     WRITE_VEC3(str, "light_ambient", sl->light_ambient);
     WRITE_SOLIDLIGHT(str, sl->light, 0);

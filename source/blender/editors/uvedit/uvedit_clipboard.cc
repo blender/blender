@@ -377,7 +377,7 @@ void UV_OT_copy(wmOperatorType *ot)
   ot->idname = "UV_OT_copy";
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = uv_copy_exec;
   ot->poll = ED_operator_uvedit;
 }
@@ -390,7 +390,7 @@ void UV_OT_paste(wmOperatorType *ot)
   ot->idname = "UV_OT_paste";
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = uv_paste_exec;
   ot->poll = ED_operator_uvedit;
 }

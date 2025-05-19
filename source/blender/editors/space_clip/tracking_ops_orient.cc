@@ -223,7 +223,7 @@ void CLIP_OT_set_origin(wmOperatorType *ot)
       "Set active marker as origin by moving camera (or its parent if present) in 3D space";
   ot->idname = "CLIP_OT_set_origin";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = set_origin_exec;
   ot->poll = set_orientation_poll;
 
@@ -502,7 +502,7 @@ void CLIP_OT_set_plane(wmOperatorType *ot)
       "(or its parent if present) in 3D space";
   ot->idname = "CLIP_OT_set_plane";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = set_plane_exec;
   ot->poll = set_orientation_poll;
 
@@ -573,7 +573,7 @@ void CLIP_OT_set_axis(wmOperatorType *ot)
       "track lies on a real axis connecting it to the origin";
   ot->idname = "CLIP_OT_set_axis";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = set_axis_exec;
   ot->poll = set_orientation_poll;
 
@@ -706,7 +706,7 @@ void CLIP_OT_set_scale(wmOperatorType *ot)
   ot->description = "Set scale of scene by scaling camera (or its parent if present)";
   ot->idname = "CLIP_OT_set_scale";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = set_scale_exec;
   ot->invoke = set_scale_invoke;
   ot->poll = set_orientation_poll;
@@ -770,7 +770,7 @@ void CLIP_OT_set_solution_scale(wmOperatorType *ot)
       "two selected tracks";
   ot->idname = "CLIP_OT_set_solution_scale";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = set_solution_scale_exec;
   ot->invoke = set_solution_scale_invoke;
   ot->poll = set_solution_scale_poll;
@@ -832,7 +832,7 @@ void CLIP_OT_apply_solution_scale(wmOperatorType *ot)
       "selected tracks equals to desired";
   ot->idname = "CLIP_OT_apply_solution_scale";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = apply_solution_scale_exec;
   ot->invoke = apply_solution_scale_invoke;
   ot->poll = apply_solution_scale_poll;

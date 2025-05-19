@@ -58,6 +58,9 @@ struct VKExtensions {
    * Does the device support logic ops.
    */
   bool logic_ops = false;
+
+  /** Log enabled features and extensions. */
+  void log() const;
 };
 
 /* TODO: Split into VKWorkarounds and VKExtensions to remove the negating when an extension isn't

@@ -37,7 +37,7 @@
 
 #include "ANIM_action.hh"
 #include "ANIM_action_iterators.hh"
-#include "ANIM_bone_collections.hh"
+#include "ANIM_armature.hh"
 #include "ANIM_keyframing.hh"
 #include "ANIM_pose.hh"
 #include "ANIM_rna.hh"
@@ -124,7 +124,7 @@ static blender::animrig::Action &extract_pose(Main &bmain,
     const bArmature *armature = static_cast<bArmature *>(pose_object->data);
     LISTBASE_FOREACH (bPoseChannel *, pose_bone, &pose_object->pose->chanbase) {
       if (!(pose_bone->bone->flag & BONE_SELECTED) ||
-          !ANIM_bone_is_visible(armature, pose_bone->bone))
+          !blender::animrig::bone_is_visible(armature, pose_bone->bone))
       {
         continue;
       }
@@ -496,7 +496,7 @@ static Vector<PathValue> generate_path_values(Object &pose_object)
   const bArmature *armature = static_cast<bArmature *>(pose_object.data);
   LISTBASE_FOREACH (bPoseChannel *, pose_bone, &pose_object.pose->chanbase) {
     if (!(pose_bone->bone->flag & BONE_SELECTED) ||
-        !ANIM_bone_is_visible(armature, pose_bone->bone))
+        !blender::animrig::bone_is_visible(armature, pose_bone->bone))
     {
       continue;
     }

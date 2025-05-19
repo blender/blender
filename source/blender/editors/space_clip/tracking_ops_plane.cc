@@ -72,7 +72,7 @@ void CLIP_OT_create_plane_track(wmOperatorType *ot)
   ot->description = "Create new plane track out of selected point tracks";
   ot->idname = "CLIP_OT_create_plane_track";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = create_plane_track_tracks_exec;
   ot->poll = ED_space_clip_tracking_poll;
 
@@ -344,7 +344,7 @@ void CLIP_OT_slide_plane_marker(wmOperatorType *ot)
   ot->description = "Slide plane marker areas";
   ot->idname = "CLIP_OT_slide_plane_marker";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->poll = ED_space_clip_tracking_poll;
   ot->invoke = slide_plane_marker_invoke;
   ot->modal = slide_plane_marker_modal;

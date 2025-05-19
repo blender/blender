@@ -27,6 +27,7 @@ if(NOT APPLE)
     if(NOT CUDAToolkit_VERSION MATCHES "${RELEASE_CUDA_VERSION}.*")
       message(STATUS "  NOTE: Official releases uses CUDA ${RELEASE_CUDA_VERSION}")
     endif()
+    get_filename_component(CUDAToolkit_ROOT ${CUDAToolkit_BIN_DIR} DIRECTORY ABSOLUTE)
   endif()
 
   unset(HIP_VERSION)

@@ -302,7 +302,7 @@ static void GIZMO_GT_mesh_preselect_elem_3d(wmGizmoType *gzt)
   /* identifiers */
   gzt->idname = "GIZMO_GT_mesh_preselect_elem_3d";
 
-  /* api callbacks */
+  /* API callbacks. */
   gzt->invoke = gizmo_preselect_elem_invoke;
   gzt->draw = gizmo_preselect_elem_draw;
   gzt->test_select = gizmo_preselect_elem_test_select;
@@ -463,7 +463,7 @@ static void GIZMO_GT_mesh_preselect_edgering_3d(wmGizmoType *gzt)
   /* identifiers */
   gzt->idname = "GIZMO_GT_mesh_preselect_edgering_3d";
 
-  /* api callbacks */
+  /* API callbacks. */
   gzt->invoke = gizmo_preselect_edgering_invoke;
   gzt->draw = gizmo_preselect_edgering_draw;
   gzt->test_select = gizmo_preselect_edgering_test_select;

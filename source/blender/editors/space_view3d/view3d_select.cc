@@ -98,6 +98,7 @@
 #include "DRW_engine.hh"
 #include "DRW_select_buffer.hh"
 
+#include "ANIM_armature.hh"
 #include "ANIM_bone_collections.hh"
 
 #include "view3d_intern.hh" /* own include */
@@ -1015,7 +1016,7 @@ static void do_lasso_select_armature__doSelectBone(void *user_data,
 {
   LassoSelectUserData *data = static_cast<LassoSelectUserData *>(user_data);
   const bArmature *arm = static_cast<const bArmature *>(data->vc->obedit->data);
-  if (!ANIM_bone_is_visible_editbone(arm, ebone)) {
+  if (!blender::animrig::bone_is_visible_editbone(arm, ebone)) {
     return;
   }
 
@@ -1062,7 +1063,7 @@ static void do_lasso_select_armature__doSelectBone_clip_content(void *user_data,
 {
   LassoSelectUserData *data = static_cast<LassoSelectUserData *>(user_data);
   bArmature *arm = static_cast<bArmature *>(data->vc->obedit->data);
-  if (!ANIM_bone_is_visible_editbone(arm, ebone)) {
+  if (!blender::animrig::bone_is_visible_editbone(arm, ebone)) {
     return;
   }
 
@@ -1665,7 +1666,7 @@ void VIEW3D_OT_select_menu(wmOperatorType *ot)
   ot->description = "Menu object selection";
   ot->idname = "VIEW3D_OT_select_menu";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = WM_menu_invoke;
   ot->exec = object_select_menu_exec;
   ot->get_name = object_select_menu_get_name;
@@ -1879,7 +1880,7 @@ void VIEW3D_OT_bone_select_menu(wmOperatorType *ot)
   ot->description = "Menu bone selection";
   ot->idname = "VIEW3D_OT_bone_select_menu";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = WM_menu_invoke;
   ot->exec = bone_select_menu_exec;
 
@@ -3615,7 +3616,7 @@ void VIEW3D_OT_select(wmOperatorType *ot)
   ot->description = "Select and activate item(s)";
   ot->idname = "VIEW3D_OT_select";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = view3d_select_invoke;
   ot->exec = view3d_select_exec;
   ot->poll = ED_operator_view3d_active;
@@ -4598,7 +4599,7 @@ void VIEW3D_OT_select_box(wmOperatorType *ot)
   ot->description = "Select items using box selection";
   ot->idname = "VIEW3D_OT_select_box";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = WM_gesture_box_invoke;
   ot->exec = view3d_box_select_exec;
   ot->modal = WM_gesture_box_modal;
@@ -5129,7 +5130,9 @@ static void do_circle_select_armature__doSelectBone(void *user_data,
 {
   CircleSelectUserData *data = static_cast<CircleSelectUserData *>(user_data);
   const bArmature *arm = static_cast<const bArmature *>(data->vc->obedit->data);
-  if (!(data->select ? EBONE_SELECTABLE(arm, ebone) : ANIM_bone_is_visible_editbone(arm, ebone))) {
+  if (!(data->select ? EBONE_SELECTABLE(arm, ebone) :
+                       blender::animrig::bone_is_visible_editbone(arm, ebone)))
+  {
     return;
   }
 
@@ -5185,7 +5188,9 @@ static void do_circle_select_armature__doSelectBone_clip_content(void *user_data
   CircleSelectUserData *data = static_cast<CircleSelectUserData *>(user_data);
   bArmature *arm = static_cast<bArmature *>(data->vc->obedit->data);
 
-  if (!(data->select ? EBONE_SELECTABLE(arm, ebone) : ANIM_bone_is_visible_editbone(arm, ebone))) {
+  if (!(data->select ? EBONE_SELECTABLE(arm, ebone) :
+                       blender::animrig::bone_is_visible_editbone(arm, ebone)))
+  {
     return;
   }
 

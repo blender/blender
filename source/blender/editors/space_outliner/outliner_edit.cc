@@ -2004,12 +2004,12 @@ static wmOperatorStatus outliner_drivers_addsel_exec(bContext *C, wmOperator *op
 
 void OUTLINER_OT_drivers_add_selected(wmOperatorType *ot)
 {
-  /* api callbacks */
+  /* API callbacks. */
   ot->idname = "OUTLINER_OT_drivers_add_selected";
   ot->name = "Add Drivers for Selected";
   ot->description = "Add drivers to selected items";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = outliner_drivers_addsel_exec;
   ot->poll = ed_operator_outliner_datablocks_active;
 
@@ -2048,7 +2048,7 @@ void OUTLINER_OT_drivers_delete_selected(wmOperatorType *ot)
   ot->name = "Delete Drivers for Selected";
   ot->description = "Delete drivers assigned to selected items";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = outliner_drivers_deletesel_exec;
   ot->poll = ed_operator_outliner_datablocks_active;
 
@@ -2199,7 +2199,7 @@ void OUTLINER_OT_keyingset_add_selected(wmOperatorType *ot)
   ot->name = "Keying Set Add Selected";
   ot->description = "Add selected items (blue-gray rows) to active Keying Set";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = outliner_keyingset_additems_exec;
   ot->poll = ed_operator_outliner_datablocks_active;
 
@@ -2240,7 +2240,7 @@ void OUTLINER_OT_keyingset_remove_selected(wmOperatorType *ot)
   ot->name = "Keying Set Remove Selected";
   ot->description = "Remove selected items (blue-gray rows) from active Keying Set";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = outliner_keyingset_removeitems_exec;
   ot->poll = ed_operator_outliner_datablocks_active;
 

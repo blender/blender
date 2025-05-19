@@ -43,8 +43,6 @@ struct DRW_MeshCDMask {
  * See `mesh_cd_layers_type_*` functions. */
 static_assert(sizeof(DRW_MeshCDMask) <= sizeof(uint32_t), "DRW_MeshCDMask exceeds 32 bits");
 
-void drw_attributes_clear(VectorSet<std::string> *attributes);
-
 void drw_attributes_merge(VectorSet<std::string> *dst,
                           const VectorSet<std::string> *src,
                           Mutex &render_mutex);

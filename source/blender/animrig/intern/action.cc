@@ -577,9 +577,9 @@ bool Action::slot_remove(Slot &slot_to_remove)
     return false;
   }
 
-  /* Remove the slot's data from each layer. */
-  for (Layer *layer : this->layers()) {
-    layer->slot_data_remove(*this, slot_to_remove.handle);
+  /* Remove the slot's data from each keyframe strip. */
+  for (StripKeyframeData *strip_data : this->strip_keyframe_data()) {
+    strip_data->slot_data_remove(slot_to_remove.handle);
   }
 
   /* Don't bother un-assigning this slot from its users. The slot handle will
@@ -1004,13 +1004,6 @@ int64_t Layer::find_strip_index(const Strip &strip) const
     }
   }
   return -1;
-}
-
-void Layer::slot_data_remove(Action &owning_action, const slot_handle_t slot_handle)
-{
-  for (Strip *strip : this->strips()) {
-    strip->slot_data_remove(owning_action, slot_handle);
-  }
 }
 
 /* ----- ActionSlot implementation ----------- */
@@ -1693,14 +1686,6 @@ template<> StripKeyframeData &Strip::data<StripKeyframeData>(Action &owning_acti
   BLI_assert(this->type() == StripKeyframeData::TYPE);
 
   return *owning_action.strip_keyframe_data()[this->data_index];
-}
-
-void Strip::slot_data_remove(Action &owning_action, const slot_handle_t slot_handle)
-{
-  switch (this->type()) {
-    case Type::Keyframe:
-      this->data<StripKeyframeData>(owning_action).slot_data_remove(slot_handle);
-  }
 }
 
 /* ----- ActionStripKeyframeData implementation ----------- */

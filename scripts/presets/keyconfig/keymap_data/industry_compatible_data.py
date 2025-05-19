@@ -672,6 +672,10 @@ def km_view3d(params):
         op_menu_pie("VIEW3D_MT_view_pie", {"type": 'V', "value": 'PRESS'}),
         # Navigation.
         ("view3d.rotate", {"type": 'LEFTMOUSE', "value": 'PRESS', "alt": True}, None),
+        ("view3d.view_pan", {"type": 'WHEELLEFTMOUSE', "value": 'PRESS'},
+            {"properties": [("type", 'PANLEFT')]}),
+        ("view3d.view_pan", {"type": 'WHEELRIGHTMOUSE', "value": 'PRESS'},
+            {"properties": [("type", 'PANRIGHT')]}),
         ("view3d.move", {"type": 'MIDDLEMOUSE', "value": 'PRESS', "alt": True}, None),
         ("view3d.zoom", {"type": 'RIGHTMOUSE', "value": 'PRESS', "alt": True}, None),
         ("view3d.view_selected", {"type": 'F', "value": 'PRESS'},

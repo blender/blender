@@ -318,7 +318,7 @@ std::optional<blender::Bounds<float3>> view3d_calc_minmax_selected(Depsgraph *de
     {
       const std::optional<blender::Bounds<float3>> bounds = BKE_pose_minmax(ob_eval_iter, true);
       if (bounds) {
-        const blender::Bounds<float3> world_bounds = blender::bounds::transform_bounds(
+        const blender::Bounds<float3> world_bounds = blender::bounds::transform_bounds<float, 4>(
             ob_eval->object_to_world(), *bounds);
         minmax_v3v3_v3(min, max, world_bounds.min);
         minmax_v3v3_v3(min, max, world_bounds.max);
@@ -483,7 +483,7 @@ void VIEW3D_OT_view_all(wmOperatorType *ot)
   ot->description = "View all objects in scene";
   ot->idname = "VIEW3D_OT_view_all";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = view3d_all_exec;
   ot->poll = ED_operator_region_view3d_active;
 
@@ -543,7 +543,7 @@ void VIEW3D_OT_view_selected(wmOperatorType *ot)
   ot->description = "Move the view to the selection center";
   ot->idname = "VIEW3D_OT_view_selected";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = viewselected_exec;
   ot->poll = view3d_zoom_or_dolly_poll;
 

@@ -5,9 +5,9 @@
 /** \file
  * \ingroup pythonintern
  *
- * This file defines a 'PyStructSequence' accessed via 'bpy.app.handlers',
+ * This file defines a #PyStructSequence accessed via `bpy.app.handlers`,
  * which exposes various lists that the script author can add callback
- * functions into (called via blenders generic BLI_cb api)
+ * functions into (called via blenders generic BLI_cb API)
  */
 
 #include "BLI_utildefines.h"

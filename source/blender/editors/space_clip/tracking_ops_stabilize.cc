@@ -70,7 +70,7 @@ void CLIP_OT_stabilize_2d_add(wmOperatorType *ot)
   ot->description = "Add selected tracks to 2D translation stabilization";
   ot->idname = "CLIP_OT_stabilize_2d_add";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = stabilize_2d_add_exec;
   ot->poll = stabilize_2d_poll;
 
@@ -119,7 +119,7 @@ void CLIP_OT_stabilize_2d_remove(wmOperatorType *ot)
   ot->description = "Remove selected track from translation stabilization";
   ot->idname = "CLIP_OT_stabilize_2d_remove";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = stabilize_2d_remove_exec;
   ot->poll = stabilize_2d_poll;
 
@@ -157,7 +157,7 @@ void CLIP_OT_stabilize_2d_select(wmOperatorType *ot)
   ot->description = "Select tracks which are used for translation stabilization";
   ot->idname = "CLIP_OT_stabilize_2d_select";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = stabilize_2d_select_exec;
   ot->poll = stabilize_2d_poll;
 
@@ -199,7 +199,7 @@ void CLIP_OT_stabilize_2d_rotation_add(wmOperatorType *ot)
   ot->description = "Add selected tracks to 2D rotation stabilization";
   ot->idname = "CLIP_OT_stabilize_2d_rotation_add";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = stabilize_2d_rotation_add_exec;
   ot->poll = stabilize_2d_poll;
 
@@ -248,7 +248,7 @@ void CLIP_OT_stabilize_2d_rotation_remove(wmOperatorType *ot)
   ot->description = "Remove selected track from rotation stabilization";
   ot->idname = "CLIP_OT_stabilize_2d_rotation_remove";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = stabilize_2d_rotation_remove_exec;
   ot->poll = stabilize_2d_poll;
 
@@ -286,7 +286,7 @@ void CLIP_OT_stabilize_2d_rotation_select(wmOperatorType *ot)
   ot->description = "Select tracks which are used for rotation stabilization";
   ot->idname = "CLIP_OT_stabilize_2d_rotation_select";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = stabilize_2d_rotation_select_exec;
   ot->poll = stabilize_2d_poll;
 

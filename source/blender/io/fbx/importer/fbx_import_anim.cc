@@ -129,8 +129,15 @@ static Vector<ElementAnimations> gather_animated_properties(const FbxElementMapp
       }
     }
     else {
-      /* Animating Object property. */
-      Object *obj = mapping.el_to_object.lookup_default(fprop.element, nullptr);
+      /* Animating Bone/Armature/Object property. */
+      const ufbx_node *fnode = ufbx_as_node(fprop.element);
+      Object *obj = nullptr;
+      if (fnode) {
+        obj = mapping.bone_to_armature.lookup_default(fnode, nullptr);
+      }
+      if (obj == nullptr) {
+        obj = mapping.el_to_object.lookup_default(fprop.element, nullptr);
+      }
       if (obj == nullptr) {
         continue;
       }
@@ -199,11 +206,10 @@ static void create_transform_curve_desc(const FbxElementMapping &mapping,
 {
   /* For animated bones, prepend bone path to animation curve path. */
   std::string rna_prefix;
-  bool is_bone = false;
   std::string group_name_str = get_fbx_name(anim.fbx_elem->name);
   const ufbx_node *fnode = ufbx_as_node(anim.fbx_elem);
-  if (fnode != nullptr && fnode->bone != nullptr && !fnode->bone->is_root) {
-    is_bone = true;
+  const bool is_bone = mapping.node_is_blender_bone.contains(fnode);
+  if (is_bone) {
     group_name_str = mapping.node_to_name.lookup_default(fnode, "");
     rna_prefix = std::string("pose.bones[\"") + group_name_str + "\"].";
   }
@@ -252,12 +258,10 @@ static void create_transform_curve_data(const FbxElementMapping &mapping,
                                         const float anim_offset,
                                         FCurve **curves)
 {
-  bool is_bone = false;
   const ufbx_node *fnode = ufbx_as_node(anim.fbx_elem);
   ufbx_matrix bone_xform = ufbx_identity_matrix;
-  if (fnode != nullptr && fnode->bone != nullptr && !fnode->bone->is_root) {
-    is_bone = true;
-
+  const bool is_bone = mapping.node_is_blender_bone.contains(fnode);
+  if (is_bone) {
     /* Bone transform curves need to be transformed to the bind transform
      * in joint-local space:
      * - Calculate local space bind matrix: inv(parent_bind) * bind
@@ -273,10 +277,8 @@ static void create_transform_curve_data(const FbxElementMapping &mapping,
       }
     }
 
-    bool found = false;
-    bone_xform = mapping.calc_local_bind_matrix(fnode, world_to_arm, found);
+    bone_xform = mapping.calc_local_bind_matrix(fnode, world_to_arm);
     bone_xform = ufbx_matrix_invert(&bone_xform);
-    BLI_assert_msg(found, "fbx: did not find bind matrix for bone curve");
   }
 
   int rot_channels = 3;
@@ -338,6 +340,7 @@ static void create_transform_curve_data(const FbxElementMapping &mapping,
   int64_t scale_index = rot_index + rot_channels;
   int64_t tot_curves = scale_index + 3;
   for (int64_t i = 0; i < tot_curves; i++) {
+    BLI_assert_msg(curves[i], "fbx: animation curve was not created successfully");
     BKE_fcurve_bezt_resize(curves[i], sorted_key_times.size());
   }
 

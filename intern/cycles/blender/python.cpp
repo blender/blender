@@ -49,7 +49,7 @@ void *pylong_as_voidptr_typesafe(PyObject *object)
 
 PyObject *pyunicode_from_string(const char *str)
 {
-  /* Ignore errors if device API returns invalid UTF-8 strings. */
+  /* Ignore errors if device API returns invalid UTF8 strings. */
   return PyUnicode_DecodeUTF8(str, strlen(str), "ignore");
 }
 

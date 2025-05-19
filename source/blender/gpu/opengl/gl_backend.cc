@@ -413,6 +413,7 @@ static void detect_workarounds()
     GLContext::multi_bind_support = false;
     GLContext::multi_bind_image_support = false;
     /* Turn off OpenGL 4.5 features. */
+    GLContext::clip_control_support = false;
     GLContext::direct_state_access_support = false;
     /* Turn off OpenGL 4.6 features. */
     GLContext::texture_filter_anisotropic_support = false;
@@ -612,6 +613,7 @@ GLint GLContext::max_ssbo_binds = 0;
 
 /** Extensions. */
 
+bool GLContext::clip_control_support = false;
 bool GLContext::debug_layer_support = false;
 bool GLContext::direct_state_access_support = false;
 bool GLContext::explicit_location_support = false;
@@ -710,6 +712,7 @@ void GLBackend::capabilities_init()
   GLContext::stencil_texturing_support = epoxy_gl_version() >= 43;
   GLContext::texture_filter_anisotropic_support = epoxy_has_gl_extension(
       "GL_EXT_texture_filter_anisotropic");
+  GLContext::clip_control_support = epoxy_has_gl_extension("GL_ARB_clip_control");
 
   /* Disabled until it is proven to work. */
   GLContext::framebuffer_fetch_support = false;

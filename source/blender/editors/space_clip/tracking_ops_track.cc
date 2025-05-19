@@ -416,7 +416,7 @@ void CLIP_OT_track_markers(wmOperatorType *ot)
   ot->description = "Track selected markers";
   ot->idname = "CLIP_OT_track_markers";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = track_markers_exec;
   ot->invoke = track_markers_invoke;
   ot->modal = track_markers_modal;
@@ -469,7 +469,7 @@ void CLIP_OT_refine_markers(wmOperatorType *ot)
       "to current frame";
   ot->idname = "CLIP_OT_refine_markers";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = refine_marker_exec;
   ot->poll = ED_space_clip_tracking_poll;
 

@@ -31,7 +31,7 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-#include "ANIM_bone_collections.hh"
+#include "ANIM_armature.hh"
 
 #include "tree/tree_element_seq.hh"
 

@@ -67,7 +67,7 @@ void BOID_OT_rule_add(wmOperatorType *ot)
   ot->description = "Add a boid rule to the current boid state";
   ot->idname = "BOID_OT_rule_add";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = WM_menu_invoke;
   ot->exec = rule_add_exec;
 
@@ -116,7 +116,7 @@ void BOID_OT_rule_del(wmOperatorType *ot)
   ot->idname = "BOID_OT_rule_del";
   ot->description = "Delete current boid rule";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = rule_del_exec;
 
   /* flags */
@@ -226,7 +226,7 @@ void BOID_OT_state_add(wmOperatorType *ot)
   ot->description = "Add a boid state to the particle system";
   ot->idname = "BOID_OT_state_add";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = state_add_exec;
 
   /* flags */
@@ -275,7 +275,7 @@ void BOID_OT_state_del(wmOperatorType *ot)
   ot->idname = "BOID_OT_state_del";
   ot->description = "Delete current boid state";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = state_del_exec;
 
   /* flags */

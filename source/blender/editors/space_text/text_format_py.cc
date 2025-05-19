@@ -522,7 +522,7 @@ static void txtfmt_py_format_line(SpaceText *st, TextLine *line, const bool do_n
         /* clang-format on */
 
         if (i > 0) {
-          if (prev == FMT_TYPE_DIRECTIVE) { /* can contain utf8 */
+          if (prev == FMT_TYPE_DIRECTIVE) { /* May contain UTF8. */
             text_format_fill(&str, &fmt, prev, i);
           }
           else {

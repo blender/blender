@@ -1898,8 +1898,8 @@ IDNewNameResult BKE_id_new_name_validate(Main &bmain,
     STRNCPY_UTF8(name, DATA_(BKE_idtype_idcode_to_name(GS(id.name))));
   }
   else {
-    /* disallow non utf8 chars,
-     * the interface checks for this but new ID's based on file names don't */
+    /* Disallow non UTF8 chars,
+     * the interface checks for this but new ID's based on file names don't. */
     BLI_str_utf8_invalid_strip(name, strlen(name));
   }
 
@@ -2443,7 +2443,7 @@ char *BKE_id_to_unique_string_key(const ID *id)
     return BLI_strdup(id->name);
   }
 
-  /* Prefix with an ascii character in the range of 32..96 (visible)
+  /* Prefix with an ASCII character in the range of 32..96 (visible)
    * this ensures we can't have a library ID pair that collide.
    * Where 'LIfooOBbarOBbaz' could be ('LIfoo, OBbarOBbaz') or ('LIfooOBbar', 'OBbaz'). */
   const char ascii_len = strlen(BKE_id_name(id->lib->id)) + 32;

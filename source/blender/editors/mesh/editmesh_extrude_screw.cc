@@ -188,7 +188,7 @@ void MESH_OT_screw(wmOperatorType *ot)
       "Extrude selected vertices in screw-shaped rotation around the cursor in indicated viewport";
   ot->idname = "MESH_OT_screw";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = edbm_screw_invoke;
   ot->exec = edbm_screw_exec;
   ot->poll = ED_operator_editmesh;

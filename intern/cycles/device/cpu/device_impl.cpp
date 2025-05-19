@@ -189,7 +189,13 @@ void CPUDevice::const_copy_to(const char *name, void *host, const size_t size)
 
     // Update scene handle (since it is different for each device on multi devices)
     KernelData *const data = (KernelData *)host;
-    data->device_bvh = embree_scene;
+    data->device_bvh =
+#  if RTC_VERSION >= 40400
+        rtcGetSceneTraversable(embree_scene)
+#  else
+        embree_scene
+#  endif
+        ;
   }
 #endif
   kernel_const_copy(&kernel_globals, name, host, size);

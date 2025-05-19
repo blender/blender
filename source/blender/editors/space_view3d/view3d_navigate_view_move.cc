@@ -115,7 +115,7 @@ void VIEW3D_OT_move(wmOperatorType *ot)
   ot->description = "Move the view";
   ot->idname = ViewOpsType_move.idname;
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = viewmove_invoke;
   ot->modal = view3d_navigate_modal_fn;
   ot->poll = view3d_location_poll;

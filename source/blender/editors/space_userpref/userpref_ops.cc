@@ -967,7 +967,7 @@ static void PREFERENCES_OT_extension_url_drop(wmOperatorType *ot)
   ot->description = "Handle dropping an extension URL";
   ot->idname = "PREFERENCES_OT_extension_url_drop";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = preferences_extension_url_drop_invoke;
 
   RNA_def_string(ot->srna, "url", nullptr, 0, "URL", "Location of the extension to install");
@@ -1058,7 +1058,7 @@ static void PREFERENCES_OT_associate_blend(wmOperatorType *ot)
   ot->description = "Use this installation for .blend files and to display thumbnails";
   ot->idname = "PREFERENCES_OT_associate_blend";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = associate_blend_exec;
   ot->poll = associate_blend_poll;
 }
@@ -1106,7 +1106,7 @@ static void PREFERENCES_OT_unassociate_blend(wmOperatorType *ot)
   ot->description = "Remove this installation's associations with .blend files";
   ot->idname = "PREFERENCES_OT_unassociate_blend";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = unassociate_blend_exec;
   ot->poll = associate_blend_poll;
 }

@@ -154,7 +154,7 @@ void CACHEFILE_OT_reload(wmOperatorType *ot)
   ot->description = "Update objects paths list with new data from the archive";
   ot->idname = "CACHEFILE_OT_reload";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = cachefile_reload_exec;
 
   /* flags */
@@ -218,7 +218,7 @@ void CACHEFILE_OT_layer_add(wmOperatorType *ot)
   ot->description = "Add an override layer to the archive";
   ot->idname = "CACHEFILE_OT_layer_add";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = cachefile_layer_open_invoke;
   ot->exec = cachefile_layer_add_exec;
 
@@ -255,7 +255,7 @@ void CACHEFILE_OT_layer_remove(wmOperatorType *ot)
   ot->description = "Remove an override layer from the archive";
   ot->idname = "CACHEFILE_OT_layer_remove";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = cachefile_layer_remove_exec;
 
   /* flags */
@@ -304,7 +304,7 @@ void CACHEFILE_OT_layer_move(wmOperatorType *ot)
       "higher up";
   ot->idname = "CACHEFILE_OT_layer_move";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = cachefile_layer_move_exec;
 
   /* flags */

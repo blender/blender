@@ -415,7 +415,7 @@ void ACTION_OT_select_all(wmOperatorType *ot)
   ot->idname = "ACTION_OT_select_all";
   ot->description = "Toggle selection of all keyframes";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = actkeys_deselectall_exec;
   ot->poll = ED_operator_action_active;
 
@@ -680,7 +680,7 @@ void ACTION_OT_select_box(wmOperatorType *ot)
   ot->idname = "ACTION_OT_select_box";
   ot->description = "Select all keyframes within the specified region";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = actkeys_box_select_invoke;
   ot->exec = actkeys_box_select_exec;
   ot->modal = WM_gesture_box_modal;
@@ -948,7 +948,7 @@ void ACTION_OT_select_lasso(wmOperatorType *ot)
   ot->description = "Select keyframe points using lasso selection";
   ot->idname = "ACTION_OT_select_lasso";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = WM_gesture_lasso_invoke;
   ot->modal = WM_gesture_lasso_modal;
   ot->exec = actkeys_lassoselect_exec;
@@ -1165,6 +1165,7 @@ static void columnselect_action_keys(bAnimContext *ac, short mode)
             ED_gpencil_layer_make_cfra_list(static_cast<bGPDlayer *>(ale->data), &ked.list, true);
           }
           else {
+            ked.data = ale;
             ANIM_fcurve_keyframes_loop(
                 &ked, static_cast<FCurve *>(ale->key_data), nullptr, bezt_to_cfraelem, nullptr);
           }
@@ -1271,7 +1272,7 @@ void ACTION_OT_select_column(wmOperatorType *ot)
   ot->idname = "ACTION_OT_select_column";
   ot->description = "Select all keyframes on the specified frame(s)";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = actkeys_columnselect_exec;
   ot->poll = ED_operator_action_active;
 
@@ -1337,7 +1338,7 @@ void ACTION_OT_select_linked(wmOperatorType *ot)
   ot->idname = "ACTION_OT_select_linked";
   ot->description = "Select keyframes occurring in the same F-Curves as selected ones";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = actkeys_select_linked_exec;
   ot->poll = ED_operator_action_active;
 
@@ -1426,7 +1427,7 @@ void ACTION_OT_select_more(wmOperatorType *ot)
   ot->idname = "ACTION_OT_select_more";
   ot->description = "Select keyframes beside already selected ones";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = actkeys_select_more_exec;
   ot->poll = ED_operator_action_active;
 
@@ -1463,7 +1464,7 @@ void ACTION_OT_select_less(wmOperatorType *ot)
   ot->idname = "ACTION_OT_select_less";
   ot->description = "Deselect keyframes on ends of selection islands";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = actkeys_select_less_exec;
   ot->poll = ED_operator_action_active;
 
@@ -1664,7 +1665,7 @@ void ACTION_OT_select_leftright(wmOperatorType *ot)
   ot->idname = "ACTION_OT_select_leftright";
   ot->description = "Select keyframes to the left or the right of the current frame";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = actkeys_select_leftright_invoke;
   ot->exec = actkeys_select_leftright_exec;
   ot->poll = ED_operator_action_active;

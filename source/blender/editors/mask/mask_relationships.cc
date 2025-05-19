@@ -60,7 +60,7 @@ void MASK_OT_parent_clear(wmOperatorType *ot)
   ot->description = "Clear the mask's parenting";
   ot->idname = "MASK_OT_parent_clear";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = mask_parent_clear_exec;
 
   ot->poll = ED_maskedit_mask_visible_splines_poll;
@@ -159,7 +159,7 @@ void MASK_OT_parent_set(wmOperatorType *ot)
   ot->description = "Set the mask's parenting";
   ot->idname = "MASK_OT_parent_set";
 
-  /* api callbacks */
+  /* API callbacks. */
   // ot->invoke = mask_parent_set_invoke;
   ot->exec = mask_parent_set_exec;
 

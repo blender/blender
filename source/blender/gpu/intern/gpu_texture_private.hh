@@ -1149,6 +1149,8 @@ static inline eGPUTextureFormat to_texture_format(const GPUVertFormat *format)
             case GPU_FETCH_FLOAT:
               return GPU_RGBA16F;
           }
+          /* Should be handled above, assert below. */
+          break;
         case GPU_COMP_I32:
           return GPU_RGBA32I;
         case GPU_COMP_U32:

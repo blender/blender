@@ -380,7 +380,7 @@ void MESH_OT_primitive_cube_add_gizmo(wmOperatorType *ot)
   ot->description = "Construct a cube mesh";
   ot->idname = "MESH_OT_primitive_cube_add_gizmo";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = add_primitive_cube_gizmo_invoke;
   ot->exec = add_primitive_cube_gizmo_exec;
   ot->poll = ED_operator_editmesh_view3d;

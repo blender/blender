@@ -532,7 +532,7 @@ wmOperatorStatus ED_mesh_shapes_join_objects_exec(bContext *C,
                                                   bool ensure_keys_exist,
                                                   ReportList *reports);
 
-/* mirror lookup api */
+/* Mirror lookup API. */
 
 /* Spatial Mirror */
 void ED_mesh_mirror_spatial_table_begin(Object *ob, BMEditMesh *em, Mesh *mesh_eval);

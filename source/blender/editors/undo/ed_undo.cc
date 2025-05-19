@@ -561,7 +561,7 @@ void ED_OT_undo(wmOperatorType *ot)
   ot->description = "Undo previous action";
   ot->idname = "ED_OT_undo";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = ed_undo_exec;
   ot->poll = ed_undo_poll;
 }
@@ -573,7 +573,7 @@ void ED_OT_undo_push(wmOperatorType *ot)
   ot->description = "Add an undo state (internal use only)";
   ot->idname = "ED_OT_undo_push";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = ed_undo_push_exec;
   /* Unlike others undo operators this initializes undo stack. */
   ot->poll = ED_operator_screenactive;
@@ -604,7 +604,7 @@ void ED_OT_redo(wmOperatorType *ot)
   ot->description = "Redo previous action";
   ot->idname = "ED_OT_redo";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = ed_redo_exec;
   ot->poll = ed_redo_poll;
 }
@@ -616,7 +616,7 @@ void ED_OT_undo_redo(wmOperatorType *ot)
   ot->description = "Undo and redo previous action";
   ot->idname = "ED_OT_undo_redo";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = ed_undo_redo_exec;
   ot->poll = ed_undo_redo_poll;
 }
@@ -757,7 +757,7 @@ void ED_OT_undo_history(wmOperatorType *ot)
   ot->description = "Redo specific action in history";
   ot->idname = "ED_OT_undo_history";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = undo_history_invoke;
   ot->exec = undo_history_exec;
   ot->poll = ed_undo_is_init_and_screenactive_poll;

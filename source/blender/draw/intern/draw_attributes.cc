@@ -10,11 +10,6 @@
 
 namespace blender::draw {
 
-void drw_attributes_clear(VectorSet<std::string> *attributes)
-{
-  *attributes = {};
-}
-
 void drw_attributes_merge(VectorSet<std::string> *dst,
                           const VectorSet<std::string> *src,
                           Mutex &render_mutex)

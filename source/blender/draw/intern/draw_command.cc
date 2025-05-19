@@ -305,6 +305,13 @@ void StateSet::execute(RecordingState &recording_state) const
                 to_stencil_op(new_state),
                 to_provoking_vertex(new_state));
 
+  if (new_state & DRW_STATE_CLIP_CONTROL_UNIT_RANGE) {
+    GPU_clip_control_unit_range(true);
+  }
+  else {
+    GPU_clip_control_unit_range(false);
+  }
+
   if (new_state & DRW_STATE_SHADOW_OFFSET) {
     GPU_shadow_offset(true);
   }

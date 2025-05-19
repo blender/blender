@@ -26,7 +26,7 @@
  *   this allows us to add convenience methods at any time. Especially, when doing a lot of string
  *   manipulation, this helps to keep the code clean. Furthermore, we need StringRefNull anyway,
  *   because there is a lot of C code that expects null-terminated strings. Conversion between
- *   StringRef and string_view is very cheap and can be done at api boundaries at essentially no
+ *   StringRef and string_view is very cheap and can be done at API boundaries at essentially no
  *   cost. Another benefit of using StringRef is that it uses signed integers, thus developers
  *   have to deal less with issues resulting from unsigned integers.
  */
@@ -71,8 +71,8 @@ class StringRefBase {
 
   /**
    * Copy the string into a char array. The copied string will be null-terminated. If it does not
-   * fit, it will be truncated while keeping it valid utf-8 (assuming the #StringRef itself is
-   * valid utf-8).
+   * fit, it will be truncated while keeping it valid UTF8 (assuming the #StringRef itself is
+   * valid UTF8).
    */
   void copy_utf8_truncated(char *dst, int64_t dst_size) const;
   template<size_t N> void copy_utf8_truncated(char (&dst)[N]) const;
@@ -580,13 +580,16 @@ inline std::string operator+(StringRef a, StringRef b)
   return std::string(a) + std::string(b);
 }
 
-/* This does not compare StringRef and std::string_view, because of ambiguous overloads. This is
- * not a problem when std::string_view is only used at api boundaries. To compare a StringRef and a
- * std::string_view, one should convert the std::string_view to StringRef (which is very cheap).
+/**
+ * This does not compare #StringRef and std::string_view, because of ambiguous overloads.
+ * This is not a problem when #std::string_view is only used at API boundaries.
+ * To compare a #StringRef and a #std::string_view, one should convert the #std::string_view
+ * to #StringRef (which is very cheap).
  * Ideally, we only use StringRef in our code to avoid this problem altogether.
  *
- * NOTE: these functions are also suitable for StringRefNull comparisons, as these are
- * implicitly converted to StringRef by the compiler. */
+ * NOTE: these functions are also suitable for #StringRefNull comparisons,
+ * as these are implicitly converted to StringRef by the compiler.
+ */
 constexpr bool operator==(StringRef a, StringRef b)
 {
   return std::string_view(a) == std::string_view(b);

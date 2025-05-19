@@ -123,7 +123,7 @@ template<typename T> class StringSearch : private StringSearchBase {
  * operations that need to be executed. Valid operations are deletion, insertion, substitution and
  * transposition.
  *
- * This function is utf8 aware in the sense that it works at the level of individual code points
+ * This function is UTF8 aware in the sense that it works at the level of individual code points
  * (1-4 bytes long) instead of on individual bytes.
  */
 int damerau_levenshtein_distance(StringRef a, StringRef b);

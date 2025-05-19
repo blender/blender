@@ -416,7 +416,7 @@ static void ANIM_OT_change_frame(wmOperatorType *ot)
   ot->idname = "ANIM_OT_change_frame";
   ot->description = "Interactively change the current frame number";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = change_frame_exec;
   ot->invoke = change_frame_invoke;
   ot->cancel = change_frame_cancel;
@@ -511,7 +511,7 @@ static void ANIM_OT_start_frame_set(wmOperatorType *ot)
   ot->idname = "ANIM_OT_start_frame_set";
   ot->description = "Set the current frame as the preview or scene start frame";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = anim_set_sfra_exec;
   ot->poll = anim_set_end_frames_poll;
 
@@ -566,7 +566,7 @@ static void ANIM_OT_end_frame_set(wmOperatorType *ot)
   ot->idname = "ANIM_OT_end_frame_set";
   ot->description = "Set the current frame as the preview or scene end frame";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = anim_set_efra_exec;
   ot->poll = anim_set_end_frames_poll;
 
@@ -619,7 +619,7 @@ static void ANIM_OT_previewrange_set(wmOperatorType *ot)
   ot->idname = "ANIM_OT_previewrange_set";
   ot->description = "Interactively define frame range used for playback";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = WM_gesture_box_invoke;
   ot->exec = previewrange_define_exec;
   ot->modal = WM_gesture_box_modal;
@@ -674,7 +674,7 @@ static void ANIM_OT_previewrange_clear(wmOperatorType *ot)
   ot->idname = "ANIM_OT_previewrange_clear";
   ot->description = "Clear preview range";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = previewrange_clear_exec;
 
   ot->poll = ED_operator_animview_active;
@@ -840,7 +840,7 @@ static void ANIM_OT_convert_legacy_action(wmOperatorType *ot)
   ot->idname = "ANIM_OT_convert_legacy_action";
   ot->description = "Convert a legacy Action to a layered Action on the active object";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = convert_action_exec;
   ot->poll = convert_action_poll;
 

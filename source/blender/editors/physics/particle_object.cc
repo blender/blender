@@ -91,7 +91,7 @@ void OBJECT_OT_particle_system_add(wmOperatorType *ot)
   ot->idname = "OBJECT_OT_particle_system_add";
   ot->description = "Add a particle system";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->poll = ED_operator_object_active_local_editable;
   ot->exec = particle_system_add_exec;
 
@@ -140,7 +140,7 @@ void OBJECT_OT_particle_system_remove(wmOperatorType *ot)
   ot->idname = "OBJECT_OT_particle_system_remove";
   ot->description = "Remove the selected particle system";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->poll = ED_operator_object_active_local_editable;
   ot->exec = particle_system_remove_exec;
 
@@ -202,7 +202,7 @@ void PARTICLE_OT_new(wmOperatorType *ot)
   ot->idname = "PARTICLE_OT_new";
   ot->description = "Add new particle settings";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = new_particle_settings_exec;
   ot->poll = psys_poll;
 
@@ -252,7 +252,7 @@ void PARTICLE_OT_new_target(wmOperatorType *ot)
   ot->idname = "PARTICLE_OT_new_target";
   ot->description = "Add a new particle target";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = new_particle_target_exec;
 
   /* flags */
@@ -301,7 +301,7 @@ void PARTICLE_OT_target_remove(wmOperatorType *ot)
   ot->idname = "PARTICLE_OT_target_remove";
   ot->description = "Remove the selected particle target";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = remove_particle_target_exec;
 
   /* flags */
@@ -491,7 +491,7 @@ void PARTICLE_OT_dupliob_copy(wmOperatorType *ot)
   ot->idname = "PARTICLE_OT_dupliob_copy";
   ot->description = "Duplicate the current instance object";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = copy_particle_dupliob_exec;
 
   /* flags */
@@ -535,7 +535,7 @@ void PARTICLE_OT_dupliob_remove(wmOperatorType *ot)
   ot->idname = "PARTICLE_OT_dupliob_remove";
   ot->description = "Remove the selected instance object";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = remove_particle_dupliob_exec;
 
   /* flags */

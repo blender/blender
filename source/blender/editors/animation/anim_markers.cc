@@ -794,7 +794,7 @@ static void MARKER_OT_add(wmOperatorType *ot)
   ot->description = "Add a new time marker";
   ot->idname = "MARKER_OT_add";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = ed_marker_add_exec;
   ot->poll = operator_markers_region_active;
 
@@ -1151,7 +1151,7 @@ static void MARKER_OT_move(wmOperatorType *ot)
   ot->description = "Move selected time marker(s)";
   ot->idname = "MARKER_OT_move";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = ed_marker_move_exec;
   ot->invoke = ed_marker_move_invoke;
   ot->modal = ed_marker_move_modal;
@@ -1247,7 +1247,7 @@ static void MARKER_OT_duplicate(wmOperatorType *ot)
   ot->description = "Duplicate selected time marker(s)";
   ot->idname = "MARKER_OT_duplicate";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = ed_marker_duplicate_exec;
   ot->invoke = ed_marker_duplicate_invoke;
   ot->modal = ed_marker_move_modal;
@@ -1437,7 +1437,7 @@ static void MARKER_OT_select(wmOperatorType *ot)
   ot->description = "Select time marker(s)";
   ot->idname = "MARKER_OT_select";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->poll = ed_markers_poll_markers_exist_visible;
   ot->exec = ed_marker_select_exec;
   ot->invoke = WM_generic_select_invoke;
@@ -1535,7 +1535,7 @@ static void MARKER_OT_select_box(wmOperatorType *ot)
   ot->description = "Select all time markers using box selection";
   ot->idname = "MARKER_OT_select_box";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = ed_marker_box_select_exec;
   ot->invoke = ed_marker_box_select_invoke;
   ot->modal = WM_gesture_box_modal;
@@ -1584,7 +1584,7 @@ static void MARKER_OT_select_all(wmOperatorType *ot)
   ot->description = "Change selection of all time markers";
   ot->idname = "MARKER_OT_select_all";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = ed_marker_select_all_exec;
   ot->poll = ed_markers_poll_markers_exist;
 
@@ -1661,7 +1661,7 @@ static void MARKER_OT_select_leftright(wmOperatorType *ot)
   ot->description = "Select markers on and left/right of the current frame";
   ot->idname = "MARKER_OT_select_leftright";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = ed_marker_select_leftright_exec;
   ot->poll = ed_markers_poll_markers_exist;
 
@@ -1736,7 +1736,7 @@ static void MARKER_OT_delete(wmOperatorType *ot)
   ot->description = "Delete selected time marker(s)";
   ot->idname = "MARKER_OT_delete";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = ed_marker_delete_invoke;
   ot->exec = ed_marker_delete_exec;
   ot->poll = ed_markers_poll_selected_no_locked_markers;
@@ -1789,7 +1789,7 @@ static void MARKER_OT_rename(wmOperatorType *ot)
   ot->description = "Rename first selected time marker";
   ot->idname = "MARKER_OT_rename";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = ed_marker_rename_invoke;
   ot->exec = ed_marker_rename_exec;
   ot->poll = ed_markers_poll_selected_no_locked_markers;
@@ -1860,7 +1860,7 @@ static void MARKER_OT_make_links_scene(wmOperatorType *ot)
   ot->description = "Copy selected markers to another scene";
   ot->idname = "MARKER_OT_make_links_scene";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = ed_marker_make_links_scene_exec;
   ot->invoke = WM_menu_invoke;
   ot->poll = ed_markers_poll_selected_markers;
@@ -1940,7 +1940,7 @@ static void MARKER_OT_camera_bind(wmOperatorType *ot)
   ot->description = "Bind the selected camera to a marker on the current frame";
   ot->idname = "MARKER_OT_camera_bind";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = ed_marker_camera_bind_exec;
   ot->poll = operator_markers_region_active;
 

@@ -27,8 +27,6 @@
 
     /* Event data. */
     GHOST_TEventImeData event;
-    std::string result;
-    std::string composite;
     std::string combined_result;
   } ime;
 #endif
@@ -407,8 +405,8 @@ HANDLE_TABLET_EVENT(tabletProximity)
 - (void)endIME
 {
   ime.state_flag = 0;
-  ime.result.clear();
-  ime.composite.clear();
+  ime.event.result.clear();
+  ime.event.composite.clear();
 
   [self unmarkText];
   @autoreleasepool {
@@ -418,11 +416,6 @@ HANDLE_TABLET_EVENT(tabletProximity)
 
 - (void)processImeEvent:(GHOST_TEventType)imeEventType
 {
-  ime.event.result_len = (GHOST_TUserDataPtr)ime.result.size();
-  ime.event.result = (GHOST_TUserDataPtr)ime.result.c_str();
-  ime.event.composite_len = (GHOST_TUserDataPtr)ime.composite.size();
-  ime.event.composite = (GHOST_TUserDataPtr)ime.composite.c_str();
-
   GHOST_Event *event = new GHOST_EventIME(
       m_systemCocoa->getMilliSeconds(), imeEventType, m_windowCocoa, &ime.event);
   m_systemCocoa->pushEvent(event);
@@ -438,12 +431,12 @@ HANDLE_TABLET_EVENT(tabletProximity)
 
 - (void)setImeComposition:(NSString *)inString selectedRange:(NSRange)range
 {
-  ime.composite = [self convertNSString:inString];
+  ime.event.composite = [self convertNSString:inString];
 
   /* For Korean input, both "Result Event" and "Composition Event" can occur in a single keyDown.
    */
   if (!(ime.state_flag & GHOST_IME_RESULT_EVENT)) {
-    ime.result.clear();
+    ime.event.result.clear();
   }
 
   /* The target string is equivalent to the string in selectedRange of setMarkedText.
@@ -460,8 +453,8 @@ HANDLE_TABLET_EVENT(tabletProximity)
 
 - (void)setImeResult:(std::string)result
 {
-  ime.result = result;
-  ime.composite.clear();
+  ime.event.result = result;
+  ime.event.composite.clear();
   ime.event.cursor_position = -1;
   ime.event.target_start = -1;
   ime.event.target_end = -1;

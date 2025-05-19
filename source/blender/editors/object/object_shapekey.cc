@@ -358,7 +358,7 @@ void OBJECT_OT_shape_key_add(wmOperatorType *ot)
   ot->idname = "OBJECT_OT_shape_key_add";
   ot->description = "Add shape key to the object";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->poll = shape_key_mode_poll;
   ot->exec = shape_key_add_exec;
 
@@ -479,7 +479,7 @@ void OBJECT_OT_shape_key_remove(wmOperatorType *ot)
   ot->idname = "OBJECT_OT_shape_key_remove";
   ot->description = "Remove shape key from the object";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->poll = shape_key_mode_exists_poll;
   ot->exec = shape_key_remove_exec;
   ot->poll_property = shape_key_remove_poll_property;
@@ -530,7 +530,7 @@ void OBJECT_OT_shape_key_clear(wmOperatorType *ot)
       "Reset the weights of all shape keys to 0 or to the closest value respecting the limits";
   ot->idname = "OBJECT_OT_shape_key_clear";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->poll = shape_key_poll;
   ot->exec = shape_key_clear_exec;
 
@@ -567,7 +567,7 @@ void OBJECT_OT_shape_key_retime(wmOperatorType *ot)
   ot->description = "Resets the timing for absolute shape keys";
   ot->idname = "OBJECT_OT_shape_key_retime";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->poll = shape_key_poll;
   ot->exec = shape_key_retime_exec;
 
@@ -607,7 +607,7 @@ void OBJECT_OT_shape_key_mirror(wmOperatorType *ot)
   ot->idname = "OBJECT_OT_shape_key_mirror";
   ot->description = "Mirror the current shape key along the local X axis";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->poll = shape_key_mode_poll;
   ot->exec = shape_key_mirror_exec;
 
@@ -685,7 +685,7 @@ void OBJECT_OT_shape_key_move(wmOperatorType *ot)
   ot->idname = "OBJECT_OT_shape_key_move";
   ot->description = "Move the active shape key up/down in the list";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->poll = shape_key_move_poll;
   ot->exec = shape_key_move_exec;
 
@@ -765,7 +765,7 @@ void OBJECT_OT_shape_key_lock(wmOperatorType *ot)
   ot->idname = "OBJECT_OT_shape_key_lock";
   ot->description = "Change the lock state of all shape keys of active object";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->poll = shape_key_exists_poll;
   ot->exec = shape_key_lock_exec;
   ot->get_description = shape_key_lock_get_description;

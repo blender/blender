@@ -696,8 +696,11 @@ void NODE_OT_add_collection(wmOperatorType *ot)
 static bool node_add_image_poll(bContext *C)
 {
   const SpaceNode *snode = CTX_wm_space_node(C);
-  return ED_operator_node_editable(C) &&
-         ELEM(snode->nodetree->type, NTREE_SHADER, NTREE_TEXTURE, NTREE_COMPOSIT, NTREE_GEOMETRY);
+  return ED_operator_node_editable(C) && STR_ELEM(snode->tree_idname,
+                                                  "ShaderNodeTree",
+                                                  "CompositorNodeTree",
+                                                  "TextureNodeTree",
+                                                  "GeometryNodeTree");
 }
 
 /** Node stack animation data, sorts nodes so each node is placed on top of each other. */
@@ -1541,7 +1544,7 @@ void NODE_OT_new_node_tree(wmOperatorType *ot)
   ot->idname = "NODE_OT_new_node_tree";
   ot->description = "Create a new node tree";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = new_node_tree_exec;
 
   /* flags */

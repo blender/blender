@@ -64,7 +64,7 @@
 /** \defgroup intern_slim SLIM Solver for UV Unwrapping
  *  \ingroup intern */
 
-/** \defgroup intern_utf_conv UTF-8/16 Conversion (utfconv)
+/** \defgroup intern_utf_conv UTF8/UTF16 Conversion (utfconv)
  *  \ingroup intern */
 
 /** \defgroup audaspace Audaspace

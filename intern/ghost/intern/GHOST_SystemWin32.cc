@@ -1326,13 +1326,13 @@ GHOST_EventKey *GHOST_SystemWin32::processKeyEvent(GHOST_WindowWin32 *window, RA
       /* Pass. No text if either Win key is pressed. #79702. */
     }
     /* Don't call #ToUnicodeEx on dead keys as it clears the buffer and so won't allow diacritical
-     * composition. XXX: we are not checking return of MapVirtualKeyW for high bit set, which is
+     * composition. XXX: we are not checking return of #MapVirtualKeyW for high bit set, which is
      * what is supposed to indicate dead keys. But this is working now so approach cautiously. */
     else if (MapVirtualKeyW(vk, MAPVK_VK_TO_CHAR) != 0) {
       wchar_t utf16[3] = {0};
       int r;
-      /* TODO: #ToUnicodeEx can respond with up to 4 utf16 chars (only 2 here).
-       * Could be up to 24 utf8 bytes. */
+      /* TODO: #ToUnicodeEx can respond with up to 4 UTF16 chars (only 2 here).
+       * Could be up to 24 UTF8 bytes. */
       if ((r = ToUnicodeEx(
                vk, raw.data.keyboard.MakeCode, state, utf16, 2, 0, system->m_keylayout)))
       {
@@ -1694,7 +1694,7 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, uint msg, WPARAM wParam, 
           eventHandled = true;
           ime->UpdateImeWindow(hwnd);
           ime->UpdateInfo(hwnd);
-          if (ime->eventImeData.result_len) {
+          if (ime->eventImeData.result.size()) {
             /* remove redundant IME event */
             eventManager->removeTypeEvents(GHOST_kEventImeComposition, window);
           }

@@ -127,7 +127,7 @@ extern BatchBLF g_batch;
 
 struct KerningCacheBLF {
   /**
-   * Cache a ascii glyph pairs. Only store the x offset we are interested in,
+   * Cache a ASCII glyph pairs. Only store the x offset we are interested in,
    * instead of the full #FT_Vector since it's not used for drawing at the moment.
    */
   int ascii_table[KERNING_CACHE_TABLE_SIZE][KERNING_CACHE_TABLE_SIZE];
@@ -175,7 +175,7 @@ struct GlyphCacheBLF {
 };
 
 struct GlyphBLF {
-  /** The character, as UTF-32. */
+  /** The character, as UTF32. */
   unsigned int c;
 
   /** Freetype2 index, to speed-up the search. */

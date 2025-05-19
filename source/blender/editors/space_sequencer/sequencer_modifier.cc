@@ -78,7 +78,7 @@ void SEQUENCER_OT_strip_modifier_add(wmOperatorType *ot)
   ot->idname = "SEQUENCER_OT_strip_modifier_add";
   ot->description = "Add a modifier to the strip";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = strip_modifier_add_exec;
   ot->poll = sequencer_strip_editable_poll;
 
@@ -134,7 +134,7 @@ void SEQUENCER_OT_strip_modifier_remove(wmOperatorType *ot)
   ot->idname = "SEQUENCER_OT_strip_modifier_remove";
   ot->description = "Remove a modifier from the strip";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = strip_modifier_remove_exec;
   ot->poll = sequencer_strip_editable_poll;
 
@@ -213,7 +213,7 @@ void SEQUENCER_OT_strip_modifier_move(wmOperatorType *ot)
   ot->idname = "SEQUENCER_OT_strip_modifier_move";
   ot->description = "Move modifier up and down in the stack";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = strip_modifier_move_exec;
   ot->poll = sequencer_strip_editable_poll;
 
@@ -311,7 +311,7 @@ void SEQUENCER_OT_strip_modifier_copy(wmOperatorType *ot)
   ot->idname = "SEQUENCER_OT_strip_modifier_copy";
   ot->description = "Copy modifiers of the active strip to all selected strips";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = WM_menu_invoke;
   ot->exec = strip_modifier_copy_exec;
   ot->poll = sequencer_strip_editable_poll;
@@ -367,7 +367,7 @@ void SEQUENCER_OT_strip_modifier_equalizer_redefine(wmOperatorType *ot)
   ot->idname = "SEQUENCER_OT_strip_modifier_equalizer_redefine";
   ot->description = "Redefine equalizer graphs";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = strip_modifier_equalizer_redefine_exec;
   ot->poll = sequencer_strip_editable_poll;
 

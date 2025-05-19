@@ -621,7 +621,7 @@ static void UV_OT_align(wmOperatorType *ot)
   ot->idname = "UV_OT_align";
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = uv_align_exec;
   ot->poll = ED_operator_uvedit;
 
@@ -938,7 +938,7 @@ static void UV_OT_remove_doubles(wmOperatorType *ot)
   ot->idname = "UV_OT_remove_doubles";
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = uv_remove_doubles_exec;
   ot->poll = ED_operator_uvedit;
 
@@ -981,7 +981,7 @@ static void UV_OT_weld(wmOperatorType *ot)
   ot->idname = "UV_OT_weld";
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = uv_weld_exec;
   ot->poll = ED_operator_uvedit;
 }
@@ -1070,7 +1070,7 @@ static void UV_OT_snap_cursor(wmOperatorType *ot)
   ot->idname = "UV_OT_snap_cursor";
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = uv_snap_cursor_exec;
   ot->poll = ED_operator_uvedit_space_image; /* requires space image */
 
@@ -1255,7 +1255,7 @@ static void UV_OT_snap_selected(wmOperatorType *ot)
   ot->idname = "UV_OT_snap_selected";
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = uv_snap_selection_exec;
   ot->poll = ED_operator_uvedit_space_image;
 
@@ -1349,7 +1349,7 @@ static void UV_OT_pin(wmOperatorType *ot)
   ot->idname = "UV_OT_pin";
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = uv_pin_exec;
   ot->poll = ED_operator_uvedit;
 
@@ -1550,7 +1550,7 @@ static void UV_OT_hide(wmOperatorType *ot)
   ot->idname = "UV_OT_hide";
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = uv_hide_exec;
   ot->poll = ED_operator_uvedit;
 
@@ -1702,7 +1702,7 @@ static void UV_OT_reveal(wmOperatorType *ot)
   ot->idname = "UV_OT_reveal";
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = uv_reveal_exec;
   ot->poll = ED_operator_uvedit;
 
@@ -1763,7 +1763,7 @@ static void UV_OT_cursor_set(wmOperatorType *ot)
   ot->description = "Set 2D cursor location";
   ot->idname = "UV_OT_cursor_set";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = uv_set_2d_cursor_exec;
   ot->invoke = uv_set_2d_cursor_invoke;
   ot->poll = ED_space_image_cursor_poll;
@@ -1870,7 +1870,7 @@ static void UV_OT_seams_from_islands(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = uv_seams_from_islands_exec;
   ot->poll = ED_operator_uvedit;
 
@@ -1978,7 +1978,7 @@ static void UV_OT_mark_seam(wmOperatorType *ot)
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = uv_mark_seam_exec;
   ot->invoke = uv_mark_seam_invoke;
   ot->poll = ED_operator_uvedit;

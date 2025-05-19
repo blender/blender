@@ -142,7 +142,7 @@ void PAINT_OT_vertex_color_from_weight(wmOperatorType *ot)
   ot->idname = "PAINT_OT_vertex_color_from_weight";
   ot->description = "Convert active weight into gray scale vertex colors";
 
-  /* api callback */
+  /* API callbacks. */
   ot->exec = vertex_paint_from_weight_exec;
   ot->poll = vertex_weight_paint_mode_poll;
 
@@ -236,7 +236,7 @@ void PAINT_OT_vertex_color_smooth(wmOperatorType *ot)
   ot->idname = "PAINT_OT_vertex_color_smooth";
   ot->description = "Smooth colors across vertices";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = vertex_color_smooth_exec;
   ot->poll = vertex_paint_mode_poll;
 
@@ -374,7 +374,7 @@ void PAINT_OT_vertex_color_brightness_contrast(wmOperatorType *ot)
   ot->idname = "PAINT_OT_vertex_color_brightness_contrast";
   ot->description = "Adjust vertex color brightness/contrast";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = vertex_color_brightness_contrast_exec;
   ot->poll = vertex_paint_mode_poll;
 
@@ -430,7 +430,7 @@ void PAINT_OT_vertex_color_hsv(wmOperatorType *ot)
   ot->idname = "PAINT_OT_vertex_color_hsv";
   ot->description = "Adjust vertex color Hue/Saturation/Value";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = vertex_color_hsv_exec;
   ot->poll = vertex_paint_mode_poll;
 
@@ -470,7 +470,7 @@ void PAINT_OT_vertex_color_invert(wmOperatorType *ot)
   ot->idname = "PAINT_OT_vertex_color_invert";
   ot->description = "Invert RGB values";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = vertex_color_invert_exec;
   ot->poll = vertex_paint_mode_poll;
 
@@ -510,7 +510,7 @@ void PAINT_OT_vertex_color_levels(wmOperatorType *ot)
   ot->idname = "PAINT_OT_vertex_color_levels";
   ot->description = "Adjust levels of vertex colors";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = vertex_color_levels_exec;
   ot->poll = vertex_paint_mode_poll;
 

@@ -357,7 +357,7 @@ void UI_OT_eyedropper_id(wmOperatorType *ot)
   ot->idname = "UI_OT_eyedropper_id";
   ot->description = "Sample a data-block from the 3D View to store in a property";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = datadropper_invoke;
   ot->modal = datadropper_modal;
   ot->cancel = datadropper_cancel;

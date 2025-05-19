@@ -598,7 +598,13 @@ void OneapiDevice::const_copy_to(const char *name, void *host, const size_t size
 
     /* Update scene handle(since it is different for each device on multi devices) */
     KernelData *const data = (KernelData *)host;
-    data->device_bvh = embree_scene;
+    data->device_bvh =
+#    if RTC_VERSION >= 40400
+        rtcGetSceneTraversable(embree_scene)
+#    else
+        embree_scene
+#    endif
+        ;
 
     /* We need this number later for proper local memory allocation. */
     scene_max_shaders_ = data->max_shaders;

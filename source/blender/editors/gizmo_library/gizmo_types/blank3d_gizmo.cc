@@ -43,7 +43,7 @@ static void GIZMO_GT_blank_3d(wmGizmoType *gzt)
   /* identifiers */
   gzt->idname = "GIZMO_GT_blank_3d";
 
-  /* api callbacks */
+  /* API callbacks. */
   gzt->draw = gizmo_blank_draw;
   gzt->invoke = gizmo_blank_invoke;
   gzt->test_select = gizmo_blank_test_select;

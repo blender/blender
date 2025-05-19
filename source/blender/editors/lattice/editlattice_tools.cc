@@ -99,7 +99,7 @@ void LATTICE_OT_make_regular(wmOperatorType *ot)
   ot->description = "Set UVW control points a uniform distance apart";
   ot->idname = "LATTICE_OT_make_regular";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = make_regular_exec;
   ot->poll = make_regular_poll;
 
@@ -344,7 +344,7 @@ void LATTICE_OT_flip(wmOperatorType *ot)
   ot->description = "Mirror all control points without inverting the lattice deform";
   ot->idname = "LATTICE_OT_flip";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->poll = ED_operator_editlattice;
   ot->invoke = WM_menu_invoke;
   ot->exec = lattice_flip_exec;

@@ -6,7 +6,7 @@
  * \ingroup bke
  */
 
-#include "ANIM_bone_collections.hh"
+#include "ANIM_armature.hh"
 
 #include "BKE_armature.hh"
 

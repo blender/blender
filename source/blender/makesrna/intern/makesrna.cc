@@ -2646,7 +2646,7 @@ static void rna_def_property_funcs_header_cpp(FILE *f, StructRNA *srna, Property
 static const char *rna_parameter_type_cpp_name(PropertyRNA *prop)
 {
   if (prop->type == PROP_POINTER) {
-    /* for cpp api we need to use RNA structures names for pointers */
+    /* For the C++ API we need to use RNA structures names for pointers. */
     PointerPropertyRNA *pprop = (PointerPropertyRNA *)prop;
 
     return (const char *)pprop->type;

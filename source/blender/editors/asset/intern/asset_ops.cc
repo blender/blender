@@ -436,7 +436,7 @@ static void ASSET_OT_library_refresh(wmOperatorType *ot)
   ot->description = "Reread assets and asset catalogs from the asset library on disk";
   ot->idname = "ASSET_OT_library_refresh";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = asset_library_refresh_exec;
   ot->poll = asset_library_refresh_poll;
 }
@@ -488,7 +488,7 @@ static void ASSET_OT_catalog_new(wmOperatorType *ot)
   ot->description = "Create a new catalog to put assets in";
   ot->idname = "ASSET_OT_catalog_new";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = asset_catalog_new_exec;
   ot->poll = asset_catalog_operator_poll;
 
@@ -529,7 +529,7 @@ static void ASSET_OT_catalog_delete(wmOperatorType *ot)
       "show up as unassigned)";
   ot->idname = "ASSET_OT_catalog_delete";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = asset_catalog_delete_exec;
   ot->poll = asset_catalog_operator_poll;
 
@@ -576,7 +576,7 @@ static void ASSET_OT_catalog_undo(wmOperatorType *ot)
   ot->description = "Undo the last edit to the asset catalogs";
   ot->idname = "ASSET_OT_catalog_undo";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = asset_catalog_undo_exec;
   ot->poll = asset_catalog_undo_poll;
 }
@@ -606,7 +606,7 @@ static void ASSET_OT_catalog_redo(wmOperatorType *ot)
   ot->description = "Redo the last undone edit to the asset catalogs";
   ot->idname = "ASSET_OT_catalog_redo";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = asset_catalog_redo_exec;
   ot->poll = asset_catalog_redo_poll;
 }
@@ -634,7 +634,7 @@ static void ASSET_OT_catalog_undo_push(wmOperatorType *ot)
   ot->description = "Store the current state of the asset catalogs in the undo buffer";
   ot->idname = "ASSET_OT_catalog_undo_push";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = asset_catalog_undo_push_exec;
   ot->poll = asset_catalog_undo_push_poll;
 
@@ -686,7 +686,7 @@ static void ASSET_OT_catalogs_save(wmOperatorType *ot)
       "library";
   ot->idname = "ASSET_OT_catalogs_save";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = asset_catalogs_save_exec;
   ot->poll = asset_catalogs_save_poll;
 }
@@ -822,7 +822,7 @@ static void ASSET_OT_bundle_install(wmOperatorType *ot)
       "(i.e. when no other files are referenced)";
   ot->idname = "ASSET_OT_bundle_install";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = asset_bundle_install_exec;
   ot->invoke = asset_bundle_install_invoke;
   ot->poll = asset_bundle_install_poll;

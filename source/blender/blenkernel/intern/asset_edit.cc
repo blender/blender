@@ -267,7 +267,7 @@ std::optional<std::string> asset_edit_id_save_as(Main &global_main,
 
 bool asset_edit_id_save(Main &global_main, const ID &id, ReportList &reports)
 {
-  if (!asset_edit_id_is_editable(id)) {
+  if (!asset_edit_id_is_writable(id)) {
     return false;
   }
 
@@ -298,7 +298,7 @@ ID *asset_edit_id_revert(Main &global_main, ID &id, ReportList &reports)
 
 bool asset_edit_id_delete(Main &global_main, ID &id, ReportList &reports)
 {
-  if (asset_edit_id_is_editable(id)) {
+  if (asset_edit_id_is_writable(id)) {
     if (BLI_delete(id.lib->runtime->filepath_abs, false, false) != 0) {
       BKE_report(&reports, RPT_ERROR, "Failed to delete asset library file");
       return false;

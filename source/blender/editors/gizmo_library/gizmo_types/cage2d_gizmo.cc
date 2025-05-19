@@ -1401,7 +1401,7 @@ static void GIZMO_GT_cage_2d(wmGizmoType *gzt)
   /* identifiers */
   gzt->idname = "GIZMO_GT_cage_2d";
 
-  /* api callbacks */
+  /* API callbacks. */
   gzt->draw = gizmo_cage2d_draw;
   gzt->draw_select = gizmo_cage2d_draw_select;
   gzt->test_select = gizmo_cage2d_test_select;

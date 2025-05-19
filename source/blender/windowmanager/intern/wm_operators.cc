@@ -135,7 +135,7 @@ size_t WM_operator_py_idname(char *dst, const char *src)
   if (sep) {
     const size_t sep_offset = size_t(sep - src);
 
-    /* NOTE: we use ascii `tolower` instead of system `tolower`, because the
+    /* NOTE: we use ASCII `tolower` instead of system `tolower`, because the
      * latter depends on the locale, and can lead to `idname` mismatch. */
     memcpy(dst, src, sep_offset);
     BLI_str_tolower_ascii(dst, sep_offset);
@@ -2296,7 +2296,7 @@ static void WM_OT_call_asset_shelf_popover(wmOperatorType *ot)
   ot->idname = "WM_OT_call_asset_shelf_popover";
   ot->description = "Open a predefined asset shelf in a popup";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = asset_shelf_popover_invoke;
 
   ot->flag = OPTYPE_INTERNAL;

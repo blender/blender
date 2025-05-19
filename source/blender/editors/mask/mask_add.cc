@@ -588,7 +588,7 @@ void MASK_OT_add_vertex(wmOperatorType *ot)
   ot->description = "Add vertex to active spline";
   ot->idname = "MASK_OT_add_vertex";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = add_vertex_exec;
   ot->invoke = add_vertex_invoke;
   ot->poll = ED_maskedit_visible_splines_poll;
@@ -687,7 +687,7 @@ void MASK_OT_add_feather_vertex(wmOperatorType *ot)
   ot->description = "Add vertex to feather";
   ot->idname = "MASK_OT_add_feather_vertex";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = add_feather_vertex_exec;
   ot->invoke = add_feather_vertex_invoke;
   ot->poll = ED_maskedit_mask_poll;
@@ -873,7 +873,7 @@ void MASK_OT_primitive_circle_add(wmOperatorType *ot)
   ot->description = "Add new circle-shaped spline";
   ot->idname = "MASK_OT_primitive_circle_add";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = primitive_circle_add_exec;
   ot->invoke = primitive_add_invoke;
   ot->poll = ED_maskedit_visible_splines_poll;
@@ -908,7 +908,7 @@ void MASK_OT_primitive_square_add(wmOperatorType *ot)
   ot->description = "Add new square-shaped spline";
   ot->idname = "MASK_OT_primitive_square_add";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = primitive_square_add_exec;
   ot->invoke = primitive_add_invoke;
   ot->poll = ED_maskedit_visible_splines_poll;

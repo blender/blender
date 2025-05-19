@@ -42,7 +42,7 @@ void GHOST_ImeWin32::UpdateInputLanguage()
   /* Get the 2-letter ISO-63901 abbreviation of the input locale name. */
   WCHAR language_u16[W32_ISO639_LEN];
   GetLocaleInfoEx(locale, LOCALE_SISO639LANGNAME, language_u16, W32_ISO639_LEN);
-  /* Store this as a UTF-8 string. */
+  /* Store this as a UTF8 string. */
   WideCharToMultiByte(
       CP_UTF8, 0, language_u16, W32_ISO639_LEN, language_, W32_ISO639_LEN, nullptr, nullptr);
 }
@@ -422,7 +422,7 @@ void GHOST_ImeWin32::EndIME(HWND window_handle)
   is_enable = false;
   CleanupComposition(window_handle);
   ::ImmAssociateContextEx(window_handle, nullptr, 0);
-  eventImeData.composite_len = 0;
+  eventImeData.composite.clear();
 }
 
 void GHOST_ImeWin32::BeginIME(HWND window_handle, const GHOST_Rect &caret_rect, bool complete)
@@ -487,25 +487,21 @@ void GHOST_ImeWin32::UpdateInfo(HWND window_handle)
 {
   int res = this->GetResult(window_handle, GCS_RESULTSTR, &resultInfo);
   int comp = this->GetComposition(window_handle, GCS_COMPSTR | GCS_COMPATTR, &compInfo);
-  /* convert wchar to utf8 */
+  /* Convert wchar to UTF8. */
   if (res) {
-    eventImeData.result_len = (GHOST_TUserDataPtr)updateUtf8Buf(resultInfo);
-    eventImeData.result = &resultInfo.utf8_buf[0];
+    eventImeData.result = std::string(&resultInfo.utf8_buf[0]);
   }
   else {
-    eventImeData.result = 0;
-    eventImeData.result_len = 0;
+    eventImeData.result = "";
   }
   if (comp) {
-    eventImeData.composite_len = (GHOST_TUserDataPtr)updateUtf8Buf(compInfo);
-    eventImeData.composite = &compInfo.utf8_buf[0];
+    eventImeData.composite = std::string(&compInfo.utf8_buf[0]);
     eventImeData.cursor_position = compInfo.cursor_position;
     eventImeData.target_start = compInfo.target_start;
     eventImeData.target_end = compInfo.target_end;
   }
   else {
-    eventImeData.composite = 0;
-    eventImeData.composite_len = 0;
+    eventImeData.composite = "";
     eventImeData.cursor_position = -1;
     eventImeData.target_start = -1;
     eventImeData.target_end = -1;

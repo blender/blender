@@ -1,0 +1,85 @@
+==== Meshes: 1
+- Mesh 'Cubes' vtx:16 face:12 loop:48 edge:24
+    - 1 3 2 0 3 ... 12 13 15 11 9 
+    - 1/3 2/3 0/2 0/1 3/7 ... 13/15 12/13 12/14 9/13 8/12 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (-0.484, -0.484, -0.484)
+    - (-0.484, -0.484, 0.484)
+    - (-0.484, 0.484, -0.484)
+      ...
+    - (-0.446, -1.275, 1.551)
+    - (-0.446, -0.307, 0.583)
+    - (-0.446, -0.307, 1.551)
+  - attr 'sharp_edge' BOOLEAN EDGE
+    - 1 1 1 1 1 ... 1 1 1 1 1 
+  - attr 'custom_normal' INT16_2D CORNER
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+      ...
+    - (0, 0)
+    - (0, 0)
+    - (0, 0)
+  - vertex groups:
+    - 1=1.000
+    - 1=1.000
+    - 1=1.000
+    - 1=1.000
+    - 1=1.000
+
+==== Objects: 5
+- Obj 'Armature' ARMATURE data:'Armature'
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'Armature.001' ARMATURE data:'Armature.001'
+  - pos -0.737, -0.813, 0.695
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'Camera' CAMERA data:'Camera'
+  - pos 7.481, -6.508, 5.344
+  - rot 2.032, -0.011, -2.327 (XYZ)
+  - scl 1.000, 1.000, 1.000
+- Obj 'Cubes' MESH data:'Cubes' par:'Armature.001'
+  - pos 0.737, 0.813, -0.695
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+  - 2 vertex groups
+    - 'Bone_Top' 'Bone_Bottom' 
+  - 2 modifiers
+    - ARMATURE 'Armature.001'
+    - ARMATURE 'Armature'
+- Obj 'Lamp' LIGHT data:'Lamp'
+  - pos 4.076, 1.005, 5.904
+  - rot -2.491, 0.055, 1.866 (XYZ)
+  - scl 1.000, 1.000, 1.000
+
+==== Cameras: 1
+- Cam 'Camera' PERSP lens:35.0 MILLIMETERS near:0.100 far:100.0 orthosize:7.3
+  - fov 0.858 (h 0.858 v 0.503)
+  - sensor 32.0x18.0 shift 0.000,0.000
+
+==== Lights: 1
+- Light 'Lamp' POINT col:(1.000, 1.000, 1.000) energy:1.000
+
+==== Armatures: 2
+- Armature 'Armature' 2 bones
+  - bone 'Bone_Bottom' h:(0.000, 0.000, 0.000) t:(0.000, 0.000, 1.000) radius h:0.100 t:0.050
+      1.000 0.000 0.000 0.000
+      0.000 0.000 -1.000 0.000
+      0.000 1.000 0.000 0.000
+  - bone 'Bone_Bottom_end' parent:'Bone_Bottom' h:(0.000, 0.000, 0.000) t:(0.000, 1.000, 0.000) connect radius h:0.100 t:0.050
+      1.000 0.000 0.000 0.000
+      0.000 0.000 -1.000 0.000
+      0.000 1.000 0.000 1.000
+
+- Armature 'Armature.001' 2 bones
+  - bone 'Bone_Top' h:(-0.193, 0.022, 0.372) t:(-0.193, 0.022, 1.372) radius h:0.100 t:0.050
+      1.000 0.000 0.000 -0.193
+      0.000 0.000 -1.000 0.022
+      0.000 1.000 0.000 0.372
+  - bone 'Bone_Top_end' parent:'Bone_Top' h:(0.000, 0.000, 0.000) t:(0.000, 1.000, 0.000) connect radius h:0.100 t:0.050
+      1.000 0.000 0.000 -0.193
+      0.000 0.000 -1.000 0.022
+      0.000 1.000 0.000 1.372
+

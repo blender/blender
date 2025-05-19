@@ -149,7 +149,7 @@ BLI_INLINE uint utf8_char_decode(const char *p, const char mask, const int len, 
 
 ptrdiff_t BLI_str_utf8_invalid_byte(const char *str, size_t str_len)
 {
-  /* NOTE(@ideasman42): from libswish3, originally called u8_isvalid(),
+  /* NOTE(@ideasman42): from libswish3, originally called `u8_isvalid()`,
    * modified to return the index of the bad character (byte index not UTF).
    * http://svn.swish-e.org/libswish3/trunk/src/libswish3/utf8.c r3044.
    *
@@ -165,9 +165,9 @@ ptrdiff_t BLI_str_utf8_invalid_byte(const char *str, size_t str_len)
 
   for (p = (const uchar *)str; p < pend; p++, str_len--) {
     c = *p;
-    perr = p; /* Erroneous char is always the first of an invalid utf8 sequence... */
+    perr = p; /* Erroneous char is always the first of an invalid UTF8 sequence... */
     if (ELEM(c, 0xfe, 0xff, 0x00)) {
-      /* Those three values are not allowed in utf8 string. */
+      /* Those three values are not allowed in UTF8 string. */
       goto utf8_error;
     }
     if (c < 128) {
@@ -178,8 +178,8 @@ ptrdiff_t BLI_str_utf8_invalid_byte(const char *str, size_t str_len)
     }
 
     /* Note that since we always increase p (and decrease length) by one byte in main loop,
-     * we only add/subtract extra utf8 bytes in code below
-     * (ab number, aka number of bytes remaining in the utf8 sequence after the initial one). */
+     * we only add/subtract extra UTF8 bytes in code below
+     * (ab number, aka number of bytes remaining in the UTF8 sequence after the initial one). */
     ab = utf8_char_compute_skip(c) - 1;
     if (str_len <= size_t(ab)) {
       goto utf8_error;
@@ -206,7 +206,7 @@ ptrdiff_t BLI_str_utf8_invalid_byte(const char *str, size_t str_len)
         if (c == 0xe0 && (*p & 0x20) == 0) {
           goto utf8_error;
         }
-        /* Some special cases, see section 5 of utf-8 decoder stress-test by Markus Kuhn
+        /* Some special cases, see section 5 of UTF8 decoder stress-test by Markus Kuhn
          * (https://www.cl.cam.ac.uk/~mgk25/ucs/examples/UTF-8-test.txt). */
         /* From section 5.1 (and 5.2) */
         if (c == 0xed) {
@@ -315,7 +315,7 @@ int BLI_str_utf8_invalid_strip(char *str, size_t str_len)
  * \param dst_maxncpy: The maximum number of bytes to copy. This does not include the null
  *   terminator.
  *
- * \note currently we don't attempt to deal with invalid utf8 chars.
+ * \note currently we don't attempt to deal with invalid UTF8 chars.
  * See #BLI_str_utf8_invalid_strip for if that is needed.
  *
  * \note the caller is responsible for null terminating the string.
@@ -379,7 +379,7 @@ size_t BLI_strncpy_utf8_rlen_unterminated(char *__restrict dst,
 }
 
 /* -------------------------------------------------------------------- */
-/* wchar_t / utf8 functions */
+/* wchar_t / UTF8 functions */
 
 size_t BLI_strncpy_wchar_as_utf8(char *__restrict dst,
                                  const wchar_t *__restrict src,
@@ -490,7 +490,7 @@ size_t BLI_strncpy_wchar_from_utf8(wchar_t *__restrict dst_w,
 #endif
 }
 
-/* end wchar_t / utf8 functions */
+/* End wchar_t / UTF8 functions. */
 /* -------------------------------------------------------------------- */
 
 int BLI_wcwidth_or_error(char32_t ucs)
@@ -1167,7 +1167,7 @@ size_t BLI_str_partition_ex_utf8(const char *str,
     end = str + str_len;
   }
 
-  /* Note that here, we assume end points to a valid utf8 char! */
+  /* Note that here, we assume end points to a valid UTF8 char! */
   BLI_assert((end >= str) && (BLI_str_utf8_as_unicode_or_error(end) != BLI_UTF8_ERR));
 
   char *suf = (char *)(str + str_len);
@@ -1216,7 +1216,7 @@ int BLI_str_utf8_offset_to_index(const char *str, const size_t str_len, const in
   const size_t offset_target_as_size = size_t(offset_target);
   size_t offset = 0;
   int index = 0;
-  /* Note that `offset != offset_target_as_size` works for valid utf8 strings. */
+  /* Note that `offset != offset_target_as_size` works for valid UTF8 strings. */
   while ((offset < str_len) && (offset < offset_target_as_size)) {
     /* Use instead of #BLI_str_utf8_size_safe to match behavior when limiting the string length. */
     const uint code = BLI_str_utf8_as_unicode_step_safe(str, str_len, &offset);

@@ -618,6 +618,18 @@ void Mesh::apply_transform(const Transform &tfm, const bool apply_to_motion)
         vert_steps[i] = transform_point(&tfm, vert_steps[i]);
       }
     }
+
+    Attribute *attr_N = attributes.find(ATTR_STD_MOTION_VERTEX_NORMAL);
+
+    if (attr_N) {
+      const Transform ntfm = transform_normal;
+      const size_t steps_size = verts.size() * (motion_steps - 1);
+      float3 *normal_steps = attr_N->data_float3();
+
+      for (size_t i = 0; i < steps_size; i++) {
+        normal_steps[i] = normalize(transform_direction(&ntfm, normal_steps[i]));
+      }
+    }
   }
 }
 

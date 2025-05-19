@@ -135,7 +135,7 @@ void TRANSFORM_OT_vertex_random(wmOperatorType *ot)
   ot->description = "Randomize vertices";
   ot->idname = "TRANSFORM_OT_vertex_random";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = object_rand_verts_exec;
   ot->poll = ED_transverts_poll;
 

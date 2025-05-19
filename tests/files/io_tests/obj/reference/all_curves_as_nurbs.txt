@@ -57,13 +57,13 @@
 ==== Curves: 7
 - Curve 'NurbsCircle' dim:3D resu:12 resv:12 splines:1
   - spline type:NURBS pts:8x1 order:4x4 cyclic:True,False endp:False,False
-    - (11.463, 0.000, -1.000) w:1.000
-    - (10.463, 0.000, -1.000) w:1.000
-    - (10.463, 0.000, 0.000) w:1.000
-      ...
     - (12.463, 0.000, 1.000) w:1.000
     - (12.463, 0.000, 0.000) w:1.000
     - (12.463, 0.000, -1.000) w:1.000
+      ...
+    - (10.463, 0.000, 0.000) w:1.000
+    - (10.463, 0.000, 1.000) w:1.000
+    - (11.463, 0.000, 1.000) w:1.000
 
 - Curve 'NurbsCurve' dim:3D resu:12 resv:12 splines:1
   - spline type:NURBS pts:4x1 order:4x4 cyclic:False,False endp:False,False
@@ -99,10 +99,10 @@
 
 - Curve 'PolyCircle' dim:3D resu:12 resv:12 splines:1
   - spline type:NURBS pts:4x1 order:2x2 cyclic:True,False endp:False,False
+    - (4.090, 0.000, -3.488) w:1.000
     - (5.090, 0.000, -4.488) w:1.000
     - (4.090, 0.000, -5.488) w:1.000
     - (3.090, 0.000, -4.488) w:1.000
-    - (4.090, 0.000, -3.488) w:1.000
 
 - Curve 'PolyCurve' dim:3D resu:12 resv:12 splines:1
   - spline type:NURBS pts:3x1 order:2x2 cyclic:False,False endp:False,False

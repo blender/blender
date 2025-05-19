@@ -569,7 +569,7 @@ void TEXT_OT_autocomplete(wmOperatorType *ot)
   ot->description = "Show a list of used text in the open document";
   ot->idname = "TEXT_OT_autocomplete";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = text_autocomplete_invoke;
   ot->cancel = text_autocomplete_cancel;
   ot->modal = text_autocomplete_modal;

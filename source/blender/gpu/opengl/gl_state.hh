@@ -94,6 +94,7 @@ class GLStateManager : public StateManager {
   static void set_backface_culling(eGPUFaceCullTest test);
   static void set_provoking_vert(eGPUProvokingVertex vert);
   static void set_shadow_bias(bool enable);
+  static void set_clip_control(bool enable);
   static void set_blend(eGPUBlend value);
 
   void set_state(const GPUState &state);

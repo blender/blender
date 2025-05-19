@@ -501,7 +501,7 @@ void MESH_OT_uv_texture_add(wmOperatorType *ot)
   ot->description = "Add UV map";
   ot->idname = "MESH_OT_uv_texture_add";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->poll = layers_poll;
   ot->exec = mesh_uv_texture_add_exec;
 
@@ -540,7 +540,7 @@ void MESH_OT_uv_texture_remove(wmOperatorType *ot)
   ot->description = "Remove UV map";
   ot->idname = "MESH_OT_uv_texture_remove";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->poll = uv_texture_remove_poll;
   ot->exec = mesh_uv_texture_remove_exec;
 
@@ -624,7 +624,7 @@ void MESH_OT_customdata_mask_clear(wmOperatorType *ot)
   ot->idname = "MESH_OT_customdata_mask_clear";
   ot->description = "Clear vertex sculpt masking data from the mesh";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = mesh_customdata_mask_clear_exec;
   ot->poll = mesh_customdata_mask_clear_poll;
 
@@ -675,7 +675,7 @@ void MESH_OT_customdata_skin_add(wmOperatorType *ot)
   ot->idname = "MESH_OT_customdata_skin_add";
   ot->description = "Add a vertex skin layer";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = mesh_customdata_skin_add_exec;
   ot->poll = mesh_customdata_skin_add_poll;
 
@@ -700,7 +700,7 @@ void MESH_OT_customdata_skin_clear(wmOperatorType *ot)
   ot->idname = "MESH_OT_customdata_skin_clear";
   ot->description = "Clear vertex skin layer";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = mesh_customdata_skin_clear_exec;
   ot->poll = mesh_customdata_skin_clear_poll;
 
@@ -743,7 +743,7 @@ void MESH_OT_customdata_custom_splitnormals_add(wmOperatorType *ot)
   ot->idname = "MESH_OT_customdata_custom_splitnormals_add";
   ot->description = "Add a custom split normals layer, if none exists yet";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = mesh_customdata_custom_splitnormals_add_exec;
   ot->poll = ED_operator_editable_mesh;
 
@@ -786,7 +786,7 @@ void MESH_OT_customdata_custom_splitnormals_clear(wmOperatorType *ot)
   ot->idname = "MESH_OT_customdata_custom_splitnormals_clear";
   ot->description = "Remove the custom split normals layer, if it exists";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = mesh_customdata_custom_splitnormals_clear_exec;
   ot->poll = ED_operator_editable_mesh;
 

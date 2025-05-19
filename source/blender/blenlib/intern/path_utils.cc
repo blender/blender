@@ -1380,7 +1380,7 @@ const char *BLI_getenv(const char *env)
       if (res_utf8) {
         if (strlen(res_utf8) + 1 < sizeof(buffer)) {
           /* We are re-using the utf16 buffer here, since allocating a second static buffer to
-           * contain the UTF-8 version to return would be wasteful. */
+           * contain the UTF8 version to return would be wasteful. */
           memcpy(buffer, res_utf8, strlen(res_utf8) + 1);
           result = (const char *)buffer;
         }

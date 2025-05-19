@@ -217,6 +217,12 @@ template<typename T> T &DRW_object_get_data_for_drawing(const Object &object)
 
 template<> Mesh &DRW_object_get_data_for_drawing(const Object &object);
 
+/**
+ * Same as DRW_object_get_data_for_drawing, but for the editmesh cage,
+ * if it exists.
+ */
+const Mesh *DRW_object_get_editmesh_cage_for_drawing(const Object &object);
+
 /* Draw State. */
 
 /* -------------------------------------------------------------------- */

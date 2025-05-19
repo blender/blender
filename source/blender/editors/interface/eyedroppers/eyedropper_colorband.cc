@@ -327,7 +327,7 @@ void UI_OT_eyedropper_colorramp(wmOperatorType *ot)
   ot->idname = "UI_OT_eyedropper_colorramp";
   ot->description = "Sample a color band";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = eyedropper_colorband_invoke;
   ot->modal = eyedropper_colorband_modal;
   ot->cancel = eyedropper_colorband_cancel;
@@ -347,7 +347,7 @@ void UI_OT_eyedropper_colorramp_point(wmOperatorType *ot)
   ot->idname = "UI_OT_eyedropper_colorramp_point";
   ot->description = "Point-sample a color band";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = eyedropper_colorband_invoke;
   ot->modal = eyedropper_colorband_point_modal;
   ot->cancel = eyedropper_colorband_cancel;

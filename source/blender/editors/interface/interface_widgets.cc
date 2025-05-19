@@ -1467,7 +1467,7 @@ static void ui_text_clip_right_ex(const uiFontStyle *fstyle,
 {
   BLI_assert(str[0]);
 
-  /* How many BYTES (not characters) of this utf-8 string can fit, along with appended ellipsis. */
+  /* How many BYTES (not characters) of this UTF8 string can fit, along with appended ellipsis. */
   int l_end = BLF_width_to_strlen(
       fstyle->uifont_id, str, max_len, okwidth - sep_strwidth, nullptr);
 
@@ -1928,7 +1928,7 @@ static void widget_draw_text_ime_underline(const uiFontStyle *fstyle,
     }
 
     width = BLF_width(
-        fstyle->uifont_id, drawstr + but->ofs, ime_data->composite_len + but->pos - but->ofs);
+        fstyle->uifont_id, drawstr + but->ofs, ime_data->composite.size() + but->pos - but->ofs);
 
     rgba_uchar_to_float(fcol, wcol->text);
     UI_draw_text_underline(rect->xmin + ofs_x,
@@ -2008,7 +2008,7 @@ static void widget_draw_text(const uiFontStyle *fstyle,
       /* FIXME: IME is modifying `const char *drawstr`! */
       ime_data = ui_but_ime_data_get(but);
 
-      if (ime_data && ime_data->composite_len) {
+      if (ime_data && ime_data->composite.size()) {
         /* insert composite string into cursor pos */
         char tmp_drawstr[UI_MAX_DRAW_STR];
         STRNCPY(tmp_drawstr, drawstr);
@@ -2017,7 +2017,7 @@ static void widget_draw_text(const uiFontStyle *fstyle,
                      "%.*s%s%s",
                      but->pos,
                      but->editstr,
-                     ime_data->str_composite,
+                     ime_data->composite.c_str(),
                      but->editstr + but->pos);
         but->drawstr = tmp_drawstr;
         drawstr = but->drawstr.c_str();
@@ -2093,7 +2093,7 @@ static void widget_draw_text(const uiFontStyle *fstyle,
 
 #ifdef WITH_INPUT_IME
     /* If is IME compositing, move the cursor. */
-    if (ime_data && ime_data->composite_len && ime_data->cursor_pos != -1) {
+    if (ime_data && ime_data->composite.size() && ime_data->cursor_pos != -1) {
       but_pos_ofs += ime_data->cursor_pos;
     }
 #endif
@@ -2142,7 +2142,7 @@ static void widget_draw_text(const uiFontStyle *fstyle,
     if (ime_reposition_window) {
       ui_but_ime_reposition(but, ime_win_x, ime_win_y, false);
     }
-    if (ime_data && ime_data->composite_len) {
+    if (ime_data && ime_data->composite.size()) {
       /* Composite underline. */
       widget_draw_text_ime_underline(fstyle, wcol, but, rect, ime_data, drawstr);
     }

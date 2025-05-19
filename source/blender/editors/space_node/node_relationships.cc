@@ -881,7 +881,7 @@ void NODE_OT_link_viewer(wmOperatorType *ot)
   ot->description = "Link to viewer node";
   ot->idname = "NODE_OT_link_viewer";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = node_active_link_viewer_exec;
   ot->poll = node_active_link_viewer_poll;
 
@@ -1568,7 +1568,7 @@ void NODE_OT_link(wmOperatorType *ot)
   ot->idname = "NODE_OT_link";
   ot->description = "Use the mouse to create a link between two nodes";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = node_link_invoke;
   ot->modal = node_link_modal;
   ot->poll = ED_operator_node_editable;
@@ -1943,7 +1943,7 @@ void NODE_OT_parent_set(wmOperatorType *ot)
   ot->description = "Attach selected nodes";
   ot->idname = "NODE_OT_parent_set";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = node_parent_set_exec;
   ot->poll = ED_operator_node_editable;
 
@@ -2089,7 +2089,7 @@ void NODE_OT_join(wmOperatorType *ot)
   ot->description = "Attach selected nodes to a new common frame";
   ot->idname = "NODE_OT_join";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = node_join_exec;
   ot->invoke = node_join_invoke;
   ot->poll = ED_operator_node_editable;
@@ -2254,7 +2254,7 @@ void NODE_OT_detach(wmOperatorType *ot)
   ot->description = "Detach selected nodes from parents";
   ot->idname = "NODE_OT_detach";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = node_detach_exec;
   ot->poll = ED_operator_node_editable;
 

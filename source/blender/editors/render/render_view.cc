@@ -318,7 +318,7 @@ void RENDER_OT_view_cancel(wmOperatorType *ot)
   ot->description = "Cancel show render view";
   ot->idname = "RENDER_OT_view_cancel";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = render_view_cancel_exec;
   ot->poll = ED_operator_image_active;
 }
@@ -388,7 +388,7 @@ void RENDER_OT_view_show(wmOperatorType *ot)
   ot->description = "Toggle show render view";
   ot->idname = "RENDER_OT_view_show";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = render_view_show_invoke;
   ot->poll = ED_operator_screenactive;
 }

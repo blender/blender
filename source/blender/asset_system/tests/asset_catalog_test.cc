@@ -179,7 +179,7 @@ TEST_F(AssetCatalogTest, load_single_file)
   EXPECT_EQ("character/Ellie/poselib/white space", poses_whitespace->path.str());
   EXPECT_EQ("POSES_ELLIE WHITESPACE", poses_whitespace->simple_name);
 
-  /* Test getting a UTF-8 catalog ID. */
+  /* Test getting a UTF8 catalog ID. */
   AssetCatalog *poses_ruzena = service.find_catalog(UUID_POSES_RUZENA);
   ASSERT_NE(nullptr, poses_ruzena);
   EXPECT_EQ(UUID_POSES_RUZENA, poses_ruzena->catalog_id);

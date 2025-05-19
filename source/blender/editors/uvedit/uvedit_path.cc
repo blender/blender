@@ -768,7 +768,7 @@ void UV_OT_shortest_path_pick(wmOperatorType *ot)
   ot->idname = "UV_OT_shortest_path_pick";
   ot->description = "Select shortest path between two selections";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = uv_shortest_path_pick_invoke;
   ot->exec = uv_shortest_path_pick_exec;
   ot->poll = ED_operator_uvedit_space_image;
@@ -859,7 +859,7 @@ void UV_OT_shortest_path_select(wmOperatorType *ot)
   ot->idname = "UV_OT_shortest_path_select";
   ot->description = "Selected shortest path between two vertices/edges/faces";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = uv_shortest_path_select_exec;
   ot->poll = ED_operator_uvedit_space_image;
 

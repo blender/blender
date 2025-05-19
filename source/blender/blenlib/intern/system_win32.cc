@@ -554,10 +554,10 @@ static void bli_show_crash_report_dialog(const char *filepath_crashlog,
                                          const char *gpu_name,
                                          const char *build_version)
 {
-  /* Redundant: InitCommonControls is already called during GHOST System initialization. */
+  /* Redundant: #InitCommonControls is already called during GHOST System initialization. */
   // InitCommonControls();
 
-  /* Convert file paths to UTF-16 to handle non-ASCII characters. */
+  /* Convert file paths to UTF16 to handle non-ASCII characters. */
   wchar_t *filepath_crashlog_utf16 = alloc_utf16_from_8(filepath_crashlog, 0);
   wchar_t *filepath_relaunch_utf16 = filepath_relaunch[0] ?
                                          alloc_utf16_from_8(filepath_relaunch, 0) :

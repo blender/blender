@@ -294,7 +294,7 @@ void VIEW3D_OT_view_roll(wmOperatorType *ot)
   ot->description = "Roll the view";
   ot->idname = ViewOpsType_roll.idname;
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = viewroll_invoke;
   ot->exec = viewroll_exec;
   ot->modal = viewroll_modal;

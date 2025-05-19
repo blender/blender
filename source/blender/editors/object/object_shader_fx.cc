@@ -364,7 +364,7 @@ void OBJECT_OT_shaderfx_add(wmOperatorType *ot)
   ot->description = "Add a visual effect to the active object";
   ot->idname = "OBJECT_OT_shaderfx_add";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = WM_menu_invoke;
   ot->exec = shaderfx_add_exec;
   ot->poll = edit_shaderfx_poll;

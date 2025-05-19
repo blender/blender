@@ -21,6 +21,7 @@
 #include "BLI_ordered_edge.hh"
 #include "BLI_string.h"
 #include "BLI_task.hh"
+#include "BLI_vector_set.hh"
 
 #include "BLT_translation.hh"
 
@@ -36,15 +37,10 @@ namespace blender::io::fbx {
 
 static constexpr const char *temp_custom_normals_name = "fbx_temp_custom_normals";
 
-static const ufbx_skin_deformer *get_skin_from_mesh(const ufbx_mesh *mesh)
+static bool is_skin_deformer_usable(const ufbx_mesh *mesh, const ufbx_skin_deformer *skin)
 {
-  if (mesh->skin_deformers.count > 0) {
-    const ufbx_skin_deformer *skin = mesh->skin_deformers[0];
-    if (skin != nullptr && mesh->num_vertices > 0 && skin->vertices.count == mesh->num_vertices) {
-      return skin;
-    }
-  }
-  return nullptr;
+  return mesh != nullptr && skin != nullptr && skin->clusters.count > 0 &&
+         mesh->num_vertices > 0 && skin->vertices.count == mesh->num_vertices;
 }
 
 static void import_vertex_positions(const ufbx_mesh *fmesh, Mesh *mesh)
@@ -275,34 +271,65 @@ static bool import_normals_into_temp_attribute(const ufbx_mesh *fmesh,
   return true;
 }
 
-static void import_skin_vertex_groups(const ufbx_mesh *fmesh,
-                                      const ufbx_skin_deformer *skin,
+static VectorSet<std::string> get_skin_bone_name_set(const FbxElementMapping &mapping,
+                                                     const ufbx_mesh *fmesh)
+{
+  VectorSet<std::string> name_set;
+  for (const ufbx_skin_deformer *skin : fmesh->skin_deformers) {
+    if (!is_skin_deformer_usable(fmesh, skin)) {
+      continue;
+    }
+
+    for (const ufbx_skin_cluster *cluster : skin->clusters) {
+      if (cluster->num_weights == 0) {
+        continue;
+      }
+
+      std::string bone_name = mapping.node_to_name.lookup_default(cluster->bone_node, "");
+      name_set.add(bone_name);
+    }
+  }
+  return name_set;
+}
+
+static void import_skin_vertex_groups(const FbxElementMapping &mapping,
+                                      const ufbx_mesh *fmesh,
                                       Mesh *mesh)
 {
-  /* We need to build mapping from cluster indices to non-empty
-   * cluster indices. */
-  Vector<int> skin_cluster_to_nonempty_cluster_index(skin->clusters.count, -1);
-  int cluster_counter = 0;
-  for (int i = 0; i < skin->clusters.count; i++) {
-    if (skin->clusters[i]->num_weights != 0) {
-      skin_cluster_to_nonempty_cluster_index[i] = cluster_counter;
-      cluster_counter++;
-    }
+  if (fmesh->skin_deformers.count == 0) {
+    return;
+  }
+
+  /* A single mesh can be skinned by several armatures, so we need to build bone (vertex group)
+   * name set, taking all skin deformers into account. */
+  VectorSet<std::string> bone_set = get_skin_bone_name_set(mapping, fmesh);
+  if (bone_set.is_empty()) {
+    return;
   }
 
   MutableSpan<MDeformVert> dverts = mesh->deform_verts_for_write();
-  for (int i = 0; i < fmesh->num_vertices; i++) {
-    const ufbx_skin_vertex &fvertex = skin->vertices[i];
-    int num_weights = fvertex.num_weights;
-    if (num_weights > 0) {
-      dverts[i].dw = MEM_malloc_arrayN<MDeformWeight>(num_weights, __func__);
-      dverts[i].totweight = num_weights;
-      for (int j = 0; j < num_weights; j++) {
-        const ufbx_skin_weight &fweight = skin->weights[fvertex.weight_begin + j];
-        const int bone_index = skin_cluster_to_nonempty_cluster_index[fweight.cluster_index];
-        const bool valid = bone_index >= 0;
-        dverts[i].dw[j].def_nr = valid ? bone_index : 0;
-        dverts[i].dw[j].weight = valid ? fweight.weight : 0.0f;
+
+  for (const ufbx_skin_deformer *skin : fmesh->skin_deformers) {
+    if (!is_skin_deformer_usable(fmesh, skin)) {
+      continue;
+    }
+
+    for (const ufbx_skin_cluster *cluster : skin->clusters) {
+      if (cluster->num_weights == 0) {
+        continue;
+      }
+      std::string bone_name = mapping.node_to_name.lookup_default(cluster->bone_node, "");
+      const int group_index = bone_set.index_of_try(bone_name);
+      if (group_index < 0) {
+        continue;
+      }
+
+      for (int i = 0; i < cluster->num_weights; i++) {
+        const int vertex = cluster->vertices[i];
+        if (vertex < dverts.size()) {
+          MDeformWeight *dw = BKE_defvert_ensure_index(&dverts[vertex], group_index);
+          dw->weight = cluster->weights[i];
+        }
       }
     }
   }
@@ -445,10 +472,7 @@ void import_meshes(Main &bmain,
        * data as custom normals after the validation. */
       has_custom_normals = import_normals_into_temp_attribute(fmesh, mesh, attributes);
     }
-    const ufbx_skin_deformer *skin = get_skin_from_mesh(fmesh);
-    if (skin != nullptr) {
-      import_skin_vertex_groups(fmesh, skin, mesh);
-    }
+    import_skin_vertex_groups(mapping, fmesh, mesh);
 
     /* Validate if needed. */
     if (params.validate_meshes) {
@@ -481,7 +505,6 @@ void import_meshes(Main &bmain,
     }
     const ufbx_mesh *fmesh = fbx.meshes[index];
     BLI_assert(fmesh != nullptr);
-    const ufbx_skin_deformer *skin = get_skin_from_mesh(fmesh);
 
     Mesh *mesh_main = static_cast<Mesh *>(
         BKE_object_obdata_add_from_type(&bmain, OB_MESH, get_fbx_name(fmesh->name, "Mesh")));
@@ -509,50 +532,61 @@ void import_meshes(Main &bmain,
       bool matrix_already_set = false;
 
       /* Skinned mesh. */
-      if (skin != nullptr && skin->clusters.count > 0) {
-        Object *parent_to_arm = nullptr;
+      if (fmesh->skin_deformers.count > 0) {
         /* Add vertex groups to the object. */
-        for (const ufbx_skin_cluster *fcluster : skin->clusters) {
-          if (fcluster->num_weights == 0) { /* Do not add groups for empty clusters. */
-            continue;
-          }
-          if (parent_to_arm == nullptr) {
-            parent_to_arm = mapping.bone_to_armature.lookup_default(fcluster->bone_node, nullptr);
-          }
-          std::string bone_name = mapping.node_to_name.lookup_default(fcluster->bone_node, "");
-          BKE_object_defgroup_add_name(obj, bone_name.c_str());
+        VectorSet<std::string> bone_set = get_skin_bone_name_set(mapping, fmesh);
+        for (const std::string &name : bone_set) {
+          BKE_object_defgroup_add_name(obj, name.c_str());
         }
 
-        /* Add armature modifier. */
-        if (parent_to_arm) {
-          ModifierData *md = BKE_modifier_new(eModifierType_Armature);
-          STRNCPY(md->name, BKE_id_name(parent_to_arm->id));
-          BLI_addtail(&obj->modifiers, md);
-          BKE_modifiers_persistent_uid_init(*obj, *md);
-          ArmatureModifierData *ad = reinterpret_cast<ArmatureModifierData *>(md);
-          ad->object = parent_to_arm;
-          obj->parent = parent_to_arm;
+        /* Add armature modifiers for each skin deformer. */
+        for (const ufbx_skin_deformer *skin : fmesh->skin_deformers) {
+          if (!is_skin_deformer_usable(fmesh, skin)) {
+            continue;
+          }
+          Object *arm_obj = nullptr;
+          for (const ufbx_skin_cluster *cluster : skin->clusters) {
+            if (cluster->num_weights == 0) {
+              continue;
+            }
+            arm_obj = mapping.bone_to_armature.lookup_default(cluster->bone_node, nullptr);
+            if (arm_obj != nullptr) {
+              break;
+            }
+          }
+          /* Add armature modifier. */
+          if (arm_obj != nullptr) {
+            ModifierData *md = BKE_modifier_new(eModifierType_Armature);
+            STRNCPY(md->name, BKE_id_name(arm_obj->id));
+            BLI_addtail(&obj->modifiers, md);
+            BKE_modifiers_persistent_uid_init(*obj, *md);
+            ArmatureModifierData *ad = reinterpret_cast<ArmatureModifierData *>(md);
+            ad->object = arm_obj;
 
-          /* We are setting mesh parent to the armature, so set the matrix that is
-           * armature-local. Note that the matrix needs to be relative to the FBX
-           * node matrix (not the root bone pose matrix). */
-          ufbx_matrix world_to_arm = mapping.armature_world_to_arm_node_matrix.lookup_default(
-              parent_to_arm, ufbx_identity_matrix);
-          ufbx_matrix world_to_arm_pose = mapping.armature_world_to_arm_pose_matrix.lookup_default(
-              parent_to_arm, ufbx_identity_matrix);
+            if (!matrix_already_set) {
+              matrix_already_set = true;
+              obj->parent = arm_obj;
 
-          ufbx_matrix mtx = ufbx_matrix_mul(&world_to_arm, &node->geometry_to_world);
-          ufbx_matrix_to_obj(mtx, obj);
-          matrix_already_set = true;
+              /* We are setting mesh parent to the armature, so set the matrix that is
+               * armature-local. Note that the matrix needs to be relative to the FBX
+               * node matrix (not the root bone pose matrix). */
+              ufbx_matrix world_to_arm = mapping.armature_world_to_arm_node_matrix.lookup_default(
+                  arm_obj, ufbx_identity_matrix);
+              ufbx_matrix world_to_arm_pose = mapping.armature_world_to_arm_pose_matrix
+                                                  .lookup_default(arm_obj, ufbx_identity_matrix);
 
-          /* Setup parent inverse matrix of the mesh, to account for the mesh possibly being in
-           * different bind pose than what the node is at. */
-          ufbx_matrix mtx_inv = ufbx_matrix_invert(&mtx);
-          ufbx_matrix mtx_world = mapping.bone_to_bind_matrix.lookup_default(
-              node, node->geometry_to_world);
-          ufbx_matrix mtx_parent_inverse = ufbx_matrix_mul(&mtx_world, &mtx_inv);
-          mtx_parent_inverse = ufbx_matrix_mul(&world_to_arm_pose, &mtx_parent_inverse);
-          matrix_to_m44(mtx_parent_inverse, obj->parentinv);
+              ufbx_matrix mtx = ufbx_matrix_mul(&world_to_arm, &node->geometry_to_world);
+              ufbx_matrix_to_obj(mtx, obj);
+
+              /* Setup parent inverse matrix of the mesh, to account for the mesh possibly being in
+               * different bind pose than what the node is at. */
+              ufbx_matrix mtx_inv = ufbx_matrix_invert(&mtx);
+              ufbx_matrix mtx_world = mapping.get_node_bind_matrix(node);
+              ufbx_matrix mtx_parent_inverse = ufbx_matrix_mul(&mtx_world, &mtx_inv);
+              mtx_parent_inverse = ufbx_matrix_mul(&world_to_arm_pose, &mtx_parent_inverse);
+              matrix_to_m44(mtx_parent_inverse, obj->parentinv);
+            }
+          }
         }
       }
 
@@ -610,6 +644,7 @@ void import_meshes(Main &bmain,
         node_matrix_to_obj(node, obj, mapping);
       }
       mapping.el_to_object.add(&node->element, obj);
+      mapping.imported_objects.add(obj);
     }
   }
 }

@@ -252,8 +252,8 @@ GHOST_WindowX11::GHOST_WindowX11(GHOST_SystemX11 *system,
     xsizehints->y = top;
     xsizehints->width = width;
     xsizehints->height = height;
-    xsizehints->min_width = 320;  /* size hints, could be made apart of the ghost api */
-    xsizehints->min_height = 240; /* limits are also arbitrary, but should not allow 1x1 window */
+    xsizehints->min_width = 320;  /* Size hints, could be made apart of the GHOST API. */
+    xsizehints->min_height = 240; /* Limits are also arbitrary, but should not allow 1x1 window. */
     xsizehints->max_width = 65535;
     xsizehints->max_height = 65535;
     XSetWMNormalHints(m_display, m_window, xsizehints);

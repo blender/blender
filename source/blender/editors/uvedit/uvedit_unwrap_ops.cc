@@ -1274,7 +1274,7 @@ void UV_OT_minimize_stretch(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_GRAB_CURSOR_XY | OPTYPE_BLOCKING;
   ot->description = "Reduce UV stretching by relaxing angles";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = minimize_stretch_exec;
   ot->invoke = minimize_stretch_invoke;
   ot->modal = minimize_stretch_modal;
@@ -1949,7 +1949,7 @@ void UV_OT_pack_islands(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER;
 #endif
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = pack_islands_exec;
 
 #ifdef USE_INTERACTIVE_PACK
@@ -2057,7 +2057,7 @@ void UV_OT_average_islands_scale(wmOperatorType *ot)
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = average_islands_scale_exec;
   ot->poll = ED_operator_uvedit;
 
@@ -2938,7 +2938,7 @@ void UV_OT_unwrap(wmOperatorType *ot)
   ot->idname = "UV_OT_unwrap";
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = unwrap_exec;
   ot->poll = ED_operator_uvmap;
 
@@ -3347,7 +3347,7 @@ void UV_OT_smart_project(wmOperatorType *ot)
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = smart_project_exec;
   ot->poll = ED_operator_uvmap;
   ot->invoke = smart_project_invoke;
@@ -3566,7 +3566,7 @@ void UV_OT_project_from_view(wmOperatorType *ot)
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = uv_from_view_invoke;
   ot->exec = uv_from_view_exec;
   ot->poll = uv_from_view_poll;
@@ -3626,7 +3626,7 @@ void UV_OT_reset(wmOperatorType *ot)
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = reset_exec;
   ot->poll = ED_operator_uvmap;
 }
@@ -3917,7 +3917,7 @@ void UV_OT_sphere_project(wmOperatorType *ot)
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = sphere_project_exec;
   ot->poll = ED_operator_uvmap;
 
@@ -4105,7 +4105,7 @@ void UV_OT_cylinder_project(wmOperatorType *ot)
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = cylinder_project_exec;
   ot->poll = ED_operator_uvmap;
 
@@ -4241,7 +4241,7 @@ void UV_OT_cube_project(wmOperatorType *ot)
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = cube_project_exec;
   ot->poll = ED_operator_uvmap;
 

@@ -59,7 +59,7 @@ void FILE_OT_pack_libraries(wmOperatorType *ot)
       "Store all data-blocks linked from other .blend files in the current .blend file. "
       "Library references are preserved so the linked data-blocks can be unpacked again";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = pack_libraries_exec;
 
   /* flags */
@@ -103,7 +103,7 @@ void FILE_OT_unpack_libraries(wmOperatorType *ot)
   ot->idname = "FILE_OT_unpack_libraries";
   ot->description = "Restore all packed linked data-blocks to their original locations";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = unpack_libraries_invoke;
   ot->exec = unpack_libraries_exec;
 
@@ -139,7 +139,7 @@ void FILE_OT_autopack_toggle(wmOperatorType *ot)
   ot->idname = "FILE_OT_autopack_toggle";
   ot->description = "Automatically pack all external files into the .blend file";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = autopack_toggle_exec;
 
   /* flags */
@@ -198,7 +198,7 @@ void FILE_OT_pack_all(wmOperatorType *ot)
   ot->idname = "FILE_OT_pack_all";
   ot->description = "Pack all used external files into this .blend";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = pack_all_exec;
   ot->invoke = pack_all_invoke;
 
@@ -286,7 +286,7 @@ void FILE_OT_unpack_all(wmOperatorType *ot)
   ot->idname = "FILE_OT_unpack_all";
   ot->description = "Unpack all files packed into this .blend to external ones";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = unpack_all_exec;
   ot->invoke = unpack_all_invoke;
 
@@ -385,7 +385,7 @@ void FILE_OT_unpack_item(wmOperatorType *ot)
   ot->idname = "FILE_OT_unpack_item";
   ot->description = "Unpack this file to an external file";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = unpack_item_exec;
   ot->invoke = unpack_item_invoke;
 
@@ -441,7 +441,7 @@ void FILE_OT_make_paths_relative(wmOperatorType *ot)
   ot->idname = "FILE_OT_make_paths_relative";
   ot->description = "Make all paths to external files relative to current .blend";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = make_paths_relative_exec;
 
   /* flags */
@@ -481,7 +481,7 @@ void FILE_OT_make_paths_absolute(wmOperatorType *ot)
   ot->idname = "FILE_OT_make_paths_absolute";
   ot->description = "Make all paths to external files absolute";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = make_paths_absolute_exec;
 
   /* flags */
@@ -513,7 +513,7 @@ void FILE_OT_report_missing_files(wmOperatorType *ot)
   ot->idname = "FILE_OT_report_missing_files";
   ot->description = "Report all missing external files";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = report_missing_files_exec;
 
   /* flags */
@@ -556,7 +556,7 @@ void FILE_OT_find_missing_files(wmOperatorType *ot)
   ot->idname = "FILE_OT_find_missing_files";
   ot->description = "Try to find missing external files";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = find_missing_files_exec;
   ot->invoke = find_missing_files_invoke;
 
@@ -664,7 +664,7 @@ void INFO_OT_reports_display_update(wmOperatorType *ot)
   ot->idname = "INFO_OT_reports_display_update";
   ot->description = "Update the display of reports in Blender UI (internal use)";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = update_reports_display_invoke;
 
   /* flags */

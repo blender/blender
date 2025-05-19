@@ -51,6 +51,7 @@
 #include "UI_interface.hh"
 #include "WM_api.hh"
 
+#include "ANIM_armature.hh"
 #include "ANIM_bone_collections.hh"
 
 #include "screen_intern.hh"
@@ -279,7 +280,7 @@ static eContextResult screen_ctx_visible_or_editable_bones_(const bContext *C,
       /* Attention: X-Axis Mirroring is also handled here... */
       LISTBASE_FOREACH (EditBone *, ebone, arm->edbo) {
         /* first and foremost, bone must be visible and selected */
-        if (ANIM_bone_is_visible_editbone(arm, ebone)) {
+        if (blender::animrig::bone_is_visible_editbone(arm, ebone)) {
           /* Get 'x-axis mirror equivalent' bone if the X-Axis Mirroring option is enabled
            * so that most users of this data don't need to explicitly check for it themselves.
            *
@@ -306,7 +307,7 @@ static eContextResult screen_ctx_visible_or_editable_bones_(const bContext *C,
             /* only include bones if visible */
             CTX_data_list_add(result, &arm->id, &RNA_EditBone, ebone);
 
-            if ((flipbone) && ANIM_bone_is_visible_editbone(arm, flipbone) == 0) {
+            if ((flipbone) && blender::animrig::bone_is_visible_editbone(arm, flipbone) == 0) {
               CTX_data_list_add(result, &arm->id, &RNA_EditBone, flipbone);
             }
           }
@@ -349,7 +350,9 @@ static eContextResult screen_ctx_selected_bones_(const bContext *C,
       /* Attention: X-Axis Mirroring is also handled here... */
       LISTBASE_FOREACH (EditBone *, ebone, arm->edbo) {
         /* first and foremost, bone must be visible and selected */
-        if (ANIM_bone_is_visible_editbone(arm, ebone) && (ebone->flag & BONE_SELECTED)) {
+        if (blender::animrig::bone_is_visible_editbone(arm, ebone) &&
+            (ebone->flag & BONE_SELECTED))
+        {
           /* Get 'x-axis mirror equivalent' bone if the X-Axis Mirroring option is enabled
            * so that most users of this data don't need to explicitly check for it themselves.
            *

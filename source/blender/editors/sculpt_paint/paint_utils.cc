@@ -761,7 +761,7 @@ void PAINT_OT_vert_select_ungrouped(wmOperatorType *ot)
   ot->idname = "PAINT_OT_vert_select_ungrouped";
   ot->description = "Select vertices without a group";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = vert_select_ungrouped_exec;
   ot->poll = vert_paint_poll;
 

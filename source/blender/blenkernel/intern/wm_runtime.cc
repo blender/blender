@@ -31,6 +31,9 @@ WindowManagerRuntime::~WindowManagerRuntime()
 
 WindowRuntime::~WindowRuntime()
 {
+#ifdef WITH_INPUT_IME
+  BLI_assert(this->ime_data == nullptr);
+#endif
   /** The event_queue should be freed when the window is freed. */
   BLI_assert(BLI_listbase_is_empty(&this->event_queue));
 }

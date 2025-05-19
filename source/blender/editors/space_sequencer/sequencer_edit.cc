@@ -290,7 +290,7 @@ void SEQUENCER_OT_gap_remove(wmOperatorType *ot)
       "Remove gap at current frame to first strip at the right, independent of selection or "
       "locked state of strips";
 
-  /* Api callbacks. */
+  /* API callbacks. */
   //  ot->invoke = sequencer_snap_invoke;
   ot->exec = sequencer_gap_remove_exec;
   ot->poll = sequencer_edit_poll;
@@ -328,7 +328,7 @@ void SEQUENCER_OT_gap_insert(wmOperatorType *ot)
       "Insert gap at current frame to first strips at the right, independent of selection or "
       "locked state of strips";
 
-  /* Api callbacks. */
+  /* API callbacks. */
   //  ot->invoke = sequencer_snap_invoke;
   ot->exec = sequencer_gap_insert_exec;
   ot->poll = sequencer_edit_poll;
@@ -442,7 +442,7 @@ void SEQUENCER_OT_snap(wmOperatorType *ot)
   ot->idname = "SEQUENCER_OT_snap";
   ot->description = "Frame where selected strips will be snapped";
 
-  /* Api callbacks. */
+  /* API callbacks. */
   ot->invoke = sequencer_snap_invoke;
   ot->exec = sequencer_snap_exec;
   ot->poll = sequencer_edit_poll;
@@ -874,7 +874,7 @@ void SEQUENCER_OT_slip(wmOperatorType *ot)
   ot->idname = "SEQUENCER_OT_slip";
   ot->description = "Slip the contents of selected strips";
 
-  /* Api callbacks. */
+  /* API callbacks. */
   ot->invoke = sequencer_slip_invoke;
   ot->modal = sequencer_slip_modal;
   ot->exec = sequencer_slip_exec;
@@ -942,7 +942,7 @@ void SEQUENCER_OT_mute(wmOperatorType *ot)
   ot->idname = "SEQUENCER_OT_mute";
   ot->description = "Mute (un)selected strips";
 
-  /* Api callbacks. */
+  /* API callbacks. */
   ot->exec = sequencer_mute_exec;
   ot->poll = sequencer_edit_poll;
 
@@ -1002,7 +1002,7 @@ void SEQUENCER_OT_unmute(wmOperatorType *ot)
   ot->idname = "SEQUENCER_OT_unmute";
   ot->description = "Unmute (un)selected strips";
 
-  /* Api callbacks. */
+  /* API callbacks. */
   ot->exec = sequencer_unmute_exec;
   ot->poll = sequencer_edit_poll;
 
@@ -1045,7 +1045,7 @@ void SEQUENCER_OT_lock(wmOperatorType *ot)
   ot->idname = "SEQUENCER_OT_lock";
   ot->description = "Lock strips so they can't be transformed";
 
-  /* Api callbacks. */
+  /* API callbacks. */
   ot->exec = sequencer_lock_exec;
   ot->poll = sequencer_edit_poll;
 
@@ -1082,7 +1082,7 @@ void SEQUENCER_OT_unlock(wmOperatorType *ot)
   ot->idname = "SEQUENCER_OT_unlock";
   ot->description = "Unlock strips so they can be transformed";
 
-  /* Api callbacks. */
+  /* API callbacks. */
   ot->exec = sequencer_unlock_exec;
   ot->poll = sequencer_edit_poll;
 
@@ -1207,7 +1207,7 @@ void SEQUENCER_OT_reload(wmOperatorType *ot)
   ot->idname = "SEQUENCER_OT_reload";
   ot->description = "Reload strips in the sequencer";
 
-  /* Api callbacks. */
+  /* API callbacks. */
   ot->exec = sequencer_reload_exec;
   ot->poll = sequencer_edit_poll;
 
@@ -1257,7 +1257,7 @@ void SEQUENCER_OT_refresh_all(wmOperatorType *ot)
   ot->idname = "SEQUENCER_OT_refresh_all";
   ot->description = "Refresh the sequencer editor";
 
-  /* Api callbacks. */
+  /* API callbacks. */
   ot->exec = sequencer_refresh_all_exec;
   ot->poll = sequencer_refresh_all_poll;
 }
@@ -1385,7 +1385,7 @@ void SEQUENCER_OT_reassign_inputs(wmOperatorType *ot)
   ot->idname = "SEQUENCER_OT_reassign_inputs";
   ot->description = "Reassign the inputs for the effect strip";
 
-  /* Api callbacks. */
+  /* API callbacks. */
   ot->exec = sequencer_reassign_inputs_exec;
   ot->poll = sequencer_effect_poll;
 
@@ -1426,7 +1426,7 @@ void SEQUENCER_OT_swap_inputs(wmOperatorType *ot)
   ot->idname = "SEQUENCER_OT_swap_inputs";
   ot->description = "Swap the two inputs of the effect strip";
 
-  /* Api callbacks. */
+  /* API callbacks. */
   ot->exec = sequencer_swap_inputs_exec;
   ot->poll = sequencer_effect_poll;
 
@@ -1629,7 +1629,7 @@ void SEQUENCER_OT_split(wmOperatorType *ot)
   ot->idname = "SEQUENCER_OT_split";
   ot->description = "Split the selected strips in two";
 
-  /* Api callbacks. */
+  /* API callbacks. */
   ot->invoke = sequencer_split_invoke;
   ot->exec = sequencer_split_exec;
   ot->poll = sequencer_edit_poll;
@@ -1776,7 +1776,7 @@ void SEQUENCER_OT_duplicate(wmOperatorType *ot)
   ot->idname = "SEQUENCER_OT_duplicate";
   ot->description = "Duplicate the selected strips";
 
-  /* Api callbacks. */
+  /* API callbacks. */
   ot->exec = sequencer_add_duplicate_exec;
   ot->poll = ED_operator_sequencer_active;
 
@@ -1861,7 +1861,7 @@ void SEQUENCER_OT_delete(wmOperatorType *ot)
   ot->idname = "SEQUENCER_OT_delete";
   ot->description = "Delete selected strips from the sequencer";
 
-  /* Api callbacks. */
+  /* API callbacks. */
   ot->invoke = sequencer_delete_invoke;
   ot->exec = sequencer_delete_exec;
   ot->poll = sequencer_edit_poll;
@@ -1933,7 +1933,7 @@ void SEQUENCER_OT_offset_clear(wmOperatorType *ot)
   ot->idname = "SEQUENCER_OT_offset_clear";
   ot->description = "Clear strip offsets from the start and end frames";
 
-  /* Api callbacks. */
+  /* API callbacks. */
   ot->exec = sequencer_offset_clear_exec;
   ot->poll = sequencer_edit_poll;
 
@@ -2040,7 +2040,7 @@ void SEQUENCER_OT_images_separate(wmOperatorType *ot)
   ot->idname = "SEQUENCER_OT_images_separate";
   ot->description = "On image sequence strips, it returns a strip for each image";
 
-  /* Api callbacks. */
+  /* API callbacks. */
   ot->exec = sequencer_separate_images_exec;
   ot->invoke = sequencer_separate_images_invoke;
   ot->poll = sequencer_edit_poll;
@@ -2094,7 +2094,7 @@ void SEQUENCER_OT_meta_toggle(wmOperatorType *ot)
   ot->idname = "SEQUENCER_OT_meta_toggle";
   ot->description = "Toggle a meta-strip (to edit enclosed strips)";
 
-  /* Api callbacks. */
+  /* API callbacks. */
   ot->exec = sequencer_meta_toggle_exec;
   ot->poll = sequencer_edit_poll;
 
@@ -2178,7 +2178,7 @@ void SEQUENCER_OT_meta_make(wmOperatorType *ot)
   ot->idname = "SEQUENCER_OT_meta_make";
   ot->description = "Group selected strips into a meta-strip";
 
-  /* Api callbacks. */
+  /* API callbacks. */
   ot->exec = sequencer_meta_make_exec;
   ot->poll = sequencer_edit_poll;
 
@@ -2240,7 +2240,7 @@ void SEQUENCER_OT_meta_separate(wmOperatorType *ot)
   ot->idname = "SEQUENCER_OT_meta_separate";
   ot->description = "Put the contents of a meta-strip back in the sequencer";
 
-  /* Api callbacks. */
+  /* API callbacks. */
   ot->exec = sequencer_meta_separate_exec;
   ot->poll = sequencer_edit_poll;
 
@@ -2306,7 +2306,7 @@ void SEQUENCER_OT_strip_jump(wmOperatorType *ot)
   ot->idname = "SEQUENCER_OT_strip_jump";
   ot->description = "Move frame to previous edit point";
 
-  /* Api callbacks. */
+  /* API callbacks. */
   ot->exec = sequencer_strip_jump_exec;
   ot->poll = sequencer_strip_jump_poll;
 
@@ -2477,7 +2477,7 @@ void SEQUENCER_OT_swap(wmOperatorType *ot)
   ot->idname = "SEQUENCER_OT_swap";
   ot->description = "Swap active strip with strip to the right or left";
 
-  /* Api callbacks. */
+  /* API callbacks. */
   ot->exec = sequencer_swap_exec;
   ot->poll = sequencer_edit_poll;
 
@@ -2545,7 +2545,7 @@ void SEQUENCER_OT_rendersize(wmOperatorType *ot)
   ot->idname = "SEQUENCER_OT_rendersize";
   ot->description = "Set render size and aspect from active strip";
 
-  /* Api callbacks. */
+  /* API callbacks. */
   ot->exec = sequencer_rendersize_exec;
   ot->poll = sequencer_edit_poll;
 
@@ -2566,7 +2566,7 @@ void SEQUENCER_OT_copy(wmOperatorType *ot)
   ot->idname = "SEQUENCER_OT_copy";
   ot->description = "Copy the selected strips to the internal clipboard";
 
-  /* Api callbacks. */
+  /* API callbacks. */
   ot->exec = sequencer_clipboard_copy_exec;
   ot->poll = sequencer_edit_poll;
 
@@ -2605,7 +2605,7 @@ void SEQUENCER_OT_paste(wmOperatorType *ot)
   ot->idname = "SEQUENCER_OT_paste";
   ot->description = "Paste strips from the internal clipboard";
 
-  /* Api callbacks. */
+  /* API callbacks. */
   ot->exec = sequencer_clipboard_paste_exec;
   ot->poll = ED_operator_sequencer_active;
 
@@ -2678,7 +2678,7 @@ void SEQUENCER_OT_swap_data(wmOperatorType *ot)
   ot->idname = "SEQUENCER_OT_swap_data";
   ot->description = "Swap 2 sequencer strips";
 
-  /* Api callbacks. */
+  /* API callbacks. */
   ot->exec = sequencer_swap_data_exec;
   ot->poll = ED_operator_sequencer_active;
 
@@ -2718,7 +2718,7 @@ void SEQUENCER_OT_change_effect_input(wmOperatorType *ot)
   ot->name = "Change Effect Input";
   ot->idname = "SEQUENCER_OT_change_effect_input";
 
-  /* Api callbacks. */
+  /* API callbacks. */
   ot->exec = sequencer_change_effect_input_exec;
   ot->poll = sequencer_effect_poll;
 
@@ -2793,7 +2793,7 @@ void SEQUENCER_OT_change_effect_type(wmOperatorType *ot)
   ot->name = "Change Effect Type";
   ot->idname = "SEQUENCER_OT_change_effect_type";
 
-  /* Api callbacks. */
+  /* API callbacks. */
   ot->exec = sequencer_change_effect_type_exec;
   ot->poll = sequencer_effect_poll;
 
@@ -2944,7 +2944,7 @@ void SEQUENCER_OT_change_path(wmOperatorType *ot)
   ot->name = "Change Data/Files";
   ot->idname = "SEQUENCER_OT_change_path";
 
-  /* Api callbacks. */
+  /* API callbacks. */
   ot->exec = sequencer_change_path_exec;
   ot->invoke = sequencer_change_path_invoke;
   ot->poll = sequencer_strip_has_path_poll;
@@ -3030,7 +3030,7 @@ void SEQUENCER_OT_change_scene(wmOperatorType *ot)
   ot->idname = "SEQUENCER_OT_change_scene";
   ot->description = "Change Scene assigned to Strip";
 
-  /* Api callbacks. */
+  /* API callbacks. */
   ot->exec = sequencer_change_scene_exec;
   ot->invoke = sequencer_change_scene_invoke;
   ot->poll = sequencer_strip_change_scene_poll;
@@ -3193,7 +3193,7 @@ void SEQUENCER_OT_export_subtitles(wmOperatorType *ot)
   ot->idname = "SEQUENCER_OT_export_subtitles";
   ot->description = "Export .srt file containing text strips";
 
-  /* Api callbacks. */
+  /* API callbacks. */
   ot->exec = sequencer_export_subtitles_exec;
   ot->invoke = sequencer_export_subtitles_invoke;
   ot->poll = sequencer_strip_is_text_poll;
@@ -3271,7 +3271,7 @@ void SEQUENCER_OT_set_range_to_strips(wmOperatorType *ot)
   ot->idname = "SEQUENCER_OT_set_range_to_strips";
   ot->description = "Set the frame range to the selected strips start and end";
 
-  /* Api callbacks. */
+  /* API callbacks. */
   ot->exec = sequencer_set_range_to_strips_exec;
   ot->poll = sequencer_edit_poll;
 
@@ -3391,7 +3391,7 @@ void SEQUENCER_OT_strip_transform_clear(wmOperatorType *ot)
   ot->idname = "SEQUENCER_OT_strip_transform_clear";
   ot->description = "Reset image transformation to default value";
 
-  /* Api callbacks. */
+  /* API callbacks. */
   ot->exec = sequencer_strip_transform_clear_exec;
   ot->poll = sequencer_edit_poll;
 
@@ -3454,7 +3454,7 @@ void SEQUENCER_OT_strip_transform_fit(wmOperatorType *ot)
   ot->name = "Strip Transform Set Fit";
   ot->idname = "SEQUENCER_OT_strip_transform_fit";
 
-  /* Api callbacks. */
+  /* API callbacks. */
   ot->exec = sequencer_strip_transform_fit_exec;
   ot->poll = sequencer_edit_poll;
 
@@ -3508,7 +3508,7 @@ void SEQUENCER_OT_strip_color_tag_set(wmOperatorType *ot)
   ot->idname = "SEQUENCER_OT_strip_color_tag_set";
   ot->description = "Set a color tag for the selected strips";
 
-  /* Api callbacks. */
+  /* API callbacks. */
   ot->exec = sequencer_strip_color_tag_set_exec;
   ot->poll = sequencer_strip_color_tag_set_poll;
 
@@ -3562,7 +3562,7 @@ void SEQUENCER_OT_cursor_set(wmOperatorType *ot)
   ot->description = "Set 2D cursor location";
   ot->idname = "SEQUENCER_OT_cursor_set";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = sequencer_set_2d_cursor_exec;
   ot->invoke = sequencer_set_2d_cursor_invoke;
   ot->poll = sequencer_view_has_preview_poll;
@@ -3624,7 +3624,7 @@ void SEQUENCER_OT_scene_frame_range_update(wmOperatorType *ot)
   ot->description = "Update frame range of scene strip";
   ot->idname = "SEQUENCER_OT_scene_frame_range_update";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = sequencer_scene_frame_range_update_exec;
   ot->poll = sequencer_scene_frame_range_update_poll;
 

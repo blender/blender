@@ -1013,10 +1013,11 @@ struct GWL_SeatIME {
    */
   wl_surface *surface_window = nullptr;
   GHOST_TEventImeData event_ime_data = {
-      /*result_len*/ nullptr,
-      /*composite_len*/ nullptr,
-      /*result*/ nullptr,
-      /*composite*/ nullptr,
+      /** Storage for #GHOST_TEventImeData::result (the result of the `commit_string` callback). */
+      /*result*/ "",
+      /** Storage for #GHOST_TEventImeData::composite (the result of the `preedit_string`
+         callback). */
+      /*composite*/ "",
       /*cursor_position*/ -1,
       /*target_start*/ -1,
       /*target_end*/ -1,
@@ -1028,11 +1029,6 @@ struct GWL_SeatIME {
    * (an IME popup may be showing however this isn't known).
    */
   bool has_preedit = false;
-
-  /** Storage for #GHOST_TEventImeData::result (the result of the `commit_string` callback). */
-  std::string result;
-  /** Storage for #GHOST_TEventImeData::composite (the result of the `preedit_string` callback). */
-  std::string composite;
 
   /** #zwp_text_input_v3_listener::commit_string was called with a null text argument. */
   bool result_is_null = false;
@@ -1373,22 +1369,17 @@ static void gwl_seat_ime_full_reset(GWL_Seat *seat)
 
 static void gwl_seat_ime_result_reset(GWL_Seat *seat)
 {
-  seat->ime.result.clear();
-  seat->ime.result_is_null = false;
-
   GHOST_TEventImeData &event_ime_data = seat->ime.event_ime_data;
-  event_ime_data.result_len = nullptr;
-  event_ime_data.result = nullptr;
+  event_ime_data.result.clear();
+  seat->ime.result_is_null = false;
 }
 
 static void gwl_seat_ime_preedit_reset(GWL_Seat *seat)
 {
-  seat->ime.composite.clear();
-  seat->ime.composite_is_null = false;
 
   GHOST_TEventImeData &event_ime_data = seat->ime.event_ime_data;
-  event_ime_data.composite_len = nullptr;
-  event_ime_data.composite = nullptr;
+  event_ime_data.composite.clear();
+  seat->ime.composite_is_null = false;
 
   event_ime_data.cursor_position = -1;
   event_ime_data.target_start = -1;
@@ -5754,6 +5745,9 @@ static const zwp_primary_selection_source_v1_listener primary_selection_source_l
 #ifdef WITH_INPUT_IME
 
 class GHOST_EventIME : public GHOST_Event {
+ protected:
+  GHOST_TEventImeData event_ime_data;
+
  public:
   /**
    * Constructor.
@@ -5761,10 +5755,16 @@ class GHOST_EventIME : public GHOST_Event {
    * \param type: The type of key event.
    * \param key: The key code of the key.
    */
-  GHOST_EventIME(uint64_t msec, GHOST_TEventType type, GHOST_IWindow *window, void *customdata)
+  GHOST_EventIME(uint64_t msec,
+                 GHOST_TEventType type,
+                 GHOST_IWindow *window,
+                 GHOST_TEventImeData *customdata)
       : GHOST_Event(msec, type, window)
   {
-    this->m_data = customdata;
+    /* Make sure that we keep a copy of the IME input. Otherwise it might get lost
+     * because we overwrite it before it can be read in Blender. (See #137346). */
+    this->event_ime_data = *customdata;
+    this->m_data = &this->event_ime_data;
   }
 };
 
@@ -5828,9 +5828,7 @@ static void text_input_handle_preedit_string(void *data,
 
   seat->ime.composite_is_null = (text == nullptr);
   if (!seat->ime.composite_is_null) {
-    seat->ime.composite = text;
-    seat->ime.event_ime_data.composite = (void *)seat->ime.composite.c_str();
-    seat->ime.event_ime_data.composite_len = (void *)seat->ime.composite.size();
+    seat->ime.event_ime_data.composite = text;
 
     seat->ime.event_ime_data.cursor_position = cursor_begin;
     seat->ime.event_ime_data.target_start = cursor_begin;
@@ -5847,11 +5845,9 @@ static void text_input_handle_commit_string(void *data,
   CLOG_INFO(LOG, 2, "commit_string (text=\"%s\")", text ? text : "<null>");
 
   GWL_Seat *seat = static_cast<GWL_Seat *>(data);
-  seat->ime.result = text ? text : "";
   seat->ime.result_is_null = (text == nullptr);
-  seat->ime.event_ime_data.result = (void *)seat->ime.result.c_str();
-  seat->ime.event_ime_data.result_len = (void *)seat->ime.result.size();
-  seat->ime.event_ime_data.cursor_position = seat->ime.result.size();
+  seat->ime.event_ime_data.result = text ? text : "";
+  seat->ime.event_ime_data.cursor_position = seat->ime.event_ime_data.result.size();
 
   seat->ime.has_commit_string_callback = true;
 }

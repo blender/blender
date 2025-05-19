@@ -360,7 +360,7 @@ void VIEW3D_GT_navigate_rotate(wmGizmoType *gzt)
   /* identifiers */
   gzt->idname = "VIEW3D_GT_navigate_rotate";
 
-  /* api callbacks */
+  /* API callbacks. */
   gzt->draw = gizmo_axis_draw;
   gzt->test_select = gizmo_axis_test_select;
   gzt->cursor_get = gizmo_axis_cursor_get;

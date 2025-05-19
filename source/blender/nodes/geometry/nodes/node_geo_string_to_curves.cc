@@ -126,7 +126,7 @@ struct TextLayout {
   /* Map of Pivot point for each character code. */
   Map<int, float3> pivot_points;
 
-  /* UTF-32 Character codes. */
+  /* UTF32 Character codes. */
   Vector<char32_t> char_codes;
 
   /* The text that fit into the text box, with newline character sequences replaced. */
@@ -236,7 +236,7 @@ static std::optional<TextLayout> get_text_layout(GeoNodeExecParams &params)
     }
   }
 
-  /* Convert UTF-8 encoded string to UTF-32. */
+  /* Convert UTF8 encoded string to UTF32. */
   len_chars = BLI_strlen_utf8_ex(layout.text.c_str(), &len_bytes);
   layout.char_codes.resize(len_chars + 1);
   BLI_str_utf8_as_utf32(layout.char_codes.data(), layout.text.c_str(), layout.char_codes.size());
@@ -250,7 +250,7 @@ static std::optional<TextLayout> get_text_layout(GeoNodeExecParams &params)
   return layout;
 }
 
-/* Returns a mapping of UTF-32 character code to instance handle. */
+/** Returns a mapping of UTF32 character code to instance handle. */
 static Map<int, int> create_curve_instances(GeoNodeExecParams &params,
                                             TextLayout &layout,
                                             bke::Instances &instances)

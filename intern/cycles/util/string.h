@@ -52,7 +52,7 @@ string string_to_lower(const string &s);
  * characters in file names and such. No reason to use such strings
  * for something else at this moment.
  *
- * Please note that strings are expected to be in UTF-8 codepage, and
+ * Please note that strings are expected to be in UTF8 code-page, and
  * if ANSI is needed then explicit conversion required.
  */
 #ifdef _WIN32

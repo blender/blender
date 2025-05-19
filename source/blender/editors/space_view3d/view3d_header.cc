@@ -62,7 +62,7 @@ void VIEW3D_OT_toggle_matcap_flip(wmOperatorType *ot)
   ot->description = "Flip MatCap";
   ot->idname = "VIEW3D_OT_toggle_matcap_flip";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = toggle_matcap_flip_exec;
 }
 

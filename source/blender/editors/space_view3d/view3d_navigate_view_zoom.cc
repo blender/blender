@@ -527,7 +527,7 @@ void VIEW3D_OT_zoom(wmOperatorType *ot)
   ot->description = "Zoom in/out in the view";
   ot->idname = ViewOpsType_zoom.idname;
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = viewzoom_invoke;
   ot->exec = viewzoom_exec;
   ot->modal = view3d_navigate_modal_fn;

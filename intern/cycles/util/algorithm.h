@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include <algorithm>
+#include <algorithm>  // IWYU pragma: export
 
 CCL_NAMESPACE_BEGIN
 

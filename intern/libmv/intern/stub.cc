@@ -33,7 +33,7 @@ int libmv_trackRegion(const libmv_TrackRegionOptions* /*options*/,
                       libmv_TrackRegionResult* result,
                       double* x2,
                       double* y2) {
-  /* Convert to doubles for the libmv api. The four corners and the center. */
+  /* Convert to doubles for the libmv API. The four corners and the center. */
   for (int i = 0; i < 5; ++i) {
     x2[i] = x1[i];
     y2[i] = y1[i];

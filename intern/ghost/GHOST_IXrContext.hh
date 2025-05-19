@@ -21,7 +21,7 @@ class GHOST_IXrContext {
   virtual bool isSessionRunning() const = 0;
   virtual void drawSessionViews(void *draw_customdata) = 0;
 
-  /* Needed for the GHOST C api. */
+  /* Needed for the GHOST C API. */
   virtual GHOST_XrSession *getSession() = 0;
   virtual const GHOST_XrSession *getSession() const = 0;
 

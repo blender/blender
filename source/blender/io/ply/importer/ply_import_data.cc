@@ -134,7 +134,7 @@ static const char *parse_row_ascii(PlyReadBuffer &file, Vector<float> &r_values)
 {
   Span<char> line = file.read_line();
   if (line.is_empty()) {
-    return "Could not read row of ascii property";
+    return "Could not read row of ASCII property";
   }
 
   /* Parse whole line as floats. */

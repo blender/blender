@@ -1292,7 +1292,7 @@ void VIEW3D_OT_interactive_add(wmOperatorType *ot)
   ot->description = "Interactively add an object";
   ot->idname = "VIEW3D_OT_interactive_add";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = view3d_interactive_add_invoke;
   ot->modal = view3d_interactive_add_modal;
   ot->cancel = view3d_interactive_add_cancel;

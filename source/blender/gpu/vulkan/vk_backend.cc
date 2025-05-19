@@ -502,6 +502,7 @@ Context *VKBackend::context_alloc(void *ghost_window, void *ghost_context)
   BLI_assert(ghost_context != nullptr);
   if (!device.is_initialized()) {
     device.init(ghost_context);
+    device.extensions_get().log();
   }
 
   VKContext *context = new VKContext(ghost_window, ghost_context);

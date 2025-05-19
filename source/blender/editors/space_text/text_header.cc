@@ -113,7 +113,7 @@ void TEXT_OT_start_find(wmOperatorType *ot)
   ot->description = "Start searching text";
   ot->idname = "TEXT_OT_start_find";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = text_text_search_exec;
   ot->poll = text_properties_poll;
 }

@@ -429,7 +429,7 @@ void *BLI_gset_pop_key(GSet *gs, const void *key) ATTR_WARN_UNUSED_RESULT;
 /** \name GSet Iterator
  * \{ */
 
-/* rely on inline api for now */
+/* Rely on inline API for now. */
 
 /** Use a GSet specific type so we can cast but compiler sees as different */
 typedef struct GSetIterator {

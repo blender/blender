@@ -53,6 +53,7 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
+#include "ANIM_armature.hh"
 #include "ANIM_bone_collections.hh"
 
 #include "armature_intern.hh"
@@ -621,8 +622,8 @@ static void separate_armature_bones(Main *bmain, Object *ob, const bool is_selec
     curbone = ED_armature_ebone_find_name(arm->edbo, pchan->name);
 
     /* check if bone needs to be removed */
-    if (is_select ==
-        (ANIM_bone_is_visible_editbone(arm, curbone) && (curbone->flag & BONE_SELECTED)))
+    if (is_select == (blender::animrig::bone_is_visible_editbone(arm, curbone) &&
+                      (curbone->flag & BONE_SELECTED)))
     {
 
       /* Clear the bone->parent var of any bone that had this as its parent. */
@@ -686,7 +687,7 @@ static wmOperatorStatus separate_armature_exec(bContext *C, wmOperator *op)
       bool has_selected_bone = false;
       bool has_selected_any = false;
       LISTBASE_FOREACH (EditBone *, ebone, arm_old->edbo) {
-        if (ANIM_bone_is_visible_editbone(arm_old, ebone)) {
+        if (blender::animrig::bone_is_visible_editbone(arm_old, ebone)) {
           if (ebone->flag & BONE_SELECTED) {
             has_selected_bone = true;
             break;
@@ -1006,7 +1007,7 @@ void ARMATURE_OT_parent_set(wmOperatorType *ot)
   ot->idname = "ARMATURE_OT_parent_set";
   ot->description = "Set the active bone as the parent of the selected bones";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = armature_parent_set_invoke;
   ot->exec = armature_parent_set_exec;
   ot->poll = ED_operator_editarmature;
@@ -1131,7 +1132,7 @@ void ARMATURE_OT_parent_clear(wmOperatorType *ot)
   ot->description =
       "Remove the parent-child relationship between selected bones and their parents";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = armature_parent_clear_invoke;
   ot->exec = armature_parent_clear_exec;
   ot->poll = ED_operator_editarmature;

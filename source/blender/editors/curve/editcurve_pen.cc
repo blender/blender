@@ -1834,7 +1834,7 @@ void CURVE_OT_pen(wmOperatorType *ot)
   ot->idname = "CURVE_OT_pen";
   ot->description = "Construct and edit splines";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = curve_pen_invoke;
   ot->modal = curve_pen_modal;
   ot->poll = ED_operator_editcurve;

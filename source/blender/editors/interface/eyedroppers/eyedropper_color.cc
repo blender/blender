@@ -697,7 +697,7 @@ void UI_OT_eyedropper_color(wmOperatorType *ot)
   ot->idname = "UI_OT_eyedropper_color";
   ot->description = "Sample a color from the Blender window to store in a property";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = eyedropper_invoke;
   ot->modal = eyedropper_modal;
   ot->cancel = eyedropper_cancel;

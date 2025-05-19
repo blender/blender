@@ -8,6 +8,8 @@
  * Converted and adapted from HLSL to GLSL by Clément Foucault
  */
 
+#pragma once
+
 #include "gpu_shader_math_vector_lib.glsl"
 
 #define dof_aperturesize dof_params.x

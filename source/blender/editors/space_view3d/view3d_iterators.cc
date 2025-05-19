@@ -32,7 +32,7 @@
 
 #include "DEG_depsgraph_query.hh"
 
-#include "ANIM_bone_collections.hh"
+#include "ANIM_armature.hh"
 
 #include "bmesh.hh"
 
@@ -795,7 +795,7 @@ void armature_foreachScreenBone(const ViewContext *vc,
   }
 
   LISTBASE_FOREACH (EditBone *, ebone, arm->edbo) {
-    if (!ANIM_bone_is_visible_editbone(arm, ebone)) {
+    if (!blender::animrig::bone_is_visible_editbone(arm, ebone)) {
       continue;
     }
 
@@ -867,7 +867,7 @@ void pose_foreachScreenBone(const ViewContext *vc,
   }
 
   LISTBASE_FOREACH (bPoseChannel *, pchan, &pose->chanbase) {
-    if (!ANIM_bone_is_visible_pchan(arm_eval, pchan)) {
+    if (!blender::animrig::bone_is_visible_pchan(arm_eval, pchan)) {
       continue;
     }
 

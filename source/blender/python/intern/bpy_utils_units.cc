@@ -249,7 +249,7 @@ PyDoc_STRVAR(
     "one (1.01m).\n"
     "   :type split_unit: bool\n"
     "   :arg compatible_unit: Whether to use keyboard-friendly units (1m2) or nicer "
-    "utf-8 ones (1m²).\n"
+    "UTF8 ones (1m²).\n"
     "   :type compatible_unit: bool\n"
     "   :return: The converted string.\n"
     "   :rtype: str\n"
@@ -308,8 +308,8 @@ static PyObject *bpyunits_to_string(PyObject * /*self*/, PyObject *args, PyObjec
     /* Maximum expected length of string result:
      * - Number itself: precision + decimal dot + up to four 'above dot' digits.
      * - Unit: up to ten chars
-     *   (six currently, let's be conservative, also because we use some utf8 chars).
-     * This can be repeated twice (e.g. 1m20cm), and we add ten more spare chars
+     *   (six currently, let's be conservative, also because we use some UTF8 chars).
+     * This can be repeated twice (e.g. `1m20cm`), and we add ten more spare chars
      * (spaces, trailing '\0'...).
      * So in practice, 64 should be more than enough.
      */

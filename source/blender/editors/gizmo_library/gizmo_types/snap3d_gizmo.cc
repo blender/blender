@@ -305,7 +305,7 @@ static void GIZMO_GT_snap_3d(wmGizmoType *gzt)
   /* identifiers */
   gzt->idname = "GIZMO_GT_snap_3d";
 
-  /* api callbacks */
+  /* API callbacks. */
   gzt->setup = snap_gizmo_setup;
   gzt->draw = snap_gizmo_draw;
   gzt->test_select = snap_gizmo_test_select;

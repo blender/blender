@@ -56,10 +56,11 @@ class EdgeDice {
   void dice(const DiagSplit &split);
 
  protected:
-  void dice(const SubPatch &sub);
+  void tri_dice(const SubPatch &sub);
+  void quad_dice(const SubPatch &sub);
 
   void set_vertex(const SubPatch &sub, const int index, const float2 uv);
-  void add_triangle(const SubPatch &sub,
+  void set_triangle(const SubPatch &sub,
                     const int triangle_index,
                     const int v0,
                     const int v1,
@@ -73,7 +74,8 @@ class EdgeDice {
 
   float3 eval_projected(const SubPatch &sub, const float2 uv);
 
-  void set_sides(const SubPatch &sub);
+  void tri_set_sides(const SubPatch &sub);
+  void quad_set_sides(const SubPatch &sub);
 
   float quad_area(const float3 &a, const float3 &b, const float3 &c, const float3 &d);
   float scale_factor(const SubPatch &sub, const int Mu, const int Mv);

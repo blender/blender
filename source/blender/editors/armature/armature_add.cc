@@ -49,6 +49,7 @@
 #include "ED_screen.hh"
 #include "ED_view3d.hh"
 
+#include "ANIM_armature.hh"
 #include "ANIM_bone_collections.hh"
 
 #include "DEG_depsgraph.hh"
@@ -69,6 +70,7 @@ EditBone *ED_armature_ebone_add(bArmature *arm, const char *name)
   BLI_addtail(arm->edbo, bone);
 
   bone->flag |= BONE_TIPSEL;
+  bone->drawtype = ARM_DRAW_TYPE_ARMATURE_DEFINED;
   bone->weight = 1.0f;
   bone->dist = 0.25f;
   bone->xwidth = 0.1f;
@@ -148,7 +150,7 @@ static wmOperatorStatus armature_click_extrude_exec(bContext *C, wmOperator * /*
 
   /* find the active or selected bone */
   for (ebone = static_cast<EditBone *>(arm->edbo->first); ebone; ebone = ebone->next) {
-    if (!ANIM_bone_is_visible_editbone(arm, ebone)) {
+    if (!blender::animrig::bone_is_visible_editbone(arm, ebone)) {
       continue;
     }
     if (ebone->flag & BONE_TIPSEL || arm->act_edbone == ebone) {
@@ -158,7 +160,7 @@ static wmOperatorStatus armature_click_extrude_exec(bContext *C, wmOperator * /*
 
   if (ebone == nullptr) {
     for (ebone = static_cast<EditBone *>(arm->edbo->first); ebone; ebone = ebone->next) {
-      if (!ANIM_bone_is_visible_editbone(arm, ebone)) {
+      if (!blender::animrig::bone_is_visible_editbone(arm, ebone)) {
         continue;
       }
       if (ebone->flag & BONE_ROOTSEL || arm->act_edbone == ebone) {
@@ -274,7 +276,7 @@ void ARMATURE_OT_click_extrude(wmOperatorType *ot)
   ot->idname = "ARMATURE_OT_click_extrude";
   ot->description = "Create a new bone going from the last selected joint to the mouse position";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = armature_click_extrude_invoke;
   ot->exec = armature_click_extrude_exec;
   ot->poll = ED_operator_editarmature;
@@ -1128,7 +1130,9 @@ static wmOperatorStatus armature_duplicate_selected_exec(bContext *C, wmOperator
     /* Select mirrored bones */
     if (arm->flag & ARM_MIRROR_EDIT) {
       LISTBASE_FOREACH (EditBone *, ebone_iter, arm->edbo) {
-        if (ANIM_bone_is_visible_editbone(arm, ebone_iter) && (ebone_iter->flag & BONE_SELECTED)) {
+        if (blender::animrig::bone_is_visible_editbone(arm, ebone_iter) &&
+            (ebone_iter->flag & BONE_SELECTED))
+        {
           EditBone *ebone;
 
           ebone = ED_armature_ebone_get_mirrored(arm->edbo, ebone_iter);
@@ -1144,7 +1148,9 @@ static wmOperatorStatus armature_duplicate_selected_exec(bContext *C, wmOperator
          ebone_iter && ebone_iter != ebone_first_dupe;
          ebone_iter = ebone_iter->next)
     {
-      if (ANIM_bone_is_visible_editbone(arm, ebone_iter) && (ebone_iter->flag & BONE_SELECTED)) {
+      if (blender::animrig::bone_is_visible_editbone(arm, ebone_iter) &&
+          (ebone_iter->flag & BONE_SELECTED))
+      {
         EditBone *ebone;
         char new_bone_name_buff[MAXBONENAME];
         const char *new_bone_name = ebone_iter->name;
@@ -1173,7 +1179,9 @@ static wmOperatorStatus armature_duplicate_selected_exec(bContext *C, wmOperator
          ebone_iter && ebone_iter != ebone_first_dupe;
          ebone_iter = ebone_iter->next)
     {
-      if (ANIM_bone_is_visible_editbone(arm, ebone_iter) && (ebone_iter->flag & BONE_SELECTED)) {
+      if (blender::animrig::bone_is_visible_editbone(arm, ebone_iter) &&
+          (ebone_iter->flag & BONE_SELECTED))
+      {
         EditBone *ebone = ebone_iter->temp.ebone;
 
         if (!ebone_iter->parent) {
@@ -1219,7 +1227,7 @@ static wmOperatorStatus armature_duplicate_selected_exec(bContext *C, wmOperator
          ebone_iter && ebone_iter != ebone_first_dupe;
          ebone_iter = ebone_iter->next)
     {
-      if (ANIM_bone_is_visible_editbone(arm, ebone_iter)) {
+      if (blender::animrig::bone_is_visible_editbone(arm, ebone_iter)) {
         ebone_iter->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
       }
     }
@@ -1242,7 +1250,7 @@ void ARMATURE_OT_duplicate(wmOperatorType *ot)
   ot->idname = "ARMATURE_OT_duplicate";
   ot->description = "Make copies of the selected bones within the same armature";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = armature_duplicate_selected_exec;
   ot->poll = ED_operator_editarmature;
 
@@ -1306,7 +1314,8 @@ static wmOperatorStatus armature_symmetrize_exec(bContext *C, wmOperator *op)
      *
      * Storing temp pointers to mirrored unselected ebones. */
     LISTBASE_FOREACH (EditBone *, ebone_iter, arm->edbo) {
-      if (!(ANIM_bone_is_visible_editbone(arm, ebone_iter) && (ebone_iter->flag & BONE_SELECTED)))
+      if (!(blender::animrig::bone_is_visible_editbone(arm, ebone_iter) &&
+            (ebone_iter->flag & BONE_SELECTED)))
       {
         /* Skipping invisible selected bones. */
         continue;
@@ -1371,7 +1380,9 @@ static wmOperatorStatus armature_symmetrize_exec(bContext *C, wmOperator *op)
          ebone_iter && ebone_iter != ebone_first_dupe;
          ebone_iter = ebone_iter->next)
     {
-      if (ANIM_bone_is_visible_editbone(arm, ebone_iter) && (ebone_iter->flag & BONE_SELECTED)) {
+      if (blender::animrig::bone_is_visible_editbone(arm, ebone_iter) &&
+          (ebone_iter->flag & BONE_SELECTED))
+      {
         if (ebone_iter->temp.ebone != nullptr) {
           /* This will be set if the mirror bone already exists (no need to make a new one)
            * but we do need to make sure that the 'pchan' settings (constraints etc)
@@ -1481,7 +1492,7 @@ static wmOperatorStatus armature_symmetrize_exec(bContext *C, wmOperator *op)
          ebone_iter && ebone_iter != ebone_first_dupe;
          ebone_iter = ebone_iter->next)
     {
-      if (ANIM_bone_is_visible_editbone(arm, ebone_iter)) {
+      if (blender::animrig::bone_is_visible_editbone(arm, ebone_iter)) {
         ebone_iter->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
       }
     }
@@ -1527,7 +1538,7 @@ void ARMATURE_OT_symmetrize(wmOperatorType *ot)
   ot->idname = "ARMATURE_OT_symmetrize";
   ot->description = "Enforce symmetry, make copies of the selection or use existing";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = armature_symmetrize_exec;
   ot->poll = ED_operator_editarmature;
 
@@ -1572,7 +1583,7 @@ static wmOperatorStatus armature_extrude_exec(bContext *C, wmOperator *op)
 
     /* since we allow root extrude too, we have to make sure selection is OK */
     LISTBASE_FOREACH (EditBone *, ebone, arm->edbo) {
-      if (ANIM_bone_is_visible_editbone(arm, ebone)) {
+      if (blender::animrig::bone_is_visible_editbone(arm, ebone)) {
         if (ebone->flag & BONE_ROOTSEL) {
           if (ebone->parent && (ebone->flag & BONE_CONNECTED)) {
             if (ebone->parent->flag & BONE_TIPSEL) {
@@ -1587,7 +1598,7 @@ static wmOperatorStatus armature_extrude_exec(bContext *C, wmOperator *op)
     for (ebone = static_cast<EditBone *>(arm->edbo->first); ((ebone) && (ebone != first));
          ebone = ebone->next)
     {
-      if (!ANIM_bone_is_visible_editbone(arm, ebone)) {
+      if (!blender::animrig::bone_is_visible_editbone(arm, ebone)) {
         continue;
       }
       /* We extrude per definition the tip. */
@@ -1658,6 +1669,7 @@ static wmOperatorStatus armature_extrude_exec(bContext *C, wmOperator *op)
           }
 
           newbone->color = ebone->color;
+          newbone->drawtype = ebone->drawtype;
 
           newbone->weight = ebone->weight;
           newbone->dist = ebone->dist;
@@ -1746,7 +1758,7 @@ void ARMATURE_OT_extrude(wmOperatorType *ot)
   ot->idname = "ARMATURE_OT_extrude";
   ot->description = "Create new bones from the selected joints";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = armature_extrude_exec;
   ot->poll = ED_operator_editarmature;
 
@@ -1831,7 +1843,7 @@ void ARMATURE_OT_bone_primitive_add(wmOperatorType *ot)
   ot->idname = "ARMATURE_OT_bone_primitive_add";
   ot->description = "Add a new bone located at the 3D cursor";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = armature_bone_primitive_add_exec;
   ot->poll = ED_operator_editarmature;
 
@@ -1948,7 +1960,7 @@ void ARMATURE_OT_subdivide(wmOperatorType *ot)
   ot->idname = "ARMATURE_OT_subdivide";
   ot->description = "Break selected bones into chains of smaller bones";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = armature_subdivide_exec;
   ot->poll = ED_operator_editarmature;
 

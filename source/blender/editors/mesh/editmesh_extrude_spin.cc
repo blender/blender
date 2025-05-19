@@ -174,7 +174,7 @@ void MESH_OT_spin(wmOperatorType *ot)
       "Extrude selected vertices in a circle around the cursor in indicated viewport";
   ot->idname = "MESH_OT_spin";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = edbm_spin_invoke;
   ot->exec = edbm_spin_exec;
   ot->poll = ED_operator_editmesh;

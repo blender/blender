@@ -194,6 +194,11 @@ void GPU_stencil_reference_set(uint reference);
 void GPU_stencil_write_mask_set(uint write_mask);
 void GPU_stencil_compare_mask_set(uint compare_mask);
 
+/* Sets the depth range to be 0..1. Only have effect with the OpenGL backend. Have no effect if
+ * glClipControl is not supported. Shaders used for drawing with this state must use
+ * BuiltinBits::CLIP_CONTROL for their vertex shader to be patched. */
+void GPU_clip_control_unit_range(bool enable);
+
 eGPUFaceCullTest GPU_face_culling_get();
 eGPUBlend GPU_blend_get();
 eGPUDepthTest GPU_depth_test_get();

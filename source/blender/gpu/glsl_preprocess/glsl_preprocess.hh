@@ -206,7 +206,8 @@ class Preprocessor {
         parse_library_functions(str);
       }
       if (language == BLENDER_GLSL) {
-        include_parse(str);
+        include_parse(str, report_error);
+        pragma_once_linting(str, filename, report_error);
       }
       str = preprocessor_directive_mutation(str);
       str = swizzle_function_mutation(str);
@@ -324,7 +325,7 @@ class Preprocessor {
     std::string out_str = str;
     {
       /* Transform template definition into macro declaration. */
-      std::regex regex(R"(template<([\w\d\n, ]+)>(\s\w+\s)(\w+)\()");
+      std::regex regex(R"(template<([\w\d\n\,\ ]+)>(\s\w+\s)(\w+)\()");
       out_str = std::regex_replace(out_str, regex, "#define $3_TEMPLATE($1)$2$3@(");
     }
     {
@@ -385,7 +386,7 @@ class Preprocessor {
     {
       /* Replace explicit instantiation by macro call. */
       /* Only `template ret_t fn<T>(args);` syntax is supported. */
-      std::regex regex_instance(R"(template \w+ (\w+)<([\w+, \n]+)>\(([\w+ ,\n]+)\);)");
+      std::regex regex_instance(R"(template \w+ (\w+)<([\w+\,\ \n]+)>\(([\w+\ \,\n]+)\);)");
       /* Notice the stupid way of keeping the number of lines the same by copying the argument list
        * inside a multi-line comment. */
       out_str = std::regex_replace(out_str, regex_instance, "$1_TEMPLATE($2)/*$3*/");
@@ -432,13 +433,19 @@ class Preprocessor {
     return std::regex_replace(str, std::regex(R"(["'])"), " ");
   }
 
-  void include_parse(const std::string &str)
+  void include_parse(const std::string &str, report_callback report_error)
   {
     /* Parse include directive before removing them. */
-    std::regex regex(R"(#\s*include\s*\"(\w+\.\w+)\")");
+    std::regex regex(R"(#(\s*)include\s*\"(\w+\.\w+)\")");
 
     regex_global_search(str, regex, [&](const std::smatch &match) {
-      std::string dependency_name = match[1].str();
+      std::string indent = match[1].str();
+      /* Assert that includes are not nested in other preprocessor directives. */
+      if (!indent.empty()) {
+        report_error(match, "#include directives must not be inside #if clause");
+      }
+      std::string dependency_name = match[2].str();
+      /* Assert that includes are at the top of the file. */
       if (dependency_name == "gpu_glsl_cpp_stubs.hh") {
         /* Skip GLSL-C++ stubs. They are only for IDE linting. */
         return;
@@ -449,6 +456,19 @@ class Preprocessor {
       }
       metadata.dependencies.emplace_back(dependency_name);
     });
+  }
+
+  void pragma_once_linting(const std::string &str,
+                           const std::string &filename,
+                           report_callback report_error)
+  {
+    if (filename.find("_lib.") == std::string::npos) {
+      return;
+    }
+    if (str.find("\n#pragma once") == std::string::npos) {
+      std::smatch match;
+      report_error(match, "Library files must contain #pragma once directive.");
+    }
   }
 
   std::string loop_unroll(const std::string &str, report_callback report_error)

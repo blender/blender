@@ -365,7 +365,7 @@ void RNA_api_scene(StructRNA *srna)
   parm = RNA_def_string(
       func, "filepath", nullptr, FILE_MAX, "File Path", "File path to write Alembic file");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED);
-  RNA_def_property_subtype(parm, PROP_FILEPATH); /* allow non utf8 */
+  RNA_def_property_subtype(parm, PROP_FILEPATH); /* Allow non UTF8. */
 
   RNA_def_int(func, "frame_start", 1, INT_MIN, INT_MAX, "Start", "Start Frame", INT_MIN, INT_MAX);
   RNA_def_int(func, "frame_end", 1, INT_MIN, INT_MAX, "End", "End Frame", INT_MIN, INT_MAX);

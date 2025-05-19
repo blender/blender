@@ -64,6 +64,7 @@ struct EditBone {
    */
   int flag;
   int layer;
+  int drawtype; /* eArmature_Drawtype */
   char inherit_scale_mode;
 
   /* Envelope distance & weight */
@@ -563,17 +564,17 @@ void BKE_pchan_bbone_deform_segment_index(const bPoseChannel *pchan,
                                           float *r_blend_next);
 
 #define PBONE_SELECTABLE(arm, bone) \
-  (ANIM_bone_is_visible(arm, bone) && !((bone)->flag & BONE_UNSELECTABLE))
+  (blender::animrig::bone_is_visible(arm, bone) && !((bone)->flag & BONE_UNSELECTABLE))
 
 #define PBONE_SELECTED(arm, bone) \
-  (((bone)->flag & BONE_SELECTED) & ANIM_bone_is_visible(arm, bone))
+  (((bone)->flag & BONE_SELECTED) & blender::animrig::bone_is_visible(arm, bone))
 
 /* context.selected_pose_bones */
 #define FOREACH_PCHAN_SELECTED_IN_OBJECT_BEGIN(_ob, _pchan) \
   for (bPoseChannel *_pchan = (bPoseChannel *)(_ob)->pose->chanbase.first; _pchan; \
        _pchan = _pchan->next) \
   { \
-    if (ANIM_bone_is_visible(((bArmature *)(_ob)->data), (_pchan)->bone) && \
+    if (blender::animrig::bone_is_visible(((bArmature *)(_ob)->data), (_pchan)->bone) && \
         ((_pchan)->bone->flag & BONE_SELECTED)) \
     {
 #define FOREACH_PCHAN_SELECTED_IN_OBJECT_END \
@@ -585,7 +586,7 @@ void BKE_pchan_bbone_deform_segment_index(const bPoseChannel *pchan,
   for (bPoseChannel *_pchan = (bPoseChannel *)(_ob)->pose->chanbase.first; _pchan; \
        _pchan = _pchan->next) \
   { \
-    if (ANIM_bone_is_visible(((bArmature *)(_ob)->data), (_pchan)->bone)) {
+    if (blender::animrig::bone_is_visible(((bArmature *)(_ob)->data), (_pchan)->bone)) {
 #define FOREACH_PCHAN_VISIBLE_IN_OBJECT_END \
   } \
   } \

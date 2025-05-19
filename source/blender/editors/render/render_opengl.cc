@@ -1399,7 +1399,7 @@ void RENDER_OT_opengl(wmOperatorType *ot)
   ot->description = "Take a snapshot of the active viewport";
   ot->idname = "RENDER_OT_opengl";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->get_description = screen_opengl_render_get_description;
   ot->invoke = screen_opengl_render_invoke;
   ot->exec = screen_opengl_render_exec; /* blocking */

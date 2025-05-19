@@ -3521,7 +3521,7 @@ static bool tridiagonal_solve_with_limits(float *a,
   return true;
 }
 
-/* Keep ascii art. */
+/* Keep ASCII art. */
 /* clang-format off */
 /*
  * This function computes the handles of a series of auto bezier points

@@ -192,7 +192,7 @@ void VIEW3D_OT_zoom_border(wmOperatorType *ot)
   ot->description = "Zoom in the view to the nearest object contained in the border";
   ot->idname = "VIEW3D_OT_zoom_border";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->invoke = WM_gesture_box_invoke;
   ot->exec = view3d_zoom_border_exec;
   ot->modal = WM_gesture_box_modal;

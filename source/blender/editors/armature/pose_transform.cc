@@ -50,6 +50,7 @@
 #include "ED_keyframing.hh"
 #include "ED_screen.hh"
 
+#include "ANIM_armature.hh"
 #include "ANIM_bone_collections.hh"
 #include "ANIM_keyframing.hh"
 #include "ANIM_keyingsets.hh"
@@ -535,7 +536,9 @@ static wmOperatorStatus pose_visual_transform_apply_exec(bContext *C, wmOperator
 
     int i;
     LISTBASE_FOREACH_INDEX (bPoseChannel *, pchan, &ob->pose->chanbase, i) {
-      if (!((pchan->bone->flag & BONE_SELECTED) && ANIM_bone_is_visible_pchan(arm, pchan))) {
+      if (!((pchan->bone->flag & BONE_SELECTED) &&
+            blender::animrig::bone_is_visible_pchan(arm, pchan)))
+      {
         pchan_xform_array[i].is_set = false;
         continue;
       }
@@ -822,7 +825,7 @@ void POSE_OT_copy(wmOperatorType *ot)
   ot->idname = "POSE_OT_copy";
   ot->description = "Copy the current pose of the selected bones to the internal clipboard";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = pose_copy_exec;
   ot->poll = ED_operator_posemode;
 
@@ -926,7 +929,7 @@ void POSE_OT_paste(wmOperatorType *ot)
   ot->idname = "POSE_OT_paste";
   ot->description = "Paste the stored pose on to the current pose";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = pose_paste_exec;
   ot->poll = ED_operator_posemode;
 
@@ -1258,7 +1261,7 @@ void POSE_OT_scale_clear(wmOperatorType *ot)
   ot->idname = "POSE_OT_scale_clear";
   ot->description = "Reset scaling of selected bones to their default values";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = pose_clear_scale_exec;
   ot->poll = ED_operator_posemode;
 
@@ -1285,7 +1288,7 @@ void POSE_OT_rot_clear(wmOperatorType *ot)
   ot->idname = "POSE_OT_rot_clear";
   ot->description = "Reset rotations of selected bones to their default values";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = pose_clear_rot_exec;
   ot->poll = ED_operator_posemode;
 
@@ -1312,7 +1315,7 @@ void POSE_OT_loc_clear(wmOperatorType *ot)
   ot->idname = "POSE_OT_loc_clear";
   ot->description = "Reset locations of selected bones to their default values";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = pose_clear_loc_exec;
   ot->poll = ED_operator_posemode;
 
@@ -1340,7 +1343,7 @@ void POSE_OT_transforms_clear(wmOperatorType *ot)
   ot->description =
       "Reset location, rotation, and scaling of selected bones to their default values";
 
-  /* api callbacks */
+  /* API callbacks. */
   ot->exec = pose_clear_transforms_exec;
   ot->poll = ED_operator_posemode;
 

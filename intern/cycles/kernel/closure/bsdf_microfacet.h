@@ -564,7 +564,6 @@ ccl_device_forceinline int bsdf_microfacet_eval_flag(const ccl_private Microface
 template<MicrofacetType m_type>
 ccl_device Spectrum bsdf_microfacet_eval(KernelGlobals kg,
                                          const ccl_private ShaderClosure *sc,
-                                         const float3 Ng,
                                          const float3 wi,
                                          const float3 wo,
                                          ccl_private float *pdf)
@@ -578,7 +577,6 @@ ccl_device Spectrum bsdf_microfacet_eval(KernelGlobals kg,
   const float3 N = bsdf->N;
   const float cos_NI = dot(N, wi);
   const float cos_NO = dot(N, wo);
-  const float cos_NgO = dot(Ng, wo);
 
   const float alpha_x = bsdf->alpha_x;
   const float alpha_y = bsdf->alpha_y;
@@ -588,11 +586,10 @@ ccl_device Spectrum bsdf_microfacet_eval(KernelGlobals kg,
   /* Check whether the pair of directions is valid for evaluation:
    * - Incoming direction has to be in the upper hemisphere (Cycles convention)
    * - Specular cases can't be evaluated, only sampled.
-   * - The outgoing direction has to be the in the same hemisphere w.r.t. both normals.
    * - Purely reflective closures can't have refraction.
    * - Purely refractive closures can't have reflection.
    */
-  if ((cos_NI <= 0) || !bsdf_microfacet_eval_flag(bsdf) || ((cos_NgO < 0.0f) != is_transmission) ||
+  if ((cos_NI <= 0) || !bsdf_microfacet_eval_flag(bsdf) ||
       (is_transmission && !has_transmission) || (!is_transmission && !has_reflection))
   {
     return zero_spectrum();
@@ -732,7 +729,16 @@ ccl_device int bsdf_microfacet_sample(KernelGlobals kg,
 
   /* Compute actual reflected or refracted direction. */
   *wo = do_refract ? refract_angle(wi, H, cos_HO, m_inv_eta) : 2.0f * cos_HI * H - wi;
-  if ((dot(Ng, *wo) < 0) != do_refract) {
+
+  /* Ensure that the sampled direction lies in the correct hemisphere.
+   * Note that the check against Ng is only performed in the sampling code, not the evaluation.
+   * This is technically inconsistent, but required in order to avoid shadow terminator artifacts
+   * on smooth geometry (which we'd get if we checked Ng in evaluation) while ensuring that
+   * sampling doesn't return supposed reflection rays going into the geometry and vice versa.
+   * The same is done for other closures as well. */
+  const float cos_NO = dot(N, *wo);
+  const float cos_NgO = dot(Ng, *wo);
+  if ((cos_NgO < 0) != do_refract || (cos_NO < 0) != do_refract) {
     return LABEL_NONE;
   }
 
@@ -976,13 +982,12 @@ ccl_device void bsdf_microfacet_blur(ccl_private ShaderClosure *sc, const float 
 
 ccl_device Spectrum bsdf_microfacet_ggx_eval(KernelGlobals kg,
                                              const ccl_private ShaderClosure *sc,
-                                             const float3 Ng,
                                              const float3 wi,
                                              const float3 wo,
                                              ccl_private float *pdf)
 {
   const ccl_private MicrofacetBsdf *bsdf = (const ccl_private MicrofacetBsdf *)sc;
-  return bsdf->energy_scale * bsdf_microfacet_eval<MicrofacetType::GGX>(kg, sc, Ng, wi, wo, pdf);
+  return bsdf->energy_scale * bsdf_microfacet_eval<MicrofacetType::GGX>(kg, sc, wi, wo, pdf);
 }
 
 ccl_device int bsdf_microfacet_ggx_sample(KernelGlobals kg,
@@ -1043,12 +1048,11 @@ ccl_device int bsdf_microfacet_beckmann_glass_setup(ccl_private MicrofacetBsdf *
 
 ccl_device Spectrum bsdf_microfacet_beckmann_eval(KernelGlobals kg,
                                                   const ccl_private ShaderClosure *sc,
-                                                  const float3 Ng,
                                                   const float3 wi,
                                                   const float3 wo,
                                                   ccl_private float *pdf)
 {
-  return bsdf_microfacet_eval<MicrofacetType::BECKMANN>(kg, sc, Ng, wi, wo, pdf);
+  return bsdf_microfacet_eval<MicrofacetType::BECKMANN>(kg, sc, wi, wo, pdf);
 }
 
 ccl_device int bsdf_microfacet_beckmann_sample(KernelGlobals kg,

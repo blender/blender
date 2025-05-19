@@ -44,7 +44,7 @@
 
 #include "ANIM_action.hh"
 #include "ANIM_action_legacy.hh"
-#include "ANIM_bone_collections.hh"
+#include "ANIM_armature.hh"
 #include "ANIM_keyframing.hh"
 #include "ANIM_keyingsets.hh"
 #include "ANIM_pose.hh"

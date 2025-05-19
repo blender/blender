@@ -268,20 +268,14 @@ set(LIB
   PRIVATE bf::imbuf::movie
   PRIVATE bf::intern::guardedalloc
   bf_nodes
+  bf_io_common
+  bf_io_csv
   PRIVATE bf::intern::atomic
   PRIVATE bf::extern::fmtlib
   PRIVATE bf::extern::xxhash
   PRIVATE bf::render
   PRIVATE bf::windowmanager
 )
-
-if(WITH_IO_CSV)
-  list(APPEND LIB
-    PRIVATE bf_io_common
-    PRIVATE bf_io_csv
-  )
-  add_definitions(-DWITH_IO_CSV)
-endif()
 
 if(WITH_IO_STL)
   list(APPEND LIB
