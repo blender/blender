@@ -406,8 +406,6 @@ static void spreadsheet_main_region_draw(const bContext *C, ARegion *region)
 
   const int tot_rows = data_source->tot_rows();
   spreadsheet_layout.index_column_width = get_index_column_width(tot_rows);
-  spreadsheet_layout.row_indices = spreadsheet_filter_rows(
-      *sspreadsheet, spreadsheet_layout, *data_source, scope);
 
   int x = spreadsheet_layout.index_column_width;
 
@@ -429,6 +427,9 @@ static void spreadsheet_main_region_draw(const bContext *C, ARegion *region)
 
     spreadsheet_column_assign_runtime_data(column, values->type(), values->name());
   }
+
+  spreadsheet_layout.row_indices = spreadsheet_filter_rows(
+      *sspreadsheet, spreadsheet_layout, *data_source, scope);
 
   sspreadsheet->runtime->tot_columns = spreadsheet_layout.columns.size();
   sspreadsheet->runtime->tot_rows = tot_rows;
