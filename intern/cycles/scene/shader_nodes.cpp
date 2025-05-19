@@ -4814,13 +4814,19 @@ void HairInfoNode::compile(SVMCompiler &compiler)
   out = output("Intercept");
   if (!out->links.empty()) {
     const int attr = compiler.attribute(ATTR_STD_CURVE_INTERCEPT);
-    compiler.add_node(NODE_ATTR, attr, compiler.stack_assign(out), NODE_ATTR_OUTPUT_FLOAT);
+    compiler.add_node(NODE_ATTR,
+                      attr,
+                      compiler.encode_uchar4(compiler.stack_assign(out), NODE_ATTR_OUTPUT_FLOAT),
+                      __float_as_uint(0.0f));
   }
 
   out = output("Length");
   if (!out->links.empty()) {
     const int attr = compiler.attribute(ATTR_STD_CURVE_LENGTH);
-    compiler.add_node(NODE_ATTR, attr, compiler.stack_assign(out), NODE_ATTR_OUTPUT_FLOAT);
+    compiler.add_node(NODE_ATTR,
+                      attr,
+                      compiler.encode_uchar4(compiler.stack_assign(out), NODE_ATTR_OUTPUT_FLOAT),
+                      __float_as_uint(0.0f));
   }
 
   out = output("Thickness");
