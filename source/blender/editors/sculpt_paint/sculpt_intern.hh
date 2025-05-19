@@ -595,8 +595,6 @@ void SCULPT_fake_neighbors_free(Object &ob);
 /** \name Brush Utilities.
  * \{ */
 
-bool SCULPT_brush_type_needs_all_pbvh_nodes(const Brush &brush);
-
 namespace blender::ed::sculpt_paint {
 
 float brush_plane_offset_get(const Brush &brush, const SculptSession &ss);
