@@ -4319,8 +4319,7 @@ static void object_add_duplicate_internal(Main *bmain,
     return;
   }
 
-  Object *obn = static_cast<Object *>(
-      ID_NEW_SET(ob, BKE_object_duplicate(bmain, ob, dupflag, duplicate_options)));
+  Object *obn = BKE_object_duplicate(bmain, ob, dupflag, duplicate_options);
   if (r_ob_new) {
     *r_ob_new = obn;
   }
