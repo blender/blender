@@ -91,13 +91,9 @@ int BKE_preferences_asset_library_get_index(const struct UserDef *userdef,
 void BKE_preferences_asset_library_default_add(struct UserDef *userdef) ATTR_NONNULL();
 
 struct bUserAssetLibrary *BKE_preferences_remote_asset_library_add(struct UserDef *userdef,
-                                                                   const char *remote_url,
                                                                    const char *name,
-                                                                   const char *module)
+                                                                   const char *remote_url)
     ATTR_NONNULL(1, 3);
-void BKE_preferences_remote_asset_library_module_set(UserDef *userdef,
-                                                     bUserAssetLibrary *library,
-                                                     const char *module);
 size_t BKE_preferences_remote_asset_library_dirpath_get(const bUserAssetLibrary *library,
                                                         char *dirpath,
                                                         const int dirpath_maxncpy);

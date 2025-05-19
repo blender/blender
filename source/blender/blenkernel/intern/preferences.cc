@@ -11,6 +11,7 @@
 #include <cstring>
 
 #include "BLI_fileops.h"
+#include "BLI_hash_md5.hh"
 #include "BLI_listbase.h"
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"
@@ -146,10 +147,41 @@ void BKE_preferences_asset_library_default_add(UserDef *userdef)
       library->dirpath, sizeof(library->dirpath), documents_path, N_("Blender"), N_("Assets"));
 }
 
+/**
+ * Maximum length of the remote library identifier. Used for directory names, so trying to keep
+ * this short (to avoid path length issues with deeply nested asset libraries).
+ *
+ * 6 bytes for a truncated MD5 hash of the URL, 1 byte for a '-', 10 bytes for the truncated asset
+ * library name (user defined), 1 byte for null terminator. Only the MD5 hash part is used for
+ * identification, the rest is for human readability.
+ */
+const int8_t MAX_REMOTE_LIBRARY_IDENTIFIER = 6 + 1 + 10 + 1;
+
+static void asset_library_identifier(blender::StringRef name,
+                                     blender::StringRef remote_url,
+                                     char identifier_buf[MAX_REMOTE_LIBRARY_IDENTIFIER])
+{
+  /* MD5 hash part. */
+  uchar digest[16];
+  BLI_hash_md5_buffer(remote_url.data(), remote_url.size(), digest);
+  char hex_digest[33];
+  BLI_hash_md5_to_hexdigest(digest, hex_digest);
+  /* This adds a null terminator. */
+  BLI_strncpy(identifier_buf, hex_digest, 7);
+
+  identifier_buf[6] = '-';
+
+  /* Name part for human readability (truncated and made safe for use as file name). */
+  char safe_trunc_name[10];
+  BLI_strncpy_utf8(safe_trunc_name, name.data(), 11);
+  BLI_path_make_safe_filename(safe_trunc_name);
+  /* Adds null terminator. */
+  BLI_strncpy(&identifier_buf[7], safe_trunc_name, 11);
+}
+
 bUserAssetLibrary *BKE_preferences_remote_asset_library_add(UserDef *userdef,
                                                             const char *name,
-                                                            const char *remote_url,
-                                                            const char *module)
+                                                            const char *remote_url)
 {
   bUserAssetLibrary *library = DNA_struct_default_alloc(bUserAssetLibrary);
 
@@ -157,27 +189,19 @@ bUserAssetLibrary *BKE_preferences_remote_asset_library_add(UserDef *userdef,
   BLI_addtail(&userdef->asset_libraries, library);
 
   STRNCPY(library->remote_url, remote_url);
-  BKE_preferences_remote_asset_library_module_set(userdef, library, module);
   if (name) {
     BKE_preferences_asset_library_name_set(userdef, library, name);
   }
 
+  /* Download location cache path. */
+  char cache_path[FILE_MAX];
+  BKE_appdir_folder_caches(cache_path, sizeof(cache_path));
+  char library_identifier[MAX_REMOTE_LIBRARY_IDENTIFIER];
+  asset_library_identifier(name, remote_url, library_identifier);
+  BLI_path_join(
+      library->dirpath, sizeof(library->dirpath), cache_path, "remote-assets", library_identifier);
+
   return library;
-}
-
-void BKE_preferences_remote_asset_library_module_set(UserDef *userdef,
-                                                     bUserAssetLibrary *library,
-                                                     const char *module)
-{
-  STRNCPY(library->module, module);
-  BLI_path_make_safe_filename(library->module);
-
-  BLI_uniquename(&userdef->asset_libraries,
-                 library,
-                 "asset-library",
-                 '_',
-                 offsetof(bUserExtensionRepo, module),
-                 sizeof(library->module));
 }
 
 size_t BKE_preferences_remote_asset_library_dirpath_get(const bUserAssetLibrary *library,
@@ -189,18 +213,7 @@ size_t BKE_preferences_remote_asset_library_dirpath_get(const bUserAssetLibrary 
   //   return BLI_strncpy_rlen(dirpath, library->custom_dirpath, dirpath_maxncpy);
   // }
 
-  std::optional<std::string> path = std::nullopt;
-
-  /* TODO actual download directory should be elsewhere. In ~/.config (meaning versioned)? Or in
-   * ~/.cache? */
-  path = BKE_appdir_folder_id(BLENDER_SYSTEM_EXTENSIONS, "asset_indices");
-
-  /* Highly unlikely to fail as the directory doesn't have to exist. */
-  if (!path) {
-    dirpath[0] = '\0';
-    return 0;
-  }
-  return BLI_path_join(dirpath, dirpath_maxncpy, path.value().c_str(), library->module);
+  return BLI_strncpy_rlen(dirpath, library->dirpath, dirpath_maxncpy);
 }
 
 /** \} */

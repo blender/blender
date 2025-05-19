@@ -46,8 +46,6 @@
 
 #include "MEM_guardedalloc.h"
 
-static void beautify_module_name(char module_buf[FILE_MAX]);
-
 /* -------------------------------------------------------------------- */
 /** \name Reset Default Theme Operator
  * \{ */
@@ -183,16 +181,7 @@ static wmOperatorStatus preferences_asset_library_add_exec(bContext *C, wmOperat
         STRNCPY(name, DATA_("Remote Asset Library"));
       }
 
-      /* TODO dummy, should get this from a RNA prop. */
-      const char custom_directory[FILE_MAX] = "";
-
-      char module[FILE_MAX];
-      STRNCPY(module, custom_directory[0] ? BLI_path_basename(custom_directory) : name);
-      /* Not essential but results in more readable module names.
-       * Otherwise URL's have their '.' removed, making for quite unreadable module names. */
-      beautify_module_name(module);
-
-      new_library = BKE_preferences_remote_asset_library_add(&U, name, remote_url, module);
+      new_library = BKE_preferences_remote_asset_library_add(&U, name, remote_url);
 
       MEM_freeN(remote_url);
       break;

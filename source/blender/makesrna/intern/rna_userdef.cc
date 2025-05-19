@@ -359,6 +359,17 @@ static void rna_userdef_asset_library_path_set(PointerRNA *ptr, const char *valu
   BKE_preferences_asset_library_path_set(library, value);
 }
 
+int rna_userdef_asset_library_path_editable(const PointerRNA *ptr, const char **r_info)
+{
+  bUserAssetLibrary *library = (bUserAssetLibrary *)ptr->data;
+  if ((library->flag & ASSET_LIBRARY_USE_REMOTE_URL) != 0) {
+    *r_info = N_("The download cache directory of remote asset libraries cannot be changed");
+    return PropertyFlag(0);
+  }
+
+  return PROP_EDITABLE;
+}
+
 static void rna_userdef_asset_library_clear_update(bContext *C, PointerRNA *ptr)
 {
   blender::ed::asset::list::clear_all_library(C);
@@ -6910,6 +6921,7 @@ static void rna_def_userdef_filepaths_asset_library(BlenderRNA *brna)
       prop, "Path", "Path to a directory with .blend files to use as an asset library");
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_EDITOR_FILEBROWSER);
   RNA_def_property_string_funcs(prop, nullptr, nullptr, "rna_userdef_asset_library_path_set");
+  RNA_def_property_editable_func(prop, "rna_userdef_asset_library_path_editable");
   RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
   RNA_def_property_update(prop, 0, "rna_userdef_asset_library_clear_update");
 

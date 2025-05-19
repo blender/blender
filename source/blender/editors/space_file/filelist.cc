@@ -4079,6 +4079,9 @@ static void filelist_readjob_remote_asset_library_index_read(FileListReadJob *jo
   }
 
   /* Lastly, update local asset index from the current remote index. */
+/* TODO, this doesn't seem like what we want to do. Also crashes because it's accessing moved out
+ * RemoteListingAssetEntry.datablock_info. */
+#if 0
 
   FileIndexer local_indexer_runtime{};
   local_indexer_runtime.callbacks = &index::file_indexer_asset;
@@ -4112,6 +4115,7 @@ static void filelist_readjob_remote_asset_library_index_read(FileListReadJob *jo
   local_indexer_runtime.callbacks->filelist_finished(local_indexer_runtime.user_data);
   local_indexer_runtime.callbacks->free_user_data(local_indexer_runtime.user_data);
   local_indexer_runtime.user_data = nullptr;
+#endif
 }
 
 static void filelist_readjob_remote_asset_library(FileListReadJob *job_params,

@@ -1505,7 +1505,7 @@ void blo_do_versions_userdef(UserDef *userdef)
     }();
 
     if (!has_polyhaven_library) {
-      BKE_preferences_remote_asset_library_add(userdef, "Polyhaven", "/dummy/url/", "polyhaven");
+      BKE_preferences_remote_asset_library_add(userdef, "Polyhaven", "/dummy/url/");
     }
   }
 

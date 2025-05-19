@@ -405,6 +405,9 @@ def repos_to_notify():
 
 @bpy.app.handlers.persistent
 def remote_asset_libraries_sync(library, *_):
+    import shutil
+    import os
+
     # Ignore in background mode as this is for the UI to stay in sync.
     # Automated tasks must sync explicitly.
     if bpy.app.background:
@@ -418,6 +421,14 @@ def remote_asset_libraries_sync(library, *_):
     if not bpy.app.online_access:
         if not library.remote_url.startswith("file://"):
             return
+
+    fake_download_directory = os.path.join(
+        bpy.utils.system_resource('EXTENSIONS'),
+        "asset_indices",
+        "polyhaven",
+    )
+    print("SYNC: Copying from {:s} to {:s}".format(fake_download_directory, library.path))
+    shutil.copytree(fake_download_directory, library.path, dirs_exist_ok=True)
 
 
 @bpy.app.handlers.persistent
