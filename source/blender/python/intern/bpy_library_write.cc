@@ -143,18 +143,18 @@ static PyObject *bpy_lib_write(BPy_PropertyRNA *self, PyObject *args, PyObject *
   int retval = 0;
 
   /* collect all id data from the set and store in 'id_store_array' */
-  {
-    Py_ssize_t pos, hash;
-    PyObject *key;
-
+  if (PySet_GET_SIZE(datablocks) > 0) {
     id_store_array = static_cast<IDStore *>(
         MEM_mallocN(sizeof(*id_store_array) * PySet_Size(datablocks), __func__));
     id_store = id_store_array;
 
-    pos = hash = 0;
-    while (_PySet_NextEntry(datablocks, &pos, &key, &hash)) {
-
+    PyObject *it = PyObject_GetIter(datablocks);
+    PyObject *key;
+    while ((key = PyIter_Next(it))) {
+      /* Borrow from the set. */
+      Py_DECREF(key);
       if (!pyrna_id_FromPyObject(key, &id_store->id)) {
+        Py_DECREF(it);
         PyErr_Format(PyExc_TypeError, "Expected an ID type, not %.200s", Py_TYPE(key)->tp_name);
         ret = nullptr;
         goto finally;
@@ -174,6 +174,7 @@ static PyObject *bpy_lib_write(BPy_PropertyRNA *self, PyObject *args, PyObject *
         id_store++;
       }
     }
+    Py_DECREF(it);
   }
 
   /* write blend */

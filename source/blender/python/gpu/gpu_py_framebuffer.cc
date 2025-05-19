@@ -286,14 +286,14 @@ static bool pygpu_framebuffer_new_parse_arg(PyObject *o, GPUAttachment *r_attach
         return false;
       }
 
-      if (c_texture && _PyUnicode_EqualToASCIIString(key, c_texture)) {
+      if (c_texture && PyUnicode_CompareWithASCIIString(key, c_texture)) {
         /* Compare only once. */
         c_texture = nullptr;
         if (!bpygpu_ParseTexture(value, &tmp_attach.tex)) {
           return false;
         }
       }
-      else if (c_layer && _PyUnicode_EqualToASCIIString(key, c_layer)) {
+      else if (c_layer && PyUnicode_CompareWithASCIIString(key, c_layer)) {
         /* Compare only once. */
         c_layer = nullptr;
         tmp_attach.layer = PyLong_AsLong(value);
@@ -301,7 +301,7 @@ static bool pygpu_framebuffer_new_parse_arg(PyObject *o, GPUAttachment *r_attach
           return false;
         }
       }
-      else if (c_mip && _PyUnicode_EqualToASCIIString(key, c_mip)) {
+      else if (c_mip && PyUnicode_CompareWithASCIIString(key, c_mip)) {
         /* Compare only once. */
         c_mip = nullptr;
         tmp_attach.mip = PyLong_AsLong(value);
