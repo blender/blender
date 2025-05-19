@@ -137,6 +137,8 @@ class GHOST_DeviceVK {
   VkPhysicalDeviceFeatures2 features = {};
   VkPhysicalDeviceVulkan11Features features_11 = {};
   VkPhysicalDeviceVulkan12Features features_12 = {};
+  VkPhysicalDeviceRobustness2FeaturesEXT features_robustness2 = {
+      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ROBUSTNESS_2_FEATURES_EXT};
 
   int users = 0;
 
@@ -156,6 +158,7 @@ class GHOST_DeviceVK {
     features_12.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
     features.pNext = &features_11;
     features_11.pNext = &features_12;
+    features_12.pNext = &features_robustness2;
 
     vkGetPhysicalDeviceFeatures2(physical_device, &features);
   }
@@ -306,6 +309,15 @@ class GHOST_DeviceVK {
     if (has_extensions({VK_KHR_DYNAMIC_RENDERING_LOCAL_READ_EXTENSION_NAME})) {
       dynamic_rendering_local_read.pNext = device_create_info_p_next;
       device_create_info_p_next = &dynamic_rendering_local_read;
+    }
+
+    /* VK_EXT_robustness2 */
+    VkPhysicalDeviceRobustness2FeaturesEXT robustness_2_features = {
+        VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ROBUSTNESS_2_FEATURES_EXT};
+    if (has_extensions({VK_EXT_ROBUSTNESS_2_EXTENSION_NAME})) {
+      robustness_2_features.nullDescriptor = features_robustness2.nullDescriptor;
+      robustness_2_features.pNext = device_create_info_p_next;
+      device_create_info_p_next = &robustness_2_features;
     }
 
     /* Query for Mainenance4 (core in Vulkan 1.3). */
@@ -1131,6 +1143,7 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
   optional_device_extensions.push_back(VK_EXT_SHADER_STENCIL_EXPORT_EXTENSION_NAME);
   optional_device_extensions.push_back(VK_KHR_MAINTENANCE_4_EXTENSION_NAME);
   optional_device_extensions.push_back(VK_KHR_FRAGMENT_SHADER_BARYCENTRIC_EXTENSION_NAME);
+  optional_device_extensions.push_back(VK_EXT_ROBUSTNESS_2_EXTENSION_NAME);
 
   VkInstance instance = VK_NULL_HANDLE;
   if (!vulkan_device.has_value()) {
