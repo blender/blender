@@ -1,5 +1,24 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 1292e26..a1a9fcf 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -159,7 +159,13 @@ IF (EMBREE_SYCL_GEOMETRY_CALLBACK)
+ ENDIF()
+
+ IF (EMBREE_SYCL_SUPPORT)
+-  ADD_DEFINITIONS("-DEMBREE_SYCL_SUPPORT")  # FIXME: only use define from rtcore_config.h
++# Too many compilation issues with MSVC Debug and various versions of DPC++.
++# It's preferable to disable SYCL support when using MSVC Debug.
++  IF(WIN32 AND CMAKE_BUILD_TYPE STREQUAL "Debug")
++    SET(EMBREE_SYCL_SUPPORT FALSE)
++  ELSE()
++    ADD_DEFINITIONS("-DEMBREE_SYCL_SUPPORT")  # FIXME: only use define from rtcore_config.h
++  ENDIF()
+ ENDIF()
+
+ CMAKE_DEPENDENT_OPTION(EMBREE_SYCL_RT_SIMULATION "Using hardware simulation" OFF "EMBREE_SYCL_SUPPORT" OFF)
 diff --git a/common/cmake/dpcpp.cmake b/common/cmake/dpcpp.cmake
-index 4113610c5..12c24fb11 100644
+index a15c179..4760e63 100644
 --- a/common/cmake/dpcpp.cmake
 +++ b/common/cmake/dpcpp.cmake
 @@ -45,7 +45,7 @@ IF (EMBREE_SYCL_SUPPORT)
@@ -12,7 +31,7 @@ index 4113610c5..12c24fb11 100644
    
    IF (SYCL_ONEAPI_ICX AND WIN32)
 diff --git a/common/simd/arm/sse2neon.h b/common/simd/arm/sse2neon.h
-index b18d41e78..35e50a6e3 100644
+index b18d41e..35e50a6 100644
 --- a/common/simd/arm/sse2neon.h
 +++ b/common/simd/arm/sse2neon.h
 @@ -9038,7 +9038,7 @@ FORCE_INLINE int _sse2neon_sido_negative(int res, int lb, int imm8, int bound)
@@ -34,10 +53,10 @@ index b18d41e78..35e50a6e3 100644
          return 31 - cnt;
      return 32;
 diff --git a/kernels/CMakeLists.txt b/kernels/CMakeLists.txt
-index 7d1386853..6bfc8a9c6 100644
+index b827807..648603a 100644
 --- a/kernels/CMakeLists.txt
 +++ b/kernels/CMakeLists.txt
-@@ -213,6 +213,12 @@ embree_files(EMBREE_LIBRARY_FILES_AVX512 ${AVX512})
+@@ -216,6 +216,12 @@ embree_files(EMBREE_LIBRARY_FILES_AVX512 ${AVX512})
  #message("AVX2: ${EMBREE_LIBRARY_FILES_AVX2}")
  #message("AVX512: ${EMBREE_LIBRARY_FILES_AVX512}")
  
@@ -50,7 +69,7 @@ index 7d1386853..6bfc8a9c6 100644
  # replaces all .cpp files with a dummy file that includes that .cpp file
  # this is to work around an ICC name mangling issue related to lambda functions under windows
  MACRO (CreateISADummyFiles list isa)
-@@ -311,7 +317,7 @@ IF (EMBREE_ISA_AVX  AND EMBREE_LIBRARY_FILES_AVX)
+@@ -318,7 +324,7 @@ IF (EMBREE_ISA_AVX  AND EMBREE_LIBRARY_FILES_AVX)
    ENDIF()
  ENDIF()
  
@@ -59,22 +78,3 @@ index 7d1386853..6bfc8a9c6 100644
    DISABLE_STACK_PROTECTOR_FOR_INTERSECTORS(${EMBREE_LIBRARY_FILES_AVX2})
    ADD_LIBRARY(embree_avx2 STATIC ${EMBREE_LIBRARY_FILES_AVX2})
    TARGET_LINK_LIBRARIES(embree_avx2 PRIVATE tasking)
-diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 548038507..8c08e1fa1 100644
---- a/CMakeLists.txt
-+++ b/CMakeLists.txt
-@@ -159,7 +159,13 @@ IF (EMBREE_SYCL_GEOMETRY_CALLBACK)
- ENDIF()
- 
- IF (EMBREE_SYCL_SUPPORT)
--  ADD_DEFINITIONS("-DEMBREE_SYCL_SUPPORT")  # FIXME: only use define from rtcore_config.h
-+# Too many compilation issues with MSVC Debug and various versions of DPC++.
-+# It's preferable to disable SYCL support when using MSVC Debug.
-+  IF(WIN32 AND CMAKE_BUILD_TYPE STREQUAL "Debug")
-+    SET(EMBREE_SYCL_SUPPORT FALSE)
-+  ELSE()
-+    ADD_DEFINITIONS("-DEMBREE_SYCL_SUPPORT")  # FIXME: only use define from rtcore_config.h
-+  ENDIF()
- ENDIF()
- 
- CMAKE_DEPENDENT_OPTION(EMBREE_SYCL_RT_SIMULATION "Using hardware simulation" OFF "EMBREE_SYCL_SUPPORT" OFF)
