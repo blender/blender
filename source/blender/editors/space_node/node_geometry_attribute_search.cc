@@ -225,7 +225,7 @@ void node_geometry_add_attribute_search_button(const bContext & /*C*/,
                                                const bNode &node,
                                                PointerRNA &socket_ptr,
                                                uiLayout &layout,
-                                               const StringRefNull placeholder)
+                                               const StringRef placeholder)
 {
   uiBlock *block = uiLayoutGetBlock(&layout);
   uiBut *but = uiDefIconTextButR(block,
@@ -243,7 +243,7 @@ void node_geometry_add_attribute_search_button(const bContext & /*C*/,
                                  0.0f,
                                  0.0f,
                                  "");
-  UI_but_placeholder_set(but, placeholder.c_str());
+  UI_but_placeholder_set(but, placeholder);
 
   const bNodeSocket &socket = *static_cast<const bNodeSocket *>(socket_ptr.data);
   AttributeSearchData *data = MEM_callocN<AttributeSearchData>(__func__);

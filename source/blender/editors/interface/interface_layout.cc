@@ -45,6 +45,7 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
+#include "fmt/format.h"
 #include "interface_intern.hh"
 
 using blender::StringRef;
@@ -505,7 +506,7 @@ static void ui_layer_but_cb(bContext *C, void *arg_but, void *arg_index)
 /* create buttons for an item with an RNA array */
 static void ui_item_array(uiLayout *layout,
                           uiBlock *block,
-                          const StringRefNull name,
+                          const StringRef name,
                           int icon,
                           PointerRNA *ptr,
                           PropertyRNA *prop,
@@ -973,7 +974,7 @@ static void ui_keymap_but_cb(bContext * /*C*/, void *but_v, void * /*key_v*/)
  */
 static uiBut *ui_item_with_label(uiLayout *layout,
                                  uiBlock *block,
-                                 const StringRefNull name,
+                                 const StringRef name,
                                  const int icon,
                                  PointerRNA *ptr,
                                  PropertyRNA *prop,
@@ -2077,9 +2078,9 @@ void uiLayout::prop(PointerRNA *ptr,
                     int index,
                     int value,
                     eUI_Item_Flag flag,
-                    const std::optional<StringRefNull> name_opt,
+                    const std::optional<StringRef> name_opt,
                     int icon,
-                    const std::optional<StringRefNull> placeholder)
+                    const std::optional<StringRef> placeholder)
 {
 
   uiBlock *block = root_->block;
@@ -2127,7 +2128,7 @@ void uiLayout::prop(PointerRNA *ptr,
   const bool no_icon = (toggle == 0);
 
   /* set name and icon */
-  StringRefNull name = name_opt.value_or(icon_only ? "" : RNA_property_ui_name(prop));
+  StringRef name = name_opt.value_or(icon_only ? "" : RNA_property_ui_name(prop));
 
   if (type != PROP_BOOLEAN) {
     flag &= ~UI_ITEM_R_CHECKBOX_INVERT;
@@ -2263,22 +2264,19 @@ void uiLayout::prop(PointerRNA *ptr,
         /* Pass */
       }
       else if (ui_item_rna_is_expand(prop, index, flag)) {
-        char name_with_suffix[UI_MAX_DRAW_STR + 2];
+        fmt::memory_buffer name_with_suffix;
         char str[2] = {'\0'};
         for (int a = 0; a < len; a++) {
           str[0] = RNA_property_array_item_char(prop, a);
           const bool use_prefix = (a == 0 && !name.is_empty());
           if (use_prefix) {
-            char *s = name_with_suffix;
-            s += STRNCPY_RLEN(name_with_suffix, name.c_str());
-            *s++ = ' ';
-            *s++ = str[0];
-            *s++ = '\0';
+            fmt::format_to(fmt::appender(name_with_suffix), "{} {}", name, str[0]);
           }
           but = uiDefBut(block,
                          UI_BTYPE_LABEL,
                          0,
-                         use_prefix ? name_with_suffix : str,
+                         use_prefix ? StringRef(name_with_suffix.data(), name_with_suffix.size()) :
+                                      str,
                          0,
                          0,
                          w,
@@ -2480,7 +2478,7 @@ void uiLayout::prop(PointerRNA *ptr,
 
   if (but) {
     if (placeholder) {
-      UI_but_placeholder_set(but, placeholder->c_str());
+      UI_but_placeholder_set(but, *placeholder);
     }
     if (ELEM(but->type, UI_BTYPE_TEXT) && (flag & UI_ITEM_R_TEXT_BUT_FORCE_SEMI_MODAL_ACTIVE)) {
       UI_but_flag2_enable(but, UI_BUT2_FORCE_SEMI_MODAL_ACTIVE);
@@ -2541,7 +2539,7 @@ void uiLayout::prop(PointerRNA *ptr,
 void uiLayout::prop(PointerRNA *ptr,
                     const StringRefNull propname,
                     const eUI_Item_Flag flag,
-                    const std::optional<StringRefNull> name,
+                    const std::optional<StringRef> name,
                     int icon)
 {
   PropertyRNA *prop = RNA_struct_find_property(ptr, propname.c_str());

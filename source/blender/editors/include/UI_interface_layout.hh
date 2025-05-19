@@ -294,14 +294,14 @@ struct uiLayout : uiItem {
             int index,
             int value,
             eUI_Item_Flag flag,
-            std::optional<blender::StringRefNull> name_opt,
+            std::optional<blender::StringRef> name_opt,
             int icon,
-            std::optional<blender::StringRefNull> placeholder = std::nullopt);
+            std::optional<blender::StringRef> placeholder = std::nullopt);
   /** Adds a RNA property item, and exposes it into the layout. */
   void prop(PointerRNA *ptr,
             blender::StringRefNull propname,
             eUI_Item_Flag flag,
-            std::optional<blender::StringRefNull> name,
+            std::optional<blender::StringRef> name,
             int icon);
 
   /** Adds a separator item, that adds empty space between items. */

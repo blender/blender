@@ -413,7 +413,7 @@ void node_geometry_add_attribute_search_button(const bContext &C,
                                                const bNode &node,
                                                PointerRNA &socket_ptr,
                                                uiLayout &layout,
-                                               StringRefNull placeholder = "");
+                                               StringRef placeholder = "");
 
 /* `node_geometry_layer_search.cc` */
 
@@ -421,7 +421,7 @@ void node_geometry_add_layer_search_button(const bContext &C,
                                            const bNode &node,
                                            PointerRNA &socket_ptr,
                                            uiLayout &layout,
-                                           StringRefNull placeholder = "");
+                                           StringRef placeholder = "");
 
 /* `node_context_path.cc` */
 
