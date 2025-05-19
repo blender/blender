@@ -880,6 +880,24 @@ static void sequencer_select_connected_strips(const StripSelection &selection)
   }
 }
 
+static void sequencer_copy_handles_to_selected_strips(const StripSelection &selection,
+                                                      const VectorSet<Strip *> prev_selection)
+{
+  /* TODO(john): Dual handle propagation is not supported for now due to its complexity,
+   * but once we simplify selection assumptions in 5.0 we can add support for it. */
+  if (selection.strip2) {
+    return;
+  }
+
+  Strip *source = selection.strip1;
+  /* For left or right handle selection only, simply copy selection state. */
+  /* NOTE that this must be `ALLSEL` since `prev_selection` was deselected earlier. */
+  for (Strip *strip : prev_selection) {
+    strip->flag &= ~(STRIP_ALLSEL);
+    strip->flag |= source->flag & (STRIP_ALLSEL);
+  }
+}
+
 static void sequencer_select_strip_impl(const Editing *ed,
                                         Strip *strip,
                                         const eStripHandle handle_clicked,
@@ -1304,8 +1322,25 @@ wmOperatorStatus sequencer_select_exec(bContext *C, wmOperator *op)
     return OPERATOR_RUNNING_MODAL;
   }
 
+  VectorSet<Strip *> copy_to;
+  /* True if the user selects either handle of a strip that is already selected, meaning that
+   * handles should be propagated to all currently selected strips. */
+  bool copy_handles_to_sel = (U.sequencer_editor_flag & USER_SEQ_ED_SIMPLE_TWEAKING) &&
+                             (selection.handle != STRIP_HANDLE_NONE) &&
+                             (selection.strip1->flag & SELECT);
+
+  /* TODO(john): Dual handle propagation is not supported for now due to its complexity,
+   * but once we simplify selection assumptions in 5.0 we can add support for it. */
+  copy_handles_to_sel &= (selection.strip2 == nullptr);
+
+  if (copy_handles_to_sel) {
+    copy_to = seq::query_selected_strips(seq::active_seqbase_get(scene->ed));
+    copy_to.remove(selection.strip1);
+    copy_to.remove_if([](Strip *strip) { return strip->type == STRIP_TYPE_EFFECT; });
+  }
+
   bool changed = false;
-  /* Deselect everything for now. NOTE that this condition runs for almost all clicks with no
+  /* Deselect everything for now. NOTE that this condition runs for almost every click with no
    * modifiers. `sequencer_select_strip_impl` expects this and will reselect any strips in
    * `selection`. */
   if (deselect_all ||
@@ -1331,6 +1366,10 @@ wmOperatorStatus sequencer_select_exec(bContext *C, wmOperator *op)
                                              STRIP_HANDLE_LEFT;
     sequencer_select_strip_impl(
         ed, selection.strip2, strip2_handle_clicked, extend, deselect, toggle);
+  }
+
+  if (copy_handles_to_sel) {
+    sequencer_copy_handles_to_selected_strips(selection, copy_to);
   }
 
   if (!ignore_connections) {
