@@ -10,6 +10,7 @@ VERTEX_SHADER_CREATE_INFO(eevee_geom_gpencil)
 #include "draw_grease_pencil_lib.glsl"
 #include "draw_model_lib.glsl"
 #include "eevee_attributes_gpencil_lib.glsl"
+#include "eevee_reverse_z_lib.glsl"
 #include "eevee_surf_lib.glsl"
 #include "eevee_velocity_lib.glsl"
 
@@ -67,4 +68,6 @@ void main()
   shadow_clip.position = shadow_position_vector_get(vs_P, view);
   shadow_clip.vector = shadow_clip_vector_get(vs_P, view.clip_distance_inv);
 #endif
+
+  gl_Position = reverse_z::transform(gl_Position);
 }

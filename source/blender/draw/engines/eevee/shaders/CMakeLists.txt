@@ -194,6 +194,7 @@ set(SRC_GLSL_LIB
   eevee_ray_trace_screen_lib.glsl
   eevee_ray_types_lib.glsl
   eevee_renderpass_lib.glsl
+  eevee_reverse_z_lib.glsl
   eevee_sampling_lib.glsl
   eevee_shadow_lib.glsl
   eevee_shadow_page_ops_lib.glsl

@@ -399,6 +399,7 @@ bool MTLShader::generate_msl_from_glsl(const shader::ShaderCreateInfo *info)
    * from GLSL to MSL. Also include additional GPU defines for
    * optional high-level feature support. */
   std::string msl_defines_string = "#define GPU_ARB_shader_draw_parameters 1\n";
+  msl_defines_string += "#define GPU_ARB_clip_control 1\n";
 
   /* NOTE(Metal): textureGather appears to not function correctly on non-Apple-silicon GPUs.
    * Manifests as selection outlines not showing up (#103412). Disable texture gather if
@@ -869,6 +870,7 @@ bool MTLShader::generate_msl_from_glsl_compute(const shader::ShaderCreateInfo *i
   ss_compute << "#line " STRINGIFY(__LINE__) " \"" __FILE__ "\"" << std::endl;
 
   ss_compute << "#define GPU_ARB_shader_draw_parameters 1\n";
+  ss_compute << "#define GPU_ARB_clip_control 1\n";
   if (bool(info->builtins_ & BuiltinBits::TEXTURE_ATOMIC) &&
       MTLBackend::get_capabilities().supports_texture_atomics)
   {

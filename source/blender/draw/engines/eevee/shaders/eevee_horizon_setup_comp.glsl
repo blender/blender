@@ -15,6 +15,7 @@ COMPUTE_SHADER_CREATE_INFO(eevee_horizon_setup)
 #include "draw_view_lib.glsl"
 #include "eevee_colorspace_lib.glsl"
 #include "eevee_gbuffer_lib.glsl"
+#include "eevee_reverse_z_lib.glsl"
 #include "gpu_shader_math_matrix_lib.glsl"
 
 void main()
@@ -51,7 +52,7 @@ void main()
 
   /* Re-project radiance. */
   float2 uv = (float2(texel_fullres) + 0.5f) / float2(textureSize(depth_tx, 0).xy);
-  float depth = texelFetch(depth_tx, texel_fullres, 0).r;
+  float depth = reverse_z::read(texelFetch(depth_tx, texel_fullres, 0).r);
   float3 P = drw_point_screen_to_world(float3(uv, depth));
 
   float3 ssP_prev = drw_ndc_to_screen(project_point(uniform_buf.raytrace.radiance_persmat, P));

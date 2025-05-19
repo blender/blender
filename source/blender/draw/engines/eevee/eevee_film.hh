@@ -55,6 +55,14 @@ class Film {
   /** For debugging purpose but could be a user option in the future. */
   static constexpr bool use_box_filter = false;
 
+  struct DepthState {
+    /** Set to 0 if reverse Z is supported, 1 otherwise. */
+    float clear_value = 1.0f;
+    /** Set to DRW_STATE_DEPTH_GREATER_EQUAL if reverse Z is supported, DRW_STATE_DEPTH_LESS_EQUAL
+     * otherwise. */
+    DRWState test_state = DRW_STATE_DEPTH_LESS_EQUAL;
+  } depth;
+
  private:
   Instance &inst_;
 

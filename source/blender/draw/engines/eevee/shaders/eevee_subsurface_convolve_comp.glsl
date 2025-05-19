@@ -19,6 +19,7 @@ COMPUTE_SHADER_CREATE_INFO(eevee_subsurface_convolve)
 
 #include "draw_view_lib.glsl"
 #include "eevee_gbuffer_lib.glsl"
+#include "eevee_reverse_z_lib.glsl"
 #include "eevee_sampling_lib.glsl"
 #include "gpu_shader_codegen_lib.glsl"
 #include "gpu_shader_math_matrix_lib.glsl"
@@ -49,7 +50,7 @@ void cache_populate(float2 local_uv)
   uint2 texel = gl_LocalInvocationID.xy;
   cached_radiance[texel.y][texel.x] = texture(radiance_tx, local_uv).rgb;
   cached_sss_id[texel.y][texel.x] = texture(object_id_tx, local_uv).r;
-  cached_depth[texel.y][texel.x] = texture(depth_tx, local_uv).r;
+  cached_depth[texel.y][texel.x] = reverse_z::read(texture(depth_tx, local_uv).r);
 }
 
 bool cache_sample(uint2 texel, out SubSurfaceSample samp)
@@ -76,7 +77,7 @@ SubSurfaceSample sample_neighborhood(float2 sample_uv)
     return samp;
   }
 #endif
-  samp.depth = texture(depth_tx, sample_uv).r;
+  samp.depth = reverse_z::read(texture(depth_tx, sample_uv).r);
   samp.sss_id = texture(object_id_tx, sample_uv).r;
   samp.radiance = texture(radiance_tx, sample_uv).rgb;
   return samp;
@@ -94,7 +95,7 @@ void main()
   cache_populate(center_uv);
 #endif
 
-  float depth = texelFetch(depth_tx, texel, 0).r;
+  float depth = reverse_z::read(texelFetch(depth_tx, texel, 0).r);
   float3 vP = drw_point_screen_to_view(float3(center_uv, depth));
 
   GBufferReader gbuf = gbuffer_read(gbuf_header_tx, gbuf_closure_tx, gbuf_normal_tx, texel);

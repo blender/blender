@@ -23,6 +23,7 @@ COMPUTE_SHADER_CREATE_INFO(eevee_depth_of_field_stabilize)
 
 #include "eevee_colorspace_lib.glsl"
 #include "eevee_depth_of_field_lib.glsl"
+#include "eevee_reverse_z_lib.glsl"
 #include "eevee_velocity_lib.glsl"
 
 struct DofSample {
@@ -87,7 +88,8 @@ void dof_cache_init()
         /* Depth is full-resolution. Load every 2 pixels. */
         int2 load_texel = clamp((texel + offset - 2) * 2, int2(0), textureSize(depth_tx, 0) - 1);
 
-        depth_cache[cache_texel.y][cache_texel.x] = texelFetch(depth_tx, load_texel, 0).x;
+        float depth = reverse_z::read(texelFetch(depth_tx, load_texel, 0).x);
+        depth_cache[cache_texel.y][cache_texel.x] = depth;
       }
     }
   }

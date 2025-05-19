@@ -281,6 +281,9 @@ void Film::init(const int2 &extent, const rcti *output_rect)
     }
   }
 
+  this->depth = GPU_clip_control_support() ? DepthState{0.0f, DRW_STATE_DEPTH_GREATER_EQUAL} :
+                                             DepthState{1.0f, DRW_STATE_DEPTH_LESS_EQUAL};
+
   /* Compute the passes needed by the viewport compositor. */
   Set<std::string> passes_used_by_viewport_compositor;
   if (inst_.is_viewport_compositor_enabled) {

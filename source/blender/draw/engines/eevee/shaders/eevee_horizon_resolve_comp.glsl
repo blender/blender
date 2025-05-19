@@ -11,6 +11,7 @@ COMPUTE_SHADER_CREATE_INFO(eevee_horizon_resolve)
 #include "eevee_filter_lib.glsl"
 #include "eevee_gbuffer_lib.glsl"
 #include "eevee_lightprobe_eval_lib.glsl"
+#include "eevee_reverse_z_lib.glsl"
 #include "eevee_sampling_lib.glsl"
 #include "gpu_shader_math_vector_lib.glsl"
 #include "gpu_shader_utildefines_lib.glsl"
@@ -30,7 +31,7 @@ float sample_weight_get(float3 center_N, float3 center_P, int2 center_texel, int
   float2 sample_uv = (float2(sample_texel_fullres) + 0.5f) *
                      uniform_buf.raytrace.full_resolution_inv;
 
-  float sample_depth = texelFetch(depth_tx, sample_texel_fullres, 0).r;
+  float sample_depth = reverse_z::read(texelFetch(depth_tx, sample_texel_fullres, 0).r);
 
   bool is_valid;
   float3 sample_N = sample_normal_get(sample_texel, is_valid);
@@ -88,7 +89,7 @@ void main()
   }
 
   float2 center_uv = (float2(texel_fullres) + 0.5f) * uniform_buf.raytrace.full_resolution_inv;
-  float center_depth = texelFetch(depth_tx, texel_fullres, 0).r;
+  float center_depth = reverse_z::read(texelFetch(depth_tx, texel_fullres, 0).r);
   float3 center_P = drw_point_screen_to_world(float3(center_uv, center_depth));
   float3 center_N = gbuf.surface_N;
 

@@ -16,6 +16,7 @@ COMPUTE_SHADER_CREATE_INFO(eevee_ray_trace_fallback)
 #include "eevee_lightprobe_eval_lib.glsl"
 #include "eevee_ray_trace_screen_lib.glsl"
 #include "eevee_ray_types_lib.glsl"
+#include "eevee_reverse_z_lib.glsl"
 #include "eevee_sampling_lib.glsl"
 #include "eevee_spherical_harmonics_lib.glsl"
 
@@ -34,7 +35,7 @@ void main()
     return;
   }
 
-  float depth = texelFetch(depth_tx, texel_fullres, 0).r;
+  float depth = reverse_z::read(texelFetch(depth_tx, texel_fullres, 0).r);
   float2 uv = (float2(texel_fullres) + 0.5f) * uniform_buf.raytrace.full_resolution_inv;
 
   float4 ray_data_im = imageLoadFast(ray_data_img, texel);

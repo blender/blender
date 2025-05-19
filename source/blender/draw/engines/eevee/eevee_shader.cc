@@ -639,12 +639,8 @@ void ShaderModule::material_create_info_amend(GPUMaterial *gpumat, GPUCodegenOut
     }
   }
 
-#if 0 /* Waiting for using DRW_STATE_CLIP_CONTROL_UNIT_RANGE where these are used. */
-  if (geometry_type != MAT_GEOM_WORLD) {
-    /* Allow to use Reverse-Z on OpenGL. Does nothing in other backend. */
-    info.builtins(BuiltinBits::CLIP_CONTROL);
-  }
-#endif
+  /* Allow to use Reverse-Z on OpenGL. Does nothing in other backend. */
+  info.builtins(BuiltinBits::CLIP_CONTROL);
 
   std::stringstream global_vars;
   switch (geometry_type) {

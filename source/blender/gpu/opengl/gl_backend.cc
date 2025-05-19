@@ -429,6 +429,7 @@ static void detect_workarounds()
     GLContext::framebuffer_fetch_support = false;
     GLContext::texture_barrier_support = false;
     GCaps.stencil_export_support = false;
+    GCaps.clip_control_support = false;
 
 #if 0
     /* Do not alter OpenGL 4.3 features.
@@ -713,6 +714,8 @@ void GLBackend::capabilities_init()
   GLContext::texture_filter_anisotropic_support = epoxy_has_gl_extension(
       "GL_EXT_texture_filter_anisotropic");
   GLContext::clip_control_support = epoxy_has_gl_extension("GL_ARB_clip_control");
+
+  GCaps.clip_control_support = GLContext::clip_control_support;
 
   /* Disabled until it is proven to work. */
   GLContext::framebuffer_fetch_support = false;

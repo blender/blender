@@ -8,6 +8,7 @@ VERTEX_SHADER_CREATE_INFO(eevee_display_lightprobe_volume)
 
 #include "draw_view_lib.glsl"
 #include "eevee_lightprobe_lib.glsl"
+#include "eevee_reverse_z_lib.glsl"
 
 void main()
 {
@@ -44,4 +45,5 @@ void main()
   gl_Position = drw_point_view_to_homogenous(vP);
   /* Small bias to let the icon draw without Z-fighting. */
   gl_Position.z += 0.0001f;
+  gl_Position = reverse_z::transform(gl_Position);
 }

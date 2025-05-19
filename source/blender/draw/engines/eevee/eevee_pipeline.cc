@@ -37,7 +37,8 @@ void BackgroundPipeline::sync(GPUMaterial *gpumat,
   RenderBuffers &rbufs = inst_.render_buffers;
 
   world_ps_.init();
-  world_ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL);
+  world_ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_CLIP_CONTROL_UNIT_RANGE |
+                      DRW_STATE_DEPTH_EQUAL);
   world_ps_.material_set(manager, gpumat);
   world_ps_.push_constant("world_opacity_fade", background_opacity);
   world_ps_.push_constant("world_background_blur", square_f(background_blur));
@@ -289,9 +290,9 @@ void ForwardPipeline::sync()
   has_opaque_ = false;
   has_transparent_ = false;
 
-  DRWState state_depth_only = DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS;
-  DRWState state_depth_color = DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS |
-                               DRW_STATE_WRITE_COLOR;
+  DRWState state_depth_only = DRW_STATE_WRITE_DEPTH | DRW_STATE_CLIP_CONTROL_UNIT_RANGE |
+                              inst_.film.depth.test_state;
+  DRWState state_depth_color = state_depth_only | DRW_STATE_WRITE_COLOR;
   {
     prepass_ps_.init();
 
@@ -332,11 +333,12 @@ void ForwardPipeline::sync()
     }
 
     opaque_single_sided_ps_ = &opaque_ps_.sub("SingleSided");
-    opaque_single_sided_ps_->state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL |
-                                       DRW_STATE_CULL_BACK);
+    opaque_single_sided_ps_->state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_CLIP_CONTROL_UNIT_RANGE |
+                                       DRW_STATE_DEPTH_EQUAL | DRW_STATE_CULL_BACK);
 
     opaque_double_sided_ps_ = &opaque_ps_.sub("DoubleSided");
-    opaque_double_sided_ps_->state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL);
+    opaque_double_sided_ps_->state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_CLIP_CONTROL_UNIT_RANGE |
+                                       DRW_STATE_DEPTH_EQUAL);
   }
   {
     transparent_ps_.init();
@@ -399,7 +401,8 @@ PassMain::Sub *ForwardPipeline::prepass_transparent_add(const Object *ob,
   if ((blender_mat->blend_flag & MA_BL_HIDE_BACKFACE) == 0) {
     return nullptr;
   }
-  DRWState state = DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL;
+  DRWState state = DRW_STATE_WRITE_DEPTH | DRW_STATE_CLIP_CONTROL_UNIT_RANGE |
+                   inst_.film.depth.test_state;
   if (blender_mat->blend_flag & MA_BL_CULL_BACKFACE) {
     state |= DRW_STATE_CULL_BACK;
   }
@@ -415,7 +418,8 @@ PassMain::Sub *ForwardPipeline::material_transparent_add(const Object *ob,
                                                          ::Material *blender_mat,
                                                          GPUMaterial *gpumat)
 {
-  DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_CUSTOM | DRW_STATE_DEPTH_LESS_EQUAL;
+  DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_CUSTOM |
+                   DRW_STATE_CLIP_CONTROL_UNIT_RANGE | inst_.film.depth.test_state;
   if (blender_mat->blend_flag & MA_BL_CULL_BACKFACE) {
     state |= DRW_STATE_CULL_BACK;
   }
@@ -502,7 +506,7 @@ void DeferredLayerBase::gbuffer_pass_sync(Instance &inst)
   gbuffer_ps_.bind_resources(inst.volume_probes);
 
   DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL | DRW_STATE_WRITE_STENCIL |
-                   DRW_STATE_STENCIL_ALWAYS;
+                   DRW_STATE_CLIP_CONTROL_UNIT_RANGE | DRW_STATE_STENCIL_ALWAYS;
 
   gbuffer_single_sided_hybrid_ps_ = &gbuffer_ps_.sub("DoubleSided");
   gbuffer_single_sided_hybrid_ps_->state_set(state | DRW_STATE_CULL_BACK);
@@ -536,9 +540,10 @@ void DeferredLayer::begin_sync()
     prepass_ps_.bind_resources(inst_.velocity);
     prepass_ps_.bind_resources(inst_.sampling);
 
-    DRWState state_depth_only = DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS;
-    DRWState state_depth_color = DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS |
-                                 DRW_STATE_WRITE_COLOR;
+    DRWState state_depth_only = DRW_STATE_WRITE_DEPTH | DRW_STATE_CLIP_CONTROL_UNIT_RANGE |
+                                inst_.film.depth.test_state;
+    DRWState state_depth_color = DRW_STATE_WRITE_DEPTH | DRW_STATE_CLIP_CONTROL_UNIT_RANGE |
+                                 inst_.film.depth.test_state | DRW_STATE_WRITE_COLOR;
 
     prepass_double_sided_static_ps_ = &prepass_ps_.sub("DoubleSided.Static");
     prepass_double_sided_static_ps_->state_set(state_depth_only);
@@ -1252,7 +1257,8 @@ void DeferredProbePipeline::begin_sync()
     pass.bind_resources(inst_.sampling);
   }
 
-  DRWState state_depth_only = DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS;
+  DRWState state_depth_only = DRW_STATE_WRITE_DEPTH | DRW_STATE_CLIP_CONTROL_UNIT_RANGE |
+                              inst_.film.depth.test_state;
   /* Only setting up static pass because we don't use motion vectors for light-probes. */
   opaque_layer_.prepass_double_sided_static_ps_ = &pass.sub("DoubleSided");
   opaque_layer_.prepass_double_sided_static_ps_->state_set(state_depth_only);
@@ -1365,7 +1371,8 @@ void PlanarProbePipeline::begin_sync()
     prepass_ps_.bind_resources(inst_.uniform_data);
     prepass_ps_.bind_resources(inst_.sampling);
 
-    DRWState state_depth_only = DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS;
+    DRWState state_depth_only = DRW_STATE_WRITE_DEPTH | DRW_STATE_CLIP_CONTROL_UNIT_RANGE |
+                                inst_.film.depth.test_state;
 
     prepass_double_sided_static_ps_ = &prepass_ps_.sub("DoubleSided.Static");
     prepass_double_sided_static_ps_->state_set(state_depth_only);
@@ -1447,7 +1454,7 @@ void PlanarProbePipeline::render(View &view,
   inst_.uniform_data.push_update();
 
   GPU_framebuffer_bind(gbuffer_fb);
-  GPU_framebuffer_clear_depth(gbuffer_fb, 1.0f);
+  GPU_framebuffer_clear_depth(gbuffer_fb, inst_.film.depth.clear_value);
   inst_.manager->submit(prepass_ps_, view);
 
   /* TODO(fclem): This is the only place where we use the layer source to HiZ.

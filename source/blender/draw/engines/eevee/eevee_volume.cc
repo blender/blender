@@ -228,7 +228,7 @@ void VolumeModule::end_sync()
 
   eGPUTextureUsage front_depth_usage = GPU_TEXTURE_USAGE_SHADER_READ |
                                        GPU_TEXTURE_USAGE_ATTACHMENT;
-  front_depth_tx_.ensure_2d(GPU_DEPTH24_STENCIL8, data_.tex_size.xy(), front_depth_usage);
+  front_depth_tx_.ensure_2d(GPU_DEPTH32F_STENCIL8, data_.tex_size.xy(), front_depth_usage);
   occupancy_fb_.ensure(GPU_ATTACHMENT_TEXTURE(front_depth_tx_));
 
   bool created = false;
