@@ -34,26 +34,12 @@ namespace blender::gpu {
  * \{ */
 void MTLBatch::draw(int v_first, int v_count, int i_first, int i_count)
 {
-  if (this->flag & GPU_BATCH_INVALID) {
-    this->shader_in_use_ = false;
-  }
   this->draw_advanced(v_first, v_count, i_first, i_count);
 }
 
 void MTLBatch::draw_indirect(GPUStorageBuf *indirect_buf, intptr_t offset)
 {
-  if (this->flag & GPU_BATCH_INVALID) {
-    this->shader_in_use_ = false;
-  }
   this->draw_advanced_indirect(indirect_buf, offset);
-}
-
-void MTLBatch::shader_bind()
-{
-  if (active_shader_ && active_shader_->is_valid()) {
-    active_shader_->bind();
-    shader_in_use_ = true;
-  }
 }
 
 void MTLBatch::MTLVertexDescriptorCache::vertex_descriptor_cache_init(MTLContext *ctx)
@@ -416,9 +402,6 @@ id<MTLRenderCommandEncoder> MTLBatch::bind()
 
   /* Debug Check: Ensure Frame-buffer instance is not dirty. */
   BLI_assert(!ctx->main_command_buffer.get_active_framebuffer()->get_dirty());
-
-  /* Bind Shader. */
-  this->shader_bind();
 
   /* GPU debug markers. */
   if (G.debug & G_DEBUG_GPU) {

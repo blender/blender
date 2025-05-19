@@ -276,16 +276,17 @@ void VKContext::update_pipeline_data(GPUPrimType primitive,
 {
   VKShader &vk_shader = unwrap(*shader);
   VKFrameBuffer &framebuffer = *active_framebuffer_get();
-  update_pipeline_data(
-      vk_shader,
-      vk_shader.ensure_and_get_graphics_pipeline(primitive, vao, state_manager_get(), framebuffer),
-      r_pipeline_data);
+  update_pipeline_data(vk_shader,
+                       vk_shader.ensure_and_get_graphics_pipeline(
+                           primitive, vao, state_manager_get(), framebuffer, constants_state_),
+                       r_pipeline_data);
 }
 
 void VKContext::update_pipeline_data(render_graph::VKPipelineData &r_pipeline_data)
 {
   VKShader &vk_shader = unwrap(*shader);
-  update_pipeline_data(vk_shader, vk_shader.ensure_and_get_compute_pipeline(), r_pipeline_data);
+  update_pipeline_data(
+      vk_shader, vk_shader.ensure_and_get_compute_pipeline(constants_state_), r_pipeline_data);
 }
 
 void VKContext::update_pipeline_data(VKShader &vk_shader,
@@ -399,6 +400,13 @@ void VKContext::swap_buffers_pre_handler(const GHOST_VulkanSwapChainData &swap_c
 void VKContext::swap_buffers_post_handler()
 {
   sync_backbuffer(true);
+}
+
+void VKContext::specialization_constants_set(
+    const shader::SpecializationConstants *constants_state)
+{
+  constants_state_ = (constants_state != nullptr) ? *constants_state :
+                                                    shader::SpecializationConstants{};
 }
 
 /** \} */

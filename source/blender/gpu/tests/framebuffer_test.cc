@@ -314,6 +314,8 @@ static void test_framebuffer_multi_viewport()
   }
   MEM_freeN(read_data);
 
+  GPU_shader_unbind();
+
   GPU_framebuffer_free(framebuffer);
   GPU_texture_free(texture);
   GPU_shader_free(shader);
@@ -399,6 +401,8 @@ static void test_framebuffer_subpass_input()
   int *read_data_b = static_cast<int *>(GPU_texture_read(texture_b, GPU_DATA_INT, 0));
   EXPECT_EQ(*read_data_b, 0xDEADC0DE);
   MEM_freeN(read_data_b);
+
+  GPU_shader_unbind();
 
   GPU_framebuffer_free(framebuffer);
   GPU_texture_free(texture_a);

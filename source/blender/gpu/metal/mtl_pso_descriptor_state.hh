@@ -173,10 +173,13 @@ struct MTLVertexDescriptor {
 };
 
 struct SpecializationStateDescriptor {
-  Vector<Shader::Constants::Value> values;
+  Vector<shader::SpecializationConstant::Value> values;
 
   SpecializationStateDescriptor() = default;
-  SpecializationStateDescriptor(Vector<Shader::Constants::Value> source) : values(source) {}
+  SpecializationStateDescriptor(Vector<shader::SpecializationConstant::Value> source)
+      : values(source)
+  {
+  }
 
   bool operator==(const SpecializationStateDescriptor &other) const
   {
@@ -187,7 +190,7 @@ struct SpecializationStateDescriptor {
   {
     uint64_t hash = values.size();
     uint seed = 0xFF;
-    for (const Shader::Constants::Value &value : values) {
+    for (const shader::SpecializationConstant::Value &value : values) {
       seed = seed << 1;
       hash ^= seed ^ value.u;
     }
@@ -343,7 +346,7 @@ struct MTLComputePipelineStateDescriptor {
   SpecializationStateDescriptor specialization_state;
 
   MTLComputePipelineStateDescriptor() = default;
-  MTLComputePipelineStateDescriptor(Vector<Shader::Constants::Value> values)
+  MTLComputePipelineStateDescriptor(Vector<shader::SpecializationConstant::Value> values)
   {
     specialization_state.values = values;
   }

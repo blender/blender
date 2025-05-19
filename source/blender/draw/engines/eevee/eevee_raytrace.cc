@@ -330,6 +330,23 @@ void RayTraceModule::sync()
     pass.dispatch(horizon_denoise_dispatch_buf_);
     pass.barrier(GPU_BARRIER_SHADER_IMAGE_ACCESS);
   }
+  for (int i : IndexRange(3)) {
+    data_.closure_index = i;
+    inst_.manager->warm_shader_specialization(tile_classify_ps_);
+    inst_.manager->warm_shader_specialization(tile_compact_ps_);
+    inst_.manager->warm_shader_specialization(generate_ps_);
+    inst_.manager->warm_shader_specialization(trace_planar_ps_);
+    inst_.manager->warm_shader_specialization(trace_screen_ps_);
+    inst_.manager->warm_shader_specialization(trace_fallback_ps_);
+    inst_.manager->warm_shader_specialization(denoise_spatial_ps_);
+    inst_.manager->warm_shader_specialization(denoise_temporal_ps_);
+    inst_.manager->warm_shader_specialization(denoise_bilateral_ps_);
+    inst_.manager->warm_shader_specialization(horizon_schedule_ps_);
+    inst_.manager->warm_shader_specialization(horizon_setup_ps_);
+    inst_.manager->warm_shader_specialization(horizon_scan_ps_);
+    inst_.manager->warm_shader_specialization(horizon_denoise_ps_);
+    inst_.manager->warm_shader_specialization(horizon_resolve_ps_);
+  }
 }
 
 void RayTraceModule::debug_pass_sync() {}

@@ -838,6 +838,11 @@ class MTLContext : public Context {
   id<MTLSamplerState> get_sampler_from_state(MTLSamplerState state);
   id<MTLSamplerState> get_default_sampler_state();
 
+  /* Active shader specialization constants state. */
+  shader::SpecializationConstants constants_state;
+
+  void specialization_constants_set(const shader::SpecializationConstants *constants_state);
+
   /* Metal Context pipeline state. */
   void pipeline_state_init();
   MTLShader *get_active_shader();

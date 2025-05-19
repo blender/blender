@@ -81,6 +81,8 @@ class GLShader : public Shader {
     GLuint frag_shader = 0;
     GLuint compute_shader = 0;
 
+    std::mutex compilation_mutex;
+
     GLProgram() {}
     GLProgram(GLProgram &&other)
     {
@@ -96,16 +98,18 @@ class GLShader : public Shader {
       other.compute_shader = 0;
     }
     ~GLProgram();
+
+    void program_link(StringRefNull shader_name);
   };
 
   using GLProgramCacheKey = Vector<shader::SpecializationConstant::Value>;
+  /** Contains all specialized shader variants. */
   Map<GLProgramCacheKey, GLProgram> program_cache_;
 
-  /**
-   * Points to the active program. When binding a shader the active program is
-   * setup.
-   */
-  GLProgram *program_active_ = nullptr;
+  std::mutex program_cache_mutex_;
+
+  /** Main program instance. This is the default specialized variant that is first compiled. */
+  GLProgram *main_program_ = nullptr;
 
   /* When true, the shader generates its GLSources but it's not compiled.
    * (Used for batch compilation) */
@@ -123,29 +127,13 @@ class GLShader : public Shader {
 
   Vector<const char *> specialization_constant_names_;
 
-  /**
-   * Initialize an this instance.
-   *
-   * - Ensures that program_cache at least has a default GLProgram.
-   * - Ensures that active program is set.
-   * - Active GLProgram has a shader_program (at least in creation state).
-   * - Does nothing when instance was already initialized.
-   */
-  void init_program();
-
   void update_program_and_sources(GLSources &stage_sources, MutableSpan<StringRefNull> sources);
 
   /**
-   * Link the active program.
-   */
-  void program_link();
-  bool check_link_status();
-
-  /**
-   * Return a GLProgram program id that reflects the current state of shader.constants.values.
+   * Return a GLProgram that reflects the given `constants_state`.
    * The returned program_id is in linked state, or an error happened during linking.
    */
-  GLuint program_get();
+  GLShader::GLProgram &program_get(const shader::SpecializationConstants *constants_state);
 
   /** True if any shader failed to compile. */
   bool compilation_failed_ = false;
@@ -168,14 +156,14 @@ class GLShader : public Shader {
   void warm_cache(int /*limit*/) override{};
 
   std::string resources_declare(const shader::ShaderCreateInfo &info) const override;
-  std::string constants_declare() const;
+  std::string constants_declare(const shader::SpecializationConstants &constants_state) const;
   std::string vertex_interface_declare(const shader::ShaderCreateInfo &info) const override;
   std::string fragment_interface_declare(const shader::ShaderCreateInfo &info) const override;
   std::string geometry_interface_declare(const shader::ShaderCreateInfo &info) const override;
   std::string geometry_layout_declare(const shader::ShaderCreateInfo &info) const override;
   std::string compute_layout_declare(const shader::ShaderCreateInfo &info) const override;
 
-  void bind() override;
+  void bind(const shader::SpecializationConstants *constants_state) override;
   void unbind() override;
 
   void uniform_float(int location, int comp_len, int array_size, const float *data) override;
@@ -189,7 +177,7 @@ class GLShader : public Shader {
     if (!compute_sources_.is_empty()) {
       return true;
     }
-    return program_active_->compute_shader != 0;
+    return main_program_->compute_shader != 0;
   }
 
   GLSourcesBaked get_sources();
@@ -197,10 +185,16 @@ class GLShader : public Shader {
  private:
   StringRefNull glsl_patch_get(GLenum gl_stage);
 
+  bool has_specialization_constants() const
+  {
+    return constants->types.is_empty() == false;
+  }
+
   /** Create, compile and attach the shader stage to the shader program. */
   GLuint create_shader_stage(GLenum gl_stage,
                              MutableSpan<StringRefNull> sources,
-                             GLSources &gl_sources);
+                             GLSources &gl_sources,
+                             const shader::SpecializationConstants &constants_state);
 
   /**
    * \brief features available on newer implementation such as native barycentric coordinates

@@ -676,17 +676,22 @@ void DeferredLayer::end_sync(bool is_first_pass,
         sub.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
         sub.bind_image(RBUFS_COLOR_SLOT, &inst_.render_buffers.rp_color_tx);
         sub.bind_image(RBUFS_VALUE_SLOT, &inst_.render_buffers.rp_value_tx);
+        const ShadowSceneData &shadow_scene = inst_.shadows.get_data();
+        auto set_specialization_constants =
+            [&](PassSimple::Sub &sub, GPUShader *sh, bool use_transmission) {
+              sub.specialize_constant(sh, "render_pass_shadow_id", rbuf_data.shadow_id);
+              sub.specialize_constant(sh, "use_split_indirect", use_split_indirect);
+              sub.specialize_constant(sh, "use_lightprobe_eval", use_lightprobe_eval);
+              sub.specialize_constant(sh, "use_transmission", use_transmission);
+              sub.specialize_constant(sh, "shadow_ray_count", &shadow_scene.ray_count);
+              sub.specialize_constant(sh, "shadow_ray_step_count", &shadow_scene.step_count);
+            };
         /* Submit the more costly ones first to avoid long tail in occupancy.
          * See page 78 of "SIGGRAPH 2023: Unreal Engine Substrate" by Hillaire & de Rousiers. */
+
         for (int i = min_ii(3, closure_count_) - 1; i >= 0; i--) {
           GPUShader *sh = inst_.shaders.static_shader_get(eShaderType(DEFERRED_LIGHT_SINGLE + i));
-          sub.specialize_constant(sh, "render_pass_shadow_id", rbuf_data.shadow_id);
-          sub.specialize_constant(sh, "use_split_indirect", use_split_indirect);
-          sub.specialize_constant(sh, "use_lightprobe_eval", use_lightprobe_eval);
-          sub.specialize_constant(sh, "use_transmission", false);
-          const ShadowSceneData &shadow_scene = inst_.shadows.get_data();
-          sub.specialize_constant(sh, "shadow_ray_count", &shadow_scene.ray_count);
-          sub.specialize_constant(sh, "shadow_ray_step_count", &shadow_scene.step_count);
+          set_specialization_constants(sub, sh, false);
           sub.shader_set(sh);
           sub.bind_image("direct_radiance_1_img", &direct_radiance_txs_[0]);
           sub.bind_image("direct_radiance_2_img", &direct_radiance_txs_[1]);
@@ -709,7 +714,7 @@ void DeferredLayer::end_sync(bool is_first_pass,
           sub.draw_procedural(GPU_PRIM_TRIS, 1, 3);
           if (use_transmission) {
             /* Separate pass for transmission BSDF as their evaluation is quite costly. */
-            sub.specialize_constant(sh, "use_transmission", true);
+            set_specialization_constants(sub, sh, true);
             sub.shader_set(sh);
             sub.state_stencil(0x0u, (i + 1) | uint8_t(StencilBits::TRANSMISSION), compare_mask);
             sub.draw_procedural(GPU_PRIM_TRIS, 1, 3);

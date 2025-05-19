@@ -452,7 +452,7 @@ bool MTLShader::finalize(const shader::ShaderCreateInfo *info)
      * NOTE: This will compile the base unspecialized variant. */
     if (is_compute) {
       /* Set descriptor to default shader constants */
-      MTLComputePipelineStateDescriptor compute_pipeline_descriptor(this->constants.values);
+      MTLComputePipelineStateDescriptor compute_pipeline_descriptor(this->constants->values);
 
       this->bake_compute_pipeline_state(context_, compute_pipeline_descriptor);
     }
@@ -470,9 +470,12 @@ bool MTLShader::finalize(const shader::ShaderCreateInfo *info)
 /** \name Shader Binding.
  * \{ */
 
-void MTLShader::bind()
+void MTLShader::bind(const shader::SpecializationConstants *constants_state)
 {
   MTLContext *ctx = MTLContext::get();
+  /* Copy constants state. */
+  ctx->specialization_constants_set(constants_state);
+
   if (interface == nullptr || !this->is_valid()) {
     MTL_LOG_WARNING(
         "MTLShader::bind - Shader '%s' has no valid implementation in Metal, draw calls will be "
@@ -763,11 +766,11 @@ void MTLShader::set_interface(MTLShaderInterface *interface)
  */
 static void populate_specialization_constant_values(
     MTLFunctionConstantValues *values,
-    const Shader::Constants &shader_constants,
+    const shader::SpecializationConstants &shader_constants,
     const SpecializationStateDescriptor &specialization_descriptor)
 {
   for (auto i : shader_constants.types.index_range()) {
-    const Shader::Constants::Value &value = specialization_descriptor.values[i];
+    const shader::SpecializationConstant::Value &value = specialization_descriptor.values[i];
 
     uint index = i + MTL_SHADER_SPECIALIZATION_CONSTANT_BASE_ID;
     switch (shader_constants.types[i]) {
@@ -884,7 +887,7 @@ MTLRenderPipelineStateInstance *MTLShader::bake_current_pipeline_state(
       (requires_specific_topology_class) ? prim_type : MTLPrimitiveTopologyClassUnspecified;
 
   /* Specialization configuration. */
-  pipeline_descriptor.specialization_state = {this->constants.values};
+  pipeline_descriptor.specialization_state = {ctx->constants_state.values};
 
   /* Bake pipeline state using global descriptor. */
   return bake_pipeline_state(ctx, prim_type, pipeline_descriptor);
@@ -929,7 +932,7 @@ MTLRenderPipelineStateInstance *MTLShader::bake_pipeline_state(
 
     /* Custom function constant values: */
     populate_specialization_constant_values(
-        values, this->constants, pipeline_descriptor.specialization_state);
+        values, *this->constants, pipeline_descriptor.specialization_state);
 
     /* Prepare Vertex descriptor based on current pipeline vertex binding state. */
     MTLRenderPipelineDescriptor *desc = pso_descriptor_;
@@ -1380,7 +1383,7 @@ MTLComputePipelineStateInstance *MTLShader::bake_compute_pipeline_state(
 
   /* Check if current PSO exists in the cache. */
   pso_cache_lock_.lock();
-  MTLComputePipelineStateInstance **pso_lookup = compute_pso_cache_.lookup_ptr(
+  MTLComputePipelineStateInstance *const *pso_lookup = compute_pso_cache_.lookup_ptr(
       compute_pipeline_descriptor);
   MTLComputePipelineStateInstance *pipeline_state = (pso_lookup) ? *pso_lookup : nullptr;
   pso_cache_lock_.unlock();
@@ -1401,7 +1404,7 @@ MTLComputePipelineStateInstance *MTLShader::bake_compute_pipeline_state(
 
     /* Custom function constant values: */
     populate_specialization_constant_values(
-        values, this->constants, compute_pipeline_descriptor.specialization_state);
+        values, *this->constants, compute_pipeline_descriptor.specialization_state);
 
     /* Offset the bind index for Uniform buffers such that they begin after the VBO
      * buffer bind slots. `MTL_uniform_buffer_base_index` is passed as a function
@@ -1576,17 +1579,8 @@ void MTLShaderCompiler::specialize_shader(ShaderSpecialization &specialization)
     return;
   }
 
-  Vector<Shader::Constants::Value> specialization_values(shader->interface->constant_len_);
-
-  for (const SpecializationConstant &constant : specialization.constants) {
-    const ShaderInput *input = shader->interface->constant_get(constant.name.c_str());
-    BLI_assert_msg(input != nullptr, "The specialization constant doesn't exists");
-    specialization_values[input->location].u = constant.value.u;
-  }
-  shader->constants.is_dirty = true;
-
   /* Create descriptor using these specialization constants. */
-  MTLComputePipelineStateDescriptor compute_pipeline_descriptor(specialization_values);
+  MTLComputePipelineStateDescriptor compute_pipeline_descriptor(specialization.constants.values);
 
   MTLContext *metal_context = static_cast<MTLContext *>(Context::get());
   shader->bake_compute_pipeline_state(metal_context, compute_pipeline_descriptor);

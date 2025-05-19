@@ -44,6 +44,11 @@ class DrawMultiBuf;
  * Keep track of several states and avoid redundant state changes.
  */
 struct RecordingState {
+  gpu::shader::SpecializationConstants specialization_constants;
+  /* True if specialization_constants was set. */
+  bool specialization_constants_in_use = false;
+  /* True if the bound shader uses specialization. */
+  bool shader_use_specialization = false;
   GPUShader *shader = nullptr;
   bool front_facing = true;
   bool inverted_view = false;
@@ -76,6 +81,11 @@ struct RecordingState {
       GPU_texture_unbind_all();
       GPU_uniformbuf_debug_unbind_all();
     }
+  }
+
+  const gpu::shader::SpecializationConstants *specialization_constants_get()
+  {
+    return shader_use_specialization ? &specialization_constants : nullptr;
   }
 };
 
@@ -348,7 +358,7 @@ struct SpecializeConstant {
   SpecializeConstant(GPUShader *sh, int loc, const bool *val)
       : shader(sh), bool_ref(val), location(loc), type(Type::BoolReference){};
 
-  void execute() const;
+  void execute(RecordingState &state) const;
   std::string serialize() const;
 };
 

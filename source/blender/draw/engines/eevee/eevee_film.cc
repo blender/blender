@@ -641,6 +641,10 @@ void Film::end_sync()
   aovs_info.push_update();
 
   sync_mist();
+
+  inst_.manager->warm_shader_specialization(accumulate_ps_);
+  inst_.manager->warm_shader_specialization(copy_ps_);
+  inst_.manager->warm_shader_specialization(cryptomatte_post_ps_);
 }
 
 float2 Film::pixel_jitter_get() const

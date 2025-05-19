@@ -223,10 +223,12 @@ void GPU_batch_resource_id_buf_set(Batch *batch, GPUStorageBuf *resource_id_buf)
  *
  * \{ */
 
-void GPU_batch_set_shader(Batch *batch, GPUShader *shader)
+void GPU_batch_set_shader(Batch *batch,
+                          GPUShader *shader,
+                          const shader::SpecializationConstants *constants_state)
 {
   batch->shader = shader;
-  GPU_shader_bind(batch->shader);
+  GPU_shader_bind(batch->shader, constants_state);
 }
 
 static uint16_t bind_attribute_as_ssbo(const ShaderInterface *interface,
