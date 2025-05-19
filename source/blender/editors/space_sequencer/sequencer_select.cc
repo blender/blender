@@ -843,12 +843,16 @@ static bool element_already_selected(const StripSelection &selection)
   if (selection.strip1 == nullptr) {
     return false;
   }
+
   const bool strip1_already_selected = ((selection.strip1->flag & SELECT) != 0);
   if (selection.strip2 == nullptr) {
-    const bool handle_already_selected = handle_is_selected(selection.strip1, selection.handle) ||
-                                         selection.handle == STRIP_HANDLE_NONE;
-    return strip1_already_selected && handle_already_selected;
+    if (selection.handle == STRIP_HANDLE_NONE) {
+      return strip1_already_selected && !(selection.strip1->flag & (SEQ_LEFTSEL | SEQ_RIGHTSEL));
+    }
+    return strip1_already_selected && handle_is_selected(selection.strip1, selection.handle);
   }
+
+  /* If we are here, the strip selection is dual handle. */
   const bool strip2_already_selected = ((selection.strip2->flag & SELECT) != 0);
   const int strip1_handle = selection.strip1->flag & (SEQ_RIGHTSEL | SEQ_LEFTSEL);
   const int strip2_handle = selection.strip2->flag & (SEQ_RIGHTSEL | SEQ_LEFTSEL);
