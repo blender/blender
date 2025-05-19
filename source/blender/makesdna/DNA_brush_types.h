@@ -174,7 +174,8 @@ typedef struct Brush {
   struct MTex mtex;
   struct MTex mask_mtex;
 
-  struct Brush *toggle_brush;
+  /* TODO (Sean): To be removed in 5.0 */
+  struct Brush *toggle_brush DNA_DEPRECATED;
 
   struct ImBuf *icon_imbuf;
   PreviewImage *preview;
