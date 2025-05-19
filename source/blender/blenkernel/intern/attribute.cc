@@ -799,11 +799,11 @@ bool BKE_attribute_required(const AttributeOwner &owner, const StringRef name)
   return false;
 }
 
-CustomDataLayer *BKE_attributes_active_get(AttributeOwner &owner)
+std::optional<blender::StringRefNull> BKE_attributes_active_name_get(AttributeOwner &owner)
 {
   int active_index = *BKE_attributes_active_index_p(owner);
   if (active_index == -1) {
-    return nullptr;
+    return std::nullopt;
   }
   if (active_index > BKE_attributes_length(owner, ATTR_DOMAIN_MASK_ALL, CD_MASK_PROP_ALL)) {
     active_index = 0;
@@ -823,16 +823,16 @@ CustomDataLayer *BKE_attributes_active_get(AttributeOwner &owner)
       if (CD_MASK_PROP_ALL & CD_TYPE_AS_MASK(layer->type)) {
         if (index == active_index) {
           if (blender::bke::allow_procedural_attribute_access(layer->name)) {
-            return layer;
+            return layer->name;
           }
-          return nullptr;
+          return std::nullopt;
         }
         index++;
       }
     }
   }
 
-  return nullptr;
+  return std::nullopt;
 }
 
 void BKE_attributes_active_set(AttributeOwner &owner, const StringRef name)

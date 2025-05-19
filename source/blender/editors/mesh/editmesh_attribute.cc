@@ -139,9 +139,10 @@ static wmOperatorStatus mesh_set_attribute_exec(bContext *C, wmOperator *op)
 
   Mesh *active_mesh = ED_mesh_context(C);
   AttributeOwner active_owner = AttributeOwner::from_id(&active_mesh->id);
-  CustomDataLayer *active_attribute = BKE_attributes_active_get(active_owner);
-  const StringRef name = active_attribute->name;
-  const eCustomDataType active_type = eCustomDataType(active_attribute->type);
+  const StringRef name = *BKE_attributes_active_name_get(active_owner);
+  CustomDataLayer *active_layer = BKE_attribute_search_for_write(
+      active_owner, name, CD_MASK_PROP_ALL, ATTR_DOMAIN_MASK_ALL);
+  const eCustomDataType active_type = eCustomDataType(active_layer->type);
   const CPPType &type = *bke::custom_data_type_to_cpp_type(active_type);
 
   BUFFER_FOR_CPP_TYPE_VALUE(type, buffer);
@@ -213,7 +214,9 @@ static wmOperatorStatus mesh_set_attribute_invoke(bContext *C,
   BMesh *bm = mesh->runtime->edit_mesh->bm;
   AttributeOwner owner = AttributeOwner::from_id(&mesh->id);
 
-  const CustomDataLayer *layer = BKE_attributes_active_get(owner);
+  const StringRef name = *BKE_attributes_active_name_get(owner);
+  CustomDataLayer *layer = BKE_attribute_search_for_write(
+      owner, name, CD_MASK_PROP_ALL, ATTR_DOMAIN_MASK_ALL);
   const eCustomDataType data_type = eCustomDataType(layer->type);
   const bke::AttrDomain domain = BKE_attribute_domain(owner, layer);
   const BMElem *active_elem = BM_mesh_active_elem_get(bm);
@@ -246,10 +249,11 @@ static void mesh_set_attribute_ui(bContext *C, wmOperator *op)
 
   Mesh *mesh = ED_mesh_context(C);
   AttributeOwner owner = AttributeOwner::from_id(&mesh->id);
-  CustomDataLayer *active_attribute = BKE_attributes_active_get(owner);
-  const eCustomDataType active_type = eCustomDataType(active_attribute->type);
+  const StringRef name = *BKE_attributes_active_name_get(owner);
+  CustomDataLayer *layer = BKE_attribute_search_for_write(
+      owner, name, CD_MASK_PROP_ALL, ATTR_DOMAIN_MASK_ALL);
+  const eCustomDataType active_type = eCustomDataType(layer->type);
   const StringRefNull prop_name = geometry::rna_property_name_for_type(active_type);
-  const char *name = active_attribute->name;
   layout->prop(op->ptr, prop_name, UI_ITEM_NONE, name, ICON_NONE);
 }
 

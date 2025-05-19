@@ -55,8 +55,8 @@ class AttributeOwner {
   void *ptr_ = nullptr;
 
  public:
-  AttributeOwner(){};
-  AttributeOwner(AttributeOwnerType type, void *ptr) : type_(type), ptr_(ptr){};
+  AttributeOwner() {};
+  AttributeOwner(AttributeOwnerType type, void *ptr) : type_(type), ptr_(ptr) {};
 
   static AttributeOwner from_id(ID *id);
 
@@ -126,7 +126,7 @@ int BKE_attributes_length(const AttributeOwner &owner,
                           AttrDomainMask domain_mask,
                           eCustomDataMask mask);
 
-struct CustomDataLayer *BKE_attributes_active_get(AttributeOwner &owner);
+std::optional<blender::StringRefNull> BKE_attributes_active_name_get(AttributeOwner &owner);
 void BKE_attributes_active_set(AttributeOwner &owner, blender::StringRef name);
 void BKE_attributes_active_clear(AttributeOwner &owner);
 int *BKE_attributes_active_index_p(AttributeOwner &owner);

@@ -798,12 +798,8 @@ static wmOperatorStatus curves_set_selection_domain_exec(bContext *C, wmOperator
      * and reset the active item afterwards.
      *
      * This would be unnecessary if the active attribute were stored as a string on the ID. */
-    std::string active_attribute;
     AttributeOwner owner = AttributeOwner::from_id(&curves_id->id);
-    const CustomDataLayer *layer = BKE_attributes_active_get(owner);
-    if (layer) {
-      active_attribute = layer->name;
-    }
+    const std::string active_attribute = BKE_attributes_active_name_get(owner).value_or("");
     for (const StringRef selection_name : get_curves_selection_attribute_names(curves)) {
       if (const GVArray src = *attributes.lookup(selection_name, domain)) {
         const CPPType &type = src.type();
