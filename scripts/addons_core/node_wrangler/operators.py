@@ -121,7 +121,7 @@ class NWLazyMix(Operator, NWBase):
 
 
 class NWLazyConnect(Operator, NWBase):
-    """Connect two nodes without clicking a specific socket (automatically determined"""
+    """Connect two nodes without clicking a specific socket (automatically determined)"""
     bl_idname = "node.nw_lazy_connect"
     bl_label = "Lazy Connect"
     bl_options = {'REGISTER', 'UNDO'}

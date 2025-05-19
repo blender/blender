@@ -6991,7 +6991,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
   RNA_def_property_range(prop, 1e-5f, 1e6f);
   /* Important to show at least 3 decimal points because multiple presets set this to 1.001. */
   RNA_def_property_ui_range(prop, 0.0001f, 10000.0f, 2, 4);
-  RNA_def_property_ui_text(prop, "PPM Base", "The unit multiplier for pixels per meter");
+  RNA_def_property_ui_text(prop, "PPM Base", "The base unit for pixels per meter.");
 
   prop = RNA_def_property(srna, "ffmpeg", PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_type(prop, "FFmpegSettings");

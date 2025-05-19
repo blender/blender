@@ -3326,7 +3326,7 @@ static void rna_def_property(BlenderRNA *brna)
       prop,
       "Path Relative",
       "Property is a path which supports the \"//\" prefix, "
-      "signifying the location as relative to the \".blend\" files directory");
+      "signifying the location as relative to the \".blend\" file's directory");
 
   prop = RNA_def_property(srna, "is_path_supports_templates", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);

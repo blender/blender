@@ -61,7 +61,7 @@ void POINTCLOUD_OT_duplicate(wmOperatorType *ot)
 {
   ot->name = "Duplicate";
   ot->idname = "POINTCLOUD_OT_duplicate";
-  ot->description = "Copy selected points ";
+  ot->description = "Copy selected points";
 
   ot->exec = duplicate_exec;
   ot->poll = editable_pointcloud_in_edit_mode_poll;

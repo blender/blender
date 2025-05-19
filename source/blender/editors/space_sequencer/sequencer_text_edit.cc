@@ -358,7 +358,7 @@ static wmOperatorStatus sequencer_text_cursor_move_exec(bContext *C, wmOperator 
 void SEQUENCER_OT_text_cursor_move(wmOperatorType *ot)
 {
   /* identifiers */
-  ot->name = "Move cursor";
+  ot->name = "Move Cursor";
   ot->description = "Move cursor in text";
   ot->idname = "SEQUENCER_OT_text_cursor_move";
 
@@ -858,7 +858,7 @@ void SEQUENCER_OT_text_edit_paste(wmOperatorType *ot)
 {
   /* identifiers */
   ot->name = "Paste Text";
-  ot->description = "Paste text to clipboard";
+  ot->description = "Paste text from clipboard";
   ot->idname = "SEQUENCER_OT_text_edit_paste";
 
   /* API callbacks. */

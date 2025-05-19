@@ -9896,9 +9896,10 @@ static void def_cmp_colorcorrection(BlenderRNA * /*brna*/, StructRNA *srna)
       nullptr);
   RNA_def_property_float_default(prop, 1.0f);
   RNA_def_property_range(prop, 0, 4);
-  RNA_def_property_ui_text(prop,
-                           "Master Saturation",
-                           "Master saturation. (Deprecated: Use Master Saturation input instead.");
+  RNA_def_property_ui_text(
+      prop,
+      "Master Saturation",
+      "Master saturation. (Deprecated: Use Master Saturation input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "master_contrast", PROP_FLOAT, PROP_NONE);
@@ -9909,8 +9910,9 @@ static void def_cmp_colorcorrection(BlenderRNA * /*brna*/, StructRNA *srna)
       nullptr);
   RNA_def_property_float_default(prop, 1.0f);
   RNA_def_property_range(prop, 0, 4);
-  RNA_def_property_ui_text(
-      prop, "Master Contrast", "Master contrast. (Deprecated: Use Master Contrast input instead.");
+  RNA_def_property_ui_text(prop,
+                           "Master Contrast",
+                           "Master contrast. (Deprecated: Use Master Contrast input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "master_gamma", PROP_FLOAT, PROP_NONE);
@@ -9921,7 +9923,7 @@ static void def_cmp_colorcorrection(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_float_default(prop, 1.0f);
   RNA_def_property_range(prop, 0, 4);
   RNA_def_property_ui_text(
-      prop, "Master Gamma", "Master gamma. (Deprecated: Use Master Gamma input instead.");
+      prop, "Master Gamma", "Master gamma. (Deprecated: Use Master Gamma input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "master_gain", PROP_FLOAT, PROP_NONE);
@@ -9932,7 +9934,7 @@ static void def_cmp_colorcorrection(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_float_default(prop, 1.0f);
   RNA_def_property_range(prop, 0, 4);
   RNA_def_property_ui_text(
-      prop, "Master Gain", "Master gain. (Deprecated: Use Master Gain input instead.");
+      prop, "Master Gain", "Master gain. (Deprecated: Use Master Gain input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "master_lift", PROP_FLOAT, PROP_NONE);
@@ -9943,7 +9945,7 @@ static void def_cmp_colorcorrection(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_float_default(prop, 0.0f);
   RNA_def_property_range(prop, -1, 1);
   RNA_def_property_ui_text(
-      prop, "Master Lift", "Master lift. (Deprecated: Use Master Lift input instead.");
+      prop, "Master Lift", "Master lift. (Deprecated: Use Master Lift input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   //
@@ -9958,7 +9960,7 @@ static void def_cmp_colorcorrection(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_ui_text(
       prop,
       "Shadows Saturation",
-      "Shadows saturation. (Deprecated: Use Shadows Saturation input instead.");
+      "Shadows saturation. (Deprecated: Use Shadows Saturation input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "shadows_contrast", PROP_FLOAT, PROP_NONE);
@@ -9971,7 +9973,7 @@ static void def_cmp_colorcorrection(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_range(prop, 0, 4);
   RNA_def_property_ui_text(prop,
                            "Shadows Contrast",
-                           "Shadows contrast. (Deprecated: Use Shadows Contrast input instead.");
+                           "Shadows contrast. (Deprecated: Use Shadows Contrast input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "shadows_gamma", PROP_FLOAT, PROP_NONE);
@@ -9983,7 +9985,7 @@ static void def_cmp_colorcorrection(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_float_default(prop, 1.0f);
   RNA_def_property_range(prop, 0, 4);
   RNA_def_property_ui_text(
-      prop, "Shadows Gamma", "Shadows gamma. (Deprecated: Use Shadows Gamma input instead.");
+      prop, "Shadows Gamma", "Shadows gamma. (Deprecated: Use Shadows Gamma input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "shadows_gain", PROP_FLOAT, PROP_NONE);
@@ -9994,7 +9996,7 @@ static void def_cmp_colorcorrection(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_float_default(prop, 1.0f);
   RNA_def_property_range(prop, 0, 4);
   RNA_def_property_ui_text(
-      prop, "Shadows Gain", "Shadows gain. (Deprecated: Use Shadows Gain input instead.");
+      prop, "Shadows Gain", "Shadows gain. (Deprecated: Use Shadows Gain input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "shadows_lift", PROP_FLOAT, PROP_NONE);
@@ -10005,7 +10007,7 @@ static void def_cmp_colorcorrection(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_float_default(prop, 0.0f);
   RNA_def_property_range(prop, -1, 1);
   RNA_def_property_ui_text(
-      prop, "Shadows Lift", "Shadows lift. (Deprecated: Use Shadows Lift input instead.");
+      prop, "Shadows Lift", "Shadows lift. (Deprecated: Use Shadows Lift input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
   //
   prop = RNA_def_property(srna, "midtones_saturation", PROP_FLOAT, PROP_NONE);
@@ -10019,7 +10021,7 @@ static void def_cmp_colorcorrection(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_ui_text(
       prop,
       "Midtones Saturation",
-      "Midtones saturation. (Deprecated: Use Midtones Saturation input instead.");
+      "Midtones saturation. (Deprecated: Use Midtones Saturation input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "midtones_contrast", PROP_FLOAT, PROP_NONE);
@@ -10030,9 +10032,10 @@ static void def_cmp_colorcorrection(BlenderRNA * /*brna*/, StructRNA *srna)
       nullptr);
   RNA_def_property_float_default(prop, 1.0f);
   RNA_def_property_range(prop, 0, 4);
-  RNA_def_property_ui_text(prop,
-                           "Midtones Contrast",
-                           "Midtones contrast. (Deprecated: Use Midtones Contrast input instead.");
+  RNA_def_property_ui_text(
+      prop,
+      "Midtones Contrast",
+      "Midtones contrast. (Deprecated: Use Midtones Contrast input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "midtones_gamma", PROP_FLOAT, PROP_NONE);
@@ -10044,7 +10047,7 @@ static void def_cmp_colorcorrection(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_float_default(prop, 1.0f);
   RNA_def_property_range(prop, 0, 4);
   RNA_def_property_ui_text(
-      prop, "Midtones Gamma", "Midtones gamma. (Deprecated: Use Midtones Gamma input instead.");
+      prop, "Midtones Gamma", "Midtones gamma. (Deprecated: Use Midtones Gamma input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "midtones_gain", PROP_FLOAT, PROP_NONE);
@@ -10056,7 +10059,7 @@ static void def_cmp_colorcorrection(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_float_default(prop, 1.0f);
   RNA_def_property_range(prop, 0, 4);
   RNA_def_property_ui_text(
-      prop, "Midtones Gain", "Midtones gain. (Deprecated: Use Midtones Gain input instead.");
+      prop, "Midtones Gain", "Midtones gain. (Deprecated: Use Midtones Gain input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "midtones_lift", PROP_FLOAT, PROP_NONE);
@@ -10068,7 +10071,7 @@ static void def_cmp_colorcorrection(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_float_default(prop, 0.0f);
   RNA_def_property_range(prop, -1, 1);
   RNA_def_property_ui_text(
-      prop, "Midtones Lift", "Midtones lift. (Deprecated: Use Midtones Lift input instead.");
+      prop, "Midtones Lift", "Midtones lift. (Deprecated: Use Midtones Lift input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
   //
   prop = RNA_def_property(srna, "highlights_saturation", PROP_FLOAT, PROP_NONE);
@@ -10082,7 +10085,7 @@ static void def_cmp_colorcorrection(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_ui_text(
       prop,
       "Highlights Saturation",
-      "Highlights saturation. (Deprecated: Use Highlights Saturation input instead.");
+      "Highlights saturation. (Deprecated: Use Highlights Saturation input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "highlights_contrast", PROP_FLOAT, PROP_NONE);
@@ -10096,7 +10099,7 @@ static void def_cmp_colorcorrection(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_ui_text(
       prop,
       "Highlights Contrast",
-      "Highlights contrast. (Deprecated: Use Highlights Contrast input instead.");
+      "Highlights contrast. (Deprecated: Use Highlights Contrast input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "highlights_gamma", PROP_FLOAT, PROP_NONE);
@@ -10109,7 +10112,7 @@ static void def_cmp_colorcorrection(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_range(prop, 0, 4);
   RNA_def_property_ui_text(prop,
                            "Highlights Gamma",
-                           "Highlights gamma. (Deprecated: Use Highlights Gamma input instead.");
+                           "Highlights gamma. (Deprecated: Use Highlights Gamma input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "highlights_gain", PROP_FLOAT, PROP_NONE);
@@ -10120,8 +10123,9 @@ static void def_cmp_colorcorrection(BlenderRNA * /*brna*/, StructRNA *srna)
       nullptr);
   RNA_def_property_float_default(prop, 1.0f);
   RNA_def_property_range(prop, 0, 4);
-  RNA_def_property_ui_text(
-      prop, "Highlights Gain", "Highlights gain. (Deprecated: Use Highlights Gain input instead.");
+  RNA_def_property_ui_text(prop,
+                           "Highlights Gain",
+                           "Highlights gain. (Deprecated: Use Highlights Gain input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "highlights_lift", PROP_FLOAT, PROP_NONE);
@@ -10132,8 +10136,9 @@ static void def_cmp_colorcorrection(BlenderRNA * /*brna*/, StructRNA *srna)
       nullptr);
   RNA_def_property_float_default(prop, 0.0f);
   RNA_def_property_range(prop, -1, 1);
-  RNA_def_property_ui_text(
-      prop, "Highlights Lift", "Highlights lift. (Deprecated: Use Highlights Lift input instead.");
+  RNA_def_property_ui_text(prop,
+                           "Highlights Lift",
+                           "Highlights lift. (Deprecated: Use Highlights Lift input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 

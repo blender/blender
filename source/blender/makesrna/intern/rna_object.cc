@@ -3651,7 +3651,7 @@ static void rna_def_object(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "Shadow Terminator Normal Offset",
-      "Offset rays from the surface to reduce shadow terminator artifact on low poly geometry."
+      "Offset rays from the surface to reduce shadow terminator artifact on low poly geometry. "
       "Only affect triangles that are affected by the geometry offset");
 
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, nullptr);

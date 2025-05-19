@@ -1245,7 +1245,7 @@ static void rna_def_grease_pencil_layer_group(BlenderRNA *brna)
   prop = RNA_def_property(srna, "is_expanded", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(
       prop, "GreasePencilLayerTreeNode", "flag", GP_LAYER_TREE_NODE_EXPANDED);
-  RNA_def_property_ui_text(prop, "Expanded", "The layer groups is expanded in the UI");
+  RNA_def_property_ui_text(prop, "Expanded", "The layer group is expanded in the UI");
   RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_boolean_funcs(prop, nullptr, "rna_GreasePencilLayerGroup_is_expanded_set");
