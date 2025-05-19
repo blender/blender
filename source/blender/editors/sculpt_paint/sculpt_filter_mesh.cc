@@ -172,13 +172,7 @@ void cache_init(bContext *C,
 
     float radius;
     if (brush) {
-      if (BKE_brush_use_locked_size(scene, brush)) {
-        radius = paint_calc_object_space_radius(
-            vc, co, float(BKE_brush_size_get(scene, brush) * area_normal_radius));
-      }
-      else {
-        radius = BKE_brush_unprojected_radius_get(scene, brush) * area_normal_radius;
-      }
+      object_space_radius_get(vc, *scene, *brush, co, area_normal_radius);
     }
     else {
       radius = paint_calc_object_space_radius(vc, co, float(ups->size) * area_normal_radius);

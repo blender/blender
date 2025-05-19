@@ -1677,13 +1677,8 @@ static void paint_draw_3D_view_inactive_brush_cursor(PaintCursorContext &pcontex
 
 static void paint_cursor_update_object_space_radius(PaintCursorContext &pcontext)
 {
-  if (!BKE_brush_use_locked_size(pcontext.scene, pcontext.brush)) {
-    pcontext.radius = paint_calc_object_space_radius(
-        pcontext.vc, pcontext.location, BKE_brush_size_get(pcontext.scene, pcontext.brush));
-  }
-  else {
-    pcontext.radius = BKE_brush_unprojected_radius_get(pcontext.scene, pcontext.brush);
-  }
+  pcontext.radius = object_space_radius_get(
+      pcontext.vc, *pcontext.scene, *pcontext.brush, pcontext.location);
 }
 
 static void paint_cursor_drawing_setup_cursor_space(const PaintCursorContext &pcontext)

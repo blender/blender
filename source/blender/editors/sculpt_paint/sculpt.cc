@@ -111,15 +111,18 @@ static CLG_LogRef LOG = {"ed.sculpt_paint"};
 
 namespace blender::ed::sculpt_paint {
 
-float sculpt_calc_radius(const ViewContext &vc,
-                         const Brush &brush,
-                         const Scene &scene,
-                         const float3 location)
+/* TODO: This should be moved to either BKE_paint.hh or BKE_brush.hh */
+float object_space_radius_get(const ViewContext &vc,
+                              const Scene &scene,
+                              const Brush &brush,
+                              const float3 &location,
+                              const float scale_factor)
 {
   if (!BKE_brush_use_locked_size(&scene, &brush)) {
-    return paint_calc_object_space_radius(vc, location, BKE_brush_size_get(&scene, &brush));
+    return paint_calc_object_space_radius(
+        vc, location, BKE_brush_size_get(&scene, &brush) * scale_factor);
   }
-  return BKE_brush_unprojected_radius_get(&scene, &brush);
+  return BKE_brush_unprojected_radius_get(&scene, &brush) * scale_factor;
 }
 
 bool report_if_shape_key_is_locked(const Object &ob, ReportList *reports)
@@ -4335,7 +4338,7 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt &sd, Object &ob, Po
 
   /* Truly temporary data that isn't stored in properties. */
   if (SCULPT_stroke_is_first_brush_step_of_symmetry_pass(*ss.cache)) {
-    cache.initial_radius = sculpt_calc_radius(*cache.vc, brush, scene, cache.location);
+    cache.initial_radius = object_space_radius_get(*cache.vc, scene, brush, cache.location);
 
     if (!BKE_brush_use_locked_size(&scene, &brush)) {
       BKE_brush_unprojected_radius_set(&scene, &brush, cache.initial_radius);
@@ -4748,7 +4751,6 @@ bool cursor_geometry_info_update(bContext *C,
   }
 
   /* Sampled normal calculation. */
-  float radius;
 
   /* Update cursor data in SculptSession. */
   const float3 z_axis = {0.0f, 0.0f, 1.0f};
@@ -4760,13 +4762,7 @@ bool cursor_geometry_info_update(bContext *C,
   ss.rv3d = vc.rv3d;
   ss.v3d = vc.v3d;
 
-  if (!BKE_brush_use_locked_size(scene, &brush)) {
-    radius = paint_calc_object_space_radius(vc, out->location, BKE_brush_size_get(scene, &brush));
-  }
-  else {
-    radius = BKE_brush_unprojected_radius_get(scene, &brush);
-  }
-  ss.cursor_radius = radius;
+  ss.cursor_radius = object_space_radius_get(vc, *scene, brush, out->location);
 
   IndexMaskMemory memory;
   const IndexMask node_mask = pbvh_gather_cursor_update(ob, original, memory);
@@ -4903,7 +4899,7 @@ static bool stroke_get_location_bvh_ex(bContext *C,
 
   float closest_radius_sq = std::numeric_limits<float>::max();
   if (limit_closest_radius) {
-    closest_radius_sq = sculpt_calc_radius(vc, brush, *CTX_data_scene(C), out);
+    closest_radius_sq = object_space_radius_get(vc, *CTX_data_scene(C), brush, out);
     closest_radius_sq *= closest_radius_sq;
   }
 

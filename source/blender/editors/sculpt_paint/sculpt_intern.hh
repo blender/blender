@@ -850,10 +850,13 @@ inline bool brush_uses_vector_displacement(const Brush &brush)
 }
 
 void ensure_valid_pivot(const Object &ob, Scene &scene);
-float sculpt_calc_radius(const ViewContext &vc,
-                         const Brush &brush,
-                         const Scene &scene,
-                         float3 location);
+
+/** Retrieve or calculate the object space radius depending on brush settings. */
+float object_space_radius_get(const ViewContext &vc,
+                              const Scene &scene,
+                              const Brush &brush,
+                              const float3 &location,
+                              float scale_factor = 1.0);
 }  // namespace blender::ed::sculpt_paint
 
 /** \} */

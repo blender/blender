@@ -857,7 +857,7 @@ static wmOperatorStatus dyntopo_detail_size_edit_invoke(bContext *C,
   ViewContext vc = ED_view3d_viewcontext_init(C, depsgraph);
 
   const Scene *scene = CTX_data_scene(C);
-  cd->brush_radius = sculpt_calc_radius(vc, *brush, *scene, ss.cursor_location);
+  cd->brush_radius = object_space_radius_get(vc, *scene, *brush, ss.cursor_location);
   cd->pixel_radius = BKE_brush_size_get(scene, brush);
 
   /* Generates the matrix to position the gizmo in the surface of the mesh using the same
