@@ -729,6 +729,8 @@ class NODE_MT_category_GEO_UTILITIES_MATH(Menu):
 
     def draw(self, context):
         layout = self.layout
+        node_add_menu.add_node_type_with_searchable_enum(
+            context, layout, "FunctionNodeBitMath", "operation", search_weight=-1.0)
         node_add_menu.add_node_type_with_searchable_enum(context, layout, "FunctionNodeBooleanMath", "operation")
         node_add_menu.add_node_type_with_searchable_enum(context, layout, "FunctionNodeIntegerMath", "operation")
         node_add_menu.add_node_type(layout, "ShaderNodeClamp")

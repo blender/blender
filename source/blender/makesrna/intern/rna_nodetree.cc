@@ -13829,6 +13829,7 @@ static void rna_def_nodes(BlenderRNA *brna)
   define("FunctionNode", "FunctionNodeAlignRotationToVector");
   define("FunctionNode", "FunctionNodeAxesToRotation");
   define("FunctionNode", "FunctionNodeAxisAngleToRotation");
+  define("FunctionNode", "FunctionNodeBitMath");
   define("FunctionNode", "FunctionNodeBooleanMath");
   define("FunctionNode", "FunctionNodeCombineColor");
   define("FunctionNode", "FunctionNodeCombineMatrix");
