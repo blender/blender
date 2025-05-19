@@ -2663,6 +2663,7 @@ typedef enum GreasePencilModifierInfluenceFlag {
   GREASE_PENCIL_INFLUENCE_INVERT_MATERIAL_PASS_FILTER = (1 << 5),
   GREASE_PENCIL_INFLUENCE_INVERT_VERTEX_GROUP = (1 << 6),
   GREASE_PENCIL_INFLUENCE_USE_CUSTOM_CURVE = (1 << 7),
+  GREASE_PENCIL_INFLUENCE_USE_LAYER_GROUP_FILTER = (1 << 8),
 } GreasePencilModifierInfluenceFlag;
 
 typedef struct GreasePencilOpacityModifierData {
