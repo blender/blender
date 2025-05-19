@@ -94,6 +94,11 @@ void Instance::init()
         rect.ymin = floorf(viewborder.ymin + (scene->r.border.ymin * viewborder_sizey));
         rect.xmax = floorf(viewborder.xmin + (scene->r.border.xmax * viewborder_sizex));
         rect.ymax = floorf(viewborder.ymin + (scene->r.border.ymax * viewborder_sizey));
+        /* Clamp it to the viewport area. */
+        rect.xmin = max(rect.xmin, 0);
+        rect.ymin = max(rect.ymin, 0);
+        rect.xmax = min(rect.xmax, size.x);
+        rect.ymax = min(rect.ymax, size.y);
       }
     }
     else if (v3d->flag2 & V3D_RENDER_BORDER) {
