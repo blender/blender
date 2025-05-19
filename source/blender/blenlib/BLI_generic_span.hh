@@ -46,6 +46,12 @@ class GSpan {
   {
   }
 
+  template<typename T>
+  GSpan(MutableSpan<T> array)
+      : GSpan(CPPType::get<T>(), static_cast<const void *>(array.data()), array.size())
+  {
+  }
+
   const CPPType &type() const
   {
     BLI_assert(type_ != nullptr);

@@ -17,10 +17,13 @@
 #  include "BLI_bounds_types.hh"
 #  include "BLI_math_matrix_types.hh"
 #  include "BLI_math_vector_types.hh"
+#  include "BLI_parameter_pack_utils.hh"
 #  include "BLI_string_ref.hh"
 
 #  include "BKE_volume_enums.hh"
 #  include "BKE_volume_grid_fwd.hh"
+
+#  include "openvdb_fwd.hh"
 
 struct Volume;
 
@@ -75,6 +78,36 @@ auto BKE_volume_grid_type_operation(const VolumeGridType grid_type, OpType &&op)
   /* Should never be called. */
   BLI_assert_msg(0, "should never be reached");
   return op.template operator()<openvdb::FloatGrid>();
+}
+
+template<typename Fn>
+void BKE_volume_grid_type_to_static_type(const VolumeGridType grid_type, Fn &&fn)
+{
+  switch (grid_type) {
+    case VOLUME_GRID_FLOAT:
+      return fn(blender::TypeTag<openvdb::FloatGrid>());
+    case VOLUME_GRID_VECTOR_FLOAT:
+      return fn(blender::TypeTag<openvdb::Vec3fGrid>());
+    case VOLUME_GRID_BOOLEAN:
+      return fn(blender::TypeTag<openvdb::BoolGrid>());
+    case VOLUME_GRID_DOUBLE:
+      return fn(blender::TypeTag<openvdb::DoubleGrid>());
+    case VOLUME_GRID_INT:
+      return fn(blender::TypeTag<openvdb::Int32Grid>());
+    case VOLUME_GRID_INT64:
+      return fn(blender::TypeTag<openvdb::Int64Grid>());
+    case VOLUME_GRID_VECTOR_INT:
+      return fn(blender::TypeTag<openvdb::Vec3IGrid>());
+    case VOLUME_GRID_VECTOR_DOUBLE:
+      return fn(blender::TypeTag<openvdb::Vec3dGrid>());
+    case VOLUME_GRID_MASK:
+      return fn(blender::TypeTag<openvdb::MaskGrid>());
+    case VOLUME_GRID_POINTS:
+      return fn(blender::TypeTag<openvdb::points::PointDataGrid>());
+    case VOLUME_GRID_UNKNOWN:
+      break;
+  }
+  BLI_assert_unreachable();
 }
 
 openvdb::GridBase::Ptr BKE_volume_grid_create_with_changed_resolution(
