@@ -14,13 +14,20 @@
 #include "BKE_volume_openvdb.hh"
 
 #include <fmt/format.h>
-#include <openvdb/Grid.h>
-#include <openvdb/math/Transform.h>
-#include <openvdb/tools/Merge.h>
+
+#ifdef WITH_OPENVDB
+
+#  include <openvdb/Grid.h>
+#  include <openvdb/math/Transform.h>
+#  include <openvdb/tools/Merge.h>
+
+#endif
 
 #include "volume_grid_function_eval.hh"
 
 namespace blender::nodes {
+
+#ifdef WITH_OPENVDB
 
 template<typename GridT>
 static constexpr bool is_supported_grid_type = is_same_any_v<GridT,
@@ -709,5 +716,19 @@ bool execute_multi_function_on_value_variant__volume_grid(
 
   return true;
 }
+
+#else
+
+bool execute_multi_function_on_value_variant__volume_grid(
+    const mf::MultiFunction & /*fn*/,
+    const Span<bke::SocketValueVariant *> /*input_values*/,
+    const Span<bke::SocketValueVariant *> /*output_values*/,
+    std::string &r_error_message)
+{
+  r_error_message = TIP_("Compiled without OpenVDB");
+  return false;
+}
+
+#endif
 
 }  // namespace blender::nodes

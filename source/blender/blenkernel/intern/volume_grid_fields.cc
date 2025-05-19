@@ -4,7 +4,10 @@
 
 #include "BKE_geometry_fields.hh"
 #include "BKE_volume_grid_fields.hh"
-#include <openvdb/math/Transform.h>
+
+#ifdef WITH_OPENVDB
+
+#  include <openvdb/math/Transform.h>
 
 namespace blender::bke {
 
@@ -71,3 +74,5 @@ GVArray TilesFieldContext::get_varray_for_input(const fn::FieldInput &field_inpu
 }
 
 }  // namespace blender::bke
+
+#endif

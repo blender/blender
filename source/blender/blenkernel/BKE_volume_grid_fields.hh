@@ -6,7 +6,9 @@
 
 #include "FN_field.hh"
 
-#include "openvdb_fwd.hh"
+#ifdef WITH_OPENVDB
+
+#  include "openvdb_fwd.hh"
 
 namespace blender::bke {
 
@@ -46,3 +48,5 @@ class TilesFieldContext : public fn::FieldContext {
 };
 
 }  // namespace blender::bke
+
+#endif
