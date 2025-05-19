@@ -558,7 +558,7 @@ bool implicitly_convert_socket_value(const bke::bNodeSocketType &from_type,
                                      void *r_to_value)
 {
   BLI_assert(from_value != r_to_value);
-  if (&from_type == &to_type) {
+  if (from_type.type == to_type.type) {
     from_type.geometry_nodes_cpp_type->copy_construct(from_value, r_to_value);
     return true;
   }
@@ -609,7 +609,7 @@ const LazyFunction *build_implicit_conversion_lazy_function(const bke::bNodeSock
   if (!from_type.geometry_nodes_cpp_type || !to_type.geometry_nodes_cpp_type) {
     return nullptr;
   }
-  if (&from_type == &to_type) {
+  if (from_type.type == to_type.type) {
     return &scope.construct<LazyFunctionForRerouteNode>(*from_type.geometry_nodes_cpp_type);
   }
   const bke::DataTypeConversions &conversions = bke::get_implicit_type_conversions();
