@@ -62,7 +62,7 @@ static GField clamp_selection(const GField &selection)
   }
   static auto clamp = mf::build::SI1_SO<float, float>(
       "Clamp", [](const float value) { return std::clamp(value, 0.0f, 1.0f); });
-  return Field<bool>(FieldOperation::Create(clamp, {selection}));
+  return Field<float>(FieldOperation::Create(clamp, {selection}));
 }
 
 static GField invert_selection(const GField &selection)
