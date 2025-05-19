@@ -609,8 +609,21 @@ static void item_read_data(BlendDataReader *reader, bNodeTreeInterfaceItem &item
       BLO_read_string(reader, &panel.description);
       BLO_read_pointer_array(
           reader, panel.items_num, reinterpret_cast<void **>(&panel.items_array));
+
+      /* Read the direct-data for each interface item if possible. The pointer becomes null if the
+       * struct type is not known. */
       for (const int i : blender::IndexRange(panel.items_num)) {
         BLO_read_struct(reader, bNodeTreeInterfaceItem, &panel.items_array[i]);
+      }
+      /* Forward compatibility: Discard unknown tree interface item types that may be introduced in
+       * the future. Their pointer is set to null above. */
+      panel.items_num = std::remove_if(
+                            panel.items_array,
+                            panel.items_array + panel.items_num,
+                            [&](const bNodeTreeInterfaceItem *item) { return item == nullptr; }) -
+                        panel.items_array;
+      /* Now read the actual data if the known interface items. */
+      for (const int i : blender::IndexRange(panel.items_num)) {
         item_read_data(reader, *panel.items_array[i]);
       }
       break;
