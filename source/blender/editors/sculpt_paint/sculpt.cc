@@ -824,7 +824,6 @@ static int sculpt_brush_needs_normal(const SculptSession &ss, const Brush &brush
                SCULPT_BRUSH_TYPE_ROTATE,
                SCULPT_BRUSH_TYPE_ELASTIC_DEFORM,
                SCULPT_BRUSH_TYPE_THUMB) ||
-
           (mask_tex->tex && mask_tex->brush_map_mode == MTEX_MAP_MODE_AREA)) ||
          brush_uses_topology_rake(ss, brush) || BKE_brush_has_cube_tip(&brush, PaintMode::Sculpt);
 }
@@ -854,14 +853,10 @@ bool stroke_is_dyntopo(const Object &object, const Brush &brush)
 {
   const SculptSession &ss = *object.sculpt;
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
-  return ((pbvh.type() == bke::pbvh::Type::BMesh) &&
-
-          (!ss.cache || (!ss.cache->alt_smooth)) &&
-
+  return ((pbvh.type() == bke::pbvh::Type::BMesh) && (!ss.cache || (!ss.cache->alt_smooth)) &&
           /* Requires mesh restore, which doesn't work with
            * dynamic-topology. */
           !(brush.flag & BRUSH_ANCHORED) && !(brush.flag & BRUSH_DRAG_DOT) &&
-
           bke::brush::supports_dyntopo(brush));
 }
 
