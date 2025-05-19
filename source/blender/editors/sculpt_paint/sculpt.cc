@@ -3004,7 +3004,7 @@ static void dynamic_topology_update(const Depsgraph &depsgraph,
   /* Build a list of all nodes that are potentially within the brush's area of influence. */
   const bool use_original = brush_type_needs_original(brush.sculpt_brush_type) ? true :
                                                                                  !ss.cache->accum;
-  const float radius_scale = 1.25f;
+  constexpr float radius_scale = 1.25f;
 
   IndexMaskMemory memory;
   const IndexMask node_mask = pbvh_gather_generic(ob, brush, use_original, radius_scale, memory);
@@ -3019,7 +3019,6 @@ static void dynamic_topology_update(const Depsgraph &depsgraph,
   ss.vertex_info.boundary.clear();
 
   PBVHTopologyUpdateMode mode = PBVHTopologyUpdateMode(0);
-  float location[3];
 
   if (!(sd.flags & SCULPT_DYNTOPO_DETAIL_MANUAL)) {
     if (sd.flags & SCULPT_DYNTOPO_SUBDIVIDE) {
@@ -3070,10 +3069,6 @@ static void dynamic_topology_update(const Depsgraph &depsgraph,
                                    ss.cache->radius,
                                    (brush.flag & BRUSH_FRONTFACE) != 0,
                                    (brush.falloff_shape != PAINT_FALLOFF_SHAPE_SPHERE));
-
-  /* Update average stroke position. */
-  copy_v3_v3(location, ss.cache->location);
-  mul_m4_v3(ob.object_to_world().ptr(), location);
 }
 
 static bool brush_type_needs_all_pbvh_nodes(const Brush &brush)
