@@ -240,12 +240,12 @@ static void select_linked_time_strip(const Scene *scene,
         strip_dest->flag |= strip_source->flag & (STRIP_ALLSEL);
         recurs_sel_strip(strip_dest);
       }
-      else if (left_match && handle_clicked == SEQ_HANDLE_LEFT) {
+      else if (left_match && handle_clicked == STRIP_HANDLE_LEFT) {
         strip_dest->flag &= ~(SELECT | SEQ_LEFTSEL);
         strip_dest->flag |= strip_source->flag & (SELECT | SEQ_LEFTSEL);
         recurs_sel_strip(strip_dest);
       }
-      else if (right_match && handle_clicked == SEQ_HANDLE_RIGHT) {
+      else if (right_match && handle_clicked == STRIP_HANDLE_RIGHT) {
         strip_dest->flag &= ~(SELECT | SEQ_RIGHTSEL);
         strip_dest->flag |= strip_source->flag & (SELECT | SEQ_RIGHTSEL);
         recurs_sel_strip(strip_dest);
@@ -605,7 +605,7 @@ static void sequencer_select_linked_handle(const bContext *C,
 {
   Scene *scene = CTX_data_scene(C);
   Editing *ed = seq::editing_get(scene);
-  if (!ELEM(handle_clicked, SEQ_HANDLE_LEFT, SEQ_HANDLE_RIGHT)) {
+  if (!ELEM(handle_clicked, STRIP_HANDLE_LEFT, STRIP_HANDLE_RIGHT)) {
     /* First click selects the strip and its adjacent handles (if valid).
      * Second click selects the strip,
      * both of its handles and its adjacent handles (if valid). */
@@ -622,7 +622,7 @@ static void sequencer_select_linked_handle(const bContext *C,
      * Second click selects all strips in that direction.
      * If there are no adjacent strips, it just selects all in that direction.
      */
-    const int sel_side = (handle_clicked == SEQ_HANDLE_LEFT) ? seq::SIDE_LEFT : seq::SIDE_RIGHT;
+    const int sel_side = (handle_clicked == STRIP_HANDLE_LEFT) ? seq::SIDE_LEFT : seq::SIDE_RIGHT;
 
     Strip *neighbor = find_neighboring_strip(scene, strip, sel_side, -1);
     if (neighbor) {
@@ -810,8 +810,8 @@ static Strip *strip_select_from_preview(
 
 bool handle_is_selected(const Strip *strip, eStripHandle handle)
 {
-  return ((handle == SEQ_HANDLE_LEFT) && (strip->flag & SEQ_LEFTSEL)) ||
-         ((handle == SEQ_HANDLE_RIGHT) && (strip->flag & SEQ_RIGHTSEL));
+  return ((handle == STRIP_HANDLE_LEFT) && (strip->flag & SEQ_LEFTSEL)) ||
+         ((handle == STRIP_HANDLE_RIGHT) && (strip->flag & SEQ_RIGHTSEL));
 }
 
 static bool element_already_selected(const StripSelection &selection)
@@ -822,7 +822,7 @@ static bool element_already_selected(const StripSelection &selection)
   const bool strip1_already_selected = ((selection.strip1->flag & SELECT) != 0);
   if (selection.strip2 == nullptr) {
     const bool handle_already_selected = handle_is_selected(selection.strip1, selection.handle) ||
-                                         selection.handle == SEQ_HANDLE_NONE;
+                                         selection.handle == STRIP_HANDLE_NONE;
     return strip1_already_selected && handle_already_selected;
   }
   const bool strip2_already_selected = ((selection.strip2->flag & SELECT) != 0);
@@ -862,11 +862,11 @@ static void sequencer_select_strip_impl(const Editing *ed,
   const bool is_active = (ed->act_strip == strip);
 
   /* Exception for active strip handles. */
-  if ((handle_clicked != SEQ_HANDLE_NONE) && (strip->flag & SELECT) && is_active && toggle) {
-    if (handle_clicked == SEQ_HANDLE_LEFT) {
+  if ((handle_clicked != STRIP_HANDLE_NONE) && (strip->flag & SELECT) && is_active && toggle) {
+    if (handle_clicked == STRIP_HANDLE_LEFT) {
       strip->flag ^= SEQ_LEFTSEL;
     }
-    else if (handle_clicked == SEQ_HANDLE_RIGHT) {
+    else if (handle_clicked == STRIP_HANDLE_RIGHT) {
       strip->flag ^= SEQ_RIGHTSEL;
     }
     return;
@@ -892,10 +892,10 @@ static void sequencer_select_strip_impl(const Editing *ed,
 
   if (action == 1) {
     strip->flag |= SELECT;
-    if (handle_clicked == SEQ_HANDLE_LEFT) {
+    if (handle_clicked == STRIP_HANDLE_LEFT) {
       strip->flag |= SEQ_LEFTSEL;
     }
-    if (handle_clicked == SEQ_HANDLE_RIGHT) {
+    if (handle_clicked == STRIP_HANDLE_RIGHT) {
       strip->flag |= SEQ_RIGHTSEL;
     }
   }
@@ -916,8 +916,9 @@ static void select_linked_time(const Scene *scene,
   select_linked_time_strip(scene, selection.strip1, selection.handle);
 
   if (selection.strip2 != nullptr) {
-    eStripHandle strip2_handle_clicked = (selection.handle == SEQ_HANDLE_LEFT) ? SEQ_HANDLE_RIGHT :
-                                                                                 SEQ_HANDLE_LEFT;
+    eStripHandle strip2_handle_clicked = (selection.handle == STRIP_HANDLE_LEFT) ?
+                                             STRIP_HANDLE_RIGHT :
+                                             STRIP_HANDLE_LEFT;
     sequencer_select_strip_impl(
         ed, selection.strip2, strip2_handle_clicked, extend, deselect, toggle);
     select_linked_time_strip(scene, selection.strip2, strip2_handle_clicked);
@@ -1068,19 +1069,19 @@ static eStripHandle strip_handle_under_cursor_get(const Scene *scene,
                                                   float mouse_co[2])
 {
   if (!can_select_handle(scene, strip, v2d)) {
-    return SEQ_HANDLE_NONE;
+    return STRIP_HANDLE_NONE;
   }
 
   rctf body, left, right;
   strip_clickable_areas_get(scene, strip, v2d, &body, &left, &right);
   if (BLI_rctf_isect_pt_v(&left, mouse_co)) {
-    return SEQ_HANDLE_LEFT;
+    return STRIP_HANDLE_LEFT;
   }
   if (BLI_rctf_isect_pt_v(&right, mouse_co)) {
-    return SEQ_HANDLE_RIGHT;
+    return STRIP_HANDLE_RIGHT;
   }
 
-  return SEQ_HANDLE_NONE;
+  return STRIP_HANDLE_NONE;
 }
 
 static bool is_mouse_over_both_handles_of_adjacent_strips(const Scene *scene,
@@ -1091,7 +1092,7 @@ static bool is_mouse_over_both_handles_of_adjacent_strips(const Scene *scene,
   const eStripHandle strip1_handle = strip_handle_under_cursor_get(
       scene, strips[0], v2d, mouse_co);
 
-  if (strip1_handle == SEQ_HANDLE_NONE) {
+  if (strip1_handle == STRIP_HANDLE_NONE) {
     return false;
   }
   if (!strips_are_adjacent(scene, strips[0], strips[1])) {
@@ -1099,10 +1100,10 @@ static bool is_mouse_over_both_handles_of_adjacent_strips(const Scene *scene,
   }
   const eStripHandle strip2_handle = strip_handle_under_cursor_get(
       scene, strips[1], v2d, mouse_co);
-  if (strip1_handle == SEQ_HANDLE_RIGHT && strip2_handle != SEQ_HANDLE_LEFT) {
+  if (strip1_handle == STRIP_HANDLE_RIGHT && strip2_handle != STRIP_HANDLE_LEFT) {
     return false;
   }
-  if (strip1_handle == SEQ_HANDLE_LEFT && strip2_handle != SEQ_HANDLE_RIGHT) {
+  if (strip1_handle == STRIP_HANDLE_LEFT && strip2_handle != STRIP_HANDLE_RIGHT) {
     return false;
   }
 
@@ -1259,7 +1260,7 @@ wmOperatorStatus sequencer_select_exec(bContext *C, wmOperator *op)
   const bool already_selected = element_already_selected(selection);
 
   SpaceSeq *sseq = CTX_wm_space_seq(C);
-  if (selection.handle != SEQ_HANDLE_NONE && already_selected) {
+  if (selection.handle != STRIP_HANDLE_NONE && already_selected) {
     sseq->flag &= ~SPACE_SEQ_DESELECT_STRIP_HANDLE;
   }
   else {
@@ -1294,8 +1295,9 @@ wmOperatorStatus sequencer_select_exec(bContext *C, wmOperator *op)
   sequencer_select_strip_impl(ed, selection.strip1, selection.handle, extend, deselect, toggle);
   if (selection.strip2 != nullptr) {
     /* Invert handle selection for second strip */
-    eStripHandle strip2_handle_clicked = (selection.handle == SEQ_HANDLE_LEFT) ? SEQ_HANDLE_RIGHT :
-                                                                                 SEQ_HANDLE_LEFT;
+    eStripHandle strip2_handle_clicked = (selection.handle == STRIP_HANDLE_LEFT) ?
+                                             STRIP_HANDLE_RIGHT :
+                                             STRIP_HANDLE_LEFT;
     sequencer_select_strip_impl(
         ed, selection.strip2, strip2_handle_clicked, extend, deselect, toggle);
   }
@@ -1424,7 +1426,7 @@ static wmOperatorStatus sequencer_select_handle_exec(bContext *C, wmOperator *op
   MouseCoords mouse_co(v2d, RNA_int_get(op->ptr, "mouse_x"), RNA_int_get(op->ptr, "mouse_y"));
 
   StripSelection selection = pick_strip_and_handle(scene, v2d, mouse_co.view);
-  if (selection.strip1 == nullptr || selection.handle == SEQ_HANDLE_NONE) {
+  if (selection.strip1 == nullptr || selection.handle == STRIP_HANDLE_NONE) {
     return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
   }
 
@@ -1447,8 +1449,9 @@ static wmOperatorStatus sequencer_select_handle_exec(bContext *C, wmOperator *op
   sequencer_select_strip_impl(ed, selection.strip1, selection.handle, false, false, false);
   if (selection.strip2 != nullptr) {
     /* Invert handle selection for second strip */
-    eStripHandle strip2_handle_clicked = (selection.handle == SEQ_HANDLE_LEFT) ? SEQ_HANDLE_RIGHT :
-                                                                                 SEQ_HANDLE_LEFT;
+    eStripHandle strip2_handle_clicked = (selection.handle == STRIP_HANDLE_LEFT) ?
+                                             STRIP_HANDLE_RIGHT :
+                                             STRIP_HANDLE_LEFT;
     sequencer_select_strip_impl(ed, selection.strip2, strip2_handle_clicked, false, false, false);
   }
 

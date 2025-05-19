@@ -735,10 +735,10 @@ static void sequencer_main_cursor(wmWindow *win, ScrArea *area, ARegion *region)
   if (selection.strip1 != nullptr && selection.strip2 != nullptr) {
     wmcursor = WM_CURSOR_BOTH_HANDLES;
   }
-  else if (selection.handle == SEQ_HANDLE_LEFT) {
+  else if (selection.handle == STRIP_HANDLE_LEFT) {
     wmcursor = WM_CURSOR_LEFT_HANDLE;
   }
-  else if (selection.handle == SEQ_HANDLE_RIGHT) {
+  else if (selection.handle == STRIP_HANDLE_RIGHT) {
     wmcursor = WM_CURSOR_RIGHT_HANDLE;
   }
 

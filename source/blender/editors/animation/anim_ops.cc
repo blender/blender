@@ -255,7 +255,7 @@ static bool sequencer_skip_for_handle_tweak(const bContext *C, const wmEvent *ev
   blender::ed::vse::StripSelection selection = blender::ed::vse::pick_strip_and_handle(
       scene, v2d, mouse_co);
 
-  return selection.handle != blender::ed::vse::SEQ_HANDLE_NONE;
+  return selection.handle != blender::ed::vse::STRIP_HANDLE_NONE;
 }
 
 /* Modal Operator init */

@@ -759,7 +759,7 @@ static void draw_handle_transform_text(const TimelineDrawContext *timeline_ctx,
   const float text_y = strip_ctx->bottom + 0.09f;
   float text_x = strip_ctx->left_handle;
 
-  if (handle == SEQ_HANDLE_LEFT) {
+  if (handle == STRIP_HANDLE_LEFT) {
     numstr_len = SNPRINTF_RLEN(numstr, "%d", int(strip_ctx->left_handle));
     text_x += text_margin;
   }
@@ -1460,8 +1460,8 @@ static void strip_data_handle_flags_set(const StripDrawContext &strip,
   if (!seq::transform_is_locked(timeline_ctx->channels, strip.strip) &&
       can_select_handle(scene, strip.strip, timeline_ctx->v2d))
   {
-    const bool selected_l = selected && handle_is_selected(strip.strip, SEQ_HANDLE_LEFT);
-    const bool selected_r = selected && handle_is_selected(strip.strip, SEQ_HANDLE_RIGHT);
+    const bool selected_l = selected && handle_is_selected(strip.strip, STRIP_HANDLE_LEFT);
+    const bool selected_r = selected && handle_is_selected(strip.strip, STRIP_HANDLE_RIGHT);
     const bool show_l = show_handles || selected_l;
     const bool show_r = show_handles || selected_r;
     if (show_l) {
@@ -1554,8 +1554,8 @@ static void draw_seq_strips(TimelineDrawContext *timeline_ctx,
     draw_seq_fcurve_overlay(timeline_ctx, &strip_ctx);
     draw_seq_waveform_overlay(timeline_ctx, &strip_ctx);
     draw_multicam_highlight(timeline_ctx, &strip_ctx);
-    draw_handle_transform_text(timeline_ctx, &strip_ctx, SEQ_HANDLE_LEFT);
-    draw_handle_transform_text(timeline_ctx, &strip_ctx, SEQ_HANDLE_RIGHT);
+    draw_handle_transform_text(timeline_ctx, &strip_ctx, STRIP_HANDLE_LEFT);
+    draw_handle_transform_text(timeline_ctx, &strip_ctx, STRIP_HANDLE_RIGHT);
     draw_seq_text_overlay(timeline_ctx, &strip_ctx);
     sequencer_retiming_speed_draw(timeline_ctx, strip_ctx);
   }

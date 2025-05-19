@@ -19,16 +19,16 @@ struct View2D;
 namespace blender::ed::vse {
 
 enum eStripHandle {
-  SEQ_HANDLE_NONE,
-  SEQ_HANDLE_LEFT,
-  SEQ_HANDLE_RIGHT,
-  SEQ_HANDLE_BOTH,
+  STRIP_HANDLE_NONE,
+  STRIP_HANDLE_LEFT,
+  STRIP_HANDLE_RIGHT,
+  STRIP_HANDLE_BOTH,
 };
 
 struct StripSelection {
   Strip *strip1 = nullptr;
   Strip *strip2 = nullptr;
-  eStripHandle handle = SEQ_HANDLE_NONE;
+  eStripHandle handle = STRIP_HANDLE_NONE;
 };
 
 void select_strip_single(Scene *scene, Strip *strip, bool deselect_all);
