@@ -60,6 +60,14 @@ class GHOST_XrGraphicsBindingVulkan : public GHOST_IXrGraphicsBinding {
   std::list<std::vector<XrSwapchainImageVulkan2KHR>> m_image_cache;
   VkCommandPool m_vk_command_pool = VK_NULL_HANDLE;
 
+  struct ImportedMemory {
+    char view_idx;
+    VkImage vk_image_blender;
+    VkImage vk_image_xr;
+    VkDeviceMemory vk_device_memory_xr;
+  };
+  std::vector<ImportedMemory> m_imported_memory;
+
   GHOST_TVulkanXRModes choseDataTransferMode();
   void submitToSwapchainImageCpu(XrSwapchainImageVulkan2KHR &swapchain_image,
                                  const GHOST_XrDrawViewInfo &draw_info);

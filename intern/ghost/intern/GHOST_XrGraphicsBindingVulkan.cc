@@ -53,6 +53,12 @@ GHOST_XrGraphicsBindingVulkan::~GHOST_XrGraphicsBindingVulkan()
     m_vk_buffer_allocation = VK_NULL_HANDLE;
   }
 
+  for (ImportedMemory &imported_memory : m_imported_memory) {
+    vkDestroyImage(m_vk_device, imported_memory.vk_image_xr, nullptr);
+    vkFreeMemory(m_vk_device, imported_memory.vk_device_memory_xr, nullptr);
+  }
+  m_imported_memory.clear();
+
   /* Destroy VMA */
   if (m_vma_allocator != VK_NULL_HANDLE) {
     vmaDestroyAllocator(m_vma_allocator);
@@ -556,91 +562,124 @@ void GHOST_XrGraphicsBindingVulkan::submitToSwapchainImageCpu(
 /* \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Data transfer FD
+/** \name Data transfer GPU
  * \{ */
 
 void GHOST_XrGraphicsBindingVulkan::submitToSwapchainImageGpu(
     XrSwapchainImageVulkan2KHR &swapchain_image, const GHOST_XrDrawViewInfo &draw_info)
 {
+  /* Check for previous imported memory. */
+  ImportedMemory *imported_memory = nullptr;
+  for (ImportedMemory &item : m_imported_memory) {
+    if (item.view_idx == draw_info.view_idx) {
+      imported_memory = &item;
+    }
+  }
+  /* No previous imported memory found, creating a new. */
+  if (imported_memory == nullptr) {
+    m_imported_memory.push_back(
+        {draw_info.view_idx, VK_NULL_HANDLE, VK_NULL_HANDLE, VK_NULL_HANDLE});
+    imported_memory = &m_imported_memory.back();
+  }
+
   GHOST_VulkanOpenXRData openxr_data = {m_data_transfer_mode};
+  openxr_data.gpu.vk_image_blender = imported_memory->vk_image_blender;
   m_ghost_ctx.openxr_acquire_framebuffer_image_callback_(&openxr_data);
+  imported_memory->vk_image_blender = openxr_data.gpu.vk_image_blender;
 
   /* Create an image handle */
-  VkExternalMemoryImageCreateInfo vk_external_memory_image_info = {
-      VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_IMAGE_CREATE_INFO, nullptr, 0};
-
-  switch (m_data_transfer_mode) {
-    case GHOST_kVulkanXRModeFD:
-      vk_external_memory_image_info.handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT;
-      break;
-    case GHOST_kVulkanXRModeWin32:
-      vk_external_memory_image_info.handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_BIT;
-      break;
-    case GHOST_kVulkanXRModeCPU:
-      break;
-  }
-
-  VkImageCreateInfo vk_image_info = {VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
-                                     &vk_external_memory_image_info,
-                                     0,
-                                     VK_IMAGE_TYPE_2D,
-                                     openxr_data.gpu.image_format,
-                                     {openxr_data.extent.width, openxr_data.extent.height, 1},
-                                     1,
-                                     1,
-                                     VK_SAMPLE_COUNT_1_BIT,
-                                     VK_IMAGE_TILING_OPTIMAL,
-                                     VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
-                                     VK_SHARING_MODE_EXCLUSIVE,
-                                     0,
-                                     nullptr,
-                                     VK_IMAGE_LAYOUT_UNDEFINED};
-
-  VkImage vk_image;
-  vkCreateImage(m_vk_device, &vk_image_info, nullptr, &vk_image);
-
-  /* Get the memory requirements */
-  VkMemoryRequirements vk_memory_requirements = {};
-  vkGetImageMemoryRequirements(m_vk_device, vk_image, &vk_memory_requirements);
-
-  /* Import the memory */
-  VkDeviceMemory device_memory = VK_NULL_HANDLE;
-  VkMemoryDedicatedAllocateInfo vk_memory_dedicated_allocation_info = {
-      VK_STRUCTURE_TYPE_MEMORY_DEDICATED_ALLOCATE_INFO, nullptr, vk_image, VK_NULL_HANDLE};
-  switch (m_data_transfer_mode) {
-    case GHOST_kVulkanXRModeFD: {
-      VkImportMemoryFdInfoKHR import_memory_info = {VK_STRUCTURE_TYPE_IMPORT_MEMORY_FD_INFO_KHR,
-                                                    &vk_memory_dedicated_allocation_info,
-                                                    VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT,
-                                                    int(openxr_data.gpu.image_handle)};
-      VkMemoryAllocateInfo allocate_info = {VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
-                                            &import_memory_info,
-                                            vk_memory_requirements.size};
-      vkAllocateMemory(m_vk_device, &allocate_info, nullptr, &device_memory);
-      break;
+  if (openxr_data.gpu.new_handle) {
+    if (imported_memory->vk_image_xr) {
+      vkDestroyImage(m_vk_device, imported_memory->vk_image_xr, nullptr);
+      vkFreeMemory(m_vk_device, imported_memory->vk_device_memory_xr, nullptr);
+      imported_memory->vk_device_memory_xr = VK_NULL_HANDLE;
+      imported_memory->vk_image_xr = VK_NULL_HANDLE;
     }
 
-    case GHOST_kVulkanXRModeWin32: {
+    VkExternalMemoryImageCreateInfo vk_external_memory_image_info = {
+        VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_IMAGE_CREATE_INFO, nullptr, 0};
+
+    switch (m_data_transfer_mode) {
+      case GHOST_kVulkanXRModeFD:
+        vk_external_memory_image_info.handleTypes = VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT;
+        break;
+      case GHOST_kVulkanXRModeWin32:
+        vk_external_memory_image_info.handleTypes =
+            VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_BIT;
+        break;
+      case GHOST_kVulkanXRModeCPU:
+        break;
+    }
+
+    VkImageCreateInfo vk_image_info = {VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+                                       &vk_external_memory_image_info,
+                                       0,
+                                       VK_IMAGE_TYPE_2D,
+                                       openxr_data.gpu.image_format,
+                                       {openxr_data.extent.width, openxr_data.extent.height, 1},
+                                       1,
+                                       1,
+                                       VK_SAMPLE_COUNT_1_BIT,
+                                       VK_IMAGE_TILING_OPTIMAL,
+                                       VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
+                                       VK_SHARING_MODE_EXCLUSIVE,
+                                       0,
+                                       nullptr,
+                                       VK_IMAGE_LAYOUT_UNDEFINED};
+
+    vkCreateImage(m_vk_device, &vk_image_info, nullptr, &imported_memory->vk_image_xr);
+
+    /* Get the memory requirements */
+    VkMemoryRequirements vk_memory_requirements = {};
+    vkGetImageMemoryRequirements(
+        m_vk_device, imported_memory->vk_image_xr, &vk_memory_requirements);
+
+    /* Import the memory */
+    VkMemoryDedicatedAllocateInfo vk_memory_dedicated_allocation_info = {
+        VK_STRUCTURE_TYPE_MEMORY_DEDICATED_ALLOCATE_INFO,
+        nullptr,
+        imported_memory->vk_image_xr,
+        VK_NULL_HANDLE};
+    switch (m_data_transfer_mode) {
+      case GHOST_kVulkanXRModeFD: {
+        VkImportMemoryFdInfoKHR import_memory_info = {VK_STRUCTURE_TYPE_IMPORT_MEMORY_FD_INFO_KHR,
+                                                      &vk_memory_dedicated_allocation_info,
+                                                      VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT,
+                                                      int(openxr_data.gpu.image_handle)};
+        VkMemoryAllocateInfo allocate_info = {VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+                                              &import_memory_info,
+                                              vk_memory_requirements.size};
+        vkAllocateMemory(
+            m_vk_device, &allocate_info, nullptr, &imported_memory->vk_device_memory_xr);
+        break;
+      }
+
+      case GHOST_kVulkanXRModeWin32: {
 #ifdef _WIN32
-      VkImportMemoryWin32HandleInfoKHR import_memory_info = {
-          VK_STRUCTURE_TYPE_IMPORT_MEMORY_WIN32_HANDLE_INFO_KHR,
-          &vk_memory_dedicated_allocation_info,
-          VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_BIT,
-          HANDLE(openxr_data.gpu.image_handle)};
-      VkMemoryAllocateInfo allocate_info = {VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
-                                            &import_memory_info,
-                                            vk_memory_requirements.size};
-      vkAllocateMemory(m_vk_device, &allocate_info, nullptr, &device_memory);
+        VkImportMemoryWin32HandleInfoKHR import_memory_info = {
+            VK_STRUCTURE_TYPE_IMPORT_MEMORY_WIN32_HANDLE_INFO_KHR,
+            &vk_memory_dedicated_allocation_info,
+            VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_BIT,
+            HANDLE(openxr_data.gpu.image_handle)};
+        VkMemoryAllocateInfo allocate_info = {VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+                                              &import_memory_info,
+                                              vk_memory_requirements.size};
+        vkAllocateMemory(
+            m_vk_device, &allocate_info, nullptr, &imported_memory->vk_device_memory_xr);
 #endif
-      break;
+        break;
+      }
+
+      case GHOST_kVulkanXRModeCPU:
+        break;
     }
 
-    case GHOST_kVulkanXRModeCPU:
-      break;
+    /* Bind the imported memory to the image. */
+    vkBindImageMemory(m_vk_device,
+                      imported_memory->vk_image_xr,
+                      imported_memory->vk_device_memory_xr,
+                      openxr_data.gpu.memory_offset);
   }
-
-  /* Bind the imported memory to the image. */
-  vkBindImageMemory(m_vk_device, vk_image, device_memory, openxr_data.gpu.memory_offset);
 
   /* Copy frame buffer image to swapchain image. */
   VkCommandBuffer vk_command_buffer = m_vk_command_buffer;
@@ -662,7 +701,7 @@ void GHOST_XrGraphicsBindingVulkan::submitToSwapchainImageGpu(
                                                      VK_IMAGE_LAYOUT_GENERAL,
                                                      VK_QUEUE_FAMILY_IGNORED,
                                                      VK_QUEUE_FAMILY_IGNORED,
-                                                     vk_image,
+                                                     imported_memory->vk_image_xr,
                                                      {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1}},
                                                     {VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
                                                      nullptr,
@@ -692,7 +731,7 @@ void GHOST_XrGraphicsBindingVulkan::submitToSwapchainImageGpu(
                                {draw_info.ofsx, draw_info.ofsy, 0},
                                {openxr_data.extent.width, openxr_data.extent.height, 1}};
   vkCmdCopyImage(vk_command_buffer,
-                 vk_image,
+                 imported_memory->vk_image_xr,
                  VK_IMAGE_LAYOUT_GENERAL,
                  swapchain_image.image,
                  VK_IMAGE_LAYOUT_GENERAL,
@@ -733,9 +772,6 @@ void GHOST_XrGraphicsBindingVulkan::submitToSwapchainImageGpu(
 
   /* Reset command buffer for next eye/frame. */
   vkResetCommandBuffer(vk_command_buffer, 0);
-
-  vkDestroyImage(m_vk_device, vk_image, nullptr);
-  vkFreeMemory(m_vk_device, device_memory, nullptr);
 }
 
 /* \} */
