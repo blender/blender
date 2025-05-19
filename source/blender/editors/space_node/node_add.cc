@@ -428,6 +428,9 @@ static bool add_node_group_asset(const bContext &C,
     BKE_report(&reports, RPT_WARNING, "Could not add node group");
     return false;
   }
+  STRNCPY(group_node->name, BKE_id_name(node_group->id));
+  bke::node_unique_name(*snode.edittree, *group_node);
+
   /* By default, don't show the data-block selector since it's not usually necessary for assets. */
   group_node->flag &= ~NODE_OPTIONS;
   group_node->width = node_group->default_group_node_width;
