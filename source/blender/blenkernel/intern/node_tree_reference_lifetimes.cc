@@ -101,7 +101,7 @@ static const bNodeTreeZone *get_zone_of_node_if_full(const bNodeTreeZones *zones
   if (!zone) {
     return nullptr;
   }
-  if (!zone->input_node || !zone->output_node) {
+  if (!zone->input_node_id || !zone->output_node_id) {
     return nullptr;
   }
   return zone;
@@ -299,22 +299,23 @@ static Vector<ReferenceSetInfo> find_reference_sets(
     return reference_sets;
   }
   for (const bNodeTreeZone *zone : zones->zones) {
-    if (zone->output_node->type_legacy != GEO_NODE_CLOSURE_OUTPUT) {
+    const bNode &input_node = *zone->input_node();
+    const bNode &output_node = *zone->output_node();
+    if (output_node.type_legacy != GEO_NODE_CLOSURE_OUTPUT) {
       continue;
     }
-    const auto &storage = *static_cast<const NodeGeometryClosureOutput *>(
-        zone->output_node->storage);
+    const auto &storage = *static_cast<const NodeGeometryClosureOutput *>(output_node.storage);
     const int old_reference_sets_count = reference_sets.size();
     /* Handle references coming from field inputs in the closure. */
     for (const int input_i : IndexRange(storage.input_items.items_num)) {
-      const bNodeSocket &socket = zone->input_node->output_socket(input_i);
+      const bNodeSocket &socket = input_node.output_socket(input_i);
       if (can_contain_reference(eNodeSocketDatatype(socket.type))) {
         reference_sets.append({ReferenceSetType::ClosureInputReferenceSet, &socket});
       }
     }
     /* Handle references required by output geometries in the closure. */
     for (const int output_i : IndexRange(storage.output_items.items_num)) {
-      const bNodeSocket &socket = zone->output_node->input_socket(output_i);
+      const bNodeSocket &socket = output_node.input_socket(output_i);
       if (can_contain_referenced_data(eNodeSocketDatatype(socket.type))) {
         r_output_set_sources_by_closure_zone.add(
             zone,
@@ -325,7 +326,7 @@ static Vector<ReferenceSetInfo> find_reference_sets(
     MutableSpan<ReferenceSetInfo> new_reference_sets = reference_sets.as_mutable_span().drop_front(
         old_reference_sets_count);
     for (const int input_i : IndexRange(storage.input_items.items_num)) {
-      const bNodeSocket &socket = zone->input_node->output_socket(input_i);
+      const bNodeSocket &socket = input_node.output_socket(input_i);
       if (can_contain_referenced_data(eNodeSocketDatatype(socket.type))) {
         for (ReferenceSetInfo &source : new_reference_sets) {
           source.potential_data_origins.append(&socket);
@@ -375,7 +376,7 @@ static BitVector<> get_references_coming_from_outside_zone(
   BitVector<> found(sources.first()->group_size(), false);
   /* Gather references that are passed into the zone from the outside, either through the input
    * node or border links. */
-  for (const bNodeSocket *socket : zone.input_node->input_sockets()) {
+  for (const bNodeSocket *socket : zone.input_node()->input_sockets()) {
     const int src = socket->index_in_tree();
     for (const BitGroupVector<> *source : sources) {
       found |= (*source)[src];
@@ -461,7 +462,7 @@ static bool pass_left_to_right(const bNodeTree &tree,
         if (!zone) {
           break;
         }
-        const bNode *input_node = zone->input_node;
+        const bNode *input_node = zone->input_node();
         const bNode *output_node = node;
         const auto *storage = static_cast<const NodeGeometryForeachGeometryElementOutput *>(
             node->storage);
@@ -497,11 +498,12 @@ static bool pass_left_to_right(const bNodeTree &tree,
         if (!zone) {
           break;
         }
+        const bNode &input_node = *zone->input_node();
         /* Data referenced by border links may also be passed into the closure as input. */
         const BitVector<> outside_references = get_references_coming_from_outside_zone(
             *zone, {&r_potential_data_by_socket, &r_potential_reference_by_socket});
         for (const int i : node->output_sockets().index_range()) {
-          const int dst_index = zone->input_node->output_socket(i).index_in_tree();
+          const int dst_index = input_node.output_socket(i).index_in_tree();
           r_potential_data_by_socket[dst_index] |= outside_references;
           r_potential_reference_by_socket[dst_index] |= outside_references;
         }
@@ -512,12 +514,13 @@ static bool pass_left_to_right(const bNodeTree &tree,
         if (!zone) {
           break;
         }
+        const bNode &output_node = *zone->output_node();
         /* References passed through border links are referenced by the closure. */
         const BitVector<> passed_in_references = get_references_coming_from_outside_zone(
             *zone, {&r_potential_reference_by_socket});
-        const int dst_index = zone->output_node->output_socket(0).index_in_tree();
+        const int dst_index = output_node.output_socket(0).index_in_tree();
         for (const int i : node->input_sockets().index_range()) {
-          const int src_index = zone->output_node->input_socket(i).index_in_tree();
+          const int src_index = output_node.input_socket(i).index_in_tree();
           r_potential_data_by_socket[dst_index] |= r_potential_data_by_socket[src_index];
           r_potential_reference_by_socket[dst_index] |= r_potential_reference_by_socket[src_index];
           r_potential_reference_by_socket[dst_index] |= passed_in_references;
@@ -529,8 +532,8 @@ static bool pass_left_to_right(const bNodeTree &tree,
         if (!zone) {
           break;
         }
-        const bNode &input_node = *zone->input_node;
-        const bNode &output_node = *zone->output_node;
+        const bNode &input_node = *zone->input_node();
+        const bNode &output_node = *zone->output_node();
         const int items_num = output_node.output_sockets().size() - 1;
 
         /* Handle data propagation in the case when the iteration count is zero. */
@@ -623,10 +626,11 @@ static void prepare_required_data_for_closure_outputs(
     return;
   }
   for (const bNodeTreeZone *zone : zones->zones) {
-    if (!zone->input_node || !zone->output_node) {
+    if (!zone->input_node_id || !zone->output_node_id) {
       continue;
     }
-    if (zone->output_node->type_legacy != GEO_NODE_CLOSURE_OUTPUT) {
+    const bNode &output_node = *zone->output_node();
+    if (output_node.type_legacy != GEO_NODE_CLOSURE_OUTPUT) {
       continue;
     }
     const Span<int> closure_output_set_sources = output_set_sources_by_closure_zone.lookup(zone);
@@ -636,7 +640,7 @@ static void prepare_required_data_for_closure_outputs(
       r_required_data_by_socket[reference_set.socket->index_in_tree()][reference_set_i].set();
     }
     BitVector<> potential_output_references(reference_sets.size(), false);
-    const Span<const bNodeSocket *> sockets = zone->output_node->input_sockets().drop_back(1);
+    const Span<const bNodeSocket *> sockets = output_node.input_sockets().drop_back(1);
     for (const bNodeSocket *socket : sockets) {
       potential_output_references |= potential_reference_by_socket[socket->index_in_tree()];
     }
@@ -740,7 +744,7 @@ static bool pass_right_to_left(const bNodeTree &tree,
           break;
         }
         const bNode *input_node = node;
-        const bNode *output_node = zone->output_node;
+        const bNode *output_node = zone->output_node();
         const int dst_index = input_node->input_socket(0).index_in_tree();
         for (const bNodeSocket *output_socket : output_node->output_sockets()) {
           if (output_socket->type == SOCK_GEOMETRY) {
@@ -784,7 +788,7 @@ static bool pass_right_to_left(const bNodeTree &tree,
           break;
         }
         const bNode *input_node = node;
-        const bNode *output_node = zone->output_node;
+        const bNode *output_node = zone->output_node();
         const int items_num = output_node->output_sockets().size() - 1;
         for (const int i : IndexRange(items_num)) {
           const bNodeSocket &body_input_socket = input_node->output_socket(i + 1);

@@ -121,7 +121,7 @@ class LazyFunctionForRepeatZone : public LazyFunction {
                             const ZoneBodyFunction &body_fn)
       : btree_(btree),
         zone_(zone),
-        repeat_output_bnode_(*zone.output_node),
+        repeat_output_bnode_(*zone.output_node()),
         zone_info_(zone_info),
         body_fn_(body_fn)
   {
@@ -255,7 +255,7 @@ class LazyFunctionForRepeatZone : public LazyFunction {
       lf_border_link_usage_or_nodes[i] = &lf_node;
     }
 
-    const bool use_index_values = zone_.input_node->output_socket(0).is_directly_linked();
+    const bool use_index_values = zone_.input_node()->output_socket(0).is_directly_linked();
 
     if (use_index_values) {
       eval_storage.index_values.reinitialize(iterations);

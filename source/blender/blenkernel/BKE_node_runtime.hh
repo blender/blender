@@ -210,7 +210,14 @@ class bNodeTreeRuntime : NonCopyable, NonMovable {
   mutable std::atomic<int> allow_use_dirty_topology_cache = 0;
 
   CacheMutex tree_zones_cache_mutex;
-  std::unique_ptr<bNodeTreeZones> tree_zones;
+  std::shared_ptr<bNodeTreeZones> tree_zones;
+
+  /**
+   * Same as #tree_zones, but may not be valid anymore. This is used for drawing errors when the
+   * zone detection failed.
+   */
+  std::shared_ptr<bNodeTreeZones> last_valid_zones;
+  Set<int> invalid_zone_output_node_ids;
 
   /**
    * The stored sockets are drawn using a special link to indicate that there is a gizmo. This is

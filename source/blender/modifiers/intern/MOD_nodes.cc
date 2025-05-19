@@ -539,7 +539,7 @@ static void try_add_side_effect_node(const ModifierEvalContext &ctx,
       }
       const lf::FunctionNode *lf_simulation_output_node =
           lf_graph_info->mapping.possible_side_effect_node_map.lookup_default(
-              simulation_zone->output_node, nullptr);
+              simulation_zone->output_node(), nullptr);
       if (lf_simulation_output_node == nullptr) {
         return;
       }

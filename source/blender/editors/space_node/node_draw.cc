@@ -2723,7 +2723,7 @@ static void node_add_error_message_button(const TreeDrawContext &tree_draw_ctx,
       return nullptr;
     }
     const bNodeTreeZone *zone = zones->get_zone_by_node(node.identifier);
-    if (zone && ELEM(&node, zone->input_node, zone->output_node)) {
+    if (zone && ELEM(node.identifier, zone->input_node_id, zone->output_node_id)) {
       zone = zone->parent_zone;
     }
     return tree_draw_ctx.tree_logs.get_main_tree_log(zone);
@@ -2772,7 +2772,7 @@ static std::optional<std::chrono::nanoseconds> geo_node_get_execution_time(
       return nullptr;
     }
     const bNodeTreeZone *zone = zones->get_zone_by_node(node.identifier);
-    if (zone && ELEM(&node, zone->input_node, zone->output_node)) {
+    if (zone && ELEM(node.identifier, zone->input_node_id, zone->output_node_id)) {
       zone = zone->parent_zone;
     }
     return tree_draw_ctx.tree_logs.get_main_tree_log(zone);
@@ -4679,20 +4679,25 @@ static void find_bounds_by_zone_recursive(const SpaceNode &snode,
       add_rect_corner_positions(possible_bounds, rect);
     }
   }
-  for (const bNode *child_node : zone.child_nodes) {
+  for (const int child_node_id : zone.child_node_ids) {
+    const bNode *child_node = snode.edittree->node_by_id(child_node_id);
+    if (!child_node) {
+      /* Can happen when drawing zone errors. */
+      continue;
+    }
     rctf rect = child_node->runtime->draw_bounds;
     BLI_rctf_pad(&rect, node_padding, node_padding);
     add_rect_corner_positions(possible_bounds, rect);
   }
-  if (zone.input_node) {
-    const rctf &draw_bounds = zone.input_node->runtime->draw_bounds;
+  if (const bNode *input_node = zone.input_node()) {
+    const rctf &draw_bounds = input_node->runtime->draw_bounds;
     rctf rect = draw_bounds;
     BLI_rctf_pad(&rect, node_padding, node_padding);
     rect.xmin = math::interpolate(draw_bounds.xmin, draw_bounds.xmax, 0.25f);
     add_rect_corner_positions(possible_bounds, rect);
   }
-  if (zone.output_node) {
-    const rctf &draw_bounds = zone.output_node->runtime->draw_bounds;
+  if (const bNode *output_node = zone.output_node()) {
+    const rctf &draw_bounds = output_node->runtime->draw_bounds;
     rctf rect = draw_bounds;
     BLI_rctf_pad(&rect, node_padding, node_padding);
     rect.xmax = math::interpolate(draw_bounds.xmin, draw_bounds.xmax, 0.75f);
@@ -4704,7 +4709,9 @@ static void find_bounds_by_zone_recursive(const SpaceNode &snode,
       if (link.fromnode == nullptr) {
         continue;
       }
-      if (zone.contains_node_recursively(*link.fromnode) && zone.output_node != link.fromnode) {
+      if (zone.contains_node_recursively(*link.fromnode) &&
+          zone.output_node_id != link.fromnode->identifier)
+      {
         const float2 pos = node_link_bezier_points_dragged(snode, link)[3];
         rctf rect;
         BLI_rctf_init_pt_radius(&rect, pos, node_padding);
@@ -4730,10 +4737,14 @@ static void node_draw_zones_and_frames(const ARegion &region,
                                        const bNodeTree &ntree)
 {
   const bNodeTreeZones *zones = ntree.zones();
+  if (!zones) {
+    /* Try use backup zones. */
+    zones = ntree.runtime->last_valid_zones.get();
+  }
   const int zones_num = zones ? zones->zones.size() : 0;
 
   Array<Vector<float2>> bounds_by_zone(zones_num);
-  Array<bke::CurvesGeometry> fillet_curve_by_zone(zones_num);
+  Array<std::optional<bke::CurvesGeometry>> fillet_curve_by_zone(zones_num);
   /* Bounding box area of zones is used to determine draw order. */
   Array<float> bounding_box_width_by_zone(zones_num);
 
@@ -4743,6 +4754,10 @@ static void node_draw_zones_and_frames(const ARegion &region,
     find_bounds_by_zone_recursive(snode, zone, zones->zones, bounds_by_zone);
     const Span<float2> boundary_positions = bounds_by_zone[zone_i];
     const int boundary_positions_num = boundary_positions.size();
+    if (boundary_positions_num < 3) {
+      /* Can happen when drawing zone errors. */
+      continue;
+    }
 
     const Bounds<float2> bounding_box = *bounds::min_max(boundary_positions);
     const float bounding_box_width = bounding_box.max.x - bounding_box.min.x;
@@ -4774,8 +4789,11 @@ static void node_draw_zones_and_frames(const ARegion &region,
   GPU_viewport_size_get_f(viewport);
 
   const auto get_theme_id = [&](const int zone_i) {
-    const bNode *node = zones->zones[zone_i]->output_node;
-    return bke::zone_type_by_node_type(node->type_legacy)->theme_id;
+    const bNode *node = zones->zones[zone_i]->output_node();
+    if (!node) {
+      return TH_REDALERT;
+    }
+    return ThemeColorID(bke::zone_type_by_node_type(node->type_legacy)->theme_id);
   };
 
   const uint pos = GPU_vertformat_attr_add(
@@ -4817,7 +4835,11 @@ static void node_draw_zones_and_frames(const ARegion &region,
       if (zone_color[3] == 0.0f) {
         continue;
       }
-      const Span<float3> fillet_boundary_positions = fillet_curve_by_zone[zone_i].positions();
+      if (!fillet_curve_by_zone[zone_i].has_value()) {
+        /* Can happen when drawing zone errors. */
+        continue;
+      }
+      const Span<float3> fillet_boundary_positions = fillet_curve_by_zone[zone_i]->positions();
       /* Draw the background. */
       immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
       immUniformThemeColorBlend(TH_BACK, get_theme_id(zone_i), zone_color[3]);
@@ -4844,14 +4866,23 @@ static void node_draw_zones_and_frames(const ARegion &region,
     if (const bNodeTreeZone *const *zone_p = std::get_if<const bNodeTreeZone *>(&zone_or_node)) {
       const bNodeTreeZone &zone = **zone_p;
       const int zone_i = zone.index;
-      const Span<float3> fillet_boundary_positions = fillet_curve_by_zone[zone_i].positions();
+      if (!fillet_curve_by_zone[zone_i].has_value()) {
+        /* Can happen when drawing zone errors. */
+        continue;
+      }
+      const Span<float3> fillet_boundary_positions = fillet_curve_by_zone[zone_i]->positions();
       /* Draw the contour lines. */
       immBindBuiltinProgram(GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR);
 
       immUniform2fv("viewportSize", &viewport[2]);
       immUniform1f("lineWidth", line_width * U.pixelsize);
 
-      immUniformThemeColorAlpha(get_theme_id(zone_i), 1.0f);
+      const ThemeColorID theme_id = ntree.runtime->invalid_zone_output_node_ids.contains(
+                                        *zone.output_node_id) ?
+                                        TH_REDALERT :
+                                        get_theme_id(zone_i);
+
+      immUniformThemeColorAlpha(theme_id, 1.0f);
       immBegin(GPU_PRIM_LINE_STRIP, fillet_boundary_positions.size() + 1);
       for (const float3 &p : fillet_boundary_positions) {
         immVertex3fv(pos, p);

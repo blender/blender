@@ -45,9 +45,9 @@ inline PointerRNA get_active_node_to_operate_on(bContext *C, const StringRef nod
     return PointerRNA_NULL;
   }
   if (const bke::bNodeTreeZone *zone = zones->get_zone_by_node(active_node->identifier)) {
-    if (zone->input_node == active_node) {
+    if (zone->input_node() == active_node) {
       /* Assume the data is generally stored on the output and not the input node. */
-      active_node = const_cast<bNode *>(zone->output_node);
+      active_node = const_cast<bNode *>(zone->output_node());
     }
   }
   if (active_node->idname != node_idname) {
