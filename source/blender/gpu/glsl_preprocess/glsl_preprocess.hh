@@ -207,6 +207,7 @@ class Preprocessor {
       }
       if (language == BLENDER_GLSL) {
         include_parse(str, report_error);
+        pragma_once_linting(str, filename, report_error);
       }
       str = preprocessor_directive_mutation(str);
       str = swizzle_function_mutation(str);
@@ -455,6 +456,19 @@ class Preprocessor {
       }
       metadata.dependencies.emplace_back(dependency_name);
     });
+  }
+
+  void pragma_once_linting(const std::string &str,
+                           const std::string &filename,
+                           report_callback report_error)
+  {
+    if (filename.find("_lib.") == std::string::npos) {
+      return;
+    }
+    if (str.find("\n#pragma once") == std::string::npos) {
+      std::smatch match;
+      report_error(match, "Library files must contain #pragma once directive.");
+    }
   }
 
   std::string loop_unroll(const std::string &str, report_callback report_error)
