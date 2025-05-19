@@ -670,9 +670,6 @@ class NodeTreeMainUpdater {
         if (!output_socket->is_available()) {
           continue;
         }
-        if (!output_socket->is_directly_linked()) {
-          continue;
-        }
         if (output_socket->flag & SOCK_NO_INTERNAL_LINK) {
           continue;
         }
