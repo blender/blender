@@ -2580,24 +2580,6 @@ void SEQUENCER_OT_copy(wmOperatorType *ot)
 /** \name Paste Operator
  * \{ */
 
-bool deselect_all_strips(Scene *scene)
-{
-  Editing *ed = seq::editing_get(scene);
-  bool changed = false;
-
-  if (ed == nullptr) {
-    return changed;
-  }
-
-  LISTBASE_FOREACH (Strip *, strip, seq::active_seqbase_get(ed)) {
-    if (strip->flag & STRIP_ALLSEL) {
-      strip->flag &= ~STRIP_ALLSEL;
-      changed = true;
-    }
-  }
-  return changed;
-}
-
 void SEQUENCER_OT_paste(wmOperatorType *ot)
 {
   /* Identifiers. */

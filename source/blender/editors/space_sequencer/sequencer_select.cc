@@ -75,6 +75,25 @@ class MouseCoords {
   }
 };
 
+bool deselect_all_strips(const Scene *scene)
+{
+  Editing *ed = seq::editing_get(scene);
+  bool changed = false;
+
+  if (ed == nullptr) {
+    return changed;
+  }
+
+  VectorSet<Strip *> strips = seq::query_all_strips(seq::active_seqbase_get(ed));
+  for (Strip *strip : strips) {
+    if (strip->flag & STRIP_ALLSEL) {
+      strip->flag &= ~STRIP_ALLSEL;
+      changed = true;
+    }
+  }
+  return changed;
+}
+
 Strip *strip_under_mouse_get(const Scene *scene, const View2D *v2d, const int mval[2])
 {
   float mouse_co[2];
@@ -808,12 +827,17 @@ static Strip *strip_select_from_preview(
   return strip_select;
 }
 
-bool handle_is_selected(const Strip *strip, eStripHandle handle)
+bool handle_is_selected(const Strip *strip, const eStripHandle handle)
 {
-  return ((handle == STRIP_HANDLE_LEFT) && (strip->flag & SEQ_LEFTSEL)) ||
-         ((handle == STRIP_HANDLE_RIGHT) && (strip->flag & SEQ_RIGHTSEL));
+  return ((strip->flag & SEQ_LEFTSEL) && (handle == STRIP_HANDLE_LEFT)) ||
+         ((strip->flag & SEQ_RIGHTSEL) && (handle == STRIP_HANDLE_RIGHT));
 }
 
+/**
+ * Test to see if the desired strip `selection` already matches the underlying strips' state.
+ * If so, `sequencer_select` functions will keep the rest of the current timeline selection intact
+ * on press, only selecting the given strip on release if no tweak occurs.
+ */
 static bool element_already_selected(const StripSelection &selection)
 {
   if (selection.strip1 == nullptr) {
@@ -925,10 +949,12 @@ static void select_linked_time(const Scene *scene,
   }
 }
 
-/* Similar to `strip_handle_draw_size_get()`, but returns a larger clickable area that is
+/**
+ * Similar to `strip_handle_draw_size_get()`, but returns a larger clickable area that is
  * the same for a given zoom level no matter whether "simplified tweaking" is turned off or on.
  * `strip_clickable_areas_get` will pad this past strip bounds by 1/3 of the inner handle size,
- * making the full handle size either 15 + 5 = 20px or 1/4 + 1/12 = 1/3 of the strip size. */
+ * making the full handle size either 15 + 5 = 20px or 1/4 + 1/12 = 1/3 of the strip size.
+ */
 static float inner_clickable_handle_size_get(const Scene *scene,
                                              const Strip *strip,
                                              const View2D *v2d)
@@ -1165,7 +1191,7 @@ wmOperatorStatus sequencer_select_exec(bContext *C, wmOperator *op)
     }
   }
 
-  bool was_retiming = sequencer_retiming_mode_is_active(C);
+  const bool was_retiming = sequencer_retiming_mode_is_active(C);
 
   MouseCoords mouse_co(v2d, RNA_int_get(op->ptr, "mouse_x"), RNA_int_get(op->ptr, "mouse_y"));
 
@@ -1209,11 +1235,11 @@ wmOperatorStatus sequencer_select_exec(bContext *C, wmOperator *op)
     WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
   }
 
-  bool extend = RNA_boolean_get(op->ptr, "extend");
-  bool deselect = RNA_boolean_get(op->ptr, "deselect");
-  bool deselect_all = RNA_boolean_get(op->ptr, "deselect_all");
-  bool toggle = RNA_boolean_get(op->ptr, "toggle");
-  bool center = RNA_boolean_get(op->ptr, "center");
+  const bool extend = RNA_boolean_get(op->ptr, "extend");
+  const bool deselect = RNA_boolean_get(op->ptr, "deselect");
+  const bool deselect_all = RNA_boolean_get(op->ptr, "deselect_all");
+  const bool toggle = RNA_boolean_get(op->ptr, "toggle");
+  const bool center = RNA_boolean_get(op->ptr, "center");
 
   StripSelection selection;
   if (region->regiontype == RGN_TYPE_PREVIEW) {
@@ -1275,15 +1301,16 @@ wmOperatorStatus sequencer_select_exec(bContext *C, wmOperator *op)
   }
 
   bool changed = false;
-
-  /* Deselect everything */
+  /* Deselect everything for now. NOTE that this condition runs for almost all clicks with no
+   * modifiers. `sequencer_select_strip_impl` expects this and will reselect any strips in
+   * `selection`. */
   if (deselect_all ||
       (selection.strip1 && (extend == false && deselect == false && toggle == false)))
   {
     changed |= deselect_all_strips(scene);
   }
 
-  /* Nothing to select, but strips could be deselected. */
+  /* Nothing to select, but strips might have been deselected, in which case we should update. */
   if (!selection.strip1) {
     if (changed) {
       sequencer_select_do_updates(C, scene);
@@ -1294,7 +1321,7 @@ wmOperatorStatus sequencer_select_exec(bContext *C, wmOperator *op)
   /* Do actual selection. */
   sequencer_select_strip_impl(ed, selection.strip1, selection.handle, extend, deselect, toggle);
   if (selection.strip2 != nullptr) {
-    /* Invert handle selection for second strip */
+    /* Invert handle selection for second strip. */
     eStripHandle strip2_handle_clicked = (selection.handle == STRIP_HANDLE_LEFT) ?
                                              STRIP_HANDLE_RIGHT :
                                              STRIP_HANDLE_LEFT;
