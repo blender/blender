@@ -24,6 +24,8 @@
 
 #include "ED_mesh.hh"
 
+#include "DRW_render.hh"
+
 #include "mesh_extractors/extract_mesh.hh"
 
 /* ---------------------------------------------------------------------- */
@@ -555,7 +557,7 @@ MeshRenderData mesh_render_data_create(Object &object,
 
   const Mesh *editmesh_orig = BKE_object_get_pre_modified_mesh(&object);
   if (is_editmode && editmesh_orig && editmesh_orig->runtime->edit_mesh) {
-    const Mesh *eval_cage = BKE_object_get_editmesh_eval_cage(&object);
+    const Mesh *eval_cage = DRW_object_get_editmesh_cage_for_drawing(object);
 
     mr.bm = editmesh_orig->runtime->edit_mesh->bm;
     mr.edit_bmesh = editmesh_orig->runtime->edit_mesh.get();

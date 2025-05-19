@@ -395,4 +395,11 @@ Mesh *BKE_mesh_wrapper_ensure_subdivision(Mesh *mesh)
   return result;
 }
 
+const Mesh *BKE_mesh_wrapper_ensure_subdivision(const Mesh *mesh)
+{
+  /* This modifies the mesh, but it's lazy initialization protected by mutex lock
+   * so still read-only access in a sense. */
+  return BKE_mesh_wrapper_ensure_subdivision(const_cast<Mesh *>(mesh));
+}
+
 /** \} */

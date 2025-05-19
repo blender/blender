@@ -382,6 +382,21 @@ template<> Mesh &DRW_object_get_data_for_drawing(const Object &object)
   return *BKE_mesh_wrapper_ensure_subdivision(&mesh);
 }
 
+const Mesh *DRW_object_get_editmesh_cage_for_drawing(const Object &object)
+{
+  /* Same as DRW_object_get_data_for_drawing, but for the cage mesh. */
+  BLI_assert(object.type == OB_MESH);
+  const Mesh *cage_mesh = BKE_object_get_editmesh_eval_cage(&object);
+  if (cage_mesh == nullptr) {
+    return nullptr;
+  }
+
+  if (BKE_subsurf_modifier_has_gpu_subdiv(cage_mesh)) {
+    return cage_mesh;
+  }
+  return BKE_mesh_wrapper_ensure_subdivision(cage_mesh);
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

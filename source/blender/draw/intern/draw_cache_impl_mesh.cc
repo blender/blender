@@ -1262,7 +1262,7 @@ void DRW_mesh_batch_cache_create_requested(TaskGraph &task_graph,
   bool do_cage = false;
   const Mesh *edit_data_mesh = nullptr;
   if (is_editmode) {
-    const Mesh *eval_cage = BKE_object_get_editmesh_eval_cage(&ob);
+    const Mesh *eval_cage = DRW_object_get_editmesh_cage_for_drawing(ob);
     if (eval_cage && eval_cage != &mesh) {
       /* Extract "cage" data separately when it exists and it's not just the same mesh as the
        * regular evaluated mesh. Otherwise edit data will be extracted from the final evaluated

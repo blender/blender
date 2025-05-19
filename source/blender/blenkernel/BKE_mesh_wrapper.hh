@@ -48,3 +48,4 @@ void BKE_mesh_wrapper_vert_coords_copy_with_mat4(const Mesh *mesh,
                                                  const float mat[4][4]);
 
 Mesh *BKE_mesh_wrapper_ensure_subdivision(Mesh *mesh);
+const Mesh *BKE_mesh_wrapper_ensure_subdivision(const Mesh *mesh);
