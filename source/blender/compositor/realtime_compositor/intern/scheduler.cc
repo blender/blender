@@ -20,11 +20,33 @@ namespace blender::realtime_compositor {
 
 using namespace nodes::derived_node_tree_types;
 
+/* Returns true if any of the node group nodes that make up this tree context are muted. */
+static bool is_tree_context_muted(const DTreeContext &tree_context)
+{
+  /* Root contexts are never muted. */
+  if (tree_context.is_root()) {
+    return false;
+  }
+
+  /* The node group that represents this context is muted. */
+  if (tree_context.parent_node()->is_muted()) {
+    return true;
+  }
+
+  /* Recursively check parent contexts up until the root context. */
+  return is_tree_context_muted(*tree_context.parent_context());
+}
+
 /* Add the viewer node which is marked as NODE_DO_OUTPUT in the given context to the given stack.
  * If no viewer nodes were found, composite nodes can be added as a fallback
  * viewer node. */
 static bool add_viewer_nodes_in_context(const DTreeContext *context, Stack<DNode> &node_stack)
 {
+  /* Do not add viewers that are inside muted contexts. */
+  if (is_tree_context_muted(*context)) {
+    return false;
+  }
+
   for (const bNode *node : context->btree().nodes_by_type("CompositorNodeViewer")) {
     if (node->flag & NODE_DO_OUTPUT && !(node->flag & NODE_MUTED)) {
       node_stack.push(DNode(context, node));
