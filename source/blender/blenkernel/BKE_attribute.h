@@ -55,8 +55,8 @@ class AttributeOwner {
   void *ptr_ = nullptr;
 
  public:
-  AttributeOwner() {};
-  AttributeOwner(AttributeOwnerType type, void *ptr) : type_(type), ptr_(ptr) {};
+  AttributeOwner(){};
+  AttributeOwner(AttributeOwnerType type, void *ptr) : type_(type), ptr_(ptr){};
 
   static AttributeOwner from_id(ID *id);
 
