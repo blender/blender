@@ -330,7 +330,10 @@ void ConstantFolder::fold_mix_color(NodeMix type, bool clamp_factor, bool clamp)
       /* remove useless mix colors nodes */
       if (color1_in->link && color2_in->link) {
         if (color1_in->link == color2_in->link) {
-          try_bypass_or_make_constant(color1_in, clamp);
+          if (!try_bypass_or_make_constant(color1_in, clamp)) {
+            /* If can't bypass, set `fac` to 0 to only use `color1_in`. */
+            fac_in->set(0.0f);
+          }
           break;
         }
       }
