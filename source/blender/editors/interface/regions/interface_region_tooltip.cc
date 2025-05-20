@@ -1070,7 +1070,7 @@ static std::unique_ptr<uiTooltipData> ui_tooltip_data_from_button_or_extra_icon(
       if (ELEM(subtype, PROP_FILEPATH, PROP_DIRPATH, PROP_NONE)) {
         /* Template parse errors, for paths that support it. */
         if ((RNA_property_flag(rnaprop) & PROP_PATH_SUPPORTS_TEMPLATES) != 0) {
-          const blender::StringRef path = but->drawstr;
+          const std::string path = RNA_property_string_get(&but->rnapoin, rnaprop);
           const blender::Vector<blender::bke::path_templates::Error> errors =
               BKE_validate_template_syntax(path);
 
