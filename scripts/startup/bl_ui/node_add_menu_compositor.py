@@ -306,6 +306,8 @@ class NODE_MT_category_compositor_utilities(Menu):
         node_add_menu.add_node_type(
             layout, "CompositorNodeSwitchView",
             label=iface_("Switch Stereo View"))
+        layout.separator()
+        node_add_menu.add_node_type(layout, "CompositorNodeRelativeToPixel")
 
         node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
 

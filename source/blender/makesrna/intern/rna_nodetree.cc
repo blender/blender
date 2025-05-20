@@ -13764,6 +13764,7 @@ static void rna_def_nodes(BlenderRNA *brna)
   define("CompositorNode", "CompositorNodePlaneTrackDeform", def_cmp_planetrackdeform);
   define("CompositorNode", "CompositorNodePosterize");
   define("CompositorNode", "CompositorNodePremulKey", def_cmp_premul_key);
+  define("CompositorNode", "CompositorNodeRelativeToPixel");
   define("CompositorNode", "CompositorNodeRGB");
   define("CompositorNode", "CompositorNodeRGBToBW");
   define("CompositorNode", "CompositorNodeRLayers", def_cmp_render_layers);
