@@ -557,12 +557,15 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
     return;
   }
 
-  params.add_item(IFACE_("Value"), [type](LinkSearchOpParams &params) {
-    bNode &node = params.add_node("GeometryNodeBake");
-    socket_items::add_item_with_socket_type_and_name<BakeItemsAccessor>(
-        node, type, params.socket.name);
-    params.update_and_connect_available_socket(node, params.socket.name);
-  });
+  params.add_item(
+      IFACE_("Value"),
+      [type](LinkSearchOpParams &params) {
+        bNode &node = params.add_node("GeometryNodeBake");
+        socket_items::add_item_with_socket_type_and_name<BakeItemsAccessor>(
+            node, type, params.socket.name);
+        params.update_and_connect_available_socket(node, params.socket.name);
+      },
+      -1);
 }
 
 static const bNodeSocket *node_internally_linked_input(const bNodeTree & /*tree*/,
