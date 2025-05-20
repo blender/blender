@@ -412,7 +412,7 @@ static void libblock_remap_data_postprocess_obdata_relink(Main *bmain, Object *o
         multires_force_sculpt_rebuild(ob);
         break;
       case ID_CU_LEGACY:
-        BKE_curve_type_test(ob);
+        BKE_curve_type_test(ob, true);
         break;
       default:
         break;

@@ -5161,6 +5161,30 @@ void blo_do_versions_450(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
     version_set_default_bone_drawtype(bmain);
   }
 
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 73)) {
+    /* Make #Curve::type the source of truth for the curve type.
+     * Previously #Curve::vfont was checked which is error prone
+     * since the member can become null at run-time, see: #139133. */
+    LISTBASE_FOREACH (Curve *, cu, &bmain->curves) {
+      if (ELEM(cu->type, OB_CURVES_LEGACY, OB_FONT, OB_SURF)) {
+        continue;
+      }
+      short type = OB_CURVES_LEGACY;
+      if (cu->vfont) {
+        type = OB_FONT;
+      }
+      else {
+        LISTBASE_FOREACH (const Nurb *, nu, &cu->nurb) {
+          if (nu->pntsv > 1) {
+            type = OB_SURF;
+            break;
+          }
+        }
+      }
+      cu->type = type;
+    }
+  }
+
   /* Always run this versioning (keep at the bottom of the function). Meshes are written with the
    * legacy format which always needs to be converted to the new format on file load. To be moved
    * to a subversion check in 5.0. */
