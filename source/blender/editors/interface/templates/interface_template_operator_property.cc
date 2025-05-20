@@ -299,14 +299,11 @@ void uiTemplateOperatorRedoProperties(uiLayout *layout, const bContext *C)
   /* Disable for now, doesn't fit well in popover. */
 #if 0
   /* Repeat button with operator name as text. */
-  uiItemFullO(layout,
-              "SCREEN_OT_repeat_last",
-              WM_operatortype_name(op->type, op->ptr),
-              ICON_NONE,
-              nullptr,
-              WM_OP_INVOKE_DEFAULT,
-              0,
-              nullptr);
+  layout->op("SCREEN_OT_repeat_last",
+             WM_operatortype_name(op->type, op->ptr),
+             ICON_NONE,
+             WM_OP_INVOKE_DEFAULT,
+             0);
 #endif
 
   if (WM_operator_repeat_check(C, op)) {

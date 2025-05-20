@@ -725,15 +725,11 @@ void draw_bake_button_row(const BakeDrawContext &ctx, uiLayout *layout, const bo
                                                                         IFACE_("Bake Packed");
     }
 
-    PointerRNA ptr;
-    uiItemFullO(row,
-                "OBJECT_OT_geometry_node_bake_single",
-                bake_label,
-                ICON_NONE,
-                nullptr,
-                WM_OP_INVOKE_DEFAULT,
-                UI_ITEM_NONE,
-                &ptr);
+    PointerRNA ptr = row->op("OBJECT_OT_geometry_node_bake_single",
+                             bake_label,
+                             ICON_NONE,
+                             WM_OP_INVOKE_DEFAULT,
+                             UI_ITEM_NONE);
     WM_operator_properties_id_lookup_set_from_id(&ptr, &ctx.object->id);
     RNA_string_set(&ptr, "modifier_name", ctx.nmd->modifier.name);
     RNA_int_set(&ptr, "bake_id", ctx.bake->id);
@@ -744,29 +740,21 @@ void draw_bake_button_row(const BakeDrawContext &ctx, uiLayout *layout, const bo
     if (is_in_sidebar) {
       if (ctx.is_baked && !G.is_rendering) {
         if (ctx.bake->packed) {
-          PointerRNA ptr;
-          uiItemFullO(subrow,
-                      "OBJECT_OT_geometry_node_bake_unpack_single",
-                      "",
-                      ICON_PACKAGE,
-                      nullptr,
-                      WM_OP_INVOKE_DEFAULT,
-                      UI_ITEM_NONE,
-                      &ptr);
+          PointerRNA ptr = subrow->op("OBJECT_OT_geometry_node_bake_unpack_single",
+                                      "",
+                                      ICON_PACKAGE,
+                                      WM_OP_INVOKE_DEFAULT,
+                                      UI_ITEM_NONE);
           WM_operator_properties_id_lookup_set_from_id(&ptr, &ctx.object->id);
           RNA_string_set(&ptr, "modifier_name", ctx.nmd->modifier.name);
           RNA_int_set(&ptr, "bake_id", ctx.bake->id);
         }
         else {
-          PointerRNA ptr;
-          uiItemFullO(subrow,
-                      "OBJECT_OT_geometry_node_bake_pack_single",
-                      "",
-                      ICON_UGLYPACKAGE,
-                      nullptr,
-                      WM_OP_INVOKE_DEFAULT,
-                      UI_ITEM_NONE,
-                      &ptr);
+          PointerRNA ptr = subrow->op("OBJECT_OT_geometry_node_bake_pack_single",
+                                      "",
+                                      ICON_UGLYPACKAGE,
+                                      WM_OP_INVOKE_DEFAULT,
+                                      UI_ITEM_NONE);
           WM_operator_properties_id_lookup_set_from_id(&ptr, &ctx.object->id);
           RNA_string_set(&ptr, "modifier_name", ctx.nmd->modifier.name);
           RNA_int_set(&ptr, "bake_id", ctx.bake->id);
@@ -776,27 +764,19 @@ void draw_bake_button_row(const BakeDrawContext &ctx, uiLayout *layout, const bo
         /* If the data is not yet baked, still show the icon based on the derived bake target. */
         const int icon = ctx.bake_target == NODES_MODIFIER_BAKE_TARGET_DISK ? ICON_UGLYPACKAGE :
                                                                               ICON_PACKAGE;
-        PointerRNA ptr;
-        uiItemFullO(subrow,
-                    "OBJECT_OT_geometry_node_bake_pack_single",
-                    "",
-                    icon,
-                    nullptr,
-                    WM_OP_INVOKE_DEFAULT,
-                    UI_ITEM_NONE,
-                    &ptr);
+        PointerRNA ptr = subrow->op("OBJECT_OT_geometry_node_bake_pack_single",
+                                    "",
+                                    icon,
+                                    WM_OP_INVOKE_DEFAULT,
+                                    UI_ITEM_NONE);
       }
     }
     {
-      PointerRNA ptr;
-      uiItemFullO(subrow,
-                  "OBJECT_OT_geometry_node_bake_delete_single",
-                  "",
-                  ICON_TRASH,
-                  nullptr,
-                  WM_OP_INVOKE_DEFAULT,
-                  UI_ITEM_NONE,
-                  &ptr);
+      PointerRNA ptr = subrow->op("OBJECT_OT_geometry_node_bake_delete_single",
+                                  "",
+                                  ICON_TRASH,
+                                  WM_OP_INVOKE_DEFAULT,
+                                  UI_ITEM_NONE);
       WM_operator_properties_id_lookup_set_from_id(&ptr, &ctx.object->id);
       RNA_string_set(&ptr, "modifier_name", ctx.nmd->modifier.name);
       RNA_int_set(&ptr, "bake_id", ctx.bake->id);

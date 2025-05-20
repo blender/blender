@@ -2176,15 +2176,11 @@ static void add_attribute_search_or_value_buttons(DrawGroupInputsContext &ctx,
     uiItemDecoratorR(layout, ctx.md_ptr, rna_path.c_str(), -1);
   }
 
-  PointerRNA props;
-  uiItemFullO(prop_row,
-              "object.geometry_nodes_input_attribute_toggle",
-              "",
-              ICON_SPREADSHEET,
-              nullptr,
-              WM_OP_INVOKE_DEFAULT,
-              UI_ITEM_NONE,
-              &props);
+  PointerRNA props = prop_row->op("object.geometry_nodes_input_attribute_toggle",
+                                  "",
+                                  ICON_SPREADSHEET,
+                                  WM_OP_INVOKE_DEFAULT,
+                                  UI_ITEM_NONE);
   RNA_string_set(&props, "modifier_name", ctx.nmd.modifier.name);
   RNA_string_set(&props, "input_name", socket.identifier);
 }

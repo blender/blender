@@ -226,14 +226,11 @@ static void modifier_ops_extra_draw(bContext *C, uiLayout *layout, void *md_v)
                CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Apply (Active Keyframe)"),
                ICON_CHECKMARK);
 
-    uiItemFullO(layout,
-                "OBJECT_OT_modifier_apply",
-                IFACE_("Apply (All Keyframes)"),
-                ICON_KEYFRAME,
-                nullptr,
-                WM_OP_INVOKE_DEFAULT,
-                UI_ITEM_NONE,
-                &op_ptr);
+    op_ptr = layout->op("OBJECT_OT_modifier_apply",
+                        IFACE_("Apply (All Keyframes)"),
+                        ICON_KEYFRAME,
+                        WM_OP_INVOKE_DEFAULT,
+                        UI_ITEM_NONE);
     RNA_boolean_set(&op_ptr, "all_keyframes", true);
   }
   else {
@@ -280,25 +277,19 @@ static void modifier_ops_extra_draw(bContext *C, uiLayout *layout, void *md_v)
   layout->separator();
 
   /* Move to first. */
-  uiItemFullO(layout,
-              "OBJECT_OT_modifier_move_to_index",
-              IFACE_("Move to First"),
-              ICON_TRIA_UP,
-              nullptr,
-              WM_OP_INVOKE_DEFAULT,
-              UI_ITEM_NONE,
-              &op_ptr);
+  op_ptr = layout->op("OBJECT_OT_modifier_move_to_index",
+                      IFACE_("Move to First"),
+                      ICON_TRIA_UP,
+                      WM_OP_INVOKE_DEFAULT,
+                      UI_ITEM_NONE);
   RNA_int_set(&op_ptr, "index", 0);
 
   /* Move to last. */
-  uiItemFullO(layout,
-              "OBJECT_OT_modifier_move_to_index",
-              IFACE_("Move to Last"),
-              ICON_TRIA_DOWN,
-              nullptr,
-              WM_OP_INVOKE_DEFAULT,
-              UI_ITEM_NONE,
-              &op_ptr);
+  op_ptr = layout->op("OBJECT_OT_modifier_move_to_index",
+                      IFACE_("Move to Last"),
+                      ICON_TRIA_DOWN,
+                      WM_OP_INVOKE_DEFAULT,
+                      UI_ITEM_NONE);
   RNA_int_set(&op_ptr, "index", BLI_listbase_count(&ob->modifiers) - 1);
 
   layout->separator();
@@ -307,14 +298,11 @@ static void modifier_ops_extra_draw(bContext *C, uiLayout *layout, void *md_v)
 
   if (md->type == eModifierType_Nodes) {
     layout->separator();
-    uiItemFullO(layout,
-                "OBJECT_OT_geometry_nodes_move_to_nodes",
-                std::nullopt,
-                ICON_NONE,
-                nullptr,
-                WM_OP_INVOKE_DEFAULT,
-                UI_ITEM_NONE,
-                &op_ptr);
+    op_ptr = layout->op("OBJECT_OT_geometry_nodes_move_to_nodes",
+                        std::nullopt,
+                        ICON_NONE,
+                        WM_OP_INVOKE_DEFAULT,
+                        UI_ITEM_NONE);
     layout->prop(&ptr, "show_group_selector", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 }

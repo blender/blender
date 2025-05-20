@@ -416,14 +416,11 @@ static void node_composit_buts_file_output_ex(uiLayout *layout, bContext *C, Poi
       col->label(IFACE_("Layer:"), ICON_NONE);
       row = &col->row(false);
       row->prop(&active_input_ptr, "name", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
-      uiItemFullO(row,
-                  "NODE_OT_output_file_remove_active_socket",
-                  "",
-                  ICON_X,
-                  nullptr,
-                  WM_OP_EXEC_DEFAULT,
-                  UI_ITEM_R_ICON_ONLY,
-                  nullptr);
+      row->op("NODE_OT_output_file_remove_active_socket",
+              "",
+              ICON_X,
+              WM_OP_EXEC_DEFAULT,
+              UI_ITEM_R_ICON_ONLY);
     }
     else {
       col = &layout->column(true);
@@ -431,14 +428,11 @@ static void node_composit_buts_file_output_ex(uiLayout *layout, bContext *C, Poi
       col->label(IFACE_("File Subpath:"), ICON_NONE);
       row = &col->row(false);
       row->prop(&active_input_ptr, "path", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
-      uiItemFullO(row,
-                  "NODE_OT_output_file_remove_active_socket",
-                  "",
-                  ICON_X,
-                  nullptr,
-                  WM_OP_EXEC_DEFAULT,
-                  UI_ITEM_R_ICON_ONLY,
-                  nullptr);
+      row->op("NODE_OT_output_file_remove_active_socket",
+              "",
+              ICON_X,
+              WM_OP_EXEC_DEFAULT,
+              UI_ITEM_R_ICON_ONLY);
 
       /* format details for individual files */
       imfptr = RNA_pointer_get(&active_input_ptr, "format");

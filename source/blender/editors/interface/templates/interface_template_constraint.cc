@@ -69,14 +69,11 @@ static void constraint_ops_extra_draw(bContext *C, uiLayout *layout, void *con_v
 
   /* Move to first. */
   row = &layout->column(false);
-  uiItemFullO(row,
-              "CONSTRAINT_OT_move_to_index",
-              IFACE_("Move to First"),
-              ICON_TRIA_UP,
-              nullptr,
-              WM_OP_INVOKE_DEFAULT,
-              UI_ITEM_NONE,
-              &op_ptr);
+  op_ptr = row->op("CONSTRAINT_OT_move_to_index",
+                   IFACE_("Move to First"),
+                   ICON_TRIA_UP,
+                   WM_OP_INVOKE_DEFAULT,
+                   UI_ITEM_NONE);
   RNA_int_set(&op_ptr, "index", 0);
   if (!con->prev) {
     uiLayoutSetEnabled(row, false);
@@ -84,14 +81,11 @@ static void constraint_ops_extra_draw(bContext *C, uiLayout *layout, void *con_v
 
   /* Move to last. */
   row = &layout->column(false);
-  uiItemFullO(row,
-              "CONSTRAINT_OT_move_to_index",
-              IFACE_("Move to Last"),
-              ICON_TRIA_DOWN,
-              nullptr,
-              WM_OP_INVOKE_DEFAULT,
-              UI_ITEM_NONE,
-              &op_ptr);
+  op_ptr = row->op("CONSTRAINT_OT_move_to_index",
+                   IFACE_("Move to Last"),
+                   ICON_TRIA_DOWN,
+                   WM_OP_INVOKE_DEFAULT,
+                   UI_ITEM_NONE);
   ListBase *constraint_list = blender::ed::object::constraint_list_from_constraint(
       ob, con, nullptr);
   RNA_int_set(&op_ptr, "index", BLI_listbase_count(constraint_list) - 1);

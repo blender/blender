@@ -892,14 +892,11 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
         }
         else {
 #if 0 /* Disabled for now. */
-          uiItemFullO(layout,
-                      "UI_OT_override_type_set_button",
-                      "Override Type",
-                      ICON_NONE,
-                      nullptr,
-                      WM_OP_INVOKE_DEFAULT,
-                      0,
-                      &op_ptr);
+          op_ptr = layout->op("UI_OT_override_type_set_button",
+                              "Override Type",
+                              ICON_NONE,
+                              WM_OP_INVOKE_DEFAULT,
+                              0);
           RNA_boolean_set(&op_ptr, "all", false);
 #endif
           uiItemBooleanO(layout,
@@ -933,14 +930,11 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
           RNA_boolean_set(&op_ptr, "all", false);
         }
         else {
-          uiItemFullO(layout,
-                      "UI_OT_override_type_set_button",
-                      CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Define Override"),
-                      ICON_NONE,
-                      nullptr,
-                      WM_OP_INVOKE_DEFAULT,
-                      UI_ITEM_NONE,
-                      &op_ptr);
+          op_ptr = layout->op("UI_OT_override_type_set_button",
+                              CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Define Override"),
+                              ICON_NONE,
+                              WM_OP_INVOKE_DEFAULT,
+                              UI_ITEM_NONE);
           RNA_boolean_set(&op_ptr, "all", false);
         }
       }
@@ -1314,14 +1308,12 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
                  ICON_URL);
 
       if (U.flag & USER_DEVELOPER_UI) {
-        uiItemFullO(layout,
-                    "WM_OT_doc_view",
-                    CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Online Python Reference"),
-                    ICON_NONE,
-                    nullptr,
-                    WM_OP_EXEC_DEFAULT,
-                    UI_ITEM_NONE,
-                    &ptr_props);
+        ptr_props = layout->op(
+            "WM_OT_doc_view",
+            CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Online Python Reference"),
+            ICON_NONE,
+            WM_OP_EXEC_DEFAULT,
+            UI_ITEM_NONE);
         RNA_string_set(&ptr_props, "doc_id", manual_id.value().c_str());
       }
     }
@@ -1334,14 +1326,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
   /* perhaps we should move this into (G.debug & G_DEBUG) - campbell */
   if (U.flag & USER_DEVELOPER_UI) {
     if (ui_block_is_menu(but->block) == false) {
-      uiItemFullO(layout,
-                  "UI_OT_editsource",
-                  std::nullopt,
-                  ICON_NONE,
-                  nullptr,
-                  WM_OP_INVOKE_DEFAULT,
-                  UI_ITEM_NONE,
-                  nullptr);
+      layout->op("UI_OT_editsource", std::nullopt, ICON_NONE, WM_OP_INVOKE_DEFAULT, UI_ITEM_NONE);
     }
   }
 
