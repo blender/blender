@@ -35,7 +35,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .subtype(PROP_FACTOR)
       .supports_field()
       .make_available([](bNode &node) { node_storage(node).data_type = CD_PROP_BOOL; });
-  b.add_input<decl::Int>("ID").implicit_field(implicit_field_inputs::id_or_index);
+  b.add_input<decl::Int>("ID").implicit_field(NODE_DEFAULT_INPUT_ID_INDEX_FIELD);
   b.add_input<decl::Int>("Seed").default_value(0).min(-10000).max(10000).supports_field();
 
   b.add_output<decl::Vector>("Value").dependent_field();

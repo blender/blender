@@ -150,8 +150,6 @@ std::ostream &operator<<(std::ostream &stream, const RelationsInNode &relations)
 }  // namespace anonymous_attribute_lifetime
 namespace aal = anonymous_attribute_lifetime;
 
-using ImplicitInputValueFn = std::function<void(const bNode &node, void *r_value)>;
-
 /* Socket or panel declaration. */
 class ItemDeclaration {
  public:
@@ -219,9 +217,8 @@ class SocketDeclaration : public ItemDeclaration {
   std::function<void(bNode &)> make_available_fn_;
 
  public:
-  /** Some input sockets can have non-trivial values in the case when they are unlinked. This
-   * callback computes the default input of a values in geometry nodes when nothing is linked. */
-  std::unique_ptr<ImplicitInputValueFn> implicit_input_fn;
+  /** Some input sockets can have non-trivial values in the case when they are unlinked. */
+  NodeDefaultInputType default_input_type;
   /**
    * Property that stores the name of the socket so that it can be modified directly from the
    * node without going to the side-bar.
@@ -305,6 +302,8 @@ class BaseSocketDeclarationBuilder {
 
   BaseSocketDeclarationBuilder &is_default_link_socket(bool value = true);
 
+  BaseSocketDeclarationBuilder &default_input_type(NodeDefaultInputType value);
+
   /** The input socket allows passing in a field. */
   BaseSocketDeclarationBuilder &supports_field();
 
@@ -321,13 +320,13 @@ class BaseSocketDeclarationBuilder {
   BaseSocketDeclarationBuilder &field_source();
 
   /** The input supports a field and is a field by default when nothing is connected. */
-  BaseSocketDeclarationBuilder &implicit_field(ImplicitInputValueFn fn);
+  BaseSocketDeclarationBuilder &implicit_field(NodeDefaultInputType default_input);
 
   /** The input is an implicit field that is evaluated on all geometry inputs. */
-  BaseSocketDeclarationBuilder &implicit_field_on_all(ImplicitInputValueFn fn);
+  BaseSocketDeclarationBuilder &implicit_field_on_all(NodeDefaultInputType default_input);
 
   /** The input is evaluated on a subset of the geometry inputs. */
-  BaseSocketDeclarationBuilder &implicit_field_on(ImplicitInputValueFn fn,
+  BaseSocketDeclarationBuilder &implicit_field_on(NodeDefaultInputType default_input,
                                                   Span<int> input_indices);
 
   /** For inputs that are evaluated or available on a subset of the geometry sockets. */
@@ -650,13 +649,10 @@ class NodeDeclarationBuilder : public DeclarationListBuilder {
   void build_remaining_anonymous_attribute_relations();
 };
 
-namespace implicit_field_inputs {
-void position(const bNode &node, void *r_value);
-void normal(const bNode &node, void *r_value);
-void index(const bNode &node, void *r_value);
-void id_or_index(const bNode &node, void *r_value);
-void instance_transform(const bNode &node, void *r_value);
-}  // namespace implicit_field_inputs
+using ImplicitInputValueFn = std::function<void(const bNode &node, void *r_value)>;
+std::optional<ImplicitInputValueFn> get_implicit_input_value_fn(NodeDefaultInputType type);
+bool socket_type_supports_default_input_type(const bke::bNodeSocketType &socket_type,
+                                             NodeDefaultInputType input_type);
 
 void build_node_declaration(const bke::bNodeType &typeinfo,
                             NodeDeclaration &r_declaration,

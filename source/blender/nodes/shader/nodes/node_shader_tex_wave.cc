@@ -22,7 +22,7 @@ namespace blender::nodes::node_shader_tex_wave_cc {
 static void sh_node_tex_wave_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
-  b.add_input<decl::Vector>("Vector").implicit_field(implicit_field_inputs::position);
+  b.add_input<decl::Vector>("Vector").implicit_field(NODE_DEFAULT_INPUT_POSITION_FIELD);
   b.add_input<decl::Float>("Scale").min(-1000.0f).max(1000.0f).default_value(5.0f).description(
       "Overall texture scale");
   b.add_input<decl::Float>("Distortion")

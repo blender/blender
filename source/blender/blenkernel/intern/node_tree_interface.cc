@@ -23,6 +23,8 @@
 #include "DNA_node_tree_interface_types.h"
 #include "DNA_node_types.h"
 
+#include "NOD_node_declaration.hh"
+
 using blender::StringRef;
 
 /**
@@ -600,6 +602,14 @@ static void item_read_data(BlendDataReader *reader, bNodeTreeInterfaceItem &item
       BLO_read_struct(reader, IDProperty, &socket.properties);
       IDP_BlendDataRead(reader, &socket.properties);
 
+      /* Improve forward compatibility for unknown default input types. */
+      const bNodeSocketType *stype = socket.socket_typeinfo();
+      if (!nodes::socket_type_supports_default_input_type(
+              *stype, NodeDefaultInputType(socket.default_input)))
+      {
+        socket.default_input = NODE_DEFAULT_INPUT_VALUE;
+      }
+
       socket_types::socket_data_read_data(reader, socket);
       break;
     }
@@ -708,6 +718,13 @@ bool bNodeTreeInterfaceSocket::set_socket_type(const StringRef new_socket_type)
 
   this->socket_type = BLI_strdupn(new_socket_type.data(), new_socket_type.size());
   this->socket_data = socket_types::make_socket_data(new_socket_type);
+
+  blender::bke::bNodeSocketType *stype = this->socket_typeinfo();
+  if (!blender::nodes::socket_type_supports_default_input_type(
+          *stype, NodeDefaultInputType(this->default_input)))
+  {
+    this->default_input = NODE_DEFAULT_INPUT_VALUE;
+  }
 
   return true;
 }
@@ -1131,6 +1148,10 @@ bNodeTreeInterfaceSocket *add_interface_socket_from_node(bNodeTree &ntree,
 
     iosock = ntree.tree_interface.add_socket(
         name, from_sock.description, socket_type, flag, nullptr);
+
+    if (const nodes::SocketDeclaration *decl = from_sock.runtime->declaration) {
+      iosock->default_input = decl->default_input_type;
+    }
   }
   if (iosock == nullptr) {
     return nullptr;

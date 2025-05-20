@@ -19,7 +19,7 @@ static void sh_node_tex_white_noise_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
   b.add_input<decl::Vector>("Vector").min(-10000.0f).max(10000.0f).implicit_field(
-      implicit_field_inputs::position);
+      NODE_DEFAULT_INPUT_POSITION_FIELD);
   b.add_input<decl::Float>("W")
       .min(-10000.0f)
       .max(10000.0f)

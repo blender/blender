@@ -13,7 +13,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Geometry>("Geometry");
   b.add_output<decl::Geometry>("Geometry").propagate_all().align_with_previous();
   b.add_input<decl::Bool>("Selection").default_value(true).hide_value().field_on_all();
-  b.add_input<decl::Int>("ID").implicit_field_on_all(implicit_field_inputs::index);
+  b.add_input<decl::Int>("ID").implicit_field_on_all(NODE_DEFAULT_INPUT_INDEX_FIELD);
 }
 
 static void set_id_in_component(GeometryComponent &component,

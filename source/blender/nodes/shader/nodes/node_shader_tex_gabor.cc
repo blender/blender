@@ -23,7 +23,7 @@ static void sh_node_tex_gabor_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
   b.add_input<decl::Vector>("Vector")
-      .implicit_field(implicit_field_inputs::position)
+      .implicit_field(NODE_DEFAULT_INPUT_POSITION_FIELD)
       .description(
           "The coordinates at which Gabor noise will be evaluated. The Z component is ignored in "
           "the 2D case");

@@ -23,7 +23,7 @@ static void sh_node_tex_brick_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
   b.add_input<decl::Vector>("Vector").min(-10000.0f).max(10000.0f).implicit_field(
-      implicit_field_inputs::position);
+      NODE_DEFAULT_INPUT_POSITION_FIELD);
   b.add_input<decl::Color>("Color1")
       .default_value({0.8f, 0.8f, 0.8f, 1.0f})
       .description("Color of the first reference brick");

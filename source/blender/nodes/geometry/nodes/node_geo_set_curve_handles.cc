@@ -26,16 +26,19 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.use_custom_socket_order();
   b.allow_any_socket_order();
   b.add_default_layout();
+
+  const bNode *node = b.node_or_null();
+
   b.add_input<decl::Geometry>("Curve").supported_type(GeometryComponent::Type::Curve);
   b.add_output<decl::Geometry>("Curve").propagate_all().align_with_previous();
   b.add_input<decl::Bool>("Selection").default_value(true).hide_value().field_on_all();
-  b.add_input<decl::Vector>("Position")
-      .implicit_field_on_all([](const bNode &node, void *r_value) {
-        const StringRef side = node_storage(node).mode == GEO_NODE_CURVE_HANDLE_LEFT ?
-                                   "handle_left" :
-                                   "handle_right";
-        new (r_value) SocketValueVariant(bke::AttributeFieldInput::Create<float3>(side));
-      });
+  auto &position = b.add_input<decl::Vector>("Position");
+  if (node) {
+    const NodeGeometrySetCurveHandlePositions &storage = node_storage(*node);
+    position.implicit_field_on_all(storage.mode == GEO_NODE_CURVE_HANDLE_LEFT ?
+                                       NODE_DEFAULT_INPUT_HANDLE_LEFT_FIELD :
+                                       NODE_DEFAULT_INPUT_HANDLE_RIGHT_FIELD);
+  }
   b.add_input<decl::Vector>("Offset")
       .default_value(float3(0.0f, 0.0f, 0.0f))
       .subtype(PROP_TRANSLATION)

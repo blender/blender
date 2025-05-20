@@ -519,7 +519,7 @@ static void determine_group_input_states(
       if (!nodes::socket_type_supports_fields(type)) {
         new_inferencing_interface.inputs[index] = InputSocketFieldType::None;
       }
-      else if (group_input->default_input != NODE_INPUT_DEFAULT_VALUE) {
+      else if (group_input->default_input != NODE_DEFAULT_INPUT_VALUE) {
         new_inferencing_interface.inputs[index] = InputSocketFieldType::Implicit;
       }
       else if (is_layer_selection_field(*group_input)) {
