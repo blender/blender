@@ -269,7 +269,7 @@ static void read_shared_array(BlendDataReader &reader,
                               const ImplicitSharingInfo **sharing_info)
 {
   const char *func = __func__;
-  *sharing_info = BLO_read_shared(&reader, &data, [&]() -> const ImplicitSharingInfo * {
+  *sharing_info = BLO_read_shared(&reader, data, [&]() -> const ImplicitSharingInfo * {
     read_array_data(reader, dna_attr_type, size, data);
     if (*data == nullptr) {
       return nullptr;
