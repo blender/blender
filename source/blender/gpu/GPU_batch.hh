@@ -321,7 +321,10 @@ void GPU_batch_program_set_imm_shader(blender::gpu::Batch *batch);
 /**
  * Bind vertex and index buffers to SSBOs using `Frequency::GEOMETRY`.
  */
-void GPU_batch_bind_as_resources(blender::gpu::Batch *batch, GPUShader *shader);
+void GPU_batch_bind_as_resources(
+    blender::gpu::Batch *batch,
+    GPUShader *shader,
+    const blender::gpu::shader::SpecializationConstants *constants = nullptr);
 
 /** \} */
 

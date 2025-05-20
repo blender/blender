@@ -202,7 +202,7 @@ void Draw::execute(RecordingState &state) const
       return;
     }
 
-    GPU_batch_bind_as_resources(batch, state.shader);
+    GPU_batch_bind_as_resources(batch, state.shader, state.specialization_constants_get());
 
     gpu::Batch *gpu_batch = procedural_batch_get(GPUPrimType(expand_prim_type));
     GPU_batch_set_shader(gpu_batch, state.shader, state.specialization_constants_get());
@@ -230,7 +230,8 @@ void DrawMulti::execute(RecordingState &state) const
 
       if (GPUPrimType(group.desc.expand_prim_type) != GPU_PRIM_NONE) {
         /* Bind original batch as resource and use a procedural batch to issue the draw-call. */
-        GPU_batch_bind_as_resources(group.desc.gpu_batch, state.shader);
+        GPU_batch_bind_as_resources(
+            group.desc.gpu_batch, state.shader, state.specialization_constants_get());
         batch = procedural_batch_get(GPUPrimType(group.desc.expand_prim_type));
       }
 
