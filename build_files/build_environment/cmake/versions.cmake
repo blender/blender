@@ -886,11 +886,11 @@ Copyright (c) 2017-2019 LunarG, Inc.
 Copyright (c) 2019 Collabora, Ltd.
 ]=])
 
-set(WL_PROTOCOLS_VERSION 1.36)
+set(WL_PROTOCOLS_VERSION 1.44)
 set(WL_PROTOCOLS_NAME Wayland-Protocols)
 set(WL_PROTOCOLS_FILE wayland-protocols-${WL_PROTOCOLS_VERSION}.tar.xz)
 set(WL_PROTOCOLS_URI https://gitlab.freedesktop.org/wayland/wayland-protocols/-/releases/${WL_PROTOCOLS_VERSION}/downloads/${WL_PROTOCOLS_FILE})
-set(WL_PROTOCOLS_HASH d733380202a75ca837744e65b4dbadc5)
+set(WL_PROTOCOLS_HASH bbf053c2d62cf11e253cf2cc151c2df0)
 set(WL_PROTOCOLS_HASH_TYPE MD5)
 set(WL_PROTOCOLS_HOMEPAGE https://gitlab.freedesktop.org/wayland/wayland-protocols)
 set(WL_PROTOCOLS_LICENSE SPDX:MIT)
@@ -905,10 +905,10 @@ Copyright © 2014-2015 Collabora, Ltd.
 Copyright © 2015 Red Hat Inc.
 ]=])
 
-set(WAYLAND_VERSION 1.23.0)
+set(WAYLAND_VERSION 1.23.1)
 set(WAYLAND_FILE wayland-${WAYLAND_VERSION}.tar.xz)
 set(WAYLAND_URI https://gitlab.freedesktop.org/wayland/wayland/-/releases/${WAYLAND_VERSION}/downloads/wayland-${WAYLAND_VERSION}.tar.xz)
-set(WAYLAND_HASH 23ad991e776ec8cf7e58b34cbd2efa75)
+set(WAYLAND_HASH 5d27c7d3658fa90f40111b47cdb4a8fb)
 set(WAYLAND_HASH_TYPE MD5)
 set(WAYLAND_HOMEPAGE https://gitlab.freedesktop.org/wayland/wayland)
 set(WAYLAND_LICENSE SPDX:MIT)
@@ -951,10 +951,10 @@ Copyright © 2012 Collabora, Ltd.
 Copyright © 2008 Kristian Høgsberg.
 ]=])
 
-set(WAYLAND_WESTON_VERSION 13.0.3)
+set(WAYLAND_WESTON_VERSION 14.0.2)
 set(WAYLAND_WESTON_FILE weston-${WAYLAND_WESTON_VERSION}.tar.xz)
 set(WAYLAND_WESTON_URI https://gitlab.freedesktop.org/wayland/weston/-/releases/${WAYLAND_WESTON_VERSION}/downloads/weston-${WAYLAND_WESTON_VERSION}.tar.xz)
-set(WAYLAND_WESTON_HASH 9e10833f807214b4b060a1a8db1e3057)
+set(WAYLAND_WESTON_HASH 4575a052e2ff3ea7819cfbf33868f8f5)
 set(WAYLAND_WESTON_HASH_TYPE MD5)
 set(WAYLAND_WESTON_HOMEPAGE https://gitlab.freedesktop.org/wayland/weston)
 set(WAYLAND_WESTON_LICENSE SPDX:MIT)
