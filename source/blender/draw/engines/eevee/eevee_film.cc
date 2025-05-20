@@ -727,6 +727,12 @@ void Film::update_sample_table()
   int filter_radius_ceil = ceilf(data_.filter_radius);
   float filter_radius_sqr = square_f(data_.filter_radius);
 
+  /* Reset */
+  for (FilmSample &sample : data_.samples) {
+    sample.texel = int2(0, 0);
+    sample.weight = 0.0f;
+  }
+
   data_.samples_len = 0;
   if (data_.scaling_factor > 1) {
     /* For this case there might be no valid samples for some pixels.
@@ -778,6 +784,11 @@ void Film::update_sample_table()
           data_.samples_len++;
         }
       }
+      /* Avoid querying a different shader specialization for this case.
+       * This can happen with the default settings. */
+      if (data_.samples_len == 4) {
+        data_.samples_len++;
+      }
     }
     /* Put the closest one in first position. */
     if (closest_index != 0) {
@@ -809,6 +820,24 @@ void Film::update_sample_table()
       data_.samples_weight_total += sample.weight;
       i++;
     }
+  }
+
+  /* Round to specific amount of sample to avoid variation in sample count to cause stutter on
+   * startup because of shader specialization. */
+  if (data_.samples_len == 1) {
+    data_.samples_len = 1;
+  }
+  else if (data_.samples_len <= 4) {
+    data_.samples_len = 4;
+  }
+  else if (data_.samples_len <= 9) {
+    data_.samples_len = 9;
+  }
+  else if (data_.samples_len <= 16) {
+    data_.samples_len = 16;
+  }
+  else {
+    BLI_assert_unreachable();
   }
 }
 
