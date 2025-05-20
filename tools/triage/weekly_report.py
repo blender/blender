@@ -29,6 +29,7 @@ import sys
 
 from gitea_utils import (
     gitea_json_activities_get,
+    gitea_json_pull_request_by_base_and_head_get,
     gitea_json_issue_events_filter,
     gitea_json_issue_get,
     gitea_user_get, git_username_detect,
@@ -40,6 +41,7 @@ from typing import (
 from collections.abc import (
     Iterable,
 )
+from dataclasses import dataclass, field
 
 # Support piping the output to a file or process.
 IS_ATTY = sys.stdout.isatty()
@@ -136,7 +138,26 @@ def report_personal_weekly_get(
     issues_duplicated: list[str] = []
     issues_archived: list[str] = []
 
-    commits: list[str] = []
+    @dataclass
+    class Branch:
+        # Name of the repository owning the branch (which can differ from the repository targeted by this branch!)
+        repository_full_name: str
+        commits: list[str]
+
+    @dataclass
+    class PullRequest:
+        descriptor: str
+
+    @dataclass
+    class Repository:
+        name: str
+        # Branches targeting this repository. Branch name is key.
+        branches: dict[str, Branch] = field(default_factory=dict)
+        # Pull requests targeting this repository. Key is respository of the branch and the branch name.
+        prs: dict[str, PullRequest] = field(default_factory=dict)
+
+    # Repositories containing any commit activity, identified by full name (e.g. "blender/blender").
+    repositories: dict[str, Repository] = {}
 
     user_data: dict[str, Any] = gitea_user_get(username)
 
@@ -174,7 +195,8 @@ def report_personal_weekly_get(
                 ):
                     content_json = json.loads(activity["content"])
                     assert isinstance(content_json, dict)
-                    repo_fullname = activity["repo"]["full_name"]
+                    repo = activity["repo"]
+                    repo_fullname = repo["full_name"]
                     content_json_commits: list[dict[str, Any]] = content_json["Commits"]
                     for commit_json in content_json_commits:
                         # Skip commits that were not made by this user. Using email doesn't seem to
@@ -182,22 +204,55 @@ def report_personal_weekly_get(
                         if commit_json["AuthorName"] != user_data["full_name"]:
                             continue
 
-
                         title = commit_json["Message"].split('\n', 1)[0]
 
                         if title.startswith("Merge branch "):
                             continue
 
-                        # Substitute occurrences of "#\d+" with "repo#\d+"
-                        title = re.sub(r"#(\d+)", rf"{repo_fullname}#\1", title)
-
-                        branch_name = activity["ref_name"].removeprefix("refs/heads/")
-
                         hash_value = commit_json["Sha1"]
                         if hash_length > 0:
                             hash_value = hash_value[:hash_length]
-                        branch_str = f" on `{branch_name}`" if branch_name != "main" else ""
-                        commits.append(f"{title} ({repo_fullname}@{hash_value}{branch_str})")
+
+                        branch_name = activity["ref_name"].removeprefix("refs/heads/")
+                        is_release_branch = re.match(r"^blender-v(?:\d+\.\d+)(?:\.\d+)?-release$", branch_name)
+
+                        pr = None
+
+                        # The PR workflow means branches and PRs are owned by a user's repository instead of the
+                        # repository they are made for. For weekly reports it makes more sense to keep all branches and
+                        # PRs related to a single repository together, regardless of who happens to own them.
+                        #
+                        # So the folling adds branches and PRs to a "target" repository, not the owning one.
+
+                        target_repo_json = repo["parent"]
+                        # There's no parent repo if the branch is on the same repo. Treat the repo itself as target.
+                        if not target_repo_json and branch_name != repo["default_branch"]:
+                            target_repo_json = repo
+                        target_repo_fullname = target_repo_json["full_name"] if target_repo_json else repo_fullname
+
+                        # Substitute occurrences of "#\d+" with "repo#\d+"
+                        title = re.sub(r"#(\d+)", rf"{target_repo_fullname}#\1", title)
+
+                        if target_repo_fullname not in repositories:
+                            repositories[target_repo_fullname] = Repository(target_repo_fullname)
+                        target_repo = repositories[target_repo_fullname]
+
+                        if branch_name not in target_repo.branches:
+                            target_repo.branches[branch_name] = Branch(repo_fullname, [])
+                            # If we see this branch for the first time, try to find a PR for it. Only catches PRs made
+                            # against the default branch of the target repository.
+                            if not is_release_branch and target_repo_json:
+                                pr = gitea_json_pull_request_by_base_and_head_get(
+                                    target_repo_fullname, target_repo_json["default_branch"], f"{repo_fullname}:{branch_name}")
+                        branch = target_repo.branches[branch_name]
+
+                        if pr:
+                            pr_title = pr["title"]
+                            pr_id = pr["number"]
+                            target_repo.prs[(repo_fullname, branch_name)
+                                            ] = f"{pr_title} ({target_repo_fullname}!{pr_id})"
+
+                        branch.commits.append(f"{title} ({repo_fullname}@{hash_value})")
 
     date_end = date_curr
     len_total = len(issues_closed) + len(issues_commented) + len(pulls_commented)
@@ -300,11 +355,48 @@ def report_personal_weekly_get(
     print_pulls(pulls_created)
     print()
 
+    nice_repo_names = {
+        "blender/blender-developer-docs": "Developer Documentation",
+        "blender/blender-manual": "Blender Manual",
+    }
+
+    def print_repo(repo: Repository, indent_level=0):
+        # Print main branch commits immediately, no need to add extra section.
+        main_branch = repo.branches.get("main")
+        if main_branch:
+            for commit in main_branch.commits:
+                print("{:s}* {:s}".format("  " * indent_level, commit))
+
+        for branch_name, branch in repo.branches.items():
+            # Main branch already printed above.
+            if branch_name == "main":
+                continue
+
+            pr = repo.prs.get((branch.repository_full_name, branch_name))
+            if pr:
+                print("{:s}* {:s}".format("  " * indent_level, pr))
+            else:
+                print("{:s}* {:s}:{:s}".format("  " * indent_level, branch.repository_full_name, branch_name))
+
+            for commit in branch.commits:
+                print("  {:s}* {:s}".format("  " * indent_level, commit))
+
     # Print commits
     print("**Commits:**")
-    for commit in commits:
-        print("*", commit)
-    print()
+    # Print main branch commits from blender/blender first.
+    blender_repo = repositories.get("blender/blender")
+    if blender_repo:
+        print_repo(blender_repo)
+
+    for repo in repositories.values():
+        # Blender repo already handled above.
+        if repo.name == "blender/blender":
+            continue
+
+        # For some repositories we know a nicer name to display (e.g. "blender/blender-manual" -> "Blender Manual")
+        nice_repo_name = nice_repo_names.get(repo.name, repo.name)
+        print(f"* {nice_repo_name}:")
+        print_repo(repo, indent_level=1)
 
     if verbose:
         # Debug
