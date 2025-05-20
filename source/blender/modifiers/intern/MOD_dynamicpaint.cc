@@ -40,7 +40,9 @@ static void init_data(ModifierData *md)
 {
   DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)md;
 
-  MEMCPY_STRUCT_AFTER_CHECKED(pmd, DNA_struct_default_get(DynamicPaintModifierData), modifier);
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(pmd, modifier));
+
+  MEMCPY_STRUCT_AFTER(pmd, DNA_struct_default_get(DynamicPaintModifierData), modifier);
 }
 
 static void copy_data(const ModifierData *md, ModifierData *target, const int flag)

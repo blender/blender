@@ -111,7 +111,9 @@ static void init_data(ModifierData *md)
 {
   EdgeSplitModifierData *emd = (EdgeSplitModifierData *)md;
 
-  MEMCPY_STRUCT_AFTER_CHECKED(emd, DNA_struct_default_get(EdgeSplitModifierData), modifier);
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(emd, modifier));
+
+  MEMCPY_STRUCT_AFTER(emd, DNA_struct_default_get(EdgeSplitModifierData), modifier);
 }
 
 static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext * /*ctx*/, Mesh *mesh)

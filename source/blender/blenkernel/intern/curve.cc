@@ -80,7 +80,9 @@ static void curve_init_data(ID *id)
 {
   Curve *curve = (Curve *)id;
 
-  MEMCPY_STRUCT_AFTER_CHECKED(curve, DNA_struct_default_get(Curve), id);
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(curve, id));
+
+  MEMCPY_STRUCT_AFTER(curve, DNA_struct_default_get(Curve), id);
 }
 
 static void curve_copy_data(Main *bmain,

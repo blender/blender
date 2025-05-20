@@ -35,7 +35,9 @@ static void init_data(ModifierData *md)
 {
   CastModifierData *cmd = (CastModifierData *)md;
 
-  MEMCPY_STRUCT_AFTER_CHECKED(cmd, DNA_struct_default_get(CastModifierData), modifier);
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(cmd, modifier));
+
+  MEMCPY_STRUCT_AFTER(cmd, DNA_struct_default_get(CastModifierData), modifier);
 }
 
 static bool is_disabled(const Scene * /*scene*/, ModifierData *md, bool /*use_render_params*/)

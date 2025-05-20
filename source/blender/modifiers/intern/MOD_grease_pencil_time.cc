@@ -47,7 +47,9 @@ static void init_data(ModifierData *md)
 {
   auto *tmd = reinterpret_cast<GreasePencilTimeModifierData *>(md);
 
-  MEMCPY_STRUCT_AFTER_CHECKED(tmd, DNA_struct_default_get(GreasePencilTimeModifierData), modifier);
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(tmd, modifier));
+
+  MEMCPY_STRUCT_AFTER(tmd, DNA_struct_default_get(GreasePencilTimeModifierData), modifier);
   modifier::greasepencil::init_influence_data(&tmd->influence, false);
 
   GreasePencilTimeModifierSegment *segment = DNA_struct_default_alloc(

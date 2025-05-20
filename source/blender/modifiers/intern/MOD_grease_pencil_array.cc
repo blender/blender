@@ -47,8 +47,9 @@ static void init_data(ModifierData *md)
 {
   auto *mmd = reinterpret_cast<GreasePencilArrayModifierData *>(md);
 
-  MEMCPY_STRUCT_AFTER_CHECKED(
-      mmd, DNA_struct_default_get(GreasePencilArrayModifierData), modifier);
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(mmd, modifier));
+
+  MEMCPY_STRUCT_AFTER(mmd, DNA_struct_default_get(GreasePencilArrayModifierData), modifier);
   modifier::greasepencil::init_influence_data(&mmd->influence, false);
 }
 

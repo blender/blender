@@ -49,7 +49,9 @@ static void init_data(ModifierData *md)
 {
   DecimateModifierData *dmd = (DecimateModifierData *)md;
 
-  MEMCPY_STRUCT_AFTER_CHECKED(dmd, DNA_struct_default_get(DecimateModifierData), modifier);
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(dmd, modifier));
+
+  MEMCPY_STRUCT_AFTER(dmd, DNA_struct_default_get(DecimateModifierData), modifier);
 }
 
 static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)

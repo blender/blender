@@ -63,6 +63,8 @@ static void text_init_data(ID *id)
 {
   Text *text = (Text *)id;
 
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(text, id));
+
   text->filepath = nullptr;
 
   text->flags = TXT_ISDIRTY | TXT_ISMEM;

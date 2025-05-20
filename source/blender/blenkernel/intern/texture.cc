@@ -60,7 +60,9 @@ static void texture_init_data(ID *id)
 {
   Tex *texture = (Tex *)id;
 
-  MEMCPY_STRUCT_AFTER_CHECKED(texture, DNA_struct_default_get(Tex), id);
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(texture, id));
+
+  MEMCPY_STRUCT_AFTER(texture, DNA_struct_default_get(Tex), id);
 
   BKE_imageuser_default(&texture->iuser);
 }

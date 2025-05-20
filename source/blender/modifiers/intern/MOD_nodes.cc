@@ -102,9 +102,10 @@ static void init_data(ModifierData *md)
 {
   NodesModifierData *nmd = (NodesModifierData *)md;
 
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(nmd, modifier));
   nmd->modifier.layout_panel_open_flag |= 1 << NODES_MODIFIER_PANEL_WARNINGS;
 
-  MEMCPY_STRUCT_AFTER_CHECKED(nmd, DNA_struct_default_get(NodesModifierData), modifier);
+  MEMCPY_STRUCT_AFTER(nmd, DNA_struct_default_get(NodesModifierData), modifier);
   nmd->runtime = MEM_new<NodesModifierRuntime>(__func__);
   nmd->runtime->cache = std::make_shared<bake::ModifierCache>();
 }

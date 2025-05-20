@@ -45,7 +45,9 @@ static void init_data(ModifierData *md)
 {
   BevelModifierData *bmd = (BevelModifierData *)md;
 
-  MEMCPY_STRUCT_AFTER_CHECKED(bmd, DNA_struct_default_get(BevelModifierData), modifier);
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(bmd, modifier));
+
+  MEMCPY_STRUCT_AFTER(bmd, DNA_struct_default_get(BevelModifierData), modifier);
 
   bmd->custom_profile = BKE_curveprofile_add(PROF_PRESET_LINE);
 }

@@ -85,7 +85,9 @@ static void material_init_data(ID *id)
 {
   Material *material = (Material *)id;
 
-  MEMCPY_STRUCT_AFTER_CHECKED(material, DNA_struct_default_get(Material), id);
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(material, id));
+
+  MEMCPY_STRUCT_AFTER(material, DNA_struct_default_get(Material), id);
 }
 
 static void material_copy_data(Main *bmain,

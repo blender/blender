@@ -33,7 +33,9 @@ static void init_data(ModifierData *md)
 {
   SmoothModifierData *smd = (SmoothModifierData *)md;
 
-  MEMCPY_STRUCT_AFTER_CHECKED(smd, DNA_struct_default_get(SmoothModifierData), modifier);
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(smd, modifier));
+
+  MEMCPY_STRUCT_AFTER(smd, DNA_struct_default_get(SmoothModifierData), modifier);
 }
 
 static bool is_disabled(const Scene * /*scene*/, ModifierData *md, bool /*use_render_params*/)

@@ -34,7 +34,9 @@ static void init_data(ModifierData *md)
 {
   SolidifyModifierData *smd = (SolidifyModifierData *)md;
 
-  MEMCPY_STRUCT_AFTER_CHECKED(smd, DNA_struct_default_get(SolidifyModifierData), modifier);
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(smd, modifier));
+
+  MEMCPY_STRUCT_AFTER(smd, DNA_struct_default_get(SolidifyModifierData), modifier);
 }
 
 #ifdef __GNUC__

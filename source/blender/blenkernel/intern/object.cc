@@ -171,8 +171,9 @@ static void copy_object_pose(Object *obn, const Object *ob, const int flag);
 static void object_init_data(ID *id)
 {
   Object *ob = (Object *)id;
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(ob, id));
 
-  MEMCPY_STRUCT_AFTER_CHECKED(ob, DNA_struct_default_get(Object), id);
+  MEMCPY_STRUCT_AFTER(ob, DNA_struct_default_get(Object), id);
 
   ob->type = OB_EMPTY;
 

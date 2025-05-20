@@ -48,7 +48,9 @@ static void init_data(ModifierData *md)
 {
   MeshCacheModifierData *mcmd = (MeshCacheModifierData *)md;
 
-  MEMCPY_STRUCT_AFTER_CHECKED(mcmd, DNA_struct_default_get(MeshCacheModifierData), modifier);
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(mcmd, modifier));
+
+  MEMCPY_STRUCT_AFTER(mcmd, DNA_struct_default_get(MeshCacheModifierData), modifier);
 }
 
 static bool depends_on_time(Scene * /*scene*/, ModifierData *md)

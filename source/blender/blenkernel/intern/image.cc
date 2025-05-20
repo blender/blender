@@ -654,7 +654,9 @@ static ImageTile *imagetile_alloc(int tile_number)
 /* only image block itself */
 static void image_init(Image *ima, short source, short type)
 {
-  MEMCPY_STRUCT_AFTER_CHECKED(ima, DNA_struct_default_get(Image), id);
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(ima, id));
+
+  MEMCPY_STRUCT_AFTER(ima, DNA_struct_default_get(Image), id);
 
   ima->source = source;
   ima->type = type;

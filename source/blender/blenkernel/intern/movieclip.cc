@@ -86,8 +86,9 @@ static void movie_clip_runtime_reset(MovieClip *clip)
 static void movie_clip_init_data(ID *id)
 {
   MovieClip *movie_clip = (MovieClip *)id;
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(movie_clip, id));
 
-  MEMCPY_STRUCT_AFTER_CHECKED(movie_clip, DNA_struct_default_get(MovieClip), id);
+  MEMCPY_STRUCT_AFTER(movie_clip, DNA_struct_default_get(MovieClip), id);
 
   BKE_tracking_settings_init(&movie_clip->tracking);
   BKE_color_managed_colorspace_settings_init(&movie_clip->colorspace_settings);

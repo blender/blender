@@ -27,7 +27,9 @@ static void speaker_init_data(ID *id)
 {
   Speaker *speaker = (Speaker *)id;
 
-  MEMCPY_STRUCT_AFTER_CHECKED(speaker, DNA_struct_default_get(Speaker), id);
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(speaker, id));
+
+  MEMCPY_STRUCT_AFTER(speaker, DNA_struct_default_get(Speaker), id);
 }
 
 static void speaker_foreach_id(ID *id, LibraryForeachIDData *data)

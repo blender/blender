@@ -121,8 +121,9 @@ static void collection_exporter_copy(Collection *collection, CollectionExport *d
 static void collection_init_data(ID *id)
 {
   Collection *collection = (Collection *)id;
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(collection, id));
 
-  MEMCPY_STRUCT_AFTER_CHECKED(collection, DNA_struct_default_get(Collection), id);
+  MEMCPY_STRUCT_AFTER(collection, DNA_struct_default_get(Collection), id);
 }
 
 /**

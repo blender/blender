@@ -92,8 +92,9 @@ static void fluid_free_settings(SPHFluidSettings *fluid);
 static void particle_settings_init(ID *id)
 {
   ParticleSettings *particle_settings = (ParticleSettings *)id;
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(particle_settings, id));
 
-  MEMCPY_STRUCT_AFTER_CHECKED(particle_settings, DNA_struct_default_get(ParticleSettings), id);
+  MEMCPY_STRUCT_AFTER(particle_settings, DNA_struct_default_get(ParticleSettings), id);
 
   particle_settings->effector_weights = BKE_effector_add_weights(nullptr);
   particle_settings->pd = BKE_partdeflect_new(PFIELD_NULL);

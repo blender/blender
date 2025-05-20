@@ -78,8 +78,9 @@ static void init_data(ModifierData *md)
 {
   GreasePencilLineartModifierData *gpmd = (GreasePencilLineartModifierData *)md;
 
-  MEMCPY_STRUCT_AFTER_CHECKED(
-      gpmd, DNA_struct_default_get(GreasePencilLineartModifierData), modifier);
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(gpmd, modifier));
+
+  MEMCPY_STRUCT_AFTER(gpmd, DNA_struct_default_get(GreasePencilLineartModifierData), modifier);
 }
 
 static void copy_data(const ModifierData *md, ModifierData *target, const int flag)

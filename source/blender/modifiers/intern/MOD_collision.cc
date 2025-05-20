@@ -39,7 +39,9 @@ static void init_data(ModifierData *md)
 {
   CollisionModifierData *collmd = (CollisionModifierData *)md;
 
-  MEMCPY_STRUCT_AFTER_CHECKED(collmd, DNA_struct_default_get(CollisionModifierData), modifier);
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(collmd, modifier));
+
+  MEMCPY_STRUCT_AFTER(collmd, DNA_struct_default_get(CollisionModifierData), modifier);
 }
 
 static void free_data(ModifierData *md)

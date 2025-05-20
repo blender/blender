@@ -56,8 +56,9 @@ static const char *ATTR_POSITION = "position";
 static void curves_init_data(ID *id)
 {
   Curves *curves = (Curves *)id;
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(curves, id));
 
-  MEMCPY_STRUCT_AFTER_CHECKED(curves, DNA_struct_default_get(Curves), id);
+  MEMCPY_STRUCT_AFTER(curves, DNA_struct_default_get(Curves), id);
 
   new (&curves->geometry) blender::bke::CurvesGeometry();
 }

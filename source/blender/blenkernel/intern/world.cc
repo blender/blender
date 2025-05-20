@@ -64,8 +64,9 @@ static void world_free_data(ID *id)
 static void world_init_data(ID *id)
 {
   World *wrld = (World *)id;
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(wrld, id));
 
-  MEMCPY_STRUCT_AFTER_CHECKED(wrld, DNA_struct_default_get(World), id);
+  MEMCPY_STRUCT_AFTER(wrld, DNA_struct_default_get(World), id);
 }
 
 /**

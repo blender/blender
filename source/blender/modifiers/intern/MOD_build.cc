@@ -39,7 +39,9 @@ static void init_data(ModifierData *md)
 {
   BuildModifierData *bmd = (BuildModifierData *)md;
 
-  MEMCPY_STRUCT_AFTER_CHECKED(bmd, DNA_struct_default_get(BuildModifierData), modifier);
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(bmd, modifier));
+
+  MEMCPY_STRUCT_AFTER(bmd, DNA_struct_default_get(BuildModifierData), modifier);
 }
 
 static bool depends_on_time(Scene * /*scene*/, ModifierData * /*md*/)

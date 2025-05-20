@@ -28,8 +28,9 @@
 static void lightprobe_init_data(ID *id)
 {
   LightProbe *probe = (LightProbe *)id;
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(probe, id));
 
-  MEMCPY_STRUCT_AFTER_CHECKED(probe, DNA_struct_default_get(LightProbe), id);
+  MEMCPY_STRUCT_AFTER(probe, DNA_struct_default_get(LightProbe), id);
 }
 
 static void lightprobe_foreach_id(ID *id, LibraryForeachIDData *data)

@@ -62,7 +62,13 @@ static void init_data(ModifierData *md)
 {
   MeshSeqCacheModifierData *mcmd = reinterpret_cast<MeshSeqCacheModifierData *>(md);
 
-  MEMCPY_STRUCT_AFTER_CHECKED(mcmd, DNA_struct_default_get(MeshSeqCacheModifierData), modifier);
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(mcmd, modifier));
+
+  mcmd->cache_file = nullptr;
+  mcmd->object_path[0] = '\0';
+  mcmd->read_flag = MOD_MESHSEQ_READ_ALL;
+
+  MEMCPY_STRUCT_AFTER(mcmd, DNA_struct_default_get(MeshSeqCacheModifierData), modifier);
 }
 
 static void copy_data(const ModifierData *md, ModifierData *target, const int flag)

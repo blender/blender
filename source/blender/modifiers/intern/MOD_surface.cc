@@ -39,7 +39,9 @@ static void init_data(ModifierData *md)
 {
   SurfaceModifierData *surmd = (SurfaceModifierData *)md;
 
-  MEMCPY_STRUCT_AFTER_CHECKED(surmd, DNA_struct_default_get(SurfaceModifierData), modifier);
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(surmd, modifier));
+
+  MEMCPY_STRUCT_AFTER(surmd, DNA_struct_default_get(SurfaceModifierData), modifier);
 }
 
 static void copy_data(const ModifierData *md_src, ModifierData *md_dst, const int flag)

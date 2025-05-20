@@ -46,7 +46,9 @@ static void init_data(ModifierData *md)
 {
   RemeshModifierData *rmd = (RemeshModifierData *)md;
 
-  MEMCPY_STRUCT_AFTER_CHECKED(rmd, DNA_struct_default_get(RemeshModifierData), modifier);
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(rmd, modifier));
+
+  MEMCPY_STRUCT_AFTER(rmd, DNA_struct_default_get(RemeshModifierData), modifier);
 }
 
 #ifdef WITH_MOD_REMESH

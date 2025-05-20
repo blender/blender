@@ -41,8 +41,9 @@ static void init_data(ModifierData *md)
   GreasePencilWeightAngleModifierData *gpmd =
       reinterpret_cast<GreasePencilWeightAngleModifierData *>(md);
 
-  MEMCPY_STRUCT_AFTER_CHECKED(
-      gpmd, DNA_struct_default_get(GreasePencilWeightAngleModifierData), modifier);
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(gpmd, modifier));
+
+  MEMCPY_STRUCT_AFTER(gpmd, DNA_struct_default_get(GreasePencilWeightAngleModifierData), modifier);
   modifier::greasepencil::init_influence_data(&gpmd->influence, false);
 }
 

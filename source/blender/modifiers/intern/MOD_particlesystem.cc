@@ -39,7 +39,9 @@ static void init_data(ModifierData *md)
 {
   ParticleSystemModifierData *psmd = (ParticleSystemModifierData *)md;
 
-  MEMCPY_STRUCT_AFTER_CHECKED(psmd, DNA_struct_default_get(ParticleSystemModifierData), modifier);
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(psmd, modifier));
+
+  MEMCPY_STRUCT_AFTER(psmd, DNA_struct_default_get(ParticleSystemModifierData), modifier);
 }
 static void free_data(ModifierData *md)
 {

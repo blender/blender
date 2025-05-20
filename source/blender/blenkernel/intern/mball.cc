@@ -61,7 +61,9 @@ static void metaball_init_data(ID *id)
 {
   MetaBall *metaball = (MetaBall *)id;
 
-  MEMCPY_STRUCT_AFTER_CHECKED(metaball, DNA_struct_default_get(MetaBall), id);
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(metaball, id));
+
+  MEMCPY_STRUCT_AFTER(metaball, DNA_struct_default_get(MetaBall), id);
 }
 
 static void metaball_copy_data(Main * /*bmain*/,

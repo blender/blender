@@ -569,7 +569,9 @@ static void init_data(ModifierData *md)
 {
   NormalEditModifierData *enmd = (NormalEditModifierData *)md;
 
-  MEMCPY_STRUCT_AFTER_CHECKED(enmd, DNA_struct_default_get(NormalEditModifierData), modifier);
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(enmd, modifier));
+
+  MEMCPY_STRUCT_AFTER(enmd, DNA_struct_default_get(NormalEditModifierData), modifier);
 }
 
 static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)

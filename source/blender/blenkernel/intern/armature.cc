@@ -84,8 +84,9 @@ static void copy_bonechildren_custom_handles(Bone *bone_dst, bArmature *arm_dst)
 static void armature_init_data(ID *id)
 {
   bArmature *armature = (bArmature *)id;
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(armature, id));
 
-  MEMCPY_STRUCT_AFTER_CHECKED(armature, DNA_struct_default_get(bArmature), id);
+  MEMCPY_STRUCT_AFTER(armature, DNA_struct_default_get(bArmature), id);
 }
 
 /**

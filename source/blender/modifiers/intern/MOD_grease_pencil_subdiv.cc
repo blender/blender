@@ -36,8 +36,9 @@ static void init_data(ModifierData *md)
 {
   GreasePencilSubdivModifierData *gpmd = reinterpret_cast<GreasePencilSubdivModifierData *>(md);
 
-  MEMCPY_STRUCT_AFTER_CHECKED(
-      gpmd, DNA_struct_default_get(GreasePencilSubdivModifierData), modifier);
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(gpmd, modifier));
+
+  MEMCPY_STRUCT_AFTER(gpmd, DNA_struct_default_get(GreasePencilSubdivModifierData), modifier);
   modifier::greasepencil::init_influence_data(&gpmd->influence, false);
 }
 

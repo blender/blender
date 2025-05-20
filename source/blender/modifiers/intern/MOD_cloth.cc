@@ -48,7 +48,9 @@ static void init_data(ModifierData *md)
 {
   ClothModifierData *clmd = (ClothModifierData *)md;
 
-  MEMCPY_STRUCT_AFTER_CHECKED(clmd, DNA_struct_default_get(ClothModifierData), modifier);
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(clmd, modifier));
+
+  MEMCPY_STRUCT_AFTER(clmd, DNA_struct_default_get(ClothModifierData), modifier);
   clmd->sim_parms = DNA_struct_default_alloc(ClothSimSettings);
   clmd->coll_parms = DNA_struct_default_alloc(ClothCollSettings);
 

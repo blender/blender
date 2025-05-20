@@ -553,7 +553,9 @@ static void init_data(ModifierData *md)
 {
   WeightedNormalModifierData *wnmd = (WeightedNormalModifierData *)md;
 
-  MEMCPY_STRUCT_AFTER_CHECKED(wnmd, DNA_struct_default_get(WeightedNormalModifierData), modifier);
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(wnmd, modifier));
+
+  MEMCPY_STRUCT_AFTER(wnmd, DNA_struct_default_get(WeightedNormalModifierData), modifier);
 }
 
 static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)

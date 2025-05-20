@@ -40,8 +40,9 @@ static void init_data(ModifierData *md)
 {
   auto *lmd = reinterpret_cast<GreasePencilLatticeModifierData *>(md);
 
-  MEMCPY_STRUCT_AFTER_CHECKED(
-      lmd, DNA_struct_default_get(GreasePencilLatticeModifierData), modifier);
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(lmd, modifier));
+
+  MEMCPY_STRUCT_AFTER(lmd, DNA_struct_default_get(GreasePencilLatticeModifierData), modifier);
   modifier::greasepencil::init_influence_data(&lmd->influence, false);
 }
 

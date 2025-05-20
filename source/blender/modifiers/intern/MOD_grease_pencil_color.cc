@@ -45,8 +45,9 @@ static void init_data(ModifierData *md)
 {
   auto *cmd = reinterpret_cast<GreasePencilColorModifierData *>(md);
 
-  MEMCPY_STRUCT_AFTER_CHECKED(
-      cmd, DNA_struct_default_get(GreasePencilColorModifierData), modifier);
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(cmd, modifier));
+
+  MEMCPY_STRUCT_AFTER(cmd, DNA_struct_default_get(GreasePencilColorModifierData), modifier);
   modifier::greasepencil::init_influence_data(&cmd->influence, true);
 }
 

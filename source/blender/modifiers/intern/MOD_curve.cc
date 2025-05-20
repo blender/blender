@@ -38,7 +38,9 @@ static void init_data(ModifierData *md)
 {
   CurveModifierData *cmd = (CurveModifierData *)md;
 
-  MEMCPY_STRUCT_AFTER_CHECKED(cmd, DNA_struct_default_get(CurveModifierData), modifier);
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(cmd, modifier));
+
+  MEMCPY_STRUCT_AFTER(cmd, DNA_struct_default_get(CurveModifierData), modifier);
 }
 
 static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
