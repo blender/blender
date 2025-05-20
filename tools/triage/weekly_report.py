@@ -136,7 +136,7 @@ def report_personal_weekly_get(
     issues_duplicated: list[str] = []
     issues_archived: list[str] = []
 
-    commits_main: list[str] = []
+    commits: list[str] = []
 
     user_data: dict[str, Any] = gitea_user_get(username)
 
@@ -169,7 +169,6 @@ def report_personal_weekly_get(
                 pulls_reviewed.append(fullname)
             elif op_type == "commit_repo":
                 if (
-                        activity["ref_name"] == "refs/heads/main" and
                         activity["content"] and
                         activity["repo"]["name"] != ".profile"
                 ):
@@ -177,13 +176,14 @@ def report_personal_weekly_get(
                     assert isinstance(content_json, dict)
                     repo_fullname = activity["repo"]["full_name"]
                     content_json_commits: list[dict[str, Any]] = content_json["Commits"]
-                    for commits in content_json_commits:
+                    for commit_json in content_json_commits:
                         # Skip commits that were not made by this user. Using email doesn't seem to
                         # be possible unfortunately.
-                        if commits["AuthorName"] != user_data["full_name"]:
+                        if commit_json["AuthorName"] != user_data["full_name"]:
                             continue
 
-                        title = commits["Message"].split('\n', 1)[0]
+
+                        title = commit_json["Message"].split('\n', 1)[0]
 
                         if title.startswith("Merge branch "):
                             continue
@@ -191,10 +191,13 @@ def report_personal_weekly_get(
                         # Substitute occurrences of "#\d+" with "repo#\d+"
                         title = re.sub(r"#(\d+)", rf"{repo_fullname}#\1", title)
 
-                        hash_value = commits["Sha1"]
+                        branch_name = activity["ref_name"].removeprefix("refs/heads/")
+
+                        hash_value = commit_json["Sha1"]
                         if hash_length > 0:
                             hash_value = hash_value[:hash_length]
-                        commits_main.append(f"{title} ({repo_fullname}@{hash_value})")
+                        branch_str = f" on `{branch_name}`" if branch_name != "main" else ""
+                        commits.append(f"{title} ({repo_fullname}@{hash_value}{branch_str})")
 
     date_end = date_curr
     len_total = len(issues_closed) + len(issues_commented) + len(pulls_commented)
@@ -299,7 +302,7 @@ def report_personal_weekly_get(
 
     # Print commits
     print("**Commits:**")
-    for commit in commits_main:
+    for commit in commits:
         print("*", commit)
     print()
 
