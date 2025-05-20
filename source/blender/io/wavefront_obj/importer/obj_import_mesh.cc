@@ -91,9 +91,9 @@ Object *MeshFromGeometry::create_mesh_object(
 
   this->create_materials(bmain, materials, created_materials, obj, import_params.relative_paths);
 
-  transform_object(obj, import_params);
-
   BKE_mesh_nomain_to_mesh(mesh, static_cast<Mesh *>(obj->data), obj);
+
+  transform_object(obj, import_params);
 
   /* NOTE: vertex groups have to be created after final mesh is assigned to the object. */
   this->create_vertex_groups(obj);
