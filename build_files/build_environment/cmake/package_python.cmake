@@ -94,9 +94,9 @@ if(MSVC)
     add_custom_target(Package_Python
       ALL
       DEPENDS
-        external_python 
-        external_numpy 
-        external_python_site_packages 
+        external_python
+        external_numpy
+        external_python_site_packages
         external_zstandard
         external_cython
       OUTPUT
