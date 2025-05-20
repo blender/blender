@@ -493,21 +493,20 @@ static void ghost_xr_draw_view_info_from_view(const XrView &view, GHOST_XrDrawVi
 }
 
 void GHOST_XrSession::drawView(GHOST_XrSwapchain &swapchain,
+                               XrSwapchainImageBaseHeader &swapchain_image,
                                XrCompositionLayerProjectionView &r_proj_layer_view,
                                const XrSpaceLocation &view_location,
                                const XrView &view,
                                uint32_t view_idx,
                                void *draw_customdata)
 {
-  XrSwapchainImageBaseHeader *swapchain_image = swapchain.acquireDrawableSwapchainImage();
-  GHOST_XrDrawViewInfo draw_view_info = {};
-
   r_proj_layer_view.type = XR_TYPE_COMPOSITION_LAYER_PROJECTION_VIEW;
   r_proj_layer_view.pose = view.pose;
   r_proj_layer_view.fov = view.fov;
   swapchain.updateCompositionLayerProjectViewSubImage(r_proj_layer_view.subImage);
 
   assert(view_idx < 256);
+  GHOST_XrDrawViewInfo draw_view_info = {};
   draw_view_info.view_idx = char(view_idx);
   draw_view_info.swapchain_format = swapchain.getFormat();
   draw_view_info.expects_srgb_buffer = swapchain.isBufferSRGB();
@@ -520,9 +519,7 @@ void GHOST_XrSession::drawView(GHOST_XrSwapchain &swapchain,
 
   /* Draw! */
   m_context->getCustomFuncs().draw_view_fn(&draw_view_info, draw_customdata);
-  m_gpu_binding->submitToSwapchainImage(*swapchain_image, draw_view_info);
-
-  swapchain.releaseImage();
+  m_gpu_binding->submitToSwapchainImage(swapchain_image, draw_view_info);
 }
 
 XrCompositionLayerProjection GHOST_XrSession::drawLayer(
@@ -560,14 +557,32 @@ XrCompositionLayerProjection GHOST_XrSession::drawLayer(
       "Failed to query frame view space");
 
   r_proj_layer_views.resize(view_count);
+  std::vector<XrSwapchainImageBaseHeader *> swapchain_images;
+  swapchain_images.resize(view_count);
 
   for (uint32_t view_idx = 0; view_idx < view_count; view_idx++) {
-    drawView(m_oxr->swapchains[view_idx],
+    GHOST_XrSwapchain &swapchain = m_oxr->swapchains[view_idx];
+    swapchain_images[view_idx] = swapchain.acquireDrawableSwapchainImage();
+  }
+
+  m_gpu_binding->submitToSwapchainBegin();
+  for (uint32_t view_idx = 0; view_idx < view_count; view_idx++) {
+    GHOST_XrSwapchain &swapchain = m_oxr->swapchains[view_idx];
+    XrSwapchainImageBaseHeader &swapchain_image = *swapchain_images[view_idx];
+    drawView(swapchain,
+             swapchain_image,
              r_proj_layer_views[view_idx],
              view_location,
              m_oxr->views[view_idx],
              view_idx,
              draw_customdata);
+  }
+  m_gpu_binding->submitToSwapchainEnd();
+
+  for (uint32_t view_idx = 0; view_idx < view_count; view_idx++) {
+    GHOST_XrSwapchain &swapchain = m_oxr->swapchains[view_idx];
+    swapchain.releaseImage();
+    swapchain_images[view_idx] = nullptr;
   }
 
   layer.space = m_oxr->reference_space;

@@ -423,6 +423,7 @@ std::vector<XrSwapchainImageBaseHeader *> GHOST_XrGraphicsBindingVulkan::createS
   return base_images;
 }
 
+void GHOST_XrGraphicsBindingVulkan::submitToSwapchainBegin() {}
 void GHOST_XrGraphicsBindingVulkan::submitToSwapchainImage(
     XrSwapchainImageBaseHeader &swapchain_image, const GHOST_XrDrawViewInfo &draw_info)
 {
@@ -440,6 +441,7 @@ void GHOST_XrGraphicsBindingVulkan::submitToSwapchainImage(
       break;
   }
 }
+void GHOST_XrGraphicsBindingVulkan::submitToSwapchainEnd() {}
 
 /* -------------------------------------------------------------------- */
 /** \name Data transfer CPU

@@ -38,8 +38,10 @@ class GHOST_XrGraphicsBindingVulkan : public GHOST_IXrGraphicsBinding {
                                                bool &r_is_srgb_format) const override;
   std::vector<XrSwapchainImageBaseHeader *> createSwapchainImages(uint32_t image_count) override;
 
+  void submitToSwapchainBegin() override;
   void submitToSwapchainImage(XrSwapchainImageBaseHeader &swapchain_image,
                               const GHOST_XrDrawViewInfo &draw_info) override;
+  void submitToSwapchainEnd() override;
 
   bool needsUpsideDownDrawing(GHOST_Context &ghost_ctx) const override;
 

@@ -269,6 +269,7 @@ class GHOST_XrGraphicsBindingOpenGL : public GHOST_IXrGraphicsBinding {
     return base_images;
   }
 
+  void submitToSwapchainBegin() override {}
   void submitToSwapchainImage(XrSwapchainImageBaseHeader &swapchain_image,
                               const GHOST_XrDrawViewInfo &draw_info) override
   {
@@ -293,6 +294,7 @@ class GHOST_XrGraphicsBindingOpenGL : public GHOST_IXrGraphicsBinding {
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
   }
+  void submitToSwapchainEnd() override {}
 
   bool needsUpsideDownDrawing(GHOST_Context &ghost_ctx) const override
   {
