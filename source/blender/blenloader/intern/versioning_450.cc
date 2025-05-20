@@ -5166,22 +5166,22 @@ void blo_do_versions_450(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
      * Previously #Curve::vfont was checked which is error prone
      * since the member can become null at run-time, see: #139133. */
     LISTBASE_FOREACH (Curve *, cu, &bmain->curves) {
-      if (ELEM(cu->type, OB_CURVES_LEGACY, OB_FONT, OB_SURF)) {
+      if (ELEM(cu->ob_type, OB_CURVES_LEGACY, OB_FONT, OB_SURF)) {
         continue;
       }
-      short type = OB_CURVES_LEGACY;
+      short ob_type = OB_CURVES_LEGACY;
       if (cu->vfont) {
-        type = OB_FONT;
+        ob_type = OB_FONT;
       }
       else {
         LISTBASE_FOREACH (const Nurb *, nu, &cu->nurb) {
           if (nu->pntsv > 1) {
-            type = OB_SURF;
+            ob_type = OB_SURF;
             break;
           }
         }
       }
-      cu->type = type;
+      cu->ob_type = ob_type;
     }
   }
 

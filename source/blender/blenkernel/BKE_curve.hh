@@ -98,7 +98,6 @@ enum eNurbHandleTest_Mode {
 void BKE_curve_editfont_free(Curve *cu);
 void BKE_curve_init(Curve *cu, short curve_type);
 Curve *BKE_curve_add(Main *bmain, const char *name, int type);
-short BKE_curve_type_get(const Curve *cu);
 void BKE_curve_type_test(Object *ob, bool dimension_update);
 void BKE_curve_dimension_update(Curve *cu);
 

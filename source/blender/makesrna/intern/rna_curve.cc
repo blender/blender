@@ -211,17 +211,17 @@ static Nurb *curve_nurb_from_point(Curve *cu, const void *point, int *nu_index, 
 
 static StructRNA *rna_Curve_refine(PointerRNA *ptr)
 {
-  Curve *cu = static_cast<Curve *>(ptr->data);
-  short obtype = BKE_curve_type_get(cu);
-
-  if (obtype == OB_FONT) {
-    return &RNA_TextCurve;
-  }
-  else if (obtype == OB_SURF) {
-    return &RNA_SurfaceCurve;
-  }
-  else {
-    return &RNA_Curve;
+  const Curve *cu = static_cast<Curve *>(ptr->data);
+  switch (cu->ob_type) {
+    case OB_FONT: {
+      return &RNA_TextCurve;
+    }
+    case OB_SURF: {
+      return &RNA_SurfaceCurve;
+    }
+    default: {
+      return &RNA_Curve;
+    }
   }
 }
 
@@ -823,9 +823,8 @@ static void rna_Curve_splines_begin(CollectionPropertyIterator *iter, PointerRNA
 
 static bool rna_Curve_is_editmode_get(PointerRNA *ptr)
 {
-  Curve *cu = reinterpret_cast<Curve *>(ptr->owner_id);
-  const short type = BKE_curve_type_get(cu);
-  if (type == OB_FONT) {
+  const Curve *cu = reinterpret_cast<const Curve *>(ptr->owner_id);
+  if (cu->ob_type == OB_FONT) {
     return (cu->editfont != nullptr);
   }
   else {

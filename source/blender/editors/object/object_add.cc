@@ -3620,7 +3620,7 @@ static Object *convert_font_to_curve_legacy_generic(Object *ob,
                         nullptr);
 
   newob->type = OB_CURVES_LEGACY;
-  cu->type = OB_CURVES_LEGACY;
+  cu->ob_type = OB_CURVES_LEGACY;
 
 #define CURVE_VFONT_CLEAR(vfont_member) \
   if (cu->vfont_member) { \

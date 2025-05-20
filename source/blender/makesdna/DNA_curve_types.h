@@ -238,7 +238,7 @@ typedef struct Curve {
    * - #OB_FONT.
    * - #OB_SURF.
    */
-  short type;
+  short ob_type;
 
   char texspace_flag;
   char _pad0[7];

@@ -171,7 +171,7 @@ static std::optional<TextLayout> get_text_layout(GeoNodeExecParams &params)
                               params.extract_input<float>("Text Box Height");
 
   Curve cu = dna::shallow_zero_initialize();
-  cu.type = OB_FONT;
+  cu.ob_type = OB_FONT;
   /* Set defaults */
   cu.resolu = 12;
   cu.smallcaps_scale = 0.75f;
@@ -264,7 +264,7 @@ static Map<int, int> create_curve_instances(GeoNodeExecParams &params,
       continue;
     }
     Curve cu = dna::shallow_zero_initialize();
-    cu.type = OB_FONT;
+    cu.ob_type = OB_FONT;
     cu.resolu = 12;
     cu.vfont = vfont;
     CharInfo charinfo = {0};
