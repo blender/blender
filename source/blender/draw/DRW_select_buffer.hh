@@ -51,7 +51,7 @@ struct SELECTID_Context {
 
   short select_mode;
 
-  /* To check for updates. */
+  /** To check for updates. */
   blender::float4x4 persmat;
   uint64_t depsgraph_last_update = 0;
 

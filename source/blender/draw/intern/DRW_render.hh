@@ -78,13 +78,13 @@ struct DrawEngine {
 
   /* Functions called for viewport. */
 
-  /* Init engine. Run first and for every redraw. */
+  /** Init engine. Run first and for every redraw. */
   virtual void init() = 0;
-  /* Scene synchronization. Command buffers building. */
+  /** Scene synchronization. Command buffers building. */
   virtual void begin_sync() = 0;
   virtual void object_sync(blender::draw::ObjectRef &ob_ref, blender::draw::Manager &manager) = 0;
   virtual void end_sync() = 0;
-  /* Command Submission. */
+  /** Command Submission. */
   virtual void draw(blender::draw::Manager &manager) = 0;
 
   /* Called when closing blender.
@@ -150,10 +150,12 @@ void DRW_shader_queue_optimize_material(GPUMaterial *mat);
 
 /* Viewport. */
 
-/* Returns a TextureFromPool stored in the given view data for the pass identified by the given
+/**
+ * Returns a TextureFromPool stored in the given view data for the pass identified by the given
  * pass name. Engines should call this function for each of the passes needed by the viewport
  * compositor in every redraw, then it should allocate the texture and write the pass data to it.
- * The texture should cover the entire viewport. */
+ * The texture should cover the entire viewport.
+ */
 blender::draw::TextureFromPool &DRW_viewport_pass_texture_get(const char *pass_name);
 
 void DRW_viewport_request_redraw();
@@ -237,50 +239,50 @@ struct DRWContext {
   /* TODO(fclem): Private? */
  public:
   /* TODO: clean up this struct a bit. */
-  /* Cache generation */
+  /** Cache generation */
   DRWData *data = nullptr;
   /** Active view data structure for one of the 2 stereo view. */
   DRWViewData *view_data_active = nullptr;
 
-  /* Optional associated viewport. Can be nullptr. */
+  /** Optional associated viewport. Can be nullptr. */
   GPUViewport *viewport = nullptr;
-  /* Size of the viewport or the final render frame. */
+  /** Size of the viewport or the final render frame. */
   blender::float2 size = {0, 0};
   blender::float2 inv_size = {0, 0};
 
-  /* Returns the viewport's default framebuffer. */
+  /** Returns the viewport's default frame-buffer. */
   GPUFrameBuffer *default_framebuffer();
-  /* Returns the viewport's default framebuffer list. Not all of them might be available. */
+  /** Returns the viewport's default frame-buffer list. Not all of them might be available. */
   DefaultFramebufferList *viewport_framebuffer_list_get() const;
-  /* Returns the viewport's default texture list. Not all of them might be available. */
+  /** Returns the viewport's default texture list. Not all of them might be available. */
   DefaultTextureList *viewport_texture_list_get() const;
 
   const enum Mode {
-    /* Render for display of 2D or 3D area. Runs on main thread. */
+    /** Render for display of 2D or 3D area. Runs on main thread. */
     VIEWPORT = 0,
 
     /* These viewport modes will render without some overlays (i.e. no text). */
 
-    /* Render for a 3D viewport in XR. Runs on main thread. */
+    /** Render for a 3D viewport in XR. Runs on main thread. */
     VIEWPORT_XR,
-    /* Render for a 3D viewport offscreen render (python). Runs on main thread. */
+    /** Render for a 3D viewport offscreen render (python). Runs on main thread. */
     VIEWPORT_OFFSCREEN,
-    /* Render for a 3D viewport image render (render preview). Runs on main thread. */
+    /** Render for a 3D viewport image render (render preview). Runs on main thread. */
     VIEWPORT_RENDER,
 
-    /* Render for object mode selection. Runs on main thread. */
+    /** Render for object mode selection. Runs on main thread. */
     SELECT_OBJECT,
-    /* Render for object material selection. Runs on main thread. */
+    /** Render for object material selection. Runs on main thread. */
     SELECT_OBJECT_MATERIAL,
-    /* Render for edit mesh selection. Runs on main thread. */
+    /** Render for edit mesh selection. Runs on main thread. */
     SELECT_EDIT_MESH,
 
-    /* Render for depth picking (auto-depth). Runs on main thread. */
+    /** Render for depth picking (auto-depth). Runs on main thread. */
     DEPTH,
 
-    /* Render for F12 final render. Can run in any thread. */
+    /** Render for F12 final render. Can run in any thread. */
     RENDER,
-    /* Used by custom pipeline. Can run in any thread. */
+    /** Used by custom pipeline. Can run in any thread. */
     CUSTOM,
   } mode;
 
@@ -289,35 +291,35 @@ struct DRWContext {
     bool draw_text = false;
   } options;
 
-  /* Convenience pointer to text_store owned by the viewport */
+  /** Convenience pointer to text_store owned by the viewport */
   DRWTextStore **text_store_p = nullptr;
 
-  /* Contains list of objects that needs to be extracted from other objects. */
+  /** Contains list of objects that needs to be extracted from other objects. */
   GSet *delayed_extraction = nullptr;
 
   /* TODO(fclem): Public. */
 
-  /* Current rendering context. Avoid too many lookups while drawing. */
+  /** Current rendering context. Avoid too many lookups while drawing. */
 
-  /* Evaluated Depsgraph. */
+  /** Evaluated Depsgraph. */
   Depsgraph *depsgraph = nullptr;
-  /* Evaluated Scene. */
+  /** Evaluated Scene. */
   Scene *scene = nullptr;
-  /* Evaluated ViewLayer. */
+  /** Evaluated ViewLayer. */
   ViewLayer *view_layer = nullptr;
 
   /** Last resort (some functions take this as an arg so we can't easily avoid).
    * May be nullptr when used for selection or depth buffer. */
   const bContext *evil_C = nullptr;
-  /* Can be nullptr depending on context. */
+  /** Can be nullptr depending on context. */
   ARegion *region = nullptr;
-  /* Can be nullptr depending on context. */
+  /** Can be nullptr depending on context. */
   SpaceLink *space_data = nullptr;
-  /* Can be nullptr depending on context. */
+  /** Can be nullptr depending on context. */
   RegionView3D *rv3d = nullptr;
-  /* Can be nullptr depending on context. */
+  /** Can be nullptr depending on context. */
   View3D *v3d = nullptr;
-  /* Use 'object_edit' for edit-mode */
+  /** Use 'object_edit' for edit-mode */
   Object *obact = nullptr;
   Object *object_pose = nullptr;
   Object *object_edit = nullptr;
@@ -370,17 +372,17 @@ struct DRWContext {
   void enable_engines(bool gpencil_engine_needed = false,
                       RenderEngineType *render_engine_type = nullptr);
 
-  /* Free unused engine data. */
+  /** Free unused engine data. */
   void engines_data_validate();
 
   using iter_callback_t =
       std::function<void(struct DupliCacheManager &, struct ExtractionGraph &)>;
 
-  /* Run the sync phase with data extraction. iter_callback defines which object to sync. */
+  /** Run the sync phase with data extraction. iter_callback defines which object to sync. */
   void sync(iter_callback_t iter_callback);
-  /* Run enabled engine init and sync callbacks. iter_callback defines which object to sync. */
+  /** Run enabled engine init and sync callbacks. iter_callback defines which object to sync. */
   void engines_init_and_sync(iter_callback_t iter_callback);
-  /* Run enabled engine init and draw scene callbacks. */
+  /** Run enabled engine init and draw scene callbacks. */
   void engines_draw_scene();
 
   static DRWContext &get_active()
@@ -393,7 +395,7 @@ struct DRWContext {
     return size;
   }
 
-  /* Return true if any DRWContext is active on this thread. */
+  /** Return true if any #DRWContext is active on this thread. */
   static bool is_active()
   {
     return g_context != nullptr;
