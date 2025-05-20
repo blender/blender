@@ -1042,7 +1042,7 @@ if(WITH_CYCLES_DEVICE_ONEAPI)
       string(PREPEND CYCLES_ONEAPI_SYCL_OPTIONS_spir64_gen "-device ${gen_devices_string} ")
     endif()
   else()
-      list(REMOVE_ITEM CYCLES_ONEAPI_SYCL_TARGETS spir64_gen)
+    list(REMOVE_ITEM CYCLES_ONEAPI_SYCL_TARGETS spir64_gen)
   endif()
 
   # Iterate over all targets and their options.
