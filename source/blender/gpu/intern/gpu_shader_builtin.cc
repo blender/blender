@@ -186,6 +186,8 @@ GPUShader *GPU_shader_get_builtin_shader(eGPUBuiltinShader shader)
 
 void GPU_shader_free_builtin_shaders()
 {
+  /* Make sure non is bound before deleting. */
+  GPU_shader_unbind();
   for (int i = 0; i < GPU_SHADER_CFG_LEN; i++) {
     for (int j = 0; j < GPU_SHADER_BUILTIN_LEN; j++) {
       if (builtin_shaders[i][j]) {

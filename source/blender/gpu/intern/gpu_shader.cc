@@ -59,6 +59,8 @@ Shader::Shader(const char *sh_name)
 
 Shader::~Shader()
 {
+  BLI_assert_msg(Context::get() == nullptr || Context::get()->shader != this,
+                 "Shader must be unbound from context before being freed");
   delete interface;
 }
 
@@ -437,13 +439,16 @@ void GPU_shader_bind(GPUShader *gpu_shader, const shader::SpecializationConstant
 
 void GPU_shader_unbind()
 {
-#ifndef NDEBUG
   Context *ctx = Context::get();
+  if (ctx == nullptr) {
+    return;
+  }
+#ifndef NDEBUG
   if (ctx->shader) {
     ctx->shader->unbind();
   }
-  ctx->shader = nullptr;
 #endif
+  ctx->shader = nullptr;
 }
 
 GPUShader *GPU_shader_get_bound()

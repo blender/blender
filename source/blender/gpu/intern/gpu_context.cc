@@ -234,6 +234,7 @@ void GPU_context_active_set(GPUContext *ctx_)
   Context *ctx = unwrap(ctx_);
 
   if (active_ctx) {
+    GPU_shader_unbind();
     active_ctx->deactivate();
   }
 
