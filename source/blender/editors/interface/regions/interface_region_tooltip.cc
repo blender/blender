@@ -91,8 +91,6 @@
 #define UI_TIP_PADDING_Y 1.28f
 
 #define UI_TIP_MAXWIDTH 600
-#define UI_TIP_MAXIMAGEWIDTH 500
-#define UI_TIP_MAXIMAGEHEIGHT 300
 
 struct uiTooltipFormat {
   uiTooltipStyle style;

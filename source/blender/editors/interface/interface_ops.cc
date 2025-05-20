@@ -1034,7 +1034,6 @@ static void override_idtemplate_menu()
 /** \name Copy To Selected Operator
  * \{ */
 
-#define NOT_NULL(assignment) ((assignment) != nullptr)
 #define NOT_RNA_NULL(assignment) ((assignment).data != nullptr)
 
 static void ui_context_selected_bones_via_pose(bContext *C, blender::Vector<PointerRNA> *r_lb)
