@@ -28,7 +28,7 @@
  *
  * - Before editing rename defines run:
  *
- *   `sha1sum $BUILD_DIR/source/blender/makesdna/intern/dna.c`
+ *   `sha256sum $BUILD_DIR/source/blender/makesdna/intern/dna.cc`
  *
  *   Compare the results before & after to ensure all changes are reversed by renaming
  *   and the DNA remains unchanged.
@@ -194,9 +194,9 @@ DNA_STRUCT_RENAME_MEMBER(SpaceImage, pixel_snap_mode, pixel_round_mode)
 DNA_STRUCT_RENAME_MEMBER(SpaceSeq, overlay_type, overlay_frame_type)
 DNA_STRUCT_RENAME_MEMBER(Strip, retiming_handle_num, retiming_keys_num)
 DNA_STRUCT_RENAME_MEMBER(Strip, retiming_handles, retiming_keys)
-DNA_STRUCT_RENAME_MEMBER(Strip, strip, data)
 DNA_STRUCT_RENAME_MEMBER(Strip, seq1, input1)
 DNA_STRUCT_RENAME_MEMBER(Strip, seq2, input2)
+DNA_STRUCT_RENAME_MEMBER(Strip, strip, data)
 DNA_STRUCT_RENAME_MEMBER(StripConnection, seq_ref, strip_ref)
 DNA_STRUCT_RENAME_MEMBER(StripData, dir, dirpath)
 DNA_STRUCT_RENAME_MEMBER(StripElem, name, filename)
