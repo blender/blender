@@ -3500,7 +3500,7 @@ std::unique_ptr<SculptBoundary> data_init_bmesh(Object &object,
 {
   SculptSession &ss = *object.sculpt;
 
-  SCULPT_vertex_random_access_ensure(object);
+  vert_random_access_ensure(object);
   boundary::ensure_boundary_info(object);
 
   const std::optional<BMVert *> boundary_initial_vert = get_closest_boundary_vert_bmesh(

@@ -139,16 +139,15 @@ bool report_if_shape_key_is_locked(const Object &ob, ReportList *reports)
   return false;
 }
 
-}  // namespace blender::ed::sculpt_paint
-
-void SCULPT_vertex_random_access_ensure(Object &object)
+void vert_random_access_ensure(Object &object)
 {
   SculptSession &ss = *object.sculpt;
-  if (blender::bke::object::pbvh_get(object)->type() == blender::bke::pbvh::Type::BMesh) {
+  if (bke::object::pbvh_get(object)->type() == bke::pbvh::Type::BMesh) {
     BM_mesh_elem_index_ensure(ss.bm, BM_VERT);
     BM_mesh_elem_table_ensure(ss.bm, BM_VERT);
   }
 }
+}  // namespace blender::ed::sculpt_paint
 
 int SCULPT_vertex_count_get(const Object &object)
 {
@@ -4696,7 +4695,7 @@ bool cursor_geometry_info_update(bContext *C,
   else if (pbvh->type() == bke::pbvh::Type::Grids) {
     srd.subdiv_ccg = ss.subdiv_ccg;
   }
-  SCULPT_vertex_random_access_ensure(ob);
+  vert_random_access_ensure(ob);
   srd.ray_start = ray_start;
   srd.ray_normal = ray_normal;
   srd.depth = depth;
@@ -4836,7 +4835,7 @@ static bool stroke_get_location_bvh_ex(bContext *C,
     else if (pbvh.type() == bke::pbvh::Type::Grids) {
       rd.subdiv_ccg = ss.subdiv_ccg;
     }
-    SCULPT_vertex_random_access_ensure(ob);
+    vert_random_access_ensure(ob);
     rd.depth = depth;
     rd.use_original = original;
     isect_ray_tri_watertight_v3_precalc(&rd.isect_precalc, ray_normal);
@@ -6134,7 +6133,7 @@ bool vertex_is_occluded(const Depsgraph &depsgraph,
   else if (pbvh.type() == bke::pbvh::Type::Grids) {
     srd.subdiv_ccg = ss.subdiv_ccg;
   }
-  SCULPT_vertex_random_access_ensure(const_cast<Object &>(object));
+  vert_random_access_ensure(const_cast<Object &>(object));
 
   isect_ray_tri_watertight_v3_precalc(&srd.isect_precalc, ray_normal);
   bke::pbvh::raycast(
@@ -6247,7 +6246,7 @@ static SculptTopologyIslandCache calc_topology_islands_bmesh(const Object &objec
   const bke::pbvh::Tree &pbvh = *bke::object::pbvh_get(object);
   const Span<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();
   BMesh &bm = *ss.bm;
-  BM_mesh_elem_index_ensure(&bm, BM_VERT);
+  vert_random_access_ensure(const_cast<Object &>(object));
 
   IndexMaskMemory memory;
   const IndexMask node_mask = bke::pbvh::all_leaf_nodes(pbvh, memory);

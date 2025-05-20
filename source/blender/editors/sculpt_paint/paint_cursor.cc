@@ -1802,7 +1802,7 @@ static void paint_cursor_draw_3d_view_brush_cursor_inactive(PaintCursorContext &
   Object &active_object = *pcontext.vc.obact;
   paint_cursor_update_object_space_radius(pcontext);
 
-  SCULPT_vertex_random_access_ensure(active_object);
+  vert_random_access_ensure(active_object);
 
   /* Setup drawing. */
   wmViewport(&pcontext.region->winrct);

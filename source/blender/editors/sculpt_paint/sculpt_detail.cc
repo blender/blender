@@ -888,7 +888,7 @@ static wmOperatorStatus dyntopo_detail_size_edit_invoke(bContext *C,
     rotate_v2_v2fl(cd->preview_tri[i], y_axis, DEG2RAD(120.0f * i));
   }
 
-  SCULPT_vertex_random_access_ensure(active_object);
+  vert_random_access_ensure(active_object);
 
   WM_event_add_modal_handler(C, op);
   ED_region_tag_redraw(region);
