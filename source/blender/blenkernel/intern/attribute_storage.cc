@@ -6,6 +6,7 @@
 
 #include "BLI_assert.h"
 #include "BLI_implicit_sharing.hh"
+#include "BLI_memory_counter.hh"
 #include "BLI_resource_scope.hh"
 #include "BLI_string_utils.hh"
 #include "BLI_vector_set.hh"
@@ -305,6 +306,22 @@ static std::optional<Attribute::DataVariant> read_attr_data(BlendDataReader &rea
     }
     default:
       return std::nullopt;
+  }
+}
+
+void AttributeStorage::count_memory(MemoryCounter &memory) const
+{
+  for (const std::unique_ptr<Attribute> &attr : this->runtime->attributes) {
+    const CPPType &type = attribute_type_to_cpp_type(attr->data_type());
+    if (const auto *data = std::get_if<Attribute::ArrayData>(&attr->data())) {
+      memory.add_shared(data->sharing_info.get(), [&](MemoryCounter &shared_memory) {
+        shared_memory.add(data->size * type.size);
+      });
+    }
+    else if (const auto *data = std::get_if<Attribute::SingleData>(&attr->data())) {
+      memory.add_shared(data->sharing_info.get(),
+                        [&](MemoryCounter &shared_memory) { shared_memory.add(type.size); });
+    }
   }
 }
 
