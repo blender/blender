@@ -593,6 +593,64 @@ bool BKE_brush_delete(Main *bmain, Brush *brush)
   return true;
 }
 
+Brush *BKE_brush_duplicate(Main *bmain,
+                           Brush *brush,
+                           eDupli_ID_Flags /*dupflag*/,
+                           /*eLibIDDuplicateFlags*/ uint duplicate_options)
+{
+  const bool is_subprocess = (duplicate_options & LIB_ID_DUPLICATE_IS_SUBPROCESS) != 0;
+  const bool is_root_id = (duplicate_options & LIB_ID_DUPLICATE_IS_ROOT_ID) != 0;
+
+  const eDupli_ID_Flags dupflag = USER_DUP_OBDATA | USER_DUP_LINKED_ID;
+
+  if (!is_subprocess) {
+    BKE_main_id_newptr_and_tag_clear(bmain);
+  }
+  if (is_root_id) {
+    duplicate_options &= ~LIB_ID_DUPLICATE_IS_ROOT_ID;
+  }
+
+  constexpr int id_copy_flag = LIB_ID_COPY_DEFAULT;
+
+  Brush *new_brush = reinterpret_cast<Brush *>(
+      BKE_id_copy_for_duplicate(bmain, &brush->id, dupflag, id_copy_flag));
+
+  /* Currently this duplicates everything and the passed in value of `dupflag` is ignored. Ideally,
+   * this should both check user preferences and do further filtering based on eDupli_ID_Flags. */
+  auto dependencies_cb = [&](const LibraryIDLinkCallbackData *cb_data) -> int {
+    if (cb_data->cb_flag & (IDWALK_CB_EMBEDDED | IDWALK_CB_EMBEDDED_NOT_OWNING)) {
+      return IDWALK_NOP;
+    }
+    if (cb_data->cb_flag & IDWALK_CB_LOOPBACK) {
+      return IDWALK_NOP;
+    }
+
+    BKE_id_copy_for_duplicate(bmain, *cb_data->id_pointer, dupflag, id_copy_flag);
+    return IDWALK_NOP;
+  };
+
+  BKE_library_foreach_ID_link(bmain, &new_brush->id, dependencies_cb, nullptr, IDWALK_RECURSE);
+
+  if (!is_subprocess) {
+    /* This code will follow into all ID links using an ID tagged with ID_TAG_NEW. */
+    BKE_libblock_relink_to_newid(bmain, &new_brush->id, 0);
+
+#ifndef NDEBUG
+    /* Call to `BKE_libblock_relink_to_newid` above is supposed to have cleared all those flags. */
+    ID *id_iter;
+    FOREACH_MAIN_ID_BEGIN (bmain, id_iter) {
+      BLI_assert((id_iter->tag & ID_TAG_NEW) == 0);
+    }
+    FOREACH_MAIN_ID_END;
+#endif
+
+    /* Cleanup. */
+    BKE_main_id_newptr_and_tag_clear(bmain);
+  }
+
+  return new_brush;
+}
+
 void BKE_brush_init_curves_sculpt_settings(Brush *brush)
 {
   if (brush->curves_sculpt_settings == nullptr) {

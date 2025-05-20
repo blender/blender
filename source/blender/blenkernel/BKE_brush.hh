@@ -15,6 +15,7 @@
 #include "DNA_brush_enums.h"
 #include "DNA_color_types.h"
 #include "DNA_object_enums.h"
+#include "DNA_userdef_enums.h"
 
 enum class PaintMode : int8_t;
 struct Brush;
@@ -42,6 +43,29 @@ Brush *BKE_brush_add(Main *bmain, const char *name, eObjectMode ob_mode);
  * Delete a Brush.
  */
 bool BKE_brush_delete(Main *bmain, Brush *brush);
+
+/**
+ * Perform deep-copy of a Brush and its 'children' data-blocks.
+ *
+ * \param dupflag: Controls which sub-data are also duplicated
+ * (see #eDupli_ID_Flags in DNA_userdef_types.h).
+ * \param duplicate_options: Additional context information about current duplicate call (e.g. if
+ * it's part of a higher-level duplication or not, etc.). (see #eLibIDDuplicateFlags in
+ * BKE_lib_id.hh).
+ *
+ * \warning By default, this functions will clear all \a bmain #ID.idnew pointers
+ * (#BKE_main_id_newptr_and_tag_clear), and take care of post-duplication updates like remapping to
+ * new IDs (#BKE_libblock_relink_to_newid).
+ * If \a #LIB_ID_DUPLICATE_IS_SUBPROCESS duplicate option is passed on (typically when duplication
+ * is called recursively from another parent duplication operation), the caller is responsible to
+ * handle all of these operations.
+ *
+ * \note Caller MUST handle updates of the depsgraph (#DAG_relations_tag_update).
+ */
+Brush *BKE_brush_duplicate(Main *bmain,
+                           Brush *brush,
+                           eDupli_ID_Flags dupflag,
+                           /*eLibIDDuplicateFlags*/ uint duplicate_options);
 /**
  * Add grease pencil settings.
  */

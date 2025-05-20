@@ -833,6 +833,7 @@ if(WITH_GTESTS)
     intern/armature_test.cc
     intern/asset_metadata_test.cc
     intern/bpath_test.cc
+    intern/brush_test.cc
     intern/cryptomatte_test.cc
     intern/curves_geometry_test.cc
     intern/fcurve_test.cc
