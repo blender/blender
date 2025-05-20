@@ -1747,15 +1747,12 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 400, 31)) {
     LISTBASE_FOREACH (Curve *, curve, &bmain->curves) {
-      const int curvetype = BKE_curve_type_get(curve);
-      if (curvetype == OB_FONT) {
-        CharInfo *info = curve->strinfo;
-        if (info != nullptr) {
-          for (int i = curve->len_char32 - 1; i >= 0; i--, info++) {
-            if (info->mat_nr > 0) {
-              /** CharInfo mat_nr used to start at 1, unlike mesh & nurbs, now zero-based. */
-              info->mat_nr--;
-            }
+      /* No need to check the curves type, this will be null for non text curves. */
+      if (CharInfo *info = curve->strinfo) {
+        for (int i = curve->len_char32 - 1; i >= 0; i--, info++) {
+          if (info->mat_nr > 0) {
+            /** CharInfo mat_nr used to start at 1, unlike mesh & nurbs, now zero-based. */
+            info->mat_nr--;
           }
         }
       }
