@@ -3503,6 +3503,125 @@ static void version_escape_curly_braces_in_compositor_file_output_nodes(bNodeTre
   }
 }
 
+/* The Relative option was removed. Insert Relative To Pixel nodes for the X and Y inputs to
+ * convert relative values to pixel values. */
+static void do_version_translate_node_remove_relative(bNodeTree *node_tree)
+{
+  LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+    if (!STREQ(node->idname, "CompositorNodeTranslate")) {
+      continue;
+    }
+
+    const NodeTranslateData *data = static_cast<NodeTranslateData *>(node->storage);
+    if (!bool(data->relative)) {
+      continue;
+    }
+
+    /* Find links going into the node. */
+    bNodeLink *image_link = nullptr;
+    bNodeLink *x_link = nullptr;
+    bNodeLink *y_link = nullptr;
+    LISTBASE_FOREACH (bNodeLink *, link, &node_tree->links) {
+      if (link->tonode != node) {
+        continue;
+      }
+
+      if (blender::StringRef(link->tosock->identifier) == "Image") {
+        image_link = link;
+      }
+
+      if (blender::StringRef(link->tosock->identifier) == "X") {
+        x_link = link;
+      }
+
+      if (blender::StringRef(link->tosock->identifier) == "Y") {
+        y_link = link;
+      }
+    }
+
+    /* Image input is unlinked, so the node does nothing. */
+    if (!image_link) {
+      continue;
+    }
+
+    /* Add a Relative To Pixel node, assign it the input of the X translation and connect it to the
+     * X translation input. */
+    bNode *x_relative_to_pixel_node = blender::bke::node_add_node(
+        nullptr, *node_tree, "CompositorNodeRelativeToPixel");
+    x_relative_to_pixel_node->parent = node->parent;
+    x_relative_to_pixel_node->location[0] = node->location[0] - node->width - 20.0f;
+    x_relative_to_pixel_node->location[1] = node->location[1];
+
+    x_relative_to_pixel_node->custom1 = CMP_NODE_RELATIVE_TO_PIXEL_DATA_TYPE_FLOAT;
+    x_relative_to_pixel_node->custom2 = CMP_NODE_RELATIVE_TO_PIXEL_REFERENCE_DIMENSION_X;
+
+    bNodeSocket *x_image_input = blender::bke::node_find_socket(
+        *x_relative_to_pixel_node, SOCK_IN, "Image");
+    bNodeSocket *x_value_input = blender::bke::node_find_socket(
+        *x_relative_to_pixel_node, SOCK_IN, "Float Value");
+    bNodeSocket *x_value_output = blender::bke::node_find_socket(
+        *x_relative_to_pixel_node, SOCK_OUT, "Float Value");
+
+    bNodeSocket *x_input = blender::bke::node_find_socket(*node, SOCK_IN, "X");
+    x_value_input->default_value_typed<bNodeSocketValueFloat>()->value =
+        x_input->default_value_typed<bNodeSocketValueFloat>()->value;
+
+    version_node_add_link(*node_tree, *x_relative_to_pixel_node, *x_value_output, *node, *x_input);
+    version_node_add_link(*node_tree,
+                          *image_link->fromnode,
+                          *image_link->fromsock,
+                          *x_relative_to_pixel_node,
+                          *x_image_input);
+
+    if (x_link) {
+      version_node_add_link(*node_tree,
+                            *x_link->fromnode,
+                            *x_link->fromsock,
+                            *x_relative_to_pixel_node,
+                            *x_value_input);
+      blender::bke::node_remove_link(node_tree, *x_link);
+    }
+
+    /* Add a Relative To Pixel node, assign it the input of the Y translation and connect it to the
+     * Y translation input. */
+    bNode *y_relative_to_pixel_node = blender::bke::node_add_node(
+        nullptr, *node_tree, "CompositorNodeRelativeToPixel");
+    y_relative_to_pixel_node->parent = node->parent;
+    y_relative_to_pixel_node->location[0] = node->location[0] - node->width - 20.0f;
+    y_relative_to_pixel_node->location[1] = node->location[1] - 20.0f;
+
+    y_relative_to_pixel_node->custom1 = CMP_NODE_RELATIVE_TO_PIXEL_DATA_TYPE_FLOAT;
+    y_relative_to_pixel_node->custom2 = CMP_NODE_RELATIVE_TO_PIXEL_REFERENCE_DIMENSION_Y;
+
+    bNodeSocket *y_image_input = blender::bke::node_find_socket(
+        *y_relative_to_pixel_node, SOCK_IN, "Image");
+    bNodeSocket *y_value_input = blender::bke::node_find_socket(
+        *y_relative_to_pixel_node, SOCK_IN, "Float Value");
+    bNodeSocket *y_value_output = blender::bke::node_find_socket(
+        *y_relative_to_pixel_node, SOCK_OUT, "Float Value");
+
+    bNodeSocket *y_input = blender::bke::node_find_socket(*node, SOCK_IN, "Y");
+    y_value_input->default_value_typed<bNodeSocketValueFloat>()->value =
+        y_input->default_value_typed<bNodeSocketValueFloat>()->value;
+
+    version_node_add_link(*node_tree, *y_relative_to_pixel_node, *y_value_output, *node, *y_input);
+    version_node_add_link(*node_tree,
+                          *image_link->fromnode,
+                          *image_link->fromsock,
+                          *y_relative_to_pixel_node,
+                          *y_image_input);
+
+    if (y_link) {
+      version_node_add_link(*node_tree,
+                            *y_link->fromnode,
+                            *y_link->fromsock,
+                            *y_relative_to_pixel_node,
+                            *y_value_input);
+      blender::bke::node_remove_link(node_tree, *y_link);
+    }
+  }
+}
+
 void do_versions_after_linking_450(FileData * /*fd*/, Main *bmain)
 {
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 8)) {
@@ -5183,6 +5302,15 @@ void blo_do_versions_450(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
       }
       cu->ob_type = ob_type;
     }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 74)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type == NTREE_COMPOSIT) {
+        do_version_translate_node_remove_relative(node_tree);
+      }
+    }
+    FOREACH_NODETREE_END;
   }
 
   /* Always run this versioning (keep at the bottom of the function). Meshes are written with the
