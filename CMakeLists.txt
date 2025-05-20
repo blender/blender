@@ -1043,7 +1043,9 @@ if(WITH_COMPILER_CODE_COVERAGE)
       set(_code_coverage_defaults "-fprofile-instr-generate -fcoverage-mapping")
     endif()
   else()
-    message("unsupported compiler ${CMAKE_C_COMPILER_ID} for WITH_COMPILER_CODE_COVERAGE, disabling.")
+    message(WARNING
+      "unsupported compiler ${CMAKE_C_COMPILER_ID} for WITH_COMPILER_CODE_COVERAGE, disabling."
+    )
     set(WITH_COMPILER_CODE_COVERAGE OFF)
   endif()
 
