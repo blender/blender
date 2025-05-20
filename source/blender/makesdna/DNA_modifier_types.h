@@ -12,6 +12,7 @@
 
 #include "DNA_defs.h"
 #include "DNA_listBase.h"
+#include "DNA_modifier_enums.h"
 #include "DNA_packedFile_types.h"
 #include "DNA_session_uid_types.h"
 
@@ -1241,61 +1242,6 @@ typedef struct ShrinkwrapModifierData {
 
   char _pad[2];
 } ShrinkwrapModifierData;
-
-/** #ShrinkwrapModifierData.shrinkType */
-enum {
-  MOD_SHRINKWRAP_NEAREST_SURFACE = 0,
-  MOD_SHRINKWRAP_PROJECT = 1,
-  MOD_SHRINKWRAP_NEAREST_VERTEX = 2,
-  MOD_SHRINKWRAP_TARGET_PROJECT = 3,
-};
-
-/** #ShrinkwrapModifierData.shrinkMode */
-enum {
-  /** Move vertex to the surface of the target object (keepDist towards original position) */
-  MOD_SHRINKWRAP_ON_SURFACE = 0,
-  /** Move the vertex inside the target object; don't change if already inside */
-  MOD_SHRINKWRAP_INSIDE = 1,
-  /** Move the vertex outside the target object; don't change if already outside */
-  MOD_SHRINKWRAP_OUTSIDE = 2,
-  /** Move vertex to the surface of the target object, with keepDist towards the outside */
-  MOD_SHRINKWRAP_OUTSIDE_SURFACE = 3,
-  /** Move vertex to the surface of the target object, with keepDist along the normal */
-  MOD_SHRINKWRAP_ABOVE_SURFACE = 4,
-};
-
-/** #ShrinkwrapModifierData.shrinkOpts */
-enum {
-  /** Allow shrink-wrap to move the vertex in the positive direction of axis. */
-  MOD_SHRINKWRAP_PROJECT_ALLOW_POS_DIR = (1 << 0),
-  /** Allow shrink-wrap to move the vertex in the negative direction of axis. */
-  MOD_SHRINKWRAP_PROJECT_ALLOW_NEG_DIR = (1 << 1),
-
-  /** ignore vertex moves if a vertex ends projected on a front face of the target */
-  MOD_SHRINKWRAP_CULL_TARGET_FRONTFACE = (1 << 3),
-  /** ignore vertex moves if a vertex ends projected on a back face of the target */
-  MOD_SHRINKWRAP_CULL_TARGET_BACKFACE = (1 << 4),
-
-#ifdef DNA_DEPRECATED_ALLOW
-  /** distance is measure to the front face of the target */
-  MOD_SHRINKWRAP_KEEP_ABOVE_SURFACE = (1 << 5),
-#endif
-
-  MOD_SHRINKWRAP_INVERT_VGROUP = (1 << 6),
-  MOD_SHRINKWRAP_INVERT_CULL_TARGET = (1 << 7),
-};
-
-#define MOD_SHRINKWRAP_CULL_TARGET_MASK \
-  (MOD_SHRINKWRAP_CULL_TARGET_FRONTFACE | MOD_SHRINKWRAP_CULL_TARGET_BACKFACE)
-
-/** #ShrinkwrapModifierData.projAxis */
-enum {
-  /** projection over normal is used if no axis is selected */
-  MOD_SHRINKWRAP_PROJECT_OVER_NORMAL = 0,
-  MOD_SHRINKWRAP_PROJECT_OVER_X_AXIS = (1 << 0),
-  MOD_SHRINKWRAP_PROJECT_OVER_Y_AXIS = (1 << 1),
-  MOD_SHRINKWRAP_PROJECT_OVER_Z_AXIS = (1 << 2),
-};
 
 typedef struct SimpleDeformModifierData {
   ModifierData modifier;

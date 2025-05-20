@@ -10,6 +10,7 @@
 #include "BLI_listbase.h"
 #include "MEM_guardedalloc.h"
 
+#include "DNA_colorband_types.h"
 #include "DNA_gpencil_modifier_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"

@@ -674,21 +674,6 @@ enum {
   ME_LOOP = 1 << 3,
 };
 
-/**
- * How to filter out some elements (to leave untouched).
- * Note those options are highly dependent on type of transferred data! */
-enum {
-  CDT_MIX_NOMIX = -1, /* Special case, only used because we abuse 'copy' CD callback. */
-  CDT_MIX_TRANSFER = 0,
-  CDT_MIX_REPLACE_ABOVE_THRESHOLD = 1,
-  CDT_MIX_REPLACE_BELOW_THRESHOLD = 2,
-  CDT_MIX_MIX = 16,
-  CDT_MIX_ADD = 17,
-  CDT_MIX_SUB = 18,
-  CDT_MIX_MUL = 19,
-  /* Etc. */
-};
-
 struct CustomDataTransferLayerMap {
   CustomDataTransferLayerMap *next, *prev;
 

@@ -7,10 +7,9 @@
 /* For constants. */
 #include "BLI_math_constants.h"
 
-#include "DNA_anim_types.h"
-#include "DNA_curve_types.h"
-#include "DNA_space_types.h"
-#include "DNA_userdef_types.h"
+#include "DNA_anim_enums.h"
+#include "DNA_curve_enums.h"
+#include "DNA_space_enums.h"
 
 #include "BKE_blender_version.h"
 

@@ -12,7 +12,7 @@
 
 #include "DNA_ID.h"
 #include "DNA_asset_types.h"
-#include "DNA_space_types.h"
+#include "DNA_space_enums.h"
 #include "DNA_userdef_types.h"
 
 #include "AS_asset_library.hh"

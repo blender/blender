@@ -10,6 +10,7 @@
 
 #include "DNA_defs.h"
 #include "DNA_listBase.h"
+#include "DNA_modifier_enums.h"
 
 struct LatticeDeformData;
 struct ShrinkwrapTreeData;
@@ -111,26 +112,6 @@ typedef struct NoiseGpencilModifierData {
   int seed;
   struct CurveMapping *curve_intensity;
 } NoiseGpencilModifierData;
-
-typedef enum eNoiseGpencil_Flag {
-  GP_NOISE_USE_RANDOM = (1 << 0),
-  GP_NOISE_MOD_LOCATION = (1 << 1),  /* Deprecated (only for versioning). */
-  GP_NOISE_MOD_STRENGTH = (1 << 2),  /* Deprecated (only for versioning). */
-  GP_NOISE_MOD_THICKNESS = (1 << 3), /* Deprecated (only for versioning). */
-  GP_NOISE_FULL_STROKE = (1 << 4),
-  GP_NOISE_CUSTOM_CURVE = (1 << 5),
-  GP_NOISE_INVERT_LAYER = (1 << 6),
-  GP_NOISE_INVERT_PASS = (1 << 7),
-  GP_NOISE_INVERT_VGROUP = (1 << 8),
-  GP_NOISE_MOD_UV = (1 << 9), /* Deprecated (only for versioning). */
-  GP_NOISE_INVERT_LAYERPASS = (1 << 10),
-  GP_NOISE_INVERT_MATERIAL = (1 << 11),
-} eNoiseGpencil_Flag;
-
-typedef enum eNoiseRandomGpencil_Mode {
-  GP_NOISE_RANDOM_STEP = 0,
-  GP_NOISE_RANDOM_KEYFRAME = 1,
-} eNoiseRandomGpencil_Mode;
 
 typedef struct SubdivGpencilModifierData {
   GpencilModifierData modifier;
@@ -403,17 +384,6 @@ typedef struct ArrayGpencilModifierData {
   int layer_pass;
 } ArrayGpencilModifierData;
 
-typedef enum eArrayGpencil_Flag {
-  GP_ARRAY_INVERT_LAYER = (1 << 2),
-  GP_ARRAY_INVERT_PASS = (1 << 3),
-  GP_ARRAY_INVERT_LAYERPASS = (1 << 5),
-  GP_ARRAY_INVERT_MATERIAL = (1 << 6),
-  GP_ARRAY_USE_OFFSET = (1 << 7),
-  GP_ARRAY_USE_RELATIVE = (1 << 8),
-  GP_ARRAY_USE_OB_OFFSET = (1 << 9),
-  GP_ARRAY_UNIFORM_RANDOM_SCALE = (1 << 10),
-} eArrayGpencil_Flag;
-
 typedef struct BuildGpencilModifierData {
   GpencilModifierData modifier;
   /** Material for filtering. */
@@ -585,21 +555,6 @@ typedef struct LengthGpencilModifierData {
   float segment_influence;
   float max_angle;
 } LengthGpencilModifierData;
-
-typedef enum eLengthGpencil_Flag {
-  GP_LENGTH_INVERT_LAYER = (1 << 0),
-  GP_LENGTH_INVERT_PASS = (1 << 1),
-  GP_LENGTH_INVERT_LAYERPASS = (1 << 2),
-  GP_LENGTH_INVERT_MATERIAL = (1 << 3),
-  GP_LENGTH_USE_CURVATURE = (1 << 4),
-  GP_LENGTH_INVERT_CURVATURE = (1 << 5),
-  GP_LENGTH_USE_RANDOM = (1 << 6),
-} eLengthGpencil_Flag;
-
-typedef enum eLengthGpencil_Type {
-  GP_LENGTH_RELATIVE = 0,
-  GP_LENGTH_ABSOLUTE = 1,
-} eLengthGpencil_Type;
 
 typedef struct DashGpencilModifierSegment {
   char name[64];
@@ -992,12 +947,6 @@ typedef enum eTextureGpencil_Flag {
   GP_TEX_INVERT_LAYERPASS = (1 << 3),
   GP_TEX_INVERT_MATERIAL = (1 << 4),
 } eTextureGpencil_Flag;
-
-/* Texture->fit_method */
-typedef enum eTextureGpencil_Fit {
-  GP_TEX_FIT_STROKE = 0,
-  GP_TEX_CONSTANT_LENGTH = 1,
-} eTextureGpencil_Fit;
 
 /* Texture->mode */
 typedef enum eTextureGpencil_Mode {

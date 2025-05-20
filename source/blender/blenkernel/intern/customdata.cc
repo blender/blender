@@ -19,6 +19,7 @@
 #include "DNA_ID.h"
 #include "DNA_customdata_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_modifier_enums.h"
 
 #include "BLI_bit_vector.hh"
 #include "BLI_bitmap.h"

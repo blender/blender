@@ -38,6 +38,7 @@ enum eImbFileType {
 #endif
 };
 
+/** NOTE: Keep in sync with #MovieClipProxy.build_size_flag */
 enum IMB_Proxy_Size {
   IMB_PROXY_NONE = 0,
   IMB_PROXY_25 = 1,

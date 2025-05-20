@@ -42,6 +42,7 @@ struct BoundBox;
 struct Collection;
 struct Curve;
 struct FluidsimSettings;
+struct ImageUser;
 struct Ipo;
 struct LightgroupMembership;
 struct Material;

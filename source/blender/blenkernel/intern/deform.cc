@@ -18,6 +18,7 @@
 #include "DNA_lattice_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_modifier_enums.h"
 #include "DNA_object_types.h"
 
 #include "BLI_listbase.h"
@@ -29,7 +30,6 @@
 #include "BLT_translation.hh"
 
 #include "BKE_customdata.hh"
-#include "BKE_data_transfer.h"
 #include "BKE_deform.hh" /* own include */
 #include "BKE_grease_pencil.hh"
 #include "BKE_grease_pencil_vertex_groups.hh"
