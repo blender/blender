@@ -699,11 +699,13 @@ void NODE_OT_add_collection(wmOperatorType *ot)
 static bool node_add_image_poll(bContext *C)
 {
   const SpaceNode *snode = CTX_wm_space_node(C);
-  return ED_operator_node_editable(C) && STR_ELEM(snode->tree_idname,
-                                                  "ShaderNodeTree",
-                                                  "CompositorNodeTree",
-                                                  "TextureNodeTree",
-                                                  "GeometryNodeTree");
+
+  /* Note: Validity of snode->nodetree is checked later for better error reporting. */
+  return STR_ELEM(snode->tree_idname,
+                  "ShaderNodeTree",
+                  "CompositorNodeTree",
+                  "TextureNodeTree",
+                  "GeometryNodeTree");
 }
 
 /** Node stack animation data, sorts nodes so each node is placed on top of each other. */
@@ -860,6 +862,13 @@ static wmOperatorStatus node_add_image_invoke(bContext *C, wmOperator *op, const
 {
   ARegion *region = CTX_wm_region(C);
   SpaceNode *snode = CTX_wm_space_node(C);
+
+  if (!ED_operator_node_editable(C)) {
+    BKE_report(op->reports,
+               RPT_ERROR,
+               "Could not add image. A node tree has not been created or assigned");
+    return OPERATOR_CANCELLED;
+  }
 
   /* Convert mouse coordinates to `v2d` space. */
   UI_view2d_region_to_view(&region->v2d,
