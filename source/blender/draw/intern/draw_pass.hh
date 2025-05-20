@@ -689,6 +689,7 @@ template<class T>
 void PassBase<T>::warm_shader_specialization(command::RecordingState &state) const
 {
   GPU_debug_group_begin("warm_shader_specialization");
+  GPU_debug_group_begin(this->debug_name);
 
   for (const command::Header &header : headers_) {
     switch (header.type) {
@@ -735,6 +736,7 @@ void PassBase<T>::warm_shader_specialization(command::RecordingState &state) con
     }
   }
 
+  GPU_debug_group_end();
   GPU_debug_group_end();
 }
 

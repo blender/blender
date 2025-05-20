@@ -801,6 +801,7 @@ Shader *ShaderCompiler::compile(const shader::ShaderCreateInfo &info, bool is_ba
   if (Context::get()) {
     /* Context can be null in Vulkan compilation threads. */
     GPU_debug_group_begin(GPU_DEBUG_SHADER_COMPILATION_GROUP);
+    GPU_debug_group_begin(info.name_.c_str());
   }
 
   const std::string error = info.check_error();
@@ -922,6 +923,7 @@ Shader *ShaderCompiler::compile(const shader::ShaderCreateInfo &info, bool is_ba
 
   if (Context::get()) {
     /* Context can be null in Vulkan compilation threads. */
+    GPU_debug_group_end();
     GPU_debug_group_end();
   }
 
