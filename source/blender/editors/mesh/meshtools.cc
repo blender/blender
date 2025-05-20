@@ -727,9 +727,18 @@ wmOperatorStatus ED_mesh_shapes_join_objects_exec(bContext *C,
   Depsgraph &depsgraph = *CTX_data_ensure_evaluated_depsgraph(C);
   Mesh &active_mesh = *static_cast<Mesh *>(active_object.data);
 
+  struct ObjectInfo {
+    StringRefNull name;
+    const Mesh &mesh;
+  };
+
+  auto topology_count_matches = [](const Mesh &a, const Mesh &b) {
+    return a.verts_num == b.verts_num && a.edges_num == b.edges_num && a.faces_num == b.faces_num;
+  };
+
   bool found_object = false;
-  bool found_non_equal_verts_num = false;
-  Vector<Object *> compatible_objects;
+  bool found_non_equal_count = false;
+  Vector<ObjectInfo> compatible_objects;
   CTX_DATA_BEGIN (C, Object *, ob_iter, selected_editable_objects) {
     if (ob_iter == &active_object) {
       continue;
@@ -737,13 +746,24 @@ wmOperatorStatus ED_mesh_shapes_join_objects_exec(bContext *C,
     if (ob_iter->type != OB_MESH) {
       continue;
     }
-    found_object = true;
-    const Mesh &mesh = *static_cast<Mesh *>(ob_iter->data);
-    if (mesh.verts_num != active_mesh.verts_num) {
-      found_non_equal_verts_num = true;
+    const Object *object_eval = DEG_get_evaluated(&depsgraph, ob_iter);
+    if (!object_eval) {
       continue;
     }
-    compatible_objects.append(ob_iter);
+    found_object = true;
+    if (const Mesh *mesh = BKE_object_get_evaluated_mesh(object_eval)) {
+      if (topology_count_matches(*mesh, active_mesh)) {
+        compatible_objects.append({BKE_id_name(ob_iter->id), *mesh});
+        continue;
+      }
+    }
+    /* Fall back to the original mesh. */
+    const Mesh &mesh_orig = *static_cast<const Mesh *>(ob_iter->data);
+    if (topology_count_matches(mesh_orig, active_mesh)) {
+      compatible_objects.append({BKE_id_name(ob_iter->id), mesh_orig});
+      continue;
+    }
+    found_non_equal_count = true;
   }
   CTX_DATA_END;
 
@@ -752,8 +772,10 @@ wmOperatorStatus ED_mesh_shapes_join_objects_exec(bContext *C,
     return OPERATOR_CANCELLED;
   }
 
-  if (found_non_equal_verts_num) {
-    BKE_report(reports, RPT_WARNING, "Selected meshes must have equal numbers of vertices");
+  if (found_non_equal_count) {
+    BKE_report(reports,
+               RPT_WARNING,
+               "Selected meshes must have equal numbers of vertices, edges, and faces");
     return OPERATOR_CANCELLED;
   }
 
@@ -772,22 +794,14 @@ wmOperatorStatus ED_mesh_shapes_join_objects_exec(bContext *C,
   }
 
   int keys_changed = 0;
-  Scene *scene_eval = DEG_get_evaluated_scene(&depsgraph);
-  for (Object *object : compatible_objects) {
-    Object *object_eval = DEG_get_evaluated(&depsgraph, object);
-    Mesh *deformed_mesh = blender::bke::mesh_get_eval_deform(
-        &depsgraph, scene_eval, object_eval, &CD_MASK_BAREMESH);
-    if (!deformed_mesh) {
-      continue;
-    }
-    const char *name = BKE_id_name(object->id);
+  for (const ObjectInfo &info : compatible_objects) {
     if (ensure_keys_exist) {
-      KeyBlock *kb = BKE_keyblock_add(active_mesh.key, name);
-      BKE_keyblock_convert_from_mesh(deformed_mesh, active_mesh.key, kb);
+      KeyBlock *kb = BKE_keyblock_add(active_mesh.key, info.name.c_str());
+      BKE_keyblock_convert_from_mesh(&info.mesh, active_mesh.key, kb);
     }
-    else if (KeyBlock *kb = BKE_keyblock_find_name(active_mesh.key, name)) {
+    else if (KeyBlock *kb = BKE_keyblock_find_name(active_mesh.key, info.name.c_str())) {
       keys_changed++;
-      BKE_keyblock_update_from_mesh(deformed_mesh, kb);
+      BKE_keyblock_update_from_mesh(&info.mesh, kb);
     }
   }
 
