@@ -45,6 +45,7 @@
 #include "ANIM_action.hh"
 #include "ANIM_action_iterators.hh"
 #include "ANIM_animdata.hh"
+#include "ANIM_armature.hh"
 #include "ANIM_bone_collections.hh"
 #include "ANIM_driver.hh"
 #include "ANIM_fcurve.hh"
@@ -809,15 +810,10 @@ static bool can_delete_key(FCurve *fcu, Object *ob, ReportList *reports)
 
     /* skip if bone is not selected */
     if ((pchan) && (pchan->bone)) {
-      /* bones are only selected/editable if visible... */
       bArmature *arm = static_cast<bArmature *>(ob->data);
 
-      /* skipping - not visible on currently visible layers */
-      if (!ANIM_bonecoll_is_visible_pchan(arm, pchan)) {
-        return false;
-      }
-      /* skipping - is currently hidden */
-      if (pchan->bone->flag & BONE_HIDDEN_P) {
+      /* Invisible bones should not be modified. */
+      if (!blender::animrig::bone_is_visible_pchan(arm, pchan)) {
         return false;
       }
 

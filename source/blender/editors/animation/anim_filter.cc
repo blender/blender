@@ -91,6 +91,7 @@
 #include "SEQ_utils.hh"
 
 #include "ANIM_action.hh"
+#include "ANIM_armature.hh"
 #include "ANIM_bone_collections.hh"
 
 #include "anim_intern.hh"
@@ -987,12 +988,8 @@ static bool skip_fcurve_selected_data(bAnimContext *ac,
         if (skip_hidden) {
           bArmature *arm = static_cast<bArmature *>(ob->data);
 
-          /* skipping - not visible on currently visible layers */
-          if (!ANIM_bonecoll_is_visible_pchan(arm, pchan)) {
-            return true;
-          }
-          /* skipping - is currently hidden */
-          if (pchan->bone->flag & BONE_HIDDEN_P) {
+          /* Skipping - is currently hidden. */
+          if (!blender::animrig::bone_is_visible_pchan(arm, pchan)) {
             return true;
           }
         }
