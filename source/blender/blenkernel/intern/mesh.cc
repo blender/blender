@@ -87,9 +87,7 @@ static void mesh_init_data(ID *id)
 {
   Mesh *mesh = reinterpret_cast<Mesh *>(id);
 
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(mesh, id));
-
-  MEMCPY_STRUCT_AFTER(mesh, DNA_struct_default_get(Mesh), id);
+  MEMCPY_STRUCT_AFTER_CHECKED(mesh, DNA_struct_default_get(Mesh), id);
 
   CustomData_reset(&mesh->vert_data);
   CustomData_reset(&mesh->edge_data);

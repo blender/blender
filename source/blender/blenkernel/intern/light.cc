@@ -38,9 +38,8 @@
 static void light_init_data(ID *id)
 {
   Light *la = (Light *)id;
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(la, id));
 
-  MEMCPY_STRUCT_AFTER(la, DNA_struct_default_get(Light), id);
+  MEMCPY_STRUCT_AFTER_CHECKED(la, DNA_struct_default_get(Light), id);
 }
 
 /**

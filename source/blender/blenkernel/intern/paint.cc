@@ -85,8 +85,6 @@ static void palette_init_data(ID *id)
 {
   Palette *palette = (Palette *)id;
 
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(palette, id));
-
   /* Enable fake user by default. */
   id_fake_user_set(&palette->id);
 }

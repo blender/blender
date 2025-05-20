@@ -55,9 +55,8 @@
 static void camera_init_data(ID *id)
 {
   Camera *cam = (Camera *)id;
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(cam, id));
 
-  MEMCPY_STRUCT_AFTER(cam, DNA_struct_default_get(Camera), id);
+  MEMCPY_STRUCT_AFTER_CHECKED(cam, DNA_struct_default_get(Camera), id);
 }
 
 /**

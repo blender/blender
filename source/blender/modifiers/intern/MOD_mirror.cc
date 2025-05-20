@@ -39,9 +39,7 @@ static void init_data(ModifierData *md)
 {
   MirrorModifierData *mmd = (MirrorModifierData *)md;
 
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(mmd, modifier));
-
-  MEMCPY_STRUCT_AFTER(mmd, DNA_struct_default_get(MirrorModifierData), modifier);
+  MEMCPY_STRUCT_AFTER_CHECKED(mmd, DNA_struct_default_get(MirrorModifierData), modifier);
 }
 
 static void foreach_ID_link(ModifierData *md, Object *ob, IDWalkFunc walk, void *user_data)

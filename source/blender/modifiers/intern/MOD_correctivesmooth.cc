@@ -53,9 +53,8 @@ static void init_data(ModifierData *md)
 {
   CorrectiveSmoothModifierData *csmd = (CorrectiveSmoothModifierData *)md;
 
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(csmd, modifier));
-
-  MEMCPY_STRUCT_AFTER(csmd, DNA_struct_default_get(CorrectiveSmoothModifierData), modifier);
+  MEMCPY_STRUCT_AFTER_CHECKED(
+      csmd, DNA_struct_default_get(CorrectiveSmoothModifierData), modifier);
 
   csmd->delta_cache.deltas = nullptr;
 }

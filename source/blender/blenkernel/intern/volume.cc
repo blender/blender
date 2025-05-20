@@ -133,9 +133,8 @@ void BKE_volumes_init()
 static void volume_init_data(ID *id)
 {
   Volume *volume = (Volume *)id;
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(volume, id));
 
-  MEMCPY_STRUCT_AFTER(volume, DNA_struct_default_get(Volume), id);
+  MEMCPY_STRUCT_AFTER_CHECKED(volume, DNA_struct_default_get(Volume), id);
 
   volume->runtime = MEM_new<blender::bke::VolumeRuntime>(__func__);
 

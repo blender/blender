@@ -40,9 +40,7 @@ static void init_data(ModifierData *md)
 {
   ArmatureModifierData *amd = (ArmatureModifierData *)md;
 
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(amd, modifier));
-
-  MEMCPY_STRUCT_AFTER(amd, DNA_struct_default_get(ArmatureModifierData), modifier);
+  MEMCPY_STRUCT_AFTER_CHECKED(amd, DNA_struct_default_get(ArmatureModifierData), modifier);
 }
 
 static void copy_data(const ModifierData *md, ModifierData *target, const int flag)

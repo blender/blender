@@ -44,9 +44,7 @@ static void init_data(ModifierData *md)
 {
   WaveModifierData *wmd = (WaveModifierData *)md;
 
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(wmd, modifier));
-
-  MEMCPY_STRUCT_AFTER(wmd, DNA_struct_default_get(WaveModifierData), modifier);
+  MEMCPY_STRUCT_AFTER_CHECKED(wmd, DNA_struct_default_get(WaveModifierData), modifier);
 }
 
 static bool depends_on_time(Scene * /*scene*/, ModifierData * /*md*/)

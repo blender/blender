@@ -46,9 +46,7 @@ static void init_data(ModifierData *md)
 {
   HookModifierData *hmd = (HookModifierData *)md;
 
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(hmd, modifier));
-
-  MEMCPY_STRUCT_AFTER(hmd, DNA_struct_default_get(HookModifierData), modifier);
+  MEMCPY_STRUCT_AFTER_CHECKED(hmd, DNA_struct_default_get(HookModifierData), modifier);
 
   hmd->curfalloff = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
 }

@@ -50,9 +50,7 @@ static void linestyle_init_data(ID *id)
 {
   FreestyleLineStyle *linestyle = (FreestyleLineStyle *)id;
 
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(linestyle, id));
-
-  MEMCPY_STRUCT_AFTER(linestyle, DNA_struct_default_get(FreestyleLineStyle), id);
+  MEMCPY_STRUCT_AFTER_CHECKED(linestyle, DNA_struct_default_get(FreestyleLineStyle), id);
 
   BKE_linestyle_geometry_modifier_add(linestyle, nullptr, LS_MODIFIER_SAMPLING);
 }

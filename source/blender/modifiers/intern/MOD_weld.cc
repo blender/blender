@@ -135,9 +135,7 @@ static void init_data(ModifierData *md)
 {
   WeldModifierData *wmd = (WeldModifierData *)md;
 
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(wmd, modifier));
-
-  MEMCPY_STRUCT_AFTER(wmd, DNA_struct_default_get(WeldModifierData), modifier);
+  MEMCPY_STRUCT_AFTER_CHECKED(wmd, DNA_struct_default_get(WeldModifierData), modifier);
 }
 
 static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)

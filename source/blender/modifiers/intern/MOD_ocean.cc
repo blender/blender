@@ -67,9 +67,7 @@ static void init_data(ModifierData *md)
 #ifdef WITH_OCEANSIM
   OceanModifierData *omd = (OceanModifierData *)md;
 
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(omd, modifier));
-
-  MEMCPY_STRUCT_AFTER(omd, DNA_struct_default_get(OceanModifierData), modifier);
+  MEMCPY_STRUCT_AFTER_CHECKED(omd, DNA_struct_default_get(OceanModifierData), modifier);
 
   BKE_modifier_path_init(omd->cachepath, sizeof(omd->cachepath), "cache_ocean");
 

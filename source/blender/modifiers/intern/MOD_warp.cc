@@ -46,9 +46,7 @@ static void init_data(ModifierData *md)
 {
   WarpModifierData *wmd = (WarpModifierData *)md;
 
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(wmd, modifier));
-
-  MEMCPY_STRUCT_AFTER(wmd, DNA_struct_default_get(WarpModifierData), modifier);
+  MEMCPY_STRUCT_AFTER_CHECKED(wmd, DNA_struct_default_get(WarpModifierData), modifier);
 
   wmd->curfalloff = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
 }

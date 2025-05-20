@@ -45,9 +45,8 @@ static void init_data(ModifierData *md)
 {
   ParticleInstanceModifierData *pimd = (ParticleInstanceModifierData *)md;
 
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(pimd, modifier));
-
-  MEMCPY_STRUCT_AFTER(pimd, DNA_struct_default_get(ParticleInstanceModifierData), modifier);
+  MEMCPY_STRUCT_AFTER_CHECKED(
+      pimd, DNA_struct_default_get(ParticleInstanceModifierData), modifier);
 }
 
 static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)

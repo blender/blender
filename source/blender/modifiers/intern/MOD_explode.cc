@@ -50,9 +50,7 @@ static void init_data(ModifierData *md)
 {
   ExplodeModifierData *emd = (ExplodeModifierData *)md;
 
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(emd, modifier));
-
-  MEMCPY_STRUCT_AFTER(emd, DNA_struct_default_get(ExplodeModifierData), modifier);
+  MEMCPY_STRUCT_AFTER_CHECKED(emd, DNA_struct_default_get(ExplodeModifierData), modifier);
 }
 static void free_data(ModifierData *md)
 {

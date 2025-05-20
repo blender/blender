@@ -55,9 +55,7 @@ static void init_data(ModifierData *md)
 {
   ArrayModifierData *amd = (ArrayModifierData *)md;
 
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(amd, modifier));
-
-  MEMCPY_STRUCT_AFTER(amd, DNA_struct_default_get(ArrayModifierData), modifier);
+  MEMCPY_STRUCT_AFTER_CHECKED(amd, DNA_struct_default_get(ArrayModifierData), modifier);
 
   /* Open the first sub-panel by default,
    * it corresponds to Relative offset which is enabled too. */

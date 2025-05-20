@@ -53,8 +53,6 @@ static void cache_file_init_data(ID *id)
 {
   CacheFile *cache_file = (CacheFile *)id;
 
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(cache_file, id));
-
   cache_file->scale = 1.0f;
   cache_file->velocity_unit = CACHEFILE_VELOCITY_UNIT_SECOND;
   STRNCPY(cache_file->velocity_name, ".velocities");

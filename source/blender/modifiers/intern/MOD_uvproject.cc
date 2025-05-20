@@ -45,9 +45,7 @@ static void init_data(ModifierData *md)
 {
   UVProjectModifierData *umd = (UVProjectModifierData *)md;
 
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(umd, modifier));
-
-  MEMCPY_STRUCT_AFTER(umd, DNA_struct_default_get(UVProjectModifierData), modifier);
+  MEMCPY_STRUCT_AFTER_CHECKED(umd, DNA_struct_default_get(UVProjectModifierData), modifier);
 }
 
 static void required_data_mask(ModifierData * /*md*/, CustomData_MeshMasks *r_cddata_masks)

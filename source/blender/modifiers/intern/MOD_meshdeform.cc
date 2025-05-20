@@ -45,9 +45,7 @@ static void init_data(ModifierData *md)
 {
   MeshDeformModifierData *mmd = (MeshDeformModifierData *)md;
 
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(mmd, modifier));
-
-  MEMCPY_STRUCT_AFTER(mmd, DNA_struct_default_get(MeshDeformModifierData), modifier);
+  MEMCPY_STRUCT_AFTER_CHECKED(mmd, DNA_struct_default_get(MeshDeformModifierData), modifier);
 }
 
 static void free_data(ModifierData *md)

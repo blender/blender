@@ -52,9 +52,7 @@ static void init_data(ModifierData *md)
 {
   auto *tmd = reinterpret_cast<GreasePencilTintModifierData *>(md);
 
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(tmd, modifier));
-
-  MEMCPY_STRUCT_AFTER(tmd, DNA_struct_default_get(GreasePencilTintModifierData), modifier);
+  MEMCPY_STRUCT_AFTER_CHECKED(tmd, DNA_struct_default_get(GreasePencilTintModifierData), modifier);
   modifier::greasepencil::init_influence_data(&tmd->influence, true);
 
   /* Add default color ramp. */

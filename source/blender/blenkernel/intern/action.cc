@@ -103,8 +103,7 @@ static void action_init_data(ID *action_id)
   BLI_assert(GS(action_id->name) == ID_AC);
   bAction *action = reinterpret_cast<bAction *>(action_id);
 
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(action, id));
-  MEMCPY_STRUCT_AFTER(action, DNA_struct_default_get(bAction), id);
+  MEMCPY_STRUCT_AFTER_CHECKED(action, DNA_struct_default_get(bAction), id);
 }
 
 /**

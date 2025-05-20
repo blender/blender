@@ -155,9 +155,7 @@ static void scene_init_data(ID *id)
   SceneRenderView *srv;
   CurveMapping *mblur_shutter_curve;
 
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(scene, id));
-
-  MEMCPY_STRUCT_AFTER(scene, DNA_struct_default_get(Scene), id);
+  MEMCPY_STRUCT_AFTER_CHECKED(scene, DNA_struct_default_get(Scene), id);
 
   STRNCPY(scene->r.bake.filepath, U.renderdir);
 

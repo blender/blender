@@ -1971,9 +1971,7 @@ static void init_data(ModifierData *md)
 {
   SkinModifierData *smd = (SkinModifierData *)md;
 
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(smd, modifier));
-
-  MEMCPY_STRUCT_AFTER(smd, DNA_struct_default_get(SkinModifierData), modifier);
+  MEMCPY_STRUCT_AFTER_CHECKED(smd, DNA_struct_default_get(SkinModifierData), modifier);
 
   /* Enable in editmode by default. */
   md->mode |= eModifierMode_Editmode;

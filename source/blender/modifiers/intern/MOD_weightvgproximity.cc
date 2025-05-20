@@ -302,9 +302,8 @@ static void init_data(ModifierData *md)
 {
   WeightVGProximityModifierData *wmd = (WeightVGProximityModifierData *)md;
 
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(wmd, modifier));
-
-  MEMCPY_STRUCT_AFTER(wmd, DNA_struct_default_get(WeightVGProximityModifierData), modifier);
+  MEMCPY_STRUCT_AFTER_CHECKED(
+      wmd, DNA_struct_default_get(WeightVGProximityModifierData), modifier);
 
   wmd->cmap_curve = BKE_curvemapping_add(1, 0.0, 0.0, 1.0, 1.0);
   BKE_curvemapping_init(wmd->cmap_curve);

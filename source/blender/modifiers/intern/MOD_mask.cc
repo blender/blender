@@ -55,9 +55,7 @@ static void init_data(ModifierData *md)
 {
   MaskModifierData *mmd = (MaskModifierData *)md;
 
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(mmd, modifier));
-
-  MEMCPY_STRUCT_AFTER(mmd, DNA_struct_default_get(MaskModifierData), modifier);
+  MEMCPY_STRUCT_AFTER_CHECKED(mmd, DNA_struct_default_get(MaskModifierData), modifier);
 }
 
 static void required_data_mask(ModifierData * /*md*/, CustomData_MeshMasks *r_cddata_masks)

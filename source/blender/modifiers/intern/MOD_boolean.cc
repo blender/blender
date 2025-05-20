@@ -67,9 +67,7 @@ static void init_data(ModifierData *md)
 {
   BooleanModifierData *bmd = (BooleanModifierData *)md;
 
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(bmd, modifier));
-
-  MEMCPY_STRUCT_AFTER(bmd, DNA_struct_default_get(BooleanModifierData), modifier);
+  MEMCPY_STRUCT_AFTER_CHECKED(bmd, DNA_struct_default_get(BooleanModifierData), modifier);
 }
 
 static bool is_disabled(const Scene * /*scene*/, ModifierData *md, bool /*use_render_params*/)

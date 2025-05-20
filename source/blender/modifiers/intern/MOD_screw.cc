@@ -55,9 +55,7 @@ static void init_data(ModifierData *md)
 {
   ScrewModifierData *ltmd = (ScrewModifierData *)md;
 
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(ltmd, modifier));
-
-  MEMCPY_STRUCT_AFTER(ltmd, DNA_struct_default_get(ScrewModifierData), modifier);
+  MEMCPY_STRUCT_AFTER_CHECKED(ltmd, DNA_struct_default_get(ScrewModifierData), modifier);
 }
 
 /** Used for gathering edge connectivity. */

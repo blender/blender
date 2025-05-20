@@ -81,9 +81,7 @@ static void init_data(ModifierData *md)
 {
   TriangulateModifierData *tmd = (TriangulateModifierData *)md;
 
-  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(tmd, modifier));
-
-  MEMCPY_STRUCT_AFTER(tmd, DNA_struct_default_get(TriangulateModifierData), modifier);
+  MEMCPY_STRUCT_AFTER_CHECKED(tmd, DNA_struct_default_get(TriangulateModifierData), modifier);
 
   /* Enable in editmode by default */
   md->mode |= eModifierMode_Editmode;
