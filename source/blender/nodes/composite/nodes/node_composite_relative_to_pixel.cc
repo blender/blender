@@ -2,6 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_assert.h"
 #include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
 
@@ -220,6 +221,9 @@ class RelativeToPixelOperation : public NodeOperation {
       case CMP_NODE_RELATIVE_TO_PIXEL_REFERENCE_DIMENSION_DIAGONAL:
         return float2(math::length(image_size));
     }
+
+    BLI_assert_unreachable();
+    return float2(1.0f);
   }
 
   CMPNodeRelativeToPixelDataType get_data_type()
