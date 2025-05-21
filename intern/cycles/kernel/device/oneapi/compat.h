@@ -224,6 +224,7 @@ ccl_device_forceinline int __float_as_int(const float x)
 #define fminf(x, y) sycl::fmin((x), (y))
 #define fmodf(x, y) sycl::fmod((x), (y))
 #define lgammaf(x) sycl::lgamma((x))
+#define ldexpf(x, y) sycl::ldexp((x), (y))
 
 #define cosf(x) sycl::native::cos(((float)(x)))
 #define sinf(x) sycl::native::sin(((float)(x)))

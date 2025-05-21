@@ -53,7 +53,7 @@ class OIDNPass {
     offset = buffer_params.get_pass_offset(type, mode);
     need_scale = (type == PASS_DENOISING_ALBEDO || type == PASS_DENOISING_NORMAL);
 
-    const PassInfo pass_info = Pass::get_info(type);
+    const PassInfo pass_info = Pass::get_info(type, mode);
     num_components = pass_info.num_components;
     use_compositing = pass_info.use_compositing;
     use_denoising_albedo = pass_info.use_denoising_albedo;

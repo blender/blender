@@ -892,6 +892,7 @@ KERNEL_FILM_CONVERT_VARIANT(float, 1)
 
 /* 3 channel inputs */
 KERNEL_FILM_CONVERT_VARIANT(light_path, 3)
+KERNEL_FILM_CONVERT_VARIANT(rgbe, 3)
 KERNEL_FILM_CONVERT_VARIANT(float3, 3)
 
 /* 4 channel inputs */

@@ -112,6 +112,7 @@ DEFINE_PASS_ACCESSOR(float)
 /* Float3 passes. */
 DEFINE_PASS_ACCESSOR(light_path)
 DEFINE_PASS_ACCESSOR(shadow_catcher)
+DEFINE_PASS_ACCESSOR(rgbe)
 DEFINE_PASS_ACCESSOR(float3)
 
 /* Float4 passes. */

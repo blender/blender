@@ -96,6 +96,7 @@ DEFINE_PASS_ACCESSOR(float, FLOAT);
 
 /* Float3 passes. */
 DEFINE_PASS_ACCESSOR(light_path, LIGHT_PATH);
+DEFINE_PASS_ACCESSOR(rgbe, RGBE);
 DEFINE_PASS_ACCESSOR(float3, FLOAT3);
 
 /* Float4 passes. */

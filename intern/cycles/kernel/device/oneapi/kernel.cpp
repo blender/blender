@@ -635,6 +635,7 @@ bool oneapi_enqueue_kernel(KernelContext *kernel_context,
       DEVICE_KERNEL_FILM_CONVERT(sample_count, SAMPLE_COUNT);
       DEVICE_KERNEL_FILM_CONVERT(float, FLOAT);
       DEVICE_KERNEL_FILM_CONVERT(light_path, LIGHT_PATH);
+      DEVICE_KERNEL_FILM_CONVERT(rgbe, RGBE);
       DEVICE_KERNEL_FILM_CONVERT(float3, FLOAT3);
       DEVICE_KERNEL_FILM_CONVERT(motion, MOTION);
       DEVICE_KERNEL_FILM_CONVERT(cryptomatte, CRYPTOMATTE);

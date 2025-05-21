@@ -60,15 +60,13 @@ ccl_device void volume_guiding_filter_x(KernelGlobals kg,
     const float weight = gaussian_params[dx] /
                          __float_as_uint(buffer[kernel_data.film.pass_sample_count]);
 
-    scatter += fabs(kernel_read_pass_float3(buffer + kernel_data.film.pass_volume_scatter)) *
-               weight;
-    transmit += fabs(kernel_read_pass_float3(buffer + kernel_data.film.pass_volume_transmit)) *
-                weight;
+    scatter += kernel_read_pass_float3(buffer + kernel_data.film.pass_volume_scatter) * weight;
+    transmit += kernel_read_pass_float3(buffer + kernel_data.film.pass_volume_transmit) * weight;
   }
 
   /* Write to the buffer. */
-  film_overwrite_pass_float3(buffer + kernel_data.film.pass_volume_scatter_denoised, scatter);
-  film_overwrite_pass_float3(buffer + kernel_data.film.pass_volume_transmit_denoised, transmit);
+  film_overwrite_pass_rgbe(buffer + kernel_data.film.pass_volume_scatter_denoised, scatter);
+  film_overwrite_pass_rgbe(buffer + kernel_data.film.pass_volume_transmit_denoised, transmit);
 }
 
 ccl_device void volume_guiding_filter_y(KernelGlobals kg,
@@ -109,9 +107,9 @@ ccl_device void volume_guiding_filter_y(KernelGlobals kg,
     else {
       ccl_global float *buffer = film_pass_pixel_render_buffer(
           kg, x, y, offset, stride, render_buffer);
-      scatter_neighbors[i] = kernel_read_pass_float3(
-          buffer + kernel_data.film.pass_volume_scatter_denoised);
-      transmit_neighbors[i] = kernel_read_pass_float3(
+      scatter_neighbors[i] = kernel_read_pass_rgbe(buffer +
+                                                   kernel_data.film.pass_volume_scatter_denoised);
+      transmit_neighbors[i] = kernel_read_pass_rgbe(
           buffer + kernel_data.film.pass_volume_transmit_denoised);
     }
   }
@@ -128,9 +126,9 @@ ccl_device void volume_guiding_filter_y(KernelGlobals kg,
     else {
       ccl_global float *buffer = film_pass_pixel_render_buffer(
           kg, x, next_y, offset, stride, render_buffer);
-      scatter_neighbors[index] = kernel_read_pass_float3(
+      scatter_neighbors[index] = kernel_read_pass_rgbe(
           buffer + kernel_data.film.pass_volume_scatter_denoised);
-      transmit_neighbors[index] = kernel_read_pass_float3(
+      transmit_neighbors[index] = kernel_read_pass_rgbe(
           buffer + kernel_data.film.pass_volume_transmit_denoised);
     }
 
@@ -147,8 +145,10 @@ ccl_device void volume_guiding_filter_y(KernelGlobals kg,
     /* Write to the buffers. */
     ccl_global float *buffer = film_pass_pixel_render_buffer(
         kg, x, y, offset, stride, render_buffer);
-    film_overwrite_pass_float3(buffer + kernel_data.film.pass_volume_scatter_denoised, scatter);
-    film_overwrite_pass_float3(buffer + kernel_data.film.pass_volume_transmit_denoised, transmit);
+    film_overwrite_pass_rgbe(buffer + kernel_data.film.pass_volume_scatter_denoised,
+                             fabs(scatter));
+    film_overwrite_pass_rgbe(buffer + kernel_data.film.pass_volume_transmit_denoised,
+                             fabs(transmit));
   }
 }
 

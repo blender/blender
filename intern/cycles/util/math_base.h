@@ -668,6 +668,11 @@ ccl_device_inline float xor_mask(const float x, const uint y)
   return __uint_as_float(__float_as_uint(x) ^ y);
 }
 
+ccl_device_inline float or_mask(const float x, const uint y)
+{
+  return __uint_as_float(__float_as_uint(x) | y);
+}
+
 ccl_device float bits_to_01(const uint bits)
 {
   return bits * (1.0f / (float)0xFFFFFFFF);

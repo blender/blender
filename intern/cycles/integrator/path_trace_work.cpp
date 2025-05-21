@@ -186,9 +186,9 @@ PassAccessor::PassAccessInfo PathTraceWork::get_display_pass_access_info(PassMod
 }
 
 PassAccessor::Destination PathTraceWork::get_display_destination_template(
-    const PathTraceDisplay *display) const
+    const PathTraceDisplay *display, const PassMode mode) const
 {
-  PassAccessor::Destination destination(film_->get_display_pass());
+  PassAccessor::Destination destination(film_->get_display_pass(), mode);
 
   const int2 display_texture_size = display->get_texture_size();
   const int texture_x = effective_buffer_params_.full_x - effective_big_tile_params_.full_x +

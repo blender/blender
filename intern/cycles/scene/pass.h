@@ -75,6 +75,7 @@ class Pass : public Node {
   static const NodeEnum *get_mode_enum();
 
   static PassInfo get_info(PassType type,
+                           const PassMode mode = PassMode::DENOISED,
                            const bool include_albedo = false,
                            const bool is_lightgroup = false);
 

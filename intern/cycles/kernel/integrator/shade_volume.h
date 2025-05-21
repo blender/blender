@@ -1012,9 +1012,9 @@ ccl_device_inline void volume_scatter_probability_get(KernelGlobals kg,
 
   /* Contribution based criterion, see Eq. (15). */
   const float L_scattered = reduce_add(
-      kernel_read_pass_float3(buffer + kernel_data.film.pass_volume_scatter_denoised));
+      kernel_read_pass_rgbe(buffer + kernel_data.film.pass_volume_scatter_denoised));
   const float L_transmitted = reduce_add(
-      kernel_read_pass_float3(buffer + kernel_data.film.pass_volume_transmit_denoised));
+      kernel_read_pass_rgbe(buffer + kernel_data.film.pass_volume_transmit_denoised));
   const float L_volume = L_transmitted + L_scattered;
 
   /* Compute guided scattering probability. */

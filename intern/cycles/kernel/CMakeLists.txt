@@ -420,6 +420,7 @@ set(SRC_UTIL_HEADERS
   ../util/types_int4.h
   ../util/types_int8.h
   ../util/types_spectrum.h
+  ../util/types_rgbe.h
   ../util/types_uchar2.h
   ../util/types_uchar3.h
   ../util/types_uchar4.h

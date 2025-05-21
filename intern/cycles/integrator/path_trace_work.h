@@ -165,8 +165,8 @@ class PathTraceWork {
 
   /* Get destination which offset and stride are configured so that writing to it will write to a
    * proper location of GPU display texture, taking current tile and device slice into account. */
-  PassAccessor::Destination get_display_destination_template(
-      const PathTraceDisplay *display) const;
+  PassAccessor::Destination get_display_destination_template(const PathTraceDisplay *display,
+                                                             const PassMode mode) const;
 
   /* Device which will be used for path tracing.
    * Note that it is an actual render device (and never is a multi-device). */

@@ -47,6 +47,7 @@ class PassAccessorCPU : public PassAccessor {
   /* Float3 passes. */
   DECLARE_PASS_ACCESSOR(light_path)
   DECLARE_PASS_ACCESSOR(shadow_catcher)
+  DECLARE_PASS_ACCESSOR(rgbe)
   DECLARE_PASS_ACCESSOR(float3)
 
   /* Float4 passes. */

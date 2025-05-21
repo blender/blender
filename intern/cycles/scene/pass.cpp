@@ -143,7 +143,7 @@ Pass::Pass() : Node(get_node_type()), is_auto_(false) {}
 
 PassInfo Pass::get_info() const
 {
-  return get_info(type, include_albedo, !lightgroup.empty());
+  return get_info(type, mode, include_albedo, !lightgroup.empty());
 }
 
 bool Pass::is_written() const
@@ -151,7 +151,10 @@ bool Pass::is_written() const
   return get_info().is_written;
 }
 
-PassInfo Pass::get_info(const PassType type, const bool include_albedo, const bool is_lightgroup)
+PassInfo Pass::get_info(const PassType type,
+                        const PassMode mode,
+                        const bool include_albedo,
+                        const bool is_lightgroup)
 {
   PassInfo pass_info;
 
@@ -280,10 +283,9 @@ PassInfo Pass::get_info(const PassType type, const bool include_albedo, const bo
       break;
     case PASS_VOLUME_SCATTER:
     case PASS_VOLUME_TRANSMIT:
-      /* TODO(weizhen): Gaussian filter only needs 1 component, but we can have negative pixel
-       * values in some channels, preventing us from simply add them together; besides, using RGB
-       * channels is better for visualization. We can optimize the memory by using RGBE format. */
-      pass_info.num_components = 3;
+      /* Noisy buffer needs higher precision for accumulating the contribution, denoised buffer is
+       * used directly and thus can have lower resolution. */
+      pass_info.num_components = (mode == PassMode::NOISY) ? 3 : 1;
       pass_info.use_exposure = true;
       pass_info.use_filter = false;
       pass_info.support_denoise = true;

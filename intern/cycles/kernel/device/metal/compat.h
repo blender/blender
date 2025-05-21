@@ -277,6 +277,7 @@ ccl_device_forceinline uchar4 make_uchar4(const uchar x,
 #define coshf(x) cosh(float(x))
 #define tanhf(x) tanh(float(x))
 #define saturatef(x) saturate(float(x))
+#define ldexpf(x, y) ldexp(float(x), int(y))
 
 /* Use native functions with possibly lower precision for performance,
  * no issues found so far. */

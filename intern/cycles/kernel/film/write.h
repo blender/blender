@@ -10,6 +10,8 @@
 
 #include "kernel/util/colorspace.h"
 
+#include "util/types_rgbe.h"
+
 #ifdef __KERNEL_GPU__
 #  include "util/atomic.h"
 #  define __ATOMIC_PASS_WRITE__
@@ -108,6 +110,12 @@ ccl_device_inline void film_write_pass_float4(ccl_global float *ccl_restrict buf
 #endif
 }
 
+ccl_device_inline void film_overwrite_pass_rgbe(ccl_global float *ccl_restrict buffer,
+                                                const float3 value)
+{
+  *buffer = rgb_to_rgbe(value).f;
+}
+
 /* Overwrite for passes that only write on sample 0. This assumes only a single thread will write
  * to this pixel and no atomics are needed. */
 
@@ -140,6 +148,11 @@ ccl_device_inline float3 kernel_read_pass_float3(const ccl_global float *ccl_res
 ccl_device_inline float4 kernel_read_pass_float4(ccl_global float *ccl_restrict buffer)
 {
   return make_float4(buffer[0], buffer[1], buffer[2], buffer[3]);
+}
+
+ccl_device_inline float3 kernel_read_pass_rgbe(const ccl_global float *ccl_restrict buffer)
+{
+  return rgbe_to_rgb(RGBE(*buffer));
 }
 
 CCL_NAMESPACE_END
