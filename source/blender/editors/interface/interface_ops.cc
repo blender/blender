@@ -2688,6 +2688,11 @@ static wmOperatorStatus ui_view_scroll_invoke(bContext *C,
   }
 
   BLI_assert(view->supports_scrolling());
+  if (view->is_fully_visible()) {
+    /* The view does not need scrolling currently, so pass the event through. This allows scrolling
+     * e.g. the entire region even when hovering a tree-view that supports scrolling generally. */
+    return OPERATOR_PASS_THROUGH;
+  }
   view->scroll(*direction);
 
   ED_region_tag_redraw(region);
