@@ -909,6 +909,124 @@ static float metadata_box_height_get(const ImBuf *ibuf, int fontid, const bool i
   return 0;
 }
 
+static void text_info_row(const char *text,
+                          const int text_len,
+                          int col1,
+                          int col2,
+                          int row,
+                          const int size_x,
+                          const int size_y)
+{
+  const int font_id = BLF_default();
+  float text_color[4];
+
+  UI_GetThemeColor4fv(TH_TEXT_HI, text_color);
+  BLF_color4fv(font_id, text_color);
+
+  /* Ensure text is visible against bright background. */
+  const float shadow_color[4] = {0.0f, 0.0f, 0.0f, 0.8f};
+  BLF_enable(font_id, BLF_SHADOW);
+  BLF_shadow_offset(font_id, 0, 0);
+  BLF_shadow(font_id, FontShadowType::Outline, shadow_color);
+
+  BLF_position(font_id, col1, row, 0.0f);
+  BLF_draw(font_id, IFACE_(text), text_len);
+  BLF_position(font_id, col2, row, 0.0f);
+  char draw_text[MAX_NAME];
+  SNPRINTF(draw_text, "%d x %d", size_x, size_y);
+  BLF_draw(font_id, draw_text, sizeof(draw_text));
+
+  BLF_disable(font_id, BLF_SHADOW);
+}
+
+void ED_region_image_overlay_info_text_draw(const int render_size_x,
+                                            const int render_size_y,
+
+                                            const int viewer_size_x,
+                                            const int viewer_size_y,
+
+                                            const int draw_offset_x,
+                                            const int draw_offset_y)
+{
+  BLF_set_default();
+  const int font_id = BLF_default();
+  int overlay_lineheight = (UI_style_get()->widget.points * UI_SCALE_FAC * 1.6f);
+
+  const char render_size_name[MAX_NAME] = "Render Size";
+  const char viewer_size_name[MAX_NAME] = "Image Size";
+
+  const int render_size_width = BLF_width(font_id, render_size_name, sizeof(render_size_name));
+  const int viewer_size_width = BLF_width(font_id, viewer_size_name, sizeof(viewer_size_name));
+  int longest_label = max_ii(render_size_width, viewer_size_width);
+
+  int col1 = draw_offset_x;
+  int col2 = draw_offset_x + longest_label + (0.5 * U.widget_unit);
+
+  text_info_row(render_size_name,
+                sizeof(render_size_name),
+                col1,
+                col2,
+                draw_offset_y - overlay_lineheight,
+                render_size_x,
+                render_size_y);
+
+  text_info_row(viewer_size_name,
+                sizeof(viewer_size_name),
+                col1,
+                col2,
+                draw_offset_y - overlay_lineheight * 2,
+                viewer_size_x,
+                viewer_size_y);
+}
+
+void ED_region_image_render_region_draw(
+    int x, int y, const rcti *frame, float zoomx, float zoomy, float passepartout_alpha)
+{
+  GPU_matrix_push();
+
+  /* Offset and zoom using GPU viewport. */
+  const auto frame_width = BLI_rcti_size_x(frame);
+  const auto frame_height = BLI_rcti_size_y(frame);
+  GPU_matrix_translate_2f(x, y);
+  GPU_matrix_scale_2f(zoomx, zoomy);
+
+  GPUVertFormat *format = immVertexFormat();
+  uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+
+  immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+  GPU_blend(GPU_BLEND_ALPHA);
+
+  const float x1 = frame->xmin - frame_width / 2;
+  const float x2 = frame->xmax - frame_width / 2;
+  const float y1 = frame->ymin - frame_height / 2;
+  const float y2 = frame->ymax - frame_height / 2;
+
+  /* Darken the area outside the frame. */
+  if (passepartout_alpha > 0) {
+    /* Using a sufficiently large number instead of numeric_limits::infinity(), to avoid comparison
+     * issues and different behavior around large numbers on different platforms. */
+    constexpr float inf = 10e5;
+    immUniformColor4f(0.0f, 0.0f, 0.0f, passepartout_alpha);
+    immRectf(pos, -inf, y2, inf, inf);
+    immRectf(pos, -inf, y1, inf, -inf);
+    immRectf(pos, -inf, y1, x1, y2);
+    immRectf(pos, x2, y1, inf, y2);
+  }
+
+  float wire_color[3];
+  UI_GetThemeColor3fv(TH_WIRE_EDIT, wire_color);
+  immUniformColor4f(wire_color[0], wire_color[1], wire_color[2], 1);
+
+  /* The bounding box must be drawn last to ensure it remains visible
+   * when passepartout_alpha > 0. */
+  imm_draw_box_wire_2d(pos, x1, y1, x2, y2);
+
+  immUnbindProgram();
+  GPU_blend(GPU_BLEND_NONE);
+
+  GPU_matrix_pop();
+}
+
 void ED_region_image_metadata_draw(
     int x, int y, const ImBuf *ibuf, const rctf *frame, float zoomx, float zoomy)
 {

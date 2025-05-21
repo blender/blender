@@ -770,6 +770,8 @@ typedef enum eSpaceImage_Flag {
 typedef enum eSpaceImageOverlay_Flag {
   SI_OVERLAY_SHOW_OVERLAYS = (1 << 0),
   SI_OVERLAY_SHOW_GRID_BACKGROUND = (1 << 1),
+  SI_OVERLAY_DRAW_RENDER_REGION = (1 << 2),
+  SI_OVERLAY_DRAW_TEXT_INFO = (1 << 3),
 } eSpaceImageOverlay_Flag;
 
 /** #SpaceImage.gizmo_flag */
