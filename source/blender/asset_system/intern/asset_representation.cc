@@ -132,7 +132,7 @@ std::string AssetRepresentation::full_library_path() const
 {
   std::string asset_path = full_path();
 
-  char blend_path[1090 /*FILE_MAX_LIBEXTRA*/];
+  char blend_path[/*FILE_MAX_LIBEXTRA*/ 1090];
   if (!BKE_blendfile_library_path_explode(asset_path.c_str(), blend_path, nullptr, nullptr)) {
     return {};
   }

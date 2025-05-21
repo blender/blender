@@ -120,7 +120,7 @@ bool filelist_is_dir(const FileList *filelist, const char *path);
 /**
  * May modify in place given `dirpath`, which is expected to be #FILE_MAX_LIBEXTRA length.
  */
-void filelist_setdir(FileList *filelist, char dirpath[1090 /*FILE_MAX_LIBEXTRA*/]);
+void filelist_setdir(FileList *filelist, char dirpath[/*FILE_MAX_LIBEXTRA*/ 1090]);
 
 /**
  * Limited version of full update done by space_file's file_refresh(),
