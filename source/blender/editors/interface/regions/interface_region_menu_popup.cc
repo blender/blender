@@ -813,14 +813,7 @@ void UI_popup_block_template_confirm_op(uiLayout *layout,
     }
     uiBlock *block = uiLayoutGetBlock(row);
     const uiBut *but_ref = block->last_but();
-    uiItemFullO_ptr(row,
-                    ot,
-                    confirm_text,
-                    icon,
-                    nullptr,
-                    uiLayoutGetOperatorContext(row),
-                    UI_ITEM_NONE,
-                    r_ptr);
+    *r_ptr = row->op(ot, confirm_text, icon, uiLayoutGetOperatorContext(row), UI_ITEM_NONE);
 
     if (block->buttons.is_empty() || but_ref == block->buttons.last().get()) {
       return nullptr;

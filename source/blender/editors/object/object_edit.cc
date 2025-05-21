@@ -2338,14 +2338,12 @@ static void move_to_collection_menu_create(bContext *C, uiLayout *layout, void *
   RNA_int_set(&menu->ptr, "collection_index", menu->index);
   RNA_boolean_set(&menu->ptr, "is_new", true);
 
-  uiItemFullO_ptr(layout,
-                  menu->ot,
-                  CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "New Collection"),
-                  ICON_ADD,
-                  static_cast<IDProperty *>(menu->ptr.data),
-                  WM_OP_INVOKE_DEFAULT,
-                  UI_ITEM_NONE,
-                  nullptr);
+  layout->op(menu->ot,
+             CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "New Collection"),
+             ICON_ADD,
+             WM_OP_INVOKE_DEFAULT,
+             UI_ITEM_NONE,
+             static_cast<IDProperty *>(menu->ptr.data));
 
   layout->separator();
 

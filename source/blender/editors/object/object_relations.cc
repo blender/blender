@@ -953,19 +953,12 @@ static wmOperatorStatus parent_set_invoke_menu(bContext *C, wmOperatorType *ot)
 #if 0
   uiItemEnumO_ptr(layout, ot, std::nullopt, ICON_NONE, "type", PAR_OBJECT);
 #else
-  uiItemFullO_ptr(
-      layout, ot, IFACE_("Object"), ICON_NONE, nullptr, WM_OP_EXEC_DEFAULT, UI_ITEM_NONE, &opptr);
+  opptr = layout->op(ot, IFACE_("Object"), ICON_NONE, WM_OP_EXEC_DEFAULT, UI_ITEM_NONE);
   RNA_enum_set(&opptr, "type", PAR_OBJECT);
   RNA_boolean_set(&opptr, "keep_transform", false);
 
-  uiItemFullO_ptr(layout,
-                  ot,
-                  IFACE_("Object (Keep Transform)"),
-                  ICON_NONE,
-                  nullptr,
-                  WM_OP_EXEC_DEFAULT,
-                  UI_ITEM_NONE,
-                  &opptr);
+  opptr = layout->op(
+      ot, IFACE_("Object (Keep Transform)"), ICON_NONE, WM_OP_EXEC_DEFAULT, UI_ITEM_NONE);
   RNA_enum_set(&opptr, "type", PAR_OBJECT);
   RNA_boolean_set(&opptr, "keep_transform", true);
 #endif

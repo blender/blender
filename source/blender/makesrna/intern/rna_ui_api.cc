@@ -376,9 +376,7 @@ static PointerRNA rna_uiItemO(uiLayout *layout,
   const float prev_weight = uiLayoutGetSearchWeight(layout);
   uiLayoutSetSearchWeight(layout, search_weight);
 
-  PointerRNA opptr;
-  uiItemFullO_ptr(
-      layout, ot, text, icon, nullptr, uiLayoutGetOperatorContext(layout), flag, &opptr);
+  PointerRNA opptr = layout->op(ot, text, icon, uiLayoutGetOperatorContext(layout), flag);
 
   uiLayoutSetSearchWeight(layout, prev_weight);
   return opptr;

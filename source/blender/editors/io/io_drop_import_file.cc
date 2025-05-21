@@ -142,14 +142,12 @@ static wmOperatorStatus wm_drop_import_file_invoke(bContext *C,
   for (auto *file_handler : file_handlers) {
     const PointerRNA file_props = file_handler_import_operator_create_ptr(file_handler, paths);
     wmOperatorType *ot = WM_operatortype_find(file_handler->import_operator, false);
-    uiItemFullO_ptr(layout,
-                    ot,
-                    CTX_TIP_(ot->translation_context, ot->name),
-                    ICON_NONE,
-                    static_cast<IDProperty *>(file_props.data),
-                    WM_OP_INVOKE_DEFAULT,
-                    UI_ITEM_NONE,
-                    nullptr);
+    layout->op(ot,
+               CTX_TIP_(ot->translation_context, ot->name),
+               ICON_NONE,
+               WM_OP_INVOKE_DEFAULT,
+               UI_ITEM_NONE,
+               static_cast<IDProperty *>(file_props.data));
   }
 
   UI_popup_menu_end(C, pup);

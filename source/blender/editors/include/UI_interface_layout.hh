@@ -274,7 +274,21 @@ struct uiLayout : uiItem {
    * freed with the menu button.
    */
   void menu_fn_argN_free(blender::StringRefNull name, int icon, uiMenuCreateFunc func, void *argN);
-
+  /**
+   * Adds a operator item, places a button in the layout to call the operator.
+   * \param ot: Operator to add.
+   * \param name: Text to show in the layout.
+   * \param context: Operator call context for #WM_operator_name_call.
+   * \param properties: Operator properties to set as button operator data, pointer ownership is
+   * transferred to the button.
+   * \returns Operator pointer to write properties.
+   */
+  PointerRNA op(wmOperatorType *ot,
+                std::optional<blender::StringRef> name,
+                int icon,
+                wmOperatorCallContext context,
+                eUI_Item_Flag flag,
+                IDProperty *properties = nullptr);
   /**
    * Adds a operator item, places a button in the layout to call the operator.
    * \param opname: Operator id name.
@@ -546,14 +560,6 @@ void uiItemStringO(uiLayout *layout,
                    blender::StringRefNull propname,
                    const char *value);
 
-void uiItemFullO_ptr(uiLayout *layout,
-                     wmOperatorType *ot,
-                     std::optional<blender::StringRef> name,
-                     int icon,
-                     IDProperty *properties,
-                     wmOperatorCallContext context,
-                     eUI_Item_Flag flag,
-                     PointerRNA *r_opptr);
 void uiItemFullOMenuHold_ptr(uiLayout *layout,
                              wmOperatorType *ot,
                              std::optional<blender::StringRef> name,

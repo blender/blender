@@ -485,14 +485,11 @@ static bool ui_but_menu_add_path_operators(uiLayout *layout, PointerRNA *ptr, Pr
 
   if (BLI_is_file(filepath)) {
     BLI_assert(subtype == PROP_FILEPATH);
-    uiItemFullO_ptr(layout,
-                    ot,
-                    CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Open File Externally"),
-                    ICON_NONE,
-                    nullptr,
-                    WM_OP_INVOKE_DEFAULT,
-                    UI_ITEM_NONE,
-                    &props_ptr);
+    props_ptr = layout->op(ot,
+                           CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Open File Externally"),
+                           ICON_NONE,
+                           WM_OP_INVOKE_DEFAULT,
+                           UI_ITEM_NONE);
     RNA_string_set(&props_ptr, "filepath", filepath);
   }
   else {
@@ -502,14 +499,11 @@ static bool ui_but_menu_add_path_operators(uiLayout *layout, PointerRNA *ptr, Pr
 
   BLI_path_split_dir_file(filepath, dir, sizeof(dir), file, sizeof(file));
 
-  uiItemFullO_ptr(layout,
-                  ot,
-                  CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Open Location Externally"),
-                  ICON_NONE,
-                  nullptr,
-                  WM_OP_INVOKE_DEFAULT,
-                  UI_ITEM_NONE,
-                  &props_ptr);
+  props_ptr = layout->op(ot,
+                         CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Open Location Externally"),
+                         ICON_NONE,
+                         WM_OP_INVOKE_DEFAULT,
+                         UI_ITEM_NONE);
   RNA_string_set(&props_ptr, "filepath", dir);
 
   return true;
@@ -689,25 +683,20 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
         PointerRNA op_ptr;
         wmOperatorType *ot;
         ot = WM_operatortype_find("ANIM_OT_view_curve_in_graph_editor", false);
-        uiItemFullO_ptr(layout,
-                        ot,
-                        CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "View All in Graph Editor"),
-                        ICON_GRAPH,
-                        nullptr,
-                        WM_OP_INVOKE_DEFAULT,
-                        UI_ITEM_NONE,
-                        &op_ptr);
+        op_ptr = layout->op(
+            ot,
+            CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "View All in Graph Editor"),
+            ICON_GRAPH,
+            WM_OP_INVOKE_DEFAULT,
+            UI_ITEM_NONE);
         RNA_boolean_set(&op_ptr, "all", true);
 
-        uiItemFullO_ptr(
-            layout,
+        op_ptr = layout->op(
             ot,
             CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "View Single in Graph Editor"),
             ICON_NONE,
-            nullptr,
             WM_OP_INVOKE_DEFAULT,
-            UI_ITEM_NONE,
-            &op_ptr);
+            UI_ITEM_NONE);
         RNA_boolean_set(&op_ptr, "all", false);
       }
       else {
@@ -715,14 +704,11 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
         wmOperatorType *ot;
         ot = WM_operatortype_find("ANIM_OT_view_curve_in_graph_editor", false);
 
-        uiItemFullO_ptr(layout,
-                        ot,
-                        CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "View in Graph Editor"),
-                        ICON_NONE,
-                        nullptr,
-                        WM_OP_INVOKE_DEFAULT,
-                        UI_ITEM_NONE,
-                        &op_ptr);
+        op_ptr = layout->op(ot,
+                            CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "View in Graph Editor"),
+                            ICON_NONE,
+                            WM_OP_INVOKE_DEFAULT,
+                            UI_ITEM_NONE);
         RNA_boolean_set(&op_ptr, "all", false);
       }
     }
@@ -864,17 +850,9 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
         if (is_array_component) {
 #if 0 /* Disabled for now. */
           ot = WM_operatortype_find("UI_OT_override_type_set_button", false);
-          uiItemFullO_ptr(
-              layout, ot, "Overrides Type", ICON_NONE, nullptr, WM_OP_INVOKE_DEFAULT, 0, &op_ptr);
+          op_ptr = layout->op(ot, "Overrides Type", ICON_NONE, WM_OP_INVOKE_DEFAULT, 0);
           RNA_boolean_set(&op_ptr, "all", true);
-          uiItemFullO_ptr(layout,
-                          ot,
-                          "Single Override Type",
-                          ICON_NONE,
-                          nullptr,
-                          WM_OP_INVOKE_DEFAULT,
-                          0,
-                          &op_ptr);
+          op_ptr = layout->op(ot, "Single Override Type", ICON_NONE, WM_OP_INVOKE_DEFAULT, 0);
           RNA_boolean_set(&op_ptr, "all", false);
 #endif
           uiItemBooleanO(layout,
@@ -910,23 +888,18 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
       else {
         if (is_array_component) {
           ot = WM_operatortype_find("UI_OT_override_type_set_button", false);
-          uiItemFullO_ptr(layout,
-                          ot,
-                          CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Define Overrides"),
-                          ICON_NONE,
-                          nullptr,
-                          WM_OP_INVOKE_DEFAULT,
-                          UI_ITEM_NONE,
-                          &op_ptr);
+          op_ptr = layout->op(ot,
+                              CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Define Overrides"),
+                              ICON_NONE,
+                              WM_OP_INVOKE_DEFAULT,
+                              UI_ITEM_NONE);
           RNA_boolean_set(&op_ptr, "all", true);
-          uiItemFullO_ptr(layout,
-                          ot,
-                          CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Define Single Override"),
-                          ICON_NONE,
-                          nullptr,
-                          WM_OP_INVOKE_DEFAULT,
-                          UI_ITEM_NONE,
-                          &op_ptr);
+          op_ptr = layout->op(
+              ot,
+              CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Define Single Override"),
+              ICON_NONE,
+              WM_OP_INVOKE_DEFAULT,
+              UI_ITEM_NONE);
           RNA_boolean_set(&op_ptr, "all", false);
         }
         else {
@@ -1042,14 +1015,11 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
         PointerRNA props_ptr;
         char dir[FILE_MAXDIR];
         BLI_path_split_dir_part(filepath, dir, sizeof(dir));
-        uiItemFullO_ptr(layout,
-                        ot,
-                        CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Open File Location"),
-                        ICON_NONE,
-                        nullptr,
-                        WM_OP_INVOKE_DEFAULT,
-                        UI_ITEM_NONE,
-                        &props_ptr);
+        props_ptr = layout->op(ot,
+                               CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Open File Location"),
+                               ICON_NONE,
+                               WM_OP_INVOKE_DEFAULT,
+                               UI_ITEM_NONE);
         RNA_string_set(&props_ptr, "filepath", dir);
         layout->separator();
       }

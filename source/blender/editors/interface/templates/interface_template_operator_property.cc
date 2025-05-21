@@ -100,11 +100,10 @@ static eAutoPropButsReturn template_operator_property_buts_draw_single(
     row->menu("WM_MT_operator_presets", std::nullopt, ICON_NONE);
 
     wmOperatorType *ot = WM_operatortype_find("WM_OT_operator_preset_add", false);
-    uiItemFullO_ptr(row, ot, "", ICON_ADD, nullptr, WM_OP_INVOKE_DEFAULT, UI_ITEM_NONE, &op_ptr);
+    op_ptr = op_ptr = row->op(ot, "", ICON_ADD, WM_OP_INVOKE_DEFAULT, UI_ITEM_NONE);
     RNA_string_set(&op_ptr, "operator", op->type->idname);
 
-    uiItemFullO_ptr(
-        row, ot, "", ICON_REMOVE, nullptr, WM_OP_INVOKE_DEFAULT, UI_ITEM_NONE, &op_ptr);
+    op_ptr = row->op(ot, "", ICON_REMOVE, WM_OP_INVOKE_DEFAULT, UI_ITEM_NONE);
     RNA_string_set(&op_ptr, "operator", op->type->idname);
     RNA_boolean_set(&op_ptr, "remove_active", true);
   }

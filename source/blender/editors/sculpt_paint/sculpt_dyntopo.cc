@@ -236,8 +236,7 @@ static wmOperatorStatus dyntopo_warning_popup(bContext *C, wmOperatorType *ot, e
     layout->separator();
   }
 
-  uiItemFullO_ptr(
-      layout, ot, IFACE_("OK"), ICON_NONE, nullptr, WM_OP_EXEC_DEFAULT, UI_ITEM_NONE, nullptr);
+  layout->op(ot, IFACE_("OK"), ICON_NONE, WM_OP_EXEC_DEFAULT, UI_ITEM_NONE);
 
   UI_popup_menu_end(C, pup);
 
