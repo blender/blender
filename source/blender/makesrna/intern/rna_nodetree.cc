@@ -2559,70 +2559,6 @@ void rna_Node_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
   BKE_main_ensure_invariants(*bmain, ntree->id);
 }
 
-static void rna_NodeCrop_min_x_set(PointerRNA *ptr, int value)
-{
-  bNode *node = ptr->data_as<bNode>();
-  NodeTwoXYs *data = static_cast<NodeTwoXYs *>(node->storage);
-  data->x1 = value;
-  CLAMP_MAX(data->x1, data->x2);
-}
-
-static void rna_NodeCrop_max_x_set(PointerRNA *ptr, int value)
-{
-  bNode *node = ptr->data_as<bNode>();
-  NodeTwoXYs *data = static_cast<NodeTwoXYs *>(node->storage);
-  data->x2 = value;
-  CLAMP_MIN(data->x2, data->x1);
-}
-
-static void rna_NodeCrop_min_y_set(PointerRNA *ptr, int value)
-{
-  bNode *node = ptr->data_as<bNode>();
-  NodeTwoXYs *data = static_cast<NodeTwoXYs *>(node->storage);
-  data->y1 = value;
-  CLAMP_MIN(data->y1, data->y2);
-}
-
-static void rna_NodeCrop_max_y_set(PointerRNA *ptr, int value)
-{
-  bNode *node = ptr->data_as<bNode>();
-  NodeTwoXYs *data = static_cast<NodeTwoXYs *>(node->storage);
-  data->y2 = value;
-  CLAMP_MAX(data->y2, data->y1);
-}
-
-static void rna_NodeCrop_rel_min_x_set(PointerRNA *ptr, float value)
-{
-  bNode *node = ptr->data_as<bNode>();
-  NodeTwoXYs *data = static_cast<NodeTwoXYs *>(node->storage);
-  data->fac_x1 = value;
-  CLAMP_MAX(data->fac_x1, data->fac_x2);
-}
-
-static void rna_NodeCrop_rel_max_x_set(PointerRNA *ptr, float value)
-{
-  bNode *node = ptr->data_as<bNode>();
-  NodeTwoXYs *data = static_cast<NodeTwoXYs *>(node->storage);
-  data->fac_x2 = value;
-  CLAMP_MIN(data->fac_x2, data->fac_x1);
-}
-
-static void rna_NodeCrop_rel_min_y_set(PointerRNA *ptr, float value)
-{
-  bNode *node = ptr->data_as<bNode>();
-  NodeTwoXYs *data = static_cast<NodeTwoXYs *>(node->storage);
-  data->fac_y1 = value;
-  CLAMP_MIN(data->fac_y1, data->fac_y2);
-}
-
-static void rna_NodeCrop_rel_max_y_set(PointerRNA *ptr, float value)
-{
-  bNode *node = ptr->data_as<bNode>();
-  NodeTwoXYs *data = static_cast<NodeTwoXYs *>(node->storage);
-  data->fac_y2 = value;
-  CLAMP_MAX(data->fac_y2, data->fac_y1);
-}
-
 void rna_Node_update_relations(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
   rna_Node_update(bmain, scene, ptr);
@@ -3944,6 +3880,78 @@ static void rna_NodeBilateralBlur_sigma_space_set(PointerRNA *ptr, const float v
   RNA_int_set(&input_rna_pointer, "default_value", size + int(std::ceil(value)));
 }
 
+static bool rna_NodeCrop_use_crop_size_get(PointerRNA *ptr)
+{
+  bNode *node = ptr->data_as<bNode>();
+  bNodeSocket *input = blender::bke::node_find_socket(*node, SOCK_IN, "Alpha Crop");
+  PointerRNA input_rna_pointer = RNA_pointer_create_discrete(
+      ptr->owner_id, &RNA_NodeSocket, input);
+  return !RNA_boolean_get(&input_rna_pointer, "default_value");
+}
+
+static void rna_NodeCrop_use_crop_size_set(PointerRNA *ptr, const bool value)
+{
+  bNode *node = ptr->data_as<bNode>();
+  bNodeSocket *input = blender::bke::node_find_socket(*node, SOCK_IN, "Alpha Crop");
+  PointerRNA input_rna_pointer = RNA_pointer_create_discrete(
+      ptr->owner_id, &RNA_NodeSocket, input);
+  RNA_boolean_set(&input_rna_pointer, "default_value", !value);
+}
+
+static int rna_NodeCrop_max_x_get(PointerRNA *ptr)
+{
+  bNode *node = ptr->data_as<bNode>();
+  bNodeSocket *x_input = blender::bke::node_find_socket(*node, SOCK_IN, "X");
+  bNodeSocket *width_input = blender::bke::node_find_socket(*node, SOCK_IN, "Width");
+  PointerRNA x_input_rna_pointer = RNA_pointer_create_discrete(
+      ptr->owner_id, &RNA_NodeSocket, x_input);
+  PointerRNA width_input_rna_pointer = RNA_pointer_create_discrete(
+      ptr->owner_id, &RNA_NodeSocket, width_input);
+  return RNA_int_get(&x_input_rna_pointer, "default_value") +
+         RNA_int_get(&width_input_rna_pointer, "default_value");
+}
+
+static void rna_NodeCrop_max_x_set(PointerRNA *ptr, const int value)
+{
+  bNode *node = ptr->data_as<bNode>();
+  bNodeSocket *x_input = blender::bke::node_find_socket(*node, SOCK_IN, "X");
+  bNodeSocket *width_input = blender::bke::node_find_socket(*node, SOCK_IN, "Width");
+  PointerRNA x_input_rna_pointer = RNA_pointer_create_discrete(
+      ptr->owner_id, &RNA_NodeSocket, x_input);
+  PointerRNA width_input_rna_pointer = RNA_pointer_create_discrete(
+      ptr->owner_id, &RNA_NodeSocket, width_input);
+  RNA_int_set(&width_input_rna_pointer,
+              "default_value",
+              value - RNA_int_get(&x_input_rna_pointer, "default_value"));
+}
+
+static int rna_NodeCrop_min_y_get(PointerRNA *ptr)
+{
+  bNode *node = ptr->data_as<bNode>();
+  bNodeSocket *y_input = blender::bke::node_find_socket(*node, SOCK_IN, "Y");
+  bNodeSocket *height_input = blender::bke::node_find_socket(*node, SOCK_IN, "Height");
+  PointerRNA y_input_rna_pointer = RNA_pointer_create_discrete(
+      ptr->owner_id, &RNA_NodeSocket, y_input);
+  PointerRNA height_input_rna_pointer = RNA_pointer_create_discrete(
+      ptr->owner_id, &RNA_NodeSocket, height_input);
+  return RNA_int_get(&y_input_rna_pointer, "default_value") +
+         RNA_int_get(&height_input_rna_pointer, "default_value");
+}
+
+static void rna_NodeCrop_min_y_set(PointerRNA *ptr, const int value)
+{
+  bNode *node = ptr->data_as<bNode>();
+  bNodeSocket *y_input = blender::bke::node_find_socket(*node, SOCK_IN, "Y");
+  bNodeSocket *height_input = blender::bke::node_find_socket(*node, SOCK_IN, "Height");
+  PointerRNA y_input_rna_pointer = RNA_pointer_create_discrete(
+      ptr->owner_id, &RNA_NodeSocket, y_input);
+  PointerRNA height_input_rna_pointer = RNA_pointer_create_discrete(
+      ptr->owner_id, &RNA_NodeSocket, height_input);
+  RNA_int_set(&height_input_rna_pointer,
+              "default_value",
+              value - RNA_int_get(&y_input_rna_pointer, "default_value"));
+}
+
 /* A getter that returns the value of the input socket with the given template identifier and type.
  * The RNA pointer is assumed to represent a node. */
 template<typename T, const char *identifier>
@@ -4229,6 +4237,10 @@ static const char node_input_straight_alpha[] = "Straight Alpha";
 
 /* Bokeh Blur node. */
 static const char node_input_extend_bounds[] = "Extend Bounds";
+
+/* Crop node. */
+static const char node_input_x[] = "X";
+static const char node_input_y[] = "Y";
 
 /* --------------------------------------------------------------------
  * White Balance Node.
@@ -8688,71 +8700,81 @@ static void def_cmp_crop(BlenderRNA * /*brna*/, StructRNA *srna)
   PropertyRNA *prop;
 
   prop = RNA_def_property(srna, "use_crop_size", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "custom1", 1);
+  RNA_def_property_boolean_funcs(
+      prop, "rna_NodeCrop_use_crop_size_get", "rna_NodeCrop_use_crop_size_set");
   RNA_def_property_ui_text(prop, "Crop Image Size", "Whether to crop the size of the input image");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "relative", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "custom2", 1);
-  RNA_def_property_ui_text(prop, "Relative", "Use relative values to crop image");
+  RNA_def_property_ui_text(
+      prop, "Relative", "Use relative values to crop image. (Deprecated: Unused.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   RNA_def_struct_sdna_from(srna, "NodeTwoXYs", "storage");
 
   prop = RNA_def_property(srna, "min_x", PROP_INT, PROP_NONE);
-  RNA_def_property_int_sdna(prop, nullptr, "x1");
-  RNA_def_property_int_funcs(prop, nullptr, "rna_NodeCrop_min_x_set", nullptr);
+  RNA_def_property_int_funcs(prop,
+                             "rna_node_property_to_input_getter<int, node_input_x>",
+                             "rna_node_property_to_input_setter<int, node_input_x>",
+                             nullptr);
   RNA_def_property_range(prop, 0, 10000);
-  RNA_def_property_ui_text(prop, "X1", "Left edge of the cropping rectangle");
+  RNA_def_property_ui_text(
+      prop, "X1", "Left edge of the cropping rectangle. (Deprecated: Use X input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "max_x", PROP_INT, PROP_NONE);
-  RNA_def_property_int_sdna(prop, nullptr, "x2");
-  RNA_def_property_int_funcs(prop, nullptr, "rna_NodeCrop_max_x_set", nullptr);
+  RNA_def_property_int_funcs(prop, "rna_NodeCrop_max_x_get", "rna_NodeCrop_max_x_set", nullptr);
   RNA_def_property_range(prop, 0, 10000);
-  RNA_def_property_ui_text(prop, "X2", "Right edge of the cropping rectangle");
+  RNA_def_property_ui_text(
+      prop, "X2", "Right edge of the cropping rectangle. (Deprecated: Use Width input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "min_y", PROP_INT, PROP_NONE);
-  RNA_def_property_int_sdna(prop, nullptr, "y1");
-  RNA_def_property_int_funcs(prop, nullptr, "rna_NodeCrop_min_y_set", nullptr);
+  RNA_def_property_int_funcs(prop, "rna_NodeCrop_min_y_get", "rna_NodeCrop_min_y_set", nullptr);
   RNA_def_property_range(prop, 0, 10000);
-  RNA_def_property_ui_text(prop, "Y1", "Top edge of the cropping rectangle");
+  RNA_def_property_ui_text(
+      prop, "Y1", "Top edge of the cropping rectangle. (Deprecated: Use Y input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "max_y", PROP_INT, PROP_NONE);
-  RNA_def_property_int_sdna(prop, nullptr, "y2");
-  RNA_def_property_int_funcs(prop, nullptr, "rna_NodeCrop_max_y_set", nullptr);
+  RNA_def_property_int_funcs(prop,
+                             "rna_node_property_to_input_getter<int, node_input_y>",
+                             "rna_node_property_to_input_setter<int, node_input_y>",
+                             nullptr);
   RNA_def_property_range(prop, 0, 10000);
-  RNA_def_property_ui_text(prop, "Y2", "Bottom edge of the cropping rectangle");
+  RNA_def_property_ui_text(
+      prop,
+      "Y2",
+      "Bottom edge of the cropping rectangle. (Deprecated: Use Height input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "rel_min_x", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, nullptr, "fac_x1");
-  RNA_def_property_float_funcs(prop, nullptr, "rna_NodeCrop_rel_min_x_set", nullptr);
   RNA_def_property_range(prop, 0.0, 1.0);
-  RNA_def_property_ui_text(prop, "X1", "Left edge of the cropping rectangle");
+  RNA_def_property_ui_text(
+      prop, "X1", "Left edge of the cropping rectangle. (Deprecated: Unused.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "rel_max_x", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, nullptr, "fac_x2");
-  RNA_def_property_float_funcs(prop, nullptr, "rna_NodeCrop_rel_max_x_set", nullptr);
   RNA_def_property_range(prop, 0.0, 1.0);
-  RNA_def_property_ui_text(prop, "X2", "Right edge of the cropping rectangle");
+  RNA_def_property_ui_text(
+      prop, "X2", "Right edge of the cropping rectangle. (Deprecated: Unused.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "rel_min_y", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, nullptr, "fac_y1");
-  RNA_def_property_float_funcs(prop, nullptr, "rna_NodeCrop_rel_min_y_set", nullptr);
   RNA_def_property_range(prop, 0.0, 1.0);
-  RNA_def_property_ui_text(prop, "Y1", "Top edge of the cropping rectangle");
+  RNA_def_property_ui_text(
+      prop, "Y1", "Top edge of the cropping rectangle. (Deprecated: Unused.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "rel_max_y", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, nullptr, "fac_y2");
-  RNA_def_property_float_funcs(prop, nullptr, "rna_NodeCrop_rel_max_y_set", nullptr);
   RNA_def_property_range(prop, 0.0, 1.0);
-  RNA_def_property_ui_text(prop, "Y2", "Bottom edge of the cropping rectangle");
+  RNA_def_property_ui_text(
+      prop, "Y2", "Bottom edge of the cropping rectangle. (Deprecated: Unused.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 

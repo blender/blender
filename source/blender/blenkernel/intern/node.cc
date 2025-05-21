@@ -1030,6 +1030,24 @@ static void write_compositor_legacy_properties(bNodeTree &node_tree)
     if (node->type_legacy == CMP_NODE_BOKEHBLUR) {
       write_input_to_property_bool_int16_flag("Extend Bounds", node->custom1, (1 << 1));
     }
+
+    if (node->type_legacy == CMP_NODE_CROP) {
+      write_input_to_property_bool_int16_flag("Alpha Crop", node->custom1, (1 << 0), true);
+
+      NodeTwoXYs *storage = static_cast<NodeTwoXYs *>(node->storage);
+      write_input_to_property_int16("X", storage->x1);
+      write_input_to_property_int16("Y", storage->y2);
+
+      const bNodeSocket *x_input = blender::bke::node_find_socket(*node, SOCK_IN, "X");
+      const bNodeSocket *width_input = blender::bke::node_find_socket(*node, SOCK_IN, "Width");
+      storage->x2 = x_input->default_value_typed<bNodeSocketValueInt>()->value +
+                    width_input->default_value_typed<bNodeSocketValueInt>()->value;
+
+      const bNodeSocket *y_input = blender::bke::node_find_socket(*node, SOCK_IN, "Y");
+      const bNodeSocket *height_input = blender::bke::node_find_socket(*node, SOCK_IN, "Height");
+      storage->y1 = y_input->default_value_typed<bNodeSocketValueInt>()->value +
+                    height_input->default_value_typed<bNodeSocketValueInt>()->value;
+    }
   }
 }
 
