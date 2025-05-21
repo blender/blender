@@ -45,7 +45,6 @@ class PassAccessor {
    public:
     Destination() = default;
     Destination(float *pixels, const int num_components);
-    Destination(const PassType pass_type, half4 *pixels);
 
     /* Destination will be initialized with the number of components which is native for the given
      * pass type. */

@@ -32,12 +32,6 @@ PassAccessor::Destination::Destination(float *pixels, const int num_components)
 {
 }
 
-PassAccessor::Destination::Destination(const PassType pass_type, half4 *pixels)
-    : Destination(pass_type)
-{
-  pixels_half_rgba = pixels;
-}
-
 PassAccessor::Destination::Destination(const PassType pass_type)
 {
   const PassInfo pass_info = Pass::get_info(pass_type);
