@@ -1524,7 +1524,6 @@ class CYCLES_LIGHT_PT_light(CyclesButtonsPanel, Panel):
         layout = self.layout
 
         light = context.light
-        clamp = light.cycles
 
         if self.bl_space_type == 'PROPERTIES':
             layout.row().prop(light, "type", expand=True)
@@ -1537,11 +1536,13 @@ class CYCLES_LIGHT_PT_light(CyclesButtonsPanel, Panel):
 
         col.prop(light, "color")
         col.prop(light, "energy")
-        col.separator()
 
+        layout.separator()
+
+        col = layout.column()
         if light.type in {'POINT', 'SPOT'}:
-            col.prop(light, "use_soft_falloff")
             col.prop(light, "shadow_soft_size", text="Radius")
+            col.prop(light, "use_soft_falloff")
         elif light.type == 'SUN':
             col.prop(light, "angle")
         elif light.type == 'AREA':
@@ -1553,6 +1554,24 @@ class CYCLES_LIGHT_PT_light(CyclesButtonsPanel, Panel):
             elif light.shape in {'RECTANGLE', 'ELLIPSE'}:
                 sub.prop(light, "size", text="Size X")
                 sub.prop(light, "size_y", text="Y")
+
+class CYCLES_LIGHT_PT_settings(CyclesButtonsPanel, Panel):
+    bl_label = "Settings"
+    bl_context = "data"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        return context.light and CyclesButtonsPanel.poll(context)
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        light = context.light
+        clamp = light.cycles
+
+        col = layout.column()
 
         if not (light.type == 'AREA' and clamp.is_portal):
             col.separator()
@@ -2537,6 +2556,7 @@ classes = (
     CYCLES_OBJECT_PT_visibility_culling,
     CYCLES_LIGHT_PT_preview,
     CYCLES_LIGHT_PT_light,
+    CYCLES_LIGHT_PT_settings,
     CYCLES_LIGHT_PT_nodes,
     CYCLES_LIGHT_PT_beam_shape,
     CYCLES_WORLD_PT_preview,
@@ -2569,6 +2589,7 @@ classes = (
     node_panel(CYCLES_WORLD_PT_settings_surface),
     node_panel(CYCLES_WORLD_PT_settings_volume),
     node_panel(CYCLES_LIGHT_PT_light),
+    node_panel(CYCLES_LIGHT_PT_settings),
     node_panel(CYCLES_LIGHT_PT_beam_shape)
 )
 

@@ -92,11 +92,12 @@ class DATA_PT_EEVEE_light(DataButtonsPanel, Panel):
         col.prop(light, "color")
         col.prop(light, "energy")
 
-        col.separator()
+        layout.separator()
 
+        col = layout.column()
         if light.type in {'POINT', 'SPOT'}:
-            col.prop(light, "use_soft_falloff")
             col.prop(light, "shadow_soft_size", text="Radius")
+            col.prop(light, "use_soft_falloff")
         elif light.type == 'SUN':
             col.prop(light, "angle")
         elif light.type == 'AREA':
