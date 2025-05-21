@@ -39,7 +39,7 @@ static ImBuf *do_multicam(const RenderData *context,
   ImBuf *out;
   Editing *ed;
 
-  if (strip->multicam_source == 0 || strip->multicam_source >= strip->machine) {
+  if (strip->multicam_source == 0 || strip->multicam_source >= strip->channel) {
     return nullptr;
   }
 

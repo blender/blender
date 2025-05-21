@@ -8,9 +8,8 @@
  *
  * Note on terminology
  * - #Strip: video/effect/audio data you can select and manipulate in the sequencer.
- * - #Strip.machine: Strange name for the channel.
  * - #StripData: The data referenced by the #Strip
- * - Meta Strip (STRIP_TYPE_META): Support for nesting Sequences.
+ * - Meta Strip (STRIP_TYPE_META): Support for nesting strips.
  */
 
 #pragma once
@@ -206,8 +205,8 @@ typedef struct Strip {
    * frames that use the last frame after data ends.
    */
   float startstill, endstill;
-  /** Machine: the strip channel */
-  int machine;
+  /** The current channel index of the strip in the timeline. */
+  int channel;
   /** Starting and ending points of the effect strip. Undefined for other strip types. */
   int startdisp, enddisp;
   float sat;
@@ -252,6 +251,7 @@ typedef struct Strip {
 
   /** List of strips for meta-strips. */
   ListBase seqbase;
+  /** List of channels for meta-strips. */
   ListBase channels; /* SeqTimelineChannel */
 
   /* List of strip connections (one-way, not bidirectional). */

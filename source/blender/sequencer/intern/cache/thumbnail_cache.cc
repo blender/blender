@@ -466,7 +466,7 @@ static ImBuf *query_thumbnail(ThumbnailCache &cache,
                                     StripType(strip->type),
                                     cur_time,
                                     timeline_frame,
-                                    strip->machine,
+                                    strip->channel,
                                     img_width,
                                     img_height);
     cache.requests_.add(request);

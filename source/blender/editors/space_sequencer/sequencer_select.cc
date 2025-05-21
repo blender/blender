@@ -83,7 +83,7 @@ Strip *strip_under_mouse_get(const Scene *scene, const View2D *v2d, const int mv
   blender::Vector<Strip *> visible = sequencer_visible_strips_get(scene, v2d);
   int mouse_channel = int(mouse_co[1]);
   for (Strip *strip : visible) {
-    if (strip->machine != mouse_channel) {
+    if (strip->channel != mouse_channel) {
       continue;
     }
     rctf body;
@@ -161,7 +161,7 @@ static void select_active_side(
 {
 
   LISTBASE_FOREACH (Strip *, strip, seqbase) {
-    if (channel == strip->machine) {
+    if (channel == strip->channel) {
       switch (sel_side) {
         case seq::SIDE_LEFT:
           if (frame > seq::time_left_handle_frame_get(scene, strip)) {
@@ -192,8 +192,8 @@ static void select_active_side_range(const Scene *scene,
                                      const int frame_ignore)
 {
   LISTBASE_FOREACH (Strip *, strip, seqbase) {
-    if (strip->machine < seq::MAX_CHANNELS) {
-      const int frame = frame_ranges[strip->machine];
+    if (strip->channel < seq::MAX_CHANNELS) {
+      const int frame = frame_ranges[strip->channel];
       if (frame == frame_ignore) {
         continue;
       }
@@ -229,7 +229,7 @@ static void select_linked_time_strip(const Scene *scene,
   int source_right = seq::time_right_handle_frame_get(scene, strip_source);
 
   LISTBASE_FOREACH (Strip *, strip_dest, seqbase) {
-    if (strip_source->machine != strip_dest->machine) {
+    if (strip_source->channel != strip_dest->channel) {
       const bool left_match = (seq::time_left_handle_frame_get(scene, strip_dest) == source_left);
       const bool right_match = (seq::time_right_handle_frame_get(scene, strip_dest) ==
                                 source_right);
@@ -295,8 +295,8 @@ void strip_rectf(const Scene *scene, const Strip *strip, rctf *r_rect)
 {
   r_rect->xmin = seq::time_left_handle_frame_get(scene, strip);
   r_rect->xmax = seq::time_right_handle_frame_get(scene, strip);
-  r_rect->ymin = strip->machine + STRIP_OFSBOTTOM;
-  r_rect->ymax = strip->machine + STRIP_OFSTOP;
+  r_rect->ymin = strip->channel + STRIP_OFSBOTTOM;
+  r_rect->ymax = strip->channel + STRIP_OFSTOP;
 }
 
 Strip *find_neighboring_strip(Scene *scene, Strip *test, int lr, int sel)
@@ -312,7 +312,7 @@ Strip *find_neighboring_strip(Scene *scene, Strip *test, int lr, int sel)
     sel = SELECT;
   }
   LISTBASE_FOREACH (Strip *, strip, ed->seqbasep) {
-    if ((strip != test) && (test->machine == strip->machine) &&
+    if ((strip != test) && (test->channel == strip->channel) &&
         ((sel == -1) || (sel && (strip->flag & SELECT)) ||
          (sel == 0 && (strip->flag & SELECT) == 0)))
     {
@@ -633,7 +633,7 @@ static void sequencer_select_linked_handle(const bContext *C,
             select_active_side(scene,
                                ed->seqbasep,
                                seq::SIDE_LEFT,
-                               strip->machine,
+                               strip->channel,
                                seq::time_left_handle_frame_get(scene, strip));
           }
           else {
@@ -650,7 +650,7 @@ static void sequencer_select_linked_handle(const bContext *C,
             select_active_side(scene,
                                ed->seqbasep,
                                seq::SIDE_RIGHT,
-                               strip->machine,
+                               strip->channel,
                                seq::time_left_handle_frame_get(scene, strip));
           }
           else {
@@ -668,7 +668,7 @@ static void sequencer_select_linked_handle(const bContext *C,
       select_active_side(scene,
                          ed->seqbasep,
                          sel_side,
-                         strip->machine,
+                         strip->channel,
                          seq::time_left_handle_frame_get(scene, strip));
     }
   }
@@ -687,11 +687,11 @@ static int strip_sort_for_depth_select(const void *a, const void *b)
   const SeqSelect_Link *slink_a = static_cast<const SeqSelect_Link *>(a);
   const SeqSelect_Link *slink_b = static_cast<const SeqSelect_Link *>(b);
 
-  /* Exactly overlapping strips, sort by machine (so the top-most is first). */
-  if (slink_a->strip->machine < slink_b->strip->machine) {
+  /* Exactly overlapping strips, sort by channel (so the top-most is first). */
+  if (slink_a->strip->channel < slink_b->strip->channel) {
     return 1;
   }
-  if (slink_a->strip->machine > slink_b->strip->machine) {
+  if (slink_a->strip->channel > slink_b->strip->channel) {
     return -1;
   }
   return 0;
@@ -1028,7 +1028,7 @@ static blender::Vector<Strip *> padded_strips_under_mouse_get(const Scene *scene
 
   blender::Vector<Strip *> strips;
   LISTBASE_FOREACH (Strip *, strip, ed->seqbasep) {
-    if (strip->machine != int(mouse_co[1])) {
+    if (strip->channel != int(mouse_co[1])) {
       continue;
     }
     if (seq::time_left_handle_frame_get(scene, strip) > v2d->cur.xmax) {
@@ -1970,10 +1970,10 @@ static wmOperatorStatus sequencer_select_side_exec(bContext *C, wmOperator *op)
   copy_vn_i(frame_ranges, ARRAY_SIZE(frame_ranges), frame_init);
 
   LISTBASE_FOREACH (Strip *, strip, ed->seqbasep) {
-    if (UNLIKELY(strip->machine >= seq::MAX_CHANNELS)) {
+    if (UNLIKELY(strip->channel >= seq::MAX_CHANNELS)) {
       continue;
     }
-    int *frame_limit_p = &frame_ranges[strip->machine];
+    int *frame_limit_p = &frame_ranges[strip->channel];
     if (strip->flag & SELECT) {
       selected = true;
       if (sel_side == seq::SIDE_LEFT) {
@@ -2308,7 +2308,7 @@ static const EnumPropertyItem sequencer_prop_select_grouped_types[] = {
   (ELEM(_strip->type, STRIP_TYPE_SCENE, STRIP_TYPE_MOVIECLIP, STRIP_TYPE_MASK) || \
    STRIP_HAS_PATH(_strip))
 
-#define STRIP_CHANNEL_CHECK(_strip, _chan) ELEM((_chan), 0, (_strip)->machine)
+#define STRIP_CHANNEL_CHECK(_strip, _chan) ELEM((_chan), 0, (_strip)->channel)
 
 static bool select_grouped_type(blender::Span<Strip *> strips,
                                 ListBase * /*seqbase*/,
@@ -2489,7 +2489,7 @@ static void query_lower_channel_strips(const Scene *scene,
                                        blender::VectorSet<Strip *> &strips)
 {
   LISTBASE_FOREACH (Strip *, strip_test, seqbase) {
-    if (strip_test->machine > strip_reference->machine) {
+    if (strip_test->channel > strip_reference->channel) {
       continue; /* Not lower channel. */
     }
     if (seq::time_right_handle_frame_get(scene, strip_test) <=
@@ -2553,7 +2553,7 @@ static wmOperatorStatus sequencer_select_grouped_exec(bContext *C, wmOperator *o
   }
 
   const int type = RNA_enum_get(op->ptr, "type");
-  const int channel = RNA_boolean_get(op->ptr, "use_active_channel") ? act_strip->machine : 0;
+  const int channel = RNA_boolean_get(op->ptr, "use_active_channel") ? act_strip->channel : 0;
   const bool extend = RNA_boolean_get(op->ptr, "extend");
 
   bool changed = false;

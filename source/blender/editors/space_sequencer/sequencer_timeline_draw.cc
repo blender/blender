@@ -99,10 +99,10 @@ Vector<Strip *> sequencer_visible_strips_get(const Scene *scene, const View2D *v
     {
       continue;
     }
-    if (strip->machine + 1.0f < v2d->cur.ymin) {
+    if (strip->channel + 1.0f < v2d->cur.ymin) {
       continue;
     }
-    if (strip->machine > v2d->cur.ymax) {
+    if (strip->channel > v2d->cur.ymax) {
       continue;
     }
     strips.append(strip);
@@ -212,8 +212,8 @@ static StripDrawContext strip_draw_context_get(TimelineDrawContext *ctx, Strip *
   Scene *scene = ctx->scene;
 
   strip_ctx.strip = strip;
-  strip_ctx.bottom = strip->machine + STRIP_OFSBOTTOM;
-  strip_ctx.top = strip->machine + STRIP_OFSTOP;
+  strip_ctx.bottom = strip->channel + STRIP_OFSBOTTOM;
+  strip_ctx.top = strip->channel + STRIP_OFSTOP;
   strip_ctx.left_handle = seq::time_left_handle_frame_get(scene, strip);
   strip_ctx.right_handle = seq::time_right_handle_frame_get(scene, strip);
   strip_ctx.content_start = seq::time_start_frame_get(strip);
@@ -673,8 +673,8 @@ static void drawmeta_contents(TimelineDrawContext *timeline_ctx,
   }
 
   LISTBASE_FOREACH (Strip *, strip, meta_seqbase) {
-    chan_min = min_ii(chan_min, strip->machine);
-    chan_max = max_ii(chan_max, strip->machine);
+    chan_min = min_ii(chan_min, strip->channel);
+    chan_max = max_ii(chan_max, strip->channel);
   }
 
   chan_range = (chan_max - chan_min) + 1;
@@ -690,7 +690,7 @@ static void drawmeta_contents(TimelineDrawContext *timeline_ctx,
     float x1_chan = seq::time_left_handle_frame_get(scene, strip) + offset;
     float x2_chan = seq::time_right_handle_frame_get(scene, strip) + offset;
     if (x1_chan <= meta_x2 && x2_chan >= meta_x1) {
-      float y_chan = (strip->machine - chan_min) / float(chan_range) * draw_range;
+      float y_chan = (strip->channel - chan_min) / float(chan_range) * draw_range;
       float y1_chan, y2_chan;
 
       if (strip->type == STRIP_TYPE_COLOR) {
@@ -1696,7 +1696,7 @@ static void draw_cache_source_iter_fn(void *userdata, const Strip *strip, int ti
   CacheDrawData *drawdata = static_cast<CacheDrawData *>(userdata);
 
   const uchar4 col{255, 25, 5, 100};
-  float stripe_bot = strip->machine + STRIP_OFSBOTTOM + drawdata->stripe_ofs_y;
+  float stripe_bot = strip->channel + STRIP_OFSBOTTOM + drawdata->stripe_ofs_y;
   float stripe_top = stripe_bot + drawdata->stripe_ht;
   drawdata->quads->add_quad(timeline_frame, stripe_bot, timeline_frame + 1, stripe_top, col);
 }
@@ -1747,7 +1747,7 @@ static void draw_cache_background(const bContext *C, CacheDrawData *draw_data)
   strips.remove_if([&](Strip *strip) { return strip->type == STRIP_TYPE_SOUND_RAM; });
 
   for (const Strip *strip : strips) {
-    stripe_bot = strip->machine + STRIP_OFSBOTTOM + draw_data->stripe_ofs_y;
+    stripe_bot = strip->channel + STRIP_OFSBOTTOM + draw_data->stripe_ofs_y;
     if (sseq->cache_overlay.flag & SEQ_CACHE_SHOW_RAW) {
       draw_cache_stripe(scene, strip, *draw_data->quads, stripe_bot, draw_data->stripe_ht, bg_raw);
     }

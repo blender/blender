@@ -193,6 +193,7 @@ DNA_STRUCT_RENAME_MEMBER(SceneEEVEE, motion_blur_shutter, motion_blur_shutter_de
 DNA_STRUCT_RENAME_MEMBER(SceneEEVEE, shadow_cube_size, shadow_cube_size_deprecated)
 DNA_STRUCT_RENAME_MEMBER(SpaceImage, pixel_snap_mode, pixel_round_mode)
 DNA_STRUCT_RENAME_MEMBER(SpaceSeq, overlay_type, overlay_frame_type)
+DNA_STRUCT_RENAME_MEMBER(Strip, machine, channel)
 DNA_STRUCT_RENAME_MEMBER(Strip, retiming_handle_num, retiming_keys_num)
 DNA_STRUCT_RENAME_MEMBER(Strip, retiming_handles, retiming_keys)
 DNA_STRUCT_RENAME_MEMBER(Strip, seq1, input1)

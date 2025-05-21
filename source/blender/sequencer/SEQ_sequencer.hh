@@ -67,7 +67,7 @@ ListBase *active_seqbase_get(const Editing *ed);
  * \param seqbase: ListBase with strips
  */
 void active_seqbase_set(Editing *ed, ListBase *seqbase);
-Strip *strip_alloc(ListBase *lb, int timeline_frame, int machine, int type);
+Strip *strip_alloc(ListBase *lb, int timeline_frame, int channel, int type);
 void strip_free(Scene *scene, Strip *strip);
 /**
  * Get #MetaStack that corresponds to current level that is being viewed

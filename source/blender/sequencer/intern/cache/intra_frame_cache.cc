@@ -74,7 +74,7 @@ void StripImageMap::invalidate(const Strip *strip)
   /* Invalidate this strip, and all strips that are above it. */
   for (auto it = this->map_.items().begin(); it != this->map_.items().end(); it++) {
     const Strip *key = (*it).key;
-    if (key == strip || key->machine >= strip->machine) {
+    if (key == strip || key->channel >= strip->channel) {
       IMB_freeImBuf((*it).value);
       this->map_.remove(it);
     }

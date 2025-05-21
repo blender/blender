@@ -1508,7 +1508,7 @@ static wmOperatorStatus sequencer_split_exec(bContext *C, wmOperator *op)
   seq::prefetch_stop(scene);
 
   LISTBASE_FOREACH_BACKWARD (Strip *, strip, ed->seqbasep) {
-    if (use_cursor_position && strip->machine != split_channel) {
+    if (use_cursor_position && strip->channel != split_channel) {
       continue;
     }
 
@@ -1530,7 +1530,7 @@ static wmOperatorStatus sequencer_split_exec(bContext *C, wmOperator *op)
       if (use_cursor_position) {
         LISTBASE_FOREACH (Strip *, strip, seq::active_seqbase_get(ed)) {
           if (seq::time_right_handle_frame_get(scene, strip) == split_frame &&
-              strip->machine == split_channel)
+              strip->channel == split_channel)
           {
             strip_selected = strip->flag & STRIP_ALLSEL;
           }
@@ -1538,7 +1538,7 @@ static wmOperatorStatus sequencer_split_exec(bContext *C, wmOperator *op)
         if (!strip_selected) {
           LISTBASE_FOREACH (Strip *, strip, seq::active_seqbase_get(ed)) {
             if (seq::time_left_handle_frame_get(scene, strip) == split_frame &&
-                strip->machine == split_channel)
+                strip->channel == split_channel)
             {
               strip->flag &= ~STRIP_ALLSEL;
             }
@@ -2138,8 +2138,8 @@ static wmOperatorStatus sequencer_meta_make_exec(bContext *C, wmOperator * /*op*
     seq::relations_invalidate_cache(scene, strip);
     BLI_remlink(active_seqbase, strip);
     BLI_addtail(&strip_meta->seqbase, strip);
-    channel_max = max_ii(strip->machine, channel_max);
-    channel_min = min_ii(strip->machine, channel_min);
+    channel_max = max_ii(strip->channel, channel_max);
+    channel_min = min_ii(strip->channel, channel_min);
     meta_start_frame = min_ii(seq::time_left_handle_frame_get(scene, strip), meta_start_frame);
     meta_end_frame = max_ii(seq::time_right_handle_frame_get(scene, strip), meta_end_frame);
   }
@@ -2153,7 +2153,7 @@ static wmOperatorStatus sequencer_meta_make_exec(bContext *C, wmOperator * /*op*
     channel_meta->flag = channel_cur->flag;
   }
 
-  const int channel = active_strip ? active_strip->machine : channel_max;
+  const int channel = active_strip ? active_strip->channel : channel_max;
   seq::strip_channel_set(strip_meta, channel);
   BLI_strncpy(strip_meta->name + 2, DATA_("MetaStrip"), sizeof(strip_meta->name) - 2);
   seq::strip_unique_name_set(scene, &ed->seqbase, strip_meta);
@@ -2363,7 +2363,7 @@ static Strip *find_next_prev_strip(Scene *scene, Strip *test, int lr, int sel)
 
   strip = static_cast<Strip *>(ed->seqbasep->first);
   while (strip) {
-    if ((strip != test) && (test->machine == strip->machine) &&
+    if ((strip != test) && (test->channel == strip->channel) &&
         ((sel == -1) || (sel == (strip->flag & SELECT))))
     {
       dist = MAXFRAME * 2;
@@ -3063,7 +3063,7 @@ static int strip_cmp_time_startdisp_channel(void *thunk, const void *a, const vo
 
   /* If strips have the same start frame favor the one with a higher channel. */
   if (strip_a_start == strip_b_start) {
-    return strip_a->machine > strip_b->machine;
+    return strip_a->channel > strip_b->channel;
   }
 
   return (strip_a_start > strip_b_start);

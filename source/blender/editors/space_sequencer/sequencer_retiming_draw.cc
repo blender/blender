@@ -51,7 +51,7 @@ bool retiming_keys_can_be_displayed(const SpaceSeq *sseq)
 static float strip_y_rescale(const Strip *strip, const float y_value)
 {
   const float y_range = STRIP_OFSTOP - STRIP_OFSBOTTOM;
-  return (y_value * y_range) + strip->machine + STRIP_OFSBOTTOM;
+  return (y_value * y_range) + strip->channel + STRIP_OFSBOTTOM;
 }
 
 static float key_x_get(const Scene *scene, const Strip *strip, const SeqRetimingKey *key)

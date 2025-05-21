@@ -916,7 +916,7 @@ wmOperatorStatus sequencer_retiming_box_select_exec(bContext *C, wmOperator *op)
   blender::Set<SeqRetimingKey *> and_keys;
 
   for (Strip *strip : sequencer_visible_strips_get(C)) {
-    if (strip->machine < rectf.ymin || strip->machine > rectf.ymax) {
+    if (strip->channel < rectf.ymin || strip->channel > rectf.ymax) {
       continue;
     }
     if (!seq::retiming_data_is_editable(strip)) {

@@ -338,7 +338,7 @@ const Strip *strip_topmost_get(const Scene *scene, int frame)
 
   ListBase *channels = channels_displayed_get(ed);
   const Strip *best_strip = nullptr;
-  int best_machine = -1;
+  int best_channel = -1;
 
   LISTBASE_FOREACH (const Strip *, strip, ed->seqbasep) {
     if (render_is_muted(channels, strip) || !time_strip_intersects_frame(scene, strip, frame)) {
@@ -354,9 +354,9 @@ const Strip *strip_topmost_get(const Scene *scene, int frame)
              STRIP_TYPE_COLOR,
              STRIP_TYPE_TEXT))
     {
-      if (strip->machine > best_machine) {
+      if (strip->channel > best_channel) {
         best_strip = strip;
-        best_machine = strip->machine;
+        best_channel = strip->channel;
       }
     }
   }

@@ -268,7 +268,7 @@ Vector<Strip *> seq_shown_strips_get(const Scene *scene,
   Vector<Strip *> strips_vec = strips.extract_vector();
   /* Sort strips by channel. */
   std::sort(strips_vec.begin(), strips_vec.end(), [](const Strip *a, const Strip *b) {
-    return a->machine < b->machine;
+    return a->channel < b->channel;
   });
   return strips_vec;
 }
@@ -2068,7 +2068,7 @@ ImBuf *render_give_ibuf_direct(const RenderData *context, float timeline_frame, 
 
 bool render_is_muted(const ListBase *channels, const Strip *strip)
 {
-  SeqTimelineChannel *channel = channel_get_by_index(channels, strip->machine);
+  SeqTimelineChannel *channel = channel_get_by_index(channels, strip->channel);
   return strip->flag & SEQ_MUTE || channel_is_muted(channel);
 }
 

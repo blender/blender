@@ -129,7 +129,7 @@ static VectorSet<Strip *> query_strips_at_frame(const Scene *scene,
 
 static void collection_filter_channel_up_to_incl(VectorSet<Strip *> &strips, const int channel)
 {
-  strips.remove_if([&](Strip *strip) { return strip->machine > channel; });
+  strips.remove_if([&](Strip *strip) { return strip->channel > channel; });
 }
 
 /* Check if strip must be rendered. This depends on whole stack in some cases, not only strip
@@ -139,7 +139,7 @@ static bool must_render_strip(const VectorSet<Strip *> &strips, Strip *strip)
   bool strip_have_effect_in_stack = false;
   for (Strip *strip_iter : strips) {
     /* Strips is below another strip with replace blending are not rendered. */
-    if (strip_iter->blend_mode == SEQ_BLEND_REPLACE && strip->machine < strip_iter->machine) {
+    if (strip_iter->blend_mode == SEQ_BLEND_REPLACE && strip->channel < strip_iter->channel) {
       return false;
     }
 
@@ -147,7 +147,7 @@ static bool must_render_strip(const VectorSet<Strip *> &strips, Strip *strip)
         relation_is_effect_of_strip(strip_iter, strip))
     {
       /* Strips in same channel or higher than its effect are rendered. */
-      if (strip->machine >= strip_iter->machine) {
+      if (strip->channel >= strip_iter->channel) {
         return true;
       }
       /* Mark that this strip has effect in stack, that is above the strip. */
