@@ -50,26 +50,6 @@ using blender::nodes::geo_eval_log::ViewerNodeLog;
 
 namespace blender::ed::spreadsheet {
 
-void ExtraColumns::foreach_default_column_ids(
-    FunctionRef<void(const SpreadsheetColumnID &, bool is_extra)> fn) const
-{
-  for (const auto item : columns_.items()) {
-    SpreadsheetColumnID column_id;
-    column_id.name = (char *)item.key.c_str();
-    fn(column_id, true);
-  }
-}
-
-std::unique_ptr<ColumnValues> ExtraColumns::get_column_values(
-    const SpreadsheetColumnID &column_id) const
-{
-  const GSpan *values = columns_.lookup_ptr(column_id.name);
-  if (values == nullptr) {
-    return {};
-  }
-  return std::make_unique<ColumnValues>(column_id.name, GVArray::ForSpan(*values));
-}
-
 static void add_mesh_debug_column_names(
     const Mesh &mesh,
     const bke::AttrDomain domain,
@@ -205,8 +185,6 @@ void GeometryDataSource::foreach_default_column_ids(
     fn({(char *)"Name"}, false);
   }
 
-  extra_columns_.foreach_default_column_ids(fn);
-
   attributes->foreach_attribute([&](const bke::AttributeIter &iter) {
     if (iter.domain != domain_) {
       return;
@@ -254,11 +232,6 @@ std::unique_ptr<ColumnValues> GeometryDataSource::get_column_values(
   }
 
   std::lock_guard lock{mutex_};
-
-  std::unique_ptr<ColumnValues> extra_column_values = extra_columns_.get_column_values(column_id);
-  if (extra_column_values) {
-    return extra_column_values;
-  }
 
   if (component_->type() == bke::GeometryComponent::Type::Instance) {
     if (const bke::Instances *instances =

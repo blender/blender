@@ -391,7 +391,6 @@ static void update_visible_columns(ListBase &columns, DataSource &data_source)
 static void spreadsheet_main_region_draw(const bContext *C, ARegion *region)
 {
   SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(C);
-  sspreadsheet->runtime->cache.set_all_unused();
   spreadsheet_update_context(C);
 
   std::unique_ptr<DataSource> data_source = get_data_source(*C);
@@ -446,9 +445,6 @@ static void spreadsheet_main_region_draw(const bContext *C, ARegion *region)
   ED_region_tag_redraw(footer);
   ARegion *sidebar = BKE_area_find_region_type(CTX_wm_area(C), RGN_TYPE_UI);
   ED_region_tag_redraw(sidebar);
-
-  /* Free all cache items that have not been used. */
-  sspreadsheet->runtime->cache.remove_all_unused();
 }
 
 static void spreadsheet_main_region_listener(const wmRegionListenerParams *params)

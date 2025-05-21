@@ -6,8 +6,6 @@
 
 #include "BKE_geometry_set.hh"
 
-#include "spreadsheet_cache.hh"
-
 struct ARegionType;
 struct Depsgraph;
 struct Object;
@@ -38,11 +36,8 @@ struct SpaceSpreadsheet_Runtime {
 
   std::optional<ReorderColumnVisualizationData> reorder_column_visualization_data;
 
-  SpreadsheetCache cache;
-
   SpaceSpreadsheet_Runtime() = default;
 
-  /* The cache is not copied currently. */
   SpaceSpreadsheet_Runtime(const SpaceSpreadsheet_Runtime &other)
       : visible_rows(other.visible_rows), tot_rows(other.tot_rows), tot_columns(other.tot_columns)
   {

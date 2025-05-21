@@ -17,27 +17,6 @@ struct bContext;
 
 namespace blender::ed::spreadsheet {
 
-/**
- * Contains additional named columns that should be displayed that are not stored on the geometry
- * directly. This is used for displaying the evaluated fields connected to a viewer node.
- */
-class ExtraColumns {
- private:
-  /** Maps column names to their data. The data is actually stored in the spreadsheet cache. */
-  Map<std::string, GSpan> columns_;
-
- public:
-  void add(std::string name, GSpan data)
-  {
-    columns_.add(std::move(name), data);
-  }
-
-  void foreach_default_column_ids(
-      FunctionRef<void(const SpreadsheetColumnID &, bool is_extra)> fn) const;
-
-  std::unique_ptr<ColumnValues> get_column_values(const SpreadsheetColumnID &column_id) const;
-};
-
 class GeometryDataSource : public DataSource {
  private:
   /**
@@ -50,7 +29,6 @@ class GeometryDataSource : public DataSource {
   bke::AttrDomain domain_;
   /* Layer index for grease pencil component. */
   int layer_index_;
-  ExtraColumns extra_columns_;
 
   /* Some data is computed on the fly only when it is requested. Computing it does not change the
    * logical state of this data source. Therefore, the corresponding methods are const and need to
@@ -63,14 +41,12 @@ class GeometryDataSource : public DataSource {
                      bke::GeometrySet geometry_set,
                      const bke::GeometryComponent::Type component_type,
                      const bke::AttrDomain domain,
-                     const int layer_index = -1,
-                     ExtraColumns extra_columns = {})
+                     const int layer_index = -1)
       : object_orig_(object_orig),
         geometry_set_(std::move(geometry_set)),
         component_(geometry_set_.get_component(component_type)),
         domain_(domain),
-        layer_index_(layer_index),
-        extra_columns_(std::move(extra_columns))
+        layer_index_(layer_index)
   {
   }
 
