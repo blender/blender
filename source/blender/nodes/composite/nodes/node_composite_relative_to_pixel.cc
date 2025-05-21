@@ -12,6 +12,7 @@
 #include "NOD_rna_define.hh"
 
 #include "COM_node_operation.hh"
+#include "COM_realize_on_domain_operation.hh"
 
 #include "node_composite_util.hh"
 
@@ -206,7 +207,9 @@ class RelativeToPixelOperation : public NodeOperation {
       return float2(1.0f);
     }
 
-    const float2 image_size = float2(input_image.domain().size);
+    const Domain domain = RealizeOnDomainOperation::compute_realized_transformation_domain(
+        this->context(), input_image.domain());
+    const float2 image_size = float2(domain.size);
     switch (this->get_reference_dimension()) {
       case CMP_NODE_RELATIVE_TO_PIXEL_REFERENCE_DIMENSION_PER_DIMENSION:
         return image_size;
