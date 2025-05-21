@@ -110,6 +110,13 @@ void AbstractTreeView::foreach_item(ItemIterFn iter_fn, IterOptions options) con
   this->foreach_item_recursive(iter_fn, options);
 }
 
+void AbstractTreeView::foreach_root_item(ItemIterFn iter_fn) const
+{
+  for (const auto &child : children_) {
+    iter_fn(*child);
+  }
+}
+
 AbstractTreeViewItem *AbstractTreeView::find_hovered(const ARegion &region, const int2 &xy)
 {
   AbstractTreeViewItem *hovered_item = nullptr;
@@ -414,6 +421,9 @@ std::optional<DropLocation> TreeViewItemDropTarget::choose_drop_location(
           3;
   const float segment_height = item_height / segment_count;
 
+  if (event.xy[1] < win_rect->ymin) {
+    return DropLocation::After;
+  }
   if (event.xy[1] - win_rect->ymin > (item_height - segment_height)) {
     return DropLocation::Before;
   }
