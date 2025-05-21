@@ -1425,6 +1425,7 @@ static void paint_cursor_sculpt_session_update_and_init(PaintCursorContext &pcon
 
   /* This updates the active vertex, which is needed for most of the Sculpt/Vertex Colors tools to
    * work correctly */
+  vert_random_access_ensure(*vc.obact);
   pcontext.prev_active_vert_index = ss.active_vert_index();
   if (!ups.stroke_active) {
     pcontext.is_cursor_over_mesh = cursor_geometry_info_update(
