@@ -31,7 +31,7 @@
   - 1 materials
     - 'unnamed' 
 
-==== Objects: 10
+==== Objects: 2
 - Obj 'Armature' ARMATURE data:'Armature'
   - pos 0.000, 0.000, 0.000
   - rot 1.571, 0.000, 0.000 (XYZ)
@@ -51,38 +51,6 @@
       -0.707 0.707 0.000 0.000
       0.000 0.000 1.000 0.000
   - anim act:Take 001 slot:OBArmature blend:REPLACE drivers:0
-- Obj 'Camera Switcher' EMPTY
-  - pos 0.000, 0.000, 0.000
-  - rot 1.571, 0.000, 0.000 (XYZ)
-  - scl 0.010, 0.010, 0.010
-- Obj 'Producer Back' CAMERA data:'Producer Back'
-  - pos 0.000, 40.000, 0.000
-  - rot 1.571, 0.000, 3.142 (XYZ)
-  - scl 0.010, 0.010, 0.010
-- Obj 'Producer Bottom' CAMERA data:'Producer Bottom'
-  - pos 0.000, 0.000, -40.000
-  - rot 0.000, 3.142, 0.000 (XYZ)
-  - scl 0.010, 0.010, 0.010
-- Obj 'Producer Front' CAMERA data:'Producer Front'
-  - pos 0.000, -40.000, 0.000
-  - rot 1.571, 0.000, 0.000 (XYZ)
-  - scl 0.010, 0.010, 0.010
-- Obj 'Producer Left' CAMERA data:'Producer Left'
-  - pos -40.000, 0.000, 0.000
-  - rot 1.571, 0.000, -1.571 (XYZ)
-  - scl 0.010, 0.010, 0.010
-- Obj 'Producer Perspective' CAMERA data:'Producer Perspective'
-  - pos -0.045, -0.528, 0.093
-  - rot 1.476, 0.000, -0.175 (XYZ)
-  - scl 0.010, 0.010, 0.010
-- Obj 'Producer Right' CAMERA data:'Producer Right'
-  - pos 40.000, 0.000, 0.000
-  - rot 1.571, 0.000, 1.571 (XYZ)
-  - scl 0.010, 0.010, 0.010
-- Obj 'Producer Top' CAMERA data:'Producer Top'
-  - pos 0.000, 0.000, 40.000
-  - rot 0.000, 0.000, 0.000 (XYZ)
-  - scl 0.010, 0.010, 0.010
 - Obj 'Skin' MESH data:'Mesh' par:'Armature'
   - matrix_parent_inverse:
       0.000 -1.000 0.000 0.000
@@ -96,29 +64,6 @@
   - 1 modifiers
     - ARMATURE 'Armature'
   - props: int:Look=1 fl:Size=100.000
-
-==== Cameras: 7
-- Cam 'Producer Back' ORTHO lens:21.4 MILLIMETERS near:0.010 far:300.0 orthosize:1.0
-  - fov 0.904 (h 0.904 v 0.698)
-  - sensor 20.7x15.5 shift 0.000,0.000
-- Cam 'Producer Bottom' ORTHO lens:21.4 MILLIMETERS near:0.010 far:300.0 orthosize:1.0
-  - fov 0.904 (h 0.904 v 0.698)
-  - sensor 20.7x15.5 shift 0.000,0.000
-- Cam 'Producer Front' ORTHO lens:21.4 MILLIMETERS near:0.010 far:300.0 orthosize:1.0
-  - fov 0.904 (h 0.904 v 0.698)
-  - sensor 20.7x15.5 shift 0.000,0.000
-- Cam 'Producer Left' ORTHO lens:21.4 MILLIMETERS near:0.010 far:300.0 orthosize:1.0
-  - fov 0.904 (h 0.904 v 0.698)
-  - sensor 20.7x15.5 shift 0.000,0.000
-- Cam 'Producer Perspective' PERSP lens:21.4 MILLIMETERS near:0.100 far:40.0 orthosize:1.0
-  - fov 0.904 (h 0.904 v 0.698)
-  - sensor 20.7x15.5 shift 0.000,0.000
-- Cam 'Producer Right' ORTHO lens:21.4 MILLIMETERS near:0.010 far:300.0 orthosize:1.0
-  - fov 0.904 (h 0.904 v 0.698)
-  - sensor 20.7x15.5 shift 0.000,0.000
-- Cam 'Producer Top' ORTHO lens:21.4 MILLIMETERS near:0.010 far:300.0 orthosize:1.0
-  - fov 0.904 (h 0.904 v 0.698)
-  - sensor 20.7x15.5 shift 0.000,0.000
 
 ==== Materials: 1
 - Mat 'unnamed'
