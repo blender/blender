@@ -867,6 +867,13 @@ PanelDeclarationBuilder &PanelDeclarationBuilder::description(std::string value)
   return *this;
 }
 
+PanelDeclarationBuilder &PanelDeclarationBuilder::translation_context(
+    std::optional<std::string> value)
+{
+  decl_->translation_context = value;
+  return *this;
+}
+
 PanelDeclarationBuilder &PanelDeclarationBuilder::default_closed(bool closed)
 {
   decl_->default_collapsed = closed;

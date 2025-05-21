@@ -107,7 +107,11 @@ static void draw_node_inputs_recursive(bContext *C,
   PanelLayout panel = layout->panel(C, panel_idname, panel_decl.default_collapsed);
   const bool has_used_inputs = panel_has_input_affecting_node_output(node, panel_decl);
   uiLayoutSetActive(panel.header, has_used_inputs);
-  panel.header->label(IFACE_(panel_decl.name), ICON_NONE);
+
+  const char *panel_translation_context = (panel_decl.translation_context.has_value() ?
+                                               panel_decl.translation_context->c_str() :
+                                               nullptr);
+  panel.header->label(CTX_IFACE_(panel_translation_context, panel_decl.name), ICON_NONE);
   if (!panel.body) {
     return;
   }
