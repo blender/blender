@@ -388,6 +388,9 @@ static BaseSocketDeclarationBuilder &build_interface_socket_declaration(
   decl->compact(io_socket.flag & NODE_INTERFACE_SOCKET_COMPACT);
   decl->panel_toggle(io_socket.flag & NODE_INTERFACE_SOCKET_PANEL_TOGGLE);
   decl->default_input_type(NodeDefaultInputType(io_socket.default_input));
+  if (io_socket.default_input != NODE_DEFAULT_INPUT_VALUE) {
+    decl->hide_value();
+  }
   return *decl;
 }
 
