@@ -85,6 +85,14 @@ def _cursor_motion_data_y(window):
     ]
 
 
+def _cursor_motion_data_xy(window):
+    size = _window_size_in_pixels(window)
+    return [
+        (p, p) for p in
+        range(int(size[0] * 0.2), int(size[0] * 0.8), 80)
+    ]
+
+
 def _window_area_get_by_type(window, space_type):
     for area in window.screen.areas:
         if area.type == space_type:
@@ -459,6 +467,44 @@ def view3d_sculpt_dyntopo_and_edit():
     yield e.tab()                       # Object mode.
     yield e.ctrl.z(3)                   # Undo
     # yield e.ctrl.z()                    # Undo asserts (nested undo call from dyntopo)
+
+
+def view3d_sculpt_trim():
+    """
+    Test that trim functionality can be undone and redone correctly.
+    Operations that work on the entire mesh exercise a different code path from normal sculpt undo.
+    """
+
+    e, t = _test_vars(window := _test_window())
+    yield from _view3d_startup_area_maximized(e)
+    yield from _call_menu(e, "Add -> Mesh -> Torus")
+    yield e.numpad_period()             # View all.
+    yield from _call_by_name(e, "Remove UV Map")
+    yield e.ctrl.tab().s()              # Sculpt via pie menu.
+
+    # Utility to extract current mesh coordinates (used to ensure undo/redo steps are applied properly).
+    def extract_mesh_positions(window):
+        # TODO: Find/add a way to get that info when there is a multires active in Sculpt mode.
+        window.view_layer.update()
+        tmp_mesh = window.view_layer.objects.active.to_mesh(preserve_all_data_layers=True)
+        tmp_cos = [0.0] * len(tmp_mesh.vertices) * 3
+        tmp_mesh.vertices.foreach_get("co", tmp_cos)
+        window.view_layer.objects.active.to_mesh_clear()
+        return tmp_cos
+
+    beginning_positions = extract_mesh_positions(window)
+    yield from _call_by_name(e, "Box Trim")
+    yield from e.leftmouse.cursor_motion(_cursor_motion_data_xy(window))    # Perform the trim
+    after_trim_positions = extract_mesh_positions(window)
+    t.assertNotEqual(beginning_positions, after_trim_positions)
+
+    yield e.ctrl.z()                                                        # Undo Trim
+    after_undo_positions = extract_mesh_positions(window)
+    t.assertEqual(beginning_positions, after_undo_positions)
+
+    yield e.ctrl.shift.z()                                                  # Redo Trim
+    after_redo_positions = extract_mesh_positions(window)
+    t.assertEqual(after_trim_positions, after_redo_positions)
 
 
 def view3d_texture_paint_simple():
