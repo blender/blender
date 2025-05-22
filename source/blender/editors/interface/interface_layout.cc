@@ -1360,11 +1360,10 @@ PointerRNA uiLayout::op(wmOperatorType *ot,
                         std::optional<StringRef> name,
                         const int icon,
                         const wmOperatorCallContext context,
-                        const eUI_Item_Flag flag,
-                        IDProperty *properties)
+                        const eUI_Item_Flag flag)
 {
   PointerRNA ptr;
-  uiItemFullO_ptr_ex(this, ot, name, icon, properties, context, flag, &ptr);
+  uiItemFullO_ptr_ex(this, ot, name, icon, nullptr, context, flag, &ptr);
   return ptr;
 }
 
@@ -1434,13 +1433,10 @@ void uiItemEnumO_ptr(uiLayout *layout,
     RNA_warning("%s.%s not found", RNA_struct_identifier(ptr.type), propname.c_str());
     return;
   }
-
-  RNA_property_enum_set(&ptr, prop, value);
-
   name = name.value_or(ui_menu_enumpropname(layout, &ptr, prop, value));
 
-  layout->op(
-      ot, name, icon, layout->root_->opcontext, UI_ITEM_NONE, static_cast<IDProperty *>(ptr.data));
+  ptr = layout->op(ot, name, icon, layout->root_->opcontext, UI_ITEM_NONE);
+  RNA_property_enum_set(&ptr, prop, value);
 }
 void uiItemEnumO(uiLayout *layout,
                  const StringRefNull opname,
@@ -1543,22 +1539,12 @@ void uiItemsFullEnumO_items(uiLayout *layout,
     }
 
     if (item->identifier[0]) {
-      PointerRNA tptr;
-      WM_operator_properties_create_ptr(&tptr, ot);
+      PointerRNA tptr = target->op(
+          ot, (flag & UI_ITEM_R_ICON_ONLY) ? nullptr : item->name, item->icon, context, flag);
       if (properties) {
-        if (tptr.data) {
-          IDP_FreeProperty(static_cast<IDProperty *>(tptr.data));
-        }
-        tptr.data = IDP_CopyProperty(properties);
+        IDP_CopyPropertyContent(tptr.data_as<IDProperty>(), properties);
       }
       RNA_property_enum_set(&tptr, prop, item->value);
-
-      target->op(ot,
-                 (flag & UI_ITEM_R_ICON_ONLY) ? nullptr : item->name,
-                 item->icon,
-                 context,
-                 flag,
-                 static_cast<IDProperty *>(tptr.data));
 
       uiBut *but = block->buttons.last().get();
 
@@ -1709,11 +1695,8 @@ void uiItemEnumO_value(uiLayout *layout,
     RNA_warning("%s.%s not found", RNA_struct_identifier(ptr.type), propname.c_str());
     return;
   }
-
+  ptr = layout->op(ot, name, icon, layout->root_->opcontext, UI_ITEM_NONE);
   RNA_property_enum_set(&ptr, prop, value);
-
-  layout->op(
-      ot, name, icon, layout->root_->opcontext, UI_ITEM_NONE, static_cast<IDProperty *>(ptr.data));
 }
 
 void uiItemEnumO_string(uiLayout *layout,
@@ -1755,11 +1738,8 @@ void uiItemEnumO_string(uiLayout *layout,
   if (free) {
     MEM_freeN(item);
   }
-
+  ptr = layout->op(ot, name, icon, layout->root_->opcontext, UI_ITEM_NONE);
   RNA_property_enum_set(&ptr, prop, value);
-
-  layout->op(
-      ot, name, icon, layout->root_->opcontext, UI_ITEM_NONE, static_cast<IDProperty *>(ptr.data));
 }
 
 void uiItemBooleanO(uiLayout *layout,
@@ -1769,15 +1749,11 @@ void uiItemBooleanO(uiLayout *layout,
                     const StringRefNull propname,
                     int value)
 {
-  wmOperatorType *ot = WM_operatortype_find(opname.c_str(), false); /* print error next */
-  UI_OPERATOR_ERROR_RET(ot, opname.c_str(), return);
-
-  PointerRNA ptr;
-  WM_operator_properties_create_ptr(&ptr, ot);
+  PointerRNA ptr = layout->op(opname, name, icon, layout->root_->opcontext, UI_ITEM_NONE);
+  if (RNA_pointer_is_null(&ptr)) {
+    return;
+  }
   RNA_boolean_set(&ptr, propname.c_str(), value);
-
-  layout->op(
-      ot, name, icon, layout->root_->opcontext, UI_ITEM_NONE, static_cast<IDProperty *>(ptr.data));
 }
 
 void uiItemIntO(uiLayout *layout,
@@ -1787,15 +1763,11 @@ void uiItemIntO(uiLayout *layout,
                 const StringRefNull propname,
                 int value)
 {
-  wmOperatorType *ot = WM_operatortype_find(opname.c_str(), false); /* print error next */
-  UI_OPERATOR_ERROR_RET(ot, opname.c_str(), return);
-
-  PointerRNA ptr;
-  WM_operator_properties_create_ptr(&ptr, ot);
+  PointerRNA ptr = layout->op(opname, name, icon, layout->root_->opcontext, UI_ITEM_NONE);
+  if (RNA_pointer_is_null(&ptr)) {
+    return;
+  }
   RNA_int_set(&ptr, propname.c_str(), value);
-
-  layout->op(
-      ot, name, icon, layout->root_->opcontext, UI_ITEM_NONE, static_cast<IDProperty *>(ptr.data));
 }
 
 void uiItemFloatO(uiLayout *layout,
@@ -1805,16 +1777,11 @@ void uiItemFloatO(uiLayout *layout,
                   const StringRefNull propname,
                   float value)
 {
-  wmOperatorType *ot = WM_operatortype_find(opname.c_str(), false); /* print error next */
-
-  UI_OPERATOR_ERROR_RET(ot, opname.c_str(), return);
-
-  PointerRNA ptr;
-  WM_operator_properties_create_ptr(&ptr, ot);
+  PointerRNA ptr = layout->op(opname, name, icon, layout->root_->opcontext, UI_ITEM_NONE);
+  if (RNA_pointer_is_null(&ptr)) {
+    return;
+  }
   RNA_float_set(&ptr, propname.c_str(), value);
-
-  layout->op(
-      ot, name, icon, layout->root_->opcontext, UI_ITEM_NONE, static_cast<IDProperty *>(ptr.data));
 }
 
 void uiItemStringO(uiLayout *layout,
@@ -1824,16 +1791,11 @@ void uiItemStringO(uiLayout *layout,
                    const StringRefNull propname,
                    const char *value)
 {
-  wmOperatorType *ot = WM_operatortype_find(opname.c_str(), false); /* print error next */
-
-  UI_OPERATOR_ERROR_RET(ot, opname.c_str(), return);
-
-  PointerRNA ptr;
-  WM_operator_properties_create_ptr(&ptr, ot);
+  PointerRNA ptr = layout->op(opname, name, icon, layout->root_->opcontext, UI_ITEM_NONE);
+  if (RNA_pointer_is_null(&ptr)) {
+    return;
+  }
   RNA_string_set(&ptr, propname.c_str(), value);
-
-  layout->op(
-      ot, name, icon, layout->root_->opcontext, UI_ITEM_NONE, static_cast<IDProperty *>(ptr.data));
 }
 
 void uiLayout::op(const StringRefNull opname, const std::optional<StringRef> name, int icon)
