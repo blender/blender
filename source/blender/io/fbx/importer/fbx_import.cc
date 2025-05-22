@@ -216,6 +216,7 @@ void FbxImportContext::import_lights()
     lamp->g = flight->color.y;
     lamp->b = flight->color.z;
     lamp->energy = flight->intensity;
+    lamp->exposure = ufbx_find_real(&flight->props, "Exposure", 0.0);
     if (flight->cast_shadows) {
       lamp->mode |= LA_SHADOW;
     }
