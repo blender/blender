@@ -290,8 +290,10 @@ struct uiLayout : uiItem {
    * Adds a operator item, places a button in the layout to call the operator.
    * \param opname: Operator id name.
    * \param name: Text to show in the layout.
+   * \returns Operator pointer to write properties, might be #PointerRNA_NULL if operator does not
+   * exists.
    */
-  void op(blender::StringRefNull opname, std::optional<blender::StringRef> name, int icon);
+  PointerRNA op(blender::StringRefNull opname, std::optional<blender::StringRef> name, int icon);
 
   /**
    * Adds a operator item, places a button in the layout to call the operator.
@@ -532,12 +534,6 @@ void uiItemEnumO_string(uiLayout *layout,
 void uiItemsEnumO(uiLayout *layout,
                   blender::StringRefNull opname,
                   blender::StringRefNull propname);
-void uiItemBooleanO(uiLayout *layout,
-                    std::optional<blender::StringRef> name,
-                    int icon,
-                    blender::StringRefNull opname,
-                    blender::StringRefNull propname,
-                    int value);
 void uiItemIntO(uiLayout *layout,
                 std::optional<blender::StringRef> name,
                 int icon,

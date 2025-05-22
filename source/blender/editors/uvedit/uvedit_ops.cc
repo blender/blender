@@ -1950,18 +1950,12 @@ static wmOperatorStatus uv_mark_seam_invoke(bContext *C, wmOperator *op, const w
   layout = UI_popup_menu_layout(pup);
 
   uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT);
-  uiItemBooleanO(layout,
-                 CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Mark Seam"),
-                 ICON_NONE,
-                 op->type->idname,
-                 "clear",
-                 false);
-  uiItemBooleanO(layout,
-                 CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Clear Seam"),
-                 ICON_NONE,
-                 op->type->idname,
-                 "clear",
-                 true);
+  PointerRNA op_ptr = layout->op(
+      op->type->idname, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Mark Seam"), ICON_NONE);
+  RNA_boolean_set(&op_ptr, "clear", false);
+  op_ptr = layout->op(
+      op->type->idname, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Clear Seam"), ICON_NONE);
+  RNA_boolean_set(&op_ptr, "clear", true);
 
   UI_popup_menu_end(C, pup);
 
