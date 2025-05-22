@@ -3413,10 +3413,10 @@ static wmOperatorStatus keyframe_jump_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  ScrArea *area = CTX_wm_area(C);
   AnimKeylist *keylist = ED_keylist_create();
 
-  switch (area->spacetype) {
+  ScrArea *area = CTX_wm_area(C);
+  switch (area ? eSpace_Type(area->spacetype) : SPACE_EMPTY) {
     case SPACE_ACTION: {
       keylist_from_dopesheet(*C, *keylist);
       break;
