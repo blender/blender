@@ -1712,7 +1712,9 @@ static void direct_link_node_socket_default_value(BlendDataReader *reader, bNode
   }
 }
 
-void direct_link_node_socket_storage(BlendDataReader *reader, const bNode *node, bNodeSocket *sock)
+static void direct_link_node_socket_storage(BlendDataReader *reader,
+                                            const bNode *node,
+                                            bNodeSocket *sock)
 {
   if (!sock->storage) {
     return;
