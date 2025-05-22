@@ -246,7 +246,7 @@ static bool geometry_attributes_remove_poll(bContext *C)
   Object *ob = object::context_object(C);
   ID *data = (ob) ? static_cast<ID *>(ob->data) : nullptr;
   AttributeOwner owner = AttributeOwner::from_id(data);
-  if (BKE_attributes_active_name_get(owner) != nullptr) {
+  if (BKE_attributes_active_name_get(owner) != std::nullopt) {
     return true;
   }
 
@@ -471,7 +471,7 @@ static bool geometry_attribute_convert_poll(bContext *C)
       return false;
     }
   }
-  if (BKE_attributes_active_name_get(owner) == nullptr) {
+  if (BKE_attributes_active_name_get(owner) == std::nullopt) {
     return false;
   }
   return true;
