@@ -576,13 +576,13 @@ static int preprocess_include(char *maindata, const int maindata_len)
   /* replace all enters/tabs/etc with spaces */
   char *cp = temp;
   int a = maindata_len;
-  int comment = 0;
+  bool comment = false;
   while (a--) {
     if (cp[0] == '/' && cp[1] == '/') {
-      comment = 1;
+      comment = true;
     }
     else if (*cp == '\n') {
-      comment = 0;
+      comment = false;
     }
     if (comment || *cp < 32 || *cp > 128) {
       *cp = 32;
@@ -598,17 +598,19 @@ static int preprocess_include(char *maindata, const int maindata_len)
   cp = temp;
   char *md = maindata;
   int newlen = 0;
-  comment = 0;
+  comment = false;
   a = maindata_len;
   bool skip_until_closing_brace = false;
   while (a--) {
 
     if (cp[0] == '/' && cp[1] == '*') {
-      comment = 1;
+      BLI_assert(comment == false);
+      comment = true;
       cp[0] = cp[1] = 32;
     }
     if (cp[0] == '*' && cp[1] == '/') {
-      comment = 0;
+      BLI_assert(comment == true);
+      comment = false;
       cp[0] = cp[1] = 32;
     }
 
