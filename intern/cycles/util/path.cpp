@@ -620,13 +620,9 @@ string path_files_md5_hash(const string &dir)
 
 static bool create_directories_recursivey(const string &path)
 {
-  if (path_is_directory(path)) {
-    /* Directory already exists, nothing to do. */
-    return true;
-  }
   if (path_exists(path)) {
-    /* File exists and it's not a directory. */
-    return false;
+    /* Either directory exists and there is nothing to do, or it's a file and we fail. */
+    return path_is_directory(path);
   }
 
   const string parent = path_dirname(path);
@@ -638,10 +634,14 @@ static bool create_directories_recursivey(const string &path)
 
 #ifdef _WIN32
   wstring path_wc = string_to_wstring(path);
-  return _wmkdir(path_wc.c_str()) == 0;
+  _wmkdir(path_wc.c_str());
 #else
-  return mkdir(path.c_str(), 0777) == 0;
+  mkdir(path.c_str(), 0777);
 #endif
+
+  /* If another thread creates this in the meantime mkdir will return an error,
+   * so instead check if the directory exists. */
+  return path_is_directory(path);
 }
 
 void path_create_directories(const string &filepath)
