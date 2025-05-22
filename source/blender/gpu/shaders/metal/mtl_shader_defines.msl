@@ -1145,6 +1145,11 @@ float4x4 __mat4x4(float x1, float x2, float x3, float x4,
           w1, w2, w3, w4};
 }
 
+/* Diagonal constructors. */
+float2x2 __mat2x2(float x) { return float2x2(x); }
+float3x3 __mat3x3(float x) { return float3x3(x); }
+float4x4 __mat4x4(float x) { return float4x4(x); }
+
 /* Vector constructors. */
 float2x2 __mat2x2(float2 x, float2 y) { return {x, y}; }
 float3x3 __mat3x3(float3 x, float3 y, float3 z) { return {x, y, z}; }
