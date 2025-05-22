@@ -252,6 +252,11 @@ struct DeferredLayerBase {
     return count;
   }
 
+  eClosureBits closure_bits_get() const
+  {
+    return closure_bits_;
+  }
+
   void gbuffer_pass_sync(Instance &inst);
 };
 
@@ -404,6 +409,11 @@ class DeferredPipeline {
   bool is_empty() const
   {
     return opaque_layer_.is_empty() && refraction_layer_.is_empty();
+  }
+
+  eClosureBits closure_bits_get() const
+  {
+    return opaque_layer_.closure_bits_get() | refraction_layer_.closure_bits_get();
   }
 
  private:

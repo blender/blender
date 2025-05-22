@@ -19,6 +19,7 @@
 #include BLI_SYSTEM_PID_H
 
 #include "GPU_capabilities.hh"
+#include "GPU_debug.hh"
 #include "GPU_platform.hh"
 #include "gpu_capabilities_private.hh"
 #include "gpu_shader_dependency_private.hh"
@@ -1617,7 +1618,13 @@ GLShader::GLProgram &GLShader::program_get(const shader::SpecializationConstants
     return program;
   }
 
+  GPU_debug_group_begin(GPU_DEBUG_SHADER_SPECIALIZATION_GROUP);
+  GPU_debug_group_begin(this->name);
+
   program.program_link(name);
+
+  GPU_debug_group_end();
+  GPU_debug_group_end();
 
   return program;
 }

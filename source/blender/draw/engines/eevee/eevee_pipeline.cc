@@ -1275,7 +1275,7 @@ void DeferredProbePipeline::begin_sync()
 
 void DeferredProbePipeline::end_sync()
 {
-  {
+  if (!opaque_layer_.prepass_ps_.is_empty()) {
     PassSimple &pass = eval_light_ps_;
     pass.init();
     /* Use depth test to reject background pixels. */
@@ -1388,7 +1388,13 @@ void PlanarProbePipeline::begin_sync()
 
   this->gbuffer_pass_sync(inst_);
 
-  {
+  closure_bits_ = CLOSURE_NONE;
+  closure_count_ = 0;
+}
+
+void PlanarProbePipeline::end_sync()
+{
+  if (!prepass_ps_.is_empty()) {
     PassSimple &pass = eval_light_ps_;
     pass.init();
     pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ADD_FULL);
@@ -1405,14 +1411,6 @@ void PlanarProbePipeline::begin_sync()
     pass.barrier(GPU_BARRIER_TEXTURE_FETCH | GPU_BARRIER_SHADER_IMAGE_ACCESS);
     pass.draw_procedural(GPU_PRIM_TRIS, 1, 3);
   }
-
-  closure_bits_ = CLOSURE_NONE;
-  closure_count_ = 0;
-}
-
-void PlanarProbePipeline::end_sync()
-{
-  /* No-op for now. */
 }
 
 PassMain::Sub *PlanarProbePipeline::prepass_add(::Material *blender_mat, GPUMaterial *gpumat)
