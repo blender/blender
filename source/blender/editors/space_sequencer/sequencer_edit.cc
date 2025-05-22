@@ -964,7 +964,7 @@ static wmOperatorStatus sequencer_unmute_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   Editing *ed = seq::editing_get(scene);
   ARegion *region = CTX_wm_region(C);
-  const bool is_preview = (region->regiontype == RGN_TYPE_PREVIEW) &&
+  const bool is_preview = region && (region->regiontype == RGN_TYPE_PREVIEW) &&
                           sequencer_view_preview_only_poll(C);
   LISTBASE_FOREACH (Strip *, strip, ed->seqbasep) {
     if (is_preview) {
