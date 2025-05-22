@@ -953,6 +953,10 @@ static int gizmo_cage2d_test_select(bContext *C, wmGizmo *gz, const int mval[2])
       r.ymin = -size[1] + margin[1];
       r.xmax = size[0] - margin[0];
       r.ymax = size[1] - margin[1];
+      if (!BLI_rctf_is_valid(&r)) {
+        /* Typically happens when gizmo width or height is very small. */
+        BLI_rctf_sanitize(&r);
+      }
     }
     bool isect = BLI_rctf_isect_pt_v(&r, point_local);
     if (isect) {
