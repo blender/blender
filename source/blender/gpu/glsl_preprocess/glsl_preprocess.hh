@@ -238,6 +238,11 @@ class Preprocessor {
       str = template_definition_mutation(str, report_error);
       str = template_call_mutation(str);
     }
+#ifdef __APPLE__ /* Limiting to Apple hardware since GLSL compilers might have issues. */
+    if (language == GLSL) {
+      str = matrix_constructor_mutation(str);
+    }
+#endif
     str = argument_decorator_macro_injection(str);
     str = array_constructor_macro_injection(str);
     r_metadata = metadata;
@@ -1164,6 +1169,22 @@ class Preprocessor {
       replace_all(str, mutation.first, mutation.second);
     }
     return str;
+  }
+
+  /* Used to make GLSL matrix constructor compatible with MSL in pyGPU shaders.
+   * This syntax is not supported in blender's own shaders. */
+  std::string matrix_constructor_mutation(const std::string &str)
+  {
+    if (str.find("mat") == std::string::npos) {
+      return str;
+    }
+    /* Example: `mat2(x)` > `mat2x2(x)` */
+    std::regex regex_parenthesis(R"(\bmat([234])\()");
+    std::string out = std::regex_replace(str, regex_parenthesis, "mat$1x$1(");
+    /* Only process square matrices since this is the only types we overload the constructors. */
+    /* Example: `mat2x2(x)` > `__mat2x2(x)` */
+    std::regex regex(R"(\bmat(2x2|3x3|4x4)\()");
+    return std::regex_replace(out, regex, "__mat$1(");
   }
 
   /* To be run before `argument_decorator_macro_injection()`. */
