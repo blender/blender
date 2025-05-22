@@ -74,8 +74,7 @@ typedef struct GpencilModifierData {
   short flag;
   /* An "expand" bit for each of the modifier's (sub)panels (uiPanelDataExpansion). */
   short ui_expand_flag;
-  /** MAX_NAME. */
-  char name[64];
+  char name[/*MAX_NAME*/ 64];
 
   char *error;
 } GpencilModifierData;
@@ -88,8 +87,8 @@ typedef struct NoiseGpencilModifierData {
   char layername[64];
   /** Material name. */
   char materialname[64] DNA_DEPRECATED;
-  /** Optional vertex-group name, #MAX_VGROUP_NAME. */
-  char vgname[64];
+  /** Optional vertex-group name. */
+  char vgname[/*MAX_VGROUP_NAME*/ 64];
   /** Custom index for passes. */
   int pass_index;
   /** Several flags. */
@@ -154,8 +153,8 @@ typedef struct ThickGpencilModifierData {
   char layername[64];
   /** Material name. */
   char materialname[64] DNA_DEPRECATED;
-  /** Optional vertex-group name, #MAX_VGROUP_NAME. */
-  char vgname[64];
+  /** Optional vertex-group name. */
+  char vgname[/*MAX_VGROUP_NAME*/ 64];
   /** Custom index for passes. */
   int pass_index;
   /** Flags. */
@@ -287,8 +286,8 @@ typedef struct OpacityGpencilModifierData {
   char layername[64];
   /** Material name. */
   char materialname[64] DNA_DEPRECATED;
-  /** Optional vertex-group name, #MAX_VGROUP_NAME. */
-  char vgname[64];
+  /** Optional vertex-group name. */
+  char vgname[/*MAX_VGROUP_NAME*/ 64];
   /** Custom index for passes. */
   int pass_index;
   /** Flags. */
@@ -441,8 +440,8 @@ typedef struct BuildGpencilModifierData {
 
   /** Weight fading at the end of the stroke. */
   float fade_fac;
-  /** Target vertex-group name, #MAX_VGROUP_NAME. */
-  char target_vgname[64];
+  /** Target vertex-group name. */
+  char target_vgname[/*MAX_VGROUP_NAME*/ 64];
   /** Fading strength of opacity and thickness */
   float fade_opacity_strength;
   float fade_thickness_strength;
@@ -504,7 +503,7 @@ typedef struct LatticeGpencilModifierData {
   char layername[64];
   /** Material name. */
   char materialname[64] DNA_DEPRECATED;
-  /** Optional vertex-group name, #MAX_VGROUP_NAME. */
+  /** Optional vertex-group name, . */
   char vgname[64];
   /** Custom index for passes. */
   int pass_index;
@@ -633,13 +632,13 @@ typedef struct HookGpencilModifierData {
   /** Material for filtering. */
   struct Material *material;
   /** Optional name of bone target. */
-  char subtarget[/* MAX_NAME */ 64];
+  char subtarget[/*MAX_NAME*/ 64];
   /** Layer name. */
-  char layername[/* MAX_NAME */ 64];
+  char layername[/*MAX_NAME*/ 64];
   /** Material name. */
-  char materialname[/* MAX_ID_NAME-2 */ 64] DNA_DEPRECATED;
-  /** Optional vertex-group name, #MAX_VGROUP_NAME. */
-  char vgname[64];
+  char materialname[/*MAX_ID_NAME - 2*/ 64] DNA_DEPRECATED;
+  /** Optional vertex-group name. */
+  char vgname[/*MAX_VGROUP_NAME*/ 64];
   /** Custom index for passes. */
   int pass_index;
   /** Custom index for passes. */
@@ -743,8 +742,8 @@ typedef struct OffsetGpencilModifierData {
   char layername[64];
   /** Material name. */
   char materialname[64] DNA_DEPRECATED;
-  /** Optional vertex-group name, #MAX_VGROUP_NAME. */
-  char vgname[64];
+  /** Optional vertex-group name. */
+  char vgname[/*MAX_VGROUP_NAME*/ 64];
   /** Custom index for passes. */
   int pass_index;
   /** Flags. */
@@ -785,8 +784,8 @@ typedef struct SmoothGpencilModifierData {
   char layername[64];
   /** Material name. */
   char materialname[64] DNA_DEPRECATED;
-  /** Optional vertex-group name, #MAX_VGROUP_NAME. */
-  char vgname[64];
+  /** Optional vertex-group name. */
+  char vgname[/*MAX_VGROUP_NAME*/ 64];
   /** Custom index for passes. */
   int pass_index;
   /** Several flags. */
@@ -824,8 +823,7 @@ typedef struct ArmatureGpencilModifierData {
   struct Object *object;
   /** Stored input of previous modifier, for vertex-group blending. */
   float (*vert_coords_prev)[3];
-  /** #MAX_VGROUP_NAME. */
-  char vgname[64];
+  char vgname[/*MAX_VGROUP_NAME*/ 64];
 
 } ArmatureGpencilModifierData;
 
@@ -872,8 +870,8 @@ typedef struct TintGpencilModifierData {
   char layername[64];
   /** Material name. */
   char materialname[64] DNA_DEPRECATED;
-  /** Optional vertex-group name, #MAX_VGROUP_NAME. */
-  char vgname[64];
+  /** Optional vertex-group name. */
+  char vgname[/*MAX_VGROUP_NAME*/ 64];
   /** Custom index for passes. */
   int pass_index;
   /** Custom index for passes. */
@@ -918,8 +916,8 @@ typedef struct TextureGpencilModifierData {
   char layername[64];
   /** Material name. */
   char materialname[64] DNA_DEPRECATED;
-  /** Optional vertex-group name, #MAX_VGROUP_NAME. */
-  char vgname[64];
+  /** Optional vertex-group name. */
+  char vgname[/*MAX_VGROUP_NAME*/ 64];
   /** Custom index for passes. */
   int pass_index;
   /** Flags. */
@@ -957,14 +955,14 @@ typedef enum eTextureGpencil_Mode {
 
 typedef struct WeightProxGpencilModifierData {
   GpencilModifierData modifier;
-  /** Target vertex-group name, #MAX_VGROUP_NAME. */
-  char target_vgname[64];
+  /** Target vertex-group name. */
+  char target_vgname[/*MAX_VGROUP_NAME*/ 64];
   /** Material for filtering. */
   struct Material *material;
   /** Layer name. */
   char layername[64];
-  /** Optional vertex-group filter name, #MAX_VGROUP_NAME. */
-  char vgname[64];
+  /** Optional vertex-group filter name. */
+  char vgname[/*MAX_VGROUP_NAME*/ 64];
   /** Custom index for passes. */
   int pass_index;
   /** Flags. */
@@ -983,14 +981,14 @@ typedef struct WeightProxGpencilModifierData {
 
 typedef struct WeightAngleGpencilModifierData {
   GpencilModifierData modifier;
-  /** Target vertex-group name, #MAX_VGROUP_NAME. */
-  char target_vgname[64];
+  /** Target vertex-group name. */
+  char target_vgname[/*MAX_VGROUP_NAME*/ 64];
   /** Material for filtering. */
   struct Material *material;
   /** Layer name. */
   char layername[64];
-  /** Optional vertex-group filter name, #MAX_VGROUP_NAME. */
-  char vgname[64];
+  /** Optional vertex-group filter name. */
+  char vgname[/*MAX_VGROUP_NAME*/ 64];
   /** Custom index for passes. */
   int pass_index;
   /** Flags. */
@@ -1126,8 +1124,8 @@ typedef struct ShrinkwrapGpencilModifierData {
   struct Material *material;
   /** Layer name. */
   char layername[64];
-  /** Optional vertex-group filter name, #MAX_VGROUP_NAME. */
-  char vgname[64];
+  /** Optional vertex-group filter name. */
+  char vgname[/*MAX_VGROUP_NAME*/ 64];
   /** Custom index for passes. */
   int pass_index;
   /** Flags. */
@@ -1177,8 +1175,8 @@ typedef struct EnvelopeGpencilModifierData {
   struct Material *material;
   /** Layer name. */
   char layername[64];
-  /** Optional vertex-group name, #MAX_VGROUP_NAME. */
-  char vgname[64];
+  /** Optional vertex-group name. */
+  char vgname[/*MAX_VGROUP_NAME*/ 64];
   /** Custom index for passes. */
   int pass_index;
   /** Several flags. */

@@ -47,10 +47,10 @@ typedef struct bConstraint {
   /** Object to use as target for Custom Space of owner. */
   struct Object *space_object;
   /** Sub-target for Custom Space of owner - pose-channel or vertex-group name. */
-  char space_subtarget[/* MAX_NAME */ 64];
+  char space_subtarget[/*MAX_NAME*/ 64];
 
   /** Constraint name. */
-  char name[/* MAX_NAME */ 64];
+  char name[/*MAX_NAME*/ 64];
 
   /** Amount of influence exerted by constraint (0.0-1.0). */
   float enforce;
@@ -81,7 +81,7 @@ typedef struct bConstraintTarget {
   /** Object to use as target. */
   struct Object *tar;
   /** Sub-target - pose-channel or vertex-group name. */
-  char subtarget[/* MAX_NAME */ 64];
+  char subtarget[/*MAX_NAME*/ 64];
 
   /** Matrix used during constraint solving - should be cleared before each use. */
   float matrix[4][4];
@@ -137,11 +137,11 @@ typedef struct bKinematicConstraint {
   /** CopyPose: for auto-ik, maximum length of chain. */
   short max_rootbone;
   /** All: String to specify sub-object target. */
-  char subtarget[/* MAX_NAME */ 64];
+  char subtarget[/*MAX_NAME*/ 64];
   /** All: Pole vector target. */
   struct Object *poletar;
   /** All: Pole vector sub-object target. */
-  char polesubtarget[/* MAX_NAME */ 64];
+  char polesubtarget[/*MAX_NAME*/ 64];
   /** All: Pole vector rest angle. */
   float poleangle;
   /** All: Weight of constraint in IK tree. */
@@ -226,7 +226,7 @@ typedef struct bTrackToConstraint {
   int reserved2;
   int flags;
   char _pad[4];
-  char subtarget[/* MAX_NAME */ 64];
+  char subtarget[/*MAX_NAME*/ 64];
 } bTrackToConstraint;
 
 /* Copy Rotation Constraint */
@@ -236,7 +236,7 @@ typedef struct bRotateLikeConstraint {
   char euler_order;
   char mix_mode;
   char _pad[2];
-  char subtarget[/* MAX_NAME */ 64];
+  char subtarget[/*MAX_NAME*/ 64];
 } bRotateLikeConstraint;
 
 /* Copy Location Constraint */
@@ -244,7 +244,7 @@ typedef struct bLocateLikeConstraint {
   struct Object *tar;
   int flag;
   int reserved1;
-  char subtarget[/* MAX_NAME */ 64];
+  char subtarget[/*MAX_NAME*/ 64];
 } bLocateLikeConstraint;
 
 /* Copy Scale Constraint */
@@ -252,7 +252,7 @@ typedef struct bSizeLikeConstraint {
   struct Object *tar;
   int flag;
   float power;
-  char subtarget[/* MAX_NAME */ 64];
+  char subtarget[/*MAX_NAME*/ 64];
 } bSizeLikeConstraint;
 
 /* Maintain Volume Constraint */
@@ -269,7 +269,7 @@ typedef struct bTransLikeConstraint {
   int flag;
   char mix_mode;
   char _pad[3];
-  char subtarget[/* MAX_NAME */ 64];
+  char subtarget[/*MAX_NAME*/ 64];
 } bTransLikeConstraint;
 
 /* Floor Constraint */
@@ -278,7 +278,7 @@ typedef struct bMinMaxConstraint {
   int minmaxflag;
   float offset;
   int flag;
-  char subtarget[/* MAX_NAME */ 64];
+  char subtarget[/*MAX_NAME*/ 64];
   int _pad;
 } bMinMaxConstraint;
 
@@ -303,9 +303,9 @@ typedef struct bActionConstraint {
   float eval_time; /* Only used when flag ACTCON_USE_EVAL_TIME is set. */
   struct bAction *act;
   int32_t action_slot_handle;
-  char last_slot_identifier[66]; /* MAX_ID_NAME */
+  char last_slot_identifier[/*MAX_ID_NAME*/ 66];
   char _pad1[2];
-  char subtarget[/* MAX_NAME */ 64];
+  char subtarget[/*MAX_NAME*/ 64];
 } bActionConstraint;
 
 /* Locked Axis Tracking constraint */
@@ -313,7 +313,7 @@ typedef struct bLockTrackConstraint {
   struct Object *tar;
   int trackflag;
   int lockflag;
-  char subtarget[/* MAX_NAME */ 64];
+  char subtarget[/*MAX_NAME*/ 64];
 } bLockTrackConstraint;
 
 /* Damped Tracking constraint */
@@ -321,7 +321,7 @@ typedef struct bDampTrackConstraint {
   struct Object *tar;
   int trackflag;
   char _pad[4];
-  char subtarget[/* MAX_NAME */ 64];
+  char subtarget[/*MAX_NAME*/ 64];
 } bDampTrackConstraint;
 
 /* Follow Path constraints */
@@ -351,7 +351,7 @@ typedef struct bStretchToConstraint {
   float bulge_min;
   float bulge_max;
   float bulge_smooth;
-  char subtarget[/* MAX_NAME */ 64];
+  char subtarget[/*MAX_NAME*/ 64];
 } bStretchToConstraint;
 
 /* DEPRECATED: Rigid Body constraint */
@@ -392,14 +392,14 @@ typedef struct bChildOfConstraint {
   /** Parent-inverse matrix to use. */
   float invmat[4][4];
   /** String to specify a sub-object target. */
-  char subtarget[/* MAX_NAME */ 64];
+  char subtarget[/*MAX_NAME*/ 64];
 } bChildOfConstraint;
 
 /* Generic Transform->Transform Constraint */
 typedef struct bTransformConstraint {
   /** Target (i.e. 'driver' object/bone). */
   struct Object *tar;
-  char subtarget[/* MAX_NAME */ 64];
+  char subtarget[/*MAX_NAME*/ 64];
 
   /** Can be loc(0), rot(1) or size(2). */
   short from, to;
@@ -453,7 +453,7 @@ typedef struct bPivotConstraint {
   /** Target object (optional). */
   struct Object *tar;
   /** Subtarget name (optional). */
-  char subtarget[/* MAX_NAME */ 64];
+  char subtarget[/*MAX_NAME*/ 64];
   /** Offset from the target to use, regardless of whether it exists. */
   float offset[3];
 
@@ -501,7 +501,7 @@ typedef struct bSizeLimitConstraint {
 /* Limit Distance Constraint */
 typedef struct bDistLimitConstraint {
   struct Object *tar;
-  char subtarget[/* MAX_NAME */ 64];
+  char subtarget[/*MAX_NAME*/ 64];
 
   /** Distance (radius of clamping sphere) from target. */
   float dist;
@@ -540,12 +540,10 @@ typedef struct bShrinkwrapConstraint {
 /* Follow Track constraints */
 typedef struct bFollowTrackConstraint {
   struct MovieClip *clip;
-  /** MAX_NAME. */
-  char track[64];
+  char track[/*MAX_NAME*/ 64];
   int flag;
   int frame_method;
-  /** MAX_NAME. */
-  char object[64];
+  char object[/*MAX_NAME*/ 64];
   struct Object *camera;
   struct Object *depth_ob;
 } bFollowTrackConstraint;
@@ -562,8 +560,7 @@ typedef struct bObjectSolverConstraint {
   struct MovieClip *clip;
   int flag;
   char _pad[4];
-  /** MAX_NAME. */
-  char object[64];
+  char object[/*MAX_NAME*/ 64];
   /** Parent-inverse matrix to use. */
   float invmat[4][4];
   struct Object *camera;
@@ -572,12 +569,11 @@ typedef struct bObjectSolverConstraint {
 /* Transform matrix cache constraint */
 typedef struct bTransformCacheConstraint {
   struct CacheFile *cache_file;
-  /** FILE_MAX. */
-  char object_path[1024];
+  char object_path[/*FILE_MAX*/ 1024];
 
   /* Runtime. */
   struct CacheReader *reader;
-  char reader_object_path[1024];
+  char reader_object_path[/*FILE_MAX*/ 1024];
 } bTransformCacheConstraint;
 
 /* ------------------------------------------ */

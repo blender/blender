@@ -148,8 +148,7 @@ typedef struct LightgroupMembership {
 
 typedef struct ViewLayer {
   struct ViewLayer *next, *prev;
-  /** MAX_NAME. */
-  char name[64];
+  char name[/*MAX_NAME*/ 64];
   short flag;
   char _pad[6];
   /** ObjectBase. */

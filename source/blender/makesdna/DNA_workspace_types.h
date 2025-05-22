@@ -130,8 +130,7 @@ typedef struct WorkSpaceLayout {
   struct bScreen *screen;
   /* The name of this layout, we override the RNA name of the screen with this
    * (but not ID name itself) */
-  /** MAX_NAME. */
-  char name[64];
+  char name[/*MAX_NAME*/ 64];
 } WorkSpaceLayout;
 
 /** Optional tags, which features to use, aligned with #bAddon names by convention. */

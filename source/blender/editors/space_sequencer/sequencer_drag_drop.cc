@@ -547,7 +547,7 @@ static void prefetch_data_fn(void *custom_data, wmJobWorkerStatus * /*worker_sta
 #endif
   }
 
-  char colorspace[64] = "\0"; /* 64 == MAX_COLORSPACE_NAME length. */
+  char colorspace[/*MAX_COLORSPACE_NAME*/ 64] = "\0";
   MovieReader *anim = openanim(job_data->path, IB_byte_data, 0, colorspace);
 
   if (anim != nullptr) {

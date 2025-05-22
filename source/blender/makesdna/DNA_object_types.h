@@ -57,8 +57,7 @@ struct bGPdata;
 /** Vertex Groups - Name Info */
 typedef struct bDeformGroup {
   struct bDeformGroup *next, *prev;
-  /** MAX_VGROUP_NAME. */
-  char name[64];
+  char name[/*MAX_VGROUP_NAME*/ 64];
   /* need this flag for locking weights */
   char flag, _pad0[7];
 } bDeformGroup;
@@ -66,8 +65,7 @@ typedef struct bDeformGroup {
 #ifdef DNA_DEPRECATED_ALLOW
 typedef struct bFaceMap {
   struct bFaceMap *next, *prev;
-  /** MAX_VGROUP_NAME. */
-  char name[64];
+  char name[/*MAX_VGROUP_NAME*/ 64];
   char flag;
   char _pad0[7];
 } bFaceMap;
@@ -209,7 +207,7 @@ typedef struct Object {
   /** Can be vertex indices. */
   int par1, par2, par3;
   /** String describing sub-object info. */
-  char parsubstr[/* MAX_NAME */ 64];
+  char parsubstr[/*MAX_NAME*/ 64];
   struct Object *parent, *track;
   /* Proxy pointer are deprecated, only kept for conversion to liboverrides. */
   struct Object *proxy DNA_DEPRECATED;
@@ -422,8 +420,7 @@ typedef struct ObHook {
   /** If not zero, falloff is distance where influence zero. */
   float falloff;
 
-  /** MAX_NAME. */
-  char name[64];
+  char name[/*MAX_NAME*/ 64];
 
   int *indexar;
   /** Curindex is cache for fast lookup. */

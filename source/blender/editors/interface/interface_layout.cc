@@ -602,7 +602,7 @@ static void ui_item_array(uiLayout *layout,
     }
   }
   else if (subtype == PROP_MATRIX) {
-    int totdim, dim_size[3]; /* 3 == RNA_MAX_ARRAY_DIMENSION */
+    int totdim, dim_size[/*RNA_MAX_ARRAY_DIMENSION*/ 3];
     int row, col;
 
     UI_block_layout_set_current(block, &layout->absolute(true));

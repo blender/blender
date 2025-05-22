@@ -126,8 +126,7 @@ typedef struct bNodeSocket {
   /** Unique identifier for mapping. */
   char identifier[64];
 
-  /** MAX_NAME. */
-  char name[64];
+  char name[/*MAX_NAME*/ 64];
 
   /** Only used for the Image and OutputFile nodes, should be removed at some point. */
   void *storage;
@@ -165,10 +164,10 @@ typedef struct bNodeSocket {
 
   char _pad[4];
 
-  /** Custom dynamic defined label, MAX_NAME. */
-  char label[64];
-  char short_label[64];
-  char description[64];
+  /** Custom dynamic defined label. */
+  char label[/*MAX_NAME*/ 64];
+  char short_label[/*MAX_NAME*/ 64];
+  char description[/*MAX_NAME*/ 64];
 
   /**
    * The default attribute name to use for geometry nodes modifier output attribute sockets.
@@ -392,8 +391,8 @@ typedef struct bNode {
   /* Input and output #bNodeSocket. */
   ListBase inputs, outputs;
 
-  /** The node's name for unique identification and string lookup. MAX_NAME. */
-  char name[64];
+  /** The node's name for unique identification and string lookup. */
+  char name[/*MAX_NAME*/ 64];
 
   /**
    * A value that uniquely identifies a node in a node tree even when the name changes.
@@ -481,8 +480,8 @@ typedef struct bNode {
   float locx_legacy, locy_legacy;
   float offsetx_legacy, offsety_legacy;
 
-  /** Custom user-defined label, MAX_NAME. */
-  char label[64];
+  /** Custom user-defined label. */
+  char label[/*MAX_NAME*/ 64];
 
   /** Custom user-defined color. */
   float color[3];
@@ -982,8 +981,7 @@ typedef struct bNodeSocketValueRGBA {
 typedef struct bNodeSocketValueString {
   int subtype;
   char _pad[4];
-  /** 1024 = FILEMAX. */
-  char value[1024];
+  char value[/*FILE_MAX*/ 1024];
 } bNodeSocketValueString;
 
 typedef struct bNodeSocketValueObject {
@@ -1198,8 +1196,7 @@ typedef struct NodeHueSat {
 } NodeHueSat;
 
 typedef struct NodeImageFile {
-  /** 1024 = FILE_MAX. */
-  char name[1024];
+  char name[/*FILE_MAX*/ 1024];
   struct ImageFormatData im_format;
   int sfra, efra;
 } NodeImageFile;
@@ -1208,8 +1205,7 @@ typedef struct NodeImageFile {
  * XXX: first struct fields should match #NodeImageFile to ensure forward compatibility.
  */
 typedef struct NodeImageMultiFile {
-  /** 1024 = FILE_MAX. */
-  char base_path[1024];
+  char base_path[/*FILE_MAX*/ 1024];
   ImageFormatData format;
   /** XXX old frame rand values from NodeImageFile for forward compatibility. */
   int sfra DNA_DEPRECATED, efra DNA_DEPRECATED;
@@ -1225,13 +1221,12 @@ typedef struct NodeImageMultiFileSocket {
   short use_node_format;
   char save_as_render;
   char _pad1[3];
-  /** 1024 = FILE_MAX. */
-  char path[1024];
+  char path[/*FILE_MAX*/ 1024];
   ImageFormatData format;
 
   /* Multi-layer output. */
-  /** EXR_TOT_MAXNAME-2 ('.' and channel char are appended). */
-  char layer[30];
+  /** Subtract 2 because '.' and channel char are appended. */
+  char layer[/*EXR_TOT_MAXNAME - 2*/ 30];
   char _pad2[2];
 } NodeImageMultiFileSocket;
 
@@ -1504,8 +1499,8 @@ typedef struct NodeShaderTexPointDensity {
   /** Used at runtime only by sampling RNA API. */
   PointDensity pd;
   int cached_resolution;
-  /** Vertex attribute layer for color source, MAX_CUSTOMDATA_LAYER_NAME. */
-  char vertex_attribute_name[68];
+  /** Vertex attribute layer for color source. */
+  char vertex_attribute_name[/*MAX_CUSTOMDATA_LAYER_NAME*/ 68];
 } NodeShaderTexPointDensity;
 
 typedef struct NodeShaderPrincipled {
@@ -1572,8 +1567,7 @@ typedef struct NodeShaderScript {
   int mode;
   int flag;
 
-  /** 1024 = FILE_MAX. */
-  char filepath[1024];
+  char filepath[/*FILE_MAX*/ 1024];
 
   char bytecode_hash[64];
   char *bytecode;
@@ -1601,8 +1595,7 @@ typedef struct NodeShaderVertexColor {
 typedef struct NodeShaderTexIES {
   int mode;
 
-  /** 1024 = FILE_MAX. */
-  char filepath[1024];
+  char filepath[/*FILE_MAX*/ 1024];
 } NodeShaderTexIES;
 
 typedef struct NodeShaderOutputAOV {
@@ -1617,8 +1610,7 @@ typedef struct NodeSunBeams {
 typedef struct CryptomatteEntry {
   struct CryptomatteEntry *next, *prev;
   float encoded_hash;
-  /** MAX_NAME. */
-  char name[64];
+  char name[/*MAX_NAME*/ 64];
   char _pad[4];
 } CryptomatteEntry;
 
@@ -1646,8 +1638,7 @@ typedef struct NodeCryptomatte {
   /** Contains #CryptomatteEntry. */
   ListBase entries;
 
-  /* MAX_NAME */
-  char layer_name[64];
+  char layer_name[/*MAX_NAME*/ 64];
   /** Stores `entries` as a string for opening in 2.80-2.91. */
   char *matte_id;
 

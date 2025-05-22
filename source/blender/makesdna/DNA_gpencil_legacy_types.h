@@ -456,7 +456,7 @@ typedef struct bGPDlayer {
   /** Inverse matrix (only used if parented). */
   float inverse[4][4];
   /** String describing sub-object info. */
-  char parsubstr[/* MAX_NAME */ 64];
+  char parsubstr[/*MAX_NAME*/ 64];
   short partype;
 
   /** Thickness adjustment. */

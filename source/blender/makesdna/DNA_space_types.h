@@ -394,10 +394,12 @@ typedef struct FileSelectParams {
   /** Title, also used for the text of the execute button. */
   char title[96];
   /**
-   * Directory, FILE_MAX_LIBEXTRA, 1024 + 66, this is for extreme case when 1023 length path
-   * needs to be linked in, where foo.blend/Armature need adding
+   * Directory.
+   *
+   * \note #FILE_MAX_LIBEXTRA == `1024 + 66`, this is for extreme case when 1023 length path
+   * needs to be linked in, where `foo.blend/Armature` need adding.
    */
-  char dir[1090];
+  char dir[/*FILE_MAX_LIBEXTRA*/ 1090];
   char file[256];
 
   char renamefile[256];
@@ -409,8 +411,8 @@ typedef struct FileSelectParams {
   const ID *rename_id;
   void *_pad3;
 
-  /** List of file-types to filter (#FILE_MAXFILE). */
-  char filter_glob[256];
+  /** List of file-types to filter. */
+  char filter_glob[/*FILE_MAXFILE*/ 256];
 
   /** Text items name must match to be shown. */
   char filter_search[64];
@@ -608,8 +610,7 @@ typedef struct FileDirEntryArr {
   int entries_num;
   int entries_filtered_num;
 
-  /** FILE_MAX. */
-  char root[1024];
+  char root[/*FILE_MAX*/ 1024];
 } FileDirEntryArr;
 
 /** \} */
@@ -737,10 +738,8 @@ typedef struct SpaceText {
   char live_edit;
   char _pad2[1];
 
-  /** ST_MAX_FIND_STR. */
-  char findstr[256];
-  /** ST_MAX_FIND_STR. */
-  char replacestr[256];
+  char findstr[/*ST_MAX_FIND_STR*/ 256];
+  char replacestr[/*ST_MAX_FIND_STR*/ 256];
 
   /** Column number to show right margin at. */
   short margin_column;
@@ -771,10 +770,8 @@ typedef struct Script {
    * Store the script file here so we can re-run it on loading blender,
    * if "Enable Scripts" is on
    */
-  /** 1024 = FILE_MAX. */
-  char scriptname[1024];
-  /** 1024 = FILE_MAX. */
-  char scriptarg[256];
+  char scriptname[/*FILE_MAX*/ 1024];
+  char scriptarg[/*FILE_MAXFILE*/ 256];
 } Script;
 #define SCRIPT_SET_NULL(_script) \
   _script->py_draw = _script->py_event = _script->py_button = _script->py_browsercallback = \
@@ -815,9 +812,8 @@ typedef struct bNodeTreePath {
   /** V2d center point, so node trees can have different offsets in editors. */
   float view_center[2];
 
-  /** MAX_NAME. */
-  char node_name[64];
-  char display_name[64];
+  char node_name[/*MAX_NAME*/ 64];
+  char display_name[/*MAX_NAME*/ 64];
 } bNodeTreePath;
 
 typedef struct SpaceNodeOverlay {
@@ -1167,7 +1163,7 @@ typedef struct SpaceSpreadsheet {
 typedef struct SpreadsheetRowFilter {
   struct SpreadsheetRowFilter *next, *prev;
 
-  char column_name[64]; /* MAX_NAME. */
+  char column_name[/*MAX_NAME*/ 64];
 
   /* eSpreadsheetFilterOperation. */
   uint8_t operation;

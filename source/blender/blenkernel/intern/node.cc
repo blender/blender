@@ -1416,8 +1416,7 @@ typedef struct bNodeSocketValueRGBA_404 {
 typedef struct bNodeSocketValueString_404 {
   int subtype;
   char _pad[4];
-  /** 1024 = FILEMAX. */
-  char value[1024];
+  char value[/*FILE_MAX*/ 1024];
 } bNodeSocketValueString_404;
 
 typedef struct bNodeSocketValueObject_404 {

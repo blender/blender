@@ -110,8 +110,7 @@ typedef struct DynamicPaintSurface {
   /* initial color */
   float init_color[4];
   struct Tex *init_texture;
-  /** MAX_CUSTOMDATA_LAYER_NAME. */
-  char init_layername[68];
+  char init_layername[/*MAX_CUSTOMDATA_LAYER_NAME*/ 68];
 
   int dry_speed, diss_speed;
   float color_dry_threshold;
@@ -127,14 +126,10 @@ typedef struct DynamicPaintSurface {
   float wave_damping, wave_speed, wave_timescale, wave_spring, wave_smoothness;
   char _pad2[4];
 
-  /** MAX_CUSTOMDATA_LAYER_NAME. */
-  char uvlayer_name[68];
-  /** 1024 = FILE_MAX. */
-  char image_output_path[1024];
-  /** MAX_CUSTOMDATA_LAYER_NAME. */
-  char output_name[68];
-  /** MAX_CUSTOMDATA_LAYER_NAME */ /* some surfaces have 2 outputs. */
-  char output_name2[68];
+  char uvlayer_name[/*MAX_CUSTOMDATA_LAYER_NAME*/ 68];
+  char image_output_path[/*FILE_MAX*/ 1024];
+  char output_name[/*MAX_CUSTOMDATA_LAYER_NAME*/ 68];
+  char output_name2[/*MAX_CUSTOMDATA_LAYER_NAME*/ 68];
 
 } DynamicPaintSurface;
 

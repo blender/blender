@@ -67,7 +67,7 @@ struct BlendFileData : blender::NonCopyable, blender::NonMovable {
    * generated the auto-saved one being recovered.
    *
    * NOTE: Currently expected to be the same path as #BlendFileData.filepath. */
-  char filepath[1024] = {}; /* 1024 = FILE_MAX */
+  char filepath[/*FILE_MAX*/ 1024] = {};
 
   /** TODO: think this isn't needed anymore? */
   bScreen *curscreen = nullptr;

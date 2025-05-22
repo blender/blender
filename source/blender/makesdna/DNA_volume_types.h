@@ -49,7 +49,7 @@ typedef struct Volume {
   struct AnimData *adt; /* animation data (must be immediately after id) */
 
   /* File */
-  char filepath[1024]; /* FILE_MAX */
+  char filepath[/*FILE_MAX*/ 1024]; /* FILE_MAX */
   struct PackedFile *packedfile;
 
   /* Sequence */

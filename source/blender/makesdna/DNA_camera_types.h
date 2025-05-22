@@ -118,8 +118,7 @@ typedef struct Camera {
   /* Custom Camera properties. */
   struct Text *custom_shader;
 
-  /** 1024 = FILE_MAX. */
-  char custom_filepath[1024];
+  char custom_filepath[/*FILE_MAX*/ 1024];
 
   char custom_bytecode_hash[64];
   char *custom_bytecode;

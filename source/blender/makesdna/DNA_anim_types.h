@@ -42,7 +42,7 @@ typedef struct FModifier {
   void *data;
 
   /** User-defined description for the modifier. */
-  char name[/* MAX_NAME */ 64];
+  char name[/*MAX_NAME*/ 64];
   /** Type of f-curve modifier. */
   short type;
   /** Settings for the modifier. */
@@ -207,7 +207,7 @@ typedef struct DriverTarget {
    * Name of the pose-bone to use
    * (for vars where DTAR_FLAG_STRUCT_REF is used).
    */
-  char pchan_name[/* MAX_NAME */ 64];
+  char pchan_name[/*MAX_NAME*/ 64];
   /** Transform channel index (for #DVAR_TYPE_TRANSFORM_CHAN). */
   short transChan;
 
@@ -251,7 +251,7 @@ typedef struct DriverVar {
    * Name of the variable to use in py-expression
    * (must be valid python identifier).
    */
-  char name[/* MAX_NAME */ 64];
+  char name[/*MAX_NAME*/ 64];
 
   /** MAX_DRIVER_TARGETS, target slots. */
   DriverTarget targets[8];
@@ -450,7 +450,7 @@ typedef struct NlaStrip {
   ListBase modifiers;
 
   /** User-Visible Identifier for Strip. */
-  char name[/* MAX_NAME */ 64];
+  char name[/*MAX_NAME*/ 64];
 
   /** Influence of strip. */
   float influence;
@@ -521,7 +521,7 @@ typedef struct NlaTrack {
   int index;
 
   /** Short user-description of this track. */
-  char name[/* MAX_NAME */ 64];
+  char name[/*MAX_NAME*/ 64];
 } NlaTrack;
 
 /* ************************************ */
@@ -542,7 +542,7 @@ typedef struct KS_Path {
   /** ID block that keyframes are for. */
   ID *id;
   /** Name of the group to add to. */
-  char group[/* MAX_NAME */ 64];
+  char group[/*MAX_NAME*/ 64];
 
   /** ID-type that path can be used on. */
   int idtype;
@@ -583,13 +583,13 @@ typedef struct KeyingSet {
   ListBase paths;
 
   /** Unique name (for search, etc.). */
-  char idname[/* MAX_NAME */ 64];
+  char idname[/*MAX_NAME*/ 64];
   /** User-viewable name for KeyingSet (for menus, etc.). */
-  char name[/* MAX_NAME */ 64];
+  char name[/*MAX_NAME*/ 64];
   /** (#RNA_DYN_DESCR_MAX) help text. */
   char description[1024];
   /** Name of the typeinfo data used for the relative paths. */
-  char typeinfo[/* MAX_NAME */ 64];
+  char typeinfo[/*MAX_NAME*/ 64];
 
   /** Index of the active path. */
   int active_path;

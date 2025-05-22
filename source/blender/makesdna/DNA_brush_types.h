@@ -183,8 +183,7 @@ typedef struct Brush {
   struct ColorBand *gradient;
   struct PaintCurve *paint_curve;
 
-  /** 1024 = FILE_MAX. */
-  char icon_filepath[1024];
+  char icon_filepath[/*FILE_MAX*/ 1024];
 
   float normal_weight;
   /** Rake actual data (not texture), used for sculpt. */

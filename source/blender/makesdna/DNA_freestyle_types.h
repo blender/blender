@@ -89,8 +89,7 @@ enum {
 typedef struct FreestyleLineSet {
   struct FreestyleLineSet *next, *prev;
 
-  /** Line set name, MAX_NAME. */
-  char name[64];
+  char name[/*MAX_NAME*/ 64];
   int flags;
 
   /** Selection criteria. */

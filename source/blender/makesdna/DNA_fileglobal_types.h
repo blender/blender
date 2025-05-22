@@ -32,8 +32,8 @@ typedef struct FileGlobal {
   uint64_t build_commit_timestamp;
   /** Hash from `buildinfo`. */
   char build_hash[16];
-  /** File path where this was saved, for recover (1024 = FILE_MAX). */
-  char filepath[1024];
+  /** File path where this was saved, for recover. */
+  char filepath[/*FILE_MAX*/ 1024];
 } FileGlobal;
 
 /* minversion: in file, the oldest past blender version you can use compliant */

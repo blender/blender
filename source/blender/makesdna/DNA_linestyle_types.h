@@ -30,8 +30,7 @@ typedef struct LineStyleModifier {
 
   struct LineStyleModifier *next, *prev;
 
-  /** MAX_NAME. */
-  char name[64];
+  char name[/*MAX_NAME*/ 64];
   int type;
   float influence;
   int flags;
@@ -671,8 +670,7 @@ typedef struct FreestyleLineStyle {
   unsigned short dash1, gap1, dash2, gap2, dash3, gap3;
   /** For UI. */
   int panel;
-  /** MAX_MTEX. */
-  struct MTex *mtex[18];
+  struct MTex *mtex[/*MAX_MTEX*/ 18];
   /* nodes */
   struct bNodeTree *nodetree;
 

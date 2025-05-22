@@ -60,8 +60,6 @@ typedef struct StripLookup StripLookup;
 /** \name Strip & Editing Structs
  * \{ */
 
-/* strlens; 256= FILE_MAXFILE, 768= FILE_MAXDIR */
-
 typedef struct StripAnim {
   struct StripAnim *next, *prev;
   struct MovieReader *anim;
@@ -69,7 +67,7 @@ typedef struct StripAnim {
 
 typedef struct StripElem {
   /** File name concatenated onto #StripData::dirpath. */
-  char filename[256];
+  char filename[/*FILE_MAXFILE*/ 256];
   /** Ignore when zeroed. */
   int orig_width, orig_height;
   float orig_fps;
@@ -109,9 +107,9 @@ typedef struct StripColorBalance {
 
 typedef struct StripProxy {
   /** Custom directory for index and proxy files (defaults to "BL_proxy"). */
-  char dirpath[768];
+  char dirpath[/*FILE_MAXDIR*/ 768];
   /** Custom file. */
-  char filename[256];
+  char filename[/*FILE_MAXFILE*/ 256];
   struct MovieReader *anim; /* custom proxy anim file */
 
   short tc; /* time code in use */
@@ -136,7 +134,7 @@ typedef struct StripData {
    * NULL for all other strip-types.
    */
   StripElem *stripdata;
-  char dirpath[768];
+  char dirpath[/*FILE_MAXDIR*/ 768];
   StripProxy *proxy;
   StripCrop *crop;
   StripTransform *transform;
@@ -183,8 +181,8 @@ typedef struct Strip {
   void *_pad;
   /** Needed (to be like ipo), else it will raise libdata warnings, this should never be used. */
   void *lib;
-  /** STRIP_NAME_MAXSTR - name, set by default and needs to be unique, for RNA paths. */
-  char name[64];
+  /** Name, set by default and needs to be unique, for RNA paths. */
+  char name[/*STRIP_NAME_MAXSTR*/ 64];
 
   /** Flags bitmap (see below) and the type of strip. */
   int flag, type;
@@ -356,12 +354,9 @@ typedef struct Editing {
 
   /* Context vars, used to be static */
   Strip *act_strip;
-  /** 1024 = FILE_MAX. */
-  char act_imagedir[1024];
-  /** 1024 = FILE_MAX. */
-  char act_sounddir[1024];
-  /** 1024 = FILE_MAX. */
-  char proxy_dir[1024];
+  char act_imagedir[/*FILE_MAX*/ 1024];
+  char act_sounddir[/*FILE_MAX*/ 1024];
+  char proxy_dir[/*FILE_MAX*/ 1024];
 
   int proxy_storage;
 
@@ -514,8 +509,7 @@ typedef struct ColorMixVars {
 typedef struct StripModifierData {
   struct StripModifierData *next, *prev;
   int type, flag;
-  /** MAX_NAME. */
-  char name[64];
+  char name[/*MAX_NAME*/ 64];
 
   /* mask input, either sequence or mask ID */
   int mask_input_type;

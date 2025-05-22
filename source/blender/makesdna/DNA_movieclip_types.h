@@ -28,8 +28,8 @@ typedef struct MovieClipUser {
 } MovieClipUser;
 
 typedef struct MovieClipProxy {
-  /** 768=FILE_MAXDIR custom directory for index and proxy files (defaults to BL_proxy). */
-  char dir[768];
+  /** Custom directory for index and proxy files (defaults to "BL_proxy"). */
+  char dir[/*FILE_MAXDIR*/ 768];
 
   /** Time code in use. */
   short tc;
@@ -44,8 +44,8 @@ typedef struct MovieClipProxy {
 typedef struct MovieClip_RuntimeGPUTexture {
   void *next, *prev;
   MovieClipUser user;
-  /** Not written in file 3 = TEXTARGET_COUNT. */
-  struct GPUTexture *gputexture[3];
+  /** Not written in file. */
+  struct GPUTexture *gputexture[/*TEXTARGET_COUNT*/ 3];
 } MovieClip_RuntimeGPUTexture;
 
 typedef struct MovieClip_Runtime {
@@ -64,8 +64,7 @@ typedef struct MovieClip {
   /** Animation data (must be immediately after id for utilities to use it). */
   struct AnimData *adt;
 
-  /** File path, 1024 = FILE_MAX. */
-  char filepath[1024];
+  char filepath[/*FILE_MAX*/ 1024];
 
   /** Sequence or movie. */
   int source;

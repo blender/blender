@@ -148,8 +148,7 @@ typedef struct IDProperty {
   char subtype;
   /** #IDP_FLAG_GHOST and others. */
   short flag;
-  /** Size matches #MAX_IDPROP_NAME. */
-  char name[64];
+  char name[/*MAX_IDPROP_NAME*/ 64];
 
   char _pad0[4];
 
@@ -410,8 +409,7 @@ typedef struct ID {
   /** If the ID is an asset, this pointer is set. Owning pointer. */
   struct AssetMetaData *asset_data;
 
-  /** MAX_ID_NAME. */
-  char name[66];
+  char name[/*MAX_ID_NAME*/ 66];
   /**
    * ID_FLAG_... flags report on status of the data-block this ID belongs to
    * (persistent, saved to and read from .blend).
@@ -492,7 +490,7 @@ typedef struct Library {
 
   ID id;
   /** Path name used for reading, can be relative and edited in the outliner. */
-  char filepath[1024];
+  char filepath[/*FILE_MAX*/ 1024];
 
   struct PackedFile *packedfile;
 
@@ -516,10 +514,10 @@ typedef struct Library {
  */
 typedef struct LibraryWeakReference {
   /**  Expected to match a `Library.filepath`. */
-  char library_filepath[1024];
+  char library_filepath[/*FILE_MAX*/ 1024];
 
-  /** MAX_ID_NAME. May be different from the current local ID name. */
-  char library_id_name[66];
+  /** May be different from the current local ID name. */
+  char library_id_name[/*MAX_ID_NAME*/ 66];
 
   char _pad[2];
 } LibraryWeakReference;

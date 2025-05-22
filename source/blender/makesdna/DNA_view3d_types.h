@@ -177,12 +177,9 @@ typedef struct View3DShading {
 
   char _pad;
 
-  /** FILE_MAXFILE. */
-  char studio_light[256];
-  /** FILE_MAXFILE. */
-  char lookdev_light[256];
-  /** FILE_MAXFILE. */
-  char matcap[256];
+  char studio_light[/*FILE_MAXFILE*/ 256];
+  char lookdev_light[/*FILE_MAXFILE*/ 256];
+  char matcap[/*FILE_MAXFILE*/ 256];
 
   float shadow_intensity;
   float single_color[3];
@@ -328,8 +325,8 @@ typedef struct View3D {
   /** Allocated backup of itself while in local-view. */
   struct View3D *localvd;
 
-  /** Optional string for armature bone to define center, MAXBONENAME. */
-  char ob_center_bone[64];
+  /** Optional string for armature bone to define center. */
+  char ob_center_bone[/*MAXBONENAME*/ 64];
 
   unsigned short local_view_uid;
   char _pad6[2];

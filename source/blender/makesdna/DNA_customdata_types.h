@@ -32,8 +32,8 @@ typedef struct CustomDataLayer {
   int active_mask;
   /** Shape key-block unique id reference. */
   int uid;
-  /** Layer name, MAX_CUSTOMDATA_LAYER_NAME. */
-  char name[68];
+  /** Layer name. */
+  char name[/*MAX_CUSTOMDATA_LAYER_NAME*/ 68];
   char _pad1[4];
   /** Layer data. */
   void *data;
@@ -48,8 +48,7 @@ typedef struct CustomDataLayer {
 #define MAX_CUSTOMDATA_LAYER_NAME_NO_PREFIX 64
 
 typedef struct CustomDataExternal {
-  /** FILE_MAX. */
-  char filepath[1024];
+  char filepath[/*FILE_MAX*/ 1024];
 } CustomDataExternal;
 
 /**

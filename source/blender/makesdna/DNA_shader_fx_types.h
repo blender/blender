@@ -55,8 +55,7 @@ typedef struct ShaderFxData {
   short flag;
   /* An "expand" bit for each of the constraint's (sub)panels (uiPanelDataExpansion). */
   short ui_expand_flag;
-  /** MAX_NAME. */
-  char name[64];
+  char name[/*MAX_NAME*/ 64];
 
   char *error;
 } ShaderFxData;

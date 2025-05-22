@@ -152,7 +152,7 @@ struct Main {
    * to read data temporarily (preferences & startup) for e.g.
    * where the `filepath` is not persistent or used as a basis for other paths.
    */
-  char filepath[1024];               /* 1024 = FILE_MAX */
+  char filepath[/*FILE_MAX*/ 1024];
   short versionfile, subversionfile; /* see BLENDER_FILE_VERSION, BLENDER_FILE_SUBVERSION */
   short minversionfile, minsubversionfile;
   /**
