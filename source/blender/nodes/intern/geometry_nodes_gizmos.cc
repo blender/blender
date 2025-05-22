@@ -22,6 +22,7 @@
 #include "DNA_windowmanager_types.h"
 
 #include "ED_node.hh"
+#include "NOD_socket_usage_inference.hh"
 
 namespace blender::nodes::gizmos {
 
@@ -296,6 +297,9 @@ static void foreach_active_gizmo_in_open_node_editor(
   /* Check gizmos on input sockets. */
   for (auto &&item : gizmo_propagation.gizmo_inputs_by_node_inputs.items()) {
     const bNodeSocket &socket = *item.key.socket;
+    if (!socket.affects_node_output()) {
+      continue;
+    }
     const bNode &node = socket.owner_node();
     if ((node.flag & NODE_SELECT) || (socket.flag & SOCK_GIZMO_PIN)) {
       used_gizmo_inputs.add_multiple(item.value);
@@ -374,8 +378,18 @@ static void foreach_active_gizmo_exposed_to_modifier(
   if (!tree.runtime->gizmo_propagation) {
     return;
   }
+
+  tree.ensure_interface_cache();
+  Array<nodes::socket_usage_inference::SocketUsage> input_usages(tree.interface_inputs().size());
+  nodes::socket_usage_inference::infer_group_interface_inputs_usage(
+      tree, nodes::build_properties_vector_set(nmd.settings.properties), input_usages);
+
   const ComputeContext &root_compute_context = compute_context_cache.for_modifier(nullptr, nmd);
   for (auto &&item : tree.runtime->gizmo_propagation->gizmo_inputs_by_group_inputs.items()) {
+    const ie::GroupInputElem &group_input_elem = item.key;
+    if (!input_usages[group_input_elem.group_input_index].is_used) {
+      continue;
+    }
     for (const ie::SocketElem &socket_elem : item.value) {
       foreach_gizmo_for_input(socket_elem, compute_context_cache, &root_compute_context, tree, fn);
     }

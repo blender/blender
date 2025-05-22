@@ -274,6 +274,7 @@ static void register_node()
       ntype, "NodeSwitch", node_free_standard_storage, node_copy_standard_storage);
   ntype.gather_link_search_ops = node_gather_link_searches;
   ntype.draw_buttons = node_layout;
+  ntype.ignore_inferred_input_socket_visibility = true;
   ntype.internally_linked_input = node_internally_linked_input;
   blender::bke::node_register_type(ntype);
 

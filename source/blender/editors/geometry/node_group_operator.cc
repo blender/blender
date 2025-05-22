@@ -816,7 +816,7 @@ struct DrawOperatorInputsContext {
   PointerRNA *bmain_ptr;
   PointerRNA *op_ptr;
   nodes::PropertiesVectorSet properties;
-  Array<bool> input_usages;
+  Array<nodes::socket_usage_inference::SocketUsage> input_usages;
 };
 
 static void add_attribute_search_or_value_buttons(DrawOperatorInputsContext &ctx,
@@ -883,7 +883,7 @@ static void draw_property_for_socket(DrawOperatorInputsContext &ctx,
   }
 
   const int socket_index = ctx.ntree.interface_input_index(socket);
-  const bool affects_output = ctx.input_usages[socket_index];
+  const bool affects_output = ctx.input_usages[socket_index].is_used;
 
   const std::string socket_id_esc = BLI_str_escape(socket.identifier);
   const std::string rna_path = fmt::format("[\"{}\"]", socket_id_esc);

@@ -997,7 +997,7 @@ static void node_group_make_insert_selected(const bContext &C,
   /* Add all outputs first. */
   for (bNode *node : nodes_to_move) {
     for (bNodeSocket *output_socket : node->output_sockets()) {
-      if (!output_socket->is_available() || output_socket->is_hidden()) {
+      if (!output_socket->is_visible()) {
         for (bNodeLink *link : output_socket->directly_linked_links()) {
           links_to_remove.add(link);
         }
@@ -1038,7 +1038,7 @@ static void node_group_make_insert_selected(const bContext &C,
   /* Now add all inputs. */
   for (bNode *node : nodes_to_move) {
     for (bNodeSocket *input_socket : node->input_sockets()) {
-      if (!input_socket->is_available() || input_socket->is_hidden()) {
+      if (!input_socket->is_visible()) {
         for (bNodeLink *link : input_socket->directly_linked_links()) {
           links_to_remove.add(link);
         }

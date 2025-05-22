@@ -1011,7 +1011,7 @@ static bNodeSocket *node_find_linkable_socket(const bNodeTree &ntree,
 
   bNodeSocket *socket = socket_to_match->next ? socket_to_match->next : first_socket;
   while (socket != socket_to_match) {
-    if (!socket->is_hidden() && socket->is_available()) {
+    if (socket->is_visible()) {
       const bool sockets_are_compatible = socket->typeinfo == socket_to_match->typeinfo;
       if (sockets_are_compatible) {
         const int link_count = node_socket_count_links(ntree, *socket);

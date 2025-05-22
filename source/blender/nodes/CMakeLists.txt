@@ -134,6 +134,7 @@ set(SRC
   NOD_socket_items_ui.hh
   NOD_socket_search_link.hh
   NOD_socket_usage_inference.hh
+  NOD_socket_usage_inference_fwd.hh
   NOD_texture.h
   NOD_value_elem.hh
   NOD_value_elem_eval.hh

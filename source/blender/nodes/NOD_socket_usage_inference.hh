@@ -8,6 +8,7 @@
 #include "BLI_generic_pointer.hh"
 
 #include "NOD_geometry_nodes_execute.hh"
+#include "NOD_socket_usage_inference_fwd.hh"
 
 struct bNodeTree;
 struct bNodeSocket;
@@ -19,7 +20,7 @@ namespace blender::nodes::socket_usage_inference {
  * Get a boolean value for each input socket in the given tree that indicates whether that input is
  * used. It is assumed that all output sockets in the tree are used.
  */
-Array<bool> infer_all_input_sockets_usage(const bNodeTree &tree);
+Array<SocketUsage> infer_all_input_sockets_usage(const bNodeTree &tree);
 
 /**
  * Get a boolean value for each node group input that indicates whether that input is used by the
@@ -33,7 +34,7 @@ Array<bool> infer_all_input_sockets_usage(const bNodeTree &tree);
  */
 void infer_group_interface_inputs_usage(const bNodeTree &group,
                                         Span<GPointer> group_input_values,
-                                        MutableSpan<bool> r_input_usages);
+                                        MutableSpan<SocketUsage> r_input_usages);
 
 /**
  * Same as above, but automatically retrieves the input values from the given sockets..
@@ -41,7 +42,7 @@ void infer_group_interface_inputs_usage(const bNodeTree &group,
  */
 void infer_group_interface_inputs_usage(const bNodeTree &group,
                                         Span<const bNodeSocket *> input_sockets,
-                                        MutableSpan<bool> r_input_usages);
+                                        MutableSpan<SocketUsage> r_input_usages);
 
 /**
  * Same as above, but automatically retrieves the input values from the given properties.
@@ -49,6 +50,6 @@ void infer_group_interface_inputs_usage(const bNodeTree &group,
  */
 void infer_group_interface_inputs_usage(const bNodeTree &group,
                                         const PropertiesVectorSet &properties,
-                                        MutableSpan<bool> r_input_usages);
+                                        MutableSpan<SocketUsage> r_input_usages);
 
 }  // namespace blender::nodes::socket_usage_inference

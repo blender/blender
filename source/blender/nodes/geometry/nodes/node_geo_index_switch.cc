@@ -413,6 +413,7 @@ static void register_node()
   ntype.draw_buttons = node_layout;
   ntype.draw_buttons_ex = node_layout_ex;
   ntype.register_operators = node_operators;
+  ntype.ignore_inferred_input_socket_visibility = true;
   ntype.blend_write_storage_content = node_blend_write;
   ntype.blend_data_read_storage_content = node_blend_read;
   ntype.internally_linked_input = node_internally_linked_input;

@@ -238,7 +238,7 @@ static void refresh_node_socket(bNodeTree &ntree,
       }
     }
     SET_FLAG_FROM_TEST(
-        new_socket->flag, old_socket_with_same_identifier->is_hidden(), SOCK_HIDDEN);
+        new_socket->flag, old_socket_with_same_identifier->is_user_hidden(), SOCK_HIDDEN);
   }
   new_sockets.add_new(new_socket);
   BKE_ntree_update_tag_socket_new(&ntree, new_socket);
@@ -404,7 +404,7 @@ static bool hide_new_group_input_sockets(const bNode &node)
   BLI_assert(node.is_group_input());
   /* Check needed to handle newly added group input nodes. */
   if (const bNodeSocket *extension_socket = static_cast<bNodeSocket *>(node.outputs.last)) {
-    return extension_socket->is_hidden();
+    return extension_socket->is_user_hidden();
   }
   return false;
 }

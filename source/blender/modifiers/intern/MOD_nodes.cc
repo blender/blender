@@ -1958,7 +1958,7 @@ struct DrawGroupInputsContext {
   nodes::PropertiesVectorSet properties;
   PointerRNA *md_ptr;
   PointerRNA *bmain_ptr;
-  Array<bool> input_usages;
+  Array<nodes::socket_usage_inference::SocketUsage> input_usages;
 };
 
 static NodesModifierData *get_modifier_data(Main &bmain,
@@ -2338,10 +2338,15 @@ static void draw_property_for_socket(DrawGroupInputsContext &ctx,
   const std::string rna_path = fmt::format("[\"{}\"]", socket_id_esc);
 
   const int input_index = ctx.nmd.node_group->interface_input_index(socket);
+  if (!ctx.input_usages[input_index].is_visible) {
+    /* The input is not used currently, but it would be used if any menu input is changed.
+     * By convention, the input is hidden in this case instead of just grayed out. */
+    return;
+  }
 
   uiLayout *row = &layout->row(true);
   uiLayoutSetPropDecorate(row, true);
-  uiLayoutSetActive(row, ctx.input_usages[input_index]);
+  uiLayoutSetActive(row, ctx.input_usages[input_index].is_used);
 
   /* Use #uiItemPointerR to draw pointer properties because #uiLayout::prop would not have enough
    * information about what type of ID to select for editing the values. This is because
@@ -2447,20 +2452,27 @@ static NodesModifierPanel *find_panel_by_id(NodesModifierData &nmd, const int id
   return nullptr;
 }
 
-static bool interface_panel_has_socket(const bNodeTreeInterfacePanel &interface_panel)
+static bool interface_panel_has_socket(DrawGroupInputsContext &ctx,
+                                       const bNodeTreeInterfacePanel &interface_panel)
 {
   for (const bNodeTreeInterfaceItem *item : interface_panel.items()) {
     if (item->item_type == NODE_INTERFACE_SOCKET) {
       const bNodeTreeInterfaceSocket &socket = *reinterpret_cast<const bNodeTreeInterfaceSocket *>(
           item);
-      if ((socket.flag &
-           (NODE_INTERFACE_SOCKET_HIDE_IN_MODIFIER | NODE_INTERFACE_SOCKET_OUTPUT)) == 0)
-      {
-        return true;
+      if (socket.flag & NODE_INTERFACE_SOCKET_HIDE_IN_MODIFIER) {
+        continue;
+      }
+      if (socket.flag & NODE_INTERFACE_SOCKET_INPUT) {
+        const int input_index = ctx.nmd.node_group->interface_input_index(socket);
+        if (ctx.input_usages[input_index].is_visible) {
+          return true;
+        }
       }
     }
-    if (item->item_type == NODE_INTERFACE_PANEL) {
-      if (interface_panel_has_socket(*reinterpret_cast<const bNodeTreeInterfacePanel *>(item))) {
+    else if (item->item_type == NODE_INTERFACE_PANEL) {
+      if (interface_panel_has_socket(ctx,
+                                     *reinterpret_cast<const bNodeTreeInterfacePanel *>(item)))
+      {
         return true;
       }
     }
@@ -2481,7 +2493,7 @@ static bool interface_panel_affects_output(DrawGroupInputsContext &ctx,
         continue;
       }
       const int input_index = ctx.nmd.node_group->interface_input_index(socket);
-      if (ctx.input_usages[input_index]) {
+      if (ctx.input_usages[input_index].is_used) {
         return true;
       }
     }
@@ -2505,7 +2517,7 @@ static void draw_interface_panel_content(DrawGroupInputsContext &ctx,
     switch (NodeTreeInterfaceItemType(item->item_type)) {
       case NODE_INTERFACE_PANEL: {
         const auto &sub_interface_panel = *reinterpret_cast<const bNodeTreeInterfacePanel *>(item);
-        if (!interface_panel_has_socket(sub_interface_panel)) {
+        if (!interface_panel_has_socket(ctx, sub_interface_panel)) {
           continue;
         }
         NodesModifierPanel *panel = find_panel_by_id(ctx.nmd, sub_interface_panel.identifier);

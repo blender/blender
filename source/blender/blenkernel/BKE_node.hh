@@ -410,6 +410,8 @@ struct bNodeType {
 
   /** True when the node cannot be muted. */
   bool no_muting = false;
+  /** Some nodes should ignore the inferred visibility for improved UX. */
+  bool ignore_inferred_input_socket_visibility = false;
   /** True when the node still works but it's usage is discouraged. */
   const char *deprecation_notice = nullptr;
 
