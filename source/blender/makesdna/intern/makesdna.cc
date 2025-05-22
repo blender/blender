@@ -600,6 +600,7 @@ static int preprocess_include(char *maindata, const int maindata_len)
   int newlen = 0;
   comment = false;
   a = maindata_len;
+  int square_bracket_level = 0;
   bool skip_until_closing_brace = false;
   while (a--) {
 
@@ -614,9 +615,24 @@ static int preprocess_include(char *maindata, const int maindata_len)
       cp[0] = cp[1] = 32;
     }
 
+    if (comment == false) {
+      if (cp[0] == '[') {
+        square_bracket_level++;
+      }
+      else if (cp[0] == ']') {
+        square_bracket_level--;
+      }
+    }
+
     /* do not copy when: */
     if (comment) {
       /* pass */
+    }
+    else if (cp[0] == ' ' && (square_bracket_level > 0)) {
+      /* NOTE(@ideasman42): This is done to allow `member[C_STYLE_COMMENT 1024]`,
+       * which is then read as `member[1024]`.
+       * It's important to skip the spaces here,
+       * otherwise the literal would be read as: `member[` and `1024]`. */
     }
     else if (cp[0] == ' ' && cp[1] == ' ') {
       /* pass */
@@ -659,6 +675,8 @@ static int preprocess_include(char *maindata, const int maindata_len)
     }
     cp++;
   }
+
+  BLI_assert(square_bracket_level == 0);
 
   MEM_freeN(temp);
   return newlen;
