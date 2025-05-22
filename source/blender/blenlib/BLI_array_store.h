@@ -82,7 +82,7 @@ void BLI_array_store_state_remove(BArrayStore *bs, BArrayState *state);
  * \return the expanded size of the array,
  * use this to know how much memory to allocate #BLI_array_store_state_data_get's argument.
  */
-size_t BLI_array_store_state_size_get(BArrayState *state);
+size_t BLI_array_store_state_size_get(const BArrayState *state);
 /**
  * Fill in existing allocated memory with the contents of \a state.
  */
@@ -90,7 +90,7 @@ void BLI_array_store_state_data_get(const BArrayState *state, void *data);
 /**
  * Allocate an array for \a state and return it.
  */
-void *BLI_array_store_state_data_get_alloc(BArrayState *state, size_t *r_data_len);
+void *BLI_array_store_state_data_get_alloc(const BArrayState *state, size_t *r_data_len);
 
 /**
  * \note Only for tests.
