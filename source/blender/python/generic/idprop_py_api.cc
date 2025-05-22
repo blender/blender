@@ -1096,7 +1096,7 @@ bool BPy_IDProperty_Map_ValidateAndCreate(PyObject *key, IDProperty *group, PyOb
 
   /* Property was created with no existing counterpart, just insert it in the group container. */
   if (!prop_exist) {
-    IDP_ReplaceInGroup_ex(group, new_prop, nullptr);
+    IDP_ReplaceInGroup_ex(group, new_prop, nullptr, 0);
     return true;
   }
 
@@ -1112,7 +1112,7 @@ bool BPy_IDProperty_Map_ValidateAndCreate(PyObject *key, IDProperty *group, PyOb
   /* Copy over the 'overridable' flag from existing property. */
   new_prop->flag |= (prop_exist->flag & IDP_FLAG_OVERRIDABLE_LIBRARY);
 
-  IDP_ReplaceInGroup_ex(group, new_prop, prop_exist);
+  IDP_ReplaceInGroup_ex(group, new_prop, prop_exist, 0);
   return true;
 }
 

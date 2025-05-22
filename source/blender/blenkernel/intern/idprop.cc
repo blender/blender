@@ -651,14 +651,17 @@ void IDP_ReplaceGroupInGroup(IDProperty *dest, const IDProperty *src)
   }
 }
 
-void IDP_ReplaceInGroup_ex(IDProperty *group, IDProperty *prop, IDProperty *prop_exist)
+void IDP_ReplaceInGroup_ex(IDProperty *group,
+                           IDProperty *prop,
+                           IDProperty *prop_exist,
+                           const int flag)
 {
   BLI_assert(group->type == IDP_GROUP);
   BLI_assert(prop_exist == IDP_GetPropertyFromGroup(group, prop->name));
 
   if (prop_exist != nullptr) {
     BLI_insertlinkreplace(&group->data.group, prop_exist, prop);
-    IDP_FreeProperty(prop_exist);
+    IDP_FreeProperty_ex(prop_exist, (flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0);
   }
   else {
     group->len++;
@@ -670,7 +673,7 @@ void IDP_ReplaceInGroup(IDProperty *group, IDProperty *prop)
 {
   IDProperty *prop_exist = IDP_GetPropertyFromGroup(group, prop->name);
 
-  IDP_ReplaceInGroup_ex(group, prop, prop_exist);
+  IDP_ReplaceInGroup_ex(group, prop, prop_exist, 0);
 }
 
 void IDP_MergeGroup_ex(IDProperty *dest,
@@ -693,7 +696,7 @@ void IDP_MergeGroup_ex(IDProperty *dest,
       }
 
       IDProperty *copy = IDP_CopyProperty_ex(prop, flag);
-      IDP_ReplaceInGroup(dest, copy);
+      IDP_ReplaceInGroup_ex(dest, copy, IDP_GetPropertyFromGroup(dest, copy->name), flag);
     }
   }
   else {

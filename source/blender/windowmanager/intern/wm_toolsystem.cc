@@ -1242,7 +1242,7 @@ static IDProperty *idprops_ensure_named_group(IDProperty *group, const char *idn
   if ((prop == nullptr) || (prop->type != IDP_GROUP)) {
     prop = blender::bke::idprop::create_group(__func__).release();
     STRNCPY(prop->name, idname);
-    IDP_ReplaceInGroup_ex(group, prop, nullptr);
+    IDP_ReplaceInGroup_ex(group, prop, nullptr, 0);
   }
   return prop;
 }
