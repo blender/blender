@@ -128,6 +128,8 @@ struct GPUVertAttr {
   uint comp_len : 5;
   /* size in bytes, 1 to 64 */
   uint size : 7;
+  /* WORKAROUND: Allow casting inside pyGPU attr_fill. To be removed with 5.0. */
+  uint python_int_to_float : 1;
 #endif
   /* from beginning of vertex, in bytes */
   uint8_t offset;
