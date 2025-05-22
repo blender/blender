@@ -1736,8 +1736,8 @@ static void direct_link_node_socket_storage(BlendDataReader *reader,
         NodeImageMultiFileSocket *sockdata = static_cast<NodeImageMultiFileSocket *>(
             sock->storage);
         BKE_image_format_blend_read_data(reader, &sockdata->format);
-        break;
       }
+      break;
     case CMP_NODE_IMAGE:
     case CMP_NODE_R_LAYERS:
       BLO_read_struct(reader, NodeImageLayer, &sock->storage);
