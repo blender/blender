@@ -420,6 +420,7 @@ INFO_DOCS_OTHER = (
     "info_advanced_blender_as_bpy.rst",
     # Included by: `info_gotcha.rst`.
     "info_gotchas_crashes.rst",
+    "info_gotchas_threading.rst",
     "info_gotchas_internal_data_and_python_objects.rst",
     "info_gotchas_operators.rst",
     "info_gotchas_meshes.rst",
