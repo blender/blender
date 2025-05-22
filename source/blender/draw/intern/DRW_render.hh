@@ -123,31 +123,6 @@ struct DrawEngine {
   };
 };
 
-/* Shaders */
-/** IMPORTANT: Modify the currently bound context. */
-void DRW_shader_init();
-void DRW_shader_exit();
-
-GPUMaterial *DRW_shader_from_world(World *wo,
-                                   bNodeTree *ntree,
-                                   eGPUMaterialEngine engine,
-                                   const uint64_t shader_id,
-                                   const bool is_volume_shader,
-                                   bool deferred,
-                                   GPUCodegenCallbackFn callback,
-                                   void *thunk);
-GPUMaterial *DRW_shader_from_material(
-    Material *ma,
-    bNodeTree *ntree,
-    eGPUMaterialEngine engine,
-    const uint64_t shader_id,
-    const bool is_volume_shader,
-    bool deferred,
-    GPUCodegenCallbackFn callback,
-    void *thunk,
-    GPUMaterialPassReplacementCallbackFn pass_replacement_cb = nullptr);
-void DRW_shader_queue_optimize_material(GPUMaterial *mat);
-
 /* Viewport. */
 
 /**

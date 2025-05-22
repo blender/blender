@@ -50,6 +50,7 @@
 #include "GPU_debug.hh"
 #include "GPU_index_buffer.hh"
 #include "GPU_material.hh"
+#include "GPU_pass.hh"
 
 #include "DRW_gpu_wrapper.hh"
 
@@ -58,8 +59,6 @@
 #include "draw_manager.hh"
 #include "draw_shader_shared.hh"
 #include "draw_state.hh"
-
-#include "intern/gpu_codegen.hh"
 
 #include <cstdint>
 #include <sstream>

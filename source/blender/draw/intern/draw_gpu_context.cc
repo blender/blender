@@ -150,17 +150,9 @@ void DRW_gpu_context_create()
   viewport_context = MEM_new<ContextShared>(__func__);
   preview_context = MEM_new<ContextShared>(__func__);
 
-  {
-    /** IMPORTANT: Very delicate context handling. Changing the order of context creation makes it
-     * crash in background mode on windows (see #136270). */
-
-    /* Setup compilation context. Called first as it changes the active GPUContext. */
-    DRW_shader_init();
-
-    /* Some part of the code assumes no context is left bound. */
-    GPU_context_active_set(nullptr);
-    WM_system_gpu_context_release(preview_context->system_gpu_context_);
-  }
+  /* Some part of the code assumes no context is left bound. */
+  GPU_context_active_set(nullptr);
+  WM_system_gpu_context_release(preview_context->system_gpu_context_);
 
   /* Activate the window's context if any. */
   wm_window_reset_drawable();
@@ -172,7 +164,6 @@ void DRW_gpu_context_destroy()
   if (viewport_context == nullptr) {
     return;
   }
-  DRW_shader_exit();
   DRW_submission_mutex_exit();
 
   MEM_SAFE_DELETE(viewport_context);

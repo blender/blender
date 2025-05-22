@@ -180,9 +180,6 @@ void DRW_system_gpu_render_context_disable(void *re_system_gpu_context);
 void DRW_blender_gpu_render_context_enable(void *re_gpu_context);
 void DRW_blender_gpu_render_context_disable(void *re_gpu_context);
 
-void DRW_deferred_shader_remove(GPUMaterial *mat);
-void DRW_deferred_shader_optimize_remove(GPUMaterial *mat);
-
 DRWData *DRW_viewport_data_create();
 void DRW_viewport_data_free(DRWData *drw_data);
 

@@ -75,7 +75,6 @@ set(SRC
   intern/draw_gpu_context.cc
   intern/draw_hair.cc
   intern/draw_manager.cc
-  intern/draw_manager_shader.cc
   intern/draw_manager_text.cc
   intern/draw_pbvh.cc
   intern/draw_pointcloud.cc

@@ -27,6 +27,7 @@
 #include "GPU_context.hh"
 
 #include "GPU_batch.hh"
+#include "GPU_pass.hh"
 #include "gpu_backend.hh"
 #include "gpu_context_private.hh"
 #include "gpu_matrix_private.hh"
@@ -328,6 +329,8 @@ void GPU_render_step(bool force_resource_release)
     backend->render_step(force_resource_release);
     printf_begin(active_ctx);
   }
+
+  GPU_pass_cache_update();
 }
 
 /** \} */

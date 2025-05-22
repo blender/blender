@@ -105,6 +105,10 @@ blender::Vector<GPUShader *> GPU_shader_batch_finalize(BatchHandle &handle);
  * WARNING: The handle will be invalidated by this call.
  */
 void GPU_shader_batch_cancel(BatchHandle &handle);
+/**
+ *  Wait until all the requested batches have been compiled.
+ */
+void GPU_shader_batch_wait_for_all();
 
 /** \} */
 
