@@ -1207,6 +1207,12 @@ static void fill_topology_automasking_factors(const Depsgraph &depsgraph,
   /* TODO: This method is to be removed when more of the automasking code handles the different
    * pbvh types. */
   SculptSession &ss = *ob.sculpt;
+  if (std::holds_alternative<std::monostate>(ss.active_vert())) {
+    /* If we don't have an active vertex (i.e. the cursor is not over the mesh), we cannot
+     * accurately calculate the topology automasking factor as it may be ambiguous which island the
+     * user is intending to affect. */
+    return;
+  }
 
   switch (bke::object::pbvh_get(ob)->type()) {
     case bke::pbvh::Type::Mesh:
