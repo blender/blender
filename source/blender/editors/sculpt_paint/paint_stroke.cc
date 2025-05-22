@@ -219,7 +219,7 @@ static void paint_draw_line_cursor(bContext *C,
                 stroke->last_mouse_position[0] + region->winrct.xmin,
                 stroke->last_mouse_position[1] + region->winrct.ymin);
 
-    immVertex2iv(shdr_pos, xy);
+    immVertex2fv(shdr_pos, float2(xy));
   }
 
   immEnd();
