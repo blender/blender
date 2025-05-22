@@ -898,11 +898,11 @@ static void undomesh_free_data(UndoMesh *um)
 #ifdef USE_ARRAY_STORE
 
 #  ifdef USE_ARRAY_STORE_THREAD
-  /* changes this waits is low, but must have finished */
+  /* Chances this waits is low, but must have finished. */
   BLI_task_pool_work_and_wait(um_arraystore.task_pool);
 #  endif
 
-  /* we need to expand so any allocations in custom-data are freed with the mesh */
+  /* We need to expand so any allocations in custom-data are freed with the mesh. */
   um_arraystore_expand(um);
 
   BLI_assert(BLI_findindex(&um_arraystore.local_links, um) != -1);

@@ -145,7 +145,7 @@ void bpy_context_clear(bContext * /*C*/, const PyGILState_STATE *gilstate)
   }
   else if (py_call_level == 0) {
     /* NOTE: Unfortunately calling classes currently won't store the context.
-     * Can't set nullptr because of this - but this is very flaky still. */
+     * Can't set nullptr because of this - but this is very unreliable still. */
 #if 0
     BPY_context_set(nullptr);
 #endif
