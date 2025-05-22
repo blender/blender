@@ -48,7 +48,7 @@ KERNEL_STRUCT_MEMBER(shadow_path, uint16_t, num_hits, KERNEL_FEATURE_PATH_TRACIN
 KERNEL_STRUCT_MEMBER(shadow_path, uint8_t, lightgroup, KERNEL_FEATURE_PATH_TRACING)
 /* Path guiding. */
 KERNEL_STRUCT_MEMBER(shadow_path, PackedSpectrum, unlit_throughput, KERNEL_FEATURE_PATH_GUIDING)
-#ifdef __PATH_GUIDING__
+#if defined(__PATH_GUIDING__)
 KERNEL_STRUCT_MEMBER(shadow_path,
                      openpgl::cpp::PathSegment *,
                      path_segment,

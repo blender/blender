@@ -148,7 +148,7 @@ void PathTraceWorkCPU::render_samples_full_pipeline(ThreadKernelGlobalsCPU *kern
       }
     }
 
-#ifdef WITH_PATH_GUIDING
+#if defined(WITH_PATH_GUIDING)
     if (kernel_globals->data.integrator.train_guiding) {
       assert(kernel_globals->opgl_path_segment_storage);
       assert(kernel_globals->opgl_path_segment_storage->GetNumSegments() == 0);
@@ -303,7 +303,7 @@ void PathTraceWorkCPU::cryptomatte_postproces()
   });
 }
 
-#ifdef WITH_PATH_GUIDING
+#if defined(WITH_PATH_GUIDING)
 /* NOTE: It seems that this is called before every rendering iteration/progression and not once per
  * rendering. May be we find a way to call it only once per rendering. */
 void PathTraceWorkCPU::guiding_init_kernel_globals(void *guiding_field,

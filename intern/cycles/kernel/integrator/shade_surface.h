@@ -271,11 +271,13 @@ integrate_direct_light_shadow_init_common(KernelGlobals kg,
   /* Write Light-group, +1 as light-group is int but we need to encode into a uint8_t. */
   INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, lightgroup) = light_group + 1;
 
-#ifdef __PATH_GUIDING__
-  INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, unlit_throughput) = unlit_throughput;
-  INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, path_segment) = INTEGRATOR_STATE(
-      state, guiding, path_segment);
-  INTEGRATOR_STATE(shadow_state, shadow_path, guiding_mis_weight) = 0.0f;
+#if defined(__PATH_GUIDING__)
+  if ((kernel_data.kernel_features & KERNEL_FEATURE_PATH_GUIDING)) {
+    INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, unlit_throughput) = unlit_throughput;
+    INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, path_segment) = INTEGRATOR_STATE(
+        state, guiding, path_segment);
+    INTEGRATOR_STATE(shadow_state, shadow_path, guiding_mis_weight) = 0.0f;
+  }
 #endif
 
   return shadow_state;
@@ -473,7 +475,9 @@ ccl_device_forceinline int integrate_surface_bsdf_bssrdf_bounce(
   float mis_pdf = 1.0f;
 
 #if defined(__PATH_GUIDING__) && PATH_GUIDING_LEVEL >= 4
-  if (kernel_data.integrator.use_surface_guiding) {
+  if (kernel_data.integrator.use_surface_guiding &&
+      (kernel_data.kernel_features & KERNEL_FEATURE_PATH_GUIDING))
+  {
     label = surface_shader_bsdf_guided_sample_closure(kg,
                                                       state,
                                                       sd,
@@ -783,8 +787,10 @@ ccl_device int integrate_surface(KernelGlobals kg,
     path_state_rng_load(state, &rng_state);
 
 #if defined(__PATH_GUIDING__) && PATH_GUIDING_LEVEL >= 4
-    surface_shader_prepare_guiding(kg, state, &sd, &rng_state);
-    guiding_write_debug_passes(kg, state, &sd, render_buffer);
+    if (kernel_data.kernel_features & KERNEL_FEATURE_PATH_GUIDING) {
+      surface_shader_prepare_guiding(kg, state, &sd, &rng_state);
+      guiding_write_debug_passes(kg, state, &sd, render_buffer);
+    }
 #endif
     /* Direct light. */
     PROFILING_EVENT(PROFILING_SHADE_SURFACE_DIRECT_LIGHT);

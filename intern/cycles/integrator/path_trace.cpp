@@ -1335,7 +1335,7 @@ string PathTrace::full_report() const
 
 void PathTrace::set_guiding_params(const GuidingParams &guiding_params, const bool reset)
 {
-#ifdef WITH_PATH_GUIDING
+#if defined(WITH_PATH_GUIDING)
   if (guiding_params_.modified(guiding_params)) {
     guiding_params_ = guiding_params;
 
@@ -1435,7 +1435,7 @@ void PathTrace::set_guiding_params(const GuidingParams &guiding_params, const bo
 
 void PathTrace::guiding_prepare_structures()
 {
-#ifdef WITH_PATH_GUIDING
+#if defined(WITH_PATH_GUIDING)
   const bool train = (guiding_params_.training_samples == 0) ||
                      (guiding_field_->GetIteration() < guiding_params_.training_samples);
 
@@ -1460,7 +1460,7 @@ void PathTrace::guiding_prepare_structures()
 
 void PathTrace::guiding_update_structures()
 {
-#ifdef WITH_PATH_GUIDING
+#if defined(WITH_PATH_GUIDING)
   VLOG_WORK << "Update path guiding structures";
 
   VLOG_DEBUG << "Number of surface samples: " << guiding_sample_data_storage_->GetSizeSurface();

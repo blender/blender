@@ -388,6 +388,7 @@ set(SRC_UTIL_HEADERS
   ../util/atomic.h
   ../util/color.h
   ../util/defines.h
+  ../util/guiding.h
   ../util/half.h
   ../util/hash.h
   ../util/math.h

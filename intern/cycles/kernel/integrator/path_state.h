@@ -59,19 +59,19 @@ ccl_device_inline void path_state_init_integrator(KernelGlobals kg,
   INTEGRATOR_STATE_WRITE(state, path, min_ray_pdf) = FLT_MAX;
   INTEGRATOR_STATE_WRITE(state, path, continuation_probability) = 1.0f;
   INTEGRATOR_STATE_WRITE(state, path, throughput) = throughput;
-
-#ifdef __PATH_GUIDING__
-  INTEGRATOR_STATE_WRITE(state, path, unguided_throughput) = 1.0f;
-  INTEGRATOR_STATE_WRITE(state, guiding, path_segment) = nullptr;
-  INTEGRATOR_STATE_WRITE(state, guiding, use_surface_guiding) = false;
-  INTEGRATOR_STATE_WRITE(state, guiding, sample_surface_guiding_rand) = 0.5f;
-  INTEGRATOR_STATE_WRITE(state, guiding, surface_guiding_sampling_prob) = 0.0f;
-  INTEGRATOR_STATE_WRITE(state, guiding, bssrdf_sampling_prob) = 0.0f;
-  INTEGRATOR_STATE_WRITE(state, guiding, use_volume_guiding) = false;
-  INTEGRATOR_STATE_WRITE(state, guiding, sample_volume_guiding_rand) = 0.5f;
-  INTEGRATOR_STATE_WRITE(state, guiding, volume_guiding_sampling_prob) = 0.0f;
+#if defined(__PATH_GUIDING__)
+  if ((kernel_data.kernel_features & KERNEL_FEATURE_PATH_GUIDING)) {
+    INTEGRATOR_STATE_WRITE(state, path, unguided_throughput) = 1.0f;
+    INTEGRATOR_STATE_WRITE(state, guiding, path_segment) = nullptr;
+    INTEGRATOR_STATE_WRITE(state, guiding, use_surface_guiding) = false;
+    INTEGRATOR_STATE_WRITE(state, guiding, sample_surface_guiding_rand) = 0.5f;
+    INTEGRATOR_STATE_WRITE(state, guiding, surface_guiding_sampling_prob) = 0.0f;
+    INTEGRATOR_STATE_WRITE(state, guiding, bssrdf_sampling_prob) = 0.0f;
+    INTEGRATOR_STATE_WRITE(state, guiding, use_volume_guiding) = false;
+    INTEGRATOR_STATE_WRITE(state, guiding, sample_volume_guiding_rand) = 0.5f;
+    INTEGRATOR_STATE_WRITE(state, guiding, volume_guiding_sampling_prob) = 0.0f;
+  }
 #endif
-
 #ifdef __MNEE__
   INTEGRATOR_STATE_WRITE(state, path, mnee) = 0;
 #endif
@@ -280,7 +280,9 @@ ccl_device_inline float path_state_continuation_probability(KernelGlobals kg,
    * transform and do path termination a bit later on average. */
   Spectrum throughput = INTEGRATOR_STATE(state, path, throughput);
 #if defined(__PATH_GUIDING__) && PATH_GUIDING_LEVEL >= 4
-  throughput *= INTEGRATOR_STATE(state, path, unguided_throughput);
+  if ((kernel_data.kernel_features & KERNEL_FEATURE_PATH_GUIDING)) {
+    throughput *= INTEGRATOR_STATE(state, path, unguided_throughput);
+  }
 #endif
   return min(sqrtf(reduce_max(fabs(throughput))), 1.0f);
 }

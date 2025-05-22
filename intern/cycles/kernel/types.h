@@ -201,7 +201,7 @@ CCL_NAMESPACE_BEGIN
 #  endif
 #endif
 #ifndef __KERNEL_GPU__
-#  ifdef WITH_PATH_GUIDING
+#  if defined(WITH_PATH_GUIDING)
 #    define __PATH_GUIDING__
 #  endif
 #  define __VOLUME_RECORD_ALL__

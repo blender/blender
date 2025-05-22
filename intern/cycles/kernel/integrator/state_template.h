@@ -110,7 +110,7 @@ KERNEL_STRUCT_END_ARRAY(volume_stack,
 
 /************************************ Path Guiding *****************************/
 KERNEL_STRUCT_BEGIN(guiding)
-#ifdef __PATH_GUIDING__
+#if defined(__PATH_GUIDING__)
 /* Current path segment of the random walk/path. */
 KERNEL_STRUCT_MEMBER(guiding,
                      openpgl::cpp::PathSegment *,

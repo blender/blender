@@ -25,7 +25,7 @@ ThreadKernelGlobalsCPU::ThreadKernelGlobalsCPU(const KernelGlobalsCPU &kernel_gl
   (void)osl_globals;
 #endif
 
-#ifdef WITH_PATH_GUIDING
+#if defined(WITH_PATH_GUIDING)
   opgl_path_segment_storage = make_unique<openpgl::cpp::PathSegmentStorage>();
 #endif
 }

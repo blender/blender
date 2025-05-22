@@ -289,7 +289,7 @@ class PathTrace {
   /* Denoiser device descriptor which holds the denoised big tile for multi-device workloads. */
   unique_ptr<PathTraceWork> big_tile_denoise_work_;
 
-#ifdef WITH_PATH_GUIDING
+#if defined(WITH_PATH_GUIDING)
   /* Guiding related attributes */
   GuidingParams guiding_params_;
 

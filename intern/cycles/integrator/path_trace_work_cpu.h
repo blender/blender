@@ -52,7 +52,7 @@ class PathTraceWorkCPU : public PathTraceWork {
   int adaptive_sampling_converge_filter_count_active(const float threshold, bool reset) override;
   void cryptomatte_postproces() override;
 
-#ifdef WITH_PATH_GUIDING
+#if defined(WITH_PATH_GUIDING)
   /* Initializes the per-thread guiding kernel data. The function sets the pointers to the
    * global guiding field and the sample data storage as well es initializes the per-thread
    * guided sampling distributions (e.g., SurfaceSamplingDistribution and

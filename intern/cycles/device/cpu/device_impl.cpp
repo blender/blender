@@ -284,7 +284,7 @@ void CPUDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
 
 void *CPUDevice::get_guiding_device() const
 {
-#ifdef WITH_PATH_GUIDING
+#if defined(WITH_PATH_GUIDING)
   if (!guiding_device) {
     if (guiding_device_type() == 8) {
       guiding_device = make_unique<openpgl::cpp::Device>(PGL_DEVICE_TYPE_CPU_8);

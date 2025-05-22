@@ -74,7 +74,7 @@ struct ThreadKernelGlobalsCPU : public KernelGlobalsCPU {
   OSLThreadData osl;
 #endif
 
-#ifdef __PATH_GUIDING__
+#if defined(__PATH_GUIDING__)
   /* Pointers to shared global data structures. */
   openpgl::cpp::SampleStorage *opgl_sample_data_storage = nullptr;
   openpgl::cpp::Field *opgl_guiding_field = nullptr;
@@ -95,5 +95,10 @@ using KernelGlobals = const ThreadKernelGlobalsCPU *;
 #define kernel_data_fetch(name, index) (kg->name.fetch(index))
 #define kernel_data_array(name) (kg->name.data)
 #define kernel_data (kg->data)
+#if defined(WITH_PATH_GUIDING)
+#  define guiding_guiding_field kg->opgl_guiding_field
+#  define guiding_ssd kg->opgl_surface_sampling_distribution
+#  define guiding_vsd kg->opgl_volume_sampling_distribution
+#endif
 
 CCL_NAMESPACE_END
