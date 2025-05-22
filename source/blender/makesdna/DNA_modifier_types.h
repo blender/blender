@@ -866,8 +866,8 @@ typedef struct HookModifierData {
   ModifierData modifier;
 
   struct Object *object;
-  /** Optional name of bone target, MAX_ID_NAME-2. */
-  char subtarget[64];
+  /** Optional name of bone target. */
+  char subtarget[/* MAX_NAME */ 64];
 
   char flag;
   /** Use enums from WarpModifier (exact same functionality). */
@@ -1487,10 +1487,10 @@ typedef struct WarpModifierData {
 
   struct Object *object_from;
   struct Object *object_to;
-  /** Optional name of bone target, MAX_ID_NAME-2. */
-  char bone_from[64];
-  /** Optional name of bone target, MAX_ID_NAME-2. */
-  char bone_to[64];
+  /** Optional name of bone target. */
+  char bone_from[/* MAX_NAME */ 64];
+  /** Optional name of bone target. */
+  char bone_to[/* MAX_NAME */ 64];
 
   struct CurveMapping *curfalloff;
   /** Optional vertex-group name, #MAX_VGROUP_NAME. */
@@ -1968,12 +1968,12 @@ typedef struct UVWarpModifierData {
 
   /** Source. */
   struct Object *object_src;
-  /** Optional name of bone target, MAX_ID_NAME-2. */
-  char bone_src[64];
+  /** Optional name of bone target. */
+  char bone_src[/* MAX_NAME */ 64];
   /** Target. */
   struct Object *object_dst;
-  /** Optional name of bone target, MAX_ID_NAME-2. */
-  char bone_dst[64];
+  /** Optional name of bone target. */
+  char bone_dst[/* MAX_NAME */ 64];
 
   /** Optional vertex-group name, #MAX_VGROUP_NAME. */
   char vgroup_name[64];
@@ -2983,8 +2983,8 @@ typedef struct GreasePencilHookModifierData {
   GreasePencilModifierInfluenceData influence;
 
   struct Object *object;
-  /** Optional name of bone target, MAX_ID_NAME-2. */
-  char subtarget[64];
+  /** Optional name of bone target. */
+  char subtarget[/* MAX_NAME */ 64];
   char _pad[4];
 
   /** #GreasePencilHookFlag. */
