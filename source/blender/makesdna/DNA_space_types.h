@@ -1157,6 +1157,10 @@ typedef struct SpaceSpreadsheet {
   /* eSpaceSpreadsheet_Flag. */
   uint32_t flag;
 
+  /** Index of the active viewer path element in the Data Source panel. */
+  int active_viewer_path_index;
+  char _pad2[4];
+
   SpaceSpreadsheet_Runtime *runtime;
 } SpaceSpreadsheet;
 

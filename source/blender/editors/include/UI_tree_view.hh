@@ -60,6 +60,12 @@ class TreeViewItemContainer {
   /** Pointer back to the owning item. */
   AbstractTreeViewItem *parent_ = nullptr;
 
+  /**
+   * Can be set to true to indicate that all of the children items do not have children themselves.
+   * In this case, no space is reserved for the chevron.
+   */
+  bool is_flat_ = false;
+
  public:
   enum class IterOptions {
     None = 0,

@@ -961,8 +961,16 @@ enum {
  * \{ */
 
 typedef enum eSpaceSpreadsheet_Flag {
+  /**
+   * Spreadsheet context is pinned and does not does not change when the context changes (unless
+   * the pinned context does not exist anymore).
+   */
   SPREADSHEET_FLAG_PINNED = (1 << 0),
-  SPREADSHEET_FLAG_CONTEXT_PATH_COLLAPSED = (1 << 1),
+  /**
+   * Not used anymore, just kept so the flag is not accidentally reused without clearing it in
+   * versioning first.
+   */
+  SPREADSHEET_FLAG_CONTEXT_PATH_COLLAPSED_LEGACY = (1 << 1),
 } eSpaceSpreadsheet_Flag;
 
 typedef enum eSpaceSpreadsheet_FilterFlag {
