@@ -132,7 +132,7 @@ typedef enum eDriverTarget_Flag {
   /** used for targets that use the pchan_name instead of RNA path
    * (i.e. rotation difference) */
   DTAR_FLAG_STRUCT_REF = (1 << 0),
-  /** idtype can only be 'Object' */
+  /** The `idtype` can only be "Object". */
   DTAR_FLAG_ID_OB_ONLY = (1 << 1),
 
   /* "local-space" flags. */
@@ -334,13 +334,13 @@ typedef enum eFCurve_Extend {
 
 /* curve coloring modes */
 typedef enum eFCurve_Coloring {
-  /** automatically determine color using rainbow (calculated at drawtime) */
+  /** Automatically determine color using rainbow (calculated at draw-time). */
   FCURVE_COLOR_AUTO_RAINBOW = 0,
-  /** automatically determine color using XYZ (array index) <-> RGB */
+  /** Automatically determine color using XYZ (array index) <-> RGB. */
   FCURVE_COLOR_AUTO_RGB = 1,
-  /** automatically determine color where XYZ <-> RGB, but index(X) != 0 */
+  /** Automatically determine color where XYZ <-> RGB, but index(X) != 0. */
   FCURVE_COLOR_AUTO_YRGB = 3,
-  /** custom color */
+  /** Custom color. */
   FCURVE_COLOR_CUSTOM = 2,
 } eFCurve_Coloring;
 
@@ -409,7 +409,7 @@ typedef enum eNlaStrip_Flag {
   NLASTRIP_FLAG_SYNC_LENGTH = (1 << 9),
 
   /* playback flags (may be overridden by F-Curves) */
-  /** NLA strip blendin/out values are set automatically based on overlaps */
+  /** NLA strip blend-in/out values are set automatically based on overlaps */
   NLASTRIP_FLAG_AUTO_BLENDS = (1 << 10),
   /** NLA strip is played back in reverse order */
   NLASTRIP_FLAG_REVERSE = (1 << 11),
@@ -490,17 +490,17 @@ ENUM_OPERATORS(eKS_Settings, KEYINGSET_ABSOLUTE)
 /* Flags for use by keyframe creation/deletion calls */
 typedef enum eInsertKeyFlags {
   INSERTKEY_NOFLAGS = 0,
-  /** only insert keyframes where they're needed */
+  /** Only insert keyframes where they're needed. */
   INSERTKEY_NEEDED = (1 << 0),
-  /** insert 'visual' keyframes where possible/needed */
+  /** Insert "visual" keyframes where possible/needed. */
   INSERTKEY_MATRIX = (1 << 1),
-  /** don't recalculate handles,etc. after adding key */
+  /** Don't recalculate handles,etc. after adding key. */
   INSERTKEY_FAST = (1 << 2),
-  /** don't realloc mem (or increase count, as array has already been set out) */
+  /** Don't re-allocate memory (or increase count, as array has already been set out). */
   /* INSERTKEY_FASTR = (1 << 3), */ /* UNUSED */
-  /** only replace an existing keyframe (this overrides INSERTKEY_NEEDED) */
+  /** Only replace an existing keyframe (this overrides #INSERTKEY_NEEDED). */
   INSERTKEY_REPLACE = (1 << 4),
-  /** ignore user-prefs (needed for predictable API use) */
+  /** Ignore user-preferences (needed for predictable API use). */
   INSERTKEY_NO_USERPREF = (1 << 6),
   /**
    * Allow to make a full copy of new key into existing one, if any,
@@ -508,9 +508,9 @@ typedef enum eInsertKeyFlags {
    * Used by copy/paste code.
    */
   INSERTKEY_OVERWRITE_FULL = (1 << 7),
-  /** for cyclic FCurves, adjust key timing to preserve the cycle period and flow */
+  /** For cyclic FCurves, adjust key timing to preserve the cycle period and flow. */
   INSERTKEY_CYCLE_AWARE = (1 << 9),
-  /** don't create new F-Curves (implied by INSERTKEY_REPLACE) */
+  /** Don't create new F-Curves (implied by #INSERTKEY_REPLACE). */
   INSERTKEY_AVAILABLE = (1 << 10),
 } eInsertKeyFlags;
 ENUM_OPERATORS(eInsertKeyFlags, INSERTKEY_AVAILABLE);

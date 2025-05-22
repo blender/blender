@@ -119,7 +119,7 @@ enum {
   CU_PRIM_CURVE = 0x100,
   /* 8 points circle */
   CU_PRIM_CIRCLE = 0x200,
-  /* 4x4 patch Nurb */
+  /* 4x4 patch NURB. */
   CU_PRIM_PATCH = 0x300,
   CU_PRIM_TUBE = 0x400,
   CU_PRIM_SPHERE = 0x500,

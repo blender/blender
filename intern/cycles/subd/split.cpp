@@ -157,7 +157,7 @@ std::pair<int, float> DiagSplit::T(const Patch *patch,
   res = limit_edge_factor(patch, uv_start, uv_end, res);
 
   /* Limit edge factor so we don't go beyond max depth. -3 is so that
-   * for triangle patches, all 3 edges get an oppportunity to get split. */
+   * for triangle patches, all 3 edges get an opportunity to get split. */
   if (depth >= DSPLIT_MAX_DEPTH - 3 && res == DSPLIT_NON_UNIFORM) {
     res = DSPLIT_MAX_SEGMENTS;
   }

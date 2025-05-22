@@ -62,7 +62,7 @@ typedef enum eLengthGpencil_Type {
   GP_LENGTH_ABSOLUTE = 1,
 } eLengthGpencil_Type;
 
-/* Shinkwrap Modifier */
+/* Shrink-wrap Modifier */
 
 /** #ShrinkwrapModifierData.shrinkType */
 enum {

@@ -642,8 +642,9 @@ void Film::end_sync()
 
   sync_mist();
 
-  /* Update sample table length for specialization warmup. Otherwise, we will warm a specialization
-   * that is not actually used. We still need to update it once per sample afterward. */
+  /* Update sample table length for specialization warm up.
+   * Otherwise, we will warm a specialization that is not actually used.
+   * We still need to update it once per sample afterward. */
   update_sample_table();
 
   inst_.manager->warm_shader_specialization(accumulate_ps_);

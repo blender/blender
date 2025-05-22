@@ -1341,7 +1341,7 @@ wmOperatorStatus sequencer_select_exec(bContext *C, wmOperator *op)
 
   bool changed = false;
   /* Deselect everything for now. NOTE that this condition runs for almost every click with no
-   * modifiers. `sequencer_select_strip_impl` expects this and will reselect any strips in
+   * modifiers. `sequencer_select_strip_impl` expects this and will re-select any strips in
    * `selection`. */
   if (deselect_all ||
       (selection.strip1 && (extend == false && deselect == false && toggle == false)))

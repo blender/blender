@@ -153,7 +153,7 @@ def report_personal_weekly_get(
         name: str
         # Branches targeting this repository. Branch name is key.
         branches: dict[str, Branch] = field(default_factory=dict)
-        # Pull requests targeting this repository. Key is respository of the branch and the branch name.
+        # Pull requests targeting this repository. Key is repository of the branch and the branch name.
         prs: dict[str, PullRequest] = field(default_factory=dict)
 
     # Repositories containing any commit activity, identified by full name (e.g. "blender/blender").
@@ -222,7 +222,7 @@ def report_personal_weekly_get(
                         # repository they are made for. For weekly reports it makes more sense to keep all branches and
                         # PRs related to a single repository together, regardless of who happens to own them.
                         #
-                        # So the folling adds branches and PRs to a "target" repository, not the owning one.
+                        # So the following adds branches and PRs to a "target" repository, not the owning one.
 
                         target_repo_json = repo["parent"]
                         # There's no parent repo if the branch is on the same repo. Treat the repo itself as target.

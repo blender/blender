@@ -95,7 +95,7 @@ static void parallel_grid_topology_tasks_leaf_node(const LeafNodeT &node,
 
   const int on_count = node.onVoxelCount();
   /* This number is somewhat arbitrary. 64 is a 1/8th of the number of voxels in a standard leaf
-   * which is 8x8x8. It's a trade-off between benefitting from the better performance of
+   * which is 8x8x8. It's a trade-off between benefiting from the better performance of
    * leaf-processing vs. processing more voxels in a batch. */
   const int on_count_threshold = 64;
   if (on_count <= on_count_threshold) {
@@ -283,7 +283,7 @@ BLI_NOINLINE static void process_leaf_node(const mf::MultiFunction &fn,
             const LeafNodeMask &input_leaf_mask = leaf_node->valueMask();
             const LeafNodeMask missing_mask = leaf_node_mask & !input_leaf_mask;
             if (missing_mask.isOff()) {
-              /* All values availables, so reference the data directly. */
+              /* All values available, so reference the data directly. */
               params.add_readonly_single_input(
                   GSpan(param_cpp_type, values.data(), values.size()));
             }
@@ -418,7 +418,7 @@ BLI_NOINLINE static void process_voxels(const mf::MultiFunction &fn,
         const auto &tree = grid.tree();
         /* Could try to cache the accessor across batches, but it's not straight forward since its
          * type depends on the grid type and thread-safety has to be maintained. It's likely not
-         * worth it because the cost is already negilible since we are processing a full batch. */
+         * worth it because the cost is already negligible since we are processing a full batch. */
         auto accessor = grid.getConstUnsafeAccessor();
 
         MutableSpan<ValueType> values = scope.allocator().allocate_array<ValueType>(voxels_num);
