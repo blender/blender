@@ -522,8 +522,6 @@ typedef struct bNode {
   /* This node is reroute which is not logically connected to any source of value. */
   bool is_dangling_reroute() const;
 
-  /* True if the socket is visible and has a valid location. The icon may not be visible. */
-  bool is_socket_drawn(const bNodeSocket &socket) const;
   /* True if the socket is drawn and the icon is visible. */
   bool is_socket_icon_drawn(const bNodeSocket &socket) const;
 

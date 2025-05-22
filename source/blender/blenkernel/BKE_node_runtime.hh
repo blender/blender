@@ -900,11 +900,6 @@ inline bool bNode::is_dangling_reroute() const
   return this->runtime->is_dangling_reroute;
 }
 
-inline bool bNode::is_socket_drawn(const bNodeSocket &socket) const
-{
-  return socket.is_visible();
-}
-
 inline bool bNode::is_socket_icon_drawn(const bNodeSocket &socket) const
 {
   return socket.is_visible() && (this->flag & NODE_HIDDEN || !socket.is_panel_collapsed());
