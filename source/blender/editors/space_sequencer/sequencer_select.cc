@@ -255,7 +255,7 @@ static void select_linked_time_strip(const Scene *scene,
 
       if (left_match && right_match) {
         /* Direct match, copy all selection settings. */
-        strip_dest->flag &= ~(STRIP_ALLSEL);
+        strip_dest->flag &= ~STRIP_ALLSEL;
         strip_dest->flag |= strip_source->flag & (STRIP_ALLSEL);
         recurs_sel_strip(strip_dest);
       }
@@ -874,7 +874,7 @@ static void sequencer_select_connected_strips(const StripSelection &selection)
     blender::VectorSet<Strip *> connections = seq::connected_strips_get(source);
     for (Strip *connection : connections) {
       /* Copy selection settings exactly for connected strips. */
-      connection->flag &= ~(STRIP_ALLSEL);
+      connection->flag &= ~STRIP_ALLSEL;
       connection->flag |= source->flag & (STRIP_ALLSEL);
     }
   }
@@ -893,8 +893,8 @@ static void sequencer_copy_handles_to_selected_strips(const StripSelection &sele
   /* For left or right handle selection only, simply copy selection state. */
   /* NOTE that this must be `ALLSEL` since `prev_selection` was deselected earlier. */
   for (Strip *strip : prev_selection) {
-    strip->flag &= ~(STRIP_ALLSEL);
-    strip->flag |= source->flag & (STRIP_ALLSEL);
+    strip->flag &= ~STRIP_ALLSEL;
+    strip->flag |= source->flag & STRIP_ALLSEL;
   }
 }
 

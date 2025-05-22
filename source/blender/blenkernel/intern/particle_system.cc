@@ -2820,7 +2820,7 @@ static int collision_detect(ParticleData *pa,
                             BVHTreeRayHit *hit,
                             ListBase *colliders)
 {
-  const int raycast_flag = BVH_RAYCAST_DEFAULT & ~(BVH_RAYCAST_WATERTIGHT);
+  const int raycast_flag = BVH_RAYCAST_DEFAULT & ~BVH_RAYCAST_WATERTIGHT;
   float ray_dir[3];
 
   if (BLI_listbase_is_empty(colliders)) {

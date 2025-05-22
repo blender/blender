@@ -1391,7 +1391,7 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
           switch (sl->spacetype) {
             case SPACE_IMAGE: {
               SpaceImage *sima = (SpaceImage *)sl;
-              sima->flag &= ~(SI_FLAG_UNUSED_20);
+              sima->flag &= ~SI_FLAG_UNUSED_20;
               break;
             }
           }

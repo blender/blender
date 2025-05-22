@@ -1421,23 +1421,23 @@ typedef struct bNodeSocketValueString_404 {
 } bNodeSocketValueString_404;
 
 typedef struct bNodeSocketValueObject_404 {
-  struct Object *value;
+  Object *value;
 } bNodeSocketValueObject_404;
 
 typedef struct bNodeSocketValueImage_404 {
-  struct Image *value;
+  Image *value;
 } bNodeSocketValueImage_404;
 
 typedef struct bNodeSocketValueCollection_404 {
-  struct Collection *value;
+  Collection *value;
 } bNodeSocketValueCollection_404;
 
 typedef struct bNodeSocketValueTexture_404 {
-  struct Tex *value;
+  Tex *value;
 } bNodeSocketValueTexture_404;
 
 typedef struct bNodeSocketValueMaterial_404 {
-  struct Material *value;
+  Material *value;
 } bNodeSocketValueMaterial_404;
 
 typedef struct bNodeSocketValueMenu_404 {
@@ -1609,7 +1609,7 @@ static void direct_link_node_socket_default_value(BlendDataReader *reader, bNode
             [](bNodeSocketValueString &dest,
                versioning_internal::bNodeSocketValueString_404 &src) {
               dest.subtype = src.subtype;
-              BLI_strncpy(dest.value, src.value, sizeof(dest.value));
+              STRNCPY(dest.value, src.value);
             });
         break;
       case SOCK_OBJECT:

@@ -641,14 +641,14 @@ static void image_main_region_draw(const bContext *C, ARegion *region)
   const bool show_compositor_viewer = show_viewer && image->type == IMA_TYPE_COMPOSITE;
 
   /* Text info and render region are only relevant for the compositor. */
-  const bool show_text_info = (sima->overlay.flag & SI_OVERLAY_SHOW_OVERLAYS &&
+  const bool show_text_info = show_compositor_viewer &&
+                              (sima->overlay.flag & SI_OVERLAY_SHOW_OVERLAYS &&
                                sima->overlay.flag & SI_OVERLAY_DRAW_TEXT_INFO &&
-                               (sima->mode == SI_MODE_MASK || sima->mode == SI_MODE_VIEW)) &&
-                              show_compositor_viewer;
-  const bool show_render_region = (sima->overlay.flag & SI_OVERLAY_SHOW_OVERLAYS &&
+                               ELEM(sima->mode, SI_MODE_MASK, SI_MODE_VIEW));
+  const bool show_render_region = show_compositor_viewer &&
+                                  (sima->overlay.flag & SI_OVERLAY_SHOW_OVERLAYS &&
                                    sima->overlay.flag & SI_OVERLAY_DRAW_RENDER_REGION &&
-                                   (sima->mode == SI_MODE_MASK || sima->mode == SI_MODE_VIEW)) &&
-                                  show_compositor_viewer;
+                                   ELEM(sima->mode, SI_MODE_MASK, SI_MODE_VIEW));
 
   /* XXX not supported yet, disabling for now */
   scene->r.scemode &= ~R_COMP_CROP;
