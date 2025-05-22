@@ -42,12 +42,24 @@ static VertAttrType vertex_format_combine(GPUVertCompType component_type,
       switch (fetch_mode) {
         case GPU_FETCH_INT_TO_FLOAT_UNIT:
           switch (component_len) {
+            case 1:
+              return VertAttrType::SNORM_8_DEPRECATED;
+            case 2:
+              return VertAttrType::SNORM_8_8_DEPRECATED;
+            case 3:
+              return VertAttrType::SNORM_8_8_8_DEPRECATED;
             case 4:
               return VertAttrType::SNORM_8_8_8_8;
           }
           break;
         case GPU_FETCH_INT:
           switch (component_len) {
+            case 1:
+              return VertAttrType::SINT_8_DEPRECATED;
+            case 2:
+              return VertAttrType::SINT_8_8_DEPRECATED;
+            case 3:
+              return VertAttrType::SINT_8_8_8_DEPRECATED;
             case 4:
               return VertAttrType::SINT_8_8_8_8;
           }
@@ -61,12 +73,24 @@ static VertAttrType vertex_format_combine(GPUVertCompType component_type,
       switch (fetch_mode) {
         case GPU_FETCH_INT_TO_FLOAT_UNIT:
           switch (component_len) {
+            case 1:
+              return VertAttrType::UNORM_8_DEPRECATED;
+            case 2:
+              return VertAttrType::UNORM_8_8_DEPRECATED;
+            case 3:
+              return VertAttrType::UNORM_8_8_8_DEPRECATED;
             case 4:
               return VertAttrType::UNORM_8_8_8_8;
           }
           break;
         case GPU_FETCH_INT:
           switch (component_len) {
+            case 1:
+              return VertAttrType::UINT_8_DEPRECATED;
+            case 2:
+              return VertAttrType::UINT_8_8_DEPRECATED;
+            case 3:
+              return VertAttrType::UINT_8_8_8_DEPRECATED;
             case 4:
               return VertAttrType::UINT_8_8_8_8;
           }
@@ -80,16 +104,24 @@ static VertAttrType vertex_format_combine(GPUVertCompType component_type,
       switch (fetch_mode) {
         case GPU_FETCH_INT_TO_FLOAT_UNIT:
           switch (component_len) {
+            case 1:
+              return VertAttrType::SNORM_16_DEPRECATED;
             case 2:
               return VertAttrType::SNORM_16_16;
+            case 3:
+              return VertAttrType::SNORM_16_16_16_DEPRECATED;
             case 4:
               return VertAttrType::SNORM_16_16_16_16;
           }
           break;
         case GPU_FETCH_INT:
           switch (component_len) {
+            case 1:
+              return VertAttrType::SINT_16_DEPRECATED;
             case 2:
               return VertAttrType::SINT_16_16;
+            case 3:
+              return VertAttrType::SINT_16_16_16_DEPRECATED;
             case 4:
               return VertAttrType::SINT_16_16_16_16;
           }
@@ -103,16 +135,24 @@ static VertAttrType vertex_format_combine(GPUVertCompType component_type,
       switch (fetch_mode) {
         case GPU_FETCH_INT_TO_FLOAT_UNIT:
           switch (component_len) {
+            case 1:
+              return VertAttrType::UNORM_16_DEPRECATED;
             case 2:
               return VertAttrType::UNORM_16_16;
+            case 3:
+              return VertAttrType::UNORM_16_16_16_DEPRECATED;
             case 4:
               return VertAttrType::UNORM_16_16_16_16;
           }
           break;
         case GPU_FETCH_INT:
           switch (component_len) {
+            case 1:
+              return VertAttrType::UINT_16_DEPRECATED;
             case 2:
               return VertAttrType::UINT_16_16;
+            case 3:
+              return VertAttrType::UINT_16_16_16_DEPRECATED;
             case 4:
               return VertAttrType::UINT_16_16_16_16;
           }

@@ -63,6 +63,16 @@ static PyObject *pygpu_vertformat__tp_new(PyTypeObject * /*type*/, PyObject *arg
   return BPyGPUVertFormat_CreatePyObject(nullptr);
 }
 
+static uint attr_size(GPUVertCompType type, int len)
+{
+  if (type == GPU_COMP_I10) {
+    return 4; /* Always packed as 10_10_10_2. */
+  }
+  BLI_assert(type <= GPU_COMP_F32); /* Other types have irregular sizes (not bytes). */
+  const uint sizes[] = {1, 1, 2, 2, 4, 4, 4};
+  return len * sizes[type];
+}
+
 PyDoc_STRVAR(
     /* Wrap. */
     pygpu_vertformat_attr_add_doc,
@@ -123,6 +133,21 @@ static PyObject *pygpu_vertformat_attr_add(BPyGPUVertFormat *self, PyObject *arg
 
   GPUVertCompType comp_type_enum = GPUVertCompType(comp_type.value_found);
   GPUVertFetchMode fetch_mode_enum = GPUVertFetchMode(fetch_mode.value_found);
+
+  if (len > 4) {
+    PyErr_WarnEx(
+        PyExc_DeprecationWarning,
+        "Using GPUVertFormat.attr_add(...) with component count greater than 4 is deprecated. "
+        "Use several attributes for each matrix columns instead.",
+        1);
+  }
+
+  if (attr_size(comp_type_enum, len) % 4 != 0) {
+    PyErr_WarnEx(PyExc_DeprecationWarning,
+                 "Using GPUVertFormat.attr_add(...) with a format that is not 4 bytes aligned is "
+                 "deprecated. Add padding components and/or higher precision integers.",
+                 1);
+  }
 
   bool int_to_float = (int(fetch_mode_enum) == int(GPU_FETCH_INT_TO_FLOAT_DEPRECATED));
   /* Fetch int to float is not supported anymore.
