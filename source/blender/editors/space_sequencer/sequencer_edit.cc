@@ -1719,7 +1719,7 @@ static wmOperatorStatus sequencer_add_duplicate_exec(bContext *C, wmOperator * /
       }
     }
   }
-  
+
   seq::seqbase_duplicate_recursive(scene, scene, &duplicated_strips, ed->seqbasep, 0, 0);
   deselect_all_strips(scene);
 
