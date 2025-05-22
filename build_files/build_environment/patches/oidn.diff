@@ -76,3 +76,15 @@ index 35c6291..5cc2d84 100644
      else
        return HIPArch::Unknown;
    }
+diff --git a/devices/sycl/sycl_device_table.h b/devices/sycl/sycl_device_table.h
+index 70dd493..7a773ea 100644
+--- a/devices/sycl/sycl_device_table.h
++++ b/devices/sycl/sycl_device_table.h
+@@ -77,6 +77,7 @@ OIDN_NAMESPACE_BEGIN
+       SYCLArch::Xe2HPG,
+       {
+         0x05004000, // bmg-g21
++        0x05008000,
+       }
+     },
+     {
