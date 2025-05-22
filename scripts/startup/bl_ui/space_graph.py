@@ -9,6 +9,12 @@ from bl_ui.space_dopesheet import (
     dopesheet_filter,
 )
 
+from bl_ui.space_toolsystem_common import PlayheadSnappingPanel
+
+
+class GRAPH_PT_playhead_snapping(PlayheadSnappingPanel, Panel):
+    bl_space_type = 'GRAPH_EDITOR'
+
 
 class GRAPH_HT_header(Header):
     bl_space_type = 'GRAPH_EDITOR'
@@ -65,6 +71,7 @@ class GRAPH_HT_header(Header):
                 panel="GRAPH_PT_snapping",
                 text="",
             )
+            layout.popover(panel="GRAPH_PT_playhead_snapping")
 
         row = layout.row(align=True)
         row.prop(tool_settings, "use_proportional_fcurve", text="", icon_only=True)
@@ -561,6 +568,7 @@ classes = (
     GRAPH_PT_filters,
     GRAPH_PT_snapping,
     GRAPH_PT_driver_snapping,
+    GRAPH_PT_playhead_snapping,
 )
 
 if __name__ == "__main__":  # only for live edit.

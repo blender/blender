@@ -27,6 +27,7 @@
 
 #include "BLT_translation.hh"
 
+#include "UI_resources.hh"
 #include "UI_view2d.hh"
 
 #include "RNA_access.hh"
@@ -36,14 +37,18 @@
 #include "WM_types.hh"
 
 #include "ED_anim_api.hh"
+#include "ED_keyframes_keylist.hh"
+#include "ED_markers.hh"
 #include "ED_screen.hh"
 #include "ED_sequencer.hh"
+#include "ED_space_graph.hh"
 #include "ED_time_scrub_ui.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
 
 #include "SEQ_iterator.hh"
+#include "SEQ_retiming.hh"
 #include "SEQ_sequencer.hh"
 #include "SEQ_time.hh"
 
@@ -55,6 +60,34 @@
 /* -------------------------------------------------------------------- */
 /** \name Frame Change Operator
  * \{ */
+
+/* Persistent data to re-use during frame change modal operations. */
+class FrameChangeModalData {
+  /* Used for keyframe snapping. Is populated when needed and re-used so it doesn't have to be
+   * created on every modal call. */
+ public:
+  AnimKeylist *keylist;
+
+  FrameChangeModalData()
+  {
+    keylist = nullptr;
+  }
+
+  ~FrameChangeModalData()
+  {
+    if (keylist) {
+      ED_keylist_free(keylist);
+    }
+  }
+};
+
+/* Point the playhead can snap to. */
+struct SnapTarget {
+  float pos;
+  /* If true, only snap if close to the point in screenspace. If false snap to this point
+   * regardless of screen space distance. */
+  bool use_snap_treshold;
+};
 
 /* Check if the operator can be run from the current context */
 static bool change_frame_poll(bContext *C)
@@ -94,18 +127,146 @@ static bool change_frame_poll(bContext *C)
   return false;
 }
 
-static int seq_snap_threshold_get_frame_distance(bContext *C)
+/* Returns the playhead snap threshold in frames. Of course that depends on the zoom level of the
+ * editor. */
+static float get_snap_threshold(const ToolSettings *tool_settings, const ARegion *region)
 {
-  const int snap_distance = blender::seq::tool_settings_snap_distance_get(CTX_data_scene(C));
-  const ARegion *region = CTX_wm_region(C);
-  return round_fl_to_int(UI_view2d_region_to_view_x(&region->v2d, snap_distance) -
-                         UI_view2d_region_to_view_x(&region->v2d, 0));
+  const int snap_threshold = tool_settings->playhead_snap_distance;
+  return UI_view2d_region_to_view_x(&region->v2d, snap_threshold) -
+         UI_view2d_region_to_view_x(&region->v2d, 0);
 }
 
-static void seq_frame_snap_update_best(const int position,
-                                       const int timeline_frame,
-                                       int *r_best_frame,
-                                       int *r_best_distance)
+static void ensure_change_frame_keylist(bContext *C, FrameChangeModalData &op_data)
+{
+  /* Only populate data once. */
+  if (op_data.keylist != nullptr) {
+    return;
+  }
+
+  ScrArea *area = CTX_wm_area(C);
+
+  if (area->spacetype == SPACE_SEQ) {
+    /* Special case for the sequencer since it has retiming keys, but those have no bAnimListElem
+     * representation. Need to manually add entries to keylist. */
+    op_data.keylist = ED_keylist_create();
+    Scene *scene = CTX_data_scene(C);
+
+    ListBase *seqbase = blender::seq::active_seqbase_get(blender::seq::editing_get(scene));
+    LISTBASE_FOREACH (Strip *, strip, seqbase) {
+      sequencer_strip_to_keylist(*strip, *op_data.keylist, *scene);
+    }
+    ED_keylist_prepare_for_direct_access(op_data.keylist);
+    return;
+  }
+
+  bAnimContext ac;
+  if (!ANIM_animdata_get_context(C, &ac)) {
+    BLI_assert_unreachable();
+    return;
+  }
+
+  ListBase anim_data = {nullptr, nullptr};
+
+  switch (area->spacetype) {
+    case SPACE_ACTION: {
+      const eAnimFilter_Flags filter = ANIMFILTER_DATA_VISIBLE;
+      ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
+      break;
+    }
+
+    case SPACE_GRAPH:
+      anim_data = blender::ed::graph::get_editable_fcurves(ac);
+      break;
+
+    default:
+      BLI_assert_unreachable();
+      break;
+  }
+
+  op_data.keylist = ED_keylist_create();
+
+  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
+    switch (ale->datatype) {
+      case ALE_FCURVE: {
+        FCurve *fcurve = static_cast<FCurve *>(ale->data);
+        fcurve_to_keylist(ale->adt, fcurve, op_data.keylist, 0, {-FLT_MAX, FLT_MAX}, true);
+        break;
+      }
+
+      case ALE_GPFRAME: {
+        gpl_to_keylist(nullptr, static_cast<bGPDlayer *>(ale->data), op_data.keylist);
+        break;
+      }
+
+      case ALE_GREASE_PENCIL_CEL: {
+        grease_pencil_cels_to_keylist(
+            ale->adt, static_cast<const GreasePencilLayer *>(ale->data), op_data.keylist, 0);
+        break;
+      }
+
+      default:
+        break;
+    }
+  }
+  ANIM_animdata_freelist(&anim_data);
+
+  ED_keylist_prepare_for_direct_access(op_data.keylist);
+}
+
+static void append_keyframe_snap_target(bContext *C,
+                                        FrameChangeModalData &op_data,
+                                        const float timeline_frame,
+                                        blender::Vector<SnapTarget> &r_targets)
+{
+  ensure_change_frame_keylist(C, op_data);
+  const ActKeyColumn *closest_column = ED_keylist_find_closest(op_data.keylist, timeline_frame);
+  if (!closest_column) {
+    return;
+  }
+  r_targets.append({closest_column->cfra, true});
+}
+
+static void append_marker_snap_target(Scene *scene,
+                                      const float timeline_frame,
+                                      blender::Vector<SnapTarget> &r_targets)
+{
+  if (BLI_listbase_is_empty(&scene->markers)) {
+    /* This check needs to be here because `ED_markers_find_nearest_marker_time` returns the
+     * current frame if there are no markers. */
+    return;
+  }
+  const float nearest_marker = ED_markers_find_nearest_marker_time(&scene->markers,
+                                                                   timeline_frame);
+  r_targets.append({nearest_marker, true});
+}
+
+static void append_second_snap_target(Scene *scene,
+                                      const float timeline_frame,
+                                      const int step,
+                                      blender::Vector<SnapTarget> &r_targets)
+{
+  const int start_frame = scene->r.sfra;
+  const float snap_frame = BKE_scene_frame_snap_by_seconds(
+                               scene, step, timeline_frame - start_frame) +
+                           start_frame;
+  r_targets.append({snap_frame, false});
+}
+
+static void append_frame_snap_target(const Scene *scene,
+                                     const float timeline_frame,
+                                     const int step,
+                                     blender::Vector<SnapTarget> &r_targets)
+{
+  const int start_frame = scene->r.sfra;
+  const float snap_frame = (round((timeline_frame - start_frame) / float(step)) * step) +
+                           start_frame;
+  r_targets.append({snap_frame, false});
+}
+
+static void seq_frame_snap_update_best(const float position,
+                                       const float timeline_frame,
+                                       float *r_best_frame,
+                                       float *r_best_distance)
 {
   if (abs(position - timeline_frame) < *r_best_distance) {
     *r_best_distance = abs(position - timeline_frame);
@@ -113,14 +274,15 @@ static void seq_frame_snap_update_best(const int position,
   }
 }
 
-static int seq_frame_apply_snap(bContext *C, Scene *scene, const int timeline_frame)
+static void append_sequencer_strip_snap_target(blender::Span<Strip *> strips,
+                                               const Scene *scene,
+                                               const float timeline_frame,
+                                               blender::Vector<SnapTarget> &r_targets)
 {
+  float best_frame = FLT_MAX;
+  float best_distance = FLT_MAX;
 
-  ListBase *seqbase = blender::seq::active_seqbase_get(blender::seq::editing_get(scene));
-
-  int best_frame = 0;
-  int best_distance = MAXFRAME;
-  for (Strip *strip : blender::seq::query_all_strips(seqbase)) {
+  for (Strip *strip : strips) {
     seq_frame_snap_update_best(blender::seq::time_left_handle_frame_get(scene, strip),
                                timeline_frame,
                                &best_frame,
@@ -131,11 +293,230 @@ static int seq_frame_apply_snap(bContext *C, Scene *scene, const int timeline_fr
                                &best_distance);
   }
 
-  if (best_distance < seq_snap_threshold_get_frame_distance(C)) {
-    return best_frame;
+  /* best_frame will be FLT_MAX if no target was found. */
+  if (best_distance != FLT_MAX) {
+    r_targets.append({best_frame, true});
+  }
+}
+
+static void append_nla_strip_snap_target(bContext *C,
+                                         const float timeline_frame,
+                                         blender::Vector<SnapTarget> &r_targets)
+{
+
+  bAnimContext ac;
+  if (!ANIM_animdata_get_context(C, &ac)) {
+    BLI_assert_unreachable();
   }
 
-  return timeline_frame;
+  ListBase anim_data = {nullptr, nullptr};
+  eAnimFilter_Flags filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE |
+                              ANIMFILTER_LIST_CHANNELS | ANIMFILTER_FCURVESONLY);
+  ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, eAnimCont_Types(ac.datatype));
+
+  float best_frame = FLT_MAX;
+  float best_distance = FLT_MAX;
+
+  LISTBASE_FOREACH (bAnimListElem *, ale, &anim_data) {
+    if (ale->type != ANIMTYPE_NLATRACK) {
+      continue;
+    }
+    NlaTrack *track = static_cast<NlaTrack *>(ale->data);
+    LISTBASE_FOREACH (NlaStrip *, strip, &track->strips) {
+      if (abs(strip->start - timeline_frame) < best_distance) {
+        best_distance = abs(strip->start - timeline_frame);
+        best_frame = strip->start;
+      }
+      if (abs(strip->end - timeline_frame) < best_distance) {
+        best_distance = abs(strip->end - timeline_frame);
+        best_frame = strip->end;
+      }
+    }
+  }
+  ANIM_animdata_freelist(&anim_data);
+
+  /* If no strip was found, best_frame will be FLT_MAX. */
+  if (best_frame != FLT_MAX) {
+    r_targets.append({best_frame, true});
+  }
+}
+
+/* ---- */
+
+static blender::Vector<SnapTarget> seq_get_snap_targets(bContext *C,
+                                                        FrameChangeModalData &op_data,
+                                                        const float timeline_frame)
+{
+  Scene *scene = CTX_data_scene(C);
+  ToolSettings *tool_settings = scene->toolsettings;
+
+  blender::Vector<SnapTarget> targets;
+
+  if (tool_settings->snap_playhead_mode & SCE_SNAP_TO_STRIPS) {
+    ListBase *seqbase = blender::seq::active_seqbase_get(blender::seq::editing_get(scene));
+    append_sequencer_strip_snap_target(
+        blender::seq::query_all_strips(seqbase), scene, timeline_frame, targets);
+  }
+
+  if (tool_settings->snap_playhead_mode & SCE_SNAP_TO_MARKERS) {
+    append_marker_snap_target(scene, timeline_frame, targets);
+  }
+
+  if (tool_settings->snap_playhead_mode & SCE_SNAP_TO_KEYS) {
+    append_keyframe_snap_target(C, op_data, timeline_frame, targets);
+  }
+
+  if (tool_settings->snap_playhead_mode & SCE_SNAP_TO_SECOND) {
+    append_second_snap_target(scene, timeline_frame, tool_settings->snap_step_seconds, targets);
+  }
+
+  if (tool_settings->snap_playhead_mode & SCE_SNAP_TO_FRAME) {
+    append_frame_snap_target(scene, timeline_frame, tool_settings->snap_step_frames, targets);
+  }
+
+  return targets;
+}
+
+static blender::Vector<SnapTarget> nla_get_snap_targets(bContext *C, const float timeline_frame)
+{
+  Scene *scene = CTX_data_scene(C);
+  ToolSettings *tool_settings = scene->toolsettings;
+
+  blender::Vector<SnapTarget> targets;
+
+  if (tool_settings->snap_playhead_mode & SCE_SNAP_TO_STRIPS) {
+    append_nla_strip_snap_target(C, timeline_frame, targets);
+  }
+
+  if (tool_settings->snap_playhead_mode & SCE_SNAP_TO_MARKERS) {
+    append_marker_snap_target(scene, timeline_frame, targets);
+  }
+
+  if (tool_settings->snap_playhead_mode & SCE_SNAP_TO_SECOND) {
+    append_second_snap_target(scene, timeline_frame, tool_settings->snap_step_seconds, targets);
+  }
+
+  if (tool_settings->snap_playhead_mode & SCE_SNAP_TO_FRAME) {
+    append_frame_snap_target(scene, timeline_frame, tool_settings->snap_step_frames, targets);
+  }
+
+  return targets;
+}
+
+static blender::Vector<SnapTarget> action_get_snap_targets(bContext *C,
+                                                           FrameChangeModalData &op_data,
+                                                           const float timeline_frame)
+{
+  Scene *scene = CTX_data_scene(C);
+  ToolSettings *tool_settings = scene->toolsettings;
+
+  blender::Vector<SnapTarget> targets;
+
+  if (tool_settings->snap_playhead_mode & SCE_SNAP_TO_MARKERS) {
+    append_marker_snap_target(scene, timeline_frame, targets);
+  }
+
+  if (tool_settings->snap_playhead_mode & SCE_SNAP_TO_KEYS) {
+    append_keyframe_snap_target(C, op_data, timeline_frame, targets);
+  }
+
+  if (tool_settings->snap_playhead_mode & SCE_SNAP_TO_SECOND) {
+    append_second_snap_target(scene, timeline_frame, tool_settings->snap_step_seconds, targets);
+  }
+
+  if (tool_settings->snap_playhead_mode & SCE_SNAP_TO_FRAME) {
+    append_frame_snap_target(scene, timeline_frame, tool_settings->snap_step_frames, targets);
+  }
+
+  return targets;
+}
+
+static blender::Vector<SnapTarget> graph_get_snap_targets(bContext *C,
+                                                          FrameChangeModalData &op_data,
+                                                          const float timeline_frame)
+{
+  Scene *scene = CTX_data_scene(C);
+  ToolSettings *tool_settings = scene->toolsettings;
+
+  blender::Vector<SnapTarget> targets;
+
+  if (tool_settings->snap_playhead_mode & SCE_SNAP_TO_MARKERS) {
+    append_marker_snap_target(scene, timeline_frame, targets);
+  }
+
+  if (tool_settings->snap_playhead_mode & SCE_SNAP_TO_KEYS) {
+    append_keyframe_snap_target(C, op_data, timeline_frame, targets);
+  }
+
+  if (tool_settings->snap_playhead_mode & SCE_SNAP_TO_SECOND) {
+    append_second_snap_target(scene, timeline_frame, tool_settings->snap_step_seconds, targets);
+  }
+
+  if (tool_settings->snap_playhead_mode & SCE_SNAP_TO_FRAME) {
+    append_frame_snap_target(scene, timeline_frame, tool_settings->snap_step_frames, targets);
+  }
+
+  return targets;
+}
+
+/* ---- */
+
+/* Returns a frame that is snapped to the closest point of interest defined by the area. If no
+ * point of interest is nearby, the frame is returned unmodified. */
+static float apply_frame_snap(bContext *C, FrameChangeModalData &op_data, const float frame)
+{
+  ScrArea *area = CTX_wm_area(C);
+
+  blender::Vector<SnapTarget> targets;
+  Scene *scene = CTX_data_scene(C);
+  switch (area->spacetype) {
+    case SPACE_SEQ:
+      targets = seq_get_snap_targets(C, op_data, frame);
+      break;
+    case SPACE_ACTION:
+      targets = action_get_snap_targets(C, op_data, frame);
+      break;
+    case SPACE_GRAPH:
+      targets = graph_get_snap_targets(C, op_data, frame);
+      break;
+    case SPACE_NLA:
+      targets = nla_get_snap_targets(C, frame);
+      break;
+
+    default:
+      break;
+  }
+
+  float snap_frame = FLT_MAX;
+
+  /* Find closest frame of all targets. */
+  for (const SnapTarget &target : targets) {
+    if (abs(target.pos - frame) < abs(snap_frame - frame)) {
+      snap_frame = target.pos;
+    }
+  }
+
+  const ARegion *region = CTX_wm_region(C);
+  if (abs(snap_frame - frame) < get_snap_threshold(scene->toolsettings, region)) {
+    return snap_frame;
+  }
+
+  snap_frame = FLT_MAX;
+  /* No frame is close enough to the snap threshold. Hard snap to targets without a threshold. */
+  for (const SnapTarget &target : targets) {
+    if (target.use_snap_treshold) {
+      continue;
+    }
+    if (abs(target.pos - frame) < abs(snap_frame - frame)) {
+      snap_frame = target.pos;
+    }
+  }
+
+  if (snap_frame != FLT_MAX) {
+    return snap_frame;
+  }
+
+  return frame;
 }
 
 /* Set the new frame number */
@@ -149,12 +530,8 @@ static void change_frame_apply(bContext *C, wmOperator *op, const bool always_up
   const float old_subframe = scene->r.subframe;
 
   if (do_snap) {
-    if (CTX_wm_space_seq(C) && blender::seq::editing_get(scene) != nullptr) {
-      frame = seq_frame_apply_snap(C, scene, frame);
-    }
-    else {
-      frame = BKE_scene_frame_snap_by_seconds(scene, 1.0, frame);
-    }
+    FrameChangeModalData *op_data = static_cast<FrameChangeModalData *>(op->customdata);
+    frame = apply_frame_snap(C, *op_data, frame);
   }
 
   /* set the new frame number */
@@ -224,16 +601,21 @@ static void change_frame_seq_preview_end(SpaceSeq *sseq)
   }
 }
 
-static bool use_sequencer_snapping(bContext *C)
+static bool use_playhead_snapping(bContext *C)
 {
-  if (!CTX_wm_space_seq(C)) {
-    return false;
+  Scene *scene = CTX_data_scene(C);
+  ScrArea *area = CTX_wm_area(C);
+
+  if (area->spacetype == SPACE_GRAPH) {
+    SpaceGraph *graph_editor = static_cast<SpaceGraph *>(area->spacedata.first);
+    /* Snapping is disabled for driver mode. Need to evaluate if it makes sense there and what form
+     * it should take. */
+    if (graph_editor->mode == SIPO_MODE_DRIVERS) {
+      return false;
+    }
   }
 
-  Scene *scene = CTX_data_scene(C);
-  short snap_flag = blender::seq::tool_settings_snap_flag_get(scene);
-  return (scene->toolsettings->snap_flag_seq & SCE_SNAP) &&
-         (snap_flag & SEQ_SNAP_CURRENT_FRAME_TO_STRIPS);
+  return scene->toolsettings->snap_flag_playhead & SCE_SNAP;
 }
 
 static bool sequencer_skip_for_handle_tweak(const bContext *C, const wmEvent *event)
@@ -262,6 +644,8 @@ static bool sequencer_skip_for_handle_tweak(const bContext *C, const wmEvent *ev
 static wmOperatorStatus change_frame_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   bScreen *screen = CTX_wm_screen(C);
+  FrameChangeModalData *op_data = MEM_new<FrameChangeModalData>(__func__);
+  op->customdata = op_data;
 
   /* This check is done in case scrubbing and strip tweaking in the sequencer are bound to the same
    * event (e.g. RCS keymap where both are activated on left mouse press). Tweaking should take
@@ -276,7 +660,7 @@ static wmOperatorStatus change_frame_invoke(bContext *C, wmOperator *op, const w
    */
   RNA_float_set(op->ptr, "frame", frame_from_event(C, event));
 
-  if (use_sequencer_snapping(C)) {
+  if (use_playhead_snapping(C)) {
     RNA_boolean_set(op->ptr, "snap", true);
   }
 
@@ -356,7 +740,7 @@ static wmOperatorStatus change_frame_modal(bContext *C, wmOperator *op, const wm
     case EVT_LEFTCTRLKEY:
     case EVT_RIGHTCTRLKEY:
       /* Use Ctrl key to invert snapping in sequencer. */
-      if (use_sequencer_snapping(C)) {
+      if (use_playhead_snapping(C)) {
         if (event->val == KM_RELEASE) {
           RNA_boolean_set(op->ptr, "snap", true);
         }
@@ -378,9 +762,17 @@ static wmOperatorStatus change_frame_modal(bContext *C, wmOperator *op, const wm
     }
   }
 
+  WorkspaceStatus status(C);
+  status.item(IFACE_("Toggle Snapping"), ICON_EVENT_CTRL);
+
   if (ret != OPERATOR_RUNNING_MODAL) {
+    ED_workspace_status_text(C, nullptr);
     bScreen *screen = CTX_wm_screen(C);
     screen->scrubbing = false;
+
+    FrameChangeModalData *op_data = static_cast<FrameChangeModalData *>(op->customdata);
+    MEM_delete(op_data);
+    op->customdata = nullptr;
 
     if (RNA_boolean_get(op->ptr, "seq_solo_preview")) {
       SpaceSeq *sseq = CTX_wm_space_seq(C);

@@ -5,6 +5,7 @@
 set(INC
   ../asset
   ../include
+  ../space_graph
   ../../asset_system
   ../../makesrna
   ../../../../extern/fmtlib/include
