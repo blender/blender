@@ -108,7 +108,7 @@ def gitea_json_activities_get(username: str, date: str) -> list[dict[str, Any]]:
     return result
 
 
-def gitea_json_pull_request_by_base_and_head_get(repo_name: str, base: str, head: str) -> dict[str, Any]:
+def gitea_json_pull_request_by_base_and_head_get(repo_name: str, base: str, head: str) -> dict[str, Any] | None:
     """
     Get a pull request by base and head
     :param repo_name: Full name of the repository, e.g. "blender/blender".
@@ -117,6 +117,7 @@ def gitea_json_pull_request_by_base_and_head_get(repo_name: str, base: str, head
     """
     url = f"{BASE_API_URL}/repos/{repo_name}/pulls/{base}/{head}"
     result = url_json_get(url, quiet=True)
+    assert isinstance(result, dict)
     return result
 
 

@@ -146,7 +146,7 @@ def report_personal_weekly_get(
 
     @dataclass
     class PullRequest:
-        descriptor: str
+        title_str: str
 
     @dataclass
     class Repository:
@@ -154,7 +154,7 @@ def report_personal_weekly_get(
         # Branches targeting this repository. Branch name is key.
         branches: dict[str, Branch] = field(default_factory=dict)
         # Pull requests targeting this repository. Key is repository of the branch and the branch name.
-        prs: dict[str, PullRequest] = field(default_factory=dict)
+        prs: dict[tuple[str, str], PullRequest] = field(default_factory=dict)
 
     # Repositories containing any commit activity, identified by full name (e.g. "blender/blender").
     repositories: dict[str, Repository] = {}
@@ -250,7 +250,7 @@ def report_personal_weekly_get(
                             pr_title = pr["title"]
                             pr_id = pr["number"]
                             target_repo.prs[(repo_fullname, branch_name)
-                                            ] = f"{pr_title} ({target_repo_fullname}!{pr_id})"
+                                            ] = PullRequest(f"{pr_title} ({target_repo_fullname}!{pr_id})")
 
                         branch.commits.append(f"{title} ({repo_fullname}@{hash_value})")
 
@@ -360,7 +360,7 @@ def report_personal_weekly_get(
         "blender/blender-manual": "Blender Manual",
     }
 
-    def print_repo(repo: Repository, indent_level=0):
+    def print_repo(repo: Repository, indent_level: int = 0) -> None:
         # Print main branch commits immediately, no need to add extra section.
         main_branch = repo.branches.get("main")
         if main_branch:
@@ -374,7 +374,7 @@ def report_personal_weekly_get(
 
             pr = repo.prs.get((branch.repository_full_name, branch_name))
             if pr:
-                print("{:s}* {:s}".format("  " * indent_level, pr))
+                print("{:s}* {:s}".format("  " * indent_level, pr.title_str))
             else:
                 print("{:s}* {:s}:{:s}".format("  " * indent_level, branch.repository_full_name, branch_name))
 
