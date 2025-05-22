@@ -1708,6 +1708,18 @@ static wmOperatorStatus sequencer_add_duplicate_exec(bContext *C, wmOperator * /
   Strip *active_strip = seq::select_active_get(scene);
   ListBase duplicated_strips = {nullptr, nullptr};
 
+  /* Special case for duplicating strips in preview: Do not duplicate sound strips,muted
+   * strips and strips that do not intersect the current frame */
+  if (region->regiontype == RGN_TYPE_PREVIEW && sequencer_view_preview_only_poll(C)) {
+    LISTBASE_FOREACH (Strip *, strip, ed->seqbasep) {
+      if (strip->type == STRIP_TYPE_SOUND_RAM || strip->flag & SEQ_MUTE ||
+          !(seq::time_strip_intersects_frame(scene, strip, scene->r.cfra)))
+      {
+        strip->flag &= ~STRIP_ALLSEL;
+      }
+    }
+  }
+  
   seq::seqbase_duplicate_recursive(scene, scene, &duplicated_strips, ed->seqbasep, 0, 0);
   deselect_all_strips(scene);
 
@@ -1743,16 +1755,9 @@ static wmOperatorStatus sequencer_add_duplicate_exec(bContext *C, wmOperator * /
     seq::ensure_unique_name(strip, scene);
   }
 
-  /* Special case for duplicating strips in preview: Do not duplicate sound strips and handle
-   * overlap, because strips won't be translated. */
+  /* Special case for duplicating strips in preview: handle overlap, because strips won't be
+   * translated. */
   if (region->regiontype == RGN_TYPE_PREVIEW && sequencer_view_preview_only_poll(C)) {
-    for (Strip *strip = strip_last->next; strip; strip = strip->next) {
-      if (strip->type == STRIP_TYPE_SOUND_RAM) {
-        seq::edit_flag_for_removal(scene, ed->seqbasep, strip);
-      }
-    }
-    seq::edit_remove_flagged_strips(scene, ed->seqbasep);
-
     for (Strip *strip = strip_last->next; strip; strip = strip->next) {
       if (seq::transform_test_overlap(scene, ed->seqbasep, strip)) {
         seq::transform_seqbase_shuffle(ed->seqbasep, strip, scene);
