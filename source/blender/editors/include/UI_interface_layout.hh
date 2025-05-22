@@ -561,7 +561,6 @@ void uiItemFullOMenuHold_ptr(uiLayout *layout,
                              wmOperatorType *ot,
                              std::optional<blender::StringRef> name,
                              int icon,
-                             IDProperty *properties,
                              wmOperatorCallContext context,
                              eUI_Item_Flag flag,
                              const char *menu_id, /* extra menu arg. */

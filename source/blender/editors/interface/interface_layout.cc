@@ -1227,7 +1227,6 @@ static uiBut *uiItemFullO_ptr_ex(uiLayout *layout,
                                  wmOperatorType *ot,
                                  std::optional<StringRef> name,
                                  int icon,
-                                 IDProperty *properties,
                                  const wmOperatorCallContext context,
                                  const eUI_Item_Flag flag,
                                  PointerRNA *r_opptr)
@@ -1299,17 +1298,10 @@ static uiBut *uiItemFullO_ptr_ex(uiLayout *layout,
   }
 
   /* assign properties */
-  if (properties || r_opptr) {
+  if (r_opptr) {
     PointerRNA *opptr = UI_but_operator_ptr_ensure(but);
-    if (properties) {
-      opptr->data = properties;
-    }
-    else {
-      opptr->data = blender::bke::idprop::create_group("wmOperatorProperties").release();
-    }
-    if (r_opptr) {
-      *r_opptr = *opptr;
-    }
+    opptr->data = blender::bke::idprop::create_group("wmOperatorProperties").release();
+    *r_opptr = *opptr;
   }
 
   return but;
@@ -1363,7 +1355,7 @@ PointerRNA uiLayout::op(wmOperatorType *ot,
                         const eUI_Item_Flag flag)
 {
   PointerRNA ptr;
-  uiItemFullO_ptr_ex(this, ot, name, icon, nullptr, context, flag, &ptr);
+  uiItemFullO_ptr_ex(this, ot, name, icon, context, flag, &ptr);
   return ptr;
 }
 
@@ -1371,13 +1363,12 @@ void uiItemFullOMenuHold_ptr(uiLayout *layout,
                              wmOperatorType *ot,
                              std::optional<StringRef> name,
                              int icon,
-                             IDProperty *properties,
                              const wmOperatorCallContext context,
                              const eUI_Item_Flag flag,
                              const char *menu_id,
                              PointerRNA *r_opptr)
 {
-  uiBut *but = uiItemFullO_ptr_ex(layout, ot, name, icon, properties, context, flag, r_opptr);
+  uiBut *but = uiItemFullO_ptr_ex(layout, ot, name, icon, context, flag, r_opptr);
   UI_but_func_hold_set(but, ui_item_menu_hold, BLI_strdup(menu_id));
 }
 

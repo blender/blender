@@ -415,7 +415,7 @@ static PointerRNA rna_uiItemOMenuHold(uiLayout *layout,
 
   PointerRNA opptr;
   uiItemFullOMenuHold_ptr(
-      layout, ot, text, icon, nullptr, uiLayoutGetOperatorContext(layout), flag, menu, &opptr);
+      layout, ot, text, icon, uiLayoutGetOperatorContext(layout), flag, menu, &opptr);
   return opptr;
 }
 
