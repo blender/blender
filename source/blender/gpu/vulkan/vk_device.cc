@@ -138,7 +138,7 @@ void VKDevice::init(void *ghost_context)
   init_dummy_buffer();
 
   debug::object_label(vk_handle(), "LogicalDevice");
-  debug::object_label(queue_get(), "GenericQueue");
+  debug::object_label(vk_queue_, "GenericQueue");
   init_glsl_patch();
 
   resources.use_dynamic_rendering = extensions_.dynamic_rendering;

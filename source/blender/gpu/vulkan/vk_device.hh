@@ -308,15 +308,6 @@ class VKDevice : public NonCopyable {
     return vk_device_;
   }
 
-  VkQueue queue_get() const
-  {
-    return vk_queue_;
-  }
-  std::mutex &queue_mutex_get()
-  {
-    return *queue_mutex_;
-  }
-
   uint32_t queue_family_get() const
   {
     return vk_queue_family_;
