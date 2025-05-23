@@ -1,46 +1,58 @@
 diff --git a/libdevice/cmake/modules/SYCLLibdevice.cmake b/libdevice/cmake/modules/SYCLLibdevice.cmake
-index c1aac6d017ef..99d84d89b9cc 100644
+index 9fa7e0b35..7e887e4bb 100644
 --- a/libdevice/cmake/modules/SYCLLibdevice.cmake
 +++ b/libdevice/cmake/modules/SYCLLibdevice.cmake
-@@ -65,7 +65,9 @@ add_custom_target(libsycldevice-obj-new-offload)
- add_custom_target(libsycldevice-spv)
- add_custom_target(libsycldevice-bc)
- 
--add_custom_target(libsycldevice DEPENDS
-+# Blender: add ALL here otherwise this target will not build
-+# and cause an error due to missing files during the install phase.
-+add_custom_target(libsycldevice ALL DEPENDS
-   libsycldevice-obj
-   libsycldevice-bc
-   libsycldevice-obj-new-offload
+@@ -68,7 +68,7 @@ if (WIN32)
+   list(APPEND compile_opts -D_ALLOW_ITERATOR_DEBUG_LEVEL_MISMATCH)
+ endif()
+
+-add_custom_target(libsycldevice)
++add_custom_target(libsycldevice ALL)
+
+ set(filetypes obj obj-new-offload spv bc)
+
+diff --git a/llvm/cmake/modules/HandleLLVMOptions.cmake b/llvm/cmake/modules/HandleLLVMOptions.cmake
+index 4d0790361..20291239e 100644
+--- a/llvm/cmake/modules/HandleLLVMOptions.cmake
++++ b/llvm/cmake/modules/HandleLLVMOptions.cmake
+@@ -591,6 +591,9 @@ if( MSVC )
+
+   append("/Zc:inline" CMAKE_C_FLAGS CMAKE_CXX_FLAGS)
+
++  # Zc:lambda works around VS19 internal compiler errors.
++  append("/Zc:lambda" CMAKE_C_FLAGS CMAKE_CXX_FLAGS)
++
+   if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+     # Enable standards-conforming preprocessor.
+     # https://learn.microsoft.com/en-us/cpp/build/reference/zc-preprocessor
 diff --git a/opencl/CMakeLists.txt b/opencl/CMakeLists.txt
-index 6f618033a203..38a7d4ddec22 100644
+index 808fc98c6..75becea99 100644
 --- a/opencl/CMakeLists.txt
 +++ b/opencl/CMakeLists.txt
 @@ -11,6 +11,11 @@ if (MSVC)
    )
  endif()
- 
+
 +# Blender code below is determined to use FetchContent_Declare
 +# temporarily allow it (but feed it our downloaded tarball
 +# in the OpenCL_HEADERS variable
 +set(FETCHCONTENT_FULLY_DISCONNECTED OFF)
 +
  # Repo URLs
- 
+
  set(OCL_HEADERS_REPO
 @@ -77,5 +82,6 @@ endif()
- 
+
  FetchContent_MakeAvailable(ocl-icd)
  add_library(OpenCL-ICD ALIAS OpenCL)
 +set(FETCHCONTENT_FULLY_DISCONNECTED ON)
  
  add_subdirectory(opencl-aot)
 diff --git a/sycl/CMakeLists.txt b/sycl/CMakeLists.txt
-index 6ee321b7bff9..a77b94ede51f 100644
+index a29bfc631..e9d306208 100644
 --- a/sycl/CMakeLists.txt
 +++ b/sycl/CMakeLists.txt
-@@ -203,7 +203,6 @@ install(FILES
+@@ -215,7 +215,6 @@ install(FILES
    COMPONENT sycl-headers)
  
  include(AddBoostMp11Headers)
@@ -49,10 +61,9 @@ index 6ee321b7bff9..a77b94ede51f 100644
  # This is workaround to detect changes (add or modify) in subtree which
  # are not detected by copy_directory command.
 diff --git a/sycl/cmake/modules/FetchBoostUnorderedHeaders.cmake b/sycl/cmake/modules/FetchBoostUnorderedHeaders.cmake
-deleted file mode 100644
-index 5cabc6cccdbf..000000000000
+index 5cabc6ccc..e69de29bb 100644
 --- a/sycl/cmake/modules/FetchBoostUnorderedHeaders.cmake
-+++ /dev/null
++++ b/sycl/cmake/modules/FetchBoostUnorderedHeaders.cmake
 @@ -1,101 +0,0 @@
 -# Fetches the unordered boost module and its dependencies
 -function(add_boost_module_headers)
@@ -156,10 +167,22 @@ index 5cabc6cccdbf..000000000000
 -#     Add -Wundef to test/Jamfile
 -add_boost_module_headers(NAME "throw_exception" SRC_DIR ${BOOST_THROW_EXCEPTION_SOURCE_DIR} GIT_TAG ${BOOST_THROW_EXCEPTION_GIT_TAG})
 diff --git a/sycl/cmake/modules/FetchUnifiedRuntime.cmake b/sycl/cmake/modules/FetchUnifiedRuntime.cmake
-index 41268945b078..895065b8f1a7 100644
+index e9d52c5b2..8b439ba00 100644
 --- a/sycl/cmake/modules/FetchUnifiedRuntime.cmake
 +++ b/sycl/cmake/modules/FetchUnifiedRuntime.cmake
-@@ -128,11 +128,11 @@ if(SYCL_PI_UR_USE_FETCH_CONTENT)
+@@ -31,7 +31,10 @@ set(UR_BUILD_EXAMPLES OFF CACHE BOOL "Build example applications." FORCE)
+ set(UR_BUILD_TESTS OFF CACHE BOOL "Build unit tests." FORCE)
+ set(UR_BUILD_XPTI_LIBS OFF)
+ set(UR_ENABLE_SYMBOLIZER ON CACHE BOOL "Enable symbolizer for sanitizer layer.")
+-set(UR_ENABLE_TRACING ON)
++# Blender: By default this option is override to ON
++# but we don't need this option, because we build DPC++ without xpti
++# so it is now would be overriding to OFF
++set(UR_ENABLE_TRACING OFF)
+
+ if("level_zero" IN_LIST SYCL_ENABLE_BACKENDS)
+   set(UR_BUILD_ADAPTER_L0 ON)
+@@ -124,11 +127,11 @@ if(SYCL_UR_USE_FETCH_CONTENT)
    # to link statically on windows
    if(WIN32)
      set(UMF_BUILD_SHARED_LIBRARY OFF CACHE INTERNAL "Build UMF shared library")
@@ -175,22 +198,22 @@ index 41268945b078..895065b8f1a7 100644
      ${UNIFIED_RUNTIME_REPO}
      ${UNIFIED_RUNTIME_TAG}
 diff --git a/sycl/source/detail/graph_impl.hpp b/sycl/source/detail/graph_impl.hpp
-index 454a43fe9953..50fa14fbbd5d 100644
+index 2d714bcc9..907151dc5 100644
 --- a/sycl/source/detail/graph_impl.hpp
 +++ b/sycl/source/detail/graph_impl.hpp
-@@ -28,6 +28,7 @@
+@@ -29,6 +29,7 @@
  #include <list>
  #include <set>
  #include <shared_mutex>
 +#include <sstream>
- 
+
  namespace sycl {
  inline namespace _V1 {
 diff --git a/sycl/source/detail/kernel_bundle_impl.hpp b/sycl/source/detail/kernel_bundle_impl.hpp
-index 2a128ba9a901..db8faf6e188f 100644
+index e538318f8..43599b552 100644
 --- a/sycl/source/detail/kernel_bundle_impl.hpp
 +++ b/sycl/source/detail/kernel_bundle_impl.hpp
-@@ -24,6 +24,7 @@
+@@ -25,6 +25,7 @@
  #include <cstdint>
  #include <cstring>
  #include <memory>
@@ -199,35 +222,40 @@ index 2a128ba9a901..db8faf6e188f 100644
  
  #include "split_string.hpp"
 diff --git a/sycl/source/detail/kernel_program_cache.hpp b/sycl/source/detail/kernel_program_cache.hpp
-index f170b55a6348..9f593359c7f3 100644
+index 968cb9b24..ee13dc8c6 100644
 --- a/sycl/source/detail/kernel_program_cache.hpp
 +++ b/sycl/source/detail/kernel_program_cache.hpp
-@@ -19,12 +19,10 @@
+@@ -20,6 +20,7 @@
  
  #include <atomic>
  #include <condition_variable>
 +#include <map>
+ #include <iomanip>
+ #include <list>
  #include <mutex>
+@@ -27,9 +28,7 @@
+ #include <set>
+ #include <thread>
  #include <type_traits>
- 
+-
 -#include <boost/unordered/unordered_flat_map.hpp>
 -#include <boost/unordered_map.hpp>
--
++#include <sstream>
+
  // For testing purposes
  class MockKernelProgramCache;
- 
-@@ -123,8 +121,8 @@ public:
-   using CommonProgramKeyT = std::pair<std::uintptr_t, ur_device_handle_t>;
+@@ -177,8 +176,8 @@ public:
+   };
  
    struct ProgramCache {
 -    ::boost::unordered_map<ProgramCacheKeyT, ProgramBuildResultPtr> Cache;
 -    ::boost::unordered_multimap<CommonProgramKeyT, ProgramCacheKeyT> KeyMap;
 +    std::map<ProgramCacheKeyT, ProgramBuildResultPtr> Cache;
 +    std::multimap<CommonProgramKeyT, ProgramCacheKeyT> KeyMap;
+     // Mapping between a UR program and its size.
+     std::unordered_map<ur_program_handle_t, size_t> ProgramSizeMap;
  
-     size_t size() const noexcept { return Cache.size(); }
-   };
-@@ -152,23 +150,15 @@ public:
+@@ -214,10 +213,8 @@ public:
    };
    using KernelBuildResultPtr = std::shared_ptr<KernelBuildResult>;
  
@@ -239,10 +267,11 @@ index f170b55a6348..9f593359c7f3 100644
 +  using KernelCacheT = std::map<ur_program_handle_t, KernelByNameT>;
  
    using KernelFastCacheKeyT =
-       std::tuple<SerializedObj, ur_device_handle_t, std::string, std::string>;
-   using KernelFastCacheValT =
-       std::tuple<ur_kernel_handle_t, std::mutex *, const KernelArgMask *,
-                  ur_program_handle_t>;
+       std::tuple<SerializedObj,      /* Serialized spec constants. */
+@@ -233,13 +230,7 @@ public:
+                                      kernel. */
+                  >;
+
 -  // This container is used as a fast path for retrieving cached kernels.
 -  // unordered_flat_map is used here to reduce lookup overhead.
 -  // The slow path is used only once for each newly created kernel, so the
@@ -252,10 +281,10 @@ index f170b55a6348..9f593359c7f3 100644
 -      ::boost::unordered_flat_map<KernelFastCacheKeyT, KernelFastCacheValT>;
 +  using KernelFastCacheT = std::map<KernelFastCacheKeyT, KernelFastCacheValT>;
  
-   ~KernelProgramCache() = default;
- 
+   // DS to hold data and functions related to Program cache eviction.
+   struct EvictionList {
 diff --git a/sycl/unittests/CMakeLists.txt b/sycl/unittests/CMakeLists.txt
-index ec740f913ed4..c0e04bfaf119 100644
+index 883142678..dedd9f83f 100644
 --- a/sycl/unittests/CMakeLists.txt
 +++ b/sycl/unittests/CMakeLists.txt
 @@ -1,6 +1,5 @@
@@ -265,17 +294,3 @@ index ec740f913ed4..c0e04bfaf119 100644
  
  foreach(flag_var
      CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE
-diff --git a/llvm/cmake/modules/HandleLLVMOptions.cmake b/llvm/cmake/modules/HandleLLVMOptions.cmake
-index 63a5bfe09a03..0eb3fd2adf20 100644
---- a/llvm/cmake/modules/HandleLLVMOptions.cmake
-+++ b/llvm/cmake/modules/HandleLLVMOptions.cmake
-@@ -575,6 +575,9 @@ if( MSVC )
- 
-   append("/Zc:inline" CMAKE_C_FLAGS CMAKE_CXX_FLAGS)
- 
-+  # Zc:lambda works around VS19 internal compiler errors.
-+  append("/Zc:lambda" CMAKE_C_FLAGS CMAKE_CXX_FLAGS)
-+
-   if (NOT CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-     # Enable standards-conforming preprocessor.
-     # https://learn.microsoft.com/en-us/cpp/build/reference/zc-preprocessor

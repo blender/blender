@@ -43,23 +43,26 @@ set(DPCPP_EXTRA_ARGS
   -DLEVEL_ZERO_LIBRARY=${LIBDIR}/level-zero/lib/${LIBPREFIX}ze_loader${SHAREDLIBEXT}
   -DLEVEL_ZERO_INCLUDE_DIR=${LIBDIR}/level-zero/include/level_zero
   -DLLVM_EXTERNAL_SPIRV_HEADERS_SOURCE_DIR=${BUILD_DIR}/spirvheaders/src/external_spirvheaders/
-  -DSYCL_PI_UR_USE_FETCH_CONTENT=OFF
-  -DSYCL_PI_UR_SOURCE_DIR=${BUILD_DIR}/unifiedruntime/src/external_unifiedruntime/
+  -DSYCL_UR_USE_FETCH_CONTENT=OFF
+  -DSYCL_UR_SOURCE_DIR=${BUILD_DIR}/unifiedruntime/src/external_unifiedruntime/
   -DFETCHCONTENT_SOURCE_DIR_UNIFIED-MEMORY-FRAMEWORK=${BUILD_DIR}/unifiedmemoryframework/src/external_unifiedmemoryframework/
   -DSYCL_UMF_DISABLE_HWLOC=ON
   -DUMF_DISABLE_HWLOC=ON
   -DUMF_BUILD_SHARED_LIBRARY=OFF
+  -DSYCL_ENABLE_XPTI_TRACING=OFF
+  -DUR_ENABLE_TRACING=OFF
+  -DUR_BUILD_TOOLS=OFF
   # Below here is copied from an invocation of buildbot/config.py
   -DLLVM_ENABLE_ASSERTIONS=ON
   -DLLVM_TARGETS_TO_BUILD=X86
-  -DLLVM_EXTERNAL_PROJECTS=sycl^^llvm-spirv^^opencl^^libdevice^^xpti^^xptifw^^lld
+  -DLLVM_EXTERNAL_PROJECTS=sycl^^llvm-spirv^^opencl^^libdevice^^lld
   -DLLVM_EXTERNAL_SYCL_SOURCE_DIR=${DPCPP_SOURCE_ROOT}/sycl
   -DLLVM_EXTERNAL_LLVM_SPIRV_SOURCE_DIR=${DPCPP_SOURCE_ROOT}/llvm-spirv
   -DLLVM_EXTERNAL_XPTI_SOURCE_DIR=${DPCPP_SOURCE_ROOT}/xpti
   -DXPTI_SOURCE_DIR=${DPCPP_SOURCE_ROOT}/xpti
   -DLLVM_EXTERNAL_XPTIFW_SOURCE_DIR=${DPCPP_SOURCE_ROOT}/xptifw
   -DLLVM_EXTERNAL_LIBDEVICE_SOURCE_DIR=${DPCPP_SOURCE_ROOT}/libdevice
-  -DLLVM_ENABLE_PROJECTS=clang^^sycl^^llvm-spirv^^opencl^^libdevice^^xpti^^xptifw^^lld
+  -DLLVM_ENABLE_PROJECTS=clang^^sycl^^llvm-spirv^^opencl^^libdevice^^lld
   -DLIBCLC_TARGETS_TO_BUILD=
   -DLIBCLC_GENERATE_REMANGLED_VARIANTS=OFF
   -DSYCL_BUILD_PI_HIP_PLATFORM=AMD
@@ -69,7 +72,6 @@ set(DPCPP_EXTRA_ARGS
   -DLLVM_ENABLE_DOXYGEN=OFF
   -DLLVM_ENABLE_SPHINX=OFF
   -DBUILD_SHARED_LIBS=OFF
-  -DSYCL_ENABLE_XPTI_TRACING=ON
   -DLLVM_ENABLE_LLD=OFF
   -DXPTI_ENABLE_WERROR=OFF
   -DSYCL_CLANG_EXTRA_FLAGS=
@@ -122,10 +124,7 @@ ExternalProject_Add(external_dpcpp
 
   PATCH_COMMAND ${PATCH_CMD} -p 1 -d
     ${BUILD_DIR}/dpcpp/src/external_dpcpp <
-    ${PATCH_DIR}/dpcpp.diff &&
-    ${PATCH_CMD} -p 1 -d
-    ${BUILD_DIR}/dpcpp/src/external_dpcpp <
-    ${PATCH_DIR}/dpcpp_15124.diff
+    ${PATCH_DIR}/dpcpp.diff
 
   INSTALL_DIR ${LIBDIR}/dpcpp
 )
@@ -151,7 +150,6 @@ if(WIN32)
       COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/dpcpp ${HARVEST_TARGET}/dpcpp
       COMMAND ${CMAKE_COMMAND} -E rm -f ${HARVEST_TARGET}/dpcpp/bin/clang-cl.exe
       COMMAND ${CMAKE_COMMAND} -E rm -f ${HARVEST_TARGET}/dpcpp/bin/clang-cpp.exe
-      COMMAND ${CMAKE_COMMAND} -E rm -f ${HARVEST_TARGET}/dpcpp/bin/clang.exe
       COMMAND ${CMAKE_COMMAND} -E rm -f ${HARVEST_TARGET}/dpcpp/bin/ld.lld.exe
       COMMAND ${CMAKE_COMMAND} -E rm -f ${HARVEST_TARGET}/dpcpp/bin/ld64.lld.exe
       COMMAND ${CMAKE_COMMAND} -E rm -f ${HARVEST_TARGET}/dpcpp/bin/lld.exe
