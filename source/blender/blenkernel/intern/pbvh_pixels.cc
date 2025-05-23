@@ -128,12 +128,8 @@ struct UVPrimitiveLookup {
 
     uint64_t uv_island_index = 0;
     for (uv_islands::UVIsland &uv_island : uv_islands.islands) {
-      for (VectorList<uv_islands::UVPrimitive>::UsedVector &uv_primitives :
-           uv_island.uv_primitives)
-      {
-        for (uv_islands::UVPrimitive &uv_primitive : uv_primitives) {
-          lookup[uv_primitive.primitive_i].append_as(Entry(&uv_primitive, uv_island_index));
-        }
+      for (uv_islands::UVPrimitive &uv_primitive : uv_island.uv_primitives) {
+        lookup[uv_primitive.primitive_i].append_as(Entry(&uv_primitive, uv_island_index));
       }
       uv_island_index++;
     }
