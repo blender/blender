@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "BLI_mutex.hh"
+
 #include "vk_common.hh"
 
 #include "vk_descriptor_pools.hh"
@@ -90,7 +92,7 @@ class VKDiscardPool {
   TimelineResources<VkFramebuffer> framebuffers_;
   TimelineResources<VkDescriptorPool> descriptor_pools_;
 
-  std::mutex mutex_;
+  Mutex mutex_;
 
   TimelineValue timeline_ = UINT64_MAX;
 
