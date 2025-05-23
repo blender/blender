@@ -60,6 +60,16 @@ bool BKE_viewer_path_equal(const ViewerPath *a,
   return false;
 }
 
+uint64_t BKE_viewer_path_hash(const ViewerPath &viewer_path)
+{
+  uint64_t hash = 0;
+  LISTBASE_FOREACH (ViewerPathElem *, elem, &viewer_path.path) {
+    const uint64_t elem_hash = BKE_viewer_path_elem_hash(*elem);
+    hash = blender::get_default_hash(hash, elem_hash);
+  }
+  return hash;
+}
+
 void BKE_viewer_path_blend_write(BlendWriter *writer, const ViewerPath *viewer_path)
 {
   LISTBASE_FOREACH (ViewerPathElem *, elem, &viewer_path->path) {
@@ -391,6 +401,53 @@ bool BKE_viewer_path_elem_equal(const ViewerPathElem *a,
     }
   }
   return false;
+}
+
+uint64_t BKE_viewer_path_elem_hash(const ViewerPathElem &elem)
+{
+  using blender::get_default_hash;
+  switch (ViewerPathElemType(elem.type)) {
+    case VIEWER_PATH_ELEM_TYPE_ID: {
+      const auto &typed_elem = reinterpret_cast<const IDViewerPathElem &>(elem);
+      return get_default_hash(elem.type, typed_elem.id ? typed_elem.id->session_uid : 0);
+    }
+    case VIEWER_PATH_ELEM_TYPE_MODIFIER: {
+      const auto &typed_elem = reinterpret_cast<const ModifierViewerPathElem &>(elem);
+      return get_default_hash(elem.type, typed_elem.modifier_uid);
+    }
+    case VIEWER_PATH_ELEM_TYPE_GROUP_NODE: {
+      const auto &typed_elem = reinterpret_cast<const GroupNodeViewerPathElem &>(elem);
+      return get_default_hash(elem.type, typed_elem.node_id);
+    }
+    case VIEWER_PATH_ELEM_TYPE_SIMULATION_ZONE: {
+      const auto &typed_elem = reinterpret_cast<const SimulationZoneViewerPathElem &>(elem);
+      return get_default_hash(elem.type, typed_elem.sim_output_node_id);
+    }
+    case VIEWER_PATH_ELEM_TYPE_VIEWER_NODE: {
+      const auto &typed_elem = reinterpret_cast<const ViewerNodeViewerPathElem &>(elem);
+      return get_default_hash(elem.type, typed_elem.node_id);
+    }
+    case VIEWER_PATH_ELEM_TYPE_REPEAT_ZONE: {
+      const auto &typed_elem = reinterpret_cast<const RepeatZoneViewerPathElem &>(elem);
+      return get_default_hash(elem.type, typed_elem.repeat_output_node_id, typed_elem.iteration);
+    }
+    case VIEWER_PATH_ELEM_TYPE_FOREACH_GEOMETRY_ELEMENT_ZONE: {
+      const auto &typed_elem = reinterpret_cast<const ForeachGeometryElementZoneViewerPathElem &>(
+          elem);
+      return get_default_hash(elem.type, typed_elem.zone_output_node_id, typed_elem.index);
+    }
+    case VIEWER_PATH_ELEM_TYPE_EVALUATE_CLOSURE: {
+      const auto &typed_elem = reinterpret_cast<const EvaluateClosureNodeViewerPathElem &>(elem);
+      return get_default_hash(
+          elem.type,
+          typed_elem.evaluate_node_id,
+          typed_elem.source_output_node_id,
+          typed_elem.source_node_tree ?
+              reinterpret_cast<const ID *>(typed_elem.source_node_tree)->session_uid :
+              0);
+    }
+  }
+  return 0;
 }
 
 void BKE_viewer_path_elem_free(ViewerPathElem *elem)

@@ -1019,6 +1019,19 @@ typedef enum eSpreadsheetColumnValueType {
   SPREADSHEET_VALUE_TYPE_FLOAT4X4 = 12,
 } eSpreadsheetColumnValueType;
 
+typedef enum eSpreadsheetTableIDType {
+  /** This table uses the #SpreadsheetTableIDGeometry key. */
+  SPREADSHEET_TABLE_ID_TYPE_GEOMETRY = 0,
+} eSpreadsheetTableType;
+
+typedef enum eSpreadsheetTableFlag {
+  /**
+   * If a generated table has never been manually edited (e.g. changing column order), it can be
+   * discarded when it's no longer displayed.
+   */
+  SPREADSHEET_TABLE_FLAG_MANUALLY_EDITED = (1 << 0),
+} eSpreadsheetTableFlag;
+
 /**
  * We can't just use UI_UNIT_X, because it does not take `widget.points` into account, which
  * modifies the width of text as well.

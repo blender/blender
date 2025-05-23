@@ -17,6 +17,8 @@
 
 #include "BLI_rect.h"
 
+#include "ED_spreadsheet.hh"
+
 #include "spreadsheet_column.hh"
 #include "spreadsheet_draw.hh"
 #include "spreadsheet_intern.hh"
@@ -277,10 +279,12 @@ static void draw_column_reorder_source(const uint pos,
 {
   const ReorderColumnVisualizationData &data =
       *sspreadsheet.runtime->reorder_column_visualization_data;
+  const SpreadsheetTable &table = *get_active_table(sspreadsheet);
+  const SpreadsheetColumn &moving_column = *table.columns[data.old_index];
 
   rctf rect;
-  rect.xmin = data.column_to_move->runtime->left_x - scroll_offset_x;
-  rect.xmax = data.column_to_move->runtime->right_x - scroll_offset_x;
+  rect.xmin = moving_column.runtime->left_x - scroll_offset_x;
+  rect.xmax = moving_column.runtime->right_x - scroll_offset_x;
   rect.ymin = 0;
   rect.ymax = region.winy;
 
@@ -297,6 +301,9 @@ static void draw_column_reorder_destination(const ARegion &region,
 {
   const ReorderColumnVisualizationData &data =
       *sspreadsheet.runtime->reorder_column_visualization_data;
+  const SpreadsheetTable &table = *get_active_table(sspreadsheet);
+  const SpreadsheetColumn &moving_column = *table.columns[data.old_index];
+  const SpreadsheetColumn &insert_column = *table.columns[data.new_index];
 
   {
     /* Draw column that is moved. */
@@ -304,10 +311,10 @@ static void draw_column_reorder_destination(const ARegion &region,
     UI_GetThemeColorShade4fv(TH_BACK, -20, color);
     color.a = 0.3f;
     rctf offset_column_rect;
-    offset_column_rect.xmin = data.column_to_move->runtime->left_x + data.current_offset_x_px -
+    offset_column_rect.xmin = moving_column.runtime->left_x + data.current_offset_x_px -
                               scroll_offset_x;
     offset_column_rect.xmax = offset_column_rect.xmin +
-                              data.column_to_move->width * SPREADSHEET_WIDTH_UNIT;
+                              moving_column.width * SPREADSHEET_WIDTH_UNIT;
     offset_column_rect.ymin = 0;
     offset_column_rect.ymax = region.winy;
     UI_draw_roundbox_4fv(&offset_column_rect, true, 0, color);
@@ -317,10 +324,8 @@ static void draw_column_reorder_destination(const ARegion &region,
     ColorTheme4f color;
     UI_GetThemeColorShade4fv(TH_TEXT, 20, color);
     color.a = 0.6f;
-    const SpreadsheetColumn *first_column = static_cast<const SpreadsheetColumn *>(
-        sspreadsheet.columns.first);
-    const int insert_column_x = data.new_prev_column ? data.new_prev_column->runtime->right_x :
-                                                       first_column->runtime->left_x;
+    const int insert_column_x = data.new_index <= data.old_index ? insert_column.runtime->left_x :
+                                                                   insert_column.runtime->right_x;
     const int width = UI_UNIT_X * 0.1f;
     rctf insert_rect;
     insert_rect.xmin = insert_column_x - width / 2 - scroll_offset_x;

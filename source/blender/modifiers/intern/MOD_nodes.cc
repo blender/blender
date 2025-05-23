@@ -848,7 +848,7 @@ static void find_side_effect_nodes(const NodesModifierData &nmd,
       if (sl->spacetype == SPACE_SPREADSHEET) {
         const SpaceSpreadsheet &sspreadsheet = *reinterpret_cast<const SpaceSpreadsheet *>(sl);
         find_side_effect_nodes_for_viewer_path(
-            sspreadsheet.viewer_path, nmd, ctx, r_side_effect_nodes);
+            sspreadsheet.geometry_id.viewer_path, nmd, ctx, r_side_effect_nodes);
       }
       if (sl->spacetype == SPACE_VIEW3D) {
         const View3D &v3d = *reinterpret_cast<const View3D *>(sl);

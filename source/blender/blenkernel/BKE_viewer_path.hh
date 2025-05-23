@@ -47,6 +47,7 @@ void BKE_viewer_path_copy(ViewerPath *dst, const ViewerPath *src);
 bool BKE_viewer_path_equal(const ViewerPath *a,
                            const ViewerPath *b,
                            ViewerPathEqualFlag flag = ViewerPathEqualFlag(0));
+uint64_t BKE_viewer_path_hash(const ViewerPath &viewer_path);
 void BKE_viewer_path_blend_write(BlendWriter *writer, const ViewerPath *viewer_path);
 void BKE_viewer_path_blend_read_data(BlendDataReader *reader, ViewerPath *viewer_path);
 void BKE_viewer_path_foreach_id(LibraryForeachIDData *data, ViewerPath *viewer_path);
@@ -67,4 +68,5 @@ ViewerPathElem *BKE_viewer_path_elem_copy(const ViewerPathElem *src);
 bool BKE_viewer_path_elem_equal(const ViewerPathElem *a,
                                 const ViewerPathElem *b,
                                 ViewerPathEqualFlag flag = ViewerPathEqualFlag(0));
+uint64_t BKE_viewer_path_elem_hash(const ViewerPathElem &elem);
 void BKE_viewer_path_elem_free(ViewerPathElem *elem);

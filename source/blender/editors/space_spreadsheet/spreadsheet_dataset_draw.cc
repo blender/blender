@@ -664,11 +664,11 @@ std::optional<bool> InstancesTreeViewItem::should_be_active() const
 
   Vector<SpreadsheetInstanceID> instance_ids;
   this->get_parent_instance_ids(instance_ids);
-  if (sspreadsheet.instance_ids_num != instance_ids.size()) {
+  if (sspreadsheet.geometry_id.instance_ids_num != instance_ids.size()) {
     return false;
   }
   for (const int i : instance_ids.index_range()) {
-    const SpreadsheetInstanceID &a = sspreadsheet.instance_ids[i];
+    const SpreadsheetInstanceID &a = sspreadsheet.geometry_id.instance_ids[i];
     const SpreadsheetInstanceID &b = instance_ids[i];
     if (a.reference_index != b.reference_index) {
       return false;
@@ -684,11 +684,12 @@ void InstancesTreeViewItem::on_activate(bContext &C)
 
   SpaceSpreadsheet &sspreadsheet = *CTX_wm_space_spreadsheet(&C);
 
-  MEM_SAFE_FREE(sspreadsheet.instance_ids);
-  sspreadsheet.instance_ids = MEM_calloc_arrayN<SpreadsheetInstanceID>(instance_ids.size(),
-                                                                       __func__);
-  sspreadsheet.instance_ids_num = instance_ids.size();
-  initialized_copy_n(instance_ids.data(), instance_ids.size(), sspreadsheet.instance_ids);
+  MEM_SAFE_FREE(sspreadsheet.geometry_id.instance_ids);
+  sspreadsheet.geometry_id.instance_ids = MEM_calloc_arrayN<SpreadsheetInstanceID>(
+      instance_ids.size(), __func__);
+  sspreadsheet.geometry_id.instance_ids_num = instance_ids.size();
+  initialized_copy_n(
+      instance_ids.data(), instance_ids.size(), sspreadsheet.geometry_id.instance_ids);
 
   WM_main_add_notifier(NC_SPACE | ND_SPACE_SPREADSHEET, nullptr);
 }
@@ -713,12 +714,12 @@ void DataSetViewItem::on_activate(bContext &C)
   bScreen &screen = *CTX_wm_screen(&C);
   SpaceSpreadsheet &sspreadsheet = *CTX_wm_space_spreadsheet(&C);
 
-  sspreadsheet.geometry_component_type = uint8_t(data_id->component_type);
+  sspreadsheet.geometry_id.geometry_component_type = uint8_t(data_id->component_type);
   if (data_id->domain) {
-    sspreadsheet.attribute_domain = uint8_t(*data_id->domain);
+    sspreadsheet.geometry_id.attribute_domain = uint8_t(*data_id->domain);
   }
   if (data_id->layer_index) {
-    sspreadsheet.active_layer_index = *data_id->layer_index;
+    sspreadsheet.geometry_id.layer_index = *data_id->layer_index;
   }
   PointerRNA ptr = RNA_pointer_create_discrete(&screen.id, &RNA_SpaceSpreadsheet, &sspreadsheet);
   /* These updates also make sure that the attribute domain is set properly based on the
@@ -736,18 +737,18 @@ std::optional<bool> DataSetViewItem::should_be_active() const
   if (!data_id) {
     return false;
   }
-  if (bke::GeometryComponent::Type(sspreadsheet.geometry_component_type) !=
+  if (bke::GeometryComponent::Type(sspreadsheet.geometry_id.geometry_component_type) !=
       data_id->component_type)
   {
     return false;
   }
   if (data_id->domain) {
-    if (bke::AttrDomain(sspreadsheet.attribute_domain) != data_id->domain) {
+    if (bke::AttrDomain(sspreadsheet.geometry_id.attribute_domain) != data_id->domain) {
       return false;
     }
   }
   if (data_id->layer_index) {
-    if (sspreadsheet.active_layer_index != *data_id->layer_index) {
+    if (sspreadsheet.geometry_id.layer_index != *data_id->layer_index) {
       return false;
     }
   }
@@ -923,7 +924,7 @@ class ViewerPathTreeView : public ui::AbstractTreeView {
 
   void build_tree() override
   {
-    const ViewerPath &viewer_path = sspreadsheet_.viewer_path;
+    const ViewerPath &viewer_path = sspreadsheet_.geometry_id.viewer_path;
 
     int index;
     LISTBASE_FOREACH_INDEX (const ViewerPathElem *, elem, &viewer_path.path, index) {
@@ -1023,7 +1024,7 @@ static void draw_context_panel_content(const bContext &C, uiLayout &layout)
   bScreen &screen = *CTX_wm_screen(&C);
   SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(&C);
 
-  ViewerPath &viewer_path = sspreadsheet->viewer_path;
+  ViewerPath &viewer_path = sspreadsheet->geometry_id.viewer_path;
   ID *root_id = get_current_id(sspreadsheet);
   if (!root_id) {
     draw_context_panel_without_context(layout);
@@ -1039,7 +1040,7 @@ static void draw_context_panel_content(const bContext &C, uiLayout &layout)
 
   layout.prop(&sspreadsheet_ptr, "object_eval_state", UI_ITEM_NONE, "", ICON_NONE);
 
-  if (sspreadsheet->object_eval_state == SPREADSHEET_OBJECT_EVAL_STATE_VIEWER_NODE &&
+  if (sspreadsheet->geometry_id.object_eval_state == SPREADSHEET_OBJECT_EVAL_STATE_VIEWER_NODE &&
       viewer_path_ends_with_viewer_node(viewer_path))
   {
     if (uiLayout *panel = layout.panel(&C, "viewer path", true, IFACE_("Viewer Path"))) {
@@ -1057,7 +1058,7 @@ static void draw_context_panel(const bContext &C, uiLayout &layout)
   if (ID *root_id = get_current_id(&sspreadsheet)) {
     std::string label = BKE_id_name(*root_id);
     if (!context_panel.body) {
-      switch (sspreadsheet.object_eval_state) {
+      switch (sspreadsheet.geometry_id.object_eval_state) {
         case SPREADSHEET_OBJECT_EVAL_STATE_EVALUATED:
           label += " (Evaluated)";
           break;
@@ -1111,7 +1112,8 @@ void spreadsheet_data_set_panel_draw(const bContext *C, Panel *panel)
   }
   if (uiLayout *panel = layout->panel(C, "geometry_domain_tree_view", false, IFACE_("Domain"))) {
     bke::GeometrySet instance_geometry = get_geometry_set_for_instance_ids(
-        root_geometry, {sspreadsheet->instance_ids, sspreadsheet->instance_ids_num});
+        root_geometry,
+        {sspreadsheet->geometry_id.instance_ids, sspreadsheet->geometry_id.instance_ids_num});
     ui::AbstractTreeView *tree_view = UI_block_add_view(
         *block,
         "Data Set Tree View",

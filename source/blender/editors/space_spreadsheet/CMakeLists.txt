@@ -25,6 +25,7 @@ set(SRC
   spreadsheet_panels.cc
   spreadsheet_row_filter.cc
   spreadsheet_row_filter_ui.cc
+  spreadsheet_table.cc
 
   spreadsheet_column.hh
   spreadsheet_column_values.hh
@@ -36,6 +37,7 @@ set(SRC
   spreadsheet_layout.hh
   spreadsheet_row_filter.hh
   spreadsheet_row_filter_ui.hh
+  spreadsheet_table.hh
 )
 
 set(LIB

@@ -159,7 +159,7 @@ void activate_geometry_node(Main &bmain, SpaceNode &snode, bNode &node)
       if (sl->spacetype == SPACE_SPREADSHEET) {
         SpaceSpreadsheet &sspreadsheet = *reinterpret_cast<SpaceSpreadsheet *>(sl);
         if (!(sspreadsheet.flag & SPREADSHEET_FLAG_PINNED)) {
-          sspreadsheet.object_eval_state = SPREADSHEET_OBJECT_EVAL_STATE_VIEWER_NODE;
+          sspreadsheet.geometry_id.object_eval_state = SPREADSHEET_OBJECT_EVAL_STATE_VIEWER_NODE;
         }
       }
       else if (sl->spacetype == SPACE_VIEW3D) {

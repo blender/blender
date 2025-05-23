@@ -4,9 +4,11 @@
 
 #include <fmt/format.h>
 
+#include "DNA_array_utils.hh"
 #include "DNA_space_types.h"
 
 #include "ED_screen.hh"
+#include "ED_spreadsheet.hh"
 
 #include "BLI_listbase.h"
 #include "BLI_rect.h"
@@ -92,8 +94,8 @@ static wmOperatorStatus select_component_domain_invoke(bContext *C,
   bke::AttrDomain domain = bke::AttrDomain(RNA_int_get(op->ptr, "attribute_domain_type"));
 
   SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(C);
-  sspreadsheet->geometry_component_type = uint8_t(component_type);
-  sspreadsheet->attribute_domain = uint8_t(domain);
+  sspreadsheet->geometry_id.geometry_component_type = uint8_t(component_type);
+  sspreadsheet->geometry_id.attribute_domain = uint8_t(domain);
 
   /* Refresh header and main region. */
   WM_main_add_notifier(NC_SPACE | ND_SPACE_SPREADSHEET, nullptr);
@@ -133,7 +135,9 @@ struct ResizeColumnData {
 static wmOperatorStatus resize_column_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   ARegion &region = *CTX_wm_region(C);
+  SpaceSpreadsheet &sspreadsheet = *CTX_wm_space_spreadsheet(C);
 
+  SpreadsheetTable &table = *get_active_table(sspreadsheet);
   ResizeColumnData &data = *static_cast<ResizeColumnData *>(op->customdata);
 
   auto cancel = [&]() {
@@ -143,6 +147,7 @@ static wmOperatorStatus resize_column_modal(bContext *C, wmOperator *op, const w
     return OPERATOR_CANCELLED;
   };
   auto finish = [&]() {
+    table.flag |= SPREADSHEET_TABLE_FLAG_MANUALLY_EDITED;
     MEM_delete(&data);
     ED_region_tag_redraw(&region);
     return OPERATOR_FINISHED;
@@ -185,8 +190,12 @@ SpreadsheetColumn *find_hovered_column_edge(SpaceSpreadsheet &sspreadsheet,
                                             ARegion &region,
                                             const int2 &cursor_re)
 {
+  SpreadsheetTable *table = get_active_table(sspreadsheet);
+  if (!table) {
+    return nullptr;
+  }
   const float cursor_x_view = UI_view2d_region_to_view_x(&region.v2d, cursor_re.x);
-  LISTBASE_FOREACH (SpreadsheetColumn *, column, &sspreadsheet.columns) {
+  for (SpreadsheetColumn *column : Span{table->columns, table->num_columns}) {
     if (std::abs(cursor_x_view - column->runtime->right_x) < SPREADSHEET_EDGE_ACTION_ZONE) {
       return column;
     }
@@ -198,8 +207,12 @@ SpreadsheetColumn *find_hovered_column(SpaceSpreadsheet &sspreadsheet,
                                        ARegion &region,
                                        const int2 &cursor_re)
 {
+  SpreadsheetTable *table = get_active_table(sspreadsheet);
+  if (!table) {
+    return nullptr;
+  }
   const float cursor_x_view = UI_view2d_region_to_view_x(&region.v2d, cursor_re.x);
-  LISTBASE_FOREACH (SpreadsheetColumn *, column, &sspreadsheet.columns) {
+  for (SpreadsheetColumn *column : Span{table->columns, table->num_columns}) {
     if (cursor_x_view > column->runtime->left_x && cursor_x_view <= column->runtime->right_x) {
       return column;
     }
@@ -281,6 +294,9 @@ static wmOperatorStatus fit_column_invoke(bContext *C, wmOperator * /*op*/, cons
     return OPERATOR_CANCELLED;
   }
 
+  SpreadsheetTable &table = *get_active_table(sspreadsheet);
+  table.flag |= SPREADSHEET_TABLE_FLAG_MANUALLY_EDITED;
+
   const float width_px = values->fit_column_width_px();
   column->width = width_px / SPREADSHEET_WIDTH_UNIT;
 
@@ -323,6 +339,9 @@ static wmOperatorStatus reorder_columns_invoke(bContext *C, wmOperator *op, cons
 
   WM_cursor_set(CTX_wm_window(C), WM_CURSOR_HAND_CLOSED);
 
+  SpreadsheetTable *table = get_active_table(sspreadsheet);
+  const int old_index = Span{table->columns, table->num_columns}.first_index(column_to_move);
+
   ReorderColumnData *data = MEM_new<ReorderColumnData>(__func__);
   data->column = column_to_move;
   data->initial_cursor_x_view = UI_view2d_region_to_view_x(&region.v2d, cursor_re.x);
@@ -330,8 +349,8 @@ static wmOperatorStatus reorder_columns_invoke(bContext *C, wmOperator *op, cons
 
   ReorderColumnVisualizationData &visualization_data =
       sspreadsheet.runtime->reorder_column_visualization_data.emplace();
-  visualization_data.column_to_move = column_to_move;
-  visualization_data.new_prev_column = column_to_move->prev;
+  visualization_data.old_index = old_index;
+  visualization_data.new_index = old_index;
   visualization_data.current_offset_x_px = 0;
 
   UI_view2d_edge_pan_init(C, &data->pan_data, 0, 0, 1, 26, 0.5f, 0.0f);
@@ -353,26 +372,22 @@ static wmOperatorStatus reorder_columns_modal(bContext *C, wmOperator *op, const
   const int2 cursor_re{event->mval[0], event->mval[1]};
   ReorderColumnData &data = *static_cast<ReorderColumnData *>(op->customdata);
 
-  /* Detect the column that we want to insert to on the right. If it ends up being null, the column
-   * is inserted in the beginning. */
-  SpreadsheetColumn *new_prev_column = nullptr;
+  SpreadsheetTable &table = *get_active_table(sspreadsheet);
+  Span<SpreadsheetColumn *> columns(table.columns, table.num_columns);
+
+  const int old_index = columns.first_index(data.column);
+  int new_index = 0;
+
   SpreadsheetColumn *hovered_column = find_hovered_column(sspreadsheet, region, cursor_re);
   if (hovered_column) {
-    const int moved_column_index = BLI_findindex(&sspreadsheet.columns, data.column);
-    const int hovered_column_index = BLI_findindex(&sspreadsheet.columns, hovered_column);
-    if (hovered_column_index <= moved_column_index) {
-      new_prev_column = hovered_column->prev;
-    }
-    else {
-      new_prev_column = hovered_column;
-    }
+    new_index = columns.first_index(hovered_column);
   }
   else {
     if (cursor_re.x > sspreadsheet.runtime->left_column_width) {
-      new_prev_column = static_cast<SpreadsheetColumn *>(sspreadsheet.columns.last);
-      if (new_prev_column == data.column) {
-        new_prev_column = new_prev_column->prev;
-      }
+      new_index = columns.size() - 1;
+    }
+    else {
+      new_index = 0;
     }
   }
 
@@ -391,10 +406,10 @@ static wmOperatorStatus reorder_columns_modal(bContext *C, wmOperator *op, const
       return OPERATOR_CANCELLED;
     }
     case LEFTMOUSE: {
-      if (new_prev_column != data.column->prev) {
-        BLI_remlink(&sspreadsheet.columns, data.column);
-        BLI_insertlinkafter(&sspreadsheet.columns, new_prev_column, data.column);
+      if (old_index != new_index) {
+        dna::array::move_index(table.columns, table.num_columns, old_index, new_index);
       }
+      table.flag |= SPREADSHEET_TABLE_FLAG_MANUALLY_EDITED;
       cleanup_on_finish();
       return OPERATOR_FINISHED;
     }
@@ -403,7 +418,7 @@ static wmOperatorStatus reorder_columns_modal(bContext *C, wmOperator *op, const
 
       ReorderColumnVisualizationData &visualization_data =
           *sspreadsheet.runtime->reorder_column_visualization_data;
-      visualization_data.new_prev_column = new_prev_column;
+      visualization_data.new_index = new_index;
       visualization_data.current_offset_x_px = UI_view2d_region_to_view_x(&region.v2d,
                                                                           cursor_re.x) -
                                                data.initial_cursor_x_view;

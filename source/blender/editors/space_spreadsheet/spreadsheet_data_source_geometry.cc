@@ -48,6 +48,21 @@
 
 using blender::nodes::geo_eval_log::ViewerNodeLog;
 
+uint64_t SpreadsheetInstanceID::hash() const
+{
+  return blender::get_default_hash(this->reference_index);
+}
+
+bool operator==(const SpreadsheetInstanceID &a, const SpreadsheetInstanceID &b)
+{
+  return a.reference_index == b.reference_index;
+}
+
+bool operator!=(const SpreadsheetInstanceID &a, const SpreadsheetInstanceID &b)
+{
+  return !(a == b);
+}
+
 namespace blender::ed::spreadsheet {
 
 static void add_mesh_debug_column_names(
@@ -629,7 +644,7 @@ bke::GeometrySet spreadsheet_get_display_geometry_set(const SpaceSpreadsheet *ss
                                                       Object *object_eval)
 {
   bke::GeometrySet geometry_set;
-  if (sspreadsheet->object_eval_state == SPREADSHEET_OBJECT_EVAL_STATE_ORIGINAL) {
+  if (sspreadsheet->geometry_id.object_eval_state == SPREADSHEET_OBJECT_EVAL_STATE_ORIGINAL) {
     const Object *object_orig = DEG_get_original(object_eval);
     if (object_orig->type == OB_MESH) {
       const Mesh *mesh = static_cast<const Mesh *>(object_orig->data);
@@ -664,13 +679,13 @@ bke::GeometrySet spreadsheet_get_display_geometry_set(const SpaceSpreadsheet *ss
     }
   }
   else {
-    if (BLI_listbase_is_single(&sspreadsheet->viewer_path.path)) {
+    if (BLI_listbase_is_single(&sspreadsheet->geometry_id.viewer_path.path)) {
       geometry_set = bke::object_get_evaluated_geometry_set(*object_eval);
     }
     else {
       if (const ViewerNodeLog *viewer_log =
               nodes::geo_eval_log::GeoModifierLog::find_viewer_node_log_for_path(
-                  sspreadsheet->viewer_path))
+                  sspreadsheet->geometry_id.viewer_path))
       {
         geometry_set = viewer_log->geometry;
       }
@@ -709,11 +724,13 @@ std::unique_ptr<DataSource> data_source_from_geometry(const bContext *C, Object 
   const bke::GeometrySet root_geometry_set = spreadsheet_get_display_geometry_set(sspreadsheet,
                                                                                   object_eval);
   const bke::GeometrySet geometry_set = get_geometry_set_for_instance_ids(
-      root_geometry_set, Span{sspreadsheet->instance_ids, sspreadsheet->instance_ids_num});
+      root_geometry_set,
+      Span{sspreadsheet->geometry_id.instance_ids, sspreadsheet->geometry_id.instance_ids_num});
 
-  const bke::AttrDomain domain = (bke::AttrDomain)sspreadsheet->attribute_domain;
-  const auto component_type = bke::GeometryComponent::Type(sspreadsheet->geometry_component_type);
-  const int active_layer_index = sspreadsheet->active_layer_index;
+  const bke::AttrDomain domain = (bke::AttrDomain)sspreadsheet->geometry_id.attribute_domain;
+  const auto component_type = bke::GeometryComponent::Type(
+      sspreadsheet->geometry_id.geometry_component_type);
+  const int layer_index = sspreadsheet->geometry_id.layer_index;
   if (!geometry_set.has(component_type)) {
     return {};
   }
@@ -721,10 +738,11 @@ std::unique_ptr<DataSource> data_source_from_geometry(const bContext *C, Object 
   if (component_type == bke::GeometryComponent::Type::Volume) {
     return std::make_unique<VolumeDataSource>(std::move(geometry_set));
   }
-  Object *object_orig = sspreadsheet->instance_ids_num == 0 ? DEG_get_original(object_eval) :
-                                                              nullptr;
+  Object *object_orig = sspreadsheet->geometry_id.instance_ids_num == 0 ?
+                            DEG_get_original(object_eval) :
+                            nullptr;
   return std::make_unique<GeometryDataSource>(
-      object_orig, std::move(geometry_set), component_type, domain, active_layer_index);
+      object_orig, std::move(geometry_set), component_type, domain, layer_index);
 }
 
 }  // namespace blender::ed::spreadsheet
