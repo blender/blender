@@ -321,7 +321,7 @@ static PyObject *pygpu_batch_draw(BPyGPUBatch *self, PyObject *args)
 
   /* Emit a warning when trying to draw wide lines as it is too late to automatically switch to a
    * polyline shader. */
-  if (py_shader->is_builtin &&
+  if (py_shader && py_shader->is_builtin &&
       ELEM(self->batch->prim_type, GPU_PRIM_LINES, GPU_PRIM_LINE_STRIP, GPU_PRIM_LINE_LOOP))
   {
     GPUShader *shader = py_shader->shader;
