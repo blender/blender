@@ -41,13 +41,15 @@ void VKExtensions::log() const
             "Device extensions\n"
             " - [%c] dynamic rendering\n"
             " - [%c] dynamic rendering local read\n"
-            " - [%c] dynamic rendering unused attachments\n",
+            " - [%c] dynamic rendering unused attachments\n"
+            " - [%c] external memory",
             shader_output_viewport_index ? 'X' : ' ',
             shader_output_layer ? 'X' : ' ',
             fragment_shader_barycentric ? 'X' : ' ',
             dynamic_rendering ? 'X' : ' ',
             dynamic_rendering_local_read ? 'X' : ' ',
-            dynamic_rendering_unused_attachments ? 'X' : ' ');
+            dynamic_rendering_unused_attachments ? 'X' : ' ',
+            external_memory ? 'X' : ' ');
 }
 
 void VKDevice::reinit()
@@ -163,13 +165,15 @@ void VKDevice::init_functions()
   functions.vkCreateDebugUtilsMessenger = LOAD_FUNCTION(vkCreateDebugUtilsMessengerEXT);
   functions.vkDestroyDebugUtilsMessenger = LOAD_FUNCTION(vkDestroyDebugUtilsMessengerEXT);
 
-  /* VK_KHR_external_memory_fd */
-  functions.vkGetMemoryFd = LOAD_FUNCTION(vkGetMemoryFdKHR);
-
+  if (extensions_.external_memory) {
 #ifdef _WIN32
-  /* VK_KHR_external_memory_win32 */
-  functions.vkGetMemoryWin32Handle = LOAD_FUNCTION(vkGetMemoryWin32HandleKHR);
+    /* VK_KHR_external_memory_win32 */
+    functions.vkGetMemoryWin32Handle = LOAD_FUNCTION(vkGetMemoryWin32HandleKHR);
+#elif not defined(__APPLE__)
+    /* VK_KHR_external_memory_fd */
+    functions.vkGetMemoryFd = LOAD_FUNCTION(vkGetMemoryFdKHR);
 #endif
+  }
 
 #undef LOAD_FUNCTION
 }
@@ -247,6 +251,9 @@ void VKDevice::init_memory_allocator()
   info.instance = vk_instance_;
   vmaCreateAllocator(&info, &mem_allocator_);
 
+  if (!extensions_.external_memory) {
+    return;
+  }
   /* External memory pool */
   /* Initialize a dummy image create info to find the memory type index that will be used for
    * allocating. */

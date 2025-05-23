@@ -55,6 +55,11 @@ struct VKExtensions {
   bool dynamic_rendering_unused_attachments = false;
 
   /**
+   * Does the device support VK_EXT_external_memory_win32/VK_EXT_external_memory_fd
+   */
+  bool external_memory = false;
+
+  /**
    * Does the device support logic ops.
    */
   bool logic_ops = false;

@@ -394,6 +394,14 @@ void VKBackend::detect_workarounds(VKDevice &device)
   extensions.dynamic_rendering_unused_attachments = device.supports_extension(
       VK_EXT_DYNAMIC_RENDERING_UNUSED_ATTACHMENTS_EXTENSION_NAME);
   extensions.logic_ops = device.physical_device_features_get().logicOp;
+#ifdef _WIN32
+  extensions.external_memory = device.supports_extension(
+      VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME);
+#elif not defined(__APPLE__)
+  extensions.external_memory = device.supports_extension(VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME);
+#else
+  extensions.external_memory = false;
+#endif
 
   /* AMD GPUs don't support texture formats that use are aligned to 24 or 48 bits. */
   if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_ANY) ||

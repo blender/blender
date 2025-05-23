@@ -65,15 +65,9 @@ GPUPixelBufferNativeHandle VKPixelBuffer::get_native_handle()
   VKDevice &device = VKBackend::get().device;
 
   /* Functionality supported? */
-#ifdef _WIN32
-  if (!device.functions.vkGetMemoryWin32Handle) {
+  if (!device.extensions_get().external_memory) {
     return native_handle_;
   }
-#else
-  if (!device.functions.vkGetMemoryFd) {
-    return native_handle_;
-  }
-#endif
 
   /* Create buffer. */
   create(true);
