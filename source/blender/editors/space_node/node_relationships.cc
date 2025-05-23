@@ -49,7 +49,6 @@ struct NodeInsertOfsData {
   bNodeTree *ntree;
   bNode *insert;      /* Inserted node. */
   bNode *prev, *next; /* Previous/next node in the chain. */
-  bNode *insert_parent;
 
   wmTimer *anim_timer;
 
@@ -2642,59 +2641,7 @@ static void node_offset_apply(bNode &node, const float offset_x)
   }
 }
 
-static void node_parent_offset_apply(NodeInsertOfsData *data, bNode *parent, const float offset_x)
-{
-  node_offset_apply(*parent, offset_x);
-
-  /* Flag all children as offset to prevent them from being offset
-   * separately (they've already moved with the parent). */
-  for (bNode *node : data->ntree->all_nodes()) {
-    if (bke::node_is_parent_and_child(*parent, *node)) {
-      /* NODE_TEST is used to flag nodes that shouldn't be offset (again) */
-      node->flag |= NODE_TEST;
-    }
-  }
-}
-
 #define NODE_INSOFS_ANIM_DURATION 0.25f
-
-/**
- * Callback that applies #NodeInsertOfsData.offset_x to a node or its parent, similar
- * to node_link_insert_offset_output_chain_cb below, but with slightly different logic
- */
-static bool node_link_insert_offset_frame_chain_cb(bNode *fromnode,
-                                                   bNode *tonode,
-                                                   void *userdata,
-                                                   const bool reversed)
-{
-  NodeInsertOfsData *data = (NodeInsertOfsData *)userdata;
-  bNode *ofs_node = reversed ? fromnode : tonode;
-
-  if (ofs_node->parent && ofs_node->parent != data->insert_parent) {
-    node_offset_apply(*ofs_node->parent, data->offset_x);
-  }
-  else {
-    node_offset_apply(*ofs_node, data->offset_x);
-  }
-
-  return true;
-}
-
-/**
- * Applies #NodeInsertOfsData.offset_x to all children of \a parent.
- */
-static void node_link_insert_offset_frame_chains(bNodeTree *ntree,
-                                                 const bNode *parent,
-                                                 NodeInsertOfsData *data,
-                                                 const bool reversed)
-{
-  for (bNode *node : ntree->all_nodes()) {
-    if (bke::node_is_parent_and_child(*parent, *node)) {
-      bke::node_chain_iterator(
-          ntree, node, node_link_insert_offset_frame_chain_cb, data, reversed);
-    }
-  }
-}
 
 /**
  * Callback that applies NodeInsertOfsData.offset_x to a node or its parent,
@@ -2708,26 +2655,7 @@ static bool node_link_insert_offset_chain_cb(bNode *fromnode,
   NodeInsertOfsData *data = (NodeInsertOfsData *)userdata;
   bNode *ofs_node = reversed ? fromnode : tonode;
 
-  if (data->insert_parent) {
-    if (ofs_node->parent && (ofs_node->parent->flag & NODE_TEST) == 0) {
-      node_parent_offset_apply(data, ofs_node->parent, data->offset_x);
-      node_link_insert_offset_frame_chains(data->ntree, ofs_node->parent, data, reversed);
-    }
-    else {
-      node_offset_apply(*ofs_node, data->offset_x);
-    }
-
-    if (!bke::node_is_parent_and_child(*data->insert_parent, *ofs_node)) {
-      data->insert_parent = nullptr;
-    }
-  }
-  else if (ofs_node->parent) {
-    bNode *node = bke::node_find_root_parent(*ofs_node);
-    node_offset_apply(*node, data->offset_x);
-  }
-  else {
-    node_offset_apply(*ofs_node, data->offset_x);
-  }
+  node_offset_apply(*ofs_node, data->offset_x);
 
   return true;
 }
@@ -2818,14 +2746,7 @@ static void node_link_insert_offset_ntree(NodeInsertOfsData *iofsd,
     const float addval = (min_margin - dist) * (right_alignment ? 1.0f : -1.0f);
     if (needs_alignment) {
       bNode *offs_node = right_alignment ? next : prev;
-      if (!offs_node->parent || offs_node->parent == insert.parent ||
-          bke::node_is_parent_and_child(*offs_node->parent, insert))
-      {
-        node_offset_apply(*offs_node, addval);
-      }
-      else if (!insert.parent && offs_node->parent) {
-        node_offset_apply(*bke::node_find_root_parent(*offs_node), addval);
-      }
+      node_offset_apply(*offs_node, addval);
       margin = addval;
     }
     /* enough room is available, but we want to ensure the min margin at the right */
@@ -2836,7 +2757,6 @@ static void node_link_insert_offset_ntree(NodeInsertOfsData *iofsd,
   }
 
   if (needs_alignment) {
-    iofsd->insert_parent = insert.parent;
     iofsd->offset_x = margin;
 
     /* flag all parents of insert as offset to prevent them from being offset */
