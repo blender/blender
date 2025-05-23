@@ -172,6 +172,7 @@ class NODE_MT_geometry_node_grease_pencil_write(Menu):
         layout = self.layout
         node_add_menu.add_node_type(layout, "GeometryNodeSetGreasePencilColor")
         node_add_menu.add_node_type(layout, "GeometryNodeSetGreasePencilDepth")
+        node_add_menu.add_node_type(layout, "GeometryNodeSetGreasePencilSoftness")
         node_add_menu.draw_assets_for_catalog(layout, "Grease Pencil/Write")
 
 
