@@ -120,9 +120,9 @@ enum {
 /* Used to get the correct gpu texture from an Image datablock. */
 typedef enum eGPUTextureTarget {
   TEXTARGET_2D = 0,
-  TEXTARGET_2D_ARRAY,
-  TEXTARGET_TILE_MAPPING,
-  TEXTARGET_COUNT,
+  TEXTARGET_2D_ARRAY = 1,
+  TEXTARGET_TILE_MAPPING = 2,
+  TEXTARGET_COUNT = 3,
 } eGPUTextureTarget;
 
 typedef struct Image {

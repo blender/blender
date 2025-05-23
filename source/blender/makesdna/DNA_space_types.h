@@ -400,9 +400,9 @@ typedef struct FileSelectParams {
    * needs to be linked in, where `foo.blend/Armature` need adding.
    */
   char dir[/*FILE_MAX_LIBEXTRA*/ 1090];
-  char file[256];
+  char file[/*FILE_MAXFILE*/ 256];
 
-  char renamefile[256];
+  char renamefile[/*FILE_MAXFILE*/ 256];
   short rename_flag;
   char _pad[4];
   /** An ID that was just renamed. Used to identify a renamed asset file over re-reads, similar to

@@ -81,7 +81,7 @@ void filelist_init_icons();
 void filelist_free_icons();
 void filelist_file_get_full_path(const FileList *filelist,
                                  const FileDirEntry *file,
-                                 char r_filepath[/*FILE_MAX_LIBEXTRA*/]);
+                                 char r_filepath[/*FILE_MAX_LIBEXTRA*/ 1090]);
 bool filelist_file_is_preview_pending(const FileList *filelist, const FileDirEntry *file);
 /**
  * \return True if a new preview request was pushed, false otherwise (e.g. because the preview is

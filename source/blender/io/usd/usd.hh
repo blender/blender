@@ -234,7 +234,7 @@ struct USDImportParams {
   eUSDMtlNameCollisionMode mtl_name_collision_mode;
   eUSDTexImportMode import_textures_mode;
 
-  char import_textures_dir[768]; /* FILE_MAXDIR */
+  char import_textures_dir[/*FILE_MAXDIR*/ 768];
   eUSDTexNameCollisionMode tex_name_collision_mode;
   eUSDAttrImportMode attr_import_mode;
 

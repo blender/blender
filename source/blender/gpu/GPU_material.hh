@@ -165,7 +165,7 @@ struct GPULayerAttr {
 
   /* Meaningful part of the attribute set key. */
   char name[256]; /* Multiple MAX_CUSTOMDATA_LAYER_NAME */
-  /** Hash of name[68]. */
+  /** Hash of `name[68]`. */
   uint32_t hash_code;
 
   /* Helper fields used by code generation. */
@@ -208,9 +208,9 @@ enum eGPUDefaultValue {
 
 struct GPUMaterialAttribute {
   GPUMaterialAttribute *next, *prev;
-  int type;                /* eCustomDataType */
-  char name[68];           /* MAX_CUSTOMDATA_LAYER_NAME */
-  char input_name[12 + 1]; /* GPU_MAX_SAFE_ATTR_NAME + 1 */
+  int type; /* eCustomDataType */
+  char name[/*MAX_CUSTOMDATA_LAYER_NAME*/ 68];
+  char input_name[/*GPU_MAX_SAFE_ATTR_NAME + 1*/ 12 + 1];
   eGPUType gputype;
   eGPUDefaultValue default_value; /* Only for volumes attributes. */
   int id;
@@ -247,8 +247,8 @@ struct GPUUniformAttr {
   GPUUniformAttr *next, *prev;
 
   /* Meaningful part of the attribute set key. */
-  char name[68]; /* MAX_CUSTOMDATA_LAYER_NAME */
-  /** Hash of name[68] + use_dupli. */
+  char name[/*MAX_CUSTOMDATA_LAYER_NAME*/ 68];
+  /** Hash of `name[MAX_CUSTOMDATA_LAYER_NAME] + use_dupli`. */
   uint32_t hash_code;
   bool use_dupli;
 

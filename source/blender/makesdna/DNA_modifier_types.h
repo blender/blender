@@ -213,7 +213,7 @@ typedef struct MappingInfoModifierData {
 
   struct Tex *texture;
   struct Object *map_object;
-  char map_bone[64];
+  char map_bone[/*MAXBONENAME*/ 64];
   char uvlayer_name[/*MAX_CUSTOMDATA_LAYER_NAME*/ 68];
   char _pad1[4];
   int uvlayer_tmp;
@@ -631,7 +631,7 @@ typedef struct DisplaceModifierData {
 
   struct Tex *texture;
   struct Object *map_object;
-  char map_bone[64];
+  char map_bone[/*MAXBONENAME*/ 64];
   char uvlayer_name[/*MAX_CUSTOMDATA_LAYER_NAME*/ 68];
   char _pad1[4];
   int uvlayer_tmp;
@@ -785,7 +785,7 @@ typedef struct WaveModifierData {
 
   struct Tex *texture;
   struct Object *map_object;
-  char map_bone[64];
+  char map_bone[/*MAXBONENAME*/ 64];
   char uvlayer_name[/*MAX_CUSTOMDATA_LAYER_NAME*/ 68];
   char _pad1[4];
   int uvlayer_tmp;
@@ -1460,7 +1460,7 @@ typedef struct WarpModifierData {
 
   struct Tex *texture;
   struct Object *map_object;
-  char map_bone[64];
+  char map_bone[/*MAXBONENAME*/ 64];
   char uvlayer_name[/*MAX_CUSTOMDATA_LAYER_NAME*/ 68];
   char _pad1[4];
   int uvlayer_tmp;
@@ -1539,7 +1539,7 @@ typedef struct WeightVGEditModifierData {
   /** Name of the map object. */
   struct Object *mask_tex_map_obj;
   /** Name of the map bone. */
-  char mask_tex_map_bone[64];
+  char mask_tex_map_bone[/*MAXBONENAME*/ 64];
   /** How to map the texture (using MOD_DISP_MAP_* enums). */
   int mask_tex_mapping;
   /** Name of the UV map. */
@@ -1592,11 +1592,11 @@ typedef struct WeightVGMixModifierData {
   /** Name of the map object. */
   struct Object *mask_tex_map_obj;
   /** Name of the map bone. */
-  char mask_tex_map_bone[64];
+  char mask_tex_map_bone[/*MAXBONENAME*/ 64];
   /** How to map the texture. */
   int mask_tex_mapping;
   /** Name of the UV map. */
-  char mask_tex_uvlayer_name[68];
+  char mask_tex_uvlayer_name[/*MAX_CUSTOMDATA_LAYER_NAME*/ 68];
   char _pad1[4];
 
   char flag;
@@ -1681,7 +1681,7 @@ typedef struct WeightVGProximityModifierData {
   /** Name of the map object. */
   struct Object *mask_tex_map_obj;
   /** Name of the map bone. */
-  char mask_tex_map_bone[64];
+  char mask_tex_map_bone[/*MAXBONENAME*/ 64];
   /** How to map the texture. */
   int mask_tex_mapping;
   /** Name of the UV Map. */

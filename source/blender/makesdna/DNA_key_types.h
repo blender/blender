@@ -52,7 +52,7 @@ typedef struct KeyBlock {
    * E.g. meshes use float3. */
   void *data;
   /** Unique name, user assigned. */
-  char name[64];
+  char name[/*MAX_NAME*/ 64];
   /** Optional vertex group, array gets allocated into 'weights' when set. */
   char vgroup[/*MAX_VGROUP_NAME*/ 64];
 

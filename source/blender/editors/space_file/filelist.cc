@@ -1143,7 +1143,7 @@ void filelist_free_icons()
 
 void filelist_file_get_full_path(const FileList *filelist,
                                  const FileDirEntry *file,
-                                 char r_filepath[/*FILE_MAX_LIBEXTRA*/])
+                                 char r_filepath[FILE_MAX_LIBEXTRA])
 {
   if (file->asset) {
     const std::string asset_path = file->asset->full_path();

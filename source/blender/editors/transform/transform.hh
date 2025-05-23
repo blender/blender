@@ -809,8 +809,8 @@ struct TransInfo {
   /** Orientation matrix of the current space. */
   float spacemtx[3][3];
   float spacemtx_inv[3][3];
-  /** Name of the current space, MAX_NAME. */
-  char spacename[64];
+  /** Name of the current space. */
+  char spacename[/*MAX_NAME*/ 64];
 
   /*************** NEW STUFF *********************/
   /** Event type used to launch transform. */

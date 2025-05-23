@@ -60,7 +60,7 @@ struct LaplacianSystem {
   int anchors_num;
   int repeat;
   /** Vertex Group name */
-  char anchor_grp_name[64];
+  char anchor_grp_name[/*MAX_VGROUP_NAME*/ 64];
   /** Original vertex coordinates. */
   float (*co)[3];
   /** Original vertex normal. */
