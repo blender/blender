@@ -953,6 +953,7 @@ class NODE_PT_node_tree_interface(Panel):
         split.template_node_tree_interface(tree.interface)
 
         ops_col = split.column(align=True)
+        ops_col.enabled = tree.library is None
         ops_col.operator_menu_enum("node.interface_item_new", "item_type", icon='ADD', text="")
         ops_col.operator("node.interface_item_remove", icon='REMOVE', text="")
         ops_col.separator()
