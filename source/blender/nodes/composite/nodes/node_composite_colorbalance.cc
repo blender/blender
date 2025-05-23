@@ -15,6 +15,8 @@
 
 #include "FN_multi_function_builder.hh"
 
+#include "BKE_node_runtime.hh"
+
 #include "NOD_multi_function.hh"
 
 #include "RNA_access.hh"
