@@ -107,6 +107,10 @@ class NodeSocketViewItem : public BasicTreeViewItem {
 
   void build_row(uiLayout &row) override
   {
+    if (ID_IS_LINKED(&nodetree_)) {
+      uiLayoutSetEnabled(&row, false);
+    }
+
     uiLayoutSetPropDecorate(&row, false);
 
     uiLayout *input_socket_layout = uiLayoutRow(&row, true);
@@ -149,7 +153,7 @@ class NodeSocketViewItem : public BasicTreeViewItem {
 
   bool supports_renaming() const override
   {
-    return true;
+    return !ID_IS_LINKED(&nodetree_);
   }
   bool rename(const bContext &C, StringRefNull new_name) override
   {
@@ -189,6 +193,10 @@ class NodePanelViewItem : public BasicTreeViewItem {
 
   void build_row(uiLayout &row) override
   {
+    if (ID_IS_LINKED(&nodetree_)) {
+      uiLayoutSetEnabled(&row, false);
+    }
+
     this->add_label(row);
 
     uiLayout *sub = uiLayoutRow(&row, true);
@@ -208,7 +216,7 @@ class NodePanelViewItem : public BasicTreeViewItem {
 
   bool supports_renaming() const override
   {
-    return true;
+    return !ID_IS_LINKED(&nodetree_);
   }
   bool rename(const bContext &C, StringRefNull new_name) override
   {
