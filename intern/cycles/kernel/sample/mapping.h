@@ -228,4 +228,24 @@ ccl_device_inline float sample_exponential_distribution(const float rand, const 
   return -logf(1.0f - rand) * inv_lambda;
 }
 
+/* Generate random variable x following bounded exponential distribution
+ * p(x) = lambda * exp(-lambda * x) / (exp(-lambda * t.min) - exp(-lambda * t.max)),
+ * where lambda > 0 is the rate parameter.
+ * The generated sample lies in (t.min, t.max). */
+ccl_device_inline float sample_exponential_distribution(const float rand,
+                                                        const float lambda,
+                                                        const Interval<float> t)
+{
+  const float attenuation = 1.0f - expf(lambda * (t.min - t.max));
+  return clamp(t.min - logf(1.0f - rand * attenuation) / lambda, t.min, t.max);
+}
+
+ccl_device_inline Spectrum pdf_exponential_distribution(const float x,
+                                                        const Spectrum lambda,
+                                                        const Interval<float> t)
+{
+  const Spectrum attenuation = exp(-lambda * t.min) - exp(-lambda * t.max);
+  return safe_divide(lambda * exp(-lambda * clamp(x, t.min, t.max)), attenuation);
+}
+
 CCL_NAMESPACE_END

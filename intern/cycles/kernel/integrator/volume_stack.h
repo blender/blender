@@ -160,6 +160,25 @@ ccl_device_inline bool volume_is_homogeneous(KernelGlobals kg,
   return true;
 }
 
+template<const bool shadow, typename IntegratorGenericState>
+ccl_device_inline bool volume_is_homogeneous(KernelGlobals kg, const IntegratorGenericState state)
+{
+  for (int i = 0;; i++) {
+    const VolumeStack entry = volume_stack_read<shadow>(state, i);
+
+    if (entry.shader == SHADER_NONE) {
+      return true;
+    }
+
+    if (!volume_is_homogeneous(kg, entry)) {
+      return false;
+    }
+  }
+
+  kernel_assert(false);
+  return false;
+}
+
 enum VolumeSampleMethod {
   VOLUME_SAMPLE_NONE = 0,
   VOLUME_SAMPLE_DISTANCE = (1 << 0),
