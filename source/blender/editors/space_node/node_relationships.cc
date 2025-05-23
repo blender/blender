@@ -399,9 +399,9 @@ namespace viewer_linking {
  * \{ */
 
 /* Depending on the node tree type, different socket types are supported by viewer nodes. */
-static bool socket_can_be_viewed(const bNode &node, const bNodeSocket &socket)
+static bool socket_can_be_viewed(const bNodeSocket &socket)
 {
-  if (!node.is_socket_icon_drawn(socket)) {
+  if (!socket.is_icon_visible()) {
     return false;
   }
   if (STREQ(socket.idname, "NodeSocketVirtual")) {
@@ -440,7 +440,7 @@ static bNodeSocket *node_link_viewer_get_socket(bNodeTree &ntree,
   }
 
   ntree.ensure_topology_cache();
-  if (!socket_can_be_viewed(src_socket.owner_node(), src_socket)) {
+  if (!socket_can_be_viewed(src_socket)) {
     return nullptr;
   }
 
@@ -499,7 +499,7 @@ static bNodeSocket *determine_socket_to_view(bNode &node_to_view)
   int last_linked_data_socket_index = -1;
   bool has_linked_geometry_socket = false;
   for (bNodeSocket *socket : node_to_view.output_sockets()) {
-    if (!socket_can_be_viewed(node_to_view, *socket)) {
+    if (!socket_can_be_viewed(*socket)) {
       continue;
     }
     for (bNodeLink *link : socket->directly_linked_links()) {
@@ -523,7 +523,7 @@ static bNodeSocket *determine_socket_to_view(bNode &node_to_view)
   if (last_linked_data_socket_index == -1 && !has_linked_geometry_socket) {
     /* Return the first socket that can be viewed. */
     for (bNodeSocket *socket : node_to_view.output_sockets()) {
-      if (socket_can_be_viewed(node_to_view, *socket)) {
+      if (socket_can_be_viewed(*socket)) {
         return socket;
       }
     }
@@ -537,7 +537,7 @@ static bNodeSocket *determine_socket_to_view(bNode &node_to_view)
   for (const int offset : IndexRange(1, tot_outputs)) {
     const int index = (last_linked_data_socket_index + offset) % tot_outputs;
     bNodeSocket &output_socket = node_to_view.output_socket(index);
-    if (!socket_can_be_viewed(node_to_view, output_socket)) {
+    if (!socket_can_be_viewed(output_socket)) {
       continue;
     }
     if (has_linked_geometry_socket && output_socket.type == SOCK_GEOMETRY) {

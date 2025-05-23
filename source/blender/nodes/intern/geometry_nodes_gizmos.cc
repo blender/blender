@@ -297,7 +297,7 @@ static void foreach_active_gizmo_in_open_node_editor(
   /* Check gizmos on input sockets. */
   for (auto &&item : gizmo_propagation.gizmo_inputs_by_node_inputs.items()) {
     const bNodeSocket &socket = *item.key.socket;
-    if (!socket.affects_node_output()) {
+    if (socket.is_inactive()) {
       continue;
     }
     const bNode &node = socket.owner_node();

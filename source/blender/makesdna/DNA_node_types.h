@@ -202,13 +202,34 @@ typedef struct bNodeSocket {
    * \note: This is not the exact opposite of `is_visible()` which takes other things into account.
    */
   bool is_user_hidden() const;
-  bool is_available() const;
-  bool is_panel_collapsed() const;
+  /**
+   * Socket visibility depends on a few different factors like whether it's hidden by the user,
+   * it's available or it's inferred to be hidden based on other inputs.
+   *
+   * A visible socket has a valid #bNodeSocketRuntime::location. However, it may not actually be
+   * drawn as stand-alone socket if it's in a collapsed panel. To check for that, use
+   * #is_icon_visible.
+   */
   bool is_visible() const;
-  bool is_multi_input() const;
-  bool is_input() const;
-  bool is_output() const;
-
+  /**
+   * The socket is visible and it's drawn as a stand-alone icon in the node editor. So any parent
+   * panel is open.
+   */
+  bool is_icon_visible() const;
+  /**
+   * Unavailable sockets are usually treated as if they don't exist. It's not something that can be
+   * controlled by users for built-in nodes.
+   */
+  bool is_available() const;
+  /**
+   * Whether this socket is in a collapsed panel.
+   */
+  bool is_panel_collapsed() const;
+  /**
+   * Inputs may be grayed out if they are detected to be not affecting the output and the node is
+   * not itself some kind of output node.
+   */
+  bool is_inactive() const;
   /**
    * False when this input socket definitely does not affect the output.
    */
@@ -219,6 +240,10 @@ typedef struct bNodeSocket {
    * visibility is controlled by a menu should be hidden.
    */
   bool inferred_input_socket_visibility() const;
+
+  bool is_multi_input() const;
+  bool is_input() const;
+  bool is_output() const;
 
   /** Utility to access the value of the socket. */
   template<typename T> T *default_value_typed();
@@ -520,9 +545,6 @@ typedef struct bNode {
 
   /* This node is reroute which is not logically connected to any source of value. */
   bool is_dangling_reroute() const;
-
-  /* True if the socket is drawn and the icon is visible. */
-  bool is_socket_icon_drawn(const bNodeSocket &socket) const;
 
   /* The following methods are only available when #bNodeTree.ensure_topology_cache has been
    * called. */

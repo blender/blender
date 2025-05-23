@@ -900,11 +900,6 @@ inline bool bNode::is_dangling_reroute() const
   return this->runtime->is_dangling_reroute;
 }
 
-inline bool bNode::is_socket_icon_drawn(const bNodeSocket &socket) const
-{
-  return socket.is_visible() && (this->flag & NODE_HIDDEN || !socket.is_panel_collapsed());
-}
-
 inline blender::Span<bNode *> bNode::direct_children_in_frame() const
 {
   BLI_assert(blender::bke::node_tree_runtime::topology_cache_is_available(*this));
@@ -985,6 +980,15 @@ inline bool bNodeSocket::is_user_hidden() const
   return (this->flag & SOCK_HIDDEN) != 0;
 }
 
+inline bool bNodeSocket::is_inactive() const
+{
+  /* Gray out inputs that do not affect the output of the node currently.
+   * Don't gray out any inputs if the node has no outputs (in which case no input can affect the
+   * output). Otherwise, viewer node inputs would be inactive. */
+  return this->is_input() && !this->affects_node_output() &&
+         !this->owner_node().output_sockets().is_empty();
+}
+
 inline bool bNodeSocket::is_available() const
 {
   return (this->flag & SOCK_UNAVAIL) == 0;
@@ -999,6 +1003,12 @@ inline bool bNodeSocket::is_visible() const
 {
   return !this->is_user_hidden() && this->is_available() &&
          (this->is_output() || this->inferred_input_socket_visibility());
+}
+
+inline bool bNodeSocket::is_icon_visible() const
+{
+  return this->is_visible() &&
+         (this->owner_node().flag & NODE_HIDDEN || !this->is_panel_collapsed());
 }
 
 inline bNode &bNodeSocket::owner_node()
