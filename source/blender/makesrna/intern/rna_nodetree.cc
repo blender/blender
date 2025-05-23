@@ -3509,20 +3509,6 @@ static PointerRNA rna_NodeOutputFile_slot_file_get(CollectionPropertyIterator *i
   return ptr;
 }
 
-static void rna_NodeColorBalance_update_lgg(Main *bmain, Scene *scene, PointerRNA *ptr)
-{
-  ntreeCompositColorBalanceSyncFromLGG(reinterpret_cast<bNodeTree *>(ptr->owner_id),
-                                       ptr->data_as<bNode>());
-  rna_Node_update(bmain, scene, ptr);
-}
-
-static void rna_NodeColorBalance_update_cdl(Main *bmain, Scene *scene, PointerRNA *ptr)
-{
-  ntreeCompositColorBalanceSyncFromCDL(reinterpret_cast<bNodeTree *>(ptr->owner_id),
-                                       ptr->data_as<bNode>());
-  rna_Node_update(bmain, scene, ptr);
-}
-
 /* --------------------------------------------------------------------
  * Glare Node Compatibility Setters/Getters.
  *
@@ -4242,6 +4228,19 @@ static const char node_input_extend_bounds[] = "Extend Bounds";
 static const char node_input_x[] = "X";
 static const char node_input_y[] = "Y";
 
+/* Color Balance node. */
+static const char node_input_color_lift[] = "Color Lift";
+static const char node_input_color_gamma[] = "Color Gamma";
+static const char node_input_color_gain[] = "Color Gain";
+static const char node_input_color_offset[] = "Color Offset";
+static const char node_input_color_power[] = "Color Power";
+static const char node_input_color_slope[] = "Color Slope";
+static const char node_input_base_offset[] = "Base Offset";
+static const char node_input_input_temperature[] = "Input Temperature";
+static const char node_input_input_tint[] = "Input Tint";
+static const char node_input_output_temperature[] = "Output Temperature";
+static const char node_input_output_tint[] = "Output Tint";
+
 /* --------------------------------------------------------------------
  * White Balance Node.
  */
@@ -4249,29 +4248,49 @@ static const char node_input_y[] = "Y";
 static void rna_NodeColorBalance_input_whitepoint_get(PointerRNA *ptr, float value[3])
 {
   bNode *node = ptr->data_as<bNode>();
-  NodeColorBalance *n = static_cast<NodeColorBalance *>(node->storage);
-  IMB_colormanagement_get_whitepoint(n->input_temperature, n->input_tint, value);
+  bNodeSocket *temperature_input = blender::bke::node_find_socket(
+      *node, SOCK_IN, "Input Temperature");
+  bNodeSocket *tint_input = blender::bke::node_find_socket(*node, SOCK_IN, "Input Tint");
+  IMB_colormanagement_get_whitepoint(
+      temperature_input->default_value_typed<bNodeSocketValueFloat>()->value,
+      tint_input->default_value_typed<bNodeSocketValueFloat>()->value,
+      value);
 }
 
 static void rna_NodeColorBalance_input_whitepoint_set(PointerRNA *ptr, const float value[3])
 {
   bNode *node = ptr->data_as<bNode>();
-  NodeColorBalance *n = static_cast<NodeColorBalance *>(node->storage);
-  IMB_colormanagement_set_whitepoint(value, n->input_temperature, n->input_tint);
+  bNodeSocket *temperature_input = blender::bke::node_find_socket(
+      *node, SOCK_IN, "Input Temperature");
+  bNodeSocket *tint_input = blender::bke::node_find_socket(*node, SOCK_IN, "Input Tint");
+  IMB_colormanagement_set_whitepoint(
+      value,
+      temperature_input->default_value_typed<bNodeSocketValueFloat>()->value,
+      tint_input->default_value_typed<bNodeSocketValueFloat>()->value);
 }
 
 static void rna_NodeColorBalance_output_whitepoint_get(PointerRNA *ptr, float value[3])
 {
   bNode *node = ptr->data_as<bNode>();
-  NodeColorBalance *n = static_cast<NodeColorBalance *>(node->storage);
-  IMB_colormanagement_get_whitepoint(n->output_temperature, n->output_tint, value);
+  bNodeSocket *temperature_input = blender::bke::node_find_socket(
+      *node, SOCK_IN, "Output Temperature");
+  bNodeSocket *tint_input = blender::bke::node_find_socket(*node, SOCK_IN, "Output Tint");
+  IMB_colormanagement_get_whitepoint(
+      temperature_input->default_value_typed<bNodeSocketValueFloat>()->value,
+      tint_input->default_value_typed<bNodeSocketValueFloat>()->value,
+      value);
 }
 
 static void rna_NodeColorBalance_output_whitepoint_set(PointerRNA *ptr, const float value[3])
 {
   bNode *node = ptr->data_as<bNode>();
-  NodeColorBalance *n = static_cast<NodeColorBalance *>(node->storage);
-  IMB_colormanagement_set_whitepoint(value, n->output_temperature, n->output_tint);
+  bNodeSocket *temperature_input = blender::bke::node_find_socket(
+      *node, SOCK_IN, "Output Temperature");
+  bNodeSocket *tint_input = blender::bke::node_find_socket(*node, SOCK_IN, "Output Tint");
+  IMB_colormanagement_set_whitepoint(
+      value,
+      temperature_input->default_value_typed<bNodeSocketValueFloat>()->value,
+      tint_input->default_value_typed<bNodeSocketValueFloat>()->value);
 }
 
 static void rna_NodeCryptomatte_source_set(PointerRNA *ptr, int value)
@@ -9200,79 +9219,127 @@ static void def_cmp_colorbalance(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_struct_sdna_from(srna, "NodeColorBalance", "storage");
 
   prop = RNA_def_property(srna, "lift", PROP_FLOAT, PROP_COLOR_GAMMA);
-  RNA_def_property_float_sdna(prop, nullptr, "lift");
+  RNA_def_property_float_funcs(
+      prop,
+      "rna_node_array_property_to_input_getter<float, node_input_color_lift>",
+      "rna_node_array_property_to_input_setter<float, node_input_color_lift>",
+      nullptr);
   RNA_def_property_array(prop, 3);
   RNA_def_property_float_array_default(prop, default_1);
   RNA_def_property_ui_range(prop, 0, 2, 0.1, 3);
-  RNA_def_property_ui_text(prop, "Lift", "Correction for shadows");
-  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeColorBalance_update_lgg");
+  RNA_def_property_ui_text(
+      prop, "Lift", "Correction for shadows. (Deprecated: Use Lift input instead.)");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "gamma", PROP_FLOAT, PROP_COLOR_GAMMA);
-  RNA_def_property_float_sdna(prop, nullptr, "gamma");
+  RNA_def_property_float_funcs(
+      prop,
+      "rna_node_array_property_to_input_getter<float, node_input_color_gamma>",
+      "rna_node_array_property_to_input_setter<float, node_input_color_gamma>",
+      nullptr);
   RNA_def_property_array(prop, 3);
   RNA_def_property_float_array_default(prop, default_1);
   RNA_def_property_ui_range(prop, 0, 2, 0.1, 3);
-  RNA_def_property_ui_text(prop, "Gamma", "Correction for midtones");
-  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeColorBalance_update_lgg");
+  RNA_def_property_ui_text(
+      prop, "Gamma", "Correction for midtones. (Deprecated: Use Gamma input instead.)");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "gain", PROP_FLOAT, PROP_COLOR_GAMMA);
-  RNA_def_property_float_sdna(prop, nullptr, "gain");
+  RNA_def_property_float_funcs(
+      prop,
+      "rna_node_array_property_to_input_getter<float, node_input_color_gain>",
+      "rna_node_array_property_to_input_setter<float, node_input_color_gain>",
+      nullptr);
   RNA_def_property_array(prop, 3);
   RNA_def_property_float_array_default(prop, default_1);
   RNA_def_property_ui_range(prop, 0, 2, 0.1, 3);
-  RNA_def_property_ui_text(prop, "Gain", "Correction for highlights");
-  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeColorBalance_update_lgg");
+  RNA_def_property_ui_text(
+      prop, "Gain", "Correction for highlights. (Deprecated: Use Gain input instead.)");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "offset", PROP_FLOAT, PROP_COLOR_GAMMA);
-  RNA_def_property_float_sdna(prop, nullptr, "offset");
+  RNA_def_property_float_funcs(
+      prop,
+      "rna_node_array_property_to_input_getter<float, node_input_color_offset>",
+      "rna_node_array_property_to_input_setter<float, node_input_color_offset>",
+      nullptr);
   RNA_def_property_array(prop, 3);
   RNA_def_property_ui_range(prop, 0, 1, 0.1, 3);
-  RNA_def_property_ui_text(prop, "Offset", "Correction for entire tonal range");
-  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeColorBalance_update_cdl");
+  RNA_def_property_ui_text(
+      prop,
+      "Offset",
+      "Correction for entire tonal range. (Deprecated: Use Offset input instead.)");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "power", PROP_FLOAT, PROP_COLOR_GAMMA);
-  RNA_def_property_float_sdna(prop, nullptr, "power");
+  RNA_def_property_float_funcs(
+      prop,
+      "rna_node_array_property_to_input_getter<float, node_input_color_power>",
+      "rna_node_array_property_to_input_setter<float, node_input_color_power>",
+      nullptr);
   RNA_def_property_array(prop, 3);
   RNA_def_property_float_array_default(prop, default_1);
   RNA_def_property_range(prop, 0.0f, FLT_MAX);
   RNA_def_property_ui_range(prop, 0, 2, 0.1, 3);
-  RNA_def_property_ui_text(prop, "Power", "Correction for midtones");
+  RNA_def_property_ui_text(
+      prop, "Power", "Correction for midtones. (Deprecated: Use Power input instead.)");
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_MOVIECLIP);
-  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeColorBalance_update_cdl");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "slope", PROP_FLOAT, PROP_COLOR_GAMMA);
-  RNA_def_property_float_sdna(prop, nullptr, "slope");
+  RNA_def_property_float_funcs(
+      prop,
+      "rna_node_array_property_to_input_getter<float, node_input_color_slope>",
+      "rna_node_array_property_to_input_setter<float, node_input_color_slope>",
+      nullptr);
   RNA_def_property_array(prop, 3);
   RNA_def_property_float_array_default(prop, default_1);
   RNA_def_property_range(prop, 0.0f, FLT_MAX);
   RNA_def_property_ui_range(prop, 0, 2, 0.1, 3);
-  RNA_def_property_ui_text(prop, "Slope", "Correction for highlights");
-  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeColorBalance_update_cdl");
+  RNA_def_property_ui_text(
+      prop, "Slope", "Correction for highlights. (Deprecated: Use Slope input instead.)");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "offset_basis", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_float_funcs(prop,
+                               "rna_node_property_to_input_getter<float, node_input_base_offset>",
+                               "rna_node_property_to_input_setter<float, node_input_base_offset>",
+                               nullptr);
   RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
   RNA_def_property_ui_range(prop, -1.0, 1.0, 1.0, 2);
-  RNA_def_property_ui_text(prop, "Basis", "Support negative color by using this as the RGB basis");
-  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeColorBalance_update_cdl");
+  RNA_def_property_ui_text(prop,
+                           "Basis",
+                           "Support negative color by using this as the RGB basis. (Deprecated: "
+                           "Use Offset Basis input instead.)");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "input_temperature", PROP_FLOAT, PROP_COLOR_TEMPERATURE);
-  RNA_def_property_float_sdna(prop, nullptr, "input_temperature");
+  RNA_def_property_float_funcs(
+      prop,
+      "rna_node_property_to_input_getter<float, node_input_input_temperature>",
+      "rna_node_property_to_input_setter<float, node_input_input_temperature>",
+      nullptr);
   RNA_def_property_float_default(prop, 6500.0f);
   RNA_def_property_range(prop, 1800.0f, 100000.0f);
   RNA_def_property_ui_range(prop, 2000.0f, 11000.0f, 100, 0);
-  RNA_def_property_ui_text(
-      prop, "Input Temperature", "Color temperature of the input's white point");
+  RNA_def_property_ui_text(prop,
+                           "Input Temperature",
+                           "Color temperature of the input's white point. (Deprecated: Use Input "
+                           "Temperature input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "input_tint", PROP_FLOAT, PROP_FACTOR);
-  RNA_def_property_float_sdna(prop, nullptr, "input_tint");
+  RNA_def_property_float_funcs(prop,
+                               "rna_node_property_to_input_getter<float, node_input_input_tint>",
+                               "rna_node_property_to_input_setter<float, node_input_input_tint>",
+                               nullptr);
   RNA_def_property_float_default(prop, 10.0f);
   RNA_def_property_range(prop, -500.0f, 500.0f);
   RNA_def_property_ui_range(prop, -150.0f, 150.0f, 1, 1);
-  RNA_def_property_ui_text(
-      prop,
-      "Input Tint",
-      "Color tint of the input's white point (the default of 10 matches daylight)");
+  RNA_def_property_ui_text(prop,
+                           "Input Tint",
+                           "Color tint of the input's white point (the default of 10 matches "
+                           "daylight). (Deprecated: Use Input Tint input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "input_whitepoint", PROP_FLOAT, PROP_COLOR);
@@ -9288,23 +9355,32 @@ static void def_cmp_colorbalance(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_update(prop, NC_WINDOW, "rna_Node_update");
 
   prop = RNA_def_property(srna, "output_temperature", PROP_FLOAT, PROP_COLOR_TEMPERATURE);
-  RNA_def_property_float_sdna(prop, nullptr, "output_temperature");
+  RNA_def_property_float_funcs(
+      prop,
+      "rna_node_property_to_input_getter<float, node_input_output_temperature>",
+      "rna_node_property_to_input_setter<float, node_input_output_temperature>",
+      nullptr);
   RNA_def_property_float_default(prop, 6500.0f);
   RNA_def_property_range(prop, 1800.0f, 100000.0f);
   RNA_def_property_ui_range(prop, 2000.0f, 11000.0f, 100, 0);
-  RNA_def_property_ui_text(
-      prop, "Output Temperature", "Color temperature of the output's white point");
+  RNA_def_property_ui_text(prop,
+                           "Output Temperature",
+                           "Color temperature of the output's white point. (Deprecated: Use "
+                           "Output Temperature input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "output_tint", PROP_FLOAT, PROP_FACTOR);
-  RNA_def_property_float_sdna(prop, nullptr, "output_tint");
+  RNA_def_property_float_funcs(prop,
+                               "rna_node_property_to_input_getter<float, node_input_output_tint>",
+                               "rna_node_property_to_input_setter<float, node_input_output_tint>",
+                               nullptr);
   RNA_def_property_float_default(prop, 10.0f);
   RNA_def_property_range(prop, -500.0f, 500.0f);
   RNA_def_property_ui_range(prop, -150.0f, 150.0f, 1, 1);
-  RNA_def_property_ui_text(
-      prop,
-      "Output Tint",
-      "Color tint of the output's white point (the default of 10 matches daylight)");
+  RNA_def_property_ui_text(prop,
+                           "Output Tint",
+                           "Color tint of the output's white point (the default of 10 matches "
+                           "daylight). (Deprecated: Use Output Tint input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "output_whitepoint", PROP_FLOAT, PROP_COLOR);

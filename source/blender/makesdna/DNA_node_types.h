@@ -1346,22 +1346,22 @@ typedef struct NodeLensDist {
 
 typedef struct NodeColorBalance {
   /* ASC CDL parameters. */
-  float slope[3];
-  float offset[3];
-  float power[3];
-  float offset_basis;
+  float slope[3] DNA_DEPRECATED;
+  float offset[3] DNA_DEPRECATED;
+  float power[3] DNA_DEPRECATED;
+  float offset_basis DNA_DEPRECATED;
   char _pad[4];
 
   /* LGG parameters. */
-  float lift[3];
-  float gamma[3];
-  float gain[3];
+  float lift[3] DNA_DEPRECATED;
+  float gamma[3] DNA_DEPRECATED;
+  float gain[3] DNA_DEPRECATED;
 
   /* White-point parameters. */
-  float input_temperature;
-  float input_tint;
-  float output_temperature;
-  float output_tint;
+  float input_temperature DNA_DEPRECATED;
+  float input_tint DNA_DEPRECATED;
+  float output_temperature DNA_DEPRECATED;
+  float output_tint DNA_DEPRECATED;
 } NodeColorBalance;
 
 typedef struct NodeColorspill {
