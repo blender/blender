@@ -260,6 +260,7 @@ static void sequencer_drop_copy(bContext *C, wmDrag *drag, wmDropBox *drop)
     RNA_int_set(drop->ptr, "frame_start", g_drop_coords.start_frame);
     RNA_int_set(drop->ptr, "channel", g_drop_coords.channel);
     RNA_boolean_set(drop->ptr, "overlap_shuffle_override", true);
+    RNA_boolean_set(drop->ptr, "skip_locked_or_muted_channels", false);
   }
   else {
     /* We are dropped inside the preview region. Put the strip on top of the

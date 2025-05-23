@@ -105,12 +105,19 @@ bool transform_seqbase_shuffle_ex(ListBase *seqbasep,
   BLI_assert(ELEM(channel_delta, -1, 1));
 
   strip_channel_set(test, test->channel + channel_delta);
-  while (transform_test_overlap(evil_scene, seqbasep, test)) {
+
+  const ListBase *channels = channels_displayed_get(editing_get(evil_scene));
+  SeqTimelineChannel *channel = channel_get_by_index(channels, test->channel);
+
+  while (transform_test_overlap(evil_scene, seqbasep, test) || channel_is_muted(channel) ||
+         channel_is_locked(channel))
+  {
     if ((channel_delta > 0) ? (test->channel >= MAX_CHANNELS) : (test->channel < 1)) {
       break;
     }
 
     strip_channel_set(test, test->channel + channel_delta);
+    channel = channel_get_by_index(channels, test->channel);
   }
 
   if (!is_valid_strip_channel(test)) {
