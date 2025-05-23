@@ -1248,7 +1248,7 @@ typedef struct NodeImageMultiFileSocket {
 
   /* Multi-layer output. */
   /** Subtract 2 because '.' and channel char are appended. */
-  char layer[/*EXR_TOT_MAXNAME - 2*/ 30];
+  char layer[/*EXR_TOT_MAXNAME - 2*/ 62];
   char _pad2[2];
 } NodeImageMultiFileSocket;
 

@@ -385,7 +385,7 @@ static void do_versions_nodetree_file_output_layers_2_64_5(bNodeTree *ntree)
 
         /* Multi-layer names are stored as separate strings now,
          * used the path string before, so copy it over. */
-        STRNCPY(input->layer, input->path);
+        STRNCPY_UTF8(input->layer, input->path);
 
         /* paths/layer names also have to be unique now, initial check */
         ntreeCompositOutputFileUniquePath(&node->inputs, sock, input->path, '_');
