@@ -746,10 +746,10 @@ static void ui_node_draw_recursive(uiLayout &layout,
     PointerRNA toggle_ptr = RNA_pointer_create_discrete(
         &ntree.id, &RNA_NodeSocket, &node.socket_by_decl(*panel_toggle_decl));
     panel_layout.header->prop(
-        &toggle_ptr, "default_value", UI_ITEM_NONE, panel_decl.name, ICON_NONE);
+        &toggle_ptr, "default_value", UI_ITEM_NONE, IFACE_(panel_decl.name), ICON_NONE);
   }
   else {
-    panel_layout.header->label(panel_decl.name, ICON_NONE);
+    panel_layout.header->label(IFACE_(panel_decl.name), ICON_NONE);
   }
 
   if (!panel_layout.body) {
