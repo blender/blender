@@ -1245,6 +1245,7 @@ class PlayheadSnappingPanel:
 
     @classmethod
     def poll(cls, context):
+        del context
         return True
 
     def draw(self, context):

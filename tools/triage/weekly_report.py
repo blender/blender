@@ -27,6 +27,8 @@ import re
 import shutil
 import sys
 
+from dataclasses import dataclass, field
+
 from gitea_utils import (
     gitea_json_activities_get,
     gitea_json_pull_request_by_base_and_head_get,
@@ -41,7 +43,6 @@ from typing import (
 from collections.abc import (
     Iterable,
 )
-from dataclasses import dataclass, field
 
 # Support piping the output to a file or process.
 IS_ATTY = sys.stdout.isatty()
@@ -243,7 +244,10 @@ def report_personal_weekly_get(
                             # against the default branch of the target repository.
                             if not is_release_branch and target_repo_json:
                                 pr = gitea_json_pull_request_by_base_and_head_get(
-                                    target_repo_fullname, target_repo_json["default_branch"], f"{repo_fullname}:{branch_name}")
+                                    target_repo_fullname,
+                                    target_repo_json["default_branch"],
+                                    f"{repo_fullname}:{branch_name}",
+                                )
                         branch = target_repo.branches[branch_name]
 
                         if pr:

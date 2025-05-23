@@ -62,7 +62,6 @@ def main() -> None:
 
     if sys.platform == "linux":
         strip_libs(args.directory)
-        return
 
 
 if __name__ == "__main__":

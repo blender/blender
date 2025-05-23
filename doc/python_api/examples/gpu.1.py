@@ -86,19 +86,22 @@ They can be set using the ``shader.uniform_*`` functions after the shader has be
 
 .. note::
 
-   It is important to note that GLSL sources are reinterpreted to MSL (Metal Shading Language) on Apple operating systems.
+   It is important to note that GLSL sources are reinterpreted to MSL (Metal Shading Language)
+   on Apple operating systems.
    This uses a small compatibility layer that does not cover the whole GLSL language specification.
    Here is a list of differences to keep in mind when targeting compatibility with Apple platforms:
 
-   * The only matrix constructors available are:
+   - The only matrix constructors available are:
 
       - diagonal scalar (example: ``mat2(1)``)
       - all scalars (example: ``mat2(1, 0, 0, 1)``)
       - column vector (example: ``mat2(vec2(1,0), vec2(0,1))``)
       - reshape constructors work only for square matrices (example: ``mat3(mat4(1))``)
 
-   * ``vertex``, ``fragment`` and ``kernel`` are reserved keywords.
-   * all types and keywords defined by the `MSL specification <https://developer.apple.com/metal/Metal-Shading-Language-Specification.pdf>`__ are reserved keywords and should not be used.
+   - ``vertex``, ``fragment`` and ``kernel`` are reserved keywords.
+   - all types and keywords defined by the
+     `MSL specification <https://developer.apple.com/metal/Metal-Shading-Language-Specification.pdf>`__
+     are reserved keywords and should not be used.
 
 
 Batch Creation

@@ -45,6 +45,7 @@ class SPREADSHEET_MT_editor_menus(bpy.types.Menu):
     bl_label = ""
 
     def draw(self, context):
+        del context
         layout = self.layout
         layout.menu("SPREADSHEET_MT_view")
 

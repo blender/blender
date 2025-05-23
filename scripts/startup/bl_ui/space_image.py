@@ -1744,9 +1744,12 @@ class IMAGE_PT_overlay_render_guides(Panel):
     @classmethod
     def poll(cls, context):
         sima = context.space_data
-        return ((sima.mode == 'MASK' or sima.mode == 'VIEW') and
-                (sima.image and sima.image.source == 'VIEWER' and
-                 sima.image.type == 'COMPOSITING'))
+        return (
+            (sima.mode in {'MASK', 'VIEW'}) and
+            (image := sima.image) is not None and
+            (image.source == 'VIEWER') and
+            (image.type == 'COMPOSITING')
+        )
 
     def draw(self, context):
         layout = self.layout
