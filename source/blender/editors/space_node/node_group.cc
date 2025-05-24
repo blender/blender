@@ -556,10 +556,8 @@ static bool node_group_separate_selected(
       bke::node_detach_node(ngroup, *newnode);
     }
 
-    if (!newnode->parent) {
-      newnode->location[0] += offset.x;
-      newnode->location[1] += offset.y;
-    }
+    newnode->location[0] += offset.x;
+    newnode->location[1] += offset.y;
   }
   if (!make_copy) {
     bke::node_rebuild_id_vector(ngroup);
@@ -1125,10 +1123,8 @@ static void node_group_make_insert_selected(const bContext &C,
 
   /* move nodes in the group to the center */
   for (bNode *node : nodes_to_move) {
-    if (!node->parent) {
-      node->location[0] -= center[0];
-      node->location[1] -= center[1];
-    }
+    node->location[0] -= center[0];
+    node->location[1] -= center[1];
   }
 
   for (bNodeLink *link : internal_links_to_move) {
