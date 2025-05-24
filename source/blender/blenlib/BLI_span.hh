@@ -60,13 +60,12 @@
 #include <array>
 #include <vector>
 
+#include "BLI_hash_fwd.hh"
 #include "BLI_index_range.hh"
 #include "BLI_memory_utils.hh"
 #include "BLI_utildefines.h"
 
 namespace blender {
-
-template<typename T> uint64_t get_default_hash(const T &v);
 
 /**
  * References an array of type T that is owned by someone else. The data in the array cannot be
