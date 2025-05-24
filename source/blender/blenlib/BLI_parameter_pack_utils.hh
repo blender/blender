@@ -11,6 +11,7 @@
  * This file has some utilities to work with such parameter packs.
  */
 
+#include <cstddef>
 #include <tuple>
 #include <type_traits>
 
