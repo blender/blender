@@ -130,7 +130,7 @@ ie::ElemVariant get_editable_gizmo_elem(const ComputeContext &gizmo_context,
 void apply_gizmo_change(bContext &C,
                         Object &object,
                         NodesModifierData &nmd,
-                        geo_eval_log::GeoModifierLog &eval_log,
+                        geo_eval_log::GeoNodesLog &eval_log,
                         const ComputeContext &gizmo_context,
                         const bNodeSocket &gizmo_socket,
                         FunctionRef<void(bke::SocketValueVariant &value)> apply_on_gizmo_value_fn);

@@ -1740,7 +1740,7 @@ std::string zone_wrapper_output_name(const ZoneBuildInfo &zone_info,
 }
 
 /**
- * Logs intermediate values from the lazy-function graph evaluation into #GeoModifierLog based on
+ * Logs intermediate values from the lazy-function graph evaluation into #GeoNodesLog based on
  * the mapping between the lazy-function graph and the corresponding #bNodeTree.
  */
 class GeometryNodesLazyFunctionLogger : public lf::GraphExecutor::Logger {
@@ -4243,7 +4243,7 @@ destruct_ptr<fn::LocalUserData> GeoNodesUserData::get_local(LinearAllocator<> &a
 
 void GeoNodesLocalUserData::ensure_tree_logger(const GeoNodesUserData &user_data) const
 {
-  if (geo_eval_log::GeoModifierLog *log = user_data.call_data->eval_log) {
+  if (geo_eval_log::GeoNodesLog *log = user_data.call_data->eval_log) {
     tree_logger_.emplace(&log->get_local_tree_logger(*user_data.compute_context));
     return;
   }

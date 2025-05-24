@@ -22,7 +22,7 @@ struct IDProperty;
 namespace blender::nodes {
 struct GeoNodesCallData;
 namespace geo_eval_log {
-class GeoModifierLog;
+class GeoNodesLog;
 }  // namespace geo_eval_log
 }  // namespace blender::nodes
 

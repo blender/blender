@@ -165,8 +165,8 @@ static void find_socket_log_contexts(const Main &bmain,
         }
         bke::ComputeContextCache compute_context_cache;
         const Map<const bke::bNodeTreeZone *, ComputeContextHash> hash_by_zone =
-            geo_log::GeoModifierLog::get_context_hash_by_zone_for_node_editor(
-                snode, compute_context_cache);
+            geo_log::GeoNodesLog::get_context_hash_by_zone_for_node_editor(snode,
+                                                                           compute_context_cache);
         for (const ComputeContextHash &hash : hash_by_zone.values()) {
           r_socket_log_contexts.add(hash);
         }
@@ -675,7 +675,7 @@ static wmOperatorStatus run_node_group_exec(bContext *C, wmOperator *op)
   bke::OperatorComputeContext compute_context;
   Set<ComputeContextHash> socket_log_contexts;
   GeoOperatorLog &eval_log = get_static_eval_log();
-  eval_log.log = std::make_unique<geo_log::GeoModifierLog>();
+  eval_log.log = std::make_unique<geo_log::GeoNodesLog>();
   eval_log.node_group_name = node_tree->id.name + 2;
   find_socket_log_contexts(*bmain, socket_log_contexts);
 

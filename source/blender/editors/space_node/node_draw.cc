@@ -2137,7 +2137,7 @@ static std::string node_socket_get_tooltip(const SpaceNode *snode,
   TreeDrawContext tree_draw_ctx;
   if (snode != nullptr) {
     if (ntree.type == NTREE_GEOMETRY) {
-      tree_draw_ctx.tree_logs = geo_log::GeoModifierLog::get_contextual_tree_logs(*snode);
+      tree_draw_ctx.tree_logs = geo_log::GeoNodesLog::get_contextual_tree_logs(*snode);
     }
   }
 
@@ -5246,7 +5246,7 @@ static void draw_nodetree(const bContext &C,
 
   BLI_SCOPED_DEFER([&]() { ntree.runtime->sockets_on_active_gizmo_paths.clear(); });
   if (ntree.type == NTREE_GEOMETRY) {
-    tree_draw_ctx.tree_logs = geo_log::GeoModifierLog::get_contextual_tree_logs(*snode);
+    tree_draw_ctx.tree_logs = geo_log::GeoNodesLog::get_contextual_tree_logs(*snode);
     tree_draw_ctx.tree_logs.foreach_tree_log([&](geo_log::GeoTreeLog &log) {
       log.ensure_node_warnings(*tree_draw_ctx.bmain);
       log.ensure_execution_times();

@@ -1847,7 +1847,7 @@ ListBase *object_duplilist_preview(Depsgraph *depsgraph,
       continue;
     }
     if (const geo_log::ViewerNodeLog *viewer_log =
-            geo_log::GeoModifierLog::find_viewer_node_log_for_path(*viewer_path))
+            geo_log::GeoNodesLog::find_viewer_node_log_for_path(*viewer_path))
     {
       ctx.preview_base_geometry = &viewer_log->geometry;
       make_duplis_geometry_set_impl(&ctx,

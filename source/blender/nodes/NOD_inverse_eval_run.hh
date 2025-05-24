@@ -35,7 +35,7 @@ struct SocketToUpdate {
 bool backpropagate_socket_values(bContext &C,
                                  Object &object,
                                  NodesModifierData &nmd,
-                                 geo_eval_log::GeoModifierLog &eval_log,
+                                 geo_eval_log::GeoNodesLog &eval_log,
                                  Span<SocketToUpdate> sockets_to_update);
 
 /**

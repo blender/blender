@@ -886,8 +886,8 @@ static void find_socket_log_contexts(const NodesModifierData &nmd,
           continue;
         }
         const Map<const bke::bNodeTreeZone *, ComputeContextHash> hash_by_zone =
-            geo_log::GeoModifierLog::get_context_hash_by_zone_for_node_editor(
-                snode, compute_context_cache);
+            geo_log::GeoNodesLog::get_context_hash_by_zone_for_node_editor(snode,
+                                                                           compute_context_cache);
         for (const ComputeContextHash &hash : hash_by_zone.values()) {
           r_socket_log_contexts.add(hash);
         }
@@ -1865,7 +1865,7 @@ static void modifyGeometry(ModifierData *md,
   nodes::GeoNodesModifierData modifier_eval_data{};
   modifier_eval_data.depsgraph = ctx->depsgraph;
   modifier_eval_data.self_object = ctx->object;
-  auto eval_log = std::make_unique<geo_log::GeoModifierLog>();
+  auto eval_log = std::make_unique<geo_log::GeoNodesLog>();
   call_data.modifier_data = &modifier_eval_data;
 
   NodesModifierSimulationParams simulation_params(*nmd, *ctx);

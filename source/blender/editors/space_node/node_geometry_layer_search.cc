@@ -68,7 +68,7 @@ static Vector<const std::string *> get_layer_names_from_context(const bContext &
   if (!tree_zones) {
     return {};
   }
-  const ContextualGeoTreeLogs tree_logs = GeoModifierLog::get_contextual_tree_logs(*snode);
+  const ContextualGeoTreeLogs tree_logs = GeoNodesLog::get_contextual_tree_logs(*snode);
 
   Set<StringRef> names;
 

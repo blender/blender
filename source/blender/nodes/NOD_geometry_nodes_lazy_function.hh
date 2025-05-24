@@ -219,7 +219,7 @@ struct GeoNodesCallData {
    * Optional logger that keeps track of data generated during evaluation to allow for better
    * debugging afterwards.
    */
-  geo_eval_log::GeoModifierLog *eval_log = nullptr;
+  geo_eval_log::GeoNodesLog *eval_log = nullptr;
   /**
    * Optional injected behavior for simulations.
    */
