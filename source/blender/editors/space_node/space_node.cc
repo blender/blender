@@ -462,7 +462,7 @@ static std::optional<const ComputeContext *> compute_context_for_tree_path(
     if (!current) {
       return std::nullopt;
     }
-    current = &compute_context_cache.for_group_node(current, *group_node, *tree);
+    current = &compute_context_cache.for_group_node(current, group_node->identifier, tree);
   }
   return current;
 }
@@ -508,13 +508,13 @@ static std::optional<const ComputeContext *> compute_context_for_tree_path(
       }
       if (node->is_type("GeometryNodeEvaluateClosure")) {
         return &compute_context_cache.for_evaluate_closure(
-            socket.context, node->identifier, node.node, source_location);
+            socket.context, node->identifier, &node->owner_tree(), source_location);
       }
       if (node->is_group()) {
         if (const bNodeTree *group = reinterpret_cast<const bNodeTree *>(node->id)) {
           group->ensure_topology_cache();
           const ComputeContext &group_compute_context = compute_context_cache.for_group_node(
-              socket.context, *node, node->owner_tree());
+              socket.context, node->identifier, &node->owner_tree());
           for (const bNode *input_node : group->group_input_nodes()) {
             const bNodeSocket &group_input_socket = input_node->output_socket(socket->index());
             if (group_input_socket.is_directly_linked()) {
@@ -528,8 +528,8 @@ static std::optional<const ComputeContext *> compute_context_for_tree_path(
         if (const auto *group_context = dynamic_cast<const bke::GroupNodeComputeContext *>(
                 socket.context))
         {
-          const bNodeTree *caller_group = group_context->caller_tree();
-          const bNode *caller_group_node = group_context->caller_group_node();
+          const bNodeTree *caller_group = group_context->tree();
+          const bNode *caller_group_node = group_context->node();
           if (caller_group && caller_group_node) {
             caller_group->ensure_topology_cache();
             const bNodeSocket &output_socket = caller_group_node->output_socket(socket->index());

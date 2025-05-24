@@ -1228,7 +1228,7 @@ class LazyFunctionForGroupNode : public LazyFunction {
 
     /* The compute context changes when entering a node group. */
     bke::GroupNodeComputeContext compute_context{
-        user_data->compute_context, group_node_, group_node_.owner_tree()};
+        user_data->compute_context, group_node_.identifier, &group_node_.owner_tree()};
 
     GeoNodesUserData group_user_data = *user_data;
     group_user_data.compute_context = &compute_context;

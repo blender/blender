@@ -778,7 +778,7 @@ GeoTreeLogger &GeoModifierLog::get_local_tree_logger(const ComputeContext &compu
   }
   if (const auto *context = dynamic_cast<const bke::GroupNodeComputeContext *>(&compute_context)) {
     tree_logger.parent_node_id.emplace(context->node_id());
-    if (const bNode *caller_node = context->caller_group_node()) {
+    if (const bNode *caller_node = context->node()) {
       tree_logger.tree_orig_session_uid = get_original_session_uid(caller_node->id);
     }
   }

@@ -58,40 +58,38 @@ class ModifierComputeContext : public ComputeContext {
   void print_current_in_line(std::ostream &stream) const override;
 };
 
-class GroupNodeComputeContext : public ComputeContext {
+class NodeComputeContext : public ComputeContext {
  private:
   int32_t node_id_;
-  /**
-   * The caller node tree and group node are not always necessary or even available, but storing
-   * them here simplifies "walking up" the compute context to the parent node groups.
-   */
-  const bNodeTree *caller_tree_ = nullptr;
-  const bNode *caller_group_node_ = nullptr;
+
+  /** This is optional and may not be known always when the compute context is created. */
+  const bNodeTree *tree_ = nullptr;
 
  public:
-  GroupNodeComputeContext(const ComputeContext *parent, int32_t node_id);
-  GroupNodeComputeContext(const ComputeContext *parent,
-                          const bNode &caller_group_node,
-                          const bNodeTree &caller_tree);
+  NodeComputeContext(const ComputeContext *parent,
+                     int32_t node_id,
+                     const bNodeTree *tree = nullptr);
 
   int32_t node_id() const
   {
     return node_id_;
   }
 
-  const bNode *caller_group_node() const
+  const bNodeTree *tree() const
   {
-    return caller_group_node_;
+    return tree_;
   }
 
-  const bNodeTree *caller_tree() const
-  {
-    return caller_tree_;
-  }
+  const bNode *node() const;
 
  private:
   ComputeContextHash compute_hash() const override;
   void print_current_in_line(std::ostream &stream) const override;
+};
+
+class GroupNodeComputeContext : public NodeComputeContext {
+ public:
+  using NodeComputeContext::NodeComputeContext;
 };
 
 class SimulationZoneComputeContext : public ComputeContext {
@@ -164,41 +162,21 @@ class ForeachGeometryElementZoneComputeContext : public ComputeContext {
   void print_current_in_line(std::ostream &stream) const override;
 };
 
-class EvaluateClosureComputeContext : public ComputeContext {
+class EvaluateClosureComputeContext : public NodeComputeContext {
  private:
-  int32_t node_id_;
-
-  /**
-   * Extra information that might not always be available.
-   */
-  const bNode *evaluate_node_ = nullptr;
   std::optional<nodes::ClosureSourceLocation> closure_source_location_;
 
  public:
-  EvaluateClosureComputeContext(const ComputeContext *parent, int32_t node_id);
   EvaluateClosureComputeContext(
       const ComputeContext *parent,
-      int32_t evaluate_node_id,
-      const bNode *evaluate_node,
-      const std::optional<nodes::ClosureSourceLocation> &closure_source_location);
-
-  int32_t node_id() const
-  {
-    return node_id_;
-  }
-  const bNode *evaluate_node() const
-  {
-    return evaluate_node_;
-  }
+      int32_t node_id,
+      const bNodeTree *tree = nullptr,
+      const std::optional<nodes::ClosureSourceLocation> &closure_source_location = std::nullopt);
 
   std::optional<nodes::ClosureSourceLocation> closure_source_location() const
   {
     return closure_source_location_;
   }
-
- private:
-  ComputeContextHash compute_hash() const override;
-  void print_current_in_line(std::ostream &stream) const override;
 };
 
 class OperatorComputeContext : public ComputeContext {

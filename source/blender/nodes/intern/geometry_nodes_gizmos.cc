@@ -223,7 +223,7 @@ static void foreach_gizmo_for_input(const ie::SocketElem &input_socket,
     const bNodeTree &group = *reinterpret_cast<const bNodeTree *>(node.id);
     group.ensure_topology_cache();
     const ComputeContext &group_compute_context = compute_context_cache.for_group_node(
-        compute_context, node, tree);
+        compute_context, node.identifier, &tree);
     foreach_gizmo_for_group_input(
         group,
         ie::GroupInputElem{input_socket.socket->index(), input_socket.elem},

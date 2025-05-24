@@ -129,7 +129,8 @@ static std::optional<ComputeContextHash> get_compute_context_hash_for_node_edito
        * deleted. */
       return std::nullopt;
     }
-    compute_context = &compute_context_cache.for_group_node(compute_context, *node, *tree);
+    compute_context = &compute_context_cache.for_group_node(
+        compute_context, node->identifier, tree);
   }
   return compute_context->hash();
 }

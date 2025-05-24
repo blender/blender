@@ -339,7 +339,7 @@ struct SocketUsageInferencer {
     /* The group node input is used if any of the matching group inputs within the group is
      * used. */
     const ComputeContext &group_context = compute_context_cache_.for_group_node(
-        socket.context, *node, node->owner_tree());
+        socket.context, node->identifier, &node->owner_tree());
     Vector<const bNodeSocket *> dependent_sockets;
     for (const bNode *group_input_node : group->group_input_nodes()) {
       dependent_sockets.append(&group_input_node->output_socket(socket->index()));
@@ -358,8 +358,7 @@ struct SocketUsageInferencer {
     /* The group output node is used if the matching output of the parent group node is used. */
     const bke::GroupNodeComputeContext &group_context =
         *static_cast<const bke::GroupNodeComputeContext *>(socket.context);
-    const bNodeSocket &group_node_output = group_context.caller_group_node()->output_socket(
-        output_i);
+    const bNodeSocket &group_node_output = group_context.node()->output_socket(output_i);
     this->usage_task__with_dependent_sockets(
         socket, {&group_node_output}, {}, group_context.parent());
   }
@@ -632,7 +631,7 @@ struct SocketUsageInferencer {
       return;
     }
     const ComputeContext &group_context = compute_context_cache_.for_group_node(
-        socket.context, *node, node->owner_tree());
+        socket.context, node->identifier, &node->owner_tree());
     const SocketInContext socket_in_group{&group_context,
                                           &group_output_node->input_socket(socket->index())};
     const std::optional<const void *> value = all_socket_values_.lookup_try(socket_in_group);
@@ -650,8 +649,8 @@ struct SocketUsageInferencer {
 
     const bke::GroupNodeComputeContext &group_context =
         *static_cast<const bke::GroupNodeComputeContext *>(socket.context);
-    const SocketInContext group_node_input{
-        group_context.parent(), &group_context.caller_group_node()->input_socket(socket->index())};
+    const SocketInContext group_node_input{group_context.parent(),
+                                           &group_context.node()->input_socket(socket->index())};
     const std::optional<const void *> value = all_socket_values_.lookup_try(group_node_input);
     if (!value.has_value()) {
       this->push_value_task(group_node_input);

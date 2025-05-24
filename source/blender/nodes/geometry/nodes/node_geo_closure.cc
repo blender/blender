@@ -212,7 +212,7 @@ static void try_initialize_closure_from_evaluator(SpaceNode &snode,
   if (!evaluate_context) {
     return;
   }
-  const bNode *evaluate_node = evaluate_context->evaluate_node();
+  const bNode *evaluate_node = evaluate_context->node();
   if (!evaluate_node) {
     return;
   }

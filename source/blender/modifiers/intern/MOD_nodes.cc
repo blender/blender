@@ -762,7 +762,8 @@ static void find_side_effect_nodes_for_nested_node(
       if (!node->id) {
         return;
       }
-      compute_context = &compute_context_cache.for_group_node(compute_context, *node, *tree);
+      compute_context = &compute_context_cache.for_group_node(
+          compute_context, node->identifier, tree);
       tree = reinterpret_cast<const bNodeTree *>(node->id);
       nested_node_id = ref->path.id_in_node;
     }
