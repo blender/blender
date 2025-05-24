@@ -10,6 +10,7 @@
 #include "BKE_compute_context_cache.hh"
 #include "BKE_compute_contexts.hh"
 #include "BKE_node.hh"
+#include "BKE_node_runtime.hh"
 
 namespace blender::bke {
 
