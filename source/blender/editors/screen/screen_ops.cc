@@ -4747,12 +4747,9 @@ static wmOperatorStatus repeat_history_invoke(bContext *C,
        lastop = lastop->prev, i--)
   {
     if ((lastop->type->flag & OPTYPE_REGISTER) && WM_operator_repeat_check(C, lastop)) {
-      uiItemIntO(layout,
-                 WM_operatortype_name(lastop->type, lastop->ptr).c_str(),
-                 ICON_NONE,
-                 op->type->idname,
-                 "index",
-                 i);
+      PointerRNA op_ptr = layout->op(
+          op->type, WM_operatortype_name(lastop->type, lastop->ptr), ICON_NONE);
+      RNA_int_set(&op_ptr, "index", i);
     }
   }
 

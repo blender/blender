@@ -1054,12 +1054,8 @@ static void menu_add_item_for_move_assign_unassign(uiLayout *layout,
                                                    const bool is_move_operation)
 {
   if (is_move_operation) {
-    uiItemIntO(layout,
-               bcoll->name,
-               ICON_NONE,
-               "ARMATURE_OT_move_to_collection",
-               "collection_index",
-               bcoll_index);
+    PointerRNA op_ptr = layout->op("ARMATURE_OT_move_to_collection", bcoll->name, ICON_NONE);
+    RNA_int_set(&op_ptr, "collection_index", bcoll_index);
     return;
   }
 
@@ -1098,13 +1094,11 @@ static void move_to_collection_menu_create(bContext *C, uiLayout *layout, void *
   /* The "Create a new collection" mode of this operator has its own menu, and should thus be
    * invoked. */
   uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_DEFAULT);
-  uiItemIntO(layout,
-             "New Bone Collection",
-             ICON_ADD,
-             is_move_operation ? "ARMATURE_OT_move_to_collection" :
-                                 "ARMATURE_OT_assign_to_collection",
-             "collection_index",
-             parent_bcoll_index);
+  PointerRNA op_ptr = layout->op(
+      is_move_operation ? "ARMATURE_OT_move_to_collection" : "ARMATURE_OT_assign_to_collection",
+      CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "New Bone Collection"),
+      ICON_ADD);
+  RNA_int_set(&op_ptr, "collection_index", parent_bcoll_index);
 
   layout->separator();
 

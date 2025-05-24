@@ -1733,34 +1733,6 @@ void uiItemEnumO_string(uiLayout *layout,
   RNA_property_enum_set(&ptr, prop, value);
 }
 
-void uiItemIntO(uiLayout *layout,
-                const std::optional<StringRef> name,
-                int icon,
-                const StringRefNull opname,
-                const StringRefNull propname,
-                int value)
-{
-  PointerRNA ptr = layout->op(opname, name, icon, layout->root_->opcontext, UI_ITEM_NONE);
-  if (RNA_pointer_is_null(&ptr)) {
-    return;
-  }
-  RNA_int_set(&ptr, propname.c_str(), value);
-}
-
-void uiItemFloatO(uiLayout *layout,
-                  const std::optional<StringRef> name,
-                  int icon,
-                  const StringRefNull opname,
-                  const StringRefNull propname,
-                  float value)
-{
-  PointerRNA ptr = layout->op(opname, name, icon, layout->root_->opcontext, UI_ITEM_NONE);
-  if (RNA_pointer_is_null(&ptr)) {
-    return;
-  }
-  RNA_float_set(&ptr, propname.c_str(), value);
-}
-
 void uiItemStringO(uiLayout *layout,
                    const std::optional<StringRef> name,
                    int icon,
@@ -1773,6 +1745,11 @@ void uiItemStringO(uiLayout *layout,
     return;
   }
   RNA_string_set(&ptr, propname.c_str(), value);
+}
+
+PointerRNA uiLayout::op(wmOperatorType *ot, const std::optional<StringRef> name, int icon)
+{
+  return this->op(ot, name, icon, root_->opcontext, UI_ITEM_NONE);
 }
 
 PointerRNA uiLayout::op(const StringRefNull opname, const std::optional<StringRef> name, int icon)

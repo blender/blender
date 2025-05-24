@@ -286,6 +286,15 @@ struct uiLayout : uiItem {
                 int icon,
                 wmOperatorCallContext context,
                 eUI_Item_Flag flag);
+
+  /**
+   * Adds a operator item, places a button in the layout to call the operator.
+   * \param ot: Operator to add.
+   * \param name: Text to show in the layout.
+   * \returns Operator pointer to write properties.
+   */
+  PointerRNA op(wmOperatorType *ot, std::optional<blender::StringRef> name, int icon);
+
   /**
    * Adds a operator item, places a button in the layout to call the operator.
    * \param opname: Operator id name.
@@ -534,18 +543,6 @@ void uiItemEnumO_string(uiLayout *layout,
 void uiItemsEnumO(uiLayout *layout,
                   blender::StringRefNull opname,
                   blender::StringRefNull propname);
-void uiItemIntO(uiLayout *layout,
-                std::optional<blender::StringRef> name,
-                int icon,
-                blender::StringRefNull opname,
-                blender::StringRefNull propname,
-                int value);
-void uiItemFloatO(uiLayout *layout,
-                  std::optional<blender::StringRef> name,
-                  int icon,
-                  blender::StringRefNull opname,
-                  blender::StringRefNull propname,
-                  float value);
 void uiItemStringO(uiLayout *layout,
                    std::optional<blender::StringRef> name,
                    int icon,

@@ -172,8 +172,8 @@ static void spreadsheet_filter_panel_draw_header(const bContext *C, Panel *panel
   row = &layout->row(true);
   uiLayoutSetEmboss(row, blender::ui::EmbossType::None);
   const int current_index = BLI_findindex(&sspreadsheet->row_filters, filter);
-  uiItemIntO(row, "", ICON_X, "SPREADSHEET_OT_remove_row_filter_rule", "index", current_index);
-
+  PointerRNA op_ptr = row->op("SPREADSHEET_OT_remove_row_filter_rule", "", ICON_X);
+  RNA_int_set(&op_ptr, "index", current_index);
   /* Some padding so the X isn't too close to the drag icon. */
   layout->separator(0.25f);
 }
