@@ -8188,7 +8188,8 @@ def km_sequencer_tool_generic_select_rcs(params):
 
 def km_sequencer_tool_generic_select_lcs(params):
     return [
-        ("sequencer.select", {"type": 'LEFTMOUSE', "value": 'PRESS'}, None),
+        ("sequencer.select", {"type": 'LEFTMOUSE', "value": 'PRESS'},
+         {"properties": [("deselect_all", True)]}),
         ("sequencer.select", {"type": 'LEFTMOUSE', "value": 'PRESS',
          "shift": True}, {"properties": [("toggle", True)]}),
         ("anim.change_frame", {"type": 'RIGHTMOUSE', "value": 'PRESS',
@@ -8201,7 +8202,7 @@ def km_sequencer_tool_generic_select_box(params, *, fallback):
         _fallback_id("Sequencer Tool: Select Box", fallback),
         {"space_type": 'SEQUENCE_EDITOR', "region_type": 'WINDOW'},
         {"items": [
-            # Combine the tweak functionality into the select box tool.
+            # Add tweak functionality to the select box tool.
             # This gives one standard tool for all selection and transform behavior.
             *(km_sequencer_tool_generic_select_rcs(params)
               if (params.select_mouse == 'RIGHTMOUSE') else

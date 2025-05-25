@@ -847,10 +847,9 @@ wmOperatorStatus sequencer_retiming_key_select_exec(bContext *C,
   Scene *scene = CTX_data_scene(C);
   Editing *ed = seq::editing_get(scene);
 
+  const bool deselect_all = RNA_boolean_get(op->ptr, "deselect_all");
   const bool wait_to_deselect_others = RNA_boolean_get(op->ptr, "wait_to_deselect_others");
   const bool toggle = RNA_boolean_get(op->ptr, "toggle");
-  bool deselect_all = RNA_boolean_get(op->ptr, "deselect_all");
-  deselect_all |= !toggle;
 
   /* Clicked on an unselected key. */
   if (!seq::retiming_selection_contains(ed, key) && !toggle) {
