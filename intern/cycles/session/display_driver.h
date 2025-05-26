@@ -41,7 +41,7 @@ class GraphicsInteropBuffer {
    * - OpenGL: pixel buffer object ID.
    * - Vulkan on Windows: opaque handle for VkBuffer.
    * - Vulkan on Unix: opaque file descriptor for VkBuffer.
-   * - Metal: pixel buffer unified memory pointer. */
+   * - Metal: MTLBuffer with unified memory. */
   GraphicsInteropDevice::Type type = GraphicsInteropDevice::NONE;
   int64_t handle = 0;
 

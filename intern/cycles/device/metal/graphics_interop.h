@@ -5,6 +5,8 @@
 #ifdef WITH_METAL
 
 #  include "device/graphics_interop.h"
+#  include "device/metal/device_impl.h"
+
 #  include "session/display_driver.h"
 
 CCL_NAMESPACE_BEGIN
@@ -34,7 +36,7 @@ class MetalDeviceGraphicsInterop : public DeviceGraphicsInterop {
   MetalDevice *device_ = nullptr;
 
   /* Native handle. */
-  void *buffer_ = nullptr;
+  MetalDevice::MetalMem mem_;
   size_t size_ = 0;
 
   /* The destination was requested to be cleared. */

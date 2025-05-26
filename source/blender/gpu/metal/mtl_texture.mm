@@ -2657,7 +2657,8 @@ GPUPixelBufferNativeHandle MTLPixelBuffer::get_native_handle()
   }
 
   /* Just get pointer to unified memory. No need to unmap. */
-  native_handle.handle = reinterpret_cast<int64_t>(map());
+  map();
+  native_handle.handle = reinterpret_cast<int64_t>(buffer_);
   native_handle.size = size_;
 
   return native_handle;
