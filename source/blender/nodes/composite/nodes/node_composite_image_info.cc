@@ -7,6 +7,7 @@
 #include "BLI_math_vector_types.hh"
 
 #include "COM_node_operation.hh"
+#include "COM_realize_on_domain_operation.hh"
 
 #include "node_composite_util.hh"
 
@@ -17,7 +18,10 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Color>("Image").compositor_realization_mode(
       CompositorInputRealizationMode::None);
 
-  b.add_output<decl::Vector>("Resolution");
+  b.add_output<decl::Vector>("Dimensions")
+      .description("The dimensions of the image in pixels with transformations applied");
+  b.add_output<decl::Vector>("Resolution")
+      .description("The original resolution of the image in pixels before any transformations");
   b.add_output<decl::Vector>("Location");
   b.add_output<decl::Float>("Rotation");
   b.add_output<decl::Vector>("Scale");
@@ -42,6 +46,15 @@ class ImageInfoOperation : public NodeOperation {
     }
 
     const Domain domain = input.domain();
+
+    Result &dimensions_result = this->get_result("Dimensions");
+    if (dimensions_result.should_compute()) {
+      dimensions_result.allocate_single_value();
+      const Domain realized_domain =
+          RealizeOnDomainOperation::compute_realized_transformation_domain(this->context(),
+                                                                           domain);
+      dimensions_result.set_single_value(float3(realized_domain.size, 0.0f));
+    }
 
     Result &resolution_result = this->get_result("Resolution");
     if (resolution_result.should_compute()) {
@@ -74,6 +87,11 @@ class ImageInfoOperation : public NodeOperation {
 
   void execute_invalid()
   {
+    Result &dimensions_result = this->get_result("Dimensions");
+    if (dimensions_result.should_compute()) {
+      dimensions_result.allocate_invalid();
+    }
+
     Result &resolution_result = this->get_result("Resolution");
     if (resolution_result.should_compute()) {
       resolution_result.allocate_invalid();
