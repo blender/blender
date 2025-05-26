@@ -352,9 +352,9 @@ static void drawWalkPixel(const bContext * /*C*/, ARegion *region, void *arg)
   /* Draws an aim/cross in the center. */
   WalkInfo *walk = static_cast<WalkInfo *>(arg);
 
-  const int outter_length = 24;
-  const int inner_length = 14;
-  int xoff, yoff;
+  float outter_length = 24;
+  float inner_length = 14;
+  float xoff, yoff;
   rctf viewborder;
 
   if (ED_view3d_cameracontrol_object_get(walk->v3d_camera_control)) {
@@ -378,20 +378,20 @@ static void drawWalkPixel(const bContext * /*C*/, ARegion *region, void *arg)
   immBegin(GPU_PRIM_LINES, 8);
 
   /* North. */
-  immVertex2i(pos, xoff, yoff + inner_length);
-  immVertex2i(pos, xoff, yoff + outter_length);
+  immVertex2f(pos, xoff, yoff + inner_length);
+  immVertex2f(pos, xoff, yoff + outter_length);
 
   /* East. */
-  immVertex2i(pos, xoff + inner_length, yoff);
-  immVertex2i(pos, xoff + outter_length, yoff);
+  immVertex2f(pos, xoff + inner_length, yoff);
+  immVertex2f(pos, xoff + outter_length, yoff);
 
   /* South. */
-  immVertex2i(pos, xoff, yoff - inner_length);
-  immVertex2i(pos, xoff, yoff - outter_length);
+  immVertex2f(pos, xoff, yoff - inner_length);
+  immVertex2f(pos, xoff, yoff - outter_length);
 
   /* West. */
-  immVertex2i(pos, xoff - inner_length, yoff);
-  immVertex2i(pos, xoff - outter_length, yoff);
+  immVertex2f(pos, xoff - inner_length, yoff);
+  immVertex2f(pos, xoff - outter_length, yoff);
 
   immEnd();
   immUnbindProgram();
