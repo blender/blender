@@ -897,16 +897,22 @@ void USDStageReader::collect_point_instancer_proto_paths(const pxr::UsdPrim &pri
   pxr::UsdPrimSiblingRange children = prim.GetFilteredChildren(filter_flags);
 
   for (const auto &child_prim : children) {
-    if (pxr::UsdGeomPointInstancer instancer = pxr::UsdGeomPointInstancer(child_prim)) {
-      /* We should only collect the prototype paths from this instancer if it would be included
-       * by our purpose and visibility checks, matching what is inside #collect_readers. */
-      if (!include_by_purpose(instancer)) {
-        continue;
-      }
-      if (!include_by_visibility(instancer)) {
-        continue;
-      }
+    const pxr::UsdGeomImageable imageable = pxr::UsdGeomImageable(child_prim);
+    if (!imageable) {
+      continue;
+    }
 
+    /* We should only traverse through a hierarchy, and any potential instancers, if they would be
+     * included by our purpose and visibility checks, matching what is inside #collect_readers. */
+    if (!include_by_purpose(imageable)) {
+      continue;
+    }
+
+    if (!include_by_visibility(imageable)) {
+      continue;
+    }
+
+    if (pxr::UsdGeomPointInstancer instancer = pxr::UsdGeomPointInstancer(child_prim)) {
       pxr::SdfPathVector paths;
       instancer.GetPrototypesRel().GetTargets(&paths);
       for (const pxr::SdfPath &path : paths) {

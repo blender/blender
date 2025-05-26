@@ -1,0 +1,27 @@
+==== Meshes: 1
+- Mesh 'ProtoCube' vtx:8 face:6 loop:24 edge:12
+    - 0 1 2 3 4 ... 6 4 2 1 5 
+    - 0/3 0/1 1/2 2/3 4/7 ... 6/7 0/6 1/5 2/4 3/7 
+  - attr 'position' FLOAT_VECTOR POINT
+    - (1.000, 1.000, 1.000)
+    - (-1.000, 1.000, 1.000)
+    - (-1.000, -1.000, 1.000)
+      ...
+    - (-1.000, 1.000, -1.000)
+    - (1.000, 1.000, -1.000)
+    - (1.000, -1.000, -1.000)
+  - attr 'sharp_face' BOOLEAN FACE
+    - 1 1 1 1 1 1 
+
+==== Objects: 2
+- Obj 'MainInstancer' POINTCLOUD data:'MainInstancer'
+  - pos 0.000, 0.000, 0.000
+  - rot 1.571, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+  - 1 modifiers
+    - NODES 'GeometryNodes'
+- Obj 'ProtoCube' MESH data:'ProtoCube'
+  - pos 0.000, 0.000, 0.000
+  - rot 0.000, 0.000, 0.000 (XYZ)
+  - scl 1.000, 1.000, 1.000
+
