@@ -141,14 +141,16 @@ std::unique_ptr<IDProperty, bke::idprop::IDPropertyDeleter> id_property_create_f
       const bNodeSocketValueVector *value = static_cast<const bNodeSocketValueVector *>(
           socket.socket_data);
       auto property = bke::idprop::create(
-          identifier, Span<float>{value->value[0], value->value[1], value->value[2]});
+          identifier,
+          Span<float>{value->value[0], value->value[1], value->value[2], value->value[3]}
+              .take_front(value->dimensions));
       IDPropertyUIDataFloat *ui_data = (IDPropertyUIDataFloat *)IDP_ui_data_ensure(property.get());
       ui_data->base.rna_subtype = value->subtype;
       ui_data->soft_min = double(value->min);
       ui_data->soft_max = double(value->max);
-      ui_data->default_array = MEM_malloc_arrayN<double>(3, "mod_prop_default");
-      ui_data->default_array_len = 3;
-      for (const int i : IndexRange(3)) {
+      ui_data->default_array = MEM_malloc_arrayN<double>(value->dimensions, "mod_prop_default");
+      ui_data->default_array_len = value->dimensions;
+      for (const int i : IndexRange(value->dimensions)) {
         ui_data->default_array[i] = double(value->value[i]);
       }
       return property;
@@ -273,21 +275,25 @@ static bool old_id_property_type_matches_socket_convert_to_new_float_vec(
     const IDProperty &old_property, IDProperty *new_property, const int len)
 {
   if (!(old_property.type == IDP_ARRAY &&
-        ELEM(old_property.subtype, IDP_INT, IDP_FLOAT, IDP_DOUBLE) && old_property.len == len))
+        ELEM(old_property.subtype, IDP_INT, IDP_FLOAT, IDP_DOUBLE)))
   {
     return false;
   }
 
   if (new_property) {
-    BLI_assert(new_property->type == IDP_ARRAY && new_property->subtype == IDP_FLOAT &&
-               new_property->len == len);
+    BLI_assert(new_property->type == IDP_ARRAY && new_property->subtype == IDP_FLOAT);
 
     switch (old_property.subtype) {
       case IDP_DOUBLE: {
         double *const old_value = static_cast<double *const>(IDP_Array(&old_property));
         float *new_value = static_cast<float *>(new_property->data.pointer);
         for (int i = 0; i < len; i++) {
-          new_value[i] = float(old_value[i]);
+          if (i < old_property.len) {
+            new_value[i] = float(old_value[i]);
+          }
+          else {
+            new_value[i] = 0.0f;
+          }
         }
         break;
       }
@@ -295,13 +301,26 @@ static bool old_id_property_type_matches_socket_convert_to_new_float_vec(
         int *const old_value = static_cast<int *const>(IDP_Array(&old_property));
         float *new_value = static_cast<float *>(new_property->data.pointer);
         for (int i = 0; i < len; i++) {
-          new_value[i] = float(old_value[i]);
+          if (i < old_property.len) {
+            new_value[i] = float(old_value[i]);
+          }
+          else {
+            new_value[i] = 0.0f;
+          }
         }
         break;
       }
       case IDP_FLOAT: {
         float *const old_value = static_cast<float *const>(IDP_Array(&old_property));
-        memcpy(new_property->data.pointer, old_value, sizeof(float) * size_t(len));
+        float *new_value = static_cast<float *>(new_property->data.pointer);
+        for (int i = 0; i < len; i++) {
+          if (i < old_property.len) {
+            new_value[i] = old_value[i];
+          }
+          else {
+            new_value[i] = 0.0f;
+          }
+        }
         break;
       }
     }
@@ -360,7 +379,12 @@ static bool old_id_property_type_matches_socket_convert_to_new(
       return true;
     case SOCK_INT:
       return old_id_property_type_matches_socket_convert_to_new_int(old_property, new_property);
-    case SOCK_VECTOR:
+    case SOCK_VECTOR: {
+      const bNodeSocketValueVector *value = static_cast<const bNodeSocketValueVector *>(
+          socket.socket_data);
+      return old_id_property_type_matches_socket_convert_to_new_float_vec(
+          old_property, new_property, value->dimensions);
+    }
     case SOCK_ROTATION:
       return old_id_property_type_matches_socket_convert_to_new_float_vec(
           old_property, new_property, 3);
@@ -468,18 +492,30 @@ static void init_socket_cpp_value_from_property(const IDProperty &property,
     }
     case SOCK_VECTOR: {
       const void *property_array = IDP_Array(&property);
-      float3 value;
+      BLI_assert(property.len >= 2 && property.len <= 4);
+
+      float4 values = float4(0.0f);
       if (property.subtype == IDP_FLOAT) {
-        value = float3(static_cast<const float *>(property_array));
+        for (int i = 0; i < property.len; i++) {
+          values[i] = static_cast<const float *>(property_array)[i];
+        }
       }
       else if (property.subtype == IDP_INT) {
-        value = float3(int3(static_cast<const int *>(property_array)));
+        for (int i = 0; i < property.len; i++) {
+          values[i] = float(static_cast<const int *>(property_array)[i]);
+        }
+      }
+      else if (property.subtype == IDP_DOUBLE) {
+        for (int i = 0; i < property.len; i++) {
+          values[i] = float(static_cast<const double *>(property_array)[i]);
+        }
       }
       else {
-        BLI_assert(property.subtype == IDP_DOUBLE);
-        value = float3(double3(static_cast<const double *>(property_array)));
+        BLI_assert_unreachable();
       }
-      new (r_value) bke::SocketValueVariant(value);
+
+      /* Only float3 vectors are supported for now. */
+      new (r_value) bke::SocketValueVariant(float3(values));
       break;
     }
     case SOCK_RGBA: {

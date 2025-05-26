@@ -281,7 +281,8 @@ static BaseSocketDeclarationBuilder &build_interface_socket_declaration(
         const auto &value = node_interface::get_socket_data_as<bNodeSocketValueVector>(io_socket);
         decl = &b.add_socket<decl::Vector>(name, identifier, in_out)
                     .subtype(PropertySubType(value.subtype))
-                    .default_value(value.value)
+                    .default_value(float4(value.value))
+                    .dimensions(value.dimensions)
                     .min(value.min)
                     .max(value.max);
         break;

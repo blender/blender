@@ -68,6 +68,14 @@ static void modify_subtype_except_for_storage(bNodeSocket &socket, int new_subty
   socket.typeinfo = socktype;
 }
 
+static void modify_subtype_except_for_storage(bNodeSocket &socket, int subtype, int dimensions)
+{
+  const StringRefNull idname = *bke::node_static_socket_type(socket.type, subtype, dimensions);
+  STRNCPY(socket.idname, idname.c_str());
+  bke::bNodeSocketType *socktype = bke::node_socket_type_find(idname);
+  socket.typeinfo = socktype;
+}
+
 /* -------------------------------------------------------------------- */
 /** \name #Float
  * \{ */
@@ -215,16 +223,14 @@ bNodeSocket &Int::update_or_build(bNodeTree &ntree, bNode &node, bNodeSocket &so
 
 bNodeSocket &Vector::build(bNodeTree &ntree, bNode &node) const
 {
-  bNodeSocket &socket = *bke::node_add_static_socket(ntree,
-                                                     node,
-                                                     this->in_out,
-                                                     SOCK_VECTOR,
-                                                     this->subtype,
-                                                     this->identifier.c_str(),
-                                                     this->name.c_str());
+  const StringRefNull idname = *bke::node_static_socket_type(
+      SOCK_VECTOR, this->subtype, this->dimensions);
+  bNodeSocket &socket = *bke::node_add_socket(
+      ntree, node, this->in_out, idname, this->identifier.c_str(), this->name.c_str());
   this->set_common_flags(socket);
   bNodeSocketValueVector &value = *(bNodeSocketValueVector *)socket.default_value;
-  copy_v3_v3(value.value, this->default_value);
+  std::copy_n(&this->default_value[0], this->dimensions, value.value);
+  value.dimensions = this->dimensions;
   value.min = this->soft_min_value;
   value.max = this->soft_max_value;
   return socket;
@@ -243,6 +249,9 @@ bool Vector::matches(const bNodeSocket &socket) const
   }
   const bNodeSocketValueVector &value = *static_cast<const bNodeSocketValueVector *>(
       socket.default_value);
+  if (value.dimensions != this->dimensions) {
+    return false;
+  }
   if (value.min != this->soft_min_value) {
     return false;
   }
@@ -270,11 +279,15 @@ bNodeSocket &Vector::update_or_build(bNodeTree &ntree, bNode &node, bNodeSocket 
     return this->build(ntree, node);
   }
   if (socket.typeinfo->subtype != this->subtype) {
-    modify_subtype_except_for_storage(socket, this->subtype);
+    modify_subtype_except_for_storage(socket, this->subtype, this->dimensions);
   }
   this->set_common_flags(socket);
   bNodeSocketValueVector &value = *(bNodeSocketValueVector *)socket.default_value;
+  if (value.dimensions != this->dimensions) {
+    modify_subtype_except_for_storage(socket, this->subtype, this->dimensions);
+  }
   value.subtype = this->subtype;
+  value.dimensions = this->dimensions;
   value.min = this->soft_min_value;
   value.max = this->soft_max_value;
   return socket;

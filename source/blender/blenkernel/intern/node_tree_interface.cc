@@ -147,6 +147,7 @@ template<> void socket_data_init_impl(bNodeSocketValueVector &data)
 {
   static float default_value[] = {0.0f, 0.0f, 0.0f};
   data.subtype = PROP_NONE;
+  data.dimensions = 3;
   copy_v3_v3(data.value, default_value);
   data.min = -FLT_MAX;
   data.max = FLT_MAX;

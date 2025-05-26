@@ -4050,6 +4050,41 @@ static void do_version_replace_image_info_node_coordinates(bNodeTree *node_tree)
   }
 }
 
+/* Vector sockets can now have different dimensions, so set the dimensions for existing sockets to
+ * 3.*/
+static void do_version_vector_sockets_dimensions(bNodeTree *node_tree)
+{
+  node_tree->tree_interface.foreach_item([&](bNodeTreeInterfaceItem &item) {
+    if (item.item_type != NODE_INTERFACE_SOCKET) {
+      return true;
+    }
+
+    bNodeTreeInterfaceSocket &interface_socket =
+        blender::bke::node_interface::get_item_as<bNodeTreeInterfaceSocket>(item);
+    blender::bke::bNodeSocketType *base_typeinfo = blender::bke::node_socket_type_find(
+        interface_socket.socket_type);
+
+    if (base_typeinfo->type == SOCK_VECTOR) {
+      blender::bke::node_interface::get_socket_data_as<bNodeSocketValueVector>(interface_socket)
+          .dimensions = 3;
+    }
+    return true;
+  });
+
+  LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+    LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {
+      if (socket->type == SOCK_VECTOR) {
+        socket->default_value_typed<bNodeSocketValueVector>()->dimensions = 3;
+      }
+    }
+    LISTBASE_FOREACH (bNodeSocket *, socket, &node->outputs) {
+      if (socket->type == SOCK_VECTOR) {
+        socket->default_value_typed<bNodeSocketValueVector>()->dimensions = 3;
+      }
+    }
+  }
+}
+
 void do_versions_after_linking_450(FileData * /*fd*/, Main *bmain)
 {
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 8)) {
@@ -5816,6 +5851,13 @@ void blo_do_versions_450(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
       if (node_tree->type == NTREE_COMPOSIT) {
         do_version_replace_image_info_node_coordinates(node_tree);
       }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 79)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      do_version_vector_sockets_dimensions(node_tree);
     }
     FOREACH_NODETREE_END;
   }
