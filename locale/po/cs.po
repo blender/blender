@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'd87e0ecb614e')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'ba454989554a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-19 11:37+0000\n"
+"POT-Creation-Date: 2025-05-26 07:36+0000\n"
 "PO-Revision-Date: 2025-04-14 08:12+0000\n"
 "Last-Translator: Zdeněk Doležal <Griperis@outlook.cz>\n"
 "Language-Team: Czech <https://translate.blender.org/projects/blender-ui/ui/cs/>\n"
@@ -9565,6 +9565,10 @@ msgid "Cycles light settings"
 msgstr "Cycles nastavení světla"
 
 
+msgid "Normalize"
+msgstr "Normalizovat"
+
+
 msgctxt "Light"
 msgid "Type"
 msgstr "Typ"
@@ -16293,10 +16297,6 @@ msgid "Use Mask"
 msgstr "Maximalní X limitace"
 
 
-msgid "Normalize"
-msgstr "Normalizovat"
-
-
 msgid "Use Red Channel"
 msgstr "Změnit pruh"
 
@@ -16921,6 +16921,10 @@ msgid "Flip X & Y"
 msgstr "Prohodit osy X/Y"
 
 
+msgid "Glare"
+msgstr "Skrýt skryté soubory"
+
+
 msgid "Angle Offset"
 msgstr "Odsazení úhlu"
 
@@ -17141,6 +17145,10 @@ msgid "Render Layers"
 msgstr "Vyberte renderovanou vrstvu"
 
 
+msgid "Greater"
+msgstr "Větší"
+
+
 msgid "Rotate"
 msgstr "Otočit"
 
@@ -17253,16 +17261,16 @@ msgid "Z Combine"
 msgstr "Kužel"
 
 
-msgid "Boolean Math"
-msgstr "Boolean Matematika"
-
-
 msgid "And"
 msgstr "A"
 
 
 msgid "Or"
 msgstr "Nebo"
+
+
+msgid "Boolean Math"
+msgstr "Boolean Matematika"
 
 
 msgid "Equal"
@@ -21260,10 +21268,6 @@ msgstr "Nelze uložit soubor"
 msgctxt "Operator"
 msgid "Select Control Point Row"
 msgstr "Zobrazit neoznačení řídící body"
-
-
-msgid "Greater"
-msgstr "Větší"
 
 
 msgid "Less"
@@ -27375,6 +27379,10 @@ msgid "All bones affected by active Keying Set"
 msgstr "Odstranit aktivní klíčovací sestavu"
 
 
+msgid "Parents"
+msgstr "Nadřazený"
+
+
 msgctxt "Operator"
 msgid "Select Connected"
 msgstr "Vybrat spojené"
@@ -30222,10 +30230,6 @@ msgid "Remove"
 msgstr "Odstranit"
 
 
-msgid "Save a Collada file"
-msgstr "Uložit soubor Collada"
-
-
 msgid "Only Selected UV Map"
 msgstr "Pouze Vybraná UV Mapa"
 
@@ -30296,10 +30300,6 @@ msgstr "Použít Blender Profil"
 
 msgid "Use Object Instances"
 msgstr "Použít Instance Objektu"
-
-
-msgid "Load a Collada file"
-msgstr "Načíst soubor Collada"
 
 
 msgid "Auto Connect"
@@ -30987,6 +30987,14 @@ msgid "Restrict"
 msgstr "Omezit"
 
 
+msgid "Overlays"
+msgstr "Překrytí"
+
+
+msgid "Guides"
+msgstr "Vodítka"
+
+
 msgid "Motion Tracking"
 msgstr "Sledování Pohybu"
 
@@ -31009,10 +31017,6 @@ msgstr "Přichytávání"
 
 msgid "Transform Orientations"
 msgstr "Orientace transformací"
-
-
-msgid "Guides"
-msgstr "Vodítka"
 
 
 msgid "Stereoscopy"
@@ -31041,10 +31045,6 @@ msgstr "Nastavení SSAO"
 
 msgid "Cavity"
 msgstr "Dutina"
-
-
-msgid "Overlays"
-msgstr "Překrytí"
 
 
 msgid "Chain Scaling"
@@ -35536,10 +35536,6 @@ msgid "View Type"
 msgstr "Zobrazit Typ"
 
 
-msgid "Columns"
-msgstr "Sloupce"
-
-
 msgid "Geometry Component"
 msgstr "Geometrický Komponent"
 
@@ -35696,6 +35692,10 @@ msgid "Use Local Camera"
 msgstr "Použít Místní Kameru"
 
 
+msgid "Text Info"
+msgstr "Info i Textu"
+
+
 msgid "Space UV Editor"
 msgstr "UV/obrázkový editor "
 
@@ -35758,6 +35758,10 @@ msgstr "Koncový bod U"
 
 msgid "Endpoint V"
 msgstr "Koncový bod V"
+
+
+msgid "Columns"
+msgstr "Sloupce"
 
 
 msgid "Stereo Mode"
@@ -40782,10 +40786,6 @@ msgid "Look At"
 msgstr "Dívat se na"
 
 
-msgid "Text Info"
-msgstr "Info i Textu"
-
-
 msgid "Statistics"
 msgstr "Statistika"
 
@@ -41153,10 +41153,6 @@ msgstr "Ovlivnit pouze"
 
 msgid "Locations"
 msgstr "Umístění"
-
-
-msgid "Parents"
-msgstr "Nadřazený"
 
 
 msgid "Detailing"
@@ -42357,10 +42353,6 @@ msgstr "Převede označené hrany na plošky a označí nové vertexy"
 
 msgid "No mesh data to join"
 msgstr "Prochází připojená data sítě"
-
-
-msgid "Selected meshes must have equal numbers of vertices"
-msgstr "Odstranit aktuální skript link"
 
 
 msgctxt "Light"
@@ -43736,10 +43728,6 @@ msgstr "Jasný"
 
 msgid "Layer:"
 msgstr "Vrstva:"
-
-
-msgid "Glare"
-msgstr "Skrýt skryté soubory"
 
 
 msgid "Use feather information from the mask"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'd87e0ecb614e')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'ba454989554a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-19 11:37+0000\n"
+"POT-Creation-Date: 2025-05-26 07:36+0000\n"
 "PO-Revision-Date: 2025-05-17 10:56+0000\n"
 "Last-Translator: Alessandro Vecchio <alessandrovecchio1907@gmail.com>\n"
 "Language-Team: Italian <https://translate.blender.org/projects/blender-ui/ui/it/>\n"
@@ -8262,10 +8262,6 @@ msgstr "Allinea l'oggetto vincolato verso l'obiettivo"
 
 msgid "Target Z"
 msgstr "Z Obiettivo"
-
-
-msgid "Target's Z axis, not World Z axis, will constraint the Up direction"
-msgstr "L'asse Z dell'obiettivo, non l'asse Z del Mondo, sarà la direzione Alto del vincolo"
 
 
 msgid "Transform Cache Constraint"
@@ -16994,6 +16990,10 @@ msgstr "Fattore Diffuse"
 
 msgid "Node tree for node based lights"
 msgstr "Albero nodi per luci basate sui nodi"
+
+
+msgid "Normalize"
+msgstr "Normalizza"
 
 
 msgid "Specular Factor"
@@ -30426,10 +30426,6 @@ msgid "Use Mask"
 msgstr "Utilizza Maschera"
 
 
-msgid "Normalize"
-msgstr "Normalizza"
-
-
 msgid "Use Red Channel"
 msgstr "Utilizza Canale Rosso"
 
@@ -31015,20 +31011,12 @@ msgid "Offset/Power/Slope (ASC-CDL)"
 msgstr "Offset/Potenza/Pendenza (ASC-CDL)"
 
 
-msgid "Correction for midtones"
-msgstr "Correzione per i mezzitoni"
-
-
 msgid "Input Temperature"
 msgstr "Temperatura Input"
 
 
 msgid "Input White Point"
 msgstr "Punto Bianco di Input"
-
-
-msgid "Correction for shadows"
-msgstr "Correzione per le ombre"
 
 
 msgid "Basis"
@@ -31457,8 +31445,8 @@ msgid "Flip X & Y"
 msgstr "Inverti X & Y"
 
 
-msgid "Glare "
-msgstr "Bagliore "
+msgid "Glare"
+msgstr "Bagliore"
 
 
 msgid "Angle Offset"
@@ -31885,6 +31873,10 @@ msgstr "RGB a BN"
 
 msgid "Render Layers"
 msgstr "Livelli Render"
+
+
+msgid "Greater"
+msgstr "Maggiore"
 
 
 msgid "Rotate"
@@ -35949,6 +35941,14 @@ msgid "File sorting mode"
 msgstr "Modo ordinamento file"
 
 
+msgid "Point 1"
+msgstr "Punto 1"
+
+
+msgid "Point 2"
+msgstr "Punto 2"
+
+
 msgctxt "Operator"
 msgid "Add Boid Rule"
 msgstr "Aggiungi Regola Stormo"
@@ -37499,10 +37499,6 @@ msgstr "Seleziona Riga Punto di Controllo"
 
 msgid "Select similar curve points by property type"
 msgstr "Seleziona punti curva simili per tipo proprietà"
-
-
-msgid "Greater"
-msgstr "Maggiore"
 
 
 msgid "Less"
@@ -45661,10 +45657,6 @@ msgid "Set the weight of selected keys"
 msgstr "Imposta il peso delle chiavi selezionate"
 
 
-msgid "Copy selected points "
-msgstr "Copia i punti selezionati "
-
-
 msgid "Pose Name"
 msgstr "Nome Posa"
 
@@ -45985,6 +45977,10 @@ msgstr "Seleziona tutte le ossa visibili raggruppate per proprietà similari"
 
 msgid "All bones affected by active Keying Set"
 msgstr "Tutte le ossa sono influenzate dal Gruppo Chiavi attivo"
+
+
+msgid "Parents"
+msgstr "Genitori"
 
 
 msgctxt "Operator"
@@ -49936,10 +49932,6 @@ msgid "Remove"
 msgstr "Rimuovi"
 
 
-msgid "Save a Collada file"
-msgstr "Salva un file Collada"
-
-
 msgid "Only Selected UV Map"
 msgstr "Solo Mappe UV Selezionate"
 
@@ -50002,10 +49994,6 @@ msgstr "Utilizza Profilo Blender"
 
 msgid "Use Object Instances"
 msgstr "Utilizza Istanze Oggetto"
-
-
-msgid "Load a Collada file"
-msgstr "Carica un file Collada"
 
 
 msgid "Auto Connect"
@@ -50766,10 +50754,6 @@ msgid "Bleed"
 msgstr "Sconfinamento"
 
 
-msgid "Extend paint beyond the faces UVs to reduce seams (in pixels, slower)"
-msgstr "Estende la pittura oltre le facce UV per ridurre le cuciture (in pixel, più lento)"
-
-
 msgid "Stencil Color"
 msgstr "Colore Stencil"
 
@@ -50938,6 +50922,10 @@ msgid "Active Palette Color"
 msgstr "Colore Tavolozza Attivo"
 
 
+msgid "Overlays"
+msgstr "Sovrapposizioni"
+
+
 msgid "Motion Tracking"
 msgstr "Tracciatura Movimento"
 
@@ -50966,6 +50954,10 @@ msgid "Stereoscopy"
 msgstr "Stereoscopia"
 
 
+msgid "Compositor"
+msgstr "Compositore"
+
+
 msgid "Auto-Masking"
 msgstr "Auto-Mascheramento"
 
@@ -50980,14 +50972,6 @@ msgstr "Impostazioni SSAO"
 
 msgid "Render Pass"
 msgstr "Passaggi Render"
-
-
-msgid "Compositor"
-msgstr "Compositore"
-
-
-msgid "Overlays"
-msgstr "Sovrapposizioni"
 
 
 msgid "Chain Scaling"
@@ -57428,6 +57412,10 @@ msgid "Use Local Camera"
 msgstr "Utilizza Camera Locale"
 
 
+msgid "Text Info"
+msgstr "Info Testo"
+
+
 msgid "Show Wire Colors"
 msgstr "Mostra Colori dei Fili"
 
@@ -57963,6 +57951,10 @@ msgstr "Offset Inverso"
 
 msgid "Color balance lift (shadows)"
 msgstr "Lift bilanciamento colore (ombre)"
+
+
+msgid "Correction for midtones"
+msgstr "Correzione per i mezzitoni"
 
 
 msgid "Color balance parameters for a sequence strip"
@@ -63898,10 +63890,6 @@ msgid "Floor"
 msgstr "Pavimento"
 
 
-msgid "Text Info"
-msgstr "Info Testo"
-
-
 msgid "Statistics"
 msgstr "Statistiche"
 
@@ -64564,10 +64552,6 @@ msgstr "Influenza Soltanto"
 
 msgid "Locations"
 msgstr "Posizioni"
-
-
-msgid "Parents"
-msgstr "Genitori"
 
 
 msgid "Tile Offset"
@@ -68607,6 +68591,10 @@ msgid "Despill Channel:"
 msgstr "Canale Dispersione:"
 
 
+msgid "Correction for shadows"
+msgstr "Correzione per le ombre"
+
+
 msgid "Highlights"
 msgstr "Alteluci"
 
@@ -68665,10 +68653,6 @@ msgstr "Sottopercorso File:"
 
 msgid "Format:"
 msgstr "Formato:"
-
-
-msgid "Glare"
-msgstr "Bagliore"
 
 
 msgid "From Min"
@@ -68733,14 +68717,6 @@ msgstr "Dimensione Iniziale"
 
 msgid "End Size"
 msgstr "Dimensione Finale"
-
-
-msgid "Point 1"
-msgstr "Punto 1"
-
-
-msgid "Point 2"
-msgstr "Punto 2"
 
 
 msgid "Point 3"

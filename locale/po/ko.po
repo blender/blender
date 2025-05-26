@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'd87e0ecb614e')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'ba454989554a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-19 11:37+0000\n"
+"POT-Creation-Date: 2025-05-26 07:36+0000\n"
 "PO-Revision-Date: 2025-04-14 08:31+0000\n"
 "Last-Translator: Lee YeonJoo <yzoo2@naver.com>\n"
 "Language-Team: Korean <https://translate.blender.org/projects/blender-ui/ui/ko/>\n"
@@ -6708,10 +6708,6 @@ msgstr "대상을 향해 제약된 오브젝트를 조준"
 
 msgid "Target Z"
 msgstr "대상 Z"
-
-
-msgid "Target's Z axis, not World Z axis, will constraint the Up direction"
-msgstr "대상의 Z 축,아니면 월드 Z 축, 위쪽 방향을 제약합니다"
 
 
 msgid "Transform Cache Constraint"
@@ -15946,6 +15942,10 @@ msgstr "Cycles 라이트 설정"
 
 msgid "Node tree for node based lights"
 msgstr "노드 기반 라이트에 대한 노드 트리"
+
+
+msgid "Normalize"
+msgstr "노멀라이즈"
 
 
 msgid "Specular Factor"
@@ -29546,10 +29546,6 @@ msgid "Reconstructed"
 msgstr "복원됨"
 
 
-msgid "Is tracking data contains valid reconstruction information"
-msgstr "은 추적 데이터에 유효한 재구성 정보가 포함되어 있습니다"
-
-
 msgid "Movie tracking settings"
 msgstr "무비 트래킹 설정"
 
@@ -29756,10 +29752,6 @@ msgstr "트래킹 하는 푸티지에서 그린 채널을 사용"
 
 msgid "Use Mask"
 msgstr "마스크를 사용"
-
-
-msgid "Normalize"
-msgstr "노멀라이즈"
 
 
 msgid "Normalize light intensities while tracking (slower)"
@@ -30526,16 +30518,8 @@ msgid "ASC-CDL standard color correction"
 msgstr "ASC-CDL 표준 컬러 보정"
 
 
-msgid "Correction for entire tonal range"
-msgstr "전체 색조 범위에 대한 보정"
-
-
 msgid "Basis"
 msgstr "기반"
-
-
-msgid "Support negative color by using this as the RGB basis"
-msgstr "RGB 기반으로 이를 이용하여 음성 컬러를 지원"
 
 
 msgid "Slope"
@@ -30700,10 +30684,6 @@ msgstr "X1"
 
 msgid "Y1"
 msgstr "Y1"
-
-
-msgid "Use relative values to crop image"
-msgstr "이미지 자르기로 상대적인 값을 사용"
 
 
 msgid "Crop Image Size"
@@ -31004,6 +30984,10 @@ msgstr "뒤집기 Y"
 
 msgid "Flip X & Y"
 msgstr "뒤집기 X & Y"
+
+
+msgid "Glare"
+msgstr "글레어"
 
 
 msgid "Angle Offset"
@@ -31439,6 +31423,10 @@ msgid "Render Layers"
 msgstr "렌더 레이어"
 
 
+msgid "Greater"
+msgstr "더 큰"
+
+
 msgid "Rotate"
 msgstr "회전"
 
@@ -31553,10 +31541,6 @@ msgstr "변환을 필터하는 데 사용하는 메서드"
 
 msgid "Translate"
 msgstr "옮기기"
-
-
-msgid "Use relative (fraction of input image size) values to define translation"
-msgstr "상대적인 (입력 이미지 크기의 소수) 값을 사용하여 옮기기을 정의"
 
 
 msgid "X Axis"
@@ -37772,10 +37756,6 @@ msgstr "컨트롤 포인트 행을 선택"
 
 msgid "Select similar curve points by property type"
 msgstr "속성 유형으로 비슷한 커브 포인트를 선택"
-
-
-msgid "Greater"
-msgstr "더 큰"
 
 
 msgid "Less"
@@ -48404,6 +48384,10 @@ msgid "All bones affected by active Keying Set"
 msgstr "활성 키잉 설정으로 영향을 준 모든 본"
 
 
+msgid "Parents"
+msgstr "부모"
+
+
 msgctxt "Operator"
 msgid "Select Connected"
 msgstr "연결된 선택"
@@ -53323,10 +53307,6 @@ msgid "Remove"
 msgstr "제거"
 
 
-msgid "Save a Collada file"
-msgstr "Collada 파일을 저장"
-
-
 msgid "Only Selected UV Map"
 msgstr "선택된 UV 맵 만"
 
@@ -53593,10 +53573,6 @@ msgstr "동일한 데이터에서 여러 오브젝트 인스턴스화"
 
 msgid "Copy textures to same folder where the .dae file is exported"
 msgstr ".dae 파일을 내보내는 동일한 폴더로 텍스처를 복사"
-
-
-msgid "Load a Collada file"
-msgstr "Collada 파일을 불러오기"
 
 
 msgid "Auto Connect"
@@ -54703,10 +54679,6 @@ msgid "Bleed"
 msgstr "번짐"
 
 
-msgid "Extend paint beyond the faces UVs to reduce seams (in pixels, slower)"
-msgstr "이음새를 줄이기 위해면 UV 이상으로 페인트를 확장합니다 (픽셀 단위로, 느림)"
-
-
 msgid "Stencil Color"
 msgstr "스텐실 컬러"
 
@@ -54927,6 +54899,14 @@ msgid "Panel containing UI elements"
 msgstr "UI 요소가 포함된 패널"
 
 
+msgid "Overlays"
+msgstr "오버레이"
+
+
+msgid "Guides"
+msgstr "가이드"
+
+
 msgid "Motion Tracking"
 msgstr "모션 트래킹"
 
@@ -54957,10 +54937,6 @@ msgstr "스트로크 배치"
 
 msgid "Drawing Plane"
 msgstr "드로잉 평면"
-
-
-msgid "Guides"
-msgstr "가이드"
 
 
 msgid "Quad View"
@@ -55001,10 +54977,6 @@ msgstr "캐비티"
 
 msgid "Render Pass"
 msgstr "렌더 패스"
-
-
-msgid "Overlays"
-msgstr "오버레이"
 
 
 msgid "Bone Constraints"
@@ -64267,6 +64239,14 @@ msgid "Display a different set of collections in this viewport"
 msgstr "이 뷰포트에 다른 컬렉션 모음을 표시"
 
 
+msgid "Text Info"
+msgstr "텍스트 정보"
+
+
+msgid "Display overlay text"
+msgstr "오버레이 텍스트를 표시"
+
+
 msgid "Get the node tree path as a string"
 msgstr "문자열로 노드 트리 경로를 가져오기"
 
@@ -65074,6 +65054,10 @@ msgstr "상승 컬러를 반전"
 
 msgid "Color balance lift (shadows)"
 msgstr "컬러 균형 상승 (섀도우)"
+
+
+msgid "Correction for entire tonal range"
+msgstr "전체 색조 범위에 대한 보정"
 
 
 msgid "Color balance parameters for a sequence strip"
@@ -68039,10 +68023,6 @@ msgstr "메쉬에 대한 통계 정보를 표시"
 
 msgid "Show Text"
 msgstr "텍스트를 표시"
-
-
-msgid "Display overlay text"
-msgstr "오버레이 텍스트를 표시"
 
 
 msgid "Display Vertex Normals"
@@ -73016,10 +72996,6 @@ msgid "Viewport Overlays"
 msgstr "뷰포트 오버레이"
 
 
-msgid "Text Info"
-msgstr "텍스트 정보"
-
-
 msgid "Statistics"
 msgstr "통계"
 
@@ -73553,10 +73529,6 @@ msgstr "영향 만"
 
 msgid "Locations"
 msgstr "위치"
-
-
-msgid "Parents"
-msgstr "부모"
 
 
 msgid "Refine Method"
@@ -75639,10 +75611,6 @@ msgstr "활성 오브젝트는 선택된 메쉬가 아님"
 
 msgid "No mesh data to join"
 msgstr "합치는 메쉬 데이터가 없음"
-
-
-msgid "Selected meshes must have equal numbers of vertices"
-msgstr "선택된 메쉬는 동일한 버텍스 개수가 있어야 함"
 
 
 msgid "No additional selected meshes with equal vertex count to join"
@@ -79142,10 +79110,6 @@ msgstr "밝기"
 
 msgid "Layer:"
 msgstr "레이어:"
-
-
-msgid "Glare"
-msgstr "글레어"
 
 
 msgid "Streak fade-out factor"

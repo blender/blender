@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'd87e0ecb614e')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'ba454989554a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-19 11:37+0000\n"
+"POT-Creation-Date: 2025-05-26 07:36+0000\n"
 "PO-Revision-Date: 2025-04-14 08:42+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Thai <https://translate.blender.org/projects/blender-ui/ui/th/>\n"
@@ -3260,12 +3260,12 @@ msgid "Single Image"
 msgstr "ภาพเดี่ยว"
 
 
-msgid "View Lock"
-msgstr "ล็อกมุมมอง"
-
-
 msgid "Overlays"
 msgstr "วางซ้อน"
+
+
+msgid "View Lock"
+msgstr "ล็อกมุมมอง"
 
 
 msgid "Mask Display"
@@ -3651,6 +3651,10 @@ msgstr "ลำโพง"
 
 msgid "3D"
 msgstr "สามมิติ"
+
+
+msgid "Text Info"
+msgstr "ข้อมูลข้อความ"
 
 
 msgctxt "Sequence"
@@ -4685,10 +4689,6 @@ msgstr "หมุน..."
 msgctxt "Operator"
 msgid "Bones"
 msgstr "กระดูก"
-
-
-msgid "Text Info"
-msgstr "ข้อมูลข้อความ"
 
 
 msgid "Origins"

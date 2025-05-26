@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'd87e0ecb614e')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'ba454989554a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-19 11:37+0000\n"
+"POT-Creation-Date: 2025-05-26 07:36+0000\n"
 "PO-Revision-Date: 2025-04-14 08:40+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Serbian <https://translate.blender.org/projects/blender-ui/ui/sr/>\n"
@@ -6030,6 +6030,10 @@ msgid "Light color"
 msgstr "Боја светлости"
 
 
+msgid "Normalize"
+msgstr "Нормализуј"
+
+
 msgid "Omnidirectional point light source"
 msgstr "Омни тачка као извор светлости"
 
@@ -10471,10 +10475,6 @@ msgid "Use Mask"
 msgstr "Користи маску"
 
 
-msgid "Normalize"
-msgstr "Нормализуј"
-
-
 msgid "Use Red Channel"
 msgstr "Користи црвени канал"
 
@@ -10907,6 +10907,10 @@ msgid "Flip X & Y"
 msgstr "Изврни X и Y"
 
 
+msgid "Glare"
+msgstr "Бљесак"
+
+
 msgid "Glare Type"
 msgstr "Врста бљеска"
 
@@ -11045,6 +11049,10 @@ msgstr "RGB у ЦБ"
 
 msgid "Render Layers"
 msgstr "Рендеруј слојеве"
+
+
+msgid "Greater"
+msgstr "Веће"
 
 
 msgid "Rotate"
@@ -13648,10 +13656,6 @@ msgstr "Вредност сејања за насумично стварање"
 msgctxt "Operator"
 msgid "Select Control Point Row"
 msgstr "Изабери низ контролних тачака"
-
-
-msgid "Greater"
-msgstr "Веће"
 
 
 msgid "Less"
@@ -17444,6 +17448,10 @@ msgid "Clear Pose Scale"
 msgstr "Очисти увећање позе"
 
 
+msgid "Parents"
+msgstr "Родитељи"
+
+
 msgctxt "Operator"
 msgid "Select Connected"
 msgstr "Изабери повезано"
@@ -19303,10 +19311,6 @@ msgstr "Назив менија"
 
 msgid "Remove"
 msgstr "Уклони"
-
-
-msgid "Save a Collada file"
-msgstr "Сачувај као Collada датотеку"
 
 
 msgid "Only export deforming bones with armatures"
@@ -24632,10 +24636,6 @@ msgid "Remove from All"
 msgstr "Уклони из свих"
 
 
-msgid "Parents"
-msgstr "Родитељи"
-
-
 msgid "Multi-Paint"
 msgstr "Вишеструко бојење"
 
@@ -25993,10 +25993,6 @@ msgstr "Светлина"
 
 msgid "Layer:"
 msgstr "Слојеви:"
-
-
-msgid "Glare"
-msgstr "Бљесак"
 
 
 msgid "Use feather information from the mask"

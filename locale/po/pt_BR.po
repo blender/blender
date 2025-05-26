@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'd87e0ecb614e')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'ba454989554a')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2025-05-19 11:37+0000\n"
+"POT-Creation-Date: 2025-05-26 07:36+0000\n"
 "PO-Revision-Date: 2025-04-14 08:36+0000\n"
 "Last-Translator: Ruan da Silva Andrade <ruanandrade818@gmail.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -6744,10 +6744,6 @@ msgstr "Aponta o objeto restringido na direção do alvo."
 
 msgid "Target Z"
 msgstr "Alvo Z"
-
-
-msgid "Target's Z axis, not World Z axis, will constraint the Up direction"
-msgstr "Eixo Z do alvo, não o eixo Z do ambiente (mundo), irá restringir na direção para cima."
 
 
 msgid "Transform Cache Constraint"
@@ -14227,6 +14223,10 @@ msgstr "Configurações de Luz do Cycles"
 
 msgid "Cycles light settings"
 msgstr "Configurações de Luz do Cycles"
+
+
+msgid "Normalize"
+msgstr "Normalizar"
 
 
 msgid "Specular Factor"
@@ -26277,10 +26277,6 @@ msgid "Reconstructed"
 msgstr "Reconstruído"
 
 
-msgid "Is tracking data contains valid reconstruction information"
-msgstr "Os dados de rastreamento contém informações de reconstrução válidos."
-
-
 msgid "Movie tracking settings"
 msgstr "Configurações de rastreamento de filme."
 
@@ -26483,10 +26479,6 @@ msgstr "Usa o canal verde da filmagem para rastreamento."
 
 msgid "Use Mask"
 msgstr "Usar máscara"
-
-
-msgid "Normalize"
-msgstr "Normalizar"
 
 
 msgid "Normalize light intensities while tracking (slower)"
@@ -27241,10 +27233,6 @@ msgid "Basis"
 msgstr "Base"
 
 
-msgid "Support negative color by using this as the RGB basis"
-msgstr "Permite o suporte a cores negativas pela utilização destes valores como a base de cores RGB."
-
-
 msgid "Slope"
 msgstr "Inclinação"
 
@@ -27407,10 +27395,6 @@ msgstr "X1"
 
 msgid "Y1"
 msgstr "Y1"
-
-
-msgid "Use relative values to crop image"
-msgstr "Usa valores relativos para recortar a imagem."
 
 
 msgid "Crop Image Size"
@@ -27675,6 +27659,10 @@ msgstr "Inverter Y"
 
 msgid "Flip X & Y"
 msgstr "Inverter X e Y"
+
+
+msgid "Glare"
+msgstr "Ofuscar"
 
 
 msgid "Angle Offset"
@@ -27990,6 +27978,10 @@ msgid "Render Layers"
 msgstr "Camadas de renderização"
 
 
+msgid "Greater"
+msgstr "Maior"
+
+
 msgid "Rotate"
 msgstr "Rotacionar"
 
@@ -28108,10 +28100,6 @@ msgstr "Método a ser usado para filtrar a transformação."
 
 msgid "Translate"
 msgstr "Mover"
-
-
-msgid "Use relative (fraction of input image size) values to define translation"
-msgstr "Usa valores relativos (em frações do tamanho da imagem de entrada) para definir o movimento."
 
 
 msgid "X Axis"
@@ -34141,10 +34129,6 @@ msgstr "Selecionar linhas de pontos de controle"
 
 msgid "Select similar curve points by property type"
 msgstr "Seleciona os pontos similares das curvas pelos tipos de propriedades."
-
-
-msgid "Greater"
-msgstr "Maior"
 
 
 msgid "Less"
@@ -44063,6 +44047,10 @@ msgid "All bones affected by active Keying Set"
 msgstr "Todos os ossos afetados pelo conjunto de inserção de chaves ativo."
 
 
+msgid "Parents"
+msgstr "Parentes"
+
+
 msgctxt "Operator"
 msgid "Select Connected"
 msgstr "Selecionar conectados"
@@ -48425,10 +48413,6 @@ msgid "Remove"
 msgstr "Remover"
 
 
-msgid "Save a Collada file"
-msgstr "Salva um arquivo COLLADA"
-
-
 msgid "Only Selected UV Map"
 msgstr "Somente os mapas UV selecionados"
 
@@ -48531,10 +48515,6 @@ msgstr "Cria múltiplos objetos instanciados a partir dos mesmos dados."
 
 msgid "Copy textures to same folder where the .dae file is exported"
 msgstr "Copia as texturas para a mesma pasta onde o arquivo .dae é exportado."
-
-
-msgid "Load a Collada file"
-msgstr "Carrega um arquivo COLLADA"
 
 
 msgid "Auto Connect"
@@ -49579,10 +49559,6 @@ msgstr "Tamanho para capturar a imagem para re-projeção."
 
 msgid "Bleed"
 msgstr "Sangrar"
-
-
-msgid "Extend paint beyond the faces UVs to reduce seams (in pixels, slower)"
-msgstr "Estende a pintura além das UVs das faces para reduzir as costuras (em pixeis, mais lento)."
 
 
 msgid "Stencil Color"
@@ -57461,6 +57437,10 @@ msgid "Viewport display style for tracks"
 msgstr "Estilo de visualização na janela de exibição para trilhas."
 
 
+msgid "Text Info"
+msgstr "Informação do Texto"
+
+
 msgid "Get the node tree path as a string"
 msgstr "Obtém o caminho da árvore de nós como uma variável de texto."
 
@@ -64119,10 +64099,6 @@ msgid "Show Gizmos"
 msgstr "Mostrar Apetrechos"
 
 
-msgid "Text Info"
-msgstr "Informação do Texto"
-
-
 msgid "Origins"
 msgstr "Origens"
 
@@ -64613,10 +64589,6 @@ msgstr "Afeta Apenas"
 
 msgid "Locations"
 msgstr "Localizações"
-
-
-msgid "Parents"
-msgstr "Parentes"
 
 
 msgctxt "Operator"
@@ -66421,10 +66393,6 @@ msgstr "Objeto ativo não é uma malha selecionada."
 
 msgid "No mesh data to join"
 msgstr "Sem dados adicionais de malha para juntar."
-
-
-msgid "Selected meshes must have equal numbers of vertices"
-msgstr "Malhas selecionadas devem possuir um número igual de vértices."
 
 
 msgid "No additional selected meshes with equal vertex count to join"
@@ -69577,10 +69545,6 @@ msgstr "Adicionar Entrada"
 
 msgid "Layer:"
 msgstr "Camadas:"
-
-
-msgid "Glare"
-msgstr "Ofuscar"
 
 
 msgid "Streak fade-out factor"

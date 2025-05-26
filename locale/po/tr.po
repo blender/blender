@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'd87e0ecb614e')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'ba454989554a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-19 11:37+0000\n"
+"POT-Creation-Date: 2025-05-26 07:36+0000\n"
 "PO-Revision-Date: 2025-05-17 17:56+0000\n"
 "Last-Translator: Ugur Saglam <saglamugur556@gmail.com>\n"
 "Language-Team: Turkish <https://translate.blender.org/projects/blender-ui/ui/tr/>\n"
@@ -19522,6 +19522,10 @@ msgid "Node tree for node based lights"
 msgstr "Düğüm tabanlı ışıklar için düğüm ağacı"
 
 
+msgid "Normalize"
+msgstr "Normalleştirmek"
+
+
 msgid "Specular Factor"
 msgstr "Aynasal Faktör"
 
@@ -37290,10 +37294,6 @@ msgid "Reconstructed"
 msgstr "Yeniden inşa edildi"
 
 
-msgid "Is tracking data contains valid reconstruction information"
-msgstr "İzleme verileri geçerli yeniden yapılandırma bilgileri içeriyor mu"
-
-
 msgid "Movie tracking settings"
 msgstr "Film izleme ayarları"
 
@@ -37524,10 +37524,6 @@ msgstr "İzleme için görüntülerden yeşil kanalı kullanın"
 
 msgid "Use Mask"
 msgstr "Maske Kullan"
-
-
-msgid "Normalize"
-msgstr "Normalleştirmek"
 
 
 msgid "Normalize light intensities while tracking (slower)"
@@ -38429,20 +38425,8 @@ msgid "Chromatic adaption from a different white point"
 msgstr "Farklı bir beyaz noktadan kromatik adaptasyon"
 
 
-msgid "Correction for highlights"
-msgstr "Vurgular için düzeltme"
-
-
-msgid "Correction for midtones"
-msgstr "Orta tonlar için düzeltme"
-
-
 msgid "Input Temperature"
 msgstr "Giriş Sıcaklığı"
-
-
-msgid "Color temperature of the input's white point"
-msgstr "Girişin beyaz noktasının renk sıcaklığı"
 
 
 msgid "Input Tint"
@@ -38453,28 +38437,12 @@ msgid "Input White Point"
 msgstr "Giriş Beyaz Nokta"
 
 
-msgid "Correction for shadows"
-msgstr "Gölgeler için düzeltme"
-
-
-msgid "Correction for entire tonal range"
-msgstr "Tüm ton aralığı için düzeltme"
-
-
 msgid "Basis"
 msgstr "Temel"
 
 
-msgid "Support negative color by using this as the RGB basis"
-msgstr "Bunu RGB temeli olarak kullanarak negatif rengi destekleyin"
-
-
 msgid "Output Temperature"
 msgstr "Çıkış Sıcaklığı"
-
-
-msgid "Color temperature of the output's white point"
-msgstr "Çıktının beyaz noktasının renk sıcaklığı"
 
 
 msgid "Output Tint"
@@ -38727,10 +38695,6 @@ msgstr "X1"
 
 msgid "Y1"
 msgstr "Y1"
-
-
-msgid "Use relative values to crop image"
-msgstr "Görüntüyü kırpmak için bağıl değerleri kullanın"
 
 
 msgid "Crop Image Size"
@@ -39146,8 +39110,8 @@ msgid "Apply gamma correction"
 msgstr "Gama düzeltmesini uygula"
 
 
-msgid "Glare "
-msgstr "Parlama "
+msgid "Glare"
+msgstr "Parlama"
 
 
 msgid "Angle Offset"
@@ -39960,6 +39924,10 @@ msgid "Input render passes from a scene render"
 msgstr "Giriş render geçişleri bir sahne render'ından geçer"
 
 
+msgid "Greater"
+msgstr "Daha büyük"
+
+
 msgid "Rotate"
 msgstr "Döndür"
 
@@ -40164,10 +40132,6 @@ msgid "Offset an image"
 msgstr "Bir görüntüyü ofsetlemek"
 
 
-msgid "Use relative (fraction of input image size) values to define translation"
-msgstr "Çeviriyi tanımlamak için bağıl (giriş görüntü boyutunun kesri) değerleri kullanın"
-
-
 msgid "X Axis"
 msgstr "X Eks"
 
@@ -40292,20 +40256,20 @@ msgid "Axis Angle to Rotation"
 msgstr "Eksen Açısı Dönüş"
 
 
-msgid "Boolean Math"
-msgstr "Boole Matematik"
-
-
 msgid "And"
 msgstr "Ve"
 
 
-msgid "True when both inputs are true"
-msgstr "Her iki girdi de doğru olduğunda Doğru"
-
-
 msgid "Or"
 msgstr "Veya"
+
+
+msgid "Boolean Math"
+msgstr "Boole Matematik"
+
+
+msgid "True when both inputs are true"
+msgstr "Her iki girdi de doğru olduğunda Doğru"
 
 
 msgid "True when at least one input is true"
@@ -44833,6 +44797,34 @@ msgid "Default Input"
 msgstr "Varsayılan Giriş"
 
 
+msgid "The node socket's default value"
+msgstr "Düğüm soketinin varsayılan değeri"
+
+
+msgid "The index from the context"
+msgstr "Bağlamdan endeks"
+
+
+msgid "ID or Index"
+msgstr "Kimlik veya Dizin"
+
+
+msgid "The \"id\" attribute if available, otherwise the index"
+msgstr "Mevcutsa \"id\" niteliği, aksi takdirde dizin"
+
+
+msgid "The geometry's normal direction"
+msgstr "Geometrinin normal yönü"
+
+
+msgid "The position from the context"
+msgstr "Bağlamdan pozisyon"
+
+
+msgid "Transformation of each instance from the geometry context"
+msgstr "Her örneğin geometri bağlamından dönüşümü"
+
+
 msgid "Socket description"
 msgstr "Soket açıklaması"
 
@@ -46131,10 +46123,6 @@ msgstr "Seçili düğümün çıktılarını ayır, girdileri bağlı bırak"
 msgctxt "Operator"
 msgid "Detach Outputs"
 msgstr "Çıktıları Ayır"
-
-
-msgid "Connect two nodes without clicking a specific socket (automatically determined"
-msgstr "Belirli bir sokete tıklamadan iki düğümü bağlayın (otomatik olarak belirlenir)"
 
 
 msgctxt "Operator"
@@ -49740,6 +49728,14 @@ msgid "Mark as Single Asset"
 msgstr "Tek Varlık Olarak İşaretle"
 
 
+msgid "Point 1"
+msgstr "Madde 1"
+
+
+msgid "Point 2"
+msgstr "Nokta 2"
+
+
 msgctxt "Operator"
 msgid "Add Boid Rule"
 msgstr "Kuş Benzeri Nesne Kuralı Ekle"
@@ -52297,10 +52293,6 @@ msgstr "Kontrol Noktası Satırını Seç"
 
 msgid "Select similar curve points by property type"
 msgstr "Benzer eğri noktalarını mülk türüne göre seçin"
-
-
-msgid "Greater"
-msgstr "Daha büyük"
 
 
 msgid "Less"
@@ -67762,10 +67754,6 @@ msgid "Interpolation factor between current brush weight, and keys' weights"
 msgstr "Mevcut fırça ağırlığı ile tuşların ağırlıkları arasındaki enterpolasyon faktörü"
 
 
-msgid "Copy selected points "
-msgstr "Seçili noktaları kopyala "
-
-
 msgctxt "Operator"
 msgid "Apply Pose Asset"
 msgstr "Poz Varlığını Uygula"
@@ -68249,6 +68237,10 @@ msgstr "Aktif kemikle aynı renk"
 
 msgid "All bones affected by active Keying Set"
 msgstr "Etkin Anahtarlama Setinden etkilenen tüm kemikler"
+
+
+msgid "Parents"
+msgstr "Ebeveynler"
 
 
 msgctxt "Operator"
@@ -75899,10 +75891,6 @@ msgid "Export COLLADA (Legacy)"
 msgstr "COLLADA'yı dışa aktar (Eski)"
 
 
-msgid "Save a Collada file"
-msgstr "Bir Collada dosyasını kaydedin"
-
-
 msgid "Only Selected UV Map"
 msgstr "Sadece Seçili UV Haritası"
 
@@ -76190,10 +76178,6 @@ msgstr "Dokuları .dae dosyasının dışa aktarıldığı klasöre kopyalayın"
 msgctxt "Operator"
 msgid "Import COLLADA (Legacy)"
 msgstr "COLLADA'yı içe aktar (Eski)"
-
-
-msgid "Load a Collada file"
-msgstr "Bir Collada dosyası yükleyin"
 
 
 msgid "Auto Connect"
@@ -78767,6 +78751,14 @@ msgid "Panel containing UI elements"
 msgstr "UI öğelerini içeren panel"
 
 
+msgid "Overlays"
+msgstr "Kaplamalar"
+
+
+msgid "Guides"
+msgstr "Rehberler"
+
+
 msgid "Viewer Node"
 msgstr "Görüntüleyici Düğümü"
 
@@ -78803,10 +78795,6 @@ msgid "Drawing Plane"
 msgstr "Çizim düzlemi"
 
 
-msgid "Guides"
-msgstr "Rehberler"
-
-
 msgid "Quad View"
 msgstr "Dörtlü Görünüm"
 
@@ -78821,6 +78809,10 @@ msgstr "Stereoskopi"
 
 msgid "Multi Frame"
 msgstr "Çoklu Çerçeve"
+
+
+msgid "Compositor"
+msgstr "Dizgici"
 
 
 msgid "Auto-Masking"
@@ -78885,14 +78877,6 @@ msgstr "Boşluk"
 
 msgid "Render Pass"
 msgstr "Render Geçişi"
-
-
-msgid "Compositor"
-msgstr "Dizgici"
-
-
-msgid "Overlays"
-msgstr "Kaplamalar"
 
 
 msgid "Chain Scaling"
@@ -91389,18 +91373,6 @@ msgid "Attribute domain to display"
 msgstr "Görüntülenecek etki alanını belirtin"
 
 
-msgid "Columns"
-msgstr "Sütunlar"
-
-
-msgid "Persistent data associated with spreadsheet columns"
-msgstr "E-tablo sütunlarıyla ilişkili kalıcı veriler"
-
-
-msgid "Display Context Path Collapsed"
-msgstr "Bağlam Yolunu Göster Daraltıldı"
-
-
 msgid "Geometry Component"
 msgstr "Geometri Bileşeni"
 
@@ -91993,6 +91965,14 @@ msgid "Display overlays like UV Maps and Metadata"
 msgstr "UV Haritaları ve Meta Veriler gibi katmanları görüntüleyin"
 
 
+msgid "Text Info"
+msgstr "Metin Bilgisi"
+
+
+msgid "Display overlay text"
+msgstr "Üst üste binen metni görüntüle"
+
+
 msgid "Get the node tree path as a string"
 msgstr "Düğüm ağacı yolunu bir dize olarak al"
 
@@ -92409,6 +92389,10 @@ msgstr "8-Bit Tamsayı Değeri"
 
 msgid "Text Value"
 msgstr "Metin Değeri"
+
+
+msgid "Columns"
+msgstr "Sütunlar"
 
 
 msgid "Stereo 3D Display"
@@ -93207,6 +93191,18 @@ msgstr "Eğim rengini tersine çevir"
 
 msgid "Color balance lift (shadows)"
 msgstr "Renk dengesi kaldırma (gölgeler)"
+
+
+msgid "Correction for entire tonal range"
+msgstr "Tüm ton aralığı için düzeltme"
+
+
+msgid "Correction for midtones"
+msgstr "Orta tonlar için düzeltme"
+
+
+msgid "Correction for highlights"
+msgstr "Vurgular için düzeltme"
 
 
 msgid "Color balance parameters for a sequence strip"
@@ -96081,6 +96077,10 @@ msgid "Number of steps to break transformation into for face nearest snapping"
 msgstr "Yüze en yakın yakalama için dönüşümün parçalanması gereken adım sayısı"
 
 
+msgid "Snap to Strips"
+msgstr "Şeritlere Yapış"
+
+
 msgid "Snap Target"
 msgstr "Hedefi Yakala"
 
@@ -97407,10 +97407,6 @@ msgstr "Ağ hakkında istatistiksel bilgileri görüntüle"
 
 msgid "Show Text"
 msgstr "Metni Göster"
-
-
-msgid "Display overlay text"
-msgstr "Üst üste binen metni görüntüle"
 
 
 msgid "Display Vertex Normals"
@@ -107896,10 +107892,6 @@ msgid "Muted Strips"
 msgstr "Sönük Şeritler"
 
 
-msgid "Snap to Strips"
-msgstr "Şeritlere Yapış"
-
-
 msgctxt "Operator"
 msgid "Set Preview Range to Strips"
 msgstr "Önizleme Aralığını Şeritlere Ayarla"
@@ -108189,18 +108181,6 @@ msgstr "Kesmek için"
 
 msgid "Two or more channels are needed below this strip"
 msgstr "Bu şeridin altında iki veya daha fazla kanala ihtiyaç var"
-
-
-msgid "No active context"
-msgstr "Etkin bağlam yok"
-
-
-msgid "No active viewer node"
-msgstr "Etkin görüntüleyici düğümü yok"
-
-
-msgid "Invalid id"
-msgstr "Geçersiz kimlik"
 
 
 msgctxt "Text"
@@ -108578,11 +108558,6 @@ msgstr "Blender Fabrika Ayarlarını Yükle"
 
 
 msgctxt "Operator"
-msgid "Collada (.dae) (Legacy)"
-msgstr "Collada (.dae) (Miras)"
-
-
-msgctxt "Operator"
 msgid "Alembic (.abc)"
 msgstr "İmbik (.abc)"
 
@@ -108610,6 +108585,11 @@ msgstr "Stanford PLY (.katmanlı)"
 msgctxt "Operator"
 msgid "STL (.stl)"
 msgstr "STL (.stl)"
+
+
+msgctxt "Operator"
+msgid "Collada (.dae) (Legacy)"
+msgstr "Collada (.dae) (Miras)"
 
 
 msgctxt "Operator"
@@ -110167,10 +110147,6 @@ msgid "Floor"
 msgstr "Zemin"
 
 
-msgid "Text Info"
-msgstr "Metin Bilgisi"
-
-
 msgid "Statistics"
 msgstr "İstatistikler"
 
@@ -111235,10 +111211,6 @@ msgstr "Sadece Etkile"
 
 msgid "Locations"
 msgstr "Konumlar"
-
-
-msgid "Parents"
-msgstr "Ebeveynler"
 
 
 msgid "Refine Method"
@@ -114597,10 +114569,6 @@ msgid "Samples Transform"
 msgstr "Örnekler Dönüşümü"
 
 
-msgid "Close"
-msgstr "Kapalı"
-
-
 msgid "Use Schema"
 msgstr "Şema Kullan"
 
@@ -114840,6 +114808,10 @@ msgstr "GMP olmadan, hızlı çözücü kullanılarak derlendi"
 
 msgid "No intersections found"
 msgstr "Hiçbir kavşak bulunamadı"
+
+
+msgid "Close"
+msgstr "Kapalı"
 
 
 msgid "Pan View"
@@ -115100,10 +115072,6 @@ msgstr "Etkin nesne seçili bir ağ değil"
 
 msgid "No mesh data to join"
 msgstr "Birleştirilecek ağ verisi yok"
-
-
-msgid "Selected meshes must have equal numbers of vertices"
-msgstr "Seçilen ağların eşit sayıda tepe noktasına sahip olması gerekir"
 
 
 msgid "No additional selected meshes with equal vertex count to join"
@@ -116823,10 +116791,6 @@ msgstr "Az önce kaydedilen fırça varlığı etkinleştirilemiyor"
 
 msgid "File not found '%s'"
 msgstr "Dosya bulunamadı '%s'"
-
-
-msgid "No asset library available to save to"
-msgstr "Kaydedilecek varlık kütüphanesi yok"
 
 
 msgid "Asset library is not editable"
@@ -118947,6 +118911,10 @@ msgstr "Seviye Ayarı"
 
 msgid "(Geometry)"
 msgstr "(Geometri)"
+
+
+msgid "For Each Element"
+msgstr "Her Element İçin"
 
 
 msgid "Data Set"
@@ -121179,34 +121147,6 @@ msgid "NLA strip '%s' not found in track '%s'"
 msgstr "NLA şeridi '%s' '%s' parçasında bulunamadı"
 
 
-msgid "The node socket's default value"
-msgstr "Düğüm soketinin varsayılan değeri"
-
-
-msgid "The index from the context"
-msgstr "Bağlamdan endeks"
-
-
-msgid "ID or Index"
-msgstr "Kimlik veya Dizin"
-
-
-msgid "The \"id\" attribute if available, otherwise the index"
-msgstr "Mevcutsa \"id\" niteliği, aksi takdirde dizin"
-
-
-msgid "The geometry's normal direction"
-msgstr "Geometrinin normal yönü"
-
-
-msgid "The position from the context"
-msgstr "Bağlamdan pozisyon"
-
-
-msgid "Transformation of each instance from the geometry context"
-msgstr "Her örneğin geometri bağlamından dönüşümü"
-
-
 msgid "Parent is not part of the interface"
 msgstr "Üst öğe arayüzün bir parçası değil"
 
@@ -122338,24 +122278,8 @@ msgid "Disabled, built without OpenSubdiv"
 msgstr "Engelli, OpenSubdiv olmadan oluşturuldu"
 
 
-msgid "Warnings ({})"
-msgstr "Uyarılar ({})"
-
-
-msgid "Output Attributes"
-msgstr "Çıktı Nitelikleri"
-
-
-msgid "Manage"
-msgstr "Üstesinden gelmek"
-
-
 msgid "Cannot load the baked data"
 msgstr "Pişirilmiş veriler yüklenemiyor"
-
-
-msgid "No named attributes used"
-msgstr "Adlandırılmış öznitelikler kullanılmadı"
 
 
 msgid "Missing property for input socket \"%s\""
@@ -122707,6 +122631,18 @@ msgid "Despill Channel:"
 msgstr "Despill Kanalı:"
 
 
+msgid "Correction for shadows"
+msgstr "Gölgeler için düzeltme"
+
+
+msgid "Color temperature of the input's white point"
+msgstr "Girişin beyaz noktasının renk sıcaklığı"
+
+
+msgid "Color temperature of the output's white point"
+msgstr "Çıktının beyaz noktasının renk sıcaklığı"
+
+
 msgid "Master"
 msgstr "Master"
 
@@ -122821,10 +122757,6 @@ msgstr "Biçim:"
 
 msgid "Disabled, built without FFTW"
 msgstr "Engelli, FFTW olmadan inşa edilmiş"
-
-
-msgid "Glare"
-msgstr "Parlama"
 
 
 msgid "Streak fade-out factor"
@@ -123322,14 +123254,6 @@ msgid "Position of the end control point of the curve"
 msgstr "Eğrinin son kontrol noktasının konumu"
 
 
-msgid "Point 1"
-msgstr "Madde 1"
-
-
-msgid "Point 2"
-msgstr "Nokta 2"
-
-
 msgid "Point 3"
 msgstr "Madde 3"
 
@@ -123694,10 +123618,6 @@ msgstr "Tepe"
 
 msgid "Input Fields"
 msgstr "Giriş Alanları"
-
-
-msgid "For Each Element"
-msgstr "Her Element İçin"
 
 
 msgid "Missing Geometry"
@@ -124673,6 +124593,22 @@ msgstr "Y eksenindeki voksel sayısı"
 
 msgid "Number of voxels in the Z axis"
 msgstr "Z eksenindeki voksel sayısı"
+
+
+msgid "Warnings ({})"
+msgstr "Uyarılar ({})"
+
+
+msgid "Output Attributes"
+msgstr "Çıktı Nitelikleri"
+
+
+msgid "Manage"
+msgstr "Üstesinden gelmek"
+
+
+msgid "No named attributes used"
+msgstr "Adlandırılmış öznitelikler kullanılmadı"
 
 
 msgid "Input geometry has no elements in the iteration domain."

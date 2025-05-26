@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'd87e0ecb614e')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'ba454989554a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-19 11:37+0000\n"
+"POT-Creation-Date: 2025-05-26 07:36+0000\n"
 "PO-Revision-Date: 2025-04-14 08:48+0000\n"
 "Last-Translator: luxem <luxem168@gmail.com>\n"
 "Language-Team: Chinese (Traditional Han script) <https://translate.blender.org/projects/blender-ui/ui/zh_Hant/>\n"
@@ -7466,10 +7466,6 @@ msgid "Target Z"
 msgstr "目標 Z"
 
 
-msgid "Target's Z axis, not World Z axis, will constraint the Up direction"
-msgstr "目標的 Z 軸，而不是世界 Z 軸，它會約束「向上」方向"
-
-
 msgid "Transform Cache Constraint"
 msgstr "變換快取約束"
 
@@ -11813,10 +11809,6 @@ msgid "Surface Emission"
 msgstr "發射表面"
 
 
-msgid "Controls fluid emission from the mesh surface (higher value results in emission further away from the mesh surface"
-msgstr "控制來自網格表面的流體發射（較高的值會導致發射離網格表面更遠）"
-
-
 msgid "Temperature Difference"
 msgstr "溫差"
 
@@ -15798,6 +15790,10 @@ msgstr "場景照明用的燈光資料組塊"
 
 msgid "Light color"
 msgstr "燈光色彩"
+
+
+msgid "Normalize"
+msgstr "歸一化"
 
 
 msgid "Specular Factor"
@@ -27438,10 +27434,6 @@ msgid "Reconstructed"
 msgstr "重建的"
 
 
-msgid "Is tracking data contains valid reconstruction information"
-msgstr "正跟蹤包含有效重建資訊的資料"
-
-
 msgid "Movie tracking settings"
 msgstr "影片追蹤設定"
 
@@ -27644,10 +27636,6 @@ msgstr "從連續鏡頭使用綠色通道供追蹤"
 
 msgid "Use Mask"
 msgstr "使用遮罩"
-
-
-msgid "Normalize"
-msgstr "歸一化"
 
 
 msgid "Normalize light intensities while tracking (slower)"
@@ -28493,10 +28481,6 @@ msgid "Y1"
 msgstr "Y1"
 
 
-msgid "Use relative values to crop image"
-msgstr "使用相對值來裁切影像"
-
-
 msgid "Crop Image Size"
 msgstr "裁切影像大小"
 
@@ -28762,8 +28746,8 @@ msgid "Flip X & Y"
 msgstr "翻轉 X 與 Y"
 
 
-msgid "Glare "
-msgstr "耀光 "
+msgid "Glare"
+msgstr "耀光"
 
 
 msgid "Angle Offset"
@@ -29342,6 +29326,10 @@ msgid "Render Layers"
 msgstr "算繪分層"
 
 
+msgid "Greater"
+msgstr "大於"
+
+
 msgid "Rotate"
 msgstr "旋轉"
 
@@ -29502,16 +29490,16 @@ msgid "Function Node"
 msgstr "函式節點"
 
 
-msgid "Boolean Math"
-msgstr "布林公式計算"
-
-
 msgid "And"
 msgstr "And"
 
 
 msgid "Or"
 msgstr "Or"
+
+
+msgid "Boolean Math"
+msgstr "布林公式計算"
 
 
 msgid "Nor"
@@ -35470,10 +35458,6 @@ msgstr "隨機編號生成器的種子"
 msgctxt "Operator"
 msgid "Select Control Point Row"
 msgstr "選取控制點列"
-
-
-msgid "Greater"
-msgstr "大於"
 
 
 msgid "Less"
@@ -44011,6 +43995,10 @@ msgid "All bones affected by active Keying Set"
 msgstr "受作用中鍵處理集影響的所有骨骼"
 
 
+msgid "Parents"
+msgstr "親代"
+
+
 msgctxt "Operator"
 msgid "Select Connected"
 msgstr "選取已連接者"
@@ -48448,10 +48436,6 @@ msgid "Remove"
 msgstr "移除"
 
 
-msgid "Save a Collada file"
-msgstr "儲存一件 Collada 檔案"
-
-
 msgid "Only export deforming bones with armatures"
 msgstr "僅匯出含骨架的變形骨骼"
 
@@ -48555,10 +48539,6 @@ msgstr "複製紋理至匯出 .dae 檔案的相同資料夾"
 msgctxt "Operator"
 msgid "Import COLLADA (Legacy)"
 msgstr "匯入 COLLADA（舊式）"
-
-
-msgid "Load a Collada file"
-msgstr "載入一件 Collada 檔案"
 
 
 msgid "Auto Connect"
@@ -49437,10 +49417,6 @@ msgid "Bleed"
 msgstr "出血"
 
 
-msgid "Extend paint beyond the faces UVs to reduce seams (in pixels, slower)"
-msgstr "擴展繪製超出面 UV 來降低縫合 (單位為像素，較緩慢)"
-
-
 msgid "Stencil Color"
 msgstr "模板色彩"
 
@@ -49597,6 +49573,10 @@ msgid "Palette Color"
 msgstr "色版色彩"
 
 
+msgid "Overlays"
+msgstr "疊層"
+
+
 msgid "Viewer Node"
 msgstr "檢視器節點"
 
@@ -49637,6 +49617,10 @@ msgid "Multi Frame"
 msgstr "多重畫框"
 
 
+msgid "Compositor"
+msgstr "合成器"
+
+
 msgid "Auto-Masking"
 msgstr "自動遮罩"
 
@@ -49655,14 +49639,6 @@ msgstr "坑腔"
 
 msgid "Render Pass"
 msgstr "算繪通遞"
-
-
-msgid "Compositor"
-msgstr "合成器"
-
-
-msgid "Overlays"
-msgstr "疊層"
 
 
 msgid "Chain Scaling"
@@ -57018,10 +56994,6 @@ msgid "Type of the Sequencer view (sequencer, preview or both)"
 msgstr "序段編輯器檢視的類型（序段編輯器、預覽，或兩者）"
 
 
-msgid "Columns"
-msgstr "欄"
-
-
 msgid "Space Text Editor"
 msgstr "空間文字編輯器"
 
@@ -57585,6 +57557,10 @@ msgstr "NURBS 權重"
 
 msgid "Color Value"
 msgstr "色彩值"
+
+
+msgid "Columns"
+msgstr "欄"
 
 
 msgid "Stereo 3D Display"
@@ -64530,14 +64506,6 @@ msgid "dB"
 msgstr "dB"
 
 
-msgid "No active viewer node"
-msgstr "沒有作用中的檢視器節點"
-
-
-msgid "Invalid id"
-msgstr "無效 ID"
-
-
 msgid "All Data-Blocks"
 msgstr "所有資料組塊"
 
@@ -64819,11 +64787,6 @@ msgstr "載入 Blender 原廠設定"
 
 
 msgctxt "Operator"
-msgid "Collada (.dae) (Legacy)"
-msgstr "Collada (.dae) (舊式)"
-
-
-msgctxt "Operator"
 msgid "Alembic (.abc)"
 msgstr "Alembic (.abc)"
 
@@ -64831,6 +64794,11 @@ msgstr "Alembic (.abc)"
 msgctxt "Operator"
 msgid "STL (.stl)"
 msgstr "STL (.stl)"
+
+
+msgctxt "Operator"
+msgid "Collada (.dae) (Legacy)"
+msgstr "Collada (.dae) (舊式)"
 
 
 msgctxt "Operator"
@@ -66318,10 +66286,6 @@ msgstr "只影響"
 
 msgid "Locations"
 msgstr "位置"
-
-
-msgid "Parents"
-msgstr "親代"
 
 
 msgid "Detailing"
@@ -68358,10 +68322,6 @@ msgid "Samples Transform"
 msgstr "樣本變換"
 
 
-msgid "Close"
-msgstr "關閉"
-
-
 msgid "Use Schema"
 msgstr "使用綱要"
 
@@ -68523,6 +68483,10 @@ msgid "No intersections found"
 msgstr "找不到交錯"
 
 
+msgid "Close"
+msgstr "關閉"
+
+
 msgid "Undo"
 msgstr "復原"
 
@@ -68633,10 +68597,6 @@ msgstr "作用中物體非選取網格"
 
 msgid "No mesh data to join"
 msgstr "無可結合的網格資料"
-
-
-msgid "Selected meshes must have equal numbers of vertices"
-msgstr "選取的網格必須頂點數相等"
 
 
 msgid "No additional selected meshes with equal vertex count to join"
@@ -71804,14 +71764,6 @@ msgid "Multires"
 msgstr "多級精度"
 
 
-msgid "Manage"
-msgstr "管理"
-
-
-msgid "No named attributes used"
-msgstr "未使用具名的屬性"
-
-
 msgid "NormalEdit"
 msgstr "法線編輯"
 
@@ -72037,10 +71989,6 @@ msgstr "檔案子路徑："
 
 msgid "Format:"
 msgstr "格式："
-
-
-msgid "Glare"
-msgstr "耀光"
 
 
 msgid "Streak fade-out factor"
@@ -72283,6 +72231,14 @@ msgstr "Y 軸上的體素數量"
 
 msgid "Number of voxels in the Z axis"
 msgstr "Z 軸上的體素數量"
+
+
+msgid "Manage"
+msgstr "管理"
+
+
+msgid "No named attributes used"
+msgstr "未使用具名的屬性"
 
 
 msgid "Missing Data-Block"

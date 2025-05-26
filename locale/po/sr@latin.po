@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'd87e0ecb614e')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'ba454989554a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-19 11:37+0000\n"
+"POT-Creation-Date: 2025-05-26 07:36+0000\n"
 "PO-Revision-Date: 2025-04-14 08:41+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Serbian (Latin script) <https://translate.blender.org/projects/blender-ui/ui/sr_Latn/>\n"
@@ -6030,6 +6030,10 @@ msgid "Light color"
 msgstr "Boja svetlosti"
 
 
+msgid "Normalize"
+msgstr "Normalizuj"
+
+
 msgid "Omnidirectional point light source"
 msgstr "Omni tačka kao izvor svetlosti"
 
@@ -10471,10 +10475,6 @@ msgid "Use Mask"
 msgstr "Koristi masku"
 
 
-msgid "Normalize"
-msgstr "Normalizuj"
-
-
 msgid "Use Red Channel"
 msgstr "Koristi crveni kanal"
 
@@ -10907,6 +10907,10 @@ msgid "Flip X & Y"
 msgstr "Izvrni X i Y"
 
 
+msgid "Glare"
+msgstr "Bljesak"
+
+
 msgid "Glare Type"
 msgstr "Vrsta bljeska"
 
@@ -11045,6 +11049,10 @@ msgstr "RGB u CB"
 
 msgid "Render Layers"
 msgstr "Renderuj slojeve"
+
+
+msgid "Greater"
+msgstr "Veće"
 
 
 msgid "Rotate"
@@ -13648,10 +13656,6 @@ msgstr "Vrednost sejanja za nasumično stvaranje"
 msgctxt "Operator"
 msgid "Select Control Point Row"
 msgstr "Izaberi niz kontrolnih tačaka"
-
-
-msgid "Greater"
-msgstr "Veće"
 
 
 msgid "Less"
@@ -17444,6 +17448,10 @@ msgid "Clear Pose Scale"
 msgstr "Očisti uvećanje poze"
 
 
+msgid "Parents"
+msgstr "Roditelji"
+
+
 msgctxt "Operator"
 msgid "Select Connected"
 msgstr "Izaberi povezano"
@@ -19303,10 +19311,6 @@ msgstr "Naziv menija"
 
 msgid "Remove"
 msgstr "Ukloni"
-
-
-msgid "Save a Collada file"
-msgstr "Sačuvaj kao Collada datoteku"
 
 
 msgid "Only export deforming bones with armatures"
@@ -24632,10 +24636,6 @@ msgid "Remove from All"
 msgstr "Ukloni iz svih"
 
 
-msgid "Parents"
-msgstr "Roditelji"
-
-
 msgid "Multi-Paint"
 msgstr "Višestruko bojenje"
 
@@ -25993,10 +25993,6 @@ msgstr "Svetlina"
 
 msgid "Layer:"
 msgstr "Slojevi:"
-
-
-msgid "Glare"
-msgstr "Bljesak"
 
 
 msgid "Use feather information from the mask"

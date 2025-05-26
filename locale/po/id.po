@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'd87e0ecb614e')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'ba454989554a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-19 11:37+0000\n"
+"POT-Creation-Date: 2025-05-26 07:36+0000\n"
 "PO-Revision-Date: 2025-05-01 10:56+0000\n"
 "Last-Translator: \"Adriel Y.\" <mixnblend@users.noreply.translate.blender.org>\n"
 "Language-Team: Indonesian <https://translate.blender.org/projects/blender-ui/ui/id/>\n"
@@ -12677,6 +12677,10 @@ msgid "Light color"
 msgstr "Warna Standar"
 
 
+msgid "Normalize"
+msgstr "Normalisasi"
+
+
 msgctxt "Light"
 msgid "Type"
 msgstr "Tipe"
@@ -17224,10 +17228,6 @@ msgid "Use Mask"
 msgstr "Gunakan Masker"
 
 
-msgid "Normalize"
-msgstr "Normalisasi"
-
-
 msgid "Normalize light intensities while tracking (slower)"
 msgstr "Normalisasi intensitas cahaya saat pelacakan (lebih lambat"
 
@@ -17743,24 +17743,8 @@ msgid "Correction Formula"
 msgstr "Rumus Koreksi"
 
 
-msgid "Correction for highlights"
-msgstr "Koreksi untuk highlight"
-
-
-msgid "Correction for midtones"
-msgstr "Koreksi untuk nada tengah"
-
-
 msgid "Input Tint"
 msgstr "Kehalusan Masukan"
-
-
-msgid "Color tint of the input's white point (the default of 10 matches daylight)"
-msgstr "Kehalusan wanra titik putih masukan (standarnya 10 cocok dengan cahaya hari)"
-
-
-msgid "Correction for shadows"
-msgstr "Koreksi untuk bayangan"
 
 
 msgid "Basis"
@@ -17769,10 +17753,6 @@ msgstr "Basis"
 
 msgid "Output Tint"
 msgstr "Kehalusan Keluaran"
-
-
-msgid "Color tint of the output's white point (the default of 10 matches daylight)"
-msgstr "Kehalusan warna titik putih keluaran (standarnya 10 cocok dengan cahaya hari)"
 
 
 msgid "The color which gets white gets mapped to (automatically converted to/from temperature and tint)"
@@ -18181,6 +18161,10 @@ msgstr "Balik Y"
 
 msgid "Flip X & Y"
 msgstr "Balik X & Y"
+
+
+msgid "Glare"
+msgstr "Kesilauan"
 
 
 msgid "Angle Offset"
@@ -23161,6 +23145,10 @@ msgid "Select Constraint Target"
 msgstr "Seleksi"
 
 
+msgid "Parents"
+msgstr "Induk"
+
+
 msgctxt "Operator"
 msgid "Select Connected"
 msgstr "Warna Standar"
@@ -24949,10 +24937,6 @@ msgstr "Seleksi"
 
 msgid "Remove"
 msgstr "Hapus"
-
-
-msgid "Save a Collada file"
-msgstr "Situs Blender"
 
 
 msgid "Key Type"
@@ -26806,10 +26790,6 @@ msgid "Active tool gizmo"
 msgstr "Gizmo alat aktif"
 
 
-msgid "Columns"
-msgstr "Kolum"
-
-
 msgid "Show 3D Marker Names"
 msgstr "Nama"
 
@@ -26872,6 +26852,10 @@ msgstr "Nilai Warna"
 
 msgid "Vector Value"
 msgstr "Nilai Vektor"
+
+
+msgid "Columns"
+msgstr "Kolum"
 
 
 msgid "Blend Opacity"
@@ -27028,6 +27012,14 @@ msgstr "Ganda"
 msgctxt "Sequence"
 msgid "Clock"
 msgstr "Jam"
+
+
+msgid "Correction for midtones"
+msgstr "Koreksi untuk nada tengah"
+
+
+msgid "Correction for highlights"
+msgstr "Koreksi untuk highlight"
 
 
 msgid "Mask Input Type"
@@ -30450,10 +30442,6 @@ msgid "Object Location"
 msgstr "Lokasi Benda"
 
 
-msgid "Parents"
-msgstr "Induk"
-
-
 msgctxt "Operator"
 msgid "Quick Edit"
 msgstr "Sunting Cepat"
@@ -30991,10 +30979,6 @@ msgid "Samples Transform"
 msgstr "Transformasi Sampel"
 
 
-msgid "Close"
-msgstr "Tutup"
-
-
 msgid "Use Schema"
 msgstr "Gunakan Skema"
 
@@ -31144,6 +31128,10 @@ msgid "No intersections found"
 msgstr "Persimpangan tidak ditemukan"
 
 
+msgid "Close"
+msgstr "Tutup"
+
+
 msgid "Selected faces required"
 msgstr "Wajah yang terseleksi diperlukan"
 
@@ -31214,10 +31202,6 @@ msgstr "Penyunting Teks"
 
 msgid "Active object is not a selected mesh"
 msgstr "Modus Sunting"
-
-
-msgid "Selected meshes must have equal numbers of vertices"
-msgstr "Partikel"
 
 
 msgid "Joining results in %d vertices, limit is %ld"
@@ -32209,6 +32193,18 @@ msgid "Despill Channel:"
 msgstr "Saluran Despill:"
 
 
+msgid "Correction for shadows"
+msgstr "Koreksi untuk bayangan"
+
+
+msgid "Color tint of the input's white point (the default of 10 matches daylight)"
+msgstr "Kehalusan wanra titik putih masukan (standarnya 10 cocok dengan cahaya hari)"
+
+
+msgid "Color tint of the output's white point (the default of 10 matches daylight)"
+msgstr "Kehalusan warna titik putih keluaran (standarnya 10 cocok dengan cahaya hari)"
+
+
 msgid "Bokeh Type:"
 msgstr "Tipe Bokeh:"
 
@@ -32235,10 +32231,6 @@ msgstr "Subjalur Berkas:"
 
 msgid "Format:"
 msgstr "Format:"
-
-
-msgid "Glare"
-msgstr "Kesilauan"
 
 
 msgid "Use feather information from the mask"

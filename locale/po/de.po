@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'd87e0ecb614e')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'ba454989554a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-19 11:37+0000\n"
+"POT-Creation-Date: 2025-05-26 07:36+0000\n"
 "PO-Revision-Date: 2025-04-14 08:14+0000\n"
 "Last-Translator: Thomas Radeke <rahdick@gmx.de>\n"
 "Language-Team: German <https://translate.blender.org/projects/blender-ui/ui/de/>\n"
@@ -13547,6 +13547,10 @@ msgid "Node tree for node based lights"
 msgstr "Knotenstruktur für knotenbasierte Lichtquellen"
 
 
+msgid "Normalize"
+msgstr "Normalisieren"
+
+
 msgid "Specular Factor"
 msgstr "Anzeigefilter"
 
@@ -22516,10 +22520,6 @@ msgid "Reconstructed"
 msgstr "Rekonstruiert"
 
 
-msgid "Is tracking data contains valid reconstruction information"
-msgstr "Wenn Tracking-Daten gültige Rekonstruktionsinformationen enthalten"
-
-
 msgid "Match moving settings"
 msgstr "Partikelsystem-Einstellungen"
 
@@ -22746,10 +22746,6 @@ msgstr "Grünkanal vom Filmmaterial zum Verfolgen verwenden"
 
 msgid "Use Mask"
 msgstr "Maske benutzen"
-
-
-msgid "Normalize"
-msgstr "Normalisieren"
 
 
 msgid "Use Red Channel"
@@ -23182,18 +23178,6 @@ msgstr "Farbraum"
 
 msgid "Correction Formula"
 msgstr "Korrektion Formular"
-
-
-msgid "Correction for highlights"
-msgstr "Korrektur der Höhen"
-
-
-msgid "Correction for midtones"
-msgstr "Korrektur vom Mittelton"
-
-
-msgid "Correction for shadows"
-msgstr "Korrektur für Tiefen"
 
 
 msgid "Basis"
@@ -23640,6 +23624,10 @@ msgid "Flip X & Y"
 msgstr "X & Y umdrehen"
 
 
+msgid "Glare"
+msgstr "Glanz"
+
+
 msgid "Angle Offset"
 msgstr "Winkelversatz"
 
@@ -24031,6 +24019,10 @@ msgstr "RGB zu S/W"
 
 msgid "Render Layers"
 msgstr "Render-Ebenen"
+
+
+msgid "Greater"
+msgstr "Größer"
 
 
 msgid "Rotate"
@@ -27483,6 +27475,14 @@ msgid "Refresh Asset Library"
 msgstr "Asset Library aktualisieren"
 
 
+msgid "Point 1"
+msgstr "Punkt 1"
+
+
+msgid "Point 2"
+msgstr "Punkt 2"
+
+
 msgctxt "Operator"
 msgid "Add Boid Rule"
 msgstr "Hinzufügen & Ersetzen"
@@ -28950,10 +28950,6 @@ msgstr "Seed des Rauschens"
 msgctxt "Operator"
 msgid "Select Control Point Row"
 msgstr "Beschränkungen"
-
-
-msgid "Greater"
-msgstr "Größer"
 
 
 msgid "Less"
@@ -35726,6 +35722,10 @@ msgid "Select Constraint Target"
 msgstr "Kamera auswählen"
 
 
+msgid "Parents"
+msgstr "Elternteil"
+
+
 msgctxt "Operator"
 msgid "Select Connected"
 msgstr "Verknüpfte auswählen"
@@ -38946,10 +38946,6 @@ msgid "Remove"
 msgstr "Entfernen"
 
 
-msgid "Save a Collada file"
-msgstr "Speichern einer Collada-Datei"
-
-
 msgid "Only Selected UV Map"
 msgstr "Nur ausgewählte UV Karte"
 
@@ -39938,6 +39934,14 @@ msgid "Active Palette Color"
 msgstr "Aktive Farbpalette"
 
 
+msgid "Overlays"
+msgstr "Überlagerungen"
+
+
+msgid "Guides"
+msgstr "Hilfslinien"
+
+
 msgid "Motion Tracking"
 msgstr "Bewegungsverfolgung"
 
@@ -39966,10 +39970,6 @@ msgid "Drawing Plane"
 msgstr "Malfläche"
 
 
-msgid "Guides"
-msgstr "Hilfslinien"
-
-
 msgid "Quad View"
 msgstr "Vierfenster-Ansicht"
 
@@ -39980,6 +39980,10 @@ msgstr "Zwiebelhaut"
 
 msgid "Stereoscopy"
 msgstr "Stereoskopie"
+
+
+msgid "Compositor"
+msgstr "Setzer"
 
 
 msgid "Auto-Masking"
@@ -40012,14 +40016,6 @@ msgstr "Hohlraum"
 
 msgid "Render Pass"
 msgstr "Renderdurchgänge"
-
-
-msgid "Compositor"
-msgstr "Setzer"
-
-
-msgid "Overlays"
-msgstr "Überlagerungen"
 
 
 msgid "Chain Scaling"
@@ -46477,10 +46473,6 @@ msgid "Type of the Sequencer view (sequencer, preview or both)"
 msgstr "Typ der Sequenzer-Ansicht (Sequenzer, Vorschau oder beides)"
 
 
-msgid "Columns"
-msgstr "Spalte"
-
-
 msgid "Is Pinned"
 msgstr "Ist angepinnt"
 
@@ -46693,6 +46685,10 @@ msgid "Display Background"
 msgstr "Hintergrund anzeigen"
 
 
+msgid "Text Info"
+msgstr "Text Info"
+
+
 msgid "Show Named Attributes"
 msgstr "Benannte Attribute anzeigen"
 
@@ -46779,6 +46775,10 @@ msgstr "8-Bit Integer Wert"
 
 msgid "Text Value"
 msgstr "Textwert"
+
+
+msgid "Columns"
+msgstr "Spalte"
 
 
 msgid "Stereo Mode"
@@ -47068,6 +47068,14 @@ msgstr "Versatz inverse"
 
 msgid "Inverse Power"
 msgstr "Power invertieren"
+
+
+msgid "Correction for midtones"
+msgstr "Korrektur vom Mittelton"
+
+
+msgid "Correction for highlights"
+msgstr "Korrektur der Höhen"
 
 
 msgid "Name of the source file"
@@ -48477,6 +48485,10 @@ msgstr "Einrastelement"
 
 msgid "Snap to"
 msgstr "Anheften an"
+
+
+msgid "Snap to Strips"
+msgstr "An Streifen einrasten"
 
 
 msgid "Snap Target"
@@ -52903,10 +52915,6 @@ msgid "Storage"
 msgstr "Speicher"
 
 
-msgid "Snap to Strips"
-msgstr "An Streifen einrasten"
-
-
 msgctxt "Operator"
 msgid "Set Preview Range to Strips"
 msgstr "Vorschaubereich auf Streifen festlegen"
@@ -54441,10 +54449,6 @@ msgid "Look At"
 msgstr "Schaue auf"
 
 
-msgid "Text Info"
-msgstr "Text Info"
-
-
 msgid "Statistics"
 msgstr "Statistiken"
 
@@ -54979,10 +54983,6 @@ msgstr "Nur Beeinflussen"
 
 msgid "Locations"
 msgstr "Orte"
-
-
-msgid "Parents"
-msgstr "Elternteil"
 
 
 msgid "Detailing"
@@ -56356,10 +56356,6 @@ msgid "Samples Transform"
 msgstr "Beispiel Transformation"
 
 
-msgid "Close"
-msgstr "Schließen"
-
-
 msgid "Use Schema"
 msgstr "Benutze Schema"
 
@@ -56509,6 +56505,10 @@ msgid "Compiled without GMP, using fast solver"
 msgstr "Kompiliert ohne GMP, mit schnellem Löser"
 
 
+msgid "Close"
+msgstr "Schließen"
+
+
 msgid "Cannot rip selected faces"
 msgstr "Ausgewählte Oberfläche kann nicht geschnitten werden"
 
@@ -56643,10 +56643,6 @@ msgstr "Aktives Objekt ist keine selektierte Masche"
 
 msgid "No mesh data to join"
 msgstr "Keine Maschendaten zum verknüpfen"
-
-
-msgid "Selected meshes must have equal numbers of vertices"
-msgstr "Ausgewählte Maschen müssen die gleiche Anzahl von Eckpunkten aufweisen"
 
 
 msgid "Unassigned"
@@ -58825,10 +58821,6 @@ msgid "Save External..."
 msgstr "Speichern Extern..."
 
 
-msgid "No named attributes used"
-msgstr "Keine benannten Attribute verwendet"
-
-
 msgid "Delete Bake"
 msgstr "Backen löschen"
 
@@ -58938,6 +58930,10 @@ msgid "Limiting Channel:"
 msgstr "Kanal begrenzen:"
 
 
+msgid "Correction for shadows"
+msgstr "Korrektur für Tiefen"
+
+
 msgid "Master"
 msgstr "Master"
 
@@ -58996,10 +58992,6 @@ msgstr "Datei Unterpfad:"
 
 msgid "Format:"
 msgstr "Format:"
-
-
-msgid "Glare"
-msgstr "Glanz"
 
 
 msgid "From Min"
@@ -59088,14 +59080,6 @@ msgstr "Zentrum verknüpfen"
 
 msgid "Invert Arc"
 msgstr "Arc invertieren"
-
-
-msgid "Point 1"
-msgstr "Punkt 1"
-
-
-msgid "Point 2"
-msgstr "Punkt 2"
 
 
 msgid "Point 3"
@@ -59276,6 +59260,10 @@ msgstr "Rest"
 
 msgid "Edge Crease"
 msgstr "Kantenfalte"
+
+
+msgid "No named attributes used"
+msgstr "Keine benannten Attribute verwendet"
 
 
 msgid "AO"

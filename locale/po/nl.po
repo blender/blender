@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'd87e0ecb614e')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'ba454989554a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-19 11:37+0000\n"
+"POT-Creation-Date: 2025-05-26 07:36+0000\n"
 "PO-Revision-Date: 2025-04-14 08:33+0000\n"
 "Last-Translator: Brecht Van Lommel <brechtvanlommel@gmail.com>\n"
 "Language-Team: Dutch <https://translate.blender.org/projects/blender-ui/ui/nl/>\n"
@@ -3170,6 +3170,10 @@ msgid "Render Layers"
 msgstr "Render Lagen"
 
 
+msgid "Greater"
+msgstr "Groter"
+
+
 msgid "Rotate"
 msgstr "Roteren"
 
@@ -4022,10 +4026,6 @@ msgstr "Voeg Pad Toe"
 
 msgid "Deselected"
 msgstr "Gedeselecteerd"
-
-
-msgid "Greater"
-msgstr "Groter"
 
 
 msgid "Less"
@@ -5402,6 +5402,10 @@ msgstr "Maak Paden van Botten Leeg"
 msgctxt "Operator"
 msgid "Update Bone Paths"
 msgstr "Update Paden van Botten"
+
+
+msgid "Parents"
+msgstr "Ouders"
 
 
 msgctxt "Operator"
@@ -8474,10 +8478,6 @@ msgid "Locations"
 msgstr "Locaties"
 
 
-msgid "Parents"
-msgstr "Ouders"
-
-
 msgctxt "Operator"
 msgid "Quick Edit"
 msgstr "Snel Bewerken"
@@ -8811,10 +8811,6 @@ msgid "Yesterday"
 msgstr "Gisteren"
 
 
-msgid "Close"
-msgstr "Sluit"
-
-
 msgid "Armature Options"
 msgstr "Skelet Opties"
 
@@ -8862,6 +8858,10 @@ msgstr "Bol"
 msgctxt "Mesh"
 msgid "Icosphere"
 msgstr "Icosphere"
+
+
+msgid "Close"
+msgstr "Sluit"
 
 
 msgid "No face selected"
