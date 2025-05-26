@@ -88,6 +88,16 @@ struct DrawGroupInputsContext {
   std::function<SocketSearchData(const bNodeTreeInterfaceSocket &)> socket_search_data_fn;
   std::function<void(uiLayout &, int icon, const bNodeTreeInterfaceSocket &)>
       draw_attribute_toggle_fn;
+
+  bool input_is_visible(const bNodeTreeInterfaceSocket &socket) const
+  {
+    return this->input_usages[this->tree->interface_input_index(socket)].is_visible;
+  }
+
+  bool input_is_active(const bNodeTreeInterfaceSocket &socket) const
+  {
+    return this->input_usages[this->tree->interface_input_index(socket)].is_used;
+  }
 };
 }  // namespace
 
@@ -469,7 +479,7 @@ static void draw_property_for_socket(DrawGroupInputsContext &ctx,
   }
 
   const int input_index = ctx.tree->interface_input_index(socket);
-  if (!ctx.input_usages[input_index].is_visible) {
+  if (!ctx.input_is_visible(socket)) {
     /* The input is not used currently, but it would be used if any menu input is changed.
      * By convention, the input is hidden in this case instead of just grayed out. */
     return;
@@ -477,7 +487,7 @@ static void draw_property_for_socket(DrawGroupInputsContext &ctx,
 
   uiLayout *row = &layout->row(true);
   uiLayoutSetPropDecorate(row, true);
-  uiLayoutSetActive(row, ctx.input_usages[input_index].is_used);
+  uiLayoutSetActive(row, ctx.input_is_active(socket));
 
   const std::string rna_path = fmt::format("[\"{}\"]", BLI_str_escape(identifier.c_str()));
 
@@ -575,8 +585,7 @@ static bool interface_panel_has_socket(DrawGroupInputsContext &ctx,
         continue;
       }
       if (socket.flag & NODE_INTERFACE_SOCKET_INPUT) {
-        const int input_index = ctx.tree->interface_input_index(socket);
-        if (ctx.input_usages[input_index].is_visible) {
+        if (ctx.input_is_visible(socket)) {
           return true;
         }
       }
@@ -604,8 +613,7 @@ static bool interface_panel_affects_output(DrawGroupInputsContext &ctx,
       if (!(socket.flag & NODE_INTERFACE_SOCKET_INPUT)) {
         continue;
       }
-      const int input_index = ctx.tree->interface_input_index(socket);
-      if (ctx.input_usages[input_index].is_used) {
+      if (ctx.input_is_active(socket)) {
         return true;
       }
     }
