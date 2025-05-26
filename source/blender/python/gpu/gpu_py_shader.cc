@@ -13,6 +13,7 @@
 
 #include "BLI_utildefines.h"
 
+#include "GPU_context.hh"
 #include "GPU_shader.hh"
 #include "GPU_texture.hh"
 #include "GPU_uniform_buffer.hh"
@@ -108,6 +109,20 @@ static std::optional<blender::StringRefNull> c_str_to_stringref_opt(const char *
 static PyObject *pygpu_shader__tp_new(PyTypeObject * /*type*/, PyObject *args, PyObject *kwds)
 {
   BPYGPU_IS_INIT_OR_ERROR_OBJ;
+
+  if (GPU_backend_get_type() == GPU_BACKEND_VULKAN) {
+    PyErr_SetString(PyExc_Exception,
+                    "Direct shader creation is not supported on Vulkan. "
+                    "Use gpu.shader.create_from_info(shader_info) instead.");
+    return nullptr;
+  }
+
+  if (GPU_backend_get_type() == GPU_BACKEND_METAL) {
+    PyErr_SetString(PyExc_Exception,
+                    "Direct shader creation is not supported on Metal. "
+                    "Use gpu.shader.create_from_info(shader_info) instead.");
+    return nullptr;
+  }
 
   PyErr_WarnEx(PyExc_DeprecationWarning,
                "Direct shader creation is deprecated. "
