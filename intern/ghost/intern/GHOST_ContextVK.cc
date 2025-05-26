@@ -23,6 +23,8 @@
 
 #include "vulkan/vk_ghost_api.hh"
 
+#include "CLG_log.h"
+
 #include <vector>
 
 #include <cassert>
@@ -36,6 +38,8 @@
 #include <sys/stat.h>
 
 using namespace std;
+
+static CLG_LogRef LOG = {"ghost.vulkan"};
 
 static const char *vulkan_error_as_string(VkResult result)
 {
@@ -92,20 +96,11 @@ static const char *vulkan_error_as_string(VkResult result)
   do { \
     VkResult r = (__expression); \
     if (r != VK_SUCCESS) { \
-      fprintf(stderr, \
-              "Vulkan Error : %s:%d : %s failed with %s\n", \
-              __FILE__, \
-              __LINE__, \
-              __STR(__expression), \
-              vulkan_error_as_string(r)); \
+      CLOG_ERROR( \
+          &LOG, "%s resulted in code %s.", __STR(__expression), vulkan_error_as_string(r)); \
       return GHOST_kFailure; \
     } \
   } while (0)
-
-#define DEBUG_PRINTF(...) \
-  if (m_debug) { \
-    printf(__VA_ARGS__); \
-  }
 
 /* Check if the given extension name is in the extension_list.
  */
@@ -211,8 +206,13 @@ class GHOST_DeviceVK {
     vector<VkDeviceQueueCreateInfo> queue_create_infos;
     vector<const char *> device_extensions(required_extensions);
     for (const char *optional_extension : optional_extensions) {
-      if (has_extensions({optional_extension})) {
+      const bool extension_found = has_extensions({optional_extension});
+      if (extension_found) {
+        CLOG_INFO(&LOG, 2, "enable optional extension: `%s`", optional_extension);
         device_extensions.push_back(optional_extension);
+      }
+      else {
+        CLOG_INFO(&LOG, 2, "optional extension not found: `%s`", optional_extension);
       }
     }
 
@@ -369,8 +369,6 @@ class GHOST_DeviceVK {
       }
       generic_queue_family++;
     }
-
-    fprintf(stderr, "Couldn't find any Graphic queue family on selected device\n");
   }
 };
 
@@ -474,7 +472,7 @@ static GHOST_TSuccess ensure_vulkan_device(VkInstance vk_instance,
   }
 
   if (best_physical_device == VK_NULL_HANDLE) {
-    fprintf(stderr, "Error: No suitable Vulkan Device found!\n");
+    CLOG_ERROR(&LOG, "Error: No suitable Vulkan Device found!");
     return GHOST_kFailure;
   }
 
@@ -614,6 +612,7 @@ GHOST_TSuccess GHOST_ContextVK::swapBuffers()
       recreateSwapchain();
     }
   }
+  CLOG_INFO(&LOG, 3, "render_frame=%lu, image_index=%u", m_render_frame, image_index);
 
   GHOST_VulkanSwapChainData swap_chain_data;
   swap_chain_data.image = m_swapchain_images[image_index];
@@ -651,9 +650,8 @@ GHOST_TSuccess GHOST_ContextVK::swapBuffers()
     return GHOST_kSuccess;
   }
   if (present_result != VK_SUCCESS) {
-    fprintf(stderr,
-            "Error: Failed to present swap chain image : %s\n",
-            vulkan_error_as_string(acquire_result));
+    CLOG_ERROR(
+        &LOG, "failed to present swap chain image : %s", vulkan_error_as_string(acquire_result));
   }
 
   if (swap_buffers_post_callback_) {
@@ -753,7 +751,7 @@ static void requireExtension(const vector<VkExtensionProperties> &extensions_ava
     extensions_enabled.push_back(extension_name);
   }
   else {
-    fprintf(stderr, "Error: %s not found.\n", extension_name);
+    CLOG_ERROR(&LOG, "required extension not found: %s", extension_name);
   }
 }
 
@@ -977,6 +975,16 @@ GHOST_TSuccess GHOST_ContextVK::recreateSwapchain()
           VK_PRESENT_GRAVITY_MAX_BIT_EXT,
   };
 
+  CLOG_INFO(&LOG,
+            2,
+            "recreating swapchain: width=%u, height=%u, format=%d, colorSpace=%d, "
+            "present_mode=%d, old_swapchain=%lu",
+            m_render_extent.width,
+            m_render_extent.height,
+            m_surface_format.format,
+            m_surface_format.colorSpace,
+            present_mode,
+            uint64_t(old_swapchain));
   VkSwapchainCreateInfoKHR create_info = {};
   create_info.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
   if (vulkan_device->use_vk_ext_swapchain_maintenance_1) {
@@ -1139,6 +1147,7 @@ GHOST_TSuccess GHOST_ContextVK::initializeDrawingContext()
 
   VkInstance instance = VK_NULL_HANDLE;
   if (!vulkan_device.has_value()) {
+
     VkApplicationInfo app_info = {};
     app_info.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
     app_info.pApplicationName = "Blender";

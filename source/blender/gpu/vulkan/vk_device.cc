@@ -42,14 +42,16 @@ void VKExtensions::log() const
             " - [%c] dynamic rendering\n"
             " - [%c] dynamic rendering local read\n"
             " - [%c] dynamic rendering unused attachments\n"
-            " - [%c] external memory",
+            " - [%c] external memory\n"
+            " - [%c] shader stencil export",
             shader_output_viewport_index ? 'X' : ' ',
             shader_output_layer ? 'X' : ' ',
             fragment_shader_barycentric ? 'X' : ' ',
             dynamic_rendering ? 'X' : ' ',
             dynamic_rendering_local_read ? 'X' : ' ',
             dynamic_rendering_unused_attachments ? 'X' : ' ',
-            external_memory ? 'X' : ' ');
+            external_memory ? 'X' : ' ',
+            GPU_stencil_export_support() ? 'X' : ' ');
 }
 
 void VKDevice::reinit()
