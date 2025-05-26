@@ -3976,6 +3976,80 @@ static void do_version_color_balance_node_options_to_inputs_animation(bNodeTree 
   });
 }
 
+/* The Coordinates outputs were moved into their own Texture Coordinate node. If used, add a
+ * Texture Coordinates node and use it instead. */
+static void do_version_replace_image_info_node_coordinates(bNodeTree *node_tree)
+{
+  LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+    if (!STREQ(node->idname, "CompositorNodeImageInfo")) {
+      continue;
+    }
+
+    bNodeLink *input_link = nullptr;
+    bNodeLink *output_texture_link = nullptr;
+    bNodeLink *output_pixel_link = nullptr;
+    LISTBASE_FOREACH (bNodeLink *, link, &node_tree->links) {
+      if (link->tonode == node) {
+        input_link = link;
+      }
+
+      if (link->fromnode == node &&
+          blender::StringRef(link->fromsock->identifier) == "Texture Coordinates")
+      {
+        output_texture_link = link;
+      }
+
+      if (link->fromnode == node &&
+          blender::StringRef(link->fromsock->identifier) == "Pixel Coordinates")
+      {
+        output_pixel_link = link;
+      }
+    }
+
+    if (!output_texture_link && !output_pixel_link) {
+      continue;
+    }
+
+    bNode *image_coordinates_node = blender::bke::node_add_node(
+        nullptr, *node_tree, "CompositorNodeImageCoordinates");
+    image_coordinates_node->parent = node->parent;
+    image_coordinates_node->location[0] = node->location[0];
+    image_coordinates_node->location[1] = node->location[1] - node->height - 10.0f;
+
+    if (input_link) {
+      bNodeSocket *image_input = blender::bke::node_find_socket(
+          *image_coordinates_node, SOCK_IN, "Image");
+      version_node_add_link(*node_tree,
+                            *input_link->fromnode,
+                            *input_link->fromsock,
+                            *image_coordinates_node,
+                            *image_input);
+    }
+
+    if (output_texture_link) {
+      bNodeSocket *uniform_output = blender::bke::node_find_socket(
+          *image_coordinates_node, SOCK_OUT, "Uniform");
+      version_node_add_link(*node_tree,
+                            *image_coordinates_node,
+                            *uniform_output,
+                            *output_texture_link->tonode,
+                            *output_texture_link->tosock);
+      blender::bke::node_remove_link(node_tree, *output_texture_link);
+    }
+
+    if (output_pixel_link) {
+      bNodeSocket *pixel_output = blender::bke::node_find_socket(
+          *image_coordinates_node, SOCK_OUT, "Pixel");
+      version_node_add_link(*node_tree,
+                            *image_coordinates_node,
+                            *pixel_output,
+                            *output_pixel_link->tonode,
+                            *output_pixel_link->tosock);
+      blender::bke::node_remove_link(node_tree, *output_pixel_link);
+    }
+  }
+}
+
 void do_versions_after_linking_450(FileData * /*fd*/, Main *bmain)
 {
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 8)) {
@@ -5732,6 +5806,15 @@ void blo_do_versions_450(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
             do_version_color_balance_node_options_to_inputs(node_tree, node);
           }
         }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 78)) {
+    FOREACH_NODETREE_BEGIN (bmain, node_tree, id) {
+      if (node_tree->type == NTREE_COMPOSIT) {
+        do_version_replace_image_info_node_coordinates(node_tree);
       }
     }
     FOREACH_NODETREE_END;

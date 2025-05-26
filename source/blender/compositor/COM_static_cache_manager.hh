@@ -12,14 +12,13 @@
 #include "COM_deriche_gaussian_coefficients.hh"
 #include "COM_distortion_grid.hh"
 #include "COM_fog_glow_kernel.hh"
+#include "COM_image_coordinates.hh"
 #include "COM_keying_screen.hh"
 #include "COM_morphological_distance_feather_weights.hh"
 #include "COM_ocio_color_space_conversion_shader.hh"
-#include "COM_pixel_coordinates.hh"
 #include "COM_smaa_precomputed_textures.hh"
 #include "COM_symmetric_blur_weights.hh"
 #include "COM_symmetric_separable_blur_weights.hh"
-#include "COM_texture_coordinates.hh"
 #include "COM_van_vliet_gaussian_coefficients.hh"
 
 namespace blender::compositor {
@@ -65,8 +64,7 @@ class StaticCacheManager {
   DericheGaussianCoefficientsContainer deriche_gaussian_coefficients;
   VanVlietGaussianCoefficientsContainer van_vliet_gaussian_coefficients;
   FogGlowKernelContainer fog_glow_kernels;
-  TextureCoordinatesContainer texture_coordinates;
-  PixelCoordinatesContainer pixel_coordinates;
+  ImageCoordinatesContainer image_coordinates;
 
  private:
   /* The cache manager should skip the next reset. See the skip_next_reset() method for more

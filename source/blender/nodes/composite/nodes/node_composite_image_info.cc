@@ -6,9 +6,6 @@
 #include "BLI_math_matrix.hh"
 #include "BLI_math_vector_types.hh"
 
-#include "UI_interface.hh"
-#include "UI_resources.hh"
-
 #include "COM_node_operation.hh"
 
 #include "node_composite_util.hh"
@@ -17,11 +14,9 @@ namespace blender::nodes::node_composite_image_info_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Color>("Image").compositor_domain_priority(0).compositor_realization_mode(
+  b.add_input<decl::Color>("Image").compositor_realization_mode(
       CompositorInputRealizationMode::None);
 
-  b.add_output<decl::Vector>("Texture Coordinates");
-  b.add_output<decl::Vector>("Pixel Coordinates");
   b.add_output<decl::Vector>("Resolution");
   b.add_output<decl::Vector>("Location");
   b.add_output<decl::Float>("Rotation");
@@ -47,22 +42,6 @@ class ImageInfoOperation : public NodeOperation {
     }
 
     const Domain domain = input.domain();
-
-    Result &texture_coordinates_result = this->get_result("Texture Coordinates");
-    if (texture_coordinates_result.should_compute()) {
-      const Result &texture_coordinates = this->context().cache_manager().texture_coordinates.get(
-          this->context(), domain.size);
-      texture_coordinates_result.wrap_external(texture_coordinates);
-      texture_coordinates_result.transform(domain.transformation);
-    }
-
-    Result &pixel_coordinates_result = this->get_result("Pixel Coordinates");
-    if (pixel_coordinates_result.should_compute()) {
-      const Result &pixel_coordinates = this->context().cache_manager().pixel_coordinates.get(
-          this->context(), domain.size);
-      pixel_coordinates_result.wrap_external(pixel_coordinates);
-      pixel_coordinates_result.transform(domain.transformation);
-    }
 
     Result &resolution_result = this->get_result("Resolution");
     if (resolution_result.should_compute()) {
@@ -95,16 +74,6 @@ class ImageInfoOperation : public NodeOperation {
 
   void execute_invalid()
   {
-    Result &texture_coordinates_result = this->get_result("Texture Coordinates");
-    if (texture_coordinates_result.should_compute()) {
-      texture_coordinates_result.allocate_invalid();
-    }
-
-    Result &pixel_coordinates_result = this->get_result("Pixel Coordinates");
-    if (pixel_coordinates_result.should_compute()) {
-      pixel_coordinates_result.allocate_invalid();
-    }
-
     Result &resolution_result = this->get_result("Resolution");
     if (resolution_result.should_compute()) {
       resolution_result.allocate_invalid();
