@@ -132,6 +132,10 @@ GPUShader *GPU_shader_create_ex(const std::optional<StringRefNull> vertcode,
               computecode.has_value()));
 
   Shader *shader = GPUBackend::get()->shader_alloc(shname.c_str());
+  /* Needs to be called before init as GL uses the default specialization constants state to insert
+   * default shader inside a map. */
+  shader->constants = std::make_unique<const shader::SpecializationConstants>();
+  shader->init();
 
   if (vertcode) {
     Vector<StringRefNull> sources;

@@ -58,6 +58,7 @@ class VKShader : public Shader {
   virtual ~VKShader();
 
   void init(const shader::ShaderCreateInfo &info, bool is_batch_compilation) override;
+  void init() override {}
 
   void vertex_shader_from_glsl(MutableSpan<StringRefNull> sources) override;
   void geometry_shader_from_glsl(MutableSpan<StringRefNull> sources) override;

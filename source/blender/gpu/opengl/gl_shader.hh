@@ -145,6 +145,7 @@ class GLShader : public Shader {
   ~GLShader();
 
   void init(const shader::ShaderCreateInfo &info, bool is_batch_compilation) override;
+  void init() override;
 
   /** Return true on success. */
   void vertex_shader_from_glsl(MutableSpan<StringRefNull> sources) override;
