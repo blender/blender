@@ -651,7 +651,7 @@ void ED_node_composit_default(const bContext *C, Scene *sce)
   }
 
   sce->nodetree = blender::bke::node_tree_add_tree_embedded(
-      nullptr, &sce->id, "Compositing Nodetree", ntreeType_Composite->idname);
+      nullptr, &sce->id, "Compositing Node Tree", ntreeType_Composite->idname);
 
   bNode *composite = blender::bke::node_add_static_node(C, *sce->nodetree, CMP_NODE_COMPOSITE);
   composite->location[0] = 200.0f;
