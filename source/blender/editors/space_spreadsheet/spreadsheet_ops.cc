@@ -196,6 +196,9 @@ SpreadsheetColumn *find_hovered_column_edge(SpaceSpreadsheet &sspreadsheet,
   }
   const float cursor_x_view = UI_view2d_region_to_view_x(&region.v2d, cursor_re.x);
   for (SpreadsheetColumn *column : Span{table->columns, table->num_columns}) {
+    if (column->flag & SPREADSHEET_COLUMN_FLAG_UNAVAILABLE) {
+      continue;
+    }
     if (std::abs(cursor_x_view - column->runtime->right_x) < SPREADSHEET_EDGE_ACTION_ZONE) {
       return column;
     }
@@ -213,6 +216,9 @@ SpreadsheetColumn *find_hovered_column(SpaceSpreadsheet &sspreadsheet,
   }
   const float cursor_x_view = UI_view2d_region_to_view_x(&region.v2d, cursor_re.x);
   for (SpreadsheetColumn *column : Span{table->columns, table->num_columns}) {
+    if (column->flag & SPREADSHEET_COLUMN_FLAG_UNAVAILABLE) {
+      continue;
+    }
     if (cursor_x_view > column->runtime->left_x && cursor_x_view <= column->runtime->right_x) {
       return column;
     }
@@ -321,6 +327,26 @@ struct ReorderColumnData {
   View2DEdgePanData pan_data{};
 };
 
+static std::optional<int> find_first_available_column_index(const SpreadsheetTable &table)
+{
+  for (int i = 0; i < table.num_columns; i++) {
+    if (!(table.columns[i]->flag & SPREADSHEET_COLUMN_FLAG_UNAVAILABLE)) {
+      return i;
+    }
+  }
+  return std::nullopt;
+}
+
+static std::optional<int> find_last_available_column_index(const SpreadsheetTable &table)
+{
+  for (int i = table.num_columns - 1; i >= 0; i--) {
+    if (!(table.columns[i]->flag & SPREADSHEET_COLUMN_FLAG_UNAVAILABLE)) {
+      return i;
+    }
+  }
+  return std::nullopt;
+}
+
 static wmOperatorStatus reorder_columns_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
   SpaceSpreadsheet &sspreadsheet = *CTX_wm_space_spreadsheet(C);
@@ -384,10 +410,10 @@ static wmOperatorStatus reorder_columns_modal(bContext *C, wmOperator *op, const
   }
   else {
     if (cursor_re.x > sspreadsheet.runtime->left_column_width) {
-      new_index = columns.size() - 1;
+      new_index = *find_last_available_column_index(table);
     }
     else {
-      new_index = 0;
+      new_index = *find_first_available_column_index(table);
     }
   }
 

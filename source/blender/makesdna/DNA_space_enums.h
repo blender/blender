@@ -1019,6 +1019,15 @@ typedef enum eSpreadsheetColumnValueType {
   SPREADSHEET_VALUE_TYPE_FLOAT4X4 = 12,
 } eSpreadsheetColumnValueType;
 
+typedef enum eSpreadsheetColumnFlag {
+  /**
+   * There is no data for this column currently, so it's not displayed. However, it is still kept
+   * around so that the column remembers its position and width when the data becomes available
+   * again.
+   */
+  SPREADSHEET_COLUMN_FLAG_UNAVAILABLE = (1 << 0),
+} eSpreadsheetColumnFlag;
+
 typedef enum eSpreadsheetTableIDType {
   /** This table uses the #SpreadsheetTableIDGeometry key. */
   SPREADSHEET_TABLE_ID_TYPE_GEOMETRY = 0,

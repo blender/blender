@@ -384,15 +384,11 @@ static void update_visible_columns(SpreadsheetTable &table, DataSource &data_sou
   Set<std::reference_wrapper<const SpreadsheetColumnID>> handled_columns;
   Vector<SpreadsheetColumn *, 32> new_columns;
   for (SpreadsheetColumn *column : Span{table.columns, table.num_columns}) {
-    const bool still_exists = data_source.get_column_values(*column->id) != nullptr;
-    if (still_exists) {
-      if (handled_columns.add(*column->id)) {
-        new_columns.append(column);
-        continue;
-      }
+    if (handled_columns.add(*column->id)) {
+      const bool has_data = data_source.get_column_values(*column->id) != nullptr;
+      SET_FLAG_FROM_TEST(column->flag, !has_data, SPREADSHEET_COLUMN_FLAG_UNAVAILABLE);
+      new_columns.append(column);
     }
-    /* Free columns that don't exist anymore or are duplicates for some reason. */
-    spreadsheet_column_free(column);
   }
 
   data_source.foreach_default_column_ids(
@@ -468,8 +464,9 @@ static void spreadsheet_main_region_draw(const bContext *C, ARegion *region)
 
   for (SpreadsheetColumn *column : Span{table->columns, table->num_columns}) {
     std::unique_ptr<ColumnValues> values_ptr = data_source->get_column_values(*column->id);
-    /* Should have been removed before if it does not exist anymore. */
-    BLI_assert(values_ptr);
+    if (!values_ptr) {
+      continue;
+    }
     const ColumnValues *values = scope.add(std::move(values_ptr));
 
     if (column->width <= 0.0f) {
