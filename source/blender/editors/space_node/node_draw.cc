@@ -4268,8 +4268,8 @@ static void frame_node_draw_label(TreeDrawContext &tree_draw_ctx,
   /* Draw text body. */
   if (node.id) {
     const Text *text = (const Text *)node.id;
-    const float line_spacing = BLF_height_max(fontid);
-    const float line_width = (BLI_rctf_size_x(&rct) - 2 * frame_layout.margin);
+    const float line_spacing = BLF_height_max(fontid) * aspect;
+    const float line_width = (BLI_rctf_size_x(&rct) - 2 * frame_layout.margin) / aspect;
 
     const float x = rct.xmin + frame_layout.margin;
     float y = rct.ymax - frame_layout.label_height -
