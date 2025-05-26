@@ -188,7 +188,6 @@ class Film {
   }
 
   eViewLayerEEVEEPassType enabled_passes_get() const;
-  int cryptomatte_layer_max_get() const;
   int cryptomatte_layer_len_get() const;
 
   /** WARNING: Film and RenderBuffers use different storage types for AO and Shadow. */

@@ -97,14 +97,7 @@ void RenderBuffers::acquire(int2 extent)
                               math::max(1, value_len),
                               usage_attachment_read_write);
 
-  eGPUTextureFormat cryptomatte_format = GPU_R32F;
-  const int cryptomatte_layer_len = inst_.film.cryptomatte_layer_max_get();
-  if (cryptomatte_layer_len == 2) {
-    cryptomatte_format = GPU_RG32F;
-  }
-  else if (cryptomatte_layer_len == 3) {
-    cryptomatte_format = GPU_RGBA32F;
-  }
+  const eGPUTextureFormat cryptomatte_format = GPU_RGBA32F;
   cryptomatte_tx.acquire(pass_extent(EEVEE_RENDER_PASS_CRYPTOMATTE_OBJECT |
                                      EEVEE_RENDER_PASS_CRYPTOMATTE_ASSET |
                                      EEVEE_RENDER_PASS_CRYPTOMATTE_MATERIAL),
