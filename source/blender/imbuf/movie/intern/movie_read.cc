@@ -17,6 +17,7 @@
 
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"
+#include "BLI_task.hh"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
@@ -575,6 +576,96 @@ static AVFrame *ffmpeg_double_buffer_frame_fallback_get(MovieReader *anim)
   return nullptr;
 }
 
+/* Convert from ffmpeg planar GBRA layout to ImBuf interleaved RGBA, applying
+ * video rotation in the same go if needed. */
+static void float_planar_to_interleaved(const AVFrame *frame, const int rotation, ImBuf *ibuf)
+{
+  using namespace blender;
+  const size_t src_linesize = frame->linesize[0];
+  BLI_assert_msg(frame->linesize[1] == src_linesize && frame->linesize[2] == src_linesize &&
+                     frame->linesize[3] == src_linesize,
+                 "ffmpeg frame should be 4 same size planes for a floating point image case");
+  threading::parallel_for(IndexRange(ibuf->y), 256, [&](const IndexRange y_range) {
+    const int size_x = ibuf->x;
+    const int size_y = ibuf->y;
+    if (rotation == 90) {
+      /* 90 degree rotation. */
+      for (const int64_t y : y_range) {
+        int64_t src_offset = src_linesize * (size_y - y - 1);
+        const float *src_g = reinterpret_cast<const float *>(frame->data[0] + src_offset);
+        const float *src_b = reinterpret_cast<const float *>(frame->data[1] + src_offset);
+        const float *src_r = reinterpret_cast<const float *>(frame->data[2] + src_offset);
+        const float *src_a = reinterpret_cast<const float *>(frame->data[3] + src_offset);
+        float *dst = ibuf->float_buffer.data + (y + (size_x - 1) * size_y) * 4;
+        for (int x = 0; x < size_x; x++) {
+          dst[0] = *src_r++;
+          dst[1] = *src_g++;
+          dst[2] = *src_b++;
+          dst[3] = *src_a++;
+          dst -= size_y * 4;
+        }
+      }
+    }
+    else if (rotation == 180) {
+      /* 180 degree rotation. */
+      for (const int64_t y : y_range) {
+        int64_t src_offset = src_linesize * (size_y - y - 1);
+        const float *src_g = reinterpret_cast<const float *>(frame->data[0] + src_offset);
+        const float *src_b = reinterpret_cast<const float *>(frame->data[1] + src_offset);
+        const float *src_r = reinterpret_cast<const float *>(frame->data[2] + src_offset);
+        const float *src_a = reinterpret_cast<const float *>(frame->data[3] + src_offset);
+        float *dst = ibuf->float_buffer.data + ((size_y - y - 1) * size_x + size_x - 1) * 4;
+        for (int x = 0; x < size_x; x++) {
+          dst[0] = *src_r++;
+          dst[1] = *src_g++;
+          dst[2] = *src_b++;
+          dst[3] = *src_a++;
+          dst -= 4;
+        }
+      }
+    }
+    else if (rotation == 270) {
+      /* 270 degree rotation. */
+      for (const int64_t y : y_range) {
+        int64_t src_offset = src_linesize * (size_y - y - 1);
+        const float *src_g = reinterpret_cast<const float *>(frame->data[0] + src_offset);
+        const float *src_b = reinterpret_cast<const float *>(frame->data[1] + src_offset);
+        const float *src_r = reinterpret_cast<const float *>(frame->data[2] + src_offset);
+        const float *src_a = reinterpret_cast<const float *>(frame->data[3] + src_offset);
+        float *dst = ibuf->float_buffer.data + (size_y - y - 1) * 4;
+        for (int x = 0; x < size_x; x++) {
+          dst[0] = *src_r++;
+          dst[1] = *src_g++;
+          dst[2] = *src_b++;
+          dst[3] = *src_a++;
+          dst += size_y * 4;
+        }
+      }
+    }
+    else if (rotation == 0) {
+      /* No rotation. */
+      for (const int64_t y : y_range) {
+        int64_t src_offset = src_linesize * (size_y - y - 1);
+        const float *src_g = reinterpret_cast<const float *>(frame->data[0] + src_offset);
+        const float *src_b = reinterpret_cast<const float *>(frame->data[1] + src_offset);
+        const float *src_r = reinterpret_cast<const float *>(frame->data[2] + src_offset);
+        const float *src_a = reinterpret_cast<const float *>(frame->data[3] + src_offset);
+        float *dst = ibuf->float_buffer.data + size_x * y * 4;
+        for (int x = 0; x < size_x; x++) {
+          *dst++ = *src_r++;
+          *dst++ = *src_g++;
+          *dst++ = *src_b++;
+          *dst++ = *src_a++;
+        }
+      }
+    }
+  });
+
+  if (ELEM(rotation, 90, 270)) {
+    std::swap(ibuf->x, ibuf->y);
+  }
+}
+
 /**
  * Postprocess the image in anim->pFrame and do color conversion and de-interlacing stuff.
  *
@@ -617,32 +708,16 @@ static void ffmpeg_postprocess(MovieReader *anim, AVFrame *input, ImBuf *ibuf)
     }
   }
 
+  bool already_rotated = false;
   if (anim->is_float) {
-    /* Float images are converted into planar BGRA layout by swscale (since
+    /* Float images are converted into planar GBRA layout by swscale (since
      * it does not support direct YUV->RGBA float interleaved conversion).
      * Do vertical flip and interleave into RGBA manually. */
     /* Decode, then do vertical flip into destination. */
     ffmpeg_sws_scale_frame(anim->img_convert_ctx, anim->pFrameRGB, input);
 
-    const size_t src_linesize = anim->pFrameRGB->linesize[0];
-    BLI_assert_msg(anim->pFrameRGB->linesize[1] == src_linesize &&
-                       anim->pFrameRGB->linesize[2] == src_linesize &&
-                       anim->pFrameRGB->linesize[3] == src_linesize,
-                   "ffmpeg frame should be 4 same size planes for a floating point image case");
-    for (int y = 0; y < ibuf->y; y++) {
-      size_t src_offset = src_linesize * (ibuf->y - y - 1);
-      const float *src_g = reinterpret_cast<const float *>(anim->pFrameRGB->data[0] + src_offset);
-      const float *src_b = reinterpret_cast<const float *>(anim->pFrameRGB->data[1] + src_offset);
-      const float *src_r = reinterpret_cast<const float *>(anim->pFrameRGB->data[2] + src_offset);
-      const float *src_a = reinterpret_cast<const float *>(anim->pFrameRGB->data[3] + src_offset);
-      float *dst = ibuf->float_buffer.data + ibuf->x * y * 4;
-      for (int x = 0; x < ibuf->x; x++) {
-        *dst++ = *src_r++;
-        *dst++ = *src_g++;
-        *dst++ = *src_b++;
-        *dst++ = *src_a++;
-      }
-    }
+    float_planar_to_interleaved(anim->pFrameRGB, anim->video_rotation, ibuf);
+    already_rotated = true;
   }
   else {
     /* If final destination image layout matches that of decoded RGB frame (including
@@ -699,7 +774,7 @@ static void ffmpeg_postprocess(MovieReader *anim, AVFrame *input, ImBuf *ibuf)
   }
 
   /* Rotate video if display matrix is multiple of 90 degrees. */
-  if (ELEM(anim->video_rotation, 90, 180, 270)) {
+  if (!already_rotated && ELEM(anim->video_rotation, 90, 180, 270)) {
     IMB_rotate_orthogonal(ibuf, anim->video_rotation);
   }
 }
