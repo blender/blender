@@ -3935,6 +3935,52 @@ static void rna_NodeCrop_min_y_set(PointerRNA *ptr, const int value)
               value - RNA_int_get(&y_input_rna_pointer, "default_value"));
 }
 
+static bool rna_NodeBlur_use_bokeh_get(PointerRNA *ptr)
+{
+  bNode *node = ptr->data_as<bNode>();
+  bNodeSocket *input = blender::bke::node_find_socket(*node, SOCK_IN, "Separable");
+  PointerRNA input_rna_pointer = RNA_pointer_create_discrete(
+      ptr->owner_id, &RNA_NodeSocket, input);
+  return !RNA_boolean_get(&input_rna_pointer, "default_value");
+}
+
+static void rna_NodeCrop_use_bokeh_set(PointerRNA *ptr, const bool value)
+{
+  bNode *node = ptr->data_as<bNode>();
+  bNodeSocket *input = blender::bke::node_find_socket(*node, SOCK_IN, "Separable");
+  PointerRNA input_rna_pointer = RNA_pointer_create_discrete(
+      ptr->owner_id, &RNA_NodeSocket, input);
+  RNA_boolean_set(&input_rna_pointer, "default_value", !value);
+}
+
+static int rna_NodeBlur_size_x_get(PointerRNA *ptr)
+{
+  bNode *node = ptr->data_as<bNode>();
+  bNodeSocket *input = blender::bke::node_find_socket(*node, SOCK_IN, "Size");
+  return int(input->default_value_typed<bNodeSocketValueVector>()->value[0]);
+}
+
+static void rna_NodeCrop_size_x_set(PointerRNA *ptr, const int value)
+{
+  bNode *node = ptr->data_as<bNode>();
+  bNodeSocket *input = blender::bke::node_find_socket(*node, SOCK_IN, "Size");
+  input->default_value_typed<bNodeSocketValueVector>()->value[0] = float(value);
+}
+
+static int rna_NodeBlur_size_y_get(PointerRNA *ptr)
+{
+  bNode *node = ptr->data_as<bNode>();
+  bNodeSocket *input = blender::bke::node_find_socket(*node, SOCK_IN, "Size");
+  return int(input->default_value_typed<bNodeSocketValueVector>()->value[1]);
+}
+
+static void rna_NodeCrop_size_y_set(PointerRNA *ptr, const int value)
+{
+  bNode *node = ptr->data_as<bNode>();
+  bNodeSocket *input = blender::bke::node_find_socket(*node, SOCK_IN, "Size");
+  input->default_value_typed<bNodeSocketValueVector>()->value[1] = float(value);
+}
+
 /* A getter that returns the value of the input socket with the given template identifier and type.
  * The RNA pointer is assumed to represent a node. */
 template<typename T, const char *identifier>
@@ -7381,53 +7427,61 @@ static void def_cmp_blur(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "use_extended_bounds", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "custom1", CMP_NODEFLAG_BLUR_EXTEND_BOUNDS);
-  RNA_def_property_ui_text(
-      prop, "Extend Bounds", "Extend bounds of the input image to fully fit blurred image");
+  RNA_def_property_boolean_funcs(
+      prop,
+      "rna_node_property_to_input_getter<bool, node_input_extend_bounds>",
+      "rna_node_property_to_input_setter<bool, node_input_extend_bounds>");
+  RNA_def_property_ui_text(prop,
+                           "Extend Bounds",
+                           "Extend bounds of the input image to fully fit blurred image. "
+                           "(Deprecated: Use Extend Bounds input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   RNA_def_struct_sdna_from(srna, "NodeBlurData", "storage");
 
   prop = RNA_def_property(srna, "size_x", PROP_INT, PROP_NONE);
-  RNA_def_property_int_sdna(prop, nullptr, "sizex");
+  RNA_def_property_int_funcs(prop, "rna_NodeBlur_size_x_get", "rna_NodeCrop_size_x_set", nullptr);
   RNA_def_property_range(prop, 0, 2048);
-  RNA_def_property_ui_text(prop, "Size X", "");
+  RNA_def_property_ui_text(prop, "Size X", "(Deprecated: Use Size input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "size_y", PROP_INT, PROP_NONE);
-  RNA_def_property_int_sdna(prop, nullptr, "sizey");
+  RNA_def_property_int_funcs(prop, "rna_NodeBlur_size_y_get", "rna_NodeCrop_size_y_set", nullptr);
   RNA_def_property_range(prop, 0, 2048);
-  RNA_def_property_ui_text(prop, "Size Y", "");
+  RNA_def_property_ui_text(prop, "Size Y", "(Deprecated: Use Size input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "use_relative", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "relative", 1);
   RNA_def_property_ui_text(
-      prop, "Relative", "Use relative (percent) values to define blur radius");
+      prop,
+      "Relative",
+      "Use relative (percent) values to define blur radius. (Deprecated: Unused.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "aspect_correction", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, nullptr, "aspect");
   RNA_def_property_enum_items(prop, aspect_correction_type_items);
-  RNA_def_property_ui_text(prop, "Aspect Correction", "Type of aspect correction to use");
+  RNA_def_property_ui_text(
+      prop, "Aspect Correction", "Type of aspect correction to use. (Deprecated: Unused.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "factor", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, nullptr, "fac");
   RNA_def_property_range(prop, 0.0f, 2.0f);
-  RNA_def_property_ui_text(prop, "Factor", "");
+  RNA_def_property_ui_text(prop, "Factor", "(Deprecated: Unused.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "factor_x", PROP_FLOAT, PROP_PERCENTAGE);
   RNA_def_property_float_sdna(prop, nullptr, "percentx");
   RNA_def_property_range(prop, 0.0f, 100.0f);
-  RNA_def_property_ui_text(prop, "Relative Size X", "");
+  RNA_def_property_ui_text(prop, "Relative Size X", "(Deprecated: Unused.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "factor_y", PROP_FLOAT, PROP_PERCENTAGE);
   RNA_def_property_float_sdna(prop, nullptr, "percenty");
   RNA_def_property_range(prop, 0.0f, 100.0f);
-  RNA_def_property_ui_text(prop, "Relative Size Y", "");
+  RNA_def_property_ui_text(prop, "Relative Size Y", "(Deprecated: Unused.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "filter_type", PROP_ENUM, PROP_NONE);
@@ -7438,8 +7492,9 @@ static void def_cmp_blur(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "use_bokeh", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "bokeh", 1);
-  RNA_def_property_ui_text(prop, "Bokeh", "Use circular filter (slower)");
+  RNA_def_property_boolean_funcs(prop, "rna_NodeBlur_use_bokeh_get", "rna_NodeCrop_use_bokeh_set");
+  RNA_def_property_ui_text(
+      prop, "Bokeh", "Use circular filter (slower). (Deprecated: Use Separable input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "use_gamma_correction", PROP_BOOLEAN, PROP_NONE);

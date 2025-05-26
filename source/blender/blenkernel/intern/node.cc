@@ -680,10 +680,16 @@ static void write_compositor_legacy_properties(bNodeTree &node_tree)
   }
 
   for (bNode *node : node_tree.all_nodes()) {
-    auto write_input_to_property_bool_char = [&](const char *identifier, char &property) {
-      const bNodeSocket *input = blender::bke::node_find_socket(*node, SOCK_IN, identifier);
-      property = input->default_value_typed<bNodeSocketValueBoolean>()->value;
-    };
+    auto write_input_to_property_bool_char =
+        [&](const char *identifier, char &property, const bool invert = false) {
+          const bNodeSocket *input = blender::bke::node_find_socket(*node, SOCK_IN, identifier);
+          if (invert) {
+            property = !input->default_value_typed<bNodeSocketValueBoolean>()->value;
+          }
+          else {
+            property = input->default_value_typed<bNodeSocketValueBoolean>()->value;
+          }
+        };
 
     auto write_input_to_property_bool_short = [&](const char *identifier, short &property) {
       const bNodeSocket *input = blender::bke::node_find_socket(*node, SOCK_IN, identifier);
@@ -1122,6 +1128,19 @@ static void write_compositor_legacy_properties(bNodeTree &node_tree)
       write_input_to_property_float("Input Tint", storage->input_tint);
       write_input_to_property_float("Output Temperature", storage->output_temperature);
       write_input_to_property_float("Output Tint", storage->output_tint);
+    }
+
+    if (node->type_legacy == CMP_NODE_BLUR) {
+      write_input_to_property_bool_int16_flag("Extend Bounds", node->custom1, (1 << 1));
+
+      NodeBlurData *storage = static_cast<NodeBlurData *>(node->storage);
+      write_input_to_property_bool_char("Separable", storage->bokeh, true);
+
+      const bNodeSocket *size_input = blender::bke::node_find_socket(*node, SOCK_IN, "Size");
+      storage->sizex = int(
+          math::ceil(size_input->default_value_typed<bNodeSocketValueVector>()->value[0]));
+      storage->sizey = int(
+          math::ceil(size_input->default_value_typed<bNodeSocketValueVector>()->value[1]));
     }
   }
 }

@@ -1092,10 +1092,6 @@ typedef enum CMPNodeMaskFlags {
   CMP_NODE_MASK_FLAG_SIZE_FIXED_SCENE = (1 << 9),
 } CMPNodeMaskFlags;
 
-enum {
-  CMP_NODEFLAG_BLUR_EXTEND_BOUNDS = (1 << 1),
-};
-
 typedef struct NodeFrame {
   short flag;
   short label_size;
