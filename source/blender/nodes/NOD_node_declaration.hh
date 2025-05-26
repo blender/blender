@@ -165,6 +165,18 @@ struct SocketNameRNA {
   std::string property_name;
 };
 
+struct CustomSocketDrawParams {
+  const bContext &C;
+  uiLayout &layout;
+  bNodeTree &tree;
+  bNode &node;
+  bNodeSocket &socket;
+  PointerRNA node_ptr;
+  PointerRNA socket_ptr;
+};
+
+using CustomSocketDrawFn = std::function<void(CustomSocketDrawParams &params)>;
+
 /**
  * Describes a single input or output socket. This is subclassed for different socket types.
  */
@@ -224,6 +236,10 @@ class SocketDeclaration : public ItemDeclaration {
    * node without going to the side-bar.
    */
   std::unique_ptr<SocketNameRNA> socket_name_rna;
+  /**
+   * Draw function that overrides how the socket is drawn for a specific node.
+   */
+  std::unique_ptr<CustomSocketDrawFn> custom_draw_fn;
 
   friend NodeDeclarationBuilder;
   friend class BaseSocketDeclarationBuilder;
@@ -380,6 +396,11 @@ class BaseSocketDeclarationBuilder {
    * The node type's update function is called afterwards.
    */
   BaseSocketDeclarationBuilder &make_available(std::function<void(bNode &)> fn);
+
+  /**
+   * Provide a fully custom draw function for the socket that overrides any default behaviour.
+   */
+  BaseSocketDeclarationBuilder &custom_draw(CustomSocketDrawFn fn);
 
   /**
    * Puts this socket on the same row as the previous socket. This only works when one of them is

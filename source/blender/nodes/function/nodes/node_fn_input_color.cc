@@ -13,13 +13,12 @@ namespace blender::nodes::node_fn_input_color_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_output<decl::Color>("Color");
-}
-
-static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
-{
-  uiTemplateColorPicker(layout, ptr, "value", true, false, false, true);
-  layout->prop(ptr, "value", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  b.add_output<decl::Color>("Color").custom_draw([](CustomSocketDrawParams &params) {
+    uiLayoutSetAlignment(&params.layout, UI_LAYOUT_ALIGN_EXPAND);
+    uiLayout &col = params.layout.column(true);
+    uiTemplateColorPicker(&col, &params.node_ptr, "value", true, false, false, true);
+    col.prop(&params.node_ptr, "value", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  });
 }
 
 static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &builder)
@@ -50,7 +49,6 @@ static void node_register()
   blender::bke::node_type_storage(
       ntype, "NodeInputColor", node_free_standard_storage, node_copy_standard_storage);
   ntype.build_multi_function = node_build_multi_function;
-  ntype.draw_buttons = node_layout;
   blender::bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)

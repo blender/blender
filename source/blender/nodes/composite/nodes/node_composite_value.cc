@@ -10,13 +10,21 @@
 
 #include "node_composite_util.hh"
 
+#include "UI_interface.hh"
+#include "UI_resources.hh"
+
 /* **************** VALUE ******************** */
 
 namespace blender::nodes::node_composite_value_cc {
 
 static void cmp_node_value_declare(NodeDeclarationBuilder &b)
 {
-  b.add_output<decl::Float>("Value").default_value(0.5f);
+  b.add_output<decl::Float>("Value").default_value(0.5f).custom_draw(
+      [](CustomSocketDrawParams &params) {
+        uiLayout &row = params.layout.row(true);
+        row.prop(&params.socket_ptr, "default_value", UI_ITEM_NONE, "", ICON_NONE);
+      });
+  ;
 }
 
 using namespace blender::compositor;

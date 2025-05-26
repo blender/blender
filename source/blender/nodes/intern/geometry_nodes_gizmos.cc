@@ -16,13 +16,14 @@
 
 #include "NOD_geometry_nodes_gizmos.hh"
 #include "NOD_inverse_eval_path.hh"
+#include "NOD_partial_eval.hh"
+#include "NOD_socket_usage_inference.hh"
 
 #include "DNA_modifier_types.h"
 #include "DNA_space_types.h"
 #include "DNA_windowmanager_types.h"
 
 #include "ED_node.hh"
-#include "NOD_socket_usage_inference.hh"
 
 namespace blender::nodes::gizmos {
 
@@ -541,6 +542,15 @@ void apply_gizmo_change(
 
   /* Actually backpropagate the socket values. */
   ie::backpropagate_socket_values(C, object, nmd, eval_log, sockets_to_update);
+}
+
+bool value_node_has_gizmo(const bNodeTree &tree, const bNode &node)
+{
+  BLI_assert(partial_eval::is_supported_value_node(node));
+  if (!tree.runtime->gizmo_propagation) {
+    return false;
+  }
+  return tree.runtime->gizmo_propagation->gizmo_endpoint_sockets.contains(&node.output_socket(0));
 }
 
 }  // namespace blender::nodes::gizmos

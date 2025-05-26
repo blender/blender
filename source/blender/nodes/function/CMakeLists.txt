@@ -8,6 +8,8 @@ set(INC
   ../intern
   ../../editors/include
   ../../makesrna
+  # RNA_prototypes.hh
+  ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
 
 set(INC_SYS

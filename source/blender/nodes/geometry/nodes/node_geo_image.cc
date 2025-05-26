@@ -12,12 +12,16 @@ namespace blender::nodes::node_geo_image_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_output<decl::Image>("Image");
-}
-
-static void node_layout(uiLayout *layout, bContext *C, PointerRNA *ptr)
-{
-  uiTemplateID(layout, C, ptr, "image", "IMAGE_OT_new", "IMAGE_OT_open", nullptr);
+  b.add_output<decl::Image>("Image").custom_draw([](CustomSocketDrawParams &params) {
+    uiLayoutSetAlignment(&params.layout, UI_LAYOUT_ALIGN_EXPAND);
+    uiTemplateID(&params.layout,
+                 &params.C,
+                 &params.node_ptr,
+                 "image",
+                 "IMAGE_OT_new",
+                 "IMAGE_OT_open",
+                 nullptr);
+  });
 }
 
 static void node_geo_exec(GeoNodeExecParams params)
@@ -35,7 +39,6 @@ static void node_register()
   ntype.enum_name_legacy = "IMAGE";
   ntype.nclass = NODE_CLASS_INPUT;
   ntype.geometry_node_execute = node_geo_exec;
-  ntype.draw_buttons = node_layout;
   ntype.declare = node_declare;
   blender::bke::node_type_size_preset(ntype, blender::bke::eNodeSizePreset::Large);
   blender::bke::node_register_type(ntype);

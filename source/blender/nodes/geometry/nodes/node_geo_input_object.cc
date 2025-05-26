@@ -11,12 +11,10 @@ namespace blender::nodes::node_geo_input_object_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_output<decl::Object>("Object");
-}
-
-static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
-{
-  layout->prop(ptr, "object", UI_ITEM_NONE, "", ICON_NONE);
+  b.add_output<decl::Object>("Object").custom_draw([](CustomSocketDrawParams &params) {
+    uiLayoutSetAlignment(&params.layout, UI_LAYOUT_ALIGN_EXPAND);
+    params.layout.prop(&params.node_ptr, "object", UI_ITEM_NONE, "", ICON_NONE);
+  });
 }
 
 static void node_geo_exec(GeoNodeExecParams params)
@@ -34,7 +32,6 @@ static void node_register()
   ntype.ui_description = "Output a single object";
   ntype.enum_name_legacy = "INPUT_OBJECT";
   ntype.nclass = NODE_CLASS_INPUT;
-  ntype.draw_buttons = node_layout;
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
   blender::bke::node_register_type(ntype);
