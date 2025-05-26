@@ -617,6 +617,9 @@ def lfs_fallback_setup(args: argparse.Namespace) -> None:
         push_url = "no_push"
         make_utils.git_add_remote(args.git_command, fallback_remote, url, push_url)
 
+        # Fetch potentially missing files.
+        call((args.git_command, "lfs", "fetch", fallback_remote))
+
 
 def main() -> int:
     args = parse_arguments()
