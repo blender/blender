@@ -1,15 +1,17 @@
---- a/configure	2018-08-27 13:46:41.071106150 +0200
-+++ b/configure	2018-08-27 13:46:28.162765762 +0200
-@@ -6768,7 +6768,7 @@
+diff --git a/configure b/configure
+index ffa407d53d..d291f87187 100755
+--- a/configure
++++ b/configure
+@@ -6964,7 +6964,7 @@ enabled libopencv         && { check_headers opencv2/core/core_c.h &&
                                 require_pkg_config libopencv opencv opencv/cxcore.h cvCreateImageHeader; }
- enabled libopenh264       && require_pkg_config libopenh264 openh264 wels/codec_api.h WelsGetCodecVersion
+ enabled libopenh264       && require_pkg_config libopenh264 "openh264 >= 1.3.0" wels/codec_api.h WelsGetCodecVersion
  enabled libopenjpeg       && { check_pkg_config libopenjpeg "libopenjp2 >= 2.1.0" openjpeg.h opj_version ||
 -                               { require_pkg_config libopenjpeg "libopenjp2 >= 2.1.0" openjpeg.h opj_version -DOPJ_STATIC && add_cppflags -DOPJ_STATIC; } }
 +                               { require_pkg_config libopenjpeg "libopenjp2 >= 2.1.0" openjpeg.h opj_version "-DOPJ_STATIC $pthreads_extralibs $libm_extralibs" && add_cppflags "-DOPJ_STATIC $pthreads_extralibs $libm_extralibs"; } }
  enabled libopenmpt        && require_pkg_config libopenmpt "libopenmpt >= 0.2.6557" libopenmpt/libopenmpt.h openmpt_module_create -lstdc++ && append libopenmpt_extralibs "-lstdc++"
  enabled libopenvino       && { { check_pkg_config libopenvino openvino openvino/c/openvino.h ov_core_create && enable openvino2; } ||
                                  { check_pkg_config libopenvino openvino c_api/ie_c_api.h ie_c_api_version ||
-@@ -6812,8 +6812,8 @@
+@@ -7011,8 +7011,8 @@ enabled libvidstab        && require_pkg_config libvidstab "vidstab >= 0.98" vid
  enabled libvmaf           && require_pkg_config libvmaf "libvmaf >= 2.0.0" libvmaf.h vmaf_init
  enabled libvmaf           && check_pkg_config libvmaf_cuda "libvmaf >= 2.0.0" libvmaf_cuda.h vmaf_cuda_state_init
  enabled libvo_amrwbenc    && require libvo_amrwbenc vo-amrwbenc/enc_if.h E_IF_init -lvo-amrwbenc
@@ -20,9 +22,9 @@
  
  enabled libvpx            && {
      enabled libvpx_vp8_decoder && {
-@@ -6845,7 +6845,7 @@
-                              [ "$toolchain" != "msvc" ] ||
+@@ -7046,7 +7046,7 @@ enabled libx264           && require_pkg_config libx264 x264 "stdint.h x264.h" x
                               require_cpp_condition libx264 x264.h "X264_BUILD >= 158"; } &&
+                              check_cpp_condition libx264_hdr10 x264.h "X264_BUILD >= 163" &&
                               check_cpp_condition libx262 x264.h "X264_MPEG2"
 -enabled libx265           && require_pkg_config libx265 x265 x265.h x265_api_get &&
 +enabled libx265           && require_pkg_config libx265 x265 x265.h x265_api_get "$pthreads_extralibs" &&

@@ -101,25 +101,25 @@ if(WIN32)
     --disable-mediafoundation
     --toolchain=msvc
     --target-os=win32
-    --disable-inline-asm
   )
 
   if(BLENDER_PLATFORM_ARM)
     set(FFMPEG_EXTRA_FLAGS
       ${FFMPEG_EXTRA_FLAGS}
       --arch=aarch64
-      --enable-cross-compile
-      --as=armasm64
+      "--as=${DOWNLOAD_DIR}/msys2/msys64/usr/bin/gas-preprocessor.pl -arch aarch64 -as-type armasm -- armasm64 -nologo"
+      --cc=${LIBDIR}/llvm/bin/clang-cl.exe
+      --cxx=${LIBDIR}/llvm/bin/clang-cl.exe
+      --windres=${LIBDIR}/llvm/bin/llvm-rc.exe
+      --nm=${LIBDIR}/llvm/bin/llvm-nm.exe
+      --ar='${LIBDIR}/llvm/bin/llvm-ar.exe'
+      --ranlib=${LIBDIR}/llvm/bin/llvm-ranlib.exe
     )
-
-    set(GAS_PATH ${BUILD_DIR}/x264/src/external_x264/tools/)
-    string(REPLACE "/" "\\" GAS_PATH ${GAS_PATH})
-    set(ENV{PATH} "$ENV{PATH};${GAS_PATH}")
   else()
     set(FFMPEG_EXTRA_FLAGS
       ${FFMPEG_EXTRA_FLAGS}
+      --disable-inline-asm
       --arch=x86_64
-      --target-os=win32
     )
   endif()
 
@@ -207,7 +207,6 @@ ExternalProject_Add(external_ffmpeg
       --disable-indev=jack
       --disable-indev=alsa
       --disable-outdev=alsa
-      --disable-crystalhd
       --disable-sndio
       --disable-doc
 
@@ -251,6 +250,13 @@ if(WIN32)
     external_zlib
     external_openjpeg_msvc
   )
+
+  if(BLENDER_PLATFORM_ARM)
+    add_dependencies(
+      external_ffmpeg
+      ll
+    )
+  endif()
 endif()
 if(UNIX)
   add_dependencies(
