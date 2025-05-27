@@ -216,7 +216,7 @@ class LazyFunctionForRepeatZone : public LazyFunction {
           tree_logger->node_warnings.append(
               *tree_logger->allocator,
               {repeat_output_bnode_.identifier,
-               {geo_eval_log::NodeWarningType::Info, N_("Inspection index is out of range")}});
+               {NodeWarningType::Info, N_("Inspection index is out of range")}});
         }
       }
     }

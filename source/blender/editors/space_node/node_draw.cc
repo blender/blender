@@ -2657,10 +2657,10 @@ static void node_draw_panels(bNodeTree &ntree, const bNode &node, uiBlock &block
   }
 }
 
-static geo_log::NodeWarningType node_error_highest_priority(Span<geo_log::NodeWarning> warnings)
+static nodes::NodeWarningType node_error_highest_priority(Span<geo_log::NodeWarning> warnings)
 {
   int highest_priority = 0;
-  geo_log::NodeWarningType highest_priority_type = geo_log::NodeWarningType::Info;
+  nodes::NodeWarningType highest_priority_type = nodes::NodeWarningType::Info;
   for (const geo_log::NodeWarning &warning : warnings) {
     const int priority = node_warning_type_severity(warning.type);
     if (priority > highest_priority) {
@@ -2747,14 +2747,14 @@ static void node_add_error_message_button(const TreeDrawContext &tree_draw_ctx,
     return;
   }
 
-  const geo_log::NodeWarningType display_type = node_error_highest_priority(warnings);
+  const nodes::NodeWarningType display_type = node_error_highest_priority(warnings);
 
   icon_offset -= NODE_HEADER_ICON_SIZE;
   UI_block_emboss_set(&block, blender::ui::EmbossType::None);
   uiBut *but = uiDefIconBut(&block,
                             UI_BTYPE_BUT,
                             0,
-                            geo_log::node_warning_type_icon(display_type),
+                            nodes::node_warning_type_icon(display_type),
                             icon_offset,
                             rect.ymax - NODE_DY,
                             NODE_HEADER_ICON_SIZE,

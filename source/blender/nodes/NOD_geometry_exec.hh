@@ -59,7 +59,6 @@ using fn::FieldInput;
 using fn::FieldOperation;
 using fn::GField;
 using geo_eval_log::NamedAttributeUsage;
-using geo_eval_log::NodeWarningType;
 
 class NodeAttributeFilter : public AttributeFilter {
  private:

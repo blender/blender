@@ -42,6 +42,7 @@
 #include "BKE_volume_grid_fwd.hh"
 
 #include "NOD_geometry_nodes_closure_location.hh"
+#include "NOD_geometry_nodes_warning.hh"
 #include "NOD_socket_interface_key.hh"
 
 #include "FN_field.hh"
@@ -55,16 +56,6 @@ struct Report;
 namespace blender::nodes::geo_eval_log {
 
 using fn::GField;
-
-/** These values are also written to .blend files, so don't change them lightly. */
-enum class NodeWarningType {
-  Error = 0,
-  Warning = 1,
-  Info = 2,
-};
-
-int node_warning_type_icon(NodeWarningType type);
-int node_warning_type_severity(NodeWarningType type);
 
 struct NodeWarning {
   NodeWarningType type;

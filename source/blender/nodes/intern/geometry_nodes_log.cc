@@ -966,34 +966,6 @@ const ViewerNodeLog *GeoNodesLog::find_viewer_node_log_for_path(const ViewerPath
   return viewer_log;
 }
 
-int node_warning_type_icon(const NodeWarningType type)
-{
-  switch (type) {
-    case NodeWarningType::Error:
-      return ICON_CANCEL;
-    case NodeWarningType::Warning:
-      return ICON_ERROR;
-    case NodeWarningType::Info:
-      return ICON_INFO;
-  }
-  BLI_assert_unreachable();
-  return ICON_ERROR;
-}
-
-int node_warning_type_severity(const NodeWarningType type)
-{
-  switch (type) {
-    case NodeWarningType::Error:
-      return 3;
-    case NodeWarningType::Warning:
-      return 2;
-    case NodeWarningType::Info:
-      return 1;
-  }
-  BLI_assert_unreachable();
-  return 0;
-}
-
 ContextualGeoTreeLogs::ContextualGeoTreeLogs(
     Map<const bke::bNodeTreeZone *, GeoTreeLog *> tree_logs_by_zone)
     : tree_logs_by_zone_(std::move(tree_logs_by_zone))

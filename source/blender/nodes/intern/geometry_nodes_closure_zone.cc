@@ -347,7 +347,7 @@ class LazyFunctionForEvaluateClosureNode : public LazyFunction {
           tree_logger->node_warnings.append(
               *tree_logger->allocator,
               {bnode_.identifier,
-               {geo_eval_log::NodeWarningType::Error, TIP_("Recursive closure is not allowed")}});
+               {NodeWarningType::Error, TIP_("Recursive closure is not allowed")}});
         }
         this->set_default_outputs(params);
         return;
@@ -436,7 +436,7 @@ class LazyFunctionForEvaluateClosureNode : public LazyFunction {
           tree_logger->node_warnings.append(
               *tree_logger->allocator,
               {bnode_.identifier,
-               {geo_eval_log::NodeWarningType::Error,
+               {NodeWarningType::Error,
                 fmt::format(fmt::runtime(TIP_("Closure input has incompatible type: \"{}\"")),
                             item.name)}});
         }
@@ -446,7 +446,7 @@ class LazyFunctionForEvaluateClosureNode : public LazyFunction {
             *tree_logger->allocator,
             {bnode_.identifier,
              {
-                 geo_eval_log::NodeWarningType::Error,
+                 NodeWarningType::Error,
                  fmt::format(fmt::runtime(TIP_("Closure does not have input: \"{}\"")), item.name),
              }});
       }
@@ -463,7 +463,7 @@ class LazyFunctionForEvaluateClosureNode : public LazyFunction {
           tree_logger->node_warnings.append(
               *tree_logger->allocator,
               {bnode_.identifier,
-               {geo_eval_log::NodeWarningType::Error,
+               {NodeWarningType::Error,
                 fmt::format(fmt::runtime(TIP_("Closure output has incompatible type: \"{}\"")),
                             item.name)}});
         }
@@ -472,7 +472,7 @@ class LazyFunctionForEvaluateClosureNode : public LazyFunction {
         tree_logger->node_warnings.append(
             *tree_logger->allocator,
             {bnode_.identifier,
-             {geo_eval_log::NodeWarningType::Error,
+             {NodeWarningType::Error,
               fmt::format(fmt::runtime(TIP_("Closure does not have output: \"{}\"")),
                           item.name)}});
       }
