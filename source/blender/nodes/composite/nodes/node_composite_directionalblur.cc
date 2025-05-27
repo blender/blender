@@ -38,8 +38,9 @@ static void cmp_node_directional_blur_declare(NodeDeclarationBuilder &b)
           "to the power of this input, so it increases exponentially")
       .compositor_expects_single_value();
   b.add_input<decl::Vector>("Center")
-      .default_value({0.5f, 0.5f, 0.0f})
       .subtype(PROP_FACTOR)
+      .dimensions(2)
+      .default_value({0.5f, 0.5f})
       .min(0.0f)
       .max(1.0f)
       .description(

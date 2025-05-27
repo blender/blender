@@ -36,7 +36,7 @@ NODE_STORAGE_FUNCS(NodeBlurData)
 static void cmp_node_blur_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Color>("Image").default_value({1.0f, 1.0f, 1.0f, 1.0f});
-  b.add_input<decl::Vector>("Size").default_value({0.0f, 0.0f, 0.0f}).min(0.0f);
+  b.add_input<decl::Vector>("Size").dimensions(2).default_value({0.0f, 0.0f}).min(0.0f);
   b.add_input<decl::Bool>("Extend Bounds").default_value(false).compositor_expects_single_value();
   b.add_input<decl::Bool>("Separable")
       .default_value(true)

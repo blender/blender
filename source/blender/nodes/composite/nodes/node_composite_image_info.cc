@@ -19,12 +19,14 @@ static void node_declare(NodeDeclarationBuilder &b)
       CompositorInputRealizationMode::None);
 
   b.add_output<decl::Vector>("Dimensions")
+      .dimensions(2)
       .description("The dimensions of the image in pixels with transformations applied");
   b.add_output<decl::Vector>("Resolution")
+      .dimensions(2)
       .description("The original resolution of the image in pixels before any transformations");
-  b.add_output<decl::Vector>("Location");
+  b.add_output<decl::Vector>("Location").dimensions(2);
   b.add_output<decl::Float>("Rotation");
-  b.add_output<decl::Vector>("Scale");
+  b.add_output<decl::Vector>("Scale").dimensions(2);
 }
 
 using namespace blender::compositor;

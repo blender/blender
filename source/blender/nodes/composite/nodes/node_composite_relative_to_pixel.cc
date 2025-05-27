@@ -21,8 +21,9 @@ namespace blender::nodes::node_composite_relative_to_pixel_cc {
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Vector>("Value", "Vector Value")
-      .default_value({0.0f, 0.0f, 0.0f})
       .subtype(PROP_FACTOR)
+      .dimensions(2)
+      .default_value({0.0f, 0.0f})
       .min(0.0f)
       .max(1.0f)
       .description(
@@ -40,7 +41,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       CompositorInputRealizationMode::None);
 
   b.add_output<decl::Float>("Value", "Float Value");
-  b.add_output<decl::Vector>("Value", "Vector Value");
+  b.add_output<decl::Vector>("Value", "Vector Value").dimensions(2);
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
