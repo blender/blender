@@ -303,4 +303,46 @@ void spreadsheet_table_remove_unused(SpaceSpreadsheet &sspreadsheet)
       [](SpreadsheetTable **table) { spreadsheet_table_free(*table); });
 }
 
+void spreadsheet_table_remove_unused_columns(SpreadsheetTable &table)
+{
+  /* Might not be reached exactly if there are many columns with the same last used time. */
+  const int max_unavailable_columns_target = 50;
+  int num_unavailable_columns = 0;
+  for (SpreadsheetColumn *column : Span(table.columns, table.num_columns)) {
+    if (!column->is_available()) {
+      num_unavailable_columns++;
+    }
+  }
+  if (num_unavailable_columns <= max_unavailable_columns_target) {
+    /* No need to remove columns. */
+    return;
+  }
+
+  /* Find the threshold time for unavailable columns to remove. */
+  Vector<uint32_t> last_used_times;
+  for (SpreadsheetColumn *column : Span(table.columns, table.num_columns)) {
+    if (!column->is_available()) {
+      last_used_times.append(column->last_used);
+    }
+  }
+  std::sort(last_used_times.begin(), last_used_times.end());
+  const int min_last_used = last_used_times[max_unavailable_columns_target];
+
+  dna::array::remove_if<SpreadsheetColumn *>(
+      &table.columns,
+      &table.num_columns,
+      [&](const SpreadsheetColumn *column) {
+        if (column->is_available()) {
+          /* Available columns should never be removed here. */
+          return false;
+        }
+        if (column->last_used > min_last_used) {
+          /* Columns that have been used recently are not removed. */
+          return false;
+        }
+        return true;
+      },
+      [](SpreadsheetColumn **column) { spreadsheet_column_free(*column); });
+}
+
 }  // namespace blender::ed::spreadsheet

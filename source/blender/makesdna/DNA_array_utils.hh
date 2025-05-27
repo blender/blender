@@ -64,9 +64,9 @@ inline void remove_if(T **items,
 {
   static_assert(std::is_trivial_v<T>);
   /* This sorts the items-to-remove to the back. */
-  const int remaining = std::partition(*items,
-                                       *items + *items_num,
-                                       [&](const T &value) { return !predicate(value); }) -
+  const int remaining = std::stable_partition(*items,
+                                              *items + *items_num,
+                                              [&](const T &value) { return !predicate(value); }) -
                         *items;
   for (const int i : IndexRange::from_begin_end(remaining, *items_num)) {
     destruct_item(&(*items)[i]);

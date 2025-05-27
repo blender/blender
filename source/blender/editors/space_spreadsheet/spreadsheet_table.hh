@@ -38,7 +38,6 @@ const SpreadsheetTable *spreadsheet_table_find(const SpaceSpreadsheet &sspreadsh
                                                const SpreadsheetTableID &table_id);
 void spreadsheet_table_add(SpaceSpreadsheet &sspreadsheet, SpreadsheetTable *table);
 void spreadsheet_table_remove_unused(SpaceSpreadsheet &sspreadsheet);
-void spreadsheet_table_remove_if(SpaceSpreadsheet &sspreadsheet,
-                                 FunctionRef<bool(SpreadsheetTable &)> predicate);
+void spreadsheet_table_remove_unused_columns(SpreadsheetTable &table);
 
 }  // namespace blender::ed::spreadsheet

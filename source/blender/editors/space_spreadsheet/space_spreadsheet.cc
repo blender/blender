@@ -400,6 +400,7 @@ static void update_visible_columns(SpreadsheetTable &table, DataSource &data_sou
         if (!values) {
           return;
         }
+        table.column_use_clock++;
         SpreadsheetColumn *column = spreadsheet_column_new(spreadsheet_column_id_copy(&column_id));
         if (is_extra) {
           new_columns.insert(0, column);
@@ -415,11 +416,22 @@ static void update_visible_columns(SpreadsheetTable &table, DataSource &data_sou
     return;
   }
 
+  /* Update last used times of the columns to support garbage collection. */
+  for (SpreadsheetColumn *column : new_columns) {
+    const bool clock_was_reset = table.column_use_clock < column->last_used;
+    if (clock_was_reset || column->is_available()) {
+      column->last_used = table.column_use_clock;
+    }
+  }
+
   /* Update the stored column pointers. */
   MEM_SAFE_FREE(table.columns);
   table.columns = MEM_calloc_arrayN<SpreadsheetColumn *>(new_columns.size(), __func__);
   table.num_columns = new_columns.size();
   std::copy_n(new_columns.begin(), new_columns.size(), table.columns);
+
+  /* Remove columns that have not been used for a while when there are too many. */
+  spreadsheet_table_remove_unused_columns(table);
 }
 
 static void spreadsheet_main_region_draw(const bContext *C, ARegion *region)
