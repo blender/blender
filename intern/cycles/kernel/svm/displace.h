@@ -121,8 +121,7 @@ ccl_device_noinline int svm_node_set_bump(KernelGlobals kg,
 /* Displacement Node */
 
 template<uint node_feature_mask>
-ccl_device void svm_node_set_displacement(KernelGlobals kg,
-                                          ccl_private ShaderData *sd,
+ccl_device void svm_node_set_displacement(ccl_private ShaderData *sd,
                                           ccl_private float *stack,
                                           const uint fac_offset)
 {

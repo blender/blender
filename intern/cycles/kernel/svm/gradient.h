@@ -55,9 +55,7 @@ ccl_device float svm_gradient(const float3 p, NodeGradientType type)
   return 0.0f;
 }
 
-ccl_device_noinline void svm_node_tex_gradient(ccl_private ShaderData *sd,
-                                               ccl_private float *stack,
-                                               const uint4 node)
+ccl_device_noinline void svm_node_tex_gradient(ccl_private float *stack, const uint4 node)
 {
   uint type;
   uint co_offset;

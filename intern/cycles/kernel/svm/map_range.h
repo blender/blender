@@ -17,7 +17,6 @@ ccl_device_inline float smootherstep(const float edge0, const float edge1, float
 }
 
 ccl_device_noinline int svm_node_map_range(KernelGlobals kg,
-                                           ccl_private ShaderData *sd,
                                            ccl_private float *stack,
                                            const uint value_stack_offset,
                                            const uint parameters_stack_offsets,
@@ -83,9 +82,7 @@ ccl_device_noinline int svm_node_map_range(KernelGlobals kg,
   return offset;
 }
 
-ccl_device_noinline int svm_node_vector_map_range(KernelGlobals kg,
-                                                  ccl_private ShaderData *sd,
-                                                  ccl_private float *stack,
+ccl_device_noinline int svm_node_vector_map_range(ccl_private float *stack,
                                                   const uint value_stack_offset,
                                                   const uint parameters_stack_offsets,
                                                   const uint results_stack_offsets,

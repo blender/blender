@@ -56,7 +56,7 @@ ccl_device void volume_stack_enter_exit(KernelGlobals kg,
   }
   else {
     /* Enter volume object: add to stack. */
-    int i;
+    uint i;
     for (i = 0;; i++) {
       VolumeStack entry = stack_read(i);
       if (entry.shader == SHADER_NONE) {

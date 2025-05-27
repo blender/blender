@@ -47,8 +47,7 @@ ccl_device_noinline void svm_node_enter_bump_eval(KernelGlobals kg,
   }
 }
 
-ccl_device_noinline void svm_node_leave_bump_eval(KernelGlobals kg,
-                                                  ccl_private ShaderData *sd,
+ccl_device_noinline void svm_node_leave_bump_eval(ccl_private ShaderData *sd,
                                                   ccl_private float *stack,
                                                   const uint offset)
 {

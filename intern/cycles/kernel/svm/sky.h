@@ -212,7 +212,6 @@ ccl_device float3 sky_radiance_nishita(KernelGlobals kg,
 }
 
 ccl_device_noinline int svm_node_tex_sky(KernelGlobals kg,
-                                         ccl_private ShaderData *sd,
                                          const uint32_t path_flag,
                                          ccl_private float *stack,
                                          const uint4 node,

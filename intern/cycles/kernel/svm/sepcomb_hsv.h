@@ -11,7 +11,6 @@
 CCL_NAMESPACE_BEGIN
 
 ccl_device_noinline int svm_node_combine_hsv(KernelGlobals kg,
-                                             ccl_private ShaderData *sd,
                                              ccl_private float *stack,
                                              const uint hue_in,
                                              const uint saturation_in,
@@ -35,7 +34,6 @@ ccl_device_noinline int svm_node_combine_hsv(KernelGlobals kg,
 }
 
 ccl_device_noinline int svm_node_separate_hsv(KernelGlobals kg,
-                                              ccl_private ShaderData *sd,
                                               ccl_private float *stack,
                                               const uint color_in,
                                               const uint hue_out,

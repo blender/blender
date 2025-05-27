@@ -9,8 +9,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-ccl_device_noinline void svm_node_brightness(ccl_private ShaderData *sd,
-                                             ccl_private float *stack,
+ccl_device_noinline void svm_node_brightness(ccl_private float *stack,
                                              const uint in_color,
                                              const uint out_color,
                                              const uint node)

@@ -595,7 +595,7 @@ ccl_device
       const Spectrum weight = closure_weight * mix_weight;
       const float3 position = stack_load_float3(stack, data_node.y);
       const float3 direction = stack_load_float3(stack, data_node.z);
-      bsdf_ray_portal_setup(sd, weight, path_flag, position, direction);
+      bsdf_ray_portal_setup(sd, weight, position, direction);
       break;
     }
     case CLOSURE_BSDF_MICROFACET_GGX_ID:
@@ -1432,8 +1432,7 @@ ccl_device_noinline void svm_node_closure_holdout(ccl_private ShaderData *sd,
 
 /* Closure Nodes */
 
-ccl_device void svm_node_closure_set_weight(ccl_private ShaderData *sd,
-                                            ccl_private Spectrum *closure_weight,
+ccl_device void svm_node_closure_set_weight(ccl_private Spectrum *closure_weight,
                                             const uint r,
                                             uint g,
                                             const uint b)
@@ -1442,17 +1441,14 @@ ccl_device void svm_node_closure_set_weight(ccl_private ShaderData *sd,
       make_float3(__uint_as_float(r), __uint_as_float(g), __uint_as_float(b)));
 }
 
-ccl_device void svm_node_closure_weight(ccl_private ShaderData *sd,
-                                        ccl_private float *stack,
+ccl_device void svm_node_closure_weight(ccl_private float *stack,
                                         ccl_private Spectrum *closure_weight,
                                         const uint weight_offset)
 {
   *closure_weight = rgb_to_spectrum(stack_load_float3(stack, weight_offset));
 }
 
-ccl_device_noinline void svm_node_emission_weight(KernelGlobals kg,
-                                                  ccl_private ShaderData *sd,
-                                                  ccl_private float *stack,
+ccl_device_noinline void svm_node_emission_weight(ccl_private float *stack,
                                                   ccl_private Spectrum *closure_weight,
                                                   const uint4 node)
 {
@@ -1463,9 +1459,7 @@ ccl_device_noinline void svm_node_emission_weight(KernelGlobals kg,
   *closure_weight = rgb_to_spectrum(stack_load_float3(stack, color_offset)) * strength;
 }
 
-ccl_device_noinline void svm_node_mix_closure(ccl_private ShaderData *sd,
-                                              ccl_private float *stack,
-                                              const uint4 node)
+ccl_device_noinline void svm_node_mix_closure(ccl_private float *stack, const uint4 node)
 {
   /* fetch weight from blend input, previous mix closures,
    * and write to stack to be used by closure nodes later */
@@ -1493,8 +1487,7 @@ ccl_device_noinline void svm_node_mix_closure(ccl_private ShaderData *sd,
 
 /* (Bump) normal */
 
-ccl_device void svm_node_set_normal(KernelGlobals kg,
-                                    ccl_private ShaderData *sd,
+ccl_device void svm_node_set_normal(ccl_private ShaderData *sd,
                                     ccl_private float *stack,
                                     const uint in_direction,
                                     const uint out_normal)

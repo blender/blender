@@ -1031,7 +1031,6 @@ ccl_device void svm_voronoi_output(const uint4 stack_offsets,
 
 template<uint node_feature_mask>
 ccl_device_noinline int svm_node_tex_voronoi(KernelGlobals kg,
-                                             ccl_private ShaderData *sd,
                                              ccl_private float *stack,
                                              const uint dimensions,
                                              const uint feature,

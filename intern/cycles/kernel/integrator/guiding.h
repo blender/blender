@@ -109,7 +109,6 @@ ccl_device_forceinline void guiding_record_surface_segment(KernelGlobals kg,
 /* Records the surface scattering event at the current vertex position of the segment. */
 ccl_device_forceinline void guiding_record_surface_bounce(KernelGlobals kg,
                                                           IntegratorState state,
-                                                          const ccl_private ShaderData *sd,
                                                           const Spectrum weight,
                                                           const float pdf,
                                                           const float3 N,
@@ -289,7 +288,6 @@ ccl_device_forceinline void guiding_record_volume_segment(KernelGlobals kg,
 /* Records the volume scattering event at the current vertex position of the segment. */
 ccl_device_forceinline void guiding_record_volume_bounce(KernelGlobals kg,
                                                          IntegratorState state,
-                                                         const ccl_private ShaderData *sd,
                                                          const Spectrum weight,
                                                          const float pdf,
                                                          const float3 wo,
@@ -537,6 +535,11 @@ ccl_device_forceinline void guiding_write_debug_passes(KernelGlobals kg,
 
     film_write_pass_float(buffer + kernel_data.film.pass_guiding_avg_roughness, avg_roughness);
   }
+#  else
+  (void)kg;
+  (void)state;
+  (void)sd;
+  (void)render_buffer;
 #  endif
 #endif
 }
@@ -544,7 +547,6 @@ ccl_device_forceinline void guiding_write_debug_passes(KernelGlobals kg,
 /* Guided BSDFs */
 
 ccl_device_forceinline bool guiding_bsdf_init(KernelGlobals kg,
-                                              IntegratorState state,
                                               const float3 P,
                                               const float3 N,
                                               ccl_private float &rand)
@@ -559,7 +561,6 @@ ccl_device_forceinline bool guiding_bsdf_init(KernelGlobals kg,
 }
 
 ccl_device_forceinline float guiding_bsdf_sample(KernelGlobals kg,
-                                                 IntegratorState state,
                                                  const float2 rand_bsdf,
                                                  ccl_private float3 *wo)
 {
@@ -574,9 +575,7 @@ ccl_device_forceinline float guiding_bsdf_sample(KernelGlobals kg,
 #endif
 }
 
-ccl_device_forceinline float guiding_bsdf_pdf(KernelGlobals kg,
-                                              IntegratorState state,
-                                              const float3 wo)
+ccl_device_forceinline float guiding_bsdf_pdf(KernelGlobals kg, const float3 wo)
 {
 #if defined(__PATH_GUIDING__) && PATH_GUIDING_LEVEL >= 4
   return guiding_ssd->PDF(guiding_vec3f(wo));
@@ -586,7 +585,6 @@ ccl_device_forceinline float guiding_bsdf_pdf(KernelGlobals kg,
 }
 
 ccl_device_forceinline float guiding_surface_incoming_radiance_pdf(KernelGlobals kg,
-                                                                   IntegratorState state,
                                                                    const float3 wo)
 {
 #if defined(__PATH_GUIDING__) && PATH_GUIDING_LEVEL >= 4
@@ -598,12 +596,8 @@ ccl_device_forceinline float guiding_surface_incoming_radiance_pdf(KernelGlobals
 
 /* Guided Volume Phases */
 
-ccl_device_forceinline bool guiding_phase_init(KernelGlobals kg,
-                                               IntegratorState state,
-                                               const float3 P,
-                                               const float3 D,
-                                               const float g,
-                                               ccl_private float &rand)
+ccl_device_forceinline bool guiding_phase_init(
+    KernelGlobals kg, const float3 P, const float3 D, const float g, ccl_private float &rand)
 {
 #if defined(__PATH_GUIDING__) && PATH_GUIDING_LEVEL >= 4
   /* we do not need to guide almost delta phase functions */
@@ -621,7 +615,6 @@ ccl_device_forceinline bool guiding_phase_init(KernelGlobals kg,
 }
 
 ccl_device_forceinline float guiding_phase_sample(KernelGlobals kg,
-                                                  IntegratorState state,
                                                   const float2 rand_phase,
                                                   ccl_private float3 *wo)
 {
@@ -636,9 +629,7 @@ ccl_device_forceinline float guiding_phase_sample(KernelGlobals kg,
 #endif
 }
 
-ccl_device_forceinline float guiding_phase_pdf(KernelGlobals kg,
-                                               IntegratorState state,
-                                               const float3 wo)
+ccl_device_forceinline float guiding_phase_pdf(KernelGlobals kg, const float3 wo)
 {
 #if defined(__PATH_GUIDING__) && PATH_GUIDING_LEVEL >= 4
   return guiding_vsd->PDF(guiding_vec3f(wo));

@@ -243,7 +243,6 @@ ccl_device void noise_texture_4d(const float4 co,
 }
 
 ccl_device_noinline int svm_node_tex_noise(KernelGlobals kg,
-                                           ccl_private ShaderData *sd,
                                            ccl_private float *stack,
                                            const uint offsets1,
                                            const uint offsets2,

@@ -111,7 +111,7 @@ ccl_device void kernel_curve_shadow_transparency_evaluate(
       kg, INTEGRATOR_STATE_NULL, &sd, nullptr, PATH_RAY_SHADOW);
 
   /* Write output. */
-  output[offset] = clamp(average(surface_shader_transparency(kg, &sd)), 0.0f, 1.0f);
+  output[offset] = clamp(average(surface_shader_transparency(&sd)), 0.0f, 1.0f);
 #endif
 }
 

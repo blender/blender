@@ -83,7 +83,7 @@ void osl_eval_nodes<SHADER_TYPE_SURFACE>(const ThreadKernelGlobalsCPU *kg,
                                          const uint32_t path_flag)
 {
   /* setup shader globals from shader data */
-  shaderdata_to_shaderglobals(kg, sd, path_flag, &kg->osl.shader_globals);
+  shaderdata_to_shaderglobals(sd, path_flag, &kg->osl.shader_globals);
 
   /* clear trace data */
   kg->osl.tracedata.init = false;
@@ -203,7 +203,7 @@ void osl_eval_nodes<SHADER_TYPE_VOLUME>(const ThreadKernelGlobalsCPU *kg,
                                         const uint32_t path_flag)
 {
   /* setup shader globals from shader data */
-  shaderdata_to_shaderglobals(kg, sd, path_flag, &kg->osl.shader_globals);
+  shaderdata_to_shaderglobals(sd, path_flag, &kg->osl.shader_globals);
 
   /* clear trace data */
   kg->osl.tracedata.init = false;
@@ -250,7 +250,7 @@ void osl_eval_nodes<SHADER_TYPE_DISPLACEMENT>(const ThreadKernelGlobalsCPU *kg,
                                               const uint32_t path_flag)
 {
   /* setup shader globals from shader data */
-  shaderdata_to_shaderglobals(kg, sd, path_flag, &kg->osl.shader_globals);
+  shaderdata_to_shaderglobals(sd, path_flag, &kg->osl.shader_globals);
 
   /* clear trace data */
   kg->osl.tracedata.init = false;

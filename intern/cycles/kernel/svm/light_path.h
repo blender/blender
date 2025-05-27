@@ -11,8 +11,7 @@ CCL_NAMESPACE_BEGIN
 /* Light Path Node */
 
 template<uint node_feature_mask, typename ConstIntegratorGenericState>
-ccl_device_noinline void svm_node_light_path(KernelGlobals kg,
-                                             ConstIntegratorGenericState state,
+ccl_device_noinline void svm_node_light_path(ConstIntegratorGenericState state,
                                              const ccl_private ShaderData *sd,
                                              ccl_private float *stack,
                                              const uint type,

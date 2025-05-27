@@ -2,8 +2,6 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-remove_extra_strict_flags()
-
 set(INC
   ..
 )

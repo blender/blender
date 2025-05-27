@@ -9,7 +9,7 @@
 CCL_NAMESPACE_BEGIN
 
 ccl_device ccl_private ShaderClosure *closure_alloc(ccl_private ShaderData *sd,
-                                                    const int size,
+                                                    const uint size,
                                                     ClosureType type,
                                                     Spectrum weight)
 {

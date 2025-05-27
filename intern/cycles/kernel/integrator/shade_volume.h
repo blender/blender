@@ -789,7 +789,7 @@ ccl_device_forceinline void integrate_volume_direct_light(
 
   /* Create shadow ray. */
   Ray ray ccl_optional_struct_init;
-  light_sample_to_volume_shadow_ray(kg, sd, &ls, P, &ray);
+  light_sample_to_volume_shadow_ray(sd, &ls, P, &ray);
 
   /* Branch off shadow kernel. */
   IntegratorShadowState shadow_state = integrator_shadow_path_init(
@@ -797,7 +797,7 @@ ccl_device_forceinline void integrate_volume_direct_light(
 
   /* Write shadow ray and associated state to global memory. */
   integrator_state_write_shadow_ray(shadow_state, &ray);
-  integrator_state_write_shadow_ray_self(kg, shadow_state, &ray);
+  integrator_state_write_shadow_ray_self(shadow_state, &ray);
 
   /* Copy state from main path to shadow path. */
   const uint16_t bounce = INTEGRATOR_STATE(state, path, bounce);
@@ -909,7 +909,7 @@ ccl_device_forceinline bool integrate_volume_phase_scatter(
 #  endif
   {
     label = volume_shader_phase_sample(
-        kg, sd, phases, svc, rand_phase, &phase_eval, &phase_wo, &phase_pdf, &sampled_roughness);
+        sd, svc, rand_phase, &phase_eval, &phase_wo, &phase_pdf, &sampled_roughness);
 
     if (phase_pdf == 0.0f || bsdf_eval_is_zero(&phase_eval)) {
       return false;
@@ -939,7 +939,7 @@ ccl_device_forceinline bool integrate_volume_phase_scatter(
 
   /* Add phase function sampling data to the path segment. */
   guiding_record_volume_bounce(
-      kg, state, sd, phase_weight, phase_pdf, normalize(phase_wo), sampled_roughness);
+      kg, state, phase_weight, phase_pdf, normalize(phase_wo), sampled_roughness);
 
   /* Update throughput. */
   const Spectrum throughput = INTEGRATOR_STATE(state, path, throughput);
@@ -982,7 +982,7 @@ ccl_device VolumeIntegrateEvent volume_integrate(KernelGlobals kg,
   ShaderData sd;
   /* FIXME: `object` is used for light linking. We read the bottom of the stack for simplicity, but
    * this does not work for overlapping volumes. */
-  shader_setup_from_volume(kg, &sd, ray, INTEGRATOR_STATE_ARRAY(state, volume_stack, 0, object));
+  shader_setup_from_volume(&sd, ray, INTEGRATOR_STATE_ARRAY(state, volume_stack, 0, object));
 
   /* Load random number state. */
   RNGState rng_state;
@@ -1082,7 +1082,7 @@ ccl_device VolumeIntegrateEvent volume_integrate(KernelGlobals kg,
 #    if PATH_GUIDING_LEVEL >= 4
       if ((kernel_data.kernel_features & KERNEL_FEATURE_PATH_GUIDING)) {
         volume_shader_prepare_guiding(
-            kg, state, &sd, rand_phase_guiding, direct_P, ray->D, &result.direct_phases);
+            kg, state, rand_phase_guiding, direct_P, ray->D, &result.direct_phases);
       }
 #    endif
     }
@@ -1134,7 +1134,7 @@ ccl_device VolumeIntegrateEvent volume_integrate(KernelGlobals kg,
       if (result.direct_sample_method == VOLUME_SAMPLE_EQUIANGULAR) {
         rand_phase_guiding = path_state_rng_1D(kg, &rng_state, PRNG_VOLUME_PHASE_GUIDING_DISTANCE);
         volume_shader_prepare_guiding(
-            kg, state, &sd, rand_phase_guiding, sd.P, ray->D, &result.indirect_phases);
+            kg, state, rand_phase_guiding, sd.P, ray->D, &result.indirect_phases);
       }
 #    endif
     }
@@ -1181,7 +1181,7 @@ ccl_device void integrator_shade_volume(KernelGlobals kg,
   const VolumeIntegrateEvent event = volume_integrate(kg, state, &ray, render_buffer);
   if (event == VOLUME_PATH_MISSED) {
     /* End path. */
-    integrator_path_terminate(kg, state, DEVICE_KERNEL_INTEGRATOR_SHADE_VOLUME);
+    integrator_path_terminate(state, DEVICE_KERNEL_INTEGRATOR_SHADE_VOLUME);
     return;
   }
 
@@ -1201,10 +1201,8 @@ ccl_device void integrator_shade_volume(KernelGlobals kg,
 #  endif /* __SHADOW_LINKING__ */
 
   /* Queue intersect_closest kernel. */
-  integrator_path_next(kg,
-                       state,
-                       DEVICE_KERNEL_INTEGRATOR_SHADE_VOLUME,
-                       DEVICE_KERNEL_INTEGRATOR_INTERSECT_CLOSEST);
+  integrator_path_next(
+      state, DEVICE_KERNEL_INTEGRATOR_SHADE_VOLUME, DEVICE_KERNEL_INTEGRATOR_INTERSECT_CLOSEST);
 #endif /* __VOLUME__ */
 }
 
