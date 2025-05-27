@@ -15,7 +15,7 @@ namespace blender::nodes::node_composite_image_info_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Color>("Image").compositor_realization_mode(
+  b.add_input<decl::Color>("Image").hide_value().compositor_realization_mode(
       CompositorInputRealizationMode::None);
 
   b.add_output<decl::Vector>("Dimensions")
