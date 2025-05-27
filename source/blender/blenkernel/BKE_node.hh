@@ -546,7 +546,7 @@ Span<bNodeTreeType *> node_tree_types_get();
  * In that case the update_typeinfo function will set type-info on registration
  * and do necessary updates.
  */
-void node_tree_set_type(const bContext *C, bNodeTree &ntree);
+void node_tree_set_type(bNodeTree &ntree);
 
 bNodeTree *node_tree_add_tree(Main *bmain, StringRef name, StringRef idname);
 

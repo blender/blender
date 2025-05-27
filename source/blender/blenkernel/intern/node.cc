@@ -2104,7 +2104,7 @@ static void ntree_blend_read_after_liblink(BlendLibReader *reader, ID *id)
    * first versioning that can change types still without functions that
    * update the `typeinfo` pointers. Versioning after lib linking needs
    * these top be valid. */
-  node_tree_set_type(nullptr, *ntree);
+  node_tree_set_type(*ntree);
 
   /* For nodes with static socket layout, add/remove sockets as needed
    * to match the static layout. */
@@ -2380,7 +2380,6 @@ static void node_socket_set_typeinfo(bNodeTree *ntree,
 
 /* Set specific typeinfo pointers in all node trees on register/unregister */
 static void update_typeinfo(Main *bmain,
-                            const bContext *C,
                             bNodeTreeType *treetype,
                             bNodeType *nodetype,
                             bNodeSocketType *socktype,
@@ -2398,7 +2397,7 @@ static void update_typeinfo(Main *bmain,
     /* initialize nodes */
     for (bNode *node : ntree->all_nodes()) {
       if (nodetype && node->idname == nodetype->idname) {
-        node_set_typeinfo(C, ntree, node, unregister ? nullptr : nodetype);
+        node_set_typeinfo(nullptr, ntree, node, unregister ? nullptr : nodetype);
       }
 
       /* initialize node sockets */
@@ -2417,7 +2416,7 @@ static void update_typeinfo(Main *bmain,
   FOREACH_NODETREE_END;
 }
 
-void node_tree_set_type(const bContext *C, bNodeTree &ntree)
+void node_tree_set_type(bNodeTree &ntree)
 {
   ntree_set_typeinfo(&ntree, node_tree_type_find(ntree.idname));
 
@@ -2431,7 +2430,7 @@ void node_tree_set_type(const bContext *C, bNodeTree &ntree)
       node_socket_set_typeinfo(&ntree, sock, node_socket_type_find(sock->idname));
     }
 
-    node_set_typeinfo(C, &ntree, node, node_type_find(node->idname));
+    node_set_typeinfo(nullptr, &ntree, node, node_type_find(node->idname));
   }
 }
 
@@ -2509,7 +2508,7 @@ void node_tree_type_add(bNodeTreeType &nt)
   /* XXX pass Main to register function? */
   /* Probably not. It is pretty much expected we want to update G_MAIN here I think -
    * or we'd want to update *all* active Mains, which we cannot do anyway currently. */
-  update_typeinfo(G_MAIN, nullptr, &nt, nullptr, nullptr, false);
+  update_typeinfo(G_MAIN, &nt, nullptr, nullptr, false);
 }
 
 static void ntree_free_type(void *treetype_v)
@@ -2518,11 +2517,11 @@ static void ntree_free_type(void *treetype_v)
   /* XXX pass Main to unregister function? */
   /* Probably not. It is pretty much expected we want to update G_MAIN here I think -
    * or we'd want to update *all* active Mains, which we cannot do anyway currently. */
-  update_typeinfo(G_MAIN, nullptr, treetype, nullptr, nullptr, true);
+  update_typeinfo(G_MAIN, treetype, nullptr, nullptr, true);
 
   /* Defer freeing the tree type, because it may still be referenced by trees in depsgraph
    * copies. We can't just remove these tree types, because the depsgraph may exist completely
-   * separate from original data. */
+   * separately from original data. */
   defer_free_tree_type(treetype);
 }
 
@@ -2566,7 +2565,7 @@ static void node_free_type(void *nodetype_v)
   /* XXX pass Main to unregister function? */
   /* Probably not. It is pretty much expected we want to update G_MAIN here I think -
    * or we'd want to update *all* active Mains, which we cannot do anyway currently. */
-  update_typeinfo(G_MAIN, nullptr, nullptr, nodetype, nullptr, true);
+  update_typeinfo(G_MAIN, nullptr, nodetype, nullptr, true);
 
   /* Setting this to null is necessary for the case of static node types. When running tests,
    * they may be registered and unregistered multiple times. */
@@ -2601,7 +2600,7 @@ void node_register_type(bNodeType &nt)
   /* XXX pass Main to register function? */
   /* Probably not. It is pretty much expected we want to update G_MAIN here I think -
    * or we'd want to update *all* active Mains, which we cannot do anyway currently. */
-  update_typeinfo(G_MAIN, nullptr, nullptr, &nt, nullptr, false);
+  update_typeinfo(G_MAIN, nullptr, &nt, nullptr, false);
 }
 
 void node_unregister_type(bNodeType &nt)
@@ -2649,7 +2648,7 @@ static void node_free_socket_type(void *socktype_v)
   /* XXX pass Main to unregister function? */
   /* Probably not. It is pretty much expected we want to update G_MAIN here I think -
    * or we'd want to update *all* active Mains, which we cannot do anyway currently. */
-  update_typeinfo(G_MAIN, nullptr, nullptr, nullptr, socktype, true);
+  update_typeinfo(G_MAIN, nullptr, nullptr, socktype, true);
 
   /* Defer freeing the socket type, because it may still be referenced by nodes in depsgraph
    * copies. We can't just remove these socket types, because the depsgraph may exist completely
@@ -2663,7 +2662,7 @@ void node_register_socket_type(bNodeSocketType &st)
   /* XXX pass Main to register function? */
   /* Probably not. It is pretty much expected we want to update G_MAIN here I think -
    * or we'd want to update *all* active Mains, which we cannot do anyway currently. */
-  update_typeinfo(G_MAIN, nullptr, nullptr, nullptr, &st, false);
+  update_typeinfo(G_MAIN, nullptr, nullptr, &st, false);
 }
 
 void node_unregister_socket_type(bNodeSocketType &st)
