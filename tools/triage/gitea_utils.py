@@ -117,7 +117,7 @@ def gitea_json_pull_request_by_base_and_head_get(repo_name: str, base: str, head
     """
     url = f"{BASE_API_URL}/repos/{repo_name}/pulls/{base}/{head}"
     result = url_json_get(url, quiet=True)
-    assert isinstance(result, dict)
+    assert result is None or isinstance(result, dict)
     return result
 
 
