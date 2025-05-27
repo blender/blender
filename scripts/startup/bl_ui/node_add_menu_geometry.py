@@ -548,11 +548,11 @@ class NODE_MT_category_GEO_OUTPUT(Menu):
     bl_idname = "NODE_MT_category_GEO_OUTPUT"
     bl_label = "Output"
 
-    def draw(self, _context):
+    def draw(self, context):
         layout = self.layout
         node_add_menu.add_node_type(layout, "NodeGroupOutput")
         node_add_menu.add_node_type(layout, "GeometryNodeViewer")
-        node_add_menu.add_node_type(layout, "GeometryNodeWarning")
+        node_add_menu.add_node_type_with_searchable_enum(context, layout, "GeometryNodeWarning", "warning_type")
         node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
 
 
