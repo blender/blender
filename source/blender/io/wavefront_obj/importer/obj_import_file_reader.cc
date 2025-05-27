@@ -67,10 +67,6 @@ static Geometry *create_geometry(Geometry *const prev_geometry,
     }
   }
 
-  if (prev_geometry && prev_geometry->geom_type_ == GEOM_CURVE) {
-    return new_geometry();
-  }
-
   return new_geometry();
 }
 
