@@ -39,12 +39,12 @@ static void cmp_node_crop_declare(NodeDeclarationBuilder &b)
       .compositor_expects_single_value()
       .description("The Y position of the lower left corner of the crop region");
   b.add_input<decl::Int>("Width")
-      .default_value(100)
+      .default_value(1920)
       .min(1)
       .compositor_expects_single_value()
       .description("The width of the crop region");
   b.add_input<decl::Int>("Height")
-      .default_value(100)
+      .default_value(1080)
       .min(1)
       .compositor_expects_single_value()
       .description("The width of the crop region");
