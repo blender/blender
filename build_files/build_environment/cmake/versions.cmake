@@ -408,16 +408,16 @@ set(OPENVDB_COPYRIGHT "Copyright Contributors to the OpenVDB Project")
 # Python Modules
 
 # Needed by: `requests` module (so the version doesn't change on rebuild).
-set(IDNA_VERSION 3.3)
+set(IDNA_VERSION 3.10)
 # Needed by: `requests` module (so the version doesn't change on rebuild).
-set(CHARSET_NORMALIZER_VERSION 2.0.10)
+set(CHARSET_NORMALIZER_VERSION 3.4.1)
 # Needed by: `requests` module (so the version doesn't change on rebuild).
-set(URLLIB3_VERSION 1.26.8)
+set(URLLIB3_VERSION 2.4.0)
 set(URLLIB3_CPE "cpe:2.3:a:urllib3:urllib3:${URLLIB3_VERSION}:*:*:*:*:*:*:*")
 # Needed by: Python's `requests` module (so add-ons can authenticate against trusted certificates).
-set(CERTIFI_VERSION 2021.10.8)
+set(CERTIFI_VERSION 2025.4.26)
 # Needed by: Some of Blender's add-ons (to support convenient interaction with online services).
-set(REQUESTS_VERSION 2.27.1)
+set(REQUESTS_VERSION 2.32.3)
 # Needed by: Python's `numpy` module (used by some add-ons).
 set(CYTHON_VERSION 3.0.11)
 set(CYTHON_URI
@@ -427,22 +427,21 @@ set(CYTHON_HASH_TYPE MD5)
 set(CYTHON_FILE cython-${CYTHON_VERSION}.tar.gz)
 set(CYTHON_HOMEPAGE https://cython.org/)
 set(CYTHON_LICENSE SPDX:Apache-2.0)
-# Needed by: Python scripts that read `.blend` files, as files may use Z-standard compression.
-# The version of the ZSTD library used to build the Python package should match ZSTD_VERSION
-# defined below. At this time of writing, 0.17.0 was already released,
-# but built against ZSTD 1.5.1, while we use 1.5.0.
-set(ZSTANDARD_VERSION 0.16.0)
+# Needed by: Python scripts that read `.blend` files, as files may use Z-standard compression. (Once we move to Python 3.14, this could be replaced with inbuilt Zstandard support, see https://peps.python.org/pep-0784/)
+set(ZSTANDARD_VERSION 0.23.0)
 set(ZSTANDARD_URI
-https://github.com/indygreg/python-zstandard/releases/download/${ZSTANDARD_VERSION}/zstandard-${ZSTANDARD_VERSION}.tar.gz)
-set(ZSTANDARD_HASH 19b1b12edcd66165d86f25e2a2277517)
-set(ZSTANDARD_HASH_TYPE MD5)
-set(ZSTANDARD_FILE cython-${ZSTANDARD_VERSION}.tar.gz)
-set(ZSTANDARD_HOMEPAGE https://cython.org/)
+# NOTE: the release is not yet on GITHUB.
+# https://github.com/indygreg/python-zstandard/releases/download/${ZSTANDARD_VERSION}/zstandard-${ZSTANDARD_VERSION}.tar.gz)
+https://files.pythonhosted.org/packages/ed/f6/2ac0287b442160a89d726b17a9184a4c615bb5237db763791a7fd16d9df1/zstandard-0.23.0.tar.gz)
+set(ZSTANDARD_HASH b2d8c62d08e7255f68f7a740bae85b3c9b8e5466baa9cbf7f57f1cde0ac6bc09)
+set(ZSTANDARD_HASH_TYPE SHA256)
+set(ZSTANDARD_FILE zstandard-${ZSTANDARD_VERSION}.tar.gz)
+set(ZSTANDARD_HOMEPAGE https://github.com/indygreg/python-zstandard/)
 set(ZSTANDARD_LICENSE SPDX:BSD-3-Clause)
 # Auto-format Python source (developer tool, not used by Blender at run-time).
 set(AUTOPEP8_VERSION 2.3.1)
 # Needed by: `autopep8` (so the version doesn't change on rebuild).
-set(PYCODESTYLE_VERSION 2.12.1)
+set(PYCODESTYLE_VERSION 2.13)
 # Build system for other packages (not used by Blender at run-time).
 set(MESON_VERSION 0.63.0)
 
