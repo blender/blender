@@ -8754,7 +8754,7 @@ static void def_cmp_invert(BlenderRNA * /*brna*/, StructRNA *srna)
       prop,
       "rna_node_property_to_input_getter<bool, node_input_invert_color>",
       "rna_node_property_to_input_setter<bool, node_input_invert_color>");
-  RNA_def_property_ui_text(prop, "RGB", "(Deprecated: Use Invert Color node instead.)");
+  RNA_def_property_ui_text(prop, "RGB", "(Deprecated: Use Invert Color input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "invert_alpha", PROP_BOOLEAN, PROP_NONE);
@@ -8762,7 +8762,7 @@ static void def_cmp_invert(BlenderRNA * /*brna*/, StructRNA *srna)
       prop,
       "rna_node_property_to_input_getter<bool, node_input_invert_alpha>",
       "rna_node_property_to_input_setter<bool, node_input_invert_alpha>");
-  RNA_def_property_ui_text(prop, "Alpha", "(Deprecated: Use Invert Alpha node instead.)");
+  RNA_def_property_ui_text(prop, "Alpha", "(Deprecated: Use Invert Alpha input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
