@@ -13,6 +13,7 @@
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_rect.h"
+#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.hh"
@@ -554,6 +555,12 @@ static bool WIDGETGROUP_node_box_mask_poll(const bContext *C, wmGizmoGroupType *
     bNode *node = bke::node_get_active(*snode->edittree);
 
     if (node && node->is_type("CompositorNodeBoxMask")) {
+      snode->edittree->ensure_topology_cache();
+      LISTBASE_FOREACH (bNodeSocket *, input, &node->inputs) {
+        if (STR_ELEM(input->name, "Position", "Size", "Rotation") && input->is_directly_linked()) {
+          return false;
+        }
+      }
       return true;
     }
   }
@@ -667,6 +674,12 @@ static bool WIDGETGROUP_node_ellipse_mask_poll(const bContext *C, wmGizmoGroupTy
     bNode *node = bke::node_get_active(*snode->edittree);
 
     if (node && node->is_type("CompositorNodeEllipseMask")) {
+      snode->edittree->ensure_topology_cache();
+      LISTBASE_FOREACH (bNodeSocket *, input, &node->inputs) {
+        if (STR_ELEM(input->name, "Position", "Size", "Rotation") && input->is_directly_linked()) {
+          return false;
+        }
+      }
       return true;
     }
   }
@@ -739,6 +752,12 @@ static bool WIDGETGROUP_node_sbeam_poll(const bContext *C, wmGizmoGroupType * /*
     bNode *node = bke::node_get_active(*snode->edittree);
 
     if (node && node->is_type("CompositorNodeSunBeams")) {
+      snode->edittree->ensure_topology_cache();
+      LISTBASE_FOREACH (bNodeSocket *, input, &node->inputs) {
+        if (STR_ELEM(input->name, "Source") && input->is_directly_linked()) {
+          return false;
+        }
+      }
       return true;
     }
   }
@@ -967,6 +986,12 @@ static bool WIDGETGROUP_node_split_poll(const bContext *C, wmGizmoGroupType * /*
     bNode *node = bke::node_get_active(*snode->edittree);
 
     if (node && node->is_type("CompositorNodeSplit")) {
+      snode->edittree->ensure_topology_cache();
+      LISTBASE_FOREACH (bNodeSocket *, input, &node->inputs) {
+        if (STR_ELEM(input->name, "Factor") && input->is_directly_linked()) {
+          return false;
+        }
+      }
       return true;
     }
   }
