@@ -1237,6 +1237,11 @@ const char *RNA_property_description(PropertyRNA *prop)
   return TIP_(rna_ensure_property_description(prop));
 }
 
+const DeprecatedRNA *RNA_property_deprecated(const PropertyRNA *prop)
+{
+  return prop->deprecated;
+}
+
 PropertyType RNA_property_type(PropertyRNA *prop)
 {
   return rna_ensure_property(prop)->type;

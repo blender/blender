@@ -279,6 +279,7 @@ class InfoPropertyRNA:
         "is_never_none",
         "is_path_supports_blend_relative",
         "is_path_supports_templates",
+        "deprecated",
     )
     global_lookup = {}
 
@@ -305,6 +306,15 @@ class InfoPropertyRNA:
         self.is_argument_optional = rna_prop.is_argument_optional
         self.is_path_supports_blend_relative = rna_prop.is_path_supports_blend_relative
         self.is_path_supports_templates = rna_prop.is_path_supports_templates
+
+        if rna_prop.is_deprecated:
+            self.deprecated = (
+                rna_prop.deprecated_note,
+                tuple(rna_prop.deprecated_version),
+                tuple(rna_prop.deprecated_removal_version),
+            )
+        else:
+            self.deprecated = None
 
         self.type = rna_prop.type.lower()
         fixed_type = getattr(rna_prop, "fixed_type", "")

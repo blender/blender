@@ -886,6 +886,50 @@ static bool rna_Property_is_runtime_get(PointerRNA *ptr)
   return RNA_property_is_runtime(prop);
 }
 
+static bool rna_Property_is_deprecated_get(PointerRNA *ptr)
+{
+  const PropertyRNA *prop = (const PropertyRNA *)ptr->data;
+  return RNA_property_deprecated(prop) != nullptr;
+}
+
+static int rna_Property_deprecated_note_length(PointerRNA *ptr)
+{
+  const PropertyRNA *prop = (const PropertyRNA *)ptr->data;
+  if (const DeprecatedRNA *deprecated = RNA_property_deprecated(prop)) {
+    return strlen(deprecated->note);
+  }
+  return 0;
+}
+
+static void rna_Property_deprecated_note_get(PointerRNA *ptr, char *value)
+{
+  const PropertyRNA *prop = (const PropertyRNA *)ptr->data;
+  if (const DeprecatedRNA *deprecated = RNA_property_deprecated(prop)) {
+    strcpy(value, deprecated->note);
+  }
+}
+
+static void rna_Property_deprecated_version_get(PointerRNA *ptr, int *value)
+{
+  const PropertyRNA *prop = (const PropertyRNA *)ptr->data;
+  short version = 0;
+  if (const DeprecatedRNA *deprecated = RNA_property_deprecated(prop)) {
+    version = deprecated->version;
+  }
+  ARRAY_SET_ITEMS(value, version / 100, version % 100, 0);
+}
+
+static void rna_Property_deprecated_removal_version_get(PointerRNA *ptr, int *value)
+{
+  const PropertyRNA *prop = (const PropertyRNA *)ptr->data;
+  short version = 0;
+  if (const DeprecatedRNA *deprecated = RNA_property_deprecated(prop)) {
+    version = deprecated->removal_version;
+  }
+
+  ARRAY_SET_ITEMS(value, version / 100, version % 100, 0);
+}
+
 static bool rna_BoolProperty_default_get(PointerRNA *ptr)
 {
   PropertyRNA *prop = (PropertyRNA *)ptr->data;
@@ -3337,6 +3381,32 @@ static void rna_def_property(BlenderRNA *brna)
       "Variable Expression Support",
       "Property is a path which supports the \"{variable_name}\" variable expression syntax, "
       "which substitutes the value of the referenced variable in place of the expression");
+
+  prop = RNA_def_property(srna, "is_deprecated", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_boolean_funcs(prop, "rna_Property_is_deprecated_get", nullptr);
+  RNA_def_property_ui_text(prop, "Deprecated", "The property is deprecated");
+
+  prop = RNA_def_property(srna, "deprecated_note", PROP_STRING, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_string_funcs(
+      prop, "rna_Property_deprecated_note_get", "rna_Property_deprecated_note_length", nullptr);
+  RNA_def_property_ui_text(prop, "Deprecated Note", "A note regarding deprecation");
+
+  prop = RNA_def_property(srna, "deprecated_version", PROP_INT, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  /* Use 3 values to match `bpy.app.version`. */
+  RNA_def_property_array(prop, 3);
+  RNA_def_property_ui_text(prop, "Deprecated Version", "The Blender version this was deprecated");
+  RNA_def_property_int_funcs(prop, "rna_Property_deprecated_version_get", nullptr, nullptr);
+
+  prop = RNA_def_property(srna, "deprecated_removal_version", PROP_INT, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_array(prop, 3);
+  RNA_def_property_ui_text(
+      prop, "Deprecated Removal Version", "The Blender version this is expected to be removed");
+  RNA_def_property_int_funcs(
+      prop, "rna_Property_deprecated_removal_version_get", nullptr, nullptr);
 
   prop = RNA_def_property(srna, "tags", PROP_ENUM, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);

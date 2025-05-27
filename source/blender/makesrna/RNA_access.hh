@@ -239,6 +239,8 @@ bool RNA_struct_bl_idname_ok_or_report(ReportList *reports,
 const char *RNA_property_identifier(const PropertyRNA *prop);
 const char *RNA_property_description(PropertyRNA *prop);
 
+const DeprecatedRNA *RNA_property_deprecated(const PropertyRNA *prop);
+
 PropertyType RNA_property_type(PropertyRNA *prop);
 PropertySubType RNA_property_subtype(PropertyRNA *prop);
 PropertyUnit RNA_property_unit(PropertyRNA *prop);
