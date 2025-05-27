@@ -40,6 +40,7 @@ set(SRC
   intern/BLI_subprocess.cc
   intern/BLI_timer.cc
   intern/array_store.cc
+  intern/array_store_rle.cc
   intern/array_store_utils.cc
   intern/array_utils.cc
   intern/array_utils_c.cc
