@@ -608,6 +608,18 @@ void VKBackend::render_end()
   if (G.is_rendering && thread_data.rendering_depth == 0 && !BLI_thread_is_main()) {
     device.orphaned_data.move_data(device.orphaned_data_render,
                                    device.orphaned_data.timeline_ + 1);
+    /* Fix #139284: During rendering when main thread is blocked or all screens are minimized the
+     * garbage collection will not happen resulting in crashes as resources are not freed.
+     *
+     * A better solution would be to do garbage collection in a separate thread but that requires a
+     * ref counting system. The specifics of such a system is still unclear.
+     *
+     * A possible solution for a Vulkan specific ref counting is to store the ref counts in the
+     * resource tracker. That would only handle images and buffers, but it would solve the most
+     * resource hungry issues.
+     */
+    vkDeviceWaitIdle(device.vk_handle());
+    device.orphaned_data.destroy_discarded_resources(device);
   }
 }
 
