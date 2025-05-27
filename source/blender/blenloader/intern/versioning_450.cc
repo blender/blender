@@ -472,24 +472,23 @@ static void do_version_convert_to_generic_nodes_after_linking(Main *bmain,
   }
 }
 
-/* A new suppress boolean input was added that either enables suppression or disabled it.
- * Previously, suppression was disabled when the maximum was zero. So we enable suppression for non
- * zero or linked maximum input. */
-static void do_version_new_glare_suppress_input(bNodeTree *node_tree)
+/* A new Clamp boolean input was added that either enables clamping or disables it. Previously,
+ * Clamp was disabled when the maximum was zero. So we enable Clamp for non zero or linked maximum
+ * input. */
+static void do_version_new_glare_clamp_input(bNodeTree *node_tree)
 {
   LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
     if (node->type_legacy != CMP_NODE_GLARE) {
       continue;
     }
 
-    bNodeSocket *suppress_input = blender::bke::node_find_socket(
-        *node, SOCK_IN, "Suppress Highlights");
+    bNodeSocket *clamp_input = blender::bke::node_find_socket(*node, SOCK_IN, "Clamp Highlights");
     bNodeSocket *maximum_input = blender::bke::node_find_socket(
         *node, SOCK_IN, "Maximum Highlights");
 
     const float maximum = maximum_input->default_value_typed<bNodeSocketValueFloat>()->value;
     if (version_node_socket_is_used(maximum_input) || maximum != 0.0) {
-      suppress_input->default_value_typed<bNodeSocketValueBoolean>()->value = true;
+      clamp_input->default_value_typed<bNodeSocketValueBoolean>()->value = true;
     }
   }
 }
@@ -4280,7 +4279,7 @@ void do_versions_after_linking_450(FileData * /*fd*/, Main *bmain)
     version_node_socket_index_animdata(bmain, NTREE_COMPOSIT, CMP_NODE_GLARE, 3, 1, 14);
     FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
       if (ntree->type == NTREE_COMPOSIT) {
-        do_version_new_glare_suppress_input(ntree);
+        do_version_new_glare_clamp_input(ntree);
       }
     }
     FOREACH_NODETREE_END;
