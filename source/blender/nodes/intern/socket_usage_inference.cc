@@ -609,6 +609,10 @@ struct SocketUsageInferencer {
         this->value_task__output__float_math(socket);
         return;
       }
+      case SH_NODE_VECTOR_MATH: {
+        this->value_task__output__vector_math(socket);
+        return;
+      }
       case FN_NODE_INTEGER_MATH: {
         this->value_task__output__integer_math(socket);
         return;
@@ -709,6 +713,60 @@ struct SocketUsageInferencer {
               }
               if (a.has_value() && b.has_value()) {
                 return &scope_.construct<float>(*a * *b);
+              }
+              return std::nullopt;
+            });
+        break;
+      }
+      default: {
+        this->value_task__output__multi_function_node(socket);
+        break;
+      }
+    }
+  }
+
+  void value_task__output__vector_math(const SocketInContext &socket)
+  {
+    const NodeInContext node = socket.owner_node();
+    const NodeVectorMathOperation operation = NodeVectorMathOperation(node->custom1);
+    switch (operation) {
+      case NODE_VECTOR_MATH_MULTIPLY: {
+        this->value_task__output__generic_eval(
+            socket, [&](const Span<const void *> inputs) -> std::optional<const void *> {
+              const std::optional<float3> a = inputs[0] ?
+                                                  std::optional(
+                                                      *static_cast<const float3 *>(inputs[0])) :
+                                                  std::nullopt;
+              const std::optional<float3> b = inputs[1] ?
+                                                  std::optional(
+                                                      *static_cast<const float3 *>(inputs[1])) :
+                                                  std::nullopt;
+              if (a == float3(0.0f) || b == float3(0.0f)) {
+                return &scope_.construct<float3>(0.0f);
+              }
+              if (a.has_value() && b.has_value()) {
+                return &scope_.construct<float3>(*a * *b);
+              }
+              return std::nullopt;
+            });
+        break;
+      }
+      case NODE_VECTOR_MATH_SCALE: {
+        this->value_task__output__generic_eval(
+            socket, [&](const Span<const void *> inputs) -> std::optional<const void *> {
+              const std::optional<float3> a = inputs[0] ?
+                                                  std::optional(
+                                                      *static_cast<const float3 *>(inputs[0])) :
+                                                  std::nullopt;
+              const std::optional<float> scale = inputs[3] ?
+                                                     std::optional(
+                                                         *static_cast<const float *>(inputs[3])) :
+                                                     std::nullopt;
+              if (a == float3(0.0f) || scale == 0.0f) {
+                return &scope_.construct<float3>(0.0f);
+              }
+              if (a.has_value() && scale.has_value()) {
+                return &scope_.construct<float3>(*a * *scale);
               }
               return std::nullopt;
             });
@@ -940,6 +998,9 @@ struct SocketUsageInferencer {
     std::optional<int> next_unknown_input_index;
     for (const int input_i : IndexRange(inputs_num)) {
       const SocketInContext input_socket = node.input_socket(input_i);
+      if (!input_socket->is_available()) {
+        continue;
+      }
       const std::optional<const void *> input_value = all_socket_values_.lookup_try(input_socket);
       if (!input_value.has_value()) {
         next_unknown_input_index = input_i;
@@ -957,6 +1018,7 @@ struct SocketUsageInferencer {
       /* The output is still unknown even though we know as much about the inputs as possible
        * already. */
       all_socket_values_.add_new(socket, nullptr);
+      return;
     }
     /* Request the next input socket. */
     const SocketInContext next_input = node.input_socket(*next_unknown_input_index);
