@@ -571,6 +571,14 @@ class LazyFunctionForSimulationOutputNode final : public LazyFunction {
       return;
     }
     if (!user_data.call_data->simulation_params) {
+      if (geo_eval_log::GeoTreeLogger *tree_logger = local_user_data.try_get_tree_logger(
+              user_data))
+      {
+        tree_logger->node_warnings.append(
+            *tree_logger->allocator,
+            {node_.identifier,
+             {NodeWarningType::Error, TIP_("Simulation zone is not supported")}});
+      }
       this->set_default_outputs(params);
       return;
     }
