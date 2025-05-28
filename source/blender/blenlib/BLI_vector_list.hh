@@ -250,7 +250,7 @@ template<typename T, int64_t CapacityStart = 32, int64_t CapacityMax = 4096> cla
     Iterator &operator++()
     {
       if (vector_list.vectors_[index_a].size() == index_b + 1) {
-        if (index_a + 1 == vector_list.vectors_.size()) {
+        if (index_a + 1 == vector_list.used_vectors_) {
           /* Reached the end. */
           index_b++;
         }

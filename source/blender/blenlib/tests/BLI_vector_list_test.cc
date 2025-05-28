@@ -85,11 +85,12 @@ TEST(vectorlist, ConstIterator)
   vec.append(9);
   vec.append(16);
   const VectorList<int> &const_ref = vec;
-  int i = 1;
+  int i = 0;
   for (int value : const_ref) {
-    EXPECT_EQ(value, i * i);
     i++;
+    EXPECT_EQ(value, i * i);
   }
+  EXPECT_EQ(i, 4);
 }
 
 TEST(vectorlist, LimitIterator)
@@ -103,6 +104,25 @@ TEST(vectorlist, LimitIterator)
     EXPECT_EQ(value, i);
     i++;
   }
+  EXPECT_EQ(i, 1024);
+}
+
+TEST(vectorlist, IteratorAfterClear)
+{
+  VectorList<int, 8, 128> vec;
+  for (int64_t i : IndexRange(1024)) {
+    vec.append(int(i));
+  }
+  vec.clear();
+  for (int64_t i : IndexRange(512)) {
+    vec.append(int(-i));
+  }
+  int i = 0;
+  for (int value : vec) {
+    EXPECT_EQ(value, -i);
+    i++;
+  }
+  EXPECT_EQ(i, 512);
 }
 
 TEST(vectorlist, LimitIndexing)
