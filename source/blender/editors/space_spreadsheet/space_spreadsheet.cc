@@ -451,6 +451,10 @@ static void spreadsheet_main_region_draw(const bContext *C, ARegion *region)
     table = spreadsheet_table_new(spreadsheet_table_id_copy(*active_table_id));
     spreadsheet_table_add(*sspreadsheet, table);
   }
+  if (table) {
+    /* Move to the front of the tables list to make it cheaper to find the table in future. */
+    spreadsheet_table_move_to_front(*sspreadsheet, *table);
+  }
 
   /* Update the last used time on the table. */
   if (table->last_used < sspreadsheet->table_use_clock || sspreadsheet->table_use_clock == 0) {

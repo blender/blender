@@ -345,4 +345,10 @@ void spreadsheet_table_remove_unused_columns(SpreadsheetTable &table)
       [](SpreadsheetColumn **column) { spreadsheet_column_free(*column); });
 }
 
+void spreadsheet_table_move_to_front(SpaceSpreadsheet &sspreadsheet, SpreadsheetTable &table)
+{
+  const int old_index = Span(sspreadsheet.tables, sspreadsheet.num_tables).first_index(&table);
+  dna::array::move_index(sspreadsheet.tables, sspreadsheet.num_tables, old_index, 0);
+}
+
 }  // namespace blender::ed::spreadsheet
