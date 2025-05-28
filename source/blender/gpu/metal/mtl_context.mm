@@ -374,6 +374,8 @@ MTLContext::~MTLContext()
   if (this->device) {
     [this->device release];
   }
+
+  this->process_frame_timings();
 }
 
 void MTLContext::begin_frame()
@@ -396,6 +398,8 @@ void MTLContext::end_frame()
 
   /* Increment frame counter. */
   is_inside_frame_ = false;
+
+  this->process_frame_timings();
 }
 
 void MTLContext::check_error(const char * /*info*/)
