@@ -620,16 +620,18 @@ bool USDMaterialReader::set_displacement_node_inputs(bNodeTree *ntree,
   extra.is_color_corrected = false;
   set_node_input(displacement_input, displacement_node, height, ntree, column, context, extra);
 
-  /* If the displacement input is not connected, then this is "constant" displacement.
-   * We need to adjust the Height input by our default Midlevel value of 0.5. */
+  /* If the displacement input is not connected, then this is "constant" displacement which is
+   * a lossy conversion from the UsdPreviewSurface. We adjust the Height input assuming a
+   * Midlevel of 0.5 and Scale of 1 as that closely matches the scene in `usdview`. */
   if (!displacement_input.HasConnectedSource()) {
-    bNodeSocket *sock = blender::bke::node_find_socket(*displacement_node, SOCK_IN, height);
-    if (!sock) {
-      CLOG_ERROR(&LOG, "Couldn't get destination node socket %s", height.c_str());
-      return false;
-    }
+    bNodeSocket *sock_height = blender::bke::node_find_socket(*displacement_node, SOCK_IN, height);
+    bNodeSocket *sock_mid = blender::bke::node_find_socket(
+        *displacement_node, SOCK_IN, "Midlevel");
+    bNodeSocket *sock_scale = blender::bke::node_find_socket(*displacement_node, SOCK_IN, "Scale");
 
-    ((bNodeSocketValueFloat *)sock->default_value)->value += 0.5f;
+    ((bNodeSocketValueFloat *)sock_height->default_value)->value += 0.5f;
+    ((bNodeSocketValueFloat *)sock_mid->default_value)->value = 0.5f;
+    ((bNodeSocketValueFloat *)sock_scale->default_value)->value = 1.0f;
   }
 
   /* Connect the Displacement node to the output node. */
