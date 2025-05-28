@@ -1245,6 +1245,7 @@
         path_keyframe_before="#ffc4c4"
         path_keyframe_after="#c4c4ff"
         frame_current="#5680c2"
+        preview_range="#a14d0066"
         time_scrub_background="#292929e6"
         time_marker_line="#00000060"
         time_marker_line_selected="#ffffff60"
