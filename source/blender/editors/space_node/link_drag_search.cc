@@ -183,8 +183,8 @@ static void search_link_ops_for_asset_metadata(const bNodeTree &node_tree,
     if (socket_type == nullptr) {
       continue;
     }
-    eNodeSocketDatatype from = (eNodeSocketDatatype)socket.type;
-    eNodeSocketDatatype to = (eNodeSocketDatatype)socket_type->type;
+    eNodeSocketDatatype from = eNodeSocketDatatype(socket.type);
+    eNodeSocketDatatype to = eNodeSocketDatatype(socket_type->type);
     if (socket.in_out == SOCK_OUT) {
       std::swap(from, to);
     }

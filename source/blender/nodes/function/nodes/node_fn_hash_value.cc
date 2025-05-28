@@ -43,7 +43,7 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
 
 static const mf::MultiFunction *get_multi_function(const bNode &bnode)
 {
-  const eNodeSocketDatatype socket_type = static_cast<eNodeSocketDatatype>(bnode.custom1);
+  const eNodeSocketDatatype socket_type = eNodeSocketDatatype(bnode.custom1);
 
   static auto exec_preset = mf::build::exec_presets::AllSpanOrSingle();
 

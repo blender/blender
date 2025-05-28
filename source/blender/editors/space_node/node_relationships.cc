@@ -2490,14 +2490,14 @@ void node_insert_on_link_flags(Main &bmain, SpaceNode &snode, bool is_new_node)
   if (!node_to_insert->is_reroute()) {
     /* Ignore main sockets when the types don't match. */
     if (best_input != nullptr && ntree.typeinfo->validate_link != nullptr &&
-        !ntree.typeinfo->validate_link(static_cast<eNodeSocketDatatype>(old_link->fromsock->type),
-                                       static_cast<eNodeSocketDatatype>(best_input->type)))
+        !ntree.typeinfo->validate_link(eNodeSocketDatatype(old_link->fromsock->type),
+                                       eNodeSocketDatatype(best_input->type)))
     {
       best_input = nullptr;
     }
     if (best_output != nullptr && ntree.typeinfo->validate_link != nullptr &&
-        !ntree.typeinfo->validate_link(static_cast<eNodeSocketDatatype>(best_output->type),
-                                       static_cast<eNodeSocketDatatype>(old_link->tosock->type)))
+        !ntree.typeinfo->validate_link(eNodeSocketDatatype(best_output->type),
+                                       eNodeSocketDatatype(old_link->tosock->type)))
     {
       best_output = nullptr;
     }
@@ -2550,7 +2550,7 @@ void node_insert_on_link_flags(Main &bmain, SpaceNode &snode, bool is_new_node)
 
 static int get_main_socket_priority(const bNodeSocket *socket)
 {
-  switch ((eNodeSocketDatatype)socket->type) {
+  switch (eNodeSocketDatatype(socket->type)) {
     case SOCK_CUSTOM:
       return 0;
     case SOCK_BOOLEAN:

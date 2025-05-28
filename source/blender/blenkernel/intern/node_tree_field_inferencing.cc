@@ -25,7 +25,7 @@ using nodes::SocketDeclaration;
 
 static bool is_field_socket_type(const bNodeSocket &socket)
 {
-  return nodes::socket_type_supports_fields((eNodeSocketDatatype)socket.typeinfo->type);
+  return nodes::socket_type_supports_fields(eNodeSocketDatatype(socket.typeinfo->type));
 }
 
 static bool all_dangling_reroutes(const Span<const bNodeSocket *> sockets)
