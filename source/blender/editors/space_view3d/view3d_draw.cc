@@ -2029,6 +2029,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Depsgraph *depsgraph,
                                true,
                                desired_format,
                                GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_HOST_READ,
+                               false,
                                err_out);
     if (ofs == nullptr) {
       DRW_gpu_context_disable();

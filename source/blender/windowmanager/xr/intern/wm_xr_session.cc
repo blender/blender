@@ -1414,6 +1414,7 @@ bool wm_xr_session_surface_offscreen_ensure(wmXrSurfaceData *surface_data,
                                                    format,
                                                    GPU_TEXTURE_USAGE_SHADER_READ |
                                                        GPU_TEXTURE_USAGE_MEMORY_EXPORT,
+                                                   false,
                                                    err_out);
   if (offscreen) {
     viewport = vp->viewport = GPU_viewport_create();

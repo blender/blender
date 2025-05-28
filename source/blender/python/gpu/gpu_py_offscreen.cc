@@ -310,6 +310,7 @@ static PyObject *pygpu_offscreen__tp_new(PyTypeObject * /*self*/, PyObject *args
                                true,
                                eGPUTextureFormat(pygpu_textureformat.value_found),
                                GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_HOST_READ,
+                               false,
                                err_out);
   }
   else {
