@@ -1741,11 +1741,7 @@ bool GLCompilerWorker::is_lost()
 
 bool GLCompilerWorker::load_program_binary(GLint program)
 {
-  BLI_assert(ELEM(state_, COMPILATION_REQUESTED, COMPILATION_READY));
-  if (state_ == COMPILATION_REQUESTED) {
-    end_semaphore_->decrement();
-    state_ = COMPILATION_READY;
-  }
+  block_until_ready();
 
   ShaderBinaryHeader *binary = (ShaderBinaryHeader *)shared_mem_->get_data();
 
@@ -1780,54 +1776,28 @@ GLShaderCompiler::~GLShaderCompiler()
   }
 }
 
-GLCompilerWorker *GLShaderCompiler::get_compiler_worker(const GLSourcesBaked &sources)
+GLCompilerWorker *GLShaderCompiler::get_compiler_worker()
 {
-  auto try_get_compiler_worker = [&]() {
-    GLCompilerWorker *result = nullptr;
-    for (GLCompilerWorker *compiler : workers_) {
-      if (compiler->state_ == GLCompilerWorker::AVAILABLE) {
-        result = compiler;
-        break;
-      }
-    }
-
-    if (result) {
-      check_worker_is_lost(result);
-    }
-
-    if (!result && workers_.size() < GCaps.max_parallel_compilations) {
-      result = new GLCompilerWorker();
-      workers_.append(result);
-    }
-
+  auto new_worker = [&]() {
+    GLCompilerWorker *result = new GLCompilerWorker();
+    std::lock_guard lock(workers_mutex_);
+    workers_.append(result);
     return result;
   };
 
-  std::lock_guard lock(workers_mutex_);
+  static thread_local GLCompilerWorker *worker = new_worker();
 
-  GLCompilerWorker *result = nullptr;
-  while (true) {
-    if ((result = try_get_compiler_worker())) {
-      BLI_time_sleep_ms(1);
-      break;
-    }
-  }
-
-  result->compile(sources);
-
-  return result;
-}
-
-bool GLShaderCompiler::check_worker_is_lost(GLCompilerWorker *&worker)
-{
   if (worker->is_lost()) {
     std::cerr << "ERROR: Compilation subprocess lost\n";
-    workers_.remove_first_occurrence_and_reorder(worker);
+    {
+      std::lock_guard lock(workers_mutex_);
+      workers_.remove_first_occurrence_and_reorder(worker);
+    }
     delete worker;
-    worker = nullptr;
+    worker = new_worker();
   }
 
-  return worker == nullptr;
+  return worker;
 }
 
 Shader *GLShaderCompiler::compile_shader(const shader::ShaderCreateInfo &info)
@@ -1844,7 +1814,8 @@ Shader *GLShaderCompiler::compile_shader(const shader::ShaderCreateInfo &info)
     return compile(info, false);
   }
 
-  GLCompilerWorker *worker = get_compiler_worker(sources);
+  GLCompilerWorker *worker = get_compiler_worker();
+  worker->compile(sources);
 
   /* This path is always called for the default shader compilation. Not for specialization.
    * Use the default constant template.*/
@@ -1911,7 +1882,8 @@ void GLShaderCompiler::specialize_shader(ShaderSpecialization &specialization)
     }
   }
 
-  GLCompilerWorker *worker = get_compiler_worker(sources);
+  GLCompilerWorker *worker = get_compiler_worker();
+  worker->compile(sources);
   worker->block_until_ready();
 
   std::lock_guard lock(mutex);
