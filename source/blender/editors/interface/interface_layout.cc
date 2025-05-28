@@ -1733,20 +1733,6 @@ void uiItemEnumO_string(uiLayout *layout,
   RNA_property_enum_set(&ptr, prop, value);
 }
 
-void uiItemStringO(uiLayout *layout,
-                   const std::optional<StringRef> name,
-                   int icon,
-                   const StringRefNull opname,
-                   const StringRefNull propname,
-                   const char *value)
-{
-  PointerRNA ptr = layout->op(opname, name, icon, layout->root_->opcontext, UI_ITEM_NONE);
-  if (RNA_pointer_is_null(&ptr)) {
-    return;
-  }
-  RNA_string_set(&ptr, propname.c_str(), value);
-}
-
 PointerRNA uiLayout::op(wmOperatorType *ot, const std::optional<StringRef> name, int icon)
 {
   return this->op(ot, name, icon, root_->opcontext, UI_ITEM_NONE);

@@ -326,12 +326,8 @@ static void modifier_panel_header(const bContext *C, Panel *panel)
   if (mti->is_disabled && mti->is_disabled(scene, md, false)) {
     uiLayoutSetRedAlert(sub, true);
   }
-  uiItemStringO(sub,
-                "",
-                RNA_struct_ui_icon(ptr->type),
-                "OBJECT_OT_modifier_set_active",
-                "modifier",
-                md->name);
+  PointerRNA op_ptr = sub->op("OBJECT_OT_modifier_set_active", "", RNA_struct_ui_icon(ptr->type));
+  RNA_string_set(&op_ptr, "modifier", md->name);
 
   row = &layout->row(true);
 
@@ -433,13 +429,17 @@ static void modifier_panel_header(const bContext *C, Panel *panel)
 
   /* Switch context buttons. */
   if (modifier_is_simulation(md) == 1) {
-    uiItemStringO(
-        row, "", ICON_PROPERTIES, "WM_OT_properties_context_change", "context", "PHYSICS");
+    PointerRNA op_ptr = row->op("WM_OT_properties_context_change", "", ICON_PROPERTIES);
+    if (!RNA_pointer_is_null(&op_ptr)) {
+      RNA_string_set(&op_ptr, "context", "PHYSICS");
+    }
     buttons_number++;
   }
   else if (modifier_is_simulation(md) == 2) {
-    uiItemStringO(
-        row, "", ICON_PROPERTIES, "WM_OT_properties_context_change", "context", "PARTICLES");
+    PointerRNA op_ptr = row->op("WM_OT_properties_context_change", "", ICON_PROPERTIES);
+    if (!RNA_pointer_is_null(&op_ptr)) {
+      RNA_string_set(&op_ptr, "context", "PARTICLES");
+    }
     buttons_number++;
   }
 

@@ -543,12 +543,6 @@ void uiItemEnumO_string(uiLayout *layout,
 void uiItemsEnumO(uiLayout *layout,
                   blender::StringRefNull opname,
                   blender::StringRefNull propname);
-void uiItemStringO(uiLayout *layout,
-                   std::optional<blender::StringRef> name,
-                   int icon,
-                   blender::StringRefNull opname,
-                   blender::StringRefNull propname,
-                   const char *value);
 
 void uiItemFullOMenuHold_ptr(uiLayout *layout,
                              wmOperatorType *ot,
