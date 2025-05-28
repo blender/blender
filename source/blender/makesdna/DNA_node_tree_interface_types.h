@@ -71,7 +71,7 @@ typedef enum NodeTreeInterfaceSocketFlag {
   /* Menu socket should be drawn expanded instead of as drop-down menu. */
   NODE_INTERFACE_SOCKET_MENU_EXPANDED = 1 << 9,
 } NodeTreeInterfaceSocketFlag;
-ENUM_OPERATORS(NodeTreeInterfaceSocketFlag, NODE_INTERFACE_SOCKET_PANEL_TOGGLE);
+ENUM_OPERATORS(NodeTreeInterfaceSocketFlag, NODE_INTERFACE_SOCKET_MENU_EXPANDED);
 
 typedef enum NodeSocketInterfaceStructureType {
   NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_AUTO = 0,
