@@ -990,7 +990,7 @@ endif()
 # used in many places so include globally, like OpenGL
 include_directories(SYSTEM "${PTHREADS_INCLUDE_DIRS}")
 
-set(WINTAB_INC ${LIBDIR}/wintab/include)
+set(WINTAB_INC ${CMAKE_SOURCE_DIR}/extern/wintab/include)
 
 if(WITH_OPENAL)
   set(OPENAL ${LIBDIR}/openal)
