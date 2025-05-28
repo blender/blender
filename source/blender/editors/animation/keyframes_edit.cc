@@ -621,6 +621,15 @@ static short ok_bezier_selected(KeyframeEditData * /*ked*/, BezTriple *bezt)
   return 0;
 }
 
+static short ok_bezier_selected_key(KeyframeEditData * /*ked*/, BezTriple *bezt)
+{
+  /* This macro checks the beztriple key (f2) selection. */
+  if (BEZT_ISSEL_IDX(bezt, 1)) {
+    return KEYFRAME_OK_KEY;
+  }
+  return 0;
+}
+
 static short ok_bezier_value(KeyframeEditData *ked, BezTriple *bezt)
 {
   /* Value is stored in f1 property:
@@ -791,8 +800,11 @@ KeyframeEditFunc ANIM_editkeyframes_ok(short mode)
       /* only if bezt falls within the specified frame range (floats) */
       return ok_bezier_framerange;
     case BEZT_OK_SELECTED:
-      /* only if bezt is selected (self) */
+      /* only if bezt is selected (any of f1, f2, f3) */
       return ok_bezier_selected;
+    case BEZT_OK_SELECTED_KEY:
+      /* only if bezt is selected (f2 is enough) */
+      return ok_bezier_selected_key;
     case BEZT_OK_VALUE:
       /* only if bezt value matches (float) */
       return ok_bezier_value;
