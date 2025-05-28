@@ -885,6 +885,16 @@ void calculate_knots(
     int points_num, KnotsMode mode, int8_t order, bool cyclic, MutableSpan<float> knots);
 
 /**
+ * Compute the number of occurrences of each unique knot value (so knot multiplicity),
+ * forming a sequence for which: `sum(multiplicity) == knots.size()`.
+ *
+ * Example:
+ * Knots: [0, 0, 0, 0.1, 0.3, 0.4, 0.4, 0.4]
+ * Result: [3, 1, 1, 3]
+ */
+Vector<int> calculate_multiplicity_sequence(Span<float> knots);
+
+/**
  * Based on the knots, the order, and other properties of a NURBS curve, calculate a cache that can
  * be used to more simply interpolate attributes to the evaluated points later. The cache includes
  * two pieces of information for every evaluated point: the first control point that influences it,
