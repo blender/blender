@@ -52,7 +52,7 @@
 
 static void brush_init_data(ID *id)
 {
-  Brush *brush = (Brush *)id;
+  Brush *brush = reinterpret_cast<Brush *>(id);
   BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(brush, id));
 
   MEMCPY_STRUCT_AFTER(brush, DNA_struct_default_get(Brush), id);
@@ -70,8 +70,8 @@ static void brush_copy_data(Main * /*bmain*/,
                             const ID *id_src,
                             const int flag)
 {
-  Brush *brush_dst = (Brush *)id_dst;
-  const Brush *brush_src = (const Brush *)id_src;
+  Brush *brush_dst = reinterpret_cast<Brush *>(id_dst);
+  const Brush *brush_src = reinterpret_cast<const Brush *>(id_src);
   if (brush_src->icon_imbuf) {
     brush_dst->icon_imbuf = IMB_dupImBuf(brush_src->icon_imbuf);
   }
@@ -122,7 +122,7 @@ static void brush_copy_data(Main * /*bmain*/,
 
 static void brush_free_data(ID *id)
 {
-  Brush *brush = (Brush *)id;
+  Brush *brush = reinterpret_cast<Brush *>(id);
   if (brush->icon_imbuf) {
     IMB_freeImBuf(brush->icon_imbuf);
   }
@@ -159,7 +159,7 @@ static void brush_make_local(Main *bmain, ID *id, const int flags)
     return;
   }
 
-  Brush *brush = (Brush *)id;
+  Brush *brush = reinterpret_cast<Brush *>(id);
   const bool lib_local = (flags & LIB_ID_MAKELOCAL_FULL_LIBRARY) != 0;
 
   bool force_local, force_copy;
@@ -173,7 +173,8 @@ static void brush_make_local(Main *bmain, ID *id, const int flags)
     id_fake_user_set(&brush->id);
   }
   else if (force_copy) {
-    Brush *brush_new = (Brush *)BKE_id_copy(bmain, &brush->id); /* Ensures FAKE_USER is set */
+    Brush *brush_new = reinterpret_cast<Brush *>(
+        BKE_id_copy(bmain, &brush->id)); /* Ensures FAKE_USER is set */
 
     id_us_min(&brush_new->id);
 
@@ -191,7 +192,7 @@ static void brush_make_local(Main *bmain, ID *id, const int flags)
 
 static void brush_foreach_id(ID *id, LibraryForeachIDData *data)
 {
-  Brush *brush = (Brush *)id;
+  Brush *brush = reinterpret_cast<Brush *>(id);
 
   BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, brush->toggle_brush, IDWALK_CB_NOP);
   BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, brush->paint_curve, IDWALK_CB_USER);
@@ -206,7 +207,7 @@ static void brush_foreach_id(ID *id, LibraryForeachIDData *data)
 
 static void brush_foreach_path(ID *id, BPathForeachPathData *bpath_data)
 {
-  Brush *brush = (Brush *)id;
+  Brush *brush = reinterpret_cast<Brush *>(id);
   if (brush->icon_filepath[0] != '\0') {
     BKE_bpath_foreach_path_fixed_process(
         bpath_data, brush->icon_filepath, sizeof(brush->icon_filepath));
@@ -215,7 +216,7 @@ static void brush_foreach_path(ID *id, BPathForeachPathData *bpath_data)
 
 static void brush_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
-  Brush *brush = (Brush *)id;
+  Brush *brush = reinterpret_cast<Brush *>(id);
 
   BLO_write_id_struct(writer, Brush, id_address, &brush->id);
   BKE_id_blend_write(writer, &brush->id);
@@ -272,7 +273,7 @@ static void brush_blend_write(BlendWriter *writer, ID *id, const void *id_addres
 
 static void brush_blend_read_data(BlendDataReader *reader, ID *id)
 {
-  Brush *brush = (Brush *)id;
+  Brush *brush = reinterpret_cast<Brush *>(id);
 
   /* Falloff curve. */
   BLO_read_struct(reader, CurveMapping, &brush->curve);
