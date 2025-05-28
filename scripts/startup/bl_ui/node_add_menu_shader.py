@@ -102,10 +102,12 @@ class NODE_MT_category_shader_input(Menu):
         node_add_menu.add_node_type_with_outputs(
             context, layout, "ShaderNodeParticleInfo", [
                 "Index", "Random", "Age", "Lifetime", "Location", "Size", "Velocity", "Angular Velocity"])
-        node_add_menu.add_node_type(layout, "ShaderNodePointInfo")
+        node_add_menu.add_node_type_with_outputs(context, layout, "ShaderNodePointInfo",
+                                                 ["Position", "Radius", "Random"])
         node_add_menu.add_node_type(layout, "ShaderNodeRGB")
         node_add_menu.add_node_type(layout, "ShaderNodeTangent")
-        node_add_menu.add_node_type(layout, "ShaderNodeTexCoord")
+        node_add_menu.add_node_type_with_outputs(context, layout, "ShaderNodeTexCoord",
+                                                 ["Normal", "UV", "Object", "Camera", "Window", "Reflection"])
         node_add_menu.add_node_type(layout, "ShaderNodeUVAlongStroke", poll=line_style_shader_nodes_poll(context))
         node_add_menu.add_node_type(layout, "ShaderNodeUVMap")
         node_add_menu.add_node_type(layout, "ShaderNodeValue")
