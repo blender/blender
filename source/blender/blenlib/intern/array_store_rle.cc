@@ -72,9 +72,20 @@ static size_t find_byte_not_equal_to(const uint8_t *data,
   using fast_int = uintptr_t;
 
   /* In the case of random data, early exit without entering more involved steps. */
-  constexpr size_t min_size_for_fast_path = sizeof(size_t[2]) + sizeof(fast_int[2]);
+
+  /* Calculate the minimum size which may use an optimized search. */
+  constexpr size_t min_size_for_fast_path = (
+      /* Pass 1: scans a fixed size. */
+      sizeof(size_t[2]) +
+      /* Pass 2: scans a fixed size but aligns to `fast_int`. */
+      sizeof(size_t) + sizeof(fast_int) +
+      /* Pass 3: trims the end of `data` by `fast_int`
+       * add to ensure there is at least one item to read. */
+      sizeof(fast_int));
+
   if (LIKELY(size - offset > min_size_for_fast_path)) {
-    /* Scan forward with a fixed size to check if an early exit
+
+    /* Pass 1: Scan forward  with a fixed size to check if an early exit
      * is needed (this may exit on the first few bytes). */
     const uint8_t *p = data + offset;
     const uint8_t *p_end = p + sizeof(size_t[2]);
@@ -86,7 +97,7 @@ static size_t find_byte_not_equal_to(const uint8_t *data,
     } while (p < p_end);
     /* `offset` is no longer valid and needs to be updated from `p` before use. */
 
-    /* Scan forward at least `sizeof(size_t)` bytes,
+    /* Pass 2: Scan forward at least `sizeof(size_t)` bytes,
      * aligned to the next `sizeof(fast_int)` aligned boundary. */
     p_end = reinterpret_cast<const uint8_t *>(
         ((uintptr_t(p) + sizeof(size_t) + sizeof(fast_int)) & ~(sizeof(fast_int) - 1)));
@@ -97,14 +108,17 @@ static size_t find_byte_not_equal_to(const uint8_t *data,
       p++;
     } while (p < p_end);
 
-    /* Scan forward the `fast_int` aligned chunks (the fast path).
+    /* Pass 3: Scan forward the `fast_int` aligned chunks (the fast path).
      * This block is responsible for scanning over large spans of contiguous bytes. */
 
     /* There are at least `sizeof(size_t[2])` number of bytes all equal.
      * Use `fast_int` aligned reads for a faster search. */
-    const fast_int *p_fast = reinterpret_cast<const fast_int *>(p_end);
-    const fast_int *p_fast_end = reinterpret_cast<const fast_int *>(data +
-                                                                    (size - sizeof(fast_int)));
+    BLI_assert((uintptr_t(p) & (sizeof(fast_int) - 1)) == 0);
+    const fast_int *p_fast = reinterpret_cast<const fast_int *>(p);
+    /* Not aligned, but this doesn't matter as it's only used for comparison. */
+    const fast_int *p_fast_last = reinterpret_cast<const fast_int *>(data +
+                                                                     (size - sizeof(fast_int)));
+    BLI_assert(p_fast <= p_fast_last);
     fast_int value_fast;
     memset(&value_fast, value, sizeof(value_fast));
     do {
@@ -113,7 +127,7 @@ static size_t find_byte_not_equal_to(const uint8_t *data,
         break;
       }
       p_fast++;
-    } while (p_fast < p_fast_end);
+    } while (p_fast <= p_fast_last);
     offset = size_t(reinterpret_cast<const uint8_t *>(p_fast) - data);
     /* Perform byte level check with any trailing data. */
   }
