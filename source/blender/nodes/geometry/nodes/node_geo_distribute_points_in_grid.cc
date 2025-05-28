@@ -34,7 +34,7 @@ enum class DistributeMode {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Float>("Grid").hide_value();
+  b.add_input<decl::Float>("Grid").hide_value().structure_type(StructureType::Grid);
   auto &density = b.add_input<decl::Float>("Density")
                       .default_value(1.0f)
                       .min(0.0f)

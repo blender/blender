@@ -109,8 +109,14 @@ static std::unique_ptr<IDProperty, bke::idprop::IDPropertyDeleter> id_name_or_va
 }
 
 std::unique_ptr<IDProperty, bke::idprop::IDPropertyDeleter> id_property_create_from_socket(
-    const bNodeTreeInterfaceSocket &socket, const bool use_name_for_ids)
+    const bNodeTreeInterfaceSocket &socket,
+    const nodes::StructureType structure_type,
+    const bool use_name_for_ids)
 {
+  if (structure_type == StructureType::Grid) {
+    /* Grids currently aren't exposed as properties. */
+    return nullptr;
+  }
   const StringRefNull identifier = socket.identifier;
   const bke::bNodeSocketType *typeinfo = socket.socket_typeinfo();
   const eNodeSocketDatatype type = typeinfo ? eNodeSocketDatatype(typeinfo->type) : SOCK_CUSTOM;
@@ -970,16 +976,18 @@ void update_input_properties_from_node_tree(const bNodeTree &tree,
 {
   tree.ensure_interface_cache();
   const Span<const bNodeTreeInterfaceSocket *> tree_inputs = tree.interface_inputs();
+  const Span<nodes::StructureType> input_structure_types =
+      tree.runtime->structure_type_interface->inputs;
   for (const int i : tree_inputs.index_range()) {
     const bNodeTreeInterfaceSocket &socket = *tree_inputs[i];
     const StringRefNull socket_identifier = socket.identifier;
     const bke::bNodeSocketType *typeinfo = socket.socket_typeinfo();
     const eNodeSocketDatatype socket_type = typeinfo ? eNodeSocketDatatype(typeinfo->type) :
                                                        SOCK_CUSTOM;
-    IDProperty *new_prop = id_property_create_from_socket(socket, use_name_for_ids).release();
+    IDProperty *new_prop = id_property_create_from_socket(
+                               socket, input_structure_types[i], use_name_for_ids)
+                               .release();
     if (new_prop == nullptr) {
-      /* Out of the set of supported input sockets, these sockets aren't added to the modifier. */
-      BLI_assert(ELEM(socket_type, SOCK_GEOMETRY, SOCK_MATRIX, SOCK_BUNDLE, SOCK_CLOSURE));
       continue;
     }
 

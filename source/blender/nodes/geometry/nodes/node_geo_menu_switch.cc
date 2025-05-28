@@ -95,7 +95,7 @@ static void node_declare(blender::nodes::NodeDeclarationBuilder &b)
     output.propagate_all();
   }
 
-  b.add_input<decl::Extend>("", "__extend__");
+  b.add_input<decl::Extend>("", "__extend__").structure_type(StructureType::Dynamic);
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)

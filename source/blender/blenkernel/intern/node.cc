@@ -203,6 +203,10 @@ static void ntree_copy_data(Main * /*bmain*/,
     dst_runtime.field_inferencing_interface = std::make_unique<FieldInferencingInterface>(
         *ntree_src->runtime->field_inferencing_interface);
   }
+  if (ntree_src->runtime->structure_type_interface) {
+    dst_runtime.structure_type_interface = std::make_unique<nodes::StructureTypeInterface>(
+        *ntree_src->runtime->structure_type_interface);
+  }
   if (ntree_src->runtime->reference_lifetimes_info) {
     using namespace node_tree_reference_lifetimes;
     dst_runtime.reference_lifetimes_info = std::make_unique<ReferenceLifetimesInfo>(

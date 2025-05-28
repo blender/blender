@@ -1476,12 +1476,8 @@ static void std_node_socket_interface_draw(ID *id,
     uiLayout *sub = &col->column(false);
     uiLayoutSetActive(sub, !is_layer_selection_field(*interface_socket));
     sub->prop(&ptr, "hide_in_modifier", DEFAULT_FLAGS, std::nullopt, ICON_NONE);
-    if (nodes::socket_type_supports_fields(type)) {
-      uiLayout *sub_sub = &col->column(false);
-      uiLayoutSetActive(sub_sub,
-                        (interface_socket->default_input == NODE_DEFAULT_INPUT_VALUE) &&
-                            !is_layer_selection_field(*interface_socket));
-      sub_sub->prop(&ptr, "force_non_field", DEFAULT_FLAGS, std::nullopt, ICON_NONE);
+    if (nodes::socket_type_supports_fields(type) || nodes::socket_type_supports_grids(type)) {
+      sub->prop(&ptr, "structure_type", DEFAULT_FLAGS, std::nullopt, ICON_NONE);
     }
   }
 }

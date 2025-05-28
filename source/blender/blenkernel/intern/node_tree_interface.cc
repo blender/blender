@@ -578,6 +578,12 @@ void item_write_struct(BlendWriter *writer, bNodeTreeInterfaceItem &item)
 {
   switch (NodeTreeInterfaceItemType(item.item_type)) {
     case NODE_INTERFACE_SOCKET: {
+      /* Forward compatible writing of older single value only flag. To be removed in 5.0. */
+      bNodeTreeInterfaceSocket &socket = get_item_as<bNodeTreeInterfaceSocket>(item);
+      SET_FLAG_FROM_TEST(socket.flag,
+                         socket.structure_type == NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_SINGLE,
+                         NODE_INTERFACE_SOCKET_SINGLE_VALUE_ONLY_LEGACY);
+
       BLO_write_struct(writer, bNodeTreeInterfaceSocket, &item);
       break;
     }

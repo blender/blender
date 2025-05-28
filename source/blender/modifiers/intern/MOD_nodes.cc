@@ -909,6 +909,8 @@ static void check_property_socket_sync(const Object *ob,
   int geometry_socket_count = 0;
 
   nmd->node_group->ensure_interface_cache();
+  const Span<nodes::StructureType> input_structure_types =
+      nmd->node_group->runtime->structure_type_interface->inputs;
   for (const int i : nmd->node_group->interface_inputs().index_range()) {
     const bNodeTreeInterfaceSocket *socket = nmd->node_group->interface_inputs()[i];
     const bke::bNodeSocketType *typeinfo = socket->socket_typeinfo();
@@ -918,6 +920,9 @@ static void check_property_socket_sync(const Object *ob,
     }
     /* The first socket is the special geometry socket for the modifier object. */
     if (i == 0 && type == SOCK_GEOMETRY) {
+      continue;
+    }
+    if (input_structure_types[i] == nodes::StructureType::Grid) {
       continue;
     }
 

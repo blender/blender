@@ -5149,6 +5149,25 @@ static void version_convert_sculpt_planar_brushes(Main *bmain)
   }
 }
 
+static void node_interface_single_value_to_structure_type(bNodeTreeInterfaceItem &item)
+{
+  if (item.item_type == eNodeTreeInterfaceItemType::NODE_INTERFACE_SOCKET) {
+    auto &socket = reinterpret_cast<bNodeTreeInterfaceSocket &>(item);
+    if (socket.flag & NODE_INTERFACE_SOCKET_SINGLE_VALUE_ONLY_LEGACY) {
+      socket.structure_type = NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_SINGLE;
+    }
+    else {
+      socket.structure_type = NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_AUTO;
+    }
+  }
+  else {
+    auto &panel = reinterpret_cast<bNodeTreeInterfacePanel &>(item);
+    for (bNodeTreeInterfaceItem *item : blender::Span(panel.items_array, panel.items_num)) {
+      node_interface_single_value_to_structure_type(*item);
+    }
+  }
+}
+
 static void version_set_default_bone_drawtype(Main *bmain)
 {
   LISTBASE_FOREACH (bArmature *, arm, &bmain->armatures) {
@@ -6065,6 +6084,14 @@ void blo_do_versions_450(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
       }
     }
     FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 81)) {
+    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
+      if (ntree->type == NTREE_GEOMETRY) {
+        node_interface_single_value_to_structure_type(ntree->tree_interface.root_panel.item);
+      }
+    }
   }
 
   /* Always run this versioning (keep at the bottom of the function). Meshes are written with the

@@ -88,6 +88,20 @@ struct FieldInferencingInterface {
   BLI_STRUCT_EQUALITY_OPERATORS_2(FieldInferencingInterface, inputs, outputs)
 };
 
+struct StructureTypeInterface {
+  struct OutputDependency {
+    StructureType type;
+    Array<int> linked_inputs;
+
+    BLI_STRUCT_EQUALITY_OPERATORS_2(OutputDependency, type, linked_inputs)
+  };
+
+  Array<StructureType> inputs;
+  Array<OutputDependency> outputs;
+
+  BLI_STRUCT_EQUALITY_OPERATORS_2(StructureTypeInterface, inputs, outputs)
+};
+
 namespace anonymous_attribute_lifetime {
 
 /**
@@ -211,6 +225,8 @@ class SocketDeclaration : public ItemDeclaration {
 
   InputSocketFieldType input_field_type = InputSocketFieldType::None;
   OutputFieldDependency output_field_dependency;
+
+  StructureType structure_type = StructureType::Single;
 
  private:
   CompositorInputRealizationMode compositor_realization_mode_ =
@@ -421,6 +437,8 @@ class BaseSocketDeclarationBuilder {
    * Use the socket as a toggle in its panel.
    */
   BaseSocketDeclarationBuilder &panel_toggle(bool value = true);
+
+  BaseSocketDeclarationBuilder &structure_type(StructureType structure_type);
 
   BaseSocketDeclarationBuilder &is_layer_name(bool value = true);
 

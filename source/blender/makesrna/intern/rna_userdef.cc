@@ -7574,6 +7574,12 @@ static void rna_def_userdef_experimental(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Bundle and Closure Nodes", "Enables bundle and closure nodes in Geometry Nodes");
 
+  prop = RNA_def_property(srna, "use_socket_structure_type", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_ui_text(
+      prop,
+      "Node Structure Types",
+      "Enables new visualization of socket data compatibility in Geometry Nodes");
+
   prop = RNA_def_property(srna, "use_extensions_debug", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_ui_text(
       prop,
