@@ -1707,7 +1707,7 @@ void BKE_sound_jack_scene_update(Scene *scene, int mode, double time)
   }
   AUD_Device_unlock(g_state.sound_device);
 #else
-  UNUSED_VARS(time);
+  UNUSED_VARS(mode, time);
 #endif
 }
 
