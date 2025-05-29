@@ -76,6 +76,10 @@ void DRW_curves_init(DRWData *drw_data)
   if (drw_data->curves_module == nullptr) {
     drw_data->curves_module = MEM_new<CurvesModule>("CurvesModule");
   }
+}
+
+void DRW_curves_begin_sync(DRWData *drw_data)
+{
   drw_data->curves_module->init();
 }
 

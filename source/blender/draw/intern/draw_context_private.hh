@@ -61,6 +61,8 @@ struct DRWData {
 
   /* Ensure modules are created. */
   void modules_init();
+  /* Callbacks before each sync cycle. */
+  void modules_begin_sync();
   /* Callbacks after one draw to clear transient data. */
   void modules_exit();
 };

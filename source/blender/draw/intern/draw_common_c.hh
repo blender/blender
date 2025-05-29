@@ -55,6 +55,7 @@ gpu::VertBuf *DRW_curves_pos_buffer_get(Object *object);
 
 /* If drw_data is nullptr, DST global is accessed to get it. */
 void DRW_curves_init(DRWData *drw_data = nullptr);
+void DRW_curves_begin_sync(DRWData *drw_data);
 void DRW_curves_module_free(draw::CurvesModule *module);
 void DRW_curves_update(draw::Manager &manager);
 
@@ -83,5 +84,5 @@ void DRW_fluid_ensure_range_field(FluidModifierData *fmd);
 
 void DRW_smoke_free(FluidModifierData *fmd);
 
-void DRW_smoke_init(DRWData *drw_data);
+void DRW_smoke_begin_sync(DRWData *drw_data);
 void DRW_smoke_exit(DRWData *drw_data);
