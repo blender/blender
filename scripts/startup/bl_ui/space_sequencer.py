@@ -1014,6 +1014,7 @@ class SEQUENCER_MT_strip_effect_change(Menu):
         strip = context.active_strip
 
         col = layout.column()
+        col.operator("sequencer.change_effect_type", text="Adjustment Layer").type = 'ADJUSTMENT'
         col.operator("sequencer.change_effect_type", text="Multicam Selector").type = 'MULTICAM'
         col.enabled = strip.input_count == 0
 
@@ -1035,6 +1036,9 @@ class SEQUENCER_MT_strip_effect_change(Menu):
         col.operator("sequencer.change_effect_type", text="Alpha Over").type = 'ALPHA_OVER'
         col.operator("sequencer.change_effect_type", text="Alpha Under").type = 'ALPHA_UNDER'
         col.operator("sequencer.change_effect_type", text="Color Mix").type = 'COLORMIX'
+        col.operator("sequencer.change_effect_type", text="Cross").type = 'CROSS'
+        col.operator("sequencer.change_effect_type", text="Gamma Cross").type = 'GAMMA_CROSS'
+        col.operator("sequencer.change_effect_type", text="Wipe").type = 'WIPE'
         col.enabled = strip.input_count == 2
 
 
