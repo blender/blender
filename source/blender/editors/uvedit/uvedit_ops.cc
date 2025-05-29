@@ -359,6 +359,11 @@ enum eUVWeldAlign {
   UV_ALIGN_Y,
   UV_WELD,
 };
+enum class UVAlignPositionMode {
+  Mean = 0,
+  Min = 1,
+  Max = 2,
+};
 
 static bool uvedit_uv_align_weld(Scene *scene,
                                  BMesh *bm,
@@ -809,23 +814,15 @@ static void UV_OT_arrange_islands(wmOperatorType *ot)
       ot->srna, "margin", 0.05f, 0.0f, 1.0f, "Margin", "Space between islands", 0.0f, 1.0f);
 }
 
-static void uv_weld_align(bContext *C, eUVWeldAlign tool)
+static void uv_weld(bContext *C)
 {
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
   SpaceImage *sima = CTX_wm_space_image(C);
-  float cent[2], min[2], max[2];
-
-  INIT_MINMAX2(min, max);
+  float cent[2];
 
   Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
       scene, view_layer, nullptr);
-
-  if (tool == UV_ALIGN_AUTO) {
-    ED_uvedit_foreach_uv_multi(
-        scene, objects, true, true, [&](float luv[2]) { minmax_v2v2_v2(min, max, luv); });
-    tool = (max[0] - min[0] >= max[1] - min[1]) ? UV_ALIGN_Y : UV_ALIGN_X;
-  }
 
   ED_uvedit_center_multi(scene, objects, cent, 0);
 
@@ -837,8 +834,61 @@ static void uv_weld_align(bContext *C, eUVWeldAlign tool)
       continue;
     }
 
-    if (ELEM(tool, UV_ALIGN_AUTO, UV_ALIGN_X, UV_ALIGN_Y, UV_WELD)) {
-      changed |= uvedit_uv_align_weld(scene, em->bm, tool, cent);
+    changed |= uvedit_uv_align_weld(scene, em->bm, UV_WELD, cent);
+
+    if (changed) {
+      uvedit_live_unwrap_update(sima, scene, obedit);
+      DEG_id_tag_update(static_cast<ID *>(obedit->data), 0);
+      WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
+    }
+  }
+}
+
+static void uv_align(bContext *C, eUVWeldAlign tool, UVAlignPositionMode position_mode)
+{
+  Scene *scene = CTX_data_scene(C);
+  ViewLayer *view_layer = CTX_data_view_layer(C);
+  SpaceImage *sima = CTX_wm_space_image(C);
+  float pos[2], min[2], max[2];
+  const bool align_auto = (tool == UV_ALIGN_AUTO);
+  INIT_MINMAX2(min, max);
+
+  Vector<Object *> objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
+      scene, view_layer, nullptr);
+
+  if (tool == UV_ALIGN_AUTO) {
+    ED_uvedit_foreach_uv_multi(
+        scene, objects, true, true, [&](float luv[2]) { minmax_v2v2_v2(min, max, luv); });
+    tool = (max[0] - min[0] >= max[1] - min[1]) ? UV_ALIGN_Y : UV_ALIGN_X;
+  }
+
+  if (!align_auto && ELEM(tool, UV_ALIGN_X, UV_ALIGN_Y) &&
+      ELEM(position_mode, UVAlignPositionMode::Min, UVAlignPositionMode::Max))
+  {
+    ED_uvedit_minmax_multi(scene, objects, min, max);
+    if (position_mode == UVAlignPositionMode::Min) {
+      pos[0] = min[0];
+      pos[1] = min[1];
+    }
+    else {
+      pos[0] = max[0];
+      pos[1] = max[1];
+    }
+  }
+  else {
+    ED_uvedit_center_multi(scene, objects, pos, V3D_AROUND_CENTER_MEDIAN);
+  }
+
+  for (Object *obedit : objects) {
+    BMEditMesh *em = BKE_editmesh_from_object(obedit);
+    bool changed = false;
+
+    if (em->bm->totvertsel == 0) {
+      continue;
+    }
+
+    if (ELEM(tool, UV_ALIGN_AUTO, UV_ALIGN_X, UV_ALIGN_Y)) {
+      changed |= uvedit_uv_align_weld(scene, em->bm, tool, pos);
     }
 
     if (ELEM(tool, UV_STRAIGHTEN, UV_STRAIGHTEN_X, UV_STRAIGHTEN_Y)) {
@@ -852,14 +902,27 @@ static void uv_weld_align(bContext *C, eUVWeldAlign tool)
     }
   }
 }
-
 static wmOperatorStatus uv_align_exec(bContext *C, wmOperator *op)
 {
-  uv_weld_align(C, eUVWeldAlign(RNA_enum_get(op->ptr, "axis")));
+  uv_align(C,
+           eUVWeldAlign(RNA_enum_get(op->ptr, "axis")),
+           UVAlignPositionMode(RNA_enum_get(op->ptr, "position_mode")));
 
   return OPERATOR_FINISHED;
 }
 
+static bool uv_align_poll_property(const bContext * /*C*/, wmOperator *op, const PropertyRNA *prop)
+{
+  const char *prop_id = RNA_property_identifier(prop);
+
+  if (STREQ(prop_id, "position_mode")) {
+    int axis = RNA_enum_get(op->ptr, "axis");
+    if (!ELEM(axis, UV_ALIGN_X, UV_ALIGN_Y)) {
+      return false;
+    }
+  }
+  return true;
+}
 static void UV_OT_align(wmOperatorType *ot)
 {
   static const EnumPropertyItem axis_items[] = {
@@ -888,8 +951,16 @@ static void UV_OT_align(wmOperatorType *ot)
       {0, nullptr, 0, nullptr, nullptr},
   };
 
+  static const EnumPropertyItem position_mode_items[] = {
+      {int(UVAlignPositionMode::Mean), "MEAN", 0, "Mean", "Align UVs along the mean position"},
+      {int(UVAlignPositionMode::Min), "MIN", 0, "Minimum", "Align UVs along the minimum position"},
+      {int(UVAlignPositionMode::Max), "MAX", 0, "Maximum", "Align UVs along the maximum position"},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
   /* identifiers */
   ot->name = "Align";
+
   ot->description = "Aligns selected UV vertices on a line";
   ot->idname = "UV_OT_align";
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -898,9 +969,17 @@ static void UV_OT_align(wmOperatorType *ot)
   ot->exec = uv_align_exec;
   ot->poll = ED_operator_uvedit;
 
+  ot->poll_property = uv_align_poll_property;
+
   /* properties */
   RNA_def_enum(
       ot->srna, "axis", axis_items, UV_ALIGN_AUTO, "Axis", "Axis to align UV locations on");
+  RNA_def_enum(ot->srna,
+               "position_mode",
+               position_mode_items,
+               int(UVAlignPositionMode::Mean),
+               "Position Mode",
+               "Method of calculating the alignment position");
 }
 
 /** \} */
@@ -1241,7 +1320,7 @@ static void UV_OT_remove_doubles(wmOperatorType *ot)
 
 static wmOperatorStatus uv_weld_exec(bContext *C, wmOperator * /*op*/)
 {
-  uv_weld_align(C, UV_WELD);
+  uv_weld(C);
 
   return OPERATOR_FINISHED;
 }
