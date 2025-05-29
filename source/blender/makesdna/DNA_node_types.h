@@ -2397,6 +2397,21 @@ typedef struct NodeGeometrySeparateBundle {
   char _pad[4];
 } NodeGeometrySeparateBundle;
 
+typedef struct NodeFunctionFormatStringItem {
+  char *name;
+  int identifier;
+  int16_t socket_type;
+  char _pad[2];
+} NodeFunctionFormatStringItem;
+
+typedef struct NodeFunctionFormatString {
+  NodeFunctionFormatStringItem *items;
+  int items_num;
+  int next_identifier;
+  int active_index;
+  char _pad[4];
+} NodeFunctionFormatString;
+
 /* script node mode */
 enum {
   NODE_SCRIPT_INTERNAL = 0,

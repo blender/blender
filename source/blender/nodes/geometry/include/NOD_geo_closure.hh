@@ -38,6 +38,9 @@ struct ClosureInputItemsAccessor {
   static constexpr bool has_type = true;
   static constexpr bool has_name = true;
   static constexpr bool has_single_identifier_str = true;
+  static constexpr bool has_name_validation = false;
+  static constexpr bool has_custom_initial_name = false;
+  static constexpr char unique_name_separator = '.';
   struct operator_idnames {
     static constexpr StringRefNull add_item = "NODE_OT_closure_input_item_add";
     static constexpr StringRefNull remove_item = "NODE_OT_closure_input_item_remove";
@@ -113,6 +116,9 @@ struct ClosureOutputItemsAccessor {
   static constexpr bool has_type = true;
   static constexpr bool has_name = true;
   static constexpr bool has_single_identifier_str = true;
+  static constexpr bool has_name_validation = false;
+  static constexpr bool has_custom_initial_name = false;
+  static constexpr char unique_name_separator = '.';
   struct operator_idnames {
     static constexpr StringRefNull add_item = "NODE_OT_closure_output_item_add";
     static constexpr StringRefNull remove_item = "NODE_OT_closure_output_item_remove";
@@ -188,6 +194,9 @@ struct EvaluateClosureInputItemsAccessor {
   static constexpr bool has_type = true;
   static constexpr bool has_name = true;
   static constexpr bool has_single_identifier_str = true;
+  static constexpr bool has_name_validation = false;
+  static constexpr bool has_custom_initial_name = false;
+  static constexpr char unique_name_separator = '.';
   struct operator_idnames {
     static constexpr StringRefNull add_item = "NODE_OT_evaluate_closure_input_item_add";
     static constexpr StringRefNull remove_item = "NODE_OT_evaluate_closure_input_item_remove";
@@ -264,6 +273,9 @@ struct EvaluateClosureOutputItemsAccessor {
   static constexpr bool has_type = true;
   static constexpr bool has_name = true;
   static constexpr bool has_single_identifier_str = true;
+  static constexpr bool has_name_validation = false;
+  static constexpr bool has_custom_initial_name = false;
+  static constexpr char unique_name_separator = '.';
   struct operator_idnames {
     static constexpr StringRefNull add_item = "NODE_OT_evaluate_closure_output_item_add";
     static constexpr StringRefNull remove_item = "NODE_OT_evaluate_closure_output_item_remove";

@@ -227,3 +227,16 @@ void BKE_report_path_template_errors(ReportList *reports,
                                      eReportType report_type,
                                      blender::StringRef path,
                                      blender::Span<blender::bke::path_templates::Error> errors);
+
+/**
+ * Format the given floating point value with the provided format specifier. The format specifier
+ * is e.g. the "##.###" in "{name:##.###}".
+ *
+ * \return Nullopt if the format specifier is invalid.
+ */
+std::optional<std::string> BKE_path_template_format_float(blender::StringRef format_specifier,
+                                                          double value);
+
+/** Same as #BKE_path_template_format_float but for formatting an integer value.  */
+std::optional<std::string> BKE_path_template_format_int(blender::StringRef format_specifier,
+                                                        int64_t value);

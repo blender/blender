@@ -629,6 +629,7 @@ static const EnumPropertyItem node_cryptomatte_layer_name_items[] = {
 
 #  include "NOD_common.hh"
 #  include "NOD_composite.hh"
+#  include "NOD_fn_format_string.hh"
 #  include "NOD_geo_bake.hh"
 #  include "NOD_geo_bundle.hh"
 #  include "NOD_geo_capture_attribute.hh"
@@ -667,6 +668,7 @@ using blender::nodes::EvaluateClosureOutputItemsAccessor;
 using blender::nodes::ForeachGeometryElementGenerationItemsAccessor;
 using blender::nodes::ForeachGeometryElementInputItemsAccessor;
 using blender::nodes::ForeachGeometryElementMainItemsAccessor;
+using blender::nodes::FormatStringItemsAccessor;
 using blender::nodes::IndexSwitchItemsAccessor;
 using blender::nodes::MenuSwitchItemsAccessor;
 using blender::nodes::RepeatItemsAccessor;
@@ -12150,6 +12152,53 @@ static void def_geo_index_switch(BlenderRNA *brna, StructRNA *srna)
   RNA_def_property_srna(prop, "NodeIndexSwitchItems");
 }
 
+static void rna_def_fn_format_string_item(BlenderRNA *brna)
+{
+  StructRNA *srna;
+
+  srna = RNA_def_struct(brna, "NodeFunctionFormatStringItem", nullptr);
+  RNA_def_struct_ui_text(srna, "Format String Item", "");
+
+  rna_def_node_item_array_socket_item_common(srna, "FormatStringItemsAccessor", true);
+}
+
+static void rna_def_fn_format_string_items(BlenderRNA *brna)
+{
+  StructRNA *srna;
+
+  srna = RNA_def_struct(brna, "NodeFunctionFormatStringItems", nullptr);
+  RNA_def_struct_sdna(srna, "bNode");
+  RNA_def_struct_ui_text(srna, "Items", "Collection of format string items");
+
+  rna_def_node_item_array_new_with_socket_and_name(
+      srna, "NodeFunctionFormatStringItem", "FormatStringItemsAccessor");
+  rna_def_node_item_array_common_functions(
+      srna, "NodeFunctionFormatStringItem", "FormatStringItemsAccessor");
+}
+
+static void def_fn_format_string(BlenderRNA *brna, StructRNA *srna)
+{
+  PropertyRNA *prop;
+
+  rna_def_fn_format_string_item(brna);
+  rna_def_fn_format_string_items(brna);
+
+  RNA_def_struct_sdna_from(srna, "NodeFunctionFormatString", "storage");
+
+  prop = RNA_def_property(srna, "format_items", PROP_COLLECTION, PROP_NONE);
+  RNA_def_property_collection_sdna(prop, nullptr, "items", "items_num");
+  RNA_def_property_struct_type(prop, "NodeFunctionFormatStringItem");
+  RNA_def_property_ui_text(prop, "Items", "");
+  RNA_def_property_srna(prop, "NodeFunctionFormatStringItems");
+
+  prop = RNA_def_property(srna, "active_index", PROP_INT, PROP_UNSIGNED);
+  RNA_def_property_int_sdna(prop, nullptr, "active_index");
+  RNA_def_property_ui_text(prop, "Active Item Index", "Index of the active item");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+  RNA_def_property_flag(prop, PROP_NO_DEG_UPDATE);
+  RNA_def_property_update(prop, NC_NODE, nullptr);
+}
+
 static void def_geo_curve_handle_type_selection(BlenderRNA * /*brna*/, StructRNA *srna)
 {
   PropertyRNA *prop;
@@ -13995,6 +14044,7 @@ static void rna_def_nodes(BlenderRNA *brna)
   define("FunctionNode", "FunctionNodeEulerToRotation");
   define("FunctionNode", "FunctionNodeFindInString");
   define("FunctionNode", "FunctionNodeFloatToInt", def_float_to_int);
+  define("FunctionNode", "FunctionNodeFormatString", def_fn_format_string);
   define("FunctionNode", "FunctionNodeHashValue");
   define("FunctionNode", "FunctionNodeInputBool", def_fn_input_bool);
   define("FunctionNode", "FunctionNodeInputColor", def_fn_input_color);

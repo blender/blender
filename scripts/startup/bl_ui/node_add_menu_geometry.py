@@ -609,6 +609,7 @@ class NODE_MT_category_GEO_TEXT(Menu):
 
     def draw(self, _context):
         layout = self.layout
+        node_add_menu.add_node_type(layout, "FunctionNodeFormatString")
         node_add_menu.add_node_type(layout, "GeometryNodeStringJoin")
         node_add_menu.add_node_type(layout, "FunctionNodeMatchString")
         node_add_menu.add_node_type(layout, "FunctionNodeReplaceString")

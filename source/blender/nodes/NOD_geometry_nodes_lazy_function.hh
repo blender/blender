@@ -652,4 +652,14 @@ const LazyFunction *build_implicit_conversion_lazy_function(const bke::bNodeSock
                                                             const bke::bNodeSocketType &to_type,
                                                             ResourceScope &scope);
 
+/**
+ * Report an error from a multi-function evaluation within a Geometry Nodes evaluation.
+ *
+ * NOTE: Currently, this the error is only actually reported under limited circumstances. It's
+ * still safe to call this function from any multi-function though.
+ */
+void report_from_multi_function(const mf::Context &context,
+                                NodeWarningType type,
+                                std::string message);
+
 }  // namespace blender::nodes
