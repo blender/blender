@@ -7,6 +7,7 @@
  */
 
 #include "BLI_string_ref.hh"
+#include "BLI_string_utils.hh"
 #include "BLI_vector.hh"
 #include "MEM_guardedalloc.h"
 
@@ -2720,23 +2721,23 @@ void SEQUENCER_OT_change_effect_input(wmOperatorType *ot)
  * \{ */
 
 const EnumPropertyItem sequencer_prop_effect_types[] = {
-    {STRIP_TYPE_CROSS, "CROSS", 0, "Crossfade", "Crossfade effect strip type"},
-    {STRIP_TYPE_ADD, "ADD", 0, "Add", "Add effect strip type"},
-    {STRIP_TYPE_SUB, "SUBTRACT", 0, "Subtract", "Subtract effect strip type"},
-    {STRIP_TYPE_ALPHAOVER, "ALPHA_OVER", 0, "Alpha Over", "Alpha Over effect strip type"},
-    {STRIP_TYPE_ALPHAUNDER, "ALPHA_UNDER", 0, "Alpha Under", "Alpha Under effect strip type"},
-    {STRIP_TYPE_GAMCROSS, "GAMMA_CROSS", 0, "Gamma Cross", "Gamma Cross effect strip type"},
-    {STRIP_TYPE_MUL, "MULTIPLY", 0, "Multiply", "Multiply effect strip type"},
-    {STRIP_TYPE_WIPE, "WIPE", 0, "Wipe", "Wipe effect strip type"},
-    {STRIP_TYPE_GLOW, "GLOW", 0, "Glow", "Glow effect strip type"},
-    {STRIP_TYPE_TRANSFORM, "TRANSFORM", 0, "Transform", "Transform effect strip type"},
-    {STRIP_TYPE_COLOR, "COLOR", 0, "Color", "Color effect strip type"},
-    {STRIP_TYPE_SPEED, "SPEED", 0, "Speed", "Color effect strip type"},
-    {STRIP_TYPE_MULTICAM, "MULTICAM", 0, "Multicam Selector", ""},
-    {STRIP_TYPE_ADJUSTMENT, "ADJUSTMENT", 0, "Adjustment Layer", ""},
-    {STRIP_TYPE_GAUSSIAN_BLUR, "GAUSSIAN_BLUR", 0, "Gaussian Blur", ""},
-    {STRIP_TYPE_TEXT, "TEXT", 0, "Text", ""},
-    {STRIP_TYPE_COLORMIX, "COLORMIX", 0, "Color Mix", ""},
+    {STRIP_TYPE_CROSS, "CROSS", 0, "Crossfade", "Fade out of one video while fading into another"},
+    {STRIP_TYPE_ADD, "ADD", 0, "Add", "Add together color channels from two videos"},
+    {STRIP_TYPE_SUB, "SUBTRACT", 0, "Subtract", "Subtract one strip's color from another"},
+    {STRIP_TYPE_ALPHAOVER, "ALPHA_OVER", 0, "Alpha Over", "Blend alpha on top of another video"},
+    {STRIP_TYPE_ALPHAUNDER, "ALPHA_UNDER", 0, "Alpha Under", "Blend alpha below another video"},
+    {STRIP_TYPE_GAMCROSS, "GAMMA_CROSS", 0, "Gamma Cross", "Crossfade with color correction"},
+    {STRIP_TYPE_MUL, "MULTIPLY", 0, "Multiply", "Multiply color channels from two videos"},
+    {STRIP_TYPE_WIPE, "WIPE", 0, "Wipe", "Sweep a transition line across the frame"},
+    {STRIP_TYPE_GLOW, "GLOW", 0, "Glow", "Add blur and brightness to light areas"},
+    {STRIP_TYPE_TRANSFORM, "TRANSFORM", 0, "Transform", "Apply scale, rotation, and translation"},
+    {STRIP_TYPE_COLOR, "COLOR", 0, "Color", "Add a simple color strip"},
+    {STRIP_TYPE_SPEED, "SPEED", 0, "Speed", "Timewarp video strips, modifying playback speed"},
+    {STRIP_TYPE_MULTICAM, "MULTICAM", 0, "Multicam Selector", "Control active camera angles"},
+    {STRIP_TYPE_ADJUSTMENT, "ADJUSTMENT", 0, "Adjustment Layer", "Apply nondestructive effects"},
+    {STRIP_TYPE_GAUSSIAN_BLUR, "GAUSSIAN_BLUR", 0, "Gaussian Blur", "Soften details along axes"},
+    {STRIP_TYPE_TEXT, "TEXT", 0, "Text", "Add a simple text strip"},
+    {STRIP_TYPE_COLORMIX, "COLORMIX", 0, "Color Mix", "Combine two strips using blend modes"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -2744,6 +2745,7 @@ static wmOperatorStatus sequencer_change_effect_type_exec(bContext *C, wmOperato
 {
   Scene *scene = CTX_data_scene(C);
   Strip *strip = seq::select_active_get(scene);
+  const int old_type = strip->type;
   const int new_type = RNA_enum_get(op->ptr, "type");
 
   /* Free previous effect and init new effect. */
@@ -2753,19 +2755,27 @@ static wmOperatorStatus sequencer_change_effect_type_exec(bContext *C, wmOperato
     return OPERATOR_CANCELLED;
   }
 
-  /* Can someone explain the logic behind only allowing to increase this,
-   * copied from 2.4x - campbell */
-  if (seq::effect_get_num_inputs(strip->type) < seq::effect_get_num_inputs(new_type)) {
-    BKE_report(op->reports, RPT_ERROR, "New effect needs more input strips");
+  if (seq::effect_get_num_inputs(strip->type) != seq::effect_get_num_inputs(new_type)) {
+    BKE_report(op->reports, RPT_ERROR, "New effect takes less or more inputs");
     return OPERATOR_CANCELLED;
   }
 
-  sh = seq::effect_handle_get(strip);
+  sh = seq::strip_effect_handle_get(strip);
   sh.free(strip, true);
 
   strip->type = new_type;
 
-  sh = seq::effect_handle_get(strip);
+  /* If the strip's name is the default (equal to the old effect type),
+   * rename to the new type to avoid confusion. */
+  char name_base[MAX_ID_NAME];
+  int name_num;
+  BLI_string_split_name_number(strip->name + 2, '.', name_base, &name_num);
+  if (STREQ(name_base, seq::get_default_stripname_by_type(old_type))) {
+    seq::edit_strip_name_set(scene, strip, seq::strip_give_name(strip));
+    seq::ensure_unique_name(strip, scene);
+  }
+
+  sh = seq::strip_effect_handle_get(strip);
   sh.init(strip);
 
   seq::relations_invalidate_cache(scene, strip);
@@ -2779,6 +2789,7 @@ void SEQUENCER_OT_change_effect_type(wmOperatorType *ot)
   /* Identifiers. */
   ot->name = "Change Effect Type";
   ot->idname = "SEQUENCER_OT_change_effect_type";
+  ot->description = "Replace effect strip with another that takes the same number of inputs";
 
   /* API callbacks. */
   ot->exec = sequencer_change_effect_type_exec;
@@ -2792,7 +2803,7 @@ void SEQUENCER_OT_change_effect_type(wmOperatorType *ot)
                           sequencer_prop_effect_types,
                           STRIP_TYPE_CROSS,
                           "Type",
-                          "Sequencer effect type");
+                          "Strip effect type");
   RNA_def_property_translation_context(ot->prop, BLT_I18NCONTEXT_ID_SEQUENCE);
 }
 

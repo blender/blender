@@ -736,7 +736,7 @@ static ImBuf *seq_render_effect_strip_impl(const RenderData *context,
   Scene *scene = context->scene;
   float fac;
   int i;
-  EffectHandle sh = effect_handle_get(strip);
+  EffectHandle sh = strip_effect_handle_get(strip);
   const FCurve *fcu = nullptr;
   ImBuf *ibuf[2];
   Strip *input[2];

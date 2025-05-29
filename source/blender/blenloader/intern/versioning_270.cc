@@ -445,7 +445,7 @@ static bool strip_update_effectdata_cb(Strip *strip, void * /*user_data*/)
   }
 
   if (strip->effectdata == nullptr) {
-    blender::seq::EffectHandle effect_handle = blender::seq::effect_handle_get(strip);
+    blender::seq::EffectHandle effect_handle = blender::seq::strip_effect_handle_get(strip);
     effect_handle.init(strip);
   }
 
