@@ -352,6 +352,33 @@ static PyObject *pygpu_batch_draw(BPyGPUBatch *self, PyObject *args)
     }
   }
 
+  /* Emit a warning when trying to draw points with a regular shader as it is too late to
+   * automatically switch to a point shader. */
+  if (py_shader && py_shader->is_builtin && self->batch->prim_type == GPU_PRIM_POINTS) {
+    GPUShader *shader = py_shader->shader;
+    if (shader == GPU_shader_get_builtin_shader(GPU_SHADER_3D_FLAT_COLOR)) {
+      PyErr_WarnEx(PyExc_DeprecationWarning,
+                   "Calling GPUBatch.draw to draw points with "
+                   "GPU_SHADER_3D_FLAT_COLOR is deprecated. "
+                   "Use GPU_SHADER_3D_POINT_FLAT_COLOR instead.",
+                   1);
+    }
+    else if (shader == GPU_shader_get_builtin_shader(GPU_SHADER_3D_SMOOTH_COLOR)) {
+      PyErr_WarnEx(PyExc_DeprecationWarning,
+                   "Calling GPUBatch.draw to draw points with "
+                   "GPU_SHADER_3D_SMOOTH_COLOR is deprecated. "
+                   "Use GPU_SHADER_3D_POINT_FLAT_COLOR instead.",
+                   1);
+    }
+    else if (shader == GPU_shader_get_builtin_shader(GPU_SHADER_3D_UNIFORM_COLOR)) {
+      PyErr_WarnEx(PyExc_DeprecationWarning,
+                   "Calling GPUBatch.draw to draw points with "
+                   "GPU_SHADER_3D_UNIFORM_COLOR is deprecated. "
+                   "Use GPU_SHADER_3D_POINT_SMOOTH_COLOR instead.",
+                   1);
+    }
+  }
+
   if (const char *error = pygpu_shader_check_compatibility(self->batch)) {
     PyErr_SetString(PyExc_RuntimeError, error);
     return nullptr;

@@ -77,7 +77,8 @@ Typically multiple shaders are linked together into a *Program*.
 However, in the Blender Python API the term *Shader* refers to an OpenGL Program.
 Every :class:`gpu.types.GPUShader` consists of a vertex shader, a fragment shader and an optional geometry shader.
 For common drawing tasks there are some built-in shaders accessible from :class:`gpu.shader.from_builtin`
-with an identifier such as ``UNIFORM_COLOR`` or ``FLAT_COLOR``.
+with an identifier such as ``UNIFORM_COLOR`` or ``FLAT_COLOR``. There are specific builtin shaders for
+drawing triangles, lines and points.
 
 Every shader defines a set of attributes and uniforms that have to be set in order to use the shader.
 Attributes are properties that are set using a vertex buffer and can be different for individual vertices.
@@ -139,6 +140,29 @@ Examples
 To try these examples, just copy them into Blenders text editor and execute them.
 To keep the examples relatively small, they just register a draw function that can't easily be removed anymore.
 Blender has to be restarted in order to delete the draw handlers.
+
+3D Points with Single Color
+"""
+
+import bpy
+import gpu
+from gpu_extras.batch import batch_for_shader
+
+coords = [(1, 1, 1), (-2, 0, 0), (-2, -1, 3), (0, 1, 1)]
+shader = gpu.shader.from_builtin('POINT_UNIFORM_COLOR')
+batch = batch_for_shader(shader, 'POINTS', {"pos": coords})
+
+
+def draw():
+    shader.uniform_float("color", (1, 1, 0, 1))
+    gpu.state.point_size_set(4.5)
+    batch.draw(shader)
+
+
+bpy.types.SpaceView3D.draw_handler_add(draw, (), 'WINDOW', 'POST_VIEW')
+
+
+"""
 
 3D Lines with Single Color
 --------------------------
