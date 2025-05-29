@@ -78,6 +78,8 @@ const GPUShaderCreateInfo *GPU_shader_create_info_get(const char *info_name);
  */
 bool GPU_shader_create_info_check_error(const GPUShaderCreateInfo *_info, char r_error[128]);
 
+enum class CompilationPriority { Low, Medium, High };
+
 using BatchHandle = int64_t;
 /**
  * Request the creation of multiple shaders at once, allowing the backend to use multithreaded
@@ -87,7 +89,9 @@ using BatchHandle = int64_t;
  * WARNING: The GPUShaderCreateInfo pointers should be valid until `GPU_shader_batch_finalize` has
  * returned.
  */
-BatchHandle GPU_shader_batch_create_from_infos(blender::Span<const GPUShaderCreateInfo *> infos);
+BatchHandle GPU_shader_batch_create_from_infos(
+    blender::Span<const GPUShaderCreateInfo *> infos,
+    CompilationPriority priority = CompilationPriority::High);
 /**
  * Returns true if all the shaders from the batch have finished their compilation.
  */
@@ -264,7 +268,8 @@ struct ShaderSpecialization {
  * WARNING: Binding a specialization before the batch finishes will fail.
  */
 SpecializationBatchHandle GPU_shader_batch_specializations(
-    blender::Span<ShaderSpecialization> specializations);
+    blender::Span<ShaderSpecialization> specializations,
+    CompilationPriority priority = CompilationPriority::High);
 
 /**
  * Returns true if all the specializations from the batch have finished their compilation.

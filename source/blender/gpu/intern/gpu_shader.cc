@@ -367,12 +367,13 @@ GPUShader *GPU_shader_create_from_python(std::optional<StringRefNull> vertcode,
   return sh;
 }
 
-BatchHandle GPU_shader_batch_create_from_infos(Span<const GPUShaderCreateInfo *> infos)
+BatchHandle GPU_shader_batch_create_from_infos(Span<const GPUShaderCreateInfo *> infos,
+                                               CompilationPriority priority)
 {
   using namespace blender::gpu::shader;
   Span<const ShaderCreateInfo *> &infos_ = reinterpret_cast<Span<const ShaderCreateInfo *> &>(
       infos);
-  return GPUBackend::get()->get_compiler()->batch_compile(infos_);
+  return GPUBackend::get()->get_compiler()->batch_compile(infos_, priority);
 }
 
 bool GPU_shader_batch_is_ready(BatchHandle handle)
@@ -525,9 +526,9 @@ void Shader::specialization_constants_init(const shader::ShaderCreateInfo &info)
 }
 
 SpecializationBatchHandle GPU_shader_batch_specializations(
-    blender::Span<ShaderSpecialization> specializations)
+    blender::Span<ShaderSpecialization> specializations, CompilationPriority priority)
 {
-  return GPUBackend::get()->get_compiler()->precompile_specializations(specializations);
+  return GPUBackend::get()->get_compiler()->precompile_specializations(specializations, priority);
 }
 
 bool GPU_shader_batch_specializations_is_ready(SpecializationBatchHandle &handle)
@@ -964,7 +965,8 @@ Shader *ShaderCompiler::compile_shader(const shader::ShaderCreateInfo &info)
   return compile(info, false);
 }
 
-BatchHandle ShaderCompiler::batch_compile(Span<const shader::ShaderCreateInfo *> &infos)
+BatchHandle ShaderCompiler::batch_compile(Span<const shader::ShaderCreateInfo *> &infos,
+                                          CompilationPriority priority)
 {
   std::unique_lock lock(mutex_);
 
@@ -979,7 +981,7 @@ BatchHandle ShaderCompiler::batch_compile(Span<const shader::ShaderCreateInfo *>
     batch->shaders.resize(infos.size(), nullptr);
     batch->pending_compilations = infos.size();
     for (int i : infos.index_range()) {
-      compilation_queue_.push_back({batch, i});
+      compilation_queue_.push({batch, i}, priority);
       compilation_worker_->wake_up();
     }
   }
@@ -997,18 +999,7 @@ void ShaderCompiler::batch_cancel(BatchHandle &handle)
   std::unique_lock lock(mutex_);
 
   Batch *batch = batches_.pop(handle);
-
-  for (ParallelWork &work : compilation_queue_) {
-    if (work.batch == batch) {
-      work = {};
-      batch->pending_compilations--;
-    }
-  }
-
-  compilation_queue_.erase(std::remove_if(compilation_queue_.begin(),
-                                          compilation_queue_.end(),
-                                          [](const ParallelWork &work) { return !work.batch; }),
-                           compilation_queue_.end());
+  compilation_queue_.remove_batch(batch);
 
   if (batch->is_specialization_batch()) {
     /* For specialization batches, we block until ready, since base shader compilation may be
@@ -1051,7 +1042,7 @@ Vector<Shader *> ShaderCompiler::batch_finalize(BatchHandle &handle)
 }
 
 SpecializationBatchHandle ShaderCompiler::precompile_specializations(
-    Span<ShaderSpecialization> specializations)
+    Span<ShaderSpecialization> specializations, CompilationPriority priority)
 {
   if (!compilation_worker_ || !support_specializations_) {
     return 0;
@@ -1067,7 +1058,7 @@ SpecializationBatchHandle ShaderCompiler::precompile_specializations(
 
   batch->pending_compilations = specializations.size();
   for (int i : specializations.index_range()) {
-    compilation_queue_.push_back({batch, i});
+    compilation_queue_.push({batch, i}, priority);
     compilation_worker_->wake_up();
   }
 
@@ -1095,14 +1086,13 @@ void ShaderCompiler::run_thread()
     {
       std::lock_guard lock(mutex_);
 
-      if (compilation_queue_.empty()) {
+      if (compilation_queue_.is_empty()) {
         return;
       }
 
-      ParallelWork &work = compilation_queue_.front();
+      ParallelWork work = compilation_queue_.pop();
       batch = work.batch;
       shader_index = work.shader_index;
-      compilation_queue_.pop_front();
     }
 
     /* Compile */
@@ -1130,7 +1120,7 @@ void ShaderCompiler::wait_for_all()
 {
   std::unique_lock lock(mutex_);
   compilation_finished_notification_.wait(lock, [&]() {
-    if (!compilation_queue_.empty()) {
+    if (!compilation_queue_.is_empty()) {
       return false;
     }
 
