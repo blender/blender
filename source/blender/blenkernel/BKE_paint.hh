@@ -146,7 +146,7 @@ void BKE_paint_invalidate_cursor_overlay(Scene *scene, ViewLayer *view_layer, Cu
 void BKE_paint_invalidate_overlay_all();
 ePaintOverlayControlFlags BKE_paint_get_overlay_flags();
 void BKE_paint_reset_overlay_invalid(ePaintOverlayControlFlags flag);
-void BKE_paint_set_overlay_override(enum eOverlayFlags flag);
+void BKE_paint_set_overlay_override(eOverlayFlags flag);
 
 /* Palettes. */
 
@@ -193,10 +193,8 @@ bool BKE_paint_ensure_from_paintmode(Scene *sce, PaintMode mode);
 Paint *BKE_paint_get_active_from_paintmode(Scene *sce, PaintMode mode);
 const EnumPropertyItem *BKE_paint_get_tool_enum_from_paintmode(PaintMode mode);
 uint BKE_paint_get_brush_type_offset_from_paintmode(PaintMode mode);
-std::optional<int> BKE_paint_get_brush_type_from_obmode(const Brush *brush,
-                                                        const eObjectMode ob_mode);
-std::optional<int> BKE_paint_get_brush_type_from_paintmode(const Brush *brush,
-                                                           const PaintMode mode);
+std::optional<int> BKE_paint_get_brush_type_from_obmode(const Brush *brush, eObjectMode ob_mode);
+std::optional<int> BKE_paint_get_brush_type_from_paintmode(const Brush *brush, PaintMode mode);
 Paint *BKE_paint_get_active(Scene *sce, ViewLayer *view_layer);
 Paint *BKE_paint_get_active_from_context(const bContext *C);
 PaintMode BKE_paintmode_get_active_from_context(const bContext *C);
