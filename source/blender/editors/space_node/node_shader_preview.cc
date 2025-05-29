@@ -718,6 +718,7 @@ static void shader_preview_startjob(void *customdata, wmJobWorkerStatus *worker_
   job_data->mat_output_copy->flag |= NODE_DO_OUTPUT;
 
   bNodeTree *active_nodetree = job_data->treepath_copy.last()->nodetree;
+  active_nodetree->ensure_topology_cache();
   for (bNode *node : active_nodetree->all_nodes()) {
     if (!(node->flag & NODE_PREVIEW)) {
       /* Clear the cached preview for this node to be sure that the preview is re-rendered if
