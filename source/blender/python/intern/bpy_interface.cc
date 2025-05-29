@@ -385,7 +385,7 @@ void BPY_python_start(bContext *C, int argc, const char **argv)
     }
     else {
       PyConfig_InitIsolatedConfig(&config);
-      /* Python's isolated config disables it's own signal overrides.
+      /* Python's isolated config disables its own signal overrides.
        * While it makes sense not to interfering with other components of the process,
        * the signal handlers are needed for Python's own error handling to work properly.
        * Without this a `SIGPIPE` signal will crash Blender, see: #129657. */

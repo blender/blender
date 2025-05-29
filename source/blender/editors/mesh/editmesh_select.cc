@@ -2708,7 +2708,7 @@ bool EDBM_selectmode_set_multi(bContext *C, const short selectmode)
  *
  * While this is almost always the case as the UI syncs the values when set,
  * it's not guaranteed because objects can be shared across scenes and each
- * scene has it's own select-mode which is applied to the object when entering edit-mode.
+ * scene has its own select-mode which is applied to the object when entering edit-mode.
  *
  * This function should only be used when the an operation would cause errors
  * when applied in the wrong selection mode.
