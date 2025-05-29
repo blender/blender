@@ -198,7 +198,7 @@ class Instances {
    */
   void remove(const IndexMask &mask, const AttributeFilter &attribute_filter);
   /**
-   * Get an id for every instance. These can be used for e.g. motion blur.
+   * Get an id for every instance. These can be used e.g. motion blur.
    */
   Span<int> almost_unique_ids() const;
 

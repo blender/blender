@@ -2589,7 +2589,7 @@ static bool handle_load_file(bContext *C, const char *filepath_arg, const bool l
      *
      * WARNING: The path referenced may be incorrect, no attempt is made to validate the path
      * here or check that writing to it will work. If the users enters the path of a directory
-     * that doesn't exist (for e.g.) saving will fail.
+     * that doesn't exist (for example) saving will fail.
      * Attempting to create the file at this point is possible but likely to cause more
      * trouble than it's worth (what with network drives), removable devices ... etc. */
 

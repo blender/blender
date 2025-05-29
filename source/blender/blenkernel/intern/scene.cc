@@ -2607,7 +2607,7 @@ void BKE_scene_graph_update_for_newframe_ex(Depsgraph *depsgraph, const bool cle
   const bool is_time_update = true;
   DEG_editors_update(depsgraph, is_time_update);
 
-  /* Clear recalc flags, can be skipped for e.g. renderers that will read these
+  /* Clear recalc flags, can be skipped for example renderers that will read these
    * and clear the flags later. */
   if (clear_recalc) {
     const bool backup = false;

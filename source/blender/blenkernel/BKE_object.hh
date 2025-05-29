@@ -405,7 +405,7 @@ bool BKE_object_minmax_dupli(Depsgraph *depsgraph,
  * Calculate visual bounds from an empty objects draw-type.
  *
  * \note This is not part of the calculation used by #BKE_object_boundbox_get
- * as these bounds represent the extents of visual guides (use for viewport culling for e.g.)
+ * as these bounds represent the extents of visual guides (use for viewport culling for example)
  */
 bool BKE_object_minmax_empty_drawtype(const Object *ob, float r_min[3], float r_max[3]);
 

@@ -450,7 +450,7 @@ void WM_exit_ex(bContext *C, const bool do_python_exit, const bool do_user_exit_
 
   /* While nothing technically prevents saving user data in background mode,
    * don't do this as not typically useful and more likely to cause problems
-   * if automated scripts happen to write changes to the preferences for e.g.
+   * if automated scripts happen to write changes to the preferences for example.
    * Saving #BLENDER_QUIT_FILE is also not likely to be desired either. */
   BLI_assert(G.background ? (do_user_exit_actions == false) : true);
 

@@ -24,7 +24,7 @@ Blender Convenience Targets
    * ccache:        Use ccache for faster rebuilds.
 
    Note: when passing in multiple targets their order is not important.
-   So for a fast build you can for e.g. run 'make lite ccache ninja'.
+   For example, fo a fast build you can run 'make lite ccache ninja'.
    Note: passing the argument 'BUILD_DIR=path' when calling make will override the default build dir.
    Note: passing the argument 'BUILD_CMAKE_ARGS=args' lets you add cmake arguments.
 

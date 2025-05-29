@@ -509,7 +509,7 @@ enum {
    *
    * The most common case is for perspective views, where orbiting around a point behind
    * the view (while possible) often seems like a bug from a user perspective.
-   * We could consider other cases invalid too (values beyond the clipping plane for e.g.),
+   * We could consider other cases invalid too (e.g. values beyond the clipping plane),
    * although in practice these cases should be fairly rare.
    */
   RV3D_NDOF_OFS_IS_VALID = (1 << 0),

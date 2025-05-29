@@ -1926,7 +1926,7 @@ void RNA_def_property_enum_items(PropertyRNA *prop, const EnumPropertyItem *item
         /* If this is larger, this is likely a string which can sometimes store enums. */
         if (PropertyDefRNA *dp = rna_find_struct_property_def(srna, prop)) {
           if (dp->dnatype == nullptr || dp->dnatype[0] == '\0') {
-            /* Unfortunately this happens when #PropertyDefRNA::dnastructname is for e.g.
+            /* Unfortunately this happens when #PropertyDefRNA::dnastructname is for example
              * `type->region_type` there isn't a convenient way to access the int size. */
           }
           else if (dp->dnaarraylength > 1) {

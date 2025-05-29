@@ -1119,7 +1119,7 @@ def _initialize_extensions_compat_ensure_up_to_date(extensions_directory, extens
 
     if cache_data is not None:
         # NOTE: the exception handling here is fairly paranoid and accounts for invalid values in the loaded cache.
-        # An example would be values expected to be lists/dictionaries being other types (None or strings for e.g.).
+        # An example would be values expected to be lists/dictionaries being other types (None or strings for example).
         # While this should not happen, some bad value should not prevent Blender from loading properly,
         # so report the error and regenerate cache.
         try:

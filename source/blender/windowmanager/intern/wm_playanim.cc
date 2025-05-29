@@ -1005,7 +1005,7 @@ static void build_pict_list(ListBase &picsbase,
 {
   *loading_p = true;
 
-  /* NOTE(@ideasman42): When loading many files (expanded from shell globing for e.g.)
+  /* NOTE(@ideasman42): When loading many files (e.g. expanded from shell globing)
    * it's important the frame number increases each time. Otherwise playing `*.png`
    * in a directory will expand into many arguments, each calling this function adding
    * a frame that's set to zero. */

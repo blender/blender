@@ -633,7 +633,7 @@ static void pbvh_iter_begin(PBVHIter *iter, Tree &pbvh, FunctionRef<bool(Node &)
 static Node *pbvh_iter_next(PBVHIter *iter, Node::Flags leaf_flag)
 {
   /* purpose here is to traverse tree, visiting child nodes before their
-   * parents, this order is necessary for e.g. computing bounding boxes */
+   * parents, this order is necessary for example computing bounding boxes */
 
   while (!iter->stack.is_empty()) {
     StackItem item = iter->stack.pop();

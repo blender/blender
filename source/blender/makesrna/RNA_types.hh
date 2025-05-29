@@ -689,7 +689,7 @@ ENUM_OPERATORS(eStringPropertySearchFlag, PROP_STRING_SEARCH_SUGGESTION)
  * \param prop: RNA property. This must have its #StringPropertyRNA.search callback set,
  * to check this use `RNA_property_string_search_flag(prop) & PROP_STRING_SEARCH_SUPPORTED`.
  * \param edit_text: Optionally use the string being edited by the user as a basis
- * for the search results (auto-complete Python attributes for e.g.).
+ * for the search results (auto-complete Python attributes for example).
  * \param visit_fn: This function is called with every search candidate and is typically
  * responsible for storing the search results.
  */

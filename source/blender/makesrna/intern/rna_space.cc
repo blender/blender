@@ -1227,7 +1227,7 @@ static void rna_RegionView3D_is_orthographic_side_view_set(PointerRNA *ptr, bool
         rv3d->viewquat, eps_quat, &rv3d->view, &rv3d->view_axis_roll);
   }
   else {
-    /* Only allow changing from axis-views to user view as camera view for e.g.
+    /* Only allow changing from axis-views to user view as camera view for example
      * doesn't make sense to update. */
     if (!was_axis_view) {
       return;

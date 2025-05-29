@@ -2707,7 +2707,7 @@ static bool ed_object_select_pick(bContext *C,
 
   /* Split `changed` into data-types so their associated updates can be properly performed.
    * This is also needed as multiple changes may happen at once.
-   * Selecting a pose-bone or track can also select the object for e.g. */
+   * Selecting a pose-bone or track can also select the object for example */
   bool changed_object = false;
   bool changed_pose = false;
   bool changed_track = false;
@@ -3520,7 +3520,7 @@ static wmOperatorStatus view3d_select_exec(bContext *C, wmOperator *op)
 
   if (obedit && enumerate) {
     /* Enumerate makes no sense in edit-mode unless also explicitly picking objects or bones.
-     * Pass the event through so the event may be handled by loop-select for e.g. see: #100204.
+     * Pass the event through so the event may be handled by loop-select for example. See: #100204.
      */
     if (obedit->type != OB_ARMATURE) {
       return OPERATOR_PASS_THROUGH | OPERATOR_CANCELLED;

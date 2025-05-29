@@ -186,7 +186,7 @@ struct BChunkList;
 
 /**
  * Ensure duplicate entries aren't added to temporary hash table
- * needed for arrays where many values match (an array of booleans all true/false for e.g.).
+ * needed for arrays where many values match (e.g. an array of booleans all true/false).
  *
  * Without this, a huge number of duplicates are added a single bucket, making hash lookups slow.
  * While de-duplication adds some cost, it's only performed with other chunks in the same bucket

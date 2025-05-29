@@ -120,7 +120,7 @@ PACKAGES_FOR_LIBS=(
     yasm
 
     # NOTE(@ideasman42): while `python39` is available, the default Python version is 3.6.
-    # This is used for the `python3-mako` package for e.g.
+    # For example, this is used for the `python3-mako` package
     # So use the "default" system Python since it means it's most compatible with other packages.
     python3
     # Required by: `external_mesa`.

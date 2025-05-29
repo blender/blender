@@ -1455,7 +1455,7 @@ static void paint_update_mouse_cursor(PaintCursorContext &pcontext)
 {
   if (pcontext.win->grabcursor != 0 || pcontext.win->modalcursor != 0) {
     /* Don't set the cursor while it's grabbed, since this will show the cursor when interacting
-     * with the UI (dragging a number button for e.g.), see: #102792.
+     * with the UI (dragging a number button for example), see: #102792.
      * And don't overwrite a modal cursor, allowing modal operators to set a cursor temporarily. */
     return;
   }

@@ -360,7 +360,7 @@ bool RE_WriteRenderViewsMovie(struct ReportList *reports,
  * \note Only #RE_NewRender() needed, main Blender render calls.
  *
  * \param write_still: Saves frames to disk (typically disabled). Useful for batch-operations
- * (rendering from Python for e.g.) when an additional save action for is inconvenient.
+ * (e.g. rendering from Python) when an additional save action for is inconvenient.
  * This is the default behavior for #RE_RenderAnim.
  */
 void RE_RenderFrame(struct Render *re,

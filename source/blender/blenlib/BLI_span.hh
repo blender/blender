@@ -35,10 +35,10 @@
  *   `blender::FixedSpan<T, N>`.
  *
  * `blender::Span<T>` should be your default choice when you have to pass a read-only array
- * into a function. It is better than passing a `const Vector &`, because then the function only
- * works for vectors and not for e.g. arrays. Using Span as function parameter makes it usable
- * in more contexts, better expresses the intent and does not sacrifice performance. It is also
- * better than passing a raw pointer and size separately, because it is more convenient and safe.
+ * into a function. It is better than passing a `const Vector &`, because e.g. then the function
+ * only works for vectors and not arrays. Using Span as function parameter makes it usable in more
+ * contexts, better expresses the intent and does not sacrifice performance. It is also better than
+ * passing a raw pointer and size separately, because it is more convenient and safe.
  *
  * `blender::MutableSpan<T>` can be used when a function is supposed to return an array, the
  * size of which is known before the function is called. One advantage of this approach is that the

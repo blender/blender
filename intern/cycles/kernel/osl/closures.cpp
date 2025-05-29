@@ -168,7 +168,7 @@ void osl_eval_nodes<SHADER_TYPE_SURFACE>(const ThreadKernelGlobalsCPU *kg,
       sd->P = P;
       sd->dP = dP;
 
-      /* Apply bump output to sd->N since it's used for e.g. shadow terminator logic. */
+      /* Apply bump output to sd->N since it's used for shadow terminator logic, for example. */
       sd->N = TO_FLOAT3(globals->N);
 
       globals->P = TO_VEC3(P);

@@ -711,7 +711,7 @@ def BuildRNAInfo():
                 print("rna_info.BuildRNAInfo(..): ignoring type", repr(rna_type_name))
 
         # Now, there are some sub-classes in add-ons we also want to include.
-        # Cycles for e.g. these are referenced from the Scene, but not part of
+        # Cycles for example. These are referenced from the Scene, but not part of
         # bpy.types module.
         # Include all sub-classes we didn't already get from 'bpy.types'.
         i = 0

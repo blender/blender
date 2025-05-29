@@ -187,7 +187,7 @@ static bool bpy_rna_context_temp_override_enter_ok_or_error(const BPyContextTemp
    *   Simple, no sanity checks needed.
    *
    * - 2) Some members are overridden.
-   *   Check the state is consistent (that the region is part the area or screen for e.g.).
+   *   Check the state is consistent (that the region is part the area or screen for example).
    *
    * - 3) Some members are overridden *but* the context members are unchanged.
    *   This is a less obvious case which often happens when a Python script copies the context
@@ -201,7 +201,7 @@ static bool bpy_rna_context_temp_override_enter_ok_or_error(const BPyContextTemp
    *
    *   When error-checking unchanged context members some error checks must be skipped
    *   such as the check to disallow temporary screens since that could break using
-   *   `temp_override(..)` running with the current context from a render-window for e.g.
+   *   `temp_override(..)` running with the current context from a render-window for example.
    *
    *   In fact all sanity checks could be disabled when the members involved remain unchanged
    *   however it's possible Python scripts corrupt Blender's internal windowing state so keeping
@@ -327,7 +327,7 @@ static PyObject *bpy_rna_context_temp_override_enter(BPyContextTempOverride *sel
   }
 
   /* NOTE: always set these members, even when they are equal to the current values because
-   * setting the window (for e.g.) clears the area & region, setting the area clears the region.
+   * setting the window (for example) clears the area & region, setting the area clears the region.
    * While it would be useful in some cases to leave the context as-is when setting members
    * to their current values.
    *

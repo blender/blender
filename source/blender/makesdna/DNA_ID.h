@@ -464,7 +464,8 @@ typedef struct ID {
    *   so accessing it from Python raises an exception instead of crashing.
    *
    *   This is of limited benefit though, as it doesn't apply to non #ID data
-   *   that references this ID (the bones of an armature or the modifiers of an object for e.g.).
+   *   that references this ID (the bones of an armature or the modifiers of an object for
+   *   example).
    */
   void *py_instance;
 

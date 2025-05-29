@@ -784,11 +784,11 @@ def pyfunc2sphinx(ident, fw, module_name, type_name, identifier, py_func, is_cla
     """
 
     if type(py_func) == MethodType:
-        # Including methods means every operators "poll" function for e.g.
+        # Including methods means every operators "poll" function example
         # would be listed in documentation which isn't useful.
         #
-        # However excluding all of them is also incorrect as it means class methods defined
-        # in `bpy_types.py` for e.g. are excluded, making some utility functions entirely hidden.
+        # However, excluding all of them is also incorrect as it means class methods defined
+        # in `bpy_types.py` for example are excluded, making some utility functions entirely hidden.
         if (bl_rna := getattr(py_func.__self__, "bl_rna", None)) is not None:
             if bl_rna.functions.get(identifier) is not None:
                 return

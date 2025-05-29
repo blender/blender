@@ -53,7 +53,7 @@ struct RNA_DepsgraphIterator {
 #  ifdef WITH_PYTHON
   /**
    * Store the Python instance so the #BPy_StructRNA can be set as invalid iteration is completed.
-   * Otherwise accessing from Python (console auto-complete for e.g.) crashes, see: #100286. */
+   * Otherwise accessing from Python (e.g. console auto-complete) crashes, see: #100286. */
   void *py_instance;
 #  endif
 };

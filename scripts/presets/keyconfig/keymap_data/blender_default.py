@@ -96,7 +96,7 @@ class Params:
         #
         # NOTE: This is typically used for active tool key-map items however it should never
         # be used for selection tools (the default box-select tool for example).
-        # Since this means with RMB select enabled in edit-mode for e.g.
+        # Since this means with RMB select enabled in edit-mode for example
         # `Ctrl-LMB` would be caught by box-select instead of add/extrude.
         "tool_maybe_tweak_event",
     )
@@ -603,7 +603,7 @@ def _template_items_tool_select(
     if params.select_mouse == 'LEFTMOUSE':
         # Use 'PRESS' for immediate select without delay.
         # Tools that allow dragging anywhere should _NOT_ enable the fallback tool
-        # unless it is expected that the tool should operate on the selection (click-drag to rip for e.g.).
+        # unless it is expected that the tool should operate on the selection (click-drag to rip for example).
         return [
             (operator, {"type": 'LEFTMOUSE', "value": 'PRESS'},
              {"properties": [

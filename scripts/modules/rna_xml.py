@@ -239,7 +239,7 @@ def rna2xml(
 # paths "escaping" the intended data types, potentially writing into unexpected settings.
 # This is done because the XML itself defines the attributes which are recursed into,
 # there is a possibility the XML recurse into data that isn't logically owned by "root",
-# out of the theme and into user preferences for e.g. which could change trust settings
+# out of the theme and into user preferences for example, which could change trust settings
 # even executing code.
 #
 # At the time of writing it seems this is not possible with themes (the main user of this functionality),

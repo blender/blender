@@ -404,8 +404,8 @@ struct LayoutPanelBody {
  * specific place in the layout and can not be freely dragged around like top level panels.
  *
  * This struct gathers information about the layout panels created by layout code. This is then
- * used for e.g. drawing the backdrop of nested panels and to support opening and closing multiple
- * panels with a single mouse gesture.
+ * used for example drawing the backdrop of nested panels and to support opening and closing
+ * multiple panels with a single mouse gesture.
  */
 struct LayoutPanels {
   blender::Vector<LayoutPanelHeader> headers;

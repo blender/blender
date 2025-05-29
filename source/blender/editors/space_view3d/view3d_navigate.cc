@@ -754,7 +754,7 @@ static void view3d_orbit_apply_dyn_ofs_ortho_correction(float ofs[3],
    * (`ofs` + `dist` along the view Z-axis) unlike orthographic views which center around `ofs`.
    * Nevertheless there will be cases when having `ofs` and a large `dist` pointing nowhere doesn't
    * give ideal behavior (zooming may jump in larger than expected steps and panning the view may
-   * move too much in relation to nearby objects - for e.g.). So it's worth investigating but
+   * move too much in relation to nearby objects - for example). So it's worth investigating but
    * should be done with extra care as changing `ofs` in perspective view also requires changing
    * the `dist` which could cause unexpected results if the calculated `dist` happens to be small.
    * So disable this workaround in perspective view unless there are clear benefits to enabling. */
