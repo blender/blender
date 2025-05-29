@@ -474,7 +474,7 @@ class ImageOperation : public NodeOperation {
   void execute() override
   {
     for (const bNodeSocket *output : this->node()->output_sockets()) {
-      if (!output->is_available()) {
+      if (!is_socket_available(output)) {
         continue;
       }
 
@@ -713,7 +713,7 @@ class RenderLayerOperation : public NodeOperation {
     }
 
     for (const bNodeSocket *output : this->node()->output_sockets()) {
-      if (!output->is_available()) {
+      if (!is_socket_available(output)) {
         continue;
       }
 

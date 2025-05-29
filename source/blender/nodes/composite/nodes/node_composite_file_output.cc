@@ -488,7 +488,7 @@ class FileOutputOperation : public NodeOperation {
   FileOutputOperation(Context &context, DNode node) : NodeOperation(context, node)
   {
     for (const bNodeSocket *input : node->input_sockets()) {
-      if (!input->is_available()) {
+      if (!is_socket_available(input)) {
         continue;
       }
 
@@ -519,7 +519,7 @@ class FileOutputOperation : public NodeOperation {
   void execute_single_layer()
   {
     for (const bNodeSocket *input : this->node()->input_sockets()) {
-      if (!input->is_available()) {
+      if (!is_socket_available(input)) {
         continue;
       }
 
@@ -633,7 +633,7 @@ class FileOutputOperation : public NodeOperation {
     file_output.add_view(pass_view);
 
     for (const bNodeSocket *input : this->node()->input_sockets()) {
-      if (!input->is_available()) {
+      if (!is_socket_available(input)) {
         continue;
       }
 

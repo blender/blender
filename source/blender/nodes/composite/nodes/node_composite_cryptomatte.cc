@@ -999,7 +999,7 @@ class LegacyCryptoMatteOperation : public BaseCryptoMatteOperation {
     Vector<Result> layers;
     /* Add all valid results of all inputs except the first input, which is the input image. */
     for (const bNodeSocket *input_socket : bnode().input_sockets().drop_front(1)) {
-      if (!input_socket->is_available()) {
+      if (!is_socket_available(input_socket)) {
         continue;
       }
 

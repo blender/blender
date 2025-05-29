@@ -19,6 +19,9 @@ namespace blender::compositor {
 
 using namespace nodes::derived_node_tree_types;
 
+/* Returns true if the socket is available and not virtual. Returns false otherwise. */
+bool is_socket_available(const bNodeSocket *socket);
+
 /**
  * Get the origin socket of the given node input. If the input is not linked, the socket itself is
  * returned. If the input is linked, the socket that is linked to it is returned, which could
