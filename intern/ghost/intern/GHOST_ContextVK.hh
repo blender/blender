@@ -78,7 +78,7 @@ struct GHOST_FrameDiscard {
 };
 
 struct GHOST_SwapchainImage {
-  /** Swapchain image (owned by the swapchain). */
+  /** Swap-chain image (owned by the swapchain). */
   VkImage vk_image = VK_NULL_HANDLE;
 
   /**

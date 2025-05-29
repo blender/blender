@@ -1519,7 +1519,7 @@ bool copy_animedit_keys(bAnimContext *ac, ListBase *anim_data)
     int bezt_index = 0;
     BezTriple *bezt = fcu->bezt;
     for (; bezt_index < fcu->totvert; bezt_index++, bezt++) {
-      /* Dont copy if only a handle is selected. */
+      /* Don't copy if only a handle is selected. */
       if (!BEZT_ISSEL_IDX(bezt, 1)) {
         continue;
       }

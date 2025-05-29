@@ -243,11 +243,12 @@ void GPU_context_active_set(GPUContext *ctx_)
 
   if (ctx) {
     ctx->activate();
-    /* It can happen that the previous context drew with a different colorspace.
+    /* It can happen that the previous context drew with a different color-space.
      * In the case where the new context is drawing with the same shader that was previously bound
      * (shader binding optimization), the uniform would not be set again because the dirty flag
      * would not have been set (since the color space of this new context never changed). The
-     * shader would reuse the same colorspace as the previous context framebuffer (see #137855). */
+     * shader would reuse the same color-space as the previous context frame-buffer (see #137855).
+     */
     ctx->shader_builtin_srgb_is_dirty = true;
   }
 }

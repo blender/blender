@@ -897,9 +897,9 @@ static void file_space_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
   }
   if (sfile->asset_params) {
     sfile->asset_params->base_params.rename_id = nullptr;
-    /* Code (filebrowser etc.) asserts that this setting is one of the currently known values. So
-     * fallback to FILE_ASSET_IMPORT_FOLLOW_PREFS if it is not (e.g. because of
-     * forward-compatibility while reading a blendfile from the future). */
+    /* Code (file-browser etc.) asserts that this setting is one of the currently known values.
+     * So fallback to #FILE_ASSET_IMPORT_FOLLOW_PREFS if it is not
+     * (e.g. because of forward-compatibility while reading a blend-file from the future). */
     switch (eFileAssetImportMethod(sfile->asset_params->import_method)) {
       case FILE_ASSET_IMPORT_LINK:
       case FILE_ASSET_IMPORT_APPEND:

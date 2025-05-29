@@ -101,7 +101,7 @@ static DataRequirement merge(const DataRequirement a, const DataRequirement b)
   if ((a == DataRequirement::Field && b == DataRequirement::Single) ||
       (a == DataRequirement::Single && b == DataRequirement::Field))
   {
-    /* Single beats field, becasuse fields can accept single values too. */
+    /* Single beats field, because fields can accept single values too. */
     return DataRequirement::Single;
   }
   return DataRequirement::Invalid;

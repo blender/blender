@@ -281,7 +281,7 @@ static void rna_def_light_energy(StructRNA *srna, const short light_type)
       break;
     }
     case LA_SPOT: {
-      /* Lights with a location have radiometric ppower in Watts,
+      /* Lights with a location have radiometric power in Watts,
        * which is sensitive to scene unit scale. */
       prop = RNA_def_property(srna, "energy", PROP_FLOAT, PROP_NONE);
       RNA_def_property_ui_range(prop, 0.0f, 1000000.0f, 10, 3);

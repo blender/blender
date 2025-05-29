@@ -1065,7 +1065,7 @@ static void gizmo_node_split_prop_matrix_set(const wmGizmo *gz,
   CMPNodeSplitAxis axis = static_cast<CMPNodeSplitAxis>(node->custom2);
   if (axis == CMPNodeSplitAxis::CMP_NODE_SPLIT_VERTICAL) {
     float fac = (matrix[3][1] - offset.y) / dims.y + 0.5f;
-    /* Prevet dragging the gizmo outside the image. */
+    /* Prevent dragging the gizmo outside the image. */
     fac = math::clamp(fac, 0.0f, 1.0f);
     factor_input->default_value_typed<bNodeSocketValueFloat>()->value = fac;
   }
