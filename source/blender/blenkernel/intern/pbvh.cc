@@ -409,7 +409,11 @@ Tree Tree::from_grids(const Mesh &base_mesh, const SubdivCCG &subdiv_ccg)
     return pbvh;
   }
 
-  const int leaf_limit = std::max(2500 / key.grid_area, 1);
+  /* We use a lower value here compared to regular mesh sculpting because the number of elements is
+   * on average 4x as many due to the prim_indices_ being associated with face corners, not faces.
+   */
+  constexpr int base_limit = 800;
+  const int leaf_limit = std::max(base_limit / key.grid_area, 1);
 
   Array<float3> face_centers(faces.size());
   const Bounds<float3> bounds = threading::parallel_reduce(
