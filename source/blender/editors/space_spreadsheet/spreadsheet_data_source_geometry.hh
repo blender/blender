@@ -27,6 +27,7 @@ class GeometryDataSource : public DataSource {
   const bke::GeometrySet geometry_set_;
   const bke::GeometryComponent *component_;
   bke::AttrDomain domain_;
+  bool show_internal_attributes_;
   /* Layer index for grease pencil component. */
   int layer_index_;
 
@@ -41,11 +42,13 @@ class GeometryDataSource : public DataSource {
                      bke::GeometrySet geometry_set,
                      const bke::GeometryComponent::Type component_type,
                      const bke::AttrDomain domain,
+                     const bool show_internal_attributes,
                      const int layer_index = -1)
       : object_orig_(object_orig),
         geometry_set_(std::move(geometry_set)),
         component_(geometry_set_.get_component(component_type)),
         domain_(domain),
+        show_internal_attributes_(show_internal_attributes),
         layer_index_(layer_index)
   {
   }
@@ -63,6 +66,7 @@ class GeometryDataSource : public DataSource {
 
  private:
   std::optional<const bke::AttributeAccessor> get_component_attributes() const;
+  bool display_attribute(StringRef name, bke::AttrDomain domain) const;
 };
 
 class VolumeDataSource : public DataSource {

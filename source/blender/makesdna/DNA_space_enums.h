@@ -971,6 +971,7 @@ typedef enum eSpaceSpreadsheet_Flag {
    * versioning first.
    */
   SPREADSHEET_FLAG_CONTEXT_PATH_COLLAPSED_LEGACY = (1 << 1),
+  SPREADSHEET_FLAG_SHOW_INTERNAL_ATTRIBUTES = (1 << 2),
 } eSpaceSpreadsheet_Flag;
 
 typedef enum eSpaceSpreadsheet_FilterFlag {

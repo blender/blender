@@ -8915,6 +8915,14 @@ static void rna_def_space_spreadsheet(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Is Pinned", "Context path is pinned");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SPREADSHEET, nullptr);
 
+  prop = RNA_def_property(srna, "show_internal_attributes", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", SPREADSHEET_FLAG_SHOW_INTERNAL_ATTRIBUTES);
+  RNA_def_property_ui_text(
+      prop,
+      "Show Internal Attributes",
+      "Display attributes with names starting with a period that are meant for internal use");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SPREADSHEET, nullptr);
+
   prop = RNA_def_property(srna, "use_filter", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "filter_flag", SPREADSHEET_FILTER_ENABLE);
   RNA_def_property_ui_text(prop, "Use Filter", "");
