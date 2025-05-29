@@ -391,6 +391,7 @@ class VKDevice : public NonCopyable {
                                     VkSemaphore signal_semaphore,
                                     VkFence signal_fence);
   void wait_for_timeline(TimelineValue timeline);
+  void wait_queue_idle();
 
   /**
    * Retrieve the last finished submission timeline.

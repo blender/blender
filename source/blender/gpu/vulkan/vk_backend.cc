@@ -618,7 +618,7 @@ void VKBackend::render_end()
      * resource tracker. That would only handle images and buffers, but it would solve the most
      * resource hungry issues.
      */
-    vkDeviceWaitIdle(device.vk_handle());
+    device.wait_queue_idle();
     device.orphaned_data.destroy_discarded_resources(device);
   }
 }

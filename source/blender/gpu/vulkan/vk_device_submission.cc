@@ -97,6 +97,12 @@ void VKDevice::wait_for_timeline(TimelineValue timeline)
   vkWaitSemaphores(vk_device_, &vk_semaphore_wait_info, UINT64_MAX);
 }
 
+void VKDevice::wait_queue_idle()
+{
+  std::scoped_lock lock(*queue_mutex_);
+  vkQueueWaitIdle(vk_queue_);
+}
+
 render_graph::VKRenderGraph *VKDevice::render_graph_new()
 {
   render_graph::VKRenderGraph *render_graph = static_cast<render_graph::VKRenderGraph *>(
