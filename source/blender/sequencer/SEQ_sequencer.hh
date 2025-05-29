@@ -128,6 +128,16 @@ void eval_strips(Depsgraph *depsgraph, Scene *scene, ListBase *seqbase);
 Strip *lookup_strip_by_name(Editing *ed, const char *key);
 
 /**
+ * Find a strips using provided scene as input
+ *
+ * \param ed: Editing that owns lookup hash
+ * \param key: Input Scene pointer
+ *
+ * \return Span of strips
+ */
+Span<Strip *> lookup_strips_by_scene(Editing *ed, const Scene *key);
+
+/**
  * Find which meta strip the given timeline channel belongs to. Returns nullptr if it is a global
  * channel.
  */

@@ -51,8 +51,8 @@ void relations_invalidate_cache(Scene *scene, Strip *strip);
  * images of the strip.
  */
 void relations_invalidate_cache_raw(Scene *scene, Strip *strip);
+void relations_invalidate_scene_strips(const Main *bmain, const Scene *scene_target);
 
-void relations_invalidate_scene_strips(Main *bmain, Scene *scene_target);
 void relations_invalidate_movieclip_strips(Main *bmain, MovieClip *clip_target);
 /**
  * Release FFmpeg handles of strips that are not currently displayed to minimize memory usage.
