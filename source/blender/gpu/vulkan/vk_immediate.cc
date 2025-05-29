@@ -156,7 +156,7 @@ VKBuffer &VKImmediate::ensure_space(VkDeviceSize bytes_needed, VkDeviceSize offs
   if (!recycling_buffers_.is_empty() &&
       recycling_buffers_.last()->size_in_bytes() >= bytes_required)
   {
-    CLOG_INFO(&LOG, 2, "Activating recycled buffer");
+    CLOG_INFO(&LOG, 3, "Activating recycled buffer");
     buffer_offset_ = 0;
     active_buffers_.append(recycling_buffers_.pop_last());
     return *active_buffers_.last();
@@ -164,7 +164,7 @@ VKBuffer &VKImmediate::ensure_space(VkDeviceSize bytes_needed, VkDeviceSize offs
 
   /* Offset alignment isn't needed when creating buffers as it is managed by VMA. */
   VkDeviceSize alloc_size = new_buffer_size(bytes_needed);
-  CLOG_INFO(&LOG, 2, "Allocate buffer (size=%d)", int(alloc_size));
+  CLOG_INFO(&LOG, 3, "Allocate buffer (size=%d)", int(alloc_size));
   buffer_offset_ = 0;
   active_buffers_.append(std::make_unique<VKBuffer>());
   VKBuffer &result = *active_buffers_.last();
@@ -183,7 +183,7 @@ VKBuffer &VKImmediate::ensure_space(VkDeviceSize bytes_needed, VkDeviceSize offs
 void VKImmediate::reset()
 {
   if (!recycling_buffers_.is_empty()) {
-    CLOG_INFO(&LOG, 2, "Discarding %d unused buffers", int(recycling_buffers_.size()));
+    CLOG_INFO(&LOG, 3, "Discarding %d unused buffers", int(recycling_buffers_.size()));
   }
   recycling_buffers_.clear();
   recycling_buffers_ = std::move(active_buffers_);
