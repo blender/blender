@@ -817,8 +817,8 @@ class SEQUENCER_MT_add_transitions(Menu):
         layout.separator()
 
         col = layout.column()
-        col.operator("sequencer.effect_strip_add", text="Cross").type = 'CROSS'
-        col.operator("sequencer.effect_strip_add", text="Gamma Cross").type = 'GAMMA_CROSS'
+        col.operator("sequencer.effect_strip_add", text="Crossfade").type = 'CROSS'
+        col.operator("sequencer.effect_strip_add", text="Gamma Crossfade").type = 'GAMMA_CROSS'
 
         col.separator()
 
@@ -1036,8 +1036,8 @@ class SEQUENCER_MT_strip_effect_change(Menu):
         col.operator("sequencer.change_effect_type", text="Alpha Over").type = 'ALPHA_OVER'
         col.operator("sequencer.change_effect_type", text="Alpha Under").type = 'ALPHA_UNDER'
         col.operator("sequencer.change_effect_type", text="Color Mix").type = 'COLORMIX'
-        col.operator("sequencer.change_effect_type", text="Cross").type = 'CROSS'
-        col.operator("sequencer.change_effect_type", text="Gamma Cross").type = 'GAMMA_CROSS'
+        col.operator("sequencer.change_effect_type", text="Crossfade").type = 'CROSS'
+        col.operator("sequencer.change_effect_type", text="Gamma Crossfade").type = 'GAMMA_CROSS'
         col.operator("sequencer.change_effect_type", text="Wipe").type = 'WIPE'
         col.enabled = strip.input_count == 2
 

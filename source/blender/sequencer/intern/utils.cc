@@ -127,9 +127,9 @@ const char *get_default_stripname_by_type(int type)
     case STRIP_TYPE_SOUND_RAM:
       return CTX_DATA_(BLT_I18NCONTEXT_ID_SEQUENCE, "Audio");
     case STRIP_TYPE_CROSS:
-      return CTX_DATA_(BLT_I18NCONTEXT_ID_SEQUENCE, "Cross");
+      return CTX_DATA_(BLT_I18NCONTEXT_ID_SEQUENCE, "Crossfade");
     case STRIP_TYPE_GAMCROSS:
-      return CTX_DATA_(BLT_I18NCONTEXT_ID_SEQUENCE, "Gamma Cross");
+      return CTX_DATA_(BLT_I18NCONTEXT_ID_SEQUENCE, "Gamma Crossfade");
     case STRIP_TYPE_ADD:
       return CTX_DATA_(BLT_I18NCONTEXT_ID_SEQUENCE, "Add");
     case STRIP_TYPE_SUB:

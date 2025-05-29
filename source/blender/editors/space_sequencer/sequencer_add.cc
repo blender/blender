@@ -1750,7 +1750,8 @@ static std::string sequencer_add_effect_strip_get_description(bContext * /*C*/,
       return TIP_(
           "Add an alpha under blend mode effect strip for two selected strips with video content");
     case STRIP_TYPE_GAMCROSS:
-      return TIP_("Add a gamma cross transition strip for two selected strips with video content");
+      return TIP_(
+          "Add a gamma crossfade transition strip for two selected strips with video content");
     case STRIP_TYPE_MUL:
       return TIP_(
           "Add a multiply blend mode effect strip for two selected strips with video content");
