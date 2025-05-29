@@ -63,7 +63,7 @@ static void node_shader_buts_map_range(uiLayout *layout, bContext * /*C*/, Point
 static int node_shader_map_range_ui_class(const bNode *node)
 {
   const NodeMapRange &storage = node_storage(*node);
-  const eCustomDataType data_type = static_cast<eCustomDataType>(storage.data_type);
+  const eCustomDataType data_type = eCustomDataType(storage.data_type);
   if (data_type == CD_PROP_FLOAT3) {
     return NODE_CLASS_OP_VECTOR;
   }
@@ -73,7 +73,7 @@ static int node_shader_map_range_ui_class(const bNode *node)
 static void node_shader_update_map_range(bNodeTree *ntree, bNode *node)
 {
   const NodeMapRange &storage = node_storage(*node);
-  const eCustomDataType data_type = static_cast<eCustomDataType>(storage.data_type);
+  const eCustomDataType data_type = eCustomDataType(storage.data_type);
   const int type = (data_type == CD_PROP_FLOAT) ? SOCK_FLOAT : SOCK_VECTOR;
 
   Array<bool> new_input_availability(BLI_listbase_count(&node->inputs));

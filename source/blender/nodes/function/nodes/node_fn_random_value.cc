@@ -59,7 +59,7 @@ static void fn_node_random_value_init(bNodeTree * /*tree*/, bNode *node)
 static void fn_node_random_value_update(bNodeTree *ntree, bNode *node)
 {
   const NodeRandomValue &storage = node_storage(*node);
-  const eCustomDataType data_type = static_cast<eCustomDataType>(storage.data_type);
+  const eCustomDataType data_type = eCustomDataType(storage.data_type);
 
   bNodeSocket *sock_min_vector = (bNodeSocket *)node->inputs.first;
   bNodeSocket *sock_max_vector = sock_min_vector->next;
@@ -140,7 +140,7 @@ static void node_gather_link_search_ops(GatherLinkSearchOpParams &params)
 static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
 {
   const NodeRandomValue &storage = node_storage(builder.node());
-  const eCustomDataType data_type = static_cast<eCustomDataType>(storage.data_type);
+  const eCustomDataType data_type = eCustomDataType(storage.data_type);
 
   switch (data_type) {
     case CD_PROP_FLOAT3: {

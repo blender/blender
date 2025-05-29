@@ -202,7 +202,7 @@ static DRW_MeshCDMask mesh_cd_calc_used_gpu_layers(const Object &object,
     ListBase gpu_attrs = GPU_material_attributes(gpumat);
     LISTBASE_FOREACH (GPUMaterialAttribute *, gpu_attr, &gpu_attrs) {
       StringRef name = gpu_attr->name;
-      eCustomDataType type = static_cast<eCustomDataType>(gpu_attr->type);
+      eCustomDataType type = eCustomDataType(gpu_attr->type);
       int layer = -1;
       std::optional<bke::AttrDomain> domain;
 

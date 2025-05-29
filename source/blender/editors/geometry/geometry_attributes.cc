@@ -278,7 +278,7 @@ static wmOperatorStatus geometry_attribute_add_exec(bContext *C, wmOperator *op)
 
   char name[MAX_NAME];
   RNA_string_get(op->ptr, "name", name);
-  eCustomDataType type = (eCustomDataType)RNA_enum_get(op->ptr, "data_type");
+  eCustomDataType type = eCustomDataType(RNA_enum_get(op->ptr, "data_type"));
   bke::AttrDomain domain = bke::AttrDomain(RNA_enum_get(op->ptr, "domain"));
   AttributeOwner owner = AttributeOwner::from_id(id);
   CustomDataLayer *layer = BKE_attribute_new(owner, name, type, domain, op->reports);
@@ -409,7 +409,7 @@ static wmOperatorStatus geometry_color_attribute_add_exec(bContext *C, wmOperato
 
   char name[MAX_NAME];
   RNA_string_get(op->ptr, "name", name);
-  eCustomDataType type = (eCustomDataType)RNA_enum_get(op->ptr, "data_type");
+  eCustomDataType type = eCustomDataType(RNA_enum_get(op->ptr, "data_type"));
   bke::AttrDomain domain = bke::AttrDomain(RNA_enum_get(op->ptr, "domain"));
   AttributeOwner owner = AttributeOwner::from_id(id);
   CustomDataLayer *layer = BKE_attribute_new(owner, name, type, domain, op->reports);
