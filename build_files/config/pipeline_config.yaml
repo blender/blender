@@ -16,7 +16,7 @@ buildbot:
         windows:
             version: '6.3.42560'
         linux:
-            version: '6.3.1'
+            version: '6.4.0'
     optix:
         version: '7.4.0'
     ocloc:
