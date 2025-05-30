@@ -954,8 +954,6 @@ static wmOperatorStatus graphkeys_lassoselect_exec(bContext *C, wmOperator *op)
   rcti rect;
   rctf rect_fl;
 
-  bool incl_handles;
-
   /* Get editor data. */
   if (ANIM_animdata_get_context(C, &ac) == 0) {
     return OPERATOR_CANCELLED;
@@ -973,21 +971,13 @@ static wmOperatorStatus graphkeys_lassoselect_exec(bContext *C, wmOperator *op)
     deselect_graph_keys(&ac, false, SELECT_SUBTRACT, true);
   }
 
-  {
-    SpaceGraph *sipo = (SpaceGraph *)ac.sl;
-    if (selectmode == SELECT_ADD) {
-      incl_handles = ((sipo->flag & SIPO_SELVHANDLESONLY) || (sipo->flag & SIPO_NOHANDLES)) == 0;
-    }
-    else {
-      incl_handles = (sipo->flag & SIPO_NOHANDLES) == 0;
-    }
-  }
-
   /* Get settings from operator. */
   BLI_lasso_boundbox(&rect, data_lasso.mcoords);
   BLI_rctf_rcti_copy(&rect_fl, &rect);
 
   /* Apply box_select action. */
+  SpaceGraph *sgraph = reinterpret_cast<SpaceGraph *>(ac.sl);
+  const bool incl_handles = (sgraph->flag & SIPO_NOHANDLES) == 0;
   const bool any_key_selection_changed = box_select_graphkeys(
       &ac, &rect_fl, BEZT_OK_REGION_LASSO, selectmode, incl_handles, &data_lasso);
   const bool use_curve_selection = RNA_boolean_get(op->ptr, "use_curve_selection");
@@ -1036,7 +1026,6 @@ void GRAPH_OT_select_lasso(wmOperatorType *ot)
 static wmOperatorStatus graph_circle_select_exec(bContext *C, wmOperator *op)
 {
   bAnimContext ac;
-  bool incl_handles = false;
 
   KeyframeEdit_CircleData data = {nullptr};
   rctf rect_fl;
@@ -1068,17 +1057,9 @@ static wmOperatorStatus graph_circle_select_exec(bContext *C, wmOperator *op)
   rect_fl.ymin = y - radius;
   rect_fl.ymax = y + radius;
 
-  {
-    SpaceGraph *sipo = (SpaceGraph *)ac.sl;
-    if (selectmode == SELECT_ADD) {
-      incl_handles = ((sipo->flag & SIPO_SELVHANDLESONLY) || (sipo->flag & SIPO_NOHANDLES)) == 0;
-    }
-    else {
-      incl_handles = (sipo->flag & SIPO_NOHANDLES) == 0;
-    }
-  }
-
   /* Apply box_select action. */
+  SpaceGraph *sgraph = reinterpret_cast<SpaceGraph *>(ac.sl);
+  const bool incl_handles = (sgraph->flag & SIPO_NOHANDLES) == 0;
   const bool any_key_selection_changed = box_select_graphkeys(
       &ac, &rect_fl, BEZT_OK_REGION_CIRCLE, selectmode, incl_handles, &data);
   if (any_key_selection_changed) {
