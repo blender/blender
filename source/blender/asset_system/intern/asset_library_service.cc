@@ -101,8 +101,7 @@ AssetLibrary *AssetLibraryService::get_asset_library(
         return nullptr;
       }
 
-      AssetLibrary *library = this->get_asset_library_on_disk_custom(custom_library->name,
-                                                                     root_path);
+      AssetLibrary *library = this->get_asset_library_on_disk_custom_preferences(custom_library);
       library->import_method_ = eAssetImportMethod(custom_library->import_method);
       library->may_override_import_method_ = true;
       library->use_relative_path_ = (custom_library->flag & ASSET_LIBRARY_RELATIVE_PATH) != 0;
@@ -114,10 +113,12 @@ AssetLibrary *AssetLibraryService::get_asset_library(
   return nullptr;
 }
 
-AssetLibrary *AssetLibraryService::get_asset_library_on_disk(eAssetLibraryType library_type,
-                                                             StringRef name,
-                                                             StringRefNull root_path,
-                                                             const bool load_catalogs)
+AssetLibrary *AssetLibraryService::get_asset_library_on_disk(
+    eAssetLibraryType library_type,
+    StringRef name,
+    StringRefNull root_path,
+    const bool load_catalogs,
+    bUserAssetLibrary *preferences_library)
 {
   if (OnDiskAssetLibrary *lib = this->lookup_on_disk_library(library_type, root_path)) {
     CLOG_INFO(&LOG, 2, "get \"%s\" (cached)", root_path.c_str());
@@ -132,7 +133,12 @@ AssetLibrary *AssetLibraryService::get_asset_library_on_disk(eAssetLibraryType l
   std::unique_ptr<OnDiskAssetLibrary> lib_uptr;
   switch (library_type) {
     case ASSET_LIBRARY_CUSTOM:
-      lib_uptr = std::make_unique<PreferencesOnDiskAssetLibrary>(name, normalized_root_path);
+      if (preferences_library) {
+        lib_uptr = std::make_unique<PreferencesOnDiskAssetLibrary>(name, normalized_root_path);
+      }
+      else {
+        lib_uptr = std::make_unique<OnDiskAssetLibrary>(library_type, name, normalized_root_path);
+      }
       break;
     case ASSET_LIBRARY_ESSENTIALS:
       lib_uptr = std::make_unique<EssentialsAssetLibrary>();
@@ -157,6 +163,13 @@ AssetLibrary *AssetLibraryService::get_asset_library_on_disk_custom(StringRef na
                                                                     StringRefNull root_path)
 {
   return this->get_asset_library_on_disk(ASSET_LIBRARY_CUSTOM, name, root_path);
+}
+
+AssetLibrary *AssetLibraryService::get_asset_library_on_disk_custom_preferences(
+    bUserAssetLibrary *custom_library)
+{
+  return this->get_asset_library_on_disk(
+      ASSET_LIBRARY_CUSTOM, custom_library->name, custom_library->dirpath, custom_library);
 }
 
 AssetLibrary *AssetLibraryService::get_asset_library_on_disk_builtin(eAssetLibraryType type,

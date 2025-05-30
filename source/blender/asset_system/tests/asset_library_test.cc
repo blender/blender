@@ -34,7 +34,7 @@ class AssetLibraryTest : public testing::Test {
   }
 };
 
-TEST_F(AssetLibraryTest, AS_asset_library_load)
+TEST_F(AssetLibraryTest, AS_asset_library_load_from_directory)
 {
   const std::string test_files_dir = blender::tests::flags_test_asset_dir();
   if (test_files_dir.empty()) {
@@ -43,7 +43,7 @@ TEST_F(AssetLibraryTest, AS_asset_library_load)
 
   /* Load the asset library. */
   const std::string library_dirpath = test_files_dir + "/" + "asset_library";
-  AssetLibrary *library = AS_asset_library_load(__func__, library_dirpath.data());
+  AssetLibrary *library = AS_asset_library_load_from_directory(__func__, library_dirpath.data());
   ASSERT_NE(nullptr, library);
 
   /* Check that it can be cast to the C++ type and has a Catalog Service. */
@@ -68,7 +68,7 @@ TEST_F(AssetLibraryTest, load_nonexistent_directory)
   /* Load the asset library. */
   const std::string library_dirpath = test_files_dir + "/" +
                                       "asset_library/this/subdir/does/not/exist";
-  AssetLibrary *library = AS_asset_library_load(__func__, library_dirpath.data());
+  AssetLibrary *library = AS_asset_library_load_from_directory(__func__, library_dirpath.data());
   ASSERT_NE(nullptr, library);
 
   /* Check that it can be cast to the C++ type and has a Catalog Service. */
