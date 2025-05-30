@@ -5150,7 +5150,20 @@ static bool xkb_compose_state_feed_and_get_utf8(
         const int utf8_buf_compose_len = xkb_compose_state_get_utf8(
             compose_state, utf8_buf_compose, sizeof(utf8_buf_compose));
         if (utf8_buf_compose_len > 0) {
-          memcpy(r_utf8_buf, utf8_buf_compose, utf8_buf_compose_len);
+          if (utf8_buf_compose_len > sizeof(GHOST_TEventKeyData::utf8_buf)) {
+            /* TODO(@ideasman42): keyboard events in GHOST only support a single character.
+             *
+             * - In the case XKB compose enters multiple code-points only the first will be used.
+             *
+             * - Besides supporting multiple characters per key input,
+             *   one possible solution would be to generate an IME event.
+             *
+             * - In practice I'm not sure how common these are.
+             *   So far no bugs have been reported about this.
+             */
+            CLOG_WARN(LOG, "key (compose_size=%d) exceeds the maximum size", utf8_buf_compose_len);
+          }
+          memcpy(r_utf8_buf, utf8_buf_compose, sizeof(GHOST_TEventKeyData::utf8_buf));
           handled = true;
         }
         break;
