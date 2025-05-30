@@ -2010,9 +2010,9 @@ bool ghost_wl_display_report_error_if_set(wl_display *display)
 #ifdef __GNUC__
 static void ghost_wayland_log_handler(const char *msg, va_list arg)
     __attribute__((format(printf, 1, 0)));
+static void ghost_wayland_log_handler_background(const char *msg, va_list arg)
+    __attribute__((format(printf, 1, 0)));
 #endif
-
-static bool ghost_wayland_log_handler_is_background = false;
 
 /**
  * Callback for WAYLAND to run when there is an error.
@@ -2022,15 +2022,6 @@ static bool ghost_wayland_log_handler_is_background = false;
  */
 static void ghost_wayland_log_handler(const char *msg, va_list arg)
 {
-  /* This is fine in background mode, we will try to fall back to headless GPU context.
-   * Happens when render farm process runs without user login session. */
-  if (ghost_wayland_log_handler_is_background &&
-      (strstr(msg, "error: XDG_RUNTIME_DIR not set in the environment") ||
-       strstr(msg, "error: XDG_RUNTIME_DIR is invalid or not set in the environment")))
-  {
-    return;
-  }
-
   fprintf(stderr, "GHOST/Wayland: ");
   vfprintf(stderr, msg, arg); /* Includes newline. */
 
@@ -2038,6 +2029,19 @@ static void ghost_wayland_log_handler(const char *msg, va_list arg)
   if (backtrace_fn) {
     backtrace_fn(stderr); /* Includes newline. */
   }
+}
+
+/** A wrapper for #ghost_wayland_log_handler to be used when running in the background. */
+static void ghost_wayland_log_handler_background(const char *msg, va_list arg)
+{
+  /* This is fine in background mode, we will try to fall back to headless GPU context.
+   * Happens when render farm process runs without user login session. */
+  if (strstr(msg, "error: XDG_RUNTIME_DIR not set in the environment") ||
+      strstr(msg, "error: XDG_RUNTIME_DIR is invalid or not set in the environment"))
+  {
+    return;
+  }
+  ghost_wayland_log_handler(msg, arg);
 }
 
 #if defined(WITH_GHOST_X11) && defined(WITH_GHOST_WAYLAND_LIBDECOR)
@@ -7387,8 +7391,8 @@ GHOST_SystemWayland::GHOST_SystemWayland(bool background)
 #endif
       display_(new GWL_Display)
 {
-  ghost_wayland_log_handler_is_background = background;
-  wl_log_set_handler_client(ghost_wayland_log_handler);
+  wl_log_set_handler_client(background ? ghost_wayland_log_handler_background :
+                                         ghost_wayland_log_handler);
 
   display_->system = this;
   /* Connect to the Wayland server. */
@@ -7486,8 +7490,6 @@ GHOST_SystemWayland::GHOST_SystemWayland(bool background)
     }
   }
   else
-#else
-  (void)background;
 #endif
   {
     const GWL_XDG_Decor_System &decor = *display_->xdg_decor;
