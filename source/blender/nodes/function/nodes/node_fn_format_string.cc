@@ -369,7 +369,7 @@ static std::optional<ProcessedPythonCompatibleFormat> preprocess_python_compatib
 {
   const FormatPatternInfo *allowed_pattern = get_pattern_by_type(type);
   if (!allowed_pattern) {
-    /* The type can't be formatted. The user shouln't be able to trigger this error but nice to
+    /* The type can't be formatted. The user shouldn't be able to trigger this error but nice to
      * handle it anyway. */
     if (!r_error) {
       r_error = fmt::format(fmt::runtime(TIP_("Type \"{}\" can't be formatted")), type.name());
@@ -480,7 +480,7 @@ static void format_with_fmt(const fmt::format_string<> format,
         }
       }
       catch (const fmt::format_error &error) {
-        /* Invalid patterns should have been caughed before already. */
+        /* Invalid patterns should have been caught before already. */
         BLI_assert_unreachable();
       }
     });

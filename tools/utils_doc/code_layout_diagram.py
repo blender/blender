@@ -311,7 +311,7 @@ SECTIONS = (
              "Bi-directional text support (right-to-left) for Arabic & Hebrew script. "
              "Intended for complex text shaping (not yet supported)."),
             ("gmp", "Arbitrary precision arithmetic library."),
-            ("harfbuzz", "Text shaping engine for for complex script."),
+            ("harfbuzz", "Text shaping engine for complex script."),
             ("haru", "PDF generation library."),
             ("hiprt", "Ray-tracing for AMD GPU's. Used by Cycles."),
             ("imath", "Library used by OpenEXR image-format."),

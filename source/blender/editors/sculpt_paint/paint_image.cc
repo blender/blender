@@ -769,7 +769,7 @@ static wmOperatorStatus sample_color_modal(bContext *C, wmOperator *op, const wm
         if (!data->sample_palette) {
           data->sample_palette = true;
           sample_color_update_header(data, C);
-          BKE_report(op->reports, RPT_INFO, "Sampling color for pallette");
+          BKE_report(op->reports, RPT_INFO, "Sampling color for palette");
         }
         WM_event_add_notifier(C, NC_BRUSH | NA_EDITED, brush);
       }

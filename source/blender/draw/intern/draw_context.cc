@@ -1135,7 +1135,7 @@ static void drw_callbacks_pre_scene_2D(DRWContext &draw_ctx)
     DRW_submission_end();
   }
 
-  /* State is reset later at the begining of `draw_ctx.engines_draw_scene()`. */
+  /* State is reset later at the beginning of `draw_ctx.engines_draw_scene()`. */
 }
 
 static void drw_callbacks_post_scene_2D(DRWContext &draw_ctx, View2D &v2d)

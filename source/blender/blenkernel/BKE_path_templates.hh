@@ -232,7 +232,7 @@ void BKE_report_path_template_errors(ReportList *reports,
  * Format the given floating point value with the provided format specifier. The format specifier
  * is e.g. the "##.###" in "{name:##.###}".
  *
- * \return Nullopt if the format specifier is invalid.
+ * \return #std::nullopt if the format specifier is invalid.
  */
 std::optional<std::string> BKE_path_template_format_float(blender::StringRef format_specifier,
                                                           double value);

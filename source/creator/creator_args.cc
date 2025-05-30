@@ -1113,8 +1113,8 @@ static int arg_handle_command_set(int argc, const char **argv, void *data)
 
 static const char arg_handle_disable_depsgraph_on_file_load_doc[] =
     "\n"
-    "\tBackround mode: Do not systematically build and evaluate ViewLayers' dependency graphs\n"
-    "\twhen loading a blendfile in background mode (`-b` or `-c` options).\n"
+    "\tBackground mode: Do not systematically build and evaluate ViewLayers' dependency graphs\n"
+    "\twhen loading a blend-file in background mode (`-b` or `-c` options).\n"
     "\n"
     "\tScripts requiring evaluated data then need to explicitly ensure that\n"
     "\tan evaluated depsgraph is available\n"
@@ -1132,7 +1132,7 @@ static int arg_handle_disable_depsgraph_on_file_load(int /*argc*/,
 
 static const char arg_handle_disable_liboverride_auto_resync_doc[] =
     "\n"
-    "\tDo not perform library override automatic resync when loading a new blendfile.\n"
+    "\tDo not perform library override automatic resync when loading a new blend-file.\n"
     "\n"
     "\tNOTE: this is an alternative way to get the same effect as when setting the\n"
     "\t`No Override Auto Resync` User Preferences Debug option.";

@@ -1171,7 +1171,7 @@ Mesh *mesh_get_eval_deform(Depsgraph *depsgraph,
     /* There is no such a concept as deformed mesh in edit mode.
      * Explicitly disallow this request so that the evaluated result is not modified with evaluated
      * result from the wrong mode. */
-    BLI_assert_msg(0, "Request of derformed mesh of object which is in edit mode");
+    BLI_assert_msg(0, "Request of deformed mesh of object which is in edit mode");
     return nullptr;
   }
 

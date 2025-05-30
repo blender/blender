@@ -8336,8 +8336,8 @@ static void def_cmp_color_spill(BlenderRNA * /*brna*/, StructRNA *srna)
       "rna_node_property_to_input_setter<bool, node_input_use_spill_strength>");
   RNA_def_property_ui_text(prop,
                            "Unspill",
-                           "Compensate all channels (differently) by hand. (Deprecated: Use Use "
-                           "Spill Strength input instead.)");
+                           "Compensate all channels (differently) by hand. "
+                           "(Deprecated: Use \"Use Spill Strength\" input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "unspill_red", PROP_FLOAT, PROP_NONE);
@@ -9472,7 +9472,7 @@ static void def_cmp_zcombine(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_ui_text(prop,
                            "Use Alpha",
                            "Take alpha channel into account when doing the Z operation. "
-                           "(Deprecated: Use Use Alpha input instead.)");
+                           "(Deprecated: Use \"Use Alpha\" input instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "use_antialias_z", PROP_BOOLEAN, PROP_NONE);

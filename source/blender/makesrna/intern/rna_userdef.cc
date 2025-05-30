@@ -5272,7 +5272,7 @@ static void rna_def_userdef_view(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop,
       "Open on Mouse Over",
-      "Open menu buttons and pulldowns automatically when the mouse is hovering");
+      "Open menu buttons and pull-downs automatically when the mouse is hovering");
 
   prop = RNA_def_property(srna, "open_toplevel_delay", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, nullptr, "menuthreshold1");

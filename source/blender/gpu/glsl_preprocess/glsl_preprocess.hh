@@ -783,7 +783,7 @@ class Preprocessor {
         const string ns_keyword = "namespace ";
         size_t pos = out_str.rfind(ns_keyword, out_str.size() - parent_scope.size());
         if (pos == string::npos) {
-          report_error(match, "Couldn't find `namespace` keyword at begining of scope.");
+          report_error(match, "Couldn't find `namespace` keyword at beginning of scope.");
           break;
         }
         size_t start = pos + ns_keyword.size();
