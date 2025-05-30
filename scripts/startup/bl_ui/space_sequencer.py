@@ -656,8 +656,8 @@ class SEQUENCER_MT_change(Menu):
             del bpy_data_scenes_len
 
         layout.operator_context = 'INVOKE_DEFAULT'
-        layout.operator("sequencer.change_effect_input")
         layout.menu("SEQUENCER_MT_strip_effect_change")
+        layout.operator("sequencer.swap_inputs")
         props = layout.operator("sequencer.change_path", text="Path/Files")
 
         if strip:
@@ -999,7 +999,6 @@ class SEQUENCER_MT_strip_effect(Menu):
     def draw(self, _context):
         layout = self.layout
 
-        layout.operator("sequencer.change_effect_input")
         layout.menu("SEQUENCER_MT_strip_effect_change")
         layout.operator("sequencer.reassign_inputs")
         layout.operator("sequencer.swap_inputs")

@@ -262,6 +262,33 @@ bool sequencer_view_strips_poll(bContext *C)
   return true;
 }
 
+static bool sequencer_effect_poll(bContext *C)
+{
+  Scene *scene = CTX_data_scene(C);
+  Editing *ed = seq::editing_get(scene);
+
+  if (ed) {
+    Strip *active_strip = seq::select_active_get(scene);
+    if (active_strip && (active_strip->type & STRIP_TYPE_EFFECT)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+static bool sequencer_swap_inputs_poll(bContext *C)
+{
+  Scene *scene = CTX_data_scene(C);
+  Strip *active_strip = seq::select_active_get(scene);
+
+  if (sequencer_effect_poll(C) && seq::effect_get_num_inputs(active_strip->type) == 2) {
+    return true;
+  }
+
+  return false;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -1364,21 +1391,6 @@ static wmOperatorStatus sequencer_reassign_inputs_exec(bContext *C, wmOperator *
   return OPERATOR_FINISHED;
 }
 
-static bool sequencer_effect_poll(bContext *C)
-{
-  Scene *scene = CTX_data_scene(C);
-  Editing *ed = seq::editing_get(scene);
-
-  if (ed) {
-    Strip *active_strip = seq::select_active_get(scene);
-    if (active_strip && (active_strip->type & STRIP_TYPE_EFFECT)) {
-      return true;
-    }
-  }
-
-  return false;
-}
-
 void SEQUENCER_OT_reassign_inputs(wmOperatorType *ot)
 {
   /* Identifiers. */
@@ -1405,8 +1417,15 @@ static wmOperatorStatus sequencer_swap_inputs_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   Strip *active_strip = seq::select_active_get(scene);
 
-  if (active_strip->input1 == nullptr || active_strip->input2 == nullptr) {
-    BKE_report(op->reports, RPT_ERROR, "No valid inputs to swap");
+  if (!(active_strip->type & STRIP_TYPE_EFFECT)) {
+    BKE_report(op->reports, RPT_ERROR, "Active strip is not an effect strip");
+    return OPERATOR_CANCELLED;
+  }
+
+  if (seq::effect_get_num_inputs(active_strip->type) != 2 || active_strip->input1 == nullptr ||
+      active_strip->input2 == nullptr)
+  {
+    BKE_report(op->reports, RPT_ERROR, "Strip needs two inputs to swap");
     return OPERATOR_CANCELLED;
   }
 
@@ -1415,7 +1434,6 @@ static wmOperatorStatus sequencer_swap_inputs_exec(bContext *C, wmOperator *op)
   active_strip->input2 = strip;
 
   seq::relations_invalidate_cache(scene, active_strip);
-
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 
   return OPERATOR_FINISHED;
@@ -1429,7 +1447,7 @@ void SEQUENCER_OT_swap_inputs(wmOperatorType *ot)
 
   /* API callbacks. */
   ot->exec = sequencer_swap_inputs_exec;
-  ot->poll = sequencer_effect_poll;
+  ot->poll = sequencer_swap_inputs_poll;
 
   /* Flags. */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -2669,46 +2687,6 @@ void SEQUENCER_OT_swap_data(wmOperatorType *ot)
   /* API callbacks. */
   ot->exec = sequencer_swap_data_exec;
   ot->poll = ED_operator_sequencer_active;
-
-  /* Flags. */
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Change Effect Input Operator
- * \{ */
-
-static wmOperatorStatus sequencer_change_effect_input_exec(bContext *C, wmOperator *op)
-{
-  Scene *scene = CTX_data_scene(C);
-  Strip *strip = seq::select_active_get(scene);
-
-  Strip **strip_1 = &strip->input1, **strip_2 = &strip->input2;
-
-  if (*strip_1 == nullptr || *strip_2 == nullptr) {
-    BKE_report(op->reports, RPT_ERROR, "One of the effect inputs is unset, cannot swap");
-    return OPERATOR_CANCELLED;
-  }
-
-  std::swap(*strip_1, *strip_2);
-
-  seq::relations_invalidate_cache(scene, strip);
-  WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
-
-  return OPERATOR_FINISHED;
-}
-
-void SEQUENCER_OT_change_effect_input(wmOperatorType *ot)
-{
-  /* Identifiers. */
-  ot->name = "Change Effect Input";
-  ot->idname = "SEQUENCER_OT_change_effect_input";
-
-  /* API callbacks. */
-  ot->exec = sequencer_change_effect_input_exec;
-  ot->poll = sequencer_effect_poll;
 
   /* Flags. */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
