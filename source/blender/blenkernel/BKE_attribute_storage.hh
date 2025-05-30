@@ -8,6 +8,7 @@
 
 #include "BLI_function_ref.hh"
 #include "BLI_implicit_sharing_ptr.hh"
+#include "BLI_memory_counter_fwd.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_vector_set.hh"
 
@@ -176,6 +177,8 @@ class AttributeStorage : public ::AttributeStorage {
    * the #AttributeStorage struct.
    */
   void blend_write(BlendWriter &writer, const BlendWriteData &write_data);
+
+  void count_memory(MemoryCounter &memory) const;
 };
 
 /** The C++ wrapper needs to be the same size as the DNA struct. */

@@ -126,7 +126,7 @@ int BKE_attributes_length(const AttributeOwner &owner,
                           AttrDomainMask domain_mask,
                           eCustomDataMask mask);
 
-struct CustomDataLayer *BKE_attributes_active_get(AttributeOwner &owner);
+std::optional<blender::StringRefNull> BKE_attributes_active_name_get(AttributeOwner &owner);
 void BKE_attributes_active_set(AttributeOwner &owner, blender::StringRef name);
 void BKE_attributes_active_clear(AttributeOwner &owner);
 int *BKE_attributes_active_index_p(AttributeOwner &owner);

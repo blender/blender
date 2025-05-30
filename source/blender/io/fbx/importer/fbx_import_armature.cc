@@ -281,7 +281,7 @@ static void find_fake_bones(const ufbx_node *root_node,
 {
   for (const ufbx_node *bone_node : bones) {
     const ufbx_node *node = bone_node->parent;
-    while (node != nullptr && node != root_node) {
+    while (!ELEM(node, nullptr, root_node)) {
       if (node->bone == nullptr) {
         r_fake_bones.add(node);
       }

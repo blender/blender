@@ -116,7 +116,7 @@ class PathTraceDisplay {
   /* Get PathTraceDisplay graphics interoperability information which acts as a destination for the
    * device API. */
   GraphicsInteropDevice graphics_interop_get_device();
-  GraphicsInteropBuffer graphics_interop_get_buffer();
+  GraphicsInteropBuffer &graphics_interop_get_buffer();
 
   /* (De)activate GPU display for graphics interoperability outside of regular display update
    * routines. */
@@ -138,7 +138,7 @@ class PathTraceDisplay {
    *
    * If the GPU display supports graphics interoperability then the zeroing the display is to be
    * delegated to the device via the `GraphicsInterop`. */
-  void clear();
+  void zero();
 
   /* Draw the current state of the texture.
    *

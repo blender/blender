@@ -57,7 +57,7 @@ static float bm_vert_edge_face_angle(BMVert *v,
   /* NOTE: could be either edge, it doesn't matter. */
   if (v->e && BM_edge_is_manifold(v->e)) {
     /* Checking delimited is important here,
-     * otherwise the boundary between two materials for e.g.
+     * otherwise, for example, the boundary between two materials
      * will collapse if the faces on either side of the edge have a small angle.
      *
      * This way, delimiting edges are treated like boundary edges,

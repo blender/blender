@@ -412,7 +412,7 @@ static void libblock_remap_data_postprocess_obdata_relink(Main *bmain, Object *o
         multires_force_sculpt_rebuild(ob);
         break;
       case ID_CU_LEGACY:
-        BKE_curve_type_test(ob);
+        BKE_curve_type_test(ob, true);
         break;
       default:
         break;
@@ -891,7 +891,7 @@ static int id_relink_to_newid_looper(LibraryIDLinkCallbackData *cb_data)
   RelinkToNewIDData *relink_data = static_cast<RelinkToNewIDData *>(cb_data->user_data);
 
   if (id) {
-    /* See: NEW_ID macro */
+    /* See: #ID_NEW_SET macro. */
     if (id->newid != nullptr) {
       relink_data->id_remapper.add(id, id->newid);
       id = id->newid;

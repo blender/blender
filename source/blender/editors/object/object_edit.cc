@@ -480,13 +480,8 @@ void collection_hide_menu_draw(const bContext *C, uiLayout *layout)
     else if (lc->runtime_flag & LAYER_COLLECTION_HAS_OBJECTS) {
       icon = ICON_LAYER_USED;
     }
-
-    uiItemIntO(row,
-               lc->collection->id.name + 2,
-               icon,
-               "OBJECT_OT_hide_collection",
-               "collection_index",
-               index);
+    PointerRNA op_ptr = row->op("OBJECT_OT_hide_collection", lc->collection->id.name + 2, icon);
+    RNA_int_set(&op_ptr, "collection_index", index);
   }
 }
 
@@ -2334,18 +2329,13 @@ static void move_to_collection_menu_create(bContext *C, uiLayout *layout, void *
   MoveToCollectionData *menu = static_cast<MoveToCollectionData *>(menu_v);
   const char *name = BKE_collection_ui_name_get(menu->collection);
 
-  WM_operator_properties_create_ptr(&menu->ptr, menu->ot);
+  menu->ptr = layout->op(menu->ot,
+                         CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "New Collection"),
+                         ICON_ADD,
+                         WM_OP_INVOKE_DEFAULT,
+                         UI_ITEM_NONE);
   RNA_int_set(&menu->ptr, "collection_index", menu->index);
   RNA_boolean_set(&menu->ptr, "is_new", true);
-
-  uiItemFullO_ptr(layout,
-                  menu->ot,
-                  CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "New Collection"),
-                  ICON_ADD,
-                  static_cast<IDProperty *>(menu->ptr.data),
-                  WM_OP_INVOKE_DEFAULT,
-                  UI_ITEM_NONE,
-                  nullptr);
 
   layout->separator();
 
@@ -2353,7 +2343,8 @@ static void move_to_collection_menu_create(bContext *C, uiLayout *layout, void *
   const int icon = (menu->collection == scene->master_collection) ?
                        ICON_SCENE_DATA :
                        UI_icon_color_from_collection(menu->collection);
-  uiItemIntO(layout, name, icon, menu->ot->idname, "collection_index", menu->index);
+  PointerRNA op_ptr = layout->op(menu->ot, name, icon);
+  RNA_int_set(&op_ptr, "collection_index", menu->index);
 
   LISTBASE_FOREACH (MoveToCollectionData *, submenu, &menu->submenus) {
     move_to_collection_menus_items(layout, submenu);
@@ -2365,12 +2356,8 @@ static void move_to_collection_menus_items(uiLayout *layout, MoveToCollectionDat
   const int icon = UI_icon_color_from_collection(menu->collection);
 
   if (BLI_listbase_is_empty(&menu->submenus)) {
-    uiItemIntO(layout,
-               menu->collection->id.name + 2,
-               icon,
-               menu->ot->idname,
-               "collection_index",
-               menu->index);
+    PointerRNA op_ptr = layout->op(menu->ot, menu->collection->id.name + 2, icon);
+    RNA_int_set(&op_ptr, "collection_index", menu->index);
   }
   else {
     layout->menu_fn(menu->collection->id.name + 2, icon, move_to_collection_menu_create, menu);

@@ -51,7 +51,12 @@
       break; \
     } \
     case GPU_COMP_F32: { \
-      PY_AS_NATIVE(float, PyFloat_AsDouble); \
+      if (attr->python_int_to_float) { \
+        PY_AS_NATIVE(float, PyC_Long_AsI32); \
+      } \
+      else { \
+        PY_AS_NATIVE(float, PyFloat_AsDouble); \
+      } \
       break; \
     } \
     default: \

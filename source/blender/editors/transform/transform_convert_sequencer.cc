@@ -191,7 +191,7 @@ static TransData *SeqToTransData(Scene *scene,
       break;
   }
 
-  td2d->loc[1] = strip->machine; /* Channel - Y location. */
+  td2d->loc[1] = strip->channel; /* Channel - Y location. */
   td2d->loc[2] = 0.0f;
   td2d->loc2d = nullptr;
 
@@ -510,8 +510,8 @@ static void createTransSeqData(bContext * /*C*/, TransInfo *t)
   ts->selection_channel_range_min = seq::MAX_CHANNELS + 1;
   LISTBASE_FOREACH (Strip *, strip, seq::active_seqbase_get(ed)) {
     if ((strip->flag & SELECT) != 0) {
-      ts->selection_channel_range_min = min_ii(ts->selection_channel_range_min, strip->machine);
-      ts->selection_channel_range_max = max_ii(ts->selection_channel_range_max, strip->machine);
+      ts->selection_channel_range_min = min_ii(ts->selection_channel_range_min, strip->channel);
+      ts->selection_channel_range_max = max_ii(ts->selection_channel_range_max, strip->channel);
     }
   }
 

@@ -462,7 +462,7 @@ void WM_OT_collada_export(wmOperatorType *ot)
       {0, nullptr, 0, nullptr, nullptr}};
 
   ot->name = "Export COLLADA (Legacy)";
-  ot->description = "Save a Collada file";
+  ot->description = "Save a Collada file (Deprecated)";
   ot->idname = "WM_OT_collada_export";
 
   ot->invoke = wm_collada_export_invoke;
@@ -798,7 +798,7 @@ static void wm_collada_import_draw(bContext * /*C*/, wmOperator *op)
 void WM_OT_collada_import(wmOperatorType *ot)
 {
   ot->name = "Import COLLADA (Legacy)";
-  ot->description = "Load a Collada file";
+  ot->description = "Load a Collada file (Deprecated)";
   ot->idname = "WM_OT_collada_import";
   ot->flag = OPTYPE_UNDO | OPTYPE_PRESET;
 

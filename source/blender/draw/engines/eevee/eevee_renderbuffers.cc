@@ -66,10 +66,10 @@ void RenderBuffers::acquire(int2 extent)
   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT;
 
   /* Depth and combined are always needed. */
-  depth_tx.ensure_2d(GPU_DEPTH24_STENCIL8, extent, usage);
+  depth_tx.ensure_2d(GPU_DEPTH32F_STENCIL8, extent, usage);
   /* TODO(fclem): depth_tx should ideally be a texture from pool but we need stencil_view
    * which is currently unsupported by pool textures. */
-  // depth_tx.acquire(extent, GPU_DEPTH24_STENCIL8);
+  // depth_tx.acquire(extent, GPU_DEPTH32F_STENCIL8);
   combined_tx.acquire(extent, color_format);
 
   eGPUTextureUsage usage_attachment_read_write = GPU_TEXTURE_USAGE_ATTACHMENT |
@@ -97,14 +97,7 @@ void RenderBuffers::acquire(int2 extent)
                               math::max(1, value_len),
                               usage_attachment_read_write);
 
-  eGPUTextureFormat cryptomatte_format = GPU_R32F;
-  const int cryptomatte_layer_len = inst_.film.cryptomatte_layer_max_get();
-  if (cryptomatte_layer_len == 2) {
-    cryptomatte_format = GPU_RG32F;
-  }
-  else if (cryptomatte_layer_len == 3) {
-    cryptomatte_format = GPU_RGBA32F;
-  }
+  const eGPUTextureFormat cryptomatte_format = GPU_RGBA32F;
   cryptomatte_tx.acquire(pass_extent(EEVEE_RENDER_PASS_CRYPTOMATTE_OBJECT |
                                      EEVEE_RENDER_PASS_CRYPTOMATTE_ASSET |
                                      EEVEE_RENDER_PASS_CRYPTOMATTE_MATERIAL),

@@ -60,8 +60,8 @@ typedef struct Lattice {
   struct Key *key;
 
   struct MDeformVert *dvert;
-  /** Multiply the influence, MAX_VGROUP_NAME. */
-  char vgroup[64];
+  /** Multiply the influence. */
+  char vgroup[/*MAX_VGROUP_NAME*/ 64];
   /** List of bDeformGroup names and flag only. */
   ListBase vertex_group_names;
   int vertex_group_active_index;

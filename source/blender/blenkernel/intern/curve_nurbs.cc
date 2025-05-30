@@ -112,6 +112,26 @@ void calculate_knots(const int points_num,
   }
 }
 
+Vector<int> calculate_multiplicity_sequence(const Span<float> knots)
+{
+  Vector<int> multiplicity;
+  multiplicity.reserve(knots.size());
+
+  int m = 1;
+  for (const int64_t i : knots.index_range().drop_front(1)) {
+    /* Only consider multiplicity for exact matching values. */
+    if (knots[i - 1] == knots[i]) {
+      m++;
+    }
+    else {
+      multiplicity.append(m);
+      m = 1;
+    }
+  }
+  multiplicity.append(m);
+  return multiplicity;
+}
+
 static void calculate_basis_for_point(const float parameter,
                                       const int points_num,
                                       const int degree,

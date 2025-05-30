@@ -1149,7 +1149,7 @@ void filelist_free_icons()
 
 void filelist_file_get_full_path(const FileList *filelist,
                                  const FileDirEntry *file,
-                                 char r_filepath[/*FILE_MAX_LIBEXTRA*/])
+                                 char r_filepath[FILE_MAX_LIBEXTRA])
 {
   if (file->asset) {
     const std::string asset_path = file->asset->full_path();
@@ -3264,6 +3264,10 @@ static void filelist_readjob_list_lib_add_datablock(FileListReadJob *job_params,
   entry->typeflag |= FILE_TYPE_BLENDERLIB;
   if (datablock_info) {
     entry->blenderlib_has_no_preview = datablock_info->no_preview_found;
+
+    if (datablock_info->name[0] == '.') {
+      entry->attributes |= FILE_ATTR_HIDDEN;
+    }
 
     if (datablock_info->asset_data) {
       entry->typeflag |= FILE_TYPE_ASSET;

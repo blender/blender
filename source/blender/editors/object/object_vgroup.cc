@@ -736,7 +736,7 @@ const EnumPropertyItem *vgroup_selection_itemf_helper(const bContext *C,
     return WT_vertex_group_select_item;
   }
 
-  ob = CTX_data_active_object(C);
+  ob = context_object(C);
   if (selection_mask & (1 << WT_VGROUP_ACTIVE)) {
     RNA_enum_items_add_value(&item, &totitem, WT_vertex_group_select_item, WT_VGROUP_ACTIVE);
   }
@@ -3182,7 +3182,7 @@ void OBJECT_OT_vertex_group_normalize_all(wmOperatorType *ot)
 
 static wmOperatorStatus vertex_group_lock_exec(bContext *C, wmOperator *op)
 {
-  Object *ob = CTX_data_active_object(C);
+  Object *ob = context_object(C);
 
   int action = RNA_enum_get(op->ptr, "action");
   int mask = RNA_enum_get(op->ptr, "mask");

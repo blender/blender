@@ -501,7 +501,9 @@ static void drawEdgeSlide(TransInfo *t)
       immVertex3fv(pos, curr_sv_co_orig);
     }
     immEnd();
+    immUnbindProgram();
 
+    immBindBuiltinProgram(GPU_SHADER_3D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_AA);
     {
       float *co_test = nullptr;
       if (slp->flipped) {

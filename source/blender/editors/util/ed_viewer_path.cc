@@ -48,7 +48,7 @@ ViewerPathElem *viewer_path_elem_for_compute_context(const ComputeContext &compu
   if (const auto *context = dynamic_cast<const bke::GroupNodeComputeContext *>(&compute_context)) {
     GroupNodeViewerPathElem *elem = BKE_viewer_path_elem_new_group_node();
     elem->node_id = context->node_id();
-    if (const bNode *caller_node = context->caller_group_node()) {
+    if (const bNode *caller_node = context->node()) {
       if (const bNodeTree *group = reinterpret_cast<const bNodeTree *>(caller_node->id)) {
         elem->base.ui_name = BLI_strdup(BKE_id_name(group->id));
       }
@@ -159,7 +159,7 @@ void activate_geometry_node(Main &bmain, SpaceNode &snode, bNode &node)
       if (sl->spacetype == SPACE_SPREADSHEET) {
         SpaceSpreadsheet &sspreadsheet = *reinterpret_cast<SpaceSpreadsheet *>(sl);
         if (!(sspreadsheet.flag & SPREADSHEET_FLAG_PINNED)) {
-          sspreadsheet.object_eval_state = SPREADSHEET_OBJECT_EVAL_STATE_VIEWER_NODE;
+          sspreadsheet.geometry_id.object_eval_state = SPREADSHEET_OBJECT_EVAL_STATE_VIEWER_NODE;
         }
       }
       else if (sl->spacetype == SPACE_VIEW3D) {

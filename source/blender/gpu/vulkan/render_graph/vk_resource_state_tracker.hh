@@ -22,9 +22,8 @@
 
 #pragma once
 
-#include <mutex>
-
 #include "BLI_map.hh"
+#include "BLI_mutex.hh"
 #include "BLI_vector.hh"
 
 #include "vk_common.hh"
@@ -173,7 +172,7 @@ class VKResourceStateTracker {
    * - Allowing test cases to do testing without setting up a device instance which requires ghost.
    * - Device instance isn't accessible in test cases.
    */
-  std::mutex mutex;
+  Mutex mutex;
 
   /**
    * Register a buffer resource.

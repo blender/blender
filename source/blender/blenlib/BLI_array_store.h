@@ -82,7 +82,7 @@ void BLI_array_store_state_remove(BArrayStore *bs, BArrayState *state);
  * \return the expanded size of the array,
  * use this to know how much memory to allocate #BLI_array_store_state_data_get's argument.
  */
-size_t BLI_array_store_state_size_get(BArrayState *state);
+size_t BLI_array_store_state_size_get(const BArrayState *state);
 /**
  * Fill in existing allocated memory with the contents of \a state.
  */
@@ -90,9 +90,38 @@ void BLI_array_store_state_data_get(const BArrayState *state, void *data);
 /**
  * Allocate an array for \a state and return it.
  */
-void *BLI_array_store_state_data_get_alloc(BArrayState *state, size_t *r_data_len);
+void *BLI_array_store_state_data_get_alloc(const BArrayState *state, size_t *r_data_len);
 
 /**
  * \note Only for tests.
  */
 bool BLI_array_store_is_valid(BArrayStore *bs);
+
+/* `array_store_rle.cc` */
+
+/**
+ * Return a run-length encoded copy of `data_dec`.
+ *
+ * \param data_dec: The data to encode.
+ * \param data_dec_len: The size of the data to encode.
+ * \param data_enc_extra_size: Allocate extra memory at the beginning of the array.
+ * - This doesn't impact the value of `r_data_enc_len`.
+ * - This must be skipped when decoding.
+ * \param r_data_enc_len: The size of the resulting RLE encoded data.
+ */
+uint8_t *BLI_array_store_rle_encode(const uint8_t *data_dec,
+                                    size_t data_dec_len,
+                                    size_t data_enc_extra_size,
+                                    size_t *r_data_enc_len);
+/**
+ *  Decode a run-length encoded array, writing the result into `data_dec_v`.
+ *
+ * \param data_enc: The data to encode (returned by #BLI_array_store_rle_encode).
+ * \param data_enc_len: The size of `data_enc`.
+ * \param data_dec: The destination for the decoded data to be written to.
+ * \param data_dec_len: The size of the destination (as passed to #BLI_array_store_rle_encode).
+ */
+void BLI_array_store_rle_decode(const uint8_t *data_enc,
+                                const size_t data_enc_len,
+                                void *data_dec_v,
+                                const size_t data_dec_len);

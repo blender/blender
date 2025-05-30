@@ -70,6 +70,8 @@ class Light : public Geometry {
   /* Shader */
   Shader *get_shader() const;
 
+  float area(const Transform &tfm) const;
+
   /* Geometry */
   void compute_bounds() override;
   void apply_transform(const Transform &tfm, const bool apply_to_motion) override;

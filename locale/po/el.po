@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'a7d2b7850ef2')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'ba454989554a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-05 08:47+0000\n"
+"POT-Creation-Date: 2025-05-26 07:36+0000\n"
 "PO-Revision-Date: 2025-04-14 08:15+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Greek <https://translate.blender.org/projects/blender-ui/ui/el/>\n"
@@ -129,6 +129,10 @@ msgstr "Γραμμή"
 
 msgid "Random"
 msgstr "Random"
+
+
+msgid "Wire"
+msgstr "Πλέγμα"
 
 
 msgid "Parent"
@@ -355,10 +359,6 @@ msgid "Library"
 msgstr "Βιβλιοθήκη"
 
 
-msgid "Wire"
-msgstr "Πλέγμα"
-
-
 msgid "Dynamic"
 msgstr "Δυναμικό"
 
@@ -519,6 +519,14 @@ msgid "Keyboard"
 msgstr "Πληκτρολόγιο"
 
 
+msgid "Mirror"
+msgstr "Καθρέφτισμα"
+
+
+msgid "Snap"
+msgstr "Προσκόλληση"
+
+
 msgid "Select Linked"
 msgstr "Επιλογή Συνδεδεμένων"
 
@@ -553,14 +561,6 @@ msgstr "Συγχώνευση"
 
 msgid "Text"
 msgstr "Κείμενο"
-
-
-msgid "Snap"
-msgstr "Προσκόλληση"
-
-
-msgid "Mirror"
-msgstr "Καθρέφτισμα"
 
 
 msgid "Key"

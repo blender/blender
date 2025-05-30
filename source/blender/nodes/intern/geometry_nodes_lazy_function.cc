@@ -51,6 +51,8 @@
 
 #include "DEG_depsgraph_query.hh"
 
+#include "volume_grid_function_eval.hh"
+
 #include <fmt/format.h>
 #include <iostream>
 #include <sstream>
@@ -465,12 +467,14 @@ std::string make_anonymous_attribute_socket_inspection_string(StringRef node_nam
 static void execute_multi_function_on_value_variant__single(
     const MultiFunction &fn,
     const Span<SocketValueVariant *> input_values,
-    const Span<SocketValueVariant *> output_values)
+    const Span<SocketValueVariant *> output_values,
+    GeoNodesUserData *user_data)
 {
   /* In this case, the multi-function is evaluated directly. */
   const IndexMask mask(1);
   mf::ParamsBuilder params{fn, &mask};
   mf::ContextBuilder context;
+  context.user_data(user_data);
 
   for (const int i : input_values.index_range()) {
     SocketValueVariant &input_variant = *input_values[i];
@@ -530,26 +534,37 @@ static void execute_multi_function_on_value_variant__field(
  * Executes a multi-function. If all inputs are single values, the results will also be single
  * values. If any input is a field, the outputs will also be fields.
  */
-static void execute_multi_function_on_value_variant(const MultiFunction &fn,
-                                                    const std::shared_ptr<MultiFunction> &owned_fn,
-                                                    const Span<SocketValueVariant *> input_values,
-                                                    const Span<SocketValueVariant *> output_values)
+[[nodiscard]] static bool execute_multi_function_on_value_variant(
+    const MultiFunction &fn,
+    const std::shared_ptr<MultiFunction> &owned_fn,
+    const Span<SocketValueVariant *> input_values,
+    const Span<SocketValueVariant *> output_values,
+    GeoNodesUserData *user_data,
+    std::string &r_error_message)
 {
   /* Check input types which determine how the function is evaluated. */
   bool any_input_is_field = false;
+  bool any_input_is_volume_grid = false;
   for (const int i : input_values.index_range()) {
     const SocketValueVariant &value = *input_values[i];
     if (value.is_context_dependent_field()) {
       any_input_is_field = true;
     }
+    else if (value.is_volume_grid()) {
+      any_input_is_volume_grid = true;
+    }
   }
 
+  if (any_input_is_volume_grid) {
+    return execute_multi_function_on_value_variant__volume_grid(
+        fn, input_values, output_values, r_error_message);
+  }
   if (any_input_is_field) {
     execute_multi_function_on_value_variant__field(fn, owned_fn, input_values, output_values);
+    return true;
   }
-  else {
-    execute_multi_function_on_value_variant__single(fn, input_values, output_values);
-  }
+  execute_multi_function_on_value_variant__single(fn, input_values, output_values, user_data);
+  return true;
 }
 
 bool implicitly_convert_socket_value(const bke::bNodeSocketType &from_type,
@@ -558,7 +573,7 @@ bool implicitly_convert_socket_value(const bke::bNodeSocketType &from_type,
                                      void *r_to_value)
 {
   BLI_assert(from_value != r_to_value);
-  if (&from_type == &to_type) {
+  if (from_type.type == to_type.type) {
     from_type.geometry_nodes_cpp_type->copy_construct(from_value, r_to_value);
     return true;
   }
@@ -573,7 +588,13 @@ bool implicitly_convert_socket_value(const bke::bNodeSocketType &from_type,
         mf::DataType::ForSingle(*from_cpp_type), mf::DataType::ForSingle(*to_cpp_type));
     SocketValueVariant input_variant = *static_cast<const SocketValueVariant *>(from_value);
     SocketValueVariant *output_variant = new (r_to_value) SocketValueVariant();
-    execute_multi_function_on_value_variant(multi_fn, {}, {&input_variant}, {output_variant});
+    std::string error_message;
+    if (!execute_multi_function_on_value_variant(
+            multi_fn, {}, {&input_variant}, {output_variant}, nullptr, error_message))
+    {
+      std::destroy_at(output_variant);
+      return false;
+    }
     return true;
   }
   return false;
@@ -582,9 +603,11 @@ bool implicitly_convert_socket_value(const bke::bNodeSocketType &from_type,
 class LazyFunctionForImplicitConversion : public LazyFunction {
  private:
   const MultiFunction &fn_;
+  const bke::bNodeSocketType &dst_type_;
 
  public:
-  LazyFunctionForImplicitConversion(const MultiFunction &fn) : fn_(fn)
+  LazyFunctionForImplicitConversion(const MultiFunction &fn, const bke::bNodeSocketType &dst_type)
+      : fn_(fn), dst_type_(dst_type)
   {
     debug_name_ = "Convert";
     inputs_.append_as("From", CPPType::get<SocketValueVariant>());
@@ -597,7 +620,13 @@ class LazyFunctionForImplicitConversion : public LazyFunction {
     SocketValueVariant *to_value = new (params.get_output_data_ptr(0)) SocketValueVariant();
     BLI_assert(from_value != nullptr);
     BLI_assert(to_value != nullptr);
-    execute_multi_function_on_value_variant(fn_, {}, {from_value}, {to_value});
+    std::string error_message;
+    if (!execute_multi_function_on_value_variant(
+            fn_, {}, {from_value}, {to_value}, nullptr, error_message))
+    {
+      std::destroy_at(to_value);
+      construct_socket_default_value(dst_type_, to_value);
+    }
     params.output_set(0);
   }
 };
@@ -609,7 +638,7 @@ const LazyFunction *build_implicit_conversion_lazy_function(const bke::bNodeSock
   if (!from_type.geometry_nodes_cpp_type || !to_type.geometry_nodes_cpp_type) {
     return nullptr;
   }
-  if (&from_type == &to_type) {
+  if (from_type.type == to_type.type) {
     return &scope.construct<LazyFunctionForRerouteNode>(*from_type.geometry_nodes_cpp_type);
   }
   const bke::DataTypeConversions &conversions = bke::get_implicit_type_conversions();
@@ -618,7 +647,7 @@ const LazyFunction *build_implicit_conversion_lazy_function(const bke::bNodeSock
   if (conversions.is_convertible(from_base_type, to_base_type)) {
     const MultiFunction &multi_fn = *conversions.get_conversion_multi_function(
         mf::DataType::ForSingle(from_base_type), mf::DataType::ForSingle(to_base_type));
-    return &scope.construct<LazyFunctionForImplicitConversion>(multi_fn);
+    return &scope.construct<LazyFunctionForImplicitConversion>(multi_fn, to_type);
   }
   return nullptr;
 }
@@ -703,21 +732,24 @@ class LazyFunctionForMutedNode : public LazyFunction {
  */
 class LazyFunctionForMultiFunctionNode : public LazyFunction {
  private:
+  const bNode &node_;
   const NodeMultiFunctions::Item fn_item_;
 
  public:
   LazyFunctionForMultiFunctionNode(const bNode &node,
                                    NodeMultiFunctions::Item fn_item,
                                    MutableSpan<int> r_lf_index_by_bsocket)
-      : fn_item_(std::move(fn_item))
+      : node_(node), fn_item_(std::move(fn_item))
   {
     BLI_assert(fn_item_.fn != nullptr);
     debug_name_ = node.name;
     lazy_function_interface_from_node(node, inputs_, outputs_, r_lf_index_by_bsocket);
   }
 
-  void execute_impl(lf::Params &params, const lf::Context & /*context*/) const override
+  void execute_impl(lf::Params &params, const lf::Context &context) const override
   {
+    auto &user_data = *static_cast<GeoNodesUserData *>(context.user_data);
+
     Vector<SocketValueVariant *> input_values(inputs_.size());
     Vector<SocketValueVariant *> output_values(outputs_.size());
     for (const int i : inputs_.index_range()) {
@@ -731,8 +763,47 @@ class LazyFunctionForMultiFunctionNode : public LazyFunction {
         output_values[i] = nullptr;
       }
     }
-    execute_multi_function_on_value_variant(
-        *fn_item_.fn, fn_item_.owned_fn, input_values, output_values);
+
+    bke::NodeComputeContext eval_compute_context{
+        user_data.compute_context, node_.identifier, &node_.owner_tree()};
+    GeoNodesUserData eval_user_data = user_data;
+    eval_user_data.compute_context = &eval_compute_context;
+
+    std::string error_message;
+    if (!execute_multi_function_on_value_variant(*fn_item_.fn,
+                                                 fn_item_.owned_fn,
+                                                 input_values,
+                                                 output_values,
+                                                 &eval_user_data,
+                                                 error_message))
+    {
+      int available_output_index = 0;
+      for (const bNodeSocket *bsocket : node_.output_sockets()) {
+        if (!bsocket->is_available()) {
+          continue;
+        }
+        SocketValueVariant *output_value = output_values[available_output_index];
+        if (!output_value) {
+          continue;
+        }
+        std::destroy_at(output_value);
+        construct_socket_default_value(*bsocket->typeinfo, output_value);
+        available_output_index++;
+      }
+
+      if (!error_message.empty()) {
+        const auto &user_data = *static_cast<GeoNodesUserData *>(context.user_data);
+        const auto &local_user_data = *static_cast<GeoNodesLocalUserData *>(
+            context.local_user_data);
+        if (geo_eval_log::GeoTreeLogger *tree_logger = local_user_data.try_get_tree_logger(
+                user_data))
+        {
+          tree_logger->node_warnings.append(
+              *tree_logger->allocator,
+              {node_.identifier, {NodeWarningType::Error, error_message}});
+        }
+      }
+    }
     for (const int i : outputs_.index_range()) {
       if (params.get_output_usage(i) != lf::ValueUsage::Unused) {
         params.output_set(i);
@@ -1173,7 +1244,7 @@ class LazyFunctionForGroupNode : public LazyFunction {
 
     /* The compute context changes when entering a node group. */
     bke::GroupNodeComputeContext compute_context{
-        user_data->compute_context, group_node_, group_node_.owner_tree()};
+        user_data->compute_context, group_node_.identifier, &group_node_.owner_tree()};
 
     GeoNodesUserData group_user_data = *user_data;
     group_user_data.compute_context = &compute_context;
@@ -1533,6 +1604,39 @@ class LazyFunctionForSimulationZone : public LazyFunction {
   }
 };
 
+void report_from_multi_function(const mf::Context &context,
+                                NodeWarningType type,
+                                std::string message)
+{
+  const auto *user_data = dynamic_cast<const GeoNodesUserData *>(context.user_data);
+  if (!user_data) {
+    return;
+  }
+  geo_eval_log::GeoNodesLog *log = user_data->call_data->eval_log;
+  if (!log) {
+    return;
+  }
+  const bke::NodeComputeContext *node_context = nullptr;
+  for (const ComputeContext *compute_context = user_data->compute_context; compute_context;
+       compute_context = compute_context->parent())
+  {
+    node_context = dynamic_cast<const bke::NodeComputeContext *>(compute_context);
+    if (node_context) {
+      break;
+    }
+  }
+  if (!node_context) {
+    return;
+  }
+  const auto *tree_context = node_context->parent();
+  if (!tree_context) {
+    return;
+  }
+  geo_eval_log::GeoTreeLogger &logger = log->get_local_tree_logger(*tree_context);
+  logger.node_warnings.append(*logger.allocator,
+                              {node_context->node_id(), {type, std::move(message)}});
+}
+
 using JoinReferenceSetsCache = Map<Vector<lf::OutputSocket *>, lf::OutputSocket *>;
 
 struct BuildGraphParams {
@@ -1592,7 +1696,7 @@ void initialize_zone_wrapper(const bNodeTreeZone &zone,
                              Vector<lf::Input> &r_inputs,
                              Vector<lf::Output> &r_outputs)
 {
-  for (const bNodeSocket *socket : zone.input_node->input_sockets()) {
+  for (const bNodeSocket *socket : zone.input_node()->input_sockets()) {
     if (ignore_zone_bsocket(*socket)) {
       continue;
     }
@@ -1607,7 +1711,7 @@ void initialize_zone_wrapper(const bNodeTreeZone &zone,
                                          lf::ValueUsage::Maybe));
   }
 
-  for (const bNodeSocket *socket : zone.output_node->output_sockets()) {
+  for (const bNodeSocket *socket : zone.output_node()->output_sockets()) {
     if (ignore_zone_bsocket(*socket)) {
       continue;
     }
@@ -1618,7 +1722,7 @@ void initialize_zone_wrapper(const bNodeTreeZone &zone,
         r_outputs.append_and_get_index_as(socket->name, *cpp_type));
   }
 
-  for ([[maybe_unused]] const bNodeSocket *socket : zone.input_node->input_sockets()) {
+  for ([[maybe_unused]] const bNodeSocket *socket : zone.input_node()->input_sockets()) {
     if (ignore_zone_bsocket(*socket)) {
       continue;
     }
@@ -1650,7 +1754,7 @@ std::string zone_wrapper_input_name(const ZoneBuildInfo &zone_info,
   if (zone_info.indices.inputs.output_usages.contains(lf_socket_i)) {
     const int output_usage_i = lf_socket_i - zone_info.indices.inputs.output_usages.first();
     int current_valid_i = 0;
-    for (const bNodeSocket *bsocket : zone.output_node->output_sockets()) {
+    for (const bNodeSocket *bsocket : zone.output_node()->output_sockets()) {
       if (ignore_zone_bsocket(*bsocket)) {
         continue;
       }
@@ -1671,7 +1775,7 @@ std::string zone_wrapper_output_name(const ZoneBuildInfo &zone_info,
   if (zone_info.indices.outputs.input_usages.contains(lf_socket_i)) {
     const int input_usage_i = lf_socket_i - zone_info.indices.outputs.input_usages.first();
     int current_valid_i = 0;
-    for (const bNodeSocket *bsocket : zone.input_node->input_sockets()) {
+    for (const bNodeSocket *bsocket : zone.input_node()->input_sockets()) {
       if (ignore_zone_bsocket(*bsocket)) {
         continue;
       }
@@ -1685,7 +1789,7 @@ std::string zone_wrapper_output_name(const ZoneBuildInfo &zone_info,
 }
 
 /**
- * Logs intermediate values from the lazy-function graph evaluation into #GeoModifierLog based on
+ * Logs intermediate values from the lazy-function graph evaluation into #GeoNodesLog based on
  * the mapping between the lazy-function graph and the corresponding #bNodeTree.
  */
 class GeometryNodesLazyFunctionLogger : public lf::GraphExecutor::Logger {
@@ -1946,7 +2050,7 @@ struct GeometryNodesLazyFunctionBuilder {
 
     for (const int zone_i : zone_build_order) {
       const bNodeTreeZone &zone = *tree_zones_->zones[zone_i];
-      switch (zone.output_node->type_legacy) {
+      switch (zone.output_node()->type_legacy) {
         case GEO_NODE_SIMULATION_OUTPUT: {
           this->build_simulation_zone_function(zone);
           break;
@@ -1991,13 +2095,13 @@ struct GeometryNodesLazyFunctionBuilder {
     ZoneBuildInfo &zone_info = zone_build_infos_[zone_i];
     lf::Graph &lf_graph = scope_.construct<lf::Graph>();
     const auto &sim_output_storage = *static_cast<const NodeGeometrySimulationOutput *>(
-        zone.output_node->storage);
+        zone.output_node()->storage);
 
     Vector<lf::GraphInputSocket *> lf_zone_inputs;
     Vector<lf::GraphOutputSocket *> lf_zone_outputs;
 
-    if (zone.input_node != nullptr) {
-      for (const bNodeSocket *bsocket : zone.input_node->input_sockets().drop_back(1)) {
+    if (zone.input_node() != nullptr) {
+      for (const bNodeSocket *bsocket : zone.input_node()->input_sockets().drop_back(1)) {
         zone_info.indices.inputs.main.append(lf_zone_inputs.append_and_get_index(
             &lf_graph.add_input(*bsocket->typeinfo->geometry_nodes_cpp_type, bsocket->name)));
         zone_info.indices.outputs.input_usages.append(lf_zone_outputs.append_and_get_index(
@@ -2010,7 +2114,7 @@ struct GeometryNodesLazyFunctionBuilder {
     this->build_zone_border_link_input_usages(
         zone, lf_graph, lf_zone_outputs, zone_info.indices.outputs.border_link_usages);
 
-    for (const bNodeSocket *bsocket : zone.output_node->output_sockets().drop_back(1)) {
+    for (const bNodeSocket *bsocket : zone.output_node()->output_sockets().drop_back(1)) {
       zone_info.indices.outputs.main.append(lf_zone_outputs.append_and_get_index(
           &lf_graph.add_output(*bsocket->typeinfo->geometry_nodes_cpp_type, bsocket->name)));
       zone_info.indices.inputs.output_usages.append(lf_zone_inputs.append_and_get_index(
@@ -2019,7 +2123,7 @@ struct GeometryNodesLazyFunctionBuilder {
 
     lf::Node &lf_simulation_usage_node = [&]() -> lf::Node & {
       auto &lazy_function = scope_.construct<LazyFunctionForSimulationInputsUsage>(
-          *zone.output_node);
+          *zone.output_node());
       lf::Node &lf_node = lf_graph.add_function(lazy_function);
 
       for (const int i : zone_info.indices.outputs.input_usages) {
@@ -2032,14 +2136,14 @@ struct GeometryNodesLazyFunctionBuilder {
     BuildGraphParams graph_params{lf_graph};
 
     lf::FunctionNode *lf_simulation_input = nullptr;
-    if (zone.input_node) {
+    if (zone.input_node()) {
       lf_simulation_input = this->insert_simulation_input_node(
-          btree_, *zone.input_node, graph_params);
+          btree_, *zone.input_node(), graph_params);
     }
-    lf::FunctionNode &lf_simulation_output = this->insert_simulation_output_node(*zone.output_node,
-                                                                                 graph_params);
+    lf::FunctionNode &lf_simulation_output = this->insert_simulation_output_node(
+        *zone.output_node(), graph_params);
 
-    for (const bNodeSocket *bsocket : zone.output_node->input_sockets().drop_back(1)) {
+    for (const bNodeSocket *bsocket : zone.output_node()->input_sockets().drop_back(1)) {
       graph_params.usage_by_bsocket.add(bsocket, &lf_simulation_usage_node.output(1));
     }
 
@@ -2055,10 +2159,10 @@ struct GeometryNodesLazyFunctionBuilder {
       }
     }
 
-    this->insert_nodes_and_zones(zone.child_nodes, zone.child_zones, graph_params);
+    this->insert_nodes_and_zones(zone.child_nodes(), zone.child_zones, graph_params);
 
-    if (zone.input_node) {
-      this->build_output_socket_usages(*zone.input_node, graph_params);
+    if (zone.input_node()) {
+      this->build_output_socket_usages(*zone.input_node(), graph_params);
     }
     for (const auto item : graph_params.lf_output_by_bsocket.items()) {
       this->insert_links_from_socket(*item.key, *item.value, graph_params);
@@ -2105,11 +2209,11 @@ struct GeometryNodesLazyFunctionBuilder {
                                                                   &logger,
                                                                   &side_effect_provider,
                                                                   nullptr);
-    const auto &zone_function = scope_.construct<LazyFunctionForSimulationZone>(*zone.output_node,
-                                                                                lf_graph_fn);
+    const auto &zone_function = scope_.construct<LazyFunctionForSimulationZone>(
+        *zone.output_node(), lf_graph_fn);
     zone_info.lazy_function = &zone_function;
 
-    lf_graph_info_->debug_zone_body_graphs.add(zone.output_node->identifier, &lf_graph);
+    lf_graph_info_->debug_zone_body_graphs.add(zone.output_node()->identifier, &lf_graph);
     // std::cout << "\n\n" << lf_graph.to_dot() << "\n\n";
   }
 
@@ -2165,7 +2269,7 @@ struct GeometryNodesLazyFunctionBuilder {
     Vector<lf::GraphOutputSocket *> lf_body_outputs;
     ZoneBodyFunction &body_fn = scope_.construct<ZoneBodyFunction>();
 
-    for (const bNodeSocket *bsocket : zone.input_node->output_sockets()) {
+    for (const bNodeSocket *bsocket : zone.input_node()->output_sockets()) {
       if (ignore_zone_bsocket(*bsocket)) {
         continue;
       }
@@ -2184,7 +2288,7 @@ struct GeometryNodesLazyFunctionBuilder {
     this->build_zone_border_link_input_usages(
         zone, lf_body_graph, lf_body_outputs, body_fn.indices.outputs.border_link_usages);
 
-    for (const bNodeSocket *bsocket : zone.output_node->input_sockets()) {
+    for (const bNodeSocket *bsocket : zone.output_node()->input_sockets()) {
       if (ignore_zone_bsocket(*bsocket)) {
         continue;
       }
@@ -2199,13 +2303,13 @@ struct GeometryNodesLazyFunctionBuilder {
           lf_body_inputs.append_and_get_index(&lf_output_usage));
     }
 
-    this->insert_nodes_and_zones(zone.child_nodes, zone.child_zones, graph_params);
+    this->insert_nodes_and_zones(zone.child_nodes(), zone.child_zones, graph_params);
 
-    this->build_output_socket_usages(*zone.input_node, graph_params);
+    this->build_output_socket_usages(*zone.input_node(), graph_params);
 
     {
       int valid_socket_i = 0;
-      for (const bNodeSocket *bsocket : zone.input_node->output_sockets()) {
+      for (const bNodeSocket *bsocket : zone.input_node()->output_sockets()) {
         if (ignore_zone_bsocket(*bsocket)) {
           continue;
         }
@@ -2260,7 +2364,7 @@ struct GeometryNodesLazyFunctionBuilder {
                                                             side_effect_provider,
                                                             nullptr);
 
-    lf_graph_info_->debug_zone_body_graphs.add(zone.output_node->identifier, &lf_body_graph);
+    lf_graph_info_->debug_zone_body_graphs.add(zone.output_node()->identifier, &lf_body_graph);
 
     // std::cout << "\n\n" << lf_body_graph.to_dot() << "\n\n";
 
@@ -2372,7 +2476,7 @@ struct GeometryNodesLazyFunctionBuilder {
     }
 
     this->insert_nodes_and_zones(
-        tree_zones_->nodes_outside_zones, tree_zones_->root_zones, graph_params);
+        tree_zones_->nodes_outside_zones(), tree_zones_->root_zones, graph_params);
 
     for (const auto item : graph_params.lf_output_by_bsocket.items()) {
       this->insert_links_from_socket(*item.key, *item.value, graph_params);
@@ -2576,8 +2680,8 @@ struct GeometryNodesLazyFunctionBuilder {
     Vector<const bNode *> nodes_to_insert = bnodes;
     Map<const bNode *, const bNodeTreeZone *> zone_by_output;
     for (const bNodeTreeZone *zone : zones) {
-      nodes_to_insert.append(zone->output_node);
-      zone_by_output.add(zone->output_node, zone);
+      nodes_to_insert.append(zone->output_node());
+      zone_by_output.add(zone->output_node(), zone);
     }
     /* Insert nodes from right to left so that usage sockets can be build in the same pass. */
     std::sort(nodes_to_insert.begin(), nodes_to_insert.end(), [](const bNode *a, const bNode *b) {
@@ -2694,7 +2798,7 @@ struct GeometryNodesLazyFunctionBuilder {
 
     {
       int valid_socket_i = 0;
-      for (const bNodeSocket *bsocket : child_zone.input_node->input_sockets()) {
+      for (const bNodeSocket *bsocket : child_zone.input_node()->input_sockets()) {
         if (ignore_zone_bsocket(*bsocket)) {
           continue;
         }
@@ -2710,7 +2814,7 @@ struct GeometryNodesLazyFunctionBuilder {
     }
     {
       int valid_socket_i = 0;
-      for (const bNodeSocket *bsocket : child_zone.output_node->output_sockets()) {
+      for (const bNodeSocket *bsocket : child_zone.output_node()->output_sockets()) {
         if (ignore_zone_bsocket(*bsocket)) {
           continue;
         }
@@ -3854,8 +3958,9 @@ struct GeometryNodesLazyFunctionBuilder {
     if (socket_decl->input_field_type != InputSocketFieldType::Implicit) {
       return false;
     }
-    const ImplicitInputValueFn *implicit_input_fn = socket_decl->implicit_input_fn.get();
-    if (implicit_input_fn == nullptr) {
+    std::optional<ImplicitInputValueFn> implicit_input_fn = get_implicit_input_value_fn(
+        socket_decl->default_input_type);
+    if (!implicit_input_fn.has_value()) {
       return false;
     }
     std::function<void(void *)> init_fn = [&bnode, implicit_input_fn](void *r_value) {
@@ -4138,7 +4243,7 @@ const GeometryNodesLazyFunctionGraphInfo *ensure_geometry_nodes_lazy_function_gr
     return nullptr;
   }
   for (const bNodeTreeZone *zone : tree_zones->zones) {
-    if (zone->input_node == nullptr || zone->output_node == nullptr) {
+    if (zone->input_node() == nullptr || zone->output_node() == nullptr) {
       /* Simulations and repeats need input and output nodes. */
       return nullptr;
     }
@@ -4187,7 +4292,7 @@ destruct_ptr<fn::LocalUserData> GeoNodesUserData::get_local(LinearAllocator<> &a
 
 void GeoNodesLocalUserData::ensure_tree_logger(const GeoNodesUserData &user_data) const
 {
-  if (geo_eval_log::GeoModifierLog *log = user_data.call_data->eval_log) {
+  if (geo_eval_log::GeoNodesLog *log = user_data.call_data->eval_log) {
     tree_logger_.emplace(&log->get_local_tree_logger(*user_data.compute_context));
     return;
   }

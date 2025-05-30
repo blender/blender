@@ -37,7 +37,8 @@ void BackgroundPipeline::sync(GPUMaterial *gpumat,
   RenderBuffers &rbufs = inst_.render_buffers;
 
   world_ps_.init();
-  world_ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL);
+  world_ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_CLIP_CONTROL_UNIT_RANGE |
+                      DRW_STATE_DEPTH_EQUAL);
   world_ps_.material_set(manager, gpumat);
   world_ps_.push_constant("world_opacity_fade", background_opacity);
   world_ps_.push_constant("world_background_blur", square_f(background_blur));
@@ -289,9 +290,9 @@ void ForwardPipeline::sync()
   has_opaque_ = false;
   has_transparent_ = false;
 
-  DRWState state_depth_only = DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS;
-  DRWState state_depth_color = DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS |
-                               DRW_STATE_WRITE_COLOR;
+  DRWState state_depth_only = DRW_STATE_WRITE_DEPTH | DRW_STATE_CLIP_CONTROL_UNIT_RANGE |
+                              inst_.film.depth.test_state;
+  DRWState state_depth_color = state_depth_only | DRW_STATE_WRITE_COLOR;
   {
     prepass_ps_.init();
 
@@ -332,11 +333,12 @@ void ForwardPipeline::sync()
     }
 
     opaque_single_sided_ps_ = &opaque_ps_.sub("SingleSided");
-    opaque_single_sided_ps_->state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL |
-                                       DRW_STATE_CULL_BACK);
+    opaque_single_sided_ps_->state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_CLIP_CONTROL_UNIT_RANGE |
+                                       DRW_STATE_DEPTH_EQUAL | DRW_STATE_CULL_BACK);
 
     opaque_double_sided_ps_ = &opaque_ps_.sub("DoubleSided");
-    opaque_double_sided_ps_->state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL);
+    opaque_double_sided_ps_->state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_CLIP_CONTROL_UNIT_RANGE |
+                                       DRW_STATE_DEPTH_EQUAL);
   }
   {
     transparent_ps_.init();
@@ -399,7 +401,8 @@ PassMain::Sub *ForwardPipeline::prepass_transparent_add(const Object *ob,
   if ((blender_mat->blend_flag & MA_BL_HIDE_BACKFACE) == 0) {
     return nullptr;
   }
-  DRWState state = DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL;
+  DRWState state = DRW_STATE_WRITE_DEPTH | DRW_STATE_CLIP_CONTROL_UNIT_RANGE |
+                   inst_.film.depth.test_state;
   if (blender_mat->blend_flag & MA_BL_CULL_BACKFACE) {
     state |= DRW_STATE_CULL_BACK;
   }
@@ -415,7 +418,8 @@ PassMain::Sub *ForwardPipeline::material_transparent_add(const Object *ob,
                                                          ::Material *blender_mat,
                                                          GPUMaterial *gpumat)
 {
-  DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_CUSTOM | DRW_STATE_DEPTH_LESS_EQUAL;
+  DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_CUSTOM |
+                   DRW_STATE_CLIP_CONTROL_UNIT_RANGE | inst_.film.depth.test_state;
   if (blender_mat->blend_flag & MA_BL_CULL_BACKFACE) {
     state |= DRW_STATE_CULL_BACK;
   }
@@ -502,7 +506,7 @@ void DeferredLayerBase::gbuffer_pass_sync(Instance &inst)
   gbuffer_ps_.bind_resources(inst.volume_probes);
 
   DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL | DRW_STATE_WRITE_STENCIL |
-                   DRW_STATE_STENCIL_ALWAYS;
+                   DRW_STATE_CLIP_CONTROL_UNIT_RANGE | DRW_STATE_STENCIL_ALWAYS;
 
   gbuffer_single_sided_hybrid_ps_ = &gbuffer_ps_.sub("DoubleSided");
   gbuffer_single_sided_hybrid_ps_->state_set(state | DRW_STATE_CULL_BACK);
@@ -536,9 +540,10 @@ void DeferredLayer::begin_sync()
     prepass_ps_.bind_resources(inst_.velocity);
     prepass_ps_.bind_resources(inst_.sampling);
 
-    DRWState state_depth_only = DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS;
-    DRWState state_depth_color = DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS |
-                                 DRW_STATE_WRITE_COLOR;
+    DRWState state_depth_only = DRW_STATE_WRITE_DEPTH | DRW_STATE_CLIP_CONTROL_UNIT_RANGE |
+                                inst_.film.depth.test_state;
+    DRWState state_depth_color = DRW_STATE_WRITE_DEPTH | DRW_STATE_CLIP_CONTROL_UNIT_RANGE |
+                                 inst_.film.depth.test_state | DRW_STATE_WRITE_COLOR;
 
     prepass_double_sided_static_ps_ = &prepass_ps_.sub("DoubleSided.Static");
     prepass_double_sided_static_ps_->state_set(state_depth_only);
@@ -671,17 +676,22 @@ void DeferredLayer::end_sync(bool is_first_pass,
         sub.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);
         sub.bind_image(RBUFS_COLOR_SLOT, &inst_.render_buffers.rp_color_tx);
         sub.bind_image(RBUFS_VALUE_SLOT, &inst_.render_buffers.rp_value_tx);
+        const ShadowSceneData &shadow_scene = inst_.shadows.get_data();
+        auto set_specialization_constants =
+            [&](PassSimple::Sub &sub, GPUShader *sh, bool use_transmission) {
+              sub.specialize_constant(sh, "render_pass_shadow_id", rbuf_data.shadow_id);
+              sub.specialize_constant(sh, "use_split_indirect", use_split_indirect);
+              sub.specialize_constant(sh, "use_lightprobe_eval", use_lightprobe_eval);
+              sub.specialize_constant(sh, "use_transmission", use_transmission);
+              sub.specialize_constant(sh, "shadow_ray_count", &shadow_scene.ray_count);
+              sub.specialize_constant(sh, "shadow_ray_step_count", &shadow_scene.step_count);
+            };
         /* Submit the more costly ones first to avoid long tail in occupancy.
          * See page 78 of "SIGGRAPH 2023: Unreal Engine Substrate" by Hillaire & de Rousiers. */
+
         for (int i = min_ii(3, closure_count_) - 1; i >= 0; i--) {
           GPUShader *sh = inst_.shaders.static_shader_get(eShaderType(DEFERRED_LIGHT_SINGLE + i));
-          sub.specialize_constant(sh, "render_pass_shadow_id", rbuf_data.shadow_id);
-          sub.specialize_constant(sh, "use_split_indirect", use_split_indirect);
-          sub.specialize_constant(sh, "use_lightprobe_eval", use_lightprobe_eval);
-          sub.specialize_constant(sh, "use_transmission", false);
-          const ShadowSceneData &shadow_scene = inst_.shadows.get_data();
-          sub.specialize_constant(sh, "shadow_ray_count", &shadow_scene.ray_count);
-          sub.specialize_constant(sh, "shadow_ray_step_count", &shadow_scene.step_count);
+          set_specialization_constants(sub, sh, false);
           sub.shader_set(sh);
           sub.bind_image("direct_radiance_1_img", &direct_radiance_txs_[0]);
           sub.bind_image("direct_radiance_2_img", &direct_radiance_txs_[1]);
@@ -704,7 +714,7 @@ void DeferredLayer::end_sync(bool is_first_pass,
           sub.draw_procedural(GPU_PRIM_TRIS, 1, 3);
           if (use_transmission) {
             /* Separate pass for transmission BSDF as their evaluation is quite costly. */
-            sub.specialize_constant(sh, "use_transmission", true);
+            set_specialization_constants(sub, sh, true);
             sub.shader_set(sh);
             sub.state_stencil(0x0u, (i + 1) | uint8_t(StencilBits::TRANSMISSION), compare_mask);
             sub.draw_procedural(GPU_PRIM_TRIS, 1, 3);
@@ -1252,7 +1262,8 @@ void DeferredProbePipeline::begin_sync()
     pass.bind_resources(inst_.sampling);
   }
 
-  DRWState state_depth_only = DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS;
+  DRWState state_depth_only = DRW_STATE_WRITE_DEPTH | DRW_STATE_CLIP_CONTROL_UNIT_RANGE |
+                              inst_.film.depth.test_state;
   /* Only setting up static pass because we don't use motion vectors for light-probes. */
   opaque_layer_.prepass_double_sided_static_ps_ = &pass.sub("DoubleSided");
   opaque_layer_.prepass_double_sided_static_ps_->state_set(state_depth_only);
@@ -1264,7 +1275,7 @@ void DeferredProbePipeline::begin_sync()
 
 void DeferredProbePipeline::end_sync()
 {
-  {
+  if (!opaque_layer_.prepass_ps_.is_empty()) {
     PassSimple &pass = eval_light_ps_;
     pass.init();
     /* Use depth test to reject background pixels. */
@@ -1365,7 +1376,8 @@ void PlanarProbePipeline::begin_sync()
     prepass_ps_.bind_resources(inst_.uniform_data);
     prepass_ps_.bind_resources(inst_.sampling);
 
-    DRWState state_depth_only = DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS;
+    DRWState state_depth_only = DRW_STATE_WRITE_DEPTH | DRW_STATE_CLIP_CONTROL_UNIT_RANGE |
+                                inst_.film.depth.test_state;
 
     prepass_double_sided_static_ps_ = &prepass_ps_.sub("DoubleSided.Static");
     prepass_double_sided_static_ps_->state_set(state_depth_only);
@@ -1376,7 +1388,13 @@ void PlanarProbePipeline::begin_sync()
 
   this->gbuffer_pass_sync(inst_);
 
-  {
+  closure_bits_ = CLOSURE_NONE;
+  closure_count_ = 0;
+}
+
+void PlanarProbePipeline::end_sync()
+{
+  if (!prepass_ps_.is_empty()) {
     PassSimple &pass = eval_light_ps_;
     pass.init();
     pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ADD_FULL);
@@ -1393,14 +1411,6 @@ void PlanarProbePipeline::begin_sync()
     pass.barrier(GPU_BARRIER_TEXTURE_FETCH | GPU_BARRIER_SHADER_IMAGE_ACCESS);
     pass.draw_procedural(GPU_PRIM_TRIS, 1, 3);
   }
-
-  closure_bits_ = CLOSURE_NONE;
-  closure_count_ = 0;
-}
-
-void PlanarProbePipeline::end_sync()
-{
-  /* No-op for now. */
 }
 
 PassMain::Sub *PlanarProbePipeline::prepass_add(::Material *blender_mat, GPUMaterial *gpumat)
@@ -1447,7 +1457,7 @@ void PlanarProbePipeline::render(View &view,
   inst_.uniform_data.push_update();
 
   GPU_framebuffer_bind(gbuffer_fb);
-  GPU_framebuffer_clear_depth(gbuffer_fb, 1.0f);
+  GPU_framebuffer_clear_depth(gbuffer_fb, inst_.film.depth.clear_value);
   inst_.manager->submit(prepass_ps_, view);
 
   /* TODO(fclem): This is the only place where we use the layer source to HiZ.

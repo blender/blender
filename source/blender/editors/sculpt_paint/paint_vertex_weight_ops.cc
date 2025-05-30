@@ -372,9 +372,7 @@ static wmOperatorStatus weight_sample_group_invoke(bContext *C,
     if (groups[i] == false) {
       continue;
     }
-    PointerRNA op_ptr;
-    uiItemFullO_ptr(
-        layout, ot, dg->name, ICON_NONE, nullptr, WM_OP_EXEC_DEFAULT, UI_ITEM_NONE, &op_ptr);
+    PointerRNA op_ptr = layout->op(ot, dg->name, ICON_NONE, WM_OP_EXEC_DEFAULT, UI_ITEM_NONE);
     RNA_property_enum_set(&op_ptr, ot->prop, i);
   }
   UI_popup_menu_end(C, pup);

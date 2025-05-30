@@ -19,31 +19,8 @@ uint32_t Std430::component_mem_size(const shader::Type /*type*/)
   return 4;
 }
 
-uint32_t Std430::element_alignment(const shader::Type type, const bool is_array)
+uint32_t Std430::element_alignment(const shader::Type type, const bool /*is_array*/)
 {
-  if (is_array) {
-    switch (type) {
-      case shader::Type::float_t:
-      case shader::Type::uint_t:
-      case shader::Type::int_t:
-      case shader::Type::bool_t:
-        return 4;
-      case shader::Type::float2_t:
-      case shader::Type::uint2_t:
-      case shader::Type::int2_t:
-      case shader::Type::float3_t:
-      case shader::Type::uint3_t:
-      case shader::Type::int3_t:
-      case shader::Type::float4_t:
-      case shader::Type::uint4_t:
-      case shader::Type::int4_t:
-      case shader::Type::float3x3_t:
-      case shader::Type::float4x4_t:
-        return 16;
-      default:
-        BLI_assert_msg(false, "Type not supported in dynamic structs.");
-    }
-  }
   switch (type) {
     case shader::Type::float_t:
     case shader::Type::uint_t:

@@ -14,7 +14,7 @@ namespace blender::asset_system::utils {
 
 /**
  * Returns a normalized directory path with a trailing slash, and a maximum length of #PATH_MAX.
- * Slashes are not converted to native format (they probably should be though?).
+ * Slashes are converted to native format.
  */
 std::string normalize_directory_path(StringRef directory);
 

@@ -78,7 +78,7 @@ static LayerCollection *layer_collection_add(ListBase *lb_parent, Collection *co
 {
   LayerCollection *lc = MEM_callocN<LayerCollection>("Collection Base");
   lc->collection = collection;
-  lc->local_collections_bits = ~(0);
+  lc->local_collections_bits = ~0;
   BLI_addtail(lb_parent, lc);
 
   return lc;
@@ -101,7 +101,7 @@ static Base *object_base_new(Object *ob)
 {
   Base *base = MEM_callocN<Base>("Object Base");
   base->object = ob;
-  base->local_view_bits = ~(0);
+  base->local_view_bits = ~0;
   if (ob->base_flag & BASE_SELECTED) {
     base->flag |= BASE_SELECTED;
   }
@@ -1378,7 +1378,7 @@ void BKE_layer_collection_sync(const Scene *scene, ViewLayer *view_layer)
                         parent_exclude,
                         parent_restrict,
                         parent_layer_restrict,
-                        ~(0));
+                        ~0);
 
   layer_collection_resync_unused_layers_free(view_layer, master_layer_resync);
   BLI_mempool_destroy(layer_resync_mempool);

@@ -92,7 +92,7 @@ template<typename TexT, typename OutT = float4> struct TextureInterpolator {
   /* Read 2D Texture Data
    * Does not check if data request is in bounds. */
   static ccl_always_inline OutT
-  read(const TexT *data, const int x, int y, const int width, const int height)
+  read(const TexT *data, const int x, int y, const int width, const int /*height*/)
   {
     return read(data[y * width + x]);
   }
@@ -116,7 +116,7 @@ template<typename TexT, typename OutT = float4> struct TextureInterpolator {
                                      const int z,
                                      int width,
                                      const int height,
-                                     const int depth)
+                                     const int /*depth*/)
   {
     return read(data[x + y * width + z * width * height]);
   }

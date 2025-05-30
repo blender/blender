@@ -45,6 +45,7 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
+#include "fmt/format.h"
 #include "interface_intern.hh"
 
 using blender::StringRef;
@@ -267,7 +268,7 @@ static int ui_layout_vary_direction(uiLayout *layout)
 
 static bool ui_layout_variable_size(uiLayout *layout)
 {
-  /* Note that this code is probably a bit flaky, we'd probably want to know whether it's
+  /* Note that this code is probably a bit unreliable, we'd probably want to know whether it's
    * variable in X and/or Y, etc. But for now it mimics previous one,
    * with addition of variable flag set for children of grid-flow layouts. */
   return ui_layout_vary_direction(layout) == UI_ITEM_VARY_X || layout->variable_size_;
@@ -505,7 +506,7 @@ static void ui_layer_but_cb(bContext *C, void *arg_but, void *arg_index)
 /* create buttons for an item with an RNA array */
 static void ui_item_array(uiLayout *layout,
                           uiBlock *block,
-                          const StringRefNull name,
+                          const StringRef name,
                           int icon,
                           PointerRNA *ptr,
                           PropertyRNA *prop,
@@ -601,7 +602,7 @@ static void ui_item_array(uiLayout *layout,
     }
   }
   else if (subtype == PROP_MATRIX) {
-    int totdim, dim_size[3]; /* 3 == RNA_MAX_ARRAY_DIMENSION */
+    int totdim, dim_size[/*RNA_MAX_ARRAY_DIMENSION*/ 3];
     int row, col;
 
     UI_block_layout_set_current(block, &layout->absolute(true));
@@ -973,7 +974,7 @@ static void ui_keymap_but_cb(bContext * /*C*/, void *but_v, void * /*key_v*/)
  */
 static uiBut *ui_item_with_label(uiLayout *layout,
                                  uiBlock *block,
-                                 const StringRefNull name,
+                                 const StringRef name,
                                  const int icon,
                                  PointerRNA *ptr,
                                  PropertyRNA *prop,
@@ -1120,7 +1121,8 @@ static uiBut *ui_item_with_label(uiLayout *layout,
      * Output node. */
     if (ELEM(subtype, PROP_FILEPATH, PROP_DIRPATH, PROP_NONE)) {
       if ((RNA_property_flag(prop) & PROP_PATH_SUPPORTS_TEMPLATES) != 0) {
-        if (!BKE_validate_template_syntax(but->drawstr.c_str()).is_empty()) {
+        const std::string path = RNA_property_string_get(ptr, prop);
+        if (!BKE_validate_template_syntax(path.c_str()).is_empty()) {
           UI_but_flag_enable(but, UI_BUT_REDALERT);
         }
       }
@@ -1225,7 +1227,6 @@ static uiBut *uiItemFullO_ptr_ex(uiLayout *layout,
                                  wmOperatorType *ot,
                                  std::optional<StringRef> name,
                                  int icon,
-                                 IDProperty *properties,
                                  const wmOperatorCallContext context,
                                  const eUI_Item_Flag flag,
                                  PointerRNA *r_opptr)
@@ -1297,17 +1298,10 @@ static uiBut *uiItemFullO_ptr_ex(uiLayout *layout,
   }
 
   /* assign properties */
-  if (properties || r_opptr) {
+  if (r_opptr) {
     PointerRNA *opptr = UI_but_operator_ptr_ensure(but);
-    if (properties) {
-      opptr->data = properties;
-    }
-    else {
-      opptr->data = blender::bke::idprop::create_group("wmOperatorProperties").release();
-    }
-    if (r_opptr) {
-      *r_opptr = *opptr;
-    }
+    opptr->data = blender::bke::idprop::create_group("wmOperatorProperties").release();
+    *r_opptr = *opptr;
   }
 
   return but;
@@ -1354,51 +1348,40 @@ static void ui_item_menu_hold(bContext *C, ARegion *butregion, uiBut *but)
   UI_popup_menu_end(C, pup);
 }
 
-void uiItemFullO_ptr(uiLayout *layout,
-                     wmOperatorType *ot,
-                     std::optional<StringRef> name,
-                     const int icon,
-                     IDProperty *properties,
-                     const wmOperatorCallContext context,
-                     const eUI_Item_Flag flag,
-                     PointerRNA *r_opptr)
+PointerRNA uiLayout::op(wmOperatorType *ot,
+                        std::optional<StringRef> name,
+                        const int icon,
+                        const wmOperatorCallContext context,
+                        const eUI_Item_Flag flag)
 {
-  uiItemFullO_ptr_ex(layout, ot, name, icon, properties, context, flag, r_opptr);
+  PointerRNA ptr;
+  uiItemFullO_ptr_ex(this, ot, name, icon, context, flag, &ptr);
+  return ptr;
 }
 
 void uiItemFullOMenuHold_ptr(uiLayout *layout,
                              wmOperatorType *ot,
                              std::optional<StringRef> name,
                              int icon,
-                             IDProperty *properties,
                              const wmOperatorCallContext context,
                              const eUI_Item_Flag flag,
                              const char *menu_id,
                              PointerRNA *r_opptr)
 {
-  uiBut *but = uiItemFullO_ptr_ex(layout, ot, name, icon, properties, context, flag, r_opptr);
+  uiBut *but = uiItemFullO_ptr_ex(layout, ot, name, icon, context, flag, r_opptr);
   UI_but_func_hold_set(but, ui_item_menu_hold, BLI_strdup(menu_id));
 }
 
-void uiItemFullO(uiLayout *layout,
-                 const blender::StringRefNull opname,
-                 const std::optional<StringRef> name,
-                 int icon,
-                 IDProperty *properties,
-                 wmOperatorCallContext context,
-                 const eUI_Item_Flag flag,
-                 PointerRNA *r_opptr)
+PointerRNA uiLayout::op(const blender::StringRefNull opname,
+                        const std::optional<StringRef> name,
+                        int icon,
+                        wmOperatorCallContext context,
+                        const eUI_Item_Flag flag)
 {
   wmOperatorType *ot = WM_operatortype_find(opname.c_str(), false); /* print error next */
-
-  UI_OPERATOR_ERROR_RET(ot, opname.c_str(), {
-    if (r_opptr) {
-      *r_opptr = PointerRNA_NULL;
-    }
-    return;
-  });
-
-  uiItemFullO_ptr(layout, ot, name, icon, properties, context, flag, r_opptr);
+  uiLayout *layout = this;
+  UI_OPERATOR_ERROR_RET(ot, opname.c_str(), { return PointerRNA_NULL; });
+  return this->op(ot, name, icon, context, flag);
 }
 
 static StringRef ui_menu_enumpropname(uiLayout *layout,
@@ -1441,19 +1424,10 @@ void uiItemEnumO_ptr(uiLayout *layout,
     RNA_warning("%s.%s not found", RNA_struct_identifier(ptr.type), propname.c_str());
     return;
   }
-
-  RNA_property_enum_set(&ptr, prop, value);
-
   name = name.value_or(ui_menu_enumpropname(layout, &ptr, prop, value));
 
-  uiItemFullO_ptr(layout,
-                  ot,
-                  name,
-                  icon,
-                  static_cast<IDProperty *>(ptr.data),
-                  layout->root_->opcontext,
-                  UI_ITEM_NONE,
-                  nullptr);
+  ptr = layout->op(ot, name, icon, layout->root_->opcontext, UI_ITEM_NONE);
+  RNA_property_enum_set(&ptr, prop, value);
 }
 void uiItemEnumO(uiLayout *layout,
                  const StringRefNull opname,
@@ -1556,24 +1530,12 @@ void uiItemsFullEnumO_items(uiLayout *layout,
     }
 
     if (item->identifier[0]) {
-      PointerRNA tptr;
-      WM_operator_properties_create_ptr(&tptr, ot);
+      PointerRNA tptr = target->op(
+          ot, (flag & UI_ITEM_R_ICON_ONLY) ? nullptr : item->name, item->icon, context, flag);
       if (properties) {
-        if (tptr.data) {
-          IDP_FreeProperty(static_cast<IDProperty *>(tptr.data));
-        }
-        tptr.data = IDP_CopyProperty(properties);
+        IDP_CopyPropertyContent(tptr.data_as<IDProperty>(), properties);
       }
       RNA_property_enum_set(&tptr, prop, item->value);
-
-      uiItemFullO_ptr(target,
-                      ot,
-                      (flag & UI_ITEM_R_ICON_ONLY) ? nullptr : item->name,
-                      item->icon,
-                      static_cast<IDProperty *>(tptr.data),
-                      context,
-                      flag,
-                      nullptr);
 
       uiBut *but = block->buttons.last().get();
 
@@ -1724,17 +1686,8 @@ void uiItemEnumO_value(uiLayout *layout,
     RNA_warning("%s.%s not found", RNA_struct_identifier(ptr.type), propname.c_str());
     return;
   }
-
+  ptr = layout->op(ot, name, icon, layout->root_->opcontext, UI_ITEM_NONE);
   RNA_property_enum_set(&ptr, prop, value);
-
-  uiItemFullO_ptr(layout,
-                  ot,
-                  name,
-                  icon,
-                  static_cast<IDProperty *>(ptr.data),
-                  layout->root_->opcontext,
-                  UI_ITEM_NONE,
-                  nullptr);
 }
 
 void uiItemEnumO_string(uiLayout *layout,
@@ -1776,120 +1729,18 @@ void uiItemEnumO_string(uiLayout *layout,
   if (free) {
     MEM_freeN(item);
   }
-
+  ptr = layout->op(ot, name, icon, layout->root_->opcontext, UI_ITEM_NONE);
   RNA_property_enum_set(&ptr, prop, value);
-
-  uiItemFullO_ptr(layout,
-                  ot,
-                  name,
-                  icon,
-                  static_cast<IDProperty *>(ptr.data),
-                  layout->root_->opcontext,
-                  UI_ITEM_NONE,
-                  nullptr);
 }
 
-void uiItemBooleanO(uiLayout *layout,
-                    const std::optional<StringRef> name,
-                    int icon,
-                    const StringRefNull opname,
-                    const StringRefNull propname,
-                    int value)
+PointerRNA uiLayout::op(wmOperatorType *ot, const std::optional<StringRef> name, int icon)
 {
-  wmOperatorType *ot = WM_operatortype_find(opname.c_str(), false); /* print error next */
-  UI_OPERATOR_ERROR_RET(ot, opname.c_str(), return);
-
-  PointerRNA ptr;
-  WM_operator_properties_create_ptr(&ptr, ot);
-  RNA_boolean_set(&ptr, propname.c_str(), value);
-
-  uiItemFullO_ptr(layout,
-                  ot,
-                  name,
-                  icon,
-                  static_cast<IDProperty *>(ptr.data),
-                  layout->root_->opcontext,
-                  UI_ITEM_NONE,
-                  nullptr);
+  return this->op(ot, name, icon, root_->opcontext, UI_ITEM_NONE);
 }
 
-void uiItemIntO(uiLayout *layout,
-                const std::optional<StringRef> name,
-                int icon,
-                const StringRefNull opname,
-                const StringRefNull propname,
-                int value)
+PointerRNA uiLayout::op(const StringRefNull opname, const std::optional<StringRef> name, int icon)
 {
-  wmOperatorType *ot = WM_operatortype_find(opname.c_str(), false); /* print error next */
-  UI_OPERATOR_ERROR_RET(ot, opname.c_str(), return);
-
-  PointerRNA ptr;
-  WM_operator_properties_create_ptr(&ptr, ot);
-  RNA_int_set(&ptr, propname.c_str(), value);
-
-  uiItemFullO_ptr(layout,
-                  ot,
-                  name,
-                  icon,
-                  static_cast<IDProperty *>(ptr.data),
-                  layout->root_->opcontext,
-                  UI_ITEM_NONE,
-                  nullptr);
-}
-
-void uiItemFloatO(uiLayout *layout,
-                  const std::optional<StringRef> name,
-                  int icon,
-                  const StringRefNull opname,
-                  const StringRefNull propname,
-                  float value)
-{
-  wmOperatorType *ot = WM_operatortype_find(opname.c_str(), false); /* print error next */
-
-  UI_OPERATOR_ERROR_RET(ot, opname.c_str(), return);
-
-  PointerRNA ptr;
-  WM_operator_properties_create_ptr(&ptr, ot);
-  RNA_float_set(&ptr, propname.c_str(), value);
-
-  uiItemFullO_ptr(layout,
-                  ot,
-                  name,
-                  icon,
-                  static_cast<IDProperty *>(ptr.data),
-                  layout->root_->opcontext,
-                  UI_ITEM_NONE,
-                  nullptr);
-}
-
-void uiItemStringO(uiLayout *layout,
-                   const std::optional<StringRef> name,
-                   int icon,
-                   const StringRefNull opname,
-                   const StringRefNull propname,
-                   const char *value)
-{
-  wmOperatorType *ot = WM_operatortype_find(opname.c_str(), false); /* print error next */
-
-  UI_OPERATOR_ERROR_RET(ot, opname.c_str(), return);
-
-  PointerRNA ptr;
-  WM_operator_properties_create_ptr(&ptr, ot);
-  RNA_string_set(&ptr, propname.c_str(), value);
-
-  uiItemFullO_ptr(layout,
-                  ot,
-                  name,
-                  icon,
-                  static_cast<IDProperty *>(ptr.data),
-                  layout->root_->opcontext,
-                  UI_ITEM_NONE,
-                  nullptr);
-}
-
-void uiLayout::op(const StringRefNull opname, const std::optional<StringRef> name, int icon)
-{
-  uiItemFullO(this, opname, name, icon, nullptr, root_->opcontext, UI_ITEM_NONE, nullptr);
+  return this->op(opname, name, icon, root_->opcontext, UI_ITEM_NONE);
 }
 
 /* RNA property items */
@@ -2077,9 +1928,9 @@ void uiLayout::prop(PointerRNA *ptr,
                     int index,
                     int value,
                     eUI_Item_Flag flag,
-                    const std::optional<StringRefNull> name_opt,
+                    const std::optional<StringRef> name_opt,
                     int icon,
-                    const std::optional<StringRefNull> placeholder)
+                    const std::optional<StringRef> placeholder)
 {
 
   uiBlock *block = root_->block;
@@ -2127,7 +1978,7 @@ void uiLayout::prop(PointerRNA *ptr,
   const bool no_icon = (toggle == 0);
 
   /* set name and icon */
-  StringRefNull name = name_opt.value_or(icon_only ? "" : RNA_property_ui_name(prop));
+  StringRef name = name_opt.value_or(icon_only ? "" : RNA_property_ui_name(prop));
 
   if (type != PROP_BOOLEAN) {
     flag &= ~UI_ITEM_R_CHECKBOX_INVERT;
@@ -2263,22 +2114,19 @@ void uiLayout::prop(PointerRNA *ptr,
         /* Pass */
       }
       else if (ui_item_rna_is_expand(prop, index, flag)) {
-        char name_with_suffix[UI_MAX_DRAW_STR + 2];
+        fmt::memory_buffer name_with_suffix;
         char str[2] = {'\0'};
         for (int a = 0; a < len; a++) {
           str[0] = RNA_property_array_item_char(prop, a);
           const bool use_prefix = (a == 0 && !name.is_empty());
           if (use_prefix) {
-            char *s = name_with_suffix;
-            s += STRNCPY_RLEN(name_with_suffix, name.c_str());
-            *s++ = ' ';
-            *s++ = str[0];
-            *s++ = '\0';
+            fmt::format_to(fmt::appender(name_with_suffix), "{} {}", name, str[0]);
           }
           but = uiDefBut(block,
                          UI_BTYPE_LABEL,
                          0,
-                         use_prefix ? name_with_suffix : str,
+                         use_prefix ? StringRef(name_with_suffix.data(), name_with_suffix.size()) :
+                                      str,
                          0,
                          0,
                          w,
@@ -2480,7 +2328,7 @@ void uiLayout::prop(PointerRNA *ptr,
 
   if (but) {
     if (placeholder) {
-      UI_but_placeholder_set(but, placeholder->c_str());
+      UI_but_placeholder_set(but, *placeholder);
     }
     if (ELEM(but->type, UI_BTYPE_TEXT) && (flag & UI_ITEM_R_TEXT_BUT_FORCE_SEMI_MODAL_ACTIVE)) {
       UI_but_flag2_enable(but, UI_BUT2_FORCE_SEMI_MODAL_ACTIVE);
@@ -2541,7 +2389,7 @@ void uiLayout::prop(PointerRNA *ptr,
 void uiLayout::prop(PointerRNA *ptr,
                     const StringRefNull propname,
                     const eUI_Item_Flag flag,
-                    const std::optional<StringRefNull> name,
+                    const std::optional<StringRef> name,
                     int icon)
 {
   PropertyRNA *prop = RNA_struct_find_property(ptr, propname.c_str());

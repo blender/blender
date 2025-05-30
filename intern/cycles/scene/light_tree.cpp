@@ -154,6 +154,10 @@ LightTreeEmitter::LightTreeEmitter(Scene *scene,
     const float size = lamp->get_size();
     float3 strength = lamp->get_strength();
 
+    if (!lamp->get_normalize()) {
+      strength *= lamp->area(object->get_tfm());
+    }
+
     centroid = transform_get_column(&object->get_tfm(), 3);
     measure.bcone.axis = -safe_normalize(transform_get_column(&object->get_tfm(), 2));
 

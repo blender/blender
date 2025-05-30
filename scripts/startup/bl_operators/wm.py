@@ -56,7 +56,7 @@ def _rna_path_prop_search_for_context_impl(context, edit_text, unique_attrs):
 
 def rna_path_prop_search_for_context(self, context, edit_text):
     # NOTE(@campbellbarton): Limiting data-path expansion is rather arbitrary.
-    # It's possible for e.g. that someone would want to set a shortcut in the preferences or
+    # It's possible for example that someone would want to set a shortcut in the preferences or
     # in other region types than those currently expanded. Unless there is a reasonable likelihood
     # users might expand these space-type/region-type combinations - exclude them from this search.
     # After all, this list is mainly intended as a hint, users are not prevented from constructing
@@ -69,7 +69,7 @@ def rna_path_prop_search_for_context(self, context, edit_text):
             if area.type == 'PREFERENCES':
                 continue
             # Ignore the same region type multiple times in an area.
-            # Prevents the 3D-viewport quad-view from attempting to expand 3 extra times for e.g.
+            # Prevents the 3D-viewport quad-view from attempting to expand 3 extra times for example
             region_type_unique = set()
             for region in area.regions:
                 if region.type not in {'WINDOW', 'PREVIEW'}:
@@ -3503,7 +3503,7 @@ class WM_MT_region_toggle_pie(Menu):
     bl_label = "Region Toggle"
 
     # Map the `region.type` to the `space_data` attribute & text label.
-    # The order of items defines priority, so in the sequencer for e.g.
+    # The order of items defines priority, so for example in the sequencer
     # when there is both a toolbar and channels, the toolbar gets the
     # axis-aligned pie, and the channels don't.
     _region_info = {

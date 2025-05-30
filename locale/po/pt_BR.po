@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'a7d2b7850ef2')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'ba454989554a')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2025-05-05 08:47+0000\n"
+"POT-Creation-Date: 2025-05-26 07:36+0000\n"
 "PO-Revision-Date: 2025-04-14 08:36+0000\n"
 "Last-Translator: Ruan da Silva Andrade <ruanandrade818@gmail.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -3454,6 +3454,46 @@ msgid "Bones which are children of this bone"
 msgstr "Ossos que são filhos deste osso"
 
 
+msgid "Display Type"
+msgstr "Tipo de amostragem"
+
+
+msgid "Octahedral"
+msgstr "Octaedro"
+
+
+msgid "Stick"
+msgstr "Bastão"
+
+
+msgid "Display bones as simple 2D lines with dots"
+msgstr "Mostra os ossos como simples linhas 2D com pontos."
+
+
+msgid "B-Bone"
+msgstr "Maleável"
+
+
+msgid "Display bones as boxes, showing subdivision and B-Splines"
+msgstr "Mostra os ossos como caixas, mostrando subdivisões e Splines-B."
+
+
+msgid "Envelope"
+msgstr "Envelope"
+
+
+msgid "Display bones as extruded spheres, showing deformation influence volume"
+msgstr "Mostra os ossos como esferas esticadas por extrusão, mostrando os volumes das influências de deformação (alcance)."
+
+
+msgid "Wire"
+msgstr "Aramado"
+
+
+msgid "Display bones as thin wires, showing subdivision and B-Splines"
+msgstr "Mostra os ossos como arames finos, mostrando as subdivisões e Splines-B."
+
+
 msgid "Envelope Deform Distance"
 msgstr "Distância de deformação de envelope"
 
@@ -6704,10 +6744,6 @@ msgstr "Aponta o objeto restringido na direção do alvo."
 
 msgid "Target Z"
 msgstr "Alvo Z"
-
-
-msgid "Target's Z axis, not World Z axis, will constraint the Up direction"
-msgstr "Eixo Z do alvo, não o eixo Z do ambiente (mundo), irá restringir na direção para cima."
 
 
 msgid "Transform Cache Constraint"
@@ -10433,10 +10469,6 @@ msgid "Tracer"
 msgstr "Traçadoras"
 
 
-msgid "Display Type"
-msgstr "Tipo de amostragem"
-
-
 msgid "Needle"
 msgstr "Agulhas"
 
@@ -11564,44 +11596,8 @@ msgid "Animation data for this data-block"
 msgstr "Dados de animação para este bloco de dados."
 
 
-msgid "Octahedral"
-msgstr "Octaedro"
-
-
 msgid "Display bones as octahedral shape (default)"
 msgstr "Mostra os ossos em formato de octaedros (padrão)."
-
-
-msgid "Stick"
-msgstr "Bastão"
-
-
-msgid "Display bones as simple 2D lines with dots"
-msgstr "Mostra os ossos como simples linhas 2D com pontos."
-
-
-msgid "B-Bone"
-msgstr "Maleável"
-
-
-msgid "Display bones as boxes, showing subdivision and B-Splines"
-msgstr "Mostra os ossos como caixas, mostrando subdivisões e Splines-B."
-
-
-msgid "Envelope"
-msgstr "Envelope"
-
-
-msgid "Display bones as extruded spheres, showing deformation influence volume"
-msgstr "Mostra os ossos como esferas esticadas por extrusão, mostrando os volumes das influências de deformação (alcance)."
-
-
-msgid "Wire"
-msgstr "Aramado"
-
-
-msgid "Display bones as thin wires, showing subdivision and B-Splines"
-msgstr "Mostra os ossos como arames finos, mostrando as subdivisões e Splines-B."
 
 
 msgid "Edit Bones"
@@ -14227,6 +14223,10 @@ msgstr "Configurações de Luz do Cycles"
 
 msgid "Cycles light settings"
 msgstr "Configurações de Luz do Cycles"
+
+
+msgid "Normalize"
+msgstr "Normalizar"
 
 
 msgid "Specular Factor"
@@ -21444,16 +21444,52 @@ msgid "Material slot name"
 msgstr "Nome do compartimento do material."
 
 
+msgid "Mirror"
+msgstr "Espelhar"
+
+
+msgid "Snap"
+msgstr "Atrair"
+
+
+msgid "UV Mapping"
+msgstr "Mapeamento UV"
+
+
+msgid "Local View"
+msgstr "Visão local"
+
+
+msgid "Viewpoint"
+msgstr "Ponto de visualização"
+
+
+msgid "Navigation"
+msgstr "Navegação"
+
+
+msgid "Align View"
+msgstr "Alinhar visualização"
+
+
+msgid "Align View to Active"
+msgstr "Alinhar vista para o ativo"
+
+
+msgid "View Regions"
+msgstr "Visualizar Regiões"
+
+
+msgid "Select More/Less"
+msgstr "Selecionar mais ou menos"
+
+
 msgid "Select Similar"
 msgstr "Selecionar por similaridades"
 
 
 msgid "Select All by Trait"
 msgstr "Selecionar todos por características..."
-
-
-msgid "Select More/Less"
-msgstr "Selecionar mais ou menos"
 
 
 msgid "Select Linked"
@@ -21580,44 +21616,8 @@ msgid "Pivot Point"
 msgstr "Pontos de pivô"
 
 
-msgid "Snap"
-msgstr "Atrair"
-
-
 msgid "Proportional Editing Falloff"
 msgstr "Tipo de decaimento para edição proporcional"
-
-
-msgid "Mirror"
-msgstr "Espelhar"
-
-
-msgid "UV Mapping"
-msgstr "Mapeamento UV"
-
-
-msgid "Local View"
-msgstr "Visão local"
-
-
-msgid "Viewpoint"
-msgstr "Ponto de visualização"
-
-
-msgid "Navigation"
-msgstr "Navegação"
-
-
-msgid "Align View"
-msgstr "Alinhar visualização"
-
-
-msgid "Align View to Active"
-msgstr "Alinhar vista para o ativo"
-
-
-msgid "View Regions"
-msgstr "Visualizar Regiões"
 
 
 msgid "Basic"
@@ -26277,10 +26277,6 @@ msgid "Reconstructed"
 msgstr "Reconstruído"
 
 
-msgid "Is tracking data contains valid reconstruction information"
-msgstr "Os dados de rastreamento contém informações de reconstrução válidos."
-
-
 msgid "Movie tracking settings"
 msgstr "Configurações de rastreamento de filme."
 
@@ -26483,10 +26479,6 @@ msgstr "Usa o canal verde da filmagem para rastreamento."
 
 msgid "Use Mask"
 msgstr "Usar máscara"
-
-
-msgid "Normalize"
-msgstr "Normalizar"
 
 
 msgid "Normalize light intensities while tracking (slower)"
@@ -27121,10 +27113,6 @@ msgid "Extend bounds of the input image to fully fit blurred image"
 msgstr "Estende as extremidades da imagem de entrada para preencher completamente a imagem desfocada."
 
 
-msgid "Apply filter on gamma corrected values"
-msgstr "Aplica o filtro em valores corrigidos de gama."
-
-
 msgid "Use relative (percent) values to define blur radius"
 msgstr "Usa valores relativos (percentagem) para definir o raio de desfoque."
 
@@ -27139,10 +27127,6 @@ msgstr "Desfocagem flocada"
 
 msgid "Max Blur"
 msgstr "Desfocagem máxima"
-
-
-msgid "Blur limit, maximum CoC radius"
-msgstr "Define o limite de desfocagem através do raio máximo do círculo de indistinção."
 
 
 msgid "Bokeh Image"
@@ -27247,10 +27231,6 @@ msgstr "Correção de cores padrão ASC-CDL."
 
 msgid "Basis"
 msgstr "Base"
-
-
-msgid "Support negative color by using this as the RGB basis"
-msgstr "Permite o suporte a cores negativas pela utilização destes valores como a base de cores RGB."
 
 
 msgid "Slope"
@@ -27417,10 +27397,6 @@ msgid "Y1"
 msgstr "Y1"
 
 
-msgid "Use relative values to crop image"
-msgstr "Usa valores relativos para recortar a imagem."
-
-
 msgid "Crop Image Size"
 msgstr "Recortar o tamanho da imagem"
 
@@ -27485,6 +27461,10 @@ msgid "Bokeh shape rotation offset"
 msgstr "Deslocamento de rotação do formato da flocagem."
 
 
+msgid "Blur limit, maximum CoC radius"
+msgstr "Define o limite de desfocagem através do raio máximo do círculo de indistinção."
+
+
 msgid "Bokeh Type"
 msgstr "Tipo de flocagem"
 
@@ -27539,10 +27519,6 @@ msgstr "Cena a partir da qual selecionar a câmera ativa. Caso não esteja defin
 
 msgid "Gamma Correction"
 msgstr "Correção de gama"
-
-
-msgid "Enable gamma correction before and after main process"
-msgstr "Habilita a correção de gama antes e depois do processo principal."
 
 
 msgid "Use Z-Buffer"
@@ -27683,6 +27659,10 @@ msgstr "Inverter Y"
 
 msgid "Flip X & Y"
 msgstr "Inverter X e Y"
+
+
+msgid "Glare"
+msgstr "Ofuscar"
 
 
 msgid "Angle Offset"
@@ -27998,20 +27978,16 @@ msgid "Render Layers"
 msgstr "Camadas de renderização"
 
 
+msgid "Greater"
+msgstr "Maior"
+
+
 msgid "Rotate"
 msgstr "Rotacionar"
 
 
 msgid "Method to use to filter rotation"
 msgstr "Método usado para filtrar a rotação."
-
-
-msgid "Offset image horizontally (factor of image size)"
-msgstr "Desloca a imagem horizontalmente (pelo fator do tamanho da imagem)."
-
-
-msgid "Offset image vertically (factor of image size)"
-msgstr "Desloca a imagem verticalmente (pelo fator do tamanho da imagem)."
 
 
 msgid "Coordinate space to scale relative to"
@@ -28124,10 +28100,6 @@ msgstr "Método a ser usado para filtrar a transformação."
 
 msgid "Translate"
 msgstr "Mover"
-
-
-msgid "Use relative (fraction of input image size) values to define translation"
-msgstr "Usa valores relativos (em frações do tamanho da imagem de entrada) para definir o movimento."
 
 
 msgid "X Axis"
@@ -34159,10 +34131,6 @@ msgid "Select similar curve points by property type"
 msgstr "Seleciona os pontos similares das curvas pelos tipos de propriedades."
 
 
-msgid "Greater"
-msgstr "Maior"
-
-
 msgid "Less"
 msgstr "Menor"
 
@@ -38139,11 +38107,6 @@ msgstr "Achatar as faces selecionadas."
 
 
 msgctxt "Operator"
-msgid "Face Set Extract"
-msgstr "Extrair Conjunto de Faces"
-
-
-msgctxt "Operator"
 msgid "Weld Edges into Faces"
 msgstr "Soldar arestas criando faces"
 
@@ -38581,15 +38544,6 @@ msgstr "Desloca os anéis de arestas por deslizamento."
 
 msgid "Offset Edge Loop"
 msgstr "Deslocar anel de arestas"
-
-
-msgctxt "Operator"
-msgid "Mask Extract"
-msgstr "Extrair Máscara"
-
-
-msgid "Fill Holes"
-msgstr "Preencher lacunas"
 
 
 msgctxt "Operator"
@@ -44093,6 +44047,10 @@ msgid "All bones affected by active Keying Set"
 msgstr "Todos os ossos afetados pelo conjunto de inserção de chaves ativo."
 
 
+msgid "Parents"
+msgstr "Parentes"
+
+
 msgctxt "Operator"
 msgid "Select Connected"
 msgstr "Selecionar conectados"
@@ -45240,6 +45198,11 @@ msgstr "Editar Conjuntos de Faces"
 
 
 msgctxt "Operator"
+msgid "Face Set Extract"
+msgstr "Extrair Conjunto de Faces"
+
+
+msgctxt "Operator"
 msgid "Mask Filter"
 msgstr "Filtro de Máscara"
 
@@ -45278,6 +45241,15 @@ msgstr "Relaxar"
 
 msgid "Recalculate the sculpt BVH to improve performance"
 msgstr "Recalcula a hierarquia de volume circundante da escultura para melhorar a performance."
+
+
+msgctxt "Operator"
+msgid "Mask Extract"
+msgstr "Extrair Máscara"
+
+
+msgid "Fill Holes"
+msgstr "Preencher lacunas"
 
 
 msgctxt "Operator"
@@ -48441,10 +48413,6 @@ msgid "Remove"
 msgstr "Remover"
 
 
-msgid "Save a Collada file"
-msgstr "Salva um arquivo COLLADA"
-
-
 msgid "Only Selected UV Map"
 msgstr "Somente os mapas UV selecionados"
 
@@ -48547,10 +48515,6 @@ msgstr "Cria múltiplos objetos instanciados a partir dos mesmos dados."
 
 msgid "Copy textures to same folder where the .dae file is exported"
 msgstr "Copia as texturas para a mesma pasta onde o arquivo .dae é exportado."
-
-
-msgid "Load a Collada file"
-msgstr "Carrega um arquivo COLLADA"
 
 
 msgid "Auto Connect"
@@ -49597,10 +49561,6 @@ msgid "Bleed"
 msgstr "Sangrar"
 
 
-msgid "Extend paint beyond the faces UVs to reduce seams (in pixels, slower)"
-msgstr "Estende a pintura além das UVs das faces para reduzir as costuras (em pixeis, mais lento)."
-
-
 msgid "Stencil Color"
 msgstr "Cor de estêncil"
 
@@ -49659,10 +49619,6 @@ msgstr "O comprimento máximo de arestas para a escultura de topologia dinâmica
 
 msgid "Detail Percentage"
 msgstr "Porcentagem de detalhes"
-
-
-msgid "Maximum edge length for dynamic topology sculpting (in brush percenage)"
-msgstr "Comprimento máximo de aresta para escultura de topologia dinâmica (em porcentagem do pincel)."
 
 
 msgid "Detail Refine Method"
@@ -49813,6 +49769,14 @@ msgid "Active Palette Color"
 msgstr "Cor ativa da paleta"
 
 
+msgid "Motion Tracking"
+msgstr "Captura de movimentos"
+
+
+msgid "Transform Orientations"
+msgstr "Orientações de transformação"
+
+
 msgid "Quad View"
 msgstr "Exibição Quadrante"
 
@@ -49821,20 +49785,8 @@ msgid "Stereoscopy"
 msgstr "Estereoscopia"
 
 
-msgid "Wire Color"
-msgstr "Cor dos cabos"
-
-
 msgid "Render Pass"
 msgstr "Passo de renderização"
-
-
-msgid "Motion Tracking"
-msgstr "Captura de movimentos"
-
-
-msgid "Transform Orientations"
-msgstr "Orientações de transformação"
 
 
 msgid "Bone Constraints"
@@ -57169,14 +57121,6 @@ msgid "No display"
 msgstr "Sem exibição"
 
 
-msgid "Use Backdrop"
-msgstr "Usar pano de fundo"
-
-
-msgid "Display result under strips"
-msgstr "Mostrar resultado abaixo das faixas."
-
-
 msgid "Context Gizmo"
 msgstr "Apetrecho de Contexto"
 
@@ -57491,6 +57435,10 @@ msgstr "Tipo de visualização das trilhas"
 
 msgid "Viewport display style for tracks"
 msgstr "Estilo de visualização na janela de exibição para trilhas."
+
+
+msgid "Text Info"
+msgstr "Informação do Texto"
 
 
 msgid "Get the node tree path as a string"
@@ -59464,6 +59412,10 @@ msgstr "Nós de vetores"
 
 msgid "Wires"
 msgstr "Cabos"
+
+
+msgid "Wire Color"
+msgstr "Cor dos cabos"
 
 
 msgid "Wire Select"
@@ -64147,10 +64099,6 @@ msgid "Show Gizmos"
 msgstr "Mostrar Apetrechos"
 
 
-msgid "Text Info"
-msgstr "Informação do Texto"
-
-
 msgid "Origins"
 msgstr "Origens"
 
@@ -64641,10 +64589,6 @@ msgstr "Afeta Apenas"
 
 msgid "Locations"
 msgstr "Localizações"
-
-
-msgid "Parents"
-msgstr "Parentes"
 
 
 msgctxt "Operator"
@@ -66449,10 +66393,6 @@ msgstr "Objeto ativo não é uma malha selecionada."
 
 msgid "No mesh data to join"
 msgstr "Sem dados adicionais de malha para juntar."
-
-
-msgid "Selected meshes must have equal numbers of vertices"
-msgstr "Malhas selecionadas devem possuir um número igual de vértices."
 
 
 msgid "No additional selected meshes with equal vertex count to join"
@@ -69605,10 +69545,6 @@ msgstr "Adicionar Entrada"
 
 msgid "Layer:"
 msgstr "Camadas:"
-
-
-msgid "Glare"
-msgstr "Ofuscar"
 
 
 msgid "Streak fade-out factor"

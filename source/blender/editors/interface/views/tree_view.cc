@@ -110,6 +110,13 @@ void AbstractTreeView::foreach_item(ItemIterFn iter_fn, IterOptions options) con
   this->foreach_item_recursive(iter_fn, options);
 }
 
+void AbstractTreeView::foreach_root_item(ItemIterFn iter_fn) const
+{
+  for (const auto &child : children_) {
+    iter_fn(*child);
+  }
+}
+
 AbstractTreeViewItem *AbstractTreeView::find_hovered(const ARegion &region, const int2 &xy)
 {
   AbstractTreeViewItem *hovered_item = nullptr;
@@ -368,6 +375,11 @@ bool AbstractTreeView::supports_scrolling() const
   return custom_height_ && scroll_value_;
 }
 
+bool AbstractTreeView::is_fully_visible() const
+{
+  return this->tot_visible_row_count().value_or(0) >= last_tot_items_;
+}
+
 void AbstractTreeView::scroll(ViewScrollDirection direction)
 {
   if (!supports_scrolling()) {
@@ -409,6 +421,9 @@ std::optional<DropLocation> TreeViewItemDropTarget::choose_drop_location(
           3;
   const float segment_height = item_height / segment_count;
 
+  if (event.xy[1] < win_rect->ymin) {
+    return DropLocation::After;
+  }
   if (event.xy[1] - win_rect->ymin > (item_height - segment_height)) {
     return DropLocation::Before;
   }
@@ -471,9 +486,10 @@ void AbstractTreeViewItem::add_indent(uiLayout &row) const
 
   uiDefBut(block, UI_BTYPE_SEPR, 0, "", 0, 0, this->indent_width(), 0, nullptr, 0.0, 0.0, "");
 
-  /* Indent items without collapsing icon some more within their parent. Makes it clear that they
-   * are actually nested and not just a row at the same level without a chevron. */
-  if (!this->is_collapsible()) {
+  const bool is_flat_list = root_ && root_->is_flat_;
+  if (!is_flat_list && !this->is_collapsible()) {
+    /* Indent items without collapsing icon some more within their parent. Makes it clear that they
+     * are actually nested and not just a row at the same level without a chevron. */
     uiDefBut(block, UI_BTYPE_SEPR, 0, "", 0, 0, UI_TREEVIEW_INDENT, 0, nullptr, 0.0, 0.0, "");
   }
 
@@ -810,6 +826,7 @@ void TreeViewLayoutBuilder::build_from_tree(AbstractTreeView &tree_view)
 
   const std::optional<int> visible_row_count = tree_view.tot_visible_row_count();
   const int tot_items = count_visible_items(tree_view);
+  tree_view.last_tot_items_ = tot_items;
 
   /* Column for the tree view. */
   row->column(true);

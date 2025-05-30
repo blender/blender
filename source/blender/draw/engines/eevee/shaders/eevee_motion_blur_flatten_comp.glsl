@@ -19,6 +19,7 @@
 COMPUTE_SHADER_CREATE_INFO(eevee_motion_blur_tiles_flatten_rgba)
 
 #include "draw_math_geom_lib.glsl"
+#include "eevee_reverse_z_lib.glsl"
 #include "eevee_velocity_lib.glsl"
 
 shared uint payload_prev;
@@ -56,7 +57,7 @@ void main()
 
   float2 render_size = float2(imageSize(velocity_img).xy);
   float2 uv = (float2(texel) + 0.5f) / render_size;
-  float depth = texelFetch(depth_tx, texel, 0).r;
+  float depth = reverse_z::read(texelFetch(depth_tx, texel, 0).r);
   float4 motion = velocity_resolve(imageLoad(velocity_img, texel), uv, depth);
 #ifdef FLATTEN_RG
   /* imageLoad does not perform the swizzling like sampler does. Do it manually. */

@@ -7,6 +7,8 @@
  */
 
 #ifdef _WIN32
+#  include "BLI_winstuff.h"
+#  include <exception>
 #  include <io.h>
 #  include <stddef.h>
 #  include <sys/types.h>
@@ -167,7 +169,30 @@ ImBuf *IMB_load_image_from_file_descriptor(const int file,
   const uchar *mem = static_cast<const uchar *>(BLI_mmap_get_pointer(mmap_file));
   const size_t size = BLI_mmap_get_length(mmap_file);
 
-  ibuf = IMB_load_image_from_memory(mem, size, flags, filepath, filepath, r_colorspace);
+  /* There could be broken mmap due to network drives and other issues, handles exception the
+   * same way as in #BLI_mmap_read. Note that if the mmap becomes invalid mid-way through reading,
+   * external calls in #IMB_load_image_from_memory could leave unfreed memory, but this is the
+   * limitation of current exception handling method. Ref #139472. */
+#ifdef WIN32
+  __try
+  {
+#endif
+
+    ibuf = IMB_load_image_from_memory(mem, size, flags, filepath, filepath, r_colorspace);
+
+#ifdef WIN32
+  }
+  __except (GetExceptionCode() == EXCEPTION_IN_PAGE_ERROR ? EXCEPTION_EXECUTE_HANDLER :
+                                                            EXCEPTION_CONTINUE_SEARCH)
+  {
+    ibuf = nullptr;
+  }
+#else
+  /* For unix, if mmap encounters an exception, BLI_mmap_file::io_error would be set. */
+  if (BLI_mmap_any_io_error(mmap_file)) {
+    ibuf = nullptr;
+  }
+#endif
 
   imb_mmap_lock();
   BLI_mmap_free(mmap_file);

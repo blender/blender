@@ -233,7 +233,7 @@ class SubPatch {
 
   int get_inner_grid_vert_triangle(int i, int j) const
   {
-    /* Rowows (1 + 2 + .. + j), and column i. */
+    /* Rows `(1 + 2 + .. + j)`, and column `i`. */
     const int offset = j * (j + 1) / 2 + i;
     assert(offset < calc_num_inner_verts());
     return inner_grid_vert_offset + offset;

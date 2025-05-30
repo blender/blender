@@ -23,6 +23,8 @@
 #include "DNA_node_tree_interface_types.h"
 #include "DNA_node_types.h"
 
+#include "NOD_node_declaration.hh"
+
 using blender::StringRef;
 
 /**
@@ -145,6 +147,7 @@ template<> void socket_data_init_impl(bNodeSocketValueVector &data)
 {
   static float default_value[] = {0.0f, 0.0f, 0.0f};
   data.subtype = PROP_NONE;
+  data.dimensions = 3;
   copy_v3_v3(data.value, default_value);
   data.min = -FLT_MAX;
   data.max = FLT_MAX;
@@ -575,6 +578,12 @@ void item_write_struct(BlendWriter *writer, bNodeTreeInterfaceItem &item)
 {
   switch (NodeTreeInterfaceItemType(item.item_type)) {
     case NODE_INTERFACE_SOCKET: {
+      /* Forward compatible writing of older single value only flag. To be removed in 5.0. */
+      bNodeTreeInterfaceSocket &socket = get_item_as<bNodeTreeInterfaceSocket>(item);
+      SET_FLAG_FROM_TEST(socket.flag,
+                         socket.structure_type == NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_SINGLE,
+                         NODE_INTERFACE_SOCKET_SINGLE_VALUE_ONLY_LEGACY);
+
       BLO_write_struct(writer, bNodeTreeInterfaceSocket, &item);
       break;
     }
@@ -600,6 +609,14 @@ static void item_read_data(BlendDataReader *reader, bNodeTreeInterfaceItem &item
       BLO_read_struct(reader, IDProperty, &socket.properties);
       IDP_BlendDataRead(reader, &socket.properties);
 
+      /* Improve forward compatibility for unknown default input types. */
+      const bNodeSocketType *stype = socket.socket_typeinfo();
+      if (!nodes::socket_type_supports_default_input_type(
+              *stype, NodeDefaultInputType(socket.default_input)))
+      {
+        socket.default_input = NODE_DEFAULT_INPUT_VALUE;
+      }
+
       socket_types::socket_data_read_data(reader, socket);
       break;
     }
@@ -609,8 +626,21 @@ static void item_read_data(BlendDataReader *reader, bNodeTreeInterfaceItem &item
       BLO_read_string(reader, &panel.description);
       BLO_read_pointer_array(
           reader, panel.items_num, reinterpret_cast<void **>(&panel.items_array));
+
+      /* Read the direct-data for each interface item if possible. The pointer becomes null if the
+       * struct type is not known. */
       for (const int i : blender::IndexRange(panel.items_num)) {
         BLO_read_struct(reader, bNodeTreeInterfaceItem, &panel.items_array[i]);
+      }
+      /* Forward compatibility: Discard unknown tree interface item types that may be introduced in
+       * the future. Their pointer is set to null above. */
+      panel.items_num = std::remove_if(
+                            panel.items_array,
+                            panel.items_array + panel.items_num,
+                            [&](const bNodeTreeInterfaceItem *item) { return item == nullptr; }) -
+                        panel.items_array;
+      /* Now read the actual data if the known interface items. */
+      for (const int i : blender::IndexRange(panel.items_num)) {
         item_read_data(reader, *panel.items_array[i]);
       }
       break;
@@ -695,6 +725,13 @@ bool bNodeTreeInterfaceSocket::set_socket_type(const StringRef new_socket_type)
 
   this->socket_type = BLI_strdupn(new_socket_type.data(), new_socket_type.size());
   this->socket_data = socket_types::make_socket_data(new_socket_type);
+
+  blender::bke::bNodeSocketType *stype = this->socket_typeinfo();
+  if (!blender::nodes::socket_type_supports_default_input_type(
+          *stype, NodeDefaultInputType(this->default_input)))
+  {
+    this->default_input = NODE_DEFAULT_INPUT_VALUE;
+  }
 
   return true;
 }
@@ -1118,6 +1155,12 @@ bNodeTreeInterfaceSocket *add_interface_socket_from_node(bNodeTree &ntree,
 
     iosock = ntree.tree_interface.add_socket(
         name, from_sock.description, socket_type, flag, nullptr);
+
+    if (iosock) {
+      if (const nodes::SocketDeclaration *decl = from_sock.runtime->declaration) {
+        iosock->default_input = decl->default_input_type;
+      }
+    }
   }
   if (iosock == nullptr) {
     return nullptr;

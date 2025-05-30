@@ -26,6 +26,57 @@ static const EnumPropertyItem node_tree_interface_socket_in_out_items[] = {
     {NODE_INTERFACE_SOCKET_OUTPUT, "OUTPUT", 0, "Output", "Generate a output node socket"},
     {0, nullptr, 0, nullptr, nullptr}};
 
+static const EnumPropertyItem node_tree_interface_socket_structure_type_items[] = {
+    {NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_AUTO,
+     "AUTO",
+     0,
+     "Auto",
+     "Automatically detect a good structure type based on how the socket is used"},
+    {NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_SINGLE,
+     "SINGLE",
+     0,
+     "Single",
+     "Socket expects a single value"},
+    {NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_DYNAMIC,
+     "DYNAMIC",
+     0,
+     "Dynamic",
+     "Socket can work with different kinds of structures"},
+    {NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_FIELD, "FIELD", 0, "Field", "Socket expects a field"},
+    {NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_GRID, "GRID", 0, "Grid", "Socket expects a grid"},
+    {0, nullptr, 0, nullptr, nullptr}};
+
+static const EnumPropertyItem node_default_input_items[] = {
+    {NODE_DEFAULT_INPUT_VALUE, "VALUE", 0, "Default Value", "The node socket's default value"},
+    {NODE_DEFAULT_INPUT_INDEX_FIELD, "INDEX", 0, "Index", "The index from the context"},
+    {NODE_DEFAULT_INPUT_ID_INDEX_FIELD,
+     "ID_OR_INDEX",
+     0,
+     "ID or Index",
+     "The \"id\" attribute if available, otherwise the index"},
+    {NODE_DEFAULT_INPUT_NORMAL_FIELD, "NORMAL", 0, "Normal", "The geometry's normal direction"},
+    {NODE_DEFAULT_INPUT_POSITION_FIELD,
+     "POSITION",
+     0,
+     "Position",
+     "The position from the context"},
+    {NODE_DEFAULT_INPUT_INSTANCE_TRANSFORM_FIELD,
+     "INSTANCE_TRANSFORM",
+     0,
+     "Instance Transform",
+     "Transformation of each instance from the geometry context"},
+    {NODE_DEFAULT_INPUT_HANDLE_LEFT_FIELD,
+     "HANDLE_LEFT",
+     0,
+     "Left Handle",
+     "The left Bezier control point handle from the context"},
+    {NODE_DEFAULT_INPUT_HANDLE_RIGHT_FIELD,
+     "HANDLE_RIGHT",
+     0,
+     "Right Handle",
+     "The right Bezier control point handle from the context"},
+    {0, nullptr, 0, nullptr, nullptr}};
+
 #ifdef RNA_RUNTIME
 
 #  include <fmt/format.h>
@@ -43,6 +94,9 @@ static const EnumPropertyItem node_tree_interface_socket_in_out_items[] = {
 #  include "BLI_set.hh"
 
 #  include "BLT_translation.hh"
+
+#  include "NOD_node_declaration.hh"
+#  include "NOD_socket.hh"
 
 #  include "DNA_material_types.h"
 #  include "ED_node.hh"
@@ -364,8 +418,10 @@ static bool is_socket_type_supported(blender::bke::bNodeTreeType *ntreetype,
     return false;
   }
 
-  /* Only use basic socket types for this enum. */
-  if (socket_type->subtype != PROP_NONE) {
+  /* Only basic socket types are supported. */
+  blender::bke::bNodeSocketType *base_socket_type = blender::bke::node_socket_type_find_static(
+      socket_type->type, PROP_NONE);
+  if (socket_type != base_socket_type) {
     return false;
   }
 
@@ -409,7 +465,19 @@ static const EnumPropertyItem *rna_NodeTreeInterfaceSocket_socket_type_itemf(
       ntree->typeinfo, rna_NodeTreeInterfaceSocket_socket_type_poll, r_free);
 }
 
-static const EnumPropertyItem *rna_NodeTreeInterfaceSocket_default_input_itemf(
+/**
+ * Also control the structure type when setting the "Is Single" status. To be removed when the
+ * structure type feature is moved out of experimental.
+ */
+static void rna_NodeTreeInterfaceSocket_force_non_field_set(PointerRNA *ptr, const bool value)
+{
+  bNodeTreeInterfaceSocket *socket = static_cast<bNodeTreeInterfaceSocket *>(ptr->data);
+  SET_FLAG_FROM_TEST(socket->flag, value, NODE_INTERFACE_SOCKET_SINGLE_VALUE_ONLY_LEGACY);
+  socket->structure_type = value ? NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_SINGLE :
+                                   NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_AUTO;
+}
+
+static const EnumPropertyItem *rna_NodeTreeInterfaceSocket_structure_type_itemf(
     bContext * /*C*/, PointerRNA *ptr, PropertyRNA * /*prop*/, bool *r_free)
 {
   const bNodeTree *ntree = reinterpret_cast<const bNodeTree *>(ptr->owner_id);
@@ -419,56 +487,86 @@ static const EnumPropertyItem *rna_NodeTreeInterfaceSocket_default_input_itemf(
     return rna_enum_dummy_NULL_items;
   }
 
+  const bool is_geometry_nodes = ntree->type == NTREE_GEOMETRY;
+
+  const eNodeSocketDatatype socket_type = eNodeSocketDatatype(socket->socket_typeinfo()->type);
+  const bool supports_fields = is_geometry_nodes &&
+                               blender::nodes::socket_type_supports_fields(socket_type);
+  const bool supports_grids = is_geometry_nodes &&
+                              blender::nodes::socket_type_supports_grids(socket_type);
+
   *r_free = true;
   EnumPropertyItem *items = nullptr;
   int items_count = 0;
 
-  const EnumPropertyItem none{GEO_NODE_DEFAULT_INPUT_VALUE,
-                              "VALUE",
-                              0,
-                              N_("Default Value"),
-                              N_("The node socket's default value")};
-  RNA_enum_item_add(&items, &items_count, &none);
+  for (const EnumPropertyItem *item = node_tree_interface_socket_structure_type_items;
+       item->identifier;
+       item++)
+  {
+    switch (NodeSocketInterfaceStructureType(item->value)) {
+      case NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_SINGLE:
+      case NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_AUTO: {
+        RNA_enum_item_add(&items, &items_count, item);
+        break;
+      }
+      case NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_DYNAMIC: {
+        if (U.experimental.use_socket_structure_type) {
+          if (supports_fields || supports_grids) {
+            RNA_enum_item_add(&items, &items_count, item);
+          }
+        }
+        break;
+      }
+      case NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_FIELD: {
+        if (U.experimental.use_socket_structure_type) {
+          if (supports_fields) {
+            RNA_enum_item_add(&items, &items_count, item);
+          }
+        }
+        break;
+      }
+      case NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_GRID: {
+        if (U.experimental.use_socket_structure_type) {
+          if (supports_grids) {
+            RNA_enum_item_add(&items, &items_count, item);
+          }
+        }
+        break;
+      }
+    }
+  }
+  RNA_enum_item_end(&items, &items_count);
+  return items;
+}
 
-  if (ntree->type == NTREE_GEOMETRY) {
-    const blender::bke::bNodeSocketType *type = socket->socket_typeinfo();
-    if (type->type == SOCK_INT) {
-      const EnumPropertyItem index{GEO_NODE_DEFAULT_FIELD_INPUT_INDEX_FIELD,
-                                   "INDEX",
-                                   0,
-                                   N_("Index"),
-                                   N_("The index from the context")};
-      RNA_enum_item_add(&items, &items_count, &index);
-      const EnumPropertyItem index_or_id{
-          GEO_NODE_DEFAULT_FIELD_INPUT_ID_INDEX_FIELD,
-          "ID_OR_INDEX",
-          0,
-          N_("ID or Index"),
-          N_("The \"id\" attribute if available, otherwise the index")};
-      RNA_enum_item_add(&items, &items_count, &index_or_id);
+static const EnumPropertyItem *rna_NodeTreeInterfaceSocket_default_input_itemf(
+    bContext * /*C*/, PointerRNA *ptr, PropertyRNA * /*prop*/, bool *r_free)
+{
+  const bNodeTree *ntree = reinterpret_cast<const bNodeTree *>(ptr->owner_id);
+  const bNodeTreeInterfaceSocket *socket = static_cast<const bNodeTreeInterfaceSocket *>(
+      ptr->data);
+  if (!ntree) {
+    return rna_enum_dummy_NULL_items;
+  }
+  const blender::bke::bNodeSocketType *stype = socket->socket_typeinfo();
+  if (!stype) {
+    return rna_enum_dummy_NULL_items;
+  }
+
+  *r_free = true;
+  EnumPropertyItem *items = nullptr;
+  int items_count = 0;
+
+  for (const EnumPropertyItem *item = node_default_input_items; item->identifier; item++) {
+    if (item->value == NODE_DEFAULT_INPUT_VALUE) {
+      RNA_enum_item_add(&items, &items_count, item);
     }
-    else if (type->type == SOCK_VECTOR) {
-      const EnumPropertyItem normal{GEO_NODE_DEFAULT_FIELD_INPUT_NORMAL_FIELD,
-                                    "NORMAL",
-                                    0,
-                                    N_("Normal"),
-                                    N_("The geometry's normal direction")};
-      RNA_enum_item_add(&items, &items_count, &normal);
-      const EnumPropertyItem position{GEO_NODE_DEFAULT_FIELD_INPUT_POSITION_FIELD,
-                                      "POSITION",
-                                      0,
-                                      N_("Position"),
-                                      N_("The position from the context")};
-      RNA_enum_item_add(&items, &items_count, &position);
-    }
-    else if (type->type == SOCK_MATRIX) {
-      const EnumPropertyItem instance_transform{
-          GEO_NODE_DEFAULT_FIELD_INPUT_INSTANCE_TRANSFORM_FIELD,
-          "INSTANCE_TRANSFORM",
-          0,
-          N_("Instance Transform"),
-          N_("Transformation of each instance from the geometry context")};
-      RNA_enum_item_add(&items, &items_count, &instance_transform);
+    else if (ntree->type == NTREE_GEOMETRY) {
+      if (blender::nodes::socket_type_supports_default_input_type(
+              *stype, NodeDefaultInputType(item->value)))
+      {
+        RNA_enum_item_add(&items, &items_count, item);
+      }
     }
   }
 
@@ -815,6 +913,31 @@ static void rna_NodeTreeInterfaceSocket_value_update(Main *bmain, Scene *scene, 
   rna_NodeTreeInterfaceItem_update(bmain, scene, ptr);
 }
 
+/* If the dimensions of the vector socket changed, we need to update the socket type, since each
+ * dimensions value has its own sub-type. */
+static void rna_NodeTreeInterfaceSocketVector_dimensions_update(Main *bmain,
+                                                                Scene *scene,
+                                                                PointerRNA *ptr)
+{
+
+  bNodeTreeInterfaceSocket *socket = static_cast<bNodeTreeInterfaceSocket *>(ptr->data);
+
+  /* Store a copy of the existing default value since it will be freed when setting the socket type
+   * below.*/
+  const bNodeSocketValueVector default_value = *static_cast<bNodeSocketValueVector *>(
+      socket->socket_data);
+
+  const blender::StringRefNull socket_idname = *blender::bke::node_static_socket_type(
+      SOCK_VECTOR, default_value.subtype, default_value.dimensions);
+
+  socket->set_socket_type(socket_idname);
+
+  /* Restore existing default value. */
+  *static_cast<bNodeSocketValueVector *>(socket->socket_data) = default_value;
+
+  rna_NodeTreeInterfaceSocket_value_update(bmain, scene, ptr);
+}
+
 static bool rna_NodeTreeInterfaceSocketMaterial_default_value_poll(PointerRNA * /*ptr*/,
                                                                    PointerRNA value)
 {
@@ -1027,10 +1150,14 @@ static void rna_def_node_interface_socket(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeTreeInterfaceItem_update");
 
   prop = RNA_def_property(srna, "force_non_field", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "flag", NODE_INTERFACE_SOCKET_SINGLE_VALUE_ONLY);
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "flag", NODE_INTERFACE_SOCKET_SINGLE_VALUE_ONLY_LEGACY);
+  RNA_def_property_boolean_funcs(prop, nullptr, "rna_NodeTreeInterfaceSocket_force_non_field_set");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(
-      prop, "Single Value", "Only allow single value inputs rather than fields");
+      prop,
+      "Single Value",
+      "Only allow single value inputs rather than field.\nDeprecated. Will be remove in 5.0.");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeTreeInterfaceItem_update");
 
   prop = RNA_def_property(srna, "is_inspect_output", PROP_BOOLEAN, PROP_NONE);
@@ -1081,8 +1208,18 @@ static void rna_def_node_interface_socket(BlenderRNA *brna)
                            "geometry nodes modifier");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeTreeInterfaceItem_update");
 
+  prop = RNA_def_property(srna, "structure_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, node_tree_interface_socket_structure_type_items);
+  RNA_def_property_ui_text(
+      prop,
+      "Structure Type",
+      "What kind of higher order types are expected to flow through this socket");
+  RNA_def_property_enum_funcs(
+      prop, nullptr, nullptr, "rna_NodeTreeInterfaceSocket_structure_type_itemf");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeTreeInterfaceItem_update");
+
   prop = RNA_def_property(srna, "default_input", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_items(prop, rna_enum_dummy_NULL_items);
+  RNA_def_property_enum_items(prop, node_default_input_items);
   RNA_def_property_ui_text(
       prop,
       "Default Input",

@@ -2,13 +2,15 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include <ostream>
+
 #include "DNA_modifier_types.h"
 #include "DNA_node_types.h"
 
 #include "BKE_compute_context_cache.hh"
 #include "BKE_compute_contexts.hh"
-
-#include <ostream>
+#include "BKE_node.hh"
+#include "BKE_node_runtime.hh"
 
 namespace blender::bke {
 
@@ -37,32 +39,35 @@ void ModifierComputeContext::print_current_in_line(std::ostream &stream) const
   }
 }
 
-GroupNodeComputeContext::GroupNodeComputeContext(const ComputeContext *parent,
-                                                 const int32_t node_id)
-    : ComputeContext(parent), node_id_(node_id)
+NodeComputeContext::NodeComputeContext(const ComputeContext *parent,
+                                       int32_t node_id,
+                                       const bNodeTree *tree)
+    : ComputeContext(parent), node_id_(node_id), tree_(tree)
 {
 }
 
-GroupNodeComputeContext::GroupNodeComputeContext(const ComputeContext *parent,
-                                                 const bNode &caller_group_node,
-                                                 const bNodeTree &caller_tree)
-    : GroupNodeComputeContext(parent, caller_group_node.identifier)
+ComputeContextHash NodeComputeContext::compute_hash() const
 {
-  caller_group_node_ = &caller_group_node;
-  caller_tree_ = &caller_tree;
+  return ComputeContextHash::from(parent_, "NODE", node_id_);
 }
 
-ComputeContextHash GroupNodeComputeContext::compute_hash() const
+const bNode *NodeComputeContext::node() const
 {
-  return ComputeContextHash::from(parent_, "NODE_GROUP", node_id_);
-}
-
-void GroupNodeComputeContext::print_current_in_line(std::ostream &stream) const
-{
-  if (caller_group_node_ != nullptr) {
-    stream << "Node: " << caller_group_node_->name;
-    return;
+  if (tree_) {
+    return tree_->node_by_id(node_id_);
   }
+  return nullptr;
+}
+
+void NodeComputeContext::print_current_in_line(std::ostream &stream) const
+{
+  if (tree_) {
+    if (const bNode *node = tree_->node_by_id(node_id_)) {
+      stream << "Node: " << node_label(*tree_, *node);
+      return;
+    }
+  }
+  stream << "Node ID: " << node_id_;
 }
 
 SimulationZoneComputeContext::SimulationZoneComputeContext(const ComputeContext *parent,
@@ -133,34 +138,13 @@ void ForeachGeometryElementZoneComputeContext::print_current_in_line(std::ostrea
   stream << "Foreach Geometry Element Zone ID: " << output_node_id_;
 }
 
-EvaluateClosureComputeContext::EvaluateClosureComputeContext(const ComputeContext *parent,
-                                                             const int32_t node_id)
-    : ComputeContext(parent), node_id_(node_id)
-{
-}
-
 EvaluateClosureComputeContext::EvaluateClosureComputeContext(
     const ComputeContext *parent,
-    const int32_t evaluate_node_id,
-    const bNode *evaluate_node,
+    int32_t node_id,
+    const bNodeTree *tree,
     const std::optional<nodes::ClosureSourceLocation> &closure_source_location)
-    : EvaluateClosureComputeContext(parent, evaluate_node_id)
+    : NodeComputeContext(parent, node_id, tree), closure_source_location_(closure_source_location)
 {
-  evaluate_node_ = evaluate_node;
-  closure_source_location_ = closure_source_location;
-}
-
-ComputeContextHash EvaluateClosureComputeContext::compute_hash() const
-{
-  return ComputeContextHash::from(parent_, "EVAL_CLOSURE", node_id_);
-}
-
-void EvaluateClosureComputeContext::print_current_in_line(std::ostream &stream) const
-{
-  if (evaluate_node_ != nullptr) {
-    stream << "Evaluate Closure: " << evaluate_node_->name;
-    return;
-  }
 }
 
 OperatorComputeContext::OperatorComputeContext() : OperatorComputeContext(nullptr) {}
@@ -216,22 +200,12 @@ const OperatorComputeContext &ComputeContextCache::for_operator(const ComputeCon
 }
 
 const GroupNodeComputeContext &ComputeContextCache::for_group_node(const ComputeContext *parent,
-                                                                   const int32_t node_id)
+                                                                   const int32_t node_id,
+                                                                   const bNodeTree *tree)
 {
   return *group_node_contexts_cache_.lookup_or_add_cb(std::pair{parent, node_id}, [&]() {
-    return &this->for_any_uncached<GroupNodeComputeContext>(parent, node_id);
+    return &this->for_any_uncached<GroupNodeComputeContext>(parent, node_id, tree);
   });
-}
-
-const GroupNodeComputeContext &ComputeContextCache::for_group_node(const ComputeContext *parent,
-                                                                   const bNode &caller_group_node,
-                                                                   const bNodeTree &caller_tree)
-{
-  return *group_node_contexts_cache_.lookup_or_add_cb(
-      std::pair{parent, caller_group_node.identifier}, [&]() {
-        return &this->for_any_uncached<GroupNodeComputeContext>(
-            parent, caller_group_node, caller_tree);
-      });
 }
 
 const SimulationZoneComputeContext &ComputeContextCache::for_simulation_zone(
@@ -298,24 +272,15 @@ const ForeachGeometryElementZoneComputeContext &ComputeContextCache::
 }
 
 const EvaluateClosureComputeContext &ComputeContextCache::for_evaluate_closure(
-    const ComputeContext *parent, int32_t node_id)
-{
-  return *evaluate_closure_contexts_cache_.lookup_or_add_cb(std::pair{parent, node_id}, [&]() {
-    return &this->for_any_uncached<EvaluateClosureComputeContext>(parent, node_id);
-  });
-}
-
-const EvaluateClosureComputeContext &ComputeContextCache::for_evaluate_closure(
     const ComputeContext *parent,
-    const int32_t evaluate_node_id,
-    const bNode *evaluate_node,
+    const int32_t node_id,
+    const bNodeTree *tree,
     const std::optional<nodes::ClosureSourceLocation> &closure_source_location)
 {
-  return *evaluate_closure_contexts_cache_.lookup_or_add_cb(
-      std::pair{parent, evaluate_node_id}, [&]() {
-        return &this->for_any_uncached<EvaluateClosureComputeContext>(
-            parent, evaluate_node_id, evaluate_node, closure_source_location);
-      });
+  return *evaluate_closure_contexts_cache_.lookup_or_add_cb(std::pair{parent, node_id}, [&]() {
+    return &this->for_any_uncached<EvaluateClosureComputeContext>(
+        parent, node_id, tree, closure_source_location);
+  });
 }
 
 }  // namespace blender::bke

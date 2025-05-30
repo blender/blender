@@ -46,8 +46,8 @@ template<typename T> class VolumeGrid;
 class VolumeTreeAccessToken;
 
 /**
- * Compile time check to see of a type is a #VolumeGrid. This is false for e.g. `float` or
- * `GVolumeGrid` and true for e.g. `VolumeGrid<int>` and `VolumeGrid<float>`.
+ * Compile time check to see of a type is a #VolumeGrid, e.g. false for `float` or
+ * `GVolumeGrid` and true for `VolumeGrid<int>` and `VolumeGrid<float>`.
  */
 template<typename T> static constexpr bool is_VolumeGrid_v = false;
 template<typename T> static constexpr bool is_VolumeGrid_v<VolumeGrid<T>> = true;

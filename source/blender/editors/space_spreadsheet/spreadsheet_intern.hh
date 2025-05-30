@@ -6,7 +6,7 @@
 
 #include "BKE_geometry_set.hh"
 
-#include "spreadsheet_cache.hh"
+#include "DNA_space_types.h"
 
 struct ARegionType;
 struct Depsgraph;
@@ -22,18 +22,24 @@ namespace blender::ed::spreadsheet {
 
 class DataSource;
 
+struct ReorderColumnVisualizationData {
+  int old_index = 0;
+  int new_index = 0;
+  int current_offset_x_px = 0;
+};
+
 struct SpaceSpreadsheet_Runtime {
  public:
   int visible_rows = 0;
   int tot_rows = 0;
   int tot_columns = 0;
   int top_row_height = 0;
+  int left_column_width = 0;
 
-  SpreadsheetCache cache;
+  std::optional<ReorderColumnVisualizationData> reorder_column_visualization_data;
 
   SpaceSpreadsheet_Runtime() = default;
 
-  /* The cache is not copied currently. */
   SpaceSpreadsheet_Runtime(const SpaceSpreadsheet_Runtime &other)
       : visible_rows(other.visible_rows), tot_rows(other.tot_rows), tot_columns(other.tot_columns)
   {
@@ -49,16 +55,35 @@ bke::GeometrySet spreadsheet_get_display_geometry_set(const SpaceSpreadsheet *ss
 
 void spreadsheet_data_set_region_panels_register(ARegionType &region_type);
 
-/**
- * Find the column that the cursor is hovering over.
- */
+/** Find the column edge that the cursor is hovering in the header row. */
+SpreadsheetColumn *find_hovered_column_header_edge(SpaceSpreadsheet &sspreadsheet,
+                                                   ARegion &region,
+                                                   const int2 &cursor_re);
+
+/** Find the column that the cursor is hovering in the header row.*/
+SpreadsheetColumn *find_hovered_column_header(SpaceSpreadsheet &sspreadsheet,
+                                              ARegion &region,
+                                              const int2 &cursor_re);
+
+/** Find the column edge that the cursor is hovering. */
 SpreadsheetColumn *find_hovered_column_edge(SpaceSpreadsheet &sspreadsheet,
                                             ARegion &region,
                                             const int2 &cursor_re);
+
+/** Find the column that the cursor is hovering. */
+SpreadsheetColumn *find_hovered_column(SpaceSpreadsheet &sspreadsheet,
+                                       ARegion &region,
+                                       const int2 &cursor_re);
 
 /**
  * Get the data that is currently displayed in the spreadsheet.
  */
 std::unique_ptr<DataSource> get_data_source(const bContext &C);
+
+/**
+ * Get the ID of the table that should be displayed. This is used to look up the table from
+ * #SpaceSpreadsheet::tables.
+ */
+const SpreadsheetTableID *get_active_table_id(const SpaceSpreadsheet &sspreadsheet);
 
 }  // namespace blender::ed::spreadsheet

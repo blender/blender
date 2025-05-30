@@ -276,7 +276,10 @@ void GPU_batch_resource_id_buf_set(blender::gpu::Batch *batch, GPUStorageBuf *re
  * \note This need to be called first for the `GPU_batch_uniform_*` functions to work.
  */
 /* TODO(fclem): These should be removed and replaced by `GPU_shader_bind()`. */
-void GPU_batch_set_shader(blender::gpu::Batch *batch, GPUShader *shader);
+void GPU_batch_set_shader(
+    blender::gpu::Batch *batch,
+    GPUShader *shader,
+    const blender::gpu::shader::SpecializationConstants *constants_state = nullptr);
 void GPU_batch_program_set_builtin(blender::gpu::Batch *batch, eGPUBuiltinShader shader_id);
 void GPU_batch_program_set_builtin_with_config(blender::gpu::Batch *batch,
                                                eGPUBuiltinShader shader_id,
@@ -318,7 +321,10 @@ void GPU_batch_program_set_imm_shader(blender::gpu::Batch *batch);
 /**
  * Bind vertex and index buffers to SSBOs using `Frequency::GEOMETRY`.
  */
-void GPU_batch_bind_as_resources(blender::gpu::Batch *batch, GPUShader *shader);
+void GPU_batch_bind_as_resources(
+    blender::gpu::Batch *batch,
+    GPUShader *shader,
+    const blender::gpu::shader::SpecializationConstants *constants = nullptr);
 
 /** \} */
 

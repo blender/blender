@@ -3620,7 +3620,7 @@ static Object *convert_font_to_curve_legacy_generic(Object *ob,
                         nullptr);
 
   newob->type = OB_CURVES_LEGACY;
-  cu->type = OB_CURVES_LEGACY;
+  cu->ob_type = OB_CURVES_LEGACY;
 
 #define CURVE_VFONT_CLEAR(vfont_member) \
   if (cu->vfont_member) { \
@@ -4319,8 +4319,7 @@ static void object_add_duplicate_internal(Main *bmain,
     return;
   }
 
-  Object *obn = static_cast<Object *>(
-      ID_NEW_SET(ob, BKE_object_duplicate(bmain, ob, dupflag, duplicate_options)));
+  Object *obn = BKE_object_duplicate(bmain, ob, dupflag, duplicate_options);
   if (r_ob_new) {
     *r_ob_new = obn;
   }

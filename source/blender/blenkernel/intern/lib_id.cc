@@ -638,6 +638,11 @@ static int id_copy_libmanagement_cb(LibraryIDLinkCallbackData *cb_data)
       BLI_assert(cb_data->self_id->tag & ID_TAG_NO_MAIN);
       id_us_plus_no_lib(id);
     }
+    else if (ID_IS_LINKED(cb_data->owner_id)) {
+      /* Do not mark copied ID as directly linked, if its current user is also linked data (which
+       * is now fairly common when using 'copy_in_lib' feature). */
+      id_us_plus_no_lib(id);
+    }
     else {
       id_us_plus(id);
     }

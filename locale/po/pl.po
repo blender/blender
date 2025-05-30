@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'a7d2b7850ef2')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'ba454989554a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-05 08:47+0000\n"
+"POT-Creation-Date: 2025-05-26 07:36+0000\n"
 "PO-Revision-Date: 2025-04-14 08:34+0000\n"
 "Last-Translator: Kamil <uhkamil@gmail.com>\n"
 "Language-Team: Polish <https://translate.blender.org/projects/blender-ui/ui/pl/>\n"
@@ -3217,6 +3217,14 @@ msgid "Bone Collections that contain this bone"
 msgstr "Kolekcje kości, do których należy ta kość"
 
 
+msgid "B-Bone"
+msgstr "Giętka kość"
+
+
+msgid "Envelope"
+msgstr "Obwiednia"
+
+
 msgid "Envelope Deform Distance"
 msgstr "Zasięg deformacji obwiedni"
 
@@ -6242,10 +6250,6 @@ msgstr "Celuj związanym obiektem w kierunku obiektu docelowego"
 
 msgid "Target Z"
 msgstr "Cel Z"
-
-
-msgid "Target's Z axis, not World Z axis, will constraint the Up direction"
-msgstr "Oś Z lokalna obiektu docelowego a nie oś świata będzie określać kierunek 'do góry'"
 
 
 msgid "Cache File"
@@ -9359,14 +9363,6 @@ msgid "Feature Set"
 msgstr "Zestaw funkcji"
 
 
-msgid "B-Bone"
-msgstr "Giętka kość"
-
-
-msgid "Envelope"
-msgstr "Obwiednia"
-
-
 msgid "Theme"
 msgstr "Motyw"
 
@@ -11584,6 +11580,26 @@ msgid "Mask"
 msgstr "Maska"
 
 
+msgid "Mirror"
+msgstr "Odbicie lustrzane"
+
+
+msgid "Snap"
+msgstr "Przyciągnij"
+
+
+msgid "Local View"
+msgstr "Widok lokalny"
+
+
+msgid "Viewpoint"
+msgstr "Punkt obserwacji"
+
+
+msgid "Navigation"
+msgstr "Nawigacja"
+
+
 msgid "Select Linked"
 msgstr "Zaznacz powiązane"
 
@@ -11652,28 +11668,8 @@ msgid "Text"
 msgstr "Tekst"
 
 
-msgid "Snap"
-msgstr "Przyciągnij"
-
-
 msgid "Proportional Editing Falloff"
 msgstr "Proporcjonalne edytowanie spadku"
-
-
-msgid "Mirror"
-msgstr "Odbicie lustrzane"
-
-
-msgid "Local View"
-msgstr "Widok lokalny"
-
-
-msgid "Viewpoint"
-msgstr "Punkt obserwacji"
-
-
-msgid "Navigation"
-msgstr "Nawigacja"
 
 
 msgid "Catalog"
@@ -12426,8 +12422,8 @@ msgid "Shadow"
 msgstr "Cień"
 
 
-msgid "Glare "
-msgstr "Blask "
+msgid "Glare"
+msgstr "Blask"
 
 
 msgid "Glare Type"
@@ -15256,6 +15252,10 @@ msgid "Delete with Reconnect"
 msgstr "Usuń z ponownym połączeniem"
 
 
+msgid "Open a predefined panel"
+msgstr "Otwiera predefiniowany panel"
+
+
 msgid "Clear Viewer"
 msgstr "Wyczyść widok"
 
@@ -16997,10 +16997,6 @@ msgid "Name of the menu"
 msgstr "Nazwa menu"
 
 
-msgid "Open a predefined panel"
-msgstr "Otwiera predefiniowany panel"
-
-
 msgctxt "Operator"
 msgid "Clear Recent Files List"
 msgstr "Wyczyść listę ostatnio otwartych plików"
@@ -17397,18 +17393,6 @@ msgid "Palette Color"
 msgstr "Kolor palety"
 
 
-msgid "Active Tool"
-msgstr "Aktywne narzędzie"
-
-
-msgid "Shadow Settings"
-msgstr "Ustawienia cienia"
-
-
-msgid "Compositor"
-msgstr "Kompozytor"
-
-
 msgid "Motion Tracking"
 msgstr "Śledzenie ruchu"
 
@@ -17431,6 +17415,18 @@ msgstr "Przyciąganie"
 
 msgid "Transform Orientations"
 msgstr "Orientacje przekształcenia"
+
+
+msgid "Compositor"
+msgstr "Kompozytor"
+
+
+msgid "Active Tool"
+msgstr "Aktywne narzędzie"
+
+
+msgid "Shadow Settings"
+msgstr "Ustawienia cienia"
 
 
 msgid "Aperture"
@@ -18022,18 +18018,6 @@ msgstr "Limit pamięci podręcznej"
 
 msgid "Memory cache limit (in megabytes)"
 msgstr "Limit pamięci podręcznej (w megabajtach)"
-
-
-msgid "Requires fast storage, but uses minimum CPU resources"
-msgstr "Wymaga szybkiej pamięci masowej, ale wykorzystuje minimalne zasoby procesora"
-
-
-msgid "Doesn't require fast storage and uses less CPU resources"
-msgstr "Nie wymaga szybkiej pamięci masowej i wykorzystuje mniej zasobów procesora"
-
-
-msgid "Works on slower storage devices and uses most CPU resources"
-msgstr "Działa na wolniejszych urządzeniach pamięci masowej i wykorzystuje większość zasobów procesora"
 
 
 msgid "5 Samples"
@@ -19409,10 +19393,6 @@ msgid "Transform Preview"
 msgstr "Podgląd transformacji"
 
 
-msgid "Columns"
-msgstr "Kolumny"
-
-
 msgid "Line Numbers"
 msgstr "Numery linii"
 
@@ -19556,6 +19536,10 @@ msgstr "Wartość koloru"
 
 msgid "Vector Value"
 msgstr "Wartość wektora"
+
+
+msgid "Columns"
+msgstr "Kolumny"
 
 
 msgctxt "Sequence"
@@ -19830,11 +19814,6 @@ msgstr "Świat"
 
 
 msgctxt "View3D"
-msgid "Viewport"
-msgstr "Rzutnia"
-
-
-msgctxt "View3D"
 msgid "Screen"
 msgstr "Ekran"
 
@@ -19846,10 +19825,6 @@ msgstr "Oba"
 
 msgid "Show material color"
 msgstr "Wyświetla kolor materiału"
-
-
-msgid "Show scene in a single color"
-msgstr "Rysuj scenę używając pojedynczego koloru"
 
 
 msgid "Lighting Method for Solid/Texture Viewport Shading"
@@ -21916,14 +21891,6 @@ msgid "Cut To"
 msgstr "Przytnij do"
 
 
-msgid "No active context"
-msgstr "Brak aktywnej zawartości"
-
-
-msgid "Invalid id"
-msgstr "Nieprawidłowy identyfikator"
-
-
 msgctxt "Text"
 msgid "New"
 msgstr "Nowy"
@@ -22355,10 +22322,6 @@ msgstr "Limit pamięci cofnięć"
 
 msgid "Console Scrollback Lines"
 msgstr "Linie przewijania konsoli"
-
-
-msgid "Cache Limit"
-msgstr "Limit pamięci podręcznej"
 
 
 msgid "View Name"
@@ -24692,10 +24655,6 @@ msgid "Can't edit external library data"
 msgstr "Nie można edytować zewnętrznych danych biblioteki"
 
 
-msgid "Close"
-msgstr "Zamknięty"
-
-
 msgid "No filepath given"
 msgstr "Nie podano ścieżki pliku"
 
@@ -24835,6 +24794,10 @@ msgstr "Musisz również zaznaczyć sznur połączonych wierzchołków"
 
 msgid "No intersections found"
 msgstr "Nie odnaleziono krzyżowania się"
+
+
+msgid "Close"
+msgstr "Zamknięty"
 
 
 msgid "Pan View"
@@ -25003,10 +24966,6 @@ msgstr "Aktywny obiekt nie jest zaznaczoną siatką"
 
 msgid "No mesh data to join"
 msgstr "Brak danych siatki do złączenia"
-
-
-msgid "Selected meshes must have equal numbers of vertices"
-msgstr "Zaznaczone siatki muszą posiadać równą liczbę wierzchołków"
 
 
 msgid "No additional selected meshes with equal vertex count to join"
@@ -28037,10 +27996,6 @@ msgid "Levels Viewport"
 msgstr "Poziomy rzutni"
 
 
-msgid "Bake Path"
-msgstr "Wypal ścieżkę"
-
-
 msgid "Delete Bake"
 msgstr "Usuń przeliczenie"
 
@@ -28099,10 +28054,6 @@ msgstr "Warstwa:"
 
 msgid "File Subpath:"
 msgstr "Podścieżka pliku:"
-
-
-msgid "Glare"
-msgstr "Blask"
 
 
 msgid "Dot"
@@ -28189,6 +28140,10 @@ msgstr "Pozostałe"
 
 msgid "Bounding box volume must be greater than 0"
 msgstr "Kubatura prostopadłościanu brzegowego musi być większa niż 0"
+
+
+msgid "Bake Path"
+msgstr "Wypal ścieżkę"
 
 
 msgid "BSDF"

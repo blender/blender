@@ -179,7 +179,7 @@ static void curve_blend_write(BlendWriter *writer, ID *id, const void *id_addres
   /* direct data */
   BLO_write_pointer_array(writer, cu->totcol, cu->mat);
 
-  if (cu->vfont) {
+  if (cu->ob_type == OB_FONT) {
     BLO_write_string(writer, cu->str);
     BLO_write_struct_array(writer, CharInfo, cu->len_char32 + 1, cu->strinfo);
     BLO_write_struct_array(writer, TextBox, cu->totbox, cu->tb);
@@ -223,7 +223,7 @@ static void curve_blend_read_data(BlendDataReader *reader, ID *id)
   BLO_read_struct_array(reader, CharInfo, cu->len_char32 + 1, &cu->strinfo);
   BLO_read_struct_array(reader, TextBox, cu->totbox, &cu->tb);
 
-  if (cu->vfont == nullptr) {
+  if (cu->ob_type != OB_FONT) {
     BLO_read_struct_list(reader, Nurb, &(cu->nurb));
   }
   else {
@@ -255,7 +255,7 @@ static void curve_blend_read_data(BlendDataReader *reader, ID *id)
     BLO_read_struct_array(reader, BPoint, nu->pntsu * nu->pntsv, &nu->bp);
     BLO_read_float_array(reader, KNOTSU(nu), &nu->knotsu);
     BLO_read_float_array(reader, KNOTSV(nu), &nu->knotsv);
-    if (cu->vfont == nullptr) {
+    if (cu->ob_type != OB_FONT) {
       nu->charidx = 0;
     }
   }
@@ -353,9 +353,9 @@ void BKE_curve_init(Curve *cu, const short curve_type)
 {
   curve_init_data(&cu->id);
 
-  cu->type = curve_type;
+  cu->ob_type = curve_type;
 
-  if (cu->type == OB_FONT) {
+  if (cu->ob_type == OB_FONT) {
     cu->flag |= CU_FRONT | CU_BACK;
     cu->vfont = cu->vfontb = cu->vfonti = cu->vfontbi = BKE_vfont_builtin_ensure();
     cu->vfont->id.us += 4;
@@ -377,7 +377,7 @@ void BKE_curve_init(Curve *cu, const short curve_type)
     cu->tb = MEM_calloc_arrayN<TextBox>(MAXTEXTBOX, "textbox");
     cu->tb[0].w = cu->tb[0].h = 0.0;
   }
-  else if (cu->type == OB_SURF) {
+  else if (cu->ob_type == OB_SURF) {
     cu->flag |= CU_3D;
     cu->resolu = 4;
     cu->resolv = 4;
@@ -418,28 +418,6 @@ const ListBase *BKE_curve_editNurbs_get_for_read(const Curve *cu)
   return nullptr;
 }
 
-short BKE_curve_type_get(const Curve *cu)
-{
-  int type = cu->type;
-
-  if (cu->vfont) {
-    return OB_FONT;
-  }
-
-  if (!cu->type) {
-    type = OB_CURVES_LEGACY;
-
-    LISTBASE_FOREACH (Nurb *, nu, &cu->nurb) {
-      if (nu->pntsv > 1) {
-        type = OB_SURF;
-        break;
-      }
-    }
-  }
-
-  return type;
-}
-
 void BKE_curve_dimension_update(Curve *cu)
 {
   ListBase *nurbs = BKE_curve_nurbs_get(cu);
@@ -457,14 +435,16 @@ void BKE_curve_dimension_update(Curve *cu)
   }
 }
 
-void BKE_curve_type_test(Object *ob)
+void BKE_curve_type_test(Object *ob, const bool dimension_update)
 {
-  ob->type = BKE_curve_type_get((Curve *)ob->data);
+  Curve *cu = static_cast<Curve *>(ob->data);
+  ob->type = cu->ob_type;
 
-  if (ob->type == OB_CURVES_LEGACY) {
-    Curve *cu = (Curve *)ob->data;
-    if (CU_IS_2D(cu)) {
-      BKE_curve_dimension_update(cu);
+  if (dimension_update) {
+    if (ob->type == OB_CURVES_LEGACY) {
+      if (CU_IS_2D(cu)) {
+        BKE_curve_dimension_update(cu);
+      }
     }
   }
 }
@@ -5287,9 +5267,7 @@ void BKE_curve_translate(Curve *cu, const float offset[3], const bool do_keys)
 
 void BKE_curve_material_index_remove(Curve *cu, int index)
 {
-  const int curvetype = BKE_curve_type_get(cu);
-
-  if (curvetype == OB_FONT) {
+  if (cu->ob_type == OB_FONT) {
     CharInfo *info = cu->strinfo;
     for (int i = cu->len_char32 - 1; i >= 0; i--, info++) {
       if (info->mat_nr && info->mat_nr >= index) {
@@ -5308,9 +5286,7 @@ void BKE_curve_material_index_remove(Curve *cu, int index)
 
 bool BKE_curve_material_index_used(const Curve *cu, int index)
 {
-  const int curvetype = BKE_curve_type_get(cu);
-
-  if (curvetype == OB_FONT) {
+  if (cu->ob_type == OB_FONT) {
     const CharInfo *info = cu->strinfo;
     for (int i = cu->len_char32 - 1; i >= 0; i--, info++) {
       if (info->mat_nr == index) {
@@ -5331,9 +5307,7 @@ bool BKE_curve_material_index_used(const Curve *cu, int index)
 
 void BKE_curve_material_index_clear(Curve *cu)
 {
-  const int curvetype = BKE_curve_type_get(cu);
-
-  if (curvetype == OB_FONT) {
+  if (cu->ob_type == OB_FONT) {
     CharInfo *info = cu->strinfo;
     for (int i = cu->len_char32 - 1; i >= 0; i--, info++) {
       info->mat_nr = 0;
@@ -5348,10 +5322,9 @@ void BKE_curve_material_index_clear(Curve *cu)
 
 bool BKE_curve_material_index_validate(Curve *cu)
 {
-  const int curvetype = BKE_curve_type_get(cu);
   bool is_valid = true;
 
-  if (curvetype == OB_FONT) {
+  if (cu->ob_type == OB_FONT) {
     CharInfo *info = cu->strinfo;
     const int max_idx = max_ii(0, cu->totcol); /* OB_FONT use 1 as first mat index, not 0!!! */
     int i;
@@ -5381,7 +5354,6 @@ bool BKE_curve_material_index_validate(Curve *cu)
 
 void BKE_curve_material_remap(Curve *cu, const uint *remap, uint remap_len)
 {
-  const int curvetype = BKE_curve_type_get(cu);
   const short remap_len_short = short(remap_len);
 
 #define MAT_NR_REMAP(n) \
@@ -5391,7 +5363,7 @@ void BKE_curve_material_remap(Curve *cu, const uint *remap, uint remap_len)
   } \
   ((void)0)
 
-  if (curvetype == OB_FONT) {
+  if (cu->ob_type == OB_FONT) {
     CharInfo *strinfo;
     int charinfo_len, i;
 

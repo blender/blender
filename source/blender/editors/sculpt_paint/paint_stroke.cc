@@ -219,7 +219,7 @@ static void paint_draw_line_cursor(bContext *C,
                 stroke->last_mouse_position[0] + region->winrct.xmin,
                 stroke->last_mouse_position[1] + region->winrct.ymin);
 
-    immVertex2iv(shdr_pos, xy);
+    immVertex2fv(shdr_pos, float2(xy));
   }
 
   immEnd();
@@ -690,22 +690,17 @@ static float paint_space_stroke_spacing(const bContext *C,
   const PaintMode mode = BKE_paintmode_get_active_from_context(C);
   const Brush &brush = *BKE_paint_brush_for_read(paint);
 
-  const float size = BKE_brush_size_get(scene, stroke->brush) * size_pressure;
   float size_clamp = 0.0f;
   if (paint_stroke_use_scene_spacing(brush, mode)) {
-    if (!BKE_brush_use_locked_size(scene, &brush)) {
-      const float3 last_object_space_position = math::transform_point(
-          stroke->vc.obact->world_to_object(), stroke->last_world_space_position);
-      size_clamp = paint_calc_object_space_radius(stroke->vc, last_object_space_position, size);
-    }
-    else {
-      size_clamp = BKE_brush_unprojected_radius_get(scene, &brush) * size_pressure;
-    }
+    const float3 last_object_space_position = math::transform_point(
+        stroke->vc.obact->world_to_object(), stroke->last_world_space_position);
+    size_clamp = object_space_radius_get(
+        stroke->vc, *scene, brush, last_object_space_position, size_pressure);
   }
   else {
     /* brushes can have a minimum size of 1.0 but with pressure it can be smaller than a pixel
      * causing very high step sizes, hanging blender #32381. */
-    size_clamp = max_ff(1.0f, size);
+    size_clamp = max_ff(1.0f, BKE_brush_size_get(scene, stroke->brush) * size_pressure);
   }
 
   float spacing = stroke->brush->spacing;

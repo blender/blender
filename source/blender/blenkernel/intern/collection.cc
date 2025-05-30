@@ -729,7 +729,7 @@ Collection *BKE_collection_duplicate(Main *bmain,
                                      Collection *parent,
                                      CollectionChild *child_old,
                                      Collection *collection,
-                                     /*eDupli_ID_Flags*/ uint duplicate_flags,
+                                     eDupli_ID_Flags duplicate_flags,
                                      /*eLibIDDuplicateFlags*/ uint duplicate_options)
 {
   const bool is_subprocess = (duplicate_options & LIB_ID_DUPLICATE_IS_SUBPROCESS) != 0;
@@ -754,7 +754,7 @@ Collection *BKE_collection_duplicate(Main *bmain,
       collection,
       child_old,
       id_create_flag,
-      eDupli_ID_Flags(duplicate_flags),
+      duplicate_flags,
       eLibIDDuplicateFlags(duplicate_options));
 
   if (!is_subprocess) {

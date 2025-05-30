@@ -177,7 +177,11 @@ static void ui_alembic_export_settings(const bContext *C, uiLayout *layout, Poin
 
     sub = &col->column(true);
     sub->prop(ptr, "sh_open", UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
-    sub->prop(ptr, "sh_close", UI_ITEM_R_SLIDER, IFACE_("Close"), ICON_NONE);
+    sub->prop(ptr,
+              "sh_close",
+              UI_ITEM_R_SLIDER,
+              CTX_IFACE_(BLT_I18NCONTEXT_ID_CAMERA, "Close"),
+              ICON_NONE);
 
     col->separator();
 

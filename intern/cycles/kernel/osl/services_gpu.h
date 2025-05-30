@@ -1161,7 +1161,7 @@ ccl_device_inline bool get_object_attribute_impl(KernelGlobals kg,
   T dx = make_zero<T>();
   T dy = make_zero<T>();
 #ifdef __VOLUME__
-  if (primitive_is_volume_attribute(sd, desc)) {
+  if (primitive_is_volume_attribute(sd)) {
     v = primitive_volume_attribute<T>(kg, sd, desc);
   }
   else
@@ -1326,7 +1326,7 @@ ccl_device_inline bool get_object_standard_attribute(KernelGlobals kg,
     return set_attribute(f, type, derivatives, val);
   }
   else if (name == DeviceStrings::u_curve_tangent_normal) {
-    float3 f = curve_tangent_normal(kg, sd);
+    float3 f = curve_tangent_normal(sd);
     return set_attribute(f, type, derivatives, val);
   }
   else if (name == DeviceStrings::u_curve_random) {

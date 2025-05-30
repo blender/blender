@@ -25,7 +25,7 @@ struct ImageSaveOptions {
 
   /* Format and absolute file path. */
   ImageFormatData im_format;
-  char filepath[1024]; /* 1024 = FILE_MAX */
+  char filepath[/*FILE_MAX*/ 1024];
 
   /* Options. */
   bool relative;

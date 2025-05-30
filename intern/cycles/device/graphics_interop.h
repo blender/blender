@@ -21,7 +21,7 @@ class DeviceGraphicsInterop {
 
   /* Update this device-side graphics interoperability buffer with the given destination
    * resource information. */
-  virtual void set_buffer(const GraphicsInteropBuffer &interop_buffer) = 0;
+  virtual void set_buffer(GraphicsInteropBuffer &interop_buffer) = 0;
 
   virtual device_ptr map() = 0;
   virtual void unmap() = 0;

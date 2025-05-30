@@ -105,7 +105,7 @@
 
 #include "GPU_context.hh"
 #include "GPU_init_exit.hh"
-#include "GPU_material.hh"
+#include "GPU_shader.hh"
 
 #include "COM_compositor.hh"
 
@@ -161,8 +161,6 @@ void WM_init_gpu()
 
   GPU_init();
 
-  GPU_pass_cache_init();
-
   if (G.debug & G_DEBUG_GPU_COMPILE_SHADERS) {
     GPU_shader_compile_static();
   }
@@ -189,10 +187,8 @@ static void sound_jack_sync_callback(Main *bmain, int mode, double time)
     if (depsgraph == nullptr) {
       continue;
     }
-    BKE_sound_lock();
     Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
     BKE_sound_jack_scene_update(scene_eval, mode, time);
-    BKE_sound_unlock();
   }
 }
 
@@ -454,7 +450,7 @@ void WM_exit_ex(bContext *C, const bool do_python_exit, const bool do_user_exit_
 
   /* While nothing technically prevents saving user data in background mode,
    * don't do this as not typically useful and more likely to cause problems
-   * if automated scripts happen to write changes to the preferences for e.g.
+   * if automated scripts happen to write changes to the preferences for example.
    * Saving #BLENDER_QUIT_FILE is also not likely to be desired either. */
   BLI_assert(G.background ? (do_user_exit_actions == false) : true);
 
@@ -645,7 +641,6 @@ void WM_exit_ex(bContext *C, const bool do_python_exit, const bool do_user_exit_
   if (gpu_is_init) {
     DRW_gpu_context_enable_ex(false);
     UI_exit();
-    GPU_pass_cache_free();
     GPU_shader_cache_dir_clear_old();
     GPU_exit();
     DRW_gpu_context_disable_ex(false);

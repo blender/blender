@@ -77,7 +77,8 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *ptr)
     for (const int i : IndexRange(storage.items_num)) {
       uiLayout *row = &col->row(false);
       row->label(node.input_socket(i + 1).name, ICON_NONE);
-      uiItemIntO(row, "", ICON_REMOVE, "node.index_switch_item_remove", "index", i);
+      PointerRNA op_ptr = row->op("node.index_switch_item_remove", "", ICON_REMOVE);
+      RNA_int_set(&op_ptr, "index", i);
     }
   }
 }
@@ -413,6 +414,7 @@ static void register_node()
   ntype.draw_buttons = node_layout;
   ntype.draw_buttons_ex = node_layout_ex;
   ntype.register_operators = node_operators;
+  ntype.ignore_inferred_input_socket_visibility = true;
   ntype.blend_write_storage_content = node_blend_write;
   ntype.blend_data_read_storage_content = node_blend_read;
   ntype.internally_linked_input = node_internally_linked_input;

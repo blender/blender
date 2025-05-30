@@ -251,6 +251,24 @@ void Manager::generate_commands(PassSimple &pass)
   pass.draw_commands_buf_.generate_commands(pass.headers_, pass.commands_, pass.sub_passes_);
 }
 
+void Manager::warm_shader_specialization(PassMain &pass)
+{
+  if (pass.is_empty()) {
+    return;
+  }
+  command::RecordingState state;
+  pass.warm_shader_specialization(state);
+}
+
+void Manager::warm_shader_specialization(PassSimple &pass)
+{
+  if (pass.is_empty()) {
+    return;
+  }
+  command::RecordingState state;
+  pass.warm_shader_specialization(state);
+}
+
 void Manager::submit_only(PassMain &pass, View &view)
 {
   if (pass.is_empty()) {

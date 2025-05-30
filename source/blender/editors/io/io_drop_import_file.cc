@@ -43,16 +43,13 @@ static blender::Vector<blender::bke::FileHandlerType *> drop_import_file_poll_fi
 }
 
 /**
- * Creates a RNA pointer for the `FileHandlerType.import_operator` and sets on it all supported
- * file paths from `paths`.
+ * Sets in the RNA pointer all file paths supported by the file handler.
  */
-static PointerRNA file_handler_import_operator_create_ptr(
-    const blender::bke::FileHandlerType *file_handler, const blender::Span<std::string> paths)
+static void file_handler_import_operator_write_ptr(
+    const blender::bke::FileHandlerType *file_handler,
+    PointerRNA &props,
+    const blender::Span<std::string> paths)
 {
-  wmOperatorType *ot = WM_operatortype_find(file_handler->import_operator, false);
-  BLI_assert(ot != nullptr);
-  PointerRNA props;
-  WM_operator_properties_create_ptr(&props, ot);
 
   const auto supported_paths = file_handler->filter_supported_paths(paths);
 
@@ -94,7 +91,6 @@ static PointerRNA file_handler_import_operator_create_ptr(
         "FileHandler documentation for details.";
     CLOG_WARN(&LOG, "%s", message);
   }
-  return props;
 }
 
 static wmOperatorStatus wm_drop_import_file_exec(bContext *C, wmOperator *op)
@@ -110,7 +106,9 @@ static wmOperatorStatus wm_drop_import_file_exec(bContext *C, wmOperator *op)
   }
 
   wmOperatorType *ot = WM_operatortype_find(file_handlers[0]->import_operator, false);
-  PointerRNA file_props = file_handler_import_operator_create_ptr(file_handlers[0], paths);
+  PointerRNA file_props;
+  WM_operator_properties_create_ptr(&file_props, ot);
+  file_handler_import_operator_write_ptr(file_handlers[0], file_props, paths);
 
   WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &file_props, nullptr);
   WM_operator_properties_free(&file_props);
@@ -140,16 +138,13 @@ static wmOperatorStatus wm_drop_import_file_invoke(bContext *C,
   uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_DEFAULT);
 
   for (auto *file_handler : file_handlers) {
-    const PointerRNA file_props = file_handler_import_operator_create_ptr(file_handler, paths);
     wmOperatorType *ot = WM_operatortype_find(file_handler->import_operator, false);
-    uiItemFullO_ptr(layout,
-                    ot,
-                    CTX_TIP_(ot->translation_context, ot->name),
-                    ICON_NONE,
-                    static_cast<IDProperty *>(file_props.data),
-                    WM_OP_INVOKE_DEFAULT,
-                    UI_ITEM_NONE,
-                    nullptr);
+    PointerRNA file_props = layout->op(ot,
+                                       CTX_TIP_(ot->translation_context, ot->name),
+                                       ICON_NONE,
+                                       WM_OP_INVOKE_DEFAULT,
+                                       UI_ITEM_NONE);
+    file_handler_import_operator_write_ptr(file_handler, file_props, paths);
   }
 
   UI_popup_menu_end(C, pup);

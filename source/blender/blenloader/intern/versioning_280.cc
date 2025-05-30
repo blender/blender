@@ -737,7 +737,7 @@ static void do_versions_material_convert_legacy_blend_mode(bNodeTree *ntree, cha
 
 static void do_versions_local_collection_bits_set(LayerCollection *layer_collection)
 {
-  layer_collection->local_collections_bits = ~(0);
+  layer_collection->local_collections_bits = ~0;
   LISTBASE_FOREACH (LayerCollection *, child, &layer_collection->layer_collections) {
     do_versions_local_collection_bits_set(child);
   }
@@ -3023,7 +3023,7 @@ static bool strip_update_flags_cb(Strip *strip, void * /*user_data*/)
   strip->flag &= ~((1 << 6) | (1 << 18) | (1 << 19) | (1 << 21));
   if (strip->type == STRIP_TYPE_SPEED) {
     SpeedControlVars *s = (SpeedControlVars *)strip->effectdata;
-    s->flags &= ~(SEQ_SPEED_UNUSED_1);
+    s->flags &= ~SEQ_SPEED_UNUSED_1;
   }
   return true;
 }
@@ -4592,7 +4592,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
               SpaceOutliner *space_outliner = (SpaceOutliner *)sl;
               space_outliner->filter &= ~(SO_FILTER_CLEARED_1 | SO_FILTER_UNUSED_5 |
                                           SO_FILTER_OB_STATE_SELECTABLE);
-              space_outliner->storeflag &= ~(SO_TREESTORE_UNUSED_1);
+              space_outliner->storeflag &= ~SO_TREESTORE_UNUSED_1;
               break;
             }
             case SPACE_FILE: {
@@ -5314,7 +5314,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
     }
 
     LISTBASE_FOREACH (bArmature *, arm, &bmain->armatures) {
-      arm->flag &= ~(ARM_BCOLL_SOLO_ACTIVE);
+      arm->flag &= ~ARM_BCOLL_SOLO_ACTIVE;
     }
   }
 

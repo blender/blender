@@ -204,6 +204,7 @@ def fbx_template_def_light(scene, settings, override_defaults=None, nbr_users=0)
         b"CastLight": (True, "p_bool", False),
         b"Color": ((1.0, 1.0, 1.0), "p_color", True),
         b"Intensity": (100.0, "p_number", True),  # Times 100 compared to Blender values...
+        b"Exposure" : (0.0, "p_number", True ),
         b"DecayType": (2, "p_enum", False),  # Quadratic.
         b"DecayStart": (30.0 * gscale, "p_double", False),
         b"CastShadows": (True, "p_bool", False),
@@ -601,12 +602,20 @@ def fbx_data_light_elements(root, lamp, scene_data):
 
     elem_data_single_int32(light, b"GeometryVersion", FBX_GEOMETRY_VERSION)  # Sic...
 
+    intensity = lamp.energy * 100.0 * pow(2.0, lamp.exposure)
+    color = lamp.color
+    if lamp.use_temperature:
+        temperature_color = lamp.temperature_color
+        color[0] *= temperature_color[0]
+        color[1] *= temperature_color[1]
+        color[2] *= temperature_color[2]
+
     tmpl = elem_props_template_init(scene_data.templates, b"Light")
     props = elem_properties(light)
     elem_props_template_set(tmpl, props, "p_enum", b"LightType", FBX_LIGHT_TYPES[lamp.type])
     elem_props_template_set(tmpl, props, "p_bool", b"CastLight", do_light)
-    elem_props_template_set(tmpl, props, "p_color", b"Color", lamp.color)
-    elem_props_template_set(tmpl, props, "p_number", b"Intensity", lamp.energy * 100.0)
+    elem_props_template_set(tmpl, props, "p_color", b"Color", color)
+    elem_props_template_set(tmpl, props, "p_number", b"Intensity", intensity)
     elem_props_template_set(tmpl, props, "p_enum", b"DecayType", FBX_LIGHT_DECAY_TYPES['INVERSE_SQUARE'])
     elem_props_template_set(tmpl, props, "p_double", b"DecayStart", 25.0 * gscale)  # 25 is old Blender default
     elem_props_template_set(tmpl, props, "p_bool", b"CastShadows", do_shadow)

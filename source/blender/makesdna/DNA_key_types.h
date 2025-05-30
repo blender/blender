@@ -51,10 +51,10 @@ typedef struct KeyBlock {
   /** Array of shape key values, size is `(Key::elemsize * KeyBlock->totelem)`.
    * E.g. meshes use float3. */
   void *data;
-  /** MAX_NAME (unique name, user assigned). */
-  char name[64];
-  /** MAX_VGROUP_NAME (optional vertex group), array gets allocated into 'weights' when set. */
-  char vgroup[64];
+  /** Unique name, user assigned. */
+  char name[/*MAX_NAME*/ 64];
+  /** Optional vertex group, array gets allocated into 'weights' when set. */
+  char vgroup[/*MAX_VGROUP_NAME*/ 64];
 
   /** Ranges, for RNA and UI only to clamp 'curval'. */
   float slidermin;

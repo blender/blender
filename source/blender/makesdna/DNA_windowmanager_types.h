@@ -165,7 +165,7 @@ typedef struct wmWindowManager {
   /**
    * \note `CTX_wm_window(C)` is usually preferred.
    * Avoid relying on this where possible as this may become NULL during when handling
-   * events that close or replace windows (opening a file for e.g.).
+   * events that close or replace windows (e.g. opening a file).
    * While this happens rarely in practice, it can cause difficult to reproduce bugs.
    */
   struct wmWindow *winactive;
@@ -286,7 +286,7 @@ typedef struct wmWindow {
   /** Temporary when switching. */
   struct Scene *new_scene;
   /** Active view layer displayed in this window. */
-  char view_layer_name[64];
+  char view_layer_name[/*MAX_NAME*/ 64];
   /** The workspace may temporarily override the window's scene with scene pinning. This is the
    * "overridden" or "default" scene to restore when entering a workspace with no scene pinned. */
   struct Scene *unpinned_scene;
@@ -433,7 +433,7 @@ typedef struct wmOperatorTypeMacro {
   struct wmOperatorTypeMacro *next, *prev;
 
   /* operator id */
-  char idname[64]; /* OP_MAX_TYPENAME */
+  char idname[/*OP_MAX_TYPENAME*/ 64];
   /* rna pointer to access properties, like keymap */
   /** Operator properties, assigned to ptr->data and can be written to a file. */
   struct IDProperty *properties;
@@ -638,7 +638,7 @@ typedef struct wmOperator {
 
   /* saved */
   /** Used to retrieve type pointer. */
-  char idname[64]; /* OP_MAX_TYPENAME */
+  char idname[/*OP_MAX_TYPENAME*/ 64];
   /** Saved, user-settable properties. */
   IDProperty *properties;
 

@@ -576,13 +576,13 @@ static int preprocess_include(char *maindata, const int maindata_len)
   /* replace all enters/tabs/etc with spaces */
   char *cp = temp;
   int a = maindata_len;
-  int comment = 0;
+  bool comment = false;
   while (a--) {
     if (cp[0] == '/' && cp[1] == '/') {
-      comment = 1;
+      comment = true;
     }
     else if (*cp == '\n') {
-      comment = 0;
+      comment = false;
     }
     if (comment || *cp < 32 || *cp > 128) {
       *cp = 32;
@@ -598,23 +598,41 @@ static int preprocess_include(char *maindata, const int maindata_len)
   cp = temp;
   char *md = maindata;
   int newlen = 0;
-  comment = 0;
+  comment = false;
   a = maindata_len;
+  int square_bracket_level = 0;
   bool skip_until_closing_brace = false;
   while (a--) {
 
     if (cp[0] == '/' && cp[1] == '*') {
-      comment = 1;
+      BLI_assert(comment == false);
+      comment = true;
       cp[0] = cp[1] = 32;
     }
     if (cp[0] == '*' && cp[1] == '/') {
-      comment = 0;
+      BLI_assert(comment == true);
+      comment = false;
       cp[0] = cp[1] = 32;
+    }
+
+    if (comment == false) {
+      if (cp[0] == '[') {
+        square_bracket_level++;
+      }
+      else if (cp[0] == ']') {
+        square_bracket_level--;
+      }
     }
 
     /* do not copy when: */
     if (comment) {
       /* pass */
+    }
+    else if (cp[0] == ' ' && (square_bracket_level > 0)) {
+      /* NOTE(@ideasman42): This is done to allow `member[C_STYLE_COMMENT 1024]`,
+       * which is then read as `member[1024]`.
+       * It's important to skip the spaces here,
+       * otherwise the literal would be read as: `member[` and `1024]`. */
     }
     else if (cp[0] == ' ' && cp[1] == ' ') {
       /* pass */
@@ -657,6 +675,8 @@ static int preprocess_include(char *maindata, const int maindata_len)
     }
     cp++;
   }
+
+  BLI_assert(square_bracket_level == 0);
 
   MEM_freeN(temp);
   return newlen;

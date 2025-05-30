@@ -296,24 +296,18 @@ void AssetCatalogTreeViewItem::build_context_menu(bContext &C, uiLayout &column)
 {
   PointerRNA props;
 
-  uiItemFullO(&column,
-              "ASSET_OT_catalog_new",
-              IFACE_("New Catalog"),
-              ICON_NONE,
-              nullptr,
-              WM_OP_INVOKE_DEFAULT,
-              UI_ITEM_NONE,
-              &props);
+  props = column.op("ASSET_OT_catalog_new",
+                    IFACE_("New Catalog"),
+                    ICON_NONE,
+                    WM_OP_INVOKE_DEFAULT,
+                    UI_ITEM_NONE);
   RNA_string_set(&props, "parent_path", catalog_item_.catalog_path().c_str());
 
-  uiItemFullO(&column,
-              "ASSET_OT_catalog_delete",
-              IFACE_("Delete Catalog"),
-              ICON_NONE,
-              nullptr,
-              WM_OP_INVOKE_DEFAULT,
-              UI_ITEM_NONE,
-              &props);
+  props = column.op("ASSET_OT_catalog_delete",
+                    IFACE_("Delete Catalog"),
+                    ICON_NONE,
+                    WM_OP_INVOKE_DEFAULT,
+                    UI_ITEM_NONE);
   RNA_string_set(&props, "catalog_id", catalog_item_.get_catalog_id().str().c_str());
   column.op("UI_OT_view_item_rename", IFACE_("Rename"), ICON_NONE);
 

@@ -33,6 +33,7 @@ PATHS: tuple[tuple[str, tuple[Any, ...], dict[str, str]], ...] = (
     ("tools/check_docs/", (), {}),
     ("tools/check_source/", (), {'MYPYPATH': "modules"}),
     ("tools/check_source/check_unused_defines.py", (), {'MYPYPATH': "../utils_maintenance/modules"}),
+    ("tools/check_source/static_check_size_comments.py", (), {'MYPYPATH': "../utils_maintenance/modules"}),
     ("tools/config/", (), {}),
     ("tools/triage/", (), {}),
     ("tools/utils/", (), {}),

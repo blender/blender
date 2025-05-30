@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'a7d2b7850ef2')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'ba454989554a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-05 08:47+0000\n"
+"POT-Creation-Date: 2025-05-26 07:36+0000\n"
 "PO-Revision-Date: 2025-04-14 08:41+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Serbian (Latin script) <https://translate.blender.org/projects/blender-ui/ui/sr_Latn/>\n"
@@ -1189,6 +1189,34 @@ msgstr "Naslednici"
 
 msgid "Bones which are children of this bone"
 msgstr "Kosti koje su naslednici ove kosti"
+
+
+msgid "Stick"
+msgstr "Lepljiv"
+
+
+msgid "Display bones as simple 2D lines with dots"
+msgstr "Prikaži kosti kao jednostavne 2D linije i tačke"
+
+
+msgid "B-Bone"
+msgstr "B-kost"
+
+
+msgid "Display bones as boxes, showing subdivision and B-Splines"
+msgstr "Prikazuje kosti kao kocke, prikazujući podele i B-krive"
+
+
+msgid "Envelope"
+msgstr "Koverat"
+
+
+msgid "Display bones as extruded spheres, showing deformation influence volume"
+msgstr "Prikazuje kosti kao izvučene oblike, prikazujući uticaj deformacije"
+
+
+msgid "Wire"
+msgstr "Žica"
 
 
 msgid "Head"
@@ -4868,34 +4896,6 @@ msgid "Layers"
 msgstr "Slojevi"
 
 
-msgid "Stick"
-msgstr "Lepljiv"
-
-
-msgid "Display bones as simple 2D lines with dots"
-msgstr "Prikaži kosti kao jednostavne 2D linije i tačke"
-
-
-msgid "B-Bone"
-msgstr "B-kost"
-
-
-msgid "Display bones as boxes, showing subdivision and B-Splines"
-msgstr "Prikazuje kosti kao kocke, prikazujući podele i B-krive"
-
-
-msgid "Envelope"
-msgstr "Koverat"
-
-
-msgid "Display bones as extruded spheres, showing deformation influence volume"
-msgstr "Prikazuje kosti kao izvučene oblike, prikazujući uticaj deformacije"
-
-
-msgid "Wire"
-msgstr "Žica"
-
-
 msgid "Edit Bones"
 msgstr "Uredi kosti"
 
@@ -6028,6 +6028,10 @@ msgstr "Putanja do .blend datoteke zbirke"
 
 msgid "Light color"
 msgstr "Boja svetlosti"
+
+
+msgid "Normalize"
+msgstr "Normalizuj"
 
 
 msgid "Omnidirectional point light source"
@@ -8581,6 +8585,30 @@ msgid "Material slot name"
 msgstr "Naziv slota materijala"
 
 
+msgid "Mirror"
+msgstr "Ogledalo"
+
+
+msgid "Snap"
+msgstr "Lepljenje"
+
+
+msgid "UV Mapping"
+msgstr "UV Mapiranje"
+
+
+msgid "Local View"
+msgstr "Lokalni pogled"
+
+
+msgid "Navigation"
+msgstr "Navigacija"
+
+
+msgid "Align View"
+msgstr "Poravnaj pogled"
+
+
 msgid "Select Linked"
 msgstr "Izaberi povezano"
 
@@ -8663,30 +8691,6 @@ msgstr "Specijalni znaci"
 
 msgid "Bone Roll"
 msgstr "Rolna kostiju"
-
-
-msgid "Snap"
-msgstr "Lepljenje"
-
-
-msgid "Mirror"
-msgstr "Ogledalo"
-
-
-msgid "UV Mapping"
-msgstr "UV Mapiranje"
-
-
-msgid "Local View"
-msgstr "Lokalni pogled"
-
-
-msgid "Navigation"
-msgstr "Navigacija"
-
-
-msgid "Align View"
-msgstr "Poravnaj pogled"
 
 
 msgid "Basic"
@@ -10471,10 +10475,6 @@ msgid "Use Mask"
 msgstr "Koristi masku"
 
 
-msgid "Normalize"
-msgstr "Normalizuj"
-
-
 msgid "Use Red Channel"
 msgstr "Koristi crveni kanal"
 
@@ -10907,6 +10907,10 @@ msgid "Flip X & Y"
 msgstr "Izvrni X i Y"
 
 
+msgid "Glare"
+msgstr "Bljesak"
+
+
 msgid "Glare Type"
 msgstr "Vrsta bljeska"
 
@@ -11047,16 +11051,12 @@ msgid "Render Layers"
 msgstr "Renderuj slojeve"
 
 
+msgid "Greater"
+msgstr "Veće"
+
+
 msgid "Rotate"
 msgstr "Rotiranje"
-
-
-msgid "Offset image horizontally (factor of image size)"
-msgstr "Vodoravno pomeranje slike od centra scene"
-
-
-msgid "Offset image vertically (factor of image size)"
-msgstr "Vodoravno pomeranje slike od centra scene"
 
 
 msgid "Set Alpha"
@@ -13658,10 +13658,6 @@ msgid "Select Control Point Row"
 msgstr "Izaberi niz kontrolnih tačaka"
 
 
-msgid "Greater"
-msgstr "Veće"
-
-
 msgid "Less"
 msgstr "Manje"
 
@@ -15351,10 +15347,6 @@ msgstr "Za prvo"
 
 msgid "At Last"
 msgstr "Za poslednje"
-
-
-msgid "Fill Holes"
-msgstr "Popuni rupe"
 
 
 msgid "Median"
@@ -17456,6 +17448,10 @@ msgid "Clear Pose Scale"
 msgstr "Očisti uvećanje poze"
 
 
+msgid "Parents"
+msgstr "Roditelji"
+
+
 msgctxt "Operator"
 msgid "Select Connected"
 msgstr "Izaberi povezano"
@@ -17869,6 +17865,10 @@ msgstr "Vrsta opadanja"
 
 msgid "Custom Curve"
 msgstr "Prilagođena kriva"
+
+
+msgid "Fill Holes"
+msgstr "Popuni rupe"
 
 
 msgctxt "Operator"
@@ -19311,10 +19311,6 @@ msgstr "Naziv menija"
 
 msgid "Remove"
 msgstr "Ukloni"
-
-
-msgid "Save a Collada file"
-msgstr "Sačuvaj kao Collada datoteku"
 
 
 msgid "Only export deforming bones with armatures"
@@ -24640,10 +24636,6 @@ msgid "Remove from All"
 msgstr "Ukloni iz svih"
 
 
-msgid "Parents"
-msgstr "Roditelji"
-
-
 msgid "Multi-Paint"
 msgstr "Višestruko bojenje"
 
@@ -26001,10 +25993,6 @@ msgstr "Svetlina"
 
 msgid "Layer:"
 msgstr "Slojevi:"
-
-
-msgid "Glare"
-msgstr "Bljesak"
 
 
 msgid "Use feather information from the mask"

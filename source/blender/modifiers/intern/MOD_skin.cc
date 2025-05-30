@@ -2035,23 +2035,17 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   row->op("MESH_OT_customdata_skin_add", std::nullopt, ICON_NONE);
 
   row = &layout->row(false);
-  uiItemFullO(row,
-              "OBJECT_OT_skin_loose_mark_clear",
-              IFACE_("Mark Loose"),
-              ICON_NONE,
-              nullptr,
-              WM_OP_EXEC_DEFAULT,
-              UI_ITEM_NONE,
-              &op_ptr);
+  op_ptr = row->op("OBJECT_OT_skin_loose_mark_clear",
+                   IFACE_("Mark Loose"),
+                   ICON_NONE,
+                   WM_OP_EXEC_DEFAULT,
+                   UI_ITEM_NONE);
   RNA_enum_set(&op_ptr, "action", 0); /* SKIN_LOOSE_MARK */
-  uiItemFullO(row,
-              "OBJECT_OT_skin_loose_mark_clear",
-              IFACE_("Clear Loose"),
-              ICON_NONE,
-              nullptr,
-              WM_OP_EXEC_DEFAULT,
-              UI_ITEM_NONE,
-              &op_ptr);
+  op_ptr = row->op("OBJECT_OT_skin_loose_mark_clear",
+                   IFACE_("Clear Loose"),
+                   ICON_NONE,
+                   WM_OP_EXEC_DEFAULT,
+                   UI_ITEM_NONE);
   RNA_enum_set(&op_ptr, "action", 1); /* SKIN_LOOSE_CLEAR */
 
   layout->op("OBJECT_OT_skin_root_mark", IFACE_("Mark Root"), ICON_NONE);

@@ -123,13 +123,6 @@ static void disable(
   }
   else {
     BKE_sculptsession_bm_to_me(&ob, true);
-
-    /* Sync the visibility to vertices manually as `vert_to_face_map` is still not initialized. */
-    bool *hide_vert = (bool *)CustomData_get_layer_named_for_write(
-        &mesh->vert_data, CD_PROP_BOOL, ".hide_vert", mesh->verts_num);
-    if (hide_vert != nullptr) {
-      memset(hide_vert, 0, sizeof(bool) * mesh->verts_num);
-    }
   }
 
   /* Clear data. */
@@ -243,8 +236,7 @@ static wmOperatorStatus dyntopo_warning_popup(bContext *C, wmOperatorType *ot, e
     layout->separator();
   }
 
-  uiItemFullO_ptr(
-      layout, ot, IFACE_("OK"), ICON_NONE, nullptr, WM_OP_EXEC_DEFAULT, UI_ITEM_NONE, nullptr);
+  layout->op(ot, IFACE_("OK"), ICON_NONE, WM_OP_EXEC_DEFAULT, UI_ITEM_NONE);
 
   UI_popup_menu_end(C, pup);
 

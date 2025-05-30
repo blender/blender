@@ -19,16 +19,18 @@ struct View2D;
 namespace blender::ed::vse {
 
 enum eStripHandle {
-  SEQ_HANDLE_NONE,
-  SEQ_HANDLE_LEFT,
-  SEQ_HANDLE_RIGHT,
-  SEQ_HANDLE_BOTH,
+  STRIP_HANDLE_NONE,
+  STRIP_HANDLE_LEFT,
+  STRIP_HANDLE_RIGHT,
 };
 
 struct StripSelection {
+  /** Closest strip in the selection to the mouse cursor. */
   Strip *strip1 = nullptr;
+  /** Farthest strip in the selection from the mouse cursor. */
   Strip *strip2 = nullptr;
-  eStripHandle handle = SEQ_HANDLE_NONE;
+  /** Handle of `strip1`. */
+  eStripHandle handle = STRIP_HANDLE_NONE;
 };
 
 void select_strip_single(Scene *scene, Strip *strip, bool deselect_all);
@@ -38,7 +40,7 @@ void select_strip_single(Scene *scene, Strip *strip, bool deselect_all);
  * \param scene: scene containing strips to be deselected.
  * \return true if any strips were deselected; false otherwise.
  */
-bool deselect_all_strips(Scene *scene);
+bool deselect_all_strips(const Scene *scene);
 
 bool maskedit_mask_poll(bContext *C);
 bool check_show_maskedit(SpaceSeq *sseq, Scene *scene);

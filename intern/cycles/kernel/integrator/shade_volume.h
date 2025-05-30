@@ -39,7 +39,7 @@ struct VolumeIntegrateResult {
   Spectrum direct_throughput;
   float direct_t;
   ShaderVolumePhases direct_phases;
-#  ifdef __PATH_GUIDING__
+#  if defined(__PATH_GUIDING__)
   VolumeSampleMethod direct_sample_method;
 #  endif
 
@@ -591,7 +591,7 @@ ccl_device_forceinline void volume_integrate_heterogeneous(
     result.direct_t = volume_equiangular_sample(
         ray, equiangular_coeffs, vstate.rscatter, &vstate.equiangular_pdf);
   }
-#  ifdef __PATH_GUIDING__
+#  if defined(__PATH_GUIDING__)
   result.direct_sample_method = vstate.direct_sample_method;
 #  endif
 
@@ -729,7 +729,7 @@ ccl_device_forceinline void integrate_volume_direct_light(
     const ccl_private RNGState *ccl_restrict rng_state,
     const float3 P,
     const ccl_private ShaderVolumePhases *ccl_restrict phases,
-#  ifdef __PATH_GUIDING__
+#  if defined(__PATH_GUIDING__)
     const ccl_private Spectrum unlit_throughput,
 #  endif
     const ccl_private Spectrum throughput,
@@ -789,7 +789,7 @@ ccl_device_forceinline void integrate_volume_direct_light(
 
   /* Create shadow ray. */
   Ray ray ccl_optional_struct_init;
-  light_sample_to_volume_shadow_ray(kg, sd, &ls, P, &ray);
+  light_sample_to_volume_shadow_ray(sd, &ls, P, &ray);
 
   /* Branch off shadow kernel. */
   IntegratorShadowState shadow_state = integrator_shadow_path_init(
@@ -797,7 +797,7 @@ ccl_device_forceinline void integrate_volume_direct_light(
 
   /* Write shadow ray and associated state to global memory. */
   integrator_state_write_shadow_ray(shadow_state, &ray);
-  integrator_state_write_shadow_ray_self(kg, shadow_state, &ray);
+  integrator_state_write_shadow_ray_self(shadow_state, &ray);
 
   /* Copy state from main path to shadow path. */
   const uint16_t bounce = INTEGRATOR_STATE(state, path, bounce);
@@ -849,11 +849,13 @@ ccl_device_forceinline void integrate_volume_direct_light(
   /* Write Light-group, +1 as light-group is int but we need to encode into a uint8_t. */
   INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, lightgroup) = ls.group + 1;
 
-#  ifdef __PATH_GUIDING__
-  INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, unlit_throughput) = unlit_throughput;
-  INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, path_segment) = INTEGRATOR_STATE(
-      state, guiding, path_segment);
-  INTEGRATOR_STATE(shadow_state, shadow_path, guiding_mis_weight) = 0.0f;
+#  if defined(__PATH_GUIDING__)
+  if ((kernel_data.kernel_features & KERNEL_FEATURE_PATH_GUIDING)) {
+    INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, unlit_throughput) = unlit_throughput;
+    INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, path_segment) = INTEGRATOR_STATE(
+        state, guiding, path_segment);
+    INTEGRATOR_STATE(shadow_state, shadow_path, guiding_mis_weight) = 0.0f;
+  }
 #  endif
 
   integrator_state_copy_volume_stack_to_shadow(kg, shadow_state, state);
@@ -883,7 +885,9 @@ ccl_device_forceinline bool integrate_volume_phase_scatter(
   int label;
 
 #  if defined(__PATH_GUIDING__) && PATH_GUIDING_LEVEL >= 4
-  if (kernel_data.integrator.use_guiding) {
+  if (kernel_data.integrator.use_guiding &&
+      (kernel_data.kernel_features & KERNEL_FEATURE_PATH_GUIDING))
+  {
     label = volume_shader_phase_guided_sample(kg,
                                               state,
                                               sd,
@@ -905,7 +909,7 @@ ccl_device_forceinline bool integrate_volume_phase_scatter(
 #  endif
   {
     label = volume_shader_phase_sample(
-        kg, sd, phases, svc, rand_phase, &phase_eval, &phase_wo, &phase_pdf, &sampled_roughness);
+        sd, svc, rand_phase, &phase_eval, &phase_wo, &phase_pdf, &sampled_roughness);
 
     if (phase_pdf == 0.0f || bsdf_eval_is_zero(&phase_eval)) {
       return false;
@@ -935,7 +939,7 @@ ccl_device_forceinline bool integrate_volume_phase_scatter(
 
   /* Add phase function sampling data to the path segment. */
   guiding_record_volume_bounce(
-      kg, state, sd, phase_weight, phase_pdf, normalize(phase_wo), sampled_roughness);
+      kg, state, phase_weight, phase_pdf, normalize(phase_wo), sampled_roughness);
 
   /* Update throughput. */
   const Spectrum throughput = INTEGRATOR_STATE(state, path, throughput);
@@ -978,7 +982,7 @@ ccl_device VolumeIntegrateEvent volume_integrate(KernelGlobals kg,
   ShaderData sd;
   /* FIXME: `object` is used for light linking. We read the bottom of the stack for simplicity, but
    * this does not work for overlapping volumes. */
-  shader_setup_from_volume(kg, &sd, ray, INTEGRATOR_STATE_ARRAY(state, volume_stack, 0, object));
+  shader_setup_from_volume(&sd, ray, INTEGRATOR_STATE_ARRAY(state, volume_stack, 0, object));
 
   /* Load random number state. */
   RNGState rng_state;
@@ -1042,7 +1046,7 @@ ccl_device VolumeIntegrateEvent volume_integrate(KernelGlobals kg,
   if (result.direct_scatter) {
     const float3 direct_P = ray->P + result.direct_t * ray->D;
 
-#  ifdef __PATH_GUIDING__
+#  if defined(__PATH_GUIDING__)
     if (kernel_data.integrator.use_guiding) {
 #    if PATH_GUIDING_LEVEL >= 1
       if (result.direct_sample_method == VOLUME_SAMPLE_DISTANCE) {
@@ -1064,8 +1068,9 @@ ccl_device VolumeIntegrateEvent volume_integrate(KernelGlobals kg,
          * unlit_throughput has to be adjusted to include the scattering at the previous segment.
          */
         float3 scatterEval = one_float3();
-        if (state->guiding.path_segment) {
-          const pgl_vec3f scatteringWeight = state->guiding.path_segment->scatteringWeight;
+        if (INTEGRATOR_STATE(state, guiding, path_segment)) {
+          const pgl_vec3f scatteringWeight =
+              INTEGRATOR_STATE(state, guiding, path_segment)->scatteringWeight;
           scatterEval = make_float3(scatteringWeight.x, scatteringWeight.y, scatteringWeight.z);
         }
         unlit_throughput /= scatterEval;
@@ -1075,8 +1080,10 @@ ccl_device VolumeIntegrateEvent volume_integrate(KernelGlobals kg,
       }
 #    endif
 #    if PATH_GUIDING_LEVEL >= 4
-      volume_shader_prepare_guiding(
-          kg, state, &sd, rand_phase_guiding, direct_P, ray->D, &result.direct_phases);
+      if ((kernel_data.kernel_features & KERNEL_FEATURE_PATH_GUIDING)) {
+        volume_shader_prepare_guiding(
+            kg, state, rand_phase_guiding, direct_P, ray->D, &result.direct_phases);
+      }
 #    endif
     }
 #  endif
@@ -1088,7 +1095,7 @@ ccl_device VolumeIntegrateEvent volume_integrate(KernelGlobals kg,
                                   &rng_state,
                                   direct_P,
                                   &result.direct_phases,
-#  ifdef __PATH_GUIDING__
+#  if defined(__PATH_GUIDING__)
                                   unlit_throughput,
 #  endif
                                   result.direct_throughput,
@@ -1115,20 +1122,22 @@ ccl_device VolumeIntegrateEvent volume_integrate(KernelGlobals kg,
     sd.P = ray->P + result.indirect_t * ray->D;
 
 #  if defined(__PATH_GUIDING__)
+    if ((kernel_data.kernel_features & KERNEL_FEATURE_PATH_GUIDING)) {
 #    if PATH_GUIDING_LEVEL >= 1
-    if (!guiding_generated_new_segment) {
-      guiding_record_volume_segment(kg, state, sd.P, sd.wi);
-    }
+      if (!guiding_generated_new_segment) {
+        guiding_record_volume_segment(kg, state, sd.P, sd.wi);
+      }
 #    endif
 #    if PATH_GUIDING_LEVEL >= 4
-    /* If the direct scatter event was generated using VOLUME_SAMPLE_EQUIANGULAR we need to
-     * initialize the guiding distribution at the indirect scatter position. */
-    if (result.direct_sample_method == VOLUME_SAMPLE_EQUIANGULAR) {
-      rand_phase_guiding = path_state_rng_1D(kg, &rng_state, PRNG_VOLUME_PHASE_GUIDING_DISTANCE);
-      volume_shader_prepare_guiding(
-          kg, state, &sd, rand_phase_guiding, sd.P, ray->D, &result.indirect_phases);
-    }
+      /* If the direct scatter event was generated using VOLUME_SAMPLE_EQUIANGULAR we need to
+       * initialize the guiding distribution at the indirect scatter position. */
+      if (result.direct_sample_method == VOLUME_SAMPLE_EQUIANGULAR) {
+        rand_phase_guiding = path_state_rng_1D(kg, &rng_state, PRNG_VOLUME_PHASE_GUIDING_DISTANCE);
+        volume_shader_prepare_guiding(
+            kg, state, rand_phase_guiding, sd.P, ray->D, &result.indirect_phases);
+      }
 #    endif
+    }
 #  endif
 
     if (integrate_volume_phase_scatter(kg, state, &sd, ray, &rng_state, &result.indirect_phases)) {
@@ -1138,7 +1147,9 @@ ccl_device VolumeIntegrateEvent volume_integrate(KernelGlobals kg,
   }
 #  if defined(__PATH_GUIDING__)
   /* No guiding if we don't scatter. */
-  state->guiding.use_volume_guiding = false;
+  if ((kernel_data.kernel_features & KERNEL_FEATURE_PATH_GUIDING)) {
+    INTEGRATOR_STATE_WRITE(state, guiding, use_volume_guiding) = false;
+  }
 #  endif
   return VOLUME_PATH_ATTENUATED;
 }
@@ -1170,7 +1181,7 @@ ccl_device void integrator_shade_volume(KernelGlobals kg,
   const VolumeIntegrateEvent event = volume_integrate(kg, state, &ray, render_buffer);
   if (event == VOLUME_PATH_MISSED) {
     /* End path. */
-    integrator_path_terminate(kg, state, DEVICE_KERNEL_INTEGRATOR_SHADE_VOLUME);
+    integrator_path_terminate(state, DEVICE_KERNEL_INTEGRATOR_SHADE_VOLUME);
     return;
   }
 
@@ -1190,10 +1201,8 @@ ccl_device void integrator_shade_volume(KernelGlobals kg,
 #  endif /* __SHADOW_LINKING__ */
 
   /* Queue intersect_closest kernel. */
-  integrator_path_next(kg,
-                       state,
-                       DEVICE_KERNEL_INTEGRATOR_SHADE_VOLUME,
-                       DEVICE_KERNEL_INTEGRATOR_INTERSECT_CLOSEST);
+  integrator_path_next(
+      state, DEVICE_KERNEL_INTEGRATOR_SHADE_VOLUME, DEVICE_KERNEL_INTEGRATOR_INTERSECT_CLOSEST);
 #endif /* __VOLUME__ */
 }
 

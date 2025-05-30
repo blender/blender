@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'a7d2b7850ef2')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'ba454989554a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-05 08:47+0000\n"
+"POT-Creation-Date: 2025-05-26 07:36+0000\n"
 "PO-Revision-Date: 2025-04-14 08:48+0000\n"
 "Last-Translator: luxem <luxem168@gmail.com>\n"
 "Language-Team: Chinese (Traditional Han script) <https://translate.blender.org/projects/blender-ui/ui/zh_Hant/>\n"
@@ -3528,6 +3528,46 @@ msgstr "子代"
 
 msgid "Bones which are children of this bone"
 msgstr "此骨骼的子代骨骼"
+
+
+msgid "Display Type"
+msgstr "顯示類型"
+
+
+msgid "Octahedral"
+msgstr "八面體"
+
+
+msgid "Stick"
+msgstr "棍形"
+
+
+msgid "Display bones as simple 2D lines with dots"
+msgstr "將骨骼顯示為以點構成的簡單 2D 線條"
+
+
+msgid "B-Bone"
+msgstr "B 骨骼"
+
+
+msgid "Display bones as boxes, showing subdivision and B-Splines"
+msgstr "將骨骼顯示為方塊，顯示其細分與 B 雲形線"
+
+
+msgid "Envelope"
+msgstr "封套"
+
+
+msgid "Display bones as extruded spheres, showing deformation influence volume"
+msgstr "將骨骼顯示為擠出的球體，顯示變形的影響體積"
+
+
+msgid "Wire"
+msgstr "線"
+
+
+msgid "Display bones as thin wires, showing subdivision and B-Splines"
+msgstr "將骨骼顯示為細線，顯示其細分與 B 雲形線"
 
 
 msgid "Envelope Deform Distance"
@@ -7424,10 +7464,6 @@ msgstr "將約束的物體朝向目標"
 
 msgid "Target Z"
 msgstr "目標 Z"
-
-
-msgid "Target's Z axis, not World Z axis, will constraint the Up direction"
-msgstr "目標的 Z 軸，而不是世界 Z 軸，它會約束「向上」方向"
 
 
 msgid "Transform Cache Constraint"
@@ -11609,10 +11645,6 @@ msgid "Use Viscosity"
 msgstr "使用黏滯度"
 
 
-msgid "Display Type"
-msgstr "顯示類型"
-
-
 msgid "Streamlines"
 msgstr "流線"
 
@@ -11775,10 +11807,6 @@ msgstr "煙霧的色彩"
 
 msgid "Surface Emission"
 msgstr "發射表面"
-
-
-msgid "Controls fluid emission from the mesh surface (higher value results in emission further away from the mesh surface"
-msgstr "控制來自網格表面的流體發射（較高的值會導致發射離網格表面更遠）"
 
 
 msgid "Temperature Difference"
@@ -13002,44 +13030,8 @@ msgid "Axes Position"
 msgstr "軸位置"
 
 
-msgid "Octahedral"
-msgstr "八面體"
-
-
 msgid "Display bones as octahedral shape (default)"
 msgstr "將骨骼顯示為八面體外形 (預設)"
-
-
-msgid "Stick"
-msgstr "棍形"
-
-
-msgid "Display bones as simple 2D lines with dots"
-msgstr "將骨骼顯示為以點構成的簡單 2D 線條"
-
-
-msgid "B-Bone"
-msgstr "B 骨骼"
-
-
-msgid "Display bones as boxes, showing subdivision and B-Splines"
-msgstr "將骨骼顯示為方塊，顯示其細分與 B 雲形線"
-
-
-msgid "Envelope"
-msgstr "封套"
-
-
-msgid "Display bones as extruded spheres, showing deformation influence volume"
-msgstr "將骨骼顯示為擠出的球體，顯示變形的影響體積"
-
-
-msgid "Wire"
-msgstr "線"
-
-
-msgid "Display bones as thin wires, showing subdivision and B-Splines"
-msgstr "將骨骼顯示為細線，顯示其細分與 B 雲形線"
 
 
 msgid "Edit Bones"
@@ -15798,6 +15790,10 @@ msgstr "場景照明用的燈光資料組塊"
 
 msgid "Light color"
 msgstr "燈光色彩"
+
+
+msgid "Normalize"
+msgstr "歸一化"
 
 
 msgid "Specular Factor"
@@ -22579,12 +22575,48 @@ msgid "Material slot name"
 msgstr "材質槽名稱"
 
 
-msgid "Select Similar"
-msgstr "選取相似者"
+msgid "Mirror"
+msgstr "鏡像"
+
+
+msgid "Snap"
+msgstr "吸附"
+
+
+msgid "UV Mapping"
+msgstr "UV 映射處理"
+
+
+msgid "Local View"
+msgstr "區域檢視"
+
+
+msgid "Viewpoint"
+msgstr "視點"
+
+
+msgid "Navigation"
+msgstr "導覽"
+
+
+msgid "Align View"
+msgstr "對齊檢視"
+
+
+msgid "Align View to Active"
+msgstr "對齊檢視至作用項"
+
+
+msgid "View Regions"
+msgstr "檢視範圍"
 
 
 msgid "Select More/Less"
 msgstr "選取更多/更少"
+
+
+msgid "Select Similar"
+msgstr "選取相似者"
 
 
 msgid "Select Linked"
@@ -22723,10 +22755,6 @@ msgid "Pivot Point"
 msgstr "樞紐點"
 
 
-msgid "Snap"
-msgstr "吸附"
-
-
 msgid "Proportional Editing Falloff"
 msgstr "比例化編輯衰落"
 
@@ -22737,38 +22765,6 @@ msgstr "自動遮罩"
 
 msgid "Face Sets Edit"
 msgstr "面集編輯"
-
-
-msgid "Mirror"
-msgstr "鏡像"
-
-
-msgid "UV Mapping"
-msgstr "UV 映射處理"
-
-
-msgid "Local View"
-msgstr "區域檢視"
-
-
-msgid "Viewpoint"
-msgstr "視點"
-
-
-msgid "Navigation"
-msgstr "導覽"
-
-
-msgid "Align View"
-msgstr "對齊檢視"
-
-
-msgid "Align View to Active"
-msgstr "對齊檢視至作用項"
-
-
-msgid "View Regions"
-msgstr "檢視範圍"
 
 
 msgid "Basic"
@@ -27438,10 +27434,6 @@ msgid "Reconstructed"
 msgstr "重建的"
 
 
-msgid "Is tracking data contains valid reconstruction information"
-msgstr "正跟蹤包含有效重建資訊的資料"
-
-
 msgid "Movie tracking settings"
 msgstr "影片追蹤設定"
 
@@ -27644,10 +27636,6 @@ msgstr "從連續鏡頭使用綠色通道供追蹤"
 
 msgid "Use Mask"
 msgstr "使用遮罩"
-
-
-msgid "Normalize"
-msgstr "歸一化"
 
 
 msgid "Normalize light intensities while tracking (slower)"
@@ -28193,10 +28181,6 @@ msgid "Extend Bounds"
 msgstr "擴展邊界"
 
 
-msgid "Apply filter on gamma corrected values"
-msgstr "套用過濾器於伽瑪校正值"
-
-
 msgid "Use relative (percent) values to define blur radius"
 msgstr "使用相對 (百分比) 值來定義模糊半徑"
 
@@ -28211,10 +28195,6 @@ msgstr "散景模糊"
 
 msgid "Max Blur"
 msgstr "最大模糊"
-
-
-msgid "Blur limit, maximum CoC radius"
-msgstr "模糊限制，最大 CoC 半徑"
 
 
 msgid "Bokeh Image"
@@ -28501,10 +28481,6 @@ msgid "Y1"
 msgstr "Y1"
 
 
-msgid "Use relative values to crop image"
-msgstr "使用相對值來裁切影像"
-
-
 msgid "Crop Image Size"
 msgstr "裁切影像大小"
 
@@ -28565,6 +28541,10 @@ msgid "Bokeh shape rotation offset"
 msgstr "散景外形旋轉偏移"
 
 
+msgid "Blur limit, maximum CoC radius"
+msgstr "模糊限制，最大 CoC 半徑"
+
+
 msgid "Bokeh Type"
 msgstr "散景類型"
 
@@ -28615,10 +28595,6 @@ msgstr "3 個邊"
 
 msgid "Gamma Correction"
 msgstr "伽瑪校正"
-
-
-msgid "Enable gamma correction before and after main process"
-msgstr "在主程序之前與之後啟用伽瑪校正"
 
 
 msgid "Use Z-Buffer"
@@ -28770,8 +28746,8 @@ msgid "Flip X & Y"
 msgstr "翻轉 X 與 Y"
 
 
-msgid "Glare "
-msgstr "耀光 "
+msgid "Glare"
+msgstr "耀光"
 
 
 msgid "Angle Offset"
@@ -29350,20 +29326,16 @@ msgid "Render Layers"
 msgstr "算繪分層"
 
 
+msgid "Greater"
+msgstr "大於"
+
+
 msgid "Rotate"
 msgstr "旋轉"
 
 
 msgid "Method to use to filter rotation"
 msgstr "用來過濾旋轉的方法"
-
-
-msgid "Offset image horizontally (factor of image size)"
-msgstr "水平偏移影像 (影像大小的係數)"
-
-
-msgid "Offset image vertically (factor of image size)"
-msgstr "垂直影像偏移 (影像大小的係數)"
 
 
 msgid "Coordinate space to scale relative to"
@@ -29518,16 +29490,16 @@ msgid "Function Node"
 msgstr "函式節點"
 
 
-msgid "Boolean Math"
-msgstr "布林公式計算"
-
-
 msgid "And"
 msgstr "And"
 
 
 msgid "Or"
 msgstr "Or"
+
+
+msgid "Boolean Math"
+msgstr "布林公式計算"
 
 
 msgid "Nor"
@@ -35488,10 +35460,6 @@ msgid "Select Control Point Row"
 msgstr "選取控制點列"
 
 
-msgid "Greater"
-msgstr "大於"
-
-
 msgid "Less"
 msgstr "縮減"
 
@@ -38838,15 +38806,6 @@ msgid "Extrude Only Vertices"
 msgstr "僅擠出頂點"
 
 
-msgctxt "Operator"
-msgid "Face Set Extract"
-msgstr "擷取面集"
-
-
-msgid "Extract the mask as a solid object with a solidify modifier"
-msgstr "使用實體化修改器將遮罩區域擷取成為新的物件"
-
-
 msgid "Axis Direction"
 msgstr "軸方向"
 
@@ -39190,28 +39149,6 @@ msgstr "法線乘法"
 
 msgid "Reset Normal"
 msgstr "重置法線"
-
-
-msgctxt "Operator"
-msgid "Mask Extract"
-msgstr "遮罩擷取"
-
-
-msgctxt "Operator"
-msgid "Mask Slice"
-msgstr "遮罩切除 ( 非流形 )"
-
-
-msgid "Slices the paint mask from the mesh"
-msgstr "從網格中切除遮罩區域 ( 物體變為非流形 )"
-
-
-msgid "Fill Holes"
-msgstr "填入孔洞"
-
-
-msgid "Create a new object from the sliced mask"
-msgstr "從網格中切除遮罩區域後再建立出一個新物體"
 
 
 msgid "Spherize"
@@ -44058,6 +43995,10 @@ msgid "All bones affected by active Keying Set"
 msgstr "受作用中鍵處理集影響的所有骨骼"
 
 
+msgid "Parents"
+msgstr "親代"
+
+
 msgctxt "Operator"
 msgid "Select Connected"
 msgstr "選取已連接者"
@@ -45333,6 +45274,15 @@ msgstr "依照網格拓撲將面集邊界向內收縮"
 
 
 msgctxt "Operator"
+msgid "Face Set Extract"
+msgstr "擷取面集"
+
+
+msgid "Extract the mask as a solid object with a solidify modifier"
+msgstr "使用實體化修改器將遮罩區域擷取成為新的物件"
+
+
+msgctxt "Operator"
 msgid "Create Face Set"
 msgstr "建立面集"
 
@@ -45457,6 +45407,28 @@ msgstr "重構 BVH"
 
 msgid "Recalculate the sculpt BVH to improve performance"
 msgstr "重新構建雕塑體的 BVH 以提升效能"
+
+
+msgctxt "Operator"
+msgid "Mask Extract"
+msgstr "遮罩擷取"
+
+
+msgctxt "Operator"
+msgid "Mask Slice"
+msgstr "遮罩切除 ( 非流形 )"
+
+
+msgid "Slices the paint mask from the mesh"
+msgstr "從網格中切除遮罩區域 ( 物體變為非流形 )"
+
+
+msgid "Fill Holes"
+msgstr "填入孔洞"
+
+
+msgid "Create a new object from the sliced mask"
+msgstr "從網格中切除遮罩區域後再建立出一個新物體"
 
 
 msgctxt "Operator"
@@ -48464,10 +48436,6 @@ msgid "Remove"
 msgstr "移除"
 
 
-msgid "Save a Collada file"
-msgstr "儲存一件 Collada 檔案"
-
-
 msgid "Only export deforming bones with armatures"
 msgstr "僅匯出含骨架的變形骨骼"
 
@@ -48571,10 +48539,6 @@ msgstr "複製紋理至匯出 .dae 檔案的相同資料夾"
 msgctxt "Operator"
 msgid "Import COLLADA (Legacy)"
 msgstr "匯入 COLLADA（舊式）"
-
-
-msgid "Load a Collada file"
-msgstr "載入一件 Collada 檔案"
 
 
 msgid "Auto Connect"
@@ -49453,10 +49417,6 @@ msgid "Bleed"
 msgstr "出血"
 
 
-msgid "Extend paint beyond the faces UVs to reduce seams (in pixels, slower)"
-msgstr "擴展繪製超出面 UV 來降低縫合 (單位為像素，較緩慢)"
-
-
 msgid "Stencil Color"
 msgstr "模板色彩"
 
@@ -49613,54 +49573,6 @@ msgid "Palette Color"
 msgstr "色版色彩"
 
 
-msgid "Drawing Plane"
-msgstr "描繪平面"
-
-
-msgid "Quad View"
-msgstr "四格檢視"
-
-
-msgid "Stereoscopy"
-msgstr "立體視覺"
-
-
-msgid "Multi Frame"
-msgstr "多重畫框"
-
-
-msgid "Auto-Masking"
-msgstr "自動遮罩"
-
-
-msgid "Stroke Placement"
-msgstr "筆觸放置"
-
-
-msgid "VR"
-msgstr "VR"
-
-
-msgid "Active Tool"
-msgstr "作用中工具"
-
-
-msgid "Wire Color"
-msgstr "線色"
-
-
-msgid "Cavity"
-msgstr "坑腔"
-
-
-msgid "Render Pass"
-msgstr "算繪通遞"
-
-
-msgid "Compositor"
-msgstr "合成器"
-
-
 msgid "Overlays"
 msgstr "疊層"
 
@@ -49683,6 +49595,50 @@ msgstr "吸附"
 
 msgid "Transform Orientations"
 msgstr "變換方向"
+
+
+msgid "Stroke Placement"
+msgstr "筆觸放置"
+
+
+msgid "Drawing Plane"
+msgstr "描繪平面"
+
+
+msgid "Quad View"
+msgstr "四格檢視"
+
+
+msgid "Stereoscopy"
+msgstr "立體視覺"
+
+
+msgid "Multi Frame"
+msgstr "多重畫框"
+
+
+msgid "Compositor"
+msgstr "合成器"
+
+
+msgid "Auto-Masking"
+msgstr "自動遮罩"
+
+
+msgid "VR"
+msgstr "VR"
+
+
+msgid "Active Tool"
+msgstr "作用中工具"
+
+
+msgid "Cavity"
+msgstr "坑腔"
+
+
+msgid "Render Pass"
+msgstr "算繪通遞"
 
 
 msgid "Chain Scaling"
@@ -55345,10 +55301,6 @@ msgid "Show Cache"
 msgstr "顯示快取"
 
 
-msgid "Composite Images"
-msgstr "合成影像"
-
-
 msgid "Final Images"
 msgstr "最終影像"
 
@@ -57006,14 +56958,6 @@ msgid "No display"
 msgstr "無顯示"
 
 
-msgid "Use Backdrop"
-msgstr "使用背景幕"
-
-
-msgid "Display result under strips"
-msgstr "在片段之下顯示結果"
-
-
 msgid "Context Gizmo"
 msgstr "情境操縱器"
 
@@ -57048,10 +56992,6 @@ msgstr "檢視類型"
 
 msgid "Type of the Sequencer view (sequencer, preview or both)"
 msgstr "序段編輯器檢視的類型（序段編輯器、預覽，或兩者）"
-
-
-msgid "Columns"
-msgstr "欄"
 
 
 msgid "Space Text Editor"
@@ -57617,6 +57557,10 @@ msgstr "NURBS 權重"
 
 msgid "Color Value"
 msgstr "色彩值"
+
+
+msgid "Columns"
+msgstr "欄"
 
 
 msgid "Stereo 3D Display"
@@ -59338,6 +59282,10 @@ msgid "Wires"
 msgstr "線"
 
 
+msgid "Wire Color"
+msgstr "線色"
+
+
 msgid "Wire Select"
 msgstr "線選取"
 
@@ -60751,11 +60699,6 @@ msgstr "主題"
 msgctxt "View3D"
 msgid "World"
 msgstr "世界"
-
-
-msgctxt "View3D"
-msgid "Viewport"
-msgstr "視圖區"
 
 
 msgid "Cavity Ridge"
@@ -64445,10 +64388,6 @@ msgid "Raw"
 msgstr "Raw"
 
 
-msgid "Preprocessed"
-msgstr "預先處理"
-
-
 msgid "Storage"
 msgstr "儲藏"
 
@@ -64565,14 +64504,6 @@ msgstr "Hz"
 
 msgid "dB"
 msgstr "dB"
-
-
-msgid "No active viewer node"
-msgstr "沒有作用中的檢視器節點"
-
-
-msgid "Invalid id"
-msgstr "無效 ID"
 
 
 msgid "All Data-Blocks"
@@ -64856,11 +64787,6 @@ msgstr "載入 Blender 原廠設定"
 
 
 msgctxt "Operator"
-msgid "Collada (.dae) (Legacy)"
-msgstr "Collada (.dae) (舊式)"
-
-
-msgctxt "Operator"
 msgid "Alembic (.abc)"
 msgstr "Alembic (.abc)"
 
@@ -64868,6 +64794,11 @@ msgstr "Alembic (.abc)"
 msgctxt "Operator"
 msgid "STL (.stl)"
 msgstr "STL (.stl)"
+
+
+msgctxt "Operator"
+msgid "Collada (.dae) (Legacy)"
+msgstr "Collada (.dae) (舊式)"
 
 
 msgctxt "Operator"
@@ -65042,10 +64973,6 @@ msgstr "主控台回捲行數"
 
 msgid "Garbage Collection Rate"
 msgstr "垃圾收集率"
-
-
-msgid "Cache Limit"
-msgstr "快取限制"
 
 
 msgid "Text Info Overlay"
@@ -66348,16 +66275,17 @@ msgid "Adjust Empty Display Size"
 msgstr "調整空體顯示大小"
 
 
+msgctxt "Operator"
+msgid "Revert to Asset"
+msgstr "回復素材"
+
+
 msgid "Affect Only"
 msgstr "只影響"
 
 
 msgid "Locations"
 msgstr "位置"
-
-
-msgid "Parents"
-msgstr "親代"
 
 
 msgid "Detailing"
@@ -66389,11 +66317,6 @@ msgstr "套用攝影機影像"
 
 msgid "Path Steps"
 msgstr "路徑步數"
-
-
-msgctxt "Operator"
-msgid "Revert to Asset"
-msgstr "回復素材"
 
 
 msgid "UV Map Needed"
@@ -68399,10 +68322,6 @@ msgid "Samples Transform"
 msgstr "樣本變換"
 
 
-msgid "Close"
-msgstr "關閉"
-
-
 msgid "Use Schema"
 msgstr "使用綱要"
 
@@ -68564,6 +68483,10 @@ msgid "No intersections found"
 msgstr "找不到交錯"
 
 
+msgid "Close"
+msgstr "關閉"
+
+
 msgid "Undo"
 msgstr "復原"
 
@@ -68674,10 +68597,6 @@ msgstr "作用中物體非選取網格"
 
 msgid "No mesh data to join"
 msgstr "無可結合的網格資料"
-
-
-msgid "Selected meshes must have equal numbers of vertices"
-msgstr "選取的網格必須頂點數相等"
 
 
 msgid "No additional selected meshes with equal vertex count to join"
@@ -71845,14 +71764,6 @@ msgid "Multires"
 msgstr "多級精度"
 
 
-msgid "Manage"
-msgstr "管理"
-
-
-msgid "No named attributes used"
-msgstr "未使用具名的屬性"
-
-
 msgid "NormalEdit"
 msgstr "法線編輯"
 
@@ -72078,10 +71989,6 @@ msgstr "檔案子路徑："
 
 msgid "Format:"
 msgstr "格式："
-
-
-msgid "Glare"
-msgstr "耀光"
 
 
 msgid "Streak fade-out factor"
@@ -72324,6 +72231,14 @@ msgstr "Y 軸上的體素數量"
 
 msgid "Number of voxels in the Z axis"
 msgstr "Z 軸上的體素數量"
+
+
+msgid "Manage"
+msgstr "管理"
+
+
+msgid "No named attributes used"
+msgstr "未使用具名的屬性"
 
 
 msgid "Missing Data-Block"

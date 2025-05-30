@@ -8,11 +8,22 @@
 
 #include "node_shader_util.hh"
 
+#include "UI_interface.hh"
+#include "UI_resources.hh"
+
 namespace blender::nodes::node_shader_rgb_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_output<decl::Color>("Color").default_value({0.5f, 0.5f, 0.5f, 1.0f});
+  b.add_output<decl::Color>("Color")
+      .default_value({0.5f, 0.5f, 0.5f, 1.0f})
+      .custom_draw([](CustomSocketDrawParams &params) {
+        uiLayoutSetAlignment(&params.layout, UI_LAYOUT_ALIGN_EXPAND);
+        uiLayout &col = params.layout.column(true);
+        uiTemplateColorPicker(
+            &col, &params.socket_ptr, "default_value", true, false, false, false);
+        col.prop(&params.socket_ptr, "default_value", UI_ITEM_R_SLIDER, "", ICON_NONE);
+      });
 }
 
 static int gpu_shader_rgb(GPUMaterial *mat,

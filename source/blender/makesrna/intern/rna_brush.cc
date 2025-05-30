@@ -413,27 +413,27 @@ static bool rna_TextureCapabilities_has_texture_angle_source_get(PointerRNA *ptr
 
 static bool rna_BrushCapabilities_has_overlay_get(PointerRNA *ptr)
 {
-  Brush *br = (Brush *)ptr->data;
+  Brush *br = static_cast<Brush *>(ptr->data);
   return ELEM(
       br->mtex.brush_map_mode, MTEX_MAP_MODE_VIEW, MTEX_MAP_MODE_TILED, MTEX_MAP_MODE_STENCIL);
 }
 
 static bool rna_BrushCapabilities_has_random_texture_angle_get(PointerRNA *ptr)
 {
-  Brush *br = (Brush *)ptr->data;
+  Brush *br = static_cast<Brush *>(ptr->data);
   return !(br->flag & BRUSH_ANCHORED);
 }
 
 static bool rna_BrushCapabilities_has_smooth_stroke_get(PointerRNA *ptr)
 {
-  Brush *br = (Brush *)ptr->data;
+  Brush *br = static_cast<Brush *>(ptr->data);
   return (!(br->flag & BRUSH_ANCHORED) && !(br->flag & BRUSH_DRAG_DOT) &&
           !(br->flag & BRUSH_LINE) && !(br->flag & BRUSH_CURVE));
 }
 
 static bool rna_BrushCapabilities_has_spacing_get(PointerRNA *ptr)
 {
-  Brush *br = (Brush *)ptr->data;
+  Brush *br = static_cast<Brush *>(ptr->data);
   return (!(br->flag & BRUSH_ANCHORED));
 }
 
@@ -578,7 +578,7 @@ static bool rna_BrushCapabilitiesSculpt_has_dyntopo_get(PointerRNA *ptr)
 static bool rna_BrushCapabilitiesImagePaint_has_accumulate_get(PointerRNA *ptr)
 {
   /* only support for draw brush */
-  Brush *br = (Brush *)ptr->data;
+  Brush *br = static_cast<Brush *>(ptr->data);
 
   return ((br->flag & BRUSH_AIRBRUSH) || (br->flag & BRUSH_DRAG_DOT) ||
           (br->flag & BRUSH_ANCHORED) || (br->image_brush_type == IMAGE_PAINT_BRUSH_TYPE_SOFTEN) ||
@@ -595,33 +595,33 @@ static bool rna_BrushCapabilitiesImagePaint_has_accumulate_get(PointerRNA *ptr)
 static bool rna_BrushCapabilitiesImagePaint_has_radius_get(PointerRNA *ptr)
 {
   /* only support for draw brush */
-  Brush *br = (Brush *)ptr->data;
+  Brush *br = static_cast<Brush *>(ptr->data);
 
   return (br->image_brush_type != IMAGE_PAINT_BRUSH_TYPE_FILL);
 }
 
 static bool rna_BrushCapabilitiesImagePaint_has_space_attenuation_get(PointerRNA *ptr)
 {
-  Brush *br = (Brush *)ptr->data;
+  Brush *br = static_cast<Brush *>(ptr->data);
   return (br->flag & (BRUSH_SPACE | BRUSH_LINE | BRUSH_CURVE)) &&
          br->image_brush_type != IMAGE_PAINT_BRUSH_TYPE_FILL;
 }
 
 static bool rna_BrushCapabilitiesImagePaint_has_color_get(PointerRNA *ptr)
 {
-  Brush *br = (Brush *)ptr->data;
+  Brush *br = static_cast<Brush *>(ptr->data);
   return ELEM(br->image_brush_type, IMAGE_PAINT_BRUSH_TYPE_DRAW, IMAGE_PAINT_BRUSH_TYPE_FILL);
 }
 
 static bool rna_BrushCapabilitiesVertexPaint_has_color_get(PointerRNA *ptr)
 {
-  Brush *br = (Brush *)ptr->data;
+  Brush *br = static_cast<Brush *>(ptr->data);
   return ELEM(br->vertex_brush_type, VPAINT_BRUSH_TYPE_DRAW);
 }
 
 static bool rna_BrushCapabilitiesWeightPaint_has_weight_get(PointerRNA *ptr)
 {
-  Brush *br = (Brush *)ptr->data;
+  Brush *br = static_cast<Brush *>(ptr->data);
   return ELEM(br->weight_brush_type, WPAINT_BRUSH_TYPE_DRAW);
 }
 
@@ -673,7 +673,7 @@ static void rna_Brush_reset_icon(Brush *br)
 
 static void rna_Brush_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
-  Brush *br = (Brush *)ptr->data;
+  Brush *br = static_cast<Brush *>(ptr->data);
   BKE_brush_tag_unsaved_changes(br);
   WM_main_add_notifier(NC_BRUSH | NA_EDITED, br);
   // WM_main_add_notifier(NC_SPACE | ND_SPACE_VIEW3D, nullptr);
@@ -681,7 +681,7 @@ static void rna_Brush_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *pt
 
 static void rna_Brush_material_update(bContext * /*C*/, PointerRNA *ptr)
 {
-  Brush *br = (Brush *)ptr->data;
+  Brush *br = static_cast<Brush *>(ptr->data);
   BKE_brush_tag_unsaved_changes(br);
   /* number of material users changed */
   WM_main_add_notifier(NC_SPACE | ND_SPACE_PROPERTIES, nullptr);
@@ -692,7 +692,7 @@ static void rna_Brush_main_tex_update(bContext *C, PointerRNA *ptr)
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  Brush *br = (Brush *)ptr->data;
+  Brush *br = static_cast<Brush *>(ptr->data);
   BKE_paint_invalidate_overlay_tex(scene, view_layer, br->mtex.tex);
   rna_Brush_update(bmain, scene, ptr);
 }
@@ -702,7 +702,7 @@ static void rna_Brush_secondary_tex_update(bContext *C, PointerRNA *ptr)
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   ViewLayer *view_layer = CTX_data_view_layer(C);
-  Brush *br = (Brush *)ptr->data;
+  Brush *br = static_cast<Brush *>(ptr->data);
   BKE_paint_invalidate_overlay_tex(scene, view_layer, br->mask_mtex.tex);
   rna_Brush_update(bmain, scene, ptr);
 }
@@ -728,7 +728,7 @@ static void rna_Brush_stroke_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 
 static void rna_Brush_icon_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
-  Brush *br = (Brush *)ptr->data;
+  Brush *br = static_cast<Brush *>(ptr->data);
 
   if (br->icon_imbuf) {
     IMB_freeImBuf(br->icon_imbuf);
@@ -768,7 +768,7 @@ static void rna_Brush_set_size(PointerRNA *ptr, int value)
 
 static void rna_Brush_use_gradient_set(PointerRNA *ptr, int value)
 {
-  Brush *br = (Brush *)ptr->data;
+  Brush *br = static_cast<Brush *>(ptr->data);
 
   if (value & BRUSH_USE_GRADIENT) {
     br->flag |= BRUSH_USE_GRADIENT;
@@ -830,7 +830,7 @@ static const EnumPropertyItem *rna_Brush_direction_itemf(bContext *C,
       {0, nullptr, 0, nullptr, nullptr},
   };
 
-  Brush *me = (Brush *)(ptr->data);
+  Brush *me = static_cast<Brush *>(ptr->data);
 
   switch (mode) {
     case PaintMode::Sculpt:
@@ -957,7 +957,7 @@ static std::optional<std::string> rna_BrushGpencilSettings_path(const PointerRNA
 
 static void rna_BrushGpencilSettings_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
-  Brush *br = (Brush *)ptr->owner_id;
+  Brush *br = reinterpret_cast<Brush *>(ptr->owner_id);
   BKE_brush_tag_unsaved_changes(br);
 }
 
@@ -967,7 +967,7 @@ static void rna_BrushGpencilSettings_use_material_pin_update(bContext *C, Pointe
   ViewLayer *view_layer = CTX_data_view_layer(C);
   BKE_view_layer_synced_ensure(scene, view_layer);
   Object *ob = BKE_view_layer_active_object_get(view_layer);
-  Brush *brush = (Brush *)ptr->owner_id;
+  Brush *brush = reinterpret_cast<Brush *>(ptr->owner_id);
 
   if (brush->gpencil_settings->flag & GP_BRUSH_MATERIAL_PINNED) {
     Material *material = BKE_object_material_get(ob, ob->actcol);
@@ -992,7 +992,7 @@ static bool rna_BrushGpencilSettings_material_poll(PointerRNA * /*ptr*/, Pointer
 
 static bool rna_GPencilBrush_pin_mode_get(PointerRNA *ptr)
 {
-  Brush *brush = (Brush *)ptr->owner_id;
+  Brush *brush = reinterpret_cast<Brush *>(ptr->owner_id);
   if ((brush != nullptr) && (brush->gpencil_settings != nullptr)) {
     return (brush->gpencil_settings->brush_draw_mode != GP_BRUSH_MODE_ACTIVE);
   }
@@ -1006,7 +1006,7 @@ static void rna_GPencilBrush_pin_mode_set(PointerRNA * /*ptr*/, bool /*value*/)
 
 static void rna_GPencilBrush_pin_mode_update(bContext *C, PointerRNA *ptr)
 {
-  Brush *brush = (Brush *)ptr->owner_id;
+  Brush *brush = reinterpret_cast<Brush *>(ptr->owner_id);
   if ((brush != nullptr) && (brush->gpencil_settings != nullptr)) {
     if (brush->gpencil_settings->brush_draw_mode != GP_BRUSH_MODE_ACTIVE) {
       /* If not active, means that must be set to off. */
@@ -1026,7 +1026,7 @@ static void rna_BrushCurvesSculptSettings_update(Main * /*bmain*/,
                                                  Scene * /*scene*/,
                                                  PointerRNA *ptr)
 {
-  Brush *br = (Brush *)ptr->owner_id;
+  Brush *br = reinterpret_cast<Brush *>(ptr->owner_id);
   BKE_brush_tag_unsaved_changes(br);
 }
 
@@ -1054,7 +1054,7 @@ static const EnumPropertyItem *rna_BrushTextureSlot_map_mode_itemf(bContext *C,
 
 static void rna_Brush_automasking_invert_cavity_set(PointerRNA *ptr, bool val)
 {
-  Brush *brush = (Brush *)ptr->data;
+  Brush *brush = static_cast<Brush *>(ptr->data);
 
   if (val) {
     brush->automasking_flags &= ~BRUSH_AUTOMASKING_CAVITY_NORMAL;
@@ -1067,7 +1067,7 @@ static void rna_Brush_automasking_invert_cavity_set(PointerRNA *ptr, bool val)
 
 static void rna_Brush_automasking_cavity_set(PointerRNA *ptr, bool val)
 {
-  Brush *brush = (Brush *)ptr->data;
+  Brush *brush = static_cast<Brush *>(ptr->data);
 
   if (val) {
     brush->automasking_flags &= ~BRUSH_AUTOMASKING_CAVITY_INVERTED;

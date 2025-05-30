@@ -102,6 +102,12 @@ class AbstractView {
   virtual void foreach_view_item(FunctionRef<void(AbstractViewItem &)> iter_fn) const = 0;
 
   virtual bool supports_scrolling() const;
+
+  /**
+   * \return True when everything in this view is visible, i.e. no scrolling is needed.
+   */
+  virtual bool is_fully_visible() const;
+
   virtual void scroll(ViewScrollDirection direction);
 
   /**

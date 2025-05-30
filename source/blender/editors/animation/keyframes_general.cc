@@ -1490,7 +1490,7 @@ bool copy_animedit_keys(bAnimContext *ac, ListBase *anim_data)
              * F-Curve and the copy, and I want the compiler to help distinguish those. */
             const_cast<FCurve *>(fcu),
             nullptr,
-            ANIM_editkeyframes_ok(BEZT_OK_SELECTED),
+            ANIM_editkeyframes_ok(BEZT_OK_SELECTED_KEY),
             nullptr) == 0)
     {
       continue;
@@ -1519,7 +1519,8 @@ bool copy_animedit_keys(bAnimContext *ac, ListBase *anim_data)
     int bezt_index = 0;
     BezTriple *bezt = fcu->bezt;
     for (; bezt_index < fcu->totvert; bezt_index++, bezt++) {
-      if (!BEZT_ISSEL_ANY(bezt)) {
+      /* Don't copy if only a handle is selected. */
+      if (!BEZT_ISSEL_IDX(bezt, 1)) {
         continue;
       }
 

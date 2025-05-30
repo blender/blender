@@ -93,17 +93,17 @@ static void cmp_node_glare_declare(NodeDeclarationBuilder &b)
       .compositor_expects_single_value();
 
   PanelDeclarationBuilder &supress_highlights_panel =
-      highlights_panel.add_panel("Suppress").default_closed(true);
-  supress_highlights_panel.add_input<decl::Bool>("Suppress", "Suppress Highlights")
+      highlights_panel.add_panel("Clamp").default_closed(true);
+  supress_highlights_panel.add_input<decl::Bool>("Clamp", "Clamp Highlights")
       .default_value(false)
       .panel_toggle()
-      .description("Suppress bright highlights")
+      .description("Clamp bright highlights")
       .compositor_expects_single_value();
   supress_highlights_panel.add_input<decl::Float>("Maximum", "Maximum Highlights")
       .default_value(10.0f)
       .min(0.0f)
       .description(
-          "Suppresses bright highlights such that their brightness are not larger than this value")
+          "Clamp bright highlights such that their brightness are not larger than this value")
       .compositor_expects_single_value();
 
   PanelDeclarationBuilder &mix_panel = b.add_panel("Adjust");
@@ -379,8 +379,8 @@ class GlareOperation : public NodeOperation {
 
   float get_maximum_brightness()
   {
-    /* Suppression disabled, return the maximum possible brightness. */
-    if (!this->get_suppress_highlights()) {
+    /* Clamp disabled, return the maximum possible brightness. */
+    if (!this->get_clamp_highlights()) {
       return std::numeric_limits<float>::max();
     }
 
@@ -464,9 +464,9 @@ class GlareOperation : public NodeOperation {
                      this->get_input("Highlights Smoothness").get_single_value_default(0.1f));
   }
 
-  bool get_suppress_highlights()
+  bool get_clamp_highlights()
   {
-    return this->get_input("Suppress Highlights").get_single_value_default(false);
+    return this->get_input("Clamp Highlights").get_single_value_default(false);
   }
 
   float get_max_highlights()
@@ -2416,7 +2416,7 @@ static void register_node_type_cmp_glare()
   static blender::bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, "CompositorNodeGlare", CMP_NODE_GLARE);
-  ntype.ui_name = "Glare ";
+  ntype.ui_name = "Glare";
   ntype.ui_description = "Add lens flares, fog and glows around bright parts of the image";
   ntype.enum_name_legacy = "GLARE";
   ntype.nclass = NODE_CLASS_OP_FILTER;

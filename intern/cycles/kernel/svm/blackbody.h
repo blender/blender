@@ -19,7 +19,6 @@ CCL_NAMESPACE_BEGIN
 /* Blackbody Node */
 
 ccl_device_noinline void svm_node_blackbody(KernelGlobals kg,
-                                            ccl_private ShaderData *sd,
                                             ccl_private float *stack,
                                             const uint temperature_offset,
                                             const uint col_offset)

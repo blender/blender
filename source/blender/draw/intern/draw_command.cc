@@ -45,9 +45,13 @@ static gpu::Batch *procedural_batch_get(GPUPrimType primitive)
 
 void ShaderBind::execute(RecordingState &state) const
 {
-  if (assign_if_different(state.shader, shader)) {
-    GPU_shader_bind(shader);
+  state.shader_use_specialization = !GPU_shader_get_default_constant_state(shader).is_empty();
+  if (assign_if_different(state.shader, shader) || state.shader_use_specialization) {
+    GPU_shader_bind(shader, state.specialization_constants_get());
   }
+  /* Signal that we can reload the default for a different specialization later on.
+   * However, we keep the specialization_constants state around for compute shaders. */
+  state.specialization_constants_in_use = false;
 }
 
 void FramebufferBind::execute() const
@@ -129,35 +133,40 @@ void PushConstant::execute(RecordingState &state) const
   }
 }
 
-void SpecializeConstant::execute() const
+void SpecializeConstant::execute(command::RecordingState &state) const
 {
   /* All specialization constants should exist as they are not optimized out like uniforms. */
   BLI_assert(location != -1);
 
+  if (state.specialization_constants_in_use == false) {
+    state.specialization_constants = GPU_shader_get_default_constant_state(this->shader);
+    state.specialization_constants_in_use = true;
+  }
+
   switch (type) {
     case SpecializeConstant::Type::IntValue:
-      GPU_shader_constant_int_ex(shader, location, int_value);
+      state.specialization_constants.set_value(location, int_value);
       break;
     case SpecializeConstant::Type::IntReference:
-      GPU_shader_constant_int_ex(shader, location, *int_ref);
+      state.specialization_constants.set_value(location, *int_ref);
       break;
     case SpecializeConstant::Type::UintValue:
-      GPU_shader_constant_uint_ex(shader, location, uint_value);
+      state.specialization_constants.set_value(location, uint_value);
       break;
     case SpecializeConstant::Type::UintReference:
-      GPU_shader_constant_uint_ex(shader, location, *uint_ref);
+      state.specialization_constants.set_value(location, *uint_ref);
       break;
     case SpecializeConstant::Type::FloatValue:
-      GPU_shader_constant_float_ex(shader, location, float_value);
+      state.specialization_constants.set_value(location, float_value);
       break;
     case SpecializeConstant::Type::FloatReference:
-      GPU_shader_constant_float_ex(shader, location, *float_ref);
+      state.specialization_constants.set_value(location, *float_ref);
       break;
     case SpecializeConstant::Type::BoolValue:
-      GPU_shader_constant_bool_ex(shader, location, bool_value);
+      state.specialization_constants.set_value(location, bool_value);
       break;
     case SpecializeConstant::Type::BoolReference:
-      GPU_shader_constant_bool_ex(shader, location, *bool_ref);
+      state.specialization_constants.set_value(location, *bool_ref);
       break;
   }
 }
@@ -177,6 +186,8 @@ void Draw::execute(RecordingState &state) const
     state.instance_offset += instance_len;
   }
 
+  GPU_shader_get_default_constant_state(state.shader).is_empty();
+
   if (is_primitive_expansion()) {
     /* Expanded draw-call. */
     IndexRange expanded_range = GPU_batch_draw_expanded_parameter_get(
@@ -191,16 +202,16 @@ void Draw::execute(RecordingState &state) const
       return;
     }
 
-    GPU_batch_bind_as_resources(batch, state.shader);
+    GPU_batch_bind_as_resources(batch, state.shader, state.specialization_constants_get());
 
     gpu::Batch *gpu_batch = procedural_batch_get(GPUPrimType(expand_prim_type));
-    GPU_batch_set_shader(gpu_batch, state.shader);
+    GPU_batch_set_shader(gpu_batch, state.shader, state.specialization_constants_get());
     GPU_batch_draw_advanced(
         gpu_batch, expanded_range.start(), expanded_range.size(), instance_first, instance_len);
   }
   else {
     /* Regular draw-call. */
-    GPU_batch_set_shader(batch, state.shader);
+    GPU_batch_set_shader(batch, state.shader, state.specialization_constants_get());
     GPU_batch_draw_advanced(batch, vertex_first, vertex_len, instance_first, instance_len);
   }
 }
@@ -219,7 +230,8 @@ void DrawMulti::execute(RecordingState &state) const
 
       if (GPUPrimType(group.desc.expand_prim_type) != GPU_PRIM_NONE) {
         /* Bind original batch as resource and use a procedural batch to issue the draw-call. */
-        GPU_batch_bind_as_resources(group.desc.gpu_batch, state.shader);
+        GPU_batch_bind_as_resources(
+            group.desc.gpu_batch, state.shader, state.specialization_constants_get());
         batch = procedural_batch_get(GPUPrimType(group.desc.expand_prim_type));
       }
 
@@ -227,7 +239,7 @@ void DrawMulti::execute(RecordingState &state) const
         GPU_batch_resource_id_buf_set(batch, state.resource_id_buf);
       }
 
-      GPU_batch_set_shader(batch, state.shader);
+      GPU_batch_set_shader(batch, state.shader, state.specialization_constants_get());
 
       constexpr intptr_t stride = sizeof(DrawCommand);
       /* We have 2 indirect command reserved per draw group. */
@@ -259,16 +271,18 @@ void DrawIndirect::execute(RecordingState &state) const
 void Dispatch::execute(RecordingState &state) const
 {
   if (is_reference) {
-    GPU_compute_dispatch(state.shader, size_ref->x, size_ref->y, size_ref->z);
+    GPU_compute_dispatch(
+        state.shader, size_ref->x, size_ref->y, size_ref->z, state.specialization_constants_get());
   }
   else {
-    GPU_compute_dispatch(state.shader, size.x, size.y, size.z);
+    GPU_compute_dispatch(
+        state.shader, size.x, size.y, size.z, state.specialization_constants_get());
   }
 }
 
 void DispatchIndirect::execute(RecordingState &state) const
 {
-  GPU_compute_dispatch_indirect(state.shader, *indirect_buf);
+  GPU_compute_dispatch_indirect(state.shader, *indirect_buf, state.specialization_constants_get());
 }
 
 void Barrier::execute() const

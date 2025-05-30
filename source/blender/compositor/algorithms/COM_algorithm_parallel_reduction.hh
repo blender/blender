@@ -78,6 +78,9 @@ float maximum_luminance(Context &context,
 /* Computes the maximum float value of all pixels in the given result. */
 float maximum_float(Context &context, const Result &result);
 
+/* Computes the maximum float3 value of all pixels in the given result. */
+float3 maximum_float3(Context &context, const Result &result);
+
 /* Computes the maximum float of all pixels in the given float result, limited to the given range.
  * Values outside of the given range are ignored. If non of the pixel values are in the range, the
  * lower bound of the range is returned. For instance, if the given range is [-10, 10] and the

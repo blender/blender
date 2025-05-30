@@ -1116,7 +1116,7 @@ class CyclesCustomCameraSettings(bpy.types.PropertyGroup):
     def register(cls):
         bpy.types.Camera.cycles_custom = PointerProperty(
             name="Cycles Custom Camera Settings",
-            description="Parameters for custom (OSL-based) Cameras",
+            description="Parameters for custom (OSL-based) cameras",
             type=cls,
         )
 

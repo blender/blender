@@ -489,12 +489,14 @@ void GHOST_ImeWin32::UpdateInfo(HWND window_handle)
   int comp = this->GetComposition(window_handle, GCS_COMPSTR | GCS_COMPATTR, &compInfo);
   /* Convert wchar to UTF8. */
   if (res) {
+    updateUtf8Buf(resultInfo);
     eventImeData.result = std::string(&resultInfo.utf8_buf[0]);
   }
   else {
     eventImeData.result = "";
   }
   if (comp) {
+    updateUtf8Buf(compInfo);
     eventImeData.composite = std::string(&compInfo.utf8_buf[0]);
     eventImeData.cursor_position = compInfo.cursor_position;
     eventImeData.target_start = compInfo.target_start;

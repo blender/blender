@@ -874,7 +874,7 @@ template<typename StorageType> void convert(UnsignedNormalized<StorageType> &dst
 template<typename StorageType> void convert(F32 &dst, const UnsignedNormalized<StorageType> &src)
 {
   static constexpr uint32_t scalar = UnsignedNormalized<StorageType>::scalar();
-  dst.value = float(uint32_t(src.value)) / float(scalar);
+  dst.value = float(uint32_t(src.value & scalar)) / float(scalar);
 }
 
 template<typename StorageType>

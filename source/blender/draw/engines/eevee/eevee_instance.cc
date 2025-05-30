@@ -25,6 +25,7 @@
 #include "ED_screen.hh"
 #include "ED_view3d.hh"
 #include "GPU_context.hh"
+#include "GPU_pass.hh"
 #include "IMB_imbuf_types.hh"
 
 #include "RE_pipeline.h"
@@ -94,6 +95,11 @@ void Instance::init()
         rect.ymin = floorf(viewborder.ymin + (scene->r.border.ymin * viewborder_sizey));
         rect.xmax = floorf(viewborder.xmin + (scene->r.border.xmax * viewborder_sizex));
         rect.ymax = floorf(viewborder.ymin + (scene->r.border.ymax * viewborder_sizey));
+        /* Clamp it to the viewport area. */
+        rect.xmin = max(rect.xmin, 0);
+        rect.ymin = max(rect.ymin, 0);
+        rect.xmax = min(rect.xmax, size.x);
+        rect.ymax = min(rect.ymax, size.y);
       }
     }
     else if (v3d->flag2 & V3D_RENDER_BORDER) {
@@ -479,9 +485,12 @@ void Instance::render_sample()
   if (!is_viewport() && sampling.do_render_sync()) {
     render_sync();
     while (materials.queued_shaders_count > 0) {
-      /* Leave some time for shaders to compile. */
-      BLI_time_sleep_ms(50);
-      /** WORKAROUND: Re-sync to check if all shaders are already compiled. */
+      GPU_pass_cache_wait_for_all();
+      /** WORKAROUND: Re-sync now that all shaders are compiled. */
+      /* This may need to happen more than once, since actual materials may require more passes
+       * (eg. volume ones) than the fallback material used for queued passes. */
+      /* TODO(@pragma37): There seems to be an issue where multiple `step_object_sync` calls on the
+       * same step can cause mismatching `has_motion` values between sync. */
       render_sync();
     }
   }
@@ -819,10 +828,13 @@ void Instance::light_bake_irradiance(
   custom_pipeline_wrapper([&]() {
     this->render_sync();
     while (materials.queued_shaders_count > 0) {
-      /* Leave some time for shaders to compile. */
-      BLI_time_sleep_ms(50);
-      /** WORKAROUND: Re-sync to check if all shaders are already compiled. */
-      this->render_sync();
+      GPU_pass_cache_wait_for_all();
+      /** WORKAROUND: Re-sync now that all shaders are compiled. */
+      /* This may need to happen more than once, since actual materials may require more passes
+       * (eg. volume ones) than the fallback material used for queued passes. */
+      /* TODO(@pragma37): There seems to be an issue where multiple `step_object_sync` calls on the
+       * same step can cause mismatching `has_motion` values between sync. */
+      render_sync();
     }
     /* Sampling module needs to be initialized to computing lighting. */
     sampling.init(probe);

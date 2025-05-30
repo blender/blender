@@ -562,7 +562,17 @@ float ColumnValues::fit_column_values_width_px(const std::optional<int64_t> &max
           });
     }
     case SPREADSHEET_VALUE_TYPE_INSTANCES: {
-      return 24 * SPREADSHEET_WIDTH_UNIT;
+      return UI_ICON_SIZE + 0.5f * UI_UNIT_X +
+             estimate_max_column_width<bke::InstanceReference>(
+                 get_min_width(8 * SPREADSHEET_WIDTH_UNIT),
+                 fontid,
+                 max_sample_size,
+                 data_.typed<bke::InstanceReference>(),
+                 [](const bke::InstanceReference &value) {
+                   const StringRef name = value.name().is_empty() ? IFACE_("(Geometry)") :
+                                                                    value.name();
+                   return name;
+                 });
     }
     case SPREADSHEET_VALUE_TYPE_STRING: {
       if (data_.type().is<std::string>()) {

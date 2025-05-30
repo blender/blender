@@ -788,3 +788,27 @@ void BKE_report_path_template_errors(ReportList *reports,
 
   BKE_report(reports, report_type, error_message.c_str());
 }
+
+std::optional<std::string> BKE_path_template_format_float(
+    const blender::StringRef format_specifier, const double value)
+{
+  const FormatSpecifier format = parse_format_specifier(format_specifier);
+  if (format.type == FormatSpecifierType::SYNTAX_ERROR) {
+    return std::nullopt;
+  }
+  char buffer[FORMAT_BUFFER_SIZE];
+  format_float_to_string(format, value, buffer);
+  return buffer;
+}
+
+std::optional<std::string> BKE_path_template_format_int(const blender::StringRef format_specifier,
+                                                        const int64_t value)
+{
+  const FormatSpecifier format = parse_format_specifier(format_specifier);
+  if (format.type == FormatSpecifierType::SYNTAX_ERROR) {
+    return std::nullopt;
+  }
+  char buffer[FORMAT_BUFFER_SIZE];
+  format_int_to_string(format, value, buffer);
+  return buffer;
+}

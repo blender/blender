@@ -33,6 +33,7 @@
 #include <Cocoa/Cocoa.h>
 #include <Metal/Metal.h>
 #include <QuartzCore/QuartzCore.h>
+#include <chrono>
 #include <mutex>
 
 @class CAMetalLayer;
@@ -776,6 +777,23 @@ class MTLContext : public Context {
   GPUVertFormat dummy_vertformat_[GPU_SAMPLER_TYPE_MAX];
   VertBuf *dummy_verts_[GPU_SAMPLER_TYPE_MAX] = {nullptr};
 
+  /* Debug scope timings. Adapted form GLContext::TimeQuery.
+   * Only supports CPU timings for now. */
+  struct ScopeTimings {
+    using Clock = std::chrono::steady_clock;
+    using TimePoint = Clock::time_point;
+    using Nanoseconds = std::chrono::nanoseconds;
+
+    static TimePoint epoch;
+
+    std::string name;
+    bool finished;
+    TimePoint cpu_start, cpu_end;
+  };
+  Vector<ScopeTimings> scope_timings;
+
+  void process_frame_timings();
+
  public:
   /* GPUContext interface. */
   MTLContext(void *ghost_window, void *ghost_context);
@@ -837,6 +855,11 @@ class MTLContext : public Context {
   void sampler_state_cache_init();
   id<MTLSamplerState> get_sampler_from_state(MTLSamplerState state);
   id<MTLSamplerState> get_default_sampler_state();
+
+  /* Active shader specialization constants state. */
+  shader::SpecializationConstants constants_state;
+
+  void specialization_constants_set(const shader::SpecializationConstants *constants_state);
 
   /* Metal Context pipeline state. */
   void pipeline_state_init();

@@ -188,7 +188,7 @@ eCustomDataType cpp_type_to_custom_data_type(const blender::CPPType &type)
   if (type.is<MStringProperty>()) {
     return CD_PROP_STRING;
   }
-  return static_cast<eCustomDataType>(-1);
+  return eCustomDataType(-1);
 }
 
 const char *no_procedural_access_message = N_(

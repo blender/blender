@@ -8,11 +8,10 @@
 
 #pragma once
 
-#include <mutex>
-
 #include "xxhash.h"
 
 #include "BLI_map.hh"
+#include "BLI_mutex.hh"
 #include "BLI_utility_mixins.hh"
 
 #include "gpu_state_private.hh"
@@ -288,7 +287,7 @@ class VKPipelinePool : public NonCopyable {
   VkPipelineCache vk_pipeline_cache_static_;
   VkPipelineCache vk_pipeline_cache_non_static_;
 
-  std::mutex mutex_;
+  Mutex mutex_;
 
  public:
   VKPipelinePool();

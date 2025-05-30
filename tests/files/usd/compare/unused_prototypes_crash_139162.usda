@@ -1,0 +1,31 @@
+#usda 1.0
+(
+    upAxis = "Y"
+    metersPerUnit = 1.0
+)
+
+def Xform "Root" 
+{
+    def PointInstancer "MainInstancer"
+    {
+        point3f[] positions = [(2, 0, 0), (-2, 0, 0)]
+        prepend rel prototypes = [</Root/Prototypes/ProtoCube>,]
+        int[] protoIndices = [0, 0]
+    }
+
+    def Xform "Prototypes"
+    {
+        token visibility = "invisible"
+
+        def Cube "ProtoCube" {}
+
+        def PointInstancer "ProtoInstancer"
+        {
+            point3f[] positions = [(0, 1.0, 0)]
+            prepend rel prototypes = </Root/Prototypes/ProtoSphere>
+            int[] protoIndices = [0]
+        }
+
+        def Sphere "ProtoSphere" {}
+    }
+}

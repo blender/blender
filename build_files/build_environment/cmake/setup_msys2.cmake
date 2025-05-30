@@ -24,7 +24,7 @@ macro(download_package package_name)
   set(MSYS2_${package_name}_FILE ${_final_filename})
   if(NOT EXISTS "${_final_filename}")
     if(MSYS2_USE_UPSTREAM_PACKAGES)
-      set(_final_url ${URI})
+      set(_final_url ${URL})
     else()
       set(_final_url "https://projects.blender.org/blender/lib-windows_x64/media/branch/build_environment/${_file_name}")
     endif()
@@ -65,8 +65,8 @@ set(MSYS2_NASM_HASH 6ae5eaffde68aa7450fadd7f45ba5c6df3dce558)
 set(MSYS2_PERL_URL https://github.com/StrawberryPerl/Perl-Dist-Strawberry/releases/download/SP_5380_5361/strawberry-perl-5.38.0.1-64bit-portable.zip)
 set(MSYS2_PERL_HASH 987c870cc2401e481e3ddbdd1462d2a52da34187)
 
-set(MSYS2_GAS_URL https://raw.githubusercontent.com/FFmpeg/gas-preprocessor/9309c67acb535ca6248f092e96131d8eb07eefc1/gas-preprocessor.pl)
-set(MSYS2_GAS_HASH d86e756793eb37a269f06e20538d2bb3141ec24a)
+set(MSYS2_GAS_URL https://raw.githubusercontent.com/FFmpeg/gas-preprocessor/7380ac24e1cd23a5e6d76c6af083d8fc5ab9e943/gas-preprocessor.pl)
+set(MSYS2_GAS_HASH 313c45e9ae7e4b6c13475e65ee4063593dac2cbe)
 
 set(MSYS2_AR_URL https://raw.githubusercontent.com/gcc-mirror/gcc/releases/gcc-12.2.0/ar-lib)
 set(MSYS2_AR_HASH 77194f45708a80f502102fa881a8a5cb048b03af)
@@ -132,6 +132,20 @@ if(NOT EXISTS "${DOWNLOAD_DIR}/msys2/msys64/usr/bin/m4.exe")
   )
 
   message(STATUS "Installing required packages")
+
+  if(NOT BLENDER_PLATFORM_WINDOWS_ARM)
+    # A newer runtime package is required since the tools downloaded in the next step
+    # depend on it, we however cannot update the runtime from a msys2_shell.cmd since
+    # bash.exe will lock the runtime dlls so we execute pacman directly.
+    #
+    # For now only run this on X64 as there are some known issues (but unknown to me)
+    # with newer msys2 on Windows on ARM.
+    execute_process(
+      COMMAND ${DOWNLOAD_DIR}/msys2/msys64/usr/bin/pacman -S msys2-runtime --noconfirm
+      WORKING_DIRECTORY ${DOWNLOAD_DIR}/msys2/msys64
+    )
+  endif()
+
   execute_process(
     COMMAND ${DOWNLOAD_DIR}/msys2/msys64/msys2_shell.cmd -defterm -no-start -clang64 -c
       "pacman -S patch m4 coreutils pkgconf make diffutils autoconf-wrapper --noconfirm && exit"

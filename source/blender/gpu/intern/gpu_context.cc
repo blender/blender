@@ -27,6 +27,7 @@
 #include "GPU_context.hh"
 
 #include "GPU_batch.hh"
+#include "GPU_pass.hh"
 #include "gpu_backend.hh"
 #include "gpu_context_private.hh"
 #include "gpu_matrix_private.hh"
@@ -234,6 +235,7 @@ void GPU_context_active_set(GPUContext *ctx_)
   Context *ctx = unwrap(ctx_);
 
   if (active_ctx) {
+    GPU_shader_unbind();
     active_ctx->deactivate();
   }
 
@@ -241,6 +243,13 @@ void GPU_context_active_set(GPUContext *ctx_)
 
   if (ctx) {
     ctx->activate();
+    /* It can happen that the previous context drew with a different color-space.
+     * In the case where the new context is drawing with the same shader that was previously bound
+     * (shader binding optimization), the uniform would not be set again because the dirty flag
+     * would not have been set (since the color space of this new context never changed). The
+     * shader would reuse the same color-space as the previous context frame-buffer (see #137855).
+     */
+    ctx->shader_builtin_srgb_is_dirty = true;
   }
 }
 
@@ -321,6 +330,8 @@ void GPU_render_step(bool force_resource_release)
     backend->render_step(force_resource_release);
     printf_begin(active_ctx);
   }
+
+  GPU_pass_cache_update();
 }
 
 /** \} */

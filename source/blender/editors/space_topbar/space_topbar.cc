@@ -246,12 +246,10 @@ static void undo_history_draw_menu(const bContext *C, Menu *menu)
     const bool is_active = (us == wm->undo_stack->step_active);
     uiLayout *row = &column->row(false);
     uiLayoutSetEnabled(row, !is_active);
-    uiItemIntO(row,
-               CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, us->name),
-               is_active ? ICON_LAYER_ACTIVE : ICON_NONE,
-               "ED_OT_undo_history",
-               "item",
-               i);
+    PointerRNA op_ptr = row->op("ED_OT_undo_history",
+                                CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, us->name),
+                                is_active ? ICON_LAYER_ACTIVE : ICON_NONE);
+    RNA_int_set(&op_ptr, "item", i);
     undo_step_count += 1;
   }
 }

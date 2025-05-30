@@ -208,5 +208,6 @@ GPUShader *DRW_shader_subdiv_custom_data_get(GPUVertCompType comp_type, int dime
 
 void DRW_shaders_free()
 {
+  GPU_shader_unbind();
   ShaderCache::release();
 }

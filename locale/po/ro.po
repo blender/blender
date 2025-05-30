@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'a7d2b7850ef2')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'ba454989554a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-05 08:47+0000\n"
+"POT-Creation-Date: 2025-05-26 07:36+0000\n"
 "PO-Revision-Date: 2025-04-14 08:37+0000\n"
 "Last-Translator: Alexandru Buhnici <in@alexm.ro>\n"
 "Language-Team: Romanian <https://translate.blender.org/projects/blender-ui/ui/ro/>\n"
@@ -1726,6 +1726,10 @@ msgid "Distance"
 msgstr "Distanță"
 
 
+msgid "Envelope"
+msgstr "Plic"
+
+
 msgid "Deform"
 msgstr "Deformare"
 
@@ -1957,10 +1961,6 @@ msgid "Blue"
 msgstr "Albastru"
 
 
-msgid "Envelope"
-msgstr "Plic"
-
-
 msgid "Local"
 msgstr "Local"
 
@@ -1996,6 +1996,10 @@ msgstr "Max"
 msgctxt "Light"
 msgid "Light"
 msgstr "Lumină"
+
+
+msgid "Normalize"
+msgstr "Normalizare"
 
 
 msgid "Cube"
@@ -2163,10 +2167,6 @@ msgstr "Copiere"
 
 msgid "World"
 msgstr "Lume"
-
-
-msgid "Normalize"
-msgstr "Normalizare"
 
 
 msgid "Aspect Correction"
@@ -2415,6 +2415,10 @@ msgstr "Pictare Vertex"
 msgctxt "Operator"
 msgid "Weight Paint"
 msgstr "Pictare Greutate"
+
+
+msgid "Parents"
+msgstr "Părinți"
 
 
 msgctxt "Operator"
@@ -3008,10 +3012,6 @@ msgstr "Afectați Numai"
 
 msgid "Locations"
 msgstr "Locații"
-
-
-msgid "Parents"
-msgstr "Părinți"
 
 
 msgid "Multi-Paint"

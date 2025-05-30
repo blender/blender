@@ -78,6 +78,8 @@ const GPUShaderCreateInfo *GPU_shader_create_info_get(const char *info_name);
  */
 bool GPU_shader_create_info_check_error(const GPUShaderCreateInfo *_info, char r_error[128]);
 
+enum class CompilationPriority { Low, Medium, High };
+
 using BatchHandle = int64_t;
 /**
  * Request the creation of multiple shaders at once, allowing the backend to use multithreaded
@@ -87,7 +89,9 @@ using BatchHandle = int64_t;
  * WARNING: The GPUShaderCreateInfo pointers should be valid until `GPU_shader_batch_finalize` has
  * returned.
  */
-BatchHandle GPU_shader_batch_create_from_infos(blender::Span<const GPUShaderCreateInfo *> infos);
+BatchHandle GPU_shader_batch_create_from_infos(
+    blender::Span<const GPUShaderCreateInfo *> infos,
+    CompilationPriority priority = CompilationPriority::High);
 /**
  * Returns true if all the shaders from the batch have finished their compilation.
  */
@@ -105,6 +109,10 @@ blender::Vector<GPUShader *> GPU_shader_batch_finalize(BatchHandle &handle);
  * WARNING: The handle will be invalidated by this call.
  */
 void GPU_shader_batch_cancel(BatchHandle &handle);
+/**
+ *  Wait until all the requested batches have been compiled.
+ */
+void GPU_shader_batch_wait_for_all();
 
 /** \} */
 
@@ -127,7 +135,9 @@ void GPU_shader_free(GPUShader *shader);
  * Uniform functions need to have the shader bound in order to work. (TODO: until we use
  * glProgramUniform)
  */
-void GPU_shader_bind(GPUShader *shader);
+void GPU_shader_bind(
+    GPUShader *shader,
+    const blender::gpu::shader::SpecializationConstants *constants_state = nullptr);
 
 /**
  * Unbind the active shader.
@@ -234,21 +244,16 @@ bool GPU_shader_get_ssbo_input_info(const GPUShader *shader, int ssbo_location, 
  * Otherwise, it will produce undefined behavior.
  * \{ */
 
-void GPU_shader_constant_int_ex(GPUShader *sh, int location, int value);
-void GPU_shader_constant_uint_ex(GPUShader *sh, int location, unsigned int value);
-void GPU_shader_constant_float_ex(GPUShader *sh, int location, float value);
-void GPU_shader_constant_bool_ex(GPUShader *sh, int location, bool value);
-
-void GPU_shader_constant_int(GPUShader *sh, const char *name, int value);
-void GPU_shader_constant_uint(GPUShader *sh, const char *name, unsigned int value);
-void GPU_shader_constant_float(GPUShader *sh, const char *name, float value);
-void GPU_shader_constant_bool(GPUShader *sh, const char *name, bool value);
+/* Return the default constants.
+ * All constants available for this shader should fit the returned structure. */
+const blender::gpu::shader::SpecializationConstants &GPU_shader_get_default_constant_state(
+    GPUShader *sh);
 
 using SpecializationBatchHandle = int64_t;
 
 struct ShaderSpecialization {
   GPUShader *shader;
-  blender::Vector<blender::gpu::shader::SpecializationConstant> constants;
+  blender::gpu::shader::SpecializationConstants constants;
 };
 
 /**
@@ -263,7 +268,8 @@ struct ShaderSpecialization {
  * WARNING: Binding a specialization before the batch finishes will fail.
  */
 SpecializationBatchHandle GPU_shader_batch_specializations(
-    blender::Span<ShaderSpecialization> specializations);
+    blender::Span<ShaderSpecialization> specializations,
+    CompilationPriority priority = CompilationPriority::High);
 
 /**
  * Returns true if all the specializations from the batch have finished their compilation.
@@ -441,6 +447,8 @@ class StaticShader : NonCopyable {
   /* TODO: Failed compilation detection should be supported by the GPUShader API. */
   std::atomic<bool> failed_ = false;
   std::mutex mutex_;
+  /* Handle for async compilation. */
+  BatchHandle compilation_handle_ = 0;
 
   void move(StaticShader &&other)
   {
@@ -469,7 +477,31 @@ class StaticShader : NonCopyable {
 
   ~StaticShader()
   {
+    if (compilation_handle_) {
+      GPU_shader_batch_cancel(compilation_handle_);
+    }
     GPU_SHADER_FREE_SAFE(shader_);
+  }
+
+  /* Schedule the shader to be compile in a worker thread. */
+  void ensure_compile_async()
+  {
+    if (shader_ || failed_ || compilation_handle_) {
+      return;
+    }
+
+    std::scoped_lock lock(mutex_);
+
+    if (!shader_ && !failed_ && !compilation_handle_) {
+      BLI_assert(!info_name_.empty());
+      const GPUShaderCreateInfo *create_info = GPU_shader_create_info_get(info_name_.c_str());
+      compilation_handle_ = GPU_shader_batch_create_from_infos({&create_info, 1});
+    }
+  }
+
+  bool is_ready()
+  {
+    return shader_ != nullptr;
   }
 
   GPUShader *get()
@@ -481,8 +513,13 @@ class StaticShader : NonCopyable {
     std::scoped_lock lock(mutex_);
 
     if (!shader_ && !failed_) {
-      BLI_assert(!info_name_.empty());
-      shader_ = GPU_shader_create_from_info_name(info_name_.c_str());
+      if (compilation_handle_) {
+        shader_ = GPU_shader_batch_finalize(compilation_handle_)[0];
+      }
+      else {
+        BLI_assert(!info_name_.empty());
+        shader_ = GPU_shader_create_from_info_name(info_name_.c_str());
+      }
       failed_ = shader_ != nullptr;
     }
 

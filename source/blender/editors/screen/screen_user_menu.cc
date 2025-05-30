@@ -226,15 +226,11 @@ static void screen_user_menu_draw(const bContext *C, Menu *menu)
             ui_name = CTX_IFACE_(ot->translation_context, ui_name->c_str());
           }
           if (umi_op->op_prop_enum[0] == '\0') {
-            IDProperty *prop = umi_op->prop ? IDP_CopyProperty(umi_op->prop) : nullptr;
-            uiItemFullO_ptr(menu->layout,
-                            ot,
-                            ui_name,
-                            ICON_NONE,
-                            prop,
-                            wmOperatorCallContext(umi_op->opcontext),
-                            UI_ITEM_NONE,
-                            nullptr);
+            PointerRNA ptr = menu->layout->op(
+                ot, ui_name, ICON_NONE, wmOperatorCallContext(umi_op->opcontext), UI_ITEM_NONE);
+            if (umi_op->prop) {
+              IDP_CopyPropertyContent(ptr.data_as<IDProperty>(), umi_op->prop);
+            }
           }
           else {
             /* umi_op->prop could be used to set other properties but it's currently unsupported.

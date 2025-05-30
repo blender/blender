@@ -1785,7 +1785,7 @@ Key **BKE_key_from_id_p(ID *id)
     }
     case ID_CU_LEGACY: {
       Curve *cu = (Curve *)id;
-      if (cu->vfont == nullptr) {
+      if (cu->ob_type != OB_FONT) {
         return &cu->key;
       }
       break;

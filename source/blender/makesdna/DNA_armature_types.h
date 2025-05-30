@@ -65,8 +65,8 @@ typedef struct Bone {
   struct Bone *parent;
   /** Children. */
   ListBase childbase;
-  /** Name of the bone - must be unique within the armature, MAXBONENAME. */
-  char name[64];
+  /** Name of the bone - must be unique within the armature. */
+  char name[/*MAXBONENAME*/ 64];
 
   /** Roll is input for edit-mode, length calculated. */
   float roll;
@@ -214,7 +214,7 @@ typedef struct bArmature {
    * This is stored as a string to make it possible for the library overrides system to understand
    * when it actually changed (compared to a BoneCollection*, which would change on every load).
    */
-  char active_collection_name[64]; /* MAX_NAME. */
+  char active_collection_name[/*MAX_NAME*/ 64];
 
   /** For UI, to show which layers are there. */
   unsigned int layer_used DNA_DEPRECATED;
@@ -256,8 +256,7 @@ typedef struct bArmature {
 typedef struct BoneCollection {
   struct BoneCollection *next, *prev;
 
-  /** MAX_NAME. */
-  char name[64];
+  char name[/*MAX_NAME*/ 64];
 
   /** BoneCollectionMember. */
   ListBase bones;

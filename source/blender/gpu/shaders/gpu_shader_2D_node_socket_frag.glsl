@@ -15,6 +15,8 @@ FRAGMENT_SHADER_CREATE_INFO(gpu_shader_2D_node_socket_inst)
 #define SOCK_DISPLAY_SHAPE_CIRCLE_DOT 3
 #define SOCK_DISPLAY_SHAPE_SQUARE_DOT 4
 #define SOCK_DISPLAY_SHAPE_DIAMOND_DOT 5
+#define SOCK_DISPLAY_SHAPE_LINE 6
+#define SOCK_DISPLAY_SHAPE_VOLUME_GRID 7
 
 /* Calculates a squared distance field of a square. */
 float square_sdf(float2 absCo, float2 half_size)
@@ -91,6 +93,22 @@ void main()
       distance_squared = square_sdf(abs(rotate_45(co)), float2(diamond_radius - corner_rounding));
       alpha_threshold = corner_rounding;
       dot_threshold = finalDotRadius;
+      break;
+    }
+    case SOCK_DISPLAY_SHAPE_LINE: {
+      float square_radius = square_radius - corner_rounding;
+      distance_squared = square_sdf(co, float2(square_radius * 0.75, square_radius * 1.4));
+      alpha_threshold = corner_rounding;
+      break;
+    }
+    case SOCK_DISPLAY_SHAPE_VOLUME_GRID: {
+      float size = 0.7;
+      float2 uv = abs(absUV - size * 0.5) - size * 0.4;
+      float radius_out = length(max(uv, 0.0));
+      float radius_in = max(abs(uv).x, abs(uv).y) * -1.0;
+      float radius = mix(radius_in, radius_out, radius_out > 0);
+      distance_squared = max(-1.0, (radius - size * 0.15));
+      alpha_threshold = -0.2;
       break;
     }
   }

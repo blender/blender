@@ -162,7 +162,7 @@ def sync_apply_locked(repos_notify, repos_notify_files, unique_ext):
                     except Exception as ex:
                         sys.stderr.write("Failed to remove file before renaming: {:s}\n".format(str(ex)))
                         continue
-                # Not expected to fail, in the case it might (corrupt file-system for e.g.),
+                # Not expected to fail, in the case it might (corrupt file-system for example),
                 # the script should continue executing.
                 try:
                     os.rename(filepath, filepath_dst)
@@ -585,7 +585,7 @@ def update_non_blocking(*, repos_fn, immediate=False):
     # Perform a non-blocking update on ``repos``.
     # Updates are queued in case some are already running.
     # `repos_fn` A generator or function that returns a list of ``(RepoItem, do_online_sync)`` pairs.
-    # Some repositories don't check for update on startup for e.g.
+    # Some repositories don't check for update on startup for example
 
     # Needed so `update_in_progress` doesn't get confused by an old completed item hanging around.
     # Further, there is no need to keep this item any longer than is needed if a new notification is added.

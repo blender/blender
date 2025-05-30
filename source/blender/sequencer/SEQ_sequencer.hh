@@ -67,7 +67,7 @@ ListBase *active_seqbase_get(const Editing *ed);
  * \param seqbase: ListBase with strips
  */
 void active_seqbase_set(Editing *ed, ListBase *seqbase);
-Strip *strip_alloc(ListBase *lb, int timeline_frame, int machine, int type);
+Strip *strip_alloc(ListBase *lb, int timeline_frame, int channel, int type);
 void strip_free(Scene *scene, Strip *strip);
 /**
  * Get #MetaStack that corresponds to current level that is being viewed
@@ -126,6 +126,16 @@ void eval_strips(Depsgraph *depsgraph, Scene *scene, ListBase *seqbase);
  * \return pointer to Strip
  */
 Strip *lookup_strip_by_name(Editing *ed, const char *key);
+
+/**
+ * Find a strips using provided scene as input
+ *
+ * \param ed: Editing that owns lookup hash
+ * \param key: Input Scene pointer
+ *
+ * \return Span of strips
+ */
+Span<Strip *> lookup_strips_by_scene(Editing *ed, const Scene *key);
 
 /**
  * Find which meta strip the given timeline channel belongs to. Returns nullptr if it is a global

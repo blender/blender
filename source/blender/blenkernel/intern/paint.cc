@@ -303,7 +303,7 @@ void BKE_paint_set_overlay_override(eOverlayFlags flags)
     }
   }
   else {
-    overlay_flags &= ~(PAINT_OVERRIDE_MASK);
+    overlay_flags &= ~PAINT_OVERRIDE_MASK;
   }
 }
 
@@ -633,7 +633,7 @@ static bool paint_brush_update_from_asset_reference(Main *bmain, Paint *paint)
 
 Brush *BKE_paint_brush(Paint *paint)
 {
-  return (Brush *)BKE_paint_brush_for_read((const Paint *)paint);
+  return paint ? paint->brush : nullptr;
 }
 
 const Brush *BKE_paint_brush_for_read(const Paint *paint)
@@ -1153,7 +1153,7 @@ static bool paint_eraser_brush_set_from_asset_reference(Main *bmain, Paint *pain
 
 Brush *BKE_paint_eraser_brush(Paint *paint)
 {
-  return (Brush *)BKE_paint_eraser_brush_for_read((const Paint *)paint);
+  return paint ? paint->eraser_brush : nullptr;
 }
 
 const Brush *BKE_paint_eraser_brush_for_read(const Paint *paint)
@@ -1244,6 +1244,7 @@ static void paint_runtime_init(const ToolSettings *ts, Paint *paint)
   }
 
   paint->runtime.initialized = true;
+  paint->runtime.previous_active_brush_reference = nullptr;
 }
 
 uint BKE_paint_get_brush_type_offset_from_paintmode(const PaintMode mode)

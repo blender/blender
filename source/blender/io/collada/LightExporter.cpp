@@ -11,8 +11,11 @@
 #include "COLLADASWColor.h"
 #include "COLLADASWLight.h"
 
+#include "DNA_light_types.h"
 #include "LightExporter.h"
 #include "collada_internal.h"
+
+#include "BKE_light.h"
 
 template<class Functor>
 void forEachLightObjectInExportSet(Scene *sce, Functor &f, LinkNode *export_set)
@@ -46,7 +49,11 @@ void LightsExporter::operator()(Object *ob)
   Light *la = (Light *)ob->data;
   std::string la_id(get_light_id(ob));
   std::string la_name(id_name(la));
-  COLLADASW::Color col(la->r * la->energy, la->g * la->energy, la->b * la->energy);
+  blender::float3 color = BKE_light_power(*la) * BKE_light_color(*la);
+  if (la->mode & LA_UNNORMALIZED) {
+    color *= BKE_light_area(*la, ob->runtime->object_to_world);
+  }
+  COLLADASW::Color col(color[0], color[1], color[2]);
 
   /* sun */
   if (la->type == LA_SUN) {

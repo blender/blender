@@ -68,7 +68,7 @@ static Vector<const std::string *> get_layer_names_from_context(const bContext &
   if (!tree_zones) {
     return {};
   }
-  const ContextualGeoTreeLogs tree_logs = GeoModifierLog::get_contextual_tree_logs(*snode);
+  const ContextualGeoTreeLogs tree_logs = GeoNodesLog::get_contextual_tree_logs(*snode);
 
   Set<StringRef> names;
 
@@ -179,7 +179,7 @@ void node_geometry_add_layer_search_button(const bContext & /*C*/,
                                            const bNode &node,
                                            PointerRNA &socket_ptr,
                                            uiLayout &layout,
-                                           const StringRefNull placeholder)
+                                           const StringRef placeholder)
 {
   uiBlock *block = uiLayoutGetBlock(&layout);
   uiBut *but = uiDefIconTextButR(block,
@@ -197,7 +197,7 @@ void node_geometry_add_layer_search_button(const bContext & /*C*/,
                                  0.0f,
                                  0.0f,
                                  "");
-  UI_but_placeholder_set(but, placeholder.c_str());
+  UI_but_placeholder_set(but, placeholder);
 
   const bNodeSocket &socket = *static_cast<const bNodeSocket *>(socket_ptr.data);
   LayerSearchData *data = MEM_callocN<LayerSearchData>(__func__);

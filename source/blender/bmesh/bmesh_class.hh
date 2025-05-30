@@ -291,12 +291,12 @@ struct BMFace {
   float no[3];
   /**
    * Material index, typically >= 0 and < #Mesh.totcol although this isn't enforced
-   * Python for e.g. can set this to any positive value since scripts may create
+   * Python for example can set this to any positive value since scripts may create
    * mesh data first and setup material slots later.
    *
    * When using to index into a material array it's range should be checked first,
    * values exceeding the range should be ignored or treated as zero
-   * (if a material slot needs to be used - when drawing for e.g.)
+   * (if a material slot needs to be used - when drawing for example)
    */
   short mat_nr;
   //  short _pad[3];

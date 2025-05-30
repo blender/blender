@@ -96,7 +96,7 @@ class Params:
         #
         # NOTE: This is typically used for active tool key-map items however it should never
         # be used for selection tools (the default box-select tool for example).
-        # Since this means with RMB select enabled in edit-mode for e.g.
+        # Since this means with RMB select enabled in edit-mode for example
         # `Ctrl-LMB` would be caught by box-select instead of add/extrude.
         "tool_maybe_tweak_event",
     )
@@ -603,7 +603,7 @@ def _template_items_tool_select(
     if params.select_mouse == 'LEFTMOUSE':
         # Use 'PRESS' for immediate select without delay.
         # Tools that allow dragging anywhere should _NOT_ enable the fallback tool
-        # unless it is expected that the tool should operate on the selection (click-drag to rip for e.g.).
+        # unless it is expected that the tool should operate on the selection (click-drag to rip for example).
         return [
             (operator, {"type": 'LEFTMOUSE', "value": 'PRESS'},
              {"properties": [
@@ -3612,6 +3612,7 @@ def km_spreadsheet_generic(params):
         ),
         ("spreadsheet.resize_column", {"type": 'LEFTMOUSE', "value": 'PRESS'}, None),
         ("spreadsheet.fit_column", {"type": 'LEFTMOUSE', "value": 'DOUBLE_CLICK'}, None),
+        ("spreadsheet.reorder_columns", {"type": 'LEFTMOUSE', "value": 'CLICK_DRAG'}, None),
     ])
 
     return keymap
@@ -5391,8 +5392,7 @@ def km_edit_mesh(params):
         ("mesh.dissolve_mode", {"type": 'X', "value": 'PRESS', "ctrl": True}, None),
         ("mesh.dissolve_mode", {"type": 'DEL', "value": 'PRESS', "ctrl": True}, None),
         op_tool_optional(
-            ("mesh.knife_tool", {"type": 'K', "value": 'PRESS'},
-             {"properties": [("use_occlude_geometry", True), ("only_selected", False)]}),
+            ("mesh.knife_tool", {"type": 'K', "value": 'PRESS'}, None),
             (op_tool_cycle, "builtin.knife"), params),
         ("mesh.knife_tool", {"type": 'K', "value": 'PRESS', "shift": True},
          {"properties": [("use_occlude_geometry", False), ("only_selected", True)]}),
@@ -8187,7 +8187,8 @@ def km_sequencer_tool_generic_select_rcs(params):
 
 def km_sequencer_tool_generic_select_lcs(params):
     return [
-        ("sequencer.select", {"type": 'LEFTMOUSE', "value": 'PRESS'}, None),
+        ("sequencer.select", {"type": 'LEFTMOUSE', "value": 'PRESS'},
+         {"properties": [("deselect_all", True)]}),
         ("sequencer.select", {"type": 'LEFTMOUSE', "value": 'PRESS',
          "shift": True}, {"properties": [("toggle", True)]}),
         ("anim.change_frame", {"type": 'RIGHTMOUSE', "value": 'PRESS',
@@ -8200,7 +8201,7 @@ def km_sequencer_tool_generic_select_box(params, *, fallback):
         _fallback_id("Sequencer Tool: Select Box", fallback),
         {"space_type": 'SEQUENCE_EDITOR', "region_type": 'WINDOW'},
         {"items": [
-            # Combine the tweak functionality into the select box tool.
+            # Add tweak functionality to the select box tool.
             # This gives one standard tool for all selection and transform behavior.
             *(km_sequencer_tool_generic_select_rcs(params)
               if (params.select_mouse == 'RIGHTMOUSE') else

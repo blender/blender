@@ -22,6 +22,9 @@ struct IndexSwitchItemsAccessor {
   static constexpr bool has_type = false;
   static constexpr bool has_name = false;
   static constexpr bool has_single_identifier_str = true;
+  static constexpr bool has_name_validation = false;
+  static constexpr bool has_custom_initial_name = false;
+  static constexpr char unique_name_separator = '.';
 
   static socket_items::SocketItemsRef<IndexSwitchItem> get_items_from_node(bNode &node)
   {

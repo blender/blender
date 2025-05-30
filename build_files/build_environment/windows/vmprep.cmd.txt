@@ -26,9 +26,9 @@ echo #   the c:\vs2019bt\ folder
 echo # - Meson 1.6.0 
 echo # - Visual Studio 2010 X64 redist (required for the yaml binary) 
 echo # - Git 2.38.0
-echo # - CMake 3.24.2
+echo # - CMake 3.31.7
 echo # - Cuda 12.8.0
-echo # - HIP 5.7.1
+echo # - HIP 6.3.42560
 echo #
 echo # Additionally this will also create and populate the following folders :
 echo #
@@ -78,9 +78,9 @@ echo Installing git
 start /wait c:\install\Git-2.38.0-64-bit.exe /silent
 
 echo Obtaining CMake
-curl -L https://github.com/Kitware/CMake/releases/download/v3.24.2/cmake-3.24.2-windows-x86_64.msi -o c:\install\cmake-3.24.2-windows-x86_64.msi
+curl -L https://github.com/Kitware/CMake/releases/download/v3.31.7/cmake-3.31.7-windows-x86_64.msi -o c:\install\cmake-3.31.7-windows-x86_64.msi
 echo Installing cmake 
-start /wait msiexec /passive /ic:\install\cmake-3.24.2-windows-x86_64.msi ADD_CMAKE_TO_PATH="System"
+start /wait msiexec /passive /ic:\install\cmake-3.31.7-windows-x86_64.msi ADD_CMAKE_TO_PATH="System"
 
 echo Obtaining meson 
 curl -L https://github.com/mesonbuild/meson/releases/download/1.6.0/meson-1.6.0-64.msi -o c:\install\meson-1.6.0-64.msi

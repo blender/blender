@@ -58,6 +58,7 @@ class VKShader : public Shader {
   virtual ~VKShader();
 
   void init(const shader::ShaderCreateInfo &info, bool is_batch_compilation) override;
+  void init() override {}
 
   void vertex_shader_from_glsl(MutableSpan<StringRefNull> sources) override;
   void geometry_shader_from_glsl(MutableSpan<StringRefNull> sources) override;
@@ -76,7 +77,7 @@ class VKShader : public Shader {
   bool is_ready() const;
   void warm_cache(int limit) override;
 
-  void bind() override;
+  void bind(const shader::SpecializationConstants *constants_state) override;
   void unbind() override;
 
   void uniform_float(int location, int comp_len, int array_size, const float *data) override;
@@ -89,11 +90,13 @@ class VKShader : public Shader {
   std::string geometry_layout_declare(const shader::ShaderCreateInfo &info) const override;
   std::string compute_layout_declare(const shader::ShaderCreateInfo &info) const override;
 
-  VkPipeline ensure_and_get_compute_pipeline();
+  VkPipeline ensure_and_get_compute_pipeline(
+      const shader::SpecializationConstants &constants_state);
   VkPipeline ensure_and_get_graphics_pipeline(GPUPrimType primitive,
                                               VKVertexAttributeObject &vao,
                                               VKStateManager &state_manager,
-                                              VKFrameBuffer &framebuffer);
+                                              VKFrameBuffer &framebuffer,
+                                              shader::SpecializationConstants &constants_state);
 
   const VKShaderInterface &interface_get() const;
 

@@ -211,7 +211,7 @@ ccl_device void shadow_linking_shade(KernelGlobals kg,
 
   INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, flag) = shadow_flag;
 
-#  ifdef __PATH_GUIDING__
+#  if defined(__PATH_GUIDING__)
   if (kernel_data.integrator.train_guiding) {
     guiding_record_light_surface_segment(kg, state, &isect);
     INTEGRATOR_STATE(shadow_state, shadow_path, guiding_mis_weight) = mis_weight;
@@ -237,7 +237,7 @@ ccl_device void integrator_shade_dedicated_light(KernelGlobals kg,
   kernel_assert(!"integrator_intersect_dedicated_light is not supposed to be scheduled");
 #endif
 
-  integrator_shade_surface_next_kernel<DEVICE_KERNEL_INTEGRATOR_SHADE_DEDICATED_LIGHT>(kg, state);
+  integrator_shade_surface_next_kernel<DEVICE_KERNEL_INTEGRATOR_SHADE_DEDICATED_LIGHT>(state);
 }
 
 CCL_NAMESPACE_END

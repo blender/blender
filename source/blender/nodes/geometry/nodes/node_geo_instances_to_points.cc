@@ -17,7 +17,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Geometry>("Instances").only_instances();
   b.add_input<decl::Bool>("Selection").default_value(true).hide_value().field_on_all();
-  b.add_input<decl::Vector>("Position").implicit_field_on_all(implicit_field_inputs::position);
+  b.add_input<decl::Vector>("Position").implicit_field_on_all(NODE_DEFAULT_INPUT_POSITION_FIELD);
   b.add_input<decl::Float>("Radius")
       .default_value(0.05f)
       .min(0.0f)

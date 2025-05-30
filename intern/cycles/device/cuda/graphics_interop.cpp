@@ -9,6 +9,14 @@
 #  include "device/cuda/device_impl.h"
 #  include "device/cuda/util.h"
 
+#  include "session/display_driver.h"
+
+#  ifdef _WIN32
+#    include "util/windows.h"
+#  else
+#    include <unistd.h>
+#  endif
+
 CCL_NAMESPACE_BEGIN
 
 CUDADeviceGraphicsInterop::CUDADeviceGraphicsInterop(CUDADeviceQueue *queue)
@@ -22,57 +30,64 @@ CUDADeviceGraphicsInterop::~CUDADeviceGraphicsInterop()
   free();
 }
 
-void CUDADeviceGraphicsInterop::set_buffer(const GraphicsInteropBuffer &interop_buffer)
+void CUDADeviceGraphicsInterop::set_buffer(GraphicsInteropBuffer &interop_buffer)
 {
-  const int64_t new_buffer_area = int64_t(interop_buffer.width) * interop_buffer.height;
+  CUDAContextScope scope(device_);
 
-  assert(interop_buffer.size >= interop_buffer.width * interop_buffer.height * sizeof(half4));
-
-  need_clear_ = interop_buffer.need_clear;
-
-  if (!interop_buffer.need_recreate) {
-    if (native_type_ == interop_buffer.type && native_handle_ == interop_buffer.handle &&
-        native_size_ == interop_buffer.size && buffer_area_ == new_buffer_area)
-    {
-      return;
-    }
+  if (interop_buffer.is_empty()) {
+    free();
+    return;
   }
 
-  CUDAContextScope scope(device_);
+  need_zero_ |= interop_buffer.take_zero();
+
+  if (!interop_buffer.has_new_handle()) {
+    return;
+  }
   free();
 
-  native_type_ = interop_buffer.type;
-  native_handle_ = interop_buffer.handle;
-  native_size_ = interop_buffer.size;
-  buffer_area_ = new_buffer_area;
-
-  switch (interop_buffer.type) {
+  switch (interop_buffer.get_type()) {
     case GraphicsInteropDevice::OPENGL: {
-      const CUresult result = cuGraphicsGLRegisterBuffer(
-          &cu_graphics_resource_, interop_buffer.handle, CU_GRAPHICS_MAP_RESOURCE_FLAGS_NONE);
+      const CUresult result = cuGraphicsGLRegisterBuffer(&cu_graphics_resource_,
+                                                         interop_buffer.take_handle(),
+                                                         CU_GRAPHICS_MAP_RESOURCE_FLAGS_NONE);
       if (result != CUDA_SUCCESS) {
         LOG(ERROR) << "Error registering OpenGL buffer: " << cuewErrorString(result);
+        break;
       }
+
+      buffer_size_ = interop_buffer.get_size();
       break;
     }
     case GraphicsInteropDevice::VULKAN: {
       CUDA_EXTERNAL_MEMORY_HANDLE_DESC external_memory_handle_desc = {};
 #  ifdef _WIN32
+      /* cuImportExternalMemory will not take ownership of the handle. */
+      vulkan_windows_handle_ = interop_buffer.take_handle();
       external_memory_handle_desc.type = CU_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32;
       external_memory_handle_desc.handle.win32.handle = reinterpret_cast<void *>(
-          interop_buffer.handle);
+          vulkan_windows_handle_);
 #  else
+      /* cuImportExternalMemory will take ownership of the handle. */
       external_memory_handle_desc.type = CU_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD;
-      external_memory_handle_desc.handle.fd = interop_buffer.handle;
+      external_memory_handle_desc.handle.fd = interop_buffer.take_handle();
 #  endif
-      external_memory_handle_desc.size = interop_buffer.size;
+      external_memory_handle_desc.size = interop_buffer.get_size();
 
       const CUresult result = cuImportExternalMemory(&cu_external_memory_,
                                                      &external_memory_handle_desc);
       if (result != CUDA_SUCCESS) {
+#  ifdef _WIN32
+        CloseHandle(HANDLE(vulkan_windows_handle_));
+        vulkan_windows_handle_ = 0;
+#  else
+        close(external_memory_handle_desc.handle.fd);
+#  endif
         LOG(ERROR) << "Error importing Vulkan memory: " << cuewErrorString(result);
         break;
       }
+
+      buffer_size_ = interop_buffer.get_size();
 
       CUDA_EXTERNAL_MEMORY_BUFFER_DESC external_memory_buffer_desc = {};
       external_memory_buffer_desc.size = external_memory_handle_desc.size;
@@ -111,11 +126,10 @@ device_ptr CUDADeviceGraphicsInterop::map()
     cu_buffer = cu_external_memory_ptr_;
   }
 
-  if (cu_buffer && need_clear_) {
-    cuda_device_assert(
-        device_, cuMemsetD8Async(cu_buffer, 0, buffer_area_ * sizeof(half4), queue_->stream()));
+  if (cu_buffer && need_zero_) {
+    cuda_device_assert(device_, cuMemsetD8Async(cu_buffer, 0, buffer_size_, queue_->stream()));
 
-    need_clear_ = false;
+    need_zero_ = false;
   }
 
   return static_cast<device_ptr>(cu_buffer);
@@ -144,6 +158,17 @@ void CUDADeviceGraphicsInterop::free()
   }
 
   cu_external_memory_ptr_ = 0;
+
+#  ifdef _WIN32
+  if (vulkan_windows_handle_) {
+    CloseHandle(HANDLE(vulkan_windows_handle_));
+    vulkan_windows_handle_ = 0;
+  }
+#  endif
+
+  buffer_size_ = 0;
+
+  need_zero_ = false;
 }
 
 CCL_NAMESPACE_END

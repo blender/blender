@@ -89,5 +89,5 @@ filter_supported_objects(Depsgraph *depsgraph, const OBJExportParams &export_par
  */
 bool append_frame_to_filename(const char *filepath,
                               int frame,
-                              char r_filepath_with_frames[1024 /*FILE_MAX*/]);
+                              char r_filepath_with_frames[/*FILE_MAX*/ 1024]);
 }  // namespace blender::io::obj

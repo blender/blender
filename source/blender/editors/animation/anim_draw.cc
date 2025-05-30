@@ -72,11 +72,9 @@ void ANIM_draw_cfra(const bContext *C, View2D *v2d, short flag)
 /* PREVIEW RANGE 'CURTAINS' */
 /* NOTE: 'Preview Range' tools are defined in `anim_ops.cc`. */
 
-void ANIM_draw_previewrange(const bContext *C, View2D *v2d, int end_frame_width)
+void ANIM_draw_previewrange(const Scene *scene, View2D *v2d, int end_frame_width)
 {
-  Scene *scene = CTX_data_scene(C);
-
-  /* only draw this if preview range is set */
+  /* Only draw this if preview range is set. */
   if (PRVRANGEON) {
     GPU_blend(GPU_BLEND_ALPHA);
 
@@ -85,13 +83,15 @@ void ANIM_draw_previewrange(const bContext *C, View2D *v2d, int end_frame_width)
 
     immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
     immUniformThemeColorShadeAlpha(TH_ANIM_PREVIEW_RANGE, -25, -30);
-    /* XXX: Fix this hardcoded color (anim_active) */
-    // immUniformColor4f(0.8f, 0.44f, 0.1f, 0.2f);
 
-    /* only draw two separate 'curtains' if there's no overlap between them */
-    if (PSFRA < PEFRA + end_frame_width) {
-      immRectf(pos, v2d->cur.xmin, v2d->cur.ymin, float(PSFRA), v2d->cur.ymax);
-      immRectf(pos, float(PEFRA + end_frame_width), v2d->cur.ymin, v2d->cur.xmax, v2d->cur.ymax);
+    /* Only draw two separate 'curtains' if there's no overlap between them. */
+    if (scene->r.psfra < scene->r.pefra + end_frame_width) {
+      immRectf(pos, v2d->cur.xmin, v2d->cur.ymin, float(scene->r.psfra), v2d->cur.ymax);
+      immRectf(pos,
+               float(scene->r.pefra + end_frame_width),
+               v2d->cur.ymin,
+               v2d->cur.xmax,
+               v2d->cur.ymax);
     }
     else {
       immRectf(pos, v2d->cur.xmin, v2d->cur.ymin, v2d->cur.xmax, v2d->cur.ymax);

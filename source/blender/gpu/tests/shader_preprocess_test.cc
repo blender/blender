@@ -52,13 +52,15 @@ GPU_TEST(preprocess_utilities);
 
 static std::string process_test_string(std::string str,
                                        std::string &first_error,
-                                       shader::metadata::Source *r_metadata = nullptr)
+                                       shader::metadata::Source *r_metadata = nullptr,
+                                       shader::Preprocessor::SourceLanguage language =
+                                           shader::Preprocessor::SourceLanguage::BLENDER_GLSL)
 {
   using namespace shader;
   Preprocessor preprocessor;
   shader::metadata::Source metadata;
   std::string result = preprocessor.process(
-      Preprocessor::SourceLanguage::BLENDER_GLSL,
+      language,
       str,
       "test.glsl",
       true,
@@ -729,5 +731,23 @@ static void test_preprocess_swizzle()
   }
 }
 GPU_TEST(preprocess_swizzle);
+
+#ifdef __APPLE__ /* This processing is only done for metal compatibility. */
+static void test_preprocess_matrix_constructors()
+{
+  using namespace shader;
+  using namespace std;
+
+  {
+    string input = R"(mat3(a); mat3 a; my_mat4x4(a); mat2x2(a); mat3x2(a);)";
+    string expect = R"(__mat3x3(a); mat3 a; my_mat4x4(a); __mat2x2(a); mat3x2(a);)";
+    string error;
+    string output = process_test_string(input, error, nullptr, Preprocessor::SourceLanguage::GLSL);
+    EXPECT_EQ(output, expect);
+    EXPECT_EQ(error, "");
+  }
+}
+GPU_TEST(preprocess_matrix_constructors);
+#endif
 
 }  // namespace blender::gpu::tests

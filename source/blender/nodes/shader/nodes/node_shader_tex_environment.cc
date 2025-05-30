@@ -56,9 +56,7 @@ static int node_shader_gpu_tex_environment(GPUMaterial *mat,
 
   GPUNodeLink *outalpha;
 
-  /* HACK(@fclem): For lookdev mode: do not compile an empty environment and just create an empty
-   * texture entry point. We manually bind to it after #DRW_shgroup_add_material_resources(). */
-  if (!ima && !GPU_material_flag_get(mat, GPU_MATFLAG_LOOKDEV_HACK)) {
+  if (!ima) {
     return GPU_stack_link(mat, node, "node_tex_environment_empty", in, out);
   }
 

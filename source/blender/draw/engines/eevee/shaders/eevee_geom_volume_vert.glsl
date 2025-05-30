@@ -9,6 +9,7 @@ VERTEX_SHADER_CREATE_INFO(eevee_geom_volume)
 
 #include "draw_model_lib.glsl"
 #include "draw_object_infos_lib.glsl"
+#include "eevee_reverse_z_lib.glsl"
 #include "eevee_surf_lib.glsl"
 
 void main()
@@ -26,5 +27,5 @@ void main()
   float3 lP = loc + pos * size;
   interp.P = drw_point_object_to_world(lP);
 
-  gl_Position = drw_point_world_to_homogenous(interp.P);
+  gl_Position = reverse_z::transform(drw_point_world_to_homogenous(interp.P));
 }

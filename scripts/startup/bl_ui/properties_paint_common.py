@@ -681,7 +681,7 @@ class DisplayPanel(BrushPanel):
             row.prop(settings, "show_brush", text="Display Cursor")
 
         col = layout.column()
-        col.active = brush.brush_capabilities.has_overlay and settings.show_brush
+        col.active = settings.show_brush
 
         col.prop(brush, "cursor_color_add", text="Cursor Color")
         if mode == 'SCULPT' and brush.sculpt_capabilities.has_secondary_color:
@@ -690,6 +690,7 @@ class DisplayPanel(BrushPanel):
         col.separator()
 
         row = col.row(align=True)
+        row.active = settings.show_brush
         row.prop(brush, "cursor_overlay_alpha", text="Falloff Opacity")
         row.prop(brush, "use_cursor_overlay_override", toggle=True, text="", icon='BRUSH_DATA')
         row.prop(
@@ -697,8 +698,12 @@ class DisplayPanel(BrushPanel):
             icon='HIDE_OFF' if brush.use_cursor_overlay else 'HIDE_ON',
         )
 
+        # TODO: These settings are a mess. Both `has_overlay` and the following two blocks should read the
+        # appropriate texture depending on the mode, see `BKE_brush_mask_texture_get` vs `BKE_brush_color_texture_get`
+        texture_overlay_settings_active = brush.brush_capabilities.has_overlay and settings.show_brush
         if mode in {'PAINT_2D', 'PAINT_TEXTURE', 'PAINT_VERTEX', 'SCULPT'}:
             row = col.row(align=True)
+            row.active = texture_overlay_settings_active
             row.prop(brush, "texture_overlay_alpha", text="Texture Opacity")
             row.prop(brush, "use_primary_overlay_override", toggle=True, text="", icon='BRUSH_DATA')
             if tex_slot.map_mode != 'STENCIL':
@@ -709,6 +714,7 @@ class DisplayPanel(BrushPanel):
 
         if mode in {'PAINT_TEXTURE', 'PAINT_2D'}:
             row = col.row(align=True)
+            row.active = texture_overlay_settings_active
             row.prop(brush, "mask_overlay_alpha", text="Mask Texture Opacity")
             row.prop(brush, "use_secondary_overlay_override", toggle=True, text="", icon='BRUSH_DATA')
             if tex_slot_mask.map_mode != 'STENCIL':

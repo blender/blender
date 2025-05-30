@@ -71,7 +71,7 @@ static Mesh *mesh_nurbs_displist_to_mesh(const Curve *cu, const ListBase *dispba
       /* 2D polys are filled with #DispList.type == #DL_INDEX3. */
       (CU_DO_2DFILL(cu) == false) ||
       /* surf polys are never filled */
-      BKE_curve_type_get(cu) == OB_SURF);
+      (cu->ob_type == OB_SURF));
 
   /* count */
   int totvert = 0;

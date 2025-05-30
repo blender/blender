@@ -20,7 +20,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       .subtype(PROP_DISTANCE)
       .field_on_all();
   b.add_input<decl::Float>("Voxel Size").default_value(0.3f).min(0.01f).subtype(PROP_DISTANCE);
-  b.add_output<decl::Float>("SDF Grid");
+  b.add_output<decl::Float>("SDF Grid").structure_type(StructureType::Grid);
 }
 
 #ifdef WITH_OPENVDB

@@ -327,7 +327,7 @@ static int transform_seq_slide_cursor_get(TransInfo *t)
       SWAP(Strip *, strip1, strip2);
     }
 
-    if (strip1->machine != strip2->machine) {
+    if (strip1->channel != strip2->channel) {
       return WM_CURSOR_NSEW_SCROLL;
     }
 

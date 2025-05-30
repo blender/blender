@@ -67,6 +67,8 @@ enum IMB_Ffmpeg_Codec_ID {
  * These values are obtained by decoding each frame in movie stream. Time-code types define how
  * these map to frame index in Blender. This is used when seeking in movie stream. Note, that
  * meaning of terms time-code and record run here has little connection to their actual meaning.
+ *
+ * NOTE: Keep in sync with #MovieClipProxy.build_tc_flag.
  */
 enum IMB_Timecode_Type {
   /** Don't use time-code files at all. Use FFmpeg API to seek to PTS calculated on the fly. */

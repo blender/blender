@@ -18,6 +18,7 @@
 
 #include "ED_asset.hh"
 #include "ED_buttons.hh"
+#include "ED_spreadsheet.hh"
 
 #include "BLI_string.h"
 #include "BLI_sys_types.h"
@@ -545,6 +546,35 @@ static const EnumPropertyItem rna_enum_curve_display_handle_items[] = {
     {CURVE_HANDLE_SELECTED, "SELECTED", 0, "Selected", ""},
     {CURVE_HANDLE_ALL, "ALL", 0, "All", ""},
     {0, nullptr, 0, nullptr, nullptr},
+};
+
+static const EnumPropertyItem spreadsheet_object_eval_state_items[] = {
+    {SPREADSHEET_OBJECT_EVAL_STATE_EVALUATED,
+     "EVALUATED",
+     ICON_NONE,
+     "Evaluated",
+     "Use data from fully or partially evaluated object"},
+    {SPREADSHEET_OBJECT_EVAL_STATE_ORIGINAL,
+     "ORIGINAL",
+     ICON_NONE,
+     "Original",
+     "Use data from original object without any modifiers applied"},
+    {SPREADSHEET_OBJECT_EVAL_STATE_VIEWER_NODE,
+     "VIEWER_NODE",
+     ICON_NONE,
+     "Viewer Node",
+     "Use intermediate data from viewer node"},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
+static const EnumPropertyItem spreadsheet_table_id_type_items[] = {
+    {SPREADSHEET_TABLE_ID_TYPE_GEOMETRY,
+     "GEOMETRY",
+     ICON_NONE,
+     "Geometry",
+     "Table contains geometry data"},
+    {0, nullptr, 0, nullptr, nullptr},
+
 };
 
 #ifdef RNA_RUNTIME
@@ -1197,7 +1227,7 @@ static void rna_RegionView3D_is_orthographic_side_view_set(PointerRNA *ptr, bool
         rv3d->viewquat, eps_quat, &rv3d->view, &rv3d->view_axis_roll);
   }
   else {
-    /* Only allow changing from axis-views to user view as camera view for e.g.
+    /* Only allow changing from axis-views to user view as camera view for example
      * doesn't make sense to update. */
     if (!was_axis_view) {
       return;
@@ -3481,35 +3511,35 @@ static void rna_SpaceSpreadsheet_geometry_component_type_update(Main * /*bmain*/
 {
   using namespace blender;
   SpaceSpreadsheet *sspreadsheet = (SpaceSpreadsheet *)ptr->data;
-  switch (sspreadsheet->geometry_component_type) {
+  switch (sspreadsheet->geometry_id.geometry_component_type) {
     case int(bke::GeometryComponent::Type::Mesh): {
-      if (!ELEM(bke::AttrDomain(sspreadsheet->attribute_domain),
+      if (!ELEM(bke::AttrDomain(sspreadsheet->geometry_id.attribute_domain),
                 bke::AttrDomain::Point,
                 bke::AttrDomain::Edge,
                 bke::AttrDomain::Face,
                 bke::AttrDomain::Corner))
       {
-        sspreadsheet->attribute_domain = uint8_t(bke::AttrDomain::Point);
+        sspreadsheet->geometry_id.attribute_domain = uint8_t(bke::AttrDomain::Point);
       }
       break;
     }
     case int(bke::GeometryComponent::Type::PointCloud): {
-      sspreadsheet->attribute_domain = uint8_t(bke::AttrDomain::Point);
+      sspreadsheet->geometry_id.attribute_domain = uint8_t(bke::AttrDomain::Point);
       break;
     }
     case int(bke::GeometryComponent::Type::Instance): {
-      sspreadsheet->attribute_domain = uint8_t(bke::AttrDomain::Instance);
+      sspreadsheet->geometry_id.attribute_domain = uint8_t(bke::AttrDomain::Instance);
       break;
     }
     case int(bke::GeometryComponent::Type::Volume): {
       break;
     }
     case int(bke::GeometryComponent::Type::Curve): {
-      if (!ELEM(bke::AttrDomain(sspreadsheet->attribute_domain),
+      if (!ELEM(bke::AttrDomain(sspreadsheet->geometry_id.attribute_domain),
                 bke::AttrDomain::Point,
                 bke::AttrDomain::Curve))
       {
-        sspreadsheet->attribute_domain = uint8_t(bke::AttrDomain::Point);
+        sspreadsheet->geometry_id.attribute_domain = uint8_t(bke::AttrDomain::Point);
       }
       break;
     }
@@ -3523,8 +3553,9 @@ const EnumPropertyItem *rna_SpaceSpreadsheet_attribute_domain_itemf(bContext * /
 {
   using namespace blender;
   SpaceSpreadsheet *sspreadsheet = (SpaceSpreadsheet *)ptr->data;
-  auto component_type = bke::GeometryComponent::Type(sspreadsheet->geometry_component_type);
-  if (sspreadsheet->object_eval_state == SPREADSHEET_OBJECT_EVAL_STATE_ORIGINAL) {
+  auto component_type = bke::GeometryComponent::Type(
+      sspreadsheet->geometry_id.geometry_component_type);
+  if (sspreadsheet->geometry_id.object_eval_state == SPREADSHEET_OBJECT_EVAL_STATE_ORIGINAL) {
     ID *used_id = ed::spreadsheet::get_current_id(sspreadsheet);
     if (used_id != nullptr) {
       if (GS(used_id->name) == ID_OB) {
@@ -3580,6 +3611,56 @@ const EnumPropertyItem *rna_SpaceSpreadsheet_attribute_domain_itemf(bContext * /
 
   *r_free = true;
   return item_array;
+}
+
+static StructRNA *rna_SpreadsheetTableID_refine(PointerRNA *ptr)
+{
+  SpreadsheetTableID *table_id = ptr->data_as<SpreadsheetTableID>();
+  switch (eSpreadsheetTableIDType(table_id->type)) {
+    case SPREADSHEET_TABLE_ID_TYPE_GEOMETRY:
+      return &RNA_SpreadsheetTableIDGeometry;
+  }
+  return &RNA_SpreadsheetTableID;
+}
+
+static void rna_iterator_SpreadsheetTable_columns_begin(CollectionPropertyIterator *iter,
+                                                        PointerRNA *ptr)
+{
+  SpreadsheetTable *table = ptr->data_as<SpreadsheetTable>();
+  rna_iterator_array_begin(
+      iter, ptr, table->columns, sizeof(SpreadsheetTable *), table->num_columns, 0, nullptr);
+}
+
+static int rna_iterator_SpreadsheetTable_columns_length(PointerRNA *ptr)
+{
+  SpreadsheetTable *table = ptr->data_as<SpreadsheetTable>();
+  return table->num_columns;
+}
+
+static void rna_iterator_SpaceSpreadsheet_tables_begin(CollectionPropertyIterator *iter,
+                                                       PointerRNA *ptr)
+{
+  SpaceSpreadsheet *sspreadsheet = ptr->data_as<SpaceSpreadsheet>();
+  rna_iterator_array_begin(iter,
+                           ptr,
+                           sspreadsheet->tables,
+                           sizeof(SpaceSpreadsheet *),
+                           sspreadsheet->num_tables,
+                           0,
+                           nullptr);
+}
+
+static int rna_iterator_SpaceSpreadsheet_tables_length(PointerRNA *ptr)
+{
+  SpaceSpreadsheet *sspreadsheet = ptr->data_as<SpaceSpreadsheet>();
+  return sspreadsheet->num_tables;
+}
+
+static PointerRNA rna_SpreadsheetTables_active_get(PointerRNA *ptr)
+{
+  SpaceSpreadsheet *sspreadsheet = ptr->data_as<SpaceSpreadsheet>();
+  SpreadsheetTable *table = blender::ed::spreadsheet::get_active_table(*sspreadsheet);
+  return RNA_pointer_create_discrete(ptr->owner_id, &RNA_SpreadsheetTable, table);
 }
 
 static StructRNA *rna_viewer_path_elem_refine(PointerRNA *ptr)
@@ -5853,6 +5934,23 @@ static void rna_def_space_image_overlay(BlenderRNA *brna)
   prop = RNA_def_property(srna, "show_grid_background", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "overlay.flag", SI_OVERLAY_SHOW_GRID_BACKGROUND);
   RNA_def_property_ui_text(prop, "Display Background", "Show the grid background and borders");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, nullptr);
+
+  prop = RNA_def_property(srna, "show_render_size", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "overlay.flag", SI_OVERLAY_DRAW_RENDER_REGION);
+  RNA_def_property_ui_text(prop, "Render Region", "Display the region of the final render");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, nullptr);
+
+  prop = RNA_def_property(srna, "show_text_info", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "overlay.flag", SI_OVERLAY_DRAW_TEXT_INFO);
+  RNA_def_property_ui_text(prop, "Text Info", "Display overlay text");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, nullptr);
+
+  prop = RNA_def_property(srna, "passepartout_alpha", PROP_FLOAT, PROP_FACTOR);
+  RNA_def_property_float_sdna(prop, nullptr, "overlay.passepartout_alpha");
+  RNA_def_property_float_default(prop, 0.5f);
+  RNA_def_property_ui_text(
+      prop, "Passepartout Alpha", "Opacity of the darkened overlay outside the render region");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, nullptr);
 }
 
@@ -8461,6 +8559,102 @@ static void rna_def_spreadsheet_column(BlenderRNA *brna)
       prop, "ID", "Data used to identify the corresponding data from the data source");
 }
 
+static void rna_def_spreadsheet_table_id(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  srna = RNA_def_struct(brna, "SpreadsheetTableID", nullptr);
+  RNA_def_struct_ui_text(
+      srna, "Spreadsheet Table ID", "Data used to identify a spreadsheet table");
+  RNA_def_struct_refine_func(srna, "rna_SpreadsheetTableID_refine");
+
+  prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, spreadsheet_table_id_type_items);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_ui_text(prop, "Type", "The type of the table identifier");
+}
+
+static void rna_def_spreadsheet_table_id_geometry(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  /* The properties below are read-only, because they are used as key for a table. */
+  srna = RNA_def_struct(brna, "SpreadsheetTableIDGeometry", "SpreadsheetTableID");
+
+  prop = RNA_def_property(srna, "object_eval_state", PROP_ENUM, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_enum_items(prop, spreadsheet_object_eval_state_items);
+  RNA_def_property_ui_text(prop, "Object Evaluation State", "");
+
+  prop = RNA_def_property(srna, "geometry_component_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_enum_items(prop, rna_enum_geometry_component_type_items);
+  RNA_def_property_ui_text(
+      prop, "Geometry Component", "Part of the geometry to display data from");
+
+  prop = RNA_def_property(srna, "attribute_domain", PROP_ENUM, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_enum_items(prop, rna_enum_attribute_domain_items);
+  RNA_def_property_ui_text(prop, "Attribute Domain", "Attribute domain to display");
+
+  prop = RNA_def_property(srna, "viewer_path", PROP_POINTER, PROP_NONE);
+  RNA_def_property_ui_text(prop, "Viewer Path", "Path to the data that is displayed");
+
+  prop = RNA_def_property(srna, "layer_index", PROP_INT, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_ui_text(prop, "Layer Index", "Index of the Grease Pencil layer");
+}
+
+static void rna_def_spreadsheet_table(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  rna_def_spreadsheet_table_id(brna);
+  rna_def_spreadsheet_table_id_geometry(brna);
+  rna_def_spreadsheet_column(brna);
+
+  srna = RNA_def_struct(brna, "SpreadsheetTable", nullptr);
+  RNA_def_struct_ui_text(srna, "Spreadsheet Table", "Persistent data associated with a table");
+
+  prop = RNA_def_property(srna, "id", PROP_POINTER, PROP_NONE);
+  RNA_def_property_struct_type(prop, "SpreadsheetTableID");
+  RNA_def_property_ui_text(prop, "ID", "Data used to identify the table");
+
+  prop = RNA_def_property(srna, "columns", PROP_COLLECTION, PROP_NONE);
+  RNA_def_property_struct_type(prop, "SpreadsheetColumn");
+  RNA_def_property_collection_funcs(prop,
+                                    "rna_iterator_SpreadsheetTable_columns_begin",
+                                    "rna_iterator_array_next",
+                                    "rna_iterator_array_end",
+                                    "rna_iterator_array_dereference_get",
+                                    "rna_iterator_SpreadsheetTable_columns_length",
+                                    nullptr,
+                                    nullptr,
+                                    nullptr);
+  RNA_def_property_ui_text(prop, "Columns", "Columns within the table");
+}
+
+static void rna_def_spreadsheet_tables(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  srna = RNA_def_struct(brna, "SpreadsheetTables", nullptr);
+  RNA_def_struct_sdna(srna, "SpaceSpreadsheet");
+  RNA_def_struct_ui_text(srna,
+                         "Spreadsheet Tables",
+                         "Active table and persisted state of previously displayed tables");
+
+  prop = RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
+  RNA_def_property_struct_type(prop, "SpreadsheetTable");
+  RNA_def_property_pointer_funcs(
+      prop, "rna_SpreadsheetTables_active_get", nullptr, nullptr, nullptr);
+  RNA_def_property_ui_text(prop, "Active Table", "");
+}
+
 static void rna_def_spreadsheet_row_filter(BlenderRNA *brna)
 {
   StructRNA *srna;
@@ -8706,24 +8900,8 @@ static void rna_def_space_spreadsheet(BlenderRNA *brna)
   PropertyRNA *prop;
   StructRNA *srna;
 
-  static const EnumPropertyItem object_eval_state_items[] = {
-      {SPREADSHEET_OBJECT_EVAL_STATE_EVALUATED,
-       "EVALUATED",
-       ICON_NONE,
-       "Evaluated",
-       "Use data from fully or partially evaluated object"},
-      {SPREADSHEET_OBJECT_EVAL_STATE_ORIGINAL,
-       "ORIGINAL",
-       ICON_NONE,
-       "Original",
-       "Use data from original object without any modifiers applied"},
-      {SPREADSHEET_OBJECT_EVAL_STATE_VIEWER_NODE,
-       "VIEWER_NODE",
-       ICON_NONE,
-       "Viewer Node",
-       "Use intermediate data from viewer node"},
-      {0, nullptr, 0, nullptr, nullptr},
-  };
+  rna_def_spreadsheet_table(brna);
+  rna_def_spreadsheet_tables(brna);
 
   srna = RNA_def_struct(brna, "SpaceSpreadsheet", "Space");
   RNA_def_struct_ui_text(srna, "Space Spreadsheet", "Spreadsheet space data");
@@ -8737,17 +8915,21 @@ static void rna_def_space_spreadsheet(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Is Pinned", "Context path is pinned");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SPREADSHEET, nullptr);
 
+  prop = RNA_def_property(srna, "show_internal_attributes", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", SPREADSHEET_FLAG_SHOW_INTERNAL_ATTRIBUTES);
+  RNA_def_property_ui_text(
+      prop,
+      "Show Internal Attributes",
+      "Display attributes with names starting with a period that are meant for internal use");
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SPREADSHEET, nullptr);
+
   prop = RNA_def_property(srna, "use_filter", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "filter_flag", SPREADSHEET_FILTER_ENABLE);
   RNA_def_property_ui_text(prop, "Use Filter", "");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SPREADSHEET, nullptr);
 
-  prop = RNA_def_property(srna, "display_viewer_path_collapsed", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "flag", SPREADSHEET_FLAG_CONTEXT_PATH_COLLAPSED);
-  RNA_def_property_ui_text(prop, "Display Context Path Collapsed", "");
-  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SPREADSHEET, nullptr);
-
   prop = RNA_def_property(srna, "viewer_path", PROP_POINTER, PROP_NONE);
+  RNA_def_property_pointer_sdna(prop, nullptr, "geometry_id.viewer_path");
   RNA_def_property_ui_text(
       prop, "Viewer Path", "Path to the data that is displayed in the spreadsheet");
 
@@ -8759,6 +8941,7 @@ static void rna_def_space_spreadsheet(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SPREADSHEET, nullptr);
 
   prop = RNA_def_property(srna, "geometry_component_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, nullptr, "geometry_id.geometry_component_type");
   RNA_def_property_enum_items(prop, rna_enum_geometry_component_type_items);
   RNA_def_property_ui_text(
       prop, "Geometry Component", "Part of the geometry to display data from");
@@ -8767,6 +8950,7 @@ static void rna_def_space_spreadsheet(BlenderRNA *brna)
                           "rna_SpaceSpreadsheet_geometry_component_type_update");
 
   prop = RNA_def_property(srna, "attribute_domain", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, nullptr, "geometry_id.attribute_domain");
   RNA_def_property_enum_items(prop, rna_enum_attribute_domain_items);
   RNA_def_property_enum_funcs(
       prop, nullptr, nullptr, "rna_SpaceSpreadsheet_attribute_domain_itemf");
@@ -8774,17 +8958,25 @@ static void rna_def_space_spreadsheet(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SPREADSHEET, nullptr);
 
   prop = RNA_def_property(srna, "object_eval_state", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_items(prop, object_eval_state_items);
+  RNA_def_property_enum_sdna(prop, nullptr, "geometry_id.object_eval_state");
+  RNA_def_property_enum_items(prop, spreadsheet_object_eval_state_items);
   RNA_def_property_ui_text(prop, "Object Evaluation State", "");
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SPREADSHEET, nullptr);
 
-  rna_def_spreadsheet_column(brna);
-
-  prop = RNA_def_property(srna, "columns", PROP_COLLECTION, PROP_NONE);
-  RNA_def_property_collection_sdna(prop, nullptr, "columns", nullptr);
-  RNA_def_property_struct_type(prop, "SpreadsheetColumn");
-  RNA_def_property_ui_text(prop, "Columns", "Persistent data associated with spreadsheet columns");
-  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SPREADSHEET, nullptr);
+  prop = RNA_def_property(srna, "tables", PROP_COLLECTION, PROP_NONE);
+  RNA_def_property_struct_type(prop, "SpreadsheetTable");
+  RNA_def_property_srna(prop, "SpreadsheetTables");
+  RNA_def_property_collection_funcs(prop,
+                                    "rna_iterator_SpaceSpreadsheet_tables_begin",
+                                    "rna_iterator_array_next",
+                                    "rna_iterator_array_end",
+                                    "rna_iterator_array_dereference_get",
+                                    "rna_iterator_SpaceSpreadsheet_tables_length",
+                                    nullptr,
+                                    nullptr,
+                                    nullptr);
+  RNA_def_property_ui_text(
+      prop, "Tables", "Persistent data for the tables shown in this spreadsheet editor");
 
   rna_def_spreadsheet_row_filter(brna);
 

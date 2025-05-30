@@ -48,9 +48,9 @@ static ImBuf *do_adjustment_impl(const RenderData *context, Strip *strip, float 
                            time_left_handle_frame_get(context->scene, strip),
                            time_right_handle_frame_get(context->scene, strip) - 1);
 
-  if (strip->machine > 1) {
+  if (strip->channel > 1) {
     i = seq_render_give_ibuf_seqbase(
-        context, timeline_frame, strip->machine - 1, channels, seqbasep);
+        context, timeline_frame, strip->channel - 1, channels, seqbasep);
   }
 
   /* Found nothing? so let's work the way up the meta-strip stack, so

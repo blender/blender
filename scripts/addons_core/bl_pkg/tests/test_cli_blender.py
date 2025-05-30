@@ -984,7 +984,7 @@ class TestPythonVersions(TestWithTempBlenderUser_MixIn, unittest.TestCase):
         self.repo_add(repo_id=repo_id, repo_name=repo_name)
 
         this_python_version_major, this_python_version_minor = sys.version_info[:2]
-        # TODO: this test doesn't make sense for the first Python major releases (4.0 for e.g.).
+        # TODO: this test doesn't make sense for the first Python major releases (4.0 for example).
         if this_python_version_minor == 0:
             return
 

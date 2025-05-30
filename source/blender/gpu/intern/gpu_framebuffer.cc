@@ -730,6 +730,7 @@ GPUOffScreen *GPU_offscreen_create(int width,
                                    bool with_depth_buffer,
                                    eGPUTextureFormat format,
                                    eGPUTextureUsage usage,
+                                   bool clear,
                                    char err_out[256])
 {
   GPUOffScreen *ofs = MEM_callocN<GPUOffScreen>(__func__);
@@ -770,6 +771,19 @@ GPUOffScreen *GPU_offscreen_create(int width,
     GPU_offscreen_free(ofs);
     return nullptr;
   }
+
+  if (clear) {
+    float const clear_color[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+    float clear_depth = 0.0f;
+    GPU_framebuffer_bind(fb);
+    if (with_depth_buffer) {
+      GPU_framebuffer_clear_color_depth(fb, clear_color, clear_depth);
+    }
+    else {
+      GPU_framebuffer_clear_color(fb, clear_color);
+    }
+  }
+
   GPU_framebuffer_restore();
   return ofs;
 }

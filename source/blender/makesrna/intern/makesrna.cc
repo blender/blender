@@ -2036,7 +2036,7 @@ static void rna_set_raw_offset(FILE *f, StructRNA *srna, PropertyRNA *prop)
   PropertyDefRNA *dp = rna_find_struct_property_def(srna, prop);
 
   fprintf(
-      f, "\toffsetof(%s, %s), (RawPropertyType)%d", dp->dnastructname, dp->dnaname, prop->rawtype);
+      f, "\toffsetof(%s, %s), RawPropertyType(%d)", dp->dnastructname, dp->dnaname, prop->rawtype);
 }
 
 static void rna_def_property_funcs(FILE *f, StructRNA *srna, PropertyDefRNA *dp)
@@ -4358,7 +4358,7 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
   rna_print_c_string(f, prop->translation_context);
   fprintf(f, ",\n");
   fprintf(f,
-          "\t%s, (PropertySubType)((int)%s | (int)%s), %s, %u, {%u, %u, %u}, %u,\n",
+          "\t%s, PropertySubType(int(%s) | int(%s)), %s, %u, {%u, %u, %u}, %u,\n",
           RNA_property_typename(prop->type),
           rna_property_subtypename(prop->subtype),
           rna_property_subtype_unit(prop->subtype),
@@ -4507,7 +4507,7 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
     case PROP_STRING: {
       StringPropertyRNA *sprop = (StringPropertyRNA *)prop;
       fprintf(f,
-              "\t%s, %s, %s, %s, %s, %s, %s, (eStringPropertySearchFlag)%d, %s, %d, ",
+              "\t%s, %s, %s, %s, %s, %s, %s, eStringPropertySearchFlag(%d), %s, %d, ",
               rna_function_string(sprop->get),
               rna_function_string(sprop->length),
               rna_function_string(sprop->set),

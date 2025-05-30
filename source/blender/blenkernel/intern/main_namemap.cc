@@ -247,7 +247,7 @@ struct UniqueName_Map {
                 StringRef name_base,
                 const int number)
   {
-    BLI_assert(name_full.size() < MAX_NAME);
+    BLI_assert(name_full.size() < MAX_ID_NAME - 2);
 
     if (this->is_global) {
       /* By definition adding to global map is always successful. */
@@ -280,7 +280,7 @@ struct UniqueName_Map {
    * (unregistered) name_full is an error. */
   void remove_full_name(UniqueName_TypeMap &type_map, blender::StringRef name_full)
   {
-    BLI_assert(name_full.size() < MAX_NAME);
+    BLI_assert(name_full.size() < MAX_ID_NAME - 2);
 
     if (this->is_global) {
       /* By definition adding to global map is always successful. */
@@ -399,7 +399,7 @@ bool BKE_main_global_namemap_contain_name(Main &bmain, const short id_type, Stri
 {
   UniqueName_Map *name_map = get_global_namemap_for(bmain, nullptr, true);
   BLI_assert(name_map != nullptr);
-  BLI_assert(name.size() < MAX_NAME);
+  BLI_assert(name.size() < MAX_ID_NAME - 2);
   UniqueName_TypeMap &type_map = name_map->find_by_type(id_type);
 
   return type_map.full_names.contains(name);
@@ -409,7 +409,7 @@ bool BKE_main_namemap_contain_name(Main &bmain, Library *lib, const short id_typ
 {
   UniqueName_Map *name_map = get_namemap_for(bmain, lib, nullptr, true);
   BLI_assert(name_map != nullptr);
-  BLI_assert(name.size() < MAX_NAME);
+  BLI_assert(name.size() < MAX_ID_NAME - 2);
   UniqueName_TypeMap &type_map = name_map->find_by_type(id_type);
 
   return type_map.full_names.contains(name);
@@ -437,10 +437,10 @@ static bool id_name_final_build(UniqueName_TypeMap &type_map,
   if (number != NO_AVAILABLE_NUMBER) {
     BLI_assert(number >= 0 && number <= MAX_NUMBER);
     r_name_final = fmt::format("{}.{:03}", base_name, number);
-    /* Most common case, there is a valid number suffix value and it fits in the #MAX_NAME length
-     * limit.
+    /* Most common case, there is a valid number suffix value and it fits in the #MAX_ID_NAME - 2
+     * length limit.
      */
-    if (r_name_final.size() < MAX_NAME) {
+    if (r_name_final.size() < MAX_ID_NAME - 2) {
       return true;
     }
   }
@@ -452,7 +452,7 @@ static bool id_name_final_build(UniqueName_TypeMap &type_map,
   /* If the base name is long enough, shorten it by one (UTF8) char, until a base name with
    * available number suffixes is found. */
   while (r_name_final.size() > 8) {
-    char base_name_modified[MAX_NAME];
+    char base_name_modified[MAX_ID_NAME - 2];
 
     BLI_strncpy(base_name_modified, r_name_final.c_str(), r_name_final.size() + 1);
     base_name_modified[r_name_final.size() - 1] = '\0';
@@ -472,7 +472,7 @@ static bool id_name_final_build(UniqueName_TypeMap &type_map,
   uint64_t suffix = 1;
   const StringRef new_base_name = r_name_final;
   r_name_final = fmt::format("{}_{:03}", r_name_final, suffix);
-  while (r_name_final.size() < MAX_NAME - 12) {
+  while (r_name_final.size() < MAX_ID_NAME - 2 - 12) {
     std::unique_ptr<UniqueName_Value> *val = type_map.base_name_to_num_suffix.lookup_ptr(
         r_name_final);
     if (!val || val->get()->max_value_in_use.value_or(0) < MAX_NUMBER) {
@@ -513,7 +513,7 @@ static bool namemap_get_name(Main &bmain,
                                        get_namemap_for(bmain, id.lib, &id, false) :
                                        get_global_namemap_for(bmain, &id, false);
   BLI_assert(name_map != nullptr);
-  BLI_assert(r_name_full.size() < MAX_NAME);
+  BLI_assert(r_name_full.size() < MAX_ID_NAME - 2);
   UniqueName_TypeMap &type_map = name_map->find_by_type(GS(id.name));
 
   bool is_name_changed = false;
@@ -571,19 +571,19 @@ static bool namemap_get_name(Main &bmain,
 bool BKE_main_namemap_get_unique_name(Main &bmain, ID &id, char *r_name)
 {
   std::string r_name_full = r_name;
-  BLI_assert(r_name_full.size() < MAX_NAME);
+  BLI_assert(r_name_full.size() < MAX_ID_NAME - 2);
   const bool is_name_modified = namemap_get_name(bmain, id, r_name_full, false);
-  BLI_assert(r_name_full.size() < MAX_NAME);
-  BLI_strncpy(r_name, r_name_full.c_str(), MAX_NAME);
+  BLI_assert(r_name_full.size() < MAX_ID_NAME - 2);
+  BLI_strncpy(r_name, r_name_full.c_str(), MAX_ID_NAME - 2);
   return is_name_modified;
 }
 bool BKE_main_global_namemap_get_unique_name(Main &bmain, ID &id, char *r_name)
 {
   std::string r_name_full = r_name;
-  BLI_assert(r_name_full.size() < MAX_NAME);
+  BLI_assert(r_name_full.size() < MAX_ID_NAME - 2);
   const bool is_name_modified = namemap_get_name(bmain, id, r_name_full, true);
-  BLI_assert(r_name_full.size() < MAX_NAME);
-  BLI_strncpy(r_name, r_name_full.c_str(), MAX_NAME);
+  BLI_assert(r_name_full.size() < MAX_ID_NAME - 2);
+  BLI_strncpy(r_name, r_name_full.c_str(), MAX_ID_NAME - 2);
   return is_name_modified;
 }
 

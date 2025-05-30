@@ -295,7 +295,7 @@ static void draw_horizontal_scale_indicators(const ARegion *region,
   GPU_matrix_push_projection();
   wmOrtho2_region_pixelspace(region);
 
-  const int font_id = BLF_default();
+  const int font_id = BLF_set_default();
   UI_FontThemeColor(font_id, colorid);
 
   BLF_batch_draw_begin();
@@ -327,7 +327,8 @@ static void draw_horizontal_scale_indicators(const ARegion *region,
       const float text_width = BLF_width(font_id, text, strlen(text));
 
       if (xpos_region - text_width / 2.0f >= xmin && xpos_region + text_width / 2.0f <= xmax) {
-        BLF_draw_default(xpos_region - text_width / 2.0f, ypos, 0.0f, text, sizeof(text));
+        BLF_draw_default(
+            xpos_region - std::trunc(text_width / 2.0f), ypos, 0.0f, text, sizeof(text));
       }
     }
   }
@@ -369,7 +370,7 @@ static void draw_vertical_scale_indicators(const ARegion *region,
   GPU_matrix_push_projection();
   wmOrtho2_region_pixelspace(region);
 
-  const int font_id = BLF_default();
+  const int font_id = BLF_set_default();
   UI_FontThemeColor(font_id, colorid);
 
   BLF_batch_draw_begin();

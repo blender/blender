@@ -21,6 +21,10 @@ void SubsurfaceModule::end_sync()
 {
   data_.sample_len = 16;
 
+  if (!(inst_.pipelines.deferred.closure_bits_get() & CLOSURE_SSS)) {
+    return;
+  }
+
   {
     PassSimple &pass = setup_ps_;
     pass.init();

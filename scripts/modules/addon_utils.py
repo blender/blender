@@ -823,7 +823,7 @@ def _stale_pending_check_and_remove_once():
             if stale_handle.is_modified():
                 stale_handle.state_store(check_exists=False)
         except Exception as ex:
-            print("Unexpected error clearing stale data, this is is a bug!", str(ex))
+            print("Unexpected error clearing stale data, this is a bug!", str(ex))
 
     if is_empty:
         try:
@@ -1119,14 +1119,14 @@ def _initialize_extensions_compat_ensure_up_to_date(extensions_directory, extens
 
     if cache_data is not None:
         # NOTE: the exception handling here is fairly paranoid and accounts for invalid values in the loaded cache.
-        # An example would be values expected to be lists/dictionaries being other types (None or strings for e.g.).
+        # An example would be values expected to be lists/dictionaries being other types (None or strings for example).
         # While this should not happen, some bad value should not prevent Blender from loading properly,
         # so report the error and regenerate cache.
         try:
             if _extension_compat_cache_update_needed(cache_data, blender_id, extensions_enabled, print_debug):
                 cache_data = None
         except Exception:
-            print("Extension: unexpected error reading cache, this is is a bug! (regenerating)")
+            print("Extension: unexpected error reading cache, this is a bug! (regenerating)")
             import traceback
             traceback.print_exc()
             cache_data = None
@@ -1217,7 +1217,7 @@ def _initialize_extensions_compat_data(
             print_debug,
         )
     except Exception:
-        print("Extension: unexpected error detecting cache, this is is a bug!")
+        print("Extension: unexpected error detecting cache, this is a bug!")
         import traceback
         traceback.print_exc()
         updated = False
@@ -1236,7 +1236,7 @@ def _initialize_extensions_compat_data(
                     error_fn=error_fn,
                 )
             except Exception:
-                print("Extension: unexpected error updating wheels, this is is a bug!")
+                print("Extension: unexpected error updating wheels, this is a bug!")
                 import traceback
                 traceback.print_exc()
 

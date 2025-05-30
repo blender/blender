@@ -611,8 +611,7 @@ void ensure_nodes_constraints(const Sculpt &sd,
             return cloth_sim.node_state[node_index] == SCULPT_CLOTH_NODE_UNINITIALIZED;
           });
       BMesh &bm = *ss.bm;
-      BM_mesh_elem_index_ensure(&bm, BM_VERT);
-      BM_mesh_elem_table_ensure(&bm, BM_VERT);
+      vert_random_access_ensure(object);
       uninitialized_nodes.foreach_index([&](const int i) {
         const Set<BMVert *, 0> &bm_verts = BKE_pbvh_bmesh_node_unique_verts(&nodes[i]);
         const Span<int> verts = calc_visible_vert_indices_bmesh(bm_verts, vert_indices);
@@ -1153,7 +1152,7 @@ static void cloth_brush_solve_collision(const Object &object,
                                         SimulationData &cloth_sim,
                                         const int i)
 {
-  const int raycast_flag = BVH_RAYCAST_DEFAULT & ~(BVH_RAYCAST_WATERTIGHT);
+  const int raycast_flag = BVH_RAYCAST_DEFAULT & ~BVH_RAYCAST_WATERTIGHT;
 
   const float4x4 &object_to_world = object.object_to_world();
   const float4x4 &world_to_object = object.world_to_object();
@@ -2299,7 +2298,7 @@ static wmOperatorStatus sculpt_cloth_filter_modal(bContext *C,
   const float len = event->prev_press_xy[0] - event->xy[0];
   filter_strength = filter_strength * -len * 0.001f * UI_SCALE_FAC;
 
-  SCULPT_vertex_random_access_ensure(object);
+  vert_random_access_ensure(object);
 
   BKE_sculpt_update_object_for_edit(depsgraph, &object, false);
 

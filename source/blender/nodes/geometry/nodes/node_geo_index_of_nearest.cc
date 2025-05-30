@@ -13,7 +13,7 @@ namespace blender::nodes::node_geo_index_of_nearest_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Vector>("Position").implicit_field(implicit_field_inputs::position);
+  b.add_input<decl::Vector>("Position").implicit_field(NODE_DEFAULT_INPUT_POSITION_FIELD);
   b.add_input<decl::Int>("Group ID").supports_field().hide_value();
 
   b.add_output<decl::Int>("Index").field_source_reference_all().description(

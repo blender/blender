@@ -27,7 +27,10 @@ static void cmp_node_sunbeams_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Color>("Image").default_value({1.0f, 1.0f, 1.0f, 1.0f});
   b.add_input<decl::Vector>("Source")
       .subtype(PROP_FACTOR)
-      .default_value({0.5f, 0.5f, 0.0f})
+      .dimensions(2)
+      .default_value({0.5f, 0.5f})
+      .min(0.0f)
+      .max(1.0f)
       .description(
           "The position of the source of the rays in normalized coordinates. 0 means lower left "
           "corner and 1 means upper right corner")

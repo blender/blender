@@ -354,7 +354,6 @@ void paint_brush_color_get(Scene *scene,
 bool paint_use_opacity_masking(Brush *brush);
 void paint_brush_init_tex(Brush *brush);
 void paint_brush_exit_tex(Brush *brush);
-bool image_paint_poll(bContext *C);
 
 void PAINT_OT_grab_clone(wmOperatorType *ot);
 void PAINT_OT_sample_color(wmOperatorType *ot);

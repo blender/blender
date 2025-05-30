@@ -471,6 +471,42 @@ class USDImportTest(AbstractUSDTest):
         mat = bpy.data.materials["mid_0_0_scale_0_3"]
         assert_displacement(mat, None, 0.0, 0.3)
 
+    def test_import_material_attributes(self):
+        """Validate correct import of Attribute information from UsdPrimvarReaders"""
+
+        # Use the existing materials test file to create the USD file
+        # for import. It is validated as part of the bl_usd_export test.
+        bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "usd_materials_attributes.blend"))
+        testfile = str(self.tempdir / "usd_materials_attributes.usda")
+        res = bpy.ops.wm.usd_export(filepath=str(testfile), export_materials=True)
+        self.assertEqual({'FINISHED'}, res, f"Unable to export to {testfile}")
+
+        # Reload the empty file and import back in
+        bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "empty.blend"))
+        res = bpy.ops.wm.usd_import(filepath=testfile)
+        self.assertEqual({'FINISHED'}, res, f"Unable to import USD file {testfile}")
+
+        # Most shader graph validation should occur through the Hydra render test suite. Here we
+        # will only check some high-level criteria for each expected node graph.
+
+        def assert_attribute(mat, attribute_name, from_socket, to_socket):
+            nodes = [n for n in mat.node_tree.nodes if n.type == 'ATTRIBUTE' and n.attribute_name == attribute_name]
+            self.assertTrue(len(nodes) == 1)
+            outputs = [o for o in nodes[0].outputs if o.identifier == from_socket]
+            self.assertTrue(len(outputs) == 1)
+            self.assertTrue(len(outputs[0].links) == 1)
+            link = outputs[0].links[0]
+            self.assertEqual(link.from_socket.identifier, from_socket)
+            self.assertEqual(link.to_socket.identifier, to_socket)
+
+        mat = bpy.data.materials["Material"]
+        self.assert_all_nodes_present(
+            mat, ["Principled BSDF", "Attribute", "Attribute.001", "Attribute.002", "Material Output"])
+
+        assert_attribute(mat, "displayColor", "Color", "Base Color")
+        assert_attribute(mat, "f_vec", "Vector", "Normal")
+        assert_attribute(mat, "f_float", "Fac", "Roughness")
+
     def test_import_shader_varname_with_connection(self):
         """Test importing USD shader where uv primvar is a connection"""
 
@@ -1655,13 +1691,13 @@ class USDImportTest(AbstractUSDTest):
                 self.assertEqual(image.tiles[tile].size[1], size)
 
         def check_materials():
-            self.assertEqual(len(bpy.data.materials), 7)  # +1 because of the "Dots Stroke" material
             self.assertTrue("Clip_With_LessThanInvert" in bpy.data.materials)
             self.assertTrue("Clip_With_Round" in bpy.data.materials)
             self.assertTrue("Material" in bpy.data.materials)
             self.assertTrue("NormalMap" in bpy.data.materials)
             self.assertTrue("NormalMap_Scale_Bias" in bpy.data.materials)
             self.assertTrue("Transforms" in bpy.data.materials)
+            self.assertEqual(len(bpy.data.materials), 6)
 
         # Reload the empty file and import back in using IMPORT_PACK
         bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "empty.blend"))

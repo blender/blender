@@ -331,9 +331,9 @@ static void seq_view_collection_rect_timeline(const bContext *C,
     xmin = min_ii(xmin, seq::time_left_handle_frame_get(scene, strip));
     xmax = max_ii(xmax, seq::time_right_handle_frame_get(scene, strip));
 
-    ymin = min_ii(ymin, strip->machine);
+    ymin = min_ii(ymin, strip->channel);
     /* "+1" because each channel has a thickness of 1. */
-    ymax = max_ii(ymax, strip->machine + 1);
+    ymax = max_ii(ymax, strip->channel + 1);
   }
 
   xmax += xmargin;

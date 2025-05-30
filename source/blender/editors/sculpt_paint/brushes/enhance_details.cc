@@ -309,8 +309,7 @@ void calc_smooth_translations(const Depsgraph &depsgraph,
       break;
     }
     case bke::pbvh::Type::BMesh:
-      BM_mesh_elem_index_ensure(ss.bm, BM_VERT);
-      BM_mesh_elem_table_ensure(ss.bm, BM_VERT);
+      vert_random_access_ensure(const_cast<Object &>(object));
       const Span<bke::pbvh::BMeshNode> nodes = pbvh.nodes<bke::pbvh::BMeshNode>();
       node_mask.foreach_index(GrainSize(1), [&](const int i) {
         brushes::LocalData &tls = all_tls.local();

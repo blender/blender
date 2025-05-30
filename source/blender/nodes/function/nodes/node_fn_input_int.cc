@@ -7,17 +7,20 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
+#include "NOD_geometry_nodes_gizmos.hh"
+
 namespace blender::nodes::node_fn_input_int_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_output<decl::Int>("Integer");
-}
-
-static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
-{
-  uiLayout *col = &layout->column(true);
-  col->prop(ptr, "integer", UI_ITEM_R_EXPAND, "", ICON_NONE);
+  b.add_output<decl::Int>("Integer").custom_draw([](CustomSocketDrawParams &params) {
+    uiLayout &row = params.layout.row(true);
+    row.prop(&params.node_ptr, "integer", UI_ITEM_NONE, "", ICON_NONE);
+    if (gizmos::value_node_has_gizmo(params.tree, params.node)) {
+      row.prop(&params.socket_ptr, "pin_gizmo", UI_ITEM_NONE, "", ICON_GIZMO);
+    }
+  });
+  ;
 }
 
 static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
@@ -46,7 +49,6 @@ static void node_register()
   blender::bke::node_type_storage(
       ntype, "NodeInputInt", node_free_standard_storage, node_copy_standard_storage);
   ntype.build_multi_function = node_build_multi_function;
-  ntype.draw_buttons = node_layout;
   blender::bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)

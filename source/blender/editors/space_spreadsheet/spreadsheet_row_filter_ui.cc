@@ -24,6 +24,8 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
+#include "ED_spreadsheet.hh"
+
 #include "spreadsheet_intern.hh"
 #include "spreadsheet_row_filter_ui.hh"
 
@@ -115,10 +117,14 @@ static std::string value_string(const SpreadsheetRowFilter &row_filter,
   return "";
 }
 
-static SpreadsheetColumn *lookup_visible_column_for_filter(const SpaceSpreadsheet &sspreadsheet,
-                                                           const StringRef column_name)
+static const SpreadsheetColumn *lookup_visible_column_for_filter(
+    const SpaceSpreadsheet &sspreadsheet, const StringRef column_name)
 {
-  LISTBASE_FOREACH (SpreadsheetColumn *, column, &sspreadsheet.columns) {
+  const SpreadsheetTable *table = get_active_table(sspreadsheet);
+  if (!table) {
+    return nullptr;
+  }
+  for (const SpreadsheetColumn *column : Span{table->columns, table->num_columns}) {
     if (column->display_name == column_name) {
       return column;
     }
@@ -166,8 +172,8 @@ static void spreadsheet_filter_panel_draw_header(const bContext *C, Panel *panel
   row = &layout->row(true);
   uiLayoutSetEmboss(row, blender::ui::EmbossType::None);
   const int current_index = BLI_findindex(&sspreadsheet->row_filters, filter);
-  uiItemIntO(row, "", ICON_X, "SPREADSHEET_OT_remove_row_filter_rule", "index", current_index);
-
+  PointerRNA op_ptr = row->op("SPREADSHEET_OT_remove_row_filter_rule", "", ICON_X);
+  RNA_int_set(&op_ptr, "index", current_index);
   /* Some padding so the X isn't too close to the drag icon. */
   layout->separator(0.25f);
 }

@@ -2236,6 +2236,7 @@ def blen_read_light(fbx_tmpl, fbx_obj, settings):
     # TODO, cycles nodes???
     lamp.color = elem_props_get_color_rgb(fbx_props, b'Color', (1.0, 1.0, 1.0))
     lamp.energy = elem_props_get_number(fbx_props, b'Intensity', 100.0) / 100.0
+    lamp.exposure = elem_props_get_number(fbx_props, b'Exposure', 0.0)
     lamp.use_shadow = elem_props_get_bool(fbx_props, b'CastShadow', True)
     if hasattr(lamp, "cycles"):
         lamp.cycles.cast_shadow = lamp.use_shadow

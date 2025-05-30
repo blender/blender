@@ -33,7 +33,7 @@ static Vector<int> get_global_node_sort_vector_right_to_left(const ComputeContex
   vec.append(initial_node.runtime->toposort_right_to_left_index);
   for (const ComputeContext *context = initial_context; context; context = context->parent()) {
     if (const auto *group_context = dynamic_cast<const bke::GroupNodeComputeContext *>(context)) {
-      const bNode *caller_group_node = group_context->caller_group_node();
+      const bNode *caller_group_node = group_context->node();
       BLI_assert(caller_group_node != nullptr);
       vec.append(caller_group_node->runtime->toposort_right_to_left_index);
     }
@@ -50,7 +50,7 @@ static Vector<int> get_global_node_sort_vector_left_to_right(const ComputeContex
   vec.append(initial_node.runtime->toposort_left_to_right_index);
   for (const ComputeContext *context = initial_context; context; context = context->parent()) {
     if (const auto *group_context = dynamic_cast<const bke::GroupNodeComputeContext *>(context)) {
-      const bNode *caller_group_node = group_context->caller_group_node();
+      const bNode *caller_group_node = group_context->node();
       BLI_assert(caller_group_node != nullptr);
       vec.append(caller_group_node->runtime->toposort_left_to_right_index);
     }
@@ -136,7 +136,7 @@ void eval_downstream(
           return;
         }
         const auto &group_context = compute_context_cache.for_group_node(
-            ctx_group_node_input.context, node, node.owner_tree());
+            ctx_group_node_input.context, node.identifier, &node.owner_tree());
         const int socket_index = ctx_group_node_input.socket->index();
         /* Forward the value to every group input node. */
         for (const bNode *group_input_node : group_tree->group_input_nodes()) {
@@ -219,7 +219,7 @@ void eval_downstream(
         continue;
       }
       const ComputeContext &group_context = compute_context_cache.for_group_node(
-          context, node, node.owner_tree());
+          context, node.identifier, &node.owner_tree());
       /* Propagate the values from the group output node to the outputs of the group node and
        * continue forwarding them from there. */
       for (const int index : group->interface_outputs().index_range()) {
@@ -285,7 +285,7 @@ UpstreamEvalTargets eval_upstream(
       return;
     }
     const ComputeContext &group_context = compute_context_cache.for_group_node(
-        context, group_node, group_node.owner_tree());
+        context, group_node.identifier, &group_node.owner_tree());
     propagate_value_fn(
         ctx_output_socket,
         {&group_context, &group_output->input_socket(ctx_output_socket.socket->index())});
@@ -299,12 +299,12 @@ UpstreamEvalTargets eval_upstream(
       eval_targets.group_inputs.add(ctx_output_socket);
       return;
     }
-    const bNodeTree &caller_tree = *group_context->caller_tree();
+    const bNodeTree &caller_tree = *group_context->tree();
     caller_tree.ensure_topology_cache();
     if (caller_tree.has_available_link_cycle()) {
       return;
     }
-    const bNode &caller_node = *group_context->caller_group_node();
+    const bNode &caller_node = *group_context->node();
     const bNodeSocket &caller_input_socket = caller_node.input_socket(
         ctx_output_socket.socket->index());
     const ComputeContext *parent_context = ctx_output_socket.context->parent();

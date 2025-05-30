@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'a7d2b7850ef2')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'ba454989554a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-05 08:47+0000\n"
+"POT-Creation-Date: 2025-05-26 07:36+0000\n"
 "PO-Revision-Date: 2025-04-14 08:23+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Hindi <https://translate.blender.org/projects/blender-ui/ui/hi/>\n"
@@ -577,6 +577,18 @@ msgstr "सीधे"
 
 msgid "Curved"
 msgstr "घुमावदार"
+
+
+msgid "Stick"
+msgstr "छड़ी"
+
+
+msgid "Envelope"
+msgstr "आवरण"
+
+
+msgid "Wire"
+msgstr "तार"
 
 
 msgid "Head"
@@ -1595,18 +1607,6 @@ msgid "Layers"
 msgstr "परतें"
 
 
-msgid "Stick"
-msgstr "छड़ी"
-
-
-msgid "Envelope"
-msgstr "आवरण"
-
-
-msgid "Wire"
-msgstr "तार"
-
-
 msgid "Rest Position"
 msgstr "शेष स्थिति"
 
@@ -2584,6 +2584,14 @@ msgid "Mask"
 msgstr "आवरण"
 
 
+msgid "Mirror"
+msgstr "दर्पण"
+
+
+msgid "Snap"
+msgstr "स्नैप"
+
+
 msgid "Light"
 msgstr "प्रकाश"
 
@@ -2638,14 +2646,6 @@ msgstr "पाठ"
 
 msgid "Bone Roll"
 msgstr "हड्डी पंजी"
-
-
-msgid "Snap"
-msgstr "स्नैप"
-
-
-msgid "Mirror"
-msgstr "दर्पण"
 
 
 msgid "Basic"
@@ -4082,6 +4082,10 @@ msgstr "युगल हटाएँ"
 msgctxt "Operator"
 msgid "Copy Pose"
 msgstr "मुद्रा की प्रतिलिपि बनाएँ"
+
+
+msgid "Parents"
+msgstr "कारण"
 
 
 msgctxt "Operator"
@@ -5795,10 +5799,6 @@ msgstr "सक्रिय समूह से हटाएँ"
 msgctxt "Operator"
 msgid "Remove from All"
 msgstr "सब से हटाएँ"
-
-
-msgid "Parents"
-msgstr "कारण"
 
 
 msgctxt "Operator"

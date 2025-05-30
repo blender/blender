@@ -72,6 +72,7 @@ void HdCyclesDisplayDriver::gl_context_create()
 
   if (!gl_pbo_id_) {
     glGenBuffers(1, &gl_pbo_id_);
+    graphics_interop_buffer_.clear();
   }
 }
 
@@ -142,6 +143,7 @@ bool HdCyclesDisplayDriver::update_begin(const Params &params,
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 
     pbo_size_ = params.full_size;
+    graphics_interop_buffer_.clear();
   }
 
   need_update_ = true;
@@ -179,9 +181,9 @@ half4 *HdCyclesDisplayDriver::map_texture_buffer()
   auto *const mapped_rgba_pixels = static_cast<half4 *>(
       glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY));
 
-  if (need_clear_ && mapped_rgba_pixels) {
+  if (need_zero_ && mapped_rgba_pixels) {
     memset(mapped_rgba_pixels, 0, sizeof(half4) * pbo_size_.x * pbo_size_.y);
-    need_clear_ = false;
+    need_zero_ = false;
   }
 
   return mapped_rgba_pixels;
@@ -201,20 +203,17 @@ GraphicsInteropDevice HdCyclesDisplayDriver::graphics_interop_get_device()
   return interop_device;
 }
 
-GraphicsInteropBuffer HdCyclesDisplayDriver::graphics_interop_get_buffer()
+void HdCyclesDisplayDriver::graphics_interop_update_buffer()
 {
-  GraphicsInteropBuffer interop_buffer;
+  if (graphics_interop_buffer_.is_empty()) {
+    graphics_interop_buffer_.assign(
+        GraphicsInteropDevice::OPENGL, gl_pbo_id_, pbo_size_.x * pbo_size_.y * sizeof(half4));
+  }
 
-  interop_buffer.width = pbo_size_.x;
-  interop_buffer.height = pbo_size_.y;
-  interop_buffer.type = GraphicsInteropDevice::OPENGL;
-  interop_buffer.handle = gl_pbo_id_;
-  interop_buffer.size = pbo_size_.x * pbo_size_.y * sizeof(half4);
-
-  interop_buffer.need_clear = need_clear_;
-  need_clear_ = false;
-
-  return interop_buffer;
+  if (need_zero_) {
+    graphics_interop_buffer_.zero();
+    need_zero_ = false;
+  }
 }
 
 void HdCyclesDisplayDriver::graphics_interop_activate()
@@ -227,9 +226,9 @@ void HdCyclesDisplayDriver::graphics_interop_deactivate()
   gl_context_disable();
 }
 
-void HdCyclesDisplayDriver::clear()
+void HdCyclesDisplayDriver::zero()
 {
-  need_clear_ = true;
+  need_zero_ = true;
 }
 
 void HdCyclesDisplayDriver::draw(const Params &params)

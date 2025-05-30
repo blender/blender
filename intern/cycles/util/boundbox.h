@@ -202,6 +202,11 @@ class BoundBox2D {
 
   BoundBox2D() = default;
 
+  BoundBox2D(const float2 radius)
+      : left(-radius.x), right(radius.x), bottom(-radius.y), top(radius.y)
+  {
+  }
+
   bool operator==(const BoundBox2D &other) const
   {
     return (left == other.left && right == other.right && bottom == other.bottom &&
@@ -262,6 +267,18 @@ class BoundBox2D {
     result.right = ccl::clamp(right, mn, mx);
     result.bottom = ccl::clamp(bottom, mn, mx);
     result.top = ccl::clamp(top, mn, mx);
+
+    return result;
+  }
+
+  BoundBox2D offset(const float2 offset) const
+  {
+    BoundBox2D result;
+
+    result.left = left + offset.x;
+    result.right = right + offset.x;
+    result.bottom = bottom + offset.y;
+    result.top = top + offset.y;
 
     return result;
   }

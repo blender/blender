@@ -72,6 +72,30 @@
 #  define ARRAY_CHUNK_NUM_MIN 256
 
 #  define USE_ARRAY_STORE_THREAD
+
+/**
+ * Use run length encoding for boolean custom-data.
+ *
+ * Avoid poor performance caused by boolean arrays not having enough *uniqueness* to
+ * efficiently de-duplicate, see: #136737.
+ *
+ * NOTE(@ideasman42): This has the down-side that creating undo steps needs to encode
+ * data *before* comparing it with the previous state (when creating each undo step).
+ * Adding additional work even when nothing change.
+ *
+ * Since there is overhead for RLE encoding this is only used on boolean array,
+ * typically used for storing selection/hidden state as well as edge flags.
+ * The encoding has also been optimized for performance instead of "compression"
+ * which would pack bits into the smallest possible space.
+ *
+ * In practice, arrays of 32 million booleans (on an AMD TRX 3990X):
+ * - ~0.11 seconds for random data.
+ * - ~0.0025 seconds uniform arrays.
+ * ... so the tradeoff seems reasonable.
+ *
+ * There is also the benefit of reduced memory use, although that isn't the goal.
+ */
+#  define USE_ARRAY_STORE_RLE
 #endif
 
 #ifdef USE_ARRAY_STORE_THREAD
@@ -101,6 +125,19 @@ struct BArrayCustomData {
   eCustomDataType type;
   blender::Array<std::variant<BArrayState *, blender::ImplicitSharingInfoAndData>> states;
 };
+
+#  ifdef USE_ARRAY_STORE_RLE
+static bool um_customdata_layer_use_rle(const BArrayCustomData *bcd)
+{
+  /* NOTE(@ideasman42): This could be enabled for all byte sized layers.
+   * for now only use for boolean layers to address: #136737. */
+  if (bcd->type == CD_PROP_BOOL) {
+    BLI_assert(CustomData_sizeof(bcd->type) == 1);
+    return true;
+  }
+  return false;
+}
+#  endif
 
 #endif
 
@@ -283,8 +320,35 @@ static void um_arraystore_cd_compact(CustomData *cdata,
               state_reference = std::get<BArrayState *>(bcd_reference_current->states[i]);
             }
 
-            bcd->states[i] = BLI_array_store_state_add(
-                bs, layer->data, size_t(data_len) * stride, state_reference);
+            void *data_final = layer->data;
+            size_t data_final_size = size_t(data_len) * stride;
+
+#  ifdef USE_ARRAY_STORE_RLE
+            const bool use_rle = um_customdata_layer_use_rle(bcd);
+            uint8_t *data_enc = nullptr;
+            if (use_rle) {
+              /* Store the size in the encoded data (for convenience). */
+              size_t data_enc_extra_size = sizeof(size_t);
+              size_t data_enc_len;
+              data_enc = BLI_array_store_rle_encode(reinterpret_cast<const uint8_t *>(data_final),
+                                                    data_final_size,
+                                                    data_enc_extra_size,
+                                                    &data_enc_len);
+              memcpy(data_enc, &data_final_size, data_enc_extra_size);
+              data_final = data_enc;
+              data_final_size = data_enc_extra_size + data_enc_len;
+            }
+#  endif
+
+            bcd->states[i] = {
+                BLI_array_store_state_add(bs, data_final, data_final_size, state_reference),
+            };
+
+#  ifdef USE_ARRAY_STORE_RLE
+            if (use_rle) {
+              MEM_freeN(data_enc);
+            }
+#  endif
           }
         }
         else {
@@ -334,7 +398,29 @@ static void um_arraystore_cd_expand(const BArrayCustomData *bcd,
         BArrayState *state = std::get<BArrayState *>(bcd->states[i]);
         if (state) {
           size_t state_len;
-          layer->data = BLI_array_store_state_data_get_alloc(state, &state_len);
+          void *data = BLI_array_store_state_data_get_alloc(state, &state_len);
+
+#  ifdef USE_ARRAY_STORE_RLE
+          const bool use_rle = um_customdata_layer_use_rle(bcd);
+          if (use_rle) {
+            /* Store the size in the encoded data (for convenience). */
+            size_t data_enc_extra_size = sizeof(size_t);
+            const uint8_t *data_enc = reinterpret_cast<uint8_t *>(data);
+            size_t data_dec_len;
+            memcpy(&data_dec_len, data_enc, sizeof(size_t));
+            uint8_t *data_dec = MEM_malloc_arrayN<uint8_t>(data_dec_len, __func__);
+            BLI_array_store_rle_decode(data_enc + data_enc_extra_size,
+                                       state_len - data_enc_extra_size,
+                                       data_dec,
+                                       data_dec_len);
+            MEM_freeN(data);
+            data = static_cast<void *>(data_dec);
+            /* Just for the assert to succeed. */
+            state_len = data_dec_len;
+          }
+#  endif
+
+          layer->data = data;
           layer->sharing_info = implicit_sharing::info_for_mem_free(layer->data);
           BLI_assert(stride * data_len == state_len);
           UNUSED_VARS_NDEBUG(stride, data_len);
@@ -898,11 +984,11 @@ static void undomesh_free_data(UndoMesh *um)
 #ifdef USE_ARRAY_STORE
 
 #  ifdef USE_ARRAY_STORE_THREAD
-  /* changes this waits is low, but must have finished */
+  /* Chances this waits is low, but must have finished. */
   BLI_task_pool_work_and_wait(um_arraystore.task_pool);
 #  endif
 
-  /* we need to expand so any allocations in custom-data are freed with the mesh */
+  /* We need to expand so any allocations in custom-data are freed with the mesh. */
   um_arraystore_expand(um);
 
   BLI_assert(BLI_findindex(&um_arraystore.local_links, um) != -1);

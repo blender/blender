@@ -69,10 +69,16 @@ ImageUser *ntree_get_active_iuser(bNodeTree *ntree)
 
 /* ********************* callbacks for standard image buttons *************** */
 
-static void ui_imageuser_slot_menu(bContext * /*C*/, uiLayout *layout, void *image_p)
+static void ui_imageuser_slot_menu(bContext *C, uiLayout *layout, void *image_p)
 {
   uiBlock *block = uiLayoutGetBlock(layout);
   Image *image = static_cast<Image *>(image_p);
+
+  /* The scene isn't expected to be null, check since it's not a requirement
+   * for the value to be non-null for this function to work.
+   * It's OK if `has_active_render` is false. */
+  Scene *scene = CTX_data_scene(C);
+  bool has_active_render = scene && (RE_GetSceneRender(scene) != nullptr);
 
   int slot_id;
   LISTBASE_FOREACH_INDEX (RenderSlot *, slot, &image->renderslots, slot_id) {
@@ -83,18 +89,29 @@ static void ui_imageuser_slot_menu(bContext * /*C*/, uiLayout *layout, void *ima
     else {
       SNPRINTF(str, IFACE_("Slot %d"), slot_id + 1);
     }
-    uiDefButS(block,
-              UI_BTYPE_BUT_MENU,
-              B_NOP,
-              str,
-              0,
-              0,
-              UI_UNIT_X * 5,
-              UI_UNIT_X,
-              &image->render_slot,
-              float(slot_id),
-              0.0,
-              "");
+    /* Default to "blank" for nicer alignment. */
+    int icon = ICON_BLANK1;
+    if (slot_id == image->last_render_slot) {
+      if (has_active_render) {
+        icon = ICON_RENDER_RESULT;
+      }
+    }
+    else if (slot->render != nullptr) {
+      icon = ICON_DOT;
+    }
+    uiDefIconTextButS(block,
+                      UI_BTYPE_BUT_MENU,
+                      B_NOP,
+                      icon,
+                      str,
+                      0,
+                      0,
+                      UI_UNIT_X * 5,
+                      UI_UNIT_X,
+                      &image->render_slot,
+                      float(slot_id),
+                      0.0,
+                      "");
   }
 
   layout->separator();

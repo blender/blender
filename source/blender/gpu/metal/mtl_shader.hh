@@ -234,6 +234,7 @@ class MTLShader : public Shader {
   ~MTLShader();
 
   void init(const shader::ShaderCreateInfo & /*info*/, bool is_batch_compilation) override;
+  void init() override {}
 
   /* Assign GLSL source. */
   void vertex_shader_from_glsl(MutableSpan<StringRefNull> sources) override;
@@ -282,7 +283,7 @@ class MTLShader : public Shader {
   std::string geometry_layout_declare(const shader::ShaderCreateInfo &info) const override;
   std::string compute_layout_declare(const shader::ShaderCreateInfo &info) const override;
 
-  void bind() override;
+  void bind(const shader::SpecializationConstants *constants_state) override;
   void unbind() override;
 
   void uniform_float(int location, int comp_len, int array_size, const float *data) override;

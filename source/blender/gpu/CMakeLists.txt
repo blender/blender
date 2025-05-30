@@ -77,6 +77,7 @@ set(SRC
   intern/gpu_material.cc
   intern/gpu_matrix.cc
   intern/gpu_node_graph.cc
+  intern/gpu_pass.cc
   intern/gpu_platform.cc
   intern/gpu_query.cc
   intern/gpu_select.cc
@@ -118,6 +119,7 @@ set(SRC
   GPU_init_exit.hh
   GPU_material.hh
   GPU_matrix.hh
+  GPU_pass.hh
   GPU_platform.hh
   GPU_platform_backend_enum.h
   GPU_primitive.hh
@@ -503,6 +505,7 @@ set(GLSL_SRC
   shaders/gpu_shader_point_varying_color_frag.glsl
   shaders/gpu_shader_3D_point_varying_size_varying_color_vert.glsl
   shaders/gpu_shader_3D_point_uniform_size_aa_vert.glsl
+  shaders/gpu_shader_3D_point_flat_color_vert.glsl
   shaders/gpu_shader_2D_point_varying_size_varying_color_vert.glsl
   shaders/gpu_shader_2D_point_uniform_size_aa_vert.glsl
   shaders/gpu_shader_2D_point_uniform_size_outline_aa_vert.glsl

@@ -13,7 +13,7 @@ namespace blender::nodes::node_geo_curve_topology_points_of_curve_cc {
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.add_input<decl::Int>("Curve Index")
-      .implicit_field(implicit_field_inputs::index)
+      .implicit_field(NODE_DEFAULT_INPUT_INDEX_FIELD)
       .description("The curve to retrieve data from. Defaults to the curve from the context");
   b.add_input<decl::Float>("Weights").supports_field().hide_value().description(
       "Values used to sort the curve's points. Uses indices by default");

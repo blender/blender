@@ -104,7 +104,7 @@ CHECKER_ARGS = (
 
         # Calling `memset` of float may technically be a bug but works in practice.
         "memsetClassFloat",
-        # There are various classes which don't have copy or equal constructors (GHOST windows for e.g.)
+        # There are various classes which don't have copy or equal constructors (GHOST windows for example)
         "noCopyConstructor",
         # Also noisy, looks like these are not issues to "solve".
         "unusedFunction",

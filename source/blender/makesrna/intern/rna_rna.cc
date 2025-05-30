@@ -173,7 +173,7 @@ static constexpr auto PROP_PROPORTIONAL_DESCR = "";
 static constexpr auto PROP_TEXTEDIT_UPDATE_DESCR = "";
 static constexpr auto PROP_PATH_OUTPUT_DESCR = "";
 static constexpr auto PROP_PATH_RELATIVE_DESCR =
-    "This path supports relative prefix \"//\" which is expanded the the directory "
+    "This path supports relative prefix \"//\" which is expanded the directory "
     "where the current \".blend\" file is located.";
 static constexpr auto PROP_PATH_SUPPORTS_TEMPLATES_DESCR =
     "This path supports the \"{variable_name}\" template syntax, which substitutes the "
@@ -3326,7 +3326,7 @@ static void rna_def_property(BlenderRNA *brna)
       prop,
       "Path Relative",
       "Property is a path which supports the \"//\" prefix, "
-      "signifying the location as relative to the \".blend\" files directory");
+      "signifying the location as relative to the \".blend\" file's directory");
 
   prop = RNA_def_property(srna, "is_path_supports_templates", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);

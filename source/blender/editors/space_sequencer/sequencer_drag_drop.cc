@@ -232,7 +232,7 @@ static float update_overlay_strip_position_data(bContext *C, const int mval[2])
 
   for (int i = 0; i < coords->channel_len && !coords->is_intersecting; i++) {
     coords->is_intersecting = seq::transform_test_overlap(scene, ed->seqbasep, &dummy_strip);
-    seq::strip_channel_set(&dummy_strip, dummy_strip.machine + 1);
+    seq::strip_channel_set(&dummy_strip, dummy_strip.channel + 1);
   }
 
   return strip_len;
@@ -260,6 +260,7 @@ static void sequencer_drop_copy(bContext *C, wmDrag *drag, wmDropBox *drop)
     RNA_int_set(drop->ptr, "frame_start", g_drop_coords.start_frame);
     RNA_int_set(drop->ptr, "channel", g_drop_coords.channel);
     RNA_boolean_set(drop->ptr, "overlap_shuffle_override", true);
+    RNA_boolean_set(drop->ptr, "skip_locked_or_muted_channels", false);
   }
   else {
     /* We are dropped inside the preview region. Put the strip on top of the
@@ -276,7 +277,7 @@ static void sequencer_drop_copy(bContext *C, wmDrag *drag, wmDropBox *drop)
     /* Get the top most strip channel that is in view. */
     int max_channel = -1;
     for (Strip *strip : strips) {
-      max_channel = max_ii(strip->machine, max_channel);
+      max_channel = max_ii(strip->channel, max_channel);
     }
 
     if (max_channel != -1) {
@@ -547,7 +548,7 @@ static void prefetch_data_fn(void *custom_data, wmJobWorkerStatus * /*worker_sta
 #endif
   }
 
-  char colorspace[64] = "\0"; /* 64 == MAX_COLORSPACE_NAME length. */
+  char colorspace[/*MAX_COLORSPACE_NAME*/ 64] = "\0";
   MovieReader *anim = openanim(job_data->path, IB_byte_data, 0, colorspace);
 
   if (anim != nullptr) {

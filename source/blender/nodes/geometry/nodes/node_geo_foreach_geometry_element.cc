@@ -42,12 +42,12 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *current_no
   if (!zone) {
     return;
   }
-  if (!zone->output_node) {
+  if (!zone->output_node_id) {
     return;
   }
   const bool is_zone_input_node = current_node->type_legacy ==
                                   GEO_NODE_FOREACH_GEOMETRY_ELEMENT_INPUT;
-  bNode &output_node = const_cast<bNode &>(*zone->output_node);
+  bNode &output_node = const_cast<bNode &>(*zone->output_node());
   PointerRNA output_node_ptr = RNA_pointer_create_discrete(
       current_node_ptr->owner_id, &RNA_Node, &output_node);
   auto &storage = *static_cast<NodeGeometryForeachGeometryElementOutput *>(output_node.storage);
@@ -158,8 +158,10 @@ static void node_declare(NodeDeclarationBuilder &b)
     }
   }
 
-  b.add_input<decl::Extend>("", "__extend__");
-  b.add_output<decl::Extend>("", "__extend__").align_with_previous();
+  b.add_input<decl::Extend>("", "__extend__").structure_type(StructureType::Dynamic);
+  b.add_output<decl::Extend>("", "__extend__")
+      .structure_type(StructureType::Dynamic)
+      .align_with_previous();
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)

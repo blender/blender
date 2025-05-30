@@ -101,17 +101,15 @@ void transform_object(Object *object, const OBJImportParams &import_params)
   rescale_m4(obmat, scale_vec);
   BKE_object_apply_mat4(object, obmat, true, false);
 
-  if (import_params.clamp_size != 0.0f) {
+  if (import_params.clamp_size > 0.0f) {
     BLI_assert(object->type == OB_MESH);
     const Mesh *mesh = static_cast<const Mesh *>(object->data);
     const Bounds<float3> bounds = *mesh->bounds_min_max();
     const float max_diff = math::reduce_max(bounds.max - bounds.min);
-
-    float scale = 1.0f;
-    while (import_params.clamp_size < max_diff * scale) {
-      scale = scale / 10;
+    if (import_params.clamp_size < max_diff * import_params.global_scale) {
+      const float scale = import_params.clamp_size / max_diff;
+      copy_v3_fl(object->scale, scale);
     }
-    copy_v3_fl(object->scale, scale);
   }
 }
 

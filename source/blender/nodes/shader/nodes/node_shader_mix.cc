@@ -50,6 +50,8 @@ static void sh_node_mix_declare(NodeDeclarationBuilder &b)
       .compositor_domain_priority(2);
   b.add_input<decl::Vector>("Factor", "Factor_Vector")
       .default_value(float3(0.5f))
+      .min(0.0f)
+      .max(1.0f)
       .subtype(PROP_FACTOR)
       .no_muted_links()
       .description("Amount of mixing between the A and B vector inputs")
@@ -148,7 +150,7 @@ static void sh_node_mix_label(const bNodeTree * /*ntree*/,
 static int sh_node_mix_ui_class(const bNode *node)
 {
   const NodeShaderMix &storage = node_storage(*node);
-  const eNodeSocketDatatype data_type = static_cast<eNodeSocketDatatype>(storage.data_type);
+  const eNodeSocketDatatype data_type = eNodeSocketDatatype(storage.data_type);
 
   switch (data_type) {
     case SOCK_VECTOR:
@@ -163,7 +165,7 @@ static int sh_node_mix_ui_class(const bNode *node)
 static void sh_node_mix_update(bNodeTree *ntree, bNode *node)
 {
   const NodeShaderMix &storage = node_storage(*node);
-  const eNodeSocketDatatype data_type = static_cast<eNodeSocketDatatype>(storage.data_type);
+  const eNodeSocketDatatype data_type = eNodeSocketDatatype(storage.data_type);
 
   bNodeSocket *sock_factor = static_cast<bNodeSocket *>(node->inputs.first);
   bNodeSocket *sock_factor_vec = static_cast<bNodeSocket *>(sock_factor->next);
@@ -372,7 +374,7 @@ static int gpu_shader_mix(GPUMaterial *mat,
   const bool is_vector_mode = storage.data_type == SOCK_VECTOR;
   const int blend_type = storage.blend_type;
   const char *name = gpu_shader_get_name(
-      (eNodeSocketDatatype)storage.data_type, is_non_uniform, blend_type);
+      eNodeSocketDatatype(storage.data_type), is_non_uniform, blend_type);
 
   if (name == nullptr) {
     return 0;

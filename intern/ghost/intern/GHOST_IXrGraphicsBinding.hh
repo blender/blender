@@ -54,8 +54,10 @@ class GHOST_IXrGraphicsBinding {
                                                        bool &r_is_rgb_format) const = 0;
   virtual std::vector<XrSwapchainImageBaseHeader *> createSwapchainImages(
       uint32_t image_count) = 0;
+  virtual void submitToSwapchainBegin() = 0;
   virtual void submitToSwapchainImage(XrSwapchainImageBaseHeader &swapchain_image,
                                       const GHOST_XrDrawViewInfo &draw_info) = 0;
+  virtual void submitToSwapchainEnd() = 0;
   virtual bool needsUpsideDownDrawing(GHOST_Context &ghost_ctx) const = 0;
 
  protected:

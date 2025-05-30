@@ -1289,7 +1289,7 @@ bool ED_view3d_local_collections_set(const Main *bmain, View3D *v3d)
 void ED_view3d_local_collections_reset(const bContext *C, const bool reset_all)
 {
   Main *bmain = CTX_data_main(C);
-  uint local_view_bit = ~(0);
+  uint local_view_bit = ~0;
   bool do_reset = false;
 
   /* Reset only the ones that are not in use. */
@@ -1314,10 +1314,10 @@ void ED_view3d_local_collections_reset(const bContext *C, const bool reset_all)
   if (do_reset) {
     view3d_local_collections_reset(bmain, local_view_bit);
   }
-  else if (reset_all && (do_reset || (local_view_bit != ~(0)))) {
-    view3d_local_collections_reset(bmain, ~(0));
+  else if (reset_all && (do_reset || (local_view_bit != ~0))) {
+    view3d_local_collections_reset(bmain, ~0);
     View3D v3d = {};
-    v3d.local_collections_uid = ~(0);
+    v3d.local_collections_uid = ~0;
     BKE_layer_collection_local_sync(CTX_data_scene(C), CTX_data_view_layer(C), &v3d);
     DEG_id_tag_update(&CTX_data_scene(C)->id, ID_RECALC_BASE_FLAGS);
   }

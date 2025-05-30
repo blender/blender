@@ -320,7 +320,7 @@ Array<Curves *> extract_curves(const Curves &curves,
   mask.foreach_index(GrainSize(32), [&](const int curve_i, const int element_i) {
     const IndexRange src_points = src_points_by_curve[curve_i];
     const int points_num = src_points.size();
-    Curves *element = bke::curves_new_nomain_single(points_num, CURVE_TYPE_POLY);
+    Curves *element = bke::curves_new_nomain(points_num, 1);
     bke::MutableAttributeAccessor element_attributes =
         element->geometry.wrap().attributes_for_write();
     bke::curves_copy_parameters(curves, *element);

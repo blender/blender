@@ -6,6 +6,7 @@ set(SRC_DNA_INC
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_ID.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_ID_enums.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_action_types.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_anim_enums.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_anim_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_armature_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_asset_types.h
@@ -18,7 +19,9 @@ set(SRC_DNA_INC
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_cloth_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_collection_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_color_types.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_colorband_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_constraint_types.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_curve_enums.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_curve_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_curveprofile_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_curves_types.h
@@ -50,6 +53,7 @@ set(SRC_DNA_INC
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_mesh_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_meshdata_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_meta_types.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_modifier_enums.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_modifier_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_movieclip_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_nla_types.h
@@ -73,8 +77,10 @@ set(SRC_DNA_INC
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_session_uid_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_shader_fx_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_sound_types.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_space_enums.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_space_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_speaker_types.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_theme_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_text_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_texture_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_tracking_types.h

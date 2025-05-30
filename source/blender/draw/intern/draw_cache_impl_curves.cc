@@ -745,7 +745,7 @@ static bool ensure_attributes(const Curves &curves,
     ListBase gpu_attrs = GPU_material_attributes(gpu_material);
     LISTBASE_FOREACH (const GPUMaterialAttribute *, gpu_attr, &gpu_attrs) {
       StringRef name = gpu_attr->name;
-      eCustomDataType type = static_cast<eCustomDataType>(gpu_attr->type);
+      eCustomDataType type = eCustomDataType(gpu_attr->type);
       int layer = -1;
       std::optional<bke::AttrDomain> domain;
 

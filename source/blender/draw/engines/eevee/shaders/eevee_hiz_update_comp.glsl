@@ -21,6 +21,7 @@
 
 COMPUTE_SHADER_CREATE_INFO(eevee_hiz_update)
 
+#include "eevee_reverse_z_lib.glsl"
 #include "gpu_shader_math_vector_lib.glsl"
 
 shared float local_depths[gl_WorkGroupSize.y][gl_WorkGroupSize.x];
@@ -55,6 +56,8 @@ void main()
   float2 samp_co = float2(src_px + 1) / float2(textureSize(depth_tx, 0));
   float4 samp = textureGather(depth_tx, samp_co);
 #endif
+
+  samp = reverse_z::read(samp);
 
   if (update_mip_0) {
     imageStoreFast(out_mip_0, src_px + int2(0, 1), samp.xxxx);

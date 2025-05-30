@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'a7d2b7850ef2')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'ba454989554a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-05 08:47+0000\n"
+"POT-Creation-Date: 2025-05-26 07:36+0000\n"
 "PO-Revision-Date: 2025-04-14 08:10+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Arabic <https://translate.blender.org/projects/blender-ui/ui/ar/>\n"
@@ -1742,6 +1742,46 @@ msgstr "ﻉﻭﺮﻓ"
 
 msgid "Bones which are children of this bone"
 msgstr "ﺔﻤﻈﻌﻟﺍ ﻩﺬﻫ ﻦﻣ ﻉﻭﺮﻔﻟﺍ ﺕﺎﻤﻈﻌﻟﺍ"
+
+
+msgid "Display Type"
+msgstr "ﺽﺮﻌﻟﺍ ﻉﻮﻧ"
+
+
+msgid "Octahedral"
+msgstr "ﻲﻧﺎﻤﺛ ﻢﺴﺠﻣ"
+
+
+msgid "Stick"
+msgstr "ﻲﺼﻋ"
+
+
+msgid "Display bones as simple 2D lines with dots"
+msgstr "ﻁﺎﻘﻧ ﻊﻣ ﺔﻄﻴﺴﺑ ﺔﻴﺋﺎﻨﺛ ﺕﻮﻄﺨﻛ ﻡﺎﻈﻌﻟﺍ ﺮﻬﻇﺍ"
+
+
+msgid "B-Bone"
+msgstr "ﻥﻮﺑ ﻲﺑ"
+
+
+msgid "Display bones as boxes, showing subdivision and B-Splines"
+msgstr "ﺏ-ﺕﺎﻴﻨﺤﻨﻣ ﻭ ﺕﺎﻤﻴﺴﻘﺘﻟﺍ ﺮﻬﻈﺗ ,ﻖﻳﺩﺎﻨﺼﻛ ﻡﺎﻈﻌﻟﺍ ﺮﻬﻇﺍ"
+
+
+msgid "Envelope"
+msgstr "ﻒﻠﻐﻣ"
+
+
+msgid "Display bones as extruded spheres, showing deformation influence volume"
+msgstr "ﻉﻮّﻄﺘﻟﺍ ﺮﻴﺛﺎﺗ ﻢﺠﺣ ﺮﻬﻈﺗ ,ﺔﻘﺜﺒﻨﻣ ﺕﺍﺮﻜﻛ ﻡﺎﻈﻌﻟﺍ ﺮﻬﻇﺍ"
+
+
+msgid "Wire"
+msgstr "ﺝﺎﻴﺳ"
+
+
+msgid "Display bones as thin wires, showing subdivision and B-Splines"
+msgstr "ﺏ-ﺕﺎﻴﻨﺤﻨﻣ ﻭ ﺕﺎﻤﻴﺴﻘﺘﻟﺍ ﺮﻬﻈﺗ ,ﺔﻌﻴﻓﺭ ﻙﻼ﻿ﺳﺎﻛ ﻡﺎﻈﻌﻟﺍ ﺮﻬﻇﺍ"
 
 
 msgid "Envelope Deform Distance"
@@ -4566,10 +4606,6 @@ msgstr "ﻑﺪﻬﻟﺍ ﻩﺎﺠﺗﺍ ﺪﻴﻘﻤﻟﺍ ﻦﺋﺎﻜﻟﺍ �
 
 msgid "Target Z"
 msgstr "Z ـﻟ ﻑﺪﻫ"
-
-
-msgid "Target's Z axis, not World Z axis, will constraint the Up direction"
-msgstr "ﻱﻮﻠﻌﻟﺍ ﻩﺎﺠﺗﻻ﻿ﺍ ﺪﻴّﻘﻴﺳ ،ﻲﻤﻟﺎﻌﻟﺍ Y ﺭﻮﺤﻤﻟﺍ ﺲﻴﻟ ،ﻱﺩﻮﻤﻌﻟﺍ ﻑﺪﻬﻟﺍ ﺭﻮﺤﻣ"
 
 
 msgid "Transformation Constraint"
@@ -7581,10 +7617,6 @@ msgid "Tracer"
 msgstr "ﻖﺣﻼ﻿ﻤﻟﺍ"
 
 
-msgid "Display Type"
-msgstr "ﺽﺮﻌﻟﺍ ﻉﻮﻧ"
-
-
 msgid "Velocity Grid"
 msgstr "ﺔﻋﺮﺴﻟﺍ ﺔﻜﺒﺷ"
 
@@ -8441,44 +8473,8 @@ msgid "Feature Set"
 msgstr "ﺕﺍﺰﻴﻤﻟﺍ ﺔﻋﻮﻤﺠﻣ"
 
 
-msgid "Octahedral"
-msgstr "ﻲﻧﺎﻤﺛ ﻢﺴﺠﻣ"
-
-
 msgid "Display bones as octahedral shape (default)"
 msgstr "(ﻲﺿﺍﺮﺘﻓﻻ﻿ﺍ)ﻲﻧﺎﻤﺛ ﻢﺴﺠﻣ ﻞﻜﺷ ﻰﻠﻋ ﻡﺎﻈﻌﻟﺍ ﺮﻬﻇﺍ"
-
-
-msgid "Stick"
-msgstr "ﻲﺼﻋ"
-
-
-msgid "Display bones as simple 2D lines with dots"
-msgstr "ﻁﺎﻘﻧ ﻊﻣ ﺔﻄﻴﺴﺑ ﺔﻴﺋﺎﻨﺛ ﺕﻮﻄﺨﻛ ﻡﺎﻈﻌﻟﺍ ﺮﻬﻇﺍ"
-
-
-msgid "B-Bone"
-msgstr "ﻥﻮﺑ ﻲﺑ"
-
-
-msgid "Display bones as boxes, showing subdivision and B-Splines"
-msgstr "ﺏ-ﺕﺎﻴﻨﺤﻨﻣ ﻭ ﺕﺎﻤﻴﺴﻘﺘﻟﺍ ﺮﻬﻈﺗ ,ﻖﻳﺩﺎﻨﺼﻛ ﻡﺎﻈﻌﻟﺍ ﺮﻬﻇﺍ"
-
-
-msgid "Envelope"
-msgstr "ﻒﻠﻐﻣ"
-
-
-msgid "Display bones as extruded spheres, showing deformation influence volume"
-msgstr "ﻉﻮّﻄﺘﻟﺍ ﺮﻴﺛﺎﺗ ﻢﺠﺣ ﺮﻬﻈﺗ ,ﺔﻘﺜﺒﻨﻣ ﺕﺍﺮﻜﻛ ﻡﺎﻈﻌﻟﺍ ﺮﻬﻇﺍ"
-
-
-msgid "Wire"
-msgstr "ﺝﺎﻴﺳ"
-
-
-msgid "Display bones as thin wires, showing subdivision and B-Splines"
-msgstr "ﺏ-ﺕﺎﻴﻨﺤﻨﻣ ﻭ ﺕﺎﻤﻴﺴﻘﺘﻟﺍ ﺮﻬﻈﺗ ,ﺔﻌﻴﻓﺭ ﻙﻼ﻿ﺳﺎﻛ ﻡﺎﻈﻌﻟﺍ ﺮﻬﻇﺍ"
 
 
 msgid "Edit Bones"
@@ -10754,6 +10750,10 @@ msgstr "blend. ﻒﻠﻣ ﺔﺒﺘﻜﻤﻟ ﺭﺎﺴﻤﻟﺍ"
 
 msgid "Light color"
 msgstr "ءﻮﻀﻟﺍ ﻥﻮﻟ"
+
+
+msgid "Normalize"
+msgstr "ﻱﻮّﺳ"
 
 
 msgid "Specular Factor"
@@ -15803,16 +15803,40 @@ msgid "Material slot name"
 msgstr "ﺔﻣﺎﺨﻟﺍ ﺔﺤﺘﻓ ﻢﺳﺇ"
 
 
+msgid "Mirror"
+msgstr "ﻞﺛﺎﻣ"
+
+
+msgid "Snap"
+msgstr "ﻱﺫﺎﺣ"
+
+
+msgid "UV Mapping"
+msgstr "UV ءﺎﺴﻛﺇ"
+
+
+msgid "Navigation"
+msgstr "ﺢﻔّﺼﺗ"
+
+
+msgid "Align View"
+msgstr "ﺮﻈﻨﻤﻟﺍ ﻱﺫﺎﺣ"
+
+
+msgid "Align View to Active"
+msgstr "ﻝﺎﻌّﻔﻠﻟ ﺮﻈﻨﻤﻟﺍ ﻱﺫﺎﺣ"
+
+
+msgid "Select More/Less"
+msgstr "ﻞﻗﺍ/ﺮﺜﻛﺍ ﺭﺎﻴﺘﺧﺍ"
+
+
 msgid "Select Similar"
 msgstr "ﻞﺛﺎﻤﻤﻟﺍ ﺮﺘﺧﺇ"
 
 
 msgid "Select All by Trait"
 msgstr "ﺔﻤﺴﻟﺍ ﺐﺴﺣ ﻞﻛ ﺭﺎﻴﺘﺧﺍ"
-
-
-msgid "Select More/Less"
-msgstr "ﻞﻗﺍ/ﺮﺜﻛﺍ ﺭﺎﻴﺘﺧﺍ"
 
 
 msgid "Select Linked"
@@ -15887,32 +15911,8 @@ msgid "Bone Roll"
 msgstr "ﺔﻤﻈﻌﻟﺍ ءﺍﻮﺘﻟﺍ"
 
 
-msgid "Snap"
-msgstr "ﻱﺫﺎﺣ"
-
-
 msgid "Proportional Editing Falloff"
 msgstr "ﻲﺒﺴﻨﻟﺍ ﺮﻳﺮﺤﺘﻟﺍ ﻲﺷﻼ﻿ﺗ"
-
-
-msgid "Mirror"
-msgstr "ﻞﺛﺎﻣ"
-
-
-msgid "UV Mapping"
-msgstr "UV ءﺎﺴﻛﺇ"
-
-
-msgid "Navigation"
-msgstr "ﺢﻔّﺼﺗ"
-
-
-msgid "Align View"
-msgstr "ﺮﻈﻨﻤﻟﺍ ﻱﺫﺎﺣ"
-
-
-msgid "Align View to Active"
-msgstr "ﻝﺎﻌّﻔﻠﻟ ﺮﻈﻨﻤﻟﺍ ﻱﺫﺎﺣ"
 
 
 msgctxt "MovieClip"
@@ -18401,10 +18401,6 @@ msgid "Use Mask"
 msgstr "ﻉﺎﻨﻘﻟﺍ ﻡﺪﺨﺘﺳﺍ"
 
 
-msgid "Normalize"
-msgstr "ﻱﻮّﺳ"
-
-
 msgid "Normalize light intensities while tracking (slower)"
 msgstr "(ﺄﻄﺑﺍ) ﺔﻘﺣﻼ﻿ﻤﻟﺍ ﺪﻨﻋ ءﻮﻀﻟﺍ ﺓﺪﺣ ﻢﻈﻧ"
 
@@ -19169,6 +19165,10 @@ msgid "Flip X & Y"
 msgstr "X, Y ﻰﻠﻋ ﺲﻜﻋﺇ"
 
 
+msgid "Glare"
+msgstr "ﺞﻫﻮﺗ"
+
+
 msgid "Angle Offset"
 msgstr "ﺔﻳﻭﺍﺰﻟﺍ ﺔﺣﺍﺯﺍ"
 
@@ -19372,14 +19372,6 @@ msgstr "ﺮﻴﻴﺼﺘﻟﺍ ﺕﺎﻘﺒﻃ"
 
 msgid "Rotate"
 msgstr "ﺭﻭﺩ"
-
-
-msgid "Offset image horizontally (factor of image size)"
-msgstr "(ﺓﺭﻮﺼﻟﺍ ﻢﺠﺣ ﻞﻣﺎﻌﻣ) ﺎﻴﻘﻓﺍ ﺭﻮﺼﻟﺍ ﺡﺯﺃ"
-
-
-msgid "Offset image vertically (factor of image size)"
-msgstr "(ﺓﺭﻮﺼﻟﺍ ﻢﺠﺣ ﻞﻣﺎﻌﻣ) ﺎﻳﺩﻮﻣﺎﻋ ﺭﻮﺼﻟﺍ ﺡﺯﺃ"
 
 
 msgid "Coordinate space to scale relative to"
@@ -26455,6 +26447,10 @@ msgid "Select all visible bones grouped by similar properties"
 msgstr "ﺔﻠﺛﺎﻤﺘﻤﻟﺍ ﺹﺍﻮﺨﻟﺎﺑ ﺔﻋﻮﻤﺠﻤﻟﺍ ﻭ ﺓﺮﻫﺎﻈﻟﺍ ﻡﺎﻈﻌﻟﺍ ﻞﻛ ﺮﺘﺧﺍ"
 
 
+msgid "Parents"
+msgstr "ﻝﻮﺻﻻ﻿ﺍ"
+
+
 msgctxt "Operator"
 msgid "Select Connected"
 msgstr "ﺔﻠﺼﺘﻤﻟﺍ ﺭﺎﺘﺧﺍ"
@@ -28121,10 +28117,6 @@ msgid "Remove"
 msgstr "ﺔﻟﺍﺯﺇ"
 
 
-msgid "Save a Collada file"
-msgstr "Collada ﻒﻠﻣ ﻆﻔﺣﺍ"
-
-
 msgid "Only Selected UV Map"
 msgstr "ﺓﺭﺎﺘﺨﻤﻟﺍ UV ـﻟﺍ ﺔﻄﻳﺮﺧ ﻂﻘﻓ"
 
@@ -28527,10 +28519,6 @@ msgid "Bleed"
 msgstr "ﻑﺰﻧﺇ"
 
 
-msgid "Extend paint beyond the faces UVs to reduce seams (in pixels, slower)"
-msgstr "(ﺄﻄﺑﺃ ،ﺕﻼ﻿ﺴﻜﺒﻟﺎﺑ) ﺕﺍﺯﺭﺪﻟﺍ ﻞﻴﻠﻘﺘﻟ ﻪﺟﻭﻷ﻿ﺍ UV's ﺪﻌﺑ ﺎﻣ ﻰﻟﺇ ﻦﻳﻮﻠﺘﻟﺍ ﺪﻣُ"
-
-
 msgid "Stencil Image"
 msgstr "ﺔﻴﻓﻮﻔﺸﻟﺍ ﺓﺭﻮﺻ"
 
@@ -28591,20 +28579,16 @@ msgid "Palette Color"
 msgstr "ﻥﻮﻠﻟﺍ ﺔﺣﻮﻟ"
 
 
-msgid "Wire Color"
-msgstr "ﻂﺑﺍﺮﻟﺍ ﻥﻮﻟ"
-
-
-msgid "Render Pass"
-msgstr "ﺮﻴﻴﺼﺗ ﺮﻤﻣ"
-
-
 msgid "Motion Tracking"
 msgstr "ﺔﻛﺮﺤﻟﺍ ﺔﻘﺣﻼ﻿ﻣ"
 
 
 msgid "Transform Orientations"
 msgstr "ﻝﻮﺤﺘﻟﺍ ﺕﺎﻫﺎﺠﺗﺍ"
+
+
+msgid "Render Pass"
+msgstr "ﺮﻴﻴﺼﺗ ﺮﻤﻣ"
 
 
 msgid "Bone Constraints"
@@ -33324,6 +33308,10 @@ msgid "Vector Node"
 msgstr "ﻪﺠﺘﻤﻟﺍ ﺓﺪﻘﻋ"
 
 
+msgid "Wire Color"
+msgstr "ﻂﺑﺍﺮﻟﺍ ﻥﻮﻟ"
+
+
 msgid "Filter Match"
 msgstr "ﻲﻔﺼﻤﻟﺍ ﻢﺋﻻ﻿"
 
@@ -36089,10 +36077,6 @@ msgid "DOF Distance (Pick)"
 msgstr "(ﻂﻘﺘﻟﺍ) ﻞﻘﺤﻟﺍ ﻖﻤﻋ ﺪﻌﺑ"
 
 
-msgid "Parents"
-msgstr "ﻝﻮﺻﻻ﻿ﺍ"
-
-
 msgid "Tile Offset"
 msgstr "ﺔﻨﺒﻠﻟﺍ ﺔﺣﺍﺯﺇ"
 
@@ -36910,10 +36894,6 @@ msgstr "ﻯﺮﺧﻻ﻿ﺍ ﺓﺭﺎﺘﺨﻤﻟﺍ ﻁﺎﻘﻨﻠﻟ ﺔﻟﺎ
 
 msgid "No mesh data to join"
 msgstr "ﺔﻄﺒﺗﺮﻣ ﻥﻮﻜﺘﻟ ﻞﻜﺸﻟﺍ ﺕﺎﻧﺎﻴﺑ ﺢﻔﺼﺗ"
-
-
-msgid "Selected meshes must have equal numbers of vertices"
-msgstr "ﻂﻘﻨﻟﺍ ﺩﺪﻌﺑ ﺮﺘﺧﺍ"
 
 
 msgctxt "Object"
@@ -37806,10 +37786,6 @@ msgstr "ﺮﻴﻨﻣ"
 
 msgid "Layer:"
 msgstr ":ﺔﻘﺒﻃ"
-
-
-msgid "Glare"
-msgstr "ﺞﻫﻮﺗ"
 
 
 msgid "Use feather information from the mask"

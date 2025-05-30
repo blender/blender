@@ -17,9 +17,8 @@
 
 #pragma once
 
-#include <mutex>
-
 #include "BLI_map.hh"
+#include "BLI_mutex.hh"
 #include "BLI_utility_mixins.hh"
 #include "BLI_vector.hh"
 
@@ -81,7 +80,7 @@ class VKDescriptorSetLayouts : NonCopyable {
    */
   VkDescriptorSetLayoutCreateInfo vk_descriptor_set_layout_create_info_;
   Vector<VkDescriptorSetLayoutBinding> vk_descriptor_set_layout_bindings_;
-  std::mutex mutex_;
+  Mutex mutex_;
 
  public:
   VKDescriptorSetLayouts();

@@ -15,7 +15,7 @@
  * This is done because command-line actions may be destructive so the down-side of running the
  * wrong command could be severe. The reason this is not considered an error is we can't prevent
  * it so easily, unlike operator ID's which may be longer, commands are typically short terms
- * which wont necessarily include an add-ons identifier as a prefix for e.g.
+ * which wont necessarily include an add-ons identifier as a prefix for example.
  * Further, an error would break loading add-ons who's primary is *not*
  * necessarily to provide command-line access.
  * An alternative solution could be to generate unique names (number them for example)

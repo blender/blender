@@ -8,6 +8,7 @@ FRAGMENT_SHADER_CREATE_INFO(eevee_display_lightprobe_planar)
 
 #include "draw_view_lib.glsl"
 #include "eevee_lightprobe_sphere_lib.glsl"
+#include "eevee_reverse_z_lib.glsl"
 
 float2 sampling_uv(float2 screen_uv)
 {
@@ -19,7 +20,7 @@ float2 sampling_uv(float2 screen_uv)
 void main()
 {
   float2 uv = gl_FragCoord.xy / float2(textureSize(planar_radiance_tx, 0).xy);
-  float depth = texture(planar_depth_tx, float3(sampling_uv(uv), probe_index)).r;
+  float depth = reverse_z::read(texture(planar_depth_tx, float3(sampling_uv(uv), probe_index)).r);
   if (depth == 1.0f) {
     float3 ndc = drw_screen_to_ndc(float3(uv, 0.0f));
     float3 wP = drw_point_ndc_to_world(ndc);

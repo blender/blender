@@ -58,23 +58,61 @@ class NODE_MT_category_shader_input(Menu):
         node_add_menu.add_node_type(layout, "ShaderNodeAmbientOcclusion")
         node_add_menu.add_node_type(layout, "ShaderNodeAttribute")
         node_add_menu.add_node_type(layout, "ShaderNodeBevel")
-        node_add_menu.add_node_type(layout, "ShaderNodeCameraData")
+        node_add_menu.add_node_type_with_outputs(
+            context, layout, "ShaderNodeCameraData", [
+                "View Vector", "View Z Depth", "View Distance"])
         node_add_menu.add_node_type(layout, "ShaderNodeVertexColor")
-        node_add_menu.add_node_type(layout, "ShaderNodeHairInfo")
+        node_add_menu.add_node_type_with_outputs(
+            context, layout, "ShaderNodeHairInfo", [
+                "Is Strand", "Intercept", "Length", "Thickness", "Tangent Normal", "Random"])
         node_add_menu.add_node_type(layout, "ShaderNodeFresnel")
-        node_add_menu.add_node_type(layout, "ShaderNodeNewGeometry")
+        node_add_menu.add_node_type_with_outputs(context,
+                                                 layout,
+                                                 "ShaderNodeNewGeometry",
+                                                 ["Position",
+                                                  "Normal",
+                                                  "Tangent",
+                                                  "True Normal",
+                                                  "Incoming",
+                                                  "Parametric",
+                                                  "Backfacing",
+                                                  "Pointiness",
+                                                  "Random Per Island"])
         node_add_menu.add_node_type(layout, "ShaderNodeLayerWeight")
-        node_add_menu.add_node_type(layout, "ShaderNodeLightPath")
-        node_add_menu.add_node_type(layout, "ShaderNodeObjectInfo")
-        node_add_menu.add_node_type(layout, "ShaderNodeParticleInfo")
-        node_add_menu.add_node_type(layout, "ShaderNodePointInfo")
+        node_add_menu.add_node_type_with_outputs(context,
+                                                 layout,
+                                                 "ShaderNodeLightPath",
+                                                 ["Is Camera Ray",
+                                                  "Is Shadow Ray",
+                                                  "Is Diffuse Ray",
+                                                  "Is Glossy Ray",
+                                                  "Is Singular Ray",
+                                                  "Is Reflection Ray",
+                                                  "Is Transmission Ray",
+                                                  "Is Volume Scatter Ray",
+                                                  "Ray Length",
+                                                  "Ray Depth",
+                                                  "Diffuse Depth",
+                                                  "Glossy Depth",
+                                                  "Transparent Depth",
+                                                  "Transmission Depth"])
+        node_add_menu.add_node_type_with_outputs(
+            context, layout, "ShaderNodeObjectInfo", [
+                "Location", "Color", "Alpha", "Object Index", "Material Index", "Random"])
+        node_add_menu.add_node_type_with_outputs(
+            context, layout, "ShaderNodeParticleInfo", [
+                "Index", "Random", "Age", "Lifetime", "Location", "Size", "Velocity", "Angular Velocity"])
+        node_add_menu.add_node_type_with_outputs(context, layout, "ShaderNodePointInfo",
+                                                 ["Position", "Radius", "Random"])
         node_add_menu.add_node_type(layout, "ShaderNodeRGB")
         node_add_menu.add_node_type(layout, "ShaderNodeTangent")
-        node_add_menu.add_node_type(layout, "ShaderNodeTexCoord")
+        node_add_menu.add_node_type_with_outputs(context, layout, "ShaderNodeTexCoord",
+                                                 ["Normal", "UV", "Object", "Camera", "Window", "Reflection"])
         node_add_menu.add_node_type(layout, "ShaderNodeUVAlongStroke", poll=line_style_shader_nodes_poll(context))
         node_add_menu.add_node_type(layout, "ShaderNodeUVMap")
         node_add_menu.add_node_type(layout, "ShaderNodeValue")
-        node_add_menu.add_node_type(layout, "ShaderNodeVolumeInfo")
+        node_add_menu.add_node_type_with_outputs(context, layout, "ShaderNodeVolumeInfo",
+                                                 ["Color", "Density", "Flame", "Temperature"])
         node_add_menu.add_node_type(layout, "ShaderNodeWireframe")
 
         node_add_menu.draw_assets_for_catalog(layout, self.bl_label)

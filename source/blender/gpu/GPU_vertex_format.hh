@@ -73,6 +73,35 @@ enum class VertAttrType : uint8_t {
   /* UFLOAT_9_9_9_EXP_5_(impl) Available on Metal (and maybe VK) but not on GL. */
 
   GPU_VERTEX_FORMAT_EXPAND(DECLARE)
+#undef DECLARE
+
+#define DECLARE(a, b, c, blender_enum, d, e, f, g, h) \
+  blender_enum##_DEPRECATED = int(DataFormat::blender_enum),
+
+/* Deprecated formats. To be removed in 5.0. Needed for python shaders. */
+#define GPU_VERTEX_DEPRECATED_FORMAT_EXPAND(impl) \
+  SNORM_8_(impl) \
+  SNORM_8_8_(impl) \
+  SNORM_8_8_8_(impl) \
+  SNORM_16_(impl) \
+  SNORM_16_16_16_(impl) \
+  UNORM_8_(impl) \
+  UNORM_8_8_(impl) \
+  UNORM_8_8_8_(impl) \
+  UNORM_16_(impl) \
+  UNORM_16_16_16_(impl) \
+  SINT_8_(impl) \
+  SINT_8_8_(impl) \
+  SINT_8_8_8_(impl) \
+  SINT_16_(impl) \
+  SINT_16_16_16_(impl) \
+  UINT_8_(impl) \
+  UINT_8_8_(impl) \
+  UINT_8_8_8_(impl) \
+  UINT_16_(impl) \
+  UINT_16_16_16_(impl)
+
+      GPU_VERTEX_DEPRECATED_FORMAT_EXPAND(DECLARE)
 
 #undef DECLARE
 };
@@ -128,6 +157,8 @@ struct GPUVertAttr {
   uint comp_len : 5;
   /* size in bytes, 1 to 64 */
   uint size : 7;
+  /* WORKAROUND: Allow casting inside pyGPU attr_fill. To be removed with 5.0. */
+  uint python_int_to_float : 1;
 #endif
   /* from beginning of vertex, in bytes */
   uint8_t offset;

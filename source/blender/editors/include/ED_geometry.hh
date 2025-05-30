@@ -26,7 +26,7 @@ enum class AttrDomain : int8_t;
 class MutableAttributeAccessor;
 }  // namespace blender::bke
 namespace blender::nodes::geo_eval_log {
-class GeoModifierLog;
+class GeoNodesLog;
 }
 
 namespace blender::ed::geometry {
@@ -66,7 +66,7 @@ bool convert_attribute(AttributeOwner &owner,
 
 struct GeoOperatorLog {
   std::string node_group_name;
-  std::unique_ptr<nodes::geo_eval_log::GeoModifierLog> log;
+  std::unique_ptr<nodes::geo_eval_log::GeoNodesLog> log;
 
   GeoOperatorLog() = default;
   ~GeoOperatorLog();

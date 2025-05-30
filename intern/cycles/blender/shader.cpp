@@ -1645,7 +1645,7 @@ void BlenderSync::sync_materials(BL::Depsgraph &b_depsgraph, bool update_all)
        * redundant shader nodes might be removed which prevents loading
        * unnecessary attributes later.
        *
-       * However, since graph simplification also accounts for e.g. mix
+       * However, since graph simplification also accounts for mix
        * weight, this would cause frequent expensive resyncs in interactive
        * sessions, so for those sessions optimization is only performed
        * right before compiling.

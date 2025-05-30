@@ -25,6 +25,7 @@ std::string normalize_directory_path(StringRef directory)
               directory.data(),
               /* + 1 for null terminator. */
               std::min(directory.size() + 1, int64_t(sizeof(dir_normalized))));
+  BLI_path_slash_native(dir_normalized);
   BLI_path_normalize_dir(dir_normalized, sizeof(dir_normalized));
   return std::string(dir_normalized);
 }

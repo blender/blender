@@ -307,13 +307,12 @@ void LookdevModule::sync_pass(PassSimple &pass,
                               ResourceHandle res_handle)
 {
   pass.init();
-  pass.clear_depth(1.0f);
-  pass.clear_color(float4(0.0, 0.0, 0.0, 1.0));
+  pass.clear_color_depth_stencil(float4(0.0, 0.0, 0.0, 1.0), inst_.film.depth.clear_value, 0);
 
   const DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_CULL_BACK;
 
   GPUMaterial *gpumat = inst_.shaders.material_shader_get(
-      mat, mat->nodetree, MAT_PIPE_FORWARD, MAT_GEOM_MESH, MAT_PROBE_NONE);
+      mat, mat->nodetree, MAT_PIPE_FORWARD, MAT_GEOM_MESH, false, inst_.materials.default_surface);
   pass.state_set(state);
   pass.material_set(*inst_.manager, gpumat);
   pass.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst_.pipelines.utility_tx);

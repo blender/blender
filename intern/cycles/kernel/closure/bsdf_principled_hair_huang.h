@@ -323,8 +323,10 @@ ccl_device_forceinline float bsdf_hair_huang_energy_scale(KernelGlobals kg,
 }
 
 /* Sample microfacets from a tilted mesonormal. */
-ccl_device_inline float3 sample_wh(
-    KernelGlobals kg, const float roughness, const float3 wi, const float3 wm, const float2 rand)
+ccl_device_inline float3 sample_wh(const float roughness,
+                                   const float3 wi,
+                                   const float3 wm,
+                                   const float2 rand)
 {
   /* Coordinate transformation for microfacet sampling. */
   float3 s;
@@ -474,7 +476,7 @@ ccl_device Spectrum bsdf_hair_huang_eval_residual(KernelGlobals kg,
     const float2 sample1 = make_float2(lcg_step_float(rng_quadrature),
                                        lcg_step_float(rng_quadrature));
 
-    const float3 wh1 = sample_wh(kg, roughness, wi, wmi, sample1);
+    const float3 wh1 = sample_wh(roughness, wi, wmi, sample1);
     const float cos_hi1 = dot(wi, wh1);
     if (!(cos_hi1 > 0.0f)) {
       continue;
@@ -540,7 +542,7 @@ ccl_device Spectrum bsdf_hair_huang_eval_residual(KernelGlobals kg,
       /* Sample `wh2`. */
       const float2 sample2 = make_float2(lcg_step_float(rng_quadrature),
                                          lcg_step_float(rng_quadrature));
-      const float3 wh2 = sample_wh(kg, roughness, -wt, wmt, sample2);
+      const float3 wh2 = sample_wh(roughness, -wt, wmt, sample2);
       const float cos_hi2 = dot(-wt, wh2);
       if (!(cos_hi2 > 0.0f)) {
         continue;
@@ -670,7 +672,7 @@ ccl_device int bsdf_hair_huang_sample(const KernelGlobals kg,
   /* Sample R lobe. */
   const float roughness2 = sqr(roughness);
   const float sqrt_roughness = sqrtf(roughness);
-  const float3 wh1 = sample_wh(kg, roughness, wi, wmi, sample_h1);
+  const float3 wh1 = sample_wh(roughness, wi, wmi, sample_h1);
   const float3 wr = -reflect(wi, wh1);
 
   /* Ensure that this is a valid sample. */
@@ -694,7 +696,7 @@ ccl_device int bsdf_hair_huang_sample(const KernelGlobals kg,
   const float3 wmt = sphg_dir(-bsdf->tilt, gamma_mt, b);
   const float3 wmt_ = sphg_dir(0.0f, gamma_mt, b);
 
-  const float3 wh2 = sample_wh(kg, roughness, -wt, wmt, sample_h2);
+  const float3 wh2 = sample_wh(roughness, -wt, wmt, sample_h2);
 
   const float3 wtr = -reflect(wt, wh2);
 
@@ -732,7 +734,7 @@ ccl_device int bsdf_hair_huang_sample(const KernelGlobals kg,
     const float gamma_mtr = gamma_mi - 2.0f * (to_phi(phi_t, b) - to_phi(phi_tr, b)) + M_PI_F;
     wmtr = sphg_dir(-bsdf->tilt, gamma_mtr, b);
 
-    wh3 = sample_wh(kg, roughness, wtr, wmtr, sample_h3);
+    wh3 = sample_wh(roughness, wtr, wmtr, sample_h3);
 
     float cos_theta_t3;
     const float R3 = fresnel_dielectric(dot(wtr, wh3), inv_eta, &cos_theta_t3);
@@ -916,7 +918,7 @@ ccl_device void bsdf_hair_huang_blur(ccl_private ShaderClosure *sc, const float 
 
 /* Hair Albedo. Computed by summing up geometric series, assuming circular cross-section and
  * specular reflection. */
-ccl_device Spectrum bsdf_hair_huang_albedo(const ccl_private ShaderData *sd,
+ccl_device Spectrum bsdf_hair_huang_albedo(const ccl_private ShaderData * /*sd*/,
                                            const ccl_private ShaderClosure *sc)
 {
   ccl_private HuangHairBSDF *bsdf = (ccl_private HuangHairBSDF *)sc;

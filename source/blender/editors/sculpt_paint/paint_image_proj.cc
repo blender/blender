@@ -6576,7 +6576,7 @@ static const char *proj_paint_color_attribute_create(wmOperator *op, Object &ob)
     RNA_string_get(op->ptr, "name", name);
     RNA_float_get_array(op->ptr, "color", color);
     domain = bke::AttrDomain(RNA_enum_get(op->ptr, "domain"));
-    type = (eCustomDataType)RNA_enum_get(op->ptr, "data_type");
+    type = eCustomDataType(RNA_enum_get(op->ptr, "data_type"));
   }
 
   Mesh *mesh = static_cast<Mesh *>(ob.data);

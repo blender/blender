@@ -272,8 +272,7 @@ typedef struct ParticleSettings {
   /* hair dynamics */
   float bending_random;
 
-  /** MAX_MTEX. */
-  struct MTex *mtex[18];
+  struct MTex *mtex[/*MAX_MTEX*/ 18];
 
   struct Collection *instance_collection;
   struct ListBase instance_weights;
@@ -349,8 +348,8 @@ typedef struct ParticleSystem {
   /** Used for keyed and boid physics. */
   struct ListBase targets;
 
-  /** Particle system name, MAX_NAME. */
-  char name[64];
+  /** Particle system name. */
+  char name[/*MAX_NAME*/ 64];
 
   /** Used for instancing. */
   float imat[4][4];
@@ -364,8 +363,8 @@ typedef struct ParticleSystem {
   short target_psys, totkeyed, bakespace;
   char _pad1[6];
 
-  /** Billboard uv name, MAX_CUSTOMDATA_LAYER_NAME. */
-  char bb_uvname[3][68] DNA_DEPRECATED;
+  /** Billboard UV name. */
+  char bb_uvname[3][/*MAX_CUSTOMDATA_LAYER_NAME*/ 68] DNA_DEPRECATED;
 
   char _pad2[4];
   /* if you change these remember to update array lengths to PSYS_TOT_VG! */

@@ -1195,7 +1195,7 @@ static wmOperatorStatus mask_from_cavity_exec(bContext *C, wmOperator *op)
   BKE_sculpt_mask_layers_ensure(depsgraph, CTX_data_main(C), &ob, mmd);
 
   BKE_sculpt_update_object_for_edit(depsgraph, &ob, false);
-  SCULPT_vertex_random_access_ensure(ob);
+  vert_random_access_ensure(ob);
 
   const ApplyMaskMode mode = ApplyMaskMode(RNA_enum_get(op->ptr, "mix_mode"));
   const float factor = RNA_float_get(op->ptr, "mix_factor");
@@ -1389,7 +1389,7 @@ static wmOperatorStatus mask_from_boundary_exec(bContext *C, wmOperator *op)
   BKE_sculpt_mask_layers_ensure(depsgraph, CTX_data_main(C), &ob, mmd);
 
   BKE_sculpt_update_object_for_edit(depsgraph, &ob, false);
-  SCULPT_vertex_random_access_ensure(ob);
+  vert_random_access_ensure(ob);
 
   const ApplyMaskMode mode = ApplyMaskMode(RNA_enum_get(op->ptr, "mix_mode"));
   const float factor = RNA_float_get(op->ptr, "mix_factor");

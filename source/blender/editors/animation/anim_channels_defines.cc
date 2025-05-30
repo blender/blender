@@ -2135,9 +2135,7 @@ static bAnimChannelType ACF_DSCAM = {
 static int acf_dscur_icon(bAnimListElem *ale)
 {
   Curve *cu = static_cast<Curve *>(ale->data);
-  short obtype = BKE_curve_type_get(cu);
-
-  switch (obtype) {
+  switch (cu->ob_type) {
     case OB_FONT:
       return ICON_FONT_DATA;
     case OB_SURF:

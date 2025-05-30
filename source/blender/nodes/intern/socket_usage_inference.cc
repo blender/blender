@@ -66,10 +66,13 @@ struct SocketUsageInferencer {
   /** Some inline storage to reduce the number of allocations. */
   AlignedBuffer<1024, 8> scope_buffer_;
 
+  std::optional<Span<bool>> top_level_ignored_inputs_;
+
  public:
   SocketUsageInferencer(const bNodeTree &tree,
-                        const std::optional<Span<GPointer>> tree_input_values)
-      : root_tree_(tree)
+                        const std::optional<Span<GPointer>> tree_input_values,
+                        const std::optional<Span<bool>> top_level_ignored_inputs = std::nullopt)
+      : root_tree_(tree), top_level_ignored_inputs_(top_level_ignored_inputs)
   {
     scope_.allocator().provide_buffer(scope_buffer_);
     root_tree_.ensure_topology_cache();
@@ -79,11 +82,14 @@ struct SocketUsageInferencer {
     for (const bNode *node : root_tree_.group_input_nodes()) {
       for (const int i : root_tree_.interface_inputs().index_range()) {
         const bNodeSocket &socket = node->output_socket(i);
+        const SocketInContext socket_in_context{nullptr, &socket};
         const void *input_value = nullptr;
-        if (tree_input_values.has_value()) {
-          input_value = (*tree_input_values)[i].get();
+        if (!this->treat_socket_as_unknown(socket_in_context)) {
+          if (tree_input_values.has_value()) {
+            input_value = (*tree_input_values)[i].get();
+          }
         }
-        all_socket_values_.add_new({nullptr, &socket}, input_value);
+        all_socket_values_.add_new(socket_in_context, input_value);
       }
     }
   }
@@ -93,6 +99,17 @@ struct SocketUsageInferencer {
     for (const bNodeSocket *socket : root_tree_.all_output_sockets()) {
       all_socket_usages_.add_new({nullptr, socket}, true);
     }
+  }
+
+  bool is_group_input_used(const int input_i)
+  {
+    for (const bNode *node : root_tree_.group_input_nodes()) {
+      const SocketInContext socket{nullptr, &node->output_socket(input_i)};
+      if (this->is_socket_used(socket)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   bool is_socket_used(const SocketInContext &socket)
@@ -322,7 +339,7 @@ struct SocketUsageInferencer {
     /* The group node input is used if any of the matching group inputs within the group is
      * used. */
     const ComputeContext &group_context = compute_context_cache_.for_group_node(
-        socket.context, *node, node->owner_tree());
+        socket.context, node->identifier, &node->owner_tree());
     Vector<const bNodeSocket *> dependent_sockets;
     for (const bNode *group_input_node : group->group_input_nodes()) {
       dependent_sockets.append(&group_input_node->output_socket(socket->index()));
@@ -341,8 +358,7 @@ struct SocketUsageInferencer {
     /* The group output node is used if the matching output of the parent group node is used. */
     const bke::GroupNodeComputeContext &group_context =
         *static_cast<const bke::GroupNodeComputeContext *>(socket.context);
-    const bNodeSocket &group_node_output = group_context.caller_group_node()->output_socket(
-        output_i);
+    const bNodeSocket &group_node_output = group_context.node()->output_socket(output_i);
     this->usage_task__with_dependent_sockets(
         socket, {&group_node_output}, {}, group_context.parent());
   }
@@ -581,6 +597,30 @@ struct SocketUsageInferencer {
         this->value_task__output__generic_switch(socket, menu_switch__is_socket_selected);
         return;
       }
+      case SH_NODE_MIX: {
+        this->value_task__output__generic_switch(socket, mix_node__is_socket_selected);
+        return;
+      }
+      case SH_NODE_MIX_SHADER: {
+        this->value_task__output__generic_switch(socket, shader_mix_node__is_socket_selected);
+        return;
+      }
+      case SH_NODE_MATH: {
+        this->value_task__output__float_math(socket);
+        return;
+      }
+      case SH_NODE_VECTOR_MATH: {
+        this->value_task__output__vector_math(socket);
+        return;
+      }
+      case FN_NODE_INTEGER_MATH: {
+        this->value_task__output__integer_math(socket);
+        return;
+      }
+      case FN_NODE_BOOLEAN_MATH: {
+        this->value_task__output__boolean_math(socket);
+        return;
+      }
       default: {
         if (node->typeinfo->build_multi_function) {
           this->value_task__output__multi_function_node(socket);
@@ -615,7 +655,7 @@ struct SocketUsageInferencer {
       return;
     }
     const ComputeContext &group_context = compute_context_cache_.for_group_node(
-        socket.context, *node, node->owner_tree());
+        socket.context, node->identifier, &node->owner_tree());
     const SocketInContext socket_in_group{&group_context,
                                           &group_output_node->input_socket(socket->index())};
     const std::optional<const void *> value = all_socket_values_.lookup_try(socket_in_group);
@@ -633,8 +673,8 @@ struct SocketUsageInferencer {
 
     const bke::GroupNodeComputeContext &group_context =
         *static_cast<const bke::GroupNodeComputeContext *>(socket.context);
-    const SocketInContext group_node_input{
-        group_context.parent(), &group_context.caller_group_node()->input_socket(socket->index())};
+    const SocketInContext group_node_input{group_context.parent(),
+                                           &group_context.node()->input_socket(socket->index())};
     const std::optional<const void *> value = all_socket_values_.lookup_try(group_node_input);
     if (!value.has_value()) {
       this->push_value_task(group_node_input);
@@ -654,9 +694,233 @@ struct SocketUsageInferencer {
     all_socket_values_.add_new(socket, *value);
   }
 
+  void value_task__output__float_math(const SocketInContext &socket)
+  {
+    const NodeInContext node = socket.owner_node();
+    const NodeMathOperation operation = NodeMathOperation(node->custom1);
+    switch (operation) {
+      case NODE_MATH_MULTIPLY: {
+        this->value_task__output__generic_eval(
+            socket, [&](const Span<const void *> inputs) -> std::optional<const void *> {
+              const std::optional<float> a = inputs[0] ? std::optional(*static_cast<const float *>(
+                                                             inputs[0])) :
+                                                         std::nullopt;
+              const std::optional<float> b = inputs[1] ? std::optional(*static_cast<const float *>(
+                                                             inputs[1])) :
+                                                         std::nullopt;
+              if (a == 0.0f || b == 0.0f) {
+                return &scope_.construct<float>(0.0f);
+              }
+              if (a.has_value() && b.has_value()) {
+                return &scope_.construct<float>(*a * *b);
+              }
+              return std::nullopt;
+            });
+        break;
+      }
+      default: {
+        this->value_task__output__multi_function_node(socket);
+        break;
+      }
+    }
+  }
+
+  void value_task__output__vector_math(const SocketInContext &socket)
+  {
+    const NodeInContext node = socket.owner_node();
+    const NodeVectorMathOperation operation = NodeVectorMathOperation(node->custom1);
+    switch (operation) {
+      case NODE_VECTOR_MATH_MULTIPLY: {
+        this->value_task__output__generic_eval(
+            socket, [&](const Span<const void *> inputs) -> std::optional<const void *> {
+              const std::optional<float3> a = inputs[0] ?
+                                                  std::optional(
+                                                      *static_cast<const float3 *>(inputs[0])) :
+                                                  std::nullopt;
+              const std::optional<float3> b = inputs[1] ?
+                                                  std::optional(
+                                                      *static_cast<const float3 *>(inputs[1])) :
+                                                  std::nullopt;
+              if (a == float3(0.0f) || b == float3(0.0f)) {
+                return &scope_.construct<float3>(0.0f);
+              }
+              if (a.has_value() && b.has_value()) {
+                return &scope_.construct<float3>(*a * *b);
+              }
+              return std::nullopt;
+            });
+        break;
+      }
+      case NODE_VECTOR_MATH_SCALE: {
+        this->value_task__output__generic_eval(
+            socket, [&](const Span<const void *> inputs) -> std::optional<const void *> {
+              const std::optional<float3> a = inputs[0] ?
+                                                  std::optional(
+                                                      *static_cast<const float3 *>(inputs[0])) :
+                                                  std::nullopt;
+              const std::optional<float> scale = inputs[3] ?
+                                                     std::optional(
+                                                         *static_cast<const float *>(inputs[3])) :
+                                                     std::nullopt;
+              if (a == float3(0.0f) || scale == 0.0f) {
+                return &scope_.construct<float3>(0.0f);
+              }
+              if (a.has_value() && scale.has_value()) {
+                return &scope_.construct<float3>(*a * *scale);
+              }
+              return std::nullopt;
+            });
+        break;
+      }
+      default: {
+        this->value_task__output__multi_function_node(socket);
+        break;
+      }
+    }
+  }
+
+  void value_task__output__integer_math(const SocketInContext &socket)
+  {
+    const NodeInContext node = socket.owner_node();
+    const NodeIntegerMathOperation operation = NodeIntegerMathOperation(node->custom1);
+    switch (operation) {
+      case NODE_INTEGER_MATH_MULTIPLY: {
+        this->value_task__output__generic_eval(
+            socket, [&](const Span<const void *> inputs) -> std::optional<const void *> {
+              const std::optional<int> a = inputs[0] ? std::optional(
+                                                           *static_cast<const int *>(inputs[0])) :
+                                                       std::nullopt;
+              const std::optional<int> b = inputs[1] ? std::optional(
+                                                           *static_cast<const int *>(inputs[1])) :
+                                                       std::nullopt;
+              if (a == 0 || b == 0) {
+                return &scope_.construct<int>(0);
+              }
+              if (a.has_value() && b.has_value()) {
+                return &scope_.construct<int>(*a * *b);
+              }
+              return std::nullopt;
+            });
+        break;
+      }
+      default: {
+        this->value_task__output__multi_function_node(socket);
+        break;
+      }
+    }
+  }
+
+  void value_task__output__boolean_math(const SocketInContext &socket)
+  {
+    const NodeInContext node = socket.owner_node();
+    const NodeBooleanMathOperation operation = NodeBooleanMathOperation(node->custom1);
+
+    const auto handle_binary_op =
+        [&](FunctionRef<std::optional<bool>(std::optional<bool>, std::optional<bool>)> fn) {
+          this->value_task__output__generic_eval(
+              socket, [&](const Span<const void *> inputs) -> std::optional<const void *> {
+                const std::optional<bool> a = inputs[0] ? std::optional(*static_cast<const bool *>(
+                                                              inputs[0])) :
+                                                          std::nullopt;
+                const std::optional<bool> b = inputs[1] ? std::optional(*static_cast<const bool *>(
+                                                              inputs[1])) :
+                                                          std::nullopt;
+                const std::optional<bool> result = fn(a, b);
+                if (result.has_value()) {
+                  return &scope_.construct<bool>(*result);
+                }
+                return std::nullopt;
+              });
+        };
+    switch (operation) {
+      case NODE_BOOLEAN_MATH_AND: {
+        handle_binary_op(
+            [](const std::optional<bool> &a, const std::optional<bool> &b) -> std::optional<bool> {
+              if (a == false || b == false) {
+                return false;
+              }
+              if (a.has_value() && b.has_value()) {
+                return *a && *b;
+              }
+              return std::nullopt;
+            });
+        break;
+      }
+      case NODE_BOOLEAN_MATH_OR: {
+        handle_binary_op(
+            [](const std::optional<bool> &a, const std::optional<bool> &b) -> std::optional<bool> {
+              if (a == true || b == true) {
+                return true;
+              }
+              if (a.has_value() && b.has_value()) {
+                return *a || *b;
+              }
+              return std::nullopt;
+            });
+        break;
+      }
+      case NODE_BOOLEAN_MATH_NAND: {
+        handle_binary_op(
+            [](const std::optional<bool> &a, const std::optional<bool> &b) -> std::optional<bool> {
+              if (a == false || b == false) {
+                return true;
+              }
+              if (a.has_value() && b.has_value()) {
+                return !(*a && *b);
+              }
+              return std::nullopt;
+            });
+        break;
+      }
+      case NODE_BOOLEAN_MATH_NOR: {
+        handle_binary_op(
+            [](const std::optional<bool> &a, const std::optional<bool> &b) -> std::optional<bool> {
+              if (a == true || b == true) {
+                return false;
+              }
+              if (a.has_value() && b.has_value()) {
+                return !(*a || *b);
+              }
+              return std::nullopt;
+            });
+        break;
+      }
+      case NODE_BOOLEAN_MATH_IMPLY: {
+        handle_binary_op(
+            [](const std::optional<bool> &a, const std::optional<bool> &b) -> std::optional<bool> {
+              if (a == false || b == true) {
+                return true;
+              }
+              if (a.has_value() && b.has_value()) {
+                return !*a || *b;
+              }
+              return std::nullopt;
+            });
+        break;
+      }
+      case NODE_BOOLEAN_MATH_NIMPLY: {
+        handle_binary_op(
+            [](const std::optional<bool> &a, const std::optional<bool> &b) -> std::optional<bool> {
+              if (a == false || b == true) {
+                return false;
+              }
+              if (a.has_value() && b.has_value()) {
+                return *a && !*b;
+              }
+              return std::nullopt;
+            });
+        break;
+      }
+      default: {
+        this->value_task__output__multi_function_node(socket);
+        break;
+      }
+    }
+  }
+
   /**
-   * Assumes that the first input is a condition that selects one of the remaining inputs which is
-   * then output. If necessary, this can trigger a value task for the condition socket.
+   * Assumes that the first available input is a condition that selects one of the remaining inputs
+   * which is then output.
    */
   void value_task__output__generic_switch(
       const SocketInContext &socket,
@@ -665,9 +929,10 @@ struct SocketUsageInferencer {
   {
     const NodeInContext node = socket.owner_node();
     BLI_assert(node->input_sockets().size() >= 1);
-    BLI_assert(node->output_sockets().size() == 1);
+    BLI_assert(node->output_sockets().size() >= 1);
 
-    const SocketInContext condition_socket = node.input_socket(0);
+    const SocketInContext condition_socket{
+        socket.context, this->get_first_available_bsocket(node->input_sockets())};
     const std::optional<const void *> condition_value = all_socket_values_.lookup_try(
         condition_socket);
     if (!condition_value.has_value()) {
@@ -679,25 +944,85 @@ struct SocketUsageInferencer {
       all_socket_values_.add_new(socket, nullptr);
       return;
     }
-    for (const int input_i : node->input_sockets().index_range().drop_front(1)) {
+    Vector<const bNodeSocket *> selected_inputs;
+    for (const int input_i :
+         node->input_sockets().index_range().drop_front(condition_socket->index() + 1))
+    {
       const SocketInContext input_socket = node.input_socket(input_i);
+      if (!input_socket->is_available()) {
+        continue;
+      }
       if (input_socket->type == SOCK_CUSTOM && STREQ(input_socket->idname, "NodeSocketVirtual")) {
         continue;
       }
       const bool is_selected = is_selected_socket(input_socket, *condition_value);
-      if (!is_selected) {
-        continue;
+      if (is_selected) {
+        selected_inputs.append(input_socket.socket);
       }
-      const std::optional<const void *> input_value = all_socket_values_.lookup_try(input_socket);
+    }
+    if (selected_inputs.is_empty()) {
+      all_socket_values_.add_new(socket, nullptr);
+      return;
+    }
+    if (selected_inputs.size() == 1) {
+      /* A single input is selected, so just pass through this value without regarding others. */
+      const SocketInContext selected_input{socket.context, selected_inputs[0]};
+      const std::optional<const void *> input_value = all_socket_values_.lookup_try(
+          selected_input);
       if (!input_value.has_value()) {
-        this->push_value_task(input_socket);
+        this->push_value_task(selected_input);
         return;
       }
       all_socket_values_.add_new(socket, *input_value);
       return;
     }
-    /* The condition did not match any of the inputs, so the output is unknown. */
+
+    /* Multiple inputs are selected. */
+    if (node->typeinfo->build_multi_function) {
+      /* Try to compute the output value from the multiple selected inputs. */
+      this->value_task__output__multi_function_node(socket);
+      return;
+    }
+    /* Can't compute the output value, so set it to be unknown. */
     all_socket_values_.add_new(socket, nullptr);
+  }
+
+  void value_task__output__generic_eval(
+      const SocketInContext &socket,
+      const FunctionRef<std::optional<const void *>(Span<const void *> inputs)> eval_fn)
+  {
+    const NodeInContext node = socket.owner_node();
+    const int inputs_num = node->input_sockets().size();
+
+    Array<const void *, 16> input_values(inputs_num, nullptr);
+    std::optional<int> next_unknown_input_index;
+    for (const int input_i : IndexRange(inputs_num)) {
+      const SocketInContext input_socket = node.input_socket(input_i);
+      if (!input_socket->is_available()) {
+        continue;
+      }
+      const std::optional<const void *> input_value = all_socket_values_.lookup_try(input_socket);
+      if (!input_value.has_value()) {
+        next_unknown_input_index = input_i;
+        break;
+      }
+      input_values[input_i] = *input_value;
+    }
+    const std::optional<const void *> output_value = eval_fn(input_values);
+    if (output_value.has_value()) {
+      /* Was able to compute the output value. */
+      all_socket_values_.add_new(socket, *output_value);
+      return;
+    }
+    if (!next_unknown_input_index.has_value()) {
+      /* The output is still unknown even though we know as much about the inputs as possible
+       * already. */
+      all_socket_values_.add_new(socket, nullptr);
+      return;
+    }
+    /* Request the next input socket. */
+    const SocketInContext next_input = node.input_socket(*next_unknown_input_index);
+    this->push_value_task(next_input);
   }
 
   void value_task__output__multi_function_node(const SocketInContext &socket)
@@ -810,6 +1135,10 @@ struct SocketUsageInferencer {
 
   void value_task__input__unlinked(const SocketInContext &socket)
   {
+    if (this->treat_socket_as_unknown(socket)) {
+      all_socket_values_.add_new(socket, nullptr);
+      return;
+    }
     if (animated_sockets_.contains(socket.socket)) {
       /* The value of animated sockets is not known statically. */
       all_socket_values_.add_new(socket, nullptr);
@@ -1011,20 +1340,78 @@ struct SocketUsageInferencer {
       }
     }
   }
+
+  bool treat_socket_as_unknown(const SocketInContext &socket) const
+  {
+    if (!top_level_ignored_inputs_.has_value()) {
+      return false;
+    }
+    if (socket.context) {
+      return false;
+    }
+    if (socket->is_output()) {
+      return false;
+    }
+    return (*top_level_ignored_inputs_)[socket->index_in_all_inputs()];
+  }
 };
 
-Array<bool> infer_all_input_sockets_usage(const bNodeTree &tree)
+static bool input_may_affect_visibility(const bNodeTreeInterfaceSocket &socket)
+{
+  return socket.socket_type == StringRef("NodeSocketMenu");
+}
+
+static bool input_may_affect_visibility(const bNodeSocket &socket)
+{
+  return socket.type == SOCK_MENU;
+}
+
+Array<SocketUsage> infer_all_input_sockets_usage(const bNodeTree &tree)
 {
   tree.ensure_topology_cache();
   const Span<const bNodeSocket *> all_input_sockets = tree.all_input_sockets();
-  Array<bool> all_usages(all_input_sockets.size());
+  Array<SocketUsage> all_usages(all_input_sockets.size());
 
-  SocketUsageInferencer inferencer{tree, std::nullopt};
-  inferencer.mark_top_level_node_outputs_as_used();
+  {
+    /* Find actual socket usages. */
+    SocketUsageInferencer inferencer{tree, std::nullopt};
+    inferencer.mark_top_level_node_outputs_as_used();
+    for (const int i : all_input_sockets.index_range()) {
+      const bNodeSocket &socket = *all_input_sockets[i];
+      all_usages[i].is_used = inferencer.is_socket_used({nullptr, &socket});
+    }
+  }
 
+  /* Find input sockets that should be hidden. */
+  Array<bool> only_controllers_used(all_input_sockets.size(), NoInitialization{});
+  Array<bool> all_ignored_inputs(all_input_sockets.size(), true);
+  threading::parallel_for(all_input_sockets.index_range(), 1024, [&](const IndexRange range) {
+    for (const int i : range) {
+      const bNodeSocket &socket = *all_input_sockets[i];
+      only_controllers_used[i] = !input_may_affect_visibility(socket);
+    }
+  });
+  SocketUsageInferencer inferencer_all_unknown{tree, std::nullopt, all_ignored_inputs};
+  SocketUsageInferencer inferencer_only_controllers{tree, std::nullopt, only_controllers_used};
+  inferencer_all_unknown.mark_top_level_node_outputs_as_used();
+  inferencer_only_controllers.mark_top_level_node_outputs_as_used();
   for (const int i : all_input_sockets.index_range()) {
-    const bNodeSocket &socket = *all_input_sockets[i];
-    all_usages[i] = inferencer.is_socket_used({nullptr, &socket});
+    if (all_usages[i].is_used) {
+      /* Used inputs are always visible. */
+      continue;
+    }
+    const SocketInContext socket{nullptr, all_input_sockets[i]};
+    if (inferencer_only_controllers.is_socket_used((socket))) {
+      /* The input should be visible if it's used if only visibility-controlling inputs are
+       * considered. */
+      continue;
+    }
+    if (!inferencer_all_unknown.is_socket_used(socket)) {
+      /* The input should be visible if it's never used, regardless of any inputs. Its usage does
+       * not depend on any visibility-controlling input. */
+      continue;
+    }
+    all_usages[i].is_visible = false;
   }
 
   return all_usages;
@@ -1032,22 +1419,72 @@ Array<bool> infer_all_input_sockets_usage(const bNodeTree &tree)
 
 void infer_group_interface_inputs_usage(const bNodeTree &group,
                                         const Span<GPointer> group_input_values,
-                                        const MutableSpan<bool> r_input_usages)
+                                        const MutableSpan<SocketUsage> r_input_usages)
 {
-  SocketUsageInferencer inferencer{group, group_input_values};
 
-  r_input_usages.fill(false);
-  for (const bNode *node : group.group_input_nodes()) {
-    for (const int i : group.interface_inputs().index_range()) {
-      const bNodeSocket &socket = node->output_socket(i);
-      r_input_usages[i] |= inferencer.is_socket_used({nullptr, &socket});
+  SocketUsage default_usage;
+  default_usage.is_used = false;
+  default_usage.is_visible = true;
+  r_input_usages.fill(default_usage);
+
+  {
+    /* Detect actually used inputs. */
+    SocketUsageInferencer inferencer{group, group_input_values};
+    for (const bNode *node : group.group_input_nodes()) {
+      for (const int i : group.interface_inputs().index_range()) {
+        const bNodeSocket &socket = node->output_socket(i);
+        r_input_usages[i].is_used |= inferencer.is_socket_used({nullptr, &socket});
+      }
     }
+  }
+  if (std::all_of(r_input_usages.begin(), r_input_usages.end(), [](const SocketUsage &usage) {
+        return usage.is_used;
+      }))
+  {
+    /* If all inputs are used, there is no need to infer visibility because all inputs should be
+     * visible. */
+    return;
+  }
+  bool visibility_controlling_input_exists = false;
+  Array<GPointer, 32> inputs_all_unknown(group_input_values.size());
+  Array<GPointer, 32> inputs_only_controllers = group_input_values;
+  for (const int i : group.interface_inputs().index_range()) {
+    const bNodeTreeInterfaceSocket &io_socket = *group.interface_inputs()[i];
+    if (input_may_affect_visibility(io_socket)) {
+      visibility_controlling_input_exists = true;
+    }
+    else {
+      inputs_only_controllers[i] = {};
+    }
+  }
+  if (!visibility_controlling_input_exists) {
+    /* If there is no visibility controller inputs, all inputs are always visible. */
+    return;
+  }
+  SocketUsageInferencer inferencer_all_unknown{group, inputs_all_unknown};
+  SocketUsageInferencer inferencer_only_controllers{group, inputs_only_controllers};
+  for (const int i : group.interface_inputs().index_range()) {
+    if (r_input_usages[i].is_used) {
+      /* Used inputs are always visible. */
+      continue;
+    }
+    if (inferencer_only_controllers.is_group_input_used(i)) {
+      /* The input should be visible if it's used if only visibility-controlling inputs are
+       * considered. */
+      continue;
+    }
+    if (!inferencer_all_unknown.is_group_input_used(i)) {
+      /* The input should be visible if it's never used, regardless of any inputs. Its usage does
+       * not depend on any visibility-controlling input. */
+      continue;
+    }
+    r_input_usages[i].is_visible = false;
   }
 }
 
 void infer_group_interface_inputs_usage(const bNodeTree &group,
                                         Span<const bNodeSocket *> input_sockets,
-                                        MutableSpan<bool> r_input_usages)
+                                        MutableSpan<SocketUsage> r_input_usages)
 {
   BLI_assert(group.interface_inputs().size() == input_sockets.size());
 
@@ -1083,7 +1520,7 @@ void infer_group_interface_inputs_usage(const bNodeTree &group,
 
 void infer_group_interface_inputs_usage(const bNodeTree &group,
                                         const PropertiesVectorSet &properties,
-                                        MutableSpan<bool> r_input_usages)
+                                        MutableSpan<SocketUsage> r_input_usages)
 {
   const int inputs_num = group.interface_inputs().size();
   Array<GPointer> input_values(inputs_num);

@@ -1,18 +1,18 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'a7d2b7850ef2')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'ba454989554a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-05 08:47+0000\n"
-"PO-Revision-Date: 2025-04-14 08:41+0000\n"
-"Last-Translator: Marcus Edmark Lindh <marcus.lindh@outlook.com>\n"
+"POT-Creation-Date: 2025-05-26 07:36+0000\n"
+"PO-Revision-Date: 2025-05-22 07:59+0000\n"
+"Last-Translator: Daniel Nylander <blender@danielnylander.se>\n"
 "Language-Team: Swedish <https://translate.blender.org/projects/blender-ui/ui/sv/>\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 5.10.1"
+"X-Generator: Weblate 5.11"
 
 
 msgid "Shader AOV"
@@ -216,6 +216,11 @@ msgstr "Visa utvikt"
 
 
 msgctxt "ID"
+msgid "Action"
+msgstr "Åtgärd"
+
+
+msgctxt "ID"
 msgid "Armature"
 msgstr "Armatur"
 
@@ -326,6 +331,11 @@ msgstr "Objekt"
 
 
 msgctxt "ID"
+msgid "Paint Curve"
+msgstr "Färgkurva"
+
+
+msgctxt "ID"
 msgid "Palette"
 msgstr "Palett"
 
@@ -390,6 +400,11 @@ msgid "World"
 msgstr "Värld"
 
 
+msgctxt "ID"
+msgid "Unspecified"
+msgstr "Ospecificerad"
+
+
 msgid "Keyframe"
 msgstr "Keyframe"
 
@@ -420,6 +435,14 @@ msgstr "Enhet att använda för beräkning (rendering med Cycles)"
 
 msgid "Off"
 msgstr "Av"
+
+
+msgid "Optimize all kernels. Fastest rendering, may result in extra background CPU usage"
+msgstr "Optimera alla kärnor. Snabbaste rendering, kan resultera i extra CPU-användning i bakgrunden"
+
+
+msgid "MetalRT"
+msgstr "MetalRT"
 
 
 msgid "On"
@@ -1151,6 +1174,10 @@ msgid "Object"
 msgstr "Objekt"
 
 
+msgid "None"
+msgstr "Ingen"
+
+
 msgid "Diffuse"
 msgstr "Diffus"
 
@@ -1173,6 +1200,10 @@ msgstr "Bildtexturer"
 
 msgid "Clear"
 msgstr "Nollställ"
+
+
+msgid "Above Surface"
+msgstr "Ovanför ytan"
 
 
 msgid "Active Camera"
@@ -1839,6 +1870,10 @@ msgid "Average Speed"
 msgstr "Genomsnittlig hastighet"
 
 
+msgid "On Land"
+msgstr "På land"
+
+
 msgid "Level"
 msgstr "Nivå"
 
@@ -1875,6 +1910,10 @@ msgid "Relative"
 msgstr "Relativ"
 
 
+msgid "Scale Out"
+msgstr "Skala ut"
+
+
 msgid "B-Bone Segments"
 msgstr "B-benssegment"
 
@@ -1885,6 +1924,10 @@ msgstr "Antal uppdelningar av benet (endast B-ben)"
 
 msgid "Children"
 msgstr "Barn"
+
+
+msgid "Wire"
+msgstr "Trådmodell"
 
 
 msgid "Head"
@@ -1933,6 +1976,10 @@ msgstr "Ben"
 
 msgid "Is Editable"
 msgstr "Är redigerbar"
+
+
+msgid "Solo"
+msgstr "Solo"
 
 
 msgid "Visible"
@@ -3488,10 +3535,6 @@ msgid "Layers"
 msgstr "Lager"
 
 
-msgid "Wire"
-msgstr "Trådmodell"
-
-
 msgid "Theme"
 msgstr "Tema"
 
@@ -3912,6 +3955,10 @@ msgstr "Resultatbild i TIFF-format"
 
 msgid "Compositing"
 msgstr "Komponering"
+
+
+msgid "Normalize"
+msgstr "Normalisera"
 
 
 msgid "Use shader nodes to render the light"
@@ -5193,6 +5240,26 @@ msgid "Mask"
 msgstr "Mask"
 
 
+msgid "Mirror"
+msgstr "Spegla"
+
+
+msgid "Snap"
+msgstr "Snäpp"
+
+
+msgid "Local View"
+msgstr "Lokal vy"
+
+
+msgid "Align View"
+msgstr "Justera vy"
+
+
+msgid "Align View to Active"
+msgstr "Justera vy till aktiv"
+
+
 msgid "Select More/Less"
 msgstr "Markera mera/mindre"
 
@@ -5251,26 +5318,6 @@ msgstr "Text"
 
 msgid "Pivot Point"
 msgstr "Fast punkt"
-
-
-msgid "Snap"
-msgstr "Snäpp"
-
-
-msgid "Mirror"
-msgstr "Spegla"
-
-
-msgid "Local View"
-msgstr "Lokal vy"
-
-
-msgid "Align View"
-msgstr "Justera vy"
-
-
-msgid "Align View to Active"
-msgstr "Justera vy till aktiv"
 
 
 msgid "Catalog"
@@ -5628,10 +5675,6 @@ msgstr "Sensor"
 
 msgid "Markers"
 msgstr "Markörer"
-
-
-msgid "Normalize"
-msgstr "Normalisera"
 
 
 msgid "Alpha Over"
@@ -10872,6 +10915,10 @@ msgid "Property Name"
 msgstr "Egenskapens namn"
 
 
+msgid "Parents"
+msgstr "Föräldrar"
+
+
 msgid "Module name of the add-on to disable"
 msgstr "Modulnamn för tillägg att inaktivera"
 
@@ -11415,10 +11462,6 @@ msgstr "Fram"
 
 msgid "Remove"
 msgstr "Ta bort"
-
-
-msgid "Save a Collada file"
-msgstr "Spara en Collada-fil"
 
 
 msgid "Wrap"
@@ -12403,14 +12446,6 @@ msgid "UI Scale"
 msgstr "Gränssnittsskala"
 
 
-msgid "Use Disk Cache"
-msgstr "Använd disk-cache"
-
-
-msgid "Store cached images to disk"
-msgstr "Lagra cachade bilder på disk"
-
-
 msgid "Edit Studio Light"
 msgstr "Redigera studioljus"
 
@@ -12894,6 +12929,10 @@ msgid "Simplify Child Particles"
 msgstr "Förenkla barnpartiklar"
 
 
+msgid "Antialiasing"
+msgstr "Kantutjämning"
+
+
 msgid "Simplify Subdivision"
 msgstr "Förenkla uppdelning"
 
@@ -13273,6 +13312,131 @@ msgstr "Operatoregenskaper"
 
 msgid "Search"
 msgstr "Sök"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Tweak"
+msgstr "3D-visningsverktyg: Justera"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Tweak (fallback)"
+msgstr "3D-visningsverktyg: Justera (reserv)"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Select Box"
+msgstr "3D-visningsverktyg: Välj ruta"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Select Box (fallback)"
+msgstr "3D-visningsverktyg: Välj ruta (reserv)"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Select Circle"
+msgstr "3D-visningsverktyg: Välj cirkel"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Select Circle (fallback)"
+msgstr "3D-visningsverktyg: Välj cirkel (reserv)"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Select Lasso"
+msgstr "3D-visningsverktyg: Välj lasso"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Select Lasso (fallback)"
+msgstr "3D-visningsverktyg: Välj lasso (reserv)"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Cursor"
+msgstr "3D-visningsverktyg: Markör"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Cursor (fallback)"
+msgstr "3D-visningsverktyg: Markör (reserv)"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Move"
+msgstr "3D-visningsverktyg: Flytta"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Move (fallback)"
+msgstr "3D-visningsverktyg: Flytta (reserv)"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Rotate"
+msgstr "3D-visningsverktyg: Rotera"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Rotate (fallback)"
+msgstr "3D-visningsverktyg: Rotera (reserv)"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Scale"
+msgstr "3D-visningsverktyg: Skala"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Scale (fallback)"
+msgstr "3D-visningsverktyg: Skala (reserv)"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Transform"
+msgstr "3D-visningsverktyg: Transformera"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Transform (fallback)"
+msgstr "3D-visningsverktyg: Transformera (reserv)"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Measure"
+msgstr "3D-visningsverktyg: Mätning"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Measure (fallback)"
+msgstr "3D-visningsverktyg: Mätning (reserv)"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Object, Add Primitive"
+msgstr "3D-visningsverktyg: Objekt, Lägg till primitiv"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Object, Add Primitive (fallback)"
+msgstr "3D-visningsverktyg: Objekt, Lägg till primitiv (reserv)"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Edit Mesh, Extrude Region"
+msgstr "3D-visningsverktyg: Redigera mesh, extrudera region"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Edit Mesh, Extrude Region (fallback)"
+msgstr "3D-visningsverktyg: Redigera mesh, Extrudera region (reserv)"
+
+
+msgctxt "WindowManager"
+msgid "3D View Tool: Edit Mesh, Extrude Manifold"
+msgstr "3D-visningsverktyg: Redigera mesh, extrudera manifold"
 
 
 msgctxt "WindowManager"
@@ -14076,10 +14240,6 @@ msgstr "Ytspänning"
 
 msgid "Velocity Source"
 msgstr "Hastighetskälla"
-
-
-msgid "Is Resumable"
-msgstr "Kan återupptas"
 
 
 msgctxt "Operator"
@@ -15743,10 +15903,6 @@ msgid "Locations"
 msgstr "Positioner"
 
 
-msgid "Parents"
-msgstr "Föräldrar"
-
-
 msgid "No Textures"
 msgstr "Inga texturer"
 
@@ -16718,4 +16874,8 @@ msgstr "Hårmaterial"
 
 msgid "Seed value for randomization"
 msgstr "Frövärde för slumpgenerering"
+
+
+msgid "Variation Level"
+msgstr "Variationsnivå"
 

@@ -26,6 +26,8 @@
 #include "BLI_rand.h"
 #include "BLI_utildefines.h"
 
+#include "DNA_modifier_enums.h"
+
 #include "BKE_bvhutils.hh"
 #include "BKE_customdata.hh"
 #include "BKE_mesh.hh"

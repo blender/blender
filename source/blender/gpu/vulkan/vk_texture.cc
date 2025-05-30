@@ -398,12 +398,14 @@ uint VKTexture::gl_bindcode_get() const
 
 VKMemoryExport VKTexture::export_memory(VkExternalMemoryHandleTypeFlagBits handle_type)
 {
+  const VKDevice &device = VKBackend::get().device;
   BLI_assert_msg(
       bool(gpu_image_usage_flags_ & GPU_TEXTURE_USAGE_MEMORY_EXPORT),
       "Can only import external memory when usage flag contains GPU_TEXTURE_USAGE_MEMORY_EXPORT.");
   BLI_assert_msg(allocation_ != nullptr,
                  "Cannot export memory when the texture is not backed by any device memory.");
-  const VKDevice &device = VKBackend::get().device;
+  BLI_assert_msg(device.extensions_get().external_memory,
+                 "Requested to export memory, but isn't supported by the device");
   if (handle_type == VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT) {
     VkMemoryGetFdInfoKHR vk_memory_get_fd_info = {VK_STRUCTURE_TYPE_MEMORY_GET_FD_INFO_KHR,
                                                   nullptr,

@@ -385,7 +385,7 @@ static void do_versions_nodetree_file_output_layers_2_64_5(bNodeTree *ntree)
 
         /* Multi-layer names are stored as separate strings now,
          * used the path string before, so copy it over. */
-        STRNCPY(input->layer, input->path);
+        STRNCPY_UTF8(input->layer, input->path);
 
         /* paths/layer names also have to be unique now, initial check */
         ntreeCompositOutputFileUniquePath(&node->inputs, sock, input->path, '_');
@@ -996,6 +996,33 @@ static void do_versions_nodetree_customnodes(bNodeTree *ntree, int /*is_group*/)
                      offsetof(bNodeSocket, identifier),
                      sizeof(sock->identifier));
     }
+  }
+}
+
+/* Sync functions update formula parameters for other modes, such that the result is comparable.
+ * Note that the results are not exactly the same due to differences in color handling
+ * (sRGB conversion happens for LGG),
+ * but this keeps settings comparable. */
+static void color_balance_node_cdl_from_lgg(bNode *node)
+{
+  NodeColorBalance *n = (NodeColorBalance *)node->storage;
+
+  for (int c = 0; c < 3; c++) {
+    n->slope[c] = (2.0f - n->lift[c]) * n->gain[c];
+    n->offset[c] = (n->lift[c] - 1.0f) * n->gain[c];
+    n->power[c] = (n->gamma[c] != 0.0f) ? 1.0f / n->gamma[c] : 1000000.0f;
+  }
+}
+
+static void color_balance_node_lgg_from_cdl(bNode *node)
+{
+  NodeColorBalance *n = (NodeColorBalance *)node->storage;
+
+  for (int c = 0; c < 3; c++) {
+    float d = n->slope[c] + n->offset[c];
+    n->lift[c] = (d != 0.0f ? n->slope[c] + 2.0f * n->offset[c] / d : 0.0f);
+    n->gain[c] = d;
+    n->gamma[c] = (n->power[c] != 0.0f) ? 1.0f / n->power[c] : 1000000.0f;
   }
 }
 
@@ -2677,7 +2704,7 @@ void blo_do_versions_260(FileData *fd, Library * /*lib*/, Main *bmain)
             NodeColorBalance *n = static_cast<NodeColorBalance *>(node->storage);
             if (node->custom1 == 0) {
               /* LGG mode stays the same, just init CDL settings */
-              ntreeCompositColorBalanceSyncFromLGG(ntree, node);
+              color_balance_node_cdl_from_lgg(node);
             }
             else if (node->custom1 == 1) {
               /* CDL previously used same variables as LGG, copy them over
@@ -2686,7 +2713,7 @@ void blo_do_versions_260(FileData *fd, Library * /*lib*/, Main *bmain)
               copy_v3_v3(n->offset, n->lift);
               copy_v3_v3(n->power, n->gamma);
               copy_v3_v3(n->slope, n->gain);
-              ntreeCompositColorBalanceSyncFromCDL(ntree, node);
+              color_balance_node_lgg_from_cdl(node);
             }
           }
         }

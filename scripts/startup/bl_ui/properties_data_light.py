@@ -89,14 +89,40 @@ class DATA_PT_EEVEE_light(DataButtonsPanel, Panel):
             layout.row().prop(light, "type")
 
         col = layout.column()
-        col.prop(light, "color")
+        heading = col.column(align=True, heading="Temperature")
+        row = heading.column(align=True).row(align=True)
+        row.prop(light, "use_temperature", text="")
+        # Don't show color preview for now, it is grayed out so the color
+        # is not accurate. Would not a change in the UI code to allow
+        # non-editable colors to be displayed as is.
+        if False:  # light.use_temperature:
+            sub = row.split(factor=0.7, align=True)
+            sub.active = light.use_temperature
+            sub.prop(light, "temperature", text="")
+            sub.prop(light, "temperature_color", text="")
+        else:
+            sub = row.row()
+            sub.active = light.use_temperature
+            sub.prop(light, "temperature", text="")
+
+        if light.use_temperature:
+            col.prop(light, "color", text="Tint")
+        else:
+            col.prop(light, "color", text="Color")
+
+        layout.separator()
+
+        col = layout.column()
         col.prop(light, "energy")
+        col.prop(light, "exposure")
+        col.prop(light, "normalize")
 
-        col.separator()
+        layout.separator()
 
+        col = layout.column()
         if light.type in {'POINT', 'SPOT'}:
-            col.prop(light, "use_soft_falloff")
             col.prop(light, "shadow_soft_size", text="Radius")
+            col.prop(light, "use_soft_falloff")
         elif light.type == 'SUN':
             col.prop(light, "angle")
         elif light.type == 'AREA':

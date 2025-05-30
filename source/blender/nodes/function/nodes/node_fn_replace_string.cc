@@ -10,10 +10,12 @@ namespace blender::nodes::node_fn_replace_string_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
+  b.use_custom_socket_order();
+  b.allow_any_socket_order();
   b.add_input<decl::String>("String").hide_label();
+  b.add_output<decl::String>("String").align_with_previous();
   b.add_input<decl::String>("Find").description("The string to find in the input string");
   b.add_input<decl::String>("Replace").description("The string to replace each match with");
-  b.add_output<decl::String>("String");
 }
 
 static std::string replace_all(const StringRefNull str,

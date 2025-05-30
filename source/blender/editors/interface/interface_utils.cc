@@ -46,6 +46,7 @@
 
 #include "interface_intern.hh"
 
+using blender::StringRef;
 using blender::StringRefNull;
 
 /*************************** RNA Utilities ******************************/
@@ -54,7 +55,7 @@ uiBut *uiDefAutoButR(uiBlock *block,
                      PointerRNA *ptr,
                      PropertyRNA *prop,
                      int index,
-                     const std::optional<StringRefNull> name,
+                     const std::optional<StringRef> name,
                      int icon,
                      int x,
                      int y,

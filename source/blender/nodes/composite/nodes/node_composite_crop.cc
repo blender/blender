@@ -6,16 +6,13 @@
  * \ingroup cmpnodes
  */
 
-#include "BKE_node.hh"
-#include "BLI_math_base.h"
+#include "BLI_bounds.hh"
+#include "BLI_bounds_types.hh"
 #include "BLI_math_vector_types.hh"
 
 #include "DNA_node_types.h"
 
-#include "RNA_access.hh"
-
-#include "UI_interface.hh"
-#include "UI_resources.hh"
+#include "BKE_node.hh"
 
 #include "GPU_shader.hh"
 
@@ -28,46 +25,44 @@
 
 namespace blender::nodes::node_composite_crop_cc {
 
-NODE_STORAGE_FUNCS(NodeTwoXYs)
-
 static void cmp_node_crop_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Color>("Image")
-      .default_value({1.0f, 1.0f, 1.0f, 1.0f})
-      .compositor_domain_priority(0);
+  b.add_input<decl::Color>("Image").default_value({1.0f, 1.0f, 1.0f, 1.0f});
+  b.add_input<decl::Int>("X")
+      .default_value(0)
+      .min(0)
+      .compositor_expects_single_value()
+      .description("The X position of the lower left corner of the crop region");
+  b.add_input<decl::Int>("Y")
+      .default_value(0)
+      .min(0)
+      .compositor_expects_single_value()
+      .description("The Y position of the lower left corner of the crop region");
+  b.add_input<decl::Int>("Width")
+      .default_value(1920)
+      .min(1)
+      .compositor_expects_single_value()
+      .description("The width of the crop region");
+  b.add_input<decl::Int>("Height")
+      .default_value(1080)
+      .min(1)
+      .compositor_expects_single_value()
+      .description("The width of the crop region");
+  b.add_input<decl::Bool>("Alpha Crop")
+      .default_value(false)
+      .compositor_expects_single_value()
+      .description(
+          "Sets the areas outside of the crop region to be transparent instead of actually "
+          "cropping the size of the image");
+
   b.add_output<decl::Color>("Image");
 }
 
 static void node_composit_init_crop(bNodeTree * /*ntree*/, bNode *node)
 {
+  /* Not used, but the data is still allocated for forward compatibility. */
   NodeTwoXYs *nxy = MEM_callocN<NodeTwoXYs>(__func__);
   node->storage = nxy;
-  nxy->x1 = 0;
-  nxy->x2 = 0;
-  nxy->y1 = 0;
-  nxy->y2 = 0;
-}
-
-static void node_composit_buts_crop(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
-{
-  uiLayout *col;
-
-  layout->prop(ptr, "use_crop_size", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
-  layout->prop(ptr, "relative", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
-
-  col = &layout->column(true);
-  if (RNA_boolean_get(ptr, "relative")) {
-    col->prop(ptr, "rel_min_x", UI_ITEM_R_SPLIT_EMPTY_NAME, IFACE_("Left"), ICON_NONE);
-    col->prop(ptr, "rel_max_x", UI_ITEM_R_SPLIT_EMPTY_NAME, IFACE_("Right"), ICON_NONE);
-    col->prop(ptr, "rel_min_y", UI_ITEM_R_SPLIT_EMPTY_NAME, IFACE_("Up"), ICON_NONE);
-    col->prop(ptr, "rel_max_y", UI_ITEM_R_SPLIT_EMPTY_NAME, IFACE_("Down"), ICON_NONE);
-  }
-  else {
-    col->prop(ptr, "min_x", UI_ITEM_R_SPLIT_EMPTY_NAME, IFACE_("Left"), ICON_NONE);
-    col->prop(ptr, "max_x", UI_ITEM_R_SPLIT_EMPTY_NAME, IFACE_("Right"), ICON_NONE);
-    col->prop(ptr, "min_y", UI_ITEM_R_SPLIT_EMPTY_NAME, IFACE_("Up"), ICON_NONE);
-    col->prop(ptr, "max_y", UI_ITEM_R_SPLIT_EMPTY_NAME, IFACE_("Down"), ICON_NONE);
-  }
 }
 
 using namespace blender::compositor;
@@ -79,17 +74,17 @@ class CropOperation : public NodeOperation {
   void execute() override
   {
     if (this->is_identity()) {
-      const Result &input = get_input("Image");
-      Result &output = get_result("Image");
+      const Result &input = this->get_input("Image");
+      Result &output = this->get_result("Image");
       output.share_data(input);
       return;
     }
 
-    if (get_is_image_crop()) {
-      execute_image_crop();
+    if (this->is_alpha_crop()) {
+      this->execute_alpha_crop();
     }
     else {
-      execute_alpha_crop();
+      this->execute_image_crop();
     }
   }
 
@@ -107,20 +102,19 @@ class CropOperation : public NodeOperation {
 
   void execute_alpha_crop_gpu()
   {
-    GPUShader *shader = context().get_shader("compositor_alpha_crop");
+    GPUShader *shader = this->context().get_shader("compositor_alpha_crop");
     GPU_shader_bind(shader);
 
-    int2 lower_bound, upper_bound;
-    compute_cropping_bounds(lower_bound, upper_bound);
-    GPU_shader_uniform_2iv(shader, "lower_bound", lower_bound);
-    GPU_shader_uniform_2iv(shader, "upper_bound", upper_bound);
+    const Bounds<int2> bounds = this->compute_cropping_bounds();
+    GPU_shader_uniform_2iv(shader, "lower_bound", bounds.min);
+    GPU_shader_uniform_2iv(shader, "upper_bound", bounds.max);
 
-    const Result &input_image = get_input("Image");
+    const Result &input_image = this->get_input("Image");
     input_image.bind_as_texture(shader, "input_tx");
 
-    const Domain domain = compute_domain();
+    const Domain domain = this->compute_domain();
 
-    Result &output_image = get_result("Image");
+    Result &output_image = this->get_result("Image");
     output_image.allocate_texture(domain);
     output_image.bind_as_image(shader, "output_img");
 
@@ -133,19 +127,18 @@ class CropOperation : public NodeOperation {
 
   void execute_alpha_crop_cpu()
   {
-    int2 lower_bound, upper_bound;
-    compute_cropping_bounds(lower_bound, upper_bound);
+    const Bounds<int2> bounds = this->compute_cropping_bounds();
 
-    const Result &input = get_input("Image");
+    const Result &input = this->get_input("Image");
 
-    const Domain domain = compute_domain();
-    Result &output = get_result("Image");
+    const Domain domain = this->compute_domain();
+    Result &output = this->get_result("Image");
     output.allocate_texture(domain);
 
     parallel_for(domain.size, [&](const int2 texel) {
       /* The lower bound is inclusive and upper bound is exclusive. */
-      bool is_inside = texel.x >= lower_bound.x && texel.y >= lower_bound.y &&
-                       texel.x < upper_bound.x && texel.y < upper_bound.y;
+      bool is_inside = texel.x >= bounds.min.x && texel.y >= bounds.min.y &&
+                       texel.x < bounds.max.x && texel.y < bounds.max.y;
       /* Write the pixel color if it is inside the cropping region, otherwise, write zero. */
       float4 color = is_inside ? input.load_pixel<float4>(texel) : float4(0.0f);
       output.store_pixel(texel, color);
@@ -165,28 +158,20 @@ class CropOperation : public NodeOperation {
 
   void execute_image_crop_gpu()
   {
-    int2 lower_bound, upper_bound;
-    compute_cropping_bounds(lower_bound, upper_bound);
+    const Bounds<int2> bounds = this->compute_cropping_bounds();
 
-    /* The image is cropped into nothing, so just return a single zero value. */
-    if (lower_bound.x == upper_bound.x || lower_bound.y == upper_bound.y) {
-      Result &result = get_result("Image");
-      result.allocate_invalid();
-      return;
-    }
-
-    GPUShader *shader = context().get_shader("compositor_image_crop");
+    GPUShader *shader = this->context().get_shader("compositor_image_crop");
     GPU_shader_bind(shader);
 
-    GPU_shader_uniform_2iv(shader, "lower_bound", lower_bound);
+    GPU_shader_uniform_2iv(shader, "lower_bound", bounds.min);
 
-    const Result &input_image = get_input("Image");
+    const Result &input_image = this->get_input("Image");
     input_image.bind_as_texture(shader, "input_tx");
 
-    const int2 size = upper_bound - lower_bound;
+    const int2 size = bounds.size();
 
-    Result &output_image = get_result("Image");
-    output_image.allocate_texture(Domain(size, compute_domain().transformation));
+    Result &output_image = this->get_result("Image");
+    output_image.allocate_texture(Domain(size, this->compute_domain().transformation));
     output_image.bind_as_image(shader, "output_img");
 
     compute_dispatch_threads_at_least(shader, size);
@@ -198,85 +183,60 @@ class CropOperation : public NodeOperation {
 
   void execute_image_crop_cpu()
   {
-    int2 lower_bound, upper_bound;
-    compute_cropping_bounds(lower_bound, upper_bound);
+    const Bounds<int2> bounds = this->compute_cropping_bounds();
 
-    /* The image is cropped into nothing, so just return a single zero value. */
-    if (lower_bound.x == upper_bound.x || lower_bound.y == upper_bound.y) {
-      Result &result = get_result("Image");
-      result.allocate_invalid();
-      return;
-    }
+    const Result &input = this->get_input("Image");
 
-    const Result &input = get_input("Image");
-
-    const int2 size = upper_bound - lower_bound;
-    Result &output = get_result("Image");
-    output.allocate_texture(Domain(size, compute_domain().transformation));
+    const int2 size = bounds.size();
+    Result &output = this->get_result("Image");
+    output.allocate_texture(Domain(size, this->compute_domain().transformation));
 
     parallel_for(size, [&](const int2 texel) {
-      output.store_pixel(texel, input.load_pixel<float4>(texel + lower_bound));
+      output.store_pixel(texel, input.load_pixel<float4>(texel + bounds.min));
     });
-  }
-
-  /* If true, the image should actually be cropped into a new size. Otherwise, if false, the region
-   * outside of the cropping bounds will be set to a zero alpha value. */
-  bool get_is_image_crop()
-  {
-    return bnode().custom1;
-  }
-
-  bool get_is_relative()
-  {
-    return bnode().custom2;
   }
 
   /* Returns true if the operation does nothing and the input can be passed through. */
   bool is_identity()
   {
-    const Result &input = get_input("Image");
+    const Result &input = this->get_input("Image");
     /* Single value inputs can't be cropped and are returned as is. */
     if (input.is_single_value()) {
       return true;
     }
 
-    int2 lower_bound, upper_bound;
-    compute_cropping_bounds(lower_bound, upper_bound);
+    const Bounds<int2> bounds = this->compute_cropping_bounds();
     const int2 input_size = input.domain().size;
     /* The cropping bounds cover the whole image, so no cropping happens. */
-    if (lower_bound == int2(0) && upper_bound == input_size) {
+    if (bounds.min == int2(0) && bounds.max == input_size) {
       return true;
     }
 
     return false;
   }
 
-  void compute_cropping_bounds(int2 &lower_bound, int2 &upper_bound)
+  Bounds<int2> compute_cropping_bounds()
   {
-    const NodeTwoXYs &node_two_xys = node_storage(bnode());
-    const int2 input_size = get_input("Image").domain().size;
+    const int2 input_size = this->get_input("Image").domain().size;
 
-    if (get_is_relative()) {
-      /* The cropping bounds are relative to the image size. The factors are in the [0, 1] range,
-       * so it is guaranteed that they won't go over the input image size. */
-      lower_bound.x = input_size.x * node_two_xys.fac_x1;
-      lower_bound.y = input_size.y * node_two_xys.fac_y2;
-      upper_bound.x = input_size.x * node_two_xys.fac_x2;
-      upper_bound.y = input_size.y * node_two_xys.fac_y1;
-    }
-    else {
-      /* Make sure the bounds don't go over the input image size. */
-      lower_bound.x = min_ii(node_two_xys.x1, input_size.x);
-      lower_bound.y = min_ii(node_two_xys.y2, input_size.y);
-      upper_bound.x = min_ii(node_two_xys.x2, input_size.x);
-      upper_bound.y = min_ii(node_two_xys.y1, input_size.y);
-    }
+    const int x = math::clamp(
+        this->get_input("X").get_single_value_default(0), 0, input_size.x - 1);
+    const int y = math::clamp(
+        this->get_input("Y").get_single_value_default(0), 0, input_size.y - 1);
+    const int width = math::max(1, this->get_input("Width").get_single_value_default(100));
+    const int height = math::max(1, this->get_input("Height").get_single_value_default(100));
 
-    /* Make sure upper bound is actually higher than the lower bound. */
-    lower_bound.x = min_ii(lower_bound.x, upper_bound.x);
-    lower_bound.y = min_ii(lower_bound.y, upper_bound.y);
-    upper_bound.x = max_ii(lower_bound.x, upper_bound.x);
-    upper_bound.y = max_ii(lower_bound.y, upper_bound.y);
+    const Bounds<int2> input_bounds = Bounds<int2>(int2(0), input_size);
+
+    const Bounds<int2> crop_bounds = Bounds<int2>(int2(x, y), int2(x + width, y + height));
+    return *bounds::intersect(crop_bounds, input_bounds);
+  }
+
+  /* If true, the region outside of the cropping bounds will be set to a zero alpha value instead
+   * of actually cropping the size of the image. */
+  bool is_alpha_crop()
+  {
+    return this->get_input("Alpha Crop").get_single_value_default(false);
   }
 };
 
@@ -301,7 +261,6 @@ static void register_node_type_cmp_crop()
   ntype.enum_name_legacy = "CROP";
   ntype.nclass = NODE_CLASS_DISTORT;
   ntype.declare = file_ns::cmp_node_crop_declare;
-  ntype.draw_buttons = file_ns::node_composit_buts_crop;
   ntype.initfunc = file_ns::node_composit_init_crop;
   blender::bke::node_type_storage(
       ntype, "NodeTwoXYs", node_free_standard_storage, node_copy_standard_storage);

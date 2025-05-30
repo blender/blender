@@ -22,6 +22,7 @@ COMPUTE_SHADER_CREATE_INFO(eevee_ray_denoise_spatial)
 #include "draw_view_lib.glsl"
 #include "eevee_closure_lib.glsl"
 #include "eevee_gbuffer_lib.glsl"
+#include "eevee_reverse_z_lib.glsl"
 #include "eevee_sampling_lib.glsl"
 #include "gpu_shader_codegen_lib.glsl"
 #include "gpu_shader_utildefines_lib.glsl"
@@ -173,7 +174,8 @@ void main()
   float3 rgb_variance = abs(rgb_moment - square(rgb_mean));
   float hit_variance = reduce_max(rgb_variance);
 
-  float scene_z = drw_depth_screen_to_view(texelFetch(depth_tx, texel_fullres, 0).r);
+  float depth = reverse_z::read(texelFetch(depth_tx, texel_fullres, 0).r);
+  float scene_z = drw_depth_screen_to_view(depth);
   float hit_depth = drw_depth_view_to_screen(scene_z - closest_hit_time);
 
   imageStoreFast(out_radiance_img, texel_fullres, float4(radiance_accum, 0.0f));

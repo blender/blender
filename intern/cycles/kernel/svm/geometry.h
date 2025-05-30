@@ -245,7 +245,7 @@ ccl_device_noinline void svm_node_hair_info(KernelGlobals kg,
       break;
     }
     case NODE_INFO_CURVE_TANGENT_NORMAL: {
-      data3 = curve_tangent_normal(kg, sd);
+      data3 = curve_tangent_normal(sd);
       stack_store_float3(stack, out_offset, data3);
       break;
     }

@@ -19,6 +19,9 @@
 #include "DNA_node_types.h"
 #include "DNA_scene_types.h"
 
+#include "BLI_math_base.hh"
+#include "BLI_math_matrix.hh"
+#include "BLI_math_matrix_types.hh"
 #include "BLI_utildefines.h"
 
 #include "BKE_icons.h"
@@ -32,6 +35,8 @@
 #include "BLT_translation.hh"
 
 #include "DEG_depsgraph.hh"
+
+#include "IMB_colormanagement.hh"
 
 #include "BLO_read_write.hh"
 
@@ -128,7 +133,7 @@ static void light_blend_write(BlendWriter *writer, ID *id, const void *id_addres
   Light *la = (Light *)id;
 
   /* Forward compatibility for energy. */
-  la->energy_deprecated = la->energy;
+  la->energy_deprecated = la->energy * exp2f(la->exposure);
   if (la->type == LA_AREA) {
     la->energy_deprecated /= M_PI_4;
   }
@@ -198,4 +203,62 @@ Light *BKE_light_add(Main *bmain, const char *name)
 void BKE_light_eval(Depsgraph *depsgraph, Light *la)
 {
   DEG_debug_print_eval(depsgraph, __func__, la->id.name, la);
+}
+
+float BKE_light_power(const Light &light)
+{
+  return light.energy * exp2f(light.exposure);
+}
+
+blender::float3 BKE_light_color(const Light &light)
+{
+  blender::float3 color(&light.r);
+
+  if (light.mode & LA_USE_TEMPERATURE) {
+    float temperature_color[4];
+    IMB_colormanagement_blackbody_temperature_to_rgb(temperature_color, light.temperature);
+    color *= blender::float3(temperature_color);
+  }
+
+  return color;
+}
+
+float BKE_light_area(const Light &light, const blender::float4x4 &object_to_world)
+{
+  /* Make illumination power constant. */
+  switch (light.type) {
+    case LA_AREA: {
+      /* Rectangle area. */
+      const blender::float3x3 scalemat = object_to_world.view<3, 3>();
+      const blender::float3 scale = blender::math::to_scale(scalemat);
+
+      const float size_x = light.area_size * scale.x;
+      const float size_y = (ELEM(light.area_shape, LA_AREA_RECT, LA_AREA_ELLIPSE) ?
+                                light.area_sizey :
+                                light.area_size) *
+                           scale.y;
+
+      float area = size_x * size_y;
+      /* Scale for smaller area of the ellipse compared to the surrounding rectangle. */
+      if (ELEM(light.area_shape, LA_AREA_DISK, LA_AREA_ELLIPSE)) {
+        area *= float(M_PI / 4.0f);
+      }
+      return area;
+    }
+    case LA_LOCAL:
+    case LA_SPOT: {
+      /* Sphere area. For legacy reasons object scale is not taken into account
+       * here, even though logically it should be. */
+      const float radius = light.radius;
+      return (radius > 0.0f) ? float(4.0f * M_PI) * blender::math::square(radius) : 4.0f;
+    }
+    case LA_SUN: {
+      /* Sun disk area. */
+      const float angle = light.sun_angle / 2.0f;
+      return (angle > 0.0f) ? float(M_PI) * blender::math::square(sinf(angle)) : 1.0f;
+    }
+  }
+
+  BLI_assert_unreachable();
+  return 1.0f;
 }

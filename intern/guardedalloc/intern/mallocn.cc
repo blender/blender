@@ -21,7 +21,7 @@
 
 using namespace mem_guarded::internal;
 
-#ifdef WITH_JEMALLOC_CONF
+#ifdef WITH_MEM_JEMALLOC
 /**
  * If JEMALLOC is used, it reads this global variable and enables background
  * threads to purge dirty pages. Otherwise we release memory too slowly or not

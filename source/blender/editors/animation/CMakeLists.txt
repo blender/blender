@@ -5,6 +5,7 @@
 set(INC
   ../asset
   ../include
+  ../space_graph
   ../../asset_system
   ../../makesrna
   ../../../../extern/fmtlib/include
@@ -50,6 +51,7 @@ set(LIB
   PRIVATE bf::gpu
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::nodes
   PRIVATE bf::sequencer
   PRIVATE bf::windowmanager
 )

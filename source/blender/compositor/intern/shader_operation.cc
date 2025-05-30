@@ -44,8 +44,6 @@ ShaderOperation::ShaderOperation(Context &context,
 {
   material_ = GPU_material_from_callbacks(
       GPU_MAT_COMPOSITOR, &construct_material, &generate_code, this);
-  GPU_material_status_set(material_, GPU_MAT_QUEUED);
-  GPU_material_compile(material_);
 }
 
 ShaderOperation::~ShaderOperation()
@@ -136,7 +134,7 @@ void ShaderOperation::link_node_inputs(DNode node)
 
     /* The input is unavailable and unused, but it still needs to be linked as this is what the GPU
      * material compiler expects. */
-    if (!input->is_available()) {
+    if (!is_socket_available(input.bsocket())) {
       this->link_node_input_unavailable(input);
       continue;
     }
@@ -412,7 +410,7 @@ void ShaderOperation::populate_results_for_node(DNode node)
   for (const bNodeSocket *output : node->output_sockets()) {
     const DOutputSocket doutput{node.context(), output};
 
-    if (!output->is_available()) {
+    if (!is_socket_available(output)) {
       continue;
     }
 

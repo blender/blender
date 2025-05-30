@@ -14,10 +14,11 @@
 
 #include "eevee_light.hh"
 
-#include "BLI_math_rotation.h"
-
 #include "DNA_defaults.h"
+#include "DNA_light_types.h"
 #include "DNA_sdna_type_ids.hh"
+
+#include "BKE_light.h"
 
 namespace blender::eevee {
 
@@ -68,7 +69,10 @@ void Light::sync(ShadowModule &shadows,
     shadow_discard_safe(shadows);
   }
 
-  this->color = float3(&la->r) * la->energy;
+  this->color = BKE_light_power(*la) * BKE_light_color(*la);
+  if (la->mode & LA_UNNORMALIZED) {
+    this->color *= BKE_light_area(*la, object_to_world);
+  }
 
   float3 scale;
   object_to_world.view<3, 3>() = normalize_and_get_size(object_to_world.view<3, 3>(), scale);

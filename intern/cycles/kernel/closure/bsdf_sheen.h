@@ -54,7 +54,7 @@ ccl_device int bsdf_sheen_setup(KernelGlobals kg,
 }
 
 ccl_device Spectrum bsdf_sheen_eval(const ccl_private ShaderClosure *sc,
-                                    const float3 wi,
+                                    const float3 /*wi*/,
                                     const float3 wo,
                                     ccl_private float *pdf)
 {
@@ -76,7 +76,7 @@ ccl_device Spectrum bsdf_sheen_eval(const ccl_private ShaderClosure *sc,
 
 ccl_device int bsdf_sheen_sample(const ccl_private ShaderClosure *sc,
                                  const float3 Ng,
-                                 const float3 wi,
+                                 const float3 /*wi*/,
                                  const float2 rand,
                                  ccl_private Spectrum *eval,
                                  ccl_private float3 *wo,

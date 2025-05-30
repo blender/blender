@@ -361,7 +361,7 @@ void timeline_expand_boundbox(const Scene *scene, const ListBase *seqbase, rctf 
     rect->xmin = std::min<float>(rect->xmin, time_left_handle_frame_get(scene, strip) - 1);
     rect->xmax = std::max<float>(rect->xmax, time_right_handle_frame_get(scene, strip) + 1);
     /* We do +1 here to account for the channel thickness. Channel n has range of <n, n+1>. */
-    rect->ymax = std::max(rect->ymax, strip->machine + 1.0f);
+    rect->ymax = std::max(rect->ymax, strip->channel + 1.0f);
   }
 }
 

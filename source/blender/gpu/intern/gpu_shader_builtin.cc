@@ -74,6 +74,10 @@ static const char *builtin_shader_create_info_name(eGPUBuiltinShader shader)
       return "gpu_shader_3D_point_varying_size_varying_color";
     case GPU_SHADER_3D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_AA:
       return "gpu_shader_3D_point_uniform_size_uniform_color_aa";
+    case GPU_SHADER_3D_POINT_FLAT_COLOR:
+      return "gpu_shader_3D_point_flat_color";
+    case GPU_SHADER_3D_POINT_UNIFORM_COLOR:
+      return "gpu_shader_3D_point_uniform_color";
     case GPU_SHADER_2D_AREA_BORDERS:
       return "gpu_shader_2D_area_borders";
     case GPU_SHADER_2D_WIDGET_BASE:
@@ -186,6 +190,8 @@ GPUShader *GPU_shader_get_builtin_shader(eGPUBuiltinShader shader)
 
 void GPU_shader_free_builtin_shaders()
 {
+  /* Make sure non is bound before deleting. */
+  GPU_shader_unbind();
   for (int i = 0; i < GPU_SHADER_CFG_LEN; i++) {
     for (int j = 0; j < GPU_SHADER_BUILTIN_LEN; j++) {
       if (builtin_shaders[i][j]) {

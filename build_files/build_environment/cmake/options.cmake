@@ -189,6 +189,19 @@ if(WIN32)
     set LDFLAGS=${MINGW_LDFLAGS}
   )
 
+  set(CONFIGURE_ENV_CLANG_CL_NO_PERL
+    cd ${MINGW_PATH} &&
+    call ${MINGW_SHELL} &&
+    set path &&
+    set CC=${LIBDIR}/llvm/bin/clang-cl.exe &&
+    set CXX=${LIBDIR}/llvm/bin/clang-cl.exe &&
+    set RANLIB=${LIBDIR}/llvm/bin/llvm-ranlib.exe &&
+    set RC=${LIBDIR}/llvm/bin/llvm-rc.exe &&
+    set AR=${LIBDIR}/llvm/bin/llvm-ar.exe &&
+    set CFLAGS=${MINGW_CFLAGS} &&
+    set LDFLAGS=${MINGW_LDFLAGS}
+  )
+
   set(CONFIGURE_COMMAND sh ./configure)
   set(CONFIGURE_COMMAND_NO_TARGET ${CONFIGURE_COMMAND})
 else()

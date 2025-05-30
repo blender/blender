@@ -9,6 +9,7 @@
 #pragma once
 
 #include "BLI_string_ref.hh"
+#include "BLI_vector.hh"
 
 /**
  * Describes the load operation of a frame-buffer attachment at the start of a render pass.
@@ -217,6 +218,46 @@ struct SpecializationConstant {
   bool operator==(const SpecializationConstant &b) const
   {
     return this->type == b.type && this->name == b.name && this->value == b.value;
+  }
+};
+
+/**
+ * Specialization constants as a Struct-of-Arrays. Allow simpler comparison and reset.
+ * The backend is free to implement their support as they see fit.
+ */
+struct SpecializationConstants {
+  Vector<gpu::shader::Type, 8> types;
+  /* Current values set by `GPU_shader_constant_*()` call. The backend can choose to interpret
+   * that however it wants (i.e: bind another shader instead). */
+  Vector<SpecializationConstant::Value, 8> values;
+
+  void set_value(int index, uint32_t value)
+  {
+    BLI_assert_msg(types[index] == Type::uint_t, "Mismatch between interface and constant type");
+    values[index].u = value;
+  }
+
+  void set_value(int index, int value)
+  {
+    BLI_assert_msg(types[index] == Type::int_t, "Mismatch between interface and constant type");
+    values[index].i = value;
+  }
+
+  void set_value(int index, float value)
+  {
+    BLI_assert_msg(types[index] == Type::float_t, "Mismatch between interface and constant type");
+    values[index].f = value;
+  }
+
+  void set_value(int index, bool value)
+  {
+    BLI_assert_msg(types[index] == Type::bool_t, "Mismatch between interface and constant type");
+    values[index].u = value ? 1 : 0;
+  }
+
+  bool is_empty() const
+  {
+    return types.is_empty();
   }
 };
 

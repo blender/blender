@@ -28,8 +28,8 @@ typedef struct MovieClipUser {
 } MovieClipUser;
 
 typedef struct MovieClipProxy {
-  /** 768=FILE_MAXDIR custom directory for index and proxy files (defaults to BL_proxy). */
-  char dir[768];
+  /** Custom directory for index and proxy files (defaults to "BL_proxy"). */
+  char dir[/*FILE_MAXDIR*/ 768];
 
   /** Time code in use. */
   short tc;
@@ -44,8 +44,8 @@ typedef struct MovieClipProxy {
 typedef struct MovieClip_RuntimeGPUTexture {
   void *next, *prev;
   MovieClipUser user;
-  /** Not written in file 3 = TEXTARGET_COUNT. */
-  struct GPUTexture *gputexture[3];
+  /** Not written in file. */
+  struct GPUTexture *gputexture[/*TEXTARGET_COUNT*/ 3];
 } MovieClip_RuntimeGPUTexture;
 
 typedef struct MovieClip_Runtime {
@@ -64,8 +64,7 @@ typedef struct MovieClip {
   /** Animation data (must be immediately after id for utilities to use it). */
   struct AnimData *adt;
 
-  /** File path, 1024 = FILE_MAX. */
-  char filepath[1024];
+  char filepath[/*FILE_MAX*/ 1024];
 
   /** Sequence or movie. */
   int source;
@@ -149,7 +148,8 @@ typedef struct MovieClipScopes {
   float slide_scale[2];
 } MovieClipScopes;
 
-/** #MovieClipProxy.build_size_flag */
+/** #MovieClipProxy.build_size_flag
+ * NOTE: Keep in sync with #IMB_Proxy_Size. */
 enum {
   MCLIP_PROXY_SIZE_25 = (1 << 0),
   MCLIP_PROXY_SIZE_50 = (1 << 1),
@@ -159,6 +159,13 @@ enum {
   MCLIP_PROXY_UNDISTORTED_SIZE_50 = (1 << 5),
   MCLIP_PROXY_UNDISTORTED_SIZE_75 = (1 << 6),
   MCLIP_PROXY_UNDISTORTED_SIZE_100 = (1 << 7),
+};
+
+/** #MovieClipProxy.build_tc_flag
+ * NOTE: Keep in sync with #IMB_Timecode_Type. */
+enum {
+  MCLIP_TC_RECORD_RUN = 1,
+  MCLIP_TC_RECORD_RUN_NO_GAPS = 8,
 };
 
 /** #MovieClip.source */

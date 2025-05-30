@@ -43,6 +43,7 @@
 #include "spreadsheet_layout.hh"
 #include "spreadsheet_row_filter.hh"
 #include "spreadsheet_row_filter_ui.hh"
+#include "spreadsheet_table.hh"
 
 #include <sstream>
 
@@ -53,6 +54,7 @@ static SpaceLink *spreadsheet_create(const ScrArea * /*area*/, const Scene * /*s
   SpaceSpreadsheet *spreadsheet_space = MEM_callocN<SpaceSpreadsheet>("spreadsheet space");
   spreadsheet_space->spacetype = SPACE_SPREADSHEET;
 
+  spreadsheet_space->geometry_id.base.type = SPREADSHEET_TABLE_ID_TYPE_GEOMETRY;
   spreadsheet_space->filter_flag = SPREADSHEET_FILTER_ENABLE;
 
   {
@@ -107,11 +109,11 @@ static void spreadsheet_free(SpaceLink *sl)
   LISTBASE_FOREACH_MUTABLE (SpreadsheetRowFilter *, row_filter, &sspreadsheet->row_filters) {
     spreadsheet_row_filter_free(row_filter);
   }
-  LISTBASE_FOREACH_MUTABLE (SpreadsheetColumn *, column, &sspreadsheet->columns) {
-    spreadsheet_column_free(column);
+  for (const int i : IndexRange(sspreadsheet->num_tables)) {
+    spreadsheet_table_free(sspreadsheet->tables[i]);
   }
-  MEM_SAFE_FREE(sspreadsheet->instance_ids);
-  BKE_viewer_path_clear(&sspreadsheet->viewer_path);
+  MEM_SAFE_FREE(sspreadsheet->tables);
+  spreadsheet_table_id_free_content(&sspreadsheet->geometry_id.base);
 }
 
 static void spreadsheet_init(wmWindowManager * /*wm*/, ScrArea *area)
@@ -139,16 +141,15 @@ static SpaceLink *spreadsheet_duplicate(SpaceLink *sl)
     SpreadsheetRowFilter *new_filter = spreadsheet_row_filter_copy(src_filter);
     BLI_addtail(&sspreadsheet_new->row_filters, new_filter);
   }
-  BLI_listbase_clear(&sspreadsheet_new->columns);
-  LISTBASE_FOREACH (SpreadsheetColumn *, src_column, &sspreadsheet_old->columns) {
-    SpreadsheetColumn *new_column = spreadsheet_column_copy(src_column);
-    BLI_addtail(&sspreadsheet_new->columns, new_column);
+  sspreadsheet_new->num_tables = sspreadsheet_old->num_tables;
+  sspreadsheet_new->tables = MEM_calloc_arrayN<SpreadsheetTable *>(sspreadsheet_old->num_tables,
+                                                                   __func__);
+  for (const int i : IndexRange(sspreadsheet_old->num_tables)) {
+    sspreadsheet_new->tables[i] = spreadsheet_table_copy(*sspreadsheet_old->tables[i]);
   }
 
-  sspreadsheet_new->instance_ids = static_cast<SpreadsheetInstanceID *>(
-      MEM_dupallocN(sspreadsheet_old->instance_ids));
-  BKE_viewer_path_copy(&sspreadsheet_new->viewer_path, &sspreadsheet_old->viewer_path);
-
+  spreadsheet_table_id_copy_content_geometry(sspreadsheet_new->geometry_id,
+                                             sspreadsheet_old->geometry_id);
   return (SpaceLink *)sspreadsheet_new;
 }
 
@@ -163,13 +164,19 @@ static void spreadsheet_id_remap(ScrArea * /*area*/,
                                  const blender::bke::id::IDRemapper &mappings)
 {
   SpaceSpreadsheet *sspreadsheet = (SpaceSpreadsheet *)slink;
-  BKE_viewer_path_id_remap(&sspreadsheet->viewer_path, mappings);
+  spreadsheet_table_id_remap_id(sspreadsheet->geometry_id.base, mappings);
+  for (const int i : IndexRange(sspreadsheet->num_tables)) {
+    spreadsheet_table_remap_id(*sspreadsheet->tables[i], mappings);
+  }
 }
 
 static void spreadsheet_foreach_id(SpaceLink *space_link, LibraryForeachIDData *data)
 {
   SpaceSpreadsheet *sspreadsheet = reinterpret_cast<SpaceSpreadsheet *>(space_link);
-  BKE_viewer_path_foreach_id(data, &sspreadsheet->viewer_path);
+  spreadsheet_table_id_foreach_id(sspreadsheet->geometry_id.base, data);
+  for (const int i : IndexRange(sspreadsheet->num_tables)) {
+    spreadsheet_table_foreach_id(*sspreadsheet->tables[i], data);
+  }
 }
 
 static void spreadsheet_main_region_init(wmWindowManager *wm, ARegion *region)
@@ -197,11 +204,11 @@ static void spreadsheet_main_region_init(wmWindowManager *wm, ARegion *region)
 
 ID *get_current_id(const SpaceSpreadsheet *sspreadsheet)
 {
-  if (BLI_listbase_is_empty(&sspreadsheet->viewer_path.path)) {
+  if (BLI_listbase_is_empty(&sspreadsheet->geometry_id.viewer_path.path)) {
     return nullptr;
   }
   ViewerPathElem *root_context = static_cast<ViewerPathElem *>(
-      sspreadsheet->viewer_path.path.first);
+      sspreadsheet->geometry_id.viewer_path.path.first);
   if (root_context->type != VIEWER_PATH_ELEM_TYPE_ID) {
     return nullptr;
   }
@@ -211,14 +218,14 @@ ID *get_current_id(const SpaceSpreadsheet *sspreadsheet)
 
 static void view_active_object(const bContext *C, SpaceSpreadsheet *sspreadsheet)
 {
-  BKE_viewer_path_clear(&sspreadsheet->viewer_path);
+  BKE_viewer_path_clear(&sspreadsheet->geometry_id.viewer_path);
   Object *ob = CTX_data_active_object(C);
   if (ob == nullptr) {
     return;
   }
   IDViewerPathElem *id_elem = BKE_viewer_path_elem_new_id();
   id_elem->id = &ob->id;
-  BLI_addtail(&sspreadsheet->viewer_path.path, id_elem);
+  BLI_addtail(&sspreadsheet->geometry_id.viewer_path.path, id_elem);
   ED_area_tag_redraw(CTX_wm_area(C));
 }
 
@@ -228,8 +235,9 @@ static void spreadsheet_update_context(const bContext *C)
 
   SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(C);
   Object *active_object = CTX_data_active_object(C);
-  Object *context_object = blender::ed::viewer_path::parse_object_only(sspreadsheet->viewer_path);
-  switch (eSpaceSpreadsheet_ObjectEvalState(sspreadsheet->object_eval_state)) {
+  Object *context_object = blender::ed::viewer_path::parse_object_only(
+      sspreadsheet->geometry_id.viewer_path);
+  switch (eSpaceSpreadsheet_ObjectEvalState(sspreadsheet->geometry_id.object_eval_state)) {
     case SPREADSHEET_OBJECT_EVAL_STATE_ORIGINAL:
     case SPREADSHEET_OBJECT_EVAL_STATE_EVALUATED: {
       if (sspreadsheet->flag & SPREADSHEET_FLAG_PINNED) {
@@ -258,7 +266,8 @@ static void spreadsheet_update_context(const bContext *C)
       WorkSpace *workspace = CTX_wm_workspace(C);
       if (sspreadsheet->flag & SPREADSHEET_FLAG_PINNED) {
         const std::optional<ViewerPathForGeometryNodesViewer> parsed_path =
-            blender::ed::viewer_path::parse_geometry_nodes_viewer(sspreadsheet->viewer_path);
+            blender::ed::viewer_path::parse_geometry_nodes_viewer(
+                sspreadsheet->geometry_id.viewer_path);
         if (parsed_path.has_value()) {
           if (blender::ed::viewer_path::exists_geometry_nodes_viewer(*parsed_path)) {
             /* The pinned path is still valid, do nothing. */
@@ -276,7 +285,7 @@ static void spreadsheet_update_context(const bContext *C)
       const std::optional<ViewerPathForGeometryNodesViewer> workspace_parsed_path =
           blender::ed::viewer_path::parse_geometry_nodes_viewer(workspace->viewer_path);
       if (workspace_parsed_path.has_value()) {
-        if (BKE_viewer_path_equal(&sspreadsheet->viewer_path,
+        if (BKE_viewer_path_equal(&sspreadsheet->geometry_id.viewer_path,
                                   &workspace->viewer_path,
                                   VIEWER_PATH_EQUAL_FLAG_CONSIDER_UI_NAME))
         {
@@ -284,12 +293,12 @@ static void spreadsheet_update_context(const bContext *C)
           break;
         }
         /* Update the viewer path from the workspace. */
-        BKE_viewer_path_clear(&sspreadsheet->viewer_path);
-        BKE_viewer_path_copy(&sspreadsheet->viewer_path, &workspace->viewer_path);
+        BKE_viewer_path_clear(&sspreadsheet->geometry_id.viewer_path);
+        BKE_viewer_path_copy(&sspreadsheet->geometry_id.viewer_path, &workspace->viewer_path);
       }
       else {
         /* No active viewer node, change back to showing evaluated active object. */
-        sspreadsheet->object_eval_state = SPREADSHEET_OBJECT_EVAL_STATE_EVALUATED;
+        sspreadsheet->geometry_id.object_eval_state = SPREADSHEET_OBJECT_EVAL_STATE_EVALUATED;
         view_active_object(C, sspreadsheet);
       }
 
@@ -342,6 +351,26 @@ std::unique_ptr<DataSource> get_data_source(const bContext &C)
   return {};
 }
 
+const SpreadsheetTableID *get_active_table_id(const SpaceSpreadsheet &sspreadsheet)
+{
+  return &sspreadsheet.geometry_id.base;
+}
+
+SpreadsheetTable *get_active_table(SpaceSpreadsheet &sspreadsheet)
+{
+  return const_cast<SpreadsheetTable *>(
+      get_active_table(const_cast<const SpaceSpreadsheet &>(sspreadsheet)));
+}
+
+const SpreadsheetTable *get_active_table(const SpaceSpreadsheet &sspreadsheet)
+{
+  const SpreadsheetTableID *active_table_id = get_active_table_id(sspreadsheet);
+  if (!active_table_id) {
+    return nullptr;
+  }
+  return spreadsheet_table_find(sspreadsheet, *active_table_id);
+}
+
 static int get_index_column_width(const int tot_rows)
 {
   const int fontid = BLF_default();
@@ -350,48 +379,64 @@ static int get_index_column_width(const int tot_rows)
          UI_UNIT_X * 0.75;
 }
 
-static void update_visible_columns(ListBase &columns, DataSource &data_source)
+static void update_visible_columns(SpreadsheetTable &table, DataSource &data_source)
 {
-  Set<SpreadsheetColumnID> used_ids;
-  LISTBASE_FOREACH_MUTABLE (SpreadsheetColumn *, column, &columns) {
-    std::unique_ptr<ColumnValues> values = data_source.get_column_values(*column->id);
-    /* Remove columns that don't exist anymore. */
-    if (!values) {
-      BLI_remlink(&columns, column);
-      spreadsheet_column_free(column);
-      continue;
-    }
-
-    if (!used_ids.add(*column->id)) {
-      /* Remove duplicate columns for now. */
-      BLI_remlink(&columns, column);
-      spreadsheet_column_free(column);
-      continue;
+  Set<std::reference_wrapper<const SpreadsheetColumnID>> handled_columns;
+  Vector<SpreadsheetColumn *, 32> new_columns;
+  for (SpreadsheetColumn *column : Span{table.columns, table.num_columns}) {
+    if (handled_columns.add(*column->id)) {
+      const bool has_data = data_source.get_column_values(*column->id) != nullptr;
+      SET_FLAG_FROM_TEST(column->flag, !has_data, SPREADSHEET_COLUMN_FLAG_UNAVAILABLE);
+      new_columns.append(column);
     }
   }
 
   data_source.foreach_default_column_ids(
       [&](const SpreadsheetColumnID &column_id, const bool is_extra) {
-        std::unique_ptr<ColumnValues> values = data_source.get_column_values(column_id);
-        if (values) {
-          if (used_ids.add(column_id)) {
-            SpreadsheetColumnID *new_id = spreadsheet_column_id_copy(&column_id);
-            SpreadsheetColumn *new_column = spreadsheet_column_new(new_id);
-            if (is_extra) {
-              BLI_addhead(&columns, new_column);
-            }
-            else {
-              BLI_addtail(&columns, new_column);
-            }
-          }
+        if (handled_columns.contains(column_id)) {
+          return;
         }
+        std::unique_ptr<ColumnValues> values = data_source.get_column_values(column_id);
+        if (!values) {
+          return;
+        }
+        table.column_use_clock++;
+        SpreadsheetColumn *column = spreadsheet_column_new(spreadsheet_column_id_copy(&column_id));
+        if (is_extra) {
+          new_columns.insert(0, column);
+        }
+        else {
+          new_columns.append(column);
+        }
+        handled_columns.add(*column->id);
       });
+
+  if (Span(table.columns, table.num_columns) == new_columns.as_span()) {
+    /* Nothing changed. */
+    return;
+  }
+
+  /* Update last used times of the columns to support garbage collection. */
+  for (SpreadsheetColumn *column : new_columns) {
+    const bool clock_was_reset = table.column_use_clock < column->last_used;
+    if (clock_was_reset || column->is_available()) {
+      column->last_used = table.column_use_clock;
+    }
+  }
+
+  /* Update the stored column pointers. */
+  MEM_SAFE_FREE(table.columns);
+  table.columns = MEM_calloc_arrayN<SpreadsheetColumn *>(new_columns.size(), __func__);
+  table.num_columns = new_columns.size();
+  std::copy_n(new_columns.begin(), new_columns.size(), table.columns);
+
+  /* Remove columns that have not been used for a while when there are too many. */
+  spreadsheet_table_remove_unused_columns(table);
 }
 
 static void spreadsheet_main_region_draw(const bContext *C, ARegion *region)
 {
   SpaceSpreadsheet *sspreadsheet = CTX_wm_space_spreadsheet(C);
-  sspreadsheet->runtime->cache.set_all_unused();
   spreadsheet_update_context(C);
 
   std::unique_ptr<DataSource> data_source = get_data_source(*C);
@@ -399,22 +444,45 @@ static void spreadsheet_main_region_draw(const bContext *C, ARegion *region)
     data_source = std::make_unique<DataSource>();
   }
 
-  update_visible_columns(sspreadsheet->columns, *data_source);
+  const SpreadsheetTableID *active_table_id = get_active_table_id(*sspreadsheet);
+  SpreadsheetTable *table = spreadsheet_table_find(*sspreadsheet, *active_table_id);
+  if (!table) {
+    spreadsheet_table_remove_unused(*sspreadsheet);
+    table = spreadsheet_table_new(spreadsheet_table_id_copy(*active_table_id));
+    spreadsheet_table_add(*sspreadsheet, table);
+  }
+  if (table) {
+    /* Move to the front of the tables list to make it cheaper to find the table in future. */
+    spreadsheet_table_move_to_front(*sspreadsheet, *table);
+  }
+
+  /* Update the last used time on the table. */
+  if (table->last_used < sspreadsheet->table_use_clock || sspreadsheet->table_use_clock == 0) {
+    sspreadsheet->table_use_clock++;
+    /* Handle clock overflow by just resetting all clocks. */
+    if (sspreadsheet->table_use_clock == 0) {
+      for (SpreadsheetTable *table : Span(sspreadsheet->tables, sspreadsheet->num_tables)) {
+        table->last_used = sspreadsheet->table_use_clock;
+      }
+    }
+    table->last_used = sspreadsheet->table_use_clock;
+  }
+
+  update_visible_columns(*table, *data_source);
 
   SpreadsheetLayout spreadsheet_layout;
   ResourceScope scope;
 
   const int tot_rows = data_source->tot_rows();
   spreadsheet_layout.index_column_width = get_index_column_width(tot_rows);
-  spreadsheet_layout.row_indices = spreadsheet_filter_rows(
-      *sspreadsheet, spreadsheet_layout, *data_source, scope);
 
   int x = spreadsheet_layout.index_column_width;
 
-  LISTBASE_FOREACH (SpreadsheetColumn *, column, &sspreadsheet->columns) {
+  for (SpreadsheetColumn *column : Span{table->columns, table->num_columns}) {
     std::unique_ptr<ColumnValues> values_ptr = data_source->get_column_values(*column->id);
-    /* Should have been removed before if it does not exist anymore. */
-    BLI_assert(values_ptr);
+    if (!values_ptr) {
+      continue;
+    }
     const ColumnValues *values = scope.add(std::move(values_ptr));
 
     if (column->width <= 0.0f) {
@@ -430,6 +498,9 @@ static void spreadsheet_main_region_draw(const bContext *C, ARegion *region)
     spreadsheet_column_assign_runtime_data(column, values->type(), values->name());
   }
 
+  spreadsheet_layout.row_indices = spreadsheet_filter_rows(
+      *sspreadsheet, spreadsheet_layout, *data_source, scope);
+
   sspreadsheet->runtime->tot_columns = spreadsheet_layout.columns.size();
   sspreadsheet->runtime->tot_rows = tot_rows;
   sspreadsheet->runtime->visible_rows = spreadsheet_layout.row_indices.size();
@@ -438,15 +509,13 @@ static void spreadsheet_main_region_draw(const bContext *C, ARegion *region)
   draw_spreadsheet_in_region(C, region, *drawer);
 
   sspreadsheet->runtime->top_row_height = drawer->top_row_height;
+  sspreadsheet->runtime->left_column_width = drawer->left_column_width;
 
   /* Tag other regions for redraw, because the main region updates data for them. */
   ARegion *footer = BKE_area_find_region_type(CTX_wm_area(C), RGN_TYPE_FOOTER);
   ED_region_tag_redraw(footer);
   ARegion *sidebar = BKE_area_find_region_type(CTX_wm_area(C), RGN_TYPE_UI);
   ED_region_tag_redraw(sidebar);
-
-  /* Free all cache items that have not been used. */
-  sspreadsheet->runtime->cache.remove_all_unused();
 }
 
 static void spreadsheet_main_region_listener(const wmRegionListenerParams *params)
@@ -487,7 +556,8 @@ static void spreadsheet_main_region_listener(const wmRegionListenerParams *param
       break;
     }
     case NC_VIEWER_PATH: {
-      if (sspreadsheet->object_eval_state == SPREADSHEET_OBJECT_EVAL_STATE_VIEWER_NODE) {
+      if (sspreadsheet->geometry_id.object_eval_state == SPREADSHEET_OBJECT_EVAL_STATE_VIEWER_NODE)
+      {
         ED_region_tag_redraw(region);
       }
       break;
@@ -544,7 +614,8 @@ static void spreadsheet_header_region_listener(const wmRegionListenerParams *par
       break;
     }
     case NC_VIEWER_PATH: {
-      if (sspreadsheet->object_eval_state == SPREADSHEET_OBJECT_EVAL_STATE_VIEWER_NODE) {
+      if (sspreadsheet->geometry_id.object_eval_state == SPREADSHEET_OBJECT_EVAL_STATE_VIEWER_NODE)
+      {
         ED_region_tag_redraw(region);
       }
       break;
@@ -650,21 +721,15 @@ static void spreadsheet_blend_read_data(BlendDataReader *reader, SpaceLink *sl)
   LISTBASE_FOREACH (SpreadsheetRowFilter *, row_filter, &sspreadsheet->row_filters) {
     BLO_read_string(reader, &row_filter->value_string);
   }
-  BLO_read_struct_list(reader, SpreadsheetColumn, &sspreadsheet->columns);
-  LISTBASE_FOREACH (SpreadsheetColumn *, column, &sspreadsheet->columns) {
-    column->runtime = MEM_new<SpreadsheetColumnRuntime>(__func__);
-    BLO_read_struct(reader, SpreadsheetColumnID, &column->id);
-    BLO_read_string(reader, &column->id->name);
-    /* While the display name is technically runtime data, it is loaded here, otherwise the row
-     * filters might not now their type if their region draws before the main region.
-     * This would ideally be cleared here. */
-    BLO_read_string(reader, &column->display_name);
+
+  BLO_read_pointer_array(
+      reader, sspreadsheet->num_tables, reinterpret_cast<void **>(&sspreadsheet->tables));
+  for (const int i : IndexRange(sspreadsheet->num_tables)) {
+    BLO_read_struct(reader, SpreadsheetTable, &sspreadsheet->tables[i]);
+    spreadsheet_table_blend_read(reader, sspreadsheet->tables[i]);
   }
 
-  BLO_read_struct_array(
-      reader, SpreadsheetInstanceID, sspreadsheet->instance_ids_num, &sspreadsheet->instance_ids);
-
-  BKE_viewer_path_blend_read_data(reader, &sspreadsheet->viewer_path);
+  spreadsheet_table_id_blend_read(reader, &sspreadsheet->geometry_id.base);
 }
 
 static void spreadsheet_blend_write(BlendWriter *writer, SpaceLink *sl)
@@ -677,19 +742,12 @@ static void spreadsheet_blend_write(BlendWriter *writer, SpaceLink *sl)
     BLO_write_string(writer, row_filter->value_string);
   }
 
-  LISTBASE_FOREACH (SpreadsheetColumn *, column, &sspreadsheet->columns) {
-    BLO_write_struct(writer, SpreadsheetColumn, column);
-    BLO_write_struct(writer, SpreadsheetColumnID, column->id);
-    BLO_write_string(writer, column->id->name);
-    /* While the display name is technically runtime data, we write it here, otherwise the row
-     * filters might not now their type if their region draws before the main region.
-     * This would ideally be cleared here. */
-    BLO_write_string(writer, column->display_name);
+  BLO_write_pointer_array(writer, sspreadsheet->num_tables, sspreadsheet->tables);
+  for (const int i : IndexRange(sspreadsheet->num_tables)) {
+    spreadsheet_table_blend_write(writer, sspreadsheet->tables[i]);
   }
 
-  BLO_write_struct_array(
-      writer, SpreadsheetInstanceID, sspreadsheet->instance_ids_num, sspreadsheet->instance_ids);
-  BKE_viewer_path_blend_write(writer, &sspreadsheet->viewer_path);
+  spreadsheet_table_id_blend_write_content_geometry(writer, &sspreadsheet->geometry_id);
 }
 
 static void spreadsheet_cursor(wmWindow *win, ScrArea *area, ARegion *region)
@@ -698,8 +756,12 @@ static void spreadsheet_cursor(wmWindow *win, ScrArea *area, ARegion *region)
 
   const int2 cursor_re{win->eventstate->xy[0] - region->winrct.xmin,
                        win->eventstate->xy[1] - region->winrct.ymin};
-  if (find_hovered_column_edge(sspreadsheet, *region, cursor_re)) {
+  if (find_hovered_column_header_edge(sspreadsheet, *region, cursor_re)) {
     WM_cursor_set(win, WM_CURSOR_X_MOVE);
+    return;
+  }
+  if (find_hovered_column_header(sspreadsheet, *region, cursor_re)) {
+    WM_cursor_set(win, WM_CURSOR_HAND);
     return;
   }
   WM_cursor_set(win, WM_CURSOR_DEFAULT);

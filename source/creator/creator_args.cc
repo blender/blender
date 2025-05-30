@@ -784,8 +784,8 @@ static void print_help(bArgs *ba, bool all)
   BLI_args_print_arg_doc(ba, "--gpu-backend");
 #  ifdef WITH_OPENGL_BACKEND
   BLI_args_print_arg_doc(ba, "--gpu-compilation-subprocesses");
-  BLI_args_print_arg_doc(ba, "--profile-gpu");
 #  endif
+  BLI_args_print_arg_doc(ba, "--profile-gpu");
 
   PRINT("\n");
   PRINT("Misc Options:\n");
@@ -1113,8 +1113,8 @@ static int arg_handle_command_set(int argc, const char **argv, void *data)
 
 static const char arg_handle_disable_depsgraph_on_file_load_doc[] =
     "\n"
-    "\tBackround mode: Do not systematically build and evaluate ViewLayers' dependency graphs\n"
-    "\twhen loading a blendfile in background mode (`-b` or `-c` options).\n"
+    "\tBackground mode: Do not systematically build and evaluate ViewLayers' dependency graphs\n"
+    "\twhen loading a blend-file in background mode (`-b` or `-c` options).\n"
     "\n"
     "\tScripts requiring evaluated data then need to explicitly ensure that\n"
     "\tan evaluated depsgraph is available\n"
@@ -1132,7 +1132,7 @@ static int arg_handle_disable_depsgraph_on_file_load(int /*argc*/,
 
 static const char arg_handle_disable_liboverride_auto_resync_doc[] =
     "\n"
-    "\tDo not perform library override automatic resync when loading a new blendfile.\n"
+    "\tDo not perform library override automatic resync when loading a new blend-file.\n"
     "\n"
     "\tNOTE: this is an alternative way to get the same effect as when setting the\n"
     "\t`No Override Auto Resync` User Preferences Debug option.";
@@ -2512,7 +2512,6 @@ static int arg_handle_addons_set(int argc, const char **argv, void *data)
   return 0;
 }
 
-#  ifdef WITH_OPENGL_BACKEND
 static const char arg_handle_profile_gpu_set_doc[] =
     "\n"
     "\tEnable CPU & GPU performance profiling for GPU debug groups\n"
@@ -2522,7 +2521,6 @@ static int arg_handle_profile_gpu_set(int /*argc*/, const char ** /*argv*/, void
   G.profile_gpu = true;
   return 0;
 }
-#  endif
 
 /**
  * Implementation for #arg_handle_load_last_file, also used by `--open-last`.
@@ -2591,7 +2589,7 @@ static bool handle_load_file(bContext *C, const char *filepath_arg, const bool l
      *
      * WARNING: The path referenced may be incorrect, no attempt is made to validate the path
      * here or check that writing to it will work. If the users enters the path of a directory
-     * that doesn't exist (for e.g.) saving will fail.
+     * that doesn't exist (for example) saving will fail.
      * Attempting to create the file at this point is possible but likely to cause more
      * trouble than it's worth (what with network drives), removable devices ... etc. */
 
@@ -2694,8 +2692,8 @@ void main_args_setup(bContext *C, bArgs *ba, bool all)
                "--gpu-compilation-subprocesses",
                CB(arg_handle_gpu_compilation_subprocesses_set),
                nullptr);
-  BLI_args_add(ba, nullptr, "--profile-gpu", CB(arg_handle_profile_gpu_set), nullptr);
 #  endif
+  BLI_args_add(ba, nullptr, "--profile-gpu", CB(arg_handle_profile_gpu_set), nullptr);
 
   /* Pass: Background Mode & Settings
    *

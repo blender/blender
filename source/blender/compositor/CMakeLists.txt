@@ -106,14 +106,13 @@ set(SRC
   cached_resources/intern/deriche_gaussian_coefficients.cc
   cached_resources/intern/distortion_grid.cc
   cached_resources/intern/fog_glow_kernel.cc
+  cached_resources/intern/image_coordinates.cc
   cached_resources/intern/keying_screen.cc
   cached_resources/intern/morphological_distance_feather_weights.cc
   cached_resources/intern/ocio_color_space_conversion_shader.cc
-  cached_resources/intern/pixel_coordinates.cc
   cached_resources/intern/smaa_precomputed_textures.cc
   cached_resources/intern/symmetric_blur_weights.cc
   cached_resources/intern/symmetric_separable_blur_weights.cc
-  cached_resources/intern/texture_coordinates.cc
   cached_resources/intern/van_vliet_gaussian_coefficients.cc
 
   cached_resources/COM_bokeh_kernel.hh
@@ -125,14 +124,13 @@ set(SRC
   cached_resources/COM_deriche_gaussian_coefficients.hh
   cached_resources/COM_distortion_grid.hh
   cached_resources/COM_fog_glow_kernel.hh
+  cached_resources/COM_image_coordinates.hh
   cached_resources/COM_keying_screen.hh
   cached_resources/COM_morphological_distance_feather_weights.hh
   cached_resources/COM_ocio_color_space_conversion_shader.hh
-  cached_resources/COM_pixel_coordinates.hh
   cached_resources/COM_smaa_precomputed_textures.hh
   cached_resources/COM_symmetric_blur_weights.hh
   cached_resources/COM_symmetric_separable_blur_weights.hh
-  cached_resources/COM_texture_coordinates.hh
   cached_resources/COM_van_vliet_gaussian_coefficients.hh
 
   derived_resources/intern/denoised_auxiliary_pass.cc
@@ -205,6 +203,9 @@ set(GLSL_SRC
   shaders/compositor_glare_write_highlights_output.glsl
   shaders/compositor_horizontal_lens_distortion.glsl
   shaders/compositor_id_mask.glsl
+  shaders/compositor_image_coordinates_normalized.glsl
+  shaders/compositor_image_coordinates_pixel.glsl
+  shaders/compositor_image_coordinates_uniform.glsl
   shaders/compositor_image_crop.glsl
   shaders/compositor_inpaint_compute_boundary.glsl
   shaders/compositor_inpaint_compute_region.glsl
@@ -231,7 +232,6 @@ set(GLSL_SRC
   shaders/compositor_movie_distortion.glsl
   shaders/compositor_normalize.glsl
   shaders/compositor_parallel_reduction.glsl
-  shaders/compositor_pixel_coordinates.glsl
   shaders/compositor_pixelate.glsl
   shaders/compositor_plane_deform_anisotropic.glsl
   shaders/compositor_plane_deform_mask.glsl
@@ -256,7 +256,6 @@ set(GLSL_SRC
   shaders/compositor_symmetric_blur_variable_size.glsl
   shaders/compositor_symmetric_separable_blur.glsl
   shaders/compositor_symmetric_separable_blur_variable_size.glsl
-  shaders/compositor_texture_coordinates.glsl
   shaders/compositor_tone_map_photoreceptor.glsl
   shaders/compositor_tone_map_simple.glsl
   shaders/compositor_translate_wrapped.glsl

@@ -339,36 +339,27 @@ static void subdivisions_panel_draw(const bContext * /*C*/, Panel *panel)
    */
 
   PointerRNA op_ptr;
-  uiItemFullO(layout,
-              "OBJECT_OT_multires_subdivide",
-              IFACE_("Subdivide"),
-              ICON_NONE,
-              nullptr,
-              WM_OP_EXEC_DEFAULT,
-              UI_ITEM_NONE,
-              &op_ptr);
+  op_ptr = layout->op("OBJECT_OT_multires_subdivide",
+                      IFACE_("Subdivide"),
+                      ICON_NONE,
+                      WM_OP_EXEC_DEFAULT,
+                      UI_ITEM_NONE);
   RNA_enum_set(&op_ptr, "mode", int8_t(MultiresSubdivideModeType::CatmullClark));
   RNA_string_set(&op_ptr, "modifier", ((ModifierData *)mmd)->name);
 
   row = &layout->row(false);
-  uiItemFullO(row,
-              "OBJECT_OT_multires_subdivide",
-              IFACE_("Simple"),
-              ICON_NONE,
-              nullptr,
-              WM_OP_EXEC_DEFAULT,
-              UI_ITEM_NONE,
-              &op_ptr);
+  op_ptr = row->op("OBJECT_OT_multires_subdivide",
+                   IFACE_("Simple"),
+                   ICON_NONE,
+                   WM_OP_EXEC_DEFAULT,
+                   UI_ITEM_NONE);
   RNA_enum_set(&op_ptr, "mode", int8_t(MultiresSubdivideModeType::Simple));
   RNA_string_set(&op_ptr, "modifier", ((ModifierData *)mmd)->name);
-  uiItemFullO(row,
-              "OBJECT_OT_multires_subdivide",
-              IFACE_("Linear"),
-              ICON_NONE,
-              nullptr,
-              WM_OP_EXEC_DEFAULT,
-              UI_ITEM_NONE,
-              &op_ptr);
+  op_ptr = row->op("OBJECT_OT_multires_subdivide",
+                   IFACE_("Linear"),
+                   ICON_NONE,
+                   WM_OP_EXEC_DEFAULT,
+                   UI_ITEM_NONE);
   RNA_enum_set(&op_ptr, "mode", int8_t(MultiresSubdivideModeType::Linear));
   RNA_string_set(&op_ptr, "modifier", ((ModifierData *)mmd)->name);
 

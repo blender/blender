@@ -4,7 +4,7 @@
 
 #include "BLI_math_euler.hh"
 
-#include "NOD_socket_search_link.hh"
+#include "NOD_geometry_nodes_gizmos.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"
@@ -15,13 +15,13 @@ namespace blender::nodes::node_fn_input_rotation_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_output<decl::Rotation>("Rotation");
-}
-
-static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
-{
-  uiLayout *col = &layout->column(true);
-  col->prop(ptr, "rotation_euler", UI_ITEM_R_EXPAND, "", ICON_NONE);
+  b.add_output<decl::Rotation>("Rotation").custom_draw([](CustomSocketDrawParams &params) {
+    uiLayout &row = params.layout.row(true);
+    row.column(true).prop(&params.node_ptr, "rotation_euler", UI_ITEM_NONE, "", ICON_NONE);
+    if (gizmos::value_node_has_gizmo(params.tree, params.node)) {
+      row.prop(&params.socket_ptr, "pin_gizmo", UI_ITEM_NONE, "", ICON_GIZMO);
+    }
+  });
 }
 
 static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
@@ -54,7 +54,6 @@ static void node_register()
   blender::bke::node_type_storage(
       ntype, "NodeInputRotation", node_free_standard_storage, node_copy_standard_storage);
   ntype.build_multi_function = node_build_multi_function;
-  ntype.draw_buttons = node_layout;
   blender::bke::node_register_type(ntype);
 }
 NOD_REGISTER_NODE(node_register)

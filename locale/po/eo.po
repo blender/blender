@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'a7d2b7850ef2')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'ba454989554a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-05 08:47+0000\n"
+"POT-Creation-Date: 2025-05-26 07:36+0000\n"
 "PO-Revision-Date: 2025-04-14 08:15+0000\n"
 "Last-Translator: william sélifet <williamselifet@live.be>\n"
 "Language-Team: Esperanto <https://translate.blender.org/projects/blender-ui/ui/eo/>\n"
@@ -39,6 +39,10 @@ msgid "Deflectors"
 msgstr "Deflekta"
 
 
+msgid "B-Bone"
+msgstr "B-osto"
+
+
 msgid "Angular"
 msgstr "Angula"
 
@@ -53,10 +57,6 @@ msgstr "Redoni"
 
 msgid "Window"
 msgstr "Fenestro"
-
-
-msgid "B-Bone"
-msgstr "B-osto"
 
 
 msgid "Attribute"

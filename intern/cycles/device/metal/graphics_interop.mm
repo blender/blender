@@ -17,23 +17,32 @@ MetalDeviceGraphicsInterop::MetalDeviceGraphicsInterop(MetalDeviceQueue *queue)
 
 MetalDeviceGraphicsInterop::~MetalDeviceGraphicsInterop() = default;
 
-void MetalDeviceGraphicsInterop::set_buffer(const GraphicsInteropBuffer &interop_buffer)
+void MetalDeviceGraphicsInterop::set_buffer(GraphicsInteropBuffer &interop_buffer)
 {
-  /* Trivial implementation due to unified memory. */
-  if (interop_buffer.type == GraphicsInteropDevice::METAL) {
-    need_clear_ |= interop_buffer.need_clear;
-    buffer_ = reinterpret_cast<void *>(interop_buffer.handle);
-    size_ = interop_buffer.width * interop_buffer.height * sizeof(half4);
+  if (interop_buffer.is_empty()) {
+    mem_.mtlBuffer = nullptr;
+    size_ = 0;
+    return;
   }
+
+  need_zero_ |= interop_buffer.take_zero();
+
+  if (!interop_buffer.has_new_handle()) {
+    return;
+  }
+
+  mem_.mtlBuffer = reinterpret_cast<id<MTLBuffer>>(interop_buffer.take_handle());
+  size_ = interop_buffer.get_size();
 }
 
 device_ptr MetalDeviceGraphicsInterop::map()
 {
-  if (buffer_ && need_clear_) {
-    memset(buffer_, 0, size_);
+  if (mem_.mtlBuffer && need_zero_) {
+    memset([mem_.mtlBuffer contents], 0, size_);
+    need_zero_ = false;
   }
 
-  return device_ptr(buffer_);
+  return device_ptr(&mem_);
 }
 
 void MetalDeviceGraphicsInterop::unmap() {}

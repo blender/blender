@@ -19,6 +19,7 @@
 
 #include "transform.hh"
 #include "transform_convert.hh"
+#include "transform_snap.hh"
 
 /* -------------------------------------------------------------------- */
 /** \name Grease Pencil Transform Creation
@@ -232,6 +233,10 @@ static void createTransGreasePencilVerts(bContext *C, TransInfo *t)
 
 static void recalcData_grease_pencil(TransInfo *t)
 {
+  if (t->state != TRANS_CANCEL) {
+    transform_snap_project_individual_apply(t);
+  }
+
   bContext *C = t->context;
   Scene *scene = CTX_data_scene(C);
 

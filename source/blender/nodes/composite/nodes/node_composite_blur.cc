@@ -18,6 +18,7 @@
 
 #include "GPU_shader.hh"
 
+#include "COM_algorithm_parallel_reduction.hh"
 #include "COM_algorithm_recursive_gaussian_blur.hh"
 #include "COM_algorithm_symmetric_separable_blur.hh"
 #include "COM_node_operation.hh"
@@ -34,14 +35,16 @@ NODE_STORAGE_FUNCS(NodeBlurData)
 
 static void cmp_node_blur_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Color>("Image")
-      .default_value({1.0f, 1.0f, 1.0f, 1.0f})
-      .compositor_domain_priority(0);
-  b.add_input<decl::Float>("Size")
-      .default_value(1.0f)
-      .min(0.0f)
-      .max(1.0f)
-      .compositor_domain_priority(1);
+  b.add_input<decl::Color>("Image").default_value({1.0f, 1.0f, 1.0f, 1.0f});
+  b.add_input<decl::Vector>("Size").dimensions(2).default_value({0.0f, 0.0f}).min(0.0f);
+  b.add_input<decl::Bool>("Extend Bounds").default_value(false).compositor_expects_single_value();
+  b.add_input<decl::Bool>("Separable")
+      .default_value(true)
+      .compositor_expects_single_value()
+      .description(
+          "Use faster approximation by blurring along the horizontal and vertical directions "
+          "independently");
+
   b.add_output<decl::Color>("Image");
 }
 
@@ -54,37 +57,7 @@ static void node_composit_init_blur(bNodeTree * /*ntree*/, bNode *node)
 
 static void node_composit_buts_blur(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  uiLayout *col, *row;
-
-  col = &layout->column(false);
-  const int filter = RNA_enum_get(ptr, "filter_type");
-
-  col->prop(ptr, "filter_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
-  if (filter != R_FILTER_FAST_GAUSS) {
-    col->prop(ptr, "use_bokeh", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
-  }
-
-  col->prop(ptr, "use_relative", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
-
-  if (RNA_boolean_get(ptr, "use_relative")) {
-    col->label(IFACE_("Aspect Correction"), ICON_NONE);
-    row = &layout->row(true);
-    row->prop(ptr,
-              "aspect_correction",
-              UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_EXPAND,
-              std::nullopt,
-              ICON_NONE);
-
-    col = &layout->column(true);
-    col->prop(ptr, "factor_x", UI_ITEM_R_SPLIT_EMPTY_NAME, IFACE_("X"), ICON_NONE);
-    col->prop(ptr, "factor_y", UI_ITEM_R_SPLIT_EMPTY_NAME, IFACE_("Y"), ICON_NONE);
-  }
-  else {
-    col = &layout->column(true);
-    col->prop(ptr, "size_x", UI_ITEM_R_SPLIT_EMPTY_NAME, IFACE_("X"), ICON_NONE);
-    col->prop(ptr, "size_y", UI_ITEM_R_SPLIT_EMPTY_NAME, IFACE_("Y"), ICON_NONE);
-  }
-  col->prop(ptr, "use_extended_bounds", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+  layout->prop(ptr, "filter_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 }
 
 using namespace blender::compositor;
@@ -102,22 +75,22 @@ class BlurOperation : public NodeOperation {
       return;
     }
 
-    if (node_storage(bnode()).filtertype == R_FILTER_FAST_GAUSS) {
-      recursive_gaussian_blur(context(), input, output, compute_blur_radius());
+    if (!this->get_input("Size").is_single_value()) {
+      this->execute_variable_size(input, output);
     }
-    else if (!this->get_input("Size").is_single_value()) {
-      execute_variable_size(input, output);
+    else if (node_storage(bnode()).filtertype == R_FILTER_FAST_GAUSS) {
+      recursive_gaussian_blur(context(), input, output, this->get_blur_size());
     }
     else if (use_separable_filter()) {
       symmetric_separable_blur(context(),
                                input,
                                output,
-                               compute_blur_radius(),
+                               this->get_blur_size(),
                                node_storage(bnode()).filtertype,
                                get_extend_bounds());
     }
     else {
-      execute_constant_size(input, output);
+      this->execute_constant_size(input, output);
     }
   }
 
@@ -140,7 +113,7 @@ class BlurOperation : public NodeOperation {
 
     input.bind_as_texture(shader, "input_tx");
 
-    const float2 blur_radius = compute_blur_radius();
+    const float2 blur_radius = this->get_blur_size();
 
     const Result &weights = context().cache_manager().symmetric_blur_weights.get(
         context(), node_storage(bnode()).filtertype, blur_radius);
@@ -165,7 +138,7 @@ class BlurOperation : public NodeOperation {
 
   void execute_constant_size_cpu(const Result &input, Result &output)
   {
-    const float2 blur_radius = this->compute_blur_radius();
+    const float2 blur_radius = this->get_blur_size();
     const Result &weights = this->context().cache_manager().symmetric_blur_weights.get(
         this->context(), node_storage(this->bnode()).filtertype, blur_radius);
 
@@ -241,6 +214,10 @@ class BlurOperation : public NodeOperation {
 
   void execute_variable_size_gpu(const Result &input, Result &output)
   {
+    const float2 blur_radius = this->compute_maximum_blur_size();
+    const Result &weights = context().cache_manager().symmetric_blur_weights.get(
+        context(), node_storage(bnode()).filtertype, blur_radius);
+
     GPUShader *shader = context().get_shader("compositor_symmetric_blur_variable_size");
     GPU_shader_bind(shader);
 
@@ -248,10 +225,6 @@ class BlurOperation : public NodeOperation {
 
     input.bind_as_texture(shader, "input_tx");
 
-    const float2 blur_radius = compute_blur_radius();
-
-    const Result &weights = context().cache_manager().symmetric_blur_weights.get(
-        context(), node_storage(bnode()).filtertype, blur_radius);
     weights.bind_as_texture(shader, "weights_tx");
 
     const Result &input_size = get_input("Size");
@@ -277,7 +250,7 @@ class BlurOperation : public NodeOperation {
 
   void execute_variable_size_cpu(const Result &input, Result &output)
   {
-    const float2 blur_radius = this->compute_blur_radius();
+    const float2 blur_radius = this->compute_maximum_blur_size();
     const Result &weights = this->context().cache_manager().symmetric_blur_weights.get(
         this->context(), node_storage(this->bnode()).filtertype, blur_radius);
 
@@ -300,21 +273,16 @@ class BlurOperation : public NodeOperation {
     auto load_size = [&](const int2 texel) {
       int2 blur_radius = weights.domain().size - 1;
       int2 offset = extend_bounds ? blur_radius : int2(0);
-      return math::clamp(size.load_pixel_extended<float>(texel - offset), 0.0f, 1.0f);
+      return math::max(float2(0.0f), size.load_pixel_extended<float3>(texel - offset).xy());
     };
 
     parallel_for(domain.size, [&](const int2 texel) {
       float4 accumulated_color = float4(0.0f);
       float4 accumulated_weight = float4(0.0f);
 
-      /* The weights texture only stores the weights for the first quadrant, but since the weights
-       * are symmetric, other quadrants can be found using mirroring. It follows that the base blur
-       * radius is the weights texture size minus one, where the one corresponds to the zero
-       * weight. */
-      int2 weights_size = weights.domain().size;
-      int2 base_radius = weights_size - int2(1);
-      int2 radius = int2(math::ceil(float2(base_radius) * load_size(texel)));
-      float2 coordinates_scale = float2(1.0f) / float2(radius + int2(1));
+      const float2 size = load_size(texel);
+      int2 radius = int2(math::ceil(size));
+      float2 coordinates_scale = float2(1.0f) / (size + float2(1.0f));
 
       /* First, compute the contribution of the center pixel. */
       float4 center_color = load_input(texel);
@@ -368,6 +336,11 @@ class BlurOperation : public NodeOperation {
     });
   }
 
+  float2 compute_maximum_blur_size()
+  {
+    return maximum_float3(this->context(), this->get_input("Size")).xy();
+  }
+
   /* Loads the input color of the pixel at the given texel. If bounds are extended, then the input
    * is treated as padded by a blur size amount of pixels of zero color, and the given texel is
    * assumed to be in the space of the image after padding. So we offset the texel by the blur
@@ -393,41 +366,19 @@ class BlurOperation : public NodeOperation {
     return color;
   }
 
-  float2 compute_blur_radius()
-  {
-    const float size = math::clamp(get_input("Size").get_single_value_default(1.0f), 0.0f, 1.0f);
-
-    if (!node_storage(bnode()).relative) {
-      return float2(node_storage(bnode()).sizex, node_storage(bnode()).sizey) * size;
-    }
-
-    int2 image_size = get_input("Image").domain().size;
-    switch (node_storage(bnode()).aspect) {
-      case CMP_NODE_BLUR_ASPECT_Y:
-        image_size.y = image_size.x;
-        break;
-      case CMP_NODE_BLUR_ASPECT_X:
-        image_size.x = image_size.y;
-        break;
-      default:
-        BLI_assert(node_storage(bnode()).aspect == CMP_NODE_BLUR_ASPECT_NONE);
-        break;
-    }
-
-    return float2(image_size) * get_size_factor() * size;
-  }
-
-  /* Returns true if the operation does nothing and the input can be passed through. */
   bool is_identity()
   {
-    const Result &input = get_input("Image");
-    /* Single value inputs can't be blurred and are returned as is. */
+    const Result &input = this->get_input("Image");
     if (input.is_single_value()) {
       return true;
     }
 
-    /* Zero blur radius. The operation does nothing and the input can be passed through. */
-    if (compute_blur_radius() == float2(0.0)) {
+    const Result &size = this->get_input("Size");
+    if (!size.is_single_value()) {
+      return false;
+    }
+
+    if (this->get_blur_size() == float2(0.0)) {
       return true;
     }
 
@@ -436,13 +387,13 @@ class BlurOperation : public NodeOperation {
 
   /* The blur node can operate with different filter types, evaluated on the normalized distance to
    * the center of the filter. Some of those filters are separable and can be computed as such. If
-   * the bokeh member is disabled in the node, then the filter is always computed as separable even
-   * if it is not in fact separable, in which case, the used filter is a cheaper approximation to
-   * the actual filter. If the bokeh member is enabled, then the filter is computed as separable if
-   * it is in fact separable and as a normal 2D filter otherwise. */
+   * the Separable input is true, then the filter is always computed as separable even if it is not
+   * in fact separable, in which case, the used filter is a cheaper approximation to the actual
+   * filter. Otherwise, the filter is computed as separable if it is in fact separable and as a
+   * normal 2D filter otherwise. */
   bool use_separable_filter()
   {
-    if (!node_storage(bnode()).bokeh) {
+    if (this->get_separable()) {
       return true;
     }
 
@@ -456,14 +407,20 @@ class BlurOperation : public NodeOperation {
     }
   }
 
-  float2 get_size_factor()
+  float2 get_blur_size()
   {
-    return float2(node_storage(bnode()).percentx, node_storage(bnode()).percenty) / 100.0f;
+    BLI_assert(this->get_input("Size").is_single_value());
+    return math::max(float2(0.0f), this->get_input("Size").get_single_value<float3>().xy());
+  }
+
+  bool get_separable()
+  {
+    return this->get_input("Separable").get_single_value_default(true);
   }
 
   bool get_extend_bounds()
   {
-    return bnode().custom1 & CMP_NODEFLAG_BLUR_EXTEND_BOUNDS;
+    return this->get_input("Extend Bounds").get_single_value_default(false);
   }
 };
 

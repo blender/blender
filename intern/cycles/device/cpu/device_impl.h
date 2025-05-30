@@ -48,7 +48,7 @@ class CPUDevice : public Device {
   RTCScene embree_scene = nullptr;
   RTCDevice embree_device;
 #endif
-#ifdef WITH_PATH_GUIDING
+#if defined(WITH_PATH_GUIDING)
   mutable unique_ptr<openpgl::cpp::Device> guiding_device;
 #endif
 

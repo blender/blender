@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'a7d2b7850ef2')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'ba454989554a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-05 08:47+0000\n"
+"POT-Creation-Date: 2025-05-26 07:36+0000\n"
 "PO-Revision-Date: 2025-04-14 08:33+0000\n"
 "Last-Translator: Brecht Van Lommel <brechtvanlommel@gmail.com>\n"
 "Language-Team: Dutch <https://translate.blender.org/projects/blender-ui/ui/nl/>\n"
@@ -2698,6 +2698,18 @@ msgid "Mask"
 msgstr "Mask"
 
 
+msgid "Mirror"
+msgstr "Spiegel"
+
+
+msgid "Local View"
+msgstr "Lokale Scherm"
+
+
+msgid "Navigation"
+msgstr "Navigatie"
+
+
 msgid "Select Similar"
 msgstr "Selecteer Vergelijkbaar"
 
@@ -2748,18 +2760,6 @@ msgstr "Namen"
 
 msgid "Text"
 msgstr "Tekst"
-
-
-msgid "Mirror"
-msgstr "Spiegel"
-
-
-msgid "Local View"
-msgstr "Lokale Scherm"
-
-
-msgid "Navigation"
-msgstr "Navigatie"
 
 
 msgctxt "MovieClip"
@@ -3168,6 +3168,10 @@ msgstr "Bewegingsonscherpte"
 
 msgid "Render Layers"
 msgstr "Render Lagen"
+
+
+msgid "Greater"
+msgstr "Groter"
 
 
 msgid "Rotate"
@@ -4022,10 +4026,6 @@ msgstr "Voeg Pad Toe"
 
 msgid "Deselected"
 msgstr "Gedeselecteerd"
-
-
-msgid "Greater"
-msgstr "Groter"
 
 
 msgid "Less"
@@ -5402,6 +5402,10 @@ msgstr "Maak Paden van Botten Leeg"
 msgctxt "Operator"
 msgid "Update Bone Paths"
 msgstr "Update Paden van Botten"
+
+
+msgid "Parents"
+msgstr "Ouders"
 
 
 msgctxt "Operator"
@@ -7528,10 +7532,6 @@ msgid "Bubbles"
 msgstr "Bubbels"
 
 
-msgid "Is Resumable"
-msgstr "Is Hervatbaar"
-
-
 msgid "Empty Space"
 msgstr "Lege Ruimte"
 
@@ -8478,10 +8478,6 @@ msgid "Locations"
 msgstr "Locaties"
 
 
-msgid "Parents"
-msgstr "Ouders"
-
-
 msgctxt "Operator"
 msgid "Quick Edit"
 msgstr "Snel Bewerken"
@@ -8815,10 +8811,6 @@ msgid "Yesterday"
 msgstr "Gisteren"
 
 
-msgid "Close"
-msgstr "Sluit"
-
-
 msgid "Armature Options"
 msgstr "Skelet Opties"
 
@@ -8866,6 +8858,10 @@ msgstr "Bol"
 msgctxt "Mesh"
 msgid "Icosphere"
 msgstr "Icosphere"
+
+
+msgid "Close"
+msgstr "Sluit"
 
 
 msgid "No face selected"

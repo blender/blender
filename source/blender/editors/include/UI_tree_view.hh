@@ -60,6 +60,12 @@ class TreeViewItemContainer {
   /** Pointer back to the owning item. */
   AbstractTreeViewItem *parent_ = nullptr;
 
+  /**
+   * Can be set to true to indicate that all of the children items do not have children themselves.
+   * In this case, no space is reserved for the chevron.
+   */
+  bool is_flat_ = false;
+
  public:
   enum class IterOptions {
     None = 0,
@@ -120,6 +126,10 @@ class AbstractTreeView : public AbstractView, public TreeViewItemContainer {
   /** Scroll offset in items, also see #uiViewState.scroll_offset. Clamped before creating the
    * button layout. */
   std::shared_ptr<int> scroll_value_ = nullptr;
+  /**
+   * The total number of items in the tree during the last redraw.
+   */
+  int last_tot_items_ = 0;
 
   friend class AbstractTreeViewItem;
   friend class TreeViewBuilder;
@@ -132,7 +142,9 @@ class AbstractTreeView : public AbstractView, public TreeViewItemContainer {
   void draw_overlays(const ARegion &region, const uiBlock &block) const override;
 
   void foreach_item(ItemIterFn iter_fn, IterOptions options = IterOptions::None) const;
+  void foreach_root_item(ItemIterFn iter_fn) const;
 
+  bool is_fully_visible() const override;
   void scroll(ViewScrollDirection direction) override;
 
   /**

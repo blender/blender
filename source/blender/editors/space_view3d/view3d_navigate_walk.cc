@@ -352,20 +352,20 @@ static void drawWalkPixel(const bContext * /*C*/, ARegion *region, void *arg)
   /* Draws an aim/cross in the center. */
   WalkInfo *walk = static_cast<WalkInfo *>(arg);
 
-  const int outter_length = 24;
-  const int inner_length = 14;
-  int xoff, yoff;
+  const float outer_length = 24.0f;
+  const float inner_length = 14.0f;
+  float xoff, yoff;
   rctf viewborder;
 
   if (ED_view3d_cameracontrol_object_get(walk->v3d_camera_control)) {
     ED_view3d_calc_camera_border(
         walk->scene, walk->depsgraph, region, walk->v3d, walk->rv3d, false, &viewborder);
-    xoff = int(viewborder.xmin + BLI_rctf_size_x(&viewborder) * 0.5f);
-    yoff = int(viewborder.ymin + BLI_rctf_size_y(&viewborder) * 0.5f);
+    xoff = viewborder.xmin + BLI_rctf_size_x(&viewborder) * 0.5f;
+    yoff = viewborder.ymin + BLI_rctf_size_y(&viewborder) * 0.5f;
   }
   else {
-    xoff = walk->region->winx / 2;
-    yoff = walk->region->winy / 2;
+    xoff = float(walk->region->winx) / 2.0f;
+    yoff = float(walk->region->winy) / 2.0f;
   }
 
   GPUVertFormat *format = immVertexFormat();
@@ -378,20 +378,20 @@ static void drawWalkPixel(const bContext * /*C*/, ARegion *region, void *arg)
   immBegin(GPU_PRIM_LINES, 8);
 
   /* North. */
-  immVertex2i(pos, xoff, yoff + inner_length);
-  immVertex2i(pos, xoff, yoff + outter_length);
+  immVertex2f(pos, xoff, yoff + inner_length);
+  immVertex2f(pos, xoff, yoff + outer_length);
 
   /* East. */
-  immVertex2i(pos, xoff + inner_length, yoff);
-  immVertex2i(pos, xoff + outter_length, yoff);
+  immVertex2f(pos, xoff + inner_length, yoff);
+  immVertex2f(pos, xoff + outer_length, yoff);
 
   /* South. */
-  immVertex2i(pos, xoff, yoff - inner_length);
-  immVertex2i(pos, xoff, yoff - outter_length);
+  immVertex2f(pos, xoff, yoff - inner_length);
+  immVertex2f(pos, xoff, yoff - outer_length);
 
   /* West. */
-  immVertex2i(pos, xoff - inner_length, yoff);
-  immVertex2i(pos, xoff - outter_length, yoff);
+  immVertex2f(pos, xoff - inner_length, yoff);
+  immVertex2f(pos, xoff - outer_length, yoff);
 
   immEnd();
   immUnbindProgram();

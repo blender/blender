@@ -44,8 +44,7 @@ struct EditBone {
    * normal bones when leaving edit-mode.
    */
   EditBone *parent;
-  /** (64 == MAXBONENAME) */
-  char name[64];
+  char name[/*MAXBONENAME*/ 64];
   /**
    * Roll along axis.  We'll ultimately use the axis/angle method
    * for determining the transformation matrix of the bone.  The axis
@@ -102,8 +101,8 @@ struct EditBone {
   float disp_mat[4][4];
   /** in Armature space, rest pos matrix */
   float disp_tail_mat[4][4];
-  /** in Armature space, rest pos matrix (32 == MAX_BBONE_SUBDIV) */
-  float disp_bbone_mat[32][4][4];
+  /** in Armature space, rest pos matrix. */
+  float disp_bbone_mat[/*MAX_BBONE_SUBDIV*/ 32][4][4];
 
   /** connected child temporary during drawing */
   EditBone *bbone_child;

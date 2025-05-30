@@ -103,27 +103,13 @@ void relations_invalidate_cache(Scene *scene, Strip *strip)
   prefetch_stop(scene);
 }
 
-static void invalidate_scene_strips(Scene *scene, Scene *scene_target, ListBase *seqbase)
+void relations_invalidate_scene_strips(const Main *bmain, const Scene *scene_target)
 {
-  for (Strip *strip = static_cast<Strip *>(seqbase->first); strip != nullptr; strip = strip->next)
-  {
-    if (strip->scene == scene_target) {
-      relations_invalidate_cache_raw(scene, strip);
-    }
-
-    if (strip->seqbase.first != nullptr) {
-      invalidate_scene_strips(scene, scene_target, &strip->seqbase);
-    }
-  }
-}
-
-void relations_invalidate_scene_strips(Main *bmain, Scene *scene_target)
-{
-  for (Scene *scene = static_cast<Scene *>(bmain->scenes.first); scene != nullptr;
-       scene = static_cast<Scene *>(scene->id.next))
-  {
+  LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
     if (scene->ed != nullptr) {
-      invalidate_scene_strips(scene, scene_target, &scene->ed->seqbase);
+      for (Strip *strip : lookup_strips_by_scene(editing_get(scene), scene_target)) {
+        relations_invalidate_cache_raw(scene, strip);
+      }
     }
   }
 }

@@ -32,5 +32,4 @@ Notes
 ==================================
 
 * test_run.py is executed for each .blend file.
-* The script renders every cycles file twice on the CPU (SVM and OSL). 
-
+* The script renders every cycles file twice on the CPU (SVM and OSL).

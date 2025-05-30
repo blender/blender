@@ -40,7 +40,6 @@ void VKPixelBuffer::create(bool memory_export)
 
   buffer_initialized_ = true;
   buffer_memory_export_ = memory_export;
-  native_handle_ = GPUPixelBufferNativeHandle{};
 }
 
 void *VKPixelBuffer::map()
@@ -57,23 +56,14 @@ void VKPixelBuffer::unmap()
 
 GPUPixelBufferNativeHandle VKPixelBuffer::get_native_handle()
 {
-  /* Initialize once. */
-  if (buffer_initialized_) {
-    return native_handle_;
-  }
-
   VKDevice &device = VKBackend::get().device;
 
+  GPUPixelBufferNativeHandle native_handle;
+
   /* Functionality supported? */
-#ifdef _WIN32
-  if (!device.functions.vkGetMemoryWin32Handle) {
-    return native_handle_;
+  if (!device.extensions_get().external_memory) {
+    return native_handle;
   }
-#else
-  if (!device.functions.vkGetMemoryFd) {
-    return native_handle_;
-  }
-#endif
 
   /* Create buffer. */
   create(true);
@@ -83,7 +73,7 @@ GPUPixelBufferNativeHandle VKPixelBuffer::get_native_handle()
   VkDeviceMemory memory = buffer_.export_memory_get(memory_size);
   if (memory == nullptr) {
     CLOG_ERROR(&LOG, "Failed to get device memory for Vulkan pixel buffer");
-    return native_handle_;
+    return native_handle;
   }
 
 #ifdef _WIN32
@@ -97,11 +87,11 @@ GPUPixelBufferNativeHandle VKPixelBuffer::get_native_handle()
   HANDLE handle = 0;
   if (device.functions.vkGetMemoryWin32Handle(device.vk_handle(), &info, &handle) != VK_SUCCESS) {
     CLOG_ERROR(&LOG, "Failed to get Windows handle for Vulkan pixel buffer");
-    return native_handle_;
+    return native_handle;
   }
 
-  native_handle_.handle = int64_t(handle);
-  native_handle_.size = memory_size;
+  native_handle.handle = int64_t(handle);
+  native_handle.size = memory_size;
 #else
   /* Opaque file descriptor. */
   VkMemoryGetFdInfoKHR info = {};
@@ -113,14 +103,14 @@ GPUPixelBufferNativeHandle VKPixelBuffer::get_native_handle()
   int fd = -1;
   if (device.functions.vkGetMemoryFd(device.vk_handle(), &info, &fd) != VK_SUCCESS) {
     CLOG_ERROR(&LOG, "Failed to get file descriptor for Vulkan pixel buffer");
-    return native_handle_;
+    return native_handle;
   }
 
-  native_handle_.handle = int64_t(fd);
-  native_handle_.size = memory_size;
+  native_handle.handle = int64_t(fd);
+  native_handle.size = memory_size;
 #endif
 
-  return native_handle_;
+  return native_handle;
 }
 
 size_t VKPixelBuffer::get_size()

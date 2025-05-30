@@ -489,6 +489,7 @@ class NodeTreeMainUpdater {
     TreeUpdateResult result;
 
     ntree.runtime->link_errors.clear();
+    ntree.runtime->invalid_zone_output_node_ids.clear();
 
     if (this->update_panel_toggle_names(ntree)) {
       result.interface_changed = true;
@@ -507,6 +508,9 @@ class NodeTreeMainUpdater {
         result.interface_changed = true;
       }
       if (node_field_inferencing::update_field_inferencing(ntree)) {
+        result.interface_changed = true;
+      }
+      if (node_structure_type_inferencing::update_structure_type_interface(ntree)) {
         result.interface_changed = true;
       }
       this->update_from_field_inference(ntree);
@@ -668,9 +672,6 @@ class NodeTreeMainUpdater {
       Vector<InternalLink> expected_internal_links;
       for (const bNodeSocket *output_socket : node->output_sockets()) {
         if (!output_socket->is_available()) {
-          continue;
-        }
-        if (!output_socket->is_directly_linked()) {
           continue;
         }
         if (output_socket->flag & SOCK_NO_INTERNAL_LINK) {
@@ -862,21 +863,137 @@ class NodeTreeMainUpdater {
     }
   }
 
+  static bool socket_type_always_single(const SocketDeclaration &decl)
+  {
+    switch (decl.socket_type) {
+      case SOCK_OBJECT:
+      case SOCK_IMAGE:
+      case SOCK_GEOMETRY:
+      case SOCK_COLLECTION:
+      case SOCK_TEXTURE:
+      case SOCK_MATERIAL:
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  static int get_input_socket_shape(const SocketDeclaration &decl,
+                                    const StructureType structure_type)
+  {
+    if (decl.identifier == "__extend__") {
+      return SOCK_DISPLAY_SHAPE_CIRCLE;
+    }
+    if (socket_type_always_single(decl)) {
+      return SOCK_DISPLAY_SHAPE_LINE;
+    }
+    switch (structure_type) {
+      case StructureType::Single:
+        return SOCK_DISPLAY_SHAPE_LINE;
+      case StructureType::Dynamic:
+        return SOCK_DISPLAY_SHAPE_CIRCLE;
+      case StructureType::Field:
+        return SOCK_DISPLAY_SHAPE_DIAMOND;
+      case StructureType::Grid:
+        return SOCK_DISPLAY_SHAPE_VOLUME_GRID;
+    }
+    BLI_assert_unreachable();
+    return SOCK_DISPLAY_SHAPE_CIRCLE;
+  }
+
+  static int get_output_socket_shape(const SocketDeclaration &decl,
+                                     const bke::FieldSocketState field_state,
+                                     const StructureType structure_type)
+  {
+    if (decl.identifier == "__extend__") {
+      return SOCK_DISPLAY_SHAPE_CIRCLE;
+    }
+    if (socket_type_always_single(decl)) {
+      return SOCK_DISPLAY_SHAPE_LINE;
+    }
+    switch (structure_type) {
+      case StructureType::Single: {
+        return SOCK_DISPLAY_SHAPE_LINE;
+      }
+      case StructureType::Dynamic: {
+        return SOCK_DISPLAY_SHAPE_CIRCLE;
+      }
+      case StructureType::Field: {
+        switch (field_state) {
+          case bke::FieldSocketState::RequiresSingle:
+            return SOCK_DISPLAY_SHAPE_LINE;
+          case bke::FieldSocketState::CanBeField:
+            return SOCK_DISPLAY_SHAPE_CIRCLE;
+          case bke::FieldSocketState::IsField:
+            return SOCK_DISPLAY_SHAPE_DIAMOND;
+        }
+        break;
+      }
+      case StructureType::Grid: {
+        return SOCK_DISPLAY_SHAPE_VOLUME_GRID;
+      }
+    }
+    BLI_assert_unreachable();
+    return SOCK_DISPLAY_SHAPE_CIRCLE;
+  }
+
   void update_socket_shapes(bNodeTree &ntree)
   {
     ntree.ensure_topology_cache();
-    const Span<bke::FieldSocketState> field_states = ntree.runtime->field_states;
-    for (bNodeSocket *socket : ntree.all_sockets()) {
-      switch (field_states[socket->index_in_tree()]) {
-        case bke::FieldSocketState::RequiresSingle:
-          socket->display_shape = SOCK_DISPLAY_SHAPE_CIRCLE;
-          break;
-        case bke::FieldSocketState::CanBeField:
-          socket->display_shape = SOCK_DISPLAY_SHAPE_DIAMOND_DOT;
-          break;
-        case bke::FieldSocketState::IsField:
-          socket->display_shape = SOCK_DISPLAY_SHAPE_DIAMOND;
-          break;
+    if (U.experimental.use_socket_structure_type) {
+      const nodes::StructureTypeInterface &node_interface =
+          *ntree.runtime->structure_type_interface;
+      const Span<bke::FieldSocketState> field_states = ntree.runtime->field_states;
+      for (bNode *node : ntree.all_nodes()) {
+        if (node->is_undefined()) {
+          continue;
+        }
+        if (node->is_group_input()) {
+          const Span<bNodeSocket *> sockets = node->output_sockets();
+          for (const int i : node_interface.inputs.index_range()) {
+            sockets[i]->display_shape = get_output_socket_shape(
+                *sockets[i]->runtime->declaration,
+                field_states[sockets[i]->index_in_tree()],
+                node_interface.inputs[i]);
+          }
+          continue;
+        }
+        if (node->is_group_output()) {
+          const Span<bNodeSocket *> sockets = node->input_sockets();
+          for (const int i : node_interface.outputs.index_range()) {
+            sockets[i]->display_shape = get_output_socket_shape(
+                *sockets[i]->runtime->declaration,
+                field_states[sockets[i]->index_in_tree()],
+                node_interface.outputs[i].type);
+          }
+          continue;
+        }
+        for (bNodeSocket *socket : node->input_sockets()) {
+          socket->display_shape = get_input_socket_shape(
+              *socket->runtime->declaration, socket->runtime->declaration->structure_type);
+        }
+        for (bNodeSocket *socket : node->output_sockets()) {
+          socket->display_shape = get_output_socket_shape(
+              *socket->runtime->declaration,
+              field_states[socket->index_in_tree()],
+              socket->runtime->declaration->structure_type);
+        }
+      }
+    }
+    else {
+      const Span<bke::FieldSocketState> field_states = ntree.runtime->field_states;
+      for (bNodeSocket *socket : ntree.all_sockets()) {
+        switch (field_states[socket->index_in_tree()]) {
+          case bke::FieldSocketState::RequiresSingle:
+            socket->display_shape = SOCK_DISPLAY_SHAPE_CIRCLE;
+            break;
+          case bke::FieldSocketState::CanBeField:
+            socket->display_shape = SOCK_DISPLAY_SHAPE_DIAMOND_DOT;
+            break;
+          case bke::FieldSocketState::IsField:
+            socket->display_shape = SOCK_DISPLAY_SHAPE_DIAMOND;
+            break;
+        }
       }
     }
   }
@@ -1192,6 +1309,11 @@ class NodeTreeMainUpdater {
       return false;
     };
 
+    const bNodeTreeZones *fallback_zones = nullptr;
+    if (ntree.type == NTREE_GEOMETRY && !ntree.zones() && ntree.runtime->last_valid_zones) {
+      fallback_zones = ntree.runtime->last_valid_zones.get();
+    }
+
     LISTBASE_FOREACH (bNodeLink *, link, &ntree.links) {
       link->flag |= NODE_LINK_VALID;
       if (!link->fromsock->is_available() || !link->tosock->is_available()) {
@@ -1239,6 +1361,20 @@ class NodeTreeMainUpdater {
                                         TIP_("Conversion is not supported"),
                                         TIP_(link->fromsock->typeinfo->label),
                                         TIP_(link->tosock->typeinfo->label))});
+          continue;
+        }
+      }
+      if (fallback_zones) {
+        if (!fallback_zones->link_between_sockets_is_allowed(*link->fromsock, *link->tosock)) {
+          if (const bNodeTreeZone *from_zone = fallback_zones->get_zone_by_socket(*link->fromsock))
+          {
+            ntree.runtime->invalid_zone_output_node_ids.add(*from_zone->output_node_id);
+          }
+
+          link->flag &= ~NODE_LINK_VALID;
+          ntree.runtime->link_errors.add(
+              NodeLinkKey{*link},
+              NodeLinkError{TIP_("Links can only go into a zone but not out")});
           continue;
         }
       }
@@ -1554,10 +1690,10 @@ class NodeTreeMainUpdater {
               break;
             }
             const bNodeTreeZone *zone = zones->get_zone_by_node(node.identifier);
-            if (!zone->input_node) {
+            if (!zone->input_node()) {
               break;
             }
-            for (const bNodeSocket *input_socket : zone->input_node->input_sockets()) {
+            for (const bNodeSocket *input_socket : zone->input_node()->input_sockets()) {
               if (input_socket->is_available()) {
                 bool &pushed = pushed_by_socket_id[input_socket->index_in_tree()];
                 if (!pushed) {

@@ -142,12 +142,25 @@ void USDLightWriter::do_write(HierarchyContext &context)
                 intensity,
                 timecode,
                 usd_value_writer_);
-  set_attribute(
-      usd_light_api.CreateExposureAttr(pxr::VtValue(), true), 0.0f, timecode, usd_value_writer_);
+  set_attribute(usd_light_api.CreateExposureAttr(pxr::VtValue(), true),
+                light->exposure,
+                timecode,
+                usd_value_writer_);
+
   set_attribute(usd_light_api.CreateColorAttr(pxr::VtValue(), true),
                 pxr::GfVec3f(light->r, light->g, light->b),
                 timecode,
                 usd_value_writer_);
+  set_attribute(usd_light_api.CreateEnableColorTemperatureAttr(
+                    pxr::VtValue(), (light->mode & LA_USE_TEMPERATURE) != 0),
+                true,
+                timecode,
+                usd_value_writer_);
+  set_attribute(usd_light_api.CreateColorTemperatureAttr(pxr::VtValue(), true),
+                light->temperature,
+                timecode,
+                usd_value_writer_);
+
   set_attribute(usd_light_api.CreateDiffuseAttr(pxr::VtValue(), true),
                 light->diff_fac,
                 timecode,
@@ -156,8 +169,10 @@ void USDLightWriter::do_write(HierarchyContext &context)
                 light->spec_fac,
                 timecode,
                 usd_value_writer_);
-  set_attribute(
-      usd_light_api.CreateNormalizeAttr(pxr::VtValue(), true), true, timecode, usd_value_writer_);
+  set_attribute(usd_light_api.CreateNormalizeAttr(pxr::VtValue(), true),
+                (light->mode & LA_UNNORMALIZED) == 0,
+                timecode,
+                usd_value_writer_);
 
   pxr::UsdPrim prim = usd_light_api.GetPrim();
   write_id_properties(prim, light->id, timecode);

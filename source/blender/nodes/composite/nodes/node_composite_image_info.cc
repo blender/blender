@@ -6,10 +6,8 @@
 #include "BLI_math_matrix.hh"
 #include "BLI_math_vector_types.hh"
 
-#include "UI_interface.hh"
-#include "UI_resources.hh"
-
 #include "COM_node_operation.hh"
+#include "COM_realize_on_domain_operation.hh"
 
 #include "node_composite_util.hh"
 
@@ -17,15 +15,18 @@ namespace blender::nodes::node_composite_image_info_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_input<decl::Color>("Image").compositor_domain_priority(0).compositor_realization_mode(
+  b.add_input<decl::Color>("Image").hide_value().compositor_realization_mode(
       CompositorInputRealizationMode::None);
 
-  b.add_output<decl::Vector>("Texture Coordinates");
-  b.add_output<decl::Vector>("Pixel Coordinates");
-  b.add_output<decl::Vector>("Resolution");
-  b.add_output<decl::Vector>("Location");
+  b.add_output<decl::Vector>("Dimensions")
+      .dimensions(2)
+      .description("The dimensions of the image in pixels with transformations applied");
+  b.add_output<decl::Vector>("Resolution")
+      .dimensions(2)
+      .description("The original resolution of the image in pixels before any transformations");
+  b.add_output<decl::Vector>("Location").dimensions(2);
   b.add_output<decl::Float>("Rotation");
-  b.add_output<decl::Vector>("Scale");
+  b.add_output<decl::Vector>("Scale").dimensions(2);
 }
 
 using namespace blender::compositor;
@@ -48,20 +49,13 @@ class ImageInfoOperation : public NodeOperation {
 
     const Domain domain = input.domain();
 
-    Result &texture_coordinates_result = this->get_result("Texture Coordinates");
-    if (texture_coordinates_result.should_compute()) {
-      const Result &texture_coordinates = this->context().cache_manager().texture_coordinates.get(
-          this->context(), domain.size);
-      texture_coordinates_result.wrap_external(texture_coordinates);
-      texture_coordinates_result.transform(domain.transformation);
-    }
-
-    Result &pixel_coordinates_result = this->get_result("Pixel Coordinates");
-    if (pixel_coordinates_result.should_compute()) {
-      const Result &pixel_coordinates = this->context().cache_manager().pixel_coordinates.get(
-          this->context(), domain.size);
-      pixel_coordinates_result.wrap_external(pixel_coordinates);
-      pixel_coordinates_result.transform(domain.transformation);
+    Result &dimensions_result = this->get_result("Dimensions");
+    if (dimensions_result.should_compute()) {
+      dimensions_result.allocate_single_value();
+      const Domain realized_domain =
+          RealizeOnDomainOperation::compute_realized_transformation_domain(this->context(),
+                                                                           domain);
+      dimensions_result.set_single_value(float3(realized_domain.size, 0.0f));
     }
 
     Result &resolution_result = this->get_result("Resolution");
@@ -95,14 +89,9 @@ class ImageInfoOperation : public NodeOperation {
 
   void execute_invalid()
   {
-    Result &texture_coordinates_result = this->get_result("Texture Coordinates");
-    if (texture_coordinates_result.should_compute()) {
-      texture_coordinates_result.allocate_invalid();
-    }
-
-    Result &pixel_coordinates_result = this->get_result("Pixel Coordinates");
-    if (pixel_coordinates_result.should_compute()) {
-      pixel_coordinates_result.allocate_invalid();
+    Result &dimensions_result = this->get_result("Dimensions");
+    if (dimensions_result.should_compute()) {
+      dimensions_result.allocate_invalid();
     }
 
     Result &resolution_result = this->get_result("Resolution");

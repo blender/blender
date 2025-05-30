@@ -74,8 +74,8 @@ static void draw_node_input(bContext *C,
   socket.typeinfo->draw(C, row, &socket_ptr, node_ptr, text);
 }
 
-static bool panel_has_input_affecting_node_output(
-    const bNode &node, const blender::nodes::PanelDeclaration &panel_decl)
+static bool panel_has_used_inputs(const bNode &node,
+                                  const blender::nodes::PanelDeclaration &panel_decl)
 {
   for (const blender::nodes::ItemDeclaration *item_decl : panel_decl.items) {
     if (const auto *socket_decl = dynamic_cast<const SocketDeclaration *>(item_decl)) {
@@ -83,12 +83,12 @@ static bool panel_has_input_affecting_node_output(
         continue;
       }
       const bNodeSocket &socket = node.socket_by_decl(*socket_decl);
-      if (socket.affects_node_output()) {
+      if (!socket.is_inactive()) {
         return true;
       }
     }
     else if (const auto *sub_panel_decl = dynamic_cast<const PanelDeclaration *>(item_decl)) {
-      if (panel_has_input_affecting_node_output(node, *sub_panel_decl)) {
+      if (panel_has_used_inputs(node, *sub_panel_decl)) {
         return true;
       }
     }
@@ -105,9 +105,13 @@ static void draw_node_inputs_recursive(bContext *C,
   /* TODO: Use flag on the panel state instead which is better for dynamic panel amounts. */
   const std::string panel_idname = "NodePanel" + std::to_string(panel_decl.identifier);
   PanelLayout panel = layout->panel(C, panel_idname, panel_decl.default_collapsed);
-  const bool has_used_inputs = panel_has_input_affecting_node_output(node, panel_decl);
+  const bool has_used_inputs = panel_has_used_inputs(node, panel_decl);
   uiLayoutSetActive(panel.header, has_used_inputs);
-  panel.header->label(IFACE_(panel_decl.name), ICON_NONE);
+
+  const char *panel_translation_context = (panel_decl.translation_context.has_value() ?
+                                               panel_decl.translation_context->c_str() :
+                                               nullptr);
+  panel.header->label(CTX_IFACE_(panel_translation_context, panel_decl.name), ICON_NONE);
   if (!panel.body) {
     return;
   }

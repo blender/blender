@@ -34,6 +34,8 @@ Precompute::Precompute(draw::Manager &manager, PrecomputeType type, int3 table_e
 
   raw_data_ = table_tx.read<float4>(GPU_DATA_FLOAT);
 
+  GPU_shader_unbind();
+
   GPU_shader_free(shader);
 }
 

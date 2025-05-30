@@ -622,27 +622,16 @@ static void bake_panel_draw(const bContext * /*C*/, Panel *panel)
   bool use_foam = RNA_boolean_get(ptr, "use_foam");
 
   if (is_cached) {
-    PointerRNA op_ptr;
-    uiItemFullO(layout,
-                "OBJECT_OT_ocean_bake",
-                IFACE_("Delete Bake"),
-                ICON_NONE,
-                nullptr,
-                WM_OP_INVOKE_DEFAULT,
-                UI_ITEM_NONE,
-                &op_ptr);
+    PointerRNA op_ptr = layout->op("OBJECT_OT_ocean_bake",
+                                   IFACE_("Delete Bake"),
+                                   ICON_NONE,
+                                   WM_OP_INVOKE_DEFAULT,
+                                   UI_ITEM_NONE);
     RNA_boolean_set(&op_ptr, "free", true);
   }
   else {
-    PointerRNA op_ptr;
-    uiItemFullO(layout,
-                "OBJECT_OT_ocean_bake",
-                IFACE_("Bake"),
-                ICON_NONE,
-                nullptr,
-                WM_OP_INVOKE_DEFAULT,
-                UI_ITEM_NONE,
-                &op_ptr);
+    PointerRNA op_ptr = layout->op(
+        "OBJECT_OT_ocean_bake", IFACE_("Bake"), ICON_NONE, WM_OP_INVOKE_DEFAULT, UI_ITEM_NONE);
     RNA_boolean_set(&op_ptr, "free", false);
   }
 

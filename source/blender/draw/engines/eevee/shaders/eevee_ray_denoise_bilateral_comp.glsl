@@ -23,6 +23,7 @@ COMPUTE_SHADER_CREATE_INFO(eevee_ray_denoise_bilateral)
 #include "eevee_closure_lib.glsl"
 #include "eevee_filter_lib.glsl"
 #include "eevee_gbuffer_lib.glsl"
+#include "eevee_reverse_z_lib.glsl"
 #include "eevee_sampling_lib.glsl"
 #include "gpu_shader_codegen_lib.glsl"
 #include "gpu_shader_math_vector_lib.glsl"
@@ -45,7 +46,7 @@ void main()
   int2 texel_fullres = int2(gl_LocalInvocationID.xy + tile_coord * tile_size);
   float2 center_uv = (float2(texel_fullres) + 0.5f) * uniform_buf.raytrace.full_resolution_inv;
 
-  float center_depth = texelFetch(depth_tx, texel_fullres, 0).r;
+  float center_depth = reverse_z::read(texelFetch(depth_tx, texel_fullres, 0).r);
   float3 center_P = drw_point_screen_to_world(float3(center_uv, center_depth));
 
   ClosureUndetermined center_closure = gbuffer_read_bin(
@@ -97,7 +98,7 @@ void main()
       continue;
     }
 
-    float sample_depth = texelFetch(depth_tx, sample_texel, 0).r;
+    float sample_depth = reverse_z::read(texelFetch(depth_tx, sample_texel, 0).r);
     float2 sample_uv = (float2(sample_texel) + 0.5f) * uniform_buf.raytrace.full_resolution_inv;
     float3 sample_P = drw_point_screen_to_world(float3(sample_uv, sample_depth));
 

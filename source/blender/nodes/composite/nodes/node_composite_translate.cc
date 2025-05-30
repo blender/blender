@@ -52,7 +52,6 @@ static void node_composit_buts_translate(uiLayout *layout, bContext * /*C*/, Poi
 {
   layout->prop(ptr, "interpolation", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   layout->prop(ptr, "wrap_axis", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
-  layout->prop(ptr, "use_relative", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 }
 
 using namespace blender::compositor;
@@ -67,11 +66,6 @@ class TranslateOperation : public NodeOperation {
 
     float x = this->get_input("X").get_single_value_default(0.0f);
     float y = this->get_input("Y").get_single_value_default(0.0f);
-    if (this->get_use_relative()) {
-      x *= input.domain().size.x;
-      y *= input.domain().size.y;
-    }
-
     const float2 translation = float2(x, y);
 
     Result &output = this->get_result("Image");
@@ -95,11 +89,6 @@ class TranslateOperation : public NodeOperation {
 
     BLI_assert_unreachable();
     return Interpolation::Nearest;
-  }
-
-  bool get_use_relative()
-  {
-    return node_storage(bnode()).relative;
   }
 
   bool get_repeat_x()

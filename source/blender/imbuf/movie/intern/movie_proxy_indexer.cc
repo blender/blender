@@ -297,7 +297,7 @@ static bool get_proxy_filepath(const MovieReader *anim,
 
   BLI_assert(i >= 0);
 
-  char proxy_name[256];
+  char proxy_name[FILE_MAXFILE];
   char stream_suffix[20];
   const char *name = (temp) ? "proxy_%d%s_part.avi" : "proxy_%d%s.avi";
 

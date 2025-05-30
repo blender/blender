@@ -111,11 +111,36 @@ void FbxImportContext::import_meshes()
   io::fbx::import_meshes(*this->bmain, this->fbx, this->mapping, this->params);
 }
 
+static bool should_import_camera(const ufbx_scene &fbx, const ufbx_camera *camera)
+{
+  BLI_assert(camera->instances.count > 0);
+  const ufbx_node *node = camera->instances[0];
+  /* Files produced by MotionBuilder have several cameras at the root,
+   * which just map to "viewports" and should not get imported. */
+  if (node->node_depth == 1 && node->children.count == 0 &&
+      STREQ("MotionBuilder", fbx.metadata.original_application.name.data))
+  {
+    if (STREQ(node->name.data, camera->name.data)) {
+      if (STREQ("Producer Perspective", node->name.data) ||
+          STREQ("Producer Front", node->name.data) || STREQ("Producer Back", node->name.data) ||
+          STREQ("Producer Right", node->name.data) || STREQ("Producer Left", node->name.data) ||
+          STREQ("Producer Top", node->name.data) || STREQ("Producer Bottom", node->name.data))
+      {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
 void FbxImportContext::import_cameras()
 {
   for (const ufbx_camera *fcam : this->fbx.cameras) {
     if (fcam->instances.count == 0) {
       continue; /* Ignore if not used by any objects. */
+    }
+    if (!should_import_camera(this->fbx, fcam)) {
+      continue;
     }
     const ufbx_node *node = fcam->instances[0];
 
@@ -191,6 +216,7 @@ void FbxImportContext::import_lights()
     lamp->g = flight->color.y;
     lamp->b = flight->color.z;
     lamp->energy = flight->intensity;
+    lamp->exposure = ufbx_find_real(&flight->props, "Exposure", 0.0);
     if (flight->cast_shadows) {
       lamp->mode |= LA_SHADOW;
     }
@@ -223,6 +249,13 @@ void FbxImportContext::import_empties()
     /* Ignore root, bones and nodes for which we have created objects already. */
     if (node->is_root || this->mapping.node_is_blender_bone.contains(node) ||
         this->mapping.el_to_object.contains(&node->element))
+    {
+      continue;
+    }
+    /* Ignore nodes at root for cameras (normally already imported, except for ignored cameras)
+     * and camera switchers. */
+    if (ELEM(node->attrib_type, UFBX_ELEMENT_CAMERA, UFBX_ELEMENT_CAMERA_SWITCHER) &&
+        node->node_depth == 1 && node->children.count == 0)
     {
       continue;
     }
@@ -309,6 +342,8 @@ void importer_main(Main *bmain, Scene *scene, ViewLayer *view_layer, const FBXIm
    * (e.g. instancing etc.), do not insert helper nodes to account for that. Helper nodes currently
    * cause armatures/skins to not import correctly, when inserted in the middle of bone chain. */
   opts.geometry_transform_handling = UFBX_GEOMETRY_TRANSFORM_HANDLING_MODIFY_GEOMETRY_NO_FALLBACK;
+
+  opts.pivot_handling = UFBX_PIVOT_HANDLING_ADJUST_TO_PIVOT;
 
   opts.space_conversion = UFBX_SPACE_CONVERSION_ADJUST_TRANSFORMS;
   opts.target_axes.right = UFBX_COORDINATE_AXIS_POSITIVE_X;

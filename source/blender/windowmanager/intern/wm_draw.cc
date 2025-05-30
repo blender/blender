@@ -722,6 +722,7 @@ static void wm_draw_region_buffer_create(Scene *scene,
                                                      false,
                                                      desired_format,
                                                      GPU_TEXTURE_USAGE_SHADER_READ,
+                                                     true,
                                                      nullptr);
       if (!offscreen) {
         WM_global_report(RPT_ERROR, "Region could not be drawn!");
@@ -1215,8 +1216,13 @@ static void wm_draw_window(bContext *C, wmWindow *win)
      * an off-screen texture and then draw it. This used to happen for all
      * stereo methods, but it's less efficient than drawing directly. */
     const blender::int2 win_size = WM_window_native_pixel_size(win);
-    GPUOffScreen *offscreen = GPU_offscreen_create(
-        win_size[0], win_size[1], false, desired_format, GPU_TEXTURE_USAGE_SHADER_READ, nullptr);
+    GPUOffScreen *offscreen = GPU_offscreen_create(win_size[0],
+                                                   win_size[1],
+                                                   false,
+                                                   desired_format,
+                                                   GPU_TEXTURE_USAGE_SHADER_READ,
+                                                   false,
+                                                   nullptr);
 
     if (offscreen) {
       GPUTexture *texture = GPU_offscreen_color_texture(offscreen);
@@ -1371,8 +1377,13 @@ uint8_t *WM_window_pixels_read_from_offscreen(bContext *C, wmWindow *win, int r_
   /* Determine desired offscreen format depending on HDR availability. */
   eGPUTextureFormat desired_format = get_hdr_framebuffer_format(WM_window_get_active_scene(win));
 
-  GPUOffScreen *offscreen = GPU_offscreen_create(
-      win_size[0], win_size[1], false, desired_format, GPU_TEXTURE_USAGE_SHADER_READ, nullptr);
+  GPUOffScreen *offscreen = GPU_offscreen_create(win_size[0],
+                                                 win_size[1],
+                                                 false,
+                                                 desired_format,
+                                                 GPU_TEXTURE_USAGE_SHADER_READ,
+                                                 false,
+                                                 nullptr);
   if (UNLIKELY(!offscreen)) {
     return nullptr;
   }
@@ -1406,7 +1417,7 @@ bool WM_window_pixels_read_sample_from_offscreen(bContext *C,
   }
 
   GPUOffScreen *offscreen = GPU_offscreen_create(
-      win_size[0], win_size[1], false, GPU_RGBA8, GPU_TEXTURE_USAGE_SHADER_READ, nullptr);
+      win_size[0], win_size[1], false, GPU_RGBA8, GPU_TEXTURE_USAGE_SHADER_READ, false, nullptr);
   if (UNLIKELY(!offscreen)) {
     return false;
   }

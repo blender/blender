@@ -509,7 +509,7 @@ void VolumeProbeModule::debug_pass_draw(View &view, GPUFrameBuffer *view_fb)
         float max_axis_len = math::reduce_max(math::to_scale(grid.object_to_world));
         debug_ps_.init();
         debug_ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH |
-                            DRW_STATE_DEPTH_LESS_EQUAL);
+                            DRW_STATE_CLIP_CONTROL_UNIT_RANGE | inst_.film.depth.test_state);
         debug_ps_.framebuffer_set(&view_fb);
         debug_ps_.shader_set(inst_.shaders.static_shader_get(DEBUG_SURFELS));
         debug_ps_.push_constant("debug_surfel_radius", 0.5f * max_axis_len / grid.surfel_density);
@@ -534,7 +534,7 @@ void VolumeProbeModule::debug_pass_draw(View &view, GPUFrameBuffer *view_fb)
         int3 grid_size = int3(cache->size);
         debug_ps_.init();
         debug_ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH |
-                            DRW_STATE_DEPTH_LESS_EQUAL);
+                            DRW_STATE_CLIP_CONTROL_UNIT_RANGE | inst_.film.depth.test_state);
         debug_ps_.framebuffer_set(&view_fb);
         debug_ps_.shader_set(inst_.shaders.static_shader_get(DEBUG_IRRADIANCE_GRID));
         debug_ps_.push_constant("debug_mode", int(inst_.debug_mode));
@@ -655,7 +655,8 @@ void VolumeProbeModule::display_pass_draw(View &view, GPUFrameBuffer *view_fb)
 
     display_grids_ps_.init();
     display_grids_ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH |
-                                DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_CULL_BACK);
+                                DRW_STATE_CLIP_CONTROL_UNIT_RANGE | inst_.film.depth.test_state |
+                                DRW_STATE_CULL_BACK);
     display_grids_ps_.framebuffer_set(&view_fb);
     display_grids_ps_.shader_set(inst_.shaders.static_shader_get(DISPLAY_PROBE_VOLUME));
 

@@ -219,7 +219,7 @@ struct GeoNodesCallData {
    * Optional logger that keeps track of data generated during evaluation to allow for better
    * debugging afterwards.
    */
-  geo_eval_log::GeoModifierLog *eval_log = nullptr;
+  geo_eval_log::GeoNodesLog *eval_log = nullptr;
   /**
    * Optional injected behavior for simulations.
    */
@@ -651,5 +651,15 @@ std::string zone_wrapper_output_name(const ZoneBuildInfo &zone_info,
 const LazyFunction *build_implicit_conversion_lazy_function(const bke::bNodeSocketType &from_type,
                                                             const bke::bNodeSocketType &to_type,
                                                             ResourceScope &scope);
+
+/**
+ * Report an error from a multi-function evaluation within a Geometry Nodes evaluation.
+ *
+ * NOTE: Currently, this the error is only actually reported under limited circumstances. It's
+ * still safe to call this function from any multi-function though.
+ */
+void report_from_multi_function(const mf::Context &context,
+                                NodeWarningType type,
+                                std::string message);
 
 }  // namespace blender::nodes

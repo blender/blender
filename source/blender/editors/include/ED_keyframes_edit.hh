@@ -35,8 +35,10 @@ enum eEditKeyframes_Validate {
   /* Frame range */
   BEZT_OK_FRAME = 1,
   BEZT_OK_FRAMERANGE,
-  /* Selection status */
+  /* Selection status (any of f1, f2, f3)  */
   BEZT_OK_SELECTED,
+  /* Selection status (f2 is enough) */
+  BEZT_OK_SELECTED_KEY,
   /* Values (y-val) only */
   BEZT_OK_VALUE,
   BEZT_OK_VALUERANGE,

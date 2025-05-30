@@ -11,6 +11,7 @@ set(INC_SYS
 
 set(SRC
   buffers.cpp
+  display_driver.cpp
   denoising.cpp
   merge.cpp
   session.cpp

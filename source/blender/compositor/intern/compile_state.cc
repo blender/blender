@@ -135,7 +135,7 @@ int CompileState::compute_pixel_node_operation_outputs_count(DNode node)
   for (const bNodeSocket *output : node->output_sockets()) {
     const DOutputSocket doutput{node.context(), output};
 
-    if (!output->is_available()) {
+    if (!is_socket_available(output)) {
       continue;
     }
 
@@ -163,7 +163,7 @@ bool CompileState::is_pixel_node_single_value(DNode node)
   for (int i = 0; i < node->input_sockets().size(); i++) {
     const DInputSocket input{node.context(), node->input_sockets()[i]};
 
-    if (!input->is_available()) {
+    if (!is_socket_available(input.bsocket())) {
       continue;
     }
 
@@ -215,7 +215,7 @@ Domain CompileState::compute_pixel_node_domain(DNode node)
   for (int i = 0; i < node->input_sockets().size(); i++) {
     const DInputSocket input{node.context(), node->input_sockets()[i]};
 
-    if (!input->is_available()) {
+    if (!is_socket_available(input.bsocket())) {
       continue;
     }
 

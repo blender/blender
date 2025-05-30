@@ -145,7 +145,7 @@ void bpy_context_clear(bContext * /*C*/, const PyGILState_STATE *gilstate)
   }
   else if (py_call_level == 0) {
     /* NOTE: Unfortunately calling classes currently won't store the context.
-     * Can't set nullptr because of this - but this is very flaky still. */
+     * Can't set nullptr because of this - but this is very unreliable still. */
 #if 0
     BPY_context_set(nullptr);
 #endif
@@ -385,7 +385,7 @@ void BPY_python_start(bContext *C, int argc, const char **argv)
     }
     else {
       PyConfig_InitIsolatedConfig(&config);
-      /* Python's isolated config disables it's own signal overrides.
+      /* Python's isolated config disables its own signal overrides.
        * While it makes sense not to interfering with other components of the process,
        * the signal handlers are needed for Python's own error handling to work properly.
        * Without this a `SIGPIPE` signal will crash Blender, see: #129657. */

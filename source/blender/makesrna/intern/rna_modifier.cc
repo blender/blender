@@ -553,13 +553,9 @@ const EnumPropertyItem rna_enum_shrinkwrap_face_cull_items[] = {
 };
 
 const EnumPropertyItem rna_enum_node_warning_type_items[] = {
-    {int(blender::nodes::geo_eval_log::NodeWarningType::Error), "ERROR", ICON_CANCEL, "Error", ""},
-    {int(blender::nodes::geo_eval_log::NodeWarningType::Warning),
-     "WARNING",
-     ICON_ERROR,
-     "Warning",
-     ""},
-    {int(blender::nodes::geo_eval_log::NodeWarningType::Info), "INFO", ICON_INFO, "Info", ""},
+    {int(blender::nodes::NodeWarningType::Error), "ERROR", ICON_CANCEL, "Error", ""},
+    {int(blender::nodes::NodeWarningType::Warning), "WARNING", ICON_ERROR, "Warning", ""},
+    {int(blender::nodes::NodeWarningType::Info), "INFO", ICON_INFO, "Info", ""},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -8374,7 +8370,7 @@ static void rna_def_modifier_grease_pencil_layer_filter(StructRNA *srna)
 {
   PropertyRNA *prop;
 
-  prop = RNA_def_property(srna, "layer_filter", PROP_STRING, PROP_NONE);
+  prop = RNA_def_property(srna, "tree_node_filter", PROP_STRING, PROP_NONE);
   RNA_def_property_string_sdna(prop, nullptr, "influence.layer_name");
   RNA_def_property_ui_text(prop, "Layer", "Layer name");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
@@ -8401,6 +8397,12 @@ static void rna_def_modifier_grease_pencil_layer_filter(StructRNA *srna)
   RNA_def_property_boolean_sdna(
       prop, nullptr, "influence.flag", GREASE_PENCIL_INFLUENCE_INVERT_LAYER_PASS_FILTER);
   RNA_def_property_ui_text(prop, "Invert Layer Pass", "Invert layer pass filter");
+  RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+  prop = RNA_def_property(srna, "use_layer_group_filter", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "influence.flag", GREASE_PENCIL_INFLUENCE_USE_LAYER_GROUP_FILTER);
+  RNA_def_property_ui_text(prop, "Layer Group", "Filter by layer group name");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 }
 

@@ -1128,7 +1128,7 @@ void ShadowModule::debug_end_sync()
     return;
   }
 
-  DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL |
+  DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | inst_.film.depth.test_state |
                    DRW_STATE_BLEND_CUSTOM;
 
   debug_draw_ps_.state_set(state);

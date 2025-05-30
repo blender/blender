@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'a7d2b7850ef2')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'ba454989554a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-05 08:47+0000\n"
+"POT-Creation-Date: 2025-05-26 07:36+0000\n"
 "PO-Revision-Date: 2025-05-01 10:56+0000\n"
 "Last-Translator: \"Adriel Y.\" <mixnblend@users.noreply.translate.blender.org>\n"
 "Language-Team: Indonesian <https://translate.blender.org/projects/blender-ui/ui/id/>\n"
@@ -4100,6 +4100,26 @@ msgstr "Tulang yang merupakan anak dari tulang ini"
 
 msgid "Bone Collections that contain this bone"
 msgstr "Koleksi Tulang yang mengandung tulang ini"
+
+
+msgid "Display Type"
+msgstr "Tipe Tampilan"
+
+
+msgid "Stick"
+msgstr "Batang"
+
+
+msgid "B-Bone"
+msgstr "Tulang"
+
+
+msgid "Envelope"
+msgstr "Amplop"
+
+
+msgid "Wire"
+msgstr "Kabel"
 
 
 msgid "Envelope Deform Distance"
@@ -10580,10 +10600,6 @@ msgid "Tracer"
 msgstr "Pelacak"
 
 
-msgid "Display Type"
-msgstr "Tipe Tampilan"
-
-
 msgid "Needle"
 msgstr "Jarum"
 
@@ -11540,22 +11556,6 @@ msgstr "Layer"
 
 msgid "Feature Set"
 msgstr "Warna Standar"
-
-
-msgid "Stick"
-msgstr "Batang"
-
-
-msgid "B-Bone"
-msgstr "Tulang"
-
-
-msgid "Envelope"
-msgstr "Amplop"
-
-
-msgid "Wire"
-msgstr "Kabel"
 
 
 msgid "Edit Bones"
@@ -12675,6 +12675,10 @@ msgstr "Cahaya"
 
 msgid "Light color"
 msgstr "Warna Standar"
+
+
+msgid "Normalize"
+msgstr "Normalisasi"
 
 
 msgctxt "Light"
@@ -15351,6 +15355,18 @@ msgid "Mask"
 msgstr "Masker"
 
 
+msgid "Mirror"
+msgstr "Cermin"
+
+
+msgid "Snap"
+msgstr "Jepret"
+
+
+msgid "Navigation"
+msgstr "Navigasi"
+
+
 msgid "Select Linked"
 msgstr "Seleksi yang Terhubung"
 
@@ -15401,18 +15417,6 @@ msgstr "Menggabungkan"
 
 msgid "Text"
 msgstr "Teks"
-
-
-msgid "Snap"
-msgstr "Jepret"
-
-
-msgid "Mirror"
-msgstr "Cermin"
-
-
-msgid "Navigation"
-msgstr "Navigasi"
 
 
 msgctxt "MovieClip"
@@ -17224,10 +17228,6 @@ msgid "Use Mask"
 msgstr "Gunakan Masker"
 
 
-msgid "Normalize"
-msgstr "Normalisasi"
-
-
 msgid "Normalize light intensities while tracking (slower)"
 msgstr "Normalisasi intensitas cahaya saat pelacakan (lebih lambat"
 
@@ -17655,10 +17655,6 @@ msgid "Extend bounds of the input image to fully fit blurred image"
 msgstr "Memperpanjang batas gambar masukan ke gambar buram yang cukup secara penuh"
 
 
-msgid "Apply filter on gamma corrected values"
-msgstr "Menerapkan filter pada nilai yang dikoreksi gamma"
-
-
 msgid "Use relative (percent) values to define blur radius"
 msgstr "Gunakan nilai relatif (persen) ke definisi radius buram"
 
@@ -17677,10 +17673,6 @@ msgstr "Mengenerasi buram tipe bokeh yang mirip ke Defokus. Tidak seperti defoku
 
 msgid "Max Blur"
 msgstr "Buram Maks"
-
-
-msgid "Blur limit, maximum CoC radius"
-msgstr "Batas buram, maksimum radius CoC"
 
 
 msgid "Bokeh Image"
@@ -17751,24 +17743,8 @@ msgid "Correction Formula"
 msgstr "Rumus Koreksi"
 
 
-msgid "Correction for highlights"
-msgstr "Koreksi untuk highlight"
-
-
-msgid "Correction for midtones"
-msgstr "Koreksi untuk nada tengah"
-
-
 msgid "Input Tint"
 msgstr "Kehalusan Masukan"
-
-
-msgid "Color tint of the input's white point (the default of 10 matches daylight)"
-msgstr "Kehalusan wanra titik putih masukan (standarnya 10 cocok dengan cahaya hari)"
-
-
-msgid "Correction for shadows"
-msgstr "Koreksi untuk bayangan"
 
 
 msgid "Basis"
@@ -17777,10 +17753,6 @@ msgstr "Basis"
 
 msgid "Output Tint"
 msgstr "Kehalusan Keluaran"
-
-
-msgid "Color tint of the output's white point (the default of 10 matches daylight)"
-msgstr "Kehalusan warna titik putih keluaran (standarnya 10 cocok dengan cahaya hari)"
 
 
 msgid "The color which gets white gets mapped to (automatically converted to/from temperature and tint)"
@@ -18067,6 +18039,10 @@ msgid "Bokeh shape rotation offset"
 msgstr "Offset rotasi bentuk bokeh"
 
 
+msgid "Blur limit, maximum CoC radius"
+msgstr "Batas buram, maksimum radius CoC"
+
+
 msgid "Bokeh Type"
 msgstr "Tipe Bokeh"
 
@@ -18127,10 +18103,6 @@ msgid "Gamma Correction"
 msgstr "Koreksi Gamma"
 
 
-msgid "Enable gamma correction before and after main process"
-msgstr "Mengaktifkan koreksi gamma sebelum dan setelah proses utama"
-
-
 msgid "Use Z-Buffer"
 msgstr "Menggunakan Buffer-Z"
 
@@ -18189,6 +18161,10 @@ msgstr "Balik Y"
 
 msgid "Flip X & Y"
 msgstr "Balik X & Y"
+
+
+msgid "Glare"
+msgstr "Kesilauan"
 
 
 msgid "Angle Offset"
@@ -23169,6 +23145,10 @@ msgid "Select Constraint Target"
 msgstr "Seleksi"
 
 
+msgid "Parents"
+msgstr "Induk"
+
+
 msgctxt "Operator"
 msgid "Select Connected"
 msgstr "Warna Standar"
@@ -24959,10 +24939,6 @@ msgid "Remove"
 msgstr "Hapus"
 
 
-msgid "Save a Collada file"
-msgstr "Situs Blender"
-
-
 msgid "Key Type"
 msgstr "Tipe Kunci"
 
@@ -25501,10 +25477,6 @@ msgstr "Ulang"
 
 msgid "Restrict painting to vertices in the group"
 msgstr "Membatasi lukisan ke simpul di kelompok"
-
-
-msgid "Wire Color"
-msgstr "Warna Kabel"
 
 
 msgid "Snapping"
@@ -26426,10 +26398,6 @@ msgid "Show Cache"
 msgstr "Tampilkan Cache"
 
 
-msgid "Composite Images"
-msgstr "Gabungkan Gambar"
-
-
 msgid "Final Images"
 msgstr "Gambar Final"
 
@@ -26822,10 +26790,6 @@ msgid "Active tool gizmo"
 msgstr "Gizmo alat aktif"
 
 
-msgid "Columns"
-msgstr "Kolum"
-
-
 msgid "Show 3D Marker Names"
 msgstr "Nama"
 
@@ -26888,6 +26852,10 @@ msgstr "Nilai Warna"
 
 msgid "Vector Value"
 msgstr "Nilai Vektor"
+
+
+msgid "Columns"
+msgstr "Kolum"
 
 
 msgid "Blend Opacity"
@@ -27046,6 +27014,14 @@ msgid "Clock"
 msgstr "Jam"
 
 
+msgid "Correction for midtones"
+msgstr "Koreksi untuk nada tengah"
+
+
+msgid "Correction for highlights"
+msgstr "Koreksi untuk highlight"
+
+
 msgid "Mask Input Type"
 msgstr "Grup"
 
@@ -27148,6 +27124,10 @@ msgstr "Dalam Jarak"
 
 msgid "Node Selected"
 msgstr "Modus Sunting"
+
+
+msgid "Wire Color"
+msgstr "Warna Kabel"
 
 
 msgid "Wire Select"
@@ -27420,11 +27400,6 @@ msgstr "Membekukan batas-batas culling tampilan"
 
 msgid "Opacity for edit vertices"
 msgstr "Opasitas untuk mengedit simpul"
-
-
-msgctxt "View3D"
-msgid "Viewport"
-msgstr "Jendela Tampilan"
 
 
 msgid "Blur the studiolight in the background"
@@ -30467,10 +30442,6 @@ msgid "Object Location"
 msgstr "Lokasi Benda"
 
 
-msgid "Parents"
-msgstr "Induk"
-
-
 msgctxt "Operator"
 msgid "Quick Edit"
 msgstr "Sunting Cepat"
@@ -31008,10 +30979,6 @@ msgid "Samples Transform"
 msgstr "Transformasi Sampel"
 
 
-msgid "Close"
-msgstr "Tutup"
-
-
 msgid "Use Schema"
 msgstr "Gunakan Skema"
 
@@ -31161,6 +31128,10 @@ msgid "No intersections found"
 msgstr "Persimpangan tidak ditemukan"
 
 
+msgid "Close"
+msgstr "Tutup"
+
+
 msgid "Selected faces required"
 msgstr "Wajah yang terseleksi diperlukan"
 
@@ -31231,10 +31202,6 @@ msgstr "Penyunting Teks"
 
 msgid "Active object is not a selected mesh"
 msgstr "Modus Sunting"
-
-
-msgid "Selected meshes must have equal numbers of vertices"
-msgstr "Partikel"
 
 
 msgid "Joining results in %d vertices, limit is %ld"
@@ -32226,6 +32193,18 @@ msgid "Despill Channel:"
 msgstr "Saluran Despill:"
 
 
+msgid "Correction for shadows"
+msgstr "Koreksi untuk bayangan"
+
+
+msgid "Color tint of the input's white point (the default of 10 matches daylight)"
+msgstr "Kehalusan wanra titik putih masukan (standarnya 10 cocok dengan cahaya hari)"
+
+
+msgid "Color tint of the output's white point (the default of 10 matches daylight)"
+msgstr "Kehalusan warna titik putih keluaran (standarnya 10 cocok dengan cahaya hari)"
+
+
 msgid "Bokeh Type:"
 msgstr "Tipe Bokeh:"
 
@@ -32252,10 +32231,6 @@ msgstr "Subjalur Berkas:"
 
 msgid "Format:"
 msgstr "Format:"
-
-
-msgid "Glare"
-msgstr "Kesilauan"
 
 
 msgid "Use feather information from the mask"

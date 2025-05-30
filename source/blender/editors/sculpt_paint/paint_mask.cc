@@ -82,7 +82,7 @@ Array<float> duplicate_mask(const Object &object)
         result.fill(0.0f);
       }
       else {
-        BM_mesh_elem_table_ensure(&bm, BM_VERT);
+        vert_random_access_ensure(const_cast<Object &>(object));
         for (const int i : result.index_range()) {
           result[i] = BM_ELEM_CD_GET_FLOAT(BM_vert_at_index(&bm, i), offset);
         }

@@ -454,6 +454,12 @@ static void read_file_version(FileData *fd, Main *main)
       FileGlobal *fg = static_cast<FileGlobal *>(
           read_struct(fd, bhead, "Data from Global block", INDEX_ID_NULL));
       if (fg) {
+        if (main->versionfile != fd->fileversion) {
+          /* `versionfile` remains unset when linking from a new library (`main` has then just be
+           * created by `blo_find_main`). */
+          BLI_assert(main->versionfile == 0);
+          main->versionfile = short(fd->fileversion);
+        }
         main->subversionfile = fg->subversion;
         main->minversionfile = fg->minversion;
         main->minsubversionfile = fg->minsubversion;
@@ -531,6 +537,9 @@ static Main *blo_find_main(FileData *fd, const char *filepath, const char *relab
     const char *libname = (m->curlib) ? m->curlib->runtime->filepath_abs : m->filepath;
 
     if (BLI_path_cmp(filepath_abs, libname) == 0) {
+      m->has_forward_compatibility_issues = !MAIN_VERSION_FILE_OLDER_OR_EQUAL(
+          m, BLENDER_FILE_VERSION, BLENDER_FILE_SUBVERSION);
+
       if (G.debug & G_DEBUG) {
         CLOG_INFO(&LOG, 3, "Found library %s", libname);
       }
@@ -557,6 +566,9 @@ static Main *blo_find_main(FileData *fd, const char *filepath, const char *relab
   m->curlib = lib;
 
   read_file_version(fd, m);
+
+  m->has_forward_compatibility_issues = !MAIN_VERSION_FILE_OLDER_OR_EQUAL(
+      m, BLENDER_FILE_VERSION, BLENDER_FILE_SUBVERSION);
 
   if (G.debug & G_DEBUG) {
     CLOG_INFO(&LOG, 3, "Added new lib %s", filepath);
@@ -1362,23 +1374,55 @@ static void change_link_placeholder_to_real_ID_pointer_fd(FileData *fd,
   }
 }
 
+/* Very rarely needed, allows some form of ID remapping as part of readfile process.
+ *
+ * Currently only used to remap duplicate library pointers.
+ */
+static void change_ID_pointer_to_real_ID_pointer_fd(FileData *fd, const void *old, void *newp)
+{
+  for (NewAddress &entry : fd->libmap->map.values()) {
+    if (old == entry.newp) {
+      BLI_assert(BKE_idtype_idcode_is_valid(short(entry.nr)));
+      entry.newp = newp;
+      if (newp) {
+        entry.nr = GS(((ID *)newp)->name);
+      }
+    }
+  }
+}
+
+static FileData *change_ID_link_filedata_get(Main *bmain, FileData *basefd)
+{
+  if (bmain->curlib) {
+    return bmain->curlib->runtime->filedata;
+  }
+  else {
+    return basefd;
+  }
+}
+
 static void change_link_placeholder_to_real_ID_pointer(ListBase *mainlist,
                                                        FileData *basefd,
                                                        void *old,
                                                        void *newp)
 {
   LISTBASE_FOREACH (Main *, mainptr, mainlist) {
-    FileData *fd;
-
-    if (mainptr->curlib) {
-      fd = mainptr->curlib->runtime->filedata;
-    }
-    else {
-      fd = basefd;
-    }
-
+    FileData *fd = change_ID_link_filedata_get(mainptr, basefd);
     if (fd) {
       change_link_placeholder_to_real_ID_pointer_fd(fd, old, newp);
+    }
+  }
+}
+
+static void change_ID_pointer_to_real_ID_pointer(ListBase *mainlist,
+                                                 FileData *basefd,
+                                                 void *old,
+                                                 void *newp)
+{
+  LISTBASE_FOREACH (Main *, mainptr, mainlist) {
+    FileData *fd = change_ID_link_filedata_get(mainptr, basefd);
+    if (fd) {
+      change_ID_pointer_to_real_ID_pointer_fd(fd, old, newp);
     }
   }
 }
@@ -2224,7 +2268,7 @@ static void direct_link_library(FileData *fd, Library *lib, Main *main)
                          lib->filepath,
                          lib->runtime->filepath_abs);
 
-        change_link_placeholder_to_real_ID_pointer(fd->mainlist, fd, lib, newmain->curlib);
+        change_ID_pointer_to_real_ID_pointer(fd->mainlist, fd, lib, newmain->curlib);
         // change_link_placeholder_to_real_ID_pointer_fd(fd, lib, newmain->curlib);
 
         BLI_remlink(&main->libraries, lib);

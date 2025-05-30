@@ -94,9 +94,10 @@ static wmOperatorStatus set_attribute_exec(bContext *C, wmOperator *op)
   Curves &active_curves_id = *static_cast<Curves *>(active_object->data);
 
   AttributeOwner active_owner = AttributeOwner::from_id(&active_curves_id.id);
-  CustomDataLayer *active_attribute = BKE_attributes_active_get(active_owner);
-  const StringRef name = active_attribute->name;
-  const eCustomDataType active_type = eCustomDataType(active_attribute->type);
+  const StringRef name = *BKE_attributes_active_name_get(active_owner);
+  const bke::AttributeMetaData active_meta_data =
+      *active_curves_id.geometry.wrap().attributes().lookup_meta_data(name);
+  const eCustomDataType active_type = active_meta_data.data_type;
   const CPPType &type = *bke::custom_data_type_to_cpp_type(active_type);
 
   BUFFER_FOR_CPP_TYPE_VALUE(type, buffer);
@@ -149,10 +150,10 @@ static wmOperatorStatus set_attribute_invoke(bContext *C, wmOperator *op, const 
   Curves &active_curves_id = *static_cast<Curves *>(active_object->data);
 
   AttributeOwner owner = AttributeOwner::from_id(&active_curves_id.id);
-  CustomDataLayer *active_attribute = BKE_attributes_active_get(owner);
+  const StringRef name = *BKE_attributes_active_name_get(owner);
   const bke::CurvesGeometry &curves = active_curves_id.geometry.wrap();
   const bke::AttributeAccessor attributes = curves.attributes();
-  const bke::GAttributeReader attribute = attributes.lookup(active_attribute->name);
+  const bke::GAttributeReader attribute = attributes.lookup(name);
   const bke::AttrDomain domain = attribute.domain;
 
   IndexMaskMemory memory;
@@ -192,10 +193,11 @@ static void set_attribute_ui(bContext *C, wmOperator *op)
   Curves &curves_id = *static_cast<Curves *>(object->data);
 
   AttributeOwner owner = AttributeOwner::from_id(&curves_id.id);
-  CustomDataLayer *active_attribute = BKE_attributes_active_get(owner);
-  const eCustomDataType active_type = eCustomDataType(active_attribute->type);
-  const StringRefNull prop_name = geometry::rna_property_name_for_type(active_type);
-  const char *name = active_attribute->name;
+  const StringRef name = *BKE_attributes_active_name_get(owner);
+  const bke::CurvesGeometry &curves = curves_id.geometry.wrap();
+  const bke::AttributeAccessor attributes = curves.attributes();
+  const bke::AttributeMetaData meta_data = *attributes.lookup_meta_data(name);
+  const StringRefNull prop_name = geometry::rna_property_name_for_type(meta_data.data_type);
   layout->prop(op->ptr, prop_name, UI_ITEM_NONE, name, ICON_NONE);
 }
 

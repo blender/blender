@@ -261,8 +261,8 @@ NodeWarning::NodeWarning(const Report &report)
 }
 
 /* Avoid generating these in every translation unit. */
-GeoModifierLog::GeoModifierLog() = default;
-GeoModifierLog::~GeoModifierLog() = default;
+GeoNodesLog::GeoNodesLog() = default;
+GeoNodesLog::~GeoNodesLog() = default;
 
 GeoTreeLogger::GeoTreeLogger() = default;
 GeoTreeLogger::~GeoTreeLogger() = default;
@@ -270,8 +270,8 @@ GeoTreeLogger::~GeoTreeLogger() = default;
 GeoNodeLog::GeoNodeLog() = default;
 GeoNodeLog::~GeoNodeLog() = default;
 
-GeoTreeLog::GeoTreeLog(GeoModifierLog *modifier_log, Vector<GeoTreeLogger *> tree_loggers)
-    : modifier_log_(modifier_log), tree_loggers_(std::move(tree_loggers))
+GeoTreeLog::GeoTreeLog(GeoNodesLog *root_log, Vector<GeoTreeLogger *> tree_loggers)
+    : root_log_(root_log), tree_loggers_(std::move(tree_loggers))
 {
   for (GeoTreeLogger *tree_logger : tree_loggers_) {
     for (const ComputeContextHash &hash : tree_logger->children_hashes) {
@@ -453,7 +453,7 @@ void GeoTreeLog::ensure_node_warnings(
     }
   }
   for (const ComputeContextHash &child_hash : children_hashes_) {
-    GeoTreeLog &child_log = modifier_log_->get_tree_log(child_hash);
+    GeoTreeLog &child_log = root_log_->get_tree_log(child_hash);
     if (child_log.tree_loggers_.is_empty()) {
       continue;
     }
@@ -574,7 +574,7 @@ void GeoTreeLog::ensure_used_named_attributes()
     }
   }
   for (const ComputeContextHash &child_hash : children_hashes_) {
-    GeoTreeLog &child_log = modifier_log_->get_tree_log(child_hash);
+    GeoTreeLog &child_log = root_log_->get_tree_log(child_hash);
     if (child_log.tree_loggers_.is_empty()) {
       continue;
     }
@@ -755,7 +755,7 @@ static std::optional<uint32_t> get_original_session_uid(const ID *id)
   return {};
 }
 
-GeoTreeLogger &GeoModifierLog::get_local_tree_logger(const ComputeContext &compute_context)
+GeoTreeLogger &GeoNodesLog::get_local_tree_logger(const ComputeContext &compute_context)
 {
   LocalData &local_data = data_per_thread_.local();
   Map<ComputeContextHash, destruct_ptr<GeoTreeLogger>> &local_tree_loggers =
@@ -778,7 +778,7 @@ GeoTreeLogger &GeoModifierLog::get_local_tree_logger(const ComputeContext &compu
   }
   if (const auto *context = dynamic_cast<const bke::GroupNodeComputeContext *>(&compute_context)) {
     tree_logger.parent_node_id.emplace(context->node_id());
-    if (const bNode *caller_node = context->caller_group_node()) {
+    if (const bNode *caller_node = context->node()) {
       tree_logger.tree_orig_session_uid = get_original_session_uid(caller_node->id);
     }
   }
@@ -830,7 +830,7 @@ GeoTreeLogger &GeoModifierLog::get_local_tree_logger(const ComputeContext &compu
   return tree_logger;
 }
 
-GeoTreeLog &GeoModifierLog::get_tree_log(const ComputeContextHash &compute_context_hash)
+GeoTreeLog &GeoNodesLog::get_tree_log(const ComputeContextHash &compute_context_hash)
 {
   GeoTreeLog &reduced_tree_log = *tree_logs_.lookup_or_add_cb(compute_context_hash, [&]() {
     Vector<GeoTreeLogger *> tree_logs;
@@ -862,7 +862,7 @@ static void find_tree_zone_hash_recursive(
   }
 }
 
-Map<const bNodeTreeZone *, ComputeContextHash> GeoModifierLog::
+Map<const bNodeTreeZone *, ComputeContextHash> GeoNodesLog::
     get_context_hash_by_zone_for_node_editor(const SpaceNode &snode,
                                              bke::ComputeContextCache &compute_context_cache)
 {
@@ -884,7 +884,7 @@ Map<const bNodeTreeZone *, ComputeContextHash> GeoModifierLog::
   return hash_by_zone;
 }
 
-static GeoModifierLog *get_root_log(const SpaceNode &snode)
+static GeoNodesLog *get_root_log(const SpaceNode &snode)
 {
   switch (SpaceNodeGeometryNodesType(snode.geometry_nodes_type)) {
     case SNODE_GEOMETRY_MODIFIER: {
@@ -907,15 +907,15 @@ static GeoModifierLog *get_root_log(const SpaceNode &snode)
   return nullptr;
 }
 
-ContextualGeoTreeLogs GeoModifierLog::get_contextual_tree_logs(const SpaceNode &snode)
+ContextualGeoTreeLogs GeoNodesLog::get_contextual_tree_logs(const SpaceNode &snode)
 {
-  GeoModifierLog *log = get_root_log(snode);
+  GeoNodesLog *log = get_root_log(snode);
   if (!log) {
     return {};
   }
   bke::ComputeContextCache compute_context_cache;
   const Map<const bNodeTreeZone *, ComputeContextHash> hash_by_zone =
-      GeoModifierLog::get_context_hash_by_zone_for_node_editor(snode, compute_context_cache);
+      GeoNodesLog::get_context_hash_by_zone_for_node_editor(snode, compute_context_cache);
   Map<const bke::bNodeTreeZone *, GeoTreeLog *> tree_logs_by_zone;
   for (const auto item : hash_by_zone.items()) {
     GeoTreeLog &tree_log = log->get_tree_log(item.value);
@@ -924,7 +924,7 @@ ContextualGeoTreeLogs GeoModifierLog::get_contextual_tree_logs(const SpaceNode &
   return {tree_logs_by_zone};
 }
 
-const ViewerNodeLog *GeoModifierLog::find_viewer_node_log_for_path(const ViewerPath &viewer_path)
+const ViewerNodeLog *GeoNodesLog::find_viewer_node_log_for_path(const ViewerPath &viewer_path)
 {
   const std::optional<ed::viewer_path::ViewerPathForGeometryNodesViewer> parsed_path =
       ed::viewer_path::parse_geometry_nodes_viewer(viewer_path);
@@ -946,7 +946,7 @@ const ViewerNodeLog *GeoModifierLog::find_viewer_node_log_for_path(const ViewerP
   if (!nmd->runtime->eval_log) {
     return nullptr;
   }
-  nodes::geo_eval_log::GeoModifierLog *modifier_log = nmd->runtime->eval_log.get();
+  nodes::geo_eval_log::GeoNodesLog *root_log = nmd->runtime->eval_log.get();
 
   bke::ComputeContextCache compute_context_cache;
   const ComputeContext *compute_context = &compute_context_cache.for_modifier(nullptr, *nmd);
@@ -958,40 +958,12 @@ const ViewerNodeLog *GeoModifierLog::find_viewer_node_log_for_path(const ViewerP
     }
   }
   const ComputeContextHash context_hash = compute_context->hash();
-  nodes::geo_eval_log::GeoTreeLog &tree_log = modifier_log->get_tree_log(context_hash);
+  nodes::geo_eval_log::GeoTreeLog &tree_log = root_log->get_tree_log(context_hash);
   tree_log.ensure_viewer_node_logs();
 
   const ViewerNodeLog *viewer_log = tree_log.viewer_node_logs.lookup_default(
       parsed_path->viewer_node_id, nullptr);
   return viewer_log;
-}
-
-int node_warning_type_icon(const NodeWarningType type)
-{
-  switch (type) {
-    case NodeWarningType::Error:
-      return ICON_CANCEL;
-    case NodeWarningType::Warning:
-      return ICON_ERROR;
-    case NodeWarningType::Info:
-      return ICON_INFO;
-  }
-  BLI_assert_unreachable();
-  return ICON_ERROR;
-}
-
-int node_warning_type_severity(const NodeWarningType type)
-{
-  switch (type) {
-    case NodeWarningType::Error:
-      return 3;
-    case NodeWarningType::Warning:
-      return 2;
-    case NodeWarningType::Info:
-      return 1;
-  }
-  BLI_assert_unreachable();
-  return 0;
 }
 
 ContextualGeoTreeLogs::ContextualGeoTreeLogs(

@@ -739,17 +739,23 @@ static void ui_node_draw_recursive(uiLayout &layout,
   const nodes::SocketDeclaration *panel_toggle_decl = panel_decl.panel_input_decl();
   const std::string panel_id = fmt::format(
       "{}_{}_{}", ntree.id.name, node.identifier, panel_decl.identifier);
+  const StringRef panel_translation_context = panel_decl.translation_context.has_value() ?
+                                                  *panel_decl.translation_context :
+                                                  "";
   PanelLayout panel_layout = layout.panel(&C, panel_id.c_str(), panel_decl.default_collapsed);
   if (panel_toggle_decl) {
     uiLayoutSetPropSep(panel_layout.header, false);
     uiLayoutSetPropDecorate(panel_layout.header, false);
     PointerRNA toggle_ptr = RNA_pointer_create_discrete(
         &ntree.id, &RNA_NodeSocket, &node.socket_by_decl(*panel_toggle_decl));
-    panel_layout.header->prop(
-        &toggle_ptr, "default_value", UI_ITEM_NONE, panel_decl.name, ICON_NONE);
+    panel_layout.header->prop(&toggle_ptr,
+                              "default_value",
+                              UI_ITEM_NONE,
+                              CTX_IFACE_(panel_translation_context, panel_decl.name),
+                              ICON_NONE);
   }
   else {
-    panel_layout.header->label(panel_decl.name, ICON_NONE);
+    panel_layout.header->label(CTX_IFACE_(panel_translation_context, panel_decl.name), ICON_NONE);
   }
 
   if (!panel_layout.body) {

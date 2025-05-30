@@ -157,30 +157,28 @@ void DRW_xr_drawing_begin();
 void DRW_xr_drawing_end();
 #endif
 
-/* For garbage collection */
+/** For garbage collection. */
 void DRW_cache_free_old_batches(Main *bmain);
 
 namespace blender::draw {
 
-/* Free garbage collected subdivision data. */
+/** Free garbage collected subdivision data. */
 void DRW_cache_free_old_subdiv();
 
 }  // namespace blender::draw
 
-/* Never use this. Only for closing blender. */
+/** Never use this. Only for closing blender. */
 void DRW_gpu_context_enable_ex(bool restore);
 void DRW_gpu_context_disable_ex(bool restore);
 
 /* Render pipeline GPU context control.
  * Enable system context first, then enable blender context,
  * then disable blender context, then disable system context. */
+
 void DRW_system_gpu_render_context_enable(void *re_system_gpu_context);
 void DRW_system_gpu_render_context_disable(void *re_system_gpu_context);
 void DRW_blender_gpu_render_context_enable(void *re_gpu_context);
 void DRW_blender_gpu_render_context_disable(void *re_gpu_context);
-
-void DRW_deferred_shader_remove(GPUMaterial *mat);
-void DRW_deferred_shader_optimize_remove(GPUMaterial *mat);
 
 DRWData *DRW_viewport_data_create();
 void DRW_viewport_data_free(DRWData *drw_data);

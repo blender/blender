@@ -46,6 +46,11 @@ void RayTraceModule::sync()
 {
   Texture &depth_tx = inst_.render_buffers.depth_tx;
 
+  if (!use_raytracing_) {
+    /* Do not request raytracing shaders if not needed. */
+    return;
+  }
+
 #define PASS_VARIATION(_pass_name, _index, _suffix) \
   ((_index == 0) ? _pass_name##reflect##_suffix : \
    (_index == 1) ? _pass_name##refract##_suffix : \
@@ -330,6 +335,53 @@ void RayTraceModule::sync()
     pass.dispatch(horizon_denoise_dispatch_buf_);
     pass.barrier(GPU_BARRIER_SHADER_IMAGE_ACCESS);
   }
+
+  for (int i : IndexRange(3)) {
+    const bool use_denoise = (ray_tracing_options_.flag & RAYTRACE_EEVEE_USE_DENOISE);
+    const bool use_spatial_denoise = (ray_tracing_options_.denoise_stages &
+                                      RAYTRACE_EEVEE_DENOISE_SPATIAL) &&
+                                     use_denoise;
+    const bool use_temporal_denoise = (ray_tracing_options_.denoise_stages &
+                                       RAYTRACE_EEVEE_DENOISE_TEMPORAL) &&
+                                      use_spatial_denoise;
+    const bool use_bilateral_denoise = (ray_tracing_options_.denoise_stages &
+                                        RAYTRACE_EEVEE_DENOISE_BILATERAL) &&
+                                       use_temporal_denoise;
+
+    data_.closure_index = i;
+    inst_.manager->warm_shader_specialization(tile_classify_ps_);
+    inst_.manager->warm_shader_specialization(tile_compact_ps_);
+    inst_.manager->warm_shader_specialization(generate_ps_);
+    if (tracing_method_ == RAYTRACE_EEVEE_METHOD_SCREEN) {
+      if (inst_.planar_probes.enabled()) {
+        inst_.manager->warm_shader_specialization(trace_planar_ps_);
+      }
+      for (int j : IndexRange(2)) {
+        data_.trace_refraction = bool(j);
+        inst_.manager->warm_shader_specialization(trace_screen_ps_);
+      }
+    }
+    else {
+      inst_.manager->warm_shader_specialization(trace_fallback_ps_);
+    }
+    if (use_spatial_denoise) {
+      inst_.manager->warm_shader_specialization(denoise_spatial_ps_);
+    }
+    if (use_temporal_denoise) {
+      inst_.manager->warm_shader_specialization(denoise_temporal_ps_);
+    }
+    if (use_bilateral_denoise) {
+      inst_.manager->warm_shader_specialization(denoise_bilateral_ps_);
+    }
+    bool use_horizon_scan = ray_tracing_options_.trace_max_roughness < 1.0f;
+    if (use_horizon_scan) {
+      inst_.manager->warm_shader_specialization(horizon_schedule_ps_);
+      inst_.manager->warm_shader_specialization(horizon_setup_ps_);
+      inst_.manager->warm_shader_specialization(horizon_scan_ps_);
+      inst_.manager->warm_shader_specialization(horizon_denoise_ps_);
+      inst_.manager->warm_shader_specialization(horizon_resolve_ps_);
+    }
+  }
 }
 
 void RayTraceModule::debug_pass_sync() {}
@@ -344,6 +396,7 @@ RayTraceResult RayTraceModule::render(RayTraceBuffer &rt_buffer,
                                       View &render_view)
 {
   using namespace blender::math;
+  BLI_assert(use_raytracing_);
 
   screen_radiance_front_tx_ = rt_buffer.radiance_feedback_tx.is_valid() ?
                                   rt_buffer.radiance_feedback_tx :

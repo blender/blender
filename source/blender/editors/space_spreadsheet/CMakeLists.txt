@@ -15,7 +15,6 @@ set(INC_SYS
 
 set(SRC
   space_spreadsheet.cc
-  spreadsheet_cache.cc
   spreadsheet_column.cc
   spreadsheet_data_source.cc
   spreadsheet_data_source_geometry.cc
@@ -26,8 +25,8 @@ set(SRC
   spreadsheet_panels.cc
   spreadsheet_row_filter.cc
   spreadsheet_row_filter_ui.cc
+  spreadsheet_table.cc
 
-  spreadsheet_cache.hh
   spreadsheet_column.hh
   spreadsheet_column_values.hh
   spreadsheet_data_source.hh
@@ -38,6 +37,7 @@ set(SRC
   spreadsheet_layout.hh
   spreadsheet_row_filter.hh
   spreadsheet_row_filter_ui.hh
+  spreadsheet_table.hh
 )
 
 set(LIB

@@ -688,7 +688,7 @@ void RNA_def_view_layer(BlenderRNA *brna)
       prop, nullptr, "grease_pencil_flags", GREASE_PENCIL_AS_SEPARATE_PASS);
   RNA_def_property_ui_text(
       prop, "Grease Pencil", "Deliver Grease Pencil render result in a separate pass");
-  RNA_def_property_update(prop, NC_SCENE | ND_LAYER, nullptr);
+  RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_ViewLayer_pass_update");
 
   /* debug update routine */
   func = RNA_def_function(srna, "update", "rna_ViewLayer_update_tagged");

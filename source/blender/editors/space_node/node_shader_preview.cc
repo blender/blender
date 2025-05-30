@@ -129,7 +129,8 @@ static std::optional<ComputeContextHash> get_compute_context_hash_for_node_edito
        * deleted. */
       return std::nullopt;
     }
-    compute_context = &compute_context_cache.for_group_node(compute_context, *node, *tree);
+    compute_context = &compute_context_cache.for_group_node(
+        compute_context, node->identifier, tree);
   }
   return compute_context->hash();
 }
@@ -717,6 +718,7 @@ static void shader_preview_startjob(void *customdata, wmJobWorkerStatus *worker_
   job_data->mat_output_copy->flag |= NODE_DO_OUTPUT;
 
   bNodeTree *active_nodetree = job_data->treepath_copy.last()->nodetree;
+  active_nodetree->ensure_topology_cache();
   for (bNode *node : active_nodetree->all_nodes()) {
     if (!(node->flag & NODE_PREVIEW)) {
       /* Clear the cached preview for this node to be sure that the preview is re-rendered if

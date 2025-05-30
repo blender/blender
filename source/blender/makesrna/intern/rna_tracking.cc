@@ -2211,8 +2211,9 @@ static void rna_def_trackingReconstruction(BlenderRNA *brna)
   prop = RNA_def_property(srna, "is_valid", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", TRACKING_RECONSTRUCTED);
-  RNA_def_property_ui_text(
-      prop, "Reconstructed", "Is tracking data contains valid reconstruction information");
+  RNA_def_property_ui_text(prop,
+                           "Reconstructed",
+                           "Whether the tracking data contains valid reconstruction information");
 
   /* average_error */
   prop = RNA_def_property(srna, "average_error", PROP_FLOAT, PROP_NONE);

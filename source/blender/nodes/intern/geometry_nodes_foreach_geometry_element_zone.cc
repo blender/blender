@@ -263,7 +263,7 @@ class LazyFunctionForForeachGeometryElementZone : public LazyFunction {
                                             const ZoneBodyFunction &body_fn)
       : btree_(btree),
         zone_(zone),
-        output_bnode_(*zone.output_node),
+        output_bnode_(*zone.output_node()),
         zone_info_(zone_info),
         body_fn_(body_fn)
   {
@@ -278,7 +278,7 @@ class LazyFunctionForForeachGeometryElementZone : public LazyFunction {
     const auto &node_storage = *static_cast<const NodeGeometryForeachGeometryElementOutput *>(
         output_bnode_.storage);
     const AttrDomain iteration_domain = AttrDomain(node_storage.domain);
-    BLI_assert(zone_.input_node->output_socket(1).is_available() ==
+    BLI_assert(zone_.input_node()->output_socket(1).is_available() ==
                (iteration_domain != AttrDomain::Corner));
 
     const int input_items_num = node_storage.input_items.items_num;
@@ -341,8 +341,8 @@ class LazyFunctionForForeachGeometryElementZone : public LazyFunction {
           if (!eval_storage.main_geometry.is_empty()) {
             tree_logger->node_warnings.append(
                 *tree_logger->allocator,
-                {zone_.input_node->identifier,
-                 {geo_eval_log::NodeWarningType::Info,
+                {zone_.input_node()->identifier,
+                 {NodeWarningType::Info,
                   N_("Input geometry has no elements in the iteration domain.")}});
           }
         }
@@ -420,7 +420,7 @@ class LazyFunctionForForeachGeometryElementZone : public LazyFunction {
     /* TODO: Get propagation info from input, but that's not necessary for correctness for now. */
     bke::AttributeFilter attribute_filter;
 
-    const bNodeSocket &element_geometry_bsocket = zone_.input_node->output_socket(1);
+    const bNodeSocket &element_geometry_bsocket = zone_.input_node()->output_socket(1);
     const bool create_element_geometries = element_geometry_bsocket.is_available() &&
                                            element_geometry_bsocket.is_directly_linked();
 
@@ -659,7 +659,7 @@ class LazyFunctionForForeachGeometryElementZone : public LazyFunction {
       }
     }
 
-    const bNodeSocket &element_geometry_bsocket = zone_.input_node->output_socket(1);
+    const bNodeSocket &element_geometry_bsocket = zone_.input_node()->output_socket(1);
 
     static const GeometrySet empty_geometry;
     for (const ForeachElementComponent &component_info : eval_storage.components) {
@@ -956,7 +956,7 @@ int LazyFunctionForReduceForeachGeometryElement::handle_invalid_generation_items
     if (!params.output_was_set(lf_socket_i)) {
       const int bsocket_i = parent_.indices_.generation.bsocket_outer[item_i];
       set_default_value_for_output_socket(
-          params, lf_socket_i, parent_.zone_.output_node->output_socket(bsocket_i));
+          params, lf_socket_i, parent_.zone_.output_node()->output_socket(bsocket_i));
     }
   }
   return item_i;

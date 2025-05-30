@@ -109,8 +109,7 @@ typedef struct MovieTrackingMarker {
 typedef struct MovieTrackingTrack {
   struct MovieTrackingTrack *next, *prev;
 
-  /** MAX_NAME. */
-  char name[64];
+  char name[/*MAX_NAME*/ 64];
 
   /* ** settings ** */
 
@@ -212,8 +211,7 @@ typedef struct MovieTrackingPlaneMarker {
 typedef struct MovieTrackingPlaneTrack {
   struct MovieTrackingPlaneTrack *next, *prev;
 
-  /** MAX_NAME. */
-  char name[64];
+  char name[/*MAX_NAME*/ 64];
 
   /**
    * Array of point tracks used to define this plane.
@@ -349,8 +347,8 @@ typedef struct MovieTrackingReconstruction {
 typedef struct MovieTrackingObject {
   struct MovieTrackingObject *next, *prev;
 
-  /** Name of tracking object, MAX_NAME. */
-  char name[64];
+  /** Name of tracking object. */
+  char name[/*MAX_NAME*/ 64];
   int flag;
   /** Scale of object solution in camera space. */
   float scale;

@@ -800,7 +800,7 @@ bool RNA_struct_override_matches(Main *bmain,
          * unused.
          *
          * In case the property itself is already tagged as used, in means lower-level diffing code
-         * took care of this property (as is needed for e.g. collections of items, since then some
+         * took care of this property (e.g. as is needed collections of items, since then some
          * operations may be valid, while others may need to be purged). */
         if (op->tag & LIBOVERRIDE_PROP_OP_TAG_UNUSED) {
           BKE_lib_override_library_operations_tag(op, LIBOVERRIDE_PROP_OP_TAG_UNUSED, false);

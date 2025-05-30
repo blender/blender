@@ -953,36 +953,24 @@ static wmOperatorStatus parent_set_invoke_menu(bContext *C, wmOperatorType *ot)
 #if 0
   uiItemEnumO_ptr(layout, ot, std::nullopt, ICON_NONE, "type", PAR_OBJECT);
 #else
-  uiItemFullO_ptr(
-      layout, ot, IFACE_("Object"), ICON_NONE, nullptr, WM_OP_EXEC_DEFAULT, UI_ITEM_NONE, &opptr);
+  opptr = layout->op(ot, IFACE_("Object"), ICON_NONE, WM_OP_EXEC_DEFAULT, UI_ITEM_NONE);
   RNA_enum_set(&opptr, "type", PAR_OBJECT);
   RNA_boolean_set(&opptr, "keep_transform", false);
 
-  uiItemFullO_ptr(layout,
-                  ot,
-                  IFACE_("Object (Keep Transform)"),
-                  ICON_NONE,
-                  nullptr,
-                  WM_OP_EXEC_DEFAULT,
-                  UI_ITEM_NONE,
-                  &opptr);
+  opptr = layout->op(
+      ot, IFACE_("Object (Keep Transform)"), ICON_NONE, WM_OP_EXEC_DEFAULT, UI_ITEM_NONE);
   RNA_enum_set(&opptr, "type", PAR_OBJECT);
   RNA_boolean_set(&opptr, "keep_transform", true);
 #endif
 
-  uiItemBooleanO(layout,
-                 IFACE_("Object (Without Inverse)"),
-                 ICON_NONE,
-                 "OBJECT_OT_parent_no_inverse_set",
-                 "keep_transform",
-                 0);
+  PointerRNA op_ptr = layout->op(
+      "OBJECT_OT_parent_no_inverse_set", IFACE_("Object (Without Inverse)"), ICON_NONE);
+  RNA_boolean_set(&op_ptr, "keep_transform", false);
 
-  uiItemBooleanO(layout,
-                 IFACE_("Object (Keep Transform Without Inverse)"),
-                 ICON_NONE,
-                 "OBJECT_OT_parent_no_inverse_set",
-                 "keep_transform",
-                 1);
+  op_ptr = layout->op("OBJECT_OT_parent_no_inverse_set",
+                      IFACE_("Object (Keep Transform Without Inverse)"),
+                      ICON_NONE);
+  RNA_boolean_set(&op_ptr, "keep_transform", true);
 
   struct {
     bool armature_deform, empty_groups, envelope_weights, automatic_weights, attach_surface;

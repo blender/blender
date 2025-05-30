@@ -268,7 +268,7 @@ Vector<Strip *> seq_shown_strips_get(const Scene *scene,
   Vector<Strip *> strips_vec = strips.extract_vector();
   /* Sort strips by channel. */
   std::sort(strips_vec.begin(), strips_vec.end(), [](const Strip *a, const Strip *b) {
-    return a->machine < b->machine;
+    return a->channel < b->channel;
   });
   return strips_vec;
 }
@@ -736,7 +736,7 @@ static ImBuf *seq_render_effect_strip_impl(const RenderData *context,
   Scene *scene = context->scene;
   float fac;
   int i;
-  EffectHandle sh = effect_handle_get(strip);
+  EffectHandle sh = strip_effect_handle_get(strip);
   const FCurve *fcu = nullptr;
   ImBuf *ibuf[2];
   Strip *input[2];
@@ -1477,10 +1477,11 @@ static ImBuf *seq_render_scene_strip(const RenderData *context,
     depsgraph = BKE_scene_ensure_depsgraph(context->bmain, scene, view_layer);
     BKE_scene_graph_update_for_newframe(depsgraph);
     Object *camera_eval = DEG_get_evaluated(depsgraph, camera);
+    Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
     ibuf = view3d_fn(
         /* set for OpenGL render (nullptr when scrubbing) */
         depsgraph,
-        scene,
+        scene_eval,
         &context->scene->display.shading,
         eDrawType(context->scene->r.seq_prev_type),
         camera_eval,
@@ -2068,7 +2069,7 @@ ImBuf *render_give_ibuf_direct(const RenderData *context, float timeline_frame, 
 
 bool render_is_muted(const ListBase *channels, const Strip *strip)
 {
-  SeqTimelineChannel *channel = channel_get_by_index(channels, strip->machine);
+  SeqTimelineChannel *channel = channel_get_by_index(channels, strip->channel);
   return strip->flag & SEQ_MUTE || channel_is_muted(channel);
 }
 

@@ -18,7 +18,6 @@ class VKPixelBuffer : public PixelBuffer {
   VKBuffer buffer_;
   bool buffer_initialized_ = false;
   bool buffer_memory_export_ = false;
-  GPUPixelBufferNativeHandle native_handle_;
 
  public:
   VKPixelBuffer(size_t size);

@@ -368,7 +368,7 @@ enum eGWL_PendingWindowActions {
   PENDING_OUTPUT_SCALE_UPDATE,
 
   /**
-   * Workaround for a bug/glitch in WLROOTS based compositors (RIVER for e.g.).
+   * Workaround for a bug/glitch in WLROOTS based compositors (RIVER for example).
    * Deferring the scale update one even-loop cycle resolves a bug
    * where the output enter/exit events cause the surface buffer being an invalid size.
    *
@@ -2434,7 +2434,7 @@ GHOST_TSuccess GHOST_WindowWayland::invalidate()
 
 GHOST_TSuccess GHOST_WindowWayland::setOrder(GHOST_TWindowOrder order)
 {
-  /* NOTE(@ideasman42): only activation is supported (on X11 & Cocoa for e.g.)
+  /* NOTE(@ideasman42): only activation is supported (on X11 & Cocoa for example)
    * both activation and raising is performed. Since WAYLAND only supports activation,
    * do that as the compositor will likely raise the window as well.
    * Although it's not ideal that raising does something but lowering a window is ignored. */
@@ -2750,7 +2750,7 @@ bool GHOST_WindowWayland::outputs_changed_update_scale()
      * opening on the same monitor so a window keeps it's previous size on a users system.
      *
      * To support anything more sophisticated, windows would need to be created with a scale
-     * argument (representing the scale used when the window was stored, for e.g.). */
+     * argument (representing the scale used when the window was stored, for example). */
 
 #ifdef WITH_GHOST_WAYLAND_LIBDECOR
     if (use_libdecor) {

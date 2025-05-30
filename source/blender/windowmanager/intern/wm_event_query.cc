@@ -375,8 +375,8 @@ bool WM_event_consecutive_gesture_test_break(const wmWindow *win, const wmEvent 
     }
   }
   else if (ISKEYBOARD_OR_BUTTON(event->type)) {
-    /* Modifiers are excluded because from a user perspective,
-     * releasing a modifier (for e.g.) should not begin a new action. */
+    /* Modifiers are excluded because from a user perspective.
+     * For example, releasing a modifier should not begin a new action. */
     if (!ISKEYMODIFIER(event->type)) {
       return true;
     }

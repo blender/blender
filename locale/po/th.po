@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'a7d2b7850ef2')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'ba454989554a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-05 08:47+0000\n"
+"POT-Creation-Date: 2025-05-26 07:36+0000\n"
 "PO-Revision-Date: 2025-04-14 08:42+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Thai <https://translate.blender.org/projects/blender-ui/ui/th/>\n"
@@ -630,6 +630,10 @@ msgid "Volume"
 msgstr "ปริมาตร"
 
 
+msgid "Wire"
+msgstr "เส้น"
+
+
 msgid "Head"
 msgstr "หัว"
 
@@ -1218,10 +1222,6 @@ msgstr "ผู้ใช้"
 
 msgid "Layers"
 msgstr "ชั้น"
-
-
-msgid "Wire"
-msgstr "เส้น"
 
 
 msgid "Add Alpha"
@@ -1865,6 +1865,38 @@ msgid "Mask"
 msgstr "หน้ากาก"
 
 
+msgid "Mirror"
+msgstr "กระจกสะท้อน"
+
+
+msgid "Snap"
+msgstr "ยึดติด"
+
+
+msgid "Local View"
+msgstr "มุมมองท้องถิ่น"
+
+
+msgid "Viewpoint"
+msgstr "จุดของมุมมอง"
+
+
+msgid "Navigation"
+msgstr "การนำทาง"
+
+
+msgid "Align View"
+msgstr "จัดมุมมอง"
+
+
+msgid "Align View to Active"
+msgstr "จัดมุมมองไปยังที่วัตถุใช้งาน"
+
+
+msgid "View Regions"
+msgstr "ขอบเขตมุมมอง"
+
+
 msgid "Metaball"
 msgstr "เมตาบอล"
 
@@ -1909,44 +1941,12 @@ msgid "Pivot Point"
 msgstr "จุดหมุน"
 
 
-msgid "Snap"
-msgstr "ยึดติด"
-
-
 msgid "Proportional Editing Falloff"
 msgstr "แก้ไข"
 
 
 msgid "Mask Edit"
 msgstr "การแก้ไขหน้ากาก"
-
-
-msgid "Mirror"
-msgstr "กระจกสะท้อน"
-
-
-msgid "Local View"
-msgstr "มุมมองท้องถิ่น"
-
-
-msgid "Viewpoint"
-msgstr "จุดของมุมมอง"
-
-
-msgid "Navigation"
-msgstr "การนำทาง"
-
-
-msgid "Align View"
-msgstr "จัดมุมมอง"
-
-
-msgid "Align View to Active"
-msgstr "จัดมุมมองไปยังที่วัตถุใช้งาน"
-
-
-msgid "View Regions"
-msgstr "ขอบเขตมุมมอง"
 
 
 msgid "Zoom"
@@ -3260,12 +3260,12 @@ msgid "Single Image"
 msgstr "ภาพเดี่ยว"
 
 
-msgid "View Lock"
-msgstr "ล็อกมุมมอง"
-
-
 msgid "Overlays"
 msgstr "วางซ้อน"
+
+
+msgid "View Lock"
+msgstr "ล็อกมุมมอง"
 
 
 msgid "Mask Display"
@@ -3651,6 +3651,10 @@ msgstr "ลำโพง"
 
 msgid "3D"
 msgstr "สามมิติ"
+
+
+msgid "Text Info"
+msgstr "ข้อมูลข้อความ"
 
 
 msgctxt "Sequence"
@@ -4685,10 +4689,6 @@ msgstr "หมุน..."
 msgctxt "Operator"
 msgid "Bones"
 msgstr "กระดูก"
-
-
-msgid "Text Info"
-msgstr "ข้อมูลข้อความ"
 
 
 msgid "Origins"

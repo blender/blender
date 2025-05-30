@@ -9,7 +9,9 @@
 
 #include "kernel/integrator/state.h"
 
-#include "util/atomic.h"
+#ifdef __KERNEL_GPU__
+#  include "util/atomic.h"
+#endif
 
 CCL_NAMESPACE_BEGIN
 
@@ -26,9 +28,9 @@ CCL_NAMESPACE_BEGIN
  * Each kernel on the main path must call one of these functions. These may not be called
  * multiple times from the same kernel.
  *
- * integrator_path_init(kg, state, next_kernel)
- * integrator_path_next(kg, state, current_kernel, next_kernel)
- * integrator_path_terminate(kg, state, current_kernel)
+ * integrator_path_init(state, next_kernel)
+ * integrator_path_next(state, current_kernel, next_kernel)
+ * integrator_path_terminate(state, current_kernel)
  *
  * For the shadow path similar functions are used, and again each shadow kernel must call
  * one of them, and only once.
@@ -46,16 +48,14 @@ ccl_device_forceinline bool integrator_shadow_path_is_terminated(ConstIntegrator
 
 #ifdef __KERNEL_GPU__
 
-ccl_device_forceinline void integrator_path_init(KernelGlobals kg,
-                                                 IntegratorState state,
+ccl_device_forceinline void integrator_path_init(IntegratorState state,
                                                  const DeviceKernel next_kernel)
 {
   atomic_fetch_and_add_uint32(&kernel_integrator_state.queue_counter->num_queued[next_kernel], 1);
   INTEGRATOR_STATE_WRITE(state, path, queued_kernel) = next_kernel;
 }
 
-ccl_device_forceinline void integrator_path_next(KernelGlobals kg,
-                                                 IntegratorState state,
+ccl_device_forceinline void integrator_path_next(IntegratorState state,
                                                  const DeviceKernel current_kernel,
                                                  const DeviceKernel next_kernel)
 {
@@ -65,8 +65,7 @@ ccl_device_forceinline void integrator_path_next(KernelGlobals kg,
   INTEGRATOR_STATE_WRITE(state, path, queued_kernel) = next_kernel;
 }
 
-ccl_device_forceinline void integrator_path_terminate(KernelGlobals kg,
-                                                      IntegratorState state,
+ccl_device_forceinline void integrator_path_terminate(IntegratorState state,
                                                       const DeviceKernel current_kernel)
 {
   atomic_fetch_and_sub_uint32(&kernel_integrator_state.queue_counter->num_queued[current_kernel],
@@ -81,14 +80,15 @@ ccl_device_forceinline IntegratorShadowState integrator_shadow_path_init(
       &kernel_integrator_state.next_shadow_path_index[0], 1);
   atomic_fetch_and_add_uint32(&kernel_integrator_state.queue_counter->num_queued[next_kernel], 1);
   INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, queued_kernel) = next_kernel;
-#  ifdef __PATH_GUIDING__
-  INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, path_segment) = nullptr;
+#  if defined(__PATH_GUIDING__)
+  if ((kernel_data.kernel_features & KERNEL_FEATURE_PATH_GUIDING)) {
+    INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, path_segment) = nullptr;
+  }
 #  endif
   return shadow_state;
 }
 
-ccl_device_forceinline void integrator_shadow_path_next(KernelGlobals kg,
-                                                        IntegratorShadowState state,
+ccl_device_forceinline void integrator_shadow_path_next(IntegratorShadowState state,
                                                         const DeviceKernel current_kernel,
                                                         const DeviceKernel next_kernel)
 {
@@ -98,8 +98,7 @@ ccl_device_forceinline void integrator_shadow_path_next(KernelGlobals kg,
   INTEGRATOR_STATE_WRITE(state, shadow_path, queued_kernel) = next_kernel;
 }
 
-ccl_device_forceinline void integrator_shadow_path_terminate(KernelGlobals kg,
-                                                             IntegratorShadowState state,
+ccl_device_forceinline void integrator_shadow_path_terminate(IntegratorShadowState state,
                                                              const DeviceKernel current_kernel)
 {
   atomic_fetch_and_sub_uint32(&kernel_integrator_state.queue_counter->num_queued[current_kernel],
@@ -154,14 +153,13 @@ ccl_device_forceinline void integrator_path_next_sorted(KernelGlobals kg,
 
 #else
 
-ccl_device_forceinline void integrator_path_init(KernelGlobals kg,
-                                                 IntegratorState state,
+ccl_device_forceinline void integrator_path_init(IntegratorState state,
                                                  const DeviceKernel next_kernel)
 {
   INTEGRATOR_STATE_WRITE(state, path, queued_kernel) = next_kernel;
 }
 
-ccl_device_forceinline void integrator_path_init_sorted(KernelGlobals kg,
+ccl_device_forceinline void integrator_path_init_sorted(KernelGlobals /*kg*/,
                                                         IntegratorState state,
                                                         const DeviceKernel next_kernel,
                                                         const uint32_t key)
@@ -170,8 +168,7 @@ ccl_device_forceinline void integrator_path_init_sorted(KernelGlobals kg,
   (void)key;
 }
 
-ccl_device_forceinline void integrator_path_next(KernelGlobals kg,
-                                                 IntegratorState state,
+ccl_device_forceinline void integrator_path_next(IntegratorState state,
                                                  const DeviceKernel current_kernel,
                                                  const DeviceKernel next_kernel)
 {
@@ -179,15 +176,14 @@ ccl_device_forceinline void integrator_path_next(KernelGlobals kg,
   (void)current_kernel;
 }
 
-ccl_device_forceinline void integrator_path_terminate(KernelGlobals kg,
-                                                      IntegratorState state,
+ccl_device_forceinline void integrator_path_terminate(IntegratorState state,
                                                       const DeviceKernel current_kernel)
 {
   INTEGRATOR_STATE_WRITE(state, path, queued_kernel) = 0;
   (void)current_kernel;
 }
 
-ccl_device_forceinline void integrator_path_next_sorted(KernelGlobals kg,
+ccl_device_forceinline void integrator_path_next_sorted(KernelGlobals /*kg*/,
                                                         IntegratorState state,
                                                         const DeviceKernel current_kernel,
                                                         const DeviceKernel next_kernel,
@@ -203,14 +199,15 @@ ccl_device_forceinline IntegratorShadowState integrator_shadow_path_init(
 {
   IntegratorShadowState shadow_state = (is_ao) ? &state->ao : &state->shadow;
   INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, queued_kernel) = next_kernel;
-#  ifdef __PATH_GUIDING__
-  INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, path_segment) = nullptr;
+#  if defined(__PATH_GUIDING__)
+  if ((kernel_data.kernel_features & KERNEL_FEATURE_PATH_GUIDING)) {
+    INTEGRATOR_STATE_WRITE(shadow_state, shadow_path, path_segment) = nullptr;
+  }
 #  endif
   return shadow_state;
 }
 
-ccl_device_forceinline void integrator_shadow_path_next(KernelGlobals kg,
-                                                        IntegratorShadowState state,
+ccl_device_forceinline void integrator_shadow_path_next(IntegratorShadowState state,
                                                         const DeviceKernel current_kernel,
                                                         const DeviceKernel next_kernel)
 {
@@ -218,8 +215,7 @@ ccl_device_forceinline void integrator_shadow_path_next(KernelGlobals kg,
   (void)current_kernel;
 }
 
-ccl_device_forceinline void integrator_shadow_path_terminate(KernelGlobals kg,
-                                                             IntegratorShadowState state,
+ccl_device_forceinline void integrator_shadow_path_terminate(IntegratorShadowState state,
                                                              const DeviceKernel current_kernel)
 {
   INTEGRATOR_STATE_WRITE(state, shadow_path, queued_kernel) = 0;

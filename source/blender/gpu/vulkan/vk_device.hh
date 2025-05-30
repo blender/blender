@@ -55,6 +55,11 @@ struct VKExtensions {
   bool dynamic_rendering_unused_attachments = false;
 
   /**
+   * Does the device support VK_EXT_external_memory_win32/VK_EXT_external_memory_fd
+   */
+  bool external_memory = false;
+
+  /**
    * Does the device support logic ops.
    */
   bool logic_ops = false;
@@ -92,7 +97,7 @@ class VKThreadData : public NonCopyable, NonMovable {
    * in flight used by GHOST. Therefore, this constant *must* always
    * match GHOST_ContextVK's GHOST_FRAMES_IN_FLIGHT.
    */
-  static constexpr uint32_t resource_pools_count = 3;
+  static constexpr uint32_t resource_pools_count = 4;
 
  public:
   /** Thread ID this instance belongs to. */
@@ -308,15 +313,6 @@ class VKDevice : public NonCopyable {
     return vk_device_;
   }
 
-  VkQueue queue_get() const
-  {
-    return vk_queue_;
-  }
-  std::mutex &queue_mutex_get()
-  {
-    return *queue_mutex_;
-  }
-
   uint32_t queue_family_get() const
   {
     return vk_queue_family_;
@@ -395,6 +391,7 @@ class VKDevice : public NonCopyable {
                                     VkSemaphore signal_semaphore,
                                     VkFence signal_fence);
   void wait_for_timeline(TimelineValue timeline);
+  void wait_queue_idle();
 
   /**
    * Retrieve the last finished submission timeline.

@@ -16,13 +16,12 @@ namespace blender::nodes::node_fn_input_string_cc {
 static void node_declare(NodeDeclarationBuilder &b)
 {
   b.is_function_node();
-  b.add_output<decl::String>("String");
-}
-
-static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
-{
-  PropertyRNA *prop = RNA_struct_find_property(ptr, "string");
-  layout->prop(ptr, prop, -1, 0, UI_ITEM_NONE, "", ICON_NONE, IFACE_("String"));
+  b.add_output<decl::String>("String").custom_draw([](CustomSocketDrawParams &params) {
+    uiLayoutSetAlignment(&params.layout, UI_LAYOUT_ALIGN_EXPAND);
+    PropertyRNA *prop = RNA_struct_find_property(&params.node_ptr, "string");
+    params.layout.prop(
+        &params.node_ptr, prop, -1, 0, UI_ITEM_NONE, "", ICON_NONE, IFACE_("String"));
+  });
 }
 
 static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
@@ -86,7 +85,6 @@ static void node_register()
   ntype.initfunc = node_init;
   blender::bke::node_type_storage(ntype, "NodeInputString", node_storage_free, node_storage_copy);
   ntype.build_multi_function = node_build_multi_function;
-  ntype.draw_buttons = node_layout;
   ntype.blend_write_storage_content = node_blend_write;
   ntype.blend_data_read_storage_content = node_blend_read;
   blender::bke::node_register_type(ntype);

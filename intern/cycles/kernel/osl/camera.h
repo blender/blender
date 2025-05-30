@@ -5,6 +5,8 @@
 
 #pragma once
 
+#include "kernel/globals.h"
+
 #include "kernel/osl/types.h"
 
 CCL_NAMESPACE_BEGIN

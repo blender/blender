@@ -448,6 +448,7 @@ static void fileselect_refresh_asset_params(FileAssetSelectParams *asset_params)
     case ASSET_LIBRARY_CUSTOM:
       BLI_assert(user_library);
       STRNCPY(base_params->dir, user_library->dirpath);
+      BLI_path_slash_native(base_params->dir);
       base_params->type = (user_library->flag & ASSET_LIBRARY_USE_REMOTE_URL) ?
                               FILE_ASSET_LIBRARY_REMOTE :
                               FILE_ASSET_LIBRARY;

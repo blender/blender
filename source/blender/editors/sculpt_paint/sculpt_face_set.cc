@@ -1103,7 +1103,7 @@ static wmOperatorStatus change_visibility_invoke(bContext *C, wmOperator *op, co
    * cursor updates. */
   CursorGeometryInfo cgi;
   const float mval_fl[2] = {float(event->mval[0]), float(event->mval[1])};
-  SCULPT_vertex_random_access_ensure(ob);
+  vert_random_access_ensure(ob);
   cursor_geometry_info_update(C, &cgi, mval_fl, false);
 
   return change_visibility_exec(C, op);

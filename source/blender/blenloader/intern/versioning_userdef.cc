@@ -235,6 +235,10 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
     FROM_DEFAULT_V4_UCHAR(space_node.node_zone_closure);
   }
 
+  if (!USER_VERSION_ATLEAST(405, 82)) {
+    FROM_DEFAULT_V4_UCHAR(space_clip.anim_preview_range);
+  }
+
   /**
    * Always bump subversion in BKE_blender_version.h when adding versioning
    * code here, and wrap it inside a USER_VERSION_ATLEAST check.
@@ -878,7 +882,7 @@ void blo_do_versions_userdef(UserDef *userdef)
     userdef->flag &= ~(USER_FLAG_NUMINPUT_ADVANCED | (1 << 2) | USER_FLAG_UNUSED_3 |
                        USER_FLAG_UNUSED_6 | USER_FLAG_UNUSED_7 | USER_INTERNET_ALLOW |
                        USER_DEVELOPER_UI);
-    userdef->uiflag &= ~(USER_HEADER_BOTTOM);
+    userdef->uiflag &= ~USER_HEADER_BOTTOM;
     userdef->transopts &= ~(USER_TR_UNUSED_3 | USER_TR_UNUSED_4 | USER_TR_UNUSED_6 |
                             USER_TR_UNUSED_7);
 
@@ -966,7 +970,7 @@ void blo_do_versions_userdef(UserDef *userdef)
 
     copy_v3_fl3(userdef->light_ambient, 0.025000, 0.025000, 0.025000);
 
-    userdef->flag &= ~(USER_FLAG_UNUSED_4);
+    userdef->flag &= ~USER_FLAG_UNUSED_4;
 
     userdef->uiflag &= ~(USER_HEADER_FROM_PREF | USER_REGISTER_ALL_USERS);
   }
@@ -979,8 +983,8 @@ void blo_do_versions_userdef(UserDef *userdef)
 
   if (!USER_VERSION_ATLEAST(280, 44)) {
     userdef->uiflag &= ~(USER_NO_MULTITOUCH_GESTURES | USER_UIFLAG_UNUSED_1);
-    userdef->uiflag2 &= ~(USER_UIFLAG2_UNUSED_0);
-    userdef->gp_settings &= ~(GP_PAINT_UNUSED_0);
+    userdef->uiflag2 &= ~USER_UIFLAG2_UNUSED_0;
+    userdef->gp_settings &= ~GP_PAINT_UNUSED_0;
   }
 
   if (!USER_VERSION_ATLEAST(280, 50)) {

@@ -19,6 +19,7 @@ COMPUTE_SHADER_CREATE_INFO(eevee_motion_blur_gather)
 
 #include "draw_view_lib.glsl"
 #include "eevee_motion_blur_lib.glsl"
+#include "eevee_reverse_z_lib.glsl"
 #include "eevee_sampling_lib.glsl"
 #include "eevee_velocity_lib.glsl"
 
@@ -86,7 +87,7 @@ void gather_sample(float2 screen_uv,
   float4 sample_vectors = motion_blur_sample_velocity(velocity_tx, sample_uv);
   float2 sample_motion = (next) ? sample_vectors.zw : sample_vectors.xy;
   float sample_motion_len = length(sample_motion);
-  float sample_depth = texture(depth_tx, sample_uv).r;
+  float sample_depth = reverse_z::read(textureLod(depth_tx, sample_uv, 0.0f).r);
   float4 sample_color = textureLod(in_color_tx, sample_uv, 0.0f);
 
   sample_depth = drw_depth_screen_to_view(sample_depth);
@@ -164,7 +165,8 @@ void main()
   }
 
   /* Data of the center pixel of the gather (target). */
-  float center_depth = drw_depth_screen_to_view(texelFetch(depth_tx, texel, 0).r);
+  float center_depth = reverse_z::read(texelFetch(depth_tx, texel, 0).r);
+  center_depth = drw_depth_screen_to_view(center_depth);
   float4 center_motion = motion_blur_sample_velocity(velocity_tx, uv);
 
   float4 center_color = textureLod(in_color_tx, uv, 0.0f);

@@ -127,7 +127,7 @@ static void seq_free_strip(StripData *data)
   MEM_freeN(data);
 }
 
-Strip *strip_alloc(ListBase *lb, int timeline_frame, int machine, int type)
+Strip *strip_alloc(ListBase *lb, int timeline_frame, int channel, int type)
 {
   Strip *strip;
 
@@ -139,7 +139,7 @@ Strip *strip_alloc(ListBase *lb, int timeline_frame, int machine, int type)
 
   strip->flag = SELECT;
   strip->start = timeline_frame;
-  strip_channel_set(strip, machine);
+  strip_channel_set(strip, channel);
   strip->sat = 1.0;
   strip->mul = 1.0;
   strip->blend_opacity = 100.0;
@@ -183,7 +183,7 @@ static void seq_strip_free_ex(Scene *scene,
   relations_strip_free_anim(strip);
 
   if (strip->type & STRIP_TYPE_EFFECT) {
-    EffectHandle sh = effect_handle_get(strip);
+    EffectHandle sh = strip_effect_handle_get(strip);
     sh.free(strip, do_id_user);
   }
 
@@ -581,7 +581,7 @@ static Strip *strip_duplicate(const Scene *scene_src,
   }
   else if (strip->type & STRIP_TYPE_EFFECT) {
     EffectHandle sh;
-    sh = effect_handle_get(strip);
+    sh = strip_effect_handle_get(strip);
     if (sh.copy) {
       sh.copy(strip_new, strip, flag);
     }
@@ -707,7 +707,7 @@ void seqbase_duplicate_recursive(const Scene *scene_src,
 
 bool is_valid_strip_channel(const Strip *strip)
 {
-  return strip->machine >= 1 && strip->machine <= MAX_CHANNELS;
+  return strip->channel >= 1 && strip->channel <= MAX_CHANNELS;
 }
 
 SequencerToolSettings *tool_settings_copy(SequencerToolSettings *tool_settings)

@@ -1224,7 +1224,7 @@ static void rna_Fluid_flowtype_set(PointerRNA *ptr, int value)
     /* Use some surface emission when switching to a gas emitter. Gases should by default emit a
      * bit around surface. */
     if (prev_value == FLUID_FLOW_TYPE_LIQUID) {
-      settings->surface_distance = 1.5f;
+      settings->surface_distance = 1.0f;
     }
   }
 }
@@ -2819,10 +2819,12 @@ static void rna_def_fluid_flow_settings(BlenderRNA *brna)
   prop = RNA_def_property(srna, "surface_distance", PROP_FLOAT, PROP_NONE);
   RNA_def_property_range(prop, 0.0, 10.0);
   RNA_def_property_ui_range(prop, 0.0, 10.0, 0.05, 5);
-  RNA_def_property_ui_text(prop,
-                           "Surface Emission",
-                           "Controls fluid emission from the mesh surface (higher value results "
-                           "in emission further away from the mesh surface");
+  RNA_def_property_ui_text(
+      prop,
+      "Surface Emission",
+      "Height (in domain grid units) of fluid emission above the mesh surface. Higher values "
+      "result in emission further away from the mesh surface. If this value and the emitter size "
+      "are smaller than the domain grid unit, fluid will not be created");
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Fluid_flow_reset");
 
   prop = RNA_def_property(srna, "use_plane_init", PROP_BOOLEAN, PROP_NONE);

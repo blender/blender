@@ -33,7 +33,7 @@ static void node_declare(NodeDeclarationBuilder &b)
     return;
   }
 
-  b.add_output(eNodeSocketDatatype(node->custom1), "Grid");
+  b.add_output(eNodeSocketDatatype(node->custom1), "Grid").structure_type(StructureType::Grid);
 }
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)

@@ -2320,7 +2320,7 @@ def python_versions_from_wheel(wheel_filename: str) -> set[tuple[int] | tuple[in
     abi_tag = wheel_filename_split[-2]
 
     # NOTE(@ideasman42): when the ABI is set, simply return the major version,
-    # This is needed because older version of CPython (3.6) for e.g. are compatible with newer versions of CPython,
+    # This is needed because older version of CPython (3.6) for example are compatible with newer versions of CPython,
     # but returning the old version causes it not to register as being compatible.
     # So return the ABI version to allow any version of CPython 3.x.
     #
@@ -2835,7 +2835,7 @@ def pkg_manifest_detect_duplicates(
             del python_versions_full
 
     # This can be expanded with additional values as needed.
-    # We could in principle have ABI flags (debug/release) for e.g.
+    # We could in principle have ABI flags (debug/release) for example
     PkgCfgKey = tuple[
         # Platform.
         str,
@@ -4870,7 +4870,7 @@ class subcmd_author:
             *,
             manifest: PkgManifest,
             # NOTE: This path is only for inclusion in the error message,
-            # the path may not exist on the file-system (it may refer to a path inside an archive for e.g.).
+            # the path may not exist on the file-system (it may refer to a path inside an archive for example).
             pkg_manifest_filepath: str,
             valid_tags_filepath: str,
     ) -> bool:

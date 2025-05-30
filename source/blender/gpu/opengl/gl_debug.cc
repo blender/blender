@@ -92,7 +92,9 @@ static void APIENTRY debug_callback(GLenum /*source*/,
     GPU_debug_get_groups_names(sizeof(debug_groups), debug_groups);
     CLG_Severity clog_severity;
 
-    if (GPU_debug_group_match(GPU_DEBUG_SHADER_COMPILATION_GROUP)) {
+    if (GPU_debug_group_match(GPU_DEBUG_SHADER_COMPILATION_GROUP) ||
+        GPU_debug_group_match(GPU_DEBUG_SHADER_SPECIALIZATION_GROUP))
+    {
       /* Do not duplicate shader compilation error/warnings. */
       return;
     }

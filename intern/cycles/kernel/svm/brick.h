@@ -67,7 +67,6 @@ ccl_device_noinline_cpu float2 svm_brick(const float3 p,
 }
 
 ccl_device_noinline int svm_node_tex_brick(KernelGlobals kg,
-                                           ccl_private ShaderData *sd,
                                            ccl_private float *stack,
                                            const uint4 node,
                                            int offset)

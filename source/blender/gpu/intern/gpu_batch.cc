@@ -223,10 +223,12 @@ void GPU_batch_resource_id_buf_set(Batch *batch, GPUStorageBuf *resource_id_buf)
  *
  * \{ */
 
-void GPU_batch_set_shader(Batch *batch, GPUShader *shader)
+void GPU_batch_set_shader(Batch *batch,
+                          GPUShader *shader,
+                          const shader::SpecializationConstants *constants_state)
 {
   batch->shader = shader;
-  GPU_shader_bind(batch->shader);
+  GPU_shader_bind(batch->shader, constants_state);
 }
 
 static uint16_t bind_attribute_as_ssbo(const ShaderInterface *interface,
@@ -282,7 +284,9 @@ static uint16_t bind_attribute_as_ssbo(const ShaderInterface *interface,
   return bound_attr;
 }
 
-void GPU_batch_bind_as_resources(Batch *batch, GPUShader *shader)
+void GPU_batch_bind_as_resources(Batch *batch,
+                                 GPUShader *shader,
+                                 const shader::SpecializationConstants *constants)
 {
   const ShaderInterface *interface = unwrap(shader)->interface;
   if (interface->ssbo_attr_mask_ == 0) {
@@ -293,7 +297,7 @@ void GPU_batch_bind_as_resources(Batch *batch, GPUShader *shader)
 
   if (ssbo_attributes & (1 << GPU_SSBO_INDEX_BUF_SLOT)) {
     /* Ensure binding for setting uniforms. This is required by the OpenGL backend. */
-    GPU_shader_bind(shader);
+    GPU_shader_bind(shader, constants);
     if (batch->elem) {
       GPU_indexbuf_bind_as_ssbo(batch->elem, GPU_SSBO_INDEX_BUF_SLOT);
       GPU_shader_uniform_1b(shader, "gpu_index_no_buffer", false);

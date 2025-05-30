@@ -24,6 +24,7 @@ static void test_immediate_one_plane()
                                                  GPU_RGBA16F,
                                                  GPU_TEXTURE_USAGE_ATTACHMENT |
                                                      GPU_TEXTURE_USAGE_HOST_READ,
+                                                 false,
                                                  nullptr);
   BLI_assert(offscreen != nullptr);
   GPU_offscreen_bind(offscreen, false);
@@ -72,6 +73,7 @@ static void test_immediate_two_planes()
                                                  GPU_RGBA16F,
                                                  GPU_TEXTURE_USAGE_ATTACHMENT |
                                                      GPU_TEXTURE_USAGE_HOST_READ,
+                                                 false,
                                                  nullptr);
   BLI_assert(offscreen != nullptr);
   GPU_offscreen_bind(offscreen, false);

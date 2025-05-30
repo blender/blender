@@ -428,6 +428,9 @@ static bool add_node_group_asset(const bContext &C,
     BKE_report(&reports, RPT_WARNING, "Could not add node group");
     return false;
   }
+  STRNCPY(group_node->name, BKE_id_name(node_group->id));
+  bke::node_unique_name(*snode.edittree, *group_node);
+
   /* By default, don't show the data-block selector since it's not usually necessary for assets. */
   group_node->flag &= ~NODE_OPTIONS;
   group_node->width = node_group->default_group_node_width;
@@ -696,11 +699,16 @@ void NODE_OT_add_collection(wmOperatorType *ot)
 static bool node_add_image_poll(bContext *C)
 {
   const SpaceNode *snode = CTX_wm_space_node(C);
-  return ED_operator_node_editable(C) && STR_ELEM(snode->tree_idname,
-                                                  "ShaderNodeTree",
-                                                  "CompositorNodeTree",
-                                                  "TextureNodeTree",
-                                                  "GeometryNodeTree");
+  if (!snode) {
+    return false;
+  }
+
+  /* Note: Validity of snode->nodetree is checked later for better error reporting. */
+  return STR_ELEM(snode->tree_idname,
+                  "ShaderNodeTree",
+                  "CompositorNodeTree",
+                  "TextureNodeTree",
+                  "GeometryNodeTree");
 }
 
 /** Node stack animation data, sorts nodes so each node is placed on top of each other. */
@@ -857,6 +865,13 @@ static wmOperatorStatus node_add_image_invoke(bContext *C, wmOperator *op, const
 {
   ARegion *region = CTX_wm_region(C);
   SpaceNode *snode = CTX_wm_space_node(C);
+
+  if (!ED_operator_node_editable(C)) {
+    BKE_report(op->reports,
+               RPT_ERROR,
+               "Could not add image. A node tree has not been created or assigned");
+    return OPERATOR_CANCELLED;
+  }
 
   /* Convert mouse coordinates to `v2d` space. */
   UI_view2d_region_to_view(&region->v2d,

@@ -25,7 +25,8 @@ template<GPUVertCompType comp_type, GPUVertFetchMode fetch_mode, typename ColorT
 static void vertex_buffer_fetch_mode(ColorType color)
 {
   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_HOST_READ;
-  GPUOffScreen *offscreen = GPU_offscreen_create(Size, Size, false, GPU_RGBA32F, usage, nullptr);
+  GPUOffScreen *offscreen = GPU_offscreen_create(
+      Size, Size, false, GPU_RGBA32F, usage, false, nullptr);
   BLI_assert(offscreen != nullptr);
   GPU_offscreen_bind(offscreen, false);
   GPUTexture *color_texture = GPU_offscreen_color_texture(offscreen);

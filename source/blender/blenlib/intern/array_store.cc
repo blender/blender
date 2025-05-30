@@ -186,7 +186,7 @@ struct BChunkList;
 
 /**
  * Ensure duplicate entries aren't added to temporary hash table
- * needed for arrays where many values match (an array of booleans all true/false for e.g.).
+ * needed for arrays where many values match (e.g. an array of booleans all true/false).
  *
  * Without this, a huge number of duplicates are added a single bucket, making hash lookups slow.
  * While de-duplication adds some cost, it's only performed with other chunks in the same bucket
@@ -1683,7 +1683,7 @@ void BLI_array_store_state_remove(BArrayStore *bs, BArrayState *state)
   MEM_freeN(state);
 }
 
-size_t BLI_array_store_state_size_get(BArrayState *state)
+size_t BLI_array_store_state_size_get(const BArrayState *state)
 {
   return state->chunk_list->total_expanded_size;
 }
@@ -1706,7 +1706,7 @@ void BLI_array_store_state_data_get(const BArrayState *state, void *data)
   }
 }
 
-void *BLI_array_store_state_data_get_alloc(BArrayState *state, size_t *r_data_len)
+void *BLI_array_store_state_data_get_alloc(const BArrayState *state, size_t *r_data_len)
 {
   void *data = MEM_mallocN(state->chunk_list->total_expanded_size, __func__);
   BLI_array_store_state_data_get(state, data);

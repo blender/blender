@@ -352,6 +352,8 @@ class MaterialModule {
  public:
   ::Material *diffuse_mat;
   ::Material *metallic_mat;
+  ::Material *default_surface;
+  ::Material *default_volume;
 
   int64_t queued_shaders_count = 0;
   int64_t queued_optimize_shaders_count = 0;
@@ -367,6 +369,9 @@ class MaterialModule {
   DefaultSurfaceNodeTree default_surface_ntree_;
 
   ::Material *error_mat_;
+
+  uint64_t gpu_pass_last_update_ = 0;
+  uint64_t gpu_pass_next_update_ = 0;
 
  public:
   MaterialModule(Instance &inst);

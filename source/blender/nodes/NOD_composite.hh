@@ -77,9 +77,6 @@ void ntreeCompositOutputFileUniqueLayer(ListBase *list,
                                         const char defname[],
                                         char delim);
 
-void ntreeCompositColorBalanceSyncFromLGG(bNodeTree *ntree, bNode *node);
-void ntreeCompositColorBalanceSyncFromCDL(bNodeTree *ntree, bNode *node);
-
 void ntreeCompositCryptomatteSyncFromAdd(bNode *node);
 void ntreeCompositCryptomatteSyncFromRemove(bNode *node);
 bNodeSocket *ntreeCompositCryptomatteAddSocket(bNodeTree *ntree, bNode *node);

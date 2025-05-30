@@ -24,10 +24,7 @@ ccl_device float svm_checker(float3 p)
   return ((xi % 2 == yi % 2) == (zi % 2)) ? 1.0f : 0.0f;
 }
 
-ccl_device_noinline void svm_node_tex_checker(KernelGlobals kg,
-                                              ccl_private ShaderData *sd,
-                                              ccl_private float *stack,
-                                              const uint4 node)
+ccl_device_noinline void svm_node_tex_checker(ccl_private float *stack, const uint4 node)
 {
   uint co_offset;
   uint color1_offset;

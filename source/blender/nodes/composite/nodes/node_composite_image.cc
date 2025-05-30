@@ -474,7 +474,7 @@ class ImageOperation : public NodeOperation {
   void execute() override
   {
     for (const bNodeSocket *output : this->node()->output_sockets()) {
-      if (!output->is_available()) {
+      if (!is_socket_available(output)) {
         continue;
       }
 
@@ -681,15 +681,8 @@ static void node_composit_buts_viewlayers(uiLayout *layout, bContext *C, Pointer
   scn_ptr = RNA_pointer_get(ptr, "scene");
   RNA_string_get(&scn_ptr, "name", scene_name);
 
-  PointerRNA op_ptr;
-  uiItemFullO(row,
-              "RENDER_OT_render",
-              "",
-              ICON_RENDER_STILL,
-              nullptr,
-              WM_OP_INVOKE_DEFAULT,
-              UI_ITEM_NONE,
-              &op_ptr);
+  PointerRNA op_ptr = row->op(
+      "RENDER_OT_render", "", ICON_RENDER_STILL, WM_OP_INVOKE_DEFAULT, UI_ITEM_NONE);
   RNA_string_set(&op_ptr, "layer", layer_name);
   RNA_string_set(&op_ptr, "scene", scene_name);
 }
@@ -720,7 +713,7 @@ class RenderLayerOperation : public NodeOperation {
     }
 
     for (const bNodeSocket *output : this->node()->output_sockets()) {
-      if (!output->is_available()) {
+      if (!is_socket_available(output)) {
         continue;
       }
 

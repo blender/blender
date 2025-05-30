@@ -46,7 +46,7 @@ bool transform_strip_can_be_translated(const Strip *strip)
 bool transform_test_overlap(const Scene *scene, Strip *strip1, Strip *strip2)
 {
   return (
-      strip1 != strip2 && strip1->machine == strip2->machine &&
+      strip1 != strip2 && strip1->channel == strip2->channel &&
       ((time_right_handle_frame_get(scene, strip1) <= time_left_handle_frame_get(scene, strip2)) ||
        (time_left_handle_frame_get(scene, strip1) >=
         time_right_handle_frame_get(scene, strip2))) == 0);
@@ -101,16 +101,23 @@ bool transform_seqbase_shuffle_ex(ListBase *seqbasep,
                                   Scene *evil_scene,
                                   int channel_delta)
 {
-  const int orig_machine = test->machine;
+  const int orig_channel = test->channel;
   BLI_assert(ELEM(channel_delta, -1, 1));
 
-  strip_channel_set(test, test->machine + channel_delta);
-  while (transform_test_overlap(evil_scene, seqbasep, test)) {
-    if ((channel_delta > 0) ? (test->machine >= MAX_CHANNELS) : (test->machine < 1)) {
+  strip_channel_set(test, test->channel + channel_delta);
+
+  const ListBase *channels = channels_displayed_get(editing_get(evil_scene));
+  SeqTimelineChannel *channel = channel_get_by_index(channels, test->channel);
+
+  while (transform_test_overlap(evil_scene, seqbasep, test) || channel_is_muted(channel) ||
+         channel_is_locked(channel))
+  {
+    if ((channel_delta > 0) ? (test->channel >= MAX_CHANNELS) : (test->channel < 1)) {
       break;
     }
 
-    strip_channel_set(test, test->machine + channel_delta);
+    strip_channel_set(test, test->channel + channel_delta);
+    channel = channel_get_by_index(channels, test->channel);
   }
 
   if (!is_valid_strip_channel(test)) {
@@ -120,12 +127,12 @@ bool transform_seqbase_shuffle_ex(ListBase *seqbasep,
     int new_frame = time_right_handle_frame_get(evil_scene, test);
 
     LISTBASE_FOREACH (Strip *, strip, seqbasep) {
-      if (strip->machine == orig_machine) {
+      if (strip->channel == orig_channel) {
         new_frame = max_ii(new_frame, time_right_handle_frame_get(evil_scene, strip));
       }
     }
 
-    strip_channel_set(test, orig_machine);
+    strip_channel_set(test, orig_channel);
 
     new_frame = new_frame + (test->start - time_left_handle_frame_get(
                                                evil_scene, test)); /* adjust by the startdisp */
@@ -147,7 +154,7 @@ static bool shuffle_strip_test_overlap(const Scene *scene,
                                        const int offset)
 {
   BLI_assert(strip1 != strip2);
-  return (strip1->machine == strip2->machine &&
+  return (strip1->channel == strip2->channel &&
           ((time_right_handle_frame_get(scene, strip1) + offset <=
             time_left_handle_frame_get(scene, strip2)) ||
            (time_left_handle_frame_get(scene, strip1) + offset >=
@@ -300,7 +307,7 @@ static void strip_transform_handle_expand_to_fit(Scene *scene,
 
   /* Temporarily move right side strips beyond timeline boundary. */
   for (Strip *strip : right_side_strips) {
-    strip->machine += MAX_CHANNELS * 2;
+    strip->channel += MAX_CHANNELS * 2;
   }
 
   /* Shuffle transformed standalone strips. This is because transformed strips can overlap with
@@ -311,7 +318,7 @@ static void strip_transform_handle_expand_to_fit(Scene *scene,
 
   /* Move temporarily moved strips back to their original place and tag for shuffling. */
   for (Strip *strip : right_side_strips) {
-    strip->machine -= MAX_CHANNELS * 2;
+    strip->channel -= MAX_CHANNELS * 2;
   }
   /* Shuffle again to displace strips on right side. Final effect shuffling is done in
    * SEQ_transform_handle_overlap. */
@@ -451,7 +458,7 @@ static void strip_transform_handle_overwrite(Scene *scene,
 
   for (Strip *target : targets) {
     for (Strip *transformed : transformed_strips) {
-      if (transformed->machine != target->machine) {
+      if (transformed->channel != target->channel) {
         continue;
       }
 
@@ -557,12 +564,12 @@ void transform_offset_after_frame(Scene *scene,
 
 void strip_channel_set(Strip *strip, int channel)
 {
-  strip->machine = math::clamp(channel, 1, MAX_CHANNELS);
+  strip->channel = math::clamp(channel, 1, MAX_CHANNELS);
 }
 
 bool transform_is_locked(ListBase *channels, const Strip *strip)
 {
-  const SeqTimelineChannel *channel = channel_get_by_index(channels, strip->machine);
+  const SeqTimelineChannel *channel = channel_get_by_index(channels, strip->channel);
   return strip->flag & SEQ_LOCK ||
          (channel_is_locked(channel) && ((strip->flag & SEQ_IGNORE_CHANNEL_LOCK) == 0));
 }

@@ -28,7 +28,7 @@
  *
  * - Before editing rename defines run:
  *
- *   `sha1sum $BUILD_DIR/source/blender/makesdna/intern/dna.c`
+ *   `sha256sum $BUILD_DIR/source/blender/makesdna/intern/dna.cc`
  *
  *   Compare the results before & after to ensure all changes are reversed by renaming
  *   and the DNA remains unchanged.
@@ -86,6 +86,7 @@ DNA_STRUCT_RENAME_MEMBER(Curve, len_wchar, len_char32)
 DNA_STRUCT_RENAME_MEMBER(Curve, loc, texspace_location)
 DNA_STRUCT_RENAME_MEMBER(Curve, size, texspace_size)
 DNA_STRUCT_RENAME_MEMBER(Curve, texflag, texspace_flag)
+DNA_STRUCT_RENAME_MEMBER(Curve, type, ob_type)
 DNA_STRUCT_RENAME_MEMBER(Curve, width, offset)
 DNA_STRUCT_RENAME_MEMBER(Curves, attributes_active_index, attributes_active_index_legacy)
 DNA_STRUCT_RENAME_MEMBER(CurvesGeometry, curve_size, curve_num)
@@ -192,11 +193,12 @@ DNA_STRUCT_RENAME_MEMBER(SceneEEVEE, motion_blur_shutter, motion_blur_shutter_de
 DNA_STRUCT_RENAME_MEMBER(SceneEEVEE, shadow_cube_size, shadow_cube_size_deprecated)
 DNA_STRUCT_RENAME_MEMBER(SpaceImage, pixel_snap_mode, pixel_round_mode)
 DNA_STRUCT_RENAME_MEMBER(SpaceSeq, overlay_type, overlay_frame_type)
+DNA_STRUCT_RENAME_MEMBER(Strip, machine, channel)
 DNA_STRUCT_RENAME_MEMBER(Strip, retiming_handle_num, retiming_keys_num)
 DNA_STRUCT_RENAME_MEMBER(Strip, retiming_handles, retiming_keys)
-DNA_STRUCT_RENAME_MEMBER(Strip, strip, data)
 DNA_STRUCT_RENAME_MEMBER(Strip, seq1, input1)
 DNA_STRUCT_RENAME_MEMBER(Strip, seq2, input2)
+DNA_STRUCT_RENAME_MEMBER(Strip, strip, data)
 DNA_STRUCT_RENAME_MEMBER(StripConnection, seq_ref, strip_ref)
 DNA_STRUCT_RENAME_MEMBER(StripData, dir, dirpath)
 DNA_STRUCT_RENAME_MEMBER(StripElem, name, filename)

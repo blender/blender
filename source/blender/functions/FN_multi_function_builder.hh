@@ -648,6 +648,26 @@ inline auto SI6_SO(const char *name,
       name, element_fn, exec_preset, TypeSequence<In1, In2, In3, In4, In5, In6>());
 }
 
+/** Build multi-function with 8 single-input and 1 single-output parameter. */
+template<typename In1,
+         typename In2,
+         typename In3,
+         typename In4,
+         typename In5,
+         typename In6,
+         typename In7,
+         typename In8,
+         typename Out1,
+         typename ElementFn,
+         typename ExecPreset = exec_presets::Materialized>
+inline auto SI8_SO(const char *name,
+                   const ElementFn element_fn,
+                   const ExecPreset exec_preset = exec_presets::Materialized())
+{
+  return detail::build_multi_function_with_n_inputs_one_output<Out1>(
+      name, element_fn, exec_preset, TypeSequence<In1, In2, In3, In4, In5, In6, In7, In8>());
+}
+
 /** Build multi-function with 1 single-mutable parameter. */
 template<typename Mut1, typename ElementFn, typename ExecPreset = exec_presets::AllSpanOrSingle>
 inline auto SM(const char *name,

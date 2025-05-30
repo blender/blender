@@ -547,8 +547,10 @@ void sculpt_project_v3_normal_align(const SculptSession &ss,
 /** \name Sculpt mesh accessor API
  * \{ */
 
+namespace blender::ed::sculpt_paint {
 /** Ensure random access; required for blender::bke::pbvh::Type::BMesh */
-void SCULPT_vertex_random_access_ensure(Object &object);
+void vert_random_access_ensure(Object &object);
+}  // namespace blender::ed::sculpt_paint
 
 int SCULPT_vertex_count_get(const Object &object);
 
@@ -594,8 +596,6 @@ void SCULPT_fake_neighbors_free(Object &ob);
 /* -------------------------------------------------------------------- */
 /** \name Brush Utilities.
  * \{ */
-
-bool SCULPT_brush_type_needs_all_pbvh_nodes(const Brush &brush);
 
 namespace blender::ed::sculpt_paint {
 
@@ -850,10 +850,13 @@ inline bool brush_uses_vector_displacement(const Brush &brush)
 }
 
 void ensure_valid_pivot(const Object &ob, Scene &scene);
-float sculpt_calc_radius(const ViewContext &vc,
-                         const Brush &brush,
-                         const Scene &scene,
-                         float3 location);
+
+/** Retrieve or calculate the object space radius depending on brush settings. */
+float object_space_radius_get(const ViewContext &vc,
+                              const Scene &scene,
+                              const Brush &brush,
+                              const float3 &location,
+                              float scale_factor = 1.0);
 }  // namespace blender::ed::sculpt_paint
 
 /** \} */

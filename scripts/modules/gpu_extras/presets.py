@@ -75,11 +75,13 @@ def draw_texture_2d(texture, position, width, height):
     from . batch import batch_for_shader
 
     coords = ((0, 0), (1, 0), (1, 1), (0, 1))
+    indices = ((0, 1, 2), (2, 3, 0))
 
     shader = gpu.shader.from_builtin('IMAGE')
     batch = batch_for_shader(
-        shader, 'TRI_FAN',
+        shader, 'TRIS',
         {"pos": coords, "texCoord": coords},
+        indices=indices
     )
 
     with gpu.matrix.push_pop():

@@ -1535,26 +1535,14 @@ static void view3d_panel_vgroup(const bContext *C, Panel *panel)
 
           /* The weight group paste function */
           icon = (locked) ? ICON_BLANK1 : ICON_PASTEDOWN;
-          uiItemFullO(row,
-                      "OBJECT_OT_vertex_weight_paste",
-                      "",
-                      icon,
-                      nullptr,
-                      WM_OP_INVOKE_DEFAULT,
-                      UI_ITEM_NONE,
-                      &op_ptr);
+          op_ptr = row->op(
+              "OBJECT_OT_vertex_weight_paste", "", icon, WM_OP_INVOKE_DEFAULT, UI_ITEM_NONE);
           RNA_int_set(&op_ptr, "weight_group", i);
 
           /* The weight entry delete function */
           icon = (locked) ? ICON_LOCKED : ICON_X;
-          uiItemFullO(row,
-                      "OBJECT_OT_vertex_weight_delete",
-                      "",
-                      icon,
-                      nullptr,
-                      WM_OP_INVOKE_DEFAULT,
-                      UI_ITEM_NONE,
-                      &op_ptr);
+          op_ptr = row->op(
+              "OBJECT_OT_vertex_weight_delete", "", icon, WM_OP_INVOKE_DEFAULT, UI_ITEM_NONE);
           RNA_int_set(&op_ptr, "weight_group", i);
 
           yco -= UI_UNIT_Y;

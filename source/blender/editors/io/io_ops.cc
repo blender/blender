@@ -36,12 +36,6 @@
 void ED_operatortypes_io()
 {
   using namespace blender;
-#ifdef WITH_COLLADA
-  /* Collada operators: */
-  WM_operatortype_append(WM_OT_collada_export);
-  WM_operatortype_append(WM_OT_collada_import);
-  ed::io::collada_file_handler_add();
-#endif
 #ifdef WITH_ALEMBIC
   WM_operatortype_append(WM_OT_alembic_import);
   WM_operatortype_append(WM_OT_alembic_export);
@@ -91,6 +85,12 @@ void ED_operatortypes_io()
 #ifdef WITH_IO_FBX
   WM_operatortype_append(WM_OT_fbx_import);
   /* ed::io::fbx_file_handler_add(); TODO: add once not experimental */
+#endif
+
+#ifdef WITH_COLLADA
+  WM_operatortype_append(WM_OT_collada_export);
+  WM_operatortype_append(WM_OT_collada_import);
+  ed::io::collada_file_handler_add();
 #endif
 
   WM_operatortype_append(WM_OT_drop_import_file);

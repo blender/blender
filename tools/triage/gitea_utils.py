@@ -8,6 +8,7 @@
 __all__ = (
     "git_username_detect",
     "gitea_json_activities_get",
+    "gitea_json_pull_request_by_base_and_head_get",
     "gitea_json_issue_events_filter",
     "gitea_json_issue_get",
     "gitea_json_issues_search",
@@ -27,13 +28,14 @@ from typing import (
 BASE_API_URL = "https://projects.blender.org/api/v1"
 
 
-def url_json_get(url: str) -> dict[str, Any] | list[dict[str, Any]] | None:
+def url_json_get(url: str, quiet: bool = False) -> dict[str, Any] | list[dict[str, Any]] | None:
     try:
         # Make the HTTP request and store the response in a 'response' object
         response = urllib.request.urlopen(url)
     except urllib.error.URLError as ex:
-        print(url)
-        print("Error making HTTP request:", ex)
+        if not quiet:
+            print(url)
+            print("Error making HTTP request:", ex)
         return None
 
     # Convert the response content to a JSON object containing the user information.
@@ -103,6 +105,19 @@ def gitea_json_activities_get(username: str, date: str) -> list[dict[str, Any]]:
     activity_url = f"{BASE_API_URL}/users/{username}/activities/feeds?only-performed-by=true&date={date}"
     result = url_json_get_all_pages(activity_url)
     assert isinstance(result, list)
+    return result
+
+
+def gitea_json_pull_request_by_base_and_head_get(repo_name: str, base: str, head: str) -> dict[str, Any] | None:
+    """
+    Get a pull request by base and head
+    :param repo_name: Full name of the repository, e.g. "blender/blender".
+    :param base: Target branch of the PR (branch it wants to merge into), e.g. "main".
+    :param head: Full identifier of the branch the PR is made from, e.g. "MyRepository:temp-feature-branch"
+    """
+    url = f"{BASE_API_URL}/repos/{repo_name}/pulls/{base}/{head}"
+    result = url_json_get(url, quiet=True)
+    assert result is None or isinstance(result, dict)
     return result
 
 

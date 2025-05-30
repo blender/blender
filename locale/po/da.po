@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'a7d2b7850ef2')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'ba454989554a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-05 08:47+0000\n"
+"POT-Creation-Date: 2025-05-26 07:36+0000\n"
 "PO-Revision-Date: 2025-04-18 12:33+0000\n"
 "Last-Translator: leif larsen <linuxdk1978@gmail.com>\n"
 "Language-Team: Danish <https://translate.blender.org/projects/blender-ui/ui/da/>\n"
@@ -3120,6 +3120,10 @@ msgid "Children"
 msgstr "Børn"
 
 
+msgid "B-Bone"
+msgstr "B-Knogle"
+
+
 msgid "Parent"
 msgstr "Forældre"
 
@@ -3519,10 +3523,6 @@ msgstr "Ping pong"
 
 msgid "Blend Mode"
 msgstr "Blandings måde"
-
-
-msgid "B-Bone"
-msgstr "B-Knogle"
 
 
 msgid "Local"

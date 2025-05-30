@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'a7d2b7850ef2')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'ba454989554a')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-05 08:47+0000\n"
+"POT-Creation-Date: 2025-05-26 07:36+0000\n"
 "PO-Revision-Date: 2025-04-14 08:19+0000\n"
 "Last-Translator: soheil ali-pasha <sapachannel.ir@gmail.com>\n"
 "Language-Team: Persian <https://translate.blender.org/projects/blender-ui/ui/fa/>\n"
@@ -1231,6 +1231,10 @@ msgid "Children"
 msgstr "ﻥﺍﺪﻧﺯﺮﻓ"
 
 
+msgid "B-Bone"
+msgstr "ﯽﺸﻤﺧ ﻥﺍﻮﺨﺘﺳﺍ"
+
+
 msgid "Parent"
 msgstr "ﻊﺒﻨﻣ"
 
@@ -2316,10 +2320,6 @@ msgid "Feature Set"
 msgstr "ﯽﮔﮋﯾﻭ ﻪﻋﻮﻤﺠﻣ"
 
 
-msgid "B-Bone"
-msgstr "ﯽﺸﻤﺧ ﻥﺍﻮﺨﺘﺳﺍ"
-
-
 msgid "Edit Bones"
 msgstr "ﺎﻫ‌ﻥﺍﻮﺨﺘﺳﺍ ﺶﯾﺍﺮﯾﻭ"
 
@@ -2563,6 +2563,10 @@ msgstr "U"
 
 msgid "V"
 msgstr "V"
+
+
+msgid "Normalize"
+msgstr "ﯼﺯﺎﺳ ﯼﺩﺎﻋ"
 
 
 msgid "Spot Blend"
@@ -2953,6 +2957,10 @@ msgid "Mix"
 msgstr "ﻁﻮﻠﺨﻣ"
 
 
+msgid "Mirror"
+msgstr "ﻪﻨﯾﺁ"
+
+
 msgid "Add Image"
 msgstr "ﺮﯾﻮﺼﺗ ﻥﺩﺮﮐ‌ﻪﻓﺎﺿﺍ"
 
@@ -2975,10 +2983,6 @@ msgstr "ﻦﺘﻣ"
 
 msgid "Pivot Point"
 msgstr "ﺶﺧﺮﭼ ﻪﻄﻘﻧ"
-
-
-msgid "Mirror"
-msgstr "ﻪﻨﯾﺁ"
 
 
 msgid "Key"
@@ -3239,10 +3243,6 @@ msgstr "ﯽﻠﺒﻗ ﻢﯾﺮﻓ"
 
 msgid "Double"
 msgstr "ﯽﯾﺎﺗﻭﺩ"
-
-
-msgid "Normalize"
-msgstr "ﯼﺯﺎﺳ ﯼﺩﺎﻋ"
 
 
 msgid "Use Red Channel"

@@ -459,14 +459,11 @@ static void workspace_append_button(uiLayout *layout,
   BLI_assert(STREQ(ot_append->idname, "WORKSPACE_OT_append_activate"));
 
   PointerRNA opptr;
-  uiItemFullO_ptr(layout,
-                  ot_append,
-                  CTX_DATA_(BLT_I18NCONTEXT_ID_WORKSPACE, workspace->id.name + 2),
-                  ICON_NONE,
-                  nullptr,
-                  WM_OP_EXEC_DEFAULT,
-                  UI_ITEM_NONE,
-                  &opptr);
+  opptr = layout->op(ot_append,
+                     CTX_DATA_(BLT_I18NCONTEXT_ID_WORKSPACE, workspace->id.name + 2),
+                     ICON_NONE,
+                     WM_OP_EXEC_DEFAULT,
+                     UI_ITEM_NONE);
   RNA_string_set(&opptr, "idname", id->name + 2);
   RNA_string_set(&opptr, "filepath", filepath);
 }

@@ -1207,6 +1207,12 @@ static void fill_topology_automasking_factors(const Depsgraph &depsgraph,
   /* TODO: This method is to be removed when more of the automasking code handles the different
    * pbvh types. */
   SculptSession &ss = *ob.sculpt;
+  if (std::holds_alternative<std::monostate>(ss.active_vert())) {
+    /* If we don't have an active vertex (i.e. the cursor is not over the mesh), we cannot
+     * accurately calculate the topology automasking factor as it may be ambiguous which island the
+     * user is intending to affect. */
+    return;
+  }
 
   switch (bke::object::pbvh_get(ob)->type()) {
     case bke::pbvh::Type::Mesh:
@@ -1641,7 +1647,7 @@ std::unique_ptr<Cache> cache_init(const Depsgraph &depsgraph,
 
   int mode = calc_effective_bits(sd, brush);
 
-  SCULPT_vertex_random_access_ensure(ob);
+  vert_random_access_ensure(ob);
   if (mode & BRUSH_AUTOMASKING_TOPOLOGY && ss.active_vert_index() != -1) {
     islands::ensure_cache(ob);
     automasking->settings.initial_island_nr = islands::vert_id_get(ss, ss.active_vert_index());
@@ -1679,24 +1685,24 @@ std::unique_ptr<Cache> cache_init(const Depsgraph &depsgraph,
 
   /* Additive modes. */
   if (mode_enabled(sd, brush, BRUSH_AUTOMASKING_TOPOLOGY)) {
-    SCULPT_vertex_random_access_ensure(ob);
+    vert_random_access_ensure(ob);
 
     automasking->settings.topology_use_brush_limit = is_constrained_by_radius(brush);
     fill_topology_automasking_factors(depsgraph, sd, ob, factors);
   }
 
   if (mode_enabled(sd, brush, BRUSH_AUTOMASKING_FACE_SETS)) {
-    SCULPT_vertex_random_access_ensure(ob);
+    vert_random_access_ensure(ob);
     init_face_sets_masking(sd, ob, factors);
   }
 
   const int steps = boundary_propagation_steps(sd, brush);
   if (mode_enabled(sd, brush, BRUSH_AUTOMASKING_BOUNDARY_EDGES)) {
-    SCULPT_vertex_random_access_ensure(ob);
+    vert_random_access_ensure(ob);
     init_boundary_masking(ob, depsgraph, BoundaryAutomaskMode::Edges, steps, factors);
   }
   if (mode_enabled(sd, brush, BRUSH_AUTOMASKING_BOUNDARY_FACE_SETS)) {
-    SCULPT_vertex_random_access_ensure(ob);
+    vert_random_access_ensure(ob);
     init_boundary_masking(ob, depsgraph, BoundaryAutomaskMode::FaceSets, steps, factors);
   }
 

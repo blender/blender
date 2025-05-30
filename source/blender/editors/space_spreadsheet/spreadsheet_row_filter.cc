@@ -29,7 +29,7 @@ static IndexMask apply_filter_operation(const VArray<T> &data,
 
 static IndexMask apply_row_filter(const SpreadsheetRowFilter &row_filter,
                                   const Map<StringRef, const ColumnValues *> &columns,
-                                  const IndexMask prev_mask,
+                                  const IndexMask &prev_mask,
                                   IndexMaskMemory &memory)
 {
   const ColumnValues &column = *columns.lookup(row_filter.column_name);

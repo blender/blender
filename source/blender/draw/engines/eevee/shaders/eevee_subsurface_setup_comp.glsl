@@ -13,6 +13,7 @@ COMPUTE_SHADER_CREATE_INFO(eevee_subsurface_setup)
 
 #include "draw_view_lib.glsl"
 #include "eevee_gbuffer_lib.glsl"
+#include "eevee_reverse_z_lib.glsl"
 #include "gpu_shader_math_vector_lib.glsl"
 #include "gpu_shader_shared_exponent_lib.glsl"
 
@@ -42,7 +43,7 @@ void main()
     imageStoreFast(radiance_img, texel, float4(radiance, 0.0f));
     imageStoreFast(object_id_img, texel, uint4(object_id));
 
-    float depth = texelFetch(depth_tx, texel, 0).r;
+    float depth = reverse_z::read(texelFetch(depth_tx, texel, 0).r);
     /* TODO(fclem): Check if this simplifies. */
     float vPz = drw_depth_screen_to_view(depth);
     float homcoord = drw_view().winmat[2][3] * vPz + drw_view().winmat[3][3];

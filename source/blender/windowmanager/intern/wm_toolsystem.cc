@@ -929,7 +929,7 @@ bToolRef *WM_toolsystem_ref_set_by_id_ex(
     return nullptr;
   }
 
-/* Some contexts use the current space type (image editor for e.g.),
+/* Some contexts use the current space type (e.g. image editor),
  * ensure this is set correctly or there is no area. */
 #ifndef NDEBUG
   /* Exclude this check for some space types where the space type isn't used. */
@@ -988,7 +988,7 @@ static void toolsystem_ref_set_by_brush_type(bContext *C, const char *brush_type
     return;
   }
 
-/* Some contexts use the current space type (image editor for e.g.),
+/* Some contexts use the current space type (e.g. image editor),
  * ensure this is set correctly or there is no area. */
 #ifndef NDEBUG
   /* Exclude this check for some space types where the space type isn't used. */
@@ -1242,7 +1242,7 @@ static IDProperty *idprops_ensure_named_group(IDProperty *group, const char *idn
   if ((prop == nullptr) || (prop->type != IDP_GROUP)) {
     prop = blender::bke::idprop::create_group(__func__).release();
     STRNCPY(prop->name, idname);
-    IDP_ReplaceInGroup_ex(group, prop, nullptr);
+    IDP_ReplaceInGroup_ex(group, prop, nullptr, 0);
   }
   return prop;
 }

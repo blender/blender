@@ -1466,7 +1466,7 @@ static void icon_preview_startjob(void *customdata, bool *stop, bool *do_update)
     BKE_image_release_ibuf(ima, ibuf, nullptr);
   }
   else if (idtype == ID_BR) {
-    Brush *br = (Brush *)id;
+    Brush *br = reinterpret_cast<Brush *>(id);
 
     br->icon_imbuf = icon_preview_imbuf_from_brush(br);
 

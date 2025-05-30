@@ -193,6 +193,15 @@ static const EnumPropertyItem snap_uv_element_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
+const EnumPropertyItem rna_enum_snap_playhead_element_items[] = {
+    {SCE_SNAP_TO_FRAME, "FRAME", 0, "Frames", "Snap to frame increments"},
+    {SCE_SNAP_TO_SECOND, "SECOND", 0, "Seconds", "Snap to second increments"},
+    {SCE_SNAP_TO_MARKERS, "MARKER", 0, "Markers", "Snap to markers"},
+    {SCE_SNAP_TO_KEYS, "KEY", 0, "Keyframes", "Snap to keyframes"},
+    {SCE_SNAP_TO_STRIPS, "Strip", 0, "Strips", "Snap to Strips"},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
 static const EnumPropertyItem rna_enum_scene_display_aa_methods[] = {
     {SCE_DISPLAY_AA_OFF,
      "OFF",
@@ -3696,6 +3705,39 @@ static void rna_def_tool_settings(BlenderRNA *brna)
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_UNIT);
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, nullptr); /* header redraw */
 
+  prop = RNA_def_property(srna, "use_snap_playhead", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "snap_flag_playhead", SCE_SNAP);
+  RNA_def_property_flag(prop, PROP_DEG_SYNC_ONLY);
+  RNA_def_property_ui_text(prop, "Use Snapping", "Snap playhead when scrubbing");
+  RNA_def_property_boolean_default(prop, false);
+  RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, nullptr);
+
+  prop = RNA_def_property(srna, "snap_playhead_element", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_bitflag_sdna(prop, nullptr, "snap_playhead_mode");
+  RNA_def_property_flag(prop, PROP_DEG_SYNC_ONLY);
+  RNA_def_property_flag(prop, PROP_ENUM_FLAG);
+  RNA_def_property_enum_items(prop, rna_enum_snap_playhead_element_items);
+  RNA_def_property_ui_text(prop, "Snap Playhead Element", "Type of element to snap to");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_UNIT);
+  RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, nullptr);
+
+  prop = RNA_def_property(srna, "snap_playhead_frame_step", PROP_INT, PROP_NONE);
+  RNA_def_property_int_sdna(prop, nullptr, "snap_step_frames");
+  RNA_def_property_range(prop, 1, 32768);
+  RNA_def_property_ui_text(prop, "Frame Step", "At which interval to snap to frames");
+  RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, nullptr);
+
+  prop = RNA_def_property(srna, "snap_playhead_second_step", PROP_INT, PROP_NONE);
+  RNA_def_property_int_sdna(prop, nullptr, "snap_step_seconds");
+  RNA_def_property_ui_text(prop, "Second Step", "At which interval to snap to seconds");
+  RNA_def_property_range(prop, 1, 32768);
+  RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, nullptr);
+
+  prop = RNA_def_property(srna, "playhead_snap_distance", PROP_INT, PROP_PIXEL);
+  RNA_def_property_int_sdna(prop, nullptr, "playhead_snap_distance");
+  RNA_def_property_ui_range(prop, 1, 100, 1, 1);
+  RNA_def_property_ui_text(prop, "Snap Distance", "Maximum distance for snapping in pixels");
+
   /* image editor uses its own set of snap modes */
   prop = RNA_def_property(srna, "snap_uv_element", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_bitflag_sdna(prop, nullptr, "snap_uv_mode");
@@ -6991,7 +7033,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
   RNA_def_property_range(prop, 1e-5f, 1e6f);
   /* Important to show at least 3 decimal points because multiple presets set this to 1.001. */
   RNA_def_property_ui_range(prop, 0.0001f, 10000.0f, 2, 4);
-  RNA_def_property_ui_text(prop, "PPM Base", "The unit multiplier for pixels per meter");
+  RNA_def_property_ui_text(prop, "PPM Base", "The base unit for pixels per meter.");
 
   prop = RNA_def_property(srna, "ffmpeg", PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_type(prop, "FFmpegSettings");

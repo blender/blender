@@ -9,9 +9,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-ccl_device_noinline void svm_node_combine_color(KernelGlobals kg,
-                                                ccl_private ShaderData *sd,
-                                                ccl_private float *stack,
+ccl_device_noinline void svm_node_combine_color(ccl_private float *stack,
                                                 const uint color_type,
                                                 const uint inputs_stack_offsets,
                                                 const uint result_stack_offset)
@@ -34,9 +32,7 @@ ccl_device_noinline void svm_node_combine_color(KernelGlobals kg,
   }
 }
 
-ccl_device_noinline void svm_node_separate_color(KernelGlobals kg,
-                                                 ccl_private ShaderData *sd,
-                                                 ccl_private float *stack,
+ccl_device_noinline void svm_node_separate_color(ccl_private float *stack,
                                                  const uint color_type,
                                                  const uint input_stack_offset,
                                                  const uint results_stack_offsets)

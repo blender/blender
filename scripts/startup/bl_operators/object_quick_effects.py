@@ -465,7 +465,7 @@ class QuickSmoke(ObjectModeOperator, Operator):
             obj.modifiers[-1].flow_settings.flow_behavior = 'INFLOW'
 
             # use some surface distance for smoke emission
-            obj.modifiers[-1].flow_settings.surface_distance = 1.5
+            obj.modifiers[-1].flow_settings.surface_distance = 1.0
 
             if not self.show_flows:
                 obj.display_type = 'WIRE'

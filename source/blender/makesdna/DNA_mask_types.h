@@ -147,8 +147,8 @@ typedef struct MaskLayerShapeElem {
 typedef struct MaskLayer {
   struct MaskLayer *next, *prev;
 
-  /** Name of the mask layer (64 = MAD_ID_NAME - 2). */
-  char name[64];
+  /** Name of the mask layer. */
+  char name[/*MAX_NAME*/ 64];
 
   /** List of splines which defines this mask layer. */
   ListBase splines;

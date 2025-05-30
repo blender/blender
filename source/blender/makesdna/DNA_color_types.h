@@ -214,8 +214,7 @@ typedef struct ColorManagedDisplaySettings {
 } ColorManagedDisplaySettings;
 
 typedef struct ColorManagedColorspaceSettings {
-  /** MAX_COLORSPACE_NAME. */
-  char name[64];
+  char name[/*MAX_COLORSPACE_NAME*/ 64];
 } ColorManagedColorspaceSettings;
 
 /** #ColorManagedViewSettings.flag */

@@ -391,8 +391,7 @@ static std::unique_ptr<XFormObjectData> data_xform_create_ex(ID *id, bool is_edi
       Curve *cu = (Curve *)id;
       Key *key = cu->key;
 
-      const short ob_type = BKE_curve_type_get(cu);
-      if (ob_type == OB_FONT) {
+      if (cu->ob_type == OB_FONT) {
         /* We could support translation. */
         break;
       }

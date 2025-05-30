@@ -93,7 +93,8 @@ static inline bool hipSupportsDeviceOIDN(const int hipDevId)
 {
   /* Matches HIPDevice::getArch in HIP. */
   const std::string arch = hipDeviceArch(hipDevId);
-  return (arch == "gfx1030" || arch == "gfx1100" || arch == "gfx1101" || arch == "gfx1102");
+  return (arch == "gfx1030" || arch == "gfx1100" || arch == "gfx1101" || arch == "gfx1102" ||
+          arch == "gfx1200" || arch == "gfx1201");
 }
 
 CCL_NAMESPACE_END

@@ -1,9 +1,97 @@
-# this is needed in order to be able to push textures to the host memory
+diff --git a/cmake/FetchLevelZero.cmake b/cmake/FetchLevelZero.cmake
+index 6d0e10d..3c1f60e 100644
+--- a/cmake/FetchLevelZero.cmake
++++ b/cmake/FetchLevelZero.cmake
+@@ -97,23 +97,10 @@ target_include_directories(LevelZeroLoader-Headers
+               "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
+ )
+
+-if (UR_COMPUTE_RUNTIME_REPO STREQUAL "")
+-set(UR_COMPUTE_RUNTIME_REPO "https://github.com/intel/compute-runtime.git")
+-endif()
+-if (UR_COMPUTE_RUNTIME_TAG STREQUAL "")
+-set(UR_COMPUTE_RUNTIME_TAG 24.39.31294.12)
+-endif()
+-include(FetchContent)
+-# Sparse fetch only the dir with level zero headers for experimental features to avoid pulling in the entire compute-runtime.
+-FetchContentSparse_Declare(exp-headers ${UR_COMPUTE_RUNTIME_REPO} "${UR_COMPUTE_RUNTIME_TAG}" "level_zero/include")
+-FetchContent_GetProperties(exp-headers)
+-if(NOT exp-headers_POPULATED)
+-  FetchContent_Populate(exp-headers)
+-endif()
+-add_library(ComputeRuntimeLevelZero-Headers INTERFACE)
+-set(COMPUTE_RUNTIME_LEVEL_ZERO_INCLUDE "${exp-headers_SOURCE_DIR}/../..")
+-message(STATUS "Level Zero Adapter: Using Level Zero headers from ${COMPUTE_RUNTIME_LEVEL_ZERO_INCLUDE}")
+-target_include_directories(ComputeRuntimeLevelZero-Headers
+-    INTERFACE "$<BUILD_INTERFACE:${COMPUTE_RUNTIME_LEVEL_ZERO_INCLUDE}>"
+-              "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
+-)
++# This cmake code is removed as it is not giving a choice to disable
++# this dependency on Level0 from Compute Runtime
++# This is not acceptable for Blender, as it is another
++# and also unnecessary dependency.
++# In upstream they have added ability to disable
++# this functionality, but not in this version, so
++# we are patching this dirirectly for Blender.
+\ No newline at end of file
+diff --git a/source/adapters/level_zero/CMakeLists.txt b/source/adapters/level_zero/CMakeLists.txt
+index cb7e028..d3241fa 100644
+--- a/source/adapters/level_zero/CMakeLists.txt
++++ b/source/adapters/level_zero/CMakeLists.txt
+@@ -59,7 +59,7 @@ if(UR_BUILD_ADAPTER_L0)
+         # 'utils' target from 'level-zero-loader' includes path which is prefixed
+         # in the source directory, this breaks the installation of 'utils' target.
+         set_target_properties(utils PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "")
+-        install(TARGETS ur_umf LevelZeroLoader LevelZeroLoader-Headers ComputeRuntimeLevelZero-Headers ze_loader utils
++        install(TARGETS ur_umf LevelZeroLoader LevelZeroLoader-Headers ze_loader utils
+             EXPORT ${PROJECT_NAME}-targets
+             ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+             RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+@@ -110,7 +110,6 @@ if(UR_BUILD_ADAPTER_L0)
+         ${PROJECT_NAME}::umf
+         LevelZeroLoader
+         LevelZeroLoader-Headers
+-        ComputeRuntimeLevelZero-Headers
+     )
+
+     target_include_directories(ur_adapter_level_zero PRIVATE
+@@ -206,7 +205,6 @@ if(UR_BUILD_ADAPTER_L0_V2)
+         ${PROJECT_NAME}::umf
+         LevelZeroLoader
+         LevelZeroLoader-Headers
+-        ComputeRuntimeLevelZero-Headers
+     )
+
+     target_include_directories(ur_adapter_level_zero_v2 PRIVATE
+diff --git a/source/adapters/level_zero/common.cpp b/source/adapters/level_zero/common.cpp
+index e13afc1..37d893a 100644
+--- a/source/adapters/level_zero/common.cpp
++++ b/source/adapters/level_zero/common.cpp
+@@ -11,7 +11,6 @@
+ #include "common.hpp"
+ #include "logger/ur_logger.hpp"
+ #include "usm.hpp"
+-#include <level_zero/include/ze_intel_gpu.h>
+
+ ur_result_t ze2urResult(ze_result_t ZeResult) {
+   if (ZeResult == ZE_RESULT_SUCCESS)
+diff --git a/source/adapters/level_zero/device.hpp b/source/adapters/level_zero/device.hpp
+index fb4c519..615b588 100644
+--- a/source/adapters/level_zero/device.hpp
++++ b/source/adapters/level_zero/device.hpp
+@@ -20,7 +20,6 @@
+
+ #include "adapters/level_zero/platform.hpp"
+ #include "common.hpp"
+-#include <level_zero/include/ze_intel_gpu.h>
+ #include <ur/ur.hpp>
+ #include <ur_ddi.h>
+ #include <ze_api.h>
 diff --git a/source/adapters/level_zero/image.cpp b/source/adapters/level_zero/image.cpp
-index f68b2d93..90182568 100644
+index 8c205f5..217a185 100644
 --- a/source/adapters/level_zero/image.cpp
 +++ b/source/adapters/level_zero/image.cpp
-@@ -457,6 +457,7 @@ ur_result_t bindlessImagesCreateImpl(ur_context_handle_t hContext,
+@@ -517,6 +517,7 @@ ur_result_t bindlessImagesCreateImpl(ur_context_handle_t hContext,
      ZE2UR_CALL(zeContextMakeImageResident,
                 (hContext->ZeContext, hDevice->ZeDevice, ZeImage));
    } else if (MemAllocProperties.type == ZE_MEMORY_TYPE_DEVICE ||

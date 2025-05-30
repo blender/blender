@@ -10,10 +10,12 @@ namespace blender::nodes::node_fn_slice_string_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
+  b.use_custom_socket_order();
+  b.allow_any_socket_order();
   b.add_input<decl::String>("String").hide_label();
+  b.add_output<decl::String>("String").align_with_previous();
   b.add_input<decl::Int>("Position");
   b.add_input<decl::Int>("Length").min(0).default_value(10);
-  b.add_output<decl::String>("String");
 }
 
 static void node_build_multi_function(NodeMultiFunctionBuilder &builder)

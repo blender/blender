@@ -8,10 +8,12 @@
 
 #include <cmath>
 
+#include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_rect.h"
+#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.hh"
@@ -98,12 +100,15 @@ static void gizmo_node_backdrop_prop_matrix_set(const wmGizmo * /*gz*/,
 static bool WIDGETGROUP_node_transform_poll(const bContext *C, wmGizmoGroupType * /*gzgt*/)
 {
   SpaceNode *snode = CTX_wm_space_node(C);
-
-  if (snode && (snode->flag & SNODE_BACKDRAW) == 0) {
+  if (snode == nullptr) {
     return false;
   }
 
-  if (snode && snode->edittree && snode->edittree->type == NTREE_COMPOSIT) {
+  if ((snode->flag & SNODE_BACKDRAW) == 0) {
+    return false;
+  }
+
+  if (snode->edittree && snode->edittree->type == NTREE_COMPOSIT) {
     bNode *node = bke::node_get_active(*snode->edittree);
 
     if (node && node->is_type("CompositorNodeViewer")) {
@@ -211,38 +216,68 @@ static void gizmo_node_bbox_update(NodeBBoxWidgetGroup *bbox_group)
       bbox_group->update_data.context, &bbox_group->update_data.ptr, bbox_group->update_data.prop);
 }
 
-static void two_xy_to_rect(
-    const NodeTwoXYs *nxy, const float2 &dims, const float2 offset, bool is_relative, rctf *r_rect)
+static void node_input_to_rect(const bNode *node,
+                               const float2 &dims,
+                               const float2 offset,
+                               rctf *r_rect)
 {
-  if (is_relative) {
-    r_rect->xmin = nxy->fac_x1 + (offset.x / dims.x);
-    r_rect->xmax = nxy->fac_x2 + (offset.x / dims.x);
-    r_rect->ymin = nxy->fac_y2 + (offset.y / dims.y);
-    r_rect->ymax = nxy->fac_y1 + (offset.y / dims.y);
-  }
-  else {
-    r_rect->xmin = (nxy->x1 + offset.x) / dims.x;
-    r_rect->xmax = (nxy->x2 + offset.x) / dims.x;
-    r_rect->ymin = (nxy->y2 + offset.y) / dims.y;
-    r_rect->ymax = (nxy->y1 + offset.y) / dims.y;
-  }
+
+  const bNodeSocket *x_input = bke::node_find_socket(*node, SOCK_IN, "X");
+  PointerRNA x_input_rna_pointer = RNA_pointer_create_discrete(
+      nullptr, &RNA_NodeSocket, const_cast<bNodeSocket *>(x_input));
+  const float xmin = float(RNA_int_get(&x_input_rna_pointer, "default_value"));
+
+  const bNodeSocket *y_input = bke::node_find_socket(*node, SOCK_IN, "Y");
+  PointerRNA y_input_rna_pointer = RNA_pointer_create_discrete(
+      nullptr, &RNA_NodeSocket, const_cast<bNodeSocket *>(y_input));
+  const float ymin = float(RNA_int_get(&y_input_rna_pointer, "default_value"));
+
+  const bNodeSocket *width_input = bke::node_find_socket(*node, SOCK_IN, "Width");
+  PointerRNA width_input_rna_pointer = RNA_pointer_create_discrete(
+      nullptr, &RNA_NodeSocket, const_cast<bNodeSocket *>(width_input));
+  const float width = float(RNA_int_get(&width_input_rna_pointer, "default_value"));
+
+  const bNodeSocket *height_input = bke::node_find_socket(*node, SOCK_IN, "Height");
+  PointerRNA height_input_rna_pointer = RNA_pointer_create_discrete(
+      nullptr, &RNA_NodeSocket, const_cast<bNodeSocket *>(height_input));
+  const float height = float(RNA_int_get(&height_input_rna_pointer, "default_value"));
+
+  r_rect->xmin = (xmin + offset.x) / dims.x;
+  r_rect->xmax = (xmin + width + offset.x) / dims.x;
+  r_rect->ymin = (ymin + offset.y) / dims.y;
+  r_rect->ymax = (ymin + height + offset.y) / dims.y;
 }
 
-static void two_xy_from_rect(
-    NodeTwoXYs *nxy, const rctf *rect, const float2 &dims, const float2 &offset, bool is_relative)
+static void node_input_from_rect(bNode *node,
+                                 const rctf *rect,
+                                 const float2 &dims,
+                                 const float2 &offset)
 {
-  if (is_relative) {
-    nxy->fac_x1 = rect->xmin - (offset.x / dims.x);
-    nxy->fac_x2 = rect->xmax - (offset.x / dims.x);
-    nxy->fac_y2 = rect->ymin - (offset.y / dims.y);
-    nxy->fac_y1 = rect->ymax - (offset.y / dims.y);
-  }
-  else {
-    nxy->x1 = rect->xmin * dims.x - offset.x;
-    nxy->x2 = rect->xmax * dims.x - offset.x;
-    nxy->y2 = rect->ymin * dims.y - offset.y;
-    nxy->y1 = rect->ymax * dims.y - offset.y;
-  }
+  bNodeSocket *x_input = bke::node_find_socket(*node, SOCK_IN, "X");
+  PointerRNA x_input_rna_pointer = RNA_pointer_create_discrete(
+      nullptr, &RNA_NodeSocket, const_cast<bNodeSocket *>(x_input));
+
+  bNodeSocket *y_input = bke::node_find_socket(*node, SOCK_IN, "Y");
+  PointerRNA y_input_rna_pointer = RNA_pointer_create_discrete(
+      nullptr, &RNA_NodeSocket, const_cast<bNodeSocket *>(y_input));
+
+  bNodeSocket *width_input = bke::node_find_socket(*node, SOCK_IN, "Width");
+  PointerRNA width_input_rna_pointer = RNA_pointer_create_discrete(
+      nullptr, &RNA_NodeSocket, const_cast<bNodeSocket *>(width_input));
+
+  bNodeSocket *height_input = bke::node_find_socket(*node, SOCK_IN, "Height");
+  PointerRNA height_input_rna_pointer = RNA_pointer_create_discrete(
+      nullptr, &RNA_NodeSocket, const_cast<bNodeSocket *>(height_input));
+
+  const float xmin = rect->xmin * dims.x - offset.x;
+  const float width = rect->xmax * dims.x - offset.x - xmin;
+  const float ymin = rect->ymin * dims.y - offset.y;
+  const float height = rect->ymax * dims.y - offset.y - ymin;
+
+  RNA_int_set(&x_input_rna_pointer, "default_value", int(xmin));
+  RNA_int_set(&y_input_rna_pointer, "default_value", int(ymin));
+  RNA_int_set(&width_input_rna_pointer, "default_value", int(width));
+  RNA_int_set(&height_input_rna_pointer, "default_value", int(height));
 }
 
 /* scale callbacks */
@@ -256,10 +291,10 @@ static void gizmo_node_crop_prop_matrix_get(const wmGizmo *gz,
   const float2 dims = crop_group->state.dims;
   const float2 offset = crop_group->state.offset;
   const bNode *node = (const bNode *)gz_prop->custom_func.user_data;
-  const NodeTwoXYs *nxy = (const NodeTwoXYs *)node->storage;
-  bool is_relative = bool(node->custom2);
+
   rctf rct;
-  two_xy_to_rect(nxy, dims, offset, is_relative, &rct);
+  node_input_to_rect(node, dims, offset, &rct);
+
   matrix[0][0] = fabsf(BLI_rctf_size_x(&rct));
   matrix[1][1] = fabsf(BLI_rctf_size_y(&rct));
   matrix[3][0] = (BLI_rctf_cent_x(&rct) - 0.5f) * dims[0];
@@ -276,10 +311,9 @@ static void gizmo_node_crop_prop_matrix_set(const wmGizmo *gz,
   const float2 dims = crop_group->state.dims;
   const float2 offset = crop_group->state.offset;
   bNode *node = (bNode *)gz_prop->custom_func.user_data;
-  NodeTwoXYs *nxy = (NodeTwoXYs *)node->storage;
-  bool is_relative = bool(node->custom2);
+
   rctf rct;
-  two_xy_to_rect(nxy, dims, offset, is_relative, &rct);
+  node_input_to_rect(node, dims, offset, &rct);
   BLI_rctf_resize(&rct, fabsf(matrix[0][0]), fabsf(matrix[1][1]));
   BLI_rctf_recenter(&rct, ((matrix[3][0]) / dims[0]) + 0.5f, ((matrix[3][1]) / dims[1]) + 0.5f);
   rctf rct_isect{};
@@ -288,24 +322,43 @@ static void gizmo_node_crop_prop_matrix_set(const wmGizmo *gz,
   rct_isect.ymin = offset.y;
   rct_isect.ymax = offset.y / dims.y + 1;
   BLI_rctf_isect(&rct_isect, &rct, &rct);
-  two_xy_from_rect(nxy, &rct, dims, offset, is_relative);
+  node_input_from_rect(node, &rct, dims, offset);
   gizmo_node_bbox_update(crop_group);
 }
 
 static bool WIDGETGROUP_node_crop_poll(const bContext *C, wmGizmoGroupType * /*gzgt*/)
 {
   SpaceNode *snode = CTX_wm_space_node(C);
-
-  if (snode && (snode->flag & SNODE_BACKDRAW) == 0) {
+  if (snode == nullptr) {
     return false;
   }
 
-  if (snode && snode->edittree && snode->edittree->type == NTREE_COMPOSIT) {
-    bNode *node = bke::node_get_active(*snode->edittree);
+  if ((snode->flag & SNODE_BACKDRAW) == 0) {
+    return false;
+  }
 
-    if (node && node->is_type("CompositorNodeCrop")) {
-      /* ignore 'use_crop_size', we can't usefully edit the crop in this case. */
-      if ((node->custom1 & (1 << 0)) == 0) {
+  if (!snode->edittree || snode->edittree->type != NTREE_COMPOSIT) {
+    return false;
+  }
+
+  bNode *node = bke::node_get_active(*snode->edittree);
+
+  if (!node || !node->is_type("CompositorNodeCrop")) {
+    return false;
+  }
+
+  snode->edittree->ensure_topology_cache();
+  LISTBASE_FOREACH (bNodeSocket *, input, &node->inputs) {
+    if (!STREQ(input->name, "Image") && input->is_directly_linked()) {
+      /* Note: the Image input could be connected to a single value input, in which case the gizmo
+       * has no effect. */
+      return false;
+    }
+    else if (STREQ(input->name, "Alpha Crop") && !input->is_directly_linked()) {
+      PointerRNA input_rna_pointer = RNA_pointer_create_discrete(nullptr, &RNA_NodeSocket, input);
+      if (RNA_boolean_get(&input_rna_pointer, "default_value")) {
+        /* If Alpha Crop is not set, the image size changes depending on the input parameters,
+         * so we can't usefully edit the crop in this case. */
         return true;
       }
     }
@@ -490,15 +543,24 @@ static void gizmo_node_box_mask_prop_matrix_set(const wmGizmo *gz,
 static bool WIDGETGROUP_node_box_mask_poll(const bContext *C, wmGizmoGroupType * /*gzgt*/)
 {
   SpaceNode *snode = CTX_wm_space_node(C);
-
-  if (snode && (snode->flag & SNODE_BACKDRAW) == 0) {
+  if (snode == nullptr) {
     return false;
   }
 
-  if (snode && snode->edittree && snode->edittree->type == NTREE_COMPOSIT) {
+  if ((snode->flag & SNODE_BACKDRAW) == 0) {
+    return false;
+  }
+
+  if (snode->edittree && snode->edittree->type == NTREE_COMPOSIT) {
     bNode *node = bke::node_get_active(*snode->edittree);
 
     if (node && node->is_type("CompositorNodeBoxMask")) {
+      snode->edittree->ensure_topology_cache();
+      LISTBASE_FOREACH (bNodeSocket *, input, &node->inputs) {
+        if (STR_ELEM(input->name, "Position", "Size", "Rotation") && input->is_directly_linked()) {
+          return false;
+        }
+      }
       return true;
     }
   }
@@ -527,7 +589,7 @@ static void WIDGETGROUP_node_box_mask_setup(const bContext * /*C*/, wmGizmoGroup
   };
 }
 
-static void WIDGETGROUP_node_mask_draw_prepare(const bContext *C, wmGizmoGroup *gzgroup)
+static void WIDGETGROUP_bbox_draw_prepare(const bContext *C, wmGizmoGroup *gzgroup)
 {
   ARegion *region = CTX_wm_region(C);
   wmGizmo *gz = (wmGizmo *)gzgroup->gizmos.first;
@@ -587,7 +649,7 @@ void NODE_GGT_backdrop_box_mask(wmGizmoGroupType *gzgt)
   gzgt->poll = WIDGETGROUP_node_box_mask_poll;
   gzgt->setup = WIDGETGROUP_node_box_mask_setup;
   gzgt->setup_keymap = WM_gizmogroup_setup_keymap_generic_maybe_drag;
-  gzgt->draw_prepare = WIDGETGROUP_node_mask_draw_prepare;
+  gzgt->draw_prepare = WIDGETGROUP_bbox_draw_prepare;
   gzgt->refresh = WIDGETGROUP_node_mask_refresh;
 }
 
@@ -600,15 +662,24 @@ void NODE_GGT_backdrop_box_mask(wmGizmoGroupType *gzgt)
 static bool WIDGETGROUP_node_ellipse_mask_poll(const bContext *C, wmGizmoGroupType * /*gzgt*/)
 {
   SpaceNode *snode = CTX_wm_space_node(C);
-
-  if (snode && (snode->flag & SNODE_BACKDRAW) == 0) {
+  if (snode == nullptr) {
     return false;
   }
 
-  if (snode && snode->edittree && snode->edittree->type == NTREE_COMPOSIT) {
+  if ((snode->flag & SNODE_BACKDRAW) == 0) {
+    return false;
+  }
+
+  if (snode->edittree && snode->edittree->type == NTREE_COMPOSIT) {
     bNode *node = bke::node_get_active(*snode->edittree);
 
     if (node && node->is_type("CompositorNodeEllipseMask")) {
+      snode->edittree->ensure_topology_cache();
+      LISTBASE_FOREACH (bNodeSocket *, input, &node->inputs) {
+        if (STR_ELEM(input->name, "Position", "Size", "Rotation") && input->is_directly_linked()) {
+          return false;
+        }
+      }
       return true;
     }
   }
@@ -647,7 +718,7 @@ void NODE_GGT_backdrop_ellipse_mask(wmGizmoGroupType *gzgt)
   gzgt->poll = WIDGETGROUP_node_ellipse_mask_poll;
   gzgt->setup = WIDGETGROUP_node_ellipse_mask_setup;
   gzgt->setup_keymap = WM_gizmogroup_setup_keymap_generic_maybe_drag;
-  gzgt->draw_prepare = WIDGETGROUP_node_mask_draw_prepare;
+  gzgt->draw_prepare = WIDGETGROUP_bbox_draw_prepare;
   gzgt->refresh = WIDGETGROUP_node_mask_refresh;
 }
 
@@ -669,15 +740,24 @@ struct NodeSunBeamsWidgetGroup {
 static bool WIDGETGROUP_node_sbeam_poll(const bContext *C, wmGizmoGroupType * /*gzgt*/)
 {
   SpaceNode *snode = CTX_wm_space_node(C);
-
-  if (snode && (snode->flag & SNODE_BACKDRAW) == 0) {
+  if (snode == nullptr) {
     return false;
   }
 
-  if (snode && snode->edittree && snode->edittree->type == NTREE_COMPOSIT) {
+  if ((snode->flag & SNODE_BACKDRAW) == 0) {
+    return false;
+  }
+
+  if (snode->edittree && snode->edittree->type == NTREE_COMPOSIT) {
     bNode *node = bke::node_get_active(*snode->edittree);
 
     if (node && node->is_type("CompositorNodeSunBeams")) {
+      snode->edittree->ensure_topology_cache();
+      LISTBASE_FOREACH (bNodeSocket *, input, &node->inputs) {
+        if (STR_ELEM(input->name, "Source") && input->is_directly_linked()) {
+          return false;
+        }
+      }
       return true;
     }
   }
@@ -776,12 +856,15 @@ struct NodeCornerPinWidgetGroup {
 static bool WIDGETGROUP_node_corner_pin_poll(const bContext *C, wmGizmoGroupType * /*gzgt*/)
 {
   SpaceNode *snode = CTX_wm_space_node(C);
-
-  if (snode && (snode->flag & SNODE_BACKDRAW) == 0) {
+  if (snode == nullptr) {
     return false;
   }
 
-  if (snode && snode->edittree && snode->edittree->type == NTREE_COMPOSIT) {
+  if ((snode->flag & SNODE_BACKDRAW) == 0) {
+    return false;
+  }
+
+  if (snode->edittree && snode->edittree->type == NTREE_COMPOSIT) {
     bNode *node = bke::node_get_active(*snode->edittree);
 
     if (node && node->is_type("CompositorNodeCornerPin")) {
@@ -879,6 +962,175 @@ void NODE_GGT_backdrop_corner_pin(wmGizmoGroupType *gzgt)
   gzgt->setup_keymap = WM_gizmogroup_setup_keymap_generic_maybe_drag;
   gzgt->draw_prepare = WIDGETGROUP_node_corner_pin_draw_prepare;
   gzgt->refresh = WIDGETGROUP_node_corner_pin_refresh;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Split
+ * \{ */
+
+static bool WIDGETGROUP_node_split_poll(const bContext *C, wmGizmoGroupType * /*gzgt*/)
+{
+  SpaceNode *snode = CTX_wm_space_node(C);
+
+  if (snode == nullptr) {
+    return false;
+  }
+
+  if ((snode->flag & SNODE_BACKDRAW) == 0) {
+    return false;
+  }
+
+  if (snode->edittree && snode->edittree->type == NTREE_COMPOSIT) {
+    bNode *node = bke::node_get_active(*snode->edittree);
+
+    if (node && node->is_type("CompositorNodeSplit")) {
+      snode->edittree->ensure_topology_cache();
+      LISTBASE_FOREACH (bNodeSocket *, input, &node->inputs) {
+        if (STR_ELEM(input->name, "Factor") && input->is_directly_linked()) {
+          return false;
+        }
+      }
+      return true;
+    }
+  }
+
+  return false;
+}
+
+static void WIDGETGROUP_node_split_setup(const bContext * /*C*/, wmGizmoGroup *gzgroup)
+{
+  NodeBBoxWidgetGroup *split_group = MEM_new<NodeBBoxWidgetGroup>(__func__);
+  split_group->border = WM_gizmo_new("GIZMO_GT_cage_2d", gzgroup, nullptr);
+
+  RNA_enum_set(split_group->border->ptr, "transform", ED_GIZMO_CAGE_XFORM_FLAG_TRANSLATE);
+  RNA_enum_set(split_group->border->ptr, "draw_options", ED_GIZMO_CAGE_DRAW_FLAG_NOP);
+
+  gzgroup->customdata = split_group;
+  gzgroup->customdata_free = [](void *customdata) {
+    MEM_delete(static_cast<NodeBBoxWidgetGroup *>(customdata));
+  };
+}
+
+static void gizmo_node_split_prop_matrix_get(const wmGizmo *gz,
+                                             wmGizmoProperty *gz_prop,
+                                             void *value_p)
+{
+  float(*matrix)[4] = reinterpret_cast<float(*)[4]>(value_p);
+  BLI_assert(gz_prop->type->array_length == 16);
+  NodeBBoxWidgetGroup *split_group = (NodeBBoxWidgetGroup *)gz->parent_gzgroup->customdata;
+  const float2 dims = split_group->state.dims;
+  const float2 offset = split_group->state.offset;
+  const bNode *node = (const bNode *)gz_prop->custom_func.user_data;
+
+  float loc[3], rot[3][3], size[3];
+  mat4_to_loc_rot_size(loc, rot, size, matrix);
+
+  const bNodeSocket *factor_input = bke::node_find_socket(*node, SOCK_IN, "Factor");
+  const float fac = factor_input->default_value_typed<bNodeSocketValueFloat>()->value;
+
+  CMPNodeSplitAxis axis = static_cast<CMPNodeSplitAxis>(node->custom2);
+  if (axis == CMP_NODE_SPLIT_VERTICAL) {
+    matrix[3][0] = offset.x;
+    matrix[3][1] = (fac - 0.5f) * dims.y + offset.y;
+
+    matrix[0][0] = 1.0f;
+    /* Set non zero scale to silence warning "Gizmo has matrix that could not be inverted". */
+    matrix[1][1] = std::numeric_limits<float>::epsilon();
+  }
+  else if (axis == CMP_NODE_SPLIT_HORIZONTAL) {
+    matrix[3][0] = (fac - 0.5f) * dims.x + offset.x;
+    matrix[3][1] = offset.y;
+
+    matrix[0][0] = std::numeric_limits<float>::epsilon();
+    matrix[1][1] = 1.0f;
+  }
+}
+
+static void gizmo_node_split_prop_matrix_set(const wmGizmo *gz,
+                                             wmGizmoProperty *gz_prop,
+                                             const void *value_p)
+{
+  const float(*matrix)[4] = reinterpret_cast<const float(*)[4]>(value_p);
+  BLI_assert(gz_prop->type->array_length == 16);
+  NodeBBoxWidgetGroup *split_group = reinterpret_cast<NodeBBoxWidgetGroup *>(
+      gz->parent_gzgroup->customdata);
+  const float2 dims = split_group->state.dims;
+  const float2 offset = split_group->state.offset;
+  bNode *node = reinterpret_cast<bNode *>(gz_prop->custom_func.user_data);
+
+  bNodeSocket *factor_input = bke::node_find_socket(*node, SOCK_IN, "Factor");
+
+  CMPNodeSplitAxis axis = static_cast<CMPNodeSplitAxis>(node->custom2);
+  if (axis == CMPNodeSplitAxis::CMP_NODE_SPLIT_VERTICAL) {
+    float fac = (matrix[3][1] - offset.y) / dims.y + 0.5f;
+    /* Prevent dragging the gizmo outside the image. */
+    fac = math::clamp(fac, 0.0f, 1.0f);
+    factor_input->default_value_typed<bNodeSocketValueFloat>()->value = fac;
+  }
+  else if (axis == CMP_NODE_SPLIT_HORIZONTAL) {
+    float fac = (matrix[3][0] - offset.x) / dims.x + 0.5f;
+    fac = math::clamp(fac, 0.0f, 1.0f);
+    factor_input->default_value_typed<bNodeSocketValueFloat>()->value = fac;
+  }
+
+  gizmo_node_bbox_update(split_group);
+}
+
+static void WIDGETGROUP_node_split_refresh(const bContext *C, wmGizmoGroup *gzgroup)
+{
+  Main *bmain = CTX_data_main(C);
+  NodeBBoxWidgetGroup *split_group = reinterpret_cast<NodeBBoxWidgetGroup *>(gzgroup->customdata);
+  wmGizmo *gz = split_group->border;
+
+  void *lock;
+  Image *ima = BKE_image_ensure_viewer(bmain, IMA_TYPE_COMPOSITE, "Render Result");
+  ImBuf *ibuf = BKE_image_acquire_ibuf(ima, nullptr, &lock);
+
+  if (ibuf) {
+    split_group->state.dims[0] = (ibuf->x > 0) ? ibuf->x : 64.0f;
+    split_group->state.dims[1] = (ibuf->y > 0) ? ibuf->y : 64.0f;
+    copy_v2_v2(split_group->state.offset, ima->runtime->backdrop_offset);
+
+    RNA_float_set_array(gz->ptr, "dimensions", split_group->state.dims);
+    WM_gizmo_set_flag(gz, WM_GIZMO_HIDDEN, false);
+
+    SpaceNode *snode = CTX_wm_space_node(C);
+    bNode *node = bke::node_get_active(*snode->edittree);
+
+    split_group->update_data.context = (bContext *)C;
+    split_group->update_data.ptr = RNA_pointer_create_discrete(
+        reinterpret_cast<ID *>(snode->edittree), &RNA_CompositorNodeSplit, node);
+    split_group->update_data.prop = RNA_struct_find_property(&split_group->update_data.ptr,
+                                                             "axis");
+
+    wmGizmoPropertyFnParams params{};
+    params.value_get_fn = gizmo_node_split_prop_matrix_get;
+    params.value_set_fn = gizmo_node_split_prop_matrix_set;
+    params.range_get_fn = nullptr;
+    params.user_data = node;
+    WM_gizmo_target_property_def_func(gz, "matrix", &params);
+  }
+  else {
+    WM_gizmo_set_flag(gz, WM_GIZMO_HIDDEN, true);
+  }
+
+  BKE_image_release_ibuf(ima, ibuf, lock);
+}
+
+void NODE_GGT_backdrop_split(wmGizmoGroupType *gzgt)
+{
+  gzgt->name = "Split Widget";
+  gzgt->idname = "NODE_GGT_backdrop_split";
+
+  gzgt->flag |= WM_GIZMOGROUPTYPE_PERSISTENT;
+
+  gzgt->poll = WIDGETGROUP_node_split_poll;
+  gzgt->setup = WIDGETGROUP_node_split_setup;
+  gzgt->setup_keymap = WM_gizmogroup_setup_keymap_generic_maybe_drag;
+  gzgt->draw_prepare = WIDGETGROUP_bbox_draw_prepare;
+  gzgt->refresh = WIDGETGROUP_node_split_refresh;
 }
 
 /** \} */

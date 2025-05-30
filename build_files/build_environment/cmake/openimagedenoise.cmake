@@ -67,10 +67,7 @@ endif()
 set(ODIN_PATCH_COMMAND
   ${PATCH_CMD} --verbose -p 1 -N -d
   ${BUILD_DIR}/openimagedenoise/src/external_openimagedenoise <
-  ${PATCH_DIR}/oidn.diff &&
-  ${PATCH_CMD} --verbose -p 1 -N -d
-  ${BUILD_DIR}/openimagedenoise/src/external_openimagedenoise <
-  ${PATCH_DIR}/oidn_blackwell.diff
+  ${PATCH_DIR}/oidn.diff
 )
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
@@ -79,14 +76,6 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   set(ODIN_PATCH_COMMAND ${ODIN_PATCH_COMMAND} &&
     sed -i "s/(attrib\\.memoryType)/(attrib.type)/g"
     ${BUILD_DIR}/openimagedenoise/src/external_openimagedenoise/devices/hip/hip_device.cpp
-  )
-endif()
-
-if(WIN32 AND BLENDER_PLATFORM_ARM)
-  set(ODIN_PATCH_COMMAND ${ODIN_PATCH_COMMAND} &&
-    ${PATCH_CMD} --verbose -p 1 -N -d
-    ${BUILD_DIR}/openimagedenoise/src/external_openimagedenoise <
-    ${PATCH_DIR}/oidn_disable_dependentload.diff
   )
 endif()
 

@@ -3140,6 +3140,7 @@ SoftBody *sbNew()
   sb->maxloops = 300;
 
   sb->choke = 3;
+  sb->fuzzyness = 1;
   sb_new_scratch(sb);
   /* TODO: backward file compatibility should set `sb->shearstiff = 1.0f` while reading old files.
    */

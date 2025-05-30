@@ -914,7 +914,7 @@ def extension_path_user(package, *, path="", create=False):
 
     .. note::
 
-       This allows each extension to have it's own user directory to store files.
+       This allows each extension to have its own user directory to store files.
 
        The location of the extension it self is not a suitable place to store files
        because it is cleared each upgrade and the users may not have write permissions

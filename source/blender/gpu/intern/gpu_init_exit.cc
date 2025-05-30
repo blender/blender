@@ -6,10 +6,12 @@
  * \ingroup gpu
  */
 
-#include "GPU_init_exit.hh" /* interface */
-#include "GPU_batch.hh"
+#include "BKE_material.hh"
 
-#include "intern/gpu_codegen.hh"
+#include "GPU_batch.hh"
+#include "GPU_init_exit.hh" /* interface */
+#include "GPU_pass.hh"
+
 #include "intern/gpu_private.hh"
 #include "intern/gpu_shader_create_info_private.hh"
 #include "intern/gpu_shader_dependency_private.hh"
@@ -34,7 +36,7 @@ void GPU_init()
   gpu_shader_dependency_init();
   gpu_shader_create_info_init();
 
-  gpu_codegen_init();
+  GPU_pass_cache_init();
 
   gpu_batch_init();
 }
@@ -43,7 +45,10 @@ void GPU_exit()
 {
   gpu_batch_exit();
 
-  gpu_codegen_exit();
+  GPU_pass_cache_free();
+
+  BKE_material_defaults_free_gpu();
+  GPU_shader_free_builtin_shaders();
 
   gpu_backend_delete_resources();
 

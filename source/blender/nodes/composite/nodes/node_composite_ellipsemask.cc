@@ -32,13 +32,15 @@ static void cmp_node_ellipsemask_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Float>("Value").subtype(PROP_FACTOR).default_value(1.0f).min(0.0f).max(1.0f);
   b.add_input<decl::Vector>("Position")
       .subtype(PROP_FACTOR)
-      .default_value({0.5f, 0.5f, 0.0f})
+      .dimensions(2)
+      .default_value({0.5f, 0.5f})
       .min(-0.5f)
       .max(1.5f)
       .compositor_expects_single_value();
   b.add_input<decl::Vector>("Size")
       .subtype(PROP_FACTOR)
-      .default_value({0.2f, 0.1f, 0.0f})
+      .dimensions(2)
+      .default_value({0.2f, 0.1f})
       .min(0.0f)
       .max(1.0f)
       .compositor_expects_single_value();

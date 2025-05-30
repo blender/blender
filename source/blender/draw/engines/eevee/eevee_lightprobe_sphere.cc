@@ -344,7 +344,8 @@ void SphereProbeModule::viewport_draw(View &view, GPUFrameBuffer *view_fb)
 
   viewport_display_ps_.init();
   viewport_display_ps_.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH |
-                                 DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_CULL_BACK);
+                                 DRW_STATE_CLIP_CONTROL_UNIT_RANGE |
+                                 instance_.film.depth.test_state | DRW_STATE_CULL_BACK);
   viewport_display_ps_.framebuffer_set(&view_fb);
   viewport_display_ps_.shader_set(instance_.shaders.static_shader_get(DISPLAY_PROBE_SPHERE));
   viewport_display_ps_.bind_resources(*this);

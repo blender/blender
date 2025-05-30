@@ -214,7 +214,7 @@
     .fuel_amount = 1.0f, \
     .temperature = 1.0f, \
     .volume_density = 0.0f, \
-    .surface_distance = 1.5f, \
+    .surface_distance = 1.0f, \
     .particle_size = 1.0f, \
     .subframes = 0, \
     .texture_size = 1.0f, \

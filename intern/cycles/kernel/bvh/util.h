@@ -108,7 +108,7 @@ ccl_device_inline void sort_intersections_and_normals(ccl_private Intersection *
   bool swapped;
   do {
     swapped = false;
-    for (int j = 0; j < num_hits - 1; ++j) {
+    for (uint j = 0; j < num_hits - 1; ++j) {
       if (hits[j].t > hits[j + 1].t) {
         Intersection tmp_hit = hits[j];
         float3 tmp_Ng = Ng[j];
@@ -293,8 +293,7 @@ ccl_device_inline bool intersection_skip_shadow_link(KernelGlobals kg,
 /* Check whether an intersection denoted by its object and primitive is to be skipped due to it
  * being already recoded.
  * The situation when primitive is already recoded happens when BVH spatial splits are used. */
-ccl_device_forceinline bool intersection_skip_shadow_already_recoded(KernelGlobals kg,
-                                                                     IntegratorShadowState state,
+ccl_device_forceinline bool intersection_skip_shadow_already_recoded(IntegratorShadowState state,
                                                                      const int object,
                                                                      const int prim,
                                                                      const int num_hits)

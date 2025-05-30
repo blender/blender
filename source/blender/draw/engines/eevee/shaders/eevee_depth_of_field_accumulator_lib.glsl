@@ -20,6 +20,7 @@ COMPUTE_SHADER_CREATE_INFO(eevee_depth_of_field_gather)
 #include "draw_view_lib.glsl"
 #include "eevee_colorspace_lib.glsl"
 #include "eevee_depth_of_field_lib.glsl"
+#include "eevee_reverse_z_lib.glsl"
 #include "eevee_sampling_lib.glsl"
 #include "gpu_shader_debug_gradients_lib.glsl"
 #include "gpu_shader_math_matrix_lib.glsl"
@@ -644,7 +645,7 @@ void dof_slight_focus_gather(sampler2DDepth depth_tx,
       float2 sample_offset = ((i == 0) ? offset : -offset);
       /* OPTI: could precompute the factor. */
       float2 sample_uv = (frag_coord + sample_offset) / float2(textureSize(depth_tx, 0));
-      float depth = textureLod(depth_tx, sample_uv, 0.0f).r;
+      float depth = reverse_z::read(textureLod(depth_tx, sample_uv, 0.0f).r);
       pair_data[i].coc = dof_coc_from_depth(dof_buf, sample_uv, depth);
       pair_data[i].color = colorspace_safe_color(textureLod(color_tx, sample_uv, 0.0f));
       pair_data[i].dist = ring_dist;
@@ -684,7 +685,7 @@ void dof_slight_focus_gather(sampler2DDepth depth_tx,
   DofGatherData center_data;
   center_data.color = colorspace_safe_color(textureLod(color_tx, sample_uv, 0.0f));
   center_data.coc = dof_coc_from_depth(
-      dof_buf, sample_uv, textureLod(depth_tx, sample_uv, 0.0f).r);
+      dof_buf, sample_uv, reverse_z::read(textureLod(depth_tx, sample_uv, 0.0f).r));
   center_data.coc = clamp(center_data.coc, -dof_buf.coc_abs_max, dof_buf.coc_abs_max);
   center_data.dist = 0.0f;
 

@@ -25,6 +25,7 @@
 #include "BKE_layer.hh"
 #include "BKE_lib_query.hh"
 #include "BKE_lib_remap.hh"
+#include "BKE_scene.hh"
 #include "BKE_screen.hh"
 
 #include "RNA_access.hh"
@@ -105,6 +106,7 @@ static SpaceLink *image_create(const ScrArea * /*area*/, const Scene * /*scene*/
   simage->uv_face_opacity = 1.0f;
   simage->stretch_opacity = 1.0f;
   simage->overlay.flag = SI_OVERLAY_SHOW_OVERLAYS | SI_OVERLAY_SHOW_GRID_BACKGROUND;
+  simage->overlay.passepartout_alpha = 0.5f;
 
   BKE_imageuser_default(&simage->iuser);
   simage->iuser.flag = IMA_SHOW_STEREO | IMA_ANIM_ALWAYS;
@@ -634,7 +636,19 @@ static void image_main_region_draw(const bContext *C, ARegion *region)
   Scene *scene = CTX_data_scene(C);
   View2D *v2d = &region->v2d;
   Image *image = ED_space_image(sima);
+  /* Typically a render result or viewer image from the compositor. */
   const bool show_viewer = (image && image->source == IMA_SRC_VIEWER);
+  const bool show_compositor_viewer = show_viewer && image->type == IMA_TYPE_COMPOSITE;
+
+  /* Text info and render region are only relevant for the compositor. */
+  const bool show_text_info = show_compositor_viewer &&
+                              (sima->overlay.flag & SI_OVERLAY_SHOW_OVERLAYS &&
+                               sima->overlay.flag & SI_OVERLAY_DRAW_TEXT_INFO &&
+                               ELEM(sima->mode, SI_MODE_MASK, SI_MODE_VIEW));
+  const bool show_render_region = show_compositor_viewer &&
+                                  (sima->overlay.flag & SI_OVERLAY_SHOW_OVERLAYS &&
+                                   sima->overlay.flag & SI_OVERLAY_DRAW_RENDER_REGION &&
+                                   ELEM(sima->mode, SI_MODE_MASK, SI_MODE_VIEW));
 
   /* XXX not supported yet, disabling for now */
   scene->r.scemode &= ~R_COMP_CROP;
@@ -657,6 +671,28 @@ static void image_main_region_draw(const bContext *C, ARegion *region)
     BLI_thread_unlock(LOCK_DRAW_IMAGE);
   }
 
+  if (show_render_region) {
+    int render_size_x, render_size_y;
+
+    BKE_render_resolution(&scene->r, true, &render_size_x, &render_size_y);
+
+    float zoomx, zoomy;
+    ED_space_image_get_zoom(sima, region, &zoomx, &zoomy);
+    int width, height;
+    ED_space_image_get_size(sima, &width, &height);
+    int center_x = width / 2;
+    int center_y = height / 2;
+
+    int x, y;
+    rcti render_region;
+    BLI_rcti_init(
+        &render_region, center_x, render_size_x + center_x, center_y, render_size_y + center_y);
+    UI_view2d_view_to_region(&region->v2d, 0.0f, 0.0f, &x, &y);
+
+    ED_region_image_render_region_draw(
+        x, y, &render_region, zoomx, zoomy, sima->overlay.passepartout_alpha);
+  }
+
   draw_image_main_helpers(C, region);
 
   /* Draw Meta data of the image isn't added to the DrawManager as it is
@@ -676,6 +712,23 @@ static void image_main_region_draw(const bContext *C, ARegion *region)
       ED_region_image_metadata_draw(x, y, ibuf, &frame, zoomx, zoomy);
     }
     ED_space_image_release_buffer(sima, ibuf, lock);
+  }
+
+  if (show_text_info) {
+
+    int render_size_x, render_size_y;
+    BKE_render_resolution(&scene->r, true, &render_size_x, &render_size_y);
+
+    /* Use same positioning convention as in 3D View. */
+    const rcti *rect = ED_region_visible_rect(region);
+    int xoffset = rect->xmin + (0.5f * U.widget_unit);
+    int yoffset = rect->ymax - (0.1f * U.widget_unit);
+
+    int viewer_size_x, viewer_size_y;
+    ED_space_image_get_size(sima, &viewer_size_x, &viewer_size_y);
+
+    ED_region_image_overlay_info_text_draw(
+        render_size_x, render_size_y, viewer_size_x, viewer_size_y, xoffset, yoffset);
   }
 
   /* sample line */
