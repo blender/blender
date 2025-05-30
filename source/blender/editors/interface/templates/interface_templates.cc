@@ -187,7 +187,7 @@ uiBlock *template_common_search_menu(const bContext *C,
   }
   /* list view */
   else {
-    const int searchbox_width = int(float(UI_searchbox_size_x()) * 1.4f);
+    const int searchbox_width = UI_searchbox_size_x_guess(C, search_update_fn, search_arg);
     const int searchbox_height = UI_searchbox_size_y();
     const int search_but_height = UI_UNIT_Y - 1.0f * UI_SCALE_FAC;
 

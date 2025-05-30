@@ -1796,7 +1796,7 @@ int UI_searchbox_size_x();
  * \note When used with a menu that does full refreshes, it might be beneficial to cache this size
  * because recomputing it is potentially expensive.
  */
-int UI_searchbox_size_x_guess(const bContext *C, const uiButSearchUpdateFn update_fn);
+int UI_searchbox_size_x_guess(const bContext *C, const uiButSearchUpdateFn update_fn, void *arg);
 /**
  * Check if a string is in an existing search box.
  */
