@@ -226,7 +226,7 @@ if __name__ == "__main__":
 
     if not _is_running_in_virtualenv():
         print(f"Re-executing inside virtual environment at {VENV_DIR}")
-        subprocess.run([str(VENV_PYTHON), *sys.argv], check=True, text=True)
+        _run_command(str(VENV_PYTHON), *sys.argv)
         sys.exit()
 
     if not _is_dependency_installed(TEST_INSTALL_MODULE):
