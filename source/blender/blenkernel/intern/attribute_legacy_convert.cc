@@ -98,36 +98,43 @@ std::optional<AttrType> custom_data_type_to_attr_type(const eCustomDataType data
 }
 
 struct CustomDataAndSize {
-  const CustomData &data;
+  CustomData &data;
   int size;
 };
 
+/**
+ * Move generic attributes from #CustomData to #AttributeStorage. All other non-generic layers are
+ * left in #CustomData.
+ */
 static AttributeStorage attribute_legacy_convert_customdata_to_storage(
     const Map<AttrDomain, CustomDataAndSize> &domains)
 {
-  AttributeStorage storage{};
+  AttributeStorage storage;
   struct AttributeToAdd {
-    std::string name;
+    StringRef name;
     AttrDomain domain;
     AttrType type;
     void *array_data;
     int array_size;
     const ImplicitSharingInfo *sharing_info;
   };
+  Map<AttrDomain, Vector<CustomDataLayer>> layers_to_keep;
   Vector<AttributeToAdd> attributes_to_add;
   for (const auto &item : domains.items()) {
     const AttrDomain domain = item.key;
     const CustomData &custom_data = item.value.data;
     const int domain_size = item.value.size;
     for (const CustomDataLayer &layer : MutableSpan(custom_data.layers, custom_data.totlayer)) {
-      const std::optional<AttrType> attr_type = custom_data_type_to_attr_type(
-          eCustomDataType(layer.type));
-      if (!attr_type) {
-        continue;
+      if (const std::optional<AttrType> attr_type = custom_data_type_to_attr_type(
+              eCustomDataType(layer.type)))
+      {
+        /* Skip adding a user. This #CustomDataLayer is just freed below. */
+        attributes_to_add.append(
+            {layer.name, domain, *attr_type, layer.data, domain_size, layer.sharing_info});
       }
-      attributes_to_add.append(
-          {layer.name, domain, *attr_type, layer.data, domain_size, layer.sharing_info});
-      layer.sharing_info->add_user();
+      else {
+        layers_to_keep.lookup_or_add_default(domain).append(layer);
+      }
     }
   }
 
@@ -140,6 +147,21 @@ static AttributeStorage attribute_legacy_convert_customdata_to_storage(
                 attribute.domain,
                 attribute.type,
                 std::move(array_data));
+  }
+
+  for (const auto &[domain, custom_data] : domains.items()) {
+    Vector layers_vector = layers_to_keep.pop_default(domain, {});
+    MEM_SAFE_FREE(custom_data.data.layers);
+    custom_data.data.totlayer = 0;
+    custom_data.data.maxlayer = 0;
+    if (layers_vector.is_empty()) {
+      continue;
+    }
+    VectorData data = layers_vector.release();
+    custom_data.data.layers = data.data;
+    custom_data.data.totlayer = data.size;
+    custom_data.data.maxlayer = data.capacity;
+    CustomData_update_typemap(&custom_data.data);
   }
 
   return storage;
@@ -224,9 +246,9 @@ void mesh_convert_storage_to_customdata(Mesh &mesh)
                                  {AttrDomain::Face, {mesh.face_data, mesh.faces_num}},
                                  {AttrDomain::Corner, {mesh.corner_data, mesh.corners_num}}});
 }
-AttributeStorage mesh_convert_customdata_to_storage(const Mesh &mesh)
+void mesh_convert_customdata_to_storage(Mesh &mesh)
 {
-  return bke::attribute_legacy_convert_customdata_to_storage(
+  mesh.attribute_storage.wrap() = bke::attribute_legacy_convert_customdata_to_storage(
       {{AttrDomain::Point, {mesh.vert_data, mesh.verts_num}},
        {AttrDomain::Edge, {mesh.edge_data, mesh.edges_num}},
        {AttrDomain::Face, {mesh.face_data, mesh.faces_num}},
@@ -239,9 +261,9 @@ void curves_convert_storage_to_customdata(CurvesGeometry &curves)
                                 {{AttrDomain::Point, {curves.point_data, curves.points_num()}},
                                  {AttrDomain::Curve, {curves.curve_data, curves.curves_num()}}});
 }
-AttributeStorage curves_convert_customdata_to_storage(const CurvesGeometry &curves)
+void curves_convert_customdata_to_storage(CurvesGeometry &curves)
 {
-  return attribute_legacy_convert_customdata_to_storage(
+  curves.attribute_storage.wrap() = attribute_legacy_convert_customdata_to_storage(
       {{AttrDomain::Point, {curves.point_data, curves.points_num()}},
        {AttrDomain::Curve, {curves.curve_data, curves.curves_num()}}});
 }
@@ -252,9 +274,9 @@ void pointcloud_convert_storage_to_customdata(PointCloud &pointcloud)
                                 {{AttrDomain::Point, {pointcloud.pdata, pointcloud.totpoint}}});
 }
 
-AttributeStorage pointcloud_convert_customdata_to_storage(const PointCloud &pointcloud)
+void pointcloud_convert_customdata_to_storage(PointCloud &pointcloud)
 {
-  return attribute_legacy_convert_customdata_to_storage(
+  pointcloud.attribute_storage.wrap() = attribute_legacy_convert_customdata_to_storage(
       {{AttrDomain::Point, {pointcloud.pdata, pointcloud.totpoint}}});
 }
 
@@ -264,9 +286,9 @@ void grease_pencil_convert_storage_to_customdata(GreasePencil &grease_pencil)
       grease_pencil.attribute_storage.wrap(),
       {{AttrDomain::Layer, {grease_pencil.layers_data, int(grease_pencil.layers().size())}}});
 }
-AttributeStorage grease_pencil_convert_customdata_to_storage(const GreasePencil &grease_pencil)
+void grease_pencil_convert_customdata_to_storage(GreasePencil &grease_pencil)
 {
-  return attribute_legacy_convert_customdata_to_storage(
+  grease_pencil.attribute_storage.wrap() = attribute_legacy_convert_customdata_to_storage(
       {{AttrDomain::Layer, {grease_pencil.layers_data, int(grease_pencil.layers().size())}}});
 }
 

@@ -42,24 +42,24 @@ void mesh_convert_storage_to_customdata(Mesh &mesh);
  * Move generic attributes from #CustomData to #AttributeStorage (not including non-generic layer
  * types). Use for versioning old files when the newer #AttributeStorage format is used at runtime.
  */
-AttributeStorage mesh_convert_customdata_to_storage(const Mesh &mesh);
+void mesh_convert_customdata_to_storage(Mesh &mesh);
 
 /** See #mesh_convert_storage_to_customdata. */
 void curves_convert_storage_to_customdata(CurvesGeometry &curves);
 
 /** See #mesh_convert_customdata_to_storage. */
-AttributeStorage curves_convert_customdata_to_storage(const CurvesGeometry &curves);
+void curves_convert_customdata_to_storage(CurvesGeometry &curves);
 
 /** See #mesh_convert_storage_to_customdata. */
 void pointcloud_convert_storage_to_customdata(PointCloud &pointcloud);
 
 /** See #mesh_convert_customdata_to_storage. */
-AttributeStorage pointcloud_convert_customdata_to_storage(const PointCloud &pointcloud);
+void pointcloud_convert_customdata_to_storage(PointCloud &pointcloud);
 
 /** See #mesh_convert_storage_to_customdata. */
 void grease_pencil_convert_storage_to_customdata(GreasePencil &grease_pencil);
 
 /** See #mesh_convert_customdata_to_storage. */
-AttributeStorage grease_pencil_convert_customdata_to_storage(const GreasePencil &grease_pencil);
+void grease_pencil_convert_customdata_to_storage(GreasePencil &grease_pencil);
 
 }  // namespace blender::bke

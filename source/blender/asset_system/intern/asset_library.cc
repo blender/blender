@@ -48,7 +48,7 @@ AssetLibrary *AS_asset_library_load(const Main *bmain,
   return service->get_asset_library(bmain, library_reference);
 }
 
-AssetLibrary *AS_asset_library_load(const char *name, const char *library_dirpath)
+AssetLibrary *AS_asset_library_load_from_directory(const char *name, const char *library_dirpath)
 {
   /* NOTE: Loading an asset library at this point only means loading the catalogs.
    * Later on this should invoke reading of asset representations too. */

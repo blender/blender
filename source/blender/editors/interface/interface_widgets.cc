@@ -4367,9 +4367,9 @@ static void widget_list_itembut(uiBut *but,
   const float rad = widget_radius_from_zoom(zoom, wcol);
   round_box_edges(&wtb, UI_CNR_ALL, &draw_rect, rad);
 
-  if (state->but_flag & UI_HOVER && !(state->but_flag & UI_SELECT)) {
-    copy_v3_v3_uchar(wcol->inner, wcol->text);
-    wcol->inner[3] = 20;
+  if (state->but_flag & UI_HOVER) {
+    color_blend_v3_v3(wcol->inner, wcol->text, 0.2);
+    wcol->inner[3] = (state->but_flag & UI_SELECT) ? 255 : 20;
   }
 
   widgetbase_draw(&wtb, wcol);

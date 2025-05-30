@@ -486,11 +486,19 @@ class StaticShader : NonCopyable {
   /* Schedule the shader to be compile in a worker thread. */
   void ensure_compile_async()
   {
-    if (shader_ || failed_ || compilation_handle_) {
+    if (is_ready()) {
       return;
     }
 
     std::scoped_lock lock(mutex_);
+
+    if (compilation_handle_) {
+      if (GPU_shader_batch_is_ready(compilation_handle_)) {
+        shader_ = GPU_shader_batch_finalize(compilation_handle_)[0];
+        failed_ = shader_ == nullptr;
+      }
+      return;
+    }
 
     if (!shader_ && !failed_ && !compilation_handle_) {
       BLI_assert(!info_name_.empty());
@@ -501,12 +509,12 @@ class StaticShader : NonCopyable {
 
   bool is_ready()
   {
-    return shader_ != nullptr;
+    return shader_ || failed_;
   }
 
   GPUShader *get()
   {
-    if (shader_ || failed_) {
+    if (is_ready()) {
       return shader_;
     }
 
@@ -520,7 +528,7 @@ class StaticShader : NonCopyable {
         BLI_assert(!info_name_.empty());
         shader_ = GPU_shader_create_from_info_name(info_name_.c_str());
       }
-      failed_ = shader_ != nullptr;
+      failed_ = shader_ == nullptr;
     }
 
     return shader_;
