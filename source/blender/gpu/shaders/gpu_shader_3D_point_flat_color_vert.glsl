@@ -1,12 +1,12 @@
-/* SPDX-FileCopyrightText: 2016-2022 Blender Authors
+/* SPDX-FileCopyrightText: 2025 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "infos/gpu_shader_3D_flat_color_info.hh"
+#include "infos/gpu_shader_3D_point_info.hh"
 
 #include "gpu_shader_cfg_world_clip_lib.glsl"
 
-VERTEX_SHADER_CREATE_INFO(gpu_shader_3D_flat_color)
+VERTEX_SHADER_CREATE_INFO(gpu_shader_3D_point_flat_color)
 
 void main()
 {
