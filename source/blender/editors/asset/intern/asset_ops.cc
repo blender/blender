@@ -1401,7 +1401,7 @@ static void ASSET_OT_screenshot_preview(wmOperatorType *ot)
 {
   /* This should be a generic operator for assets not linked to the pose-library. */
 
-  ot->name = "Capture screenshot preview";
+  ot->name = "Capture Screenshot Preview";
   ot->description = "Capture a screenshot to use as a preview for the selected asset";
   ot->idname = "ASSET_OT_screenshot_preview";
 

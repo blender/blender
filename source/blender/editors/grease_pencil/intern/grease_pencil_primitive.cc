@@ -667,7 +667,7 @@ static void grease_pencil_primitive_status_indicators(bContext *C,
   status.item(IFACE_("Align"), ICON_EVENT_SHIFT);
   status.opmodal("", op->type, int(ModalKeyMode::IncreaseSubdivision));
   status.opmodal("", op->type, int(ModalKeyMode::DecreaseSubdivision));
-  status.item(fmt::format("{} ({})", IFACE_("subdivisions"), ptd.subdivision), ICON_NONE);
+  status.item(fmt::format("{} ({})", IFACE_("Subdivisions"), ptd.subdivision), ICON_NONE);
 
   if (ptd.segments == 1) {
     status.item(IFACE_("Center"), ICON_EVENT_ALT);
