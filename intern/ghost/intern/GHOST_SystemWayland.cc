@@ -1493,14 +1493,30 @@ struct GWL_Display {
    */
   int seats_active_index = 0;
 
+  /**
+   * When true, running without any windows.
+   * Wayland is only used to access the GPU.
+   *
+   * \note In general logic should not diverge too much in background mode,
+   * so as to avoid maintaining multiple code-paths however some logic can be skipped
+   * such as libraries for showing window decorations and threaded event handling.
+   */
+  bool background = false;
+
   /* Threaded event handling. */
 #ifdef USE_EVENT_BACKGROUND_THREAD
   /**
    * Run a thread that consumes events in the background.
    * Use `pthread` because `std::thread` leaks memory.
+   *
+   * Not set when `background == true`.
    */
   pthread_t events_pthread = 0;
-  /** Use to exit the event reading loop. */
+  /**
+   * Use to exit the event reading loop.
+   *
+   * Not set when `background == true`.
+   */
   bool events_pthread_is_active = false;
 
   /**
@@ -1533,9 +1549,11 @@ struct GWL_Display {
 static void gwl_display_destroy(GWL_Display *display)
 {
 #ifdef USE_EVENT_BACKGROUND_THREAD
-  if (display->events_pthread) {
-    ghost_wl_display_lock_without_input(display->wl.display, display->system->server_mutex);
-    display->events_pthread_is_active = false;
+  if (!display->background) {
+    if (display->events_pthread) {
+      ghost_wl_display_lock_without_input(display->wl.display, display->system->server_mutex);
+      display->events_pthread_is_active = false;
+    }
   }
 #endif
 
@@ -1579,9 +1597,11 @@ static void gwl_display_destroy(GWL_Display *display)
 #endif
 
 #ifdef USE_EVENT_BACKGROUND_THREAD
-  if (display->events_pthread) {
-    gwl_display_event_thread_destroy(display);
-    display->system->server_mutex->unlock();
+  if (!display->background) {
+    if (display->events_pthread) {
+      gwl_display_event_thread_destroy(display);
+      display->system->server_mutex->unlock();
+    }
   }
 
   /* Important to remove after the seats which may have key repeat timers active. */
@@ -7335,6 +7355,7 @@ static const wl_registry_listener registry_listener = {
 static void *gwl_display_event_thread_fn(void *display_voidp)
 {
   GWL_Display *display = static_cast<GWL_Display *>(display_voidp);
+  GHOST_ASSERT(!display->background, "Foreground only");
   const int fd = wl_display_get_fd(display->wl.display);
   while (display->events_pthread_is_active) {
     /* Wait for an event, this thread is dedicated to event handling. */
@@ -7357,6 +7378,7 @@ static void *gwl_display_event_thread_fn(void *display_voidp)
 /* Event reading thread. */
 static void gwl_display_event_thread_create(GWL_Display *display)
 {
+  GHOST_ASSERT(!display->background, "Foreground only");
   GHOST_ASSERT(display->events_pthread == 0, "Only call once");
   display->events_pending.reserve(events_pending_default_size);
   display->events_pthread_is_active = true;
@@ -7369,6 +7391,7 @@ static void gwl_display_event_thread_create(GWL_Display *display)
 
 static void gwl_display_event_thread_destroy(GWL_Display *display)
 {
+  GHOST_ASSERT(!display->background, "Foreground only");
   pthread_cancel(display->events_pthread);
 }
 
@@ -7395,7 +7418,9 @@ GHOST_SystemWayland::GHOST_SystemWayland(bool background)
                                          ghost_wayland_log_handler);
 
   display_->system = this;
+  display_->background = background;
   /* Connect to the Wayland server. */
+
   display_->wl.display = wl_display_connect(nullptr);
   if (!display_->wl.display) {
     display_destroy_and_free_all();
@@ -7506,8 +7531,16 @@ GHOST_SystemWayland::GHOST_SystemWayland(bool background)
   wl_display_roundtrip(display_->wl.display);
 
 #ifdef USE_EVENT_BACKGROUND_THREAD
-  gwl_display_event_thread_create(display_);
-
+  /* There is no need for an event handling thread in background mode
+   * because there no polling for user input. */
+  if (background) {
+    GHOST_ASSERT(display_->events_pthread_is_active == false, "Expected to be false");
+  }
+  else {
+    gwl_display_event_thread_create(display_);
+  }
+  /* Could be null in background mode, however there are enough
+   * references to this that it's safer to create it. */
   display_->ghost_timer_manager = new GHOST_TimerManager();
 #endif
 }
@@ -7556,7 +7589,7 @@ bool GHOST_SystemWayland::processEvents(bool waitForEvent)
     }
   }
 
-  {
+  if (!display_->background) {
     std::lock_guard lock{display_->events_pending_mutex};
     for (const GHOST_IEvent *event : display_->events_pending) {
 
@@ -9230,6 +9263,7 @@ uint64_t GHOST_SystemWayland::ms_from_input_time(const uint32_t timestamp_as_uin
 GHOST_TSuccess GHOST_SystemWayland::pushEvent_maybe_pending(const GHOST_IEvent *event)
 {
 #ifdef USE_EVENT_BACKGROUND_THREAD
+  GHOST_ASSERT(!display_->background, "Foreground only");
   if (main_thread_id != std::this_thread::get_id()) {
     std::lock_guard lock{display_->events_pending_mutex};
     display_->events_pending.push_back(event);
