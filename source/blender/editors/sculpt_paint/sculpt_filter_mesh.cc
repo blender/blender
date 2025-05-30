@@ -172,7 +172,7 @@ void cache_init(bContext *C,
 
     float radius;
     if (brush) {
-      object_space_radius_get(vc, *scene, *brush, co, area_normal_radius);
+      radius = object_space_radius_get(vc, *scene, *brush, co, area_normal_radius);
     }
     else {
       radius = paint_calc_object_space_radius(vc, co, float(ups->size) * area_normal_radius);
