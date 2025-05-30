@@ -1244,6 +1244,7 @@ static void paint_runtime_init(const ToolSettings *ts, Paint *paint)
   }
 
   paint->runtime.initialized = true;
+  paint->runtime.previous_active_brush_reference = nullptr;
 }
 
 uint BKE_paint_get_brush_type_offset_from_paintmode(const PaintMode mode)
