@@ -32,6 +32,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "NOD_common.hh"
+#include "NOD_composite.hh"
 #include "NOD_node_declaration.hh"
 #include "NOD_node_extra_info.hh"
 #include "NOD_register.hh"
@@ -881,6 +882,7 @@ void register_node_type_group_input()
   blender::bke::node_type_size(*ntype, 140, 80, 400);
   ntype->declare = blender::nodes::group_input_declare;
   ntype->insert_link = blender::nodes::group_input_insert_link;
+  ntype->get_compositor_operation = blender::nodes::get_group_input_compositor_operation;
 
   blender::bke::node_register_type(*ntype);
 }
