@@ -132,6 +132,10 @@ Utilities
      Create a combined file with all the license information relative to the libraries and other
      code depedencies.
 
+   * generate_datamodels:
+     Generate Python code based on OpenAPI specifications. The Python code is also tracked by
+	 Git, and so running this command is only necessary when the OpenAPI specification changes.
+
 Environment Variables
 
    * BUILD_CMAKE_ARGS:      Arguments passed to CMake.
