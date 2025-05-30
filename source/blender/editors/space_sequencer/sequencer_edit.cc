@@ -1326,7 +1326,7 @@ static wmOperatorStatus sequencer_reassign_inputs_exec(bContext *C, wmOperator *
     return OPERATOR_CANCELLED;
   }
 
-  VectorSet<Strip *> inputs = strip_effect_get_new_inputs(scene, true);
+  VectorSet<Strip *> inputs = strip_effect_get_new_inputs(scene, num_inputs, true);
   StringRef error_msg = effect_inputs_validate(inputs, num_inputs);
 
   if (!error_msg.is_empty()) {
