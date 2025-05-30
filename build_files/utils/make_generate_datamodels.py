@@ -6,7 +6,13 @@
 """Self-bootstrapping script to run the OpenAPI-to-Pydantic classes code generator.
 
 This script creates its own virtualenv, installs its dependencies, and then runs
-the generator.
+the code generator. It processes OpenAPI spec files in YAML format (see
+`YAML_PATHS` below) to generate Python source files. Each `xxx.yaml` file will
+produce an `xxx.py` file in the same directory.
+
+The generated Python files are tracked by Git. This generator is NOT part of the
+regular Blender build process, and only needs to be run when any of the YAML
+files change.
 """
 
 from pathlib import Path
@@ -14,11 +20,15 @@ import sys
 import time
 import warnings
 
-# Paths of the OpenAPI YAML files to convert to Python code.
-# These are relative to Blender's top level source directory.
+# Paths of the OpenAPI YAML files to convert to Python code. These are relative
+# to Blender's top level source directory.
 #
-# The generated Python files will be written to the same path,
-# just with the `.py` suffix.
+# The generated Python files will be written to the same path, just with the
+# `.py` suffix.
+#
+# When adding a file here, make sure it is named `..._openapi.yaml`. That way
+# the corresponding `.py`` file is automatically marked as 'generated' in
+# `.gitattributes`.
 YAML_PATHS = [
     "scripts/modules/_bpy_internal/assets/remote_library_index/blender_asset_library_openapi.yaml",
 ]
