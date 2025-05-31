@@ -460,11 +460,14 @@ static IndexMask grease_pencil_get_visible_nurbs_curves(Object &object,
 }
 
 static IndexMask grease_pencil_get_visible_non_nurbs_curves(
-    Object &object, const bke::greasepencil::Drawing &drawing, IndexMaskMemory &memory)
+    Object &object,
+    const bke::greasepencil::Drawing &drawing,
+    const int layer_index,
+    IndexMaskMemory &memory)
 {
   const bke::CurvesGeometry &curves = drawing.strokes();
-  const IndexMask visible_strokes = ed::greasepencil::retrieve_visible_strokes(
-      object, drawing, memory);
+  const IndexMask visible_strokes = ed::greasepencil::retrieve_editable_strokes(
+      object, drawing, layer_index, memory);
   if (!curves.has_curve_with_type(CURVE_TYPE_NURBS)) {
     return visible_strokes;
   }
@@ -525,7 +528,7 @@ static void grease_pencil_cache_add_nurbs(Object &object,
 
 static void index_buf_add_line_points(Object &object,
                                       const bke::greasepencil::Drawing &drawing,
-                                      int /*layer_index*/,
+                                      const int layer_index,
                                       IndexMaskMemory &memory,
                                       MutableSpan<uint> lines_data,
                                       int *r_drawing_line_index,
@@ -536,7 +539,7 @@ static void index_buf_add_line_points(Object &object,
   const OffsetIndices<int> points_by_curve_eval = curves.evaluated_points_by_curve();
 
   const IndexMask visible_strokes_for_lines = grease_pencil_get_visible_non_nurbs_curves(
-      object, drawing, memory);
+      object, drawing, layer_index, memory);
 
   const int offset = *r_drawing_line_start_offset;
   int line_index = *r_drawing_line_index;
@@ -808,7 +811,7 @@ static void grease_pencil_edit_batch_ensure(Object &object,
 
     IndexMaskMemory memory;
     const IndexMask visible_strokes_for_lines = grease_pencil_get_visible_non_nurbs_curves(
-        object, info.drawing, memory);
+        object, info.drawing, info.layer_index, memory);
 
     const IndexRange points(drawing_start_offset, curves.points_num());
     const IndexRange points_eval(drawing_line_start_offset, curves.evaluated_points_num());

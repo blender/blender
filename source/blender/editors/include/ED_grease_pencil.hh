@@ -1007,4 +1007,9 @@ void apply_eval_grease_pencil_data(const GreasePencil &eval_grease_pencil,
                                    const IndexMask &orig_layers,
                                    GreasePencil &orig_grease_pencil);
 
+/**
+ * Remove all the strokes that are marked as fill guides.
+ */
+bool remove_fill_guides(bke::CurvesGeometry &curves);
+
 }  // namespace blender::ed::greasepencil

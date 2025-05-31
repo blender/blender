@@ -99,6 +99,8 @@ typedef enum eGPDbrush_Flag {
   /* Affect only the drawing in the active layer.
    * Otherwise affect all editable drawings in the object. */
   GP_BRUSH_ACTIVE_LAYER_ONLY = (1 << 20),
+  /* Automatically remove fill guides created with fill tool. */
+  GP_BRUSH_FILL_AUTO_REMOVE_FILL_GUIDES = (1 << 21),
 } eGPDbrush_Flag;
 
 typedef enum eGPDbrush_Flag2 {
