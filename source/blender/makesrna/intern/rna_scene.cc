@@ -4454,6 +4454,72 @@ static void rna_def_unified_paint_settings(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Secondary Color", "");
   RNA_def_property_update(prop, 0, "rna_UnifiedPaintSettings_update");
 
+  prop = RNA_def_property(srna, "use_color_jitter", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flag", UNIFIED_PAINT_COLOR_JITTER);
+  RNA_def_property_ui_text(prop, "Use Color Jitter", "Jitter brush color");
+  RNA_def_property_update(prop, 0, "rna_UnifiedPaintSettings_update");
+
+  prop = RNA_def_property(srna, "hue_jitter", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+  RNA_def_property_float_sdna(prop, nullptr, "hsv_jitter[0]");
+  RNA_def_property_range(prop, 0, 1.0f);
+  RNA_def_property_ui_range(prop, 0, 1, 0.05, 2);
+  RNA_def_property_ui_text(prop, "Hue Jitter", "Color jitter effect on hue");
+  RNA_def_property_update(prop, 0, "rna_UnifiedPaintSettings_update");
+
+  prop = RNA_def_property(srna, "saturation_jitter", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+  RNA_def_property_float_sdna(prop, nullptr, "hsv_jitter[1]");
+  RNA_def_property_range(prop, 0, 1.0f);
+  RNA_def_property_ui_range(prop, 0, 1, 0.05, 2);
+  RNA_def_property_ui_text(prop, "Saturation Jitter", "Color jitter effect on saturation");
+  RNA_def_property_update(prop, 0, "rna_UnifiedPaintSettings_update");
+
+  prop = RNA_def_property(srna, "value_jitter", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+  RNA_def_property_float_sdna(prop, nullptr, "hsv_jitter[2]");
+  RNA_def_property_range(prop, 0, 1.0f);
+  RNA_def_property_ui_range(prop, 0, 1, 0.05, 2);
+  RNA_def_property_ui_text(prop, "Value Jitter", "Color jitter effect on value");
+  RNA_def_property_update(prop, 0, "rna_UnifiedPaintSettings_update");
+
+  prop = RNA_def_property(srna, "use_stroke_random_hue", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "color_jitter_flag", BRUSH_COLOR_JITTER_USE_HUE_AT_STROKE);
+  RNA_def_property_ui_icon(prop, ICON_GP_SELECT_STROKES, 0);
+  RNA_def_property_ui_text(prop, "Stroke Random", "Use randomness at stroke level");
+
+  prop = RNA_def_property(srna, "use_stroke_random_sat", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "color_jitter_flag", BRUSH_COLOR_JITTER_USE_SAT_AT_STROKE);
+  RNA_def_property_ui_icon(prop, ICON_GP_SELECT_STROKES, 0);
+  RNA_def_property_ui_text(prop, "Stroke Random", "Use randomness at stroke level");
+
+  prop = RNA_def_property(srna, "use_stroke_random_val", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "color_jitter_flag", BRUSH_COLOR_JITTER_USE_VAL_AT_STROKE);
+  RNA_def_property_ui_icon(prop, ICON_GP_SELECT_STROKES, 0);
+  RNA_def_property_ui_text(prop, "Stroke Random", "Use randomness at stroke level");
+
+  prop = RNA_def_property(srna, "use_random_press_hue", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "color_jitter_flag", BRUSH_COLOR_JITTER_USE_HUE_RAND_PRESS);
+  RNA_def_property_ui_icon(prop, ICON_STYLUS_PRESSURE, 0);
+  RNA_def_property_ui_text(prop, "Use Pressure", "Use pressure to modulate randomness");
+
+  prop = RNA_def_property(srna, "use_random_press_sat", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "color_jitter_flag", BRUSH_COLOR_JITTER_USE_SAT_RAND_PRESS);
+  RNA_def_property_ui_icon(prop, ICON_STYLUS_PRESSURE, 0);
+  RNA_def_property_ui_text(prop, "Use Pressure", "Use pressure to modulate randomness");
+
+  prop = RNA_def_property(srna, "use_random_press_val", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, nullptr, "color_jitter_flag", BRUSH_COLOR_JITTER_USE_VAL_RAND_PRESS);
+  RNA_def_property_ui_icon(prop, ICON_STYLUS_PRESSURE, 0);
+  RNA_def_property_ui_text(prop, "Use Pressure", "Use pressure to modulate randomness");
+
   prop = RNA_def_property(srna, "input_samples", PROP_INT, PROP_UNSIGNED);
   RNA_def_property_int_sdna(prop, nullptr, "input_samples");
   RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);

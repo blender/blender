@@ -428,11 +428,23 @@ static void do_paint_brush_task(const Scene &scene,
     }
   }
 
-  const float3 brush_color_rgb = ss.cache->invert ?
-                                     BKE_brush_secondary_color_get(&scene, &paint, &brush) :
-                                     BKE_brush_color_get(&scene, &paint, &brush);
+  float3 brush_color_rgb = ss.cache->invert ?
+                               BKE_brush_secondary_color_get(&scene, &paint, &brush) :
+                               BKE_brush_color_get(&scene, &paint, &brush);
+
+  IMB_colormanagement_srgb_to_scene_linear_v3(brush_color_rgb, brush_color_rgb);
+
+  const std::optional<BrushColorJitterSettings> color_jitter_settings =
+      BKE_brush_color_jitter_get_settings(&scene, &paint, &brush);
+  if (color_jitter_settings) {
+    brush_color_rgb = BKE_paint_randomize_color(*color_jitter_settings,
+                                                *ss.cache->initial_hsv_jitter,
+                                                ss.cache->stroke_distance,
+                                                ss.cache->pressure,
+                                                brush_color_rgb);
+  }
+
   float4 brush_color(brush_color_rgb, 1.0f);
-  IMB_colormanagement_srgb_to_scene_linear_v3(brush_color, brush_color);
 
   const Span<float4> orig_colors = orig_color_data_get_mesh(object, node);
 

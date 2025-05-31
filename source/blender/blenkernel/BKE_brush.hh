@@ -10,6 +10,8 @@
  * General operations for brushes.
  */
 
+#include <optional>
+
 #include "BLI_span.hh"
 
 #include "DNA_brush_enums.h"
@@ -164,7 +166,22 @@ ImBuf *BKE_brush_gen_radial_control_imbuf(Brush *br, bool secondary, bool displa
 
 /* Unified strength size and color. */
 
+struct BrushColorJitterSettings {
+  int flag;
+  /** Jitter amounts */
+  float hue;
+  float saturation;
+  float value;
+
+  /** Jitter pressure curves. */
+  struct CurveMapping *curve_hue_jitter;
+  struct CurveMapping *curve_sat_jitter;
+  struct CurveMapping *curve_val_jitter;
+};
+
 const float *BKE_brush_color_get(const Scene *scene, const Paint *paint, const Brush *brush);
+const std::optional<BrushColorJitterSettings> BKE_brush_color_jitter_get_settings(
+    const Scene *scene, const Paint *paint, const Brush *brush);
 const float *BKE_brush_secondary_color_get(const Scene *scene,
                                            const Paint *paint,
                                            const Brush *brush);

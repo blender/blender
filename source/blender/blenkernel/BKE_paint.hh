@@ -31,6 +31,7 @@ struct BMesh;
 struct BlendDataReader;
 struct BlendWriter;
 struct Brush;
+struct BrushColorJitterSettings;
 struct CurveMapping;
 struct Depsgraph;
 struct EnumPropertyItem;
@@ -314,6 +315,10 @@ void BKE_paint_face_set_overlay_color_get(int face_set, int seed, uchar r_color[
 
 /* Stroke related. */
 
+/* Random values are generated on each new stroke so each stroke
+ * gets a different starting point in the perlin noise. */
+blender::float3 seed_hsv_jitter();
+
 bool paint_calculate_rake_rotation(UnifiedPaintSettings &ups,
                                    const Brush &brush,
                                    const float mouse_pos[2],
@@ -324,6 +329,12 @@ void paint_update_brush_rake_rotation(UnifiedPaintSettings &ups,
                                       float rotation);
 
 void BKE_paint_stroke_get_average(const Scene *scene, const Object *ob, float stroke[3]);
+
+blender::float3 BKE_paint_randomize_color(const BrushColorJitterSettings &color_jitter,
+                                          const blender::float3 &initial_hsv_jitter,
+                                          const float distance,
+                                          const float pressure,
+                                          const blender::float3 &color);
 
 /* .blend I/O */
 
@@ -660,3 +671,4 @@ bool BKE_paint_canvas_image_get(PaintModeSettings *settings,
 int BKE_paint_canvas_uvmap_layer_index_get(const PaintModeSettings *settings, Object *ob);
 void BKE_sculpt_check_cavity_curves(Sculpt *sd);
 CurveMapping *BKE_sculpt_default_cavity_curve();
+CurveMapping *BKE_paint_default_curve();

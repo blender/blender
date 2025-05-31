@@ -6,6 +6,8 @@
  * \ingroup edgreasepencil
  */
 
+#include "BKE_brush.hh"
+#include "BKE_paint.hh"
 #include "BLI_noise.hh"
 #include "BLI_rand.hh"
 
@@ -141,82 +143,25 @@ ColorGeometry4f randomize_color(const BrushGpencilSettings &settings,
   {
     return color;
   }
-  /* TODO: This should be exposed as a setting to scale the noise along the stroke. */
-  constexpr float noise_scale = 1 / 20.0f;
 
-  float random_hue = 0.0f;
-  if ((settings.flag2 & GP_BRUSH_USE_HUE_AT_STROKE) == 0) {
-    random_hue = noise::perlin_signed(float2(distance * noise_scale, stroke_hue_factor));
-  }
-  else {
-    random_hue = stroke_hue_factor;
-  }
+  BrushColorJitterSettings jitter_settings = {
+      settings.color_jitter_flag,
+      settings.random_hue,
+      settings.random_saturation,
+      settings.random_value,
 
-  float random_saturation = 0.0f;
-  if ((settings.flag2 & GP_BRUSH_USE_SAT_AT_STROKE) == 0) {
-    random_saturation = noise::perlin_signed(
-        float2(distance * noise_scale, stroke_saturation_factor));
-  }
-  else {
-    random_saturation = stroke_saturation_factor;
-  }
+      settings.curve_rand_hue,
+      settings.curve_rand_saturation,
+      settings.curve_rand_value,
+  };
 
-  float random_value = 0.0f;
-  if ((settings.flag2 & GP_BRUSH_USE_VAL_AT_STROKE) == 0) {
-    random_value = noise::perlin_signed(float2(distance * noise_scale, stroke_value_factor));
-  }
-  else {
-    random_value = stroke_value_factor;
-  }
+  blender::float3 initial_hsv_jitter = {
+      stroke_hue_factor, stroke_saturation_factor, stroke_value_factor};
 
-  if ((settings.flag2 & GP_BRUSH_USE_HUE_RAND_PRESS) != 0) {
-    random_hue *= BKE_curvemapping_evaluateF(settings.curve_rand_hue, 0, pressure);
-  }
-  if ((settings.flag2 & GP_BRUSH_USE_SAT_RAND_PRESS) != 0) {
-    random_saturation *= BKE_curvemapping_evaluateF(settings.curve_rand_saturation, 0, pressure);
-  }
-  if ((settings.flag2 & GP_BRUSH_USE_VAL_RAND_PRESS) != 0) {
-    random_value *= BKE_curvemapping_evaluateF(settings.curve_rand_value, 0, pressure);
-  }
+  blender::float3 jittered = BKE_paint_randomize_color(
+      jitter_settings, initial_hsv_jitter, distance, pressure, {color.r, color.g, color.b});
 
-  float3 hsv;
-  linearrgb_to_srgb_v3_v3(hsv, color);
-  rgb_to_hsv_v(hsv, hsv);
-
-  hsv[0] += random_hue * settings.random_hue;
-
-  const float absolute_brightness = hsv[2] + random_value * settings.random_value;
-
-  /*
-   * To match relative brightness we want the ratio of the original to modified Value to not
-   * depend on the brightness of the input Value, Exp is used because we need a function that
-   * is positive for all 'x' and has the property that 'f(-x) = 1/f(x)' this is so that
-   * we make the Value on average growth and shrink by the same amount. To detriment the rate
-   * of the Exponential we set slope to match addition for small random values at an arbitrary
-   * Base Value.
-   */
-  constexpr float base_value = 0.5f;
-  const float relative_brightness = hsv[2] *
-                                    math::exp(random_value * settings.random_value / base_value);
-
-  /* Use the fourth power. */
-  const float blend_factor = math::pow(settings.random_value, 4.0f);
-  /* Use relative brightness at low randomness, and switch to absolute at high. */
-  hsv[2] = math::interpolate(relative_brightness, absolute_brightness, blend_factor);
-
-  /* Multiply by the current saturation to prevent grays from becoming red. */
-  hsv[1] += random_saturation * settings.random_saturation * 2.0f * hsv[1];
-
-  /* Wrap hue, clamp saturation and value. */
-  hsv[0] = math::fract(hsv[0]);
-  hsv[1] = math::clamp(hsv[1], 0.0f, 1.0f);
-  hsv[2] = math::clamp(hsv[2], 0.0f, 1.0f);
-
-  ColorGeometry4f random_color;
-  hsv_to_rgb_v(hsv, random_color);
-  srgb_to_linearrgb_v3_v3(random_color, random_color);
-  random_color.a = color.a;
-  return random_color;
+  return {jittered[0], jittered[1], jittered[2], 1};
 }
 
 }  // namespace blender::ed::greasepencil

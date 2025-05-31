@@ -233,6 +233,10 @@ struct ProjStrokeHandle {
    * we can assume at least the first is set while painting. */
   ProjPaintState *ps_views[8];
 
+  /* Store initial starting points for perlin noise on the beginning of each stroke when using
+   * color jitter. */
+  std::optional<blender::float3> initial_hsv_jitter;
+
   int ps_views_tot;
   int symmetry_flags;
 
@@ -5769,6 +5773,7 @@ static void paint_proj_stroke_ps(const bContext * /*C*/,
     paint_brush_color_get(scene,
                           paint,
                           brush,
+                          *ps_handle->initial_hsv_jitter,
                           false,
                           ps->mode == BRUSH_STROKE_INVERT,
                           distance,
@@ -5864,7 +5869,7 @@ static void project_state_init(bContext *C, Object *ob, ProjPaintState *ps, int 
     }
 
     /* disable for 3d mapping also because painting on mirrored mesh can create "stripes" */
-    ps->do_masking = paint_use_opacity_masking(brush);
+    ps->do_masking = paint_use_opacity_masking(scene, ps->paint, brush);
     ps->is_texbrush = (brush->mtex.tex && ps->brush_type == IMAGE_PAINT_BRUSH_TYPE_DRAW) ? true :
                                                                                            false;
     ps->is_maskbrush = (brush->mask_mtex.tex) ? true : false;
@@ -5955,9 +5960,13 @@ void *paint_proj_new_stroke(bContext *C, Object *ob, const float mouse[2], int m
   ToolSettings *settings = scene->toolsettings;
   char symmetry_flag_views[BOUNDED_ARRAY_TYPE_SIZE<decltype(ps_handle->ps_views)>()] = {0};
 
-  ps_handle = MEM_callocN<ProjStrokeHandle>("ProjStrokeHandle");
+  ps_handle = MEM_new<ProjStrokeHandle>("ProjStrokeHandle");
   ps_handle->scene = scene;
   ps_handle->brush = BKE_paint_brush(&settings->imapaint.paint);
+
+  if (BKE_brush_color_jitter_get_settings(scene, &settings->imapaint.paint, ps_handle->brush)) {
+    ps_handle->initial_hsv_jitter = seed_hsv_jitter();
+  }
 
   if (mode == BRUSH_STROKE_INVERT) {
     /* Bypass regular stroke logic. */
@@ -6045,7 +6054,7 @@ fail:
   for (int i = 0; i < ps_handle->ps_views_tot; i++) {
     MEM_delete(ps_handle->ps_views[i]);
   }
-  MEM_freeN(ps_handle);
+  MEM_delete(ps_handle);
   return nullptr;
 }
 
@@ -6075,7 +6084,7 @@ void paint_proj_stroke_done(void *ps_handle_p)
   Scene *scene = ps_handle->scene;
 
   if (ps_handle->is_clone_cursor_pick) {
-    MEM_freeN(ps_handle);
+    MEM_delete(ps_handle);
     return;
   }
 

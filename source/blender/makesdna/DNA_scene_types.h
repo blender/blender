@@ -1426,6 +1426,15 @@ typedef struct UnifiedPaintSettings {
   /** Unified brush secondary color. */
   float secondary_rgb[3];
 
+  /** Unified color jitter settings */
+  int color_jitter_flag;
+  float hsv_jitter[3];
+
+  /** Color jitter pressure curves. */
+  struct CurveMapping *curve_rand_hue;
+  struct CurveMapping *curve_rand_saturation;
+  struct CurveMapping *curve_rand_value;
+
   /** Unified brush stroke input samples. */
   int input_samples;
 
@@ -1508,6 +1517,7 @@ typedef enum {
   UNIFIED_PAINT_WEIGHT = (1 << 5),
   UNIFIED_PAINT_COLOR = (1 << 6),
   UNIFIED_PAINT_INPUT_SAMPLES = (1 << 7),
+  UNIFIED_PAINT_COLOR_JITTER = (1 << 8),
 
 } eUnifiedPaintSettingsFlags;
 

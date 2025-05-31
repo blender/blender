@@ -35,6 +35,7 @@
 #include "BKE_node.hh"
 #include "BKE_node_legacy_types.hh"
 #include "BKE_node_runtime.hh"
+#include "BKE_paint.hh"
 
 #include "SEQ_iterator.hh"
 #include "SEQ_sequencer.hh"
@@ -4265,6 +4266,45 @@ static void do_version_blur_node_options_to_inputs_animation(bNodeTree *node_tre
   });
 }
 
+/* Unified paint settings need a default curve for the color jitter options. */
+static void do_init_default_jitter_curves_in_unified_paint_settings(ToolSettings *ts)
+{
+  if (ts->unified_paint_settings.curve_rand_hue == nullptr) {
+    ts->unified_paint_settings.curve_rand_hue = BKE_paint_default_curve();
+  }
+  if (ts->unified_paint_settings.curve_rand_saturation == nullptr) {
+    ts->unified_paint_settings.curve_rand_saturation = BKE_paint_default_curve();
+  }
+  if (ts->unified_paint_settings.curve_rand_value == nullptr) {
+    ts->unified_paint_settings.curve_rand_value = BKE_paint_default_curve();
+  }
+}
+
+/* GP_BRUSH_* settings in gpencil_settings->flag2 were deprecated and replaced with
+ * brush->color_jitter_flag. */
+static void do_convert_gp_jitter_flags(Brush *brush)
+{
+  BrushGpencilSettings *settings = brush->gpencil_settings;
+  if (settings->flag2 & GP_BRUSH_USE_HUE_AT_STROKE) {
+    brush->color_jitter_flag |= BRUSH_COLOR_JITTER_USE_HUE_AT_STROKE;
+  }
+  if (settings->flag2 & GP_BRUSH_USE_SAT_AT_STROKE) {
+    brush->color_jitter_flag |= BRUSH_COLOR_JITTER_USE_SAT_AT_STROKE;
+  }
+  if (settings->flag2 & GP_BRUSH_USE_VAL_AT_STROKE) {
+    brush->color_jitter_flag |= BRUSH_COLOR_JITTER_USE_VAL_AT_STROKE;
+  }
+  if (settings->flag2 & GP_BRUSH_USE_HUE_RAND_PRESS) {
+    brush->color_jitter_flag |= BRUSH_COLOR_JITTER_USE_HUE_RAND_PRESS;
+  }
+  if (settings->flag2 & GP_BRUSH_USE_SAT_RAND_PRESS) {
+    brush->color_jitter_flag |= BRUSH_COLOR_JITTER_USE_SAT_RAND_PRESS;
+  }
+  if (settings->flag2 & GP_BRUSH_USE_VAL_RAND_PRESS) {
+    brush->color_jitter_flag |= BRUSH_COLOR_JITTER_USE_VAL_RAND_PRESS;
+  }
+}
+
 void do_versions_after_linking_450(FileData * /*fd*/, Main *bmain)
 {
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 8)) {
@@ -4879,6 +4919,18 @@ void do_versions_after_linking_450(FileData * /*fd*/, Main *bmain)
       }
     }
     FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 84)) {
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      do_init_default_jitter_curves_in_unified_paint_settings(scene->toolsettings);
+    }
+
+    LISTBASE_FOREACH (Brush *, brush, &bmain->brushes) {
+      if (brush->gpencil_settings) {
+        do_convert_gp_jitter_flags(brush);
+      }
+    }
   }
 
   /**

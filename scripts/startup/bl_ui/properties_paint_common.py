@@ -1178,6 +1178,43 @@ def brush_shared_settings(layout, context, brush, popover=False):
         layout.row().prop(brush, "direction", expand=True)
 
 
+def color_jitter_panel(layout, context, brush):
+    mode = UnifiedPaintPanel.get_brush_mode(context)
+    ups = context.scene.tool_settings.unified_paint_settings
+
+    is_sculpt_paint_mode = mode == 'SCULPT' and brush.sculpt_capabilities.has_color
+    if mode in {'PAINT_TEXTURE', 'PAINT_2D', 'PAINT_VERTEX'} or is_sculpt_paint_mode:
+        prop_owner = ups if ups.use_unified_color else brush
+        layout.use_property_split = False
+
+        header, panel = layout.panel("color_jitter_panel", default_closed=True)
+        header.prop(prop_owner, "use_color_jitter", text="Randomize Color")
+        if panel:
+            panel.use_property_split = True
+            panel.use_property_decorate = False
+
+            col = panel.column(align=True)
+            col.use_property_split = True
+
+            row = col.row(align=True)
+            row.enabled = prop_owner.use_color_jitter
+            row.prop(prop_owner, "hue_jitter", slider=True, text="Hue")
+            row.prop(prop_owner, "use_stroke_random_hue", text="", icon='GP_SELECT_STROKES')
+            row.prop(prop_owner, "use_random_press_hue", text="", icon='STYLUS_PRESSURE')
+
+            row = col.row(align=True)
+            row.enabled = prop_owner.use_color_jitter
+            row.prop(prop_owner, "saturation_jitter", slider=True, text="Saturation")
+            row.prop(prop_owner, "use_stroke_random_sat", text="", icon='GP_SELECT_STROKES')
+            row.prop(prop_owner, "use_random_press_sat", text="", icon='STYLUS_PRESSURE')
+
+            row = col.row(align=True)
+            row.enabled = prop_owner.use_color_jitter
+            row.prop(prop_owner, "value_jitter", slider=True, text="Value")
+            row.prop(prop_owner, "use_stroke_random_val", text="", icon='GP_SELECT_STROKES')
+            row.prop(prop_owner, "use_random_press_val", text="", icon='STYLUS_PRESSURE')
+
+
 def brush_settings_advanced(layout, context, settings, brush, popover=False):
     """Draw advanced brush settings for Sculpt, Texture/Vertex/Weight Paint modes."""
 
@@ -1357,6 +1394,9 @@ def brush_settings_advanced(layout, context, settings, brush, popover=False):
     if use_frontface:
         layout.prop(brush, "use_frontface", text="Front Faces Only")
 
+    if popover:
+        color_jitter_panel(layout, context, brush)
+
     # Brush modes
     header, panel = layout.panel("modes", default_closed=True)
     header.label(text="Modes")
@@ -1400,6 +1440,9 @@ def draw_color_settings(context, layout, brush, color_type=False):
         row.separator()
         row.operator("paint.brush_colors_flip", icon='FILE_REFRESH', text="", emboss=False)
         row.prop(ups, "use_unified_color", text="", icon='BRUSHES_ALL')
+
+        color_jitter_panel(layout, context, brush)
+
     # Gradient
     elif brush.color_type == 'GRADIENT':
         layout.template_color_ramp(brush, "gradient", expand=True)

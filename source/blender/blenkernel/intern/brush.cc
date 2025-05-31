@@ -86,6 +86,10 @@ static void brush_copy_data(Main * /*bmain*/,
   brush_dst->curve = BKE_curvemapping_copy(brush_src->curve);
   brush_dst->automasking_cavity_curve = BKE_curvemapping_copy(brush_src->automasking_cavity_curve);
 
+  brush_dst->curve_rand_hue = BKE_curvemapping_copy(brush_src->curve_rand_hue);
+  brush_dst->curve_rand_saturation = BKE_curvemapping_copy(brush_src->curve_rand_saturation);
+  brush_dst->curve_rand_value = BKE_curvemapping_copy(brush_src->curve_rand_value);
+
   if (brush_src->gpencil_settings != nullptr) {
     brush_dst->gpencil_settings = MEM_dupallocN<BrushGpencilSettings>(
         __func__, *(brush_src->gpencil_settings));
@@ -128,6 +132,10 @@ static void brush_free_data(ID *id)
   }
   BKE_curvemapping_free(brush->curve);
   BKE_curvemapping_free(brush->automasking_cavity_curve);
+
+  BKE_curvemapping_free(brush->curve_rand_hue);
+  BKE_curvemapping_free(brush->curve_rand_saturation);
+  BKE_curvemapping_free(brush->curve_rand_value);
 
   if (brush->gpencil_settings != nullptr) {
     BKE_curvemapping_free(brush->gpencil_settings->curve_sensitivity);
@@ -229,6 +237,16 @@ static void brush_blend_write(BlendWriter *writer, ID *id, const void *id_addres
     BKE_curvemapping_blend_write(writer, brush->automasking_cavity_curve);
   }
 
+  if (brush->curve_rand_hue) {
+    BKE_curvemapping_blend_write(writer, brush->curve_rand_hue);
+  }
+  if (brush->curve_rand_saturation) {
+    BKE_curvemapping_blend_write(writer, brush->curve_rand_saturation);
+  }
+  if (brush->curve_rand_value) {
+    BKE_curvemapping_blend_write(writer, brush->curve_rand_value);
+  }
+
   if (brush->gpencil_settings) {
     BLO_write_struct(writer, BrushGpencilSettings, brush->gpencil_settings);
 
@@ -293,6 +311,30 @@ static void brush_blend_read_data(BlendDataReader *reader, ID *id)
   }
   else {
     brush->automasking_cavity_curve = BKE_sculpt_default_cavity_curve();
+  }
+
+  BLO_read_struct(reader, CurveMapping, &brush->curve_rand_hue);
+  if (brush->curve_rand_hue) {
+    BKE_curvemapping_blend_read(reader, brush->curve_rand_hue);
+  }
+  else {
+    brush->curve_rand_hue = BKE_paint_default_curve();
+  }
+
+  BLO_read_struct(reader, CurveMapping, &brush->curve_rand_saturation);
+  if (brush->curve_rand_saturation) {
+    BKE_curvemapping_blend_read(reader, brush->curve_rand_saturation);
+  }
+  else {
+    brush->curve_rand_saturation = BKE_paint_default_curve();
+  }
+
+  BLO_read_struct(reader, CurveMapping, &brush->curve_rand_value);
+  if (brush->curve_rand_value) {
+    BKE_curvemapping_blend_read(reader, brush->curve_rand_value);
+  }
+  else {
+    brush->curve_rand_value = BKE_paint_default_curve();
   }
 
   /* grease pencil */
@@ -1082,6 +1124,42 @@ const float *BKE_brush_color_get(const Scene *scene, const Paint *paint, const B
     return scene->toolsettings->unified_paint_settings.rgb;
   }
   return brush->rgb;
+}
+
+/** Get color jitter settings if enabled. */
+const std::optional<BrushColorJitterSettings> BKE_brush_color_jitter_get_settings(
+    const Scene *scene, const Paint *paint, const Brush *brush)
+{
+  if (BKE_paint_use_unified_color(scene->toolsettings, paint)) {
+    if ((scene->toolsettings->unified_paint_settings.flag & UNIFIED_PAINT_COLOR_JITTER) == 0) {
+      return std::nullopt;
+    }
+
+    const UnifiedPaintSettings settings = scene->toolsettings->unified_paint_settings;
+    return BrushColorJitterSettings{
+        settings.color_jitter_flag,
+        settings.hsv_jitter[0],
+        settings.hsv_jitter[1],
+        settings.hsv_jitter[2],
+        settings.curve_rand_hue,
+        settings.curve_rand_saturation,
+        settings.curve_rand_value,
+    };
+  }
+
+  if ((brush->flag2 & BRUSH_JITTER_COLOR) == 0) {
+    return std::nullopt;
+  }
+
+  return BrushColorJitterSettings{
+      brush->color_jitter_flag,
+      brush->hsv_jitter[0],
+      brush->hsv_jitter[1],
+      brush->hsv_jitter[2],
+      brush->curve_rand_hue,
+      brush->curve_rand_saturation,
+      brush->curve_rand_value,
+  };
 }
 
 const float *BKE_brush_secondary_color_get(const Scene *scene,
