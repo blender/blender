@@ -1911,6 +1911,22 @@ bool RNA_enum_name(const EnumPropertyItem *item, const int value, const char **r
   return false;
 }
 
+bool RNA_enum_name_gettexted(const EnumPropertyItem *item,
+                             int value,
+                             const char *translation_context,
+                             const char **r_name)
+{
+  bool result;
+
+  result = RNA_enum_name(item, value, r_name);
+
+  if (result) {
+    *r_name = BLT_translate_do_iface(translation_context, *r_name);
+  }
+
+  return result;
+};
+
 bool RNA_enum_description(const EnumPropertyItem *item,
                           const int value,
                           const char **r_description)
