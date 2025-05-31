@@ -5773,6 +5773,7 @@ class VIEW3D_MT_edit_greasepencil(Menu):
         layout.menu("VIEW3D_MT_edit_greasepencil_showhide")
         layout.operator_menu_enum("grease_pencil.separate", "mode", text="Separate")
         layout.menu("VIEW3D_MT_edit_greasepencil_cleanup")
+        layout.operator("grease_pencil.outline", text="Outline")
 
         layout.separator()
 
@@ -5793,6 +5794,7 @@ class VIEW3D_MT_edit_greasepencil_stroke(Menu):
         layout.operator("grease_pencil.stroke_subdivide", text="Subdivide")
         layout.operator("grease_pencil.stroke_subdivide_smooth", text="Subdivide and Smooth")
         layout.menu("GREASE_PENCIL_MT_stroke_simplify")
+        layout.operator("grease_pencil.outline", text="Outline")
 
         layout.separator()
 
@@ -8309,6 +8311,7 @@ class VIEW3D_MT_greasepencil_edit_context_menu(Menu):
             col.operator("grease_pencil.stroke_subdivide", text="Subdivide")
             col.operator("grease_pencil.stroke_subdivide_smooth", text="Subdivide and Smooth")
             col.operator("grease_pencil.stroke_simplify", text="Simplify")
+            col.operator("grease_pencil.outline", text="Outline")
 
             col.separator()
 
@@ -8352,6 +8355,7 @@ class VIEW3D_MT_greasepencil_edit_context_menu(Menu):
             col.operator("grease_pencil.stroke_subdivide", text="Subdivide")
             col.operator("grease_pencil.stroke_subdivide_smooth", text="Subdivide and Smooth")
             col.operator("grease_pencil.stroke_simplify", text="Simplify")
+            col.operator("grease_pencil.outline", text="Outline")
 
             col.separator()
 
