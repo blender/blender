@@ -1027,17 +1027,14 @@ static void scene_blend_write(BlendWriter *writer, ID *id, const void *id_addres
   ToolSettings *tos = sce->toolsettings;
   BLO_write_struct(writer, ToolSettings, tos);
 
-  BLO_write_struct(writer, CurveMapping, &tos->unified_paint_settings.curve_rand_hue);
   if (tos->unified_paint_settings.curve_rand_hue) {
     BKE_curvemapping_blend_write(writer, tos->unified_paint_settings.curve_rand_hue);
   }
 
-  BLO_write_struct(writer, CurveMapping, &tos->unified_paint_settings.curve_rand_saturation);
   if (tos->unified_paint_settings.curve_rand_saturation) {
     BKE_curvemapping_blend_write(writer, tos->unified_paint_settings.curve_rand_saturation);
   }
 
-  BLO_write_struct(writer, CurveMapping, &tos->unified_paint_settings.curve_rand_value);
   if (tos->unified_paint_settings.curve_rand_value) {
     BKE_curvemapping_blend_write(writer, tos->unified_paint_settings.curve_rand_value);
   }
