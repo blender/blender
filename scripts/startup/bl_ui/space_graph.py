@@ -8,8 +8,9 @@ from bl_ui.space_dopesheet import (
     DopesheetFilterPopoverBase,
     dopesheet_filter,
 )
-
-from bl_ui.space_toolsystem_common import PlayheadSnappingPanel
+from bl_ui.utils import (
+    PlayheadSnappingPanel,
+)
 
 
 class GRAPH_PT_playhead_snapping(PlayheadSnappingPanel, Panel):

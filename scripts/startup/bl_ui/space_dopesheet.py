@@ -16,8 +16,9 @@ from bl_ui.properties_data_grease_pencil import (
     GreasePencil_LayerAdjustmentsPanel,
     GreasePencil_LayerDisplayPanel,
 )
-from bl_ui.space_toolsystem_common import PlayheadSnappingPanel
-
+from bl_ui.utils import (
+    PlayheadSnappingPanel,
+)
 
 from rna_prop_ui import PropertyPanel
 

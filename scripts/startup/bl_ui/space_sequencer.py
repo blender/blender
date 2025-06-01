@@ -18,8 +18,11 @@ from bl_ui.properties_grease_pencil_common import (
 )
 from bl_ui.space_toolsystem_common import (
     ToolActivePanelHelper,
+)
+from bl_ui.utils import (
     PlayheadSnappingPanel,
 )
+
 from rna_prop_ui import PropertyPanel
 
 

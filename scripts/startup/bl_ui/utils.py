@@ -38,3 +38,30 @@ class PresetPanel:
         layout.operator_context = 'EXEC_DEFAULT'
 
         Menu.draw_preset(self, context)
+
+
+class PlayheadSnappingPanel:
+    bl_region_type = 'HEADER'
+    bl_label = "Playhead"
+
+    @classmethod
+    def poll(cls, context):
+        del context
+        return True
+
+    def draw(self, context):
+        tool_settings = context.tool_settings
+        layout = self.layout
+        col = layout.column()
+
+        col.prop(tool_settings, "use_snap_playhead")
+        col.prop(tool_settings, "playhead_snap_distance")
+        col.separator()
+        col.label(text="Snap Target")
+        col.prop(tool_settings, "snap_playhead_element", expand=True)
+        col.separator()
+
+        if 'FRAME' in tool_settings.snap_playhead_element:
+            col.prop(tool_settings, "snap_playhead_frame_step")
+        if 'SECOND' in tool_settings.snap_playhead_element:
+            col.prop(tool_settings, "snap_playhead_second_step")
