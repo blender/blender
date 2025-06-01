@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
 
+#include <pxr/usd/sdf/types.h>
 #include <pxr/usd/usd/common.h>
 
 struct Main;
