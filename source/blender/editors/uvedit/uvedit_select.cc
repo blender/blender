@@ -4896,9 +4896,9 @@ static wmOperatorStatus uv_select_similar_vert_exec(bContext *C, wmOperator *op)
           changed = true;
         }
       }
-      if (changed) {
-        uv_select_tag_update_for_object(depsgraph, ts, ob);
-      }
+    }
+    if (changed) {
+      uv_select_tag_update_for_object(depsgraph, ts, ob);
     }
   }
 
@@ -5004,9 +5004,9 @@ static wmOperatorStatus uv_select_similar_edge_exec(bContext *C, wmOperator *op)
           changed = true;
         }
       }
-      if (changed) {
-        uv_select_tag_update_for_object(depsgraph, ts, ob);
-      }
+    }
+    if (changed) {
+      uv_select_tag_update_for_object(depsgraph, ts, ob);
     }
   }
 
