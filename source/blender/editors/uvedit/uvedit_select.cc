@@ -4867,7 +4867,7 @@ static wmOperatorStatus uv_select_similar_vert_exec(bContext *C, wmOperator *op)
 
   for (Object *ob : objects) {
     BMesh *bm = BKE_editmesh_from_object(ob)->bm;
-    if (bm->totvertsel == 0) {
+    if (!(ts->uv_flag & UV_SYNC_SELECTION) && (bm->totvertsel == 0)) {
       continue;
     }
 
@@ -4981,7 +4981,7 @@ static wmOperatorStatus uv_select_similar_edge_exec(bContext *C, wmOperator *op)
 
   for (Object *ob : objects) {
     BMesh *bm = BKE_editmesh_from_object(ob)->bm;
-    if (bm->totvertsel == 0) {
+    if (!(ts->uv_flag & UV_SYNC_SELECTION) && (bm->totvertsel == 0)) {
       continue;
     }
 
