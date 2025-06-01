@@ -6,6 +6,8 @@
 
 #include "GPU_shader.hh"
 
+#include "NOD_composite.hh" /* Own include. */
+
 #include "COM_node_operation.hh"
 #include "COM_utilities.hh"
 
