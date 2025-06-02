@@ -346,6 +346,22 @@ static bool rna_NodeSocket_is_linked_get(PointerRNA *ptr)
   return sock->is_directly_linked();
 }
 
+static bool rna_NodeSocket_is_inactive_get(PointerRNA *ptr)
+{
+  bNodeTree *ntree = reinterpret_cast<bNodeTree *>(ptr->owner_id);
+  bNodeSocket *sock = ptr->data_as<bNodeSocket>();
+  ntree->ensure_topology_cache();
+  return sock->is_inactive();
+}
+
+static bool rna_NodeSocket_is_icon_visible_get(PointerRNA *ptr)
+{
+  bNodeTree *ntree = reinterpret_cast<bNodeTree *>(ptr->owner_id);
+  bNodeSocket *sock = ptr->data_as<bNodeSocket>();
+  ntree->ensure_topology_cache();
+  return sock->is_icon_visible();
+}
+
 static void rna_NodeSocket_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
 {
   bNodeTree *ntree = reinterpret_cast<bNodeTree *>(ptr->owner_id);
@@ -726,6 +742,20 @@ static void rna_def_node_socket(BlenderRNA *brna)
   RNA_def_property_boolean_negative_sdna(prop, nullptr, "flag", SOCK_COLLAPSED);
   RNA_def_property_ui_text(prop, "Expanded", "Socket links are expanded in the user interface");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, nullptr);
+
+  prop = RNA_def_property(srna, "is_inactive", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_boolean_funcs(prop, "rna_NodeSocket_is_inactive_get", nullptr);
+  RNA_def_property_ui_text(
+      prop,
+      "Inactive",
+      "Socket is grayed out because it has been detected to not have any effect on the output");
+
+  prop = RNA_def_property(srna, "is_icon_visible", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_boolean_funcs(prop, "rna_NodeSocket_is_icon_visible_get", nullptr);
+  RNA_def_property_ui_text(
+      prop, "Icon Visible", "Socket is drawn as interactive icon in the node editor");
 
   prop = RNA_def_property(srna, "hide_value", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", SOCK_HIDE_VALUE);
