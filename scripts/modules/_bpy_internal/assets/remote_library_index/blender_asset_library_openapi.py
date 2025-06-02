@@ -7,6 +7,7 @@
 
 from __future__ import annotations
 
+from enum import Enum
 from typing import Annotated, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -21,9 +22,124 @@ class Contact(BaseModel):
     email: Optional[str] = None
 
 
+class AssetIDTypeV1(Enum):
+    brush = "brush"
+    action = "action"
+    collection = "collection"
+    object = "object"
+    nodetree = "nodetree"
+    material = "material"
+    world = "world"
+
+
+class AssetMetadataV1(BaseModel):
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    catalog_id: Annotated[
+        Optional[str],
+        Field(
+            description="The catalog UUID that contains this asset. Having the UUID here makes it easier to create a per-blendfile .cats.txt file, if that's ever necessary.\n"
+        ),
+    ] = None
+    tags: Annotated[Optional[list[str]], Field(min_length=1)] = None
+    author: Optional[str] = None
+    description: Optional[str] = None
+    license: Optional[str] = None
+    copyright: Optional[str] = None
+
+
+class CatalogV1(BaseModel):
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    path: str
+    simple_name: Optional[str] = None
+    uuids: Annotated[list[str], Field(min_length=1)]
+
+
 class AssetLibraryMeta(BaseModel):
     model_config = ConfigDict(
         extra="allow",
     )
+    api_versions: Annotated[
+        dict[str, str],
+        Field(
+            description='API versions of this asset library. This is reflected in the URLs of all OpenAPI operations except the one to get this metadata.\nA single asset library can expose multiple versions, in order to be backward-compatible with older versions of Blender.\nProperties should be "v1", "v2", etc. and their values should point to their respective index files.\n'
+        ),
+    ]
     name: Annotated[str, Field(description="Name of this asset library.")]
     contact: Contact
+
+
+class AssetLibraryIndexV1(BaseModel):
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    schema_version: Annotated[
+        str,
+        Field(
+            description="Version number of the used schema. This should be the same as the version of this OpenAPI definition, as described in its 'info.version' field.\n"
+        ),
+    ]
+    asset_size_bytes: int
+    asset_count: Annotated[
+        Optional[int],
+        Field(
+            description="Total number of assets in this index. This is the sum of all `asset_count` fields of each page.\n"
+        ),
+    ] = None
+    page_urls: Annotated[
+        Optional[list[str]],
+        Field(
+            description="URLs of the individual asset index pages. When relative, these are taken as relative to the main server URL (i.e. the root of all paths defined in this OpenAPI spec).\n"
+        ),
+    ] = None
+    catalogs: Optional[list[CatalogV1]] = None
+
+
+class AssetV1(BaseModel):
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    name: Annotated[str, Field(description="Name of the Blender data-block.")]
+    id_type: AssetIDTypeV1
+    blender_version_min: Annotated[
+        Optional[str],
+        Field(
+            description="Minimal version of Blender required to use this asset. Should be a semantic version, which may be shortened ('3.1' matches any '3.1.x' version).\n"
+        ),
+    ] = None
+    archive_url: Annotated[
+        str,
+        Field(
+            description="URL where a blend file containing this asset can be downloaded. If the URL is relative, it is to be interpreted as relative to the library's root URL.\n"
+        ),
+    ]
+    archive_size_in_bytes: int
+    archive_hash: Annotated[
+        str,
+        Field(
+            description='Hash of the file at \'archive_url\'. This should be in the format "HASHTYPE:HASH-AS-HEX". Currently only the "SHA256" hash type is supported.\n'
+        ),
+    ]
+    thumbnail_url: Annotated[
+        Optional[str],
+        Field(
+            description="URL where a blend file containing this asset can be downloaded. If the URL is relative, it is to be interpreted as relative to the library's root URL.\n"
+        ),
+    ] = None
+    meta: Optional[AssetMetadataV1] = None
+
+
+class AssetLibraryIndexPageV1(BaseModel):
+    model_config = ConfigDict(
+        extra="allow",
+    )
+    asset_count: Annotated[
+        int,
+        Field(
+            description="Number of assets in this page. This is declared separately, so that a partial JSON parser has this information before the entire file is downloaded and parsed.\n"
+        ),
+    ]
+    assets: list[AssetV1]

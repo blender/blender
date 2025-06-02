@@ -15,6 +15,8 @@ bl_info = {
     "category": "System",
 }
 
+from typing import TYPE_CHECKING, TypeAlias
+
 if "bpy" in locals():
     # This doesn't need to be inline because sub-modules aren't important into the global name-space.
     # The check for `bpy` ensures this is always assigned before use.
@@ -29,6 +31,16 @@ from bpy.props import (
     PointerProperty,
     StringProperty,
 )
+
+
+# Only import submodules here when necessary for type checking.
+# At runtime, the module is imported only when it's actually used.
+if TYPE_CHECKING:
+    from _bpy_internal.assets.remote_library_index import index_downloader
+
+    _RemoteAssetListingDownloader: TypeAlias = index_downloader.RemoteAssetListingDownloader
+else:
+    _RemoteAssetListingDownloader: TypeAlias = object
 
 
 # -----------------------------------------------------------------------------
@@ -403,32 +415,53 @@ def repos_to_notify():
 # -----------------------------------------------------------------------------
 # Handlers
 
-@bpy.app.handlers.persistent
-def remote_asset_libraries_sync(library, *_):
-    import shutil
-    import os
+_downloaders: list[_RemoteAssetListingDownloader] = []
 
-    # Ignore in background mode as this is for the UI to stay in sync.
-    # Automated tasks must sync explicitly.
+
+@bpy.app.handlers.persistent
+def remote_asset_libraries_sync(library: bpy.types.UserAssetLibrary, *args) -> None:
+    """Download the remote asset library listing."""
+
+    # Ignore in background mode, as that should trigger these updates explicitly.
     if bpy.app.background:
         return
 
-    print_debug("SYNC:", library.name)
-    # There may be nothing to upgrade.
-
+    # Only download remote libraries.
     if not library.use_remote_url:
         return
-    if not bpy.app.online_access:
-        if not library.remote_url.startswith("file://"):
-            return
 
-    fake_download_directory = os.path.join(
-        bpy.utils.system_resource('EXTENSIONS'),
-        "asset_indices",
-        "polyhaven",
-    )
-    print("SYNC: Copying from {:s} to {:s}".format(fake_download_directory, library.path))
-    shutil.copytree(fake_download_directory, library.path, dirs_exist_ok=True)
+    # Only download over HTTP.
+    supported_schemas = ("http://", "https://")
+    if not any(library.remote_url.startswith(schema) for schema in supported_schemas):
+        print("  skipping {!r}, can only handle {!s}".format(library.remote_url, ", ".join(supported_schemas)))
+        return
+
+    # Refuse to download if online access is turned off.
+    if not bpy.app.online_access:
+        print("  skipping {!r}, online access is not allowed,".format(library.remote_url))
+        return
+
+    # Create the downloader and start downloading.
+    from _bpy_internal.assets.remote_library_index import index_downloader
+
+    downloader = index_downloader.RemoteAssetListingDownloader(
+        library.remote_url,
+        library.path,
+        _remote_asset_libraries_sync_done)
+    downloader.download_and_process()
+
+    # Just to keep the Python object referenced:
+    _downloaders.append(downloader)
+
+
+def _remote_asset_libraries_sync_done(downloader: _RemoteAssetListingDownloader) -> None:
+    """Called when the downloading of hte remote asset listing is done.
+
+    Here "done" does not imply "successful", as cancellations, network errors,
+    or other issues can cause things to abort. In that case, this function is
+    still called.
+    """
+    _downloaders.remove(downloader)
 
 
 @bpy.app.handlers.persistent
@@ -790,6 +823,9 @@ def register():
 
     cli_commands.append(bpy.utils.register_cli_command("extension", cli_extension))
 
+    from _bpy_internal.assets import remote_library_index
+    cli_commands.append(bpy.utils.register_cli_command("asset_index", remote_library_index.asset_index_main))
+
     monkeypatch_install()
 
     if not bpy.app.background:
@@ -831,6 +867,11 @@ def unregister():
     handlers = bpy.app.handlers._extension_repos_files_clear
     if extenion_repos_files_clear in handlers:
         handlers.remove(extenion_repos_files_clear)
+
+    # pylint: disable-next=protected-access
+    handlers = bpy.app.handlers._remote_asset_libraries_sync
+    if remote_asset_libraries_sync in handlers:
+        handlers.remove(remote_asset_libraries_sync)
 
     for cmd in cli_commands:
         bpy.utils.unregister_cli_command(cmd)

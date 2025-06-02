@@ -4,12 +4,12 @@
 
 # This is the OpenAPI specification for Blender's Remote Assets system.
 #
-# It has been intentionally trimmed down to the bare minimum for a review of the
-# code generator in general, and how it integrates into Blender's build system.
+# At this moment, the `paths` section is not used by the Blender code, and is
+# here just for referencing by humans. It is also still being designed, so don't
+# take it as set in stone.
 #
-# The `paths` section is not used by the Blender code, and is here just for
-# referencing by humans. The Python code generator just uses the data structures
-# specified by the `components` section.
+# The Python code generator just uses the data structures specified by the
+# `components` section.
 
 openapi: 3.0.0
 info:
@@ -25,11 +25,14 @@ info:
 servers:
   - url: /
 paths:
+  ## Meta
+
   /_asset-library-meta.json:
     summary: Meta-information about this asset library.
     get:
       summary: Retrieve the asset library meta info.
       operationId: getLibraryMeta
+      tags: [meta]
       responses:
         "200":
           description: normal response
@@ -38,11 +41,13 @@ paths:
               schema:
                 $ref: "#/components/schemas/AssetLibraryMeta"
 
+  ## Index
   /_v1/asset-index.json:
     summary: The index of the asset library, containing the metadata of all available assets.
     get:
       summary: Get the asset library index.
       operationId: getLibraryIndex
+      tags: [index]
       responses:
         "200":
           description: normal response
@@ -51,19 +56,71 @@ paths:
               schema:
                 $ref: "#/components/schemas/AssetLibraryIndexV1"
 
+  /_v1/assets-{page}.json:
+    summary: >
+      The index of the asset library, containing the metadata of all available assets.
+      Note that the actual URLs of these pages are listed in the `asset-index.json` above.
+      The path specified here is merely a suggestion.
+    get:
+      summary: Get the asset library index.
+      operationId: getLibraryIndexPage
+      tags: [index]
+      parameters:
+        - name: page
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: normal response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AssetLibraryIndexPageV1"
+
+tags:
+  - name: meta
+    description: Info about the asset library itself.
+  - name: index
+    description: Access to the asset library's list of assets.
+
 components:
   schemas:
+    ## Meta
 
     AssetLibraryMeta:
       type: object
       description: "Meta-data of this asset library."
       properties:
+        "api_versions":
+          type: object
+          description: >
+            API versions of this asset library. This is reflected in the URLs of
+            all OpenAPI operations except the one to get this metadata.
+
+            A single asset library can expose multiple versions, in order to be
+            backward-compatible with older versions of Blender.
+
+            Properties should be "v1", "v2", etc. and their values should point
+            to their respective index files.
+          additionalProperties:
+            type: string
+            # Setting this to "uri" will cause issues with the
+            # Pydantic-generated code, as it doesn't allow relative, path-only
+            # URLs:
+            format: string
+          patternProperties:
+            "^v[0-9]+$":
+              type: string
+              format: string
         "name":
           type: string
           description: Name of this asset library.
         "contact": { $ref: "#/components/schemas/Contact" }
       required: [api_versions, name, contact]
       example:
+        api_versions:
+          v1: _v1/asset-index.json
         name: Blender Essentials
         contact:
           name: Blender
@@ -77,3 +134,145 @@ components:
         "url": { type: string }
         "email": { type: string }
       required: [name]
+
+    ## Index
+
+    AssetLibraryIndexV1:
+      type: object
+      description: The available assets at this library.
+      properties:
+        "schema_version":
+          type: string
+          description: >
+            Version number of the used schema. This should be the same as the
+            version of this OpenAPI definition, as described in its
+            'info.version' field.
+        "asset_size_bytes": { type: integer, format: int64 }
+        "asset_count":
+          type: integer
+          description: >
+            Total number of assets in this index. This is the sum of all
+            `asset_count` fields of each page.
+        "page_urls":
+          type: array
+          items:
+            type: string
+            format: url
+          description: >
+            URLs of the individual asset index pages. When relative, these are
+            taken as relative to the main server URL (i.e. the root of all paths
+            defined in this OpenAPI spec).
+        "catalogs":
+          type: array
+          items: { $ref: "#/components/schemas/CatalogV1" }
+      required: [schema_version, asset_size_bytes, assets]
+
+    AssetLibraryIndexPageV1:
+      type: object
+      description: Any number of assets.
+      properties:
+        "asset_count":
+          type: integer
+          description: >
+            Number of assets in this page. This is declared separately, so that
+            a partial JSON parser has this information before the entire file is
+            downloaded and parsed.
+        "assets":
+          type: array
+          items: { $ref: "#/components/schemas/AssetV1" }
+      required: [asset_count, assets]
+
+    AssetV1:
+      type: object
+      description: >
+        Representation of a single asset. Assets are always Blender data-blocks
+        in some blend file.
+
+        This asset may be stored in the same blend file as other assets, and so
+        it does _not_ represent a single downloadable item.
+      properties:
+        "name":
+          type: string
+          description: Name of the Blender data-block.
+        "id_type": { $ref: "#/components/schemas/AssetIDTypeV1" }
+        "blender_version_min":
+          type: string
+          description: >
+            Minimal version of Blender required to use this asset. Should be a
+            semantic version, which may be shortened ('3.1' matches any '3.1.x'
+            version).
+        "archive_url":
+          type: string
+          format: url
+          description: >
+            URL where a blend file containing this asset can be downloaded.
+            If the URL is relative, it is to be interpreted as relative to the
+            library's root URL.
+        "archive_size_in_bytes": { type: integer, format: int64 }
+        "archive_hash":
+          type: string
+          description: >
+            Hash of the file at 'archive_url'. This should be in the format
+            "HASHTYPE:HASH-AS-HEX". Currently only the "SHA256" hash type is
+            supported.
+        "thumbnail_url":
+          type: string
+          format: url
+          description: >
+            URL where a blend file containing this asset can be downloaded.
+            If the URL is relative, it is to be interpreted as relative to the
+            library's root URL.
+        "meta": { $ref: "#/components/schemas/AssetMetadataV1" }
+      required:
+        - "name"
+        - "id_type"
+        - "archive_url"
+        - "archive_size_in_bytes"
+        - "archive_hash"
+
+    AssetIDTypeV1:
+      type: string
+      description: Type of the Blender data-block.
+      enum:
+        - "brush"
+        - "action"
+        - "collection"
+        - "object"
+        - "nodetree"
+        - "material"
+        - "world"
+        # TODO: add more.
+
+    AssetMetadataV1:
+      type: object
+      description: >
+        Metadata of an asset, as defined by Blender's `AssetMeta` DNA struct.
+        Fields should either be non-empty or absent.
+      properties:
+        "catalog_id":
+          type: string
+          description: >
+            The catalog UUID that contains this asset. Having the UUID here
+            makes it easier to create a per-blendfile .cats.txt file, if that's
+            ever necessary.
+        "tags":
+          type: array
+          items: { type: string }
+          minItems: 1
+        "author": { type: string }
+        "description": { type: string }
+        "license": { type: string }
+        "copyright": { type: string }
+
+    CatalogV1:
+      type: object
+      description: An asset catalog, which can be represented by one or more UUIDs.
+      properties:
+        "path": { type: string }
+        "simple_name": { type: string }
+        "uuids":
+          type: array
+          items:
+            type: string
+          minItems: 1
+      required: [path, uuids]
