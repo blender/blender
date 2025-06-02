@@ -3829,6 +3829,11 @@ static Object *convert_curves_legacy_to_grease_pencil(Base &base,
   newob->data = grease_pencil;
   newob->type = OB_GREASE_PENCIL;
 
+  /* For some reason this must be called, otherwise evaluated id_cow will still be the original
+   * curves id (and that seems to only happen if "Keep Original" is enabled, and only with this
+   * specific conversion combination), not sure why. Ref: #138793 */
+  DEG_id_tag_update(&grease_pencil->id, ID_RECALC_GEOMETRY);
+
   BKE_id_free(nullptr, curves_nomain);
 
   return newob;
