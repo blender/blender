@@ -425,6 +425,7 @@ static proxy_output_ctx *alloc_proxy_output_ffmpeg(MovieReader *anim,
   rv->c->time_base.den = 25;
   rv->c->time_base.num = 1;
   rv->st->time_base = rv->c->time_base;
+  rv->st->avg_frame_rate = av_inv_q(rv->c->time_base);
 
   /* This range matches #eFFMpegCrf. `crf_range_min` corresponds to lowest quality,
    * `crf_range_max` to highest quality. */
@@ -455,7 +456,7 @@ static proxy_output_ctx *alloc_proxy_output_ffmpeg(MovieReader *anim,
     rv->c->thread_type = FF_THREAD_SLICE;
   }
 
-  if (rv->of->flags & AVFMT_GLOBALHEADER) {
+  if (rv->of->oformat->flags & AVFMT_GLOBALHEADER) {
     rv->c->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
   }
 
@@ -463,8 +464,6 @@ static proxy_output_ctx *alloc_proxy_output_ffmpeg(MovieReader *anim,
   rv->c->color_primaries = codec_ctx->color_primaries;
   rv->c->color_trc = codec_ctx->color_trc;
   rv->c->colorspace = codec_ctx->colorspace;
-
-  avcodec_parameters_from_context(rv->st->codecpar, rv->c);
 
   ffmpeg_copy_display_matrix(st, rv->st);
 
@@ -498,6 +497,8 @@ static proxy_output_ctx *alloc_proxy_output_ffmpeg(MovieReader *anim,
     MEM_freeN(rv);
     return nullptr;
   }
+
+  avcodec_parameters_from_context(rv->st->codecpar, rv->c);
 
   rv->orig_height = st->codecpar->height;
 
@@ -627,17 +628,14 @@ static void free_proxy_output_ffmpeg(proxy_output_ctx *ctx, int rollback)
     add_to_proxy_output_ffmpeg(ctx, nullptr);
   }
 
-  avcodec_flush_buffers(ctx->c);
-
   av_write_trailer(ctx->of);
-
-  avcodec_free_context(&ctx->c);
 
   if (ctx->of->oformat) {
     if (!(ctx->of->oformat->flags & AVFMT_NOFILE)) {
       avio_close(ctx->of->pb);
     }
   }
+  avcodec_free_context(&ctx->c);
   avformat_free_context(ctx->of);
 
   if (ctx->sws_ctx) {
