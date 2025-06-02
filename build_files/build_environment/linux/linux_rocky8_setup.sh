@@ -158,6 +158,7 @@ PACKAGES_FOR_LIBS=(
     libinput-devel
     libevdev-devel
     mesa-libEGL-devel
+    mesa-libgbm-devel
     systemd-devel # for `libudev` (not so obvious!).
     # Required by: `weston --headless` (run-time requirement for off screen rendering).
     mesa-dri-drivers
