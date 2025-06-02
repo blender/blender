@@ -703,6 +703,7 @@ class USERPREF_PT_system_display_graphics(SystemPanel, CenterAlignMixIn, Panel):
             col = layout.column()
             col.label(text="Vulkan backend limitations:", icon='INFO')
             col.label(text="\u2022 USD/Hydra is not supported", icon='BLANK1')
+            col.label(text="\u2022 Low VR performance", icon='BLANK1')
 
 
 class USERPREF_PT_system_os_settings(SystemPanel, CenterAlignMixIn, Panel):
