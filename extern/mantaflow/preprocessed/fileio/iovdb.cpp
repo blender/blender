@@ -54,14 +54,28 @@ template<class GridType, class T> void importVDB(typename GridType::Ptr from, Gr
   using ValueT = typename GridType::ValueType;
 
   // Check if current grid is to be read as a sparse grid, active voxels (only) will be copied
+  
   if (to->saveSparse()) {
     to->clear();  // Ensure that destination grid is empty before writing
     for (typename GridType::ValueOnCIter iter = from->cbeginValueOn(); iter.test(); ++iter) {
       ValueT vdbValue = *iter;
-      openvdb::Coord coord = iter.getCoord();
       T toMantaValue;
       convertFrom(vdbValue, &toMantaValue);
-      to->set(coord.x(), coord.y(), coord.z(), toMantaValue);
+      // #91174 #124064 - Check if iteration is Voxel or Tile
+      if (iter.isVoxelValue()) {
+        openvdb::Coord coord = iter.getCoord();
+        to->set(coord.x(), coord.y(), coord.z(), toMantaValue);
+      }
+      else {
+        openvdb::CoordBBox bbox;
+        iter.getBoundingBox(bbox);
+        // If grid has 8x8x8 block with the same value, it is stored as Tile with single value.
+        // We need to iterate over the bounding box and copy such value to all voxels in 8x8x8 node.
+        for (openvdb::CoordBBox::Iterator<true> ijk(bbox); ijk; ++ijk) {
+          openvdb::Coord coord = *ijk;
+          to->set(coord.x(), coord.y(), coord.z(), toMantaValue);
+        }
+      }
     }
   }
   // When importing all grid cells, using a grid accessor is usually faster than a value iterator
