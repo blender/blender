@@ -380,6 +380,8 @@ class Report:
         desc = f" tex:'{tex.image.name}' ({rel_path}) a:{tex.use_alpha}"
         if str(tex.colorspace_is_data) == "True":  # unset value is "Ellipsis"
             desc += f" data"
+        if str(tex.colorspace_name) != "Ellipsis":
+            desc += f" {tex.colorspace_name}"
         if tex.texcoords != 'UV':
             desc += f" uv:{tex.texcoords}"
         if tex.extension != 'REPEAT':

@@ -46,9 +46,9 @@
   - specular ior 0.500
   - specular tint (1.000, 1.000, 1.000)
   - roughness 0.050
-  - metallic 0.040 tex:'checkerboard_metallic.png' (textures/checkerboard_metallic.png) a:False
+  - metallic 0.040 tex:'checkerboard_metallic.png' (textures/checkerboard_metallic.png) a:False Non-Color
   - ior 1.500
-  - alpha 1.000 tex:'checkerboard_diffuse.png' (textures/checkerboard_diffuse.png) a:True
+  - alpha 1.000 tex:'checkerboard_diffuse.png' (textures/checkerboard_diffuse.png) a:True Non-Color
   - emission color (0.060, 0.070, 0.080) tex:'checkerboard_emissive.png' (textures/checkerboard_emissive.png) a:False
   - emission strength 0.090
   - viewport diffuse (0.010, 0.020, 0.030, 1.000)

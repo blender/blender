@@ -21,6 +21,7 @@
 
 #include "NOD_shader.h"
 
+#include "IMB_colormanagement.hh"
 #include "IMB_imbuf_types.hh"
 
 #include "fbx_import_material.hh"
@@ -299,6 +300,15 @@ static void add_image_texture(Main *bmain,
 {
   Image *image = load_texture_image(bmain, file_dir, *ftex);
   BLI_assert(image != nullptr);
+
+  /* Set "non-color" color space for all "data" textures. */
+  if (!STREQ(socket_name, "Base Color") && !STREQ(socket_name, "Specular Tint") &&
+      !STREQ(socket_name, "Sheen Tint") && !STREQ(socket_name, "Coat Tint") &&
+      !STREQ(socket_name, "Emission Color"))
+  {
+    STRNCPY(image->colorspace_settings.name,
+            IMB_colormanagement_role_colorspace_name_get(COLOR_ROLE_DATA));
+  }
 
   /* Add texture node and any UV transformations if needed. */
   bNode *image_node = add_node(ntree, SH_NODE_TEX_IMAGE, node_locx_image, node_locy);
