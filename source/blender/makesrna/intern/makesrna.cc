@@ -4350,6 +4350,7 @@ static void rna_generate_property(FILE *f, StructRNA *srna, const char *nest, Pr
           prop->flag_parameter,
           prop->flag_internal,
           prop->tags);
+  fprintf(f, "PropertyPathTemplateType(%d), ", prop->path_template_type);
   rna_print_c_string(f, prop->name);
   fprintf(f, ",\n\t");
   rna_print_c_string(f, prop->description);

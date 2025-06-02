@@ -350,6 +350,15 @@ struct PropertyRNA {
   /** The subset of #StructRNA::prop_tag_defines values that applies to this property. */
   short tags;
 
+  /**
+   * Indicates which set of template variables this property supports.
+   *
+   * Must be set for path properties that are marked as supporting path
+   * templates (`PROP_PATH_SUPPORTS_TEMPLATES` in `flag`). Is ignored for other
+   * properties.
+   */
+  PropertyPathTemplateType path_template_type;
+
   /** User readable name. */
   const char *name;
   /** Single line description, displayed in the tool-tip for example. */
