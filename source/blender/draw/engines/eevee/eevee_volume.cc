@@ -31,7 +31,7 @@ void VolumeModule::init()
   int tile_size = clamp_i(scene_eval->eevee.volumetric_tile_size, 1, 16);
 
   int3 tex_size;
-  /* Try to match resolution setting but fallback to lower resolution
+  /* Try to match resolution setting but fall back to lower resolution
    * if it doesn't fit the hardware limits. */
   for (; tile_size <= 16; tile_size *= 2) {
     /* Find Froxel Texture resolution. */

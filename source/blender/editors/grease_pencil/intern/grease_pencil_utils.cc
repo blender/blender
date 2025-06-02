@@ -342,7 +342,7 @@ float3 DrawingPlacement::try_project_depth(const float2 co) const
   }
 
   float3 proj_point;
-  /* Fallback to `View` placement. */
+  /* Fall back to `View` placement. */
   ED_view3d_win_to_3d(view3d_, region_, placement_loc_, co, proj_point);
   return proj_point;
 }

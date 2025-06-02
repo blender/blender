@@ -519,7 +519,7 @@ void transform_snap_project_individual_apply(TransInfo *t)
       }
 
       /* If both face ray-cast and face nearest methods are enabled, start with face ray-cast and
-       * fallback to face nearest ray-cast does not hit. */
+       * fall back to face nearest ray-cast does not hit. */
       bool hit = false;
       if (t->tsnap.mode & SCE_SNAP_INDIVIDUAL_PROJECT) {
         hit = applyFaceProject(t, tc, td);

@@ -153,7 +153,7 @@ def get_transform_generators_base_info(data):
         path = data.path_from_id()
 
         # try to use the name of the data element to group the F-Curve
-        # else fallback on the KeyingSet name
+        # else fall back on the KeyingSet name
         grouping = getattr(data, "name", None)
 
     # return the ID-block and the path

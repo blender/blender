@@ -6090,7 +6090,7 @@ static std::string userpref_show_get_description(bContext *C,
       return fmt::format(fmt::runtime(TIP_("Show {} preferences")), section_name);
     }
   }
-  /* Fallback to default. */
+  /* Fall back to default. */
   return "";
 }
 

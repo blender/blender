@@ -325,7 +325,7 @@ static void bm_vert_calc_surface_tangent(BMesh *bm, BMVert *v, float r_no[3])
   BMIter eiter;
   BMEdge *e;
 
-  /* get outer normal, fallback to inner (if this vertex is on a boundary) */
+  /* get outer normal, fall back to inner (if this vertex is on a boundary) */
   bool found_outer = false, found_inner = false, found_outer_tag = false;
 
   float no_outer[3] = {0.0f}, no_inner[3] = {0.0f};

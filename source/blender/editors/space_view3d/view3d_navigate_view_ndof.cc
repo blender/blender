@@ -667,7 +667,7 @@ static wmOperatorStatus ndof_orbit_invoke_impl(bContext *C,
 
   if (ndof->progress != P_FINISHING) {
     const bool has_rotation = ndof_has_rotate(ndof, rv3d);
-    /* if we can't rotate, fallback to translate (locked axis views) */
+    /* if we can't rotate, fall back to translate (locked axis views) */
     const bool has_translate = ndof_has_translate(ndof, v3d, rv3d) &&
                                (RV3D_LOCK_FLAGS(rv3d) & RV3D_LOCK_ROTATION);
     const bool has_zoom = (ndof->tvec[2] != 0.0f) && !rv3d->is_persp;
@@ -772,7 +772,7 @@ static wmOperatorStatus ndof_orbit_zoom_invoke_impl(bContext *C,
     }
   }
   else if ((rv3d->persp == RV3D_ORTHO) && RV3D_VIEW_IS_AXIS(rv3d->view)) {
-    /* if we can't rotate, fallback to translate (locked axis views) */
+    /* if we can't rotate, fall back to translate (locked axis views) */
     const bool has_translate = ndof_has_translate(ndof, v3d, rv3d);
     const bool has_zoom = (ndof->tvec[2] != 0.0f) && ED_view3d_offset_lock_check(v3d, rv3d);
 

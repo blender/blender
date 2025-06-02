@@ -782,7 +782,7 @@ void ui_hsvcube_pos_from_vals(
 
 /**
  * \param float_precision: For number buttons the precision
- * to use or -1 to fallback to the button default.
+ * to use or -1 to fall back to the button default.
  * \param use_exp_float: Use exponent representation of floats
  * when out of reasonable range (outside of 1e3/1e-3).
  */

@@ -2735,8 +2735,8 @@ static wmOperatorStatus grease_pencil_paste_strokes_exec(bContext *C, wmOperator
         layers_to_paste_into[clip_layer_i] = &node->as_layer();
         continue;
       }
-      else if (active_layer && active_layer->is_editable()) {
-        /* Fallback to active layer. */
+      if (active_layer && active_layer->is_editable()) {
+        /* Fall back to active layer. */
         BKE_report(
             op->reports, RPT_WARNING, "Couldn't find matching layer, pasting into active layer");
         layers_to_paste_into[clip_layer_i] = active_layer;

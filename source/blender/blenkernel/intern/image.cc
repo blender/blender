@@ -3366,7 +3366,7 @@ void BKE_image_signal(Main *bmain, Image *ima, ImageUser *iuser, int signal)
 
 /**
  * \return render-pass for a given pass index and active view.
- * fallback to available if there are missing passes for active view.
+ * fall back to available if there are missing passes for active view.
  */
 static RenderPass *image_render_pass_get(RenderLayer *rl,
                                          const int pass,
@@ -3397,7 +3397,7 @@ static RenderPass *image_render_pass_get(RenderLayer *rl,
     }
   }
 
-  /* fallback to the first pass in the layer */
+  /* fall back to the first pass in the layer */
   if (rpass_ret == nullptr) {
     rp_index = 0;
     rpass_ret = static_cast<RenderPass *>(rl->passes.first);

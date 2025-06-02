@@ -11,7 +11,7 @@
  * means it is still very little (for example 256 bytes).
  *
  * Due to this size requirements we try to use push constants when it fits on the device. If it
- * doesn't fit we fallback to use an uniform buffer.
+ * doesn't fit we fall back to use an uniform buffer.
  *
  * Shader developers are responsible to fine-tune the performance of the shader. One way to do this
  * is to tailor what will be sent as a push constant to keep the push constants within the limits.

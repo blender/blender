@@ -719,7 +719,7 @@ static MenuSearch_Data *menu_items_from_ui_create(bContext *C,
             bool drawstr_is_empty = false;
             if (drawstr_sep != nullptr) {
               BLI_assert(str_buf.size() == 0);
-              /* Detect empty string, fallback to menu name. */
+              /* Detect empty string, fall back to menu name. */
               const char *drawstr = but->drawstr.c_str();
               int drawstr_len = drawstr_sep - but->drawstr.c_str();
               if (UNLIKELY(drawstr_len == 0)) {

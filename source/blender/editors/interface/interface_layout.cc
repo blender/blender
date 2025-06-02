@@ -1870,7 +1870,7 @@ static bool ui_item_rna_is_expand(PropertyRNA *prop, int index, const eUI_Item_F
 /**
  * Find first layout ancestor (or self) with a heading set.
  *
- * \returns the layout to add the heading to as fallback (i.e. if it can't be placed in a split
+ * \returns the layout to add the heading to as a fallback (i.e. if it can't be placed in a split
  *          layout). Its #uiLayout.heading member can be cleared to mark the heading as added (so
  *          it's not added multiple times). Returns a pointer to the heading
  */
@@ -2198,7 +2198,7 @@ void uiLayout::prop(PointerRNA *ptr,
   }
   /* End split. */
   else if (heading_layout) {
-    /* Could not add heading to split layout, fallback to inserting it to the layout with the
+    /* Could not add heading to split layout, fall back to inserting it to the layout with the
      * heading itself. */
     ui_layout_heading_label_add(heading_layout, heading_layout, false, false);
   }

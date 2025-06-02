@@ -402,7 +402,7 @@ static const char *wm_context_member_from_ptr(bContext *C, const PointerRNA *ptr
         break;
       }
       if (is_id) {
-        /* Found a reference to this ID, so fallback to it if there is no direct reference. */
+        /* Found a reference to this ID, so fall back to it if there is no direct reference. */
         member_id = identifier;
       }
     }
@@ -713,7 +713,7 @@ std::optional<std::string> WM_prop_pystring_assign(bContext *C,
                                        std::nullopt;
 
   if (!lhs.has_value()) {
-    /* Fallback to `bpy.data.foo[id]` if we don't find in the context. */
+    /* Fall back to `bpy.data.foo[id]` if we don't find in the context. */
     if (std::optional<std::string> lhs_str = RNA_path_full_property_py(ptr, prop, index)) {
       lhs = lhs_str;
     }

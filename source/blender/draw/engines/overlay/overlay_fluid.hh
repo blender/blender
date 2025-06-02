@@ -211,7 +211,7 @@ class Fluids : Overlay {
             sub_pass->push_constant("cell_filter", int(fds->gridlines_cell_filter));
             break;
           }
-          /* Otherwise, fallback to none color type. */
+          /* Otherwise, fall back to none color type. */
           ATTR_FALLTHROUGH;
         case FLUID_GRIDLINE_COLOR_TYPE_NONE:
           sub_pass = grid_lines_flat_ps_;

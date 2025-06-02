@@ -2185,7 +2185,7 @@ static bool set_initial_components_for_mouse(bContext *C,
 
   std::optional<int> initial_vert = target_vert_update_and_get(C, ob, mval);
   if (!initial_vert) {
-    /* Cursor not over the mesh, for creating valid initial falloffs, fallback to the last active
+    /* Cursor not over the mesh, for creating valid initial falloffs, fall back to the last active
      * vertex in the sculpt session. */
     const int last_active_vert_index = ss.last_active_vert_index();
     /* It still may be the case that there is no last active vert in rare circumstances for

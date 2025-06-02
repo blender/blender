@@ -4749,7 +4749,7 @@ static int pyrna_struct_meta_idprop_setattro(PyObject *cls, PyObject *attr, PyOb
     }
   }
 
-  /* Fallback to standard Python's `delattr/setattr`. */
+  /* Fall back to standard Python's `delattr/setattr`. */
   return PyType_Type.tp_setattro(cls, attr, value);
 }
 
@@ -5708,7 +5708,7 @@ static PyObject *foreach_getset(BPy_PropertyRNA *self, PyObject *args, int set)
       }
     }
 
-    /* Could not use the buffer, fallback to sequence. */
+    /* Could not use the buffer, fall back to sequence. */
     if (!buffer_is_compat) {
       array = PyMem_Malloc(size * tot);
 
@@ -5784,7 +5784,7 @@ static PyObject *foreach_getset(BPy_PropertyRNA *self, PyObject *args, int set)
       }
     }
 
-    /* Could not use the buffer, fallback to sequence. */
+    /* Could not use the buffer, fall back to sequence. */
     if (!buffer_is_compat) {
       array = PyMem_Malloc(size * tot);
 

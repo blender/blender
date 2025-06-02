@@ -358,7 +358,7 @@ GPUTexture *IMB_create_gpu_texture(const char *name,
 
       fprintf(stderr, "ST3C support not found,");
     }
-    /* Fallback to uncompressed texture. */
+    /* Fall back to uncompressed texture. */
     fprintf(stderr, " falling back to uncompressed (%s, %ix%i).\n", name, ibuf->x, ibuf->y);
   }
 

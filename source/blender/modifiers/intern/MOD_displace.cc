@@ -162,7 +162,7 @@ static void displaceModifier_do_task(void *__restrict userdata,
   float(*tex_co)[3] = data->tex_co;
   blender::MutableSpan<blender::float3> positions = data->positions;
 
-  /* When no texture is used, we fallback to white. */
+  /* When no texture is used, we fall back to white. */
   const float delta_fixed = 1.0f - dmd->midlevel;
 
   TexResult texres;

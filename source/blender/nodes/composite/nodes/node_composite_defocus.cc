@@ -433,7 +433,7 @@ class DefocusOperation : public NodeOperation {
     return (focal_length * focus_distance) / (focus_distance - focal_length);
   }
 
-  /* Returns the focal length in meters. Fallback to 50 mm in case of an invalid camera. Ensure a
+  /* Returns the focal length in meters. Fall back to 50 mm in case of an invalid camera. Ensure a
    * minimum of 1e-6. */
   float get_focal_length()
   {
@@ -453,7 +453,7 @@ class DefocusOperation : public NodeOperation {
   }
 
   /* Computes the number of pixels per meter of the sensor size. This is essentially the resolution
-   * over the sensor size, using the sensor fit axis. Fallback to DEFAULT_SENSOR_WIDTH in case of
+   * over the sensor size, using the sensor fit axis. Fall back to DEFAULT_SENSOR_WIDTH in case of
    * an invalid camera. Note that the stored sensor size is in millimeter, so convert to meters. */
   float compute_pixels_per_meter()
   {
@@ -480,7 +480,7 @@ class DefocusOperation : public NodeOperation {
     return default_value;
   }
 
-  /* Returns the f-stop number. Fallback to 1e-3 for zero f-stop. */
+  /* Returns the f-stop number. Fall back to 1e-3 for zero f-stop. */
   float get_f_stop()
   {
     return math::max(1e-3f, node_storage(bnode()).fstop);

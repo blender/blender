@@ -1528,7 +1528,7 @@ void BKE_collection_object_add_from(Main *bmain, Scene *scene, Object *ob_src, O
 
   if (!is_instantiated) {
     /* In case we could not find any non-linked collections in which instantiate our ob_dst,
-     * fallback to scene's master collection... */
+     * fall back to scene's master collection... */
     collection_object_add(bmain, scene->master_collection, ob_dst, nullptr, 0, true);
   }
 

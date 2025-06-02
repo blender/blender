@@ -770,7 +770,7 @@ static wmOperatorStatus brush_asset_revert_exec(bContext *C, wmOperator *op)
     BKE_paint_brush_set(paint, reinterpret_cast<Brush *>(reverted_id));
   }
   else {
-    /* bke::asset_edit_id_revert() deleted the brush for sure, even on failure. Fallback to the
+    /* bke::asset_edit_id_revert() deleted the brush for sure, even on failure. Fall back to the
      * default. */
     BKE_paint_brush_set_default(bmain, paint);
   }

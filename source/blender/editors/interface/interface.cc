@@ -735,7 +735,7 @@ static int ui_but_calc_float_precision(uiBut *but, double value)
 
   /* first check for various special cases:
    * * If button is radians, we want additional precision (see #39861).
-   * * If prec is not set, we fallback to a simple default */
+   * * If prec is not set, we fall back to a simple default */
   if (ui_but_is_unit_radians(but) && prec < 5) {
     prec = 5;
   }
@@ -1081,7 +1081,7 @@ static bool ui_but_update_from_old_block(uiBlock *block,
     oldbut_uptr = &oldblock->buttons[**but_old_idx];
   }
   else {
-    /* Fallback to block search. */
+    /* Fall back to block search. */
     *but_old_idx = ui_but_find_old_idx(oldblock, but, matched_old_buttons);
     oldbut_uptr = but_old_idx->has_value() ? &oldblock->buttons[**but_old_idx] : nullptr;
   }

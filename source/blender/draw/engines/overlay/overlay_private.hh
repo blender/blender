@@ -911,7 +911,7 @@ struct Resources : public select::SelectMap {
     if (((G.moving & G_TRANSFORM_OBJ) != 0) && is_selected) {
       return TH_TRANSFORM;
     }
-    /* Sets the 'theme_id' or fallback to wire */
+    /* Sets the 'theme_id' or fall back to wire */
     if ((ob_ref.object->base_flag & BASE_SELECTED) != 0) {
       return (active) ? TH_ACTIVE : TH_SELECT;
     }

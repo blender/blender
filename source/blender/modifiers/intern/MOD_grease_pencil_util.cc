@@ -354,7 +354,7 @@ VArray<float> get_influence_vertex_weights(const bke::CurvesGeometry &curves,
     /* If vertex group is not set, use full weight for all vertices. */
     return VArray<float>::ForSingle(1.0f, curves.point_num);
   }
-  /* Vertex group weights, with zero weight as fallback. */
+  /* Vertex group weights, with zero weight as a fallback. */
   VArray<float> influence_weights = *curves.attributes().lookup_or_default<float>(
       influence_data.vertex_group_name, bke::AttrDomain::Point, 0.0f);
 

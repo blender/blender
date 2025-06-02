@@ -843,7 +843,7 @@ class CryptoMatteOperation : public BaseCryptoMatteOperation {
   }
 
   /* The domain should be centered with the same size as the source. In case of invalid source,
-   * fallback to the domain inferred from the input. */
+   * fall back to the domain inferred from the input. */
   Domain compute_domain() override
   {
     switch (get_source()) {
@@ -858,7 +858,7 @@ class CryptoMatteOperation : public BaseCryptoMatteOperation {
   }
 
   /* In case of an image source, the domain should be centered with the same size as the source
-   * image. In case of an invalid image, fallback to the domain inferred from the input. */
+   * image. In case of an invalid image, fall back to the domain inferred from the input. */
   Domain compute_image_domain()
   {
     BLI_assert(get_source() == CMP_NODE_CRYPTOMATTE_SOURCE_IMAGE);

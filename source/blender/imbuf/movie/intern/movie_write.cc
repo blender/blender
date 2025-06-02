@@ -348,7 +348,7 @@ static const AVCodec *get_av1_encoder(
        * where using a different encoder is desirable, such as in #103849. */
       codec = avcodec_find_encoder_by_name("librav1e");
       if (!codec) {
-        /* Fallback to `libaom-av1` if librav1e is not found. */
+        /* Fall back to `libaom-av1` if librav1e is not found. */
         codec = avcodec_find_encoder_by_name("libaom-av1");
       }
       break;

@@ -51,7 +51,7 @@ inline void mix_into_first_expr(ExprFn &&expr,
     }
   }
   else {
-    /* Fallback or arbitrary bit spans. This could be implemented more efficiently but adds more
+    /* Fallback for arbitrary bit spans. This could be implemented more efficiently but adds more
      * complexity and is not necessary yet. */
     for (const int64_t i : IndexRange(size)) {
       const bool result = expr(BitInt(first_arg[i].test()), BitInt(args[i].test())...) != 0;
@@ -98,7 +98,7 @@ inline bool any_set_expr(ExprFn &&expr, const FirstBitSpanT &first_arg, const Bi
     return false;
   }
   else {
-    /* Fallback or arbitrary bit spans. This could be implemented more efficiently but adds more
+    /* Fallback for arbitrary bit spans. This could be implemented more efficiently but adds more
      * complexity and is not necessary yet. */
     for (const int64_t i : IndexRange(size)) {
       const BitInt result = expr(BitInt(first_arg[i].test()), BitInt(args[i].test())...);
@@ -177,7 +177,7 @@ inline void foreach_1_index_expr(ExprFn &&expr,
     }
   }
   else {
-    /* Fallback or arbitrary bit spans. This could be implemented more efficiently but adds more
+    /* Fallback for arbitrary bit spans. This could be implemented more efficiently but adds more
      * complexity and is not necessary yet. */
     for (const int64_t i : IndexRange(size)) {
       const BitInt result = expr(BitInt(first_arg[i].test()), BitInt(args[i].test())...);

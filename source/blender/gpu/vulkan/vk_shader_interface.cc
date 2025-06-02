@@ -106,7 +106,7 @@ void VKShaderInterface::init(const shader::ShaderCreateInfo &info)
       input++;
     }
   }
-  /* Add push constant when using uniform buffer as fallback. */
+  /* Add push constant when using uniform buffer as a fallback. */
   int32_t push_constants_fallback_location = -1;
   if (push_constants_storage_type == VKPushConstants::StorageType::UNIFORM_BUFFER) {
     copy_input_name(input, PUSH_CONSTANTS_FALLBACK_NAME, name_buffer_, name_buffer_offset);

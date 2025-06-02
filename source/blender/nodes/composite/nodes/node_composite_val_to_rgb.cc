@@ -96,7 +96,7 @@ static int node_gpu_material(GPUMaterial *material,
                               GPU_uniform(&color_band->data[1].r));
       case COLBAND_INTERP_B_SPLINE:
       case COLBAND_INTERP_CARDINAL:
-        /* Not optimized yet. Fallback to gradient texture. */
+        /* Not optimized yet. Fall back to gradient texture. */
         break;
     }
   }

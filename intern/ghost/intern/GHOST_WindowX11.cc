@@ -1231,7 +1231,7 @@ GHOST_Context *GHOST_WindowX11::newDrawingContext(GHOST_TDrawingContextType type
         }
         delete context;
       }
-      /* EGL initialization failed, try to fallback to a GLX context. */
+      /* EGL initialization failed, try to fall back to a GLX context. */
 #  endif
 
       for (int minor = 6; minor >= 3; --minor) {
@@ -1520,7 +1520,7 @@ uint16_t GHOST_WindowX11::getDPIHint()
     }
   }
 
-  /* Fallback to calculating DPI using X reported DPI, set using `xrandr --dpi`. */
+  /* Fall back to calculating DPI using X reported DPI, set using `xrandr --dpi`. */
   XWindowAttributes attr;
   if (!XGetWindowAttributes(m_display, m_window, &attr)) {
     /* Failed to get window attributes, return X11 default DPI */

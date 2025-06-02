@@ -837,7 +837,7 @@ enum LightingType : uint32_t {
   LIGHT_TRANSMISSION = 2u,
   LIGHT_VOLUME = 3u,
   /* WORKAROUND: Special value used to tag translucent BSDF with thickness.
-   * Fallback to LIGHT_DIFFUSE. */
+   * Fall back to LIGHT_DIFFUSE. */
   LIGHT_TRANSLUCENT_WITH_THICKNESS = 4u,
 };
 

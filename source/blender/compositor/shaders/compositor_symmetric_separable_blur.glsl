@@ -9,8 +9,8 @@ float4 load_input(int2 texel)
   float4 color;
   if (extend_bounds) {
     /* If bounds are extended, then we treat the input as padded by a radius amount of pixels. So
-     * we load the input with an offset by the radius amount and fallback to a transparent color if
-     * it is out of bounds. Notice that we subtract 1 because the weights texture have an extra
+     * we load the input with an offset by the radius amount and fall back to a transparent color
+     * if it is out of bounds. Notice that we subtract 1 because the weights texture have an extra
      * center weight, see the SymmetricSeparableBlurWeights for more information. */
     int blur_size = texture_size(weights_tx).x - 1;
     color = texture_load(input_tx, texel - int2(blur_size, 0), float4(0.0f));
