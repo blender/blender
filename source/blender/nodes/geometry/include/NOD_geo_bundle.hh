@@ -30,17 +30,13 @@ inline bool socket_type_supported_in_bundle(const eNodeSocketDatatype socket_typ
               SOCK_CLOSURE);
 }
 
-struct CombineBundleItemsAccessor {
+struct CombineBundleItemsAccessor : public socket_items::SocketItemsAccessorDefaults {
   using ItemT = NodeGeometryCombineBundleItem;
   static StructRNA *item_srna;
   static int node_type;
   static constexpr StringRefNull node_idname = "GeometryNodeCombineBundle";
   static constexpr bool has_type = true;
   static constexpr bool has_name = true;
-  static constexpr bool has_single_identifier_str = true;
-  static constexpr bool has_name_validation = false;
-  static constexpr bool has_custom_initial_name = false;
-  static constexpr char unique_name_separator = '.';
   struct operator_idnames {
     static constexpr StringRefNull add_item = "NODE_OT_combine_bundle_item_add";
     static constexpr StringRefNull remove_item = "NODE_OT_combine_bundle_item_remove";
@@ -106,17 +102,13 @@ struct CombineBundleItemsAccessor {
   }
 };
 
-struct SeparateBundleItemsAccessor {
+struct SeparateBundleItemsAccessor : public socket_items::SocketItemsAccessorDefaults {
   using ItemT = NodeGeometrySeparateBundleItem;
   static StructRNA *item_srna;
   static int node_type;
   static constexpr StringRefNull node_idname = "GeometryNodeSeparateBundle";
   static constexpr bool has_type = true;
   static constexpr bool has_name = true;
-  static constexpr bool has_single_identifier_str = true;
-  static constexpr bool has_name_validation = false;
-  static constexpr bool has_custom_initial_name = false;
-  static constexpr char unique_name_separator = '.';
   struct operator_idnames {
     static constexpr StringRefNull add_item = "NODE_OT_separate_bundle_item_add";
     static constexpr StringRefNull remove_item = "NODE_OT_separate_bundle_item_remove";

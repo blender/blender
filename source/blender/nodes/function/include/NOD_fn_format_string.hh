@@ -14,13 +14,12 @@ namespace blender::nodes {
  * Makes it possible to use various functions (e.g. the ones in `NOD_socket_items.hh`) for format
  * string items.
  */
-struct FormatStringItemsAccessor {
+struct FormatStringItemsAccessor : public socket_items::SocketItemsAccessorDefaults {
   using ItemT = NodeFunctionFormatStringItem;
   static StructRNA *item_srna;
   static constexpr StringRefNull node_idname = "FunctionNodeFormatString";
   static constexpr bool has_type = true;
   static constexpr bool has_name = true;
-  static constexpr bool has_single_identifier_str = true;
   static constexpr bool has_name_validation = true;
   static constexpr bool has_custom_initial_name = true;
   static constexpr char unique_name_separator = '_';
