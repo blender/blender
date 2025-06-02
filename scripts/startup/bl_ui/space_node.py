@@ -202,6 +202,7 @@ class NODE_HT_header(Header):
         if is_compositor:
             row = layout.row(align=True)
             row.prop(snode, "show_backdrop", toggle=True)
+            row.active = snode.node_tree is not None
             sub = row.row(align=True)
             sub.active = snode.show_backdrop
             sub.prop(snode, "backdrop_channels", icon_only=True, text="")
@@ -209,19 +210,22 @@ class NODE_HT_header(Header):
             # Gizmo toggle and popover.
             row = layout.row(align=True)
             row.prop(snode, "show_gizmo", icon='GIZMO', text="")
+            row.active = snode.node_tree is not None
             sub = row.row(align=True)
-            sub.active = snode.show_gizmo
+            sub.active = snode.show_gizmo and row.active
             sub.popover(panel="NODE_PT_gizmo_display", text="")
 
         # Snap
         row = layout.row(align=True)
         row.prop(tool_settings, "use_snap_node", text="")
+        row.active = snode.node_tree is not None
 
         # Overlay toggle & popover
         row = layout.row(align=True)
         row.prop(overlay, "show_overlays", icon='OVERLAY', text="")
         sub = row.row(align=True)
-        sub.active = overlay.show_overlays
+        row.active = snode.node_tree is not None
+        sub.active = overlay.show_overlays and row.active
         sub.popover(panel="NODE_PT_overlay", text="")
 
 
@@ -245,6 +249,7 @@ class NODE_PT_gizmo_display(Panel):
 
         col.active = snode.show_gizmo
         colsub = col.column()
+        colsub.active = snode.node_tree is not None and col.active
         colsub.prop(snode, "show_gizmo_active_node", text="Active Node")
 
 
