@@ -629,10 +629,10 @@ def _download_queued_items(
     Managed by the BackgroundDownloader class above.
     """
     # Uncomment this to get debug/info level logging:
-    logging.basicConfig(
-        format="%(asctime)-15s %(processName)22s %(levelname)8s %(name)s %(message)s",
-        level=logging.DEBUG,
-    )
+    # logging.basicConfig(
+    #     format="%(asctime)-15s %(processName)22s %(levelname)8s %(name)s %(message)s",
+    #     level=logging.DEBUG,
+    # )
     log = logger.getChild('background_process')
     log.info('Downloader background process starting')
 
