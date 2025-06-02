@@ -329,13 +329,13 @@ static void propagate_right_to_left(const bNodeTree &tree,
 
       for (const int output : node_interface.outputs.index_range()) {
         const bNodeSocket &output_socket = *output_sockets[output];
-        DataRequirement ouput_requirement = DataRequirement::None;
+        DataRequirement output_requirement = DataRequirement::None;
         for (const bNodeSocket *socket : output_socket.directly_linked_sockets()) {
           if (!socket->is_available()) {
             continue;
           }
-          ouput_requirement = merge(ouput_requirement,
-                                    input_requirements[socket->index_in_all_inputs()]);
+          output_requirement = merge(output_requirement,
+                                     input_requirements[socket->index_in_all_inputs()]);
         }
 
         /* When a data requirement could be provided by multiple node inputs (i.e. only a single
@@ -350,7 +350,7 @@ static void propagate_right_to_left(const bNodeTree &tree,
           }
         }
         if (inputs_with_links.size() == 1) {
-          input_requirements[inputs_with_links.first()] = ouput_requirement;
+          input_requirements[inputs_with_links.first()] = output_requirement;
         }
         else {
           for (const int input : inputs_with_links) {
