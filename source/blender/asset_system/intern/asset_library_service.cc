@@ -169,7 +169,7 @@ AssetLibrary *AssetLibraryService::get_asset_library_on_disk_custom_preferences(
     bUserAssetLibrary *custom_library)
 {
   return this->get_asset_library_on_disk(
-      ASSET_LIBRARY_CUSTOM, custom_library->name, custom_library->dirpath, custom_library);
+      ASSET_LIBRARY_CUSTOM, custom_library->name, custom_library->dirpath, true, custom_library);
 }
 
 AssetLibrary *AssetLibraryService::get_asset_library_on_disk_builtin(eAssetLibraryType type,
