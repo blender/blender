@@ -3985,6 +3985,33 @@ static void rna_NodeCrop_size_y_set(PointerRNA *ptr, const int value)
   input->default_value_typed<bNodeSocketValueVector>()->value[1] = float(value);
 }
 
+static int rna_NodeFlip_axis_get(PointerRNA *ptr)
+{
+  bNode *node = ptr->data_as<bNode>();
+  const bNodeSocket *x_input = blender::bke::node_find_socket(*node, SOCK_IN, "Flip X");
+  const bNodeSocket *y_input = blender::bke::node_find_socket(*node, SOCK_IN, "Flip Y");
+  const bool flip_x = x_input->default_value_typed<bNodeSocketValueBoolean>()->value;
+  const bool flip_y = y_input->default_value_typed<bNodeSocketValueBoolean>()->value;
+  if (flip_x && flip_y) {
+    return 2;
+  }
+
+  if (flip_y) {
+    return 1;
+  }
+
+  return 0;
+}
+
+static void rna_NodeFlip_axis_set(PointerRNA *ptr, const int value)
+{
+  bNode *node = ptr->data_as<bNode>();
+  bNodeSocket *x_input = blender::bke::node_find_socket(*node, SOCK_IN, "Flip X");
+  bNodeSocket *y_input = blender::bke::node_find_socket(*node, SOCK_IN, "Flip Y");
+  x_input->default_value_typed<bNodeSocketValueBoolean>()->value = value != 1;
+  y_input->default_value_typed<bNodeSocketValueBoolean>()->value = value != 0;
+}
+
 /* A getter that returns the value of the input socket with the given template identifier and type.
  * The RNA pointer is assumed to represent a node. */
 template<typename T, const char *identifier>
@@ -8544,9 +8571,9 @@ static void def_cmp_flip(BlenderRNA * /*brna*/, StructRNA *srna)
   PropertyRNA *prop;
 
   prop = RNA_def_property(srna, "axis", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, nullptr, "custom1");
+  RNA_def_property_enum_funcs(prop, "rna_NodeFlip_axis_get", "rna_NodeFlip_axis_set", nullptr);
   RNA_def_property_enum_items(prop, node_flip_items);
-  RNA_def_property_ui_text(prop, "Axis", "");
+  RNA_def_property_ui_text(prop, "Axis", "(Deprecated: Use Flip X and Flip Y inputs instead.)");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 

@@ -1146,6 +1146,22 @@ static void write_compositor_legacy_properties(bNodeTree &node_tree)
       storage->sizey = int(
           math::ceil(size_input->default_value_typed<bNodeSocketValueVector>()->value[1]));
     }
+
+    if (node->type_legacy == CMP_NODE_FLIP) {
+      const bNodeSocket *x_input = blender::bke::node_find_socket(*node, SOCK_IN, "Flip X");
+      const bNodeSocket *y_input = blender::bke::node_find_socket(*node, SOCK_IN, "Flip Y");
+      const bool flip_x = x_input->default_value_typed<bNodeSocketValueBoolean>()->value;
+      const bool flip_y = y_input->default_value_typed<bNodeSocketValueBoolean>()->value;
+      if (flip_x && flip_y) {
+        node->custom1 = 2;
+      }
+      else if (flip_y) {
+        node->custom1 = 1;
+      }
+      else {
+        node->custom1 = 0;
+      }
+    }
   }
 }
 
