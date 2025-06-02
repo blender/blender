@@ -504,7 +504,7 @@ static Map<StringRef, ID *> gather_input_ids(const Main &bmain,
           return;
         }
         const std::optional<ID_Type> id_type = socket_type_to_id_type(
-            eNodeSocketDatatype(input->socket_typeinfo()->type));
+            input->socket_typeinfo()->type);
         if (!id_type) {
           return;
         }

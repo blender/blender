@@ -800,9 +800,8 @@ void node_socket_init_default_value(bNodeSocket *sock)
     return; /* already initialized */
   }
 
-  node_socket_init_default_value_data(eNodeSocketDatatype(sock->typeinfo->type),
-                                      PropertySubType(sock->typeinfo->subtype),
-                                      &sock->default_value);
+  node_socket_init_default_value_data(
+      sock->typeinfo->type, PropertySubType(sock->typeinfo->subtype), &sock->default_value);
 }
 
 void node_socket_copy_default_value(bNodeSocket *to, const bNodeSocket *from)
@@ -823,8 +822,7 @@ void node_socket_copy_default_value(bNodeSocket *to, const bNodeSocket *from)
     STRNCPY(to->name, from->label);
   }
 
-  node_socket_copy_default_value_data(
-      eNodeSocketDatatype(to->typeinfo->type), to->default_value, from->default_value);
+  node_socket_copy_default_value_data(to->typeinfo->type, to->default_value, from->default_value);
 
   to->flag |= (from->flag & SOCK_HIDE_VALUE);
 }
@@ -857,7 +855,7 @@ static void standard_node_socket_interface_from_socket(ID * /*id*/,
 void ED_init_standard_node_socket_type(bke::bNodeSocketType *);
 
 static bke::bNodeSocketType *make_standard_socket_type(
-    int type, int subtype, std::optional<int> dimensions = std::nullopt)
+    const eNodeSocketDatatype type, int subtype, std::optional<int> dimensions = std::nullopt)
 {
   const StringRefNull socket_idname = *bke::node_static_socket_type(type, subtype, dimensions);
   const StringRefNull interface_idname = *bke::node_static_socket_interface_type_new(
