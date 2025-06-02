@@ -206,6 +206,13 @@ class NODE_HT_header(Header):
             sub.active = snode.show_backdrop
             sub.prop(snode, "backdrop_channels", icon_only=True, text="")
 
+            # Gizmo toggle and popover.
+            row = layout.row(align=True)
+            row.prop(snode, "show_gizmo", icon='GIZMO', text="")
+            sub = row.row(align=True)
+            sub.active = snode.show_gizmo
+            sub.popover(panel="NODE_PT_gizmo_display", text="")
+
         # Snap
         row = layout.row(align=True)
         row.prop(tool_settings, "use_snap_node", text="")
@@ -216,6 +223,29 @@ class NODE_HT_header(Header):
         sub = row.row(align=True)
         sub.active = overlay.show_overlays
         sub.popover(panel="NODE_PT_overlay", text="")
+
+
+class NODE_PT_gizmo_display(Panel):
+    bl_space_type = 'NODE_EDITOR'
+    bl_region_type = 'HEADER'
+    bl_label = 'Gizmos'
+    bl_ui_units_x = 8
+
+    def draw(self, context):
+        layout = self.layout
+        snode = context.space_data
+        is_compositor = snode.tree_type == 'CompositorNodeTree'
+
+        if not is_compositor:
+            return
+
+        col = layout.column()
+        col.label(text="Viewport Gizmos")
+        col.separator()
+
+        col.active = snode.show_gizmo
+        colsub = col.column()
+        colsub.prop(snode, "show_gizmo_active_node", text="Active Node")
 
 
 class NODE_MT_editor_menus(Menu):
@@ -1148,6 +1178,7 @@ classes = (
     NODE_PT_annotation,
     NODE_PT_overlay,
     NODE_PT_active_node_properties,
+    NODE_PT_gizmo_display,
 
     node_panel(EEVEE_NEXT_MATERIAL_PT_settings),
     node_panel(EEVEE_NEXT_MATERIAL_PT_settings_surface),

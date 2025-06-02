@@ -888,6 +888,9 @@ typedef struct SpaceNode {
   /** Grease-pencil data. */
   struct bGPdata *gpd;
 
+  char gizmo_flag;
+  char _pad2[7];
+
   SpaceNodeOverlay overlay;
 
   SpaceNode_Runtime *runtime;
