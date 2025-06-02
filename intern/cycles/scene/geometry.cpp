@@ -955,22 +955,27 @@ void GeometryManager::device_update(Device *device,
     size_t i = 0;
     size_t num_bvh = 0;
     for (Geometry *geom : scene->geometry) {
-      if (geom->is_modified() || geom->need_update_bvh_for_offset) {
-        need_update_scene_bvh = true;
+      if (geom->is_light()) {
+        continue;
+      }
+      if (!(geom->is_modified() || geom->need_update_bvh_for_offset)) {
+        continue;
+      }
 
-        if (geom->need_build_bvh(bvh_layout)) {
-          i++;
-          num_bvh++;
-        }
+      need_update_scene_bvh = true;
 
-        if (use_multithreaded_build) {
-          pool.push([geom, device, dscene, scene, &progress, i, &num_bvh] {
-            geom->compute_bvh(device, dscene, &scene->params, &progress, i, num_bvh);
-          });
-        }
-        else {
+      if (geom->need_build_bvh(bvh_layout)) {
+        i++;
+        num_bvh++;
+      }
+
+      if (use_multithreaded_build) {
+        pool.push([geom, device, dscene, scene, &progress, i, &num_bvh] {
           geom->compute_bvh(device, dscene, &scene->params, &progress, i, num_bvh);
-        }
+        });
+      }
+      else {
+        geom->compute_bvh(device, dscene, &scene->params, &progress, i, num_bvh);
       }
     }
 
