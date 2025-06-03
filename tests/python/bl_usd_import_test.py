@@ -128,8 +128,8 @@ class USDImportTest(AbstractUSDTest):
         # Test topology counts.
         self.assertIn("m_degenerate", objects, "Scene does not contain object m_degenerate")
         mesh = objects["m_degenerate"].data
-        self.assertEqual(len(mesh.polygons), 2)
-        self.assertEqual(len(mesh.edges), 7)
+        self.assertEqual(len(mesh.polygons), 0)
+        self.assertEqual(len(mesh.edges), 0)
         self.assertEqual(len(mesh.vertices), 6)
 
         self.assertIn("m_triangles", objects, "Scene does not contain object m_triangles")
