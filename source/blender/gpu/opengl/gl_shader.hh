@@ -236,7 +236,7 @@ class GLCompilerWorker {
   ~GLCompilerWorker();
 
   void compile(const GLSourcesBaked &sources);
-  void block_until_ready();
+  bool block_until_ready();
   bool load_program_binary(GLint program);
   void release();
 

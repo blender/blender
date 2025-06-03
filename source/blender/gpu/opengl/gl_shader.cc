@@ -11,6 +11,8 @@
 #include "BKE_appdir.hh"
 #include "BKE_global.hh"
 
+#include "BLI_fileops.h"
+#include "BLI_path_utils.hh"
 #include "BLI_string.h"
 #include "BLI_time.h"
 #include "BLI_vector.hh"
@@ -1719,15 +1721,37 @@ void GLCompilerWorker::compile(const GLSourcesBaked &sources)
   compilation_start = BLI_time_now_seconds();
 }
 
-void GLCompilerWorker::block_until_ready()
+bool GLCompilerWorker::block_until_ready()
 {
   BLI_assert(ELEM(state_, COMPILATION_REQUESTED, COMPILATION_READY));
   if (state_ == COMPILATION_READY) {
-    return;
+    return true;
   }
 
-  end_semaphore_->decrement();
+  auto delete_cached_binary = [&]() {
+    /* If the subprocess crashed when loading the binary,
+     * its name should be stored in shared memory.
+     * Delete it to prevent more crashes in the future. */
+    char str_start[] = "SOURCE_HASH:";
+    char *shared_mem = reinterpret_cast<char *>(shared_mem_->get_data());
+    if (BLI_str_startswith(shared_mem, str_start)) {
+      std::string path = GL_shader_cache_dir_get() + SEP_STR +
+                         std::string(shared_mem + sizeof(str_start) - 1);
+      if (BLI_exists(path.c_str())) {
+        BLI_delete(path.c_str(), false, false);
+      }
+    }
+  };
+
+  while (!end_semaphore_->try_decrement(1000)) {
+    if (is_lost()) {
+      delete_cached_binary();
+      return false;
+    }
+  }
+
   state_ = COMPILATION_READY;
+  return true;
 }
 
 bool GLCompilerWorker::is_lost()
@@ -1741,7 +1765,9 @@ bool GLCompilerWorker::is_lost()
 
 bool GLCompilerWorker::load_program_binary(GLint program)
 {
-  block_until_ready();
+  if (!block_until_ready()) {
+    return false;
+  }
 
   ShaderBinaryHeader *binary = (ShaderBinaryHeader *)shared_mem_->get_data();
 
