@@ -50,6 +50,9 @@ static void execute_optix_task(TaskPool &pool, OptixTask task, OptixResult &fail
 
 OptiXDevice::OptiXDevice(const DeviceInfo &info, Stats &stats, Profiler &profiler, bool headless)
     : CUDADevice(info, stats, profiler, headless),
+#  ifdef WITH_OSL
+      osl_colorsystem(this, "osl_colorsystem", MEM_READ_ONLY),
+#  endif
       sbt_data(this, "__sbt", MEM_READ_ONLY),
       launch_params(this, "kernel_params", false)
 {
@@ -145,6 +148,7 @@ OptiXDevice::~OptiXDevice()
       optixProgramGroupDestroy(group);
     }
   }
+  osl_colorsystem.free();
 #  endif
 
   optixDeviceContextDestroy(context);
@@ -847,35 +851,75 @@ bool OptiXDevice::load_osl_kernels()
   module_options.optLevel = OPTIX_COMPILE_OPTIMIZATION_LEVEL_3;
   module_options.debugLevel = OPTIX_COMPILE_DEBUG_LEVEL_NONE;
 
-  osl_groups.resize(osl_kernels.size() + 1);
-  osl_modules.resize(osl_kernels.size() + 1);
+  /* In addition to the modules for each OSL group, we need to load our own osl_services.ptx
+   * as well as the shadeops.ptx that's embedded in OSL. */
+  size_t id_osl_services = osl_kernels.size();
+  size_t id_osl_shadeops = osl_kernels.size() + 1;
+  osl_groups.resize(osl_kernels.size() + 2);
+  osl_modules.resize(osl_kernels.size() + 2);
 
   { /* Load and compile PTX module with OSL services. */
-    string ptx_data, ptx_filename = path_get("lib/kernel_optix_osl_services.ptx.zst");
-    if (!path_read_compressed_text(ptx_filename, ptx_data)) {
+    string osl_services_ptx, ptx_filename = path_get("lib/kernel_optix_osl_services.ptx.zst");
+    if (!path_read_compressed_text(ptx_filename, osl_services_ptx)) {
       set_error(string_printf("Failed to load OptiX OSL services kernel from '%s'",
                               ptx_filename.c_str()));
       return false;
     }
 
+    const char *shadeops_ptx_ptr = nullptr;
+    osl_globals.ss->getattribute("shadeops_cuda_ptx", OSL::TypeDesc::PTR, &shadeops_ptx_ptr);
+    int shadeops_ptx_size = 0;
+    osl_globals.ss->getattribute("shadeops_cuda_ptx_size", OSL::TypeDesc::INT, &shadeops_ptx_size);
+    string shadeops_ptx(shadeops_ptx_ptr, shadeops_ptx_size);
+
     TaskPool pool;
-    OptixResult result;
-    create_optix_module(pool, module_options, ptx_data, osl_modules.back(), result);
+    OptixResult services_result, shadeops_result;
+    create_optix_module(
+        pool, module_options, osl_services_ptx, osl_modules[id_osl_services], services_result);
+    create_optix_module(
+        pool, module_options, shadeops_ptx, osl_modules[id_osl_shadeops], shadeops_result);
     pool.wait_work();
-    if (result != OPTIX_SUCCESS) {
-      set_error(string_printf("Failed to load OptiX OSL services kernel from '%s' (%s)",
-                              ptx_filename.c_str(),
-                              optixGetErrorName(result)));
-      return false;
+
+    {
+      if (services_result != OPTIX_SUCCESS) {
+        set_error(string_printf("Failed to load OptiX OSL services kernel from '%s' (%s)",
+                                ptx_filename.c_str(),
+                                optixGetErrorName(services_result)));
+        return false;
+      }
+      OptixProgramGroupDesc group_desc = {};
+      group_desc.kind = OPTIX_PROGRAM_GROUP_KIND_CALLABLES;
+      group_desc.callables.entryFunctionNameDC = "__direct_callable__dummy_services";
+      group_desc.callables.moduleDC = osl_modules[id_osl_services];
+
+      optix_assert(optixProgramGroupCreate(context,
+                                           &group_desc,
+                                           1,
+                                           &group_options,
+                                           nullptr,
+                                           nullptr,
+                                           &osl_groups[id_osl_services]));
     }
 
-    OptixProgramGroupDesc group_desc = {};
-    group_desc.kind = OPTIX_PROGRAM_GROUP_KIND_CALLABLES;
-    group_desc.callables.entryFunctionNameDC = "__direct_callable__dummy_services";
-    group_desc.callables.moduleDC = osl_modules.back();
+    {
+      if (shadeops_result != OPTIX_SUCCESS) {
+        set_error(string_printf("Failed to load OptiX OSL shadeops kernel (%s)",
+                                optixGetErrorName(shadeops_result)));
+        return false;
+      }
+      OptixProgramGroupDesc group_desc = {};
+      group_desc.kind = OPTIX_PROGRAM_GROUP_KIND_CALLABLES;
+      group_desc.callables.entryFunctionNameDC = "__direct_callable__dummy_shadeops";
+      group_desc.callables.moduleDC = osl_modules[id_osl_shadeops];
 
-    optix_assert(optixProgramGroupCreate(
-        context, &group_desc, 1, &group_options, nullptr, nullptr, &osl_groups.back()));
+      optix_assert(optixProgramGroupCreate(context,
+                                           &group_desc,
+                                           1,
+                                           &group_options,
+                                           nullptr,
+                                           nullptr,
+                                           &osl_groups[id_osl_shadeops]));
+    }
   }
 
   TaskPool pool;
@@ -924,7 +968,8 @@ bool OptiXDevice::load_osl_kernels()
     else {
       /* Default to "__direct_callable__dummy_services", so that OSL evaluation for empty
        * materials has direct callables to call and does not crash. */
-      optix_assert(optixSbtRecordPackHeader(osl_groups.back(), &sbt_data[NUM_PROGRAM_GROUPS + i]));
+      optix_assert(optixSbtRecordPackHeader(osl_groups[id_osl_services],
+                                            &sbt_data[NUM_PROGRAM_GROUPS + i]));
     }
   }
   sbt_data.copy_to_device(); /* Upload updated SBT to device. */
@@ -1000,6 +1045,45 @@ bool OptiXDevice::load_osl_kernels()
 
     optix_assert(optixPipelineSetStackSize(
         pipelines[PIP_SHADE], 0, dss, css, pipeline_options.usesMotionBlur ? 3 : 2));
+  }
+
+  /* Copy colorsystem data from OSL to the device. */
+  {
+    /* The interface here is somewhat complex, since the colorsystem contains strings whose
+     * representation is different between CPU and GPU.
+     * OSL's ColorSystem type therefore consists of two parts: First the "fixed data" (e.g. floats)
+     * that is identical between both, and then the strings.
+     * To perform this conversion, in addition to the pointer to the CPU data, we query two sizes:
+     * The total size of the CPU data and the number of strings. */
+    uint8_t *cpu_data = nullptr;
+    size_t cpu_data_sizes[2] = {0, 0};
+    osl_globals.ss->getattribute("colorsystem", OSL::TypeDesc::PTR, &cpu_data);
+    osl_globals.ss->getattribute(
+        "colorsystem:sizes", TypeDesc(TypeDesc::LONGLONG, 2), (void *)cpu_data_sizes);
+
+    size_t cpu_full_size = cpu_data_sizes[0];
+    size_t num_strings = cpu_data_sizes[1];
+    size_t fixed_data_size = cpu_full_size - sizeof(ustringhash) * num_strings;
+
+    /* Allocate a buffer to fit the fixed data, as well as all the strings in GPU form. */
+    uint8_t *gpu_data = osl_colorsystem.alloc(fixed_data_size + sizeof(size_t) * num_strings);
+
+    /* Copy the fixed data as-is. */
+    memcpy(gpu_data, cpu_data, fixed_data_size);
+
+    /* Convert each string to GPU format. */
+    ustringhash *cpu_strings = reinterpret_cast<ustringhash *>(cpu_data + fixed_data_size);
+    size_t *gpu_strings = reinterpret_cast<size_t *>(gpu_data + fixed_data_size);
+    for (int i = 0; i < num_strings; i++) {
+      gpu_strings[i] = cpu_strings[i].hash();
+    }
+
+    /* Copy GPU form of the data to the device. */
+    osl_colorsystem.copy_to_device();
+
+    update_launch_params(offsetof(KernelParamsOptiX, osl_colorsystem),
+                         &osl_colorsystem.device_pointer,
+                         sizeof(device_ptr));
   }
 
   return !have_error();
