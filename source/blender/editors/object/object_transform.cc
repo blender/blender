@@ -1631,7 +1631,7 @@ static wmOperatorStatus object_origin_set_exec(bContext *C, wmOperator *op)
         continue;
       }
 
-      if (curves.points_num() == 0) {
+      if (curves.is_empty()) {
         continue;
       }
 
