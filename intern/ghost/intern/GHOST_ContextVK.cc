@@ -116,6 +116,42 @@ static bool contains_extension(const vector<VkExtensionProperties> &extension_li
 };
 
 /* -------------------------------------------------------------------- */
+/** \name Swapchain resources
+ * \{ */
+
+void GHOST_SwapchainImage::destroy(VkDevice vk_device)
+{
+  vkDestroySemaphore(vk_device, present_semaphore, nullptr);
+  present_semaphore = VK_NULL_HANDLE;
+  vk_image = VK_NULL_HANDLE;
+}
+
+void GHOST_FrameDiscard::destroy(VkDevice vk_device)
+{
+  while (!swapchains.empty()) {
+    VkSwapchainKHR vk_swapchain = swapchains.back();
+    swapchains.pop_back();
+    vkDestroySwapchainKHR(vk_device, vk_swapchain, nullptr);
+  }
+  while (!semaphores.empty()) {
+    VkSemaphore vk_semaphore = semaphores.back();
+    semaphores.pop_back();
+    vkDestroySemaphore(vk_device, vk_semaphore, nullptr);
+  }
+}
+
+void GHOST_Frame::destroy(VkDevice vk_device)
+{
+  vkDestroyFence(vk_device, submission_fence, nullptr);
+  submission_fence = VK_NULL_HANDLE;
+  vkDestroySemaphore(vk_device, acquire_semaphore, nullptr);
+  acquire_semaphore = VK_NULL_HANDLE;
+  discard_pile.destroy(vk_device);
+}
+
+/* \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Vulkan Device
  * \{ */
 
