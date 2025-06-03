@@ -109,13 +109,12 @@ int Geometry::motion_step(const float time) const
 
 bool Geometry::need_build_bvh(BVHLayout layout) const
 {
-  return !is_light() &&
-         (is_instanced() || layout == BVH_LAYOUT_OPTIX || layout == BVH_LAYOUT_MULTI_OPTIX ||
-          layout == BVH_LAYOUT_METAL || layout == BVH_LAYOUT_MULTI_OPTIX_EMBREE ||
-          layout == BVH_LAYOUT_MULTI_METAL || layout == BVH_LAYOUT_MULTI_METAL_EMBREE ||
-          layout == BVH_LAYOUT_HIPRT || layout == BVH_LAYOUT_MULTI_HIPRT ||
-          layout == BVH_LAYOUT_MULTI_HIPRT_EMBREE || layout == BVH_LAYOUT_EMBREEGPU ||
-          layout == BVH_LAYOUT_MULTI_EMBREEGPU || layout == BVH_LAYOUT_MULTI_EMBREEGPU_EMBREE);
+  return is_instanced() || layout == BVH_LAYOUT_OPTIX || layout == BVH_LAYOUT_MULTI_OPTIX ||
+         layout == BVH_LAYOUT_METAL || layout == BVH_LAYOUT_MULTI_OPTIX_EMBREE ||
+         layout == BVH_LAYOUT_MULTI_METAL || layout == BVH_LAYOUT_MULTI_METAL_EMBREE ||
+         layout == BVH_LAYOUT_HIPRT || layout == BVH_LAYOUT_MULTI_HIPRT ||
+         layout == BVH_LAYOUT_MULTI_HIPRT_EMBREE || layout == BVH_LAYOUT_EMBREEGPU ||
+         layout == BVH_LAYOUT_MULTI_EMBREEGPU || layout == BVH_LAYOUT_MULTI_EMBREEGPU_EMBREE;
 }
 
 bool Geometry::is_instanced() const
@@ -956,27 +955,22 @@ void GeometryManager::device_update(Device *device,
     size_t i = 0;
     size_t num_bvh = 0;
     for (Geometry *geom : scene->geometry) {
-      if (geom->is_light()) {
-        continue;
-      }
-      if (!(geom->is_modified() || geom->need_update_bvh_for_offset)) {
-        continue;
-      }
+      if (geom->is_modified() || geom->need_update_bvh_for_offset) {
+        need_update_scene_bvh = true;
 
-      need_update_scene_bvh = true;
+        if (geom->need_build_bvh(bvh_layout)) {
+          i++;
+          num_bvh++;
+        }
 
-      if (geom->need_build_bvh(bvh_layout)) {
-        i++;
-        num_bvh++;
-      }
-
-      if (use_multithreaded_build) {
-        pool.push([geom, device, dscene, scene, &progress, i, &num_bvh] {
+        if (use_multithreaded_build) {
+          pool.push([geom, device, dscene, scene, &progress, i, &num_bvh] {
+            geom->compute_bvh(device, dscene, &scene->params, &progress, i, num_bvh);
+          });
+        }
+        else {
           geom->compute_bvh(device, dscene, &scene->params, &progress, i, num_bvh);
-        });
-      }
-      else {
-        geom->compute_bvh(device, dscene, &scene->params, &progress, i, num_bvh);
+        }
       }
     }
 
