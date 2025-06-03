@@ -463,6 +463,8 @@ static void read_file_version(FileData *fd, Main *main)
         main->subversionfile = fg->subversion;
         main->minversionfile = fg->minversion;
         main->minsubversionfile = fg->minsubversion;
+        main->has_forward_compatibility_issues = !MAIN_VERSION_FILE_OLDER_OR_EQUAL(
+            main, BLENDER_FILE_VERSION, BLENDER_FILE_SUBVERSION);
         main->is_asset_edit_file = (fg->fileflags & G_FILE_ASSET_EDIT_FILE) != 0;
         MEM_freeN(fg);
       }
@@ -537,9 +539,6 @@ static Main *blo_find_main(FileData *fd, const char *filepath, const char *relab
     const char *libname = (m->curlib) ? m->curlib->runtime->filepath_abs : m->filepath;
 
     if (BLI_path_cmp(filepath_abs, libname) == 0) {
-      m->has_forward_compatibility_issues = !MAIN_VERSION_FILE_OLDER_OR_EQUAL(
-          m, BLENDER_FILE_VERSION, BLENDER_FILE_SUBVERSION);
-
       if (G.debug & G_DEBUG) {
         CLOG_INFO(&LOG, 3, "Found library %s", libname);
       }
@@ -566,9 +565,6 @@ static Main *blo_find_main(FileData *fd, const char *filepath, const char *relab
   m->curlib = lib;
 
   read_file_version(fd, m);
-
-  m->has_forward_compatibility_issues = !MAIN_VERSION_FILE_OLDER_OR_EQUAL(
-      m, BLENDER_FILE_VERSION, BLENDER_FILE_SUBVERSION);
 
   if (G.debug & G_DEBUG) {
     CLOG_INFO(&LOG, 3, "Added new lib %s", filepath);
