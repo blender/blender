@@ -122,7 +122,7 @@ class VKShader : public Shader {
   bool finalize_shader_module(VKShaderModule &shader_module, const char *stage_name);
   bool finalize_descriptor_set_layouts(VKDevice &vk_device,
                                        const VKShaderInterface &shader_interface);
-  bool finalize_pipeline_layout(VkDevice vk_device, const VKShaderInterface &shader_interface);
+  bool finalize_pipeline_layout(VKDevice &device, const VKShaderInterface &shader_interface);
 
   /**
    * \brief features available on newer implementation such as native barycentric coordinates
