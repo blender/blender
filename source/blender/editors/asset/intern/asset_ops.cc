@@ -23,6 +23,7 @@
 
 #include "BLI_fnmatch.h"
 #include "BLI_path_utils.hh"
+#include "BLI_rect.h"
 #include "BLI_set.hh"
 
 #include "ED_asset.hh"
@@ -1063,12 +1064,25 @@ static ImBuf *take_screenshot_crop(bContext *C, const rcti &crop_rect)
   wmWindow *win = CTX_wm_window(C);
   uint8_t *dumprect = WM_window_pixels_read(C, win, dumprect_size);
 
+  /* Clamp coordinates to window bounds */
+  rcti safe_rect = crop_rect;
+  safe_rect.xmin = max_ii(0, crop_rect.xmin);
+  safe_rect.ymin = max_ii(0, crop_rect.ymin);
+  safe_rect.xmax = min_ii(dumprect_size[0] - 1, crop_rect.xmax);
+  safe_rect.ymax = min_ii(dumprect_size[1] - 1, crop_rect.ymax);
+
+  /* Validate rectangle */
+  if (!BLI_rcti_is_valid(&safe_rect)) {
+    MEM_freeN(dumprect);
+    return nullptr;
+  }
+
   ImBuf *image_buffer = IMB_allocImBuf(dumprect_size[0], dumprect_size[1], 24, 0);
   /* Using IB_TAKE_OWNERSHIP because the crop does kind of take ownership already it seems. At
    * least freeing the memory after would cause a crash if ownership isn't taken. */
   IMB_assign_byte_buffer(image_buffer, dumprect, IB_TAKE_OWNERSHIP);
 
-  IMB_rect_crop(image_buffer, &crop_rect);
+  IMB_rect_crop(image_buffer, &safe_rect);
   return image_buffer;
 }
 
@@ -1136,6 +1150,10 @@ static wmOperatorStatus screenshot_preview_exec(bContext *C, wmOperator *op)
   else {
     const rcti crop_rect = {p1.x, p2.x, p1.y, p2.y};
     image_buffer = take_screenshot_crop(C, crop_rect);
+    if (!image_buffer) {
+      BKE_report(op->reports, RPT_ERROR, "Invalid screenshot area selection");
+      return OPERATOR_CANCELLED;
+    }
   }
 
   const AssetRepresentationHandle *asset_handle = CTX_wm_asset(C);
