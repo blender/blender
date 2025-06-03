@@ -177,7 +177,7 @@ bool VKBackend::is_supported()
   allowed_layers << "VK_LAYER_KHRONOS_*";
   allowed_layers << ",VK_LAYER_AMD_*";
   allowed_layers << ",VK_LAYER_INTEL_*";
-  allowed_layers << ",VK_LAYER_NVIDIA_*";
+  allowed_layers << ",VK_LAYER_NV_*";
   allowed_layers << ",VK_LAYER_MESA_*";
   if (bool(G.debug & G_DEBUG_GPU)) {
     allowed_layers << ",VK_LAYER_LUNARG_*";
