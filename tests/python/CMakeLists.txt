@@ -685,62 +685,65 @@ if((WITH_CYCLES OR WITH_GPU_RENDER_TESTS) AND TEST_SRC_DIR_EXISTS)
   # Cycles
   if(WITH_CYCLES)
     set(_cycles_blocklist "")
-    set(_cycles_known_test_devices CPU CUDA OPTIX HIP HIP-RT METAL METAL-RT ONEAPI ONEAPI-RT)
-    if((NOT WITH_CYCLES_OSL) OR (WITH_CYCLES_TEST_OSL AND WITH_CYCLES_OSL))
-      # Disable OSL tests if built without OSL or
-      # Disable OSL tests during the "normal" test phase to avoid double
-      # testing during the OSL test phase.
-      set(_cycles_blocklist OSL)
-    endif()
+    set(_cycles_all_test_devices CPU CUDA OPTIX HIP HIP-RT METAL METAL-RT ONEAPI ONEAPI-RT)
+    set(_cycles_osl_test_devices CPU OPTIX)
     foreach(_cycles_device ${CYCLES_TEST_DEVICES})
-      if(NOT ${_cycles_device} IN_LIST _cycles_known_test_devices)
+      if(NOT ${_cycles_device} IN_LIST _cycles_all_test_devices)
         message(FATAL_ERROR "Unknown Cycles test device ${_cycles_device}."
-            "Supported devices are: ${_cycles_known_test_devices}")
+            "Supported devices are: ${_cycles_all_test_devices}")
       endif()
       string(TOLOWER "${_cycles_device}" _cycles_device_lower)
       set(_cycles_render_tests bake;${render_tests};osl)
 
+      set(_cycles_osl_test_type none)
+      if(WITH_CYCLES_OSL)
+        # If the render device is CPU, or a GPU WITH_CYCLES_TEST_OSL enabled,
+        # then enable the limited OSL tests (Tests OSL camera with OSL shading turned off).
+        # This specific configuration is chosen to avoid long test times on the GPU due to
+        # OSL JIT compilation, unless the developer explicitly enables OSL tests.
+        if(("${_cycles_device_lower}" STREQUAL "cpu") OR (WITH_CYCLES_TEST_OSL AND ${_cycles_device} IN_LIST _cycles_osl_test_devices))
+          set(_cycles_osl_test_type limited)
+        endif()
+      endif()
+
       foreach(render_test ${_cycles_render_tests})
         set(_cycles_test_name "cycles_${render_test}_${_cycles_device_lower}")
         if(NOT(WITH_CYCLES_TEST_OSL AND WITH_CYCLES_OSL AND ("${render_test}" STREQUAL "osl")))
-          # Only run OSL basic tests during this phase if WITH_CYCLES_TEST_OSL isn't enabled
+          # Only run OSL specific tests during this phase if WITH_CYCLES_TEST_OSL isn't enabled
           add_render_test(
             ${_cycles_test_name}
             ${CMAKE_CURRENT_LIST_DIR}/cycles_render_tests.py
             --testdir "${TEST_SRC_DIR}/render/${render_test}"
             --outdir "${TEST_OUT_DIR}/cycles"
             --device ${_cycles_device}
-            --blocklist ${_cycles_blocklist}
+            --osl "${_cycles_osl_test_type}"
           )
           if(NOT ("${_cycles_device_lower}" STREQUAL "cpu"))
             set_tests_properties(${_cycles_test_name} PROPERTIES RUN_SERIAL TRUE)
           endif()
         endif()
 
-        if(WITH_CYCLES_TEST_OSL AND WITH_CYCLES_OSL)
-          # OSL is only supported with CPU and OptiX
-          # TODO: Enable OptiX support once it's more stable
-          if(("${_cycles_device_lower}" STREQUAL "cpu") OR
-              ("${_cycles_device_lower}" STREQUAL "optix"))
-            add_render_test(
-              ${_cycles_test_name}_osl
-              ${CMAKE_CURRENT_LIST_DIR}/cycles_render_tests.py
-              --testdir "${TEST_SRC_DIR}/render/${render_test}"
-              --outdir "${TEST_OUT_DIR}/cycles_osl"
-              --device ${_cycles_device}
-              --osl
-            )
-            if(NOT ("${_cycles_device_lower}" STREQUAL "cpu"))
-              set_tests_properties(${_cycles_test_name}_osl PROPERTIES RUN_SERIAL TRUE)
-            endif()
+        # OSL variations of every test if WITH_CYCLES_TEST_OSL is set.
+        if(WITH_CYCLES_TEST_OSL AND NOT "${_cycles_osl_test_type}" STREQUAL "none")
+          add_render_test(
+            ${_cycles_test_name}_osl
+            ${CMAKE_CURRENT_LIST_DIR}/cycles_render_tests.py
+            --testdir "${TEST_SRC_DIR}/render/${render_test}"
+            --outdir "${TEST_OUT_DIR}/cycles_osl"
+            --device ${_cycles_device}
+            --osl "all"
+          )
+          if(NOT ("${_cycles_device_lower}" STREQUAL "cpu"))
+            set_tests_properties(${_cycles_test_name}_osl PROPERTIES RUN_SERIAL TRUE)
           endif()
         endif()
 
         unset(_cycles_test_name)
       endforeach()
+      unset(_cycles_osl_test_type)
     endforeach()
-    unset(_cycles_blocklist)
-    unset(_cycles_known_test_devices)
+    unset(_cycles_osl_test_devices)
+    unset(_cycles_all_test_devices)
   endif()
 
   if(WITH_GPU_RENDER_TESTS)
