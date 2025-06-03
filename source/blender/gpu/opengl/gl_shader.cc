@@ -593,6 +593,24 @@ std::string GLShader::resources_declare(const ShaderCreateInfo &info) const
 {
   std::stringstream ss;
 
+  ss << "\n/* Compilation Constants (pass-through). */\n";
+  for (const CompilationConstant &sc : info.compilation_constants_) {
+    ss << "const ";
+    switch (sc.type) {
+      case Type::int_t:
+        ss << "int " << sc.name << "=" << std::to_string(sc.value.i) << ";\n";
+        break;
+      case Type::uint_t:
+        ss << "uint " << sc.name << "=" << std::to_string(sc.value.u) << "u;\n";
+        break;
+      case Type::bool_t:
+        ss << "bool " << sc.name << "=" << (sc.value.u ? "true" : "false") << ";\n";
+        break;
+      default:
+        BLI_assert_unreachable();
+        break;
+    }
+  }
   /* NOTE: We define macros in GLSL to trigger compilation error if the resource names
    * are reused for local variables. This is to match other backend behavior which needs accessors
    * macros. */

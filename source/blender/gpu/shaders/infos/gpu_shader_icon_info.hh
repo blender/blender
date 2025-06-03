@@ -11,15 +11,13 @@
 #  include "gpu_glsl_cpp_stubs.hh"
 
 #  include "GPU_shader_shared.hh"
-#  define DO_CORNER_MASKING
 #endif
 
 #include "gpu_interface_info.hh"
 #include "gpu_shader_create_info.hh"
 
-GPU_SHADER_CREATE_INFO(gpu_shader_icon)
-DEFINE("DO_CORNER_MASKING")
-VERTEX_OUT(smooth_icon_interp_iface)
+GPU_SHADER_CREATE_INFO(gpu_shader_icon_shared)
+VERTEX_OUT(icon_interp_iface)
 FRAGMENT_OUT(0, float4, fragColor)
 PUSH_CONSTANT(float4x4, ModelViewProjectionMatrix)
 PUSH_CONSTANT(float4, finalColor)
@@ -27,19 +25,23 @@ PUSH_CONSTANT(float4, rect_icon)
 PUSH_CONSTANT(float4, rect_geom)
 PUSH_CONSTANT(float, text_width)
 SAMPLER(0, sampler2D, image)
+GPU_SHADER_CREATE_END()
+
+GPU_SHADER_CREATE_INFO(gpu_shader_icon)
+COMPILATION_CONSTANT(bool, do_corner_masking, true)
 VERTEX_SOURCE("gpu_shader_icon_vert.glsl")
 FRAGMENT_SOURCE("gpu_shader_icon_frag.glsl")
+ADDITIONAL_INFO(gpu_shader_icon_shared)
 DO_STATIC_COMPILATION()
 GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(gpu_shader_icon_multi)
+COMPILATION_CONSTANT(bool, do_corner_masking, false)
 VERTEX_IN(0, float2, pos)
-VERTEX_OUT(flat_color_smooth_tex_coord_interp_iface)
-FRAGMENT_OUT(0, float4, fragColor)
 UNIFORM_BUF(0, MultiIconCallData, multi_icon_data)
-SAMPLER(0, sampler2D, image)
 TYPEDEF_SOURCE("GPU_shader_shared.hh")
 VERTEX_SOURCE("gpu_shader_icon_multi_vert.glsl")
 FRAGMENT_SOURCE("gpu_shader_icon_frag.glsl")
+ADDITIONAL_INFO(gpu_shader_icon_shared)
 DO_STATIC_COMPILATION()
 GPU_SHADER_CREATE_END()
