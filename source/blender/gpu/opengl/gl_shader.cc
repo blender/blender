@@ -1792,7 +1792,9 @@ bool GLCompilerWorker::load_program_binary(GLint program)
   state_ = COMPILATION_FINISHED;
 
   if (binary->size > 0) {
+    GPU_debug_group_begin("Load Binary");
     glProgramBinary(program, binary->format, binary->data, binary->size);
+    GPU_debug_group_end();
     return true;
   }
 
@@ -1861,6 +1863,8 @@ Shader *GLShaderCompiler::compile_shader(const shader::ShaderCreateInfo &info)
   GLCompilerWorker *worker = get_compiler_worker();
   worker->compile(sources);
 
+  GPU_debug_group_begin("Subprocess Compilation");
+
   /* This path is always called for the default shader compilation. Not for specialization.
    * Use the default constant template.*/
   const shader::SpecializationConstants &constants = GPU_shader_get_default_constant_state(
@@ -1873,6 +1877,8 @@ Shader *GLShaderCompiler::compile_shader(const shader::ShaderCreateInfo &info)
     delete shader;
     shader = nullptr;
   }
+
+  GPU_debug_group_end();
 
   worker->release();
 
@@ -1926,6 +1932,8 @@ void GLShaderCompiler::specialize_shader(ShaderSpecialization &specialization)
     }
   }
 
+  GPU_debug_group_begin("Subprocess Specialization");
+
   GLCompilerWorker *worker = get_compiler_worker();
   worker->compile(sources);
   worker->block_until_ready();
@@ -1935,6 +1943,8 @@ void GLShaderCompiler::specialize_shader(ShaderSpecialization &specialization)
   if (!worker->load_program_binary(program_get()->program_id)) {
     program_release();
   }
+
+  GPU_debug_group_end();
 
   worker->release();
 }
