@@ -4867,8 +4867,11 @@ static wmOperatorStatus uv_select_similar_vert_exec(bContext *C, wmOperator *op)
 
   for (Object *ob : objects) {
     BMesh *bm = BKE_editmesh_from_object(ob)->bm;
-    if (!(ts->uv_flag & UV_SYNC_SELECTION) && (bm->totvertsel == 0)) {
-      continue;
+    if (bm->totvertsel == 0) {
+      /* No selection means no visible UV's unless sync-select is enabled. */
+      if (!(ts->uv_flag & UV_SYNC_SELECTION)) {
+        continue;
+      }
     }
 
     bool changed = false;
@@ -4981,8 +4984,11 @@ static wmOperatorStatus uv_select_similar_edge_exec(bContext *C, wmOperator *op)
 
   for (Object *ob : objects) {
     BMesh *bm = BKE_editmesh_from_object(ob)->bm;
-    if (!(ts->uv_flag & UV_SYNC_SELECTION) && (bm->totvertsel == 0)) {
-      continue;
+    if (bm->totvertsel == 0) {
+      /* No selection means no visible UV's unless sync-select is enabled. */
+      if (!(ts->uv_flag & UV_SYNC_SELECTION)) {
+        continue;
+      }
     }
 
     bool changed = false;
@@ -5053,6 +5059,9 @@ static wmOperatorStatus uv_select_similar_face_exec(bContext *C, wmOperator *op)
   for (const int ob_index : objects.index_range()) {
     Object *ob = objects[ob_index];
     BMesh *bm = BKE_editmesh_from_object(ob)->bm;
+    if (bm->totvertsel == 0) {
+      continue;
+    }
 
     float ob_m3[3][3];
     copy_m3_m4(ob_m3, ob->object_to_world().ptr());
@@ -5084,6 +5093,13 @@ static wmOperatorStatus uv_select_similar_face_exec(bContext *C, wmOperator *op)
   for (const int ob_index : objects.index_range()) {
     Object *ob = objects[ob_index];
     BMesh *bm = BKE_editmesh_from_object(ob)->bm;
+    if (bm->totvertsel == 0) {
+      /* No selection means no visible UV's unless sync-select is enabled. */
+      if (!(ts->uv_flag & UV_SYNC_SELECTION)) {
+        continue;
+      }
+    }
+
     bool changed = false;
     const BMUVOffsets offsets = BM_uv_map_offsets_get(bm);
 
