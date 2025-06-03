@@ -214,6 +214,8 @@ static void blo_update_defaults_screen(bScreen *screen,
       /* Disable Curve Normals. */
       v3d->overlay.edit_flag &= ~V3D_OVERLAY_EDIT_CU_NORMALS;
       v3d->overlay.normals_constant_screen_size = 7.0f;
+      /* Always enable Grease Pencil vertex color overlay by default. */
+      v3d->overlay.gpencil_vertex_paint_opacity = 1.0f;
 
       /* Level out the 3D Viewport camera rotation, see: #113751. */
       constexpr float viewports_to_level[][4] = {
