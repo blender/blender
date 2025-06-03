@@ -409,6 +409,7 @@ void Instance::end_sync()
     return;
   }
 
+  materials.end_sync();
   velocity.end_sync();
   volume.end_sync();  /* Needs to be before shadows. */
   shadows.end_sync(); /* Needs to be before lights. */
@@ -452,7 +453,8 @@ bool Instance::needs_lightprobe_sphere_passes() const
 
 bool Instance::do_lightprobe_sphere_sync() const
 {
-  return (materials.queued_shaders_count == 0) && needs_lightprobe_sphere_passes();
+  return (materials.queued_shaders_count == 0) && (materials.queued_textures_count == 0) &&
+         needs_lightprobe_sphere_passes();
 }
 
 bool Instance::needs_planar_probe_passes() const
@@ -462,7 +464,8 @@ bool Instance::needs_planar_probe_passes() const
 
 bool Instance::do_planar_probe_sync() const
 {
-  return (materials.queued_shaders_count == 0) && needs_planar_probe_passes();
+  return (materials.queued_shaders_count == 0) && (materials.queued_textures_count == 0) &&
+         needs_planar_probe_passes();
 }
 
 /** \} */
@@ -484,7 +487,7 @@ void Instance::render_sample()
   /* Motion blur may need to do re-sync after a certain number of sample. */
   if (!is_viewport() && sampling.do_render_sync()) {
     render_sync();
-    while (materials.queued_shaders_count > 0) {
+    while (materials.queued_shaders_count > 0 || materials.queued_textures_count > 0) {
       GPU_pass_cache_wait_for_all();
       /** WORKAROUND: Re-sync now that all shaders are compiled. */
       /* This may need to happen more than once, since actual materials may require more passes
@@ -674,15 +677,19 @@ void Instance::draw_viewport()
     DRW_viewport_request_redraw();
   }
 
-  if (materials.queued_shaders_count > 0) {
-    info_append_i18n("Compiling shaders ({} remaining)", materials.queued_shaders_count);
-
-    if (!GPU_use_parallel_compilation() &&
-        GPU_type_matches_ex(GPU_DEVICE_ANY, GPU_OS_ANY, GPU_DRIVER_ANY, GPU_BACKEND_OPENGL))
-    {
-      info_append_i18n(
-          "Increasing Preferences > System > Max Shader Compilation Subprocesses may improve "
-          "compilation time.");
+  if (materials.queued_shaders_count > 0 || materials.queued_textures_count > 0) {
+    if (materials.queued_textures_count > 0) {
+      info_append_i18n("Loading textures ({} remaining)", materials.queued_textures_count);
+    }
+    if (materials.queued_shaders_count > 0) {
+      info_append_i18n("Compiling shaders ({} remaining)", materials.queued_shaders_count);
+      if (!GPU_use_parallel_compilation() &&
+          GPU_type_matches_ex(GPU_DEVICE_ANY, GPU_OS_ANY, GPU_DRIVER_ANY, GPU_BACKEND_OPENGL))
+      {
+        info_append_i18n(
+            "Increasing Preferences > System > Max Shader Compilation Subprocesses may improve "
+            "compilation time.");
+      }
     }
     DRW_viewport_request_redraw();
   }
@@ -827,7 +834,7 @@ void Instance::light_bake_irradiance(
 
   custom_pipeline_wrapper([&]() {
     this->render_sync();
-    while (materials.queued_shaders_count > 0) {
+    while ((materials.queued_shaders_count > 0) || (materials.queued_textures_count > 0)) {
       GPU_pass_cache_wait_for_all();
       /** WORKAROUND: Re-sync now that all shaders are compiled. */
       /* This may need to happen more than once, since actual materials may require more passes

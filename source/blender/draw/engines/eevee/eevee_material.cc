@@ -6,6 +6,7 @@
  * \ingroup eevee
  */
 
+#include "BLI_time.h"
 #include "DNA_material_types.h"
 
 #include "BKE_lib_id.hh"
@@ -160,14 +161,92 @@ MaterialModule::~MaterialModule()
 void MaterialModule::begin_sync()
 {
   queued_shaders_count = 0;
+  queued_textures_count = 0;
   queued_optimize_shaders_count = 0;
 
   uint64_t next_update = GPU_pass_global_compilation_count();
   gpu_pass_last_update_ = gpu_pass_next_update_;
   gpu_pass_next_update_ = next_update;
 
+  texture_loading_queue_.clear();
   material_map_.clear();
   shader_map_.clear();
+}
+
+bool MaterialModule::queue_texture_loading(GPUMaterial *material)
+{
+  if (inst_.is_viewport_image_render) {
+    /* Do not delay image loading for viewport render as it would produce invalid frames. */
+    return true;
+  }
+
+  bool loaded = true;
+  ListBase textures = GPU_material_textures(material);
+  for (GPUMaterialTexture *tex : ListBaseWrapper<GPUMaterialTexture>(textures)) {
+    if (tex->ima) {
+      const bool use_tile_mapping = tex->tiled_mapping_name[0];
+      ImageUser *iuser = tex->iuser_available ? &tex->iuser : nullptr;
+      ImageGPUTextures gputex = BKE_image_get_gpu_material_texture_try(
+          tex->ima, iuser, use_tile_mapping);
+      if (ELEM(tex->ima->source, IMA_SRC_SEQUENCE, IMA_SRC_MOVIE)) {
+        /* Do not defer the loading of animated textures as they would appear always loading. */
+        continue;
+      }
+      if (gputex.texture == nullptr) {
+        texture_loading_queue_.append(tex);
+        loaded = false;
+      }
+    }
+  }
+  return loaded;
+}
+
+void MaterialModule::end_sync()
+{
+  if (texture_loading_queue_.is_empty()) {
+    return;
+  }
+
+  if (inst_.is_viewport()) {
+    /* Avoid ghosting of textures. */
+    inst_.sampling.reset();
+  }
+
+  GPU_debug_group_begin("Texture Loading");
+
+  threading::parallel_for(texture_loading_queue_.index_range(), 1, [&](const IndexRange range) {
+    for (auto i : range) {
+      GPUMaterialTexture *tex = texture_loading_queue_[i];
+      ImageUser *iuser = tex->iuser_available ? &tex->iuser : nullptr;
+      BKE_image_tag_time(tex->ima);
+      BKE_image_get_tile(tex->ima, 0);
+      ImBuf *imbuf = BKE_image_acquire_ibuf(tex->ima, iuser, nullptr);
+      BKE_image_release_ibuf(tex->ima, imbuf, nullptr);
+    }
+  });
+
+  /* To avoid freezing the UI too much, we only allow some finite amount of time of texture loading
+   * per frame. */
+  double loading_time_per_sync = inst_.is_image_render ? DBL_MAX : 0.250;
+
+  double start_time = BLI_time_now_seconds();
+
+  for (GPUMaterialTexture *tex : texture_loading_queue_) {
+    BLI_assert(tex->ima);
+    GPU_debug_group_begin(tex->ima->id.name);
+
+    const bool use_tile_mapping = tex->tiled_mapping_name[0];
+    ImageUser *iuser = tex->iuser_available ? &tex->iuser : nullptr;
+    BKE_image_get_gpu_material_texture(tex->ima, iuser, use_tile_mapping);
+
+    GPU_debug_group_end();
+
+    if (BLI_time_now_seconds() - start_time > loading_time_per_sync) {
+      break;
+    }
+  }
+  GPU_debug_group_end();
+  texture_loading_queue_.clear();
 }
 
 MaterialPass MaterialModule::material_pass_get(Object *ob,
@@ -201,6 +280,11 @@ MaterialPass MaterialModule::material_pass_get(Object *ob,
 
   switch (GPU_material_status(matpass.gpumat)) {
     case GPU_MAT_SUCCESS: {
+      if (!queue_texture_loading(matpass.gpumat)) {
+        queued_textures_count++;
+        matpass.gpumat = inst_.shaders.material_shader_get(
+            default_mat, default_mat->nodetree, pipeline_type, geometry_type, false, nullptr);
+      }
       /* Determine optimization status for remaining compilations counter. */
       int optimization_status = GPU_material_optimization_status(matpass.gpumat);
       if (optimization_status == GPU_MAT_OPTIMIZATION_QUEUED) {

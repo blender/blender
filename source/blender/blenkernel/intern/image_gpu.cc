@@ -354,7 +354,8 @@ void BKE_image_ensure_gpu_texture(Image *image, ImageUser *iuser)
 static ImageGPUTextures image_get_gpu_texture(Image *ima,
                                               ImageUser *iuser,
                                               const bool use_viewers,
-                                              const bool use_tile_mapping)
+                                              const bool use_tile_mapping,
+                                              bool try_only)
 {
   ImageGPUTextures result = {};
 
@@ -412,6 +413,11 @@ static ImageGPUTextures image_get_gpu_texture(Image *ima,
   if (*tex) {
     result.texture = *tex;
     result.tile_mapping = *get_image_gpu_texture_ptr(ima, TEXTARGET_TILE_MAPPING, current_view);
+    return result;
+  }
+
+  if (try_only) {
+    /* If we got this far, it means the texture is not loaded. */
     return result;
   }
 
@@ -478,19 +484,26 @@ static ImageGPUTextures image_get_gpu_texture(Image *ima,
 
 GPUTexture *BKE_image_get_gpu_texture(Image *image, ImageUser *iuser)
 {
-  return image_get_gpu_texture(image, iuser, false, false).texture;
+  return image_get_gpu_texture(image, iuser, false, false, false).texture;
 }
 
 GPUTexture *BKE_image_get_gpu_viewer_texture(Image *image, ImageUser *iuser)
 {
-  return image_get_gpu_texture(image, iuser, true, false).texture;
+  return image_get_gpu_texture(image, iuser, true, false, false).texture;
 }
 
 ImageGPUTextures BKE_image_get_gpu_material_texture(Image *image,
                                                     ImageUser *iuser,
                                                     const bool use_tile_mapping)
 {
-  return image_get_gpu_texture(image, iuser, false, use_tile_mapping);
+  return image_get_gpu_texture(image, iuser, false, use_tile_mapping, false);
+}
+
+ImageGPUTextures BKE_image_get_gpu_material_texture_try(Image *image,
+                                                        ImageUser *iuser,
+                                                        const bool use_tile_mapping)
+{
+  return image_get_gpu_texture(image, iuser, false, use_tile_mapping, true);
 }
 
 /** \} */

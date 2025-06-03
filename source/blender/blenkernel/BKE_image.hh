@@ -612,6 +612,11 @@ ImageGPUTextures BKE_image_get_gpu_material_texture(Image *image,
                                                     ImageUser *iuser,
                                                     const bool use_tile_mapping);
 
+/* Same as BKE_image_get_gpu_material_texture but will not load the texture if it isn't already. */
+ImageGPUTextures BKE_image_get_gpu_material_texture_try(Image *image,
+                                                        ImageUser *iuser,
+                                                        const bool use_tile_mapping);
+
 /**
  * Is the alpha of the `GPUTexture` for a given image/ibuf premultiplied.
  */
