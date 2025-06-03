@@ -459,6 +459,7 @@ class StaticShader : NonCopyable {
     /* No std::swap support for atomics. */
     shader_.exchange(other.shader_.exchange(shader_));
     failed_.exchange(other.failed_.exchange(failed_));
+    std::swap(compilation_handle_, other.compilation_handle_);
   }
 
  public:
