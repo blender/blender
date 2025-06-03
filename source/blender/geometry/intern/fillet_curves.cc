@@ -370,6 +370,9 @@ static bke::CurvesGeometry fillet_curves(const bke::CurvesGeometry &src_curves,
                                          const bool use_bezier_mode,
                                          const bke::AttributeFilter &attribute_filter)
 {
+  if (src_curves.is_empty()) {
+    return src_curves;
+  }
   const OffsetIndices src_points_by_curve = src_curves.points_by_curve();
   const Span<float3> positions = src_curves.positions();
   const VArraySpan<bool> cyclic{src_curves.cyclic()};
