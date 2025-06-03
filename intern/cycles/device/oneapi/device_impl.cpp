@@ -1454,6 +1454,64 @@ std::vector<sycl::device> available_sycl_devices()
   return available_devices;
 }
 
+void OneapiDevice::architecture_information(const SyclDevice *device,
+                                            string &name,
+                                            bool &is_optimized)
+{
+  const sycl::ext::oneapi::experimental::architecture arch =
+      reinterpret_cast<const sycl::device *>(device)
+          ->get_info<sycl::ext::oneapi::experimental::info::device::architecture>();
+
+#  define FILL_ARCH_INFO(architecture_code, is_arch_optimised) \
+    case sycl::ext::oneapi::experimental::architecture ::architecture_code: \
+      name = #architecture_code; \
+      is_optimized = is_arch_optimised; \
+      break;
+
+  /* List of architectures that have been optimized by Intel and Blender developers.
+   *
+   * For example, Intel Rocket Lake iGPU (rkl) is not supported and not optimized,
+   * while Intel Arc Alchemist dGPU (dg2) was optimized for.
+   *
+   * Devices can changed from unoptimized to optimized manually, after DPC++ has
+   * been upgraded to support the architecture and CYCLES_ONEAPI_INTEL_BINARIES_ARCH
+   * in CMake includes the architecture. */
+  switch (arch) {
+    FILL_ARCH_INFO(intel_gpu_bdw, false)
+    FILL_ARCH_INFO(intel_gpu_skl, false)
+    FILL_ARCH_INFO(intel_gpu_kbl, false)
+    FILL_ARCH_INFO(intel_gpu_cfl, false)
+    FILL_ARCH_INFO(intel_gpu_apl, false)
+    FILL_ARCH_INFO(intel_gpu_glk, false)
+    FILL_ARCH_INFO(intel_gpu_whl, false)
+    FILL_ARCH_INFO(intel_gpu_aml, false)
+    FILL_ARCH_INFO(intel_gpu_cml, false)
+    FILL_ARCH_INFO(intel_gpu_icllp, false)
+    FILL_ARCH_INFO(intel_gpu_ehl, false)
+    FILL_ARCH_INFO(intel_gpu_tgllp, false)
+    FILL_ARCH_INFO(intel_gpu_rkl, false)
+    FILL_ARCH_INFO(intel_gpu_adl_s, false)
+    FILL_ARCH_INFO(intel_gpu_adl_p, false)
+    FILL_ARCH_INFO(intel_gpu_adl_n, false)
+    FILL_ARCH_INFO(intel_gpu_dg1, false)
+    FILL_ARCH_INFO(intel_gpu_dg2_g10, true)
+    FILL_ARCH_INFO(intel_gpu_dg2_g11, true)
+    FILL_ARCH_INFO(intel_gpu_dg2_g12, true)
+    FILL_ARCH_INFO(intel_gpu_pvc, false)
+    FILL_ARCH_INFO(intel_gpu_pvc_vg, false)
+    /* intel_gpu_mtl_u == intel_gpu_mtl_s == intel_gpu_arl_u == intel_gpu_arl_s */
+    FILL_ARCH_INFO(intel_gpu_mtl_u, true)
+    FILL_ARCH_INFO(intel_gpu_mtl_h, true)
+    FILL_ARCH_INFO(intel_gpu_bmg_g21, true)
+    FILL_ARCH_INFO(intel_gpu_lnl_m, true)
+
+    default:
+      name = "unknown";
+      is_optimized = false;
+      break;
+  }
+}
+
 char *OneapiDevice::device_capabilities()
 {
   std::stringstream capabilities;
@@ -1469,6 +1527,15 @@ char *OneapiDevice::device_capabilities()
     capabilities << std::string("\t") << name << "\n";
     capabilities << "\t\tsycl::info::platform::name\t\t\t"
                  << device.get_platform().get_info<sycl::info::platform::name>() << "\n";
+
+    string arch_name;
+    bool is_optimised_for_arch;
+    architecture_information(
+        reinterpret_cast<const SyclDevice *>(&device), arch_name, is_optimised_for_arch);
+    capabilities << "\t\tsycl::info::device::architecture\t\t\t";
+    capabilities << arch_name << "\n";
+    capabilities << "\t\tsycl::info::device::is_cycles_optimized\t\t\t";
+    capabilities << is_optimised_for_arch << "\n";
 
 #  define WRITE_ATTR(attribute_name, attribute_variable) \
     capabilities << "\t\tsycl::info::device::" #attribute_name "\t\t\t" << attribute_variable \
@@ -1587,10 +1654,22 @@ void OneapiDevice::iterate_devices(OneAPIDeviceIteratorCallback cb, void *user_p
     bool oidn_support = false;
 #  endif
     std::string id = "ONEAPI_" + platform_name + "_" + name;
+
+    string arch_name;
+    bool is_optimised_for_arch;
+    architecture_information(
+        reinterpret_cast<const SyclDevice *>(&device), arch_name, is_optimised_for_arch);
+
     if (device.has(sycl::aspect::ext_intel_pci_address)) {
       id.append("_" + device.get_info<sycl::ext::intel::info::device::pci_address>());
     }
-    (cb)(id.c_str(), name.c_str(), num, hwrt_support, oidn_support, user_ptr);
+    (cb)(id.c_str(),
+         name.c_str(),
+         num,
+         hwrt_support,
+         oidn_support,
+         is_optimised_for_arch,
+         user_ptr);
     num++;
   }
 }
