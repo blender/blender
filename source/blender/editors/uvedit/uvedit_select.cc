@@ -1238,14 +1238,17 @@ bool uvedit_vert_is_edge_select_any_other(const ToolSettings *ts,
   BLI_assert(offsets.uv >= 0);
   BMEdge *e_iter = l->e;
   do {
-    BMLoop *l_radial_iter = e_iter->l, *l_other;
+    BMLoop *l_radial_iter = e_iter->l;
+    if (!l_radial_iter) {
+      continue; /* Skip wire edges with no loops. */
+    }
     do {
       if (!uvedit_face_visible_test_ex(ts, l_radial_iter->f)) {
         continue;
       }
       /* Use #l_other to check if the uvs are connected (share the same uv coordinates)
        * and #l_radial_iter for the actual edge selection test. */
-      l_other = (l_radial_iter->v != l->v) ? l_radial_iter->next : l_radial_iter;
+      BMLoop *l_other = (l_radial_iter->v != l->v) ? l_radial_iter->next : l_radial_iter;
       if (BM_loop_uv_share_vert_check(l, l_other, offsets.uv) &&
           uvedit_edge_select_test_ex(ts, l_radial_iter, offsets))
       {
