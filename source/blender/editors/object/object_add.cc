@@ -58,6 +58,7 @@
 #include "BKE_curves.h"
 #include "BKE_curves.hh"
 #include "BKE_customdata.hh"
+#include "BKE_deform.hh"
 #include "BKE_displist.h"
 #include "BKE_duplilist.hh"
 #include "BKE_effect.h"
@@ -3275,6 +3276,8 @@ static void mesh_data_to_grease_pencil(const Mesh &mesh_eval,
       curve_positions[point_i] += offset * point_normals[point_i];
     }
   });
+
+  BKE_defgroup_copy_list(&grease_pencil.vertex_group_names, &mesh_copied->vertex_group_names);
 
   curves.radius_for_write().fill(stroke_radius);
 
