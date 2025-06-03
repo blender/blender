@@ -12,7 +12,6 @@
 #pragma once
 
 #include "BKE_duplilist.hh"
-#include "BLI_ghash.h"
 #include "BLI_map.hh"
 #include "DEG_depsgraph_query.hh"
 #include "DNA_object_types.h"
@@ -50,56 +49,29 @@ class ObjectKey {
   ObjectKey(const ObjectRef &ob_ref, int sub_key = 0)
   {
     ob_ = DEG_get_original(ob_ref.object);
-    hash_value_ = BLI_ghashutil_ptrhash(ob_);
+    hash_value_ = get_default_hash(ob_);
 
     if (DupliObject *dupli = ob_ref.dupli_object) {
       parent_ = ob_ref.dupli_parent;
-      hash_value_ = BLI_ghashutil_combine_hash(hash_value_, BLI_ghashutil_ptrhash(parent_));
+      hash_value_ = get_default_hash(hash_value_, get_default_hash(parent_));
       for (int i : IndexRange(MAX_DUPLI_RECUR)) {
         id_[i] = dupli->persistent_id[i];
         if (id_[i] == INT_MAX) {
           break;
         }
-        hash_value_ = BLI_ghashutil_combine_hash(hash_value_, BLI_ghashutil_inthash(id_[i]));
+        hash_value_ = get_default_hash(hash_value_, get_default_hash(id_[i]));
       }
     }
 
     if (sub_key != 0) {
       sub_key_ = sub_key;
-      hash_value_ = BLI_ghashutil_combine_hash(hash_value_, BLI_ghashutil_inthash(sub_key_));
+      hash_value_ = get_default_hash(hash_value_, get_default_hash(sub_key_));
     }
   }
 
   uint64_t hash() const
   {
     return hash_value_;
-  }
-
-  bool operator<(const ObjectKey &k) const
-  {
-    if (hash_value_ != k.hash_value_) {
-      return hash_value_ < k.hash_value_;
-    }
-    if (ob_ != k.ob_) {
-      return (ob_ < k.ob_);
-    }
-    if (parent_ != k.parent_) {
-      return (parent_ < k.parent_);
-    }
-    if (sub_key_ != k.sub_key_) {
-      return (sub_key_ < k.sub_key_);
-    }
-    if (parent_) {
-      for (int i : IndexRange(MAX_DUPLI_RECUR)) {
-        if (id_[i] < k.id_[i]) {
-          return true;
-        }
-        if (id_[i] == INT_MAX) {
-          break;
-        }
-      }
-    }
-    return false;
   }
 
   bool operator==(const ObjectKey &k) const
