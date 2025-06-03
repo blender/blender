@@ -10,6 +10,7 @@
 
 #include "GHOST_C-api.h"
 
+#include "BLI_path_utils.hh"
 #include "BLI_threads.h"
 
 #include "CLG_log.h"
@@ -165,6 +166,25 @@ static Vector<StringRefNull> missing_capabilities_get(VkPhysicalDevice vk_physic
 bool VKBackend::is_supported()
 {
   CLG_logref_init(&LOG);
+
+  /*
+   * Disable implicit layers and only allow layers that we trust.
+   *
+   * Render doc layer is hidden behind a debug flag. There are malicious layers that impersonate
+   * renderdoc and can crash when loaded. See #139543
+   */
+  std::stringstream allowed_layers;
+  allowed_layers << "VK_LAYER_KHRONOS_*";
+  allowed_layers << ",VK_LAYER_AMD_*";
+  allowed_layers << ",VK_LAYER_INTEL_*";
+  allowed_layers << ",VK_LAYER_NVIDIA_*";
+  allowed_layers << ",VK_LAYER_MESA_*";
+  if (bool(G.debug & G_DEBUG_GPU)) {
+    allowed_layers << ",VK_LAYER_LUNARG_*";
+    allowed_layers << ",VK_LAYER_RENDERDOC_*";
+  }
+  BLI_setenv("VK_LOADER_LAYERS_DISABLE", "~implicit~");
+  BLI_setenv("VK_LOADER_LAYERS_ALLOW", allowed_layers.str().c_str());
 
   /* Initialize an vulkan 1.2 instance. */
   VkApplicationInfo vk_application_info = {VK_STRUCTURE_TYPE_APPLICATION_INFO};
