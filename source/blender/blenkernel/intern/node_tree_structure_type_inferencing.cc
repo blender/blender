@@ -29,7 +29,7 @@ static nodes::StructureTypeInterface calc_node_interface(const bNode &node)
   node_interface.inputs.reinitialize(input_sockets.size());
   node_interface.outputs.reinitialize(output_sockets.size());
 
-  if (node.is_undefined() || node.runtime->declaration->skip_updating_sockets) {
+  if (node.is_undefined() || !node.declaration() || node.declaration()->skip_updating_sockets) {
     node_interface.inputs.fill(StructureType::Dynamic);
     node_interface.outputs.fill(
         nodes::StructureTypeInterface::OutputDependency{StructureType::Dynamic});
