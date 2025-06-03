@@ -29,7 +29,7 @@ static nodes::StructureTypeInterface calc_node_interface(const bNode &node)
   node_interface.inputs.reinitialize(input_sockets.size());
   node_interface.outputs.reinitialize(output_sockets.size());
 
-  if (node.is_undefined()) {
+  if (node.is_undefined() || node.runtime->declaration->skip_updating_sockets) {
     node_interface.inputs.fill(StructureType::Dynamic);
     node_interface.outputs.fill(
         nodes::StructureTypeInterface::OutputDependency{StructureType::Dynamic});
@@ -533,8 +533,10 @@ static void propagate_left_to_right(const bNodeTree &tree,
       continue;
     }
     if (!input->is_directly_linked()) {
-      const nodes::SocketDeclaration &declaration = *input->runtime->declaration;
-      structure_types[input->index_in_tree()] = get_unconnected_input_structure_type(declaration);
+      if (const nodes::SocketDeclaration *declaration = input->runtime->declaration) {
+        structure_types[input->index_in_tree()] = get_unconnected_input_structure_type(
+            *declaration);
+      }
     }
   }
   while (true) {
@@ -579,7 +581,7 @@ static void propagate_left_to_right(const bNodeTree &tree,
 
       for (const int output_index : node_interface.outputs.index_range()) {
         const bNodeSocket &output = *output_sockets[output_index];
-        if (!output.is_available()) {
+        if (!output.is_available() || !output.runtime->declaration) {
           continue;
         }
         const nodes::SocketDeclaration &declaration = *output.runtime->declaration;
