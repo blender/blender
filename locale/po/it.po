@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'ba454989554a')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'e91e8eef41aa')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-26 07:36+0000\n"
+"POT-Creation-Date: 2025-06-03 09:10+0000\n"
 "PO-Revision-Date: 2025-05-17 10:56+0000\n"
 "Last-Translator: Alessandro Vecchio <alessandrovecchio1907@gmail.com>\n"
 "Language-Team: Italian <https://translate.blender.org/projects/blender-ui/ui/it/>\n"
@@ -24585,12 +24585,68 @@ msgid "Material slot name"
 msgstr "Nome dello slot materiale"
 
 
-msgid "Mirror"
-msgstr "Specchia"
+msgid "Special Characters"
+msgstr "Caratteri Speciali"
+
+
+msgid "Kerning"
+msgstr "Crenatura"
+
+
+msgid "Text"
+msgstr "Testo"
+
+
+msgid "Metaball"
+msgstr "Metaball"
+
+
+msgid "Show/Hide"
+msgstr "Mostra/Nascondi"
+
+
+msgid "Names"
+msgstr "Nomi"
+
+
+msgid "Bone Roll"
+msgstr "Rollio Osso"
+
+
+msgid "Clean Up"
+msgstr "Ripulisci"
+
+
+msgid "Pivot Point"
+msgstr "Punto di Perno"
 
 
 msgid "Snap"
 msgstr "Aggancia"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Decadimento Modifica Proporzionale"
+
+
+msgid "Mask Edit"
+msgstr "Modifica Maschera"
+
+
+msgid "Automasking"
+msgstr "Automascheramento"
+
+
+msgid "Face Sets Edit"
+msgstr "Modifica Sets di Facce"
+
+
+msgid "Vertex Group Locks"
+msgstr "Blocchi del Gruppo di Vertici"
+
+
+msgid "Mirror"
+msgstr "Specchia"
 
 
 msgid "UV Mapping"
@@ -24645,10 +24701,6 @@ msgid "Assign Material"
 msgstr "Assegna Materiale"
 
 
-msgid "Metaball"
-msgstr "Metaball"
-
-
 msgid "Light"
 msgstr "Luce"
 
@@ -24681,14 +24733,6 @@ msgid "Quick Effects"
 msgstr "Effetti Veloci"
 
 
-msgid "Show/Hide"
-msgstr "Mostra/Nascondi"
-
-
-msgid "Clean Up"
-msgstr "Ripulisci"
-
-
 msgid "Asset"
 msgstr "Risorsa"
 
@@ -24707,10 +24751,6 @@ msgstr "Collega/Trasferisci Dati"
 
 msgid "Hooks"
 msgstr "Ganci"
-
-
-msgid "Vertex Group Locks"
-msgstr "Blocchi del Gruppo di Vertici"
 
 
 msgid "Face Sets Init"
@@ -24735,10 +24775,6 @@ msgstr "Propaga"
 
 msgid "Bone Collections"
 msgstr "Raccolte di Ossa"
-
-
-msgid "Names"
-msgstr "Nomi"
 
 
 msgid "Toggle Bone Options"
@@ -24771,42 +24807,6 @@ msgstr "Imposta Intensità Faccia"
 
 msgid "Merge"
 msgstr "Unisci"
-
-
-msgid "Special Characters"
-msgstr "Caratteri Speciali"
-
-
-msgid "Kerning"
-msgstr "Crenatura"
-
-
-msgid "Text"
-msgstr "Testo"
-
-
-msgid "Bone Roll"
-msgstr "Rollio Osso"
-
-
-msgid "Pivot Point"
-msgstr "Punto di Perno"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Decadimento Modifica Proporzionale"
-
-
-msgid "Mask Edit"
-msgstr "Modifica Maschera"
-
-
-msgid "Automasking"
-msgstr "Automascheramento"
-
-
-msgid "Face Sets Edit"
-msgstr "Modifica Sets di Facce"
 
 
 msgid "Keyframe Insert Pie"
@@ -30594,6 +30594,10 @@ msgid "Stab Weight"
 msgstr "Peso Stabilizzazione"
 
 
+msgid "Starting"
+msgstr "Iniziate"
+
+
 msgid "NLA Strip"
 msgstr "Spezzone NLA"
 
@@ -30838,10 +30842,6 @@ msgid "Aspect Correction"
 msgstr "Correzione Formato"
 
 
-msgid "Type of aspect correction to use"
-msgstr "Tipo di correzione del formato da utilizzare"
-
-
 msgid "Relative Size X"
 msgstr "Dimensione X Relativa"
 
@@ -30887,10 +30887,6 @@ msgstr "Mitch"
 
 msgid "Bokeh"
 msgstr "Bokeh"
-
-
-msgid "Use circular filter (slower)"
-msgstr "Utilizza filtro circolare (più lento)"
 
 
 msgid "Extend Bounds"
@@ -32040,6 +32036,14 @@ msgid "Ceiling"
 msgstr "Per Eccesso"
 
 
+msgid "Active Item Index"
+msgstr "Indice Elemento Attivo"
+
+
+msgid "Index of the active item"
+msgstr "Indice dell'elemento attivo"
+
+
 msgid "Input value used for unconnected socket"
 msgstr "Valore d'ingresso utilizzato per connettore non collegato"
 
@@ -32095,14 +32099,6 @@ msgstr "Componente"
 
 msgid "Bake"
 msgstr "Precalcolo (bake)"
-
-
-msgid "Active Item Index"
-msgstr "Indice Elemento Attivo"
-
-
-msgid "Index of the active item"
-msgstr "Indice dell'elemento attivo"
 
 
 msgid "Blur Attribute"
@@ -46696,10 +46692,6 @@ msgid "Expand/Collapse Header Menus"
 msgstr "Espandi/Contrai Menù dell'Intestazione"
 
 
-msgid "Expand or collapse the header pulldown menus"
-msgstr "Espande o contrae i menù a discesa dell'intestazione"
-
-
 msgctxt "Operator"
 msgid "Jump to Marker"
 msgstr "Salta al Marcatore"
@@ -46987,11 +46979,6 @@ msgstr "Utilizza il metodo HC per il rilassamento"
 
 
 msgctxt "Operator"
-msgid "Change Effect Input"
-msgstr "Cambia ingresso dell'effetto"
-
-
-msgctxt "Operator"
 msgid "Change Effect Type"
 msgstr "Cambia Tipo di Effetto"
 
@@ -47001,21 +46988,9 @@ msgid "Type"
 msgstr "Tipo"
 
 
-msgid "Sequencer effect type"
-msgstr "Tipo di effetto del sequenziatore"
-
-
-msgid "Crossfade effect strip type"
-msgstr "Tipo strip effetto dissolvenza incrociata"
-
-
 msgctxt "Sequence"
 msgid "Add"
 msgstr "Aggiungi"
-
-
-msgid "Add effect strip type"
-msgstr "Agg. tipo effetto strip"
 
 
 msgctxt "Sequence"
@@ -47023,17 +46998,9 @@ msgid "Subtract"
 msgstr "Sottrai"
 
 
-msgid "Subtract effect strip type"
-msgstr "Sottrae tipo di effetto strip"
-
-
 msgctxt "Sequence"
 msgid "Alpha Over"
 msgstr "Sovra Trasparenza"
-
-
-msgid "Alpha Over effect strip type"
-msgstr "Alpha sopra il tipo di effetto strip"
 
 
 msgctxt "Sequence"
@@ -47041,26 +47008,9 @@ msgid "Alpha Under"
 msgstr "Sotto Trasparenza"
 
 
-msgid "Alpha Under effect strip type"
-msgstr "Spezzone d'effetto tipo Alpha Sotto"
-
-
-msgctxt "Sequence"
-msgid "Gamma Cross"
-msgstr "Incrocio Gamma"
-
-
-msgid "Gamma Cross effect strip type"
-msgstr "Tipo strip effetto Incrocio Gamma"
-
-
 msgctxt "Sequence"
 msgid "Multiply"
 msgstr "Moltiplica"
-
-
-msgid "Multiply effect strip type"
-msgstr "Tipo strip effetto moltiplica"
 
 
 msgctxt "Sequence"
@@ -47068,17 +47018,9 @@ msgid "Wipe"
 msgstr "Tendina"
 
 
-msgid "Wipe effect strip type"
-msgstr "Tipo strip effetto tendina"
-
-
 msgctxt "Sequence"
 msgid "Glow"
 msgstr "Incandescenza"
-
-
-msgid "Glow effect strip type"
-msgstr "Tipo strip effetto bagliore"
 
 
 msgctxt "Sequence"
@@ -47086,17 +47028,9 @@ msgid "Transform"
 msgstr "Trasforma"
 
 
-msgid "Transform effect strip type"
-msgstr "Tipo strip effetto trasformazione"
-
-
 msgctxt "Sequence"
 msgid "Color"
 msgstr "Colore"
-
-
-msgid "Color effect strip type"
-msgstr "Tipo strip effetto colore"
 
 
 msgctxt "Sequence"
@@ -47190,6 +47124,10 @@ msgstr "Non corregge la sovrapposizione nei nuovi spezzoni di sequenza"
 
 msgid "Replace Selection"
 msgstr "Rimpiazza Selezione"
+
+
+msgid "Sequencer effect type"
+msgstr "Tipo di effetto del sequenziatore"
 
 
 msgctxt "Operator"
@@ -50922,6 +50860,22 @@ msgid "Active Palette Color"
 msgstr "Colore Tavolozza Attivo"
 
 
+msgid "Shadow Settings"
+msgstr "Impostazioni Ombra"
+
+
+msgid "SSAO Settings"
+msgstr "Impostazioni SSAO"
+
+
+msgid "Render Pass"
+msgstr "Passaggi Render"
+
+
+msgid "Compositor"
+msgstr "Compositore"
+
+
 msgid "Overlays"
 msgstr "Sovrapposizioni"
 
@@ -50954,24 +50908,8 @@ msgid "Stereoscopy"
 msgstr "Stereoscopia"
 
 
-msgid "Compositor"
-msgstr "Compositore"
-
-
 msgid "Auto-Masking"
 msgstr "Auto-Mascheramento"
-
-
-msgid "Shadow Settings"
-msgstr "Impostazioni Ombra"
-
-
-msgid "SSAO Settings"
-msgstr "Impostazioni SSAO"
-
-
-msgid "Render Pass"
-msgstr "Passaggi Render"
 
 
 msgid "Chain Scaling"
@@ -53916,10 +53854,6 @@ msgstr "Spesso"
 
 msgid "Thicker lines than the default"
 msgstr "Linee più spesse del predefinito"
-
-
-msgid "Open menu buttons and pulldowns automatically when the mouse is hovering"
-msgstr "Apre i menu a discesa automaticamente al passaggio del mouse sopra gli stessi"
 
 
 msgid "Ask for confirmation when quitting with unsaved changes"
@@ -57663,11 +57597,6 @@ msgid "Sound"
 msgstr "Suono"
 
 
-msgctxt "Sequence"
-msgid "Cross"
-msgstr "Incrocio"
-
-
 msgid "Use Linear Modifiers"
 msgstr "Utilizza Modificatori Lineari"
 
@@ -57726,10 +57655,6 @@ msgstr "Secondo ingresso dello spezzone effetto"
 
 msgid "Effect Strip color"
 msgstr "Colore Spezzone Effetto"
-
-
-msgid "Cross Sequence"
-msgstr "Sequenza Incrocio"
 
 
 msgid "Size of the blur along X axis"
@@ -62782,16 +62707,6 @@ msgstr "Scena..."
 
 
 msgctxt "Operator"
-msgid "Cross"
-msgstr "Incrocio"
-
-
-msgctxt "Operator"
-msgid "Gamma Cross"
-msgstr "Incrocio Gamma"
-
-
-msgctxt "Operator"
 msgid "Wipe"
 msgstr "Tendina"
 
@@ -67457,16 +67372,8 @@ msgid "File '%s' could not be loaded"
 msgstr "Il file '%s' non può essere caricato"
 
 
-msgid "No valid inputs to swap"
-msgstr "Mancanza di ingressi validi da scambiare"
-
-
 msgid "Please select two strips"
 msgstr "Per favore seleziona due spezzoni"
-
-
-msgid "One of the effect inputs is unset, cannot swap"
-msgstr "Un effetto in ingresso non è impostato, impossibile scambiare"
 
 
 msgid "No subtitles (text strips) to export"
@@ -69925,10 +69832,6 @@ msgstr "Completo"
 
 msgid "In Progress"
 msgstr "Parziali"
-
-
-msgid "Starting"
-msgstr "Iniziate"
 
 
 msgid "Mesh Texture Paint"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'ba454989554a')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'e91e8eef41aa')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2025-05-26 07:36+0000\n"
+"POT-Creation-Date: 2025-06-03 09:10+0000\n"
 "PO-Revision-Date: 2025-04-14 08:36+0000\n"
 "Last-Translator: Ruan da Silva Andrade <ruanandrade818@gmail.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -21444,12 +21444,48 @@ msgid "Material slot name"
 msgstr "Nome do compartimento do material."
 
 
-msgid "Mirror"
-msgstr "Espelhar"
+msgid "Special Characters"
+msgstr "Caracteres especiais"
+
+
+msgid "Text"
+msgstr "Texto"
+
+
+msgid "Metaball"
+msgstr "Meta-esfera"
+
+
+msgid "Show/Hide"
+msgstr "Mostrar ou ocultar"
+
+
+msgid "Names"
+msgstr "Nomes"
+
+
+msgid "Bone Roll"
+msgstr "Rolagem dos ossos"
+
+
+msgid "Clean Up"
+msgstr "Limpeza"
+
+
+msgid "Pivot Point"
+msgstr "Pontos de pivô"
 
 
 msgid "Snap"
 msgstr "Atrair"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Tipo de decaimento para edição proporcional"
+
+
+msgid "Mirror"
+msgstr "Espelhar"
 
 
 msgid "UV Mapping"
@@ -21500,10 +21536,6 @@ msgid "Select Loops"
 msgstr "Selecionar anéis"
 
 
-msgid "Metaball"
-msgstr "Meta-esfera"
-
-
 msgid "Light"
 msgstr "Luz"
 
@@ -21536,14 +21568,6 @@ msgid "Quick Effects"
 msgstr "Efeitos instantâneos"
 
 
-msgid "Show/Hide"
-msgstr "Mostrar ou ocultar"
-
-
-msgid "Clean Up"
-msgstr "Limpeza"
-
-
 msgid "Make Single User"
 msgstr "Tornar usuário único"
 
@@ -21572,10 +21596,6 @@ msgid "Propagate"
 msgstr "Propagar"
 
 
-msgid "Names"
-msgstr "Nomes"
-
-
 msgid "Toggle Bone Options"
 msgstr "Alternar opções de ossos"
 
@@ -21598,26 +21618,6 @@ msgstr "Dados das faces"
 
 msgid "Merge"
 msgstr "Fundir"
-
-
-msgid "Special Characters"
-msgstr "Caracteres especiais"
-
-
-msgid "Text"
-msgstr "Texto"
-
-
-msgid "Bone Roll"
-msgstr "Rolagem dos ossos"
-
-
-msgid "Pivot Point"
-msgstr "Pontos de pivô"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Tipo de decaimento para edição proporcional"
 
 
 msgid "Basic"
@@ -26781,6 +26781,10 @@ msgid "Influence of this track on 2D stabilization"
 msgstr "Influência desta trilha na estabilização 2D."
 
 
+msgid "Starting"
+msgstr "Iniciando"
+
+
 msgid "NLA Strip"
 msgstr "Faixa de animação não linear"
 
@@ -27085,10 +27089,6 @@ msgid "Aspect Correction"
 msgstr "Correção de aspecto"
 
 
-msgid "Type of aspect correction to use"
-msgstr "Tipo de correção de aspecto para usar."
-
-
 msgid "Relative Size X"
 msgstr "Tamanho relativo X"
 
@@ -27101,20 +27101,8 @@ msgid "Bokeh"
 msgstr "Flocagem"
 
 
-msgid "Use circular filter (slower)"
-msgstr "Usa um filtro circular (mais lento)."
-
-
 msgid "Extend Bounds"
 msgstr "Estender as extremidades"
-
-
-msgid "Extend bounds of the input image to fully fit blurred image"
-msgstr "Estende as extremidades da imagem de entrada para preencher completamente a imagem desfocada."
-
-
-msgid "Use relative (percent) values to define blur radius"
-msgstr "Usa valores relativos (percentagem) para definir o raio de desfoque."
 
 
 msgid "Variable Size"
@@ -44934,10 +44922,6 @@ msgid "Expand/Collapse Header Menus"
 msgstr "Expandir ou encolher os menus do cabeçalho"
 
 
-msgid "Expand or collapse the header pulldown menus"
-msgstr "Permite expandir ou encolher os menus de cabeçalho suspensos."
-
-
 msgctxt "Operator"
 msgid "Jump to Marker"
 msgstr "Saltar para marcador"
@@ -45321,11 +45305,6 @@ msgstr "Usa o método Classes de Humphrey para relaxamento."
 
 
 msgctxt "Operator"
-msgid "Change Effect Input"
-msgstr "Alterar as entradas de efeito"
-
-
-msgctxt "Operator"
 msgid "Change Effect Type"
 msgstr "Alterar os tipos de efeito"
 
@@ -45335,21 +45314,9 @@ msgid "Type"
 msgstr "Tipo"
 
 
-msgid "Sequencer effect type"
-msgstr "Tipos de efeito para o editor de sequências."
-
-
-msgid "Crossfade effect strip type"
-msgstr "Faixa de efeito tipo esmaecimento cruzado."
-
-
 msgctxt "Sequence"
 msgid "Add"
 msgstr "Adicionar"
-
-
-msgid "Add effect strip type"
-msgstr "Permite adicionar alguma faixa de efeito dentre os tipos disponíveis."
 
 
 msgctxt "Sequence"
@@ -45357,17 +45324,9 @@ msgid "Subtract"
 msgstr "Subtrair"
 
 
-msgid "Subtract effect strip type"
-msgstr "Faixa de efeito tipo subtração."
-
-
 msgctxt "Sequence"
 msgid "Alpha Over"
 msgstr "Alfa por cima"
-
-
-msgid "Alpha Over effect strip type"
-msgstr "Faixa de efeito tipo alfa por cima."
 
 
 msgctxt "Sequence"
@@ -45375,26 +45334,9 @@ msgid "Alpha Under"
 msgstr "Alfa por baixo"
 
 
-msgid "Alpha Under effect strip type"
-msgstr "Faixa de efeito tipo alfa por baixo."
-
-
-msgctxt "Sequence"
-msgid "Gamma Cross"
-msgstr "Cruzar por gama"
-
-
-msgid "Gamma Cross effect strip type"
-msgstr "Faixa de efeito tipo cruzar por gama."
-
-
 msgctxt "Sequence"
 msgid "Multiply"
 msgstr "Multiplicar"
-
-
-msgid "Multiply effect strip type"
-msgstr "Faixa de efeito tipo multiplicar."
 
 
 msgctxt "Sequence"
@@ -45402,17 +45344,9 @@ msgid "Wipe"
 msgstr "Varredura"
 
 
-msgid "Wipe effect strip type"
-msgstr "Faixa de efeito do tipo varredura."
-
-
 msgctxt "Sequence"
 msgid "Glow"
 msgstr "Incandescência"
-
-
-msgid "Glow effect strip type"
-msgstr "Faixa de efeito tipo incandescência."
 
 
 msgctxt "Sequence"
@@ -45420,17 +45354,9 @@ msgid "Transform"
 msgstr "Transformar"
 
 
-msgid "Transform effect strip type"
-msgstr "Faixa de efeito tipo transformar."
-
-
 msgctxt "Sequence"
 msgid "Color"
 msgstr "Cor"
-
-
-msgid "Color effect strip type"
-msgstr "Faixa de efeito tipo cor."
 
 
 msgctxt "Sequence"
@@ -45524,6 +45450,10 @@ msgstr "Não corrige as sobreposições em novas faixas de sequência."
 
 msgid "Replace Selection"
 msgstr "Sobrepor seleção"
+
+
+msgid "Sequencer effect type"
+msgstr "Tipos de efeito para o editor de sequências."
 
 
 msgctxt "Operator"
@@ -49769,6 +49699,10 @@ msgid "Active Palette Color"
 msgstr "Cor ativa da paleta"
 
 
+msgid "Render Pass"
+msgstr "Passo de renderização"
+
+
 msgid "Motion Tracking"
 msgstr "Captura de movimentos"
 
@@ -49783,10 +49717,6 @@ msgstr "Exibição Quadrante"
 
 msgid "Stereoscopy"
 msgstr "Estereoscopia"
-
-
-msgid "Render Pass"
-msgstr "Passo de renderização"
 
 
 msgid "Bone Constraints"
@@ -52991,10 +52921,6 @@ msgstr "Linhas mais espessas que o padrão."
 
 msgid "Changes the size of the fonts and widgets in the interface"
 msgstr "Altera o tamanho das fontes e botões na interface"
-
-
-msgid "Open menu buttons and pulldowns automatically when the mouse is hovering"
-msgstr "Abre os botões de menu e menus suspensos automaticamente quando o ponteiro do mouse pairar sobre eles."
 
 
 msgid "Text Anti-Aliasing"
@@ -57728,11 +57654,6 @@ msgid "Sound"
 msgstr "Som"
 
 
-msgctxt "Sequence"
-msgid "Cross"
-msgstr "Cruzar"
-
-
 msgid "Use Default Fade"
 msgstr "Usar esmaecimento padrão"
 
@@ -57843,10 +57764,6 @@ msgstr "Faixa de sequência criando uma imagem preenchida com uma cor única."
 
 msgid "Effect Strip color"
 msgstr "Cor da faixa de efeito"
-
-
-msgid "Cross Sequence"
-msgstr "Sequência tipo cruzar"
 
 
 msgid "Sequence strip creating a gaussian blur"
@@ -63038,16 +62955,6 @@ msgstr "Cena..."
 
 
 msgctxt "Operator"
-msgid "Cross"
-msgstr "Cruzar"
-
-
-msgctxt "Operator"
-msgid "Gamma Cross"
-msgstr "Cruzar por gama"
-
-
-msgctxt "Operator"
 msgid "Wipe"
 msgstr "Varredura"
 
@@ -68196,20 +68103,8 @@ msgid "File '%s' could not be loaded"
 msgstr "Arquivo '%s' não pode ser carregado."
 
 
-msgid "No valid inputs to swap"
-msgstr "Sem entradas válidas para trocar."
-
-
 msgid "Please select two strips"
 msgstr "Por favor, selecione duas faixas."
-
-
-msgid "One of the effect inputs is unset, cannot swap"
-msgstr "Uma das entradas de faixas de efeito não está configurada, não é possível trocar."
-
-
-msgid "New effect needs more input strips"
-msgstr "Novos efeitos necessitam de mais faixas de entrada."
 
 
 msgid "Can't create subtitle file"
@@ -70335,8 +70230,4 @@ msgstr "Completo"
 
 msgid "In Progress"
 msgstr "Em progresso"
-
-
-msgid "Starting"
-msgstr "Iniciando"
 

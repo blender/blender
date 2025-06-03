@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'ba454989554a')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'e91e8eef41aa')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-26 07:36+0000\n"
+"POT-Creation-Date: 2025-06-03 09:10+0000\n"
 "PO-Revision-Date: 2025-04-14 08:24+0000\n"
 "Last-Translator: Balázs Füvesi <fuvesib@gmail.com>\n"
 "Language-Team: Hungarian <https://translate.blender.org/projects/blender-ui/ui/hu/>\n"
@@ -6585,6 +6585,22 @@ msgid "Mask"
 msgstr "Maszk"
 
 
+msgid "Text"
+msgstr "Szöveg"
+
+
+msgid "Metaball"
+msgstr "Meta test"
+
+
+msgid "Show/Hide"
+msgstr "Mutat/Rejt"
+
+
+msgid "Clean Up"
+msgstr "Tisztítás"
+
+
 msgid "Mirror"
 msgstr "Tükrözés"
 
@@ -6599,10 +6615,6 @@ msgstr "Navigáció"
 
 msgid "Align View"
 msgstr "Nézet igazítása"
-
-
-msgid "Metaball"
-msgstr "Meta test"
 
 
 msgid "Light"
@@ -6625,20 +6637,8 @@ msgid "Track"
 msgstr "Nyom"
 
 
-msgid "Show/Hide"
-msgstr "Mutat/Rejt"
-
-
-msgid "Clean Up"
-msgstr "Tisztítás"
-
-
 msgid "Merge"
 msgstr "Összefésülés"
-
-
-msgid "Text"
-msgstr "Szöveg"
 
 
 msgctxt "MovieClip"
@@ -9176,6 +9176,10 @@ msgstr "Egységek"
 
 msgid "Markers"
 msgstr "Markerek"
+
+
+msgid "Starting"
+msgstr "Induló"
 
 
 msgid "Blending"
@@ -12012,11 +12016,6 @@ msgstr "Alfa takarás"
 
 
 msgctxt "Sequence"
-msgid "Gamma Cross"
-msgstr "Gamma keresztezés"
-
-
-msgctxt "Sequence"
 msgid "Multiply"
 msgstr "Többszörözés"
 
@@ -12934,12 +12933,12 @@ msgid "Detail Size"
 msgstr "Részlet mérete"
 
 
-msgid "Motion Tracking"
-msgstr "Mozgáskövetés"
-
-
 msgid "Render Pass"
 msgstr "Render vezeték"
+
+
+msgid "Motion Tracking"
+msgstr "Mozgáskövetés"
 
 
 msgid "Chain Scaling"
@@ -13837,10 +13836,6 @@ msgid "Direct conversion of frame numbers to seconds"
 msgstr "A képkockák közvetlen konvertálása másodpercekké"
 
 
-msgid "Open menu buttons and pulldowns automatically when the mouse is hovering"
-msgstr "Menügombok és lenyílómenük kinyitása automatikusan, az egér fölé mozgatásával"
-
-
 msgid "Translate Interface"
 msgstr "Kezelőfelület lefordítása"
 
@@ -14640,11 +14635,6 @@ msgid "Sound"
 msgstr "Hang"
 
 
-msgctxt "Sequence"
-msgid "Cross"
-msgstr "Keresztezés"
-
-
 msgid "Representation of alpha information in the RGBA pixels"
 msgstr "Az alfa információ ábrázolása az RGBA pixelekben"
 
@@ -15422,11 +15412,6 @@ msgid "Animation"
 msgstr "Animáció"
 
 
-msgctxt "WindowManager"
-msgid "TrackBall"
-msgstr "Hanyattegér"
-
-
 msgctxt "Operator"
 msgid "All"
 msgstr "Mind"
@@ -15962,16 +15947,6 @@ msgstr "Szöveg"
 msgctxt "Operator"
 msgid "Scene..."
 msgstr "Jelenet..."
-
-
-msgctxt "Operator"
-msgid "Cross"
-msgstr "Keresztezés"
-
-
-msgctxt "Operator"
-msgid "Gamma Cross"
-msgstr "Gamma keresztezés"
 
 
 msgctxt "Operator"
@@ -17515,8 +17490,4 @@ msgstr "Teljes"
 
 msgid "In Progress"
 msgstr "Folyamatban"
-
-
-msgid "Starting"
-msgstr "Induló"
 
