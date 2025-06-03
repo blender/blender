@@ -799,6 +799,7 @@ static wmOperatorStatus node_box_select_exec(bContext *C, wmOperator *op)
   tree_draw_order_update(node_tree);
 
   WM_event_add_notifier(C, NC_NODE | NA_SELECTED, nullptr);
+  WM_event_add_notifier(C, NC_NODE | ND_NODE_GIZMO, nullptr);
 
   return OPERATOR_FINISHED;
 }
@@ -900,6 +901,7 @@ static wmOperatorStatus node_circleselect_exec(bContext *C, wmOperator *op)
   }
 
   WM_event_add_notifier(C, NC_NODE | NA_SELECTED, nullptr);
+  WM_event_add_notifier(C, NC_NODE | ND_NODE_GIZMO, nullptr);
 
   return OPERATOR_FINISHED;
 }
@@ -1004,6 +1006,7 @@ static bool do_lasso_select_node(bContext *C, const Span<int2> mcoords, eSelectO
 
   if (changed) {
     WM_event_add_notifier(C, NC_NODE | NA_SELECTED, nullptr);
+    WM_event_add_notifier(C, NC_NODE | ND_NODE_GIZMO, nullptr);
   }
 
   return changed;
