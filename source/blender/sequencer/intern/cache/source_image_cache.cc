@@ -29,15 +29,17 @@ static Mutex source_image_cache_mutex;
 struct SourceImageCache {
   struct FrameEntry {
     ImBuf *image = nullptr;
-    /* Frame in timeline, relative to strip start. Used to determine which
-     * entries to evict (furthest from the playhead). Due to reversed
+    /**
+     * Frame in timeline, relative to strip start. Used to determine which
+     * entries to evict (furthest from the play-head). Due to reversed
      * frames, playback rate, retiming the relationship between source frame
-     * index and timeline frame is not a simple one. */
+     * index and timeline frame is not a simple one.
+     */
     float strip_frame = 0;
   };
 
   struct StripEntry {
-    /* Map key is {source media frame index (i.e. movie frame), view ID}. */
+    /** Map key is {source media frame index (i.e. movie frame), view ID}. */
     Map<std::pair<int, int>, FrameEntry> frames;
   };
 

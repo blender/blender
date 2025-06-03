@@ -138,7 +138,7 @@ static void morph_points_to_curve(Span<float2> src, Span<float2> target, Mutable
   dst.last() = src.last();
 }
 
-/* Creates a temporary brush with the fill guide settings. */
+/** Creates a temporary brush with the fill guide settings. */
 static Brush *create_fill_guide_brush()
 {
   Brush *fill_guides_brush = BKE_id_new_nomain<Brush>("Draw Fill Guides");
@@ -185,37 +185,39 @@ class PaintOperation : public GreasePencilStrokeOperation {
   int frame_number_;
   Vector<ed::greasepencil::MutableDrawingInfo> multi_frame_drawings_;
 
-  /* Screen space coordinates from input samples. */
+  /** Screen space coordinates from input samples. */
   Vector<float2> screen_space_coords_orig_;
 
-  /* Temporary vector of curve fitted screen space coordinates per input sample from the active
-   * smoothing window. The length of this depends on `active_smooth_start_index_`. */
+  /**
+   * Temporary vector of curve fitted screen space coordinates per input sample from the active
+   * smoothing window. The length of this depends on `active_smooth_start_index_`.
+   */
   Vector<Vector<float2>> screen_space_curve_fitted_coords_;
-  /* Temporary vector of screen space offsets. */
+  /** Temporary vector of screen space offsets. */
   Vector<float2> screen_space_jitter_offsets_;
-  /* Projection planes for every point in "Stroke" placement mode. */
+  /** Projection planes for every point in "Stroke" placement mode. */
   Vector<std::optional<float>> stroke_placement_depths_;
 
-  /* Screen space coordinates after smoothing. */
+  /** Screen space coordinates after smoothing. */
   Vector<float2> screen_space_smoothed_coords_;
-  /* Screen space coordinates after smoothing and jittering. */
+  /** Screen space coordinates after smoothing and jittering. */
   Vector<float2> screen_space_final_coords_;
 
-  /* The start index of the smoothing window. */
+  /** The start index of the smoothing window. */
   int active_smooth_start_index_ = 0;
   blender::float4x2 texture_space_ = float4x2::identity();
 
-  /* Helper class to project screen space coordinates to 3d. */
+  /** Helper class to project screen space coordinates to 3d. */
   ed::greasepencil::DrawingPlacement placement_;
-  /* Last valid stroke intersection, for use in Stroke projection mode. */
+  /** Last valid stroke intersection, for use in Stroke projection mode. */
   std::optional<float> last_stroke_placement_depth_;
-  /* Point index of the last valid stroke placement. */
+  /** Point index of the last valid stroke placement. */
   std::optional<int> last_stroke_placement_point_;
 
-  /* Direction the pen is moving in smoothed over time. */
+  /** Direction the pen is moving in smoothed over time. */
   float2 smoothed_pen_direction_ = float2(0.0f);
 
-  /* Accumulated distance along the stroke. */
+  /** Accumulated distance along the stroke. */
   float accum_distance_ = 0.0f;
 
   RandomNumberGenerator rng_;
@@ -228,12 +230,12 @@ class PaintOperation : public GreasePencilStrokeOperation {
   float stroke_random_sat_factor_;
   float stroke_random_val_factor_;
 
-  /* The current time at which the paint operation begins. */
+  /** The current time at which the paint operation begins. */
   double start_time_;
-  /* Current delta time from #start_time_, updated after each extension sample. */
+  /** Current delta time from #start_time_, updated after each extension sample. */
   double delta_time_;
 
-  /* Set to true when the painr operation is used to draw fill guides. */
+  /** Set to true when the paint operation is used to draw fill guides. */
   bool do_fill_guides_;
 
   friend struct PaintOperationExecutor;
@@ -249,7 +251,7 @@ class PaintOperation : public GreasePencilStrokeOperation {
   PaintOperation(const bool do_fill_guides = false) : do_fill_guides_(do_fill_guides) {}
 
   bool update_stroke_depth_placement(const bContext &C, const InputSample &sample);
-  /* Returns the range of actually reprojected points. */
+  /** Returns the range of actually reprojected points. */
   IndexRange interpolate_stroke_depth(const bContext &C,
                                       std::optional<int> start_point,
                                       float from_depth,

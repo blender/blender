@@ -142,7 +142,7 @@ bool operator==(const Error &left, const Error &right);
  *
  * \return On success, returns the template variables for the property. If no
  * property is provided or if the property doesn't support path templates,
- * returns nullopt.
+ * returns #std::nullopt.
  */
 std::optional<blender::bke::path_templates::VariableMap> BKE_build_template_variables_for_prop(
     const bContext *C, PointerRNA *ptr, PropertyRNA *prop);
