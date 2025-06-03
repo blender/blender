@@ -754,7 +754,7 @@ class CryptoMatteOperation : public BaseCryptoMatteOperation {
     /* The render result structure of the image is populated as a side effect of the acquisition of
      * an image buffer, so acquire an image buffer and immediately release it since it is not
      * actually needed. */
-    ImageUser image_user_for_layer = *this->get_image_user();
+    ImageUser image_user_for_layer = this->get_image_user();
     ImBuf *image_buffer = BKE_image_acquire_ibuf(image, &image_user_for_layer, nullptr);
     BKE_image_release_ibuf(image, image_buffer, nullptr);
     if (!image_buffer || !image->rr) {
@@ -868,7 +868,7 @@ class CryptoMatteOperation : public BaseCryptoMatteOperation {
       return NodeOperation::compute_domain();
     }
 
-    ImageUser image_user = *get_image_user();
+    ImageUser image_user = this->get_image_user();
     ImBuf *image_buffer = BKE_image_acquire_ibuf(image, &image_user, nullptr);
     if (!image_buffer) {
       return NodeOperation::compute_domain();
@@ -879,10 +879,18 @@ class CryptoMatteOperation : public BaseCryptoMatteOperation {
     return Domain(image_size);
   }
 
-  const ImageUser *get_image_user()
+  ImageUser get_image_user()
   {
-    BLI_assert(get_source() == CMP_NODE_CRYPTOMATTE_SOURCE_IMAGE);
-    return &node_storage(bnode()).iuser;
+    BLI_assert(this->get_source() == CMP_NODE_CRYPTOMATTE_SOURCE_IMAGE);
+
+    Image *image = this->get_image();
+    BLI_assert(image);
+
+    /* Compute the effective frame number of the image if it was animated. */
+    ImageUser image_user_for_frame = node_storage(bnode()).iuser;
+    BKE_image_user_frame_calc(image, &image_user_for_frame, this->context().get_frame_number());
+
+    return image_user_for_frame;
   }
 
   Scene *get_scene()
