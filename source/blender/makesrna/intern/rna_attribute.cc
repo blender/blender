@@ -653,17 +653,6 @@ bool rna_AttributeGroup_lookup_string(PointerRNA *ptr, const char *key, PointerR
     return true;
   }
 
-  /* Support retrieving UV seam name convention with older name. To be removed as part of 5.0
-   * breaking changes. */
-  if (STREQ(key, ".uv_seam")) {
-    if (CustomDataLayer *layer = BKE_attribute_search_for_write(
-            owner, "uv_seam", CD_MASK_PROP_ALL, ATTR_DOMAIN_MASK_ALL))
-    {
-      rna_pointer_create_with_ancestors(*ptr, &RNA_Attribute, layer, *r_ptr);
-      return true;
-    }
-  }
-
   *r_ptr = PointerRNA_NULL;
   return false;
 }

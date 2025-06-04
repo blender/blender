@@ -284,53 +284,6 @@ static void mesh_foreach_path(ID *id, BPathForeachPathData *bpath_data)
   }
 }
 
-static void rename_seam_layer_to_old_name(const ListBase vertex_groups,
-                                          const Span<CustomDataLayer> vert_layers,
-                                          MutableSpan<CustomDataLayer> edge_layers,
-                                          const Span<CustomDataLayer> face_layers,
-                                          const Span<CustomDataLayer> corner_layers)
-{
-  CustomDataLayer *seam_layer = nullptr;
-  for (CustomDataLayer &layer : edge_layers) {
-    if (STREQ(layer.name, ".uv_seam")) {
-      return;
-    }
-    if (layer.type == CD_PROP_BOOL && STREQ(layer.name, "uv_seam")) {
-      seam_layer = &layer;
-    }
-  }
-
-  if (!seam_layer) {
-    return;
-  }
-
-  /* Current files are not expected to have a ".uv_seam" attribute (the old name) except in the
-   * rare case users created it themselves. If that happens, avoid renaming the current UV seam
-   * attribute so that at least it's not hidden in the old version. */
-  for (const CustomDataLayer &layer : vert_layers) {
-    if (STREQ(layer.name, ".uv_seam")) {
-      return;
-    }
-  }
-  for (const CustomDataLayer &layer : face_layers) {
-    if (STREQ(layer.name, ".uv_seam")) {
-      return;
-    }
-  }
-  for (const CustomDataLayer &layer : corner_layers) {
-    if (STREQ(layer.name, ".uv_seam")) {
-      return;
-    }
-  }
-  LISTBASE_FOREACH (const bDeformGroup *, vertex_group, &vertex_groups) {
-    if (STREQ(vertex_group->name, ".uv_seam")) {
-      return;
-    }
-  }
-
-  STRNCPY(seam_layer->name, ".uv_seam");
-}
-
 static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
   using namespace blender;
@@ -382,13 +335,6 @@ static void mesh_blend_write(BlendWriter *writer, ID *id, const void *id_address
         mesh->corner_data, AttrDomain::Corner, mesh->corners_num, loop_layers, attribute_data);
     mesh->attribute_storage.dna_attributes = attribute_data.attributes.data();
     mesh->attribute_storage.dna_attributes_num = attribute_data.attributes.size();
-    if (!is_undo) {
-      /* Write forward compatible format. To be removed in 5.0. */
-      rename_seam_layer_to_old_name(
-          mesh->vertex_group_names, vert_layers, edge_layers, face_layers, loop_layers);
-      mesh_sculpt_mask_to_legacy(vert_layers);
-      mesh_custom_normals_to_legacy(loop_layers);
-    }
   }
 
   const blender::bke::MeshRuntime *mesh_runtime = mesh->runtime;

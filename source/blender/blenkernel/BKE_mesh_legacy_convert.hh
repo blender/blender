@@ -8,8 +8,6 @@
  * \ingroup bke
  */
 
-#include "BLI_span.hh"
-
 struct CustomData;
 struct Main;
 struct Mesh;
@@ -18,10 +16,8 @@ struct CustomDataLayer;
 
 namespace blender::bke {
 
-void mesh_custom_normals_to_legacy(MutableSpan<CustomDataLayer> corner_layers);
 void mesh_custom_normals_to_generic(Mesh &mesh);
 
-void mesh_sculpt_mask_to_legacy(MutableSpan<CustomDataLayer> vert_layers);
 void mesh_sculpt_mask_to_generic(Mesh &mesh);
 
 }  // namespace blender::bke
@@ -129,9 +125,9 @@ void BKE_mesh_calc_edges_tessface(Mesh *mesh);
 
 /* NOTE(@sybren): Instead of -1 that function uses ORIGINDEX_NONE as defined in BKE_customdata.hh,
  * but I don't want to force every user of BKE_mesh.h to also include that file. */
-BLI_INLINE int BKE_mesh_origindex_mface_mpoly(const int *index_mf_to_mpoly,
-                                              const int *index_mp_to_orig,
-                                              const int i)
+inline int BKE_mesh_origindex_mface_mpoly(const int *index_mf_to_mpoly,
+                                          const int *index_mp_to_orig,
+                                          const int i)
 {
   const int j = index_mf_to_mpoly[i];
   return (j != -1) ? (index_mp_to_orig ? index_mp_to_orig[j] : j) : -1;
