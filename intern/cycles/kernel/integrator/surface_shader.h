@@ -24,7 +24,7 @@ CCL_NAMESPACE_BEGIN
 
 /* Guiding */
 
-#if defined(__PATH_GUIDING__)
+#ifdef __PATH_GUIDING__
 
 ccl_device float surface_shader_average_sample_weight_squared_roughness(
     const ccl_private ShaderData *sd)
@@ -54,7 +54,7 @@ ccl_device_inline void surface_shader_prepare_guiding(KernelGlobals kg,
 {
   /* Have any BSDF to guide? */
   if (!(kernel_data.integrator.use_surface_guiding && (sd->flag & SD_BSDF_HAS_EVAL))) {
-    INTEGRATOR_STATE_WRITE(state, guiding, use_surface_guiding) = false;
+    state->guiding.use_surface_guiding = false;
     return;
   }
 
@@ -106,35 +106,31 @@ ccl_device_inline void surface_shader_prepare_guiding(KernelGlobals kg,
        (diffuse_sampling_fraction <= 0.0f)) ||
       !guiding_bsdf_init(kg, state, sd->P, sd->N, rand_bsdf_guiding))
   {
-    INTEGRATOR_STATE_WRITE(state, guiding, use_surface_guiding) = false;
-    INTEGRATOR_STATE_WRITE(state, guiding, surface_guiding_sampling_prob) = 0.f;
+    state->guiding.use_surface_guiding = false;
+    state->guiding.surface_guiding_sampling_prob = 0.0f;
     return;
   }
 
-  INTEGRATOR_STATE_WRITE(state, guiding, use_surface_guiding) = true;
+  state->guiding.use_surface_guiding = true;
   if (kernel_data.integrator.guiding_directional_sampling_type ==
       GUIDING_DIRECTIONAL_SAMPLING_TYPE_PRODUCT_MIS)
   {
-    INTEGRATOR_STATE_WRITE(
-        state, guiding, surface_guiding_sampling_prob) = surface_guiding_probability *
-                                                         diffuse_sampling_fraction;
+    state->guiding.surface_guiding_sampling_prob = surface_guiding_probability *
+                                                   diffuse_sampling_fraction;
   }
   else if (kernel_data.integrator.guiding_directional_sampling_type ==
            GUIDING_DIRECTIONAL_SAMPLING_TYPE_RIS)
   {
-    INTEGRATOR_STATE_WRITE(
-        state, guiding, surface_guiding_sampling_prob) = surface_guiding_probability;
+    state->guiding.surface_guiding_sampling_prob = surface_guiding_probability;
   }
   else {  // GUIDING_DIRECTIONAL_SAMPLING_TYPE_ROUGHNESS
-    INTEGRATOR_STATE_WRITE(
-        state, guiding, surface_guiding_sampling_prob) = surface_guiding_probability *
-                                                         avg_roughness;
+    state->guiding.surface_guiding_sampling_prob = surface_guiding_probability * avg_roughness;
   }
-  INTEGRATOR_STATE_WRITE(state, guiding, bssrdf_sampling_prob) = bssrdf_sampling_fraction;
-  INTEGRATOR_STATE_WRITE(state, guiding, sample_surface_guiding_rand) = rand_bsdf_guiding;
+  state->guiding.bssrdf_sampling_prob = bssrdf_sampling_fraction;
+  state->guiding.sample_surface_guiding_rand = rand_bsdf_guiding;
 
-  kernel_assert(INTEGRATOR_STATE(state, guiding, surface_guiding_sampling_prob) > 0.0f &&
-                INTEGRATOR_STATE(state, guiding, surface_guiding_sampling_prob) <= 1.0f);
+  kernel_assert(state->guiding.surface_guiding_sampling_prob > 0.0f &&
+                state->guiding.surface_guiding_sampling_prob <= 1.0f);
 }
 #endif
 
@@ -376,22 +372,19 @@ ccl_device_inline
   }
 
 #if defined(__PATH_GUIDING__) && PATH_GUIDING_LEVEL >= 4
-  if ((kernel_data.kernel_features & KERNEL_FEATURE_PATH_GUIDING)) {
-    if (pdf > 0.0f && INTEGRATOR_STATE(state, guiding, use_surface_guiding)) {
-      const float guiding_sampling_prob = INTEGRATOR_STATE(
-          state, guiding, surface_guiding_sampling_prob);
-      const float bssrdf_sampling_prob = INTEGRATOR_STATE(state, guiding, bssrdf_sampling_prob);
-      const float guide_pdf = guiding_bsdf_pdf(kg, state, wo);
+  if (pdf > 0.0f && state->guiding.use_surface_guiding) {
+    const float guiding_sampling_prob = state->guiding.surface_guiding_sampling_prob;
+    const float bssrdf_sampling_prob = state->guiding.bssrdf_sampling_prob;
+    const float guide_pdf = guiding_bsdf_pdf(kg, state, wo);
 
-      if (kernel_data.integrator.guiding_directional_sampling_type ==
-          GUIDING_DIRECTIONAL_SAMPLING_TYPE_RIS)
-      {
-        pdf = (0.5f * guide_pdf * (1.0f - bssrdf_sampling_prob)) + 0.5f * pdf;
-      }
-      else {
-        pdf = (guiding_sampling_prob * guide_pdf * (1.0f - bssrdf_sampling_prob)) +
-              (1.0f - guiding_sampling_prob) * pdf;
-      }
+    if (kernel_data.integrator.guiding_directional_sampling_type ==
+        GUIDING_DIRECTIONAL_SAMPLING_TYPE_RIS)
+    {
+      pdf = (0.5f * guide_pdf * (1.0f - bssrdf_sampling_prob)) + 0.5f * pdf;
+    }
+    else {
+      pdf = (guiding_sampling_prob * guide_pdf * (1.0f - bssrdf_sampling_prob)) +
+            (1.0f - guiding_sampling_prob) * pdf;
     }
   }
 #endif
@@ -464,7 +457,7 @@ surface_shader_bssrdf_sample_weight(const ccl_private ShaderData *ccl_restrict s
   return weight;
 }
 
-#if defined(__PATH_GUIDING__)
+#ifdef __PATH_GUIDING__
 /* Sample direction for picked BSDF, and return evaluation and pdf for all
  * BSDFs combined using MIS. */
 
@@ -483,14 +476,13 @@ ccl_device int surface_shader_bsdf_guided_sample_closure_mis(KernelGlobals kg,
   /* BSSRDF should already have been handled elsewhere. */
   kernel_assert(CLOSURE_IS_BSDF(sc->type));
 
-  const bool use_surface_guiding = INTEGRATOR_STATE(state, guiding, use_surface_guiding);
-  const float guiding_sampling_prob = INTEGRATOR_STATE(
-      state, guiding, surface_guiding_sampling_prob);
-  const float bssrdf_sampling_prob = INTEGRATOR_STATE(state, guiding, bssrdf_sampling_prob);
+  const bool use_surface_guiding = state->guiding.use_surface_guiding;
+  const float guiding_sampling_prob = state->guiding.surface_guiding_sampling_prob;
+  const float bssrdf_sampling_prob = state->guiding.bssrdf_sampling_prob;
 
   /* Decide between sampling guiding distribution and BSDF. */
   bool sample_guiding = false;
-  float rand_bsdf_guiding = INTEGRATOR_STATE(state, guiding, sample_surface_guiding_rand);
+  float rand_bsdf_guiding = state->guiding.sample_surface_guiding_rand;
 
   if (use_surface_guiding && rand_bsdf_guiding < guiding_sampling_prob) {
     sample_guiding = true;
@@ -617,13 +609,12 @@ ccl_device int surface_shader_bsdf_guided_sample_closure_ris(KernelGlobals kg,
   /* BSSRDF should already have been handled elsewhere. */
   kernel_assert(CLOSURE_IS_BSDF(sc->type));
 
-  const bool use_surface_guiding = INTEGRATOR_STATE(state, guiding, use_surface_guiding);
-  const float guiding_sampling_prob = INTEGRATOR_STATE(
-      state, guiding, surface_guiding_sampling_prob);
-  const float bssrdf_sampling_prob = INTEGRATOR_STATE(state, guiding, bssrdf_sampling_prob);
+  const bool use_surface_guiding = state->guiding.use_surface_guiding;
+  const float guiding_sampling_prob = state->guiding.surface_guiding_sampling_prob;
+  const float bssrdf_sampling_prob = state->guiding.bssrdf_sampling_prob;
 
   /* Decide between sampling guiding distribution and BSDF. */
-  const float rand_bsdf_guiding = INTEGRATOR_STATE(state, guiding, sample_surface_guiding_rand);
+  const float rand_bsdf_guiding = state->guiding.sample_surface_guiding_rand;
 
   /* Initialize to zero. */
   int label = LABEL_NONE;

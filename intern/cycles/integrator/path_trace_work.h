@@ -143,7 +143,7 @@ class PathTraceWork {
     return device_;
   }
 
-#if defined(WITH_PATH_GUIDING)
+#ifdef WITH_PATH_GUIDING
   /* Initializes the per-thread guiding kernel data. */
   virtual void guiding_init_kernel_globals(void * /*unused*/,
                                            void * /*unused*/,
