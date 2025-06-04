@@ -410,6 +410,12 @@ class CommitInfo:
                     break
 
     def generate_release_note_ready_string(self) -> str:
+        def sort_version_numbers(input_version_num: str) -> str:
+            # Pad to three digits for future proofness
+            pad = 3
+            major, minor, patch = input_version_num.split(".")
+            return major.zfill(pad) + minor.zfill(pad) + patch.zfill(pad)
+
         # Breakup report_title based on words, and remove `:` if it's at the end of the first word.
         # This is because the website the release notes are being posted to applies some undesirable
         # formatting to ` * Word:`.
@@ -425,6 +431,8 @@ class CommitInfo:
         formatted_string = (
             f" * {title} [[{self.hash[:11]}](https://projects.blender.org/blender/blender/commit/{self.hash})]"
         )
+
+        self.backport_list.sort(key=sort_version_numbers)
 
         if len(self.backport_list) > 0:
             formatted_string += f" - Backported to "
