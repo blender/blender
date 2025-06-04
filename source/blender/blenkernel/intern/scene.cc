@@ -1224,6 +1224,13 @@ static void scene_blend_read_data(BlendDataReader *reader, ID *id)
     zero_v3(ups->last_location);
     ups->last_hit = 0;
 
+    /* Prior to 5.0, the brush->size value is expected to be the radius, not the diameter. To
+     * ensure correct behavior, convert this when reading newer files. */
+    if (BLO_read_fileversion_get(reader)) {
+      ups->size = std::max(ups->size / 2, 1);
+      ups->unprojected_radius = std::max(ups->unprojected_radius / 2, 0.001f);
+    }
+
     BLO_read_struct(reader, CurveMapping, &ups->curve_rand_hue);
     if (ups->curve_rand_hue) {
       BKE_curvemapping_blend_read(reader, ups->curve_rand_hue);
