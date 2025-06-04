@@ -116,7 +116,7 @@ static bool contains_extension(const vector<VkExtensionProperties> &extension_li
 };
 
 /* -------------------------------------------------------------------- */
-/** \name Swapchain resources
+/** \name Swap-chain resources
  * \{ */
 
 void GHOST_SwapchainImage::destroy(VkDevice vk_device)

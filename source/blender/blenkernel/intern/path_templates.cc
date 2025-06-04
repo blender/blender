@@ -278,7 +278,7 @@ struct Token {
    * the path string. */
   blender::IndexRange byte_range;
 
-  /* Reference to the the variable name as written in the template string. Note
+  /* Reference to the variable name as written in the template string. Note
    * that this points into the template string, and does not own the value.
    *
    * Only relevant when `type == VARIABLE_EXPRESSION`. */

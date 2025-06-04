@@ -1178,7 +1178,7 @@ set(IGC_LLVM_HOMEPAGE https://github.com/llvm/llvm-project/)
 set(IGC_LLVM_LICENSE SPDX:Apache-2.0 WITH LLVM-exception)
 set(IGC_LLVM_COPYRIGHT "Copyright (c) 2003-2019 University of Illinois at Urbana-Champaign. All rights reserved.")
 
-# WARNING WARNING WARNING
+# ******* WARNING *******
 #
 # IGC_OPENCL_CLANG contains patches for some of its dependencies.
 #
@@ -1186,7 +1186,7 @@ set(IGC_LLVM_COPYRIGHT "Copyright (c) 2003-2019 University of Illinois at Urbana
 # IGC_OPENCL_CLANG's patches folder and update igc.cmake to account for
 # any added or removed patches.
 #
-# WARNING WARNING WARNING
+# ******* WARNING *******
 
 set(IGC_OPENCL_CLANG_VERSION v14.0.1)
 set(IGC_OPENCL_CLANG_URI https://github.com/intel/opencl-clang/archive/${IGC_OPENCL_CLANG_VERSION}.tar.gz)

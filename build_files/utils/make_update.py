@@ -47,7 +47,7 @@ def print_stage(text: str) -> None:
 
 def parse_arguments() -> argparse.Namespace:
     """
-    Parse command line line arguments.
+    Parse command line arguments.
 
     Returns parsed object from which the command line arguments can be accessed
     as properties. The name of the properties matches the command line argument,

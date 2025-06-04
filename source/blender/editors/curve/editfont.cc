@@ -409,13 +409,13 @@ static void text_update_edited(bContext *C, Object *obedit, const eEditFontMode 
 
   BLI_assert(ef->len >= 0);
 
-  /* run update first since it can move the cursor */
+  /* Run update first since it can move the cursor. */
   if (mode == FO_EDIT) {
-    /* re-tesselllate */
+    /* Re-tessellate. */
     DEG_id_tag_update(static_cast<ID *>(obedit->data), 0);
   }
   else {
-    /* depsgraph runs above, but since we're not tagging for update, call direct */
+    /* Depsgraph runs above, but since we're not tagging for update, call directly. */
     /* We need evaluated data here. */
     Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
     BKE_vfont_to_curve(DEG_get_evaluated(depsgraph, obedit), mode);

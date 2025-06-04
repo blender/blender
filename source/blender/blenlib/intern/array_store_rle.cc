@@ -12,7 +12,7 @@
  * (which doesn't de-duplicate so well).
  *
  * Intended for byte arrays as there is no special logic to handle alignment.
- * Note that this this could be supported and would be useful to de-duplicate
+ * Note that this could be supported and would be useful to de-duplicate
  * repeating patterns of non-byte data.
  *
  * Notes:

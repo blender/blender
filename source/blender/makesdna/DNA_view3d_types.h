@@ -125,7 +125,7 @@ typedef struct RegionView3D {
 
   char ndof_flag;
   /**
-   * Rotation center used for for "Auto Orbit" (see #NDOF_ORBIT_CENTER_AUTO).
+   * Rotation center used for "Auto Orbit" (see #NDOF_ORBIT_CENTER_AUTO).
    * Any modification should be followed by adjusting #RegionView3D::dist
    * to prevent problems zooming in after navigation. See: #134732.
    */

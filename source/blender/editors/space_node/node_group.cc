@@ -1383,7 +1383,7 @@ static bNode *node_group_make_from_node_declaration(bContext &C,
   gnode->id = &wrapper_group->id;
   id_us_plus(gnode->id);
 
-  /* Position node node exactly where the old node was. */
+  /* Position node exactly where the old node was. */
   gnode->parent = src_node.parent;
   gnode->width = src_node.width;
   copy_v2_v2(gnode->location, src_node.location);

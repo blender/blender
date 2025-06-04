@@ -318,7 +318,7 @@ def main():
                         tp_str = ":class:`bpy.types.Mesh`"
                     elif tp_sub == BMO_OP_SLOT_SUBTYPE_PTR_STRUCT:
                         # XXX Used for CurveProfile only currently I think (bevel code),
-                        #     but think the idea is that that pointer is for any type?
+                        #     but think the idea is that pointer is for any type?
                         tp_str = ":class:`bpy.types.bpy_struct`"
                     else:
                         assert False, "unreachable, unknown type {!r}".format(vars_dict_reverse[tp_sub])

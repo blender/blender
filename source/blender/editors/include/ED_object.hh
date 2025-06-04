@@ -71,7 +71,7 @@ blender::Vector<Object *> objects_in_mode_or_selected(
  * Set the active material by index.
  *
  * \param index: A zero based index. This will be clamped to the valid range.
- * \return true if the material changed.
+ * \return true if the material index changed.
  */
 bool material_active_index_set(Object *ob, int index);
 

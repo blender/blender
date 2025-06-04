@@ -209,14 +209,15 @@ def is_git_submodule_enabled(git_command: str, submodule_dir: Path) -> bool:
     if not path:
         return False
 
-    # When the "update" strategy is not provided explicitly in the the local configuration
+    # When the "update" strategy is not provided explicitly in the local configuration
     # `git config` returns a non-zero exit code. For those assume the default "checkout"
     # strategy.
     update = check_output(
         (git_command, "config", "--local", _git_submodule_config_key(submodule_dir, "update")),
         exit_on_error=False)
     if update == "":
-        # The repo is not in our local config. Check the default .gitmodules setting.
+        # The repository is not in our local configuration.
+        # Check the default `.gitmodules` setting.
         update = check_output(
             (git_command, "config", "--file", str(gitmodules), _git_submodule_config_key(submodule_dir, "update")),
             exit_on_error=False)
