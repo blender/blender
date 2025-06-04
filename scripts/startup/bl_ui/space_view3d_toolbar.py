@@ -106,19 +106,6 @@ def draw_vpaint_symmetry(layout, vpaint, obj):
     col.prop(vpaint, "radial_symmetry", text="Radial")
 
 
-# Most of these panels should not be visible in GP edit modes
-def is_not_gpencil_edit_mode(context):
-    is_gpmode = (
-        context.active_object and context.active_object.mode in {
-            'EDIT_GPENCIL',
-            'PAINT_GREASE_PENCIL',
-            'SCULPT_GREASE_PENCIL',
-            'WEIGHT_GREASE_PENCIL',
-        }
-    )
-    return not is_gpmode
-
-
 # ********** default tools for object mode ****************
 
 
