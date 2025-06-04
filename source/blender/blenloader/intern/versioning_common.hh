@@ -14,6 +14,8 @@
 
 #include "BKE_fcurve.hh"
 
+#include "RNA_define.hh"
+
 #include "DNA_anim_types.h"
 #include "DNA_node_types.h"
 
