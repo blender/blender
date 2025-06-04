@@ -5823,8 +5823,8 @@ class VIEW3D_MT_edit_greasepencil_stroke(Menu):
 
         layout.separator()
 
-        layout.operator_menu_enum("grease_pencil.set_curve_type", property="type")
-        layout.operator("grease_pencil.set_curve_resolution")
+        layout.operator_menu_enum("grease_pencil.convert_curve_type", text="Convert Type", property="type")
+        layout.operator("grease_pencil.set_curve_resolution", text="Set Resolution")
 
         layout.separator()
 
@@ -8345,6 +8345,10 @@ class VIEW3D_MT_greasepencil_edit_context_menu(Menu):
             col.separator()
 
             col.operator("grease_pencil.separate", text="Separate").mode = 'SELECTED'
+
+            col.separator()
+            col.operator_menu_enum("grease_pencil.convert_curve_type", text="Convert Type", property="type")
+            layout.operator("grease_pencil.set_curve_resolution", text="Convert Type")
         else:
             col = row.column(align=True)
             col.label(text="Point", icon='GP_SELECT_POINTS')
@@ -8392,6 +8396,9 @@ class VIEW3D_MT_greasepencil_edit_context_menu(Menu):
             col.separator()
 
             col.operator_enum("grease_pencil.dissolve", "type")
+
+            col.separator()
+            col.operator_menu_enum("grease_pencil.convert_curve_type", text="Convert Type", property="type")
 
 
 class GREASE_PENCIL_MT_Layers(Menu):

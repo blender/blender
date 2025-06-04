@@ -20,6 +20,7 @@
 #include "BLI_span.hh"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
+#include "BLI_vector.hh"
 #include "BLT_translation.hh"
 
 #include "DNA_anim_types.h"
@@ -63,6 +64,7 @@
 #include "ED_view3d.hh"
 
 #include "GEO_curves_remove_and_split.hh"
+#include "GEO_fit_curves.hh"
 #include "GEO_join_geometries.hh"
 #include "GEO_realize_instances.hh"
 #include "GEO_reorder.hh"
@@ -4391,6 +4393,216 @@ static void GREASE_PENCIL_OT_outline(wmOperatorType *ot)
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name Convert Curve Type Operator
+ * \{ */
+
+static const bke::CurvesGeometry fit_poly_curves(bke::CurvesGeometry &curves,
+                                                 const IndexMask &selection,
+                                                 const float threshold)
+{
+  const VArray<float> thresholds = VArray<float>::ForSingle(threshold, curves.curves_num());
+  /* TODO: Detect or manually provide corners. */
+  const VArray<bool> corners = VArray<bool>::ForSingle(false, curves.points_num());
+  return geometry::fit_poly_to_bezier_curves(
+      curves, selection, thresholds, corners, geometry::FitMethod::Refit, {});
+}
+
+static void convert_to_catmull_rom(bke::CurvesGeometry &curves,
+                                   const IndexMask &selection,
+                                   const float threshold)
+{
+  if (curves.is_single_type(CURVE_TYPE_CATMULL_ROM)) {
+    return;
+  }
+  IndexMaskMemory memory;
+  const IndexMask non_catmull_rom_curves_selection =
+      curves.indices_for_curve_type(CURVE_TYPE_CATMULL_ROM, selection, memory)
+          .complement(selection, memory);
+  BLI_assert(!non_catmull_rom_curves_selection.is_empty());
+  curves = geometry::resample_to_evaluated(curves, non_catmull_rom_curves_selection);
+
+  /* To avoid having too many control points, simplify the position attribute based on the
+   * threshold. This doesn't replace an actual curve fitting (which would be better), but
+   * is a decent approximation for the meantime. */
+  const IndexMask points_to_remove = geometry::simplify_curve_attribute(
+      curves.positions(),
+      non_catmull_rom_curves_selection,
+      curves.points_by_curve(),
+      curves.cyclic(),
+      threshold,
+      curves.positions(),
+      memory);
+  curves.remove_points(points_to_remove, {});
+
+  geometry::ConvertCurvesOptions options;
+  options.convert_bezier_handles_to_poly_points = false;
+  options.convert_bezier_handles_to_catmull_rom_points = false;
+  options.keep_bezier_shape_as_nurbs = true;
+  options.keep_catmull_rom_shape_as_nurbs = true;
+  curves = geometry::convert_curves(
+      curves, non_catmull_rom_curves_selection, CURVE_TYPE_CATMULL_ROM, {}, options);
+}
+
+static void convert_to_poly(bke::CurvesGeometry &curves, const IndexMask &selection)
+{
+  if (curves.is_single_type(CURVE_TYPE_POLY)) {
+    return;
+  }
+  IndexMaskMemory memory;
+  const IndexMask non_poly_curves_selection = curves
+                                                  .indices_for_curve_type(
+                                                      CURVE_TYPE_POLY, selection, memory)
+                                                  .complement(selection, memory);
+  BLI_assert(!non_poly_curves_selection.is_empty());
+  curves = geometry::resample_to_evaluated(curves, non_poly_curves_selection);
+}
+
+static void convert_to_bezier(bke::CurvesGeometry &curves,
+                              const IndexMask &selection,
+                              const float threshold)
+{
+  if (curves.is_single_type(CURVE_TYPE_BEZIER)) {
+    return;
+  }
+  IndexMaskMemory memory;
+  const IndexMask poly_curves_selection = curves.indices_for_curve_type(
+      CURVE_TYPE_POLY, selection, memory);
+  if (!poly_curves_selection.is_empty()) {
+    curves = fit_poly_curves(curves, poly_curves_selection, threshold);
+  }
+
+  geometry::ConvertCurvesOptions options;
+  options.convert_bezier_handles_to_poly_points = false;
+  options.convert_bezier_handles_to_catmull_rom_points = false;
+  options.keep_bezier_shape_as_nurbs = true;
+  options.keep_catmull_rom_shape_as_nurbs = true;
+  curves = geometry::convert_curves(curves, selection, CURVE_TYPE_BEZIER, {}, options);
+}
+
+static void convert_to_nurbs(bke::CurvesGeometry &curves,
+                             const IndexMask &selection,
+                             const float threshold)
+{
+  if (curves.is_single_type(CURVE_TYPE_NURBS)) {
+    return;
+  }
+
+  IndexMaskMemory memory;
+  const IndexMask poly_curves_selection = curves.indices_for_curve_type(
+      CURVE_TYPE_POLY, selection, memory);
+  if (!poly_curves_selection.is_empty()) {
+    curves = fit_poly_curves(curves, poly_curves_selection, threshold);
+  }
+
+  geometry::ConvertCurvesOptions options;
+  options.convert_bezier_handles_to_poly_points = false;
+  options.convert_bezier_handles_to_catmull_rom_points = false;
+  options.keep_bezier_shape_as_nurbs = true;
+  options.keep_catmull_rom_shape_as_nurbs = true;
+  curves = geometry::convert_curves(curves, selection, CURVE_TYPE_NURBS, {}, options);
+}
+
+static wmOperatorStatus grease_pencil_convert_curve_type_exec(bContext *C, wmOperator *op)
+{
+  const Scene *scene = CTX_data_scene(C);
+  Object *object = CTX_data_active_object(C);
+  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+
+  const CurveType dst_type = CurveType(RNA_enum_get(op->ptr, "type"));
+  const float threshold = RNA_float_get(op->ptr, "threshold");
+
+  std::atomic<bool> changed = false;
+  const Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
+  threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
+    bke::CurvesGeometry &curves = info.drawing.strokes_for_write();
+    IndexMaskMemory memory;
+    const IndexMask strokes = ed::greasepencil::retrieve_editable_and_selected_strokes(
+        *object, info.drawing, info.layer_index, memory);
+    if (strokes.is_empty()) {
+      return;
+    }
+
+    switch (dst_type) {
+      case CURVE_TYPE_CATMULL_ROM:
+        convert_to_catmull_rom(curves, strokes, threshold);
+        break;
+      case CURVE_TYPE_POLY:
+        convert_to_poly(curves, strokes);
+        break;
+      case CURVE_TYPE_BEZIER:
+        convert_to_bezier(curves, strokes, threshold);
+        break;
+      case CURVE_TYPE_NURBS:
+        convert_to_nurbs(curves, strokes, threshold);
+        break;
+    }
+
+    info.drawing.tag_topology_changed();
+    changed.store(true, std::memory_order_relaxed);
+  });
+
+  if (changed) {
+    DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
+    WM_event_add_notifier(C, NC_GEOM | ND_DATA, &grease_pencil);
+  }
+
+  return OPERATOR_FINISHED;
+}
+
+static void grease_pencil_convert_curve_type_ui(bContext *C, wmOperator *op)
+{
+  uiLayout *layout = op->layout;
+  wmWindowManager *wm = CTX_wm_manager(C);
+
+  PointerRNA ptr = RNA_pointer_create_discrete(&wm->id, op->type->srna, op->properties);
+
+  uiLayoutSetPropSep(layout, true);
+  uiLayoutSetPropDecorate(layout, false);
+
+  layout->prop(&ptr, "type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+
+  const CurveType dst_type = CurveType(RNA_enum_get(op->ptr, "type"));
+
+  if (dst_type == CURVE_TYPE_POLY) {
+    return;
+  }
+
+  layout->prop(&ptr, "threshold", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+}
+
+static void GREASE_PENCIL_OT_convert_curve_type(wmOperatorType *ot)
+{
+  ot->name = "Convert Curve Type";
+  ot->idname = "GREASE_PENCIL_OT_convert_curve_type";
+  ot->description = "Convert type of selected curves";
+
+  ot->invoke = WM_menu_invoke;
+  ot->exec = grease_pencil_convert_curve_type_exec;
+  ot->poll = editable_grease_pencil_poll;
+  ot->ui = grease_pencil_convert_curve_type_ui;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  ot->prop = RNA_def_enum(
+      ot->srna, "type", rna_enum_curves_type_items, CURVE_TYPE_POLY, "Type", "");
+  RNA_def_property_flag(ot->prop, PROP_SKIP_SAVE);
+
+  PropertyRNA *prop = RNA_def_float(
+      ot->srna,
+      "threshold",
+      0.01f,
+      0.0f,
+      100.0f,
+      "Threshold",
+      "The distance that the resulting points are allowed to be within",
+      0.0f,
+      100.0f);
+  RNA_def_property_subtype(prop, PROP_DISTANCE);
+}
+
+/** \} */
+
 }  // namespace blender::ed::greasepencil
 
 void ED_operatortypes_grease_pencil_edit()
@@ -4433,6 +4645,7 @@ void ED_operatortypes_grease_pencil_edit()
   WM_operatortype_append(GREASE_PENCIL_OT_stroke_split);
   WM_operatortype_append(GREASE_PENCIL_OT_remove_fill_guides);
   WM_operatortype_append(GREASE_PENCIL_OT_outline);
+  WM_operatortype_append(GREASE_PENCIL_OT_convert_curve_type);
 }
 
 /* -------------------------------------------------------------------- */
