@@ -72,9 +72,6 @@ static void brush_copy_data(Main * /*bmain*/,
 {
   Brush *brush_dst = reinterpret_cast<Brush *>(id_dst);
   const Brush *brush_src = reinterpret_cast<const Brush *>(id_src);
-  if (brush_src->icon_imbuf) {
-    brush_dst->icon_imbuf = IMB_dupImBuf(brush_src->icon_imbuf);
-  }
 
   if ((flag & LIB_ID_COPY_NO_PREVIEW) == 0) {
     BKE_previewimg_id_copy(&brush_dst->id, &brush_src->id);
@@ -127,9 +124,6 @@ static void brush_copy_data(Main * /*bmain*/,
 static void brush_free_data(ID *id)
 {
   Brush *brush = reinterpret_cast<Brush *>(id);
-  if (brush->icon_imbuf) {
-    IMB_freeImBuf(brush->icon_imbuf);
-  }
   BKE_curvemapping_free(brush->curve);
   BKE_curvemapping_free(brush->automasking_cavity_curve);
 
@@ -211,15 +205,6 @@ static void brush_foreach_id(ID *id, LibraryForeachIDData *data)
   BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(data, BKE_texture_mtex_foreach_id(data, &brush->mtex));
   BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(data,
                                           BKE_texture_mtex_foreach_id(data, &brush->mask_mtex));
-}
-
-static void brush_foreach_path(ID *id, BPathForeachPathData *bpath_data)
-{
-  Brush *brush = reinterpret_cast<Brush *>(id);
-  if (brush->icon_filepath[0] != '\0') {
-    BKE_bpath_foreach_path_fixed_process(
-        bpath_data, brush->icon_filepath, sizeof(brush->icon_filepath));
-  }
 }
 
 static void brush_blend_write(BlendWriter *writer, ID *id, const void *id_address)
@@ -399,7 +384,6 @@ static void brush_blend_read_data(BlendDataReader *reader, ID *id)
   BLO_read_struct(reader, PreviewImage, &brush->preview);
   BKE_previewimg_blend_read(reader, brush->preview);
 
-  brush->icon_imbuf = nullptr;
   brush->has_unsaved_changes = false;
 }
 
@@ -488,7 +472,7 @@ IDTypeInfo IDType_ID_BR = {
     /*make_local*/ brush_make_local,
     /*foreach_id*/ brush_foreach_id,
     /*foreach_cache*/ nullptr,
-    /*foreach_path*/ brush_foreach_path,
+    /*foreach_path*/ nullptr,
     /*owner_pointer_get*/ nullptr,
 
     /*blend_write*/ brush_blend_write,
@@ -786,7 +770,6 @@ void BKE_brush_debug_print_state(Brush *br)
   BR_TEST_FLAG(BRUSH_INVERSE_SMOOTH_PRESSURE);
   BR_TEST_FLAG(BRUSH_PLANE_TRIM);
   BR_TEST_FLAG(BRUSH_FRONTFACE);
-  BR_TEST_FLAG(BRUSH_CUSTOM_ICON);
 
   BR_TEST_FLAG_OVERLAY(BRUSH_OVERLAY_CURSOR);
   BR_TEST_FLAG_OVERLAY(BRUSH_OVERLAY_PRIMARY);

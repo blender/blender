@@ -381,7 +381,7 @@ typedef enum eBrushFlags {
   BRUSH_FRONTFACE_FALLOFF = (1 << 25),
   BRUSH_PLANE_TRIM = (1 << 26),
   BRUSH_FRONTFACE = (1 << 27),
-  BRUSH_CUSTOM_ICON = (1 << 28),
+  /* BRUSH_CUSTOM_ICON = (1 << 28), */
   BRUSH_LINE = (1 << 29),
   BRUSH_ABSOLUTE_JITTER = (1 << 30),
   BRUSH_CURVE = (1u << 31),

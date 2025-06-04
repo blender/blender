@@ -1412,14 +1412,6 @@ def brush_settings_advanced(layout, context, settings, brush, popover=False):
         col.prop(brush, "use_paint_image", text="Texture Paint")
         col.prop(brush, "use_paint_sculpt_curves", text="Sculpt Curves")
 
-    if len(brush.icon_filepath) > 0:
-        header, panel = layout.panel("legacy", default_closed=True)
-        header.label(text="Legacy Icon")
-        if panel:
-            panel.label(text="Brush icons have moved to the asset preview image", icon='ERROR')
-            panel.prop(brush, "use_custom_icon")
-            panel.prop(brush, "icon_filepath")
-
 
 def draw_color_settings(context, layout, brush, color_type=False):
     """Draw color wheel and gradient settings."""
