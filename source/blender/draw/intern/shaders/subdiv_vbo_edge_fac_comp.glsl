@@ -6,27 +6,13 @@
 
 #include "subdiv_lib.glsl"
 
-#ifdef GPU_AMD_DRIVER_BYTE_BUG
-COMPUTE_SHADER_CREATE_INFO(subdiv_edge_fac_amd_legacy)
-#else
 COMPUTE_SHADER_CREATE_INFO(subdiv_edge_fac)
-#endif
 
 void write_vec4(uint index, float4 edge_facs)
 {
-#ifdef GPU_AMD_DRIVER_BYTE_BUG
   for (uint i = 0; i < 4; i++) {
     output_edge_fac[index + i] = edge_facs[i];
   }
-#else
-  /* Use same scaling as in extract_edge_fac_iter_face_mesh. */
-  uint a = uint(edge_facs.x * 255);
-  uint b = uint(edge_facs.y * 255);
-  uint c = uint(edge_facs.z * 255);
-  uint d = uint(edge_facs.w * 255);
-  uint packed_edge_fac = d << 24 | c << 16 | b << 8 | a;
-  output_edge_fac[index] = packed_edge_fac;
-#endif
 }
 
 /* From extract_mesh_vbo_edge_fac.cc, keep in sync! */
@@ -90,10 +76,5 @@ void main()
     edge_facs[i] = compute_line_factor(start_loop_index + i, face_normal);
   }
 
-#ifdef GPU_AMD_DRIVER_BYTE_BUG
   write_vec4(start_loop_index, edge_facs);
-#else
-  /* When packed into bytes, the index is the same as for the quad. */
-  write_vec4(quad_index, edge_facs);
-#endif
 }

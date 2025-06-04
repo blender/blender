@@ -202,18 +202,9 @@ gpu::VertBufPtr extract_edge_factor_subdiv(const DRWSubdivCache &subdiv_cache,
   GPU_vertbuf_use(vbo.get());
 
   const int offset = subdiv_cache.num_subdiv_loops;
-  if (GPU_crappy_amd_driver() || GPU_minimum_per_vertex_stride() > 1) {
-    const float values[2] = {1.0f, 1.0f};
-    for (const int i : IndexRange(loose_edges_num)) {
-      GPU_vertbuf_update_sub(vbo.get(), (offset + i * 2) * sizeof(float), sizeof(values), values);
-    }
-  }
-  else {
-    const uint8_t values[2] = {255, 255};
-    for (const int i : IndexRange(loose_edges_num)) {
-      GPU_vertbuf_update_sub(
-          vbo.get(), (offset + i * 2) * sizeof(uint8_t), sizeof(values), values);
-    }
+  const float values[2] = {1.0f, 1.0f};
+  for (const int i : IndexRange(loose_edges_num)) {
+    GPU_vertbuf_update_sub(vbo.get(), (offset + i * 2) * sizeof(float), sizeof(values), values);
   }
   return vbo;
 }
