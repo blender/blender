@@ -1670,6 +1670,17 @@ GLSourcesBaked GLShader::get_sources()
 
 /** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name GLShaderCompiler
+ * \{ */
+
+void GLShaderCompiler::specialize_shader(ShaderSpecialization &specialization)
+{
+  dynamic_cast<GLShader *>(unwrap(specialization.shader))->program_get(&specialization.constants);
+}
+
+/** \} */
+
 #if BLI_SUBPROCESS_SUPPORT
 
 /* -------------------------------------------------------------------- */
@@ -1809,10 +1820,10 @@ void GLCompilerWorker::release()
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name GLShaderCompiler
+/** \name GLSubprocessShaderCompiler
  * \{ */
 
-GLShaderCompiler::~GLShaderCompiler()
+GLSubprocessShaderCompiler::~GLSubprocessShaderCompiler()
 {
   /* Must be called before we destruct the GLCompilerWorkers. */
   destruct_compilation_worker();
@@ -1822,7 +1833,7 @@ GLShaderCompiler::~GLShaderCompiler()
   }
 }
 
-GLCompilerWorker *GLShaderCompiler::get_compiler_worker()
+GLCompilerWorker *GLSubprocessShaderCompiler::get_compiler_worker()
 {
   auto new_worker = [&]() {
     GLCompilerWorker *result = new GLCompilerWorker();
@@ -1846,7 +1857,7 @@ GLCompilerWorker *GLShaderCompiler::get_compiler_worker()
   return worker;
 }
 
-Shader *GLShaderCompiler::compile_shader(const shader::ShaderCreateInfo &info)
+Shader *GLSubprocessShaderCompiler::compile_shader(const shader::ShaderCreateInfo &info)
 {
   const_cast<ShaderCreateInfo *>(&info)->finalize();
   GLShader *shader = static_cast<GLShader *>(compile(info, true));
@@ -1889,7 +1900,7 @@ Shader *GLShaderCompiler::compile_shader(const shader::ShaderCreateInfo &info)
   return shader;
 }
 
-void GLShaderCompiler::specialize_shader(ShaderSpecialization &specialization)
+void GLSubprocessShaderCompiler::specialize_shader(ShaderSpecialization &specialization)
 {
   static std::mutex mutex;
 

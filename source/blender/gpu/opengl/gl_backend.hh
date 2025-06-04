@@ -57,10 +57,10 @@ class GLBackend : public GPUBackend {
   void init_resources() override
   {
     if (GPU_use_parallel_compilation()) {
-      compiler_ = MEM_new<GLShaderCompiler>(__func__);
+      compiler_ = MEM_new<GLSubprocessShaderCompiler>(__func__);
     }
     else {
-      compiler_ = MEM_new<ShaderCompiler>(__func__);
+      compiler_ = MEM_new<GLShaderCompiler>(__func__);
     }
   };
 
