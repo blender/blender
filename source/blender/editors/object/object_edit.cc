@@ -1852,6 +1852,7 @@ static wmOperatorStatus shade_auto_smooth_exec(bContext *C, wmOperator *op)
       }
       node_group = reinterpret_cast<bNodeTree *>(node_group_id);
       node_group->ensure_topology_cache();
+      node_group->ensure_interface_cache();
       if (is_valid_smooth_by_angle_group(*node_group)) {
         break;
       }
