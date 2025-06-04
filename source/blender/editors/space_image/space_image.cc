@@ -411,7 +411,9 @@ static void image_listener(const wmSpaceTypeListenerParams *params)
             }
           }
           else if (ob) {
-            if (sima->lock && !(sima->flag & SI_NO_DRAW_UV_GUIDE) && sima->mode == SI_MODE_PAINT) {
+            if (sima->lock && !(sima->flag & SI_NO_DRAW_UV_GUIDE) &&
+                ELEM(sima->mode, SI_MODE_PAINT, SI_MODE_UV))
+            {
               ED_area_tag_refresh(area);
               ED_area_tag_redraw(area);
             }
