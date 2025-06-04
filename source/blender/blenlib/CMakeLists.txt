@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2006 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
+string(APPEND CMAKE_C_FLAGS " /fp:precise")
+string(APPEND CMAKE_CXX_FLAGS " /fp:precise")
 
 if(HAVE_EXECINFO_H)
   add_definitions(-DHAVE_EXECINFO_H)

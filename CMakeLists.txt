@@ -111,6 +111,8 @@ include(build_files/cmake/macros.cmake)
 blender_project_hack_pre()
 
 project(Blender)
+string(APPEND CMAKE_C_FLAGS " /arch:SSE4.2 -Wno-error=unused-command-line-argument -Wno-char-subscripts -Wno-unused-function")
+string(APPEND CMAKE_CXX_FLAGS " /arch:SSE4.2 -Wno-error=unused-command-line-argument -Wno-char-subscripts -Wno-unused-function")
 
 blender_project_hack_post()
 
