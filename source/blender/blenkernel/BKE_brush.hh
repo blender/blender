@@ -180,8 +180,9 @@ struct BrushColorJitterSettings {
 };
 
 const float *BKE_brush_color_get(const Scene *scene, const Paint *paint, const Brush *brush);
-const std::optional<BrushColorJitterSettings> BKE_brush_color_jitter_get_settings(
-    const Scene *scene, const Paint *paint, const Brush *brush);
+std::optional<BrushColorJitterSettings> BKE_brush_color_jitter_get_settings(const Scene *scene,
+                                                                            const Paint *paint,
+                                                                            const Brush *brush);
 const float *BKE_brush_secondary_color_get(const Scene *scene,
                                            const Paint *paint,
                                            const Brush *brush);
