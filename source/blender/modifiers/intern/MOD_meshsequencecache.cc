@@ -174,6 +174,7 @@ static void modify_geometry_set(ModifierData *md,
   Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
   CacheFile *cache_file = mcmd->cache_file;
   const float frame = DEG_get_ctime(ctx->depsgraph);
+  const double frame_offset = BKE_cachefile_frame_offset(cache_file, double(frame));
   const double time = BKE_cachefile_time_offset(cache_file, frame, FPS);
   const char *err_str = nullptr;
 
@@ -236,7 +237,7 @@ static void modify_geometry_set(ModifierData *md,
     case CACHEFILE_TYPE_USD: {
 #  ifdef WITH_USD
       const blender::io::usd::USDMeshReadParams params = blender::io::usd::create_mesh_read_params(
-          time * FPS, mcmd->read_flag);
+          frame_offset, mcmd->read_flag);
       blender::io::usd::USD_read_geometry(
           mcmd->reader, ctx->object, *geometry_set, params, &err_str);
 #  endif
