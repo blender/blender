@@ -210,6 +210,11 @@ static void brush_foreach_id(ID *id, LibraryForeachIDData *data)
 static void brush_blend_write(BlendWriter *writer, ID *id, const void *id_address)
 {
   Brush *brush = reinterpret_cast<Brush *>(id);
+  /* In 5.0 we intend to change the brush.size value from representing radius to representing
+   * diameter. This and the corresponding code in `brush_blend_read_data` should be removed once
+   * that transition is complete. */
+  brush->size *= 2;
+  brush->unprojected_radius *= 2.0;
 
   BLO_write_id_struct(writer, Brush, id_address, &brush->id);
   BKE_id_blend_write(writer, &brush->id);
