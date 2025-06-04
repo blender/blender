@@ -512,7 +512,14 @@ static bool font_paste_wchar(Object *obedit,
               ef->textbufinfo + ef->pos,
               (ef->len - ef->pos + 1) * sizeof(CharInfo));
       if (str_info) {
-        std::copy_n(str_info, str_len, ef->textbufinfo + ef->pos);
+        const short mat_nr_max = std::max(0, obedit->totcol - 1);
+        const CharInfo *info_src = str_info;
+        CharInfo *info_dst = ef->textbufinfo + ef->pos;
+
+        for (int i = 0; i < str_len; i++, info_src++, info_dst++) {
+          *info_dst = *info_src;
+          CLAMP_MAX(info_dst->mat_nr, mat_nr_max);
+        }
       }
       else {
         std::fill_n(ef->textbufinfo + ef->pos, str_len, CharInfo{});
