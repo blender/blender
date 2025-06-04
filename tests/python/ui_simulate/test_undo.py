@@ -27,7 +27,6 @@ def _keep_open():
 def _test_window(windows_exclude=None):
     import bpy
     wm = bpy.data.window_managers[0]
-    # Use -1 so the last added window is always used.
     if windows_exclude is None:
         return wm.windows[0]
     for window in wm.windows:
