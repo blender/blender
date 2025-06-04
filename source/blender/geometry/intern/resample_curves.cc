@@ -441,6 +441,7 @@ static CurvesGeometry resample_to_uniform(const CurvesGeometry &src_curves,
 
   resample_to_uniform(src_curves, selection, output_ids, dst_curves);
 
+  bke::curves::nurbs::copy_custom_knots(src_curves, selection, dst_curves);
   return dst_curves;
 }
 
@@ -475,6 +476,7 @@ CurvesGeometry resample_to_count(const CurvesGeometry &src_curves,
 
   resample_to_uniform(src_curves, selection, output_ids, dst_curves);
 
+  bke::curves::nurbs::copy_custom_knots(src_curves, selection, dst_curves);
   return dst_curves;
 }
 
@@ -526,6 +528,7 @@ CurvesGeometry resample_to_length(const CurvesGeometry &src_curves,
 
   resample_to_uniform(src_curves, selection, output_ids, dst_curves);
 
+  bke::curves::nurbs::copy_custom_knots(src_curves, selection, dst_curves);
   return dst_curves;
 }
 
@@ -622,6 +625,7 @@ CurvesGeometry resample_to_evaluated(const CurvesGeometry &src_curves,
     attribute.finish();
   }
 
+  bke::curves::nurbs::copy_custom_knots(src_curves, selection, dst_curves);
   return dst_curves;
 }
 

@@ -52,10 +52,10 @@ int knots_num(const int points_num, const int8_t order, const bool cyclic)
   return points_num + order;
 }
 
-void copy_custom_knots(const int8_t order,
-                       const bool cyclic,
-                       const Span<float> custom_knots,
-                       MutableSpan<float> knots)
+static void copy_custom_knots(const int8_t order,
+                              const bool cyclic,
+                              const Span<float> custom_knots,
+                              MutableSpan<float> knots)
 {
   knots.slice(0, custom_knots.size()).copy_from(custom_knots);
   if (cyclic) {
@@ -109,6 +109,24 @@ void calculate_knots(const int points_num,
   const int tail_index = knots.size() - tail;
   for (const int i : IndexRange(tail)) {
     knots[tail_index + i] = current + (knots[i] - knots[0]);
+  }
+}
+
+void load_curve_knots(const KnotsMode mode,
+                      const int points_num,
+                      const int8_t order,
+                      const bool cyclic,
+                      const IndexRange curve_knots,
+                      const Span<float> custom_knots,
+                      MutableSpan<float> knots)
+{
+  if (mode == NURBS_KNOT_MODE_CUSTOM) {
+    BLI_assert(!custom_knots.is_empty());
+    BLI_assert(!curve_knots.is_empty());
+    copy_custom_knots(order, cyclic, custom_knots.slice(curve_knots), knots);
+  }
+  else {
+    calculate_knots(points_num, mode, order, cyclic, knots);
   }
 }
 

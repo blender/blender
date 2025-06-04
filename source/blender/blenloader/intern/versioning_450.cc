@@ -29,7 +29,10 @@
 #include "BKE_anim_data.hh"
 #include "BKE_animsys.h"
 #include "BKE_armature.hh"
+#include "BKE_curves.hh"
+#include "BKE_customdata.hh"
 #include "BKE_fcurve.hh"
+#include "BKE_grease_pencil.hh"
 #include "BKE_main.hh"
 #include "BKE_mesh_legacy_convert.hh"
 #include "BKE_node.hh"
@@ -65,6 +68,49 @@ static void version_fix_fcurve_noise_offset(FCurve &fcurve)
       continue;
     }
     data->offset *= data->size;
+  }
+}
+
+/**
+ * Fixes situation when `CurvesGeometry` instance has curves with `NURBS_KNOT_MODE_CUSTOM`, but has
+ * no custom knots.
+ */
+static void fix_curve_nurbs_knot_mode_custom(Main *bmain)
+{
+  auto fix_curves = [](blender::bke::CurvesGeometry &curves) {
+    if (curves.custom_knots != nullptr) {
+      return;
+    }
+
+    int8_t *knot_modes = static_cast<int8_t *>(CustomData_get_layer_named_for_write(
+        &curves.curve_data, CD_PROP_INT8, "knots_mode", curves.curve_num));
+    if (knot_modes == nullptr) {
+      return;
+    }
+
+    for (const int curve : curves.curves_range()) {
+      int8_t &knot_mode = knot_modes[curve];
+      if (knot_mode == NURBS_KNOT_MODE_CUSTOM) {
+        knot_mode = NURBS_KNOT_MODE_NORMAL;
+      }
+    }
+    curves.nurbs_custom_knots_update_size();
+  };
+
+  LISTBASE_FOREACH (Curves *, curves_id, &bmain->hair_curves) {
+    blender::bke::CurvesGeometry &curves = curves_id->geometry.wrap();
+    fix_curves(curves);
+  }
+
+  LISTBASE_FOREACH (GreasePencil *, grease_pencil, &bmain->grease_pencils) {
+    for (GreasePencilDrawingBase *base : grease_pencil->drawings()) {
+      if (base->type != GP_DRAWING) {
+        continue;
+      }
+      blender::bke::greasepencil::Drawing &drawing =
+          reinterpret_cast<GreasePencilDrawing *>(base)->wrap();
+      fix_curves(drawing.strokes_for_write());
+    }
   }
 }
 
@@ -6133,6 +6179,10 @@ void blo_do_versions_450(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
       }
     }
     FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 86)) {
+    fix_curve_nurbs_knot_mode_custom(bmain);
   }
 
   /**

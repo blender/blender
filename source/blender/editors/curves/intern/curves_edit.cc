@@ -106,6 +106,7 @@ static void append_point_knots(const Span<IndexRange> src_ranges,
   for (const int appended_curve : dst_to_src_curve.index_range()) {
     const int dst_curve = appended_curve + old_curves_num;
     if (knot_modes[dst_curve] != NURBS_KNOT_MODE_CUSTOM) {
+      range++;
       continue;
     }
     const int src_curve = dst_to_src_curve[appended_curve];
@@ -244,12 +245,7 @@ static void append_curve_knots(const IndexMask &mask, bke::CurvesGeometry &curve
 {
   curves.nurbs_custom_knots_update_size();
   const int old_curves_num = curves.curves_num() - mask.size();
-  const OffsetIndices<int> knots_by_curve = curves.nurbs_custom_knots_by_curve();
-  MutableSpan<float> knots = curves.nurbs_custom_knots_for_write();
-  mask.foreach_index(GrainSize(512), [&](const int src_curve, const int appended_curve) {
-    const int dst_curve = old_curves_num + appended_curve;
-    knots.slice(knots_by_curve[dst_curve]).copy_from(knots.slice(knots_by_curve[src_curve]));
-  });
+  bke::curves::nurbs::gather_custom_knots(curves, mask, old_curves_num, curves);
 }
 
 void duplicate_curves(bke::CurvesGeometry &curves, const IndexMask &mask)
@@ -703,6 +699,10 @@ void resize_curves(bke::CurvesGeometry &curves,
   });
 
   dst_curves.update_curve_types();
+  if (dst_curves.nurbs_has_custom_knots()) {
+    bke::curves::nurbs::update_custom_knot_modes(
+        dst_curves.curves_range(), NURBS_KNOT_MODE_NORMAL, NURBS_KNOT_MODE_NORMAL, dst_curves);
+  }
 
   /* Move the result into `curves`. */
   curves = std::move(dst_curves);
