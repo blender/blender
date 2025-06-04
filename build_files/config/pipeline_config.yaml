@@ -18,7 +18,7 @@ buildbot:
         linux:
             version: '6.4.0'
     optix:
-        version: '7.4.0'
+        version: '8.0.0'
     ocloc:
         version: '101.6557'
     cmake:
