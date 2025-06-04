@@ -419,6 +419,7 @@ bke::CurvesGeometry subdivide_curves(const bke::CurvesGeometry &src_curves,
     attribute.dst.finish();
   }
 
+  bke::curves::nurbs::copy_custom_knots(src_curves, selection, dst_curves);
   return dst_curves;
 }
 
