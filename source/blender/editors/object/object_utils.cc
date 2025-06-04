@@ -31,9 +31,30 @@
 #include "ED_curve.hh"
 #include "ED_object.hh" /* own include */
 
+#include "WM_api.hh"
+
 #include "MEM_guardedalloc.h"
 
 namespace blender::ed::object {
+
+/* -------------------------------------------------------------------- */
+/** \name Material Functions
+ * \{ */
+
+bool material_active_index_set(Object *ob, const int index)
+{
+  if (ob->totcol > 0) {
+    const short actcol_test = std::clamp(index + 1, 1, ob->totcol);
+    if (ob->actcol != actcol_test) {
+      ob->actcol = actcol_test;
+      WM_main_add_notifier(NC_MATERIAL | ND_SHADING_LINKS, nullptr);
+      return true;
+    }
+  }
+  return false;
+}
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Active Element Center

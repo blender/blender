@@ -2294,12 +2294,8 @@ bool EDBM_select_pick(bContext *C, const int mval[2], const SelectPick_Params &p
     EDBM_selectmode_flush(em);
 
     if (efa) {
-      /* Change active material on object. */
-      if (efa->mat_nr != obedit->actcol - 1) {
-        obedit->actcol = efa->mat_nr + 1;
-        em->mat_nr = efa->mat_nr;
-        WM_event_add_notifier(C, NC_MATERIAL | ND_SHADING_LINKS, nullptr);
-      }
+      blender::ed::object::material_active_index_set(obedit, efa->mat_nr);
+      em->mat_nr = efa->mat_nr;
     }
 
     /* Changing active object is handy since it allows us to

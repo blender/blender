@@ -423,10 +423,7 @@ static void text_update_edited(bContext *C, Object *obedit, const eEditFontMode 
 
   cu->curinfo = ef->textbufinfo[ef->pos ? ef->pos - 1 : 0];
 
-  if (obedit->totcol > 0) {
-    obedit->actcol = cu->curinfo.mat_nr + 1;
-    obedit->actcol = std::max(obedit->actcol, 1);
-  }
+  blender::ed::object::material_active_index_set(obedit, cu->curinfo.mat_nr);
 
   DEG_id_tag_update(static_cast<ID *>(obedit->data), ID_RECALC_SELECT);
   WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
@@ -2051,10 +2048,7 @@ static void font_cursor_set_apply(bContext *C, const wmEvent *event)
 
   cu->curinfo = ef->textbufinfo[ef->pos ? ef->pos - 1 : 0];
 
-  if (ob->totcol > 0) {
-    ob->actcol = cu->curinfo.mat_nr + 1;
-    ob->actcol = std::max(ob->actcol, 1);
-  }
+  blender::ed::object::material_active_index_set(ob, cu->curinfo.mat_nr);
 
   if (!ef->selboxes && (ef->selstart == 0)) {
     if (ef->pos == 0) {
