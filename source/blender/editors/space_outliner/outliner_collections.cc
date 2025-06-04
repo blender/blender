@@ -396,7 +396,7 @@ void outliner_collection_delete(
           skip = true;
         }
         else {
-          LISTBASE_FOREACH (CollectionParent *, cparent, &collection->runtime.parents) {
+          LISTBASE_FOREACH (CollectionParent *, cparent, &collection->runtime->parents) {
             Collection *parent = cparent->collection;
             if (!ID_IS_EDITABLE(parent) || ID_IS_OVERRIDE_LIBRARY(parent)) {
               skip = true;

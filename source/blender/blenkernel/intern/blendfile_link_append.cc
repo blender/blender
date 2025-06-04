@@ -575,7 +575,7 @@ static void loose_data_instantiate_obdata_preprocess(
 static bool loose_data_instantiate_collection_parents_check_recursive(Collection *collection)
 {
   for (CollectionParent *parent_collection =
-           static_cast<CollectionParent *>(collection->runtime.parents.first);
+           static_cast<CollectionParent *>(collection->runtime->parents.first);
        parent_collection != nullptr;
        parent_collection = parent_collection->next)
   {

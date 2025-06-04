@@ -631,7 +631,7 @@ static bool layer_collection_hidden(ViewLayer *view_layer, LayerCollection *lc)
 
   /* Restriction flags stay set, so we need to check parents */
   CollectionParent *parent = static_cast<CollectionParent *>(
-      lc->collection->runtime.parents.first);
+      lc->collection->runtime->parents.first);
 
   if (parent) {
     lc = BKE_layer_collection_first_from_scene_collection(view_layer, parent->collection);
@@ -666,7 +666,7 @@ bool BKE_layer_collection_activate(ViewLayer *view_layer, LayerCollection *lc)
 LayerCollection *BKE_layer_collection_activate_parent(ViewLayer *view_layer, LayerCollection *lc)
 {
   CollectionParent *parent = static_cast<CollectionParent *>(
-      lc->collection->runtime.parents.first);
+      lc->collection->runtime->parents.first);
 
   if (parent) {
     lc = BKE_layer_collection_first_from_scene_collection(view_layer, parent->collection);

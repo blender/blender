@@ -14,6 +14,15 @@
 #include "DNA_defs.h"
 #include "DNA_listBase.h"
 
+#ifdef __cplusplus
+namespace blender::bke {
+struct CollectionRuntime;
+}  // namespace blender::bke
+using CollectionRuntimeHandle = blender::bke::CollectionRuntime;
+#else
+typedef struct CollectionRuntimeHandle CollectionRuntimeHandle;
+#endif
+
 struct Collection;
 struct Object;
 struct GHash;
@@ -101,28 +110,6 @@ enum eCollectionLineArt_Flags {
   COLLECTION_LRT_USE_INTERSECTION_PRIORITY = (1 << 1),
 };
 
-typedef struct Collection_Runtime {
-  /**
-   * Cache of objects in this collection and all its children.
-   * This is created on demand when e.g. some physics simulation needs it,
-   * we don't want to have it for every collections due to memory usage reasons.
-   */
-  ListBase object_cache;
-
-  /** Need this for line art sub-collection selections. */
-  ListBase object_cache_instanced;
-
-  /** List of collections that are a parent of this data-block. */
-  ListBase parents;
-
-  /** An optional map for faster lookups on #Collection.gobject */
-  struct GHash *gobject_hash;
-
-  uint8_t tag;
-
-  char _pad0[7];
-} Collection_Runtime;
-
 typedef struct Collection {
 #ifdef __cplusplus
   /** See #ID_Type comment for why this is here. */
@@ -162,7 +149,7 @@ typedef struct Collection {
   struct ViewLayer *view_layer DNA_DEPRECATED;
 
   /* Keep last. */
-  Collection_Runtime runtime;
+  CollectionRuntimeHandle *runtime;
 } Collection;
 
 /** #Collection.flag */
@@ -184,23 +171,6 @@ enum {
 
 #define COLLECTION_FLAG_ALL_RUNTIME \
   (COLLECTION_HAS_OBJECT_CACHE | COLLECTION_HAS_OBJECT_CACHE_INSTANCED)
-
-/** #Collection_Runtime.tag */
-enum {
-  /**
-   * That code (#BKE_main_collections_parent_relations_rebuild and the like)
-   * is called from very low-level places, like e.g ID remapping...
-   * Using a generic tag like #ID_TAG_DOIT for this is just impossible, we need our very own.
-   */
-  COLLECTION_TAG_RELATION_REBUILD = (1 << 0),
-  /**
-   * Mark the `gobject` list and/or its `runtime.gobject_hash` mapping as dirty, i.e. that their
-   * data is not reliable and should be cleaned-up or updated.
-   *
-   * This should typically only be set by ID remapping code.
-   */
-  COLLECTION_TAG_COLLECTION_OBJECT_DIRTY = (1 << 1),
-};
 
 /** #Collection.color_tag */
 typedef enum CollectionColorTag {
