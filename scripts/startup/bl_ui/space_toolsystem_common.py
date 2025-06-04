@@ -1165,6 +1165,41 @@ def description_from_id(context, space_type, idname, *, use_operator=True):
             return tip_(_bpy.ops.get_rna_type(operator).description)
     return ""
 
+# NOTE: used by tool-tips in C++ (not called from Python).
+
+
+def item_from_id(context, space_type, idname):
+    # Used directly for tooltips.
+    cls = ToolSelectPanelHelper._tool_class_from_space_type(space_type)
+    if cls is None:
+        return None
+    item, _index = cls._tool_get_by_id(context, idname)
+    return item
+
+
+def item_from_id_active(context, space_type, idname):
+    # Used directly for tooltips.
+    cls = ToolSelectPanelHelper._tool_class_from_space_type(space_type)
+    if cls is None:
+        return None
+    item, _index = cls._tool_get_by_id_active(context, idname)
+    return item
+
+
+def item_from_id_active_with_group(context, space_type, idname):
+    cls = ToolSelectPanelHelper._tool_class_from_space_type(space_type)
+    if cls is None:
+        return None
+    cls, item, _index = cls._tool_get_by_id_active_with_group(context, idname)
+    return item
+
+
+def item_group_from_id(context, space_type, idname, *, coerce=False):
+    cls = ToolSelectPanelHelper._tool_class_from_space_type(space_type)
+    if cls is None:
+        return None
+    return cls._tool_get_group_by_id(context, idname, coerce=coerce)
+
 
 def item_from_flat_index(context, space_type, index):
     cls = ToolSelectPanelHelper._tool_class_from_space_type(space_type)
