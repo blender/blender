@@ -46,7 +46,8 @@ ccl_device_inline bool kernel_shadow_catcher_is_path_split_bounce(KernelGlobals 
 }
 
 /* Check whether the current path can still split. */
-ccl_device_inline bool kernel_shadow_catcher_path_can_split(ConstIntegratorState state)
+ccl_device_inline bool kernel_shadow_catcher_path_can_split(KernelGlobals kg,
+                                                            ConstIntegratorState state)
 {
   if (integrator_path_is_terminated(state)) {
     return false;

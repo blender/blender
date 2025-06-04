@@ -8,8 +8,6 @@
 #  include <OSL/oslversion.h>
 #endif
 
-#include "kernel/types.h"
-
 #include "util/defines.h"
 #include "util/types_float3.h"
 

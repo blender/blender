@@ -11,7 +11,9 @@ CCL_NAMESPACE_BEGIN
 
 /* Mapping Node */
 
-ccl_device_noinline void svm_node_mapping(ccl_private float *stack,
+ccl_device_noinline void svm_node_mapping(KernelGlobals kg,
+                                          ccl_private ShaderData *sd,
+                                          ccl_private float *stack,
                                           const uint type,
                                           const uint inputs_stack_offsets,
                                           const uint result_stack_offset)
@@ -38,6 +40,7 @@ ccl_device_noinline void svm_node_mapping(ccl_private float *stack,
 /* Texture Mapping */
 
 ccl_device_noinline int svm_node_texture_mapping(KernelGlobals kg,
+                                                 ccl_private ShaderData *sd,
                                                  ccl_private float *stack,
                                                  const uint vec_offset,
                                                  const uint out_offset,
@@ -56,6 +59,7 @@ ccl_device_noinline int svm_node_texture_mapping(KernelGlobals kg,
 }
 
 ccl_device_noinline int svm_node_min_max(KernelGlobals kg,
+                                         ccl_private ShaderData *sd,
                                          ccl_private float *stack,
                                          const uint vec_offset,
                                          const uint out_offset,

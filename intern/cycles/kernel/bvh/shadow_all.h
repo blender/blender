@@ -236,7 +236,7 @@ ccl_device_inline
                * as that could result in situation when the same ray will be considered transparent
                * when spatial split is off, and be opaque when spatial split is on. */
               if (intersection_skip_shadow_already_recoded(
-                      state, isect.object, isect.prim, *r_num_recorded_hits))
+                      kg, state, isect.object, isect.prim, *r_num_recorded_hits))
               {
                 continue;
               }

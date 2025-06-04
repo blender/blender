@@ -12,6 +12,7 @@ CCL_NAMESPACE_BEGIN
 /* Node */
 
 ccl_device_noinline int svm_node_mix(KernelGlobals kg,
+                                     ccl_private ShaderData *sd,
                                      ccl_private float *stack,
                                      const uint fac_offset,
                                      const uint c1_offset,
@@ -30,7 +31,8 @@ ccl_device_noinline int svm_node_mix(KernelGlobals kg,
   return offset;
 }
 
-ccl_device_noinline void svm_node_mix_color(ccl_private float *stack,
+ccl_device_noinline void svm_node_mix_color(ccl_private ShaderData *sd,
+                                            ccl_private float *stack,
                                             const uint options,
                                             const uint input_offset,
                                             const uint result_offset)
@@ -58,7 +60,8 @@ ccl_device_noinline void svm_node_mix_color(ccl_private float *stack,
   stack_store_float3(stack, result_offset, result);
 }
 
-ccl_device_noinline void svm_node_mix_float(ccl_private float *stack,
+ccl_device_noinline void svm_node_mix_float(ccl_private ShaderData *sd,
+                                            ccl_private float *stack,
                                             const uint use_clamp,
                                             const uint input_offset,
                                             const uint result_offset)
@@ -80,7 +83,8 @@ ccl_device_noinline void svm_node_mix_float(ccl_private float *stack,
   stack_store_float(stack, result_offset, result);
 }
 
-ccl_device_noinline void svm_node_mix_vector(ccl_private float *stack,
+ccl_device_noinline void svm_node_mix_vector(ccl_private ShaderData *sd,
+                                             ccl_private float *stack,
                                              const uint input_offset,
                                              const uint result_offset)
 {
@@ -101,7 +105,8 @@ ccl_device_noinline void svm_node_mix_vector(ccl_private float *stack,
   stack_store_float3(stack, result_offset, result);
 }
 
-ccl_device_noinline void svm_node_mix_vector_non_uniform(ccl_private float *stack,
+ccl_device_noinline void svm_node_mix_vector_non_uniform(ccl_private ShaderData *sd,
+                                                         ccl_private float *stack,
                                                          const uint input_offset,
                                                          const uint result_offset)
 {

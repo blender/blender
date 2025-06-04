@@ -10,7 +10,9 @@ CCL_NAMESPACE_BEGIN
 
 /* Value Nodes */
 
-ccl_device void svm_node_value_f(ccl_private float *stack,
+ccl_device void svm_node_value_f(KernelGlobals kg,
+                                 ccl_private ShaderData *sd,
+                                 ccl_private float *stack,
                                  const uint ivalue,
                                  const uint out_offset)
 {
@@ -18,6 +20,7 @@ ccl_device void svm_node_value_f(ccl_private float *stack,
 }
 
 ccl_device int svm_node_value_v(KernelGlobals kg,
+                                ccl_private ShaderData *sd,
                                 ccl_private float *stack,
                                 const uint out_offset,
                                 int offset)

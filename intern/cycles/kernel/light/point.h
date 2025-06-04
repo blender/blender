@@ -6,8 +6,6 @@
 
 #include "kernel/globals.h"
 
-#include "kernel/geom/object.h"
-
 #include "kernel/light/common.h"
 
 #include "util/math_intersect.h"

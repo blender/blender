@@ -21,7 +21,6 @@
 #include "scene/image.h"
 
 #include "kernel/osl/compat.h"
-#include "kernel/osl/types.h"
 
 CCL_NAMESPACE_BEGIN
 

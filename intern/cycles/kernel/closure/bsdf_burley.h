@@ -14,11 +14,11 @@ CCL_NAMESPACE_BEGIN
 
 #ifdef __OSL__
 
-struct BurleyBsdf {
+typedef struct BurleyBsdf {
   SHADER_CLOSURE_BASE;
 
   float roughness;
-};
+} BurleyBsdf;
 
 static_assert(sizeof(ShaderClosure) >= sizeof(BurleyBsdf), "BurleyBsdf is too large!");
 
@@ -55,8 +55,10 @@ ccl_device Spectrum bsdf_burley_eval(ccl_private const ShaderClosure *sc,
     *pdf = cosNO * M_1_PI_F;
     return bsdf_burley_get_intensity(bsdf->roughness, bsdf->N, wi, wo);
   }
-  *pdf = 0.0f;
-  return zero_spectrum();
+  else {
+    *pdf = 0.0f;
+    return zero_spectrum();
+  }
 }
 
 ccl_device int bsdf_burley_sample(ccl_private const ShaderClosure *sc,

@@ -77,7 +77,8 @@ ccl_device_forceinline T primitive_surface_attribute(KernelGlobals kg,
  * attributes for performance, mainly for GPU performance to avoid bringing in
  * heavy volume interpolation code. */
 
-ccl_device_forceinline bool primitive_is_volume_attribute(const ccl_private ShaderData *sd)
+ccl_device_forceinline bool primitive_is_volume_attribute(const ccl_private ShaderData *sd,
+                                                          const AttributeDescriptor desc)
 {
   return sd->type == PRIMITIVE_VOLUME;
 }
@@ -87,7 +88,7 @@ ccl_device_inline T primitive_volume_attribute(KernelGlobals kg,
                                                const ccl_private ShaderData *sd,
                                                const AttributeDescriptor desc)
 {
-  if (primitive_is_volume_attribute(sd)) {
+  if (primitive_is_volume_attribute(sd, desc)) {
     return volume_attribute_value<T>(volume_attribute_float4(kg, sd, desc));
   }
   return make_zero<T>();

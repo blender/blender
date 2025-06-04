@@ -301,7 +301,8 @@ ccl_device bool compute_emitter_centroid_and_dir(KernelGlobals kg,
 }
 
 template<bool in_volume_segment>
-ccl_device void light_tree_node_importance(const float3 P,
+ccl_device void light_tree_node_importance(KernelGlobals kg,
+                                           const float3 P,
                                            const float3 N_or_D,
                                            const float t,
                                            const bool has_transmission,
@@ -404,7 +405,7 @@ ccl_device void light_tree_emitter_importance(KernelGlobals kg,
                                                                      kemitter->mesh.node_id);
 
     light_tree_node_importance<in_volume_segment>(
-        P, N_or_D, t, has_transmission, knode, max_importance, min_importance);
+        kg, P, N_or_D, t, has_transmission, knode, max_importance, min_importance);
     return;
   }
 
@@ -527,7 +528,7 @@ ccl_device void light_tree_child_importance(KernelGlobals kg,
   }
   else if (knode->num_emitters != 0) {
     light_tree_node_importance<in_volume_segment>(
-        P, N_or_D, t, has_transmission, knode, max_importance, min_importance);
+        kg, P, N_or_D, t, has_transmission, knode, max_importance, min_importance);
   }
 }
 

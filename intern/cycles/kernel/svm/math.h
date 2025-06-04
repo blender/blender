@@ -9,7 +9,9 @@
 
 CCL_NAMESPACE_BEGIN
 
-ccl_device_noinline void svm_node_math(ccl_private float *stack,
+ccl_device_noinline void svm_node_math(KernelGlobals kg,
+                                       ccl_private ShaderData *sd,
+                                       ccl_private float *stack,
                                        const uint type,
                                        const uint inputs_stack_offsets,
                                        const uint result_stack_offset)
@@ -28,6 +30,7 @@ ccl_device_noinline void svm_node_math(ccl_private float *stack,
 }
 
 ccl_device_noinline int svm_node_vector_math(KernelGlobals kg,
+                                             ccl_private ShaderData *sd,
                                              ccl_private float *stack,
                                              const uint type,
                                              const uint inputs_stack_offsets,

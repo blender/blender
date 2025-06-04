@@ -268,6 +268,7 @@ ccl_device_inline void light_sample_to_surface_shadow_ray(
 
 /* Create shadow ray towards light sample. */
 ccl_device_inline void light_sample_to_volume_shadow_ray(
+    KernelGlobals kg,
     const ccl_private ShaderData *ccl_restrict sd,
     const ccl_private LightSample *ccl_restrict ls,
     const float3 P,
@@ -286,13 +287,12 @@ ccl_device_inline float light_sample_mis_weight_forward(KernelGlobals kg,
   if (kernel_data.integrator.direct_light_sampling_type == DIRECT_LIGHT_SAMPLING_FORWARD) {
     return 1.0f;
   }
-  if (kernel_data.integrator.direct_light_sampling_type == DIRECT_LIGHT_SAMPLING_NEE) {
+  else if (kernel_data.integrator.direct_light_sampling_type == DIRECT_LIGHT_SAMPLING_NEE) {
     return 0.0f;
   }
-#else
-  (void)kg;
+  else
 #endif
-  return power_heuristic(forward_pdf, nee_pdf);
+    return power_heuristic(forward_pdf, nee_pdf);
 }
 
 ccl_device_inline float light_sample_mis_weight_nee(KernelGlobals kg,
@@ -306,13 +306,12 @@ ccl_device_inline float light_sample_mis_weight_nee(KernelGlobals kg,
      * result. */
     return (forward_pdf == 0.0f);
   }
-  if (kernel_data.integrator.direct_light_sampling_type == DIRECT_LIGHT_SAMPLING_NEE) {
+  else if (kernel_data.integrator.direct_light_sampling_type == DIRECT_LIGHT_SAMPLING_NEE) {
     return 1.0f;
   }
-#else
-  (void)kg;
+  else
 #endif
-  return power_heuristic(nee_pdf, forward_pdf);
+    return power_heuristic(nee_pdf, forward_pdf);
 }
 
 /* Next event estimation sampling.

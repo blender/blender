@@ -144,7 +144,10 @@ ccl_device int subsurface_bounce(KernelGlobals kg,
   return LABEL_SUBSURFACE_SCATTER;
 }
 
-ccl_device void subsurface_shader_data_setup(KernelGlobals kg, ccl_private ShaderData *sd)
+ccl_device void subsurface_shader_data_setup(KernelGlobals kg,
+                                             IntegratorState state,
+                                             ccl_private ShaderData *sd,
+                                             const uint32_t path_flag)
 {
   /* Get bump mapped normal from shader evaluation at exit point. */
   float3 N = sd->N;
