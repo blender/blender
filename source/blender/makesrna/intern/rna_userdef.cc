@@ -6470,18 +6470,33 @@ static void rna_def_userdef_input(BlenderRNA *brna)
 
 #  ifdef WITH_INPUT_NDOF
   static const EnumPropertyItem ndof_view_navigation_items[] = {
-      {0, "FREE", 0, "Free", "Use full 6 degrees of freedom by default"},
-      {NDOF_MODE_ORBIT, "ORBIT", 0, "Orbit", "Orbit about the view center by default"},
+      {NDOF_NAVIGATION_MODE_OBJECT,
+       "OBJECT",
+       0,
+       "Object",
+       "This mode is like reaching into the screen and holding the model in your hand. "
+       "Push the 3D Mouse cap left, and the model moves left. Push right and the model "
+       "moves right"},
+      {NDOF_NAVIGATION_MODE_FLY,
+       "FLY",
+       0,
+       "Fly",
+       "Enables using the 3D Mouse as if it is a camera. Push into the scene and the camera "
+       "moves forward into the scene. You are entering the scene as if flying around in it"},
       {0, nullptr, 0, nullptr, nullptr},
   };
 
-  static const EnumPropertyItem ndof_view_rotation_items[] = {
-      {NDOF_TURNTABLE,
-       "TURNTABLE",
+  static const EnumPropertyItem ndof_zoom_direction_items[] = {
+      {0,
+       "NDOF_ZOOM_FORWARD",
        0,
-       "Turntable",
-       "Use turntable style rotation in the viewport"},
-      {0, "TRACKBALL", 0, "Trackball", "Use trackball style rotation in the viewport"},
+       "Forward/Backward",
+       "Zoom by pulling the 3D Mouse cap upwards or pushing the cap downwards"},
+      {NDOF_PAN_YZ_SWAP_AXIS,
+       "NDOF_ZOOM_UP",
+       0,
+       "Up/Down",
+       "Zoom by pulling the 3D Mouse cap upwards or pushing the cap downwards"},
       {0, nullptr, 0, nullptr, nullptr},
   };
 #  endif /* WITH_INPUT_NDOF */
@@ -6714,14 +6729,11 @@ static void rna_def_userdef_input(BlenderRNA *brna)
       prop, "Deadzone", "Threshold of initial movement needed from the device's rest position");
   RNA_def_property_update(prop, 0, "rna_userdef_ndof_deadzone_update");
 
-  prop = RNA_def_property(srna, "ndof_pan_yz_swap_axis", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "ndof_flag", NDOF_PAN_YZ_SWAP_AXIS);
+  prop = RNA_def_property(srna, "ndof_zoom_direction", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_bitflag_sdna(prop, nullptr, "ndof_flag");
+  RNA_def_property_enum_items(prop, ndof_zoom_direction_items);
   RNA_def_property_ui_text(
-      prop, "Y/Z Swap Axis", "Pan using up/down on the device (otherwise forward/backward)");
-
-  prop = RNA_def_property(srna, "ndof_zoom_invert", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "ndof_flag", NDOF_ZOOM_INVERT);
-  RNA_def_property_ui_text(prop, "Invert Zoom", "Zoom using opposite direction");
+      prop, "Zoom direction", "Which axis of the 3D Mouse cap zooms the view");
 
   /* 3D view */
   prop = RNA_def_property(srna, "ndof_show_guide_orbit_axis", PROP_BOOLEAN, PROP_NONE);
@@ -6738,15 +6750,16 @@ static void rna_def_userdef_input(BlenderRNA *brna)
       prop, "Show Orbit Center Guide", "Display the orbit center during rotation");
 
   /* 3D view */
-  prop = RNA_def_property(srna, "ndof_view_navigate_method", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_bitflag_sdna(prop, nullptr, "ndof_flag");
+  prop = RNA_def_property(srna, "ndof_navigation_mode", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, ndof_view_navigation_items);
-  RNA_def_property_ui_text(prop, "NDOF View Navigate", "Navigation style in the viewport");
+  RNA_def_property_ui_text(prop, "NDOF View Navigate", "3D Mouse Navigation Mode");
 
-  prop = RNA_def_property(srna, "ndof_view_rotate_method", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_bitflag_sdna(prop, nullptr, "ndof_flag");
-  RNA_def_property_enum_items(prop, ndof_view_rotation_items);
-  RNA_def_property_ui_text(prop, "NDOF View Rotation", "Rotation style in the viewport");
+  prop = RNA_def_property(srna, "ndof_lock_horizon", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "ndof_flag", NDOF_LOCK_HORIZON);
+  RNA_def_property_ui_text(
+      prop,
+      "NDOF Lock Horizon",
+      "Lock Horizon forces the horizon to be kept leveled as it currently is");
 
   prop = RNA_def_property(srna, "ndof_orbit_center_auto", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "ndof_flag", NDOF_ORBIT_CENTER_AUTO);
@@ -6761,8 +6774,8 @@ static void rna_def_userdef_input(BlenderRNA *brna)
   prop = RNA_def_property(srna, "ndof_orbit_center_selected", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "ndof_flag", NDOF_ORBIT_CENTER_SELECTED);
   RNA_def_property_ui_text(prop,
-                           "Use Selected Items",
-                           "Use selected item forces the orbit center "
+                           "Selected Items",
+                           "Selected Item forces the orbit center "
                            "to only take the currently selected objects into account.");
 
   /* 3D view: yaw */
@@ -6796,10 +6809,6 @@ static void rna_def_userdef_input(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Invert Z Axis", "");
 
   /* 3D view: fly */
-  prop = RNA_def_property(srna, "ndof_lock_horizon", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "ndof_flag", NDOF_LOCK_HORIZON);
-  RNA_def_property_ui_text(prop, "Lock Horizon", "Keep horizon level while flying with 3D Mouse");
-
   prop = RNA_def_property(srna, "ndof_fly_helicopter", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "ndof_flag", NDOF_FLY_HELICOPTER);
   RNA_def_property_ui_text(prop,
@@ -6810,7 +6819,7 @@ static void rna_def_userdef_input(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, nullptr, "ndof_flag", NDOF_CAMERA_PAN_ZOOM);
   RNA_def_property_ui_text(
       prop,
-      "Lock Camera Pan/Zoom",
+      "Pan / Zoom Camera View",
       "Pan/zoom the camera view instead of leaving the camera view when orbiting");
 #  endif /* WITH_INPUT_NDOF */
 

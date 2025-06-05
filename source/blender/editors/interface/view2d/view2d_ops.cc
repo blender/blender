@@ -1532,7 +1532,7 @@ static wmOperatorStatus view2d_ndof_invoke(bContext *C, wmOperator *op, const wm
   if (has_translate) {
     float pan_vec[3];
 
-    WM_event_ndof_pan_get(ndof, pan_vec, false);
+    WM_event_ndof_pan_get(ndof, pan_vec);
 
     pan_vec[0] *= speed;
     pan_vec[1] *= speed;
@@ -1550,7 +1550,7 @@ static wmOperatorStatus view2d_ndof_invoke(bContext *C, wmOperator *op, const wm
 
     bool do_zoom_xy[2];
 
-    if (U.ndof_flag & NDOF_ZOOM_INVERT) {
+    if (U.ndof_flag & NDOF_PANZ_INVERT_AXIS) {
       zoom_factor = -zoom_factor;
     }
 
