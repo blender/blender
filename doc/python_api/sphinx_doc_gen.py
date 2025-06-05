@@ -1228,7 +1228,6 @@ context_type_map = {
     "particle_system": [("ParticleSystem", False)],
     "particle_system_editable": [("ParticleSystem", False)],
     "property": [("AnyType", False), ("str", False), ("int", False)],
-    "pointcloud": [("PointCloud", False)],
     "pose_bone": [("PoseBone", False)],
     "pose_object": [("Object", False)],
     "scene": [("Scene", False)],
