@@ -136,6 +136,41 @@ static float bmo_vert_calc_edge_angle_blended(const BMVert *v)
   return angle;
 }
 
+/**
+ * A wrapper for #BM_vert_collapse_edge which ensures correct hidden state & merges edge flags.
+ */
+static BMEdge *bm_vert_collapse_edge_and_merge(BMesh *bm, BMVert *v, const bool do_del)
+
+{
+  /* Merge the header flags on the two edges that will be merged. */
+  BMEdge *e_pair[2];
+  const bool is_edge_pair = BM_vert_edge_pair(v, &e_pair[0], &e_pair[1]);
+
+  BLI_assert(is_edge_pair);
+  UNUSED_VARS_NDEBUG(is_edge_pair);
+
+  BM_elem_flag_merge_ex(e_pair[0], e_pair[1], BM_ELEM_HIDDEN);
+
+  /* Dissolve the vertex. */
+  BMEdge *e_new = BM_vert_collapse_edge(bm, v->e, v, do_del, true, true);
+
+  if (e_new) {
+    /* Ensure the result of dissolving never leaves visible edges connected to hidden vertices.
+     * From a user perspective this is an invalid state which tools should not allow. */
+    if (!BM_elem_flag_test(e_new, BM_ELEM_HIDDEN)) {
+      if (BM_elem_flag_test(e_new->v1, BM_ELEM_HIDDEN) ||
+          BM_elem_flag_test(e_new->v2, BM_ELEM_HIDDEN))
+      {
+        if (BM_elem_flag_test(e_new, BM_ELEM_SELECT)) {
+          BM_edge_select_set_noflush(bm, e_new, false);
+        }
+        BM_elem_flag_enable(e_new, BM_ELEM_HIDDEN);
+      }
+    }
+  }
+  return e_new;
+}
+
 static void bm_face_split(BMesh *bm, const short oflag, bool use_edge_delete)
 {
   BLI_Stack *edge_delete_verts;
@@ -306,10 +341,11 @@ void bmo_dissolve_faces_exec(BMesh *bm, BMOperator *op)
     BMVert *v, *v_next;
 
     BM_ITER_MESH_MUTABLE (v, v_next, &viter, bm, BM_VERTS_OF_MESH) {
-      if (BMO_vert_flag_test(bm, v, VERT_MARK)) {
-        if (BM_vert_is_edge_pair(v)) {
-          BM_vert_collapse_edge(bm, v->e, v, true, true, true);
-        }
+      if (!BMO_vert_flag_test(bm, v, VERT_MARK)) {
+        continue;
+      }
+      if (BM_vert_is_edge_pair(v)) {
+        bm_vert_collapse_edge_and_merge(bm, v, true);
       }
     }
   }
@@ -478,12 +514,7 @@ void bmo_dissolve_edges_exec(BMesh *bm, BMOperator *op)
       /* Ensured in the previous loop. */
       BLI_assert(BM_vert_is_edge_pair(v));
 
-      /* Merge the header flags on the two edges that will be merged. */
-      BMEdge *e_pair[2];
-      BM_vert_edge_pair(v, &e_pair[0], &e_pair[1]);
-      BM_elem_flag_merge_ex(e_pair[0], e_pair[1], BM_ELEM_HIDDEN);
-
-      BM_vert_collapse_edge(bm, v->e, v, true, true, true);
+      bm_vert_collapse_edge_and_merge(bm, v, true);
     }
   }
 }
@@ -584,7 +615,7 @@ void bmo_dissolve_verts_exec(BMesh *bm, BMOperator *op)
   /* final cleanup */
   BMO_ITER (v, &oiter, op->slots_in, "verts", BM_VERT) {
     if (BM_vert_is_edge_pair(v)) {
-      BM_vert_collapse_edge(bm, v->e, v, false, true, true);
+      bm_vert_collapse_edge_and_merge(bm, v, false);
     }
   }
 
