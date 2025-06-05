@@ -419,7 +419,6 @@ def main():
 
     fout.close()
     del fout
-    print(OUT_RST)
 
 
 def arg_name_with_default(arg):
