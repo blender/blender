@@ -9,6 +9,7 @@
 #include "BKE_blender.hh"
 #include "BKE_preferences.h"
 
+#include "BLI_fileops.h"  // IWYU pragma: keep
 #include "BLI_path_utils.hh"
 #include "BLI_string_ref.hh"
 
@@ -20,6 +21,8 @@
 #include "AS_asset_library.hh"
 #include "AS_essentials_library.hh"
 #include "all_library.hh"
+#include "asset_catalog_collection.hh"
+#include "asset_catalog_definition_file.hh"  // IWYU pragma: keep
 #include "asset_library_service.hh"
 #include "essentials_library.hh"
 #include "on_disk_library.hh"
@@ -251,12 +254,23 @@ AssetLibrary *AssetLibraryService::move_runtime_current_file_into_on_disk_librar
         library_service.current_file_library_->catalog_service_);
   }
 
-  on_disk_library->catalog_service().asset_library_root_ = on_disk_library->root_path();
+  AssetCatalogService &catalog_service = on_disk_library->catalog_service();
+  catalog_service.asset_library_root_ = on_disk_library->root_path();
   /* The catalogs are not stored on disk, so there should not be any CDF. Otherwise, we'd have to
    * remap their stored file-path too (#AssetCatalogDefinitionFile.file_path). */
-  BLI_assert_msg(on_disk_library->catalog_service().get_catalog_definition_file() == nullptr,
+  BLI_assert_msg(catalog_service.get_catalog_definition_file() == nullptr,
                  "new on-disk library shouldn't have catalog definition files - root path "
                  "changed, so they would have to be relocated");
+
+  {
+    char asset_lib_cdf_path[PATH_MAX];
+    BLI_path_join(asset_lib_cdf_path,
+                  sizeof(asset_lib_cdf_path),
+                  on_disk_library->root_path().c_str(),
+                  AssetCatalogService::DEFAULT_CATALOG_FILENAME.c_str());
+    catalog_service.catalog_collection_->catalog_definition_file_ =
+        catalog_service.construct_cdf_in_memory(asset_lib_cdf_path);
+  }
 
   library_service.current_file_library_ = nullptr;
 
