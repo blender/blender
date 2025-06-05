@@ -200,6 +200,8 @@ static void sync_smoke_volume(
                                           ATTR_STD_VOLUME_VELOCITY,
                                           ATTR_STD_NONE};
 
+  const Interval<int> frame_interval = {b_domain.cache_frame_start(), b_domain.cache_frame_end()};
+
   for (int i = 0; attributes[i] != ATTR_STD_NONE; i++) {
     const AttributeStandard std = attributes[i];
     if (!volume->need_attribute(scene, std)) {
@@ -209,6 +211,11 @@ static void sync_smoke_volume(
     volume->set_clipping(b_domain.clipping());
 
     Attribute *attr = volume->attributes.add(std);
+
+    if (!frame_interval.contains(frame)) {
+      attr->data_voxel().clear();
+      continue;
+    }
 
     unique_ptr<ImageLoader> loader = make_unique<BlenderSmokeLoader>(b_ob_info.real_object, std);
     ImageParams params;
