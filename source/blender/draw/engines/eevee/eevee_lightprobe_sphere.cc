@@ -23,14 +23,13 @@ void SphereProbeModule::init()
      * there are other light probes in the scene. */
     update_probes_next_sample_ = DEG_id_type_any_exists(instance_.depsgraph, ID_LP);
   }
+  update_probes_this_sample_ = update_probes_next_sample_;
 
   do_display_draw_ = false;
 }
 
 void SphereProbeModule::begin_sync()
 {
-  update_probes_this_sample_ = update_probes_next_sample_;
-
   LightProbeModule &light_probes = instance_.light_probes;
   SphereProbeData &world_data = *static_cast<SphereProbeData *>(&light_probes.world_sphere_);
   {

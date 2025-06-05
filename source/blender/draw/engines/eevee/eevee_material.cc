@@ -259,11 +259,8 @@ MaterialPass MaterialModule::material_pass_get(Object *ob,
                          blender_mat->nodetree :
                          default_surface_ntree_.nodetree_get(blender_mat);
 
-  bool use_deferred_compilation = inst_.is_viewport() || GPU_use_parallel_compilation();
-  if (inst_.is_viewport_image_render) {
-    /* We can't defer compilation in viewport image render, since we can't re-sync.(See #130235) */
-    use_deferred_compilation = false;
-  }
+  /* We can't defer compilation in viewport image render, since we can't re-sync.(See #130235) */
+  bool use_deferred_compilation = !inst_.is_viewport_image_render;
 
   const bool is_volume = ELEM(pipeline_type, MAT_PIPE_VOLUME_OCCUPANCY, MAT_PIPE_VOLUME_MATERIAL);
   ::Material *default_mat = is_volume ? default_volume : default_surface;
@@ -566,6 +563,23 @@ Material &MaterialModule::material_get(Object *ob,
   ::Material *blender_mat = material_from_slot(ob, mat_nr);
   Material &mat = material_sync(ob, blender_mat, geometry_type, has_motion);
   return mat;
+}
+
+ShaderGroups MaterialModule::default_materials_load(bool block_until_ready)
+{
+  bool shaders_are_ready = true;
+  auto request_shader = [&](::Material *mat, eMaterialPipeline pipeline, eMaterialGeometry geom) {
+    GPUMaterial *gpu_mat = inst_.shaders.material_shader_get(
+        mat, mat->nodetree, pipeline, geom, !block_until_ready, nullptr);
+    shaders_are_ready = shaders_are_ready && GPU_material_status(gpu_mat) == GPU_MAT_SUCCESS;
+  };
+
+  request_shader(default_surface, MAT_PIPE_PREPASS_DEFERRED, MAT_GEOM_MESH);
+  request_shader(default_surface, MAT_PIPE_PREPASS_DEFERRED_VELOCITY, MAT_GEOM_MESH);
+  request_shader(default_surface, MAT_PIPE_DEFERRED, MAT_GEOM_MESH);
+  request_shader(default_surface, MAT_PIPE_SHADOW, MAT_GEOM_MESH);
+
+  return shaders_are_ready ? DEFAULT_MATERIALS : NONE;
 }
 
 /** \} */

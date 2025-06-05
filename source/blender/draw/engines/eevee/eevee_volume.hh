@@ -136,6 +136,10 @@ class VolumeModule {
     return enabled_ && use_lights_;
   }
 
+  /* Return a the future value of enabled() that will only be available after end_sync(). */
+  bool will_enable() const;
+
+  /* Returns the state of the module. */
   bool enabled() const
   {
     return enabled_;

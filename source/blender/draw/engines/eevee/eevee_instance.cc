@@ -189,12 +189,6 @@ void Instance::init(const int2 &output_res,
     is_image_render = true;
   }
 
-  shaders_are_ready_ = shaders.static_shaders_are_ready(is_image_render);
-  if (!shaders_are_ready_) {
-    skip_render_ = true;
-    return;
-  }
-
   sampling.init(scene);
   camera.init();
   film.init(output_res, output_rect);
@@ -214,15 +208,46 @@ void Instance::init(const int2 &output_res,
   volume.init();
   lookdev.init(visible_rect);
 
-  shaders_are_ready_ = shaders.static_shaders_are_ready(is_image_render) &&
-                       shaders.request_specializations(
-                           is_image_render,
-                           render_buffers.data.shadow_id,
-                           shadows.get_data().ray_count,
-                           shadows.get_data().step_count,
-                           DeferredLayer::do_split_direct_indirect_radiance(*this),
-                           DeferredLayer::do_merge_direct_indirect_eval(*this));
-  skip_render_ = !shaders_are_ready_ || !film.is_valid_render_extent();
+  /* Request static shaders */
+  ShaderGroups shader_request = DEFERRED_LIGHTING_SHADERS | SHADOW_SHADERS | FILM_SHADERS |
+                                HIZ_SHADERS | SPHERE_PROBE_SHADERS | VOLUME_PROBE_SHADERS |
+                                LIGHT_CULLING_SHADERS;
+  SET_FLAG_FROM_TEST(shader_request, depth_of_field.postfx_enabled(), DEPTH_OF_FIELD_SHADERS);
+  SET_FLAG_FROM_TEST(shader_request, needs_planar_probe_passes(), DEFERRED_PLANAR_SHADERS);
+  SET_FLAG_FROM_TEST(shader_request, needs_lightprobe_sphere_passes(), DEFERRED_CAPTURE_SHADERS);
+  SET_FLAG_FROM_TEST(shader_request, motion_blur.postfx_enabled(), MOTION_BLUR_SHADERS);
+  SET_FLAG_FROM_TEST(shader_request, raytracing.use_fast_gi(), HORIZON_SCAN_SHADERS);
+  SET_FLAG_FROM_TEST(shader_request, raytracing.use_raytracing(), RAYTRACING_SHADERS);
+
+  loaded_shaders = ShaderGroups::NONE;
+  loaded_shaders |= shaders.static_shaders_load_async(shader_request);
+  loaded_shaders |= materials.default_materials_load_async();
+
+  if (is_image_render) {
+    /* Ensure all deferred shaders have been compiled to kickstart async specialization. */
+    loaded_shaders |= shaders.static_shaders_wait_ready(DEFERRED_LIGHTING_SHADERS);
+  }
+
+  if (loaded_shaders & DEFERRED_LIGHTING_SHADERS) {
+    bool ready = shaders.request_specializations(
+        is_image_render,
+        render_buffers.data.shadow_id,
+        shadows.get_data().ray_count,
+        shadows.get_data().step_count,
+        DeferredLayer::do_split_direct_indirect_radiance(*this),
+        DeferredLayer::do_merge_direct_indirect_eval(*this));
+    SET_FLAG_FROM_TEST(loaded_shaders, ready, DEFERRED_LIGHTING_SHADERS);
+  }
+
+  if (is_image_render) {
+    loaded_shaders |= shaders.static_shaders_wait_ready(shader_request);
+    loaded_shaders |= materials.default_materials_wait_ready();
+  }
+
+  /* Needed bits to be able to display something to the screen. */
+  needed_shaders = shader_request | DEFAULT_MATERIALS;
+
+  skip_render_ = !is_loaded(needed_shaders) || !film.is_valid_render_extent();
 }
 
 void Instance::init_light_bake(Depsgraph *depsgraph, draw::Manager *manager)
@@ -240,8 +265,6 @@ void Instance::init_light_bake(Depsgraph *depsgraph, draw::Manager *manager)
   is_light_bake = true;
   debug_mode = (eDebugMode)G.debug_value;
   info_ = "";
-
-  shaders.static_shaders_are_ready(true);
 
   sampling.init(scene);
   camera.init();
@@ -261,12 +284,9 @@ void Instance::init_light_bake(Depsgraph *depsgraph, draw::Manager *manager)
   volume.init();
   lookdev.init(&empty_rect);
 
-  shaders.request_specializations(true,
-                                  render_buffers.data.shadow_id,
-                                  shadows.get_data().ray_count,
-                                  shadows.get_data().step_count,
-                                  DeferredLayer::do_split_direct_indirect_radiance(*this),
-                                  DeferredLayer::do_merge_direct_indirect_eval(*this));
+  needed_shaders = IRRADIANCE_BAKE_SHADERS | SHADOW_SHADERS | SURFEL_SHADERS;
+  shaders.static_shaders_load_async(needed_shaders);
+  shaders.static_shaders_wait_ready(needed_shaders);
 }
 
 void Instance::set_time(float time)
@@ -296,12 +316,14 @@ void Instance::update_eval_members()
 
 void Instance::begin_sync()
 {
+  /* Needs to be first for sun light parameters.
+   * Also not skipped to be able to request world shader.
+   * If engine shaders are not ready, will skip the pipeline sync. */
+  world.sync();
+
   if (skip_render_) {
     return;
   }
-
-  /* Needs to be first for sun light parameters. */
-  world.sync();
 
   materials.begin_sync();
   velocity.begin_sync(); /* NOTE: Also syncs camera. */
@@ -406,7 +428,22 @@ void Instance::object_sync(ObjectRef &ob_ref, Manager & /*manager*/)
 void Instance::end_sync()
 {
   if (skip_render_) {
+    /* We might run in the case where the next check sets skip_render_ to false after the
+     * begin_sync was skipped, which would call `end_sync` function with invalid data. */
     return;
+  }
+
+  bool use_sss = pipelines.deferred.closure_bits_get() & CLOSURE_SSS;
+  bool use_volume = volume.will_enable();
+
+  ShaderGroups request_bits = NONE;
+  SET_FLAG_FROM_TEST(request_bits, use_sss, SUBSURFACE_SHADERS);
+  SET_FLAG_FROM_TEST(request_bits, use_volume, VOLUME_EVAL_SHADERS);
+  loaded_shaders |= shaders.static_shaders_load_async(request_bits);
+  needed_shaders |= request_bits;
+
+  if (is_image_render) {
+    loaded_shaders |= shaders.static_shaders_wait_ready(request_bits);
   }
 
   materials.end_sync();
@@ -595,6 +632,8 @@ void Instance::render_read_result(RenderLayer *render_layer, const char *view_na
 
 void Instance::render_frame(RenderEngine *engine, RenderLayer *render_layer, const char *view_name)
 {
+  skip_render_ = skip_render_ || !is_loaded(needed_shaders);
+
   if (skip_render_) {
     if (!info_.empty()) {
       RE_engine_set_error_message(engine, info_.c_str());
@@ -653,10 +692,10 @@ void Instance::render_frame(RenderEngine *engine, RenderLayer *render_layer, con
 
 void Instance::draw_viewport()
 {
-  if (skip_render_) {
+  if (skip_render_ || !is_loaded(needed_shaders)) {
     DefaultFramebufferList *dfbl = draw_ctx->viewport_framebuffer_list_get();
     GPU_framebuffer_clear_color_depth(dfbl->default_fb, float4(0.0f), 1.0f);
-    if (!shaders_are_ready_) {
+    if (!is_loaded(needed_shaders & ~WORLD_SHADERS)) {
       info_append_i18n("Compiling EEVEE engine shaders");
       DRW_viewport_request_redraw();
     }
