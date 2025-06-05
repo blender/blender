@@ -234,6 +234,7 @@ bool metalrt_shadow_all_hit(
 
   MetalKernelContext context(launch_params_metal);
   const IntegratorShadowState state = payload.state;
+  short num_hits = payload.num_hits;
 
   if (context.intersection_skip_self_shadow(payload.self, object, prim)) {
     /* continue search */
@@ -247,10 +248,7 @@ bool metalrt_shadow_all_hit(
   }
 #    endif
 
-  short num_recorded_hits = payload.num_recorded_hits;
-  if (context.intersection_skip_shadow_already_recoded(
-          nullptr, state, object, prim, num_recorded_hits))
-  {
+  if (context.intersection_skip_shadow_already_recoded(nullptr, state, object, prim, num_hits)) {
     return true;
   }
 
@@ -260,22 +258,15 @@ bool metalrt_shadow_all_hit(
   /* terminate ray */
   return false;
 #    else
+  short max_hits = payload.max_hits;
+  short num_recorded_hits = payload.num_recorded_hits;
 
   /* If no transparent shadows, all light is blocked and we can stop immediately. */
-  const int flags = context.intersection_get_shader_flags(nullptr, prim, type);
-  if (!(flags & SD_HAS_TRANSPARENT_SHADOW)) {
+  if (num_hits >= max_hits ||
+      !(context.intersection_get_shader_flags(nullptr, prim, type) & SD_HAS_TRANSPARENT_SHADOW))
+  {
     payload.result = true;
-    /* Terminate ray. */
-    return false;
-  }
-
-  /* Only count transparent bounces, volume bounds bounces are counted during shading. */
-  short num_transparent_hits = payload.num_transparent_hits + !(flags & SD_HAS_ONLY_VOLUME);
-  short max_transparent_hits = payload.max_transparent_hits;
-
-  if (num_transparent_hits > max_transparent_hits) {
-    /* Max number of hits exceeded. */
-    payload.result = true;
+    /* terminate ray */
     return false;
   }
 
@@ -285,7 +276,7 @@ bool metalrt_shadow_all_hit(
     float throughput = payload.throughput;
     throughput *= context.intersection_curve_shadow_transparency(nullptr, object, prim, type, u);
     payload.throughput = throughput;
-    payload.num_transparent_hits = num_transparent_hits;
+    payload.num_hits += 1;
 
     if (throughput < CURVE_SHADOW_TRANSPARENCY_CUTOFF) {
       /* Accept result and terminate if throughput is sufficiently low */
@@ -298,12 +289,12 @@ bool metalrt_shadow_all_hit(
   }
 #      endif
 
-  payload.num_transparent_hits = num_transparent_hits;
+  payload.num_hits += 1;
   payload.num_recorded_hits += 1;
 
   uint record_index = num_recorded_hits;
 
-  const uint max_record_hits = INTEGRATOR_SHADOW_ISECT_SIZE;
+  const uint max_record_hits = min(uint(max_hits), INTEGRATOR_SHADOW_ISECT_SIZE);
   if (record_index >= max_record_hits) {
     /* If maximum number of hits reached, find a hit to replace. */
     float max_recorded_t = INTEGRATOR_STATE_ARRAY(state, shadow_isect, 0, t);
