@@ -1095,14 +1095,22 @@ void transform_convert_mesh_connectivity_distance(BMesh *bm,
         }
 
         if (bmesh_test_dist_add(v2, v1, nullptr, dists, index, mtx)) {
-          /* Add adjacent loose edges to the queue, or all edges if this is a loose edge.
-           * Other edges are handled by propagation across edges below. */
+          /* Add adjacent edges to the queue if:
+           * - Adjacent edge is loose
+           * - Edge itself is loose
+           * - Edge has vertex that was originally selected
+           * In all these cases a direct distance along the edge is accurate and
+           * required to make sure we visit all edges. Other edges are handled by
+           * propagation across edges below. */
+          const bool need_direct_distance = BM_elem_flag_test(e, tag_loose) ||
+                                            BM_elem_flag_test(v1, BM_ELEM_SELECT) ||
+                                            BM_elem_flag_test(v2, BM_ELEM_SELECT);
           BMEdge *e_other;
           BMIter eiter;
           BM_ITER_ELEM (e_other, &eiter, v2, BM_EDGES_OF_VERT) {
             if (e_other != e && BM_elem_flag_test(e_other, tag_queued) == 0 &&
                 !BM_elem_flag_test(e_other, BM_ELEM_HIDDEN) &&
-                (BM_elem_flag_test(e, tag_loose) || BM_elem_flag_test(e_other, tag_loose)))
+                (need_direct_distance || BM_elem_flag_test(e_other, tag_loose)))
             {
               BM_elem_flag_enable(e_other, tag_queued);
               BLI_LINKSTACK_PUSH(queue_next, e_other);
