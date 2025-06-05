@@ -5156,9 +5156,9 @@ void uiLayoutSetUnitsY(uiLayout *layout, float unit)
   layout->units_[1] = unit;
 }
 
-void uiLayoutSetEmboss(uiLayout *layout, blender::ui::EmbossType emboss)
+void uiLayout::emboss_set(blender::ui::EmbossType emboss)
 {
-  layout->emboss_ = emboss;
+  emboss_ = emboss;
 }
 
 bool uiLayoutGetPropSep(uiLayout *layout)
@@ -5256,12 +5256,12 @@ float uiLayoutGetUnitsY(uiLayout *layout)
   return layout->units_[1];
 }
 
-blender::ui::EmbossType uiLayoutGetEmboss(uiLayout *layout)
+blender::ui::EmbossType uiLayout::emboss() const
 {
-  if (layout->emboss_ == blender::ui::EmbossType::Undefined) {
-    return layout->root_->block->emboss;
+  if (emboss_ == blender::ui::EmbossType::Undefined) {
+    return root_->block->emboss;
   }
-  return layout->emboss_;
+  return emboss_;
 }
 
 int uiLayoutListItemPaddingWidth()
