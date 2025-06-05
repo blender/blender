@@ -76,6 +76,8 @@ class World {
   bool has_volume_absorption_ = false;
   /* Is true if the volume shader has scattering. */
   bool has_volume_scatter_ = false;
+  /* Is true if the surface shader is compiled and ready. */
+  bool is_ready_ = false;
 
   LookdevWorld lookdev_world_;
 
@@ -83,6 +85,7 @@ class World {
   World(Instance &inst) : inst_(inst){};
   ~World();
 
+  /* Setup and request the background shader. */
   void sync();
 
   bool has_volume() const
@@ -98,6 +101,11 @@ class World {
   bool has_volume_scatter() const
   {
     return has_volume_scatter_;
+  }
+
+  bool is_ready() const
+  {
+    return is_ready_;
   }
 
   float sun_threshold();
@@ -133,7 +141,7 @@ class World {
   }
 
  private:
-  void sync_volume(const WorldHandle &world_handle);
+  void sync_volume(const WorldHandle &world_handle, bool wait_ready);
 
   /* Returns a dummy black world for when a valid world isn't present or when we want to suppress
    * any light coming from the world. */

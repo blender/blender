@@ -280,6 +280,11 @@ class RayTraceModule {
     return use_raytracing_;
   }
 
+  bool use_fast_gi() const
+  {
+    return use_raytracing() && ray_tracing_options_.trace_max_roughness >= 1.0f;
+  }
+
  private:
   RayTraceResultTexture trace(int closure_index,
                               bool active_layer,
