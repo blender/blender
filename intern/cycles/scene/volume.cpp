@@ -677,6 +677,10 @@ void GeometryManager::create_volume_mesh(const Scene *scene, Volume *volume, Pro
 
     ImageHandle &handle = attr.data_voxel();
 
+    if (handle.empty()) {
+      continue;
+    }
+
     /* Try building from OpenVDB grid directly. */
     VDBImageLoader *vdb_loader = handle.vdb_loader();
     openvdb::GridBase::ConstPtr grid;
