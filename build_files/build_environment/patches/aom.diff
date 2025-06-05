@@ -2,13 +2,13 @@ diff -Naur libaom-3.4.0/build/cmake/aom_configure.cmake external_aom/build/cmake
 --- libaom-3.4.0/build/cmake/aom_configure.cmake	2022-06-17 11:46:18 -0600
 +++ external_aom/build/cmake/aom_configure.cmake	2022-10-16 15:35:54 -0600
 @@ -15,8 +15,12 @@
- 
+
  include(FindGit)
  include(FindPerl)
 -include(FindThreads)
 -
 +# Blender: This will drag in a dep on libwinpthreads which we prefer
-+# not to have, aom will fallback on a native win32 thread wrapper
++# not to have, aom will fall back on a native win32 thread wrapper
 +# if pthreads are not found.
 +if(NOT WIN32)
 +  include(FindThreads)

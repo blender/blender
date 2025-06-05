@@ -126,7 +126,7 @@ static ImplicitInput get_implicit_input(const nodes::SocketDeclaration *socket_d
 static int get_domain_priority(const bNodeSocket *input,
                                const nodes::SocketDeclaration *socket_declaration)
 {
-  /* Negative priority means no priority is set and we fallback to the index, that is, we
+  /* Negative priority means no priority is set and we fall back to the index, that is, we
    * prioritize inputs according to their order. */
   if (socket_declaration->compositor_domain_priority() < 0) {
     return input->index();

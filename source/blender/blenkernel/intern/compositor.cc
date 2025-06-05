@@ -64,8 +64,8 @@ static void add_passes_used_by_cryptomatte_node(const bNode *node,
     return;
   }
 
-  /* If the stored layer name doesn't corresponds to an existing Cryptomatte layer, fallback to the
-   * name of the first layer. */
+  /* If the stored layer name doesn't corresponds to an existing Cryptomatte layer, fall back to
+   * the name of the first layer. */
   const NodeCryptomatte *data = static_cast<NodeCryptomatte *>(node->storage);
   const std::string layer_name = layer_names.contains(data->layer_name) ? data->layer_name :
                                                                           layer_names[0];

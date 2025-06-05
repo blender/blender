@@ -140,7 +140,7 @@ void main()
      * This is faster than loading the gbuffer again and averages between reflected and normal
      * direction over many rays. */
     float3 Ng = ray.direction;
-    /* Fallback to nearest light-probe. */
+    /* Fall back to nearest light-probe. */
     LightProbeSample samp = lightprobe_load(ray.origin, Ng, V);
     /* Clamp SH to have parity with forward evaluation. */
     float clamp_indirect = uniform_buf.clamp.surface_indirect;

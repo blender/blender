@@ -111,8 +111,8 @@ static std::unique_ptr<GreasePencilStrokeOperation> get_stroke_operation(bContex
       case GPAINT_BRUSH_TYPE_ERASE:
         return greasepencil::new_erase_operation();
       case GPAINT_BRUSH_TYPE_FILL:
-        /* Fill tool keymap uses the paint operator as alternative mode. */
-        return greasepencil::new_paint_operation(true);
+        /* Fill tool keymap uses the paint operator to draw fill guides. */
+        return greasepencil::new_paint_operation(/* do_fill_guides = */ true);
       case GPAINT_BRUSH_TYPE_TINT:
         return greasepencil::new_tint_operation(stroke_mode == BRUSH_STROKE_ERASE);
     }
@@ -1389,6 +1389,8 @@ static bool grease_pencil_apply_fill(bContext &C, wmOperator &op, const wmEvent 
           std::nullopt :
           std::make_optional(brush.gpencil_settings->fill_threshold);
   const bool on_back = (ts.gpencil_flags & GP_TOOL_FLAG_PAINT_ONBACK);
+  const bool auto_remove_fill_guides = (brush.gpencil_settings->flag &
+                                        GP_BRUSH_FILL_AUTO_REMOVE_FILL_GUIDES) != 0;
 
   if (!grease_pencil.has_active_layer()) {
     return false;
@@ -1400,6 +1402,7 @@ static bool grease_pencil_apply_fill(bContext &C, wmOperator &op, const wmEvent 
   const VArray<bool> boundary_layers = get_fill_boundary_layers(
       grease_pencil, eGP_FillLayerModes(brush.gpencil_settings->fill_layer_mode));
 
+  bool did_create_fill = false;
   for (const FillToolTargetInfo &info : target_drawings) {
     const Layer &layer = *grease_pencil.layers()[info.target.layer_index];
 
@@ -1419,6 +1422,9 @@ static bool grease_pencil_apply_fill(bContext &C, wmOperator &op, const wmEvent 
                                                    fit_method,
                                                    op_data.material_index,
                                                    keep_images);
+    if (fill_curves.is_empty()) {
+      continue;
+    }
 
     smooth_fill_strokes(fill_curves, fill_curves.curves_range());
 
@@ -1427,6 +1433,11 @@ static bool grease_pencil_apply_fill(bContext &C, wmOperator &op, const wmEvent 
     }
 
     bke::CurvesGeometry &dst_curves = info.target.drawing.strokes_for_write();
+    if (auto_remove_fill_guides) {
+      /* Remove strokes that were created using the fill tool as boundary strokes. */
+      ed::greasepencil::remove_fill_guides(dst_curves);
+    }
+
     /* If the `fill_strokes` function creates the "fill_opacity" attribute, make sure that we
      * initialize this to full opacity on the target geometry. */
     if (fill_curves.attributes().contains("fill_opacity") &&
@@ -1463,6 +1474,12 @@ static bool grease_pencil_apply_fill(bContext &C, wmOperator &op, const wmEvent 
       Array<float4x2> texture_matrices(num_new_curves, texture_space);
       info.target.drawing.set_texture_matrices(texture_matrices, new_curves_range);
     }
+
+    did_create_fill = true;
+  }
+
+  if (!did_create_fill) {
+    BKE_reportf(op.reports, RPT_ERROR, "Unable to fill unclosed areas");
   }
 
   WM_cursor_modal_restore(&win);

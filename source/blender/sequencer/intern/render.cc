@@ -1240,7 +1240,7 @@ static ImBuf *seq_render_movieclip_strip(const RenderData *context,
   /* Try to get a proxy image. */
   ibuf = seq_get_movieclip_ibuf(strip, user);
 
-  /* If clip doesn't use proxies, it will fallback to full size render of original file. */
+  /* If clip doesn't use proxies, it will fall back to full size render of original file. */
   if (ibuf != nullptr && psize != IMB_PROXY_NONE && BKE_movieclip_proxy_enabled(strip->clip)) {
     *r_is_proxy_image = true;
   }

@@ -267,7 +267,7 @@ static DRW_MeshCDMask mesh_cd_calc_used_gpu_layers(const Object &object,
                         CustomData_get_named_layer(&cd_ldata, CD_PROP_FLOAT2, name) :
                         CustomData_get_render_layer(&cd_ldata, CD_PROP_FLOAT2);
 
-            /* Only fallback to orco (below) when we have no UV layers, see: #56545 */
+            /* Only fall back to orco (below) when we have no UV layers, see: #56545 */
             if (layer == -1 && !name.is_empty()) {
               layer = CustomData_get_render_layer(&cd_ldata, CD_PROP_FLOAT2);
             }

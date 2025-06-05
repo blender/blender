@@ -353,7 +353,7 @@ ccl_device_noinline void svm_node_normal_map(KernelGlobals kg,
   if (space == NODE_NORMAL_MAP_TANGENT) {
     /* tangent space */
     if (sd->object == OBJECT_NONE || (sd->type & PRIMITIVE_TRIANGLE) == 0) {
-      /* Fallback to unperturbed normal. */
+      /* Fall back to unperturbed normal. */
       stack_store_float3(stack, normal_offset, sd->N);
       return;
     }
@@ -363,7 +363,7 @@ ccl_device_noinline void svm_node_normal_map(KernelGlobals kg,
     const AttributeDescriptor attr_sign = find_attribute(kg, sd, node.w);
 
     if (attr.offset == ATTR_STD_NOT_FOUND || attr_sign.offset == ATTR_STD_NOT_FOUND) {
-      /* Fallback to unperturbed normal. */
+      /* Fall back to unperturbed normal. */
       stack_store_float3(stack, normal_offset, sd->N);
       return;
     }

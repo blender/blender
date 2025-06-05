@@ -67,6 +67,14 @@ void collection_hide_menu_draw(const bContext *C, uiLayout *layout);
 blender::Vector<Object *> objects_in_mode_or_selected(
     bContext *C, bool (*filter_fn)(const Object *ob, void *user_data), void *filter_user_data);
 
+/**
+ * Set the active material by index.
+ *
+ * \param index: A zero based index. This will be clamped to the valid range.
+ * \return true if the material index changed.
+ */
+bool material_active_index_set(Object *ob, int index);
+
 /* `object_shapekey.cc` */
 
 /**

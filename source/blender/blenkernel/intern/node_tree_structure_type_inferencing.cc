@@ -29,7 +29,7 @@ static nodes::StructureTypeInterface calc_node_interface(const bNode &node)
   node_interface.inputs.reinitialize(input_sockets.size());
   node_interface.outputs.reinitialize(output_sockets.size());
 
-  if (node.is_undefined()) {
+  if (node.is_undefined() || !node.declaration() || node.declaration()->skip_updating_sockets) {
     node_interface.inputs.fill(StructureType::Dynamic);
     node_interface.outputs.fill(
         nodes::StructureTypeInterface::OutputDependency{StructureType::Dynamic});
@@ -329,13 +329,13 @@ static void propagate_right_to_left(const bNodeTree &tree,
 
       for (const int output : node_interface.outputs.index_range()) {
         const bNodeSocket &output_socket = *output_sockets[output];
-        DataRequirement ouput_requirement = DataRequirement::None;
+        DataRequirement output_requirement = DataRequirement::None;
         for (const bNodeSocket *socket : output_socket.directly_linked_sockets()) {
           if (!socket->is_available()) {
             continue;
           }
-          ouput_requirement = merge(ouput_requirement,
-                                    input_requirements[socket->index_in_all_inputs()]);
+          output_requirement = merge(output_requirement,
+                                     input_requirements[socket->index_in_all_inputs()]);
         }
 
         /* When a data requirement could be provided by multiple node inputs (i.e. only a single
@@ -350,7 +350,7 @@ static void propagate_right_to_left(const bNodeTree &tree,
           }
         }
         if (inputs_with_links.size() == 1) {
-          input_requirements[inputs_with_links.first()] = ouput_requirement;
+          input_requirements[inputs_with_links.first()] = output_requirement;
         }
         else {
           for (const int input : inputs_with_links) {
@@ -533,8 +533,10 @@ static void propagate_left_to_right(const bNodeTree &tree,
       continue;
     }
     if (!input->is_directly_linked()) {
-      const nodes::SocketDeclaration &declaration = *input->runtime->declaration;
-      structure_types[input->index_in_tree()] = get_unconnected_input_structure_type(declaration);
+      if (const nodes::SocketDeclaration *declaration = input->runtime->declaration) {
+        structure_types[input->index_in_tree()] = get_unconnected_input_structure_type(
+            *declaration);
+      }
     }
   }
   while (true) {
@@ -579,7 +581,7 @@ static void propagate_left_to_right(const bNodeTree &tree,
 
       for (const int output_index : node_interface.outputs.index_range()) {
         const bNodeSocket &output = *output_sockets[output_index];
-        if (!output.is_available()) {
+        if (!output.is_available() || !output.runtime->declaration) {
           continue;
         }
         const nodes::SocketDeclaration &declaration = *output.runtime->declaration;

@@ -89,7 +89,10 @@ MixingThreadDevice::MixingThreadDevice()
 
 void aud::MixingThreadDevice::stopMixingThread()
 {
-	m_valid = false;
+	{
+		std::unique_lock<std::mutex> lock(m_mixingLock);
+		m_valid = false;
+	}
 
 	m_mixingCondition.notify_all();
 

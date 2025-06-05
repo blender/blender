@@ -16,7 +16,7 @@ CCL_NAMESPACE_BEGIN
 class DeviceQueue;
 
 using OneAPIDeviceIteratorCallback =
-    void (*)(const char *, const char *, const int, bool, bool, void *);
+    void (*)(const char *, const char *, const int, bool, bool, bool, void *);
 
 class OneapiDevice : public GPUDevice {
  private:
@@ -117,6 +117,7 @@ class OneapiDevice : public GPUDevice {
   void *usm_aligned_alloc_host(const size_t memory_size, const size_t alignment);
   void usm_free(void *usm_ptr);
 
+  static void architecture_information(const SyclDevice *device, string &name, bool &is_optimized);
   static char *device_capabilities();
   static void iterate_devices(OneAPIDeviceIteratorCallback cb, void *user_ptr);
 

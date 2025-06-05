@@ -1,7 +1,3 @@
-/* SPDX-FileCopyrightText: 2011-2025 Blender Foundation
- *
- * SPDX-License-Identifier: Apache-2.0 */
-
 /* An advanced perspective camera, implementing several examples
  * of things you can do with custom cameras. */
 
@@ -31,15 +27,15 @@ float invertDistortionModel(float x, float y, float k1, float k2, float k3)
 }
 
 shader camera(float focal_length = 50.0 [[ float min = 0.0, float sensitivity = 0.2 ]],
-              int do_distortion = 0 [[string widget = "checkBox"]],
-              int do_swirl = 0 [[string widget = "checkBox"]],
-              int do_dof = 0 [[string widget = "checkBox"]],
+              int do_distortion = 0 [[ string widget = "checkBox"]],
+              int do_swirl = 0 [[ string widget = "checkBox"]],
+              int do_dof = 0 [[ string widget = "checkBox"]],
               float distortion_k1 = -0.2,
               float distortion_k2 = 0.0,
               float distortion_k3 = 0.0,
               float swirl_scale = 100.0,
               float swirl_amplitude = 0.01,
-              float swirl_W = 0.0 [[ float sensitivity = 1 ]],
+              float swirl_W = 0.0 [[ float sensitivity = 1]],
               output point position = 0.0,
               output vector direction = 0.0,
               output color throughput = 1.0)

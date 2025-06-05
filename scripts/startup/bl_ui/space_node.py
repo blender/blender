@@ -202,20 +202,55 @@ class NODE_HT_header(Header):
         if is_compositor:
             row = layout.row(align=True)
             row.prop(snode, "show_backdrop", toggle=True)
+            row.active = snode.node_tree is not None
             sub = row.row(align=True)
             sub.active = snode.show_backdrop
             sub.prop(snode, "backdrop_channels", icon_only=True, text="")
 
+            # Gizmo toggle and popover.
+            row = layout.row(align=True)
+            row.prop(snode, "show_gizmo", icon='GIZMO', text="")
+            row.active = snode.node_tree is not None
+            sub = row.row(align=True)
+            sub.active = snode.show_gizmo and row.active
+            sub.popover(panel="NODE_PT_gizmo_display", text="")
+
         # Snap
         row = layout.row(align=True)
         row.prop(tool_settings, "use_snap_node", text="")
+        row.active = snode.node_tree is not None
 
         # Overlay toggle & popover
         row = layout.row(align=True)
         row.prop(overlay, "show_overlays", icon='OVERLAY', text="")
         sub = row.row(align=True)
-        sub.active = overlay.show_overlays
+        row.active = snode.node_tree is not None
+        sub.active = overlay.show_overlays and row.active
         sub.popover(panel="NODE_PT_overlay", text="")
+
+
+class NODE_PT_gizmo_display(Panel):
+    bl_space_type = 'NODE_EDITOR'
+    bl_region_type = 'HEADER'
+    bl_label = 'Gizmos'
+    bl_ui_units_x = 8
+
+    def draw(self, context):
+        layout = self.layout
+        snode = context.space_data
+        is_compositor = snode.tree_type == 'CompositorNodeTree'
+
+        if not is_compositor:
+            return
+
+        col = layout.column()
+        col.label(text="Viewport Gizmos")
+        col.separator()
+
+        col.active = snode.show_gizmo
+        colsub = col.column()
+        colsub.active = snode.node_tree is not None and col.active
+        colsub.prop(snode, "show_gizmo_active_node", text="Active Node")
 
 
 class NODE_MT_editor_menus(Menu):
@@ -1148,6 +1183,7 @@ classes = (
     NODE_PT_annotation,
     NODE_PT_overlay,
     NODE_PT_active_node_properties,
+    NODE_PT_gizmo_display,
 
     node_panel(EEVEE_NEXT_MATERIAL_PT_settings),
     node_panel(EEVEE_NEXT_MATERIAL_PT_settings_surface),

@@ -276,8 +276,8 @@ class CornerPinOperation : public NodeOperation {
     float2 upper_right = get_input("Upper Right").get_single_value_default(float3(0.0f)).xy();
     float2 upper_left = get_input("Upper Left").get_single_value_default(float3(0.0f)).xy();
 
-    /* The inputs are invalid because the plane is not convex, fallback to an identity operation in
-     * that case. */
+    /* The inputs are invalid because the plane is not convex, fall back to an identity operation
+     * in that case. */
     if (!is_quad_convex_v2(lower_left, lower_right, upper_right, upper_left)) {
       return float3x3::identity();
     }

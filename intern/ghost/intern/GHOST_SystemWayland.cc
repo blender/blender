@@ -5796,7 +5796,7 @@ class GHOST_EventIME : public GHOST_Event {
   GHOST_EventIME(uint64_t msec,
                  GHOST_TEventType type,
                  GHOST_IWindow *window,
-                 GHOST_TEventImeData *customdata)
+                 const GHOST_TEventImeData *customdata)
       : GHOST_Event(msec, type, window)
   {
     /* Make sure that we keep a copy of the IME input. Otherwise it might get lost

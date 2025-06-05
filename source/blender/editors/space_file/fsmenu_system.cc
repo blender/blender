@@ -58,7 +58,7 @@ struct FSMenu;
 /* -------------------------------------------------------------------- */
 /** \name XDG User Directory Support (Unix)
  *
- * Generic Unix, Use XDG when available, otherwise fallback to the home directory.
+ * Generic Unix, Use XDG when available, otherwise fall back to the home directory.
  * \{ */
 
 /**

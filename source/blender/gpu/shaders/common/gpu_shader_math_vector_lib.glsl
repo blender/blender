@@ -526,6 +526,24 @@ float4 fallback_pow(float4 a, float b, float4 fallback)
                 fallback_pow(a.w, b, fallback.w));
 }
 
+float2 compatible_pow(float2 a, float2 b)
+{
+  return float2(compatible_pow(a.x, b.x), compatible_pow(a.y, b.y));
+}
+
+float3 compatible_pow(float3 a, float3 b)
+{
+  return float3(compatible_pow(a.x, b.x), compatible_pow(a.y, b.y), compatible_pow(a.z, b.z));
+}
+
+float4 compatible_pow(float4 a, float4 b)
+{
+  return float4(compatible_pow(a.x, b.x),
+                compatible_pow(a.y, b.y),
+                compatible_pow(a.z, b.z),
+                compatible_pow(a.w, b.w));
+}
+
 template<typename VecT> VecT interpolate(VecT a, VecT b, float t)
 {
   return mix(a, b, t);

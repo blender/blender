@@ -420,7 +420,7 @@ void uiTemplateStatusInfo(uiLayout *layout, bContext *C)
         row->label("|", ICON_NONE);
         row->separator(-0.5f);
       }
-      uiLayoutSetEmboss(row, blender::ui::EmbossType::None);
+      row->emboss_set(blender::ui::EmbossType::None);
       /* This operator also works fine for blocked extensions. */
       row->op("EXTENSIONS_OT_userpref_show_for_update", "", ICON_ERROR);
       uiBut *but = uiLayoutGetBlock(layout)->buttons.last().get();
@@ -446,7 +446,7 @@ void uiTemplateStatusInfo(uiLayout *layout, bContext *C)
         row->label("", ICON_INTERNET_OFFLINE);
       }
       else {
-        uiLayoutSetEmboss(row, blender::ui::EmbossType::None);
+        row->emboss_set(blender::ui::EmbossType::None);
         row->op("EXTENSIONS_OT_userpref_show_online", "", ICON_INTERNET_OFFLINE);
         uiBut *but = uiLayoutGetBlock(layout)->buttons.last().get();
         uchar color[4];
@@ -470,7 +470,7 @@ void uiTemplateStatusInfo(uiLayout *layout, bContext *C)
         row->label("|", ICON_NONE);
         row->separator(-0.5f);
       }
-      uiLayoutSetEmboss(row, blender::ui::EmbossType::None);
+      row->emboss_set(blender::ui::EmbossType::None);
       row->op("EXTENSIONS_OT_userpref_show_for_update", "", icon);
       uiBut *but = uiLayoutGetBlock(layout)->buttons.last().get();
       uchar color[4];

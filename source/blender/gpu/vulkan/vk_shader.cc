@@ -617,7 +617,7 @@ bool VKShader::finalize(const shader::ShaderCreateInfo *info)
   if (!finalize_descriptor_set_layouts(device, vk_interface)) {
     return false;
   }
-  if (!finalize_pipeline_layout(device.vk_handle(), vk_interface)) {
+  if (!finalize_pipeline_layout(device, vk_interface)) {
     return false;
   }
 
@@ -682,7 +682,7 @@ bool VKShader::is_ready() const
   return compilation_finished;
 }
 
-bool VKShader::finalize_pipeline_layout(VkDevice vk_device,
+bool VKShader::finalize_pipeline_layout(VKDevice &device,
                                         const VKShaderInterface &shader_interface)
 {
   const uint32_t layout_count = vk_descriptor_set_layout_ == VK_NULL_HANDLE ? 0 : 1;
@@ -705,7 +705,7 @@ bool VKShader::finalize_pipeline_layout(VkDevice vk_device,
     pipeline_info.pPushConstantRanges = &push_constant_range;
   }
 
-  if (vkCreatePipelineLayout(vk_device, &pipeline_info, nullptr, &vk_pipeline_layout) !=
+  if (vkCreatePipelineLayout(device.vk_handle(), &pipeline_info, nullptr, &vk_pipeline_layout) !=
       VK_SUCCESS)
   {
     return false;
@@ -780,6 +780,25 @@ std::string VKShader::resources_declare(const shader::ShaderCreateInfo &info) co
          * isn't supported during global const initialization. */
         ss << "uint " << sc.name << "_uint=" << std::to_string(sc.value.u) << "u;\n";
         ss << "#define " << sc.name << " uintBitsToFloat(" << sc.name << "_uint)\n";
+        break;
+      default:
+        BLI_assert_unreachable();
+        break;
+    }
+  }
+
+  ss << "\n/* Compilation Constants (pass-through). */\n";
+  for (const CompilationConstant &sc : info.compilation_constants_) {
+    ss << "const ";
+    switch (sc.type) {
+      case Type::int_t:
+        ss << "int " << sc.name << "=" << std::to_string(sc.value.i) << ";\n";
+        break;
+      case Type::uint_t:
+        ss << "uint " << sc.name << "=" << std::to_string(sc.value.u) << "u;\n";
+        break;
+      case Type::bool_t:
+        ss << "bool " << sc.name << "=" << (sc.value.u ? "true" : "false") << ";\n";
         break;
       default:
         BLI_assert_unreachable();

@@ -268,7 +268,7 @@ static BaseSocketDeclarationBuilder &build_interface_socket_declaration(
 
   BaseSocketDeclarationBuilder *decl = nullptr;
   if (base_typeinfo) {
-    datatype = eNodeSocketDatatype(base_typeinfo->type);
+    datatype = base_typeinfo->type;
     switch (datatype) {
       case SOCK_FLOAT: {
         const auto &value = node_interface::get_socket_data_as<bNodeSocketValueFloat>(io_socket);

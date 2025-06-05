@@ -908,7 +908,7 @@ void TreeViewLayoutBuilder::build_row(AbstractTreeViewItem &item) const
 
   uiLayout *row = &overlap->row(false);
   /* Enable emboss for mouse hover highlight. */
-  uiLayoutSetEmboss(row, blender::ui::EmbossType::Emboss);
+  row->emboss_set(blender::ui::EmbossType::Emboss);
   /* Every item gets one! Other buttons can be overlapped on top. */
   item.add_treerow_button(block_);
 
@@ -999,7 +999,9 @@ void TreeViewBuilder::build_tree_view(const bContext &C,
 
   TreeViewLayoutBuilder builder(layout);
   builder.add_box_ = add_box;
+  UI_block_flag_enable(&block, UI_BLOCK_LIST_ITEM);
   builder.build_from_tree(tree_view);
+  UI_block_flag_disable(&block, UI_BLOCK_LIST_ITEM);
 }
 
 /* ---------------------------------------------------------------------- */

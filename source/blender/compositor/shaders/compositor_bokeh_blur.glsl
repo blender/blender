@@ -10,8 +10,8 @@ float4 load_input(int2 texel)
   float4 color;
   if (extend_bounds) {
     /* If bounds are extended, then we treat the input as padded by a radius amount of pixels. So
-     * we load the input with an offset by the radius amount and fallback to a transparent color if
-     * it is out of bounds. */
+     * we load the input with an offset by the radius amount and fall back to a transparent color
+     * if it is out of bounds. */
     color = texture_load(input_tx, texel - radius, float4(0.0f));
   }
   else {

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'ba454989554a')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'e91e8eef41aa')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-26 07:36+0000\n"
+"POT-Creation-Date: 2025-06-03 09:10+0000\n"
 "PO-Revision-Date: 2025-05-01 10:56+0000\n"
 "Last-Translator: \"Adriel Y.\" <mixnblend@users.noreply.translate.blender.org>\n"
 "Language-Team: Indonesian <https://translate.blender.org/projects/blender-ui/ui/id/>\n"
@@ -15355,12 +15355,24 @@ msgid "Mask"
 msgstr "Masker"
 
 
-msgid "Mirror"
-msgstr "Cermin"
+msgid "Text"
+msgstr "Teks"
+
+
+msgid "Metaball"
+msgstr "Metabola"
+
+
+msgid "Names"
+msgstr "Nama"
 
 
 msgid "Snap"
 msgstr "Jepret"
+
+
+msgid "Mirror"
+msgstr "Cermin"
 
 
 msgid "Navigation"
@@ -15373,10 +15385,6 @@ msgstr "Seleksi yang Terhubung"
 
 msgid "Assign Material"
 msgstr "Tugaskan Bahan"
-
-
-msgid "Metaball"
-msgstr "Metabola"
 
 
 msgid "Light"
@@ -15407,16 +15415,8 @@ msgid "Hooks"
 msgstr "Kait"
 
 
-msgid "Names"
-msgstr "Nama"
-
-
 msgid "Merge"
 msgstr "Menggabungkan"
-
-
-msgid "Text"
-msgstr "Teks"
 
 
 msgctxt "MovieClip"
@@ -17388,6 +17388,10 @@ msgid "Custom Color"
 msgstr "Warna Kustom"
 
 
+msgid "Starting"
+msgstr "Memulai"
+
+
 msgid "Action End Frame"
 msgstr "Frame Akhir Aksi"
 
@@ -17643,20 +17647,8 @@ msgid "Bokeh"
 msgstr "Bokeh"
 
 
-msgid "Use circular filter (slower)"
-msgstr "Menggunakan filter yang melingkar (lebih lambat)"
-
-
 msgid "Extend Bounds"
 msgstr "Perpanjang Batas"
-
-
-msgid "Extend bounds of the input image to fully fit blurred image"
-msgstr "Memperpanjang batas gambar masukan ke gambar buram yang cukup secara penuh"
-
-
-msgid "Use relative (percent) values to define blur radius"
-msgstr "Gunakan nilai relatif (persen) ke definisi radius buram"
 
 
 msgid "Variable Size"
@@ -26897,11 +26889,6 @@ msgid "Sound"
 msgstr "Suara"
 
 
-msgctxt "Sequence"
-msgid "Cross"
-msgstr "Silang"
-
-
 msgid "Use Linear Modifiers"
 msgstr "Modus Pahat"
 
@@ -26932,10 +26919,6 @@ msgstr "Data Animasi"
 
 msgid "Animation Start Offset"
 msgstr "Data Animasi"
-
-
-msgid "Cross Sequence"
-msgstr "Orientasi Transformasi"
 
 
 msgid "Sequence strip creating a gaussian blur"
@@ -32993,10 +32976,6 @@ msgstr "Selesai"
 
 msgid "In Progress"
 msgstr "Dalam Perkembangan"
-
-
-msgid "Starting"
-msgstr "Memulai"
 
 
 msgid "Surface UV Coordinate"

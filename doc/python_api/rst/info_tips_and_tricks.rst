@@ -207,7 +207,7 @@ will not be found by Blender.
 
 There are two ways to work around this:
 
-- Remove Blender Python subdirectory, Blender will then fallback on the system's Python and use that instead.
+- Remove Blender Python subdirectory, Blender will then fall back on the system's Python and use that instead.
 
   Depending on your platform,
   you may need to explicitly reference the location of your Python installation using

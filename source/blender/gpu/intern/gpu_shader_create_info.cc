@@ -132,6 +132,7 @@ void ShaderCreateInfo::finalize(const bool recursive)
     geometry_out_interfaces_.extend_non_duplicates(info.geometry_out_interfaces_);
     subpass_inputs_.extend_non_duplicates(info.subpass_inputs_);
     specialization_constants_.extend_non_duplicates(info.specialization_constants_);
+    compilation_constants_.extend_non_duplicates(info.compilation_constants_);
 
     validate_vertex_attributes(&info);
 
@@ -312,6 +313,16 @@ std::string ShaderCreateInfo::check_error() const
       if (specialization_constants_[i].name == specialization_constants_[j].name) {
         error += this->name_ + " contains two specialization constants with the name: " +
                  std::string(specialization_constants_[i].name);
+      }
+    }
+  }
+
+  /* Validate compilation constants. */
+  for (int i = 0; i < compilation_constants_.size(); i++) {
+    for (int j = i + 1; j < compilation_constants_.size(); j++) {
+      if (compilation_constants_[i].name == compilation_constants_[j].name) {
+        error += this->name_ + " contains two compilation constants with the name: " +
+                 std::string(compilation_constants_[i].name);
       }
     }
   }

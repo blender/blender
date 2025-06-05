@@ -261,4 +261,16 @@ struct SpecializationConstants {
   }
 };
 
+struct CompilationConstant {
+  Type type;
+  StringRefNull name;
+  /* Reusing value type. */
+  SpecializationConstant::Value value;
+
+  bool operator==(const CompilationConstant &b) const
+  {
+    return this->type == b.type && this->name == b.name && this->value == b.value;
+  }
+};
+
 }  // namespace blender::gpu::shader

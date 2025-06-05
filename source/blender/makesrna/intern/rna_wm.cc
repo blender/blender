@@ -498,6 +498,16 @@ const EnumPropertyItem rna_enum_event_direction_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
+/**
+ * \note Only exposing the enum values that are actually sent for NDOF motion.
+ */
+static const EnumPropertyItem rna_enum_ndof_motion_progress_items[] = {
+    {P_STARTING, "STARTING", 0, "Starting", ""},
+    {P_IN_PROGRESS, "IN_PROGRESS", 0, "In progress", ""},
+    {P_FINISHING, "FINISHING", 0, "Finishing", ""},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
 const EnumPropertyItem rna_enum_keymap_propvalue_items[] = {
     {0, "NONE", 0, "", ""},
     {0, nullptr, 0, nullptr, nullptr},
@@ -795,6 +805,64 @@ static void rna_Event_tilt_get(PointerRNA *ptr, float *values)
 {
   wmEvent *event = static_cast<wmEvent *>(ptr->data);
   WM_event_tablet_data(event, nullptr, values);
+}
+
+static void rna_NDOFMotionEventData_translation_get(PointerRNA *ptr, float *values)
+{
+#  ifdef WITH_INPUT_NDOF
+  const wmNDOFMotionData *ndof = static_cast<const wmNDOFMotionData *>(ptr->data);
+  WM_event_ndof_pan_get(ndof, values);
+#  else
+  UNUSED_VARS(ptr);
+  ARRAY_SET_ITEMS(values, 0, 0, 0);
+#  endif
+}
+
+static void rna_NDOFMotionEventData_rotation_get(PointerRNA *ptr, float *values)
+{
+#  ifdef WITH_INPUT_NDOF
+  const wmNDOFMotionData *ndof = static_cast<const wmNDOFMotionData *>(ptr->data);
+  WM_event_ndof_rotate_get(ndof, values);
+#  else
+  UNUSED_VARS(ptr);
+  ARRAY_SET_ITEMS(values, 0, 0, 0);
+#  endif
+}
+
+static float rna_NDOFMotionEventData_time_delta_get(PointerRNA *ptr)
+{
+#  ifdef WITH_INPUT_NDOF
+  const wmNDOFMotionData *ndof = static_cast<const wmNDOFMotionData *>(ptr->data);
+  return ndof->dt;
+#  else
+  UNUSED_VARS(ptr);
+  return 0.0f;
+#  endif
+}
+
+static int rna_NDOFMotionEventData_progress_get(PointerRNA *ptr)
+{
+#  ifdef WITH_INPUT_NDOF
+  const wmNDOFMotionData *ndof = static_cast<const wmNDOFMotionData *>(ptr->data);
+  return static_cast<int>(ndof->progress);
+#  else
+  UNUSED_VARS(ptr);
+  return 0;
+#  endif
+}
+
+static PointerRNA rna_Event_ndof_motion_get(PointerRNA *ptr)
+{
+#  ifdef WITH_INPUT_NDOF
+  wmEvent *event = static_cast<wmEvent *>(ptr->data);
+  if (event->custom == EVT_DATA_NDOF_MOTION) {
+    wmNDOFMotionData *ndof = static_cast<wmNDOFMotionData *>(event->customdata);
+    return RNA_pointer_create_with_parent(*ptr, &RNA_NDOFMotionEventData, ndof);
+  }
+#  else
+  UNUSED_VARS(ptr);
+#  endif
+  return PointerRNA_NULL;
 }
 
 static PointerRNA rna_Event_xr_get(PointerRNA *ptr)
@@ -2273,6 +2341,47 @@ static void rna_def_operator_filelist_element(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Name", "Name of a file or directory within a file list");
 }
 
+static void rna_def_event_ndof_motion(BlenderRNA *brna)
+{
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  srna = RNA_def_struct(brna, "NDOFMotionEventData", nullptr);
+  RNA_def_struct_ui_text(srna, "NDOF Motion Data", "NDOF motion data for window manager events");
+
+  prop = RNA_def_property(srna, "translation", PROP_FLOAT, PROP_XYZ);
+  RNA_def_property_array(prop, 3);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_float_funcs(prop, "rna_NDOFMotionEventData_translation_get", nullptr, nullptr);
+  RNA_def_property_ui_text(prop,
+                           "Translation",
+                           "The translation of this motion event. "
+                           "The range on each axis is [-1 to 1], "
+                           "before being multiplied by the sensitivity preference. "
+                           "This is typically scaled by the time-delta before use.");
+
+  prop = RNA_def_property(srna, "rotation", PROP_FLOAT, PROP_XYZ);
+  RNA_def_property_array(prop, 3);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_float_funcs(prop, "rna_NDOFMotionEventData_rotation_get", nullptr, nullptr);
+  RNA_def_property_ui_text(prop,
+                           "Rotation",
+                           "Axis-angle rotation of this motion event. "
+                           "The vector magnitude is the angle where 1.0 represents 360 degrees. "
+                           "The angle is typically scaled by the time-delta before use.");
+
+  prop = RNA_def_property(srna, "progress", PROP_ENUM, PROP_NONE);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_enum_items(prop, rna_enum_ndof_motion_progress_items);
+  RNA_def_property_enum_funcs(prop, "rna_NDOFMotionEventData_progress_get", nullptr, nullptr);
+  RNA_def_property_ui_text(prop, "Progress", "Indicates the gesture phase");
+
+  prop = RNA_def_property(srna, "time_delta", PROP_FLOAT, PROP_TIME);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_float_funcs(prop, "rna_NDOFMotionEventData_time_delta_get", nullptr, nullptr);
+  RNA_def_property_ui_text(prop, "Time Delta", "Time since previous motion event (in seconds)");
+}
+
 static void rna_def_event(BlenderRNA *brna)
 {
   StructRNA *srna;
@@ -2418,6 +2527,13 @@ static void rna_def_event(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, nullptr, "tablet.is_motion_absolute", 1);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(prop, "Absolute Motion", "The last motion event was an absolute input");
+
+  /* NDOF motion. */
+  prop = RNA_def_property(srna, "ndof_motion", PROP_POINTER, PROP_NONE);
+  RNA_def_property_struct_type(prop, "NDOFMotionEventData");
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_pointer_funcs(prop, "rna_Event_ndof_motion_get", nullptr, nullptr, nullptr);
+  RNA_def_property_ui_text(prop, "NDOF motion", "NDOF motion event data");
 
   /* xr */
   prop = RNA_def_property(srna, "xr", PROP_POINTER, PROP_NONE);
@@ -2932,7 +3048,7 @@ static void rna_def_keyconfig(BlenderRNA *brna)
   RNA_def_property_update(prop, 0, "rna_KeyMapItem_update");
 
   /* this is in fact the operator name, but if the operator can't be found we
-   * fallback on the operator ID */
+   * fall back on the operator ID */
   prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(prop, "Name", "Name of operator (translated) to call on input event");
@@ -3120,6 +3236,7 @@ void RNA_def_wm(BlenderRNA *brna)
   rna_def_operator_filelist_element(brna);
   rna_def_macro_operator(brna);
   rna_def_operator_type_macro(brna);
+  rna_def_event_ndof_motion(brna);
   rna_def_event(brna);
   rna_def_timer(brna);
   rna_def_popupmenu(brna);

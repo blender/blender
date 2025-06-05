@@ -547,7 +547,7 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
   }
 
   if ((!utf8_buf || !utf8_buf[0]) && ascii[0]) {
-    /* Fallback to ascii. */
+    /* Fall back to ascii. */
     utf8_buf = ascii;
   }
 

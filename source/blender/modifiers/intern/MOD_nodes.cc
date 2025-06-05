@@ -914,7 +914,7 @@ static void check_property_socket_sync(const Object *ob,
   for (const int i : nmd->node_group->interface_inputs().index_range()) {
     const bNodeTreeInterfaceSocket *socket = nmd->node_group->interface_inputs()[i];
     const bke::bNodeSocketType *typeinfo = socket->socket_typeinfo();
-    const eNodeSocketDatatype type = typeinfo ? eNodeSocketDatatype(typeinfo->type) : SOCK_CUSTOM;
+    const eNodeSocketDatatype type = typeinfo ? typeinfo->type : SOCK_CUSTOM;
     if (type == SOCK_GEOMETRY) {
       geometry_socket_count++;
     }
@@ -947,7 +947,7 @@ static void check_property_socket_sync(const Object *ob,
   if (geometry_socket_count == 1) {
     const bNodeTreeInterfaceSocket *first_socket = nmd->node_group->interface_inputs()[0];
     const bke::bNodeSocketType *typeinfo = first_socket->socket_typeinfo();
-    const eNodeSocketDatatype type = typeinfo ? eNodeSocketDatatype(typeinfo->type) : SOCK_CUSTOM;
+    const eNodeSocketDatatype type = typeinfo ? typeinfo->type : SOCK_CUSTOM;
     if (type != SOCK_GEOMETRY) {
       BKE_modifier_set_error(ob, md, "Node group's geometry input must be the first");
     }

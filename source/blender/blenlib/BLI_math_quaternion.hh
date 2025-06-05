@@ -285,7 +285,7 @@ template<typename T>
     w[1] = math::sin(t * omega) / sinom;
   }
   else {
-    /* Fallback to lerp */
+    /* Fall back to lerp */
     w[0] = T(1) - t;
     w[1] = t;
   }

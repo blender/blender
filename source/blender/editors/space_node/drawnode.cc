@@ -1118,7 +1118,7 @@ static void draw_node_socket_name_editable(uiLayout *layout,
 {
   if (sock->runtime->declaration) {
     if (sock->runtime->declaration->socket_name_rna) {
-      uiLayoutSetEmboss(layout, blender::ui::EmbossType::None);
+      layout->emboss_set(blender::ui::EmbossType::None);
       layout->prop((&sock->runtime->declaration->socket_name_rna->owner),
                    sock->runtime->declaration->socket_name_rna->property_name,
                    UI_ITEM_NONE,

@@ -137,15 +137,13 @@ CurveMapping *BKE_sculpt_default_cavity_curve()
   return cumap;
 }
 
-void BKE_sculpt_check_cavity_curves(Sculpt *sd)
+CurveMapping *BKE_paint_default_curve()
 {
-  if (!sd->automasking_cavity_curve) {
-    sd->automasking_cavity_curve = BKE_sculpt_default_cavity_curve();
-  }
+  CurveMapping *cumap = BKE_curvemapping_add(1, 0, 0, 1, 1);
+  BKE_curvemap_reset(cumap->cm, &cumap->clipr, CURVE_PRESET_LINE, CURVEMAP_SLOPE_POSITIVE);
+  BKE_curvemapping_init(cumap);
 
-  if (!sd->automasking_cavity_curve_op) {
-    sd->automasking_cavity_curve_op = BKE_sculpt_default_cavity_curve();
-  }
+  return cumap;
 }
 
 static void scene_init_data(ID *id)
@@ -172,6 +170,10 @@ static void scene_init_data(ID *id)
   scene->toolsettings = DNA_struct_default_alloc(ToolSettings);
 
   scene->toolsettings->autokey_mode = uchar(U.autokey_mode);
+
+  scene->toolsettings->unified_paint_settings.curve_rand_hue = BKE_paint_default_curve();
+  scene->toolsettings->unified_paint_settings.curve_rand_saturation = BKE_paint_default_curve();
+  scene->toolsettings->unified_paint_settings.curve_rand_value = BKE_paint_default_curve();
 
   /* Grease pencil multi-frame falloff curve. */
   scene->toolsettings->gp_sculpt.cur_falloff = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
@@ -1013,6 +1015,25 @@ static void scene_blend_write(BlendWriter *writer, ID *id, const void *id_addres
   /* direct data */
   ToolSettings *tos = sce->toolsettings;
   BLO_write_struct(writer, ToolSettings, tos);
+
+  /* In 5.0 we intend to change the brush.size value from representing radius to representing
+   * diameter. This and the corresponding code in `brush_blend_read_data` should be removed once
+   * that transition is complete. */
+  tos->unified_paint_settings.size *= 2;
+  tos->unified_paint_settings.unprojected_radius *= 2.0f;
+
+  if (tos->unified_paint_settings.curve_rand_hue) {
+    BKE_curvemapping_blend_write(writer, tos->unified_paint_settings.curve_rand_hue);
+  }
+
+  if (tos->unified_paint_settings.curve_rand_saturation) {
+    BKE_curvemapping_blend_write(writer, tos->unified_paint_settings.curve_rand_saturation);
+  }
+
+  if (tos->unified_paint_settings.curve_rand_value) {
+    BKE_curvemapping_blend_write(writer, tos->unified_paint_settings.curve_rand_value);
+  }
+
   if (tos->vpaint) {
     BLO_write_struct(writer, VPaint, tos->vpaint);
     BKE_paint_blend_write(writer, &tos->vpaint->paint);
@@ -1209,6 +1230,31 @@ static void scene_blend_read_data(BlendDataReader *reader, ID *id)
     zero_v3(ups->last_location);
     ups->last_hit = 0;
 
+    /* Prior to 5.0, the brush->size value is expected to be the radius, not the diameter. To
+     * ensure correct behavior, convert this when reading newer files. */
+    if (BLO_read_fileversion_get(reader)) {
+      ups->size = std::max(ups->size / 2, 1);
+      ups->unprojected_radius = std::max(ups->unprojected_radius / 2, 0.001f);
+    }
+
+    BLO_read_struct(reader, CurveMapping, &ups->curve_rand_hue);
+    if (ups->curve_rand_hue) {
+      BKE_curvemapping_blend_read(reader, ups->curve_rand_hue);
+      BKE_curvemapping_init(ups->curve_rand_hue);
+    }
+
+    BLO_read_struct(reader, CurveMapping, &ups->curve_rand_saturation);
+    if (ups->curve_rand_saturation) {
+      BKE_curvemapping_blend_read(reader, ups->curve_rand_saturation);
+      BKE_curvemapping_init(ups->curve_rand_saturation);
+    }
+
+    BLO_read_struct(reader, CurveMapping, &ups->curve_rand_value);
+    if (ups->curve_rand_value) {
+      BKE_curvemapping_blend_read(reader, ups->curve_rand_value);
+      BKE_curvemapping_init(ups->curve_rand_value);
+    }
+
     direct_link_paint_helper(reader, sce, (Paint **)&sce->toolsettings->sculpt);
     direct_link_paint_helper(reader, sce, (Paint **)&sce->toolsettings->vpaint);
     direct_link_paint_helper(reader, sce, (Paint **)&sce->toolsettings->wpaint);
@@ -1246,7 +1292,7 @@ static void scene_blend_read_data(BlendDataReader *reader, ID *id)
         BKE_curvemapping_init(sce->toolsettings->sculpt->automasking_cavity_curve_op);
       }
 
-      BKE_sculpt_check_cavity_curves(sce->toolsettings->sculpt);
+      BKE_sculpt_cavity_curves_ensure(sce->toolsettings->sculpt);
     }
 
     /* Relink grease pencil interpolation curves. */
@@ -1657,6 +1703,14 @@ ToolSettings *BKE_toolsettings_copy(ToolSettings *toolsettings, const int flag)
     BKE_paint_copy(&ts->curves_sculpt->paint, &ts->curves_sculpt->paint, flag);
   }
 
+  /* Color jitter curves in unified paint settings. */
+  ts->unified_paint_settings.curve_rand_hue = BKE_curvemapping_copy(
+      ts->unified_paint_settings.curve_rand_hue);
+  ts->unified_paint_settings.curve_rand_saturation = BKE_curvemapping_copy(
+      ts->unified_paint_settings.curve_rand_saturation);
+  ts->unified_paint_settings.curve_rand_value = BKE_curvemapping_copy(
+      ts->unified_paint_settings.curve_rand_value);
+
   BKE_paint_copy(&ts->imapaint.paint, &ts->imapaint.paint, flag);
   ts->particle.paintcursor = nullptr;
   ts->particle.scene = nullptr;
@@ -1722,6 +1776,17 @@ void BKE_toolsettings_free(ToolSettings *toolsettings)
     MEM_freeN(toolsettings->curves_sculpt);
   }
   BKE_paint_free(&toolsettings->imapaint.paint);
+
+  /* Color jitter curves in unified paint settings. */
+  if (toolsettings->unified_paint_settings.curve_rand_hue) {
+    BKE_curvemapping_free(toolsettings->unified_paint_settings.curve_rand_hue);
+  }
+  if (toolsettings->unified_paint_settings.curve_rand_saturation) {
+    BKE_curvemapping_free(toolsettings->unified_paint_settings.curve_rand_saturation);
+  }
+  if (toolsettings->unified_paint_settings.curve_rand_value) {
+    BKE_curvemapping_free(toolsettings->unified_paint_settings.curve_rand_value);
+  }
 
   /* free Grease Pencil interpolation curve */
   if (toolsettings->gp_interpolate.custom_ipo) {

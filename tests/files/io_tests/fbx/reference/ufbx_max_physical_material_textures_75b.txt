@@ -43,15 +43,15 @@
 ==== Materials: 1
 - Mat 'PhysicalMaterial'
   - base color (0.500, 0.500, 0.500) tex:'checkerboard_diffuse.png' (textures/checkerboard_diffuse.png) a:False
-  - specular ior 1.000 tex:'checkerboard_reflection.png' (textures/checkerboard_reflection.png) a:False
+  - specular ior 1.000 tex:'checkerboard_reflection.png' (textures/checkerboard_reflection.png) a:False Non-Color
   - specular tint (1.000, 1.000, 1.000) tex:'checkerboard_reflection.png' (textures/checkerboard_reflection.png) a:False
-  - roughness 0.000 tex:'checkerboard_roughness.png' (textures/checkerboard_roughness.png) a:False
-  - metallic 0.000 tex:'checkerboard_metallic.png' (textures/checkerboard_metallic.png) a:False
-  - ior 1.520 tex:'checkerboard_weight.png' (textures/checkerboard_weight.png) a:False
-  - transmission 0.000 tex:'checkerboard_transparency.png' (textures/checkerboard_transparency.png) a:False
-  - alpha 1.000 tex:'checkerboard_diffuse.png' (textures/checkerboard_diffuse.png) a:True
+  - roughness 0.000 tex:'checkerboard_roughness.png' (textures/checkerboard_roughness.png) a:False Non-Color
+  - metallic 0.000 tex:'checkerboard_metallic.png' (textures/checkerboard_metallic.png) a:False Non-Color
+  - ior 1.520 tex:'checkerboard_weight.png' (textures/checkerboard_weight.png) a:False Non-Color
+  - transmission 0.000 tex:'checkerboard_transparency.png' (textures/checkerboard_transparency.png) a:False Non-Color
+  - alpha 1.000 tex:'checkerboard_diffuse.png' (textures/checkerboard_diffuse.png) a:True Non-Color
   - emission color (1.000, 1.000, 1.000) tex:'checkerboard_emissive.png' (textures/checkerboard_emissive.png) a:False
-  - emission strength 0.000 tex:'checkerboard_emissive.png' (textures/checkerboard_emissive.png) a:False
+  - emission strength 0.000 tex:'checkerboard_emissive.png' (textures/checkerboard_emissive.png) a:False Non-Color
   - normalmap 1.000 tex:'checkerboard_bump.png' (textures/checkerboard_bump.png) a:False data
   - viewport diffuse (0.500, 0.500, 0.500, 1.000)
   - viewport specular (1.000, 1.000, 1.000), intensity 1.000

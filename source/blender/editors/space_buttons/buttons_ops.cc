@@ -304,11 +304,12 @@ static wmOperatorStatus file_browse_invoke(bContext *C, wmOperator *op, const wm
   path = RNA_property_string_get_alloc(&ptr, prop, nullptr, 0, nullptr);
 
   if ((RNA_property_flag(prop) & PROP_PATH_SUPPORTS_TEMPLATES) != 0) {
-    const Scene *scene = CTX_data_scene(C);
+    const std::optional<blender::bke::path_templates::VariableMap> variables =
+        BKE_build_template_variables_for_prop(C, &ptr, prop);
+    BLI_assert(variables.has_value());
+
     const blender::Vector<blender::bke::path_templates::Error> errors = BKE_path_apply_template(
-        path,
-        FILE_MAX,
-        BKE_build_template_variables(BKE_main_blendfile_path_from_global(), &scene->r));
+        path, FILE_MAX, *variables);
     if (!errors.is_empty()) {
       BKE_report_path_template_errors(op->reports, RPT_ERROR, path, errors);
       return OPERATOR_CANCELLED;

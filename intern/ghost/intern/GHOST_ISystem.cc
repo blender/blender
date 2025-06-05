@@ -85,7 +85,7 @@ GHOST_TSuccess GHOST_ISystem::createSystem(bool verbose, [[maybe_unused]] bool b
     }
 
     if (!m_system) {
-      /* Try to fallback to X11. */
+      /* Try to fall back to X11. */
       backends_attempted.push_back({"X11"});
       try {
         m_system = new GHOST_SystemX11();
@@ -199,7 +199,7 @@ GHOST_TSuccess GHOST_ISystem::createSystemBackground()
     if (success) {
       return success;
     }
-    /* Try to fallback to headless mode if all else fails. */
+    /* Try to fall back to headless mode if all else fails. */
 #endif
     m_system = new GHOST_SystemHeadless();
     success = m_system != nullptr ? GHOST_kSuccess : GHOST_kFailure;

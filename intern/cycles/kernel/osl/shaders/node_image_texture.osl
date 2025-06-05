@@ -176,7 +176,7 @@ shader node_image_texture(int use_mapping = 0,
       }
     }
     else {
-      /* Desperate mode, no valid choice anyway, fallback to one side.*/
+      /* Desperate mode, no valid choice anyway, fall back to one side.*/
       weight[0] = 1.0;
     }
 

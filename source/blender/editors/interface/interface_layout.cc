@@ -1122,8 +1122,15 @@ static uiBut *ui_item_with_label(uiLayout *layout,
     if (ELEM(subtype, PROP_FILEPATH, PROP_DIRPATH, PROP_NONE)) {
       if ((RNA_property_flag(prop) & PROP_PATH_SUPPORTS_TEMPLATES) != 0) {
         const std::string path = RNA_property_string_get(ptr, prop);
-        if (!BKE_validate_template_syntax(path.c_str()).is_empty()) {
-          UI_but_flag_enable(but, UI_BUT_REDALERT);
+        if (BKE_path_contains_template_syntax(path)) {
+          const std::optional<blender::bke::path_templates::VariableMap> variables =
+              BKE_build_template_variables_for_prop(
+                  static_cast<const bContext *>(block->evil_C), ptr, prop);
+          BLI_assert(variables.has_value());
+
+          if (!BKE_path_validate_template(path, *variables).is_empty()) {
+            UI_but_flag_enable(but, UI_BUT_REDALERT);
+          }
         }
       }
     }
@@ -1863,7 +1870,7 @@ static bool ui_item_rna_is_expand(PropertyRNA *prop, int index, const eUI_Item_F
 /**
  * Find first layout ancestor (or self) with a heading set.
  *
- * \returns the layout to add the heading to as fallback (i.e. if it can't be placed in a split
+ * \returns the layout to add the heading to as a fallback (i.e. if it can't be placed in a split
  *          layout). Its #uiLayout.heading member can be cleared to mark the heading as added (so
  *          it's not added multiple times). Returns a pointer to the heading
  */
@@ -2191,7 +2198,7 @@ void uiLayout::prop(PointerRNA *ptr,
   }
   /* End split. */
   else if (heading_layout) {
-    /* Could not add heading to split layout, fallback to inserting it to the layout with the
+    /* Could not add heading to split layout, fall back to inserting it to the layout with the
      * heading itself. */
     ui_layout_heading_label_add(heading_layout, heading_layout, false, false);
   }
@@ -5149,9 +5156,9 @@ void uiLayoutSetUnitsY(uiLayout *layout, float unit)
   layout->units_[1] = unit;
 }
 
-void uiLayoutSetEmboss(uiLayout *layout, blender::ui::EmbossType emboss)
+void uiLayout::emboss_set(blender::ui::EmbossType emboss)
 {
-  layout->emboss_ = emboss;
+  emboss_ = emboss;
 }
 
 bool uiLayoutGetPropSep(uiLayout *layout)
@@ -5249,12 +5256,12 @@ float uiLayoutGetUnitsY(uiLayout *layout)
   return layout->units_[1];
 }
 
-blender::ui::EmbossType uiLayoutGetEmboss(uiLayout *layout)
+blender::ui::EmbossType uiLayout::emboss() const
 {
-  if (layout->emboss_ == blender::ui::EmbossType::Undefined) {
-    return layout->root_->block->emboss;
+  if (emboss_ == blender::ui::EmbossType::Undefined) {
+    return root_->block->emboss;
   }
-  return layout->emboss_;
+  return emboss_;
 }
 
 int uiLayoutListItemPaddingWidth()

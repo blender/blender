@@ -3,8 +3,8 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
 
+#include <pxr/usd/sdf/types.h>
 #include <pxr/usd/usd/common.h>
-#include <pxr/usd/usdLux/domeLight.h>
 
 struct Main;
 struct Scene;
@@ -13,6 +13,18 @@ namespace blender::io::usd {
 
 struct USDExportParams;
 struct USDImportParams;
+
+/* This struct contains all DomeLight attribute needed to
+ * create a world environment */
+struct USDImportDomeLightData {
+  float intensity;
+  pxr::GfVec3f color;
+  pxr::SdfAssetPath tex_path;
+  pxr::TfToken pole_axis;
+
+  bool has_color;
+  bool has_tex;
+};
 
 /**
  * If the Blender scene has an environment texture,
@@ -25,7 +37,8 @@ void world_material_to_dome_light(const USDExportParams &params,
 void dome_light_to_world_material(const USDImportParams &params,
                                   Scene *scene,
                                   Main *bmain,
-                                  const pxr::UsdLuxDomeLight &dome_light,
+                                  const USDImportDomeLightData &dome_light_data,
+                                  const pxr::UsdPrim &prim,
                                   const double motionSampleTime = 0.0);
 
 }  // namespace blender::io::usd

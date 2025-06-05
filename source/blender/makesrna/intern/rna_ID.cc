@@ -1537,6 +1537,13 @@ static void rna_Library_version_get(PointerRNA *ptr, int *value)
   value[2] = lib->runtime->subversionfile;
 }
 
+static PointerRNA rna_Library_parent_get(PointerRNA *ptr)
+{
+  Library *lib = ptr->data_as<Library>();
+  Library *parent = lib->runtime->parent;
+  return RNA_id_pointer_create(reinterpret_cast<ID *>(parent));
+}
+
 static void rna_Library_reload(Library *lib, bContext *C, ReportList *reports)
 {
 #  ifdef WITH_PYTHON
@@ -2616,7 +2623,7 @@ static void rna_def_library(BlenderRNA *brna)
   RNA_def_property_string_funcs(prop, nullptr, nullptr, "rna_Library_filepath_set");
 
   prop = RNA_def_property(srna, "parent", PROP_POINTER, PROP_NONE);
-  RNA_def_property_pointer_sdna(prop, nullptr, "runtime->parent");
+  RNA_def_property_pointer_funcs(prop, "rna_Library_parent_get", nullptr, nullptr, nullptr);
   RNA_def_property_struct_type(prop, "Library");
   RNA_def_property_override_flag(prop, PROPOVERRIDE_NO_COMPARISON);
   RNA_def_property_ui_text(prop, "Parent", "");

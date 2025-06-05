@@ -1557,6 +1557,12 @@ void RNA_def_parameter_clear_flags(PropertyRNA *prop,
   prop->flag_parameter &= ~flag_parameter;
 }
 
+void RNA_def_property_path_template_type(PropertyRNA *prop,
+                                         PropertyPathTemplateType path_template_type)
+{
+  prop->path_template_type = path_template_type;
+}
+
 void RNA_def_property_subtype(PropertyRNA *prop, PropertySubType subtype)
 {
   prop->subtype = subtype;

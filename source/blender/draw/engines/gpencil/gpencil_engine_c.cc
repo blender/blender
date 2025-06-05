@@ -475,6 +475,8 @@ tObject *Instance::object_sync_do(Object *ob, ResourceHandle res_handle)
 
     const VArray<int> stroke_materials = *attributes.lookup_or_default<int>(
         "material_index", bke::AttrDomain::Curve, 0);
+    const VArray<bool> is_fill_guide = *attributes.lookup_or_default<bool>(
+        ".is_fill_guide", bke::AttrDomain::Curve, false);
 
     const bool only_lines = !ELEM(ob->mode,
                                   OB_MODE_PAINT_GREASE_PENCIL,
@@ -492,11 +494,14 @@ tObject *Instance::object_sync_do(Object *ob, ResourceHandle res_handle)
       const int material_index = std::max(stroke_materials[stroke_i], 0);
       const MaterialGPencilStyle *gp_style = BKE_gpencil_material_settings(ob, material_index + 1);
 
+      const bool is_fill_guide_stroke = is_fill_guide[stroke_i];
+
       const bool hide_material = (gp_style->flag & GP_MATERIAL_HIDE) != 0;
-      const bool show_stroke = ((gp_style->flag & GP_MATERIAL_STROKE_SHOW) != 0);
+      const bool show_stroke = ((gp_style->flag & GP_MATERIAL_STROKE_SHOW) != 0) ||
+                               is_fill_guide_stroke;
       const bool show_fill = (points.size() >= 3) &&
                              ((gp_style->flag & GP_MATERIAL_FILL_SHOW) != 0) &&
-                             (!this->simplify_fill);
+                             (!this->simplify_fill) && !is_fill_guide_stroke;
       const bool hide_onion = is_onion && ((gp_style->flag & GP_MATERIAL_HIDE_ONIONSKIN) != 0 ||
                                            (!do_onion && !do_multi_frame));
       const bool skip_stroke = hide_material || (!show_stroke && !show_fill) ||

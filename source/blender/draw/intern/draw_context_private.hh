@@ -76,6 +76,8 @@ struct DRWData {
 /* Get thread local draw context. */
 DRWContext &drw_get();
 
+namespace blender::draw {
+
 void drw_batch_cache_validate(Object *ob);
 void drw_batch_cache_generate_requested(Object *ob, TaskGraph &task_graph);
 
@@ -84,8 +86,6 @@ void drw_batch_cache_generate_requested(Object *ob, TaskGraph &task_graph);
  */
 void drw_batch_cache_generate_requested_delayed(Object *ob);
 void drw_batch_cache_generate_requested_evaluated_mesh_or_curve(Object *ob, TaskGraph &task_graph);
-
-namespace blender::draw {
 
 void DRW_mesh_get_attributes(const Object &object,
                              const Mesh &mesh,

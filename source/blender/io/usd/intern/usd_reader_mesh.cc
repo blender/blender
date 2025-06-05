@@ -28,8 +28,12 @@
 #include "BLI_map.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_ordered_edge.hh"
+#include "BLI_set.hh"
 #include "BLI_span.hh"
+#include "BLI_task.hh"
 #include "BLI_vector_set.hh"
+
+#include "BLT_translation.hh"
 
 #include "DNA_customdata_types.h"
 #include "DNA_material_types.h"
@@ -46,6 +50,8 @@
 #include <pxr/usd/usdShade/materialBindingAPI.h>
 #include <pxr/usd/usdShade/tokens.h>
 #include <pxr/usd/usdSkel/bindingAPI.h>
+
+#include <fmt/core.h>
 
 #include <algorithm>
 
@@ -253,7 +259,7 @@ bool USDMeshReader::topology_changed(const Mesh *existing_mesh, const double mot
          face_indices_.size() != existing_mesh->corners_num;
 }
 
-void USDMeshReader::read_mpolys(Mesh *mesh) const
+bool USDMeshReader::read_faces(Mesh *mesh) const
 {
   MutableSpan<int> face_offsets = mesh->face_offsets_for_write();
   MutableSpan<int> corner_verts = mesh->corner_verts_for_write();
@@ -281,7 +287,44 @@ void USDMeshReader::read_mpolys(Mesh *mesh) const
     }
   }
 
+  /* Check for faces with duplicate vertex indices. These will require a mesh validate to fix. */
+  const OffsetIndices<int> faces = mesh->faces();
+  const bool all_faces_ok = threading::parallel_reduce(
+      faces.index_range(),
+      1024,
+      true,
+      [&](const IndexRange part, const bool ok_so_far) {
+        bool current_faces_ok = ok_so_far;
+        if (ok_so_far) {
+          for (const int i : part) {
+            const IndexRange face_range = faces[i];
+            const Set<int, 32> used_verts(corner_verts.slice(face_range));
+            current_faces_ok = current_faces_ok && used_verts.size() == face_range.size();
+          }
+        }
+        return current_faces_ok;
+      },
+      std::logical_and<>());
+
+  /* If we detect bad faces it would be unsafe to continue beyond this point without first
+   * performing a destructive validate. Any operation requiring mesh connectivity information can
+   * assert or crash if the problem isn't addressed. Performing the check here, before most of the
+   * data has been loaded, unfortunately means any remaining data will be lost. */
+  if (!all_faces_ok) {
+    if (is_initial_load_) {
+      const char *message = N_(
+          "Invalid face data detected for mesh '%s'. Automatic correction will be used, but some "
+          "data will most likely be lost");
+      const std::string prim_path = this->prim_path().GetAsString();
+      BKE_reportf(this->reports(), RPT_WARNING, message, prim_path.c_str());
+      CLOG_WARN(&LOG, message, prim_path.c_str());
+    }
+    BKE_mesh_validate(mesh, false, false);
+  }
+
   bke::mesh_calc_edges(*mesh, false, false);
+
+  return all_faces_ok;
 }
 
 void USDMeshReader::read_uv_data_primvar(Mesh *mesh,
@@ -646,7 +689,9 @@ void USDMeshReader::read_mesh_sample(ImportSettings *settings,
   }
 
   if (new_mesh || (settings->read_flag & MOD_MESHSEQ_READ_POLY) != 0) {
-    read_mpolys(mesh);
+    if (!read_faces(mesh)) {
+      return;
+    }
     read_edge_creases(mesh, motionSampleTime);
 
     if (normal_interpolation_ == pxr::UsdGeomTokens->faceVarying) {

@@ -4309,8 +4309,8 @@ def km_grease_pencil_fill_tool(_params):
          None),
         ("grease_pencil.fill", {"type": 'LEFTMOUSE', "value": 'PRESS', "ctrl": True},
          {"properties": [("invert", True)]}),
-        # Use regular stroke operator when holding shift to draw lines.
-        ("grease_pencil.brush_stroke", {"type": 'LEFTMOUSE', "value": 'PRESS', "shift": True},
+        # Use regular stroke operator when holding alt to draw fill guides.
+        ("grease_pencil.brush_stroke", {"type": 'LEFTMOUSE', "value": 'PRESS', "alt": True},
          None),
     ])
 

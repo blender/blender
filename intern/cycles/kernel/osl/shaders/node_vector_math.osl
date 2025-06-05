@@ -79,6 +79,12 @@ shader node_vector_math(string math_type = "add",
   else if (math_type == "absolute") {
     Vector = abs(Vector1);
   }
+  else if (math_type == "power") {
+    Vector = pow(Vector1, Vector2);
+  }
+  else if (math_type == "sign") {
+    Vector = sign(Vector1);
+  }
   else if (math_type == "minimum") {
     Vector = min(Vector1, Vector2);
   }

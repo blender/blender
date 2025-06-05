@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'ba454989554a')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'e91e8eef41aa')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-26 07:36+0000\n"
+"POT-Creation-Date: 2025-06-03 09:10+0000\n"
 "PO-Revision-Date: 2025-05-17 17:56+0000\n"
 "Last-Translator: Ugur Saglam <saglamugur556@gmail.com>\n"
 "Language-Team: Turkish <https://translate.blender.org/projects/blender-ui/ui/tr/>\n"
@@ -29266,12 +29266,68 @@ msgid "Editor menu containing buttons"
 msgstr "Düğmeler içeren düzenleyici menüsü"
 
 
-msgid "Mirror"
-msgstr "Yansıtma"
+msgid "Special Characters"
+msgstr "Özel Karakterler"
+
+
+msgid "Kerning"
+msgstr "Harf aralığı"
+
+
+msgid "Text"
+msgstr "Metin"
+
+
+msgid "Metaball"
+msgstr "Metabol"
+
+
+msgid "Show/Hide"
+msgstr "Göster/Gizle"
+
+
+msgid "Names"
+msgstr "Adlar"
+
+
+msgid "Bone Roll"
+msgstr "Kemik Rulosu"
+
+
+msgid "Clean Up"
+msgstr "Temizle"
+
+
+msgid "Pivot Point"
+msgstr "Pivot Noktası"
 
 
 msgid "Snap"
 msgstr "Yakala"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Orantılı Düzenleme Düşüşü"
+
+
+msgid "Mask Edit"
+msgstr "Maske Düzenleme"
+
+
+msgid "Automasking"
+msgstr "Otomatik maskeleme"
+
+
+msgid "Face Sets Edit"
+msgstr "Yüz Setleri Düzenle"
+
+
+msgid "Vertex Group Locks"
+msgstr "Vertex Grup Kilitleri"
+
+
+msgid "Mirror"
+msgstr "Yansıtma"
 
 
 msgid "UV Mapping"
@@ -29326,10 +29382,6 @@ msgid "Assign Material"
 msgstr "Malzeme Atamak"
 
 
-msgid "Metaball"
-msgstr "Metabol"
-
-
 msgid "Light"
 msgstr "Işık"
 
@@ -29362,14 +29414,6 @@ msgid "Quick Effects"
 msgstr "Hızlı Etkiler"
 
 
-msgid "Show/Hide"
-msgstr "Göster/Gizle"
-
-
-msgid "Clean Up"
-msgstr "Temizle"
-
-
 msgid "Asset"
 msgstr "Varlık"
 
@@ -29388,10 +29432,6 @@ msgstr "Veriyi Bağlantıla/Aktar"
 
 msgid "Hooks"
 msgstr "Kancalar"
-
-
-msgid "Vertex Group Locks"
-msgstr "Vertex Grup Kilitleri"
 
 
 msgid "Trim/Add"
@@ -29426,10 +29466,6 @@ msgid "Bone Collections"
 msgstr "Kemik Koleksiyonları"
 
 
-msgid "Names"
-msgstr "Adlar"
-
-
 msgid "Toggle Bone Options"
 msgstr "Kemik Seçeneklerini Değiştir"
 
@@ -29460,42 +29496,6 @@ msgstr "Yüz Gücünü Ayarla"
 
 msgid "Merge"
 msgstr "Birleştir"
-
-
-msgid "Special Characters"
-msgstr "Özel Karakterler"
-
-
-msgid "Kerning"
-msgstr "Harf aralığı"
-
-
-msgid "Text"
-msgstr "Metin"
-
-
-msgid "Bone Roll"
-msgstr "Kemik Rulosu"
-
-
-msgid "Pivot Point"
-msgstr "Pivot Noktası"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Orantılı Düzenleme Düşüşü"
-
-
-msgid "Mask Edit"
-msgstr "Maske Düzenleme"
-
-
-msgid "Automasking"
-msgstr "Otomatik maskeleme"
-
-
-msgid "Face Sets Edit"
-msgstr "Yüz Setleri Düzenle"
 
 
 msgid "Keyframe Insert Pie"
@@ -37814,6 +37814,10 @@ msgid "Active track in this tracking data object. Deprecated, use objects[name].
 msgstr "Bu izleme veri nesnesindeki etkin iz. Kullanım dışı bırakıldı, objects[name].tracks.active kullanın"
 
 
+msgid "Starting"
+msgstr "Çevirisine Başlanmış"
+
+
 msgid "NLA Strip"
 msgstr "NLA Şeridi"
 
@@ -38187,10 +38191,6 @@ msgid "Aspect Correction"
 msgstr "Görünüm Düzeltme"
 
 
-msgid "Type of aspect correction to use"
-msgstr "Kullanılacak görünüm düzeltme türü"
-
-
 msgid "Relative Size X"
 msgstr "Göreceli Boyut X"
 
@@ -38248,20 +38248,8 @@ msgid "Bokeh"
 msgstr "Bokeh"
 
 
-msgid "Use circular filter (slower)"
-msgstr "Dairesel filtre kullan (daha yavaş)"
-
-
 msgid "Extend Bounds"
 msgstr "Sınırları Genişlet"
-
-
-msgid "Extend bounds of the input image to fully fit blurred image"
-msgstr "Giriş görüntüsünün sınırlarını bulanık görüntüye tam olarak uyacak şekilde genişletin"
-
-
-msgid "Use relative (percent) values to define blur radius"
-msgstr "Bulanıklık yarıçapını tanımlamak için bağıl (yüzde) değerlerini kullanın"
 
 
 msgid "Variable Size"
@@ -40446,6 +40434,14 @@ msgid "Round the float up to the next largest integer"
 msgstr "Yüzen sayıyı bir sonraki en büyük tam sayıya yuvarlayın"
 
 
+msgid "Active Item Index"
+msgstr "Etkin Öge İndeksi"
+
+
+msgid "Index of the active item"
+msgstr "Etkin ögenin indeksi"
+
+
 msgid "Hash Value"
 msgstr "Karma Değer"
 
@@ -40673,14 +40669,6 @@ msgstr "Verilerin hangi etki alanından okunacağı"
 
 msgid "Bake"
 msgstr "Pişmek"
-
-
-msgid "Active Item Index"
-msgstr "Etkin Öge İndeksi"
-
-
-msgid "Index of the active item"
-msgstr "Etkin ögenin indeksi"
 
 
 msgid "Blur Attribute"
@@ -44831,10 +44819,6 @@ msgstr "Soket açıklaması"
 
 msgid "Single Value"
 msgstr "Tek Değer"
-
-
-msgid "Only allow single value inputs rather than fields"
-msgstr "Alanlar yerine yalnızca tek değerli girdilere izin verin"
 
 
 msgid "Hide in Modifier"
@@ -69505,10 +69489,6 @@ msgid "Expand/Collapse Header Menus"
 msgstr "Expand/Collapse Header MenusGenişlet/Daralt Başlık Menüleri"
 
 
-msgid "Expand or collapse the header pulldown menus"
-msgstr "Başlık açılır menülerini genişletin veya daraltın"
-
-
 msgctxt "Operator"
 msgid "Show Info Log"
 msgstr "Show Info LogBilgi Günlüğünü Göster"
@@ -70924,11 +70904,6 @@ msgstr "Geometri (kotanjant) gevşemesini kullanın, UV'lerin alttaki 3B geometr
 
 
 msgctxt "Operator"
-msgid "Change Effect Input"
-msgstr "Etki Girişini Değiştir"
-
-
-msgctxt "Operator"
 msgid "Change Effect Type"
 msgstr "Etki Türünü Değiştir"
 
@@ -70938,17 +70913,9 @@ msgid "Type"
 msgstr "Tip"
 
 
-msgid "Sequencer effect type"
-msgstr "Dizici efekt türü"
-
-
 msgctxt "Sequence"
 msgid "Crossfade"
 msgstr "Çapraz geçiş"
-
-
-msgid "Crossfade effect strip type"
-msgstr "Çapraz geçiş efekti şerit türü"
 
 
 msgctxt "Sequence"
@@ -70956,17 +70923,9 @@ msgid "Add"
 msgstr "Ekle"
 
 
-msgid "Add effect strip type"
-msgstr "Efekt şeridi türünü ekle"
-
-
 msgctxt "Sequence"
 msgid "Subtract"
 msgstr "Çıkarma"
-
-
-msgid "Subtract effect strip type"
-msgstr "Çıkarma efekti şerit türü"
 
 
 msgctxt "Sequence"
@@ -70974,26 +70933,9 @@ msgid "Alpha Over"
 msgstr "Alfa Üzeri"
 
 
-msgid "Alpha Over effect strip type"
-msgstr "Alpha Over efekt şerit tipi"
-
-
 msgctxt "Sequence"
 msgid "Alpha Under"
 msgstr "Alfa Altında"
-
-
-msgid "Alpha Under effect strip type"
-msgstr "Alpha Under etkili şerit tipi"
-
-
-msgctxt "Sequence"
-msgid "Gamma Cross"
-msgstr "Gama Çaprazı"
-
-
-msgid "Gamma Cross effect strip type"
-msgstr "Gamma Cross etkili şerit tipi"
 
 
 msgctxt "Sequence"
@@ -71001,17 +70943,9 @@ msgid "Multiply"
 msgstr "Çarpmak"
 
 
-msgid "Multiply effect strip type"
-msgstr "Çarpma efektli şerit türü"
-
-
 msgctxt "Sequence"
 msgid "Wipe"
 msgstr "Silip süpürmek"
-
-
-msgid "Wipe effect strip type"
-msgstr "Silme efekti şerit tipi"
 
 
 msgctxt "Sequence"
@@ -71019,26 +70953,14 @@ msgid "Glow"
 msgstr "Parıltı"
 
 
-msgid "Glow effect strip type"
-msgstr "Parıltı efektli şerit tipi"
-
-
 msgctxt "Sequence"
 msgid "Transform"
 msgstr "Dönüştürmek"
 
 
-msgid "Transform effect strip type"
-msgstr "Dönüştürme efekti şerit türü"
-
-
 msgctxt "Sequence"
 msgid "Color"
 msgstr "Renk"
-
-
-msgid "Color effect strip type"
-msgstr "Renk efektli şerit türü"
 
 
 msgctxt "Sequence"
@@ -71195,6 +71117,10 @@ msgstr "Seçimi Değiştir"
 
 msgid "Deselect previously selected strips"
 msgstr "Daha önce seçilen şeritleri seçimini kaldır"
+
+
+msgid "Sequencer effect type"
+msgstr "Dizici efekt türü"
 
 
 msgctxt "Operator"
@@ -78751,6 +78677,38 @@ msgid "Panel containing UI elements"
 msgstr "UI öğelerini içeren panel"
 
 
+msgid "Active Tool"
+msgstr "Etkin Araç"
+
+
+msgid "View Lock"
+msgstr "Görünüm Kilidi"
+
+
+msgid "Selectability & Visibility"
+msgstr "Seçilebilirlik ve Görünürlük"
+
+
+msgid "Shadow Settings"
+msgstr "Gölge Ayarları"
+
+
+msgid "SSAO Settings"
+msgstr "SSAO Ayarları"
+
+
+msgid "Cavity"
+msgstr "Boşluk"
+
+
+msgid "Render Pass"
+msgstr "Render Geçişi"
+
+
+msgid "Compositor"
+msgstr "Dizgici"
+
+
 msgid "Overlays"
 msgstr "Kaplamalar"
 
@@ -78811,10 +78769,6 @@ msgid "Multi Frame"
 msgstr "Çoklu Çerçeve"
 
 
-msgid "Compositor"
-msgstr "Dizgici"
-
-
 msgid "Auto-Masking"
 msgstr "Otomatik Maskeleme"
 
@@ -78849,34 +78803,6 @@ msgstr "glTF Çeşitleri"
 
 msgid "glTF Material Variants"
 msgstr "glTF Malzeme Varyantları"
-
-
-msgid "Active Tool"
-msgstr "Etkin Araç"
-
-
-msgid "View Lock"
-msgstr "Görünüm Kilidi"
-
-
-msgid "Selectability & Visibility"
-msgstr "Seçilebilirlik ve Görünürlük"
-
-
-msgid "Shadow Settings"
-msgstr "Gölge Ayarları"
-
-
-msgid "SSAO Settings"
-msgstr "SSAO Ayarları"
-
-
-msgid "Cavity"
-msgstr "Boşluk"
-
-
-msgid "Render Pass"
-msgstr "Render Geçişi"
 
 
 msgid "Chain Scaling"
@@ -83723,10 +83649,6 @@ msgid "Filter Brushes by Tool"
 msgstr "Araçlara Göre Fırçaları Filtrele"
 
 
-msgid "Open menu buttons and pulldowns automatically when the mouse is hovering"
-msgstr "Fare üzerine gelindiğinde menü düğmeleri ve açılır menüler otomatik olarak açılır"
-
-
 msgid "Save Prompt"
 msgstr "İstemi Kaydet"
 
@@ -88055,10 +87977,6 @@ msgstr "Gölgeler ve vurgular için ışığın yönü"
 
 msgid "Attenuation constant"
 msgstr "Zayıflama sabiti"
-
-
-msgid "Distance of object that contribute to the Cavity/Edge effect"
-msgstr "Boşluk/Kenar etkisine katkıda bulunan nesnenin uzaklığı"
 
 
 msgid "Number of samples"
@@ -92550,11 +92468,6 @@ msgid "Sound"
 msgstr "Ses"
 
 
-msgctxt "Sequence"
-msgid "Cross"
-msgstr "Geçmek"
-
-
 msgid "Use Default Fade"
 msgstr "Varsayılan Solmayı Kullan"
 
@@ -92677,10 +92590,6 @@ msgstr "Tek bir renkle doldurulmuş bir görüntü oluşturan dizi şeridi"
 
 msgid "Effect Strip color"
 msgstr "Efekt Şerit rengi"
-
-
-msgid "Cross Sequence"
-msgstr "Çapraz Sıra"
 
 
 msgid "Sequence strip creating a gaussian blur"
@@ -94189,6 +94098,14 @@ msgid "Color of path before current frame"
 msgstr "Geçerli çerçeveden önceki yolun rengi"
 
 
+msgid "Preview Range"
+msgstr "Önizleme Aralığı"
+
+
+msgid "Color of preview range overlay"
+msgstr "Önizleme aralığı kaplamasının rengi"
+
+
 msgid "Selected Marker"
 msgstr "Seçilmiş İşaretleyici"
 
@@ -94415,14 +94332,6 @@ msgstr "Uzun Anahtar"
 
 msgid "Long Key Selected"
 msgstr "Uzun Anahtar Seçildi"
-
-
-msgid "Preview Range"
-msgstr "Önizleme Aralığı"
-
-
-msgid "Color of preview range overlay"
-msgstr "Önizleme aralığı kaplamasının rengi"
 
 
 msgid "Simulated Frames"
@@ -101489,11 +101398,6 @@ msgstr "Dikey/Kenar Kaydırak"
 
 
 msgctxt "WindowManager"
-msgid "TrackBall"
-msgstr "İztopu"
-
-
-msgctxt "WindowManager"
 msgid "Resize"
 msgstr "Yeniden boyutlandırma"
 
@@ -104745,10 +104649,6 @@ msgid "K0"
 msgstr "K0"
 
 
-msgid "Cylinder radius"
-msgstr "Silindir yarıçapı"
-
-
 msgid "Resolution Preview U"
 msgstr "Çözünürlük Önizlemesi U"
 
@@ -107987,16 +107887,6 @@ msgstr "Ayarlama Katmanı"
 msgctxt "Operator"
 msgid "Scene..."
 msgstr "Sahne..."
-
-
-msgctxt "Operator"
-msgid "Cross"
-msgstr "Geçmek"
-
-
-msgctxt "Operator"
-msgid "Gamma Cross"
-msgstr "Gama Çaprazı"
 
 
 msgctxt "Operator"
@@ -111268,6 +111158,11 @@ msgid "Path Steps"
 msgstr "Yol Adımları"
 
 
+msgctxt "GPencil"
+msgid "Boundary"
+msgstr "Sınır"
+
+
 msgid "No brush selected"
 msgstr "Hiçbir fırça seçilmedi"
 
@@ -111302,9 +111197,8 @@ msgid "Auto-Velocity"
 msgstr "Otomatik Hız"
 
 
-msgctxt "GPencil"
-msgid "Boundary"
-msgstr "Sınır"
+msgid "Ignore Transparent"
+msgstr "Şeffaflığı Yoksay"
 
 
 msgid "No Textures"
@@ -111314,10 +111208,6 @@ msgstr "Dokular Yok"
 msgctxt "Operator"
 msgid "Add UVs"
 msgstr "UV'leri ekle"
-
-
-msgid "Ignore Transparent"
-msgstr "Şeffaflığı Yoksay"
 
 
 msgid "Cannot change action, as it is still being edited in NLA"
@@ -118809,20 +118699,8 @@ msgid "Cannot reassign inputs: recursion detected"
 msgstr "Girişler yeniden atanamıyor: yineleme algılandı"
 
 
-msgid "No valid inputs to swap"
-msgstr "Değiştirilecek geçerli girdi yok"
-
-
 msgid "Please select two strips"
 msgstr "Lütfen iki şerit seçin"
-
-
-msgid "One of the effect inputs is unset, cannot swap"
-msgstr "Etki girişlerinden biri ayarlanmamış, değiştirilemez"
-
-
-msgid "New effect needs more input strips"
-msgstr "Yeni efektin daha fazla giriş şeridine ihtiyacı var"
 
 
 msgid "Can't create subtitle file"
@@ -122763,12 +122641,12 @@ msgid "Streak fade-out factor"
 msgstr "Çizgi kaybolma faktörü"
 
 
-msgid "ID value"
-msgstr "Kimlik değeri"
-
-
 msgid "Viewport compositor setup not fully supported"
 msgstr "Viewport kompozitör kurulumu tam olarak desteklenmiyor"
+
+
+msgid "ID value"
+msgstr "Kimlik değeri"
 
 
 msgid "Garbage Matte"
@@ -126846,10 +126724,6 @@ msgstr "Çevirisi Bitmiş"
 
 msgid "In Progress"
 msgstr "Çevirisi Sürüyor"
-
-
-msgid "Starting"
-msgstr "Çevirisine Başlanmış"
 
 
 msgid "Add & Subtract"

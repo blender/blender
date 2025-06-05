@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'ba454989554a')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'e91e8eef41aa')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-26 07:36+0000\n"
+"POT-Creation-Date: 2025-06-03 09:10+0000\n"
 "PO-Revision-Date: 2025-04-14 08:48+0000\n"
 "Last-Translator: luxem <luxem168@gmail.com>\n"
 "Language-Team: Chinese (Traditional Han script) <https://translate.blender.org/projects/blender-ui/ui/zh_Hant/>\n"
@@ -22575,12 +22575,60 @@ msgid "Material slot name"
 msgstr "材質槽名稱"
 
 
-msgid "Mirror"
-msgstr "鏡像"
+msgid "Special Characters"
+msgstr "特殊字元"
+
+
+msgid "Kerning"
+msgstr "字間微調"
+
+
+msgid "Text"
+msgstr "文字"
+
+
+msgid "Metaball"
+msgstr "變幻球"
+
+
+msgid "Show/Hide"
+msgstr "顯示/隱藏"
+
+
+msgid "Names"
+msgstr "名稱"
+
+
+msgid "Bone Roll"
+msgstr "骨骼滾動"
+
+
+msgid "Clean Up"
+msgstr "清理"
+
+
+msgid "Pivot Point"
+msgstr "樞紐點"
 
 
 msgid "Snap"
 msgstr "吸附"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "比例化編輯衰落"
+
+
+msgid "Automasking"
+msgstr "自動遮罩"
+
+
+msgid "Face Sets Edit"
+msgstr "面集編輯"
+
+
+msgid "Mirror"
+msgstr "鏡像"
 
 
 msgid "UV Mapping"
@@ -22623,10 +22671,6 @@ msgid "Select Linked"
 msgstr "選取連結項"
 
 
-msgid "Metaball"
-msgstr "變幻球"
-
-
 msgid "Light"
 msgstr "燈光"
 
@@ -22653,14 +22697,6 @@ msgstr "追蹤"
 
 msgid "Quick Effects"
 msgstr "快速效果"
-
-
-msgid "Show/Hide"
-msgstr "顯示/隱藏"
-
-
-msgid "Clean Up"
-msgstr "清理"
 
 
 msgid "Asset"
@@ -22707,10 +22743,6 @@ msgid "Bone Collections"
 msgstr "骨骼集盒"
 
 
-msgid "Names"
-msgstr "名稱"
-
-
 msgid "Toggle Bone Options"
 msgstr "開關骨骼選項"
 
@@ -22733,38 +22765,6 @@ msgstr "面資料"
 
 msgid "Merge"
 msgstr "合併"
-
-
-msgid "Special Characters"
-msgstr "特殊字元"
-
-
-msgid "Kerning"
-msgstr "字間微調"
-
-
-msgid "Text"
-msgstr "文字"
-
-
-msgid "Bone Roll"
-msgstr "骨骼滾動"
-
-
-msgid "Pivot Point"
-msgstr "樞紐點"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "比例化編輯衰落"
-
-
-msgid "Automasking"
-msgstr "自動遮罩"
-
-
-msgid "Face Sets Edit"
-msgstr "面集編輯"
 
 
 msgid "Basic"
@@ -27834,6 +27834,10 @@ msgid "Display what the tracking algorithm sees in the preview"
 msgstr "將追蹤演算法看到的樣貌顯示於預覽中"
 
 
+msgid "Starting"
+msgstr "正開始"
+
+
 msgid "NLA Strip"
 msgstr "NLA 片段"
 
@@ -28122,10 +28126,6 @@ msgid "Aspect Correction"
 msgstr "寬長比校正"
 
 
-msgid "Type of aspect correction to use"
-msgstr "要使用的寬長比校正類型"
-
-
 msgid "Relative Size X"
 msgstr "相對大小 X"
 
@@ -28173,16 +28173,8 @@ msgid "Bokeh"
 msgstr "散景"
 
 
-msgid "Use circular filter (slower)"
-msgstr "使用圓過濾器 (較慢)"
-
-
 msgid "Extend Bounds"
 msgstr "擴展邊界"
-
-
-msgid "Use relative (percent) values to define blur radius"
-msgstr "使用相對 (百分比) 值來定義模糊半徑"
 
 
 msgid "Variable Size"
@@ -45528,11 +45520,6 @@ msgstr "放鬆使用 HC 方法"
 
 
 msgctxt "Operator"
-msgid "Change Effect Input"
-msgstr "更改效果輸入"
-
-
-msgctxt "Operator"
 msgid "Change Effect Type"
 msgstr "更改效果類型"
 
@@ -45542,17 +45529,9 @@ msgid "Type"
 msgstr "類型"
 
 
-msgid "Sequencer effect type"
-msgstr "序段編輯器效果類型"
-
-
 msgctxt "Sequence"
 msgid "Crossfade"
 msgstr "交叉淡化"
-
-
-msgid "Crossfade effect strip type"
-msgstr "交錯淡化效果片段類型"
 
 
 msgctxt "Sequence"
@@ -45560,17 +45539,9 @@ msgid "Add"
 msgstr "新增"
 
 
-msgid "Add effect strip type"
-msgstr "新增效果片段類型"
-
-
 msgctxt "Sequence"
 msgid "Subtract"
 msgstr "減"
-
-
-msgid "Subtract effect strip type"
-msgstr "減去效果片段類型"
 
 
 msgctxt "Sequence"
@@ -45578,26 +45549,9 @@ msgid "Alpha Over"
 msgstr "Alpha 上疊"
 
 
-msgid "Alpha Over effect strip type"
-msgstr "Alpha 上疊效果片段類型"
-
-
 msgctxt "Sequence"
 msgid "Alpha Under"
 msgstr "Alpha 下鋪"
-
-
-msgid "Alpha Under effect strip type"
-msgstr "Alpha 下鋪效果片段類型"
-
-
-msgctxt "Sequence"
-msgid "Gamma Cross"
-msgstr "伽瑪交錯"
-
-
-msgid "Gamma Cross effect strip type"
-msgstr "伽瑪交錯效果片段類型"
 
 
 msgctxt "Sequence"
@@ -45605,17 +45559,9 @@ msgid "Multiply"
 msgstr "相乘"
 
 
-msgid "Multiply effect strip type"
-msgstr "相乘效果片段類型"
-
-
 msgctxt "Sequence"
 msgid "Wipe"
 msgstr "擦除"
-
-
-msgid "Wipe effect strip type"
-msgstr "擦除效果片段類型"
 
 
 msgctxt "Sequence"
@@ -45623,26 +45569,14 @@ msgid "Glow"
 msgstr "發光"
 
 
-msgid "Glow effect strip type"
-msgstr "發光效果片段類型"
-
-
 msgctxt "Sequence"
 msgid "Transform"
 msgstr "變換"
 
 
-msgid "Transform effect strip type"
-msgstr "變換效果片段類型"
-
-
 msgctxt "Sequence"
 msgid "Color"
 msgstr "色彩"
-
-
-msgid "Color effect strip type"
-msgstr "色彩效果片段類型"
 
 
 msgctxt "Sequence"
@@ -45731,6 +45665,10 @@ msgstr "不在新的序段片段上校正重疊的情況"
 
 msgid "Replace Selection"
 msgstr "替換選取項"
+
+
+msgid "Sequencer effect type"
+msgstr "序段編輯器效果類型"
 
 
 msgctxt "Operator"
@@ -49573,6 +49511,22 @@ msgid "Palette Color"
 msgstr "色版色彩"
 
 
+msgid "Active Tool"
+msgstr "作用中工具"
+
+
+msgid "Cavity"
+msgstr "坑腔"
+
+
+msgid "Render Pass"
+msgstr "算繪通遞"
+
+
+msgid "Compositor"
+msgstr "合成器"
+
+
 msgid "Overlays"
 msgstr "疊層"
 
@@ -49617,28 +49571,12 @@ msgid "Multi Frame"
 msgstr "多重畫框"
 
 
-msgid "Compositor"
-msgstr "合成器"
-
-
 msgid "Auto-Masking"
 msgstr "自動遮罩"
 
 
 msgid "VR"
 msgstr "VR"
-
-
-msgid "Active Tool"
-msgstr "作用中工具"
-
-
-msgid "Cavity"
-msgstr "坑腔"
-
-
-msgid "Render Pass"
-msgstr "算繪通遞"
 
 
 msgid "Chain Scaling"
@@ -53075,10 +53013,6 @@ msgstr "根據 UI 縮放自動決定線寬"
 
 msgid "Thick"
 msgstr "粗"
-
-
-msgid "Open menu buttons and pulldowns automatically when the mouse is hovering"
-msgstr "滑鼠停駐時自動開啟選單按鈕或下拉選單"
 
 
 msgid "Save Prompt"
@@ -57686,11 +57620,6 @@ msgid "Sound"
 msgstr "聲音"
 
 
-msgctxt "Sequence"
-msgid "Cross"
-msgstr "交叉"
-
-
 msgid "Use Default Fade"
 msgstr "使用預設淡化"
 
@@ -57793,10 +57722,6 @@ msgstr "色彩片段"
 
 msgid "Sequence strip creating an image filled with a single color"
 msgstr "建立填入單一色彩的影像之序段片段"
-
-
-msgid "Cross Sequence"
-msgstr "交錯序段"
 
 
 msgid "Sequence strip creating a gaussian blur"
@@ -61952,11 +61877,6 @@ msgstr "吸附切換"
 
 
 msgctxt "WindowManager"
-msgid "TrackBall"
-msgstr "追蹤球"
-
-
-msgctxt "WindowManager"
 msgid "Resize"
 msgstr "調整大小"
 
@@ -64442,16 +64362,6 @@ msgstr "場景..."
 
 
 msgctxt "Operator"
-msgid "Cross"
-msgstr "交叉"
-
-
-msgctxt "Operator"
-msgid "Gamma Cross"
-msgstr "伽瑪交錯"
-
-
-msgctxt "Operator"
 msgid "Wipe"
 msgstr "擦除"
 
@@ -66319,6 +66229,11 @@ msgid "Path Steps"
 msgstr "路徑步數"
 
 
+msgctxt "GPencil"
+msgid "Boundary"
+msgstr "邊界"
+
+
 msgid "UV Map Needed"
 msgstr "需要 UV 映射"
 
@@ -66333,11 +66248,6 @@ msgstr "在記憶體中以啟用編輯！"
 
 msgid "Auto-Velocity"
 msgstr "自動速度"
-
-
-msgctxt "GPencil"
-msgid "Boundary"
-msgstr "邊界"
 
 
 msgid "Cannot change action, as it is still being edited in NLA"
@@ -70230,20 +70140,8 @@ msgid "File '%s' could not be loaded"
 msgstr "無法載入檔案「%s」"
 
 
-msgid "No valid inputs to swap"
-msgstr "無有效輸入可供交換"
-
-
 msgid "Please select two strips"
 msgstr "請選取兩個片段"
-
-
-msgid "One of the effect inputs is unset, cannot swap"
-msgstr "效果輸入之一未設定，無法交換"
-
-
-msgid "New effect needs more input strips"
-msgstr "新特效需要更多輸入片段"
 
 
 msgid "Columns:"
@@ -73459,10 +73357,6 @@ msgstr "完成"
 
 msgid "In Progress"
 msgstr "處理中"
-
-
-msgid "Starting"
-msgstr "正開始"
 
 
 msgid "Generation"

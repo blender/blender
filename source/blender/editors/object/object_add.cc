@@ -58,6 +58,7 @@
 #include "BKE_curves.h"
 #include "BKE_curves.hh"
 #include "BKE_customdata.hh"
+#include "BKE_deform.hh"
 #include "BKE_displist.h"
 #include "BKE_duplilist.hh"
 #include "BKE_effect.h"
@@ -3276,6 +3277,8 @@ static void mesh_data_to_grease_pencil(const Mesh &mesh_eval,
     }
   });
 
+  BKE_defgroup_copy_list(&grease_pencil.vertex_group_names, &mesh_copied->vertex_group_names);
+
   curves.radius_for_write().fill(stroke_radius);
 
   drawing_line->strokes_for_write() = std::move(curves);
@@ -3697,6 +3700,42 @@ static Object *convert_font_to_curves(Base &base, ObjectConversionInfo &info, Ba
   return curve_ob;
 }
 
+/* Currently neither Grease Pencil nor legacy curves supports per-stroke/curve fill attribute, thus
+ * the #fill argument applies on all strokes that are converted. */
+static void add_grease_pencil_materials_for_conversion(Main &bmain,
+                                                       ID &from_id,
+                                                       Object &gp_object,
+                                                       const bool use_fill)
+{
+  short *len_p = BKE_id_material_len_p(&from_id);
+  if (!len_p || *len_p == 0) {
+    return;
+  }
+  Material ***materials = BKE_id_material_array_p(&from_id);
+  if (!materials || !(*materials)) {
+    return;
+  }
+  for (short i = 0; i < *len_p; i++) {
+    const Material *orig_material = (*materials)[i];
+    const char *name = orig_material ? BKE_id_name(orig_material->id) : IFACE_("Empty Material");
+
+    Material *gp_material = BKE_grease_pencil_object_material_new(
+        &bmain, &gp_object, name, nullptr);
+
+    /* If the original object has this material slot but didn't assign any material, then we don't
+     * have anything to copy color information from. In those cases we still added an empty
+     * material to keep the material index matching. */
+    if (!orig_material) {
+      continue;
+    }
+
+    copy_v4_v4(gp_material->gp_style->fill_rgba, &orig_material->r);
+
+    SET_FLAG_FROM_TEST(gp_material->gp_style->flag, !use_fill, GP_MATERIAL_STROKE_SHOW);
+    SET_FLAG_FROM_TEST(gp_material->gp_style->flag, use_fill, GP_MATERIAL_FILL_SHOW);
+  }
+}
+
 static Object *convert_font_to_grease_pencil(Base &base,
                                              ObjectConversionInfo &info,
                                              Base **r_new_base)
@@ -3727,6 +3766,10 @@ static Object *convert_font_to_grease_pencil(Base &base,
 
   curve_ob->data = grease_pencil;
   curve_ob->type = OB_GREASE_PENCIL;
+  curve_ob->totcol = grease_pencil->material_array_num;
+
+  const bool use_fill = (legacy_curve_id->flag & (CU_FRONT | CU_BACK)) != 0;
+  add_grease_pencil_materials_for_conversion(*info.bmain, legacy_curve_id->id, *newob, use_fill);
 
   /* We don't need the intermediate font/curve data ID any more. */
   BKE_id_delete(info.bmain, legacy_curve_id);
@@ -3828,6 +3871,18 @@ static Object *convert_curves_legacy_to_grease_pencil(Base &base,
 
   newob->data = grease_pencil;
   newob->type = OB_GREASE_PENCIL;
+
+  /* Some functions like #BKE_id_material_len_p still uses Object::totcol so this value must be in
+   * sync. */
+  newob->totcol = grease_pencil->material_array_num;
+
+  const bool use_fill = (legacy_curve_id->flag & (CU_FRONT | CU_BACK)) != 0;
+  add_grease_pencil_materials_for_conversion(*info.bmain, legacy_curve_id->id, *newob, use_fill);
+
+  /* For some reason this must be called, otherwise evaluated id_cow will still be the original
+   * curves id (and that seems to only happen if "Keep Original" is enabled, and only with this
+   * specific conversion combination), not sure why. Ref: #138793 */
+  DEG_id_tag_update(&grease_pencil->id, ID_RECALC_GEOMETRY);
 
   BKE_id_free(nullptr, curves_nomain);
 

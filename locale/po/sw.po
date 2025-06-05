@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'ba454989554a')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'e91e8eef41aa')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-26 07:36+0000\n"
+"POT-Creation-Date: 2025-06-03 09:10+0000\n"
 "PO-Revision-Date: 2025-04-14 08:50+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Swahili <https://translate.blender.org/projects/blender-ui/ui/sw/>\n"
@@ -28722,12 +28722,32 @@ msgid "Editor menu containing buttons"
 msgstr "Menyu ya mhariri iliyo na vitufe"
 
 
-msgid "Mirror"
-msgstr "Kioo"
+msgid "Text"
+msgstr "Maandishi"
+
+
+msgid "Metaball"
+msgstr "Mpira wa miguu"
+
+
+msgid "Show/Hide"
+msgstr "Onyesha/Ficha"
+
+
+msgid "Clean Up"
+msgstr "Safisha"
+
+
+msgid "Pivot Point"
+msgstr "Egemeo"
 
 
 msgid "Snap"
 msgstr "Picha"
+
+
+msgid "Mirror"
+msgstr "Kioo"
 
 
 msgid "Navigation"
@@ -28736,10 +28756,6 @@ msgstr "Urambazaji"
 
 msgid "Select Linked"
 msgstr "Chagua Imeunganishwa"
-
-
-msgid "Metaball"
-msgstr "Mpira wa miguu"
 
 
 msgid "Light"
@@ -28754,14 +28770,6 @@ msgid "Apply"
 msgstr "Tumia"
 
 
-msgid "Show/Hide"
-msgstr "Onyesha/Ficha"
-
-
-msgid "Clean Up"
-msgstr "Safisha"
-
-
 msgid "Asset"
 msgstr "Mali"
 
@@ -28772,14 +28780,6 @@ msgstr "Mikusanyo ya Mifupa"
 
 msgid "Merge"
 msgstr "Unganisha"
-
-
-msgid "Text"
-msgstr "Maandishi"
-
-
-msgid "Pivot Point"
-msgstr "Egemeo"
 
 
 msgid "Keyframe Insert Pie"
@@ -37099,6 +37099,10 @@ msgid "Active track in this tracking data object. Deprecated, use objects[name].
 msgstr "Wimbo amilifu katika kifaa hiki cha ufuatiliaji wa data."
 
 
+msgid "Starting"
+msgstr "Kuanzia"
+
+
 msgid "NLA Strip"
 msgstr "Ukanda wa NLA"
 
@@ -37464,10 +37468,6 @@ msgid "Aspect Correction"
 msgstr "Marekebisho ya Kipengele"
 
 
-msgid "Type of aspect correction to use"
-msgstr "Aina ya urekebishaji wa kipengele cha kutumia"
-
-
 msgid "Relative Size X"
 msgstr "Ukubwa wa Jamaa X"
 
@@ -37511,20 +37511,8 @@ msgid "Catrom"
 msgstr "Katromu"
 
 
-msgid "Use circular filter (slower)"
-msgstr "Tumia chujio cha mviringo (polepole)"
-
-
 msgid "Extend Bounds"
 msgstr "Ongeza Mipaka"
-
-
-msgid "Extend bounds of the input image to fully fit blurred image"
-msgstr "Panua mipaka ya picha ya ingizo ili kutoshea kikamilifu picha iliyo na ukungu"
-
-
-msgid "Use relative (percent) values to define blur radius"
-msgstr "Tumia thamani zinazohusiana (asilimia) ili kufafanua radius ya ukungu"
 
 
 msgid "Variable Size"
@@ -39189,6 +39177,14 @@ msgid "Round the float to the closest integer in the direction of zero (floor if
 msgstr "Zungusha kuelea hadi nambari kamili iliyo karibu zaidi kuelekea sifuri (sakafu ikiwa chanya; dari ikiwa hasi)"
 
 
+msgid "Active Item Index"
+msgstr "Fahirisi ya Kipengee Amilifu"
+
+
+msgid "Index of the active item"
+msgstr "Fahirisi ya kipengee amilifu"
+
+
 msgid "Input value used for unconnected socket"
 msgstr "Thamani ya ingizo inayotumika kwa soketi ambayo haijaunganishwa"
 
@@ -39339,14 +39335,6 @@ msgstr "Oka"
 
 msgid "Cache the incoming data so that it can be used without recomputation"
 msgstr "Weka akiba data inayoingia ili iweze kutumika bila hesabu"
-
-
-msgid "Active Item Index"
-msgstr "Fahirisi ya Kipengee Amilifu"
-
-
-msgid "Index of the active item"
-msgstr "Fahirisi ya kipengee amilifu"
 
 
 msgid "Blur Attribute"
@@ -43461,10 +43449,6 @@ msgstr "Maelezo ya tundu"
 
 msgid "Single Value"
 msgstr "Thamani Moja"
-
-
-msgid "Only allow single value inputs rather than fields"
-msgstr "Ruhusu pembejeo za thamani moja pekee badala ya sehemu"
 
 
 msgid "Hide in Modifier"
@@ -66678,10 +66662,6 @@ msgid "Expand/Collapse Header Menus"
 msgstr "Panua/Kunja Menyu za Vichwa"
 
 
-msgid "Expand or collapse the header pulldown menus"
-msgstr "Panua au ukunje menyu za kubomoa vichwa"
-
-
 msgctxt "Operator"
 msgid "Show Info Log"
 msgstr "Onyesha Kumbukumbu ya Taarifa"
@@ -68014,11 +67994,6 @@ msgstr "Tumia kupumzika kwa Jiometri (cotangent), kufanya UV kufuata jiometri ya
 
 
 msgctxt "Operator"
-msgid "Change Effect Input"
-msgstr "Badilisha Ingizo la Athari"
-
-
-msgctxt "Operator"
 msgid "Change Effect Type"
 msgstr "Badilisha Aina ya Athari"
 
@@ -68028,17 +68003,9 @@ msgid "Type"
 msgstr "Aina"
 
 
-msgid "Sequencer effect type"
-msgstr "Aina ya athari ya mpangilio"
-
-
 msgctxt "Sequence"
 msgid "Crossfade"
 msgstr "Kupita"
-
-
-msgid "Crossfade effect strip type"
-msgstr "Aina ya ukanda wa athari ya kuvuka"
 
 
 msgctxt "Sequence"
@@ -68046,34 +68013,9 @@ msgid "Add"
 msgstr "Ongeza"
 
 
-msgid "Add effect strip type"
-msgstr "Ongeza aina ya ukanda wa athari"
-
-
 msgctxt "Sequence"
 msgid "Subtract"
 msgstr "Toa"
-
-
-msgid "Subtract effect strip type"
-msgstr "Aina ya ukanda wa toa"
-
-
-msgid "Alpha Over effect strip type"
-msgstr "Aina ya ukanda wa athari ya Alpha Over"
-
-
-msgid "Alpha Under effect strip type"
-msgstr "Alpha Chini ya aina ya ukanda wa athari"
-
-
-msgctxt "Sequence"
-msgid "Gamma Cross"
-msgstr "Msalaba wa Gamma"
-
-
-msgid "Gamma Cross effect strip type"
-msgstr "Aina ya ukanda wa athari ya Gamma Cross"
 
 
 msgctxt "Sequence"
@@ -68081,17 +68023,9 @@ msgid "Multiply"
 msgstr "Zidisha"
 
 
-msgid "Multiply effect strip type"
-msgstr "Kuzidisha aina ya ukanda wa athari"
-
-
 msgctxt "Sequence"
 msgid "Wipe"
 msgstr "Futa"
-
-
-msgid "Wipe effect strip type"
-msgstr "Futa aina ya ukanda wa athari"
 
 
 msgctxt "Sequence"
@@ -68099,26 +68033,14 @@ msgid "Glow"
 msgstr "Mwangaza"
 
 
-msgid "Glow effect strip type"
-msgstr "Aina ya ukanda wa athari ya mwanga"
-
-
 msgctxt "Sequence"
 msgid "Transform"
 msgstr "Badilisha"
 
 
-msgid "Transform effect strip type"
-msgstr "Badilisha aina ya ukanda wa athari"
-
-
 msgctxt "Sequence"
 msgid "Color"
 msgstr "Rangi"
-
-
-msgid "Color effect strip type"
-msgstr "Aina ya ukanda wa athari ya rangi"
 
 
 msgctxt "Sequence"
@@ -68253,6 +68175,10 @@ msgstr "Tumia mipangilio ya zana_ya_muingiliano ili kubainisha jinsi ya kuchanga
 
 msgid "Replace Selection"
 msgstr "Uteuzi wa Nafasi"
+
+
+msgid "Sequencer effect type"
+msgstr "Aina ya athari ya mpangilio"
 
 
 msgctxt "Operator"
@@ -75273,6 +75199,26 @@ msgid "Panel containing UI elements"
 msgstr "Paneli iliyo na vipengele vya UI"
 
 
+msgid "View Lock"
+msgstr "Kufuli ya Tazama"
+
+
+msgid "Selectability & Visibility"
+msgstr "Uteuzi"
+
+
+msgid "Shadow Settings"
+msgstr "Mipangilio ya Kivuli"
+
+
+msgid "SSAO Settings"
+msgstr "Mipangilio ya SSAO"
+
+
+msgid "Compositor"
+msgstr "Mtunzi"
+
+
 msgid "Viewer Node"
 msgstr "Njia ya Mtazamaji"
 
@@ -75317,10 +75263,6 @@ msgid "Multi Frame"
 msgstr "Fremu nyingi"
 
 
-msgid "Compositor"
-msgstr "Mtunzi"
-
-
 msgid "Auto-Masking"
 msgstr "Kufunika Masking Kiotomatiki"
 
@@ -75335,22 +75277,6 @@ msgstr "Curves Sculpt Parameta Falloff"
 
 msgid "Viewport Debug"
 msgstr "Utatuzi wa kituo cha kutazama"
-
-
-msgid "View Lock"
-msgstr "Kufuli ya Tazama"
-
-
-msgid "Selectability & Visibility"
-msgstr "Uteuzi"
-
-
-msgid "Shadow Settings"
-msgstr "Mipangilio ya Kivuli"
-
-
-msgid "SSAO Settings"
-msgstr "Mipangilio ya SSAO"
 
 
 msgid "Fast GI Approximation"
@@ -79240,10 +79166,6 @@ msgstr ""
 "Inaboresha usomaji wa umbo la wavu mnene sana, lakini huongeza uchovu wa macho wakati wa kuunda viunzi vya chini zaidi."
 
 
-msgid "Open menu buttons and pulldowns automatically when the mouse is hovering"
-msgstr "Fungua vitufe vya menyu na ubonyeze kiotomatiki kipanya kinapoelea"
-
-
 msgid "Save Prompt"
 msgstr "Hifadhi haraka"
 
@@ -83048,10 +82970,6 @@ msgstr "Mwelekeo wa mwanga kwa vivuli na vivutio"
 
 msgid "Attenuation constant"
 msgstr "Attenuation mara kwa mara"
-
-
-msgid "Distance of object that contribute to the Cavity/Edge effect"
-msgstr "Umbali wa kitu kinachochangia athari ya Cavity/Edge"
 
 
 msgid "Number of samples"
@@ -87168,11 +87086,6 @@ msgid "Sound"
 msgstr "Sauti"
 
 
-msgctxt "Sequence"
-msgid "Cross"
-msgstr "Msalaba"
-
-
 msgid "Use Default Fade"
 msgstr "Tumia Fifisha Chaguomsingi"
 
@@ -87295,10 +87208,6 @@ msgstr "Ukanda wa mlolongo kuunda picha iliyojazwa na rangi moja"
 
 msgid "Effect Strip color"
 msgstr "Rangi ya Ukanda wa Athari"
-
-
-msgid "Cross Sequence"
-msgstr "Mlolongo wa Msalaba"
 
 
 msgid "Sequence strip creating a gaussian blur"
@@ -88739,6 +88648,14 @@ msgid "Color of path before current frame"
 msgstr "Rangi ya njia kabla ya fremu ya sasa"
 
 
+msgid "Preview Range"
+msgstr "Onyesho la kukagua Masafa"
+
+
+msgid "Color of preview range overlay"
+msgstr "Rangi ya safu ya onyesho la kuchungulia"
+
+
 msgid "Selected Marker"
 msgstr "Alama Iliyochaguliwa"
 
@@ -88945,14 +88862,6 @@ msgstr "Ufunguo Mrefu"
 
 msgid "Long Key Selected"
 msgstr "Ufunguo Mrefu Umechaguliwa"
-
-
-msgid "Preview Range"
-msgstr "Onyesho la kukagua Masafa"
-
-
-msgid "Color of preview range overlay"
-msgstr "Rangi ya safu ya onyesho la kuchungulia"
 
 
 msgid "Simulated Frames"
@@ -95325,11 +95234,6 @@ msgstr "Vert/Edge Slaidi"
 
 
 msgctxt "WindowManager"
-msgid "TrackBall"
-msgstr "Mpira wa Kufuatilia"
-
-
-msgctxt "WindowManager"
 msgid "Resize"
 msgstr "Badilisha ukubwa"
 
@@ -100195,16 +100099,6 @@ msgstr "Mandhari..."
 
 
 msgctxt "Operator"
-msgid "Cross"
-msgstr "Msalaba"
-
-
-msgctxt "Operator"
-msgid "Gamma Cross"
-msgstr "Msalaba wa Gamma"
-
-
-msgctxt "Operator"
 msgid "Wipe"
 msgstr "Futa"
 
@@ -102671,6 +102565,11 @@ msgid "Path Steps"
 msgstr "Hatua za Njia"
 
 
+msgctxt "GPencil"
+msgid "Boundary"
+msgstr "Mpaka"
+
+
 msgid "No Brushes currently available"
 msgstr "Hakuna Brashi zinazopatikana kwa sasa"
 
@@ -102691,9 +102590,8 @@ msgid "Auto-Velocity"
 msgstr "Kasi-Otomatiki"
 
 
-msgctxt "GPencil"
-msgid "Boundary"
-msgstr "Mpaka"
+msgid "Ignore Transparent"
+msgstr "Puuza Uwazi"
 
 
 msgid "No Textures"
@@ -102703,10 +102601,6 @@ msgstr "Hakuna Miundo"
 msgctxt "Operator"
 msgid "Add UVs"
 msgstr "Ongeza UV"
-
-
-msgid "Ignore Transparent"
-msgstr "Puuza Uwazi"
 
 
 msgid "Cannot change action, as it is still being edited in NLA"
@@ -109746,20 +109640,8 @@ msgid "Cannot reassign inputs: recursion detected"
 msgstr "Haiwezi kukabidhi upya pembejeo: urudiaji umegunduliwa"
 
 
-msgid "No valid inputs to swap"
-msgstr "Hakuna pembejeo halali za kubadilishana"
-
-
 msgid "Please select two strips"
 msgstr "Tafadhali chagua vipande viwili"
-
-
-msgid "One of the effect inputs is unset, cannot swap"
-msgstr "Ingizo moja ya athari haijawekwa, haiwezi kubadilishana"
-
-
-msgid "New effect needs more input strips"
-msgstr "Athari mpya inahitaji vipande zaidi vya ingizo"
 
 
 msgid "Can't create subtitle file"
@@ -113262,12 +113144,12 @@ msgid "Format:"
 msgstr "Muundo:"
 
 
-msgid "ID value"
-msgstr "Thamani ya kitambulisho"
-
-
 msgid "Viewport compositor setup not fully supported"
 msgstr "Usanidi wa mtunzi wa Viewport hautumiki kikamilifu"
+
+
+msgid "ID value"
+msgstr "Thamani ya kitambulisho"
 
 
 msgid "Garbage Matte"
@@ -116514,10 +116396,6 @@ msgstr "Kamilisha"
 
 msgid "In Progress"
 msgstr "Inaendelea"
-
-
-msgid "Starting"
-msgstr "Kuanzia"
 
 
 msgid "Generation"

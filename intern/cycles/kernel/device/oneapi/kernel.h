@@ -25,6 +25,7 @@ enum DeviceKernel : int;
 #  endif
 
 class SyclQueue;
+class SyclDevice;
 
 typedef void (*OneAPIErrorCallback)(const char *error, void *user_ptr);
 

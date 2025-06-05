@@ -745,7 +745,7 @@ float texture_lod_bias_get()
  * \{ */
 
 /* Point clouds and curves are not compatible with volume grids.
- * They will fallback to their own attributes loading. */
+ * They will fall back to their own attributes loading. */
 #if defined(MAT_VOLUME) && !defined(MAT_GEOM_CURVES) && !defined(MAT_GEOM_POINTCLOUD)
 #  if defined(VOLUME_INFO_LIB) && !defined(MAT_GEOM_WORLD)
 /* We could just check for GRID_ATTRIBUTES but this avoids for header dependency. */

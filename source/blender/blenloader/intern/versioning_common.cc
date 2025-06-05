@@ -143,6 +143,7 @@ static void change_node_socket_name(ListBase *sockets, const char *old_name, con
 
 bool version_node_socket_is_used(bNodeSocket *sock)
 {
+  BLI_assert(sock != nullptr);
   return sock->flag & SOCK_IS_LINKED;
 }
 
@@ -282,8 +283,7 @@ bNodeSocket &version_node_add_socket(bNodeTree &ntree,
     BLI_addtail(&node.outputs, socket);
   }
 
-  node_socket_init_default_value_data(
-      eNodeSocketDatatype(stype->type), stype->subtype, &socket->default_value);
+  node_socket_init_default_value_data(stype->type, stype->subtype, &socket->default_value);
 
   BKE_ntree_update_tag_socket_new(&ntree, socket);
   return *socket;

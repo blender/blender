@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'ba454989554a')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'e91e8eef41aa')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-26 07:36+0000\n"
+"POT-Creation-Date: 2025-06-03 09:10+0000\n"
 "PO-Revision-Date: 2025-04-14 08:18+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Basque <https://translate.blender.org/projects/blender-ui/ui/eu/>\n"
@@ -557,16 +557,16 @@ msgid "Min Angle"
 msgstr "Angelu Minimoa"
 
 
-msgid "Relations"
-msgstr "Loturak"
+msgid "Text"
+msgstr "Testua"
 
 
 msgid "Show/Hide"
 msgstr "Erakutsi/Ezkutatu"
 
 
-msgid "Text"
-msgstr "Testua"
+msgid "Relations"
+msgstr "Loturak"
 
 
 msgid "UV"
@@ -621,6 +621,10 @@ msgstr "Mundua"
 msgctxt "Curve"
 msgid "Random"
 msgstr "Ausaz"
+
+
+msgid "Starting"
+msgstr "Hasten"
 
 
 msgid "Shadow"
@@ -1738,11 +1742,6 @@ msgid "Sound"
 msgstr "Soinua"
 
 
-msgctxt "Sequence"
-msgid "Cross"
-msgstr "Gurutzatu"
-
-
 msgctxt "WindowManager"
 msgid "Window"
 msgstr "Leihoa"
@@ -2431,8 +2430,4 @@ msgstr "Bukatuta"
 
 msgid "In Progress"
 msgstr "Abian"
-
-
-msgid "Starting"
-msgstr "Hasten"
 

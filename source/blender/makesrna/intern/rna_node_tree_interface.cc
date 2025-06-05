@@ -489,7 +489,7 @@ static const EnumPropertyItem *rna_NodeTreeInterfaceSocket_structure_type_itemf(
 
   const bool is_geometry_nodes = ntree->type == NTREE_GEOMETRY;
 
-  const eNodeSocketDatatype socket_type = eNodeSocketDatatype(socket->socket_typeinfo()->type);
+  const eNodeSocketDatatype socket_type = socket->socket_typeinfo()->type;
   const bool supports_fields = is_geometry_nodes &&
                                blender::nodes::socket_type_supports_fields(socket_type);
   const bool supports_grids = is_geometry_nodes &&

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'ba454989554a')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'e91e8eef41aa')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-26 07:36+0000\n"
+"POT-Creation-Date: 2025-06-03 09:10+0000\n"
 "PO-Revision-Date: 2025-04-14 08:33+0000\n"
 "Last-Translator: Brecht Van Lommel <brechtvanlommel@gmail.com>\n"
 "Language-Team: Dutch <https://translate.blender.org/projects/blender-ui/ui/nl/>\n"
@@ -2698,6 +2698,18 @@ msgid "Mask"
 msgstr "Mask"
 
 
+msgid "Text"
+msgstr "Tekst"
+
+
+msgid "Show/Hide"
+msgstr "Toon/Verberg"
+
+
+msgid "Names"
+msgstr "Namen"
+
+
 msgid "Mirror"
 msgstr "Spiegel"
 
@@ -2738,10 +2750,6 @@ msgid "Quick Effects"
 msgstr "Snelle Effecten"
 
 
-msgid "Show/Hide"
-msgstr "Toon/Verberg"
-
-
 msgid "Convert"
 msgstr "Converteer"
 
@@ -2752,14 +2760,6 @@ msgstr "Haken"
 
 msgid "Clear Transform"
 msgstr "Maak Transformatie Leeg"
-
-
-msgid "Names"
-msgstr "Namen"
-
-
-msgid "Text"
-msgstr "Tekst"
 
 
 msgctxt "MovieClip"
@@ -3079,6 +3079,10 @@ msgstr "Selecteer Patroon"
 
 msgid "Custom Color"
 msgstr "Eigen Kleur"
+
+
+msgid "Starting"
+msgstr "Opstarten"
 
 
 msgid "Meta"
@@ -6937,11 +6941,6 @@ msgid "Sound"
 msgstr "Geluid"
 
 
-msgctxt "Sequence"
-msgid "Cross"
-msgstr "Kruisovergang"
-
-
 msgid "Use Annotations"
 msgstr "Gebruik Annotaties"
 
@@ -7860,11 +7859,6 @@ msgstr "Tekst"
 msgctxt "Operator"
 msgid "Scene..."
 msgstr "Scene..."
-
-
-msgctxt "Operator"
-msgid "Cross"
-msgstr "Kruisovergang"
 
 
 msgctxt "Operator"
@@ -9095,10 +9089,6 @@ msgid "Mask not found"
 msgstr "Masker niet gevonden"
 
 
-msgid "No valid inputs to swap"
-msgstr "Geen geldige invoers om te wisselen"
-
-
 msgid "Mean Crease:"
 msgstr "Gemiddelde Vouw:"
 
@@ -9282,8 +9272,4 @@ msgstr "Compleet"
 
 msgid "In Progress"
 msgstr "Bezig"
-
-
-msgid "Starting"
-msgstr "Opstarten"
 

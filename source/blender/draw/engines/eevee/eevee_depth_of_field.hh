@@ -131,21 +131,23 @@ class DepthOfField {
   DepthOfFieldDataBuf data_;
 
   /** Scene settings that are immutable. */
-  float user_overblur_;
-  float fx_max_coc_;
+  float user_overblur_ = 0.0f;
+  float fx_max_coc_ = 0.0f;
   /** Use jittered depth of field where we randomize camera location. */
-  bool do_jitter_;
+  bool do_jitter_ = false;
   /** Enable bokeh lookup texture. */
-  bool use_bokeh_lut_;
+  bool use_bokeh_lut_ = false;
 
   /** Circle of Confusion radius for FX DoF passes. Is in view X direction in [0..1] range. */
-  float fx_radius_;
+  float fx_radius_ = 0.0f;
   /** Circle of Confusion radius for jittered DoF. Is in view X direction in [0..1] range. */
-  float jitter_radius_;
+  float jitter_radius_ = 0.0f;
   /** Focus distance in view space. */
-  float focus_distance_;
+  float focus_distance_ = 0.0f;
   /** Extent of the input buffer. */
-  int2 extent_;
+  int2 extent_ = int2(0);
+
+  bool enabled_ = false;
 
  public:
   DepthOfField(Instance &inst) : inst_(inst){};

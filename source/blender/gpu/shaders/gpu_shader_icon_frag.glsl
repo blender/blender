@@ -17,38 +17,38 @@ FRAGMENT_SHADER_CREATE_INFO(gpu_shader_icon)
 void main()
 {
   /* Sample texture with LOD BIAS. Used instead of custom LOD bias in GPU_SAMPLER_CUSTOM_ICON. */
-  fragColor = texture(image, texCoord_interp, -0.5f) * finalColor;
+  fragColor = texture(image, texCoord_interp, -0.5f) * final_color;
 
-#ifdef DO_CORNER_MASKING
-  /* Top-left rounded corner parameters. */
-  constexpr float circle_radius_outer = 0.1f;
-  constexpr float circle_radius_inner = 0.075f;
+  if (do_corner_masking) {
+    /* Top-left rounded corner parameters. */
+    constexpr float circle_radius_outer = 0.1f;
+    constexpr float circle_radius_inner = 0.075f;
 
-  /**
-   * Add a bit transparency to see a bit of the icon, without
-   * getting on the way of readability. */
-  constexpr float mask_transparency = 0.25f;
+    /**
+     * Add a bit transparency to see a bit of the icon, without
+     * getting on the way of readability. */
+    constexpr float mask_transparency = 0.25f;
 
-  float2 circle_center = float2(circle_radius_outer - text_width, 0.5f);
+    float2 circle_center = float2(circle_radius_outer - text_width, 0.5f);
 
-  /* Radius in icon space (1 is the icon width). */
-  float radius = length(mask_coord_interp - circle_center);
-  float mask = smoothstep(circle_radius_inner, circle_radius_outer, radius);
+    /* Radius in icon space (1 is the icon width). */
+    float radius = length(mask_coord_interp - circle_center);
+    float mask = smoothstep(circle_radius_inner, circle_radius_outer, radius);
 
-  bool lower_half = mask_coord_interp.y < circle_center.y;
-  bool right_half = mask_coord_interp.x > circle_center.x;
+    bool lower_half = mask_coord_interp.y < circle_center.y;
+    bool right_half = mask_coord_interp.x > circle_center.x;
 
-  if (right_half && mask_coord_interp.y < circle_center.y + circle_radius_outer) {
-    mask = smoothstep(circle_center.y + circle_radius_inner,
-                      circle_center.y + circle_radius_outer,
-                      mask_coord_interp.y);
+    if (right_half && mask_coord_interp.y < circle_center.y + circle_radius_outer) {
+      mask = smoothstep(circle_center.y + circle_radius_inner,
+                        circle_center.y + circle_radius_outer,
+                        mask_coord_interp.y);
+    }
+    if (lower_half && mask_coord_interp.x > circle_center.x - circle_radius_outer) {
+      mask = smoothstep(circle_center.x - circle_radius_inner,
+                        circle_center.x - circle_radius_outer,
+                        mask_coord_interp.x);
+    }
+
+    fragColor = mix(float4(0.0f), fragColor, max(mask_transparency, mask));
   }
-  if (lower_half && mask_coord_interp.x > circle_center.x - circle_radius_outer) {
-    mask = smoothstep(circle_center.x - circle_radius_inner,
-                      circle_center.x - circle_radius_outer,
-                      mask_coord_interp.x);
-  }
-
-  fragColor = mix(float4(0.0f), fragColor, max(mask_transparency, mask));
-#endif
 }

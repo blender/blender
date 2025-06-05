@@ -12,6 +12,7 @@
 #include "BKE_geometry_set.hh"
 #include "BKE_grease_pencil.hh"
 #include "BKE_grease_pencil_vertex_groups.hh"
+#include "BKE_lib_id.hh"
 #include "BKE_material.hh"
 #include "BKE_paint.hh"
 #include "BKE_scene.hh"
@@ -137,43 +138,86 @@ static void morph_points_to_curve(Span<float2> src, Span<float2> target, Mutable
   dst.last() = src.last();
 }
 
+/** Creates a temporary brush with the fill guide settings. */
+static Brush *create_fill_guide_brush()
+{
+  Brush *fill_guides_brush = BKE_id_new_nomain<Brush>("Draw Fill Guides");
+  fill_guides_brush->ob_mode = OB_MODE_PAINT_GREASE_PENCIL;
+
+  if (fill_guides_brush->gpencil_settings == nullptr) {
+    BKE_brush_init_gpencil_settings(fill_guides_brush);
+  }
+  BrushGpencilSettings *settings = fill_guides_brush->gpencil_settings;
+
+  BKE_curvemapping_init(settings->curve_sensitivity);
+  BKE_curvemapping_init(settings->curve_strength);
+  BKE_curvemapping_init(settings->curve_jitter);
+  BKE_curvemapping_init(settings->curve_rand_pressure);
+  BKE_curvemapping_init(settings->curve_rand_strength);
+  BKE_curvemapping_init(settings->curve_rand_uv);
+  BKE_curvemapping_init(settings->curve_rand_hue);
+  BKE_curvemapping_init(settings->curve_rand_saturation);
+  BKE_curvemapping_init(settings->curve_rand_value);
+
+  fill_guides_brush->flag |= BRUSH_LOCK_SIZE;
+  fill_guides_brush->unprojected_radius = 0.005f;
+
+  settings->flag &= ~GP_BRUSH_USE_PRESSURE;
+
+  settings->brush_draw_mode = GP_BRUSH_MODE_VERTEXCOLOR;
+  /* TODO: Use theme setting. */
+  copy_v3_fl3(fill_guides_brush->rgb, 0.0f, 1.0f, 1.0f);
+  settings->vertex_factor = 1.0f;
+
+  settings->active_smooth = 0.35f;
+  settings->hardness = 1.0f;
+  fill_guides_brush->spacing = 100;
+
+  settings->flag |= GP_BRUSH_GROUP_SETTINGS;
+  settings->simplify_px = 0.4f;
+
+  return fill_guides_brush;
+}
+
 class PaintOperation : public GreasePencilStrokeOperation {
  private:
   bke::greasepencil::Drawing *drawing_;
   int frame_number_;
   Vector<ed::greasepencil::MutableDrawingInfo> multi_frame_drawings_;
 
-  /* Screen space coordinates from input samples. */
+  /** Screen space coordinates from input samples. */
   Vector<float2> screen_space_coords_orig_;
 
-  /* Temporary vector of curve fitted screen space coordinates per input sample from the active
-   * smoothing window. The length of this depends on `active_smooth_start_index_`. */
+  /**
+   * Temporary vector of curve fitted screen space coordinates per input sample from the active
+   * smoothing window. The length of this depends on `active_smooth_start_index_`.
+   */
   Vector<Vector<float2>> screen_space_curve_fitted_coords_;
-  /* Temporary vector of screen space offsets. */
+  /** Temporary vector of screen space offsets. */
   Vector<float2> screen_space_jitter_offsets_;
-  /* Projection planes for every point in "Stroke" placement mode. */
+  /** Projection planes for every point in "Stroke" placement mode. */
   Vector<std::optional<float>> stroke_placement_depths_;
 
-  /* Screen space coordinates after smoothing. */
+  /** Screen space coordinates after smoothing. */
   Vector<float2> screen_space_smoothed_coords_;
-  /* Screen space coordinates after smoothing and jittering. */
+  /** Screen space coordinates after smoothing and jittering. */
   Vector<float2> screen_space_final_coords_;
 
-  /* The start index of the smoothing window. */
+  /** The start index of the smoothing window. */
   int active_smooth_start_index_ = 0;
   blender::float4x2 texture_space_ = float4x2::identity();
 
-  /* Helper class to project screen space coordinates to 3d. */
+  /** Helper class to project screen space coordinates to 3d. */
   ed::greasepencil::DrawingPlacement placement_;
-  /* Last valid stroke intersection, for use in Stroke projection mode. */
+  /** Last valid stroke intersection, for use in Stroke projection mode. */
   std::optional<float> last_stroke_placement_depth_;
-  /* Point index of the last valid stroke placement. */
+  /** Point index of the last valid stroke placement. */
   std::optional<int> last_stroke_placement_point_;
 
-  /* Direction the pen is moving in smoothed over time. */
+  /** Direction the pen is moving in smoothed over time. */
   float2 smoothed_pen_direction_ = float2(0.0f);
 
-  /* Accumulated distance along the stroke. */
+  /** Accumulated distance along the stroke. */
   float accum_distance_ = 0.0f;
 
   RandomNumberGenerator rng_;
@@ -186,29 +230,34 @@ class PaintOperation : public GreasePencilStrokeOperation {
   float stroke_random_sat_factor_;
   float stroke_random_val_factor_;
 
-  /* The current time at which the paint operation begins. */
+  /** The current time at which the paint operation begins. */
   double start_time_;
-  /* Current delta time from #start_time_, updated after each extension sample. */
+  /** Current delta time from #start_time_, updated after each extension sample. */
   double delta_time_;
 
-  /* Whether the operation was temporarily called from tools other than draw tool. */
-  bool temp_draw_;
+  /** Set to true when the paint operation is used to draw fill guides. */
+  bool do_fill_guides_;
 
   friend struct PaintOperationExecutor;
+
+  Brush *saved_active_brush_;
+  Brush *fill_guides_brush_;
 
  public:
   void on_stroke_begin(const bContext &C, const InputSample &start_sample) override;
   void on_stroke_extended(const bContext &C, const InputSample &extension_sample) override;
   void on_stroke_done(const bContext &C) override;
 
-  PaintOperation(const bool temp_draw = false) : temp_draw_(temp_draw) {}
+  PaintOperation(const bool do_fill_guides = false) : do_fill_guides_(do_fill_guides) {}
 
   bool update_stroke_depth_placement(const bContext &C, const InputSample &sample);
-  /* Returns the range of actually reprojected points. */
+  /** Returns the range of actually reprojected points. */
   IndexRange interpolate_stroke_depth(const bContext &C,
                                       std::optional<int> start_point,
                                       float from_depth,
                                       float to_depth);
+  void toggle_fill_guides_brush_on(const bContext &C);
+  void toggle_fill_guides_brush_off(const bContext &C);
 };
 
 /**
@@ -293,9 +342,6 @@ struct PaintOperationExecutor {
                                                         0.0f,
                                                         start_opacity,
                                                         start_sample.pressure);
-
-    /* Do not allow pressure opacity when drawing tool was invoked temporarily. */
-    const float fill_opacity = (!self.temp_draw_) ? start_opacity : 1.0f;
 
     const float start_rotation = ed::greasepencil::randomize_rotation(
         *settings_, self.rng_, self.stroke_random_rotation_factor_, start_sample.pressure);
@@ -413,7 +459,7 @@ struct PaintOperationExecutor {
                   bke::AttrDomain::Curve,
                   bke::AttributeInitVArray(VArray<float>::ForSingle(1.0f, curves.curves_num()))))
       {
-        fill_opacities.span[active_curve] = fill_opacity;
+        fill_opacities.span[active_curve] = start_opacity;
         curve_attributes_to_skip.add("fill_opacity");
         fill_opacities.finish();
       }
@@ -426,6 +472,17 @@ struct PaintOperationExecutor {
       init_times.span[active_curve] = float(uint64_t(self.start_time_ * 1e3)) / float(1e3);
       curve_attributes_to_skip.add("init_time");
       init_times.finish();
+    }
+
+    if (self.do_fill_guides_) {
+      if (bke::SpanAttributeWriter<bool> is_fill_boundary =
+              attributes.lookup_or_add_for_write_span<bool>(".is_fill_guide",
+                                                            bke::AttrDomain::Curve))
+      {
+        is_fill_boundary.span[active_curve] = true;
+        curve_attributes_to_skip.add(".is_fill_guide");
+        is_fill_boundary.finish();
+      }
     }
 
     curves.curve_types_for_write()[active_curve] = CURVE_TYPE_POLY;
@@ -1057,6 +1114,29 @@ IndexRange PaintOperation::interpolate_stroke_depth(const bContext &C,
   return active_points;
 }
 
+void PaintOperation::toggle_fill_guides_brush_on(const bContext &C)
+{
+  Paint *paint = BKE_paint_get_active_from_context(&C);
+  Brush *current_brush = BKE_paint_brush(paint);
+
+  fill_guides_brush_ = create_fill_guide_brush();
+  BLI_assert(fill_guides_brush_ != nullptr);
+  BKE_paint_brush_set(paint, fill_guides_brush_);
+
+  saved_active_brush_ = current_brush;
+}
+
+void PaintOperation::toggle_fill_guides_brush_off(const bContext &C)
+{
+  Paint *paint = BKE_paint_get_active_from_context(&C);
+  BLI_assert(saved_active_brush_ != nullptr);
+  BKE_paint_brush_set(paint, saved_active_brush_);
+  saved_active_brush_ = nullptr;
+  /* Free the temporary brush. */
+  BKE_id_free_ex(nullptr, fill_guides_brush_, LIB_ID_FREE_NO_MAIN, false);
+  fill_guides_brush_ = nullptr;
+}
+
 void PaintOperation::on_stroke_begin(const bContext &C, const InputSample &start_sample)
 {
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(&C);
@@ -1066,6 +1146,10 @@ void PaintOperation::on_stroke_begin(const bContext &C, const InputSample &start
   Object *object = CTX_data_active_object(&C);
   Object *eval_object = DEG_get_evaluated(depsgraph, object);
   GreasePencil *grease_pencil = static_cast<GreasePencil *>(object->data);
+
+  if (do_fill_guides_) {
+    this->toggle_fill_guides_brush_on(C);
+  }
 
   Paint *paint = &scene->toolsettings->gp_paint->paint;
   Brush *brush = BKE_paint_brush(paint);
@@ -1653,13 +1737,17 @@ void PaintOperation::on_stroke_done(const bContext &C)
   /* Now we're done drawing. */
   grease_pencil.runtime->is_drawing_stroke = false;
 
+  if (do_fill_guides_) {
+    this->toggle_fill_guides_brush_off(C);
+  }
+
   DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
   WM_event_add_notifier(&C, NC_GEOM | ND_DATA, &grease_pencil.id);
 }
 
-std::unique_ptr<GreasePencilStrokeOperation> new_paint_operation(const bool temp_draw)
+std::unique_ptr<GreasePencilStrokeOperation> new_paint_operation(const bool do_fill_guides)
 {
-  return std::make_unique<PaintOperation>(temp_draw);
+  return std::make_unique<PaintOperation>(do_fill_guides);
 }
 
 }  // namespace blender::ed::sculpt_paint::greasepencil

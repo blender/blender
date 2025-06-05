@@ -130,7 +130,7 @@ static wmOperatorStatus view3d_zoom_border_exec(bContext *C, wmOperator *op)
       float xy_delta[2];
       float zfac;
 
-      /* We can't use the depth, fallback to the old way that doesn't set the center depth */
+      /* We can't use the depth, fall back to the old way that doesn't set the center depth */
       copy_v3_v3(ofs_new, rv3d->ofs);
 
       {

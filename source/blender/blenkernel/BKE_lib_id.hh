@@ -729,7 +729,7 @@ void BKE_lib_id_expand_local(Main *bmain, ID *id, int flags);
  *
  * \param newname: The new name of the given ID, if `nullptr` the current given ID name is used
  * instead. If the given ID has no name (or the given name is an empty string), the default
- * matching data name is used as fallback.
+ * matching data name is used as a fallback.
  * \param do_linked_data: if true, also ensure a unique name in case the given ID is linked
  * (otherwise, just ensure that it is properly sorted).
  *

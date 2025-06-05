@@ -468,7 +468,7 @@ static bool action_stash_create_poll(bContext *C)
       }
     }
     else {
-      /* There may not be any action/animdata yet, so, just fallback to the global setting
+      /* There may not be any action/animdata yet, so, just fall back to the global setting
        * (which may not be totally valid yet if the action editor was used and things are
        * now in an inconsistent state)
        */

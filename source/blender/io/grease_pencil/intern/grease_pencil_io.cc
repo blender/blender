@@ -580,4 +580,18 @@ float2 GreasePencilExporter::project_to_screen(const float4x4 &transform,
   return float2(V2D_IS_CLIPPED);
 }
 
+bool GreasePencilExporter::is_selected_frame(const GreasePencil &grease_pencil,
+                                             const int frame_number) const
+{
+  for (const bke::greasepencil::Layer *layer : grease_pencil.layers()) {
+    if (layer->is_visible()) {
+      const GreasePencilFrame *frame = layer->frame_at(frame_number);
+      if ((frame != nullptr) && frame->is_selected()) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 }  // namespace blender::io::grease_pencil

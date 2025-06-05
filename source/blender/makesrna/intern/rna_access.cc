@@ -1210,6 +1210,11 @@ int RNA_property_tags(PropertyRNA *prop)
   return rna_ensure_property(prop)->tags;
 }
 
+PropertyPathTemplateType RNA_property_path_template_type(PropertyRNA *prop)
+{
+  return rna_ensure_property(prop)->path_template_type;
+}
+
 bool RNA_property_builtin(PropertyRNA *prop)
 {
   return (rna_ensure_property(prop)->flag_internal & PROP_INTERN_BUILTIN) != 0;

@@ -1704,7 +1704,7 @@ class IMAGE_PT_overlay_uv_display(Panel):
     @classmethod
     def poll(cls, context):
         sima = context.space_data
-        return (sima and not (sima.show_uvedit or sima.show_render))
+        return (sima and sima.mode in {'UV', 'PAINT'} and not (sima.show_uvedit or sima.show_render))
 
     def draw(self, context):
         layout = self.layout

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'ba454989554a')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'e91e8eef41aa')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-26 07:36+0000\n"
+"POT-Creation-Date: 2025-06-03 09:10+0000\n"
 "PO-Revision-Date: 2025-04-14 08:14+0000\n"
 "Last-Translator: Thomas Radeke <rahdick@gmx.de>\n"
 "Language-Team: German <https://translate.blender.org/projects/blender-ui/ui/de/>\n"
@@ -18839,12 +18839,56 @@ msgid "Material slot name"
 msgstr "Materialsteckplatzname"
 
 
-msgid "Mirror"
-msgstr "Spiegeln"
+msgid "Special Characters"
+msgstr "Sonderzeichen"
+
+
+msgid "Kerning"
+msgstr "Kerning"
+
+
+msgid "Text"
+msgstr "Text"
+
+
+msgid "Metaball"
+msgstr "Metaball"
+
+
+msgid "Show/Hide"
+msgstr "Zeigen/Verbergen"
+
+
+msgid "Names"
+msgstr "Namen"
+
+
+msgid "Clean Up"
+msgstr "Aufräumen"
+
+
+msgid "Pivot Point"
+msgstr "Drehpunkt"
 
 
 msgid "Snap"
 msgstr "Einrasten"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Proportionaler Bearbeitungsabfall"
+
+
+msgid "Mask Edit"
+msgstr "Maskenbearbeitung"
+
+
+msgid "Vertex Group Locks"
+msgstr "Punktgruppen sperren"
+
+
+msgid "Mirror"
+msgstr "Spiegeln"
 
 
 msgid "Local View"
@@ -18895,10 +18939,6 @@ msgid "Assign Material"
 msgstr "Material zuweisen"
 
 
-msgid "Metaball"
-msgstr "Metaball"
-
-
 msgid "Light"
 msgstr "Licht"
 
@@ -18931,14 +18971,6 @@ msgid "Quick Effects"
 msgstr "Schnelle Effekte"
 
 
-msgid "Show/Hide"
-msgstr "Zeigen/Verbergen"
-
-
-msgid "Clean Up"
-msgstr "Aufräumen"
-
-
 msgid "Asset"
 msgstr "Asset"
 
@@ -18955,10 +18987,6 @@ msgid "Hooks"
 msgstr "Haken"
 
 
-msgid "Vertex Group Locks"
-msgstr "Punktgruppen sperren"
-
-
 msgid "Random Mask"
 msgstr "Zufällige Maske"
 
@@ -18969,10 +18997,6 @@ msgstr "Transformation löschen"
 
 msgid "In-Betweens"
 msgstr "Dazwischen"
-
-
-msgid "Names"
-msgstr "Namen"
 
 
 msgid "Toggle Bone Options"
@@ -18997,30 +19021,6 @@ msgstr "Flächendaten"
 
 msgid "Merge"
 msgstr "Zusammenführen"
-
-
-msgid "Special Characters"
-msgstr "Sonderzeichen"
-
-
-msgid "Kerning"
-msgstr "Kerning"
-
-
-msgid "Text"
-msgstr "Text"
-
-
-msgid "Pivot Point"
-msgstr "Drehpunkt"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Proportionaler Bearbeitungsabfall"
-
-
-msgid "Mask Edit"
-msgstr "Maskenbearbeitung"
 
 
 msgid "Assets"
@@ -22912,6 +22912,10 @@ msgid "Stab Weight"
 msgstr "Gewichtsstab"
 
 
+msgid "Starting"
+msgstr "Starten"
+
+
 msgid "NLA Strip"
 msgstr "NLA-Streifen"
 
@@ -23052,10 +23056,6 @@ msgid "Aspect Correction"
 msgstr "Seitenkorrektur"
 
 
-msgid "Type of aspect correction to use"
-msgstr "Art der zu verwendenden Aspektkorrektur"
-
-
 msgid "Relative Size X"
 msgstr "Relative X Größe"
 
@@ -23066,14 +23066,6 @@ msgstr "Relative Y Größe"
 
 msgid "Bokeh"
 msgstr "Bokeh"
-
-
-msgid "Use circular filter (slower)"
-msgstr "Kreisfilter verwenden (langsamer)"
-
-
-msgid "Use relative (percent) values to define blur radius"
-msgstr "Relative (prozentual) Werte verwenden, um den Weichzeichnerradius zu definieren"
 
 
 msgid "Variable Size"
@@ -36795,10 +36787,6 @@ msgid "Type"
 msgstr "Typ"
 
 
-msgid "Sequencer effect type"
-msgstr "Sequenzer-Effekttyp"
-
-
 msgctxt "Sequence"
 msgid "Add"
 msgstr "Addieren"
@@ -36812,10 +36800,6 @@ msgstr "Subtrahieren"
 msgctxt "Sequence"
 msgid "Alpha Over"
 msgstr "Alpha über"
-
-
-msgid "Alpha Over effect strip type"
-msgstr "Alpha über Effektstreifen-Typ"
 
 
 msgctxt "Sequence"
@@ -36838,10 +36822,6 @@ msgid "Glow"
 msgstr "Glühen"
 
 
-msgid "Glow effect strip type"
-msgstr "Glüheffekt-Streifentyp"
-
-
 msgctxt "Sequence"
 msgid "Transform"
 msgstr "Transformieren"
@@ -36850,10 +36830,6 @@ msgstr "Transformieren"
 msgctxt "Sequence"
 msgid "Color"
 msgstr "Farbe"
-
-
-msgid "Color effect strip type"
-msgstr "Farb-Effektstreifentyp"
 
 
 msgctxt "Sequence"
@@ -36923,6 +36899,10 @@ msgstr "Überlappung erlauben"
 
 msgid "Replace Selection"
 msgstr "Auswahl ersetzen"
+
+
+msgid "Sequencer effect type"
+msgstr "Sequenzer-Effekttyp"
 
 
 msgid "Fade Duration"
@@ -39934,6 +39914,34 @@ msgid "Active Palette Color"
 msgstr "Aktive Farbpalette"
 
 
+msgid "Active Tool"
+msgstr "Aktives Werkzeug"
+
+
+msgid "View Lock"
+msgstr "Ansicht sperren"
+
+
+msgid "Shadow Settings"
+msgstr "Schatteneinstellungen"
+
+
+msgid "SSAO Settings"
+msgstr "SSAO Einstellungen"
+
+
+msgid "Cavity"
+msgstr "Hohlraum"
+
+
+msgid "Render Pass"
+msgstr "Renderdurchgänge"
+
+
+msgid "Compositor"
+msgstr "Setzer"
+
+
 msgid "Overlays"
 msgstr "Überlagerungen"
 
@@ -39982,40 +39990,12 @@ msgid "Stereoscopy"
 msgstr "Stereoskopie"
 
 
-msgid "Compositor"
-msgstr "Setzer"
-
-
 msgid "Auto-Masking"
 msgstr "Automatisches Maskieren"
 
 
 msgid "VR"
 msgstr "VR"
-
-
-msgid "Active Tool"
-msgstr "Aktives Werkzeug"
-
-
-msgid "View Lock"
-msgstr "Ansicht sperren"
-
-
-msgid "Shadow Settings"
-msgstr "Schatteneinstellungen"
-
-
-msgid "SSAO Settings"
-msgstr "SSAO Einstellungen"
-
-
-msgid "Cavity"
-msgstr "Hohlraum"
-
-
-msgid "Render Pass"
-msgstr "Renderdurchgänge"
 
 
 msgid "Chain Scaling"
@@ -43149,10 +43129,6 @@ msgstr "Dickere Linien als die Voreinstellung"
 
 msgid "Changes the size of the fonts and widgets in the interface"
 msgstr "Ändert die Größe von Schriftarten und Widgets im Interface"
-
-
-msgid "Open menu buttons and pulldowns automatically when the mouse is hovering"
-msgstr "Menüknöpfe und Aktionsmenüs automatisch öffnen, wenn die Maus sich darüber befindet"
 
 
 msgid "Save Prompt"
@@ -46844,11 +46820,6 @@ msgid "Sound"
 msgstr "Klang"
 
 
-msgctxt "Sequence"
-msgid "Cross"
-msgstr "Kreuz"
-
-
 msgid "Use Default Fade"
 msgstr "Standard-Blende verwenden"
 
@@ -46907,10 +46878,6 @@ msgstr "Farbstreifen"
 
 msgid "Effect Strip color"
 msgstr "Effektstreifenfarbe"
-
-
-msgid "Cross Sequence"
-msgstr "Sequenz Überquerung"
 
 
 msgid "Blur Distance"
@@ -47482,6 +47449,10 @@ msgid "Color of path before current frame"
 msgstr "Pfadfarbe vor aktuellem Einzelbild"
 
 
+msgid "Preview Range"
+msgstr "Vorschaubereich"
+
+
 msgid "Selected Marker"
 msgstr "Ausgewählte Marker"
 
@@ -47588,10 +47559,6 @@ msgstr "Schlüsselbild auswählen"
 
 msgid "Color of selected keyframe"
 msgstr "Farbe des ausgewählten Schlüsselbildes"
-
-
-msgid "Preview Range"
-msgstr "Vorschaubereich"
 
 
 msgid "Summary"
@@ -53000,16 +52967,6 @@ msgstr "Szene..."
 
 
 msgctxt "Operator"
-msgid "Cross"
-msgstr "Kreuz"
-
-
-msgctxt "Operator"
-msgid "Gamma Cross"
-msgstr "Gamma Kreuz"
-
-
-msgctxt "Operator"
 msgid "Wipe"
 msgstr "Draht"
 
@@ -55036,6 +54993,10 @@ msgid "Auto-Velocity"
 msgstr "Auto Geschwindigkeit"
 
 
+msgid "Ignore Transparent"
+msgstr "Ignoriere Transparent"
+
+
 msgid "No Textures"
 msgstr "Keine Texturen"
 
@@ -55043,10 +55004,6 @@ msgstr "Keine Texturen"
 msgctxt "Operator"
 msgid "Add UVs"
 msgstr "UVs hinzufügen"
-
-
-msgid "Ignore Transparent"
-msgstr "Ignoriere Transparent"
 
 
 msgid "User Library"
@@ -60042,8 +59999,4 @@ msgstr "Vollständig"
 
 msgid "In Progress"
 msgstr "In Arbeit"
-
-
-msgid "Starting"
-msgstr "Starten"
 

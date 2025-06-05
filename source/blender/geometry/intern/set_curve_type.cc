@@ -450,7 +450,7 @@ static bke::CurvesGeometry convert_curves_to_bezier(const bke::CurvesGeometry &s
 
     attribute.dst.finish();
   }
-
+  bke::curves::nurbs::copy_custom_knots(src_curves, selection, dst_curves);
   return dst_curves;
 }
 
@@ -623,7 +623,7 @@ static bke::CurvesGeometry convert_curves_to_nurbs(const bke::CurvesGeometry &sr
 
     attribute.dst.finish();
   }
-
+  bke::curves::nurbs::copy_custom_knots(src_curves, IndexMask(), dst_curves);
   return dst_curves;
 }
 
@@ -754,7 +754,7 @@ static bke::CurvesGeometry convert_curves_to_catmull_rom_or_poly(
 
     attribute.dst.finish();
   }
-
+  bke::curves::nurbs::copy_custom_knots(src_curves, selection, dst_curves);
   return dst_curves;
 }
 

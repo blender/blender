@@ -852,6 +852,13 @@ typedef enum eSpaceNode_Flag {
   SNODE_FLAG_UNUSED_12 = (1 << 13),
 } eSpaceNode_Flag;
 
+/** #SpaceNode.gizmo_flag */
+enum {
+  /** All gizmos. */
+  SNODE_GIZMO_HIDE = (1 << 0),
+  SNODE_GIZMO_HIDE_ACTIVE_NODE = (1 << 1),
+};
+
 /** #SpaceNode.texfrom */
 typedef enum eSpaceNode_TexFrom {
   /* SNODE_TEX_OBJECT   = 0, */

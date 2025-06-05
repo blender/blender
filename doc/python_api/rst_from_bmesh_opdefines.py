@@ -166,6 +166,7 @@ def main():
             if l.startswith("/*"):
                 l = l.replace("/*", "'''own <")
             else:
+                # NOTE: `inline <...>` aren't used anymore, all doc-string comments require their own line.
                 l = l.replace("/*", "'''inline <")
             l = l.replace("*/", ">''',")
 
@@ -256,27 +257,17 @@ def main():
 
                 tp_str = ""
 
-                comment_prev = ""
-                comment_next = ""
-                if i != 0:
-                    comment_prev = args[i + 1]
-                    if type(comment_prev) == str and comment_prev.startswith("our <"):
-                        comment_prev = comment_next[5:-1]  # strip inline <...>
-                    else:
-                        comment_prev = ""
-
-                if i + 1 < len(args):
-                    comment_next = args[i + 1]
-                    if type(comment_next) == str and comment_next.startswith("inline <"):
-                        comment_next = comment_next[8:-1]  # strip inline <...>
-                    else:
-                        comment_next = ""
-
                 comment = ""
-                if comment_prev:
-                    comment += comment_prev.strip()
-                if comment_next:
-                    comment += ("\n" if comment_prev else "") + comment_next.strip()
+                if i != 0:
+                    comment = args[i - 1]
+                    if type(args[i - 1]) == str:
+                        if args[i - 1].startswith("own <"):
+                            comment = args[i - 1][5:-1].strip()  # strip `our <...>`
+                    else:
+                        comment = ""
+
+                if comment.startswith("NOTE"):
+                    comment = ""
 
                 default_value = None
                 if tp == BMO_OP_SLOT_FLT:
@@ -318,7 +309,7 @@ def main():
                         tp_str = ":class:`bpy.types.Mesh`"
                     elif tp_sub == BMO_OP_SLOT_SUBTYPE_PTR_STRUCT:
                         # XXX Used for CurveProfile only currently I think (bevel code),
-                        #     but think the idea is that that pointer is for any type?
+                        #     but think the idea is that pointer is for any type?
                         tp_str = ":class:`bpy.types.bpy_struct`"
                     else:
                         assert False, "unreachable, unknown type {!r}".format(vars_dict_reverse[tp_sub])
@@ -387,6 +378,9 @@ def main():
                 continue
             if l.strip():
                 l = "   " + l
+
+            # Use double back-ticks for literals (C++ comments only use a single, RST expected two).
+            l = l.replace("`", "``")
             comment_washed.append(l)
 
         fw("\n".join(comment_washed))
@@ -425,7 +419,6 @@ def main():
 
     fout.close()
     del fout
-    print(OUT_RST)
 
 
 def arg_name_with_default(arg):

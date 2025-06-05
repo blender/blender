@@ -63,7 +63,11 @@ class VKDrawIndexedIndirectNode
                    const CreateInfo &create_info) override
   {
     create_info.resources.build_links(resources, node_links);
-    vk_index_buffer_binding_build_links(resources, node_links, create_info.node_data.index_buffer);
+    if (create_info.node_data.index_buffer.buffer != VK_NULL_HANDLE) {
+      vk_index_buffer_binding_build_links(
+          resources, node_links, create_info.node_data.index_buffer);
+    }
+
     vk_vertex_buffer_bindings_build_links(
         resources, node_links, create_info.node_data.vertex_buffers);
     ResourceWithStamp buffer_resource = resources.get_buffer(

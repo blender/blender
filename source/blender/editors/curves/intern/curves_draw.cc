@@ -1115,7 +1115,7 @@ static wmOperatorStatus curves_draw_invoke(bContext *C, wmOperator *op, const wm
         }
       }
 
-      /* use view plane (when set or as fallback when surface can't be found) */
+      /* use view plane (when set or as a fallback when surface can't be found) */
       if (cdd->project.use_depth == false) {
         plane_co = cdd->vc.scene->cursor.location;
         plane_no = rv3d->viewinv[2];

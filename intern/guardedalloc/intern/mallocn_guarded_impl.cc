@@ -744,7 +744,7 @@ void *MEM_guarded_calloc_arrayN_aligned(const size_t len,
                                         const char *str)
 {
   size_t bytes_num;
-  /* There is no lower level #calloc with an alignment parameter, so we have to fallback to using
+  /* There is no lower level #calloc with an alignment parameter, so we have to fall back to using
    * #memset unfortunately. */
   void *ptr = mem_guarded_malloc_arrayN_aligned(len, size, alignment, str, bytes_num);
   if (!ptr) {

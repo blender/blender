@@ -558,7 +558,7 @@ static float get_build_factor(const GreasePencilBuildTimeMode time_mode,
       return percentage * (1.0f + fade);
     case MOD_GREASE_PENCIL_BUILD_TIMEMODE_DRAWSPEED:
       /* The "drawing speed" is written as an attribute called 'delta_time' (for each point). If
-       * this attribute doesn't exist, we fallback to the "frames" mode. */
+       * this attribute doesn't exist, we fall back to the "frames" mode. */
       if (!curves.attributes().contains("delta_time")) {
         return build_factor_frames;
       }

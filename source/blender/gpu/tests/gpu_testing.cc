@@ -36,6 +36,9 @@ void GPUTest::SetUpTestSuite(GHOST_TDrawingContextType draw_context_type,
   CLG_init();
   BLI_threadapi_init();
   GPU_backend_type_selection_set(gpu_backend_type);
+  if (!GPU_backend_supported()) {
+    GTEST_SKIP() << "GPU backend not supported";
+  }
   GHOST_GPUSettings gpuSettings = {};
   gpuSettings.context_type = draw_context_type;
   gpuSettings.flags = GHOST_gpuDebugContext;

@@ -2273,7 +2273,7 @@ static wmOperatorStatus armature_shortest_path_pick_invoke(bContext *C,
   ebone_src = arm->act_edbone;
   ebone_dst = ED_armature_pick_ebone(C, event->mval, false, &base_dst);
 
-  /* fallback to object selection */
+  /* fall back to object selection */
   if (ELEM(nullptr, ebone_src, ebone_dst) || (ebone_src == ebone_dst)) {
     return OPERATOR_PASS_THROUGH;
   }

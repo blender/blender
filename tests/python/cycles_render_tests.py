@@ -24,19 +24,20 @@ BLOCKLIST_ALL = [
     "image_log_osl.blend",
 ]
 
-# Blocklist that disables OSL specific tests for configurations that do not support OSL backend.
-BLOCKLIST_EXPLICIT_OSL = [
+# Blocklist for device + build configuration that does not support OSL at all.
+BLOCKLIST_OSL_NONE = [
     '.*_osl.blend',
     'osl_.*.blend',
 ]
 
-# Blocklist for SVM tests that are forced to run with OSL to test consistency between the two backends.
-BLOCKLIST_OSL = [
-    # Block tests that fail with OSL due to differences from SVM.
-    # Note: Most of the tests below are expected to be different between OSL and SVM
-    # As such many of these tests have both a SVM and OSL file. Blocking the SVM
-    # tests here doesn't loose any test permutations.
-    #
+# Blocklist for OSL with limited OSL tests for fast test execution.
+BLOCKLIST_OSL_LIMITED = []
+
+# Blocklist for tests that fail when running all tests with OSL backend.
+# Most of these tests are blocked due to expected differences between SVM and OSL.
+# Due to the expected differences there are usually a SVM and OSL version of the test.
+# So blocking these tests doesn't lose any test permutations.
+BLOCKLIST_OSL_ALL = BLOCKLIST_OSL_LIMITED + [
     # AOVs are not supported. See 73266
     'aov_position.blend',
     'render_passes_aov.*.blend',
@@ -53,7 +54,7 @@ BLOCKLIST_OSL = [
     'image_log.blend',
     'image_non_color.blend',
     'image_mapping_udim.blend',
-    # TODO: Tests that need investigating into why they're failing, and how to fix that.
+    # Tests that need investigating into why they're failing:
     # Noise differences due to Principled BSDF mixing/layering used in some of these scenes
     'render_passes_.*.blend',
 ]
@@ -64,14 +65,20 @@ BLOCKLIST_OPTIX = [
     'big_plane_43865.blend',
 ]
 
-BLOCKLIST_OPTIX_OSL = [
+# Blocklist for OSL tests that fail with the OptiX OSL backend.
+BLOCKLIST_OPTIX_OSL_LIMITED = [
+    'image_.*_osl.blend',
+    # OptiX OSL doesn't support the trace function
+    'osl_trace_shader.blend',
+]
+
+# Blocklist for SVM tests that fail when forced to run with OptiX OSL
+BLOCKLIST_OPTIX_OSL_ALL = BLOCKLIST_OPTIX_OSL_LIMITED + [
     # OptiX OSL does support AO or Bevel
     'ambient_occlusion.*.blend',
     'bake_bevel.blend',
     'bevel.blend',
     'principled_bsdf_bevel_emission_137420.blend',
-    # OptiX OSL doesn't support the trace function
-    'osl_trace_shader.blend',
     # The 3D texture doesn't have the right mappings
     'point_density_.*_object.blend',
     # Dicing tests use wireframe node which doesn't appear to be supported with OptiX OSL
@@ -204,8 +211,7 @@ def create_argparse():
     parser.add_argument("--outdir", required=True)
     parser.add_argument("--oiiotool", required=True)
     parser.add_argument("--device", required=True)
-    parser.add_argument("--blocklist", nargs="*", default=[])
-    parser.add_argument("--osl", default=False, action='store_true')
+    parser.add_argument("--osl", default='none', type=str, choices=["none", "limited", "all"])
     parser.add_argument('--batch', default=False, action='store_true')
     return parser
 
@@ -217,20 +223,27 @@ def main():
     device = args.device
 
     blocklist = BLOCKLIST_ALL
+
+    if args.osl == 'none':
+        blocklist += BLOCKLIST_OSL_NONE
+    elif args.osl == "limited":
+        blocklist += BLOCKLIST_OSL_LIMITED
+    else:
+        blocklist += BLOCKLIST_OSL_ALL
+
     if device != 'CPU':
         blocklist += BLOCKLIST_GPU
-    if device != 'CPU' or 'OSL' in args.blocklist:
-        blocklist += BLOCKLIST_EXPLICIT_OSL
+
     if device == 'OPTIX':
         blocklist += BLOCKLIST_OPTIX
-        if args.osl:
-            blocklist += BLOCKLIST_OPTIX_OSL
+        if args.osl == 'limited':
+            blocklist += BLOCKLIST_OPTIX_OSL_LIMITED
+        elif args.osl == 'all':
+            blocklist += BLOCKLIST_OPTIX_OSL_ALL
     if device == 'METAL':
         blocklist += BLOCKLIST_METAL
-    if args.osl:
-        blocklist += BLOCKLIST_OSL
 
-    report = CyclesReport('Cycles', args.outdir, args.oiiotool, device, blocklist, args.osl)
+    report = CyclesReport('Cycles', args.outdir, args.oiiotool, device, blocklist, args.osl == 'all')
     report.set_pixelated(True)
     report.set_reference_dir("cycles_renders")
     if device == 'CPU':
@@ -251,12 +264,12 @@ def main():
 
     test_dir_name = Path(args.testdir).name
     if (test_dir_name in {'motion_blur', 'integrator', "displacement"}) or \
-       ((args.osl) and (test_dir_name in {'shader', 'hair'})):
+       ((args.osl == 'all') and (test_dir_name in {'shader', 'hair'})):
         report.set_fail_threshold(0.032)
 
     # Layer mixing is different between SVM and OSL, so a few tests have
     # noticably different noise causing OSL Principled BSDF tests to fail.
-    if ((args.osl) and (test_dir_name == 'principled_bsdf')):
+    if ((args.osl == 'all') and (test_dir_name == 'principled_bsdf')):
         report.set_fail_threshold(0.06)
 
     ok = report.run(args.testdir, args.blender, get_arguments, batch=args.batch)

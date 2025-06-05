@@ -106,8 +106,9 @@ static int get_internal_link_type_priority(const bNodeSocketType *from, const bN
           return 2;
         case SOCK_BOOLEAN:
           return 1;
+        default:
+          return -1;
       }
-      return -1;
     case SOCK_VECTOR:
       switch (from->type) {
         case SOCK_VECTOR:
@@ -118,8 +119,9 @@ static int get_internal_link_type_priority(const bNodeSocketType *from, const bN
           return 2;
         case SOCK_BOOLEAN:
           return 1;
+        default:
+          return -1;
       }
-      return -1;
     case SOCK_FLOAT:
       switch (from->type) {
         case SOCK_FLOAT:
@@ -132,8 +134,9 @@ static int get_internal_link_type_priority(const bNodeSocketType *from, const bN
           return 2;
         case SOCK_VECTOR:
           return 1;
+        default:
+          return -1;
       }
-      return -1;
     case SOCK_INT:
       switch (from->type) {
         case SOCK_INT:
@@ -146,8 +149,9 @@ static int get_internal_link_type_priority(const bNodeSocketType *from, const bN
           return 2;
         case SOCK_VECTOR:
           return 1;
+        default:
+          return -1;
       }
-      return -1;
     case SOCK_BOOLEAN:
       switch (from->type) {
         case SOCK_BOOLEAN:
@@ -160,8 +164,9 @@ static int get_internal_link_type_priority(const bNodeSocketType *from, const bN
           return 2;
         case SOCK_VECTOR:
           return 1;
+        default:
+          return -1;
       }
-      return -1;
     case SOCK_ROTATION:
       switch (from->type) {
         case SOCK_ROTATION:
@@ -170,8 +175,11 @@ static int get_internal_link_type_priority(const bNodeSocketType *from, const bN
           return 2;
         case SOCK_FLOAT:
           return 1;
+        default:
+          return -1;
       }
-      return -1;
+    default:
+      break;
   }
 
   /* The rest of the socket types only allow an internal link if both the input and output socket
@@ -969,14 +977,16 @@ class NodeTreeMainUpdater {
           continue;
         }
         for (bNodeSocket *socket : node->input_sockets()) {
-          socket->display_shape = get_input_socket_shape(
-              *socket->runtime->declaration, socket->runtime->declaration->structure_type);
+          if (const SocketDeclaration *declaration = socket->runtime->declaration) {
+            socket->display_shape = get_input_socket_shape(*declaration,
+                                                           declaration->structure_type);
+          }
         }
         for (bNodeSocket *socket : node->output_sockets()) {
-          socket->display_shape = get_output_socket_shape(
-              *socket->runtime->declaration,
-              field_states[socket->index_in_tree()],
-              socket->runtime->declaration->structure_type);
+          if (const SocketDeclaration *declaration = socket->runtime->declaration) {
+            socket->display_shape = get_output_socket_shape(
+                *declaration, field_states[socket->index_in_tree()], declaration->structure_type);
+          }
         }
       }
     }

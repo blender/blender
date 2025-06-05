@@ -64,7 +64,7 @@
   - roughness 0.500
   - metallic 0.000
   - ior 1.500
-  - alpha 1.000 tex:'checkerboard_transparency.png' (textures/checkerboard_transparency.png) a:True tr:(0.500, -0.207, 0.000) rot:(-0.000, -0.000, -45.000)
+  - alpha 1.000 tex:'checkerboard_transparency.png' (textures/checkerboard_transparency.png) a:True Non-Color tr:(0.500, -0.207, 0.000) rot:(-0.000, -0.000, -45.000)
   - emission color (0.500, 0.500, 0.500) tex:'checkerboard_emissive.png' (textures/checkerboard_emissive.png) a:False tr:(1.000, 2.000, 0.000)
   - emission strength 1.000
   - viewport diffuse (1.000, 1.000, 1.000, 1.000)

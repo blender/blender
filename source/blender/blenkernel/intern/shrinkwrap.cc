@@ -1054,7 +1054,7 @@ void BKE_shrinkwrap_find_nearest_surface(ShrinkwrapTreeData *tree,
 #endif
 
     if (nearest->index < 0) {
-      /* fallback to simple nearest */
+      /* fall back to simple nearest */
       BLI_bvhtree_find_nearest(tree->bvh, co, nearest, treeData->nearest_callback, treeData);
     }
   }
@@ -1197,7 +1197,7 @@ void BKE_shrinkwrap_compute_smooth_normal(const ShrinkwrapTreeData *tree,
       BLI_space_transform_invert_normal(transform, r_no);
     }
   }
-  /* Finally fallback to the corner_tris normal. */
+  /* Finally fall back to the corner_tris normal. */
   else {
     copy_v3_v3(r_no, hit_no);
   }

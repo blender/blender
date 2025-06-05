@@ -369,7 +369,7 @@ Scene *CTX_data_scene(const bContext *C);
  * but not the scene_collection. In this case what to do?
  *
  * If the scene_collection is linked to the #ViewLayer we use it.
- * Otherwise we fallback to the active one of the #ViewLayer.
+ * Otherwise we fall back to the active one of the #ViewLayer.
  */
 LayerCollection *CTX_data_layer_collection(const bContext *C);
 Collection *CTX_data_collection(const bContext *C);

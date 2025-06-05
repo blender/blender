@@ -46,14 +46,14 @@ echo #
 echo # Since this will download and install a whole bunch of stuff the following
 echo # disclamer is seemingly required:
 echo # 
-echo # *WARNING WARNING WARNING*
-echo # *WARNING WARNING WARNING*
+echo # ******* WARNING *******
+echo # ******* WARNING *******
 echo # 
 echo # DO NOT RUN THIS ON ANYTHING BUT A CLEAN WINDOWS INSTALL, IF YOU DO, AND IT
 echo # MESSES UP YOUR WORKSTATION, THATS ON YOU...
 echo # 
-echo # *WARNING WARNING WARNING*
-echo # *WARNING WARNING WARNING*
+echo # ******* WARNING *******
+echo # ******* WARNING *******
 echo #
 echo # hit ctrl-break right now to abort.. last chance
 echo #

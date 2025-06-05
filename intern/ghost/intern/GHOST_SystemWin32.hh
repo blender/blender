@@ -426,7 +426,7 @@ class GHOST_SystemWin32 : public GHOST_System {
    */
   static GHOST_Event *processImeEvent(GHOST_TEventType type,
                                       GHOST_WindowWin32 *window,
-                                      GHOST_TEventImeData *data);
+                                      const GHOST_TEventImeData *data);
 #endif /* WITH_INPUT_IME */
 
   /**

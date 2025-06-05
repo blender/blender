@@ -12,7 +12,7 @@
 
 namespace blender::nodes {
 
-struct CaptureAttributeItemsAccessor {
+struct CaptureAttributeItemsAccessor : public socket_items::SocketItemsAccessorDefaults {
   using ItemT = NodeGeometryAttributeCaptureItem;
   static StructRNA *item_srna;
   static int node_type;
@@ -20,9 +20,6 @@ struct CaptureAttributeItemsAccessor {
   static constexpr bool has_type = true;
   static constexpr bool has_name = true;
   static constexpr bool has_single_identifier_str = false;
-  static constexpr bool has_name_validation = false;
-  static constexpr bool has_custom_initial_name = false;
-  static constexpr char unique_name_separator = '.';
   struct operator_idnames {
     static constexpr StringRefNull add_item = "NODE_OT_capture_attribute_item_add";
     static constexpr StringRefNull remove_item = "NODE_OT_capture_attribute_item_remove";

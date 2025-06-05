@@ -7,6 +7,7 @@ Local modifications:
 * ./patches/local_namespace.diff to support loading MANTA variables into an isolated __main__ name-space.
 * ./patches/fix-computation-errors.patch to fix computation errors for normalization functions for 3d vectors by using std::hypot.
 * ./patches/fluid-viscosity-performance.patch improve fluid viscosity performance by moving var checking outside loop.
+* ./patches/import-openvdb-empty-cubes-fix.patch to fix OpenVDB import visual glitches, by copying full 8x8x8 nodes.
 * ./patches/precision-of-4d-vector.patch to increase precision of 4D vector normalization functions.
 * ./patches/liquid-mesh-performance.patch improve liquid mesh generation by puting calculation of inverse radius outside for loops.
 * ./patches/liquid-performance.patch improve liquid generation (without mesh) by precalculate sum of vectors and put it outside for loop.

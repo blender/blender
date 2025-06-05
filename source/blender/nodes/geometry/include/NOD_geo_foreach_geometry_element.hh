@@ -10,17 +10,14 @@
 
 namespace blender::nodes {
 
-struct ForeachGeometryElementInputItemsAccessor {
+struct ForeachGeometryElementInputItemsAccessor
+    : public socket_items::SocketItemsAccessorDefaults {
   using ItemT = NodeForeachGeometryElementInputItem;
   static StructRNA *item_srna;
   static int node_type;
   static constexpr StringRefNull node_idname = "GeometryNodeForeachGeometryElementOutput";
   static constexpr bool has_type = true;
   static constexpr bool has_name = true;
-  static constexpr bool has_single_identifier_str = true;
-  static constexpr bool has_name_validation = false;
-  static constexpr bool has_custom_initial_name = false;
-  static constexpr char unique_name_separator = '.';
   struct operator_idnames {
     static constexpr StringRefNull add_item =
         "NODE_OT_foreach_geometry_element_zone_input_item_add";
@@ -100,17 +97,13 @@ struct ForeachGeometryElementInputItemsAccessor {
   }
 };
 
-struct ForeachGeometryElementMainItemsAccessor {
+struct ForeachGeometryElementMainItemsAccessor : public socket_items::SocketItemsAccessorDefaults {
   using ItemT = NodeForeachGeometryElementMainItem;
   static StructRNA *item_srna;
   static int node_type;
   static constexpr StringRefNull node_idname = "GeometryNodeForeachGeometryElementOutput";
   static constexpr bool has_type = true;
   static constexpr bool has_name = true;
-  static constexpr bool has_single_identifier_str = true;
-  static constexpr bool has_name_validation = false;
-  static constexpr bool has_custom_initial_name = false;
-  static constexpr char unique_name_separator = '.';
   struct operator_idnames {
     static constexpr StringRefNull add_item =
         "NODE_OT_foreach_geometry_element_zone_main_item_add";
@@ -189,17 +182,14 @@ struct ForeachGeometryElementMainItemsAccessor {
   }
 };
 
-struct ForeachGeometryElementGenerationItemsAccessor {
+struct ForeachGeometryElementGenerationItemsAccessor
+    : public socket_items::SocketItemsAccessorDefaults {
   using ItemT = NodeForeachGeometryElementGenerationItem;
   static StructRNA *item_srna;
   static int node_type;
   static constexpr StringRefNull node_idname = "GeometryNodeForeachGeometryElementOutput";
   static constexpr bool has_type = true;
   static constexpr bool has_name = true;
-  static constexpr bool has_single_identifier_str = true;
-  static constexpr bool has_name_validation = false;
-  static constexpr bool has_custom_initial_name = false;
-  static constexpr char unique_name_separator = '.';
   struct operator_idnames {
     static constexpr StringRefNull add_item =
         "NODE_OT_foreach_geometry_element_zone_generation_item_add";

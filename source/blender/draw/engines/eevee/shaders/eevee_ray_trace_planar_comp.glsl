@@ -104,7 +104,7 @@ void main()
      * This is faster than loading the gbuffer again and averages between reflected and normal
      * direction over many rays. */
     float3 Ng = ray.direction;
-    /* Fallback to nearest light-probe. */
+    /* Fall back to nearest light-probe. */
     LightProbeSample samp = lightprobe_load(P, Ng, V);
     radiance = lightprobe_eval_direction(samp, P, ray.direction, ray_pdf_inv);
     /* Set point really far for correct reprojection of background. */

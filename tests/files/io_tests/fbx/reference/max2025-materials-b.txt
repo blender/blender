@@ -201,7 +201,7 @@
   - base color (0.668, 0.958, 0.552) tex:'checker16.png' (checker16.png) a:False
   - specular ior 0.500
   - specular tint (1.000, 1.000, 1.000)
-  - roughness 0.250 tex:'checker16.png' (checker16.png) a:False
+  - roughness 0.250 tex:'checker16.png' (checker16.png) a:False Non-Color
   - metallic 0.700
   - ior 1.500
   - normalmap 1.000 tex:'normalmap64.png' (normalmap64.png) a:False data
@@ -214,7 +214,7 @@
   - base color (0.354, 0.365, 0.818) tex:'checker16.png' (checker16.png) a:False
   - specular ior 1.000
   - specular tint (1.000, 1.000, 1.000)
-  - roughness 0.700 tex:'checker16.png' (checker16.png) a:False
+  - roughness 0.700 tex:'checker16.png' (checker16.png) a:False Non-Color
   - metallic 0.200
   - ior 1.200
   - normalmap 1.000 tex:'normalmap64.png' (normalmap64.png) a:False data
@@ -241,7 +241,7 @@
   - base color (0.926, 0.880, 0.375) tex:'checker16.png' (checker16.png) a:False
   - specular ior 0.500
   - specular tint (1.000, 1.000, 1.000)
-  - roughness 0.350 tex:'checker16.png' (checker16.png) a:False
+  - roughness 0.350 tex:'checker16.png' (checker16.png) a:False Non-Color
   - metallic 0.600
   - ior 1.500
   - normalmap 1.000 tex:'normalmap64.png' (normalmap64.png) a:False data
@@ -254,7 +254,7 @@
   - base color (0.664, 0.553, 0.512) tex:'checker16.png' (checker16.png) a:False
   - specular ior 1.000
   - specular tint (1.000, 1.000, 1.000)
-  - roughness 0.250 tex:'checker16.png' (checker16.png) a:False
+  - roughness 0.250 tex:'checker16.png' (checker16.png) a:False Non-Color
   - metallic 0.700
   - ior 1.520
   - transmission 0.200

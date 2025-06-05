@@ -174,25 +174,14 @@ GPU_SHADER_CREATE_END()
 /** \name Edge data for object mode wireframe
  * \{ */
 
-GPU_SHADER_CREATE_INFO(subdiv_edge_fac_base)
+GPU_SHADER_CREATE_INFO(subdiv_edge_fac)
 ADDITIONAL_INFO(subdiv_base)
+DO_STATIC_COMPILATION()
 STORAGE_BUF(EDGE_FAC_POS_NOR_BUF_SLOT, read, PosNorLoop, pos_nor[])
 STORAGE_BUF(EDGE_FAC_EDGE_DRAW_FLAG_BUF_SLOT, read, uint, input_edge_draw_flag[])
 STORAGE_BUF(EDGE_FAC_POLY_OTHER_MAP_BUF_SLOT, read, int, input_poly_other_map[])
-COMPUTE_SOURCE("subdiv_vbo_edge_fac_comp.glsl")
-GPU_SHADER_CREATE_END()
-
-GPU_SHADER_CREATE_INFO(subdiv_edge_fac)
-DO_STATIC_COMPILATION()
-STORAGE_BUF(EDGE_FAC_EDGE_FAC_BUF_SLOT, write, uint, output_edge_fac[])
-ADDITIONAL_INFO(subdiv_edge_fac_base)
-GPU_SHADER_CREATE_END()
-
-GPU_SHADER_CREATE_INFO(subdiv_edge_fac_amd_legacy)
-DO_STATIC_COMPILATION()
-DEFINE("GPU_AMD_DRIVER_BYTE_BUG")
 STORAGE_BUF(EDGE_FAC_EDGE_FAC_BUF_SLOT, write, float, output_edge_fac[])
-ADDITIONAL_INFO(subdiv_edge_fac_base)
+COMPUTE_SOURCE("subdiv_vbo_edge_fac_comp.glsl")
 GPU_SHADER_CREATE_END()
 
 /** \} */

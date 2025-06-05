@@ -589,7 +589,7 @@ static void construct_interface_as_legacy_sockets(bNodeTree *ntree)
       STRNCPY(iosock->description, socket.description);
     }
     node_socket_copy_default_value_data(
-        eNodeSocketDatatype(iosock->typeinfo->type), iosock->default_value, socket.socket_data);
+        iosock->typeinfo->type, iosock->default_value, socket.socket_data);
     if (socket.properties) {
       iosock->prop = IDP_CopyProperty(socket.properties);
     }
@@ -1145,6 +1145,22 @@ static void write_compositor_legacy_properties(bNodeTree &node_tree)
           math::ceil(size_input->default_value_typed<bNodeSocketValueVector>()->value[0]));
       storage->sizey = int(
           math::ceil(size_input->default_value_typed<bNodeSocketValueVector>()->value[1]));
+    }
+
+    if (node->type_legacy == CMP_NODE_FLIP) {
+      const bNodeSocket *x_input = blender::bke::node_find_socket(*node, SOCK_IN, "Flip X");
+      const bNodeSocket *y_input = blender::bke::node_find_socket(*node, SOCK_IN, "Flip Y");
+      const bool flip_x = x_input->default_value_typed<bNodeSocketValueBoolean>()->value;
+      const bool flip_y = y_input->default_value_typed<bNodeSocketValueBoolean>()->value;
+      if (flip_x && flip_y) {
+        node->custom1 = 2;
+      }
+      else if (flip_y) {
+        node->custom1 = 1;
+      }
+      else {
+        node->custom1 = 0;
+      }
     }
   }
 }

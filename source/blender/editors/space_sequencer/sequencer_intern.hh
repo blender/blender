@@ -235,7 +235,6 @@ void SEQUENCER_OT_swap(wmOperatorType *ot);
 void SEQUENCER_OT_swap_data(wmOperatorType *ot);
 void SEQUENCER_OT_rendersize(wmOperatorType *ot);
 
-void SEQUENCER_OT_change_effect_input(wmOperatorType *ot);
 void SEQUENCER_OT_change_effect_type(wmOperatorType *ot);
 void SEQUENCER_OT_change_path(wmOperatorType *ot);
 void SEQUENCER_OT_change_scene(wmOperatorType *ot);

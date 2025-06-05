@@ -342,7 +342,7 @@ float3 DrawingPlacement::try_project_depth(const float2 co) const
   }
 
   float3 proj_point;
-  /* Fallback to `View` placement. */
+  /* Fall back to `View` placement. */
   ED_view3d_win_to_3d(view3d_, region_, placement_loc_, co, proj_point);
   return proj_point;
 }
@@ -1968,6 +1968,22 @@ void apply_eval_grease_pencil_data(const GreasePencil &eval_grease_pencil,
 
   /* Free temporary grease pencil struct. */
   BKE_id_free(nullptr, &merged_layers_grease_pencil);
+}
+
+bool remove_fill_guides(bke::CurvesGeometry &curves)
+{
+  if (!curves.attributes().contains(".is_fill_guide")) {
+    return false;
+  }
+
+  const bke::AttributeAccessor attributes = curves.attributes();
+  const VArray<bool> is_fill_guide = *attributes.lookup<bool>(".is_fill_guide",
+                                                              bke::AttrDomain::Curve);
+
+  IndexMaskMemory memory;
+  const IndexMask fill_guides = IndexMask::from_bools(is_fill_guide, memory);
+  curves.remove_curves(fill_guides, {});
+  return true;
 }
 
 }  // namespace blender::ed::greasepencil

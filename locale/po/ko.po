@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'ba454989554a')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'e91e8eef41aa')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-26 07:36+0000\n"
+"POT-Creation-Date: 2025-06-03 09:10+0000\n"
 "PO-Revision-Date: 2025-04-14 08:31+0000\n"
 "Last-Translator: Lee YeonJoo <yzoo2@naver.com>\n"
 "Language-Team: Korean <https://translate.blender.org/projects/blender-ui/ui/ko/>\n"
@@ -23829,12 +23829,56 @@ msgid "Material slot name"
 msgstr "매테리얼 슬롯 이름"
 
 
-msgid "Mirror"
-msgstr "미러"
+msgid "Special Characters"
+msgstr "특수 문자"
+
+
+msgid "Kerning"
+msgstr "자간"
+
+
+msgid "Text"
+msgstr "텍스트"
+
+
+msgid "Metaball"
+msgstr "메타볼"
+
+
+msgid "Show/Hide"
+msgstr "표시/숨기기"
+
+
+msgid "Names"
+msgstr "이름"
+
+
+msgid "Bone Roll"
+msgstr "본 롤"
+
+
+msgid "Clean Up"
+msgstr "정리"
+
+
+msgid "Pivot Point"
+msgstr "피벗 포인트"
 
 
 msgid "Snap"
 msgstr "스냅"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "비례 편집 감소"
+
+
+msgid "Mask Edit"
+msgstr "마스크 편집"
+
+
+msgid "Mirror"
+msgstr "미러"
 
 
 msgid "UV Mapping"
@@ -23889,10 +23933,6 @@ msgid "Assign Material"
 msgstr "매테리얼을 할당"
 
 
-msgid "Metaball"
-msgstr "메타볼"
-
-
 msgid "Light"
 msgstr "라이트"
 
@@ -23925,14 +23965,6 @@ msgid "Quick Effects"
 msgstr "빠른 이펙트"
 
 
-msgid "Show/Hide"
-msgstr "표시/숨기기"
-
-
-msgid "Clean Up"
-msgstr "정리"
-
-
 msgid "Asset"
 msgstr "에셋"
 
@@ -23959,10 +23991,6 @@ msgstr "사이에서"
 
 msgid "Propagate"
 msgstr "전파"
-
-
-msgid "Names"
-msgstr "이름"
 
 
 msgid "Toggle Bone Options"
@@ -23995,34 +24023,6 @@ msgstr "페이스 강도를 설정"
 
 msgid "Merge"
 msgstr "병합"
-
-
-msgid "Special Characters"
-msgstr "특수 문자"
-
-
-msgid "Kerning"
-msgstr "자간"
-
-
-msgid "Text"
-msgstr "텍스트"
-
-
-msgid "Bone Roll"
-msgstr "본 롤"
-
-
-msgid "Pivot Point"
-msgstr "피벗 포인트"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "비례 편집 감소"
-
-
-msgid "Mask Edit"
-msgstr "마스크 편집"
 
 
 msgid "Basic"
@@ -30058,6 +30058,10 @@ msgid "Influence of this track on 2D stabilization"
 msgstr "2D 안정화에 이 트랙의 영향"
 
 
+msgid "Starting"
+msgstr "시작"
+
+
 msgid "NLA Strip"
 msgstr "NLA 스트립"
 
@@ -30366,10 +30370,6 @@ msgid "Aspect Correction"
 msgstr "측면 보정"
 
 
-msgid "Type of aspect correction to use"
-msgstr "사용하는 측면 보정의 유형"
-
-
 msgid "Relative Size X"
 msgstr "상대적인 크기 X"
 
@@ -30382,20 +30382,8 @@ msgid "Bokeh"
 msgstr "보케"
 
 
-msgid "Use circular filter (slower)"
-msgstr "원형 필터를 사용 (느린 속도)"
-
-
 msgid "Extend Bounds"
 msgstr "확장 경계"
-
-
-msgid "Extend bounds of the input image to fully fit blurred image"
-msgstr "입력 이미지의 경계를 확대하여 흐린 이미지에 완전히 맞춥니다"
-
-
-msgid "Use relative (percent) values to define blur radius"
-msgstr "블러 반경을 정의 하는 상대적인(퍼센트) 값을 사용"
 
 
 msgid "Variable Size"
@@ -49323,10 +49311,6 @@ msgid "Expand/Collapse Header Menus"
 msgstr "헤더 메뉴 확장/축소"
 
 
-msgid "Expand or collapse the header pulldown menus"
-msgstr "헤더의 풀다운 메뉴를 확장 또는 축소"
-
-
 msgctxt "Operator"
 msgid "Show Info Log"
 msgstr "정보 로그를 표시"
@@ -49857,11 +49841,6 @@ msgstr "릴렉스에 대해 HC 메서드를 사용"
 
 
 msgctxt "Operator"
-msgid "Change Effect Input"
-msgstr "이팩트 입력을 변경"
-
-
-msgctxt "Operator"
 msgid "Change Effect Type"
 msgstr "이팩트 유형을 변경"
 
@@ -49871,21 +49850,9 @@ msgid "Type"
 msgstr "유형"
 
 
-msgid "Sequencer effect type"
-msgstr "시퀀서 이펙트 유형"
-
-
-msgid "Crossfade effect strip type"
-msgstr "교차 페이드 이펙트 스트립 유형"
-
-
 msgctxt "Sequence"
 msgid "Add"
 msgstr "추가"
-
-
-msgid "Add effect strip type"
-msgstr "이팩트 스트립 유형을 추가"
 
 
 msgctxt "Sequence"
@@ -49893,17 +49860,9 @@ msgid "Subtract"
 msgstr "빼기"
 
 
-msgid "Subtract effect strip type"
-msgstr "빼기 이펙트 스트립 유형"
-
-
 msgctxt "Sequence"
 msgid "Alpha Over"
 msgstr "알파 오버"
-
-
-msgid "Alpha Over effect strip type"
-msgstr "알파 오버 이펙트 스트립 유형"
 
 
 msgctxt "Sequence"
@@ -49911,26 +49870,9 @@ msgid "Alpha Under"
 msgstr "알파 언더"
 
 
-msgid "Alpha Under effect strip type"
-msgstr "알파 언더 이펙트 스트립 유형"
-
-
-msgctxt "Sequence"
-msgid "Gamma Cross"
-msgstr "감마 교차"
-
-
-msgid "Gamma Cross effect strip type"
-msgstr "감마 교차 이펙트 스트립 유형"
-
-
 msgctxt "Sequence"
 msgid "Multiply"
 msgstr "곱하기"
-
-
-msgid "Multiply effect strip type"
-msgstr "곱하기 이펙트 스트립 유형"
 
 
 msgctxt "Sequence"
@@ -49938,17 +49880,9 @@ msgid "Wipe"
 msgstr "웨이프"
 
 
-msgid "Wipe effect strip type"
-msgstr "웨이프 이펙트 스트립 유형"
-
-
 msgctxt "Sequence"
 msgid "Glow"
 msgstr "글로우"
-
-
-msgid "Glow effect strip type"
-msgstr "글로우 이펙트 스트립 유형"
 
 
 msgctxt "Sequence"
@@ -49956,17 +49890,9 @@ msgid "Transform"
 msgstr "변환"
 
 
-msgid "Transform effect strip type"
-msgstr "변환 이펙트 스트립 유형"
-
-
 msgctxt "Sequence"
 msgid "Color"
 msgstr "컬러"
-
-
-msgid "Color effect strip type"
-msgstr "컬러 이팩트 스트립 유형"
 
 
 msgctxt "Sequence"
@@ -50060,6 +49986,10 @@ msgstr "새로운 시퀀스 스트립에 중첩을 수정하지 않도록 합니
 
 msgid "Replace Selection"
 msgstr "선택을 교체"
+
+
+msgid "Sequencer effect type"
+msgstr "시퀀서 이펙트 유형"
 
 
 msgctxt "Operator"
@@ -54899,6 +54829,30 @@ msgid "Panel containing UI elements"
 msgstr "UI 요소가 포함된 패널"
 
 
+msgid "Active Tool"
+msgstr "활성 도구"
+
+
+msgid "View Lock"
+msgstr "뷰 잠금"
+
+
+msgid "Shadow Settings"
+msgstr "섀도우 설정"
+
+
+msgid "SSAO Settings"
+msgstr "SSAO 설정"
+
+
+msgid "Cavity"
+msgstr "캐비티"
+
+
+msgid "Render Pass"
+msgstr "렌더 패스"
+
+
 msgid "Overlays"
 msgstr "오버레이"
 
@@ -54953,30 +54907,6 @@ msgstr "입체 영상"
 
 msgid "Multi Frame"
 msgstr "다중 프레임"
-
-
-msgid "Active Tool"
-msgstr "활성 도구"
-
-
-msgid "View Lock"
-msgstr "뷰 잠금"
-
-
-msgid "Shadow Settings"
-msgstr "섀도우 설정"
-
-
-msgid "SSAO Settings"
-msgstr "SSAO 설정"
-
-
-msgid "Cavity"
-msgstr "캐비티"
-
-
-msgid "Render Pass"
-msgstr "렌더 패스"
 
 
 msgid "Bone Constraints"
@@ -58717,10 +58647,6 @@ msgid "Changes the size of the fonts and widgets in the interface"
 msgstr "인터페이스에서 폰트 및 위젯의 크기를 변경합니다"
 
 
-msgid "Open menu buttons and pulldowns automatically when the mouse is hovering"
-msgstr "메뉴 버튼을 열고 마우스가 움직일 때 자동으로 풀다운"
-
-
 msgid "Save Prompt"
 msgstr "프롬프트를 저장"
 
@@ -61467,10 +61393,6 @@ msgstr "섀도우와 하이라이트에 대한 라이트의 방향"
 
 msgid "Attenuation constant"
 msgstr "감쇠 상수"
-
-
-msgid "Distance of object that contribute to the Cavity/Edge effect"
-msgstr "캐비티/에지 효과에 기여하는 물체의 거리"
 
 
 msgid "Number of samples"
@@ -64578,11 +64500,6 @@ msgid "Sound"
 msgstr "사운드"
 
 
-msgctxt "Sequence"
-msgid "Cross"
-msgstr "교차"
-
-
 msgid "Use Default Fade"
 msgstr "기본 페이드를 사용"
 
@@ -64697,10 +64614,6 @@ msgstr "단일 컬러로 채워진 이미지를 만드는 시퀀스 스트립"
 
 msgid "Effect Strip color"
 msgstr "이펙트 스트립 컬러"
-
-
-msgid "Cross Sequence"
-msgstr "교차 시퀀스"
 
 
 msgid "Sequence strip creating a gaussian blur"
@@ -65872,6 +65785,14 @@ msgid "Color of path before current frame"
 msgstr "현재 프레임 이전에 경로의 컬러"
 
 
+msgid "Preview Range"
+msgstr "미리보기 범위"
+
+
+msgid "Color of preview range overlay"
+msgstr "미리보기 범위 오버레이의 색상"
+
+
 msgid "Selected Marker"
 msgstr "선택된 마커"
 
@@ -66054,14 +65975,6 @@ msgstr "긴 키"
 
 msgid "Long Key Selected"
 msgstr "긴 키 선택됨"
-
-
-msgid "Preview Range"
-msgstr "미리보기 범위"
-
-
-msgid "Color of preview range overlay"
-msgstr "미리보기 범위 오버레이의 색상"
 
 
 msgid "Summary"
@@ -71788,16 +71701,6 @@ msgstr "레이어를 조정"
 msgctxt "Operator"
 msgid "Scene..."
 msgstr "씬..."
-
-
-msgctxt "Operator"
-msgid "Cross"
-msgstr "교차"
-
-
-msgctxt "Operator"
-msgid "Gamma Cross"
-msgstr "감마 교차"
 
 
 msgctxt "Operator"
@@ -77570,20 +77473,8 @@ msgid "File '%s' could not be loaded"
 msgstr "파일 '%s'을 불러올 수 없습니다"
 
 
-msgid "No valid inputs to swap"
-msgstr "교환하는 유효한 입력이 없음"
-
-
 msgid "Please select two strips"
 msgstr "두 스트립을 선택하십시오"
-
-
-msgid "One of the effect inputs is unset, cannot swap"
-msgstr "이펙트 입력 중 하나가 설정되지 않음, 교환 할 수 없습니다"
-
-
-msgid "New effect needs more input strips"
-msgstr "새로운 이펙트는 더 많은 입력 스트립이 필요함"
 
 
 msgid "Can't create subtitle file"
@@ -79959,8 +79850,4 @@ msgstr "완료"
 
 msgid "In Progress"
 msgstr "진행 중"
-
-
-msgid "Starting"
-msgstr "시작"
 

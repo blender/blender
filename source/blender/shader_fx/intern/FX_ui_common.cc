@@ -191,7 +191,7 @@ static void shaderfx_panel_header(const bContext * /*C*/, Panel *panel)
   row->menu_fn("", ICON_DOWNARROW_HLT, gpencil_shaderfx_ops_extra_draw, fx);
 
   row = &row->row(false);
-  uiLayoutSetEmboss(row, blender::ui::EmbossType::None);
+  row->emboss_set(blender::ui::EmbossType::None);
   row->op("OBJECT_OT_shaderfx_remove", "", ICON_X);
 
   /* Some padding so the X isn't too close to the drag icon. */

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'ba454989554a')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'e91e8eef41aa')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-26 07:36+0000\n"
+"POT-Creation-Date: 2025-06-03 09:10+0000\n"
 "PO-Revision-Date: 2025-04-14 08:37+0000\n"
 "Last-Translator: Alexandru Buhnici <in@alexm.ro>\n"
 "Language-Team: Romanian <https://translate.blender.org/projects/blender-ui/ui/ro/>\n"
@@ -2169,6 +2169,10 @@ msgid "World"
 msgstr "Lume"
 
 
+msgid "Starting"
+msgstr "Pornire"
+
+
 msgid "Aspect Correction"
 msgstr "Corecție Aspect"
 
@@ -3635,16 +3639,8 @@ msgid "Mask not found"
 msgstr "Masca nu a fost găsită"
 
 
-msgid "No valid inputs to swap"
-msgstr "Nu există intrări valide de schimbat"
-
-
 msgid "Please select two strips"
 msgstr "Te rog selectează două benzi"
-
-
-msgid "New effect needs more input strips"
-msgstr "Efectul nou are nevoie de mai multe benzi de intrare"
 
 
 msgid "See '%s' in the text editor"
@@ -3839,8 +3835,4 @@ msgstr "Nepali (नेपाली)"
 
 msgid "Complete"
 msgstr "Complet"
-
-
-msgid "Starting"
-msgstr "Pornire"
 

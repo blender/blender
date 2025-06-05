@@ -29,6 +29,13 @@
 
 namespace blender::nodes::socket_items {
 
+struct SocketItemsAccessorDefaults {
+  static constexpr bool has_single_identifier_str = true;
+  static constexpr bool has_name_validation = false;
+  static constexpr bool has_custom_initial_name = false;
+  static constexpr char unique_name_separator = '.';
+};
+
 /**
  * References a "C-Array" that is stored elsewhere. This is different from a MutableSpan, because
  * one can even resize the array through this reference.

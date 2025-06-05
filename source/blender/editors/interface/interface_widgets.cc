@@ -2214,7 +2214,7 @@ static void widget_draw_text(const uiFontStyle *fstyle,
         int ul_index = -1;
 
         {
-          /* Find upper case, fallback to lower case. */
+          /* Find upper case, fall back to lower case. */
           const char *drawstr_end = drawstr_ofs + drawlen;
           const char keys[] = {char(but->menu_key - 32), but->menu_key};
           for (int i = 0; i < ARRAY_SIZE(keys); i++) {

@@ -685,10 +685,12 @@ def BuildRNAInfo():
     def _bpy_types_iterator():
         # Don't report when these types are ignored.
         suppress_warning = {
+            "GeometrySet",
             "bpy_func",
             "bpy_prop",
             "bpy_prop_array",
             "bpy_prop_collection",
+            "bpy_prop_collection_idprop",
             "bpy_struct",
             "bpy_struct_meta_idprop",
         }

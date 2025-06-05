@@ -408,7 +408,7 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(GHOST_SystemCocoa *systemCocoa,
       view = m_metalView;
     }
     else {
-      /* Fallback to OpenGL view if there is no Metal support. */
+      /* Fall back to OpenGL view if there is no Metal support. */
       m_openGLView = [[CocoaOpenGLView alloc] initWithSystemCocoa:systemCocoa
                                                       windowCocoa:this
                                                             frame:rect];

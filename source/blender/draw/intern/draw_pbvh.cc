@@ -310,7 +310,7 @@ static GPUVertFormat attribute_format(const OrigMeshData &orig_mesh_data,
                                       const StringRef name,
                                       const eCustomDataType data_type)
 {
-  GPUVertFormat format = draw::init_format_for_attribute(data_type, "data");
+  GPUVertFormat format = init_format_for_attribute(data_type, "data");
 
   bool is_render, is_active;
   const char *prefix = "a";

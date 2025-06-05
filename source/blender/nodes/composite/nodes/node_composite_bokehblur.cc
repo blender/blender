@@ -125,7 +125,7 @@ class BokehBlurOperation : public NodeOperation {
 
     auto load_input = [&](const int2 texel) {
       /* If bounds are extended, then we treat the input as padded by a radius amount of pixels.
-       * So we load the input with an offset by the radius amount and fallback to a transparent
+       * So we load the input with an offset by the radius amount and fall back to a transparent
        * color if it is out of bounds. */
       if (extend_bounds) {
         return input.load_pixel_zero<float4>(texel - radius);

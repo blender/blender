@@ -128,8 +128,8 @@ class USDImportTest(AbstractUSDTest):
         # Test topology counts.
         self.assertIn("m_degenerate", objects, "Scene does not contain object m_degenerate")
         mesh = objects["m_degenerate"].data
-        self.assertEqual(len(mesh.polygons), 2)
-        self.assertEqual(len(mesh.edges), 7)
+        self.assertEqual(len(mesh.polygons), 0)
+        self.assertEqual(len(mesh.edges), 0)
         self.assertEqual(len(mesh.vertices), 6)
 
         self.assertIn("m_triangles", objects, "Scene does not contain object m_triangles")
@@ -1203,6 +1203,29 @@ class USDImportTest(AbstractUSDTest):
         self.assertAlmostEqual(blender_light.energy, 6.5, 3)
         self.assertEqual(blender_light.shape, 'DISK')  # We read as disk to mirror what USD supports
         self.assertAlmostEqual(blender_light.size, 4, 3)
+
+    def test_import_dome_lights(self):
+        """Test importing dome lights and verify their rotations."""
+
+        # Test files and their expected EnvironmentTexture Mapping rotation values
+        tests = [
+            ("usd_dome_light_1_stageZ_poleY.usda", [0.0, 0.0, 0.0]),
+            ("usd_dome_light_1_stageZ_poleZ.usda", [0.0, -1.5708, 0.0]),
+            ("usd_dome_light_1_stageY_poleDefault.usda", [-1.5708, 0.0, 0.0])
+        ]
+
+        for test_name, expected_rot in tests:
+            bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "empty.blend"))
+
+            infile = str(self.testdir / test_name)
+            res = bpy.ops.wm.usd_import(filepath=infile)
+            self.assertEqual({'FINISHED'}, res, f"Unable to import USD file {infile}")
+
+            # Validate that the Mapping node on the World Material is set to the correct rotation
+            world = bpy.data.worlds["World"]
+            node = world.node_tree.nodes["Mapping"]
+            self.assertEqual(
+                self.round_vector(node.inputs[2].default_value), expected_rot, f"Incorrect rotation for {test_name}")
 
     def check_attribute(self, blender_data, attribute_name, domain, data_type, elements_len):
         attr = blender_data.attributes[attribute_name]

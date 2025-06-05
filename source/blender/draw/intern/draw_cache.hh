@@ -26,6 +26,8 @@ struct ParticleSystem;
 struct Volume;
 struct Scene;
 
+namespace blender::draw {
+
 /**
  * Shape resolution level of detail.
  */
@@ -39,84 +41,82 @@ enum eDRWLevelOfDetail {
 
 /* Common Object */
 
-blender::gpu::Batch *DRW_cache_object_all_edges_get(Object *ob);
-blender::gpu::Batch *DRW_cache_object_edge_detection_get(Object *ob, bool *r_is_manifold);
-blender::gpu::Batch *DRW_cache_object_surface_get(Object *ob);
-blender::gpu::Batch *DRW_cache_object_loose_edges_get(Object *ob);
-blender::Span<blender::gpu::Batch *> DRW_cache_object_surface_material_get(
-    Object *ob, blender::Span<const GPUMaterial *> materials);
-blender::gpu::Batch *DRW_cache_object_face_wireframe_get(const Scene *scene, Object *ob);
+gpu::Batch *DRW_cache_object_all_edges_get(Object *ob);
+gpu::Batch *DRW_cache_object_edge_detection_get(Object *ob, bool *r_is_manifold);
+gpu::Batch *DRW_cache_object_surface_get(Object *ob);
+gpu::Batch *DRW_cache_object_loose_edges_get(Object *ob);
+Span<gpu::Batch *> DRW_cache_object_surface_material_get(Object *ob,
+                                                         Span<const GPUMaterial *> materials);
+gpu::Batch *DRW_cache_object_face_wireframe_get(const Scene *scene, Object *ob);
 
 /* Meshes */
 
-blender::gpu::Batch *DRW_cache_mesh_all_verts_get(Object *ob);
-blender::gpu::Batch *DRW_cache_mesh_all_edges_get(Object *ob);
-blender::gpu::Batch *DRW_cache_mesh_loose_edges_get(Object *ob);
-blender::gpu::Batch *DRW_cache_mesh_edge_detection_get(Object *ob, bool *r_is_manifold);
-blender::gpu::Batch *DRW_cache_mesh_surface_get(Object *ob);
-blender::gpu::Batch *DRW_cache_mesh_surface_edges_get(Object *ob);
+gpu::Batch *DRW_cache_mesh_all_verts_get(Object *ob);
+gpu::Batch *DRW_cache_mesh_all_edges_get(Object *ob);
+gpu::Batch *DRW_cache_mesh_loose_edges_get(Object *ob);
+gpu::Batch *DRW_cache_mesh_edge_detection_get(Object *ob, bool *r_is_manifold);
+gpu::Batch *DRW_cache_mesh_surface_get(Object *ob);
+gpu::Batch *DRW_cache_mesh_surface_edges_get(Object *ob);
 /**
  * Return list of batches with length equal to `max(1, totcol)`.
  */
-blender::Span<blender::gpu::Batch *> DRW_cache_mesh_surface_shaded_get(
-    Object *ob, blender::Span<const GPUMaterial *> materials);
+Span<gpu::Batch *> DRW_cache_mesh_surface_shaded_get(Object *ob,
+                                                     Span<const GPUMaterial *> materials);
 /**
  * Return list of batches with length equal to `max(1, totcol)`.
  */
-blender::Span<blender::gpu::Batch *> DRW_cache_mesh_surface_texpaint_get(Object *ob);
-blender::gpu::Batch *DRW_cache_mesh_surface_texpaint_single_get(Object *ob);
-blender::gpu::Batch *DRW_cache_mesh_surface_vertpaint_get(Object *ob);
-blender::gpu::Batch *DRW_cache_mesh_surface_sculptcolors_get(Object *ob);
-blender::gpu::Batch *DRW_cache_mesh_surface_weights_get(Object *ob);
-blender::gpu::Batch *DRW_cache_mesh_surface_mesh_analysis_get(Object *ob);
-blender::gpu::Batch *DRW_cache_mesh_face_wireframe_get(Object *ob);
-blender::gpu::Batch *DRW_cache_mesh_surface_viewer_attribute_get(Object *ob);
+Span<gpu::Batch *> DRW_cache_mesh_surface_texpaint_get(Object *ob);
+gpu::Batch *DRW_cache_mesh_surface_texpaint_single_get(Object *ob);
+gpu::Batch *DRW_cache_mesh_surface_vertpaint_get(Object *ob);
+gpu::Batch *DRW_cache_mesh_surface_sculptcolors_get(Object *ob);
+gpu::Batch *DRW_cache_mesh_surface_weights_get(Object *ob);
+gpu::Batch *DRW_cache_mesh_surface_mesh_analysis_get(Object *ob);
+gpu::Batch *DRW_cache_mesh_face_wireframe_get(Object *ob);
+gpu::Batch *DRW_cache_mesh_surface_viewer_attribute_get(Object *ob);
 
 /* Curve */
 
-blender::gpu::Batch *DRW_cache_curve_edge_wire_get(Object *ob);
-blender::gpu::Batch *DRW_cache_curve_edge_wire_viewer_attribute_get(Object *ob);
+gpu::Batch *DRW_cache_curve_edge_wire_get(Object *ob);
+gpu::Batch *DRW_cache_curve_edge_wire_viewer_attribute_get(Object *ob);
 
 /* edit-mode */
 
-blender::gpu::Batch *DRW_cache_curve_edge_normal_get(Object *ob);
-blender::gpu::Batch *DRW_cache_curve_edge_overlay_get(Object *ob);
-blender::gpu::Batch *DRW_cache_curve_vert_overlay_get(Object *ob);
+gpu::Batch *DRW_cache_curve_edge_normal_get(Object *ob);
+gpu::Batch *DRW_cache_curve_edge_overlay_get(Object *ob);
+gpu::Batch *DRW_cache_curve_vert_overlay_get(Object *ob);
 
 /* Font */
 
-blender::gpu::Batch *DRW_cache_text_edge_wire_get(Object *ob);
+gpu::Batch *DRW_cache_text_edge_wire_get(Object *ob);
 
 /* Surface */
 
-blender::gpu::Batch *DRW_cache_surf_edge_wire_get(Object *ob);
+gpu::Batch *DRW_cache_surf_edge_wire_get(Object *ob);
 
 /* Lattice */
 
-blender::gpu::Batch *DRW_cache_lattice_verts_get(Object *ob);
-blender::gpu::Batch *DRW_cache_lattice_wire_get(Object *ob, bool use_weight);
-blender::gpu::Batch *DRW_cache_lattice_vert_overlay_get(Object *ob);
+gpu::Batch *DRW_cache_lattice_verts_get(Object *ob);
+gpu::Batch *DRW_cache_lattice_wire_get(Object *ob, bool use_weight);
+gpu::Batch *DRW_cache_lattice_vert_overlay_get(Object *ob);
 
 /* Point Cloud */
 
-blender::gpu::Batch *DRW_cache_pointcloud_vert_overlay_get(Object *ob);
+gpu::Batch *DRW_cache_pointcloud_vert_overlay_get(Object *ob);
 
 /* Particles */
 
-blender::gpu::Batch *DRW_cache_particles_get_hair(Object *object,
-                                                  ParticleSystem *psys,
-                                                  ModifierData *md);
-blender::gpu::Batch *DRW_cache_particles_get_dots(Object *object, ParticleSystem *psys);
-blender::gpu::Batch *DRW_cache_particles_get_edit_strands(Object *object,
-                                                          ParticleSystem *psys,
-                                                          PTCacheEdit *edit,
-                                                          bool use_weight);
-blender::gpu::Batch *DRW_cache_particles_get_edit_inner_points(Object *object,
-                                                               ParticleSystem *psys,
-                                                               PTCacheEdit *edit);
-blender::gpu::Batch *DRW_cache_particles_get_edit_tip_points(Object *object,
-                                                             ParticleSystem *psys,
-                                                             PTCacheEdit *edit);
+gpu::Batch *DRW_cache_particles_get_hair(Object *object, ParticleSystem *psys, ModifierData *md);
+gpu::Batch *DRW_cache_particles_get_dots(Object *object, ParticleSystem *psys);
+gpu::Batch *DRW_cache_particles_get_edit_strands(Object *object,
+                                                 ParticleSystem *psys,
+                                                 PTCacheEdit *edit,
+                                                 bool use_weight);
+gpu::Batch *DRW_cache_particles_get_edit_inner_points(Object *object,
+                                                      ParticleSystem *psys,
+                                                      PTCacheEdit *edit);
+gpu::Batch *DRW_cache_particles_get_edit_tip_points(Object *object,
+                                                    ParticleSystem *psys,
+                                                    PTCacheEdit *edit);
 
 /* Volume */
 
@@ -130,32 +130,30 @@ struct DRWVolumeGrid {
   GPUTexture *texture;
 
   /* Transform between 0..1 texture space and object space. */
-  blender::float4x4 texture_to_object;
-  blender::float4x4 object_to_texture;
+  float4x4 texture_to_object;
+  float4x4 object_to_texture;
 
   /* Transform from bounds to texture space. */
-  blender::float4x4 object_to_bounds;
-  blender::float4x4 bounds_to_texture;
+  float4x4 object_to_bounds;
+  float4x4 bounds_to_texture;
 };
-
-namespace blender::draw {
 
 DRWVolumeGrid *DRW_volume_batch_cache_get_grid(Volume *volume,
                                                const bke::VolumeGridData *volume_grid);
-blender::gpu::Batch *DRW_cache_volume_face_wireframe_get(Object *ob);
-blender::gpu::Batch *DRW_cache_volume_selection_surface_get(Object *ob);
+gpu::Batch *DRW_cache_volume_face_wireframe_get(Object *ob);
+gpu::Batch *DRW_cache_volume_selection_surface_get(Object *ob);
 
 /* Grease Pencil */
 
 /* When there's no visible drawings in this grease pencil object, the returned `Batch` could be
  * nullptr as `grease_pencil_edit_batch_ensure` won't do anything in those cases. */
-blender::gpu::Batch *DRW_cache_grease_pencil_get(const Scene *scene, Object *ob);
-blender::gpu::Batch *DRW_cache_grease_pencil_edit_points_get(const Scene *scene, Object *ob);
-blender::gpu::Batch *DRW_cache_grease_pencil_edit_lines_get(const Scene *scene, Object *ob);
+gpu::Batch *DRW_cache_grease_pencil_get(const Scene *scene, Object *ob);
+gpu::Batch *DRW_cache_grease_pencil_edit_points_get(const Scene *scene, Object *ob);
+gpu::Batch *DRW_cache_grease_pencil_edit_lines_get(const Scene *scene, Object *ob);
 gpu::VertBuf *DRW_cache_grease_pencil_position_buffer_get(const Scene *scene, Object *ob);
 gpu::VertBuf *DRW_cache_grease_pencil_color_buffer_get(const Scene *scene, Object *ob);
-blender::gpu::Batch *DRW_cache_grease_pencil_weight_points_get(const Scene *scene, Object *ob);
-blender::gpu::Batch *DRW_cache_grease_pencil_weight_lines_get(const Scene *scene, Object *ob);
-blender::gpu::Batch *DRW_cache_grease_pencil_face_wireframe_get(const Scene *scene, Object *ob);
+gpu::Batch *DRW_cache_grease_pencil_weight_points_get(const Scene *scene, Object *ob);
+gpu::Batch *DRW_cache_grease_pencil_weight_lines_get(const Scene *scene, Object *ob);
+gpu::Batch *DRW_cache_grease_pencil_face_wireframe_get(const Scene *scene, Object *ob);
 
 }  // namespace blender::draw

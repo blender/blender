@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'ba454989554a')\n"
+"Project-Id-Version: Blender 4.5.0 Alpha (b'e91e8eef41aa')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-26 07:36+0000\n"
+"POT-Creation-Date: 2025-06-03 09:10+0000\n"
 "PO-Revision-Date: 2025-05-22 07:59+0000\n"
 "Last-Translator: Daniel Nylander <blender@danielnylander.se>\n"
 "Language-Team: Swedish <https://translate.blender.org/projects/blender-ui/ui/sv/>\n"
@@ -5240,12 +5240,36 @@ msgid "Mask"
 msgstr "Mask"
 
 
-msgid "Mirror"
-msgstr "Spegla"
+msgid "Text"
+msgstr "Text"
+
+
+msgid "Metaball"
+msgstr "Metaboll"
+
+
+msgid "Show/Hide"
+msgstr "Visa/dölj"
+
+
+msgid "Names"
+msgstr "Namn"
+
+
+msgid "Clean Up"
+msgstr "Städa upp"
+
+
+msgid "Pivot Point"
+msgstr "Fast punkt"
 
 
 msgid "Snap"
 msgstr "Snäpp"
+
+
+msgid "Mirror"
+msgstr "Spegla"
 
 
 msgid "Local View"
@@ -5262,10 +5286,6 @@ msgstr "Justera vy till aktiv"
 
 msgid "Select More/Less"
 msgstr "Markera mera/mindre"
-
-
-msgid "Metaball"
-msgstr "Metaboll"
 
 
 msgid "Light"
@@ -5296,28 +5316,8 @@ msgid "Quick Effects"
 msgstr "Snabbeffekter"
 
 
-msgid "Show/Hide"
-msgstr "Visa/dölj"
-
-
-msgid "Clean Up"
-msgstr "Städa upp"
-
-
 msgid "Asset"
 msgstr "Tillgång"
-
-
-msgid "Names"
-msgstr "Namn"
-
-
-msgid "Text"
-msgstr "Text"
-
-
-msgid "Pivot Point"
-msgstr "Fast punkt"
 
 
 msgid "Catalog"
@@ -5675,6 +5675,10 @@ msgstr "Sensor"
 
 msgid "Markers"
 msgstr "Markörer"
+
+
+msgid "Starting"
+msgstr "Påbörjad"
 
 
 msgid "Alpha Over"
@@ -16834,10 +16838,6 @@ msgstr "Komplett"
 
 msgid "In Progress"
 msgstr "Pågående"
-
-
-msgid "Starting"
-msgstr "Påbörjad"
 
 
 msgid "Utility"

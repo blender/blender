@@ -978,7 +978,7 @@ unique_ptr<BVHNode> BVHBuild::create_leaf_node(const BVHRange &range,
    *    and lots of cache misses.
    *  - If the size is too small, then we can run out of memory
    *    allowed to be used by vector.
-   *    In practice it wouldn't mean crash, just allocator will fallback
+   *    In practice it wouldn't mean crash, just allocator will fall back
    *    to heap which is slower.
    *  - Optimistic re-allocation in STL could jump us out of stack usage
    *    because re-allocation happens in chunks and size of those chunks we

@@ -155,7 +155,7 @@ template<uint64_t LinearSteps = 1, bool PreShuffle = false> class PythonProbingS
 /**
  * Similar to the Python probing strategy. However, it does a bit more shuffling in the next()
  * method. This way more bits are taken into account earlier. After a couple of collisions (that
- * should happen rarely), it will fallback to a sequence that hits every slot.
+ * should happen rarely), it will fall back to a sequence that hits every slot.
  */
 template<uint64_t LinearSteps = 2, bool PreShuffle = false> class ShuffleProbingStrategy {
  private:

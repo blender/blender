@@ -18,7 +18,7 @@ static void node_declare(NodeDeclarationBuilder &b)
           "Neutral displacement value that causes no displacement.\n"
           "Lower values cause the surface to move inwards, "
           "higher values push the surface outwards");
-  b.add_input<decl::Float>("Scale").default_value(1.0f).min(0.0f).max(1000.0f).description(
+  b.add_input<decl::Float>("Scale").default_value(0.01f).min(0.0f).max(1000.0f).description(
       "Increase or decrease the amount of displacement");
   b.add_output<decl::Vector>("Displacement");
 }

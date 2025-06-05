@@ -350,7 +350,7 @@ static void draw_export_controls(
   layout->label(label, ICON_NONE);
   if (valid) {
     uiLayout *row = &layout->row(false);
-    uiLayoutSetEmboss(row, blender::ui::EmbossType::None);
+    row->emboss_set(blender::ui::EmbossType::None);
     uiItemPopoverPanel(row, C, "WM_PT_operator_presets", "", ICON_PRESET);
     PointerRNA op_ptr = row->op("COLLECTION_OT_exporter_export", "", ICON_EXPORT);
     RNA_int_set(&op_ptr, "index", index);
@@ -403,7 +403,7 @@ static void draw_exporter_item(uiList * /*ui_list*/,
                                int /*flt_flag*/)
 {
   uiLayout *row = &layout->row(false);
-  uiLayoutSetEmboss(row, blender::ui::EmbossType::None);
+  row->emboss_set(blender::ui::EmbossType::None);
   row->prop(itemptr, "name", UI_ITEM_NONE, "", ICON_NONE);
 }
 

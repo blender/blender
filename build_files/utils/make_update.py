@@ -47,7 +47,7 @@ def print_stage(text: str) -> None:
 
 def parse_arguments() -> argparse.Namespace:
     """
-    Parse command line line arguments.
+    Parse command line arguments.
 
     Returns parsed object from which the command line arguments can be accessed
     as properties. The name of the properties matches the command line argument,
@@ -297,8 +297,13 @@ def work_tree_update(args: argparse.Namespace, use_fetch: bool = True) -> str:
         # update the branch from the fork.
 
     update_command = [args.git_command, "pull", "--rebase"]
+    # This seems to be required some times, e.g. on initial checkout from third party, non-lfs repository
+    # (like the github one). The fallback repository set by `lfs_fallback_setup` is fetched, but running the
+    # `update_command` above does not seem to do the actual checkout for these LFS-managed files.
+    update_lfs_command = [args.git_command, "lfs", "checkout"]
 
     call(update_command)
+    call(update_lfs_command)
 
     return ""
 

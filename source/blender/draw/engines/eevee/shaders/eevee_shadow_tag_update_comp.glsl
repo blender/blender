@@ -67,7 +67,7 @@ void main()
     else if (clipped > 0) {
       /* Not all verts are behind the near clip plane. */
       if (intersect(frustum, box)) {
-        /* We cannot correctly handle this case so we fallback by covering the whole view. */
+        /* We cannot correctly handle this case so we fall back by covering the whole view. */
         aabb_ndc.max = float3(1.0f);
         aabb_ndc.min = float3(-1.0f);
       }

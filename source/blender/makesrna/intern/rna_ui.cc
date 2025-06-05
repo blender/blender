@@ -1500,12 +1500,12 @@ static void rna_UILayout_units_y_set(PointerRNA *ptr, float value)
 
 static int rna_UILayout_emboss_get(PointerRNA *ptr)
 {
-  return int(uiLayoutGetEmboss(static_cast<uiLayout *>(ptr->data)));
+  return int(static_cast<uiLayout *>(ptr->data)->emboss());
 }
 
 static void rna_UILayout_emboss_set(PointerRNA *ptr, int value)
 {
-  uiLayoutSetEmboss(static_cast<uiLayout *>(ptr->data), blender::ui::EmbossType(value));
+  static_cast<uiLayout *>(ptr->data)->emboss_set(blender::ui::EmbossType(value));
 }
 
 static bool rna_UILayout_property_split_get(PointerRNA *ptr)
