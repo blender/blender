@@ -113,7 +113,7 @@ void VKDebuggingTools::deinit(VkInstance vk_instance)
 void object_label(VkObjectType vk_object_type, uint64_t object_handle, const char *name)
 {
   const VKDevice &device = VKBackend::get().device;
-  if (G.debug & G_DEBUG_GPU && device.functions.vkSetDebugUtilsObjectName) {
+  if (G.debug & G_DEBUG_GPU && device.functions.vkSetDebugUtilsObjectName && object_handle != 0) {
     VkDebugUtilsObjectNameInfoEXT info = {};
     info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
     info.objectType = vk_object_type;

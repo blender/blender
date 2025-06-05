@@ -27,6 +27,8 @@ class VKBuffer : public NonCopyable {
   VmaAllocation allocation_ = VK_NULL_HANDLE;
   VkMemoryPropertyFlags vk_memory_property_flags_;
   TimelineValue async_timeline_ = 0;
+  /** Has a previous allocation failed. Will skip reallocations. */
+  bool allocation_failed_ = false;
 
   /* Pointer to the virtually mapped memory. */
   void *mapped_memory_ = nullptr;

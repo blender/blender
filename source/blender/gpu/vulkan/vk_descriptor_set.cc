@@ -163,11 +163,14 @@ void VKDescriptorSetTracker::bind_input_attachment_resource(
                    .vk_handle(),
                VK_IMAGE_LAYOUT_RENDERING_LOCAL_READ_KHR,
                resource_binding.location);
-    access_info.images.append({texture->vk_image_handle(),
-                               resource_binding.access_mask,
-                               to_vk_image_aspect_flag_bits(texture->device_format_get()),
-                               0,
-                               VK_REMAINING_ARRAY_LAYERS});
+    VkImage vk_image = texture->vk_image_handle();
+    if (vk_image != VK_NULL_HANDLE) {
+      access_info.images.append({texture->vk_image_handle(),
+                                 resource_binding.access_mask,
+                                 to_vk_image_aspect_flag_bits(texture->device_format_get()),
+                                 0,
+                                 VK_REMAINING_ARRAY_LAYERS});
+    }
   }
   else {
     bool supports_dynamic_rendering = device.extensions_get().dynamic_rendering;
@@ -183,11 +186,14 @@ void VKDescriptorSetTracker::bind_input_attachment_resource(
           texture->image_view_get(resource_binding.arrayed, VKImageViewFlags::DEFAULT).vk_handle(),
           VK_IMAGE_LAYOUT_GENERAL,
           resource_binding.location);
-      access_info.images.append({texture->vk_image_handle(),
-                                 resource_binding.access_mask,
-                                 to_vk_image_aspect_flag_bits(texture->device_format_get()),
-                                 0,
-                                 VK_REMAINING_ARRAY_LAYERS});
+      VkImage vk_image = texture->vk_image_handle();
+      if (vk_image != VK_NULL_HANDLE) {
+        access_info.images.append({vk_image,
+                                   resource_binding.access_mask,
+                                   to_vk_image_aspect_flag_bits(texture->device_format_get()),
+                                   0,
+                                   VK_REMAINING_ARRAY_LAYERS});
+      }
     }
     else {
       /* Fall back to render-passes / sub-passes. */
@@ -197,11 +203,14 @@ void VKDescriptorSetTracker::bind_input_attachment_resource(
                      .vk_handle(),
                  VK_IMAGE_LAYOUT_GENERAL,
                  resource_binding.location);
-      access_info.images.append({texture->vk_image_handle(),
-                                 resource_binding.access_mask,
-                                 to_vk_image_aspect_flag_bits(texture->device_format_get()),
-                                 0,
-                                 VK_REMAINING_ARRAY_LAYERS});
+      VkImage vk_image = texture->vk_image_handle();
+      if (vk_image != VK_NULL_HANDLE) {
+        access_info.images.append({vk_image,
+                                   resource_binding.access_mask,
+                                   to_vk_image_aspect_flag_bits(texture->device_format_get()),
+                                   0,
+                                   VK_REMAINING_ARRAY_LAYERS});
+      }
     }
   }
 }
@@ -260,7 +269,9 @@ void VKDescriptorSetTracker::bind_storage_buffer_resource(
               elem.offset,
               vk_device_size - elem.offset,
               resource_binding.location);
-  access_info.buffers.append({vk_buffer, resource_binding.access_mask});
+  if (vk_buffer != VK_NULL_HANDLE) {
+    access_info.buffers.append({vk_buffer, resource_binding.access_mask});
+  }
 }
 
 void VKDescriptorSetTracker::bind_uniform_buffer_resource(
