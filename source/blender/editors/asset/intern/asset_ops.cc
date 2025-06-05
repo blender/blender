@@ -41,6 +41,7 @@
 #include "RNA_prototypes.hh"
 
 #include "IMB_imbuf.hh"
+#include "IMB_thumbs.hh"
 
 #include "WM_api.hh"
 
@@ -1029,21 +1030,35 @@ static void generate_previewimg_from_buffer(ID *id, const ImBuf *image_buffer)
     BKE_previewimg_ensure(preview_image, size_type);
     int width = image_buffer->x;
     int height = image_buffer->y;
-    if (size_type == ICON_SIZE_ICON) {
-      /* Scales down the image to `ICON_RENDER_DEFAULT_HEIGHT` while maintaining the
-       * aspect ratio. */
-      if (image_buffer->x > image_buffer->y) {
-        width = ICON_RENDER_DEFAULT_HEIGHT;
-        height = image_buffer->y * (width / float(image_buffer->x));
-      }
-      else if (image_buffer->y > image_buffer->x) {
-        height = ICON_RENDER_DEFAULT_HEIGHT;
-        width = image_buffer->x * (height / float(image_buffer->y));
-      }
-      else {
-        width = height = ICON_RENDER_DEFAULT_HEIGHT;
-      }
+    int max_size = 0;
+    switch (size_type) {
+      case ICON_SIZE_ICON:
+        max_size = ICON_RENDER_DEFAULT_HEIGHT;
+        break;
+      case ICON_SIZE_PREVIEW:
+        max_size = PREVIEW_RENDER_LARGE_HEIGHT;
+        break;
     }
+    if (max_size == 0) {
+      /* Can only be reached if a new icon size is added. */
+      BLI_assert_unreachable();
+      continue;
+    }
+
+    /* Scales down the image to `max_size` while maintaining the
+     * aspect ratio. */
+    if (image_buffer->x > image_buffer->y) {
+      width = max_size;
+      height = image_buffer->y * (width / float(image_buffer->x));
+    }
+    else if (image_buffer->y > image_buffer->x) {
+      height = max_size;
+      width = image_buffer->x * (height / float(image_buffer->y));
+    }
+    else {
+      width = height = max_size;
+    }
+
     ImBuf *scaled_imbuf = IMB_scale_into_new(
         image_buffer, width, height, IMBScaleFilter::Nearest, false);
     preview_image->rect[size_type] = (uint *)MEM_dupallocN(scaled_imbuf->byte_buffer.data);
