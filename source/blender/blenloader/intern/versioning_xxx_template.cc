@@ -6,7 +6,6 @@
  * \ingroup blenloader
  */
 
-
 /**
  * This file is a template to use as base when switching to a new version of Blender.
  *
