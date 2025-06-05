@@ -5014,12 +5014,21 @@ static void do_version_node_curve_to_mesh_scale_input(bNodeTree *tree)
   }
 
   for (bNode *curve_to_mesh : curve_to_mesh_nodes) {
+    if (!version_node_socket_is_used(
+            bke::node_find_socket(*curve_to_mesh, SOCK_IN, "Profile Curve")))
+    {
+      /* No additional versioning is needed when the profile curve input is unused. */
+      continue;
+    }
+
     if (bke::node_find_socket(*curve_to_mesh, SOCK_IN, "Scale")) {
       /* Make versioning idempotent. */
       continue;
     }
-    version_node_add_socket_if_not_exist(
+    bNodeSocket *scale_socket = version_node_add_socket_if_not_exist(
         tree, curve_to_mesh, SOCK_IN, SOCK_FLOAT, PROP_NONE, "Scale", "Scale");
+    /* Use a default scale value of 1. */
+    scale_socket->default_value_typed<bNodeSocketValueFloat>()->value = 1.0f;
 
     bNode &named_attribute = version_node_add_empty(*tree, "GeometryNodeInputNamedAttribute");
     NodeGeometryInputNamedAttribute *named_attribute_storage =
@@ -5078,6 +5087,8 @@ static void do_version_node_curve_to_mesh_scale_input(bNodeTree *tree)
                           *curve_to_mesh,
                           *bke::node_find_socket(*curve_to_mesh, SOCK_IN, "Scale"));
   }
+
+  version_socket_update_is_used(tree);
 }
 
 static bool strip_effect_overdrop_to_alphaover(Strip *strip, void * /*user_data*/)

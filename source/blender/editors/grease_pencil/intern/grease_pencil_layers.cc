@@ -329,7 +329,7 @@ static void GREASE_PENCIL_OT_layer_active(wmOperatorType *ot)
 
   /* callbacks */
   ot->exec = grease_pencil_layer_active_exec;
-  ot->poll = active_grease_pencil_poll;
+  ot->poll = editable_grease_pencil_poll;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
@@ -875,7 +875,7 @@ static void GREASE_PENCIL_OT_layer_merge(wmOperatorType *ot)
   ot->description = "Combine layers based on the mode into one layer";
 
   ot->exec = grease_pencil_merge_layer_exec;
-  ot->poll = active_grease_pencil_poll;
+  ot->poll = editable_grease_pencil_poll;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 

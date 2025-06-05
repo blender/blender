@@ -32,7 +32,8 @@ class GREASE_PENCIL_OT_relative_layer_mask_add(Operator):
             (obj := context.active_object) is not None and
             obj.is_editable and
             obj.type == 'GREASEPENCIL' and
-            obj.data.layers.active is not None
+            obj.data.layers.active is not None and
+            obj.data.is_editable
         )
 
     def execute(self, context):

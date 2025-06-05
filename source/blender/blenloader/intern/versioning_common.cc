@@ -143,6 +143,7 @@ static void change_node_socket_name(ListBase *sockets, const char *old_name, con
 
 bool version_node_socket_is_used(bNodeSocket *sock)
 {
+  BLI_assert(sock != nullptr);
   return sock->flag & SOCK_IS_LINKED;
 }
 
