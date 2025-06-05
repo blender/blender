@@ -289,7 +289,7 @@ bool BM_vert_is_edge_pair_manifold(const BMVert *v) ATTR_WARN_UNUSED_RESULT ATTR
  *
  * \return true when only 2 verts are found.
  */
-bool BM_vert_edge_pair(BMVert *v, BMEdge **r_e_a, BMEdge **r_e_b);
+bool BM_vert_edge_pair(const BMVert *v, BMEdge **r_e_a, BMEdge **r_e_b);
 /**
  * Return true if the vertex is connected to _any_ faces.
  *
