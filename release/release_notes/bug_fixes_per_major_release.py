@@ -411,7 +411,7 @@ class CommitInfo:
 
     def generate_release_note_ready_string(self) -> str:
         def sort_version_numbers(input_version_num: str) -> str:
-            # Pad to three digits for future proofness
+            # Pad to three digits to be future proof.
             pad = 3
             major, minor, patch = input_version_num.split(".")
             return major.zfill(pad) + minor.zfill(pad) + patch.zfill(pad)
