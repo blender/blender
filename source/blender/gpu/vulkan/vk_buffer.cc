@@ -30,6 +30,9 @@ bool VKBuffer::create(size_t size_in_bytes,
   BLI_assert(!is_allocated());
   BLI_assert(vk_buffer_ == VK_NULL_HANDLE);
   BLI_assert(mapped_memory_ == nullptr);
+  if (allocation_failed_) {
+    return false;
+  }
 
   size_in_bytes_ = size_in_bytes;
   /*
@@ -77,6 +80,9 @@ bool VKBuffer::create(size_t size_in_bytes,
   VkResult result = vmaCreateBuffer(
       allocator, &create_info, &vma_create_info, &vk_buffer_, &allocation_, nullptr);
   if (result != VK_SUCCESS) {
+    allocation_failed_ = true;
+    size_in_bytes_ = 0;
+    alloc_size_in_bytes_ = 0;
     return false;
   }
 
