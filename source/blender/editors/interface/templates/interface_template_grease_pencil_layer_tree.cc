@@ -302,7 +302,11 @@ class LayerViewItem : public AbstractTreeViewItem {
   {
     uiBut *but = uiItemL_ex(
         &row, layer_.name().c_str(), ICON_OUTLINER_DATA_GP_LAYER, false, false);
-    if (!layer_.is_editable()) {
+
+    if (ID_IS_LINKED(&grease_pencil_)) {
+      UI_but_flag_enable(but, UI_BUT_DISABLED);
+    }
+    else if (!layer_.is_editable()) {
       UI_but_disable(but, "Layer is locked or not visible");
     }
   }
@@ -465,7 +469,10 @@ class LayerGroupViewItem : public AbstractTreeViewItem {
     }
 
     uiBut *but = uiItemL_ex(&row, group_.name(), icon, false, false);
-    if (!group_.is_editable()) {
+    if (ID_IS_LINKED(&grease_pencil_)) {
+      UI_but_flag_enable(but, UI_BUT_DISABLED);
+    }
+    else if (!group_.is_editable()) {
       UI_but_disable(but, "Layer Group is locked or not visible");
     }
   }
