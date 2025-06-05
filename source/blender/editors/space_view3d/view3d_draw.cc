@@ -1526,7 +1526,7 @@ void view3d_draw_region_info(const bContext *C, ARegion *region)
 
   if (U.ndof_flag & NDOF_SHOW_GUIDE_ORBIT_CENTER) {
     /* Draw this only when orbiting and auto orbit-center is enabled */
-    if ((U.ndof_flag & NDOF_MODE_ORBIT) && (U.ndof_flag & NDOF_ORBIT_CENTER_AUTO)) {
+    if (NDOF_IS_ORBIT_AROUND_CENTER_MODE(&U) && (U.ndof_flag & NDOF_ORBIT_CENTER_AUTO)) {
       if (rv3d->ndof_flag & RV3D_NDOF_OFS_IS_VALID) {
         /* When the center is locked, the auto-center is not used. */
         if (!(v3d->ob_center_cursor || v3d->ob_center)) {

@@ -811,7 +811,7 @@ static void rna_NDOFMotionEventData_translation_get(PointerRNA *ptr, float *valu
 {
 #  ifdef WITH_INPUT_NDOF
   const wmNDOFMotionData *ndof = static_cast<const wmNDOFMotionData *>(ptr->data);
-  WM_event_ndof_pan_get(ndof, values, false);
+  WM_event_ndof_pan_get(ndof, values);
 #  else
   UNUSED_VARS(ptr);
   ARRAY_SET_ITEMS(values, 0, 0, 0);
