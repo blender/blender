@@ -85,19 +85,6 @@ class GLShader : public Shader {
     std::mutex compilation_mutex;
 
     GLProgram() {}
-    GLProgram(GLProgram &&other)
-    {
-      program_id = other.program_id;
-      vert_shader = other.vert_shader;
-      geom_shader = other.geom_shader;
-      frag_shader = other.frag_shader;
-      compute_shader = other.compute_shader;
-      other.program_id = 0;
-      other.vert_shader = 0;
-      other.geom_shader = 0;
-      other.frag_shader = 0;
-      other.compute_shader = 0;
-    }
     ~GLProgram();
 
     void program_link(StringRefNull shader_name);
@@ -105,7 +92,7 @@ class GLShader : public Shader {
 
   using GLProgramCacheKey = Vector<shader::SpecializationConstant::Value>;
   /** Contains all specialized shader variants. */
-  Map<GLProgramCacheKey, GLProgram> program_cache_;
+  Map<GLProgramCacheKey, std::unique_ptr<GLProgram>> program_cache_;
 
   std::mutex program_cache_mutex_;
 
