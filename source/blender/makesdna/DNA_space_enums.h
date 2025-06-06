@@ -632,7 +632,7 @@ typedef enum eFileSel_File_Types {
   /** represents folders for filtering */
   FILE_TYPE_FOLDER = (1 << 11),
   FILE_TYPE_BTX = (1 << 12),
-  FILE_TYPE_COLLADA = (1 << 13),
+  FILE_TYPE_UNUSED_13 = (1 << 13), /* Was FILE_TYPE_COLLADA */
   /** from filter_glob operator property */
   FILE_TYPE_OPERATOR = (1 << 14),
   FILE_TYPE_BUNDLE = (1 << 15),

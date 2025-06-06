@@ -1367,7 +1367,7 @@ static int arg_handle_debug_mode_generic_set(int /*argc*/, const char ** /*argv*
 
 static const char arg_handle_debug_mode_io_doc[] =
     "\n\t"
-    "Enable debug messages for I/O (Collada, ...).";
+    "Enable debug messages for I/O.";
 static int arg_handle_debug_mode_io(int /*argc*/, const char ** /*argv*/, void * /*data*/)
 {
   G.debug |= G_DEBUG_IO;

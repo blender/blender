@@ -891,8 +891,6 @@ class WM_OT_operator_presets_cleanup(Operator):
             operators = [
                 "WM_OT_alembic_export",
                 "WM_OT_alembic_import",
-                "WM_OT_collada_export",
-                "WM_OT_collada_import",
                 "WM_OT_obj_export",
                 "WM_OT_obj_import",
                 "WM_OT_ply_export",

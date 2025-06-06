@@ -87,9 +87,7 @@ if(DEFINED LIBDIR)
   # not need to be ever discovered for the Blender linking.
   list(REMOVE_ITEM LIB_SUBDIRS ${LIBDIR}/dpcpp)
 
-  # NOTE: Make sure "proper" compiled zlib comes first before the one
-  # which is a part of OpenCollada. They have different ABI, and we
-  # do need to use the official one.
+  # NOTE: Make sure "proper" compiled zlib comes first
   set(CMAKE_PREFIX_PATH ${LIBDIR}/zlib ${LIB_SUBDIRS})
 
   include(platform_old_libs_update)
@@ -333,15 +331,6 @@ if(WITH_FFTW3)
   set_and_warn_library_found("fftw3" FFTW3_FOUND WITH_FFTW3)
 endif()
 
-if(WITH_OPENCOLLADA)
-  find_package_wrapper(OpenCOLLADA)
-  if(OPENCOLLADA_FOUND)
-    find_package_wrapper(XML2)
-  else()
-    set_and_warn_library_found("OpenCollada" OPENCOLLADA_FOUND WITH_OPENCOLLADA)
-  endif()
-endif()
-
 if(WITH_MEM_JEMALLOC)
   find_package_wrapper(JeMalloc)
   set_and_warn_library_found("JeMalloc" JEMALLOC_FOUND WITH_MEM_JEMALLOC)
@@ -540,13 +529,6 @@ if(WITH_LLVM)
     if(WITH_CLANG)
       find_package_wrapper(Clang)
       set_and_warn_library_found("Clang" CLANG_FOUND WITH_CLANG)
-    endif()
-
-    # Symbol conflicts with same UTF library used by OpenCollada
-    if(DEFINED LIBDIR)
-      if(WITH_OPENCOLLADA AND (${LLVM_VERSION} VERSION_LESS "4.0.0"))
-        list(REMOVE_ITEM OPENCOLLADA_LIBRARIES ${OPENCOLLADA_UTF_LIBRARY})
-      endif()
     endif()
   endif()
 endif()
