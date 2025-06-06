@@ -1449,10 +1449,7 @@ void DRW_mesh_batch_cache_create_requested(TaskGraph &task_graph,
                               GPU_PRIM_LINES,
                               list,
                               IBOType::Lines,
-                              {VBOType::Position, VBOType::EditData}};
-        if (!do_subdivision || do_cage) {
-          batch.vbos.append(VBOType::VertexNormal);
-        }
+                              {VBOType::CornerNormal, VBOType::Position, VBOType::EditData}};
         batch_info.append(std::move(batch));
       }
       else {

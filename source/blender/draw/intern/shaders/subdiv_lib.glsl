@@ -43,44 +43,9 @@ uint get_index(uint i)
   return (i >> 2) & 0x3FFFFFFFu;
 }
 
-PosNorLoop subdiv_set_vertex_pos(PosNorLoop in_vertex_data, float3 pos)
+float3 subdiv_position_to_float3(Position position)
 {
-  in_vertex_data.x = pos.x;
-  in_vertex_data.y = pos.y;
-  in_vertex_data.z = pos.z;
-  return in_vertex_data;
-}
-
-/* Set the vertex normal but preserve the existing flag. This is for when we compute manually the
- * vertex normals when we cannot use the limit surface, in which case the flag and the normal are
- * set by two separate compute pass. */
-PosNorLoop subdiv_set_vertex_nor(PosNorLoop in_vertex_data, float3 nor)
-{
-  in_vertex_data.nx = nor.x;
-  in_vertex_data.ny = nor.y;
-  in_vertex_data.nz = nor.z;
-  return in_vertex_data;
-}
-
-PosNorLoop subdiv_set_vertex_flag(PosNorLoop in_vertex_data, float flag)
-{
-  in_vertex_data.flag = flag;
-  return in_vertex_data;
-}
-
-float3 subdiv_get_vertex_pos(PosNorLoop vertex_data)
-{
-  return float3(vertex_data.x, vertex_data.y, vertex_data.z);
-}
-
-LoopNormal subdiv_get_normal_and_flag(PosNorLoop vertex_data)
-{
-  LoopNormal loop_nor;
-  loop_nor.nx = vertex_data.nx;
-  loop_nor.ny = vertex_data.ny;
-  loop_nor.nz = vertex_data.nz;
-  loop_nor.flag = vertex_data.flag;
-  return loop_nor;
+  return float3(position.x, position.y, position.z);
 }
 
 void add_newell_cross_v3_v3v3(inout float3 n, float3 v_prev, float3 v_curr)
