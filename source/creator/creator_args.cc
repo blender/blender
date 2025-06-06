@@ -1549,7 +1549,7 @@ static int arg_handle_gpu_backend_set(int argc, const char **argv, void * /*data
       fprintf(stderr, (i + 1 != backends_supported_num) ? "%s, " : "%s", backends_supported[i]);
     }
     fprintf(stderr, "].\n");
-    return 0;
+    return 1;
   }
   /* NOLINTEND: bugprone-assignment-in-if-condition */
 
