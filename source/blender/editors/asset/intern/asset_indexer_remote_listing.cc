@@ -76,7 +76,8 @@ std::unique_ptr<Value> read_contents(StringRefNull filepath)
  * \{ */
 
 struct AssetLibraryMeta {
-  Set<int> api_versions;
+  /** Map of API version string ("v1", "v2", ...) to path relative to root directory. */
+  Map<std::string, std::string> api_versions;
 
   static std::optional<AssetLibraryMeta> read(StringRefNull root_dirpath);
 };
@@ -106,7 +107,7 @@ std::optional<AssetLibraryMeta> AssetLibraryMeta::read(StringRefNull root_dirpat
     return {};
   }
 
-  const ArrayValue *entries = root->lookup_array("api_versions");
+  const DictionaryValue *entries = root->lookup_dict("api_versions");
   BLI_assert(entries != nullptr);
   if (entries == nullptr) {
     return {};
@@ -114,17 +115,16 @@ std::optional<AssetLibraryMeta> AssetLibraryMeta::read(StringRefNull root_dirpat
 
   AssetLibraryMeta library_meta;
 
-  int i = 0;
-  for (const std::shared_ptr<Value> &element : entries->elements()) {
-    const IntValue *version = element->as_int_value();
-    if (!version) {
-      printf(
-          "Error reading asset listing API version at index %i in %s - ignoring\n", i, filepath);
-      i++;
+  for (const DictionaryValue::Item &version : entries->elements()) {
+    /* Relative path to the listing meta-file (e.g. `_v1/asset-index.json`). */
+    const StringValue *listing_rel_path = version.second->as_string_value();
+    if (!listing_rel_path) {
+      printf("Error reading asset listing API version path '%s' in %s - ignoring\n",
+             version.first.c_str(),
+             filepath);
       continue;
     }
-    library_meta.api_versions.add(std::move(version->value()));
-    i++;
+    library_meta.api_versions.add(version.first, std::move(listing_rel_path->value()));
   }
 
   return library_meta;
@@ -132,17 +132,25 @@ std::optional<AssetLibraryMeta> AssetLibraryMeta::read(StringRefNull root_dirpat
 
 /** \} */
 
-static std::optional<int> choose_api_version(const AssetLibraryMeta &library_meta)
+struct ApiVersionInfo {
+  uint version_nr;
+  /** Relative path to the listing meta-file (e.g. `_v1/asset-index.json`). */
+  std::string listing_relpath;
+};
+
+static std::optional<ApiVersionInfo> choose_api_version(const AssetLibraryMeta &library_meta)
 {
   /* API versions this version of Blender can handle, in descending order (most preferred to least
    * preferred order). */
-  const Vector readable_versions = {
-      1,
+  const Vector<std::pair<uint, StringRefNull>> readable_versions = {
+      {1, "v1"},
   };
 
-  for (int version : readable_versions) {
-    if (library_meta.api_versions.contains(version)) {
-      return version;
+  for (const auto &[version_nr, version_str] : readable_versions) {
+    if (const std::string *version_listing_relpath = library_meta.api_versions.lookup_ptr(
+            version_str))
+    {
+      return ApiVersionInfo{version_nr, *version_listing_relpath};
     }
   }
 
@@ -159,15 +167,23 @@ bool read_remote_listing(StringRefNull root_dirpath, RemoteListingEntryProcessFn
     return false;
   }
 
-  const std::optional<int> api_version = choose_api_version(*meta);
-  if (!api_version) {
+  const std::optional<ApiVersionInfo> api_version_relpath = choose_api_version(*meta);
+  if (!api_version_relpath) {
     printf("Couldn't choose API version");
     return false;
   }
 
-  switch (*api_version) {
+  /* Path to the listing meta-file (e.g. `_v1/asset-index.json`). */
+  char version_listing_filepath[FILE_MAX];
+  BLI_path_join(version_listing_filepath,
+                sizeof(version_listing_filepath),
+                root_dirpath.c_str(),
+                api_version_relpath->listing_relpath.c_str());
+
+  switch (api_version_relpath->version_nr) {
     case 1: {
-      const ReadingResult result = read_remote_listing_v1(root_dirpath, process_fn);
+      const ReadingResult result = read_remote_listing_v1(
+          root_dirpath, version_listing_filepath, process_fn);
       if (result == ReadingResult::Failure) {
         printf("Couldn't read V1 listing");
         return false;

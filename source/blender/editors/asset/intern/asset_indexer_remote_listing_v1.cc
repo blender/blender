@@ -159,25 +159,17 @@ struct AssetLibraryListingV1 {
    * root_dirpath. */
   Vector<std::string> page_rel_paths;
 
-  static std::optional<AssetLibraryListingV1> read(StringRefNull root_dirpath);
+  static std::optional<AssetLibraryListingV1> read(StringRefNull listing_filepath);
 };
 
-std::optional<AssetLibraryListingV1> AssetLibraryListingV1::read(StringRefNull root_dirpath)
+std::optional<AssetLibraryListingV1> AssetLibraryListingV1::read(StringRefNull listing_filepath)
 {
-  char filepath[FILE_MAX];
-  BLI_path_join(filepath,
-                sizeof(filepath),
-                root_dirpath.c_str(),
-                "_v1",
-                /* TODO should be called `asset-listing.json`. */
-                "asset-index.json");
-
-  if (!BLI_exists(filepath)) {
+  if (!BLI_exists(listing_filepath.c_str())) {
     /** TODO report error message? */
     return {};
   }
 
-  std::unique_ptr<Value> contents = read_contents(filepath);
+  std::unique_ptr<Value> contents = read_contents(listing_filepath);
   if (!contents) {
     /** TODO report error message? */
     return {};
@@ -201,7 +193,9 @@ std::optional<AssetLibraryListingV1> AssetLibraryListingV1::read(StringRefNull r
   for (const std::shared_ptr<Value> &element : entries->elements()) {
     const StringValue *page_path = element->as_string_value();
     if (!page_path) {
-      printf("Error reading asset listing page path at index %i in %s - ignoring\n", i, filepath);
+      printf("Error reading asset listing page path at index %i in %s - ignoring\n",
+             i,
+             listing_filepath.c_str());
       i++;
       continue;
     }
@@ -214,17 +208,19 @@ std::optional<AssetLibraryListingV1> AssetLibraryListingV1::read(StringRefNull r
 
 /** \} */
 
-ReadingResult read_remote_listing_v1(StringRefNull root_dirpath,
+ReadingResult read_remote_listing_v1(StringRefNull listing_root_dirpath,
+                                     StringRefNull version_listing_filepath,
                                      RemoteListingEntryProcessFn process_fn)
 {
-  const std::optional<AssetLibraryListingV1> listing = AssetLibraryListingV1::read(root_dirpath);
+  const std::optional<AssetLibraryListingV1> listing = AssetLibraryListingV1::read(
+      version_listing_filepath);
   if (!listing) {
     return ReadingResult::Failure;
   }
 
   for (const std::string &page_path : listing->page_rel_paths) {
     const ReadingResult result = AssetLibraryListingPageV1::read_asset_entries(
-        root_dirpath, page_path, process_fn);
+        listing_root_dirpath, page_path, process_fn);
     if (result != ReadingResult::Success) {
       return result;
     }
