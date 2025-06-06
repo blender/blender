@@ -230,7 +230,7 @@ def set_real_uri(image, export_settings):
         start=export_settings['gltf_filedirectory'],
     )
 
-    uri = path_to_uri(adj_name)
+    uri = path_to_uri(rel_path)
     image.uri = uri
 
 
