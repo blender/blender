@@ -226,6 +226,7 @@ static void fcurves_to_pchan_links_get(ListBase &pfLinks, Object &ob, bPoseChann
   /* Make copy of custom properties. */
   if (pchan.prop && (transFlags & ACT_TRANS_PROP)) {
     pfl->oldprops = IDP_CopyProperty(pchan.prop);
+    pfl->old_system_properties = IDP_CopyProperty(pchan.system_properties);
   }
 }
 
@@ -361,6 +362,9 @@ void poseAnim_mapping_reset(ListBase *pfLinks)
     /* just overwrite values of properties from the stored copies (there should be some) */
     if (pfl->oldprops) {
       IDP_SyncGroupValues(pfl->pchan->prop, pfl->oldprops);
+    }
+    if (pfl->old_system_properties) {
+      IDP_SyncGroupValues(pfl->pchan->system_properties, pfl->old_system_properties);
     }
   }
 }

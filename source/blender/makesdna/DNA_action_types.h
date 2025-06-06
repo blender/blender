@@ -287,6 +287,14 @@ typedef struct bPoseChannel {
   /** User-Defined Properties on this PoseChannel. */
   IDProperty *prop;
 
+  /**
+   * System-defined custom properties storage.
+   *
+   * In Blender 4.5, only used to ensure forward compatibility with 5.x blendfiles, and data
+   * management consistency.
+   */
+  IDProperty *system_properties;
+
   /** Constraints that act on this PoseChannel. */
   ListBase constraints;
   char name[/*MAXBONENAME*/ 64];
@@ -420,6 +428,8 @@ typedef struct bPoseChannel {
   struct bPoseChannel *orig_pchan;
 
   BoneColor color; /* MUST be named the same as in Bone and EditBone structs. */
+
+  void *_pad2;
 
   /** Runtime data (keep last). */
   struct bPoseChannel_Runtime runtime;

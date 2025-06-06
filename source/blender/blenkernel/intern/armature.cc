@@ -109,6 +109,9 @@ static void copy_bone_collection(bArmature *armature_dst,
   if (bcoll_dst->prop) {
     bcoll_dst->prop = IDP_CopyProperty_ex(bcoll_dst->prop, lib_id_flag);
   }
+  if (bcoll_dst->system_properties) {
+    bcoll_dst->system_properties = IDP_CopyProperty_ex(bcoll_dst->system_properties, lib_id_flag);
+  }
 
   /* Bone references. */
   BLI_duplicatelist(&bcoll_dst->bones, &bcoll_dst->bones);
@@ -226,6 +229,11 @@ static void armature_foreach_id_bone(Bone *bone, LibraryForeachIDData *data)
       data, IDP_foreach_property(bone->prop, IDP_TYPE_FILTER_ID, [&](IDProperty *prop) {
         BKE_lib_query_idpropertiesForeachIDLink_callback(prop, data);
       }));
+  BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(
+      data,
+      IDP_foreach_property(bone->system_properties, IDP_TYPE_FILTER_ID, [&](IDProperty *prop) {
+        BKE_lib_query_idpropertiesForeachIDLink_callback(prop, data);
+      }));
 
   LISTBASE_FOREACH (Bone *, curbone, &bone->childbase) {
     BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(data, armature_foreach_id_bone(curbone, data));
@@ -238,12 +246,23 @@ static void armature_foreach_id_editbone(EditBone *edit_bone, LibraryForeachIDDa
       data, IDP_foreach_property(edit_bone->prop, IDP_TYPE_FILTER_ID, [&](IDProperty *prop) {
         BKE_lib_query_idpropertiesForeachIDLink_callback(prop, data);
       }));
+  BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(
+      data,
+      IDP_foreach_property(
+          edit_bone->system_properties, IDP_TYPE_FILTER_ID, [&](IDProperty *prop) {
+            BKE_lib_query_idpropertiesForeachIDLink_callback(prop, data);
+          }));
 }
 
 static void armature_foreach_id_bone_collection(BoneCollection *bcoll, LibraryForeachIDData *data)
 {
   BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(
       data, IDP_foreach_property(bcoll->prop, IDP_TYPE_FILTER_ID, [&](IDProperty *prop) {
+        BKE_lib_query_idpropertiesForeachIDLink_callback(prop, data);
+      }));
+  BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(
+      data,
+      IDP_foreach_property(bcoll->system_properties, IDP_TYPE_FILTER_ID, [&](IDProperty *prop) {
         BKE_lib_query_idpropertiesForeachIDLink_callback(prop, data);
       }));
 }
@@ -283,6 +302,8 @@ static void write_bone(BlendWriter *writer, Bone *bone)
   if (bone->prop) {
     IDP_BlendWrite(writer, bone->prop);
   }
+  /* Never write system_properties in Blender 4.5, will be reset to `nullptr` by reading code (by
+   * the matching call to #BLO_read_struct). */
 
   /* Write Children */
   LISTBASE_FOREACH (Bone *, cbone, &bone->childbase) {
@@ -300,6 +321,8 @@ static void write_bone_collection(BlendWriter *writer, BoneCollection *bcoll)
   if (bcoll->prop) {
     IDP_BlendWrite(writer, bcoll->prop);
   }
+  /* Never write system_properties in Blender 4.5, will be reset to `nullptr` by reading code (by
+   * the matching call to #BLO_read_struct). */
 
   BLO_write_struct_list(writer, BoneCollectionMember, &bcoll->bones);
 }
@@ -356,8 +379,11 @@ static void armature_blend_write(BlendWriter *writer, ID *id, const void *id_add
 static void direct_link_bones(BlendDataReader *reader, Bone *bone)
 {
   BLO_read_struct(reader, Bone, &bone->parent);
+
   BLO_read_struct(reader, IDProperty, &bone->prop);
   IDP_BlendDataRead(reader, &bone->prop);
+  BLO_read_struct(reader, IDProperty, &bone->system_properties);
+  IDP_BlendDataRead(reader, &bone->system_properties);
 
   BLO_read_struct(reader, Bone, &bone->bbone_next);
   BLO_read_struct(reader, Bone, &bone->bbone_prev);
@@ -377,6 +403,8 @@ static void direct_link_bone_collection(BlendDataReader *reader, BoneCollection 
 {
   BLO_read_struct(reader, IDProperty, &bcoll->prop);
   IDP_BlendDataRead(reader, &bcoll->prop);
+  BLO_read_struct(reader, IDProperty, &bcoll->system_properties);
+  IDP_BlendDataRead(reader, &bcoll->system_properties);
 
   BLO_read_struct_list(reader, BoneCollectionMember, &bcoll->bones);
   LISTBASE_FOREACH (BoneCollectionMember *, member, &bcoll->bones) {
@@ -538,6 +566,9 @@ void BKE_armature_bonelist_free(ListBase *lb, const bool do_id_user)
     if (bone->prop) {
       IDP_FreeProperty_ex(bone->prop, do_id_user);
     }
+    if (bone->system_properties) {
+      IDP_FreeProperty_ex(bone->system_properties, do_id_user);
+    }
     BLI_freelistN(&bone->runtime.collections);
     BKE_armature_bonelist_free(&bone->childbase, do_id_user);
   }
@@ -550,6 +581,9 @@ void BKE_armature_editbonelist_free(ListBase *lb, const bool do_id_user)
   LISTBASE_FOREACH_MUTABLE (EditBone *, edit_bone, lb) {
     if (edit_bone->prop) {
       IDP_FreeProperty_ex(edit_bone->prop, do_id_user);
+    }
+    if (edit_bone->system_properties) {
+      IDP_FreeProperty_ex(edit_bone->system_properties, do_id_user);
     }
     BLI_remlink_safe(lb, edit_bone);
     MEM_freeN(edit_bone);
@@ -570,6 +604,9 @@ static void copy_bonechildren(Bone *bone_dst,
 
   if (bone_src->prop) {
     bone_dst->prop = IDP_CopyProperty_ex(bone_src->prop, flag);
+  }
+  if (bone_src->system_properties) {
+    bone_dst->system_properties = IDP_CopyProperty_ex(bone_src->system_properties, flag);
   }
 
   /* Clear the runtime cache of the collection relations, these will be

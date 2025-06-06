@@ -194,6 +194,10 @@ void version_update_node_input(
     FunctionRef<void(bNode *, bNodeSocket *, bNode *, bNodeSocket *)> update_input_link);
 
 bNode *version_eevee_output_node_get(bNodeTree *ntree, int16_t node_type);
+
+/* Allow 4.5 to open 5.0+ files and recover their system-defined ID properties. */
+void version_forward_compat_system_idprops(Main *bmain);
+
 bool all_scenes_use(Main *bmain, const blender::Span<const char *> engines);
 
 /* Adjust the values of the given FCurve key frames by applying the given function. The function is
