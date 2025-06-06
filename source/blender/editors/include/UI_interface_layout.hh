@@ -107,6 +107,10 @@ struct uiLayout : uiItem {
   blender::ui::EmbossType emboss() const;
   void emboss_set(blender::ui::EmbossType emboss);
 
+  wmOperatorCallContext operator_context() const;
+  /** Sets the default call context for new operator buttons added in any #root_ sub-layout. */
+  void operator_context_set(wmOperatorCallContext opcontext);
+
   /** Sub-layout items. */
 
   uiLayout &absolute(bool align);
@@ -470,7 +474,6 @@ void UI_paneltype_draw(bContext *C, PanelType *pt, uiLayout *layout);
 /* Only for convenience. */
 void uiLayoutSetContextFromBut(uiLayout *layout, uiBut *but);
 
-void uiLayoutSetOperatorContext(uiLayout *layout, wmOperatorCallContext opcontext);
 void uiLayoutSetActive(uiLayout *layout, bool active);
 void uiLayoutSetActiveDefault(uiLayout *layout, bool active_default);
 void uiLayoutSetActivateInit(uiLayout *layout, bool activate_init);
@@ -488,7 +491,6 @@ void uiLayoutSetPropDecorate(uiLayout *layout, bool is_sep);
 int uiLayoutGetLocalDir(const uiLayout *layout);
 void uiLayoutSetSearchWeight(uiLayout *layout, float weight);
 
-wmOperatorCallContext uiLayoutGetOperatorContext(uiLayout *layout);
 bool uiLayoutGetActive(uiLayout *layout);
 bool uiLayoutGetActiveDefault(uiLayout *layout);
 bool uiLayoutGetActivateInit(uiLayout *layout);

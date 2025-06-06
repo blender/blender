@@ -192,7 +192,7 @@ static void file_panel_execution_buttons_draw(const bContext *C, Panel *panel)
 
   {
     uiLayout *sub = &row->row(false);
-    uiLayoutSetOperatorContext(sub, WM_OP_EXEC_REGION_WIN);
+    sub->operator_context_set(WM_OP_EXEC_REGION_WIN);
 
     if (windows_layout) {
       file_panel_execution_execute_button(sub, params->title);

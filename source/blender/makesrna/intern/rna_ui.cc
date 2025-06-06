@@ -1403,12 +1403,12 @@ static void rna_UILayout_alert_set(PointerRNA *ptr, bool value)
 
 static void rna_UILayout_op_context_set(PointerRNA *ptr, int value)
 {
-  uiLayoutSetOperatorContext(static_cast<uiLayout *>(ptr->data), wmOperatorCallContext(value));
+  static_cast<uiLayout *>(ptr->data)->operator_context_set(wmOperatorCallContext(value));
 }
 
 static int rna_UILayout_op_context_get(PointerRNA *ptr)
 {
-  return uiLayoutGetOperatorContext(static_cast<uiLayout *>(ptr->data));
+  return static_cast<uiLayout *>(ptr->data)->operator_context();
 }
 
 static bool rna_UILayout_enabled_get(PointerRNA *ptr)

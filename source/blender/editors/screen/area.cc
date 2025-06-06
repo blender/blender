@@ -2944,7 +2944,7 @@ static void ed_panel_draw(const bContext *C,
                                     0,
                                     style);
 
-    uiLayoutSetOperatorContext(panel->layout, op_context);
+    panel->layout->operator_context_set(op_context);
 
     pt->draw_header_preset(C, panel);
 
@@ -2977,7 +2977,7 @@ static void ed_panel_draw(const bContext *C,
           block, UI_LAYOUT_HORIZONTAL, UI_LAYOUT_HEADER, labelx, labely, UI_UNIT_Y, 1, 0, style);
     }
 
-    uiLayoutSetOperatorContext(panel->layout, op_context);
+    panel->layout->operator_context_set(op_context);
 
     pt->draw_header(C, panel);
 
@@ -3016,7 +3016,7 @@ static void ed_panel_draw(const bContext *C,
         0,
         style);
 
-    uiLayoutSetOperatorContext(panel->layout, op_context);
+    panel->layout->operator_context_set(op_context);
 
     pt->draw(C, panel);
 

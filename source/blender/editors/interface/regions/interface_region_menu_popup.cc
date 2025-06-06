@@ -209,7 +209,7 @@ static void ui_popup_menu_create_block(bContext *C,
   const wmOperatorCallContext opcontext = pup->but ? WM_OP_INVOKE_REGION_WIN :
                                                      WM_OP_EXEC_REGION_WIN;
 
-  uiLayoutSetOperatorContext(pup->layout, opcontext);
+  pup->layout->operator_context_set(opcontext);
 
   if (pup->but) {
     if (pup->but->context) {
@@ -813,7 +813,7 @@ void UI_popup_block_template_confirm_op(uiLayout *layout,
     }
     uiBlock *block = uiLayoutGetBlock(row);
     const uiBut *but_ref = block->last_but();
-    *r_ptr = row->op(ot, confirm_text, icon, uiLayoutGetOperatorContext(row), UI_ITEM_NONE);
+    *r_ptr = row->op(ot, confirm_text, icon, row->operator_context(), UI_ITEM_NONE);
 
     if (block->buttons.is_empty() || but_ref == block->buttons.last().get()) {
       return nullptr;

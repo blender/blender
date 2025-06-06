@@ -1105,7 +1105,7 @@ wmOperatorStatus WM_menu_invoke_ex(bContext *C, wmOperator *op, wmOperatorCallCo
         C, WM_operatortype_name(op->type, op->ptr).c_str(), ICON_NONE);
     uiLayout *layout = UI_popup_menu_layout(pup);
     /* Set this so the default execution context is the same as submenus. */
-    uiLayoutSetOperatorContext(layout, opcontext);
+    layout->operator_context_set(opcontext);
     uiItemsFullEnumO(layout,
                      op->type->idname,
                      RNA_property_identifier(prop),

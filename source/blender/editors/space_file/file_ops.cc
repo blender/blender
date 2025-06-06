@@ -1963,7 +1963,7 @@ static void file_os_operations_menu_draw(const bContext *C_const, Menu *menu)
   const char *root = filelist_dir(sfile->files);
 
   uiLayout *layout = menu->layout;
-  uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_DEFAULT);
+  layout->operator_context_set(WM_OP_INVOKE_DEFAULT);
   wmOperatorType *ot = WM_operatortype_find("FILE_OT_external_operation", true);
 
   if (fileentry->typeflag & FILE_TYPE_DIR) {

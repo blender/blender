@@ -135,7 +135,7 @@ static wmOperatorStatus wm_drop_import_file_invoke(bContext *C,
    */
   uiPopupMenu *pup = UI_popup_menu_begin(C, "", ICON_NONE);
   uiLayout *layout = UI_popup_menu_layout(pup);
-  uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_DEFAULT);
+  layout->operator_context_set(WM_OP_INVOKE_DEFAULT);
 
   for (auto *file_handler : file_handlers) {
     wmOperatorType *ot = WM_operatortype_find(file_handler->import_operator, false);

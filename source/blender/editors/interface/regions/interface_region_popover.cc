@@ -96,7 +96,7 @@ static void ui_popover_create_block(bContext *C,
   pup->layout = UI_block_layout(
       pup->block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, pup->ui_size_x, 0, 0, style);
 
-  uiLayoutSetOperatorContext(pup->layout, opcontext);
+  pup->layout->operator_context_set(opcontext);
 
   if (pup->but) {
     if (pup->but->context) {

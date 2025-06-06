@@ -3421,7 +3421,7 @@ static void menu_item_enum_opname_menu(bContext *C, uiLayout *layout, void *arg)
    * menu item name, set in uiItemMenuEnumFullO_ptr. */
   const int active = menu_item_enum_opname_menu_active(C, but, lvl);
 
-  uiLayoutSetOperatorContext(layout, lvl->opcontext);
+  layout->operator_context_set(lvl->opcontext);
   uiItemsFullEnumO(
       layout, lvl->opname, lvl->propname, op_props, lvl->opcontext, UI_ITEM_NONE, active);
 
@@ -3520,7 +3520,7 @@ static void menu_item_enum_rna_menu(bContext * /*C*/, uiLayout *layout, void *ar
 {
   MenuItemLevel *lvl = (MenuItemLevel *)(((uiBut *)arg)->func_argN);
 
-  uiLayoutSetOperatorContext(layout, lvl->opcontext);
+  layout->operator_context_set(lvl->opcontext);
   uiItemsEnumR(layout, &lvl->rnapoin, lvl->propname);
 }
 
@@ -5768,9 +5768,9 @@ uiBlock *uiLayoutGetBlock(uiLayout *layout)
   return layout->root_->block;
 }
 
-wmOperatorCallContext uiLayoutGetOperatorContext(uiLayout *layout)
+wmOperatorCallContext uiLayout::operator_context() const
 {
-  return layout->root_->opcontext;
+  return root_->opcontext;
 }
 
 void UI_block_layout_set_current(uiBlock *block, uiLayout *layout)
@@ -5882,9 +5882,9 @@ bool uiLayoutGetFixedSize(uiLayout *layout)
   return bool(layout->flag_ & uiItemInternalFlag::FixedSize);
 }
 
-void uiLayoutSetOperatorContext(uiLayout *layout, wmOperatorCallContext opcontext)
+void uiLayout::operator_context_set(wmOperatorCallContext opcontext)
 {
-  layout->root_->opcontext = opcontext;
+  root_->opcontext = opcontext;
 }
 
 void uiLayoutSetFunc(uiLayout *layout, uiMenuHandleFunc handlefunc, void *argv)
