@@ -1385,16 +1385,15 @@ void BKE_brush_calc_curve_factors(const eBrushCurvePreset preset,
                                   const blender::MutableSpan<float> factors)
 {
   BLI_assert(factors.size() == distances.size());
+  for (const int i : distances.index_range()) {
+    BLI_assert(distances[i] < brush_radius || factors[i] == 0.0f);
+  }
 
   const float radius_rcp = blender::math::rcp(brush_radius);
   switch (preset) {
     case BRUSH_CURVE_CUSTOM: {
       for (const int i : distances.index_range()) {
         const float distance = distances[i];
-        if (distance >= brush_radius) {
-          factors[i] = 0.0f;
-          continue;
-        }
         factors[i] *= BKE_curvemapping_evaluateF(cumap, 0, distance * radius_rcp);
       }
       break;
@@ -1402,10 +1401,6 @@ void BKE_brush_calc_curve_factors(const eBrushCurvePreset preset,
     case BRUSH_CURVE_SHARP: {
       for (const int i : distances.index_range()) {
         const float distance = distances[i];
-        if (distance >= brush_radius) {
-          factors[i] = 0.0f;
-          continue;
-        }
         const float factor = 1.0f - distance * radius_rcp;
         factors[i] *= factor * factor;
       }
@@ -1414,10 +1409,6 @@ void BKE_brush_calc_curve_factors(const eBrushCurvePreset preset,
     case BRUSH_CURVE_SMOOTH: {
       for (const int i : distances.index_range()) {
         const float distance = distances[i];
-        if (distance >= brush_radius) {
-          factors[i] = 0.0f;
-          continue;
-        }
         const float factor = 1.0f - distance * radius_rcp;
         factors[i] *= 3.0f * factor * factor - 2.0f * factor * factor * factor;
       }
@@ -1426,10 +1417,6 @@ void BKE_brush_calc_curve_factors(const eBrushCurvePreset preset,
     case BRUSH_CURVE_SMOOTHER: {
       for (const int i : distances.index_range()) {
         const float distance = distances[i];
-        if (distance >= brush_radius) {
-          factors[i] = 0.0f;
-          continue;
-        }
         const float factor = 1.0f - distance * radius_rcp;
         factors[i] *= pow3f(factor) * (factor * (factor * 6.0f - 15.0f) + 10.0f);
       }
@@ -1438,10 +1425,6 @@ void BKE_brush_calc_curve_factors(const eBrushCurvePreset preset,
     case BRUSH_CURVE_ROOT: {
       for (const int i : distances.index_range()) {
         const float distance = distances[i];
-        if (distance >= brush_radius) {
-          factors[i] = 0.0f;
-          continue;
-        }
         const float factor = 1.0f - distance * radius_rcp;
         factors[i] *= sqrtf(factor);
       }
@@ -1450,10 +1433,6 @@ void BKE_brush_calc_curve_factors(const eBrushCurvePreset preset,
     case BRUSH_CURVE_LIN: {
       for (const int i : distances.index_range()) {
         const float distance = distances[i];
-        if (distance >= brush_radius) {
-          factors[i] = 0.0f;
-          continue;
-        }
         const float factor = 1.0f - distance * radius_rcp;
         factors[i] *= factor;
       }
@@ -1465,10 +1444,6 @@ void BKE_brush_calc_curve_factors(const eBrushCurvePreset preset,
     case BRUSH_CURVE_SPHERE: {
       for (const int i : distances.index_range()) {
         const float distance = distances[i];
-        if (distance >= brush_radius) {
-          factors[i] = 0.0f;
-          continue;
-        }
         const float factor = 1.0f - distance * radius_rcp;
         factors[i] *= sqrtf(2 * factor - factor * factor);
       }
@@ -1477,10 +1452,6 @@ void BKE_brush_calc_curve_factors(const eBrushCurvePreset preset,
     case BRUSH_CURVE_POW4: {
       for (const int i : distances.index_range()) {
         const float distance = distances[i];
-        if (distance >= brush_radius) {
-          factors[i] = 0.0f;
-          continue;
-        }
         const float factor = 1.0f - distance * radius_rcp;
         factors[i] *= factor * factor * factor * factor;
       }
@@ -1489,10 +1460,6 @@ void BKE_brush_calc_curve_factors(const eBrushCurvePreset preset,
     case BRUSH_CURVE_INVSQUARE: {
       for (const int i : distances.index_range()) {
         const float distance = distances[i];
-        if (distance >= brush_radius) {
-          factors[i] = 0.0f;
-          continue;
-        }
         const float factor = 1.0f - distance * radius_rcp;
         factors[i] *= factor * (2.0f - factor);
       }
