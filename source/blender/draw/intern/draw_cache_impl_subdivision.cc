@@ -1016,7 +1016,7 @@ void draw_subdiv_extract_pos(const DRWSubdivCache &cache, gpu::VertBuf *pos, gpu
 
   GPU_storagebuf_free(patch_arrays_buffer);
 #else
-  UNUSED_VARS(cache, flags_buffer, pos, orco);
+  UNUSED_VARS(cache, pos, orco);
 #endif
 }
 
