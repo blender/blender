@@ -107,17 +107,17 @@ class VIEW3D_HT_tool_header(Header):
             if is_valid_context:
                 brush = context.tool_settings.gpencil_paint.brush
                 if brush:
-                    if brush.gpencil_tool not in {'FILL', 'TINT', 'ERASE'}:
+                    if brush.gpencil_brush_type not in {'FILL', 'TINT', 'ERASE'}:
                         layout.popover("VIEW3D_PT_tools_grease_pencil_v3_brush_advanced")
                         layout.popover("VIEW3D_PT_tools_grease_pencil_v3_brush_stroke")
-                    if brush.gpencil_tool == 'FILL':
+                    if brush.gpencil_brush_type == 'FILL':
                         layout.popover("VIEW3D_PT_tools_grease_pencil_v3_brush_fill_advanced")
                     layout.popover("VIEW3D_PT_tools_grease_pencil_paint_appearance")
         elif tool_mode == 'SCULPT_GREASE_PENCIL':
             if is_valid_context:
                 brush = context.tool_settings.gpencil_sculpt_paint.brush
                 if brush:
-                    tool = brush.gpencil_sculpt_tool
+                    tool = brush.gpencil_sculpt_brush_type
                     if tool in {'SMOOTH', 'RANDOMIZE'}:
                         layout.popover("VIEW3D_PT_tools_grease_pencil_sculpt_brush_popover")
                     layout.popover("VIEW3D_PT_tools_grease_pencil_sculpt_appearance")
@@ -429,7 +429,7 @@ class _draw_tool_settings_context_mode:
         )
 
         # direction
-        if brush.gpencil_sculpt_tool in {'THICKNESS', 'STRENGTH', 'PINCH', 'TWIST'}:
+        if brush.gpencil_sculpt_brush_type in {'THICKNESS', 'STRENGTH', 'PINCH', 'TWIST'}:
             layout.row().prop(brush, "direction", expand=True, text="")
 
         # Brush falloff
@@ -485,7 +485,7 @@ class _draw_tool_settings_context_mode:
 
         BrushAssetShelf.draw_popup_selector(layout, context, brush)
 
-        if brush.gpencil_vertex_tool not in {'BLUR', 'AVERAGE', 'SMEAR'}:
+        if brush.gpencil_vertex_brush_type not in {'BLUR', 'AVERAGE', 'SMEAR'}:
             layout.separator(factor=0.4)
             ups = context.tool_settings.unified_paint_settings
             prop_owner = ups if ups.use_unified_color else brush
@@ -559,8 +559,8 @@ class _draw_tool_settings_context_mode:
             header=True,
         )
 
-        if brush.curves_sculpt_tool not in {'ADD', 'DELETE'}:
-            use_strength_pressure = brush.curves_sculpt_tool not in {'SLIDE'}
+        if brush.curves_sculpt_brush_type not in {'ADD', 'DELETE'}:
+            use_strength_pressure = brush.curves_sculpt_brush_type not in {'SLIDE'}
             UnifiedPaintPanel.prop_unified(
                 layout,
                 context,
@@ -571,7 +571,7 @@ class _draw_tool_settings_context_mode:
                 header=True,
             )
 
-        curves_tool = brush.curves_sculpt_tool
+        curves_tool = brush.curves_sculpt_brush_type
 
         if curves_tool == 'COMB':
             layout.prop(brush, "falloff_shape", expand=True)
@@ -651,7 +651,7 @@ class _draw_tool_settings_context_mode:
 
         BrushAssetShelf.draw_popup_selector(row, context, brush)
 
-        grease_pencil_tool = brush.gpencil_tool
+        grease_pencil_tool = brush.gpencil_brush_type
 
         if grease_pencil_tool in {'DRAW', 'FILL'}:
             from bl_ui.properties_paint_common import (
@@ -969,7 +969,7 @@ class VIEW3D_HT_header(Header):
                 paint = tool_settings.sculpt
                 brush = paint.brush
                 if brush:
-                    is_paint_tool = brush.sculpt_tool in {'PAINT', 'SMEAR'}
+                    is_paint_tool = brush.sculpt_brush_type in {'PAINT', 'SMEAR'}
             else:
                 is_paint_tool = tool and tool.use_paint_canvas
 
@@ -8447,9 +8447,9 @@ class VIEW3D_PT_greasepencil_draw_context_menu(Panel):
         gp_settings = brush.gpencil_settings
 
         is_pin_vertex = gp_settings.brush_draw_mode == 'VERTEXCOLOR'
-        is_vertex = settings.color_mode == 'VERTEXCOLOR' or brush.gpencil_tool == 'TINT' or is_pin_vertex
+        is_vertex = settings.color_mode == 'VERTEXCOLOR' or brush.gpencil_brush_type == 'TINT' or is_pin_vertex
 
-        if brush.gpencil_tool not in {'ERASE', 'CUTTER', 'EYEDROPPER'} and is_vertex:
+        if brush.gpencil_brush_type not in {'ERASE', 'CUTTER', 'EYEDROPPER'} and is_vertex:
             split = layout.split(factor=0.1)
             split.prop(brush, "color", text="")
             split.template_color_picker(brush, "color", value_slider=True)
@@ -8459,12 +8459,12 @@ class VIEW3D_PT_greasepencil_draw_context_menu(Panel):
             col.prop_menu_enum(gp_settings, "vertex_mode", text="Mode")
             col.separator()
 
-        if brush.gpencil_tool not in {'FILL', 'CUTTER', 'ERASE'}:
+        if brush.gpencil_brush_type not in {'FILL', 'CUTTER', 'ERASE'}:
             radius = "size" if (brush.use_locked_size == 'VIEW') else "unprojected_radius"
             layout.prop(brush, radius, text="Radius", slider=True)
-        if brush.gpencil_tool == 'ERASE':
+        if brush.gpencil_brush_type == 'ERASE':
             layout.prop(brush, "size", slider=True)
-        if brush.gpencil_tool not in {'ERASE', 'FILL', 'CUTTER'}:
+        if brush.gpencil_brush_type not in {'ERASE', 'FILL', 'CUTTER'}:
             layout.prop(gp_settings, "pen_strength")
 
         layer = context.object.data.layers.active
@@ -8528,7 +8528,7 @@ class VIEW3D_PT_greasepencil_vertex_paint_context_menu(Panel):
 
         col = layout.column()
 
-        if brush.gpencil_vertex_tool in {'DRAW', 'REPLACE'}:
+        if brush.gpencil_vertex_brush_type in {'DRAW', 'REPLACE'}:
             split = layout.split(factor=0.1)
             split.prop(tool_settings.unified_paint_settings, "color", text="")
             split.template_color_picker(tool_settings.unified_paint_settings, "color", value_slider=True)
@@ -8542,7 +8542,7 @@ class VIEW3D_PT_greasepencil_vertex_paint_context_menu(Panel):
         row.prop(tool_settings.unified_paint_settings, "size", text="Radius")
         row.prop(brush, "use_pressure_size", text="", icon='STYLUS_PRESSURE')
 
-        if brush.gpencil_vertex_tool in {'DRAW', 'BLUR', 'SMEAR'}:
+        if brush.gpencil_vertex_brush_type in {'DRAW', 'BLUR', 'SMEAR'}:
             row = layout.row(align=True)
             row.prop(brush, "strength", slider=True)
             row.prop(brush, "use_pressure_strength", text="", icon='STYLUS_PRESSURE')
@@ -8847,7 +8847,7 @@ class VIEW3D_PT_sculpt_context_menu(Panel):
 
         if capabilities.has_pinch_factor:
             text = "Pinch"
-            if brush.sculpt_tool in {'BLOB', 'SNAKE_HOOK'}:
+            if brush.sculpt_brush_type in {'BLOB', 'SNAKE_HOOK'}:
                 text = "Magnify"
             layout.prop(brush, "crease_pinch_factor", slider=True, text=text)
 
@@ -8920,7 +8920,7 @@ class TOPBAR_PT_grease_pencil_vertex_color(Panel):
             layout.template_palette(paint, "palette", color=True)
 
         gp_settings = brush.gpencil_settings
-        if brush.gpencil_tool in {'DRAW', 'FILL'}:
+        if brush.gpencil_brush_type in {'DRAW', 'FILL'}:
             row = layout.row(align=True)
             row.prop(gp_settings, "vertex_mode", text="Mode")
             row = layout.row(align=True)
@@ -9035,63 +9035,54 @@ class VIEW3D_AST_brush_sculpt(View3DAssetShelf, bpy.types.AssetShelf):
     mode = 'SCULPT'
     mode_prop = "use_paint_sculpt"
     brush_type_prop = "sculpt_brush_type"
-    tool_prop = "sculpt_tool"
 
 
 class VIEW3D_AST_brush_sculpt_curves(View3DAssetShelf, bpy.types.AssetShelf):
     mode = 'SCULPT_CURVES'
     mode_prop = "use_paint_sculpt_curves"
     brush_type_prop = "curves_sculpt_brush_type"
-    tool_prop = "curves_sculpt_tool"
 
 
 class VIEW3D_AST_brush_vertex_paint(View3DAssetShelf, bpy.types.AssetShelf):
     mode = 'VERTEX_PAINT'
     mode_prop = "use_paint_vertex"
     brush_type_prop = "vertex_brush_type"
-    tool_prop = "vertex_tool"
 
 
 class VIEW3D_AST_brush_weight_paint(AssetShelfHiddenByDefault, View3DAssetShelf, bpy.types.AssetShelf):
     mode = 'WEIGHT_PAINT'
     mode_prop = "use_paint_weight"
     brush_type_prop = "weight_brush_type"
-    tool_prop = "weight_tool"
 
 
 class VIEW3D_AST_brush_texture_paint(View3DAssetShelf, bpy.types.AssetShelf):
     mode = 'TEXTURE_PAINT'
     mode_prop = "use_paint_image"
     brush_type_prop = "image_brush_type"
-    tool_prop = "image_tool"
 
 
 class VIEW3D_AST_brush_gpencil_paint(View3DAssetShelf, bpy.types.AssetShelf):
     mode = 'PAINT_GREASE_PENCIL'
     mode_prop = "use_paint_grease_pencil"
     brush_type_prop = "gpencil_brush_type"
-    tool_prop = "gpencil_tool"
 
 
 class VIEW3D_AST_brush_gpencil_sculpt(View3DAssetShelf, bpy.types.AssetShelf):
     mode = 'SCULPT_GREASE_PENCIL'
     mode_prop = "use_sculpt_grease_pencil"
     brush_type_prop = "gpencil_sculpt_brush_type"
-    tool_prop = "gpencil_sculpt_tool"
 
 
 class VIEW3D_AST_brush_gpencil_vertex(AssetShelfHiddenByDefault, View3DAssetShelf, bpy.types.AssetShelf):
     mode = 'VERTEX_GREASE_PENCIL'
     mode_prop = "use_vertex_grease_pencil"
     brush_type_prop = "gpencil_vertex_brush_type"
-    tool_prop = "gpencil_vertex_tool"
 
 
 class VIEW3D_AST_brush_gpencil_weight(AssetShelfHiddenByDefault, View3DAssetShelf, bpy.types.AssetShelf):
     mode = 'WEIGHT_GREASE_PENCIL'
     mode_prop = "use_weight_grease_pencil"
     brush_type_prop = "gpencil_weight_brush_type"
-    tool_prop = "gpencil_weight_tool"
 
 
 classes = (
