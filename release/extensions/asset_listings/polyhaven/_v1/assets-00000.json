@@ -1,6 +1,836 @@
 {
-  "asset_count": 33,
+  "asset_count": 60,
   "assets": [
+    {
+      "name": "preconcrete_wall_001",
+      "id_type": "material",
+      "blender_version_min": "3.6.10",
+      "archive_url": "preconcrete_wall_001/preconcrete_wall_001.blend",
+      "archive_size_in_bytes": 349476,
+      "archive_hash": "1ff5496878ef741780b5458be4479410c6d27769847321b249065f976bee8dcb",
+      "thumbnail_url": "preconcrete_wall_001/preconcrete_wall_001_thumbnails/Material/preconcrete_wall_001.webp",
+      "meta": {
+        "catalog_id": "18ac3bd9-c74b-419b-b275-31047f5ade74",
+        "tags": [
+          "concrete",
+          "wall",
+          "outdoor",
+          "man made",
+          "dirty",
+          "plaster",
+          "plaster-concrete",
+          "cracked",
+          "rough",
+          "damaged",
+          "house",
+          "beige",
+          "stained",
+          "painted",
+          "chipped"
+        ],
+        "author": "Dimitrios Savva, Rico Cilliers",
+        "description": "A CC0 Texture by polyhaven.com"
+      }
+    },
+    {
+      "name": "dead_tree_trunk",
+      "id_type": "collection",
+      "blender_version_min": "3.6.10",
+      "archive_url": "dead_tree_trunk/dead_tree_trunk.blend",
+      "archive_size_in_bytes": 4791840,
+      "archive_hash": "2238d874241f3fd61c3d19db7d06783a3f1bf9c3982c346a2d61458b1c2ebd06",
+      "thumbnail_url": "dead_tree_trunk/dead_tree_trunk_thumbnails/Collection/dead_tree_trunk.webp",
+      "meta": {
+        "catalog_id": "35e80462-1b62-4736-95dc-ed8bb0c4cb1a",
+        "tags": [
+          "nature",
+          "plants",
+          "ground cover",
+          "collection: pine_forest",
+          "collection: verdant_trail",
+          "log",
+          "dead tree",
+          "tree",
+          "trunk",
+          "bark",
+          "natural",
+          "foliage",
+          "forest",
+          "plant",
+          "dead",
+          "dry",
+          "woodland",
+          "decayed",
+          "rough texture",
+          "forest floor"
+        ],
+        "author": "Rob Tuytel",
+        "description": "A CC0 Model by polyhaven.com"
+      }
+    },
+    {
+      "name": "steel_frame_shelves_02",
+      "id_type": "collection",
+      "blender_version_min": "3.6.10",
+      "archive_url": "steel_frame_shelves_02/steel_frame_shelves_02.blend",
+      "archive_size_in_bytes": 280373,
+      "archive_hash": "64d08fbfc52084236727f44ff48ea4c0d723277b060b1f9b6b832e7afbbbb25a",
+      "thumbnail_url": "steel_frame_shelves_02/steel_frame_shelves_02_thumbnails/Collection/steel_frame_shelves_02.webp",
+      "meta": {
+        "catalog_id": "f7d9a241-6a68-4104-bdf8-1c13109e8e6c",
+        "tags": [
+          "furniture",
+          "industrial",
+          "shelves",
+          "collection: the_shed",
+          "commercial",
+          "modern",
+          "shelf",
+          "bookshelf",
+          "metal",
+          "wood"
+        ],
+        "author": "James Ray Cock",
+        "description": "A CC0 Model by polyhaven.com"
+      }
+    },
+    {
+      "name": "lakes",
+      "id_type": "world",
+      "blender_version_min": "3.6.10",
+      "archive_url": "lakes/lakes.blend",
+      "archive_size_in_bytes": 228772,
+      "archive_hash": "5231e7d09d7eabfe3ca4663e82bb425aae1e4c5f5a5d5f0604cae57a979b1cc0",
+      "thumbnail_url": "lakes/lakes_thumbnails/World/lakes.webp",
+      "meta": {
+        "catalog_id": "e64bbf5b-1ddf-47b2-9a6f-adf38150e68c",
+        "tags": [
+          "outdoor",
+          "skies",
+          "nature",
+          "sunrise-sunset",
+          "partly cloudy",
+          "high contrast",
+          "natural light",
+          "water",
+          "lake",
+          "dam",
+          "road",
+          "sun"
+        ],
+        "author": "Sergej Majboroda",
+        "description": "A CC0 HDRI by polyhaven.com"
+      }
+    },
+    {
+      "name": "spinning_wheel_01",
+      "id_type": "collection",
+      "blender_version_min": "3.6.10",
+      "archive_url": "spinning_wheel_01/spinning_wheel_01.blend",
+      "archive_size_in_bytes": 3227436,
+      "archive_hash": "287896a3039a7e7b335df88b5f9ed556499020e0093df17159339072c57ed59f",
+      "thumbnail_url": "spinning_wheel_01/spinning_wheel_01_thumbnails/Collection/spinning_wheel_01.webp",
+      "meta": {
+        "catalog_id": "62daa2e2-0e53-4623-a9ed-fee4190c99e0",
+        "tags": [
+          "props",
+          "tools",
+          "vintage",
+          "victorian",
+          "loom",
+          "fabric",
+          "cloth",
+          "yarn",
+          "village",
+          "wooden",
+          "old"
+        ],
+        "author": "Samuli Pahaoja",
+        "description": "A CC0 Model by polyhaven.com"
+      }
+    },
+    {
+      "name": "excavated_soil_wall",
+      "id_type": "material",
+      "blender_version_min": "3.6.10",
+      "archive_url": "excavated_soil_wall/excavated_soil_wall.blend",
+      "archive_size_in_bytes": 345919,
+      "archive_hash": "e06a1504175daf6da0274411e007958634b49269febbcd8ff800ad8572f03afb",
+      "thumbnail_url": "excavated_soil_wall/excavated_soil_wall_thumbnails/Material/excavated_soil_wall.webp",
+      "meta": {
+        "catalog_id": "0b4a1940-abfc-435d-ae06-1b1912fcb0fa",
+        "tags": [
+          "outdoor",
+          "wall",
+          "sand",
+          "cracks",
+          "excavation",
+          "soil",
+          "earth",
+          "dirt",
+          "dusty",
+          "dry",
+          "uneven"
+        ],
+        "author": "Amal Kumar",
+        "description": "A CC0 Texture by polyhaven.com"
+      }
+    },
+    {
+      "name": "phone_shop",
+      "id_type": "world",
+      "blender_version_min": "3.6.10",
+      "archive_url": "phone_shop/phone_shop.blend",
+      "archive_size_in_bytes": 214139,
+      "archive_hash": "73f30edabb1df29c907b8d188e9eae6044ec15d1f636e9699a6ea3d6179336ce",
+      "thumbnail_url": "phone_shop/phone_shop_thumbnails/World/phone_shop.webp",
+      "meta": {
+        "catalog_id": "5f70a139-9202-4fc9-a218-bcea5f9ab263",
+        "tags": [
+          "indoor",
+          "urban",
+          "medium contrast",
+          "artificial light",
+          "lamp",
+          "shop",
+          "store",
+          "display",
+          "counter"
+        ],
+        "author": "Philip Modin",
+        "description": "A CC0 HDRI by polyhaven.com"
+      }
+    },
+    {
+      "name": "furry_clouds",
+      "id_type": "world",
+      "blender_version_min": "3.6.10",
+      "archive_url": "furry_clouds/furry_clouds.blend",
+      "archive_size_in_bytes": 238470,
+      "archive_hash": "12a29f9c7c4306cffabfcf3a86321fab13971ea7e66b9adfe78d1012fd781eda",
+      "thumbnail_url": "furry_clouds/furry_clouds_thumbnails/World/furry_clouds.webp",
+      "meta": {
+        "catalog_id": "f21f81e2-3dde-4f2c-b9b4-3180a98d3d2e",
+        "tags": [
+          "outdoor",
+          "skies",
+          "nature",
+          "urban",
+          "morning-afternoon",
+          "partly cloudy",
+          "high contrast",
+          "natural light",
+          "path",
+          "promenade",
+          "sun",
+          "field",
+          "building",
+          "ocean",
+          "railing",
+          "backplates"
+        ],
+        "author": "Greg Zaal, Rico Cilliers",
+        "description": "A CC0 HDRI by polyhaven.com"
+      }
+    },
+    {
+      "name": "qwantani_patio",
+      "id_type": "world",
+      "blender_version_min": "3.6.10",
+      "archive_url": "qwantani_patio/qwantani_patio.blend",
+      "archive_size_in_bytes": 241837,
+      "archive_hash": "049591063011e63d0ace4b235c563484e4155ffd3bc1fd4e6ab7d124dd533b1b",
+      "thumbnail_url": "qwantani_patio/qwantani_patio_thumbnails/World/qwantani_patio.webp",
+      "meta": {
+        "catalog_id": "18a3a12c-9d33-404c-9c95-811fe23052a8",
+        "tags": [
+          "outdoor",
+          "nature",
+          "urban",
+          "natural light",
+          "medium contrast",
+          "morning-afternoon",
+          "tile",
+          "brick",
+          "table",
+          "chair",
+          "braai",
+          "awning",
+          "veranda",
+          "garden",
+          "patio",
+          "porch",
+          "terrace"
+        ],
+        "author": "Greg Zaal, Jarod Guest",
+        "description": "A CC0 HDRI by polyhaven.com"
+      }
+    },
+    {
+      "name": "stone_wall",
+      "id_type": "material",
+      "blender_version_min": "3.6.10",
+      "archive_url": "stone_wall/stone_wall.blend",
+      "archive_size_in_bytes": 371006,
+      "archive_hash": "a16c57179fede933b9c139bf085eee1ef19a4d2d2daeb1006e880da5d0dd78c3",
+      "thumbnail_url": "stone_wall/stone_wall_thumbnails/Material/stone_wall.webp",
+      "meta": {
+        "catalog_id": "fc0b7e40-beca-4085-a2c0-62fcff980615",
+        "tags": [
+          "outdoor",
+          "rock",
+          "wall",
+          "rough",
+          "uneven",
+          "weathered",
+          "cracked",
+          "stones",
+          "worn",
+          "chipped",
+          "dry",
+          "rocks",
+          "dirty"
+        ],
+        "author": "Dario Barresi, Charlotte Baglioni",
+        "description": "A CC0 Texture by polyhaven.com"
+      }
+    },
+    {
+      "name": "painted_wooden_cabinet_02",
+      "id_type": "collection",
+      "blender_version_min": "3.6.10",
+      "archive_url": "painted_wooden_cabinet_02/painted_wooden_cabinet_02.blend",
+      "archive_size_in_bytes": 199530,
+      "archive_hash": "bd7b5e320dac9262b1668784db650f127737a0a769676ddbf1e34b44a8610a10",
+      "thumbnail_url": "painted_wooden_cabinet_02/painted_wooden_cabinet_02_thumbnails/Collection/painted_wooden_cabinet_02.webp",
+      "meta": {
+        "catalog_id": "f7d9a241-6a68-4104-bdf8-1c13109e8e6c",
+        "tags": [
+          "furniture",
+          "shelves",
+          "storage",
+          "cabinet",
+          "wood",
+          "vintage",
+          "rustic",
+          "worn",
+          "carpentry",
+          "aged",
+          "bookcase"
+        ],
+        "author": "Kirill Sannikov",
+        "description": "A CC0 Model by polyhaven.com"
+      }
+    },
+    {
+      "name": "brick_factory_02",
+      "id_type": "world",
+      "blender_version_min": "3.6.10",
+      "archive_url": "brick_factory_02/brick_factory_02.blend",
+      "archive_size_in_bytes": 218224,
+      "archive_hash": "a660055914e79e4fe4920785ffe1b4dea7c4cbbeb43fc186b665fb0ae2b1af84",
+      "thumbnail_url": "brick_factory_02/brick_factory_02_thumbnails/World/brick_factory_02.webp",
+      "meta": {
+        "catalog_id": "8d14dcb5-f464-43ea-bbf5-15df36cf406e",
+        "tags": [
+          "clear",
+          "high contrast",
+          "morning-afternoon",
+          "natural light",
+          "nature",
+          "outdoor",
+          "dirt",
+          "road",
+          "tree",
+          "sun",
+          "brick",
+          "pallet",
+          "backplates"
+        ],
+        "author": "Sergej Majboroda",
+        "description": "A CC0 HDRI by polyhaven.com"
+      }
+    },
+    {
+      "name": "recycled_brick_floor",
+      "id_type": "material",
+      "blender_version_min": "3.6.10",
+      "archive_url": "recycled_brick_floor/recycled_brick_floor.blend",
+      "archive_size_in_bytes": 344047,
+      "archive_hash": "2a106de36bbf96c5b94b00c12847235b32588eb6e4640d0e4d35ea2421a2a016",
+      "thumbnail_url": "recycled_brick_floor/recycled_brick_floor_thumbnails/Material/recycled_brick_floor.webp",
+      "meta": {
+        "catalog_id": "cb20759c-8417-4047-aca2-19755b99e892",
+        "tags": [
+          "floor",
+          "brick",
+          "weathered",
+          "worn",
+          "chipped",
+          "damaged",
+          "old",
+          "dirty",
+          "timeworn",
+          "weatherbeaten",
+          "crumbling",
+          "aged",
+          "deteriorated",
+          "bricks"
+        ],
+        "author": "Dimitrios Savva",
+        "description": "A CC0 Texture by polyhaven.com"
+      }
+    },
+    {
+      "name": "courtyard_night",
+      "id_type": "world",
+      "blender_version_min": "3.6.10",
+      "archive_url": "courtyard_night/courtyard_night.blend",
+      "archive_size_in_bytes": 231051,
+      "archive_hash": "d9f5f6dc71982b8a5e14608c59870103ac6b7dace50d24253b43896447436075",
+      "thumbnail_url": "courtyard_night/courtyard_night_thumbnails/World/courtyard_night.webp",
+      "meta": {
+        "catalog_id": "44100f90-2dc1-4d97-b8dc-d192afd42b89",
+        "tags": [
+          "outdoor",
+          "urban",
+          "night",
+          "clear",
+          "high contrast",
+          "artificial light",
+          "brick",
+          "house",
+          "moon",
+          "lamp"
+        ],
+        "author": "Greg Zaal",
+        "description": "A CC0 HDRI by polyhaven.com"
+      }
+    },
+    {
+      "name": "dry_ground_01",
+      "id_type": "material",
+      "blender_version_min": "3.6.10",
+      "archive_url": "dry_ground_01/dry_ground_01.blend",
+      "archive_size_in_bytes": 349053,
+      "archive_hash": "1769bf035f1eaf384c279d30d6e64541d65ba37e5257dad5001cb4780db2bde0",
+      "thumbnail_url": "dry_ground_01/dry_ground_01_thumbnails/Material/dry_ground_01.webp",
+      "meta": {
+        "catalog_id": "57a6a6bc-1144-4fb9-9858-226c85c1062d",
+        "tags": [
+          "terrain",
+          "outdoor",
+          "natural",
+          "dry",
+          "sand",
+          "mud",
+          "cracked"
+        ],
+        "author": "Rob Tuytel",
+        "description": "A CC0 Texture by polyhaven.com"
+      }
+    },
+    {
+      "name": "patterned_brick_wall_03",
+      "id_type": "material",
+      "blender_version_min": "3.6.10",
+      "archive_url": "patterned_brick_wall_03/patterned_brick_wall_03.blend",
+      "archive_size_in_bytes": 333786,
+      "archive_hash": "c016ebf9cccae4e88d247da34fb6d517afa72a38638171bda466925937f49a02",
+      "thumbnail_url": "patterned_brick_wall_03/patterned_brick_wall_03_thumbnails/Material/patterned_brick_wall_03.webp",
+      "meta": {
+        "catalog_id": "cb20759c-8417-4047-aca2-19755b99e892",
+        "tags": [
+          "wall",
+          "brick",
+          "rough",
+          "bricks",
+          "patterned",
+          "interlocking bricks",
+          "building facade",
+          "urban",
+          "outdoor",
+          "pattern",
+          "brick design",
+          "decorative bricks"
+        ],
+        "author": "Charlotte Baglioni",
+        "description": "A CC0 Texture by polyhaven.com"
+      }
+    },
+    {
+      "name": "river_walk_2",
+      "id_type": "world",
+      "blender_version_min": "3.6.10",
+      "archive_url": "river_walk_2/river_walk_2.blend",
+      "archive_size_in_bytes": 245639,
+      "archive_hash": "c107a6145e04401aa107a3a3a6f4675290d18e61b2267c780666469abc5da2ac",
+      "thumbnail_url": "river_walk_2/river_walk_2_thumbnails/World/river_walk_2.webp",
+      "meta": {
+        "catalog_id": "0f03b383-10da-4c89-819f-02a29bbc4bce",
+        "tags": [
+          "outdoor",
+          "nature",
+          "sunrise-sunset",
+          "low contrast",
+          "natural light",
+          "tree",
+          "path",
+          "forest",
+          "canopy"
+        ],
+        "author": "Greg Zaal",
+        "description": "A CC0 HDRI by polyhaven.com"
+      }
+    },
+    {
+      "name": "grass_medium_02",
+      "id_type": "collection",
+      "blender_version_min": "3.6.10",
+      "archive_url": "grass_medium_02/grass_medium_02.blend",
+      "archive_size_in_bytes": 431605,
+      "archive_hash": "d2b46b9fe2df75e56c0fb730a9156dbddbfe57d332a944eaaf953a92804c45d2",
+      "thumbnail_url": "grass_medium_02/grass_medium_02_thumbnails/Collection/grass_medium_02.webp",
+      "meta": {
+        "catalog_id": "35e80462-1b62-4736-95dc-ed8bb0c4cb1a",
+        "tags": [
+          "nature",
+          "ground cover",
+          "grass",
+          "plants",
+          "collection: verdant_trail",
+          "field",
+          "meadow",
+          "shrub",
+          "small",
+          "green",
+          "plant",
+          "foliage",
+          "natural",
+          "geometry nodes",
+          "vegetation",
+          "undergrowth",
+          "ground",
+          "lawn",
+          "environment",
+          "pasture"
+        ],
+        "author": "Rico Cilliers",
+        "description": "A CC0 Model by polyhaven.com"
+      }
+    },
+    {
+      "name": "brick_wall_005",
+      "id_type": "material",
+      "blender_version_min": "3.6.10",
+      "archive_url": "brick_wall_005/brick_wall_005.blend",
+      "archive_size_in_bytes": 374968,
+      "archive_hash": "8ad7963d0c3b1937211df446847e1509da9806287391c967fe4b63d29977ffcb",
+      "thumbnail_url": "brick_wall_005/brick_wall_005_thumbnails/Material/brick_wall_005.webp",
+      "meta": {
+        "catalog_id": "cb20759c-8417-4047-aca2-19755b99e892",
+        "tags": [
+          "man made",
+          "wall",
+          "brick",
+          "rough",
+          "uneven",
+          "chipped",
+          "damaged",
+          "concrete",
+          "bricks"
+        ],
+        "author": "Dario Barresi, Dimitrios Savva",
+        "description": "A CC0 Texture by polyhaven.com"
+      }
+    },
+    {
+      "name": "reichstag_1",
+      "id_type": "world",
+      "blender_version_min": "3.6.10",
+      "archive_url": "reichstag_1/reichstag_1.blend",
+      "archive_size_in_bytes": 193220,
+      "archive_hash": "f02ac871723387438b609d79b450583aa5b64a57c19254fea5dd1d0f478b9bca",
+      "thumbnail_url": "reichstag_1/reichstag_1_thumbnails/World/reichstag_1.webp",
+      "meta": {
+        "catalog_id": "ee1c2a23-f241-40e2-a0f1-46f3469b6ac7",
+        "tags": [
+          "outdoor",
+          "skies",
+          "nature",
+          "urban",
+          "midday",
+          "overcast",
+          "low contrast",
+          "natural light",
+          "grass",
+          "field",
+          "architecture",
+          "europe"
+        ],
+        "author": "Greg Zaal",
+        "description": "A CC0 HDRI by polyhaven.com"
+      }
+    },
+    {
+      "name": "marble_mosaic_tiles",
+      "id_type": "material",
+      "blender_version_min": "3.6.10",
+      "archive_url": "marble_mosaic_tiles/marble_mosaic_tiles.blend",
+      "archive_size_in_bytes": 362578,
+      "archive_hash": "9160a3bf1e6eceb253245710f69bdc46ed21df658ecc3270868611bd70b47fbb",
+      "thumbnail_url": "marble_mosaic_tiles/marble_mosaic_tiles_thumbnails/Material/marble_mosaic_tiles.webp",
+      "meta": {
+        "catalog_id": "0b4a1940-abfc-435d-ae06-1b1912fcb0fa",
+        "tags": [
+          "floor",
+          "man made",
+          "tiles",
+          "ceramic",
+          "mosaic",
+          "marble",
+          "decorative",
+          "square",
+          "tiled"
+        ],
+        "author": "Amal Kumar",
+        "description": "A CC0 Texture by polyhaven.com"
+      }
+    },
+    {
+      "name": "forrest_ground_01",
+      "id_type": "material",
+      "blender_version_min": "3.6.10",
+      "archive_url": "forrest_ground_01/forrest_ground_01.blend",
+      "archive_size_in_bytes": 379251,
+      "archive_hash": "ee099d9c9d799b7bf9f1e0c1e32b06cdf049d995048f8bd30134d7d8f9ee4479",
+      "thumbnail_url": "forrest_ground_01/forrest_ground_01_thumbnails/Material/forrest_ground_01.webp",
+      "meta": {
+        "catalog_id": "57a6a6bc-1144-4fb9-9858-226c85c1062d",
+        "tags": [
+          "terrain",
+          "outdoor",
+          "natural",
+          "grass",
+          "twigs",
+          "forest"
+        ],
+        "author": "Rob Tuytel",
+        "description": "A CC0 Texture by polyhaven.com"
+      }
+    },
+    {
+      "name": "stone_wall_02",
+      "id_type": "material",
+      "blender_version_min": "3.6.10",
+      "archive_url": "stone_wall_02/stone_wall_02.blend",
+      "archive_size_in_bytes": 344952,
+      "archive_hash": "4456767262586f46a71bb62762fbceedcd3058d7f55da49389f2bb13e72a7dda",
+      "thumbnail_url": "stone_wall_02/stone_wall_02_thumbnails/Material/stone_wall_02.webp",
+      "meta": {
+        "catalog_id": "fc0b7e40-beca-4085-a2c0-62fcff980615",
+        "tags": [
+          "wall",
+          "man made",
+          "rock",
+          "cracked",
+          "damaged",
+          "weathered",
+          "dirty",
+          "brown",
+          "rough",
+          "chipped",
+          "old"
+        ],
+        "author": "Dario Barresi, Charlotte Baglioni",
+        "description": "A CC0 Texture by polyhaven.com"
+      }
+    },
+    {
+      "name": "plastered_wall_02",
+      "id_type": "material",
+      "blender_version_min": "3.6.10",
+      "archive_url": "plastered_wall_02/plastered_wall_02.blend",
+      "archive_size_in_bytes": 334254,
+      "archive_hash": "4dc45070d4bc8f9cd5f929f6a388fce416b93bccb659ec9d61aa97153238645a",
+      "thumbnail_url": "plastered_wall_02/plastered_wall_02_thumbnails/Material/plastered_wall_02.webp",
+      "meta": {
+        "catalog_id": "0b4a1940-abfc-435d-ae06-1b1912fcb0fa",
+        "tags": [
+          "wall",
+          "man made",
+          "outdoor",
+          "rough",
+          "weathered",
+          "discolored",
+          "flat",
+          "plastered",
+          "plaster",
+          "urban",
+          "exterior",
+          "concrete"
+        ],
+        "author": "Charlotte Baglioni",
+        "description": "A CC0 Texture by polyhaven.com"
+      }
+    },
+    {
+      "name": "Camera_01",
+      "id_type": "collection",
+      "blender_version_min": "3.6.10",
+      "archive_url": "Camera_01/Camera_01.blend",
+      "archive_size_in_bytes": 895237,
+      "archive_hash": "f1d2127620644b9f7150f9be65ba2b5af11ab595fffe39b8481439ea20104790",
+      "thumbnail_url": "Camera_01/Camera_01_thumbnails/Collection/camera_01.webp",
+      "meta": {
+        "catalog_id": "b02575d8-d0fb-4a8c-8233-ec3ac8b4b052",
+        "tags": [
+          "props",
+          "electronics",
+          "vintage",
+          "camera",
+          "antique",
+          "ornate",
+          "photography",
+          "retro",
+          "lens",
+          "classic",
+          "analog"
+        ],
+        "author": "Rajil Jose Macatangay",
+        "description": "A CC0 Model by polyhaven.com"
+      }
+    },
+    {
+      "name": "winter_lake_01",
+      "id_type": "world",
+      "blender_version_min": "3.6.10",
+      "archive_url": "winter_lake_01/winter_lake_01.blend",
+      "archive_size_in_bytes": 206018,
+      "archive_hash": "c29dad11a39b779fde639687cf19a23d1e3ef676b36fe46feac925afc5d71d07",
+      "thumbnail_url": "winter_lake_01/winter_lake_01_thumbnails/World/winter_lake_01.webp",
+      "meta": {
+        "catalog_id": "e64bbf5b-1ddf-47b2-9a6f-adf38150e68c",
+        "tags": [
+          "outdoor",
+          "skies",
+          "nature",
+          "sunrise-sunset",
+          "partly cloudy",
+          "low contrast",
+          "natural light",
+          "field",
+          "lake",
+          "snow",
+          "winter",
+          "frozen"
+        ],
+        "author": "Sergej Majboroda",
+        "description": "A CC0 HDRI by polyhaven.com"
+      }
+    },
+    {
+      "name": "seaworn_stone_tiles",
+      "id_type": "material",
+      "blender_version_min": "3.6.10",
+      "archive_url": "seaworn_stone_tiles/seaworn_stone_tiles.blend",
+      "archive_size_in_bytes": 351445,
+      "archive_hash": "09262642c7d7698ef58f3f83a67fe1e0a25c9dfdbe1f66ef25d99705b2826381",
+      "thumbnail_url": "seaworn_stone_tiles/seaworn_stone_tiles_thumbnails/Material/seaworn_stone_tiles.webp",
+      "meta": {
+        "catalog_id": "cb20759c-8417-4047-aca2-19755b99e892",
+        "tags": [
+          "sandstone",
+          "brick",
+          "wall",
+          "man made",
+          "rough",
+          "stonework"
+        ],
+        "author": "Dimitrios Savva",
+        "description": "A CC0 Texture by polyhaven.com"
+      }
+    },
+    {
+      "name": "forrest_ground_03",
+      "id_type": "material",
+      "blender_version_min": "3.6.10",
+      "archive_url": "forrest_ground_03/forrest_ground_03.blend",
+      "archive_size_in_bytes": 342517,
+      "archive_hash": "5cf6f1366fccc0a42e8c99dec45e5967b19b909fb11ceb0656303f89e7b3976a",
+      "thumbnail_url": "forrest_ground_03/forrest_ground_03_thumbnails/Material/forrest_ground_03.webp",
+      "meta": {
+        "catalog_id": "57a6a6bc-1144-4fb9-9858-226c85c1062d",
+        "tags": [
+          "terrain",
+          "outdoor",
+          "natural",
+          "pine",
+          "needles",
+          "forest"
+        ],
+        "author": "Rob Tuytel",
+        "description": "A CC0 Texture by polyhaven.com"
+      }
+    },
+    {
+      "name": "shanghai_bund",
+      "id_type": "world",
+      "blender_version_min": "3.6.10",
+      "archive_url": "shanghai_bund/shanghai_bund.blend",
+      "archive_size_in_bytes": 232548,
+      "archive_hash": "b0894de7839deafb3e033c14be7dd363c991e84c8b9895e0619871d6c1013add",
+      "thumbnail_url": "shanghai_bund/shanghai_bund_thumbnails/World/shanghai_bund.webp",
+      "meta": {
+        "catalog_id": "44100f90-2dc1-4d97-b8dc-d192afd42b89",
+        "tags": [
+          "outdoor",
+          "urban",
+          "night",
+          "partly cloudy",
+          "high contrast",
+          "artificial light",
+          "skyscraper",
+          "skyline",
+          "china",
+          "neon",
+          "promenade",
+          "building",
+          "architecture",
+          "street",
+          "city",
+          "square",
+          "balcony",
+          "shanghai"
+        ],
+        "author": "Greg Zaal",
+        "description": "A CC0 HDRI by polyhaven.com"
+      }
+    },
+    {
+      "name": "mud_road_puresky",
+      "id_type": "world",
+      "blender_version_min": "3.6.10",
+      "archive_url": "mud_road_puresky/mud_road_puresky.blend",
+      "archive_size_in_bytes": 192614,
+      "archive_hash": "5839c405b2ac19f2c55d4e4a5e9216874a4b8678cb9966febb7f3c341a579d7c",
+      "thumbnail_url": "mud_road_puresky/mud_road_puresky_thumbnails/World/mud_road_puresky.webp",
+      "meta": {
+        "catalog_id": "ee1c2a23-f241-40e2-a0f1-46f3469b6ac7",
+        "tags": [
+          "outdoor",
+          "skies",
+          "nature",
+          "midday",
+          "overcast",
+          "low contrast",
+          "natural light",
+          "pure skies"
+        ],
+        "author": "Sergey Rudavin, Jarod Guest",
+        "description": "A CC0 HDRI by polyhaven.com"
+      }
+    },
     {
       "name": "zwartkops_straight_sunset",
       "id_type": "world",
@@ -34,6 +864,574 @@
       }
     },
     {
+      "name": "coastal_cliff_01_LOD0",
+      "id_type": "collection",
+      "blender_version_min": "3.6.10",
+      "archive_url": "coastal_cliff_01/coastal_cliff_01.blend",
+      "archive_size_in_bytes": 31508966,
+      "archive_hash": "c95706c30b7cf9d4d02c52991056c0473e5a4e2b9207cb4b14be393047540e5f",
+      "thumbnail_url": "coastal_cliff_01/coastal_cliff_01_thumbnails/Collection/coastal_cliff_01_lod0.webp",
+      "meta": {
+        "catalog_id": "ae0813db-d65b-447f-8535-2a4856d98b9a",
+        "tags": [
+          "nature",
+          "collection: smugglers_cove",
+          "cliff",
+          "ocean",
+          "rocks",
+          "maritime",
+          "cove",
+          "formation",
+          "rock face",
+          "seaside",
+          "landscape",
+          "geology",
+          "shore",
+          "shoreline",
+          "coastal",
+          "stones",
+          "rock",
+          "coastal formations"
+        ],
+        "author": "Rob Tuytel, Rico Cilliers",
+        "description": "A CC0 Model by polyhaven.com"
+      }
+    },
+    {
+      "name": "hochsal_field",
+      "id_type": "world",
+      "blender_version_min": "3.6.10",
+      "archive_url": "hochsal_field/hochsal_field.blend",
+      "archive_size_in_bytes": 227462,
+      "archive_hash": "cc183cd3df2be91bc57dfaa91d2ed22f0506836ee29c1e244428dd08c906f714",
+      "thumbnail_url": "hochsal_field/hochsal_field_thumbnails/World/hochsal_field.webp",
+      "meta": {
+        "catalog_id": "f21f81e2-3dde-4f2c-b9b4-3180a98d3d2e",
+        "tags": [
+          "outdoor",
+          "natural light",
+          "nature",
+          "skies",
+          "high contrast",
+          "clear",
+          "morning-afternoon",
+          "sun",
+          "grass",
+          "field",
+          "tree",
+          "road",
+          "asphalt"
+        ],
+        "author": "Adrian Kubasa",
+        "description": "A CC0 HDRI by polyhaven.com"
+      }
+    },
+    {
+      "name": "withered_grass",
+      "id_type": "material",
+      "blender_version_min": "3.6.10",
+      "archive_url": "withered_grass/withered_grass.blend",
+      "archive_size_in_bytes": 359747,
+      "archive_hash": "c6a2845a88a5d4157f178d4b9d2e72312d5172047928aebff44102333fed96bc",
+      "thumbnail_url": "withered_grass/withered_grass_thumbnails/Material/withered_grass.webp",
+      "meta": {
+        "catalog_id": "0b4a1940-abfc-435d-ae06-1b1912fcb0fa",
+        "tags": [
+          "natural",
+          "outdoor",
+          "floor",
+          "old",
+          "weathered",
+          "grass",
+          "dead grass",
+          "discolored",
+          "driedup",
+          "dry"
+        ],
+        "author": "Charlotte Baglioni",
+        "description": "A CC0 Texture by polyhaven.com"
+      }
+    },
+    {
+      "name": "kloppenheim_05",
+      "id_type": "world",
+      "blender_version_min": "3.6.10",
+      "archive_url": "kloppenheim_05/kloppenheim_05.blend",
+      "archive_size_in_bytes": 209707,
+      "archive_hash": "7a6dbdc96d0175426e2b624a8fbdc8fce2d5fcddd8cfd27f725898cd8df212ba",
+      "thumbnail_url": "kloppenheim_05/kloppenheim_05_thumbnails/World/kloppenheim_05.webp",
+      "meta": {
+        "catalog_id": "ee1c2a23-f241-40e2-a0f1-46f3469b6ac7",
+        "tags": [
+          "outdoor",
+          "skies",
+          "nature",
+          "midday",
+          "partly cloudy",
+          "high contrast",
+          "natural light",
+          "cloud",
+          "field",
+          "grass",
+          "sun"
+        ],
+        "author": "Greg Zaal",
+        "description": "A CC0 HDRI by polyhaven.com"
+      }
+    },
+    {
+      "name": "dead_tree_trunk_02_LOD0",
+      "id_type": "collection",
+      "blender_version_min": "3.6.10",
+      "archive_url": "dead_tree_trunk_02/dead_tree_trunk_02.blend",
+      "archive_size_in_bytes": 5776635,
+      "archive_hash": "8ff783e573ceb93e0ceb707995d36230a22475584bddbeedc9a2956ed2ea2361",
+      "thumbnail_url": "dead_tree_trunk_02/dead_tree_trunk_02_thumbnails/Collection/dead_tree_trunk_02_lod0.webp",
+      "meta": {
+        "catalog_id": "35e80462-1b62-4736-95dc-ed8bb0c4cb1a",
+        "tags": [
+          "nature",
+          "plants",
+          "trees",
+          "collection: verdant_trail",
+          "trunk",
+          "log",
+          "tree trunk",
+          "dead",
+          "decayed",
+          "dry",
+          "rough texture",
+          "forest floor",
+          "stump",
+          "bark",
+          "woodland",
+          "debris",
+          "environment",
+          "ground cover"
+        ],
+        "author": "Jenelle van Heerden, Rico Cilliers",
+        "description": "A CC0 Model by polyhaven.com"
+      }
+    },
+    {
+      "name": "plank_flooring_03",
+      "id_type": "material",
+      "blender_version_min": "3.6.10",
+      "archive_url": "plank_flooring_03/plank_flooring_03.blend",
+      "archive_size_in_bytes": 364155,
+      "archive_hash": "2a11b361a77a6f910b8f9a47e17190fa971ae5519fa71afedbb7ae7374b7d4af",
+      "thumbnail_url": "plank_flooring_03/plank_flooring_03_thumbnails/Material/plank_flooring_03.webp",
+      "meta": {
+        "catalog_id": "e267e464-8444-4213-b8ab-426d0aae55c3",
+        "tags": [
+          "floor",
+          "wood",
+          "raw wood",
+          "rough",
+          "weathered",
+          "old",
+          "worn",
+          "wooden planks",
+          "planks",
+          "cabin",
+          "exterior",
+          "discolored",
+          "scratched",
+          "timber",
+          "plank"
+        ],
+        "author": "Jenelle van Heerden, Matterfield",
+        "description": "A CC0 Texture by polyhaven.com"
+      }
+    },
+    {
+      "name": "rocky_trail_02",
+      "id_type": "material",
+      "blender_version_min": "3.6.10",
+      "archive_url": "rocky_trail_02/rocky_trail_02.blend",
+      "archive_size_in_bytes": 356089,
+      "archive_hash": "73e62c89590d7e04d6c22360b60d0be7d3edc8a30f299ab8f5090c32a08bcb8b",
+      "thumbnail_url": "rocky_trail_02/rocky_trail_02_thumbnails/Material/rocky_trail_02.webp",
+      "meta": {
+        "catalog_id": "0b4a1940-abfc-435d-ae06-1b1912fcb0fa",
+        "tags": [
+          "outdoor",
+          "natural",
+          "dirty",
+          "sand",
+          "floor",
+          "stones",
+          "earthy",
+          "rugged",
+          "rough",
+          "terrain",
+          "gravelly",
+          "pathway",
+          "gritty",
+          "dusty",
+          "rocky",
+          "outdoors",
+          "dirt",
+          "rocks",
+          "ground",
+          "gravel",
+          "footprints",
+          "dry",
+          "stony"
+        ],
+        "author": "Amal Kumar",
+        "description": "A CC0 Texture by polyhaven.com"
+      }
+    },
+    {
+      "name": "blaubeuren_outskirts",
+      "id_type": "world",
+      "blender_version_min": "3.6.10",
+      "archive_url": "blaubeuren_outskirts/blaubeuren_outskirts.blend",
+      "archive_size_in_bytes": 237787,
+      "archive_hash": "2649243b0313a164699ab9db8bbcece41e984e1e05695338f04c99ebf025fcce",
+      "thumbnail_url": "blaubeuren_outskirts/blaubeuren_outskirts_thumbnails/World/blaubeuren_outskirts.webp",
+      "meta": {
+        "catalog_id": "8d14dcb5-f464-43ea-bbf5-15df36cf406e",
+        "tags": [
+          "outdoor",
+          "nature",
+          "morning-afternoon",
+          "overcast",
+          "low contrast",
+          "natural light",
+          "tree",
+          "rock",
+          "path",
+          "autumn",
+          "park"
+        ],
+        "author": "Andreas Mischok",
+        "description": "A CC0 HDRI by polyhaven.com"
+      }
+    },
+    {
+      "name": "wild_rooibos_bush_LOD0",
+      "id_type": "collection",
+      "blender_version_min": "3.6.10",
+      "archive_url": "wild_rooibos_bush/wild_rooibos_bush.blend",
+      "archive_size_in_bytes": 2637938,
+      "archive_hash": "0dd959d50b7b0d11941c25c90d155d36bcc83484c168b0018693f930e3cba9b2",
+      "thumbnail_url": "wild_rooibos_bush/wild_rooibos_bush_thumbnails/Collection/wild_rooibos_bush_lod0.webp",
+      "meta": {
+        "catalog_id": "35e80462-1b62-4736-95dc-ed8bb0c4cb1a",
+        "tags": [
+          "nature",
+          "plants",
+          "collection: namaqualand",
+          "karoo",
+          "south africa",
+          "desert",
+          "dried",
+          "dry",
+          "shrub"
+        ],
+        "author": "Jenelle van Heerden, James Ray Cock",
+        "description": "A CC0 Model by polyhaven.com"
+      }
+    },
+    {
+      "name": "umhlanga_sunrise",
+      "id_type": "world",
+      "blender_version_min": "3.6.10",
+      "archive_url": "umhlanga_sunrise/umhlanga_sunrise.blend",
+      "archive_size_in_bytes": 224710,
+      "archive_hash": "a5a82e047785aeb8530420556268f74b878728ded4ce4ba16f03754d027a40bf",
+      "thumbnail_url": "umhlanga_sunrise/umhlanga_sunrise_thumbnails/World/umhlanga_sunrise.webp",
+      "meta": {
+        "catalog_id": "e64bbf5b-1ddf-47b2-9a6f-adf38150e68c",
+        "tags": [
+          "outdoor",
+          "skies",
+          "nature",
+          "sunrise-sunset",
+          "partly cloudy",
+          "natural light",
+          "low contrast",
+          "collection: smugglers_cove",
+          "sun",
+          "beach",
+          "ocean",
+          "wave",
+          "sand",
+          "backplates"
+        ],
+        "author": "Greg Zaal",
+        "description": "A CC0 HDRI by polyhaven.com"
+      }
+    },
+    {
+      "name": "rosendal_mountain_midmorning",
+      "id_type": "world",
+      "blender_version_min": "3.6.10",
+      "archive_url": "rosendal_mountain_midmorning/rosendal_mountain_midmorning.blend",
+      "archive_size_in_bytes": 217986,
+      "archive_hash": "4d78e62d918b08b07968c7b3d60c7894334961b144f46f9f60b7d6aa663ff634",
+      "thumbnail_url": "rosendal_mountain_midmorning/rosendal_mountain_midmorning_thumbnails/World/rosendal_mountain_midmorning.webp",
+      "meta": {
+        "catalog_id": "ee1c2a23-f241-40e2-a0f1-46f3469b6ac7",
+        "tags": [
+          "outdoor",
+          "natural light",
+          "nature",
+          "clear",
+          "skies",
+          "high contrast",
+          "midday",
+          "sun",
+          "dry grass",
+          "hill",
+          "bare",
+          "dry",
+          "yellow"
+        ],
+        "author": "Dimitrios Savva, Jarod Guest",
+        "description": "A CC0 HDRI by polyhaven.com"
+      }
+    },
+    {
+      "name": "kloofendal_misty_morning",
+      "id_type": "world",
+      "blender_version_min": "3.6.10",
+      "archive_url": "kloofendal_misty_morning/kloofendal_misty_morning.blend",
+      "archive_size_in_bytes": 216609,
+      "archive_hash": "90996b5f53cdafc8591e791fe23fa88430f296331f90c034a99e5a4e73c99e6e",
+      "thumbnail_url": "kloofendal_misty_morning/kloofendal_misty_morning_thumbnails/World/kloofendal_misty_morning.webp",
+      "meta": {
+        "catalog_id": "f21f81e2-3dde-4f2c-b9b4-3180a98d3d2e",
+        "tags": [
+          "outdoor",
+          "skies",
+          "natural light",
+          "nature",
+          "overcast",
+          "low contrast",
+          "morning-afternoon",
+          "collection: verdant_trail",
+          "grass",
+          "rock",
+          "hilltop",
+          "mist",
+          "fog"
+        ],
+        "author": "Greg Zaal",
+        "description": "A CC0 HDRI by polyhaven.com"
+      }
+    },
+    {
+      "name": "white_sandstone_bricks_03",
+      "id_type": "material",
+      "blender_version_min": "3.6.10",
+      "archive_url": "white_sandstone_bricks_03/white_sandstone_bricks_03.blend",
+      "archive_size_in_bytes": 372500,
+      "archive_hash": "1b99bfb78b6adbad32435c231962e344c958d51d7e7b982fe86faa64f231cef5",
+      "thumbnail_url": "white_sandstone_bricks_03/white_sandstone_bricks_03_thumbnails/Material/white_sandstone_bricks_03.webp",
+      "meta": {
+        "catalog_id": "cb20759c-8417-4047-aca2-19755b99e892",
+        "tags": [
+          "brick",
+          "man made",
+          "outdoor",
+          "wall",
+          "clean",
+          "blocks",
+          "white",
+          "standstone",
+          "uneven"
+        ],
+        "author": "Rob Tuytel",
+        "description": "A CC0 Texture by polyhaven.com"
+      }
+    },
+    {
+      "name": "syferfontein_0d_clear_puresky",
+      "id_type": "world",
+      "blender_version_min": "3.6.10",
+      "archive_url": "syferfontein_0d_clear_puresky/syferfontein_0d_clear_puresky.blend",
+      "archive_size_in_bytes": 212639,
+      "archive_hash": "c1fdb5ec714793c0f97a3db29e5ee5757405257210e2581d87754728cb1a346d",
+      "thumbnail_url": "syferfontein_0d_clear_puresky/syferfontein_0d_clear_puresky_thumbnails/World/syferfontein_0d_clear_puresky.webp",
+      "meta": {
+        "catalog_id": "e64bbf5b-1ddf-47b2-9a6f-adf38150e68c",
+        "tags": [
+          "outdoor",
+          "skies",
+          "nature",
+          "sunrise-sunset",
+          "clear",
+          "low contrast",
+          "natural light",
+          "pure skies"
+        ],
+        "author": "Greg Zaal, Jarod Guest",
+        "description": "A CC0 HDRI by polyhaven.com"
+      }
+    },
+    {
+      "name": "kloppenheim_02_puresky",
+      "id_type": "world",
+      "blender_version_min": "3.6.10",
+      "archive_url": "kloppenheim_02_puresky/kloppenheim_02_puresky.blend",
+      "archive_size_in_bytes": 193056,
+      "archive_hash": "cdcd5ca3c1db2462c028003b74c9c8e4a5af71c38d8e5fa149ba284d676c7741",
+      "thumbnail_url": "kloppenheim_02_puresky/kloppenheim_02_puresky_thumbnails/World/kloppenheim_02_puresky.webp",
+      "meta": {
+        "catalog_id": "8e41e6f9-b630-40c3-8427-3bace6c8268c",
+        "tags": [
+          "outdoor",
+          "skies",
+          "nature",
+          "night",
+          "clear",
+          "high contrast",
+          "natural light",
+          "pure skies"
+        ],
+        "author": "Greg Zaal, Jarod Guest",
+        "description": "A CC0 HDRI by polyhaven.com"
+      }
+    },
+    {
+      "name": "potted_plant_02",
+      "id_type": "collection",
+      "blender_version_min": "3.6.10",
+      "archive_url": "potted_plant_02/potted_plant_02.blend",
+      "archive_size_in_bytes": 7833408,
+      "archive_hash": "9a34202cb9834240c6ef4b41f726654d046425c68818d352ca2168cd50fcf9cc",
+      "thumbnail_url": "potted_plant_02/potted_plant_02_thumbnails/Collection/potted_plant_02.webp",
+      "meta": {
+        "catalog_id": "05825054-8739-4c42-8bc7-f70e15625a9b",
+        "tags": [
+          "decorative",
+          "plants",
+          "potted plants",
+          "nature",
+          "potplant",
+          "plant",
+          "pot",
+          "vase",
+          "medium",
+          "leaf",
+          "green",
+          "terracotta"
+        ],
+        "author": "Rico Cilliers",
+        "description": "A CC0 Model by polyhaven.com"
+      }
+    },
+    {
+      "name": "snowy_forest_path_01",
+      "id_type": "world",
+      "blender_version_min": "3.6.10",
+      "archive_url": "snowy_forest_path_01/snowy_forest_path_01.blend",
+      "archive_size_in_bytes": 235005,
+      "archive_hash": "dd28c13e7b3388645c5bd38cb7deef0d002ceac00f2c4bbc322fe38653511cca",
+      "thumbnail_url": "snowy_forest_path_01/snowy_forest_path_01_thumbnails/World/snowy_forest_path_01.webp",
+      "meta": {
+        "catalog_id": "8d14dcb5-f464-43ea-bbf5-15df36cf406e",
+        "tags": [
+          "outdoor",
+          "nature",
+          "morning-afternoon",
+          "clear",
+          "low contrast",
+          "natural light",
+          "tree",
+          "forest",
+          "snow",
+          "winter",
+          "path"
+        ],
+        "author": "Oliksiy Yakovlyev",
+        "description": "A CC0 HDRI by polyhaven.com"
+      }
+    },
+    {
+      "name": "kloofendal_48d_partly_cloudy",
+      "id_type": "world",
+      "blender_version_min": "3.6.10",
+      "archive_url": "kloofendal_48d_partly_cloudy/kloofendal_48d_partly_cloudy.blend",
+      "archive_size_in_bytes": 242501,
+      "archive_hash": "5a1015ae74c260a9ee49ca9185cffbdf64cd2dd86414665048c8d617c86ccb77",
+      "thumbnail_url": "kloofendal_48d_partly_cloudy/kloofendal_48d_partly_cloudy_thumbnails/World/kloofendal_48d_partly_cloudy.webp",
+      "meta": {
+        "catalog_id": "ee1c2a23-f241-40e2-a0f1-46f3469b6ac7",
+        "tags": [
+          "outdoor",
+          "skies",
+          "nature",
+          "midday",
+          "partly cloudy",
+          "high contrast",
+          "natural light",
+          "collection: verdant_trail",
+          "sun",
+          "grass",
+          "rock",
+          "view"
+        ],
+        "author": "Greg Zaal",
+        "description": "A CC0 HDRI by polyhaven.com"
+      }
+    },
+    {
+      "name": "straw_rolls_field_01",
+      "id_type": "world",
+      "blender_version_min": "3.6.10",
+      "archive_url": "straw_rolls_field_01/straw_rolls_field_01.blend",
+      "archive_size_in_bytes": 225898,
+      "archive_hash": "3c71d43ada4f09666178c6d4e09eb829494c9f594b08791c1c514726769658ac",
+      "thumbnail_url": "straw_rolls_field_01/straw_rolls_field_01_thumbnails/World/straw_rolls_field_01.webp",
+      "meta": {
+        "catalog_id": "e64bbf5b-1ddf-47b2-9a6f-adf38150e68c",
+        "tags": [
+          "outdoor",
+          "skies",
+          "nature",
+          "sunrise-sunset",
+          "partly cloudy",
+          "low contrast",
+          "natural light",
+          "road",
+          "asphalt",
+          "field",
+          "farm",
+          "backplates"
+        ],
+        "author": "Sergej Majboroda",
+        "description": "A CC0 HDRI by polyhaven.com"
+      }
+    },
+    {
+      "name": "skylit_garage",
+      "id_type": "world",
+      "blender_version_min": "3.6.10",
+      "archive_url": "skylit_garage/skylit_garage.blend",
+      "archive_size_in_bytes": 212203,
+      "archive_hash": "4097fc6b2363ac914123becc0b88b4ba5e1c875c7cadaf7a65064414622b3584",
+      "thumbnail_url": "skylit_garage/skylit_garage_thumbnails/World/skylit_garage.webp",
+      "meta": {
+        "catalog_id": "00459860-c6d8-4632-b5e9-19929853cf3b",
+        "tags": [
+          "indoor",
+          "urban",
+          "medium contrast",
+          "natural light",
+          "road",
+          "parking",
+          "pillar",
+          "backplates"
+        ],
+        "author": "Greg Zaal, Rico Cilliers",
+        "description": "A CC0 HDRI by polyhaven.com"
+      }
+    },
+    {
       "name": "yoga_room",
       "id_type": "world",
       "blender_version_min": "3.6.10",
@@ -53,6 +1451,33 @@
           "wooden floor",
           "window",
           "high ceiling",
+          "backplates"
+        ],
+        "author": "Sergej Majboroda",
+        "description": "A CC0 HDRI by polyhaven.com"
+      }
+    },
+    {
+      "name": "round_platform",
+      "id_type": "world",
+      "blender_version_min": "3.6.10",
+      "archive_url": "round_platform/round_platform.blend",
+      "archive_size_in_bytes": 223984,
+      "archive_hash": "b6ffc79d5b147f66509764456dadfe5da8734db1c4c37f5dbb75da4a0ea82415",
+      "thumbnail_url": "round_platform/round_platform_thumbnails/World/round_platform.webp",
+      "meta": {
+        "catalog_id": "f21f81e2-3dde-4f2c-b9b4-3180a98d3d2e",
+        "tags": [
+          "outdoor",
+          "skies",
+          "urban",
+          "morning-afternoon",
+          "overcast",
+          "low contrast",
+          "natural light",
+          "brick",
+          "street",
+          "square",
           "backplates"
         ],
         "author": "Sergej Majboroda",
@@ -88,13 +1513,103 @@
       }
     },
     {
-      "name": "zhengyang_gate",
+      "name": "concrete_road_barrier_LOD0",
+      "id_type": "collection",
+      "blender_version_min": "3.6.10",
+      "archive_url": "concrete_road_barrier/concrete_road_barrier.blend",
+      "archive_size_in_bytes": 2688278,
+      "archive_hash": "44e88e8814125221414d1e36c5e140339f9af5091870f837919114d92fd306ab",
+      "thumbnail_url": "concrete_road_barrier/concrete_road_barrier_thumbnails/Collection/concrete_road_barrier_lod0.webp",
+      "meta": {
+        "catalog_id": "d006c372-76c4-4f2b-b22d-42d60b89d086",
+        "tags": [
+          "industrial",
+          "structures",
+          "collection: hidden_alley",
+          "road barrier",
+          "traffic barrier",
+          "safety barrier",
+          "wall",
+          "road",
+          "road block",
+          "blockade",
+          "partition",
+          "infrastructure"
+        ],
+        "author": "Amal Kumar",
+        "description": "A CC0 Model by polyhaven.com"
+      }
+    },
+    {
+      "name": "horse_statue_01",
+      "id_type": "collection",
+      "blender_version_min": "3.6.10",
+      "archive_url": "horse_statue_01/horse_statue_01.blend",
+      "archive_size_in_bytes": 2378748,
+      "archive_hash": "371c8e2b4564352cbfd4abd08acada4cfca2c90eee606d08b14a2d24de36f7b2",
+      "thumbnail_url": "horse_statue_01/horse_statue_01_thumbnails/Collection/horse_statue_01.webp",
+      "meta": {
+        "catalog_id": "419127fb-d621-4dd9-b881-8e0d625119fb",
+        "tags": [
+          "props",
+          "decorative",
+          "horse",
+          "statue",
+          "figurine",
+          "porcelain",
+          "animal",
+          "sculpture",
+          "white",
+          "fancy"
+        ],
+        "author": "Rico Cilliers",
+        "description": "A CC0 Model by polyhaven.com"
+      }
+    },
+    {
+      "name": "spray_paint_bottles",
+      "id_type": "collection",
+      "blender_version_min": "3.6.10",
+      "archive_url": "spray_paint_bottles/spray_paint_bottles.blend",
+      "archive_size_in_bytes": 262434,
+      "archive_hash": "13a4c02852b639e79811a260ad944251a0fd0ffcf22a30102cb46f66f12bd049",
+      "thumbnail_url": "spray_paint_bottles/spray_paint_bottles_thumbnails/Collection/spray_paint_bottles.webp",
+      "meta": {
+        "catalog_id": "d006c372-76c4-4f2b-b22d-42d60b89d086",
+        "tags": [
+          "props",
+          "containers",
+          "industrial",
+          "collection: the_shed",
+          "shed",
+          "cleaning",
+          "garage",
+          "workshop",
+          "metal",
+          "clutter",
+          "spray",
+          "can",
+          "storage",
+          "spray paint",
+          "art",
+          "graffiti",
+          "aerosol",
+          "art supplies",
+          "painting",
+          "metal can"
+        ],
+        "author": "James Ray Cock",
+        "description": "A CC0 Model by polyhaven.com"
+      }
+    },
+    {
+      "name": "san_giuseppe_bridge",
       "id_type": "world",
       "blender_version_min": "3.6.10",
-      "archive_url": "zhengyang_gate/zhengyang_gate.blend",
-      "archive_size_in_bytes": 207140,
-      "archive_hash": "5fd2150e9844b0f9e74e93aa3630d75e662560a7766f660a953489a5bece37bf",
-      "thumbnail_url": "zhengyang_gate/zhengyang_gate_thumbnails/World/zhengyang_gate.webp",
+      "archive_url": "san_giuseppe_bridge/san_giuseppe_bridge.blend",
+      "archive_size_in_bytes": 229981,
+      "archive_hash": "3d21da8df7e223ffeaf6f386c7dd9678dabec35c53d572f1602f0bd5cdbc0b5b",
+      "thumbnail_url": "san_giuseppe_bridge/san_giuseppe_bridge_thumbnails/World/san_giuseppe_bridge.webp",
       "meta": {
         "catalog_id": "18a3a12c-9d33-404c-9c95-811fe23052a8",
         "tags": [
@@ -105,862 +1620,73 @@
           "high contrast",
           "natural light",
           "sun",
-          "china",
+          "europe",
           "building",
           "architecture",
-          "square"
-        ],
-        "author": "Greg Zaal",
-        "description": "A CC0 HDRI by polyhaven.com"
-      }
-    },
-    {
-      "name": "zwartkops_straight_morning",
-      "id_type": "world",
-      "blender_version_min": "3.6.10",
-      "archive_url": "zwartkops_straight_morning/zwartkops_straight_morning.blend",
-      "archive_size_in_bytes": 222174,
-      "archive_hash": "16c52084627a94d596621ceac37206d96f1fa2fc08edcf3ec0c5e47d17a42c2d",
-      "thumbnail_url": "zwartkops_straight_morning/zwartkops_straight_morning_thumbnails/World/zwartkops_straight_morning.webp",
-      "meta": {
-        "catalog_id": "f21f81e2-3dde-4f2c-b9b4-3180a98d3d2e",
-        "tags": [
-          "outdoor",
-          "urban",
-          "skies",
-          "natural light",
-          "clear",
-          "morning-afternoon",
-          "high contrast",
-          "sun",
-          "road",
-          "track",
-          "asphalt",
-          "race",
-          "straight",
-          "barrier",
-          "circuit",
-          "backplates"
-        ],
-        "author": "Dimitrios Savva, Jarod Guest",
-        "description": "A CC0 HDRI by polyhaven.com"
-      }
-    },
-    {
-      "name": "abandoned_hopper_terminal_03",
-      "id_type": "world",
-      "blender_version_min": "3.6.10",
-      "archive_url": "abandoned_hopper_terminal_03/abandoned_hopper_terminal_03.blend",
-      "archive_size_in_bytes": 222878,
-      "archive_hash": "df741fd7447833431fd6f9bc2f174ed6f1917f7203f2dbd0ec7a0c9db69835ef",
-      "thumbnail_url": "abandoned_hopper_terminal_03/abandoned_hopper_terminal_03_thumbnails/World/abandoned_hopper_terminal_03.webp",
-      "meta": {
-        "catalog_id": "8d14dcb5-f464-43ea-bbf5-15df36cf406e",
-        "tags": [
-          "outdoor",
-          "nature",
-          "morning-afternoon",
-          "partly cloudy",
-          "medium contrast",
-          "natural light",
-          "industrial",
-          "sun",
-          "tree",
-          "winter",
-          "field",
-          "backplates"
-        ],
-        "author": "Sergej Majboroda",
-        "description": "A CC0 HDRI by polyhaven.com"
-      }
-    },
-    {
-      "name": "zwartkops_curve_afternoon",
-      "id_type": "world",
-      "blender_version_min": "3.6.10",
-      "archive_url": "zwartkops_curve_afternoon/zwartkops_curve_afternoon.blend",
-      "archive_size_in_bytes": 209946,
-      "archive_hash": "43d028458b6b0f32b25cf6f9f4bee94f36dab60e38f61b07919182473b8d6b55",
-      "thumbnail_url": "zwartkops_curve_afternoon/zwartkops_curve_afternoon_thumbnails/World/zwartkops_curve_afternoon.webp",
-      "meta": {
-        "catalog_id": "5f2c9621-3c96-4944-8206-d11cef84b586",
-        "tags": [
-          "outdoor",
-          "urban",
-          "natural light",
-          "high contrast",
-          "clear",
-          "midday",
-          "sun",
-          "road",
-          "track",
-          "asphalt",
-          "race",
-          "curve",
-          "barrier",
-          "circuit",
-          "sand",
-          "grass",
-          "backplates"
-        ],
-        "author": "Dimitrios Savva, Jarod Guest",
-        "description": "A CC0 HDRI by polyhaven.com"
-      }
-    },
-    {
-      "name": "zwartkops_curve_morning",
-      "id_type": "world",
-      "blender_version_min": "3.6.10",
-      "archive_url": "zwartkops_curve_morning/zwartkops_curve_morning.blend",
-      "archive_size_in_bytes": 215101,
-      "archive_hash": "8e3a3fc5001141934f0a8ab6dae48ecd1eb3c00ca9922639fcec6d79f720be86",
-      "thumbnail_url": "zwartkops_curve_morning/zwartkops_curve_morning_thumbnails/World/zwartkops_curve_morning.webp",
-      "meta": {
-        "catalog_id": "18a3a12c-9d33-404c-9c95-811fe23052a8",
-        "tags": [
-          "outdoor",
-          "natural light",
-          "clear",
-          "high contrast",
-          "morning-afternoon",
-          "urban",
-          "sun",
-          "road",
-          "track",
-          "asphalt",
-          "race",
-          "curve",
-          "barrier",
-          "circuit",
-          "sand",
-          "grass",
-          "backplates"
-        ],
-        "author": "Dimitrios Savva, Jarod Guest",
-        "description": "A CC0 HDRI by polyhaven.com"
-      }
-    },
-    {
-      "name": "abandoned_church",
-      "id_type": "world",
-      "blender_version_min": "3.6.10",
-      "archive_url": "abandoned_church/abandoned_church.blend",
-      "archive_size_in_bytes": 225202,
-      "archive_hash": "b84c29603c84d916af42d06adfa65ebaac3b4e33ad37cfe879eb4e44a1a2375f",
-      "thumbnail_url": "abandoned_church/abandoned_church_thumbnails/World/abandoned_church.webp",
-      "meta": {
-        "catalog_id": "8d14dcb5-f464-43ea-bbf5-15df36cf406e",
-        "tags": [
-          "outdoor",
-          "nature",
-          "morning-afternoon",
-          "partly cloudy",
-          "low contrast",
-          "natural light",
-          "tree",
-          "autumn",
+          "street",
+          "bridge",
+          "river",
+          "canal",
           "church",
-          "abandoned",
-          "leaves"
+          "venice",
+          "backplates"
         ],
-        "author": "Sergej Majboroda",
+        "author": "Greg Zaal, Rico Cilliers",
         "description": "A CC0 HDRI by polyhaven.com"
       }
     },
     {
-      "name": "abandoned_slipway",
-      "id_type": "world",
+      "name": "sand_03",
+      "id_type": "material",
       "blender_version_min": "3.6.10",
-      "archive_url": "abandoned_slipway/abandoned_slipway.blend",
-      "archive_size_in_bytes": 190895,
-      "archive_hash": "7c98f6687db927e2bb5475ac53ad773d564f17e43bfc35cffe11d623651d05e0",
-      "thumbnail_url": "abandoned_slipway/abandoned_slipway_thumbnails/World/abandoned_slipway.webp",
+      "archive_url": "sand_03/sand_03.blend",
+      "archive_size_in_bytes": 337614,
+      "archive_hash": "c8dd7e619ebe0ba63a2c8b83d37d5b3da33384285ef32c01f72f19b47e9712b9",
+      "thumbnail_url": "sand_03/sand_03_thumbnails/Material/sand_03.webp",
       "meta": {
-        "catalog_id": "5f2c9621-3c96-4944-8206-d11cef84b586",
+        "catalog_id": "0b4a1940-abfc-435d-ae06-1b1912fcb0fa",
         "tags": [
-          "outdoor",
-          "urban",
-          "midday",
-          "overcast",
-          "low contrast",
-          "natural light",
-          "ocean",
-          "bay",
-          "lake",
-          "industrial",
-          "abandoned"
+          "floor",
+          "sand",
+          "sandy",
+          "beach",
+          "seaside",
+          "gritty",
+          "shore",
+          "costal",
+          "sandy beach",
+          "coastline",
+          "granular",
+          "coast"
         ],
-        "author": "Philip Modin",
-        "description": "A CC0 HDRI by polyhaven.com"
+        "author": "Charlotte Baglioni",
+        "description": "A CC0 Texture by polyhaven.com"
       }
     },
     {
-      "name": "abandoned_bakery",
+      "name": "sandsloot",
       "id_type": "world",
       "blender_version_min": "3.6.10",
-      "archive_url": "abandoned_bakery/abandoned_bakery.blend",
-      "archive_size_in_bytes": 236661,
-      "archive_hash": "7292fa973f5e1d064e411d7a2d2441bb83bb0191610444bbd01971b2677078fb",
-      "thumbnail_url": "abandoned_bakery/abandoned_bakery_thumbnails/World/abandoned_bakery.webp",
+      "archive_url": "sandsloot/sandsloot.blend",
+      "archive_size_in_bytes": 225513,
+      "archive_hash": "3de9c8098d97ab21a20186f127f3f4cd7332b8408ece680d2f2851078948d6b4",
+      "thumbnail_url": "sandsloot/sandsloot_thumbnails/World/sandsloot.webp",
       "meta": {
-        "catalog_id": "1325556c-7986-4568-a694-1134b6e16d32",
+        "catalog_id": "8e41e6f9-b630-40c3-8427-3bace6c8268c",
         "tags": [
-          "natural light",
           "artificial light",
-          "urban",
-          "indoor",
-          "high contrast",
-          "abandoned",
-          "empty",
-          "industrial",
-          "windows",
-          "bare",
-          "rubble",
-          "brick",
-          "concrete",
-          "backplates"
-        ],
-        "author": "Sergej Majboroda",
-        "description": "A CC0 HDRI by polyhaven.com"
-      }
-    },
-    {
-      "name": "abandoned_construction",
-      "id_type": "world",
-      "blender_version_min": "3.6.10",
-      "archive_url": "abandoned_construction/abandoned_construction.blend",
-      "archive_size_in_bytes": 225614,
-      "archive_hash": "6f5a59fa1d265219d1e9766b1d43d537b6bb8902e55007906ff4eb5931ddb1ef",
-      "thumbnail_url": "abandoned_construction/abandoned_construction_thumbnails/World/abandoned_construction.webp",
-      "meta": {
-        "catalog_id": "00459860-c6d8-4632-b5e9-19929853cf3b",
-        "tags": [
-          "indoor",
-          "urban",
-          "natural light",
-          "medium contrast",
-          "overcast",
-          "brick",
-          "pillar",
-          "warehouse",
-          "rubble",
-          "abandoned",
-          "debris",
-          "desolate",
-          "empty",
-          "ruin",
-          "gloomy"
-        ],
-        "author": "Sergej Majboroda",
-        "description": "A CC0 HDRI by polyhaven.com"
-      }
-    },
-    {
-      "name": "abandoned_games_room_02",
-      "id_type": "world",
-      "blender_version_min": "3.6.10",
-      "archive_url": "abandoned_games_room_02/abandoned_games_room_02.blend",
-      "archive_size_in_bytes": 222522,
-      "archive_hash": "fa669ab248cae754ba7215f7b46a955dc61a9167a2d021c4c801cd0edd8c38f7",
-      "thumbnail_url": "abandoned_games_room_02/abandoned_games_room_02_thumbnails/World/abandoned_games_room_02.webp",
-      "meta": {
-        "catalog_id": "7c6ef490-2383-461c-b6ee-dcdd6714a2c4",
-        "tags": [
-          "indoor",
-          "urban",
-          "midday",
-          "low contrast",
-          "natural light",
-          "abandoned",
-          "room",
-          "window",
-          "tile",
-          "arcade",
-          "rubble"
-        ],
-        "author": "Octavian Tudose",
-        "description": "A CC0 HDRI by polyhaven.com"
-      }
-    },
-    {
-      "name": "abandoned_games_room_01",
-      "id_type": "world",
-      "blender_version_min": "3.6.10",
-      "archive_url": "abandoned_games_room_01/abandoned_games_room_01.blend",
-      "archive_size_in_bytes": 221869,
-      "archive_hash": "96ed5becc294b77b4570b3afb22857159e0fc5e0378380fbc346f7264582d1b9",
-      "thumbnail_url": "abandoned_games_room_01/abandoned_games_room_01_thumbnails/World/abandoned_games_room_01.webp",
-      "meta": {
-        "catalog_id": "7c6ef490-2383-461c-b6ee-dcdd6714a2c4",
-        "tags": [
-          "indoor",
-          "urban",
-          "midday",
-          "low contrast",
-          "natural light",
-          "abandoned",
-          "room",
-          "window",
-          "tile",
-          "rubble"
-        ],
-        "author": "Octavian Tudose",
-        "description": "A CC0 HDRI by polyhaven.com"
-      }
-    },
-    {
-      "name": "zwartkops_start_sunset",
-      "id_type": "world",
-      "blender_version_min": "3.6.10",
-      "archive_url": "zwartkops_start_sunset/zwartkops_start_sunset.blend",
-      "archive_size_in_bytes": 214426,
-      "archive_hash": "a480bf54e33c7d0bd69b6dabbc5ab25abb34d551c0da3091086047fe9a8f9fbe",
-      "thumbnail_url": "zwartkops_start_sunset/zwartkops_start_sunset_thumbnails/World/zwartkops_start_sunset.webp",
-      "meta": {
-        "catalog_id": "b35909d0-be3d-4be5-a888-caf24f881148",
-        "tags": [
-          "outdoor",
-          "urban",
-          "clear",
-          "high contrast",
-          "natural light",
-          "sunrise-sunset",
-          "sun",
-          "road",
-          "track",
-          "asphalt",
-          "race",
-          "straight",
-          "grid",
-          "barrier",
-          "circuit",
-          "backplates"
-        ],
-        "author": "Dimitrios Savva, Jarod Guest",
-        "description": "A CC0 HDRI by polyhaven.com"
-      }
-    },
-    {
-      "name": "abandoned_parking",
-      "id_type": "world",
-      "blender_version_min": "3.6.10",
-      "archive_url": "abandoned_parking/abandoned_parking.blend",
-      "archive_size_in_bytes": 222005,
-      "archive_hash": "5d796c697c2b6df40bc315fa9fde7385206f52fc1cd85895077c3e1b0618593b",
-      "thumbnail_url": "abandoned_parking/abandoned_parking_thumbnails/World/abandoned_parking.webp",
-      "meta": {
-        "catalog_id": "ee1c2a23-f241-40e2-a0f1-46f3469b6ac7",
-        "tags": [
-          "outdoor",
-          "skies",
-          "urban",
-          "midday",
-          "partly cloudy",
-          "high contrast",
-          "natural light",
-          "parking",
-          "asphalt",
-          "road",
-          "tree",
-          "bush",
-          "derelict",
-          "abandoned",
-          "industrial",
-          "backplates"
-        ],
-        "author": "Sergej Majboroda",
-        "description": "A CC0 HDRI by polyhaven.com"
-      }
-    },
-    {
-      "name": "zwinger_night",
-      "id_type": "world",
-      "blender_version_min": "3.6.10",
-      "archive_url": "zwinger_night/zwinger_night.blend",
-      "archive_size_in_bytes": 215718,
-      "archive_hash": "1b9d1c3896200bba14c862bafdc3345cb2938aebb3ddb37f04258d740c234b00",
-      "thumbnail_url": "zwinger_night/zwinger_night_thumbnails/World/zwinger_night.webp",
-      "meta": {
-        "catalog_id": "44100f90-2dc1-4d97-b8dc-d192afd42b89",
-        "tags": [
-          "outdoor",
-          "urban",
           "night",
-          "overcast",
+          "outdoor",
+          "nature",
           "high contrast",
-          "artificial light",
-          "lamp",
-          "europe",
-          "architecture",
-          "building",
-          "square"
+          "partly cloudy",
+          "skies",
+          "sand",
+          "beach",
+          "dam",
+          "tree"
         ],
         "author": "Greg Zaal",
-        "description": "A CC0 HDRI by polyhaven.com"
-      }
-    },
-    {
-      "name": "abandoned_hopper_terminal_02",
-      "id_type": "world",
-      "blender_version_min": "3.6.10",
-      "archive_url": "abandoned_hopper_terminal_02/abandoned_hopper_terminal_02.blend",
-      "archive_size_in_bytes": 235430,
-      "archive_hash": "62fbfc076dc02f5f7ad9c9606e0185faa91610db37c82d6b4dc95c86d528ab67",
-      "thumbnail_url": "abandoned_hopper_terminal_02/abandoned_hopper_terminal_02_thumbnails/World/abandoned_hopper_terminal_02.webp",
-      "meta": {
-        "catalog_id": "8d14dcb5-f464-43ea-bbf5-15df36cf406e",
-        "tags": [
-          "outdoor",
-          "nature",
-          "morning-afternoon",
-          "clear",
-          "high contrast",
-          "natural light",
-          "sun",
-          "rail",
-          "tracks",
-          "tree",
-          "winter",
-          "birch",
-          "backplates"
-        ],
-        "author": "Sergej Majboroda",
-        "description": "A CC0 HDRI by polyhaven.com"
-      }
-    },
-    {
-      "name": "zwartkops_straight_afternoon",
-      "id_type": "world",
-      "blender_version_min": "3.6.10",
-      "archive_url": "zwartkops_straight_afternoon/zwartkops_straight_afternoon.blend",
-      "archive_size_in_bytes": 198240,
-      "archive_hash": "e4eb415811135e120b0073373731dbc44fed5043b5d3616e84c9b77b07478edf",
-      "thumbnail_url": "zwartkops_straight_afternoon/zwartkops_straight_afternoon_thumbnails/World/zwartkops_straight_afternoon.webp",
-      "meta": {
-        "catalog_id": "ee1c2a23-f241-40e2-a0f1-46f3469b6ac7",
-        "tags": [
-          "outdoor",
-          "urban",
-          "skies",
-          "natural light",
-          "clear",
-          "high contrast",
-          "midday",
-          "sun",
-          "road",
-          "track",
-          "asphalt",
-          "race",
-          "straight",
-          "barrier",
-          "circuit",
-          "backplates"
-        ],
-        "author": "Dimitrios Savva, Jarod Guest",
-        "description": "A CC0 HDRI by polyhaven.com"
-      }
-    },
-    {
-      "name": "abandoned_hopper_terminal_04",
-      "id_type": "world",
-      "blender_version_min": "3.6.10",
-      "archive_url": "abandoned_hopper_terminal_04/abandoned_hopper_terminal_04.blend",
-      "archive_size_in_bytes": 227111,
-      "archive_hash": "d417ca1ffeb1cae97b087a15fc369fc3af07cb88cff35faaed3ae488d14e1c4a",
-      "thumbnail_url": "abandoned_hopper_terminal_04/abandoned_hopper_terminal_04_thumbnails/World/abandoned_hopper_terminal_04.webp",
-      "meta": {
-        "catalog_id": "41ce4c4f-8ff1-4aa9-ae68-0120b44f0b77",
-        "tags": [
-          "outdoor",
-          "nature",
-          "midday",
-          "clear",
-          "high contrast",
-          "natural light",
-          "field",
-          "industrial",
-          "sun",
-          "tree",
-          "summer",
-          "backplates"
-        ],
-        "author": "Sergej Majboroda",
-        "description": "A CC0 HDRI by polyhaven.com"
-      }
-    },
-    {
-      "name": "abandoned_pathway",
-      "id_type": "world",
-      "blender_version_min": "3.6.10",
-      "archive_url": "abandoned_pathway/abandoned_pathway.blend",
-      "archive_size_in_bytes": 227917,
-      "archive_hash": "d7a08a68e131b1107b9033f04edfc3a42b272dfb3ae941eab5c5a5217a28b16e",
-      "thumbnail_url": "abandoned_pathway/abandoned_pathway_thumbnails/World/abandoned_pathway.webp",
-      "meta": {
-        "catalog_id": "f21f81e2-3dde-4f2c-b9b4-3180a98d3d2e",
-        "tags": [
-          "outdoor",
-          "skies",
-          "nature",
-          "morning-afternoon",
-          "clear",
-          "high contrast",
-          "natural light",
-          "sun",
-          "tree",
-          "road",
-          "path",
-          "field",
-          "backplates"
-        ],
-        "author": "Sergej Majboroda",
-        "description": "A CC0 HDRI by polyhaven.com"
-      }
-    },
-    {
-      "name": "abandoned_hall_01",
-      "id_type": "world",
-      "blender_version_min": "3.6.10",
-      "archive_url": "abandoned_hall_01/abandoned_hall_01.blend",
-      "archive_size_in_bytes": 213302,
-      "archive_hash": "b728bce50983eed51c36444a2ad27952347ec2f474d4d966e79d2a2bf61b7cd6",
-      "thumbnail_url": "abandoned_hall_01/abandoned_hall_01_thumbnails/World/abandoned_hall_01.webp",
-      "meta": {
-        "catalog_id": "7c6ef490-2383-461c-b6ee-dcdd6714a2c4",
-        "tags": [
-          "indoor",
-          "urban",
-          "low contrast",
-          "natural light",
-          "hall",
-          "window",
-          "abandoned",
-          "empty",
-          "bare"
-        ],
-        "author": "Octavian Tudose",
-        "description": "A CC0 HDRI by polyhaven.com"
-      }
-    },
-    {
-      "name": "zwartkops_pit",
-      "id_type": "world",
-      "blender_version_min": "3.6.10",
-      "archive_url": "zwartkops_pit/zwartkops_pit.blend",
-      "archive_size_in_bytes": 225545,
-      "archive_hash": "8e870eee9dfeb9905ce6cba4c021415f9aa6b1b9934567a1d80c34d34da4d01b",
-      "thumbnail_url": "zwartkops_pit/zwartkops_pit_thumbnails/World/zwartkops_pit.webp",
-      "meta": {
-        "catalog_id": "5f2c9621-3c96-4944-8206-d11cef84b586",
-        "tags": [
-          "outdoor",
-          "indoor",
-          "natural light",
-          "medium contrast",
-          "urban",
-          "midday",
-          "race",
-          "track",
-          "pit",
-          "parking",
-          "concrete",
-          "covered",
-          "barrier",
-          "pillar",
-          "backplates"
-        ],
-        "author": "Dimitrios Savva, Jarod Guest",
-        "description": "A CC0 HDRI by polyhaven.com"
-      }
-    },
-    {
-      "name": "zwartkops_start_afternoon",
-      "id_type": "world",
-      "blender_version_min": "3.6.10",
-      "archive_url": "zwartkops_start_afternoon/zwartkops_start_afternoon.blend",
-      "archive_size_in_bytes": 202450,
-      "archive_hash": "461c6418ea89369138fdaee2457199c525570528845bb243bbcd2b4ac63743dd",
-      "thumbnail_url": "zwartkops_start_afternoon/zwartkops_start_afternoon_thumbnails/World/zwartkops_start_afternoon.webp",
-      "meta": {
-        "catalog_id": "5f2c9621-3c96-4944-8206-d11cef84b586",
-        "tags": [
-          "outdoor",
-          "natural light",
-          "urban",
-          "high contrast",
-          "clear",
-          "midday",
-          "sun",
-          "road",
-          "track",
-          "asphalt",
-          "race",
-          "straight",
-          "grid",
-          "barrier",
-          "circuit",
-          "backplates"
-        ],
-        "author": "Dimitrios Savva, Jarod Guest",
-        "description": "A CC0 HDRI by polyhaven.com"
-      }
-    },
-    {
-      "name": "zwartkops_start_morning",
-      "id_type": "world",
-      "blender_version_min": "3.6.10",
-      "archive_url": "zwartkops_start_morning/zwartkops_start_morning.blend",
-      "archive_size_in_bytes": 212705,
-      "archive_hash": "fa2a450d7028fb701e4abad803e80f1962ceb98f54d9a5c53359dc62ebfc6bc2",
-      "thumbnail_url": "zwartkops_start_morning/zwartkops_start_morning_thumbnails/World/zwartkops_start_morning.webp",
-      "meta": {
-        "catalog_id": "b35909d0-be3d-4be5-a888-caf24f881148",
-        "tags": [
-          "outdoor",
-          "urban",
-          "clear",
-          "high contrast",
-          "natural light",
-          "sunrise-sunset",
-          "sun",
-          "road",
-          "track",
-          "asphalt",
-          "race",
-          "straight",
-          "grid",
-          "barrier",
-          "circuit",
-          "backplates"
-        ],
-        "author": "Dimitrios Savva, Jarod Guest",
-        "description": "A CC0 HDRI by polyhaven.com"
-      }
-    },
-    {
-      "name": "abandoned_greenhouse",
-      "id_type": "world",
-      "blender_version_min": "3.6.10",
-      "archive_url": "abandoned_greenhouse/abandoned_greenhouse.blend",
-      "archive_size_in_bytes": 227998,
-      "archive_hash": "3ae783244840c4a8617c6bc154245c9b161388de5450e93d0fb2f897ef840039",
-      "thumbnail_url": "abandoned_greenhouse/abandoned_greenhouse_thumbnails/World/abandoned_greenhouse.webp",
-      "meta": {
-        "catalog_id": "7c6ef490-2383-461c-b6ee-dcdd6714a2c4",
-        "tags": [
-          "low contrast",
-          "natural light",
-          "indoor",
-          "urban",
-          "overcast",
-          "midday",
-          "warehouse",
-          "concrete",
-          "greenhouse",
-          "abandoned",
-          "industrial",
-          "graffiti"
-        ],
-        "author": "Andreas Mischok",
-        "description": "A CC0 HDRI by polyhaven.com"
-      }
-    },
-    {
-      "name": "abandoned_factory_canteen_02",
-      "id_type": "world",
-      "blender_version_min": "3.6.10",
-      "archive_url": "abandoned_factory_canteen_02/abandoned_factory_canteen_02.blend",
-      "archive_size_in_bytes": 239013,
-      "archive_hash": "13438c3161e2e8028bb4a7756288fba9ebb231c43f7caed5bfe4f67b5a625c52",
-      "thumbnail_url": "abandoned_factory_canteen_02/abandoned_factory_canteen_02_thumbnails/World/abandoned_factory_canteen_02.webp",
-      "meta": {
-        "catalog_id": "00459860-c6d8-4632-b5e9-19929853cf3b",
-        "tags": [
-          "indoor",
-          "urban",
-          "natural light",
-          "medium contrast",
-          "hall",
-          "abandoned",
-          "industrial",
-          "boxes",
-          "backplates"
-        ],
-        "author": "Sergej Majboroda",
-        "description": "A CC0 HDRI by polyhaven.com"
-      }
-    },
-    {
-      "name": "abandoned_factory_canteen_01",
-      "id_type": "world",
-      "blender_version_min": "3.6.10",
-      "archive_url": "abandoned_factory_canteen_01/abandoned_factory_canteen_01.blend",
-      "archive_size_in_bytes": 219569,
-      "archive_hash": "b9be7538fbdac7260fcd45da42298700e954f4fc2284a0eca8445c26951d6549",
-      "thumbnail_url": "abandoned_factory_canteen_01/abandoned_factory_canteen_01_thumbnails/World/abandoned_factory_canteen_01.webp",
-      "meta": {
-        "catalog_id": "7c6ef490-2383-461c-b6ee-dcdd6714a2c4",
-        "tags": [
-          "indoor",
-          "urban",
-          "low contrast",
-          "natural light",
-          "hall",
-          "abandoned",
-          "fluorescent",
-          "industrial",
-          "backplates"
-        ],
-        "author": "Sergej Majboroda",
-        "description": "A CC0 HDRI by polyhaven.com"
-      }
-    },
-    {
-      "name": "abandoned_tank_farm_01",
-      "id_type": "world",
-      "blender_version_min": "3.6.10",
-      "archive_url": "abandoned_tank_farm_01/abandoned_tank_farm_01.blend",
-      "archive_size_in_bytes": 216491,
-      "archive_hash": "508c24785b696b85132e501493e1bfa5564711e43060194370694dfc131a82ba",
-      "thumbnail_url": "abandoned_tank_farm_01/abandoned_tank_farm_01_thumbnails/World/abandoned_tank_farm_01.webp",
-      "meta": {
-        "catalog_id": "18a3a12c-9d33-404c-9c95-811fe23052a8",
-        "tags": [
-          "outdoor",
-          "urban",
-          "nature",
-          "morning-afternoon",
-          "partly cloudy",
-          "high contrast",
-          "natural light",
-          "sun",
-          "tree",
-          "parking",
-          "abandoned",
-          "backplates"
-        ],
-        "author": "Sergej Majboroda",
-        "description": "A CC0 HDRI by polyhaven.com"
-      }
-    },
-    {
-      "name": "abandoned_hopper_terminal_01",
-      "id_type": "world",
-      "blender_version_min": "3.6.10",
-      "archive_url": "abandoned_hopper_terminal_01/abandoned_hopper_terminal_01.blend",
-      "archive_size_in_bytes": 211209,
-      "archive_hash": "93f55f4b16f8eb7aa80bf2fe11cc03298c98a8897a6df2fe56608bea01880c6c",
-      "thumbnail_url": "abandoned_hopper_terminal_01/abandoned_hopper_terminal_01_thumbnails/World/abandoned_hopper_terminal_01.webp",
-      "meta": {
-        "catalog_id": "8d14dcb5-f464-43ea-bbf5-15df36cf406e",
-        "tags": [
-          "outdoor",
-          "nature",
-          "morning-afternoon",
-          "partly cloudy",
-          "medium contrast",
-          "natural light",
-          "tree",
-          "sun",
-          "winter",
-          "road",
-          "tracks",
-          "rail",
-          "industrial",
-          "backplates"
-        ],
-        "author": "Sergej Majboroda",
-        "description": "A CC0 HDRI by polyhaven.com"
-      }
-    },
-    {
-      "name": "zavelstein",
-      "id_type": "world",
-      "blender_version_min": "3.6.10",
-      "archive_url": "zavelstein/zavelstein.blend",
-      "archive_size_in_bytes": 231755,
-      "archive_hash": "5fe9eece014a7d2d474e923175236cb3fe9aedc5060d098c2ec0a70e29683e6e",
-      "thumbnail_url": "zavelstein/zavelstein_thumbnails/World/zavelstein.webp",
-      "meta": {
-        "catalog_id": "5f2c9621-3c96-4944-8206-d11cef84b586",
-        "tags": [
-          "outdoor",
-          "urban",
-          "midday",
-          "overcast",
-          "low contrast",
-          "natural light",
-          "tree",
-          "brick",
-          "castle",
-          "medieval",
-          "europe",
-          "bench",
-          "dirt",
-          "ruin"
-        ],
-        "author": "Andreas Mischok",
-        "description": "A CC0 HDRI by polyhaven.com"
-      }
-    },
-    {
-      "name": "abandoned_tank_farm_03",
-      "id_type": "world",
-      "blender_version_min": "3.6.10",
-      "archive_url": "abandoned_tank_farm_03/abandoned_tank_farm_03.blend",
-      "archive_size_in_bytes": 220804,
-      "archive_hash": "b34ce32b650e038a0584eba05def1ede2cfb962e63f7d498d5c37e33aca16b46",
-      "thumbnail_url": "abandoned_tank_farm_03/abandoned_tank_farm_03_thumbnails/World/abandoned_tank_farm_03.webp",
-      "meta": {
-        "catalog_id": "ee1c2a23-f241-40e2-a0f1-46f3469b6ac7",
-        "tags": [
-          "outdoor",
-          "skies",
-          "urban",
-          "midday",
-          "partly cloudy",
-          "high contrast",
-          "natural light",
-          "sun",
-          "parking",
-          "abandoned",
-          "asphalt",
-          "backplates"
-        ],
-        "author": "Sergej Majboroda",
-        "description": "A CC0 HDRI by polyhaven.com"
-      }
-    },
-    {
-      "name": "zwartkops_curve_sunset",
-      "id_type": "world",
-      "blender_version_min": "3.6.10",
-      "archive_url": "zwartkops_curve_sunset/zwartkops_curve_sunset.blend",
-      "archive_size_in_bytes": 210887,
-      "archive_hash": "d7e7b9f5abedfce122bdf9bfb0dd01f8fd75dd79eeb9a04a345b3e855a4da28e",
-      "thumbnail_url": "zwartkops_curve_sunset/zwartkops_curve_sunset_thumbnails/World/zwartkops_curve_sunset.webp",
-      "meta": {
-        "catalog_id": "b35909d0-be3d-4be5-a888-caf24f881148",
-        "tags": [
-          "outdoor",
-          "urban",
-          "natural light",
-          "sunrise-sunset",
-          "clear",
-          "high contrast",
-          "sun",
-          "road",
-          "track",
-          "asphalt",
-          "race",
-          "curve",
-          "barrier",
-          "circuit",
-          "sand",
-          "grass",
-          "backplates"
-        ],
-        "author": "Dimitrios Savva, Jarod Guest",
         "description": "A CC0 HDRI by polyhaven.com"
       }
     }
