@@ -494,7 +494,7 @@ void curve_populate_trans_data_structs(const TransInfo &t,
   const float3x3 smtx_base = math::pseudo_invert(mtx_base);
 
   const OffsetIndices<int> points_by_curve = curves.points_by_curve();
-  Array<float3> mean_center_point_per_curve(curves.curves_num());
+  Array<float3> mean_center_point_per_curve(curves.curves_num(), float3(0));
   if (use_individual_origin) {
     affected_curves.foreach_index(GrainSize(512), [&](const int64_t curve_i) {
       const IndexRange points = points_by_curve[curve_i];
@@ -502,6 +502,9 @@ void curve_populate_trans_data_structs(const TransInfo &t,
       const IndexMask selection =
           IndexMask::from_bools(point_selection, memory).slice_content(points);
       if (selection.is_empty()) {
+        /* For proportional editing around individual origins, unselected points will not use the
+         * TransData center (instead the closest point found is used, see logic in #set_prop_dist /
+         * #prop_dist_loc_get). */
         return;
       }
       float3 center(0.0f);
