@@ -2638,7 +2638,14 @@ class VIEW3D_MT_empty_add(Menu):
     def draw(self, _context):
         layout = self.layout
         layout.operator_context = 'INVOKE_REGION_WIN'
-        layout.operator_enum("object.empty_add", "type")
+
+        layout.operator("object.empty_add", text="Plain Axes", icon='EMPTY_AXIS').type = 'PLAIN_AXES'
+        layout.operator("object.empty_add", text="Arrows", icon='EMPTY_ARROWS').type = 'ARROWS'
+        layout.operator("object.empty_add", text="Single Arrow", icon='EMPTY_SINGLE_ARROW').type = 'SINGLE_ARROW'
+        layout.operator("object.empty_add", text="Circle", icon='MESH_CIRCLE').type = 'CIRCLE'
+        layout.operator("object.empty_add", text="Cube", icon='CUBE').type = 'CUBE'
+        layout.operator("object.empty_add", text="Sphere", icon='SPHERE').type = 'SPHERE'
+        layout.operator("object.empty_add", text="Cone", icon='CONE').type = 'CONE'
 
 
 class VIEW3D_MT_add(Menu):
@@ -2740,6 +2747,7 @@ class VIEW3D_MT_image_add(Menu):
         layout.operator("object.empty_image_add", text="Reference", icon='IMAGE_REFERENCE').background = False
         layout.operator("object.empty_image_add", text="Background", icon='IMAGE_BACKGROUND').background = True
         layout.operator("image.import_as_mesh_planes", text="Mesh Plane", icon='MESH_PLANE')
+        layout.operator("object.empty_add", text="Empty Image", icon='FILE_IMAGE').type = 'IMAGE'
 
 
 class VIEW3D_MT_object_relations(Menu):
