@@ -29,7 +29,7 @@ enum class VKImageViewFlags {
 ENUM_OPERATORS(VKImageViewFlags, VKImageViewFlags::NO_SWIZZLING)
 
 class VKTexture : public Texture {
-  friend class VKDescriptorSetTracker;
+  friend class VKDescriptorSetUpdator;
 
   /**
    * Texture format how the texture is stored on the device.

@@ -43,6 +43,10 @@ class VKStorageBuffer : public StorageBuf {
   {
     return buffer_.vk_handle();
   }
+  inline VkDeviceAddress device_address_get() const
+  {
+    return buffer_.device_address_get();
+  }
 
   int64_t size_in_bytes() const
   {

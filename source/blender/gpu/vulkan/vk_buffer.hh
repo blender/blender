@@ -33,8 +33,11 @@ class VKBuffer : public NonCopyable {
   /* Pointer to the virtually mapped memory. */
   void *mapped_memory_ = nullptr;
 
+  VkDeviceAddress vk_device_address = 0;
+
  public:
   VKBuffer() = default;
+  VKBuffer(VKBuffer &&other) = default;
   virtual ~VKBuffer();
 
   /** Has this buffer been allocated? */
@@ -107,6 +110,11 @@ class VKBuffer : public NonCopyable {
    * Can only be called when the buffer is (still) mapped.
    */
   void *mapped_memory_get() const;
+
+  VkDeviceAddress device_address_get() const
+  {
+    return vk_device_address;
+  }
 
   /**
    * Is this buffer mapped (visible on host)
