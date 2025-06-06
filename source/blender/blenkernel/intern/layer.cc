@@ -270,6 +270,9 @@ void BKE_view_layer_free_ex(ViewLayer *view_layer, const bool do_id_user)
   if (view_layer->id_properties) {
     IDP_FreeProperty_ex(view_layer->id_properties, do_id_user);
   }
+  if (view_layer->system_properties) {
+    IDP_FreeProperty_ex(view_layer->system_properties, do_id_user);
+  }
 
   MEM_SAFE_FREE(view_layer->object_bases_array);
 
@@ -502,6 +505,10 @@ void BKE_view_layer_copy_data(Scene *scene_dst,
 {
   if (view_layer_dst->id_properties != nullptr) {
     view_layer_dst->id_properties = IDP_CopyProperty_ex(view_layer_dst->id_properties, flag);
+  }
+  if (view_layer_dst->system_properties != nullptr) {
+    view_layer_dst->system_properties = IDP_CopyProperty_ex(view_layer_dst->system_properties,
+                                                            flag);
   }
   BKE_freestyle_config_copy(
       &view_layer_dst->freestyle_config, &view_layer_src->freestyle_config, flag);
@@ -2395,6 +2402,8 @@ void BKE_view_layer_blend_write(BlendWriter *writer, const Scene *scene, ViewLay
   if (view_layer->id_properties) {
     IDP_BlendWrite(writer, view_layer->id_properties);
   }
+  /* Never write system_properties in Blender 4.5, will be reset to `nullptr` by reading code (by
+   * the matching call to #BLO_read_struct). */
 
   LISTBASE_FOREACH (FreestyleModuleConfig *, fmc, &view_layer->freestyle_config.modules) {
     BLO_write_struct(writer, FreestyleModuleConfig, fmc);
@@ -2454,6 +2463,8 @@ void BKE_view_layer_blend_read_data(BlendDataReader *reader, ViewLayer *view_lay
 
   BLO_read_struct(reader, IDProperty, &view_layer->id_properties);
   IDP_BlendDataRead(reader, &view_layer->id_properties);
+  BLO_read_struct(reader, IDProperty, &view_layer->system_properties);
+  IDP_BlendDataRead(reader, &view_layer->system_properties);
 
   BLO_read_struct_list(reader, FreestyleModuleConfig, &(view_layer->freestyle_config.modules));
   BLO_read_struct_list(reader, FreestyleLineSet, &(view_layer->freestyle_config.linesets));

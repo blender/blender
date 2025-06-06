@@ -36,7 +36,9 @@ struct PoseChannelBackup {
 
   bPoseChannel olddata; /* Backup of pose channel. */
   IDProperty *oldprops; /* Backup copy (needs freeing) of pose channel's ID properties. */
-  const Object *owner;  /* The object to which this pose channel belongs. */
+  /* Backup copy (needs freeing) of pose channel's system IDProperties. */
+  IDProperty *old_system_properties;
+  const Object *owner; /* The object to which this pose channel belongs. */
 };
 
 struct PoseBackup {
@@ -83,6 +85,9 @@ static void pose_backup_create(const Object *ob,
 
     if (pchan->prop) {
       chan_bak->oldprops = IDP_CopyProperty(pchan->prop);
+    }
+    if (pchan->system_properties) {
+      chan_bak->old_system_properties = IDP_CopyProperty(pchan->system_properties);
     }
 
     BLI_addtail(&pose_backup.backups, chan_bak);
@@ -163,6 +168,9 @@ void BKE_pose_backup_restore(const PoseBackup *pbd)
     if (chan_bak->oldprops) {
       IDP_SyncGroupValues(chan_bak->pchan->prop, chan_bak->oldprops);
     }
+    if (chan_bak->old_system_properties) {
+      IDP_SyncGroupValues(chan_bak->pchan->system_properties, chan_bak->old_system_properties);
+    }
 
     /* TODO: constraints settings aren't restored yet,
      * even though these could change (though not that likely) */
@@ -178,6 +186,9 @@ void BKE_pose_backup_free(PoseBackup *pbd)
   LISTBASE_FOREACH_MUTABLE (PoseChannelBackup *, chan_bak, &pbd->backups) {
     if (chan_bak->oldprops) {
       IDP_FreeProperty(chan_bak->oldprops);
+    }
+    if (chan_bak->old_system_properties) {
+      IDP_FreeProperty(chan_bak->old_system_properties);
     }
     BLI_freelinkN(&pbd->backups, chan_bak);
   }

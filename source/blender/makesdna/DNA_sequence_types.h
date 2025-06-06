@@ -296,6 +296,13 @@ typedef struct Strip {
   struct Stereo3dFormat *stereo3d_format;
 
   struct IDProperty *prop;
+  /**
+   * System-defined custom properties storage.
+   *
+   * In Blender 4.5, only used to ensure forward compatibility with 5.x blendfiles, and data
+   * management consistency.
+   */
+  struct IDProperty *system_properties;
 
   /* modifiers */
   ListBase modifiers;
@@ -305,7 +312,6 @@ typedef struct Strip {
   float speed_factor;
 
   struct SeqRetimingKey *retiming_keys;
-  void *_pad5;
   int retiming_keys_num;
   char _pad6[4];
 

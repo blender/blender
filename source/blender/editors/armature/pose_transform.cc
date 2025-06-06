@@ -767,6 +767,15 @@ static bPoseChannel *pose_bone_do_paste(Object *ob,
       pchan->prop = IDP_CopyProperty(chan->prop);
     }
   }
+  if (chan->system_properties) {
+    /* Same logic as above for system IDProperties, for now. */
+    if (pchan->system_properties) {
+      IDP_SyncGroupValues(pchan->system_properties, chan->system_properties);
+    }
+    else {
+      pchan->system_properties = IDP_CopyProperty(chan->system_properties);
+    }
+  }
 
   return pchan;
 }
@@ -1396,6 +1405,9 @@ static wmOperatorStatus pose_clear_user_transforms_exec(bContext *C, wmOperator 
       LISTBASE_FOREACH (bPoseChannel *, pchan, &dummyPose->chanbase) {
         if (pchan->prop) {
           IDP_FreeProperty(pchan->prop);
+        }
+        if (pchan->system_properties) {
+          IDP_FreeProperty(pchan->system_properties);
         }
       }
 

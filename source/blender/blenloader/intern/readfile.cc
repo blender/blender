@@ -2118,6 +2118,11 @@ static void direct_link_id_common(BlendDataReader *reader,
     IDP_BlendDataRead(reader, &id->properties);
   }
 
+  if (id->system_properties) {
+    BLO_read_struct(reader, IDProperty, &id->system_properties);
+    IDP_BlendDataRead(reader, &id->system_properties);
+  }
+
   id->flag &= ~ID_FLAG_INDIRECT_WEAK_LINK;
 
   /* NOTE: It is important to not clear the recalc flags for undo/redo.
@@ -3088,6 +3093,12 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
   /* Don't allow versioning to create new data-blocks. */
   main->is_locked_for_linking = true;
+
+  /* Code ensuring conversion from new 'system IDProperties' in 5.0. This needs to run before any
+   * other data versioning. Otherwise, things like Cycles versioning code cannot work as expected.
+   *
+   * Merge (with overwrite) future system properties storage into current IDProperties. */
+  version_forward_compat_system_idprops(main);
 
   if (G.debug & G_DEBUG) {
     char build_commit_datetime[32];

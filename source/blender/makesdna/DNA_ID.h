@@ -442,6 +442,16 @@ typedef struct ID {
 
   IDProperty *properties;
 
+  /**
+   * System-defined custom properties storage.
+   *
+   * In Blender 4.5, only used to ensure forward compatibility with 5.x blendfiles, and data
+   * management consistency.
+   */
+  IDProperty *system_properties;
+
+  void *_pad1;
+
   /** Reference linked ID which this one overrides. */
   IDOverrideLibrary *override_library;
 
