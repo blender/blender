@@ -2148,6 +2148,7 @@ static bool wm_main_playanim_intern(int argc, const char **argv, PlayArgs *args_
   /* NOTE: Must happen before GPU Context destruction as GPU resources are released via
    * Color Management module. */
   IMB_exit();
+  MOV_exit();
 
   if (ps.ghost_data.gpu_context) {
     GPU_context_active_set(ps.ghost_data.gpu_context);
