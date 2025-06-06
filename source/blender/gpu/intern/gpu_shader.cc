@@ -19,6 +19,7 @@
 
 #include "gpu_backend.hh"
 #include "gpu_context_private.hh"
+#include "gpu_profile_report.hh"
 #include "gpu_shader_create_info.hh"
 #include "gpu_shader_create_info_private.hh"
 #include "gpu_shader_dependency_private.hh"
@@ -805,13 +806,21 @@ void Shader::set_framebuffer_srgb_target(int use_srgb_to_linear)
 
 Shader *ShaderCompiler::compile(const shader::ShaderCreateInfo &info, bool is_batch_compilation)
 {
+  using Clock = std::chrono::steady_clock;
+  using TimePoint = Clock::time_point;
+
   using namespace blender::gpu::shader;
   const_cast<ShaderCreateInfo &>(info).finalize();
+
+  TimePoint start_time;
 
   if (Context::get()) {
     /* Context can be null in Vulkan compilation threads. */
     GPU_debug_group_begin(GPU_DEBUG_SHADER_COMPILATION_GROUP);
     GPU_debug_group_begin(info.name_.c_str());
+  }
+  else {
+    start_time = Clock::now();
   }
 
   const std::string error = info.check_error();
@@ -935,6 +944,16 @@ Shader *ShaderCompiler::compile(const shader::ShaderCreateInfo &info, bool is_ba
     /* Context can be null in Vulkan compilation threads. */
     GPU_debug_group_end();
     GPU_debug_group_end();
+  }
+  else {
+    TimePoint end_time = Clock::now();
+    /* Note: Used by the vulkan backend. Use the same time_since_epoch as process_frame_timings. */
+    ProfileReport::get().add_group_cpu(GPU_DEBUG_SHADER_COMPILATION_GROUP,
+                                       start_time.time_since_epoch().count(),
+                                       end_time.time_since_epoch().count());
+    ProfileReport::get().add_group_cpu(info.name_.c_str(),
+                                       start_time.time_since_epoch().count(),
+                                       end_time.time_since_epoch().count());
   }
 
   return shader;

@@ -45,6 +45,8 @@ VKContext::~VKContext()
   free_resources();
   VKBackend::get().device.context_unregister(*this);
 
+  this->process_frame_timings();
+
   imm = nullptr;
 }
 
@@ -108,8 +110,13 @@ void VKContext::activate()
   if (!render_graph_.has_value()) {
     render_graph_ = std::reference_wrapper<render_graph::VKRenderGraph>(
         *device.render_graph_new());
+    /* Recreate the debug group stack for the new graph.
+     * Note: there is no associated `debug_group_end` as the graph groups
+     * are implicitly closed on submission. */
     for (const StringRef &group : debug_stack) {
-      debug_group_begin(std::string(group).c_str(), 0);
+      std::string str_group = group;
+      render_graph_.value().get().debug_group_begin(str_group.c_str(),
+                                                    debug::get_debug_group_color(str_group));
     }
   }
 
@@ -138,6 +145,7 @@ void VKContext::end_frame()
 {
   VKDevice &device = VKBackend::get().device;
   device.orphaned_data.destroy_discarded_resources(device);
+  this->process_frame_timings();
 }
 
 void VKContext::flush()
@@ -175,8 +183,13 @@ TimelineValue VKContext::flush_render_graph(RenderGraphFlushFlags flags,
   if (bool(flags & RenderGraphFlushFlags::RENEW_RENDER_GRAPH)) {
     render_graph_ = std::reference_wrapper<render_graph::VKRenderGraph>(
         *device.render_graph_new());
+    /* Recreate the debug group stack for the new graph.
+     * Note: there is no associated `debug_group_end` as the graph groups
+     * are implicitly closed on submission. */
     for (const StringRef &group : debug_stack) {
-      debug_group_begin(std::string(group).c_str(), 0);
+      std::string str_group = group;
+      render_graph_.value().get().debug_group_begin(str_group.c_str(),
+                                                    debug::get_debug_group_color(str_group));
     }
   }
   return timeline;
