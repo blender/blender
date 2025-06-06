@@ -157,9 +157,11 @@ TimelineValue VKContext::flush_render_graph(RenderGraphFlushFlags flags,
       framebuffer.rendering_end(*this);
     }
   }
-  descriptor_set_get().upload_descriptor_sets();
-  descriptor_pools_get().discard(*this);
   VKDevice &device = VKBackend::get().device;
+  descriptor_set_get().upload_descriptor_sets();
+  if (!device.extensions_get().descriptor_buffer) {
+    descriptor_pools_get().discard(*this);
+  }
   TimelineValue timeline = device.render_graph_submit(
       &render_graph_.value().get(),
       discard_pool,
@@ -317,8 +319,7 @@ void VKContext::update_pipeline_data(VKShader &vk_shader,
   r_pipeline_data.vk_descriptor_set = VK_NULL_HANDLE;
   if (vk_shader.has_descriptor_set()) {
     VKDescriptorSetTracker &descriptor_set = descriptor_set_get();
-    descriptor_set.update_descriptor_set(*this, access_info_);
-    r_pipeline_data.vk_descriptor_set = descriptor_set.vk_descriptor_set;
+    descriptor_set.update_descriptor_set(*this, access_info_, r_pipeline_data);
   }
 }
 

@@ -137,6 +137,9 @@ static Vector<StringRefNull> missing_capabilities_get(VkPhysicalDevice vk_physic
   if (features_12.timelineSemaphore == VK_FALSE) {
     missing_capabilities.append("timeline semaphores");
   }
+  if (features_12.bufferDeviceAddress == VK_FALSE) {
+    missing_capabilities.append("buffer device address");
+  }
 
   /* Check device extensions. */
   uint32_t vk_extension_count;
@@ -385,6 +388,7 @@ void VKBackend::detect_workarounds(VKDevice &device)
     extensions.dynamic_rendering = false;
     extensions.dynamic_rendering_local_read = false;
     extensions.dynamic_rendering_unused_attachments = false;
+    extensions.descriptor_buffer = false;
 
     GCaps.render_pass_workaround = true;
 
@@ -414,6 +418,8 @@ void VKBackend::detect_workarounds(VKDevice &device)
 #else
   extensions.external_memory = false;
 #endif
+  extensions.descriptor_buffer = device.supports_extension(
+      VK_EXT_DESCRIPTOR_BUFFER_EXTENSION_NAME);
 
   /* AMD GPUs don't support texture formats that use are aligned to 24 or 48 bits. */
   if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_ANY) ||
