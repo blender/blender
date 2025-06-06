@@ -3589,7 +3589,7 @@ void ED_region_header_layout(const bContext *C, ARegion *region)
         block, UI_LAYOUT_HORIZONTAL, UI_LAYOUT_HEADER, xco, yco, buttony, 1, 0, style);
 
     if (buttony_scale != 1.0f) {
-      uiLayoutSetScaleY(layout, buttony_scale);
+      layout->scale_y_set(buttony_scale);
     }
 
     Header header = {nullptr};

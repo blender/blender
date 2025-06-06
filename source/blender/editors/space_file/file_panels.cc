@@ -110,7 +110,7 @@ void file_tool_props_region_panels_register(ARegionType *art)
 static void file_panel_execution_cancel_button(uiLayout *layout)
 {
   uiLayout *row = &layout->row(false);
-  uiLayoutSetScaleX(row, 0.8f);
+  row->scale_x_set(0.8f);
   uiLayoutSetFixedSize(row, true);
   row->op("FILE_OT_cancel", IFACE_("Cancel"), ICON_NONE);
 }
@@ -118,7 +118,7 @@ static void file_panel_execution_cancel_button(uiLayout *layout)
 static void file_panel_execution_execute_button(uiLayout *layout, const char *title)
 {
   uiLayout *row = &layout->row(false);
-  uiLayoutSetScaleX(row, 0.8f);
+  row->scale_x_set(0.8f);
   uiLayoutSetFixedSize(row, true);
   /* Just a display hint. */
   uiLayoutSetActiveDefault(row, true);
@@ -147,7 +147,7 @@ static void file_panel_execution_buttons_draw(const bContext *C, Panel *panel)
       &screen->id, &RNA_FileSelectParams, params);
 
   row = &panel->layout->row(false);
-  uiLayoutSetScaleY(row, 1.3f);
+  row->scale_y_set(1.3f);
 
   /* callbacks for operator check functions */
   UI_block_func_set(block, file_draw_check_cb, nullptr, nullptr);

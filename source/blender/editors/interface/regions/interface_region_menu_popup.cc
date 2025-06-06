@@ -233,9 +233,9 @@ static uiBlock *ui_block_func_POPUP(bContext *C, uiPopupBlockHandle *handle, voi
       pup->block->handle = nullptr;
     }
 
-    if (uiLayoutGetUnitsX(pup->layout) != 0.0f) {
+    if (pup->layout->ui_units_x() != 0.0f) {
       /* Use the minimum width from the layout if it's set. */
-      minwidth = uiLayoutGetUnitsX(pup->layout) * UI_UNIT_X;
+      minwidth = pup->layout->ui_units_x() * UI_UNIT_X;
     }
 
     pup->layout = nullptr;

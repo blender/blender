@@ -218,7 +218,7 @@ static void modifier_ops_extra_draw(bContext *C, uiLayout *layout, void *md_v)
   uiLayoutSetContextPointer(layout, "modifier", &ptr);
   layout->operator_context_set(WM_OP_INVOKE_DEFAULT);
 
-  uiLayoutSetUnitsX(layout, 4.0f);
+  layout->ui_units_x_set(4.0f);
 
   /* Apply. */
   if (ob->type == OB_GREASE_PENCIL) {

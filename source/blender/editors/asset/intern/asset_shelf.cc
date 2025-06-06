@@ -857,7 +857,7 @@ static void asset_shelf_header_draw(const bContext *C, Header *header)
   uiItemPopoverPanel(layout, C, "ASSETSHELF_PT_display", "", ICON_IMGDISPLAY);
   uiLayout *sub = &layout->row(false);
   /* Same as file/asset browser header. */
-  uiLayoutSetUnitsX(sub, 8);
+  sub->ui_units_x_set(8);
   sub->prop(&shelf_ptr, "search_filter", UI_ITEM_NONE, "", ICON_VIEWZOOM);
 }
 

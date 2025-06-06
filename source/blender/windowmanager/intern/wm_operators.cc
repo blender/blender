@@ -1578,7 +1578,7 @@ static uiBlock *wm_block_dialog_create(bContext *C, ARegion *region, void *user_
   /* Message lines. */
   if (message_lines.size() > 0) {
     uiLayout *lines = &layout->column(false);
-    uiLayoutSetScaleY(lines, 0.65f);
+    lines->scale_y_set(0.65f);
     lines->separator(0.1f);
     for (auto &st : message_lines) {
       lines->label(st, ICON_NONE);
@@ -1611,7 +1611,7 @@ static uiBlock *wm_block_dialog_create(bContext *C, ARegion *region, void *user_
     uiBut *cancel_but;
 
     col = &col->split(0.0f, true);
-    uiLayoutSetScaleY(col, small ? 1.0f : 1.2f);
+    col->scale_y_set(small ? 1.0f : 1.2f);
 
     if (windows_layout) {
       confirm_but = uiDefBut(col_block,

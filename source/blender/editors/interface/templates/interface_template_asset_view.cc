@@ -274,8 +274,8 @@ void uiTemplateAssetView(uiLayout *layout,
 
   uiLayout *subcol = &col->column(false);
 
-  uiLayoutSetScaleX(subcol, 0.8f);
-  uiLayoutSetScaleY(subcol, 0.8f);
+  subcol->scale_x_set(0.8f);
+  subcol->scale_y_set(0.8f);
 
   /* TODO can we have some kind of model-view API to handle referencing, filtering and lazy loading
    * (of previews) of the items? */

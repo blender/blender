@@ -49,7 +49,7 @@ static void constraint_ops_extra_draw(bContext *C, uiLayout *layout, void *con_v
   uiLayoutSetContextPointer(layout, "constraint", &ptr);
   layout->operator_context_set(WM_OP_INVOKE_DEFAULT);
 
-  uiLayoutSetUnitsX(layout, 4.0f);
+  layout->ui_units_x_set(4.0f);
 
   /* Apply. */
   layout->op("CONSTRAINT_OT_apply",
