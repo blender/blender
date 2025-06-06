@@ -55,6 +55,21 @@ class VKContext : public Context, NonCopyable {
   /* Active shader specialization constants state. */
   shader::SpecializationConstants constants_state_;
 
+  /* Debug scope timings. Adapted form GLContext::TimeQuery.
+   * Only supports CPU timings for now. */
+  struct ScopeTimings {
+    using Clock = std::chrono::steady_clock;
+    using TimePoint = Clock::time_point;
+    using Nanoseconds = std::chrono::nanoseconds;
+
+    std::string name;
+    bool finished;
+    TimePoint cpu_start, cpu_end;
+  };
+  Vector<ScopeTimings> scope_timings;
+
+  void process_frame_timings();
+
  public:
   VKDiscardPool discard_pool;
 

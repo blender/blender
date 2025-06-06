@@ -77,7 +77,10 @@ void GLShader::init(const shader::ShaderCreateInfo &info, bool is_batch_compilat
 
   /* NOTE: This is not threadsafe with regards to the specialization constants state access.
    * The shader creation must be externally synchronized. */
-  main_program_ = &program_cache_.lookup_or_add_default(constants->values);
+  main_program_ = program_cache_
+                      .lookup_or_add_cb(constants->values,
+                                        []() { return std::make_unique<GLProgram>(); })
+                      .get();
   if (!main_program_->program_id) {
     main_program_->program_id = glCreateProgram();
     debug::object_label(GL_PROGRAM, main_program_->program_id, name);
@@ -86,7 +89,10 @@ void GLShader::init(const shader::ShaderCreateInfo &info, bool is_batch_compilat
 
 void GLShader::init()
 {
-  main_program_ = &program_cache_.lookup_or_add_default(constants->values);
+  main_program_ = program_cache_
+                      .lookup_or_add_cb(constants->values,
+                                        []() { return std::make_unique<GLProgram>(); })
+                      .get();
   if (!main_program_->program_id) {
     main_program_->program_id = glCreateProgram();
     debug::object_label(GL_PROGRAM, main_program_->program_id, name);
@@ -1612,7 +1618,8 @@ GLShader::GLProgram &GLShader::program_get(const shader::SpecializationConstants
 
   program_cache_mutex_.lock();
 
-  GLProgram &program = program_cache_.lookup_or_add_default(constants_state->values);
+  GLProgram &program = *program_cache_.lookup_or_add_cb(
+      constants_state->values, []() { return std::make_unique<GLProgram>(); });
 
   program_cache_mutex_.unlock();
 
@@ -1881,7 +1888,7 @@ Shader *GLSubprocessShaderCompiler::compile_shader(const shader::ShaderCreateInf
   const shader::SpecializationConstants &constants = GPU_shader_get_default_constant_state(
       wrap(shader));
 
-  if (!worker->load_program_binary(shader->program_cache_.lookup(constants.values).program_id) ||
+  if (!worker->load_program_binary(shader->program_cache_.lookup(constants.values)->program_id) ||
       !shader->post_finalize(&info))
   {
     /* Compilation failed, try to compile it locally. */
@@ -1908,7 +1915,7 @@ void GLSubprocessShaderCompiler::specialize_shader(ShaderSpecialization &special
 
   auto program_get = [&]() -> GLShader::GLProgram * {
     if (shader->program_cache_.contains(specialization.constants.values)) {
-      return &shader->program_cache_.lookup(specialization.constants.values);
+      return shader->program_cache_.lookup(specialization.constants.values).get();
     }
     return nullptr;
   };

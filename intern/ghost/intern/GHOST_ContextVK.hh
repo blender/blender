@@ -98,7 +98,7 @@ struct GHOST_Frame {
  * Vulkan backend. Notably, VKThreadData::resource_pools_count must
  * match this value.
  */
-constexpr static uint32_t GHOST_FRAMES_IN_FLIGHT = 4;
+constexpr static uint32_t GHOST_FRAMES_IN_FLIGHT = 5;
 
 class GHOST_ContextVK : public GHOST_Context {
   friend class GHOST_XrGraphicsBindingVulkan;
