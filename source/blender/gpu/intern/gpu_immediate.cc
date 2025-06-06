@@ -73,6 +73,11 @@ void immUnbindProgram()
   imm->shader = nullptr;
 }
 
+bool immIsShaderBound()
+{
+  return imm->shader != nullptr;
+}
+
 GPUShader *immGetShader()
 {
   return imm->shader;
