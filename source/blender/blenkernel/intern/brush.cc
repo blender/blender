@@ -212,7 +212,10 @@ static void brush_blend_write(BlendWriter *writer, ID *id, const void *id_addres
   Brush *brush = reinterpret_cast<Brush *>(id);
   /* In 5.0 we intend to change the brush.size value from representing radius to representing
    * diameter. This and the corresponding code in `brush_blend_read_data` should be removed once
-   * that transition is complete. */
+   * that transition is complete. Note that we do not need to restore these values, because `id`
+   * is a shallow copy of the original, but any child data that's owned by the id is not copied,
+   * which means for `scene_blend_write` where it writes brush size from `tool_settings`, that
+   * value will need to be restored. See `scene_blend_write` from `blenkernel/intern/scene.cc`. */
   brush->size *= 2;
   brush->unprojected_radius *= 2.0;
 
