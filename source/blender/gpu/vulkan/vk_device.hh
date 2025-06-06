@@ -102,7 +102,7 @@ class VKThreadData : public NonCopyable, NonMovable {
    * in flight used by GHOST. Therefore, this constant *must* always
    * match GHOST_ContextVK's GHOST_FRAMES_IN_FLIGHT.
    */
-  static constexpr uint32_t resource_pools_count = 4;
+  static constexpr uint32_t resource_pools_count = 5;
 
  public:
   /** Thread ID this instance belongs to. */
