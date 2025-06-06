@@ -205,6 +205,9 @@ static float3 prop_dist_loc_get(const TransDataContainer *tc,
 
 /**
  * Distance calculated from not-selected vertex to nearest selected vertex.
+ * If the #transdata_check_local_islands() check succeeds, this will also change
+ * the TransData center and axismtx of unselected points to the center and axismtx of the closest
+ * point found (for proportional editing around individual origins).
  */
 static void set_prop_dist(TransInfo *t, const bool with_dist)
 {
@@ -284,6 +287,7 @@ static void set_prop_dist(TransInfo *t, const bool with_dist)
         if (td_index != -1) {
           td->rdist = nearest.dist;
           if (use_island) {
+            /* Use center and axismtx of closest point found. */
             copy_v3_v3(td->center, td_table[td_index]->center);
             copy_m3_m3(td->axismtx, td_table[td_index]->axismtx);
           }
