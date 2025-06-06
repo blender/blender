@@ -41,6 +41,9 @@ struct Object;
 struct OldNewMap;
 struct UserDef;
 
+/**
+ * Store some critical informations about the read blendfile.
+ */
 enum eFileDataFlag {
   FD_FLAGS_SWITCH_ENDIAN = 1 << 0,
   FD_FLAGS_FILE_POINTSIZE_IS_4 = 1 << 1,
@@ -52,6 +55,11 @@ enum eFileDataFlag {
    * 'from the future'. Improves report to the user.
    */
   FD_FLAGS_FILE_FUTURE = 1 << 5,
+  /**
+   * The blendfile has IDs with invalid names (either using the 5.0+ new 'long names', or
+   * corrupted). I.e. their names have no null char in their first 66 bytes.
+   */
+  FD_FLAGS_HAS_INVALID_ID_NAMES = 1 << 6,
 };
 ENUM_OPERATORS(eFileDataFlag, FD_FLAGS_IS_MEMFILE)
 
@@ -198,8 +206,11 @@ BHead *blo_bhead_prev(FileData *fd, BHead *thisblock) ATTR_NONNULL(1, 2);
 
 /**
  * Warning! Caller's responsibility to ensure given bhead **is** an ID one!
+ *
+ * Will return `nullptr` if the name is not valid (e.g. because it has no null-char terminator, if
+ * it was saved in a version of Blender with higher MAX_ID_NAME value).
  */
-const char *blo_bhead_id_name(const FileData *fd, const BHead *bhead);
+const char *blo_bhead_id_name(FileData *fd, const BHead *bhead);
 /**
  * Warning! Caller's responsibility to ensure given bhead **is** an ID one!
  */

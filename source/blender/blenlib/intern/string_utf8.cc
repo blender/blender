@@ -1200,6 +1200,19 @@ size_t BLI_str_partition_ex_utf8(const char *str,
   return str_len;
 }
 
+bool BLI_str_utf8_truncate_at_size(char *str, const size_t str_size)
+{
+  BLI_assert(str_size > 0);
+  if (std::memchr(str, '\0', str_size)) {
+    return false;
+  }
+
+  size_t str_len_trim;
+  BLI_strnlen_utf8_ex(str, str_size - 1, &str_len_trim);
+  str[str_len_trim] = '\0';
+  return true;
+}
+
 /* -------------------------------------------------------------------- */
 /** \name Offset Conversion in Strings
  *
