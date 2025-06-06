@@ -2659,6 +2659,9 @@ void uiTemplateNodeInputs(uiLayout *layout, bContext *C, PointerRNA *ptr);
 
 void uiTemplateCollectionExporters(uiLayout *layout, bContext *C);
 
+namespace blender::ed::object::shapekey {
+void template_tree(uiLayout *layout, bContext *C);
+}
 /**
  * \return: True if the list item with unfiltered, unordered index \a item_idx is visible given the
  *          current filter settings.

@@ -118,33 +118,6 @@ class MESH_UL_vgroups(UIList):
             layout.label(text="", icon_value=icon)
 
 
-class MESH_UL_shape_keys(UIList):
-    def draw_item(self, _context, layout, _data, item, icon, active_data, _active_propname, index):
-        # assert(isinstance(item, bpy.types.ShapeKey))
-        obj = active_data
-        # key = data
-        key_block = item
-        if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            split = layout.split(factor=0.5, align=True)
-            split.prop(key_block, "name", text="", emboss=False, icon_value=icon)
-            row = split.row(align=True)
-            row.emboss = 'NONE_OR_STATUS'
-            row.alignment = 'RIGHT'
-            if key_block.mute or (obj.mode == 'EDIT' and not (obj.use_shape_key_edit_mode and obj.type == 'MESH')):
-                split.active = False
-            if not item.id_data.use_relative:
-                row.prop(key_block, "frame", text="")
-            elif index > 0:
-                row.prop(key_block, "value", text="")
-            else:
-                row.label(text="")
-            row.prop(key_block, "mute", text="", emboss=False)
-            row.prop(key_block, "lock_shape", text="", emboss=False)
-        elif self.layout_type == 'GRID':
-            layout.alignment = 'CENTER'
-            layout.label(text="", icon_value=icon)
-
-
 class MESH_UL_uvmaps(UIList):
     def draw_item(self, _context, layout, _data, item, icon, _active_data, _active_propname, _index):
         # assert(isinstance(item, (bpy.types.MeshTexturePolyLayer, bpy.types.MeshLoopColorLayer)))
@@ -314,11 +287,7 @@ class DATA_PT_shape_keys(MeshButtonsPanel, Panel):
 
         row = layout.row()
 
-        rows = 3
-        if kb:
-            rows = 5
-
-        row.template_list("MESH_UL_shape_keys", "", key, "key_blocks", ob, "active_shape_key_index", rows=rows)
+        row.template_shape_key_tree()
 
         col = row.column(align=True)
 
@@ -731,7 +700,6 @@ classes = (
     MESH_MT_color_attribute_context_menu,
     MESH_MT_attribute_context_menu,
     MESH_UL_vgroups,
-    MESH_UL_shape_keys,
     MESH_UL_uvmaps,
     MESH_UL_attributes,
     DATA_PT_context_mesh,
