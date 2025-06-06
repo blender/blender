@@ -1591,7 +1591,7 @@ void BKE_blendfile_link(BlendfileLinkAppendContext *lapp_context, ReportList *re
       }
     }
 
-    BLO_library_link_end(mainl, &lib_context.blo_handle, lapp_context->params);
+    BLO_library_link_end(mainl, &lib_context.blo_handle, lapp_context->params, reports);
     link_append_context_library_blohandle_release(*lapp_context, lib_context);
   }
 
