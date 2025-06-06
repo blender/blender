@@ -479,7 +479,7 @@ static void format_with_fmt(const fmt::format_string<> format,
           }
         }
       }
-      catch (const fmt::format_error &error) {
+      catch (const fmt::format_error & /*error*/) {
         /* Invalid patterns should have been caught before already. */
         BLI_assert_unreachable();
       }
