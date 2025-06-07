@@ -50,7 +50,6 @@ class ShapeKeyDragController : public ui::AbstractViewItemDragController {
   ShapeKey drag_key_;
 
  public:
-  ShapeKeyDragController() = default;
   ShapeKeyDragController(ShapeKeyTreeView &view, ShapeKey drag_key)
       : AbstractViewItemDragController(view), drag_key_(drag_key)
   {
