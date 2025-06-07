@@ -324,7 +324,7 @@ void importer_main(Main *bmain, Scene *scene, ViewLayer *view_layer, const FBXIm
 {
   FILE *file = BLI_fopen(params.filepath, "rb");
   if (!file) {
-    CLOG_ERROR(&LOG, "Failed to open FBX file '%s'\n", params.filepath);
+    CLOG_ERROR(&LOG, "Failed to open FBX file '%s'", params.filepath);
     BKE_reportf(params.reports, RPT_ERROR, "FBX Import: Cannot open file '%s'", params.filepath);
     return;
   }
