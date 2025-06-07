@@ -53,7 +53,7 @@ void VKContext::debug_group_end()
       break;
     }
     if (i == 0) {
-      CLOG_ERROR(&LOG, "Profile GPU error: Extra GPU_debug_group_end() call.\n");
+      CLOG_ERROR(&LOG, "Profile GPU error: Extra GPU_debug_group_end() call.");
     }
   }
 }
@@ -71,7 +71,7 @@ void VKContext::process_frame_timings()
   for (int i = queries.size() - 1; i >= 0; i--) {
     if (!queries[i].finished) {
       frame_is_valid = false;
-      CLOG_ERROR(&LOG, "Profile GPU error: Missing GPU_debug_group_end() call\n");
+      CLOG_ERROR(&LOG, "Profile GPU error: Missing GPU_debug_group_end() call");
     }
     break;
   }

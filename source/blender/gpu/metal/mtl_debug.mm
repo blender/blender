@@ -83,7 +83,7 @@ void MTLContext::debug_group_end()
       break;
     }
     if (i == 0) {
-      CLOG_ERROR(&debug::LOG, "Profile GPU error: Extra GPU_debug_group_end() call.\n");
+      CLOG_ERROR(&debug::LOG, "Profile GPU error: Extra GPU_debug_group_end() call.");
     }
   }
 }
@@ -104,7 +104,7 @@ void MTLContext::process_frame_timings()
   for (int i = queries.size() - 1; i >= 0; i--) {
     if (!queries[i].finished) {
       frame_is_valid = false;
-      CLOG_ERROR(&debug::LOG, "Profile GPU error: Missing GPU_debug_group_end() call\n");
+      CLOG_ERROR(&debug::LOG, "Profile GPU error: Missing GPU_debug_group_end() call");
     }
     break;
   }
