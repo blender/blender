@@ -299,7 +299,7 @@ typedef struct Strip {
   /**
    * System-defined custom properties storage.
    *
-   * In Blender 4.5, only used to ensure forward compatibility with 5.x blendfiles, and data
+   * In Blender 4.5, only used to ensure forward compatibility with 5.x blend-files, and data
    * management consistency.
    */
   struct IDProperty *system_properties;

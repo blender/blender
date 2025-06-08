@@ -3917,8 +3917,8 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
                   bfd->filepath);
     }
 
-    /* This part is only to ensure forward compatibility with 5.0+ blendfiles in 4.5. It will be
-     * removed in 5.0. */
+    /* This part is only to ensure forward compatibility with 5.0+ blend-files in 4.5.
+     * It will be removed in 5.0. */
     long_id_names_process_action_slots_identifiers(bfd->main);
   }
   else {

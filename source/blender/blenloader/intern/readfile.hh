@@ -42,7 +42,7 @@ struct OldNewMap;
 struct UserDef;
 
 /**
- * Store some critical informations about the read blendfile.
+ * Store some critical information about the read blend-file.
  */
 enum eFileDataFlag {
   FD_FLAGS_SWITCH_ENDIAN = 1 << 0,
@@ -56,7 +56,7 @@ enum eFileDataFlag {
    */
   FD_FLAGS_FILE_FUTURE = 1 << 5,
   /**
-   * The blendfile has IDs with invalid names (either using the 5.0+ new 'long names', or
+   * The blend-file has IDs with invalid names (either using the 5.0+ new 'long names', or
    * corrupted). I.e. their names have no null char in their first 66 bytes.
    */
   FD_FLAGS_HAS_INVALID_ID_NAMES = 1 << 6,
