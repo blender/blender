@@ -89,6 +89,9 @@ void version_node_output_socket_name(bNodeTree *ntree,
                                      const char *old_name,
                                      const char *new_name);
 
+/**
+ * Find the base socket name for an idname that may include a subtype.
+ */
 blender::StringRef legacy_socket_idname_to_socket_type(blender::StringRef idname);
 
 /**
@@ -195,14 +198,18 @@ void version_update_node_input(
 
 bNode *version_eevee_output_node_get(bNodeTree *ntree, int16_t node_type);
 
-/* Allow 4.5 to open 5.0+ files and recover their system-defined ID properties. */
+/**
+ * Allow 4.5 to open 5.0+ files and recover their system-defined ID properties.
+ */
 void version_forward_compat_system_idprops(Main *bmain);
 
 bool all_scenes_use(Main *bmain, const blender::Span<const char *> engines);
 
-/* Adjust the values of the given FCurve key frames by applying the given function. The function is
+/**
+ * Adjust the values of the given FCurve key frames by applying the given function. The function is
  * expected to get and return a float representing the value of the key frame. The FCurve is
- * potentially changed to have the given property type, if not already the case. */
+ * potentially changed to have the given property type, if not already the case.
+ */
 template<typename Function>
 static void adjust_fcurve_key_frame_values(FCurve *fcurve,
                                            const PropertyType property_type,

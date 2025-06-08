@@ -224,7 +224,7 @@ void Instance::init(const int2 &output_res,
   loaded_shaders |= materials.default_materials_load_async();
 
   if (is_image_render) {
-    /* Ensure all deferred shaders have been compiled to kickstart async specialization. */
+    /* Ensure all deferred shaders have been compiled to kick-start asynchronous specialization. */
     loaded_shaders |= shaders.static_shaders_wait_ready(DEFERRED_LIGHTING_SHADERS);
   }
 

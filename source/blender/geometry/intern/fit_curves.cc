@@ -120,7 +120,7 @@ bke::CurvesGeometry fit_poly_to_bezier_curves(const bke::CurvesGeometry &src_cur
     }
 
     if (error) {
-      /* Some error occured. Fall back to using the input positions as the (poly) curve. */
+      /* Some error occurred. Fall back to using the input positions as the (poly) curve. */
       dst_curve_sizes[curve_i] = points.size();
       dst_curve_types[curve_i] = CURVE_TYPE_POLY;
       return;
