@@ -95,7 +95,7 @@ struct SGLSLEditMeshToTangent {
   mikk::float3 GetTexCoord(const uint face_num, const uint vert_index)
   {
     const BMLoop *l = GetLoop(face_num, vert_index);
-    if (cd_loop_uv_offset != -1) {
+    if (has_uv()) {
       const float *uv = (const float *)BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
       return mikk::float3(uv[0], uv[1], 1.0f);
     }
@@ -128,6 +128,11 @@ struct SGLSLEditMeshToTangent {
     const BMLoop *l = GetLoop(face_num, vert_index);
     float *p_res = tangent[BM_elem_index_get(l)];
     copy_v4_fl4(p_res, T.x, T.y, T.z, orientation ? 1.0f : -1.0f);
+  }
+
+  bool has_uv()
+  {
+    return cd_loop_uv_offset != -1;
   }
 
   Span<float3> face_normals;
