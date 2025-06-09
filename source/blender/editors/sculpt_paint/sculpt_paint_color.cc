@@ -401,7 +401,8 @@ static void do_paint_brush_task(const Scene &scene,
   }
   filter_distances_with_radius(radius, distances, factors);
   apply_hardness_to_distances(radius, cache.hardness, distances);
-  calc_brush_strength_factors(cache, brush, distances, factors);
+  BKE_brush_calc_curve_factors(
+      eBrushCurvePreset(brush.curve_preset), brush.curve, distances, radius, factors);
 
   MutableSpan<float> auto_mask;
   if (cache.automasking) {
