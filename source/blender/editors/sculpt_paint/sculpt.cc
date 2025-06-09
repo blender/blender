@@ -7099,7 +7099,7 @@ void calc_brush_cube_distances(const Brush &brush,
     const T local = math::abs(positions[i]);
 
     if (math::reduce_max(local) > 1.0f) {
-      r_distances[i] = std::numeric_limits<float>::max();
+      r_distances[i] = 1.0f;
       continue;
     }
     if (std::min(local.x, local.y) > hardness) {
