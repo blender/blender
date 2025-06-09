@@ -63,6 +63,8 @@ struct GPUCapabilities {
   bool node_link_instancing_workaround = false;
   bool line_directive_workaround = false;
 
+  bool use_subprocess_shader_compilations = false;
+
   /* Vulkan related workarounds. */
   bool render_pass_workaround = false;
 

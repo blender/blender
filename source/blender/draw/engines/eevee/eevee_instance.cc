@@ -722,11 +722,14 @@ void Instance::draw_viewport()
     }
     if (materials.queued_shaders_count > 0) {
       info_append_i18n("Compiling shaders ({} remaining)", materials.queued_shaders_count);
-      if (!GPU_use_parallel_compilation() &&
-          GPU_type_matches_ex(GPU_DEVICE_ANY, GPU_OS_ANY, GPU_DRIVER_ANY, GPU_BACKEND_OPENGL))
+      if (GPU_backend_get_type() == GPU_BACKEND_OPENGL && !GPU_use_subprocess_compilation() &&
+          /* Only recommend subprocesses when there is known gain. */
+          (GPU_type_matches(GPU_DEVICE_NVIDIA, GPU_OS_ANY, GPU_DRIVER_ANY) ||
+           GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_WIN, GPU_DRIVER_ANY) ||
+           GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_OFFICIAL)))
       {
         info_append_i18n(
-            "Increasing Preferences > System > Max Shader Compilation Subprocesses may improve "
+            "Setting Preferences > System > Shader Compilation Method to Subprocess might improve "
             "compilation time.");
       }
     }

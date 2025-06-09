@@ -295,6 +295,9 @@ static void gather_socket_link_operations(const bContext &C,
       }
       const bNodeTreeInterfaceSocket &interface_socket =
           reinterpret_cast<const bNodeTreeInterfaceSocket &>(item);
+      if (!(interface_socket.flag & NODE_INTERFACE_SOCKET_INPUT)) {
+        return true;
+      }
       {
         const bke::bNodeSocketType *from_typeinfo = bke::node_socket_type_find(
             interface_socket.socket_type);

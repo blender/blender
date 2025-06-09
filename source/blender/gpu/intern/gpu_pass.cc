@@ -165,9 +165,8 @@ bool GPU_pass_should_optimize(GPUPass *pass)
   return (GPU_backend_get_type() == GPU_BACKEND_METAL) && pass->should_optimize;
 
 #if 0
-  /* Returns optimization heuristic prepared during initial codegen.
-   * NOTE: Optimization limited to parallel compilation as it causes CPU stalls otherwise. */
-  return pass->should_optimize && GPU_use_parallel_compilation();
+  /* Returns optimization heuristic prepared during initial codegen. */
+  return pass->should_optimize;
 #endif
 }
 

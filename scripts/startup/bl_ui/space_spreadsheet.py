@@ -23,7 +23,8 @@ class SPREADSHEET_HT_header(bpy.types.Header):
         row.prop(space, "use_filter", toggle=True, icon='FILTER', icon_only=True)
 
     def selection_filter_available(self, space):
-        root_context = space.viewer_path.path[0]
+        if (root_context := next(iter(space.viewer_path.path), None)) is None:
+            return False
         if root_context.type != 'ID':
             return False
         if not isinstance(root_context.id, bpy.types.Object):

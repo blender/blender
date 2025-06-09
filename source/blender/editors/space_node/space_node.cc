@@ -268,51 +268,53 @@ float2 space_node_group_offset(const SpaceNode &snode)
   return float2(0);
 }
 
-static const bNode *group_node_by_name(const bNodeTree &ntree, StringRef name)
-{
-  for (const bNode *node : ntree.group_nodes()) {
-    if (node->name == name) {
-      return node;
-    }
-  }
-  return nullptr;
-}
-
-std::optional<int32_t> find_nested_node_id_in_root(const SpaceNode &snode, const bNode &query_node)
+std::optional<nodes::FoundNestedNodeID> find_nested_node_id_in_root(const SpaceNode &snode,
+                                                                    const bNode &query_node)
 {
   BLI_assert(snode.edittree->runtime->nodes_by_id.contains(const_cast<bNode *>(&query_node)));
+  bke::ComputeContextCache compute_context_cache;
+  const ComputeContext *compute_context = compute_context_for_edittree_node(
+      snode, compute_context_cache, query_node);
+  if (!compute_context) {
+    return {};
+  }
+  return find_nested_node_id_in_root(*snode.nodetree, compute_context, query_node.identifier);
+}
 
-  std::optional<int32_t> id_in_node;
-  const char *group_node_name = nullptr;
-  const bNode *node = &query_node;
-  LISTBASE_FOREACH_BACKWARD (const bNodeTreePath *, path, &snode.treepath) {
-    const bNodeTree *ntree = path->nodetree;
-    ntree->ensure_topology_cache();
-    if (group_node_name) {
-      node = group_node_by_name(*ntree, group_node_name);
+std::optional<nodes::FoundNestedNodeID> find_nested_node_id_in_root(
+    const bNodeTree &root_tree, const ComputeContext *compute_context, const int node_id)
+{
+  nodes::FoundNestedNodeID found;
+  Vector<int> node_ids;
+  for (const ComputeContext *context = compute_context; context != nullptr;
+       context = context->parent())
+  {
+    if (const auto *node_context = dynamic_cast<const bke::GroupNodeComputeContext *>(context)) {
+      node_ids.append(node_context->node_id());
     }
-    bool found = false;
-    for (const bNestedNodeRef &ref : ntree->nested_node_refs_span()) {
-      if (node->is_group()) {
-        if (ref.path.node_id == node->identifier && ref.path.id_in_node == id_in_node) {
-          group_node_name = path->node_name;
-          id_in_node = ref.id;
-          found = true;
-          break;
-        }
-      }
-      else if (ref.path.node_id == node->identifier) {
-        group_node_name = path->node_name;
-        id_in_node = ref.id;
-        found = true;
-        break;
-      }
+    else if (dynamic_cast<const bke::RepeatZoneComputeContext *>(context) != nullptr) {
+      found.is_in_loop = true;
     }
-    if (!found) {
-      return std::nullopt;
+    else if (dynamic_cast<const bke::SimulationZoneComputeContext *>(context) != nullptr) {
+      found.is_in_simulation = true;
+    }
+    else if (dynamic_cast<const bke::ForeachGeometryElementZoneComputeContext *>(context) !=
+             nullptr)
+    {
+      found.is_in_loop = true;
+    }
+    else if (dynamic_cast<const bke::EvaluateClosureComputeContext *>(context) != nullptr) {
+      found.is_in_closure = true;
     }
   }
-  return id_in_node;
+  std::reverse(node_ids.begin(), node_ids.end());
+  node_ids.append(node_id);
+  const bNestedNodeRef *nested_node_ref = root_tree.nested_node_ref_from_node_id_path(node_ids);
+  if (nested_node_ref == nullptr) {
+    return std::nullopt;
+  }
+  found.id = nested_node_ref->id;
+  return found;
 }
 
 std::optional<ObjectAndModifier> get_modifier_for_node_editor(const SpaceNode &snode)
@@ -641,6 +643,22 @@ const ComputeContext *compute_context_for_edittree_socket(
     return nullptr;
   }
   const bke::bNodeTreeZone *zone = zones->get_zone_by_socket(socket);
+  const Vector<const bke::bNodeTreeZone *> zone_stack = zones->get_zones_to_enter_from_root(zone);
+  return compute_context_for_zones(zone_stack, compute_context_cache, context);
+}
+
+const ComputeContext *compute_context_for_edittree_node(
+    const SpaceNode &snode, bke::ComputeContextCache &compute_context_cache, const bNode &node)
+{
+  const ComputeContext *context = compute_context_for_edittree(snode, compute_context_cache);
+  if (!context) {
+    return nullptr;
+  }
+  const bke::bNodeTreeZones *zones = snode.edittree->zones();
+  if (!zones) {
+    return nullptr;
+  }
+  const bke::bNodeTreeZone *zone = zones->get_zone_by_node(node.identifier);
   const Vector<const bke::bNodeTreeZone *> zone_stack = zones->get_zones_to_enter_from_root(zone);
   return compute_context_for_zones(zone_stack, compute_context_cache, context);
 }

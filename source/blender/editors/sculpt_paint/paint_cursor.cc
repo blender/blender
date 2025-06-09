@@ -542,6 +542,27 @@ static int project_brush_radius(ViewContext *vc, float radius, const float locat
   return 0;
 }
 
+static int project_brush_radius_grease_pencil(ViewContext *vc,
+                                              const float radius,
+                                              const float3 world_location,
+                                              const float4x4 &to_world)
+{
+  const float2 xy_delta = float2(1.0f, 0.0f);
+
+  bool z_flip;
+  const float zfac = ED_view3d_calc_zfac_ex(vc->rv3d, world_location, &z_flip);
+  if (z_flip) {
+    /* Location is behind camera. Return 0 to make the cursor disappear. */
+    return 0;
+  }
+  float3 delta;
+  ED_view3d_win_to_delta(vc->region, xy_delta, zfac, delta);
+
+  const float scale = math::length(
+      math::transform_direction(to_world, float3(math::numbers::inv_sqrt3)));
+  return math::safe_divide(scale * radius, math::length(delta));
+}
+
 /* Draw an overlay that shows what effect the brush's texture will
  * have on brush strength. */
 static bool paint_draw_tex_overlay(UnifiedPaintSettings *ups,
@@ -1584,11 +1605,18 @@ static void grease_pencil_brush_cursor_draw(PaintCursorContext &pcontext)
         const bke::greasepencil::Layer *layer = grease_pencil->get_active_layer();
         const ed::greasepencil::DrawingPlacement placement(
             *pcontext.scene, *pcontext.region, *pcontext.vc.v3d, *object, layer);
-        const float3 location = math::transform_point(
-            placement.to_world_space(),
-            placement.project(float2(pcontext.mval.x, pcontext.mval.y)));
-        pcontext.pixel_radius = project_brush_radius(
-            &pcontext.vc, brush->unprojected_radius, location);
+        const float2 coordinate = float2(pcontext.mval.x - pcontext.region->winrct.xmin,
+                                         pcontext.mval.y - pcontext.region->winrct.ymin);
+        bool clipped = false;
+        const float3 pos = placement.project(coordinate, clipped);
+        if (!clipped) {
+          const float3 world_location = math::transform_point(placement.to_world_space(), pos);
+          pcontext.pixel_radius = project_brush_radius_grease_pencil(
+              &pcontext.vc, brush->unprojected_radius, world_location, placement.to_world_space());
+        }
+        else {
+          pcontext.pixel_radius = 0;
+        }
         brush->size = std::max(pcontext.pixel_radius, 1);
       }
       else {

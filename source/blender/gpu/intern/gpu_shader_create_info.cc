@@ -574,16 +574,8 @@ bool gpu_shader_create_info_compile(const char *name_starts_with_filter)
     }
   }
 
-  Vector<GPUShader *> result;
-  if (GPU_use_parallel_compilation() == false) {
-    for (const GPUShaderCreateInfo *info : infos) {
-      result.append(GPU_shader_create_from_info(info));
-    }
-  }
-  else {
-    BatchHandle batch = GPU_shader_batch_create_from_infos(infos);
-    result = GPU_shader_batch_finalize(batch);
-  }
+  BatchHandle batch = GPU_shader_batch_create_from_infos(infos);
+  Vector<GPUShader *> result = GPU_shader_batch_finalize(batch);
 
   for (int i : result.index_range()) {
     const ShaderCreateInfo *info = reinterpret_cast<const ShaderCreateInfo *>(infos[i]);

@@ -122,6 +122,7 @@ set(SRC
   NOD_inverse_eval_run.hh
   NOD_math_functions.hh
   NOD_multi_function.hh
+  NOD_nested_node_id.hh
   NOD_node_declaration.hh
   NOD_node_extra_info.hh
   NOD_node_in_compute_context.hh
