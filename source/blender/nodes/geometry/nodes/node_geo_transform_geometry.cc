@@ -69,7 +69,11 @@ static bool use_translate(const math::Quaternion &rotation, const float3 scale)
 static void report_errors(GeoNodeExecParams &params,
                           const geometry::TransformGeometryErrors &errors)
 {
-  if (errors.volume_too_small) {
+  if (errors.bad_volume_transform) {
+    params.error_message_add(NodeWarningType::Warning,
+                             TIP_("Invalid transformation for volume grids"));
+  }
+  else if (errors.volume_too_small) {
     params.error_message_add(NodeWarningType::Warning,
                              TIP_("Volume scale is lower than permitted by OpenVDB"));
   }
