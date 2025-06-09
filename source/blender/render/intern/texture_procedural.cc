@@ -618,18 +618,17 @@ static int cubemap_glob(const float n[3], float x, float y, float z, float *adr1
 
 /* ------------------------------------------------------------------------- */
 
-static void do_2d_mapping(
-    const MTex *mtex, float texvec[3], const float n[3], float dxt[3], float dyt[3])
+static void do_2d_mapping(const MTex *mtex, float texvec[3], const float n[3])
 {
   Tex *tex;
-  float fx, fy, fac1, area[8];
-  int ok, proj, areaflag = 0, wrap;
+  float fx, fy, fac1;
+  int wrap;
 
   /* #MTex variables localized, only cube-map doesn't cooperate yet. */
   wrap = mtex->mapping;
   tex = mtex->tex;
 
-  if (!(dxt && dyt)) {
+  {
 
     if (wrap == MTEX_FLAT) {
       fx = (texvec[0] + 1.0f) / 2.0f;
@@ -695,186 +694,12 @@ static void do_2d_mapping(
     texvec[0] = fx;
     texvec[1] = fy;
   }
-  else {
-
-    if (wrap == MTEX_FLAT) {
-      fx = (texvec[0] + 1.0f) / 2.0f;
-      fy = (texvec[1] + 1.0f) / 2.0f;
-      dxt[0] /= 2.0f;
-      dxt[1] /= 2.0f;
-      dxt[2] /= 2.0f;
-      dyt[0] /= 2.0f;
-      dyt[1] /= 2.0f;
-      dyt[2] /= 2.0f;
-    }
-    else if (ELEM(wrap, MTEX_TUBE, MTEX_SPHERE)) {
-      /* exception: the seam behind (y<0.0) */
-      ok = 1;
-      if (texvec[1] <= 0.0f) {
-        fx = texvec[0] + dxt[0];
-        fy = texvec[0] + dyt[0];
-        if (fx >= 0.0f && fy >= 0.0f && texvec[0] >= 0.0f) {
-          /* pass */
-        }
-        else if (fx <= 0.0f && fy <= 0.0f && texvec[0] <= 0.0f) {
-          /* pass */
-        }
-        else {
-          ok = 0;
-        }
-      }
-
-      if (ok) {
-        if (wrap == MTEX_TUBE) {
-          map_to_tube(area, area + 1, texvec[0], texvec[1], texvec[2]);
-          map_to_tube(
-              area + 2, area + 3, texvec[0] + dxt[0], texvec[1] + dxt[1], texvec[2] + dxt[2]);
-          map_to_tube(
-              area + 4, area + 5, texvec[0] + dyt[0], texvec[1] + dyt[1], texvec[2] + dyt[2]);
-        }
-        else {
-          map_to_sphere(area, area + 1, texvec[0], texvec[1], texvec[2]);
-          map_to_sphere(
-              area + 2, area + 3, texvec[0] + dxt[0], texvec[1] + dxt[1], texvec[2] + dxt[2]);
-          map_to_sphere(
-              area + 4, area + 5, texvec[0] + dyt[0], texvec[1] + dyt[1], texvec[2] + dyt[2]);
-        }
-        areaflag = 1;
-      }
-      else {
-        if (wrap == MTEX_TUBE) {
-          map_to_tube(&fx, &fy, texvec[0], texvec[1], texvec[2]);
-        }
-        else {
-          map_to_sphere(&fx, &fy, texvec[0], texvec[1], texvec[2]);
-        }
-        dxt[0] /= 2.0f;
-        dxt[1] /= 2.0f;
-        dyt[0] /= 2.0f;
-        dyt[1] /= 2.0f;
-      }
-    }
-    else {
-
-      proj = cubemap_glob(n, texvec[0], texvec[1], texvec[2], &fx, &fy);
-
-      if (proj == 1) {
-        std::swap(dxt[1], dxt[2]);
-        std::swap(dyt[1], dyt[2]);
-      }
-      else if (proj == 2) {
-        float f1 = dxt[0], f2 = dyt[0];
-        dxt[0] = dxt[1];
-        dyt[0] = dyt[1];
-        dxt[1] = dxt[2];
-        dyt[1] = dyt[2];
-        dxt[2] = f1;
-        dyt[2] = f2;
-      }
-
-      dxt[0] *= 0.5f;
-      dxt[1] *= 0.5f;
-      dxt[2] *= 0.5f;
-
-      dyt[0] *= 0.5f;
-      dyt[1] *= 0.5f;
-      dyt[2] *= 0.5f;
-    }
-
-    /* If area, then recalculate `dxt[]` and `dyt[]` */
-    if (areaflag) {
-      fx = area[0];
-      fy = area[1];
-      dxt[0] = area[2] - fx;
-      dxt[1] = area[3] - fy;
-      dyt[0] = area[4] - fx;
-      dyt[1] = area[5] - fy;
-    }
-
-    /* repeat */
-    if (tex->extend == TEX_REPEAT) {
-      float max = 1.0f;
-      if (tex->xrepeat > 1) {
-        float origf = fx *= tex->xrepeat;
-
-        /* TXF: omit mirror here, see comments in do_material_tex() after do_2d_mapping() call */
-        if (tex->texfilter == TXF_BOX) {
-          if (fx > 1.0f) {
-            fx -= int(fx);
-          }
-          else if (fx < 0.0f) {
-            fx += 1 - int(fx);
-          }
-
-          if (tex->flag & TEX_REPEAT_XMIR) {
-            int orig = int(floor(origf));
-            if (orig & 1) {
-              fx = 1.0f - fx;
-            }
-          }
-        }
-
-        max = tex->xrepeat;
-
-        dxt[0] *= tex->xrepeat;
-        dyt[0] *= tex->xrepeat;
-      }
-      if (tex->yrepeat > 1) {
-        float origf = fy *= tex->yrepeat;
-
-        /* TXF: omit mirror here, see comments in do_material_tex() after do_2d_mapping() call */
-        if (tex->texfilter == TXF_BOX) {
-          if (fy > 1.0f) {
-            fy -= int(fy);
-          }
-          else if (fy < 0.0f) {
-            fy += 1 - int(fy);
-          }
-
-          if (tex->flag & TEX_REPEAT_YMIR) {
-            int orig = int(floor(origf));
-            if (orig & 1) {
-              fy = 1.0f - fy;
-            }
-          }
-        }
-
-        max = std::max<float>(max, tex->yrepeat);
-
-        dxt[1] *= tex->yrepeat;
-        dyt[1] *= tex->yrepeat;
-      }
-      if (max != 1.0f) {
-        dxt[2] *= max;
-        dyt[2] *= max;
-      }
-    }
-    /* crop */
-    if (tex->cropxmin != 0.0f || tex->cropxmax != 1.0f) {
-      fac1 = tex->cropxmax - tex->cropxmin;
-      fx = tex->cropxmin + fx * fac1;
-      dxt[0] *= fac1;
-      dyt[0] *= fac1;
-    }
-    if (tex->cropymin != 0.0f || tex->cropymax != 1.0f) {
-      fac1 = tex->cropymax - tex->cropymin;
-      fy = tex->cropymin + fy * fac1;
-      dxt[1] *= fac1;
-      dyt[1] *= fac1;
-    }
-
-    texvec[0] = fx;
-    texvec[1] = fy;
-  }
 }
 
 /* ************************************** */
 
 static int multitex(Tex *tex,
                     const float texvec[3],
-                    float dxt[3],
-                    float dyt[3],
-                    int osatex,
                     TexResult *texres,
                     const short thread,
                     const short which_output,
@@ -890,18 +715,8 @@ static int multitex(Tex *tex,
 
   if (use_nodes && tex->use_nodes && tex->nodetree) {
     const float cfra = 1.0f; /* This was only set for Blender Internal render before. */
-    retval = ntreeTexExecTree(tex->nodetree,
-                              texres,
-                              texvec,
-                              dxt,
-                              dyt,
-                              osatex,
-                              thread,
-                              tex,
-                              which_output,
-                              cfra,
-                              texnode_preview,
-                              nullptr);
+    retval = ntreeTexExecTree(
+        tex->nodetree, texres, texvec, thread, tex, which_output, cfra, texnode_preview, nullptr);
   }
   else {
     switch (tex->type) {
@@ -930,13 +745,7 @@ static int multitex(Tex *tex,
         retval = texnoise(tex, texres, thread);
         break;
       case TEX_IMAGE:
-        if (osatex) {
-          retval = imagewraposa(
-              tex, tex->ima, nullptr, texvec, dxt, dyt, texres, pool, skip_load_image);
-        }
-        else {
-          retval = imagewrap(tex, tex->ima, texvec, texres, pool, skip_load_image);
-        }
+        retval = imagewrap(tex, tex->ima, texvec, texres, pool, skip_load_image);
         if (tex->ima) {
           BKE_image_tag_time(tex->ima);
         }
@@ -996,9 +805,6 @@ static int multitex(Tex *tex,
 
 static int multitex_nodes_intern(Tex *tex,
                                  const float texvec[3],
-                                 float dxt[3],
-                                 float dyt[3],
-                                 int osatex,
                                  TexResult *texres,
                                  const short thread,
                                  short which_output,
@@ -1025,12 +831,9 @@ static int multitex_nodes_intern(Tex *tex,
       float texvec_l[3];
       copy_v3_v3(texvec_l, texvec);
       /* we have mtex, use it for 2d mapping images only */
-      do_2d_mapping(mtex, texvec_l, nullptr, dxt, dyt);
+      do_2d_mapping(mtex, texvec_l, nullptr);
       retval = multitex(tex,
                         texvec_l,
-                        dxt,
-                        dyt,
-                        osatex,
                         texres,
                         thread,
                         which_output,
@@ -1056,7 +859,7 @@ static int multitex_nodes_intern(Tex *tex,
     else {
       /* we don't have mtex, do default flat 2d projection */
       MTex localmtex;
-      float texvec_l[3], dxt_l[3], dyt_l[3];
+      float texvec_l[3];
 
       localmtex.mapping = MTEX_FLAT;
       localmtex.tex = tex;
@@ -1064,21 +867,10 @@ static int multitex_nodes_intern(Tex *tex,
       localmtex.texco = TEXCO_ORCO;
 
       copy_v3_v3(texvec_l, texvec);
-      if (dxt && dyt) {
-        copy_v3_v3(dxt_l, dxt);
-        copy_v3_v3(dyt_l, dyt);
-      }
-      else {
-        zero_v3(dxt_l);
-        zero_v3(dyt_l);
-      }
 
-      do_2d_mapping(&localmtex, texvec_l, nullptr, dxt_l, dyt_l);
+      do_2d_mapping(&localmtex, texvec_l, nullptr);
       retval = multitex(tex,
                         texvec_l,
-                        dxt_l,
-                        dyt_l,
-                        osatex,
                         texres,
                         thread,
                         which_output,
@@ -1107,9 +899,6 @@ static int multitex_nodes_intern(Tex *tex,
 
   return multitex(tex,
                   texvec,
-                  dxt,
-                  dyt,
-                  osatex,
                   texres,
                   thread,
                   which_output,
@@ -1121,36 +910,18 @@ static int multitex_nodes_intern(Tex *tex,
 
 int multitex_nodes(Tex *tex,
                    const float texvec[3],
-                   float dxt[3],
-                   float dyt[3],
-                   int osatex,
                    TexResult *texres,
                    const short thread,
                    short which_output,
                    const MTex *mtex,
                    ImagePool *pool)
 {
-  return multitex_nodes_intern(tex,
-                               texvec,
-                               dxt,
-                               dyt,
-                               osatex,
-                               texres,
-                               thread,
-                               which_output,
-                               mtex,
-                               pool,
-                               true,
-                               false,
-                               false,
-                               true);
+  return multitex_nodes_intern(
+      tex, texvec, texres, thread, which_output, mtex, pool, true, false, false, true);
 }
 
 int multitex_ext(Tex *tex,
                  const float texvec[3],
-                 float dxt[3],
-                 float dyt[3],
-                 int osatex,
                  TexResult *texres,
                  const short thread,
                  ImagePool *pool,
@@ -1159,9 +930,6 @@ int multitex_ext(Tex *tex,
 {
   return multitex_nodes_intern(tex,
                                texvec,
-                               dxt,
-                               dyt,
-                               osatex,
                                texres,
                                thread,
                                0,
@@ -1180,20 +948,8 @@ int multitex_ext_safe(Tex *tex,
                       bool scene_color_manage,
                       const bool skip_load_image)
 {
-  return multitex_nodes_intern(tex,
-                               texvec,
-                               nullptr,
-                               nullptr,
-                               0,
-                               texres,
-                               0,
-                               0,
-                               nullptr,
-                               pool,
-                               scene_color_manage,
-                               skip_load_image,
-                               false,
-                               false);
+  return multitex_nodes_intern(
+      tex, texvec, texres, 0, 0, nullptr, pool, scene_color_manage, skip_load_image, false, false);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -1293,7 +1049,7 @@ bool RE_texture_evaluate(const MTex *mtex,
 {
   Tex *tex;
   TexResult texr;
-  float dxt[3], dyt[3], texvec[3];
+  float texvec[3];
   int rgb;
 
   tex = mtex->tex;
@@ -1325,14 +1081,11 @@ bool RE_texture_evaluate(const MTex *mtex,
 
   /* texture */
   if (tex->type == TEX_IMAGE) {
-    do_2d_mapping(mtex, texvec, nullptr, dxt, dyt);
+    do_2d_mapping(mtex, texvec, nullptr);
   }
 
   rgb = multitex(tex,
                  texvec,
-                 dxt,
-                 dyt,
-                 0,
                  &texr,
                  thread,
                  mtex->which_output,

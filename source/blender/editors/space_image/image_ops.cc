@@ -2860,10 +2860,6 @@ static wmOperatorStatus image_flip_exec(bContext *C, wmOperator *op)
   ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
   BKE_image_mark_dirty(ima, ibuf);
 
-  if (ibuf->mipmap[0]) {
-    ibuf->userflags |= IB_MIPMAP_INVALID;
-  }
-
   ED_image_undo_push_end();
 
   BKE_image_partial_update_mark_full_update(ima);
@@ -2933,10 +2929,6 @@ static wmOperatorStatus image_rotate_orthogonal_exec(bContext *C, wmOperator *op
 
   ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
   BKE_image_mark_dirty(ima, ibuf);
-
-  if (ibuf->mipmap[0]) {
-    ibuf->userflags |= IB_MIPMAP_INVALID;
-  }
 
   ED_image_undo_push_end();
 
@@ -3200,10 +3192,6 @@ static wmOperatorStatus image_invert_exec(bContext *C, wmOperator *op)
 
   ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
   BKE_image_mark_dirty(ima, ibuf);
-
-  if (ibuf->mipmap[0]) {
-    ibuf->userflags |= IB_MIPMAP_INVALID;
-  }
 
   ED_image_undo_push_end();
 

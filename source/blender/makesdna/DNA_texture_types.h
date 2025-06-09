@@ -168,9 +168,6 @@ typedef struct Tex {
   short type, stype;
 
   float cropxmin, cropymin, cropxmax, cropymax;
-  int texfilter;
-  /** Anisotropic filter maximum value, EWA -> max eccentricity, feline -> max probes. */
-  int afmax;
   short xrepeat, yrepeat;
   short extend;
 
@@ -319,21 +316,10 @@ enum {
 enum {
   TEX_INTERPOL = 1 << 0,
   TEX_USEALPHA = 1 << 1,
-  TEX_MIPMAP = 1 << 2,
   TEX_IMAROT = 1 << 4,
   TEX_CALCALPHA = 1 << 5,
   TEX_NORMALMAP = 1 << 11,
-  TEX_GAUSS_MIP = 1 << 12,
-  TEX_FILTER_MIN = 1 << 13,
   TEX_DERIVATIVEMAP = 1 << 14,
-};
-
-/** #Tex::texfilter type. */
-enum {
-  TXF_BOX = 0, /* Blender's old texture filtering method. */
-  TXF_EWA = 1,
-  TXF_FELINE = 2,
-  TXF_AREA = 3,
 };
 
 /** #Tex::flag bit-mask. */

@@ -349,9 +349,6 @@ static void ptile_restore_runtime_map(PaintTileMap *paint_tile_map)
     if (ibuf->float_buffer.data) {
       ibuf->userflags |= IB_RECT_INVALID; /* force recreate of char rect */
     }
-    if (ibuf->mipmap[0]) {
-      ibuf->userflags |= IB_MIPMAP_INVALID; /* Force MIP-MAP recreation. */
-    }
     ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
 
     BKE_image_release_ibuf(image, ibuf, nullptr);
@@ -632,9 +629,6 @@ static void uhandle_restore_list(ListBase *undo_handles, bool use_init)
 
       if (ibuf->float_buffer.data) {
         ibuf->userflags |= IB_RECT_INVALID; /* Force recreate of char `rect` */
-      }
-      if (ibuf->mipmap[0]) {
-        ibuf->userflags |= IB_MIPMAP_INVALID; /* Force MIP-MAP recreation. */
       }
       ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
 

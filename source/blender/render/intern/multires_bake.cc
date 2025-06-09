@@ -1601,11 +1601,6 @@ static void finish_images(MultiresBakeRender *bkr, MultiresBakeResult *result)
         ibuf->userflags |= IB_RECT_INVALID;
       }
 
-      if (ibuf->mipmap[0]) {
-        ibuf->userflags |= IB_MIPMAP_INVALID;
-        IMB_free_mipmaps(ibuf);
-      }
-
       if (ibuf->userdata) {
         if (userdata->displacement_buffer) {
           MEM_freeN(userdata->displacement_buffer);

@@ -408,20 +408,6 @@ class TEXTURE_PT_image_settings(TextureTypePanel, Panel):
         layout.template_image(tex, "image", tex.image_user)
 
 
-def texture_filter_common(tex, layout):
-    layout.prop(tex, "filter_type", text="Filter Type")
-
-    if tex.use_mipmap and tex.filter_type in {'AREA', 'EWA', 'FELINE'}:
-        col = layout.column()
-        if tex.filter_type == 'FELINE':
-            col.prop(tex, "filter_lightprobes", text="Light Probes")
-        else:
-            col.prop(tex, "filter_eccentricity", text="Eccentricity")
-
-    layout.prop(tex, "filter_size", text="Size")
-    layout.prop(tex, "use_filter_size_min", text="Minimum Size")
-
-
 class TEXTURE_PT_image_sampling(TextureTypePanel, Panel):
     bl_label = "Sampling"
     bl_options = {'DEFAULT_CLOSED'}
@@ -442,18 +428,7 @@ class TEXTURE_PT_image_sampling(TextureTypePanel, Panel):
 
         col = flow.column()
         col.prop(tex, "use_interpolation")
-
-        col.separator()
-
-        col = flow.column()
-        col.prop(tex, "use_mipmap")
-        sub = col.column()
-        sub.active = tex.use_mipmap
-        sub.prop(tex, "use_mipmap_gauss", text="Gaussian Filter")
-
-        col.separator()
-
-        texture_filter_common(tex, flow)
+        col.prop(tex, "filter_size", text="Size")
 
 
 class TEXTURE_PT_image_alpha(TextureTypePanel, Panel):
