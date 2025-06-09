@@ -50,9 +50,6 @@ void curves_convert_storage_to_customdata(CurvesGeometry &curves);
 /** See #mesh_convert_customdata_to_storage. */
 void curves_convert_customdata_to_storage(CurvesGeometry &curves);
 
-/** See #mesh_convert_storage_to_customdata. */
-void pointcloud_convert_storage_to_customdata(PointCloud &pointcloud);
-
 /** See #mesh_convert_customdata_to_storage. */
 void pointcloud_convert_customdata_to_storage(PointCloud &pointcloud);
 

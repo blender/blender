@@ -115,9 +115,8 @@ static std::array<DomainInfo, ATTR_DOMAIN_NUM> get_domains(const AttributeOwner 
 
   switch (owner.type()) {
     case AttributeOwnerType::PointCloud: {
-      PointCloud *pointcloud = owner.get_pointcloud();
-      info[int(AttrDomain::Point)].customdata = &pointcloud->pdata;
-      info[int(AttrDomain::Point)].length = pointcloud->totpoint;
+      /* This should be implemented with #AttributeStorage instead. */
+      BLI_assert_unreachable();
       break;
     }
     case AttributeOwnerType::Mesh: {
@@ -279,6 +278,17 @@ bool BKE_attribute_rename(AttributeOwner &owner,
     return false;
   }
 
+  if (owner.type() == AttributeOwnerType::PointCloud) {
+    PointCloud &pointcloud = *owner.get_pointcloud();
+    bke::AttributeStorage &attributes = pointcloud.attribute_storage.wrap();
+    if (!attributes.lookup(old_name)) {
+      BKE_report(reports, RPT_ERROR, "Attribute is not part of this geometry");
+      return false;
+    }
+    attributes.rename(old_name, new_name);
+    return true;
+  }
+
   /* NOTE: Checking if the new name matches the old name only makes sense when the name
    * is clamped to it's maximum length, otherwise assigning an over-long name multiple times
    * will add `.001` suffix unnecessarily. */
@@ -382,6 +392,9 @@ static bool attribute_name_exists(const AttributeOwner &owner, const StringRef n
 
 std::string BKE_attribute_calc_unique_name(const AttributeOwner &owner, const StringRef name)
 {
+  if (owner.type() == AttributeOwnerType::PointCloud) {
+    return owner.get_pointcloud()->attribute_storage.wrap().unique_name_calc(name);
+  }
   return BLI_uniquename_cb(
       [&](const StringRef new_name) { return attribute_name_exists(owner, new_name); },
       '.',
@@ -533,9 +546,8 @@ bool BKE_attribute_remove(AttributeOwner &owner, const StringRef name, ReportLis
     return false;
   }
 
-  const std::array<DomainInfo, ATTR_DOMAIN_NUM> info = get_domains(owner);
-
   if (owner.type() == AttributeOwnerType::Mesh) {
+    const std::array<DomainInfo, ATTR_DOMAIN_NUM> info = get_domains(owner);
     Mesh *mesh = owner.get_mesh();
     if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
       for (const int domain : IndexRange(ATTR_DOMAIN_NUM)) {
@@ -801,10 +813,21 @@ bool BKE_attribute_required(const AttributeOwner &owner, const StringRef name)
 
 std::optional<blender::StringRefNull> BKE_attributes_active_name_get(AttributeOwner &owner)
 {
+  using namespace blender;
+  using namespace blender::bke;
   int active_index = *BKE_attributes_active_index_p(owner);
   if (active_index == -1) {
     return std::nullopt;
   }
+  if (owner.type() == AttributeOwnerType::PointCloud) {
+    PointCloud &pointcloud = *owner.get_pointcloud();
+    bke::AttributeStorage &storage = pointcloud.attribute_storage.wrap();
+    if (active_index >= storage.count()) {
+      return std::nullopt;
+    }
+    return storage.at_index(active_index).name();
+  }
+
   if (active_index > BKE_attributes_length(owner, ATTR_DOMAIN_MASK_ALL, CD_MASK_PROP_ALL)) {
     active_index = 0;
   }
@@ -837,6 +860,14 @@ std::optional<blender::StringRefNull> BKE_attributes_active_name_get(AttributeOw
 
 void BKE_attributes_active_set(AttributeOwner &owner, const StringRef name)
 {
+  using namespace blender;
+  if (owner.type() == AttributeOwnerType::PointCloud) {
+    PointCloud &pointcloud = *owner.get_pointcloud();
+    bke::AttributeStorage &attributes = pointcloud.attribute_storage.wrap();
+    *BKE_attributes_active_index_p(owner) = attributes.index_of(name);
+    return;
+  }
+
   const CustomDataLayer *layer = BKE_attribute_search(
       owner, name, CD_MASK_PROP_ALL, ATTR_DOMAIN_MASK_ALL);
   BLI_assert(layer != nullptr);

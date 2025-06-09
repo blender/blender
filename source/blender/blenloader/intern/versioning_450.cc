@@ -16,6 +16,7 @@
 #include "DNA_light_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_object_force_types.h"
+#include "DNA_pointcloud_types.h"
 #include "DNA_sequence_types.h"
 
 #include "BLI_listbase.h"

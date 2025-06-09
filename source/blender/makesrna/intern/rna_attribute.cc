@@ -73,6 +73,20 @@ const EnumPropertyItem rna_enum_attribute_type_with_auto_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
+static const EnumPropertyItem rna_enum_attr_storage_type[] = {
+    {int(blender::bke::AttrStorageType::Array),
+     "ARRAY",
+     0,
+     "Array",
+     "Store a value for every element"},
+    {int(blender::bke::AttrStorageType::Single),
+     "SINGLE",
+     0,
+     "Single",
+     "Store a single value for the entire domain"},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
 const EnumPropertyItem rna_enum_attribute_domain_items[] = {
     /* Not implement yet */
     // {ATTR_DOMAIN_GEOMETRY, "GEOMETRY", 0, "Geometry", "Attribute on (whole) geometry"},
@@ -171,10 +185,16 @@ const EnumPropertyItem rna_enum_attribute_curves_domain_items[] = {
 #  include "DNA_grease_pencil_types.h"
 #  include "DNA_mesh_types.h"
 #  include "DNA_meshdata_types.h"
+#  include "DNA_pointcloud_types.h"
 
+#  include "BLI_math_color.h"
 #  include "BLI_string.h"
 
+#  include "BKE_attribute_legacy_convert.hh"
 #  include "BKE_customdata.hh"
+#  include "BKE_report.hh"
+
+#  include "RNA_prototypes.hh"
 
 #  include "DEG_depsgraph.hh"
 
@@ -189,10 +209,10 @@ using blender::StringRef;
 static AttributeOwner owner_from_attribute_pointer_rna(PointerRNA *ptr)
 {
   ID *owner_id = ptr->owner_id;
-  const CustomDataLayer *layer = static_cast<const CustomDataLayer *>(ptr->data);
   /* TODO: Because we don't know the path to the `ptr`, we need to look though all possible
    * candidates and search for the `layer` currently. This should be just a simple lookup. */
   if (GS(owner_id->name) == ID_GP) {
+    const CustomDataLayer *layer = static_cast<const CustomDataLayer *>(ptr->data);
     GreasePencil *grease_pencil = reinterpret_cast<GreasePencil *>(owner_id);
     /* First check the layer attributes. */
     CustomData *layers_data = &grease_pencil->layers_data;
@@ -235,6 +255,13 @@ static AttributeOwner owner_from_pointer_rna(PointerRNA *ptr)
 
 static std::optional<std::string> rna_Attribute_path(const PointerRNA *ptr)
 {
+  using namespace blender;
+  if (GS(ptr->owner_id->name) == ID_PT) {
+    bke::Attribute *attr = ptr->data_as<bke::Attribute>();
+    const std::string escaped_name = BLI_str_escape(attr->name().c_str());
+    return fmt::format("attributes[\"{}\"]", escaped_name);
+  }
+
   const CustomDataLayer *layer = static_cast<const CustomDataLayer *>(ptr->data);
   char layer_name_esc[sizeof(layer->name) * 2];
   BLI_str_escape(layer_name_esc, layer->name, sizeof(layer_name_esc));
@@ -277,21 +304,71 @@ static StructRNA *srna_by_custom_data_layer_type(const eCustomDataType type)
 
 static StructRNA *rna_Attribute_refine(PointerRNA *ptr)
 {
+  using namespace blender;
+  if (GS(ptr->owner_id->name) == ID_PT) {
+    bke::Attribute *attr = ptr->data_as<bke::Attribute>();
+    const eCustomDataType data_type = *bke::attr_type_to_custom_data_type(attr->data_type());
+    return srna_by_custom_data_layer_type(data_type);
+  }
+
   CustomDataLayer *layer = static_cast<CustomDataLayer *>(ptr->data);
   return srna_by_custom_data_layer_type(eCustomDataType(layer->type));
 }
 
+static void rna_Attribute_name_get(PointerRNA *ptr, char *value)
+{
+  using namespace blender;
+  AttributeOwner owner = owner_from_attribute_pointer_rna(ptr);
+  if (owner.type() == AttributeOwnerType::PointCloud) {
+    const bke::Attribute *attr = ptr->data_as<bke::Attribute>();
+    attr->name().copy_unsafe(value);
+    return;
+  }
+
+  strcpy(value, ptr->data_as<CustomDataLayer>()->name);
+}
+
+static int rna_Attribute_name_length(PointerRNA *ptr)
+{
+  using namespace blender;
+  AttributeOwner owner = owner_from_attribute_pointer_rna(ptr);
+  if (owner.type() == AttributeOwnerType::PointCloud) {
+    const bke::Attribute *attr = ptr->data_as<bke::Attribute>();
+    return attr->name().size();
+  }
+
+  const CustomDataLayer *layer = ptr->data_as<CustomDataLayer>();
+  return strlen(layer->name);
+}
+
 static void rna_Attribute_name_set(PointerRNA *ptr, const char *value)
 {
-  const CustomDataLayer *layer = (const CustomDataLayer *)ptr->data;
+  using namespace blender;
   AttributeOwner owner = owner_from_attribute_pointer_rna(ptr);
+  if (owner.type() == AttributeOwnerType::PointCloud) {
+    const bke::Attribute *attr = ptr->data_as<bke::Attribute>();
+    BKE_attribute_rename(owner, attr->name(), value, nullptr);
+    return;
+  }
+
+  const CustomDataLayer *layer = (const CustomDataLayer *)ptr->data;
   BKE_attribute_rename(owner, layer->name, value, nullptr);
 }
 
 static int rna_Attribute_name_editable(const PointerRNA *ptr, const char **r_info)
 {
-  CustomDataLayer *layer = static_cast<CustomDataLayer *>(ptr->data);
+  using namespace blender;
   AttributeOwner owner = owner_from_attribute_pointer_rna(const_cast<PointerRNA *>(ptr));
+  if (owner.type() == AttributeOwnerType::PointCloud) {
+    bke::Attribute *attr = ptr->data_as<bke::Attribute>();
+    if (BKE_attribute_required(owner, attr->name())) {
+      *r_info = N_("Cannot modify name of required geometry attribute");
+      return false;
+    }
+    return true;
+  }
+
+  CustomDataLayer *layer = static_cast<CustomDataLayer *>(ptr->data);
   if (BKE_attribute_required(owner, layer->name)) {
     *r_info = N_("Cannot modify name of required geometry attribute");
     return false;
@@ -302,8 +379,25 @@ static int rna_Attribute_name_editable(const PointerRNA *ptr, const char **r_inf
 
 static int rna_Attribute_type_get(PointerRNA *ptr)
 {
+  using namespace blender;
+  if (GS(ptr->owner_id->name) == ID_PT) {
+    const bke::Attribute *attr = static_cast<const bke::Attribute *>(ptr->data);
+    return *bke::attr_type_to_custom_data_type(attr->data_type());
+  }
+
   CustomDataLayer *layer = static_cast<CustomDataLayer *>(ptr->data);
   return layer->type;
+}
+
+static int rna_Attribute_storage_type_get(PointerRNA *ptr)
+{
+  using namespace blender;
+  if (GS(ptr->owner_id->name) == ID_PT) {
+    const bke::Attribute *attr = static_cast<const bke::Attribute *>(ptr->data);
+    return int(attr->storage_type());
+  }
+
+  return int(bke::AttrStorageType::Array);
 }
 
 const EnumPropertyItem *rna_enum_attribute_domain_itemf(const AttributeOwner &owner,
@@ -368,26 +462,67 @@ static const EnumPropertyItem *rna_Attribute_domain_itemf(bContext * /*C*/,
 
 static int rna_Attribute_domain_get(PointerRNA *ptr)
 {
+  using namespace blender;
   AttributeOwner owner = owner_from_attribute_pointer_rna(ptr);
+  if (owner.type() == AttributeOwnerType::PointCloud) {
+    const bke::Attribute *attr = static_cast<const bke::Attribute *>(ptr->data);
+    return int(attr->domain());
+  }
+
   return int(BKE_attribute_domain(owner, static_cast<const CustomDataLayer *>(ptr->data)));
 }
 
 static bool rna_Attribute_is_internal_get(PointerRNA *ptr)
 {
+  using namespace blender;
+  if (GS(ptr->owner_id->name) == ID_PT) {
+    const bke::Attribute *attr = static_cast<const bke::Attribute *>(ptr->data);
+    return !bke::allow_procedural_attribute_access(attr->name());
+  }
+
   const CustomDataLayer *layer = (const CustomDataLayer *)ptr->data;
   return !blender::bke::allow_procedural_attribute_access(layer->name);
 }
 
 static bool rna_Attribute_is_required_get(PointerRNA *ptr)
 {
-  const CustomDataLayer *layer = (const CustomDataLayer *)ptr->data;
+  using namespace blender;
   AttributeOwner owner = owner_from_attribute_pointer_rna(ptr);
+  if (owner.type() == AttributeOwnerType::PointCloud) {
+    const bke::Attribute *attr = static_cast<const bke::Attribute *>(ptr->data);
+    return BKE_attribute_required(owner, attr->name());
+  }
+
+  const CustomDataLayer *layer = (const CustomDataLayer *)ptr->data;
   return BKE_attribute_required(owner, layer->name);
 }
 
 static void rna_Attribute_data_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
+  using namespace blender;
   AttributeOwner owner = owner_from_attribute_pointer_rna(ptr);
+  if (owner.type() == AttributeOwnerType::PointCloud) {
+    PointCloud &pointcloud = *owner.get_pointcloud();
+    bke::MutableAttributeAccessor accessor = pointcloud.attributes_for_write();
+
+    bke::Attribute *attr = ptr->data_as<bke::Attribute>();
+    const int domain_size = accessor.domain_size(attr->domain());
+    const CPPType &type = bke::attribute_type_to_cpp_type(attr->data_type());
+    switch (attr->storage_type()) {
+      case bke::AttrStorageType::Array: {
+        const auto &data = std::get<bke::Attribute::ArrayData>(attr->data_for_write());
+        rna_iterator_array_begin(iter, ptr, data.data, type.size, domain_size, false, nullptr);
+        break;
+      }
+      case bke::AttrStorageType::Single: {
+        /* TODO: Access to single values is unimplemented for now. */
+        iter->valid = false;
+        break;
+      }
+    }
+    return;
+  }
+
   CustomDataLayer *layer = (CustomDataLayer *)ptr->data;
   if (!(CD_TYPE_AS_MASK(layer->type) & CD_MASK_PROP_ALL)) {
     iter->valid = false;
@@ -402,7 +537,13 @@ static void rna_Attribute_data_begin(CollectionPropertyIterator *iter, PointerRN
 
 static int rna_Attribute_data_length(PointerRNA *ptr)
 {
+  using namespace blender;
   AttributeOwner owner = owner_from_attribute_pointer_rna(ptr);
+  if (owner.type() == AttributeOwnerType::PointCloud) {
+    const PointCloud &pointcloud = *owner.get_pointcloud();
+    return pointcloud.totpoint;
+  }
+
   CustomDataLayer *layer = (CustomDataLayer *)ptr->data;
   return BKE_attribute_data_length(owner, layer);
 }
@@ -495,7 +636,31 @@ static void rna_StringAttributeValue_s_set(PointerRNA *ptr, const char *value)
 static PointerRNA rna_AttributeGroupID_new(
     ID *id, ReportList *reports, const char *name, const int type, const int domain)
 {
+  using namespace blender;
   AttributeOwner owner = AttributeOwner::from_id(id);
+  if (owner.type() == AttributeOwnerType::PointCloud) {
+    PointCloud &pointcloud = *owner.get_pointcloud();
+    bke::MutableAttributeAccessor accessor = pointcloud.attributes_for_write();
+    if (!accessor.domain_supported(AttrDomain(domain))) {
+      BKE_report(reports, RPT_ERROR, "Attribute domain not supported by this geometry type");
+      return PointerRNA_NULL;
+    }
+    const int domain_size = accessor.domain_size(AttrDomain(domain));
+
+    bke::AttributeStorage &attributes = pointcloud.attribute_storage.wrap();
+    const CPPType &cpp_type = *bke::custom_data_type_to_cpp_type(eCustomDataType(type));
+    bke::Attribute &attr = attributes.add(
+        attributes.unique_name_calc(name),
+        AttrDomain(domain),
+        *bke::custom_data_type_to_attr_type(eCustomDataType(type)),
+        bke::Attribute::ArrayData::ForDefaultValue(cpp_type, domain_size));
+
+    DEG_id_tag_update(id, ID_RECALC_GEOMETRY);
+    WM_main_add_notifier(NC_GEOM | ND_DATA, id);
+
+    return RNA_pointer_create_discrete(id, &RNA_Attribute, &attr);
+  }
+
   CustomDataLayer *layer = BKE_attribute_new(
       owner, name, eCustomDataType(type), AttrDomain(domain), reports);
 
@@ -522,7 +687,26 @@ static PointerRNA rna_AttributeGroupID_new(
 
 static void rna_AttributeGroupID_remove(ID *id, ReportList *reports, PointerRNA *attribute_ptr)
 {
+  using namespace blender;
   AttributeOwner owner = AttributeOwner::from_id(id);
+  if (owner.type() == AttributeOwnerType::PointCloud) {
+    const bke::Attribute *attr = static_cast<const bke::Attribute *>(attribute_ptr->data);
+    if (BKE_attribute_required(owner, attr->name())) {
+      BKE_report(reports, RPT_ERROR, "Attribute is required and can't be removed");
+      return;
+    }
+
+    PointCloud &pointcloud = *owner.get_pointcloud();
+    bke::MutableAttributeAccessor accessor = pointcloud.attributes_for_write();
+    accessor.remove(attr->name());
+    attribute_ptr->invalidate();
+
+    DEG_id_tag_update(id, ID_RECALC_GEOMETRY);
+    WM_main_add_notifier(NC_GEOM | ND_DATA, id);
+
+    return;
+  }
+
   const CustomDataLayer *layer = (const CustomDataLayer *)attribute_ptr->data;
   BKE_attribute_remove(owner, layer->name, reports);
   attribute_ptr->invalidate();
@@ -552,6 +736,19 @@ static bool rna_Attributes_noncolor_layer_skip(CollectionPropertyIterator *iter,
   return !(CD_TYPE_AS_MASK(layer->type) & CD_MASK_COLOR_ALL) || (layer->flag & CD_FLAG_TEMPORARY);
 }
 
+static bool rna_AttributeStorage_noncolor_skip(CollectionPropertyIterator * /*iter*/, void *data)
+{
+  using namespace blender;
+  bke::Attribute *attr = static_cast<bke::Attribute *>(data);
+  if (!(ATTR_DOMAIN_AS_MASK(attr->domain()) & ATTR_DOMAIN_MASK_COLOR)) {
+    return true;
+  }
+  if (!(CD_TYPE_AS_MASK(attr->data_type()) & CD_MASK_COLOR_ALL)) {
+    return true;
+  }
+  return false;
+}
+
 /* Attributes are spread over multiple domains in separate CustomData, we use repeated
  * array iterators to loop over all. */
 static void rna_AttributeGroup_next_domain(AttributeOwner &owner,
@@ -576,24 +773,47 @@ static void rna_AttributeGroup_next_domain(AttributeOwner &owner,
 
 void rna_AttributeGroup_iterator_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
+  using namespace blender;
   memset(&iter->internal.array, 0, sizeof(iter->internal.array));
   AttributeOwner owner = owner_from_pointer_rna(ptr);
+  if (owner.type() == AttributeOwnerType::PointCloud) {
+    PointCloud &pointcloud = *owner.get_pointcloud();
+    bke::AttributeStorage &storage = pointcloud.attribute_storage.wrap();
+    Vector<bke::Attribute *> attributes;
+    storage.foreach([&](bke::Attribute &attr) { attributes.append(&attr); });
+    VectorData data = attributes.release();
+    rna_iterator_array_begin(
+        iter, ptr, data.data, sizeof(bke::Attribute *), data.size, true, nullptr);
+    return;
+  }
+
   rna_AttributeGroup_next_domain(owner, iter, ptr, rna_Attributes_layer_skip);
 }
 
 void rna_AttributeGroup_iterator_next(CollectionPropertyIterator *iter)
 {
   rna_iterator_array_next(iter);
+  AttributeOwner owner = owner_from_pointer_rna(&iter->parent);
+  if (owner.type() == AttributeOwnerType::PointCloud) {
+    return;
+  }
 
   if (!iter->valid) {
-    AttributeOwner owner = owner_from_pointer_rna(&iter->parent);
     rna_AttributeGroup_next_domain(owner, iter, &iter->parent, rna_Attributes_layer_skip);
   }
 }
 
 PointerRNA rna_AttributeGroup_iterator_get(CollectionPropertyIterator *iter)
 {
-  /* Refine to the proper type. */
+  using namespace blender;
+  AttributeOwner owner = owner_from_pointer_rna(&iter->parent);
+  if (owner.type() == AttributeOwnerType::PointCloud) {
+    bke::Attribute *attr = *static_cast<bke::Attribute **>(rna_iterator_array_get(iter));
+    const eCustomDataType data_type = *bke::attr_type_to_custom_data_type(attr->data_type());
+    StructRNA *type = srna_by_custom_data_layer_type(data_type);
+    return RNA_pointer_create_with_parent(iter->parent, type, attr);
+  }
+
   CustomDataLayer *layer = static_cast<CustomDataLayer *>(rna_iterator_array_get(iter));
   StructRNA *type = srna_by_custom_data_layer_type(eCustomDataType(layer->type));
   if (type == nullptr) {
@@ -630,21 +850,78 @@ PointerRNA rna_AttributeGroup_color_iterator_get(CollectionPropertyIterator *ite
   return RNA_pointer_create_with_parent(iter->parent, type, layer);
 }
 
+void rna_AttributeStorage_color_iterator_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+{
+  using namespace blender;
+  memset(&iter->internal.array, 0, sizeof(iter->internal.array));
+  AttributeOwner owner = owner_from_pointer_rna(ptr);
+  if (owner.type() == AttributeOwnerType::PointCloud) {
+    PointCloud &pointcloud = *owner.get_pointcloud();
+    bke::AttributeStorage &storage = pointcloud.attribute_storage.wrap();
+    Vector<bke::Attribute *> attributes;
+    storage.foreach([&](bke::Attribute &attr) { attributes.append(&attr); });
+    VectorData data = attributes.release();
+    rna_iterator_array_begin(iter,
+                             ptr,
+                             data.data,
+                             sizeof(bke::Attribute *),
+                             data.size,
+                             true,
+                             rna_AttributeStorage_noncolor_skip);
+  }
+}
+
 int rna_AttributeGroup_color_length(PointerRNA *ptr)
 {
+  using namespace blender;
+  if (GS(ptr->owner_id->name) == ID_PT) {
+    PointCloud &pointcloud = *reinterpret_cast<PointCloud *>(ptr->owner_id);
+    bke::AttributeStorage &storage = pointcloud.attribute_storage.wrap();
+    int count = 0;
+    storage.foreach([&](bke::Attribute &attr) {
+      if (!(ATTR_DOMAIN_AS_MASK(attr.domain()) & ATTR_DOMAIN_MASK_COLOR)) {
+        return;
+      }
+      if (!(CD_TYPE_AS_MASK(attr.data_type()) & CD_MASK_COLOR_ALL)) {
+        return;
+      }
+      count++;
+    });
+    return count;
+  }
   AttributeOwner owner = owner_from_pointer_rna(ptr);
   return BKE_attributes_length(owner, ATTR_DOMAIN_MASK_COLOR, CD_MASK_COLOR_ALL);
 }
 
 int rna_AttributeGroup_length(PointerRNA *ptr)
 {
+  using namespace blender;
   AttributeOwner owner = owner_from_pointer_rna(ptr);
+  if (owner.type() == AttributeOwnerType::PointCloud) {
+    PointCloud &pointcloud = *owner.get_pointcloud();
+    bke::AttributeStorage &storage = pointcloud.attribute_storage.wrap();
+    int count = 0;
+    storage.foreach([&](bke::Attribute & /*attr*/) { count++; });
+    return count;
+  }
   return BKE_attributes_length(owner, ATTR_DOMAIN_MASK_ALL, CD_MASK_PROP_ALL);
 }
 
 bool rna_AttributeGroup_lookup_string(PointerRNA *ptr, const char *key, PointerRNA *r_ptr)
 {
+  using namespace blender;
   AttributeOwner owner = owner_from_pointer_rna(ptr);
+  if (owner.type() == AttributeOwnerType::PointCloud) {
+    PointCloud &pointcloud = *owner.get_pointcloud();
+    bke::AttributeStorage &storage = pointcloud.attribute_storage.wrap();
+    bke::Attribute *attr = storage.lookup(key);
+    if (!attr) {
+      *r_ptr = PointerRNA_NULL;
+      return false;
+    }
+    rna_pointer_create_with_ancestors(*ptr, &RNA_Attribute, attr, *r_ptr);
+    return true;
+  }
 
   if (CustomDataLayer *layer = BKE_attribute_search_for_write(
           owner, key, CD_MASK_PROP_ALL, ATTR_DOMAIN_MASK_ALL))
@@ -665,11 +942,19 @@ static int rna_AttributeGroupID_active_index_get(PointerRNA *ptr)
 
 static PointerRNA rna_AttributeGroupID_active_get(PointerRNA *ptr)
 {
+  using namespace blender;
   AttributeOwner owner = AttributeOwner::from_id(ptr->owner_id);
   const std::optional<blender::StringRef> name = BKE_attributes_active_name_get(owner);
   if (!name) {
     return PointerRNA_NULL;
   }
+  if (owner.type() == AttributeOwnerType::PointCloud) {
+    PointCloud &pointcloud = *owner.get_pointcloud();
+    bke::AttributeStorage &storage = pointcloud.attribute_storage.wrap();
+    bke::Attribute *attr = storage.lookup(*name);
+    return RNA_pointer_create_with_parent(*ptr, &RNA_Attribute, attr);
+  }
+
   CustomDataLayer *layer = BKE_attribute_search_for_write(
       owner, *name, CD_MASK_PROP_ALL, ATTR_DOMAIN_MASK_ALL);
   return RNA_pointer_create_with_parent(*ptr, &RNA_Attribute, layer);
@@ -679,7 +964,14 @@ static void rna_AttributeGroupID_active_set(PointerRNA *ptr,
                                             PointerRNA attribute_ptr,
                                             ReportList * /*reports*/)
 {
+  using namespace blender;
   AttributeOwner owner = AttributeOwner::from_id(ptr->owner_id);
+  if (owner.type() == AttributeOwnerType::PointCloud) {
+    bke::Attribute *attr = attribute_ptr.data_as<bke::Attribute>();
+    BKE_attributes_active_set(owner, attr->name());
+    return;
+  }
+
   CustomDataLayer *layer = static_cast<CustomDataLayer *>(attribute_ptr.data);
   if (layer) {
     BKE_attributes_active_set(owner, layer->name);
@@ -698,9 +990,8 @@ static void rna_AttributeGroupID_active_index_set(PointerRNA *ptr, int value)
 static void rna_AttributeGroupID_active_index_range(
     PointerRNA *ptr, int *min, int *max, int *softmin, int *softmax)
 {
-  AttributeOwner owner = AttributeOwner::from_id(ptr->owner_id);
   *min = -1;
-  *max = BKE_attributes_length(owner, ATTR_DOMAIN_MASK_ALL, CD_MASK_PROP_ALL);
+  *max = rna_AttributeGroup_length(ptr);
 
   *softmin = *min;
   *softmax = *max;
@@ -726,7 +1017,14 @@ static void rna_AttributeGroup_update_active_color(Main * /*bmain*/,
 
 static int rna_AttributeGroupID_domain_size(ID *id, const int domain)
 {
+  using namespace blender;
   AttributeOwner owner = AttributeOwner::from_id(id);
+  if (owner.type() == AttributeOwnerType::PointCloud) {
+    PointCloud &pointcloud = *owner.get_pointcloud();
+    bke::AttributeAccessor attributes = pointcloud.attributes();
+    return attributes.domain_size(bke::AttrDomain(domain));
+  }
+
   return BKE_attribute_domain_size(owner, domain);
 }
 
@@ -1475,22 +1773,27 @@ static void rna_def_attribute(BlenderRNA *brna)
   StructRNA *srna;
 
   srna = RNA_def_struct(brna, "Attribute", nullptr);
-  RNA_def_struct_sdna(srna, "CustomDataLayer");
   RNA_def_struct_ui_text(srna, "Attribute", "Geometry attribute");
   RNA_def_struct_path_func(srna, "rna_Attribute_path");
   RNA_def_struct_refine_func(srna, "rna_Attribute_refine");
 
   prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
-  RNA_def_property_string_funcs(prop, nullptr, nullptr, "rna_Attribute_name_set");
+  RNA_def_property_string_funcs(
+      prop, "rna_Attribute_name_get", "rna_Attribute_name_length", "rna_Attribute_name_set");
   RNA_def_property_editable_func(prop, "rna_Attribute_name_editable");
   RNA_def_property_ui_text(prop, "Name", "Name of the Attribute");
   RNA_def_struct_name_property(srna, prop);
 
   prop = RNA_def_property(srna, "data_type", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, nullptr, "type");
   RNA_def_property_enum_items(prop, rna_enum_attribute_type_items);
   RNA_def_property_enum_funcs(prop, "rna_Attribute_type_get", nullptr, nullptr);
   RNA_def_property_ui_text(prop, "Data Type", "Type of data stored in attribute");
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+  prop = RNA_def_property(srna, "storage_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, rna_enum_attr_storage_type);
+  RNA_def_property_enum_funcs(prop, "rna_Attribute_storage_type_get", nullptr, nullptr);
+  RNA_def_property_ui_text(prop, "Storage Type", "Method used to store the data");
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
   prop = RNA_def_property(srna, "domain", PROP_ENUM, PROP_NONE);
