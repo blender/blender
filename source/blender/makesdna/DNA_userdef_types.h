@@ -487,12 +487,16 @@ typedef struct UserDef {
   int gpu_preferred_index;
   uint32_t gpu_preferred_vendor_id;
   uint32_t gpu_preferred_device_id;
-  char _pad16[4];
+
+  /** Max number of parallel shader compilation workers. */
+  short gpu_shader_workers;
+  /** eUserpref_ShaderCompileMethod (OpenGL only). */
+  short shader_compilation_method;
+
+  char _pad16[2];
+
   /** #eGPUBackendType */
   short gpu_backend;
-
-  /** Max number of parallel shader compilation subprocesses. */
-  short max_shader_compilation_subprocesses;
 
   /** Number of samples for FPS display calculations. */
   short playback_fps_samples;
@@ -1124,6 +1128,11 @@ typedef enum eUserpref_SeqEditorFlags {
   USER_SEQ_ED_SIMPLE_TWEAKING = (1 << 0),
   USER_SEQ_ED_CONNECT_STRIPS_BY_DEFAULT = (1 << 1),
 } eUserpref_SeqEditorFlags;
+
+typedef enum eUserpref_ShaderCompileMethod {
+  USER_SHADER_COMPILE_THREAD = 0,
+  USER_SHADER_COMPILE_SUBPROCESS = 1,
+} eUserpref_ShaderCompileMethod;
 
 /* Locale Ids. Auto will try to get local from OS. Our default is English though. */
 /** #UserDef.language */
