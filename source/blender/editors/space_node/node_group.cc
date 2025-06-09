@@ -1396,7 +1396,7 @@ static bNode *node_group_make_from_node_declaration(bContext &C,
 
   /* Position node exactly where the old node was. */
   gnode->parent = src_node.parent;
-  gnode->width = src_node.width;
+  gnode->width = std::max<float>(src_node.width, GROUP_NODE_MIN_WIDTH);
   copy_v2_v2(gnode->location, src_node.location);
 
   BKE_main_ensure_invariants(bmain);
