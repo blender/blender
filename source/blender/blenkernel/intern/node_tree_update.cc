@@ -1524,6 +1524,7 @@ class NodeTreeMainUpdater {
       const uint64_t socket_ptr = uintptr_t(&socket);
       return noise::hash(socket_ptr, socket_ptr >> 32);
     };
+    const bNodeTreeZones *zones = tree.zones();
 
     while (!sockets_to_check.is_empty()) {
       const bNodeSocket &socket = *sockets_to_check.peek();
@@ -1540,6 +1541,7 @@ class NodeTreeMainUpdater {
         /* For input sockets, first compute the hashes of all linked sockets. */
         bool all_origins_computed = true;
         bool get_value_from_origin = false;
+        Vector<const bNodeSocket *, 16> origin_sockets;
         for (const bNodeLink *link : socket.directly_linked_links()) {
           if (link->is_muted()) {
             continue;
@@ -1547,11 +1549,22 @@ class NodeTreeMainUpdater {
           if (!link->is_available()) {
             continue;
           }
-          const bNodeSocket &origin_socket = *link->fromsock;
+          origin_sockets.append(link->fromsock);
+        }
+        if (zones) {
+          if (const bNodeTreeZone *zone = zones->get_zone_by_socket(socket)) {
+            if (zone->output_node_id == node.identifier) {
+              if (const bNode *input_node = zone->input_node()) {
+                origin_sockets.extend(input_node->input_sockets());
+              }
+            }
+          }
+        }
+        for (const bNodeSocket *origin_socket : origin_sockets) {
           const std::optional<uint32_t> origin_hash =
-              hash_by_socket_id[origin_socket.index_in_tree()];
+              hash_by_socket_id[origin_socket->index_in_tree()];
           if (origin_hash.has_value()) {
-            if (get_value_from_origin || socket.type != origin_socket.type) {
+            if (get_value_from_origin || socket.type != origin_socket->type) {
               socket_hash = noise::hash(socket_hash, *origin_hash);
             }
             else {
@@ -1561,7 +1574,7 @@ class NodeTreeMainUpdater {
             get_value_from_origin = true;
           }
           else {
-            sockets_to_check.push(&origin_socket);
+            sockets_to_check.push(origin_socket);
             all_origins_computed = false;
           }
         }
