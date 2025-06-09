@@ -555,6 +555,8 @@ struct EnumPropertyRNA {
   PropEnumGetFuncEx get_ex;
   PropEnumSetFuncEx set_ex;
 
+  PropEnumGetFuncEx get_default;
+
   const EnumPropertyItem *item;
   int totitem;
 
