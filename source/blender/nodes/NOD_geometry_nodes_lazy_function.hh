@@ -27,6 +27,7 @@
 
 #include "NOD_geometry_nodes_log.hh"
 #include "NOD_multi_function.hh"
+#include "NOD_nested_node_id.hh"
 
 #include "BLI_compute_context.hh"
 #include "BLI_math_quaternion_types.hh"
@@ -460,13 +461,6 @@ void construct_socket_default_value(const bke::bNodeSocketType &stype, void *r_v
 std::string make_anonymous_attribute_socket_inspection_string(const bNodeSocket &socket);
 std::string make_anonymous_attribute_socket_inspection_string(StringRef node_name,
                                                               StringRef socket_name);
-
-struct FoundNestedNodeID {
-  int id;
-  bool is_in_simulation = false;
-  bool is_in_loop = false;
-  bool is_in_closure = false;
-};
 
 std::optional<FoundNestedNodeID> find_nested_node_id(const GeoNodesUserData &user_data,
                                                      const int node_id);
