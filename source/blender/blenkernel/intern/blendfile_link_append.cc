@@ -1228,6 +1228,15 @@ static void blendfile_append_define_actions(BlendfileLinkAppendContext &lapp_con
           id->name);
       item.action = LINK_APPEND_ACT_COPY_LOCAL;
     }
+    else if (ID_IS_LINKED(id) && ID_IS_OVERRIDE_LIBRARY(id)) {
+      /* While in theory liboverrides can be directly made local, this causes complex potential
+       * problems, e.g. because hierarchy roots can become temporarily invalid when the root is
+       * made local, etc.
+       *
+       * So for now, simpler to always duplicate linked liboverrides. */
+      CLOG_INFO(&LOG, 3, "Appended ID '%s' is a liboverride, duplicating it.", id->name);
+      item.action = LINK_APPEND_ACT_COPY_LOCAL;
+    }
     else {
       /* That last action, making linked data directly local, can still be changed to
        * #LINK_APPEND_ACT_COPY_LOCAL in the last checks below. This can happen in rare cases with

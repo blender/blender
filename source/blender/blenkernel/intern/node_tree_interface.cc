@@ -882,6 +882,12 @@ int bNodeTreeInterfacePanel::find_valid_insert_position_for_item(
       const auto &sb = reinterpret_cast<const bNodeTreeInterfaceSocket &>(b);
       const bool is_output_a = sa.flag & NODE_INTERFACE_SOCKET_OUTPUT;
       const bool is_output_b = sb.flag & NODE_INTERFACE_SOCKET_OUTPUT;
+      if ((sa.flag & NODE_INTERFACE_SOCKET_PANEL_TOGGLE) ||
+          (sb.flag & NODE_INTERFACE_SOCKET_PANEL_TOGGLE))
+      {
+        /* Panel toggle inputs are allowed to be above outputs. */
+        return false;
+      }
       if (is_output_a && !is_output_b) {
         return true;
       }
