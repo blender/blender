@@ -328,10 +328,6 @@ blender::gpu::Batch *DRW_particles_batch_cache_get_edit_tip_points(Object *objec
                                                                    ParticleSystem *psys,
                                                                    PTCacheEdit *edit);
 
-/* Particle data are stored in world space. If an object is instanced, the associated particle
- * systems need to be offset appropriately. */
-float4x4 DRW_particles_dupli_matrix_get(const ObjectRef &ob_ref);
-
 /** \} */
 
 }  // namespace blender::draw

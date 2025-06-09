@@ -75,8 +75,7 @@ inline void ObjectInfos::sync(const blender::draw::ObjectRef ref, bool is_active
   object_attrs_offset = 0;
   light_and_shadow_set_membership = 0;
 
-  LightLinking *light_linking = (ref.dupli_parent) != nullptr ? ref.dupli_parent->light_linking :
-                                                                ref.object->light_linking;
+  LightLinking *light_linking = ref.light_linking();
   if (light_linking) {
     light_and_shadow_set_membership |= light_linking->runtime.receiver_light_set;
     light_and_shadow_set_membership |= light_linking->runtime.blocker_shadow_set << 8;
@@ -109,15 +108,7 @@ inline void ObjectInfos::sync(const blender::draw::ObjectRef ref, bool is_active
     shadow_terminator_normal_offset = 0.0f;
   }
 
-  if (ref.dupli_object == nullptr) {
-    /* TODO(fclem): this is rather costly to do at draw time. Maybe we can
-     * put it in ob->runtime and make depsgraph ensure it is up to date. */
-    random = BLI_hash_int_2d(BLI_hash_string(ref.object->id.name + 2), 0) *
-             (1.0f / (float)0xFFFFFFFF);
-  }
-  else {
-    random = ref.dupli_object->random_id * (1.0f / (float)0xFFFFFFFF);
-  }
+  random = ref.random();
 
   if (ref.object->data == nullptr) {
     orco_add = float3(0.0f);
