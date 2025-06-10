@@ -1301,7 +1301,7 @@ namespace blender {
 
 namespace dna::detail {
 template<typename Dst, typename Src, typename SrcRuntime>
-constexpr void id_cast_assert(SrcRuntime *src)
+constexpr void id_cast_assert([[maybe_unused]] SrcRuntime *src)
 {
   static_assert(blender::dna::is_ID_v<Src>);
   static_assert(blender::dna::is_ID_v<Dst>);
