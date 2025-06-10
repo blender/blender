@@ -49,7 +49,7 @@ static void template_keymap_item_properties(uiLayout *layout, const char *title,
     }
 
     uiLayout *box = &flow->box();
-    uiLayoutSetActive(box, is_set);
+    box->active_set(is_set);
     uiLayout *row = &box->row(false);
 
     /* property value */

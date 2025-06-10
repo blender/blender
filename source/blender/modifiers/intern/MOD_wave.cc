@@ -310,7 +310,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   row = &layout->row(true, IFACE_("Along Normals"));
   row->prop(ptr, "use_normal", UI_ITEM_NONE, "", ICON_NONE);
   sub = &row->row(true);
-  uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_normal"));
+  sub->active_set(RNA_boolean_get(ptr, "use_normal"));
   sub->prop(ptr, "use_normal_x", UI_ITEM_R_TOGGLE, "X", ICON_NONE);
   sub->prop(ptr, "use_normal_y", UI_ITEM_R_TOGGLE, "Y", ICON_NONE);
   sub->prop(ptr, "use_normal_z", UI_ITEM_R_TOGGLE, "Z", ICON_NONE);

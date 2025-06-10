@@ -951,7 +951,7 @@ void uiTemplateImage(uiLayout *layout,
           sub->prop(&imaptr, "alpha_mode", UI_ITEM_NONE, IFACE_("Alpha"), ICON_NONE);
 
           bool is_data = IMB_colormanagement_space_name_is_data(ima->colorspace_settings.name);
-          uiLayoutSetActive(sub, !is_data);
+          sub->active_set(!is_data);
         }
 
         if (ima && iuser) {

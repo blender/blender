@@ -426,7 +426,7 @@ static void panel_draw(const bContext *C, Panel *panel)
   layout->prop(ptr, "color_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   uiLayout *row = &layout->row(true);
-  uiLayoutSetActive(row, !use_weight_as_factor);
+  row->active_set(!use_weight_as_factor);
   row->prop(ptr, "factor", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   row->prop(ptr, "use_weight_as_factor", UI_ITEM_NONE, "", ICON_MOD_VERTEX_WEIGHT);
 

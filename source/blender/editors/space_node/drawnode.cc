@@ -341,7 +341,7 @@ static void node_buts_image_user(uiLayout *layout,
       split->prop(imaptr, "alpha_mode", DEFAULT_FLAGS, "", ICON_NONE);
 
       bool is_data = IMB_colormanagement_space_name_is_data(image->colorspace_settings.name);
-      uiLayoutSetActive(split, !is_data);
+      split->active_set(!is_data);
     }
 
     /* Avoid losing changes image is painted. */
@@ -736,7 +736,7 @@ static void node_texture_buts_proc(uiLayout *layout, bContext * /*C*/, PointerRN
       row->prop(
           &tex_ptr, "noise_basis_2", DEFAULT_FLAGS | UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
       row = &col->row(false);
-      uiLayoutSetActive(row, !ELEM(tex->stype, TEX_BAND, TEX_RING));
+      row->active_set(!ELEM(tex->stype, TEX_BAND, TEX_RING));
       row->prop(&tex_ptr, "noise_type", DEFAULT_FLAGS | UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
       break;
 
@@ -1170,7 +1170,7 @@ static void std_node_socket_draw(
   }
 
   if (sock->is_inactive()) {
-    uiLayoutSetActive(layout, false);
+    layout->active_set(false);
   }
 
   /* XXX not nice, eventually give this node its own socket type ... */
@@ -1476,7 +1476,7 @@ static void std_node_socket_interface_draw(ID *id,
 
   {
     uiLayout *sub = &col->column(false);
-    uiLayoutSetActive(sub, interface_socket->default_input == NODE_DEFAULT_INPUT_VALUE);
+    sub->active_set(interface_socket->default_input == NODE_DEFAULT_INPUT_VALUE);
     sub->prop(&ptr, "hide_value", DEFAULT_FLAGS, std::nullopt, ICON_NONE);
   }
 
@@ -1485,7 +1485,7 @@ static void std_node_socket_interface_draw(ID *id,
       col->prop(&ptr, "layer_selection_field", DEFAULT_FLAGS, std::nullopt, ICON_NONE);
     }
     uiLayout *sub = &col->column(false);
-    uiLayoutSetActive(sub, !is_layer_selection_field(*interface_socket));
+    sub->active_set(!is_layer_selection_field(*interface_socket));
     sub->prop(&ptr, "hide_in_modifier", DEFAULT_FLAGS, std::nullopt, ICON_NONE);
     if (nodes::socket_type_supports_fields(type) || nodes::socket_type_supports_grids(type)) {
       sub->prop(&ptr, "structure_type", DEFAULT_FLAGS, std::nullopt, ICON_NONE);

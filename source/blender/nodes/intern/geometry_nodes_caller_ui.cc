@@ -487,7 +487,7 @@ static void draw_property_for_socket(DrawGroupInputsContext &ctx,
 
   uiLayout *row = &layout->row(true);
   uiLayoutSetPropDecorate(row, true);
-  uiLayoutSetActive(row, ctx.input_is_active(socket));
+  row->active_set(ctx.input_is_active(socket));
 
   const std::string rna_path = fmt::format("[\"{}\"]", BLI_str_escape(identifier.c_str()));
 
@@ -674,7 +674,7 @@ static void draw_interface_panel_content(DrawGroupInputsContext &ctx,
           panel_layout.header->label(IFACE_(sub_interface_panel.name), ICON_NONE);
         }
         if (!interface_panel_affects_output(ctx, sub_interface_panel)) {
-          uiLayoutSetActive(panel_layout.header, false);
+          panel_layout.header->active_set(false);
         }
         uiLayoutSetTooltipFunc(
             panel_layout.header,
@@ -866,7 +866,7 @@ static void draw_named_attributes_panel(uiLayout *layout, NodesModifierData &nmd
 
     uiLayout *row = &split->row(false);
     uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_RIGHT);
-    uiLayoutSetActive(row, false);
+    row->active_set(false);
     row->label(ss.str(), ICON_NONE);
 
     row = &split->row(false);

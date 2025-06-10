@@ -103,19 +103,19 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   col = &layout->column(false, CTX_IFACE_(BLT_I18NCONTEXT_ID_MESH, "Rim"));
   col->prop(ptr, "use_rim", UI_ITEM_NONE, CTX_IFACE_(BLT_I18NCONTEXT_ID_MESH, "Fill"), ICON_NONE);
   sub = &col->column(false);
-  uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_rim"));
+  sub->active_set(RNA_boolean_get(ptr, "use_rim"));
   sub->prop(ptr, "use_rim_only", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   layout->separator();
 
   modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", std::nullopt);
   row = &layout->row(false);
-  uiLayoutSetActive(row, has_vertex_group);
+  row->active_set(has_vertex_group);
   row->prop(ptr, "thickness_vertex_group", UI_ITEM_NONE, IFACE_("Factor"), ICON_NONE);
 
   if (solidify_mode == MOD_SOLIDIFY_MODE_NONMANIFOLD) {
     row = &layout->row(false);
-    uiLayoutSetActive(row, has_vertex_group);
+    row->active_set(has_vertex_group);
     row->prop(ptr, "use_flat_faces", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
@@ -153,7 +153,7 @@ static void materials_panel_draw(const bContext * /*C*/, Panel *panel)
 
   layout->prop(ptr, "material_offset", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   col = &layout->column(true);
-  uiLayoutSetActive(col, RNA_boolean_get(ptr, "use_rim"));
+  col->active_set(RNA_boolean_get(ptr, "use_rim"));
   col->prop(ptr,
             "material_offset_rim",
             UI_ITEM_NONE,
@@ -199,7 +199,7 @@ static void clamp_panel_draw(const bContext * /*C*/, Panel *panel)
   col = &layout->column(false);
   col->prop(ptr, "thickness_clamp", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   row = &col->row(false);
-  uiLayoutSetActive(row, RNA_float_get(ptr, "thickness_clamp") > 0.0f);
+  row->active_set(RNA_float_get(ptr, "thickness_clamp") > 0.0f);
   row->prop(ptr, "use_thickness_angle_clamp", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 

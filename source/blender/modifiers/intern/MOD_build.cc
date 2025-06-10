@@ -280,7 +280,7 @@ static void random_panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiLayoutSetActive(layout, RNA_boolean_get(ptr, "use_random_order"));
+  layout->active_set(RNA_boolean_get(ptr, "use_random_order"));
   layout->prop(ptr, "seed", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 

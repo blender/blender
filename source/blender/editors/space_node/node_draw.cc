@@ -438,7 +438,7 @@ static bool node_update_basis_buttons(const bContext &C,
                                      UI_style_get_dpi());
 
   if (node.is_muted()) {
-    uiLayoutSetActive(layout, false);
+    layout->active_set(false);
   }
 
   uiLayoutSetContextPointer(layout, "node", &nodeptr);
@@ -521,7 +521,7 @@ static bool node_update_basis_socket(const bContext &C,
                                      UI_style_get_dpi());
 
   if (node.is_muted()) {
-    uiLayoutSetActive(layout, false);
+    layout->active_set(false);
   }
 
   uiLayout *row = &layout->row(true);
@@ -1154,7 +1154,7 @@ static void node_update_basis_from_declaration(
                                                0,
                                                UI_style_get_dpi());
             if (node.is_muted()) {
-              uiLayoutSetActive(layout, false);
+              layout->active_set(false);
             }
             PointerRNA node_ptr = RNA_pointer_create_discrete(&ntree.id, &RNA_Node, &node);
             uiLayoutSetContextPointer(layout, "node", &node_ptr);

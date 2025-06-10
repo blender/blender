@@ -132,7 +132,7 @@ void draw_layer_filter_settings(const bContext * /*C*/, uiLayout *layout, Pointe
   sub = &row->row(true);
   sub->prop(ptr, "use_layer_pass_filter", UI_ITEM_NONE, "", ICON_NONE);
   subsub = &sub->row(true);
-  uiLayoutSetActive(subsub, use_layer_pass);
+  subsub->active_set(use_layer_pass);
   subsub->prop(ptr, "layer_pass_filter", UI_ITEM_NONE, "", ICON_NONE);
   subsub->prop(ptr, "invert_layer_pass_filter", UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);
 }
@@ -159,7 +159,7 @@ void draw_material_filter_settings(const bContext * /*C*/, uiLayout *layout, Poi
   sub = &row->row(true);
   sub->prop(ptr, "use_material_pass_filter", UI_ITEM_NONE, "", ICON_NONE);
   subsub = &sub->row(true);
-  uiLayoutSetActive(subsub, use_material_pass);
+  subsub->active_set(use_material_pass);
   subsub->prop(ptr, "material_pass_filter", UI_ITEM_NONE, "", ICON_NONE);
   subsub->prop(ptr, "invert_material_pass_filter", UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);
 }
@@ -177,7 +177,7 @@ void draw_vertex_group_settings(const bContext * /*C*/, uiLayout *layout, Pointe
   uiLayoutSetPropDecorate(row, false);
   uiItemPointerR(row, ptr, "vertex_group_name", &ob_ptr, "vertex_groups", std::nullopt, ICON_NONE);
   sub = &row->row(true);
-  uiLayoutSetActive(sub, has_vertex_group);
+  sub->active_set(has_vertex_group);
   uiLayoutSetPropDecorate(sub, false);
   sub->prop(ptr, "invert_vertex_group", UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);
 }

@@ -526,7 +526,7 @@ static void waves_panel_draw(const bContext * /*C*/, Panel *panel)
   col = &layout->column(false);
   col->prop(ptr, "wave_alignment", UI_ITEM_R_SLIDER, IFACE_("Alignment"), ICON_NONE);
   sub = &col->column(false);
-  uiLayoutSetActive(sub, RNA_float_get(ptr, "wave_alignment") > 0.0f);
+  sub->active_set(RNA_float_get(ptr, "wave_alignment") > 0.0f);
   sub->prop(ptr, "wave_direction", UI_ITEM_NONE, IFACE_("Direction"), ICON_NONE);
   sub->prop(ptr, "damping", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
@@ -552,7 +552,7 @@ static void foam_panel_draw(const bContext * /*C*/, Panel *panel)
   uiLayoutSetPropSep(layout, true);
 
   col = &layout->column(false);
-  uiLayoutSetActive(col, use_foam);
+  col->active_set(use_foam);
   col->prop(ptr, "foam_layer_name", UI_ITEM_NONE, IFACE_("Data Layer"), ICON_NONE);
   col->prop(ptr, "foam_coverage", UI_ITEM_NONE, IFACE_("Coverage"), ICON_NONE);
 }
@@ -567,7 +567,7 @@ static void spray_panel_draw_header(const bContext * /*C*/, Panel *panel)
   bool use_foam = RNA_boolean_get(ptr, "use_foam");
 
   row = &layout->row(false);
-  uiLayoutSetActive(row, use_foam);
+  row->active_set(use_foam);
   row->prop(
       ptr, "use_spray", UI_ITEM_NONE, CTX_IFACE_(BLT_I18NCONTEXT_ID_MESH, "Spray"), ICON_NONE);
 }
@@ -585,7 +585,7 @@ static void spray_panel_draw(const bContext * /*C*/, Panel *panel)
   uiLayoutSetPropSep(layout, true);
 
   col = &layout->column(false);
-  uiLayoutSetActive(col, use_foam && use_spray);
+  col->active_set(use_foam && use_spray);
   col->prop(ptr, "spray_layer_name", UI_ITEM_NONE, IFACE_("Data Layer"), ICON_NONE);
   col->prop(ptr, "invert_spray", UI_ITEM_NONE, IFACE_("Invert"), ICON_NONE);
 }
@@ -643,7 +643,7 @@ static void bake_panel_draw(const bContext * /*C*/, Panel *panel)
   col->prop(ptr, "frame_end", UI_ITEM_NONE, IFACE_("End"), ICON_NONE);
 
   col = &layout->column(false);
-  uiLayoutSetActive(col, use_foam);
+  col->active_set(use_foam);
   col->prop(ptr, "bake_foam_fade", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 #endif /* WITH_OCEANSIM */

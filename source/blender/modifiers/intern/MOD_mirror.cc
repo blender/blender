@@ -159,7 +159,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   prop = RNA_struct_find_property(ptr, "use_bisect_flip_axis");
   row = &col->row(true, IFACE_("Flip"));
-  uiLayoutSetActive(row, has_bisect);
+  row->active_set(has_bisect);
   row->prop(ptr, prop, 0, 0, toggles_flag, IFACE_("X"), ICON_NONE);
   row->prop(ptr, prop, 1, 0, toggles_flag, IFACE_("Y"), ICON_NONE);
   row->prop(ptr, prop, 2, 0, toggles_flag, IFACE_("Z"), ICON_NONE);
@@ -174,11 +174,11 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   row = &col->row(true, IFACE_("Merge"));
   row->prop(ptr, "use_mirror_merge", UI_ITEM_NONE, "", ICON_NONE);
   sub = &row->row(true);
-  uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_mirror_merge"));
+  sub->active_set(RNA_boolean_get(ptr, "use_mirror_merge"));
   sub->prop(ptr, "merge_threshold", UI_ITEM_NONE, "", ICON_NONE);
 
   sub = &col->row(true);
-  uiLayoutSetActive(sub, has_bisect);
+  sub->active_set(has_bisect);
   sub->prop(ptr, "bisect_threshold", UI_ITEM_NONE, IFACE_("Bisect Distance"), ICON_NONE);
 
   modifier_error_message_draw(layout, ptr);
@@ -199,7 +199,7 @@ static void data_panel_draw(const bContext * /*C*/, Panel *panel)
   sub = &row->row(true);
   sub->prop(ptr, "use_mirror_u", UI_ITEM_NONE, "", ICON_NONE);
   sub = &sub->row(true);
-  uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_mirror_u"));
+  sub->active_set(RNA_boolean_get(ptr, "use_mirror_u"));
   sub->prop(ptr, "mirror_offset_u", UI_ITEM_R_SLIDER, "", ICON_NONE);
   uiItemDecoratorR(row, ptr, "mirror_offset_u", 0);
 
@@ -208,7 +208,7 @@ static void data_panel_draw(const bContext * /*C*/, Panel *panel)
   sub = &row->row(true);
   sub->prop(ptr, "use_mirror_v", UI_ITEM_NONE, "", ICON_NONE);
   sub = &sub->row(true);
-  uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_mirror_v"));
+  sub->active_set(RNA_boolean_get(ptr, "use_mirror_v"));
   sub->prop(ptr, "mirror_offset_v", UI_ITEM_R_SLIDER, "", ICON_NONE);
   uiItemDecoratorR(row, ptr, "mirror_offset_v", 0);
 

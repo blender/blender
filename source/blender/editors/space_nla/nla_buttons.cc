@@ -444,21 +444,20 @@ static void nla_panel_properties(const bContext *C, Panel *panel)
     layout->separator();
 
     column = &layout->column(true);
-    uiLayoutSetActive(column, RNA_boolean_get(&strip_ptr, "use_auto_blend") == false);
+    column->active_set(RNA_boolean_get(&strip_ptr, "use_auto_blend") == false);
     column->prop(&strip_ptr, "blend_in", UI_ITEM_NONE, IFACE_("Blend In"), ICON_NONE);
     column->prop(&strip_ptr, "blend_out", UI_ITEM_NONE, IFACE_("Out"), ICON_NONE);
 
     row = &column->row(true);
-    uiLayoutSetActive(row, RNA_boolean_get(&strip_ptr, "use_animated_influence") == false);
+    row->active_set(RNA_boolean_get(&strip_ptr, "use_animated_influence") == false);
     row->prop(
         &strip_ptr, "use_auto_blend", UI_ITEM_NONE, std::nullopt, ICON_NONE); /* XXX as toggle? */
 
     /* settings */
     column = &layout->column(true, IFACE_("Playback"));
     row = &column->row(true);
-    uiLayoutSetActive(row,
-                      !(RNA_boolean_get(&strip_ptr, "use_animated_influence") ||
-                        RNA_boolean_get(&strip_ptr, "use_animated_time")));
+    row->active_set(!(RNA_boolean_get(&strip_ptr, "use_animated_influence") ||
+                      RNA_boolean_get(&strip_ptr, "use_animated_time")));
     row->prop(&strip_ptr, "use_reverse", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
     column->prop(&strip_ptr, "use_animated_time_cyclic", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -521,7 +520,7 @@ static void nla_panel_actclip(const bContext *C, Panel *panel)
 
   /* action usage */
   column = &layout->column(true);
-  uiLayoutSetActive(column, RNA_boolean_get(&strip_ptr, "use_animated_time") == false);
+  column->active_set(RNA_boolean_get(&strip_ptr, "use_animated_time") == false);
   column->prop(&strip_ptr, "scale", UI_ITEM_NONE, IFACE_("Playback Scale"), ICON_NONE);
   column->prop(&strip_ptr, "repeat", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }

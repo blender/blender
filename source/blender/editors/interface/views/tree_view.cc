@@ -903,7 +903,7 @@ void TreeViewLayoutBuilder::build_row(AbstractTreeViewItem &item) const
   uiLayout *overlap = &prev_layout.overlap();
 
   if (!item.is_interactive_) {
-    uiLayoutSetActive(overlap, false);
+    overlap->active_set(false);
   }
 
   uiLayout *row = &overlap->row(false);

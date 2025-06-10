@@ -1931,7 +1931,7 @@ static void shade_auto_smooth_ui(bContext * /*C*/, wmOperator *op)
   layout->prop(op->ptr, "use_auto_smooth", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   uiLayout *col = &layout->column(false);
-  uiLayoutSetActive(col, RNA_boolean_get(op->ptr, "use_auto_smooth"));
+  col->active_set(RNA_boolean_get(op->ptr, "use_auto_smooth"));
   layout->prop(op->ptr, "angle", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 

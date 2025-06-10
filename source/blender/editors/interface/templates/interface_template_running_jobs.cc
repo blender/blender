@@ -263,7 +263,7 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
 
     /* stick progress bar and cancel button together */
     row = &layout->row(true);
-    uiLayoutSetActive(row, active);
+    row->active_set(active);
     block = uiLayoutGetBlock(row);
 
     {

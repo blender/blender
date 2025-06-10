@@ -320,12 +320,12 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   RNA_END;
 
   sub = &layout->column(true);
-  uiLayoutSetActive(sub, has_camera);
+  sub->active_set(has_camera);
   sub->prop(ptr, "aspect_x", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   sub->prop(ptr, "aspect_y", UI_ITEM_NONE, IFACE_("Y"), ICON_NONE);
 
   sub = &layout->column(true);
-  uiLayoutSetActive(sub, has_camera);
+  sub->active_set(has_camera);
   sub->prop(ptr, "scale_x", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   sub->prop(ptr, "scale_y", UI_ITEM_NONE, IFACE_("Y"), ICON_NONE);
 

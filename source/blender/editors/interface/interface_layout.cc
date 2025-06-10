@@ -5101,11 +5101,6 @@ uiLayout &uiLayout::split(float percentage, bool align)
   return *split;
 }
 
-void uiLayoutSetActive(uiLayout *layout, bool active)
-{
-  layout->active_ = active;
-}
-
 void uiLayoutSetActiveDefault(uiLayout *layout, bool active_default)
 {
   layout->active_default_ = active_default;
@@ -5174,11 +5169,6 @@ float uiLayoutGetSearchWeight(uiLayout *layout)
 Panel *uiLayoutGetRootPanel(uiLayout *layout)
 {
   return layout->root_->block->panel;
-}
-
-bool uiLayoutGetActive(uiLayout *layout)
-{
-  return layout->active_;
 }
 
 bool uiLayoutGetActiveDefault(uiLayout *layout)

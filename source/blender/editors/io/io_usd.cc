@@ -463,7 +463,7 @@ static void wm_usd_export_draw(bContext *C, wmOperator *op)
     uiLayout *props_col = &sub->column(true);
     props_col->prop(ptr, "custom_properties_namespace", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     props_col->prop(ptr, "author_blender_name", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    uiLayoutSetActive(props_col, RNA_boolean_get(op->ptr, "export_custom_properties"));
+    props_col->active_set(RNA_boolean_get(op->ptr, "export_custom_properties"));
     sub->prop(ptr, "allow_unicode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
     sub = &col->column(true, IFACE_("File References"));
@@ -495,7 +495,7 @@ static void wm_usd_export_draw(bContext *C, wmOperator *op)
     uiLayout *row = &col->row(true);
     row->prop(ptr, "convert_world_material", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     const bool export_lights = RNA_boolean_get(ptr, "export_lights");
-    uiLayoutSetActive(row, export_lights);
+    row->active_set(export_lights);
 
     col->prop(ptr, "export_cameras", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     col->prop(ptr, "export_curves", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -528,7 +528,7 @@ static void wm_usd_export_draw(bContext *C, wmOperator *op)
 
     uiLayout *row = &col->row(true);
     row->prop(ptr, "only_deform_bones", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    uiLayoutSetActive(row, RNA_boolean_get(ptr, "export_armatures"));
+    row->active_set(RNA_boolean_get(ptr, "export_armatures"));
   }
 
   {
@@ -538,7 +538,7 @@ static void wm_usd_export_draw(bContext *C, wmOperator *op)
     panel.header->label(IFACE_("Materials"), ICON_NONE);
     if (panel.body) {
       const bool export_materials = RNA_boolean_get(ptr, "export_materials");
-      uiLayoutSetActive(panel.body, export_materials);
+      panel.body->active_set(export_materials);
 
       uiLayout *col = &panel.body->column(false);
       col->prop(ptr, "generate_preview_surface", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -1120,7 +1120,7 @@ static void wm_usd_import_draw(bContext *C, wmOperator *op)
     uiLayout *row = &col->row(true);
     row->prop(ptr, "create_world_material", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     const bool import_lights = RNA_boolean_get(ptr, "import_lights");
-    uiLayoutSetActive(row, import_lights);
+    row->active_set(import_lights);
 
     col->prop(ptr, "import_materials", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     col->prop(ptr, "import_meshes", UI_ITEM_NONE, std::nullopt, ICON_NONE);

@@ -245,8 +245,7 @@ class BoneCollectionItem : public AbstractTreeViewItem {
     {
       const bool is_solo_active = armature_.flag & ARM_BCOLL_SOLO_ACTIVE;
       uiLayout *visibility_sub = &sub->row(true);
-      uiLayoutSetActive(visibility_sub,
-                        !is_solo_active && bone_collection_.is_visible_ancestors());
+      visibility_sub->active_set(!is_solo_active && bone_collection_.is_visible_ancestors());
 
       const int icon = bone_collection_.is_visible() ? ICON_HIDE_OFF : ICON_HIDE_ON;
       PointerRNA bcoll_ptr = rna_pointer();

@@ -1589,7 +1589,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   uiLayoutSetPropSep(layout, true);
 
   col = &layout->column(false);
-  uiLayoutSetActive(col, !is_bound);
+  col->active_set(!is_bound);
   col->prop(ptr, "target", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   col->prop(ptr, "falloff", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
@@ -1599,7 +1599,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   col = &layout->column(false);
   uiLayoutSetEnabled(col, !is_bound);
-  uiLayoutSetActive(col, !is_bound && RNA_string_length(ptr, "vertex_group") != 0);
+  col->active_set(!is_bound && RNA_string_length(ptr, "vertex_group") != 0);
   col->prop(ptr, "use_sparse_bind", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   layout->separator();
@@ -1609,7 +1609,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
     col->op("OBJECT_OT_surfacedeform_bind", IFACE_("Unbind"), ICON_NONE);
   }
   else {
-    uiLayoutSetActive(col, !RNA_pointer_is_null(&target_ptr));
+    col->active_set(!RNA_pointer_is_null(&target_ptr));
     col->op("OBJECT_OT_surfacedeform_bind", IFACE_("Bind"), ICON_NONE);
   }
   modifier_error_message_draw(layout, ptr);

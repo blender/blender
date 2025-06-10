@@ -219,11 +219,10 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   layout->prop(ptr, "mix_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   row = &layout->row(false);
-  uiLayoutSetActive(row,
-                    !ELEM(RNA_enum_get(ptr, "mix_mode"),
-                          CDT_MIX_NOMIX,
-                          CDT_MIX_REPLACE_ABOVE_THRESHOLD,
-                          CDT_MIX_REPLACE_BELOW_THRESHOLD));
+  row->active_set(!ELEM(RNA_enum_get(ptr, "mix_mode"),
+                        CDT_MIX_NOMIX,
+                        CDT_MIX_REPLACE_ABOVE_THRESHOLD,
+                        CDT_MIX_REPLACE_BELOW_THRESHOLD));
   row->prop(ptr, "mix_factor", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", std::nullopt);
@@ -248,7 +247,7 @@ static void vertex_panel_draw(const bContext * /*C*/, Panel *panel)
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
   bool use_vert_data = RNA_boolean_get(ptr, "use_vert_data");
-  uiLayoutSetActive(layout, use_vert_data);
+  layout->active_set(use_vert_data);
 
   layout->prop(ptr, "data_types_verts", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
@@ -263,7 +262,7 @@ static void vertex_vgroup_panel_draw(const bContext * /*C*/, Panel *panel)
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
-  uiLayoutSetActive(layout, RNA_enum_get(ptr, "data_types_verts") & DT_TYPE_MDEFORMVERT);
+  layout->active_set(RNA_enum_get(ptr, "data_types_verts") & DT_TYPE_MDEFORMVERT);
 
   uiLayoutSetPropSep(layout, true);
 
@@ -287,7 +286,7 @@ static void edge_panel_draw(const bContext * /*C*/, Panel *panel)
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
-  uiLayoutSetActive(layout, RNA_boolean_get(ptr, "use_edge_data"));
+  layout->active_set(RNA_boolean_get(ptr, "use_edge_data"));
 
   layout->prop(ptr, "data_types_edges", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
@@ -311,7 +310,7 @@ static void face_corner_panel_draw(const bContext * /*C*/, Panel *panel)
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
-  uiLayoutSetActive(layout, RNA_boolean_get(ptr, "use_loop_data"));
+  layout->active_set(RNA_boolean_get(ptr, "use_loop_data"));
 
   layout->prop(ptr, "data_types_loops", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
@@ -328,9 +327,8 @@ static void vert_vcol_panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiLayoutSetActive(layout,
-                    RNA_enum_get(ptr, "data_types_verts") &
-                        (DT_TYPE_MPROPCOL_VERT | DT_TYPE_MLOOPCOL_VERT));
+  layout->active_set(RNA_enum_get(ptr, "data_types_verts") &
+                     (DT_TYPE_MPROPCOL_VERT | DT_TYPE_MLOOPCOL_VERT));
 
   layout->prop(
       ptr, "layers_vcol_vert_select_src", UI_ITEM_NONE, IFACE_("Layer Selection"), ICON_NONE);
@@ -346,9 +344,8 @@ static void face_corner_vcol_panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiLayoutSetActive(layout,
-                    RNA_enum_get(ptr, "data_types_loops") &
-                        (DT_TYPE_MPROPCOL_LOOP | DT_TYPE_MLOOPCOL_LOOP));
+  layout->active_set(RNA_enum_get(ptr, "data_types_loops") &
+                     (DT_TYPE_MPROPCOL_LOOP | DT_TYPE_MLOOPCOL_LOOP));
 
   layout->prop(
       ptr, "layers_vcol_loop_select_src", UI_ITEM_NONE, IFACE_("Layer Selection"), ICON_NONE);
@@ -364,7 +361,7 @@ static void face_corner_uv_panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiLayoutSetActive(layout, RNA_enum_get(ptr, "data_types_loops") & DT_TYPE_UV);
+  layout->active_set(RNA_enum_get(ptr, "data_types_loops") & DT_TYPE_UV);
 
   layout->prop(ptr, "layers_uv_select_src", UI_ITEM_NONE, IFACE_("Layer Selection"), ICON_NONE);
   layout->prop(ptr, "layers_uv_select_dst", UI_ITEM_NONE, IFACE_("Layer Mapping"), ICON_NONE);
@@ -386,7 +383,7 @@ static void face_panel_draw(const bContext * /*C*/, Panel *panel)
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
-  uiLayoutSetActive(layout, RNA_boolean_get(ptr, "use_poly_data"));
+  layout->active_set(RNA_boolean_get(ptr, "use_poly_data"));
 
   layout->prop(ptr, "data_types_polys", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
@@ -407,7 +404,7 @@ static void advanced_panel_draw(const bContext * /*C*/, Panel *panel)
   row = &layout->row(true, IFACE_("Max Distance"));
   row->prop(ptr, "use_max_distance", UI_ITEM_NONE, "", ICON_NONE);
   sub = &row->row(true);
-  uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_max_distance"));
+  sub->active_set(RNA_boolean_get(ptr, "use_max_distance"));
   sub->prop(ptr, "max_distance", UI_ITEM_NONE, "", ICON_NONE);
 
   layout->prop(ptr, "ray_radius", UI_ITEM_NONE, std::nullopt, ICON_NONE);
