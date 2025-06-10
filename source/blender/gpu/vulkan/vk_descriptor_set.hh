@@ -176,7 +176,7 @@ class VKDescriptorBufferUpdator : public VKDescriptorSetUpdator {
   /* Current layout of the descriptor set being filled. */
   VKDescriptorBufferLayout layout;
   /* Descriptor buffers */
-  Vector<VKBuffer> buffers;
+  Vector<std::unique_ptr<VKBuffer>> buffers;
 
   /* Current descriptor buffer handle and offset. */
   VkDeviceAddress descriptor_buffer_device_address = 0;

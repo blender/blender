@@ -1346,7 +1346,15 @@ void WM_window_pixels_read_sample_from_frontbuffer(const wmWindowManager *wm,
     GPU_context_active_set(static_cast<GPUContext *>(win->gpuctx));
   }
 
-  GPU_frontbuffer_read_color(pos[0], pos[1], 1, 1, 3, GPU_DATA_FLOAT, r_col);
+  /* NOTE(@jbakker): Vulkan backend isn't able to read 3 channels from a 4 channel texture with
+   * data data-conversions is needed. Data conversion happens inline for all channels. This is a
+   * vulkan backend issue and should be solved. However the solution has a lot of branches that
+   * requires testing so a quick fix has been added to the place where this was used. The solution
+   * is to implement all the cases in 'VKFramebuffer::read'.
+   */
+  blender::float4 color_with_alpha;
+  GPU_frontbuffer_read_color(pos[0], pos[1], 1, 1, 4, GPU_DATA_FLOAT, color_with_alpha);
+  copy_v3_v3(r_col, color_with_alpha.xyz());
 
   if (setup_context) {
     if (wm->windrawable) {
