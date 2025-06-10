@@ -12,6 +12,8 @@
 
 namespace blender::asset_system {
 
+class AssetLibraryService;
+
 /**
  * All catalogs that are owned by a single asset library, and managed by a single instance of
  * #AssetCatalogService. The undo system for asset catalog edits contains historical copies of this
@@ -35,6 +37,7 @@ class AssetCatalogCollection {
   bool has_unsaved_changes_ = false;
 
   friend AssetCatalogService;
+  friend AssetLibraryService;
 
  public:
   AssetCatalogCollection() = default;

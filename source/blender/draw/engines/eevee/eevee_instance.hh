@@ -338,23 +338,7 @@ class Instance : public DrawEngine {
 
   int get_recalc_flags(const ObjectRef &ob_ref)
   {
-    auto get_flags = [&](const ObjectRuntimeHandle &runtime) {
-      int flags = 0;
-      SET_FLAG_FROM_TEST(
-          flags, runtime.last_update_transform > depsgraph_last_update_, ID_RECALC_TRANSFORM);
-      SET_FLAG_FROM_TEST(
-          flags, runtime.last_update_geometry > depsgraph_last_update_, ID_RECALC_GEOMETRY);
-      SET_FLAG_FROM_TEST(
-          flags, runtime.last_update_shading > depsgraph_last_update_, ID_RECALC_SHADING);
-      return flags;
-    };
-
-    int flags = get_flags(*ob_ref.object->runtime);
-    if (ob_ref.dupli_parent) {
-      flags |= get_flags(*ob_ref.dupli_parent->runtime);
-    }
-
-    return flags;
+    return ob_ref.recalc_flags(depsgraph_last_update_);
   }
 
   int get_recalc_flags(const ::World &world)

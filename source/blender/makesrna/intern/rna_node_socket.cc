@@ -564,6 +564,16 @@ void rna_NodeSocketStandard_color_default(PointerRNA *ptr, PropertyRNA * /*prop*
   std::copy_n(&decl->default_value.r, 4, r_values);
 }
 
+int rna_NodeSocketStandard_menu_default(PointerRNA *ptr, PropertyRNA * /*prop*/)
+{
+  bNodeSocket *sock = static_cast<bNodeSocket *>(ptr->data);
+  if (!sock->runtime->declaration) {
+    return 0;
+  }
+  auto *decl = static_cast<const blender::nodes::decl::Menu *>(sock->runtime->declaration);
+  return decl->default_value;
+}
+
 /* using a context update function here, to avoid searching the node if possible */
 static void rna_NodeSocketStandard_value_update(bContext *C, PointerRNA *ptr)
 {
@@ -1461,6 +1471,7 @@ static void rna_def_node_socket_menu(BlenderRNA *brna, const char *identifier)
   RNA_def_property_enum_sdna(prop, nullptr, "value");
   RNA_def_property_enum_items(prop, rna_enum_dummy_NULL_items);
   RNA_def_property_enum_funcs(prop, nullptr, nullptr, "RNA_node_socket_menu_itemf");
+  RNA_def_property_enum_default_func(prop, "rna_NodeSocketStandard_menu_default");
   RNA_def_property_ui_text(prop, "Default Value", "Input value used for unconnected socket");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeSocketStandard_value_update");
   RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);

@@ -159,10 +159,6 @@ void imapaint_image_update(
     return;
   }
 
-  if (ibuf->mipmap[0]) {
-    ibuf->userflags |= IB_MIPMAP_INVALID;
-  }
-
   IMB_partial_display_buffer_update_delayed(ibuf,
                                             imapaintpartial.dirty_region.xmin,
                                             imapaintpartial.dirty_region.ymin,

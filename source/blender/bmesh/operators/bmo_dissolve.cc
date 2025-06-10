@@ -355,6 +355,25 @@ void bmo_dissolve_faces_exec(BMesh *bm, BMOperator *op)
   BMO_slot_buffer_from_enabled_flag(bm, op, op->slots_out, "region.out", BM_FACE, FACE_NEW);
 }
 
+/**
+ * Given an edge, and vert that are part of a chain, finds the vert at the far end of the chain.
+ */
+static BMVert *bmo_find_end_of_chain(BMEdge *e, BMVert *v)
+{
+  BMVert *v_init = v;
+  while (BM_vert_is_edge_pair(v)) {
+    e = BM_DISK_EDGE_NEXT(e, v);
+    v = BM_edge_other_vert(e, v);
+    /* While this should never happen in the context this function is called.
+     * Avoid an eternal loop even in the case of degenerate geometry. */
+    BLI_assert(v != v_init);
+    if (UNLIKELY(v == v_init)) {
+      break;
+    }
+  }
+  return v;
+}
+
 void bmo_dissolve_edges_exec(BMesh *bm, BMOperator *op)
 {
   // BMOperator fop;
@@ -441,6 +460,21 @@ void bmo_dissolve_edges_exec(BMesh *bm, BMOperator *op)
   BMO_ITER (e, &eiter, op->slots_in, "edges", BM_EDGE) {
     BMLoop *l_a, *l_b;
     if (BM_edge_loop_pair(e, &l_a, &l_b)) {
+
+      /* When #VERT_MARK is set on a vert in the middle of a chain, the flag needs to be moved to
+       * the end of the chain, because when all the chain edges between the two faces get cleaned
+       * up as part of #BM_faces_join_pair, the flagged vert would otherwise be lost.
+       * Find the end of the chain, where the dissolve test should be done, move the flag there. */
+      for (int i = 0; i < 2; i++) {
+        BMVert *v_edge = *((&e->v1) + i);
+        if (BMO_vert_flag_test(bm, v_edge, VERT_MARK)) {
+          BMVert *v_edge_chain_end = bmo_find_end_of_chain(e, v_edge);
+          if (v_edge != v_edge_chain_end) {
+            BMO_vert_flag_enable(bm, v_edge_chain_end, VERT_MARK);
+          }
+        }
+      }
+
       BM_faces_join_pair(bm, l_a, l_b, false, nullptr);
     }
   }
@@ -511,8 +545,11 @@ void bmo_dissolve_edges_exec(BMesh *bm, BMOperator *op)
         continue;
       }
 
-      /* Ensured in the previous loop. */
-      BLI_assert(BM_vert_is_edge_pair(v));
+      /* Even though pairs were checked before, the process of performing edge merges
+       * might change a neighboring vert such that it is no longer an edge pair. */
+      if (!BM_vert_is_edge_pair(v)) {
+        continue;
+      }
 
       bm_vert_collapse_edge_and_merge(bm, v, true);
     }

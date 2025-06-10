@@ -14,6 +14,7 @@
 #include "BKE_compute_context_cache_fwd.hh"
 
 #include "NOD_geometry_nodes_closure_location.hh"
+#include "NOD_nested_node_id.hh"
 
 #include "ED_node_c.hh"
 
@@ -82,7 +83,10 @@ void std_node_socket_colors_get(int socket_type, float *r_color);
 /**
  * Find the nested node id of a currently visible node in the root tree.
  */
-std::optional<int32_t> find_nested_node_id_in_root(const SpaceNode &snode, const bNode &node);
+std::optional<nodes::FoundNestedNodeID> find_nested_node_id_in_root(const SpaceNode &snode,
+                                                                    const bNode &node);
+std::optional<nodes::FoundNestedNodeID> find_nested_node_id_in_root(
+    const bNodeTree &root_tree, const ComputeContext *compute_context, const int node_id);
 
 struct ObjectAndModifier {
   const Object *object;
@@ -111,6 +115,9 @@ bool node_editor_is_for_geometry_nodes_modifier(const SpaceNode &snode,
     const SpaceNode &snode,
     bke::ComputeContextCache &compute_context_cache,
     const bNodeSocket &socket);
+
+[[nodiscard]] const ComputeContext *compute_context_for_edittree_node(
+    const SpaceNode &snode, bke::ComputeContextCache &compute_context_cache, const bNode &node);
 
 /**
  * Attempts to find a compute context that the closure is evaluated in. If none is found, null is

@@ -43,7 +43,7 @@ const char *GPU_extension_get(int i);
 
 int GPU_texture_size_with_limit(int res);
 
-bool GPU_use_parallel_compilation();
+bool GPU_use_subprocess_compilation();
 int GPU_max_parallel_compilations();
 
 bool GPU_stencil_clasify_buffer_workaround();

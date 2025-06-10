@@ -175,6 +175,7 @@ class DrawingPlacement {
   /**
    * Projects a screen space coordinate to the local drawing space.
    */
+  float3 project(float2 co, bool &clipped) const;
   float3 project(float2 co) const;
   void project(Span<float2> src, MutableSpan<float3> dst) const;
   /**

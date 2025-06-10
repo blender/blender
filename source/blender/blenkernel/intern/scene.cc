@@ -815,6 +815,9 @@ static bool strip_foreach_member_id_cb(Strip *strip, void *user_data)
   IDP_foreach_property(strip->prop, IDP_TYPE_FILTER_ID, [&](IDProperty *prop) {
     BKE_lib_query_idpropertiesForeachIDLink_callback(prop, data);
   });
+  IDP_foreach_property(strip->system_properties, IDP_TYPE_FILTER_ID, [&](IDProperty *prop) {
+    BKE_lib_query_idpropertiesForeachIDLink_callback(prop, data);
+  });
   LISTBASE_FOREACH (StripModifierData *, smd, &strip->modifiers) {
     FOREACHID_PROCESS_IDSUPER(data, smd->mask_id, IDWALK_CB_USER);
   }
@@ -873,6 +876,12 @@ static void scene_foreach_id(ID *id, LibraryForeachIDData *data)
         IDP_foreach_property(view_layer->id_properties, IDP_TYPE_FILTER_ID, [&](IDProperty *prop) {
           BKE_lib_query_idpropertiesForeachIDLink_callback(prop, data);
         }));
+    BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(
+        data,
+        IDP_foreach_property(
+            view_layer->system_properties, IDP_TYPE_FILTER_ID, [&](IDProperty *prop) {
+              BKE_lib_query_idpropertiesForeachIDLink_callback(prop, data);
+            }));
 
     BKE_view_layer_synced_ensure(scene, view_layer);
     LISTBASE_FOREACH (Base *, base, BKE_view_layer_object_bases_get(view_layer)) {
@@ -1169,6 +1178,14 @@ static void scene_blend_write(BlendWriter *writer, ID *id, const void *id_addres
 
   /* Freed on `do_versions()`. */
   BLI_assert(sce->layer_properties == nullptr);
+
+  /* Restore original values after writing, so current working file is not affected. Note that this
+   * is only needed because scene `id` is a shallow copy here, and `tool_settings` is not copied.
+   * In the case of `brush_blend_write`, the size value does not need restoring after writing
+   * because that one was directly under `Brush` id which is copied. See `brush_blend_write` in
+   * `blenkernel/intern/brush.cc`. */
+  tos->unified_paint_settings.size /= 2;
+  tos->unified_paint_settings.unprojected_radius /= 2.0f;
 }
 
 static void direct_link_paint_helper(BlendDataReader *reader, const Scene *scene, Paint **paint)
@@ -1232,7 +1249,7 @@ static void scene_blend_read_data(BlendDataReader *reader, ID *id)
 
     /* Prior to 5.0, the brush->size value is expected to be the radius, not the diameter. To
      * ensure correct behavior, convert this when reading newer files. */
-    if (BLO_read_fileversion_get(reader)) {
+    if (BLO_read_fileversion_get(reader) > 500) {
       ups->size = std::max(ups->size / 2, 1);
       ups->unprojected_radius = std::max(ups->unprojected_radius / 2, 0.001f);
     }
@@ -1839,6 +1856,9 @@ Scene *BKE_scene_duplicate(Main *bmain, Scene *sce, eSceneCopyMethod type)
 
     if (sce->id.properties) {
       sce_copy->id.properties = IDP_CopyProperty(sce->id.properties);
+    }
+    if (sce->id.system_properties) {
+      sce_copy->id.system_properties = IDP_CopyProperty(sce->id.system_properties);
     }
 
     BKE_sound_destroy_scene(sce_copy);

@@ -118,6 +118,10 @@ BlenderStrokeRenderer::BlenderStrokeRenderer(Render *re, int render_count)
   if (old_scene->id.properties) {
     freestyle_scene->id.properties = IDP_CopyProperty_ex(old_scene->id.properties, 0);
   }
+  if (old_scene->id.system_properties) {
+    freestyle_scene->id.system_properties = IDP_CopyProperty_ex(old_scene->id.system_properties,
+                                                                0);
+  }
   // Copy eevee render settings.
   BKE_scene_copy_data_eevee(freestyle_scene, old_scene);
 

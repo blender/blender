@@ -535,7 +535,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
     layout = UI_popup_menu_layout(pup);
 
     set_layout_context_from_button(C, layout, but);
-    uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_DEFAULT);
+    layout->operator_context_set(WM_OP_INVOKE_DEFAULT);
   }
 
   const bool is_disabled = but->flag & UI_BUT_DISABLED;

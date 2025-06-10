@@ -5,9 +5,12 @@
 /** \file
  * \ingroup draw
  */
+
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_rect.h"
+
+#include "BKE_colortools.hh"
 
 #include "DRW_render.hh"
 
@@ -244,6 +247,65 @@ static void render_result_separated_pass(float *data, Instance &instance, const 
                              data);
 }
 
+/* This is taken from blender::eevee::Sampling::cdf_from_curvemapping. */
+static void cdf_from_curvemapping(const CurveMapping &curve, Array<float> &cdf)
+{
+  BLI_assert(cdf.size() > 1);
+  cdf[0] = 0.0f;
+  /* Actual CDF evaluation. */
+  for (const int u : IndexRange(cdf.size() - 1)) {
+    const float x = float(u + 1) / float(cdf.size() - 1);
+    cdf[u + 1] = cdf[u] + BKE_curvemapping_evaluateF(&curve, 0, x);
+  }
+  /* Normalize the CDF. */
+  for (const int u : cdf.index_range()) {
+    cdf[u] /= cdf.last();
+  }
+  /* Just to make sure. */
+  cdf.last() = 1.0f;
+}
+
+/* This is taken from blender::eevee::Sampling::cdf_invert. */
+static void cdf_invert(Array<float> &cdf, Array<float> &inverted_cdf)
+{
+  BLI_assert(cdf.first() == 0.0f && cdf.last() == 1.0f);
+  for (const int u : inverted_cdf.index_range()) {
+    const float x = clamp_f(u / float(inverted_cdf.size() - 1), 1e-5f, 1.0f - 1e-5f);
+    for (const int i : cdf.index_range().drop_front(1)) {
+      if (cdf[i] >= x) {
+        const float t = (x - cdf[i]) / (cdf[i] - cdf[i - 1]);
+        inverted_cdf[u] = (float(i) + t) / float(cdf.size() - 1);
+        break;
+      }
+    }
+  }
+}
+
+/* This is taken from blender::eevee::MotionBlurModule::shutter_time_to_scene_time. */
+static float shutter_time_to_scene_time(const int shutter_position,
+                                        const float shutter_time,
+                                        const float frame_time,
+                                        float time)
+{
+  switch (shutter_position) {
+    case SCE_MB_START:
+      /* No offset. */
+      break;
+    case SCE_MB_CENTER:
+      time -= 0.5f;
+      break;
+    case SCE_MB_END:
+      time -= 1.0;
+      break;
+    default:
+      BLI_assert_msg(false, "Invalid motion blur position enum!");
+      break;
+  }
+  time *= shutter_time;
+  time += frame_time;
+  return time;
+}
+
 static void render_frame(RenderEngine *engine,
                          Depsgraph *depsgraph,
                          const DRWContext *draw_ctx,
@@ -253,23 +315,97 @@ static void render_frame(RenderEngine *engine,
                          Manager &manager,
                          const bool separated_pass)
 {
-  const float aa_radius = clamp_f(draw_ctx->scene->r.gauss, 0.0f, 100.0f);
-  const int sample_count = draw_ctx->scene->grease_pencil_settings.aa_samples;
-  for (const int sample_i : IndexRange(sample_count)) {
-    const float2 aa_sample = Instance::antialiasing_sample_get(sample_i, sample_count) * aa_radius;
-    const float2 aa_offset = 2.0f * aa_sample / float2(inst.render_color_tx.size());
-    render_set_view(engine, depsgraph, aa_offset);
-    render_init_buffers(draw_ctx, inst, engine, render_layer, &rect, separated_pass);
+  Scene *scene = draw_ctx->scene;
 
-    /* Render the gpencil object and merge the result to the underlying render. */
-    inst.draw(manager);
+  const float aa_radius = clamp_f(scene->r.gauss, 0.0f, 100.0f);
 
-    /* Weight of this render SSAA sample. The sum of previous samples is weighted by `1 - weight`.
-     * This diminishes after each new sample as we want all samples to be equally weighted inside
-     * the final result (inside the combined buffer). This weighting scheme allows to always store
-     * the resolved result making it ready for in-progress display or read-back. */
-    const float weight = 1.0f / (1.0f + sample_i);
-    inst.antialiasing_accumulate(manager, weight);
+  const bool motion_blur_enabled = (scene->r.mode & R_MBLUR) != 0 &&
+                                   (draw_ctx->view_layer->layflag & SCE_LAY_MOTION_BLUR) != 0 &&
+                                   scene->grease_pencil_settings.motion_blur_steps > 0;
+
+  const int motion_steps_count =
+      motion_blur_enabled ? max_ii(1, scene->grease_pencil_settings.motion_blur_steps) * 2 + 1 : 1;
+  const int total_step_count = ceil_to_multiple_u(scene->grease_pencil_settings.aa_samples,
+                                                  motion_steps_count);
+  const int aa_per_step = total_step_count / motion_steps_count;
+
+  const int shutter_position = scene->r.motion_blur_position;
+  const float shutter_time = scene->r.motion_blur_shutter;
+
+  const int initial_frame = scene->r.cfra;
+  const float initial_subframe = scene->r.subframe;
+  const float frame_time = initial_frame + initial_subframe;
+
+  Array<float> time_steps(motion_steps_count);
+  if (motion_blur_enabled) {
+    BKE_curvemapping_changed(&scene->r.mblur_shutter_curve, false);
+
+    Array<float> cdf(CM_TABLE);
+    cdf_from_curvemapping(scene->r.mblur_shutter_curve, cdf);
+    cdf_invert(cdf, time_steps);
+
+    for (float &scene_time : time_steps) {
+      scene_time = shutter_time_to_scene_time(
+          shutter_position, shutter_time, frame_time, scene_time);
+    }
+  }
+  else {
+    BLI_assert(time_steps.size() == 1);
+    time_steps.first() = frame_time;
+  }
+
+  int sample_i = 0;
+  for (const float time : time_steps) {
+    inst.init();
+
+    if (motion_blur_enabled) {
+      DRW_render_set_time(engine, depsgraph, floorf(time), fractf(time));
+    }
+
+    inst.camera = DEG_get_evaluated(depsgraph, RE_GetCamera(engine->re));
+
+    manager.begin_sync();
+
+    /* Loop over all objects and create draw structure. */
+    inst.begin_sync();
+    DRW_render_object_iter(engine, depsgraph, [&](ObjectRef &ob_ref, RenderEngine *, Depsgraph *) {
+      if (!ELEM(ob_ref.object->type, OB_GREASE_PENCIL, OB_LAMP)) {
+        return;
+      }
+      if (!(DRW_object_visibility_in_active_context(ob_ref.object) & OB_VISIBLE_SELF)) {
+        return;
+      }
+      inst.object_sync(ob_ref, manager);
+    });
+    inst.end_sync();
+
+    manager.end_sync();
+
+    for ([[maybe_unused]] const int i : IndexRange(aa_per_step)) {
+      const float2 aa_sample = Instance::antialiasing_sample_get(sample_i, total_step_count) *
+                               aa_radius;
+      const float2 aa_offset = 2.0f * aa_sample / float2(inst.render_color_tx.size());
+      render_set_view(engine, depsgraph, aa_offset);
+      render_init_buffers(draw_ctx, inst, engine, render_layer, &rect, separated_pass);
+
+      /* Render the gpencil object and merge the result to the underlying render. */
+      inst.draw(manager);
+
+      /* Weight of this render SSAA sample. The sum of previous samples is weighted by `1 -
+       * weight`. This diminishes after each new sample as we want all samples to be equally
+       * weighted inside the final result (inside the combined buffer). This weighting scheme
+       * allows to always store the resolved result making it ready for in-progress display or
+       * read-back. */
+      const float weight = 1.0f / (1.0f + sample_i);
+      inst.antialiasing_accumulate(manager, weight);
+
+      sample_i++;
+    }
+  }
+
+  if (motion_blur_enabled) {
+    /* Restore original frame number. This is because the render pipeline expects it. */
+    RE_engine_frame_set(engine, initial_frame, initial_subframe);
   }
 }
 
@@ -292,26 +428,6 @@ void Engine::render_to_image(RenderEngine *engine, RenderLayer *render_layer, co
 
   render_set_view(engine, depsgraph);
   render_init_buffers(draw_ctx, inst, engine, render_layer, &rect, false);
-  inst.init();
-
-  inst.camera = DEG_get_evaluated(depsgraph, RE_GetCamera(engine->re));
-
-  manager.begin_sync();
-
-  /* Loop over all objects and create draw structure. */
-  inst.begin_sync();
-  DRW_render_object_iter(engine, depsgraph, [&](ObjectRef &ob_ref, RenderEngine *, Depsgraph *) {
-    if (!ELEM(ob_ref.object->type, OB_GREASE_PENCIL, OB_LAMP)) {
-      return;
-    }
-    if (!(DRW_object_visibility_in_active_context(ob_ref.object) & OB_VISIBLE_SELF)) {
-      return;
-    }
-    inst.object_sync(ob_ref, manager);
-  });
-  inst.end_sync();
-
-  manager.end_sync();
 
   render_frame(engine, depsgraph, draw_ctx, render_layer, rect, inst, manager, false);
   render_result_combined(render_layer, viewname, inst, &rect);

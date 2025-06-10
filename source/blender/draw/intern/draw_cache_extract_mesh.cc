@@ -401,11 +401,15 @@ void mesh_buffer_cache_create_requested_subdiv(MeshBatchCache &cache,
         face_dot_position_vbo,
         vbos_to_create.contains(VBOType::FaceDotNormal) ? &face_dot_normal_vbo : nullptr,
         face_dot_ibo);
-    buffers.vbos.add_new(VBOType::FaceDotPosition, std::move(face_dot_position_vbo));
+    if (vbos_to_create.contains(VBOType::FaceDotPosition)) {
+      buffers.vbos.add_new(VBOType::FaceDotPosition, std::move(face_dot_position_vbo));
+    }
     if (face_dot_normal_vbo) {
       buffers.vbos.add_new(VBOType::FaceDotNormal, std::move(face_dot_normal_vbo));
     }
-    buffers.ibos.add_new(IBOType::FaceDots, std::move(face_dot_ibo));
+    if (ibos_to_create.contains(IBOType::FaceDots)) {
+      buffers.ibos.add_new(IBOType::FaceDots, std::move(face_dot_ibo));
+    }
   }
   if (ibos_to_create.contains(IBOType::LinesPaintMask)) {
     buffers.ibos.add_new(IBOType::LinesPaintMask,

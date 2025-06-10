@@ -263,9 +263,6 @@ static FileSelectParams *fileselect_ensure_updated_file_params(SpaceFile *sfile)
     if ((prop = RNA_struct_find_property(op->ptr, "filter_btx"))) {
       params->filter |= RNA_property_boolean_get(op->ptr, prop) ? int(FILE_TYPE_BTX) : 0;
     }
-    if ((prop = RNA_struct_find_property(op->ptr, "filter_collada"))) {
-      params->filter |= RNA_property_boolean_get(op->ptr, prop) ? int(FILE_TYPE_COLLADA) : 0;
-    }
     if ((prop = RNA_struct_find_property(op->ptr, "filter_alembic"))) {
       params->filter |= RNA_property_boolean_get(op->ptr, prop) ? int(FILE_TYPE_ALEMBIC) : 0;
     }

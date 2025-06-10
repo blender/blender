@@ -252,14 +252,6 @@ static int pyrna_struct_keyframe_parse(PointerRNA *ptr,
     return -1;
   }
 
-  if (pyrna_struct_anim_args_parse(ptr, error_prefix, path, r_path_full, r_index) == -1) {
-    return -1;
-  }
-
-  if (*r_cfra == FLT_MAX) {
-    *r_cfra = CTX_data_scene(BPY_context_get())->r.cfra;
-  }
-
   /* flag may be null (no option currently for remove keyframes e.g.). */
   if (r_options) {
     if (pyoptions &&
@@ -282,6 +274,14 @@ static int pyrna_struct_keyframe_parse(PointerRNA *ptr,
       return -1;
     }
     *r_keytype = eBezTriple_KeyframeType(keytype_as_int);
+  }
+
+  if (pyrna_struct_anim_args_parse(ptr, error_prefix, path, r_path_full, r_index) == -1) {
+    return -1;
+  }
+
+  if (*r_cfra == FLT_MAX) {
+    *r_cfra = CTX_data_scene(BPY_context_get())->r.cfra;
   }
 
   return 0; /* success */
@@ -611,10 +611,14 @@ PyObject *pyrna_struct_driver_add(BPy_StructRNA *self, PyObject *args)
                            DRIVER_TYPE_PYTHON);
 
   if (BPy_reports_to_error(&reports, PyExc_RuntimeError, true) == -1) {
-    return nullptr;
+    /* Pass. */
   }
-
-  if (result) {
+  else if (result == 0) {
+    /* XXX: should be handled by reports. */
+    PyErr_SetString(PyExc_TypeError,
+                    "bpy_struct.driver_add(): failed because of an internal error");
+  }
+  else {
     ID *id = self->ptr->owner_id;
     AnimData *adt = BKE_animdata_from_id(id);
     FCurve *fcu;
@@ -639,12 +643,6 @@ PyObject *pyrna_struct_driver_add(BPy_StructRNA *self, PyObject *args)
     WM_event_add_notifier(BPY_context_get(), NC_ANIMATION | ND_FCURVES_ORDER, nullptr);
     DEG_id_tag_update(id, ID_RECALC_SYNC_TO_EVAL);
     DEG_relations_tag_update(CTX_data_main(context));
-  }
-  else {
-    /* XXX: should be handled by reports. */
-    PyErr_SetString(PyExc_TypeError,
-                    "bpy_struct.driver_add(): failed because of an internal error");
-    return nullptr;
   }
 
   MEM_freeN(path_full);

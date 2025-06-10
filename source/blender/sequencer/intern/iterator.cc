@@ -39,9 +39,31 @@ static bool strip_for_each_recursive(ListBase *seqbase, ForEachFunc callback, vo
   return true;
 }
 
+static bool strip_for_each_recursive(ListBase *seqbase,
+                                     blender::FunctionRef<bool(Strip *)> callback)
+{
+  LISTBASE_FOREACH (Strip *, strip, seqbase) {
+    if (!callback(strip)) {
+      /* Callback signaled stop, return. */
+      return false;
+    }
+    if (strip->type == STRIP_TYPE_META) {
+      if (!strip_for_each_recursive(&strip->seqbase, callback)) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
 void for_each_callback(ListBase *seqbase, ForEachFunc callback, void *user_data)
 {
   strip_for_each_recursive(seqbase, callback, user_data);
+}
+
+void for_each_callback(ListBase *seqbase, blender::FunctionRef<bool(Strip *)> callback)
+{
+  strip_for_each_recursive(seqbase, callback);
 }
 
 VectorSet<Strip *> query_by_reference(Strip *strip_reference,

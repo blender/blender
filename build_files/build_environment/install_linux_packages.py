@@ -799,14 +799,6 @@ PACKAGES_ALL = (
                                   DISTRO_ID_ARCH: "usd",  # No official package, in AUR only currently.
                                   },
             ),
-    Package(name="OpenCollada Library", is_mandatory=False,
-            version="1.6.68", version_short="1.6", version_min="1.6.68", version_mex="1.7",
-            distro_package_names={DISTRO_ID_DEBIAN: "opencollada-dev",  # Useless, very old!
-                                  DISTRO_ID_FEDORA: "openCOLLADA-devel",
-                                  DISTRO_ID_SUSE: "libopenCOLLADA-devel",
-                                  DISTRO_ID_ARCH: "opencollada",
-                                  },
-            ),
     Package(name="Embree Library", is_mandatory=False,
             version="4.3.3", version_short="4.3", version_min="4.3", version_mex="5.0",
             sub_packages=(),

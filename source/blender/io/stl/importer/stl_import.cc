@@ -54,7 +54,7 @@ Mesh *read_stl_file(const STLImportParams &import_params)
 {
   FILE *file = BLI_fopen(import_params.filepath, "rb");
   if (!file) {
-    CLOG_ERROR(&LOG, "Failed to open STL file:'%s'.\n", import_params.filepath);
+    CLOG_ERROR(&LOG, "Failed to open STL file:'%s'.", import_params.filepath);
     BKE_reportf(import_params.reports,
                 RPT_ERROR,
                 "STL Import: Cannot open file '%s'",

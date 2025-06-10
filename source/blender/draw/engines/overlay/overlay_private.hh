@@ -898,9 +898,7 @@ struct Resources : public select::SelectMap {
   {
     const bool is_edit = (state.object_mode & OB_MODE_EDIT) &&
                          (ob_ref.object->mode & OB_MODE_EDIT);
-    const bool active = ((ob_ref.dupli_parent != nullptr) ?
-                             (state.object_active == ob_ref.dupli_parent) :
-                             (state.object_active == ob_ref.object));
+    const bool active = ob_ref.is_active(state.object_active);
     const bool is_selected = ((ob_ref.object->base_flag & BASE_SELECTED) != 0);
 
     /* Object in edit mode. */

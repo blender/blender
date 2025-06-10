@@ -809,8 +809,11 @@ class USERPREF_PT_system_memory(SystemPanel, CenterAlignMixIn, Panel):
 
         if sys.platform != "darwin":
             layout.separator()
-            col = layout.column()
-            col.prop(system, "max_shader_compilation_subprocesses")
+            col = layout.column(align=True)
+            col.active = system.gpu_backend != 'VULKAN'
+            col.row().prop(system, "shader_compilation_method", expand=True)
+            label = "Threads" if system.shader_compilation_method == 'THREAD' else "Subprocesses"
+            col.prop(system, "gpu_shader_workers", text=label)
 
 
 class USERPREF_PT_system_video_sequencer(SystemPanel, CenterAlignMixIn, Panel):

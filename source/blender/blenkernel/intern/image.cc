@@ -1556,11 +1556,6 @@ static uintptr_t image_mem_size(Image *image)
       }
 
       size += IMB_get_size_in_memory(ibuf);
-
-      for (int level = 0; level < IMB_MIPMAP_LEVELS; level++) {
-        ImBuf *ibufm = ibuf->mipmap[level];
-        size += IMB_get_size_in_memory(ibufm);
-      }
     }
     IMB_moviecacheIter_free(iter);
   }

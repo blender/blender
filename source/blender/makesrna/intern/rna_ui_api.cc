@@ -376,7 +376,7 @@ static PointerRNA rna_uiItemO(uiLayout *layout,
   const float prev_weight = uiLayoutGetSearchWeight(layout);
   uiLayoutSetSearchWeight(layout, search_weight);
 
-  PointerRNA opptr = layout->op(ot, text, icon, uiLayoutGetOperatorContext(layout), flag);
+  PointerRNA opptr = layout->op(ot, text, icon, layout->operator_context(), flag);
 
   uiLayoutSetSearchWeight(layout, prev_weight);
   return opptr;
@@ -414,8 +414,7 @@ static PointerRNA rna_uiItemOMenuHold(uiLayout *layout,
   }
 
   PointerRNA opptr;
-  uiItemFullOMenuHold_ptr(
-      layout, ot, text, icon, uiLayoutGetOperatorContext(layout), flag, menu, &opptr);
+  uiItemFullOMenuHold_ptr(layout, ot, text, icon, layout->operator_context(), flag, menu, &opptr);
   return opptr;
 }
 
@@ -425,7 +424,7 @@ static void rna_uiItemsEnumO(uiLayout *layout,
                              const bool icon_only)
 {
   eUI_Item_Flag flag = icon_only ? UI_ITEM_R_ICON_ONLY : UI_ITEM_NONE;
-  uiItemsFullEnumO(layout, opname, propname, nullptr, uiLayoutGetOperatorContext(layout), flag);
+  uiItemsFullEnumO(layout, opname, propname, nullptr, layout->operator_context(), flag);
 }
 
 static PointerRNA rna_uiItemMenuEnumO(uiLayout *layout,
@@ -2458,6 +2457,11 @@ void RNA_api_ui_layout(StructRNA *srna)
       func, "properties", "OperatorProperties", "", "Operator properties to fill in");
   RNA_def_parameter_flags(parm, PropertyFlag(0), PARM_REQUIRED | PARM_RNAPTR);
   RNA_def_function_return(func, parm);
+
+  func = RNA_def_function(
+      srna, "template_shape_key_tree", "blender::ed::object::shapekey::template_tree");
+  RNA_def_function_ui_description(func, "Shape Key tree view");
+  RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 }
 
 #endif

@@ -574,7 +574,7 @@ void gather_custom_knots(const bke::CurvesGeometry &src,
 
 /**
  * Overwrites `NURBS_KNOT_MODE_CUSTOM` to given ones for regular and cyclic curves.
- * The purpose is to to update knot modes for curves when knot copying or calculation is not
+ * The purpose is to update knot modes for curves when knot copying or calculation is not
  * possible or too complex. Curve operators not supporting NURBS custom knots should call this
  * function with `IndexMask` `CurvesGeometry.curves_range()`, if resulting curves are created by
  * copying all attributes. This way `NURBS_KNOT_MODE_CUSTOM` values might be copied though custom

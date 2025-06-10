@@ -1323,27 +1323,6 @@ endif()
 
 
 # ------------------------------------------------------------------------------
-# COLLADA Tests
-# ------------------------------------------------------------------------------
-
-if(TEST_SRC_DIR_EXISTS)
-  function(collada_test module test_name blend_file)
-    add_blender_test(
-      bf_io_collada_${module}_${test_name}
-      ${TEST_SRC_DIR}/collada/${module}/${blend_file}
-      --python ${CMAKE_CURRENT_LIST_DIR}/${module}/test_${module}_${test_name}.py --
-      --testdir ${TEST_SRC_DIR}/collada/${module}
-    )
-  endfunction()
-
-  # Tests are disabled because they only work on Windows
-  # Tests will be redone completely to work reliable
-  #
-  # collada_test(mesh simple mesh_simple.blend)
-  # collada_test(animation simple suzannes_parent_inverse.blend)
-endif()
-
-# ------------------------------------------------------------------------------
 # VIEW LAYER Tests
 # ------------------------------------------------------------------------------
 

@@ -26,7 +26,7 @@ static const EnumPropertyItem node_tree_interface_socket_in_out_items[] = {
     {NODE_INTERFACE_SOCKET_OUTPUT, "OUTPUT", 0, "Output", "Generate a output node socket"},
     {0, nullptr, 0, nullptr, nullptr}};
 
-static const EnumPropertyItem node_tree_interface_socket_structure_type_items[] = {
+const EnumPropertyItem rna_enum_node_socket_structure_type_items[] = {
     {NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_AUTO,
      "AUTO",
      0,
@@ -499,8 +499,7 @@ static const EnumPropertyItem *rna_NodeTreeInterfaceSocket_structure_type_itemf(
   EnumPropertyItem *items = nullptr;
   int items_count = 0;
 
-  for (const EnumPropertyItem *item = node_tree_interface_socket_structure_type_items;
-       item->identifier;
+  for (const EnumPropertyItem *item = rna_enum_node_socket_structure_type_items; item->identifier;
        item++)
   {
     switch (NodeSocketInterfaceStructureType(item->value)) {
@@ -1209,7 +1208,7 @@ static void rna_def_node_interface_socket(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeTreeInterfaceItem_update");
 
   prop = RNA_def_property(srna, "structure_type", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_items(prop, node_tree_interface_socket_structure_type_items);
+  RNA_def_property_enum_items(prop, rna_enum_node_socket_structure_type_items);
   RNA_def_property_ui_text(
       prop,
       "Structure Type",

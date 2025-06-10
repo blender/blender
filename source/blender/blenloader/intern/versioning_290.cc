@@ -1182,7 +1182,7 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
 
     /* PointCloud attributes. */
     LISTBASE_FOREACH (PointCloud *, pointcloud, &bmain->pointclouds) {
-      do_versions_point_attributes(&pointcloud->pdata);
+      do_versions_point_attributes(&pointcloud->pdata_legacy);
     }
 
     /* Show outliner mode column by default. */
@@ -1488,7 +1488,7 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
 
     /* PointCloud attributes names. */
     LISTBASE_FOREACH (PointCloud *, pointcloud, &bmain->pointclouds) {
-      do_versions_point_attribute_names(&pointcloud->pdata);
+      do_versions_point_attribute_names(&pointcloud->pdata_legacy);
     }
 
     /* Cryptomatte render pass */

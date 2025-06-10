@@ -680,7 +680,7 @@ static wmOperatorStatus node_group_separate_invoke(bContext *C,
       C, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Separate"), ICON_NONE);
   uiLayout *layout = UI_popup_menu_layout(pup);
 
-  uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT);
+  layout->operator_context_set(WM_OP_EXEC_DEFAULT);
   uiItemEnumO(layout, "NODE_OT_group_separate", std::nullopt, ICON_NONE, "type", NODE_GS_COPY);
   uiItemEnumO(layout, "NODE_OT_group_separate", std::nullopt, ICON_NONE, "type", NODE_GS_MOVE);
 
@@ -1238,6 +1238,8 @@ struct WrapperNodeGroupMapping {
   int num_outputs = 0;
   Map<const bNodeSocket *, int> new_index_by_src_socket;
   Map<int, int> new_by_old_panel_identifier;
+  Vector<int> exposed_input_indices;
+  Vector<int> exposed_output_indices;
 
   bNodeSocket *get_new_input(const bNodeSocket *old_socket, bNode &new_node) const
   {
@@ -1272,12 +1274,17 @@ static void add_node_group_interface_from_declaration_recursive(
     }
     bNodeTreeInterfaceSocket *io_socket = bke::node_interface::add_interface_socket_from_node(
         group, src_node, socket);
+    if (!io_socket) {
+      return;
+    }
     group.tree_interface.move_item_to_parent(io_socket->item, parent, INT32_MAX);
     if (socket.is_input()) {
       r_mapping.new_index_by_src_socket.add_new(&socket, r_mapping.num_inputs++);
+      r_mapping.exposed_input_indices.append(socket.index());
     }
     else {
       r_mapping.new_index_by_src_socket.add_new(&socket, r_mapping.num_outputs++);
+      r_mapping.exposed_output_indices.append(socket.index());
     }
   }
   else if (const nodes::PanelDeclaration *panel_decl =
@@ -1343,21 +1350,25 @@ static bNodeTree *node_group_make_wrapper(const bContext &C,
 
   const Array<bNodeSocket *> group_inputs = input_node.output_sockets().drop_back(1);
   const Array<bNodeSocket *> group_outputs = output_node.input_sockets().drop_back(1);
-  Vector<bNodeSocket *> inner_inputs = inner_node.input_sockets();
-  Vector<bNodeSocket *> inner_outputs = inner_node.output_sockets();
-
-  /* Some built-in nodes have unavailable sockets, those are not part of the wrapper node group. */
-  inner_inputs.remove_if([&](const bNodeSocket *socket) { return !socket->is_available(); });
-  inner_outputs.remove_if([&](const bNodeSocket *socket) { return !socket->is_available(); });
-  BLI_assert(group_inputs.size() == inner_inputs.size());
-  BLI_assert(inner_outputs.size() == group_outputs.size());
+  const Array<bNodeSocket *> inner_inputs = inner_node.input_sockets();
+  const Array<bNodeSocket *> inner_outputs = inner_node.output_sockets();
+  BLI_assert(group_inputs.size() == r_mapping.exposed_input_indices.size());
+  BLI_assert(group_outputs.size() == r_mapping.exposed_output_indices.size());
 
   /* Add links. */
   for (const int i : group_inputs.index_range()) {
-    bke::node_add_link(*dst_group, input_node, *group_inputs[i], inner_node, *inner_inputs[i]);
+    bke::node_add_link(*dst_group,
+                       input_node,
+                       *group_inputs[i],
+                       inner_node,
+                       *inner_inputs[r_mapping.exposed_input_indices[i]]);
   }
   for (const int i : group_outputs.index_range()) {
-    bke::node_add_link(*dst_group, inner_node, *inner_outputs[i], output_node, *group_outputs[i]);
+    bke::node_add_link(*dst_group,
+                       inner_node,
+                       *inner_outputs[r_mapping.exposed_output_indices[i]],
+                       output_node,
+                       *group_outputs[i]);
   }
 
   BKE_main_ensure_invariants(bmain, dst_group->id);
@@ -1385,7 +1396,7 @@ static bNode *node_group_make_from_node_declaration(bContext &C,
 
   /* Position node exactly where the old node was. */
   gnode->parent = src_node.parent;
-  gnode->width = src_node.width;
+  gnode->width = std::max<float>(src_node.width, GROUP_NODE_MIN_WIDTH);
   copy_v2_v2(gnode->location, src_node.location);
 
   BKE_main_ensure_invariants(bmain);

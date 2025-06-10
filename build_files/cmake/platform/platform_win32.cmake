@@ -500,45 +500,6 @@ if(WITH_IMAGE_WEBP)
   set(WEBP_FOUND ON)
 endif()
 
-if(WITH_OPENCOLLADA)
-  set(OPENCOLLADA ${LIBDIR}/opencollada)
-
-  set(OPENCOLLADA_INCLUDE_DIRS
-    ${OPENCOLLADA}/include/opencollada/COLLADAStreamWriter
-    ${OPENCOLLADA}/include/opencollada/COLLADABaseUtils
-    ${OPENCOLLADA}/include/opencollada/COLLADAFramework
-    ${OPENCOLLADA}/include/opencollada/COLLADASaxFrameworkLoader
-    ${OPENCOLLADA}/include/opencollada/GeneratedSaxParser
-  )
-
-  set(OPENCOLLADA_LIBRARIES
-    optimized ${OPENCOLLADA}/lib/opencollada/OpenCOLLADASaxFrameworkLoader.lib
-    optimized ${OPENCOLLADA}/lib/opencollada/OpenCOLLADAFramework.lib
-    optimized ${OPENCOLLADA}/lib/opencollada/OpenCOLLADABaseUtils.lib
-    optimized ${OPENCOLLADA}/lib/opencollada/OpenCOLLADAStreamWriter.lib
-    optimized ${OPENCOLLADA}/lib/opencollada/MathMLSolver.lib
-    optimized ${OPENCOLLADA}/lib/opencollada/GeneratedSaxParser.lib
-    optimized ${OPENCOLLADA}/lib/opencollada/buffer.lib
-    optimized ${OPENCOLLADA}/lib/opencollada/ftoa.lib
-
-    debug ${OPENCOLLADA}/lib/opencollada/OpenCOLLADASaxFrameworkLoader_d.lib
-    debug ${OPENCOLLADA}/lib/opencollada/OpenCOLLADAFramework_d.lib
-    debug ${OPENCOLLADA}/lib/opencollada/OpenCOLLADABaseUtils_d.lib
-    debug ${OPENCOLLADA}/lib/opencollada/OpenCOLLADAStreamWriter_d.lib
-    debug ${OPENCOLLADA}/lib/opencollada/MathMLSolver_d.lib
-    debug ${OPENCOLLADA}/lib/opencollada/GeneratedSaxParser_d.lib
-    debug ${OPENCOLLADA}/lib/opencollada/buffer_d.lib
-    debug ${OPENCOLLADA}/lib/opencollada/ftoa_d.lib
-  )
-  if(EXISTS ${LIBDIR}/xml2/lib/libxml2s.lib) # 3.4 libraries
-    list(APPEND OPENCOLLADA_LIBRARIES ${LIBDIR}/xml2/lib/libxml2s.lib)
-  else()
-    list(APPEND OPENCOLLADA_LIBRARIES ${OPENCOLLADA}/lib/opencollada/xml.lib)
-  endif()
-
-  list(APPEND OPENCOLLADA_LIBRARIES ${OPENCOLLADA}/lib/opencollada/UTF.lib)
-endif()
-
 if(WITH_CODEC_FFMPEG)
   set(FFMPEG_INCLUDE_DIRS
     ${LIBDIR}/ffmpeg/include

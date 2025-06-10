@@ -85,10 +85,6 @@ void relations_invalidate_cache_raw(Scene *scene, Strip *strip)
 
 void relations_invalidate_cache(Scene *scene, Strip *strip)
 {
-  if (strip->type == STRIP_TYPE_SOUND_RAM) {
-    return;
-  }
-
   if (strip->effectdata && strip->type == STRIP_TYPE_SPEED) {
     strip_effect_speed_rebuild_map(scene, strip);
   }
@@ -99,6 +95,7 @@ void relations_invalidate_cache(Scene *scene, Strip *strip)
   intra_frame_cache_invalidate(scene, strip);
   invalidate_raw_cache_of_parent_meta(scene, strip);
 
+  /* Needed to update VSE sound. */
   DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
   prefetch_stop(scene);
 }

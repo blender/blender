@@ -975,9 +975,9 @@ bool Instance::object_is_sculpt_mode(const ObjectRef &ob_ref)
     const Object *active_object = state.object_active;
     const bool is_active_object = ob_ref.object == active_object;
 
-    bool is_geonode_preview = ob_ref.dupli_object && ob_ref.dupli_object->preview_base_geometry;
-    bool is_active_dupli_parent = ob_ref.dupli_parent == active_object;
-    return is_active_object || (is_active_dupli_parent && is_geonode_preview);
+    bool is_active_geonode_preview = ob_ref.preview_base_geometry() != nullptr &&
+                                     ob_ref.is_active(state.object_active);
+    return is_active_object || is_active_geonode_preview;
   }
 
   if (state.object_mode == OB_MODE_SCULPT) {
@@ -1008,13 +1008,9 @@ bool Instance::object_is_edit_paint_mode(const ObjectRef &ob_ref,
                                          bool in_sculpt_mode)
 {
   bool in_edit_paint_mode = in_edit_mode || in_paint_mode || in_sculpt_mode;
-  if (ob_ref.object->base_flag & BASE_FROM_DUPLI) {
-    /* Disable outlines for objects instanced by an object in sculpt, paint or edit mode. */
-    in_edit_paint_mode |= ob_ref.dupli_parent && (object_is_edit_mode(ob_ref.dupli_parent) ||
-                                                  object_is_sculpt_mode(ob_ref.dupli_parent) ||
-                                                  object_is_paint_mode(ob_ref.dupli_parent));
-  }
-  return in_edit_paint_mode;
+  /* Disable outlines for objects instanced by an object in sculpt, paint or edit mode. */
+  return in_edit_paint_mode || ob_ref.parent_is_in_edit_paint_mode(
+                                   state.object_active, state.object_mode, state.ctx_mode);
 }
 
 bool Instance::object_is_edit_mode(const Object *object)

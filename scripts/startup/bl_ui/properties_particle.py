@@ -95,6 +95,7 @@ class PARTICLE_MT_context_menu(Menu):
             "particle.duplicate_particle_system",
             icon='DUPLICATE',
         )
+        layout.operator("particle.particle_system_remove_all", text="Remove All Particle Systems")
 
 
 class PARTICLE_PT_hair_dynamics_presets(PresetPanel, Panel):

@@ -16,6 +16,7 @@
 #include "DNA_light_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_object_force_types.h"
+#include "DNA_pointcloud_types.h"
 #include "DNA_sequence_types.h"
 
 #include "BLI_listbase.h"
@@ -33,6 +34,9 @@
 #include "BKE_customdata.hh"
 #include "BKE_fcurve.hh"
 #include "BKE_grease_pencil.hh"
+#include "BKE_idprop.hh"
+#include "BKE_lib_id.hh"
+#include "BKE_lib_query.hh"
 #include "BKE_main.hh"
 #include "BKE_mesh_legacy_convert.hh"
 #include "BKE_node.hh"
@@ -54,6 +58,60 @@
 #include "versioning_common.hh"
 
 // static CLG_LogRef LOG = {"blo.readfile.doversion"};
+
+void version_forward_compat_system_idprops(Main *bmain)
+{
+  auto idprops_process = [](IDProperty **idprops, IDProperty *system_idprops) -> void {
+    if (system_idprops) {
+      /* Other ID pointers have not yet been relinked,
+       * do not try to access them for reference-counting. */
+      if (*idprops) {
+        IDP_MergeGroup_ex(*idprops, system_idprops, true, LIB_ID_CREATE_NO_USER_REFCOUNT);
+      }
+      else {
+        *idprops = IDP_CopyProperty_ex(system_idprops, LIB_ID_CREATE_NO_USER_REFCOUNT);
+      }
+    }
+  };
+
+  ID *id_iter;
+  FOREACH_MAIN_ID_BEGIN (bmain, id_iter) {
+    idprops_process(&id_iter->properties, id_iter->system_properties);
+  }
+  FOREACH_MAIN_ID_END;
+
+  LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+    LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
+      idprops_process(&view_layer->id_properties, view_layer->system_properties);
+    }
+
+    if (scene->ed != nullptr) {
+      blender::seq::for_each_callback(&scene->ed->seqbase,
+                                      [&idprops_process](Strip *strip) -> bool {
+                                        idprops_process(&strip->prop, strip->system_properties);
+                                        return true;
+                                      });
+    }
+  }
+
+  LISTBASE_FOREACH (Object *, object, &bmain->objects) {
+    if (!object->pose) {
+      continue;
+    }
+    LISTBASE_FOREACH (bPoseChannel *, pchan, &object->pose->chanbase) {
+      idprops_process(&pchan->prop, pchan->system_properties);
+    }
+  }
+
+  LISTBASE_FOREACH (bArmature *, armature, &bmain->armatures) {
+    for (BoneCollection *bcoll : armature->collections_span()) {
+      idprops_process(&bcoll->prop, bcoll->system_properties);
+    }
+    LISTBASE_FOREACH (Bone *, bone, &armature->bonebase) {
+      idprops_process(&bone->prop, bone->system_properties);
+    }
+  }
+}
 
 static void version_fix_fcurve_noise_offset(FCurve &fcurve)
 {
@@ -5370,7 +5428,7 @@ void blo_do_versions_450(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
       if (ntree->type == NTREE_COMPOSIT) {
         LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
           if (node->type_legacy == CMP_NODE_CORNERPIN) {
-            node->custom1 = CMP_NODE_CORNER_PIN_INTERPOLATION_ANISOTROPIC;
+            node->custom1 = CMP_NODE_INTERPOLATION_ANISOTROPIC;
           }
         }
       }

@@ -26,6 +26,16 @@ GPUVertFormat *immVertexFormat();
 void immBindShader(GPUShader *shader);
 /** Call after your last immEnd, or before binding another program. */
 void immUnbindProgram();
+/**
+ * Check if there is a shader bound.
+ *
+ * Useful to trigger asserts when immediate mode drawing and
+ * batch based drawing are mixed. It isn't allowed to have an immediate mode shader bound when a
+ * batch is drawn.
+ *
+ * TODO: We should move these asserts to batch drawing, but didn't do that as it was never forced.
+ */
+bool immIsShaderBound();
 
 /** Must supply exactly vertex_len vertices. */
 void immBegin(GPUPrimType, uint vertex_len);

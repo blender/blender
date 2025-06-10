@@ -176,8 +176,15 @@ typedef struct ViewLayer {
 
   struct Material *mat_override;
   struct World *world_override;
-  /** Equivalent to datablocks ID properties. */
+  /** Equivalent to data-blocks ID properties. */
   struct IDProperty *id_properties;
+  /**
+   * Equivalent to data-blocks system-defined ID properties.
+   *
+   * In Blender 4.5, only used to ensure forward compatibility with 5.x blend-files, and data
+   * management consistency.
+   */
+  struct IDProperty *system_properties;
 
   struct FreestyleConfig freestyle_config;
   struct ViewLayerEEVEE eevee;

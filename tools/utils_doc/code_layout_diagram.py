@@ -326,7 +326,6 @@ SECTIONS = (
             ("materialx", "A standard for representing materials. Used by USD, Hydra & Blender's shader nodes."),
             ("mesa", "Used for it's software OpenGL implementation."),
             ("openal", "Cross platform audio output."),
-            ("opencollada", "Support for the COLLADA 3D interchange file format."),
             ("opencolorio", "A solution for highly precise, performant, and consistent color management."),
             ("openexr", "EXR image-format support."),
             ("openimagedenoise", "Denoising filters for images rendered with ray tracing. Used by Cycles."),

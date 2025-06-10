@@ -3421,7 +3421,7 @@ static void menu_item_enum_opname_menu(bContext *C, uiLayout *layout, void *arg)
    * menu item name, set in uiItemMenuEnumFullO_ptr. */
   const int active = menu_item_enum_opname_menu_active(C, but, lvl);
 
-  uiLayoutSetOperatorContext(layout, lvl->opcontext);
+  layout->operator_context_set(lvl->opcontext);
   uiItemsFullEnumO(
       layout, lvl->opname, lvl->propname, op_props, lvl->opcontext, UI_ITEM_NONE, active);
 
@@ -3520,7 +3520,7 @@ static void menu_item_enum_rna_menu(bContext * /*C*/, uiLayout *layout, void *ar
 {
   MenuItemLevel *lvl = (MenuItemLevel *)(((uiBut *)arg)->func_argN);
 
-  uiLayoutSetOperatorContext(layout, lvl->opcontext);
+  layout->operator_context_set(lvl->opcontext);
   uiItemsEnumR(layout, &lvl->rnapoin, lvl->propname);
 }
 
@@ -4832,7 +4832,7 @@ PanelLayout uiLayout::panel_prop(const bContext *C,
     STRNCPY(header_litem->open_prop_name, open_prop_name.c_str());
 
     uiLayout *row = &header_litem->row(true);
-    uiLayoutSetUnitsY(row, 1.2f);
+    row->ui_units_y_set(1.2f);
 
     uiBlock *block = uiLayoutGetBlock(row);
     const int icon = is_open ? ICON_DOWNARROW_HLT : ICON_RIGHTARROW;
@@ -5136,26 +5136,6 @@ void uiLayoutSetAlignment(uiLayout *layout, char alignment)
   layout->alignment_ = alignment;
 }
 
-void uiLayoutSetScaleX(uiLayout *layout, float scale)
-{
-  layout->scale_[0] = scale;
-}
-
-void uiLayoutSetScaleY(uiLayout *layout, float scale)
-{
-  layout->scale_[1] = scale;
-}
-
-void uiLayoutSetUnitsX(uiLayout *layout, float unit)
-{
-  layout->units_[0] = unit;
-}
-
-void uiLayoutSetUnitsY(uiLayout *layout, float unit)
-{
-  layout->units_[1] = unit;
-}
-
 void uiLayout::emboss_set(blender::ui::EmbossType emboss)
 {
   emboss_ = emboss;
@@ -5234,26 +5214,6 @@ int uiLayoutGetAlignment(uiLayout *layout)
 int uiLayoutGetWidth(uiLayout *layout)
 {
   return layout->w_;
-}
-
-float uiLayoutGetScaleX(uiLayout *layout)
-{
-  return layout->scale_[0];
-}
-
-float uiLayoutGetScaleY(uiLayout *layout)
-{
-  return layout->scale_[1];
-}
-
-float uiLayoutGetUnitsX(uiLayout *layout)
-{
-  return layout->units_[0];
-}
-
-float uiLayoutGetUnitsY(uiLayout *layout)
-{
-  return layout->units_[1];
 }
 
 blender::ui::EmbossType uiLayout::emboss() const
@@ -5768,9 +5728,9 @@ uiBlock *uiLayoutGetBlock(uiLayout *layout)
   return layout->root_->block;
 }
 
-wmOperatorCallContext uiLayoutGetOperatorContext(uiLayout *layout)
+wmOperatorCallContext uiLayout::operator_context() const
 {
-  return layout->root_->opcontext;
+  return root_->opcontext;
 }
 
 void UI_block_layout_set_current(uiBlock *block, uiLayout *layout)
@@ -5882,9 +5842,9 @@ bool uiLayoutGetFixedSize(uiLayout *layout)
   return bool(layout->flag_ & uiItemInternalFlag::FixedSize);
 }
 
-void uiLayoutSetOperatorContext(uiLayout *layout, wmOperatorCallContext opcontext)
+void uiLayout::operator_context_set(wmOperatorCallContext opcontext)
 {
-  layout->root_->opcontext = opcontext;
+  root_->opcontext = opcontext;
 }
 
 void uiLayoutSetFunc(uiLayout *layout, uiMenuHandleFunc handlefunc, void *argv)

@@ -6101,9 +6101,9 @@ void MESH_OT_dissolve_mode(wmOperatorType *ot)
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
   edbm_dissolve_prop__use_verts(ot, false, PROP_SKIP_SAVE);
+  edbm_dissolve_prop__use_angle_threshold(ot);
   edbm_dissolve_prop__use_face_split(ot);
   edbm_dissolve_prop__use_boundary_tear(ot);
-  edbm_dissolve_prop__use_angle_threshold(ot);
 }
 
 /** \} */

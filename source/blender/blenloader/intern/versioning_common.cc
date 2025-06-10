@@ -205,7 +205,6 @@ void version_node_output_socket_name(bNodeTree *ntree,
   }
 }
 
-/* Find the base socket name for an idname that may include a subtype. */
 StringRef legacy_socket_idname_to_socket_type(StringRef idname)
 {
   using string_pair = std::pair<const char *, const char *>;

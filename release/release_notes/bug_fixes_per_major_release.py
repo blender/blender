@@ -22,15 +22,18 @@ some missing commits), but it's significantly better than nothing.
 - Make sure the list `LIST_OF_OFFICIAL_BLENDER_VERSIONS` is up to date.
 - Open a terminal in your Blender source code folder and make sure the
   branches you're interested in are up to date.
-- Launch `main.py` with relevant launch arguments. The required arguments are:
+- Launch `bug_fixes_per_major_release.py` with relevant launch arguments. The required arguments are:
   - --current-version (-cv)
   - --previous-version (-pv)
   - --current-release-tag (-ct)
   - --previous-release-tag (-pt)
   - --backport-tasks (-bpt) (Optional, but recommended)
-- Here is an example if you wish to collect the list for Blender 4.5 during
+- Here is an example if you wish to collect the list for Blender 5.0 during
 the Alpha stage of development.
-  - `python bug_fixes_per_major_release.py -cv 4.5 -pv 4.4 -ct main -pt blender-v4.4-release -bpt 109399 124452 135860`
+  - `python bug_fixes_per_major_release.py -cv 5.0 -pv 4.5 -ct main -pt blender-v4.5-release -bpt 124452 135860`
+- Here is an example if you wish to collect the list for Blender 4.5 during
+the Beta stage of development.
+  - `python bug_fixes_per_major_release.py -cv 4.5 -pv 4.4 -ct blender-v4.5-release -pt blender-v4.4-release -bpt 109399 124452 135860`
 - Wait for the script to finish (This can take upwards of 20 minutes).
 - Follow the guide printed to terminal.
 
@@ -221,9 +224,11 @@ LIST_OF_OFFICIAL_BLENDER_VERSIONS = (
     # 2.9x.
     '2.90', '2.91', '2.92', '2.93',
     # 3.x.
-    '3.0', '3.1', '3.2', '3.3', '3.4', '3.5', '3.6', '4.0',
+    '3.0', '3.1', '3.2', '3.3', '3.4', '3.5', '3.6',
     # 4.x.
-    '4.1', '4.2', '4.3', '4.4', '4.5'
+    '4.0', '4.1', '4.2', '4.3', '4.4', '4.5',
+    # 5.x.
+    '5.0',
 )
 
 # Catch duplicates

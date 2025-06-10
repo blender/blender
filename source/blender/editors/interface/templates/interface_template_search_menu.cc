@@ -673,7 +673,7 @@ static MenuSearch_Data *menu_items_from_ui_create(bContext *C,
       if (current_menu.context.has_value()) {
         uiLayoutContextCopy(layout, &*current_menu.context);
       }
-      uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_REGION_WIN);
+      layout->operator_context_set(WM_OP_INVOKE_REGION_WIN);
       UI_menutype_draw(C, mt, layout);
 
       UI_block_end(C, block);
@@ -770,7 +770,7 @@ static MenuSearch_Data *menu_items_from_ui_create(bContext *C,
 
           UI_block_flag_enable(sub_block, UI_BLOCK_SHOW_SHORTCUT_ALWAYS);
 
-          uiLayoutSetOperatorContext(sub_layout, WM_OP_INVOKE_REGION_WIN);
+          sub_layout->operator_context_set(WM_OP_INVOKE_REGION_WIN);
 
           /* If this is a panel, check it's poll function succeeds before drawing.
            * otherwise draw(..) may be called in an unsupported context and crash, see: #130744.

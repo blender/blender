@@ -356,10 +356,6 @@ if(WITH_WASAPI)
   add_definitions(-DWITH_WASAPI)
 endif()
 
-if(WITH_OPENCOLLADA)
-  add_definitions(-DWITH_COLLADA)
-endif()
-
 if(WITH_INTERNATIONAL)
   add_definitions(-DWITH_INTERNATIONAL)
 endif()

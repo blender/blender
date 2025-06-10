@@ -1949,7 +1949,7 @@ static wmOperatorStatus uv_mark_seam_invoke(bContext *C, wmOperator *op, const w
   pup = UI_popup_menu_begin(C, IFACE_("Edges"), ICON_NONE);
   layout = UI_popup_menu_layout(pup);
 
-  uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT);
+  layout->operator_context_set(WM_OP_EXEC_DEFAULT);
   PointerRNA op_ptr = layout->op(
       op->type->idname, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Mark Seam"), ICON_NONE);
   RNA_boolean_set(&op_ptr, "clear", false);

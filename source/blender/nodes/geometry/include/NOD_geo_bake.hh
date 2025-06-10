@@ -111,6 +111,7 @@ struct BakeDrawContext {
   bool bake_still;
   bool is_baked;
   std::optional<NodesModifierBakeTarget> bake_target;
+  bool is_bakeable_in_current_context;
 };
 
 [[nodiscard]] bool get_bake_draw_context(const bContext *C,

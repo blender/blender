@@ -19,6 +19,7 @@
 
 #include "gpu_backend.hh"
 #include "gpu_context_private.hh"
+#include "gpu_profile_report.hh"
 #include "gpu_shader_create_info.hh"
 #include "gpu_shader_create_info_private.hh"
 #include "gpu_shader_dependency_private.hh"
@@ -805,13 +806,21 @@ void Shader::set_framebuffer_srgb_target(int use_srgb_to_linear)
 
 Shader *ShaderCompiler::compile(const shader::ShaderCreateInfo &info, bool is_batch_compilation)
 {
+  using Clock = std::chrono::steady_clock;
+  using TimePoint = Clock::time_point;
+
   using namespace blender::gpu::shader;
   const_cast<ShaderCreateInfo &>(info).finalize();
+
+  TimePoint start_time;
 
   if (Context::get()) {
     /* Context can be null in Vulkan compilation threads. */
     GPU_debug_group_begin(GPU_DEBUG_SHADER_COMPILATION_GROUP);
     GPU_debug_group_begin(info.name_.c_str());
+  }
+  else {
+    start_time = Clock::now();
   }
 
   const std::string error = info.check_error();
@@ -833,6 +842,8 @@ Shader *ShaderCompiler::compile(const shader::ShaderCreateInfo &info, bool is_ba
 
   std::string defines = shader->defines_declare(info);
   std::string resources = shader->resources_declare(info);
+
+  info.resource_guard_defines(defines);
 
   defines += "#define USE_GPU_SHADER_CREATE_INFO\n";
 
@@ -865,6 +876,12 @@ Shader *ShaderCompiler::compile(const shader::ShaderCreateInfo &info, bool is_ba
     sources.extend(info.dependencies_generated);
     sources.append(info.vertex_source_generated);
 
+    if (info.vertex_entry_fn_ != "main") {
+      sources.append("void main() { ");
+      sources.append(info.vertex_entry_fn_);
+      sources.append("(); }\n");
+    }
+
     shader->vertex_shader_from_glsl(sources);
   }
 
@@ -886,6 +903,12 @@ Shader *ShaderCompiler::compile(const shader::ShaderCreateInfo &info, bool is_ba
     sources.extend(info.dependencies_generated);
     sources.append(info.fragment_source_generated);
 
+    if (info.fragment_entry_fn_ != "main") {
+      sources.append("void main() { ");
+      sources.append(info.fragment_entry_fn_);
+      sources.append("(); }\n");
+    }
+
     shader->fragment_shader_from_glsl(sources);
   }
 
@@ -905,6 +928,12 @@ Shader *ShaderCompiler::compile(const shader::ShaderCreateInfo &info, bool is_ba
     sources.append(info.geometry_source_generated);
     sources.extend(code);
 
+    if (info.geometry_entry_fn_ != "main") {
+      sources.append("void main() { ");
+      sources.append(info.geometry_entry_fn_);
+      sources.append("(); }\n");
+    }
+
     shader->geometry_shader_from_glsl(sources);
   }
 
@@ -923,6 +952,12 @@ Shader *ShaderCompiler::compile(const shader::ShaderCreateInfo &info, bool is_ba
     sources.extend(info.dependencies_generated);
     sources.append(info.compute_source_generated);
 
+    if (info.compute_entry_fn_ != "main") {
+      sources.append("void main() { ");
+      sources.append(info.compute_entry_fn_);
+      sources.append("(); }\n");
+    }
+
     shader->compute_shader_from_glsl(sources);
   }
 
@@ -935,6 +970,16 @@ Shader *ShaderCompiler::compile(const shader::ShaderCreateInfo &info, bool is_ba
     /* Context can be null in Vulkan compilation threads. */
     GPU_debug_group_end();
     GPU_debug_group_end();
+  }
+  else {
+    TimePoint end_time = Clock::now();
+    /* Note: Used by the vulkan backend. Use the same time_since_epoch as process_frame_timings. */
+    ProfileReport::get().add_group_cpu(GPU_DEBUG_SHADER_COMPILATION_GROUP,
+                                       start_time.time_since_epoch().count(),
+                                       end_time.time_since_epoch().count());
+    ProfileReport::get().add_group_cpu(info.name_.c_str(),
+                                       start_time.time_since_epoch().count(),
+                                       end_time.time_since_epoch().count());
   }
 
   return shader;

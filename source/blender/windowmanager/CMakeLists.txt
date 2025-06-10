@@ -140,10 +140,6 @@ if(WITH_VULKAN_BACKEND)
   add_definitions(-DWITH_VULKAN_BACKEND)
 endif()
 
-if(WITH_OPENCOLLADA)
-  add_definitions(-DWITH_COLLADA)
-endif()
-
 if(WITH_CODEC_FFMPEG)
   list(APPEND INC_SYS
     ${FFMPEG_INCLUDE_DIRS}

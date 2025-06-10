@@ -406,8 +406,8 @@ void GridViewLayoutBuilder::build_from_view(const bContext &C,
   /* We might not actually know the width available for the grid view. Let's just assume that
    * either there is a fixed width defined via #uiLayoutSetUnitsX() or that the layout is close to
    * the root level and inherits its width. Might need a more reliable method. */
-  const int guessed_layout_width = (uiLayoutGetUnitsX(parent_layout) > 0) ?
-                                       uiLayoutGetUnitsX(parent_layout) * UI_UNIT_X :
+  const int guessed_layout_width = (parent_layout->ui_units_x() > 0) ?
+                                       parent_layout->ui_units_x() * UI_UNIT_X :
                                        uiLayoutGetWidth(parent_layout);
   const int cols_per_row = std::max(guessed_layout_width / style.tile_width, 1);
 

@@ -764,6 +764,41 @@ void OneapiDevice::tex_alloc(device_texture &mem)
     sycl::ext::oneapi::experimental::image_descriptor desc{};
 
     if (mem.data_height > 0) {
+      const sycl::device &device = reinterpret_cast<sycl::queue *>(queue)->get_device();
+      if (mem.data_depth > 1) {
+        const size_t max_width = device.get_info<sycl::info::device::image3d_max_width>();
+        const size_t max_height = device.get_info<sycl::info::device::image3d_max_height>();
+        const size_t max_depth = device.get_info<sycl::info::device::image3d_max_depth>();
+
+        if (mem.data_width > max_width || mem.data_height > max_height ||
+            mem.data_depth > max_depth)
+        {
+          set_error(string_printf(
+              "Maximum GPU 3D texture size exceeded (max %zux%zux%zu, found %zux%zux%zu)",
+              max_width,
+              max_height,
+              max_depth,
+              mem.data_width,
+              mem.data_height,
+              mem.data_depth));
+          return;
+        }
+      }
+      else {
+        const size_t max_width = device.get_info<sycl::info::device::image2d_max_width>();
+        const size_t max_height = device.get_info<sycl::info::device::image2d_max_height>();
+
+        if (mem.data_width > max_width || mem.data_height > max_height) {
+          set_error(
+              string_printf("Maximum GPU 2D texture size exceeded (max %zux%zu, found %zux%zu)",
+                            max_width,
+                            max_height,
+                            mem.data_width,
+                            mem.data_height));
+          return;
+        }
+      }
+
       /* 2D/3D texture -- Tile optimized */
       size_t depth = mem.data_depth == 1 ? 0 : mem.data_depth;
       desc = sycl::ext::oneapi::experimental::image_descriptor(
@@ -775,6 +810,10 @@ void OneapiDevice::tex_alloc(device_texture &mem)
 
       sycl::ext::oneapi::experimental::image_mem_handle memHandle =
           sycl::ext::oneapi::experimental::alloc_image_mem(desc, *queue);
+      if (!memHandle.raw_handle) {
+        set_error("GPU texture allocation failed: Raw handle is null");
+        return;
+      }
 
       /* Copy data from host to the texture properly based on the texture description */
       queue->ext_oneapi_copy(mem.host_pointer, memHandle, desc);
@@ -848,8 +887,7 @@ void OneapiDevice::tex_alloc(device_texture &mem)
     }
   }
   catch (sycl::exception const &e) {
-    set_error("oneAPI texture allocation error: got runtime exception \"" + string(e.what()) +
-              "\"");
+    set_error("GPU texture allocation failed: runtime exception \"" + string(e.what()) + "\"");
   }
 }
 

@@ -2138,7 +2138,6 @@ static wmOperatorStatus object_pointcloud_add_exec(bContext *C, wmOperator *op)
   Object *object = add_type(C, OB_POINTCLOUD, nullptr, loc, rot, false, local_view_bits);
   PointCloud &pointcloud = *static_cast<PointCloud *>(object->data);
   pointcloud.totpoint = 400;
-  CustomData_realloc(&pointcloud.pdata, 0, pointcloud.totpoint);
 
   bke::MutableAttributeAccessor attributes = pointcloud.attributes_for_write();
   bke::SpanAttributeWriter<float3> position = attributes.lookup_or_add_for_write_only_span<float3>(

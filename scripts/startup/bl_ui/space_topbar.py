@@ -30,7 +30,7 @@ class TOPBAR_HT_upper_bar(Header):
 
         TOPBAR_MT_editor_menus.draw_collapsible(context, layout)
 
-        layout.separator()
+        layout.separator(type='LINE')
 
         if not screen.show_fullscreen:
             layout.template_ID_tabs(window, "workspace", new="workspace.add", menu="TOPBAR_MT_workspace_menu")
@@ -373,8 +373,6 @@ class TOPBAR_MT_file_import(Menu):
 
         if bpy.app.build_options.io_fbx:
             self.layout.operator("wm.fbx_import", text="FBX (.fbx) (experimental)")
-        if bpy.app.build_options.collada:
-            self.layout.operator("wm.collada_import", text="Collada (.dae) (Legacy)")
 
 
 class TOPBAR_MT_file_export(Menu):
@@ -403,8 +401,6 @@ class TOPBAR_MT_file_export(Menu):
             self.layout.operator("wm.ply_export", text="Stanford PLY (.ply)")
         if bpy.app.build_options.io_stl:
             self.layout.operator("wm.stl_export", text="STL (.stl)")
-        if bpy.app.build_options.collada:
-            self.layout.operator("wm.collada_export", text="Collada (.dae) (Legacy)")
 
 
 class TOPBAR_MT_file_external_data(Menu):

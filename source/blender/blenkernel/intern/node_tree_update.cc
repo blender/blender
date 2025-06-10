@@ -880,6 +880,8 @@ class NodeTreeMainUpdater {
       case SOCK_COLLECTION:
       case SOCK_TEXTURE:
       case SOCK_MATERIAL:
+      case SOCK_CLOSURE:
+      case SOCK_BUNDLE:
         return true;
       default:
         return false;
@@ -910,7 +912,6 @@ class NodeTreeMainUpdater {
   }
 
   static int get_output_socket_shape(const SocketDeclaration &decl,
-                                     const bke::FieldSocketState field_state,
                                      const StructureType structure_type)
   {
     if (decl.identifier == "__extend__") {
@@ -927,15 +928,7 @@ class NodeTreeMainUpdater {
         return SOCK_DISPLAY_SHAPE_CIRCLE;
       }
       case StructureType::Field: {
-        switch (field_state) {
-          case bke::FieldSocketState::RequiresSingle:
-            return SOCK_DISPLAY_SHAPE_LINE;
-          case bke::FieldSocketState::CanBeField:
-            return SOCK_DISPLAY_SHAPE_CIRCLE;
-          case bke::FieldSocketState::IsField:
-            return SOCK_DISPLAY_SHAPE_DIAMOND;
-        }
-        break;
+        return SOCK_DISPLAY_SHAPE_DIAMOND;
       }
       case StructureType::Grid: {
         return SOCK_DISPLAY_SHAPE_VOLUME_GRID;
@@ -949,33 +942,27 @@ class NodeTreeMainUpdater {
   {
     ntree.ensure_topology_cache();
     if (U.experimental.use_socket_structure_type) {
-      const nodes::StructureTypeInterface &node_interface =
-          *ntree.runtime->structure_type_interface;
-      const Span<bke::FieldSocketState> field_states = ntree.runtime->field_states;
       for (bNode *node : ntree.all_nodes()) {
         if (node->is_undefined()) {
           continue;
         }
-        if (node->is_group_input()) {
-          const Span<bNodeSocket *> sockets = node->output_sockets();
-          for (const int i : node_interface.inputs.index_range()) {
-            sockets[i]->display_shape = get_output_socket_shape(
-                *sockets[i]->runtime->declaration,
-                field_states[sockets[i]->index_in_tree()],
-                node_interface.inputs[i]);
+        /* For input/output nodes we use the inferred structure types. */
+        if (node->is_group_input() || node->is_group_output() ||
+            ELEM(node->type_legacy, GEO_NODE_CLOSURE_INPUT, GEO_NODE_CLOSURE_OUTPUT))
+        {
+          for (bNodeSocket *socket : node->input_sockets()) {
+            socket->display_shape = get_input_socket_shape(
+                *socket->runtime->declaration,
+                ntree.runtime->inferred_structure_types[socket->index_in_tree()]);
+          }
+          for (bNodeSocket *socket : node->output_sockets()) {
+            socket->display_shape = get_output_socket_shape(
+                *socket->runtime->declaration,
+                ntree.runtime->inferred_structure_types[socket->index_in_tree()]);
           }
           continue;
         }
-        if (node->is_group_output()) {
-          const Span<bNodeSocket *> sockets = node->input_sockets();
-          for (const int i : node_interface.outputs.index_range()) {
-            sockets[i]->display_shape = get_output_socket_shape(
-                *sockets[i]->runtime->declaration,
-                field_states[sockets[i]->index_in_tree()],
-                node_interface.outputs[i].type);
-          }
-          continue;
-        }
+        /* For other nodes we just use the static structure types defined in the declaration. */
         for (bNodeSocket *socket : node->input_sockets()) {
           if (const SocketDeclaration *declaration = socket->runtime->declaration) {
             socket->display_shape = get_input_socket_shape(*declaration,
@@ -984,8 +971,8 @@ class NodeTreeMainUpdater {
         }
         for (bNodeSocket *socket : node->output_sockets()) {
           if (const SocketDeclaration *declaration = socket->runtime->declaration) {
-            socket->display_shape = get_output_socket_shape(
-                *declaration, field_states[socket->index_in_tree()], declaration->structure_type);
+            socket->display_shape = get_output_socket_shape(*declaration,
+                                                            declaration->structure_type);
           }
         }
       }
@@ -1524,6 +1511,7 @@ class NodeTreeMainUpdater {
       const uint64_t socket_ptr = uintptr_t(&socket);
       return noise::hash(socket_ptr, socket_ptr >> 32);
     };
+    const bNodeTreeZones *zones = tree.zones();
 
     while (!sockets_to_check.is_empty()) {
       const bNodeSocket &socket = *sockets_to_check.peek();
@@ -1540,6 +1528,7 @@ class NodeTreeMainUpdater {
         /* For input sockets, first compute the hashes of all linked sockets. */
         bool all_origins_computed = true;
         bool get_value_from_origin = false;
+        Vector<const bNodeSocket *, 16> origin_sockets;
         for (const bNodeLink *link : socket.directly_linked_links()) {
           if (link->is_muted()) {
             continue;
@@ -1547,11 +1536,22 @@ class NodeTreeMainUpdater {
           if (!link->is_available()) {
             continue;
           }
-          const bNodeSocket &origin_socket = *link->fromsock;
+          origin_sockets.append(link->fromsock);
+        }
+        if (zones) {
+          if (const bNodeTreeZone *zone = zones->get_zone_by_socket(socket)) {
+            if (zone->output_node_id == node.identifier) {
+              if (const bNode *input_node = zone->input_node()) {
+                origin_sockets.extend(input_node->input_sockets());
+              }
+            }
+          }
+        }
+        for (const bNodeSocket *origin_socket : origin_sockets) {
           const std::optional<uint32_t> origin_hash =
-              hash_by_socket_id[origin_socket.index_in_tree()];
+              hash_by_socket_id[origin_socket->index_in_tree()];
           if (origin_hash.has_value()) {
-            if (get_value_from_origin || socket.type != origin_socket.type) {
+            if (get_value_from_origin || socket.type != origin_socket->type) {
               socket_hash = noise::hash(socket_hash, *origin_hash);
             }
             else {
@@ -1561,7 +1561,7 @@ class NodeTreeMainUpdater {
             get_value_from_origin = true;
           }
           else {
-            sockets_to_check.push(&origin_socket);
+            sockets_to_check.push(origin_socket);
             all_origins_computed = false;
           }
         }

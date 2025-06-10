@@ -43,8 +43,6 @@ BLOCKLIST = [
 ]
 
 BLOCKLIST_METAL = [
-    # Blocked due to difference in tangent space calculation (to be fixed).
-    "tangent_no_uv.blend",
     # Blocked due to difference in volume lightprobe bakes (to be fixed).
     "clamp_.*.blend",
     "shadow_all_max_bounces.blend",

@@ -263,18 +263,14 @@ class EllipseMaskOperation : public NodeOperation {
 
   float2 get_location()
   {
-    return math::clamp(
-        this->get_input("Position").get_single_value_default(float3(0.5f, 0.5f, 0.0f)).xy(),
-        float2(-0.5f),
-        float2(1.5f));
+    return this->get_input("Position").get_single_value_default(float3(0.5f, 0.5f, 0.0f)).xy();
   }
 
   float2 get_size()
   {
-    return math::clamp(
-        this->get_input("Size").get_single_value_default(float3(0.2f, 0.1f, 0.0f)).xy(),
+    return math::max(
         float2(0.0f),
-        float2(1.0f));
+        this->get_input("Size").get_single_value_default(float3(0.2f, 0.1f, 0.0f)).xy());
   }
 
   float get_angle()

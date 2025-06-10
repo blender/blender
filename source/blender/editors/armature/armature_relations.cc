@@ -291,6 +291,9 @@ static BoneCollection *join_armature_remap_collection(
   if (bcoll->prop) {
     new_bcoll->prop = IDP_CopyProperty_ex(bcoll->prop, 0);
   }
+  if (bcoll->system_properties) {
+    new_bcoll->system_properties = IDP_CopyProperty_ex(bcoll->system_properties, 0);
+  }
 
   bone_collection_by_name.add(bcoll->name, new_bcoll);
   return new_bcoll;

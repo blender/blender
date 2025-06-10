@@ -306,9 +306,6 @@ void ntreeTexEndExecTree(bNodeTreeExec *exec)
 int ntreeTexExecTree(bNodeTree *ntree,
                      TexResult *target,
                      const float co[3],
-                     float dxt[3],
-                     float dyt[3],
-                     int osatex,
                      const short thread,
                      const Tex * /*tex*/,
                      short which_output,
@@ -322,9 +319,6 @@ int ntreeTexExecTree(bNodeTree *ntree,
   bNodeTreeExec *exec = ntree->runtime->execdata;
 
   data.co = co;
-  data.dxt = dxt;
-  data.dyt = dyt;
-  data.osatex = osatex;
   data.target = target;
   data.do_preview = preview;
   data.do_manage = true;

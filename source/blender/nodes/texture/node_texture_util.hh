@@ -23,11 +23,9 @@ struct bNodeThreadStack;
 
 struct TexCallData {
   TexResult *target;
-  /* all float[3] */
+  /* float[3] */
   const float *co;
-  float *dxt, *dyt;
 
-  int osatex;
   bool do_preview;
   bool do_manage;
   short thread;
@@ -39,10 +37,8 @@ struct TexCallData {
 
 struct TexParams {
   const float *co;
-  float *dxt, *dyt;
   const float *previewco;
   int cfra;
-  int osatex;
 
   /* optional. we don't really want these here, but image
    * textures need to do mapping & color correction */

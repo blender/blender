@@ -159,7 +159,7 @@ void uiTemplatePreview(uiLayout *layout,
       PointerRNA material_ptr = RNA_id_pointer_create(&ma->id);
 
       col = &row->column(true);
-      uiLayoutSetScaleX(col, 1.5);
+      col->scale_x_set(1.5);
       col->prop(&material_ptr, "preview_render_type", UI_ITEM_R_EXPAND, "", ICON_NONE);
 
       /* EEVEE preview file has baked lighting so use_preview_world has no effect,

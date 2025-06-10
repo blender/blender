@@ -1309,9 +1309,6 @@ static int filelist_geticon_file_type_ex(const FileList *filelist,
   if (typeflag & FILE_TYPE_BTX) {
     return ICON_FILE_BLANK;
   }
-  if (typeflag & FILE_TYPE_COLLADA) {
-    return ICON_FILE_3D;
-  }
   if (typeflag & FILE_TYPE_ALEMBIC) {
     return ICON_FILE_3D;
   }
@@ -2808,9 +2805,6 @@ int ED_path_extension_type(const char *path)
   if (BLI_path_extension_check(path, ".btx")) {
     return FILE_TYPE_BTX;
   }
-  if (BLI_path_extension_check(path, ".dae")) {
-    return FILE_TYPE_COLLADA;
-  }
   if (BLI_path_extension_check(path, ".abc")) {
     return FILE_TYPE_ALEMBIC;
   }
@@ -2867,7 +2861,6 @@ int ED_file_extension_icon(const char *path)
       return ICON_FILE_FONT;
     case FILE_TYPE_BTX:
       return ICON_FILE_BLANK;
-    case FILE_TYPE_COLLADA:
     case FILE_TYPE_ALEMBIC:
     case FILE_TYPE_OBJECT_IO:
       return ICON_FILE_3D;

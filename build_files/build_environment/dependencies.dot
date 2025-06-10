@@ -50,7 +50,6 @@ graph[autosize = false, size = "25.7,8.3!", resolution = 300];
 	external_numpy -- external_python_site_packages;
 	external_ocloc -- external_igc;
 	external_ocloc -- external_gmmlib;
-	external_opencollada -- external_xml2;
 	external_opencolorio -- external_yamlcpp;
 	external_opencolorio -- external_expat;
 	external_opencolorio -- external_imath;

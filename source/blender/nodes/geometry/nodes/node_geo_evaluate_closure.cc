@@ -30,14 +30,18 @@ static void node_declare(NodeDeclarationBuilder &b)
       const eNodeSocketDatatype socket_type = eNodeSocketDatatype(item.socket_type);
       const std::string identifier = EvaluateClosureInputItemsAccessor::socket_identifier_for_item(
           item);
-      b.add_input(socket_type, item.name, identifier);
+      b.add_input(socket_type, item.name, identifier)
+          .structure_type(StructureType(item.structure_type));
     }
     for (const int i : IndexRange(storage.output_items.items_num)) {
       const NodeGeometryEvaluateClosureOutputItem &item = storage.output_items.items[i];
       const eNodeSocketDatatype socket_type = eNodeSocketDatatype(item.socket_type);
       const std::string identifier =
           EvaluateClosureOutputItemsAccessor::socket_identifier_for_item(item);
-      b.add_output(socket_type, item.name, identifier).propagate_all().reference_pass_all();
+      b.add_output(socket_type, item.name, identifier)
+          .propagate_all()
+          .reference_pass_all()
+          .structure_type(StructureType(item.structure_type));
     }
   }
 
@@ -83,12 +87,16 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *ptr)
   bNodeTree &tree = *reinterpret_cast<bNodeTree *>(ptr->owner_id);
   bNode &node = *static_cast<bNode *>(ptr->data);
 
+  uiLayoutSetPropSep(layout, true);
+  uiLayoutSetPropDecorate(layout, false);
+
   if (uiLayout *panel = layout->panel(C, "input_items", false, IFACE_("Input Items"))) {
     socket_items::ui::draw_items_list_with_operators<EvaluateClosureInputItemsAccessor>(
         C, panel, tree, node);
     socket_items::ui::draw_active_item_props<EvaluateClosureInputItemsAccessor>(
         tree, node, [&](PointerRNA *item_ptr) {
           panel->prop(item_ptr, "socket_type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+          panel->prop(item_ptr, "structure_type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
         });
   }
   if (uiLayout *panel = layout->panel(C, "output_items", false, IFACE_("Output Items"))) {
@@ -97,6 +105,7 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *ptr)
     socket_items::ui::draw_active_item_props<EvaluateClosureOutputItemsAccessor>(
         tree, node, [&](PointerRNA *item_ptr) {
           panel->prop(item_ptr, "socket_type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+          panel->prop(item_ptr, "structure_type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
         });
   }
 }

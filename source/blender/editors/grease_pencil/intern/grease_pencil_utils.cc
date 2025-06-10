@@ -347,22 +347,29 @@ float3 DrawingPlacement::try_project_depth(const float2 co) const
   return proj_point;
 }
 
-float3 DrawingPlacement::project(const float2 co) const
+float3 DrawingPlacement::project(const float2 co, bool &r_clipped) const
 {
   float3 proj_point;
   if (depth_ == DrawingPlacementDepth::Surface) {
     /* Project using the viewport depth cache. */
     proj_point = this->try_project_depth(co);
+    r_clipped = false;
   }
   else {
     if (placement_plane_) {
-      ED_view3d_win_to_3d_on_plane(region_, *placement_plane_, co, false, proj_point);
+      r_clipped = !ED_view3d_win_to_3d_on_plane(region_, *placement_plane_, co, true, proj_point);
     }
     else {
       ED_view3d_win_to_3d(view3d_, region_, placement_loc_, co, proj_point);
+      r_clipped = false;
     }
   }
   return math::transform_point(world_space_to_layer_space_, proj_point);
+}
+float3 DrawingPlacement::project(const float2 co) const
+{
+  [[maybe_unused]] bool clipped_unused;
+  return this->project(co, clipped_unused);
 }
 
 float3 DrawingPlacement::project_with_shift(const float2 co) const

@@ -428,6 +428,12 @@ static void object_foreach_id(ID *id, LibraryForeachIDData *data)
           data, IDP_foreach_property(pchan->prop, IDP_TYPE_FILTER_ID, [&](IDProperty *prop) {
             BKE_lib_query_idpropertiesForeachIDLink_callback(prop, data);
           }));
+      BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(
+          data,
+          IDP_foreach_property(
+              pchan->system_properties, IDP_TYPE_FILTER_ID, [&](IDProperty *prop) {
+                BKE_lib_query_idpropertiesForeachIDLink_callback(prop, data);
+              }));
 
       BKE_LIB_FOREACHID_PROCESS_IDSUPER(data, pchan->custom, IDWALK_CB_USER);
       BKE_LIB_FOREACHID_PROCESS_FUNCTION_CALL(
