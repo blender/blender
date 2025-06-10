@@ -23,8 +23,8 @@ class GPUWorker {
  private:
   Vector<std::unique_ptr<std::thread>> threads_;
   std::condition_variable condition_var_;
-  std::mutex mutex_;
-  std::atomic<bool> terminate_ = false;
+  std::mutex &mutex_;
+  bool terminate_ = false;
 
  public:
   enum class ContextType {
@@ -37,9 +37,20 @@ class GPUWorker {
   /**
    * \param threads_count: Number of threads to span.
    * \param context_type: The type of context each thread uses.
-   * \param run_cb: The callback function that will be called by a thread on `wake_up()`.
+   * \param mutex: Mutex used when trying to acquire the next work
+   *               (and reused internally for termation).
+   * \param pop_work: The callback function that will be called to acquire the next work,
+   *                  should return a void pointer.
+   *                  NOTE: The mutex is locked when this function is called.
+   * \param do_work: The callback function that will be called for each acquired work
+   *                 (passed as a void pointer).
+   *                 NOTE: The mutex is unlocked when this function is called.
    */
-  GPUWorker(uint32_t threads_count, ContextType context_type, std::function<void()> run_cb);
+  GPUWorker(uint32_t threads_count,
+            ContextType context_type,
+            std::mutex &mutex,
+            std::function<void *()> pop_work,
+            std::function<void(void *)> do_work);
   ~GPUWorker();
 
   /* Wake up a single thread. */
@@ -49,7 +60,9 @@ class GPUWorker {
   }
 
  private:
-  void run(std::shared_ptr<GPUSecondaryContext> context, std::function<void()> run_cb);
+  void run(std::shared_ptr<GPUSecondaryContext> context,
+           std::function<void *()> pop_work,
+           std::function<void(void *)> do_work);
 };
 
 }  // namespace blender::gpu
