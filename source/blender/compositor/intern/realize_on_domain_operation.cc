@@ -196,6 +196,7 @@ void RealizeOnDomainOperation::realize_on_domain_cpu(const float3x3 &inverse_tra
         sample = input.sample_bilinear_wrap(
             normalized_coordinates, realization_options.repeat_x, realization_options.repeat_y);
         break;
+      case Interpolation::Anisotropic:
       case Interpolation::Bicubic:
         sample = input.sample_cubic_wrap(
             normalized_coordinates, realization_options.repeat_x, realization_options.repeat_y);

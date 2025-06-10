@@ -104,6 +104,7 @@ class ScaleOperation : public NodeOperation {
     Result &output = this->get_result("Image");
     output.share_data(input);
     output.transform(transformation);
+
     output.get_realization_options().interpolation = this->get_interpolation();
   }
 
@@ -127,6 +128,7 @@ class ScaleOperation : public NodeOperation {
      * cases, as the logic used by the bicubic realization shader expects textures to use bilinear
      * interpolation. */
     const Interpolation interpolation = this->get_interpolation();
+    /* For now the EWA sampling falls back to bicubic interpolation. */
     const bool use_bilinear = ELEM(interpolation, Interpolation::Bilinear, Interpolation::Bicubic);
     GPU_texture_filter_mode(input, use_bilinear);
     GPU_texture_extend_mode(input, GPU_SAMPLER_EXTEND_MODE_CLAMP_TO_BORDER);
@@ -173,6 +175,8 @@ class ScaleOperation : public NodeOperation {
       float2 scaled_coordinates = center +
                                   (coordinates - center) / math::max(scale, float2(0.0001f));
       switch (interpolation) {
+        /* For now the EWA sampling falls back to bicubic interpolation. */
+        case Interpolation::Anisotropic:
         case Interpolation::Bicubic:
           output.store_pixel(texel, input.sample_cubic_wrap(scaled_coordinates, false, false));
           break;
@@ -201,6 +205,7 @@ class ScaleOperation : public NodeOperation {
         return Interpolation::Nearest;
       case CMP_NODE_INTERPOLATION_BILINEAR:
         return Interpolation::Bilinear;
+      case CMP_NODE_INTERPOLATION_ANISOTROPIC:
       case CMP_NODE_INTERPOLATION_BICUBIC:
         return Interpolation::Bicubic;
     }

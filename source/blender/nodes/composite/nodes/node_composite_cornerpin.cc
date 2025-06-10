@@ -66,7 +66,7 @@ static void cmp_node_cornerpin_declare(NodeDeclarationBuilder &b)
 
 static void node_composit_init_cornerpin(bNodeTree * /*ntree*/, bNode *node)
 {
-  node->custom1 = CMP_NODE_CORNER_PIN_INTERPOLATION_ANISOTROPIC;
+  node->custom1 = CMP_NODE_INTERPOLATION_ANISOTROPIC;
 }
 
 static void node_composit_buts_cornerpin(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
@@ -137,11 +137,10 @@ class CornerPinOperation : public NodeOperation {
     /* The texture sampler should use bilinear interpolation for both the bilinear and bicubic
      * cases, as the logic used by the bicubic realization shader expects textures to use bilinear
      * interpolation. */
-    const CMPNodeCornerPinInterpolation interpolation = this->get_interpolation();
-    const bool use_bilinear = ELEM(interpolation,
-                                   CMP_NODE_CORNER_PIN_INTERPOLATION_BICUBIC,
-                                   CMP_NODE_CORNER_PIN_INTERPOLATION_BILINEAR);
-    const bool use_anisotropic = interpolation == CMP_NODE_CORNER_PIN_INTERPOLATION_ANISOTROPIC;
+    const CMPNodeInterpolation interpolation = this->get_interpolation();
+    const bool use_bilinear = ELEM(
+        interpolation, CMP_NODE_INTERPOLATION_BICUBIC, CMP_NODE_INTERPOLATION_BILINEAR);
+    const bool use_anisotropic = interpolation == CMP_NODE_INTERPOLATION_ANISOTROPIC;
     GPU_texture_filter_mode(input_image, use_bilinear);
     GPU_texture_anisotropic_filter(input_image, use_anisotropic);
     GPU_texture_extend_mode(input_image, GPU_SAMPLER_EXTEND_MODE_EXTEND);
@@ -185,16 +184,16 @@ class CornerPinOperation : public NodeOperation {
 
       float4 sampled_color;
       switch (this->get_interpolation()) {
-        case CMP_NODE_CORNER_PIN_INTERPOLATION_BICUBIC:
+        case CMP_NODE_INTERPOLATION_BICUBIC:
           sampled_color = input.sample_cubic_extended(projected_coordinates);
           break;
-        case CMP_NODE_CORNER_PIN_INTERPOLATION_BILINEAR:
+        case CMP_NODE_INTERPOLATION_BILINEAR:
           sampled_color = input.sample_bilinear_extended(projected_coordinates);
           break;
-        case CMP_NODE_CORNER_PIN_INTERPOLATION_NEAREST:
+        case CMP_NODE_INTERPOLATION_NEAREST:
           sampled_color = input.sample_nearest_extended(projected_coordinates);
           break;
-        case CMP_NODE_CORNER_PIN_INTERPOLATION_ANISOTROPIC:
+        case CMP_NODE_INTERPOLATION_ANISOTROPIC:
           /* The derivatives of the projected coordinates with respect to x and y are the first and
            * second columns respectively, divided by the z projection factor as can be shown by
            * differentiating the above matrix multiplication with respect to x and y. Divide by the
@@ -297,12 +296,12 @@ class CornerPinOperation : public NodeOperation {
   const char *get_realization_shader_name() const
   {
     switch (this->get_interpolation()) {
-      case CMP_NODE_CORNER_PIN_INTERPOLATION_NEAREST:
-      case CMP_NODE_CORNER_PIN_INTERPOLATION_BILINEAR:
+      case CMP_NODE_INTERPOLATION_NEAREST:
+      case CMP_NODE_INTERPOLATION_BILINEAR:
         return "compositor_plane_deform";
-      case CMP_NODE_CORNER_PIN_INTERPOLATION_BICUBIC:
+      case CMP_NODE_INTERPOLATION_BICUBIC:
         return "compositor_plane_deform_bicubic";
-      case CMP_NODE_CORNER_PIN_INTERPOLATION_ANISOTROPIC:
+      case CMP_NODE_INTERPOLATION_ANISOTROPIC:
         return "compositor_plane_deform_anisotropic";
     }
 
@@ -310,9 +309,9 @@ class CornerPinOperation : public NodeOperation {
     return "compositor_plane_deform_anisotropic";
   }
 
-  CMPNodeCornerPinInterpolation get_interpolation() const
+  CMPNodeInterpolation get_interpolation() const
   {
-    return static_cast<CMPNodeCornerPinInterpolation>(bnode().custom1);
+    return static_cast<CMPNodeInterpolation>(bnode().custom1);
   }
 };
 

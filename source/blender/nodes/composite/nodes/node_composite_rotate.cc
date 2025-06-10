@@ -61,7 +61,8 @@ class RotateOperation : public NodeOperation {
     Result &output = this->get_result("Image");
     output.share_data(input);
     output.transform(transformation);
-    output.get_realization_options().interpolation = this->get_interpolation();
+    Interpolation interpolation = this->get_interpolation();
+    output.get_realization_options().interpolation = interpolation;
   }
 
   Interpolation get_interpolation()
@@ -71,6 +72,7 @@ class RotateOperation : public NodeOperation {
         return Interpolation::Nearest;
       case CMP_NODE_INTERPOLATION_BILINEAR:
         return Interpolation::Bilinear;
+      case CMP_NODE_INTERPOLATION_ANISOTROPIC:
       case CMP_NODE_INTERPOLATION_BICUBIC:
         return Interpolation::Bicubic;
     }
