@@ -274,10 +274,12 @@ const ActKeyColumn *ED_keylist_find_closest(const AnimKeylist *keylist, const fl
   if (ED_keylist_is_empty(keylist)) {
     return nullptr;
   }
-  if (cfra <= keylist->runtime.key_columns.first().cfra) {
+  /* Need to check against BEZT_BINARYSEARCH_THRESH because `ED_keylist_find_prev` does so as well.
+   * Not doing that here could cause that function to return a nullptr. */
+  if (cfra - keylist->runtime.key_columns.first().cfra < BEZT_BINARYSEARCH_THRESH) {
     return &keylist->runtime.key_columns.first();
   }
-  if (cfra >= keylist->runtime.key_columns.last().cfra) {
+  if (cfra - keylist->runtime.key_columns.last().cfra > BEZT_BINARYSEARCH_THRESH) {
     keylist->runtime.key_columns.last();
   }
   const ActKeyColumn *prev = ED_keylist_find_prev(keylist, cfra);
