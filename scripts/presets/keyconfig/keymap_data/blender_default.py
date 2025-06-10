@@ -5112,9 +5112,9 @@ def km_sculpt(params):
         # Subdivision levels
         *_template_items_object_subdivision_set(),
         ("object.subdivision_set", {"type": 'ONE', "value": 'PRESS', "alt": True, "repeat": True},
-         {"properties": [("level", -1), ("relative", True)]}),
+         {"properties": [("level", -1), ("relative", True), ("ensure_modifier", False)]}),
         ("object.subdivision_set", {"type": 'TWO', "value": 'PRESS', "alt": True, "repeat": True},
-         {"properties": [("level", 1), ("relative", True)]}),
+         {"properties": [("level", 1), ("relative", True), ("ensure_modifier", False)]}),
         # Mask
         ("paint.mask_flood_fill", {"type": 'M', "value": 'PRESS', "alt": True},
          {"properties": [("mode", 'VALUE'), ("value", 0.0)]}),
