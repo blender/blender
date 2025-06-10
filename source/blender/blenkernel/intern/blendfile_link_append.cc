@@ -709,14 +709,16 @@ static void loose_data_instantiate_collection_process(
       BKE_view_layer_synced_ensure(scene, view_layer);
 
       if ((lapp_context->params->flag & FILE_AUTOSELECT) != 0) {
-        LISTBASE_FOREACH (CollectionObject *, coll_ob, &collection->gobject) {
-          Object *ob = coll_ob->ob;
+        /* All objects contained in this collection need to be processed, including the ones
+         * belonging to children collections. */
+        FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN (collection, ob) {
           Base *base = BKE_view_layer_base_find(view_layer, ob);
           if (base) {
             base->flag |= BASE_SELECTED;
             BKE_scene_object_base_flag_sync_from_base(base);
           }
         }
+        FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
       }
     }
   }
