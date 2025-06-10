@@ -166,9 +166,16 @@ class AddPresetBase:
 
                     def rna_recursive_attr_expand(value, rna_path_step, level):
                         if isinstance(value, bpy.types.PropertyGroup):
+                            # Avoid properties being handled multiple times.
+                            # This happens when a class defines a property which is also defined by it's parent class.
+                            # The parents property is shadowed, so it only makes sense to write each property once.
+                            # Happens with `OperatorFileListElement` which has two `name` properties.
+                            properties_skip = {"rna_type"}
                             for sub_value_attr in value.bl_rna.properties.keys():
-                                if sub_value_attr == "rna_type":
+                                if sub_value_attr in properties_skip:
                                     continue
+                                properties_skip.add(sub_value_attr)
+
                                 sub_value = getattr(value, sub_value_attr)
                                 rna_recursive_attr_expand(
                                     sub_value,
@@ -857,13 +864,29 @@ class WM_OT_operator_presets_cleanup(Operator):
         if not (os.path.isfile(filepath) and os.path.splitext(filepath)[1].lower() == ".py"):
             return
         with open(filepath, "r", encoding="utf-8") as fh:
-            lines = fh.read().splitlines(True)
-        if not lines:
+            lines_prev = fh.read().splitlines(True)
+        if not lines_prev:
             return
         regex_exclude = re.compile("(" + "|".join([re.escape("op." + prop) for prop in properties_exclude]) + ")\\b")
-        lines = [line for line in lines if not regex_exclude.match(line)]
+        lines_next = []
+
+        i = 0
+        while i < len(lines_prev):
+            m = regex_exclude.match(lines_prev[i])
+            if m is None:
+                lines_next.append(lines_prev[i])
+                i += 1
+            else:
+                is_collection = lines_prev[i][m.end():].startswith(".clear()")
+                i += 1
+
+                # Skip non operator lines.
+                if is_collection:
+                    while i < len(lines_prev) and (not lines_prev[i].startswith("op.")):
+                        i += 1
+
         with open(filepath, "w", encoding="utf-8") as fh:
-            fh.write("".join(lines))
+            fh.write("".join(lines_next))
 
     def _cleanup_operators_presets(self, operators, properties_exclude):
         import os
@@ -899,6 +922,8 @@ class WM_OT_operator_presets_cleanup(Operator):
                 "WM_OT_stl_import",
                 "WM_OT_usd_export",
                 "WM_OT_usd_import",
+                "EXPORT_SCENE_OT_fbx",
+                "IMPORT_SCENE_OT_fbx",
             ]
             properties_exclude = [
                 "filepath",
