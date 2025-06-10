@@ -601,12 +601,6 @@ static void file_main_region_draw(const bContext *C, ARegion *region)
   /* v2d has initialized flag, so this call will only set the mask correct */
   UI_view2d_region_reinit(v2d, V2D_COMMONVIEW_LIST, region->winx, region->winy);
 
-  /* sets tile/border settings in sfile */
-  file_calc_previews(C, region);
-
-  /* set view */
-  UI_view2d_view_ortho(v2d);
-
   /* on first read, find active file */
   if (params->highlight_file == -1) {
     const wmEvent *event = CTX_wm_window(C)->eventstate;
@@ -614,6 +608,12 @@ static void file_main_region_draw(const bContext *C, ARegion *region)
   }
 
   if (!file_draw_hint_if_invalid(C, sfile, region)) {
+    /* sets tile/border settings in sfile */
+    file_calc_previews(C, region);
+
+    /* set view */
+    UI_view2d_view_ortho(v2d);
+
     file_draw_list(C, region);
   }
 

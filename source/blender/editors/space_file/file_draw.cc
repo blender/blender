@@ -1668,9 +1668,6 @@ static void file_draw_asset_library_internet_access_required_hint(const bContext
   const int pad_y = sfile->layout->tile_border_y * 2;
   const int available_width = BLI_rctf_size_x(&v2d->tot) - (2 * pad_x);
   const int line_height = sfile->layout->text_line_height;
-  int sx = v2d->tot.xmin + pad_x;
-  int sy = v2d->tot.ymax - pad_y;
-
   const char *message = RPT_(
       "Allow Online Access in order to browse and download online assets, or turn off the "
       "\"Remote Assets\" filter to show only the downloaded assets.\n\nYou can adjust this "
@@ -1691,6 +1688,9 @@ static void file_draw_asset_library_internet_access_required_hint(const bContext
                          UI_UNIT_Y +
                          /* Top and bottom padding. */
                          2 * pad_y;
+
+  int sx = round_fl_to_int(BLI_rctf_cent_x(&v2d->tot) - box_width / 2.0f);
+  int sy = round_fl_to_int(BLI_rctf_cent_y(&v2d->tot) + box_height / 2.0f);
 
   uiBlock *block = UI_block_begin(C, region, __func__, blender::ui::EmbossType::Emboss);
 
@@ -1827,6 +1827,11 @@ bool file_draw_hint_if_invalid(const bContext *C, const SpaceFile *sfile, ARegio
   const bool is_asset_browser = ED_fileselect_is_asset_browser(sfile);
   const bool is_library_browser = !is_asset_browser &&
                                   filelist_islibrary(sfile->files, blendfile_path, nullptr);
+  /* Call this before drawing a hint, otherwise drawing will not be visible. */
+  const auto setup_view = [region]() {
+    UI_view2d_totRect_set(&region->v2d, region->winx, region->winy);
+    UI_view2d_view_ortho(&region->v2d);
+  };
 
   if (is_asset_browser) {
     FileAssetSelectParams *asset_params = ED_fileselect_get_asset_params(sfile);
@@ -1847,6 +1852,7 @@ bool file_draw_hint_if_invalid(const bContext *C, const SpaceFile *sfile, ARegio
     if (is_remote_library && ((G.f & G_FLAG_INTERNET_ALLOW) == 0) &&
         ((U.extension_flag & USER_EXTENSION_FLAG_ONLINE_ACCESS_HANDLED) == 0))
     {
+      setup_view();
       file_draw_asset_library_internet_access_required_hint(C, sfile, region);
       return true;
     }
@@ -1858,6 +1864,7 @@ bool file_draw_hint_if_invalid(const bContext *C, const SpaceFile *sfile, ARegio
 
     /* Check if the asset library exists. */
     if (is_on_disk_library && !filelist_is_dir(sfile->files, asset_params->base_params.dir)) {
+      setup_view();
       file_draw_invalid_asset_library_hint(C, sfile, region, asset_params);
       return true;
     }
@@ -1893,6 +1900,7 @@ bool file_draw_hint_if_invalid(const bContext *C, const SpaceFile *sfile, ARegio
       sfile->runtime->is_blendfile_status_set = true;
     }
     if (!sfile->runtime->is_blendfile_readable) {
+      setup_view();
       file_draw_invalid_library_hint(
           C, sfile, region, blendfile_path, &sfile->runtime->is_blendfile_readable_reports);
       return true;
