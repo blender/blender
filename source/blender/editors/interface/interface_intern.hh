@@ -1610,10 +1610,6 @@ void UI_OT_eyedropper_grease_pencil_color(wmOperatorType *ot);
 /* `templates/interface_template_asset_shelf_popover.cc` */
 std::optional<blender::StringRefNull> UI_asset_shelf_idname_from_button_context(const uiBut *but);
 
-/* `templates/interface_template_asset_view.cc` */
-
-uiListType *UI_UL_asset_view();
-
 /**
  * For use with #ui_rna_collection_search_update_fn.
  */

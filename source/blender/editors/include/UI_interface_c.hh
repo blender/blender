@@ -2614,27 +2614,6 @@ void uiTemplateColormanagedViewSettings(uiLayout *layout,
 int uiTemplateRecentFiles(uiLayout *layout, int rows);
 void uiTemplateFileSelectPath(uiLayout *layout, bContext *C, FileSelectParams *params);
 
-enum {
-  UI_TEMPLATE_ASSET_DRAW_NO_NAMES = (1 << 0),
-  UI_TEMPLATE_ASSET_DRAW_NO_FILTER = (1 << 1),
-  UI_TEMPLATE_ASSET_DRAW_NO_LIBRARY = (1 << 2),
-};
-void uiTemplateAssetView(uiLayout *layout,
-                         const bContext *C,
-                         const char *list_id,
-                         PointerRNA *asset_library_dataptr,
-                         const char *asset_library_propname,
-                         PointerRNA *assets_dataptr,
-                         const char *assets_propname,
-                         PointerRNA *active_dataptr,
-                         const char *active_propname,
-                         const blender::ed::asset::AssetFilterSettings *filter_settings,
-                         int display_flags,
-                         const char *activate_opname,
-                         PointerRNA *r_activate_op_properties,
-                         const char *drag_opname,
-                         PointerRNA *r_drag_op_properties);
-
 namespace blender::ui {
 
 void template_asset_shelf_popover(
