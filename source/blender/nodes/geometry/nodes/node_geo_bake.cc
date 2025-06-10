@@ -509,7 +509,7 @@ static void node_layout(uiLayout *layout, bContext *C, PointerRNA *ptr)
   if (!get_bake_draw_context(C, node, ctx)) {
     return;
   }
-  uiLayoutSetActive(layout, ctx.is_bakeable_in_current_context);
+  layout->active_set(ctx.is_bakeable_in_current_context);
   uiLayoutSetEnabled(layout, ID_IS_EDITABLE(ctx.object));
   uiLayout *col = &layout->column(false);
   {
@@ -530,7 +530,7 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *ptr)
     return;
   }
 
-  uiLayoutSetActive(layout, ctx.is_bakeable_in_current_context);
+  layout->active_set(ctx.is_bakeable_in_current_context);
   uiLayoutSetEnabled(layout, ID_IS_EDITABLE(ctx.object));
 
   {

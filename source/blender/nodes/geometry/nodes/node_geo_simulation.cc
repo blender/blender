@@ -225,7 +225,7 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *current_no
   if (!get_bake_draw_context(C, output_node, ctx)) {
     return;
   }
-  uiLayoutSetActive(layout, ctx.is_bakeable_in_current_context);
+  layout->active_set(ctx.is_bakeable_in_current_context);
 
   draw_simulation_state(C, layout, ntree, output_node);
 
