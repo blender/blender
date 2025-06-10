@@ -221,9 +221,11 @@ void draw_dot(const float4x4 &transform,
               const ColorGeometry4f &color)
 {
   GPUVertFormat *format = immVertexFormat();
-  uint attr_pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
-  uint attr_size = GPU_vertformat_attr_add(format, "size", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
-  uint attr_color = GPU_vertformat_attr_add(format, "color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
+  uint attr_pos = GPU_vertformat_attr_add(
+      format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32_32);
+  uint attr_size = GPU_vertformat_attr_add(format, "size", blender::gpu::VertAttrType::SFLOAT_32);
+  uint attr_color = GPU_vertformat_attr_add(
+      format, "color", blender::gpu::VertAttrType::SFLOAT_32_32_32_32);
 
   GPU_program_point_size(true);
   immBindBuiltinProgram(GPU_SHADER_3D_POINT_VARYING_SIZE_VARYING_COLOR);
@@ -244,9 +246,10 @@ void draw_polyline(const float4x4 &transform,
                    const float line_width)
 {
   GPUVertFormat *format = immVertexFormat();
-  const uint attr_pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+  const uint attr_pos = GPU_vertformat_attr_add(
+      format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32_32);
   const uint attr_color = GPU_vertformat_attr_add(
-      format, "color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
+      format, "color", blender::gpu::VertAttrType::SFLOAT_32_32_32_32);
   immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR);
 
   GPU_line_width(line_width);
@@ -316,11 +319,11 @@ static void draw_grease_pencil_stroke(const float4x4 &transform,
   /* Format is matching shader manual load. Keep in sync with #GreasePencilStrokeData.
    * Only the name of the first attribute is important. */
   const uint attr_pos = GPU_vertformat_attr_add(
-      format, "gp_vert_data", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+      format, "gp_vert_data", blender::gpu::VertAttrType::SFLOAT_32_32_32);
   const uint attr_thickness = GPU_vertformat_attr_add(
-      format, "thickness", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
+      format, "thickness", blender::gpu::VertAttrType::SFLOAT_32);
   const uint attr_color = GPU_vertformat_attr_add(
-      format, "color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
+      format, "color", blender::gpu::VertAttrType::SFLOAT_32_32_32_32);
 
   immBindBuiltinProgram(GPU_SHADER_GPENCIL_STROKE);
   GPUUniformBuf *ubo = create_shader_ubo(rv3d, win_size, object, cap_start, cap_end, fill_stroke);
@@ -377,7 +380,7 @@ static void draw_grease_pencil_stroke(const float4x4 &transform,
 
     /* TODO(fclem): get rid of this dummy VBO. */
     GPUVertFormat format = {0};
-    GPU_vertformat_attr_add(&format, "dummy", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
+    GPU_vertformat_attr_add(&format, "dummy", gpu::VertAttrType::SFLOAT_32);
     blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(format);
     GPU_vertbuf_data_alloc(*vbo, 1);
 
@@ -408,10 +411,12 @@ static void draw_dots(const float4x4 &transform,
   }
 
   GPUVertFormat *format = immVertexFormat();
-  const uint attr_pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
-  const uint attr_size = GPU_vertformat_attr_add(format, "size", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
+  const uint attr_pos = GPU_vertformat_attr_add(
+      format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32_32);
+  const uint attr_size = GPU_vertformat_attr_add(
+      format, "size", blender::gpu::VertAttrType::SFLOAT_32);
   const uint attr_color = GPU_vertformat_attr_add(
-      format, "color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
+      format, "color", blender::gpu::VertAttrType::SFLOAT_32_32_32_32);
 
   immBindBuiltinProgram(GPU_SHADER_3D_POINT_VARYING_SIZE_VARYING_COLOR);
   GPU_program_point_size(true);
@@ -460,9 +465,10 @@ void draw_circles(const float4x4 &transform,
   };
 
   GPUVertFormat *format = immVertexFormat();
-  const uint attr_pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+  const uint attr_pos = GPU_vertformat_attr_add(
+      format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32_32);
   const uint attr_color = GPU_vertformat_attr_add(
-      format, "color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
+      format, "color", blender::gpu::VertAttrType::SFLOAT_32_32_32_32);
 
   const float scale = math::average(math::to_scale(transform));
 
@@ -526,9 +532,10 @@ void draw_lines(const float4x4 &transform,
                 float line_width)
 {
   GPUVertFormat *format = immVertexFormat();
-  const uint attr_pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+  const uint attr_pos = GPU_vertformat_attr_add(
+      format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32_32);
   const uint attr_color = GPU_vertformat_attr_add(
-      format, "color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
+      format, "color", blender::gpu::VertAttrType::SFLOAT_32_32_32_32);
   immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR);
 
   GPU_line_width(line_width);

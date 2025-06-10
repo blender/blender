@@ -48,7 +48,8 @@ static int get_centered_text_y(const rcti *rect)
 
 static void draw_background(const rcti *rect)
 {
-  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+  uint pos = GPU_vertformat_attr_add(
+      immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   immUniformThemeColor(TH_TIME_SCRUB_BACKGROUND);
@@ -97,7 +98,7 @@ static void draw_current_frame(const Scene *scene,
     /* Draw vertical line from the bottom of the current frame box to the bottom of the screen. */
     const float subframe_x = UI_view2d_view_to_region_x(v2d, BKE_scene_ctime_get(scene));
     GPUVertFormat *format = immVertexFormat();
-    uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+    uint pos = GPU_vertformat_attr_add(format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
     GPU_blend(GPU_BLEND_ALPHA);
     immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
@@ -221,7 +222,8 @@ void ED_time_scrub_channel_search_draw(const bContext *C, ARegion *region, bDope
   rect.ymin = region->winy - UI_TIME_SCRUB_MARGIN_Y;
   rect.ymax = region->winy;
 
-  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+  uint pos = GPU_vertformat_attr_add(
+      immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
   immUniformThemeColor(TH_BACK);
   immRectf(pos, rect.xmin, rect.ymin, rect.xmax, rect.ymax);

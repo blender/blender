@@ -743,7 +743,7 @@ static void gizmo_ruler_draw(const bContext *C, wmGizmo *gz)
   GPU_blend(GPU_BLEND_ALPHA);
 
   const uint shdr_pos_3d = GPU_vertformat_attr_add(
-      immVertexFormat(), "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+      immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32_32);
 
   if (ruler_item->flag & RULERITEM_USE_ANGLE) {
     immBindBuiltinProgram(GPU_SHADER_3D_LINE_DASHED_UNIFORM_COLOR);
@@ -841,7 +841,7 @@ static void gizmo_ruler_draw(const bContext *C, wmGizmo *gz)
   GPU_matrix_pop_projection();
 
   const uint shdr_pos_2d = GPU_vertformat_attr_add(
-      immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+      immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
 
   if (ruler_item->flag & RULERITEM_USE_ANGLE) {
     immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);

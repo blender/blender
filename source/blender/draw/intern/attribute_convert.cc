@@ -23,11 +23,11 @@ GPUVertFormat init_format_for_attribute(const eCustomDataType data_type, const S
     using T = decltype(dummy);
     using Converter = AttributeConverter<T>;
     if constexpr (!std::is_void_v<typename Converter::VBOType>) {
-      GPU_vertformat_attr_add(&format,
-                              vbo_name,
-                              Converter::gpu_component_type,
-                              Converter::gpu_component_len,
-                              Converter::gpu_fetch_mode);
+      GPU_vertformat_attr_add_legacy(&format,
+                                     vbo_name,
+                                     Converter::gpu_component_type,
+                                     Converter::gpu_component_len,
+                                     Converter::gpu_fetch_mode);
     }
   });
   return format;

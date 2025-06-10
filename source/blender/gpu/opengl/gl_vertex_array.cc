@@ -40,8 +40,8 @@ static uint16_t vbo_bind(const ShaderInterface *interface,
     const GPUVertAttr *a = &format->attrs[a_idx];
 
     if (format->deinterleaved) {
-      offset += ((a_idx == 0) ? 0 : format->attrs[a_idx - 1].size) * v_len;
-      stride = a->size;
+      offset += ((a_idx == 0) ? 0 : format->attrs[a_idx - 1].type.size()) * v_len;
+      stride = a->type.size();
     }
     else {
       offset = a->offset;
@@ -49,7 +49,7 @@ static uint16_t vbo_bind(const ShaderInterface *interface,
 
     /* This is in fact an offset in memory. */
     const GLvoid *pointer = (const GLubyte *)intptr_t(offset + v_first * stride);
-    const GLenum type = to_gl(static_cast<GPUVertCompType>(a->comp_type));
+    const GLenum type = to_gl(a->type.comp_type());
 
     for (uint n_idx = 0; n_idx < a->name_len; n_idx++) {
       const char *name = GPU_vertformat_attr_name_get(format, a, n_idx);
@@ -61,29 +61,18 @@ static uint16_t vbo_bind(const ShaderInterface *interface,
 
       enabled_attrib |= (1 << input->location);
 
-      if (ELEM(a->comp_len, 16, 12, 8)) {
-        BLI_assert(a->fetch_mode == GPU_FETCH_FLOAT);
-        BLI_assert(a->comp_type == GPU_COMP_F32);
-        for (int i = 0; i < a->comp_len / 4; i++) {
-          glEnableVertexAttribArray(input->location + i);
-          glVertexAttribDivisor(input->location + i, divisor);
-          glVertexAttribPointer(
-              input->location + i, 4, type, GL_FALSE, stride, (const GLubyte *)pointer + i * 16);
-        }
-      }
-      else {
-        glEnableVertexAttribArray(input->location);
-        glVertexAttribDivisor(input->location, divisor);
+      glEnableVertexAttribArray(input->location);
+      glVertexAttribDivisor(input->location, divisor);
 
-        switch (a->fetch_mode) {
-          case GPU_FETCH_FLOAT:
-          case GPU_FETCH_INT_TO_FLOAT_UNIT:
-            glVertexAttribPointer(input->location, a->comp_len, type, GL_TRUE, stride, pointer);
-            break;
-          case GPU_FETCH_INT:
-            glVertexAttribIPointer(input->location, a->comp_len, type, stride, pointer);
-            break;
-        }
+      switch (a->type.fetch_mode()) {
+        case GPU_FETCH_FLOAT:
+        case GPU_FETCH_INT_TO_FLOAT_UNIT:
+          glVertexAttribPointer(
+              input->location, a->type.comp_len(), type, GL_TRUE, stride, pointer);
+          break;
+        case GPU_FETCH_INT:
+          glVertexAttribIPointer(input->location, a->type.comp_len(), type, stride, pointer);
+          break;
       }
     }
   }

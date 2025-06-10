@@ -658,29 +658,24 @@ gpu::MTLTexture *MTLContext::get_dummy_texture(eGPUTextureType type,
       if (!dummy_verts_[sampler_format]) {
         GPU_vertformat_clear(&dummy_vertformat_[sampler_format]);
 
-        GPUVertCompType comp_type = GPU_COMP_F32;
-        GPUVertFetchMode fetch_mode = GPU_FETCH_FLOAT;
+        VertAttrType attr_type = VertAttrType::SFLOAT_32_32_32_32;
 
         switch (sampler_format) {
           case GPU_SAMPLER_TYPE_FLOAT:
           case GPU_SAMPLER_TYPE_DEPTH:
-            comp_type = GPU_COMP_F32;
-            fetch_mode = GPU_FETCH_FLOAT;
+            attr_type = VertAttrType::SFLOAT_32_32_32_32;
             break;
           case GPU_SAMPLER_TYPE_INT:
-            comp_type = GPU_COMP_I32;
-            fetch_mode = GPU_FETCH_INT;
+            attr_type = VertAttrType::SINT_32_32_32_32;
             break;
           case GPU_SAMPLER_TYPE_UINT:
-            comp_type = GPU_COMP_U32;
-            fetch_mode = GPU_FETCH_INT;
+            attr_type = VertAttrType::UINT_32_32_32_32;
             break;
           default:
             BLI_assert_unreachable();
         }
 
-        GPU_vertformat_attr_add(
-            &dummy_vertformat_[sampler_format], "dummy", comp_type, 4, fetch_mode);
+        GPU_vertformat_attr_add(&dummy_vertformat_[sampler_format], "dummy", attr_type);
         dummy_verts_[sampler_format] = GPU_vertbuf_create_with_format_ex(
             dummy_vertformat_[sampler_format],
             GPU_USAGE_STATIC | GPU_USAGE_FLAG_BUFFER_TEXTURE_ONLY);

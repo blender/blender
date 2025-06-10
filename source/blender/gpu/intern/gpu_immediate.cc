@@ -314,28 +314,28 @@ void Immediate::polyline_draw_workaround(uint64_t offset)
       const char *name = GPU_vertformat_attr_name_get(&format, a, 0);
       if (pos_attr_id == -1 && blender::StringRefNull(name) == "pos") {
         int descriptor[2] = {int(format.stride) / 4, int(a->offset) / 4};
-        const bool fetch_int = is_fetch_int_to_float(a->format);
-        BLI_assert(is_fetch_float(a->format) || fetch_int);
+        const bool fetch_int = false;
+        BLI_assert(is_fetch_float(a->type.format) || fetch_int);
         BLI_assert_msg((a->offset % 4) == 0, "Only support 4byte aligned attributes");
         GPU_shader_uniform_2iv(imm->shader, "gpu_attr_0", descriptor);
-        GPU_shader_uniform_1i(imm->shader, "gpu_attr_0_len", format_component_len(a->format));
+        GPU_shader_uniform_1i(imm->shader, "gpu_attr_0_len", a->type.comp_len());
         GPU_shader_uniform_1b(imm->shader, "gpu_attr_0_fetch_int", fetch_int);
         pos_attr_id = a_idx;
       }
       else if (col_attr_id == -1 && blender::StringRefNull(name) == "color") {
         int descriptor[2] = {int(format.stride) / 4, int(a->offset) / 4};
         /* Maybe we can relax this if needed. */
-        BLI_assert_msg(ELEM(a->format,
+        BLI_assert_msg(ELEM(a->type.format,
                             VertAttrType::SFLOAT_32,
                             VertAttrType::SFLOAT_32_32,
                             VertAttrType::SFLOAT_32_32_32,
                             VertAttrType::SFLOAT_32_32_32_32,
                             VertAttrType::UNORM_8_8_8_8),
                        "Only support float attributes or uchar4");
-        const bool fetch_unorm8 = a->format == VertAttrType::UNORM_8_8_8_8;
+        const bool fetch_unorm8 = a->type.format == VertAttrType::UNORM_8_8_8_8;
         BLI_assert_msg((a->offset % 4) == 0, "Only support 4byte aligned attributes");
         GPU_shader_uniform_2iv(imm->shader, "gpu_attr_1", descriptor);
-        GPU_shader_uniform_1i(imm->shader, "gpu_attr_1_len", format_component_len(a->format));
+        GPU_shader_uniform_1i(imm->shader, "gpu_attr_1_len", a->type.comp_len());
         GPU_shader_uniform_1i(imm->shader, "gpu_attr_1_fetch_unorm8", fetch_unorm8);
         col_attr_id = a_idx;
       }
@@ -368,7 +368,7 @@ void immAttr1f(uint attr_id, float x)
 {
   GPUVertAttr *attr = &imm->vertex_format.attrs[attr_id];
   BLI_assert(attr_id < imm->vertex_format.attr_len);
-  BLI_assert(ELEM(attr->format, VertAttrType::SFLOAT_32));
+  BLI_assert(ELEM(attr->type.format, VertAttrType::SFLOAT_32));
   BLI_assert(imm->vertex_idx < imm->vertex_len);
   BLI_assert(imm->prim_type != GPU_PRIM_NONE); /* make sure we're between a Begin/End pair */
   setAttrValueBit(attr_id);
@@ -383,7 +383,7 @@ void immAttr2f(uint attr_id, float x, float y)
 {
   GPUVertAttr *attr = &imm->vertex_format.attrs[attr_id];
   BLI_assert(attr_id < imm->vertex_format.attr_len);
-  BLI_assert(ELEM(attr->format, VertAttrType::SFLOAT_32_32));
+  BLI_assert(ELEM(attr->type.format, VertAttrType::SFLOAT_32_32));
   BLI_assert(imm->vertex_idx < imm->vertex_len);
   BLI_assert(imm->prim_type != GPU_PRIM_NONE); /* make sure we're between a Begin/End pair */
   setAttrValueBit(attr_id);
@@ -399,7 +399,7 @@ void immAttr3f(uint attr_id, float x, float y, float z)
 {
   GPUVertAttr *attr = &imm->vertex_format.attrs[attr_id];
   BLI_assert(attr_id < imm->vertex_format.attr_len);
-  BLI_assert(ELEM(attr->format, VertAttrType::SFLOAT_32_32_32));
+  BLI_assert(ELEM(attr->type.format, VertAttrType::SFLOAT_32_32_32));
   BLI_assert(imm->vertex_idx < imm->vertex_len);
   BLI_assert(imm->prim_type != GPU_PRIM_NONE); /* make sure we're between a Begin/End pair */
   setAttrValueBit(attr_id);
@@ -416,7 +416,7 @@ void immAttr4f(uint attr_id, float x, float y, float z, float w)
 {
   GPUVertAttr *attr = &imm->vertex_format.attrs[attr_id];
   BLI_assert(attr_id < imm->vertex_format.attr_len);
-  BLI_assert(ELEM(attr->format, VertAttrType::SFLOAT_32_32_32_32));
+  BLI_assert(ELEM(attr->type.format, VertAttrType::SFLOAT_32_32_32_32));
   BLI_assert(imm->vertex_idx < imm->vertex_len);
   BLI_assert(imm->prim_type != GPU_PRIM_NONE); /* make sure we're between a Begin/End pair */
   setAttrValueBit(attr_id);
@@ -434,7 +434,7 @@ void immAttr1u(uint attr_id, uint x)
 {
   GPUVertAttr *attr = &imm->vertex_format.attrs[attr_id];
   BLI_assert(attr_id < imm->vertex_format.attr_len);
-  BLI_assert(ELEM(attr->format, VertAttrType::UINT_32));
+  BLI_assert(ELEM(attr->type.format, VertAttrType::UINT_32));
   BLI_assert(imm->vertex_idx < imm->vertex_len);
   BLI_assert(imm->prim_type != GPU_PRIM_NONE); /* make sure we're between a Begin/End pair */
   setAttrValueBit(attr_id);
@@ -448,7 +448,7 @@ void immAttr2i(uint attr_id, int x, int y)
 {
   GPUVertAttr *attr = &imm->vertex_format.attrs[attr_id];
   BLI_assert(attr_id < imm->vertex_format.attr_len);
-  BLI_assert(ELEM(attr->format, VertAttrType::SINT_32_32, VertAttrType::SINT_TO_FLT_32_32));
+  BLI_assert(ELEM(attr->type.format, VertAttrType::SINT_32_32));
   BLI_assert(imm->vertex_idx < imm->vertex_len);
   BLI_assert(imm->prim_type != GPU_PRIM_NONE); /* make sure we're between a Begin/End pair */
   setAttrValueBit(attr_id);
@@ -478,7 +478,7 @@ void immAttr4ub(uint attr_id, uchar r, uchar g, uchar b, uchar a)
 {
   GPUVertAttr *attr = &imm->vertex_format.attrs[attr_id];
   BLI_assert(attr_id < imm->vertex_format.attr_len);
-  BLI_assert(ELEM(attr->format, VertAttrType::UINT_8_8_8_8, VertAttrType::UNORM_8_8_8_8));
+  BLI_assert(ELEM(attr->type.format, VertAttrType::UINT_8_8_8_8, VertAttrType::UNORM_8_8_8_8));
   BLI_assert(imm->vertex_idx < imm->vertex_len);
   BLI_assert(imm->prim_type != GPU_PRIM_NONE); /* make sure we're between a Begin/End pair */
   setAttrValueBit(attr_id);
@@ -523,7 +523,7 @@ static void immEndVertex() /* and move on to the next vertex */
 #endif
 
         uchar *data = imm->vertex_data + a->offset;
-        memcpy(data, data - imm->vertex_format.stride, to_bytesize(a->format));
+        memcpy(data, data - imm->vertex_format.stride, a->type.size());
         /* TODO: consolidate copy of adjacent attributes */
       }
     }

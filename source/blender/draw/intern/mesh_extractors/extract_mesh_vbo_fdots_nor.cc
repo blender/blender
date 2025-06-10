@@ -61,7 +61,7 @@ gpu::VertBufPtr extract_face_dot_normals(const MeshRenderData &mr, const bool us
 {
   if (use_hq) {
     static const GPUVertFormat format = GPU_vertformat_from_attribute(
-        "norAndFlag", GPU_COMP_I16, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
+        "norAndFlag", gpu::VertAttrType::SNORM_16_16_16_16);
     gpu::VertBufPtr vbo = gpu::VertBufPtr(GPU_vertbuf_create_with_format(format));
     GPU_vertbuf_data_alloc(*vbo, mr.faces_num);
     MutableSpan vbo_data = vbo->data<short4>();
@@ -75,7 +75,7 @@ gpu::VertBufPtr extract_face_dot_normals(const MeshRenderData &mr, const bool us
     return vbo;
   }
   static const GPUVertFormat format = GPU_vertformat_from_attribute(
-      "norAndFlag", GPU_COMP_I10, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
+      "norAndFlag", gpu::VertAttrType::SNORM_10_10_10_2);
   gpu::VertBufPtr vbo = gpu::VertBufPtr(GPU_vertbuf_create_with_format(format));
   GPU_vertbuf_data_alloc(*vbo, mr.faces_num);
   MutableSpan vbo_data = vbo->data<gpu::PackedNormal>();

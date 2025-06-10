@@ -21,7 +21,7 @@ gpu::VertBufPtr extract_orco(const MeshRenderData &mr)
    * Unfortunately, at the time of writing, I did not found any other "non disruptive"
    * alternative. */
   static const GPUVertFormat format = GPU_vertformat_from_attribute(
-      "orco", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
+      "orco", gpu::VertAttrType::SFLOAT_32_32_32_32);
 
   gpu::VertBufPtr vbo = gpu::VertBufPtr(GPU_vertbuf_create_with_format(format));
   GPU_vertbuf_data_alloc(*vbo, mr.corners_num);

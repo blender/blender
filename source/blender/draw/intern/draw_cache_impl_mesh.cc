@@ -1112,7 +1112,7 @@ static void init_empty_dummy_batch(gpu::Batch &batch)
   /* The dummy batch is only used in cases with invalid edit mode mapping, so the overhead of
    * creating a vertex buffer shouldn't matter. */
   GPUVertFormat format{};
-  GPU_vertformat_attr_add(&format, "dummy", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
+  GPU_vertformat_attr_add(&format, "dummy", gpu::VertAttrType::SFLOAT_32);
   blender::gpu::VertBuf *vbo = GPU_vertbuf_create_with_format(format);
   GPU_vertbuf_data_alloc(*vbo, 1);
   /* Avoid the batch being rendered at all. */

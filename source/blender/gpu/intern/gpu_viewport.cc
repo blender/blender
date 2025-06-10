@@ -293,7 +293,7 @@ void GPU_viewport_stereo_composite(GPUViewport *viewport, Stereo3dFormat *stereo
       });
 
   GPUVertFormat *vert_format = immVertexFormat();
-  uint pos = GPU_vertformat_attr_add(vert_format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+  uint pos = GPU_vertformat_attr_add(vert_format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
   GPU_framebuffer_bind(viewport->stereo_comp_fb);
   GPU_matrix_push();
   GPU_matrix_push_projection();
@@ -354,9 +354,9 @@ static const GPUVertFormat &gpu_viewport_batch_format()
   if (g_viewport.format.attr_len == 0) {
     GPUVertFormat *format = &g_viewport.format;
     g_viewport.attr_id.pos = GPU_vertformat_attr_add(
-        format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+        format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
     g_viewport.attr_id.tex_coord = GPU_vertformat_attr_add(
-        format, "texCoord", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+        format, "texCoord", blender::gpu::VertAttrType::SFLOAT_32_32);
   }
   return g_viewport.format;
 }

@@ -155,12 +155,11 @@ void MTLImmediate::end()
       /* Determine whether implicit type conversion between input vertex format
        * and shader interface vertex format is supported. */
       MTLVertexFormat convertedFormat;
-      bool can_use_implicit_conversion = mtl_convert_vertex_format(
-          mtl_shader_attribute.format,
-          (GPUVertCompType)attr->comp_type,
-          attr->comp_len,
-          (GPUVertFetchMode)attr->fetch_mode,
-          &convertedFormat);
+      bool can_use_implicit_conversion = mtl_convert_vertex_format(mtl_shader_attribute.format,
+                                                                   attr->type.comp_type(),
+                                                                   attr->type.comp_len(),
+                                                                   attr->type.fetch_mode(),
+                                                                   &convertedFormat);
 
       if (can_use_implicit_conversion) {
         /* Metal API can implicitly convert some formats during vertex assembly:
@@ -171,7 +170,7 @@ void MTLImmediate::end()
          * (See
          * https://developer.apple.com/documentation/metal/mtlvertexattributedescriptor/1516081-format)
          */
-        bool is_floating_point_format = (attr->comp_type == GPU_COMP_F32);
+        bool is_floating_point_format = is_fetch_float(attr->type.format);
         desc.vertex_descriptor.attributes[i].format = convertedFormat;
         desc.vertex_descriptor.attributes[i].format_conversion_mode =
             (is_floating_point_format) ? (GPUVertFetchMode)GPU_FETCH_FLOAT :
@@ -187,10 +186,9 @@ void MTLImmediate::end()
          *   value into local shader storage.
          *   (If no explicit conversion is needed, the function specialize to a pass-through). */
         MTLVertexFormat converted_format = format_resize_comp(mtl_shader_attribute.format,
-                                                              attr->comp_len);
+                                                              attr->type.comp_len());
         desc.vertex_descriptor.attributes[i].format = converted_format;
-        desc.vertex_descriptor.attributes[i].format_conversion_mode = (GPUVertFetchMode)
-                                                                          attr->fetch_mode;
+        desc.vertex_descriptor.attributes[i].format_conversion_mode = attr->type.fetch_mode();
         BLI_assert(desc.vertex_descriptor.attributes[i].format != MTLVertexFormatInvalid);
       }
       /* Using attribute offset in vertex format, as this will be correct */

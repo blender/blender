@@ -64,9 +64,9 @@ static GPUVertFormat &preset_3d_format()
   if (g_presets_3d.format.attr_len == 0) {
     GPUVertFormat *format = &g_presets_3d.format;
     g_presets_3d.attr_id.pos = GPU_vertformat_attr_add(
-        format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+        format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32_32);
     g_presets_3d.attr_id.nor = GPU_vertformat_attr_add(
-        format, "nor", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+        format, "nor", blender::gpu::VertAttrType::SFLOAT_32_32_32);
   }
   return g_presets_3d.format;
 }
@@ -76,9 +76,9 @@ static GPUVertFormat &preset_2d_format()
   if (g_presets_2d.format.attr_len == 0) {
     GPUVertFormat *format = &g_presets_2d.format;
     g_presets_2d.attr_id.pos = GPU_vertformat_attr_add(
-        format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+        format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
     g_presets_2d.attr_id.col = GPU_vertformat_attr_add(
-        format, "color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
+        format, "color", blender::gpu::VertAttrType::SFLOAT_32_32_32_32);
   }
   return g_presets_2d.format;
 }

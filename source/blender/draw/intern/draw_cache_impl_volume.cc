@@ -156,17 +156,18 @@ static void drw_volume_wireframe_cb(
 
   static const GPUVertFormat format = [&]() {
     GPUVertFormat format{};
-    attr_id.pos_id = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+    attr_id.pos_id = GPU_vertformat_attr_add(&format, "pos", gpu::VertAttrType::SFLOAT_32_32_32);
     attr_id.nor_id = GPU_vertformat_attr_add(
-        &format, "nor", GPU_COMP_I10, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
+        &format, "nor", blender::gpu::VertAttrType::SNORM_10_10_10_2);
     return format;
   }();
 
   static const GPUVertFormat format_hq = [&]() {
     GPUVertFormat format{};
-    attr_id.pos_hq_id = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+    attr_id.pos_hq_id = GPU_vertformat_attr_add(
+        &format, "pos", gpu::VertAttrType::SFLOAT_32_32_32);
     attr_id.nor_hq_id = GPU_vertformat_attr_add(
-        &format, "nor", GPU_COMP_I16, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
+        &format, "nor", blender::gpu::VertAttrType::SNORM_16_16_16_16);
     return format;
   }();
 
@@ -247,7 +248,7 @@ static void drw_volume_selection_surface_cb(
   static uint pos_id;
   static const GPUVertFormat format = [&]() {
     GPUVertFormat format{};
-    pos_id = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+    pos_id = GPU_vertformat_attr_add(&format, "pos", gpu::VertAttrType::SFLOAT_32_32_32);
     return format;
   }();
 

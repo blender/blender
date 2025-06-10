@@ -572,8 +572,8 @@ static void statvis_calc_sharp(const MeshRenderData &mr, MutableSpan<float> r_sh
 
 gpu::VertBufPtr extract_mesh_analysis(const MeshRenderData &mr, const float4x4 &object_to_world)
 {
-  static const GPUVertFormat format = GPU_vertformat_from_attribute(
-      "weight", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
+  static const GPUVertFormat format = GPU_vertformat_from_attribute("weight",
+                                                                    gpu::VertAttrType::SFLOAT_32);
 
   gpu::VertBufPtr vbo = gpu::VertBufPtr(GPU_vertbuf_create_with_format(format));
   GPU_vertbuf_data_alloc(*vbo, mr.corners_num);
