@@ -371,7 +371,7 @@ For example, if you want to store material settings for a custom engine:
 
    def register():
        bpy.utils.register_class(MyMaterialProps)
-       bpy.types.Material.my_custom_props: bpy.props.PointerProperty(type=MyMaterialProps)
+       bpy.types.Material.my_custom_props = bpy.props.PointerProperty(type=MyMaterialProps)
 
    def unregister():
        del bpy.types.Material.my_custom_props
@@ -402,7 +402,7 @@ For example, if you want to store material settings for a custom engine:
    def register():
        bpy.utils.register_class(MyMaterialSubProps)
        bpy.utils.register_class(MyMaterialGroupProps)
-       bpy.types.Material.my_custom_props: bpy.props.PointerProperty(type=MyMaterialGroupProps)
+       bpy.types.Material.my_custom_props = bpy.props.PointerProperty(type=MyMaterialGroupProps)
 
    def unregister():
        del bpy.types.Material.my_custom_props
