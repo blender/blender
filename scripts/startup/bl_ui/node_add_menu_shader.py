@@ -127,8 +127,7 @@ class NODE_MT_category_shader_output(Menu):
 
         node_add_menu.add_node_type(
             layout,
-            "ShaderNodeOutputMaterial",
-            poll=object_shader_nodes_poll(context),
+            "ShaderNodeOutputAOV",
         )
         node_add_menu.add_node_type(
             layout,
@@ -137,17 +136,18 @@ class NODE_MT_category_shader_output(Menu):
         )
         node_add_menu.add_node_type(
             layout,
-            "ShaderNodeOutputAOV",
+            "ShaderNodeOutputLineStyle",
+            poll=line_style_shader_nodes_poll(context),
+        )
+        node_add_menu.add_node_type(
+            layout,
+            "ShaderNodeOutputMaterial",
+            poll=object_shader_nodes_poll(context),
         )
         node_add_menu.add_node_type(
             layout,
             "ShaderNodeOutputWorld",
             poll=world_shader_nodes_poll(context),
-        )
-        node_add_menu.add_node_type(
-            layout,
-            "ShaderNodeOutputLineStyle",
-            poll=line_style_shader_nodes_poll(context),
         )
 
         node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
@@ -168,11 +168,6 @@ class NODE_MT_category_shader_shader(Menu):
             layout,
             "ShaderNodeBackground",
             poll=world_shader_nodes_poll(context),
-        )
-        node_add_menu.add_node_type(
-            layout,
-            "ShaderNodeBsdfMetallic",
-            poll=object_shader_nodes_poll(context),
         )
         node_add_menu.add_node_type(
             layout,
@@ -201,6 +196,11 @@ class NODE_MT_category_shader_shader(Menu):
         node_add_menu.add_node_type(
             layout,
             "ShaderNodeHoldout",
+            poll=object_shader_nodes_poll(context),
+        )
+        node_add_menu.add_node_type(
+            layout,
+            "ShaderNodeBsdfMetallic",
             poll=object_shader_nodes_poll(context),
         )
         node_add_menu.add_node_type(

@@ -23,11 +23,11 @@ class NODE_MT_category_compositor_input(Menu):
         layout.separator()
         node_add_menu.add_node_type(layout, "CompositorNodeBokehImage")
         node_add_menu.add_node_type(layout, "CompositorNodeImage")
+        node_add_menu.add_node_type(layout, "CompositorNodeImageInfo")
+        node_add_menu.add_node_type(layout, "CompositorNodeImageCoordinates")
         node_add_menu.add_node_type(layout, "CompositorNodeMask")
         node_add_menu.add_node_type(layout, "CompositorNodeMovieClip")
         node_add_menu.add_node_type(layout, "CompositorNodeTexture")
-        node_add_menu.add_node_type(layout, "CompositorNodeImageInfo")
-        node_add_menu.add_node_type(layout, "CompositorNodeImageCoordinates")
 
         if is_group:
             layout.separator()
@@ -95,10 +95,10 @@ class NODE_MT_category_compositor_color(Menu):
         layout.menu("NODE_MT_category_compositor_color_mix")
         layout.separator()
         node_add_menu.add_node_type(layout, "CompositorNodePremulKey")
+        node_add_menu.add_node_type(layout, "ShaderNodeBlackbody")
         node_add_menu.add_node_type(layout, "ShaderNodeValToRGB")
         node_add_menu.add_node_type(layout, "CompositorNodeConvertColorSpace")
         node_add_menu.add_node_type(layout, "CompositorNodeSetAlpha")
-        node_add_menu.add_node_type(layout, "ShaderNodeBlackbody")
         layout.separator()
         node_add_menu.add_node_type(layout, "CompositorNodeInvert")
         node_add_menu.add_node_type(layout, "CompositorNodeRGBToBW")
@@ -322,14 +322,14 @@ class NODE_MT_category_compositor_vector(Menu):
         node_add_menu.add_node_type(layout, "ShaderNodeCombineXYZ")
         node_add_menu.add_node_type(layout, "ShaderNodeSeparateXYZ")
         layout.separator()
-        node_add_menu.add_node_type_with_searchable_enum(context, layout, "ShaderNodeVectorMath", "operation")
-        node_add_menu.add_node_type(layout, "ShaderNodeVectorRotate")
         props = node_add_menu.add_node_type(layout, "ShaderNodeMix", label=iface_("Mix Vector"))
         ops = props.settings.add()
         ops.name = "data_type"
         ops.value = "'VECTOR'"
         node_add_menu.add_node_type(layout, "CompositorNodeNormal")
         node_add_menu.add_node_type(layout, "ShaderNodeVectorCurve")
+        node_add_menu.add_node_type_with_searchable_enum(context, layout, "ShaderNodeVectorMath", "operation")
+        node_add_menu.add_node_type(layout, "ShaderNodeVectorRotate")
 
         node_add_menu.draw_assets_for_catalog(layout, self.bl_label)
 
@@ -351,8 +351,8 @@ class NODE_MT_compositor_node_add_all(Menu):
         layout.separator()
         layout.menu("NODE_MT_category_compositor_tracking")
         layout.separator()
-        layout.menu("NODE_MT_category_compositor_transform")
         layout.menu("NODE_MT_category_compositor_texture")
+        layout.menu("NODE_MT_category_compositor_transform")
         layout.menu("NODE_MT_category_compositor_utilities")
         layout.menu("NODE_MT_category_compositor_vector")
         layout.separator()
