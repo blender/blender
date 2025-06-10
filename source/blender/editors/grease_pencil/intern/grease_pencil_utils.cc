@@ -1303,6 +1303,17 @@ IndexMask retrieve_editable_and_selected_elements(Object &object,
   return {};
 }
 
+bool has_editable_layer(const GreasePencil &grease_pencil)
+{
+  using namespace blender::bke::greasepencil;
+  for (const Layer *layer : grease_pencil.layers()) {
+    if (layer->is_editable()) {
+      return true;
+    }
+  }
+  return false;
+}
+
 Array<PointTransferData> compute_topology_change(
     const bke::CurvesGeometry &src,
     bke::CurvesGeometry &dst,
