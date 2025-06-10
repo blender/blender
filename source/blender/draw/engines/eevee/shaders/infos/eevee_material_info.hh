@@ -24,7 +24,6 @@
 #  define SHADOW_UPDATE_ATOMIC_RASTER
 #  define MAT_TRANSPARENT
 
-#  define thickness_mode 1.0f
 #endif
 
 #include "eevee_defines.hh"
@@ -351,9 +350,7 @@ GPU_SHADER_CREATE_END()
 
 #ifndef NDEBUG
 
-/* Stub functions defined by the material evaluation. */
 GPU_SHADER_CREATE_INFO(eevee_material_stub)
-DEFINE("EEVEE_MATERIAL_STUBS")
 /* Dummy uniform buffer to detect overlap with material node-tree. */
 UNIFORM_BUF(0, int, node_tree)
 GPU_SHADER_CREATE_END()

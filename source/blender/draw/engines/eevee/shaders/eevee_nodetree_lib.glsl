@@ -596,15 +596,6 @@ float2 bsdf_lut(float cos_theta, float roughness, float ior, bool do_multiscatte
   return float2(reflectance.r, transmittance.r);
 }
 
-#ifdef EEVEE_MATERIAL_STUBS
-#  define attrib_load()
-#  define nodetree_displacement() float3(0.0f)
-#  define nodetree_surface(closure_rand) Closure(0)
-#  define nodetree_volume() Closure(0)
-#  define nodetree_thickness() 0.1f
-#  define thickness_mode 1.0f
-#endif
-
 #ifdef GPU_VERTEX_SHADER
 #  define closure_to_rgba(a) float4(0.0f)
 #endif

@@ -859,7 +859,8 @@ Shader *ShaderCompiler::compile(const shader::ShaderCreateInfo &info, bool is_ba
   }
 
   if (!info.vertex_source_.is_empty()) {
-    auto code = gpu_shader_dependency_get_resolved_source(info.vertex_source_);
+    Vector<StringRefNull> code = gpu_shader_dependency_get_resolved_source(info.vertex_source_,
+                                                                           info.generated_sources);
     std::string interface = shader->vertex_interface_declare(info);
 
     Vector<StringRefNull> sources;
@@ -886,7 +887,8 @@ Shader *ShaderCompiler::compile(const shader::ShaderCreateInfo &info, bool is_ba
   }
 
   if (!info.fragment_source_.is_empty()) {
-    auto code = gpu_shader_dependency_get_resolved_source(info.fragment_source_);
+    Vector<StringRefNull> code = gpu_shader_dependency_get_resolved_source(info.fragment_source_,
+                                                                           info.generated_sources);
     std::string interface = shader->fragment_interface_declare(info);
 
     Vector<StringRefNull> sources;
@@ -913,7 +915,8 @@ Shader *ShaderCompiler::compile(const shader::ShaderCreateInfo &info, bool is_ba
   }
 
   if (!info.geometry_source_.is_empty()) {
-    auto code = gpu_shader_dependency_get_resolved_source(info.geometry_source_);
+    Vector<StringRefNull> code = gpu_shader_dependency_get_resolved_source(info.geometry_source_,
+                                                                           info.generated_sources);
     std::string layout = shader->geometry_layout_declare(info);
     std::string interface = shader->geometry_interface_declare(info);
 
@@ -938,7 +941,8 @@ Shader *ShaderCompiler::compile(const shader::ShaderCreateInfo &info, bool is_ba
   }
 
   if (!info.compute_source_.is_empty()) {
-    auto code = gpu_shader_dependency_get_resolved_source(info.compute_source_);
+    Vector<StringRefNull> code = gpu_shader_dependency_get_resolved_source(info.compute_source_,
+                                                                           info.generated_sources);
     std::string layout = shader->compute_layout_declare(info);
 
     Vector<StringRefNull> sources;

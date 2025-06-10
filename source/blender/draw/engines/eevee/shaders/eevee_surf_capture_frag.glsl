@@ -17,7 +17,7 @@ FRAGMENT_SHADER_CREATE_INFO(eevee_surf_capture)
 #include "draw_curves_lib.glsl"
 #include "draw_view_lib.glsl"
 #include "eevee_gbuffer_lib.glsl"
-#include "eevee_nodetree_lib.glsl"
+#include "eevee_nodetree_frag_lib.glsl"
 #include "eevee_sampling_lib.glsl"
 #include "eevee_surf_lib.glsl"
 #include "gpu_shader_math_vector_lib.glsl"

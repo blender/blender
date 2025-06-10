@@ -315,6 +315,10 @@
 
 #if !defined(GLSL_CPP_STUBS)
 
+namespace blender::gpu {
+struct GPUSource;
+}
+
 namespace blender::gpu::shader {
 
 /* All of these functions is a bit out of place */
@@ -463,6 +467,9 @@ enum class BuiltinBits {
   /* Not a builtin but a flag we use to tag shaders that use the debug features. */
   USE_PRINTF = (1 << 28),
   USE_DEBUG_DRAW = (1 << 29),
+
+  /* Shader source needs to be implemented at runtime. */
+  RUNTIME_GENERATED = (1 << 30),
 };
 ENUM_OPERATORS(BuiltinBits, BuiltinBits::USE_DEBUG_DRAW);
 
@@ -644,6 +651,16 @@ struct StageInterfaceInfo {
   }
 };
 
+/** Sources from generated code. Map source name to content. */
+struct GeneratedSource {
+  /* Associated filename this source replaces. */
+  StringRefNull filename;
+  Vector<StringRefNull> dependencies;
+  std::string content;
+};
+
+using GeneratedSourceList = Vector<shader::GeneratedSource, 0>;
+
 /**
  * \brief Describe inputs & outputs, stage interfaces, resources and sources of a shader.
  *        If all data is correctly provided, this is all that is needed to create and compile
@@ -683,6 +700,8 @@ struct ShaderCreateInfo {
   std::string typedef_source_generated;
   /** Manually set generated dependencies. */
   Vector<StringRefNull, 0> dependencies_generated;
+
+  GeneratedSourceList generated_sources;
 
 #  define TEST_EQUAL(a, b, _member) \
     if (!((a)._member == (b)._member)) { \

@@ -18,7 +18,7 @@ FRAGMENT_SHADER_CREATE_INFO(eevee_surf_world)
 #include "eevee_colorspace_lib.glsl"
 #include "eevee_lightprobe_sphere_lib.glsl"
 #include "eevee_lightprobe_volume_eval_lib.glsl"
-#include "eevee_nodetree_lib.glsl"
+#include "eevee_nodetree_frag_lib.glsl"
 #include "eevee_sampling_lib.glsl"
 #include "eevee_surf_lib.glsl"
 

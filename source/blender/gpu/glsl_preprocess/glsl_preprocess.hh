@@ -57,6 +57,7 @@ enum Builtin : uint64_t {
   drw_debug = hash("drw_debug_"),
   printf = hash("printf"),
   assert = hash("assert"),
+  runtime_generated = hash("runtime_generated"),
 };
 
 enum Qualifier : uint64_t {
@@ -207,6 +208,7 @@ class Preprocessor {
       }
       if (language == BLENDER_GLSL) {
         include_parse(str, report_error);
+        pragma_runtime_generated_parsing(str);
         pragma_once_linting(str, filename, report_error);
       }
       str = preprocessor_directive_mutation(str);
@@ -463,6 +465,13 @@ class Preprocessor {
       }
       metadata.dependencies.emplace_back(dependency_name);
     });
+  }
+
+  void pragma_runtime_generated_parsing(const std::string &str)
+  {
+    if (str.find("\n#pragma runtime_generated") != std::string::npos) {
+      metadata.builtins.emplace_back(metadata::Builtin::runtime_generated);
+    }
   }
 
   void pragma_once_linting(const std::string &str,
@@ -842,7 +851,7 @@ class Preprocessor {
   std::string preprocessor_directive_mutation(const std::string &str)
   {
     /* Remove unsupported directives.` */
-    std::regex regex(R"(#\s*(?:include|pragma once)[^\n]*)");
+    std::regex regex(R"(#\s*(?:include|pragma once|pragma runtime_generated)[^\n]*)");
     return std::regex_replace(str, regex, "");
   }
 
