@@ -2326,6 +2326,26 @@ static const EnumPropertyItem *rna_GeometryNodeAttributeDomain_attribute_domain_
   return item_array;
 }
 
+static const EnumPropertyItem *rna_structure_type_no_auto_itemf(bContext * /*C*/,
+                                                                PointerRNA * /*ptr*/,
+                                                                PropertyRNA * /*prop*/,
+                                                                bool *r_free)
+{
+  EnumPropertyItem *items = nullptr;
+  int items_len = 0;
+  for (const EnumPropertyItem *item = rna_enum_node_socket_structure_type_items; item->identifier;
+       item++)
+  {
+    if (item->value != NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_AUTO) {
+      RNA_enum_item_add(&items, &items_len, item);
+    }
+  }
+  RNA_enum_item_end(&items, &items_len);
+
+  *r_free = true;
+  return items;
+}
+
 static StructRNA *rna_ShaderNode_register(Main *bmain,
                                           ReportList *reports,
                                           void *data,
@@ -11718,11 +11738,23 @@ static void def_geo_foreach_geometry_element_output(BlenderRNA *brna, StructRNA 
 
 static void rna_def_geo_closure_input_item(BlenderRNA *brna)
 {
-  StructRNA *srna = RNA_def_struct(brna, "NodeGeometryClosureInputItem", nullptr);
+  StructRNA *srna;
+  PropertyRNA *prop;
+
+  srna = RNA_def_struct(brna, "NodeGeometryClosureInputItem", nullptr);
   RNA_def_struct_ui_text(srna, "Closure Input Item", "");
   RNA_def_struct_sdna(srna, "NodeGeometryClosureInputItem");
 
   rna_def_node_item_array_socket_item_common(srna, "ClosureInputItemsAccessor", true);
+
+  prop = RNA_def_property(srna, "structure_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, rna_enum_node_socket_structure_type_items);
+  RNA_def_property_ui_text(
+      prop,
+      "Structure Type",
+      "What kind of higher order types are expected to flow through this socket");
+  RNA_def_property_update(
+      prop, NC_NODE | NA_EDITED, "rna_Node_ItemArray_item_update<ClosureInputItemsAccessor>");
 }
 
 static void rna_def_geo_closure_input_items(BlenderRNA *brna)
@@ -11868,11 +11900,23 @@ static void rna_def_geo_capture_attribute(BlenderRNA *brna, StructRNA *srna)
 static void rna_def_geo_evaluate_closure_input_item(BlenderRNA *brna)
 {
   StructRNA *srna;
+  PropertyRNA *prop;
 
   srna = RNA_def_struct(brna, "NodeGeometryEvaluateClosureInputItem", nullptr);
   RNA_def_struct_ui_text(srna, "Input Item", "");
 
   rna_def_node_item_array_socket_item_common(srna, "EvaluateClosureInputItemsAccessor", true);
+
+  prop = RNA_def_property(srna, "structure_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, rna_enum_node_socket_structure_type_items);
+  RNA_def_property_enum_funcs(prop, nullptr, nullptr, "rna_structure_type_no_auto_itemf");
+  RNA_def_property_ui_text(
+      prop,
+      "Structure Type",
+      "What kind of higher order types are expected to flow through this socket");
+  RNA_def_property_update(prop,
+                          NC_NODE | NA_EDITED,
+                          "rna_Node_ItemArray_item_update<EvaluateClosureInputItemsAccessor>");
 }
 
 static void rna_def_geo_evaluate_closure_input_items(BlenderRNA *brna)
@@ -11892,11 +11936,23 @@ static void rna_def_geo_evaluate_closure_input_items(BlenderRNA *brna)
 static void rna_def_geo_evaluate_closure_output_item(BlenderRNA *brna)
 {
   StructRNA *srna;
+  PropertyRNA *prop;
 
   srna = RNA_def_struct(brna, "NodeGeometryEvaluateClosureOutputItem", nullptr);
   RNA_def_struct_ui_text(srna, "Output Item", "");
 
   rna_def_node_item_array_socket_item_common(srna, "EvaluateClosureOutputItemsAccessor", true);
+
+  prop = RNA_def_property(srna, "structure_type", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, rna_enum_node_socket_structure_type_items);
+  RNA_def_property_enum_funcs(prop, nullptr, nullptr, "rna_structure_type_no_auto_itemf");
+  RNA_def_property_ui_text(
+      prop,
+      "Structure Type",
+      "What kind of higher order types are expected to flow through this socket");
+  RNA_def_property_update(prop,
+                          NC_NODE | NA_EDITED,
+                          "rna_Node_ItemArray_item_update<EvaluateClosureOutputItemsAccessor>");
 }
 
 static void rna_def_geo_evaluate_closure_output_items(BlenderRNA *brna)

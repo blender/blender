@@ -789,6 +789,8 @@ BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::align_with_previous(
 BaseSocketDeclarationBuilder &BaseSocketDeclarationBuilder::structure_type(
     const StructureType structure_type)
 {
+  BLI_assert(NodeSocketInterfaceStructureType(structure_type) !=
+             NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_AUTO);
   decl_base_->structure_type = structure_type;
   return *this;
 }

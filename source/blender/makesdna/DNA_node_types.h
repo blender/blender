@@ -2183,7 +2183,9 @@ typedef struct NodeGeometryClosureInputItem {
   char *name;
   /** #eNodeSocketDatatype. */
   short socket_type;
-  char _pad[2];
+  /** #NodeSocketInterfaceStructureType.  */
+  int8_t structure_type;
+  char _pad[1];
   int identifier;
 } NodeGeometryClosureInputItem;
 
@@ -2220,7 +2222,9 @@ typedef struct NodeGeometryEvaluateClosureInputItem {
   char *name;
   /** #eNodeSocketDatatype */
   short socket_type;
-  char _pad[2];
+  /** #NodeSocketInterfaceStructureType.  */
+  int8_t structure_type;
+  char _pad[1];
   int identifier;
 } NodeGeometryEvaluateClosureInputItem;
 
@@ -2228,7 +2232,9 @@ typedef struct NodeGeometryEvaluateClosureOutputItem {
   char *name;
   /** #eNodeSocketDatatype */
   short socket_type;
-  char _pad[2];
+  /** #NodeSocketInterfaceStructureType.  */
+  int8_t structure_type;
+  char _pad[1];
   int identifier;
 } NodeGeometryEvaluateClosureOutputItem;
 

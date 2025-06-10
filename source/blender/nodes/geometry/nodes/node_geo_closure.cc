@@ -37,6 +37,9 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *current_no
   }
   bNode &output_node = const_cast<bNode &>(*zone->output_node());
 
+  uiLayoutSetPropSep(layout, true);
+  uiLayoutSetPropDecorate(layout, false);
+
   if (current_node->type_legacy == GEO_NODE_CLOSURE_INPUT) {
     if (uiLayout *panel = layout->panel(C, "input_items", false, TIP_("Input Items"))) {
       socket_items::ui::draw_items_list_with_operators<ClosureInputItemsAccessor>(
@@ -44,6 +47,7 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *current_no
       socket_items::ui::draw_active_item_props<ClosureInputItemsAccessor>(
           ntree, output_node, [&](PointerRNA *item_ptr) {
             panel->prop(item_ptr, "socket_type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+            panel->prop(item_ptr, "structure_type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
           });
     }
   }
@@ -143,7 +147,7 @@ static void node_declare(NodeDeclarationBuilder &b)
       const NodeGeometryClosureOutputItem &item = storage.output_items.items[i];
       const eNodeSocketDatatype socket_type = eNodeSocketDatatype(item.socket_type);
       const std::string identifier = ClosureOutputItemsAccessor::socket_identifier_for_item(item);
-      b.add_input(socket_type, item.name, identifier);
+      b.add_input(socket_type, item.name, identifier).supports_field();
     }
   }
   b.add_input<decl::Extend>("", "__extend__");
@@ -220,8 +224,12 @@ static void try_initialize_closure_from_evaluator(SpaceNode &snode,
 
   for (const int i : IndexRange(storage->input_items.items_num)) {
     const NodeGeometryEvaluateClosureInputItem &evaluate_item = storage->input_items.items[i];
-    socket_items::add_item_with_socket_type_and_name<ClosureInputItemsAccessor>(
-        closure_output_node, eNodeSocketDatatype(evaluate_item.socket_type), evaluate_item.name);
+    NodeGeometryClosureInputItem &input_item =
+        *socket_items::add_item_with_socket_type_and_name<ClosureInputItemsAccessor>(
+            closure_output_node,
+            eNodeSocketDatatype(evaluate_item.socket_type),
+            evaluate_item.name);
+    input_item.structure_type = evaluate_item.structure_type;
   }
   for (const int i : IndexRange(storage->output_items.items_num)) {
     const NodeGeometryEvaluateClosureOutputItem &evaluate_item = storage->output_items.items[i];

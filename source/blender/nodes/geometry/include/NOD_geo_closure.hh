@@ -243,6 +243,7 @@ struct EvaluateClosureInputItemsAccessor : public socket_items::SocketItemsAcces
     auto *storage = static_cast<NodeGeometryEvaluateClosure *>(node.storage);
     item.socket_type = socket_type;
     item.identifier = storage->input_items.next_identifier++;
+    item.structure_type = NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_DYNAMIC;
     socket_items::set_item_name_and_make_unique<EvaluateClosureInputItemsAccessor>(
         node, item, name);
   }
@@ -318,6 +319,7 @@ struct EvaluateClosureOutputItemsAccessor : public socket_items::SocketItemsAcce
     auto *storage = static_cast<NodeGeometryEvaluateClosure *>(node.storage);
     item.socket_type = socket_type;
     item.identifier = storage->output_items.next_identifier++;
+    item.structure_type = NODE_INTERFACE_SOCKET_STRUCTURE_TYPE_DYNAMIC;
     socket_items::set_item_name_and_make_unique<EvaluateClosureOutputItemsAccessor>(
         node, item, name);
   }
