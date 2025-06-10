@@ -27,7 +27,7 @@ class BrushAssetShelf:
         from bl_ui.space_toolsystem_common import ToolSelectPanelHelper
         space_type = context.space_data.type
 
-        brush_type_items = bpy.types.Brush.bl_rna.properties[cls.tool_prop].enum_items
+        brush_type_items = bpy.types.Brush.bl_rna.properties[cls.brush_type_prop].enum_items
 
         tool_helper_cls = ToolSelectPanelHelper._tool_class_from_space_type(space_type)
         for item in ToolSelectPanelHelper._tools_flatten(
