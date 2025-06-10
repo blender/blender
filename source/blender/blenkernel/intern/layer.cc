@@ -569,10 +569,10 @@ void BKE_view_layer_rename(Main *bmain, Scene *scene, ViewLayer *view_layer, con
                  offsetof(ViewLayer, name),
                  sizeof(view_layer->name));
 
-  if (scene->nodetree) {
+  if (scene->compositing_node_group) {
     int index = BLI_findindex(&scene->view_layers, view_layer);
 
-    for (bNode *node : scene->nodetree->all_nodes()) {
+    for (bNode *node : scene->compositing_node_group->all_nodes()) {
       if (node->type_legacy == CMP_NODE_R_LAYERS && node->id == nullptr) {
         if (node->custom1 == index) {
           STRNCPY(node->name, view_layer->name);

@@ -1477,11 +1477,44 @@ void NODE_OT_add_color(wmOperatorType *ot)
 /** \name New Node Tree Operator
  * \{ */
 
+static bNodeTree *new_node_tree_impl(bContext *C, StringRef treename, StringRef idname)
+{
+  Main *bmain = CTX_data_main(C);
+  SpaceNode *snode = CTX_wm_space_node(C);
+  PointerRNA ptr;
+  PropertyRNA *prop;
+  bNodeTree *node_tree;
+
+  node_tree = bke::node_tree_add_tree(bmain, treename, idname);
+
+  /* Hook into UI. */
+  UI_context_active_but_prop_get_templateID(C, &ptr, &prop);
+
+  if (prop) {
+    /* #RNA_property_pointer_set increases the user count, fixed here as the editor is the initial
+     * user. */
+    id_us_min(&node_tree->id);
+
+    if (ptr.owner_id) {
+      BKE_id_move_to_same_lib(*bmain, node_tree->id, *ptr.owner_id);
+    }
+
+    PointerRNA idptr = RNA_id_pointer_create(&node_tree->id);
+    RNA_property_pointer_set(&ptr, prop, idptr, nullptr);
+    RNA_property_update(C, &ptr, prop);
+  }
+  else if (snode) {
+    snode->nodetree = node_tree;
+
+    tree_update(C);
+  }
+
+  return node_tree;
+}
+
 static wmOperatorStatus new_node_tree_exec(bContext *C, wmOperator *op)
 {
   SpaceNode *snode = CTX_wm_space_node(C);
-  Main *bmain = CTX_data_main(C);
-  bNodeTree *ntree;
   PointerRNA ptr;
   PropertyRNA *prop;
   const char *idname;
@@ -1513,32 +1546,9 @@ static wmOperatorStatus new_node_tree_exec(bContext *C, wmOperator *op)
     treename = type->ui_name.c_str();
   }
 
-  ntree = bke::node_tree_add_tree(bmain, treename, idname);
-
-  /* Hook into UI. */
-  UI_context_active_but_prop_get_templateID(C, &ptr, &prop);
-
-  if (prop) {
-    /* #RNA_property_pointer_set increases the user count, fixed here as the editor is the initial
-     * user. */
-    id_us_min(&ntree->id);
-
-    if (ptr.owner_id) {
-      BKE_id_move_to_same_lib(*bmain, ntree->id, *ptr.owner_id);
-    }
-
-    PointerRNA idptr = RNA_id_pointer_create(&ntree->id);
-    RNA_property_pointer_set(&ptr, prop, idptr, nullptr);
-    RNA_property_update(C, &ptr, prop);
-  }
-  else if (snode) {
-    snode->nodetree = ntree;
-
-    tree_update(C);
-  }
+  new_node_tree_impl(C, treename, idname);
 
   WM_event_add_notifier(C, NC_NODE | NA_ADDED, nullptr);
-
   return OPERATOR_FINISHED;
 }
 
@@ -1568,6 +1578,44 @@ void NODE_OT_new_node_tree(wmOperatorType *ot)
   prop = RNA_def_enum(ot->srna, "type", rna_enum_dummy_NULL_items, 0, "Tree Type", "");
   RNA_def_enum_funcs(prop, new_node_tree_type_itemf);
   RNA_def_string(ot->srna, "name", "NodeTree", MAX_ID_NAME - 2, "Name", "");
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name New Compositing Node Tree Operator
+ * \{ */
+
+static wmOperatorStatus new_compositing_node_group_exec(bContext *C, wmOperator *op)
+{
+  Main *bmain = CTX_data_main(C);
+
+  char tree_name[MAX_ID_NAME - 2];
+  RNA_string_get(op->ptr, "name", tree_name);
+
+  bNodeTree *ntree = new_node_tree_impl(C, tree_name, "CompositorNodeTree");
+  ED_node_composit_default_init(C, ntree);
+
+  WM_event_add_notifier(C, NC_NODE | NA_ADDED, nullptr);
+  BKE_ntree_update_after_single_tree_change(*bmain, *ntree);
+
+  return OPERATOR_FINISHED;
+}
+
+void NODE_OT_new_compositing_node_group(wmOperatorType *ot)
+{
+  /* identifiers */
+  ot->name = "New Compositing Node Tree";
+  ot->idname = "NODE_OT_new_compositing_node_group";
+  ot->description = "Create a new compositing node tree and initialize it with default nodes";
+
+  /* api callbacks */
+  ot->exec = new_compositing_node_group_exec;
+
+  /* flags */
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+  RNA_def_string(ot->srna, "name", DATA_("Compositing Node Tree"), MAX_ID_NAME - 2, "Name", "");
 }
 
 /** \} */

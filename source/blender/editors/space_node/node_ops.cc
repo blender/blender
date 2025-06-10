@@ -90,6 +90,7 @@ void node_operatortypes()
   WM_operatortype_append(NODE_OT_add_group_input_node);
 
   WM_operatortype_append(NODE_OT_new_node_tree);
+  WM_operatortype_append(NODE_OT_new_compositing_node_group);
 
   WM_operatortype_append(NODE_OT_output_file_add_socket);
   WM_operatortype_append(NODE_OT_output_file_remove_active_socket);

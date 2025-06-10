@@ -3230,8 +3230,8 @@ static void rna_Node_image_layer_update(Main *bmain, Scene *scene, PointerRNA *p
 
   rna_Node_update(bmain, scene, ptr);
 
-  if (scene != nullptr && scene->nodetree != nullptr) {
-    ntreeCompositUpdateRLayers(scene->nodetree);
+  if (scene != nullptr && scene->compositing_node_group != nullptr) {
+    ntreeCompositUpdateRLayers(scene->compositing_node_group);
   }
 }
 
@@ -3431,8 +3431,8 @@ static const EnumPropertyItem *rna_Node_view_layer_itemf(bContext * /*C*/,
 static void rna_Node_view_layer_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
   rna_Node_update_relations(bmain, scene, ptr);
-  if (scene != nullptr && scene->nodetree != nullptr) {
-    ntreeCompositUpdateRLayers(scene->nodetree);
+  if (scene != nullptr && scene->compositing_node_group != nullptr) {
+    ntreeCompositUpdateRLayers(scene->compositing_node_group);
   }
 }
 

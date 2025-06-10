@@ -60,7 +60,7 @@ class Context : public compositor::Context {
 
   const bNodeTree &get_node_tree() const override
   {
-    return *scene_->nodetree;
+    return *scene_->compositing_node_group;
   }
 
   bool use_gpu() const override

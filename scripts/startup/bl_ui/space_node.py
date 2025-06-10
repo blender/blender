@@ -149,6 +149,11 @@ class NODE_HT_header(Header):
             if snode_id:
                 layout.prop(snode_id, "use_nodes")
 
+            layout.separator_spacer()
+            row = layout.row()
+            row.enabled = not snode.pin
+            row.template_ID(scene, "compositing_node_group", new="node.new_compositing_node_group")
+
         elif snode.tree_type == 'GeometryNodeTree':
             layout.prop(snode, "geometry_nodes_type", text="")
             NODE_MT_editor_menus.draw_collapsible(context, layout)
@@ -186,14 +191,10 @@ class NODE_HT_header(Header):
             layout.template_ID(snode, "node_tree", new="node.new_node_tree")
 
         # Put pin next to ID block
-        if not is_compositor and display_pin:
+        if display_pin:
             layout.prop(snode, "pin", text="", emboss=False)
 
         layout.separator_spacer()
-
-        # Put pin on the right for Compositing
-        if is_compositor:
-            layout.prop(snode, "pin", text="", emboss=False)
 
         if len(snode.path) > 1:
             layout.operator("node.tree_path_parent", text="", icon='FILE_PARENT')

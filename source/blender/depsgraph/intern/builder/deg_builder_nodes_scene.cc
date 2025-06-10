@@ -80,10 +80,10 @@ void DepsgraphNodeBuilder::build_scene_compositor(Scene *scene)
   if (built_map_.check_is_built_and_tag(scene, BuilderMap::TAG_SCENE_COMPOSITOR)) {
     return;
   }
-  if (scene->nodetree == nullptr) {
+  if (scene->compositing_node_group == nullptr) {
     return;
   }
-  build_nodetree(scene->nodetree);
+  build_nodetree(scene->compositing_node_group);
 }
 
 }  // namespace blender::deg

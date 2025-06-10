@@ -2112,6 +2112,15 @@ static void direct_link_id_embedded_id(BlendDataReader *reader,
                                        ID *id_old)
 {
   /* Handle 'private IDs'. */
+  if (GS(id->name) == ID_SCE) {
+    Scene *scene = (Scene *)id;
+    if (scene->compositing_node_group) {
+      /* If `scene->compositing_node_group != nullptr`, then this means the blend file was created
+       * by a version that wrote the compositing_node_group as its own ID datablock. Since
+       * `scene->nodetree` was written for forward compatibility reasons only, we can ignore it. */
+      scene->nodetree = nullptr;
+    }
+  }
   bNodeTree **nodetree = blender::bke::node_tree_ptr_from_id(id);
   if (nodetree != nullptr && *nodetree != nullptr) {
     BLO_read_struct(reader, bNodeTree, nodetree);

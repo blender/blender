@@ -190,8 +190,8 @@ static void view_layer_remove_unset_nodetrees(const Main *bmain, Scene *scene, V
   for (Scene *sce = static_cast<Scene *>(bmain->scenes.first); sce;
        sce = static_cast<Scene *>(sce->id.next))
   {
-    if (sce->nodetree) {
-      blender::bke::node_tree_remove_layer_n(sce->nodetree, scene, act_layer_index);
+    if (sce->compositing_node_group) {
+      blender::bke::node_tree_remove_layer_n(sce->compositing_node_group, scene, act_layer_index);
     }
   }
 }
