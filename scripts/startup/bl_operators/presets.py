@@ -166,9 +166,16 @@ class AddPresetBase:
 
                     def rna_recursive_attr_expand(value, rna_path_step, level):
                         if isinstance(value, bpy.types.PropertyGroup):
+                            # Avoid properties being handled multiple times.
+                            # This happens when a class defines a property which is also defined by it's parent class.
+                            # The parents property is shadowed, so it only makes sense to write each property once.
+                            # Happens with `OperatorFileListElement` which has two `name` properties.
+                            properties_skip = {"rna_type"}
                             for sub_value_attr in value.bl_rna.properties.keys():
-                                if sub_value_attr == "rna_type":
+                                if sub_value_attr in properties_skip:
                                     continue
+                                properties_skip.add(sub_value_attr)
+
                                 sub_value = getattr(value, sub_value_attr)
                                 rna_recursive_attr_expand(
                                     sub_value,
