@@ -125,8 +125,9 @@ BsdfEval bxdf_ggx_eval_reflection(float3 N, float3 L, float3 V, float alpha, boo
   BsdfEval eval;
 
   float NV2 = square(NV);
-  float s2 = square(1.0f + sqrt(1.0f - NV2));
-  float len_ai_sqr = a2 * (1.0f - NV2);
+  float one_minus_NV2 = saturate(1.0f - NV2);
+  float s2 = square(1.0f + sqrt(one_minus_NV2));
+  float len_ai_sqr = a2 * one_minus_NV2;
   float t = sqrt(len_ai_sqr + NV2);
   if (NV >= 0.0f) {
     float k = (1.0f - a2) * s2 / (s2 + a2 * NV2);
