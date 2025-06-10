@@ -72,7 +72,7 @@ def prepare_sculpt_scene(context: any, mode: SculptMode):
     elif mode == SculptMode.MULTIRES:
         size = 150
     elif mode == SculptMode.DYNTOPO:
-        size = 1500
+        size = 500
     else:
         raise NotImplementedError
 
