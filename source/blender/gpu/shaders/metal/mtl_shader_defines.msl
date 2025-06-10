@@ -1228,3 +1228,12 @@ float4x4 __mat4x4(float3x3 a) { return to_float4x4(a); }
 #define gpu_dfdx(x) dFdx(x)
 #define gpu_dfdy(x) dFdy(x)
 #define gpu_fwidth(x) fwidth(x)
+
+/* Resource accessor. */
+#define specialization_constant_get(create_info, _res) _res
+#define push_constant_get(create_info, _res) _res
+#define interface_get(create_info, _res) _res
+#define attribute_get(create_info, _res) _res
+#define buffer_get(create_info, _res) _res
+#define sampler_get(create_info, _res) _res
+#define image_get(create_info, _res) _res

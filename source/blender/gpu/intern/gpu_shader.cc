@@ -843,6 +843,8 @@ Shader *ShaderCompiler::compile(const shader::ShaderCreateInfo &info, bool is_ba
   std::string defines = shader->defines_declare(info);
   std::string resources = shader->resources_declare(info);
 
+  info.resource_guard_defines(defines);
+
   defines += "#define USE_GPU_SHADER_CREATE_INFO\n";
 
   Vector<StringRefNull> typedefs;
@@ -874,6 +876,12 @@ Shader *ShaderCompiler::compile(const shader::ShaderCreateInfo &info, bool is_ba
     sources.extend(info.dependencies_generated);
     sources.append(info.vertex_source_generated);
 
+    if (info.vertex_entry_fn_ != "main") {
+      sources.append("void main() { ");
+      sources.append(info.vertex_entry_fn_);
+      sources.append("(); }\n");
+    }
+
     shader->vertex_shader_from_glsl(sources);
   }
 
@@ -895,6 +903,12 @@ Shader *ShaderCompiler::compile(const shader::ShaderCreateInfo &info, bool is_ba
     sources.extend(info.dependencies_generated);
     sources.append(info.fragment_source_generated);
 
+    if (info.fragment_entry_fn_ != "main") {
+      sources.append("void main() { ");
+      sources.append(info.fragment_entry_fn_);
+      sources.append("(); }\n");
+    }
+
     shader->fragment_shader_from_glsl(sources);
   }
 
@@ -914,6 +928,12 @@ Shader *ShaderCompiler::compile(const shader::ShaderCreateInfo &info, bool is_ba
     sources.append(info.geometry_source_generated);
     sources.extend(code);
 
+    if (info.geometry_entry_fn_ != "main") {
+      sources.append("void main() { ");
+      sources.append(info.geometry_entry_fn_);
+      sources.append("(); }\n");
+    }
+
     shader->geometry_shader_from_glsl(sources);
   }
 
@@ -931,6 +951,12 @@ Shader *ShaderCompiler::compile(const shader::ShaderCreateInfo &info, bool is_ba
     sources.extend(code);
     sources.extend(info.dependencies_generated);
     sources.append(info.compute_source_generated);
+
+    if (info.compute_entry_fn_ != "main") {
+      sources.append("void main() { ");
+      sources.append(info.compute_entry_fn_);
+      sources.append("(); }\n");
+    }
 
     shader->compute_shader_from_glsl(sources);
   }

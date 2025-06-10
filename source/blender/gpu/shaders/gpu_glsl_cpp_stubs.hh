@@ -1072,6 +1072,21 @@ void groupMemoryBarrier() {}
 // #define using /* Needed for Stubs. */
 #define row_major row_major_is_reserved_glsl_keyword_do_not_use
 
+#ifdef GPU_SHADER_LIBRARY
+#  define GPU_VERTEX_SHADER
+#  define GPU_FRAGMENT_SHADER
+#  define GPU_COMPUTE_SHADER
+#endif
+
+/* Resource accessor. */
+#define specialization_constant_get(create_info, _res) _res
+#define push_constant_get(create_info, _res) _res
+#define interface_get(create_info, _res) _res
+#define attribute_get(create_info, _res) _res
+#define buffer_get(create_info, _res) _res
+#define sampler_get(create_info, _res) _res
+#define image_get(create_info, _res) _res
+
 #include "GPU_shader_shared_utils.hh"
 
 #ifdef __GNUC__

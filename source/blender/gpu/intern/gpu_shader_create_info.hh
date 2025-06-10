@@ -25,6 +25,12 @@
 #  include <iostream>
 #endif
 
+#if defined(GPU_SHADER)
+#  include "gpu_shader_srd_cpp.hh"
+#else
+#  include "gpu_shader_srd_info.hh"
+#endif
+
 /* Force enable `printf` support in release build. */
 #define GPU_FORCE_ENABLE_SHADER_PRINTF 0
 
@@ -117,7 +123,9 @@
 #  define LOCAL_GROUP_SIZE(...) .local_group_size(__VA_ARGS__)
 
 #  define VERTEX_IN(slot, type, name) .vertex_in(slot, Type::type##_t, #name)
+#  define VERTEX_IN_SRD(srd) .shared_resource_descriptor(srd::populate)
 #  define VERTEX_OUT(stage_interface) .vertex_out(stage_interface)
+#  define VERTEX_OUT_SRD(srd) .vertex_out(srd)
 /* TO REMOVE. */
 #  define GEOMETRY_LAYOUT(...) .geometry_layout(__VA_ARGS__)
 #  define GEOMETRY_OUT(stage_interface) .geometry_out(stage_interface)
@@ -126,10 +134,13 @@
     .subpass_in(slot, Type::type##_t, ImageType::img_type, #name, rog)
 
 #  define FRAGMENT_OUT(slot, type, name) .fragment_out(slot, Type::type##_t, #name)
+#  define FRAGMENT_OUT_SRD(srd) .shared_resource_descriptor(srd::populate)
 #  define FRAGMENT_OUT_DUAL(slot, type, name, blend) \
     .fragment_out(slot, Type::type##_t, #name, DualBlend::blend)
 #  define FRAGMENT_OUT_ROG(slot, type, name, rog) \
     .fragment_out(slot, Type::type##_t, #name, DualBlend::NONE, rog)
+
+#  define RESOURCE_SRD(srd) .shared_resource_descriptor(srd::populate)
 
 #  define EARLY_FRAGMENT_TEST(enable) .early_fragment_test(enable)
 #  define DEPTH_WRITE(value) .depth_write(value)
@@ -168,6 +179,10 @@
 #  define FRAGMENT_SOURCE(filename) .fragment_source(filename)
 #  define COMPUTE_SOURCE(filename) .compute_source(filename)
 
+#  define VERTEX_FUNCTION(function) .vertex_function(function)
+#  define FRAGMENT_FUNCTION(function) .fragment_function(function)
+#  define COMPUTE_FUNCTION(function) .compute_function(function)
+
 #  define DEFINE(name) .define(name)
 #  define DEFINE_VALUE(name, value) .define(name, value)
 
@@ -200,7 +215,12 @@
     namespace gl_VertexShader { \
     const type name = {}; \
     }
+#  define VERTEX_IN_SRD(srd) \
+    namespace gl_VertexShader { \
+    using namespace srd; \
+    }
 #  define VERTEX_OUT(stage_interface) using namespace interface::stage_interface;
+#  define VERTEX_OUT_SRD(srd) using namespace interface::srd;
 /* TO REMOVE. */
 #  define GEOMETRY_LAYOUT(...)
 #  define GEOMETRY_OUT(stage_interface) using namespace interface::stage_interface;
@@ -219,6 +239,12 @@
     namespace gl_FragmentShader { \
     type name; \
     }
+#  define FRAGMENT_OUT_SRD(srd) \
+    namespace gl_FragmentShader { \
+    using namespace srd; \
+    }
+
+#  define RESOURCE_SRD(srd) using namespace srd;
 
 #  define EARLY_FRAGMENT_TEST(enable)
 #  define DEPTH_WRITE(value)
@@ -247,9 +273,12 @@
 #  define BUILTINS(builtin)
 
 #  define VERTEX_SOURCE(filename)
-#  define GEOMETRY_SOURCE(filename)
 #  define FRAGMENT_SOURCE(filename)
 #  define COMPUTE_SOURCE(filename)
+
+#  define VERTEX_FUNCTION(filename)
+#  define FRAGMENT_FUNCTION(filename)
+#  define COMPUTE_FUNCTION(filename)
 
 #  define DEFINE(name)
 #  define DEFINE_VALUE(name, value)
@@ -885,6 +914,8 @@ struct ShaderCreateInfo {
   Vector<StringRefNull> typedef_sources_;
 
   StringRefNull vertex_source_, geometry_source_, fragment_source_, compute_source_;
+  StringRefNull vertex_entry_fn_ = "main", geometry_entry_fn_ = "main",
+                fragment_entry_fn_ = "main", compute_entry_fn_ = "main";
 
   Vector<std::array<StringRefNull, 2>> defines_;
   /**
@@ -991,6 +1022,12 @@ struct ShaderCreateInfo {
       int slot, Type type, ImageType img_type, StringRefNull name, int raster_order_group = -1)
   {
     subpass_inputs_.append({slot, type, img_type, name, raster_order_group});
+    return *(Self *)this;
+  }
+
+  Self &shared_resource_descriptor(void (*fn)(ShaderCreateInfo &))
+  {
+    fn(*this);
     return *(Self *)this;
   }
 
@@ -1175,6 +1212,24 @@ struct ShaderCreateInfo {
     return *(Self *)this;
   }
 
+  Self &vertex_function(StringRefNull function_name)
+  {
+    vertex_entry_fn_ = function_name;
+    return *(Self *)this;
+  }
+
+  Self &fragment_function(StringRefNull function_name)
+  {
+    fragment_entry_fn_ = function_name;
+    return *(Self *)this;
+  }
+
+  Self &compute_function(StringRefNull function_name)
+  {
+    compute_entry_fn_ = function_name;
+    return *(Self *)this;
+  }
+
   /** \} */
 
   /* -------------------------------------------------------------------- */
@@ -1317,6 +1372,8 @@ struct ShaderCreateInfo {
    * Non-recursive evaluation expects their dependencies to be already finalized.
    * (All statically declared CreateInfos are automatically finalized at startup) */
   void finalize(const bool recursive = false);
+
+  void resource_guard_defines(std::string &defines) const;
 
   std::string check_error() const;
   bool is_vulkan_compatible() const;
