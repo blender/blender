@@ -18,26 +18,26 @@ class SPREADSHEET_HT_header(bpy.types.Header):
 
         row = layout.row(align=True)
         sub = row.row(align=True)
-        sub.active = self.selection_filter_available(space)
+        sub.active = self._selection_filter_available(space)
         sub.prop(space, "show_only_selected", text="")
         row.prop(space, "use_filter", toggle=True, icon='FILTER', icon_only=True)
 
-    def selection_filter_available(self, space):
-        if (root_context := next(iter(space.viewer_path.path), None)) is None:
+    @staticmethod
+    def _selection_filter_available(space):
+        path = space.viewer_path.path
+        if not path:
             return False
+        root_context = path[0]
         if root_context.type != 'ID':
             return False
-        if not isinstance(root_context.id, bpy.types.Object):
-            return False
-        obj = root_context.id
-        if obj is None:
-            return False
-        if obj.type == 'MESH':
-            return obj.mode == 'EDIT'
-        if obj.type == 'CURVES':
-            return obj.mode in {'SCULPT_CURVES', 'EDIT'}
-        if obj.type == 'POINTCLOUD':
-            return obj.mode == 'EDIT'
+        data_block = root_context.id
+        if isinstance(data_block, bpy.types.Object):
+            obj = data_block
+            match obj.type:
+                case 'MESH' | 'POINTCLOUD':
+                    return obj.mode == 'EDIT'
+                case 'CURVES':
+                    return obj.mode in {'SCULPT_CURVES', 'EDIT'}
         return False
 
 
