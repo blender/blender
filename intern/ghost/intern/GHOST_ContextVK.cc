@@ -164,7 +164,12 @@ class GHOST_DeviceVK {
 
   uint32_t generic_queue_family = 0;
 
-  VkPhysicalDeviceProperties properties = {};
+  VkPhysicalDeviceProperties2 properties = {
+      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2,
+  };
+  VkPhysicalDeviceVulkan12Properties properties_12 = {
+      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_PROPERTIES,
+  };
   VkPhysicalDeviceFeatures2 features = {};
   VkPhysicalDeviceVulkan11Features features_11 = {};
   VkPhysicalDeviceVulkan12Features features_12 = {};
@@ -182,7 +187,8 @@ class GHOST_DeviceVK {
   GHOST_DeviceVK(VkInstance vk_instance, VkPhysicalDevice vk_physical_device)
       : instance(vk_instance), physical_device(vk_physical_device)
   {
-    vkGetPhysicalDeviceProperties(physical_device, &properties);
+    properties.pNext = &properties_12;
+    vkGetPhysicalDeviceProperties2(physical_device, &properties);
 
     features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
     features_11.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES;
@@ -488,7 +494,7 @@ static GHOST_TSuccess ensure_vulkan_device(VkInstance vk_instance,
 #endif
 
     int device_score = 0;
-    switch (device_vk.properties.deviceType) {
+    switch (device_vk.properties.properties.deviceType) {
       case VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU:
         device_score = 400;
         break;
@@ -506,8 +512,8 @@ static GHOST_TSuccess ensure_vulkan_device(VkInstance vk_instance,
     }
     /* User has configured a preferred device. Add bonus score when vendor and device match. Driver
      * id isn't considered as drivers update more frequently and can break the device selection. */
-    if (device_vk.properties.deviceID == preferred_device.device_id &&
-        device_vk.properties.vendorID == preferred_device.vendor_id)
+    if (device_vk.properties.properties.deviceID == preferred_device.device_id &&
+        device_vk.properties.properties.vendorID == preferred_device.vendor_id)
     {
       device_score += 500;
       if (preferred_device.index == device_index) {
@@ -987,13 +993,18 @@ GHOST_TSuccess GHOST_ContextVK::recreateSwapchain()
    * Minimized windows have an extent of 0,0. Although it fits in the specs returned by
    * #vkGetPhysicalDeviceSurfaceCapabilitiesKHR.
    *
-   * Ref #138032
+   * The fix is limited to NVIDIA. AMD drivers finds the swapchain to be sub-optimal and
+   * asks Blender to recreate the swapchain over and over again until it gets out of memory.
+   *
+   * Ref #138032, #139815
    */
-  if (m_render_extent.width == 0) {
-    m_render_extent.width = 1;
-  }
-  if (m_render_extent.height == 0) {
-    m_render_extent.height = 1;
+  if (vulkan_device->properties_12.driverID == VK_DRIVER_ID_NVIDIA_PROPRIETARY) {
+    if (m_render_extent.width == 0) {
+      m_render_extent.width = 1;
+    }
+    if (m_render_extent.height == 0) {
+      m_render_extent.height = 1;
+    }
   }
 
   /* Use double buffering when using FIFO. Increasing the number of images could stall when doing
