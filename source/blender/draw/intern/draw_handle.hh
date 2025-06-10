@@ -297,7 +297,7 @@ class ObjectKey {
       hash_value_ = get_default_hash(hash_value_, get_default_hash(parent_));
       for (int i : IndexRange(MAX_DUPLI_RECUR)) {
         id_[i] = dupli->persistent_id[i];
-        if (id_[i] == INT_MAX) {
+        if (id_[i] == std::numeric_limits<int>::max()) {
           break;
         }
         hash_value_ = get_default_hash(hash_value_, get_default_hash(id_[i]));
@@ -334,7 +334,7 @@ class ObjectKey {
         if (id_[i] != k.id_[i]) {
           return false;
         }
-        if (id_[i] == INT_MAX) {
+        if (id_[i] == std::numeric_limits<int>::max()) {
           break;
         }
       }
