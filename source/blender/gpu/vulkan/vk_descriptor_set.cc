@@ -48,11 +48,12 @@ void VKDescriptorSetTracker::update_descriptor_set(VKContext &context,
 void VKDescriptorSetTracker::upload_descriptor_sets()
 {
   VKDevice &device = VKBackend::get().device;
-  VKDescriptorSetUpdator &updator = descriptor_sets;
   if (device.extensions_get().descriptor_buffer) {
-    updator = descriptor_buffers;
+    descriptor_buffers.upload_descriptor_sets();
   }
-  updator.upload_descriptor_sets();
+  else {
+    descriptor_sets.upload_descriptor_sets();
+  }
 }
 
 /* -------------------------------------------------------------------- */
@@ -529,19 +530,21 @@ void VKDescriptorBufferUpdator::allocate_new_descriptor_set(
       vk_descriptor_set_layout);
 
   /* Ensure if there is still place left in the current buffer. */
-  if (buffers.is_empty() || layout.size > buffers.last().size_in_bytes() - descriptor_set_head) {
+  if (buffers.is_empty() ||
+      layout.size > buffers.last().get()->size_in_bytes() - descriptor_set_head)
+  {
     const VkDeviceSize default_buffer_size = 8 * 1024 * 1024;
-    buffers.append({});
-    VKBuffer &buffer = buffers.last();
-    buffer.create(default_buffer_size,
-                  VK_BUFFER_USAGE_SAMPLER_DESCRIPTOR_BUFFER_BIT_EXT |
-                      VK_BUFFER_USAGE_RESOURCE_DESCRIPTOR_BUFFER_BIT_EXT,
-                  VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                  0,
-                  VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT);
-    debug::object_label(buffer.vk_handle(), "DescriptorBuffer");
-    descriptor_buffer_data = static_cast<uint8_t *>(buffer.mapped_memory_get());
-    descriptor_buffer_device_address = buffer.device_address_get();
+    buffers.append(std::make_unique<VKBuffer>());
+    VKBuffer *buffer = buffers.last().get();
+    buffer->create(default_buffer_size,
+                   VK_BUFFER_USAGE_SAMPLER_DESCRIPTOR_BUFFER_BIT_EXT |
+                       VK_BUFFER_USAGE_RESOURCE_DESCRIPTOR_BUFFER_BIT_EXT,
+                   VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                   0,
+                   VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT);
+    debug::object_label(buffer->vk_handle(), "DescriptorBuffer");
+    descriptor_buffer_data = static_cast<uint8_t *>(buffer->mapped_memory_get());
+    descriptor_buffer_device_address = buffer->device_address_get();
     descriptor_buffer_offset = 0;
     descriptor_set_head = 0;
     descriptor_set_tail = 0;

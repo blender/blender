@@ -37,7 +37,6 @@ class VKBuffer : public NonCopyable {
 
  public:
   VKBuffer() = default;
-  VKBuffer(VKBuffer &&other) = default;
   virtual ~VKBuffer();
 
   /** Has this buffer been allocated? */
