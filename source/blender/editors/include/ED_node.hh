@@ -135,6 +135,11 @@ Vector<const bNode *> gather_linked_separate_bundle_nodes(
     const bNodeSocket &bundle_socket,
     bke::ComputeContextCache &compute_context_cache);
 
+Vector<const bNode *> gather_linked_combine_bundle_nodes(
+    const ComputeContext *bundle_socket_context,
+    const bNodeSocket &bundle_socket,
+    bke::ComputeContextCache &compute_context_cache);
+
 /**
  * Creates a compute context for the given zone. It takes e.g. the current inspection index into
  * account.
