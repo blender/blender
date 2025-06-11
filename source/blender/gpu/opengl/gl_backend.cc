@@ -524,6 +524,12 @@ static void detect_workarounds()
   {
     GCaps.use_main_context_workaround = true;
   }
+  /* Needed to avoid driver hangs on legacy AMD drivers (see #139939). */
+  if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_OFFICIAL) &&
+      is_AMD_between_20_11_and_22(version))
+  {
+    GCaps.use_main_context_workaround = true;
+  }
   /* See #70187: merging vertices fail. This has been tested from `18.2.2` till `19.3.0~dev`
    * of the Mesa driver */
   if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_UNIX, GPU_DRIVER_OPENSOURCE) &&
