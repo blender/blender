@@ -611,7 +611,9 @@ static SlipData *slip_data_init(const Scene *scene)
   VectorSet<Strip *> strips = seq::query_selected_strips(ed->seqbasep);
   ListBase *channels = seq::channels_displayed_get(seq::editing_get(scene));
   strips.remove_if([&](Strip *strip) {
-    return ((strip->type & STRIP_TYPE_EFFECT) || seq::transform_is_locked(channels, strip));
+    return ((strip->type & STRIP_TYPE_EFFECT) ||
+            ((strip->type == STRIP_TYPE_IMAGE) && seq::transform_single_image_check(strip)) ||
+            seq::transform_is_locked(channels, strip));
   });
   if (strips.is_empty()) {
     return nullptr;
@@ -3589,8 +3591,7 @@ static wmOperatorStatus sequencer_scene_frame_range_update_exec(bContext *C, wmO
 static bool sequencer_scene_frame_range_update_poll(bContext *C)
 {
   Editing *ed = seq::editing_get(CTX_data_scene(C));
-  return (ed != nullptr && ed->act_strip != nullptr &&
-          (ed->act_strip->type & STRIP_TYPE_SCENE) != 0);
+  return (ed != nullptr && ed->act_strip != nullptr && ed->act_strip->type == STRIP_TYPE_SCENE);
 }
 
 void SEQUENCER_OT_scene_frame_range_update(wmOperatorType *ot)
