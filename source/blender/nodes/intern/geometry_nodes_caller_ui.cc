@@ -84,6 +84,7 @@ struct DrawGroupInputsContext {
   PointerRNA *properties_ptr;
   PointerRNA *bmain_ptr;
   Array<nodes::socket_usage_inference::SocketUsage> input_usages;
+  bool use_name_for_ids = false;
   std::function<PanelOpenProperty(const bNodeTreeInterfacePanel &)> panel_open_property_fn;
   std::function<SocketSearchData(const bNodeTreeInterfaceSocket &)> socket_search_data_fn;
   std::function<void(uiLayout &, int icon, const bNodeTreeInterfaceSocket &)>
@@ -474,7 +475,9 @@ static void draw_property_for_socket(DrawGroupInputsContext &ctx,
 
   /* IDProperties can be removed with python, so there could be a situation where
    * there isn't a property for a socket or it doesn't have the correct type. */
-  if (property == nullptr || !nodes::id_property_type_matches_socket(socket, *property)) {
+  if (property == nullptr ||
+      !nodes::id_property_type_matches_socket(socket, *property, ctx.use_name_for_ids))
+  {
     return;
   }
 
@@ -650,8 +653,8 @@ static void draw_interface_panel_content(DrawGroupInputsContext &ctx,
           IDProperty *property = ctx.properties.lookup_key_default_as(identifier, nullptr);
           /* IDProperties can be removed with python, so there could be a situation where
            * there isn't a property for a socket or it doesn't have the correct type. */
-          if (property == nullptr ||
-              !nodes::id_property_type_matches_socket(*toggle_socket, *property))
+          if (property == nullptr || !nodes::id_property_type_matches_socket(
+                                         *toggle_socket, *property, ctx.use_name_for_ids))
           {
             continue;
           }
@@ -1005,6 +1008,7 @@ void draw_geometry_nodes_operator_redo_ui(const bContext &C,
             "[\"{}{}\"]", BLI_str_escape(io_socket.identifier), nodes::input_use_attribute_suffix);
         layout.prop(op.ptr, prop_name, UI_ITEM_R_ICON_ONLY, "", icon);
       };
+  ctx.use_name_for_ids = true;
 
   uiLayoutSetPropSep(&layout, true);
   /* Decorators are added manually for supported properties because the
