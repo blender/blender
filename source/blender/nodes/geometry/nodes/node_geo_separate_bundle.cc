@@ -36,7 +36,8 @@ static void node_declare(NodeDeclarationBuilder &b)
       b.add_output(socket_type, name, identifier)
           .socket_name_ptr(&tree->id, SeparateBundleItemsAccessor::item_srna, &item, "name")
           .propagate_all()
-          .reference_pass_all();
+          .reference_pass_all()
+          .structure_type(StructureType::Dynamic);
     }
   }
   b.add_output<decl::Extend>("", "__extend__");

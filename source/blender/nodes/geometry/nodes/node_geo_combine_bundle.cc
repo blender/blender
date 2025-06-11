@@ -31,7 +31,9 @@ static void node_declare(NodeDeclarationBuilder &b)
       const StringRef name = item.name ? item.name : "";
       const std::string identifier = CombineBundleItemsAccessor::socket_identifier_for_item(item);
       b.add_input(socket_type, name, identifier)
-          .socket_name_ptr(&tree->id, CombineBundleItemsAccessor::item_srna, &item, "name");
+          .socket_name_ptr(&tree->id, CombineBundleItemsAccessor::item_srna, &item, "name")
+          .supports_field()
+          .structure_type(StructureType::Dynamic);
     }
   }
   b.add_input<decl::Extend>("", "__extend__");
