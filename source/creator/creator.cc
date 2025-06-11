@@ -191,9 +191,6 @@ static void callback_main_atexit(void *user_data)
   if (CreatorAtExitData_EarlyExit *early_exit = app_init_data->early_exit) {
     CTX_free(early_exit->C);
 
-    RE_texture_rng_exit();
-    BKE_brush_system_exit();
-
     BKE_blender_globals_clear();
     BKE_appdir_exit();
 
@@ -447,9 +444,6 @@ int main(int argc,
   BKE_volumes_init();
   DEG_register_node_types();
 
-  BKE_brush_system_init();
-  RE_texture_rng_init();
-
   BKE_callback_global_init();
 
 /* First test for background-mode (#Global.background). */
@@ -505,8 +499,11 @@ int main(int argc,
   /* After #ARG_PASS_SETTINGS arguments, this is so #WM_main_playanim skips #RNA_init. */
   RNA_init();
 
+  RE_texture_rng_init();
   RE_engines_init();
   blender::bke::node_system_init();
+
+  BKE_brush_system_init();
   BKE_particle_init_rng();
   /* End second initialization. */
 
