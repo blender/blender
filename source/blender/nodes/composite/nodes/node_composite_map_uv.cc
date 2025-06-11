@@ -34,6 +34,9 @@ static void cmp_node_map_uv_declare(NodeDeclarationBuilder &b)
       .default_value({1.0f, 0.0f, 0.0f})
       .min(0.0f)
       .max(1.0f)
+      .description(
+          "The UV coordinates at which to sample the texture. The Z component is assumed to "
+          "contain an alpha channel")
       .compositor_domain_priority(0);
   b.add_output<decl::Color>("Image");
 }
