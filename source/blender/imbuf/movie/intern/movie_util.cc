@@ -461,7 +461,7 @@ void MOV_validate_output_settings(RenderData *rd, const ImageFormatData *imf)
 
   if (imf->imtype == R_IMF_IMTYPE_FFMPEG) {
     if (rd->ffcodecdata.type <= 0 || rd->ffcodecdata.codec <= 0 ||
-        rd->ffcodecdata.audio_codec <= 0 || rd->ffcodecdata.video_bitrate <= 1)
+        rd->ffcodecdata.audio_codec < 0 || rd->ffcodecdata.video_bitrate <= 1)
     {
       ffmpeg_preset_set(rd, FFMPEG_PRESET_H264);
       rd->ffcodecdata.constant_rate_factor = FFM_CRF_MEDIUM;
