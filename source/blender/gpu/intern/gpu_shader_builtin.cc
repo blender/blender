@@ -13,9 +13,15 @@
 
 #include "gpu_shader_private.hh"
 
+struct BuiltinShader : blender::gpu::StaticShader {
+  /* WORKAROUND: This is needed for the polyline workaround default initialization. */
+  bool init = false;
+
+  BuiltinShader(std::string info_name) : blender::gpu::StaticShader(info_name) {}
+};
+
 /* Cache of built-in shaders (each is created on first use). */
-static blender::gpu::StaticShader *builtin_shaders[GPU_SHADER_CFG_LEN][GPU_SHADER_BUILTIN_LEN] = {
-    {nullptr}};
+static BuiltinShader *builtin_shaders[GPU_SHADER_CFG_LEN][GPU_SHADER_BUILTIN_LEN] = {{nullptr}};
 
 static const char *builtin_shader_create_info_name(eGPUBuiltinShader shader)
 {
@@ -147,7 +153,7 @@ GPUShader *GPU_shader_get_builtin_shader_with_config(eGPUBuiltinShader shader,
 #  pragma GCC diagnostic push
 #  pragma GCC diagnostic ignored "-Warray-bounds"
 #endif
-  blender::gpu::StaticShader **sh_p = &builtin_shaders[sh_cfg][shader];
+  BuiltinShader **sh_p = &builtin_shaders[sh_cfg][shader];
 #ifdef __GNUC__
 #  pragma GCC diagnostic pop
 #endif
@@ -156,31 +162,35 @@ GPUShader *GPU_shader_get_builtin_shader_with_config(eGPUBuiltinShader shader,
     if (sh_cfg == GPU_SHADER_CFG_DEFAULT) {
       /* Common case. */
       const char *info_name = builtin_shader_create_info_name(shader);
-      *sh_p = MEM_new<blender::gpu::StaticShader>(__func__, info_name);
-      if (ELEM(shader,
-               GPU_SHADER_3D_POLYLINE_CLIPPED_UNIFORM_COLOR,
-               GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR,
-               GPU_SHADER_3D_POLYLINE_FLAT_COLOR,
-               GPU_SHADER_3D_POLYLINE_SMOOTH_COLOR))
-      {
-        /* Set a default value for `lineSmooth`.
-         * Ideally this value should be set by the caller. */
-        GPUShader *sh = (*sh_p)->get();
-        GPU_shader_bind(sh);
-        GPU_shader_uniform_1i(sh, "lineSmooth", 1);
-        /* WORKAROUND: See is_polyline declaration. */
-        blender::gpu::unwrap(sh)->is_polyline = true;
-      }
+      *sh_p = MEM_new<BuiltinShader>(__func__, info_name);
     }
     else if (sh_cfg == GPU_SHADER_CFG_CLIPPED) {
       /* In rare cases geometry shaders calculate clipping themselves. */
       const char *info_name_clipped = builtin_shader_create_info_name_clipped(shader);
       if (!blender::StringRefNull(info_name_clipped).is_empty()) {
-        *sh_p = MEM_new<blender::gpu::StaticShader>(__func__, info_name_clipped);
+        *sh_p = MEM_new<BuiltinShader>(__func__, info_name_clipped);
       }
     }
     else {
       BLI_assert(0);
+    }
+  }
+
+  if ((*sh_p)->init == false) {
+    (*sh_p)->init = true;
+    if (ELEM(shader,
+             GPU_SHADER_3D_POLYLINE_CLIPPED_UNIFORM_COLOR,
+             GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR,
+             GPU_SHADER_3D_POLYLINE_FLAT_COLOR,
+             GPU_SHADER_3D_POLYLINE_SMOOTH_COLOR))
+    {
+      GPUShader *sh = (*sh_p)->get();
+      /* Set a default value for `lineSmooth`.
+       * Ideally this value should be set by the caller. */
+      GPU_shader_bind(sh);
+      GPU_shader_uniform_1i(sh, "lineSmooth", 1);
+      /* WORKAROUND: See is_polyline declaration. */
+      blender::gpu::unwrap(sh)->is_polyline = true;
     }
   }
 
@@ -196,7 +206,7 @@ static void gpu_shader_warm_builtin_shader_async(eGPUBuiltinShader shader, eGPUS
 #  pragma GCC diagnostic push
 #  pragma GCC diagnostic ignored "-Warray-bounds"
 #endif
-  blender::gpu::StaticShader **sh_p = &builtin_shaders[sh_cfg][shader];
+  BuiltinShader **sh_p = &builtin_shaders[sh_cfg][shader];
 #ifdef __GNUC__
 #  pragma GCC diagnostic pop
 #endif
@@ -205,13 +215,13 @@ static void gpu_shader_warm_builtin_shader_async(eGPUBuiltinShader shader, eGPUS
     if (sh_cfg == GPU_SHADER_CFG_DEFAULT) {
       /* Common case. */
       const char *info_name = builtin_shader_create_info_name(shader);
-      *sh_p = MEM_new<blender::gpu::StaticShader>(__func__, info_name);
+      *sh_p = MEM_new<BuiltinShader>(__func__, info_name);
     }
     else if (sh_cfg == GPU_SHADER_CFG_CLIPPED) {
       /* In rare cases geometry shaders calculate clipping themselves. */
       const char *info_name_clipped = builtin_shader_create_info_name_clipped(shader);
       if (!blender::StringRefNull(info_name_clipped).is_empty()) {
-        *sh_p = MEM_new<blender::gpu::StaticShader>(__func__, info_name_clipped);
+        *sh_p = MEM_new<BuiltinShader>(__func__, info_name_clipped);
       }
     }
     else {
