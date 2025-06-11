@@ -409,10 +409,13 @@ static ImageGPUTextures image_get_gpu_texture(Image *ima,
   if (current_view >= 2) {
     current_view = 0;
   }
-  GPUTexture **tex = get_image_gpu_texture_ptr(ima, textarget, current_view);
-  if (*tex) {
-    result.texture = *tex;
-    result.tile_mapping = *get_image_gpu_texture_ptr(ima, TEXTARGET_TILE_MAPPING, current_view);
+
+  result.texture = get_image_gpu_texture_ptr(ima, textarget, current_view);
+  if (textarget == TEXTARGET_2D_ARRAY) {
+    result.tile_mapping = get_image_gpu_texture_ptr(ima, TEXTARGET_TILE_MAPPING, current_view);
+  }
+
+  if (*result.texture) {
     return result;
   }
 
@@ -425,8 +428,7 @@ static ImageGPUTextures image_get_gpu_texture(Image *ima,
    * texture with zero bind-code so we don't keep trying. */
   ImageTile *tile = BKE_image_get_tile(ima, 0);
   if (tile == nullptr) {
-    *tex = image_gpu_texture_error_create(textarget);
-    result.texture = *tex;
+    *result.texture = image_gpu_texture_error_create(textarget);
     return result;
   }
 
@@ -435,46 +437,39 @@ static ImageGPUTextures image_get_gpu_texture(Image *ima,
   ImBuf *ibuf = BKE_image_acquire_ibuf(ima, iuser, (use_viewers) ? &lock : nullptr);
   if (ibuf == nullptr) {
     BKE_image_release_ibuf(ima, ibuf, (use_viewers) ? lock : nullptr);
-    *tex = image_gpu_texture_error_create(textarget);
-    result.texture = *tex;
-
+    *result.texture = image_gpu_texture_error_create(textarget);
     return result;
   }
 
   if (textarget == TEXTARGET_2D_ARRAY) {
     /* For materials, array and tile mapping in case there are UDIM tiles. */
-    *tex = gpu_texture_create_tile_array(ima, ibuf);
-    result.texture = *tex;
-
-    GPUTexture **tile_mapping_tex = get_image_gpu_texture_ptr(
-        ima, TEXTARGET_TILE_MAPPING, current_view);
-    *tile_mapping_tex = gpu_texture_create_tile_mapping(ima, iuser ? iuser->multiview_eye : 0);
-    result.tile_mapping = *tile_mapping_tex;
+    *result.texture = gpu_texture_create_tile_array(ima, ibuf);
+    *result.tile_mapping = gpu_texture_create_tile_mapping(ima, iuser ? iuser->multiview_eye : 0);
   }
   else {
     /* Single image texture. */
     const bool use_high_bitdepth = (ima->flag & IMA_HIGH_BITDEPTH);
     const bool store_premultiplied = BKE_image_has_gpu_texture_premultiplied_alpha(ima, ibuf);
 
-    *tex = IMB_create_gpu_texture(ima->id.name + 2, ibuf, use_high_bitdepth, store_premultiplied);
-    result.texture = *tex;
+    *result.texture = IMB_create_gpu_texture(
+        ima->id.name + 2, ibuf, use_high_bitdepth, store_premultiplied);
 
-    if (*tex) {
-      GPU_texture_extend_mode(*tex, GPU_SAMPLER_EXTEND_MODE_REPEAT);
+    if (*result.texture) {
+      GPU_texture_extend_mode(*result.texture, GPU_SAMPLER_EXTEND_MODE_REPEAT);
 
       if (GPU_mipmap_enabled()) {
-        GPU_texture_update_mipmap_chain(*tex);
+        GPU_texture_update_mipmap_chain(*result.texture);
         ima->gpuflag |= IMA_GPU_MIPMAP_COMPLETE;
-        GPU_texture_mipmap_mode(*tex, true, true);
+        GPU_texture_mipmap_mode(*result.texture, true, true);
       }
       else {
-        GPU_texture_mipmap_mode(*tex, false, true);
+        GPU_texture_mipmap_mode(*result.texture, false, true);
       }
     }
   }
 
-  if (*tex) {
-    GPU_texture_original_size_set(*tex, ibuf->x, ibuf->y);
+  if (*result.texture) {
+    GPU_texture_original_size_set(*result.texture, ibuf->x, ibuf->y);
   }
 
   BKE_image_release_ibuf(ima, ibuf, (use_viewers) ? lock : nullptr);
@@ -484,12 +479,12 @@ static ImageGPUTextures image_get_gpu_texture(Image *ima,
 
 GPUTexture *BKE_image_get_gpu_texture(Image *image, ImageUser *iuser)
 {
-  return image_get_gpu_texture(image, iuser, false, false, false).texture;
+  return *image_get_gpu_texture(image, iuser, false, false, false).texture;
 }
 
 GPUTexture *BKE_image_get_gpu_viewer_texture(Image *image, ImageUser *iuser)
 {
-  return image_get_gpu_texture(image, iuser, true, false, false).texture;
+  return *image_get_gpu_texture(image, iuser, true, false, false).texture;
 }
 
 ImageGPUTextures BKE_image_get_gpu_material_texture(Image *image,

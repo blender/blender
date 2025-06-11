@@ -417,9 +417,8 @@ class MaterialModule {
                                  eMaterialGeometry geometry_type,
                                  eMaterialProbe probe_capture = MAT_PROBE_NONE);
 
-  /* Push unloaded texture used by this material to the texture loading queue.
-   * Return true if all textures are already loaded. */
-  bool queue_texture_loading(GPUMaterial *material);
+  /* Push unloaded texture used by this material to the texture loading queue. */
+  void queue_texture_loading(GPUMaterial *material);
 
   ShaderGroups default_materials_load(bool block_until_ready = false);
 };

@@ -243,7 +243,9 @@ class PassBase {
    * push_constant() call will use its interface.
    * IMPORTANT: Assumes material is compiled and can be used (no compilation error).
    */
-  void material_set(Manager &manager, GPUMaterial *material);
+  void material_set(Manager &manager,
+                    GPUMaterial *material,
+                    bool deferred_texture_loading = false);
 
   /**
    * Record a draw call.
@@ -1116,7 +1118,10 @@ inline void PassBase<T>::subpass_transition(GPUAttachmentState depth_attachment,
                                                                  color_states[7]}};
 }
 
-template<class T> inline void PassBase<T>::material_set(Manager &manager, GPUMaterial *material)
+template<class T>
+inline void PassBase<T>::material_set(Manager &manager,
+                                      GPUMaterial *material,
+                                      bool deferred_texture_loading)
 {
   GPUPass *gpupass = GPU_material_get_pass(material);
   shader_set(GPU_pass_shader_get(gpupass));
@@ -1128,15 +1133,31 @@ template<class T> inline void PassBase<T>::material_set(Manager &manager, GPUMat
       /* Image */
       const bool use_tile_mapping = tex->tiled_mapping_name[0];
       ImageUser *iuser = tex->iuser_available ? &tex->iuser : nullptr;
-      ImageGPUTextures gputex = BKE_image_get_gpu_material_texture(
-          tex->ima, iuser, use_tile_mapping);
 
-      manager.acquire_texture(gputex.texture);
-      bind_texture(tex->sampler_name, gputex.texture, tex->sampler_state);
+      ImageGPUTextures gputex;
+      if (deferred_texture_loading) {
+        gputex = BKE_image_get_gpu_material_texture_try(tex->ima, iuser, use_tile_mapping);
+      }
+      else {
+        gputex = BKE_image_get_gpu_material_texture(tex->ima, iuser, use_tile_mapping);
+      }
 
-      if (gputex.tile_mapping) {
-        manager.acquire_texture(gputex.tile_mapping);
-        bind_texture(tex->tiled_mapping_name, gputex.tile_mapping, tex->sampler_state);
+      if (*gputex.texture == nullptr) {
+        /* Texture not yet loaded. Register a reference inside the draw pass.
+         * The texture will be acquired once it is created. */
+        bind_texture(tex->sampler_name, gputex.texture, tex->sampler_state);
+        if (gputex.tile_mapping) {
+          bind_texture(tex->tiled_mapping_name, gputex.tile_mapping, tex->sampler_state);
+        }
+      }
+      else {
+        /* Texture is loaded. Acquire. */
+        manager.acquire_texture(*gputex.texture);
+        bind_texture(tex->sampler_name, *gputex.texture, tex->sampler_state);
+        if (gputex.tile_mapping) {
+          manager.acquire_texture(*gputex.tile_mapping);
+          bind_texture(tex->tiled_mapping_name, *gputex.tile_mapping, tex->sampler_state);
+        }
       }
     }
     else if (tex->colorband) {
