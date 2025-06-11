@@ -116,7 +116,7 @@ if(WITH_COMPILER_CODE_COVERAGE)
       BYPRODUCTS "${COMPILER_CODE_COVERAGE_DATA_DIR}/report/index.html"
       SOURCES "${COMPILER_CODE_COVERAGE_DATA_DIR}/blender.profdata"
       COMMENT "Generating code-coverage report."
-      COMMAND "${LLVM_COV}" show 
+      COMMAND "${LLVM_COV}" show
         -format=html
         -show-instantiations=true
         -show-line-counts-or-regions
