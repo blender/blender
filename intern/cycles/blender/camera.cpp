@@ -397,8 +397,9 @@ class BlenderCameraParamQuery : public OSLCameraParamQuery {
   bool get_float(ustring name, vector<float> &data) override
   {
     PropertyRNA *prop = get_prop(name);
-    if (!prop)
+    if (!prop) {
       return false;
+    }
     if (RNA_property_array_check(prop)) {
       data.resize(RNA_property_array_length(&custom_props, prop));
       RNA_property_float_get_array(&custom_props, prop, data.data());
@@ -413,9 +414,9 @@ class BlenderCameraParamQuery : public OSLCameraParamQuery {
   bool get_int(ustring name, vector<int> &data) override
   {
     PropertyRNA *prop = get_prop(name);
-    if (!prop)
+    if (!prop) {
       return false;
-
+    }
     int array_len = 0;
     if (RNA_property_array_check(prop)) {
       array_len = RNA_property_array_length(&custom_props, prop);
@@ -449,8 +450,9 @@ class BlenderCameraParamQuery : public OSLCameraParamQuery {
   bool get_string(ustring name, string &data) override
   {
     PropertyRNA *prop = get_prop(name);
-    if (!prop)
+    if (!prop) {
       return false;
+    }
     data = RNA_property_string_get(&custom_props, prop);
     return true;
   }

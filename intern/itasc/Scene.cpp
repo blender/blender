@@ -115,8 +115,9 @@ bool Scene::addObject(const std::string &name,
                       const std::string &baseFrame)
 {
   // finalize the object before adding
-  if (!object->finalize())
+  if (!object->finalize()) {
     return false;
+  }
   // Check if Object is controlled or uncontrolled.
   if (object->getType() == Object::Controlled) {
     int baseFrameIndex = base->addEndEffector(baseFrame);
@@ -188,12 +189,14 @@ bool Scene::addConstraintSet(const std::string &name,
   // Check if objects exist:
   ObjectMap::iterator object1_it = objects.find(object1);
   ObjectMap::iterator object2_it = objects.find(object2);
-  if (object1_it == objects.end() || object2_it == objects.end())
+  if (object1_it == objects.end() || object2_it == objects.end()) {
     return false;
+  }
   int ee1_index = object1_it->second->object->addEndEffector(ee1);
   int ee2_index = object2_it->second->object->addEndEffector(ee2);
-  if (ee1_index < 0 || ee2_index < 0)
+  if (ee1_index < 0 || ee2_index < 0) {
     return false;
+  }
   std::pair<ConstraintMap::iterator, bool> result = constraints.insert(ConstraintMap::value_type(
       name,
       new ConstraintSet_struct(task,
@@ -203,8 +206,9 @@ bool Scene::addConstraintSet(const std::string &name,
                                ee2_index,
                                Range(m_ncTotal, task->getNrOfConstraints()),
                                Range(6 * m_nsets, 6))));
-  if (!result.second)
+  if (!result.second) {
     return false;
+  }
   m_ncTotal += task->getNrOfConstraints();
   m_nsets += 1;
   return true;
@@ -234,8 +238,9 @@ bool Scene::initialize()
 {
 
   // prepare all matrices:
-  if (m_ncTotal == 0 || m_nqTotal == 0 || m_nsets == 0)
+  if (m_ncTotal == 0 || m_nqTotal == 0 || m_nsets == 0) {
     return false;
+  }
 
   m_A = e_zero_matrix(m_ncTotal, m_nqTotal);
   if (m_nuTotal > 0) {
@@ -284,10 +289,12 @@ bool Scene::initialize()
     project(m_Cf, cs->constraintrange, cs->featurerange) = cs->task->getCf();
   }
 
-  if (m_solver != NULL)
+  if (m_solver != NULL) {
     m_solver->init(m_nqTotal, m_ncTotal, m_ytask);
-  else
+  }
+  else {
     return false;
+  }
 
   return result;
 }
@@ -315,8 +322,9 @@ bool Scene::update(double timestamp,
                    bool interpolate)
 {
   // we must have valid timestep and timestamp
-  if (timestamp < KDL::epsilon || timestep < 0.0)
+  if (timestamp < KDL::epsilon || timestep < 0.0) {
     return false;
+  }
   Timestamp ts;
   ts.realTimestamp = timestamp;
   // initially we start with the full timestep to allow velocity estimation over the full interval
@@ -332,8 +340,9 @@ bool Scene::update(double timestamp,
   ts.update = 1;
   ts.numstep = (numsubstep & 0xFF);
   bool autosubstep = (numsubstep == 0) ? true : false;
-  if (numsubstep < 1)
+  if (numsubstep < 1) {
     numsubstep = 1;
+  }
   double timesubstep = timestep / numsubstep;
   double timeleft = timestep;
 

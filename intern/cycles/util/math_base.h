@@ -553,10 +553,12 @@ ccl_device float compatible_powf(const float x, const float y)
 
   /* GPU pow doesn't accept negative x, do manual checks here */
   if (x < 0.0f) {
-    if (fmodf(-y, 2.0f) == 0.0f)
+    if (fmodf(-y, 2.0f) == 0.0f) {
       return powf(-x, y);
-    else
+    }
+    else {
       return -powf(-x, y);
+    }
   }
   else if (x == 0.0f)
     return 0.0f;

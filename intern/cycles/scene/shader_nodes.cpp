@@ -4688,8 +4688,9 @@ void ParticleInfoNode::attributes(Shader *shader, AttributeRequestSet *attribute
     attributes->add(ATTR_STD_PARTICLE);
   }
 #if 0 /* not yet supported */
-  if (!output("Rotation")->links.empty())
+  if (!output("Rotation")->links.empty()) {
     attributes->add(ATTR_STD_PARTICLE);
+  }
 #endif
   if (!output("Size")->links.empty()) {
     attributes->add(ATTR_STD_PARTICLE);

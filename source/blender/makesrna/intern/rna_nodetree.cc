@@ -4484,11 +4484,12 @@ static void rna_NodeCryptomatte_image_set(PointerRNA *ptr,
   bNode *node = ptr->data_as<bNode>();
 
   if (node->custom1 == CMP_NODE_CRYPTOMATTE_SOURCE_IMAGE) {
-    if (node->id)
+    if (node->id) {
       id_us_min(node->id);
-    if (value.data)
+    }
+    if (value.data) {
       id_us_plus(static_cast<ID *>(value.data));
-
+    }
     node->id = static_cast<ID *>(value.data);
   }
 }

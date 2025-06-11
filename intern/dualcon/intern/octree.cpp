@@ -349,8 +349,9 @@ void Octree::addTriangle(Triangle *trian, int triind)
 #if 0
 static void print_depth(int height, int maxDepth)
 {
-  for (int i = 0; i < maxDepth - height; i++)
+  for (int i = 0; i < maxDepth - height; i++) {
     printf("  ");
+  }
 }
 #endif
 

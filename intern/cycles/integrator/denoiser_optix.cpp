@@ -28,8 +28,9 @@ static OptixResult optixUtilDenoiserSplitImage(const OptixImage2D &input,
                                                unsigned int tileHeight,
                                                std::vector<OptixUtilDenoiserImageTile> &tiles)
 {
-  if (tileWidth == 0 || tileHeight == 0)
+  if (tileWidth == 0 || tileHeight == 0) {
     return OPTIX_ERROR_INVALID_VALUE;
+  }
 
   unsigned int inPixelStride = optixUtilGetPixelStride(input);
   unsigned int outPixelStride = optixUtilGetPixelStride(output);
@@ -99,8 +100,9 @@ static OptixResult optixUtilDenoiserInvokeTiled(OptixDenoiser denoiser,
                                                 unsigned int tileWidth,
                                                 unsigned int tileHeight)
 {
-  if (!guideLayer || !layers)
+  if (!guideLayer || !layers) {
     return OPTIX_ERROR_INVALID_VALUE;
+  }
 
   std::vector<std::vector<OptixUtilDenoiserImageTile>> tiles(numLayers);
   std::vector<std::vector<OptixUtilDenoiserImageTile>> prevTiles(numLayers);
@@ -166,21 +168,22 @@ static OptixResult optixUtilDenoiserInvokeTiled(OptixDenoiser denoiser,
       OptixDenoiserLayer layer = {};
       layer.input = (tiles[l])[t].input;
       layer.output = (tiles[l])[t].output;
-      if (layers[l].previousOutput.data)
+      if (layers[l].previousOutput.data) {
         layer.previousOutput = (prevTiles[l])[t].input;
+      }
       tlayers.push_back(layer);
     }
 
     OptixDenoiserGuideLayer gl = {};
-    if (guideLayer->albedo.data)
+    if (guideLayer->albedo.data) {
       gl.albedo = albedoTiles[t].input;
-
-    if (guideLayer->normal.data)
+    }
+    if (guideLayer->normal.data) {
       gl.normal = normalTiles[t].input;
-
-    if (guideLayer->flow.data)
+    }
+    if (guideLayer->flow.data) {
       gl.flow = flowTiles[t].input;
-
+    }
     if (const OptixResult res = optixDenoiserInvoke(denoiser,
                                                     stream,
                                                     params,

@@ -2920,8 +2920,9 @@ static wmOperatorStatus animchannels_delete_exec(bContext *C, wmOperator * /*op*
    * the same loop. */
   if (ac.datatype != ANIMCONT_DRIVERS) {
     /* Keep deleting container-like channels until there are no more to delete. */
-    while (animchannels_delete_containers(C, &ac))
-      ;
+    while (animchannels_delete_containers(C, &ac)) {
+      /* Pass. */
+    }
   }
 
   /* filter data */

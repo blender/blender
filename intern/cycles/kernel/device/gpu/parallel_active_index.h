@@ -34,8 +34,9 @@ void gpu_parallel_active_index_array_impl(const uint num_states,
 #  ifdef WITH_ONEAPI_SYCL_HOST_TASK
   int write_index = 0;
   for (int state_index = 0; state_index < num_states; state_index++) {
-    if (is_active_op(state_index))
+    if (is_active_op(state_index)) {
       indices[write_index++] = state_index;
+    }
   }
   *num_indices = write_index;
   return;

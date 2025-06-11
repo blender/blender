@@ -309,12 +309,14 @@ void GHOST_ImeWin32::GetCaret(HIMC imm_context, LPARAM lparam, ImeComposition *c
         if (attribute_data) {
           ::ImmGetCompositionStringW(imm_context, GCS_COMPATTR, attribute_data, attribute_size);
           for (target_start = 0; target_start < attribute_size; ++target_start) {
-            if (IsTargetAttribute(attribute_data[target_start]))
+            if (IsTargetAttribute(attribute_data[target_start])) {
               break;
+            }
           }
           for (target_end = target_start; target_end < attribute_size; ++target_end) {
-            if (!IsTargetAttribute(attribute_data[target_end]))
+            if (!IsTargetAttribute(attribute_data[target_end])) {
               break;
+            }
           }
           if (target_start == attribute_size) {
             /**
@@ -417,8 +419,9 @@ void GHOST_ImeWin32::EndIME(HWND window_handle)
    * For this case, we have to complete the ongoing composition and
    * clean up the resources attached to this object BEFORE DISABLING THE IME.
    */
-  if (!is_enable)
+  if (!is_enable) {
     return;
+  }
   is_enable = false;
   CleanupComposition(window_handle);
   ::ImmAssociateContextEx(window_handle, nullptr, 0);
@@ -427,8 +430,9 @@ void GHOST_ImeWin32::EndIME(HWND window_handle)
 
 void GHOST_ImeWin32::BeginIME(HWND window_handle, const GHOST_Rect &caret_rect, bool complete)
 {
-  if (is_enable && complete)
+  if (is_enable && complete) {
     return;
+  }
   is_enable = true;
   /**
    * Load the default IME context.
@@ -466,10 +470,12 @@ void GHOST_ImeWin32::BeginIME(HWND window_handle, const GHOST_Rect &caret_rect, 
 
 static void convert_utf16_to_utf8_len(std::wstring s, int &len)
 {
-  if (len >= 0 && len <= s.size())
+  if (len >= 0 && len <= s.size()) {
     len = count_utf_8_from_16(s.substr(0, len).c_str()) - 1;
-  else
+  }
+  else {
     len = -1;
+  }
 }
 
 static size_t updateUtf8Buf(ImeComposition &info)
