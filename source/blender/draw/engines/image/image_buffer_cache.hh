@@ -74,8 +74,10 @@ struct FloatBufferCache {
     if (image_buffer->float_buffer.data != nullptr) {
       BLI_assert_msg(
           IMB_colormanagement_space_name_is_scene_linear(
-              IMB_colormanagement_get_float_colorspace(image_buffer)),
-          "Expected float buffer to be scene_linear - if there are code paths where this "
+              IMB_colormanagement_get_float_colorspace(image_buffer)) ||
+              IMB_colormanagement_space_name_is_data(
+                  IMB_colormanagement_get_float_colorspace(image_buffer)),
+          "Expected float buffer to be scene_linear or data - if there are code paths where this "
           "isn't the case we should convert those and add to the FloatBufferCache as well.");
       return image_buffer;
     }

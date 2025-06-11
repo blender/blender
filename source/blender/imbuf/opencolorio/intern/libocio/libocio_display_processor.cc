@@ -56,8 +56,16 @@ OCIO_NAMESPACE::ConstProcessorRcPtr create_ocio_display_processor(
   /* Add look transform. */
   bool use_look = (display_parameters.look != nullptr && display_parameters.look[0] != '\0');
   if (use_look) {
-    const char *look_output = LookTransform::GetLooksResultColorSpace(
-        ocio_config, ocio_config->getCurrentContext(), display_parameters.look.c_str());
+    const char *look_output = nullptr;
+
+    try {
+      look_output = LookTransform::GetLooksResultColorSpace(
+          ocio_config, ocio_config->getCurrentContext(), display_parameters.look.c_str());
+    }
+    catch (Exception &exception) {
+      report_exception(exception);
+      return nullptr;
+    }
 
     if (look_output != nullptr && look_output[0] != 0) {
       LookTransformRcPtr lt = LookTransform::Create();
