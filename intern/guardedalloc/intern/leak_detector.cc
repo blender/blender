@@ -24,15 +24,11 @@ char free_after_leak_detection_message[] =
 namespace {
 
 bool fail_on_memleak = false;
-bool ignore_memleak = false;
 
 class MemLeakPrinter {
  public:
   ~MemLeakPrinter()
   {
-    if (ignore_memleak) {
-      return;
-    }
     leak_detector_has_run = true;
     const uint leaked_blocks = MEM_get_memory_blocks_in_use();
     if (leaked_blocks == 0) {
@@ -81,11 +77,6 @@ void MEM_init_memleak_detection()
    * this function has been called.
    */
   static MemLeakPrinter printer;
-}
-
-void MEM_use_memleak_detection(bool enabled)
-{
-  ignore_memleak = !enabled;
 }
 
 void MEM_enable_fail_on_memleak()

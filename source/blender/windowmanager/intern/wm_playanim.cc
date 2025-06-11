@@ -47,6 +47,7 @@
 #include "MOV_read.hh"
 #include "MOV_util.hh"
 
+#include "BKE_blender.hh"
 #include "BKE_image.hh"
 
 #include "BIF_glutil.hh"
@@ -2249,15 +2250,8 @@ int WM_main_playanim(int argc, const char **argv)
   AUD_exitOnce();
 #endif
 
-  /* NOTE(@ideasman42): Not useful unless all subsystems are properly shutdown. */
-  if (false) {
-    const int totblock = MEM_get_memory_blocks_in_use();
-    if (totblock != 0) {
-      /* Prints many `bAKey`, `bArgument` messages which are tricky to fix. */
-      printf("Error Totblock: %d\n", totblock);
-      MEM_printmemlist();
-    }
-  }
+  /* Cleanup sub-systems started before this function was called. */
+  BKE_blender_atexit();
 
   return exit_code.value();
 }
