@@ -156,4 +156,6 @@ GPUShader *GPU_shader_get_builtin_shader_with_config(eGPUBuiltinShader shader,
                                                      eGPUShaderConfig sh_cfg);
 GPUShader *GPU_shader_get_builtin_shader(eGPUBuiltinShader shader);
 
+void GPU_shader_builtin_warm_up();
+
 void GPU_shader_free_builtin_shaders();
