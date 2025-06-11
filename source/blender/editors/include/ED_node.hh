@@ -130,6 +130,11 @@ bool node_editor_is_for_geometry_nodes_modifier(const SpaceNode &snode,
     bke::ComputeContextCache &compute_context_cache,
     const std::optional<nodes::ClosureSourceLocation> &source_location);
 
+Vector<const bNode *> gather_linked_separate_bundle_nodes(
+    const ComputeContext *bundle_socket_context,
+    const bNodeSocket &bundle_socket,
+    bke::ComputeContextCache &compute_context_cache);
+
 /**
  * Creates a compute context for the given zone. It takes e.g. the current inspection index into
  * account.
