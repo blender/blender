@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'e91e8eef41aa')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'798f85a7108f')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-03 09:10+0000\n"
+"POT-Creation-Date: 2025-06-11 11:13+0000\n"
 "PO-Revision-Date: 2025-04-14 08:41+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Serbian (Latin script) <https://translate.blender.org/projects/blender-ui/ui/sr_Latn/>\n"
@@ -8585,16 +8585,16 @@ msgid "Material slot name"
 msgstr "Naziv slota materijala"
 
 
+msgid "Show/Hide"
+msgstr "Prikaži/sakrij"
+
+
 msgid "Special Characters"
 msgstr "Specijalni znaci"
 
 
 msgid "Metaball"
 msgstr "Meta lopta"
-
-
-msgid "Show/Hide"
-msgstr "Prikaži/sakrij"
 
 
 msgid "Names"
@@ -8609,88 +8609,88 @@ msgid "Snap"
 msgstr "Lepljenje"
 
 
-msgid "Mirror"
-msgstr "Ogledalo"
-
-
-msgid "UV Mapping"
-msgstr "UV Mapiranje"
-
-
-msgid "Local View"
-msgstr "Lokalni pogled"
-
-
-msgid "Navigation"
-msgstr "Navigacija"
-
-
-msgid "Align View"
-msgstr "Poravnaj pogled"
-
-
-msgid "Select Linked"
-msgstr "Izaberi povezano"
-
-
-msgid "Light"
-msgstr "Svetlost"
+msgid "Hooks"
+msgstr "Udice"
 
 
 msgid "Relations"
 msgstr "Odnosi"
 
 
-msgid "Rigid Body"
-msgstr "Kruto telo"
+msgid "Merge"
+msgstr "Sjedini"
 
 
-msgid "Apply"
-msgstr "Primeni"
-
-
-msgid "Track"
-msgstr "Staza"
-
-
-msgid "Quick Effects"
-msgstr "Brzi efekti"
-
-
-msgid "Hooks"
-msgstr "Udice"
-
-
-msgid "Clear Transform"
-msgstr "Očisti transformacije"
-
-
-msgid "In-Betweens"
-msgstr "U međuvremenu"
-
-
-msgid "Propagate"
-msgstr "Prenesi"
-
-
-msgid "Toggle Bone Options"
-msgstr "Manje/više informacija"
-
-
-msgid "Enable Bone Options"
-msgstr "Omogući opcije kostiju"
-
-
-msgid "Disable Bone Options"
-msgstr "Onemogući opcije kostiju"
+msgid "Light"
+msgstr "Svetlost"
 
 
 msgid "Mesh Select Mode"
 msgstr "Mod izbora mreže"
 
 
-msgid "Merge"
-msgstr "Sjedini"
+msgid "Quick Effects"
+msgstr "Brzi efekti"
+
+
+msgid "Disable Bone Options"
+msgstr "Onemogući opcije kostiju"
+
+
+msgid "Enable Bone Options"
+msgstr "Omogući opcije kostiju"
+
+
+msgid "Track"
+msgstr "Staza"
+
+
+msgid "Toggle Bone Options"
+msgstr "Manje/više informacija"
+
+
+msgid "Apply"
+msgstr "Primeni"
+
+
+msgid "Rigid Body"
+msgstr "Kruto telo"
+
+
+msgid "Propagate"
+msgstr "Prenesi"
+
+
+msgid "Local View"
+msgstr "Lokalni pogled"
+
+
+msgid "In-Betweens"
+msgstr "U međuvremenu"
+
+
+msgid "Clear Transform"
+msgstr "Očisti transformacije"
+
+
+msgid "Select Linked"
+msgstr "Izaberi povezano"
+
+
+msgid "Align View"
+msgstr "Poravnaj pogled"
+
+
+msgid "Navigation"
+msgstr "Navigacija"
+
+
+msgid "UV Mapping"
+msgstr "UV Mapiranje"
+
+
+msgid "Mirror"
+msgstr "Ogledalo"
 
 
 msgid "Basic"
@@ -15038,10 +15038,6 @@ msgid "Dissolve edges, merging faces"
 msgstr "Rastopi ivice, spajajući stranice"
 
 
-msgid "Dissolve remaining vertices"
-msgstr "Rastapa preostala temena"
-
-
 msgctxt "Operator"
 msgid "Dissolve Faces"
 msgstr "Rastopi stranice"
@@ -20571,14 +20567,6 @@ msgid "Helicopter Mode"
 msgstr "Mod helihoptera"
 
 
-msgid "Lock Horizon"
-msgstr "Zaključaj horizont"
-
-
-msgid "Y/Z Swap Axis"
-msgstr "Zameni Y i Z ose"
-
-
 msgid "Invert X Axis"
 msgstr "Izvrnuta X osa"
 
@@ -20597,18 +20585,6 @@ msgstr "Izvrnuta osa skretanja (Y)"
 
 msgid "Invert Roll (Z) Axis"
 msgstr "Izvrnuta osa okretanja (Z)"
-
-
-msgid "Turntable"
-msgstr "Okretnica"
-
-
-msgid "Use turntable style rotation in the viewport"
-msgstr "Koristi stil okretnice za okretanje pomoću srednjeg tastera"
-
-
-msgid "Invert Zoom"
-msgstr "Izvrnuto uvećanje"
 
 
 msgid "Softness"
@@ -20637,6 +20613,10 @@ msgstr "Imitiraj 3. dugme"
 
 msgid "Use selection as the pivot point"
 msgstr "Koristi vektore odsjaja kao koordinate teksture"
+
+
+msgid "Turntable"
+msgstr "Okretnica"
 
 
 msgid "Zoom Axis"
@@ -24126,6 +24106,10 @@ msgid "Invert Wheel Zoom Direction"
 msgstr "Obrnuti smer približavanja točkićem"
 
 
+msgid "Lock Horizon"
+msgstr "Zaključaj horizont"
+
+
 msgid "Missing script files"
 msgstr "Nedostaje datoteka skripte"
 
@@ -26191,116 +26175,4 @@ msgstr "Zbirka poza"
 
 msgid "Import-Export"
 msgstr "Uvoz-izvoz"
-
-
-msgid "Japanese (日本語)"
-msgstr "Japanski (日本語)"
-
-
-msgid "Italian (Italiano)"
-msgstr "Italijanski (Italiano)"
-
-
-msgid "German (Deutsch)"
-msgstr "Nemački (Deutsch)"
-
-
-msgid "Finnish (Suomi)"
-msgstr "Finski (Suomi)"
-
-
-msgid "Swedish (Svenska)"
-msgstr "Švedski (Svenska)"
-
-
-msgid "French (Français)"
-msgstr "Francuski (Français)"
-
-
-msgid "Spanish (Español)"
-msgstr "Španski (Español)"
-
-
-msgid "Catalan (Català)"
-msgstr "Katalonski (Català)"
-
-
-msgid "Simplified Chinese (简体中文)"
-msgstr "Jednostavan kineski (简体中文)"
-
-
-msgid "Traditional Chinese (繁體中文)"
-msgstr "Tradicionalni kineski (繁體中文)"
-
-
-msgid "Croatian (Hrvatski)"
-msgstr "Hrvatski (Hrvatski)"
-
-
-msgid "Polish (Polski)"
-msgstr "Poljski (Polski)"
-
-
-msgid "Romanian (Român)"
-msgstr "Rumunski (Român)"
-
-
-msgid "Arabic (ﺔﻴﺑﺮﻌﻟﺍ)"
-msgstr "Arapski (ﺔﻴﺑﺮﻌﻟﺍ)"
-
-
-msgid "Greek (Ελληνικά)"
-msgstr "Grčki (Ελληνικά)"
-
-
-msgid "Nepali (नेपाली)"
-msgstr "Nepalski (नेपाली)"
-
-
-msgid "Persian (ﯽﺳﺭﺎﻓ)"
-msgstr "Persijski (ﯽﺳﺭﺎﻓ)"
-
-
-msgid "Indonesian (Bahasa indonesia)"
-msgstr "Indonežanski (Bahasa indonesia)"
-
-
-msgid "Serbian Latin (Srpski latinica)"
-msgstr "Srpski latinica"
-
-
-msgid "Turkish (Türkçe)"
-msgstr "Turski (Türkçe)"
-
-
-msgid "Hungarian (Magyar)"
-msgstr "Mađarski (Magyar)"
-
-
-msgid "Brazilian Portuguese (Português do Brasil)"
-msgstr "Portugalski Brazil (Português do Brasil)"
-
-
-msgid "Hebrew (תירִבְעִ)"
-msgstr "Hebrejski (תירִבְעִ)"
-
-
-msgid "Esperanto (Esperanto)"
-msgstr "Esperanto (Esperanto)"
-
-
-msgid "Amharic (አማርኛ)"
-msgstr "Amharski (አማርኛ)"
-
-
-msgid "Uzbek (Oʻzbek)"
-msgstr "Uzbečki (Oʻzbek)"
-
-
-msgid "Complete"
-msgstr "Završeno"
-
-
-msgid "In Progress"
-msgstr "U toku"
 

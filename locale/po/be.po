@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'e91e8eef41aa')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'798f85a7108f')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-03 09:10+0000\n"
+"POT-Creation-Date: 2025-06-11 11:13+0000\n"
 "PO-Revision-Date: 2025-04-14 08:51+0000\n"
 "Last-Translator: Maksim <casual.sir.fish@gmail.com>\n"
 "Language-Team: Belarusian <https://translate.blender.org/projects/blender-ui/ui/be/>\n"

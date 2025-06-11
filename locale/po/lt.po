@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'e91e8eef41aa')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'798f85a7108f')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-03 09:10+0000\n"
+"POT-Creation-Date: 2025-06-11 11:13+0000\n"
 "PO-Revision-Date: 2025-04-14 08:54+0000\n"
 "Last-Translator: Martynas Žiemys <martynasziemys@gmail.com>\n"
 "Language-Team: Lithuanian <https://translate.blender.org/projects/blender-ui/ui/lt/>\n"
@@ -3149,20 +3149,20 @@ msgid "Dots"
 msgstr "Taškai"
 
 
-msgid "Text"
-msgstr "Tekstas"
-
-
 msgid "Show/Hide"
 msgstr "Rodyti/Slėpti"
 
 
-msgid "Apply"
-msgstr "Pritaikyti"
+msgid "Text"
+msgstr "Tekstas"
 
 
 msgid "Track"
 msgstr "Sekti"
+
+
+msgid "Apply"
+msgstr "Pritaikyti"
 
 
 msgid "Animals"
@@ -4858,100 +4858,4 @@ msgstr "mikrofonas"
 
 msgid "network"
 msgstr "tinklas"
-
-
-msgid "Japanese (日本語)"
-msgstr "Japoniškai (日本語)"
-
-
-msgid "Dutch (Nederlands)"
-msgstr "Nyderlandiškai (Niederländisch)"
-
-
-msgid "Italian (Italiano)"
-msgstr "Itališkai (Italiano)"
-
-
-msgid "German (Deutsch)"
-msgstr "Vokiškai (Deutsch)"
-
-
-msgid "Finnish (Suomi)"
-msgstr "Suomiškai (Suomi)"
-
-
-msgid "Swedish (Svenska)"
-msgstr "Švediškai (Svenska)"
-
-
-msgid "French (Français)"
-msgstr "Prancūziškai (Français)"
-
-
-msgid "Spanish (Español)"
-msgstr "Ispaniškai (Español)"
-
-
-msgid "Catalan (Català)"
-msgstr "Kataloniškai (Català)"
-
-
-msgid "Czech (Čeština)"
-msgstr "Čekiškai (Čeština)"
-
-
-msgid "Portuguese (Português)"
-msgstr "Portugališkai (Português)"
-
-
-msgid "Russian (Русский)"
-msgstr "Rusiškai (Русский)"
-
-
-msgid "Croatian (Hrvatski)"
-msgstr "Kroatiškai (Hrvatski)"
-
-
-msgid "Serbian (Српски)"
-msgstr "Serbiškai-kirilica (Српски)"
-
-
-msgid "Ukrainian (Українська)"
-msgstr "Ukrainietiškai (Українська)"
-
-
-msgid "Polish (Polski)"
-msgstr "Lenkiškai (Polski)"
-
-
-msgid "Romanian (Român)"
-msgstr "Rumuniškai (Română)"
-
-
-msgid "Arabic (ﺔﻴﺑﺮﻌﻟﺍ)"
-msgstr "Arabiškai (ﺔﻴﺑﺮﻌﻟﺍ)"
-
-
-msgid "Bulgarian (Български)"
-msgstr "Bulgariškai (Български)"
-
-
-msgid "Greek (Ελληνικά)"
-msgstr "Graikiškai (Ελληνικά)"
-
-
-msgid "Korean (한국어)"
-msgstr "P. Korėjietiškai (한국어)"
-
-
-msgid "Nepali (नेपाली)"
-msgstr "Nepalietiškai (नेपाली)"
-
-
-msgid "Serbian Latin (Srpski latinica)"
-msgstr "Serbiškai-lotynų (Srpski)"
-
-
-msgid "Kyrgyz (Кыргыз тили)"
-msgstr "Kirgiziškai (Кыргызча)"
 

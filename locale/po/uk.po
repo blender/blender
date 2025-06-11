@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'e91e8eef41aa')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'798f85a7108f')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-03 09:10+0000\n"
+"POT-Creation-Date: 2025-06-11 11:13+0000\n"
 "PO-Revision-Date: 2025-04-14 08:44+0000\n"
 "Last-Translator: Bartosz <gang65@poczta.onet.pl>\n"
 "Language-Team: Ukrainian <https://translate.blender.org/projects/blender-ui/ui/uk/>\n"
@@ -26571,6 +26571,14 @@ msgid "Material slot name"
 msgstr "Назва гнізда матеріалу"
 
 
+msgid "Show/Hide"
+msgstr "Показати/приховати"
+
+
+msgid "Clean Up"
+msgstr "Вичищення"
+
+
 msgid "Special Characters"
 msgstr "Спеціальні символи"
 
@@ -26587,20 +26595,12 @@ msgid "Metaball"
 msgstr "Метакуля"
 
 
-msgid "Show/Hide"
-msgstr "Показати/приховати"
-
-
 msgid "Names"
 msgstr "Назви"
 
 
 msgid "Bone Roll"
 msgstr "Прокручення Кістки"
-
-
-msgid "Clean Up"
-msgstr "Вичищення"
 
 
 msgid "Pivot Point"
@@ -26631,164 +26631,164 @@ msgid "Vertex Group Locks"
 msgstr "Блокування Груп Вершин"
 
 
-msgid "Mirror"
-msgstr "Дзеркалення"
-
-
-msgid "UV Mapping"
-msgstr "Розкладання UV"
-
-
-msgid "Local View"
-msgstr "Огляд Локально"
-
-
-msgid "Viewpoint"
-msgstr "Точка зору"
-
-
-msgid "Navigation"
-msgstr "Навігація"
-
-
-msgid "Align View"
-msgstr "Вирівняти Огляд"
-
-
-msgid "Align View to Active"
-msgstr "Вирівняти Огляд за Активним"
-
-
-msgid "View Regions"
-msgstr "Регіони Огляду"
-
-
-msgid "Select More/Less"
-msgstr "Вибрати більше/менше"
-
-
-msgid "Select Similar"
-msgstr "Вибрати подібні"
-
-
-msgid "Select All by Trait"
-msgstr "Вибрати все за рисою"
-
-
-msgid "Select Linked"
-msgstr "Виділити пов'язане"
-
-
-msgid "Select Loops"
-msgstr "Виділити петлі"
-
-
-msgid "Assign Material"
-msgstr "Призначити Матеріал"
-
-
-msgid "Light"
-msgstr "Слабко"
-
-
-msgid "Light Probe"
-msgstr "Проба Освітлення"
-
-
-msgid "Add Image"
-msgstr "Додати Зображення"
-
-
-msgid "Relations"
-msgstr "Зв'язки"
-
-
-msgid "Rigid Body"
-msgstr "Тверде тіло"
-
-
-msgid "Apply"
-msgstr "Застосувати"
-
-
-msgid "Track"
-msgstr "Стеження"
-
-
-msgid "Quick Effects"
-msgstr "Швидкі ефекти"
-
-
-msgid "Asset"
-msgstr "Актив"
-
-
-msgid "Make Single User"
-msgstr "Зробити однокористувацьким"
-
-
-msgid "Convert"
-msgstr "Конвертування"
-
-
-msgid "Link/Transfer Data"
-msgstr "Пов'язати/Перенести Дані"
-
-
-msgid "Hooks"
-msgstr "Гачки"
-
-
-msgid "Sculpt Set Pivot"
-msgstr "Ліплення Задати Опертя"
-
-
-msgid "Face Sets Init"
-msgstr "Ініціація Наборів Граней"
-
-
-msgid "Clear Transform"
-msgstr "Зчистити трансформації"
-
-
-msgid "In-Betweens"
-msgstr "У проміжках"
-
-
-msgid "Propagate"
-msgstr "Поширити"
-
-
-msgid "Toggle Bone Options"
-msgstr "Перемкнути параметри кісток"
-
-
-msgid "Enable Bone Options"
-msgstr "Увімкнути параметри кісток"
-
-
-msgid "Disable Bone Options"
-msgstr "Відключити параметри кісток"
-
-
-msgid "Mesh Select Mode"
-msgstr "Режим Вибору Сіті"
-
-
-msgid "Face Data"
-msgstr "Дані граней"
+msgid "Set Face Strength"
+msgstr "Задати Силу Грані"
 
 
 msgid "Select by Face Strength"
 msgstr "Вибрати за Силою Грані"
 
 
-msgid "Set Face Strength"
-msgstr "Задати Силу Грані"
+msgid "Hooks"
+msgstr "Гачки"
+
+
+msgid "Link/Transfer Data"
+msgstr "Пов'язати/Перенести Дані"
+
+
+msgid "Convert"
+msgstr "Конвертування"
+
+
+msgid "Relations"
+msgstr "Зв'язки"
+
+
+msgid "Add Image"
+msgstr "Додати Зображення"
 
 
 msgid "Merge"
 msgstr "Об'єднання"
+
+
+msgid "Light Probe"
+msgstr "Проба Освітлення"
+
+
+msgid "Face Data"
+msgstr "Дані граней"
+
+
+msgid "Light"
+msgstr "Слабко"
+
+
+msgid "Make Single User"
+msgstr "Зробити однокористувацьким"
+
+
+msgid "Asset"
+msgstr "Актив"
+
+
+msgid "Mesh Select Mode"
+msgstr "Режим Вибору Сіті"
+
+
+msgid "Quick Effects"
+msgstr "Швидкі ефекти"
+
+
+msgid "Disable Bone Options"
+msgstr "Відключити параметри кісток"
+
+
+msgid "Enable Bone Options"
+msgstr "Увімкнути параметри кісток"
+
+
+msgid "Track"
+msgstr "Стеження"
+
+
+msgid "Toggle Bone Options"
+msgstr "Перемкнути параметри кісток"
+
+
+msgid "Apply"
+msgstr "Застосувати"
+
+
+msgid "Assign Material"
+msgstr "Призначити Матеріал"
+
+
+msgid "Rigid Body"
+msgstr "Тверде тіло"
+
+
+msgid "Propagate"
+msgstr "Поширити"
+
+
+msgid "Local View"
+msgstr "Огляд Локально"
+
+
+msgid "Select More/Less"
+msgstr "Вибрати більше/менше"
+
+
+msgid "In-Betweens"
+msgstr "У проміжках"
+
+
+msgid "Clear Transform"
+msgstr "Зчистити трансформації"
+
+
+msgid "Select Loops"
+msgstr "Виділити петлі"
+
+
+msgid "Select Linked"
+msgstr "Виділити пов'язане"
+
+
+msgid "Select All by Trait"
+msgstr "Вибрати все за рисою"
+
+
+msgid "Select Similar"
+msgstr "Вибрати подібні"
+
+
+msgid "View Regions"
+msgstr "Регіони Огляду"
+
+
+msgid "Align View to Active"
+msgstr "Вирівняти Огляд за Активним"
+
+
+msgid "Align View"
+msgstr "Вирівняти Огляд"
+
+
+msgid "Navigation"
+msgstr "Навігація"
+
+
+msgid "Viewpoint"
+msgstr "Точка зору"
+
+
+msgid "UV Mapping"
+msgstr "Розкладання UV"
+
+
+msgid "Mirror"
+msgstr "Дзеркалення"
+
+
+msgid "Face Sets Init"
+msgstr "Ініціація Наборів Граней"
+
+
+msgid "Sculpt Set Pivot"
+msgstr "Ліплення Задати Опертя"
 
 
 msgid "Basic"
@@ -47443,10 +47443,6 @@ msgid "Dissolve Vertices"
 msgstr "Розчинити Вершини"
 
 
-msgid "Dissolve remaining vertices"
-msgstr "Розчинити вершини, що залишились"
-
-
 msgctxt "Operator"
 msgid "Dissolve Faces"
 msgstr "Розчинити грані"
@@ -65978,12 +65974,8 @@ msgid "Device up/down directly controls the Z position of the 3D viewport"
 msgstr "Команди пристрою уверх/вниз безпосередньо керують позицією за Z для 3D оглядвікна"
 
 
-msgid "Lock Horizon"
-msgstr "Заблокувати горизонт"
-
-
-msgid "Keep horizon level while flying with 3D Mouse"
-msgstr "Дотримуватись рівня горизонту під час польоту з 3D-мишею"
+msgid "NDOF View Navigate"
+msgstr "3D-маніп. навігація у просторі"
 
 
 msgid "Orbit Sensitivity"
@@ -65992,14 +65984,6 @@ msgstr "Чутливість обльоту"
 
 msgid "Overall sensitivity of the 3D Mouse for orbiting"
 msgstr "Загальна чутливість 3D-маніпулятора для обльоту"
-
-
-msgid "Y/Z Swap Axis"
-msgstr "Обмін осей Y/Z"
-
-
-msgid "Pan using up/down on the device (otherwise forward/backward)"
-msgstr "Панорамувати кнопками вгору/вниз (замість вперед/назад)"
 
 
 msgid "Invert X Axis"
@@ -66032,50 +66016,6 @@ msgstr "Загальна чутливість 3D-маніпулятора при
 
 msgid "Display the center and axis during rotation"
 msgstr "Показувати центр та осі при обертанні"
-
-
-msgid "NDOF View Navigate"
-msgstr "3D-маніп. навігація у просторі"
-
-
-msgid "Navigation style in the viewport"
-msgstr "Стиль навігації у вікні"
-
-
-msgid "Use full 6 degrees of freedom by default"
-msgstr "Зробити стандартним режим з 6 ступенями вільності"
-
-
-msgid "Orbit about the view center by default"
-msgstr "Стандартно облітати навколо центру вигляду"
-
-
-msgid "NDOF View Rotation"
-msgstr "3D-маніп. оберт вигляду"
-
-
-msgid "Rotation style in the viewport"
-msgstr "Стиль обертання у вікні"
-
-
-msgid "Turntable"
-msgstr "Поворот-стіл"
-
-
-msgid "Use turntable style rotation in the viewport"
-msgstr "Використати у вікні стиль обертання поворотного столу"
-
-
-msgid "Use trackball style rotation in the viewport"
-msgstr "Використати у вікні стиль обертання трекболу"
-
-
-msgid "Invert Zoom"
-msgstr "Інвертувати зумування"
-
-
-msgid "Zoom using opposite direction"
-msgstr "Присувати/відсувати, використовуючи зворотний напрям"
 
 
 msgid "Softness"
@@ -66196,6 +66136,10 @@ msgstr "Метод Обльоту"
 
 msgid "Orbit method in the viewport"
 msgstr "Методи обльоту у вікні огляду"
+
+
+msgid "Turntable"
+msgstr "Поворот-стіл"
 
 
 msgid "Turntable keeps the Z-axis upright while orbiting"
@@ -83055,22 +82999,6 @@ msgid "Zoom Method"
 msgstr "Метод Зуму"
 
 
-msgid "Pan Sensitivity"
-msgstr "Чутливість Панорамування"
-
-
-msgid "Swap Y and Z Axes"
-msgstr "Обміняти Осі Y та Z"
-
-
-msgid "Invert Axis Pan"
-msgstr "Інвертувати Вісь Панорамування"
-
-
-msgid "Invert Pan Axis"
-msgstr "Інвертувати Панорамування Вісь"
-
-
 msgid "Use Light"
 msgstr "Вжити Освітлювач"
 
@@ -83092,8 +83020,16 @@ msgid "Invert Wheel Zoom Direction"
 msgstr "Інвертувати Напрямок Зуму Коліщатком"
 
 
-msgid "Fly/Walk"
-msgstr "Політ/Ходьба"
+msgid "Lock Horizon"
+msgstr "Заблокувати горизонт"
+
+
+msgid "Pan Sensitivity"
+msgstr "Чутливість Панорамування"
+
+
+msgid "Invert Pan Axis"
+msgstr "Інвертувати Панорамування Вісь"
 
 
 msgid "Error (see console)"
@@ -89159,10 +89095,6 @@ msgid "No active collection"
 msgstr "Без активної колекції"
 
 
-msgid "Can't duplicate the master collection"
-msgstr "Неможливо дублювати головну колекцію"
-
-
 msgid "Could not find a valid parent collection for the new duplicate, it won't be linked to any view layer"
 msgstr "Неможливо знайти дійсну предківську колекцію для нового дубліката, він не буде пов'язаний з жодним шаром оглядом"
 
@@ -91926,144 +91858,4 @@ msgstr "Усі додатки, встановлені користувачем"
 
 msgid "Import-Export"
 msgstr "Імпорт-експорт"
-
-
-msgid "Japanese (日本語)"
-msgstr "Японська (日本語)"
-
-
-msgid "Italian (Italiano)"
-msgstr "Італійська (Italiano)"
-
-
-msgid "German (Deutsch)"
-msgstr "Німецька (Deutsch)"
-
-
-msgid "Finnish (Suomi)"
-msgstr "Фінська (Suomi)"
-
-
-msgid "Swedish (Svenska)"
-msgstr "Шведська (Svenska)"
-
-
-msgid "French (Français)"
-msgstr "Французька (Français)"
-
-
-msgid "Spanish (Español)"
-msgstr "Іспанська (Español)"
-
-
-msgid "Catalan (Català)"
-msgstr "Каталанська (Català)"
-
-
-msgid "Portuguese (Português)"
-msgstr "Португальська (Português)"
-
-
-msgid "Simplified Chinese (简体中文)"
-msgstr "Спрощена китайська (简体中文)"
-
-
-msgid "Traditional Chinese (繁體中文)"
-msgstr "Традиційна китайська  (繁體中文)"
-
-
-msgid "Russian (Русский)"
-msgstr "Російська (Русский)"
-
-
-msgid "Croatian (Hrvatski)"
-msgstr "Хорватська (Hrvatski)"
-
-
-msgid "Serbian (Српски)"
-msgstr "Сербська (Српски)"
-
-
-msgid "Polish (Polski)"
-msgstr "Польська (Polski)"
-
-
-msgid "Romanian (Român)"
-msgstr "Румунська (Român)"
-
-
-msgid "Bulgarian (Български)"
-msgstr "Болгарська (Български)"
-
-
-msgid "Greek (Ελληνικά)"
-msgstr "Грецька (Ελληνικά)"
-
-
-msgid "Nepali (नेपाली)"
-msgstr "Непальська (नेपाली)"
-
-
-msgid "Indonesian (Bahasa indonesia)"
-msgstr "Індонезійська (Bahasa indonesia)"
-
-
-msgid "Kyrgyz (Кыргыз тили)"
-msgstr "Киргизька (Кыргыз тили)"
-
-
-msgid "Turkish (Türkçe)"
-msgstr "Турецька (Türkçe)"
-
-
-msgid "Hungarian (Magyar)"
-msgstr "Угорська (Magyar)"
-
-
-msgid "Brazilian Portuguese (Português do Brasil)"
-msgstr "Бразильська португальська (Português do Brasil)"
-
-
-msgid "Esperanto (Esperanto)"
-msgstr "Есперанто (Esperanto)"
-
-
-msgid "Amharic (አማርኛ)"
-msgstr "Амхарська (አማርኛ)"
-
-
-msgid "Uzbek (Oʻzbek)"
-msgstr "Узбецька (Oʻzbek)"
-
-
-msgid "Uzbek Cyrillic (Ўзбек)"
-msgstr "Узбецька кирилиця (Ўзбек)"
-
-
-msgid "Basque (Euskara)"
-msgstr "Баскська (Euskara)"
-
-
-msgid "Hausa (Hausa)"
-msgstr "Hausa (Hausa)"
-
-
-msgid "Abkhaz (Аԥсуа бызшәа)"
-msgstr "Абхазська (Аԥсуа бызшәа)"
-
-
-msgid "Thai (ภาษาไทย)"
-msgstr "Тайська (ภาษาไทย)"
-
-
-msgid "Slovak (Slovenčina)"
-msgstr "Словацька (Slovenčina)"
-
-
-msgid "Complete"
-msgstr "Завершено"
-
-
-msgid "In Progress"
-msgstr "Триває"
 
