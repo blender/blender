@@ -208,7 +208,7 @@ void clip_draw_dopesheet_main(SpaceClip *sc, ARegion *region, Scene *scene)
       uint color_id = GPU_vertformat_attr_add(
           format, "color", blender::gpu::VertAttrType::SFLOAT_32_32_32_32);
       uint outline_color_id = GPU_vertformat_attr_add(
-          format, "outlineColor", blender::gpu::VertAttrType::SNORM_8_8_8_8);
+          format, "outlineColor", blender::gpu::VertAttrType::UNORM_8_8_8_8);
       uint flags_id = GPU_vertformat_attr_add(
           format, "flags", blender::gpu::VertAttrType::UINT_32);
 

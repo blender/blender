@@ -1196,7 +1196,7 @@ void UI_view2d_multi_grid_draw(
   GPUVertFormat *format = immVertexFormat();
   const uint pos = GPU_vertformat_attr_add(
       format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
-  uint color = GPU_vertformat_attr_add(format, "color", blender::gpu::VertAttrType::SNORM_8_8_8_8);
+  uint color = GPU_vertformat_attr_add(format, "color", blender::gpu::VertAttrType::UNORM_8_8_8_8);
 
   GPU_line_width(1.0f);
 

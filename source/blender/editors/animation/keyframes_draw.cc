@@ -622,9 +622,9 @@ static void channel_list_draw_keys(ChannelDrawList *channel_list, View2D *v2d)
   sh_bindings.size_id = GPU_vertformat_attr_add(
       format, "size", blender::gpu::VertAttrType::SFLOAT_32);
   sh_bindings.color_id = GPU_vertformat_attr_add(
-      format, "color", blender::gpu::VertAttrType::SNORM_8_8_8_8);
+      format, "color", blender::gpu::VertAttrType::UNORM_8_8_8_8);
   sh_bindings.outline_color_id = GPU_vertformat_attr_add(
-      format, "outlineColor", blender::gpu::VertAttrType::SNORM_8_8_8_8);
+      format, "outlineColor", blender::gpu::VertAttrType::UNORM_8_8_8_8);
   sh_bindings.flags_id = GPU_vertformat_attr_add(
       format, "flags", blender::gpu::VertAttrType::UINT_32);
 

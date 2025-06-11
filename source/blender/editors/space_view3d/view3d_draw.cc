@@ -1144,7 +1144,7 @@ static void draw_ndof_guide_orbit_center(const RegionView3D *rv3d)
 
   GPUVertFormat *format = immVertexFormat();
   uint pos = GPU_vertformat_attr_add(format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32_32);
-  uint col = GPU_vertformat_attr_add(format, "color", blender::gpu::VertAttrType::SNORM_8_8_8_8);
+  uint col = GPU_vertformat_attr_add(format, "color", blender::gpu::VertAttrType::UNORM_8_8_8_8);
 
   immBindBuiltinProgram(GPU_SHADER_3D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_AA);
   immUniform1f("size", 7.0f);

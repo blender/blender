@@ -134,7 +134,7 @@ gpu::VertBufPtr extract_sculpt_data_subdiv(const MeshRenderData &mr,
 
   /* Then, gather face sets. */
   GPUVertFormat face_set_format = {0};
-  GPU_vertformat_attr_add(&face_set_format, "msk", blender::gpu::VertAttrType::SNORM_8_8_8_8);
+  GPU_vertformat_attr_add(&face_set_format, "msk", blender::gpu::VertAttrType::UNORM_8_8_8_8);
 
   gpu::VertBuf *face_set_vbo = GPU_vertbuf_calloc();
   GPU_vertbuf_init_with_format(*face_set_vbo, face_set_format);

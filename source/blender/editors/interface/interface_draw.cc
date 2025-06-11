@@ -245,7 +245,7 @@ void ui_draw_but_TAB_outline(const rcti *rect,
   const uint pos = GPU_vertformat_attr_add(
       format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
   const uint col = GPU_vertformat_attr_add(
-      format, "color", blender::gpu::VertAttrType::SNORM_8_8_8_8);
+      format, "color", blender::gpu::VertAttrType::UNORM_8_8_8_8);
   /* add a 1px offset, looks nicer */
   const int minx = rect->xmin + U.pixelsize, maxx = rect->xmax - U.pixelsize;
   const int miny = rect->ymin + U.pixelsize, maxy = rect->ymax - U.pixelsize;
