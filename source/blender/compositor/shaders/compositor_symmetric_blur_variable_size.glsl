@@ -5,37 +5,6 @@
 #include "gpu_shader_compositor_texture_utilities.glsl"
 #include "gpu_shader_math_vector_lib.glsl"
 
-/* Loads the input color of the pixel at the given texel. If bounds are extended, then the input is
- * treated as padded by a blur size amount of pixels of zero color, and the given texel is assumed
- * to be in the space of the image after padding. So we offset the texel by the blur radius amount
- * and fall back to a zero color if it is out of bounds. For instance, if the input is padded by 5
- * pixels to the left of the image, the first 5 pixels should be out of bounds and thus zero, hence
- * the introduced offset. */
-float4 load_input(int2 texel)
-{
-  float4 color;
-  if (extend_bounds) {
-    /* Notice that we subtract 1 because the weights texture have an extra center weight, see the
-     * SymmetricBlurWeights class for more information. */
-    int2 blur_radius = texture_size(weights_tx) - 1;
-    color = texture_load(input_tx, texel - blur_radius, float4(0.0f));
-  }
-  else {
-    color = texture_load(input_tx, texel);
-  }
-
-  return color;
-}
-
-/* Similar to load_input but loads the size instead and clamps to borders instead of returning zero
- * for out of bound access. See load_input for more information. */
-float2 load_size(int2 texel)
-{
-  int2 blur_radius = texture_size(weights_tx) - 1;
-  int2 offset = extend_bounds ? blur_radius : int2(0);
-  return max(float2(0.0), texture_load(size_tx, texel - offset).xy);
-}
-
 void main()
 {
   int2 texel = int2(gl_GlobalInvocationID.xy);
@@ -43,12 +12,12 @@ void main()
   float4 accumulated_color = float4(0.0f);
   float4 accumulated_weight = float4(0.0f);
 
-  const float2 size = load_size(texel);
+  const float2 size = max(float2(0.0), texture_load(size_tx, texel).xy);
   int2 radius = int2(ceil(size));
   float2 coordinates_scale = float2(1.0f) / (size + float2(1));
 
   /* First, compute the contribution of the center pixel. */
-  float4 center_color = load_input(texel);
+  float4 center_color = texture_load(input_tx, texel);
   float center_weight = texture_load(weights_tx, int2(0)).x;
   accumulated_color += center_color * center_weight;
   accumulated_weight += center_weight;
@@ -60,8 +29,8 @@ void main()
   for (int x = 1; x <= radius.x; x++) {
     float weight_coordinates = (x + 0.5f) * coordinates_scale.x;
     float weight = texture(weights_tx, float2(weight_coordinates, 0.0f)).x;
-    accumulated_color += load_input(texel + int2(x, 0)) * weight;
-    accumulated_color += load_input(texel + int2(-x, 0)) * weight;
+    accumulated_color += texture_load(input_tx, texel + int2(x, 0)) * weight;
+    accumulated_color += texture_load(input_tx, texel + int2(-x, 0)) * weight;
     accumulated_weight += weight * 2.0f;
   }
 
@@ -72,8 +41,8 @@ void main()
   for (int y = 1; y <= radius.y; y++) {
     float weight_coordinates = (y + 0.5f) * coordinates_scale.y;
     float weight = texture(weights_tx, float2(0.0f, weight_coordinates)).x;
-    accumulated_color += load_input(texel + int2(0, y)) * weight;
-    accumulated_color += load_input(texel + int2(0, -y)) * weight;
+    accumulated_color += texture_load(input_tx, texel + int2(0, y)) * weight;
+    accumulated_color += texture_load(input_tx, texel + int2(0, -y)) * weight;
     accumulated_weight += weight * 2.0f;
   }
 
@@ -85,10 +54,10 @@ void main()
     for (int x = 1; x <= radius.x; x++) {
       float2 weight_coordinates = (float2(x, y) + float2(0.5f)) * coordinates_scale;
       float weight = texture(weights_tx, weight_coordinates).x;
-      accumulated_color += load_input(texel + int2(x, y)) * weight;
-      accumulated_color += load_input(texel + int2(-x, y)) * weight;
-      accumulated_color += load_input(texel + int2(x, -y)) * weight;
-      accumulated_color += load_input(texel + int2(-x, -y)) * weight;
+      accumulated_color += texture_load(input_tx, texel + int2(x, y)) * weight;
+      accumulated_color += texture_load(input_tx, texel + int2(-x, y)) * weight;
+      accumulated_color += texture_load(input_tx, texel + int2(x, -y)) * weight;
+      accumulated_color += texture_load(input_tx, texel + int2(-x, -y)) * weight;
       accumulated_weight += weight * 4.0f;
     }
   }

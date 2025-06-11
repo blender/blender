@@ -5,22 +5,6 @@
 #include "gpu_shader_compositor_texture_utilities.glsl"
 #include "gpu_shader_math_vector_lib.glsl"
 
-float4 load_input(int2 texel)
-{
-  float4 color;
-  if (extend_bounds) {
-    /* If bounds are extended, then we treat the input as padded by a radius amount of pixels. So
-     * we load the input with an offset by the radius amount and fall back to a transparent color
-     * if it is out of bounds. */
-    color = texture_load(input_tx, texel - radius, float4(0.0f));
-  }
-  else {
-    color = texture_load(input_tx, texel);
-  }
-
-  return color;
-}
-
 /* Given the texel in the range [-radius, radius] in both axis, load the appropriate weight from
  * the weights texture, where the given texel (0, 0) corresponds the center of weights texture.
  * Note that we load the weights texture inverted along both directions to maintain the shape of
@@ -62,7 +46,7 @@ void main()
   for (int y = -radius; y <= radius; y++) {
     for (int x = -radius; x <= radius; x++) {
       float4 weight = load_weight(int2(x, y));
-      accumulated_color += load_input(texel + int2(x, y)) * weight;
+      accumulated_color += texture_load(input_tx, texel + int2(x, y)) * weight;
       accumulated_weight += weight;
     }
   }

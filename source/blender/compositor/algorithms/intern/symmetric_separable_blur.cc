@@ -3,8 +3,6 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "BLI_assert.h"
-#include "BLI_math_base.hh"
-#include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
 
 #include "GPU_shader.hh"
@@ -19,30 +17,9 @@
 
 namespace blender::compositor {
 
-template<typename T, bool ExtendBounds>
+template<typename T>
 static void blur_pass(const Result &input, const Result &weights, Result &output)
 {
-  /* Loads the input color of the pixel at the given texel. If bounds are extended, then the input
-   * is treated as padded by a blur size amount of pixels of zero color, and the given texel is
-   * assumed to be in the space of the image after padding. So we offset the texel by the blur
-   * radius amount and fallback to a zero color if it is out of bounds. For instance, if the input
-   * is padded by 5 pixels to the left of the image, the first 5 pixels should be out of bounds and
-   * thus zero, hence the introduced offset. */
-  auto load_input = [&](const int2 texel) {
-    T color;
-    if constexpr (ExtendBounds) {
-      /* Notice that we subtract 1 because the weights result have an extra center weight, see the
-       * SymmetricBlurWeights class for more information. */
-      int2 blur_radius = weights.domain().size - 1;
-      color = input.load_pixel_zero<T>(texel - blur_radius);
-    }
-    else {
-      color = input.load_pixel_extended<T>(texel);
-    }
-
-    return color;
-  };
-
   /* Notice that the size is transposed, see the note on the horizontal pass method for more
    * information on the reasoning behind this. */
   const int2 size = int2(output.domain().size.y, output.domain().size.x);
@@ -50,7 +27,7 @@ static void blur_pass(const Result &input, const Result &weights, Result &output
     T accumulated_color = T(0);
 
     /* First, compute the contribution of the center pixel. */
-    T center_color = load_input(texel);
+    T center_color = input.load_pixel_extended<T>(texel);
     accumulated_color += center_color * weights.load_pixel<float>(int2(0));
 
     /* Then, compute the contributions of the pixel to the right and left, noting that the
@@ -59,8 +36,8 @@ static void blur_pass(const Result &input, const Result &weights, Result &output
      * contributions. */
     for (int i = 1; i < weights.domain().size.x; i++) {
       float weight = weights.load_pixel<float>(int2(i, 0));
-      accumulated_color += load_input(texel + int2(i, 0)) * weight;
-      accumulated_color += load_input(texel + int2(-i, 0)) * weight;
+      accumulated_color += input.load_pixel_extended<T>(texel + int2(i, 0)) * weight;
+      accumulated_color += input.load_pixel_extended<T>(texel + int2(-i, 0)) * weight;
     }
 
     /* Write the color using the transposed texel. See the horizontal_pass method for more
@@ -87,24 +64,16 @@ static const char *get_blur_shader(const ResultType type)
 static Result horizontal_pass_gpu(Context &context,
                                   const Result &input,
                                   const float radius,
-                                  const int filter_type,
-                                  const bool extend_bounds)
+                                  const int filter_type)
 {
   GPUShader *shader = context.get_shader(get_blur_shader(input.type()));
   GPU_shader_bind(shader);
-
-  GPU_shader_uniform_1b(shader, "extend_bounds", extend_bounds);
 
   input.bind_as_texture(shader, "input_tx");
 
   const Result &weights = context.cache_manager().symmetric_separable_blur_weights.get(
       context, filter_type, radius);
   weights.bind_as_texture(shader, "weights_tx");
-
-  Domain domain = input.domain();
-  if (extend_bounds) {
-    domain.size.x += int(math::ceil(radius)) * 2;
-  }
 
   /* We allocate an output image of a transposed size, that is, with a height equivalent to the
    * width of the input and vice versa. This is done as a performance optimization. The shader
@@ -114,6 +83,7 @@ static Result horizontal_pass_gpu(Context &context,
    * effectively undoing the transposition in the horizontal pass. This is done to improve
    * spatial cache locality in the shader and to avoid having two separate shaders for each blur
    * pass. */
+  Domain domain = input.domain();
   const int2 transposed_domain = int2(domain.size.y, domain.size.x);
 
   Result output = context.create_result(input.type());
@@ -133,16 +103,10 @@ static Result horizontal_pass_gpu(Context &context,
 static Result horizontal_pass_cpu(Context &context,
                                   const Result &input,
                                   const float radius,
-                                  const int filter_type,
-                                  const bool extend_bounds)
+                                  const int filter_type)
 {
   const Result &weights = context.cache_manager().symmetric_separable_blur_weights.get(
       context, filter_type, radius);
-
-  Domain domain = input.domain();
-  if (extend_bounds) {
-    domain.size.x += int(math::ceil(radius)) * 2;
-  }
 
   /* We allocate an output image of a transposed size, that is, with a height equivalent to the
    * width of the input and vice versa. This is done as a performance optimization. The shader
@@ -152,6 +116,7 @@ static Result horizontal_pass_cpu(Context &context,
    * effectively undoing the transposition in the horizontal pass. This is done to improve
    * spatial cache locality in the shader and to avoid having two separate shaders for each blur
    * pass. */
+  const Domain domain = input.domain();
   const int2 transposed_domain = int2(domain.size.y, domain.size.x);
 
   Result output = context.create_result(input.type());
@@ -159,20 +124,10 @@ static Result horizontal_pass_cpu(Context &context,
 
   switch (input.type()) {
     case ResultType::Float:
-      if (extend_bounds) {
-        blur_pass<float, true>(input, weights, output);
-      }
-      else {
-        blur_pass<float, false>(input, weights, output);
-      }
+      blur_pass<float>(input, weights, output);
       break;
     case ResultType::Color:
-      if (extend_bounds) {
-        blur_pass<float4, true>(input, weights, output);
-      }
-      else {
-        blur_pass<float4, false>(input, weights, output);
-      }
+      blur_pass<float4>(input, weights, output);
       break;
     default:
       BLI_assert_unreachable();
@@ -185,13 +140,12 @@ static Result horizontal_pass_cpu(Context &context,
 static Result horizontal_pass(Context &context,
                               const Result &input,
                               const float radius,
-                              const int filter_type,
-                              const bool extend_bounds)
+                              const int filter_type)
 {
   if (context.use_gpu()) {
-    return horizontal_pass_gpu(context, input, radius, filter_type, extend_bounds);
+    return horizontal_pass_gpu(context, input, radius, filter_type);
   }
-  return horizontal_pass_cpu(context, input, radius, filter_type, extend_bounds);
+  return horizontal_pass_cpu(context, input, radius, filter_type);
 }
 
 static void vertical_pass_gpu(Context &context,
@@ -199,13 +153,10 @@ static void vertical_pass_gpu(Context &context,
                               const Result &horizontal_pass_result,
                               Result &output,
                               const float2 &radius,
-                              const int filter_type,
-                              const bool extend_bounds)
+                              const int filter_type)
 {
   GPUShader *shader = context.get_shader(get_blur_shader(original_input.type()));
   GPU_shader_bind(shader);
-
-  GPU_shader_uniform_1b(shader, "extend_bounds", extend_bounds);
 
   horizontal_pass_result.bind_as_texture(shader, "input_tx");
 
@@ -213,12 +164,7 @@ static void vertical_pass_gpu(Context &context,
       context, filter_type, radius.y);
   weights.bind_as_texture(shader, "weights_tx");
 
-  Domain domain = original_input.domain();
-  if (extend_bounds) {
-    /* Add a radius amount of pixels in both sides of the image, hence the multiply by 2. */
-    domain.size += int2(math::ceil(radius)) * 2;
-  }
-
+  const Domain domain = original_input.domain();
   output.allocate_texture(domain);
   output.bind_as_image(shader, "output_img");
 
@@ -237,35 +183,19 @@ static void vertical_pass_cpu(Context &context,
                               const Result &horizontal_pass_result,
                               Result &output,
                               const float2 &radius,
-                              const int filter_type,
-                              const bool extend_bounds)
+                              const int filter_type)
 {
   const Result &weights = context.cache_manager().symmetric_separable_blur_weights.get(
       context, filter_type, radius.y);
 
-  Domain domain = original_input.domain();
-  if (extend_bounds) {
-    /* Add a radius amount of pixels in both sides of the image, hence the multiply by 2. */
-    domain.size += int2(math::ceil(radius)) * 2;
-  }
-  output.allocate_texture(domain);
+  output.allocate_texture(original_input.domain());
 
   switch (original_input.type()) {
     case ResultType::Float:
-      if (extend_bounds) {
-        blur_pass<float, true>(horizontal_pass_result, weights, output);
-      }
-      else {
-        blur_pass<float, false>(horizontal_pass_result, weights, output);
-      }
+      blur_pass<float>(horizontal_pass_result, weights, output);
       break;
     case ResultType::Color:
-      if (extend_bounds) {
-        blur_pass<float4, true>(horizontal_pass_result, weights, output);
-      }
-      else {
-        blur_pass<float4, false>(horizontal_pass_result, weights, output);
-      }
+      blur_pass<float4>(horizontal_pass_result, weights, output);
       break;
     default:
       BLI_assert_unreachable();
@@ -278,26 +208,15 @@ static void vertical_pass(Context &context,
                           const Result &horizontal_pass_result,
                           Result &output,
                           const float2 &radius,
-                          const int filter_type,
-                          const bool extend_bounds)
+                          const int filter_type)
 {
   if (context.use_gpu()) {
-    vertical_pass_gpu(context,
-                      original_input,
-                      horizontal_pass_result,
-                      output,
-                      radius,
-                      filter_type,
-                      extend_bounds);
+    vertical_pass_gpu(
+        context, original_input, horizontal_pass_result, output, radius, filter_type);
   }
   else {
-    vertical_pass_cpu(context,
-                      original_input,
-                      horizontal_pass_result,
-                      output,
-                      radius,
-                      filter_type,
-                      extend_bounds);
+    vertical_pass_cpu(
+        context, original_input, horizontal_pass_result, output, radius, filter_type);
   }
 }
 
@@ -305,15 +224,10 @@ void symmetric_separable_blur(Context &context,
                               const Result &input,
                               Result &output,
                               const float2 &radius,
-                              const int filter_type,
-                              const bool extend_bounds)
+                              const int filter_type)
 {
-  Result horizontal_pass_result = horizontal_pass(
-      context, input, radius.x, filter_type, extend_bounds);
-
-  vertical_pass(
-      context, input, horizontal_pass_result, output, radius, filter_type, extend_bounds);
-
+  Result horizontal_pass_result = horizontal_pass(context, input, radius.x, filter_type);
+  vertical_pass(context, input, horizontal_pass_result, output, radius, filter_type);
   horizontal_pass_result.release();
 }
 
