@@ -366,7 +366,7 @@ static void calc_blurred_cavity_mesh(const Depsgraph &depsgraph,
   }
 
   const float3 vec = all_verts.position - verts_in_range.position;
-  float factor_sum = math::dot(vec, verts_in_range.normal) / all_verts.distance;
+  float factor_sum = math::safe_divide(math::dot(vec, verts_in_range.normal), all_verts.distance);
   cavity_factors[vert] = calc_cavity_factor(automasking, factor_sum);
 }
 
