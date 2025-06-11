@@ -6,6 +6,8 @@ set(INC
   PUBLIC .
 )
 
+set(INC_SYS
+)
 
 set(SRC
   intern/blo_core_bhead.cc

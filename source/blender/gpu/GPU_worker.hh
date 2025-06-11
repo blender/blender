@@ -16,9 +16,11 @@
 
 namespace blender::gpu {
 
-/* Abstracts the creation and management of secondary threads with GPU contexts.
+/**
+ * Abstracts the creation and management of secondary threads with GPU contexts.
  * Must be created from the main thread.
- * Threads and their context remain alive until destruction. */
+ * Threads and their context remain alive until destruction.
+ */
 class GPUWorker {
  private:
   Vector<std::unique_ptr<std::thread>> threads_;
@@ -28,9 +30,9 @@ class GPUWorker {
 
  public:
   enum class ContextType {
-    /* Use the main GPU context on the worker threads. */
+    /** Use the main GPU context on the worker threads. */
     Main,
-    /* Use a different secondary GPU context for each worker thread. */
+    /** Use a different secondary GPU context for each worker thread. */
     PerThread,
   };
 
@@ -38,7 +40,7 @@ class GPUWorker {
    * \param threads_count: Number of threads to span.
    * \param context_type: The type of context each thread uses.
    * \param mutex: Mutex used when trying to acquire the next work
-   *               (and reused internally for termation).
+   *               (and reused internally for termination).
    * \param pop_work: The callback function that will be called to acquire the next work,
    *                  should return a void pointer.
    *                  NOTE: The mutex is locked when this function is called.
