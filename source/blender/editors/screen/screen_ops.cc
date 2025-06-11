@@ -1753,7 +1753,7 @@ static void area_move_set_limits(wmWindow *win,
       }
     }
     else {
-      const int x1 = area->winx - (AREAMINX * UI_SCALE_FAC);
+      const int x1 = area->winx - int(AREAMINX * UI_SCALE_FAC) - 1;
       /* if left or right edge selected, test width */
       if (area->v1->editflag && area->v2->editflag) {
         *bigger = min_ii(*bigger, x1);
