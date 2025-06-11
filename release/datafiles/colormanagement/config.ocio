@@ -155,7 +155,7 @@ colorspaces:
     description: |
       Linear AP0 with ACES white point
     isdata: false
-    from_reference: !<GroupTransform>
+    from_scene_reference: !<GroupTransform>
       children:
         - !<ColorSpaceTransform> {src: Linear CIE-XYZ E, dst: Linear CIE-XYZ D65}
         - !<BuiltinTransform> {style: "UTILITY - ACES-AP0_to_CIE-XYZ-D65_BFD", direction: inverse}
@@ -169,7 +169,7 @@ colorspaces:
     description: |
       Linear AP1 with ACES white point
     isdata: false
-    from_reference: !<GroupTransform>
+    from_scene_reference: !<GroupTransform>
       children:
         - !<ColorSpaceTransform> {src: Linear CIE-XYZ E, dst: Linear CIE-XYZ D65}
         - !<BuiltinTransform> {style: "UTILITY - ACES-AP1_to_CIE-XYZ-D65_BFD", direction: inverse}
@@ -262,7 +262,7 @@ colorspaces:
     description: |
       Log based filmic shaper with 16.5 stops of latitude, and 25 stops of dynamic range
     isdata: false
-    from_reference: !<GroupTransform>
+    from_scene_reference: !<GroupTransform>
       children:
         - !<ColorSpaceTransform> {src: Linear CIE-XYZ E, dst: Linear Rec.709}
         - !<AllocationTransform> {allocation: lg2, vars: [-12.473931188, 12.526068812]}
@@ -281,7 +281,7 @@ colorspaces:
     description: |
       sRGB display space with Filmic view transform
     isdata: false
-    from_reference: !<GroupTransform>
+    from_scene_reference: !<GroupTransform>
       children:
         - !<ColorSpaceTransform> {src: Linear CIE-XYZ E, dst: Filmic Log}
         - !<FileTransform> {src: filmic_to_0-70_1-03.spi1d, interpolation: linear}
@@ -349,8 +349,6 @@ colorspaces:
     description: |
       Log Encoding with Chroma inset and rotation of primaries, and with 25 Stops of Dynamic Range
     isdata: false
-    from_reference: !<GroupTransform>
-      children:
     from_scene_reference: !<GroupTransform>
       children:
         - !<ColorSpaceTransform> {src: Linear CIE-XYZ E, dst: Luminance Compensation Rec.2020}
