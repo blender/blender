@@ -13,7 +13,7 @@
 #include "BLI_array.hh"
 #include "BLI_bounds.hh"
 #include "BLI_boxpack_2d.h"
-#include "BLI_convexhull_2d.h"
+#include "BLI_convexhull_2d.hh"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
@@ -261,8 +261,7 @@ void PackIsland::calculate_pre_rotation_(const UVPackIsland_Params &params)
       coords[i].y = triangle_vertices_[i].y;
     }
 
-    const float(*source)[2] = reinterpret_cast<const float(*)[2]>(coords.data());
-    float angle = -BLI_convexhull_aabb_fit_points_2d(source, int(coords.size()));
+    float angle = -BLI_convexhull_aabb_fit_points_2d(coords);
 
     if (true) {
       /* "Stand-up" islands. */
@@ -341,18 +340,15 @@ void PackIsland::finalize_geometry_(const UVPackIsland_Params &params, MemArena 
     int *index_map = static_cast<int *>(
         BLI_memarena_alloc(arena, sizeof(*index_map) * vert_count));
 
-    /* Prepare input for convex hull. */
-    const float(*source)[2] = reinterpret_cast<const float(*)[2]>(triangle_vertices_.data());
-
     /* Compute convex hull. */
-    int convex_len = BLI_convexhull_2d(source, vert_count, index_map);
+    int convex_len = BLI_convexhull_2d(triangle_vertices_, index_map);
     if (convex_len >= 3) {
       /* Write back. */
       triangle_vertices_.clear();
       float2 *convex_verts = static_cast<float2 *>(
           BLI_memarena_alloc(arena, sizeof(*convex_verts) * convex_len));
       for (int i = 0; i < convex_len; i++) {
-        convex_verts[i] = source[index_map[i]];
+        convex_verts[i] = triangle_vertices_[index_map[i]];
       }
       add_polygon(Span(convex_verts, convex_len), arena, heap);
     }
@@ -1555,11 +1551,8 @@ static bool rotate_inside_square(const Span<std::unique_ptr<UVAABBIsland>> islan
   }
 
   /* Now we have all the points in the correct space, compute the 2D convex hull. */
-  const float(*source)[2] = reinterpret_cast<const float(*)[2]>(square_finder.points.data());
-
   square_finder.indices.resize(square_finder.points.size()); /* Allocate worst-case. */
-  int convex_size = BLI_convexhull_2d(
-      source, int(square_finder.points.size()), square_finder.indices.data());
+  int convex_size = BLI_convexhull_2d(square_finder.points, square_finder.indices.data());
   square_finder.indices.resize(convex_size); /* Resize to actual size. */
 
   /* Run the computation to find the best angle. (Slow!) */

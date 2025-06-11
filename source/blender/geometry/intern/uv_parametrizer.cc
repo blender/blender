@@ -12,7 +12,7 @@
 #include "GEO_uv_parametrizer.hh"
 
 #include "BLI_array.hh"
-#include "BLI_convexhull_2d.h"
+#include "BLI_convexhull_2d.hh"
 #include "BLI_ghash.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
@@ -489,7 +489,7 @@ static void p_chart_uv_transform(PChart *chart, const float mat[2][2])
   }
 }
 
-static void p_chart_uv_to_array(PChart *chart, float (*points)[2])
+static void p_chart_uv_to_array(PChart *chart, MutableSpan<float2> points)
 {
   PVert *v;
   uint i = 0;
@@ -3708,13 +3708,11 @@ static void p_chart_rotate_minimum_area(PChart *chart)
 
 static void p_chart_rotate_fit_aabb(PChart *chart)
 {
-  float(*points)[2] = MEM_malloc_arrayN<float[2]>(size_t(chart->nverts), __func__);
+  Array<float2> points(chart->nverts);
 
   p_chart_uv_to_array(chart, points);
 
-  float angle = BLI_convexhull_aabb_fit_points_2d(points, chart->nverts);
-
-  MEM_freeN(points);
+  float angle = BLI_convexhull_aabb_fit_points_2d(points);
 
   if (angle != 0.0f) {
     float mat[2][2];

@@ -14,7 +14,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_bounds_types.hh"
-#include "BLI_convexhull_2d.h"
+#include "BLI_convexhull_2d.hh"
 #include "BLI_math_vector.h"
 #include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
@@ -79,7 +79,7 @@ static float is_left(const float p0[2], const float p1[2], const float p2[2])
   return (p1[0] - p0[0]) * (p2[1] - p0[1]) - (p2[0] - p0[0]) * (p1[1] - p0[1]);
 }
 
-static int convexhull_2d_sorted(const float (*points)[2], const int points_num, int r_points[])
+static int convexhull_2d_sorted(blender::float2 *points, const int points_num, int r_points[])
 {
   BLI_assert(points_num >= 2); /* Doesn't handle trivial cases. */
   /* The output array `r_points[]` will be used as the stack. */
@@ -182,8 +182,9 @@ static int convexhull_2d_sorted(const float (*points)[2], const int points_num, 
   return top + 1;
 }
 
-int BLI_convexhull_2d(const float (*points)[2], const int points_num, int r_points[])
+int BLI_convexhull_2d(blender::Span<blender::float2> points, int r_points[])
 {
+  const int points_num = int(points.size());
   BLI_assert(points_num >= 0);
   if (points_num < 2) {
     if (points_num == 1) {
@@ -192,7 +193,7 @@ int BLI_convexhull_2d(const float (*points)[2], const int points_num, int r_poin
     return points_num;
   }
   int *points_map = MEM_malloc_arrayN<int>(size_t(points_num), __func__);
-  float(*points_sort)[2] = MEM_malloc_arrayN<float[2]>(size_t(points_num), __func__);
+  blender::float2 *points_sort = MEM_malloc_arrayN<blender::float2>(size_t(points_num), __func__);
 
   for (int i = 0; i < points_num; i++) {
     points_map[i] = i;
@@ -653,14 +654,15 @@ static float convexhull_aabb_fit_hull_2d(const float (*points_hull)[2], int poin
   return angle;
 }
 
-float BLI_convexhull_aabb_fit_points_2d(const float (*points)[2], int points_num)
+float BLI_convexhull_aabb_fit_points_2d(blender::Span<blender::float2> points)
 {
+  const int points_num = int(points.size());
   BLI_assert(points_num >= 0);
   float angle = 0.0f;
 
   int *index_map = MEM_malloc_arrayN<int>(size_t(points_num), __func__);
 
-  int points_hull_num = BLI_convexhull_2d(points, points_num, index_map);
+  int points_hull_num = BLI_convexhull_2d(points, index_map);
 
   if (points_hull_num > 1) {
     float(*points_hull)[2] = MEM_malloc_arrayN<float[2]>(size_t(points_hull_num), __func__);

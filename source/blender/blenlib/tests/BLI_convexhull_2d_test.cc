@@ -16,7 +16,7 @@
 #include "testing/testing.h"
 
 #include "BLI_array.hh"
-#include "BLI_convexhull_2d.h"
+#include "BLI_convexhull_2d.hh"
 #include "BLI_math_angle_types.hh"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
@@ -62,23 +62,10 @@ static blender::Array<float2> convexhull_points_from_map(blender::Span<float2> p
 static blender::Array<float2> convexhull_2d_as_array(blender::Span<float2> points)
 {
   blender::Array<int> points_hull_map(points.size());
-  int points_hull_map_num = BLI_convexhull_2d(
-      reinterpret_cast<const float(*)[2]>(points.data()), points.size(), points_hull_map.data());
+  int points_hull_map_num = BLI_convexhull_2d(points, points_hull_map.data());
 
   blender::Span<int> points_hull_map_span(points_hull_map.data(), points_hull_map_num);
   return convexhull_points_from_map(points, points_hull_map_span);
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Wrap Public API's
- * \{ */
-
-static float convexhull_2d_aabb_fit_points_2d(blender::Span<float2> points)
-{
-  return BLI_convexhull_aabb_fit_points_2d(reinterpret_cast<const float(*)[2]>(points.data()),
-                                           points.size());
 }
 
 /** \} */
@@ -128,16 +115,16 @@ TEST(convexhull_2d, NOP)
 {
   { /* Single point. */
     blender::Array<float2> points = {{0.0f, 0.0f}};
-    EXPECT_NEAR(convexhull_2d_aabb_fit_points_2d(points), 0.0f, ROTATION_EPS);
+    EXPECT_NEAR(BLI_convexhull_aabb_fit_points_2d(points), 0.0f, ROTATION_EPS);
   }
 
   { /* Single point, 2x duplicates. */
     blender::Array<float2> points = {{0.0f, 0.0f}, {0.0f, 0.0f}};
-    EXPECT_NEAR(convexhull_2d_aabb_fit_points_2d(points), 0.0f, ROTATION_EPS);
+    EXPECT_NEAR(BLI_convexhull_aabb_fit_points_2d(points), 0.0f, ROTATION_EPS);
   }
   { /* Single point, 3x duplicates. */
     blender::Array<float2> points = {{0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f}};
-    EXPECT_NEAR(convexhull_2d_aabb_fit_points_2d(points), 0.0f, ROTATION_EPS);
+    EXPECT_NEAR(BLI_convexhull_aabb_fit_points_2d(points), 0.0f, ROTATION_EPS);
   }
 }
 
@@ -146,7 +133,7 @@ TEST(convexhull_2d, Lines_AxisAligned)
   { /* Horizontal line (2 points). */
     for (int sign_x = -1; sign_x <= 2; sign_x += 2) {
       blender::Array<float2> points = {{0.0f, 0.0f}, {1.0f * sign_x, 0.0}};
-      EXPECT_NEAR(convexhull_2d_aabb_fit_points_2d(points),
+      EXPECT_NEAR(BLI_convexhull_aabb_fit_points_2d(points),
                   float(math::AngleRadian::from_degree(90.0f)),
                   ROTATION_EPS);
     }
@@ -154,7 +141,7 @@ TEST(convexhull_2d, Lines_AxisAligned)
   { /* Horizontal line (3 points). */
     for (int sign_x = -1; sign_x <= 2; sign_x += 2) {
       blender::Array<float2> points = {{0.0f, 0.0f}, {1.0f * sign_x, 0.0}, {2.0f * sign_x, 0.0}};
-      EXPECT_NEAR(convexhull_2d_aabb_fit_points_2d(points),
+      EXPECT_NEAR(BLI_convexhull_aabb_fit_points_2d(points),
                   float(math::AngleRadian::from_degree(90.0f)),
                   ROTATION_EPS);
     }
@@ -163,7 +150,7 @@ TEST(convexhull_2d, Lines_AxisAligned)
   { /* Vertical line (2 points). */
     for (int sign_y = -1; sign_y <= 2; sign_y += 2) {
       blender::Array<float2> points = {{0.0f, 0.0f}, {0.0f, 1.0f * sign_y}};
-      EXPECT_NEAR(convexhull_2d_aabb_fit_points_2d(points),
+      EXPECT_NEAR(BLI_convexhull_aabb_fit_points_2d(points),
                   float(math::AngleRadian::from_degree(0.0f)),
                   ROTATION_EPS);
     }
@@ -171,7 +158,7 @@ TEST(convexhull_2d, Lines_AxisAligned)
   { /* Vertical line (3 points). */
     for (int sign_y = -1; sign_y <= 2; sign_y += 2) {
       blender::Array<float2> points = {{0.0f, 0.0f}, {0.0f, 1.0f * sign_y}, {0.0f, 2.0f * sign_y}};
-      EXPECT_NEAR(convexhull_2d_aabb_fit_points_2d(points),
+      EXPECT_NEAR(BLI_convexhull_aabb_fit_points_2d(points),
                   float(math::AngleRadian::from_degree(0.0f)),
                   ROTATION_EPS);
     }
@@ -187,7 +174,7 @@ TEST(convexhull_2d, Lines_AxisAligned)
         p[0] = 0.0;
       }
 
-      EXPECT_NEAR(convexhull_2d_aabb_fit_points_2d(points), 0.0f, ROTATION_EPS);
+      EXPECT_NEAR(BLI_convexhull_aabb_fit_points_2d(points), 0.0f, ROTATION_EPS);
     }
   }
 
@@ -202,7 +189,7 @@ TEST(convexhull_2d, Lines_AxisAligned)
       }
 
       blender::Array<float2> points_hull = convexhull_2d_as_array(points);
-      EXPECT_NEAR(convexhull_2d_aabb_fit_points_2d(points_hull), 0.0f, ROTATION_EPS);
+      EXPECT_NEAR(BLI_convexhull_aabb_fit_points_2d(points_hull), 0.0f, ROTATION_EPS);
     }
   }
 }
@@ -215,7 +202,7 @@ TEST(convexhull_2d, Lines_Diagonal)
     for (int sign_x = -1; sign_x <= 2; sign_x += 2) {
       for (int sign_y = -1; sign_y <= 2; sign_y += 2) {
         blender::Array<float2> points = {{0.0f, 0.0f}, {1.0f * sign_x, 1.0f * sign_y}};
-        EXPECT_NEAR(convexhull_2d_aabb_fit_points_2d(points),
+        EXPECT_NEAR(BLI_convexhull_aabb_fit_points_2d(points),
                     float(math::AngleRadian::from_degree(expected[index])),
                     ROTATION_EPS);
         index++;
@@ -233,7 +220,7 @@ TEST(convexhull_2d, Lines_Diagonal)
             {1.0f * sign_x, 1.0f * sign_y},
             {2.0f * sign_x, 2.0f * sign_y},
         };
-        EXPECT_NEAR(convexhull_2d_aabb_fit_points_2d(points),
+        EXPECT_NEAR(BLI_convexhull_aabb_fit_points_2d(points),
                     float(math::AngleRadian::from_degree(expected[index])),
                     ROTATION_EPS);
         index++;
@@ -251,7 +238,7 @@ TEST(convexhull_2d, Simple)
         {0.0f, 1.0f},
         {1.0f, 0.0f},
     };
-    EXPECT_NEAR(convexhull_2d_aabb_fit_points_2d(points),
+    EXPECT_NEAR(BLI_convexhull_aabb_fit_points_2d(points),
                 float(math::AngleRadian::from_degree(45.0f)),
                 ROTATION_EPS);
   }
@@ -263,7 +250,7 @@ TEST(convexhull_2d, Simple)
         {1.0f, 1.0f},
         {1.0f, -1.0f},
     };
-    EXPECT_NEAR(convexhull_2d_aabb_fit_points_2d(points),
+    EXPECT_NEAR(BLI_convexhull_aabb_fit_points_2d(points),
                 float(math::AngleRadian::from_degree(90.0f)),
                 ROTATION_EPS);
   }
@@ -285,7 +272,7 @@ TEST(convexhull_2d, Octagon)
   RandomNumberGenerator rng = RandomNumberGenerator(DEFAULT_TEST_RANDOM_SEED);
   for (int iter = 0; iter < DEFAULT_TEST_ITER; iter++) {
     blender::Array<float2> points = shape_octagon_fn(rng, 8);
-    EXPECT_NEAR(convexhull_2d_aabb_fit_points_2d(points),
+    EXPECT_NEAR(BLI_convexhull_aabb_fit_points_2d(points),
                 float(math::AngleRadian::from_degree(67.5f)),
                 ROTATION_EPS);
   }
@@ -307,7 +294,7 @@ TEST(convexhull_2d, OctagonAxisAligned)
   RandomNumberGenerator rng = RandomNumberGenerator(DEFAULT_TEST_RANDOM_SEED);
   for (int iter = 0; iter < DEFAULT_TEST_ITER; iter++) {
     blender::Array<float2> points = shape_octagon_fn(rng, 8);
-    EXPECT_NEAR(convexhull_2d_aabb_fit_points_2d(points),
+    EXPECT_NEAR(BLI_convexhull_aabb_fit_points_2d(points),
                 float(math::AngleRadian::from_degree(90.0f)),
                 ROTATION_EPS);
   }
@@ -372,7 +359,7 @@ TEST(convexhull_2d, Complex)
     };
 
     blender::Array<float2> points = shape_generate_fn(rng, size, DEFAULT_TEST_POLY_NUM);
-    const float angle = convexhull_2d_aabb_fit_points_2d(points);
+    const float angle = BLI_convexhull_aabb_fit_points_2d(points);
 
     const float2x2 rot_mat = math::from_rotation<float2x2>(-angle);
     float2 tempmin, tempmax;
@@ -413,7 +400,7 @@ TEST(convexhull_2d, Circle)
   RandomNumberGenerator rng = RandomNumberGenerator(DEFAULT_TEST_RANDOM_SEED);
   for (int iter = 0; iter < DEFAULT_TEST_ITER; iter++) {
     blender::Array<float2> points = shape_circle_fn(rng, DEFAULT_TEST_POLY_NUM);
-    const float angle = convexhull_2d_aabb_fit_points_2d(points);
+    const float angle = BLI_convexhull_aabb_fit_points_2d(points);
     (void)angle;
   }
 }
@@ -436,7 +423,7 @@ TEST(convexhull_2d, Random)
 
   for (int iter = 0; iter < DEFAULT_TEST_ITER; iter++) {
     blender::Array<float2> points = shape_random_unit_fn(rng, DEFAULT_TEST_POLY_NUM);
-    const float angle = convexhull_2d_aabb_fit_points_2d(points);
+    const float angle = BLI_convexhull_aabb_fit_points_2d(points);
     (void)angle;
   }
 }

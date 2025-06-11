@@ -16,7 +16,7 @@
 #  include "BKE_curve.hh"
 #  include "BKE_displist.h"
 #  include "BLI_boxpack_2d.h"
-#  include "BLI_convexhull_2d.h"
+#  include "BLI_convexhull_2d.hh"
 #  include "BLI_delaunay_2d.hh"
 #  include "BLI_listbase.h"
 #  include "MEM_guardedalloc.h"
@@ -1528,7 +1528,7 @@ static PyObject *M_Geometry_box_fit_2d(PyObject * /*self*/, PyObject *pointlist)
 
   if (len) {
     /* Non Python function */
-    angle = BLI_convexhull_aabb_fit_points_2d(points, len);
+    angle = BLI_convexhull_aabb_fit_points_2d({reinterpret_cast<blender::float2 *>(points), len});
 
     PyMem_Free(points);
   }
@@ -1566,7 +1566,7 @@ static PyObject *M_Geometry_convex_hull_2d(PyObject * /*self*/, PyObject *pointl
     index_map = MEM_malloc_arrayN<int>(size_t(len), __func__);
 
     /* Non Python function */
-    len_ret = BLI_convexhull_2d(points, len, index_map);
+    len_ret = BLI_convexhull_2d({reinterpret_cast<blender::float2 *>(points), len}, index_map);
 
     ret = PyList_New(len_ret);
     for (i = 0; i < len_ret; i++) {
