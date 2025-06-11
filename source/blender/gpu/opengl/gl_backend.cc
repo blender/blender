@@ -133,6 +133,15 @@ void GLBackend::platform_init()
     device = GPU_DEVICE_UNKNOWN;
     driver = GPU_DRIVER_ANY;
   }
+  else if (strstr(renderer, "Mesa DRI R") ||
+           (strstr(renderer, "Radeon") && (strstr(vendor, "X.Org") || strstr(version, "Mesa"))) ||
+           (strstr(renderer, "AMD") && (strstr(vendor, "X.Org") || strstr(version, "Mesa"))) ||
+           (strstr(renderer, "Gallium ") && strstr(renderer, " on ATI ")) ||
+           (strstr(renderer, "Gallium ") && strstr(renderer, " on AMD ")))
+  {
+    device = GPU_DEVICE_ATI;
+    driver = GPU_DRIVER_OPENSOURCE;
+  }
   else if (strstr(vendor, "ATI") || strstr(vendor, "AMD")) {
     device = GPU_DEVICE_ATI;
     driver = GPU_DRIVER_OFFICIAL;
@@ -155,15 +164,6 @@ void GLBackend::platform_init()
     {
       device |= GPU_DEVICE_INTEL_UHD;
     }
-  }
-  else if (strstr(renderer, "Mesa DRI R") ||
-           (strstr(renderer, "Radeon") && strstr(vendor, "X.Org")) ||
-           (strstr(renderer, "AMD") && strstr(vendor, "X.Org")) ||
-           (strstr(renderer, "Gallium ") && strstr(renderer, " on ATI ")) ||
-           (strstr(renderer, "Gallium ") && strstr(renderer, " on AMD ")))
-  {
-    device = GPU_DEVICE_ATI;
-    driver = GPU_DRIVER_OPENSOURCE;
   }
   else if (strstr(renderer, "Nouveau") || strstr(vendor, "nouveau")) {
     device = GPU_DEVICE_NVIDIA;
