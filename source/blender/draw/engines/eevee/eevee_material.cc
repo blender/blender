@@ -173,14 +173,8 @@ void MaterialModule::begin_sync()
   shader_map_.clear();
 }
 
-bool MaterialModule::queue_texture_loading(GPUMaterial *material)
+void MaterialModule::queue_texture_loading(GPUMaterial *material)
 {
-  if (inst_.is_viewport_image_render) {
-    /* Do not delay image loading for viewport render as it would produce invalid frames. */
-    return true;
-  }
-
-  bool loaded = true;
   ListBase textures = GPU_material_textures(material);
   for (GPUMaterialTexture *tex : ListBaseWrapper<GPUMaterialTexture>(textures)) {
     if (tex->ima) {
@@ -188,17 +182,11 @@ bool MaterialModule::queue_texture_loading(GPUMaterial *material)
       ImageUser *iuser = tex->iuser_available ? &tex->iuser : nullptr;
       ImageGPUTextures gputex = BKE_image_get_gpu_material_texture_try(
           tex->ima, iuser, use_tile_mapping);
-      if (ELEM(tex->ima->source, IMA_SRC_SEQUENCE, IMA_SRC_MOVIE)) {
-        /* Do not defer the loading of animated textures as they would appear always loading. */
-        continue;
-      }
-      if (gputex.texture == nullptr) {
+      if (*gputex.texture == nullptr) {
         texture_loading_queue_.append(tex);
-        loaded = false;
       }
     }
   }
-  return loaded;
 }
 
 void MaterialModule::end_sync()
@@ -214,6 +202,7 @@ void MaterialModule::end_sync()
 
   GPU_debug_group_begin("Texture Loading");
 
+  /* Load files from disk in a multithreaded manner. Allow better parallelism. */
   threading::parallel_for(texture_loading_queue_.index_range(), 1, [&](const IndexRange range) {
     for (auto i : range) {
       GPUMaterialTexture *tex = texture_loading_queue_[i];
@@ -225,25 +214,24 @@ void MaterialModule::end_sync()
     }
   });
 
-  /* To avoid freezing the UI too much, we only allow some finite amount of time of texture loading
-   * per frame. */
-  double loading_time_per_sync = inst_.is_image_render ? DBL_MAX : 0.250;
-
-  double start_time = BLI_time_now_seconds();
-
+  /* Upload to the GPU (create GPUTexture). This part still requires a valid GPU context and
+   * is not easily parallelized. */
   for (GPUMaterialTexture *tex : texture_loading_queue_) {
     BLI_assert(tex->ima);
     GPU_debug_group_begin(tex->ima->id.name);
 
     const bool use_tile_mapping = tex->tiled_mapping_name[0];
     ImageUser *iuser = tex->iuser_available ? &tex->iuser : nullptr;
-    BKE_image_get_gpu_material_texture(tex->ima, iuser, use_tile_mapping);
+    ImageGPUTextures gputex = BKE_image_get_gpu_material_texture(
+        tex->ima, iuser, use_tile_mapping);
+
+    /* Acquire the textures since they were not existing inside `PassBase::material_set()`. */
+    inst_.manager->acquire_texture(*gputex.texture);
+    if (gputex.tile_mapping) {
+      inst_.manager->acquire_texture(*gputex.tile_mapping);
+    }
 
     GPU_debug_group_end();
-
-    if (BLI_time_now_seconds() - start_time > loading_time_per_sync) {
-      break;
-    }
   }
   GPU_debug_group_end();
   texture_loading_queue_.clear();
@@ -269,6 +257,8 @@ MaterialPass MaterialModule::material_pass_get(Object *ob,
   matpass.gpumat = inst_.shaders.material_shader_get(
       blender_mat, ntree, pipeline_type, geometry_type, use_deferred_compilation, default_mat);
 
+  queue_texture_loading(matpass.gpumat);
+
   const bool is_forward = ELEM(pipeline_type,
                                MAT_PIPE_FORWARD,
                                MAT_PIPE_PREPASS_FORWARD,
@@ -277,11 +267,6 @@ MaterialPass MaterialModule::material_pass_get(Object *ob,
 
   switch (GPU_material_status(matpass.gpumat)) {
     case GPU_MAT_SUCCESS: {
-      if (!queue_texture_loading(matpass.gpumat)) {
-        queued_textures_count++;
-        matpass.gpumat = inst_.shaders.material_shader_get(
-            default_mat, default_mat->nodetree, pipeline_type, geometry_type, false, nullptr);
-      }
       /* Determine optimization status for remaining compilations counter. */
       int optimization_status = GPU_material_optimization_status(matpass.gpumat);
       if (optimization_status == GPU_MAT_OPTIMIZATION_QUEUED) {
@@ -341,7 +326,7 @@ MaterialPass MaterialModule::material_pass_get(Object *ob,
     if (shader_sub != nullptr) {
       /* Create a sub for this material as `shader_sub` is for sharing shader between materials. */
       matpass.sub_pass = &shader_sub->sub(GPU_material_get_name(matpass.gpumat));
-      matpass.sub_pass->material_set(*inst_.manager, matpass.gpumat);
+      matpass.sub_pass->material_set(*inst_.manager, matpass.gpumat, true);
     }
     else {
       matpass.sub_pass = nullptr;
