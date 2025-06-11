@@ -27,6 +27,7 @@ const bTheme U_theme_default = {
   .tui = {
     .wcol_regular = {
       .outline = RGBA(0x3d3d3dff),
+      .outline_sel = RGBA(0x3d3d3dff),
       .inner = RGBA(0x545454ff),
       .inner_sel = RGBA(0x4772b3ff),
       .item = RGBA(0x1d1d1d80),
@@ -36,6 +37,7 @@ const bTheme U_theme_default = {
     },
     .wcol_tool = {
       .outline = RGBA(0x3d3d3dff),
+      .outline_sel = RGBA(0x3d3d3dff),
       .inner = RGBA(0x545454ff),
       .inner_sel = RGBA(0x4772b3ff),
       .item = RGBA(0xffffffff),
@@ -45,6 +47,7 @@ const bTheme U_theme_default = {
     },
     .wcol_toolbar_item = {
       .outline = RGBA(0x3d3d3dff),
+      .outline_sel = RGBA(0x3d3d3dff),
       .inner = RGBA(0x282828ff),
       .inner_sel = RGBA(0x4772b3ff),
       .item = RGBA(0xffffffb3),
@@ -54,6 +57,7 @@ const bTheme U_theme_default = {
     },
     .wcol_text = {
       .outline = RGBA(0x3d3d3dff),
+      .outline_sel = RGBA(0x3d3d3dff),
       .inner = RGBA(0x1d1d1dff),
       .inner_sel = RGBA(0x181818ff),
       .item = RGBA(0xffffff33),
@@ -63,6 +67,7 @@ const bTheme U_theme_default = {
     },
     .wcol_radio = {
       .outline = RGBA(0x3d3d3dff),
+      .outline_sel = RGBA(0x3d3d3dff),
       .inner = RGBA(0x545454ff),
       .inner_sel = RGBA(0x4772b3ff),
       .item = RGBA(0x252525ff),
@@ -72,6 +77,7 @@ const bTheme U_theme_default = {
     },
     .wcol_option = {
       .outline = RGBA(0x3d3d3dff),
+      .outline_sel = RGBA(0x3d3d3dff),
       .inner = RGBA(0x545454ff),
       .inner_sel = RGBA(0x4772b3ff),
       .item = RGBA(0xffffffff),
@@ -81,6 +87,7 @@ const bTheme U_theme_default = {
     },
     .wcol_toggle = {
       .outline = RGBA(0x3d3d3dff),
+      .outline_sel = RGBA(0x3d3d3dff),
       .inner = RGBA(0x545454ff),
       .inner_sel = RGBA(0x4772b3ff),
       .item = RGBA(0x252525ff),
@@ -90,6 +97,7 @@ const bTheme U_theme_default = {
     },
     .wcol_num = {
       .outline = RGBA(0x3d3d3dff),
+      .outline_sel = RGBA(0x3d3d3dff),
       .inner = RGBA(0x545454ff),
       .inner_sel = RGBA(0x222222ff),
       .item = RGBA(0x4772b3ff),
@@ -99,6 +107,7 @@ const bTheme U_theme_default = {
     },
     .wcol_numslider = {
       .outline = RGBA(0x3d3d3dff),
+      .outline_sel = RGBA(0x3d3d3dff),
       .inner = RGBA(0x545454ff),
       .inner_sel = RGBA(0x222222ff),
       .item = RGBA(0x4772b3ff),
@@ -108,6 +117,7 @@ const bTheme U_theme_default = {
     },
     .wcol_tab = {
       .outline = RGBA(0x1d1d1dff),
+      .outline_sel = RGBA(0x1d1d1dff),
       .inner = RGBA(0x1d1d1dff),
       .inner_sel = RGBA(0x303030ff),
       .item = RGBA(0x1d1d1dff),
@@ -117,6 +127,7 @@ const bTheme U_theme_default = {
     },
     .wcol_menu = {
       .outline = RGBA(0x3d3d3dff),
+      .outline_sel = RGBA(0x3d3d3dff),
       .inner = RGBA(0x282828ff),
       .inner_sel = RGBA(0x4772b3b3),
       .item = RGBA(0xd9d9d9ff),
@@ -126,6 +137,7 @@ const bTheme U_theme_default = {
     },
     .wcol_pulldown = {
       .outline = RGBA(0x3d3d3d00),
+      .outline_sel = RGBA(0x3d3d3d00),
       .inner = RGBA(0x22222200),
       .inner_sel = RGBA(0xffffff1a),
       .item = RGBA(0xffffff8f),
@@ -135,6 +147,7 @@ const bTheme U_theme_default = {
     },
     .wcol_menu_back = {
       .outline = RGBA(0x242424ff),
+      .outline_sel = RGBA(0x242424ff),
       .inner = RGBA(0x181818ff),
       .inner_sel = RGBA(0x4772b3ff),
       .item = RGBA(0xd9d9d9ff),
@@ -144,6 +157,7 @@ const bTheme U_theme_default = {
     },
     .wcol_menu_item = {
       .outline = RGBA(0x3d3d3d00),
+      .outline_sel = RGBA(0x3d3d3d00),
       .inner = RGBA(0x18181800),
       .inner_sel = RGBA(0x4772b3ff),
       .item = RGBA(0xffffff8f),
@@ -153,6 +167,7 @@ const bTheme U_theme_default = {
     },
     .wcol_tooltip = {
       .outline = RGBA(0x242424ff),
+      .outline_sel = RGBA(0x242424ff),
       .inner = RGBA(0x1d1d1dff),
       .inner_sel = RGBA(0x4772b3ff),
       .item = RGBA(0xd9d9d9ff),
@@ -162,6 +177,7 @@ const bTheme U_theme_default = {
     },
     .wcol_box = {
       .outline = RGBA(0x3d3d3dff),
+      .outline_sel = RGBA(0x3d3d3dff),
       .inner = RGBA(0x1d1d1d80),
       .inner_sel = RGBA(0x545454ff),
       .item = RGBA(0x191919ff),
@@ -171,6 +187,7 @@ const bTheme U_theme_default = {
     },
     .wcol_scroll = {
       .outline = RGBA(0x3d3d3dff),
+      .outline_sel = RGBA(0x3d3d3dff),
       .inner = RGBA(0x22222200),
       .inner_sel = RGBA(0xffffffff),
       .item = RGBA(0x545454ff),
@@ -180,6 +197,7 @@ const bTheme U_theme_default = {
     },
     .wcol_progress = {
       .outline = RGBA(0x3d3d3dff),
+      .outline_sel = RGBA(0x3d3d3dff),
       .inner = RGBA(0x222222ff),
       .inner_sel = RGBA(0x4772b3ff),
       .item = RGBA(0x4772b3ff),
@@ -189,6 +207,7 @@ const bTheme U_theme_default = {
     },
     .wcol_list_item = {
       .outline = RGBA(0x2d2d2dff),
+      .outline_sel = RGBA(0x2d2d2dff),
       .inner = RGBA(0xffffff00),
       .inner_sel = RGBA(0x4772b3ff),
       .item = RGBA(0xffffff33),
@@ -198,6 +217,7 @@ const bTheme U_theme_default = {
     },
     .wcol_pie_menu = {
       .outline = RGBA(0x242424ff),
+      .outline_sel = RGBA(0x242424ff),
       .inner = RGBA(0x181818ff),
       .inner_sel = RGBA(0x4772b3ff),
       .item = RGBA(0x545454ff),
