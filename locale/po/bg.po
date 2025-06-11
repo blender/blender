@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'e91e8eef41aa')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'798f85a7108f')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-03 09:10+0000\n"
+"POT-Creation-Date: 2025-06-11 11:13+0000\n"
 "PO-Revision-Date: 2025-04-14 08:10+0000\n"
 "Last-Translator: Gilberto Rodrigues <gilbertorodrigues@outlook.com>\n"
 "Language-Team: Bulgarian <https://translate.blender.org/projects/blender-ui/ui/bg/>\n"
@@ -1144,36 +1144,36 @@ msgid "Text"
 msgstr "Текст"
 
 
-msgid "UV Mapping"
-msgstr "UV Картиране"
+msgid "Hooks"
+msgstr "Куки"
+
+
+msgid "Merge"
+msgstr "Слей"
 
 
 msgid "Light"
 msgstr "Светлина"
 
 
-msgid "Rigid Body"
-msgstr "Твърдо тяло"
+msgid "Make Single User"
+msgstr "Направи с Единствен Потребител"
 
 
 msgid "Apply"
 msgstr "Прилагане"
 
 
-msgid "Make Single User"
-msgstr "Направи с Единствен Потребител"
-
-
-msgid "Hooks"
-msgstr "Куки"
+msgid "Rigid Body"
+msgstr "Твърдо тяло"
 
 
 msgid "In-Betweens"
 msgstr "Междинни Кадри"
 
 
-msgid "Merge"
-msgstr "Слей"
+msgid "UV Mapping"
+msgstr "UV Картиране"
 
 
 msgid "Languages..."
@@ -2379,60 +2379,4 @@ msgstr "Засенчване"
 
 msgid "Pose Library"
 msgstr "Библиотека с Пози"
-
-
-msgid "Japanese (日本語)"
-msgstr "Японски (日本語)"
-
-
-msgid "Italian (Italiano)"
-msgstr "Италиански (Italiano)"
-
-
-msgid "German (Deutsch)"
-msgstr "Германски (Deutsch)"
-
-
-msgid "Swedish (Svenska)"
-msgstr "Шведски (Svenska)"
-
-
-msgid "Spanish (Español)"
-msgstr "Испански (Español)"
-
-
-msgid "Catalan (Català)"
-msgstr "Каталонски (Català)"
-
-
-msgid "Simplified Chinese (简体中文)"
-msgstr "Опростен Китайски (简体中文)"
-
-
-msgid "Traditional Chinese (繁體中文)"
-msgstr "Традиционен Китайски (繁體中文)"
-
-
-msgid "Russian (Русский)"
-msgstr "Руски (Русский)"
-
-
-msgid "Croatian (Hrvatski)"
-msgstr "Хърватски (Hrvatski)"
-
-
-msgid "Polish (Polski)"
-msgstr "Полски (Polski)"
-
-
-msgid "Romanian (Român)"
-msgstr "Румънски (Român)"
-
-
-msgid "Bulgarian (Български)"
-msgstr "Български (Български)"
-
-
-msgid "Greek (Ελληνικά)"
-msgstr "Гръцки (Ελληνικά)"
 

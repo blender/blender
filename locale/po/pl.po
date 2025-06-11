@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'e91e8eef41aa')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'798f85a7108f')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-03 09:10+0000\n"
+"POT-Creation-Date: 2025-06-11 11:13+0000\n"
 "PO-Revision-Date: 2025-04-14 08:34+0000\n"
 "Last-Translator: Kamil <uhkamil@gmail.com>\n"
 "Language-Team: Polish <https://translate.blender.org/projects/blender-ui/ui/pl/>\n"
@@ -11580,20 +11580,20 @@ msgid "Mask"
 msgstr "Maska"
 
 
-msgid "Text"
-msgstr "Tekst"
-
-
-msgid "Metaball"
-msgstr "Metakula"
-
-
 msgid "Show/Hide"
 msgstr "Pokaż/Ukryj"
 
 
 msgid "Clean Up"
 msgstr "Sprzątanie"
+
+
+msgid "Text"
+msgstr "Tekst"
+
+
+msgid "Metaball"
+msgstr "Metakula"
 
 
 msgid "Snap"
@@ -11604,72 +11604,72 @@ msgid "Proportional Editing Falloff"
 msgstr "Proporcjonalne edytowanie spadku"
 
 
-msgid "Mirror"
-msgstr "Odbicie lustrzane"
+msgid "Convert"
+msgstr "Konwertuj"
 
 
-msgid "Local View"
-msgstr "Widok lokalny"
-
-
-msgid "Viewpoint"
-msgstr "Punkt obserwacji"
-
-
-msgid "Navigation"
-msgstr "Nawigacja"
-
-
-msgid "Select Linked"
-msgstr "Zaznacz powiązane"
-
-
-msgid "Assign Material"
-msgstr "Przypisanie materiału"
-
-
-msgid "Light"
-msgstr "Światło"
+msgid "Merge"
+msgstr "Scal"
 
 
 msgid "Light Probe"
 msgstr "Sonda świetlna"
 
 
-msgid "Rigid Body"
-msgstr "Bryła sztywna"
+msgid "Face Data"
+msgstr "Dane ściany"
 
 
-msgid "Apply"
-msgstr "Zastosuj"
-
-
-msgid "Track"
-msgstr "Ścieżka"
-
-
-msgid "Quick Effects"
-msgstr "Szybkie efekty"
+msgid "Light"
+msgstr "Światło"
 
 
 msgid "Asset"
 msgstr "Prefabrykat"
 
 
-msgid "Convert"
-msgstr "Konwertuj"
+msgid "Quick Effects"
+msgstr "Szybkie efekty"
+
+
+msgid "Track"
+msgstr "Ścieżka"
+
+
+msgid "Apply"
+msgstr "Zastosuj"
+
+
+msgid "Assign Material"
+msgstr "Przypisanie materiału"
+
+
+msgid "Rigid Body"
+msgstr "Bryła sztywna"
+
+
+msgid "Local View"
+msgstr "Widok lokalny"
 
 
 msgid "Bone Collections"
 msgstr "Kolekcja kości"
 
 
-msgid "Face Data"
-msgstr "Dane ściany"
+msgid "Select Linked"
+msgstr "Zaznacz powiązane"
 
 
-msgid "Merge"
-msgstr "Scal"
+msgid "Navigation"
+msgstr "Nawigacja"
+
+
+msgid "Viewpoint"
+msgstr "Punkt obserwacji"
+
+
+msgid "Mirror"
+msgstr "Odbicie lustrzane"
 
 
 msgid "Catalog"
@@ -28732,190 +28732,6 @@ msgstr "Wszystkie wtyczki zainstalowane przez użytkownika"
 
 msgid "Import-Export"
 msgstr "Import-Eksport"
-
-
-msgid "Japanese (日本語)"
-msgstr "Japoński (日本語)"
-
-
-msgid "Dutch (Nederlands)"
-msgstr "Holenderski (Nederlands)"
-
-
-msgid "Italian (Italiano)"
-msgstr "Włoski (Italiano)"
-
-
-msgid "German (Deutsch)"
-msgstr "Niemiecki (Deutsch)"
-
-
-msgid "Finnish (Suomi)"
-msgstr "Fiński (Suomi)"
-
-
-msgid "Swedish (Svenska)"
-msgstr "Szwedzki (Svenska)"
-
-
-msgid "French (Français)"
-msgstr "Francuski (Français)"
-
-
-msgid "Spanish (Español)"
-msgstr "Hiszpański (Español)"
-
-
-msgid "Catalan (Català)"
-msgstr "Kataloński (Català)"
-
-
-msgid "Czech (Čeština)"
-msgstr "Czeski (Čeština)"
-
-
-msgid "Portuguese (Português)"
-msgstr "Portugalski (Português)"
-
-
-msgid "Simplified Chinese (简体中文)"
-msgstr "Chiński uproszczony (简体中文)"
-
-
-msgid "Traditional Chinese (繁體中文)"
-msgstr "Chiński tradycyjny (繁體中文)"
-
-
-msgid "Russian (Русский)"
-msgstr "Rosyjski (Русский)"
-
-
-msgid "Croatian (Hrvatski)"
-msgstr "Chorwacki (Hrvatski)"
-
-
-msgid "Serbian (Српски)"
-msgstr "Serbski (Српски)"
-
-
-msgid "Ukrainian (Українська)"
-msgstr "Ukraiński (Українська)"
-
-
-msgid "Polish (Polski)"
-msgstr "Polski (Polski)"
-
-
-msgid "Romanian (Român)"
-msgstr "Rumuński (Român)"
-
-
-msgid "Arabic (ﺔﻴﺑﺮﻌﻟﺍ)"
-msgstr "Arabski (ﺔﻴﺑﺮﻌﻟﺍ)"
-
-
-msgid "Bulgarian (Български)"
-msgstr "Bułgarski (Български)"
-
-
-msgid "Greek (Ελληνικά)"
-msgstr "Grecki (Ελληνικά)"
-
-
-msgid "Korean (한국어)"
-msgstr "Koreański (한국어)"
-
-
-msgid "Nepali (नेपाली)"
-msgstr "Nepalski (नेपाली)"
-
-
-msgid "Persian (ﯽﺳﺭﺎﻓ)"
-msgstr "Perski (ﯽﺳﺭﺎﻓ)"
-
-
-msgid "Indonesian (Bahasa indonesia)"
-msgstr "Indonezyjski (Bahasa indonesia)"
-
-
-msgid "Serbian Latin (Srpski latinica)"
-msgstr "Serbski alfabet łaciński (Srpski latinica)"
-
-
-msgid "Kyrgyz (Кыргыз тили)"
-msgstr "Kirgiski (Кыргыз тили)"
-
-
-msgid "Turkish (Türkçe)"
-msgstr "Turecki (Türkçe)"
-
-
-msgid "Hungarian (Magyar)"
-msgstr "Węgierski (Magyar)"
-
-
-msgid "Brazilian Portuguese (Português do Brasil)"
-msgstr "Portugalski Brazylia (Português do Brasil)"
-
-
-msgid "Hebrew (תירִבְעִ)"
-msgstr "Hebrajski (תירִבְעִ)"
-
-
-msgid "Estonian (Eesti keel)"
-msgstr "Estoński (Eesti keel)"
-
-
-msgid "Esperanto (Esperanto)"
-msgstr "Esperanto (Esperanto)"
-
-
-msgid "Amharic (አማርኛ)"
-msgstr "Amharski (አማርኛ)"
-
-
-msgid "Uzbek (Oʻzbek)"
-msgstr "Uzbecki (Oʻzbek)"
-
-
-msgid "Uzbek Cyrillic (Ўзбек)"
-msgstr "Uzbecki Cyrylica (Ўзбек)"
-
-
-msgid "Hindi (हिन्दी)"
-msgstr "Hinduski (हिन्दी)"
-
-
-msgid "Vietnamese (Tiếng Việt)"
-msgstr "Wietnamski (Tiếng Việt)"
-
-
-msgid "Thai (ภาษาไทย)"
-msgstr "Tajski (ภาษาไทย)"
-
-
-msgid "Slovak (Slovenčina)"
-msgstr "Słowacki (Slovenčina)"
-
-
-msgid "Georgian (ქართული)"
-msgstr "Gruziński (ქართული)"
-
-
-msgid "Belarusian (беларуску)"
-msgstr "Białoruski (беларуску)"
-
-
-msgid "Danish (Dansk)"
-msgstr "Duński (Dansk)"
-
-
-msgid "Complete"
-msgstr "Zakończono"
-
-
-msgid "In Progress"
-msgstr "W trakcie"
 
 
 msgid "Blend Radius"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'e91e8eef41aa')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'798f85a7108f')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-03 09:10+0000\n"
+"POT-Creation-Date: 2025-06-11 11:13+0000\n"
 "PO-Revision-Date: 2025-04-14 08:42+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Thai <https://translate.blender.org/projects/blender-ui/ui/th/>\n"
@@ -1893,60 +1893,60 @@ msgid "Mask Edit"
 msgstr "การแก้ไขหน้ากาก"
 
 
-msgid "Mirror"
-msgstr "กระจกสะท้อน"
-
-
-msgid "Local View"
-msgstr "มุมมองท้องถิ่น"
-
-
-msgid "Viewpoint"
-msgstr "จุดของมุมมอง"
-
-
-msgid "Navigation"
-msgstr "การนำทาง"
-
-
-msgid "Align View"
-msgstr "จัดมุมมอง"
-
-
-msgid "Align View to Active"
-msgstr "จัดมุมมองไปยังที่วัตถุใช้งาน"
-
-
-msgid "View Regions"
-msgstr "ขอบเขตมุมมอง"
-
-
-msgid "Light"
-msgstr "แสง"
+msgid "Hooks"
+msgstr "ตะขอ"
 
 
 msgid "Add Image"
 msgstr "เพิ่มภาพ"
 
 
-msgid "Apply"
-msgstr "นำไปใช้"
-
-
-msgid "Track"
-msgstr "แทร็ค"
-
-
-msgid "Hooks"
-msgstr "ตะขอ"
+msgid "Merge"
+msgstr "ผสาน"
 
 
 msgid "Face Data"
 msgstr "ข้อมูลด้าน"
 
 
-msgid "Merge"
-msgstr "ผสาน"
+msgid "Light"
+msgstr "แสง"
+
+
+msgid "Track"
+msgstr "แทร็ค"
+
+
+msgid "Apply"
+msgstr "นำไปใช้"
+
+
+msgid "Local View"
+msgstr "มุมมองท้องถิ่น"
+
+
+msgid "View Regions"
+msgstr "ขอบเขตมุมมอง"
+
+
+msgid "Align View to Active"
+msgstr "จัดมุมมองไปยังที่วัตถุใช้งาน"
+
+
+msgid "Align View"
+msgstr "จัดมุมมอง"
+
+
+msgid "Navigation"
+msgstr "การนำทาง"
+
+
+msgid "Viewpoint"
+msgstr "จุดของมุมมอง"
+
+
+msgid "Mirror"
+msgstr "กระจกสะท้อน"
 
 
 msgid "Zoom"
@@ -5291,160 +5291,4 @@ msgstr "ไม่พบ %s '%s'"
 
 msgid "Import-Export"
 msgstr "นำเข้า-ส่งออก"
-
-
-msgid "Japanese (日本語)"
-msgstr "ภาษาญี่ปุ่น (日本語)"
-
-
-msgid "Italian (Italiano)"
-msgstr "ภาษาอิตาลี (Italiano)"
-
-
-msgid "German (Deutsch)"
-msgstr "ภาษาเยอรมัน (Deutsch)"
-
-
-msgid "Finnish (Suomi)"
-msgstr "ภาษาฟินแลนด์ (Suomi)"
-
-
-msgid "Swedish (Svenska)"
-msgstr "ภาษาสวีเดน (Svenska)"
-
-
-msgid "French (Français)"
-msgstr "ภาษาฝรั่งเศส (Français)"
-
-
-msgid "Spanish (Español)"
-msgstr "ภาษาสเปน (Español)"
-
-
-msgid "Catalan (Català)"
-msgstr "ภาษากาตาลา (Català)"
-
-
-msgid "Portuguese (Português)"
-msgstr "ภาษาโปรตุเกส (Português)"
-
-
-msgid "Simplified Chinese (简体中文)"
-msgstr "ภาษาจีนตัวย่อ (简体中文)"
-
-
-msgid "Traditional Chinese (繁體中文)"
-msgstr "ภาษาจีนตัวเต็ม (繁體中文)"
-
-
-msgid "Russian (Русский)"
-msgstr "ภาษารัสเซีย (Русский)"
-
-
-msgid "Croatian (Hrvatski)"
-msgstr "ภาษาโครเอเชีย (Hrvatski)"
-
-
-msgid "Serbian (Српски)"
-msgstr "ภาษาเซอร์เบีย (Српски)"
-
-
-msgid "Polish (Polski)"
-msgstr "ภาษาโปแลนด์ (Polski)"
-
-
-msgid "Romanian (Român)"
-msgstr "ภาษาโรมาเนีย (Român)"
-
-
-msgid "Arabic (ﺔﻴﺑﺮﻌﻟﺍ)"
-msgstr "ภาษาอาหรับ (ﺔﻴﺑﺮﻌﻟﺍ)"
-
-
-msgid "Bulgarian (Български)"
-msgstr "ภาษาบัลแกเรีย (Български)"
-
-
-msgid "Greek (Ελληνικά)"
-msgstr "ภาษากรีก (Ελληνικά)"
-
-
-msgid "Nepali (नेपाली)"
-msgstr "ภาษาเนปาล (नेपाली)"
-
-
-msgid "Persian (ﯽﺳﺭﺎﻓ)"
-msgstr "ภาษาเปอร์เซีย (ﯽﺳﺭﺎﻓ)"
-
-
-msgid "Indonesian (Bahasa indonesia)"
-msgstr "ภาษาอินโดนิเซีย (Bahasa indonesia)"
-
-
-msgid "Serbian Latin (Srpski latinica)"
-msgstr "ภาษาเซอร์เบียละติน (Srpski latinica)"
-
-
-msgid "Kyrgyz (Кыргыз тили)"
-msgstr "ภาษาคีร์กีซ (Кыргыз тили)"
-
-
-msgid "Turkish (Türkçe)"
-msgstr "ภาษาตุรกี (Türkçe)"
-
-
-msgid "Hungarian (Magyar)"
-msgstr "ภาษาฮังการี (Magyar)"
-
-
-msgid "Brazilian Portuguese (Português do Brasil)"
-msgstr "ภาษาโปรตุเกสบราซิล (Português do Brasil)"
-
-
-msgid "Hebrew (תירִבְעִ)"
-msgstr "ภาษาฮิบรู (תירִבְעִ)"
-
-
-msgid "Esperanto (Esperanto)"
-msgstr "ภาษาเอสเปรันโต (Esperanto)"
-
-
-msgid "Amharic (አማርኛ)"
-msgstr "ภาษาอามฮารา (አማርኛ)"
-
-
-msgid "Uzbek (Oʻzbek)"
-msgstr "ภาษาอุซเบก (Oʻzbek)"
-
-
-msgid "Uzbek Cyrillic (Ўзбек)"
-msgstr "ภาษาอุซเบกซีริลลิก (Ўзбек)"
-
-
-msgid "Basque (Euskara)"
-msgstr "ภาษาบาสก์ (Euskara)"
-
-
-msgid "Hausa (Hausa)"
-msgstr "ภาษาฮัวซา (Hausa)"
-
-
-msgid "Abkhaz (Аԥсуа бызшәа)"
-msgstr "ภาษาอับคาเซีย (Аԥсуа бызшәа)"
-
-
-msgid "Thai (ภาษาไทย)"
-msgstr "ภาษาไทย"
-
-
-msgid "Slovak (Slovenčina)"
-msgstr "ภาษาสโลวาเกีย (Slovenčina)"
-
-
-msgid "Complete"
-msgstr "สำเร็จ"
-
-
-msgid "In Progress"
-msgstr "อยู่ระหว่างการดำเนินการ"
 

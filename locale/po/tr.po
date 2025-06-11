@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'e91e8eef41aa')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'798f85a7108f')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-03 09:10+0000\n"
+"POT-Creation-Date: 2025-06-11 11:13+0000\n"
 "PO-Revision-Date: 2025-05-17 17:56+0000\n"
 "Last-Translator: Ugur Saglam <saglamugur556@gmail.com>\n"
 "Language-Team: Turkish <https://translate.blender.org/projects/blender-ui/ui/tr/>\n"
@@ -29266,6 +29266,14 @@ msgid "Editor menu containing buttons"
 msgstr "Düğmeler içeren düzenleyici menüsü"
 
 
+msgid "Show/Hide"
+msgstr "Göster/Gizle"
+
+
+msgid "Clean Up"
+msgstr "Temizle"
+
+
 msgid "Special Characters"
 msgstr "Özel Karakterler"
 
@@ -29282,20 +29290,12 @@ msgid "Metaball"
 msgstr "Metabol"
 
 
-msgid "Show/Hide"
-msgstr "Göster/Gizle"
-
-
 msgid "Names"
 msgstr "Adlar"
 
 
 msgid "Bone Roll"
 msgstr "Kemik Rulosu"
-
-
-msgid "Clean Up"
-msgstr "Temizle"
 
 
 msgid "Pivot Point"
@@ -29326,176 +29326,176 @@ msgid "Vertex Group Locks"
 msgstr "Vertex Grup Kilitleri"
 
 
-msgid "Mirror"
-msgstr "Yansıtma"
-
-
-msgid "UV Mapping"
-msgstr "UV Haritalama"
-
-
-msgid "Local View"
-msgstr "Yerel Görünüm"
-
-
-msgid "Viewpoint"
-msgstr "Bakış açısı"
-
-
-msgid "Navigation"
-msgstr "Navigasyon"
-
-
-msgid "Align View"
-msgstr "Görünümü hizala"
-
-
-msgid "Align View to Active"
-msgstr "Görünümü Etkin Olarak Hizala"
-
-
-msgid "View Regions"
-msgstr "Bölgeleri Görüntüle"
-
-
-msgid "Select More/Less"
-msgstr "Daha Fazla/Daha Az Seç"
-
-
-msgid "Select Similar"
-msgstr "Benzerini Seç"
-
-
-msgid "Select All by Trait"
-msgstr "Özelliğe Göre Tümünü Seç"
-
-
-msgid "Select Linked"
-msgstr "Bağlantılıyı Seç"
-
-
-msgid "Select Loops"
-msgstr "Döngüleri Seç"
-
-
-msgid "Assign Material"
-msgstr "Malzeme Atamak"
-
-
-msgid "Light"
-msgstr "Işık"
-
-
-msgid "Light Probe"
-msgstr "Işık Sondası"
-
-
-msgid "Add Image"
-msgstr "Resim Ekle"
-
-
-msgid "Relations"
-msgstr "İlişkiler"
-
-
-msgid "Rigid Body"
-msgstr "Sert Gövde"
-
-
-msgid "Apply"
-msgstr "Uygula"
-
-
-msgid "Track"
-msgstr "İzlemek"
-
-
-msgid "Quick Effects"
-msgstr "Hızlı Etkiler"
-
-
-msgid "Asset"
-msgstr "Varlık"
-
-
-msgid "Make Single User"
-msgstr "Tek Kullanıcı Yap"
-
-
-msgid "Convert"
-msgstr "Çevir"
-
-
-msgid "Link/Transfer Data"
-msgstr "Veriyi Bağlantıla/Aktar"
-
-
-msgid "Hooks"
-msgstr "Kancalar"
-
-
-msgid "Trim/Add"
-msgstr "Kırp/Ekle"
-
-
-msgid "Sculpt Set Pivot"
-msgstr "Heykel Seti Pivot"
-
-
-msgid "Face Sets Init"
-msgstr "Yüz Setleri Başlatma"
-
-
-msgid "Random Mask"
-msgstr "Rastgele Maske"
-
-
-msgid "Clear Transform"
-msgstr "Temizle Dönüşüm"
-
-
-msgid "In-Betweens"
-msgstr "Arada Kalanlar"
-
-
-msgid "Propagate"
-msgstr "Yaymak"
-
-
-msgid "Bone Collections"
-msgstr "Kemik Koleksiyonları"
-
-
-msgid "Toggle Bone Options"
-msgstr "Kemik Seçeneklerini Değiştir"
-
-
-msgid "Enable Bone Options"
-msgstr "Kemik Seçeneklerini Etkinleştir"
-
-
-msgid "Disable Bone Options"
-msgstr "Kemik Seçeneklerini Devre Dışı Bırak"
-
-
-msgid "Mesh Select Mode"
-msgstr "Örgü Seçim Kipi"
-
-
-msgid "Face Data"
-msgstr "Yüz Verileri"
+msgid "Set Face Strength"
+msgstr "Yüz Gücünü Ayarla"
 
 
 msgid "Select by Face Strength"
 msgstr "Yüz Gücüne Göre Seç"
 
 
-msgid "Set Face Strength"
-msgstr "Yüz Gücünü Ayarla"
+msgid "Hooks"
+msgstr "Kancalar"
+
+
+msgid "Link/Transfer Data"
+msgstr "Veriyi Bağlantıla/Aktar"
+
+
+msgid "Convert"
+msgstr "Çevir"
+
+
+msgid "Relations"
+msgstr "İlişkiler"
+
+
+msgid "Add Image"
+msgstr "Resim Ekle"
 
 
 msgid "Merge"
 msgstr "Birleştir"
+
+
+msgid "Light Probe"
+msgstr "Işık Sondası"
+
+
+msgid "Face Data"
+msgstr "Yüz Verileri"
+
+
+msgid "Light"
+msgstr "Işık"
+
+
+msgid "Make Single User"
+msgstr "Tek Kullanıcı Yap"
+
+
+msgid "Asset"
+msgstr "Varlık"
+
+
+msgid "Mesh Select Mode"
+msgstr "Örgü Seçim Kipi"
+
+
+msgid "Quick Effects"
+msgstr "Hızlı Etkiler"
+
+
+msgid "Disable Bone Options"
+msgstr "Kemik Seçeneklerini Devre Dışı Bırak"
+
+
+msgid "Enable Bone Options"
+msgstr "Kemik Seçeneklerini Etkinleştir"
+
+
+msgid "Track"
+msgstr "İzlemek"
+
+
+msgid "Toggle Bone Options"
+msgstr "Kemik Seçeneklerini Değiştir"
+
+
+msgid "Apply"
+msgstr "Uygula"
+
+
+msgid "Assign Material"
+msgstr "Malzeme Atamak"
+
+
+msgid "Rigid Body"
+msgstr "Sert Gövde"
+
+
+msgid "Propagate"
+msgstr "Yaymak"
+
+
+msgid "Local View"
+msgstr "Yerel Görünüm"
+
+
+msgid "Select More/Less"
+msgstr "Daha Fazla/Daha Az Seç"
+
+
+msgid "Bone Collections"
+msgstr "Kemik Koleksiyonları"
+
+
+msgid "In-Betweens"
+msgstr "Arada Kalanlar"
+
+
+msgid "Clear Transform"
+msgstr "Temizle Dönüşüm"
+
+
+msgid "Select Loops"
+msgstr "Döngüleri Seç"
+
+
+msgid "Select Linked"
+msgstr "Bağlantılıyı Seç"
+
+
+msgid "Select All by Trait"
+msgstr "Özelliğe Göre Tümünü Seç"
+
+
+msgid "Select Similar"
+msgstr "Benzerini Seç"
+
+
+msgid "View Regions"
+msgstr "Bölgeleri Görüntüle"
+
+
+msgid "Align View to Active"
+msgstr "Görünümü Etkin Olarak Hizala"
+
+
+msgid "Align View"
+msgstr "Görünümü hizala"
+
+
+msgid "Navigation"
+msgstr "Navigasyon"
+
+
+msgid "Viewpoint"
+msgstr "Bakış açısı"
+
+
+msgid "UV Mapping"
+msgstr "UV Haritalama"
+
+
+msgid "Mirror"
+msgstr "Yansıtma"
+
+
+msgid "Random Mask"
+msgstr "Rastgele Maske"
+
+
+msgid "Face Sets Init"
+msgstr "Yüz Setleri Başlatma"
+
+
+msgid "Sculpt Set Pivot"
+msgstr "Heykel Seti Pivot"
+
+
+msgid "Trim/Add"
+msgstr "Kırp/Ekle"
 
 
 msgid "Keyframe Insert Pie"
@@ -59037,10 +59037,6 @@ msgid "Dissolve Vertices"
 msgstr "Tepe Noktalarını Çöz"
 
 
-msgid "Dissolve remaining vertices"
-msgstr "Kalan köşeleri çözün"
-
-
 msgctxt "Operator"
 msgid "Dissolve Faces"
 msgstr "Yüzleri Çözmek"
@@ -82401,16 +82397,8 @@ msgid "Device up/down directly controls the Z position of the 3D viewport"
 msgstr "Aygıt yukarı/aşağı, 3B görüntüleme alanının Z konumunu doğrudan kontrol eder"
 
 
-msgid "Lock Camera Pan/Zoom"
-msgstr "Kamera Pan/Zoom'u Kilitle"
-
-
-msgid "Lock Horizon"
-msgstr "Kilit Ufku"
-
-
-msgid "Keep horizon level while flying with 3D Mouse"
-msgstr "3D Mouse ile uçarken ufku düz tutun"
+msgid "NDOF View Navigate"
+msgstr "NDOF Görünüm Gezinme"
 
 
 msgid "Orbit Sensitivity"
@@ -82419,14 +82407,6 @@ msgstr "Yörünge Hassasiyeti"
 
 msgid "Overall sensitivity of the 3D Mouse for orbiting"
 msgstr "3D Mouse'un yörüngeye oturması için genel hassasiyeti"
-
-
-msgid "Y/Z Swap Axis"
-msgstr "Y/Z Takas Ekseni"
-
-
-msgid "Pan using up/down on the device (otherwise forward/backward)"
-msgstr "Cihazda yukarı/aşağı tuşunu kullanarak kaydırma yapın (aksi takdirde ileri/geri)"
 
 
 msgid "Invert X Axis"
@@ -82459,50 +82439,6 @@ msgstr "3D Mouse'un kaydırma için genel hassasiyeti"
 
 msgid "Display the center and axis during rotation"
 msgstr "Dönme sırasında merkez ve ekseni görüntüle"
-
-
-msgid "NDOF View Navigate"
-msgstr "NDOF Görünüm Gezinme"
-
-
-msgid "Navigation style in the viewport"
-msgstr "Görünüm alanında gezinme stili"
-
-
-msgid "Use full 6 degrees of freedom by default"
-msgstr "Varsayılan olarak tam 6 serbestlik derecesini kullanın"
-
-
-msgid "Orbit about the view center by default"
-msgstr "Varsayılan olarak görünüm merkezi etrafında yörüngede dön"
-
-
-msgid "NDOF View Rotation"
-msgstr "NDOF Görünüm Dönmesi"
-
-
-msgid "Rotation style in the viewport"
-msgstr "Görünüm alanında döndürme stili"
-
-
-msgid "Turntable"
-msgstr "Pikap"
-
-
-msgid "Use turntable style rotation in the viewport"
-msgstr "Görünüm alanında döner tabla tarzı dönüşü kullanın"
-
-
-msgid "Use trackball style rotation in the viewport"
-msgstr "Görünüm alanında iz topu stili dönüşünü kullanın"
-
-
-msgid "Invert Zoom"
-msgstr "Yakınlaştırmayı Ters Çevir"
-
-
-msgid "Zoom using opposite direction"
-msgstr "Zıt yönde yakınlaştırma"
 
 
 msgid "Softness"
@@ -82627,6 +82563,10 @@ msgstr "Yörünge Yöntemi"
 
 msgid "Orbit method in the viewport"
 msgstr "Görünüm alanında yörünge yöntemi"
+
+
+msgid "Turntable"
+msgstr "Pikap"
 
 
 msgid "Turntable keeps the Z-axis upright while orbiting"
@@ -82991,10 +82931,6 @@ msgstr "Ortam Rengi"
 
 msgid "Color of the ambient light that uniformly lit the scene"
 msgstr "Sahneyi eşit şekilde aydınlatan ortam ışığının rengi"
-
-
-msgid "Max Shader Compilation Subprocesses"
-msgstr "Max Shader Derleme Alt İşlemleri"
 
 
 msgid "Memory Cache Limit"
@@ -108824,22 +108760,6 @@ msgid "Zoom Method"
 msgstr "Yakınlaştırma Yöntemi"
 
 
-msgid "Pan Sensitivity"
-msgstr "Pan Hassasiyeti"
-
-
-msgid "Swap Y and Z Axes"
-msgstr "Y ve Z Eksenlerini Değiştir"
-
-
-msgid "Invert Axis Pan"
-msgstr "Eksen Panını Ters Çevir"
-
-
-msgid "Invert Pan Axis"
-msgstr "Ters Pan Eksen"
-
-
 msgctxt "Operator"
 msgid "Remove Repository"
 msgstr "Depoyu Kaldır"
@@ -108913,8 +108833,16 @@ msgid "Invert Wheel Zoom Direction"
 msgstr "Tersine Çevir"
 
 
-msgid "Fly/Walk"
-msgstr "Uç/Yürü"
+msgid "Lock Horizon"
+msgstr "Kilit Ufku"
+
+
+msgid "Pan Sensitivity"
+msgstr "Pan Hassasiyeti"
+
+
+msgid "Invert Pan Axis"
+msgstr "Ters Pan Eksen"
 
 
 msgctxt "Operator"
@@ -118351,10 +118279,6 @@ msgid "No active collection"
 msgstr "Etkin koleksiyon yok"
 
 
-msgid "Can't duplicate the master collection"
-msgstr "Ana koleksiyon kopyalanamıyor"
-
-
 msgid "Cannot add a collection to a linked/override collection/scene"
 msgstr "Bağlantılı/geçersiz kılınan bir koleksiyona/sahneye koleksiyon eklenemez"
 
@@ -126504,226 +126428,6 @@ msgstr "Yüksek Kontrast"
 msgctxt "Preferences"
 msgid "Inspired By"
 msgstr "İlham Alındı"
-
-
-msgid "Japanese (日本語)"
-msgstr "Japonca (日本語)"
-
-
-msgid "Dutch (Nederlands)"
-msgstr "Hollandaca (Nederlands)"
-
-
-msgid "Italian (Italiano)"
-msgstr "İtalyanca (Italiano)"
-
-
-msgid "German (Deutsch)"
-msgstr "Almanca (Deutsch)"
-
-
-msgid "Finnish (Suomi)"
-msgstr "Fince (Suomi)"
-
-
-msgid "Swedish (Svenska)"
-msgstr "İsveççe (Svenska)"
-
-
-msgid "French (Français)"
-msgstr "Fransızca (Français)"
-
-
-msgid "Spanish (Español)"
-msgstr "İspanyolca (Español)"
-
-
-msgid "Catalan (Català)"
-msgstr "Katalanca (Català)"
-
-
-msgid "Czech (Čeština)"
-msgstr "Çek (Čeština)"
-
-
-msgid "Portuguese (Português)"
-msgstr "Portekizce (Português)"
-
-
-msgid "Simplified Chinese (简体中文)"
-msgstr "Basitleştirilmiş Çince (简体中文)"
-
-
-msgid "Traditional Chinese (繁體中文)"
-msgstr "Geleneksel Çince (繁體中文)"
-
-
-msgid "Russian (Русский)"
-msgstr "Rusça (Русский)"
-
-
-msgid "Croatian (Hrvatski)"
-msgstr "Hırvatça (Hrvatski)"
-
-
-msgid "Serbian (Српски)"
-msgstr "Sırpça (Српски)"
-
-
-msgid "Ukrainian (Українська)"
-msgstr "Ukraynaca (Українська)"
-
-
-msgid "Polish (Polski)"
-msgstr "Lehçe (Polski)"
-
-
-msgid "Romanian (Român)"
-msgstr "Romence (Român)"
-
-
-msgid "Arabic (ﺔﻴﺑﺮﻌﻟﺍ)"
-msgstr "Arapça (ﺔﻴﺑﺮﻌﻟﺍ)"
-
-
-msgid "Bulgarian (Български)"
-msgstr "Bulgarca (Български)"
-
-
-msgid "Greek (Ελληνικά)"
-msgstr "Yunanca (Ελληνικά)"
-
-
-msgid "Korean (한국어)"
-msgstr "Korece (한국어)"
-
-
-msgid "Nepali (नेपाली)"
-msgstr "Nepalce (नेपाली)"
-
-
-msgid "Persian (ﯽﺳﺭﺎﻓ)"
-msgstr "Farsça (ﯽﺳﺭﺎﻓ)"
-
-
-msgid "Indonesian (Bahasa indonesia)"
-msgstr "Endonezce (Bahasa indonesia)"
-
-
-msgid "Serbian Latin (Srpski latinica)"
-msgstr "Sırpça Latin (Srpski latinica)"
-
-
-msgid "Kyrgyz (Кыргыз тили)"
-msgstr "Kırgızca (Кыргыз тили)"
-
-
-msgid "Turkish (Türkçe)"
-msgstr "Türkçe (Türkçe)"
-
-
-msgid "Hungarian (Magyar)"
-msgstr "Macarca (Magyar)"
-
-
-msgid "Brazilian Portuguese (Português do Brasil)"
-msgstr "Brezilya Portekizcesi (Português do Brasil)"
-
-
-msgid "Hebrew (תירִבְעִ)"
-msgstr "İbranice (תירִבְעִ)"
-
-
-msgid "Estonian (Eesti keel)"
-msgstr "Estonca (Eesti keel)"
-
-
-msgid "Esperanto (Esperanto)"
-msgstr "Esperanto (Esperanto)"
-
-
-msgid "Amharic (አማርኛ)"
-msgstr "Amharca (አማርኛ)"
-
-
-msgid "Uzbek (Oʻzbek)"
-msgstr "Özbekçe (O'zbek)"
-
-
-msgid "Uzbek Cyrillic (Ўзбек)"
-msgstr "Özbekçe Kiril (Ўзбек)"
-
-
-msgid "Hindi (हिन्दी)"
-msgstr "Hintçe (हिन्दी)"
-
-
-msgid "Vietnamese (Tiếng Việt)"
-msgstr "Vietnamca (Tiếng Việt)"
-
-
-msgid "Basque (Euskara)"
-msgstr "Bask Dili (Euskara)"
-
-
-msgid "Hausa (Hausa)"
-msgstr "Hausa (Hausa)"
-
-
-msgid "Kazakh (Қазақша)"
-msgstr "Kazakça (қазақша)"
-
-
-msgid "Abkhaz (Аԥсуа бызшәа)"
-msgstr "Abhazca (Аԥсуа бызшәа)"
-
-
-msgid "Thai (ภาษาไทย)"
-msgstr "Tayca (ภาษาไทย)"
-
-
-msgid "Slovak (Slovenčina)"
-msgstr "Slovakça (Slovenčina)"
-
-
-msgid "Georgian (ქართული)"
-msgstr "Gürcüce (ქართული)"
-
-
-msgid "Tamil (தமிழ்)"
-msgstr "Tamil (தமிழ்)"
-
-
-msgid "Khmer (ខ្មែរ)"
-msgstr "Khmer (Kmerce)"
-
-
-msgid "Swahili (Kiswahili)"
-msgstr "Swahili (Kiswahili)"
-
-
-msgid "Belarusian (беларуску)"
-msgstr "Belarusça (беларуску)"
-
-
-msgid "Danish (Dansk)"
-msgstr "Danca (Dansk)"
-
-
-msgid "Urdu (وُدرُا)"
-msgstr "Urduca (وُدرُا)"
-
-
-msgid "Lithuanian (Lietuviškai)"
-msgstr "Litvanyaca (Lietuviškai)"
-
-
-msgid "Complete"
-msgstr "Çevirisi Bitmiş"
-
-
-msgid "In Progress"
-msgstr "Çevirisi Sürüyor"
 
 
 msgid "Add & Subtract"

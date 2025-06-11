@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'e91e8eef41aa')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'798f85a7108f')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-03 09:10+0000\n"
+"POT-Creation-Date: 2025-06-11 11:13+0000\n"
 "PO-Revision-Date: 2025-04-14 08:31+0000\n"
 "Last-Translator: Lee YeonJoo <yzoo2@naver.com>\n"
 "Language-Team: Korean <https://translate.blender.org/projects/blender-ui/ui/ko/>\n"
@@ -23829,6 +23829,14 @@ msgid "Material slot name"
 msgstr "매테리얼 슬롯 이름"
 
 
+msgid "Show/Hide"
+msgstr "표시/숨기기"
+
+
+msgid "Clean Up"
+msgstr "정리"
+
+
 msgid "Special Characters"
 msgstr "특수 문자"
 
@@ -23845,20 +23853,12 @@ msgid "Metaball"
 msgstr "메타볼"
 
 
-msgid "Show/Hide"
-msgstr "표시/숨기기"
-
-
 msgid "Names"
 msgstr "이름"
 
 
 msgid "Bone Roll"
 msgstr "본 롤"
-
-
-msgid "Clean Up"
-msgstr "정리"
 
 
 msgid "Pivot Point"
@@ -23877,152 +23877,152 @@ msgid "Mask Edit"
 msgstr "마스크 편집"
 
 
-msgid "Mirror"
-msgstr "미러"
-
-
-msgid "UV Mapping"
-msgstr "UV 맵핑"
-
-
-msgid "Local View"
-msgstr "로컬 뷰"
-
-
-msgid "Viewpoint"
-msgstr "뷰포트"
-
-
-msgid "Navigation"
-msgstr "네비게이션"
-
-
-msgid "Align View"
-msgstr "뷰를 정렬"
-
-
-msgid "Align View to Active"
-msgstr "뷰를 활성에 정렬"
-
-
-msgid "View Regions"
-msgstr "뷰 지역"
-
-
-msgid "Select More/Less"
-msgstr "선택 증가/감소"
-
-
-msgid "Select Similar"
-msgstr "유사한 선택"
-
-
-msgid "Select All by Trait"
-msgstr "형질로 모두 선택"
-
-
-msgid "Select Linked"
-msgstr "연결된 선택"
-
-
-msgid "Select Loops"
-msgstr "루프를 선택"
-
-
-msgid "Assign Material"
-msgstr "매테리얼을 할당"
-
-
-msgid "Light"
-msgstr "라이트"
-
-
-msgid "Light Probe"
-msgstr "라이트 프로브"
-
-
-msgid "Add Image"
-msgstr "이미지를 추가"
-
-
-msgid "Relations"
-msgstr "관계"
-
-
-msgid "Rigid Body"
-msgstr "리지드 바디"
-
-
-msgid "Apply"
-msgstr "적용"
-
-
-msgid "Track"
-msgstr "트랙"
-
-
-msgid "Quick Effects"
-msgstr "빠른 이펙트"
-
-
-msgid "Asset"
-msgstr "에셋"
-
-
-msgid "Make Single User"
-msgstr "싱글 유저를 만들기"
-
-
-msgid "Hooks"
-msgstr "후크"
-
-
-msgid "Sculpt Set Pivot"
-msgstr "스컬프트 설정 피벗"
-
-
-msgid "Clear Transform"
-msgstr "변환을 지우기"
-
-
-msgid "In-Betweens"
-msgstr "사이에서"
-
-
-msgid "Propagate"
-msgstr "전파"
-
-
-msgid "Toggle Bone Options"
-msgstr "본 옵션을 토글"
-
-
-msgid "Enable Bone Options"
-msgstr "본 옵션을 사용"
-
-
-msgid "Disable Bone Options"
-msgstr "본 옵션을 사용 중지"
-
-
-msgid "Mesh Select Mode"
-msgstr "메쉬 선택 모드"
-
-
-msgid "Face Data"
-msgstr "페이스 데이터"
+msgid "Set Face Strength"
+msgstr "페이스 강도를 설정"
 
 
 msgid "Select by Face Strength"
 msgstr "페이스 강도로 선택"
 
 
-msgid "Set Face Strength"
-msgstr "페이스 강도를 설정"
+msgid "Hooks"
+msgstr "후크"
+
+
+msgid "Relations"
+msgstr "관계"
+
+
+msgid "Add Image"
+msgstr "이미지를 추가"
 
 
 msgid "Merge"
 msgstr "병합"
+
+
+msgid "Light Probe"
+msgstr "라이트 프로브"
+
+
+msgid "Face Data"
+msgstr "페이스 데이터"
+
+
+msgid "Light"
+msgstr "라이트"
+
+
+msgid "Make Single User"
+msgstr "싱글 유저를 만들기"
+
+
+msgid "Asset"
+msgstr "에셋"
+
+
+msgid "Mesh Select Mode"
+msgstr "메쉬 선택 모드"
+
+
+msgid "Quick Effects"
+msgstr "빠른 이펙트"
+
+
+msgid "Disable Bone Options"
+msgstr "본 옵션을 사용 중지"
+
+
+msgid "Enable Bone Options"
+msgstr "본 옵션을 사용"
+
+
+msgid "Track"
+msgstr "트랙"
+
+
+msgid "Toggle Bone Options"
+msgstr "본 옵션을 토글"
+
+
+msgid "Apply"
+msgstr "적용"
+
+
+msgid "Assign Material"
+msgstr "매테리얼을 할당"
+
+
+msgid "Rigid Body"
+msgstr "리지드 바디"
+
+
+msgid "Propagate"
+msgstr "전파"
+
+
+msgid "Local View"
+msgstr "로컬 뷰"
+
+
+msgid "Select More/Less"
+msgstr "선택 증가/감소"
+
+
+msgid "In-Betweens"
+msgstr "사이에서"
+
+
+msgid "Clear Transform"
+msgstr "변환을 지우기"
+
+
+msgid "Select Loops"
+msgstr "루프를 선택"
+
+
+msgid "Select Linked"
+msgstr "연결된 선택"
+
+
+msgid "Select All by Trait"
+msgstr "형질로 모두 선택"
+
+
+msgid "Select Similar"
+msgstr "유사한 선택"
+
+
+msgid "View Regions"
+msgstr "뷰 지역"
+
+
+msgid "Align View to Active"
+msgstr "뷰를 활성에 정렬"
+
+
+msgid "Align View"
+msgstr "뷰를 정렬"
+
+
+msgid "Navigation"
+msgstr "네비게이션"
+
+
+msgid "Viewpoint"
+msgstr "뷰포트"
+
+
+msgid "UV Mapping"
+msgstr "UV 맵핑"
+
+
+msgid "Mirror"
+msgstr "미러"
+
+
+msgid "Sculpt Set Pivot"
+msgstr "스컬프트 설정 피벗"
 
 
 msgid "Basic"
@@ -41804,10 +41804,6 @@ msgid "Dissolve edges, merging faces"
 msgstr "에지를 디졸브, 페이스를 병합"
 
 
-msgid "Dissolve remaining vertices"
-msgstr "남아있는 버텍스를 디졸브"
-
-
 msgctxt "Operator"
 msgid "Dissolve Faces"
 msgstr "디졸브 페이스"
@@ -57679,12 +57675,8 @@ msgid "Helicopter Mode"
 msgstr "헬리콥터 모드"
 
 
-msgid "Lock Horizon"
-msgstr "지평선을 잠금"
-
-
-msgid "Keep horizon level while flying with 3D Mouse"
-msgstr "3D 마우스와 함께 비행할 때 수평 레벨을 유지"
+msgid "NDOF View Navigate"
+msgstr "NDOF 뷰 탐색"
 
 
 msgid "Orbit Sensitivity"
@@ -57693,14 +57685,6 @@ msgstr "오비트 감도"
 
 msgid "Overall sensitivity of the 3D Mouse for orbiting"
 msgstr "오비팅에 대한 3D 마우스의 전반적인 감도"
-
-
-msgid "Y/Z Swap Axis"
-msgstr "Y/Z 교환 축"
-
-
-msgid "Pan using up/down on the device (otherwise forward/backward)"
-msgstr "장치에서 위/아래를 사용하여 이동 (그렇지 않으면 앞으로/뒤로)"
 
 
 msgid "Invert X Axis"
@@ -57733,50 +57717,6 @@ msgstr "패닝에 대한 3D 마우스의 전반적인 감도"
 
 msgid "Display the center and axis during rotation"
 msgstr "회전하는 동안 중심과 축을 표시"
-
-
-msgid "NDOF View Navigate"
-msgstr "NDOF 뷰 탐색"
-
-
-msgid "Navigation style in the viewport"
-msgstr "뷰포트에서 네비게이션 스타일"
-
-
-msgid "Use full 6 degrees of freedom by default"
-msgstr "기본으로 자유의 전체 6 디그리를 사용"
-
-
-msgid "Orbit about the view center by default"
-msgstr "기본으로 뷰의 중심에 대한 오빗"
-
-
-msgid "NDOF View Rotation"
-msgstr "NDOF 뷰 회전"
-
-
-msgid "Rotation style in the viewport"
-msgstr "뷰포트에서 회전 스타일"
-
-
-msgid "Turntable"
-msgstr "턴테이블"
-
-
-msgid "Use turntable style rotation in the viewport"
-msgstr "뷰포트에서 턴테이블 스타일 회전을 사용"
-
-
-msgid "Use trackball style rotation in the viewport"
-msgstr "뷰포트에서 트랙볼 스타일 회전을 사용"
-
-
-msgid "Invert Zoom"
-msgstr "줌을 반전"
-
-
-msgid "Zoom using opposite direction"
-msgstr "반대편 방향을 사용하여 줌"
 
 
 msgid "Softness"
@@ -57889,6 +57829,10 @@ msgstr "오비트 메서드"
 
 msgid "Orbit method in the viewport"
 msgstr "뷰포트의 오비트 매서드"
+
+
+msgid "Turntable"
+msgstr "턴테이블"
 
 
 msgid "Turntable keeps the Z-axis upright while orbiting"
@@ -72224,10 +72168,6 @@ msgid "Zoom Method"
 msgstr "줌 메서드"
 
 
-msgid "Pan Sensitivity"
-msgstr "팬 감도"
-
-
 msgid "Use Light"
 msgstr "라이트를 사용"
 
@@ -72243,6 +72183,14 @@ msgstr "플레이어"
 
 msgid "Invert Wheel Zoom Direction"
 msgstr "휠 줌 방향을 반전"
+
+
+msgid "Lock Horizon"
+msgstr "지평선을 잠금"
+
+
+msgid "Pan Sensitivity"
+msgstr "팬 감도"
 
 
 msgid "Error (see console)"
@@ -77349,10 +77297,6 @@ msgid "No active collection"
 msgstr "활성 컬렉션이 없음"
 
 
-msgid "Can't duplicate the master collection"
-msgstr "마스터 컬렉션을 복제 할 수 없습니다"
-
-
 msgid "Could not find a valid parent collection for the new duplicate, it won't be linked to any view layer"
 msgstr "새 복제본에 대한 유효한 상위 컬렉션을 찾을 수 없으며, 어떤 뷰 레이어에도 연결되지 않습니다"
 
@@ -79698,156 +79642,4 @@ msgstr "사용자에 의해 설치된 모든 애드온"
 
 msgid "Import-Export"
 msgstr "가져오기-내보내기"
-
-
-msgid "Japanese (日本語)"
-msgstr "일본어 (日本語)"
-
-
-msgid "Italian (Italiano)"
-msgstr "이탈리아어 (Italiano)"
-
-
-msgid "German (Deutsch)"
-msgstr "독일어 (Deutsch)"
-
-
-msgid "Finnish (Suomi)"
-msgstr "핀란드어 (Suomi)"
-
-
-msgid "Swedish (Svenska)"
-msgstr "슬로바키아어 (Svenska)"
-
-
-msgid "French (Français)"
-msgstr "프랑스어 (Français)"
-
-
-msgid "Spanish (Español)"
-msgstr "스페인어 (Español)"
-
-
-msgid "Catalan (Català)"
-msgstr "카탈로니아어 (Català)"
-
-
-msgid "Portuguese (Português)"
-msgstr "포르투갈어 (Português)"
-
-
-msgid "Simplified Chinese (简体中文)"
-msgstr "중국어 간체 (简体中文)"
-
-
-msgid "Traditional Chinese (繁體中文)"
-msgstr "중국어 번체 (繁體中文)"
-
-
-msgid "Russian (Русский)"
-msgstr "러시아어 (Русский)"
-
-
-msgid "Croatian (Hrvatski)"
-msgstr "크로아티아어 (Hrvatski)"
-
-
-msgid "Serbian (Српски)"
-msgstr "세르비아어 (Српски)"
-
-
-msgid "Polish (Polski)"
-msgstr "폴란드어 (Polski)"
-
-
-msgid "Romanian (Român)"
-msgstr "루마니아어 (Român)"
-
-
-msgid "Arabic (ﺔﻴﺑﺮﻌﻟﺍ)"
-msgstr "아랍어 (ﺔﻴﺑﺮﻌﻟﺍ)"
-
-
-msgid "Bulgarian (Български)"
-msgstr "불가리아어 (Български)"
-
-
-msgid "Greek (Ελληνικά)"
-msgstr "그리스어 (Ελληνικά)"
-
-
-msgid "Nepali (नेपाली)"
-msgstr "네팔어 (नेपाली)"
-
-
-msgid "Indonesian (Bahasa indonesia)"
-msgstr "인도네시아어 (Bahasa indonesia)"
-
-
-msgid "Serbian Latin (Srpski latinica)"
-msgstr "라틴 세르비아어 (Srpski latinica)"
-
-
-msgid "Kyrgyz (Кыргыз тили)"
-msgstr "키르기스어 (Кыргыз тили)"
-
-
-msgid "Turkish (Türkçe)"
-msgstr "터키어 (Türkçe)"
-
-
-msgid "Hungarian (Magyar)"
-msgstr "헝가리어 (Magyar)"
-
-
-msgid "Brazilian Portuguese (Português do Brasil)"
-msgstr "브라질 포르투갈어 (Português do Brasil)"
-
-
-msgid "Hebrew (תירִבְעִ)"
-msgstr "히브리어 (תירִבְעִ)"
-
-
-msgid "Esperanto (Esperanto)"
-msgstr "에스페란토어 (Esperanto)"
-
-
-msgid "Amharic (አማርኛ)"
-msgstr "암하라어 (አማርኛ)"
-
-
-msgid "Uzbek (Oʻzbek)"
-msgstr "우즈베크어 (Oʻzbek)"
-
-
-msgid "Uzbek Cyrillic (Ўзбек)"
-msgstr "우즈베크어 키릴문자 (Ўзбек)"
-
-
-msgid "Basque (Euskara)"
-msgstr "바스크어 (Euskara)"
-
-
-msgid "Hausa (Hausa)"
-msgstr "하우사(하우사어)"
-
-
-msgid "Abkhaz (Аԥсуа бызшәа)"
-msgstr "아브하즈어 (Аԥсуа бызшәа)"
-
-
-msgid "Thai (ภาษาไทย)"
-msgstr "태국어 (ภาษาไทย)"
-
-
-msgid "Slovak (Slovenčina)"
-msgstr "슬로바키아어 (Slovenčina)"
-
-
-msgid "Complete"
-msgstr "완료"
-
-
-msgid "In Progress"
-msgstr "진행 중"
 

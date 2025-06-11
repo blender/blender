@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'e91e8eef41aa')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'798f85a7108f')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-03 09:10+0000\n"
-"PO-Revision-Date: 2025-05-17 10:56+0000\n"
+"POT-Creation-Date: 2025-06-11 11:13+0000\n"
+"PO-Revision-Date: 2025-06-11 04:59+0000\n"
 "Last-Translator: Alessandro Vecchio <alessandrovecchio1907@gmail.com>\n"
 "Language-Team: Italian <https://translate.blender.org/projects/blender-ui/ui/it/>\n"
 "Language: it\n"
@@ -3904,8 +3904,16 @@ msgid "Display Type"
 msgstr "Mostra Aspetto"
 
 
+msgid "Armature Defined"
+msgstr "Definito da Armatura"
+
+
 msgid "Octahedral"
 msgstr "Ottaedrico"
+
+
+msgid "Display bones as octahedral shape"
+msgstr "Mostra le ossa come ottaedri"
 
 
 msgid "Stick"
@@ -4326,6 +4334,10 @@ msgstr "Ha Auto Levigatura"
 
 msgid "Has Direction"
 msgstr "Ha Direzione"
+
+
+msgid "Has Dyntopo"
+msgstr "Ha Topologia Dinamica"
 
 
 msgid "Has Gravity"
@@ -6090,6 +6102,10 @@ msgstr "Raccolta di raccolte figlie"
 
 msgid "Export Properties"
 msgstr "Proprietà di Esportazione"
+
+
+msgid "The file path used for exporting"
+msgstr "Percorso file utilizzato per l'esportazione"
 
 
 msgid "Whether the panel is expanded or closed"
@@ -11279,6 +11295,11 @@ msgid "Adjust the offset to the beginning/end"
 msgstr "Regola l'offset per l'inizio/fine"
 
 
+msgctxt "ParticleSettings"
+msgid "Kink"
+msgstr "Arricciatura"
+
+
 msgid "Type of periodic offset on the curve"
 msgstr "Tipo di offset periodico sulla curva"
 
@@ -11961,6 +11982,10 @@ msgid "Filter by name or tag, supports '*' wildcard"
 msgstr "Filtra per nome o tag, supporta i caratteri speciali '*'"
 
 
+msgid "Columns Size"
+msgstr "Dimensioni Colonne"
+
+
 msgid "Recursion"
 msgstr "Ricorsivo"
 
@@ -12131,6 +12156,10 @@ msgstr "Volume del Filtro"
 
 msgid "Library Browser"
 msgstr "Browser Libreria"
+
+
+msgid "Reverse Sorting"
+msgstr "Ordinamento Inverso"
 
 
 msgid "Asset Select Parameters"
@@ -12903,6 +12932,10 @@ msgstr "Raccolta"
 
 msgid "Bundle"
 msgstr "Bundle"
+
+
+msgid "Closure"
+msgstr "Chiusura"
 
 
 msgid "Freestyle Line Set"
@@ -21298,10 +21331,6 @@ msgid "Maintained by community developers"
 msgstr "Mantenuti dalla comunità di sviluppatori"
 
 
-msgid "Testing"
-msgstr "Testing"
-
-
 msgid "Asset Blend Path"
 msgstr "Percorso Risorsa Blend"
 
@@ -24585,6 +24614,14 @@ msgid "Material slot name"
 msgstr "Nome dello slot materiale"
 
 
+msgid "Show/Hide"
+msgstr "Mostra/Nascondi"
+
+
+msgid "Clean Up"
+msgstr "Ripulisci"
+
+
 msgid "Special Characters"
 msgstr "Caratteri Speciali"
 
@@ -24601,20 +24638,12 @@ msgid "Metaball"
 msgstr "Metaball"
 
 
-msgid "Show/Hide"
-msgstr "Mostra/Nascondi"
-
-
 msgid "Names"
 msgstr "Nomi"
 
 
 msgid "Bone Roll"
 msgstr "Rollio Osso"
-
-
-msgid "Clean Up"
-msgstr "Ripulisci"
 
 
 msgid "Pivot Point"
@@ -24645,168 +24674,168 @@ msgid "Vertex Group Locks"
 msgstr "Blocchi del Gruppo di Vertici"
 
 
-msgid "Mirror"
-msgstr "Specchia"
-
-
-msgid "UV Mapping"
-msgstr "Mappatura UV"
-
-
-msgid "Local View"
-msgstr "Vista Locale"
-
-
-msgid "Viewpoint"
-msgstr "Punto di vista"
-
-
-msgid "Navigation"
-msgstr "Navigazione"
-
-
-msgid "Align View"
-msgstr "Allinea Vista"
-
-
-msgid "Align View to Active"
-msgstr "Allinea Vista a Attivo"
-
-
-msgid "View Regions"
-msgstr "Regione Vista"
-
-
-msgid "Select More/Less"
-msgstr "Seleziona Più/Meno"
-
-
-msgid "Select Similar"
-msgstr "Seleziona Simili"
-
-
-msgid "Select All by Trait"
-msgstr "Seleziona Tutto per Caratteristica"
-
-
-msgid "Select Linked"
-msgstr "Seleziona Collegati"
-
-
-msgid "Select Loops"
-msgstr "Seleziona Anelli"
-
-
-msgid "Assign Material"
-msgstr "Assegna Materiale"
-
-
-msgid "Light"
-msgstr "Luce"
-
-
-msgid "Light Probe"
-msgstr "Sensore di Luce"
-
-
-msgid "Add Image"
-msgstr "Aggiungi Immagine"
-
-
-msgid "Relations"
-msgstr "Relazioni"
-
-
-msgid "Rigid Body"
-msgstr "Corpo Rigido"
-
-
-msgid "Apply"
-msgstr "Applica"
-
-
-msgid "Track"
-msgstr "Traccia"
-
-
-msgid "Quick Effects"
-msgstr "Effetti Veloci"
-
-
-msgid "Asset"
-msgstr "Risorsa"
-
-
-msgid "Make Single User"
-msgstr "Rendi Utilizzatore Singolo"
-
-
-msgid "Convert"
-msgstr "Converti"
-
-
-msgid "Link/Transfer Data"
-msgstr "Collega/Trasferisci Dati"
-
-
-msgid "Hooks"
-msgstr "Ganci"
-
-
-msgid "Face Sets Init"
-msgstr "Init Sets di Facce"
-
-
-msgid "Random Mask"
-msgstr "Maschera Casuale"
-
-
-msgid "Clear Transform"
-msgstr "Cancella Trasformazione"
-
-
-msgid "In-Betweens"
-msgstr "Intermedio"
-
-
-msgid "Propagate"
-msgstr "Propaga"
-
-
-msgid "Bone Collections"
-msgstr "Raccolte di Ossa"
-
-
-msgid "Toggle Bone Options"
-msgstr "Attiva/disattiva Opzioni Osso"
-
-
-msgid "Enable Bone Options"
-msgstr "Abilita Opzioni Osso"
-
-
-msgid "Disable Bone Options"
-msgstr "Disabilita Opzioni Osso"
-
-
-msgid "Mesh Select Mode"
-msgstr "Modalità Selezione Mesh"
-
-
-msgid "Face Data"
-msgstr "Dati Faccia"
+msgid "Set Face Strength"
+msgstr "Imposta Intensità Faccia"
 
 
 msgid "Select by Face Strength"
 msgstr "Seleziona per Intensità delle Facce"
 
 
-msgid "Set Face Strength"
-msgstr "Imposta Intensità Faccia"
+msgid "Hooks"
+msgstr "Ganci"
+
+
+msgid "Link/Transfer Data"
+msgstr "Collega/Trasferisci Dati"
+
+
+msgid "Convert"
+msgstr "Converti"
+
+
+msgid "Relations"
+msgstr "Relazioni"
+
+
+msgid "Add Image"
+msgstr "Aggiungi Immagine"
 
 
 msgid "Merge"
 msgstr "Unisci"
+
+
+msgid "Light Probe"
+msgstr "Sensore di Luce"
+
+
+msgid "Face Data"
+msgstr "Dati Faccia"
+
+
+msgid "Light"
+msgstr "Luce"
+
+
+msgid "Make Single User"
+msgstr "Rendi Utilizzatore Singolo"
+
+
+msgid "Asset"
+msgstr "Risorsa"
+
+
+msgid "Mesh Select Mode"
+msgstr "Modalità Selezione Mesh"
+
+
+msgid "Quick Effects"
+msgstr "Effetti Veloci"
+
+
+msgid "Disable Bone Options"
+msgstr "Disabilita Opzioni Osso"
+
+
+msgid "Enable Bone Options"
+msgstr "Abilita Opzioni Osso"
+
+
+msgid "Track"
+msgstr "Traccia"
+
+
+msgid "Toggle Bone Options"
+msgstr "Attiva/disattiva Opzioni Osso"
+
+
+msgid "Apply"
+msgstr "Applica"
+
+
+msgid "Assign Material"
+msgstr "Assegna Materiale"
+
+
+msgid "Rigid Body"
+msgstr "Corpo Rigido"
+
+
+msgid "Propagate"
+msgstr "Propaga"
+
+
+msgid "Local View"
+msgstr "Vista Locale"
+
+
+msgid "Select More/Less"
+msgstr "Seleziona Più/Meno"
+
+
+msgid "Bone Collections"
+msgstr "Raccolte di Ossa"
+
+
+msgid "In-Betweens"
+msgstr "Intermedio"
+
+
+msgid "Clear Transform"
+msgstr "Cancella Trasformazione"
+
+
+msgid "Select Loops"
+msgstr "Seleziona Anelli"
+
+
+msgid "Select Linked"
+msgstr "Seleziona Collegati"
+
+
+msgid "Select All by Trait"
+msgstr "Seleziona Tutto per Caratteristica"
+
+
+msgid "Select Similar"
+msgstr "Seleziona Simili"
+
+
+msgid "View Regions"
+msgstr "Regione Vista"
+
+
+msgid "Align View to Active"
+msgstr "Allinea Vista a Attivo"
+
+
+msgid "Align View"
+msgstr "Allinea Vista"
+
+
+msgid "Navigation"
+msgstr "Navigazione"
+
+
+msgid "Viewpoint"
+msgstr "Punto di vista"
+
+
+msgid "UV Mapping"
+msgstr "Mappatura UV"
+
+
+msgid "Mirror"
+msgstr "Specchia"
+
+
+msgid "Random Mask"
+msgstr "Maschera Casuale"
+
+
+msgid "Face Sets Init"
+msgstr "Init Sets di Facce"
 
 
 msgid "Keyframe Insert Pie"
@@ -34280,6 +34309,10 @@ msgid "Deinterlace Movies"
 msgstr "Deinterlaccia Filmati"
 
 
+msgid "Removes fade animation from selected strips"
+msgstr "Rimuove l'animazione di dissolvenza dagli spezzoni seleziomati"
+
+
 msgctxt "Operator"
 msgid "I18n Load Settings"
 msgstr "Carica Impostaz. i18n"
@@ -38100,6 +38133,11 @@ msgid "Remove existing add-ons with the same ID"
 msgstr "Rimuove add-on esistenti che hanno lo stesso ID"
 
 
+msgctxt "Operator"
+msgid "Automatically Pack Resources"
+msgstr "Incorpora Risorse Automaticamente"
+
+
 msgid "Automatically pack all external files into the .blend file"
 msgstr "Incorpora automaticamente tutti i file esterni nel file .blend"
 
@@ -38273,6 +38311,11 @@ msgid "Move to next folder"
 msgstr "Va alla cartella successiva"
 
 
+msgctxt "Operator"
+msgid "Pack Resources"
+msgstr "Incorpora Risorse"
+
+
 msgid "Move to parent directory"
 msgstr "Va alla cartella superiore"
 
@@ -38358,6 +38401,11 @@ msgstr "Scorrimento Dolce"
 
 msgid "Smooth scroll to make editable file visible"
 msgstr "Scorrimento regolare per rendere visibile il file modificabile"
+
+
+msgctxt "Operator"
+msgid "Unpack Resources"
+msgstr "Scorpora Risorse"
 
 
 msgid "Unpack all files packed into this .blend to external ones"
@@ -40818,6 +40866,10 @@ msgstr "Riempie con una griglia (a quadrilateri) lo spazio fra due anelli"
 
 msgid "Span"
 msgstr "Campate"
+
+
+msgid "Number of grid columns"
+msgstr "Numero di colonne della griglia"
 
 
 msgid "Simple Blending"
@@ -44982,6 +45034,15 @@ msgstr "Menu contestuale per le operazioni sugli elementi"
 
 
 msgctxt "Operator"
+msgid "Manage Unused Data"
+msgstr "Gestisci Dati Inutilizzati"
+
+
+msgid "Open a window to manage unused data"
+msgstr "Apre una finestra per gestire i dati inutilizzati"
+
+
+msgctxt "Operator"
 msgid "Purge All"
 msgstr "Ripulisci Tutto"
 
@@ -45651,6 +45712,10 @@ msgstr "Imposta Peso"
 
 msgid "Set the weight of selected keys"
 msgstr "Imposta il peso delle chiavi selezionate"
+
+
+msgid "Copy selected points"
+msgstr "Copia i punti selezionati"
 
 
 msgid "Pose Name"
@@ -52700,6 +52765,10 @@ msgid "Graphics driver and operating system settings"
 msgstr "Impostazioni per driver grafici e sistemi operativi"
 
 
+msgid "Sort the recently searched items at the top"
+msgstr "Ordina gli elementi cercati di recente in alto"
+
+
 msgid "Version of Blender the userpref.blend was saved with"
 msgstr "Versione di Blender con cui il file userpref.blend è stato salvato"
 
@@ -53156,24 +53225,12 @@ msgid "Helicopter Mode"
 msgstr "Modalità Elicottero"
 
 
-msgid "Lock Horizon"
-msgstr "Blocca Orizzonte"
-
-
 msgid "Orbit Sensitivity"
 msgstr "Sensibilità Orbit"
 
 
 msgid "Overall sensitivity of the 3D Mouse for orbiting"
 msgstr "Sensibilità globale del mouse 3D per l'orbit"
-
-
-msgid "Y/Z Swap Axis"
-msgstr "Scambia assi Y/Z"
-
-
-msgid "Pan using up/down on the device (otherwise forward/backward)"
-msgstr "Pan utilizzando su/giù sul dispositivo (altrimenti avanti/indietro)"
 
 
 msgid "Invert X Axis"
@@ -53206,38 +53263,6 @@ msgstr "Sensibilità globale del mouse 3D per il pan"
 
 msgid "Display the center and axis during rotation"
 msgstr "Mostra il centro e gli assi durante la rotazione"
-
-
-msgid "Navigation style in the viewport"
-msgstr "Stile di navigazione nel viewport"
-
-
-msgid "NDOF View Rotation"
-msgstr "Mostra Rotazione"
-
-
-msgid "Rotation style in the viewport"
-msgstr "Stile di rotazione nel viewport"
-
-
-msgid "Turntable"
-msgstr "Rotazione Piano"
-
-
-msgid "Use turntable style rotation in the viewport"
-msgstr "Utilizza lo stile di rotazione piattaforma nel viewport"
-
-
-msgid "Use trackball style rotation in the viewport"
-msgstr "Utilizza lo stile di rotazione trackball nel viewport"
-
-
-msgid "Invert Zoom"
-msgstr "Inverti Zoom"
-
-
-msgid "Zoom using opposite direction"
-msgstr "Effettua lo zoom utilizzando la direzione opposta"
 
 
 msgid "Softness"
@@ -53298,6 +53323,10 @@ msgstr "Zoomma nella posizione del mouse in vista 3D, anziché al centro della f
 
 msgid "Orbit method in the viewport"
 msgstr "Metodo dell'orbita nel viewport"
+
+
+msgid "Turntable"
+msgstr "Rotazione Piano"
 
 
 msgid "Zoom Axis"
@@ -56946,6 +56975,10 @@ msgid "Display data of current file and linked libraries"
 msgstr "Mostra dati del file corrente e delle librerie collegate"
 
 
+msgid "Unused Data"
+msgstr "Dati Inutilizzati"
+
+
 msgid "Live search filtering string"
 msgstr "Stringa di filtraggio ricerca"
 
@@ -57516,6 +57549,10 @@ msgstr "Raccolta di punti spline"
 
 msgid "Color Value"
 msgstr "Valore del Colore"
+
+
+msgid "Columns"
+msgstr "Colonne"
 
 
 msgid "Stereo Output"
@@ -59366,6 +59403,11 @@ msgid "Snap Element"
 msgstr "Elemento Snap"
 
 
+msgctxt "Unit"
+msgid "Keyframes"
+msgstr "Keyframes"
+
+
 msgid "Snap Target"
 msgstr "Bersaglio Snap"
 
@@ -60524,6 +60566,11 @@ msgstr "Mappa Modale Standard"
 msgctxt "WindowManager"
 msgid "Transform Modal Map"
 msgstr "Mappa Modale Trasforma"
+
+
+msgctxt "WindowManager"
+msgid "Trackball"
+msgstr "Trackball"
 
 
 msgctxt "WindowManager"
@@ -62159,6 +62206,11 @@ msgstr "Ripulisci"
 
 
 msgctxt "Operator"
+msgid "Clear Recent Items"
+msgstr "Cancella Elementi Recenti"
+
+
+msgctxt "Operator"
 msgid "Back"
 msgstr "Indietro"
 
@@ -62185,6 +62237,10 @@ msgstr "Render Oggetto Attivo"
 
 msgid ".blend Files"
 msgstr "File .blend"
+
+
+msgid "Backup .blend Files"
+msgstr "Backup dei File .blend"
 
 
 msgid "Image Files"
@@ -62896,6 +62952,11 @@ msgstr "Installa Modello Applicazione..."
 
 
 msgctxt "Operator"
+msgid "Purge Unused Data..."
+msgstr "Elimina Dati Inutilizzati..."
+
+
+msgctxt "Operator"
 msgid "Manage Unused Data..."
 msgstr "Gestisci Dati Inutilizzati..."
 
@@ -63190,10 +63251,6 @@ msgid "Double Click Speed"
 msgstr "Velocità Doppio Click"
 
 
-msgid "Pan Sensitivity"
-msgstr "Sensibilità Pan"
-
-
 msgid " Preferences"
 msgstr " Preferenze"
 
@@ -63206,8 +63263,12 @@ msgid "Invert Wheel Zoom Direction"
 msgstr "Inverti Direzione Zoom Rotella"
 
 
-msgid "Fly/Walk"
-msgstr "Vola/Cammina"
+msgid "Lock Horizon"
+msgstr "Blocca Orizzonte"
+
+
+msgid "Pan Sensitivity"
+msgstr "Sensibilità Pan"
 
 
 msgid "Error (see console)"
@@ -65080,6 +65141,10 @@ msgstr "Percorso vuoto, impossibile salvare"
 
 msgid "Path too long, cannot save"
 msgstr "Percorso troppo lungo, impossibile salvare"
+
+
+msgid "Saving failed"
+msgstr "Salvataggio non riuscito"
 
 
 msgid "No changes to be saved"
@@ -67380,6 +67445,14 @@ msgid "No subtitles (text strips) to export"
 msgstr "Nessun sottotitolo (spezzoni di testo) da esportare"
 
 
+msgid "No active strip!"
+msgstr "Nessuno spezzone attivo!"
+
+
+msgid "Columns:"
+msgstr "Colonne:"
+
+
 msgid "File Modified Outside and Inside Blender"
 msgstr "File Modificato Fuori e Dentro Blender"
 
@@ -68480,6 +68553,10 @@ msgstr "Spigoli Piega"
 
 msgid "Fac"
 msgstr "Fatt"
+
+
+msgid "Separable"
+msgstr "Separabile"
 
 
 msgid "Bright"
@@ -69620,218 +69697,6 @@ msgstr "microfono"
 
 msgid "network"
 msgstr "rete"
-
-
-msgid "Japanese (日本語)"
-msgstr "Giapponese (日本語)"
-
-
-msgid "Dutch (Nederlands)"
-msgstr "Olandese (Nederlands)"
-
-
-msgid "Italian (Italiano)"
-msgstr "Italiano (Italiano)"
-
-
-msgid "German (Deutsch)"
-msgstr "Tedesco (Deutsch)"
-
-
-msgid "Finnish (Suomi)"
-msgstr "Finlandese (Suomi)"
-
-
-msgid "Swedish (Svenska)"
-msgstr "Svedese (Svenska)"
-
-
-msgid "French (Français)"
-msgstr "Francece (Français)"
-
-
-msgid "Spanish (Español)"
-msgstr "Spagnolo (Español)"
-
-
-msgid "Catalan (Català)"
-msgstr "Catalano (Català)"
-
-
-msgid "Czech (Čeština)"
-msgstr "Ceco (Čeština)"
-
-
-msgid "Portuguese (Português)"
-msgstr "Portoghese (Português)"
-
-
-msgid "Simplified Chinese (简体中文)"
-msgstr "Cinese Semplificato (简体中文)"
-
-
-msgid "Traditional Chinese (繁體中文)"
-msgstr "Cinese Tradizionale (繁體中文)"
-
-
-msgid "Russian (Русский)"
-msgstr "Russo (Русский)"
-
-
-msgid "Croatian (Hrvatski)"
-msgstr "Croato (Hrvatski)"
-
-
-msgid "Serbian (Српски)"
-msgstr "Serbo (Српски)"
-
-
-msgid "Ukrainian (Українська)"
-msgstr "Ucraino (Українська)"
-
-
-msgid "Polish (Polski)"
-msgstr "Polacco (Polski)"
-
-
-msgid "Romanian (Român)"
-msgstr "Rumeno (Român)"
-
-
-msgid "Arabic (ﺔﻴﺑﺮﻌﻟﺍ)"
-msgstr "Arabo (ﺔﻴﺑﺮﻌﻟﺍ)"
-
-
-msgid "Bulgarian (Български)"
-msgstr "Bulgaro (Български)"
-
-
-msgid "Greek (Ελληνικά)"
-msgstr "Greco (Ελληνικά)"
-
-
-msgid "Korean (한국어)"
-msgstr "Coreano (한국어)"
-
-
-msgid "Nepali (नेपाली)"
-msgstr "Nepalese (नेपाली)"
-
-
-msgid "Persian (ﯽﺳﺭﺎﻓ)"
-msgstr "Persiano (ﯽﺳﺭﺎﻓ)"
-
-
-msgid "Indonesian (Bahasa indonesia)"
-msgstr "Indonesiano (Bahasa indonesia)"
-
-
-msgid "Serbian Latin (Srpski latinica)"
-msgstr "Serbo Latino (Srpski latinica)"
-
-
-msgid "Kyrgyz (Кыргыз тили)"
-msgstr "Kirghizistano (Кыргыз тили)"
-
-
-msgid "Turkish (Türkçe)"
-msgstr "Turco (Türkçe)"
-
-
-msgid "Hungarian (Magyar)"
-msgstr "Ungherese (Magyar)"
-
-
-msgid "Brazilian Portuguese (Português do Brasil)"
-msgstr "Portoghese Brasiliano (Português do Brasil)"
-
-
-msgid "Hebrew (תירִבְעִ)"
-msgstr "Ebraico (תירִבְעִ)"
-
-
-msgid "Estonian (Eesti keel)"
-msgstr "Estone (Eesti keel)"
-
-
-msgid "Esperanto (Esperanto)"
-msgstr "Esperanto (Esperanto)"
-
-
-msgid "Amharic (አማርኛ)"
-msgstr "Amarico (አማርኛ)"
-
-
-msgid "Uzbek (Oʻzbek)"
-msgstr "Uzbeko (Oʻzbek)"
-
-
-msgid "Uzbek Cyrillic (Ўзбек)"
-msgstr "Cirillico Uzbeko (Ўзбек)"
-
-
-msgid "Hindi (हिन्दी)"
-msgstr "Hindi (हिन्दी)"
-
-
-msgid "Vietnamese (Tiếng Việt)"
-msgstr "Vietnamita (Tiếng Việt)"
-
-
-msgid "Basque (Euskara)"
-msgstr "Basco (Euskara)"
-
-
-msgid "Thai (ภาษาไทย)"
-msgstr "Tailandese (ภาษาไทย)"
-
-
-msgid "Slovak (Slovenčina)"
-msgstr "Slovacco (Slovenčina)"
-
-
-msgid "Georgian (ქართული)"
-msgstr "Georgiano (ქართული)"
-
-
-msgid "Tamil (தமிழ்)"
-msgstr "Tamil (தமிழ்)"
-
-
-msgid "Khmer (ខ្មែរ)"
-msgstr "Khmer (ខ្មែរ)"
-
-
-msgid "Swahili (Kiswahili)"
-msgstr "Swahili (Kiswahili)"
-
-
-msgid "Belarusian (беларуску)"
-msgstr "Bielorusso (беларуску)"
-
-
-msgid "Danish (Dansk)"
-msgstr "Danese (Dansk)"
-
-
-msgid "Slovenian (Slovenščina)"
-msgstr "Sloveno (Slovenčina)"
-
-
-msgid "Urdu (وُدرُا)"
-msgstr "Urdu (وُدرُا)"
-
-
-msgid "Lithuanian (Lietuviškai)"
-msgstr "Lutuano (Lietuviškai)"
-
-
-msgid "Complete"
-msgstr "Completo"
-
-
-msgid "In Progress"
-msgstr "Parziali"
 
 
 msgid "Mesh Texture Paint"

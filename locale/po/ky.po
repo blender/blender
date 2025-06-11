@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'e91e8eef41aa')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'798f85a7108f')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-03 09:10+0000\n"
+"POT-Creation-Date: 2025-06-11 11:13+0000\n"
 "PO-Revision-Date: 2025-04-14 08:32+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Kyrgyz <https://translate.blender.org/projects/blender-ui/ui/ky/>\n"
@@ -1306,12 +1306,12 @@ msgid "Text"
 msgstr "Текст"
 
 
-msgid "Mirror"
-msgstr "Чагылтуу"
-
-
 msgid "Apply"
 msgstr "Колдонуу"
+
+
+msgid "Mirror"
+msgstr "Чагылтуу"
 
 
 msgctxt "MovieClip"
@@ -3779,128 +3779,4 @@ msgstr "күй."
 
 msgid "Import-Export"
 msgstr "Импорт-экспорт"
-
-
-msgid "Japanese (日本語)"
-msgstr "Жапон (日本語)"
-
-
-msgid "Italian (Italiano)"
-msgstr "Итальян (Italiano)"
-
-
-msgid "German (Deutsch)"
-msgstr "Немис (Deutsch)"
-
-
-msgid "Finnish (Suomi)"
-msgstr "Финн (Suomi)"
-
-
-msgid "Swedish (Svenska)"
-msgstr "Швед (Svenska)"
-
-
-msgid "French (Français)"
-msgstr "Француз (Français)"
-
-
-msgid "Spanish (Español)"
-msgstr "Испан (Español)"
-
-
-msgid "Catalan (Català)"
-msgstr "Каталон (Català)"
-
-
-msgid "Portuguese (Português)"
-msgstr "Португал (Português)"
-
-
-msgid "Simplified Chinese (简体中文)"
-msgstr "Кытай жөнөкөйлөнгөн (简体中文)"
-
-
-msgid "Traditional Chinese (繁體中文)"
-msgstr "Кытай салттуу (繁體中文)"
-
-
-msgid "Russian (Русский)"
-msgstr "Орус (Русский)"
-
-
-msgid "Croatian (Hrvatski)"
-msgstr "Хорват (Hrvatski)"
-
-
-msgid "Serbian (Српски)"
-msgstr "Серб (Српски)"
-
-
-msgid "Polish (Polski)"
-msgstr "Поляк (Polski)"
-
-
-msgid "Romanian (Român)"
-msgstr "Румын (Român)"
-
-
-msgid "Arabic (ﺔﻴﺑﺮﻌﻟﺍ)"
-msgstr "Араб (ﺔﻴﺑﺮﻌﻟﺍ)"
-
-
-msgid "Bulgarian (Български)"
-msgstr "Болгар (Български)"
-
-
-msgid "Greek (Ελληνικά)"
-msgstr "Грек (Ελληνικά)"
-
-
-msgid "Nepali (नेपाली)"
-msgstr "Непал (नेपाली)"
-
-
-msgid "Persian (ﯽﺳﺭﺎﻓ)"
-msgstr "Парсы (ﯽﺳﺭﺎﻓ)"
-
-
-msgid "Kyrgyz (Кыргыз тили)"
-msgstr "Кыргыз (Кыргыз тили)"
-
-
-msgid "Turkish (Türkçe)"
-msgstr "Түрк (Türkçe)"
-
-
-msgid "Hungarian (Magyar)"
-msgstr "Венгр (Magyar)"
-
-
-msgid "Hebrew (תירִבְעִ)"
-msgstr "Иврит (תירִבְעִ)"
-
-
-msgid "Esperanto (Esperanto)"
-msgstr "Эсперанто (Esperanto)"
-
-
-msgid "Amharic (አማርኛ)"
-msgstr "Амхар (አማርኛ)"
-
-
-msgid "Uzbek (Oʻzbek)"
-msgstr "Өзбек (Oʻzbek)"
-
-
-msgid "Uzbek Cyrillic (Ўзбек)"
-msgstr "Өзбек кириллица (Ўзбек)"
-
-
-msgid "Complete"
-msgstr "Бүтүрүлгөн"
-
-
-msgid "In Progress"
-msgstr "Которулууда"
 

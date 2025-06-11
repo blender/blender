@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'e91e8eef41aa')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'798f85a7108f')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-03 09:10+0000\n"
+"POT-Creation-Date: 2025-06-11 11:13+0000\n"
 "PO-Revision-Date: 2025-04-14 08:12+0000\n"
 "Last-Translator: Zdeněk Doležal <Griperis@outlook.cz>\n"
 "Language-Team: Czech <https://translate.blender.org/projects/blender-ui/ui/cs/>\n"
@@ -13585,6 +13585,14 @@ msgid "Material slot name"
 msgstr "Název okénka materiálu"
 
 
+msgid "Show/Hide"
+msgstr "Zobrazit/skrýt"
+
+
+msgid "Clean Up"
+msgstr "Vyčistit"
+
+
 msgid "Special Characters"
 msgstr "Speciální Znaky"
 
@@ -13597,20 +13605,12 @@ msgid "Metaball"
 msgstr "Meta objekt"
 
 
-msgid "Show/Hide"
-msgstr "Zobrazit/skrýt"
-
-
 msgid "Names"
 msgstr "Názvy"
 
 
 msgid "Bone Roll"
 msgstr "Kost"
-
-
-msgid "Clean Up"
-msgstr "Vyčistit"
 
 
 msgid "Pivot Point"
@@ -13625,84 +13625,84 @@ msgid "Proportional Editing Falloff"
 msgstr "Způsob útlumu"
 
 
-msgid "Mirror"
-msgstr "Zrcadlit"
-
-
-msgid "UV Mapping"
-msgstr "UV mapování"
-
-
-msgid "Local View"
-msgstr "Lokální pohled"
-
-
-msgid "Navigation"
-msgstr "Navigace"
-
-
-msgid "Align View"
-msgstr "Zarovnat pohled"
-
-
-msgid "Select Linked"
-msgstr "Vybrat Propojené"
-
-
-msgid "Assign Material"
-msgstr "Přiřadit Materiál"
-
-
-msgid "Light"
-msgstr "Světlo"
+msgid "Hooks"
+msgstr "Háky"
 
 
 msgid "Relations"
 msgstr "Vztahy"
 
 
-msgid "Rigid Body"
-msgstr "Tuhé Těleso"
-
-
-msgid "Apply"
-msgstr "Použít"
-
-
-msgid "Track"
-msgstr "Sledování"
-
-
-msgid "Quick Effects"
-msgstr "Rychlé Efekty"
-
-
-msgid "Make Single User"
-msgstr "Přivlastnit"
-
-
-msgid "Hooks"
-msgstr "Háky"
-
-
-msgid "Clear Transform"
-msgstr "Vyčistit transformaci"
-
-
-msgid "Propagate"
-msgstr "Vložit"
-
-
-msgid "Mesh Select Mode"
-msgstr "Síťový mód výběru"
+msgid "Merge"
+msgstr "Sloučit"
 
 
 msgid "Face Data"
 msgstr "Data Ploch"
 
 
-msgid "Merge"
-msgstr "Sloučit"
+msgid "Light"
+msgstr "Světlo"
+
+
+msgid "Make Single User"
+msgstr "Přivlastnit"
+
+
+msgid "Mesh Select Mode"
+msgstr "Síťový mód výběru"
+
+
+msgid "Quick Effects"
+msgstr "Rychlé Efekty"
+
+
+msgid "Track"
+msgstr "Sledování"
+
+
+msgid "Apply"
+msgstr "Použít"
+
+
+msgid "Assign Material"
+msgstr "Přiřadit Materiál"
+
+
+msgid "Rigid Body"
+msgstr "Tuhé Těleso"
+
+
+msgid "Propagate"
+msgstr "Vložit"
+
+
+msgid "Local View"
+msgstr "Lokální pohled"
+
+
+msgid "Clear Transform"
+msgstr "Vyčistit transformaci"
+
+
+msgid "Select Linked"
+msgstr "Vybrat Propojené"
+
+
+msgid "Align View"
+msgstr "Zarovnat pohled"
+
+
+msgid "Navigation"
+msgstr "Navigace"
+
+
+msgid "UV Mapping"
+msgstr "UV mapování"
+
+
+msgid "Mirror"
+msgstr "Zrcadlit"
 
 
 msgid "Basic"
@@ -32883,10 +32883,6 @@ msgid "Helicopter Mode"
 msgstr "Režim Vrtulníku"
 
 
-msgid "Lock Horizon"
-msgstr "Uzamknout horizont"
-
-
 msgid "Orbit Sensitivity"
 msgstr "Citlivost Orbitování"
 
@@ -32905,18 +32901,6 @@ msgstr "Určuje délku životnosti vlny"
 
 msgid "Display the center and axis during rotation"
 msgstr "Zobrazí ladící hlášky verse"
-
-
-msgid "NDOF View Rotation"
-msgstr "Rotace"
-
-
-msgid "Turntable"
-msgstr "Točna"
-
-
-msgid "Invert Zoom"
-msgstr "Převrátit zvětšování"
 
 
 msgid "Softness"
@@ -32953,6 +32937,10 @@ msgstr "Přiblížit k Pozici myši"
 
 msgid "Orbit Method"
 msgstr "Metoda orbitování"
+
+
+msgid "Turntable"
+msgstr "Točna"
 
 
 msgid "Zoom Axis"
@@ -40154,14 +40142,6 @@ msgid "Zoom Method"
 msgstr "Metoda přiblížení"
 
 
-msgid "Pan Sensitivity"
-msgstr "Citlivost posouvání"
-
-
-msgid "Swap Y and Z Axes"
-msgstr "Vyměnit osy Y a Z"
-
-
 msgid "Use Light"
 msgstr "Použít světlo"
 
@@ -40183,8 +40163,12 @@ msgid "Invert Wheel Zoom Direction"
 msgstr "Otočit směr přibližování kolečkem"
 
 
-msgid "Fly/Walk"
-msgstr "Létat/Chodit"
+msgid "Lock Horizon"
+msgstr "Uzamknout horizont"
+
+
+msgid "Pan Sensitivity"
+msgstr "Citlivost posouvání"
 
 
 msgid "Location:"
@@ -43930,132 +43914,4 @@ msgstr "Platforma Npodporována"
 
 msgid "Pose Library"
 msgstr "Není knihovnou"
-
-
-msgid "Japanese (日本語)"
-msgstr "Japonština (日本語)"
-
-
-msgid "Italian (Italiano)"
-msgstr "Italština (Italiano)"
-
-
-msgid "German (Deutsch)"
-msgstr "Němčina (Deutsch)"
-
-
-msgid "Finnish (Suomi)"
-msgstr "Finština (Suomi)"
-
-
-msgid "Swedish (Svenska)"
-msgstr "Švédština (Svenska)"
-
-
-msgid "Spanish (Español)"
-msgstr "Španělština (Español)"
-
-
-msgid "Catalan (Català)"
-msgstr "Katalánština (Català)"
-
-
-msgid "Portuguese (Português)"
-msgstr "Portugalština (Português)"
-
-
-msgid "Simplified Chinese (简体中文)"
-msgstr "Jednoduchá čínština (简体中文)"
-
-
-msgid "Traditional Chinese (繁體中文)"
-msgstr "Tradiční čínština (繁體中文)"
-
-
-msgid "Russian (Русский)"
-msgstr "Ruština (Русский)"
-
-
-msgid "Croatian (Hrvatski)"
-msgstr "Chorvatština (Hrvatski)"
-
-
-msgid "Polish (Polski)"
-msgstr "Polština (Polski)"
-
-
-msgid "Romanian (Român)"
-msgstr "Rumunština (Român)"
-
-
-msgid "Arabic (ﺔﻴﺑﺮﻌﻟﺍ)"
-msgstr "Arabština (ﺔﻴﺑﺮﻌﻟﺍ)"
-
-
-msgid "Bulgarian (Български)"
-msgstr "Bulharština (Български)"
-
-
-msgid "Greek (Ελληνικά)"
-msgstr "Řečtina (Ελληνικά)"
-
-
-msgid "Nepali (नेपाली)"
-msgstr "Nepálština (नेपाली)"
-
-
-msgid "Indonesian (Bahasa indonesia)"
-msgstr "Indonéština (Bahasa indonesia)"
-
-
-msgid "Serbian Latin (Srpski latinica)"
-msgstr "Srbská latinka (Srpski latinica)"
-
-
-msgid "Kyrgyz (Кыргыз тили)"
-msgstr "Kyrgyzština (Кыргыз тили)"
-
-
-msgid "Turkish (Türkçe)"
-msgstr "Turečtina (Türkçe)"
-
-
-msgid "Hungarian (Magyar)"
-msgstr "Maďarština (Magyar)"
-
-
-msgid "Brazilian Portuguese (Português do Brasil)"
-msgstr "Brazilská portugalština (Português do Brasil)"
-
-
-msgid "Hebrew (תירִבְעִ)"
-msgstr "Hebrejština (תירִבְעִ)"
-
-
-msgid "Amharic (አማርኛ)"
-msgstr "Amharština (አማርኛ)"
-
-
-msgid "Uzbek (Oʻzbek)"
-msgstr "Uzbekština (Oʻzbek)"
-
-
-msgid "Uzbek Cyrillic (Ўзбек)"
-msgstr "Uzbecká cyrilice (Ўзбек)"
-
-
-msgid "Thai (ภาษาไทย)"
-msgstr "Thajština (ภาษาไทย)"
-
-
-msgid "Slovak (Slovenčina)"
-msgstr "Slovenština (Slovenčina)"
-
-
-msgid "Complete"
-msgstr "Dokončené"
-
-
-msgid "In Progress"
-msgstr "V procesu"
 

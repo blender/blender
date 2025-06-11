@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'e91e8eef41aa')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'798f85a7108f')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-03 09:10+0000\n"
+"POT-Creation-Date: 2025-06-11 11:13+0000\n"
 "PO-Revision-Date: 2025-04-14 08:50+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Swahili <https://translate.blender.org/projects/blender-ui/ui/sw/>\n"
@@ -28722,20 +28722,20 @@ msgid "Editor menu containing buttons"
 msgstr "Menyu ya mhariri iliyo na vitufe"
 
 
-msgid "Text"
-msgstr "Maandishi"
-
-
-msgid "Metaball"
-msgstr "Mpira wa miguu"
-
-
 msgid "Show/Hide"
 msgstr "Onyesha/Ficha"
 
 
 msgid "Clean Up"
 msgstr "Safisha"
+
+
+msgid "Text"
+msgstr "Maandishi"
+
+
+msgid "Metaball"
+msgstr "Mpira wa miguu"
 
 
 msgid "Pivot Point"
@@ -28746,40 +28746,40 @@ msgid "Snap"
 msgstr "Picha"
 
 
-msgid "Mirror"
-msgstr "Kioo"
-
-
-msgid "Navigation"
-msgstr "Urambazaji"
-
-
-msgid "Select Linked"
-msgstr "Chagua Imeunganishwa"
-
-
-msgid "Light"
-msgstr "Mwanga"
+msgid "Merge"
+msgstr "Unganisha"
 
 
 msgid "Light Probe"
 msgstr "Uchunguzi wa Mwanga"
 
 
-msgid "Apply"
-msgstr "Tumia"
+msgid "Light"
+msgstr "Mwanga"
 
 
 msgid "Asset"
 msgstr "Mali"
 
 
+msgid "Apply"
+msgstr "Tumia"
+
+
 msgid "Bone Collections"
 msgstr "Mikusanyo ya Mifupa"
 
 
-msgid "Merge"
-msgstr "Unganisha"
+msgid "Select Linked"
+msgstr "Chagua Imeunganishwa"
+
+
+msgid "Navigation"
+msgstr "Urambazaji"
+
+
+msgid "Mirror"
+msgstr "Kioo"
 
 
 msgid "Keyframe Insert Pie"
@@ -56808,10 +56808,6 @@ msgid "Dissolve Vertices"
 msgstr "Futa Vipeo"
 
 
-msgid "Dissolve remaining vertices"
-msgstr "Futa wima zilizobaki"
-
-
 msgctxt "Operator"
 msgid "Dissolve Faces"
 msgstr "Nyeyusha Nyuso"
@@ -77914,20 +77910,12 @@ msgid "Device up/down directly controls the Z position of the 3D viewport"
 msgstr "Kifaa juu/chini hudhibiti moja kwa moja nafasi ya Z ya kituo cha kutazama cha 3D"
 
 
-msgid "Lock Camera Pan/Zoom"
-msgstr "Funga Kigeuzi cha Kamera/Kuza"
-
-
 msgid "Pan/zoom the camera view instead of leaving the camera view when orbiting"
 msgstr "Badili/kuza mwonekano wa kamera badala ya kuacha mwonekano wa kamera unapozunguka"
 
 
-msgid "Lock Horizon"
-msgstr "Kufungia Horizon"
-
-
-msgid "Keep horizon level while flying with 3D Mouse"
-msgstr "Weka usawa wa upeo wa macho unaporuka na Kipanya cha 3D"
+msgid "NDOF View Navigate"
+msgstr "NDOF Tazama Abiri"
 
 
 msgid "Orbit Sensitivity"
@@ -77936,14 +77924,6 @@ msgstr "Unyeti wa Obiti"
 
 msgid "Overall sensitivity of the 3D Mouse for orbiting"
 msgstr "Unyeti kwa ujumla wa Kipanya cha 3D kwa kuzunguka"
-
-
-msgid "Y/Z Swap Axis"
-msgstr "Y/Z Mhimili wa Badili"
-
-
-msgid "Pan using up/down on the device (otherwise forward/backward)"
-msgstr "Piga kwa kutumia juu/chini kwenye kifaa (vinginevyo mbele/nyuma)"
 
 
 msgid "Invert X Axis"
@@ -77976,50 +77956,6 @@ msgstr "Unyeti wa jumla wa Kipanya cha 3D kwa kugeuza"
 
 msgid "Display the center and axis during rotation"
 msgstr "Onyesha kituo na mhimili wakati wa mzunguko"
-
-
-msgid "NDOF View Navigate"
-msgstr "NDOF Tazama Abiri"
-
-
-msgid "Navigation style in the viewport"
-msgstr "Mtindo wa kusogeza katika lango la kutazama"
-
-
-msgid "Use full 6 degrees of freedom by default"
-msgstr "Tumia digrii 6 kamili za uhuru kwa chaguo-msingi"
-
-
-msgid "Orbit about the view center by default"
-msgstr "Obiti kuhusu kituo cha kutazama kwa chaguo-msingi"
-
-
-msgid "NDOF View Rotation"
-msgstr "Mzunguko wa Tazama wa NDOF"
-
-
-msgid "Rotation style in the viewport"
-msgstr "Mtindo wa mzunguko katika lango la kutazama"
-
-
-msgid "Turntable"
-msgstr "Mgeuko"
-
-
-msgid "Use turntable style rotation in the viewport"
-msgstr "Tumia mzunguko wa mtindo wa turntable katika lango la kutazama"
-
-
-msgid "Use trackball style rotation in the viewport"
-msgstr "Tumia mzunguko wa mtindo wa mpira wa miguu katika eneo la kutazama"
-
-
-msgid "Invert Zoom"
-msgstr "Geuza Kuza"
-
-
-msgid "Zoom using opposite direction"
-msgstr "Kuza kwa kutumia mwelekeo tofauti"
 
 
 msgid "Softness"
@@ -78144,6 +78080,10 @@ msgstr "Njia ya Obiti"
 
 msgid "Orbit method in the viewport"
 msgstr "Njia ya obiti kwenye lango la kutazama"
+
+
+msgid "Turntable"
+msgstr "Mgeuko"
 
 
 msgid "Turntable keeps the Z-axis upright while orbiting"
@@ -100691,22 +100631,6 @@ msgid "Zoom Method"
 msgstr "Njia ya Kukuza"
 
 
-msgid "Pan Sensitivity"
-msgstr "Unyeti wa Pan"
-
-
-msgid "Swap Y and Z Axes"
-msgstr "Badilisha Axes Y na Z"
-
-
-msgid "Invert Axis Pan"
-msgstr "Geuza Pan ya Mhimili"
-
-
-msgid "Invert Pan Axis"
-msgstr "Geuza Mhimili wa Pan"
-
-
 msgid "No custom MatCaps configured"
 msgstr "Hakuna MatCaps maalum iliyosanidiwa"
 
@@ -100767,8 +100691,16 @@ msgid "Invert Wheel Zoom Direction"
 msgstr "Geuza Mwelekeo wa Kuza wa Gurudumu"
 
 
-msgid "Fly/Walk"
-msgstr "Kuruka/Tembea"
+msgid "Lock Horizon"
+msgstr "Kufungia Horizon"
+
+
+msgid "Pan Sensitivity"
+msgstr "Unyeti wa Pan"
+
+
+msgid "Invert Pan Axis"
+msgstr "Geuza Mhimili wa Pan"
 
 
 msgid "Enable Cycles Render Engine add-on to use Cycles"
@@ -109268,10 +109200,6 @@ msgid "No active collection"
 msgstr "Hakuna mkusanyiko unaotumika"
 
 
-msgid "Can't duplicate the master collection"
-msgstr "Haiwezi kunakili mkusanyiko mkuu"
-
-
 msgid "Could not find a valid parent collection for the new duplicate, it won't be linked to any view layer"
 msgstr "Haikuweza kupata mkusanyiko halali wa mzazi kwa nakala mpya, hautaunganishwa na safu yoyote ya mwonekano."
 
@@ -116204,198 +116132,6 @@ msgstr "Nyongeza Zote Zimesakinishwa na Mtumiaji"
 
 msgid "Import-Export"
 msgstr "Leta-Hamisha"
-
-
-msgid "Japanese (日本語)"
-msgstr "Kijapani (日本語)"
-
-
-msgid "Dutch (Nederlands)"
-msgstr "Kiholanzi (Uholanzi)"
-
-
-msgid "Italian (Italiano)"
-msgstr "Kiitaliano (Kiitaliano)"
-
-
-msgid "German (Deutsch)"
-msgstr "Kijerumani (Deutsch)"
-
-
-msgid "Finnish (Suomi)"
-msgstr "Kifini (Suomi)"
-
-
-msgid "Swedish (Svenska)"
-msgstr "Kiswidi (Svenska)"
-
-
-msgid "French (Français)"
-msgstr "Kifaransa (Kifaransa)"
-
-
-msgid "Spanish (Español)"
-msgstr "Kihispania (Kihispania)"
-
-
-msgid "Catalan (Català)"
-msgstr "Kikatalani (Català)"
-
-
-msgid "Czech (Čeština)"
-msgstr "Kicheki (Čeština)"
-
-
-msgid "Portuguese (Português)"
-msgstr "Kireno (Kireno)"
-
-
-msgid "Simplified Chinese (简体中文)"
-msgstr "Kichina Kilichorahisishwa (简体中文)"
-
-
-msgid "Traditional Chinese (繁體中文)"
-msgstr "Kichina cha Jadi (繁體中文)"
-
-
-msgid "Russian (Русский)"
-msgstr "Kirusi (Русский)"
-
-
-msgid "Croatian (Hrvatski)"
-msgstr "Kikroeshia (Hrvatski)"
-
-
-msgid "Serbian (Српски)"
-msgstr "Kiserbia (Српски)"
-
-
-msgid "Ukrainian (Українська)"
-msgstr "Kiukreni (Українська)"
-
-
-msgid "Polish (Polski)"
-msgstr "Kipolandi (Polski)"
-
-
-msgid "Romanian (Român)"
-msgstr "Kiromania (Kirumi)"
-
-
-msgid "Arabic (ﺔﻴﺑﺮﻌﻟﺍ)"
-msgstr "Kiarabu (ﺔﻴﺑﺮﻌﻟﺍ)"
-
-
-msgid "Bulgarian (Български)"
-msgstr "Kibulgaria (Български)"
-
-
-msgid "Greek (Ελληνικά)"
-msgstr "Kigiriki (Ελληνικά)"
-
-
-msgid "Korean (한국어)"
-msgstr "Kikorea (Toka العربية)"
-
-
-msgid "Nepali (नेपाली)"
-msgstr "Kinepali (नेपाली)"
-
-
-msgid "Persian (ﯽﺳﺭﺎﻓ)"
-msgstr "Kiajemi (ﯽﺳﺭﺎﻓ)"
-
-
-msgid "Indonesian (Bahasa indonesia)"
-msgstr "Kiindonesia (Bahasa indonesia)"
-
-
-msgid "Serbian Latin (Srpski latinica)"
-msgstr "Kisabia Kilatini (Srpski latinica)"
-
-
-msgid "Turkish (Türkçe)"
-msgstr "Kituruki (Türkçe)"
-
-
-msgid "Hungarian (Magyar)"
-msgstr "Kihungari (Magyar)"
-
-
-msgid "Brazilian Portuguese (Português do Brasil)"
-msgstr "Kireno cha Brazil (Kireno do Brasil)"
-
-
-msgid "Hebrew (תירִבְעִ)"
-msgstr "Kiebrania (תירִבְעִ)"
-
-
-msgid "Estonian (Eesti keel)"
-msgstr "Kiestonia (Eesti keel)"
-
-
-msgid "Esperanto (Esperanto)"
-msgstr "Kiesperanto (Kiesperanto)"
-
-
-msgid "Amharic (አማርኛ)"
-msgstr "Kiamhari (አማርኛ)"
-
-
-msgid "Uzbek (Oʻzbek)"
-msgstr "Kiuzbeki (Oʻzbek)"
-
-
-msgid "Uzbek Cyrillic (Ўзбек)"
-msgstr "Kisiriliki ya Kiuzbeki (Ўзбек)"
-
-
-msgid "Hindi (हिन्दी)"
-msgstr "Kihindi (हिन्दी)"
-
-
-msgid "Vietnamese (Tiếng Việt)"
-msgstr "Kivietinamu (Tiếng Việt)"
-
-
-msgid "Basque (Euskara)"
-msgstr "Kibasque (Euskara)"
-
-
-msgid "Hausa (Hausa)"
-msgstr "Kihausa (Kihausa)"
-
-
-msgid "Kazakh (Қазақша)"
-msgstr "Kikazaki (Қазақша)"
-
-
-msgid "Thai (ภาษาไทย)"
-msgstr "Kithai (ภาษาไทย)"
-
-
-msgid "Slovak (Slovenčina)"
-msgstr "Kislovakia (Slovenčina)"
-
-
-msgid "Georgian (ქართული)"
-msgstr "Kijojia (ქართული)"
-
-
-msgid "Belarusian (беларуску)"
-msgstr "Kibelarusi (беларуску)"
-
-
-msgid "Danish (Dansk)"
-msgstr "Kideni (Dansk)"
-
-
-msgid "Complete"
-msgstr "Kamilisha"
-
-
-msgid "In Progress"
-msgstr "Inaendelea"
 
 
 msgid "Generation"
