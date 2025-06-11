@@ -2004,9 +2004,11 @@ ImBuf *render_give_ibuf(const RenderData *context, float timeline_frame, int cha
 
   if (!strips.is_empty() && !out) {
     std::scoped_lock lock(seq_render_mutex);
-    out = seq_render_strip_stack(context, &state, channels, seqbasep, timeline_frame, chanshown);
-
+    /* Try to make space before we add any new frames to the cache if it is full.
+     * If we do this after we have added the new cache, we risk removing what we just added.*/
     evict_caches_if_full(orig_scene);
+
+    out = seq_render_strip_stack(context, &state, channels, seqbasep, timeline_frame, chanshown);
 
     if (out && (orig_scene->ed->cache_flag & SEQ_CACHE_STORE_FINAL_OUT) && !context->skip_cache &&
         !context->is_proxy_render)

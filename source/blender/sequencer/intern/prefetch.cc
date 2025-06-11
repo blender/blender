@@ -76,7 +76,7 @@ struct PrefetchJob {
   int timeline_end = 0;
   int timeline_length = 0;
   int num_frames_prefetched = 0;
-  int cache_flags = 0;
+  int cache_flags = 0; /* Only used to detect cache flag changes. */
 
   /* Control: */
   /* Set by prefetch. */
@@ -544,6 +544,7 @@ static void *seq_prefetch_frames(void *job)
     }
 
     ImBuf *ibuf = render_give_ibuf(&pfjob->context_cpy, seq_prefetch_cfra(pfjob), 0);
+    pfjob->num_frames_prefetched++;
     IMB_freeImBuf(ibuf);
 
     /* Suspend thread if there is nothing to be prefetched. */
@@ -556,7 +557,6 @@ static void *seq_prefetch_frames(void *job)
     }
 
     seq_prefetch_update_area(pfjob);
-    pfjob->num_frames_prefetched++;
   }
 
   pfjob->running = false;

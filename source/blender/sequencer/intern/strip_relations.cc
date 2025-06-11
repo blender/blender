@@ -94,11 +94,12 @@ bool evict_caches_if_full(Scene *scene)
   bool evicted_source = false;
   if (count_source != 0) {
     evicted_source = source_image_cache_evict(scene);
+    /* Only try to enforce the final frame and raw cache ratio when the final cache is active. */
     if (evicted_source && scene->ed->cache_flag & SEQ_CACHE_STORE_FINAL_OUT) {
-      /* Only try to enforce the final frame and raw cache ratio when the final cache is active. */
-      const size_t source_per_final = divide_ceil_ul(count_source - 1,
+      const size_t source_per_final = divide_ceil_ul(count_source,
                                                      std::max<size_t>(count_final, 1));
-      for (size_t i = 0; i < source_per_final; i++) {
+      /* Start at "1" to make sure we only try to evict more frames if the ratio is above 1:1. */
+      for (size_t i = 1; i < source_per_final; i++) {
         if (!source_image_cache_evict(scene)) {
           /* Can't evict any more frames, stop. */
           break;
