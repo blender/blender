@@ -1299,7 +1299,7 @@ void DRW_mesh_batch_cache_create_requested(TaskGraph &task_graph,
 
   const bool do_subdivision = BKE_subsurf_modifier_has_gpu_subdiv(&mesh);
 
-  enum class BufferList { Final, Cage, UVCage };
+  enum class BufferList : int8_t { Final, Cage, UVCage };
 
   struct BatchCreateData {
     gpu::Batch &batch;

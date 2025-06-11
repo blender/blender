@@ -76,7 +76,7 @@ enum eGPUFrontFace {
 
 namespace blender::gpu::shader {
 
-enum class Type {
+enum class Type : int8_t {
   /* Types supported natively across all GPU back-ends. */
   float_t = 0,
   float2_t,
