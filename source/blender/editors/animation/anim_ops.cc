@@ -624,10 +624,6 @@ static bool use_playhead_snapping(bContext *C)
 
 static bool sequencer_skip_for_handle_tweak(const bContext *C, const wmEvent *event)
 {
-  if ((U.sequencer_editor_flag & USER_SEQ_ED_SIMPLE_TWEAKING) == 0) {
-    return false;
-  }
-
   const Scene *scene = CTX_data_scene(C);
   if (!blender::seq::editing_get(scene)) {
     return false;

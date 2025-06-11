@@ -1125,7 +1125,7 @@ typedef enum eUserpref_SeqProxySetup {
 } eUserpref_SeqProxySetup;
 
 typedef enum eUserpref_SeqEditorFlags {
-  USER_SEQ_ED_SIMPLE_TWEAKING = (1 << 0),
+  USER_SEQ_ED_UNUSED_0 = (1 << 0), /* Dirty. */
   USER_SEQ_ED_CONNECT_STRIPS_BY_DEFAULT = (1 << 1),
 } eUserpref_SeqEditorFlags;
 

@@ -125,6 +125,8 @@ struct TimelineDrawContext {
 
 /* `sequencer_timeline_draw.cc` */
 
+/* Get handle width in frames (viewspace). */
+float strip_handle_draw_size_get(const Scene *scene, Strip *strip, float pixelx);
 void draw_timeline_seq(const bContext *C, ARegion *region);
 void draw_timeline_seq_display(const bContext *C, ARegion *region);
 
@@ -137,13 +139,8 @@ void draw_timeline_seq_display(const bContext *C, ARegion *region);
  * region.
  */
 void sequencer_preview_region_draw(const bContext *C, ARegion *region);
-
-bool sequencer_draw_get_transform_preview(SpaceSeq *sseq, Scene *scene);
 int sequencer_draw_get_transform_preview_frame(const Scene *scene);
-
 void sequencer_special_update_set(Strip *strip);
-/* Get handle width in 2d-View space. */
-float strip_handle_draw_size_get(const Scene *scene, Strip *strip, float pixelx);
 
 /* UNUSED */
 /* void seq_reset_imageofs(SpaceSeq *sseq); */

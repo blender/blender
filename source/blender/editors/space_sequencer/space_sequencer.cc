@@ -679,11 +679,6 @@ static void sequencer_main_cursor(wmWindow *win, ScrArea *area, ARegion *region)
     return;
   }
 
-  if ((U.sequencer_editor_flag & USER_SEQ_ED_SIMPLE_TWEAKING) == 0) {
-    WM_cursor_set(win, wmcursor);
-    return;
-  }
-
   const View2D *v2d = &region->v2d;
   if (UI_view2d_mouse_in_scrollers(region, v2d, win->eventstate->xy)) {
     WM_cursor_set(win, wmcursor);

@@ -1350,10 +1350,6 @@ void blo_do_versions_userdef(UserDef *userdef)
     }
   }
 
-  if (!USER_VERSION_ATLEAST(402, 51)) {
-    userdef->sequencer_editor_flag |= USER_SEQ_ED_SIMPLE_TWEAKING;
-  }
-
   if (!USER_VERSION_ATLEAST(402, 56)) {
     BKE_preferences_extension_repo_add_default_system(userdef);
   }

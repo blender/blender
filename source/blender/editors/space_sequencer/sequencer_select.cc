@@ -999,14 +999,10 @@ bool can_select_handle(const Scene *scene, const Strip *strip, const View2D *v2d
     return false;
   }
 
-  /* This ensures clickable handles are deactivated when the strip gets too small (25 or 15
-   * frames). Since the full handle size for a small strip is 1/3 of the strip size (see
-   * `inner_clickable_handle_size_get`), this means handles cannot be smaller than 25/3 = 8px for
-   * simple tweaking, 15/3 = 5px for legacy behavior. */
+  /* This ensures clickable handles are deactivated when the strip gets too small
+   * (25 pixels). Since the full handle size for a small strip is 1/3 of the strip size (see
+   * `inner_clickable_handle_size_get`), this means handles cannot be smaller than 25/3 = 8px. */
   int min_len = 25 * U.pixelsize;
-  if ((U.sequencer_editor_flag & USER_SEQ_ED_SIMPLE_TWEAKING) == 0) {
-    min_len = 15 * U.pixelsize;
-  }
 
   const float pixelx = 1 / UI_view2d_scale_get_x(v2d);
   const int strip_len = seq::time_right_handle_frame_get(scene, strip) -
@@ -1176,7 +1172,7 @@ StripSelection pick_strip_and_handle(const Scene *scene, const View2D *v2d, floa
   selection.strip1 = strips[0];
   selection.handle = strip_handle_under_cursor_get(scene, selection.strip1, v2d, mouse_co);
 
-  if (strips.size() == 2 && (U.sequencer_editor_flag & USER_SEQ_ED_SIMPLE_TWEAKING) != 0 &&
+  if (strips.size() == 2 &&
       is_mouse_over_both_handles_of_adjacent_strips(scene, strips, v2d, mouse_co))
   {
     selection.strip2 = strips[1];
@@ -1325,8 +1321,7 @@ wmOperatorStatus sequencer_select_exec(bContext *C, wmOperator *op)
   VectorSet<Strip *> copy_to;
   /* True if the user selects either handle of a strip that is already selected, meaning that
    * handles should be propagated to all currently selected strips. */
-  bool copy_handles_to_sel = (U.sequencer_editor_flag & USER_SEQ_ED_SIMPLE_TWEAKING) &&
-                             (selection.handle != STRIP_HANDLE_NONE) &&
+  bool copy_handles_to_sel = (selection.handle != STRIP_HANDLE_NONE) &&
                              (selection.strip1->flag & SELECT);
 
   /* TODO(john): Dual handle propagation is not supported for now due to its complexity,
@@ -1478,19 +1473,15 @@ void SEQUENCER_OT_select(wmOperatorType *ot)
 /** \name Select Handle Operator
  * \{ */
 
+/** This operator is only used in the RCS keymap by default and is not exposed in any menus. */
 static wmOperatorStatus sequencer_select_handle_exec(bContext *C, wmOperator *op)
 {
-  /* This operator is only used in the RCS keymap by default and is not exposed in any menus. */
   const View2D *v2d = UI_view2d_fromcontext(C);
   Scene *scene = CTX_data_scene(C);
   Editing *ed = seq::editing_get(scene);
 
   if (ed == nullptr) {
     return OPERATOR_CANCELLED;
-  }
-
-  if ((U.sequencer_editor_flag & USER_SEQ_ED_SIMPLE_TWEAKING) == 0) {
-    return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
   }
 
   MouseCoords mouse_co(v2d, RNA_int_get(op->ptr, "mouse_x"), RNA_int_get(op->ptr, "mouse_y"));
