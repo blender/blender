@@ -48,6 +48,7 @@
 #include "ANIM_keyframing.hh"
 #include "ANIM_keyingsets.hh"
 #include "ANIM_pose.hh"
+#include "ANIM_rna.hh"
 
 #include "armature_intern.hh"
 
@@ -133,38 +134,39 @@ static void poselib_keytag_pose(bContext *C, Scene *scene, PoseBlendData *pbd)
 
     bPose *pose = ob->pose;
     bAction *act = poselib_action_to_blend(pbd);
-
-    KeyingSet *ks = blender::animrig::get_keyingset_for_autokeying(scene,
-                                                                   ANIM_KS_WHOLE_CHARACTER_ID);
-    blender::Vector<PointerRNA> sources;
-
-    /* start tagging/keying */
     const bArmature *armature = static_cast<const bArmature *>(ob->data);
-    for (bActionGroup *agrp : blender::animrig::legacy::channel_groups_all(act)) {
-      /* Only for selected bones unless there aren't any selected, in which case all are included.
-       */
-      bPoseChannel *pchan = BKE_pose_channel_find_name(pose, agrp->name);
-      if (pchan == nullptr) {
-        continue;
-      }
 
+    blender::animrig::Slot &slot = blender::animrig::get_best_pose_slot_for_id(ob->id,
+                                                                               act->wrap());
+
+    /* Storing which pose bones were already keyed since multiple FCurves will probably exist per
+     * pose bone. */
+    blender::Set<bPoseChannel *> keyed_pose_bones;
+    auto autokey_pose_bones = [&](FCurve * /* fcu */, const char *bone_name) {
+      bPoseChannel *pchan = BKE_pose_channel_find_name(pose, bone_name);
+      BLI_assert(pchan != nullptr);
       if (BKE_pose_backup_is_selection_relevant(pbd->pose_backup) &&
           !PBONE_SELECTED(armature, pchan->bone))
       {
-        continue;
+        return;
       }
-
-      /* Add data-source override for the PoseChannel, to be used later. */
-      blender::animrig::relative_keyingset_add_source(sources, &ob->id, &RNA_PoseBone, pchan);
-    }
-
-    if (adt->action) {
-      blender::animrig::action_deselect_keys(adt->action->wrap());
-    }
-
-    /* Perform actual auto-keying. */
-    blender::animrig::apply_keyingset(
-        C, &sources, ks, blender::animrig::ModifyKeyMode::INSERT, float(scene->r.cfra));
+      if (keyed_pose_bones.contains(pchan)) {
+        return;
+      }
+      /* This mimics the Whole Character Keying Set that was used here previously. In the future we
+       * could only key rna paths of FCurves that are actually in the applied pose. */
+      PointerRNA pose_bone_pointer = RNA_pointer_create_discrete(&ob->id, &RNA_PoseBone, pchan);
+      blender::Vector<RNAPath> rna_paths = blender::animrig::get_keyable_id_property_paths(
+          pose_bone_pointer);
+      rna_paths.append({"location"});
+      const blender::StringRef rotation_mode_path = blender::animrig::get_rotation_mode_path(
+          eRotationModes(pchan->rotmode));
+      rna_paths.append({rotation_mode_path});
+      rna_paths.append({"scale"});
+      blender::animrig::autokeyframe_pose_channel(C, scene, ob, pchan, rna_paths, 0);
+      keyed_pose_bones.add(pchan);
+    };
+    blender::bke::BKE_action_find_fcurves_with_bones(act, slot.handle, autokey_pose_bones);
   }
 
   /* send notifiers for this */
