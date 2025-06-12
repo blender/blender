@@ -31,28 +31,203 @@ class TestBlendFileOpenAllTestFiles(TestHelper):
         # Each file in this list should either be the source of a bug report,
         # or removed from tests repo.
         self.excluded_paths = {
-            # tests/modifier_stack/explode_modifier.blend
+            # modifier_stack/explode_modifier.blend
             # BLI_assert failed: source/blender/blenlib/BLI_ordered_edge.hh:41, operator==(), at 'e1.v_low < e1.v_high'
             "explode_modifier.blend",
 
-            # tests/depsgraph/deg_anim_camera_dof_driving_material.blend
+            # depsgraph/deg_anim_camera_dof_driving_material.blend
             # ERROR (bke.fcurve):
             # source/blender/blenkernel/intern/fcurve_driver.cc:188 dtar_get_prop_val:
             # Driver Evaluation Error: cannot resolve target for OBCamera ->
             # data.dof_distance
             "deg_anim_camera_dof_driving_material.blend",
 
-            # tests/depsgraph/deg_driver_shapekey_same_datablock.blend
+            # depsgraph/deg_driver_shapekey_same_datablock.blend
             # Error: Not freed memory blocks: 4, total unfreed memory 0.000427 MB
             "deg_driver_shapekey_same_datablock.blend",
 
-            # tests/physics/fluidsim.blend
+            # physics/fluidsim.blend
             # Error: Not freed memory blocks: 3, total unfreed memory 0.003548 MB
             "fluidsim.blend",
 
-            # tests/opengl/ram_glsl.blend
+            # opengl/ram_glsl.blend
             # Error: Not freed memory blocks: 4, total unfreed memory 0.000427 MB
             "ram_glsl.blend",
+        }
+
+        # Some files are expected to be invalid.
+        # This mapping stores filenames as keys, and expected error message as value.
+        self.invalid_paths = {
+            # animation/driver-object-eyes.blend
+            # File generated from a big endian build of Blender.
+            "driver-object-eyes.blend": (
+                (OSError, RuntimeError),
+                "created by a Big Endian version of Blender, support for these files has been removed in Blender 5.0"
+            ),
+
+            # modeling/faceselectmode.blend
+            # File generated from a big endian build of Blender.
+            "faceselectmode.blend": (
+                (OSError, RuntimeError),
+                "created by a Big Endian version of Blender, support for these files has been removed in Blender 5.0"
+            ),
+            # modeling/weight-paint_test.blend
+            # File generated from a big endian build of Blender.
+            "weight-paint_test.blend": (
+                (OSError, RuntimeError),
+                "created by a Big Endian version of Blender, support for these files has been removed in Blender 5.0"
+            ),
+
+            # io_tests/blend_big_endian/1.62/glass.blend
+            # File generated from a big endian build of Blender.
+            "glass.blend": (
+                (OSError, RuntimeError),
+                "created by a Big Endian version of Blender, support for these files has been removed in Blender 5.0"
+            ),
+            # io_tests/blend_big_endian/1.62/room.blend
+            # File generated from a big endian build of Blender.
+            "room.blend": (
+                (OSError, RuntimeError),
+                "created by a Big Endian version of Blender, support for these files has been removed in Blender 5.0"
+            ),
+            # io_tests/blend_big_endian/1.69/s-mesh.blend
+            # File generated from a big endian build of Blender.
+            "s-mesh.blend": (
+                (OSError, RuntimeError),
+                "created by a Big Endian version of Blender, support for these files has been removed in Blender 5.0"
+            ),
+            # io_tests/blend_big_endian/1.70/escher.blend
+            # File generated from a big endian build of Blender.
+            "escher.blend": (
+                (OSError, RuntimeError),
+                "created by a Big Endian version of Blender, support for these files has been removed in Blender 5.0"
+            ),
+            # io_tests/blend_big_endian/1.98/egypt.blend
+            # File generated from a big endian build of Blender.
+            "egypt.blend": (
+                (OSError, RuntimeError),
+                "created by a Big Endian version of Blender, support for these files has been removed in Blender 5.0"
+            ),
+            # io_tests/blend_big_endian/2.25/FroggyPacked.blend
+            # File generated from a big endian build of Blender.
+            "FroggyPacked.blend": (
+                (OSError, RuntimeError),
+                "created by a Big Endian version of Blender, support for these files has been removed in Blender 5.0"
+            ),
+            # io_tests/blend_big_endian/2.30/CtrlObject.blend
+            # File generated from a big endian build of Blender.
+            "CtrlObject.blend": (
+                (OSError, RuntimeError),
+                "created by a Big Endian version of Blender, support for these files has been removed in Blender 5.0"
+            ),
+            # io_tests/blend_big_endian/2.30/demofile.blend
+            # File generated from a big endian build of Blender.
+            "demofile.blend": (
+                (OSError, RuntimeError),
+                "created by a Big Endian version of Blender, support for these files has been removed in Blender 5.0"
+            ),
+            # io_tests/blend_big_endian/2.30/dolphin.blend
+            # File generated from a big endian build of Blender.
+            "dolphin.blend": (
+                (OSError, RuntimeError),
+                "created by a Big Endian version of Blender, support for these files has been removed in Blender 5.0"
+            ),
+            # io_tests/blend_big_endian/2.30/mball.blend
+            # File generated from a big endian build of Blender.
+            "mball.blend": (
+                (OSError, RuntimeError),
+                "created by a Big Endian version of Blender, support for these files has been removed in Blender 5.0"
+            ),
+            # io_tests/blend_big_endian/2.30/motor9.blend
+            # File generated from a big endian build of Blender.
+            "motor9.blend": (
+                (OSError, RuntimeError),
+                "created by a Big Endian version of Blender, support for these files has been removed in Blender 5.0"
+            ),
+            # io_tests/blend_big_endian/2.30/relative.blend
+            # File generated from a big endian build of Blender.
+            "relative.blend": (
+                (OSError, RuntimeError),
+                "created by a Big Endian version of Blender, support for these files has been removed in Blender 5.0"
+            ),
+            # io_tests/blend_big_endian/2.31/Raptor.blend
+            # File generated from a big endian build of Blender.
+            "Raptor.blend": (
+                (OSError, RuntimeError),
+                "created by a Big Endian version of Blender, support for these files has been removed in Blender 5.0"
+            ),
+            # io_tests/blend_big_endian/2.31/allselect.blend
+            # File generated from a big endian build of Blender.
+            "allselect.blend": (
+                (OSError, RuntimeError),
+                "created by a Big Endian version of Blender, support for these files has been removed in Blender 5.0"
+            ),
+            # io_tests/blend_big_endian/2.31/arealight.blend
+            # File generated from a big endian build of Blender.
+            "arealight.blend": (
+                (OSError, RuntimeError),
+                "created by a Big Endian version of Blender, support for these files has been removed in Blender 5.0"
+            ),
+            # io_tests/blend_big_endian/2.31/hairball.blend
+            # File generated from a big endian build of Blender.
+            "hairball.blend": (
+                (OSError, RuntimeError),
+                "created by a Big Endian version of Blender, support for these files has been removed in Blender 5.0"
+            ),
+            # io_tests/blend_big_endian/2.31/luxo.blend
+            # File generated from a big endian build of Blender.
+            "luxo.blend": (
+                (OSError, RuntimeError),
+                "created by a Big Endian version of Blender, support for these files has been removed in Blender 5.0"
+            ),
+            # io_tests/blend_big_endian/2.31/monkey_cornelius.blend
+            # File generated from a big endian build of Blender.
+            "monkey_cornelius.blend": (
+                (OSError, RuntimeError),
+                "created by a Big Endian version of Blender, support for these files has been removed in Blender 5.0"
+            ),
+            # io_tests/blend_big_endian/2.31/refract_monkey.blend
+            # File generated from a big endian build of Blender.
+            "refract_monkey.blend": (
+                (OSError, RuntimeError),
+                "created by a Big Endian version of Blender, support for these files has been removed in Blender 5.0"
+            ),
+            # io_tests/blend_big_endian/2.31/robo.blend
+            # File generated from a big endian build of Blender.
+            "robo.blend": (
+                (OSError, RuntimeError),
+                "created by a Big Endian version of Blender, support for these files has been removed in Blender 5.0"
+            ),
+            # io_tests/blend_big_endian/2.34/flippedmatrixes.blend
+            # File generated from a big endian build of Blender.
+            "flippedmatrixes.blend": (
+                (OSError, RuntimeError),
+                "created by a Big Endian version of Blender, support for these files has been removed in Blender 5.0"
+            ),
+            # io_tests/blend_big_endian/2.34/lostride.blend
+            # File generated from a big endian build of Blender.
+            "lostride.blend": (
+                (OSError, RuntimeError),
+                "created by a Big Endian version of Blender, support for these files has been removed in Blender 5.0"
+            ),
+            # io_tests/blend_big_endian/2.34/tapercurve.blend
+            # File generated from a big endian build of Blender.
+            "tapercurve.blend": (
+                (OSError, RuntimeError),
+                "created by a Big Endian version of Blender, support for these files has been removed in Blender 5.0"
+            ),
+            # io_tests/blend_big_endian/2.36/pathdist.blend
+            # File generated from a big endian build of Blender.
+            "pathdist.blend": (
+                (OSError, RuntimeError),
+                "created by a Big Endian version of Blender, support for these files has been removed in Blender 5.0"
+            ),
+            # io_tests/blend_big_endian/2.76/bird_sintel.blend
+            # File generated from a big endian build of Blender.
+            "bird_sintel.blend": (
+                (OSError, RuntimeError),
+                "created by a Big Endian version of Blender, support for these files has been removed in Blender 5.0"
+            ),
         }
 
         # Directories to exclude relative to `./tests/files/`.
@@ -102,6 +277,18 @@ class TestBlendFileOpenAllTestFiles(TestHelper):
                 return True
         return False
 
+    def invalid_path_exception_process(self, bfp, exception):
+        expected_failure = self.invalid_paths.get(os.path.basename(bfp), None)
+        if not expected_failure:
+            raise exception
+        # Check expected exception type(s).
+        if not isinstance(exception, expected_failure[0]):
+            raise exception
+        # Check expected exception (partial) message.
+        if expected_failure[1] not in str(exception):
+            raise exception
+        print(f"\tExpected failure: '{exception}'", flush=True)
+
     def test_open(self):
         for bfp in self.blendfile_paths:
             if self.skip_path_check(bfp):
@@ -109,7 +296,10 @@ class TestBlendFileOpenAllTestFiles(TestHelper):
             if not self.args.is_quiet:
                 print(f"Trying to open {bfp}", flush=True)
             bpy.ops.wm.read_homefile(use_empty=True, use_factory_startup=True)
-            bpy.ops.wm.open_mainfile(filepath=bfp, load_ui=False)
+            try:
+                bpy.ops.wm.open_mainfile(filepath=bfp, load_ui=False)
+            except BaseException as e:
+                self.invalid_path_exception_process(bfp, e)
 
     def link_append(self, do_link):
         operation_name = "link" if do_link else "append"
@@ -117,15 +307,18 @@ class TestBlendFileOpenAllTestFiles(TestHelper):
             if self.skip_path_check(bfp):
                 continue
             bpy.ops.wm.read_homefile(use_empty=True, use_factory_startup=True)
-            with bpy.data.libraries.load(bfp, link=do_link) as (lib_in, lib_out):
-                if len(lib_in.collections):
-                    if not self.args.is_quiet:
-                        print(f"Trying to {operation_name} {bfp}/Collection/{lib_in.collections[0]}", flush=True)
-                    lib_out.collections.append(lib_in.collections[0])
-                elif len(lib_in.objects):
-                    if not self.args.is_quiet:
-                        print(f"Trying to {operation_name} {bfp}/Object/{lib_in.objects[0]}", flush=True)
-                    lib_out.objects.append(lib_in.objects[0])
+            try:
+                with bpy.data.libraries.load(bfp, link=do_link) as (lib_in, lib_out):
+                    if len(lib_in.collections):
+                        if not self.args.is_quiet:
+                            print(f"Trying to {operation_name} {bfp}/Collection/{lib_in.collections[0]}", flush=True)
+                        lib_out.collections.append(lib_in.collections[0])
+                    elif len(lib_in.objects):
+                        if not self.args.is_quiet:
+                            print(f"Trying to {operation_name} {bfp}/Object/{lib_in.objects[0]}", flush=True)
+                        lib_out.objects.append(lib_in.objects[0])
+            except BaseException as e:
+                self.invalid_path_exception_process(bfp, e)
 
     def test_link(self):
         self.link_append(do_link=True)

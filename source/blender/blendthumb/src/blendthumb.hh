@@ -45,10 +45,5 @@ std::optional<blender::Vector<uint8_t>> blendthumb_create_png_data_from_thumb(
 eThumbStatus blendthumb_create_thumb_from_file(FileReader *rawfile, Thumbnail *thumb);
 
 /* INTEGER CODES */
-#ifdef __BIG_ENDIAN__
-/* Big Endian */
-#  define MAKE_ID(a, b, c, d) ((int)(a) << 24 | (int)(b) << 16 | (c) << 8 | (d))
-#else
-/* Little Endian */
-#  define MAKE_ID(a, b, c, d) ((int)(d) << 24 | (int)(c) << 16 | (b) << 8 | (a))
-#endif
+/* NOTE: this is endianness-sensitive. */
+#define MAKE_ID(a, b, c, d) ((int)(d) << 24 | (int)(c) << 16 | (b) << 8 | (a))

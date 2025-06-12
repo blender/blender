@@ -63,11 +63,9 @@ class Precompute {
     file.open(std::string(name) + ".pfm");
     file << "PF\n";
     file << n_x * n_z << " " << n_y * n_w << "\n";
-#ifdef __LITTLE_ENDIAN__
+    /* NOTE: this is endianness-sensitive.
+     * Big endian system would have needed `1.0` value instead. */
     file << "-1.0\n";
-#else
-    file << "1.0\n";
-#endif
     file.close();
 
     /* Write binary float content. */

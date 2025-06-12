@@ -46,19 +46,11 @@
 #endif
 
 /* NOTE: copied from BLO_core_bhead.hh, don't use here because we're in BLI. */
-#ifdef __BIG_ENDIAN__
-/* Big Endian */
-#  define MAKE_ID(a, b, c, d) ((int)(a) << 24 | (int)(b) << 16 | (c) << 8 | (d))
-#  define MAKE_ID_8(a, b, c, d, e, f, g, h) \
-    ((int64_t)(a) << 56 | (int64_t)(b) << 48 | (int64_t)(c) << 40 | (int64_t)(d) << 32 | \
-     (int64_t)(e) << 24 | (int64_t)(f) << 16 | (int64_t)(g) << 8 | (h))
-#else
-/* Little Endian */
-#  define MAKE_ID(a, b, c, d) (int(d) << 24 | int(c) << 16 | (b) << 8 | (a))
-#  define MAKE_ID_8(a, b, c, d, e, f, g, h) \
-    (int64_t(h) << 56 | int64_t(g) << 48 | int64_t(f) << 40 | int64_t(e) << 32 | \
-     int64_t(d) << 24 | int64_t(c) << 16 | int64_t(b) << 8 | (a))
-#endif
+/* NOTE: this is endianness-sensitive. */
+#define MAKE_ID(a, b, c, d) (int(d) << 24 | int(c) << 16 | (b) << 8 | (a))
+#define MAKE_ID_8(a, b, c, d, e, f, g, h) \
+  (int64_t(h) << 56 | int64_t(g) << 48 | int64_t(f) << 40 | int64_t(e) << 32 | int64_t(d) << 24 | \
+   int64_t(c) << 16 | int64_t(b) << 8 | (a))
 
 /**
  * Important that this value is an is _not_  aligned with `sizeof(void *)`.

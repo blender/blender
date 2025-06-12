@@ -721,11 +721,8 @@ static ushort hipart(const float f)
 
   tmp.f = f;
 
-#ifdef __BIG_ENDIAN__
-  return tmp.us[0];
-#else
+  /* NOTE: this is endianness-sensitive. */
   return tmp.us[1];
-#endif
 }
 
 static float index_to_float(const ushort i)
@@ -748,13 +745,9 @@ static float index_to_float(const ushort i)
     return -FLT_MAX;
   }
 
-#ifdef __BIG_ENDIAN__
-  tmp.us[0] = i;
-  tmp.us[1] = 0x8000;
-#else
+  /* NOTE: this is endianness-sensitive. */
   tmp.us[0] = 0x8000;
   tmp.us[1] = i;
-#endif
 
   return tmp.f;
 }

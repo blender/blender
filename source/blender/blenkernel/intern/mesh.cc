@@ -21,7 +21,6 @@
 #include "DNA_object_types.h"
 
 #include "BLI_bounds.hh"
-#include "BLI_endian_switch.h"
 #include "BLI_hash.h"
 #include "BLI_implicit_sharing.hh"
 #include "BLI_index_range.hh"
@@ -430,12 +429,9 @@ static void mesh_blend_read_data(BlendDataReader *reader, ID *id)
     mesh->totselect = 0;
   }
 
-  if (BLO_read_requires_endian_switch(reader) && mesh->tface) {
-    TFace *tf = mesh->tface;
-    for (int i = 0; i < mesh->totface_legacy; i++, tf++) {
-      BLI_endian_switch_uint32_array(tf->col, 4);
-    }
-  }
+  /* NOTE: this is endianness-sensitive. */
+  /* Each legacy TFace would need to undo the automatic DNA switch of its array of four uint32_t
+   * RGBA colors. */
 }
 
 IDTypeInfo IDType_ID_ME = {

@@ -28,6 +28,7 @@
 
 #include "DNA_genfile.h"
 
+#include "BLI_endian_defines.h"
 #include "BLI_fftw.hh"
 #include "BLI_string.h"
 #include "BLI_system.h"
@@ -97,6 +98,8 @@
 #endif
 
 #include "creator_intern.h" /* Own include. */
+
+BLI_STATIC_ASSERT(ENDIAN_ORDER == L_ENDIAN, "Blender only builds on little endian systems")
 
 /* -------------------------------------------------------------------- */
 /** \name Local Defines

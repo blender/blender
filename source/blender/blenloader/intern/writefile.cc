@@ -12,12 +12,13 @@
  *
  * IFF-style structure (but not IFF compatible!)
  *
- * Start file:
- * <pre>
- * `BLENDER_V100`  `12` bytes  (version 1.00 is just an example).
- *                 `V` = big endian, `v` = little endian.
- *                 `_` = 4 byte pointer, `-` = 8 byte pointer.
- * </pre>
+ * Start of the file:
+ *
+ * Historic Blendfiles (pre-Blender 5.0):
+ * `BLENDER_V100`  : Fixed 12 bytes length. See #BLEND_FILE_FORMAT_VERSION_0 for details.
+ *
+ * Current Blendfiles (Blender 5.0 and later):
+ * `BLENDER17-01v0500`: Variable bytes length. See #BLEND_FILE_FORMAT_VERSION_1 for details.
  *
  * data-blocks: (also see struct #BHead).
  * <pre>
@@ -92,7 +93,6 @@
 #include "DNA_userdef_types.h"
 
 #include "BLI_endian_defines.h"
-#include "BLI_endian_switch.h"
 #include "BLI_fileops.hh"
 #include "BLI_implicit_sharing.hh"
 #include "BLI_math_base.h"
@@ -312,9 +312,9 @@ bool ZstdWriteWrap::open(const char *filepath)
 
 void ZstdWriteWrap::write_u32_le(uint32_t val)
 {
-  if (ENDIAN_ORDER == B_ENDIAN) {
-    BLI_endian_switch_uint32(&val);
-  }
+  /* NOTE: this is endianness-sensitive.
+   * This value must always be written as little-endian. */
+  BLI_assert(ENDIAN_ORDER == L_ENDIAN);
   base_wrap.write(&val, sizeof(uint32_t));
 }
 
@@ -1380,7 +1380,7 @@ static std::string get_blend_file_header()
   }
 
   const char pointer_size_char = sizeof(void *) == 8 ? '-' : '_';
-  const char endian_char = ENDIAN_ORDER == B_ENDIAN ? 'V' : 'v';
+  const char endian_char = 'v';
 
   /* Legacy blend file header format. */
   std::stringstream ss;

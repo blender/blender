@@ -83,7 +83,9 @@ static MovieIndexBuilder *index_builder_create(const char *filepath)
   fprintf(rv->fp,
           "%s%c%.3d",
           binary_header_str,
-          (ENDIAN_ORDER == B_ENDIAN) ? 'V' : 'v',
+          /* NOTE: this is endianness-sensitive.
+           * On Big Endian system 'V' must be used instead of 'v'. */
+          'v',
           INDEX_FILE_VERSION);
 
   return rv;
@@ -179,7 +181,10 @@ static MovieIndex *movie_index_open(const char *filepath)
     return nullptr;
   }
 
-  if ((ENDIAN_ORDER == B_ENDIAN) != (header[8] == 'V')) {
+  /* NOTE: this is endianness-sensitive. */
+  BLI_assert(ELEM(header[8], 'v', 'V'));
+  const int16_t file_endianness = (header[8] == 'v') ? L_ENDIAN : B_ENDIAN;
+  if (file_endianness == B_ENDIAN) {
     for (int64_t i = 0; i < num_entries; i++) {
       BLI_endian_switch_int32(&idx->entries[i].frameno);
       BLI_endian_switch_uint64(&idx->entries[i].seek_pos_pts);

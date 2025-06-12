@@ -21,10 +21,6 @@
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"
 
-#ifdef __BIG_ENDIAN__
-#  include "BLI_endian_switch.h"
-#endif
-
 OIIO_NAMESPACE_USING
 using namespace blender::imbuf;
 
@@ -307,12 +303,10 @@ static void LoadDXTCImage(ImBuf *ibuf, Filesystem::IOMemReader &mem_reader)
    * we've made it this far. */
   uint32_t flags = 0;
   mem_reader.pread(&flags, sizeof(uint32_t), 8);
+  /* NOTE: this is endianness-sensitive. */
+  /* `ibuf->dds_data.nummipmaps` is always expected to be little-endian. */
   mem_reader.pread(&ibuf->dds_data.nummipmaps, sizeof(uint32_t), 28);
   mem_reader.pread(&ibuf->dds_data.fourcc, sizeof(uint32_t), 84);
-
-#ifdef __BIG_ENDIAN__
-  BLI_endian_switch_uint32(&ibuf->dds_data.nummipmaps);
-#endif
 
   const uint32_t DDSD_MIPMAPCOUNT = 0x00020000U;
   if ((flags & DDSD_MIPMAPCOUNT) == 0) {

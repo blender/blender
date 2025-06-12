@@ -21,7 +21,6 @@
 
 #  include "MEM_guardedalloc.h"
 
-#  include "BLI_endian_defines.h"
 #  include "BLI_fileops.h"
 #  include "BLI_math_base.h"
 #  include "BLI_path_utils.hh"
@@ -254,30 +253,15 @@ static AVFrame *generate_video_frame(MovieWriter *context, const ImBuf *image)
     }
   }
   else {
-    /* Byte image: flip the image vertically, possibly with endian
-     * conversion. */
+    /* Byte image: flip the image vertically. */
     const size_t linesize_src = rgb_frame->width * 4;
     for (int y = 0; y < height; y++) {
       uint8_t *target = rgb_frame->data[0] + linesize_dst * (height - y - 1);
       const uint8_t *src = pixels + linesize_src * y;
 
-#  if ENDIAN_ORDER == L_ENDIAN
+      /* NOTE: this is endianness-sensitive. */
+      /* The target buffer is always expected to conaint little-endian RGBA values. */
       memcpy(target, src, linesize_src);
-
-#  elif ENDIAN_ORDER == B_ENDIAN
-      const uint8_t *end = src + linesize_src;
-      while (src != end) {
-        target[3] = src[0];
-        target[2] = src[1];
-        target[1] = src[2];
-        target[0] = src[3];
-
-        target += 4;
-        src += 4;
-      }
-#  else
-#    error ENDIAN_ORDER should either be L_ENDIAN or B_ENDIAN.
-#  endif
     }
   }
 
