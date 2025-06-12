@@ -10,7 +10,6 @@
 
 #include "BLI_function_ref.hh"
 
-struct AssetHandle;
 struct AssetLibraryReference;
 struct bContext;
 struct ID;
@@ -39,12 +38,6 @@ asset_system::AssetLibrary *library_get_once_available(
 
 /** Can return false to stop iterating. */
 using AssetListIterFn = FunctionRef<bool(asset_system::AssetRepresentation &)>;
-
-/**
- * \note This override avoids the file caching system, so it's more performant and avoids pitfalls
- * from the other override. Prefer this when access to #AssetRepresentation is enough, and no
- * #AssetHandle is needed.
- */
 void iterate(const AssetLibraryReference &library_reference, AssetListIterFn fn);
 
 /**
