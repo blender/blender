@@ -27,6 +27,9 @@ Environment Variables:
   where the headless session doesn't define a seat.
 - ``USE_DEBUG``: When nonzero:
   Run Blender in a debugger.
+- ``PASS_THROUGH``: When nonzero:
+  Don't start a display server to run Blender in.
+  It's useful to execute Blender from this wrapper script to provide additional control of the environment.
 
 WAYLAND Environment Variables:
 
@@ -67,6 +70,9 @@ def environ_nonzero(var: str) -> bool:
 
 BLENDER_BIN = os.environ.get("BLENDER_BIN", "blender")
 
+# Skips starting a display server, run Blender in the user's environment.
+PASS_THROUGH = environ_nonzero("PASS_THROUGH")
+
 # For debugging, print out all information.
 VERBOSE = environ_nonzero("VERBOSE")
 
@@ -96,6 +102,33 @@ class backend_base:
     def run(args: Sequence[str]) -> int:
         sys.stderr.write("No headless back-ends for {!r} with args {!r}\n".format(sys.platform, args))
         return 1
+
+
+class backend_passthrough(backend_base):
+    @staticmethod
+    def run(blender_args: Sequence[str]) -> int:
+        with tempfile.TemporaryDirectory() as empty_user_dir:
+            blender_env = {**os.environ, "BLENDER_USER_RESOURCES": empty_user_dir}
+
+            cmd = [
+                # "strace",  # Can be useful for debugging any startup issues.
+                BLENDER_BIN,
+                *blender_args,
+            ]
+
+            if USE_DEBUG:
+                cmd = ["gdb", BLENDER_BIN, "--ex=run", "--args", *cmd]
+
+            if VERBOSE:
+                print("Env:", blender_env)
+                print("Run:", cmd)
+            with subprocess.Popen(cmd, env=blender_env) as proc_blender:
+                proc_blender.communicate()
+                blender_exit_code = proc_blender.returncode
+            del cmd
+
+        # Forward Blender's exit code.
+        return blender_exit_code
 
 
 class backend_wayland(backend_base):
@@ -303,29 +336,29 @@ class backend_wayland(backend_base):
                     # Wait for the interrupt to be handled.
                     proc_server.communicate()
                     return 1
+                with tempfile.TemporaryDirectory() as empty_user_dir:
+                    blender_env = {**os.environ, "WAYLAND_DISPLAY": socket, "BLENDER_USER_RESOURCES": empty_user_dir}
 
-                blender_env = {**os.environ, "WAYLAND_DISPLAY": socket}
+                    # Needed so Blender can find WAYLAND libraries such as `libwayland-cursor.so`.
+                    if weston_env is not None and "LD_LIBRARY_PATH" in weston_env:
+                        blender_env["LD_LIBRARY_PATH"] = weston_env["LD_LIBRARY_PATH"]
 
-                # Needed so Blender can find WAYLAND libraries such as `libwayland-cursor.so`.
-                if weston_env is not None and "LD_LIBRARY_PATH" in weston_env:
-                    blender_env["LD_LIBRARY_PATH"] = weston_env["LD_LIBRARY_PATH"]
+                    cmd = [
+                        # "strace",  # Can be useful for debugging any startup issues.
+                        BLENDER_BIN,
+                        *blender_args,
+                    ]
 
-                cmd = [
-                    # "strace",  # Can be useful for debugging any startup issues.
-                    BLENDER_BIN,
-                    *blender_args,
-                ]
+                    if USE_DEBUG:
+                        cmd = ["gdb", BLENDER_BIN, "--ex=run", "--args", *cmd]
 
-                if USE_DEBUG:
-                    cmd = ["gdb", BLENDER_BIN, "--ex=run", "--args", *cmd]
-
-                if VERBOSE:
-                    print("Env:", blender_env)
-                    print("Run:", cmd)
-                with subprocess.Popen(cmd, env=blender_env) as proc_blender:
-                    proc_blender.communicate()
-                    blender_exit_code = proc_blender.returncode
-                del cmd
+                    if VERBOSE:
+                        print("Env:", blender_env)
+                        print("Run:", cmd)
+                    with subprocess.Popen(cmd, env=blender_env) as proc_blender:
+                        proc_blender.communicate()
+                        blender_exit_code = proc_blender.returncode
+                    del cmd
 
                 # Blender has finished, close the server.
                 proc_server.send_signal(signal.SIGINT)
@@ -340,13 +373,17 @@ class backend_wayland(backend_base):
 # Main Function
 
 def main() -> int:
-    match sys.platform:
-        case "darwin":
-            backend = backend_base
-        case "win32":
-            backend = backend_base
-        case _:
-            backend = backend_wayland
+    backend: type[backend_base]
+    if PASS_THROUGH:
+        backend = backend_passthrough
+    else:
+        match sys.platform:
+            case "darwin":
+                backend = backend_base
+            case "win32":
+                backend = backend_base
+            case _:
+                backend = backend_wayland
     return backend.run(sys.argv[1:])
 
 
