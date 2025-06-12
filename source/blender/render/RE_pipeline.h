@@ -154,7 +154,7 @@ struct RenderStats {
   double starttime, lastframetime;
   const char *infostr, *statstr;
   char scene_name[MAX_ID_NAME - 2];
-  float mem_used, mem_peak;
+  int mem_used, mem_peak;
 };
 
 /* *********************** API ******************** */

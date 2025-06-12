@@ -1869,7 +1869,7 @@ static void stampdata(
     }
 
     if (use_dynamic && stats && (scene->r.stamp & R_STAMP_MEMORY)) {
-      SNPRINTF(stamp_data->memory, do_prefix ? "Peak Memory %.2fM" : "%.2fM", stats->mem_peak);
+      SNPRINTF(stamp_data->memory, do_prefix ? "Peak Memory ddM" : "%dM", stats->mem_peak);
     }
     else {
       stamp_data->memory[0] = '\0';

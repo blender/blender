@@ -2149,6 +2149,12 @@ static int arg_handle_extension_set(int argc, const char **argv, void *data)
   return 0;
 }
 
+static void add_log_render_filter()
+{
+  const char *render_filter = "render.*";
+  CLG_type_filter_include(render_filter, strlen(render_filter));
+}
+
 static const char arg_handle_render_frame_doc[] =
     "<frame>\n"
     "\tRender frame <frame> and save it.\n"
@@ -2163,6 +2169,8 @@ static int arg_handle_render_frame(int argc, const char **argv, void *data)
   bContext *C = static_cast<bContext *>(data);
   Scene *scene = CTX_data_scene(C);
   if (scene) {
+    add_log_render_filter();
+
     Main *bmain = CTX_data_main(C);
 
     if (argc > 1) {
@@ -2217,6 +2225,8 @@ static int arg_handle_render_animation(int /*argc*/, const char ** /*argv*/, voi
   bContext *C = static_cast<bContext *>(data);
   Scene *scene = CTX_data_scene(C);
   if (scene) {
+    add_log_render_filter();
+
     Main *bmain = CTX_data_main(C);
     Render *re = RE_NewSceneRender(scene);
     ReportList reports;
