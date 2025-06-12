@@ -27,7 +27,6 @@
 
 #include "DEG_depsgraph_build.hh"
 
-#include "ED_anim_api.hh"
 #include "ED_keyframing.hh"
 
 #include "ANIM_fcurve.hh"
@@ -313,7 +312,6 @@ bool ui_but_anim_expression_create(uiBut *but, const char *str)
 
 void ui_but_anim_autokey(bContext *C, uiBut *but, Scene *scene, float cfra)
 {
-  ANIM_deselect_keys_in_animation_editors(C);
   blender::animrig::autokeyframe_property(
       C, scene, &but->rnapoin, but->rnaprop, but->rnaindex, cfra, true);
 }
