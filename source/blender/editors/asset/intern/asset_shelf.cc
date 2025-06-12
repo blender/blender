@@ -688,7 +688,7 @@ int context(const bContext *C, const char *member, bContextDataResult *result)
   static const char *context_dir[] = {
       "asset_shelf",
       "asset_library_reference",
-      "active_file", /* XXX yuk... */
+      "asset",
       nullptr,
   };
 
@@ -722,8 +722,7 @@ int context(const bContext *C, const char *member, bContextDataResult *result)
     return CTX_RESULT_OK;
   }
 
-  /* XXX hack. Get the asset from the active item, but needs to be the file... */
-  if (CTX_data_equals(member, "active_file")) {
+  if (CTX_data_equals(member, "asset")) {
     const ARegion *region = CTX_wm_region(C);
     const uiBut *but = UI_region_views_find_active_item_but(region);
     if (!but) {
@@ -735,13 +734,13 @@ int context(const bContext *C, const char *member, bContextDataResult *result)
       return CTX_RESULT_NO_DATA;
     }
 
-    const PointerRNA *file_ptr = CTX_store_ptr_lookup(
-        but_context, "active_file", &RNA_FileSelectEntry);
-    if (!file_ptr) {
+    const PointerRNA *asset_ptr = CTX_store_ptr_lookup(
+        but_context, "asset", &RNA_AssetRepresentation);
+    if (!asset_ptr) {
       return CTX_RESULT_NO_DATA;
     }
 
-    CTX_data_pointer_set_ptr(result, file_ptr);
+    CTX_data_pointer_set_ptr(result, asset_ptr);
     return CTX_RESULT_OK;
   }
 
