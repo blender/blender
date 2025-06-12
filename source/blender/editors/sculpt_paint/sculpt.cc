@@ -5245,7 +5245,7 @@ static void store_sculpt_entire_mesh(const wmOperator &op,
 {
   Mesh &mesh = *static_cast<Mesh *>(object.data);
   sculpt_paint::undo::geometry_begin(scene, object, &op);
-  BKE_mesh_nomain_to_mesh(new_mesh, &mesh, &object);
+  BKE_mesh_nomain_to_mesh(new_mesh, &mesh, &object, false);
   sculpt_paint::undo::geometry_end(object);
   BKE_sculptsession_free_pbvh(object);
 }
