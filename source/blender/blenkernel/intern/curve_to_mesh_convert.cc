@@ -501,7 +501,10 @@ static void build_mesh_positions(const CurvesInfo &curves_info,
   const bool ignore_profile_position = profile_positions.size() == 1 &&
                                        math::is_equal(profile_positions.first(), float3(0.0f));
   if (ignore_profile_position) {
-    if (mesh.verts_num == curves_info.main.points_num()) {
+    if (mesh.verts_num == curves_info.main.points_num() &&
+        /* NURBS can have equal evaluated and positions sizes, but different coords. */
+        !curves_info.main.has_curve_with_type(CURVE_TYPE_NURBS))
+    {
       const GAttributeReader src = curves_info.main.attributes().lookup("position");
       if (src.sharing_info && src.varray.is_span()) {
         const AttributeInitShared init(src.varray.get_internal_span().data(), *src.sharing_info);
