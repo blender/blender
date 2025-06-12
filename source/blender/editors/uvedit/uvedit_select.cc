@@ -183,6 +183,20 @@ char ED_uvedit_select_mode_get(const Scene *scene)
   return uv_selectmode;
 }
 
+bool ED_uvedit_select_island_check(const ToolSettings *ts)
+{
+  if ((ts->uv_flag & UV_FLAG_ISLAND_SELECT) == 0) {
+    return false;
+  }
+  if (ts->uv_flag & UV_FLAG_SYNC_SELECT) {
+    if (ts->selectmode & (SCE_SELECT_VERTEX | SCE_SELECT_EDGE)) {
+      /* Not currently supported. */
+      return false;
+    }
+  }
+  return true;
+}
+
 void ED_uvedit_select_sync_flush(const ToolSettings *ts, BMesh *bm, const bool select)
 {
   /* bmesh API handles flushing but not on de-select */
@@ -1869,8 +1883,17 @@ static void uv_select_linked_multi(Scene *scene,
                                    const bool extend,
                                    bool deselect,
                                    const bool toggle,
-                                   const bool select_faces)
+                                   const bool select_faces,
+                                   const char hflag)
 {
+  if (select_faces) {
+    BLI_assert(ELEM(hflag, BM_ELEM_SELECT, BM_ELEM_TAG));
+  }
+  else {
+    /* Tagging could be supported for other elements but currently isn't needed. */
+    BLI_assert(hflag == BM_ELEM_SELECT);
+  }
+
   const bool uv_sync_select = (scene->toolsettings->uv_flag & UV_FLAG_SYNC_SELECT);
 
   /* loop over objects, or just use hit->ob */
@@ -1918,7 +1941,7 @@ static void uv_select_linked_multi(Scene *scene,
       BM_ITER_MESH_INDEX (efa, &iter, bm, BM_FACES_OF_MESH, a) {
         if (uvedit_face_visible_test(scene, efa)) {
           if (select_faces) {
-            if (BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
+            if (BM_elem_flag_test(efa, hflag)) {
               stack[stacksize] = a;
               stacksize++;
               flag[a] = 1;
@@ -2025,8 +2048,10 @@ static void uv_select_linked_multi(Scene *scene,
         }
 
         if (select_faces) {
-          if (BM_elem_flag_test(efa, BM_ELEM_SELECT) && !BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
-            found_selected = true;
+          if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
+            if (BM_elem_flag_test(efa, hflag)) {
+              found_selected = true;
+            }
           }
         }
         else {
@@ -2047,7 +2072,12 @@ static void uv_select_linked_multi(Scene *scene,
 
 #define SET_SELECTION(value) \
   if (select_faces) { \
-    BM_face_select_set(bm, efa, value); \
+    if (hflag == BM_ELEM_SELECT) { \
+      BM_face_select_set(bm, efa, value); \
+    } \
+    else { \
+      BM_elem_flag_set(efa, hflag, value); \
+    } \
   } \
   else { \
     uvedit_face_select_set(scene, bm, efa, value, offsets); \
@@ -2087,6 +2117,26 @@ static void uv_select_linked_multi(Scene *scene,
       }
     }
   }
+}
+
+/**
+ * A wrapper for #uv_select_linked_multi that uses defaults for UV island selection.
+ */
+static void uv_select_linked_multi_for_select_island(Scene *scene,
+                                                     const Span<Object *> objects,
+                                                     Object *obedit,
+                                                     BMFace *efa,
+                                                     const bool deselect,
+                                                     const bool select_faces,
+                                                     const char hflag)
+{
+  const bool extend = true;
+  const bool toggle = false;
+
+  UvNearestHit hit = {};
+  hit.ob = obedit;
+  hit.efa = efa;
+  uv_select_linked_multi(scene, objects, &hit, extend, deselect, toggle, select_faces, hflag);
 }
 
 const float *uvedit_first_selected_uv_from_vertex(Scene *scene,
@@ -2406,14 +2456,15 @@ static void uv_select_invert(const Scene *scene, BMEditMesh *em)
       continue;
     }
     BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-      if (ELEM(uv_selectmode, UV_SELECT_EDGE, UV_SELECT_FACE)) {
+      if (uv_selectmode & (UV_SELECT_EDGE | UV_SELECT_FACE)) {
         /* Use UV edge selection to find vertices and edges that must be selected. */
         bool es = BM_ELEM_CD_GET_BOOL(l, offsets.select_edge);
         BM_ELEM_CD_SET_BOOL(l, offsets.select_edge, !es);
         BM_ELEM_CD_SET_BOOL(l, offsets.select_vert, false);
       }
       /* Use UV vertex selection to find vertices and edges that must be selected. */
-      else if (ELEM(uv_selectmode, UV_SELECT_VERTEX, UV_SELECT_ISLAND)) {
+      else {
+        BLI_assert(uv_selectmode & UV_SELECT_VERTEX);
         bool vs = BM_ELEM_CD_GET_BOOL(l, offsets.select_vert);
         BM_ELEM_CD_SET_BOOL(l, offsets.select_vert, !vs);
         BM_ELEM_CD_SET_BOOL(l, offsets.select_edge, false);
@@ -2425,7 +2476,7 @@ static void uv_select_invert(const Scene *scene, BMEditMesh *em)
   if (ELEM(uv_selectmode, UV_SELECT_EDGE, UV_SELECT_FACE)) {
     uv_select_flush_from_loop_edge_flag(scene, bm);
   }
-  else if (ELEM(uv_selectmode, UV_SELECT_VERTEX, UV_SELECT_ISLAND)) {
+  else {
     uvedit_select_flush(scene, bm);
   }
 }
@@ -2533,6 +2584,7 @@ static bool uv_mouse_select_multi(bContext *C,
   bool found_item = false;
   /* 0 == don't flush, 1 == sel, -1 == deselect;  only use when selection sync is enabled. */
   int flush = 0;
+  const bool use_select_linked = ED_uvedit_select_island_check(ts);
 
   /* Penalty (in pixels) applied to elements that are already selected
    * so elements that aren't already selected are prioritized. */
@@ -2558,7 +2610,17 @@ static bool uv_mouse_select_multi(bContext *C,
   }
 
   /* find nearest element */
-  if (selectmode == UV_SELECT_VERTEX) {
+  if (use_select_linked) {
+    found_item = uv_find_nearest_edge_multi(scene, objects, co, 0.0f, &hit);
+
+    if (!found_item) {
+      /* Without this, we can be within the face of an island but too far from an edge,
+       * see face selection comment for details. */
+      hit.dist_sq = FLT_MAX;
+      found_item = uv_find_nearest_face_multi_ex(scene, objects, co, &hit, true);
+    }
+  }
+  else if (selectmode == UV_SELECT_VERTEX) {
     /* find vertex */
     found_item = uv_find_nearest_vert_multi(scene, objects, co, penalty_dist, &hit);
     if (found_item) {
@@ -2593,16 +2655,6 @@ static bool uv_mouse_select_multi(bContext *C,
     if (found_item) {
       BMesh *bm = BKE_editmesh_from_object(hit.ob)->bm;
       BM_mesh_active_face_set(bm, hit.efa);
-    }
-  }
-  else if (selectmode == UV_SELECT_ISLAND) {
-    found_item = uv_find_nearest_edge_multi(scene, objects, co, 0.0f, &hit);
-
-    if (!found_item) {
-      /* Without this, we can be within the face of an island but too far from an edge,
-       * see face selection comment for details. */
-      hit.dist_sq = FLT_MAX;
-      found_item = uv_find_nearest_face_multi_ex(scene, objects, co, &hit, true);
     }
   }
 
@@ -2665,13 +2717,14 @@ static bool uv_mouse_select_multi(bContext *C,
     }
     const BMUVOffsets offsets = BM_uv_map_offsets_get(bm);
 
-    if (selectmode == UV_SELECT_ISLAND) {
+    if (use_select_linked) {
       const bool extend = params.sel_op == SEL_OP_ADD;
       const bool deselect = params.sel_op == SEL_OP_SUB;
       const bool toggle = params.sel_op == SEL_OP_XOR;
       /* Current behavior of 'extend'
        * is actually toggling, so pass extend flag as 'toggle' here */
-      uv_select_linked_multi(scene, objects, &hit, extend, deselect, toggle, false);
+      uv_select_linked_multi(
+          scene, objects, &hit, extend, deselect, toggle, false, BM_ELEM_SELECT);
       /* TODO: check if this actually changed. */
       changed = true;
     }
@@ -3109,8 +3162,14 @@ static wmOperatorStatus uv_select_linked_internal(bContext *C,
     uv_select_all_perform_multi(scene, objects, SEL_DESELECT);
   }
 
-  uv_select_linked_multi(
-      scene, objects, pick ? &hit : nullptr, extend, deselect, false, select_faces);
+  uv_select_linked_multi(scene,
+                         objects,
+                         pick ? &hit : nullptr,
+                         extend,
+                         deselect,
+                         false,
+                         select_faces,
+                         BM_ELEM_SELECT);
 
   if (pick) {
     DEG_id_tag_update(static_cast<ID *>(hit.ob->data), ID_RECALC_SYNC_TO_EVAL | ID_RECALC_SELECT);
@@ -3609,8 +3668,7 @@ static wmOperatorStatus uv_box_select_exec(bContext *C, wmOperator *op)
   const bool use_edge = ((ts->uv_flag & UV_FLAG_SYNC_SELECT) ?
                              (ts->selectmode == SCE_SELECT_EDGE) :
                              (ts->uv_selectmode == UV_SELECT_EDGE));
-  const bool use_select_linked = !(ts->uv_flag & UV_FLAG_SYNC_SELECT) &&
-                                 (ts->uv_selectmode == UV_SELECT_ISLAND);
+  const bool use_select_linked = ED_uvedit_select_island_check(ts);
 
   /* get rectangle from operator */
   WM_operator_properties_border_to_rctf(op, &rectf);
@@ -3654,18 +3712,33 @@ static wmOperatorStatus uv_box_select_exec(bContext *C, wmOperator *op)
     /* do actual selection */
     if (use_face_center && !pinned) {
       /* handle face selection mode */
-      float cent[2];
 
+      if (use_select_linked) {
+        BM_mesh_elem_hflag_disable_all(bm, BM_FACE, BM_ELEM_TAG, false);
+      }
       BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
-        /* assume not touched */
-        BM_elem_flag_disable(efa, BM_ELEM_TAG);
+        if (use_select_linked) {
+          if (BM_elem_flag_test(efa, BM_ELEM_TAG)) {
+            continue;
+          }
+        }
+        else {
+          BM_elem_flag_disable(efa, BM_ELEM_TAG);
+        }
 
+        bool has_selected = false;
         if (uvedit_face_visible_test(scene, efa)) {
+          float cent[2];
           BM_face_uv_calc_center_median(efa, offsets.uv, cent);
           if (BLI_rctf_isect_pt_v(&rectf, cent)) {
             BM_elem_flag_enable(efa, BM_ELEM_TAG);
+            has_selected = true;
             changed = true;
           }
+        }
+        if (has_selected && use_select_linked) {
+          uv_select_linked_multi_for_select_island(
+              scene, objects, obedit, efa, !select, true, BM_ELEM_TAG);
         }
       }
 
@@ -3684,15 +3757,21 @@ static wmOperatorStatus uv_box_select_exec(bContext *C, wmOperator *op)
         BMLoop *l_prev = BM_FACE_FIRST_LOOP(efa)->prev;
         float *luv_prev = BM_ELEM_CD_GET_FLOAT_P(l_prev, offsets.uv);
 
+        bool has_selected = false;
         BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
           luv = BM_ELEM_CD_GET_FLOAT_P(l, offsets.uv);
           if (BLI_rctf_isect_pt_v(&rectf, luv) && BLI_rctf_isect_pt_v(&rectf, luv_prev)) {
             uvedit_edge_select_set_with_sticky(scene, bm, l_prev, select, offsets);
-            changed = true;
             do_second_pass = false;
+            has_selected = true;
+            changed = true;
           }
           l_prev = l;
           luv_prev = luv;
+        }
+        if (has_selected && use_select_linked) {
+          uv_select_linked_multi_for_select_island(
+              scene, objects, obedit, efa, !select, false, BM_ELEM_SELECT);
         }
       }
       /* Do a second pass if no complete edges could be selected.
@@ -3706,14 +3785,20 @@ static wmOperatorStatus uv_box_select_exec(bContext *C, wmOperator *op)
           BMLoop *l_prev = BM_FACE_FIRST_LOOP(efa)->prev;
           float *luv_prev = BM_ELEM_CD_GET_FLOAT_P(l_prev, offsets.uv);
 
+          bool has_selected = false;
           BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
             luv = BM_ELEM_CD_GET_FLOAT_P(l, offsets.uv);
             if (BLI_rctf_isect_segment(&rectf, luv_prev, luv)) {
               uvedit_edge_select_set_with_sticky(scene, bm, l_prev, select, offsets);
+              has_selected = true;
               changed = true;
             }
             l_prev = l;
             luv_prev = luv;
+          }
+          if (has_selected && use_select_linked) {
+            uv_select_linked_multi_for_select_island(
+                scene, objects, obedit, efa, !select, false, BM_ELEM_SELECT);
           }
         }
       }
@@ -3748,10 +3833,8 @@ static wmOperatorStatus uv_box_select_exec(bContext *C, wmOperator *op)
           }
         }
         if (has_selected && use_select_linked) {
-          UvNearestHit hit = {};
-          hit.ob = obedit;
-          hit.efa = efa;
-          uv_select_linked_multi(scene, objects, &hit, true, !select, false, false);
+          uv_select_linked_multi_for_select_island(
+              scene, objects, obedit, efa, !select, false, BM_ELEM_SELECT);
         }
       }
 
@@ -3857,8 +3940,7 @@ static wmOperatorStatus uv_circle_select_exec(bContext *C, wmOperator *op)
   const bool use_edge = ((ts->uv_flag & UV_FLAG_SYNC_SELECT) ?
                              (ts->selectmode == SCE_SELECT_EDGE) :
                              (ts->uv_selectmode == UV_SELECT_EDGE));
-  const bool use_select_linked = !(ts->uv_flag & UV_FLAG_SYNC_SELECT) &&
-                                 (ts->uv_selectmode == UV_SELECT_ISLAND);
+  const bool use_select_linked = ED_uvedit_select_island_check(ts);
 
   /* get operator properties */
   x = RNA_int_get(op->ptr, "x");
@@ -3905,16 +3987,34 @@ static wmOperatorStatus uv_circle_select_exec(bContext *C, wmOperator *op)
 
     /* do selection */
     if (use_face_center) {
+      if (use_select_linked) {
+        BM_mesh_elem_hflag_disable_all(bm, BM_FACE, BM_ELEM_TAG, false);
+      }
       BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
-        BM_elem_flag_disable(efa, BM_ELEM_TAG);
-        /* assume not touched */
-        if (select != uvedit_face_select_test(scene, efa, offsets)) {
-          float cent[2];
-          BM_face_uv_calc_center_median(efa, offsets.uv, cent);
-          if (uv_circle_select_is_point_inside(cent, offset, ellipse)) {
-            BM_elem_flag_enable(efa, BM_ELEM_TAG);
-            changed = true;
+        if (use_select_linked) {
+          if (BM_elem_flag_test(efa, BM_ELEM_TAG)) {
+            continue;
           }
+        }
+        else {
+          BM_elem_flag_disable(efa, BM_ELEM_TAG);
+          if (select == uvedit_face_select_test(scene, efa, offsets)) {
+            continue;
+          }
+        }
+
+        bool has_selected = false;
+        float cent[2];
+        BM_face_uv_calc_center_median(efa, offsets.uv, cent);
+        if (uv_circle_select_is_point_inside(cent, offset, ellipse)) {
+          BM_elem_flag_enable(efa, BM_ELEM_TAG);
+          has_selected = true;
+          changed = true;
+        }
+
+        if (has_selected && use_select_linked) {
+          uv_select_linked_multi_for_select_island(
+              scene, objects, obedit, efa, !select, true, BM_ELEM_TAG);
         }
       }
 
@@ -3932,14 +4032,20 @@ static wmOperatorStatus uv_circle_select_exec(bContext *C, wmOperator *op)
         BMLoop *l_prev = BM_FACE_FIRST_LOOP(efa)->prev;
         float *luv_prev = BM_ELEM_CD_GET_FLOAT_P(l_prev, offsets.uv);
 
+        bool has_selected = false;
         BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
           luv = BM_ELEM_CD_GET_FLOAT_P(l, offsets.uv);
           if (uv_circle_select_is_edge_inside(luv, luv_prev, offset, ellipse)) {
             uvedit_edge_select_set_with_sticky(scene, bm, l_prev, select, offsets);
+            has_selected = true;
             changed = true;
           }
           l_prev = l;
           luv_prev = luv;
+        }
+        if (has_selected && use_select_linked) {
+          uv_select_linked_multi_for_select_island(
+              scene, objects, obedit, efa, !select, false, BM_ELEM_SELECT);
         }
       }
     }
@@ -3963,10 +4069,8 @@ static wmOperatorStatus uv_circle_select_exec(bContext *C, wmOperator *op)
           }
         }
         if (has_selected && use_select_linked) {
-          UvNearestHit hit = {};
-          hit.ob = obedit;
-          hit.efa = efa;
-          uv_select_linked_multi(scene, objects, &hit, true, !select, false, false);
+          uv_select_linked_multi_for_select_island(
+              scene, objects, obedit, efa, !select, false, BM_ELEM_SELECT);
         }
       }
 
@@ -4066,8 +4170,7 @@ static bool do_lasso_select_mesh_uv(bContext *C, const Span<int2> mcoords, const
   const bool use_edge = ((ts->uv_flag & UV_FLAG_SYNC_SELECT) ?
                              (ts->selectmode == SCE_SELECT_EDGE) :
                              (ts->uv_selectmode == UV_SELECT_EDGE));
-  const bool use_select_linked = !(ts->uv_flag & UV_FLAG_SYNC_SELECT) &&
-                                 (ts->uv_selectmode == UV_SELECT_ISLAND);
+  const bool use_select_linked = ED_uvedit_select_island_check(ts);
 
   const bool select = (sel_op != SEL_OP_SUB);
   const bool use_pre_deselect = SEL_OP_USE_PRE_DESELECT(sel_op);
@@ -4103,16 +4206,34 @@ static bool do_lasso_select_mesh_uv(bContext *C, const Span<int2> mcoords, const
     const BMUVOffsets offsets = BM_uv_map_offsets_get(bm);
 
     if (use_face_center) { /* Face Center Select. */
+      if (use_select_linked) {
+        BM_mesh_elem_hflag_disable_all(bm, BM_FACE, BM_ELEM_TAG, false);
+      }
       BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
-        BM_elem_flag_disable(efa, BM_ELEM_TAG);
-        /* assume not touched */
-        if (select != uvedit_face_select_test(scene, efa, offsets)) {
-          float cent[2];
-          BM_face_uv_calc_center_median(efa, offsets.uv, cent);
-          if (do_lasso_select_mesh_uv_is_point_inside(region, &rect, mcoords, cent)) {
-            BM_elem_flag_enable(efa, BM_ELEM_TAG);
-            changed = true;
+        if (use_select_linked) {
+          if (BM_elem_flag_test(efa, BM_ELEM_TAG)) {
+            continue;
           }
+        }
+        else {
+          BM_elem_flag_disable(efa, BM_ELEM_TAG);
+          if (select == uvedit_face_select_test(scene, efa, offsets)) {
+            continue;
+          }
+        }
+
+        bool has_selected = false;
+        float cent[2];
+        BM_face_uv_calc_center_median(efa, offsets.uv, cent);
+        if (do_lasso_select_mesh_uv_is_point_inside(region, &rect, mcoords, cent)) {
+          BM_elem_flag_enable(efa, BM_ELEM_TAG);
+          has_selected = true;
+          changed = true;
+        }
+
+        if (has_selected && use_select_linked) {
+          uv_select_linked_multi_for_select_island(
+              scene, objects, obedit, efa, !select, true, BM_ELEM_TAG);
         }
       }
 
@@ -4128,9 +4249,9 @@ static bool do_lasso_select_mesh_uv(bContext *C, const Span<int2> mcoords, const
           continue;
         }
 
+        bool has_selected = false;
         BMLoop *l_prev = BM_FACE_FIRST_LOOP(efa)->prev;
         float *luv_prev = BM_ELEM_CD_GET_FLOAT_P(l_prev, offsets.uv);
-
         BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
           float *luv = BM_ELEM_CD_GET_FLOAT_P(l, offsets.uv);
           if (do_lasso_select_mesh_uv_is_point_inside(region, &rect, mcoords, luv) &&
@@ -4138,10 +4259,15 @@ static bool do_lasso_select_mesh_uv(bContext *C, const Span<int2> mcoords, const
           {
             uvedit_edge_select_set_with_sticky(scene, bm, l_prev, select, offsets);
             do_second_pass = false;
+            has_selected = true;
             changed = true;
           }
           l_prev = l;
           luv_prev = luv;
+        }
+        if (has_selected && use_select_linked) {
+          uv_select_linked_multi_for_select_island(
+              scene, objects, obedit, efa, !select, false, BM_ELEM_SELECT);
         }
       }
       /* Do a second pass if no complete edges could be selected.
@@ -4155,14 +4281,20 @@ static bool do_lasso_select_mesh_uv(bContext *C, const Span<int2> mcoords, const
           BMLoop *l_prev = BM_FACE_FIRST_LOOP(efa)->prev;
           float *luv_prev = BM_ELEM_CD_GET_FLOAT_P(l_prev, offsets.uv);
 
+          bool has_selected = false;
           BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
             float *luv = BM_ELEM_CD_GET_FLOAT_P(l, offsets.uv);
             if (do_lasso_select_mesh_uv_is_edge_inside(region, &rect, mcoords, luv, luv_prev)) {
               uvedit_edge_select_set_with_sticky(scene, bm, l_prev, select, offsets);
+              has_selected = true;
               changed = true;
             }
             l_prev = l;
             luv_prev = luv;
+          }
+          if (has_selected && use_select_linked) {
+            uv_select_linked_multi_for_select_island(
+                scene, objects, obedit, efa, !select, false, BM_ELEM_SELECT);
           }
         }
       }
@@ -4187,10 +4319,8 @@ static bool do_lasso_select_mesh_uv(bContext *C, const Span<int2> mcoords, const
           }
         }
         if (has_selected && use_select_linked) {
-          UvNearestHit hit = {};
-          hit.ob = obedit;
-          hit.efa = efa;
-          uv_select_linked_multi(scene, objects, &hit, true, !select, false, false);
+          uv_select_linked_multi_for_select_island(
+              scene, objects, obedit, efa, !select, false, BM_ELEM_SELECT);
         }
       }
 
@@ -5259,6 +5389,7 @@ static wmOperatorStatus uv_select_similar_exec(bContext *C, wmOperator *op)
 {
   ToolSettings *ts = CTX_data_tool_settings(C);
   PropertyRNA *prop = RNA_struct_find_property(op->ptr, "threshold");
+  const bool use_select_linked = ED_uvedit_select_island_check(ts);
 
   if (!RNA_property_is_set(op->ptr, prop)) {
     RNA_property_float_set(op->ptr, prop, ts->select_thresh);
@@ -5267,17 +5398,17 @@ static wmOperatorStatus uv_select_similar_exec(bContext *C, wmOperator *op)
     ts->select_thresh = RNA_property_float_get(op->ptr, prop);
   }
 
-  int selectmode = (ts->uv_flag & UV_FLAG_SYNC_SELECT) ? ts->selectmode : ts->uv_selectmode;
-  if (selectmode & UV_SELECT_EDGE) {
-    return uv_select_similar_edge_exec(C, op);
+  const int selectmode = (ts->uv_flag & UV_FLAG_SYNC_SELECT) ? ts->selectmode : ts->uv_selectmode;
+  if (use_select_linked) {
+    return uv_select_similar_island_exec(C, op);
   }
   if (selectmode & UV_SELECT_FACE) {
     return uv_select_similar_face_exec(C, op);
   }
-  if (selectmode & UV_SELECT_ISLAND) {
-    return uv_select_similar_island_exec(C, op);
+  if (selectmode & UV_SELECT_EDGE) {
+    return uv_select_similar_edge_exec(C, op);
   }
-
+  /* #UV_SELECT_VERTEX */
   return uv_select_similar_vert_exec(C, op);
 }
 
@@ -5309,14 +5440,14 @@ static const EnumPropertyItem *uv_select_similar_type_itemf(bContext *C,
 
   const ToolSettings *ts = CTX_data_tool_settings(C);
   if (ts) {
-    int selectmode = (ts->uv_flag & UV_FLAG_SYNC_SELECT) ? ts->selectmode : ts->uv_selectmode;
-    if (selectmode & UV_SELECT_VERTEX) {
-      RNA_enum_items_add_value(&item, &totitem, uv_select_similar_type_items, UV_SSIM_PIN);
-    }
-    else if (selectmode & UV_SELECT_EDGE) {
-      RNA_enum_items_add_value(&item, &totitem, uv_select_similar_type_items, UV_SSIM_LENGTH_UV);
-      RNA_enum_items_add_value(&item, &totitem, uv_select_similar_type_items, UV_SSIM_LENGTH_3D);
-      RNA_enum_items_add_value(&item, &totitem, uv_select_similar_type_items, UV_SSIM_PIN);
+    const bool use_select_linked = ED_uvedit_select_island_check(ts);
+    const int selectmode = (ts->uv_flag & UV_FLAG_SYNC_SELECT) ? ts->selectmode :
+                                                                 ts->uv_selectmode;
+    /* TODO: co-exist with selection modes. */
+    if (use_select_linked) {
+      RNA_enum_items_add_value(&item, &totitem, uv_select_similar_type_items, UV_SSIM_AREA_UV);
+      RNA_enum_items_add_value(&item, &totitem, uv_select_similar_type_items, UV_SSIM_AREA_3D);
+      RNA_enum_items_add_value(&item, &totitem, uv_select_similar_type_items, UV_SSIM_FACE);
     }
     else if (selectmode & UV_SELECT_FACE) {
       RNA_enum_items_add_value(&item, &totitem, uv_select_similar_type_items, UV_SSIM_AREA_UV);
@@ -5326,10 +5457,14 @@ static const EnumPropertyItem *uv_select_similar_type_itemf(bContext *C,
       RNA_enum_items_add_value(&item, &totitem, uv_select_similar_type_items, UV_SSIM_SIDES);
       RNA_enum_items_add_value(&item, &totitem, uv_select_similar_type_items, UV_SSIM_WINDING);
     }
-    else if (selectmode & UV_SELECT_ISLAND) {
-      RNA_enum_items_add_value(&item, &totitem, uv_select_similar_type_items, UV_SSIM_AREA_UV);
-      RNA_enum_items_add_value(&item, &totitem, uv_select_similar_type_items, UV_SSIM_AREA_3D);
-      RNA_enum_items_add_value(&item, &totitem, uv_select_similar_type_items, UV_SSIM_FACE);
+    else if (selectmode & UV_SELECT_EDGE) {
+      RNA_enum_items_add_value(&item, &totitem, uv_select_similar_type_items, UV_SSIM_LENGTH_UV);
+      RNA_enum_items_add_value(&item, &totitem, uv_select_similar_type_items, UV_SSIM_LENGTH_3D);
+      RNA_enum_items_add_value(&item, &totitem, uv_select_similar_type_items, UV_SSIM_PIN);
+    }
+    else {
+      /* #UV_SELECT_VERTEX */
+      RNA_enum_items_add_value(&item, &totitem, uv_select_similar_type_items, UV_SSIM_PIN);
     }
   }
   else {
@@ -5525,63 +5660,6 @@ finally:
 /** \name Select Mode UV Vert/Edge/Face/Island Operator
  * \{ */
 
-/**
- * Deselects UVs that are not part of a complete island selection.
- *
- * Use only when sync select disabled.
- */
-static void uv_isolate_selected_islands(const Scene *scene, BMesh *bm, const BMUVOffsets &offsets)
-{
-  BLI_assert((scene->toolsettings->uv_flag & UV_FLAG_SYNC_SELECT) == 0);
-  BMFace *efa;
-  BMIter iter, liter;
-  UvElementMap *elementmap = BM_uv_element_map_create(bm, scene, false, false, true, true);
-  if (elementmap == nullptr) {
-    return;
-  }
-  BLI_assert(offsets.select_vert >= 0);
-  BLI_assert(offsets.select_edge >= 0);
-
-  int num_islands = elementmap->total_islands;
-  /* Boolean array that tells if island with index i is completely selected or not. */
-  bool *is_island_not_selected = MEM_calloc_arrayN<bool>((num_islands), __func__);
-
-  BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
-    BMLoop *l;
-    if (!uvedit_face_visible_test(scene, efa)) {
-      BM_elem_flag_disable(efa, BM_ELEM_TAG);
-      continue;
-    }
-    BM_elem_flag_enable(efa, BM_ELEM_TAG);
-    BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-      if (!uvedit_edge_select_test(scene, l, offsets)) {
-        UvElement *element = BM_uv_element_get(elementmap, l);
-        if (element) {
-          is_island_not_selected[element->island] = true;
-        }
-      }
-    }
-  }
-
-  BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
-    BMLoop *l;
-    if (!BM_elem_flag_test(efa, BM_ELEM_TAG)) {
-      continue;
-    }
-    BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-      UvElement *element = BM_uv_element_get(elementmap, l);
-      /* Deselect all elements of islands which are not completely selected. */
-      if (element && is_island_not_selected[element->island]) {
-        BM_ELEM_CD_SET_BOOL(l, offsets.select_vert, false);
-        BM_ELEM_CD_SET_BOOL(l, offsets.select_edge, false);
-      }
-    }
-  }
-
-  BM_uv_element_map_free(elementmap);
-  MEM_freeN(is_island_not_selected);
-}
-
 void ED_uvedit_selectmode_clean(const Scene *scene, Object *obedit)
 {
   const ToolSettings *ts = scene->toolsettings;
@@ -5642,11 +5720,6 @@ void ED_uvedit_selectmode_clean(const Scene *scene, Object *obedit)
       }
     }
     uv_select_flush_from_tag_face(scene, obedit, true);
-  }
-
-  else if (ts->uv_selectmode == UV_SELECT_ISLAND) {
-    /* Island mode. */
-    uv_isolate_selected_islands(scene, bm, offsets);
   }
 
   ED_uvedit_selectmode_flush(scene, bm);

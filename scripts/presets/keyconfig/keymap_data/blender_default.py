@@ -534,11 +534,14 @@ def _template_items_uv_select_mode(params):
             op_menu("IMAGE_MT_uvs_select_mode", {"type": 'TAB', "value": 'PRESS', "ctrl": True}),
 
             *_template_items_editmode_mesh_select_mode(params),
-            # Hack to prevent fall-through, when sync select isn't enabled (and the island button isn't visible).
-            ("mesh.select_mode", {"type": 'FOUR', "value": 'PRESS'}, None),
             *(("uv.select_mode", {"type": NUMBERS_1[i], "value": 'PRESS'},
                {"properties": [("type", e)]})
-              for i, e in enumerate(('VERTEX', 'EDGE', 'FACE', 'ISLAND')))
+              for i, e in enumerate(('VERTEX', 'EDGE', 'FACE'))),
+            # Prior to v5.0 UV island was exposed as a selection mode.
+            # Even though it's not longer a distinct mode, keep the shortcut
+            # as it's handy and visually the 4th item in the UI.
+            ("wm.context_toggle", {"type": 'FOUR', "value": 'PRESS'},
+             {"properties": [("data_path", "tool_settings.use_uv_select_island")]}),
         ]
 
 

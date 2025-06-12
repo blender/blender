@@ -583,8 +583,8 @@ def km_uv_editor(params):
          {"properties": [("type", 'EDGE')]}),
         ("uv.select_mode", {"type": 'THREE', "value": 'PRESS'},
          {"properties": [("type", 'FACE')]}),
-        ("uv.select_mode", {"type": 'FOUR', "value": 'PRESS'},
-         {"properties": [("type", 'ISLAND')]}),
+        ("wm.context_toggle", {"type": 'FOUR', "value": 'PRESS'},
+         {"properties": [("data_path", "tool_settings.use_uv_select_island")]}),
 
         ("uv.select", {"type": 'LEFTMOUSE', "value": 'CLICK'},
          {"properties": [("deselect_all", True)]}),

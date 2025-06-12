@@ -2781,6 +2781,11 @@ enum {
 enum {
   UV_FLAG_SYNC_SELECT = 1 << 0,
   UV_FLAG_SHOW_SAME_IMAGE = 1 << 1,
+  /**
+   * \note In most cases #ED_uvedit_select_island_check should be used to check if island
+   * selection should be used - since not all combinations of options support it.
+   */
+  UV_FLAG_ISLAND_SELECT = 1 << 2,
 };
 
 /** #ToolSettings::uv_selectmode */
@@ -2788,7 +2793,6 @@ enum {
   UV_SELECT_VERTEX = 1 << 0,
   UV_SELECT_EDGE = 1 << 1,
   UV_SELECT_FACE = 1 << 2,
-  UV_SELECT_ISLAND = 1 << 3,
 };
 
 /** #ToolSettings::uv_sticky */
