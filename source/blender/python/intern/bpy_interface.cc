@@ -347,9 +347,8 @@ void BPY_python_start(bContext *C, int argc, const char **argv)
     PyStatus status;
 
     /* To narrow down reports where the systems Python is inexplicably used, see: #98131. */
-    CLOG_INFO(
+    CLOG_DEBUG(
         BPY_LOG_INTERFACE,
-        2,
         "Initializing %s support for the systems Python environment such as 'PYTHONPATH' and "
         "the user-site directory.",
         py_use_system_env ? "*with*" : "*without*");
@@ -793,7 +792,6 @@ bool BPY_context_member_get(bContext *C, const char *member, bContextDataResult 
         }
         else {
           CLOG_INFO(BPY_LOG_CONTEXT,
-                    1,
                     "'%s' list item not a valid type in sequence type '%s'",
                     member,
                     Py_TYPE(item)->tp_name);
@@ -807,14 +805,14 @@ bool BPY_context_member_get(bContext *C, const char *member, bContextDataResult 
 
   if (done == false) {
     if (item) {
-      CLOG_INFO(BPY_LOG_CONTEXT, 1, "'%s' not a valid type", member);
+      CLOG_INFO(BPY_LOG_CONTEXT, "'%s' not a valid type", member);
     }
     else {
-      CLOG_INFO(BPY_LOG_CONTEXT, 1, "'%s' not found", member);
+      CLOG_INFO(BPY_LOG_CONTEXT, "'%s' not found", member);
     }
   }
   else {
-    CLOG_INFO(BPY_LOG_CONTEXT, 2, "'%s' found", member);
+    CLOG_DEBUG(BPY_LOG_CONTEXT, "'%s' found", member);
   }
 
   if (use_gil) {

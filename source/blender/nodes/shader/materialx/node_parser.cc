@@ -39,12 +39,11 @@ NodeItem NodeParser::compute_full()
   const std::string res_node_name = node_name();
   res = graph_.get_node(res_node_name);
   if (!res.node) {
-    CLOG_INFO(LOG_IO_MATERIALX,
-              1,
-              "%s [%d] => %s",
-              node_->name,
-              node_->typeinfo->type_legacy,
-              NodeItem::type(to_type_).c_str());
+    CLOG_DEBUG(LOG_IO_MATERIALX,
+               "%s [%d] => %s",
+               node_->name,
+               node_->typeinfo->type_legacy,
+               NodeItem::type(to_type_).c_str());
 
     res = compute();
     if (res.node) {

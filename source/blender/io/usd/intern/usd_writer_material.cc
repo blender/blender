@@ -822,7 +822,7 @@ static void export_in_memory_imbuf(ImBuf *imbuf,
     return;
   }
 
-  CLOG_INFO(&LOG, 2, "Exporting in-memory texture to '%s'", export_path);
+  CLOG_DEBUG(&LOG, "Exporting in-memory texture to '%s'", export_path);
 
   if (BKE_imbuf_write_as(imbuf, export_path, &imageFormat, true) == false) {
     BKE_reportf(
@@ -949,7 +949,7 @@ static void export_packed_texture(Image *ima,
       return;
     }
 
-    CLOG_INFO(&LOG, 2, "Exporting packed texture to '%s'", export_path.c_str());
+    CLOG_DEBUG(&LOG, "Exporting packed texture to '%s'", export_path.c_str());
 
     write_to_path(pf->data, pf->size, export_path, reports);
   }
@@ -1312,7 +1312,7 @@ static void copy_tiled_textures(Image *ima,
       continue;
     }
 
-    CLOG_INFO(&LOG, 2, "Copying texture tile from '%s' to '%s'", src_tile_path, dest_tile_path);
+    CLOG_DEBUG(&LOG, "Copying texture tile from '%s' to '%s'", src_tile_path, dest_tile_path);
 
     /* Copy the file. */
     if (BLI_copy(src_tile_path, dest_tile_path) != 0) {
@@ -1350,7 +1350,7 @@ static void copy_single_file(const Image *ima,
     return;
   }
 
-  CLOG_INFO(&LOG, 2, "Copying texture from '%s' to '%s'", source_path, dest_path);
+  CLOG_DEBUG(&LOG, "Copying texture from '%s' to '%s'", source_path, dest_path);
 
   /* Copy the file. */
   if (BLI_copy(source_path, dest_path) != 0) {

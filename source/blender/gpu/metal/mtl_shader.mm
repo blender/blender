@@ -1074,8 +1074,8 @@ MTLRenderPipelineStateInstance *MTLShader::bake_pipeline_state(
             }
             using_null_buffer = true;
 #if MTL_DEBUG_SHADER_ATTRIBUTES == 1
-            MTL_LOG_INFO("Setting up buffer binding for null attribute with buffer index %d",
-                         null_buffer_index);
+            MTL_LOG_DEBUG("Setting up buffer binding for null attribute with buffer index %d",
+                          null_buffer_index);
 #endif
           }
         }
@@ -1468,9 +1468,9 @@ MTLComputePipelineStateInstance *MTLShader::bake_compute_pipeline_state(
     if (ELEM(capabilities.gpu, APPLE_GPU_M1, APPLE_GPU_M2)) {
       if (maxTotalThreadsPerThreadgroup_Tuning_ > 0) {
         desc.maxTotalThreadsPerThreadgroup = this->maxTotalThreadsPerThreadgroup_Tuning_;
-        MTL_LOG_INFO("Using custom parameter for shader %s value %u\n",
-                     this->name,
-                     maxTotalThreadsPerThreadgroup_Tuning_);
+        MTL_LOG_DEBUG("Using custom parameter for shader %s value %u\n",
+                      this->name,
+                      maxTotalThreadsPerThreadgroup_Tuning_);
       }
     }
 

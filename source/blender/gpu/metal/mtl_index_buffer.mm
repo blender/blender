@@ -115,7 +115,7 @@ void MTLIndexBuf::upload_data()
 
   /* If new data ready, and index buffer already exists, release current. */
   if ((ibo_ != nullptr) && (this->data_ != nullptr)) {
-    MTL_LOG_INFO("Re-creating index buffer with new data. IndexBuf %p", this);
+    MTL_LOG_DEBUG("Re-creating index buffer with new data. IndexBuf %p", this);
     ibo_->free();
     ibo_ = nullptr;
   }
@@ -460,7 +460,7 @@ id<MTLBuffer> MTLIndexBuf::get_index_buffer(GPUPrimType &in_out_primitive_type,
         /* TODO(Metal): Line strip topology types would benefit from optimization to remove
          * primitive restarts, however, these do not occur frequently, nor with
          * significant geometry counts. */
-        MTL_LOG_INFO("TODO: Primitive topology: Optimize line strip topology types");
+        MTL_LOG_DEBUG("TODO: Primitive topology: Optimize line strip topology types");
       } break;
 
       case GPU_PRIM_LINE_LOOP: {

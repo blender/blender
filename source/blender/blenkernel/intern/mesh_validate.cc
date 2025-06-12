@@ -147,7 +147,7 @@ static bool search_face_corner_cmp(const SortFace &sp1, const SortFace &sp2)
 
 #define PRINT_MSG(...) \
   if (do_verbose) { \
-    CLOG_INFO(&LOG, 1, __VA_ARGS__); \
+    CLOG_INFO(&LOG, __VA_ARGS__); \
   } \
   ((void)0)
 
@@ -1025,7 +1025,7 @@ bool BKE_mesh_validate(Mesh *mesh, const bool do_verbose, const bool cddata_chec
   bool changed;
 
   if (do_verbose) {
-    CLOG_INFO(&LOG, 0, "MESH: %s", mesh->id.name + 2);
+    CLOG_INFO(&LOG, "Validating Mesh: %s", mesh->id.name + 2);
   }
 
   BKE_mesh_validate_all_customdata(&mesh->vert_data,

@@ -21,10 +21,10 @@ GHOST_NDOFManagerUnix::GHOST_NDOFManagerUnix(GHOST_System &sys)
     : GHOST_NDOFManager(sys), available_(false)
 {
   if (access(spnav_sock_path, F_OK) != 0) {
-    CLOG_INFO(LOG, 1, "'spacenavd' not found at \"%s\"", spnav_sock_path);
+    CLOG_INFO(LOG, "'spacenavd' not found at \"%s\"", spnav_sock_path);
   }
   else if (spnav_open() != -1) {
-    CLOG_INFO(LOG, 1, "'spacenavd' found at\"%s\"", spnav_sock_path);
+    CLOG_INFO(LOG, "'spacenavd' found at\"%s\"", spnav_sock_path);
     available_ = true;
 
     /* determine exactly which device (if any) is plugged in */

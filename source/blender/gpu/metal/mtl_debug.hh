@@ -46,10 +46,10 @@ void mtl_debug_init();
     } \
   }
 
-#define MTL_LOG_INFO(info, ...) \
+#define MTL_LOG_DEBUG(info, ...) \
   { \
     if (G.debug & G_DEBUG_GPU) { \
-      CLOG_INFO(&debug::LOG, 2, info EXPAND_ARGS(__VA_ARGS__)); \
+      CLOG_DEBUG(&debug::LOG, info EXPAND_ARGS(__VA_ARGS__)); \
     } \
   }
 

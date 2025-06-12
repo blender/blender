@@ -102,7 +102,7 @@ void MTLContext::set_ghost_context(GHOST_ContextHandle ghostCtxHandle)
   if (ghost_cgl_ctx != nullptr) {
     default_fbo_mtltexture_ = ghost_cgl_ctx->metalOverlayTexture();
 
-    MTL_LOG_INFO(
+    MTL_LOG_DEBUG(
         "Binding GHOST context CGL %p to GPU context %p. (Device: %p, queue: %p, texture: %p)",
         ghost_cgl_ctx,
         this,
@@ -143,7 +143,7 @@ void MTLContext::set_ghost_context(GHOST_ContextHandle ghostCtxHandle)
       }
       mtl_back_left->add_color_attachment(default_fbo_gputexture_, 0, 0, 0);
 
-      MTL_LOG_INFO(
+      MTL_LOG_DEBUG(
           "-- Bound context %p for GPU context: %p is offscreen and does not have a default "
           "framebuffer",
           ghost_cgl_ctx,
@@ -154,7 +154,7 @@ void MTLContext::set_ghost_context(GHOST_ContextHandle ghostCtxHandle)
     }
   }
   else {
-    MTL_LOG_INFO(
+    MTL_LOG_DEBUG(
         " Failed to bind GHOST context to MTLContext -- GHOST_ContextCGL is null "
         "(GhostContext: %p, GhostContext_CGL: %p)",
         ghost_ctx,
@@ -995,8 +995,8 @@ bool MTLContext::ensure_render_pipeline_state(MTLPrimitiveType mtl_prim_type)
     /* Bind Null attribute buffer, if needed. */
     if (pipeline_state_instance->null_attribute_buffer_index >= 0) {
       if (G.debug & G_DEBUG_GPU) {
-        MTL_LOG_INFO("Binding null attribute buffer at index: %d",
-                     pipeline_state_instance->null_attribute_buffer_index);
+        MTL_LOG_DEBUG("Binding null attribute buffer at index: %d",
+                      pipeline_state_instance->null_attribute_buffer_index);
       }
       rps.bind_vertex_buffer(this->get_null_attribute_buffer(),
                              0,
@@ -2702,8 +2702,8 @@ void present(MTLRenderPassDescriptor *blit_descriptor,
     /* Decrement count */
     ctx->main_command_buffer.dec_active_command_buffer_count();
 
-    MTL_LOG_INFO("Active command buffers: %d",
-                 int(MTLCommandBufferManager::num_active_cmd_bufs_in_system));
+    MTL_LOG_DEBUG("Active command buffers: %d",
+                  int(MTLCommandBufferManager::num_active_cmd_bufs_in_system));
 
     /* Drawable count and latency management. */
     MTLContext::max_drawables_in_flight--;
@@ -2713,10 +2713,10 @@ void present(MTLRenderPassDescriptor *blit_descriptor,
                                          .count();
     MTLContext::latency_resolve_average(microseconds_per_frame);
 
-    MTL_LOG_INFO("Frame Latency: %f ms  (Rolling avg: %f ms Drawables: %d)",
-                 ((float)microseconds_per_frame) / 1000.0f,
-                 ((float)MTLContext::avg_drawable_latency_us) / 1000.0f,
-                 perf_max_drawables);
+    MTL_LOG_DEBUG("Frame Latency: %f ms  (Rolling avg: %f ms Drawables: %d)",
+                  ((float)microseconds_per_frame) / 1000.0f,
+                  ((float)MTLContext::avg_drawable_latency_us) / 1000.0f,
+                  perf_max_drawables);
   }];
 
   [cmdbuf commit];

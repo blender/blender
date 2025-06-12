@@ -2709,7 +2709,7 @@ MovieReader *openanim(const char *filepath,
     else {
       reason = "not an anim";
     }
-    CLOG_INFO(&LOG, 1, "unable to load anim, %s: %s", reason, filepath);
+    CLOG_INFO(&LOG, "unable to load anim, %s: %s", reason, filepath);
 
     MOV_close(anim);
     return nullptr;

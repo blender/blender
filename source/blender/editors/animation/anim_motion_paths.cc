@@ -521,7 +521,6 @@ void animviz_calc_motionpaths(Depsgraph *depsgraph,
 
   /* Calculate path over requested range. */
   CLOG_INFO(&LOG,
-            1,
             "Calculating MotionPaths between frames %d - %d (%d frames)",
             sfra,
             efra,

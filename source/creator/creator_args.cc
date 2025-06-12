@@ -69,10 +69,6 @@
 #    include "libmv-capi.h"
 #  endif
 
-#  ifdef WITH_CYCLES
-#    include "CCL_api.h"
-#  endif
-
 #  include "DEG_depsgraph.hh"
 
 #  include "WM_types.hh"
@@ -1154,9 +1150,10 @@ static const char arg_handle_log_level_set_doc[] =
     "\n"
     "\tfatal: Fatal errors only\n"
     "\terror: Errors only\n"
-    "\twarning: Warnings and errors\n"
-    "\tinfo: General information, warnings and errors\n"
-    "\tdebug: Verbose messages for developers";
+    "\twarning: Warnings\n"
+    "\tinfo: Information about devices, files, configuration, operations\n"
+    "\tdebug: Verbose messages for developers\n"
+    "\ttrace: Very verbose code execution tracing";
 static int arg_handle_log_level_set(int argc, const char **argv, void * /*data*/)
 {
   const char *arg_id = "--log-level";
@@ -1164,34 +1161,38 @@ static int arg_handle_log_level_set(int argc, const char **argv, void * /*data*/
     const char *err_msg = nullptr;
 
     if (STRCASEEQ(argv[1], "fatal")) {
-      /* TODO */
-      G.log.level = 1;
+      G.log.level = CLG_LEVEL_FATAL;
     }
     else if (STRCASEEQ(argv[1], "error")) {
-      /* TODO */
-      G.log.level = 1;
+      G.log.level = CLG_LEVEL_ERROR;
     }
     else if (STRCASEEQ(argv[1], "warning")) {
-      /* TODO */
-      G.log.level = 1;
+      G.log.level = CLG_LEVEL_WARN;
     }
     else if (STRCASEEQ(argv[1], "info")) {
-      G.log.level = 1;
+      G.log.level = CLG_LEVEL_INFO;
     }
     else if (STRCASEEQ(argv[1], "debug")) {
-      G.log.level = 5;
+      G.log.level = CLG_LEVEL_DEBUG;
+    }
+    else if (STRCASEEQ(argv[1], "trace")) {
+      G.log.level = CLG_LEVEL_TRACE;
     }
     else if (parse_int_clamp(argv[1], nullptr, -1, INT_MAX, &G.log.level, &err_msg)) {
-      if (G.log.level == -1) {
+      /* Numeric level for backwards compatibility. */
+      if (G.log.level < 0) {
         G.log.level = INT_MAX;
+      }
+      else {
+        G.log.level = std::min(CLG_LEVEL_INFO + G.log.level, CLG_LEVEL_LEN - 1);
       }
     }
     else {
-      fprintf(stderr, "\nError: %s '%s %s'.\n", err_msg, arg_id, argv[1]);
+      fprintf(stderr, "\nError: Invalid log level '%s %s'.\n", arg_id, argv[1]);
       return 1;
     }
 
-    CLG_level_set(G.log.level);
+    CLG_level_set(CLG_Level(G.log.level));
     return 1;
   }
   fprintf(stderr, "\nError: '%s' no args given.\n", arg_id);

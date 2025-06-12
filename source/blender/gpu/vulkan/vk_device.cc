@@ -32,28 +32,27 @@ namespace blender::gpu {
 
 void VKExtensions::log() const
 {
-  CLOG_INFO(&LOG,
-            2,
-            "Device features\n"
-            " - [%c] shader output viewport index\n"
-            " - [%c] shader output layer\n"
-            " - [%c] fragment shader barycentric\n"
-            "Device extensions\n"
-            " - [%c] descriptor buffer\n"
-            " - [%c] dynamic rendering\n"
-            " - [%c] dynamic rendering local read\n"
-            " - [%c] dynamic rendering unused attachments\n"
-            " - [%c] external memory\n"
-            " - [%c] shader stencil export",
-            shader_output_viewport_index ? 'X' : ' ',
-            shader_output_layer ? 'X' : ' ',
-            fragment_shader_barycentric ? 'X' : ' ',
-            descriptor_buffer ? 'X' : ' ',
-            dynamic_rendering ? 'X' : ' ',
-            dynamic_rendering_local_read ? 'X' : ' ',
-            dynamic_rendering_unused_attachments ? 'X' : ' ',
-            external_memory ? 'X' : ' ',
-            GPU_stencil_export_support() ? 'X' : ' ');
+  CLOG_DEBUG(&LOG,
+             "Device features\n"
+             " - [%c] shader output viewport index\n"
+             " - [%c] shader output layer\n"
+             " - [%c] fragment shader barycentric\n"
+             "Device extensions\n"
+             " - [%c] descriptor buffer\n"
+             " - [%c] dynamic rendering\n"
+             " - [%c] dynamic rendering local read\n"
+             " - [%c] dynamic rendering unused attachments\n"
+             " - [%c] external memory\n"
+             " - [%c] shader stencil export",
+             shader_output_viewport_index ? 'X' : ' ',
+             shader_output_layer ? 'X' : ' ',
+             fragment_shader_barycentric ? 'X' : ' ',
+             descriptor_buffer ? 'X' : ' ',
+             dynamic_rendering ? 'X' : ' ',
+             dynamic_rendering_local_read ? 'X' : ' ',
+             dynamic_rendering_unused_attachments ? 'X' : ' ',
+             external_memory ? 'X' : ' ',
+             GPU_stencil_export_support() ? 'X' : ' ');
 }
 
 void VKDevice::reinit()

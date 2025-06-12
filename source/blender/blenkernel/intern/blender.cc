@@ -50,6 +50,8 @@
 
 #include "SEQ_utils.hh"
 
+#include "CLG_log.h"
+
 Global G;
 UserDef U;
 
@@ -206,7 +208,7 @@ void BKE_blender_globals_init()
   G.f &= ~G_FLAG_SCRIPT_AUTOEXEC;
 #endif
 
-  G.log.level = 1;
+  G.log.level = CLG_LEVEL_WARN;
 
   G.profile_gpu = false;
 }

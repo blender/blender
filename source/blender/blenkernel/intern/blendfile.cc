@@ -1794,9 +1794,8 @@ void PartialWriteContext::preempt_session_uid(ID *ctx_id, uint session_uid)
   matching_ctx_id = BKE_main_idmap_lookup_uid(this->bmain.id_map, session_uid);
   BLI_assert(matching_ctx_id != ctx_id);
   if (matching_ctx_id) {
-    CLOG_INFO(&LOG_PARTIALWRITE,
-              3,
-              "Non-matching IDs sharing the same session UID in the partial write context.");
+    CLOG_DEBUG(&LOG_PARTIALWRITE,
+               "Non-matching IDs sharing the same session UID in the partial write context.");
     BKE_main_idmap_remove_id(this->bmain.id_map, matching_ctx_id);
     /* FIXME: Allow #BKE_lib_libblock_session_uid_renew to work with temp IDs? */
     matching_ctx_id->tag &= ~ID_TAG_TEMP_MAIN;
@@ -2112,10 +2111,9 @@ void PartialWriteContext::remove_unused(const bool clear_extra_user)
   }
   BKE_lib_query_unused_ids_tag(&this->bmain, ID_TAG_DOIT, parameters);
 
-  CLOG_INFO(&LOG_PARTIALWRITE,
-            3,
-            "Removing %d unused IDs from current partial write context",
-            parameters.num_total[INDEX_ID_NULL]);
+  CLOG_DEBUG(&LOG_PARTIALWRITE,
+             "Removing %d unused IDs from current partial write context",
+             parameters.num_total[INDEX_ID_NULL]);
   ID *id_iter;
   FOREACH_MAIN_ID_BEGIN (&this->bmain, id_iter) {
     if ((id_iter->tag & ID_TAG_DOIT) != 0) {

@@ -562,7 +562,7 @@ class MOMessages {
       return false;
     }
 
-    CLOG_INFO(&LOG, 1, "Load messages from \"%s\"", filepath.c_str());
+    CLOG_INFO(&LOG, "Load messages from \"%s\"", filepath.c_str());
 
     /* Create context + key to translated string mapping. */
     for (size_t i = 0; i < mo.size(); i++) {
@@ -603,7 +603,7 @@ void init(const StringRef locale_full_name,
   global_full_name = info.to_full_name();
 
   if (global_messages->error().empty()) {
-    CLOG_INFO(&LOG, 1, "Locale %s used for translation", global_full_name.c_str());
+    CLOG_INFO(&LOG, "Locale %s used for translation", global_full_name.c_str());
   }
   else {
     CLOG_ERROR(&LOG, "Locale %s: %s", global_full_name.c_str(), global_messages->error().c_str());

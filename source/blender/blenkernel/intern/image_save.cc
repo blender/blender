@@ -1043,7 +1043,7 @@ static void image_render_print_save_message(ReportList *reports,
   if (ok) {
     /* no need to report, just some helpful console info */
     if (!G.quiet) {
-      CLOG_INFO(&LOG_RENDER, 0, "Saved: '%s'", filepath);
+      CLOG_INFO(&LOG_RENDER, "Saved: '%s'", filepath);
     }
   }
   else {

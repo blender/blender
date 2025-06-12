@@ -51,7 +51,7 @@
 
 using blender::Vector;
 
-static CLG_LogRef LOG = {"core.context"};
+static CLG_LogRef LOG = {"context"};
 
 /* struct */
 

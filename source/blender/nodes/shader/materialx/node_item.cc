@@ -832,7 +832,7 @@ NodeItem NodeItem::create_node(const std::string &category, Type type) const
 {
   const std::string name = NodeGraph::unique_anonymous_node_name(graph_);
   const std::string type_str = NodeItem::type(type);
-  CLOG_INFO(LOG_IO_MATERIALX, 2, "<%s type=%s>", category.c_str(), type_str.c_str());
+  CLOG_DEBUG(LOG_IO_MATERIALX, "<%s type=%s>", category.c_str(), type_str.c_str());
   NodeItem res = empty();
   /* Surface-shader nodes and materials are added directly to the document,
    * otherwise to the node-graph. */

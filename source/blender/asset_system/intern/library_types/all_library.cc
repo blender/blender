@@ -45,11 +45,10 @@ void AllAssetLibrary::rebuild_catalogs_from_nested(const bool reload_nested_cata
             /*on_duplicate_items=*/[](const AssetCatalog &existing,
                                       const AssetCatalog &to_be_ignored) {
               if (existing.path == to_be_ignored.path) {
-                CLOG_INFO(&LOG,
-                          2,
-                          "multiple definitions of catalog %s (path: %s), ignoring duplicate",
-                          existing.catalog_id.str().c_str(),
-                          existing.path.c_str());
+                CLOG_DEBUG(&LOG,
+                           "multiple definitions of catalog %s (path: %s), ignoring duplicate",
+                           existing.catalog_id.str().c_str(),
+                           existing.path.c_str());
               }
               else {
                 CLOG_ERROR(&LOG,

@@ -33,7 +33,7 @@ MeshData::MeshData(HydraSceneDelegate *scene_delegate,
 
 void MeshData::init()
 {
-  ID_LOGN(1, "");
+  ID_LOGN("");
 
   Object *object = (Object *)id;
   Mesh *mesh = BKE_object_to_mesh(nullptr, object, false);
@@ -48,13 +48,13 @@ void MeshData::init()
 
 void MeshData::insert()
 {
-  ID_LOGN(1, "");
+  ID_LOGN("");
   update_prims();
 }
 
 void MeshData::remove()
 {
-  ID_LOG(1, "");
+  ID_LOG("");
   submeshes_.clear();
   update_prims();
 }
@@ -84,7 +84,7 @@ void MeshData::update()
 
   for (int i = 0; i < submeshes_.size(); ++i) {
     scene_delegate_->GetRenderIndex().GetChangeTracker().MarkRprimDirty(submesh_prim_id(i), bits);
-    ID_LOGN(1, "%d", i);
+    ID_LOGN("%d", i);
   }
 }
 
@@ -180,7 +180,7 @@ void MeshData::update_double_sided(MaterialData *mat_data)
       scene_delegate_->GetRenderIndex().GetChangeTracker().MarkRprimDirty(
           submesh_prim_id(i),
           pxr::HdChangeTracker::DirtyDoubleSided | pxr::HdChangeTracker::DirtyCullStyle);
-      ID_LOGN(1, "%d", i);
+      ID_LOGN("%d", i);
     }
   }
 }
@@ -428,16 +428,16 @@ void MeshData::update_prims()
     pxr::SdfPath p = submesh_prim_id(i);
     if (i < submeshes_count_) {
       render_index.GetChangeTracker().MarkRprimDirty(p, pxr::HdChangeTracker::AllDirty);
-      ID_LOGN(1, "Update %d", i);
+      ID_LOGN("Update %d", i);
     }
     else {
       render_index.InsertRprim(pxr::HdPrimTypeTokens->mesh, scene_delegate_, p);
-      ID_LOGN(1, "Insert %d", i);
+      ID_LOGN("Insert %d", i);
     }
   }
   for (; i < submeshes_count_; ++i) {
     render_index.RemoveRprim(submesh_prim_id(i));
-    ID_LOG(1, "Remove %d", i);
+    ID_LOG("Remove %d", i);
   }
   submeshes_count_ = submeshes_.size();
 }

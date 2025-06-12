@@ -205,7 +205,7 @@ static void stats_background(void * /*arg*/, RenderStats *rs)
   std::scoped_lock lock(mutex);
 
   if (!G.quiet) {
-    CLOG_STR_INFO(&LOG, 0, rs->infostr);
+    CLOG_STR_INFO(&LOG, rs->infostr);
     /* Flush stdout to be sure python callbacks are printing stuff after blender. */
     fflush(stdout);
   }
@@ -1364,7 +1364,7 @@ static void do_render_compositor(Render *re)
                             blender::compositor::OutputTypes::Previews;
         }
 
-        CLOG_STR_INFO(&LOG, 0, "Executing compositor");
+        CLOG_STR_INFO(&LOG, "Executing compositor");
         blender::compositor::RenderContext compositor_render_context;
         LISTBASE_FOREACH (RenderView *, rv, &re->result->views) {
           COM_execute(re,
@@ -1507,7 +1507,7 @@ static void do_render_sequencer(Render *re)
   int view_id, tot_views;
   int re_x, re_y;
 
-  CLOG_STR_INFO(&LOG, 0, "Executing sequencer");
+  CLOG_STR_INFO(&LOG, "Executing sequencer");
 
   re->i.cfra = cfra;
 
@@ -2349,7 +2349,7 @@ static bool do_write_image_or_movie(
   }
 
   if (!G.quiet) {
-    CLOG_STR_INFO(&LOG, 0, message.c_str());
+    CLOG_STR_INFO(&LOG, message.c_str());
     /* Flush stdout to be sure python callbacks are printing stuff after blender. */
     fflush(stdout);
   }
@@ -2407,10 +2407,10 @@ void RE_RenderAnim(Render *re,
                    int tfra)
 {
   if (sfra == efra) {
-    CLOG_INFO(&LOG, 0, "Rendering single frame (frame %d)", sfra);
+    CLOG_INFO(&LOG, "Rendering single frame (frame %d)", sfra);
   }
   else {
-    CLOG_INFO(&LOG, 0, "Rendering animation (frames %d..%d)", sfra, efra);
+    CLOG_INFO(&LOG, "Rendering animation (frames %d..%d)", sfra, efra);
   }
 
   /* Call hooks before taking a copy of scene->r, so user can alter the render settings prior to

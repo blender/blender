@@ -248,11 +248,11 @@ bool VKBackend::is_supported()
     /* Report result. */
     if (missing_capabilities.is_empty()) {
       /* This device meets minimum requirements. */
-      CLOG_INFO(&LOG,
-                2,
-                "Device [%s] supports minimum requirements. Skip checking other GPUs. Another GPU "
-                "can still be selected during auto-detection.",
-                vk_properties.deviceName);
+      CLOG_DEBUG(
+          &LOG,
+          "Device [%s] supports minimum requirements. Skip checking other GPUs. Another GPU "
+          "can still be selected during auto-detection.",
+          vk_properties.deviceName);
 
       vkDestroyInstance(vk_instance, nullptr);
       return true;
@@ -380,7 +380,6 @@ void VKBackend::platform_init(const VKDevice &device)
   }
 
   CLOG_INFO(&LOG,
-            0,
             "Using vendor [%s] device [%s] driver version [%s].",
             vendor_name.c_str(),
             device.vk_physical_device_properties_.deviceName,

@@ -246,16 +246,14 @@ void Shader::print_log(Span<StringRefNull> sources,
     previous_location = log_item.cursor;
   }
 
-  CLG_Severity severity = error ? CLG_SEVERITY_ERROR : CLG_SEVERITY_WARN;
+  CLG_Level level = error ? CLG_LEVEL_ERROR : CLG_LEVEL_WARN;
 
-  if (((LOG.type->flag & CLG_FLAG_USE) && (LOG.type->level >= 0)) ||
-      (severity >= CLG_SEVERITY_WARN))
-  {
+  if (CLOG_CHECK(&LOG, CLG_LEVEL_INFO) && level >= CLG_LEVEL_WARN) {
     if (DEBUG_LOG_SHADER_SRC_ON_ERROR && error) {
-      CLG_log_str(LOG.type, severity, this->name, stage, sources_combined.c_str());
+      CLG_log_str(LOG.type, level, this->name, stage, sources_combined.c_str());
     }
     const char *_str = BLI_dynstr_get_cstring(dynstr);
-    CLG_log_str(LOG.type, severity, this->name, stage, _str);
+    CLG_log_str(LOG.type, level, this->name, stage, _str);
     MEM_freeN(_str);
   }
 

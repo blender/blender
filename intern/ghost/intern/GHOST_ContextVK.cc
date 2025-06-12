@@ -250,11 +250,11 @@ class GHOST_DeviceVK {
     for (const char *optional_extension : optional_extensions) {
       const bool extension_found = has_extensions({optional_extension});
       if (extension_found) {
-        CLOG_INFO(&LOG, 2, "enable optional extension: `%s`", optional_extension);
+        CLOG_DEBUG(&LOG, "enable optional extension: `%s`", optional_extension);
         device_extensions.push_back(optional_extension);
       }
       else {
-        CLOG_INFO(&LOG, 2, "optional extension not found: `%s`", optional_extension);
+        CLOG_DEBUG(&LOG, "optional extension not found: `%s`", optional_extension);
       }
     }
 
@@ -668,7 +668,7 @@ GHOST_TSuccess GHOST_ContextVK::swapBuffers()
       recreateSwapchain(use_hdr_swapchain);
     }
   }
-  CLOG_INFO(&LOG, 3, "render_frame=%lu, image_index=%u", m_render_frame, image_index);
+  CLOG_DEBUG(&LOG, "render_frame=%lu, image_index=%u", m_render_frame, image_index);
   GHOST_SwapchainImage &swapchain_image = m_swapchain_images[image_index];
 
   GHOST_VulkanSwapChainData swap_chain_data;
@@ -1089,20 +1089,19 @@ GHOST_TSuccess GHOST_ContextVK::recreateSwapchain(bool use_hdr_swapchain)
   for (int index = 0; index < actual_image_count; index++) {
     m_swapchain_images[index].vk_image = swapchain_images[index];
   }
-  CLOG_INFO(&LOG,
-            2,
-            "recreating swapchain: width=%u, height=%u, format=%d, colorSpace=%d, "
-            "present_mode=%d, image_count_requested=%u, image_count_acquired=%u, swapchain=%lx, "
-            "old_swapchain=%lx",
-            m_render_extent.width,
-            m_render_extent.height,
-            m_surface_format.format,
-            m_surface_format.colorSpace,
-            present_mode,
-            image_count_requested,
-            actual_image_count,
-            uint64_t(m_swapchain),
-            uint64_t(old_swapchain));
+  CLOG_DEBUG(&LOG,
+             "recreating swapchain: width=%u, height=%u, format=%d, colorSpace=%d, "
+             "present_mode=%d, image_count_requested=%u, image_count_acquired=%u, swapchain=%lx, "
+             "old_swapchain=%lx",
+             m_render_extent.width,
+             m_render_extent.height,
+             m_surface_format.format,
+             m_surface_format.colorSpace,
+             present_mode,
+             image_count_requested,
+             actual_image_count,
+             uint64_t(m_swapchain),
+             uint64_t(old_swapchain));
   /* Construct new semaphores. It can be that image_count is larger than previously. We only need
    * to fill in where the handle is `VK_NULL_HANDLE`. */
   /* Previous handles from the frame data cannot be used and should be discarded. */

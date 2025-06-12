@@ -34,8 +34,7 @@ void BKE_report_log(eReportType type, const char *message, CLG_LogRef *log)
 {
   switch (type) {
     case RPT_DEBUG:
-      /* TODO: revisit */
-      CLOG_STR_INFO(log, 2, message);
+      CLOG_STR_DEBUG(log, message);
       break;
     case RPT_INFO:
     case RPT_OPERATOR:

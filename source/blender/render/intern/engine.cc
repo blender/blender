@@ -957,7 +957,7 @@ static void engine_render_view_layer(Render *re,
      * dependency graph, which is only allowed if there is no grease
      * pencil (pipeline is taking care of that). */
     if (!RE_engine_test_break(engine) && engine->depsgraph != nullptr) {
-      CLOG_INFO(&LOG, 0, "Rendering grease pencil");
+      CLOG_INFO(&LOG, "Rendering grease pencil");
       DRW_render_gpencil(engine, engine->depsgraph);
     }
   }
@@ -1095,8 +1095,8 @@ bool RE_engine_render(Render *re, bool do_all)
 
   if (type->render) {
     FOREACH_VIEW_LAYER_TO_RENDER_BEGIN (re, view_layer_iter) {
-      CLOG_INFO(&LOG, 0, "Start rendering: %s, %s", re->scene->id.name + 2, view_layer_iter->name);
-      CLOG_INFO(&LOG, 0, "Engine: %s", engine->type->name);
+      CLOG_INFO(&LOG, "Start rendering: %s, %s", re->scene->id.name + 2, view_layer_iter->name);
+      CLOG_INFO(&LOG, "Engine: %s", engine->type->name);
       const bool use_grease_pencil = (view_layer_iter->layflag & SCE_LAY_GREASE_PENCIL) != 0;
       engine_render_view_layer(re, engine, view_layer_iter, true, use_grease_pencil);
 
@@ -1158,7 +1158,7 @@ bool RE_engine_render(Render *re, bool do_all)
 
 #ifdef WITH_FREESTYLE
   if (re->r.mode & R_EDGE_FRS) {
-    CLOG_INFO(&LOG, 0, "Rendering freestyle");
+    CLOG_INFO(&LOG, "Rendering freestyle");
     RE_RenderFreestyleExternal(re);
   }
 #endif

@@ -345,7 +345,7 @@ void AssetCatalogService::load_directory_recursive(const CatalogFilePath &direct
 
   if (!BLI_exists(file_path.data())) {
     /* No file to be loaded is perfectly fine. */
-    CLOG_INFO(&LOG, 2, "path not found: %s", file_path.data());
+    CLOG_DEBUG(&LOG, "path not found: %s", file_path.data());
     return;
   }
 

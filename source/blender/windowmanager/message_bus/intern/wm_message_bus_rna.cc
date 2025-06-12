@@ -240,13 +240,12 @@ void WM_msg_publish_rna_params(wmMsgBus *mbus, const wmMsgParams_RNA *msg_key_pa
   wmMsgSubscribeKey_RNA *key;
 
   const char *none = "<none>";
-  CLOG_INFO(WM_LOG_MSGBUS_PUB,
-            2,
-            "rna(id='%s', %s.%s)",
-            msg_key_params->ptr.owner_id ? ((ID *)msg_key_params->ptr.owner_id)->name : none,
-            msg_key_params->ptr.type ? RNA_struct_identifier(msg_key_params->ptr.type) : none,
-            msg_key_params->prop ? RNA_property_identifier((PropertyRNA *)msg_key_params->prop) :
-                                   none);
+  CLOG_DEBUG(WM_LOG_MSGBUS_PUB,
+             "rna(id='%s', %s.%s)",
+             msg_key_params->ptr.owner_id ? ((ID *)msg_key_params->ptr.owner_id)->name : none,
+             msg_key_params->ptr.type ? RNA_struct_identifier(msg_key_params->ptr.type) : none,
+             msg_key_params->prop ? RNA_property_identifier((PropertyRNA *)msg_key_params->prop) :
+                                    none);
 
   if ((key = WM_msg_lookup_rna(mbus, msg_key_params))) {
     WM_msg_publish_with_key(mbus, &key->head);
@@ -305,14 +304,13 @@ void WM_msg_subscribe_rna_params(wmMsgBus *mbus,
   msg_key_test.msg.params = *msg_key_params;
 
   const char *none = "<none>";
-  CLOG_INFO(WM_LOG_MSGBUS_SUB,
-            3,
-            "rna(id='%s', %s.%s, info='%s')",
-            msg_key_params->ptr.owner_id ? ((ID *)msg_key_params->ptr.owner_id)->name : none,
-            msg_key_params->ptr.type ? RNA_struct_identifier(msg_key_params->ptr.type) : none,
-            msg_key_params->prop ? RNA_property_identifier((PropertyRNA *)msg_key_params->prop) :
-                                   none,
-            id_repr);
+  CLOG_TRACE(WM_LOG_MSGBUS_SUB,
+             "rna(id='%s', %s.%s, info='%s')",
+             msg_key_params->ptr.owner_id ? ((ID *)msg_key_params->ptr.owner_id)->name : none,
+             msg_key_params->ptr.type ? RNA_struct_identifier(msg_key_params->ptr.type) : none,
+             msg_key_params->prop ? RNA_property_identifier((PropertyRNA *)msg_key_params->prop) :
+                                    none,
+             id_repr);
 
   wmMsgSubscribeKey_RNA *msg_key = (wmMsgSubscribeKey_RNA *)WM_msg_subscribe_with_key(
       mbus, &msg_key_test.head, msg_val_params);

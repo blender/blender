@@ -98,7 +98,7 @@ struct CLogContext {
 
   /** For new types. */
   struct {
-    int level;
+    CLG_Level level;
   } default_type;
 
   struct {
@@ -302,42 +302,42 @@ static void clg_color_table_init(bool use_color)
   }
 }
 
-static const char *clg_severity_as_text(enum CLG_Severity severity)
+static const char *clg_level_as_text(enum CLG_Level level)
 {
-  switch (severity) {
-    case CLG_SEVERITY_INFO:
-      return "INFO";
-    case CLG_SEVERITY_WARN:
-      return "WARNING";
-    case CLG_SEVERITY_ERROR:
-      return "ERROR";
-    case CLG_SEVERITY_FATAL:
+  switch (level) {
+    case CLG_LEVEL_FATAL:
       return "FATAL";
+    case CLG_LEVEL_ERROR:
+      return "ERROR";
+    case CLG_LEVEL_WARN:
+      return "WARNING";
+    case CLG_LEVEL_INFO:
+      return "INFO";
+    case CLG_LEVEL_DEBUG:
+      return "DEBUG";
+    case CLG_LEVEL_TRACE:
+      return "TRACE";
   }
 
-  return "INVALID_SEVERITY";
+  return "INVALID_LEVEL";
 }
 
-static enum eCLogColor clg_severity_to_color(enum CLG_Severity severity)
+static enum eCLogColor clg_level_to_color(enum CLG_Level level)
 {
-  assert((unsigned int)severity < CLG_SEVERITY_LEN);
-  enum eCLogColor color = COLOR_DEFAULT;
-  switch (severity) {
-    case CLG_SEVERITY_INFO:
-      color = COLOR_DEFAULT;
-      break;
-    case CLG_SEVERITY_WARN:
-      color = COLOR_YELLOW;
-      break;
-    case CLG_SEVERITY_ERROR:
-    case CLG_SEVERITY_FATAL:
-      color = COLOR_RED;
-      break;
-    default:
-      /* should never get here. */
-      assert(false);
+  switch (level) {
+    case CLG_LEVEL_FATAL:
+    case CLG_LEVEL_ERROR:
+      return COLOR_RED;
+    case CLG_LEVEL_WARN:
+      return COLOR_YELLOW;
+    case CLG_LEVEL_INFO:
+    case CLG_LEVEL_DEBUG:
+    case CLG_LEVEL_TRACE:
+      return COLOR_DEFAULT;
   }
-  return color;
+  /* should never get here. */
+  assert(false);
+  return COLOR_DEFAULT;
 }
 
 /** \} */
@@ -354,7 +354,9 @@ static enum eCLogColor clg_severity_to_color(enum CLG_Severity severity)
  */
 static bool clg_ctx_filter_check(CLogContext *ctx, const char *identifier)
 {
-  if (ctx->filters[0] == nullptr && ctx->filters[1] == nullptr && ctx->default_type.level >= 0) {
+  if (ctx->filters[0] == nullptr && ctx->filters[1] == nullptr &&
+      ctx->default_type.level >= CLG_LEVEL_INFO)
+  {
     /* No filters but level specified? Match everything. */
     return true;
   }
@@ -415,11 +417,14 @@ static CLG_LogType *clg_ctx_type_register(CLogContext *ctx, const char *identifi
   ctx->types = ty;
   strncpy(ty->identifier, identifier, sizeof(ty->identifier) - 1);
   ty->ctx = ctx;
-  ty->level = ctx->default_type.level;
 
   if (clg_ctx_filter_check(ctx, ty->identifier)) {
-    ty->flag |= CLG_FLAG_USE;
+    ty->level = ctx->default_type.level;
   }
+  else {
+    ty->level = std::min(ctx->default_type.level, CLG_LEVEL_WARN);
+  }
+
   return ty;
 }
 
@@ -497,22 +502,20 @@ static void write_memory(CLogStringBuf *cstr)
   clg_str_append_char(cstr, ' ', num_spaces + 2);
 }
 
-static void write_severity(CLogStringBuf *cstr, enum CLG_Severity severity, bool use_color)
+static void write_level(CLogStringBuf *cstr, enum CLG_Level level, bool use_color)
 {
-  assert((unsigned int)severity < CLG_SEVERITY_LEN);
-
-  if (severity == CLG_SEVERITY_INFO) {
+  if (level >= CLG_LEVEL_INFO) {
     return;
   }
 
   if (use_color) {
-    enum eCLogColor color = clg_severity_to_color(severity);
+    enum eCLogColor color = clg_level_to_color(level);
     clg_str_append(cstr, clg_color_table[color]);
-    clg_str_append(cstr, clg_severity_as_text(severity));
+    clg_str_append(cstr, clg_level_as_text(level));
     clg_str_append(cstr, clg_color_table[COLOR_RESET]);
   }
   else {
-    clg_str_append(cstr, clg_severity_as_text(severity));
+    clg_str_append(cstr, clg_level_as_text(level));
   }
 
   clg_str_append(cstr, " ");
@@ -561,7 +564,7 @@ static void write_file_line_fn(CLogStringBuf *cstr,
 }
 
 void CLG_log_str(const CLG_LogType *lg,
-                 enum CLG_Severity severity,
+                 enum CLG_Level level,
                  const char *file_line,
                  const char *fn,
                  const char *message)
@@ -582,7 +585,7 @@ void CLG_log_str(const CLG_LogType *lg,
 
   const uint64_t multiline_indent_len = cstr.len;
 
-  write_severity(&cstr, severity, lg->ctx->use_color);
+  write_level(&cstr, level, lg->ctx->use_color);
 
   clg_str_append(&cstr, message);
 
@@ -609,13 +612,13 @@ void CLG_log_str(const CLG_LogType *lg,
     clg_ctx_backtrace(lg->ctx);
   }
 
-  if (severity == CLG_SEVERITY_FATAL) {
+  if (level == CLG_LEVEL_FATAL) {
     clg_ctx_fatal_action(lg->ctx);
   }
 }
 
 void CLG_logf(const CLG_LogType *lg,
-              enum CLG_Severity severity,
+              enum CLG_Level level,
               const char *file_line,
               const char *fn,
               const char *format,
@@ -637,7 +640,7 @@ void CLG_logf(const CLG_LogType *lg,
 
   const uint64_t multiline_indent_len = cstr.len;
 
-  write_severity(&cstr, severity, lg->ctx->use_color);
+  write_level(&cstr, level, lg->ctx->use_color);
 
   {
     va_list ap;
@@ -669,11 +672,11 @@ void CLG_logf(const CLG_LogType *lg,
     clg_ctx_backtrace(lg->ctx);
   }
 
-  if (severity == CLG_SEVERITY_ERROR) {
+  if (level == CLG_LEVEL_ERROR) {
     clg_ctx_error_action(lg->ctx);
   }
 
-  if (severity == CLG_SEVERITY_FATAL) {
+  if (level == CLG_LEVEL_FATAL) {
     clg_ctx_fatal_action(lg->ctx);
   }
 }
@@ -733,13 +736,13 @@ static void CLG_ctx_output_use_memory_set(CLogContext *ctx, int value)
   ctx->use_memory = (bool)value;
 }
 
-/** Action on error severity. */
+/** Action on error level. */
 static void CLT_ctx_error_fn_set(CLogContext *ctx, void (*error_fn)(void *file_handle))
 {
   ctx->callbacks.error_fn = error_fn;
 }
 
-/** Action on fatal severity. */
+/** Action on fatal level. */
 static void CLG_ctx_fatal_fn_set(CLogContext *ctx, void (*fatal_fn)(void *file_handle))
 {
   ctx->callbacks.fatal_fn = fatal_fn;
@@ -777,12 +780,12 @@ static void CLG_ctx_type_filter_include(CLogContext *ctx,
                                         int type_match_len)
 {
   clg_ctx_type_filter_append(&ctx->filters[1], type_match, type_match_len);
-  if (ctx->default_type.level == -1) {
-    ctx->default_type.level = 1;
+  if (ctx->default_type.level <= CLG_LEVEL_WARN) {
+    ctx->default_type.level = CLG_LEVEL_INFO;
   }
 }
 
-static void CLG_ctx_level_set(CLogContext *ctx, int level)
+static void CLG_ctx_level_set(CLogContext *ctx, CLG_Level level)
 {
   ctx->default_type.level = level;
   for (CLG_LogType *ty = ctx->types; ty; ty = ty->next) {
@@ -796,7 +799,7 @@ static CLogContext *CLG_ctx_init()
 #ifdef WITH_CLOG_PTHREADS
   pthread_mutex_init(&ctx->types_lock, nullptr);
 #endif
-  ctx->default_type.level = -1;
+  ctx->default_type.level = CLG_LEVEL_WARN;
   ctx->use_source = true;
   CLG_ctx_output_set(ctx, stdout);
 
@@ -906,7 +909,7 @@ void CLG_type_filter_include(const char *type_match, int type_match_len)
   CLG_ctx_type_filter_include(g_ctx, type_match, type_match_len);
 }
 
-void CLG_level_set(int level)
+void CLG_level_set(CLG_Level level)
 {
   CLG_ctx_level_set(g_ctx, level);
 }

@@ -1271,7 +1271,7 @@ static void xdg_toplevel_handle_configure(void *data,
                                           wl_array *states)
 {
   /* TODO: log `states`, not urgent. */
-  CLOG_INFO(LOG, 2, "configure (size=[%d, %d])", width, height);
+  CLOG_DEBUG(LOG, "configure (size=[%d, %d])", width, height);
 
   GWL_Window *win = static_cast<GWL_Window *>(data);
 
@@ -1314,7 +1314,7 @@ static void xdg_toplevel_handle_configure(void *data,
 
 static void xdg_toplevel_handle_close(void *data, xdg_toplevel * /*xdg_toplevel*/)
 {
-  CLOG_INFO(LOG, 2, "close");
+  CLOG_DEBUG(LOG, "close");
 
   GWL_Window *win = static_cast<GWL_Window *>(data);
 
@@ -1327,7 +1327,7 @@ static void xdg_toplevel_handle_configure_bounds(void *data,
                                                  int32_t height)
 {
   /* Only available in interface version 4. */
-  CLOG_INFO(LOG, 2, "configure_bounds (size=[%d, %d])", width, height);
+  CLOG_DEBUG(LOG, "configure_bounds (size=[%d, %d])", width, height);
 
   /* No need to lock as this only runs on window creation. */
   GWL_Window *win = static_cast<GWL_Window *>(data);
@@ -1342,7 +1342,7 @@ static void xdg_toplevel_handle_wm_capabilities(void * /*data*/,
                                                 wl_array * /*capabilities*/)
 {
   /* Only available in interface version 5. */
-  CLOG_INFO(LOG, 2, "wm_capabilities");
+  CLOG_DEBUG(LOG, "wm_capabilities");
 
   /* NOTE: this would be useful if blender had CSD. */
 }
@@ -1406,10 +1406,9 @@ static void wp_fractional_scale_handle_preferred_scale(
 #ifdef USE_EVENT_BACKGROUND_THREAD
   std::lock_guard lock_frame_guard{static_cast<GWL_Window *>(data)->frame_pending_mutex};
 #endif
-  CLOG_INFO(LOG,
-            2,
-            "preferred_scale (preferred_scale=%.6f)",
-            double(preferred_scale) / FRACTIONAL_DENOMINATOR);
+  CLOG_DEBUG(LOG,
+             "preferred_scale (preferred_scale=%.6f)",
+             double(preferred_scale) / FRACTIONAL_DENOMINATOR);
 
   GWL_Window *win = static_cast<GWL_Window *>(data);
 
@@ -1440,7 +1439,7 @@ static void libdecor_frame_handle_configure(libdecor_frame *frame,
                                             libdecor_configuration *configuration,
                                             void *data)
 {
-  CLOG_INFO(LOG, 2, "configure");
+  CLOG_DEBUG(LOG, "configure");
 
 #  ifdef USE_EVENT_BACKGROUND_THREAD
   std::lock_guard lock_frame_guard{static_cast<GWL_Window *>(data)->frame_pending_mutex};
@@ -1577,7 +1576,7 @@ static void libdecor_frame_handle_configure(libdecor_frame *frame,
 
 static void libdecor_frame_handle_close(libdecor_frame * /*frame*/, void *data)
 {
-  CLOG_INFO(LOG, 2, "close");
+  CLOG_DEBUG(LOG, "close");
 
   GWL_Window *win = static_cast<GWL_Window *>(data);
 
@@ -1586,7 +1585,7 @@ static void libdecor_frame_handle_close(libdecor_frame * /*frame*/, void *data)
 
 static void libdecor_frame_handle_commit(libdecor_frame * /*frame*/, void *data)
 {
-  CLOG_INFO(LOG, 2, "commit");
+  CLOG_DEBUG(LOG, "commit");
 
 #  if 0
   GWL_Window *win = static_cast<GWL_Window *>(data);
@@ -1619,7 +1618,7 @@ static CLG_LogRef LOG_WL_XDG_TOPLEVEL_DECORATION = {"ghost.wl.handle.xdg_topleve
 static void xdg_toplevel_decoration_handle_configure(
     void *data, zxdg_toplevel_decoration_v1 * /*zxdg_toplevel_decoration_v1*/, const uint32_t mode)
 {
-  CLOG_INFO(LOG, 2, "configure (mode=%u)", mode);
+  CLOG_DEBUG(LOG, "configure (mode=%u)", mode);
 
   GWL_Window *win = static_cast<GWL_Window *>(data);
 
@@ -1648,10 +1647,10 @@ static void xdg_surface_handle_configure(void *data,
   GWL_Window *win = static_cast<GWL_Window *>(data);
 
   if (win->xdg_decor->surface != xdg_surface) {
-    CLOG_INFO(LOG, 2, "configure (skipped)");
+    CLOG_DEBUG(LOG, "configure (skipped)");
     return;
   }
-  CLOG_INFO(LOG, 2, "configure");
+  CLOG_DEBUG(LOG, "configure");
 
 #ifdef USE_EVENT_BACKGROUND_THREAD
   std::lock_guard lock_frame_guard{static_cast<GWL_Window *>(data)->frame_pending_mutex};
@@ -1692,10 +1691,10 @@ static CLG_LogRef LOG_WL_SURFACE = {"ghost.wl.handle.surface"};
 static void surface_handle_enter(void *data, wl_surface * /*wl_surface*/, wl_output *wl_output)
 {
   if (!ghost_wl_output_own(wl_output)) {
-    CLOG_INFO(LOG, 2, "enter (skipped)");
+    CLOG_DEBUG(LOG, "enter (skipped)");
     return;
   }
-  CLOG_INFO(LOG, 2, "enter");
+  CLOG_DEBUG(LOG, "enter");
 
   GWL_Output *reg_output = ghost_wl_output_user_data(wl_output);
   GHOST_WindowWayland *win = static_cast<GHOST_WindowWayland *>(data);
@@ -1707,10 +1706,10 @@ static void surface_handle_enter(void *data, wl_surface * /*wl_surface*/, wl_out
 static void surface_handle_leave(void *data, wl_surface * /*wl_surface*/, wl_output *wl_output)
 {
   if (!ghost_wl_output_own(wl_output)) {
-    CLOG_INFO(LOG, 2, "leave (skipped)");
+    CLOG_DEBUG(LOG, "leave (skipped)");
     return;
   }
-  CLOG_INFO(LOG, 2, "leave");
+  CLOG_DEBUG(LOG, "leave");
 
   GWL_Output *reg_output = ghost_wl_output_user_data(wl_output);
   GHOST_WindowWayland *win = static_cast<GHOST_WindowWayland *>(data);
@@ -1726,7 +1725,7 @@ static void surface_handle_preferred_buffer_scale(void * /*data*/,
                                                   int32_t factor)
 {
   /* Only available in interface version 6. */
-  CLOG_INFO(LOG, 2, "handle_preferred_buffer_scale (factor=%d)", factor);
+  CLOG_DEBUG(LOG, "handle_preferred_buffer_scale (factor=%d)", factor);
 }
 
 static void surface_handle_preferred_buffer_transform(void * /*data*/,
@@ -1734,7 +1733,7 @@ static void surface_handle_preferred_buffer_transform(void * /*data*/,
                                                       uint32_t transform)
 {
   /* Only available in interface version 6. */
-  CLOG_INFO(LOG, 2, "handle_preferred_buffer_transform (transform=%u)", transform);
+  CLOG_DEBUG(LOG, "handle_preferred_buffer_transform (transform=%u)", transform);
 }
 #endif /* WL_SURFACE_PREFERRED_BUFFER_SCALE_SINCE_VERSION && \
         * WL_SURFACE_PREFERRED_BUFFER_TRANSFORM_SINCE_VERSION */

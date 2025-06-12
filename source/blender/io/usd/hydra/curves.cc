@@ -36,7 +36,7 @@ CurvesData::CurvesData(HydraSceneDelegate *scene_delegate,
 
 void CurvesData::init()
 {
-  ID_LOGN(1, "");
+  ID_LOGN("");
 
   write_curves();
   write_transform();
@@ -45,14 +45,14 @@ void CurvesData::init()
 
 void CurvesData::insert()
 {
-  ID_LOGN(1, "");
+  ID_LOGN("");
   scene_delegate_->GetRenderIndex().InsertRprim(
       pxr::HdPrimTypeTokens->basisCurves, scene_delegate_, prim_id);
 }
 
 void CurvesData::remove()
 {
-  ID_LOG(1, "");
+  ID_LOG("");
   scene_delegate_->GetRenderIndex().RemoveRprim(prim_id);
 }
 
@@ -78,7 +78,7 @@ void CurvesData::update()
   }
 
   scene_delegate_->GetRenderIndex().GetChangeTracker().MarkRprimDirty(prim_id, bits);
-  ID_LOGN(1, "");
+  ID_LOGN("");
 }
 
 pxr::VtValue CurvesData::get_data(pxr::TfToken const &key) const
@@ -211,7 +211,7 @@ void HairData::update()
   scene_delegate_->GetRenderIndex().GetChangeTracker().MarkRprimDirty(
       prim_id, pxr::HdChangeTracker::AllDirty);
 
-  ID_LOGN(1, "");
+  ID_LOGN("");
 }
 
 void HairData::write_transform()

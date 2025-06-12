@@ -900,7 +900,7 @@ static bool operator_last_properties_init_impl(wmOperator *op, IDProperty *last_
   RNA_PROP_END;
 
   if (changed) {
-    CLOG_INFO(WM_LOG_OPERATORS, 3, "Loading previous properties for '%s'", op->type->idname);
+    CLOG_DEBUG(WM_LOG_OPERATORS, "Loading previous properties for '%s'", op->type->idname);
   }
   IDP_MergeGroup(op->properties, replaceprops, true);
   IDP_FreeProperty(replaceprops);
@@ -931,7 +931,7 @@ bool WM_operator_last_properties_store(wmOperator *op)
 
   if (op->properties) {
     if (!BLI_listbase_is_empty(&op->properties->data.group)) {
-      CLOG_INFO(WM_LOG_OPERATORS, 3, "Storing properties for '%s'", op->type->idname);
+      CLOG_DEBUG(WM_LOG_OPERATORS, "Storing properties for '%s'", op->type->idname);
     }
     op->type->last_properties = IDP_CopyProperty(op->properties);
   }
