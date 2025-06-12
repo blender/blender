@@ -103,7 +103,6 @@ class AssetList : NonCopyable {
   bool needs_refetch() const;
   bool is_loaded() const;
   asset_system::AssetLibrary *asset_library() const;
-  void iterate(AssetListIndexIterFn fn) const;
   void iterate(AssetListIterFn fn) const;
   int size() const;
   void tag_main_data_dirty() const;
@@ -193,24 +192,6 @@ bool AssetList::is_loaded() const
 asset_system::AssetLibrary *AssetList::asset_library() const
 {
   return reinterpret_cast<asset_system::AssetLibrary *>(filelist_asset_library(filelist_));
-}
-
-void AssetList::iterate(AssetListIndexIterFn fn) const
-{
-  FileList *files = filelist_;
-  int numfiles = filelist_files_ensure(files);
-
-  for (int i = 0; i < numfiles; i++) {
-    asset_system::AssetRepresentation *asset = filelist_entry_get_asset_representation(files, i);
-    if (!asset) {
-      continue;
-    }
-
-    if (!fn(*asset, i)) {
-      /* If the callback returns false, we stop iterating. */
-      break;
-    }
-  }
 }
 
 void AssetList::iterate(AssetListIterFn fn) const
@@ -551,14 +532,6 @@ bool has_asset_browser_storage_for_library(const AssetLibraryReference *library_
       });
 
   return has_asset_browser;
-}
-
-void iterate(const AssetLibraryReference &library_reference, AssetListIndexIterFn fn)
-{
-  AssetList *list = lookup_list(library_reference);
-  if (list) {
-    list->iterate(fn);
-  }
 }
 
 void iterate(const AssetLibraryReference &library_reference, AssetListIterFn fn)
