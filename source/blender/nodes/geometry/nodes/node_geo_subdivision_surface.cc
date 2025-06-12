@@ -186,10 +186,16 @@ static void node_geo_exec(GeoNodeExecParams params)
   const NodeGeometrySubdivisionSurface &storage = node_storage(params.node());
   const int uv_smooth = storage.uv_smooth;
   const int boundary_smooth = storage.boundary_smooth;
-  const int level = std::clamp(params.extract_input<int>("Level"), 0, 11);
+  const int level = std::max(params.extract_input<int>("Level"), 0);
   const bool use_limit_surface = params.extract_input<bool>("Limit Surface");
   if (level == 0) {
     params.set_output("Mesh", std::move(geometry_set));
+    return;
+  }
+  /* At this limit, a subdivided single triangle would be too large to be stored in #Mesh. */
+  if (level >= 16) {
+    params.error_message_add(NodeWarningType::Error, TIP_("The subdivision level is too large"));
+    params.set_default_remaining_outputs();
     return;
   }
 
