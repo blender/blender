@@ -126,6 +126,11 @@ void World::sync()
     bl_world = scene_world_get();
   }
 
+  ::World *world_override = DEG_get_evaluated(inst_.depsgraph, inst_.view_layer->world_override);
+  if (world_override) {
+    bl_world = world_override;
+  }
+
   bNodeTree *ntree = (bl_world->nodetree && bl_world->use_nodes) ?
                          bl_world->nodetree :
                          default_tree.nodetree_get(bl_world);

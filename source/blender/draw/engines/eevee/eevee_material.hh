@@ -355,6 +355,8 @@ class MaterialModule {
   ::Material *default_surface;
   ::Material *default_volume;
 
+  ::Material *material_override = nullptr;
+
   int64_t queued_shaders_count = 0;
   int64_t queued_textures_count = 0;
   int64_t queued_optimize_shaders_count = 0;
