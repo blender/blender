@@ -156,7 +156,7 @@
 
 #define ZSTD_COMPRESSION_LEVEL 3
 
-static CLG_LogRef LOG = {"blo.writefile"};
+static CLG_LogRef LOG = {"blend.writefile"};
 
 /** Use if we want to store how many bytes have been written to the file. */
 // #define USE_WRITE_DATA_LEN

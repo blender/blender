@@ -25,7 +25,7 @@
 
 #include "CLG_log.h"
 
-static CLG_LogRef LOG = {"pbvh.bmesh"};
+static CLG_LogRef LOG = {"sculpt.bmesh"};
 
 namespace blender::bke::pbvh {
 

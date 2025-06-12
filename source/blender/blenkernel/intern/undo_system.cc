@@ -53,7 +53,7 @@
 #define WITH_GLOBAL_UNDO_CORRECT_ORDER
 
 /** We only need this locally. */
-static CLG_LogRef LOG = {"bke.undosys"};
+static CLG_LogRef LOG = {"undo"};
 
 /* -------------------------------------------------------------------- */
 /** \name Undo Types
@@ -282,7 +282,7 @@ void BKE_undosys_stack_destroy(UndoStack *ustack)
 void BKE_undosys_stack_clear(UndoStack *ustack)
 {
   UNDO_NESTED_ASSERT(false);
-  CLOG_INFO(&LOG, 1, "steps=%d", BLI_listbase_count(&ustack->steps));
+  CLOG_INFO(&LOG, 2, "steps=%d", BLI_listbase_count(&ustack->steps));
   for (UndoStep *us = static_cast<UndoStep *>(ustack->steps.last), *us_prev; us; us = us_prev) {
     us_prev = us->prev;
     undosys_step_free_and_unlink(ustack, us);
@@ -352,7 +352,7 @@ static bool undosys_stack_push_main(UndoStack *ustack, const char *name, Main *b
 {
   UNDO_NESTED_ASSERT(false);
   BLI_assert(ustack->step_init == nullptr);
-  CLOG_INFO(&LOG, 1, "'%s'", name);
+  CLOG_INFO(&LOG, 2, "Push main '%s'", name);
   bContext *C_temp = CTX_create();
   CTX_data_main_set(C_temp, bmain);
   eUndoPushReturn ret = BKE_undosys_step_push_with_type(
@@ -412,7 +412,7 @@ void BKE_undosys_stack_limit_steps_and_memory(UndoStack *ustack, int steps, size
     return;
   }
 
-  CLOG_INFO(&LOG, 1, "steps=%d, memory_limit=%zu", steps, memory_limit);
+  CLOG_INFO(&LOG, 2, "Limit steps=%d, memory_limit=%zu", steps, memory_limit);
   UndoStep *us;
   UndoStep *us_exclude = nullptr;
   /* keep at least two (original + other) */
@@ -423,7 +423,7 @@ void BKE_undosys_stack_limit_steps_and_memory(UndoStack *ustack, int steps, size
       data_size_all += us->data_size;
       if (data_size_all > memory_limit) {
         CLOG_INFO(&LOG,
-                  1,
+                  2,
                   "At step %zu: data_size_all=%zu >= memory_limit=%zu",
                   us_count,
                   data_size_all,
@@ -441,7 +441,7 @@ void BKE_undosys_stack_limit_steps_and_memory(UndoStack *ustack, int steps, size
     }
   }
 
-  CLOG_INFO(&LOG, 1, "Total steps %zu: data_size_all=%zu", us_count, data_size_all);
+  CLOG_INFO(&LOG, 2, "Total steps %zu: data_size_all=%zu", us_count, data_size_all);
 
   if (us) {
 #ifdef WITH_GLOBAL_UNDO_KEEP_ONE
@@ -494,7 +494,7 @@ UndoStep *BKE_undosys_step_push_init_with_type(UndoStack *ustack,
     }
     us->type = ut;
     ustack->step_init = us;
-    CLOG_INFO(&LOG, 1, "addr=%p, name='%s', type='%s'", us, us->name, us->type->name);
+    CLOG_INFO(&LOG, 2, "addr=%p, name='%s', type='%s'", us, us->name, us->type->name);
     ut->step_encode_init(C, us);
     undosys_stack_validate(ustack, false);
     return us;
@@ -580,7 +580,7 @@ eUndoPushReturn BKE_undosys_step_push_with_type(UndoStack *ustack,
     us->use_old_bmain_data = true;
     /* Initialized, not added yet. */
 
-    CLOG_INFO(&LOG, 1, "addr=%p, name='%s', type='%s'", us, us->name, us->type->name);
+    CLOG_INFO(&LOG, 2, "addr=%p, name='%s', type='%s'", us, us->name, us->type->name);
 
     if (!undosys_step_encode(C, G_MAIN, ustack, us)) {
       MEM_freeN(us);
@@ -788,7 +788,7 @@ bool BKE_undosys_step_load_data_ex(UndoStack *ustack,
   }
 
   CLOG_INFO(&LOG,
-            1,
+            2,
             "addr=%p, name='%s', type='%s', undo_dir=%d",
             us_target,
             us_target->name,

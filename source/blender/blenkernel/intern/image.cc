@@ -117,7 +117,7 @@
 
 using blender::Array;
 
-static CLG_LogRef LOG = {"bke.image"};
+static CLG_LogRef LOG = {"image"};
 
 static void image_init(Image *ima, short source, short type);
 static void image_free_packedfiles(Image *ima);

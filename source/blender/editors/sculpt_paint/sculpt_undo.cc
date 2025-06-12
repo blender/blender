@@ -82,7 +82,7 @@
 #include "sculpt_face_set.hh"
 #include "sculpt_intern.hh"
 
-static CLG_LogRef LOG = {"ed.sculpt.undo"};
+static CLG_LogRef LOG = {"undo.sculpt"};
 
 namespace blender::ed::sculpt_paint::undo {
 

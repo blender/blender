@@ -14,12 +14,16 @@
 
 #include "BLI_stack.hh"
 
+#include "CLG_log.h"
+
 #include "intern/node/deg_node.hh"
 #include "intern/node/deg_node_component.hh"
 #include "intern/node/deg_node_operation.hh"
 
 #include "intern/depsgraph.hh"
 #include "intern/depsgraph_relation.hh"
+
+static CLG_LogRef LOG = {"depsgraph"};
 
 namespace blender::deg {
 
@@ -45,7 +49,7 @@ struct CyclesSolverState {
   ~CyclesSolverState()
   {
     if (num_cycles != 0) {
-      printf("Detected %d dependency cycles\n", num_cycles);
+      CLOG_WARN(&LOG, "Detected %d dependency cycles", num_cycles);
     }
   }
   Depsgraph *graph;
@@ -169,7 +173,7 @@ void solve_cycles(CyclesSolverState *state)
                          current->via_relation->name + "'\n";
             current = current->from;
           }
-          printf("Dependency cycle detected:\n%s", cycle_str.c_str());
+          CLOG_WARN(&LOG, "Dependency cycle detected:\n%s", cycle_str.c_str());
           Relation *sacrificial_relation = select_relation_to_murder(rel, entry);
           sacrificial_relation->flag |= RELATION_FLAG_CYCLIC;
           ++state->num_cycles;

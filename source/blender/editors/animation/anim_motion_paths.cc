@@ -41,7 +41,7 @@
 
 #include "CLG_log.h"
 
-static CLG_LogRef LOG = {"ed.anim.motion_paths"};
+static CLG_LogRef LOG = {"anim.motion_paths"};
 
 /* Motion path needing to be baked (mpt). */
 struct MPathTarget {

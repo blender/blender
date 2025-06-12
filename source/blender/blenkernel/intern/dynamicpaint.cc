@@ -81,7 +81,7 @@ using blender::int3;
 // #  pragma GCC diagnostic ignored "-Wdouble-promotion"
 #endif
 
-static CLG_LogRef LOG = {"bke.dynamicpaint"};
+static CLG_LogRef LOG = {"object.dynamicpaint"};
 
 /* precalculated gaussian factors for 5x super sampling */
 static const float gaussianFactors[5] = {

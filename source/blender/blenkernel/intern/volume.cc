@@ -58,7 +58,7 @@
 #include "CLG_log.h"
 
 #ifdef WITH_OPENVDB
-static CLG_LogRef LOG = {"bke.volume"};
+static CLG_LogRef LOG = {"geom.volume"};
 #endif
 
 #define VOLUME_FRAME_NONE INT_MAX

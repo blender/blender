@@ -92,7 +92,7 @@ static void fluid_modifier_reset_ex(FluidModifierData *fmd, bool need_lock);
 #ifdef WITH_FLUID
 // #define DEBUG_PRINT
 
-static CLG_LogRef LOG = {"bke.fluid"};
+static CLG_LogRef LOG = {"physics.fluid"};
 
 /* -------------------------------------------------------------------- */
 /** \name Fluid API

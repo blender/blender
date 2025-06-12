@@ -102,7 +102,7 @@
 
 #include "versioning_common.hh"
 
-static CLG_LogRef LOG = {"blo.readfile.doversion"};
+static CLG_LogRef LOG = {"blend.doversion"};
 
 static IDProperty *idproperty_find_ui_container(IDProperty *idprop_group)
 {

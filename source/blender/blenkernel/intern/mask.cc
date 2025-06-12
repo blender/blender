@@ -47,7 +47,7 @@
 
 #include "BLO_read_write.hh"
 
-static CLG_LogRef LOG = {"bke.mask"};
+static CLG_LogRef LOG = {"mask"};
 
 /** Reset runtime mask fields when data-block is being initialized. */
 static void mask_runtime_reset(Mask *mask)

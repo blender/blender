@@ -155,7 +155,7 @@ static void wm_history_file_write();
 
 static void wm_test_autorun_revert_action_exec(bContext *C);
 
-static CLG_LogRef LOG = {"wm.files"};
+static CLG_LogRef LOG = {"blend"};
 
 /**
  * Fast-path for down-scaling byte buffers.
@@ -1373,7 +1373,7 @@ void wm_homefile_read_ex(bContext *C,
     else if (!use_factory_settings && BLI_exists(filepath_userdef)) {
       UserDef *userdef = BKE_blendfile_userdef_read(filepath_userdef, nullptr);
       if (userdef != nullptr) {
-        CLOG_INFO(&LOG, 0, "read prefs: \"%s\"", filepath_userdef);
+        CLOG_INFO(&LOG, 0, "Read prefs: \"%s\"", filepath_userdef);
 
         BKE_blender_userdef_data_set_and_free(userdef);
         userdef = nullptr;
@@ -1430,7 +1430,7 @@ void wm_homefile_read_ex(bContext *C,
       BlendFileData *bfd = BKE_blendfile_read(filepath_startup, &params, &bf_reports);
 
       if (bfd != nullptr) {
-        CLOG_INFO(&LOG, 0, "read startup: \"%s\"", filepath_startup);
+        CLOG_INFO(&LOG, 0, "Read startup: \"%s\"", filepath_startup);
 
         /* Frees the current main and replaces it with the new one read from file. */
         BKE_blendfile_read_setup_readfile(C,
@@ -1508,7 +1508,7 @@ void wm_homefile_read_ex(bContext *C,
       if (BLI_exists(temp_path)) {
         userdef_template = BKE_blendfile_userdef_read(temp_path, nullptr);
         if (userdef_template) {
-          CLOG_INFO(&LOG, 0, "read prefs from app-template: \"%s\"", temp_path);
+          CLOG_INFO(&LOG, 0, "Read prefs from app-template: \"%s\"", temp_path);
         }
       }
       if (userdef_template == nullptr) {

@@ -51,7 +51,7 @@
 
 #include "CLG_log.h"
 
-static CLG_LogRef LOG = {"bke.anim_sys"};
+static CLG_LogRef LOG = {"anim.data"};
 
 using namespace blender;
 

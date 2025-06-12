@@ -19,7 +19,7 @@
 #include "ED_id_management.hh"
 
 /** We only need this locally. */
-static CLG_LogRef LOG = {"ed.id_management"};
+static CLG_LogRef LOG = {"lib.id_management"};
 
 bool ED_id_rename(Main &bmain, ID &id, blender::StringRefNull name)
 {

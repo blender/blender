@@ -44,7 +44,7 @@
 #endif
 
 /** Only needed this locally. */
-static CLG_LogRef LOG = {"ed.undo.font"};
+static CLG_LogRef LOG = {"undo.font"};
 
 /* -------------------------------------------------------------------- */
 /** \name Undo Conversion

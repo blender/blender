@@ -50,7 +50,7 @@
 #  include "BLI_strict_flags.h" /* IWYU pragma: keep. Keep last. */
 #endif
 
-static CLG_LogRef LOG = {"bke.bpath"};
+static CLG_LogRef LOG = {"lib.bpath"};
 
 /* -------------------------------------------------------------------- */
 /** \name Generic Utilities

@@ -40,7 +40,7 @@
 using blender::Vector;
 
 /** We only need this locally. */
-static CLG_LogRef LOG = {"ed.undo.curve"};
+static CLG_LogRef LOG = {"undo.curve"};
 
 /* -------------------------------------------------------------------- */
 /** \name Undo Conversion

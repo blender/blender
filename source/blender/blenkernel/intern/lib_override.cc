@@ -79,8 +79,8 @@
 
 using namespace blender::bke;
 
-static CLG_LogRef LOG = {"bke.liboverride"};
-static CLG_LogRef LOG_RESYNC = {"bke.liboverride_resync"};
+static CLG_LogRef LOG = {"lib.override"};
+static CLG_LogRef LOG_RESYNC = {"lib.override.resync"};
 
 namespace blender::bke::liboverride {
 

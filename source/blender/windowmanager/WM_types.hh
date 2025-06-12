@@ -1452,9 +1452,7 @@ struct CLG_LogRef;
 /* `wm_init_exit.cc`. */
 
 extern CLG_LogRef *WM_LOG_OPERATORS;
-extern CLG_LogRef *WM_LOG_HANDLERS;
 extern CLG_LogRef *WM_LOG_EVENTS;
-extern CLG_LogRef *WM_LOG_KEYMAPS;
-extern CLG_LogRef *WM_LOG_TOOLS;
+extern CLG_LogRef *WM_LOG_TOOL_GIZMO;
 extern CLG_LogRef *WM_LOG_MSGBUS_PUB;
 extern CLG_LogRef *WM_LOG_MSGBUS_SUB;

@@ -36,7 +36,7 @@
 
 #include "readfile.hh"
 
-static CLG_LogRef LOG = {"blo.blend_validate"};
+static CLG_LogRef LOG = {"blend.validate"};
 
 bool BLO_main_validate_libraries(Main *bmain, ReportList *reports)
 {

@@ -35,7 +35,7 @@
 #include "particle_edit_utildefines.h"
 
 /** Only needed this locally. */
-static CLG_LogRef LOG = {"ed.undo.particle_edit"};
+static CLG_LogRef LOG = {"undo.particle"};
 
 /* -------------------------------------------------------------------- */
 /** \name Undo Conversion

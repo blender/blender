@@ -107,7 +107,7 @@ using blender::Set;
 using blender::Span;
 using blender::Vector;
 
-static CLG_LogRef LOG = {"ed.sculpt_paint"};
+static CLG_LogRef LOG = {"sculpt"};
 
 namespace blender::ed::sculpt_paint {
 

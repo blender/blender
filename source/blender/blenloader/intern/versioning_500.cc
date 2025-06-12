@@ -47,7 +47,7 @@
 #include "versioning_common.hh"
 
 // #include "CLG_log.h"
-// static CLG_LogRef LOG = {"blo.readfile.doversion"};
+// static CLG_LogRef LOG = {"blend.doversion"};
 
 void version_system_idprops_generate(Main *bmain)
 {

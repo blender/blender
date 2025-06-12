@@ -15,7 +15,7 @@
 
 #include "asset_catalog_definition_file.hh"
 
-static CLG_LogRef LOG = {"asset_system.asset_catalog_definition_file"};
+static CLG_LogRef LOG = {"asset.catalog"};
 
 namespace blender::asset_system {
 

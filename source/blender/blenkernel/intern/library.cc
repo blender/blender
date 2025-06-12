@@ -38,7 +38,7 @@
 
 struct BlendDataReader;
 
-static CLG_LogRef LOG = {"bke.library"};
+static CLG_LogRef LOG = {"lib.library"};
 
 using namespace blender::bke::library;
 

@@ -53,7 +53,7 @@
 #define SMALL -1.0e-10
 #define SELECT 1
 
-static CLG_LogRef LOG = {"bke.fcurve"};
+static CLG_LogRef LOG = {"anim.fcurve"};
 
 /* -------------------------------------------------------------------- */
 /** \name F-Curve Data Create

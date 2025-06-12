@@ -1345,6 +1345,8 @@ void BKE_blendfile_read_setup_undo(bContext *C,
   BKE_blendfile_read_setup_readfile(C, bfd, params, nullptr, reports, false, nullptr);
 }
 
+static CLG_LogRef LOG_BLEND = {"blend"};
+
 BlendFileData *BKE_blendfile_read(const char *filepath,
                                   const BlendFileReadParams *params,
                                   BlendFileReadReport *reports)
@@ -1352,7 +1354,7 @@ BlendFileData *BKE_blendfile_read(const char *filepath,
   /* Don't print startup file loading. */
   if (params->is_startup == false) {
     if (!G.quiet) {
-      printf("Read blend: \"%s\"\n", filepath);
+      CLOG_INFO_NOCHECK(&LOG_BLEND, "Read blend: \"%s\"", filepath);
     }
   }
 
@@ -1744,7 +1746,7 @@ void BKE_blendfile_workspace_config_data_free(WorkspaceConfigFileData *workspace
 /** \name Blend File Write (Partial)
  * \{ */
 
-static CLG_LogRef LOG_PARTIALWRITE = {"bke.blendfile.partial_write"};
+static CLG_LogRef LOG_PARTIALWRITE = {"blend.partial_write"};
 
 namespace blender::bke::blendfile {
 

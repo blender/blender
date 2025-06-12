@@ -85,7 +85,7 @@ using blender::Vector;
 BLI_STATIC_ASSERT(BOUNDED_ARRAY_TYPE_SIZE<decltype(CustomData::typemap)>() == CD_NUMTYPES,
                   "size mismatch");
 
-static CLG_LogRef LOG = {"bke.customdata"};
+static CLG_LogRef LOG = {"geom.customdata"};
 
 /* -------------------------------------------------------------------- */
 /** \name Mesh Mask Utilities

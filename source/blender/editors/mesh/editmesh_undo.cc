@@ -103,7 +103,7 @@
 #endif
 
 /** We only need this locally. */
-static CLG_LogRef LOG = {"ed.undo.mesh"};
+static CLG_LogRef LOG = {"undo.mesh"};
 
 /* -------------------------------------------------------------------- */
 /** \name Undo Conversion

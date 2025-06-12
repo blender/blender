@@ -40,7 +40,7 @@ using blender::Span;
 /* corner v/e are unsigned, so using max uint_32 value as invalid marker... */
 #define INVALID_CORNER_EDGE_MARKER 4294967295u
 
-static CLG_LogRef LOG = {"bke.mesh"};
+static CLG_LogRef LOG = {"geom.mesh"};
 
 void strip_loose_faces_corners(Mesh *mesh, blender::BitSpan faces_to_remove);
 void mesh_strip_edges(Mesh *mesh);

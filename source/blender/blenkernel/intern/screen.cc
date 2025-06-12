@@ -56,6 +56,10 @@
 
 #include "WM_types.hh"
 
+#include "CLG_log.h"
+
+static CLG_LogRef LOG_BLEND_DOVERSION = {"blend.doversion"};
+
 using blender::Span;
 using blender::StringRef;
 using blender::Vector;
@@ -1445,10 +1449,11 @@ static void regions_remove_invalid(SpaceType *space_type, ListBase *regionbase)
       continue;
     }
 
-    printf("Warning: region type %d missing in space type \"%s\" (id: %d) - removing region\n",
-           region->regiontype,
-           space_type->name,
-           space_type->spaceid);
+    CLOG_WARN(&LOG_BLEND_DOVERSION,
+              "Region type %d missing in space type \"%s\" (id: %d) - removing region",
+              region->regiontype,
+              space_type->name,
+              space_type->spaceid);
 
     BKE_area_region_free(space_type, region);
     BLI_freelinkN(regionbase, region);

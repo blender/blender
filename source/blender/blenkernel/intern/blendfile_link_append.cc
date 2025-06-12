@@ -64,7 +64,7 @@
 
 #include "BLO_writefile.hh"
 
-static CLG_LogRef LOG = {"bke.blendfile_link_append"};
+static CLG_LogRef LOG = {"lib.link_append"};
 
 using namespace blender::bke;
 

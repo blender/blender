@@ -107,7 +107,7 @@
 #  define FACE_ASSERT(face, vert_max)
 #endif
 
-static CLG_LogRef LOG = {"bke.mask_rasterize"};
+static CLG_LogRef LOG = {"mask.rasterize"};
 
 static void rotate_point_v2(
     float r_p[2], const float p[2], const float cent[2], const float angle, const float asp[2])

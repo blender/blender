@@ -87,7 +87,7 @@ NodeItem GroupOutputNodeParser::compute()
 
 NodeItem GroupOutputNodeParser::compute_full()
 {
-  CLOG_INFO(LOG_MATERIALX_SHADER,
+  CLOG_INFO(LOG_IO_MATERIALX,
             1,
             "%s [%d] => %s",
             node_->name,
@@ -135,7 +135,7 @@ NodeItem GroupInputNodeParser::compute()
 
 NodeItem GroupInputNodeParser::compute_full()
 {
-  CLOG_INFO(LOG_MATERIALX_SHADER,
+  CLOG_INFO(LOG_IO_MATERIALX,
             1,
             "%s [%d] => %s",
             node_->name,

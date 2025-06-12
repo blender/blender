@@ -75,7 +75,7 @@
 
 #include "CLG_log.h"
 
-static CLG_LogRef LOG = {"bke.action"};
+static CLG_LogRef LOG = {"anim.action"};
 
 using namespace blender;
 

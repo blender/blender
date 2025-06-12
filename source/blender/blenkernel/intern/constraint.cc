@@ -100,7 +100,7 @@
 /* Constraint Target Macros */
 #define VALID_CONS_TARGET(ct) ((ct) && (ct->tar))
 
-static CLG_LogRef LOG = {"bke.constraint"};
+static CLG_LogRef LOG = {"object.constraint"};
 
 /* ************************ Constraints - General Utilities *************************** */
 /* These functions here don't act on any specific constraints, and are therefore should/will

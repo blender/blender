@@ -72,7 +72,7 @@
 #  include "BLI_math_base.h" /* M_PI */
 #endif
 
-static CLG_LogRef LOG = {"bke.ipo"};
+static CLG_LogRef LOG = {"anim.ipo"};
 
 using namespace blender;
 

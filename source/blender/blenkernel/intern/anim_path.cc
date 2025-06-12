@@ -24,7 +24,7 @@
 
 #include "CLG_log.h"
 
-static CLG_LogRef LOG = {"bke.anim"};
+static CLG_LogRef LOG = {"anim"};
 
 /* ******************************************************************** */
 /* Curve Paths - for curve deforms and/or curve following */

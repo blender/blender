@@ -77,7 +77,7 @@
 
 #include "CLG_log.h"
 
-static CLG_LogRef LOG = {"bke.modifier"};
+static CLG_LogRef LOG = {"object.modifier"};
 static ModifierTypeInfo *modifier_types[NUM_MODIFIER_TYPES] = {nullptr};
 static VirtualModifierData virtualModifierCommonData;
 

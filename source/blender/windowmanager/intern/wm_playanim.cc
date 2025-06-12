@@ -90,7 +90,7 @@ static struct {
 #  define PLAY_FRAME_CACHE_MAX 30
 #endif
 
-static CLG_LogRef LOG = {"wm.playanim"};
+static CLG_LogRef LOG = {"image"};
 
 /** Used in user viable messages. */
 static const char *message_prefix = "Animation Player";

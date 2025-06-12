@@ -106,7 +106,7 @@
 /* could be made into a pointcache option */
 #define DURIAN_POINTCACHE_LIB_OK 1
 
-static CLG_LogRef LOG = {"bke.pointcache"};
+static CLG_LogRef LOG = {"physics.pointcache"};
 
 static int ptcache_data_size[] = {
     sizeof(uint),     /* BPHYS_DATA_INDEX */

@@ -41,7 +41,7 @@
  */
 // #define WITH_DESTROY_VIA_LOAD_HANDLER
 
-static CLG_LogRef LOG = {"asset_system.asset_library_service"};
+static CLG_LogRef LOG = {"asset.library"};
 
 namespace blender::asset_system {
 

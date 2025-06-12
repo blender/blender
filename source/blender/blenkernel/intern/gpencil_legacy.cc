@@ -58,7 +58,7 @@
 
 #include "BLO_read_write.hh"
 
-static CLG_LogRef LOG = {"bke.gpencil"};
+static CLG_LogRef LOG = {"geom.gpencil"};
 
 static void greasepencil_copy_data(Main * /*bmain*/,
                                    std::optional<Library *> /*owner_library*/,

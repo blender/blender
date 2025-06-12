@@ -104,7 +104,7 @@
 
 #include "CLG_log.h"
 
-static CLG_LogRef LOG = {"bmesh.mesh.convert"};
+static CLG_LogRef LOG = {"geom.bmesh.convert"};
 
 using blender::Array;
 using blender::float3;

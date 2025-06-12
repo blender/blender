@@ -59,7 +59,7 @@ static const char _str_null[] = "(null)";
  * \{ */
 
 /* local */
-static CLG_LogRef LOG = {"bke.appdir"};
+static CLG_LogRef LOG = {"system.path"};
 
 static struct {
   /** Full path to program executable. */

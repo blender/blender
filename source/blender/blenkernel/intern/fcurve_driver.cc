@@ -56,7 +56,7 @@
 static blender::Mutex python_driver_lock;
 #endif
 
-static CLG_LogRef LOG = {"bke.fcurve"};
+static CLG_LogRef LOG = {"anim.fcurve"};
 
 /* -------------------------------------------------------------------- */
 /** \name Driver Variables

@@ -23,7 +23,7 @@
 
 #include "BKE_idtype.hh"
 
-// static CLG_LogRef LOG = {"bke.idtype"};
+// static CLG_LogRef LOG = {"lib.idtype"};
 
 uint BKE_idtype_cache_key_hash(const void *key_v)
 {

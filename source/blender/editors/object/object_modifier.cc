@@ -105,7 +105,7 @@
 
 namespace blender::ed::object {
 
-static CLG_LogRef LOG = {"ed.object"};
+static CLG_LogRef LOG = {"object"};
 
 static void modifier_skin_customdata_delete(Object *ob);
 

@@ -24,7 +24,7 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-static CLG_LogRef LOG = {"ed.undo.curves"};
+static CLG_LogRef LOG = {"undo.curves"};
 
 namespace blender::ed::curves {
 namespace undo {

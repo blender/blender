@@ -344,7 +344,7 @@ static void sound_free_audio(bSound *sound)
 }
 
 #ifdef WITH_AUDASPACE
-static CLG_LogRef LOG = {"bke.sound"};
+static CLG_LogRef LOG = {"sound"};
 
 namespace {
 

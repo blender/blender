@@ -59,7 +59,7 @@
 
 #include "BLO_read_write.hh"
 
-static CLG_LogRef LOG = {"bke.layercollection"};
+static CLG_LogRef LOG = {"object.layer"};
 
 /* Set of flags which are dependent on a collection settings. */
 static const short g_base_collection_flags = (BASE_ENABLED_AND_MAYBE_VISIBLE_IN_VIEWPORT |

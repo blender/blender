@@ -42,7 +42,7 @@
 using namespace blender::animrig;
 
 /** We only need this locally. */
-static CLG_LogRef LOG = {"ed.undo.armature"};
+static CLG_LogRef LOG = {"undo.armature"};
 
 /* Utility functions. */
 

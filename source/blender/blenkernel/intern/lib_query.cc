@@ -26,7 +26,7 @@
 #include "BKE_main.hh"
 #include "BKE_node.hh"
 
-static CLG_LogRef LOG = {"bke.lib_query"};
+static CLG_LogRef LOG = {"lib.query"};
 
 /* status */
 enum {

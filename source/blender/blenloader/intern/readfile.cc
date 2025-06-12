@@ -174,8 +174,8 @@
  */
 #define USE_BHEAD_READ_ON_DEMAND
 
-static CLG_LogRef LOG = {"blo.readfile"};
-static CLG_LogRef LOG_UNDO = {"blo.readfile.undo"};
+static CLG_LogRef LOG = {"blend.readfile"};
+static CLG_LogRef LOG_UNDO = {"undo"};
 
 #if ENDIAN_ORDER == B_ENDIAN
 #  warning "Support for Big Endian endianness is deprecated and will be removed in Blender 5.0"

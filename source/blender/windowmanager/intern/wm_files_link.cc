@@ -64,7 +64,7 @@
 
 #include "wm_files.hh"
 
-static CLG_LogRef LOG = {"wm.files_link"};
+static CLG_LogRef LOG = {"blend.link"};
 
 /* -------------------------------------------------------------------- */
 /** \name Link/Append Operator

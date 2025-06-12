@@ -85,7 +85,7 @@ using namespace blender::color;
 using namespace blender::ed::sculpt_paint; /* For vwpaint namespace. */
 using blender::ed::sculpt_paint::vwpaint::NormalAnglePrecalc;
 
-static CLG_LogRef LOG = {"ed.sculpt_paint"};
+static CLG_LogRef LOG = {"paint.vertex"};
 
 /* -------------------------------------------------------------------- */
 /** \name Internal Utilities

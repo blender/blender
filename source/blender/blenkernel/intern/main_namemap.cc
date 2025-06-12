@@ -30,7 +30,7 @@
 
 #include <fmt/format.h>
 
-static CLG_LogRef LOG = {"bke.main_namemap"};
+static CLG_LogRef LOG = {"lib.main_namemap"};
 
 // #define DEBUG_PRINT_MEMORY_USAGE
 

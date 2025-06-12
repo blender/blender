@@ -518,7 +518,7 @@ static void toolsystem_ref_link(Main *bmain, WorkSpace *workspace, bToolRef *tre
       }
     }
     else {
-      CLOG_WARN(WM_LOG_TOOLS, "'%s' widget not found", idname);
+      CLOG_WARN(WM_LOG_TOOL_GIZMO, "'%s' widget not found", idname);
     }
   }
 

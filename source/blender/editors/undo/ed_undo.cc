@@ -51,7 +51,7 @@ using blender::Set;
 using blender::Vector;
 
 /** We only need this locally. */
-static CLG_LogRef LOG = {"ed.undo"};
+static CLG_LogRef LOG = {"undo"};
 
 /* -------------------------------------------------------------------- */
 /** \name Generic Undo System Access
@@ -96,7 +96,7 @@ void ED_undo_group_end(bContext *C)
 
 void ED_undo_push(bContext *C, const char *str)
 {
-  CLOG_INFO(&LOG, 1, "name='%s'", str);
+  CLOG_INFO(&LOG, 1, "Push '%s'", str);
   WM_file_tag_modified();
 
   wmWindowManager *wm = CTX_wm_manager(C);
@@ -139,7 +139,7 @@ void ED_undo_push(bContext *C, const char *str)
     BKE_undosys_stack_limit_steps_and_memory(wm->undo_stack, -1, memory_limit);
   }
 
-  if (CLOG_CHECK(&LOG, 1)) {
+  if (CLOG_CHECK(&LOG, 2)) {
     BKE_undosys_print(wm->undo_stack);
   }
 
@@ -222,7 +222,7 @@ static void ed_undo_step_post(bContext *C,
 
   asset::list::storage_tag_main_data_dirty();
 
-  if (CLOG_CHECK(&LOG, 1)) {
+  if (CLOG_CHECK(&LOG, 2)) {
     BKE_undosys_print(wm->undo_stack);
   }
 }
@@ -630,7 +630,7 @@ bool ED_undo_operator_repeat(bContext *C, wmOperator *op)
   bool success = false;
 
   if (op) {
-    CLOG_INFO(&LOG, 1, "idname='%s'", op->type->idname);
+    CLOG_INFO(&LOG, 1, "operator repeat idname='%s'", op->type->idname);
     wmWindowManager *wm = CTX_wm_manager(C);
     const ScrArea *area = CTX_wm_area(C);
     Scene *scene = CTX_data_scene(C);

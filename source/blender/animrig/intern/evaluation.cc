@@ -13,7 +13,7 @@
 
 #include "evaluation_internal.hh"
 
-static CLG_LogRef LOG = {"animrig.evaluation"};
+static CLG_LogRef LOG = {"anim.evaluation"};
 
 namespace blender::animrig {
 

@@ -25,7 +25,7 @@
 #include "WM_api.hh"
 #include "WM_types.hh"
 
-static CLG_LogRef LOG = {"ed.undo.pointcloud"};
+static CLG_LogRef LOG = {"undo.pointcloud"};
 
 namespace blender::ed::pointcloud {
 namespace undo {

@@ -27,7 +27,7 @@
 
 #include "CLG_log.h"
 
-static CLG_LogRef LOG = {"asset_system.asset_catalog_service"};
+static CLG_LogRef LOG = {"asset.catalog"};
 
 namespace blender::asset_system {
 
