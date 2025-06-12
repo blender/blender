@@ -27,7 +27,7 @@ static void cmp_node_rgb_declare(NodeDeclarationBuilder &b)
       .default_value({0.5f, 0.5f, 0.5f, 1.0f})
       .custom_draw([](CustomSocketDrawParams &params) {
         uiLayoutSetAlignment(&params.layout, UI_LAYOUT_ALIGN_EXPAND);
-        uiLayout &col = params.layout.column(true);
+        uiLayout &col = params.layout.column(false);
         uiTemplateColorPicker(
             &col, &params.socket_ptr, "default_value", true, false, false, false);
         col.prop(&params.socket_ptr, "default_value", UI_ITEM_R_SLIDER, "", ICON_NONE);
