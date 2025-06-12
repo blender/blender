@@ -281,28 +281,28 @@ BLI_NOINLINE static void free_batches(const MutableSpan<gpu::Batch *> batches,
 static const GPUVertFormat &position_format()
 {
   static const GPUVertFormat format = GPU_vertformat_from_attribute(
-      "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+      "pos", gpu::VertAttrType::SFLOAT_32_32_32);
   return format;
 }
 
 static const GPUVertFormat &normal_format()
 {
   static const GPUVertFormat format = GPU_vertformat_from_attribute(
-      "nor", GPU_COMP_I16, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
+      "nor", gpu::VertAttrType::SNORM_16_16_16_16);
   return format;
 }
 
 static const GPUVertFormat &mask_format()
 {
-  static const GPUVertFormat format = GPU_vertformat_from_attribute(
-      "msk", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
+  static const GPUVertFormat format = GPU_vertformat_from_attribute("msk",
+                                                                    gpu::VertAttrType::SFLOAT_32);
   return format;
 }
 
 static const GPUVertFormat &face_set_format()
 {
   static const GPUVertFormat format = GPU_vertformat_from_attribute(
-      "fset", GPU_COMP_U8, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
+      "fset", gpu::VertAttrType::UNORM_8_8_8_8);
   return format;
 }
 

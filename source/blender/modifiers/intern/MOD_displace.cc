@@ -351,7 +351,7 @@ static void panel_draw(const bContext *C, Panel *panel)
   uiTemplateID(layout, C, ptr, "texture", "texture.new", nullptr, nullptr);
 
   col = &layout->column(false);
-  uiLayoutSetActive(col, has_texture);
+  col->active_set(has_texture);
   col->prop(ptr, "texture_coords", UI_ITEM_NONE, IFACE_("Coordinates"), ICON_NONE);
   if (texture_coords == MOD_DISP_MAP_OBJECT) {
     col->prop(ptr, "texture_coords_object", UI_ITEM_NONE, IFACE_("Object"), ICON_NONE);

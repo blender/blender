@@ -604,8 +604,8 @@ GPUTexture *BKE_image_get_gpu_viewer_texture(Image *image, ImageUser *iuser);
  * tiles as used in material shaders.
  */
 struct ImageGPUTextures {
-  GPUTexture *texture;
-  GPUTexture *tile_mapping;
+  GPUTexture **texture;
+  GPUTexture **tile_mapping;
 };
 
 ImageGPUTextures BKE_image_get_gpu_material_texture(Image *image,

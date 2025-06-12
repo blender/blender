@@ -464,7 +464,7 @@ static void curve_create_curves_pos(CurveRenderData *rdata, gpu::VertBuf *vbo_cu
 
   static const GPUVertFormat format = [&]() {
     GPUVertFormat format{};
-    attr_id.pos = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+    attr_id.pos = GPU_vertformat_attr_add(&format, "pos", gpu::VertAttrType::SFLOAT_32_32_32);
     return format;
   }();
 
@@ -485,7 +485,7 @@ static void curve_create_attribute(CurveRenderData *rdata, gpu::VertBuf &vbo_att
 
   static const GPUVertFormat format = []() {
     GPUVertFormat format{};
-    GPU_vertformat_attr_add(&format, "attribute_value", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
+    GPU_vertformat_attr_add(&format, "attribute_value", gpu::VertAttrType::SFLOAT_32_32_32_32);
     return format;
   }();
 
@@ -547,23 +547,22 @@ static void curve_create_edit_curves_nor(CurveRenderData *rdata,
 
   static const GPUVertFormat format = [&]() {
     GPUVertFormat format{};
-    attr_id.pos = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
-    attr_id.rad = GPU_vertformat_attr_add(&format, "rad", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
+    attr_id.pos = GPU_vertformat_attr_add(&format, "pos", gpu::VertAttrType::SFLOAT_32_32_32);
+    attr_id.rad = GPU_vertformat_attr_add(&format, "rad", gpu::VertAttrType::SFLOAT_32);
     attr_id.nor = GPU_vertformat_attr_add(
-        &format, "nor", GPU_COMP_I10, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
+        &format, "nor", blender::gpu::VertAttrType::SNORM_10_10_10_2);
     attr_id.tan = GPU_vertformat_attr_add(
-        &format, "tangent", GPU_COMP_I10, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
+        &format, "tangent", blender::gpu::VertAttrType::SNORM_10_10_10_2);
     return format;
   }();
 
   static const GPUVertFormat format_hq = [&]() {
     GPUVertFormat format{};
-    attr_id.pos_hq = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
-    attr_id.rad_hq = GPU_vertformat_attr_add(&format, "rad", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
-    attr_id.nor_hq = GPU_vertformat_attr_add(
-        &format, "nor", GPU_COMP_I16, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
+    attr_id.pos_hq = GPU_vertformat_attr_add(&format, "pos", gpu::VertAttrType::SFLOAT_32_32_32);
+    attr_id.rad_hq = GPU_vertformat_attr_add(&format, "rad", gpu::VertAttrType::SFLOAT_32);
+    attr_id.nor_hq = GPU_vertformat_attr_add(&format, "nor", gpu::VertAttrType::SNORM_16_16_16_16);
     attr_id.tan_hq = GPU_vertformat_attr_add(
-        &format, "tangent", GPU_COMP_I16, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
+        &format, "tangent", gpu::VertAttrType::SNORM_16_16_16_16);
     return format;
   }();
 
@@ -670,13 +669,13 @@ static void curve_create_edit_data_and_handles(CurveRenderData *rdata,
 
   static const GPUVertFormat format_pos = [&]() {
     GPUVertFormat format{};
-    attr_id.pos = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+    attr_id.pos = GPU_vertformat_attr_add(&format, "pos", gpu::VertAttrType::SFLOAT_32_32_32);
     return format;
   }();
 
   static const GPUVertFormat format_data = [&]() {
     GPUVertFormat format{};
-    attr_id.data = GPU_vertformat_attr_add(&format, "data", GPU_COMP_U32, 1, GPU_FETCH_INT);
+    attr_id.data = GPU_vertformat_attr_add(&format, "data", gpu::VertAttrType::UINT_32);
     return format;
   }();
 

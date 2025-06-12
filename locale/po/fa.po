@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'e91e8eef41aa')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'798f85a7108f')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-03 09:10+0000\n"
+"POT-Creation-Date: 2025-06-11 11:13+0000\n"
 "PO-Revision-Date: 2025-04-14 08:19+0000\n"
 "Last-Translator: soheil ali-pasha <sapachannel.ir@gmail.com>\n"
 "Language-Team: Persian <https://translate.blender.org/projects/blender-ui/ui/fa/>\n"
@@ -2965,24 +2965,24 @@ msgid "Pivot Point"
 msgstr "ﺶﺧﺮﭼ ﻪﻄﻘﻧ"
 
 
-msgid "Mirror"
-msgstr "ﻪﻨﯾﺁ"
-
-
-msgid "Add Image"
-msgstr "ﺮﯾﻮﺼﺗ ﻥﺩﺮﮐ‌ﻪﻓﺎﺿﺍ"
+msgid "Convert"
+msgstr "ﻞﯾﺪﺒﺗ"
 
 
 msgid "Relations"
 msgstr "ﻂﺑﺍﻭﺭ"
 
 
+msgid "Add Image"
+msgstr "ﺮﯾﻮﺼﺗ ﻥﺩﺮﮐ‌ﻪﻓﺎﺿﺍ"
+
+
 msgid "Apply"
 msgstr "ﻝﺎﻤﻋﺍ"
 
 
-msgid "Convert"
-msgstr "ﻞﯾﺪﺒﺗ"
+msgid "Mirror"
+msgstr "ﻪﻨﯾﺁ"
 
 
 msgid "Key"
@@ -4390,10 +4390,6 @@ msgid "Invert Zoom Direction"
 msgstr "ﺩﻮﺷ ﺲﮑﻋﺮﺑ ﻡﻭﺯ ﺖﻬﺟ"
 
 
-msgid "Lock Horizon"
-msgstr "ﻖﻓﺍ ﻞﻔﻗ"
-
-
 msgid "Turntable"
 msgstr "ﻪﻧﻭﺩﺮﮔ ﻪﺤﻔﺻ"
 
@@ -4833,6 +4829,10 @@ msgid "B"
 msgstr "B"
 
 
+msgid "Lock Horizon"
+msgstr "ﻖﻓﺍ ﻞﻔﻗ"
+
+
 msgid "Location:"
 msgstr ":ﻥﺎﮑﻣ"
 
@@ -5208,86 +5208,6 @@ msgstr "ﯽﻤﯾﺪﻗ"
 
 msgid "Blender File View"
 msgstr "ﺭﺪﻨﻠﺑ ﻞﯾﺎﻓ ﺶﯾﺎﻤﻧ"
-
-
-msgid "Japanese (日本語)"
-msgstr "(日本語) ﯽﻨﭘﺍﮊ"
-
-
-msgid "Italian (Italiano)"
-msgstr "(Italiano) ﯽﯾﺎﯿﻟﺎﺘﯾﺍ"
-
-
-msgid "German (Deutsch)"
-msgstr "(Deutsch) ﯽﻧﺎﻤﻟﺁ"
-
-
-msgid "Finnish (Suomi)"
-msgstr "(Suomi) ﯼﺪﻧﻼ﻿ﻨﻓ"
-
-
-msgid "Swedish (Svenska)"
-msgstr "(Svenska) ﯼﺪﺋﻮﺳ"
-
-
-msgid "French (Français)"
-msgstr "(Français) ﯼﻮﺴﻧﺍﺮﻓ"
-
-
-msgid "Spanish (Español)"
-msgstr "(Español) ﯽﯾﺎﯿﻧﺎﭙﺳﺍ"
-
-
-msgid "Catalan (Català)"
-msgstr "(Català) ﯽﻧﻻ﻿ﺎﺗﺎﮐ"
-
-
-msgid "Portuguese (Português)"
-msgstr "(Português) ﯽﻟﺎﻐﺗﺮﭘ"
-
-
-msgid "Simplified Chinese (简体中文)"
-msgstr "(简体中文) ﻩﺩﺎﺳ ﯽﻨﯿﭼ"
-
-
-msgid "Traditional Chinese (繁體中文)"
-msgstr "(繁體中文) ﯽﺘﻨﺳ ﯽﻨﯿﭼ"
-
-
-msgid "Russian (Русский)"
-msgstr "(Русский) ﯽﺳﻭﺭ"
-
-
-msgid "Croatian (Hrvatski)"
-msgstr "(Hrvatski) ﯽﺗﺍﻭﺮﮐ"
-
-
-msgid "Polish (Polski)"
-msgstr "(Polski) ﯽﻧﺎﺘﺴﻬﻟ"
-
-
-msgid "Romanian (Român)"
-msgstr "(Român) ﯽﯾﺎﯿﻧﺎﻣﻭﺭ"
-
-
-msgid "Arabic (ﺔﻴﺑﺮﻌﻟﺍ)"
-msgstr "(ﺔﯿﺑﺮﻌﻟﺍ) ﯼﺯﺎﺗ"
-
-
-msgid "Bulgarian (Български)"
-msgstr "(Български) ﯼﺭﺎﻐﻠﺑ"
-
-
-msgid "Greek (Ελληνικά)"
-msgstr "(Ελληνικά) ﯽﻧﺎﻧﻮﯾ"
-
-
-msgid "Persian (ﯽﺳﺭﺎﻓ)"
-msgstr "(ﯽﺳﺭﺎﻓ) ﯽﺳﺭﺎﻓ"
-
-
-msgid "Indonesian (Bahasa indonesia)"
-msgstr "(Bahasa indonesia) ﯼﺰﻧﻭﺪﻧﺍ"
 
 
 msgid "Smooth by Angle"

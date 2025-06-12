@@ -1189,7 +1189,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", std::nullopt);
 
   row = &layout->row(false);
-  uiLayoutSetActive(row, has_vertex_group);
+  row->active_set(has_vertex_group);
   row->prop(ptr, "protect", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   layout->op("OBJECT_OT_explode_refresh", IFACE_("Refresh"), ICON_NONE);

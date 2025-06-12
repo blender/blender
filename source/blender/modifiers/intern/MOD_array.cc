@@ -932,7 +932,7 @@ static void relative_offset_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayout *col = &layout->column(false);
 
-  uiLayoutSetActive(col, RNA_boolean_get(ptr, "use_relative_offset"));
+  col->active_set(RNA_boolean_get(ptr, "use_relative_offset"));
   col->prop(ptr, "relative_offset_displace", UI_ITEM_NONE, IFACE_("Factor"), ICON_NONE);
 }
 
@@ -955,7 +955,7 @@ static void constant_offset_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayout *col = &layout->column(false);
 
-  uiLayoutSetActive(col, RNA_boolean_get(ptr, "use_constant_offset"));
+  col->active_set(RNA_boolean_get(ptr, "use_constant_offset"));
   col->prop(ptr, "constant_offset_displace", UI_ITEM_NONE, IFACE_("Distance"), ICON_NONE);
 }
 
@@ -981,7 +981,7 @@ static void object_offset_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayout *col = &layout->column(false);
 
-  uiLayoutSetActive(col, RNA_boolean_get(ptr, "use_object_offset"));
+  col->active_set(RNA_boolean_get(ptr, "use_object_offset"));
   col->prop(ptr, "offset_object", UI_ITEM_NONE, IFACE_("Object"), ICON_NONE);
 }
 
@@ -1003,7 +1003,7 @@ static void symmetry_panel_draw(const bContext * /*C*/, Panel *panel)
   uiLayoutSetPropSep(layout, true);
 
   uiLayout *col = &layout->column(false);
-  uiLayoutSetActive(col, RNA_boolean_get(ptr, "use_merge_vertices"));
+  col->active_set(RNA_boolean_get(ptr, "use_merge_vertices"));
   col->prop(ptr, "merge_threshold", UI_ITEM_NONE, IFACE_("Distance"), ICON_NONE);
   col->prop(
       ptr, "use_merge_vertices_cap", UI_ITEM_NONE, IFACE_("First and Last Copies"), ICON_NONE);

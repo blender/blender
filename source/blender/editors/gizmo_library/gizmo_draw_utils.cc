@@ -22,7 +22,8 @@ void wm_gizmo_geometryinfo_draw(const GizmoGeomInfo *info,
    * So we don't need to re-created and discard it every time */
 
   GPUVertFormat format = {0};
-  uint pos_id = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+  uint pos_id = GPU_vertformat_attr_add(
+      &format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32_32);
 
   /* Elements */
   GPUIndexBufBuilder elb = {0};

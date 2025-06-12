@@ -120,8 +120,9 @@ int MTLBatch::prepare_vertex_binding(MTLVertBuf *verts,
     const GPUVertAttr *a = &format->attrs[a_idx];
 
     if (format->deinterleaved) {
-      attribute_offset += ((a_idx == 0) ? 0 : format->attrs[a_idx - 1].size) * verts->vertex_len;
-      buffer_stride = a->size;
+      attribute_offset += ((a_idx == 0) ? 0 : format->attrs[a_idx - 1].type.size()) *
+                          verts->vertex_len;
+      buffer_stride = a->type.size();
     }
     else {
       attribute_offset = a->offset;
@@ -178,69 +179,7 @@ int MTLBatch::prepare_vertex_binding(MTLVertBuf *verts,
           desc.vertex_descriptor.buffer_layouts[buffer_index].stride = buffer_stride;
         }
 
-        /* Handle Matrix/Array vertex attribute types.
-         * Metal does not natively support these as attribute types, so we handle these cases
-         * by stacking together compatible types (e.g. 4xVec4 for Mat4) and combining
-         * the data in the shader.
-         * The generated Metal shader will contain a generated input binding, which reads
-         * in individual attributes and merges them into the desired type after vertex
-         * assembly. e.g. a Mat4 (Float4x4) will generate 4 Float4 attributes. */
-        if (a->comp_len == 16 || a->comp_len == 12 || a->comp_len == 8) {
-          BLI_assert_msg(
-              a->comp_len == 16,
-              "only mat4 attributes currently supported -- Not ready to handle other long "
-              "component length attributes yet");
-
-          {
-            /* Handle Mat4 attributes. */
-            if (a->comp_len == 16) {
-              /* Debug safety checks. */
-              BLI_assert_msg(mtl_attr.matrix_element_count == 4,
-                             "mat4 type expected but there are fewer components");
-              BLI_assert_msg(mtl_attr.size == 16, "Expecting subtype 'vec4' with 16 bytes");
-              BLI_assert_msg(
-                  mtl_attr.format == MTLVertexFormatFloat4,
-                  "Per-attribute vertex format MUST be float4 for an input type of 'mat4'");
-
-              /* We have found the 'ROOT' attribute. A mat4 contains 4 consecutive float4 attribute
-               * locations we must map to. */
-              for (int i = 0; i < a->comp_len / 4; i++) {
-                desc.vertex_descriptor.attributes[mtl_attr.location + i].format =
-                    MTLVertexFormatFloat4;
-                /* Data is consecutive in the buffer for the whole matrix, each float4 will shift
-                 * the offset by 16 bytes. */
-                desc.vertex_descriptor.attributes[mtl_attr.location + i].offset =
-                    attribute_offset + i * 16;
-                /* All source data for a matrix is in the same singular buffer. */
-                desc.vertex_descriptor.attributes[mtl_attr.location + i].buffer_index =
-                    buffer_index;
-
-                /* Update total attribute account. */
-                desc.vertex_descriptor.total_attributes++;
-                desc.vertex_descriptor.max_attribute_value = max_ii(
-                    mtl_attr.location + i, desc.vertex_descriptor.max_attribute_value);
-                MTL_LOG_INFO("-- Sub-Attrib Location: %d, offset: %d, buffer index: %d",
-                             mtl_attr.location + i,
-                             attribute_offset + i * 16,
-                             buffer_index);
-
-                /* Update attribute used-slot mask for array elements. */
-                attr_mask &= ~(1 << (mtl_attr.location + i));
-              }
-              MTL_LOG_INFO(
-                  "Float4x4 attribute type added for '%s' at attribute locations: %d to %d",
-                  name,
-                  mtl_attr.location,
-                  mtl_attr.location + 3);
-            }
-
-            /* Ensure we are not exceeding the attribute limit. */
-            BLI_assert(desc.vertex_descriptor.max_attribute_value <
-                       MTL_MAX_VERTEX_INPUT_ATTRIBUTES);
-          }
-        }
-        else {
-
+        {
           /* Handle Any required format conversions.
            * NOTE(Metal): If there is a mis-match between the format of an attribute
            * in the shader interface, and the specified format in the VertexBuffer VertexFormat,
@@ -262,13 +201,12 @@ int MTLBatch::prepare_vertex_binding(MTLVertBuf *verts,
            * https://developer.apple.com/documentation/metal/mtlvertexattributedescriptor/1516081-format?language=objc
            */
           MTLVertexFormat converted_format;
-          bool can_use_internal_conversion = mtl_convert_vertex_format(
-              mtl_attr.format,
-              (GPUVertCompType)a->comp_type,
-              a->comp_len,
-              (GPUVertFetchMode)a->fetch_mode,
-              &converted_format);
-          bool is_floating_point_format = (a->comp_type == GPU_COMP_F32);
+          bool can_use_internal_conversion = mtl_convert_vertex_format(mtl_attr.format,
+                                                                       a->type.comp_type(),
+                                                                       a->type.comp_len(),
+                                                                       a->type.fetch_mode(),
+                                                                       &converted_format);
+          bool is_floating_point_format = (a->type.comp_type() == GPU_COMP_F32);
 
           if (can_use_internal_conversion) {
             desc.vertex_descriptor.attributes[mtl_attr.location].format = converted_format;
@@ -291,10 +229,11 @@ int MTLBatch::prepare_vertex_binding(MTLVertBuf *verts,
              *
              * NOTE: Even if full conversion is not supported, we may still partially perform an
              * implicit conversion where possible, such as vector truncation or expansion. */
-            MTLVertexFormat converted_format = format_resize_comp(mtl_attr.format, a->comp_len);
+            MTLVertexFormat converted_format = format_resize_comp(mtl_attr.format,
+                                                                  a->type.comp_len());
             desc.vertex_descriptor.attributes[mtl_attr.location].format = converted_format;
             desc.vertex_descriptor.attributes[mtl_attr.location].format_conversion_mode =
-                (GPUVertFetchMode)a->fetch_mode;
+                a->type.fetch_mode();
             BLI_assert(desc.vertex_descriptor.attributes[mtl_attr.location].format !=
                        MTLVertexFormatInvalid);
           }
@@ -314,9 +253,9 @@ int MTLBatch::prepare_vertex_binding(MTLVertBuf *verts,
               "components: %d, Fetch Mode %d --> FINAL FORMAT: %d",
               mtl_attr.location,
               (int)mtl_attr.format,
-              (int)a->comp_type,
-              (int)a->comp_len,
-              (int)a->fetch_mode,
+              (int)a->type.comp_type(),
+              (int)a->type.comp_len(),
+              (int)a->type.fetch_mode(),
               (int)desc.vertex_descriptor.attributes[mtl_attr.location].format);
 
           MTL_LOG_INFO(

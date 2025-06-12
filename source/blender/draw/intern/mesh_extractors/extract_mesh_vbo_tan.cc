@@ -25,8 +25,7 @@ namespace blender::draw {
 static void extract_tan_init_common(const MeshRenderData &mr,
                                     const MeshBatchCache &cache,
                                     GPUVertFormat *format,
-                                    GPUVertCompType comp_type,
-                                    GPUVertFetchMode fetch_mode,
+                                    gpu::VertAttrType gpu_attr_type,
                                     CustomData *r_loop_data,
                                     int *r_v_len,
                                     int *r_tan_len,
@@ -63,7 +62,7 @@ static void extract_tan_init_common(const MeshRenderData &mr,
       GPU_vertformat_safe_attr_name(layer_name, attr_safe_name, GPU_MAX_SAFE_ATTR_NAME);
       /* Tangent layer name. */
       SNPRINTF(attr_name, "t%s", attr_safe_name);
-      GPU_vertformat_attr_add(format, attr_name, comp_type, 4, fetch_mode);
+      GPU_vertformat_attr_add(format, attr_name, gpu_attr_type);
       /* Active render layer name. */
       if (i == CustomData_get_render_layer(cd_ldata, CD_PROP_FLOAT2)) {
         GPU_vertformat_alias_add(format, "t");
@@ -142,14 +141,14 @@ static void extract_tan_init_common(const MeshRenderData &mr,
     const char *layer_name = CustomData_get_layer_name(r_loop_data, CD_TANGENT, 0);
     GPU_vertformat_safe_attr_name(layer_name, attr_safe_name, GPU_MAX_SAFE_ATTR_NAME);
     SNPRINTF(attr_name, "t%s", attr_safe_name);
-    GPU_vertformat_attr_add(format, attr_name, comp_type, 4, fetch_mode);
+    GPU_vertformat_attr_add(format, attr_name, gpu_attr_type);
     GPU_vertformat_alias_add(format, "t");
     GPU_vertformat_alias_add(format, "at");
   }
 
   int v_len = mr.corners_num;
   if (format->attr_len == 0) {
-    GPU_vertformat_attr_add(format, "dummy", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
+    GPU_vertformat_attr_add(format, "dummy", blender::gpu::VertAttrType::SFLOAT_32);
     /* VBO will not be used, only allocate minimum of memory. */
     v_len = 1;
   }
@@ -163,8 +162,8 @@ gpu::VertBufPtr extract_tangents(const MeshRenderData &mr,
                                  const MeshBatchCache &cache,
                                  const bool use_hq)
 {
-  GPUVertCompType comp_type = use_hq ? GPU_COMP_I16 : GPU_COMP_I10;
-  GPUVertFetchMode fetch_mode = GPU_FETCH_INT_TO_FLOAT_UNIT;
+  gpu::VertAttrType gpu_attr_type = use_hq ? gpu::VertAttrType::SNORM_16_16_16_16 :
+                                             gpu::VertAttrType::SNORM_10_10_10_2;
 
   GPUVertFormat format = {0};
   CustomData corner_data;
@@ -175,8 +174,7 @@ gpu::VertBufPtr extract_tangents(const MeshRenderData &mr,
   extract_tan_init_common(mr,
                           cache,
                           &format,
-                          comp_type,
-                          fetch_mode,
+                          gpu_attr_type,
                           &corner_data,
                           &v_len,
                           &tan_len,
@@ -238,7 +236,7 @@ gpu::VertBufPtr extract_tangents(const MeshRenderData &mr,
 static const GPUVertFormat &get_coarse_tan_format()
 {
   static GPUVertFormat format = GPU_vertformat_from_attribute(
-      "tan", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
+      "tan", gpu::VertAttrType::SFLOAT_32_32_32_32);
   return format;
 }
 
@@ -246,8 +244,7 @@ gpu::VertBufPtr extract_tangents_subdiv(const MeshRenderData &mr,
                                         const DRWSubdivCache &subdiv_cache,
                                         const MeshBatchCache &cache)
 {
-  GPUVertCompType comp_type = GPU_COMP_F32;
-  GPUVertFetchMode fetch_mode = GPU_FETCH_FLOAT;
+  gpu::VertAttrType gpu_attr_type = gpu::VertAttrType::SFLOAT_32_32_32_32;
   GPUVertFormat format = {0};
   CustomData corner_data;
   int coarse_len = 0;
@@ -257,8 +254,7 @@ gpu::VertBufPtr extract_tangents_subdiv(const MeshRenderData &mr,
   extract_tan_init_common(mr,
                           cache,
                           &format,
-                          comp_type,
-                          fetch_mode,
+                          gpu_attr_type,
                           &corner_data,
                           &coarse_len,
                           &tan_len,

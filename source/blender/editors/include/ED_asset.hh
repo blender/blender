@@ -15,7 +15,6 @@
  * dedicated headers. */
 
 #include "../asset/ED_asset_catalog.hh"           // IWYU pragma: export
-#include "../asset/ED_asset_handle.hh"            // IWYU pragma: export
 #include "../asset/ED_asset_library.hh"           // IWYU pragma: export
 #include "../asset/ED_asset_list.hh"              // IWYU pragma: export
 #include "../asset/ED_asset_mark_clear.hh"        // IWYU pragma: export

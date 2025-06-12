@@ -800,7 +800,7 @@ static void panel_draw(const bContext *C, Panel *panel)
   if (uiLayout *panel = restrict_frame_range_layout.body) {
     const bool active = RNA_boolean_get(ptr, "use_restrict_frame_range");
     uiLayout *col = &panel->column(false);
-    uiLayoutSetActive(col, active);
+    col->active_set(active);
     col->prop(ptr, "frame_start", UI_ITEM_NONE, IFACE_("Start"), ICON_NONE);
     col->prop(ptr, "frame_end", UI_ITEM_NONE, IFACE_("End"), ICON_NONE);
   }
@@ -809,7 +809,7 @@ static void panel_draw(const bContext *C, Panel *panel)
   if (uiLayout *panel = fading_layout.body) {
     const bool active = RNA_boolean_get(ptr, "use_fading");
     uiLayout *col = &panel->column(false);
-    uiLayoutSetActive(col, active);
+    col->active_set(active);
 
     col->prop(ptr, "fade_factor", UI_ITEM_NONE, IFACE_("Factor"), ICON_NONE);
 

@@ -831,15 +831,11 @@ void BlenderDisplayDriver::draw(const Params &params)
   const int texcoord_attribute = GPU_vertformat_attr_add(
       format,
       ccl::BlenderDisplayShader::tex_coord_attribute_name,
-      GPU_COMP_F32,
-      2,
-      GPU_FETCH_FLOAT);
+      blender::gpu::VertAttrType::SFLOAT_32_32);
   const int position_attribute = GPU_vertformat_attr_add(
       format,
       ccl::BlenderDisplayShader::position_attribute_name,
-      GPU_COMP_F32,
-      2,
-      GPU_FETCH_FLOAT);
+      blender::gpu::VertAttrType::SFLOAT_32_32);
 
   /* NOTE: Shader is bound again through IMM to register this shader with the IMM module
    * and perform required setup for IMM rendering. This is required as the IMM module

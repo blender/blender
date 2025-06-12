@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'e91e8eef41aa')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'798f85a7108f')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-03 09:10+0000\n"
+"POT-Creation-Date: 2025-06-11 11:13+0000\n"
 "PO-Revision-Date: 2025-04-14 08:40+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Serbian <https://translate.blender.org/projects/blender-ui/ui/sr/>\n"
@@ -8585,16 +8585,16 @@ msgid "Material slot name"
 msgstr "Назив слота материјала"
 
 
+msgid "Show/Hide"
+msgstr "Прикажи/сакриј"
+
+
 msgid "Special Characters"
 msgstr "Специјални знаци"
 
 
 msgid "Metaball"
 msgstr "Мета лопта"
-
-
-msgid "Show/Hide"
-msgstr "Прикажи/сакриј"
 
 
 msgid "Names"
@@ -8609,88 +8609,88 @@ msgid "Snap"
 msgstr "Лепљење"
 
 
-msgid "Mirror"
-msgstr "Огледало"
-
-
-msgid "UV Mapping"
-msgstr "UV Мапирање"
-
-
-msgid "Local View"
-msgstr "Локални поглед"
-
-
-msgid "Navigation"
-msgstr "Навигација"
-
-
-msgid "Align View"
-msgstr "Поравнај поглед"
-
-
-msgid "Select Linked"
-msgstr "Изабери повезано"
-
-
-msgid "Light"
-msgstr "Светлост"
+msgid "Hooks"
+msgstr "Удице"
 
 
 msgid "Relations"
 msgstr "Односи"
 
 
-msgid "Rigid Body"
-msgstr "Круто тело"
+msgid "Merge"
+msgstr "Сједини"
 
 
-msgid "Apply"
-msgstr "Примени"
-
-
-msgid "Track"
-msgstr "Стаза"
-
-
-msgid "Quick Effects"
-msgstr "Брзи ефекти"
-
-
-msgid "Hooks"
-msgstr "Удице"
-
-
-msgid "Clear Transform"
-msgstr "Очисти трансформације"
-
-
-msgid "In-Betweens"
-msgstr "У међувремену"
-
-
-msgid "Propagate"
-msgstr "Пренеси"
-
-
-msgid "Toggle Bone Options"
-msgstr "Мање/више информација"
-
-
-msgid "Enable Bone Options"
-msgstr "Омогући опције костију"
-
-
-msgid "Disable Bone Options"
-msgstr "Онемогући опције костију"
+msgid "Light"
+msgstr "Светлост"
 
 
 msgid "Mesh Select Mode"
 msgstr "Мод избора мреже"
 
 
-msgid "Merge"
-msgstr "Сједини"
+msgid "Quick Effects"
+msgstr "Брзи ефекти"
+
+
+msgid "Disable Bone Options"
+msgstr "Онемогући опције костију"
+
+
+msgid "Enable Bone Options"
+msgstr "Омогући опције костију"
+
+
+msgid "Track"
+msgstr "Стаза"
+
+
+msgid "Toggle Bone Options"
+msgstr "Мање/више информација"
+
+
+msgid "Apply"
+msgstr "Примени"
+
+
+msgid "Rigid Body"
+msgstr "Круто тело"
+
+
+msgid "Propagate"
+msgstr "Пренеси"
+
+
+msgid "Local View"
+msgstr "Локални поглед"
+
+
+msgid "In-Betweens"
+msgstr "У међувремену"
+
+
+msgid "Clear Transform"
+msgstr "Очисти трансформације"
+
+
+msgid "Select Linked"
+msgstr "Изабери повезано"
+
+
+msgid "Align View"
+msgstr "Поравнај поглед"
+
+
+msgid "Navigation"
+msgstr "Навигација"
+
+
+msgid "UV Mapping"
+msgstr "UV Мапирање"
+
+
+msgid "Mirror"
+msgstr "Огледало"
 
 
 msgid "Basic"
@@ -15038,10 +15038,6 @@ msgid "Dissolve edges, merging faces"
 msgstr "Растопи ивице, спајајући странице"
 
 
-msgid "Dissolve remaining vertices"
-msgstr "Растапа преостала темена"
-
-
 msgctxt "Operator"
 msgid "Dissolve Faces"
 msgstr "Растопи странице"
@@ -20571,14 +20567,6 @@ msgid "Helicopter Mode"
 msgstr "Мод хелихоптера"
 
 
-msgid "Lock Horizon"
-msgstr "Закључај хоризонт"
-
-
-msgid "Y/Z Swap Axis"
-msgstr "Замени Y и Z осе"
-
-
 msgid "Invert X Axis"
 msgstr "Изврнута X оса"
 
@@ -20597,18 +20585,6 @@ msgstr "Изврнута оса скретања (Y)"
 
 msgid "Invert Roll (Z) Axis"
 msgstr "Изврнута оса окретања (Z)"
-
-
-msgid "Turntable"
-msgstr "Окретница"
-
-
-msgid "Use turntable style rotation in the viewport"
-msgstr "Користи стил окретнице за окретање помоћу средњег тастера"
-
-
-msgid "Invert Zoom"
-msgstr "Изврнуто увећање"
 
 
 msgid "Softness"
@@ -20637,6 +20613,10 @@ msgstr "Имитирај 3. дугме"
 
 msgid "Use selection as the pivot point"
 msgstr "Користи векторе одсјаја као координате текстуре"
+
+
+msgid "Turntable"
+msgstr "Окретница"
 
 
 msgid "Zoom Axis"
@@ -24126,6 +24106,10 @@ msgid "Invert Wheel Zoom Direction"
 msgstr "Обрнути смер приближавања точкићем"
 
 
+msgid "Lock Horizon"
+msgstr "Закључај хоризонт"
+
+
 msgid "Missing script files"
 msgstr "Недостаје датотека скрипте"
 
@@ -26191,136 +26175,4 @@ msgstr "Збирка поза"
 
 msgid "Import-Export"
 msgstr "Увоз-извоз"
-
-
-msgid "Japanese (日本語)"
-msgstr "Јапански (日本語)"
-
-
-msgid "Italian (Italiano)"
-msgstr "Италијански (Italiano)"
-
-
-msgid "German (Deutsch)"
-msgstr "Немачки (Deutsch)"
-
-
-msgid "Finnish (Suomi)"
-msgstr "Фински (Suomi)"
-
-
-msgid "Swedish (Svenska)"
-msgstr "Шведски (Svenska)"
-
-
-msgid "French (Français)"
-msgstr "Француски (Français)"
-
-
-msgid "Spanish (Español)"
-msgstr "Шпански (Español)"
-
-
-msgid "Catalan (Català)"
-msgstr "Каталонски (Català)"
-
-
-msgid "Simplified Chinese (简体中文)"
-msgstr "Једноставан кинески (简体中文)"
-
-
-msgid "Traditional Chinese (繁體中文)"
-msgstr "Традиционални кинески (繁體中文)"
-
-
-msgid "Russian (Русский)"
-msgstr "Руски (Русский)"
-
-
-msgid "Croatian (Hrvatski)"
-msgstr "Хрватски (Hrvatski)"
-
-
-msgid "Serbian (Српски)"
-msgstr "Српски"
-
-
-msgid "Polish (Polski)"
-msgstr "Пољски (Polski)"
-
-
-msgid "Romanian (Român)"
-msgstr "Румунски (Român)"
-
-
-msgid "Arabic (ﺔﻴﺑﺮﻌﻟﺍ)"
-msgstr "Арапски (ﺔﻴﺑﺮﻌﻟﺍ)"
-
-
-msgid "Bulgarian (Български)"
-msgstr "Бугарски (Български)"
-
-
-msgid "Greek (Ελληνικά)"
-msgstr "Грчки (Ελληνικά)"
-
-
-msgid "Nepali (नेपाली)"
-msgstr "Непалски (नेपाली)"
-
-
-msgid "Persian (ﯽﺳﺭﺎﻓ)"
-msgstr "Персијски (ﯽﺳﺭﺎﻓ)"
-
-
-msgid "Indonesian (Bahasa indonesia)"
-msgstr "Индонежански (Bahasa indonesia)"
-
-
-msgid "Serbian Latin (Srpski latinica)"
-msgstr "Српски латиница"
-
-
-msgid "Kyrgyz (Кыргыз тили)"
-msgstr "Киргиски (Кыргыз тили)"
-
-
-msgid "Turkish (Türkçe)"
-msgstr "Турски (Türkçe)"
-
-
-msgid "Hungarian (Magyar)"
-msgstr "Мађарски (Magyar)"
-
-
-msgid "Brazilian Portuguese (Português do Brasil)"
-msgstr "Португалски Бразил (Português do Brasil)"
-
-
-msgid "Hebrew (תירִבְעִ)"
-msgstr "Хебрејски (תירִבְעִ)"
-
-
-msgid "Esperanto (Esperanto)"
-msgstr "Есперанто (Esperanto)"
-
-
-msgid "Amharic (አማርኛ)"
-msgstr "Амхарски (አማርኛ)"
-
-
-msgid "Uzbek (Oʻzbek)"
-msgstr "Узбечки (Oʻzbek)"
-
-
-msgid "Uzbek Cyrillic (Ўзбек)"
-msgstr "Узбечка ћирилица (Ўзбек)"
-
-
-msgid "Complete"
-msgstr "Завршено"
-
-
-msgid "In Progress"
-msgstr "У току"
 

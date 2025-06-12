@@ -88,7 +88,7 @@ static PointerRNA *fmodifier_get_pointers(const bContext *C, const Panel *panel,
 
   if (C != nullptr && CTX_wm_space_graph(C)) {
     const FCurve *fcu = ANIM_graph_context_fcurve(C);
-    uiLayoutSetActive(panel->layout, !(fcu->flag & FCURVE_MOD_OFF));
+    panel->layout->active_set(!(fcu->flag & FCURVE_MOD_OFF));
   }
 
   return ptr;
@@ -258,7 +258,7 @@ static void fmodifier_influence_draw(uiLayout *layout, PointerRNA *ptr)
   row->prop(ptr, "use_influence", UI_ITEM_NONE, "", ICON_NONE);
   uiLayout *sub = &row->row(true);
 
-  uiLayoutSetActive(sub, fcm->flag & FMODIFIER_FLAG_USEINFLUENCE);
+  sub->active_set(fcm->flag & FMODIFIER_FLAG_USEINFLUENCE);
   sub->prop(ptr, "influence", UI_ITEM_NONE, "", ICON_NONE);
 }
 
@@ -282,7 +282,7 @@ static void fmodifier_frame_range_draw(const bContext *C, Panel *panel)
   uiLayoutSetPropDecorate(layout, false);
 
   FModifier *fcm = static_cast<FModifier *>(ptr->data);
-  uiLayoutSetActive(layout, fcm->flag & FMODIFIER_FLAG_RANGERESTRICT);
+  layout->active_set(fcm->flag & FMODIFIER_FLAG_RANGERESTRICT);
 
   col = &layout->column(true);
   col->prop(ptr, "frame_start", UI_ITEM_NONE, IFACE_("Start"), ICON_NONE);
@@ -771,13 +771,13 @@ static void limits_panel_draw(const bContext *C, Panel *panel)
   row = &col->row(true, IFACE_("Minimum X"));
   row->prop(ptr, "use_min_x", UI_ITEM_NONE, "", ICON_NONE);
   sub = &row->column(true);
-  uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_min_x"));
+  sub->active_set(RNA_boolean_get(ptr, "use_min_x"));
   sub->prop(ptr, "min_x", UI_ITEM_NONE, "", ICON_NONE);
 
   row = &col->row(true, IFACE_("Y"));
   row->prop(ptr, "use_min_y", UI_ITEM_NONE, "", ICON_NONE);
   sub = &row->column(true);
-  uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_min_y"));
+  sub->active_set(RNA_boolean_get(ptr, "use_min_y"));
   sub->prop(ptr, "min_y", UI_ITEM_NONE, "", ICON_NONE);
 
   /* Maximums. */
@@ -785,13 +785,13 @@ static void limits_panel_draw(const bContext *C, Panel *panel)
   row = &col->row(true, IFACE_("Maximum X"));
   row->prop(ptr, "use_max_x", UI_ITEM_NONE, "", ICON_NONE);
   sub = &row->column(true);
-  uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_max_x"));
+  sub->active_set(RNA_boolean_get(ptr, "use_max_x"));
   sub->prop(ptr, "max_x", UI_ITEM_NONE, "", ICON_NONE);
 
   row = &col->row(true, IFACE_("Y"));
   row->prop(ptr, "use_max_y", UI_ITEM_NONE, "", ICON_NONE);
   sub = &row->column(true);
-  uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_max_y"));
+  sub->active_set(RNA_boolean_get(ptr, "use_max_y"));
   sub->prop(ptr, "max_y", UI_ITEM_NONE, "", ICON_NONE);
 
   fmodifier_influence_draw(layout, ptr);
@@ -837,14 +837,14 @@ static void stepped_panel_draw(const bContext *C, Panel *panel)
   row = &layout->row(true, IFACE_("Start Frame"));
   row->prop(ptr, "use_frame_start", UI_ITEM_NONE, "", ICON_NONE);
   sub = &row->column(true);
-  uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_frame_start"));
+  sub->active_set(RNA_boolean_get(ptr, "use_frame_start"));
   sub->prop(ptr, "frame_start", UI_ITEM_NONE, "", ICON_NONE);
 
   /* End range settings. */
   row = &layout->row(true, IFACE_("End Frame"));
   row->prop(ptr, "use_frame_end", UI_ITEM_NONE, "", ICON_NONE);
   sub = &row->column(true);
-  uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_frame_end"));
+  sub->active_set(RNA_boolean_get(ptr, "use_frame_end"));
   sub->prop(ptr, "frame_end", UI_ITEM_NONE, "", ICON_NONE);
 
   fmodifier_influence_draw(layout, ptr);

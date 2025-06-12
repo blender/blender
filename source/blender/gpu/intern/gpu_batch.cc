@@ -249,8 +249,8 @@ static uint16_t bind_attribute_as_ssbo(const ShaderInterface *interface,
     const GPUVertAttr *a = &format->attrs[a_idx];
 
     if (format->deinterleaved) {
-      offset += ((a_idx == 0) ? 0 : format->attrs[a_idx - 1].size) * vbo->vertex_len;
-      stride = a->size;
+      offset += ((a_idx == 0) ? 0 : format->attrs[a_idx - 1].type.size()) * vbo->vertex_len;
+      stride = a->type.size();
     }
     else {
       offset = a->offset;
@@ -278,7 +278,7 @@ static uint16_t bind_attribute_as_ssbo(const ShaderInterface *interface,
        * But for now, changes are a bit too invasive. Will need to be revisited later on. */
       char uniform_name_len[] = "gpu_attr_0_len";
       uniform_name_len[9] = '0' + input->location;
-      GPU_shader_uniform_1i(shader, uniform_name_len, a->comp_len);
+      GPU_shader_uniform_1i(shader, uniform_name_len, a->type.comp_len());
     }
   }
   return bound_attr;
@@ -408,12 +408,11 @@ static void polyline_draw_workaround(
   int id = GPU_vertformat_attr_id_get(format, "color");
   if (id != -1) {
     const GPUVertAttr &attr = format->attrs[id];
-    BLI_assert_msg(ELEM(attr.fetch_mode, GPU_FETCH_INT_TO_FLOAT_UNIT, GPU_FETCH_FLOAT),
+    const bool is_unorm8 = attr.type.format == blender::gpu::VertAttrType::UNORM_8_8_8_8;
+    BLI_assert_msg(is_unorm8 || attr.type.fetch_mode() == GPU_FETCH_FLOAT,
                    "color attribute for polylines can only use GPU_FETCH_INT_TO_FLOAT_UNIT or "
                    "GPU_FETCH_FLOAT");
-    GPU_shader_uniform_1b(batch->shader,
-                          "gpu_attr_1_fetch_unorm8",
-                          (attr.fetch_mode == GPU_FETCH_INT_TO_FLOAT_UNIT));
+    GPU_shader_uniform_1b(batch->shader, "gpu_attr_1_fetch_unorm8", is_unorm8);
   }
 
   GPU_batch_draw_advanced(tri_batch, range.start(), range.size(), instance_first, instance_count);

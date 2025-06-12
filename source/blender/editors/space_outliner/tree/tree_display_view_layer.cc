@@ -253,9 +253,9 @@ void ObjectsChildrenBuilder::make_object_parent_hierarchy_collections()
 
     Vector<TreeElement *> *parent_ob_tree_elements = object_tree_elements_map_.lookup_ptr(
         ob->parent);
-    Vector<TreeElement *> &child_ob_tree_elements = *object_tree_elements_map_.lookup_ptr(ob);
+    Vector<TreeElement *> *child_ob_tree_elements = object_tree_elements_map_.lookup_ptr(ob);
 
-    if (parent_ob_tree_elements == nullptr) {
+    if (!parent_ob_tree_elements || !child_ob_tree_elements) {
       continue;
     }
 
@@ -273,7 +273,7 @@ void ObjectsChildrenBuilder::make_object_parent_hierarchy_collections()
         parent_ob_collection_tree_element = parent_ob_collection_tree_element->parent;
       }
 
-      for (TreeElement *child_ob_tree_element : child_ob_tree_elements) {
+      for (TreeElement *child_ob_tree_element : *child_ob_tree_elements) {
         if (child_ob_tree_element->parent == parent_ob_collection_tree_element) {
           /* Move from the collection subtree into the parent object subtree. */
           BLI_remlink(&parent_ob_collection_tree_element->subtree, child_ob_tree_element);
@@ -297,7 +297,7 @@ void ObjectsChildrenBuilder::make_object_parent_hierarchy_collections()
             0,
             false);
         child_ob_tree_element->flag |= TE_CHILD_NOT_IN_COLLECTION;
-        child_ob_tree_elements.append(child_ob_tree_element);
+        child_ob_tree_elements->append(child_ob_tree_element);
       }
     }
   }

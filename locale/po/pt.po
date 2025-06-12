@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'e91e8eef41aa')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'798f85a7108f')\n"
 "Report-Msgid-Bugs-To: Ivan Paulos Tomé <ivan.paulos.tome@yandex.com>\n"
-"POT-Creation-Date: 2025-06-03 09:10+0000\n"
-"PO-Revision-Date: 2025-06-02 20:59+0000\n"
+"POT-Creation-Date: 2025-06-11 11:13+0000\n"
+"PO-Revision-Date: 2025-06-06 17:20+0000\n"
 "Last-Translator: Duarte Ramos <duarte.framos@gmail.com>\n"
 "Language-Team: Portuguese <https://translate.blender.org/projects/blender-ui/ui/pt/>\n"
 "Language: pt\n"
@@ -2485,7 +2485,7 @@ msgstr "Jaula"
 
 
 msgid "Cast rays to active object from a cage"
-msgstr "Projeta dos raios para o objecto activo a partir de uma jaula."
+msgstr "Projectar raios no objecto activo a partir de uma jaula."
 
 
 msgid "Clear"
@@ -29584,14 +29584,6 @@ msgid "Maintained by community developers"
 msgstr "Mantido por desenvolvedores da comunidade."
 
 
-msgid "Testing"
-msgstr "Em Teste"
-
-
-msgid "Newly contributed scripts (excluded from release builds)"
-msgstr "Scripts recentemente contribuídos (excluídos das versões de lançamento)"
-
-
 msgid "Addon Tags"
 msgstr "Etiquetas da Adição"
 
@@ -34599,6 +34591,14 @@ msgid "Editor menu containing buttons"
 msgstr "Menu de editor contendo botões"
 
 
+msgid "Show/Hide"
+msgstr "Mostrar ou ocultar"
+
+
+msgid "Clean Up"
+msgstr "Limpeza"
+
+
 msgid "Special Characters"
 msgstr "Caracteres especiais"
 
@@ -34615,20 +34615,12 @@ msgid "Metaball"
 msgstr "Esfera-meta"
 
 
-msgid "Show/Hide"
-msgstr "Mostrar ou ocultar"
-
-
 msgid "Names"
 msgstr "Nomes"
 
 
 msgid "Bone Roll"
 msgstr "Rolagem do osso"
-
-
-msgid "Clean Up"
-msgstr "Limpeza"
 
 
 msgid "Pivot Point"
@@ -34659,176 +34651,176 @@ msgid "Vertex Group Locks"
 msgstr "Bloqueios de Grupos de Vértices"
 
 
-msgid "Mirror"
-msgstr "Espelhar"
-
-
-msgid "UV Mapping"
-msgstr "Mapeamento UV"
-
-
-msgid "Local View"
-msgstr "Visão local"
-
-
-msgid "Viewpoint"
-msgstr "Ponto de Vista"
-
-
-msgid "Navigation"
-msgstr "Navegação"
-
-
-msgid "Align View"
-msgstr "Alinhar visualização"
-
-
-msgid "Align View to Active"
-msgstr "Alinhar vista para o activo"
-
-
-msgid "View Regions"
-msgstr "Regiões de Visualização"
-
-
-msgid "Select More/Less"
-msgstr "Seleccionar mais ou menos"
-
-
-msgid "Select Similar"
-msgstr "Seleccionar por similaridades"
-
-
-msgid "Select All by Trait"
-msgstr "Seleccionar todos por características..."
-
-
-msgid "Select Linked"
-msgstr "Seleccionar vinculados(as)"
-
-
-msgid "Select Loops"
-msgstr "Seleccionar Anéis"
-
-
-msgid "Assign Material"
-msgstr "Aplicar Material"
-
-
-msgid "Light"
-msgstr "Leve"
-
-
-msgid "Light Probe"
-msgstr "Sonda de Luz"
-
-
-msgid "Add Image"
-msgstr "Adicionar Imagem"
-
-
-msgid "Relations"
-msgstr "Relações"
-
-
-msgid "Rigid Body"
-msgstr "Corpo rígido"
-
-
-msgid "Apply"
-msgstr "Aplicar"
-
-
-msgid "Track"
-msgstr "Rastrear"
-
-
-msgid "Quick Effects"
-msgstr "Efeitos instantâneos"
-
-
-msgid "Asset"
-msgstr "Recurso"
-
-
-msgid "Make Single User"
-msgstr "Tornar utilizador único"
-
-
-msgid "Convert"
-msgstr "Converter"
-
-
-msgid "Link/Transfer Data"
-msgstr "Vincular/Transferir Dados"
-
-
-msgid "Hooks"
-msgstr "Ganchos"
-
-
-msgid "Trim/Add"
-msgstr "Aparar/Adicionar"
-
-
-msgid "Sculpt Set Pivot"
-msgstr "Definir Pivot de Escultura"
-
-
-msgid "Face Sets Init"
-msgstr "Inicialização de Conjuntos de Faces"
-
-
-msgid "Random Mask"
-msgstr "Máscara Aleatória"
-
-
-msgid "Clear Transform"
-msgstr "Limpar transformações"
-
-
-msgid "In-Betweens"
-msgstr "Entre as continuidades"
-
-
-msgid "Propagate"
-msgstr "Propagar"
-
-
-msgid "Bone Collections"
-msgstr "Colecções de Ossos"
-
-
-msgid "Toggle Bone Options"
-msgstr "Alternar opções de ossos"
-
-
-msgid "Enable Bone Options"
-msgstr "Ativar opções de ossos"
-
-
-msgid "Disable Bone Options"
-msgstr "Desativar as opções de ossos"
-
-
-msgid "Mesh Select Mode"
-msgstr "Modo de selecção de malhas"
-
-
-msgid "Face Data"
-msgstr "Dados das faces"
+msgid "Set Face Strength"
+msgstr "Definir Força das Faces"
 
 
 msgid "Select by Face Strength"
 msgstr "Seleccionar pela Força das Faces"
 
 
-msgid "Set Face Strength"
-msgstr "Definir Força das Faces"
+msgid "Hooks"
+msgstr "Ganchos"
+
+
+msgid "Link/Transfer Data"
+msgstr "Vincular/Transferir Dados"
+
+
+msgid "Convert"
+msgstr "Converter"
+
+
+msgid "Relations"
+msgstr "Relações"
+
+
+msgid "Add Image"
+msgstr "Adicionar Imagem"
 
 
 msgid "Merge"
 msgstr "Fundir"
+
+
+msgid "Light Probe"
+msgstr "Sonda de Luz"
+
+
+msgid "Face Data"
+msgstr "Dados das faces"
+
+
+msgid "Light"
+msgstr "Leve"
+
+
+msgid "Make Single User"
+msgstr "Tornar utilizador único"
+
+
+msgid "Asset"
+msgstr "Recurso"
+
+
+msgid "Mesh Select Mode"
+msgstr "Modo de selecção de malhas"
+
+
+msgid "Quick Effects"
+msgstr "Efeitos instantâneos"
+
+
+msgid "Disable Bone Options"
+msgstr "Desativar as opções de ossos"
+
+
+msgid "Enable Bone Options"
+msgstr "Ativar opções de ossos"
+
+
+msgid "Track"
+msgstr "Rastrear"
+
+
+msgid "Toggle Bone Options"
+msgstr "Alternar opções de ossos"
+
+
+msgid "Apply"
+msgstr "Aplicar"
+
+
+msgid "Assign Material"
+msgstr "Aplicar Material"
+
+
+msgid "Rigid Body"
+msgstr "Corpo rígido"
+
+
+msgid "Propagate"
+msgstr "Propagar"
+
+
+msgid "Local View"
+msgstr "Visão local"
+
+
+msgid "Select More/Less"
+msgstr "Seleccionar mais ou menos"
+
+
+msgid "Bone Collections"
+msgstr "Colecções de Ossos"
+
+
+msgid "In-Betweens"
+msgstr "Entre as continuidades"
+
+
+msgid "Clear Transform"
+msgstr "Limpar transformações"
+
+
+msgid "Select Loops"
+msgstr "Seleccionar Anéis"
+
+
+msgid "Select Linked"
+msgstr "Seleccionar vinculados(as)"
+
+
+msgid "Select All by Trait"
+msgstr "Seleccionar todos por características..."
+
+
+msgid "Select Similar"
+msgstr "Seleccionar por similaridades"
+
+
+msgid "View Regions"
+msgstr "Regiões de Visualização"
+
+
+msgid "Align View to Active"
+msgstr "Alinhar vista para o activo"
+
+
+msgid "Align View"
+msgstr "Alinhar visualização"
+
+
+msgid "Navigation"
+msgstr "Navegação"
+
+
+msgid "Viewpoint"
+msgstr "Ponto de Vista"
+
+
+msgid "UV Mapping"
+msgstr "Mapeamento UV"
+
+
+msgid "Mirror"
+msgstr "Espelhar"
+
+
+msgid "Random Mask"
+msgstr "Máscara Aleatória"
+
+
+msgid "Face Sets Init"
+msgstr "Inicialização de Conjuntos de Faces"
+
+
+msgid "Sculpt Set Pivot"
+msgstr "Definir Pivot de Escultura"
+
+
+msgid "Trim/Add"
+msgstr "Aparar/Adicionar"
 
 
 msgid "Keyframe Insert Pie"
@@ -69881,10 +69873,6 @@ msgid "Dissolve Vertices"
 msgstr "Dissolver Vértices"
 
 
-msgid "Dissolve remaining vertices"
-msgstr "Dissolve os vértices remanescentes."
-
-
 msgctxt "Operator"
 msgid "Dissolve Faces"
 msgstr "Dissolver faces"
@@ -74501,14 +74489,6 @@ msgstr "Tipo de objecto para o qual converter."
 
 msgid "Curve from Mesh or Text objects"
 msgstr "Curva a partir de Malha ou objectos de Texto"
-
-
-msgid "Mesh from Curve, Surface, Metaball, Text, or Point Cloud objects"
-msgstr "Malha a partir de objectos Curva, Superfície, Metaesfera, Texto, ou Nuvens de Pontos"
-
-
-msgid "Point Cloud from Mesh objects"
-msgstr "Nuvem de Pontos a partir de Malha"
 
 
 msgid "Curves from evaluated curve data"
@@ -79793,6 +79773,18 @@ msgid "Name for the new pose asset"
 msgstr "Nome para o novo recurso de pose"
 
 
+msgid "Paste the Asset that was previously copied using Copy As Asset"
+msgstr "Colar o recurso que foi anteriormente copiado usando Copiar como Recurso"
+
+
+msgid "Select those bones that are used in this pose"
+msgstr "Seleccionar os ossos usados nesta pose"
+
+
+msgid "Switch back to the previous Action, after creating a pose asset"
+msgstr "Voltar à Acção anterior, após criar recurso de pose"
+
+
 msgctxt "Operator"
 msgid "Apply Pose as Rest Pose"
 msgstr "Aplicar pose como pose de descanso"
@@ -79800,6 +79792,14 @@ msgstr "Aplicar pose como pose de descanso"
 
 msgid "Apply the current pose as the new rest pose"
 msgstr "Aplica a pose actual como a nova pose de descanso."
+
+
+msgid "Only apply the selected bones (with propagation to children)"
+msgstr "Aplicar apenas os ossos seleccionados (com propagação aos descendentes)"
+
+
+msgid "Blend from current position to previous or next keyframe"
+msgstr "Misturar da posição actual para o fotograma anterior ou seguinte"
 
 
 msgid "Axis Lock"
@@ -79879,6 +79879,15 @@ msgstr "Número do fotograma de fotograma chave imediatamente antes do fotograma
 
 
 msgctxt "Operator"
+msgid "Blend Pose with Rest Pose"
+msgstr "Misturar pose com pose de descanso"
+
+
+msgid "Make the current pose more similar to, or further away from, the rest pose"
+msgstr "Tornar a pose actual mais semelhante ou mais afastada da pode se descanso"
+
+
+msgctxt "Operator"
 msgid "Pose Breakdowner"
 msgstr "Ruptura de poses"
 
@@ -79900,6 +79909,10 @@ msgid "Clear Pose Constraints"
 msgstr "Limpar as restrições de pose"
 
 
+msgid "Clear all constraints from the selected bones"
+msgstr "Limpar todas as restrições dos ossos seleccionados"
+
+
 msgctxt "Operator"
 msgid "Copy Constraints to Selected Bones"
 msgstr "Copiar restrições para ossos seleccionados"
@@ -79907,6 +79920,26 @@ msgstr "Copiar restrições para ossos seleccionados"
 
 msgid "Copy constraints to other selected bones"
 msgstr "Copia as restrições para os outros ossos seleccionados."
+
+
+msgid "Convert animation from any rotation mode to any other"
+msgstr "Converter animação de qualquer modo de rotação para qualquer outro"
+
+
+msgid "Affected Actions"
+msgstr "Acções Afectadas"
+
+
+msgid "Which Actions to affect"
+msgstr "Que Acções Afectar"
+
+
+msgid "Affected Bones"
+msgstr "Ossos afectados"
+
+
+msgid "Which bones to affect"
+msgstr "Que ossos afectar"
 
 
 msgid "The target rotation mode"
@@ -80009,6 +80042,15 @@ msgstr "Limpar apenas os caminhos de movimento dos ossos seleccionados"
 
 
 msgctxt "Operator"
+msgid "Update Range from Scene"
+msgstr "Actualizar Intervalo da Cena"
+
+
+msgid "Update frame range for motion paths from the Scene's current frame range"
+msgstr "Actualizar intervalo de fotogramas para caminhos de movimento a partir do actual intervalo da cena"
+
+
+msgctxt "Operator"
 msgid "Update Bone Paths"
 msgstr "Actualizar caminhos dos ossos"
 
@@ -80078,8 +80120,31 @@ msgid "Propagate pose to all keyframes occurring on frames with Scene Markers af
 msgstr "Propaga a pose para todos os fotogramas chave que ocorrem em fotogramas com marcadores de cena após o fotograma actual."
 
 
+msgctxt "Operator"
+msgid "Push Pose from Breakdown"
+msgstr "Empurrar pose a partir da Pose de Transição"
+
+
+msgid "Exaggerate the current pose in regards to the breakdown pose"
+msgstr "Exagerar a pose actual em relação à Pose de Transição"
+
+
+msgctxt "Operator"
+msgid "Flip Quaternions"
+msgstr "Inverter Quaterniões"
+
+
 msgid "Flip quaternion values to achieve desired rotations, while maintaining the same orientations"
 msgstr "Vira os valores de quaterniões para conseguir as rotações desejadas, enquanto mantém as mesmas orientações."
+
+
+msgctxt "Operator"
+msgid "Relax Pose to Breakdown"
+msgstr "Relaxar Pose até Pose de Transição"
+
+
+msgid "Make the current pose more similar to its breakdown pose"
+msgstr "Tornar pose actual mais semelhante à pose de transição"
 
 
 msgctxt "Operator"
@@ -80087,8 +80152,60 @@ msgid "Reveal Selected"
 msgstr "Revelar seleccionado"
 
 
+msgid "Reveal all bones hidden in Pose Mode"
+msgstr "Revelar todos os ossos escondidos no Modo de Pose"
+
+
+msgid "Add a new row to the bone collection reference list"
+msgstr "Adicionar nova linha à lista de referência de colecções de ossos"
+
+
 msgid "Property Name"
 msgstr "Nome das propriedades"
+
+
+msgid "Remove this row from the bone collection reference list"
+msgstr "Remover esta linha da lista de referência de colecções de ossos"
+
+
+msgid "Entry Index"
+msgstr "Índice do Elemento"
+
+
+msgid "Match Type"
+msgstr "Tipo Correspondente"
+
+
+msgid "Only mirror rigify parameters to selected bones which have the same rigify type as the active bone"
+msgstr "Espelhar parâmetros rigify apenas para ossos seleccionados que tenham o mesmo tipo rigify que o osso seleccionado"
+
+
+msgid "Copy this property value to all selected rigs of the appropriate type"
+msgstr "Copiar este valor de propriedade para todas as rigs seleccionadas do tipo apropriado"
+
+
+msgid "Class Name"
+msgstr "Nome da Classe"
+
+
+msgid "Mirror As Bone Name"
+msgstr "Espelhar como Nome do Osso"
+
+
+msgid "Module Name"
+msgstr "Nome do Módulo"
+
+
+msgid "Generate a rig from the active metarig armature"
+msgstr "Gerar rig a partir da armação metarig activa"
+
+
+msgid "Upgrades the legacy super_face rig type to the new modular face. This preserves compatibility with existing weight painting, but not animation"
+msgstr "Actualiza o tipo de super_face rig de legado para a nova face modular. Isto preserva a compatibilidade com pintura de pesos existente, mas não animações"
+
+
+msgid "Upgrade the Rigify types on the active metarig armature"
+msgstr "Actualiza os tipos Rigify na armação metarig activa"
 
 
 msgctxt "Operator"
@@ -80131,17 +80248,45 @@ msgid "Select all visible bones grouped by similar properties"
 msgstr "Selecciona todos os ossos visíveis agrupados por propriedades similares."
 
 
+msgid "Same collections as the active bone"
+msgstr "Mesmas colecções que o osso activo"
+
+
+msgid "Same color as the active bone"
+msgstr "Mesmas cores que o osso activo"
+
+
 msgid "All bones affected by active Keying Set"
 msgstr "Todos os ossos afetados pelo conjunto de inserção de chaves activo."
+
+
+msgid "Select all children of currently selected bones"
+msgstr "Seleccionar todos os descendentes dos ossos actualmente seleccionados"
+
+
+msgid "Select direct children of currently selected bones"
+msgstr "Seleccionar descendentes directos dos ossos actualmente seleccionados"
 
 
 msgid "Parents"
 msgstr "Parentes"
 
 
+msgid "Select the parents of currently selected bones"
+msgstr "Seleccionar os ascendentes dos ossos actualmente seleccionados"
+
+
+msgid "Select all bones that have the same parent as currently selected bones"
+msgstr "Seleccionar os ossos que têm os mesmos ascendentes que os ossos actualmente seleccionados"
+
+
 msgctxt "Operator"
 msgid "Select Connected"
 msgstr "Seleccionar conectados"
+
+
+msgid "Select bones linked by parent/child connections under the mouse cursor"
+msgstr "Seleccionar ossos ligados por conexões ascendente/descendente sob o cursor"
 
 
 msgctxt "Operator"
@@ -80151,6 +80296,70 @@ msgstr "Seleccionar osso parente"
 
 msgid "Select bones that are parents of the currently selected bones"
 msgstr "Selecciona os ossos que são parentes dos ossos actualmente seleccionados."
+
+
+msgid "Create a new empty Selection Set"
+msgstr "Criar novo Conjunto de Selecção vazio"
+
+
+msgid "Create a new Selection Set with the currently selected bones"
+msgstr "Criar um novo Conjunto de Selecção com os ossos actualmente seleccionados"
+
+
+msgid "Add selected bones to Selection Set"
+msgstr "Adicionar Ossos Seleccionados ao Conjunto de Selecção"
+
+
+msgid "Copy the selected Selection Set(s) to the clipboard"
+msgstr "Copiar os Conjuntos de Selecção seleccionados para a área de transferência"
+
+
+msgid "Remove all Selection Sets from this Armature"
+msgstr "Remover Todos os Conjuntos de Selecção da Armação"
+
+
+msgid "Remove Selection Set bones from current selection"
+msgstr "Remover Ossos do Conjunto de Selecção da selecção actual"
+
+
+msgid "Move the active Selection Set up/down the list of sets"
+msgstr "Mover o actual Conjunto de Selecção para cima/baixo na lista de conjuntos"
+
+
+msgid "Move Direction"
+msgstr "Direcção da Movimento"
+
+
+msgid "Direction to move the active Selection Set: UP (default) or DOWN"
+msgstr "Direcção na qual mover o Conjunto de Selecção activo: Cima (Padrão) ou Baixo"
+
+
+msgid "Add new Selection Set(s) from the clipboard"
+msgstr "Adicionar novos Conjuntos de Selecção"
+
+
+msgid "Remove a Selection Set from this Armature"
+msgstr "Remover um Conjunto de Selecção desta Armação"
+
+
+msgid "Remove the selected bones from all Selection Sets"
+msgstr "Remover os ossos seleccionados de todos os Conjuntos de Selecção"
+
+
+msgid "Select the bones from this Selection Set"
+msgstr "Seleccionar os ossos deste Conjunto de Selecção"
+
+
+msgid "Selection Set Index"
+msgstr "Índice do Conjunto de Selecção"
+
+
+msgid "Which Selection Set to select; -1 uses the active Selection Set"
+msgstr "Que Conjunto de Selecção seleccionar; -1 usa o activo"
+
+
+msgid "Remove selected bones from Selection Set"
+msgstr "Remover os ossos seleccionados do Conjunto de Selecção"
 
 
 msgctxt "Operator"
@@ -80165,6 +80374,10 @@ msgstr "Redefine a localização, rotação, e escala dos ossos seleccionados ao
 msgctxt "Operator"
 msgid "Clear User Transforms"
 msgstr "Limpar transformações do utilizador"
+
+
+msgid "Reset pose bone transforms to keyframed state"
+msgstr "Repor transformações dos ossos em pose para o estado nos fotogramas chaves"
 
 
 msgid "Only visible/selected bones"
@@ -80204,8 +80417,160 @@ msgid "Remove existing template with the same ID"
 msgstr "Remove os modelos existentes com o mesmo identificador."
 
 
+msgctxt "Operator"
+msgid "Add Asset Library"
+msgstr "Adicionar Biblioteca de Recursos"
+
+
+msgid "Add a directory to be used by the Asset Browser as source of assets"
+msgstr "Adicionar uma pasta para ser usada pelo Navegador de Recursos como origem de recursos"
+
+
+msgctxt "Operator"
+msgid "Remove Asset Library"
+msgstr "Remover Biblioteca de Recursos"
+
+
+msgid "Remove a path to a .blend file, so the Asset Browser will not attempt to show it anymore"
+msgstr "Remover um caminho para um ficheiro .blend, para que Navegador de Recursos não tente mais mostrá-lo"
+
+
+msgctxt "Operator"
+msgid "Register File Association"
+msgstr "Registar Associação de Arquivo"
+
+
+msgid "Use this installation for .blend files and to display thumbnails"
+msgstr "Usar esta instalação para ficheiros .blend e para mostrar miniaturas"
+
+
+msgctxt "Operator"
+msgid "Add Auto-Execution Path"
+msgstr "Adicionar Caminho de Auto-Execução"
+
+
+msgid "Add path to exclude from auto-execution"
+msgstr "Adicionar caminho para excluir de execuções automáticas"
+
+
+msgctxt "Operator"
+msgid "Remove Auto-Execution Path"
+msgstr "Remover Caminho de Auto-Execução"
+
+
+msgid "Remove path to exclude from auto-execution"
+msgstr "Remover caminho para excluir de execuções automáticas"
+
+
+msgctxt "Operator"
+msgid "Add Extension Repository"
+msgstr "Adicionar Repositório de Extensões"
+
+
+msgid "Add a new repository used to store extensions"
+msgstr "Adicionar um novo repositório usado para armazenar extensões"
+
+
+msgid "Secret"
+msgstr "Segredo"
+
+
+msgid "Personal access token, may be required by some repositories"
+msgstr "Senha de acesso pessoal, pode ser requerida por alguns repositórios"
+
+
+msgid "Custom Directory"
+msgstr "Pasta Personalizada"
+
+
+msgid "The local directory containing extensions"
+msgstr "A pasta local que contém extensões"
+
+
+msgid "Unique repository name"
+msgstr "Nome único do repositório"
+
+
+msgid "Remote URL to the extension repository, the file-system may be referenced using the file URI scheme: \"file://\""
+msgstr "URL Remoto para o repositório de extensões, sistemas de ficheiros podem ser referenciado usando o esquema URI \"file://\""
+
+
+msgid "The kind of repository to add"
+msgstr "O tipo de repositório a adicionar"
+
+
+msgid "Add Remote Repository"
+msgstr "Adicionar Repositório Remoto"
+
+
+msgid "Add a repository referencing a remote repository with support for listing and updating extensions"
+msgstr "Adicionar um repositório referenciando um repositório remoto com suporte para listar e actualizar extensões"
+
+
+msgid "Add Local Repository"
+msgstr "Adicionar Repositório Local"
+
+
+msgid "Add a repository managed manually without referencing an external repository"
+msgstr "Adicionar um repositório gerido manualmente sem referenciar um repositório externo"
+
+
+msgid "Requires Access Token"
+msgstr "Requer Senha de Acesso"
+
+
+msgid "Repository requires an access token"
+msgstr "O repositório requer uma senha de acesso"
+
+
+msgid "Manually set the path for extensions to be stored. When disabled a user's extensions directory is created."
+msgstr "Definir manualmente o caminho para armazenar extensões. Quando desactivado uma pasta de extensões do utilizador é criada."
+
+
+msgid "Check for Updates on Startup"
+msgstr "Procurar actualizações no Arranque"
+
+
+msgid "Allow Blender to check for updates upon launch"
+msgstr "Permitir ao Blender procurar actualizações quando é lançado"
+
+
+msgctxt "Operator"
+msgid "Remove Extension Repository"
+msgstr "Remover Repositório de Extensões"
+
+
+msgid "Remove an extension repository"
+msgstr "Remover um repositório de extensões"
+
+
+msgid "Remove Files"
+msgstr "Remover Ficheiros"
+
+
+msgid "Remove extension files when removing the repository"
+msgstr "Remover ficheiros de extensões ao remover repositório"
+
+
+msgctxt "Operator"
+msgid "Drop Extension URL"
+msgstr "Largar URL de extensão"
+
+
+msgid "Handle dropping an extension URL"
+msgstr "Processar URL de extensões arrastadas"
+
+
+msgid "Location of the extension to install"
+msgstr "Localização da extensão a instalar"
+
+
 msgid "All Keymaps"
 msgstr "Todos os mapas de teclas"
+
+
+msgid "Write all keymaps (not just user modified)"
+msgstr "Escrever todos os mapeamentos de teclado (não apenas os modificados)"
 
 
 msgid "Keep original file after copying to configuration folder"
@@ -80218,6 +80583,10 @@ msgstr "Identificador do item"
 
 msgid "Identifier of the item to remove"
 msgstr "Identificado do item a ser removido."
+
+
+msgid "Identifier of the item to restore"
+msgstr "Identificador do item a repor"
 
 
 msgid "Restore all keymaps to default"
@@ -80233,8 +80602,45 @@ msgid "Reset to the default theme colors"
 msgstr "Redefine para as cores do tema padrão."
 
 
+msgid "Filter Folders"
+msgstr "Filtrar Pastas"
+
+
+msgid "Index of the script directory to remove"
+msgstr "Índice da pasta de script a remover"
+
+
+msgid "MatCap"
+msgstr "MatCap"
+
+
+msgid "Install custom MatCaps"
+msgstr "Instalar capturas de material personalizadas"
+
+
+msgid "Install custom HDRIs"
+msgstr "Instalar HDRIs personalizados"
+
+
+msgid "Studio"
+msgstr "Estúdio"
+
+
+msgid "Install custom Studio Lights"
+msgstr "Instalar Luzes de Estúdio Personalizadas"
+
+
 msgid "Remove existing theme file if exists"
 msgstr "Remove o ficheiro de tema existente caso haja algum."
+
+
+msgctxt "Operator"
+msgid "Remove File Association"
+msgstr "Remover Associação de Ficheiros"
+
+
+msgid "Remove this installation's associations with .blend files"
+msgstr "Remover a associação com ficheiros .blend desta instalação"
 
 
 msgctxt "Operator"
@@ -80264,8 +80670,31 @@ msgid "Bake all physics"
 msgstr "Gera e grava todas as físicas."
 
 
+msgctxt "Operator"
+msgid "Bake from Cache"
+msgstr "Pré Calcular a Partir do Armazenamento"
+
+
 msgid "Bake from cache"
 msgstr "Gera e grava a partir do cache."
+
+
+msgctxt "Operator"
+msgid "Delete Physics Bake"
+msgstr "Apagar Pré-Cálculo de Física"
+
+
+msgid "Delete physics bake"
+msgstr "Apagar pré-cálculo de física"
+
+
+msgctxt "Operator"
+msgid "Delete All Physics Bakes"
+msgstr "Apagar Todos os Pré-Cálculos de Física"
+
+
+msgid "Delete all baked caches of all objects in the current scene"
+msgstr "Apagar todos os armazenamentos pré-cálculados de todos os objectos na cena actual"
 
 
 msgctxt "Operator"
@@ -80277,8 +80706,25 @@ msgid "Delete current cache"
 msgstr "Apaga o cache actual."
 
 
+msgctxt "Operator"
+msgid "Viewport Render"
+msgstr "Renderizar Janela de Visualização"
+
+
+msgid "Take a snapshot of the active viewport"
+msgstr "Capturar vista da janela de visualização activa"
+
+
 msgid "Render files from the animation range of this scene"
 msgstr "Renderiza os ficheiros a partir da faixa de animação desta cena."
+
+
+msgid "Render Keyframes Only"
+msgstr "Renderizar Apenas Fotogramas Chave"
+
+
+msgid "Render only those frames where selected objects have a key in their animation data. Only used when rendering animation"
+msgstr "Renderizar apenas os fotogramas onde objectos seleccionados têm uma chave na sua animação. Usado apenas ao renderizar animação"
 
 
 msgid "Render using the sequencer's OpenGL display"
@@ -80295,6 +80741,10 @@ msgstr "Usa a janela de visualização 3D actual para renderização, caso contr
 
 msgid "Write Image"
 msgstr "Gravar imagem"
+
+
+msgid "Save the rendered image to the output path (used only when animation is disabled)"
+msgstr "Guardar a imagem renderizada no caminho de saída (usada apenas quando animação está desactivada)"
 
 
 msgctxt "Operator"
@@ -80476,6 +80926,10 @@ msgid "Automatically calculate mass values for Rigid Body Objects based on volum
 msgstr "Calcula automaticamente valores de massa para os objectos de corpo rígido com base em seus volumes."
 
 
+msgid "Density value (kg/m^3), allows custom value if the 'Custom' preset is used"
+msgstr "Valor de densidade (kg/m^3), permite valores personalizados se a pré-definição 'Personalizado' for usada"
+
+
 msgid "Material Preset"
 msgstr "Pré-definições de material"
 
@@ -80561,6 +81015,14 @@ msgid "Mesh consisting of triangles only, allowing for more detailed interaction
 msgstr "Malha consistindo apenas de triângulos, permitindo interações mais detalhadas do que cascos convexos."
 
 
+msgid "Compound Parent"
+msgstr "Ascendente Composto"
+
+
+msgid "Combines all of its direct rigid body children into one rigid object"
+msgstr "Combina todos os descendentes directos de corpo rígido num objecto rígido"
+
+
 msgctxt "Operator"
 msgid "Add Rigid Body World"
 msgstr "Adicionar ambiente para corpos rígidos"
@@ -80577,6 +81039,34 @@ msgstr "Remover ambiente para corpos rígidos"
 
 msgid "Remove Rigid Body simulation world from the current scene"
 msgstr "Remove o ambiente de simulação de corpo rígido da cena actual."
+
+
+msgid "Clear animation for FK or IK bones"
+msgstr "Limpar animação para ossos FK ou IK"
+
+
+msgid "Snaps FK limb on IK"
+msgstr "Atrai membro FK em IK"
+
+
+msgid "Set start and end frame from scene"
+msgstr "Definir fotograma de início e fim a partir da cena"
+
+
+msgid "Snaps IK limb on FK"
+msgstr "Atrai membro IK em FK"
+
+
+msgid "Toggles IK chain between rotation and pole target"
+msgstr "Alterna cadeia IK entre rotação e alvo de vara"
+
+
+msgid "Transfer FK animation to IK bones"
+msgstr "Transferir animação FK para ossos IK"
+
+
+msgid "Transfer IK animation to FK bones"
+msgstr "Transferir animação IK para ossos FK"
 
 
 msgctxt "Operator"
@@ -80649,6 +81139,10 @@ msgid "Copy Line Set"
 msgstr "Copiar conjunto de linhas"
 
 
+msgid "Copy the active line set to the internal clipboard"
+msgstr "Copiar o conjunto de linhas activo para a área de transferência interna"
+
+
 msgctxt "Operator"
 msgid "Move Line Set"
 msgstr "Mover conjunto de linha"
@@ -80665,6 +81159,10 @@ msgstr "A direcção na qual mover o conjunto de linhas activo."
 msgctxt "Operator"
 msgid "Paste Line Set"
 msgstr "Colar conjunto de linha"
+
+
+msgid "Paste the internal clipboard content to the active line set"
+msgstr "Colar conteúdo da área de transferência interna para o conjunto de linhas activo"
 
 
 msgctxt "Operator"
@@ -80773,12 +81271,48 @@ msgstr "Adiciona uma nova cena por tipo."
 
 
 msgctxt "Scene"
+msgid "Type"
+msgstr "Tipo"
+
+
+msgctxt "Scene"
 msgid "New"
 msgstr "Novo(a)"
 
 
+msgid "Add a new, empty scene with default settings"
+msgstr "Adicionar uma nova cena vazia com definições padrão"
+
+
+msgctxt "Scene"
+msgid "Copy Settings"
+msgstr "Copiar Definições"
+
+
+msgid "Add a new, empty scene, and copy settings from the current scene"
+msgstr "Adicionar uma nova cena vazia, copiar definições da cena actual"
+
+
+msgctxt "Scene"
+msgid "Linked Copy"
+msgstr "Copia Vinculada"
+
+
+msgid "Link in the collections from the current scene (shallow copy)"
+msgstr "Vincular as colecções da cena actual (cópia ligeira)"
+
+
+msgctxt "Scene"
+msgid "Full Copy"
+msgstr "Cópia Completa"
+
+
 msgid "Make a full copy of the current scene"
 msgstr "Cria uma cópia completa da cena actual."
+
+
+msgid "Add new scene by type in the sequence editor and assign to active strip"
+msgstr "Adicionar uma cena por tipo no editor de sequências e atribuir a nova faixa e acção"
 
 
 msgid "Copy Settings"
@@ -87481,20 +88015,12 @@ msgid "Helicopter Mode"
 msgstr "Modo de helicóptero"
 
 
-msgid "Lock Camera Pan/Zoom"
-msgstr "Trancar Enquadramento/Ampliação à Câmara"
-
-
 msgid "Pan/zoom the camera view instead of leaving the camera view when orbiting"
 msgstr "Enquadrar/Ampliar a posição da câmara em vez de sair da vista da câmara quando orbitar"
 
 
-msgid "Lock Horizon"
-msgstr "Travar no horizonte"
-
-
-msgid "Keep horizon level while flying with 3D Mouse"
-msgstr "Mantém o nível do horizonte durante o voo com o rato 3D."
+msgid "NDOF View Navigate"
+msgstr "NDOF - Navegação da visualização"
 
 
 msgid "Orbit Sensitivity"
@@ -87503,14 +88029,6 @@ msgstr "Sensibilidade de órbita"
 
 msgid "Overall sensitivity of the 3D Mouse for orbiting"
 msgstr "Sensibilidade geral do rato 3D para movimentar em órbita."
-
-
-msgid "Y/Z Swap Axis"
-msgstr "Trocar os eixos Y e Z"
-
-
-msgid "Pan using up/down on the device (otherwise forward/backward)"
-msgstr "Panorama usado acima ou abaixo no dispositivo (caso contrário, apontado para frente ou para trás)."
 
 
 msgid "Invert X Axis"
@@ -87543,50 +88061,6 @@ msgstr "Sensibilidade geral do rato 3D para movimentar em panorama."
 
 msgid "Display the center and axis during rotation"
 msgstr "Mostra o centro e o eixo durante a rotação."
-
-
-msgid "NDOF View Navigate"
-msgstr "NDOF - Navegação da visualização"
-
-
-msgid "Navigation style in the viewport"
-msgstr "Estilo de navegação na janela de visualização."
-
-
-msgid "Use full 6 degrees of freedom by default"
-msgstr "Usa os 6 graus de liberdade plenos por padrão."
-
-
-msgid "Orbit about the view center by default"
-msgstr "Orbita em torno do centro de visão por padrão."
-
-
-msgid "NDOF View Rotation"
-msgstr "NDOF - Rotação da visualização"
-
-
-msgid "Rotation style in the viewport"
-msgstr "Estilo de rotação na janela de visualização."
-
-
-msgid "Turntable"
-msgstr "Mesa rotativa"
-
-
-msgid "Use turntable style rotation in the viewport"
-msgstr "Usa a rotação em estilo de mesa rotativa dentro da janela de visualização."
-
-
-msgid "Use trackball style rotation in the viewport"
-msgstr "Usa a rotação tipo bola de tração na janela de visualização."
-
-
-msgid "Invert Zoom"
-msgstr "Inverter Ampliação"
-
-
-msgid "Zoom using opposite direction"
-msgstr "Ampliação usando a direcção oposta"
 
 
 msgid "Softness"
@@ -87635,6 +88109,10 @@ msgstr "Usa a selecção como o ponto de pivô."
 
 msgid "Zoom in towards the mouse pointer's position in the 3D view, rather than the 2D window center"
 msgstr "Ampliar em direcção do ponteiro do rato dentro da janela de visualização 3D, em vez do centro da janela 2D"
+
+
+msgid "Turntable"
+msgstr "Mesa rotativa"
 
 
 msgid "Zoom Axis"
@@ -97815,12 +98293,16 @@ msgid "Zoom Method"
 msgstr "Método de Ampliação"
 
 
-msgid "Pan Sensitivity"
-msgstr "Sensibilidade para panorama"
-
-
 msgid "Invert Wheel Zoom Direction"
 msgstr "Inverter a Direcção de Ampliação da Roda do Rato"
+
+
+msgid "Lock Horizon"
+msgstr "Travar no horizonte"
+
+
+msgid "Pan Sensitivity"
+msgstr "Sensibilidade para panorama"
 
 
 msgid "Enable Cycles Render Engine add-on to use Cycles"
@@ -103758,138 +104240,6 @@ msgstr "Todas as adições Instalados pelo Utilizador"
 
 msgid "Import-Export"
 msgstr "Importar e exportar"
-
-
-msgid "Japanese (日本語)"
-msgstr "Japonês (日本語)"
-
-
-msgid "Italian (Italiano)"
-msgstr "Italiano (Italiano)"
-
-
-msgid "German (Deutsch)"
-msgstr "Alemão (Deutsch)"
-
-
-msgid "Finnish (Suomi)"
-msgstr "Finlandês (Suomi)"
-
-
-msgid "Swedish (Svenska)"
-msgstr "Sueco (Svenska)"
-
-
-msgid "French (Français)"
-msgstr "Francês (Français)"
-
-
-msgid "Spanish (Español)"
-msgstr "Espanhol (Español)"
-
-
-msgid "Catalan (Català)"
-msgstr "Catalão (Català)"
-
-
-msgid "Portuguese (Português)"
-msgstr "Português (Português)"
-
-
-msgid "Simplified Chinese (简体中文)"
-msgstr "Chinês simplificado (简体中文)"
-
-
-msgid "Traditional Chinese (繁體中文)"
-msgstr "Chinês tradicional (繁體中文)"
-
-
-msgid "Russian (Русский)"
-msgstr "Russo (Русский)"
-
-
-msgid "Croatian (Hrvatski)"
-msgstr "Croata (Hrvatski)"
-
-
-msgid "Serbian (Српски)"
-msgstr "Sérvio (Српски)"
-
-
-msgid "Polish (Polski)"
-msgstr "Polonês (Polski)"
-
-
-msgid "Romanian (Român)"
-msgstr "Romeno (Român)"
-
-
-msgid "Arabic (ﺔﻴﺑﺮﻌﻟﺍ)"
-msgstr "Árabe (ﺔﻴﺑﺮﻌﻟﺍ)"
-
-
-msgid "Bulgarian (Български)"
-msgstr "Búlgaro (Български)"
-
-
-msgid "Greek (Ελληνικά)"
-msgstr "Grego (Ελληνικά)"
-
-
-msgid "Nepali (नेपाली)"
-msgstr "Nepalês (नेपाली)"
-
-
-msgid "Persian (ﯽﺳﺭﺎﻓ)"
-msgstr "Pérsico (ﯽﺳﺭﺎﻓ)"
-
-
-msgid "Indonesian (Bahasa indonesia)"
-msgstr "Indonesiano (Bahasa indonesia)"
-
-
-msgid "Serbian Latin (Srpski latinica)"
-msgstr "Latim Sérvio (Srpski latinica)"
-
-
-msgid "Kyrgyz (Кыргыз тили)"
-msgstr "Quirguistanês (Кыргыз тили)"
-
-
-msgid "Turkish (Türkçe)"
-msgstr "Turco (Türkçe)"
-
-
-msgid "Hungarian (Magyar)"
-msgstr "Húngaro (Magyar)"
-
-
-msgid "Brazilian Portuguese (Português do Brasil)"
-msgstr "Português do Brasil (Português do Brasil)"
-
-
-msgid "Esperanto (Esperanto)"
-msgstr "Esperanto (Esperanto)"
-
-
-msgid "Amharic (አማርኛ)"
-msgstr "Amárico (Etiópia) (አማርኛ)"
-
-
-msgid "Uzbek (Oʻzbek)"
-msgstr "Uzbeque (Oʻzbek)"
-
-
-msgid "Uzbek Cyrillic (Ўзбек)"
-msgstr "Uzbeque Cirílico (Ўзбек)"
-
-
-msgid "Complete"
-msgstr "Completo"
-
-
-msgid "In Progress"
-msgstr "Em progresso"
 
 
 msgid "Snap to Surface"

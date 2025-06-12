@@ -251,6 +251,7 @@ BMLoop *ED_uvedit_active_edge_loop_get(BMesh *bm);
  * In this case return #UV_SELECT_VERTEX as a fallback.
  */
 char ED_uvedit_select_mode_get(const Scene *scene);
+bool ED_uvedit_select_island_check(const ToolSettings *ts);
 void ED_uvedit_select_sync_flush(const ToolSettings *ts, BMesh *bm, bool select);
 
 /* `uvedit_unwrap_ops.cc` */

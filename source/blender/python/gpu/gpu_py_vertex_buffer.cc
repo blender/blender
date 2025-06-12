@@ -25,7 +25,7 @@
  * \{ */
 
 #define PYGPU_AS_NATIVE_SWITCH(attr) \
-  switch (attr->comp_type) { \
+  switch (attr->type.comp_type()) { \
     case GPU_COMP_I8: { \
       PY_AS_NATIVE(int8_t, PyC_Long_AsI8); \
       break; \
@@ -51,12 +51,7 @@
       break; \
     } \
     case GPU_COMP_F32: { \
-      if (attr->python_int_to_float) { \
-        PY_AS_NATIVE(float, PyC_Long_AsI32); \
-      } \
-      else { \
-        PY_AS_NATIVE(float, PyFloat_AsDouble); \
-      } \
+      PY_AS_NATIVE(float, PyFloat_AsDouble); \
       break; \
     } \
     default: \
@@ -85,7 +80,7 @@ static void pygpu_fill_format_sequence(void *data_dst_void,
                                        PyObject *py_seq_fast,
                                        const GPUVertAttr *attr)
 {
-  const uint len = attr->comp_len;
+  const uint len = attr->type.comp_len();
   PyObject **value_fast_items = PySequence_Fast_ITEMS(py_seq_fast);
 
 /**
@@ -133,8 +128,9 @@ static bool pygpu_vertbuf_fill_impl(blender::gpu::VertBuf *vbo,
           PyExc_ValueError, exc_str_size_mismatch, "sequence", vert_len, pybuffer.shape[0]);
       ok = false;
     }
-    else if (comp_len != attr->comp_len) {
-      PyErr_Format(PyExc_ValueError, exc_str_size_mismatch, "component", attr->comp_len, comp_len);
+    else if (comp_len != attr->type.comp_len()) {
+      PyErr_Format(
+          PyExc_ValueError, exc_str_size_mismatch, "component", attr->type.comp_len(), comp_len);
       ok = false;
     }
     else {
@@ -160,7 +156,7 @@ static bool pygpu_vertbuf_fill_impl(blender::gpu::VertBuf *vbo,
 
     PyObject **seq_items = PySequence_Fast_ITEMS(seq_fast);
 
-    if (attr->comp_len == 1) {
+    if (attr->type.comp_len() == 1) {
       for (uint i = 0; i < seq_len; i++) {
         uchar *data = (uchar *)GPU_vertbuf_raw_step(&data_step);
         PyObject *item = seq_items[i];
@@ -176,11 +172,11 @@ static bool pygpu_vertbuf_fill_impl(blender::gpu::VertBuf *vbo,
           ok = false;
           goto finally;
         }
-        if (PySequence_Fast_GET_SIZE(seq_fast_item) != attr->comp_len) {
+        if (PySequence_Fast_GET_SIZE(seq_fast_item) != attr->type.comp_len()) {
           PyErr_Format(PyExc_ValueError,
                        exc_str_size_mismatch,
                        "sequence",
-                       attr->comp_len,
+                       attr->type.comp_len(),
                        PySequence_Fast_GET_SIZE(seq_fast_item));
           ok = false;
           Py_DECREF(seq_fast_item);

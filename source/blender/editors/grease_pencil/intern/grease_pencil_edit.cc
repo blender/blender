@@ -2683,10 +2683,17 @@ static wmOperatorStatus grease_pencil_paste_strokes_exec(bContext *C, wmOperator
   const bool keep_world_transform = RNA_boolean_get(op->ptr, "keep_world_transform");
   const bool paste_on_back = RNA_boolean_get(op->ptr, "paste_back");
 
-  const Clipboard &clipboard = ensure_grease_pencil_clipboard();
+  Clipboard &clipboard = ensure_grease_pencil_clipboard();
   if (clipboard.layers.is_empty()) {
     return OPERATOR_CANCELLED;
   }
+
+  /* Make sure everything on the clipboard is selected, in the correct selection domain. */
+  threading::parallel_for_each(clipboard.layers, [&](Clipboard::ClipboardLayer &layer) {
+    bke::GSpanAttributeWriter selection = ed::curves::ensure_selection_attribute(
+        layer.curves, selection_domain, CD_PROP_BOOL);
+    selection.finish();
+  });
 
   if (type == PasteType::Active) {
     Layer *active_layer = grease_pencil.get_active_layer();

@@ -1376,6 +1376,21 @@ void PARTICLE_OT_duplicate_particle_system(wmOperatorType *ot)
                   "Duplicate settings as well, so the new particle system uses its own settings");
 }
 
+static bool remove_all_particle_systems_poll(bContext *C)
+{
+  if (!ED_operator_object_active_local_editable(C)) {
+    return false;
+  }
+  const Object *ob = blender::ed::object::context_active_object(C);
+  if (BLI_listbase_is_empty(&ob->particlesystem)) {
+    return false;
+  }
+  if (ob->mode != OB_MODE_OBJECT) {
+    CTX_wm_operator_poll_msg_set(C, "Object must be in object mode");
+    return false;
+  }
+  return true;
+}
 static wmOperatorStatus particle_system_remove_all_exec(bContext *C, wmOperator * /*op*/)
 {
   Main *bmain = CTX_data_main(C);
@@ -1416,7 +1431,7 @@ void PARTICLE_OT_particle_system_remove_all(wmOperatorType *ot)
   ot->description = "Remove all particle system within the active object";
   ot->idname = "PARTICLE_OT_particle_system_remove_all";
 
-  ot->poll = ED_operator_object_active_local_editable;
+  ot->poll = remove_all_particle_systems_poll;
   ot->exec = particle_system_remove_all_exec;
 
   /* flags */

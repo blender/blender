@@ -163,8 +163,8 @@ blender::gpu::Batch *LookdevModule::sphere_get(const SphereLOD level_of_detail)
   }
 
   GPUVertFormat format = {0};
-  GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
-  GPU_vertformat_attr_add(&format, "nor", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+  GPU_vertformat_attr_add(&format, "pos", gpu::VertAttrType::SFLOAT_32_32_32);
+  GPU_vertformat_attr_add(&format, "nor", gpu::VertAttrType::SFLOAT_32_32_32);
   struct Vert {
     float x, y, z;
     float nor_x, nor_y, nor_z;

@@ -32,7 +32,6 @@
 #include "RNA_define.hh"
 
 #include "ED_asset.hh"
-#include "ED_asset_handle.hh"
 #include "ED_asset_library.hh"
 #include "ED_asset_list.hh"
 #include "ED_asset_mark_clear.hh"

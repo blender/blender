@@ -738,4 +738,24 @@ void do_versions_after_setup(Main *new_bmain,
     /* Convert all the legacy grease pencil objects. This does not touch annotations. */
     blender::bke::greasepencil::convert::legacy_main(*new_bmain, lapp_context, *reports);
   }
+
+  if (!blendfile_or_libraries_versions_atleast(new_bmain, 500, 4)) {
+    LISTBASE_FOREACH (Scene *, scene, &new_bmain->scenes) {
+      bNodeTree *ntree = scene->nodetree;
+      if (!ntree) {
+        continue;
+      }
+      ntree->id.flag &= ~ID_FLAG_EMBEDDED_DATA;
+      ntree->owner_id = nullptr;
+      ntree->id.tag |= ID_TAG_NO_MAIN;
+
+      scene->compositing_node_group = ntree;
+      scene->nodetree = nullptr;
+
+      BKE_libblock_management_main_add(new_bmain, ntree);
+
+      /* Note: The user count remains zero at this point. It will get automatically updated after
+       * blend file reading is done.*/
+    }
+  }
 }

@@ -108,11 +108,8 @@ MINLINE unsigned short to_srgb_table_lookup(const float f)
     unsigned short us[2];
   } tmp;
   tmp.f = f;
-#  ifdef __BIG_ENDIAN__
-  return BLI_color_to_srgb_table[tmp.us[0]];
-#  else
+  /* NOTE: this is endianness-sensitive. */
   return BLI_color_to_srgb_table[tmp.us[1]];
-#  endif
 }
 
 MINLINE void linearrgb_to_srgb_ushort4(unsigned short srgb[4], const float linear[4])

@@ -101,13 +101,13 @@ void main()
       break;
     }
     case SOCK_DISPLAY_SHAPE_VOLUME_GRID: {
-      float size = 0.7;
-      float2 uv = abs(absUV - size * 0.5) - size * 0.4;
-      float radius_out = length(max(uv, 0.0));
-      float radius_in = max(abs(uv).x, abs(uv).y) * -1.0;
-      float radius = mix(radius_in, radius_out, radius_out > 0);
-      distance_squared = max(-1.0, (radius - size * 0.15));
-      alpha_threshold = -0.2;
+      constexpr float rect_side_length = 0.25f;
+      const float2 oversize = float2(0.0f, square_radius * 1.4) / 2.5f;
+      const float2 rect_corner = max(float2(rect_side_length), extrusion / 2.0f + oversize) +
+                                 finalOutlineThickness / 4.0f;
+      const float2 mirrored_uv = abs(abs(uv) - rect_corner);
+      distance_squared = square_sdf(mirrored_uv, rect_corner + finalOutlineThickness / 2.0f);
+      alpha_threshold = corner_rounding;
       break;
     }
   }

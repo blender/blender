@@ -391,12 +391,9 @@ void RandomNumberGenerator::get_bytes(MutableSpan<char> r_bytes)
   int64_t i = 0;
   while (i != trim_len) {
     BLI_assert(i < trim_len);
-#ifdef __BIG_ENDIAN__
-    for (int64_t j = (rand_stride + mask_bytes) - 1; j != mask_bytes - 1; j--)
-#else
-    for (int64_t j = 0; j != rand_stride; j++)
-#endif
-    {
+    /* NOTE: this is endianness-sensitive.
+     * Big Endian needs to iterate in reverse, with a `mask_bytes - 1` offset. */
+    for (int64_t j = 0; j != rand_stride; j++) {
       r_bytes[i++] = data_src[j];
     }
     this->step();

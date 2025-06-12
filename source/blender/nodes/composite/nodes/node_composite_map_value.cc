@@ -55,13 +55,13 @@ static void node_composit_buts_map_value(uiLayout *layout, bContext * /*C*/, Poi
   col = &layout->column(true);
   col->prop(ptr, "use_min", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   sub = &col->column(false);
-  uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_min"));
+  sub->active_set(RNA_boolean_get(ptr, "use_min"));
   sub->prop(ptr, "min", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 
   col = &layout->column(true);
   col->prop(ptr, "use_max", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   sub = &col->column(false);
-  uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_max"));
+  sub->active_set(RNA_boolean_get(ptr, "use_max"));
   sub->prop(ptr, "max", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 }
 

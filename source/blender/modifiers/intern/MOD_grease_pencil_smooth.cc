@@ -250,7 +250,7 @@ static void panel_draw(const bContext *C, Panel *panel)
   layout->prop(ptr, "step", UI_ITEM_NONE, IFACE_("Repeat"), ICON_NONE);
 
   col = &layout->column(false);
-  uiLayoutSetActive(col, RNA_boolean_get(ptr, "use_edit_position"));
+  col->active_set(RNA_boolean_get(ptr, "use_edit_position"));
   col->prop(ptr, "use_keep_shape", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   col->prop(ptr, "use_smooth_ends", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 

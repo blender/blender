@@ -27,7 +27,12 @@ namespace blender::eevee {
 
 void Sampling::init(const Scene *scene)
 {
-  sample_count_ = inst_.is_viewport() ? scene->eevee.taa_samples : scene->eevee.taa_render_samples;
+  /* Note: Cycles have different option for view layers sample overrides. The current behavior
+   * matches the default `Use`, which simply override if non-zero. */
+  uint64_t render_sample_count = (inst_.view_layer->samples > 0) ? inst_.view_layer->samples :
+                                                                   scene->eevee.taa_render_samples;
+
+  sample_count_ = inst_.is_viewport() ? scene->eevee.taa_samples : render_sample_count;
 
   if (inst_.is_image_render) {
     sample_count_ = math::max(uint64_t(1), sample_count_);

@@ -49,12 +49,6 @@ void VertBuf::init(const GPUVertFormat &format, GPUUsageType usage)
 #endif
   flag = GPU_VERTBUF_DATA_DIRTY;
   GPU_vertformat_copy(&this->format, format);
-  /* Avoid packing vertex formats which are used for texture buffers.
-   * These cases use singular types and do not need packing. They must
-   * also not have increased alignment padding to the minimum per-vertex stride. */
-  if (usage & GPU_USAGE_FLAG_BUFFER_TEXTURE_ONLY) {
-    VertexFormat_texture_buffer_pack(&this->format);
-  }
   if (!this->format.packed) {
     VertexFormat_pack(&this->format);
   }
@@ -194,7 +188,7 @@ void GPU_vertbuf_attr_set(VertBuf *verts, uint a_idx, uint v_idx, const void *da
   BLI_assert(a_idx < format->attr_len);
   BLI_assert(verts->data<uchar>().data() != nullptr);
   verts->flag |= GPU_VERTBUF_DATA_DIRTY;
-  memcpy(verts->data<uchar>().data() + a->offset + v_idx * format->stride, data, a->size);
+  memcpy(verts->data<uchar>().data() + a->offset + v_idx * format->stride, data, a->type.size());
 }
 
 void GPU_vertbuf_attr_fill(VertBuf *verts, uint a_idx, const void *data)
@@ -202,7 +196,7 @@ void GPU_vertbuf_attr_fill(VertBuf *verts, uint a_idx, const void *data)
   const GPUVertFormat *format = &verts->format;
   BLI_assert(a_idx < format->attr_len);
   const GPUVertAttr *a = &format->attrs[a_idx];
-  const uint stride = a->size; /* tightly packed input data */
+  const uint stride = a->type.size(); /* tightly packed input data */
   verts->flag |= GPU_VERTBUF_DATA_DIRTY;
   GPU_vertbuf_attr_fill_stride(verts, a_idx, stride, data);
 }
@@ -229,14 +223,14 @@ void GPU_vertbuf_attr_fill_stride(VertBuf *verts, uint a_idx, uint stride, const
 
   if (format->attr_len == 1 && stride == format->stride) {
     /* we can copy it all at once */
-    memcpy(verts->data<uchar>().data(), data, vertex_len * a->size);
+    memcpy(verts->data<uchar>().data(), data, vertex_len * a->type.size());
   }
   else {
     /* we must copy it per vertex */
     for (uint v = 0; v < vertex_len; v++) {
       memcpy(verts->data<uchar>().data() + a->offset + v * format->stride,
              (const uchar *)data + v * stride,
-             a->size);
+             a->type.size());
     }
   }
 }
@@ -250,7 +244,7 @@ void GPU_vertbuf_attr_get_raw_data(VertBuf *verts, uint a_idx, GPUVertBufRaw *ac
 
   verts->flag |= GPU_VERTBUF_DATA_DIRTY;
   verts->flag &= ~GPU_VERTBUF_DATA_UPLOADED;
-  access->size = a->size;
+  access->size = a->type.size();
   access->stride = format->stride;
   access->data = (uchar *)verts->data<uchar>().data() + a->offset;
   access->data_init = access->data;

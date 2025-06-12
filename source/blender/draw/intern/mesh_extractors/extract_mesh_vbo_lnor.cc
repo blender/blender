@@ -306,7 +306,7 @@ gpu::VertBufPtr extract_normals(const MeshRenderData &mr, const bool use_hq)
   if (use_hq) {
     static const GPUVertFormat format = []() {
       GPUVertFormat format{};
-      GPU_vertformat_attr_add(&format, "nor", GPU_COMP_I16, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
+      GPU_vertformat_attr_add(&format, "nor", gpu::VertAttrType::SNORM_16_16_16_16);
       GPU_vertformat_alias_add(&format, "lnor");
       GPU_vertformat_alias_add(&format, "vnor");
       return format;
@@ -331,7 +331,7 @@ gpu::VertBufPtr extract_normals(const MeshRenderData &mr, const bool use_hq)
   }
   static const GPUVertFormat format = []() {
     GPUVertFormat format{};
-    GPU_vertformat_attr_add(&format, "nor", GPU_COMP_I10, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
+    GPU_vertformat_attr_add(&format, "nor", gpu::VertAttrType::SNORM_10_10_10_2);
     GPU_vertformat_alias_add(&format, "lnor");
     GPU_vertformat_alias_add(&format, "vnor");
     return format;
@@ -359,7 +359,7 @@ static const GPUVertFormat &get_normals_format()
 {
   static const GPUVertFormat format = []() {
     GPUVertFormat format{};
-    GPU_vertformat_attr_add(&format, "nor", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
+    GPU_vertformat_attr_add(&format, "nor", gpu::VertAttrType::SFLOAT_32_32_32_32);
     GPU_vertformat_alias_add(&format, "lnor");
     GPU_vertformat_alias_add(&format, "vnor");
     return format;
@@ -399,7 +399,7 @@ gpu::VertBufPtr extract_normals_subdiv(const MeshRenderData &mr,
   if (subdiv_cache.use_custom_loop_normals) {
     const Mesh *coarse_mesh = subdiv_cache.mesh;
     static GPUVertFormat src_normals_format = GPU_vertformat_from_attribute(
-        "vnor", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+        "vnor", gpu::VertAttrType::SFLOAT_32_32_32);
     gpu::VertBufPtr src = gpu::VertBufPtr(GPU_vertbuf_create_with_format(src_normals_format));
     GPU_vertbuf_data_alloc(*src, coarse_mesh->corners_num);
     src->data<float3>().copy_from(coarse_mesh->corner_normals());
@@ -419,7 +419,7 @@ gpu::VertBufPtr extract_normals_subdiv(const MeshRenderData &mr,
   /* Calculate vertex normals (stored here per subdivided vertex rather than per subdivieded face
    * corner). The values are used for smooth shaded faces later. */
   static GPUVertFormat vert_normals_format = GPU_vertformat_from_attribute(
-      "vnor", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+      "vnor", gpu::VertAttrType::SFLOAT_32_32_32);
   gpu::VertBufPtr vert_normals = gpu::VertBufPtr(
       GPU_vertbuf_create_on_device(vert_normals_format, subdiv_cache.num_subdiv_verts));
   draw_subdiv_accumulate_normals(subdiv_cache,

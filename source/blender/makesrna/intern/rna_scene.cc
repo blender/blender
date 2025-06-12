@@ -132,7 +132,6 @@ const EnumPropertyItem rna_enum_mesh_select_mode_uv_items[] = {
     {UV_SELECT_VERTEX, "VERTEX", ICON_UV_VERTEXSEL, "Vertex", "Vertex selection mode"},
     {UV_SELECT_EDGE, "EDGE", ICON_UV_EDGESEL, "Edge", "Edge selection mode"},
     {UV_SELECT_FACE, "FACE", ICON_UV_FACESEL, "Face", "Face selection mode"},
-    {UV_SELECT_ISLAND, "ISLAND", ICON_UV_ISLANDSEL, "Island", "Island selection mode"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -1199,6 +1198,26 @@ static void rna_Scene_all_keyingsets_next(CollectionPropertyIterator *iter)
   iter->valid = (internal->link != nullptr);
 }
 
+static bool rna_Scene_compositing_node_group_poll(PointerRNA * /*ptr*/, PointerRNA value)
+{
+  bNodeTree *ntree = static_cast<bNodeTree *>(value.data);
+  return ntree->type == NTREE_COMPOSIT;
+}
+
+static void rna_Scene_compositing_node_group_set(PointerRNA *ptr,
+                                                 const PointerRNA value,
+                                                 ReportList *reports)
+{
+  Scene *scene = static_cast<Scene *>(ptr->data);
+  bNodeTree *ntree = static_cast<bNodeTree *>(value.data);
+  if (ntree && ntree->type != NTREE_COMPOSIT) {
+    BKE_reportf(
+        reports, RPT_ERROR, "Node tree '%s' is not a compositing node tree.", ntree->id.name + 2);
+    return;
+  }
+  scene->compositing_node_group = ntree;
+}
+
 static std::optional<std::string> rna_SceneEEVEE_path(const PointerRNA * /*ptr*/)
 {
   return "eevee";
@@ -1412,7 +1431,7 @@ static const EnumPropertyItem *rna_ImageFormatSettings_color_mode_itemf(bContext
     Scene *scene = (Scene *)ptr->owner_id;
     RenderData *rd = &scene->r;
 
-    if (MOV_codec_supports_alpha(rd->ffcodecdata)) {
+    if (MOV_codec_supports_alpha(rd->ffcodecdata.codec, rd->ffcodecdata.ffmpeg_prores_profile)) {
       chan_flag |= IMA_CHAN_FLAG_RGBA;
     }
   }
@@ -1822,8 +1841,8 @@ void rna_Scene_use_freestyle_update(Main * /*bmain*/, Scene * /*scene*/, Pointer
 
   DEG_id_tag_update(&scene->id, ID_RECALC_SYNC_TO_EVAL);
 
-  if (scene->nodetree) {
-    ntreeCompositUpdateRLayers(scene->nodetree);
+  if (scene->compositing_node_group) {
+    ntreeCompositUpdateRLayers(scene->compositing_node_group);
   }
 }
 
@@ -1831,8 +1850,8 @@ void rna_Scene_compositor_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr
 {
   Scene *scene = (Scene *)ptr->owner_id;
 
-  if (scene->nodetree) {
-    bNodeTree *ntree = reinterpret_cast<bNodeTree *>(scene->nodetree);
+  if (scene->compositing_node_group) {
+    bNodeTree *ntree = reinterpret_cast<bNodeTree *>(scene->compositing_node_group);
     WM_main_add_notifier(NC_NODE | NA_EDITED, &ntree->id);
     WM_main_add_notifier(NC_SCENE | ND_NODES, &ntree->id);
     BKE_main_ensure_invariants(*bmain, ntree->id);
@@ -1903,8 +1922,8 @@ void rna_ViewLayer_pass_update(Main *bmain, Scene *activescene, PointerRNA *ptr)
     }
   }
 
-  if (scene->nodetree) {
-    ntreeCompositUpdateRLayers(scene->nodetree);
+  if (scene->compositing_node_group) {
+    ntreeCompositUpdateRLayers(scene->compositing_node_group);
   }
 
   rna_Scene_render_update(bmain, activescene, ptr);
@@ -1981,7 +2000,7 @@ static std::optional<std::string> rna_SceneRenderView_path(const PointerRNA *ptr
 static void rna_Scene_use_nodes_update(bContext *C, PointerRNA *ptr)
 {
   Scene *scene = (Scene *)ptr->data;
-  if (scene->use_nodes && scene->nodetree == nullptr) {
+  if (scene->use_nodes && scene->compositing_node_group == nullptr) {
     ED_node_composit_default(C, scene);
   }
   DEG_relations_tag_update(CTX_data_main(C));
@@ -4158,15 +4177,22 @@ static void rna_def_tool_settings(BlenderRNA *brna)
       prop, NC_SPACE | ND_SPACE_IMAGE, "rna_Scene_uv_sticky_select_mode_update");
 
   prop = RNA_def_property(srna, "use_uv_select_sync", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "uv_flag", UV_SYNC_SELECTION);
+  RNA_def_property_boolean_sdna(prop, nullptr, "uv_flag", UV_FLAG_SYNC_SELECT);
   RNA_def_property_flag(prop, PROP_DEG_SYNC_ONLY);
   RNA_def_property_ui_text(
       prop, "UV Sync Selection", "Keep UV and edit mode mesh selection in sync");
   RNA_def_property_ui_icon(prop, ICON_UV_SYNC_SELECT, 0);
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, nullptr);
 
+  prop = RNA_def_property(srna, "use_uv_select_island", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "uv_flag", UV_FLAG_ISLAND_SELECT);
+  RNA_def_property_flag(prop, PROP_DEG_SYNC_ONLY);
+  RNA_def_property_ui_text(prop, "UV Island Selection", "Island selection");
+  RNA_def_property_ui_icon(prop, ICON_UV_ISLANDSEL, 0);
+  RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, nullptr);
+
   prop = RNA_def_property(srna, "show_uv_local_view", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "uv_flag", UV_SHOW_SAME_IMAGE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "uv_flag", UV_FLAG_SHOW_SAME_IMAGE);
   RNA_def_property_flag(prop, PROP_DEG_SYNC_ONLY);
   RNA_def_property_ui_text(
       prop, "UV Local View", "Display only faces with the currently displayed image assigned");
@@ -9025,10 +9051,25 @@ void RNA_def_scene(BlenderRNA *brna)
 
   /* Nodes (Compositing) */
   prop = RNA_def_property(srna, "node_tree", PROP_POINTER, PROP_NONE);
-  RNA_def_property_pointer_sdna(prop, nullptr, "nodetree");
-  RNA_def_property_clear_flag(prop, PROP_PTR_NO_OWNERSHIP);
+  RNA_def_property_pointer_sdna(prop, nullptr, "compositing_node_group");
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE | PROP_PTR_NO_OWNERSHIP);
+  RNA_def_property_struct_type(prop, "NodeTree");
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_NO_COMPARISON);
+  RNA_def_property_ui_text(
+      prop, "Node Tree", "Compositing node tree. (Deprecated: Use compositing_node_group)");
+
+  prop = RNA_def_property(srna, "compositing_node_group", PROP_POINTER, PROP_NONE);
+  RNA_def_property_pointer_sdna(prop, nullptr, "compositing_node_group");
+  RNA_def_property_struct_type(prop, "NodeTree");
+  RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_REFCOUNT);
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_ui_text(prop, "Node Tree", "Compositing node tree");
+  RNA_def_property_update(prop, 0, "rna_Scene_compositor_update");
+  RNA_def_property_pointer_funcs(prop,
+                                 nullptr,
+                                 "rna_Scene_compositing_node_group_set",
+                                 nullptr,
+                                 "rna_Scene_compositing_node_group_poll");
 
   prop = RNA_def_property(srna, "use_nodes", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "use_nodes", 1);

@@ -4425,6 +4425,69 @@ static void do_version_flip_node_options_to_inputs(bNodeTree *node_tree, bNode *
   }
 }
 
+static void clamp_subdivision_node_level_input(bNodeTree &tree)
+{
+  blender::Map<bNodeSocket *, bNodeLink *> links_to_level_and_max_inputs;
+  LISTBASE_FOREACH (bNodeLink *, link, &tree.links) {
+    if (link->tosock) {
+      if (ELEM(blender::StringRef(link->tosock->identifier), "Level", "Max")) {
+        links_to_level_and_max_inputs.add(link->tosock, link);
+      }
+    }
+  }
+  LISTBASE_FOREACH_MUTABLE (bNode *, node, &tree.nodes) {
+    if (!ELEM(node->type_legacy, GEO_NODE_SUBDIVISION_SURFACE, GEO_NODE_SUBDIVIDE_MESH)) {
+      continue;
+    }
+    bNodeSocket *level_input = blender::bke::node_find_socket(*node, SOCK_IN, "Level");
+    if (!level_input || level_input->type != SOCK_INT) {
+      continue;
+    }
+    bNodeLink *link = links_to_level_and_max_inputs.lookup_default(level_input, nullptr);
+    if (link) {
+      bNode *origin_node = link->fromnode;
+      if (origin_node->type_legacy == SH_NODE_CLAMP) {
+        bNodeSocket *max_input_socket = blender::bke::node_find_socket(
+            *origin_node, SOCK_IN, "Max");
+        if (max_input_socket->type == SOCK_FLOAT &&
+            !links_to_level_and_max_inputs.contains(max_input_socket))
+        {
+          if (max_input_socket->default_value_typed<bNodeSocketValueFloat>()->value <= 11.0f) {
+            /* There is already a clamp node, so no need to add another one. */
+            continue;
+          }
+        }
+      }
+      /* Insert clamp node. */
+      bNode &clamp_node = version_node_add_empty(tree, "ShaderNodeClamp");
+      clamp_node.parent = node->parent;
+      clamp_node.location[0] = node->location[0] - 25;
+      clamp_node.location[1] = node->location[1];
+      bNodeSocket &clamp_value_input = version_node_add_socket(
+          tree, clamp_node, SOCK_IN, "NodeSocketFloat", "Value");
+      bNodeSocket &clamp_min_input = version_node_add_socket(
+          tree, clamp_node, SOCK_IN, "NodeSocketFloat", "Min");
+      bNodeSocket &clamp_max_input = version_node_add_socket(
+          tree, clamp_node, SOCK_IN, "NodeSocketFloat", "Max");
+      bNodeSocket &clamp_value_output = version_node_add_socket(
+          tree, clamp_node, SOCK_OUT, "NodeSocketFloat", "Result");
+
+      static_cast<bNodeSocketValueFloat *>(clamp_min_input.default_value)->value = 0.0f;
+      static_cast<bNodeSocketValueFloat *>(clamp_max_input.default_value)->value = 11.0f;
+
+      link->tosock = &clamp_value_input;
+      version_node_add_link(tree, clamp_node, clamp_value_output, *node, *level_input);
+    }
+    else {
+      /* Clamp value directly. */
+      bNodeSocketValueInt *value = level_input->default_value_typed<bNodeSocketValueInt>();
+      value->value = std::clamp(value->value, 0, 11);
+    }
+  }
+
+  version_socket_update_is_used(&tree);
+}
+
 void do_versions_after_linking_450(FileData * /*fd*/, Main *bmain)
 {
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 8)) {
@@ -6252,6 +6315,15 @@ void blo_do_versions_450(FileData * /*fd*/, Library * /*lib*/, Main *bmain)
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 86)) {
     fix_curve_nurbs_knot_mode_custom(bmain);
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 405, 87)) {
+    FOREACH_NODETREE_BEGIN (bmain, tree, id) {
+      if (tree->type == NTREE_GEOMETRY) {
+        clamp_subdivision_node_level_input(*tree);
+      }
+    }
+    FOREACH_NODETREE_END;
   }
 
   /**

@@ -495,7 +495,7 @@ static void falloff_panel_draw(const bContext * /*C*/, Panel *panel)
   layout->prop(ptr, "falloff_type", UI_ITEM_NONE, IFACE_("Type"), ICON_NONE);
 
   row = &layout->row(false);
-  uiLayoutSetActive(row, use_falloff);
+  row->active_set(use_falloff);
   row->prop(ptr, "falloff_radius", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   layout->prop(ptr, "use_falloff_uniform", UI_ITEM_NONE, std::nullopt, ICON_NONE);

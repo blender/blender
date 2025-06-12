@@ -36,6 +36,7 @@ void GPU_init()
   gpu_shader_dependency_init();
   gpu_shader_create_info_init();
 
+  GPU_shader_builtin_warm_up();
   GPU_pass_cache_init();
 
   gpu_batch_init();

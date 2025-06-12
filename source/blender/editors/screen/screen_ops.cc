@@ -1753,7 +1753,7 @@ static void area_move_set_limits(wmWindow *win,
       }
     }
     else {
-      const int x1 = area->winx - (AREAMINX * UI_SCALE_FAC);
+      const int x1 = area->winx - int(AREAMINX * UI_SCALE_FAC) - 1;
       /* if left or right edge selected, test width */
       if (area->v1->editflag && area->v2->editflag) {
         *bigger = min_ii(*bigger, x1);
@@ -5196,7 +5196,7 @@ void ED_screens_header_tools_menu_create(bContext *C, uiLayout *layout, void * /
 
     ARegion *region_header = BKE_area_find_region_type(area, RGN_TYPE_HEADER);
     uiLayout *col = &layout->column(false);
-    uiLayoutSetActive(col, (region_header->flag & RGN_FLAG_HIDDEN) == 0);
+    col->active_set((region_header->flag & RGN_FLAG_HIDDEN) == 0);
 
     if (BKE_area_find_region_type(area, RGN_TYPE_TOOL_HEADER)) {
       col->prop(

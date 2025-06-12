@@ -46,8 +46,10 @@
 #include "BKE_object.hh"
 #include "BKE_particle.h"
 #include "BKE_report.hh"
+#include "BKE_scene.hh"
 
 #include "ANIM_bone_collections.hh"
+#include "ANIM_keyframing.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
@@ -299,6 +301,8 @@ static void outliner_object_set_flag_recursive_fn(bContext *C,
         ptr = RNA_pointer_create_discrete(&scene->id, &RNA_ObjectBase, base_iter);
       }
       RNA_property_boolean_set(&ptr, base_or_object_prop, value);
+      blender::animrig::autokeyframe_property(
+          C, scene, &ptr, base_or_object_prop, -1, BKE_scene_frame_get(scene), true);
     }
   }
 
@@ -2048,7 +2052,8 @@ static void outliner_draw_separator(ARegion *region, const int x)
 
   GPU_line_width(1.0f);
 
-  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+  uint pos = GPU_vertformat_attr_add(
+      immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
   immUniformThemeColorShadeAlpha(TH_BACK, -15, -200);
 
@@ -3664,7 +3669,7 @@ static void outliner_draw_hierarchy_lines(SpaceOutliner *space_outliner,
                                           int *starty)
 {
   GPUVertFormat *format = immVertexFormat();
-  uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+  uint pos = GPU_vertformat_attr_add(format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
   uchar col[4];
 
   immBindBuiltinProgram(GPU_SHADER_3D_LINE_DASHED_UNIFORM_COLOR);
@@ -3698,7 +3703,8 @@ static void outliner_draw_struct_marks(ARegion *region,
     if (TSELEM_OPEN(tselem, space_outliner)) {
       if (tselem->type == TSE_RNA_STRUCT) {
         GPUVertFormat *format = immVertexFormat();
-        uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+        uint pos = GPU_vertformat_attr_add(
+            format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
         immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
         immThemeColorShadeAlpha(TH_BACK, -15, -200);
         immRectf(pos, 0, *starty + 1, int(region->v2d.cur.xmax), *starty + UI_UNIT_Y - 1);
@@ -3711,7 +3717,8 @@ static void outliner_draw_struct_marks(ARegion *region,
       outliner_draw_struct_marks(region, space_outliner, &te->subtree, starty);
       if (tselem->type == TSE_RNA_STRUCT) {
         GPUVertFormat *format = immVertexFormat();
-        uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+        uint pos = GPU_vertformat_attr_add(
+            format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
         immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
         immThemeColorShadeAlpha(TH_BACK, -15, -200);
 
@@ -3816,7 +3823,7 @@ static void outliner_draw_highlights(ARegion *region,
 
   GPU_blend(GPU_BLEND_ALPHA);
   GPUVertFormat *format = immVertexFormat();
-  uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+  uint pos = GPU_vertformat_attr_add(format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
   outliner_draw_highlights(pos,
                            region,
@@ -3921,7 +3928,7 @@ static void outliner_back(ARegion *region)
   ystart = UI_UNIT_Y * (ystart / (UI_UNIT_Y)) - OL_Y_OFFSET;
 
   GPUVertFormat *format = immVertexFormat();
-  uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+  uint pos = GPU_vertformat_attr_add(format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
 
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 

@@ -480,10 +480,11 @@ class NODE_OT_interface_item_remove(NodeInterfaceOperator, Operator):
 
         if item:
             if item.item_type == 'PANEL':
-                child = item.interface_items
-                if child and child[0].is_panel_toggle:
-                    panel_toggle = item.interface_items[0]
-                    interface.remove(panel_toggle)
+                children = item.interface_items
+                if len(children) > 0:
+                    first_child = children[0]
+                    if isinstance(first_child, bpy.types.NodeTreeInterfaceSocket) and first_child.is_panel_toggle:
+                        interface.remove(first_child)
             interface.remove(item)
             interface.active_index = min(interface.active_index, len(interface.items_tree) - 1)
 

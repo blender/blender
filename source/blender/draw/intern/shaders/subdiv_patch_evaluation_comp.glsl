@@ -61,13 +61,13 @@ PatchHandle bogus_patch_handle()
 int transformUVToQuadQuadrant(float median, inout float u, inout float v)
 {
   int uHalf = (u >= median) ? 1 : 0;
-  if (uHalf != 0)
+  if (uHalf != 0) {
     u -= median;
-
+  }
   int vHalf = (v >= median) ? 1 : 0;
-  if (vHalf != 0)
+  if (vHalf != 0) {
     v -= median;
-
+  }
   return (vHalf << 1) | uHalf;
 }
 

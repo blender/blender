@@ -987,6 +987,7 @@ void BKE_packedfile_blend_read(BlendDataReader *reader, PackedFile **pf_p, Strin
   if (pf == nullptr) {
     return;
   }
+  /* NOTE: this is endianness-sensitive. */
   /* NOTE: there is no way to handle endianness switch here. */
   pf->sharing_info = BLO_read_shared(reader, &pf->data, [&]() {
     BLO_read_data_address(reader, &pf->data);

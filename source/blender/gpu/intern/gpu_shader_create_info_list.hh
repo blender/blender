@@ -90,6 +90,7 @@
 #include "compositor_motion_blur_info.hh"
 #include "compositor_movie_distortion_info.hh"
 #include "compositor_normalize_info.hh"
+#include "compositor_pad_info.hh"
 #include "compositor_parallel_reduction_info.hh"
 #include "compositor_pixelate_info.hh"
 #include "compositor_plane_deform_info.hh"

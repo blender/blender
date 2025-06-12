@@ -38,10 +38,6 @@
 
 #include "BLT_translation.hh"
 
-#ifdef __BIG_ENDIAN__
-#  include "BLI_endian_switch.h"
-#endif
-
 #include "BKE_action.hh"
 #include "BKE_armature.hh"
 #include "BKE_attribute.hh"
@@ -2238,13 +2234,10 @@ static int gpu_select_buffer_depth_id_cmp(const void *sel_a_p, const void *sel_b
   }
 
   /* Depths match, sort by id. */
+  /* NOTE: this is endianness-sensitive.
+   * GPUSelectResult values are always expected to be little-endian. */
   uint sel_a = a->id;
   uint sel_b = b->id;
-
-#ifdef __BIG_ENDIAN__
-  BLI_endian_switch_uint32(&sel_a);
-  BLI_endian_switch_uint32(&sel_b);
-#endif
 
   if (sel_a < sel_b) {
     return -1;
@@ -4225,13 +4218,10 @@ static bool do_armature_box_select(const ViewContext *vc, const rcti *rect, cons
  */
 static int gpu_bone_select_buffer_cmp(const void *sel_a_p, const void *sel_b_p)
 {
+  /* NOTE: this is endianness-sensitive.
+   * GPUSelectResult values are always expected to be little-endian. */
   uint sel_a = ((GPUSelectResult *)sel_a_p)->id;
   uint sel_b = ((GPUSelectResult *)sel_b_p)->id;
-
-#ifdef __BIG_ENDIAN__
-  BLI_endian_switch_uint32(&sel_a);
-  BLI_endian_switch_uint32(&sel_b);
-#endif
 
   if (sel_a < sel_b) {
     return -1;

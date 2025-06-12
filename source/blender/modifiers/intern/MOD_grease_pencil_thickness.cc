@@ -187,10 +187,10 @@ static void panel_draw(const bContext *C, Panel *panel)
   else {
     const bool is_weighted = !RNA_boolean_get(ptr, "use_weight_factor");
     uiLayout *row = &layout->row(true);
-    uiLayoutSetActive(row, is_weighted);
+    row->active_set(is_weighted);
     row->prop(ptr, "thickness_factor", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     uiLayout *sub = &row->row(true);
-    uiLayoutSetActive(sub, true);
+    sub->active_set(true);
     row->prop(ptr, "use_weight_factor", UI_ITEM_NONE, "", ICON_MOD_VERTEX_WEIGHT);
   }
 

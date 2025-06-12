@@ -554,6 +554,19 @@ void wm_add_default(Main *bmain, bContext *C)
   wm_window_make_drawable(wm, win);
 }
 
+static void wm_xr_data_free(wmWindowManager *wm)
+{
+  /* NOTE: this also runs when built without `WITH_XR_OPENXR`.
+   * It's necessary to prevent leaks when XR data is created or loaded into non XR builds.
+   * This can occur when Python reads all properties (see the `bl_rna_paths` test). */
+
+  /* Note that non-runtime data in `wm->xr` is freed as part of freeing the window manager.  */
+  if (wm->xr.session_settings.shading.prop) {
+    IDP_FreeProperty(wm->xr.session_settings.shading.prop);
+    wm->xr.session_settings.shading.prop = nullptr;
+  }
+}
+
 void wm_close_and_free(bContext *C, wmWindowManager *wm)
 {
   if (wm->autosavetimer) {
@@ -564,6 +577,7 @@ void wm_close_and_free(bContext *C, wmWindowManager *wm)
   /* May send notifier, so do before freeing notifier queue. */
   wm_xr_exit(wm);
 #endif
+  wm_xr_data_free(wm);
 
   while (wmWindow *win = static_cast<wmWindow *>(BLI_pophead(&wm->windows))) {
     /* Prevent draw clear to use screen. */

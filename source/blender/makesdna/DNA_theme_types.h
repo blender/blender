@@ -108,13 +108,14 @@ typedef struct uiStyle {
 
 typedef struct uiWidgetColors {
   unsigned char outline[4];
+  unsigned char outline_sel[4];
   unsigned char inner[4];
   unsigned char inner_sel[4];
   unsigned char item[4];
   unsigned char text[4];
   unsigned char text_sel[4];
   unsigned char shaded;
-  char _pad0[7];
+  char _pad0[3];
   short shadetop, shadedown;
   float roundness;
 } uiWidgetColors;

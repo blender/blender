@@ -34,7 +34,6 @@ void VKDiscardPool::deinit(VKDevice &device)
 
 void VKDiscardPool::move_data(VKDiscardPool &src_pool, TimelineValue timeline)
 {
-  std::scoped_lock mutex(mutex_);
   src_pool.buffer_views_.update_timeline(timeline);
   src_pool.buffers_.update_timeline(timeline);
   src_pool.image_views_.update_timeline(timeline);

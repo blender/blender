@@ -83,7 +83,7 @@ void uiTemplateCacheFileProcedural(uiLayout *layout, const bContext *C, PointerR
   }
 
   row = &layout->row(false);
-  uiLayoutSetActive(row, is_alembic && engine_supports_procedural);
+  row->active_set(is_alembic && engine_supports_procedural);
   row->prop(fileptr, "use_render_procedural", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   const bool use_render_procedural = RNA_boolean_get(fileptr, "use_render_procedural");
@@ -117,13 +117,13 @@ void uiTemplateCacheFileTimeSettings(uiLayout *layout, PointerRNA *fileptr)
   uiLayoutSetPropDecorate(sub, false);
   sub->prop(fileptr, "override_frame", UI_ITEM_NONE, "", ICON_NONE);
   subsub = &sub->row(true);
-  uiLayoutSetActive(subsub, RNA_boolean_get(fileptr, "override_frame"));
+  subsub->active_set(RNA_boolean_get(fileptr, "override_frame"));
   subsub->prop(fileptr, "frame", UI_ITEM_NONE, "", ICON_NONE);
   uiItemDecoratorR(row, fileptr, "frame", 0);
 
   row = &layout->row(false);
   row->prop(fileptr, "frame_offset", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  uiLayoutSetActive(row, !RNA_boolean_get(fileptr, "is_sequence"));
+  row->active_set(!RNA_boolean_get(fileptr, "is_sequence"));
 }
 
 static void cache_file_layer_item(uiList * /*ui_list*/,

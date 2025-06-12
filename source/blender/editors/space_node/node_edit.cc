@@ -642,55 +642,67 @@ void ED_node_shader_default(const bContext *C, ID *id)
 
 void ED_node_composit_default(const bContext *C, Scene *sce)
 {
+  Main *bmain = CTX_data_main(C);
+
   /* but lets check it anyway */
-  if (sce->nodetree) {
+  if (sce->compositing_node_group) {
     if (G.debug & G_DEBUG) {
       printf("error in composite initialize\n");
     }
     return;
   }
 
-  sce->nodetree = blender::bke::node_tree_add_tree_embedded(
-      nullptr, &sce->id, "Compositing Node Tree", ntreeType_Composite->idname);
+  sce->compositing_node_group = blender::bke::node_tree_add_tree(
+      bmain, DATA_("Compositing Node Tree"), ntreeType_Composite->idname);
 
-  bNode *composite = blender::bke::node_add_static_node(C, *sce->nodetree, CMP_NODE_COMPOSITE);
+  ED_node_composit_default_init(C, sce->compositing_node_group);
+
+  BKE_ntree_update_after_single_tree_change(*bmain, *sce->compositing_node_group);
+}
+
+void ED_node_composit_default_init(const bContext *C, bNodeTree *ntree)
+{
+  BLI_assert(ntree != nullptr && ntree->type == NTREE_COMPOSIT);
+  BLI_assert(BLI_listbase_count(&ntree->nodes) == 0);
+
+  bNode *composite = blender::bke::node_add_static_node(C, *ntree, CMP_NODE_COMPOSITE);
   composite->location[0] = 200.0f;
   composite->location[1] = 0.0f;
 
-  bNode *in = blender::bke::node_add_static_node(C, *sce->nodetree, CMP_NODE_R_LAYERS);
+  bNode *in = blender::bke::node_add_static_node(C, *ntree, CMP_NODE_R_LAYERS);
   in->location[0] = -150.0f - in->width;
   in->location[1] = 0.0f;
-  blender::bke::node_set_active(*sce->nodetree, *in);
+  blender::bke::node_set_active(*ntree, *in);
 
-  bNode *reroute = blender::bke::node_add_static_node(C, *sce->nodetree, NODE_REROUTE);
+  bNode *reroute = blender::bke::node_add_static_node(C, *ntree, NODE_REROUTE);
   reroute->location[0] = 100.0f;
   reroute->location[1] = -35.0f;
 
-  bNode *viewer = blender::bke::node_add_static_node(C, *sce->nodetree, CMP_NODE_VIEWER);
+  bNode *viewer = blender::bke::node_add_static_node(C, *ntree, CMP_NODE_VIEWER);
   viewer->location[0] = 200.0f;
   viewer->location[1] = -60.0f;
 
   /* Viewer and Composite nodes are linked to Render Layer's output image socket through a reroute
    * node. */
-  blender::bke::node_add_link(*sce->nodetree,
+  blender::bke::node_add_link(*ntree,
                               *in,
                               *(bNodeSocket *)in->outputs.first,
                               *reroute,
                               *(bNodeSocket *)reroute->inputs.first);
 
-  blender::bke::node_add_link(*sce->nodetree,
+  blender::bke::node_add_link(*ntree,
                               *reroute,
                               *(bNodeSocket *)reroute->outputs.first,
                               *composite,
                               *(bNodeSocket *)composite->inputs.first);
 
-  blender::bke::node_add_link(*sce->nodetree,
+  blender::bke::node_add_link(*ntree,
                               *reroute,
                               *(bNodeSocket *)reroute->outputs.first,
                               *viewer,
                               *(bNodeSocket *)viewer->inputs.first);
 
-  BKE_ntree_update_after_single_tree_change(*CTX_data_main(C), *sce->nodetree);
+  BKE_ntree_update_after_single_tree_change(*CTX_data_main(C), *ntree);
 }
 
 void ED_node_texture_default(const bContext *C, Tex *tex)
@@ -1669,7 +1681,7 @@ wmOperatorStatus node_render_changed_exec(bContext *C, wmOperator * /*op*/)
    * All the nodes are using same render result, so there is no need to do
    * anything smart about check how exactly scene is used. */
   bNode *node = nullptr;
-  for (bNode *node_iter : sce->nodetree->all_nodes()) {
+  for (bNode *node_iter : sce->compositing_node_group->all_nodes()) {
     if (node_iter->id == (ID *)sce) {
       node = node_iter;
       break;

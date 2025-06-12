@@ -38,7 +38,8 @@ struct PointCloudModule {
   gpu::VertBuf *create_dummy_vbo()
   {
     GPUVertFormat format = {0};
-    uint dummy_id = GPU_vertformat_attr_add(&format, "dummy", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
+    uint dummy_id = GPU_vertformat_attr_add(
+        &format, "dummy", gpu::VertAttrType::SFLOAT_32_32_32_32);
 
     gpu::VertBuf *vbo = GPU_vertbuf_create_with_format_ex(
         format, GPU_USAGE_STATIC | GPU_USAGE_FLAG_BUFFER_TEXTURE_ONLY);

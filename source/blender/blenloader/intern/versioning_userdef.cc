@@ -239,6 +239,61 @@ static void do_versions_theme(const UserDef *userdef, bTheme *btheme)
     FROM_DEFAULT_V4_UCHAR(space_clip.anim_preview_range);
   }
 
+  if (!USER_VERSION_ATLEAST(500, 5)) {
+    FROM_DEFAULT_V4_UCHAR(space_properties.tab_back);
+    FROM_DEFAULT_V4_UCHAR(space_view3d.tab_back);
+    FROM_DEFAULT_V4_UCHAR(space_file.tab_back);
+    FROM_DEFAULT_V4_UCHAR(space_graph.tab_back);
+    FROM_DEFAULT_V4_UCHAR(space_info.tab_back);
+    FROM_DEFAULT_V4_UCHAR(space_action.tab_back);
+    FROM_DEFAULT_V4_UCHAR(space_nla.tab_back);
+    FROM_DEFAULT_V4_UCHAR(space_sequencer.tab_back);
+    FROM_DEFAULT_V4_UCHAR(space_image.tab_back);
+    FROM_DEFAULT_V4_UCHAR(space_text.tab_back);
+    FROM_DEFAULT_V4_UCHAR(space_outliner.tab_back);
+    FROM_DEFAULT_V4_UCHAR(space_node.tab_back);
+    FROM_DEFAULT_V4_UCHAR(space_preferences.tab_back);
+    FROM_DEFAULT_V4_UCHAR(space_console.tab_back);
+    FROM_DEFAULT_V4_UCHAR(space_clip.tab_back);
+    FROM_DEFAULT_V4_UCHAR(space_topbar.tab_back);
+    FROM_DEFAULT_V4_UCHAR(space_statusbar.tab_back);
+    FROM_DEFAULT_V4_UCHAR(space_spreadsheet.tab_back);
+  }
+
+  if (!USER_VERSION_ATLEAST(500, 6)) {
+    /* Match the selected/unselected outline colors. */
+    copy_v4_v4_uchar(btheme->tui.wcol_box.outline_sel, U_theme_default.tui.wcol_box.outline);
+    copy_v4_v4_uchar(btheme->tui.wcol_list_item.outline_sel,
+                     U_theme_default.tui.wcol_list_item.outline);
+    copy_v4_v4_uchar(btheme->tui.wcol_menu.outline_sel, U_theme_default.tui.wcol_menu.outline);
+    copy_v4_v4_uchar(btheme->tui.wcol_menu_back.outline_sel,
+                     U_theme_default.tui.wcol_menu_back.outline);
+    copy_v4_v4_uchar(btheme->tui.wcol_menu_item.outline_sel,
+                     U_theme_default.tui.wcol_menu_item.outline);
+    copy_v4_v4_uchar(btheme->tui.wcol_num.outline_sel, U_theme_default.tui.wcol_num.outline);
+    copy_v4_v4_uchar(btheme->tui.wcol_numslider.outline_sel,
+                     U_theme_default.tui.wcol_numslider.outline);
+    copy_v4_v4_uchar(btheme->tui.wcol_option.outline_sel, U_theme_default.tui.wcol_option.outline);
+    copy_v4_v4_uchar(btheme->tui.wcol_pie_menu.outline_sel,
+                     U_theme_default.tui.wcol_pie_menu.outline);
+    copy_v4_v4_uchar(btheme->tui.wcol_progress.outline_sel,
+                     U_theme_default.tui.wcol_progress.outline);
+    copy_v4_v4_uchar(btheme->tui.wcol_pulldown.outline_sel,
+                     U_theme_default.tui.wcol_pulldown.outline);
+    copy_v4_v4_uchar(btheme->tui.wcol_radio.outline_sel, U_theme_default.tui.wcol_radio.outline);
+    copy_v4_v4_uchar(btheme->tui.wcol_regular.outline_sel,
+                     U_theme_default.tui.wcol_regular.outline);
+    copy_v4_v4_uchar(btheme->tui.wcol_scroll.outline_sel, U_theme_default.tui.wcol_scroll.outline);
+    copy_v4_v4_uchar(btheme->tui.wcol_tab.outline_sel, U_theme_default.tui.wcol_tab.outline);
+    copy_v4_v4_uchar(btheme->tui.wcol_text.outline_sel, U_theme_default.tui.wcol_text.outline);
+    copy_v4_v4_uchar(btheme->tui.wcol_toggle.outline_sel, U_theme_default.tui.wcol_toggle.outline);
+    copy_v4_v4_uchar(btheme->tui.wcol_tool.outline_sel, U_theme_default.tui.wcol_tool.outline);
+    copy_v4_v4_uchar(btheme->tui.wcol_toolbar_item.outline_sel,
+                     U_theme_default.tui.wcol_toolbar_item.outline);
+    copy_v4_v4_uchar(btheme->tui.wcol_tooltip.outline_sel,
+                     U_theme_default.tui.wcol_tooltip.outline);
+  }
+
   /**
    * Always bump subversion in BKE_blender_version.h when adding versioning
    * code here, and wrap it inside a USER_VERSION_ATLEAST check.
@@ -1327,10 +1382,6 @@ void blo_do_versions_userdef(UserDef *userdef)
     if (userdef->node_margin == 80) {
       userdef->node_margin = 40;
     }
-  }
-
-  if (!USER_VERSION_ATLEAST(402, 51)) {
-    userdef->sequencer_editor_flag |= USER_SEQ_ED_SIMPLE_TWEAKING;
   }
 
   if (!USER_VERSION_ATLEAST(402, 56)) {

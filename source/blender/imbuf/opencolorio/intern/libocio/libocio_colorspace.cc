@@ -130,7 +130,7 @@ LibOCIOColorSpace::LibOCIOColorSpace(const int index,
 {
   this->index = index;
 
-  is_inveetible_ = color_space_is_invertible(ocio_color_space);
+  is_invertible_ = color_space_is_invertible(ocio_color_space);
 }
 
 bool LibOCIOColorSpace::is_scene_linear() const

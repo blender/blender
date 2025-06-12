@@ -245,7 +245,7 @@ class bNodeTreeRuntime : NonCopyable, NonMovable {
 
   /**
    * Node previews for the compositor.
-   * Only available in base node trees (e.g. scene->node_tree).
+   * Only available in base node trees (e.g. scene->compositing_node_group).
    */
   Map<bNodeInstanceKey, bNodePreview> previews;
 

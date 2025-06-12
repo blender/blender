@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'e91e8eef41aa')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'798f85a7108f')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2025-06-03 09:10+0000\n"
+"POT-Creation-Date: 2025-06-11 11:13+0000\n"
 "PO-Revision-Date: 2025-04-14 08:36+0000\n"
 "Last-Translator: Ruan da Silva Andrade <ruanandrade818@gmail.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -21444,6 +21444,14 @@ msgid "Material slot name"
 msgstr "Nome do compartimento do material."
 
 
+msgid "Show/Hide"
+msgstr "Mostrar ou ocultar"
+
+
+msgid "Clean Up"
+msgstr "Limpeza"
+
+
 msgid "Special Characters"
 msgstr "Caracteres especiais"
 
@@ -21456,20 +21464,12 @@ msgid "Metaball"
 msgstr "Meta-esfera"
 
 
-msgid "Show/Hide"
-msgstr "Mostrar ou ocultar"
-
-
 msgid "Names"
 msgstr "Nomes"
 
 
 msgid "Bone Roll"
 msgstr "Rolagem dos ossos"
-
-
-msgid "Clean Up"
-msgstr "Limpeza"
 
 
 msgid "Pivot Point"
@@ -21484,140 +21484,140 @@ msgid "Proportional Editing Falloff"
 msgstr "Tipo de decaimento para edição proporcional"
 
 
-msgid "Mirror"
-msgstr "Espelhar"
-
-
-msgid "UV Mapping"
-msgstr "Mapeamento UV"
-
-
-msgid "Local View"
-msgstr "Visão local"
-
-
-msgid "Viewpoint"
-msgstr "Ponto de visualização"
-
-
-msgid "Navigation"
-msgstr "Navegação"
-
-
-msgid "Align View"
-msgstr "Alinhar visualização"
-
-
-msgid "Align View to Active"
-msgstr "Alinhar vista para o ativo"
-
-
-msgid "View Regions"
-msgstr "Visualizar Regiões"
-
-
-msgid "Select More/Less"
-msgstr "Selecionar mais ou menos"
-
-
-msgid "Select Similar"
-msgstr "Selecionar por similaridades"
-
-
-msgid "Select All by Trait"
-msgstr "Selecionar todos por características..."
-
-
-msgid "Select Linked"
-msgstr "Selecionar vinculados(as)"
-
-
-msgid "Select Loops"
-msgstr "Selecionar anéis"
-
-
-msgid "Light"
-msgstr "Luz"
-
-
-msgid "Light Probe"
-msgstr "Sonda de Luz"
-
-
-msgid "Add Image"
-msgstr "Adicionar Imagem"
-
-
-msgid "Relations"
-msgstr "Relações"
-
-
-msgid "Rigid Body"
-msgstr "Corpo rígido"
-
-
-msgid "Apply"
-msgstr "Aplicar"
-
-
-msgid "Track"
-msgstr "Rastrear"
-
-
-msgid "Quick Effects"
-msgstr "Efeitos instantâneos"
-
-
-msgid "Make Single User"
-msgstr "Tornar usuário único"
+msgid "Hooks"
+msgstr "Ganchos"
 
 
 msgid "Convert"
 msgstr "Converter"
 
 
-msgid "Hooks"
-msgstr "Ganchos"
+msgid "Relations"
+msgstr "Relações"
 
 
-msgid "Random Mask"
-msgstr "Máscara Aleatória"
+msgid "Add Image"
+msgstr "Adicionar Imagem"
 
 
-msgid "Clear Transform"
-msgstr "Limpar transformações"
+msgid "Merge"
+msgstr "Fundir"
 
 
-msgid "In-Betweens"
-msgstr "Entre as continuidades"
-
-
-msgid "Propagate"
-msgstr "Propagar"
-
-
-msgid "Toggle Bone Options"
-msgstr "Alternar opções de ossos"
-
-
-msgid "Enable Bone Options"
-msgstr "Habilitar opções de ossos"
-
-
-msgid "Disable Bone Options"
-msgstr "Desabilitar as opções de ossos"
-
-
-msgid "Mesh Select Mode"
-msgstr "Modo de seleção de malhas"
+msgid "Light Probe"
+msgstr "Sonda de Luz"
 
 
 msgid "Face Data"
 msgstr "Dados das faces"
 
 
-msgid "Merge"
-msgstr "Fundir"
+msgid "Light"
+msgstr "Luz"
+
+
+msgid "Make Single User"
+msgstr "Tornar usuário único"
+
+
+msgid "Mesh Select Mode"
+msgstr "Modo de seleção de malhas"
+
+
+msgid "Quick Effects"
+msgstr "Efeitos instantâneos"
+
+
+msgid "Disable Bone Options"
+msgstr "Desabilitar as opções de ossos"
+
+
+msgid "Enable Bone Options"
+msgstr "Habilitar opções de ossos"
+
+
+msgid "Track"
+msgstr "Rastrear"
+
+
+msgid "Toggle Bone Options"
+msgstr "Alternar opções de ossos"
+
+
+msgid "Apply"
+msgstr "Aplicar"
+
+
+msgid "Rigid Body"
+msgstr "Corpo rígido"
+
+
+msgid "Propagate"
+msgstr "Propagar"
+
+
+msgid "Local View"
+msgstr "Visão local"
+
+
+msgid "Select More/Less"
+msgstr "Selecionar mais ou menos"
+
+
+msgid "In-Betweens"
+msgstr "Entre as continuidades"
+
+
+msgid "Clear Transform"
+msgstr "Limpar transformações"
+
+
+msgid "Select Loops"
+msgstr "Selecionar anéis"
+
+
+msgid "Select Linked"
+msgstr "Selecionar vinculados(as)"
+
+
+msgid "Select All by Trait"
+msgstr "Selecionar todos por características..."
+
+
+msgid "Select Similar"
+msgstr "Selecionar por similaridades"
+
+
+msgid "View Regions"
+msgstr "Visualizar Regiões"
+
+
+msgid "Align View to Active"
+msgstr "Alinhar vista para o ativo"
+
+
+msgid "Align View"
+msgstr "Alinhar visualização"
+
+
+msgid "Navigation"
+msgstr "Navegação"
+
+
+msgid "Viewpoint"
+msgstr "Ponto de visualização"
+
+
+msgid "UV Mapping"
+msgstr "Mapeamento UV"
+
+
+msgid "Mirror"
+msgstr "Espelhar"
+
+
+msgid "Random Mask"
+msgstr "Máscara Aleatória"
 
 
 msgid "Basic"
@@ -37863,10 +37863,6 @@ msgid "Dissolve edges, merging faces"
 msgstr "Dissolve as arestas, fundindo as faces."
 
 
-msgid "Dissolve remaining vertices"
-msgstr "Dissolve os vértices remanescentes."
-
-
 msgctxt "Operator"
 msgid "Dissolve Faces"
 msgstr "Dissolver faces"
@@ -52119,12 +52115,8 @@ msgid "Helicopter Mode"
 msgstr "Modo de helicóptero"
 
 
-msgid "Lock Horizon"
-msgstr "Travar no horizonte"
-
-
-msgid "Keep horizon level while flying with 3D Mouse"
-msgstr "Mantém o nível do horizonte durante o voo com o mouse 3D."
+msgid "NDOF View Navigate"
+msgstr "NDOF - Navegação da visualização"
 
 
 msgid "Orbit Sensitivity"
@@ -52133,14 +52125,6 @@ msgstr "Sensibilidade de órbita"
 
 msgid "Overall sensitivity of the 3D Mouse for orbiting"
 msgstr "Sensibilidade geral do mouse 3D para movimentar em órbita."
-
-
-msgid "Y/Z Swap Axis"
-msgstr "Trocar os eixos Y e Z"
-
-
-msgid "Pan using up/down on the device (otherwise forward/backward)"
-msgstr "Panorama usado acima ou abaixo no dispositivo (caso contrário, apontado para frente ou para trás)."
 
 
 msgid "Invert X Axis"
@@ -52173,50 +52157,6 @@ msgstr "Sensibilidade geral do mouse 3D para movimentar em panorama."
 
 msgid "Display the center and axis during rotation"
 msgstr "Mostra o centro e o eixo durante a rotação."
-
-
-msgid "NDOF View Navigate"
-msgstr "NDOF - Navegação da visualização"
-
-
-msgid "Navigation style in the viewport"
-msgstr "Estilo de navegação na janela de exibição."
-
-
-msgid "Use full 6 degrees of freedom by default"
-msgstr "Usa os 6 graus de liberdade plenos por padrão."
-
-
-msgid "Orbit about the view center by default"
-msgstr "Orbita em torno do centro de visão por padrão."
-
-
-msgid "NDOF View Rotation"
-msgstr "NDOF - Rotação da visualização"
-
-
-msgid "Rotation style in the viewport"
-msgstr "Estilo de rotação na janela de exibição."
-
-
-msgid "Turntable"
-msgstr "Mesa rotativa"
-
-
-msgid "Use turntable style rotation in the viewport"
-msgstr "Usa a rotação em estilo de mesa rotativa dentro da janela de exibição."
-
-
-msgid "Use trackball style rotation in the viewport"
-msgstr "Usa a rotação tipo bola de tração na janela de exibição."
-
-
-msgid "Invert Zoom"
-msgstr "Inverter a ampliação"
-
-
-msgid "Zoom using opposite direction"
-msgstr "Permite a ampliação usando a direção oposta."
 
 
 msgid "Softness"
@@ -52265,6 +52205,10 @@ msgstr "Usa a seleção como o ponto de pivô."
 
 msgid "Zoom in towards the mouse pointer's position in the 3D view, rather than the 2D window center"
 msgstr "Amplia na direção do ponteiro do mouse dentro da janela de visualização 3D, ao invés do centro da janela 2D."
+
+
+msgid "Turntable"
+msgstr "Mesa rotativa"
 
 
 msgid "Zoom Axis"
@@ -63440,10 +63384,6 @@ msgid "Zoom Method"
 msgstr "Método de Zoom"
 
 
-msgid "Pan Sensitivity"
-msgstr "Sensibilidade para panorama"
-
-
 msgctxt "Operator"
 msgid "Save as Studio light"
 msgstr "Salvar como Luz de Estúdio"
@@ -63451,6 +63391,14 @@ msgstr "Salvar como Luz de Estúdio"
 
 msgid "Invert Wheel Zoom Direction"
 msgstr "Inverter ampliação pela roda do mouse"
+
+
+msgid "Lock Horizon"
+msgstr "Travar no horizonte"
+
+
+msgid "Pan Sensitivity"
+msgstr "Sensibilidade para panorama"
 
 
 msgid "Error (see console)"
@@ -70078,156 +70026,4 @@ msgstr "Todos os complementos instalados pelo usuário"
 
 msgid "Import-Export"
 msgstr "Importar e exportar"
-
-
-msgid "Japanese (日本語)"
-msgstr "Japonês (日本語)"
-
-
-msgid "Italian (Italiano)"
-msgstr "Italiano (Italiano)"
-
-
-msgid "German (Deutsch)"
-msgstr "Alemão (Deutsch)"
-
-
-msgid "Finnish (Suomi)"
-msgstr "Finlandês (Suomi)"
-
-
-msgid "Swedish (Svenska)"
-msgstr "Sueco (Svenska)"
-
-
-msgid "French (Français)"
-msgstr "Francês (Français)"
-
-
-msgid "Spanish (Español)"
-msgstr "Espanhol (Español)"
-
-
-msgid "Catalan (Català)"
-msgstr "Catalão (Català)"
-
-
-msgid "Portuguese (Português)"
-msgstr "Português (Português)"
-
-
-msgid "Simplified Chinese (简体中文)"
-msgstr "Chinês simplificado (简体中文)"
-
-
-msgid "Traditional Chinese (繁體中文)"
-msgstr "Chinês tradicional (繁體中文)"
-
-
-msgid "Russian (Русский)"
-msgstr "Russo (Русский)"
-
-
-msgid "Croatian (Hrvatski)"
-msgstr "Croata (Hrvatski)"
-
-
-msgid "Serbian (Српски)"
-msgstr "Sérvio (Српски)"
-
-
-msgid "Polish (Polski)"
-msgstr "Polonês (Polski)"
-
-
-msgid "Romanian (Român)"
-msgstr "Romeno (Român)"
-
-
-msgid "Arabic (ﺔﻴﺑﺮﻌﻟﺍ)"
-msgstr "Árabe (ﺔﻴﺑﺮﻌﻟﺍ)"
-
-
-msgid "Bulgarian (Български)"
-msgstr "Búlgaro (Български)"
-
-
-msgid "Greek (Ελληνικά)"
-msgstr "Grego (Ελληνικά)"
-
-
-msgid "Nepali (नेपाली)"
-msgstr "Nepalês (नेपाली)"
-
-
-msgid "Persian (ﯽﺳﺭﺎﻓ)"
-msgstr "Pérsico (ﯽﺳﺭﺎﻓ)"
-
-
-msgid "Indonesian (Bahasa indonesia)"
-msgstr "Indonesiano (Bahasa indonesia)"
-
-
-msgid "Serbian Latin (Srpski latinica)"
-msgstr "Latim Sérvio (Srpski latinica)"
-
-
-msgid "Kyrgyz (Кыргыз тили)"
-msgstr "Quirguistanês (Кыргыз тили)"
-
-
-msgid "Turkish (Türkçe)"
-msgstr "Turco (Türkçe)"
-
-
-msgid "Hungarian (Magyar)"
-msgstr "Húngaro (Magyar)"
-
-
-msgid "Brazilian Portuguese (Português do Brasil)"
-msgstr "Português do Brasil (Português do Brasil)"
-
-
-msgid "Esperanto (Esperanto)"
-msgstr "Esperanto (Esperanto)"
-
-
-msgid "Amharic (አማርኛ)"
-msgstr "Amárico (Etiópia) (አማርኛ)"
-
-
-msgid "Uzbek (Oʻzbek)"
-msgstr "Uzbeque (Oʻzbek)"
-
-
-msgid "Uzbek Cyrillic (Ўзбек)"
-msgstr "Uzbeque Cirílico (Ўзбек)"
-
-
-msgid "Hausa (Hausa)"
-msgstr "Hausa (Hausa)"
-
-
-msgid "Abkhaz (Аԥсуа бызшәа)"
-msgstr "Abcázio (Аԥсуа бызшәа)"
-
-
-msgid "Thai (ภาษาไทย)"
-msgstr "Tailandês (ภาษาไทย)"
-
-
-msgid "Slovak (Slovenčina)"
-msgstr "Eslovaco (Slovenčina)"
-
-
-msgid "Georgian (ქართული)"
-msgstr "Georgiano (ქართული)"
-
-
-msgid "Complete"
-msgstr "Completo"
-
-
-msgid "In Progress"
-msgstr "Em progresso"
 

@@ -259,9 +259,11 @@ int conv_utf_8_to_16(const char *in8, wchar_t *out16, size_t size16)
 #if 0
 static int is_ascii(const char *in8)
 {
-  for (; *in8; in8++)
-    if (0x80 & *in8)
+  for (; *in8; in8++) {
+    if (0x80 & *in8) {
       return 0;
+    }
+  }
 
   return 1;
 }
@@ -270,9 +272,9 @@ static void utf_8_cut_end(char *inout8, size_t maxcutpoint)
 {
   char *cur = inout8 + maxcutpoint;
   char cc;
-  if (!inout8)
+  if (!inout8) {
     return;
-
+  }
   cc = *cur;
 }
 #endif

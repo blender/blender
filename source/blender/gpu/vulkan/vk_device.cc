@@ -149,7 +149,7 @@ void VKDevice::init(void *ghost_context)
 
   resources.use_dynamic_rendering = extensions_.dynamic_rendering;
   resources.use_dynamic_rendering_local_read = extensions_.dynamic_rendering_local_read;
-  orphaned_data.timeline_ = timeline_value_ + 1;
+  orphaned_data.timeline_ = 0;
 
   init_submission_pool();
   lifetime = Lifetime::RUNNING;
@@ -553,7 +553,11 @@ void VKDevice::context_unregister(VKContext &context)
     render_graph.reset();
     BLI_thread_queue_push(unused_render_graphs_, &render_graph);
   }
-  orphaned_data.move_data(context.discard_pool, timeline_value_ + 1);
+  {
+    std::scoped_lock lock(orphaned_data.mutex_get());
+    orphaned_data.move_data(context.discard_pool, timeline_value_ + 1);
+  }
+
   contexts_.remove(contexts_.first_index_of(std::reference_wrapper(context)));
 }
 Span<std::reference_wrapper<VKContext>> VKDevice::contexts_get() const

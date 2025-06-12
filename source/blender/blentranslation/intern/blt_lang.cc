@@ -50,18 +50,18 @@ static int num_locales_menu = 0;
 
 static void free_locales()
 {
-  if (locales) {
+  if (locales_menu) {
     int idx = num_locales_menu - 1; /* Last item does not need to be freed! */
     while (idx--) {
-      MEM_freeN(locales_menu[idx].identifier);
+      MEM_freeN(locales_menu[idx].identifier); /* Also frees locales's relevant value! */
       MEM_freeN(locales_menu[idx].name);
-      MEM_freeN(locales_menu[idx].description); /* Also frees locales's relevant value! */
+      MEM_freeN(locales_menu[idx].description);
     }
-
-    MEM_freeN(locales);
-    locales = nullptr;
   }
   MEM_SAFE_FREE(locales_menu);
+  /* Allocated strings in #locales are shared with #locales_menu[idx].identifier, which are already
+   * freed above, or are static strings. */
+  MEM_SAFE_FREE(locales);
   num_locales = num_locales_menu = 0;
 }
 
@@ -110,7 +110,7 @@ static void fill_locales()
   if (num_locales > 0) {
     locales = MEM_calloc_arrayN<const char *>(num_locales, __func__);
     while (line) {
-      const char *loc, *sep1, *sep2, *sep3;
+      const char *loc, *desc, *sep1, *sep2, *sep3;
 
       char *str = (char *)line->link;
       if (ELEM(str[0], '#', '\0')) {
@@ -133,14 +133,19 @@ static void fill_locales()
 
           if (sep3) {
             locales_menu[idx].identifier = loc = BLI_strdupn(sep2, sep3 - sep2);
+
+            sep3++;
+            desc = BLI_sprintfN("Locale code: %s. Translation progress: %s", loc, sep3);
           }
           else {
             locales_menu[idx].identifier = loc = BLI_strdup(sep2);
+            desc = BLI_strdup(sep2);
           }
 
           if (id == 0) {
             /* The DEFAULT/Automatic item... */
             if (BLI_strnlen(loc, 2)) {
+              MEM_freeN(desc); /* Not used here. */
               locales[id] = "";
               /* Keep this tip in sync with the one in rna_userdef
                * (rna_enum_language_default_items). */
@@ -148,13 +153,15 @@ static void fill_locales()
                   "Automatically choose system's defined language "
                   "if available, or fall-back to English");
             }
-            /* Menu "label", not to be stored in locales! */
+            /* Menu "label", not to be stored in locales!
+             * NOTE: Not used since Blender 4.5. */
             else {
-              locales_menu[idx].description = BLI_strdup("");
+              locales_menu[idx].description = desc;
             }
           }
           else {
-            locales[id] = locales_menu[idx].description = BLI_strdup(loc);
+            locales[id] = loc;
+            locales_menu[idx].description = desc;
           }
           idx++;
         }

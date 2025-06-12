@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'e91e8eef41aa')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'798f85a7108f')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-03 09:10+0000\n"
+"POT-Creation-Date: 2025-06-11 11:13+0000\n"
 "PO-Revision-Date: 2025-04-14 08:14+0000\n"
 "Last-Translator: Thomas Radeke <rahdick@gmx.de>\n"
 "Language-Team: German <https://translate.blender.org/projects/blender-ui/ui/de/>\n"
@@ -18839,6 +18839,14 @@ msgid "Material slot name"
 msgstr "Materialsteckplatzname"
 
 
+msgid "Show/Hide"
+msgstr "Zeigen/Verbergen"
+
+
+msgid "Clean Up"
+msgstr "Aufräumen"
+
+
 msgid "Special Characters"
 msgstr "Sonderzeichen"
 
@@ -18855,16 +18863,8 @@ msgid "Metaball"
 msgstr "Metaball"
 
 
-msgid "Show/Hide"
-msgstr "Zeigen/Verbergen"
-
-
 msgid "Names"
 msgstr "Namen"
-
-
-msgid "Clean Up"
-msgstr "Aufräumen"
 
 
 msgid "Pivot Point"
@@ -18887,140 +18887,140 @@ msgid "Vertex Group Locks"
 msgstr "Punktgruppen sperren"
 
 
-msgid "Mirror"
-msgstr "Spiegeln"
-
-
-msgid "Local View"
-msgstr "Lokale Ansicht"
-
-
-msgid "Viewpoint"
-msgstr "Ansicht"
-
-
-msgid "Navigation"
-msgstr "Navigation"
-
-
-msgid "Align View"
-msgstr "Ansicht ausrichten"
-
-
-msgid "Align View to Active"
-msgstr "Ansicht auf Aktiv ausrichten"
-
-
-msgid "View Regions"
-msgstr "Vierfenster Ansicht"
-
-
-msgid "Select More/Less"
-msgstr "Mehr/weniger anzeigen"
-
-
-msgid "Select Similar"
-msgstr "Ähnliche auswählen"
-
-
-msgid "Select All by Trait"
-msgstr "Alles nach Merkmal auswählen"
-
-
-msgid "Select Linked"
-msgstr "Verknüpfte auswählen"
-
-
-msgid "Select Loops"
-msgstr "Schleifen auswählen"
-
-
-msgid "Assign Material"
-msgstr "Material zuweisen"
-
-
-msgid "Light"
-msgstr "Licht"
-
-
-msgid "Light Probe"
-msgstr "Lichtsonde"
-
-
-msgid "Add Image"
-msgstr "Bild hinzufügen"
-
-
-msgid "Relations"
-msgstr "Beziehungen"
-
-
-msgid "Rigid Body"
-msgstr "Rigid Body"
-
-
-msgid "Apply"
-msgstr "Anwenden"
-
-
-msgid "Track"
-msgstr "Spur"
-
-
-msgid "Quick Effects"
-msgstr "Schnelle Effekte"
-
-
-msgid "Asset"
-msgstr "Asset"
-
-
-msgid "Make Single User"
-msgstr "Einfachen Benutzer erzeugen"
+msgid "Hooks"
+msgstr "Haken"
 
 
 msgid "Convert"
 msgstr "Konvertieren"
 
 
-msgid "Hooks"
-msgstr "Haken"
+msgid "Relations"
+msgstr "Beziehungen"
 
 
-msgid "Random Mask"
-msgstr "Zufällige Maske"
+msgid "Add Image"
+msgstr "Bild hinzufügen"
 
 
-msgid "Clear Transform"
-msgstr "Transformation löschen"
+msgid "Merge"
+msgstr "Zusammenführen"
 
 
-msgid "In-Betweens"
-msgstr "Dazwischen"
-
-
-msgid "Toggle Bone Options"
-msgstr "Knochen-Optionen umschalten"
-
-
-msgid "Enable Bone Options"
-msgstr "Knochen-Optionen einschalten"
-
-
-msgid "Disable Bone Options"
-msgstr "Knochen-Optionen ausschalten"
-
-
-msgid "Mesh Select Mode"
-msgstr "Maschenauswahlmodus"
+msgid "Light Probe"
+msgstr "Lichtsonde"
 
 
 msgid "Face Data"
 msgstr "Flächendaten"
 
 
-msgid "Merge"
-msgstr "Zusammenführen"
+msgid "Light"
+msgstr "Licht"
+
+
+msgid "Make Single User"
+msgstr "Einfachen Benutzer erzeugen"
+
+
+msgid "Asset"
+msgstr "Asset"
+
+
+msgid "Mesh Select Mode"
+msgstr "Maschenauswahlmodus"
+
+
+msgid "Quick Effects"
+msgstr "Schnelle Effekte"
+
+
+msgid "Disable Bone Options"
+msgstr "Knochen-Optionen ausschalten"
+
+
+msgid "Enable Bone Options"
+msgstr "Knochen-Optionen einschalten"
+
+
+msgid "Track"
+msgstr "Spur"
+
+
+msgid "Toggle Bone Options"
+msgstr "Knochen-Optionen umschalten"
+
+
+msgid "Apply"
+msgstr "Anwenden"
+
+
+msgid "Assign Material"
+msgstr "Material zuweisen"
+
+
+msgid "Rigid Body"
+msgstr "Rigid Body"
+
+
+msgid "Local View"
+msgstr "Lokale Ansicht"
+
+
+msgid "Select More/Less"
+msgstr "Mehr/weniger anzeigen"
+
+
+msgid "In-Betweens"
+msgstr "Dazwischen"
+
+
+msgid "Clear Transform"
+msgstr "Transformation löschen"
+
+
+msgid "Select Loops"
+msgstr "Schleifen auswählen"
+
+
+msgid "Select Linked"
+msgstr "Verknüpfte auswählen"
+
+
+msgid "Select All by Trait"
+msgstr "Alles nach Merkmal auswählen"
+
+
+msgid "Select Similar"
+msgstr "Ähnliche auswählen"
+
+
+msgid "View Regions"
+msgstr "Vierfenster Ansicht"
+
+
+msgid "Align View to Active"
+msgstr "Ansicht auf Aktiv ausrichten"
+
+
+msgid "Align View"
+msgstr "Ansicht ausrichten"
+
+
+msgid "Navigation"
+msgstr "Navigation"
+
+
+msgid "Viewpoint"
+msgstr "Ansicht"
+
+
+msgid "Mirror"
+msgstr "Spiegeln"
+
+
+msgid "Random Mask"
+msgstr "Zufällige Maske"
 
 
 msgid "Assets"
@@ -42183,24 +42183,12 @@ msgid "Device up/down directly controls the Z position of the 3D viewport"
 msgstr "Gerät nach oben/unten steuert direkt die Z-Position des 3D-Ansichtsfensters"
 
 
-msgid "Lock Horizon"
-msgstr "Horizont sperren"
-
-
-msgid "Keep horizon level while flying with 3D Mouse"
-msgstr "Beim Fliegen mit der 3D-Maus wird die Horizontebene beibehalten"
-
-
 msgid "Orbit Sensitivity"
 msgstr "Umlaufbahn-Empfindlichkeit"
 
 
 msgid "Overall sensitivity of the 3D Mouse for orbiting"
 msgstr "Gesamtempfindlichkeit der 3D-Maus für die Umlaufbahn"
-
-
-msgid "Y/Z Swap Axis"
-msgstr "Y/Z Achse tauschen"
 
 
 msgid "Invert X Axis"
@@ -42225,30 +42213,6 @@ msgstr "Schwenkachse (Y) umkehren"
 
 msgid "Invert Roll (Z) Axis"
 msgstr "Rollachse (Z) umkehren"
-
-
-msgid "Navigation style in the viewport"
-msgstr "Navigationsstil im Ansichtsfenster"
-
-
-msgid "Rotation style in the viewport"
-msgstr "Rotationsstil im Ansichtenfenster"
-
-
-msgid "Turntable"
-msgstr "Drehscheibe"
-
-
-msgid "Use turntable style rotation in the viewport"
-msgstr "Turntable-Stil-Rotation im Ansichtenfenster verwenden"
-
-
-msgid "Use trackball style rotation in the viewport"
-msgstr "Kugel-Stil-Rotation im Ansichtenfenster verwenden"
-
-
-msgid "Invert Zoom"
-msgstr "Zoom umkehren"
 
 
 msgid "Max Threshold"
@@ -42329,6 +42293,10 @@ msgstr "Umlaufbahn-Methode"
 
 msgid "Orbit method in the viewport"
 msgstr "Umlaufbahn-Methode im Ansichtsfenster"
+
+
+msgid "Turntable"
+msgstr "Drehscheibe"
 
 
 msgid "Zoom Axis"
@@ -53588,22 +53556,6 @@ msgid "Zoom Method"
 msgstr "Zoommethode"
 
 
-msgid "Pan Sensitivity"
-msgstr "Schwenkempfindlichkeit"
-
-
-msgid "Swap Y and Z Axes"
-msgstr "Vertausche Y und Z Achse"
-
-
-msgid "Invert Axis Pan"
-msgstr "Schwenkachse umkehren"
-
-
-msgid "Invert Pan Axis"
-msgstr "Schwenkachse umkehren"
-
-
 msgid "No custom MatCaps configured"
 msgstr "Keine benutzerdefinierten MatCaps konfiguriert"
 
@@ -53637,8 +53589,16 @@ msgid "Invert Wheel Zoom Direction"
 msgstr "Mausrad-Zoomrichtung umkehren"
 
 
-msgid "Fly/Walk"
-msgstr "Fliegen/Laufen"
+msgid "Lock Horizon"
+msgstr "Horizont sperren"
+
+
+msgid "Pan Sensitivity"
+msgstr "Schwenkempfindlichkeit"
+
+
+msgid "Invert Pan Axis"
+msgstr "Schwenkachse umkehren"
 
 
 msgid "Error (see console)"
@@ -59835,168 +59795,4 @@ msgstr "Alle durch den Benutzer installierten Add-Ons"
 
 msgid "Import-Export"
 msgstr "Importieren/Expotieren"
-
-
-msgid "Japanese (日本語)"
-msgstr "Japanisch (日本語)"
-
-
-msgid "Italian (Italiano)"
-msgstr "Italienisch (Italiano)"
-
-
-msgid "German (Deutsch)"
-msgstr "Deutsch (Deutsch)"
-
-
-msgid "Finnish (Suomi)"
-msgstr "Finnisch (Suomi)"
-
-
-msgid "Swedish (Svenska)"
-msgstr "Schwedisch (Svenska)"
-
-
-msgid "French (Français)"
-msgstr "Französisch (Français)"
-
-
-msgid "Spanish (Español)"
-msgstr "Spanisch (Español)"
-
-
-msgid "Catalan (Català)"
-msgstr "Katalanisch (Català)"
-
-
-msgid "Portuguese (Português)"
-msgstr "Portugiesisch (Português)"
-
-
-msgid "Simplified Chinese (简体中文)"
-msgstr "Vereinfachtes Chinesisch (简体中文)"
-
-
-msgid "Traditional Chinese (繁體中文)"
-msgstr "Traditionelles Chinesisch (繁體中文)"
-
-
-msgid "Russian (Русский)"
-msgstr "Russisch (Русский)"
-
-
-msgid "Croatian (Hrvatski)"
-msgstr "Kroatisch (Hrvatski)"
-
-
-msgid "Serbian (Српски)"
-msgstr "Serbisch (Српски)"
-
-
-msgid "Polish (Polski)"
-msgstr "Polnisch (Polski)"
-
-
-msgid "Romanian (Român)"
-msgstr "Rumänisch (Român)"
-
-
-msgid "Arabic (ﺔﻴﺑﺮﻌﻟﺍ)"
-msgstr "Arabisch (ﺔﻴﺑﺮﻌﻟﺍ)"
-
-
-msgid "Bulgarian (Български)"
-msgstr "Bulgarisch (Български)"
-
-
-msgid "Greek (Ελληνικά)"
-msgstr "Griechisch (Ελληνικά)"
-
-
-msgid "Korean (한국어)"
-msgstr "Koreanisch (한국어)"
-
-
-msgid "Nepali (नेपाली)"
-msgstr "Nepalesisch (नेपाली)"
-
-
-msgid "Persian (ﯽﺳﺭﺎﻓ)"
-msgstr "Persisch (ﯽﺳﺭﺎﻓ)"
-
-
-msgid "Indonesian (Bahasa indonesia)"
-msgstr "Indonesisch (Bahasa indonesia)"
-
-
-msgid "Serbian Latin (Srpski latinica)"
-msgstr "Serbisches Latein (Srpski latinica)"
-
-
-msgid "Kyrgyz (Кыргыз тили)"
-msgstr "Kirgisisch (Кыргыз тили)"
-
-
-msgid "Turkish (Türkçe)"
-msgstr "Türkisch (Türkçe)"
-
-
-msgid "Hungarian (Magyar)"
-msgstr "Ungarisch (Magyar)"
-
-
-msgid "Brazilian Portuguese (Português do Brasil)"
-msgstr "Brazilianisches Portugiesisch (Português do Brasil)"
-
-
-msgid "Hebrew (תירִבְעִ)"
-msgstr "Hebräisch (תירִבְעִ)"
-
-
-msgid "Esperanto (Esperanto)"
-msgstr "Esperanto (Esperanto)"
-
-
-msgid "Amharic (አማርኛ)"
-msgstr "Amharisch (አማርኛ)"
-
-
-msgid "Uzbek (Oʻzbek)"
-msgstr "Usbekisch (Oʻzbek)"
-
-
-msgid "Uzbek Cyrillic (Ўзбек)"
-msgstr "Usbekisch Kyrillisch (Ўзбек)"
-
-
-msgid "Basque (Euskara)"
-msgstr "Baskisch (Euskara)"
-
-
-msgid "Hausa (Hausa)"
-msgstr "Hausa (Hausa)"
-
-
-msgid "Abkhaz (Аԥсуа бызшәа)"
-msgstr "Abchasisch (Аԥсуа бызшәа)"
-
-
-msgid "Thai (ภาษาไทย)"
-msgstr "Thailändisch (ภาษาไทย)"
-
-
-msgid "Slovak (Slovenčina)"
-msgstr "Slowakisch (Slovenčina)"
-
-
-msgid "Georgian (ქართული)"
-msgstr "Gregorianisch (ქართული)"
-
-
-msgid "Complete"
-msgstr "Vollständig"
-
-
-msgid "In Progress"
-msgstr "In Arbeit"
 

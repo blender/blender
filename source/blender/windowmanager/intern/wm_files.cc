@@ -3339,7 +3339,7 @@ static void wm_open_mainfile_ui(bContext * /*C*/, wmOperator *op)
   uiLayout *col = &layout->column(false);
   if (file_info->is_untrusted) {
     autoexec_text = IFACE_("Trusted Source [Untrusted Path]");
-    uiLayoutSetActive(col, false);
+    col->active_set(false);
     uiLayoutSetEnabled(col, false);
   }
   else {

@@ -432,7 +432,7 @@ ccl_device_noinline void svm_node_normal_map(KernelGlobals kg,
     }
   }
 
-  if (is_zero(N)) {
+  if (is_zero(N) || !isfinite_safe(N)) {
     N = sd->N;
   }
 

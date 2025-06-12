@@ -12,7 +12,7 @@
 #include "GEO_uv_parametrizer.hh"
 
 #include "BLI_array.hh"
-#include "BLI_convexhull_2d.h"
+#include "BLI_convexhull_2d.hh"
 #include "BLI_ghash.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
@@ -489,7 +489,7 @@ static void p_chart_uv_transform(PChart *chart, const float mat[2][2])
   }
 }
 
-static void p_chart_uv_to_array(PChart *chart, float (*points)[2])
+static void p_chart_uv_to_array(PChart *chart, MutableSpan<float2> points)
 {
   PVert *v;
   uint i = 0;
@@ -3708,13 +3708,11 @@ static void p_chart_rotate_minimum_area(PChart *chart)
 
 static void p_chart_rotate_fit_aabb(PChart *chart)
 {
-  float(*points)[2] = MEM_malloc_arrayN<float[2]>(size_t(chart->nverts), __func__);
+  Array<float2> points(chart->nverts);
 
   p_chart_uv_to_array(chart, points);
 
-  float angle = BLI_convexhull_aabb_fit_points_2d(points, chart->nverts);
-
-  MEM_freeN(points);
+  float angle = BLI_convexhull_aabb_fit_points_2d(points);
 
   if (angle != 0.0f) {
     float mat[2][2];
@@ -4178,7 +4176,7 @@ void uv_parametrizer_stretch_end(ParamHandle *phandle)
   phandle->state = PHANDLE_STATE_CONSTRUCTED;
 }
 
-void uv_parametrizer_pack(ParamHandle *handle, float margin, bool do_rotate, bool ignore_pinned)
+void uv_parametrizer_pack(ParamHandle *handle, const UVPackIsland_Params &params)
 {
   if (handle->ncharts == 0) {
     return;
@@ -4188,14 +4186,9 @@ void uv_parametrizer_pack(ParamHandle *handle, float margin, bool do_rotate, boo
 
   Vector<PackIsland *> pack_island_vector;
 
-  UVPackIsland_Params params;
-  params.rotate_method = do_rotate ? ED_UVPACK_ROTATION_ANY : ED_UVPACK_ROTATION_NONE;
-  params.margin = margin;
-  params.margin_method = ED_UVPACK_MARGIN_SCALED;
-
   for (int i = 0; i < handle->ncharts; i++) {
     PChart *chart = handle->charts[i];
-    if (ignore_pinned && chart->has_pins) {
+    if (params.pin_method == ED_UVPACK_PIN_NONE && chart->has_pins) {
       continue;
     }
 

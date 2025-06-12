@@ -37,7 +37,6 @@
 #include "DNA_world_types.h"
 
 #include "BLI_dynstr.h"
-#include "BLI_endian_switch.h"
 #include "BLI_listbase.h"
 #include "BLI_string.h"
 #include "BLI_string_utils.hh"
@@ -126,38 +125,15 @@ static void ipo_blend_read_data(BlendDataReader *reader, ID *id)
 
   BLO_read_struct_list(reader, IpoCurve, &(ipo->curve));
 
+  /* NOTE: this is endianness-sensitive.
+   * Not clear why, but endianness switching was undone here for some data?
+   * That 'undo switching' code appeared to be heavily broken in 4.x code actually, performing
+   * switch on `ipo` data as part of the loop on `icu`'s, among other obvious mistakes. */
+
   LISTBASE_FOREACH (IpoCurve *, icu, &ipo->curve) {
     BLO_read_struct_array(reader, BezTriple, icu->totvert, &icu->bezt);
     BLO_read_struct_array(reader, BPoint, icu->totvert, &icu->bp);
     BLO_read_struct(reader, IpoDriver, &icu->driver);
-
-    /* Undo generic endian switching. */
-    if (BLO_read_requires_endian_switch(reader)) {
-      BLI_endian_switch_int16(&icu->blocktype);
-      if (icu->driver != nullptr) {
-
-        /* Undo generic endian switching. */
-        if (BLO_read_requires_endian_switch(reader)) {
-          BLI_endian_switch_int16(&icu->blocktype);
-          if (icu->driver != nullptr) {
-            BLI_endian_switch_int16(&icu->driver->blocktype);
-          }
-        }
-      }
-
-      /* Undo generic endian switching. */
-      if (BLO_read_requires_endian_switch(reader)) {
-        BLI_endian_switch_int16(&ipo->blocktype);
-        if (icu->driver != nullptr) {
-          BLI_endian_switch_int16(&icu->driver->blocktype);
-        }
-      }
-    }
-  }
-
-  /* Undo generic endian switching. */
-  if (BLO_read_requires_endian_switch(reader)) {
-    BLI_endian_switch_int16(&ipo->blocktype);
   }
 }
 

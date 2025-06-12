@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'e91e8eef41aa')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'798f85a7108f')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-03 09:10+0000\n"
+"POT-Creation-Date: 2025-06-11 11:13+0000\n"
 "PO-Revision-Date: 2025-05-01 10:56+0000\n"
 "Last-Translator: \"Adriel Y.\" <mixnblend@users.noreply.translate.blender.org>\n"
 "Language-Team: Indonesian <https://translate.blender.org/projects/blender-ui/ui/id/>\n"
@@ -15371,52 +15371,52 @@ msgid "Snap"
 msgstr "Jepret"
 
 
-msgid "Mirror"
-msgstr "Cermin"
-
-
-msgid "Navigation"
-msgstr "Navigasi"
-
-
-msgid "Select Linked"
-msgstr "Seleksi yang Terhubung"
-
-
-msgid "Assign Material"
-msgstr "Tugaskan Bahan"
-
-
-msgid "Light"
-msgstr "Cahaya"
-
-
-msgid "Light Probe"
-msgstr "Probe Cahaya"
+msgid "Hooks"
+msgstr "Kait"
 
 
 msgid "Add Image"
 msgstr "Tambah Gambar"
 
 
-msgid "Apply"
-msgstr "Tetapkan"
+msgid "Merge"
+msgstr "Menggabungkan"
 
 
-msgid "Track"
-msgstr "Lacak"
+msgid "Light Probe"
+msgstr "Probe Cahaya"
+
+
+msgid "Light"
+msgstr "Cahaya"
 
 
 msgid "Asset"
 msgstr "Aset"
 
 
-msgid "Hooks"
-msgstr "Kait"
+msgid "Track"
+msgstr "Lacak"
 
 
-msgid "Merge"
-msgstr "Menggabungkan"
+msgid "Apply"
+msgstr "Tetapkan"
+
+
+msgid "Assign Material"
+msgstr "Tugaskan Bahan"
+
+
+msgid "Select Linked"
+msgstr "Seleksi yang Terhubung"
+
+
+msgid "Navigation"
+msgstr "Navigasi"
+
+
+msgid "Mirror"
+msgstr "Cermin"
 
 
 msgctxt "MovieClip"
@@ -21283,10 +21283,6 @@ msgid "Dissolve Vertices"
 msgstr "Memudarkan Simpul"
 
 
-msgid "Dissolve remaining vertices"
-msgstr "Memudarkan simpul yang tersisa"
-
-
 msgctxt "Operator"
 msgid "Limited Dissolve"
 msgstr "Modus Sunting"
@@ -25937,14 +25933,6 @@ msgid "Load user interface setup when loading .blend files"
 msgstr "Muat setup antarmuka pengguna saat memuat dokumen .blend"
 
 
-msgid "Use full 6 degrees of freedom by default"
-msgstr "Gunakan semua 6 dejarat kebebasan secara default"
-
-
-msgid "NDOF View Rotation"
-msgstr "Gerakan"
-
-
 msgid "Continue"
 msgstr "Lanjutkan"
 
@@ -29918,14 +29906,6 @@ msgid "B"
 msgstr "B"
 
 
-msgid "Invert Axis Pan"
-msgstr "Membalikkan Pan Sumbu"
-
-
-msgid "Invert Pan Axis"
-msgstr "Membalikkan Sumbu Pan"
-
-
 msgctxt "Operator"
 msgid "Save as Studio light"
 msgstr "Simpan sebagai cahaya Studio"
@@ -29943,8 +29923,8 @@ msgid "Invert Wheel Zoom Direction"
 msgstr "Membalikkan Arah Zoom Roda"
 
 
-msgid "Fly/Walk"
-msgstr "Terbang/Jalan"
+msgid "Invert Pan Axis"
+msgstr "Membalikkan Sumbu Pan"
 
 
 msgid "Error (see console)"
@@ -32836,146 +32816,6 @@ msgstr "Pemahatan"
 
 msgid "Import-Export"
 msgstr "Impor-Ekspor"
-
-
-msgid "Japanese (日本語)"
-msgstr "Jepang (日本語)"
-
-
-msgid "Italian (Italiano)"
-msgstr "Italia (Italiano)"
-
-
-msgid "German (Deutsch)"
-msgstr "Jerman (Deutsch)"
-
-
-msgid "Finnish (Suomi)"
-msgstr "Finlandia (Suomi)"
-
-
-msgid "Swedish (Svenska)"
-msgstr "Swedia (Svenska)"
-
-
-msgid "French (Français)"
-msgstr "Perancis(Français)"
-
-
-msgid "Spanish (Español)"
-msgstr "Spanyol (Español)"
-
-
-msgid "Catalan (Català)"
-msgstr "Catalan (Català)"
-
-
-msgid "Portuguese (Português)"
-msgstr "Portugis (Português)"
-
-
-msgid "Simplified Chinese (简体中文)"
-msgstr "Mandarin Baku (简体中文)"
-
-
-msgid "Traditional Chinese (繁體中文)"
-msgstr "Mandarin Tradisional (繁體中文)"
-
-
-msgid "Russian (Русский)"
-msgstr "Rusia (Русский)"
-
-
-msgid "Croatian (Hrvatski)"
-msgstr "Kroasia (Hrvatski)"
-
-
-msgid "Serbian (Српски)"
-msgstr "Serbia (Српски)"
-
-
-msgid "Polish (Polski)"
-msgstr "Polandia (Polski)"
-
-
-msgid "Romanian (Român)"
-msgstr "Rumania (Român)"
-
-
-msgid "Arabic (ﺔﻴﺑﺮﻌﻟﺍ)"
-msgstr "Arab (ﺔﻴﺑﺮﻌﻟﺍ)"
-
-
-msgid "Bulgarian (Български)"
-msgstr "Arab (Български)"
-
-
-msgid "Greek (Ελληνικά)"
-msgstr "Yunani (Ελληνικά)"
-
-
-msgid "Nepali (नेपाली)"
-msgstr "Nepal (नेपाली)"
-
-
-msgid "Persian (ﯽﺳﺭﺎﻓ)"
-msgstr "Persia (ﯽﺳﺭﺎﻓ)"
-
-
-msgid "Indonesian (Bahasa indonesia)"
-msgstr "Indonesia (Bahasa indonesia)"
-
-
-msgid "Serbian Latin (Srpski latinica)"
-msgstr "Serbia Latin (Srpski latinica)"
-
-
-msgid "Kyrgyz (Кыргыз тили)"
-msgstr "Kirgiz (Кыргыз тили)"
-
-
-msgid "Turkish (Türkçe)"
-msgstr "Turki (Türkçe)"
-
-
-msgid "Hungarian (Magyar)"
-msgstr "Hungaria (Magyar)"
-
-
-msgid "Brazilian Portuguese (Português do Brasil)"
-msgstr "Portugis Brazil (Português do Brasil)"
-
-
-msgid "Hebrew (תירִבְעִ)"
-msgstr "Yahudi (תירִבְעִ)"
-
-
-msgid "Esperanto (Esperanto)"
-msgstr "Esperanto (Esperanto)"
-
-
-msgid "Amharic (አማርኛ)"
-msgstr "Amhara (አማርኛ)"
-
-
-msgid "Uzbek (Oʻzbek)"
-msgstr "Uzbek (Oʻzbek)"
-
-
-msgid "Uzbek Cyrillic (Ўзбек)"
-msgstr "Sirilik Uzbek (Ўзбек)"
-
-
-msgid "Basque (Euskara)"
-msgstr "Basque (Euskara)"
-
-
-msgid "Complete"
-msgstr "Selesai"
-
-
-msgid "In Progress"
-msgstr "Dalam Perkembangan"
 
 
 msgid "Surface UV Coordinate"

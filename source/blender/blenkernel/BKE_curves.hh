@@ -854,8 +854,12 @@ bool check_valid_num_and_order(int points_num, int8_t order, bool cyclic, KnotsM
  * for predictability and so that cached basis weights of NURBS curves with these properties can be
  * shared.
  */
-int calculate_evaluated_num(
-    int points_num, int8_t order, bool cyclic, int resolution, KnotsMode knots_mode);
+int calculate_evaluated_num(int points_num,
+                            int8_t order,
+                            bool cyclic,
+                            int resolution,
+                            KnotsMode knots_mode,
+                            Span<float> knots);
 
 /**
  * Calculate the length of the knot vector for a NURBS curve with the given properties.
@@ -906,6 +910,7 @@ Vector<int> calculate_multiplicity_sequence(Span<float> knots);
 void calculate_basis_cache(int points_num,
                            int evaluated_num,
                            int8_t order,
+                           int resolution,
                            bool cyclic,
                            Span<float> knots,
                            BasisCache &basis_cache);

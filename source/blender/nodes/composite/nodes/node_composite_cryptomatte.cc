@@ -640,7 +640,7 @@ static bool node_poll_cryptomatte(const blender::bke::bNodeType * /*ntype*/,
     for (scene = static_cast<Scene *>(G.main->scenes.first); scene;
          scene = static_cast<Scene *>(scene->id.next))
     {
-      if (scene->nodetree == ntree) {
+      if (scene->compositing_node_group == ntree) {
         break;
       }
     }

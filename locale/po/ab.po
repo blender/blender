@@ -1,7 +1,7 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'e91e8eef41aa')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'798f85a7108f')\n"
 "Report-Msgid-Bugs-To: \n"
 "PO-Revision-Date: 2025-04-14 08:08+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"

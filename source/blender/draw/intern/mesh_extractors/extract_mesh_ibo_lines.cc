@@ -252,8 +252,8 @@ static void extract_lines_loose_geom_subdiv(const DRWSubdivCache &subdiv_cache,
   const int loose_edges_num = subdiv_loose_edges_num(mr, subdiv_cache);
 
   /* Update flags for loose edges, points are already handled. */
-  static const GPUVertFormat format = GPU_vertformat_from_attribute(
-      "data", GPU_COMP_U32, 1, GPU_FETCH_INT);
+  static const GPUVertFormat format = GPU_vertformat_from_attribute("data",
+                                                                    gpu::VertAttrType::UINT_32);
 
   gpu::VertBuf *flags = GPU_vertbuf_calloc();
   GPU_vertbuf_init_with_format(*flags, format);

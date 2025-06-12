@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'e91e8eef41aa')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'798f85a7108f')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-03 09:10+0000\n"
+"POT-Creation-Date: 2025-06-11 11:13+0000\n"
 "PO-Revision-Date: 2025-04-14 08:23+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Hindi <https://translate.blender.org/projects/blender-ui/ui/hi/>\n"
@@ -2584,12 +2584,12 @@ msgid "Mask"
 msgstr "आवरण"
 
 
-msgid "Text"
-msgstr "पाठ"
-
-
 msgid "Show/Hide"
 msgstr "छुपाएँ / दिखाएँ"
+
+
+msgid "Text"
+msgstr "पाठ"
 
 
 msgid "Names"
@@ -2604,48 +2604,48 @@ msgid "Snap"
 msgstr "स्नैप"
 
 
-msgid "Mirror"
-msgstr "दर्पण"
+msgid "Hooks"
+msgstr "खूँटी"
+
+
+msgid "Merge"
+msgstr "विलय करें"
 
 
 msgid "Light"
 msgstr "प्रकाश"
 
 
-msgid "Rigid Body"
-msgstr "कठोर-पदार्थ"
-
-
-msgid "Apply"
-msgstr "लागू करें"
-
-
-msgid "Track"
-msgstr "ट्रैक"
+msgid "Make Single User"
+msgstr "एकल प्रयोक्ता बनाएँ"
 
 
 msgid "Quick Effects"
 msgstr "त्वरित प्रभाव"
 
 
-msgid "Make Single User"
-msgstr "एकल प्रयोक्ता बनाएँ"
+msgid "Enable Bone Options"
+msgstr "हड्डी विकल्प को सक्षम करें"
 
 
-msgid "Hooks"
-msgstr "खूँटी"
+msgid "Track"
+msgstr "ट्रैक"
 
 
 msgid "Toggle Bone Options"
 msgstr "हड्डी विकल्प बंद/बुझ"
 
 
-msgid "Enable Bone Options"
-msgstr "हड्डी विकल्प को सक्षम करें"
+msgid "Apply"
+msgstr "लागू करें"
 
 
-msgid "Merge"
-msgstr "विलय करें"
+msgid "Rigid Body"
+msgstr "कठोर-पदार्थ"
+
+
+msgid "Mirror"
+msgstr "दर्पण"
 
 
 msgid "Basic"
@@ -6692,128 +6692,4 @@ msgstr "बंद/बुझ प्रणाली कंसोल"
 
 msgid "Import-Export"
 msgstr "आयात-निर्यात"
-
-
-msgid "Japanese (日本語)"
-msgstr "जापानी (日本語)"
-
-
-msgid "Italian (Italiano)"
-msgstr "इतालवी (Italiano)"
-
-
-msgid "German (Deutsch)"
-msgstr "जर्मन (Deutsch)"
-
-
-msgid "Finnish (Suomi)"
-msgstr "फिनिश (Suomi)"
-
-
-msgid "Swedish (Svenska)"
-msgstr "स्वीडिश (Svenska)"
-
-
-msgid "French (Français)"
-msgstr "फ्रेंच (Français)"
-
-
-msgid "Spanish (Español)"
-msgstr "स्पेनिश (Español)"
-
-
-msgid "Catalan (Català)"
-msgstr "कैटालैन (Català)"
-
-
-msgid "Portuguese (Português)"
-msgstr "पुर्तगाली (Português)"
-
-
-msgid "Simplified Chinese (简体中文)"
-msgstr "सरलीकृत चीनी (简体中文)"
-
-
-msgid "Traditional Chinese (繁體中文)"
-msgstr "पारंपरिक चीनी (繁體中文)"
-
-
-msgid "Russian (Русский)"
-msgstr "रूसी (Русский)"
-
-
-msgid "Croatian (Hrvatski)"
-msgstr "क्रोएशियाई (Hrvatsk)"
-
-
-msgid "Serbian (Српски)"
-msgstr "सर्बियन (Српски)"
-
-
-msgid "Romanian (Român)"
-msgstr "रोमानियाई (Român)"
-
-
-msgid "Arabic (ﺔﻴﺑﺮﻌﻟﺍ)"
-msgstr "अरबी (ﺔﻴﺑﺮﻌﻟﺍ)"
-
-
-msgid "Bulgarian (Български)"
-msgstr "बुल्गारियाई (Български)"
-
-
-msgid "Greek (Ελληνικά)"
-msgstr "ग्रीक (Ελληνικά)"
-
-
-msgid "Nepali (नेपाली)"
-msgstr "नेपाली (नेपाली)"
-
-
-msgid "Persian (ﯽﺳﺭﺎﻓ)"
-msgstr "फ़ारसी (ﯽﺳﺭﺎﻓ)"
-
-
-msgid "Indonesian (Bahasa indonesia)"
-msgstr "इंडोनेशिया (Bahasa indonesia)"
-
-
-msgid "Serbian Latin (Srpski latinica)"
-msgstr "सर्बियन-लैटिन (Srpski latinica)"
-
-
-msgid "Kyrgyz (Кыргыз тили)"
-msgstr "किरगिज़ (Кыргыз тили)"
-
-
-msgid "Turkish (Türkçe)"
-msgstr "तुर्की (Türkçe)"
-
-
-msgid "Hungarian (Magyar)"
-msgstr "हंगेरियन (Magyar)"
-
-
-msgid "Hebrew (תירִבְעִ)"
-msgstr "हिब्रू (תירִבְעִ)"
-
-
-msgid "Amharic (አማርኛ)"
-msgstr "अम्हारिक (አማርኛ)"
-
-
-msgid "Uzbek (Oʻzbek)"
-msgstr "उज़्बेक (Oʻzbek)"
-
-
-msgid "Uzbek Cyrillic (Ўзбек)"
-msgstr "उज़्बेक सिरिलिक (Ўзбек)"
-
-
-msgid "Complete"
-msgstr "सम्पन्न"
-
-
-msgid "In Progress"
-msgstr "प्रगति में"
 

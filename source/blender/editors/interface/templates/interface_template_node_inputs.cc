@@ -106,7 +106,7 @@ static void draw_node_inputs_recursive(bContext *C,
   const std::string panel_idname = "NodePanel" + std::to_string(panel_decl.identifier);
   PanelLayout panel = layout->panel(C, panel_idname, panel_decl.default_collapsed);
   const bool has_used_inputs = panel_has_used_inputs(node, panel_decl);
-  uiLayoutSetActive(panel.header, has_used_inputs);
+  panel.header->active_set(has_used_inputs);
 
   const char *panel_translation_context = (panel_decl.translation_context.has_value() ?
                                                panel_decl.translation_context->c_str() :

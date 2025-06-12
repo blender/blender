@@ -133,6 +133,15 @@ void GLBackend::platform_init()
     device = GPU_DEVICE_UNKNOWN;
     driver = GPU_DRIVER_ANY;
   }
+  else if (strstr(renderer, "Mesa DRI R") ||
+           (strstr(renderer, "Radeon") && (strstr(vendor, "X.Org") || strstr(version, "Mesa"))) ||
+           (strstr(renderer, "AMD") && (strstr(vendor, "X.Org") || strstr(version, "Mesa"))) ||
+           (strstr(renderer, "Gallium ") && strstr(renderer, " on ATI ")) ||
+           (strstr(renderer, "Gallium ") && strstr(renderer, " on AMD ")))
+  {
+    device = GPU_DEVICE_ATI;
+    driver = GPU_DRIVER_OPENSOURCE;
+  }
   else if (strstr(vendor, "ATI") || strstr(vendor, "AMD")) {
     device = GPU_DEVICE_ATI;
     driver = GPU_DRIVER_OFFICIAL;
@@ -155,15 +164,6 @@ void GLBackend::platform_init()
     {
       device |= GPU_DEVICE_INTEL_UHD;
     }
-  }
-  else if (strstr(renderer, "Mesa DRI R") ||
-           (strstr(renderer, "Radeon") && strstr(vendor, "X.Org")) ||
-           (strstr(renderer, "AMD") && strstr(vendor, "X.Org")) ||
-           (strstr(renderer, "Gallium ") && strstr(renderer, " on ATI ")) ||
-           (strstr(renderer, "Gallium ") && strstr(renderer, " on AMD ")))
-  {
-    device = GPU_DEVICE_ATI;
-    driver = GPU_DRIVER_OPENSOURCE;
   }
   else if (strstr(renderer, "Nouveau") || strstr(vendor, "nouveau")) {
     device = GPU_DEVICE_NVIDIA;
@@ -521,6 +521,12 @@ static void detect_workarounds()
   /* Somehow fixes armature display issues (see #69743). */
   if (GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_WIN, GPU_DRIVER_ANY) &&
       strstr(version, "Build 20.19.15.4285"))
+  {
+    GCaps.use_main_context_workaround = true;
+  }
+  /* Needed to avoid driver hangs on legacy AMD drivers (see #139939). */
+  if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_OFFICIAL) &&
+      is_AMD_between_20_11_and_22(version))
   {
     GCaps.use_main_context_workaround = true;
   }

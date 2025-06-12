@@ -68,7 +68,7 @@ static void node_composit_buts_defocus(uiLayout *layout, bContext *C, PointerRNA
   col->prop(ptr, "angle", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 
   col = &layout->column(false);
-  uiLayoutSetActive(col, RNA_boolean_get(ptr, "use_zbuffer") == true);
+  col->active_set(RNA_boolean_get(ptr, "use_zbuffer") == true);
   col->prop(ptr, "f_stop", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 
   layout->prop(ptr, "blur_max", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
@@ -78,7 +78,7 @@ static void node_composit_buts_defocus(uiLayout *layout, bContext *C, PointerRNA
   col = &layout->column(false);
   col->prop(ptr, "use_zbuffer", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   sub = &col->column(false);
-  uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_zbuffer") == false);
+  sub->active_set(RNA_boolean_get(ptr, "use_zbuffer") == false);
   sub->prop(ptr, "z_scale", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 }
 

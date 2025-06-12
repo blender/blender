@@ -1245,8 +1245,9 @@ static void shader_preview_render(ShaderPreview *sp, ID *id, int split, int firs
 #if 0
   if (idtype == ID_TE) {
     Tex *tex = (Tex *)id;
-    if (tex->use_nodes && tex->nodetree)
+    if (tex->use_nodes && tex->nodetree) {
       ntreeEndExecTree(tex->nodetree);
+    }
   }
 #endif
 }

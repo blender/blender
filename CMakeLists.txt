@@ -1631,32 +1631,16 @@ if(FIRST_RUN)
   endif()
 endif()
 
-# set the endian define
-if(MSVC)
-  # For some reason this fails on MSVC.
-  add_definitions(-D__LITTLE_ENDIAN__)
-
-  # OSX-Note: as we do cross-compiling with specific set architecture,
-  # endianness-detection and auto-setting is counterproductive
-  # so we just set endianness according CMAKE_OSX_ARCHITECTURES
-
-elseif(CMAKE_OSX_ARCHITECTURES MATCHES i386 OR
-       CMAKE_OSX_ARCHITECTURES MATCHES x86_64 OR
-       CMAKE_OSX_ARCHITECTURES MATCHES arm64)
-  add_definitions(-D__LITTLE_ENDIAN__)
-elseif(CMAKE_OSX_ARCHITECTURES MATCHES ppc OR CMAKE_OSX_ARCHITECTURES MATCHES ppc64)
-  add_definitions(-D__BIG_ENDIAN__)
-
+# Test endianness and set the endian define.
+include(TestBigEndian)
+test_big_endian(_SYSTEM_BIG_ENDIAN)
+if(_SYSTEM_BIG_ENDIAN)
+  message(FATAL_ERROR "Blender does not support building on Big Endian systems" )
 else()
-  include(TestBigEndian)
-  test_big_endian(_SYSTEM_BIG_ENDIAN)
-  if(_SYSTEM_BIG_ENDIAN)
-    add_definitions(-D__BIG_ENDIAN__)
-  else()
-    add_definitions(-D__LITTLE_ENDIAN__)
-  endif()
-  unset(_SYSTEM_BIG_ENDIAN)
+  add_definitions(-D__LITTLE_ENDIAN__)
 endif()
+unset(_SYSTEM_BIG_ENDIAN)
+
 if(WITH_IMAGE_OPENJPEG)
   # Special handling of Windows platform where openjpeg is always static.
   if(WIN32)

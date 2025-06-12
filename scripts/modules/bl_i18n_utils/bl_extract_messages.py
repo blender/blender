@@ -1128,9 +1128,6 @@ def dump_messages(do_messages, do_checks, settings):
     for lng in settings.LANGUAGES:
         process_msg(msgs, settings.DEFAULT_CONTEXT, lng[1], "Languages’ labels from bl_i18n_utils/settings.py",
                     reports, None, settings)
-    for cat in settings.LANGUAGES_CATEGORIES:
-        process_msg(msgs, settings.DEFAULT_CONTEXT, cat[1],
-                    "Language categories’ labels from bl_i18n_utils/settings.py", reports, None, settings)
 
     # Get strings from asset catalogs and blend files.
     # This loads each asset blend file in turn.

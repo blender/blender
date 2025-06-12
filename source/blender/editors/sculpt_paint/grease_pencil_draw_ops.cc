@@ -350,20 +350,14 @@ static wmOperatorStatus grease_pencil_sculpt_paint_invoke(bContext *C,
   }
 
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
-  if (!grease_pencil.has_active_layer()) {
-    BKE_report(op->reports, RPT_ERROR, "No active Grease Pencil layer");
+  if (!ed::greasepencil::has_editable_layer(grease_pencil)) {
+    BKE_report(op->reports, RPT_ERROR, "No editable Grease Pencil layer");
     return OPERATOR_CANCELLED;
   }
 
   const Paint *paint = BKE_paint_get_active_from_context(C);
   const Brush *brush = BKE_paint_brush_for_read(paint);
   if (brush == nullptr) {
-    return OPERATOR_CANCELLED;
-  }
-
-  bke::greasepencil::Layer &active_layer = *grease_pencil.get_active_layer();
-  if (!active_layer.is_editable()) {
-    BKE_report(op->reports, RPT_ERROR, "Active layer is locked or hidden");
     return OPERATOR_CANCELLED;
   }
 
@@ -557,14 +551,8 @@ static wmOperatorStatus grease_pencil_vertex_brush_stroke_invoke(bContext *C,
   }
 
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
-  if (!grease_pencil.has_active_layer()) {
-    BKE_report(op->reports, RPT_ERROR, "No active Grease Pencil layer");
-    return OPERATOR_CANCELLED;
-  }
-
-  bke::greasepencil::Layer &active_layer = *grease_pencil.get_active_layer();
-  if (!active_layer.is_editable()) {
-    BKE_report(op->reports, RPT_ERROR, "Active layer is locked or hidden");
+  if (!ed::greasepencil::has_editable_layer(grease_pencil)) {
+    BKE_report(op->reports, RPT_ERROR, "No editable Grease Pencil layer");
     return OPERATOR_CANCELLED;
   }
 
@@ -579,15 +567,19 @@ static wmOperatorStatus grease_pencil_vertex_brush_stroke_invoke(bContext *C,
   /* For the vertex paint tools, we don't want the auto-key to create an empty keyframe, so we
    * duplicate the previous key. */
   const bool use_duplicate_previous_key = true;
-  if (!ed::greasepencil::ensure_active_keyframe(
-          *scene, grease_pencil, active_layer, use_duplicate_previous_key, inserted_keyframe))
-  {
+  for (bke::greasepencil::Layer *layer : grease_pencil.layers_for_write()) {
+    if (layer->is_editable() &&
+        ed::greasepencil::ensure_active_keyframe(
+            *scene, grease_pencil, *layer, use_duplicate_previous_key, inserted_keyframe))
+    {
+      inserted_keyframe = true;
+    }
+  }
+  if (!inserted_keyframe) {
     BKE_report(op->reports, RPT_ERROR, "No Grease Pencil frame to draw on");
     return OPERATOR_CANCELLED;
   }
-  if (inserted_keyframe) {
-    WM_event_add_notifier(C, NC_GPENCIL | NA_EDITED, nullptr);
-  }
+  WM_event_add_notifier(C, NC_GPENCIL | NA_EDITED, nullptr);
 
   op->customdata = paint_stroke_new(C,
                                     op,
@@ -1847,6 +1839,23 @@ static bool remove_points_and_split_from_drawings(
   return changed;
 }
 
+static inline bool is_point_inside_bounds(const Bounds<int2> bounds, const int2 point)
+{
+  if (point.x < bounds.min.x) {
+    return false;
+  }
+  if (point.x > bounds.max.x) {
+    return false;
+  }
+  if (point.y < bounds.min.y) {
+    return false;
+  }
+  if (point.y > bounds.max.y) {
+    return false;
+  }
+  return true;
+}
+
 static inline bool is_point_inside_lasso(const Array<int2> lasso, const int2 point)
 {
   return isect_point_poly_v2_int(
@@ -1910,6 +1919,15 @@ static wmOperatorStatus grease_pencil_erase_lasso_exec(bContext *C, wmOperator *
       IndexMaskMemory &memory = memories[drawing_i];
       const IndexMask curve_selection = IndexMask::from_predicate(
           curves.curves_range(), GrainSize(512), memory, [&](const int64_t index) {
+            /* For a single point curve, its screen_space_curve_bounds Bounds will be empty (by
+             * definition), so intersecting will fail. Check if the single point is in the bounds
+             * instead. */
+            const IndexRange points = points_by_curve[index];
+            if (points.size() == 1) {
+              return is_point_inside_bounds(lasso_bounds_int,
+                                            int2(screen_space_positions[points.first()]));
+            }
+
             return bounds::intersect(lasso_bounds, screen_space_curve_bounds[index]).has_value();
           });
 
@@ -1953,23 +1971,6 @@ static void GREASE_PENCIL_OT_erase_lasso(wmOperatorType *ot)
   ot->flag = OPTYPE_UNDO | OPTYPE_REGISTER;
 
   WM_operator_properties_gesture_lasso(ot);
-}
-
-static inline bool is_point_inside_bounds(const Bounds<int2> bounds, const int2 point)
-{
-  if (point.x < bounds.min.x) {
-    return false;
-  }
-  if (point.x > bounds.max.x) {
-    return false;
-  }
-  if (point.y < bounds.min.y) {
-    return false;
-  }
-  if (point.y > bounds.max.y) {
-    return false;
-  }
-  return true;
 }
 
 static wmOperatorStatus grease_pencil_erase_box_exec(bContext *C, wmOperator *op)

@@ -89,9 +89,11 @@ static void transform_decompose(DecomposedTransform *decomp, const Transform *tf
     Transform Rnext;
     Transform Rit = transform_transposed_inverse(R);
 
-    for (int i = 0; i < 3; i++)
-      for (int j = 0; j < 4; j++)
+    for (int i = 0; i < 3; i++) {
+      for (int j = 0; j < 4; j++) {
         Rnext[i][j] = 0.5f * (R[i][j] + Rit[i][j]);
+      }
+    }
 
     norm = 0.0f;
     for (int i = 0; i < 3; i++) {
@@ -104,8 +106,9 @@ static void transform_decompose(DecomposedTransform *decomp, const Transform *tf
     iteration++;
   } while (iteration < 100 && norm > 1e-4f);
 
-  if (transform_negative_scale(R))
+  if (transform_negative_scale(R)) {
     R = R * transform_scale(-1.0f, -1.0f, -1.0f);
+  }
 
   decomp->x = transform_to_quat(R);
 

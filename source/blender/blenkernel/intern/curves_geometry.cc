@@ -657,6 +657,8 @@ static void calculate_evaluated_offsets(const CurvesGeometry &curves,
 
   const VArray<int8_t> nurbs_orders = curves.nurbs_orders();
   const VArray<int8_t> nurbs_knots_modes = curves.nurbs_knots_modes();
+  const OffsetIndices<int> custom_knots_by_curve = curves.nurbs_custom_knots_by_curve();
+  const Span<float> all_custom_knots = curves.nurbs_custom_knots();
 
   build_offsets(offsets, [&](const int curve_index) -> int {
     const IndexRange points = points_by_curve[curve_index];
@@ -676,11 +678,17 @@ static void calculate_evaluated_offsets(const CurvesGeometry &curves,
         return all_bezier_offsets[offsets.last()];
       }
       case CURVE_TYPE_NURBS:
-        return curves::nurbs::calculate_evaluated_num(points.size(),
-                                                      nurbs_orders[curve_index],
-                                                      cyclic[curve_index],
-                                                      resolution[curve_index],
-                                                      KnotsMode(nurbs_knots_modes[curve_index]));
+        const bool is_cyclic = cyclic[curve_index];
+        const int8_t order = nurbs_orders[curve_index];
+        const KnotsMode knots_mode = KnotsMode(nurbs_knots_modes[curve_index]);
+        const IndexRange custom_knots_range = custom_knots_by_curve[curve_index];
+        const Span<float> custom_knots = knots_mode == NURBS_KNOT_MODE_CUSTOM &&
+                                                 !all_custom_knots.is_empty() &&
+                                                 !custom_knots_range.is_empty() ?
+                                             all_custom_knots.slice(custom_knots_range) :
+                                             Span<float>();
+        return curves::nurbs::calculate_evaluated_num(
+            points.size(), order, is_cyclic, resolution[curve_index], knots_mode, custom_knots);
     }
     BLI_assert_unreachable();
     return 0;
@@ -755,6 +763,7 @@ void CurvesGeometry::ensure_nurbs_basis_cache() const
     const OffsetIndices<int> custom_knots_by_curve = this->nurbs_custom_knots_by_curve();
     const VArray<bool> cyclic = this->cyclic();
     const VArray<int8_t> orders = this->nurbs_orders();
+    const VArray<int> resolutions = this->resolution();
     const VArray<int8_t> knots_modes = this->nurbs_knots_modes();
     const Span<float> custom_knots = this->nurbs_custom_knots();
 
@@ -765,6 +774,7 @@ void CurvesGeometry::ensure_nurbs_basis_cache() const
         const IndexRange evaluated_points = evaluated_points_by_curve[curve_index];
 
         const int8_t order = orders[curve_index];
+        const int resolution = resolutions[curve_index];
         const bool is_cyclic = cyclic[curve_index];
         const KnotsMode mode = KnotsMode(knots_modes[curve_index]);
 
@@ -782,8 +792,13 @@ void CurvesGeometry::ensure_nurbs_basis_cache() const
                                         custom_knots,
                                         knots);
 
-        curves::nurbs::calculate_basis_cache(
-            points.size(), evaluated_points.size(), order, is_cyclic, knots, r_data[curve_index]);
+        curves::nurbs::calculate_basis_cache(points.size(),
+                                             evaluated_points.size(),
+                                             order,
+                                             resolution,
+                                             is_cyclic,
+                                             knots,
+                                             r_data[curve_index]);
       }
     });
   });

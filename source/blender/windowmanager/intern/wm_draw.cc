@@ -267,9 +267,10 @@ static void wm_software_cursor_draw_bitmap(const int event_xy[2],
   GPU_matrix_mul(gl_matrix);
 
   GPUVertFormat *imm_format = immVertexFormat();
-  uint pos = GPU_vertformat_attr_add(imm_format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+  uint pos = GPU_vertformat_attr_add(
+      imm_format, "pos", blender::gpu::VertAttrType::SFLOAT_32_32_32);
   uint texCoord = GPU_vertformat_attr_add(
-      imm_format, "texCoord", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+      imm_format, "texCoord", blender::gpu::VertAttrType::SFLOAT_32_32);
 
   /* Use 3D image for correct display of planar tracked images. */
   immBindBuiltinProgram(GPU_SHADER_3D_IMAGE);
@@ -307,7 +308,8 @@ static void wm_software_cursor_draw_crosshair(const int event_xy[2])
    * NOTE: the `win->cursor` could be used for drawing although it's complicated as some cursors
    * are set by the operating-system, where the pixel information isn't easily available. */
   const float unit = max_ff(UI_SCALE_FAC, 1.0f);
-  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+  uint pos = GPU_vertformat_attr_add(
+      immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   immUniformColor4f(1, 1, 1, 1);

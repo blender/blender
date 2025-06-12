@@ -15,7 +15,6 @@
 
 #include <fmt/format.h>
 
-#include "BLI_endian_switch.h"
 #include "BLI_listbase.h"
 #include "BLI_math_base.h"
 #include "BLI_set.hh"
@@ -1621,18 +1620,12 @@ static void IDP_DirectLinkProperty(IDProperty *prop, BlendDataReader *reader)
       IDP_DirectLinkIDPArray(prop, reader);
       break;
     case IDP_DOUBLE:
-      /* Workaround for doubles.
-       * They are stored in the same field as `int val, val2` in the #IDPropertyData struct,
-       * they have to deal with endianness specifically.
+      /* NOTE: this is endianness-sensitive. */
+      /* Doubles are stored in the same field as `int val, val2` in the #IDPropertyData struct.
        *
-       * In theory, val and val2 would've already been swapped
-       * if switch_endian is true, so we have to first un-swap
-       * them then re-swap them as a single 64-bit entity. */
-      if (BLO_read_requires_endian_switch(reader)) {
-        BLI_endian_switch_int32(&prop->data.val);
-        BLI_endian_switch_int32(&prop->data.val2);
-        BLI_endian_switch_int64((int64_t *)&prop->data.val);
-      }
+       * In case of endianness switching, `val` and `val2` would have already been switched by the
+       * generic reading code, so they would need to be first un-switched individually, and then
+       * re-switched as a single 64-bit entity. */
       break;
     case IDP_INT:
     case IDP_FLOAT:

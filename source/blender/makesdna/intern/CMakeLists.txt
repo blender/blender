@@ -53,7 +53,6 @@ set(BLENLIB_SRC
   ../../blenlib/intern/BLI_linklist.cc
   ../../blenlib/intern/BLI_memarena.cc
   ../../blenlib/intern/BLI_mempool.cc
-  ../../blenlib/intern/endian_switch.cc
   ../../blenlib/intern/listbase.cc
   ../../blenlib/intern/string.cc
 

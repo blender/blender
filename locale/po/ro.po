@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'e91e8eef41aa')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'798f85a7108f')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-03 09:10+0000\n"
+"POT-Creation-Date: 2025-06-11 11:13+0000\n"
 "PO-Revision-Date: 2025-04-14 08:37+0000\n"
 "Last-Translator: Alexandru Buhnici <in@alexm.ro>\n"
 "Language-Team: Romanian <https://translate.blender.org/projects/blender-ui/ui/ro/>\n"
@@ -2088,20 +2088,20 @@ msgid "Sampling"
 msgstr "Eșantionare"
 
 
-msgid "Light"
-msgstr "Lumină"
+msgid "Convert"
+msgstr "Convertire"
 
 
 msgid "Add Image"
 msgstr "Adăugare Imagine"
 
 
+msgid "Light"
+msgstr "Lumină"
+
+
 msgid "Apply"
 msgstr "Aplicare"
-
-
-msgid "Convert"
-msgstr "Convertire"
 
 
 msgid "Marker"
@@ -3803,36 +3803,4 @@ msgstr "Comutați Consola de sistem"
 msgctxt "Operator"
 msgid "Toggle System Console"
 msgstr "Comutați Consola de sistem"
-
-
-msgid "Finnish (Suomi)"
-msgstr "Finlandeză (Suomi)"
-
-
-msgid "Catalan (Català)"
-msgstr "Catalan (Català)"
-
-
-msgid "Polish (Polski)"
-msgstr "Poloneză (Polski)"
-
-
-msgid "Romanian (Român)"
-msgstr "Română"
-
-
-msgid "Bulgarian (Български)"
-msgstr "Bulgară (Български)"
-
-
-msgid "Greek (Ελληνικά)"
-msgstr "Greacă (Ελληνικά)"
-
-
-msgid "Nepali (नेपाली)"
-msgstr "Nepali (नेपाली)"
-
-
-msgid "Complete"
-msgstr "Complet"
 

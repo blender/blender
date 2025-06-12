@@ -1599,7 +1599,7 @@ static void v3d_transform_butsR(uiLayout *layout, PointerRNA *ptr)
 
     boneptr = RNA_pointer_get(ptr, "bone");
     bone = static_cast<Bone *>(boneptr.data);
-    uiLayoutSetActive(split, !(bone->parent && bone->flag & BONE_CONNECTED));
+    split->active_set(!(bone->parent && bone->flag & BONE_CONNECTED));
   }
   colsub = &split->column(true);
   colsub->prop(ptr, "location", UI_ITEM_NONE, std::nullopt, ICON_NONE);

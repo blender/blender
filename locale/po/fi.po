@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'e91e8eef41aa')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'798f85a7108f')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-03 09:10+0000\n"
+"POT-Creation-Date: 2025-06-11 11:13+0000\n"
 "PO-Revision-Date: 2025-04-14 08:20+0000\n"
 "Last-Translator: Leevi Oksanen <laavi.oksanen@gmail.com>\n"
 "Language-Team: Finnish <https://translate.blender.org/projects/blender-ui/ui/fi/>\n"
@@ -7316,6 +7316,10 @@ msgid "Mask"
 msgstr "Maski"
 
 
+msgid "Show/Hide"
+msgstr "Näytä/Piilota"
+
+
 msgid "Text"
 msgstr "Teksti"
 
@@ -7324,60 +7328,56 @@ msgid "Metaball"
 msgstr "Metapallo"
 
 
-msgid "Show/Hide"
-msgstr "Näytä/Piilota"
-
-
 msgid "Names"
 msgstr "Nimet"
-
-
-msgid "UV Mapping"
-msgstr "UV-kartoittaminen"
-
-
-msgid "Select More/Less"
-msgstr "Valitse enemmän/vähemmän"
-
-
-msgid "Select Similar"
-msgstr "Valitse samankaltainen"
-
-
-msgid "Select All by Trait"
-msgstr "Valitse kaikki piirteen mukaan"
-
-
-msgid "Select Loops"
-msgstr "Valitse silmukat"
-
-
-msgid "Light"
-msgstr "Valo"
-
-
-msgid "Light Probe"
-msgstr "Valoluotain"
-
-
-msgid "Add Image"
-msgstr "Lisää kuva"
-
-
-msgid "Track"
-msgstr "Raide"
 
 
 msgid "Hooks"
 msgstr "Koukut"
 
 
-msgid "Random Mask"
-msgstr "Satunnainen maski"
+msgid "Add Image"
+msgstr "Lisää kuva"
+
+
+msgid "Light Probe"
+msgstr "Valoluotain"
+
+
+msgid "Light"
+msgstr "Valo"
 
 
 msgid "Mesh Select Mode"
 msgstr "Muodon valintatila"
+
+
+msgid "Track"
+msgstr "Raide"
+
+
+msgid "Select More/Less"
+msgstr "Valitse enemmän/vähemmän"
+
+
+msgid "Select Loops"
+msgstr "Valitse silmukat"
+
+
+msgid "Select All by Trait"
+msgstr "Valitse kaikki piirteen mukaan"
+
+
+msgid "Select Similar"
+msgstr "Valitse samankaltainen"
+
+
+msgid "UV Mapping"
+msgstr "UV-kartoittaminen"
+
+
+msgid "Random Mask"
+msgstr "Satunnainen maski"
 
 
 msgid "Basic"
@@ -13624,10 +13624,6 @@ msgid "Wheel"
 msgstr "Pöyrä"
 
 
-msgid "Fly/Walk"
-msgstr "Lennä/kävele"
-
-
 msgid "Error (see console)"
 msgstr "Virhe (katso konsoli)"
 
@@ -17816,226 +17812,6 @@ msgstr "mikrofoni"
 
 msgid "network"
 msgstr "verkko"
-
-
-msgid "Japanese (日本語)"
-msgstr "Japani (日本語))"
-
-
-msgid "Dutch (Nederlands)"
-msgstr "Hollanti (Nederlandse taal)"
-
-
-msgid "Italian (Italiano)"
-msgstr "Italia (Italiano)"
-
-
-msgid "German (Deutsch)"
-msgstr "Saksa (Deutsch)"
-
-
-msgid "Finnish (Suomi)"
-msgstr "Suomi (Suomi)"
-
-
-msgid "Swedish (Svenska)"
-msgstr "Ruotsi (Svenska)"
-
-
-msgid "French (Français)"
-msgstr "Ranska (Français)"
-
-
-msgid "Spanish (Español)"
-msgstr "Espanja (Español)"
-
-
-msgid "Catalan (Català)"
-msgstr "Katalaani (Català)"
-
-
-msgid "Czech (Čeština)"
-msgstr "Tsekki (Čeština)"
-
-
-msgid "Portuguese (Português)"
-msgstr "Portugalia (Português)"
-
-
-msgid "Simplified Chinese (简体中文)"
-msgstr "Yksinkertaistu kiina (简体中文)"
-
-
-msgid "Traditional Chinese (繁體中文)"
-msgstr "Perinteinen kiina (繁體中文)"
-
-
-msgid "Russian (Русский)"
-msgstr "Venäjä (Русский)"
-
-
-msgid "Croatian (Hrvatski)"
-msgstr "Kroatia (Hrvatski)"
-
-
-msgid "Serbian (Српски)"
-msgstr "Serbia (Српски)"
-
-
-msgid "Ukrainian (Українська)"
-msgstr "Ukraina (Українська)"
-
-
-msgid "Polish (Polski)"
-msgstr "Puola (Polski)"
-
-
-msgid "Romanian (Român)"
-msgstr "Romania (Român)"
-
-
-msgid "Arabic (ﺔﻴﺑﺮﻌﻟﺍ)"
-msgstr "Arabia (ﺔﻴﺑﺮﻌﻟﺍ)"
-
-
-msgid "Bulgarian (Български)"
-msgstr "Bulgaria (Български)"
-
-
-msgid "Greek (Ελληνικά)"
-msgstr "Kreikka (Ελληνικά)"
-
-
-msgid "Korean (한국어)"
-msgstr "Korea (한국어)"
-
-
-msgid "Nepali (नेपाली)"
-msgstr "Nepali (नेपाली)"
-
-
-msgid "Persian (ﯽﺳﺭﺎﻓ)"
-msgstr "Persia (ﯽﺳﺭﺎﻓ)"
-
-
-msgid "Indonesian (Bahasa indonesia)"
-msgstr "Indonesia (Bahasa indonesia)"
-
-
-msgid "Serbian Latin (Srpski latinica)"
-msgstr "Serbian latina (Srpski latinica)"
-
-
-msgid "Kyrgyz (Кыргыз тили)"
-msgstr "Kirgiisi (Кыргыз тили)"
-
-
-msgid "Turkish (Türkçe)"
-msgstr "Turkki (Türkçe)"
-
-
-msgid "Hungarian (Magyar)"
-msgstr "Unkari (Magyar)"
-
-
-msgid "Brazilian Portuguese (Português do Brasil)"
-msgstr "Brasilian portugali (Português do Brasil)"
-
-
-msgid "Hebrew (תירִבְעִ)"
-msgstr "Heprea (תירִבְעִ)"
-
-
-msgid "Estonian (Eesti keel)"
-msgstr "Viro (Eestlane)"
-
-
-msgid "Esperanto (Esperanto)"
-msgstr "Esperanto (Esperanto)"
-
-
-msgid "Amharic (አማርኛ)"
-msgstr "Amhara (አማርኛ)"
-
-
-msgid "Uzbek (Oʻzbek)"
-msgstr "Uzbekki (Oʻzbek)"
-
-
-msgid "Uzbek Cyrillic (Ўзбек)"
-msgstr "Kyriilinen uzbekki (Ўзбек)"
-
-
-msgid "Hindi (हिन्दी)"
-msgstr "Hindi (मानक हिन्दी)"
-
-
-msgid "Vietnamese (Tiếng Việt)"
-msgstr "Vietnam (tiếng Việt)"
-
-
-msgid "Basque (Euskara)"
-msgstr "Baski (Euskara)"
-
-
-msgid "Hausa (Hausa)"
-msgstr "Hausa (Hausa)"
-
-
-msgid "Kazakh (Қазақша)"
-msgstr "Kazakki (қазақша)"
-
-
-msgid "Abkhaz (Аԥсуа бызшәа)"
-msgstr "Abhaasi (Аԥсуа бызшәа)"
-
-
-msgid "Thai (ภาษาไทย)"
-msgstr "Thai (ภาษาไทย)"
-
-
-msgid "Slovak (Slovenčina)"
-msgstr "Slovakki (Slovenčina)"
-
-
-msgid "Georgian (ქართული)"
-msgstr "Georgia (ქართული)"
-
-
-msgid "Tamil (தமிழ்)"
-msgstr "Tamili (தமிழ்)"
-
-
-msgid "Khmer (ខ្មែរ)"
-msgstr "Khmer (ខ្មែរ)"
-
-
-msgid "Swahili (Kiswahili)"
-msgstr "Swahili (Kiswahili)"
-
-
-msgid "Belarusian (беларуску)"
-msgstr "Valkovenäjä (беларуску)"
-
-
-msgid "Danish (Dansk)"
-msgstr "Tanska (Dansk)"
-
-
-msgid "Slovenian (Slovenščina)"
-msgstr "Slovakki (Slovenčina)"
-
-
-msgid "Urdu (وُدرُا)"
-msgstr "Urdu (وُدرُا)"
-
-
-msgid "Complete"
-msgstr "Valmis"
-
-
-msgid "In Progress"
-msgstr "Käynnissä"
 
 
 msgid "Add & Subtract"

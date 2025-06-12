@@ -4,6 +4,9 @@
 
 #pragma once
 
+#include "BLI_math_vector_types.hh"
+#include "BLI_span.hh"
+
 /** \file
  * \ingroup bli
  */
@@ -20,7 +23,7 @@
  *
  * \note Performance is `O(points_num.log(points_num))`, same as `qsort`.
  */
-int BLI_convexhull_2d(const float (*points)[2], int points_num, int r_points[/*points_num*/]);
+int BLI_convexhull_2d(blender::Span<blender::float2> points, int r_points[/*points_num*/]);
 
 /**
  * \return The best angle for fitting the points to an axis aligned bounding box.
@@ -29,4 +32,4 @@ int BLI_convexhull_2d(const float (*points)[2], int points_num, int r_points[/*p
  *
  * \param points: Arbitrary 2D points.
  */
-float BLI_convexhull_aabb_fit_points_2d(const float (*points)[2], int points_num);
+float BLI_convexhull_aabb_fit_points_2d(blender::Span<blender::float2> points);

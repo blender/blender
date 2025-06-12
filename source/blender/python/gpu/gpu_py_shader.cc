@@ -718,10 +718,10 @@ static PyObject *pygpu_shader_format_calc(BPyGPUShader *self, PyObject * /*arg*/
 
     /* WORKAROUND: Special case for POLYLINE shader. */
     if (GPU_shader_get_ssbo_binding(self->shader, "pos") >= 0) {
-      GPU_vertformat_attr_add(&ret->fmt, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+      GPU_vertformat_attr_add(&ret->fmt, "pos", blender::gpu::VertAttrType::SFLOAT_32_32_32);
     }
     if (GPU_shader_get_ssbo_binding(self->shader, "color") >= 0) {
-      GPU_vertformat_attr_add(&ret->fmt, "color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
+      GPU_vertformat_attr_add(&ret->fmt, "color", blender::gpu::VertAttrType::SFLOAT_32_32_32_32);
     }
   }
   else {

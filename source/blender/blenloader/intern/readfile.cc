@@ -623,12 +623,11 @@ struct BlendLibReader {
 static BHeadN *get_bhead(FileData *fd)
 {
   BHeadN *new_bhead = nullptr;
-  const bool do_endian_swap = fd->flags & FD_FLAGS_SWITCH_ENDIAN;
 
   if (fd) {
     if (!fd->is_eof) {
-      std::optional<BHead> bhead_opt = BLO_readfile_read_bhead(
-          fd->file, fd->blender_header.bhead_type(), do_endian_swap);
+      std::optional<BHead> bhead_opt = BLO_readfile_read_bhead(fd->file,
+                                                               fd->blender_header.bhead_type());
       BHead *bhead = nullptr;
       if (!bhead_opt.has_value()) {
         fd->is_eof = true;
@@ -884,10 +883,9 @@ static bool read_file_dna(FileData *fd, const char **r_error_message)
       subversion = atoi(num);
     }
     else if (bhead->code == BLO_CODE_DNA1) {
-      const bool do_endian_swap = (fd->flags & FD_FLAGS_SWITCH_ENDIAN) != 0;
+      BLI_assert((fd->flags & FD_FLAGS_SWITCH_ENDIAN) == 0);
       const bool do_alias = false; /* Postpone until after #blo_do_versions_dna runs. */
-      fd->filesdna = DNA_sdna_from_data(
-          &bhead[1], bhead->len, do_endian_swap, true, do_alias, r_error_message);
+      fd->filesdna = DNA_sdna_from_data(&bhead[1], bhead->len, true, do_alias, r_error_message);
       if (fd->filesdna) {
         blo_do_versions_dna(fd->filesdna, fd->fileversion, subversion);
         /* Allow aliased lookups (must be after version patching DNA). */
@@ -1200,7 +1198,18 @@ static FileData *blo_decode_and_check(FileData *fd, ReportList *reports)
 {
   read_blender_header(fd);
 
-  if (fd->flags & FD_FLAGS_FILE_OK) {
+  if (fd->flags & FD_FLAGS_SWITCH_ENDIAN) {
+    BLI_STATIC_ASSERT(ENDIAN_ORDER == L_ENDIAN, "Blender only builds on little endian systems")
+    BKE_reportf(reports,
+                RPT_ERROR,
+                "Blend file '%s' created by a Big Endian version of Blender, support for "
+                "these files has been removed in Blender 5.0, use an older version of Blender "
+                "to open and convert it.",
+                fd->relabase);
+    blo_filedata_free(fd);
+    fd = nullptr;
+  }
+  else if (fd->flags & FD_FLAGS_FILE_OK) {
     const char *error_message = nullptr;
     if (read_file_dna(fd, &error_message) == false) {
       BKE_reportf(
@@ -1211,22 +1220,6 @@ static FileData *blo_decode_and_check(FileData *fd, ReportList *reports)
     else if (is_minversion_older_than_blender(fd, reports)) {
       blo_filedata_free(fd);
       fd = nullptr;
-    }
-    else if (fd->flags & FD_FLAGS_SWITCH_ENDIAN) {
-      if (ENDIAN_ORDER == L_ENDIAN) {
-        if (!BKE_reports_print_test(reports, RPT_WARNING)) {
-          CLOG_WARN(
-              &LOG,
-              "Blend file '%s' created by a Big Endian version of Blender, support for these "
-              "files will be removed in Blender 5.0",
-              fd->relabase);
-        }
-        BKE_reportf(reports,
-                    RPT_WARNING,
-                    "Blend file '%s' created by a Big Endian version of Blender, support for "
-                    "these files will be removed in Blender 5.0",
-                    fd->relabase);
-      }
     }
   }
   else if (fd->flags & FD_FLAGS_FILE_FUTURE) {
@@ -1784,23 +1777,6 @@ void blo_cache_storage_end(FileData *fd)
 /** \name DNA Struct Loading
  * \{ */
 
-static void switch_endian_structs(const SDNA *filesdna, BHead *bhead)
-{
-  int blocksize, nblocks;
-  char *data;
-
-  data = (char *)(bhead + 1);
-
-  blocksize = DNA_struct_size(filesdna, bhead->SDNAnr);
-
-  nblocks = bhead->nr;
-  while (nblocks--) {
-    DNA_struct_switch_endian(filesdna, bhead->SDNAnr, data);
-
-    data += blocksize;
-  }
-}
-
 /**
  * Generate the final allocation string reference for read blocks of data. If \a blockname is
  * given, use it as 'owner block' info, otherwise use the id type index to get that info.
@@ -1897,6 +1873,7 @@ static void *read_struct(FileData *fd, BHead *bh, const char *blockname, const i
      *
      * NOTE: raw data (aka #SDNA_RAW_DATA_STRUCT_INDEX #SDNAnr) is not handled here, it's up to
      * the calling code to manage this. */
+    BLI_assert((fd->flags & FD_FLAGS_SWITCH_ENDIAN) == 0);
     BLI_STATIC_ASSERT(SDNA_RAW_DATA_STRUCT_INDEX == 0, "'raw data' SDNA struct index should be 0")
     if (bh->SDNAnr > SDNA_RAW_DATA_STRUCT_INDEX && (fd->flags & FD_FLAGS_SWITCH_ENDIAN)) {
 #ifdef USE_BHEAD_READ_ON_DEMAND
@@ -1908,7 +1885,6 @@ static void *read_struct(FileData *fd, BHead *bh, const char *blockname, const i
         }
       }
 #endif
-      switch_endian_structs(fd->filesdna, bh);
     }
 
     if (fd->compflags[bh->SDNAnr] != SDNA_CMP_REMOVED) {
@@ -2112,6 +2088,15 @@ static void direct_link_id_embedded_id(BlendDataReader *reader,
                                        ID *id_old)
 {
   /* Handle 'private IDs'. */
+  if (GS(id->name) == ID_SCE) {
+    Scene *scene = (Scene *)id;
+    if (scene->compositing_node_group) {
+      /* If `scene->compositing_node_group != nullptr`, then this means the blend file was created
+       * by a version that wrote the compositing_node_group as its own ID datablock. Since
+       * `scene->nodetree` was written for forward compatibility reasons only, we can ignore it. */
+      scene->nodetree = nullptr;
+    }
+  }
   bNodeTree **nodetree = blender::bke::node_tree_ptr_from_id(id);
   if (nodetree != nullptr && *nodetree != nullptr) {
     BLO_read_struct(reader, bNodeTree, nodetree);
@@ -4755,6 +4740,8 @@ static void library_link_end(Main *mainl, FileData **fd, const int flag, ReportL
   /* FIXME This is extremely bad design, #library_link_end should probably _always_ free the file
    * data? */
   if ((*fd)->flags & FD_FLAGS_SWITCH_ENDIAN) {
+    /* Big Endian blendfiles are not supported for linking. */
+    BLI_assert_unreachable();
     blo_filedata_free(*fd);
     *fd = nullptr;
   }
@@ -5220,11 +5207,6 @@ int BLO_read_fileversion_get(BlendDataReader *reader)
   return reader->fd->fileversion;
 }
 
-bool BLO_read_requires_endian_switch(BlendDataReader *reader)
-{
-  return (reader->fd->flags & FD_FLAGS_SWITCH_ENDIAN) != 0;
-}
-
 void BLO_read_struct_list_with_size(BlendDataReader *reader,
                                     const size_t expected_elem_size,
                                     ListBase *list)
@@ -5268,40 +5250,28 @@ void BLO_read_int16_array(BlendDataReader *reader, const int64_t array_size, int
 {
   *ptr_p = reinterpret_cast<int16_t *>(
       BLO_read_struct_array_with_size(reader, *((void **)ptr_p), sizeof(int16_t) * array_size));
-
-  if (*ptr_p && BLO_read_requires_endian_switch(reader)) {
-    BLI_endian_switch_int16_array(*ptr_p, array_size);
-  }
+  BLI_assert((reader->fd->flags & FD_FLAGS_SWITCH_ENDIAN) == 0);
 }
 
 void BLO_read_int32_array(BlendDataReader *reader, const int64_t array_size, int32_t **ptr_p)
 {
   *ptr_p = reinterpret_cast<int32_t *>(
       BLO_read_struct_array_with_size(reader, *((void **)ptr_p), sizeof(int32_t) * array_size));
-
-  if (*ptr_p && BLO_read_requires_endian_switch(reader)) {
-    BLI_endian_switch_int32_array(*ptr_p, array_size);
-  }
+  BLI_assert((reader->fd->flags & FD_FLAGS_SWITCH_ENDIAN) == 0);
 }
 
 void BLO_read_uint32_array(BlendDataReader *reader, const int64_t array_size, uint32_t **ptr_p)
 {
   *ptr_p = reinterpret_cast<uint32_t *>(
       BLO_read_struct_array_with_size(reader, *((void **)ptr_p), sizeof(uint32_t) * array_size));
-
-  if (*ptr_p && BLO_read_requires_endian_switch(reader)) {
-    BLI_endian_switch_uint32_array(*ptr_p, array_size);
-  }
+  BLI_assert((reader->fd->flags & FD_FLAGS_SWITCH_ENDIAN) == 0);
 }
 
 void BLO_read_float_array(BlendDataReader *reader, const int64_t array_size, float **ptr_p)
 {
   *ptr_p = reinterpret_cast<float *>(
       BLO_read_struct_array_with_size(reader, *((void **)ptr_p), sizeof(float) * array_size));
-
-  if (*ptr_p && BLO_read_requires_endian_switch(reader)) {
-    BLI_endian_switch_float_array(*ptr_p, array_size);
-  }
+  BLI_assert((reader->fd->flags & FD_FLAGS_SWITCH_ENDIAN) == 0);
 }
 
 void BLO_read_float3_array(BlendDataReader *reader, const int64_t array_size, float **ptr_p)
@@ -5313,10 +5283,7 @@ void BLO_read_double_array(BlendDataReader *reader, const int64_t array_size, do
 {
   *ptr_p = reinterpret_cast<double *>(
       BLO_read_struct_array_with_size(reader, *((void **)ptr_p), sizeof(double) * array_size));
-
-  if (*ptr_p && BLO_read_requires_endian_switch(reader)) {
-    BLI_endian_switch_double_array(*ptr_p, array_size);
-  }
+  BLI_assert((reader->fd->flags & FD_FLAGS_SWITCH_ENDIAN) == 0);
 }
 
 void BLO_read_string(BlendDataReader *reader, char **ptr_p)
@@ -5353,9 +5320,9 @@ static void convert_pointer_array_64_to_32(BlendDataReader *reader,
                                            const uint64_t *src,
                                            uint32_t *dst)
 {
-  const bool use_endian_swap = BLO_read_requires_endian_switch(reader);
+  BLI_assert((reader->fd->flags & FD_FLAGS_SWITCH_ENDIAN) == 0);
   for (int i = 0; i < array_size; i++) {
-    dst[i] = uint32_from_uint64_ptr(src[i], use_endian_swap);
+    dst[i] = uint32_from_uint64_ptr(src[i]);
   }
 }
 

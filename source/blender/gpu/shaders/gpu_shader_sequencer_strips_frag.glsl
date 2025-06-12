@@ -68,10 +68,10 @@ void main()
   if ((strip.flags & GPU_SEQ_FLAG_ANY_HANDLE) != 0) {
     float handle_width = strip.handle_width;
     /* Take left/right handle from horizontal sides. */
-    if ((strip.flags & GPU_SEQ_FLAG_DRAW_LH) != 0) {
+    if ((strip.flags & GPU_SEQ_FLAG_SELECTED_LH) != 0) {
       pos1.x += handle_width;
     }
-    if ((strip.flags & GPU_SEQ_FLAG_DRAW_RH) != 0) {
+    if ((strip.flags & GPU_SEQ_FLAG_SELECTED_RH) != 0) {
       pos2.x -= handle_width;
     }
     /* Reduce vertical size by outline width. */

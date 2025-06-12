@@ -143,7 +143,7 @@ static void graph_panel_cursor(const bContext *C, Panel *panel)
 
   /* 2D-Cursor */
   col = &layout->column(false);
-  uiLayoutSetActive(col, RNA_boolean_get(&spaceptr, "show_cursor"));
+  col->active_set(RNA_boolean_get(&spaceptr, "show_cursor"));
 
   sub = &col->column(true);
   if (sipo->mode == SIPO_MODE_DRIVERS) {

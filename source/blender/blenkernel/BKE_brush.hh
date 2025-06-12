@@ -105,9 +105,6 @@ void BKE_brush_curve_preset(Brush *b, eCurveMappingPreset preset);
 
 /**
  * Combine the brush strength based on the distances and brush settings with the existing factors.
- *
- * \note Unlike BKE_brush_curve_strength, if a given distance is greater the brush radius, it does
- * not result in a factor of 0 for the corresponding element.
  */
 void BKE_brush_calc_curve_factors(eBrushCurvePreset preset,
                                   const CurveMapping *cumap,

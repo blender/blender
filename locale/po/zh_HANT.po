@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'e91e8eef41aa')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'798f85a7108f')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-03 09:10+0000\n"
+"POT-Creation-Date: 2025-06-11 11:13+0000\n"
 "PO-Revision-Date: 2025-04-14 08:48+0000\n"
 "Last-Translator: luxem <luxem168@gmail.com>\n"
 "Language-Team: Chinese (Traditional Han script) <https://translate.blender.org/projects/blender-ui/ui/zh_Hant/>\n"
@@ -22575,6 +22575,14 @@ msgid "Material slot name"
 msgstr "材質槽名稱"
 
 
+msgid "Show/Hide"
+msgstr "顯示/隱藏"
+
+
+msgid "Clean Up"
+msgstr "清理"
+
+
 msgid "Special Characters"
 msgstr "特殊字元"
 
@@ -22591,20 +22599,12 @@ msgid "Metaball"
 msgstr "變幻球"
 
 
-msgid "Show/Hide"
-msgstr "顯示/隱藏"
-
-
 msgid "Names"
 msgstr "名稱"
 
 
 msgid "Bone Roll"
 msgstr "骨骼滾動"
-
-
-msgid "Clean Up"
-msgstr "清理"
 
 
 msgid "Pivot Point"
@@ -22627,144 +22627,144 @@ msgid "Face Sets Edit"
 msgstr "面集編輯"
 
 
-msgid "Mirror"
-msgstr "鏡像"
-
-
-msgid "UV Mapping"
-msgstr "UV 映射處理"
-
-
-msgid "Local View"
-msgstr "區域檢視"
-
-
-msgid "Viewpoint"
-msgstr "視點"
-
-
-msgid "Navigation"
-msgstr "導覽"
-
-
-msgid "Align View"
-msgstr "對齊檢視"
-
-
-msgid "Align View to Active"
-msgstr "對齊檢視至作用項"
-
-
-msgid "View Regions"
-msgstr "檢視範圍"
-
-
-msgid "Select More/Less"
-msgstr "選取更多/更少"
-
-
-msgid "Select Similar"
-msgstr "選取相似者"
-
-
-msgid "Select Linked"
-msgstr "選取連結項"
-
-
-msgid "Light"
-msgstr "燈光"
-
-
-msgid "Light Probe"
-msgstr "燈光採樣器"
-
-
-msgid "Relations"
-msgstr "關係"
-
-
-msgid "Rigid Body"
-msgstr "剛體"
-
-
-msgid "Apply"
-msgstr "套用"
-
-
-msgid "Track"
-msgstr "追蹤"
-
-
-msgid "Quick Effects"
-msgstr "快速效果"
-
-
-msgid "Asset"
-msgstr "素材"
-
-
-msgid "Make Single User"
-msgstr "製作單一使用者"
-
-
-msgid "Convert"
-msgstr "轉換"
+msgid "Hooks"
+msgstr "鉤"
 
 
 msgid "Link/Transfer Data"
 msgstr "連結/傳輸資料"
 
 
-msgid "Hooks"
-msgstr "鉤"
+msgid "Convert"
+msgstr "轉換"
 
 
-msgid "Sculpt Set Pivot"
-msgstr "設定樞紐點"
+msgid "Relations"
+msgstr "關係"
 
 
-msgid "Random Mask"
-msgstr "隨機遮罩"
+msgid "Merge"
+msgstr "合併"
 
 
-msgid "Clear Transform"
-msgstr "清除變換"
-
-
-msgid "In-Betweens"
-msgstr "內部之間"
-
-
-msgid "Propagate"
-msgstr "增生"
-
-
-msgid "Bone Collections"
-msgstr "骨骼集盒"
-
-
-msgid "Toggle Bone Options"
-msgstr "開關骨骼選項"
-
-
-msgid "Enable Bone Options"
-msgstr "啟用骨骼設定"
-
-
-msgid "Disable Bone Options"
-msgstr "停用骨骼設定"
-
-
-msgid "Mesh Select Mode"
-msgstr "網格選取模式"
+msgid "Light Probe"
+msgstr "燈光採樣器"
 
 
 msgid "Face Data"
 msgstr "面資料"
 
 
-msgid "Merge"
-msgstr "合併"
+msgid "Light"
+msgstr "燈光"
+
+
+msgid "Make Single User"
+msgstr "製作單一使用者"
+
+
+msgid "Asset"
+msgstr "素材"
+
+
+msgid "Mesh Select Mode"
+msgstr "網格選取模式"
+
+
+msgid "Quick Effects"
+msgstr "快速效果"
+
+
+msgid "Disable Bone Options"
+msgstr "停用骨骼設定"
+
+
+msgid "Enable Bone Options"
+msgstr "啟用骨骼設定"
+
+
+msgid "Track"
+msgstr "追蹤"
+
+
+msgid "Toggle Bone Options"
+msgstr "開關骨骼選項"
+
+
+msgid "Apply"
+msgstr "套用"
+
+
+msgid "Rigid Body"
+msgstr "剛體"
+
+
+msgid "Propagate"
+msgstr "增生"
+
+
+msgid "Local View"
+msgstr "區域檢視"
+
+
+msgid "Select More/Less"
+msgstr "選取更多/更少"
+
+
+msgid "Bone Collections"
+msgstr "骨骼集盒"
+
+
+msgid "In-Betweens"
+msgstr "內部之間"
+
+
+msgid "Clear Transform"
+msgstr "清除變換"
+
+
+msgid "Select Linked"
+msgstr "選取連結項"
+
+
+msgid "Select Similar"
+msgstr "選取相似者"
+
+
+msgid "View Regions"
+msgstr "檢視範圍"
+
+
+msgid "Align View to Active"
+msgstr "對齊檢視至作用項"
+
+
+msgid "Align View"
+msgstr "對齊檢視"
+
+
+msgid "Navigation"
+msgstr "導覽"
+
+
+msgid "Viewpoint"
+msgstr "視點"
+
+
+msgid "UV Mapping"
+msgstr "UV 映射處理"
+
+
+msgid "Mirror"
+msgstr "鏡像"
+
+
+msgid "Random Mask"
+msgstr "隨機遮罩"
+
+
+msgid "Sculpt Set Pivot"
+msgstr "設定樞紐點"
 
 
 msgid "Basic"
@@ -38579,10 +38579,6 @@ msgid "Dissolve Vertices"
 msgstr "消融頂點"
 
 
-msgid "Dissolve remaining vertices"
-msgstr "消融剩餘頂點"
-
-
 msgctxt "Operator"
 msgid "Dissolve Faces"
 msgstr "消融面"
@@ -52171,24 +52167,12 @@ msgid "Helicopter Mode"
 msgstr "直升機模式"
 
 
-msgid "Lock Horizon"
-msgstr "鎖定水平"
-
-
-msgid "Keep horizon level while flying with 3D Mouse"
-msgstr "當 3D 滑鼠飛移時保持水平高度"
-
-
 msgid "Orbit Sensitivity"
 msgstr "繞軌敏感度"
 
 
 msgid "Overall sensitivity of the 3D Mouse for orbiting"
 msgstr "3D 滑鼠繞軌的整體敏感度"
-
-
-msgid "Y/Z Swap Axis"
-msgstr "Y/Z 交換軸"
 
 
 msgid "Invert X Axis"
@@ -52209,34 +52193,6 @@ msgstr "3D 滑鼠搖鏡的整體敏感度"
 
 msgid "Display the center and axis during rotation"
 msgstr "在旋轉過程中顯示中心和座標軸"
-
-
-msgid "NDOF View Rotation"
-msgstr "NDOF 檢視旋轉"
-
-
-msgid "Rotation style in the viewport"
-msgstr "視圖區中的旋轉風格"
-
-
-msgid "Turntable"
-msgstr "可旋轉"
-
-
-msgid "Use turntable style rotation in the viewport"
-msgstr "視圖區使用可旋轉風格來旋轉"
-
-
-msgid "Use trackball style rotation in the viewport"
-msgstr "視圖區使用軌跡球風格來旋轉"
-
-
-msgid "Invert Zoom"
-msgstr "反向調焦"
-
-
-msgid "Zoom using opposite direction"
-msgstr "使用相反方向來調整遠近焦距"
 
 
 msgid "Softness"
@@ -52305,6 +52261,10 @@ msgstr "在 3D 檢視中朝滑鼠指標位置遠近調焦，而不是 2D 視窗�
 
 msgid "Orbit Method"
 msgstr "繞軌方式"
+
+
+msgid "Turntable"
+msgstr "可旋轉"
 
 
 msgid "Zoom Axis"
@@ -52561,14 +52521,6 @@ msgstr "GLSL"
 
 msgid "Ambient Color"
 msgstr "周遭色彩"
-
-
-msgid "Max Shader Compilation Subprocesses"
-msgstr "最大著色器編譯子處理程序數"
-
-
-msgid "Max number of parallel shader compilation subprocesses, clamped at the max threads supported by the CPU (requires restarting Blender for changes to take effect). Setting it to 0 disables subprocess shader compilation."
-msgstr "平行著色器編譯子處理程序數量的最大值。受限於 CPU 所支援的最大執行緒數量。需要重新啟動 Blender 變更才會生效。設為 0 會停用利用子處理程序的著色器編譯。"
 
 
 msgid "Memory Cache Limit"
@@ -65026,8 +64978,8 @@ msgid "Invert Wheel Zoom Direction"
 msgstr "反轉滾輪遠近調焦方向"
 
 
-msgid "Fly/Walk"
-msgstr "飛行/步行"
+msgid "Lock Horizon"
+msgstr "鎖定水平"
 
 
 msgid "Error (see console)"
@@ -70020,10 +69972,6 @@ msgid "Dependency Loop"
 msgstr "依賴迴圈"
 
 
-msgid "Can't duplicate the master collection"
-msgstr "無法建立主集盒複本"
-
-
 msgid "Reorder"
 msgstr "重新排序"
 
@@ -73181,182 +73129,6 @@ msgstr "燈光"
 
 msgid "network"
 msgstr "網路"
-
-
-msgid "Japanese (日本語)"
-msgstr "日文 (日本語)"
-
-
-msgid "Italian (Italiano)"
-msgstr "義大利文 (Italiano)"
-
-
-msgid "German (Deutsch)"
-msgstr "德文 (Deutsch)"
-
-
-msgid "Finnish (Suomi)"
-msgstr "芬蘭文 (Suomi)"
-
-
-msgid "Swedish (Svenska)"
-msgstr "瑞典文 (Svenska)"
-
-
-msgid "French (Français)"
-msgstr "法文 (Française)"
-
-
-msgid "Spanish (Español)"
-msgstr "西班牙文 (Español)"
-
-
-msgid "Catalan (Català)"
-msgstr "加泰羅尼亞文 (Català)"
-
-
-msgid "Czech (Čeština)"
-msgstr "捷克語 (Čeština)"
-
-
-msgid "Portuguese (Português)"
-msgstr "葡萄牙文 (Português)"
-
-
-msgid "Simplified Chinese (简体中文)"
-msgstr "簡體中文 (简体中文)"
-
-
-msgid "Traditional Chinese (繁體中文)"
-msgstr "正體中文 (繁體中文)"
-
-
-msgid "Russian (Русский)"
-msgstr "俄文 (Русский)"
-
-
-msgid "Croatian (Hrvatski)"
-msgstr "克羅地亞文 (Hrvatski)"
-
-
-msgid "Serbian (Српски)"
-msgstr "塞爾維亞文 (Српски)"
-
-
-msgid "Polish (Polski)"
-msgstr "波蘭文 (Polski)"
-
-
-msgid "Romanian (Român)"
-msgstr "羅馬尼亞文 (Român)"
-
-
-msgid "Arabic (ﺔﻴﺑﺮﻌﻟﺍ)"
-msgstr "阿拉伯文 (ﺔﻴﺑﺮﻌﻟﺍ)"
-
-
-msgid "Bulgarian (Български)"
-msgstr "保加利亞文 (Български)"
-
-
-msgid "Greek (Ελληνικά)"
-msgstr "希臘文 (Ελληνικά)"
-
-
-msgid "Nepali (नेपाली)"
-msgstr "尼泊爾文 (नेपाली)"
-
-
-msgid "Persian (ﯽﺳﺭﺎﻓ)"
-msgstr "波斯文 (ﺱﺭﺎﻓ)"
-
-
-msgid "Indonesian (Bahasa indonesia)"
-msgstr "印度尼西亞文 (Bahasa indonesia)"
-
-
-msgid "Serbian Latin (Srpski latinica)"
-msgstr "塞爾維亞文拉丁字 (Srpski latinica)"
-
-
-msgid "Kyrgyz (Кыргыз тили)"
-msgstr "柯爾克孜文 (Кыргыз тили)"
-
-
-msgid "Turkish (Türkçe)"
-msgstr "土耳其文 (Türkçe)"
-
-
-msgid "Hungarian (Magyar)"
-msgstr "匈牙利文 (Magyar)"
-
-
-msgid "Brazilian Portuguese (Português do Brasil)"
-msgstr "巴西葡萄牙文 (Português do Brasil)"
-
-
-msgid "Hebrew (תירִבְעִ)"
-msgstr "希伯來文 (תירִבְעִ)"
-
-
-msgid "Esperanto (Esperanto)"
-msgstr "世界文 (Esperanto)"
-
-
-msgid "Amharic (አማርኛ)"
-msgstr "阿姆哈拉文 (አማርኛ)"
-
-
-msgid "Uzbek (Oʻzbek)"
-msgstr "烏茲別克文 (Oʻzbek)"
-
-
-msgid "Uzbek Cyrillic (Ўзбек)"
-msgstr "烏茲別克文西里爾字 (Ўзбек)"
-
-
-msgid "Basque (Euskara)"
-msgstr "巴斯克文 (Euskara)"
-
-
-msgid "Hausa (Hausa)"
-msgstr "豪薩文 (Hausa)"
-
-
-msgid "Abkhaz (Аԥсуа бызшәа)"
-msgstr "阿布哈茲語 (Аԥсуа бызшәа)"
-
-
-msgid "Thai (ภาษาไทย)"
-msgstr "泰文 (ภาษาไทย)"
-
-
-msgid "Slovak (Slovenčina)"
-msgstr "斯洛伐克文 (Slovenčina)"
-
-
-msgid "Georgian (ქართული)"
-msgstr "喬治亞語 (ქართული)"
-
-
-msgid "Tamil (தமிழ்)"
-msgstr "坦米爾語 (தமிழ்)"
-
-
-msgid "Khmer (ខ្មែរ)"
-msgstr "高棉語 (ខ្មែរ)"
-
-
-msgid "Swahili (Kiswahili)"
-msgstr "斯瓦希里語 (Kiswahili)"
-
-
-msgid "Complete"
-msgstr "完成"
-
-
-msgid "In Progress"
-msgstr "處理中"
 
 
 msgid "Generation"

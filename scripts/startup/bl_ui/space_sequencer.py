@@ -189,7 +189,8 @@ class SEQUENCER_HT_header(Header):
         row.prop(tool_settings, "use_snap_sequencer", text="")
         sub = row.row(align=True)
         sub.popover(panel="SEQUENCER_PT_snapping")
-        layout.popover(panel="SEQUENCER_PT_playhead_snapping")
+        if st.view_type in {'SEQUENCER', 'SEQUENCER_PREVIEW'}:
+            layout.popover(panel="SEQUENCER_PT_playhead_snapping")
         layout.separator_spacer()
 
         if st.view_type in {'PREVIEW', 'SEQUENCER_PREVIEW'}:

@@ -200,7 +200,7 @@ static void ui_alembic_export_settings(const bContext *C, uiLayout *layout, Poin
     col->prop(ptr, "uvs", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
     uiLayout *row = &col->row(false);
-    uiLayoutSetActive(row, RNA_boolean_get(ptr, "uvs"));
+    row->active_set(RNA_boolean_get(ptr, "uvs"));
     row->prop(ptr, "packuv", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
     col->prop(ptr, "normals", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -218,7 +218,7 @@ static void ui_alembic_export_settings(const bContext *C, uiLayout *layout, Poin
     col = &panel->column(false);
     col->prop(ptr, "triangulate", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     sub = &col->column(false);
-    uiLayoutSetActive(sub, RNA_boolean_get(ptr, "triangulate"));
+    sub->active_set(RNA_boolean_get(ptr, "triangulate"));
     sub->prop(ptr, "quad_method", UI_ITEM_NONE, IFACE_("Method Quads"), ICON_NONE);
     sub->prop(ptr, "ngon_method", UI_ITEM_NONE, IFACE_("Polygons"), ICON_NONE);
   }

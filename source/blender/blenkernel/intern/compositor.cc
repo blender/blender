@@ -148,7 +148,8 @@ Set<std::string> get_used_passes(const Scene &scene, const ViewLayer *view_layer
 {
   Set<std::string> used_passes;
   Set<const bNodeTree *> node_trees_already_searched;
-  add_used_passes_recursive(scene.nodetree, view_layer, node_trees_already_searched, used_passes);
+  add_used_passes_recursive(
+      scene.compositing_node_group, view_layer, node_trees_already_searched, used_passes);
   return used_passes;
 }
 

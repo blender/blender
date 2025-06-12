@@ -740,13 +740,10 @@ cache_end:
         union {
           uint32_t as_u32;
           struct {
-#ifdef __BIG_ENDIAN__
-            uint16_t ob;
-            uint16_t bone;
-#else
+            /* NOTE: this is endianness-sensitive.
+             * In Big Endian the order of these two variable would have to be inverted. */
             uint16_t bone;
             uint16_t ob;
-#endif
           };
         } offset, test, best;
       } cycle_order;

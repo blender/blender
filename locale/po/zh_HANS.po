@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'e91e8eef41aa')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'798f85a7108f')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-03 09:10+0000\n"
-"PO-Revision-Date: 2025-05-30 23:38+0000\n"
+"POT-Creation-Date: 2025-06-11 11:13+0000\n"
+"PO-Revision-Date: 2025-06-09 05:07+0000\n"
 "Last-Translator: Ye Gui <ziweidao@foxmail.com>\n"
 "Language-Team: Chinese (Simplified Han script) <https://translate.blender.org/projects/blender-ui/ui/zh_Hans/>\n"
 "Language: zh_HANS\n"
@@ -23572,6 +23572,10 @@ msgid "Diffuse reflection multiplier"
 msgstr "漫射反射乘数"
 
 
+msgid "Scales the power of the light exponentially, multiplying the intensity by 2^exposure"
+msgstr "将光强乘以 2^曝光度，以指数形式对灯光功率进行缩放"
+
+
 msgid "Node tree for node based lights"
 msgstr "基于节点灯光的节点树"
 
@@ -23580,12 +23584,28 @@ msgid "Normalize"
 msgstr "规格化"
 
 
+msgid "Normalize intensity by light area, for consistent total light output regardless of size and shape"
+msgstr "按照明面积对强度进行规格化处理，使总光照输出保持一致，而不受尺寸和形状的影响"
+
+
 msgid "Specular Factor"
 msgstr "高光系数"
 
 
 msgid "Specular reflection multiplier"
 msgstr "高光反射乘数"
+
+
+msgid "Light color temperature in Kelvin"
+msgstr "灯光的色温，开尔文单位"
+
+
+msgid "Temperature Color"
+msgstr "温度颜色"
+
+
+msgid "Color from Temperature"
+msgstr "由温度产生的颜色"
 
 
 msgid "Transmission Factor"
@@ -23653,6 +23673,15 @@ msgid "Use shader nodes to render the light"
 msgstr "使用着色器节点渲染灯光"
 
 
+msgctxt "Light"
+msgid "Use Temperature"
+msgstr "使用温度"
+
+
+msgid "Use blackbody temperature to define a natural light color"
+msgstr "使用黑体温度来定义自然光颜色"
+
+
 msgid "Volume Factor"
 msgstr "体积系数"
 
@@ -23672,6 +23701,10 @@ msgstr "定向面光"
 msgctxt "Light"
 msgid "Power"
 msgstr "功率"
+
+
+msgid "Light energy emitted over the entire area of the light in all directions, in units of radiant power (W)"
+msgstr "向四面八方发射至整个区域的光能，单位为辐射功率 (W)"
 
 
 msgid "Shadow Buffer Clip Start"
@@ -23784,6 +23817,10 @@ msgstr "聚光灯"
 
 msgid "Directional cone Light"
 msgstr "定向锥形光源"
+
+
+msgid "The energy this light would emit over its entire area if it wasn't limited by the spot angle, in units of radiant power (W)"
+msgstr "如果光线不受聚光角度限制，那么该光会向整个区域发出能量，单位为辐射功率 (W)"
 
 
 msgid "Show Cone"
@@ -29534,14 +29571,6 @@ msgid "Maintained by community developers"
 msgstr "由社区开发者进行维护"
 
 
-msgid "Testing"
-msgstr "测试版"
-
-
-msgid "Newly contributed scripts (excluded from release builds)"
-msgstr "新近贡献的脚本 (不包含在发布版本中)"
-
-
 msgid "Addon Tags"
 msgstr "插件标签"
 
@@ -34549,6 +34578,14 @@ msgid "Editor menu containing buttons"
 msgstr "包含按钮的编辑器菜单"
 
 
+msgid "Show/Hide"
+msgstr "显示 / 隐藏"
+
+
+msgid "Clean Up"
+msgstr "清理"
+
+
 msgid "Special Characters"
 msgstr "特殊字符"
 
@@ -34565,20 +34602,12 @@ msgid "Metaball"
 msgstr "融球"
 
 
-msgid "Show/Hide"
-msgstr "显示 / 隐藏"
-
-
 msgid "Names"
 msgstr "名称"
 
 
 msgid "Bone Roll"
 msgstr "骨骼扭转"
-
-
-msgid "Clean Up"
-msgstr "清理"
 
 
 msgid "Pivot Point"
@@ -34609,176 +34638,176 @@ msgid "Vertex Group Locks"
 msgstr "顶点组锁"
 
 
-msgid "Mirror"
-msgstr "镜像"
-
-
-msgid "UV Mapping"
-msgstr "UV 映射"
-
-
-msgid "Local View"
-msgstr "局部视图"
-
-
-msgid "Viewpoint"
-msgstr "视图"
-
-
-msgid "Navigation"
-msgstr "视图导航"
-
-
-msgid "Align View"
-msgstr "对齐视图"
-
-
-msgid "Align View to Active"
-msgstr "视图对齐活动项"
-
-
-msgid "View Regions"
-msgstr "视图框"
-
-
-msgid "Select More/Less"
-msgstr "扩展/缩减选择"
-
-
-msgid "Select Similar"
-msgstr "选择相似"
-
-
-msgid "Select All by Trait"
-msgstr "按特征全选"
-
-
-msgid "Select Linked"
-msgstr "选择相连元素"
-
-
-msgid "Select Loops"
-msgstr "选择循环"
-
-
-msgid "Assign Material"
-msgstr "指定材质"
-
-
-msgid "Light"
-msgstr "灯光"
-
-
-msgid "Light Probe"
-msgstr "光照探头"
-
-
-msgid "Add Image"
-msgstr "添加图像"
-
-
-msgid "Relations"
-msgstr "关系"
-
-
-msgid "Rigid Body"
-msgstr "刚体"
-
-
-msgid "Apply"
-msgstr "应用"
-
-
-msgid "Track"
-msgstr "追踪"
-
-
-msgid "Quick Effects"
-msgstr "快速效果"
-
-
-msgid "Asset"
-msgstr "资产"
-
-
-msgid "Make Single User"
-msgstr "使其独立化"
-
-
-msgid "Convert"
-msgstr "转换"
-
-
-msgid "Link/Transfer Data"
-msgstr "关联/传递数据"
-
-
-msgid "Hooks"
-msgstr "钩挂"
-
-
-msgid "Trim/Add"
-msgstr "修剪 / 添加"
-
-
-msgid "Sculpt Set Pivot"
-msgstr "雕刻集轴心点"
-
-
-msgid "Face Sets Init"
-msgstr "面组初始化"
-
-
-msgid "Random Mask"
-msgstr "随机遮罩"
-
-
-msgid "Clear Transform"
-msgstr "清空变换"
-
-
-msgid "In-Betweens"
-msgstr "间帧调整"
-
-
-msgid "Propagate"
-msgstr "传导"
-
-
-msgid "Bone Collections"
-msgstr "骨骼集合"
-
-
-msgid "Toggle Bone Options"
-msgstr "切换骨骼设置"
-
-
-msgid "Enable Bone Options"
-msgstr "启用骨骼设置"
-
-
-msgid "Disable Bone Options"
-msgstr "禁用骨骼设置"
-
-
-msgid "Mesh Select Mode"
-msgstr "网格选择模式"
-
-
-msgid "Face Data"
-msgstr "面数据"
+msgid "Set Face Strength"
+msgstr "设置面强度"
 
 
 msgid "Select by Face Strength"
 msgstr "按面强度选择"
 
 
-msgid "Set Face Strength"
-msgstr "设置面强度"
+msgid "Hooks"
+msgstr "钩挂"
+
+
+msgid "Link/Transfer Data"
+msgstr "关联/传递数据"
+
+
+msgid "Convert"
+msgstr "转换"
+
+
+msgid "Relations"
+msgstr "关系"
+
+
+msgid "Add Image"
+msgstr "添加图像"
 
 
 msgid "Merge"
 msgstr "合并"
+
+
+msgid "Light Probe"
+msgstr "光照探头"
+
+
+msgid "Face Data"
+msgstr "面数据"
+
+
+msgid "Light"
+msgstr "灯光"
+
+
+msgid "Make Single User"
+msgstr "使其独立化"
+
+
+msgid "Asset"
+msgstr "资产"
+
+
+msgid "Mesh Select Mode"
+msgstr "网格选择模式"
+
+
+msgid "Quick Effects"
+msgstr "快速效果"
+
+
+msgid "Disable Bone Options"
+msgstr "禁用骨骼设置"
+
+
+msgid "Enable Bone Options"
+msgstr "启用骨骼设置"
+
+
+msgid "Track"
+msgstr "追踪"
+
+
+msgid "Toggle Bone Options"
+msgstr "切换骨骼设置"
+
+
+msgid "Apply"
+msgstr "应用"
+
+
+msgid "Assign Material"
+msgstr "指定材质"
+
+
+msgid "Rigid Body"
+msgstr "刚体"
+
+
+msgid "Propagate"
+msgstr "传导"
+
+
+msgid "Local View"
+msgstr "局部视图"
+
+
+msgid "Select More/Less"
+msgstr "扩展/缩减选择"
+
+
+msgid "Bone Collections"
+msgstr "骨骼集合"
+
+
+msgid "In-Betweens"
+msgstr "间帧调整"
+
+
+msgid "Clear Transform"
+msgstr "清空变换"
+
+
+msgid "Select Loops"
+msgstr "选择循环"
+
+
+msgid "Select Linked"
+msgstr "选择相连元素"
+
+
+msgid "Select All by Trait"
+msgstr "按特征全选"
+
+
+msgid "Select Similar"
+msgstr "选择相似"
+
+
+msgid "View Regions"
+msgstr "视图框"
+
+
+msgid "Align View to Active"
+msgstr "视图对齐活动项"
+
+
+msgid "Align View"
+msgstr "对齐视图"
+
+
+msgid "Navigation"
+msgstr "视图导航"
+
+
+msgid "Viewpoint"
+msgstr "视图"
+
+
+msgid "UV Mapping"
+msgstr "UV 映射"
+
+
+msgid "Mirror"
+msgstr "镜像"
+
+
+msgid "Random Mask"
+msgstr "随机遮罩"
+
+
+msgid "Face Sets Init"
+msgstr "面组初始化"
+
+
+msgid "Sculpt Set Pivot"
+msgstr "雕刻集轴心点"
+
+
+msgid "Trim/Add"
+msgstr "修剪 / 添加"
 
 
 msgid "Keyframe Insert Pie"
@@ -44944,6 +44973,10 @@ msgid "Basis"
 msgstr "基型"
 
 
+msgid "Support negative color by using this as the RGB basis. (Deprecated: Use Offset Basis input instead.)"
+msgstr "将这个数值作为RGB基值来支持负色。（已弃用：以“偏移基数”输入代替。）"
+
+
 msgid "Output Temperature"
 msgstr "输出温度"
 
@@ -45409,16 +45442,52 @@ msgid "X2"
 msgstr "X2"
 
 
+msgid "Right edge of the cropping rectangle. (Deprecated: Use Width input instead.)"
+msgstr "裁切矩形的右侧边。（已弃用：以“宽度”输入代替。）"
+
+
 msgid "Y2"
 msgstr "Y2"
+
+
+msgid "Bottom edge of the cropping rectangle. (Deprecated: Use Height input instead.)"
+msgstr "裁切矩形的底侧边。（已弃用：以“高度”输入代替。）"
 
 
 msgid "X1"
 msgstr "X1"
 
 
+msgid "Left edge of the cropping rectangle. (Deprecated: Use X input instead.)"
+msgstr "裁切矩形的左侧边。（已弃用：以 X 输入代替。）"
+
+
 msgid "Y1"
 msgstr "Y1"
+
+
+msgid "Top edge of the cropping rectangle. (Deprecated: Use Y input instead.)"
+msgstr "裁切矩形的顶侧边。（已弃用：以 Y 输入代替。）"
+
+
+msgid "Right edge of the cropping rectangle. (Deprecated: Unused.)"
+msgstr "裁切矩形的右侧边。（已弃用：不再使用。）"
+
+
+msgid "Bottom edge of the cropping rectangle. (Deprecated: Unused.)"
+msgstr "裁切矩形的底侧边。（已弃用：不再使用。）"
+
+
+msgid "Left edge of the cropping rectangle. (Deprecated: Unused.)"
+msgstr "裁切矩形的左侧边。（已弃用：不再使用。）"
+
+
+msgid "Top edge of the cropping rectangle. (Deprecated: Unused.)"
+msgstr "裁切矩形的顶侧边。（已弃用：不再使用。）"
+
+
+msgid "Use relative values to crop image. (Deprecated: Unused.)"
+msgstr "以相对值裁切图像。（已弃用：不再使用。）"
 
 
 msgid "Crop Image Size"
@@ -47008,6 +47077,14 @@ msgid "Input render passes from a scene render"
 msgstr "从场景渲染中输入渲染通道"
 
 
+msgid "Relative To Pixel"
+msgstr "相对于像素"
+
+
+msgid "Converts values that are relative to the image size to be in terms of pixels"
+msgstr "将相对于图像大小的值转换为像素值"
+
+
 msgid "The type of data"
 msgstr "数据的类型"
 
@@ -47020,8 +47097,44 @@ msgid "Vector value"
 msgstr "矢量值"
 
 
+msgid "Reference Dimension"
+msgstr "参考维度"
+
+
+msgid "Defines the dimension of the image that the relative value is in reference to"
+msgstr "定义相对值所参照的图像尺寸维度"
+
+
+msgid "Per Dimension"
+msgstr "每个维度"
+
+
+msgid "The value is relative to each of the dimensions of the image independently"
+msgstr "该值相对于图像的每个维度独立计算"
+
+
+msgid "The value is relative to the X dimension of the image"
+msgstr "该值相对于图像的 X 维度"
+
+
+msgid "The value is relative to the Y dimension of the image"
+msgstr "该值相对于图像的 Y 维度"
+
+
 msgid "Greater"
 msgstr "大于"
+
+
+msgid "The value is relative to the greater dimension of the image"
+msgstr "该值相对于图像的较大尺寸"
+
+
+msgid "The value is relative to the smaller dimension of the image"
+msgstr "该值相对于图像的较小尺寸"
+
+
+msgid "The value is relative to the diagonal of the image"
+msgstr "该值相对于图像的对角线"
 
 
 msgid "Rotate"
@@ -63210,6 +63323,10 @@ msgid "Do not export materials, but write multiple primitive groups per mesh, ke
 msgstr "不导出材质，但对每个网格写入多个基元组，保留材质槽信息"
 
 
+msgid "Export minimal materials as defined in Viewport display properties"
+msgstr "导出视图显示属性中定义的最小材质"
+
+
 msgid "No export"
 msgstr "不导出"
 
@@ -69675,10 +69792,6 @@ msgid "Dissolve Vertices"
 msgstr "融并顶点"
 
 
-msgid "Dissolve remaining vertices"
-msgstr "融并其余的顶点"
-
-
 msgctxt "Operator"
 msgid "Dissolve Faces"
 msgstr "融并面"
@@ -72546,6 +72659,10 @@ msgid "Panel Identifier"
 msgstr "面板标识符"
 
 
+msgid "Panel from which to add sockets to the added group input/output node"
+msgstr "将接口添加到组输入/输出节点的面板"
+
+
 msgid "Socket Identifier"
 msgstr "接口标识符"
 
@@ -74293,14 +74410,6 @@ msgid "Curve from Mesh or Text objects"
 msgstr "网格或文本物体转换为曲线"
 
 
-msgid "Mesh from Curve, Surface, Metaball, Text, or Point Cloud objects"
-msgstr "从曲线、曲面、融球、文本、点云物体转换为网格"
-
-
-msgid "Point Cloud from Mesh objects"
-msgstr "从网格物体转为点云"
-
-
 msgid "Curves from evaluated curve data"
 msgstr "已解算曲线数据转换为毛发曲线"
 
@@ -74946,6 +75055,10 @@ msgstr "将选中的物体合并到活动物体"
 msgctxt "Operator"
 msgid "Join as Shapes"
 msgstr "合并为形变"
+
+
+msgid "Add the vertex positions of selected objects as shape keys or update existing shape keys with matching names"
+msgstr "将选定物体的顶点位置添加为形态键，或使用匹配名称更新现有形态键"
 
 
 msgctxt "Operator"
@@ -76956,6 +77069,15 @@ msgstr "重置数值"
 
 msgid "Clear transform values after transferring to deltas"
 msgstr "在传递至增量变换后清空变换"
+
+
+msgctxt "Operator"
+msgid "Update from Objects"
+msgstr "从物体更新"
+
+
+msgid "Update existing shape keys with the vertex positions of selected objects with matching names"
+msgstr "用名称匹配的选定物体的顶点位置更新现有形态键"
 
 
 msgctxt "Operator"
@@ -80053,8 +80175,24 @@ msgid "All bones affected by active Keying Set"
 msgstr "受插帧集影响的全部骨骼"
 
 
+msgid "Select all children of currently selected bones"
+msgstr "选择当前所选骨骼的所有子级"
+
+
+msgid "Select direct children of currently selected bones"
+msgstr "选择当前所选骨骼的直接子级"
+
+
 msgid "Parents"
 msgstr "父级"
+
+
+msgid "Select the parents of currently selected bones"
+msgstr "选择当前所选骨骼的父级"
+
+
+msgid "Select all bones that have the same parent as currently selected bones"
+msgstr "选择与当前所选骨骼具有相同父级的所有骨骼"
 
 
 msgctxt "Operator"
@@ -95476,6 +95614,10 @@ msgid "Disable the asset indexer, to force every asset library refresh to comple
 msgstr "禁用资产编号器会强制每次资产库刷新时从磁盘完全重新读取资产"
 
 
+msgid "Write New Attribute Storage Format"
+msgstr "写入新式属性存储格式"
+
+
 msgid "Bundle and Closure Nodes"
 msgstr "捆包与闭包节点"
 
@@ -95978,32 +96120,16 @@ msgid "Device up/down directly controls the Z position of the 3D viewport"
 msgstr "使用设备的上/下方向来控制3D视图的Z轴方向"
 
 
-msgid "Lock Camera Pan/Zoom"
-msgstr "锁定相机平移/缩放"
-
-
 msgid "Pan/zoom the camera view instead of leaving the camera view when orbiting"
 msgstr "在环绕时平移/缩放摄像机视图，而非离开摄像机视图"
 
 
-msgid "Lock Horizon"
-msgstr "锁定水平"
-
-
-msgid "Keep horizon level while flying with 3D Mouse"
-msgstr "保持水平而只移动 3D 鼠标"
+msgid "NDOF View Navigate"
+msgstr "NDOF 视图浏览"
 
 
 msgid "Auto sets the orbit center dynamically. When the complete model is in view, the center of volume of the whole model is used as the rotation point. When you move closer, the orbit center will be set on an object close to your center of the view."
 msgstr "自动动态设置轨道中心。当整个模型在视图中时，整个模型的体积中心被用作旋转点。当您靠近时，轨道中心将设置在靠近视图中心的物体上。"
-
-
-msgid "Use Selected Items"
-msgstr "使用所选项"
-
-
-msgid "Use selected item forces the orbit center to only take the currently selected objects into account."
-msgstr "使用选定项会强制轨道中心仅考虑当前选定的物体。"
 
 
 msgid "Orbit Sensitivity"
@@ -96012,14 +96138,6 @@ msgstr "视轨灵敏度"
 
 msgid "Overall sensitivity of the 3D Mouse for orbiting"
 msgstr "3D鼠标的整体旋转敏感度"
-
-
-msgid "Y/Z Swap Axis"
-msgstr "Y/Z 交换轴向"
-
-
-msgid "Pan using up/down on the device (otherwise forward/backward)"
-msgstr "使用设备的上 / 下 (或前 / 后) 来控制平移"
 
 
 msgid "Invert X Axis"
@@ -96066,48 +96184,8 @@ msgid "Display the orbit center during rotation"
 msgstr "在旋转过程中显示轨道中心"
 
 
-msgid "NDOF View Navigate"
-msgstr "NDOF 视图浏览"
-
-
-msgid "Navigation style in the viewport"
-msgstr "视图中的漫游风格"
-
-
-msgid "Use full 6 degrees of freedom by default"
-msgstr "默认情况下使用完整的6个自由角度"
-
-
-msgid "Orbit about the view center by default"
-msgstr "默认情况下围绕视图中心旋转"
-
-
-msgid "NDOF View Rotation"
-msgstr "NDOF 视图旋转"
-
-
-msgid "Rotation style in the viewport"
-msgstr "视图的旋转风格"
-
-
-msgid "Turntable"
-msgstr "转盘"
-
-
-msgid "Use turntable style rotation in the viewport"
-msgstr "使用转盘式的视图旋转"
-
-
-msgid "Use trackball style rotation in the viewport"
-msgstr "使用轨迹球样式的视图旋转"
-
-
-msgid "Invert Zoom"
-msgstr "反转缩放"
-
-
-msgid "Zoom using opposite direction"
-msgstr "使用相反方向的缩放"
+msgid "Up/Down"
+msgstr "上/下"
 
 
 msgid "Softness"
@@ -96264,6 +96342,10 @@ msgstr "旋转方法"
 
 msgid "Orbit method in the viewport"
 msgstr "视图旋转方法"
+
+
+msgid "Turntable"
+msgstr "转盘"
 
 
 msgid "Turntable keeps the Z-axis upright while orbiting"
@@ -96656,14 +96738,6 @@ msgstr "环境色"
 
 msgid "Color of the ambient light that uniformly lit the scene"
 msgstr "均匀照亮场景的环境光的颜色"
-
-
-msgid "Max Shader Compilation Subprocesses"
-msgstr "最大着色器编译子进程"
-
-
-msgid "Max number of parallel shader compilation subprocesses, clamped at the max threads supported by the CPU (requires restarting Blender for changes to take effect). Setting it to 0 disables subprocess shader compilation."
-msgstr "并行着色器编译子进程的最大数量，钳制在CPU支持的最大线程数内，（需要重新启动Blender才能使更改生效）。设为0将禁用子进程着色器编译。"
 
 
 msgid "Memory Cache Limit"
@@ -111691,6 +111765,10 @@ msgid "Weight Paint Auto-Normalize"
 msgstr "自动规格化权重绘制"
 
 
+msgid "Ensure all bone-deforming vertex groups add up to 1.0 while weight painting or assigning to vertices"
+msgstr "确保全部骨骼封套顶点组在权重绘制或指定给顶点时增加至1.0"
+
+
 msgid "Changing edge seams recalculates UV unwrap"
 msgstr "修改缝合边将重新计算 UV 展开"
 
@@ -111937,6 +112015,10 @@ msgstr "吸附剥落物体"
 
 msgid "Consider objects as whole when finding volume center"
 msgstr "在寻找体积中心时, 将多个物体视为一个整体"
+
+
+msgid "Snap playhead when scrubbing"
+msgstr "拖拽播放时吸附到播放头"
 
 
 msgid "Use Snap for Rotation"
@@ -120637,12 +120719,12 @@ msgid "No animation data to convert on object: {!r}"
 msgstr "没有要在物体上转换的动画数据: {!r}"
 
 
-msgid "Modifiers cannot be added to object: "
-msgstr "无法为物体添加修改器: "
-
-
 msgid "Object: {:s}, Mesh: '{:s}' has {:d} loops (for {:d} faces), expected {:d}"
 msgstr "物体: {:s}, 网格: '{:s}' 有 {:d} 个循环 ({:d} 个面), 预期 {:d}"
+
+
+msgid "Modifiers cannot be added to object: "
+msgstr "无法为物体添加修改器: "
 
 
 msgid "Object {!r} already has {!r} F-Curve(s). Remove these before trying again"
@@ -126164,22 +126246,6 @@ msgid "Zoom Method"
 msgstr "视图缩放方法"
 
 
-msgid "Pan Sensitivity"
-msgstr "平移敏感度"
-
-
-msgid "Swap Y and Z Axes"
-msgstr "交换Y和Z轴"
-
-
-msgid "Invert Axis Pan"
-msgstr "反转轴向 平移"
-
-
-msgid "Invert Pan Axis"
-msgstr "反转平移轴向"
-
-
 msgctxt "Operator"
 msgid "Remove Repository"
 msgstr "移除存储库"
@@ -126261,20 +126327,24 @@ msgid "Invert Wheel Zoom Direction"
 msgstr "反向滚轮缩放"
 
 
-msgid "Show Guides"
-msgstr "显示引导"
-
-
-msgid "Orbit Axis"
-msgstr "轨道轴"
+msgid "Lock Horizon"
+msgstr "锁定水平"
 
 
 msgid "Orbit Center"
 msgstr "轨道中心"
 
 
-msgid "Fly/Walk"
-msgstr "飞行/行走"
+msgid "Orbit Axis"
+msgstr "轨道轴"
+
+
+msgid "Pan Sensitivity"
+msgstr "平移敏感度"
+
+
+msgid "Invert Pan Axis"
+msgstr "反转平移轴向"
 
 
 msgctxt "Operator"
@@ -130345,10 +130415,6 @@ msgid "Compiling shaders ({} remaining)"
 msgstr "编译着色器 ({} 剩余)"
 
 
-msgid "Increasing Preferences > System > Max Shader Compilation Subprocesses may improve compilation time."
-msgstr "增加 偏好设置> 系统> 最大着色器编译子进程 可以加快编译时间."
-
-
 msgid "Optimizing shaders ({} remaining)"
 msgstr "优化着色器 ({} 剩余)"
 
@@ -131779,6 +131845,14 @@ msgstr "选择的不是骨头"
 
 msgid "Can only pick from the 3D viewport or the outliner"
 msgstr "只能从3D视口或大纲视图中拾取"
+
+
+msgid "The active object needs to be an armature"
+msgstr "活动物体必须是骨架"
+
+
+msgid "The armature needs to be in Pose mode or Edit mode"
+msgstr "骨架需位于姿态模式或编辑模式下"
 
 
 msgid "Drag to continue sampling, release when done"
@@ -133520,12 +133594,20 @@ msgid "No mesh data to join"
 msgstr "没有可供合并的网格数据(请检查要合并的物体是否都是网格，比如有一个物体是曲线。此功能仅能合并网格物体)"
 
 
+msgid "No source mesh objects selected"
+msgstr "未选择源网格物体"
+
+
 msgid "Selected meshes must have equal numbers of vertices, edges, and faces"
 msgstr "所选网格的顶点、边、面数量必须相等"
 
 
 msgid "No additional selected meshes with equal vertex count to join"
 msgstr "没有额外的包含等量顶点数的额外网格可供接合"
+
+
+msgid "No name matches between selected objects and shape keys"
+msgstr "所选物体与形态键之间没有匹配的名称"
 
 
 msgid "Joining results in %d vertices, limit is %ld"
@@ -133759,6 +133841,10 @@ msgstr "无法编辑物体 '%s', 因为它被重写集合所使用"
 
 msgid "No active mesh object"
 msgstr "没有激活的网格物体"
+
+
+msgid "This operation is not supported in edit mode"
+msgstr "编辑模式下不支持此操作"
 
 
 msgid "Cannot edit object used by override collections"
@@ -137603,10 +137689,6 @@ msgid "No active collection"
 msgstr "无活动集合"
 
 
-msgid "Can't duplicate the master collection"
-msgstr "无法复制主要集合"
-
-
 msgid "Could not find a valid parent collection for the new duplicate, it won't be linked to any view layer"
 msgstr "无法找到一个有效的父级集合来进行复制，此操作将不会关联到任何视图层"
 
@@ -138869,10 +138951,6 @@ msgstr "无法移除背景图 %d 于摄像机 '%s', 它是来自关联的参考�
 
 msgid "Gizmos hidden in this view"
 msgstr "在该视图中隐藏操控器"
-
-
-msgid "Up/Down"
-msgstr "上/下"
 
 
 msgid "Free Look"
@@ -143014,6 +143092,26 @@ msgid "Lower Right"
 msgstr "右下"
 
 
+msgid "Alpha Crop"
+msgstr "Alpha 裁切"
+
+
+msgid "The X position of the lower left corner of the crop region"
+msgstr "裁切区域左下角的 X 位置"
+
+
+msgid "The Y position of the lower left corner of the crop region"
+msgstr "裁切区域左下角的 Y 位置"
+
+
+msgid "The width of the crop region"
+msgstr "裁切区域的宽度"
+
+
+msgid "Sets the areas outside of the crop region to be transparent instead of actually cropping the size of the image"
+msgstr "将裁剪区域之外设置为透明，而不是实际裁剪图像的大小"
+
+
 msgid "The node tree must be the compositing node tree of any scene in the file"
 msgstr "节点树必须是文件中任意场景的合成节点树"
 
@@ -143344,6 +143442,10 @@ msgstr "点"
 
 msgid "The number of pixels that correspond to the same output pixel"
 msgstr "像素数量对应相同的输出像素"
+
+
+msgid "Use multi-sampled motion blur of the plane"
+msgstr "使用平面的多重采样运动模糊"
 
 
 msgid "Degr"
@@ -144361,6 +144463,10 @@ msgid "Top"
 msgstr "顶"
 
 
+msgid "The values the mean and median will be calculated from"
+msgstr "平均值和中位数将由此数值计算得出"
+
+
 msgid "An index used to group values together for multiple separate operations"
 msgstr "用于将多个数值组在一起以进行多个单独运算的编号"
 
@@ -144373,6 +144479,10 @@ msgid "The middle value in each group when all values are sorted from lowest to 
 msgstr "所有数值从低到高排序时每组的中间值"
 
 
+msgid "The values the mininum and maximum will be calculated from"
+msgstr "最大值和最小值将由此数值计算得出"
+
+
 msgid "The lowest value in each group"
 msgstr "每组中的最小值"
 
@@ -144381,8 +144491,16 @@ msgid "The highest value in each group"
 msgstr "每组中的最大值"
 
 
+msgid "The values the standard deviation and variance will be calculated from"
+msgstr "标准差和方差将由此数值计算得出"
+
+
 msgid "The square root of the variance for each group"
 msgstr "各组方差的平方根"
+
+
+msgid "The expected squared deviation from the mean for each group"
+msgstr "各组平均值的期望平方差"
 
 
 msgid "Input Fields"
@@ -148591,238 +148709,6 @@ msgstr "麦克风"
 
 msgid "network"
 msgstr "网络"
-
-
-msgid "American English (American English)"
-msgstr "美式英语 (American English)"
-
-
-msgid "Japanese (日本語)"
-msgstr "日语 (日本語)"
-
-
-msgid "Dutch (Nederlands)"
-msgstr "荷兰语 (Nederlands)"
-
-
-msgid "Italian (Italiano)"
-msgstr "意大利语 (Italiano)"
-
-
-msgid "German (Deutsch)"
-msgstr "德语 (Deutsch)"
-
-
-msgid "Finnish (Suomi)"
-msgstr "芬兰语 (Suomi)"
-
-
-msgid "Swedish (Svenska)"
-msgstr "瑞典语 (Svenska)"
-
-
-msgid "French (Français)"
-msgstr "法语 (Français)"
-
-
-msgid "Spanish (Español)"
-msgstr "西班牙语 (Español)"
-
-
-msgid "Catalan (Català)"
-msgstr "加泰罗尼亚语 (Català)"
-
-
-msgid "Czech (Čeština)"
-msgstr "捷克语 (Čeština)"
-
-
-msgid "Portuguese (Português)"
-msgstr "葡萄牙语 (Português)"
-
-
-msgid "Simplified Chinese (简体中文)"
-msgstr "简体中文"
-
-
-msgid "Traditional Chinese (繁體中文)"
-msgstr "繁体中文 (繁體中文)"
-
-
-msgid "Russian (Русский)"
-msgstr "俄语 (Русский)"
-
-
-msgid "Croatian (Hrvatski)"
-msgstr "克罗地亚语 (Hrvatski)"
-
-
-msgid "Serbian (Српски)"
-msgstr "塞尔维亚语 (Српски)"
-
-
-msgid "Ukrainian (Українська)"
-msgstr "乌克兰语 (Українська)"
-
-
-msgid "Polish (Polski)"
-msgstr "波兰语 (Polski)"
-
-
-msgid "Romanian (Român)"
-msgstr "罗马尼亚语 (Român)"
-
-
-msgid "Arabic (ﺔﻴﺑﺮﻌﻟﺍ)"
-msgstr "阿拉伯语 (ﺔﻴﺑﺮﻌﻟﺍ)"
-
-
-msgid "Bulgarian (Български)"
-msgstr "保加利亚语 (Български)"
-
-
-msgid "Greek (Ελληνικά)"
-msgstr "希腊语 (Ελληνικά)"
-
-
-msgid "Korean (한국어)"
-msgstr "韩语 (한국어)"
-
-
-msgid "Nepali (नेपाली)"
-msgstr "尼泊尔语 (नेपाली)"
-
-
-msgid "Persian (ﯽﺳﺭﺎﻓ)"
-msgstr "波斯语 (ﯽﺳﺭﺎﻓ)"
-
-
-msgid "Indonesian (Bahasa indonesia)"
-msgstr "印度尼西亚语 (Bahasa indonesia)"
-
-
-msgid "Serbian Latin (Srpski latinica)"
-msgstr "塞尔维亚语-拉丁文 (Srpski latinica)"
-
-
-msgid "Kyrgyz (Кыргыз тили)"
-msgstr "吉尔吉斯语 (Кыргыз тили)"
-
-
-msgid "Turkish (Türkçe)"
-msgstr "土耳其语 (Türkçe)"
-
-
-msgid "Hungarian (Magyar)"
-msgstr "匈牙利语 (Magyar)"
-
-
-msgid "Brazilian Portuguese (Português do Brasil)"
-msgstr "葡萄牙语-巴西 (Português do Brasil)"
-
-
-msgid "Hebrew (תירִבְעִ)"
-msgstr "希伯来语 (תירִבְעִ)"
-
-
-msgid "Estonian (Eesti keel)"
-msgstr "爱沙尼亚语 (Eesti keel)"
-
-
-msgid "Esperanto (Esperanto)"
-msgstr "世界语 (Esperanto)"
-
-
-msgid "Amharic (አማርኛ)"
-msgstr "阿姆哈拉语 (አማርኛ)"
-
-
-msgid "Uzbek (Oʻzbek)"
-msgstr "乌兹别克语 (Oʻzbek)"
-
-
-msgid "Uzbek Cyrillic (Ўзбек)"
-msgstr "乌兹别克语-西里尔文 (Ўзбек)"
-
-
-msgid "Hindi (हिन्दी)"
-msgstr "印地语 (हिन्दी)"
-
-
-msgid "Vietnamese (Tiếng Việt)"
-msgstr "越南语 (Tiếng Việt)"
-
-
-msgid "Basque (Euskara)"
-msgstr "巴斯克语 (Euskara)"
-
-
-msgid "Hausa (Hausa)"
-msgstr "豪撒语 (Hausa)"
-
-
-msgid "Kazakh (Қазақша)"
-msgstr "哈萨克语 (Қазақша)"
-
-
-msgid "Abkhaz (Аԥсуа бызшәа)"
-msgstr "阿伯卡茨语 (Аԥсуа бызшәа)"
-
-
-msgid "Thai (ภาษาไทย)"
-msgstr "泰语 (ภาษาไทย)"
-
-
-msgid "Slovak (Slovenčina)"
-msgstr "斯洛伐克语 (Slovenčina)"
-
-
-msgid "Georgian (ქართული)"
-msgstr "格鲁吉亚语 (ქართული)"
-
-
-msgid "Tamil (தமிழ்)"
-msgstr "泰米尔语 (தமிழ்)"
-
-
-msgid "Khmer (ខ្មែរ)"
-msgstr "高棉语 (ខ្មែរ)"
-
-
-msgid "Swahili (Kiswahili)"
-msgstr "斯瓦希利语 (Kiswahili)"
-
-
-msgid "Belarusian (беларуску)"
-msgstr "白俄罗斯语 (беларуску)"
-
-
-msgid "Danish (Dansk)"
-msgstr "丹麦语 (Dansk)"
-
-
-msgid "Slovenian (Slovenščina)"
-msgstr "斯洛文尼亚语 (Slovenščina)"
-
-
-msgid "Urdu (وُدرُا)"
-msgstr "乌尔都语 (وُدرُا)"
-
-
-msgid "Lithuanian (Lietuviškai)"
-msgstr "立陶宛语 (Lietuviškai)"
-
-
-msgid "British English (British English)"
-msgstr "英式英语 (British English)"
-
-
-msgid "Complete"
-msgstr "较完善"
-
-
-msgid "In Progress"
-msgstr "完善中"
 
 
 msgid "Add & Subtract"

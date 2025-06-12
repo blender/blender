@@ -135,7 +135,7 @@ void modifier_vgroup_ui(uiLayout *layout,
   uiItemPointerR(row, ptr, vgroup_prop, ob_ptr, "vertex_groups", text, ICON_GROUP_VERTEX);
   if (invert_vgroup_prop) {
     uiLayout *sub = &row->row(true);
-    uiLayoutSetActive(sub, has_vertex_group);
+    sub->active_set(has_vertex_group);
     uiLayoutSetPropDecorate(sub, false);
     sub->prop(ptr, *invert_vgroup_prop, UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);
   }
@@ -343,7 +343,7 @@ static void modifier_panel_header(const bContext *C, Panel *panel)
     if (BKE_modifier_supports_cage(scene, md) && (index <= last_cage_index)) {
       sub = &row->row(true);
       if (index < cage_index || !BKE_modifier_couldbe_cage(scene, md)) {
-        uiLayoutSetActive(sub, false);
+        sub->active_set(false);
       }
       sub->prop(ptr, "show_on_cage", UI_ITEM_NONE, "", ICON_NONE);
       buttons_number++;
@@ -407,7 +407,7 @@ static void modifier_panel_header(const bContext *C, Panel *panel)
   if (!ELEM(md->type, eModifierType_Collision, eModifierType_Surface)) {
     if (mti->flags & eModifierTypeFlag_SupportsEditmode) {
       sub = &row->row(true);
-      uiLayoutSetActive(sub, (md->mode & eModifierMode_Realtime));
+      sub->active_set((md->mode & eModifierMode_Realtime));
       sub->prop(ptr, "show_in_editmode", UI_ITEM_NONE, "", ICON_NONE);
       buttons_number++;
     }

@@ -355,6 +355,8 @@ class MaterialModule {
   ::Material *default_surface;
   ::Material *default_volume;
 
+  ::Material *material_override = nullptr;
+
   int64_t queued_shaders_count = 0;
   int64_t queued_textures_count = 0;
   int64_t queued_optimize_shaders_count = 0;
@@ -417,9 +419,8 @@ class MaterialModule {
                                  eMaterialGeometry geometry_type,
                                  eMaterialProbe probe_capture = MAT_PROBE_NONE);
 
-  /* Push unloaded texture used by this material to the texture loading queue.
-   * Return true if all textures are already loaded. */
-  bool queue_texture_loading(GPUMaterial *material);
+  /* Push unloaded texture used by this material to the texture loading queue. */
+  void queue_texture_loading(GPUMaterial *material);
 
   ShaderGroups default_materials_load(bool block_until_ready = false);
 };

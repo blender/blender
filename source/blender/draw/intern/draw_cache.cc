@@ -70,8 +70,8 @@ namespace blender::draw {
 
 void DRW_vertbuf_create_wiredata(gpu::VertBuf *vbo, const int vert_len)
 {
-  static const GPUVertFormat format = GPU_vertformat_from_attribute(
-      "wd", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
+  static const GPUVertFormat format = GPU_vertformat_from_attribute("wd",
+                                                                    gpu::VertAttrType::SFLOAT_32);
   GPU_vertbuf_init_with_format(*vbo, format);
   GPU_vertbuf_data_alloc(*vbo, vert_len);
   vbo->data<float>().fill(1.0f);

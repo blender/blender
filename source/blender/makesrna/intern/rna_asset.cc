@@ -372,22 +372,6 @@ void rna_AssetMetaData_catalog_id_update(bContext *C, PointerRNA *ptr)
   asset_library->refresh_catalog_simplename(asset_data);
 }
 
-static PointerRNA rna_AssetHandle_file_data_get(PointerRNA *ptr)
-{
-  AssetHandle *asset_handle = static_cast<AssetHandle *>(ptr->data);
-  /* Have to cast away const, but the file entry API doesn't allow modifications anyway. */
-  return RNA_pointer_create_with_parent(
-      *ptr, &RNA_FileSelectEntry, (FileDirEntry *)asset_handle->file_data);
-}
-
-static void rna_AssetHandle_file_data_set(PointerRNA *ptr,
-                                          PointerRNA value,
-                                          ReportList * /*reports*/)
-{
-  AssetHandle *asset_handle = static_cast<AssetHandle *>(ptr->data);
-  asset_handle->file_data = static_cast<const FileDirEntry *>(value.data);
-}
-
 static void rna_AssetRepresentation_name_get(PointerRNA *ptr, char *value)
 {
   const AssetRepresentation *asset = static_cast<const AssetRepresentation *>(ptr->data);
@@ -618,26 +602,6 @@ static void rna_def_asset_data(BlenderRNA *brna)
                            "data recovery purposes");
 }
 
-static void rna_def_asset_handle(BlenderRNA *brna)
-{
-  StructRNA *srna;
-  PropertyRNA *prop;
-
-  srna = RNA_def_struct(brna, "AssetHandle", "PropertyGroup");
-  RNA_def_struct_ui_text(srna, "Asset Handle", "Reference to some asset");
-
-  /* TODO It is super ugly to expose the file data here. We have to do it though so the asset view
-   * template can populate a RNA collection with asset-handles, which are just file entries
-   * currently. A proper design is being worked on. */
-  prop = RNA_def_property(srna, "file_data", PROP_POINTER, PROP_NONE);
-  RNA_def_property_flag(prop, PROP_EDITABLE);
-  RNA_def_property_struct_type(prop, "FileSelectEntry");
-  RNA_def_property_pointer_funcs(
-      prop, "rna_AssetHandle_file_data_get", "rna_AssetHandle_file_data_set", nullptr, nullptr);
-  RNA_def_property_ui_text(
-      prop, "File Entry", "TEMPORARY, DO NOT USE - File data used to refer to the asset");
-}
-
 static void rna_def_asset_representation(BlenderRNA *brna)
 {
   StructRNA *srna;
@@ -757,7 +721,6 @@ void RNA_def_asset(BlenderRNA *brna)
   rna_def_asset_tag(brna);
   rna_def_asset_data(brna);
   rna_def_asset_library_reference(brna);
-  rna_def_asset_handle(brna);
   rna_def_asset_representation(brna);
   rna_def_asset_catalog_path(brna);
   rna_def_asset_weak_reference(brna);

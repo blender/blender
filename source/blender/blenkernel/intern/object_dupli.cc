@@ -550,7 +550,9 @@ static void make_duplis_collection(const DupliContext *ctx)
     }
 
     if (ctx->include_objects) {
-      if (!ctx->include_objects->contains(cob)) {
+      Object *original_object = cob->id.orig_id ? reinterpret_cast<Object *>(cob->id.orig_id) :
+                                                  cob;
+      if (!ctx->include_objects->contains(original_object)) {
         continue;
       }
     }

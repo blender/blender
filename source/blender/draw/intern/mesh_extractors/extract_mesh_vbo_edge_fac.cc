@@ -118,8 +118,8 @@ static void extract_edge_factor_bm(const MeshRenderData &mr, MutableSpan<float> 
 
 gpu::VertBufPtr extract_edge_factor(const MeshRenderData &mr)
 {
-  static const GPUVertFormat format = GPU_vertformat_from_attribute(
-      "wd", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
+  static const GPUVertFormat format = GPU_vertformat_from_attribute("wd",
+                                                                    gpu::VertAttrType::SFLOAT_32);
   gpu::VertBufPtr vbo = gpu::VertBufPtr(GPU_vertbuf_create_with_format(format));
   GPU_vertbuf_data_alloc(*vbo, mr.corners_num + mr.loose_indices_num);
   MutableSpan vbo_data = vbo->data<float>();
@@ -137,8 +137,8 @@ static gpu::VertBuf *build_poly_other_map_vbo(const DRWSubdivCache &subdiv_cache
 {
   gpu::VertBuf *vbo = GPU_vertbuf_calloc();
 
-  static const GPUVertFormat format = GPU_vertformat_from_attribute(
-      "poly_other", GPU_COMP_I32, 1, GPU_FETCH_INT);
+  static const GPUVertFormat format = GPU_vertformat_from_attribute("poly_other",
+                                                                    gpu::VertAttrType::SINT_32);
 
   GPU_vertbuf_init_with_format(*vbo, format);
   GPU_vertbuf_data_alloc(*vbo, subdiv_cache.num_subdiv_loops);
@@ -181,7 +181,7 @@ gpu::VertBufPtr extract_edge_factor_subdiv(const DRWSubdivCache &subdiv_cache,
                                            gpu::VertBuf &pos_nor)
 {
   gpu::VertBufPtr vbo = gpu::VertBufPtr(GPU_vertbuf_create_on_device(
-      GPU_vertformat_from_attribute("wd", GPU_COMP_F32, 1, GPU_FETCH_FLOAT),
+      GPU_vertformat_from_attribute("wd", gpu::VertAttrType::SFLOAT_32),
       subdiv_cache.num_subdiv_loops + subdiv_loose_edges_num(mr, subdiv_cache) * 2));
 
   if (mr.faces_num > 0) {

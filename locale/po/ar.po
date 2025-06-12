@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Alpha (b'e91e8eef41aa')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'798f85a7108f')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-03 09:10+0000\n"
+"POT-Creation-Date: 2025-06-11 11:13+0000\n"
 "PO-Revision-Date: 2025-04-14 08:10+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Arabic <https://translate.blender.org/projects/blender-ui/ui/ar/>\n"
@@ -15831,88 +15831,88 @@ msgid "Proportional Editing Falloff"
 msgstr "ﻲﺒﺴﻨﻟﺍ ﺮﻳﺮﺤﺘﻟﺍ ﻲﺷﻼ﻿ﺗ"
 
 
-msgid "Mirror"
-msgstr "ﻞﺛﺎﻣ"
-
-
-msgid "UV Mapping"
-msgstr "UV ءﺎﺴﻛﺇ"
-
-
-msgid "Navigation"
-msgstr "ﺢﻔّﺼﺗ"
-
-
-msgid "Align View"
-msgstr "ﺮﻈﻨﻤﻟﺍ ﻱﺫﺎﺣ"
-
-
-msgid "Align View to Active"
-msgstr "ﻝﺎﻌّﻔﻠﻟ ﺮﻈﻨﻤﻟﺍ ﻱﺫﺎﺣ"
-
-
-msgid "Select More/Less"
-msgstr "ﻞﻗﺍ/ﺮﺜﻛﺍ ﺭﺎﻴﺘﺧﺍ"
-
-
-msgid "Select Similar"
-msgstr "ﻞﺛﺎﻤﻤﻟﺍ ﺮﺘﺧﺇ"
-
-
-msgid "Select All by Trait"
-msgstr "ﺔﻤﺴﻟﺍ ﺐﺴﺣ ﻞﻛ ﺭﺎﻴﺘﺧﺍ"
-
-
-msgid "Select Linked"
-msgstr "ﺔﻄﺒﺗﺮﻤﻟﺍ ﺭﺎﺘﺧﺇ"
-
-
-msgid "Light"
-msgstr "ءﻮﺿ"
+msgid "Hooks"
+msgstr "ﺕﺎﻓﺎﻄﺧ"
 
 
 msgid "Relations"
 msgstr "ﺕﺎﻗﻼ﻿ﻌﻟﺍ"
 
 
-msgid "Rigid Body"
-msgstr "ﻞﻋﺎﻔﺘﻣ ﻢﺴﺟ"
-
-
-msgid "Apply"
-msgstr "ﻖﺒﻃ"
-
-
-msgid "Track"
-msgstr "ﺐﻘّﻌﺗ"
-
-
-msgid "Quick Effects"
-msgstr "ﺔﻌﻳﺮﺳ ﺕﺍﺮﻴﺛﺄﺗ"
-
-
-msgid "Make Single User"
-msgstr "ﻡﺪﺨﺘﺴﻤﻟﺍ ﺪﻴﺣﻭ ﻪﻠﻌﺟﺍ"
-
-
-msgid "Hooks"
-msgstr "ﺕﺎﻓﺎﻄﺧ"
-
-
-msgid "In-Betweens"
-msgstr "ﻦﻴﺑ ﺎﻣ"
-
-
-msgid "Propagate"
-msgstr "ﻢﻤﻋ"
+msgid "Merge"
+msgstr "ﺞﻣﺩﺇ"
 
 
 msgid "Face Data"
 msgstr "ﻪﺟﻮﻟﺍ ﺕﺎﻧﺎﻴﺑ"
 
 
-msgid "Merge"
-msgstr "ﺞﻣﺩﺇ"
+msgid "Light"
+msgstr "ءﻮﺿ"
+
+
+msgid "Make Single User"
+msgstr "ﻡﺪﺨﺘﺴﻤﻟﺍ ﺪﻴﺣﻭ ﻪﻠﻌﺟﺍ"
+
+
+msgid "Quick Effects"
+msgstr "ﺔﻌﻳﺮﺳ ﺕﺍﺮﻴﺛﺄﺗ"
+
+
+msgid "Track"
+msgstr "ﺐﻘّﻌﺗ"
+
+
+msgid "Apply"
+msgstr "ﻖﺒﻃ"
+
+
+msgid "Rigid Body"
+msgstr "ﻞﻋﺎﻔﺘﻣ ﻢﺴﺟ"
+
+
+msgid "Propagate"
+msgstr "ﻢﻤﻋ"
+
+
+msgid "Select More/Less"
+msgstr "ﻞﻗﺍ/ﺮﺜﻛﺍ ﺭﺎﻴﺘﺧﺍ"
+
+
+msgid "In-Betweens"
+msgstr "ﻦﻴﺑ ﺎﻣ"
+
+
+msgid "Select Linked"
+msgstr "ﺔﻄﺒﺗﺮﻤﻟﺍ ﺭﺎﺘﺧﺇ"
+
+
+msgid "Select All by Trait"
+msgstr "ﺔﻤﺴﻟﺍ ﺐﺴﺣ ﻞﻛ ﺭﺎﻴﺘﺧﺍ"
+
+
+msgid "Select Similar"
+msgstr "ﻞﺛﺎﻤﻤﻟﺍ ﺮﺘﺧﺇ"
+
+
+msgid "Align View to Active"
+msgstr "ﻝﺎﻌّﻔﻠﻟ ﺮﻈﻨﻤﻟﺍ ﻱﺫﺎﺣ"
+
+
+msgid "Align View"
+msgstr "ﺮﻈﻨﻤﻟﺍ ﻱﺫﺎﺣ"
+
+
+msgid "Navigation"
+msgstr "ﺢﻔّﺼﺗ"
+
+
+msgid "UV Mapping"
+msgstr "UV ءﺎﺴﻛﺇ"
+
+
+msgid "Mirror"
+msgstr "ﻞﺛﺎﻣ"
 
 
 msgctxt "MovieClip"
@@ -30266,24 +30266,12 @@ msgid "Helicopter Mode"
 msgstr "ﺮﺘﺑﻮﻜﻴﻠﻬﻟﺍ ﻊﺿﻭ"
 
 
-msgid "Lock Horizon"
-msgstr "ﻖﻓﻷ﻿ﺍ ﻞﻔﻗﺇ"
-
-
-msgid "Keep horizon level while flying with 3D Mouse"
-msgstr "ﺔﻴﺛﻼ﻿ﺜﻟﺍ ﺓﺭﺄﻔﻟﺎﺑ ﻥﺍﺮﻴﻄﻟﺍ ﺪﻨﻋ ﻖﻓﻷ﻿ﺍ ﻯﻮﺘﺴﻣ ﻖﺑﺃ"
-
-
 msgid "Orbit Sensitivity"
 msgstr "ﻥﺍﺭﻭﺪﻟﺍ ﺔﻴﺳﺎﺴﺣ"
 
 
 msgid "Overall sensitivity of the 3D Mouse for orbiting"
 msgstr "ﻥﺍﺭﻭﺪﻠﻟ ﺔﻴﺛﻼ﻿ﺜﻟﺍ ﺓﺭﺄﻔﻠﻟ ﺔﻣﺎﻌﻟﺍ ﺔﻴﺳﺎﺴﺤﻟﺍ"
-
-
-msgid "Pan using up/down on the device (otherwise forward/backward)"
-msgstr "(ﻒﻠﺧ/ﻡﺎﻣﺃ ﺎﻟّﺇ ﻭ) ﺯﺎﻬﺠﻟﺍ ﻰﻠﻋ ﻞﻔﺳﺃ/ﻰﻠﻋﺃ ﻝﺎﻤﻌﺘﺳﺎﺑ ﺐﺤﺳﺍ"
 
 
 msgid "Invert X Axis"
@@ -30312,38 +30300,6 @@ msgstr "ﻚﻳﺮﺤﺘﻠﻟ ﺔﻴﺛﻼ﻿ﺜﻟﺍ ﺓﺭﺄﻔﻠﻟ ﺔﻣ
 
 msgid "Display the center and axis during rotation"
 msgstr "ﻥﺍﺭﻭﺪﻟﺍ ءﺎﻨﺛﺃ ﺭﻮﺤﻤﻟﺍ ﻭ ﺰﻛﺮﻤﻟﺍ ﺮﻬﻇﺃ"
-
-
-msgid "Navigation style in the viewport"
-msgstr "ﺬﻔﻨﻤﻟﺍ ﻲﻓ ﺭﺎﺤﺑﻹ﻿ﺍ ﺏﻮﻠﺳﺃ"
-
-
-msgid "NDOF View Rotation"
-msgstr "ﺮﻳﻭﺪﺘﻟﺍ ﺭﺎﻬﻇﺇ"
-
-
-msgid "Rotation style in the viewport"
-msgstr "ﺬﻔﻨﻤﻟﺍ ﻲﻓ ﻥﺍﺭﻭﺪﻟﺍ ﺏﻮﻠﺳﺃ"
-
-
-msgid "Turntable"
-msgstr "ﺭﺍﻭﺪﻟﺍ ﺹﺮﻘﻟﺍ"
-
-
-msgid "Use turntable style rotation in the viewport"
-msgstr "ﺬﻔﻨﻤﻟﺍ ﻲﻓ ﻥﺍﺭﻭﺪﻟﺍ ﺹﺮﻘﻟﺍ ﺏﻮﻠﺳﺃ ﻡﺪﺨﺘﺳﺍ"
-
-
-msgid "Use trackball style rotation in the viewport"
-msgstr " ﺬﻔﻨﻤﻟﺍ ﻲﻓ ﺔﻌﺒﺘﺘﻤﻟﺍ ﺓﺮﻜﻟﺍ ﺏﻮﻠﺳﺃ ﻡﺪﺨﺘﺳﺍ"
-
-
-msgid "Invert Zoom"
-msgstr "ﻢﻴﺠﺤﺘﻟﺍ ﺐﻠﻗﺇ"
-
-
-msgid "Zoom using opposite direction"
-msgstr "ﺲﻛﺎﻌﻤﻟﺍ ﻩﺎﺠﺗﻹ﻿ﺍ ﻝﺎﻤﻌﺘﺳﺎﺑ ﺏﺮّﻗ"
 
 
 msgid "Softness"
@@ -30392,6 +30348,10 @@ msgstr " ﺭﻮﺤﻣ ﺔﻄﻘﻨﻛ ﺭﺎﻴﺘﺧﻻ﻿ﺍ ﻡﺪﺨﺘﺳ�
 
 msgid "Zoom in towards the mouse pointer's position in the 3D view, rather than the 2D window center"
 msgstr "  ﺓﺬﻓﺎﻨﻟﺍ ﺰﻛﺮﻣ ﻝﺪﺑ ،ﻲﺛﻼ﻿ﺜﻟﺍ ﺮﻈﻨﻤﻟﺍ ﻲﻓ ﺓﺭﺄﻔﻟﺍ ﺮﺷﺆﻣ ﻊﻗﻮﻣ ﺏﻮﺻ ﺐﻳﺮﻘﺘﻟﺍ"
+
+
+msgid "Turntable"
+msgstr "ﺭﺍﻭﺪﻟﺍ ﺹﺮﻘﻟﺍ"
 
 
 msgid "Zoom Axis"
@@ -35558,6 +35518,10 @@ msgid "Invert Wheel Zoom Direction"
 msgstr "ﺐﻳﺮﻘﺘﻟﺍ ﺔﻠﺠﻋ ﻩﺎﺠﺗﺍ ﺐﻠﻗ"
 
 
+msgid "Lock Horizon"
+msgstr "ﻖﻓﻷ﻿ﺍ ﻞﻔﻗﺇ"
+
+
 msgid "Missing script files"
 msgstr "ﺩﻮﻘﻔﻣ ﺖﺒﻳﺮﻜﺳ ﻒﻠﻣ"
 
@@ -38087,120 +38051,4 @@ msgstr "ﻡﺪﺨﺘﺴﻤﻟﺍ ﻞﺒﻗ ﻦﻣ ﺔﺒﺼﻨﻤﻟﺍ ﺲﺑ�
 
 msgid "Import-Export"
 msgstr "ﺪﻳﺭﻮﺗ-ﺮﻳﺪﺼﺗ"
-
-
-msgid "Japanese (日本語)"
-msgstr "(日本語) ﺔﻴﻧﺎﺑﺎﻴﻟﺍ"
-
-
-msgid "Italian (Italiano)"
-msgstr "(Italiano) ﺔﻴﻟﺎﻃﻹ﻿ﺍ"
-
-
-msgid "German (Deutsch)"
-msgstr "(Deutsch) ﺔﻴﻧﺎﻤﻟﺃ"
-
-
-msgid "Finnish (Suomi)"
-msgstr "(Suomi) ﺔﻳﺪﻨﻠﻨﻓ"
-
-
-msgid "Swedish (Svenska)"
-msgstr "(Svenska) ﺔﻳﺪﻳﻮﺴﻟﺍ"
-
-
-msgid "French (Français)"
-msgstr "(Français) ﺔﻴﺴﻧﺮﻔﻟﺍ"
-
-
-msgid "Spanish (Español)"
-msgstr "(Español) ﺔﻴﻧﺎﺒﺳﺇ"
-
-
-msgid "Catalan (Català)"
-msgstr "(Català) ﺔﻴﻧﻻ﻿ﺎﺗﺎﻛ"
-
-
-msgid "Portuguese (Português)"
-msgstr "(Português) ﺔﻴﻟﺎﻐﺗﺮﺒﻟﺍ"
-
-
-msgid "Simplified Chinese (简体中文)"
-msgstr "(简体中文) ﺔﻄﺴﺒﻣ ﺔﻴﻨﻴﺻ"
-
-
-msgid "Traditional Chinese (繁體中文)"
-msgstr "(繁體中文) ﺔﻳﺪﻴﻠﻘﺗ ﺔﻴﻨﻴﺻ"
-
-
-msgid "Russian (Русский)"
-msgstr "(Русский) ﺔﻴﺳﻭﺮﻟﺍ"
-
-
-msgid "Croatian (Hrvatski)"
-msgstr "(Hrvatski) ﺔﻴﺗﺍﻭﺮﻜﻟﺍ"
-
-
-msgid "Serbian (Српски)"
-msgstr "(Српски) ﺔﻴﺑﺮﺼﻟﺍ"
-
-
-msgid "Polish (Polski)"
-msgstr "(Polski) ﺔﻳﺪﻨﻟﻮﺑ"
-
-
-msgid "Romanian (Român)"
-msgstr "(Român) ﺔﻴﻧﺎﻣﻭﺭ"
-
-
-msgid "Bulgarian (Български)"
-msgstr "(Български) ﺔﻳﺭﺎﻐﻠﺒﻟﺍ"
-
-
-msgid "Greek (Ελληνικά)"
-msgstr "(Ελληνικά) ﺔﻴﻧﺎﻧﻮﻴﻟﺍ"
-
-
-msgid "Nepali (नेपाली)"
-msgstr "(नेपाली) ﺔﻴﻟﺎﺒﻴﻨﻟﺍ"
-
-
-msgid "Indonesian (Bahasa indonesia)"
-msgstr "(Bahasa indonesia) ﻲﺴﻴﻧﻭﺪﻧﺍ"
-
-
-msgid "Serbian Latin (Srpski latinica)"
-msgstr "(Srpski latinica) ﺔﻴﻨﻴﺗﻼ﻿ﻟﺍ ﺔﻴﺑﺮﺼﻟﺍ"
-
-
-msgid "Kyrgyz (Кыргыз тили)"
-msgstr "(Кыргыз тили) ﺔﻴﻧﺎﺘﺳﺰﻴﻏﺮﻗ"
-
-
-msgid "Turkish (Türkçe)"
-msgstr "(Türkçe) ﺔﻴﻛﺮﺘﻟﺍ"
-
-
-msgid "Esperanto (Esperanto)"
-msgstr "(Esperanto) ﻮﺘﻧﺍﺮﻴﺒﺳﺃ"
-
-
-msgid "Amharic (አማርኛ)"
-msgstr "(አማርኛ) ﺔﻳﺮﻬﻣﻷ﻿ﺍ"
-
-
-msgid "Uzbek (Oʻzbek)"
-msgstr "(Oʻzbek) ﻲﻜﺑﺯﻭﻷ﻿ﺍ"
-
-
-msgid "Uzbek Cyrillic (Ўзбек)"
-msgstr "(Ўзбек) ﺔﻴﻠﻳﺮﻴﺴﻟﺍ ﻲﻜﺑﺯﻭﻷ﻿ﺍ"
-
-
-msgid "Complete"
-msgstr "ﺐﻴﻛﺮﺗ"
-
-
-msgid "In Progress"
-msgstr "ﻡﺪﻘﺘﻟﺍ ﻲﻓ "
 

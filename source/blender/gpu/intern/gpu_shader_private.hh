@@ -265,7 +265,8 @@ class ShaderCompiler {
 
   bool support_specializations_;
 
-  void run_thread();
+  void *pop_work();
+  void do_work(void *work_payload);
 
   BatchHandle next_batch_handle_ = 1;
 

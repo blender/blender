@@ -1012,8 +1012,9 @@ bool GHOST_SystemCocoa::processEvents(bool /*waitForEvent*/)
       }
       else {
         timeOut = (double)(next - getMilliSeconds())/1000.0;
-        if (timeOut < 0.0)
+        if (timeOut < 0.0) {
           timeOut = 0.0;
+        }
       }
 
       ::ReceiveNextEvent(0, nullptr, timeOut, false, &event);

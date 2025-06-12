@@ -255,7 +255,8 @@ void clip_draw_graph(SpaceClip *sc, ARegion *region, Scene *scene)
   UI_view2d_draw_lines_y__values(v2d);
 
   if (clip) {
-    uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+    uint pos = GPU_vertformat_attr_add(
+        immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
     immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
     GPU_point_size(3.0f);

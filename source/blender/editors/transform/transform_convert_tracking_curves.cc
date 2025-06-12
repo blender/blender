@@ -285,7 +285,7 @@ static void special_aftertrans_update__movieclip_for_curves(bContext *C, TransIn
 {
   SpaceClip *sc = static_cast<SpaceClip *>(t->area->spacedata.first);
   MovieClip *clip = ED_space_clip_get_clip(sc);
-  if (t->scene->nodetree != nullptr) {
+  if (t->scene->compositing_node_group != nullptr) {
     /* Tracks can be used for stabilization nodes,
      * flush update for such nodes.
      */

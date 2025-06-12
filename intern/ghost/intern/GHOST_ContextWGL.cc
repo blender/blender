@@ -57,8 +57,9 @@ GHOST_ContextWGL::GHOST_ContextWGL(bool stereoVisual,
 GHOST_ContextWGL::~GHOST_ContextWGL()
 {
   if (m_hGLRC != nullptr) {
-    if (m_hGLRC == ::wglGetCurrentContext())
+    if (m_hGLRC == ::wglGetCurrentContext()) {
       WIN32_CHK(::wglMakeCurrent(nullptr, nullptr));
+    }
 
     if (m_hGLRC != s_sharedHGLRC || s_sharedCount == 1) {
       assert(s_sharedCount > 0);
@@ -422,12 +423,14 @@ struct DummyContextWGL {
   {
     WIN32_CHK(::wglMakeCurrent(prevHDC, prevHGLRC));
 
-    if (dummyHGLRC != nullptr)
+    if (dummyHGLRC != nullptr) {
       WIN32_CHK(::wglDeleteContext(dummyHGLRC));
+    }
 
     if (dummyHWND != nullptr) {
-      if (dummyHDC != nullptr)
+      if (dummyHDC != nullptr) {
         WIN32_CHK(::ReleaseDC(dummyHWND, dummyHDC));
+      }
 
       WIN32_CHK(::DestroyWindow(dummyHWND));
     }
@@ -488,8 +491,9 @@ static void reportContextString(const char *name, const char *dummy, const char 
 {
   fprintf(stderr, "%s: %s\n", name, context);
 
-  if (dummy && strcmp(dummy, context) != 0)
+  if (dummy && strcmp(dummy, context) != 0) {
     fprintf(stderr, "Warning! Dummy %s: %s\n", name, dummy);
+  }
 }
 #endif
 
@@ -514,8 +518,9 @@ GHOST_TSuccess GHOST_ContextWGL::initializeDrawingContext()
         iPixelFormat = choose_pixel_format_arb(m_stereoVisual, needAlpha);
       }
 
-      if (iPixelFormat == 0)
+      if (iPixelFormat == 0) {
         iPixelFormat = choose_pixel_format_legacy(m_hDC, dummy.preferredPFD);
+      }
 
       if (iPixelFormat == 0) {
         goto error;

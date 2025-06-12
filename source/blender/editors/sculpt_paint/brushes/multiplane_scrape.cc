@@ -392,6 +392,9 @@ static void calc_faces(const Depsgraph &depsgraph,
   }
 
   calc_distances(local_positions, distances);
+  /* TODO: Using the radius for the filter here is probably too high, but due to the Y-axis
+   * deformation, a simple value of 1.0 isn't correct. */
+  filter_distances_with_radius(cache.radius, distances, factors);
 
   apply_hardness_to_distances(cache, distances);
   calc_brush_strength_factors(cache, brush, distances, factors);
@@ -451,6 +454,9 @@ static void calc_grids(const Depsgraph &depsgraph,
   }
 
   calc_distances(local_positions, distances);
+  /* TODO: Using the radius for the filter here is probably too high, but due to the Y-axis
+   * deformation, a simple value of 1.0 isn't correct. */
+  filter_distances_with_radius(cache.radius, distances, factors);
 
   apply_hardness_to_distances(cache, distances);
   calc_brush_strength_factors(cache, brush, distances, factors);
@@ -509,6 +515,9 @@ static void calc_bmesh(const Depsgraph &depsgraph,
   }
 
   calc_distances(local_positions, distances);
+  /* TODO: Using the radius for the filter here is probably too high, but due to the Y-axis
+   * deformation, a simple value of 1.0 isn't correct. */
+  filter_distances_with_radius(cache.radius, distances, factors);
 
   apply_hardness_to_distances(cache, distances);
   calc_brush_strength_factors(cache, brush, distances, factors);

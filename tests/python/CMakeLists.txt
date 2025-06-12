@@ -1265,6 +1265,13 @@ if(TEST_SRC_DIR_EXISTS)
     --
     --testdir "${TEST_SRC_DIR}/sculpting"
   )
+
+  add_blender_test(
+    bl_sculpt_brush_curve_presets
+    --python ${CMAKE_CURRENT_LIST_DIR}/sculpt_paint/brush_strength_curves_test.py
+    --
+    --testdir "${TEST_SRC_DIR}/sculpting"
+  )
 endif()
 
 if(WITH_GPU_MESH_PAINT_TESTS AND TEST_SRC_DIR_EXISTS)

@@ -271,6 +271,26 @@ class VIEWLAYER_PT_filter(ViewLayerButtonsPanel, Panel):
         sub.active = scene.render.use_motion_blur
 
 
+class VIEWLAYER_PT_override(ViewLayerButtonsPanel, Panel):
+    bl_label = "Override"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {
+        'BLENDER_EEVEE_NEXT',
+        'CYCLES',
+    }
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        view_layer = context.view_layer
+
+        layout.prop(view_layer, "material_override")
+        layout.prop(view_layer, "world_override")
+        layout.prop(view_layer, "samples")
+
+
 class VIEWLAYER_PT_layer_custom_props(PropertyPanel, Panel):
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
@@ -290,6 +310,7 @@ classes = (
     VIEWLAYER_PT_layer_passes_aov,
     VIEWLAYER_PT_layer_passes_lightgroups,
     VIEWLAYER_PT_filter,
+    VIEWLAYER_PT_override,
     VIEWLAYER_PT_layer_custom_props,
     VIEWLAYER_UL_aov,
 )

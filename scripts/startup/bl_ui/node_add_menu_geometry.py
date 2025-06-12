@@ -111,9 +111,9 @@ class NODE_MT_geometry_node_GEO_CURVE_OPERATIONS(Menu):
 
     def draw(self, _context):
         layout = self.layout
-        node_add_menu.add_node_type(layout, "GeometryNodeCurvesToGreasePencil")
         node_add_menu.add_node_type(layout, "GeometryNodeCurveToMesh")
         node_add_menu.add_node_type(layout, "GeometryNodeCurveToPoints")
+        node_add_menu.add_node_type(layout, "GeometryNodeCurvesToGreasePencil")
         node_add_menu.add_node_type(layout, "GeometryNodeDeformCurvesOnSurface")
         node_add_menu.add_node_type(layout, "GeometryNodeFillCurve")
         node_add_menu.add_node_type(layout, "GeometryNodeFilletCurve")
@@ -615,8 +615,8 @@ class NODE_MT_category_GEO_TEXT(Menu):
         node_add_menu.add_node_type(layout, "FunctionNodeReplaceString")
         node_add_menu.add_node_type(layout, "FunctionNodeSliceString")
         layout.separator()
-        node_add_menu.add_node_type(layout, "FunctionNodeStringLength")
         node_add_menu.add_node_type(layout, "FunctionNodeFindInString")
+        node_add_menu.add_node_type(layout, "FunctionNodeStringLength")
         node_add_menu.add_node_type(layout, "GeometryNodeStringToCurves")
         node_add_menu.add_node_type(layout, "FunctionNodeValueToString")
         layout.separator()

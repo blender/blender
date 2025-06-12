@@ -410,7 +410,7 @@ PassMain::Sub *ForwardPipeline::prepass_transparent_add(const Object *ob,
   float sorting_value = math::dot(float3(ob->object_to_world().location()), camera_forward_);
   PassMain::Sub *pass = &transparent_ps_.sub(GPU_material_get_name(gpumat), sorting_value);
   pass->state_set(state);
-  pass->material_set(*inst_.manager, gpumat);
+  pass->material_set(*inst_.manager, gpumat, true);
   return pass;
 }
 
@@ -427,7 +427,7 @@ PassMain::Sub *ForwardPipeline::material_transparent_add(const Object *ob,
   float sorting_value = math::dot(float3(ob->object_to_world().location()), camera_forward_);
   PassMain::Sub *pass = &transparent_ps_.sub(GPU_material_get_name(gpumat), sorting_value);
   pass->state_set(state);
-  pass->material_set(*inst_.manager, gpumat);
+  pass->material_set(*inst_.manager, gpumat, true);
   return pass;
 }
 
@@ -1077,7 +1077,7 @@ PassMain::Sub *VolumeLayer::occupancy_add(const Object *ob,
   is_empty = false;
 
   PassMain::Sub *pass = &occupancy_ps_->sub(GPU_material_get_name(gpumat));
-  pass->material_set(*inst_.manager, gpumat);
+  pass->material_set(*inst_.manager, gpumat, true);
   pass->push_constant("use_fast_method", use_fast_occupancy);
   return pass;
 }
@@ -1091,7 +1091,7 @@ PassMain::Sub *VolumeLayer::material_add(const Object *ob,
   UNUSED_VARS_NDEBUG(ob);
 
   PassMain::Sub *pass = &material_ps_->sub(GPU_material_get_name(gpumat));
-  pass->material_set(*inst_.manager, gpumat);
+  pass->material_set(*inst_.manager, gpumat, true);
   if (GPU_material_flag_get(gpumat, GPU_MATFLAG_VOLUME_SCATTER)) {
     has_scatter = true;
   }

@@ -21,7 +21,7 @@ namespace blender::gpu::tests {
 
 static constexpr int Size = 2;
 
-template<GPUVertCompType comp_type, GPUVertFetchMode fetch_mode, typename ColorType>
+template<VertAttrType attr_type, typename ColorType>
 static void vertex_buffer_fetch_mode(ColorType color)
 {
   eGPUTextureUsage usage = GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_HOST_READ;
@@ -33,8 +33,8 @@ static void vertex_buffer_fetch_mode(ColorType color)
   GPU_texture_clear(color_texture, GPU_DATA_FLOAT, float4(1.0f, 2.0f, 3.0f, 0.0f));
 
   GPUVertFormat format = {0};
-  GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-  GPU_vertformat_attr_add(&format, "color", comp_type, 4, fetch_mode);
+  GPU_vertformat_attr_add(&format, "pos", gpu::VertAttrType::SFLOAT_32_32);
+  GPU_vertformat_attr_add(&format, "color", attr_type);
 
   struct Vert {
     float2 pos;
@@ -65,29 +65,29 @@ static void vertex_buffer_fetch_mode(ColorType color)
 
   GPU_offscreen_read_color(offscreen, GPU_DATA_FLOAT, read_data.data());
 
-  if constexpr (fetch_mode == GPU_FETCH_INT_TO_FLOAT_UNIT) {
-    switch (comp_type) {
-      case GPU_COMP_I8:
-        read_data[0] = read_data[0] * float(127);
-        break;
-      case GPU_COMP_U8:
-        read_data[0] = read_data[0] * float(255);
-        break;
-      case GPU_COMP_I16:
-        read_data[0] = read_data[0] * float(32767);
-        break;
-      case GPU_COMP_U16:
-        read_data[0] = read_data[0] * float(65535);
-        break;
-      case GPU_COMP_I10:
-        read_data[0] = read_data[0] * float4(511, 511, 511, 1);
-        break;
-      default:
-        BLI_assert_unreachable();
-    }
+  switch (attr_type) {
+    case VertAttrType::SNORM_8_8_8_8:
+      read_data[0] = read_data[0] * float(127);
+      break;
+    case VertAttrType::UNORM_8_8_8_8:
+      read_data[0] = read_data[0] * float(255);
+      break;
+    case VertAttrType::SNORM_16_16_16_16:
+      read_data[0] = read_data[0] * float(32767);
+      break;
+    case VertAttrType::UNORM_16_16_16_16:
+      read_data[0] = read_data[0] * float(65535);
+      break;
+    case VertAttrType::SNORM_10_10_10_2:
+      read_data[0] = read_data[0] * float4(511, 511, 511, 1);
+      break;
+    case VertAttrType::SFLOAT_32_32_32_32:
+      break;
+    default:
+      BLI_assert_unreachable();
   }
 
-  if (fetch_mode == GPU_FETCH_FLOAT) {
+  if (attr_type == VertAttrType::SFLOAT_32_32_32_32) {
     EXPECT_EQ(read_data[0], float4(color));
   }
   else {
@@ -101,42 +101,40 @@ static void vertex_buffer_fetch_mode(ColorType color)
 
 static void test_vertex_buffer_fetch_mode__GPU_COMP_I8__GPU_FETCH_INT_TO_FLOAT_UNIT()
 {
-  vertex_buffer_fetch_mode<GPU_COMP_I8, GPU_FETCH_INT_TO_FLOAT_UNIT, char4>(
-      char4(100, -127, 127, 0));
+  vertex_buffer_fetch_mode<VertAttrType::SNORM_8_8_8_8, char4>(char4(100, -127, 127, 0));
 }
 GPU_TEST(vertex_buffer_fetch_mode__GPU_COMP_I8__GPU_FETCH_INT_TO_FLOAT_UNIT);
 
 static void test_vertex_buffer_fetch_mode__GPU_COMP_U8__GPU_FETCH_INT_TO_FLOAT_UNIT()
 {
-  vertex_buffer_fetch_mode<GPU_COMP_U8, GPU_FETCH_INT_TO_FLOAT_UNIT, uchar4>(
-      uchar4(100, 0, 255, 127));
+  vertex_buffer_fetch_mode<VertAttrType::UNORM_8_8_8_8, uchar4>(uchar4(100, 0, 255, 127));
 }
 GPU_TEST(vertex_buffer_fetch_mode__GPU_COMP_U8__GPU_FETCH_INT_TO_FLOAT_UNIT);
 
 static void test_vertex_buffer_fetch_mode__GPU_COMP_I16__GPU_FETCH_INT_TO_FLOAT_UNIT()
 {
-  vertex_buffer_fetch_mode<GPU_COMP_I16, GPU_FETCH_INT_TO_FLOAT_UNIT, short4>(
+  vertex_buffer_fetch_mode<VertAttrType::SNORM_16_16_16_16, short4>(
       short4(12034, -32767, 32767, 0));
 }
 GPU_TEST(vertex_buffer_fetch_mode__GPU_COMP_I16__GPU_FETCH_INT_TO_FLOAT_UNIT);
 
 static void test_vertex_buffer_fetch_mode__GPU_COMP_U16__GPU_FETCH_INT_TO_FLOAT_UNIT()
 {
-  vertex_buffer_fetch_mode<GPU_COMP_U16, GPU_FETCH_INT_TO_FLOAT_UNIT, ushort4>(
+  vertex_buffer_fetch_mode<VertAttrType::UNORM_16_16_16_16, ushort4>(
       ushort4(12034, 0, 65535, 32767));
 }
 GPU_TEST(vertex_buffer_fetch_mode__GPU_COMP_U16__GPU_FETCH_INT_TO_FLOAT_UNIT);
 
 static void test_vertex_buffer_fetch_mode__GPU_COMP_I10__GPU_FETCH_INT_TO_FLOAT_UNIT()
 {
-  vertex_buffer_fetch_mode<GPU_COMP_I10, GPU_FETCH_INT_TO_FLOAT_UNIT, PackedNormal>(
+  vertex_buffer_fetch_mode<VertAttrType::SNORM_10_10_10_2, PackedNormal>(
       PackedNormal(321, -511, 511, 0));
 }
 GPU_TEST(vertex_buffer_fetch_mode__GPU_COMP_I10__GPU_FETCH_INT_TO_FLOAT_UNIT);
 
 static void test_vertex_buffer_fetch_mode__GPU_COMP_F32__GPU_FETCH_FLOAT()
 {
-  vertex_buffer_fetch_mode<GPU_COMP_F32, GPU_FETCH_FLOAT, float4>(float4(4, 5, 6, 1));
+  vertex_buffer_fetch_mode<VertAttrType::SFLOAT_32_32_32_32, float4>(float4(4, 5, 6, 1));
 }
 GPU_TEST(vertex_buffer_fetch_mode__GPU_COMP_F32__GPU_FETCH_FLOAT);
 

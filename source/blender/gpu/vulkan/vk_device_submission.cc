@@ -68,10 +68,13 @@ TimelineValue VKDevice::render_graph_submit(render_graph::VKRenderGraph *render_
   if (wait_for_submission) {
     submit_task->wait_for_submission = &wait_condition;
   }
-  TimelineValue timeline = submit_task->timeline = submit_to_device ? ++timeline_value_ :
-                                                                      timeline_value_ + 1;
-  orphaned_data.timeline_ = timeline + 1;
-  orphaned_data.move_data(context_discard_pool, timeline);
+  TimelineValue timeline = 0;
+  {
+    std::scoped_lock lock(orphaned_data.mutex_get());
+    timeline = submit_task->timeline = submit_to_device ? ++timeline_value_ : timeline_value_ + 1;
+    orphaned_data.timeline_ = timeline;
+    orphaned_data.move_data(context_discard_pool, timeline);
+  }
 
   BLI_thread_queue_push(submitted_render_graphs_, submit_task);
   submit_task = nullptr;

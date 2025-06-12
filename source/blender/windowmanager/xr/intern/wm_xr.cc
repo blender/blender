@@ -134,10 +134,9 @@ void wm_xr_exit(wmWindowManager *wm)
   if (wm->xr.runtime != nullptr) {
     wm_xr_runtime_data_free(&wm->xr.runtime);
   }
-  if (wm->xr.session_settings.shading.prop) {
-    IDP_FreeProperty(wm->xr.session_settings.shading.prop);
-    wm->xr.session_settings.shading.prop = nullptr;
-  }
+
+  /* See #wm_xr_data_free for logic that frees window-manager XR data
+   * that may exist even when built without XR. */
 }
 
 bool wm_xr_events_handle(wmWindowManager *wm)

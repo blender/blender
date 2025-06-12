@@ -773,12 +773,10 @@ static void draw_handle_transform_text(const TimelineDrawContext *timeline_ctx,
 
 float strip_handle_draw_size_get(const Scene *scene, Strip *strip, const float pixelx)
 {
-  const bool use_thin_handle = (U.sequencer_editor_flag & USER_SEQ_ED_SIMPLE_TWEAKING) != 0;
-  const float handle_size = use_thin_handle ? 5.0f : 8.0f;
-  const float maxhandle = (pixelx * handle_size) * U.pixelsize;
+  const float handle_size = pixelx * (5.0f * U.pixelsize);
 
-  /* Ensure that handle is not wider, than quarter of strip. */
-  return min_ff(maxhandle,
+  /* Ensure that the handle is not wider than a quarter of the strip. */
+  return min_ff(handle_size,
                 (float(seq::time_right_handle_frame_get(scene, strip) -
                        seq::time_left_handle_frame_get(scene, strip)) /
                  4.0f));
@@ -1226,7 +1224,8 @@ static void draw_seq_timeline_channels(TimelineDrawContext *ctx)
 {
   View2D *v2d = ctx->v2d;
   UI_view2d_view_ortho(v2d);
-  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+  uint pos = GPU_vertformat_attr_add(
+      immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
   GPU_blend(GPU_BLEND_ALPHA);
   immUniformThemeColor(TH_ROW_ALTERNATE);
@@ -1455,21 +1454,12 @@ static void strip_data_handle_flags_set(const StripDrawContext &strip,
 {
   const Scene *scene = timeline_ctx->scene;
   const bool selected = strip.strip->flag & SELECT;
-  const bool show_handles = (U.sequencer_editor_flag & USER_SEQ_ED_SIMPLE_TWEAKING) == 0;
   /* Handles on left/right side. */
   if (!seq::transform_is_locked(timeline_ctx->channels, strip.strip) &&
       can_select_handle(scene, strip.strip, timeline_ctx->v2d))
   {
     const bool selected_l = selected && handle_is_selected(strip.strip, STRIP_HANDLE_LEFT);
     const bool selected_r = selected && handle_is_selected(strip.strip, STRIP_HANDLE_RIGHT);
-    const bool show_l = show_handles || selected_l;
-    const bool show_r = show_handles || selected_r;
-    if (show_l) {
-      data.flags |= GPU_SEQ_FLAG_DRAW_LH;
-    }
-    if (show_r) {
-      data.flags |= GPU_SEQ_FLAG_DRAW_RH;
-    }
     if (selected_l) {
       data.flags |= GPU_SEQ_FLAG_SELECTED_LH;
     }
@@ -1607,7 +1597,8 @@ static void draw_timeline_sfra_efra(TimelineDrawContext *ctx)
 
   GPU_blend(GPU_BLEND_ALPHA);
 
-  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+  uint pos = GPU_vertformat_attr_add(
+      immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
   /* Draw overlay outside of frame range. */
@@ -1799,7 +1790,8 @@ static void draw_overlap_frame_indicator(const Scene *scene, const View2D *v2d)
                           scene->ed->overlay_frame_abs :
                           scene->r.cfra + scene->ed->overlay_frame_ofs;
 
-  uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+  uint pos = GPU_vertformat_attr_add(
+      immVertexFormat(), "pos", blender::gpu::VertAttrType::SFLOAT_32_32);
   immBindBuiltinProgram(GPU_SHADER_3D_LINE_DASHED_UNIFORM_COLOR);
   float viewport_size[4];
   GPU_viewport_size_get_f(viewport_size);

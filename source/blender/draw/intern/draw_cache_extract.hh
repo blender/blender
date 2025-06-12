@@ -189,7 +189,7 @@ struct MeshBatchList {
 
 #define MBC_BATCH_INDEX(batch) (offsetof(MeshBatchList, batch) / sizeof(void *))
 
-enum DRWBatchFlag {
+enum DRWBatchFlag : uint64_t {
   MBC_SURFACE = (1u << MBC_BATCH_INDEX(surface)),
   MBC_SURFACE_WEIGHTS = (1u << MBC_BATCH_INDEX(surface_weights)),
   MBC_EDIT_TRIANGLES = (1u << MBC_BATCH_INDEX(edit_triangles)),
@@ -225,7 +225,7 @@ enum DRWBatchFlag {
 };
 ENUM_OPERATORS(DRWBatchFlag, MBC_SURFACE_PER_MAT);
 
-BLI_STATIC_ASSERT(MBC_BATCH_LEN < 32, "Number of batches exceeded the limit of bit fields");
+BLI_STATIC_ASSERT(MBC_BATCH_LEN < 64, "Number of batches exceeded the limit of bit fields");
 
 struct MeshExtractLooseGeom {
   /** Indices of all vertices not used by edges in the #Mesh or #BMesh. */

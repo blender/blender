@@ -1136,8 +1136,8 @@ static wmOperatorStatus view_layer_add_aov_exec(bContext *C, wmOperator * /*op*/
     engine = nullptr;
   }
 
-  if (scene->nodetree) {
-    ntreeCompositUpdateRLayers(scene->nodetree);
+  if (scene->compositing_node_group) {
+    ntreeCompositUpdateRLayers(scene->compositing_node_group);
   }
 
   DEG_id_tag_update(&scene->id, ID_RECALC_SYNC_TO_EVAL);
@@ -1188,8 +1188,8 @@ static wmOperatorStatus view_layer_remove_aov_exec(bContext *C, wmOperator * /*o
     engine = nullptr;
   }
 
-  if (scene->nodetree) {
-    ntreeCompositUpdateRLayers(scene->nodetree);
+  if (scene->compositing_node_group) {
+    ntreeCompositUpdateRLayers(scene->compositing_node_group);
   }
 
   DEG_id_tag_update(&scene->id, ID_RECALC_SYNC_TO_EVAL);
@@ -1240,8 +1240,8 @@ static wmOperatorStatus view_layer_add_lightgroup_exec(bContext *C, wmOperator *
 
   BKE_view_layer_add_lightgroup(view_layer, name);
 
-  if (scene->nodetree) {
-    ntreeCompositUpdateRLayers(scene->nodetree);
+  if (scene->compositing_node_group) {
+    ntreeCompositUpdateRLayers(scene->compositing_node_group);
   }
 
   DEG_id_tag_update(&scene->id, ID_RECALC_SYNC_TO_EVAL);
@@ -1290,8 +1290,8 @@ static wmOperatorStatus view_layer_remove_lightgroup_exec(bContext *C, wmOperato
 
   BKE_view_layer_remove_lightgroup(view_layer, view_layer->active_lightgroup);
 
-  if (scene->nodetree) {
-    ntreeCompositUpdateRLayers(scene->nodetree);
+  if (scene->compositing_node_group) {
+    ntreeCompositUpdateRLayers(scene->compositing_node_group);
   }
 
   DEG_id_tag_update(&scene->id, ID_RECALC_SYNC_TO_EVAL);
@@ -1354,8 +1354,8 @@ static wmOperatorStatus view_layer_add_used_lightgroups_exec(bContext *C, wmOper
     }
   }
 
-  if (scene->nodetree) {
-    ntreeCompositUpdateRLayers(scene->nodetree);
+  if (scene->compositing_node_group) {
+    ntreeCompositUpdateRLayers(scene->compositing_node_group);
   }
 
   DEG_id_tag_update(&scene->id, ID_RECALC_SYNC_TO_EVAL);
@@ -1397,8 +1397,8 @@ static wmOperatorStatus view_layer_remove_unused_lightgroups_exec(bContext *C, w
     }
   }
 
-  if (scene->nodetree) {
-    ntreeCompositUpdateRLayers(scene->nodetree);
+  if (scene->compositing_node_group) {
+    ntreeCompositUpdateRLayers(scene->compositing_node_group);
   }
 
   DEG_id_tag_update(&scene->id, ID_RECALC_SYNC_TO_EVAL);

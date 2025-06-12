@@ -20,6 +20,7 @@ const char *file_context_dir[] = {
     "active_file",
     "selected_files",
     "asset_library_reference",
+    "asset",
     "selected_assets",
     "id",
     "selected_ids",
@@ -77,6 +78,16 @@ int /*eContextResult*/ file_context(const bContext *C,
 
     CTX_data_pointer_set(
         result, &screen->id, &RNA_AssetLibraryReference, &asset_params->asset_library_ref);
+    return CTX_RESULT_OK;
+  }
+
+  if (CTX_data_equals(member, "asset")) {
+    FileDirEntry *file = filelist_file(sfile->files, params->active_file);
+    if (file == nullptr) {
+      return CTX_RESULT_NO_DATA;
+    }
+
+    CTX_data_pointer_set(result, nullptr, &RNA_AssetRepresentation, file->asset);
     return CTX_RESULT_OK;
   }
   if (CTX_data_equals(member, "selected_assets")) {

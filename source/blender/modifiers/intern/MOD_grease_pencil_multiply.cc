@@ -248,14 +248,14 @@ static void panel_draw(const bContext *C, Panel *panel)
   layout->prop(ptr, "duplicates", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   uiLayout *col = &layout->column(false);
-  uiLayoutSetActive(col, RNA_int_get(ptr, "duplicates") > 0);
+  col->active_set(RNA_int_get(ptr, "duplicates") > 0);
   col->prop(ptr, "distance", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   col->prop(ptr, "offset", UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
   PanelLayout fade_panel_layout = layout->panel_prop_with_bool_header(
       C, ptr, "open_fading_panel", ptr, "use_fade", IFACE_("Fade"));
   if (uiLayout *fade_panel = fade_panel_layout.body) {
     uiLayout *sub = &fade_panel->column(false);
-    uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_fade"));
+    sub->active_set(RNA_boolean_get(ptr, "use_fade"));
 
     sub->prop(ptr, "fading_center", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     sub->prop(ptr, "fading_thickness", UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);

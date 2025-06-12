@@ -369,7 +369,6 @@ const blender::ImplicitSharingInfo *BLO_read_shared(
 }
 
 int BLO_read_fileversion_get(BlendDataReader *reader);
-bool BLO_read_requires_endian_switch(BlendDataReader *reader);
 bool BLO_read_data_is_undo(BlendDataReader *reader);
 void BLO_read_data_globmap_add(BlendDataReader *reader, void *oldaddr, void *newaddr);
 void BLO_read_glob_list(BlendDataReader *reader, ListBase *list);
