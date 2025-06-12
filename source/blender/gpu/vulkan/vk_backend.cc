@@ -633,8 +633,11 @@ void VKBackend::render_end()
    * after each frame.
    */
   if (G.is_rendering && thread_data.rendering_depth == 0 && !BLI_thread_is_main()) {
-    device.orphaned_data.move_data(device.orphaned_data_render,
-                                   device.orphaned_data.timeline_ + 1);
+    {
+      std::scoped_lock lock(device.orphaned_data.mutex_get());
+      device.orphaned_data.move_data(device.orphaned_data_render,
+                                     device.orphaned_data.timeline_ + 1);
+    }
     /* Fix #139284: During rendering when main thread is blocked or all screens are minimized the
      * garbage collection will not happen resulting in crashes as resources are not freed.
      *
@@ -653,6 +656,7 @@ void VKBackend::render_end()
 void VKBackend::render_step(bool force_resource_release)
 {
   if (force_resource_release) {
+    std::scoped_lock lock(device.orphaned_data.mutex_get());
     device.orphaned_data.move_data(device.orphaned_data_render,
                                    device.orphaned_data.timeline_ + 1);
   }
