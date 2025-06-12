@@ -105,11 +105,6 @@ void storage_id_remap(ID *id_old, ID *id_new);
  */
 void storage_exit();
 
-AssetHandle asset_handle_get_by_index(const AssetLibraryReference *library_reference,
-                                      int asset_index);
-asset_system::AssetRepresentation *asset_get_by_index(
-    const AssetLibraryReference &library_reference, int asset_index);
-
 /**
  * \return True if the region needs a UI redraw.
  */

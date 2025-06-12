@@ -35,7 +35,6 @@
 #include "../space_file/file_indexer.hh"
 #include "../space_file/filelist.hh"
 
-#include "ED_asset_handle.hh"
 #include "ED_asset_indexer.hh"
 #include "ED_asset_list.hh"
 #include "ED_fileselect.hh"
@@ -97,8 +96,6 @@ class AssetList : NonCopyable {
   void ensure_blocking(const bContext &C);
   void clear(wmWindowManager *wm);
   void clear_current_file_assets(wmWindowManager *wm);
-
-  AssetHandle asset_get_by_index(int index) const;
 
   bool needs_refetch() const;
   bool is_loaded() const;
@@ -236,11 +233,6 @@ void AssetList::clear_current_file_assets(wmWindowManager *wm)
   filelist_clear_from_reset_tag(files);
 
   WM_main_add_notifier(NC_ASSET | ND_ASSET_LIST, nullptr);
-}
-
-AssetHandle AssetList::asset_get_by_index(int index) const
-{
-  return {filelist_file(filelist_, index)};
 }
 
 /**
@@ -550,20 +542,6 @@ asset_system::AssetLibrary *library_get_once_available(
     return nullptr;
   }
   return list->asset_library();
-}
-
-AssetHandle asset_handle_get_by_index(const AssetLibraryReference *library_reference,
-                                      int asset_index)
-{
-  const AssetList *list = lookup_list(*library_reference);
-  return list->asset_get_by_index(asset_index);
-}
-
-asset_system::AssetRepresentation *asset_get_by_index(
-    const AssetLibraryReference &library_reference, int asset_index)
-{
-  AssetHandle asset_handle = asset_handle_get_by_index(&library_reference, asset_index);
-  return reinterpret_cast<asset_system::AssetRepresentation *>(asset_handle.file_data->asset);
 }
 
 bool listen(const wmNotifier *notifier)
