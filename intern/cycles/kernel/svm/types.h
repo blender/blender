@@ -372,11 +372,6 @@ enum NodeBumpOffset {
   NODE_BUMP_OFFSET_DY,
 };
 
-enum NodeTexVoxelSpace {
-  NODE_TEX_VOXEL_SPACE_OBJECT = 0,
-  NODE_TEX_VOXEL_SPACE_WORLD = 1,
-};
-
 enum NodeAO {
   NODE_AO_ONLY_LOCAL = (1 << 0),
   NODE_AO_INSIDE = (1 << 1),

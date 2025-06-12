@@ -91,7 +91,6 @@ void register_node_type_sh_tex_ies();
 void register_node_type_sh_tex_image();
 void register_node_type_sh_tex_magic();
 void register_node_type_sh_tex_noise();
-void register_node_type_sh_tex_pointdensity();
 void register_node_type_sh_tex_sky();
 void register_node_type_sh_tex_voronoi();
 void register_node_type_sh_tex_wave();

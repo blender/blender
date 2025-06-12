@@ -344,42 +344,6 @@ class BrickTextureNode : public TextureNode {
   NODE_SOCKET_API(float3, vector)
 };
 
-class PointDensityTextureNode : public ShaderNode {
- public:
-  SHADER_NODE_NO_CLONE_CLASS(PointDensityTextureNode)
-
-  ~PointDensityTextureNode() override;
-  ShaderNode *clone(ShaderGraph *graph) const override;
-  void attributes(Shader *shader, AttributeRequestSet *attributes) override;
-  bool has_attribute_dependency() override
-  {
-    return true;
-  }
-
-  bool has_spatial_varying() override
-  {
-    return true;
-  }
-
-  /* Parameters. */
-  NODE_SOCKET_API(ustring, filename)
-  NODE_SOCKET_API(NodeTexVoxelSpace, space)
-  NODE_SOCKET_API(InterpolationType, interpolation)
-  NODE_SOCKET_API(Transform, tfm)
-  NODE_SOCKET_API(float3, vector)
-
-  /* Runtime. */
-  ImageHandle handle;
-
-  ImageParams image_params() const;
-
-  bool equals(const ShaderNode &other) override
-  {
-    const PointDensityTextureNode &other_node = (const PointDensityTextureNode &)other;
-    return ShaderNode::equals(other) && handle == other_node.handle;
-  }
-};
-
 class IESLightNode : public TextureNode {
  public:
   SHADER_NODE_NO_CLONE_CLASS(IESLightNode)

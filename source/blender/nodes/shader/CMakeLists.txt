@@ -93,7 +93,6 @@ set(SRC
   nodes/node_shader_tex_image.cc
   nodes/node_shader_tex_magic.cc
   nodes/node_shader_tex_noise.cc
-  nodes/node_shader_tex_pointdensity.cc
   nodes/node_shader_tex_sky.cc
   nodes/node_shader_tex_voronoi.cc
   nodes/node_shader_tex_wave.cc

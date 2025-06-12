@@ -2082,11 +2082,6 @@ static void node_blend_read_data_storage(BlendDataReader *reader, bNodeTree *ntr
       BLO_read_string(reader, &nss->bytecode);
       break;
     }
-    case SH_NODE_TEX_POINTDENSITY: {
-      NodeShaderTexPointDensity *npd = static_cast<NodeShaderTexPointDensity *>(node->storage);
-      npd->pd = dna::shallow_zero_initialize();
-      break;
-    }
     case SH_NODE_TEX_IMAGE: {
       NodeTexImage *tex = static_cast<NodeTexImage *>(node->storage);
       tex->iuser.scene = nullptr;

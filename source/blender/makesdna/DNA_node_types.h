@@ -1527,24 +1527,6 @@ typedef struct NodeShaderVectTransform {
   char _pad[4];
 } NodeShaderVectTransform;
 
-typedef struct NodeShaderTexPointDensity {
-  NodeTexBase base;
-  short point_source;
-  char _pad[2];
-  int particle_system;
-  float radius;
-  int resolution;
-  short space;
-  short interpolation;
-  short color_source;
-  short ob_color_source;
-  /** Used at runtime only by sampling RNA API. */
-  PointDensity pd;
-  int cached_resolution;
-  /** Vertex attribute layer for color source. */
-  char vertex_attribute_name[/*MAX_CUSTOMDATA_LAYER_NAME*/ 68];
-} NodeShaderTexPointDensity;
-
 typedef struct NodeShaderPrincipled {
   char use_subsurface_auto_radius;
   char _pad[3];
@@ -3112,30 +3094,6 @@ typedef enum CMPNodeRelativeToPixelReferenceDimension {
   CMP_NODE_RELATIVE_TO_PIXEL_REFERENCE_DIMENSION_SMALLER = 4,
   CMP_NODE_RELATIVE_TO_PIXEL_REFERENCE_DIMENSION_DIAGONAL = 5,
 } CMPNodeRelativeToPixelReferenceDimension;
-
-/* Point Density shader node */
-
-enum {
-  SHD_POINTDENSITY_SOURCE_PSYS = 0,
-  SHD_POINTDENSITY_SOURCE_OBJECT = 1,
-};
-
-enum {
-  SHD_POINTDENSITY_SPACE_OBJECT = 0,
-  SHD_POINTDENSITY_SPACE_WORLD = 1,
-};
-
-enum {
-  SHD_POINTDENSITY_COLOR_PARTAGE = 1,
-  SHD_POINTDENSITY_COLOR_PARTSPEED = 2,
-  SHD_POINTDENSITY_COLOR_PARTVEL = 3,
-};
-
-enum {
-  SHD_POINTDENSITY_COLOR_VERTCOL = 0,
-  SHD_POINTDENSITY_COLOR_VERTWEIGHT = 1,
-  SHD_POINTDENSITY_COLOR_VERTNOR = 2,
-};
 
 /* Scattering phase functions */
 enum {

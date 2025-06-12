@@ -939,8 +939,6 @@ void RE_InitState(Render *re,
   BLI_rw_mutex_unlock(&re->resultmutex);
 
   RE_init_threadcount(re);
-
-  RE_point_density_fix_linking();
 }
 
 void RE_display_init_cb(Render *re, void *handle, void (*f)(void *handle, RenderResult *rr))

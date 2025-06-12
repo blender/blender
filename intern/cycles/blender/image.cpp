@@ -260,35 +260,6 @@ int BlenderImageLoader::get_tile_number() const
   return b_iuser.tile;
 }
 
-/* Point Density */
-
-BlenderPointDensityLoader::BlenderPointDensityLoader(BL::Depsgraph b_depsgraph,
-                                                     BL::ShaderNodeTexPointDensity b_node)
-    : b_depsgraph(b_depsgraph), b_node(b_node)
-{
-}
-
-bool BlenderPointDensityLoader::load_metadata(const ImageDeviceFeatures & /*features*/,
-                                              ImageMetaData &metadata)
-{
-  metadata.channels = 4;
-  metadata.width = b_node.resolution();
-  metadata.height = metadata.width;
-  metadata.depth = metadata.width;
-  metadata.type = IMAGE_DATA_TYPE_FLOAT4;
-  return true;
-}
-
-bool BlenderPointDensityLoader::load_pixels(const ImageMetaData & /*metadata*/,
-                                            void *pixels,
-                                            const size_t /*pixels_size*/,
-                                            const bool /*associate_alpha*/)
-{
-  int length;
-  b_node.calc_point_density(b_depsgraph, &length, (float **)&pixels);
-  return true;
-}
-
 void BlenderSession::builtin_images_load()
 {
   /* Force builtin images to be loaded along with Blender data sync. This
@@ -302,17 +273,6 @@ void BlenderSession::builtin_images_load()
   ImageManager *manager = session->scene->image_manager.get();
   Device *device = session->device.get();
   manager->device_load_builtin(device, session->scene.get(), session->progress);
-}
-
-string BlenderPointDensityLoader::name() const
-{
-  return BL::ShaderNodeTexPointDensity(b_node).name();
-}
-
-bool BlenderPointDensityLoader::equals(const ImageLoader &other) const
-{
-  const BlenderPointDensityLoader &other_loader = (const BlenderPointDensityLoader &)other;
-  return b_node == other_loader.b_node && b_depsgraph == other_loader.b_depsgraph;
 }
 
 CCL_NAMESPACE_END
