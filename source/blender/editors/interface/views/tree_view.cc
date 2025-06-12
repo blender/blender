@@ -898,6 +898,12 @@ void TreeViewLayoutBuilder::build_row(AbstractTreeViewItem &item) const
   uiBlock &block_ = block();
 
   uiLayout &prev_layout = current_layout();
+
+  const int width = uiLayoutGetWidth(&prev_layout);
+  if (width < int(40 * UI_SCALE_FAC)) {
+    return;
+  }
+
   blender::ui::EmbossType previous_emboss = UI_block_emboss_get(&block_);
 
   uiLayout *overlap = &prev_layout.overlap();

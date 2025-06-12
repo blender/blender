@@ -1107,6 +1107,7 @@ static void panel_draw_aligned_widgets(const uiStyle *style,
   const uiFontStyle *fontstyle = (is_subpanel) ? &style->widget : &style->paneltitle;
 
   const int header_height = BLI_rcti_size_y(header_rect);
+  const int header_width = BLI_rcti_size_x(header_rect);
   const int scaled_unit = round_fl_to_int(UI_UNIT_X / aspect);
 
   /* Offset triangle and text to the right for sub-panels. */
@@ -1124,11 +1125,16 @@ static void panel_draw_aligned_widgets(const uiStyle *style,
   {
     const float size_y = BLI_rcti_size_y(&widget_rect);
     GPU_blend(GPU_BLEND_ALPHA);
+    float alpha = 0.8f;
+    /* Dim as its space is reduced to zero. */
+    if (header_width < (scaled_unit * 4)) {
+      alpha *= std::max(float(header_width - scaled_unit) / float(scaled_unit * 3), 0.0f);
+    }
     UI_icon_draw_ex(widget_rect.xmin + size_y * 0.2f,
                     widget_rect.ymin + size_y * (UI_panel_is_closed(panel) ? 0.17f : 0.14f),
                     UI_panel_is_closed(panel) ? ICON_RIGHTARROW : ICON_DOWNARROW_HLT,
                     aspect * UI_INV_SCALE_FAC,
-                    0.8f,
+                    alpha,
                     0.0f,
                     title_color,
                     false,
@@ -1140,7 +1146,7 @@ static void panel_draw_aligned_widgets(const uiStyle *style,
   if (panel->drawname && panel->drawname[0] != '\0') {
     rcti title_rect;
     title_rect.xmin = widget_rect.xmin + (panel->labelofs / aspect) + scaled_unit * 1.1f;
-    title_rect.xmax = widget_rect.xmax;
+    title_rect.xmax = widget_rect.xmax - scaled_unit;
     title_rect.ymin = widget_rect.ymin - 2.0f / aspect;
     title_rect.ymax = widget_rect.ymax;
 
@@ -1172,7 +1178,10 @@ static void panel_draw_aligned_widgets(const uiStyle *style,
     const bool is_pin = panel_custom_pin_to_last_get(panel);
     const int icon = is_pin ? ICON_PINNED : ICON_GRIP;
     const float size = aspect * UI_INV_SCALE_FAC;
-    const float alpha = is_pin ? 1.0f : 0.5f;
+    float alpha = is_pin ? 1.0f : 0.5f;
+    if (header_width < (scaled_unit * 5)) {
+      alpha *= std::max((header_width - scaled_unit) / float(scaled_unit * 4), 0.0f);
+    }
     UI_icon_draw_ex(x, y, icon, size, alpha, 0.0f, title_color, false, UI_NO_ICON_OVERLAY_TEXT);
   }
 }
