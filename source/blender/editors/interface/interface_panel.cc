@@ -1387,23 +1387,24 @@ void UI_panel_category_draw_all(ARegion *region, const char *category_id_active)
 
   /* Primary theme colors. */
   uchar theme_col_back[4];
-  uchar theme_col_text[3];
-  uchar theme_col_text_hi[3];
 
   /* Tab colors. */
   uchar theme_col_tab_bg[4];
+  uchar theme_col_tab_text[3];
+  uchar theme_col_tab_text_sel[3];
   float theme_col_tab_active[4];
   float theme_col_tab_inactive[4];
   float theme_col_tab_outline[4];
+  float theme_col_tab_outline_sel[4];
 
   UI_GetThemeColor4ubv(TH_BACK, theme_col_back);
-  UI_GetThemeColor3ubv(TH_TEXT, theme_col_text);
-  UI_GetThemeColor3ubv(TH_TEXT_HI, theme_col_text_hi);
-
+  UI_GetThemeColor3ubv(TH_TAB_TEXT, theme_col_tab_text);
+  UI_GetThemeColor3ubv(TH_TAB_TEXT_HI, theme_col_tab_text_sel);
   UI_GetThemeColor4ubv(TH_TAB_BACK, theme_col_tab_bg);
   UI_GetThemeColor4fv(TH_TAB_ACTIVE, theme_col_tab_active);
   UI_GetThemeColor4fv(TH_TAB_INACTIVE, theme_col_tab_inactive);
   UI_GetThemeColor4fv(TH_TAB_OUTLINE, theme_col_tab_outline);
+  UI_GetThemeColor4fv(TH_TAB_OUTLINE_ACTIVE, theme_col_tab_outline_sel);
 
   is_alpha = (region->overlap && (theme_col_back[3] != 255));
 
@@ -1528,7 +1529,10 @@ void UI_panel_category_draw_all(ARegion *region, const char *category_id_active)
                            true,
                            tab_curve_radius,
                            is_active ? theme_col_tab_active : theme_col_tab_inactive);
-      UI_draw_roundbox_4fv(&box_rect, false, tab_curve_radius, theme_col_tab_outline);
+      UI_draw_roundbox_4fv(&box_rect,
+                           false,
+                           tab_curve_radius,
+                           is_active ? theme_col_tab_outline_sel : theme_col_tab_outline);
 
       /* Disguise the outline on one side to join the tab to the panel. */
       if (!region->overlap) {
@@ -1558,7 +1562,7 @@ void UI_panel_category_draw_all(ARegion *region, const char *category_id_active)
                            rct->xmin + text_v_ofs - text_size_offset,
                  is_left ? rct->ymin + tab_v_pad_text : rct->ymax - tab_v_pad_text,
                  0.0f);
-    BLF_color3ubv(fontid, is_active ? theme_col_text_hi : theme_col_text);
+    BLF_color3ubv(fontid, is_active ? theme_col_tab_text_sel : theme_col_tab_text);
 
     if (fstyle->shadow) {
       BLF_enable(fontid, BLF_SHADOW);

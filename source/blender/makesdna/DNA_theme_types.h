@@ -242,10 +242,8 @@ typedef struct ThemeSpace {
   unsigned char header_text_hi[4];
 
   /* region tabs */
-  unsigned char tab_active[4];
-  unsigned char tab_inactive[4];
   unsigned char tab_back[4];
-  unsigned char tab_outline[4];
+  char _pad2[4];
 
   /* button/tool regions */
   /** Region background. */
