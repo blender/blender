@@ -7032,8 +7032,6 @@ class VIEW3D_PT_overlay_object(Panel):
     bl_label = "Objects"
 
     def draw(self, context):
-        shading = VIEW3D_PT_shading.get_shading(context)
-
         layout = self.layout
         view = context.space_data
         overlay = view.overlay
@@ -7059,10 +7057,6 @@ class VIEW3D_PT_overlay_object(Panel):
         subsub = sub.column()
         subsub.active = overlay.show_object_origins
         subsub.prop(overlay, "show_object_origins_all", text="Origins (All)")
-
-        if shading.type == 'WIREFRAME' or shading.show_xray:
-            layout.separator()
-            layout.prop(overlay, "bone_wire_alpha")
 
 
 class VIEW3D_PT_overlay_geometry(Panel):
@@ -7533,6 +7527,7 @@ class VIEW3D_PT_overlay_bones(Panel):
 
     def draw(self, context):
         layout = self.layout
+        shading = VIEW3D_PT_shading.get_shading(context)
         view = context.space_data
         mode = context.mode
         overlay = view.overlay
@@ -7552,6 +7547,9 @@ class VIEW3D_PT_overlay_bones(Panel):
         elif mode == 'PAINT_WEIGHT':
             row = col.row()
             row.prop(overlay, "show_xray_bone")
+            row = col.row()
+            row.active = shading.type == 'WIREFRAME'
+            row.prop(overlay, "bone_wire_alpha")
 
 
 class VIEW3D_PT_overlay_texture_paint(Panel):
