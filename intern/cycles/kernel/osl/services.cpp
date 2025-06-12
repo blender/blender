@@ -657,7 +657,7 @@ inline bool get_object_attribute_impl(const ThreadKernelGlobalsCPU *kg,
   T dy = make_zero<T>();
 #ifdef __VOLUME__
   if (primitive_is_volume_attribute(sd)) {
-    v = primitive_volume_attribute<T>(kg, sd, desc, false);
+    v = primitive_volume_attribute<T>(kg, sd, desc, true);
   }
   else
 #endif
@@ -1345,11 +1345,10 @@ bool OSLRenderServices::texture3d(OSLUStringHash filename,
   switch (texture_type) {
     case OSLTextureHandle::SVM: {
       /* Packed texture. */
-      ShaderData *sd = globals->sd;
       const int slot = handle->svm_slots[0].y;
       const float3 P_float3 = make_float3(P.x, P.y, P.z);
       float4 rgba = kernel_tex_image_interp_3d(
-          kernel_globals, slot, P_float3, INTERPOLATION_NONE, lcg_step_float(&sd->lcg_state));
+          kernel_globals, slot, P_float3, INTERPOLATION_NONE, -1.0f);
 
       result[0] = rgba[0];
       if (nchannels > 1) {

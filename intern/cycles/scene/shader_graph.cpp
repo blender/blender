@@ -663,43 +663,68 @@ void ShaderGraph::deduplicate_nodes()
   }
 }
 
-/* Check whether volume output has meaningful nodes, otherwise
- * disconnect the output.
- */
-void ShaderGraph::verify_volume_output()
+/* Does two optimizations:
+ * - Check whether volume output has meaningful nodes, otherwise disconnect the output.
+ * - Tag volume attribute nodes as supporting stochastic sampling. */
+void ShaderGraph::optimize_volume_output()
 {
-  /* Check whether we can optimize the whole volume graph out. */
   ShaderInput *volume_in = output()->input("Volume");
   if (volume_in->link == nullptr) {
     return;
   }
+
   bool has_valid_volume = false;
-  ShaderNodeSet scheduled;
-  queue<ShaderNode *> traverse_queue;
+
+  using ShaderNodeAndNonLinear = std::pair<ShaderNode *, bool>;
+  set<ShaderNodeAndNonLinear, ShaderNodeIDAndBoolComparator> scheduled;
+  queue<ShaderNodeAndNonLinear> traverse_queue;
+
   /* Schedule volume output. */
-  traverse_queue.push(volume_in->link->parent);
-  scheduled.insert(volume_in->link->parent);
+  traverse_queue.emplace(volume_in->link->parent, false);
+  scheduled.insert({volume_in->link->parent, false});
+
   /* Traverse down the tree. */
   while (!traverse_queue.empty()) {
-    ShaderNode *node = traverse_queue.front();
+    auto [node, nonlinear] = traverse_queue.front();
     traverse_queue.pop();
-    /* Node is fully valid for volume, can't optimize anything out. */
+
+    /* Disable stochastic sampling on node if its contribution is nonlinear.
+     * This defaults to true in the class, so we only need to disable it. */
+    if (nonlinear && node->type == AttributeNode::get_node_type()) {
+      static_cast<AttributeNode *>(node)->stochastic_sample = false;
+    }
+    nonlinear = nonlinear || !node->is_linear_operation();
+
+    /* Node is fully valid for volume, won't be able to optimize it out. */
     if (node->has_volume_support()) {
       has_valid_volume = true;
-      break;
     }
+
     for (ShaderInput *input : node->inputs) {
       if (input->link == nullptr) {
         continue;
       }
-      if (scheduled.find(input->link->parent) != scheduled.end()) {
+      ShaderNode *input_node = input->link->parent;
+      if (scheduled.find({input_node, nonlinear}) != scheduled.end()) {
         continue;
       }
-      traverse_queue.push(input->link->parent);
-      scheduled.insert(input->link->parent);
+      traverse_queue.emplace(input_node, nonlinear);
+      scheduled.insert({input_node, nonlinear});
     }
   }
+
+  if (LOG_IS_ON(DEBUG)) {
+    for (ShaderNode *node : nodes) {
+      if (node->type == AttributeNode::get_node_type() &&
+          static_cast<AttributeNode *>(node)->stochastic_sample)
+      {
+        LOG(DEBUG) << "Volume attribute node " << node->name << " uses stochastic sampling";
+      }
+    }
+  }
+
   if (!has_valid_volume) {
+    /* We can remove the entire volume shader. */
     LOG(DEBUG) << "Disconnect meaningless volume output.";
     disconnect(volume_in->link);
   }
@@ -771,7 +796,7 @@ void ShaderGraph::clean(Scene *scene)
   constant_fold(scene);
   simplify_settings(scene);
   deduplicate_nodes();
-  verify_volume_output();
+  optimize_volume_output();
 
   /* we do two things here: find cycles and break them, and remove unused
    * nodes that don't feed into the output. how cycles are broken is
