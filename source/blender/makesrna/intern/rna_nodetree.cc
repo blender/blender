@@ -8066,6 +8066,19 @@ static void def_cmp_dilate_erode(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
+static void def_cmp_displace(BlenderRNA * /*brna*/, StructRNA *srna)
+{
+  PropertyRNA *prop;
+
+  RNA_def_struct_sdna_from(srna, "NodeDisplaceData", "storage");
+
+  prop = RNA_def_property(srna, "interpolation", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_sdna(prop, nullptr, "interpolation");
+  RNA_def_property_enum_items(prop, cmp_interpolation_items);
+  RNA_def_property_ui_text(prop, "Interpolation", "Interpolation method");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+}
+
 static void def_cmp_inpaint(BlenderRNA * /*brna*/, StructRNA *srna)
 {
   PropertyRNA *prop;
@@ -13995,7 +14008,7 @@ static void rna_def_nodes(BlenderRNA *brna)
   define("CompositorNode", "CompositorNodeDespeckle", def_cmp_despeckle);
   define("CompositorNode", "CompositorNodeDiffMatte", def_cmp_diff_matte);
   define("CompositorNode", "CompositorNodeDilateErode", def_cmp_dilate_erode);
-  define("CompositorNode", "CompositorNodeDisplace");
+  define("CompositorNode", "CompositorNodeDisplace", def_cmp_displace);
   define("CompositorNode", "CompositorNodeDistanceMatte", def_cmp_distance_matte);
   define("CompositorNode", "CompositorNodeDoubleEdgeMask", def_cmp_double_edge_mask);
   define("CompositorNode", "CompositorNodeEllipseMask", def_cmp_ellipsemask);

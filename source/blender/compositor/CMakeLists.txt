@@ -182,6 +182,7 @@ set(GLSL_SRC
   shaders/compositor_deriche_gaussian_blur_sum.glsl
   shaders/compositor_directional_blur.glsl
   shaders/compositor_displace.glsl
+  shaders/compositor_displace_anisotropic.glsl
   shaders/compositor_double_edge_mask_compute_boundary.glsl
   shaders/compositor_double_edge_mask_compute_gradient.glsl
   shaders/compositor_edge_filter.glsl
