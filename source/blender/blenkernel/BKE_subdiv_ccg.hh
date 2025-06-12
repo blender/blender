@@ -281,10 +281,10 @@ void BKE_subdiv_ccg_eval_limit_positions(const SubdivCCG &subdiv_ccg,
                                          int grid_index,
                                          blender::MutableSpan<blender::float3> r_limit_positions);
 
-enum SubdivCCGAdjacencyType {
-  SUBDIV_CCG_ADJACENT_NONE,
-  SUBDIV_CCG_ADJACENT_VERTEX,
-  SUBDIV_CCG_ADJACENT_EDGE,
+enum class SubdivCCGAdjacencyType : int8_t {
+  None,
+  Vertex,
+  Edge,
 };
 
 /* Returns if a grid coordinates is adjacent to a coarse mesh edge, vertex or nothing. If it is
