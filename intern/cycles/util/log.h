@@ -12,22 +12,29 @@
 
 CCL_NAMESPACE_BEGIN
 
+/* Log Levels */
+
 enum LogLevel {
-  FATAL = 0,
-  DFATAL = 1,
-  ERROR = 2,
-  DERROR = 3,
-  WARNING = 4,
-  DWARNING = 5,
-  INFO = 6,
-  WORK = 7,
-  STATS = 8,
-  DEBUG = 9,
+  FATAL = 0,    /* Fatal error, application will abort */
+  DFATAL = 1,   /* Fatal error in debug build only */
+  ERROR = 2,    /* Error */
+  DERROR = 3,   /* Error in debug build only */
+  WARNING = 4,  /* Warning */
+  DWARNING = 5, /* Warning in debug build only */
+  INFO = 6,     /* Info about devices, scene contents and features used. */
+  WORK = 7,     /* Work being performed and timing/memory stats about that work. */
+  STATS = 8,    /* Detailed device timing stats. */
+  DEBUG = 9,    /* Verbose debug messages. */
   UNKNOWN = -1,
 };
 
 const char *log_level_to_string(const LogLevel level);
 LogLevel log_string_to_level(const string &str);
+
+/* Log Configuration API
+ *
+ * By default will print to stdout and stderr, but a custom log function can be set
+ * to change this behavior. */
 
 using LogFunction = void (*)(const LogLevel level,
                              const char *file_line,
@@ -37,6 +44,8 @@ using LogFunction = void (*)(const LogLevel level,
 void log_init(const LogFunction func = nullptr);
 void log_level_set(const LogLevel level);
 void log_level_set(const string &level);
+
+/* Internal logging API */
 
 void _log_message(const LogLevel level, const char *file_line, const char *func, const char *msg);
 
@@ -84,10 +93,17 @@ extern LogLevel LOG_LEVEL;
       LogMessage(level, __FILE__ ":" LOG_STRINGIFY(__LINE__), __func__).stream()
 #endif
 
+/* Log a message at the desired level.
+ *
+ * Example: LOG(INFO) << "This is a log message"; */
 #define LOG(level) LOG_IF(level, true)
 
+/* Check if logging is enabled, to avoid doing expensive work to compute
+ * the logging message. Note that any work to the right of LOG(level) will
+ * not be evaulated if logging for that level is disabled. */
 #define LOG_IS_ON(level) ((level) <= LOG_LEVEL)
 
+/* Check if expression and conditions hold true, failure will exit the program. */
 #define CHECK(expression) LOG_IF(FATAL, !(expression))
 #define CHECK_OP(op, a, b) LOG_IF(FATAL, !((a)op(b)))
 #define CHECK_GE(a, b) CHECK_OP(>=, a, b)
@@ -97,6 +113,7 @@ extern LogLevel LOG_LEVEL;
 #define CHECK_LT(a, b) CHECK_OP(<, a, b)
 #define CHECK_LE(a, b) CHECK_OP(<=, a, b)
 
+/* Same checks for expressions and conditions, but only active in debug builds. */
 #ifndef NDEBUG
 template<typename T> T DCheckNotNull(T &&t, const char *expression)
 {
@@ -130,6 +147,7 @@ template<typename T> T DCheckNotNull(T &&t, const char *expression)
 #  define DCHECK_LE(a, b) LOG_SUPPRESS()
 #endif
 
+/* Convenient logging of common data structures. */
 struct int2;
 struct float3;
 
