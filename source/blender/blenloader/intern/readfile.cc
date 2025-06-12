@@ -5321,6 +5321,7 @@ static void convert_pointer_array_64_to_32(BlendDataReader *reader,
                                            uint32_t *dst)
 {
   BLI_assert((reader->fd->flags & FD_FLAGS_SWITCH_ENDIAN) == 0);
+  UNUSED_VARS_NDEBUG(reader);
   for (int i = 0; i < array_size; i++) {
     dst[i] = uint32_from_uint64_ptr(src[i]);
   }

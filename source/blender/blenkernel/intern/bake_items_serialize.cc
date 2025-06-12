@@ -289,6 +289,7 @@ std::optional<ImplicitSharingInfoAndData> BlobReadSharing::read_shared(
 static StringRefNull get_endian_io_name(const int endian)
 {
   BLI_assert(endian == L_ENDIAN);
+  UNUSED_VARS_NDEBUG(endian);
   return "little";
 }
 
