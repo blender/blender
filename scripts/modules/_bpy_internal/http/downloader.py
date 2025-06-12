@@ -48,8 +48,7 @@ class ConditionalDownloader:
     in a background process.
     """
 
-    # TODO: make a metadata cache class, instead of always using a path on disk.
-    metadata_cache_location: Path
+    metadata_provider: MetadataProvider
     """Directory where request metadata is stored."""
 
     http_session: requests.Session
@@ -70,14 +69,14 @@ class ConditionalDownloader:
 
     def __init__(
             self,
-            metadata_cache_location: Path,
+            metadata_provider: MetadataProvider,
     ) -> None:
         """Create a ConditionalDownloader.
 
-        :param metadata_cache_location: Location on disk for request metadata,
+        :param metadata_provider: Location on disk for request metadata,
             like the last-modified timestamp, etag, and content length.
         """
-        self.metadata_cache_location = metadata_cache_location
+        self.metadata_provider = metadata_provider
         self.http_session = http_session()
         self.chunk_size = 8192  # Sensible default, can be adjusted after creation if necessary.
         self.periodic_check = lambda: True
@@ -110,7 +109,7 @@ class ConditionalDownloader:
 
         self._reporter.download_starts(http_req_descr)
 
-        http_meta = self._metadata_if_file_matches(http_req_descr, local_path)
+        http_meta = self._metadata_if_valid(http_req_descr, local_path)
 
         # Download to a temporary file first.
         temp_path = local_path.with_suffix(local_path.suffix + "~")
@@ -135,7 +134,7 @@ class ConditionalDownloader:
         local_path.unlink(missing_ok=True)
         temp_path.rename(local_path)
 
-        self._save_metadata(http_req_descr, http_meta)
+        self.metadata_provider.save(http_req_descr, http_meta)
 
         self._reporter.download_finished(http_req_descr, local_path)
 
@@ -223,69 +222,23 @@ class ConditionalDownloader:
         if meta.etag:
             prepped.headers["If-None-Match"] = meta.etag
 
-    def _cache_key(self, http_req_descr: RequestDescription) -> str:
-        method = http_req_descr.http_method
-        url = http_req_descr.url
-        return hashlib.sha256("{!s}:{!s}".format(method, url).encode()).hexdigest()
-
-    def _metadata_path(self, http_req_descr: RequestDescription) -> Path:
-        # TODO: maybe use part of the cache key to bucket into subdirectories?
-        return self.metadata_cache_location / self._cache_key(http_req_descr)
-
-    def _load_metadata(self, http_req_descr: RequestDescription) -> HTTPMetadata | None:
-        meta_path = self._metadata_path(http_req_descr)
-        if not meta_path.exists():
-            return None
-        meta_json = meta_path.read_bytes()
-
-        try:
-            return HTTPMetadata.model_validate_json(meta_json)
-        except pydantic.ValidationError:
-            # File was an old format, got corrupted, or is otherwise unusable.
-            # Just act as if it never existed in the first place.
-            meta_path.unlink()
-            return None
-
-    def _metadata_if_file_matches(
+    def _metadata_if_valid(
         self, http_req_descr: RequestDescription, local_path: Path
     ) -> HTTPMetadata | None:
-        if not local_path.exists():
-            return None
-
-        meta = self._load_metadata(http_req_descr)
-        if not meta:
+        meta = self.metadata_provider.load(http_req_descr)
+        if meta is None:
             return None
 
         if meta.request != http_req_descr:
             # Somehow the metadata was loaded, but didn't match this request. Weird.
+            self.metadata_provider.forget(http_req_descr)
             return None
 
-        local_file_size = local_path.stat().st_size
-        if local_file_size == 0:
-            # This is an optimization for downloading bigger files. There is no
-            # need to do a conditional download of a zero-bytes file. It is more
-            # likely that something went wrong and a file got truncated.
-            #
-            # And even if the file is of the correct size, non-conditinally
-            # doing the same request for the empty file will require less data
-            # than including the headers necessary for a conditional download.
-            return None
-
-        if local_file_size != meta.content_length:
+        if not self.metadata_provider.is_valid(meta, http_req_descr, local_path):
+            self.metadata_provider.forget(http_req_descr)
             return None
 
         return meta
-
-    def _save_metadata(
-        self, http_req_descr: RequestDescription, meta: HTTPMetadata
-    ) -> None:
-        meta.request = http_req_descr
-
-        meta_json = meta.model_dump_json()
-        meta_path = self._metadata_path(http_req_descr)
-
-        meta_path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
-        meta_path.write_bytes(meta_json.encode())
 
     def add_reporter(self, reporter: DownloadReporter) -> None:
         """Add a reporter to receive download progress information.
@@ -318,7 +271,7 @@ _mp_context = multiprocessing.get_context(method='spawn')
 
 @dataclasses.dataclass
 class DownloaderOptions:
-    metadata_cache_location: Path
+    metadata_provider: MetadataProvider
     http_headers: dict[str, str] = dataclasses.field(default_factory=dict)
 
 
@@ -628,7 +581,6 @@ def _download_queued_items(
 
     Managed by the BackgroundDownloader class above.
     """
-    # Uncomment this to get debug/info level logging:
     # logging.basicConfig(
     #     format="%(asctime)-15s %(processName)22s %(levelname)8s %(name)s %(message)s",
     #     level=logging.DEBUG,
@@ -669,6 +621,8 @@ def _download_queued_items(
                     can_keep_running = False
                 case PipeMsgType.QUEUE_DOWNLOAD:
                     download_queue.append(received_msg.payload)
+                case PipeMsgType.REPORT:
+                    pass
 
         if shutdown_event.is_set():
             return False
@@ -679,7 +633,7 @@ def _download_queued_items(
     # not all its properties can be pickled, and as a result, it cannot be
     # used to send across process boundaries via the multiprocessing module.
     downloader = ConditionalDownloader(
-        metadata_cache_location=options.metadata_cache_location,
+        metadata_provider=options.metadata_provider,
     )
     downloader.http_session.headers.update(options.http_headers)
     downloader.add_reporter(reporter)
@@ -886,6 +840,96 @@ class QueueingReporter(DownloadReporter):
         """Put a function call in the queue."""
         self._logger.debug("%s%s", function_name, function_args)
         self._queue.append((function_name, function_args))
+
+
+class MetadataProvider(Protocol):
+    """Protocol for the metadata necessary for conditional downloading.
+
+    Tracks the ETag an Last-Modified header contents for downloaded files.
+    """
+
+    def save(self, http_req_descr: RequestDescription, meta: HTTPMetadata) -> None:
+        pass
+
+    def load(self, http_req_descr: RequestDescription) -> HTTPMetadata | None:
+        """Return the metadata for the given request.
+
+        Return None if there is no metadata known for this request. This does
+        not check any already-downloaded file on disk and just returns the
+        metadata as-is.
+        """
+        pass
+
+    def is_valid(self, meta: HTTPMetadata, http_req_descr: RequestDescription, local_path: Path) -> bool:
+        """Determine whether this metadata is still valid, given the other parameters."""
+        return False
+
+    def forget(self, http_req_descr: RequestDescription) -> None:
+        pass
+
+
+class MetadataProviderFilesystem(MetadataProvider):
+    cache_location: Path
+
+    def __init__(self, cache_location: Path) -> None:
+        self.cache_location = cache_location
+
+    def _cache_key(self, http_req_descr: RequestDescription) -> str:
+        method = http_req_descr.http_method
+        url = http_req_descr.url
+        return hashlib.sha256("{!s}:{!s}".format(method, url).encode()).hexdigest()
+
+    def _metadata_path(self, http_req_descr: RequestDescription) -> Path:
+        # TODO: maybe use part of the cache key to bucket into subdirectories?
+        return self.cache_location / self._cache_key(http_req_descr)
+
+    def load(self, http_req_descr: RequestDescription) -> HTTPMetadata | None:
+        meta_path = self._metadata_path(http_req_descr)
+        if not meta_path.exists():
+            return None
+        meta_json = meta_path.read_bytes()
+
+        try:
+            return HTTPMetadata.model_validate_json(meta_json)
+        except pydantic.ValidationError:
+            # File was an old format, got corrupted, or is otherwise unusable.
+            # Just act as if it never existed in the first place.
+            meta_path.unlink()
+            return None
+
+    def is_valid(self, meta: HTTPMetadata, http_req_descr: RequestDescription, local_path: Path) -> bool:
+        """Determine whether this metadata is still valid, given the other parameters."""
+        if not local_path.exists():
+            return False
+
+        local_file_size = local_path.stat().st_size
+        if local_file_size == 0:
+            # This is an optimization for downloading bigger files. There is no
+            # need to do a conditional download of a zero-bytes file. It is more
+            # likely that something went wrong and a file got truncated.
+            #
+            # And even if the file is of the correct size, non-conditinally
+            # doing the same request for the empty file will require less data
+            # than including the headers necessary for a conditional download.
+            return False
+
+        if local_file_size != meta.content_length:
+            return False
+
+        return True
+
+    def forget(self, http_req_descr: RequestDescription) -> None:
+        meta_path = self._metadata_path(http_req_descr)
+        meta_path.unlink(missing_ok=True)
+
+    def save(self, http_req_descr: RequestDescription, meta: HTTPMetadata) -> None:
+        meta.request = http_req_descr
+
+        meta_json = meta.model_dump_json()
+        meta_path = self._metadata_path(http_req_descr)
+
+        meta_path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+        meta_path.write_bytes(meta_json.encode())
 
 
 class HTTPMetadata(pydantic.BaseModel):

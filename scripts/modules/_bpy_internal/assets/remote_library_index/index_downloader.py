@@ -66,14 +66,17 @@ class RemoteAssetListingDownloader:
         # Work around a limitation of Blender, see bug report #139720 for details.
         self.on_timer_event = self.on_timer_event
 
+        self._http_metadata_provider = http_dl.MetadataProviderFilesystem(
+            cache_location=self._local_path / "_local-meta-cache")
+
         # Create the background downloader object now, so that it
         # (hypothetically in some future) can be adjusted before the actual
         # downloading begins.
         self._bg_downloader = http_dl.BackgroundDownloader(
-            http_dl.DownloaderOptions(
-                metadata_cache_location=self._local_path / "_local-meta-cache",
+            options=http_dl.DownloaderOptions(
+                metadata_provider=self._http_metadata_provider,
                 http_headers={'Accept': 'application/json'},
-            )
+            ),
         )
         self._bg_downloader.add_reporter(self)
 
