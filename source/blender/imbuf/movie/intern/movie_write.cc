@@ -24,6 +24,7 @@
 #  include "BLI_endian_defines.h"
 #  include "BLI_fileops.h"
 #  include "BLI_math_base.h"
+#  include "BLI_math_color.h"
 #  include "BLI_path_utils.hh"
 #  include "BLI_string.h"
 #  include "BLI_threads.h"
@@ -232,7 +233,9 @@ static AVFrame *generate_video_frame(MovieWriter *context, const ImBuf *image)
   if (use_float) {
     /* Float image: need to split up the image into a planar format,
      * because `libswscale` does not support RGBA->YUV conversions from
-     * packed float formats. */
+     * packed float formats.
+     * Unpremultiply the image if the output format supports alpha, to
+     * match the format of the byte image. */
     BLI_assert_msg(rgb_frame->linesize[1] == linesize_dst &&
                        rgb_frame->linesize[2] == linesize_dst &&
                        rgb_frame->linesize[3] == linesize_dst,
@@ -244,12 +247,26 @@ static AVFrame *generate_video_frame(MovieWriter *context, const ImBuf *image)
       float *dst_r = reinterpret_cast<float *>(rgb_frame->data[2] + dst_offset);
       float *dst_a = reinterpret_cast<float *>(rgb_frame->data[3] + dst_offset);
       const float *src = pixels_fl + image->x * y * 4;
-      for (int x = 0; x < image->x; x++) {
-        *dst_r++ = src[0];
-        *dst_g++ = src[1];
-        *dst_b++ = src[2];
-        *dst_a++ = src[3];
-        src += 4;
+
+      if (MOV_codec_supports_alpha(context->ffmpeg_codec, context->ffmpeg_profile)) {
+        for (int x = 0; x < image->x; x++) {
+          float tmp[4];
+          premul_to_straight_v4_v4(tmp, src);
+          *dst_r++ = tmp[0];
+          *dst_g++ = tmp[1];
+          *dst_b++ = tmp[2];
+          *dst_a++ = tmp[3];
+          src += 4;
+        }
+      }
+      else {
+        for (int x = 0; x < image->x; x++) {
+          *dst_r++ = src[0];
+          *dst_g++ = src[1];
+          *dst_b++ = src[2];
+          *dst_a++ = src[3];
+          src += 4;
+        }
       }
     }
   }
