@@ -385,7 +385,7 @@ void OSLManager::shading_system_init()
         ss->attribute("max_optix_groupdata_alloc", 2048);
       }
 
-      VLOG_INFO << "Using shader search path: " << shader_path;
+      LOG(INFO) << "Using shader search path: " << shader_path;
 
       /* our own ray types */
       static const char *raytypes[] = {
@@ -628,7 +628,7 @@ void OSLShaderManager::device_update_specific(Device *device,
     }
   });
 
-  VLOG_INFO << "Total " << scene->shaders.size() << " shaders.";
+  LOG(INFO) << "Total " << scene->shaders.size() << " shaders.";
 
   /* setup shader engine */
   OSLManager::foreach_osl_device(device, [](Device *, OSLGlobals *og) {

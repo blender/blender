@@ -44,12 +44,12 @@ bool device_optix_init()
   const OptixResult result = optixInit();
 
   if (result == OPTIX_ERROR_UNSUPPORTED_ABI_VERSION) {
-    VLOG_WARNING << "OptiX initialization failed because the installed NVIDIA driver is too old. "
+    LOG(WARNING) << "OptiX initialization failed because the installed NVIDIA driver is too old. "
                     "Please update to the latest driver first!";
     return false;
   }
   if (result != OPTIX_SUCCESS) {
-    VLOG_WARNING << "OptiX initialization failed with error code " << (unsigned int)result;
+    LOG(WARNING) << "OptiX initialization failed with error code " << (unsigned int)result;
     return false;
   }
 

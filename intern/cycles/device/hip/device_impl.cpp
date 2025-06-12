@@ -244,9 +244,9 @@ string HIPDevice::compile_kernel(const uint kernel_features, const char *name, c
   /* Attempt to use kernel provided with Blender. */
   if (!use_adaptive_compilation()) {
     const string fatbin = path_get(string_printf("lib/%s_%s.fatbin.zst", name, arch.c_str()));
-    VLOG_INFO << "Testing for pre-compiled kernel " << fatbin << ".";
+    LOG(INFO) << "Testing for pre-compiled kernel " << fatbin << ".";
     if (path_exists(fatbin)) {
-      VLOG_INFO << "Using precompiled kernel.";
+      LOG(INFO) << "Using precompiled kernel.";
       return fatbin;
     }
   }
@@ -282,9 +282,9 @@ string HIPDevice::compile_kernel(const uint kernel_features, const char *name, c
   const string fatbin_file = string_printf(
       "cycles_%s_%s_%s", name, arch.c_str(), kernel_md5.c_str());
   const string fatbin = path_cache_get(path_join("kernels", fatbin_file));
-  VLOG_INFO << "Testing for locally compiled kernel " << fatbin << ".";
+  LOG(INFO) << "Testing for locally compiled kernel " << fatbin << ".";
   if (path_exists(fatbin)) {
-    VLOG_INFO << "Using locally compiled kernel.";
+    LOG(INFO) << "Using locally compiled kernel.";
     return fatbin;
   }
 
@@ -327,7 +327,7 @@ string HIPDevice::compile_kernel(const uint kernel_features, const char *name, c
   }
 #  endif
   const int hipcc_hip_version = hipewCompilerVersion();
-  VLOG_INFO << "Found hipcc " << hipcc << ", HIP version " << hipcc_hip_version << ".";
+  LOG(INFO) << "Found hipcc " << hipcc << ", HIP version " << hipcc_hip_version << ".";
 
   double starttime = time_dt();
 
@@ -380,7 +380,7 @@ bool HIPDevice::load_kernels(const uint kernel_features)
    */
   if (hipModule) {
     if (use_adaptive_compilation()) {
-      VLOG_INFO << "Skipping HIP kernel reload for adaptive compilation, not currently supported.";
+      LOG(INFO) << "Skipping HIP kernel reload for adaptive compilation, not currently supported.";
     }
     return true;
   }
@@ -468,7 +468,7 @@ void HIPDevice::reserve_local_memory(const uint kernel_features)
     hipMemGetInfo(&free_after, &total);
   }
 
-  VLOG_INFO << "Local memory reserved " << string_human_readable_number(free_before - free_after)
+  LOG(INFO) << "Local memory reserved " << string_human_readable_number(free_before - free_after)
             << " bytes. (" << string_human_readable_size(free_before - free_after) << ")";
 
 #  if 0
@@ -816,7 +816,7 @@ void HIPDevice::tex_alloc(device_texture &mem)
     desc.NumChannels = mem.data_elements;
     desc.Flags = 0;
 
-    VLOG_WORK << "Array 3D allocate: " << mem.name << ", "
+    LOG(WORK) << "Array 3D allocate: " << mem.name << ", "
               << string_human_readable_number(mem.memory_size()) << " bytes. ("
               << string_human_readable_size(mem.memory_size()) << ")";
 
@@ -1059,10 +1059,10 @@ bool HIPDevice::should_use_graphics_interop(const GraphicsInteropDevice &interop
 
       if (log) {
         if (found) {
-          VLOG_INFO << "Graphics interop: found matching OpenGL device for HIP";
+          LOG(INFO) << "Graphics interop: found matching OpenGL device for HIP";
         }
         else {
-          VLOG_INFO << "Graphics interop: no matching OpenGL device for HIP";
+          LOG(INFO) << "Graphics interop: no matching OpenGL device for HIP";
         }
       }
 

@@ -259,9 +259,9 @@ string CUDADevice::compile_kernel(const string &common_cflags,
   if (!use_adaptive_compilation()) {
     if (!force_ptx) {
       const string cubin = path_get(string_printf("lib/%s_sm_%d%d.cubin.zst", name, major, minor));
-      VLOG_INFO << "Testing for pre-compiled kernel " << cubin << ".";
+      LOG(INFO) << "Testing for pre-compiled kernel " << cubin << ".";
       if (path_exists(cubin)) {
-        VLOG_INFO << "Using precompiled kernel.";
+        LOG(INFO) << "Using precompiled kernel.";
         return cubin;
       }
     }
@@ -271,9 +271,9 @@ string CUDADevice::compile_kernel(const string &common_cflags,
     while (ptx_major >= 3) {
       const string ptx = path_get(
           string_printf("lib/%s_compute_%d%d.ptx.zst", name, ptx_major, ptx_minor));
-      VLOG_INFO << "Testing for pre-compiled kernel " << ptx << ".";
+      LOG(INFO) << "Testing for pre-compiled kernel " << ptx << ".";
       if (path_exists(ptx)) {
-        VLOG_INFO << "Using precompiled kernel.";
+        LOG(INFO) << "Using precompiled kernel.";
         return ptx;
       }
 
@@ -301,9 +301,9 @@ string CUDADevice::compile_kernel(const string &common_cflags,
   const string cubin_file = string_printf(
       "cycles_%s_%s_%d%d_%s.%s", name, kernel_arch, major, minor, kernel_md5.c_str(), kernel_ext);
   const string cubin = path_cache_get(path_join("kernels", cubin_file));
-  VLOG_INFO << "Testing for locally compiled kernel " << cubin << ".";
+  LOG(INFO) << "Testing for locally compiled kernel " << cubin << ".";
   if (path_exists(cubin)) {
-    VLOG_INFO << "Using locally compiled kernel.";
+    LOG(INFO) << "Using locally compiled kernel.";
     return cubin;
   }
 
@@ -337,7 +337,7 @@ string CUDADevice::compile_kernel(const string &common_cflags,
   }
 
   const int nvcc_cuda_version = cuewCompilerVersion();
-  VLOG_INFO << "Found nvcc " << nvcc << ", CUDA version " << nvcc_cuda_version << ".";
+  LOG(INFO) << "Found nvcc " << nvcc << ", CUDA version " << nvcc_cuda_version << ".";
   if (nvcc_cuda_version < 101) {
     printf(
         "Unsupported CUDA version %d.%d detected, "
@@ -412,7 +412,7 @@ bool CUDADevice::load_kernels(const uint kernel_features)
    */
   if (cuModule) {
     if (use_adaptive_compilation()) {
-      VLOG_INFO
+      LOG(INFO)
           << "Skipping CUDA kernel reload for adaptive compilation, not currently supported.";
     }
     return true;
@@ -502,7 +502,7 @@ void CUDADevice::reserve_local_memory(const uint kernel_features)
     cuMemGetInfo(&free_after, &total);
   }
 
-  VLOG_INFO << "Local memory reserved " << string_human_readable_number(free_before - free_after)
+  LOG(INFO) << "Local memory reserved " << string_human_readable_number(free_before - free_after)
             << " bytes. (" << string_human_readable_size(free_before - free_after) << ")";
 
 #  if 0
@@ -853,7 +853,7 @@ void CUDADevice::tex_alloc(device_texture &mem)
     desc.NumChannels = mem.data_elements;
     desc.Flags = 0;
 
-    VLOG_WORK << "Array 3D allocate: " << mem.name << ", "
+    LOG(WORK) << "Array 3D allocate: " << mem.name << ", "
               << string_human_readable_number(mem.memory_size()) << " bytes. ("
               << string_human_readable_size(mem.memory_size()) << ")";
 
@@ -1090,10 +1090,10 @@ bool CUDADevice::should_use_graphics_interop(const GraphicsInteropDevice &intero
 
       if (log) {
         if (found) {
-          VLOG_INFO << "Graphics interop: found matching OpenGL device for CUDA";
+          LOG(INFO) << "Graphics interop: found matching OpenGL device for CUDA";
         }
         else {
-          VLOG_INFO << "Graphics interop: no matching OpenGL device for CUDA";
+          LOG(INFO) << "Graphics interop: no matching OpenGL device for CUDA";
         }
       }
 
@@ -1108,13 +1108,13 @@ bool CUDADevice::should_use_graphics_interop(const GraphicsInteropDevice &intero
 
       if (log) {
         if (found) {
-          VLOG_INFO << "Graphics interop: found matching Vulkan device for CUDA";
+          LOG(INFO) << "Graphics interop: found matching Vulkan device for CUDA";
         }
         else {
-          VLOG_INFO << "Graphics interop: no matching Vulkan device for CUDA";
+          LOG(INFO) << "Graphics interop: no matching Vulkan device for CUDA";
         }
 
-        VLOG_INFO << "Graphics Interop: CUDA UUID "
+        LOG(INFO) << "Graphics Interop: CUDA UUID "
                   << string_hex(reinterpret_cast<uint8_t *>(uuid.bytes), sizeof(uuid.bytes))
                   << ", Vulkan UUID "
                   << string_hex(interop_device.uuid.data(), interop_device.uuid.size());

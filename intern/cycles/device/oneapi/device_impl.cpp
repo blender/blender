@@ -73,7 +73,7 @@ OneapiDevice::OneapiDevice(const DeviceInfo &info, Stats &stats, Profiler &profi
               oneapi_error_string_ + "\"");
   }
   else {
-    VLOG_DEBUG << "oneAPI queue has been successfully created for the device \""
+    LOG(DEBUG) << "oneAPI queue has been successfully created for the device \""
                << info.description << "\"";
     assert(device_queue_);
   }
@@ -85,7 +85,7 @@ OneapiDevice::OneapiDevice(const DeviceInfo &info, Stats &stats, Profiler &profi
 #  endif
 
   if (use_hardware_raytracing) {
-    VLOG_INFO << "oneAPI will use hardware ray tracing for intersection acceleration.";
+    LOG(INFO) << "oneAPI will use hardware ray tracing for intersection acceleration.";
   }
 
   size_t globals_segment_size;
@@ -95,7 +95,7 @@ OneapiDevice::OneapiDevice(const DeviceInfo &info, Stats &stats, Profiler &profi
               oneapi_error_string_ + "\"");
   }
   else {
-    VLOG_DEBUG << "Successfully created global/constant memory segment (kernel globals object)";
+    LOG(DEBUG) << "Successfully created global/constant memory segment (kernel globals object)";
   }
 
   kg_memory_ = usm_aligned_alloc_host(device_queue_, globals_segment_size, 16);
@@ -115,7 +115,7 @@ OneapiDevice::OneapiDevice(const DeviceInfo &info, Stats &stats, Profiler &profi
     device_working_headroom = override_headroom;
     device_texture_headroom = override_headroom;
   }
-  VLOG_DEBUG << "oneAPI memory headroom size: "
+  LOG(DEBUG) << "oneAPI memory headroom size: "
              << string_human_readable_size(device_working_headroom);
 }
 
@@ -239,11 +239,11 @@ bool OneapiDevice::load_kernels(const uint requested_features)
               "\"");
     return false;
   }
-  VLOG_INFO << "Test kernel has been executed successfully for \"" << info.description << "\"";
+  LOG(INFO) << "Test kernel has been executed successfully for \"" << info.description << "\"";
   assert(device_queue_);
 
   if (use_hardware_raytracing && !can_use_hardware_raytracing_for_features(requested_features)) {
-    VLOG_INFO
+    LOG(INFO)
         << "Hardware ray tracing disabled, not supported yet by oneAPI for requested features.";
     use_hardware_raytracing = false;
   }
@@ -254,7 +254,7 @@ bool OneapiDevice::load_kernels(const uint requested_features)
     set_error("oneAPI kernels loading: got a runtime exception \"" + oneapi_error_string_ + "\"");
   }
   else {
-    VLOG_INFO << "Kernels loading (compilation) has been done for \"" << info.description << "\"";
+    LOG(INFO) << "Kernels loading (compilation) has been done for \"" << info.description << "\"";
   }
 
   if (is_finished_ok) {
@@ -294,7 +294,7 @@ void OneapiDevice::reserve_private_memory(const uint kernel_features)
 
   size_t free_after = get_free_mem();
 
-  VLOG_INFO << "For kernel execution were reserved "
+  LOG(INFO) << "For kernel execution were reserved "
             << string_human_readable_number(free_before - free_after) << " bytes. ("
             << string_human_readable_size(free_before - free_after) << ")";
 }
@@ -422,7 +422,7 @@ void OneapiDevice::mem_alloc(device_memory &mem)
   }
   else {
     if (mem.name) {
-      VLOG_DEBUG << "OneapiDevice::mem_alloc: \"" << mem.name << "\", "
+      LOG(DEBUG) << "OneapiDevice::mem_alloc: \"" << mem.name << "\", "
                  << string_human_readable_number(mem.memory_size()) << " bytes. ("
                  << string_human_readable_size(mem.memory_size()) << ")";
     }
@@ -433,7 +433,7 @@ void OneapiDevice::mem_alloc(device_memory &mem)
 void OneapiDevice::mem_copy_to(device_memory &mem)
 {
   if (mem.name) {
-    VLOG_DEBUG << "OneapiDevice::mem_copy_to: \"" << mem.name << "\", "
+    LOG(DEBUG) << "OneapiDevice::mem_copy_to: \"" << mem.name << "\", "
                << string_human_readable_number(mem.memory_size()) << " bytes. ("
                << string_human_readable_size(mem.memory_size()) << ")";
   }
@@ -461,7 +461,7 @@ void OneapiDevice::mem_copy_to(device_memory &mem)
 void OneapiDevice::mem_move_to_host(device_memory &mem)
 {
   if (mem.name) {
-    VLOG_DEBUG << "OneapiDevice::mem_move_to_host: \"" << mem.name << "\", "
+    LOG(DEBUG) << "OneapiDevice::mem_move_to_host: \"" << mem.name << "\", "
                << string_human_readable_number(mem.memory_size()) << " bytes. ("
                << string_human_readable_size(mem.memory_size()) << ")";
   }
@@ -496,7 +496,7 @@ void OneapiDevice::mem_copy_from(
     const size_t offset = elem * y * w;
 
     if (mem.name) {
-      VLOG_DEBUG << "OneapiDevice::mem_copy_from: \"" << mem.name << "\" object of "
+      LOG(DEBUG) << "OneapiDevice::mem_copy_from: \"" << mem.name << "\" object of "
                  << string_human_readable_number(mem.memory_size()) << " bytes. ("
                  << string_human_readable_size(mem.memory_size()) << ") from offset " << offset
                  << " data " << size << " bytes";
@@ -526,7 +526,7 @@ void OneapiDevice::mem_copy_from(
 void OneapiDevice::mem_zero(device_memory &mem)
 {
   if (mem.name) {
-    VLOG_DEBUG << "OneapiDevice::mem_zero: \"" << mem.name << "\", "
+    LOG(DEBUG) << "OneapiDevice::mem_zero: \"" << mem.name << "\", "
                << string_human_readable_number(mem.memory_size()) << " bytes. ("
                << string_human_readable_size(mem.memory_size()) << ")\n";
   }
@@ -556,7 +556,7 @@ void OneapiDevice::mem_zero(device_memory &mem)
 void OneapiDevice::mem_free(device_memory &mem)
 {
   if (mem.name) {
-    VLOG_DEBUG << "OneapiDevice::mem_free: \"" << mem.name << "\", "
+    LOG(DEBUG) << "OneapiDevice::mem_free: \"" << mem.name << "\", "
                << string_human_readable_number(mem.device_size) << " bytes. ("
                << string_human_readable_size(mem.device_size) << ")\n";
   }
@@ -584,7 +584,7 @@ void OneapiDevice::const_copy_to(const char *name, void *host, const size_t size
 {
   assert(name);
 
-  VLOG_DEBUG << "OneapiDevice::const_copy_to \"" << name << "\" object "
+  LOG(DEBUG) << "OneapiDevice::const_copy_to \"" << name << "\" object "
              << string_human_readable_number(size) << " bytes. ("
              << string_human_readable_size(size) << ")";
 
@@ -634,7 +634,7 @@ void OneapiDevice::global_alloc(device_memory &mem)
   assert(mem.name);
 
   size_t size = mem.memory_size();
-  VLOG_DEBUG << "OneapiDevice::global_alloc \"" << mem.name << "\" object "
+  LOG(DEBUG) << "OneapiDevice::global_alloc \"" << mem.name << "\" object "
              << string_human_readable_number(size) << " bytes. ("
              << string_human_readable_size(size) << ")";
 
@@ -799,7 +799,7 @@ void OneapiDevice::tex_alloc(device_texture &mem)
       desc = sycl::ext::oneapi::experimental::image_descriptor(
           {mem.data_width, mem.data_height, depth}, mem.data_elements, channel_type);
 
-      VLOG_WORK << "Array 2D/3D allocate: " << mem.name << ", "
+      LOG(WORK) << "Array 2D/3D allocate: " << mem.name << ", "
                 << string_human_readable_number(mem.memory_size()) << " bytes. ("
                 << string_human_readable_size(mem.memory_size()) << ")";
 
@@ -1387,7 +1387,7 @@ int parse_driver_build_version(const sycl::device &device)
   }
 
   if (driver_build_version == 0) {
-    VLOG_WARNING << "Unable to parse unknown Intel GPU driver version. \"" << driver_version
+    LOG(WARNING) << "Unable to parse unknown Intel GPU driver version. \"" << driver_version
                  << "\" does not match xx.xx.xxxxx (Linux), x.x.xxxx (L0),"
                  << " xx.xx.xxx.xxxx (Windows) for device \""
                  << device.get_info<sycl::info::device::name>() << "\".";
@@ -1470,7 +1470,7 @@ std::vector<sycl::device> available_sycl_devices()
             if (driver_build_version < lowest_supported_driver_version) {
               filter_out = true;
 
-              VLOG_WARNING << "Driver version for device \""
+              LOG(WARNING) << "Driver version for device \""
                            << device.get_info<sycl::info::device::name>()
                            << "\" is too old. Expected \"" << lowest_supported_driver_version
                            << "\" or newer, but got \"" << driver_build_version << "\".";

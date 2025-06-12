@@ -44,7 +44,7 @@ CPUDevice::CPUDevice(const DeviceInfo &info_, Stats &stats_, Profiler &profiler_
 {
   /* Pick any kernel, all of them are supposed to have same level of microarchitecture
    * optimization. */
-  VLOG_INFO << "Using " << get_cpu_kernels().integrator_init_from_camera.get_uarch_name()
+  LOG(INFO) << "Using " << get_cpu_kernels().integrator_init_from_camera.get_uarch_name()
             << " CPU kernels.";
 
   if (info.cpu_threads == 0) {
@@ -97,7 +97,7 @@ void CPUDevice::mem_alloc(device_memory &mem)
   }
   else {
     if (mem.name) {
-      VLOG_WORK << "Buffer allocate: " << mem.name << ", "
+      LOG(WORK) << "Buffer allocate: " << mem.name << ", "
                 << string_human_readable_number(mem.memory_size()) << " bytes. ("
                 << string_human_readable_size(mem.memory_size()) << ")";
     }
@@ -199,7 +199,7 @@ void CPUDevice::const_copy_to(const char *name, void *host, const size_t size)
 
 void CPUDevice::global_alloc(device_memory &mem)
 {
-  VLOG_WORK << "Global memory allocate: " << mem.name << ", "
+  LOG(WORK) << "Global memory allocate: " << mem.name << ", "
             << string_human_readable_number(mem.memory_size()) << " bytes. ("
             << string_human_readable_size(mem.memory_size()) << ")";
 
@@ -221,7 +221,7 @@ void CPUDevice::global_free(device_memory &mem)
 
 void CPUDevice::tex_alloc(device_texture &mem)
 {
-  VLOG_WORK << "Texture allocate: " << mem.name << ", "
+  LOG(WORK) << "Texture allocate: " << mem.name << ", "
             << string_human_readable_number(mem.memory_size()) << " bytes. ("
             << string_human_readable_size(mem.memory_size()) << ")";
 

@@ -385,7 +385,7 @@ void PathTrace::path_trace(RenderWork &render_work)
     return;
   }
 
-  VLOG_WORK << "Will path trace " << render_work.path_trace.num_samples
+  LOG(WORK) << "Will path trace " << render_work.path_trace.num_samples
             << " samples at the resolution divider " << render_work.resolution_divider;
 
   const double start_time = time_dt();
@@ -415,7 +415,7 @@ void PathTrace::path_trace(RenderWork &render_work)
     work_balance_infos_[i].time_spent += work_time;
     work_balance_infos_[i].occupancy = statistics.occupancy;
 
-    VLOG_INFO << "Rendered " << num_samples << " samples in " << work_time << " seconds ("
+    LOG(INFO) << "Rendered " << num_samples << " samples in " << work_time << " seconds ("
               << work_time / num_samples
               << " seconds per sample), occupancy: " << statistics.occupancy;
   });
@@ -440,10 +440,10 @@ void PathTrace::adaptive_sample(RenderWork &render_work)
   bool did_reschedule_on_idle = false;
 
   while (true) {
-    VLOG_WORK << "Will filter adaptive stopping buffer, threshold "
+    LOG(WORK) << "Will filter adaptive stopping buffer, threshold "
               << render_work.adaptive_sampling.threshold;
     if (render_work.adaptive_sampling.reset) {
-      VLOG_WORK << "Will re-calculate convergency flag for currently converged pixels.";
+      LOG(WORK) << "Will re-calculate convergency flag for currently converged pixels.";
     }
 
     const double start_time = time_dt();
@@ -462,11 +462,11 @@ void PathTrace::adaptive_sample(RenderWork &render_work)
         render_work, time_dt() - start_time, is_cancel_requested());
 
     if (num_active_pixels == 0) {
-      VLOG_WORK << "All pixels converged.";
+      LOG(WORK) << "All pixels converged.";
       if (!render_scheduler_.render_work_reschedule_on_converge(render_work)) {
         break;
       }
-      VLOG_WORK << "Continuing with lower threshold.";
+      LOG(WORK) << "Continuing with lower threshold.";
     }
     else if (did_reschedule_on_idle) {
       break;
@@ -478,10 +478,10 @@ void PathTrace::adaptive_sample(RenderWork &render_work)
        * A better heuristic is possible here: for example, use maximum of 128^2 and percentage of
        * the final resolution. */
       if (!render_scheduler_.render_work_reschedule_on_idle(render_work)) {
-        VLOG_WORK << "Rescheduling is not possible: final threshold is reached.";
+        LOG(WORK) << "Rescheduling is not possible: final threshold is reached.";
         break;
       }
-      VLOG_WORK << "Rescheduling lower threshold.";
+      LOG(WORK) << "Rescheduling lower threshold.";
       did_reschedule_on_idle = true;
     }
     else {
@@ -575,7 +575,7 @@ void PathTrace::cryptomatte_postprocess(const RenderWork &render_work)
   if (!render_work.cryptomatte.postprocess) {
     return;
   }
-  VLOG_WORK << "Perform cryptomatte work.";
+  LOG(WORK) << "Perform cryptomatte work.";
 
   parallel_for_each(path_trace_works_, [&](unique_ptr<PathTraceWork> &path_trace_work) {
     path_trace_work->cryptomatte_postproces();
@@ -593,7 +593,7 @@ void PathTrace::denoise(const RenderWork &render_work)
     return;
   }
 
-  VLOG_WORK << "Perform denoising work.";
+  LOG(WORK) << "Perform denoising work.";
 
   const double start_time = time_dt();
 
@@ -686,26 +686,26 @@ void PathTrace::update_display(const RenderWork &render_work)
   }
 
   if (!display_ && !output_driver_) {
-    VLOG_WORK << "Ignore display update.";
+    LOG(WORK) << "Ignore display update.";
     return;
   }
 
   if (full_params_.width == 0 || full_params_.height == 0) {
-    VLOG_WORK << "Skipping PathTraceDisplay update due to 0 size of the render buffer.";
+    LOG(WORK) << "Skipping PathTraceDisplay update due to 0 size of the render buffer.";
     return;
   }
 
   const double start_time = time_dt();
 
   if (output_driver_) {
-    VLOG_WORK << "Invoke buffer update callback.";
+    LOG(WORK) << "Invoke buffer update callback.";
 
     const PathTraceTile tile(*this);
     output_driver_->update_render_tile(tile);
   }
 
   if (display_) {
-    VLOG_WORK << "Perform copy to GPUDisplay work.";
+    LOG(WORK) << "Perform copy to GPUDisplay work.";
 
     const int texture_width = render_state_.effective_big_tile_params.window_width;
     const int texture_height = render_state_.effective_big_tile_params.window_height;
@@ -746,33 +746,33 @@ void PathTrace::rebalance(const RenderWork &render_work)
   const int num_works = path_trace_works_.size();
 
   if (num_works == 1) {
-    VLOG_WORK << "Ignoring rebalance work due to single device render.";
+    LOG(WORK) << "Ignoring rebalance work due to single device render.";
     return;
   }
 
   const double start_time = time_dt();
 
-  if (VLOG_IS_ON(3)) {
-    VLOG_WORK << "Perform rebalance work.";
-    VLOG_WORK << "Per-device path tracing time (seconds):";
+  if (LOG_IS_ON(WORK)) {
+    LOG(WORK) << "Perform rebalance work.";
+    LOG(WORK) << "Per-device path tracing time (seconds):";
     for (int i = 0; i < num_works; ++i) {
-      VLOG_WORK << path_trace_works_[i]->get_device()->info.description << ": "
+      LOG(WORK) << path_trace_works_[i]->get_device()->info.description << ": "
                 << work_balance_infos_[i].time_spent;
     }
   }
 
   const bool did_rebalance = work_balance_do_rebalance(work_balance_infos_);
 
-  if (VLOG_IS_ON(3)) {
-    VLOG_WORK << "Calculated per-device weights for works:";
+  if (LOG_IS_ON(WORK)) {
+    LOG(WORK) << "Calculated per-device weights for works:";
     for (int i = 0; i < num_works; ++i) {
-      VLOG_WORK << path_trace_works_[i]->get_device()->info.description << ": "
+      LOG(WORK) << path_trace_works_[i]->get_device()->info.description << ": "
                 << work_balance_infos_[i].weight;
     }
   }
 
   if (!did_rebalance) {
-    VLOG_WORK << "Balance in path trace works did not change.";
+    LOG(WORK) << "Balance in path trace works did not change.";
     render_scheduler_.report_rebalance_time(render_work, time_dt() - start_time, false);
     return;
   }
@@ -796,7 +796,7 @@ void PathTrace::write_tile_buffer(const RenderWork &render_work)
     return;
   }
 
-  VLOG_WORK << "Write tile result.";
+  LOG(WORK) << "Write tile result.";
 
   render_state_.tile_written = true;
 
@@ -810,13 +810,13 @@ void PathTrace::write_tile_buffer(const RenderWork &render_work)
    *
    * Important thing is: tile should be written to the software via callback only once. */
   if (!has_multiple_tiles) {
-    VLOG_WORK << "Write tile result via buffer write callback.";
+    LOG(WORK) << "Write tile result via buffer write callback.";
     tile_buffer_write();
   }
   /* Write tile to disk, so that the render work's render buffer can be re-used for the next tile.
    */
   else {
-    VLOG_WORK << "Write tile result to disk.";
+    LOG(WORK) << "Write tile result to disk.";
     tile_buffer_write_to_disk();
   }
 }
@@ -827,10 +827,10 @@ void PathTrace::finalize_full_buffer_on_disk(const RenderWork &render_work)
     return;
   }
 
-  VLOG_WORK << "Handle full-frame render buffer work.";
+  LOG(WORK) << "Handle full-frame render buffer work.";
 
   if (!tile_manager_.has_written_tiles()) {
-    VLOG_WORK << "No tiles on disk.";
+    LOG(WORK) << "No tiles on disk.";
     return;
   }
 
@@ -1030,7 +1030,7 @@ static string get_layer_view_name(const RenderBuffers &buffers)
 
 void PathTrace::process_full_buffer_from_disk(string_view filename)
 {
-  VLOG_WORK << "Processing full frame buffer file " << filename;
+  LOG(WORK) << "Processing full frame buffer file " << filename;
 
   progress_set_status("Reading full buffer from disk");
 
@@ -1319,7 +1319,7 @@ static string denoiser_device_report(const Denoiser *denoiser)
 
 string PathTrace::full_report() const
 {
-  string result = "\nFull path tracing report\n";
+  string result = "Full path tracing report:\n";
 
   result += path_trace_devices_report(path_trace_works_);
   result += denoiser_device_report(denoiser_.get());
@@ -1461,10 +1461,10 @@ void PathTrace::guiding_prepare_structures()
 void PathTrace::guiding_update_structures()
 {
 #if defined(WITH_PATH_GUIDING)
-  VLOG_WORK << "Update path guiding structures";
+  LOG(WORK) << "Update path guiding structures";
 
-  VLOG_DEBUG << "Number of surface samples: " << guiding_sample_data_storage_->GetSizeSurface();
-  VLOG_DEBUG << "Number of volume samples: " << guiding_sample_data_storage_->GetSizeVolume();
+  LOG(DEBUG) << "Number of surface samples: " << guiding_sample_data_storage_->GetSizeSurface();
+  LOG(DEBUG) << "Number of volume samples: " << guiding_sample_data_storage_->GetSizeVolume();
 
   const size_t num_valid_samples = guiding_sample_data_storage_->GetSizeSurface() +
                                    guiding_sample_data_storage_->GetSizeVolume();
@@ -1474,7 +1474,7 @@ void PathTrace::guiding_update_structures()
     guiding_field_->Update(*guiding_sample_data_storage_);
     guiding_update_count++;
 
-    VLOG_DEBUG << "Path guiding field valid: " << guiding_field_->Validate();
+    LOG(DEBUG) << "Path guiding field valid: " << guiding_field_->Validate();
 
     guiding_sample_data_storage_->Clear();
   }

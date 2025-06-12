@@ -502,7 +502,7 @@ void MetalDevice::compile_and_load(const int device_id, MetalPipelineType pso_ty
       if (MetalDevice *instance = get_device_by_ID(device_id, lock)) {
         if (mtlLibrary) {
           if (error && [error localizedDescription]) {
-            VLOG_WARNING << "MSL compilation messages: "
+            LOG(WARNING) << "MSL compilation messages: "
                          << [[error localizedDescription] UTF8String];
           }
 
@@ -586,7 +586,7 @@ MetalDevice::MetalMem *MetalDevice::generic_alloc(device_memory &mem)
     }
 
     if (mem.name) {
-      VLOG_WORK << "Buffer allocate: " << mem.name << ", "
+      LOG(WORK) << "Buffer allocate: " << mem.name << ", "
                 << string_human_readable_number(mem.memory_size()) << " bytes. ("
                 << string_human_readable_size(mem.memory_size()) << ")";
     }
@@ -1041,7 +1041,7 @@ void MetalDevice::tex_alloc(device_texture &mem)
       desc.textureType = MTLTextureType3D;
       desc.depth = mem.data_depth;
 
-      VLOG_WORK << "Texture 3D allocate: " << mem.name << ", "
+      LOG(WORK) << "Texture 3D allocate: " << mem.name << ", "
                 << string_human_readable_number(mem.memory_size()) << " bytes. ("
                 << string_human_readable_size(mem.memory_size()) << ")";
 
@@ -1074,7 +1074,7 @@ void MetalDevice::tex_alloc(device_texture &mem)
       desc.storageMode = MTLStorageModeShared;
       desc.usage = MTLTextureUsageShaderRead;
 
-      VLOG_WORK << "Texture 2D allocate: " << mem.name << ", "
+      LOG(WORK) << "Texture 2D allocate: " << mem.name << ", "
                 << string_human_readable_number(mem.memory_size()) << " bytes. ("
                 << string_human_readable_size(mem.memory_size()) << ")";
 

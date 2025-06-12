@@ -70,28 +70,26 @@ extern LogLevel LOG_LEVEL;
 #define LOG_STRINGIFY(x) LOG_STRINGIFY_APPEND("", x)
 
 #ifdef NDEBUG
-#  define VLOG_IF(level, condition) \
+#  define LOG_IF(level, condition) \
     if constexpr (level != DFATAL && level != DERROR && level != DWARNING) \
       if (LIKELY(!(level <= LOG_LEVEL && (condition)))) \
         ; \
       else \
         LogMessage(level, __FILE__ ":" LOG_STRINGIFY(__LINE__), __func__).stream()
 #else
-#  define VLOG_IF(level, condition) \
+#  define LOG_IF(level, condition) \
     if (LIKELY(!(level <= LOG_LEVEL && (condition)))) \
       ; \
     else \
       LogMessage(level, __FILE__ ":" LOG_STRINGIFY(__LINE__), __func__).stream()
 #endif
 
-// TODO: remove distinction
-#define VLOG(level) VLOG_IF(level, true)
-#define LOG(level) VLOG_IF(level, true)
+#define LOG(level) LOG_IF(level, true)
 
-#define VLOG_IS_ON(level) ((level) <= LOG_LEVEL)
+#define LOG_IS_ON(level) ((level) <= LOG_LEVEL)
 
-#define CHECK(expression) VLOG_IF(FATAL, !(expression))
-#define CHECK_OP(op, a, b) VLOG_IF(FATAL, !((a)op(b)))
+#define CHECK(expression) LOG_IF(FATAL, !(expression))
+#define CHECK_OP(op, a, b) LOG_IF(FATAL, !((a)op(b)))
 #define CHECK_GE(a, b) CHECK_OP(>=, a, b)
 #define CHECK_NE(a, b) CHECK_OP(!=, a, b)
 #define CHECK_EQ(a, b) CHECK_OP(==, a, b)
@@ -108,12 +106,12 @@ template<typename T> T DCheckNotNull(T &&t, const char *expression)
   return std::forward<T>(t);
 }
 
-#  define DCHECK(expression) VLOG_IF(DFATAL, !(expression)) << LOG_STRINGIFY(expression) << " "
+#  define DCHECK(expression) LOG_IF(DFATAL, !(expression)) << LOG_STRINGIFY(expression) << " "
 #  define DCHECK_NOTNULL(expression) DCheckNotNull(expression, LOG_STRINGIFY(expression))
 #  define DCHECK_OP(op, a, b) \
-    VLOG_IF(DFATAL, !((a)op(b))) << "Failed " << LOG_STRINGIFY(a) << " (" << a << ") " \
-                                 << LOG_STRINGIFY(op) << " " << LOG_STRINGIFY(b) << " (" << b \
-                                 << ") "
+    LOG_IF(DFATAL, !((a)op(b))) << "Failed " << LOG_STRINGIFY(a) << " (" << a << ") " \
+                                << LOG_STRINGIFY(op) << " " << LOG_STRINGIFY(b) << " (" << b \
+                                << ") "
 #  define DCHECK_GE(a, b) DCHECK_OP(>=, a, b)
 #  define DCHECK_NE(a, b) DCHECK_OP(!=, a, b)
 #  define DCHECK_EQ(a, b) DCHECK_OP(==, a, b)
@@ -121,7 +119,7 @@ template<typename T> T DCheckNotNull(T &&t, const char *expression)
 #  define DCHECK_LT(a, b) DCHECK_OP(<, a, b)
 #  define DCHECK_LE(a, b) DCHECK_OP(<=, a, b)
 #else
-#  define LOG_SUPPRESS() VLOG_IF(DEBUG, false)
+#  define LOG_SUPPRESS() LOG_IF(DEBUG, false)
 #  define DCHECK(expression) LOG_SUPPRESS()
 #  define DCHECK_NOTNULL(expression) (expression)
 #  define DCHECK_GE(a, b) LOG_SUPPRESS()
@@ -131,23 +129,6 @@ template<typename T> T DCheckNotNull(T &&t, const char *expression)
 #  define DCHECK_LT(a, b) LOG_SUPPRESS()
 #  define DCHECK_LE(a, b) LOG_SUPPRESS()
 #endif
-
-/* Verbose logging categories. */
-
-/* Warnings. */
-#define VLOG_WARNING VLOG(WARNING)
-/* Info about devices, scene contents and features used. */
-#define VLOG_INFO VLOG(INFO)
-#define VLOG_INFO_IS_ON VLOG_IS_ON(INFO)
-/* Work being performed and timing/memory stats about that work. */
-#define VLOG_WORK VLOG(WORK)
-#define VLOG_WORK_IS_ON VLOG_IS_ON(WORK)
-/* Detailed device timing stats. */
-#define VLOG_DEVICE_STATS VLOG(STATS)
-#define VLOG_DEVICE_STATS_IS_ON VLOG_IS_ON(STATS)
-/* Verbose debug messages. */
-#define VLOG_DEBUG VLOG(DEBUG)
-#define VLOG_DEBUG_IS_ON VLOG_IS_ON(DEBUG)
 
 struct int2;
 struct float3;

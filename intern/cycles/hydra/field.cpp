@@ -44,10 +44,10 @@ class HdCyclesVolumeLoader : public VDBImageLoader {
       }
     }
     catch (const openvdb::IoError &e) {
-      VLOG_WARNING << "Error loading OpenVDB file: " << e.what();
+      LOG(WARNING) << "Error loading OpenVDB file: " << e.what();
     }
     catch (...) {
-      VLOG_WARNING << "Error loading OpenVDB file: Unknown error";
+      LOG(WARNING) << "Error loading OpenVDB file: Unknown error";
     }
   }
 };

@@ -40,34 +40,34 @@ bool device_hip_init()
   int hipew_result = hipewInit(HIPEW_INIT_HIP);
 
   if (hipew_result == HIPEW_SUCCESS) {
-    VLOG_INFO << "HIPEW initialization succeeded";
+    LOG(INFO) << "HIPEW initialization succeeded";
     if (!hipSupportsDriver()) {
-      VLOG_WARNING << "Driver version is too old";
+      LOG(WARNING) << "Driver version is too old";
     }
     else if (HIPDevice::have_precompiled_kernels()) {
-      VLOG_INFO << "Found precompiled kernels";
+      LOG(INFO) << "Found precompiled kernels";
       result = true;
     }
     else if (hipewCompilerPath() != nullptr) {
-      VLOG_INFO << "Found HIPCC " << hipewCompilerPath();
+      LOG(INFO) << "Found HIPCC " << hipewCompilerPath();
       result = true;
     }
     else {
-      VLOG_INFO << "Neither precompiled kernels nor HIPCC was found,"
+      LOG(INFO) << "Neither precompiled kernels nor HIPCC was found,"
                 << " unable to use HIP";
     }
   }
   else {
     if (hipew_result == HIPEW_ERROR_ATEXIT_FAILED) {
-      VLOG_WARNING << "HIPEW initialization failed: Error setting up atexit() handler";
+      LOG(WARNING) << "HIPEW initialization failed: Error setting up atexit() handler";
     }
     else if (hipew_result == HIPEW_ERROR_OLD_DRIVER) {
-      VLOG_WARNING
+      LOG(WARNING)
           << "HIPEW initialization failed: Driver version too old, requires AMD Radeon Pro "
              "24.Q2 driver or newer";
     }
     else {
-      VLOG_WARNING << "HIPEW initialization failed: Error opening HIP dynamic library";
+      LOG(WARNING) << "HIPEW initialization failed: Error opening HIP dynamic library";
     }
   }
 
@@ -219,20 +219,20 @@ void device_hip_info(vector<DeviceInfo> &devices)
     hipDeviceGetAttribute(&timeout_attr, hipDeviceAttributeKernelExecTimeout, num);
 
     if (timeout_attr) {
-      VLOG_INFO << "Device is recognized as display.";
+      LOG(INFO) << "Device is recognized as display.";
       info.description += " (Display)";
       info.display_device = true;
       display_devices.push_back(info);
     }
     else {
-      VLOG_INFO << "Device has compute preemption or is not used for display.";
+      LOG(INFO) << "Device has compute preemption or is not used for display.";
       devices.push_back(info);
     }
 
-    VLOG_INFO << "Added device \"" << info.description << "\" with id \"" << info.id << "\".";
+    LOG(INFO) << "Added device \"" << info.description << "\" with id \"" << info.id << "\".";
 
     if (info.denoisers & DENOISER_OPENIMAGEDENOISE) {
-      VLOG_INFO << "Device with id \"" << info.id << "\" supports "
+      LOG(INFO) << "Device with id \"" << info.id << "\" supports "
                 << denoiserTypeToHumanReadable(DENOISER_OPENIMAGEDENOISE) << ".";
     }
   }
