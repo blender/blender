@@ -33,7 +33,10 @@ class ShapeKeyTreeView : public ui::AbstractTreeView {
   Object &object_;
 
  public:
-  ShapeKeyTreeView(Object &ob) : object_(ob){};
+  ShapeKeyTreeView(Object &ob) : object_(ob)
+  {
+    is_flat_ = true;
+  };
 
   void build_tree() override;
 };
