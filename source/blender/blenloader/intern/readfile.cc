@@ -228,7 +228,7 @@ void BLO_reportf_wrap(BlendFileReadReport *reports,
   BKE_report(reports->reports, type, fixed_buf);
 
   if (G.background == 0) {
-    printf("%s: %s\n", BKE_report_type_str(type), fixed_buf);
+    BKE_report_log(type, fixed_buf, &LOG);
   }
 }
 
