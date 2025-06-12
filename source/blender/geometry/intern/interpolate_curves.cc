@@ -102,7 +102,7 @@ static AttributesForInterpolation retrieve_attribute_spans(const Span<StringRef>
       result.src_to.append(src_to_attribute);
     }
 
-    bke::GSpanAttributeWriter dst_attribute = dst_attributes.lookup_or_add_for_write_only_span(
+    bke::GSpanAttributeWriter dst_attribute = dst_attributes.lookup_or_add_for_write_span(
         ids[i], domain, data_type);
     result.dst.append(std::move(dst_attribute));
   }
