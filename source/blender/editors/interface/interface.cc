@@ -2090,7 +2090,7 @@ void UI_block_end_ex(const bContext *C,
     }
 
     const AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(
-        depsgraph, (scene) ? scene->r.cfra : 0.0f);
+        depsgraph, (scene) ? BKE_scene_frame_get(scene) : 0.0f);
     ui_but_anim_flag(but.get(), &anim_eval_context);
     ui_but_override_flag(bmain, but.get());
     if (UI_but_is_decorator(but)) {
