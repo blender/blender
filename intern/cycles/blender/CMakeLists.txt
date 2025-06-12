@@ -58,6 +58,7 @@ set(LIB
   PRIVATE bf::imbuf
   PRIVATE bf::gpu
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::intern::clog
   PRIVATE bf::render
   cycles_bvh
   cycles_device
@@ -72,13 +73,6 @@ set(LIB
   ${PYTHON_LINKFLAGS}
   ${PYTHON_LIBRARIES}
 )
-
-if(WITH_CYCLES_LOGGING)
-  list(APPEND LIB
-    ${GLOG_LIBRARIES}
-    ${GFLAGS_LIBRARIES}
-  )
-endif()
 
 set(ADDON_FILES
   addon/__init__.py

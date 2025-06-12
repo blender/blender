@@ -69,7 +69,7 @@
 #    include "libmv-capi.h"
 #  endif
 
-#  ifdef WITH_CYCLES_LOGGING
+#  ifdef WITH_CYCLES
 #    include "CCL_api.h"
 #  endif
 
@@ -90,7 +90,6 @@
 struct BuildDefs {
   bool win32;
   bool with_cycles;
-  bool with_cycles_logging;
   bool with_ffmpeg;
   bool with_freestyle;
   bool with_libmv;
@@ -116,9 +115,6 @@ static void build_defs_init(BuildDefs *build_defs, bool force_all)
 #  endif
 #  ifdef WITH_CYCLES
   build_defs->with_cycles = true;
-#  endif
-#  ifdef WITH_CYCLES_LOGGING
-  build_defs->with_cycles_logging = true;
 #  endif
 #  ifdef WITH_FFMPEG
   build_defs->with_ffmpeg = true;
@@ -740,9 +736,6 @@ static void print_help(bArgs *ba, bool all)
   BLI_args_print_arg_doc(ba, "--debug-handlers");
   if (defs.with_libmv) {
     BLI_args_print_arg_doc(ba, "--debug-libmv");
-  }
-  if (defs.with_cycles_logging) {
-    BLI_args_print_arg_doc(ba, "--debug-cycles");
   }
   BLI_args_print_arg_doc(ba, "--debug-memory");
   BLI_args_print_arg_doc(ba, "--debug-jobs");
@@ -1394,9 +1387,6 @@ static int arg_handle_debug_mode_all(int /*argc*/, const char ** /*argv*/, void 
 #  ifdef WITH_LIBMV
   libmv_startDebugLogging();
 #  endif
-#  ifdef WITH_CYCLES_LOGGING
-  CCL_start_debug_logging();
-#  endif
   return 0;
 }
 
@@ -1416,9 +1406,8 @@ static const char arg_handle_debug_mode_cycles_doc[] =
     "Enable debug messages from Cycles.";
 static int arg_handle_debug_mode_cycles(int /*argc*/, const char ** /*argv*/, void * /*data*/)
 {
-#  ifdef WITH_CYCLES_LOGGING
-  CCL_start_debug_logging();
-#  endif
+  const char *cycles_filter = "cycles.*";
+  CLG_type_filter_include(cycles_filter, strlen(cycles_filter));
   return 0;
 }
 
@@ -2094,10 +2083,6 @@ static int arg_handle_verbosity_set(int argc, const char **argv, void * /*data*/
 
 #  ifdef WITH_LIBMV
     libmv_setLoggingVerbosity(level);
-#  elif defined(WITH_CYCLES_LOGGING)
-    CCL_logging_verbosity_set(level);
-#  else
-    (void)level;
 #  endif
 
     return 1;
@@ -2821,7 +2806,7 @@ void main_args_setup(bContext *C, bArgs *ba, bool all)
   if (defs.with_libmv) {
     BLI_args_add(ba, nullptr, "--debug-libmv", CB(arg_handle_debug_mode_libmv), nullptr);
   }
-  if (defs.with_cycles_logging) {
+  if (defs.with_cycles) {
     BLI_args_add(ba, nullptr, "--debug-cycles", CB(arg_handle_debug_mode_cycles), nullptr);
   }
   BLI_args_add(ba, nullptr, "--debug-memory", CB(arg_handle_debug_mode_memory_set), nullptr);

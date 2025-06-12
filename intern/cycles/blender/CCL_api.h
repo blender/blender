@@ -12,9 +12,7 @@ extern "C" {
 
 void *CCL_python_module_init(void);
 
-void CCL_init_logging(const char *argv0);
-void CCL_start_debug_logging(void);
-void CCL_logging_verbosity_set(const int verbosity);
+void CCL_log_init(void);
 
 #ifdef __cplusplus
 }

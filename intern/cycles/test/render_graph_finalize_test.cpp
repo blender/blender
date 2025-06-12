@@ -2,7 +2,6 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#include <glog/logging.h>
 #include <gtest/gtest.h>
 
 #include "device/device.h"
@@ -145,16 +144,23 @@ class ShaderGraphBuilder {
 
 /* A ScopedMockLog object intercepts log messages issued during its lifespan,
  * to test if the approriate logs are output. */
-class ScopedMockLog : google::LogSink {
+class ScopedMockLog {
  public:
   ScopedMockLog()
   {
-    AddLogSink(this);
+    log_init([](const LogLevel /*level*/,
+                const char * /*file_line*/,
+                const char * /*func*/,
+                const char *msg) {
+      static thread_mutex mutex;
+      thread_scoped_lock lock(mutex);
+      messages.push_back(msg);
+    });
   }
 
-  ~ScopedMockLog() override
+  ~ScopedMockLog()
   {
-    RemoveLogSink(this);
+    log_init(nullptr);
     messages.free_memory();
   }
 
@@ -182,19 +188,6 @@ class ScopedMockLog : google::LogSink {
 
  private:
   static vector<string> messages;
-
-  void send(google::LogSeverity /*severity*/,
-            const char * /*full_filename*/,
-            const char * /*base_filename*/,
-            int /*line*/,
-            const tm * /*tm_time*/,
-            const char *message,
-            size_t /*message_len*/) override
-  {
-    static thread_mutex mutex;
-    thread_scoped_lock lock(mutex);
-    messages.push_back(message);
-  }
 };
 
 vector<string> ScopedMockLog::messages;
@@ -230,15 +223,14 @@ class RenderGraph : public testing::Test {
     /* Initialize logging after the creation of the essential resources. This way the logging
      * mock sink does not warn about uninteresting messages which happens prior to the setup of
      * the actual mock sinks. */
-    util_logging_start();
-    util_logging_verbosity_set(5);
+    log_level_set(DEBUG);
   }
 
   void TearDown() override
   {
     /* Effectively disable logging, so that the next test suit starts in an environment which is
      * not logging by default. */
-    util_logging_verbosity_set(0);
+    log_level_set(FATAL);
 
     scene.reset();
     device_cpu.reset();
