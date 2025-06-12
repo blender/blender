@@ -47,7 +47,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_endian_defines.h"
-#include "BLI_endian_switch.h"
 #include "BLI_fileops.h"
 #include "BLI_ghash.h"
 #include "BLI_map.hh"
@@ -922,16 +921,11 @@ static int *read_file_thumbnail(FileData *fd)
 
   for (bhead = blo_bhead_first(fd); bhead; bhead = blo_bhead_next(fd, bhead)) {
     if (bhead->code == BLO_CODE_TEST) {
-      const bool do_endian_swap = (fd->flags & FD_FLAGS_SWITCH_ENDIAN) != 0;
+      BLI_assert((fd->flags & FD_FLAGS_SWITCH_ENDIAN) == 0);
       int *data = (int *)(bhead + 1);
 
       if (bhead->len < sizeof(int[2])) {
         break;
-      }
-
-      if (do_endian_swap) {
-        BLI_endian_switch_int32(&data[0]);
-        BLI_endian_switch_int32(&data[1]);
       }
 
       const int width = data[0];
