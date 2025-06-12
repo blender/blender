@@ -87,7 +87,7 @@ int /*eContextResult*/ file_context(const bContext *C,
       return CTX_RESULT_NO_DATA;
     }
 
-    CTX_data_pointer_set(result, &screen->id, &RNA_AssetRepresentation, file->asset);
+    CTX_data_pointer_set(result, nullptr, &RNA_AssetRepresentation, file->asset);
     return CTX_RESULT_OK;
   }
   if (CTX_data_equals(member, "selected_assets")) {
