@@ -604,7 +604,7 @@ class MeshUVs : Overlay {
         const bool hide_faces = space_image->flag & SI_NO_DRAWFACES;
         select_face_ = !show_mesh_analysis_ && !hide_faces;
 
-        if (tool_setting->uv_flag & UV_SYNC_SELECTION) {
+        if (tool_setting->uv_flag & UV_FLAG_SYNC_SELECT) {
           const char sel_mode_3d = tool_setting->selectmode;
           if (tool_setting->uv_sticky == SI_STICKY_VERTEX) {
             /* NOTE: Ignore #SCE_SELECT_VERTEX because a single selected edge

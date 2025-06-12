@@ -2779,8 +2779,8 @@ enum {
 
 /** #ToolSettings::uv_flag */
 enum {
-  UV_SYNC_SELECTION = 1,
-  UV_SHOW_SAME_IMAGE = 2,
+  UV_FLAG_SYNC_SELECT = 1 << 0,
+  UV_FLAG_SHOW_SAME_IMAGE = 1 << 1,
 };
 
 /** #ToolSettings::uv_selectmode */

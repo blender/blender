@@ -4178,7 +4178,7 @@ static void rna_def_tool_settings(BlenderRNA *brna)
       prop, NC_SPACE | ND_SPACE_IMAGE, "rna_Scene_uv_sticky_select_mode_update");
 
   prop = RNA_def_property(srna, "use_uv_select_sync", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "uv_flag", UV_SYNC_SELECTION);
+  RNA_def_property_boolean_sdna(prop, nullptr, "uv_flag", UV_FLAG_SYNC_SELECT);
   RNA_def_property_flag(prop, PROP_DEG_SYNC_ONLY);
   RNA_def_property_ui_text(
       prop, "UV Sync Selection", "Keep UV and edit mode mesh selection in sync");
@@ -4186,7 +4186,7 @@ static void rna_def_tool_settings(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, nullptr);
 
   prop = RNA_def_property(srna, "show_uv_local_view", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "uv_flag", UV_SHOW_SAME_IMAGE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "uv_flag", UV_FLAG_SHOW_SAME_IMAGE);
   RNA_def_property_flag(prop, PROP_DEG_SYNC_ONLY);
   RNA_def_property_ui_text(
       prop, "UV Local View", "Display only faces with the currently displayed image assigned");

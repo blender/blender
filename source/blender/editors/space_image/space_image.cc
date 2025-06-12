@@ -809,7 +809,9 @@ static void image_main_region_listener(const wmRegionListenerParams *params)
       if (wmn->data == ND_SHADING_LINKS) {
         SpaceImage *sima = static_cast<SpaceImage *>(area->spacedata.first);
 
-        if (sima->iuser.scene && (sima->iuser.scene->toolsettings->uv_flag & UV_SHOW_SAME_IMAGE)) {
+        if (sima->iuser.scene &&
+            (sima->iuser.scene->toolsettings->uv_flag & UV_FLAG_SHOW_SAME_IMAGE))
+        {
           ED_region_tag_redraw(region);
         }
       }

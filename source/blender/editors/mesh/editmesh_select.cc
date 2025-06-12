@@ -1461,7 +1461,7 @@ static wmOperatorStatus edbm_select_mode_invoke(bContext *C, wmOperator *op, con
   /* Bypass when in UV non sync-select mode, fall through to keymap that edits. */
   if (CTX_wm_space_image(C)) {
     ToolSettings *ts = CTX_data_tool_settings(C);
-    if ((ts->uv_flag & UV_SYNC_SELECTION) == 0) {
+    if ((ts->uv_flag & UV_FLAG_SYNC_SELECT) == 0) {
       return OPERATOR_PASS_THROUGH;
     }
     /* Bypass when no action is needed. */
