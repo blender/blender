@@ -1188,6 +1188,7 @@ context_type_map = {
     "annotation_data": [("GreasePencil", False)],
     "annotation_data_owner": [("ID", False)],
     "armature": [("Armature", False)],
+    "asset": [("AssetRepresentation", False)],
     "asset_library_reference": [("AssetLibraryReference", False)],
     "bone": [("Bone", False)],
     "brush": [("Brush", False)],
