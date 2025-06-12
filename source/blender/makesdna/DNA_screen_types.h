@@ -303,9 +303,6 @@ typedef struct uiListDyn {
   int *items_filter_neworder;
 
   struct wmOperatorType *custom_drag_optype;
-  struct PointerRNA *custom_drag_opptr;
-  struct wmOperatorType *custom_activate_optype;
-  struct PointerRNA *custom_activate_opptr;
 } uiListDyn;
 
 typedef struct uiList { /* some list UI data need to be saved in file */

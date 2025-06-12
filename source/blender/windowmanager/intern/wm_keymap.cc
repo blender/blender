@@ -1645,13 +1645,6 @@ std::optional<std::string> WM_key_event_operator_string(const bContext *C,
     return WM_keymap_item_to_string(kmi, false);
   }
 
-  /* Check UI state (non key-map actions for UI regions). */
-  if (std::optional<std::string> result = UI_key_event_operator_string(
-          C, opname, properties, is_strict))
-  {
-    return result;
-  }
-
   return std::nullopt;
 }
 
