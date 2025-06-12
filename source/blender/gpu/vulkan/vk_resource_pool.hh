@@ -118,8 +118,21 @@ class VKDiscardPool {
    * swap chain discard pool.
    *
    * All moved items will receive a new timeline.
+   *
+   * Function must be externally synced (
+   *
+   * <source>
+   * {
+   *   std::scoped_lock lock(pool.mutex_get()));
+   *   pool.move_data(src_pool, timeline);
+   * }
+   * </source>
    */
   void move_data(VKDiscardPool &src_pool, TimelineValue timeline);
+  inline Mutex &mutex_get()
+  {
+    return mutex_;
+  }
   void destroy_discarded_resources(VKDevice &device, bool force = false);
 
   /**
