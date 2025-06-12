@@ -7226,10 +7226,12 @@ void reset_translations_to_original(const MutableSpan<float3> translations,
   }
 }
 
+#ifndef NDEBUG
 static bool contains_nan(const Span<float> values)
 {
   return std::any_of(values.begin(), values.end(), [&](const float v) { return std::isnan(v); });
 }
+#endif
 
 void apply_translations(const Span<float3> translations,
                         const Span<int> verts,
