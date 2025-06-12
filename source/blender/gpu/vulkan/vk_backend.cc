@@ -418,8 +418,16 @@ void VKBackend::detect_workarounds(VKDevice &device)
 #else
   extensions.external_memory = false;
 #endif
-  extensions.descriptor_buffer = device.supports_extension(
-      VK_EXT_DESCRIPTOR_BUFFER_EXTENSION_NAME);
+
+  /* Descriptor buffers are disabled on the NVIDIA platform due to performance regressions. Both
+   * still seem to be faster than OpenGL.
+   *
+   * See #140125
+   */
+  if (device.vk_physical_device_driver_properties_.driverID != VK_DRIVER_ID_NVIDIA_PROPRIETARY) {
+    extensions.descriptor_buffer = device.supports_extension(
+        VK_EXT_DESCRIPTOR_BUFFER_EXTENSION_NAME);
+  }
 
   /* AMD GPUs don't support texture formats that use are aligned to 24 or 48 bits. */
   if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_ANY) ||
