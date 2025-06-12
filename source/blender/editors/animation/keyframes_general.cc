@@ -2138,8 +2138,12 @@ eKeyPasteError paste_animedit_keys(bAnimContext *ac,
 
     offset[1] = paste_get_y_offset(
         ac, fcurve_in_copy_buffer, ale, paste_context.value_offset_mode);
+
+    ANIM_nla_mapping_apply_if_needed_fcurve(ale, fcu, false, false);
     paste_animedit_keys_fcurve(
         fcu, fcurve_in_copy_buffer, offset, paste_context.merge_mode, false);
+    ANIM_nla_mapping_apply_if_needed_fcurve(ale, fcu, true, true);
+
     ale->update |= ANIM_UPDATE_DEFAULT;
 
     ANIM_animdata_update(ac, anim_data);

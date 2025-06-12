@@ -44,6 +44,7 @@
 #include "BKE_movieclip.h"
 #include "BKE_paint.hh"
 #include "BKE_report.hh"
+#include "BKE_scene.hh"
 #include "BKE_screen.hh"
 #include "BKE_tracking.h"
 #include "BKE_unit.hh"
@@ -1055,7 +1056,7 @@ static void ui_apply_but_autokey(bContext *C, uiBut *but)
   Scene *scene = CTX_data_scene(C);
 
   /* try autokey */
-  ui_but_anim_autokey(C, but, scene, scene->r.cfra);
+  ui_but_anim_autokey(C, but, scene, BKE_scene_frame_get(scene));
 
   if (!but->rnaprop) {
     return;
@@ -9359,7 +9360,7 @@ void UI_context_update_anim_flag(const bContext *C)
   ARegion *region = CTX_wm_region(C);
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   const AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(
-      depsgraph, (scene) ? scene->r.cfra : 0.0f);
+      depsgraph, (scene) ? BKE_scene_frame_get(scene) : 0.0f);
 
   while (region) {
     /* find active button */
