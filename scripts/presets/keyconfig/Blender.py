@@ -89,7 +89,6 @@ class Prefs(bpy.types.KeyConfigPreferences):
         update=update_fn,
     )
 
-    # Experimental: only show with developer extras, see: #107785.
     use_region_toggle_pie: BoolProperty(
         name="Region Toggle Pie",
         description=(
@@ -297,9 +296,8 @@ class Prefs(bpy.types.KeyConfigPreferences):
         row = sub.row()
         row.prop(self, "use_select_all_toggle")
 
-        if show_developer_ui:
-            row = sub.row()
-            row.prop(self, "use_region_toggle_pie")
+        row = sub.row()
+        row.prop(self, "use_region_toggle_pie")
 
         # 3DView settings.
         col = layout.column()
@@ -347,7 +345,7 @@ def load():
             use_mouse_emulate_3_button=use_mouse_emulate_3_button,
             spacebar_action=kc_prefs.spacebar_action,
             use_key_activate_tools=(kc_prefs.tool_key_mode == 'TOOL'),
-            use_region_toggle_pie=(show_developer_ui and kc_prefs.use_region_toggle_pie),
+            use_region_toggle_pie=kc_prefs.use_region_toggle_pie,
             v3d_tilde_action=kc_prefs.v3d_tilde_action,
             use_v3d_mmb_pan=(kc_prefs.v3d_mmb_action == 'PAN'),
             v3d_alt_mmb_drag_action=kc_prefs.v3d_alt_mmb_drag_action,
