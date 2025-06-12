@@ -879,7 +879,7 @@ void BlenderDisplayDriver::gpu_context_create()
 
   /* Create global GPU resources for display driver. */
   if (!gpu_resources_create()) {
-    LOG(ERROR) << "Error creating GPU resources for Cycles Display Driver.";
+    LOG(ERROR) << "Error creating GPU resources for Display Driver.";
     return;
   }
 }

@@ -68,16 +68,16 @@ OptiXDevice::OptiXDevice(const DeviceInfo &info, Stats &stats, Profiler &profile
   options.logCallbackFunction = [](unsigned int level, const char *, const char *message, void *) {
     switch (level) {
       case 1:
-        LOG_IF(FATAL, VLOG_IS_ON(1)) << message;
+        LOG(FATAL) << message;
         break;
       case 2:
-        LOG_IF(ERROR, VLOG_IS_ON(1)) << message;
+        LOG(ERROR) << message;
         break;
       case 3:
-        LOG_IF(WARNING, VLOG_IS_ON(1)) << message;
+        VLOG_WARNING << message;
         break;
       case 4:
-        LOG_IF(INFO, VLOG_IS_ON(1)) << message;
+        VLOG_INFO << message;
         break;
       default:
         break;

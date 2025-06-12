@@ -981,7 +981,7 @@ string SVMCompiler::Summary::full_report() const
   report += string_printf("Generate:            %f\n",
                           time_generate_surface + time_generate_bump + time_generate_volume +
                               time_generate_displacement);
-  report += string_printf("Total:               %f\n", time_total);
+  report += string_printf("Total:               %f", time_total);
 
   return report;
 }

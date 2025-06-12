@@ -12,7 +12,6 @@
 #include "device/denoise.h"
 #include "device/memory.h"
 
-#include "util/log.h"
 #include "util/profiling.h"
 #include "util/stats.h"
 #include "util/string.h"
@@ -270,11 +269,7 @@ class Device {
   /* Guiding */
 
   /* Returns path guiding device handle. */
-  virtual void *get_guiding_device() const
-  {
-    LOG(ERROR) << "Request guiding field from a device which does not support it.";
-    return nullptr;
-  }
+  virtual void *get_guiding_device() const;
 
   /* Sub-devices */
 

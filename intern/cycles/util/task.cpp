@@ -234,7 +234,7 @@ string TaskPool::Summary::full_report() const
 {
   string report;
   report += string_printf("Total time:    %f\n", time_total);
-  report += string_printf("Tasks handled: %d\n", num_tasks_handled);
+  report += string_printf("Tasks handled: %d", num_tasks_handled);
   return report;
 }
 

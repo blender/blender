@@ -8,6 +8,7 @@
 
 #include "session/buffers.h"
 
+#include "util/log.h"
 #include "util/tbb.h"
 
 #include "kernel/types.h"

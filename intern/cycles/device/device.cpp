@@ -496,6 +496,12 @@ OSLGlobals *Device::get_cpu_osl_memory()
   return nullptr;
 }
 
+void *Device::get_guiding_device() const
+{
+  LOG(ERROR) << "Request guiding field from a device which does not support it.";
+  return nullptr;
+}
+
 void *Device::host_alloc(const MemoryType /*type*/, const size_t size)
 {
   return util_aligned_malloc(size, MIN_ALIGNMENT_CPU_DATA_TYPES);

@@ -5,6 +5,8 @@
 
 #include "hydra/field.h"
 
+#include "util/log.h"
+
 #ifdef WITH_OPENVDB
 #  include "hydra/session.h"
 #  include "scene/image_vdb.h"

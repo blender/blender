@@ -14,6 +14,7 @@
 #include "scene/stats.h"
 #include "scene/tables.h"
 
+#include "util/log.h"
 #include "util/math.h"
 #include "util/math_cdf.h"
 #include "util/time.h"
