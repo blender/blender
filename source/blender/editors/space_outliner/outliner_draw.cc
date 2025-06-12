@@ -46,8 +46,10 @@
 #include "BKE_object.hh"
 #include "BKE_particle.h"
 #include "BKE_report.hh"
+#include "BKE_scene.hh"
 
 #include "ANIM_bone_collections.hh"
+#include "ANIM_keyframing.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
@@ -299,6 +301,8 @@ static void outliner_object_set_flag_recursive_fn(bContext *C,
         ptr = RNA_pointer_create_discrete(&scene->id, &RNA_ObjectBase, base_iter);
       }
       RNA_property_boolean_set(&ptr, base_or_object_prop, value);
+      blender::animrig::autokeyframe_property(
+          C, scene, &ptr, base_or_object_prop, -1, BKE_scene_frame_get(scene), true);
     }
   }
 
