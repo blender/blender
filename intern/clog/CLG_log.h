@@ -121,8 +121,10 @@ void CLG_init();
 void CLG_exit();
 
 void CLG_output_set(void *file_handle);
+void CLG_output_use_source_set(int value);
 void CLG_output_use_basename_set(int value);
 void CLG_output_use_timestamp_set(int value);
+void CLG_output_use_memory_set(int value);
 void CLG_error_fn_set(void (*error_fn)(void *file_handle));
 void CLG_fatal_fn_set(void (*fatal_fn)(void *file_handle));
 void CLG_backtrace_fn_set(void (*fatal_fn)(void *file_handle));
@@ -160,6 +162,13 @@ int CLG_color_support_get(CLG_LogRef *clg_ref);
   } \
   ((void)0)
 
+#define CLOG_AT_SEVERITY_NOCHECK(clg_ref, severity, ...) \
+  { \
+    const CLG_LogType *_lg_ty = CLOG_ENSURE(clg_ref); \
+    CLG_logf(_lg_ty, severity, __FILE__ ":" STRINGIFY(__LINE__), __func__, __VA_ARGS__); \
+  } \
+  ((void)0)
+
 #define CLOG_STR_AT_SEVERITY(clg_ref, severity, verbose_level, str) \
   { \
     const CLG_LogType *_lg_ty = CLOG_ENSURE(clg_ref); \
@@ -182,3 +191,6 @@ int CLG_color_support_get(CLG_LogRef *clg_ref);
 #define CLOG_STR_WARN(clg_ref, str) CLOG_STR_AT_SEVERITY(clg_ref, CLG_SEVERITY_WARN, 0, str)
 #define CLOG_STR_ERROR(clg_ref, str) CLOG_STR_AT_SEVERITY(clg_ref, CLG_SEVERITY_ERROR, 0, str)
 #define CLOG_STR_FATAL(clg_ref, str) CLOG_STR_AT_SEVERITY(clg_ref, CLG_SEVERITY_FATAL, 0, str)
+
+#define CLOG_INFO_NOCHECK(clg_ref, format, ...) \
+  CLOG_AT_SEVERITY_NOCHECK(clg_ref, CLG_SEVERITY_INFO, format, __VA_ARGS__)

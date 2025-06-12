@@ -13,6 +13,8 @@
 #include <cstdlib>
 #include <cstring>
 
+#include <mutex>
+
 /* Disable for small single threaded programs
  * to avoid having to link with pthreads. */
 #ifdef WITH_CLOG_PTHREADS
@@ -62,6 +64,8 @@
 /** \name Internal Types
  * \{ */
 
+static std::mutex LOG_MUTEX;
+
 struct CLG_IDFilter {
   struct CLG_IDFilter *next;
   /** Over alloc. */
@@ -80,8 +84,10 @@ struct CLogContext {
   /* exclude, include filters. */
   CLG_IDFilter *filters[2];
   bool use_color;
+  bool use_source;
   bool use_basename;
   bool use_timestamp;
+  bool use_memory;
 
   /** Borrowed, not owned. */
   int output;
@@ -170,6 +176,18 @@ static void clg_str_append(CLogStringBuf *cstr, const char *str)
   clg_str_append_with_len(cstr, str, strlen(str));
 }
 
+static void clg_str_append_char(CLogStringBuf *cstr, const char c, const uint len)
+{
+  uint len_next = cstr->len + len;
+  clg_str_reserve(cstr, len_next);
+  char *str_dst = cstr->data + cstr->len;
+  memset(str_dst, c, len);
+#if 0 /* no need. */
+  str_dst[len] = '\0';
+#endif
+  cstr->len = len_next;
+}
+
 ATTR_PRINTF_FORMAT(2, 0)
 static void clg_str_vappendf(CLogStringBuf *cstr, const char *format, va_list args)
 {
@@ -207,6 +225,46 @@ static void clg_str_vappendf(CLogStringBuf *cstr, const char *format, va_list ar
   }
 }
 
+static void clg_str_indent_multiline(CLogStringBuf *cstr, const uint indent_len)
+{
+  /* If there are multiple lines, indent them the same as the first line for readability. */
+  if (indent_len < 2) {
+    return;
+  }
+
+  uint num_newlines = 0;
+  for (uint i = 0; i < cstr->len; i++) {
+    if (cstr->data[i] == '\n') {
+      num_newlines++;
+    }
+  }
+  if (num_newlines == 0) {
+    return;
+  }
+
+  const char *old_data = cstr->data;
+  const uint old_len = cstr->len;
+  const bool old_is_alloc = cstr->is_alloc;
+
+  cstr->len_alloc = cstr->len + (num_newlines * indent_len);
+  cstr->len = 0;
+  cstr->data = MEM_malloc_arrayN<char>(cstr->len_alloc, __func__);
+  cstr->is_alloc = true;
+
+  for (uint i = 0; i < old_len; i++) {
+    cstr->data[cstr->len++] = old_data[i];
+    if (old_data[i] == '\n') {
+      memset(cstr->data + cstr->len, ' ', indent_len);
+      cstr->data[cstr->len + indent_len - 2] = '|';
+      cstr->len += indent_len;
+    }
+  }
+
+  if (old_is_alloc) {
+    MEM_freeN(old_data);
+  }
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -218,6 +276,7 @@ enum eCLogColor {
   COLOR_RED,
   COLOR_GREEN,
   COLOR_YELLOW,
+  COLOR_DIM,
 
   COLOR_RESET,
 };
@@ -238,6 +297,7 @@ static void clg_color_table_init(bool use_color)
     clg_color_table[COLOR_RED] = "\033[1;31m";
     clg_color_table[COLOR_GREEN] = "\033[1;32m";
     clg_color_table[COLOR_YELLOW] = "\033[1;33m";
+    clg_color_table[COLOR_DIM] = "\033[2;37m";
     clg_color_table[COLOR_RESET] = "\033[0m";
   }
 }
@@ -248,7 +308,7 @@ static const char *clg_severity_as_text(enum CLG_Severity severity)
     case CLG_SEVERITY_INFO:
       return "INFO";
     case CLG_SEVERITY_WARN:
-      return "WARN";
+      return "WARNING";
     case CLG_SEVERITY_ERROR:
       return "ERROR";
     case CLG_SEVERITY_FATAL:
@@ -288,20 +348,25 @@ static enum eCLogColor clg_severity_to_color(enum CLG_Severity severity)
 
 /**
  * Filter the identifier based on very basic globbing.
- * - `foo` exact match of `foo`.
- * - `foo.bar` exact match for `foo.bar`
- * - `foo.*` match for `foo` & `foo.bar` & `foo.bar.baz`
+ * - `foo` matches everything starting with `foo`.
  * - `*bar*` match for `foo.bar` & `baz.bar` & `foo.barbaz`
  * - `*` matches everything.
  */
 static bool clg_ctx_filter_check(CLogContext *ctx, const char *identifier)
 {
+  if (ctx->filters[0] == nullptr && ctx->filters[1] == nullptr && ctx->default_type.level >= 0) {
+    /* No filters but level specified? Match everything. */
+    return true;
+  }
+
   const size_t identifier_len = strlen(identifier);
   for (uint i = 0; i < 2; i++) {
     const CLG_IDFilter *flt = ctx->filters[i];
     while (flt != nullptr) {
       const size_t len = strlen(flt->match);
-      if (STREQ(flt->match, "*") || ((len == identifier_len) && (STREQ(identifier, flt->match)))) {
+      if (STREQ(flt->match, "*") ||
+          ((len <= identifier_len) && (STREQLEN(identifier, flt->match, len))))
+      {
         return (bool)i;
       }
       if (flt->match[0] == '*' && flt->match[len - 1] == '*') {
@@ -314,6 +379,8 @@ static bool clg_ctx_filter_check(CLogContext *ctx, const char *identifier)
         }
       }
       else if ((len >= 2) && (STREQLEN(".*", &flt->match[len - 2], 2))) {
+        /* `foo.*` and `foo.bar.*` support kept for backwards compatibility.
+         * `foo` and `foo.bar` now do the same thing. */
         if (((identifier_len == len - 2) && STREQLEN(identifier, flt->match, len - 2)) ||
             ((identifier_len >= len - 1) && STREQLEN(identifier, flt->match, len - 1)))
         {
@@ -402,19 +469,42 @@ static uint64_t clg_timestamp_ticks_get()
 
 static void write_timestamp(CLogStringBuf *cstr, const uint64_t timestamp_tick_start)
 {
-  char timestamp_str[64];
+  char timestamp_str[128];
   const uint64_t timestamp = clg_timestamp_ticks_get() - timestamp_tick_start;
-  const uint timestamp_len = snprintf(timestamp_str,
-                                      sizeof(timestamp_str),
-                                      "%" PRIu64 ".%03u ",
-                                      timestamp / 1000,
-                                      (uint)(timestamp % 1000));
+  const int h = int(timestamp / (1000 * 60 * 60));
+  const int m = int((timestamp / (1000 * 60)) % 60);
+  const int s = int((timestamp / 1000) % 60);
+  const int r = int(timestamp % 1000);
+
+  const uint timestamp_len =
+      (h > 0) ?
+          snprintf(timestamp_str, sizeof(timestamp_str), "%.2d:%.2d:%.2d.%.3d  ", h, m, s, r) :
+          snprintf(timestamp_str, sizeof(timestamp_str), "%.2d:%.2d.%.3d  ", m, s, r);
+
   clg_str_append_with_len(cstr, timestamp_str, timestamp_len);
+}
+
+static void write_memory(CLogStringBuf *cstr)
+{
+  const uint64_t mem_in_use = MEM_get_memory_in_use() / (1024 * 1024);
+  char memory_str[128];
+  const uint len = snprintf(memory_str, sizeof(memory_str), "%dM", (int)mem_in_use);
+
+  clg_str_append_with_len(cstr, memory_str, len);
+
+  const uint memory_align_width = 5;
+  const uint num_spaces = (len < memory_align_width) ? memory_align_width - len : 0;
+  clg_str_append_char(cstr, ' ', num_spaces + 2);
 }
 
 static void write_severity(CLogStringBuf *cstr, enum CLG_Severity severity, bool use_color)
 {
   assert((unsigned int)severity < CLG_SEVERITY_LEN);
+
+  if (severity == CLG_SEVERITY_INFO) {
+    return;
+  }
+
   if (use_color) {
     enum eCLogColor color = clg_severity_to_color(severity);
     clg_str_append(cstr, clg_color_table[color]);
@@ -424,20 +514,30 @@ static void write_severity(CLogStringBuf *cstr, enum CLG_Severity severity, bool
   else {
     clg_str_append(cstr, clg_severity_as_text(severity));
   }
+
+  clg_str_append(cstr, " ");
 }
 
 static void write_type(CLogStringBuf *cstr, const CLG_LogType *lg)
 {
-  clg_str_append(cstr, " (");
-  clg_str_append(cstr, lg->identifier);
-  clg_str_append(cstr, "): ");
+  const uint len = strlen(lg->identifier);
+  clg_str_append_with_len(cstr, lg->identifier, len);
+
+  const uint type_align_width = 16;
+  const uint num_spaces = (len < type_align_width) ? type_align_width - len : 0;
+  clg_str_append_char(cstr, ' ', num_spaces + 1);
 }
 
 static void write_file_line_fn(CLogStringBuf *cstr,
                                const char *file_line,
                                const char *fn,
-                               const bool use_basename)
+                               const bool use_basename,
+                               const bool use_color)
 {
+  if (use_color) {
+    clg_str_append(cstr, clg_color_table[COLOR_DIM]);
+  }
+
   uint file_line_len = strlen(file_line);
   if (use_basename) {
     uint file_line_offset = file_line_len;
@@ -454,7 +554,10 @@ static void write_file_line_fn(CLogStringBuf *cstr,
 
   clg_str_append(cstr, " ");
   clg_str_append(cstr, fn);
-  clg_str_append(cstr, ": ");
+
+  if (use_color) {
+    clg_str_append(cstr, clg_color_table[COLOR_RESET]);
+  }
 }
 
 void CLG_log_str(const CLG_LogType *lg,
@@ -470,19 +573,35 @@ void CLG_log_str(const CLG_LogType *lg,
   if (lg->ctx->use_timestamp) {
     write_timestamp(&cstr, lg->ctx->timestamp_tick_start);
   }
-
-  write_severity(&cstr, severity, lg->ctx->use_color);
+  if (lg->ctx->use_memory) {
+    write_memory(&cstr);
+  }
   write_type(&cstr, lg);
 
-  {
-    write_file_line_fn(&cstr, file_line, fn, lg->ctx->use_basename);
-    clg_str_append(&cstr, message);
+  clg_str_append(&cstr, "| ");
+
+  const uint64_t multiline_indent_len = cstr.len;
+
+  write_severity(&cstr, severity, lg->ctx->use_color);
+
+  clg_str_append(&cstr, message);
+
+  if (lg->ctx->use_source) {
+    clg_str_append(&cstr, "\n");
+    write_file_line_fn(&cstr, file_line, fn, lg->ctx->use_basename, lg->ctx->use_color);
   }
+
+  clg_str_indent_multiline(&cstr, multiline_indent_len);
+
   clg_str_append(&cstr, "\n");
 
-  /* could be optional */
-  int bytes_written = write(lg->ctx->output, cstr.data, cstr.len);
-  (void)bytes_written;
+  /* Output could be optional. */
+  {
+    /* Mutex to avoid garbled output with threads and multi line output. */
+    std::scoped_lock lock(LOG_MUTEX);
+    int bytes_written = write(lg->ctx->output, cstr.data, cstr.len);
+    (void)bytes_written;
+  }
 
   clg_str_free(&cstr);
 
@@ -509,23 +628,40 @@ void CLG_logf(const CLG_LogType *lg,
   if (lg->ctx->use_timestamp) {
     write_timestamp(&cstr, lg->ctx->timestamp_tick_start);
   }
-
-  write_severity(&cstr, severity, lg->ctx->use_color);
+  if (lg->ctx->use_memory) {
+    write_memory(&cstr);
+  }
   write_type(&cstr, lg);
 
-  {
-    write_file_line_fn(&cstr, file_line, fn, lg->ctx->use_basename);
+  clg_str_append(&cstr, "| ");
 
+  const uint64_t multiline_indent_len = cstr.len;
+
+  write_severity(&cstr, severity, lg->ctx->use_color);
+
+  {
     va_list ap;
     va_start(ap, format);
     clg_str_vappendf(&cstr, format, ap);
     va_end(ap);
   }
+
+  if (lg->ctx->use_source) {
+    clg_str_append(&cstr, "\n");
+    write_file_line_fn(&cstr, file_line, fn, lg->ctx->use_basename, lg->ctx->use_color);
+  }
+
+  clg_str_indent_multiline(&cstr, multiline_indent_len);
+
   clg_str_append(&cstr, "\n");
 
-  /* could be optional */
-  int bytes_written = write(lg->ctx->output, cstr.data, cstr.len);
-  (void)bytes_written;
+  /* Output could be optional. */
+  {
+    /* Mutex to avoid garbled output with threads and multi line output. */
+    std::scoped_lock lock(LOG_MUTEX);
+    int bytes_written = write(lg->ctx->output, cstr.data, cstr.len);
+    (void)bytes_written;
+  }
 
   clg_str_free(&cstr);
 
@@ -574,6 +710,11 @@ static void CLG_ctx_output_set(CLogContext *ctx, void *file_handle)
 #endif
 }
 
+static void CLG_ctx_output_use_source_set(CLogContext *ctx, int value)
+{
+  ctx->use_source = (bool)value;
+}
+
 static void CLG_ctx_output_use_basename_set(CLogContext *ctx, int value)
 {
   ctx->use_basename = (bool)value;
@@ -585,6 +726,11 @@ static void CLG_ctx_output_use_timestamp_set(CLogContext *ctx, int value)
   if (ctx->use_timestamp) {
     ctx->timestamp_tick_start = clg_timestamp_ticks_get();
   }
+}
+
+static void CLG_ctx_output_use_memory_set(CLogContext *ctx, int value)
+{
+  ctx->use_memory = (bool)value;
 }
 
 /** Action on error severity. */
@@ -631,6 +777,9 @@ static void CLG_ctx_type_filter_include(CLogContext *ctx,
                                         int type_match_len)
 {
   clg_ctx_type_filter_append(&ctx->filters[1], type_match, type_match_len);
+  if (ctx->default_type.level == -1) {
+    ctx->default_type.level = 1;
+  }
 }
 
 static void CLG_ctx_level_set(CLogContext *ctx, int level)
@@ -647,7 +796,8 @@ static CLogContext *CLG_ctx_init()
 #ifdef WITH_CLOG_PTHREADS
   pthread_mutex_init(&ctx->types_lock, nullptr);
 #endif
-  ctx->default_type.level = 1;
+  ctx->default_type.level = -1;
+  ctx->use_source = true;
   CLG_ctx_output_set(ctx, stdout);
 
   return ctx;
@@ -711,6 +861,11 @@ void CLG_output_set(void *file_handle)
   CLG_ctx_output_set(g_ctx, file_handle);
 }
 
+void CLG_output_use_source_set(int value)
+{
+  CLG_ctx_output_use_source_set(g_ctx, value);
+}
+
 void CLG_output_use_basename_set(int value)
 {
   CLG_ctx_output_use_basename_set(g_ctx, value);
@@ -719,6 +874,11 @@ void CLG_output_use_basename_set(int value)
 void CLG_output_use_timestamp_set(int value)
 {
   CLG_ctx_output_use_timestamp_set(g_ctx, value);
+}
+
+void CLG_output_use_memory_set(int value)
+{
+  CLG_ctx_output_use_memory_set(g_ctx, value);
 }
 
 void CLG_error_fn_set(void (*error_fn)(void *file_handle))
