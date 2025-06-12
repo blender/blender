@@ -460,6 +460,7 @@ void ED_spacetype_text()
   art->keymapflag = ED_KEYMAP_UI;
 
   art->init = text_properties_region_init;
+  art->snap_size = ED_region_generic_panel_region_snap_size;
   art->draw = text_properties_region_draw;
   BLI_addhead(&st->regiontypes, art);
 

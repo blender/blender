@@ -1632,6 +1632,7 @@ void ED_spacetype_view3d()
   art->listener = view3d_buttons_region_listener;
   art->message_subscribe = ED_area_do_mgs_subscribe_for_tool_ui;
   art->init = view3d_buttons_region_init;
+  art->snap_size = ED_region_generic_panel_region_snap_size;
   art->layout = view3d_buttons_region_layout;
   art->draw = ED_region_panels_draw;
   BLI_addhead(&st->regiontypes, art);

@@ -313,6 +313,9 @@ enum {
 
 #define UI_PANEL_CATEGORY_MARGIN_WIDTH (U.widget_unit * 1.0f)
 
+/* Minimum width for a panel showing only category tabs. */
+#define UI_PANEL_CATEGORY_MIN_WIDTH 26.0f
+
 /* Both these margins should be ignored if the panel doesn't show a background (check
  * #UI_panel_should_show_background()). */
 #define UI_PANEL_MARGIN_X (U.widget_unit * 0.4f)
