@@ -224,7 +224,7 @@ static float graph_key_shortest_dist(
       graph_bezt_get_transform_selection(t, bezt, use_handle, &sel_left, &sel_key, &sel_right);
 
       if (sel_left || sel_key || sel_right) {
-        dist = min_ff(td->dist, fabs(td_iter->center[0] - td->center[0]));
+        dist = min_fff(dist, td->dist, fabs(td_iter->center[0] - td->center[0]));
       }
 
       td_iter += 3;
