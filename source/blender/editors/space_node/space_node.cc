@@ -773,6 +773,24 @@ static Vector<nodes::SocketInContext> find_origin_sockets_through_contexts(
   return found_origins.extract_vector();
 }
 
+Vector<const bNode *> gather_linked_closure_origin_nodes(
+    const ComputeContext *closure_socket_context,
+    const bNodeSocket &closure_socket,
+    bke::ComputeContextCache &compute_context_cache)
+{
+  const Vector<nodes::SocketInContext> origin_sockets = find_origin_sockets_through_contexts(
+      {closure_socket_context, &closure_socket},
+      compute_context_cache,
+      "GeometryNodeClosureOutput",
+      true);
+  Vector<const bNode *> closure_origin_nodes;
+  for (const nodes::SocketInContext &origin_socket : origin_sockets) {
+    const nodes::NodeInContext &origin_node = origin_socket.owner_node();
+    closure_origin_nodes.append(origin_node.node);
+  }
+  return closure_origin_nodes;
+}
+
 Vector<const bNode *> gather_linked_combine_bundle_nodes(
     const ComputeContext *bundle_socket_context,
     const bNodeSocket &bundle_socket,

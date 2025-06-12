@@ -130,6 +130,14 @@ bool node_editor_is_for_geometry_nodes_modifier(const SpaceNode &snode,
     bke::ComputeContextCache &compute_context_cache,
     const std::optional<nodes::ClosureSourceLocation> &source_location);
 
+/**
+ * Finds closure output nodes that are linked to the given closure socket.
+ */
+Vector<const bNode *> gather_linked_closure_origin_nodes(
+    const ComputeContext *closure_socket_context,
+    const bNodeSocket &closure_socket,
+    bke::ComputeContextCache &compute_context_cache);
+
 Vector<const bNode *> gather_linked_separate_bundle_nodes(
     const ComputeContext *bundle_socket_context,
     const bNodeSocket &bundle_socket,
