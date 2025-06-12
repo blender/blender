@@ -172,11 +172,11 @@ static void asset_library_identifier(blender::StringRef name,
   identifier_buf[6] = '-';
 
   /* Name part for human readability (truncated and made safe for use as file name). */
-  char safe_trunc_name[10];
-  BLI_strncpy_utf8(safe_trunc_name, name.data(), 11);
+  char safe_trunc_name[11];
+  BLI_strncpy_utf8(safe_trunc_name, name.data(), sizeof(safe_trunc_name));
   BLI_path_make_safe_filename(safe_trunc_name);
   /* Adds null terminator. */
-  BLI_strncpy(&identifier_buf[7], safe_trunc_name, 11);
+  BLI_strncpy(&identifier_buf[7], safe_trunc_name, sizeof(safe_trunc_name));
 }
 
 bUserAssetLibrary *BKE_preferences_remote_asset_library_add(UserDef *userdef,
