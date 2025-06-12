@@ -718,9 +718,9 @@ static void print_help(bArgs *ba, bool all)
   PRINT("Logging Options:\n");
   BLI_args_print_arg_doc(ba, "--log");
   BLI_args_print_arg_doc(ba, "--log-level");
-  BLI_args_print_arg_doc(ba, "--log-show-basename");
+  BLI_args_print_arg_doc(ba, "--log-show-memory");
+  BLI_args_print_arg_doc(ba, "--log-show-source");
   BLI_args_print_arg_doc(ba, "--log-show-backtrace");
-  BLI_args_print_arg_doc(ba, "--log-show-timestamp");
   BLI_args_print_arg_doc(ba, "--log-file");
 
   PRINT("\n");
@@ -1150,34 +1150,60 @@ static int arg_handle_disable_liboverride_auto_resync(int /*argc*/,
 
 static const char arg_handle_log_level_set_doc[] =
     "<level>\n"
-    "\tSet the logging verbosity level (higher for more details) defaults to 1,\n"
-    "\tuse -1 to log all levels.";
+    "\tSet the logging verbosity level.\n"
+    "\n"
+    "\tfatal: Fatal errors only\n"
+    "\terror: Errors only\n"
+    "\twarning: Warnings and errors\n"
+    "\tinfo: General information, warnings and errors\n"
+    "\tdebug: Verbose messages for developers";
 static int arg_handle_log_level_set(int argc, const char **argv, void * /*data*/)
 {
   const char *arg_id = "--log-level";
   if (argc > 1) {
     const char *err_msg = nullptr;
-    if (!parse_int_clamp(argv[1], nullptr, -1, INT_MAX, &G.log.level, &err_msg)) {
-      fprintf(stderr, "\nError: %s '%s %s'.\n", err_msg, arg_id, argv[1]);
+
+    if (STRCASEEQ(argv[1], "fatal")) {
+      /* TODO */
+      G.log.level = 1;
     }
-    else {
+    else if (STRCASEEQ(argv[1], "error")) {
+      /* TODO */
+      G.log.level = 1;
+    }
+    else if (STRCASEEQ(argv[1], "warning")) {
+      /* TODO */
+      G.log.level = 1;
+    }
+    else if (STRCASEEQ(argv[1], "info")) {
+      G.log.level = 1;
+    }
+    else if (STRCASEEQ(argv[1], "debug")) {
+      G.log.level = 5;
+    }
+    else if (parse_int_clamp(argv[1], nullptr, -1, INT_MAX, &G.log.level, &err_msg)) {
       if (G.log.level == -1) {
         G.log.level = INT_MAX;
       }
-      CLG_level_set(G.log.level);
     }
+    else {
+      fprintf(stderr, "\nError: %s '%s %s'.\n", err_msg, arg_id, argv[1]);
+      return 1;
+    }
+
+    CLG_level_set(G.log.level);
     return 1;
   }
   fprintf(stderr, "\nError: '%s' no args given.\n", arg_id);
   return 0;
 }
 
-static const char arg_handle_log_show_basename_set_doc[] =
+static const char arg_handle_log_show_source_set_doc[] =
     "\n\t"
-    "Only show file name in output (not the leading path).";
-static int arg_handle_log_show_basename_set(int /*argc*/, const char ** /*argv*/, void * /*data*/)
+    "Show source file and function name in output.";
+static int arg_handle_log_show_source_set(int /*argc*/, const char ** /*argv*/, void * /*data*/)
 {
-  CLG_output_use_basename_set(true);
+  CLG_output_use_source_set(true);
   return 0;
 }
 
@@ -1192,12 +1218,12 @@ static int arg_handle_log_show_backtrace_set(int /*argc*/, const char ** /*argv*
   return 0;
 }
 
-static const char arg_handle_log_show_timestamp_set_doc[] =
+static const char arg_handle_log_show_memory_set_doc[] =
     "\n\t"
-    "Show a timestamp for each log message in seconds since start.";
-static int arg_handle_log_show_timestamp_set(int /*argc*/, const char ** /*argv*/, void * /*data*/)
+    "Show memory usage for each log message.";
+static int arg_handle_log_show_memory_set(int /*argc*/, const char ** /*argv*/, void * /*data*/)
 {
-  CLG_output_use_timestamp_set(true);
+  CLG_output_use_memory_set(true);
   return 0;
 }
 
@@ -1230,13 +1256,12 @@ static int arg_handle_log_file_set(int argc, const char **argv, void * /*data*/)
 static const char arg_handle_log_set_doc[] =
     "<match>\n"
     "\tEnable logging categories, taking a single comma separated argument.\n"
-    "\tMultiple categories can be matched using a '.*' suffix,\n"
-    "\tso '--log \"wm.*\"' logs every kind of window-manager message.\n"
-    "\tSub-string can be matched using a '*' prefix and suffix,\n"
-    "\tso '--log \"*undo*\"' logs every kind of undo-related message.\n"
-    "\tUse \"^\" prefix to ignore, so '--log \"*,^wm.operator.*\"' logs all except for "
-    "'wm.operators.*'\n"
-    "\tUse \"*\" to log everything.";
+    "\n"
+    "\t--log \"*\": log everything\n"
+    "\t--log \"event\": logs every category starting with \"event\"\n"
+    "\t--log \"render,cycles\": log both render and cycles messages\n"
+    "\t--log \"*mesh*\": log every category containing \"mesh\" substring\n"
+    "\t--log \"*,^operator\": log everything except operators, with ^prefix to exclude";
 static int arg_handle_log_set(int argc, const char **argv, void * /*data*/)
 {
   const char *arg_id = "--log";
@@ -2681,9 +2706,9 @@ void main_args_setup(bContext *C, bArgs *ba, bool all)
    * especially `bpy.appdir` since it's useful to show errors finding paths on startup. */
   BLI_args_add(ba, nullptr, "--log", CB(arg_handle_log_set), ba);
   BLI_args_add(ba, nullptr, "--log-level", CB(arg_handle_log_level_set), ba);
-  BLI_args_add(ba, nullptr, "--log-show-basename", CB(arg_handle_log_show_basename_set), ba);
+  BLI_args_add(ba, nullptr, "--log-show-source", CB(arg_handle_log_show_source_set), ba);
   BLI_args_add(ba, nullptr, "--log-show-backtrace", CB(arg_handle_log_show_backtrace_set), ba);
-  BLI_args_add(ba, nullptr, "--log-show-timestamp", CB(arg_handle_log_show_timestamp_set), ba);
+  BLI_args_add(ba, nullptr, "--log-show-memory", CB(arg_handle_log_show_memory_set), ba);
   BLI_args_add(ba, nullptr, "--log-file", CB(arg_handle_log_file_set), ba);
 
   /* GPU backend selection should be part of #ARG_PASS_ENVIRONMENT for correct GPU context
