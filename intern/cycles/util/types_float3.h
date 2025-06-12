@@ -6,6 +6,7 @@
 
 #include "util/types_base.h"
 #include "util/types_float2.h"
+#include "util/types_int3.h"
 #include "util/types_int4.h"
 
 CCL_NAMESPACE_BEGIN
@@ -107,6 +108,15 @@ ccl_device_inline float3 make_float3(const float2 a, const float b)
   return make_float3(a.x, a.y, b);
 }
 
+ccl_device_inline float3 make_float3(const int3 i)
+{
+#ifdef __KERNEL_SSE__
+  return float3(_mm_cvtepi32_ps(i.m128));
+#else
+  return make_float3((float)i.x, (float)i.y, (float)i.z);
+#endif
+}
+
 ccl_device_inline void print_float3(const ccl_private char *label, const float3 a)
 {
 #ifdef __KERNEL_PRINTF__
@@ -130,6 +140,15 @@ ccl_device_inline int4 make_int4(const float3 f)
   return int4(_mm_cvtps_epi32(f.m128));
 #else
   return make_int4((int)f.x, (int)f.y, (int)f.z, (int)f.w);
+#endif
+}
+
+ccl_device_inline int3 make_int3(const float3 f)
+{
+#ifdef __KERNEL_SSE__
+  return int3(_mm_cvtps_epi32(f.m128));
+#else
+  return make_int3((int)f.x, (int)f.y, (int)f.z);
 #endif
 }
 

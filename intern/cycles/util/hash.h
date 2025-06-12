@@ -26,6 +26,52 @@ ccl_device_forceinline float uint_to_float_incl(const uint n)
   return (float)n * (1.0f / (float)0xFFFFFFFFu);
 }
 
+/* PCG 2D, 3D and 4D hash functions,
+ * from "Hash Functions for GPU Rendering" JCGT 2020
+ * https://jcgt.org/published/0009/03/02/
+ *
+ * Slightly modified to only use signed integers,
+ * so that they can also be implemented in OSL. */
+
+ccl_device_inline int2 hash_pcg2d_i(int2 v)
+{
+  v = v * make_int2(1664525) + make_int2(1013904223);
+  v.x += v.y * 1664525;
+  v.y += v.x * 1664525;
+  v = v ^ (v >> 16);
+  v.x += v.y * 1664525;
+  v.y += v.x * 1664525;
+  return v & make_int2(0x7FFFFFFF);
+}
+
+ccl_device_inline int3 hash_pcg3d_i(int3 v)
+{
+  v = v * make_int3(1664525) + make_int3(1013904223);
+  v.x += v.y * v.z;
+  v.y += v.z * v.x;
+  v.z += v.x * v.y;
+  v = v ^ (v >> 16);
+  v.x += v.y * v.z;
+  v.y += v.z * v.x;
+  v.z += v.x * v.y;
+  return v & make_int3(0x7FFFFFFF);
+}
+
+ccl_device_inline int4 hash_pcg4d_i(int4 v)
+{
+  v = v * make_int4(1664525) + make_int4(1013904223);
+  v.x += v.y * v.w;
+  v.y += v.z * v.x;
+  v.z += v.x * v.y;
+  v.w += v.y * v.z;
+  v = v ^ (v >> 16);
+  v.x += v.y * v.w;
+  v.y += v.z * v.x;
+  v.z += v.x * v.y;
+  v.w += v.y * v.z;
+  return v & make_int4(0x7FFFFFFF);
+}
+
 /* ***** Jenkins Lookup3 Hash Functions ***** */
 
 /* Source: http://burtleburtle.net/bob/c/lookup3.c */
@@ -186,7 +232,45 @@ ccl_device_inline float hash_float4_to_float(const float4 k)
       __float_as_uint(k.x), __float_as_uint(k.y), __float_as_uint(k.z), __float_as_uint(k.w));
 }
 
-/* Hashing float[234] into float[234] of components in the range [0, 1]. */
+/* Hashing int[234] into float[234] of components in the range [0, 1].
+ * These are based on PCG 2D/3D/4D. */
+
+ccl_device_inline float2 hash_int2_to_float2(const int2 k)
+{
+  int2 h = hash_pcg2d_i(k);
+  float2 f = make_float2((float)h.x, (float)h.y);
+  return f * (1.0f / (float)0x7FFFFFFFu);
+}
+
+ccl_device_inline float3 hash_int3_to_float3(const int3 k)
+{
+  int3 h = hash_pcg3d_i(k);
+  float3 f = make_float3((float)h.x, (float)h.y, (float)h.z);
+  return f * (1.0f / (float)0x7FFFFFFFu);
+}
+
+ccl_device_inline float4 hash_int4_to_float4(const int4 k)
+{
+  int4 h = hash_pcg4d_i(k);
+  float4 f = make_float4(h);
+  return f * (1.0f / (float)0x7FFFFFFFu);
+}
+
+ccl_device_inline float3 hash_int2_to_float3(const int2 k)
+{
+  return hash_int3_to_float3(make_int3(k.x, k.y, 0));
+}
+
+ccl_device_inline float3 hash_int4_to_float3(const int4 k)
+{
+  return make_float3(hash_int4_to_float4(k));
+}
+
+/* Hashing int[234] / float[234] into float[234] of components in the range [0, 1].
+ *
+ * Note that while using a more modern hash (e.g. PCG) would be faster, the current
+ * behavior has to be kept to match what is possible in OSL (OSL lacks bit casts and unsigned
+ * integers). */
 
 ccl_device_inline float2 hash_float2_to_float2(const float2 k)
 {
