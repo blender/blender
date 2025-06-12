@@ -226,7 +226,7 @@ set(SRC
   rna_define.cc
   ${DEFSRC}
   ${APISRC}
-  ../../../../intern/clog/clog.c
+  ../../../../intern/clog/clog.cc
   # Needed for defaults.
   ../../../../release/datafiles/userdef/userdef_default.c
   ../../../../release/datafiles/userdef/userdef_default_theme.c

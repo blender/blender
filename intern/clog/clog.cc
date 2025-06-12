@@ -6,12 +6,12 @@
  * \ingroup intern_clog
  */
 
-#include <assert.h>
-#include <stdarg.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cassert>
+#include <cstdarg>
+#include <cstdint>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 /* Disable for small single threaded programs
  * to avoid having to link with pthreads. */
@@ -38,7 +38,9 @@
 
 /* For printing timestamp. */
 #define __STDC_FORMAT_MACROS
-#include <inttypes.h>
+#include <cinttypes>
+
+#include <algorithm>
 
 /* Only other dependency (could use regular malloc too). */
 #include "MEM_guardedalloc.h"
@@ -60,13 +62,13 @@
 /** \name Internal Types
  * \{ */
 
-typedef struct CLG_IDFilter {
+struct CLG_IDFilter {
   struct CLG_IDFilter *next;
   /** Over alloc. */
   char match[0];
-} CLG_IDFilter;
+};
 
-typedef struct CLogContext {
+struct CLogContext {
   /** Single linked list of types. */
   CLG_LogType *types;
   /** Single linked list of references. */
@@ -98,7 +100,7 @@ typedef struct CLogContext {
     void (*fatal_fn)(void *file_handle);
     void (*backtrace_fn)(void *file_handle);
   } callbacks;
-} CLogContext;
+};
 
 /** \} */
 
@@ -110,12 +112,12 @@ typedef struct CLogContext {
 
 #define CLOG_BUF_LEN_INIT 512
 
-typedef struct CLogStringBuf {
+struct CLogStringBuf {
   char *data;
   uint len;
   uint len_alloc;
   bool is_alloc;
-} CLogStringBuf;
+};
 
 static void clg_str_init(CLogStringBuf *cstr, char *buf_stack, uint buf_stack_len)
 {
@@ -136,16 +138,14 @@ static void clg_str_reserve(CLogStringBuf *cstr, const uint len)
 {
   if (len > cstr->len_alloc) {
     cstr->len_alloc *= 2;
-    if (len > cstr->len_alloc) {
-      cstr->len_alloc = len;
-    }
+    cstr->len_alloc = std::max(len, cstr->len_alloc);
 
     if (cstr->is_alloc) {
-      cstr->data = MEM_reallocN(cstr->data, cstr->len_alloc);
+      cstr->data = static_cast<char *>(MEM_reallocN(cstr->data, cstr->len_alloc));
     }
     else {
       /* Copy the static buffer. */
-      char *data = MEM_mallocN(cstr->len_alloc, __func__);
+      char *data = MEM_malloc_arrayN<char>(cstr->len_alloc, __func__);
       memcpy(data, cstr->data, cstr->len);
       cstr->data = data;
       cstr->is_alloc = true;
@@ -223,7 +223,7 @@ enum eCLogColor {
 };
 #define COLOR_LEN (COLOR_RESET + 1)
 
-static const char *clg_color_table[COLOR_LEN] = {NULL};
+static const char *clg_color_table[COLOR_LEN] = {nullptr};
 #ifdef _WIN32
 static DWORD clg_previous_console_mode = 0;
 #endif
@@ -242,20 +242,19 @@ static void clg_color_table_init(bool use_color)
   }
 }
 
-static const char *clg_severity_str[CLG_SEVERITY_LEN] = {
-    [CLG_SEVERITY_INFO] = "INFO",
-    [CLG_SEVERITY_WARN] = "WARN",
-    [CLG_SEVERITY_ERROR] = "ERROR",
-    [CLG_SEVERITY_FATAL] = "FATAL",
-};
-
 static const char *clg_severity_as_text(enum CLG_Severity severity)
 {
-  bool ok = (unsigned int)severity < CLG_SEVERITY_LEN;
-  assert(ok);
-  if (ok) {
-    return clg_severity_str[severity];
+  switch (severity) {
+    case CLG_SEVERITY_INFO:
+      return "INFO";
+    case CLG_SEVERITY_WARN:
+      return "WARN";
+    case CLG_SEVERITY_ERROR:
+      return "ERROR";
+    case CLG_SEVERITY_FATAL:
+      return "FATAL";
   }
+
   return "INVALID_SEVERITY";
 }
 
@@ -300,15 +299,15 @@ static bool clg_ctx_filter_check(CLogContext *ctx, const char *identifier)
   const size_t identifier_len = strlen(identifier);
   for (uint i = 0; i < 2; i++) {
     const CLG_IDFilter *flt = ctx->filters[i];
-    while (flt != NULL) {
+    while (flt != nullptr) {
       const size_t len = strlen(flt->match);
       if (STREQ(flt->match, "*") || ((len == identifier_len) && (STREQ(identifier, flt->match)))) {
         return (bool)i;
       }
       if (flt->match[0] == '*' && flt->match[len - 1] == '*') {
-        char *match = MEM_callocN(sizeof(char) * len - 1, __func__);
+        char *match = MEM_calloc_arrayN<char>(len - 1, __func__);
         memcpy(match, flt->match + 1, len - 2);
-        const bool success = (strstr(identifier, match) != NULL);
+        const bool success = (strstr(identifier, match) != nullptr);
         MEM_freeN(match);
         if (success) {
           return (bool)i;
@@ -338,13 +337,13 @@ static CLG_LogType *clg_ctx_type_find_by_name(CLogContext *ctx, const char *iden
       return ty;
     }
   }
-  return NULL;
+  return nullptr;
 }
 
 static CLG_LogType *clg_ctx_type_register(CLogContext *ctx, const char *identifier)
 {
-  assert(clg_ctx_type_find_by_name(ctx, identifier) == NULL);
-  CLG_LogType *ty = MEM_callocN(sizeof(*ty), __func__);
+  assert(clg_ctx_type_find_by_name(ctx, identifier) == nullptr);
+  CLG_LogType *ty = MEM_callocN<CLG_LogType>(__func__);
   ty->next = ctx->types;
   ctx->types = ty;
   strncpy(ty->identifier, identifier, sizeof(ty->identifier) - 1);
@@ -359,14 +358,14 @@ static CLG_LogType *clg_ctx_type_register(CLogContext *ctx, const char *identifi
 
 static void clg_ctx_error_action(CLogContext *ctx)
 {
-  if (ctx->callbacks.error_fn != NULL) {
+  if (ctx->callbacks.error_fn != nullptr) {
     ctx->callbacks.error_fn(ctx->output_file);
   }
 }
 
 static void clg_ctx_fatal_action(CLogContext *ctx)
 {
-  if (ctx->callbacks.fatal_fn != NULL) {
+  if (ctx->callbacks.fatal_fn != nullptr) {
     ctx->callbacks.fatal_fn(ctx->output_file);
   }
   fflush(ctx->output_file);
@@ -382,14 +381,14 @@ static void clg_ctx_backtrace(CLogContext *ctx)
   fflush(ctx->output_file);
 }
 
-static uint64_t clg_timestamp_ticks_get(void)
+static uint64_t clg_timestamp_ticks_get()
 {
   uint64_t tick;
 #if defined(_MSC_VER)
   tick = GetTickCount64();
 #else
   struct timeval tv;
-  gettimeofday(&tv, NULL);
+  gettimeofday(&tv, nullptr);
   tick = tv.tv_sec * 1000 + tv.tv_usec / 1000;
 #endif
   return tick;
@@ -551,7 +550,7 @@ void CLG_logf(const CLG_LogType *lg,
 
 static void CLG_ctx_output_set(CLogContext *ctx, void *file_handle)
 {
-  ctx->output_file = file_handle;
+  ctx->output_file = static_cast<FILE *>(file_handle);
   ctx->output = fileno(ctx->output_file);
 #if defined(__unix__) || defined(__APPLE__)
   ctx->use_color = isatty(ctx->output);
@@ -612,7 +611,8 @@ static void clg_ctx_type_filter_append(CLG_IDFilter **flt_list,
   if (type_match_len == 0) {
     return;
   }
-  CLG_IDFilter *flt = MEM_callocN(sizeof(*flt) + (type_match_len + 1), __func__);
+  CLG_IDFilter *flt = static_cast<CLG_IDFilter *>(
+      MEM_callocN(sizeof(*flt) + type_match_len + 1, __func__));
   flt->next = *flt_list;
   *flt_list = flt;
   memcpy(flt->match, type_match, type_match_len);
@@ -641,11 +641,11 @@ static void CLG_ctx_level_set(CLogContext *ctx, int level)
   }
 }
 
-static CLogContext *CLG_ctx_init(void)
+static CLogContext *CLG_ctx_init()
 {
-  CLogContext *ctx = MEM_callocN(sizeof(*ctx), __func__);
+  CLogContext *ctx = MEM_callocN<CLogContext>(__func__);
 #ifdef WITH_CLOG_PTHREADS
-  pthread_mutex_init(&ctx->types_lock, NULL);
+  pthread_mutex_init(&ctx->types_lock, nullptr);
 #endif
   ctx->default_type.level = 1;
   CLG_ctx_output_set(ctx, stdout);
@@ -658,20 +658,20 @@ static void CLG_ctx_free(CLogContext *ctx)
 #if defined(WIN32)
   SetConsoleMode(GetStdHandle(STD_OUTPUT_HANDLE), clg_previous_console_mode);
 #endif
-  while (ctx->types != NULL) {
+  while (ctx->types != nullptr) {
     CLG_LogType *item = ctx->types;
     ctx->types = item->next;
     MEM_freeN(item);
   }
 
-  while (ctx->refs != NULL) {
+  while (ctx->refs != nullptr) {
     CLG_LogRef *item = ctx->refs;
     ctx->refs = item->next;
-    item->type = NULL;
+    item->type = nullptr;
   }
 
   for (uint i = 0; i < 2; i++) {
-    while (ctx->filters[i] != NULL) {
+    while (ctx->filters[i] != nullptr) {
       CLG_IDFilter *item = ctx->filters[i];
       ctx->filters[i] = item->next;
       MEM_freeN(item);
@@ -692,16 +692,16 @@ static void CLG_ctx_free(CLogContext *ctx)
  * \{ */
 
 /* We could support multiple at once, for now this seems not needed. */
-static struct CLogContext *g_ctx = NULL;
+static struct CLogContext *g_ctx = nullptr;
 
-void CLG_init(void)
+void CLG_init()
 {
   g_ctx = CLG_ctx_init();
 
   clg_color_table_init(g_ctx->use_color);
 }
 
-void CLG_exit(void)
+void CLG_exit()
 {
   CLG_ctx_free(g_ctx);
 }
@@ -765,13 +765,13 @@ void CLG_logref_init(CLG_LogRef *clg_ref)
   /* Only runs once when initializing a static type in most cases. */
   pthread_mutex_lock(&g_ctx->types_lock);
 #endif
-  if (clg_ref->type == NULL) {
-    /* Add to the refs list so we can NULL the pointers to 'type' when CLG_exit() is called. */
+  if (clg_ref->type == nullptr) {
+    /* Add to the refs list so we can nullptr the pointers to 'type' when CLG_exit() is called. */
     clg_ref->next = g_ctx->refs;
     g_ctx->refs = clg_ref;
 
     CLG_LogType *clg_ty = clg_ctx_type_find_by_name(g_ctx, clg_ref->identifier);
-    if (clg_ty == NULL) {
+    if (clg_ty == nullptr) {
       clg_ty = clg_ctx_type_register(g_ctx, clg_ref->identifier);
     }
 #ifdef WITH_CLOG_PTHREADS
@@ -787,7 +787,7 @@ void CLG_logref_init(CLG_LogRef *clg_ref)
 
 int CLG_color_support_get(CLG_LogRef *clg_ref)
 {
-  if (clg_ref->type == NULL) {
+  if (clg_ref->type == nullptr) {
     CLG_logref_init(clg_ref);
   }
   return clg_ref->type->ctx->use_color;

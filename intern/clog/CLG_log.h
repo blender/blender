@@ -53,12 +53,7 @@
  * - 4+: May be used for more details than 3, should be avoided but not prevented.
  */
 
-#ifndef __CLG_LOG_H__
-#define __CLG_LOG_H__
-
-#ifdef __cplusplus
-extern "C" {
-#endif /* __cplusplus */
+#pragma once
 
 #ifdef __GNUC__
 #  define _CLOG_ATTR_NONNULL(args...) __attribute__((nonnull(args)))
@@ -93,21 +88,21 @@ enum CLG_Severity {
 #define CLG_SEVERITY_LEN (CLG_SEVERITY_FATAL + 1)
 
 /* Each logger ID has one of these. */
-typedef struct CLG_LogType {
+struct CLG_LogType {
   struct CLG_LogType *next;
   char identifier[64];
   /** FILE output. */
   struct CLogContext *ctx;
   /** Control behavior. */
   int level;
-  enum CLG_LogFlag flag;
-} CLG_LogType;
+  int flag;
+};
 
-typedef struct CLG_LogRef {
+struct CLG_LogRef {
   const char *identifier;
   CLG_LogType *type;
   struct CLG_LogRef *next;
-} CLG_LogRef;
+};
 
 void CLG_log_str(const CLG_LogType *lg,
                  enum CLG_Severity severity,
@@ -122,8 +117,8 @@ void CLG_logf(const CLG_LogType *lg,
               ...) _CLOG_ATTR_NONNULL(1, 3, 4, 5) _CLOG_ATTR_PRINTF_FORMAT(5, 6);
 
 /* Main initializer and destructor (per session, not logger). */
-void CLG_init(void);
-void CLG_exit(void);
+void CLG_init();
+void CLG_exit();
 
 void CLG_output_set(void *file_handle);
 void CLG_output_use_basename_set(int value);
@@ -187,9 +182,3 @@ int CLG_color_support_get(CLG_LogRef *clg_ref);
 #define CLOG_STR_WARN(clg_ref, str) CLOG_STR_AT_SEVERITY(clg_ref, CLG_SEVERITY_WARN, 0, str)
 #define CLOG_STR_ERROR(clg_ref, str) CLOG_STR_AT_SEVERITY(clg_ref, CLG_SEVERITY_ERROR, 0, str)
 #define CLOG_STR_FATAL(clg_ref, str) CLOG_STR_AT_SEVERITY(clg_ref, CLG_SEVERITY_FATAL, 0, str)
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif /* __CLG_LOG_H__ */
