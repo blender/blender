@@ -100,7 +100,10 @@ class GPointer {
 
   GPointer(const CPPType &type, const void *data = nullptr) : type_(&type), data_(data) {}
 
-  template<typename T> GPointer(T *data) : GPointer(&CPPType::get<T>(), data) {}
+  template<typename T, BLI_ENABLE_IF((!std::is_void_v<T>))>
+  GPointer(T *data) : GPointer(&CPPType::get<T>(), data)
+  {
+  }
 
   operator bool() const
   {
