@@ -272,13 +272,13 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
           break;
 
         case TH_PANEL_HEADER:
-          cp = ts->panelcolors.header;
+          cp = btheme->tui.panel_header;
           break;
         case TH_PANEL_BACK:
-          cp = ts->panelcolors.back;
+          cp = btheme->tui.panel_back;
           break;
         case TH_PANEL_SUB_BACK:
-          cp = ts->panelcolors.sub_back;
+          cp = btheme->tui.panel_sub_back;
           break;
 
         case TH_BUTBACK:
