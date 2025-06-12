@@ -4,6 +4,7 @@
 
 #include "DNA_mesh_types.h"
 
+#include "GEO_uv_pack.hh"
 #include "GEO_uv_parametrizer.hh"
 
 #include "UI_interface.hh"
@@ -114,6 +115,10 @@ static VArray<float3> construct_uv_gvarray(const Mesh &mesh,
     geometry::uv_parametrizer_edge_set_seam(handle, vkeys);
   });
 
+  blender::geometry::UVPackIsland_Params params;
+  params.margin = margin;
+  params.rotate_method = ED_UVPACK_ROTATION_ANY;
+
   /* TODO: once field input nodes are able to emit warnings (#94039), emit a
    * warning if we fail to solve an island. */
   geometry::uv_parametrizer_construct_end(handle, fill_holes, false, nullptr);
@@ -123,7 +128,7 @@ static VArray<float3> construct_uv_gvarray(const Mesh &mesh,
   geometry::uv_parametrizer_lscm_solve(handle, nullptr, nullptr);
   geometry::uv_parametrizer_lscm_end(handle);
   geometry::uv_parametrizer_average(handle, true, false, false);
-  geometry::uv_parametrizer_pack(handle, margin, true, true);
+  geometry::uv_parametrizer_pack(handle, params);
   geometry::uv_parametrizer_flush(handle);
   delete (handle);
 

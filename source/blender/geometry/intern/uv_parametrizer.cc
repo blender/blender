@@ -4176,7 +4176,7 @@ void uv_parametrizer_stretch_end(ParamHandle *phandle)
   phandle->state = PHANDLE_STATE_CONSTRUCTED;
 }
 
-void uv_parametrizer_pack(ParamHandle *handle, float margin, bool do_rotate, bool ignore_pinned)
+void uv_parametrizer_pack(ParamHandle *handle, const UVPackIsland_Params &params)
 {
   if (handle->ncharts == 0) {
     return;
@@ -4186,14 +4186,9 @@ void uv_parametrizer_pack(ParamHandle *handle, float margin, bool do_rotate, boo
 
   Vector<PackIsland *> pack_island_vector;
 
-  UVPackIsland_Params params;
-  params.rotate_method = do_rotate ? ED_UVPACK_ROTATION_ANY : ED_UVPACK_ROTATION_NONE;
-  params.margin = margin;
-  params.margin_method = ED_UVPACK_MARGIN_SCALED;
-
   for (int i = 0; i < handle->ncharts; i++) {
     PChart *chart = handle->charts[i];
-    if (ignore_pinned && chart->has_pins) {
+    if (params.pin_method == ED_UVPACK_PIN_NONE && chart->has_pins) {
       continue;
     }
 
