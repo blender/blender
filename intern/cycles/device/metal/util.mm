@@ -87,7 +87,7 @@ const vector<id<MTLDevice>> &MetalInfo::get_usable_devices()
     return usable_devices;
   }
 
-  metal_printf("Usable Metal devices:\n");
+  metal_printf("Usable Metal devices:");
   for (id<MTLDevice> device in MTLCopyAllDevices()) {
     string device_name = get_device_name(device);
     bool usable = false;
@@ -105,16 +105,16 @@ const vector<id<MTLDevice>> &MetalInfo::get_usable_devices()
     }
 
     if (usable) {
-      metal_printf("- %s\n", device_name.c_str());
+      metal_printf("- %s", device_name.c_str());
       [device retain];
       usable_devices.push_back(device);
     }
     else {
-      metal_printf("  (skipping \"%s\")\n", device_name.c_str());
+      metal_printf("  (skipping \"%s\")", device_name.c_str());
     }
   }
   if (usable_devices.empty()) {
-    metal_printf("   No usable Metal devices found\n");
+    metal_printf("   No usable Metal devices found");
   }
   already_enumerated = true;
 

@@ -285,7 +285,7 @@ int MetalDeviceQueue::num_concurrent_states(const size_t state_size) const
     size_t total_state_size = result * state_size;
     if (max_recommended_working_set - allocated_so_far - total_state_size * 2 >= min_headroom) {
       result *= 2;
-      metal_printf("Doubling state count to exploit available RAM (new size = %d)\n", result);
+      metal_printf("Doubling state count to exploit available RAM (new size = %d)", result);
     }
   }
   return result;

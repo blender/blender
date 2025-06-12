@@ -170,12 +170,12 @@ ShaderCache::~ShaderCache()
   running = false;
   cond_var.notify_all();
 
-  metal_printf("Waiting for ShaderCache threads... (incomplete_requests = %d)\n",
+  metal_printf("Waiting for ShaderCache threads... (incomplete_requests = %d)",
                int(incomplete_requests));
   for (auto &thread : compile_threads) {
     thread.join();
   }
-  metal_printf("ShaderCache shut down.\n");
+  metal_printf("ShaderCache shut down.");
 }
 
 void ShaderCache::wait_for_all()
@@ -208,7 +208,7 @@ void ShaderCache::compile_thread_func()
 
     if (MetalDevice::is_device_cancelled(pipeline->originating_device_id)) {
       /* The originating MetalDevice is no longer active, so this request is obsolete. */
-      metal_printf("Cancelling compilation of %s (%s)\n",
+      metal_printf("Cancelling compilation of %s (%s)",
                    device_kernel_as_string(device_kernel),
                    kernel_type_as_string(pso_type));
     }
@@ -225,7 +225,7 @@ void ShaderCache::compile_thread_func()
         if (collection[i]->pso_type == pso_type) {
           max_entries_of_same_pso_type -= 1;
           if (max_entries_of_same_pso_type == 0) {
-            metal_printf("Purging oldest %s:%s kernel from ShaderCache\n",
+            metal_printf("Purging oldest %s:%s kernel from ShaderCache",
                          kernel_type_as_string(pso_type),
                          device_kernel_as_string(device_kernel));
             collection.erase(collection.begin() + i);
@@ -318,7 +318,7 @@ void ShaderCache::load_kernel(DeviceKernel device_kernel,
       }
 #  endif
 
-      metal_printf("Spawning %d Cycles kernel compilation threads\n", max_mtlcompiler_threads);
+      metal_printf("Spawning %d Cycles kernel compilation threads", max_mtlcompiler_threads);
       for (int i = 0; i < max_mtlcompiler_threads; i++) {
         compile_threads.emplace_back([this] { this->compile_thread_func(); });
       }
@@ -385,7 +385,7 @@ MetalKernelPipeline *ShaderCache::get_best_pipeline(DeviceKernel kernel, const M
 
     if (best_match) {
       if (best_match->usage_count == 0 && best_match->pso_type != PSO_GENERIC) {
-        metal_printf("Swapping in %s version of %s\n",
+        metal_printf("Swapping in %s version of %s",
                      kernel_type_as_string(best_match->pso_type),
                      device_kernel_as_string(kernel));
       }
@@ -694,7 +694,7 @@ void MetalKernelPipeline::compile()
     archive = [mtlDevice newBinaryArchiveWithDescriptor:archiveDesc error:&error];
     if (!archive) {
       const char *err = error ? [[error localizedDescription] UTF8String] : nullptr;
-      metal_printf("newBinaryArchiveWithDescriptor failed: %s\n", err ? err : "nil");
+      metal_printf("newBinaryArchiveWithDescriptor failed: %s", err ? err : "nil");
     }
     [archiveDesc release];
 
@@ -760,7 +760,7 @@ void MetalKernelPipeline::compile()
                                                         error:&error])
       {
         NSString *errStr = [error localizedDescription];
-        metal_printf("Failed to add PSO to archive:\n%s\n", errStr ? [errStr UTF8String] : "nil");
+        metal_printf("Failed to add PSO to archive:\n%s", errStr ? [errStr UTF8String] : "nil");
       }
     }
 
@@ -793,7 +793,7 @@ void MetalKernelPipeline::compile()
   double duration = time_dt() - starttime;
 
   if (pipeline == nil) {
-    metal_printf("%16s | %2d | %-55s | %7.2fs | FAILED!\n",
+    metal_printf("%16s | %2d | %-55s | %7.2fs | FAILED!",
                  kernel_type_as_string(pso_type),
                  device_kernel,
                  device_kernel_as_string(device_kernel),
@@ -811,7 +811,7 @@ void MetalKernelPipeline::compile()
     if (creating_new_archive || recreate_archive) {
       if (![archive serializeToURL:[NSURL fileURLWithPath:@(metalbin_path.c_str())] error:&error])
       {
-        metal_printf("Failed to save binary archive to %s, error:\n%s\n",
+        metal_printf("Failed to save binary archive to %s, error:\n%s",
                      metalbin_path.c_str(),
                      [[error localizedDescription] UTF8String]);
       }
@@ -826,14 +826,14 @@ void MetalKernelPipeline::compile()
   computePipelineStateDescriptor = nil;
 
   if (!use_binary_archive) {
-    metal_printf("%16s | %2d | %-55s | %7.2fs\n",
+    metal_printf("%16s | %2d | %-55s | %7.2fs",
                  kernel_type_as_string(pso_type),
                  int(device_kernel),
                  device_kernel_as_string(device_kernel),
                  duration);
   }
   else {
-    metal_printf("%16s | %2d | %-55s | %7.2fs | %s: %s\n",
+    metal_printf("%16s | %2d | %-55s | %7.2fs | %s: %s",
                  kernel_type_as_string(pso_type),
                  device_kernel,
                  device_kernel_as_string(device_kernel),

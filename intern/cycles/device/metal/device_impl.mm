@@ -86,7 +86,7 @@ MetalDevice::MetalDevice(const DeviceInfo &info, Stats &stats, Profiler &profile
     auto usable_devices = MetalInfo::get_usable_devices();
     assert(mtlDevId < usable_devices.size());
     mtlDevice = usable_devices[mtlDevId];
-    metal_printf("Creating new Cycles Metal device: %s\n", info.description.c_str());
+    metal_printf("Creating new Cycles Metal device: %s", info.description.c_str());
 
     /* Ensure that back-compatability helpers for getting gpuAddress & gpuResourceID are set up. */
     metal_gpu_address_helper_init(mtlDevice);
@@ -156,7 +156,7 @@ MetalDevice::MetalDevice(const DeviceInfo &info, Stats &stats, Profiler &profile
     if (auto *envstr = getenv("CYCLES_METAL_SPECIALIZATION_LEVEL")) {
       kernel_specialization_level = (MetalPipelineType)atoi(envstr);
     }
-    metal_printf("kernel_specialization_level = %s\n",
+    metal_printf("kernel_specialization_level = %s",
                  kernel_type_as_string(
                      (MetalPipelineType)min((int)kernel_specialization_level, (int)PSO_NUM - 1)));
 
@@ -310,7 +310,7 @@ string MetalDevice::preprocess_source(MetalPipelineType pso_type,
 #  undef KERNEL_STRUCT_MEMBER_DONT_SPECIALIZE
 #  undef KERNEL_STRUCT_BEGIN
 
-      metal_printf("KernelData patching took %.1f ms\n", (time_dt() - starttime) * 1000.0);
+      metal_printf("KernelData patching took %.1f ms", (time_dt() - starttime) * 1000.0);
     }
 
     /* Opt in to all of available specializations. This can be made more granular for the
@@ -433,7 +433,7 @@ void MetalDevice::compile_and_load(const int device_id, MetalPipelineType pso_ty
       /* Check whether the device still exists. */
       MetalDevice *instance = get_device_by_ID(device_id, lock);
       if (!instance) {
-        metal_printf("Ignoring %s compilation request - device no longer exists\n",
+        metal_printf("Ignoring %s compilation request - device no longer exists",
                      kernel_type_as_string(pso_type));
         return;
       }
@@ -441,7 +441,7 @@ void MetalDevice::compile_and_load(const int device_id, MetalPipelineType pso_ty
       if (!MetalDeviceKernels::should_load_kernels(instance, pso_type)) {
         /* We already have a full set of matching pipelines which are cached or queued. Return
          * early to avoid redundant MTLLibrary compilation. */
-        metal_printf("Ignoreing %s compilation request - kernels already requested\n",
+        metal_printf("Ignoreing %s compilation request - kernels already requested",
                      kernel_type_as_string(pso_type));
         return;
       }
@@ -482,7 +482,7 @@ void MetalDevice::compile_and_load(const int device_id, MetalPipelineType pso_ty
                                                         options:options
                                                           error:&error];
 
-    metal_printf("Front-end compilation finished in %.1f seconds (%s)\n",
+    metal_printf("Front-end compilation finished in %.1f seconds (%s)",
                  time_dt() - starttime,
                  kernel_type_as_string(pso_type));
 
@@ -521,7 +521,7 @@ void MetalDevice::compile_and_load(const int device_id, MetalPipelineType pso_ty
     if (starttime && blocking_pso_build) {
       MetalDeviceKernels::wait_for_all();
 
-      metal_printf("Back-end compilation finished in %.1f seconds (%s)\n",
+      metal_printf("Back-end compilation finished in %.1f seconds (%s)",
                    time_dt() - starttime,
                    kernel_type_as_string(pso_type));
     }
@@ -807,7 +807,7 @@ bool MetalDevice::is_ready(string &status) const
     status = "Using optimized kernels";
   }
 
-  metal_printf("MetalDevice::is_ready(...) --> true\n");
+  metal_printf("MetalDevice::is_ready(...) --> true");
   return true;
 }
 
@@ -848,7 +848,7 @@ void MetalDevice::optimize_for_scene(Scene *scene)
                      specialize_kernels_fn);
     }
     else {
-      metal_printf("\"optimize_for_scene\" request already in flight - dropping request\n");
+      metal_printf("\"optimize_for_scene\" request already in flight - dropping request");
     }
   }
   else {
