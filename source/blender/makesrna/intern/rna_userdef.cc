@@ -6273,15 +6273,6 @@ static void rna_def_userdef_system(BlenderRNA *brna)
       "VBO Collection Rate",
       "Number of seconds between each run of the GL vertex buffer object garbage collector");
 
-  /* Select */
-
-  prop = RNA_def_property(srna, "use_select_pick_depth", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_negative_sdna(prop, nullptr, "gpu_flag", USER_GPU_FLAG_NO_DEPT_PICK);
-  RNA_def_property_ui_text(prop,
-                           "GPU Depth Picking",
-                           "When making a selection in 3D View, use the GPU depth buffer to "
-                           "ensure the frontmost object is selected first");
-
   /* GPU subdivision evaluation. */
 
   prop = RNA_def_property(srna, "use_gpu_subdivision", PROP_BOOLEAN, PROP_NONE);
