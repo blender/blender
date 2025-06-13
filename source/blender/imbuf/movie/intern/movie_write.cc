@@ -233,7 +233,7 @@ static AVFrame *generate_video_frame(MovieWriter *context, const ImBuf *image)
     /* Float image: need to split up the image into a planar format,
      * because `libswscale` does not support RGBA->YUV conversions from
      * packed float formats.
-     * Unpremultiply the image if the output format supports alpha, to
+     * Un-premultiply the image if the output format supports alpha, to
      * match the format of the byte image. */
     BLI_assert_msg(rgb_frame->linesize[1] == linesize_dst &&
                        rgb_frame->linesize[2] == linesize_dst &&
