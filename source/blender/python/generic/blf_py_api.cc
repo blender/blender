@@ -5,7 +5,7 @@
 /** \file
  * \ingroup pygen
  *
- * This file defines the `bgl` module, used for drawing text in OpenGL.
+ * This file defines the `blf` module, used for drawing text to the GPU or image buffers.
  */
 
 /* Future-proof, See https://docs.python.org/3/c-api/arg.html#strings-and-buffers */

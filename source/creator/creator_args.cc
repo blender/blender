@@ -1978,7 +1978,7 @@ static int arg_handle_engine_set(int argc, const char **argv, void *data)
     else {
       Scene *scene = CTX_data_scene(C);
       if (scene) {
-        /* Backwards compatibiltiy. */
+        /* Backwards compatibility. */
         if (STREQ(engine_name, "BLENDER_EEVEE_NEXT")) {
           engine_name = "BLENDER_EEVEE";
         }
