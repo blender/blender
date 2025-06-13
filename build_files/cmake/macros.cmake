@@ -670,6 +670,7 @@ macro(remove_strict_flags)
       "-Wshadow"
       "-Wdouble-promotion"
       "-Wold-style-definition"
+      "-Wextra"
       "-Werror=[^ ]+"
       "-Werror"
     )
