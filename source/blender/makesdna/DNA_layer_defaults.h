@@ -22,6 +22,15 @@
 #define _DNA_DEFAULT_ViewLayer \
   { \
     .eevee = _DNA_DEFAULT_ViewLayerEEVEE, \
+\
+    .flag = VIEW_LAYER_RENDER | VIEW_LAYER_FREESTYLE, \
+\
+    /* Pure rendering pipeline settings. */ \
+    .layflag = SCE_LAY_FLAG_DEFAULT, \
+    .passflag = SCE_PASS_COMBINED, \
+    .pass_alpha_threshold = 0.5f, \
+    .cryptomatte_levels = 6, \
+    .cryptomatte_flag = VIEW_LAYER_CRYPTOMATTE_ACCURATE, \
   }
 
 /** \} */

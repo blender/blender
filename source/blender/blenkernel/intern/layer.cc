@@ -166,17 +166,8 @@ static ViewLayer *view_layer_add(const char *name)
 
   ViewLayer *view_layer = MEM_callocN<ViewLayer>("View Layer");
   *view_layer = *DNA_struct_default_get(ViewLayer);
-
-  view_layer->flag = VIEW_LAYER_RENDER | VIEW_LAYER_FREESTYLE;
-
   STRNCPY_UTF8(view_layer->name, name);
 
-  /* Pure rendering pipeline settings. */
-  view_layer->layflag = SCE_LAY_FLAG_DEFAULT;
-  view_layer->passflag = SCE_PASS_COMBINED;
-  view_layer->pass_alpha_threshold = 0.5f;
-  view_layer->cryptomatte_levels = 6;
-  view_layer->cryptomatte_flag = VIEW_LAYER_CRYPTOMATTE_ACCURATE;
   BKE_freestyle_config_init(&view_layer->freestyle_config);
 
   return view_layer;
