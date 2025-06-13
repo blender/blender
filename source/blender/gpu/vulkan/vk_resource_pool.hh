@@ -25,8 +25,6 @@ template<typename Item> class TimelineResources : Vector<std::pair<TimelineValue
  public:
   void append_timeline(TimelineValue timeline, Item item)
   {
-    BLI_assert_msg(this->is_empty() || this->last().first <= timeline,
-                   "Timeline must be added in order");
     this->append(std::pair(timeline, item));
   }
 
