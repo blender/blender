@@ -869,6 +869,12 @@ int calculate_evaluated_num(int points_num,
 int knots_num(int points_num, int8_t order, bool cyclic);
 
 /**
+ * Calculate the total number of control points for a NURBS curve including virtual/repeated points
+ * for a cyclic/closed curve.
+ */
+int control_points_num(int num_control_points, int8_t order, bool cyclic);
+
+/**
  * Depending on KnotsMode calculates knots or copies custom knots into given `MutableSpan`.
  * Adds `order - 1` length tail for cyclic curves.
  */
@@ -1111,6 +1117,27 @@ inline float3 calculate_vector_handle(const float3 &point, const float3 &next_po
 }
 
 }  // namespace bezier
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name NURBS Inline Methods
+ * \{ */
+
+namespace nurbs {
+
+inline int knots_num(const int points_num, const int8_t order, const bool cyclic)
+{
+  /* Cyclic: points_num + order * 2 - 1 */
+  return points_num + order + cyclic * (order - 1);
+}
+
+inline int control_points_num(const int points_num, const int8_t order, const bool cyclic)
+{
+  return points_num + cyclic * (order - 1);
+}
+
+}  // namespace nurbs
 
 /** \} */
 

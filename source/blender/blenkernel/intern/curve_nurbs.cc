@@ -85,14 +85,6 @@ int calculate_evaluated_num(const int points_num,
   return resolution * nonzero_span_num + int(!cyclic);
 }
 
-int knots_num(const int points_num, const int8_t order, const bool cyclic)
-{
-  if (cyclic) {
-    return points_num + order * 2 - 1;
-  }
-  return points_num + order;
-}
-
 static void copy_custom_knots(const int8_t order,
                               const bool cyclic,
                               const Span<float> custom_knots,
@@ -266,7 +258,7 @@ void calculate_basis_cache(const int points_num,
   MutableSpan<float> basis_weights(basis_cache.weights);
   MutableSpan<int> basis_start_indices(basis_cache.start_indices);
 
-  const int last_control_point_index = cyclic ? points_num + degree : points_num;
+  const int last_control_point_index = control_points_num(points_num, order, cyclic);
 
   int eval_point = 0;
 
