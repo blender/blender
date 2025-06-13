@@ -141,8 +141,7 @@ class VIEWLAYER_PT_eevee_layer_passes_light(ViewLayerButtonsPanel, Panel):
 
         col = layout.column()
         col.active = view_layer.use_pass_ambient_occlusion
-        # TODO Move to view layer.
-        col.prop(context.scene.eevee, "gtao_distance", text="Occlusion Distance")
+        col.prop(view_layer_eevee, "ambient_occlusion_distance", text="Occlusion Distance")
 
 
 class ViewLayerAOVPanelHelper(ViewLayerButtonsPanel):

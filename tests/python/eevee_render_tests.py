@@ -83,7 +83,8 @@ def setup():
         eevee.overscan_size = 50.0
 
         # Ambient Occlusion Pass
-        eevee.gtao_distance = 1
+        for view_layer in scene.view_layers:
+            view_layer.eevee.ambient_occlusion_distance = 1
 
         # Lights
         eevee.light_threshold = 0.001

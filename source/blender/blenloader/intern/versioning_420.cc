@@ -881,7 +881,7 @@ void blo_do_versions_420(FileData *fd, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 10)) {
     if (!DNA_struct_member_exists(fd->filesdna, "SceneEEVEE", "int", "gtao_resolution")) {
       LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
-        scene->eevee.gtao_resolution = 2;
+        scene->eevee.fast_gi_resolution = 2;
       }
     }
   }

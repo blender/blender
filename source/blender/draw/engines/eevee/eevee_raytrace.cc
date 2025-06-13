@@ -412,7 +412,7 @@ RayTraceResult RayTraceModule::render(RayTraceBuffer &rt_buffer,
 
   const int resolution_scale = max_ii(1, power_of_2_max_i(options.resolution_scale));
   const int horizon_resolution_scale = max_ii(
-      1, power_of_2_max_i(inst_.scene->eevee.gtao_resolution));
+      1, power_of_2_max_i(inst_.scene->eevee.fast_gi_resolution));
 
   const int2 extent = inst_.film.render_extent_get();
   const int2 tracing_res = math::divide_ceil(extent, int2(resolution_scale));

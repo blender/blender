@@ -37,6 +37,7 @@
 
 #include "DNA_ID.h"
 #include "DNA_collection_types.h"
+#include "DNA_defaults.h"
 #include "DNA_layer_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
@@ -164,6 +165,8 @@ static ViewLayer *view_layer_add(const char *name)
   }
 
   ViewLayer *view_layer = MEM_callocN<ViewLayer>("View Layer");
+  *view_layer = *DNA_struct_default_get(ViewLayer);
+
   view_layer->flag = VIEW_LAYER_RENDER | VIEW_LAYER_FREESTYLE;
 
   STRNCPY_UTF8(view_layer->name, name);

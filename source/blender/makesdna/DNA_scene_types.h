@@ -1968,11 +1968,11 @@ typedef struct SceneEEVEE {
   int volumetric_shadow_samples;
   int volumetric_ray_depth;
 
-  float gtao_distance;
-  float gtao_thickness;
-  float gtao_focus;
-  int gtao_resolution;
+  float gtao_distance DNA_DEPRECATED;
+  float gtao_thickness DNA_DEPRECATED;
 
+  float fast_gi_bias;
+  int fast_gi_resolution;
   int fast_gi_step_count;
   int fast_gi_ray_count;
   float fast_gi_quality;
