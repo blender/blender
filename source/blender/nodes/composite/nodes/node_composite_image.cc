@@ -603,23 +603,6 @@ static bool node_composit_poll_rlayers(const blender::bke::bNodeType * /*ntype*/
     return false;
   }
 
-  Scene *scene;
-
-  /* XXX ugly: check if ntree is a local scene node tree.
-   * Render layers node can only be used in local `scene->compositing_node_group`,
-   * since it directly links to the scene.
-   */
-  for (scene = (Scene *)G.main->scenes.first; scene; scene = (Scene *)scene->id.next) {
-    if (scene->compositing_node_group == ntree) {
-      break;
-    }
-  }
-
-  if (scene == nullptr) {
-    *r_disabled_hint = RPT_(
-        "The node tree must be the compositing node tree of any scene in the file");
-    return false;
-  }
   return true;
 }
 
