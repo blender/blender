@@ -21,12 +21,12 @@
 #include "MEM_guardedalloc.h" /* for MEM_freeN MEM_mallocN MEM_callocN */
 
 #include "BLI_endian_switch.h"
+#include "BLI_ghash.h"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_memarena.h"
+#include "BLI_set.hh"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
-
-#include "BLI_ghash.h"
 
 #include "DNA_genfile.h"
 #include "DNA_sdna_types.h" /* for SDNA ;-) */
@@ -315,12 +315,17 @@ static bool init_structDNA(SDNA *sdna, bool do_endian_swap, const char **r_error
   int *data = (int *)sdna->data;
 
   /* Clear pointers in case of error. */
-  sdna->names = nullptr;
   sdna->types = nullptr;
+  sdna->types_size = nullptr;
+  sdna->types_alignment = nullptr;
   sdna->structs = nullptr;
 #ifdef WITH_DNA_GHASH
   sdna->structs_map = nullptr;
 #endif
+
+  sdna->names = nullptr;
+  sdna->names_array_len = nullptr;
+
   sdna->mem_arena = nullptr;
 
   /* Lazy initialize. */
@@ -349,7 +354,7 @@ static bool init_structDNA(SDNA *sdna, bool do_endian_swap, const char **r_error
     sdna->names = static_cast<const char **>(
         MEM_callocN(sizeof(void *) * sdna->names_len, "sdnanames"));
   }
-  else {
+  if (!sdna->names) {
     *r_error_message = "NAME error in SDNA file";
     return false;
   }
@@ -389,7 +394,7 @@ static bool init_structDNA(SDNA *sdna, bool do_endian_swap, const char **r_error
     sdna->types = static_cast<const char **>(
         MEM_callocN(sizeof(void *) * sdna->types_len, "sdnatypes"));
   }
-  else {
+  if (!sdna->types) {
     *r_error_message = "TYPE error in SDNA file";
     return false;
   }
@@ -420,7 +425,7 @@ static bool init_structDNA(SDNA *sdna, bool do_endian_swap, const char **r_error
 
     sp += sdna->types_len;
   }
-  else {
+  if (!sdna->types_size) {
     *r_error_message = "TLEN error in SDNA file";
     return false;
   }
@@ -443,11 +448,13 @@ static bool init_structDNA(SDNA *sdna, bool do_endian_swap, const char **r_error
     sdna->structs = static_cast<SDNA_Struct **>(
         MEM_callocN(sizeof(SDNA_Struct *) * sdna->structs_len, "sdnastrcs"));
   }
-  else {
+  if (!sdna->structs) {
     *r_error_message = "STRC error in SDNA file";
     return false;
   }
 
+  /* Safety check, to ensure that there is no multiple usages of a same struct index. */
+  blender::Set<short> struct_indices;
   sp = (short *)data;
   for (int nr = 0; nr < sdna->structs_len; nr++) {
     SDNA_Struct *struct_info = (SDNA_Struct *)sp;
@@ -463,6 +470,11 @@ static bool init_structDNA(SDNA *sdna, bool do_endian_swap, const char **r_error
         BLI_endian_switch_int16(&member->name);
       }
     }
+    if (!struct_indices.add(struct_info->type)) {
+      *r_error_message = "Invalid duplicate struct type index in SDNA file";
+      return false;
+    }
+
     sp += 2 + (sizeof(SDNA_StructMember) / sizeof(short)) * struct_info->members_len;
   }
 
