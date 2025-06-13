@@ -30,5 +30,4 @@ std::string make_safe_name(StringRef name, bool allow_unicode);
  * \return A valid, and unique, USD `SdfPath`
  */
 pxr::SdfPath get_unique_path(pxr::UsdStageRefPtr stage, const std::string &path);
-
 }  // namespace blender::io::usd

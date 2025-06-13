@@ -33,6 +33,10 @@ class USDHierarchyIterator : public AbstractHierarchyIterator {
   ObjExportMap skinned_mesh_export_map_;
   ObjExportMap shape_key_mesh_export_map_;
 
+  /* prototype_paths[instancer path] = [(proto_path_1, proto_object_1), (proto_path_2,
+   * proto_object_2)...] */
+  std::map<pxr::SdfPath, std::set<std::pair<pxr::SdfPath, Object *>>> prototype_paths;
+
  public:
   USDHierarchyIterator(Main *bmain,
                        Depsgraph *depsgraph,
@@ -47,6 +51,7 @@ class USDHierarchyIterator : public AbstractHierarchyIterator {
 
  protected:
   bool mark_as_weak_export(const Object *object) const override;
+  void determine_point_instancers(const HierarchyContext *context);
 
   AbstractHierarchyWriter *create_transform_writer(const HierarchyContext *context) override;
   AbstractHierarchyWriter *create_data_writer(const HierarchyContext *context) override;
@@ -60,6 +65,8 @@ class USDHierarchyIterator : public AbstractHierarchyIterator {
 
  private:
   USDExporterContext create_usd_export_context(const HierarchyContext *context);
+  USDExporterContext create_point_instancer_context(const HierarchyContext *context,
+                                                    const USDExporterContext &usd_export_context);
 
   void add_usd_skel_export_mapping(const Object *obj, const pxr::SdfPath &usd_path);
 };
