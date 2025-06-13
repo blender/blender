@@ -103,7 +103,7 @@ bool object_eevee_shader_nodes_poll(const bContext *C)
   }
   const RenderEngineType *engine_type = CTX_data_engine_type(C);
   return STREQ(engine_type->idname, "BLENDER_EEVEE") ||
-         STREQ(engine_type->idname, "BLENDER_EEVEE_NEXT");
+         STREQ(engine_type->idname, "BLENDER_EEVEE");
 }
 
 /* ****** */

@@ -1094,7 +1094,7 @@ def main():
     VFONT_FROM_STYLE["mono"] = bpy.data.fonts.load(FONT_FILE_MONO)
 
     scene = bpy.context.scene
-    scene.render.engine = 'BLENDER_EEVEE_NEXT'
+    scene.render.engine = 'BLENDER_EEVEE'
 
     # Without this, the whites are gray.
     scene.view_settings.view_transform = "Standard"

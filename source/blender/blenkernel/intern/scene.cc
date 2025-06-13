@@ -207,7 +207,7 @@ static void scene_init_data(ID *id)
     pset->brush[PE_BRUSH_CUT].strength = 1.0f;
   }
 
-  STRNCPY(scene->r.engine, RE_engine_id_BLENDER_EEVEE_NEXT);
+  STRNCPY(scene->r.engine, RE_engine_id_BLENDER_EEVEE);
 
   STRNCPY(scene->r.pic, U.renderdir);
 
@@ -2831,8 +2831,7 @@ bool BKE_scene_use_spherical_stereo(Scene *scene)
 
 bool BKE_scene_uses_blender_eevee(const Scene *scene)
 {
-  return STREQ(scene->r.engine, RE_engine_id_BLENDER_EEVEE) ||
-         STREQ(scene->r.engine, RE_engine_id_BLENDER_EEVEE_NEXT);
+  return STREQ(scene->r.engine, RE_engine_id_BLENDER_EEVEE);
 }
 
 bool BKE_scene_uses_blender_workbench(const Scene *scene)

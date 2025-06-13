@@ -34,7 +34,7 @@ class PHYSICS_PT_field(PhysicButtonsPanel, Panel):
     bl_label = "Force Fields"
     COMPAT_ENGINES = {
         'BLENDER_RENDER',
-        'BLENDER_EEVEE_NEXT',
+        'BLENDER_EEVEE',
         'BLENDER_WORKBENCH',
     }
 
@@ -60,7 +60,7 @@ class PHYSICS_PT_field_settings(PhysicButtonsPanel, Panel):
     bl_parent_id = "PHYSICS_PT_field"
     COMPAT_ENGINES = {
         'BLENDER_RENDER',
-        'BLENDER_EEVEE_NEXT',
+        'BLENDER_EEVEE',
         'BLENDER_WORKBENCH',
     }
 
@@ -151,7 +151,7 @@ class PHYSICS_PT_field_settings_kink(PhysicButtonsPanel, Panel):
     bl_parent_id = "PHYSICS_PT_field_settings"
     COMPAT_ENGINES = {
         'BLENDER_RENDER',
-        'BLENDER_EEVEE_NEXT',
+        'BLENDER_EEVEE',
         'BLENDER_WORKBENCH',
     }
 
@@ -189,7 +189,7 @@ class PHYSICS_PT_field_settings_texture_select(PhysicButtonsPanel, Panel):
     bl_parent_id = "PHYSICS_PT_field_settings"
     COMPAT_ENGINES = {
         'BLENDER_RENDER',
-        'BLENDER_EEVEE_NEXT',
+        'BLENDER_EEVEE',
         'BLENDER_WORKBENCH',
     }
 
@@ -215,7 +215,7 @@ class PHYSICS_PT_field_falloff(PhysicButtonsPanel, Panel):
     bl_parent_id = "PHYSICS_PT_field"
     COMPAT_ENGINES = {
         'BLENDER_RENDER',
-        'BLENDER_EEVEE_NEXT',
+        'BLENDER_EEVEE',
         'BLENDER_WORKBENCH',
     }
 
@@ -244,7 +244,7 @@ class PHYSICS_PT_field_falloff_angular(PhysicButtonsPanel, Panel):
     bl_parent_id = "PHYSICS_PT_field_falloff"
     COMPAT_ENGINES = {
         'BLENDER_RENDER',
-        'BLENDER_EEVEE_NEXT',
+        'BLENDER_EEVEE',
         'BLENDER_WORKBENCH',
     }
 
@@ -287,7 +287,7 @@ class PHYSICS_PT_field_falloff_radial(PhysicButtonsPanel, Panel):
     bl_parent_id = "PHYSICS_PT_field_falloff"
     COMPAT_ENGINES = {
         'BLENDER_RENDER',
-        'BLENDER_EEVEE_NEXT',
+        'BLENDER_EEVEE',
         'BLENDER_WORKBENCH',
     }
 
@@ -335,7 +335,7 @@ class PHYSICS_PT_collision(PhysicButtonsPanel, Panel):
     bl_label = "Collision"
     COMPAT_ENGINES = {
         'BLENDER_RENDER',
-        'BLENDER_EEVEE_NEXT',
+        'BLENDER_EEVEE',
         'BLENDER_WORKBENCH',
     }
 
@@ -370,7 +370,7 @@ class PHYSICS_PT_collision_particle(PhysicButtonsPanel, Panel):
     bl_parent_id = "PHYSICS_PT_collision"
     COMPAT_ENGINES = {
         'BLENDER_RENDER',
-        'BLENDER_EEVEE_NEXT',
+        'BLENDER_EEVEE',
         'BLENDER_WORKBENCH',
     }
 
@@ -420,7 +420,7 @@ class PHYSICS_PT_collision_softbody(PhysicButtonsPanel, Panel):
     bl_parent_id = "PHYSICS_PT_collision"
     COMPAT_ENGINES = {
         'BLENDER_RENDER',
-        'BLENDER_EEVEE_NEXT',
+        'BLENDER_EEVEE',
         'BLENDER_WORKBENCH',
     }
 

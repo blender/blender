@@ -20,9 +20,9 @@ from bl_ui.space_toolsystem_common import (
     ToolActivePanelHelper,
 )
 from bl_ui.properties_material import (
-    EEVEE_NEXT_MATERIAL_PT_settings,
-    EEVEE_NEXT_MATERIAL_PT_settings_surface,
-    EEVEE_NEXT_MATERIAL_PT_settings_volume,
+    EEVEE_MATERIAL_PT_settings,
+    EEVEE_MATERIAL_PT_settings_surface,
+    EEVEE_MATERIAL_PT_settings_volume,
     MATERIAL_PT_viewport,
 )
 from bl_ui.properties_world import (
@@ -1186,9 +1186,9 @@ classes = (
     NODE_PT_active_node_properties,
     NODE_PT_gizmo_display,
 
-    node_panel(EEVEE_NEXT_MATERIAL_PT_settings),
-    node_panel(EEVEE_NEXT_MATERIAL_PT_settings_surface),
-    node_panel(EEVEE_NEXT_MATERIAL_PT_settings_volume),
+    node_panel(EEVEE_MATERIAL_PT_settings),
+    node_panel(EEVEE_MATERIAL_PT_settings_surface),
+    node_panel(EEVEE_MATERIAL_PT_settings_volume),
     node_panel(MATERIAL_PT_viewport),
     node_panel(WORLD_PT_viewport_display),
     node_panel(DATA_PT_light),
