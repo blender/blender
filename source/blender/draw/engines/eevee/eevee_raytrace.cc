@@ -349,6 +349,8 @@ void RayTraceModule::sync()
                                        use_temporal_denoise;
 
     data_.closure_index = i;
+    data_.resolution_scale = max_ii(1, power_of_2_max_i(ray_tracing_options_.resolution_scale));
+    data_.skip_denoise = !use_spatial_denoise;
     inst_.manager->warm_shader_specialization(tile_classify_ps_);
     inst_.manager->warm_shader_specialization(tile_compact_ps_);
     inst_.manager->warm_shader_specialization(generate_ps_);

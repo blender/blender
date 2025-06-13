@@ -36,8 +36,6 @@
 
 namespace blender::nodes::node_composite_colorbalance_cc {
 
-NODE_STORAGE_FUNCS(NodeColorBalance)
-
 static void cmp_node_colorbalance_declare(NodeDeclarationBuilder &b)
 {
   b.use_custom_socket_order();
@@ -149,14 +147,6 @@ static void cmp_node_colorbalance_declare(NodeDeclarationBuilder &b)
     uiLayout *split = &layout->split(0.2f, false);
     uiTemplateCryptoPicker(split, ptr, "output_whitepoint", ICON_EYEDROPPER);
   });
-}
-
-static void node_composit_init_colorbalance(bNodeTree * /*ntree*/, bNode *node)
-{
-  /* All members are deprecated and needn't be set, but the data is still allocated for forward
-   * compatibility. */
-  NodeColorBalance *n = MEM_callocN<NodeColorBalance>(__func__);
-  node->storage = n;
 }
 
 static CMPNodeColorBalanceMethod get_color_balance_method(const bNode &node)
@@ -494,9 +484,6 @@ static void register_node_type_cmp_colorbalance()
   ntype.nclass = NODE_CLASS_OP_COLOR;
   ntype.declare = file_ns::cmp_node_colorbalance_declare;
   ntype.updatefunc = file_ns::node_update;
-  ntype.initfunc = file_ns::node_composit_init_colorbalance;
-  blender::bke::node_type_storage(
-      ntype, "NodeColorBalance", node_free_standard_storage, node_copy_standard_storage);
   ntype.gpu_fn = file_ns::node_gpu_material;
   ntype.build_multi_function = file_ns::node_build_multi_function;
 

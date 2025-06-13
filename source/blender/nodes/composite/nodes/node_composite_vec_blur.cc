@@ -60,14 +60,6 @@ static void cmp_node_vec_blur_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>("Image");
 }
 
-static void node_composit_init_vecblur(bNodeTree * /*ntree*/, bNode *node)
-{
-  /* All members are deprecated and needn't be set, but the data is still allocated for forward
-   * compatibility. */
-  NodeBlurData *nbd = MEM_callocN<NodeBlurData>(__func__);
-  node->storage = nbd;
-}
-
 using namespace blender::compositor;
 
 #define MOTION_BLUR_TILE_SIZE 32
@@ -702,9 +694,6 @@ static void register_node_type_cmp_vecblur()
   ntype.enum_name_legacy = "VECBLUR";
   ntype.nclass = NODE_CLASS_OP_FILTER;
   ntype.declare = file_ns::cmp_node_vec_blur_declare;
-  ntype.initfunc = file_ns::node_composit_init_vecblur;
-  blender::bke::node_type_storage(
-      ntype, "NodeBlurData", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
   blender::bke::node_register_type(ntype);

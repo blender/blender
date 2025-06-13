@@ -51,14 +51,6 @@ static void cmp_node_antialiasing_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>("Image");
 }
 
-static void node_composit_init_antialiasing(bNodeTree * /*ntree*/, bNode *node)
-{
-  /* All members are deprecated and needn't be set, but the data is still allocated for forward
-   * compatibility. */
-  NodeAntiAliasingData *data = MEM_callocN<NodeAntiAliasingData>(__func__);
-  node->storage = data;
-}
-
 using namespace blender::compositor;
 
 class AntiAliasingOperation : public NodeOperation {
@@ -120,9 +112,6 @@ static void register_node_type_cmp_antialiasing()
   ntype.declare = file_ns::cmp_node_antialiasing_declare;
   ntype.flag |= NODE_PREVIEW;
   blender::bke::node_type_size(ntype, 170, 140, 200);
-  ntype.initfunc = file_ns::node_composit_init_antialiasing;
-  blender::bke::node_type_storage(
-      ntype, "NodeAntiAliasingData", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
   blender::bke::node_register_type(ntype);

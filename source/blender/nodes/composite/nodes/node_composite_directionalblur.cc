@@ -76,14 +76,6 @@ static void cmp_node_directional_blur_declare(NodeDeclarationBuilder &b)
       .compositor_expects_single_value();
 }
 
-static void node_composit_init_dblur(bNodeTree * /*ntree*/, bNode *node)
-{
-  /* All members are deprecated and needn't be set, but the data is still allocated for forward
-   * compatibility. */
-  NodeDBlurData *ndbd = MEM_callocN<NodeDBlurData>(__func__);
-  node->storage = ndbd;
-}
-
 using namespace blender::compositor;
 
 class DirectionalBlurOperation : public NodeOperation {
@@ -317,9 +309,6 @@ static void register_node_type_cmp_dblur()
   ntype.enum_name_legacy = "DBLUR";
   ntype.nclass = NODE_CLASS_OP_FILTER;
   ntype.declare = file_ns::cmp_node_directional_blur_declare;
-  ntype.initfunc = file_ns::node_composit_init_dblur;
-  blender::bke::node_type_storage(
-      ntype, "NodeDBlurData", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
   blender::bke::node_register_type(ntype);
