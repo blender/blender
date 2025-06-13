@@ -49,6 +49,7 @@ set(SRC
   intern/mesh_extractors/extract_mesh_vbo_mesh_analysis.cc
   intern/mesh_extractors/extract_mesh_vbo_orco.cc
   intern/mesh_extractors/extract_mesh_vbo_pos.cc
+  intern/mesh_extractors/extract_mesh_vbo_paint_overlay_flag.cc
   intern/mesh_extractors/extract_mesh_vbo_sculpt_data.cc
   intern/mesh_extractors/extract_mesh_vbo_select_idx.cc
   intern/mesh_extractors/extract_mesh_vbo_skin_roots.cc
@@ -541,12 +542,12 @@ set(GLSL_SRC
   intern/shaders/subdiv_ibo_tris_comp.glsl
   intern/shaders/subdiv_lib.glsl
   intern/shaders/subdiv_normals_accumulate_comp.glsl
-  intern/shaders/subdiv_normals_finalize_comp.glsl
   intern/shaders/subdiv_patch_evaluation_comp.glsl
   intern/shaders/subdiv_vbo_edge_fac_comp.glsl
   intern/shaders/subdiv_vbo_edituv_strech_angle_comp.glsl
   intern/shaders/subdiv_vbo_edituv_strech_area_comp.glsl
   intern/shaders/subdiv_vbo_lnor_comp.glsl
+  intern/shaders/subdiv_vbo_paint_overlay_flag_comp.glsl
   intern/shaders/subdiv_vbo_sculpt_data_comp.glsl
   intern/shaders/draw_aabb_lib.glsl
   intern/shaders/draw_colormanagement_lib.glsl

@@ -52,11 +52,13 @@ gpu::Batch *DRW_cache_object_face_wireframe_get(const Scene *scene, Object *ob);
 /* Meshes */
 
 gpu::Batch *DRW_cache_mesh_all_verts_get(Object *ob);
+gpu::Batch *DRW_cache_mesh_paint_overlay_verts_get(Object *ob);
 gpu::Batch *DRW_cache_mesh_all_edges_get(Object *ob);
 gpu::Batch *DRW_cache_mesh_loose_edges_get(Object *ob);
 gpu::Batch *DRW_cache_mesh_edge_detection_get(Object *ob, bool *r_is_manifold);
 gpu::Batch *DRW_cache_mesh_surface_get(Object *ob);
-gpu::Batch *DRW_cache_mesh_surface_edges_get(Object *ob);
+gpu::Batch *DRW_cache_mesh_paint_overlay_surface_get(Object *ob);
+gpu::Batch *DRW_cache_mesh_paint_overlay_edges_get(Object *ob);
 /**
  * Return list of batches with length equal to `max(1, totcol)`.
  */
