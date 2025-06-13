@@ -539,10 +539,11 @@ ReshapeConstGridElement multires_reshape_orig_grid_element_for_grid_coord(
 
 void multires_reshape_evaluate_limit_at_grid(const MultiresReshapeContext *reshape_context,
                                              const GridCoord *grid_coord,
-                                             float r_P[3],
+                                             blender::float3 &r_P,
                                              float r_tangent_matrix[3][3])
 {
-  float dPdu[3], dPdv[3];
+  blender::float3 dPdu;
+  blender::float3 dPdv;
   const PTexCoord ptex_coord = multires_reshape_grid_coord_to_ptex(reshape_context, grid_coord);
   blender::bke::subdiv::Subdiv *subdiv = reshape_context->subdiv;
   blender::bke::subdiv::eval_limit_point_and_derivatives(
@@ -736,7 +737,7 @@ static void object_grid_element_to_tangent_displacement(
     const GridCoord *grid_coord,
     void * /*userdata_v*/)
 {
-  float P[3];
+  blender::float3 P;
   float tangent_matrix[3][3];
   multires_reshape_evaluate_limit_at_grid(reshape_context, grid_coord, P, tangent_matrix);
 
@@ -777,7 +778,7 @@ static void assign_final_coords_from_mdisps(const MultiresReshapeContext *reshap
                                             const GridCoord *grid_coord,
                                             void * /*userdata_v*/)
 {
-  float P[3];
+  blender::float3 P;
   float tangent_matrix[3][3];
   multires_reshape_evaluate_limit_at_grid(reshape_context, grid_coord, P, tangent_matrix);
 
@@ -800,7 +801,7 @@ static void assign_final_elements_from_orig_mdisps(const MultiresReshapeContext 
                                                    const GridCoord *grid_coord,
                                                    void * /*userdata_v*/)
 {
-  float P[3];
+  blender::float3 P;
   float tangent_matrix[3][3];
   multires_reshape_evaluate_limit_at_grid(reshape_context, grid_coord, P, tangent_matrix);
 

@@ -1634,7 +1634,7 @@ static void subdiv_ccg_coord_to_ptex_coord(const SubdivCCG &subdiv_ccg,
 
 void BKE_subdiv_ccg_eval_limit_point(const SubdivCCG &subdiv_ccg,
                                      const SubdivCCGCoord &coord,
-                                     float r_point[3])
+                                     float3 &r_point)
 {
   Subdiv *subdiv = subdiv_ccg.subdiv;
   int ptex_face_index;

@@ -72,7 +72,10 @@ static void subdiv_accumulate_vertex_displacement(SubdivDeformContext *ctx,
                                                   int vertex_index)
 {
   Subdiv *subdiv = ctx->subdiv;
-  float dummy_P[3], dPdu[3], dPdv[3], D[3];
+  float3 dummy_P;
+  float3 dPdu;
+  float3 dPdv;
+  float3 D;
   eval_limit_point_and_derivatives(subdiv, ptex_face_index, u, v, dummy_P, dPdu, dPdv);
   /* Accumulate displacement if needed. */
   if (ctx->have_displacement) {
@@ -140,7 +143,7 @@ static void subdiv_mesh_vertex_corner(const ForeachContext *foreach_context,
   /* Displacement is accumulated in subdiv vertex position.
    * Needs to be backed up before copying data from original vertex. */
   float D[3] = {0.0f, 0.0f, 0.0f};
-  float *vertex_co = ctx->vert_positions[coarse_vertex_index];
+  float3 &vertex_co = ctx->vert_positions[coarse_vertex_index];
   if (ctx->have_displacement) {
     copy_v3_v3(D, vertex_co);
     mul_v3_fl(D, inv_num_accumulated);

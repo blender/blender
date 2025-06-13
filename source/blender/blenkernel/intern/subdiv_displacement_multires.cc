@@ -153,7 +153,9 @@ static void average_construct_tangent_matrix(Subdiv *subdiv,
 {
   const bool is_quad = num_corners == 4;
   const int quad_corner = is_quad ? corner : 0;
-  float dummy_P[3], dPdu[3], dPdv[3];
+  float3 dummy_P;
+  float3 dPdu;
+  float3 dPdv;
   eval_limit_point_and_derivatives(subdiv, ptex_face_index, u, v, dummy_P, dPdu, dPdv);
   BKE_multires_construct_tangent_matrix(r_tangent_matrix, dPdu, dPdv, quad_corner);
 }
