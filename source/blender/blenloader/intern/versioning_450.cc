@@ -682,6 +682,9 @@ static void do_version_bokeh_image_node_options_to_inputs(bNodeTree *node_tree, 
         *node_tree, *node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Color Shift", "Color Shift");
     input->default_value_typed<bNodeSocketValueFloat>()->value = storage->lensshift;
   }
+
+  MEM_freeN(storage);
+  node->storage = nullptr;
 }
 
 /* The options were converted into inputs. */
@@ -820,6 +823,9 @@ static void do_version_mask_node_options_to_inputs(bNodeTree *node_tree, bNode *
         *node_tree, *node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Motion Blur Shutter", "Shutter");
     input->default_value_typed<bNodeSocketValueFloat>()->value = node->custom3;
   }
+
+  MEM_freeN(storage);
+  node->storage = nullptr;
 }
 
 /* The options were converted into inputs. */
@@ -1488,6 +1494,9 @@ static void do_version_anti_alias_node_options_to_inputs(bNodeTree *node_tree, b
         *node_tree, *node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Corner Rounding", "Corner Rounding");
     input->default_value_typed<bNodeSocketValueFloat>()->value = storage->corner_rounding;
   }
+
+  MEM_freeN(storage);
+  node->storage = nullptr;
 }
 
 /* The options were converted into inputs. */
@@ -1549,6 +1558,9 @@ static void do_version_vector_blur_node_options_to_inputs(bNodeTree *node_tree, 
     /* Shutter was previously divided by 2. */
     input->default_value_typed<bNodeSocketValueFloat>()->value = storage->fac * 2.0f;
   }
+
+  MEM_freeN(storage);
+  node->storage = nullptr;
 }
 
 /* The options were converted into inputs. */
@@ -1666,6 +1678,9 @@ static void do_version_chroma_matte_node_options_to_inputs(bNodeTree *node_tree,
         *node_tree, *node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Falloff", "Falloff");
     input->default_value_typed<bNodeSocketValueFloat>()->value = storage->fstrength;
   }
+
+  MEM_freeN(storage);
+  node->storage = nullptr;
 }
 
 /* The options were converted into inputs. */
@@ -1729,6 +1744,9 @@ static void do_version_color_matte_node_options_to_inputs(bNodeTree *node_tree, 
         *node_tree, *node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Value", "Value");
     input->default_value_typed<bNodeSocketValueFloat>()->value = storage->t3;
   }
+
+  MEM_freeN(storage);
+  node->storage = nullptr;
 }
 
 /* The options were converted into inputs. */
@@ -1786,6 +1804,9 @@ static void do_version_difference_matte_node_options_to_inputs(bNodeTree *node_t
         *node_tree, *node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Falloff", "Falloff");
     input->default_value_typed<bNodeSocketValueFloat>()->value = storage->t2;
   }
+
+  MEM_freeN(storage);
+  node->storage = nullptr;
 }
 
 /* The options were converted into inputs. */
@@ -1894,6 +1915,9 @@ static void do_version_luminance_matte_node_options_to_inputs(bNodeTree *node_tr
         *node_tree, *node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Maximum", "Maximum");
     input->default_value_typed<bNodeSocketValueFloat>()->value = storage->t1;
   }
+
+  MEM_freeN(storage);
+  node->storage = nullptr;
 }
 
 /* The options were converted into inputs. */
@@ -2560,6 +2584,9 @@ static void do_version_color_correction_node_options_to_inputs(bNodeTree *node_t
         *node_tree, *node, SOCK_IN, SOCK_BOOLEAN, PROP_NONE, "Apply On Blue", "Apply On Blue");
     input->default_value_typed<bNodeSocketValueBoolean>()->value = bool(node->custom1 & (1 << 2));
   }
+
+  MEM_freeN(storage);
+  node->storage = nullptr;
 }
 
 /* The options were converted into inputs. */
@@ -2755,6 +2782,9 @@ static void do_version_box_mask_node_options_to_inputs(bNodeTree *node_tree, bNo
         *node_tree, *node, SOCK_IN, SOCK_FLOAT, PROP_ANGLE, "Rotation", "Rotation");
     input->default_value_typed<bNodeSocketValueFloat>()->value = storage->rotation;
   }
+
+  MEM_freeN(storage);
+  node->storage = nullptr;
 }
 
 /* The options were converted into inputs. */
@@ -2829,6 +2859,9 @@ static void do_version_ellipse_mask_node_options_to_inputs(bNodeTree *node_tree,
         *node_tree, *node, SOCK_IN, SOCK_FLOAT, PROP_ANGLE, "Rotation", "Rotation");
     input->default_value_typed<bNodeSocketValueFloat>()->value = storage->rotation;
   }
+
+  MEM_freeN(storage);
+  node->storage = nullptr;
 }
 
 /* The options were converted into inputs. */
@@ -2897,6 +2930,9 @@ static void do_version_sun_beams_node_options_to_inputs(bNodeTree *node_tree, bN
         *node_tree, *node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Length", "Length");
     input->default_value_typed<bNodeSocketValueFloat>()->value = storage->ray_length;
   }
+
+  MEM_freeN(storage);
+  node->storage = nullptr;
 }
 
 /* The options were converted into inputs. */
@@ -2977,6 +3013,9 @@ static void do_version_directional_blur_node_options_to_inputs(bNodeTree *node_t
     /* Scale was previously minus 1. */
     input->default_value_typed<bNodeSocketValueFloat>()->value = storage->zoom + 1.0f;
   }
+
+  MEM_freeN(storage);
+  node->storage = nullptr;
 }
 
 /* The options were converted into inputs. */
@@ -3053,6 +3092,9 @@ static void do_version_bilateral_blur_node_options_to_inputs(bNodeTree *node_tre
     /* Threshold was previously multiplied by 3. */
     input->default_value_typed<bNodeSocketValueFloat>()->value = storage->sigma_color / 3.0f;
   }
+
+  MEM_freeN(storage);
+  node->storage = nullptr;
 }
 
 /* The options were converted into inputs. */
@@ -3780,6 +3822,8 @@ static void do_version_crop_node_options_to_inputs(bNodeTree *node_tree, bNode *
 
   /* If Relative is not enabled or no image is connected, nothing else to do. */
   if (!bool(node->custom2) || !image_link) {
+    MEM_freeN(storage);
+    node->storage = nullptr;
     return;
   }
 
@@ -3890,6 +3934,9 @@ static void do_version_crop_node_options_to_inputs(bNodeTree *node_tree, bNode *
                         *image_link->fromsock,
                         *height_relative_to_pixel_node,
                         *height_image_input);
+
+  MEM_freeN(storage);
+  node->storage = nullptr;
 }
 
 /* The options were converted into inputs. */
@@ -4018,6 +4065,9 @@ static void do_version_color_balance_node_options_to_inputs(bNodeTree *node_tree
         *node_tree, *node, SOCK_IN, SOCK_FLOAT, PROP_NONE, "Output Tint", "Tint");
     input->default_value_typed<bNodeSocketValueFloat>()->value = storage->output_tint;
   }
+
+  MEM_freeN(storage);
+  node->storage = nullptr;
 }
 
 /* The options were converted into inputs. */
