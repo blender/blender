@@ -380,6 +380,7 @@ static void blo_update_defaults_scene(Main *bmain, Scene *scene)
 
   /* New EEVEE defaults. */
   scene->eevee.motion_blur_shutter_deprecated = 0.5f;
+  scene->eevee.flag &= ~SCE_EEVEE_VOLUME_CUSTOM_RANGE;
 
   copy_v3_v3(scene->display.light_direction, blender::float3(M_SQRT1_3));
   copy_v2_fl2(scene->safe_areas.title, 0.1f, 0.05f);

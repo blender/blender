@@ -232,7 +232,7 @@
  \
     .overscan = 3.0f, \
  \
-    .flag = SCE_EEVEE_TAA_REPROJECTION, \
+    .flag = SCE_EEVEE_TAA_REPROJECTION | SCE_EEVEE_SHADOW_ENABLED, \
   }
 
 #define _DNA_DEFAULT_SceneGreasePencil \
