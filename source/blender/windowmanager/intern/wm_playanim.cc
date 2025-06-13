@@ -2189,6 +2189,8 @@ static std::optional<int> wm_main_playanim_intern(int argc, const char **argv, P
 
   GHOST_DisposeWindow(ps.ghost_data.system, ps.ghost_data.window);
 
+  GHOST_DisposeSystem(ps.ghost_data.system);
+
   /* Early exit, IMB and BKE should be exited only in end. */
   if (ps.argv_next) {
     args_next->argc = ps.argc_next;
@@ -2196,8 +2198,6 @@ static std::optional<int> wm_main_playanim_intern(int argc, const char **argv, P
     /* No exit code, keep running. */
     return std::nullopt;
   }
-
-  GHOST_DisposeSystem(ps.ghost_data.system);
 
   return EXIT_SUCCESS;
 }
