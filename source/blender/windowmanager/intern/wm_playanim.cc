@@ -66,8 +66,6 @@
 #include "BLF_api.hh"
 #include "GHOST_C-api.h"
 
-#include "DEG_depsgraph.hh"
-
 #include "wm_window_private.hh"
 
 #include "WM_api.hh" /* Only for #WM_main_playanim. */
@@ -2168,8 +2166,6 @@ static std::optional<int> wm_main_playanim_intern(int argc, const char **argv, P
 
   /* We still miss freeing a lot!
    * But many areas could skip initialization too for anim play. */
-
-  DEG_free_node_types();
 
   BLF_exit();
 
