@@ -2294,7 +2294,7 @@ void UI_block_draw(const bContext *C, uiBlock *block)
 
     /* XXX: figure out why invalid coordinates happen when closing render window */
     /* and material preview is redrawn in main window (temp fix for bug #23848) */
-    if (rect.xmin >= 0 && rect.xmin < rect.xmax && rect.ymin < rect.ymax) {
+    if (rect.xmin < rect.xmax && rect.ymin < rect.ymax) {
       ui_draw_but(C, region, &style, but.get(), &rect);
     }
   }
