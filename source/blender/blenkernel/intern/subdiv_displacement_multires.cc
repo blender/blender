@@ -55,11 +55,11 @@ struct MultiresDisplacementData {
 
 /* Denotes which grid to use to average value of the displacement read from the
  * grid which corresponds to the PTEX face. */
-enum eAverageWith {
-  AVERAGE_WITH_NONE,
-  AVERAGE_WITH_ALL,
-  AVERAGE_WITH_PREV,
-  AVERAGE_WITH_NEXT,
+enum class AverageWith : int8_t {
+  None,
+  All,
+  Prev,
+  Next,
 };
 
 static int displacement_get_grid_and_coord(Displacement *displacement,
@@ -103,29 +103,29 @@ static const MDisps *displacement_get_other_grid(Displacement *displacement,
   return &data->mdisps[face[next_corner]];
 }
 
-BLI_INLINE eAverageWith read_displacement_grid(const MDisps *displacement_grid,
-                                               const int grid_size,
-                                               const float grid_u,
-                                               const float grid_v,
-                                               float r_tangent_D[3])
+BLI_INLINE AverageWith read_displacement_grid(const MDisps *displacement_grid,
+                                              const int grid_size,
+                                              const float grid_u,
+                                              const float grid_v,
+                                              float r_tangent_D[3])
 {
   if (displacement_grid->disps == nullptr) {
     zero_v3(r_tangent_D);
-    return AVERAGE_WITH_NONE;
+    return AverageWith::None;
   }
   const int x = roundf(grid_u * (grid_size - 1));
   const int y = roundf(grid_v * (grid_size - 1));
   copy_v3_v3(r_tangent_D, displacement_grid->disps[y * grid_size + x]);
   if (x == 0 && y == 0) {
-    return AVERAGE_WITH_ALL;
+    return AverageWith::All;
   }
   if (x == 0) {
-    return AVERAGE_WITH_PREV;
+    return AverageWith::Prev;
   }
   if (y == 0) {
-    return AVERAGE_WITH_NEXT;
+    return AverageWith::Next;
   }
-  return AVERAGE_WITH_NONE;
+  return AverageWith::None;
 }
 
 static void average_convert_grid_coord_to_ptex(const int num_corners,
@@ -277,7 +277,7 @@ static void average_with_prev(Displacement *displacement,
 }
 
 static void average_displacement(Displacement *displacement,
-                                 eAverageWith average_with,
+                                 AverageWith average_with,
                                  const int ptex_face_index,
                                  const int corner,
                                  const float grid_u,
@@ -285,16 +285,16 @@ static void average_displacement(Displacement *displacement,
                                  float r_D[3])
 {
   switch (average_with) {
-    case AVERAGE_WITH_ALL:
+    case AverageWith::All:
       average_with_all(displacement, ptex_face_index, corner, grid_u, grid_v, r_D);
       break;
-    case AVERAGE_WITH_PREV:
+    case AverageWith::Prev:
       average_with_prev(displacement, ptex_face_index, corner, grid_u, grid_v, r_D);
       break;
-    case AVERAGE_WITH_NEXT:
+    case AverageWith::Next:
       average_with_next(displacement, ptex_face_index, corner, grid_u, grid_v, r_D);
       break;
-    case AVERAGE_WITH_NONE:
+    case AverageWith::None:
       break;
   }
 }
@@ -343,7 +343,7 @@ static void eval_displacement(Displacement *displacement,
   /* Read displacement from the current displacement grid and see if any
    * averaging is needed. */
   float tangent_D[3];
-  eAverageWith average_with = read_displacement_grid(
+  AverageWith average_with = read_displacement_grid(
       displacement_grid, grid_size, grid_u, grid_v, tangent_D);
   /* Convert it to the object space. */
   float tangent_matrix[3][3];
