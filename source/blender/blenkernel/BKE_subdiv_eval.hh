@@ -30,8 +30,9 @@ bool eval_begin(Subdiv *subdiv,
                 OpenSubdiv_EvaluatorCache *evaluator_cache,
                 const OpenSubdiv_EvaluatorSettings *settings);
 
-/* coarse_vertex_cos is an optional argument which allows to override coordinates of the coarse
- * mesh. */
+/**
+ * \param coarse_vert_positions optional span of positions to override the mesh positions
+ */
 bool eval_begin_from_mesh(Subdiv *subdiv,
                           const Mesh *mesh,
                           Span<float3> coarse_vert_positions,
