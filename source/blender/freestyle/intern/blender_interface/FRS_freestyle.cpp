@@ -14,9 +14,6 @@
 
 #include "BlenderStrokeRenderer.h"
 
-using namespace std;
-using namespace Freestyle;
-
 #include "MEM_guardedalloc.h"
 
 #include "DNA_collection_types.h"
@@ -49,6 +46,9 @@ using namespace Freestyle;
 #include "pipeline.hh"
 
 #include "FRS_freestyle.h"
+
+using namespace std;
+using namespace Freestyle;
 
 FreestyleGlobals g_freestyle;
 

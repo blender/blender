@@ -3809,28 +3809,28 @@ bool BKE_object_minmax_dupli(Depsgraph *depsgraph,
     return ok;
   }
 
-  ListBase *lb = object_duplilist(depsgraph, scene, ob);
-  LISTBASE_FOREACH (DupliObject *, dob, lb) {
-    if (((use_hidden == false) && (dob->no_draw != 0)) || dob->ob_data == nullptr) {
+  DupliList duplilist;
+  object_duplilist(depsgraph, scene, ob, nullptr, duplilist);
+  for (DupliObject &dob : duplilist) {
+    if (((use_hidden == false) && (dob.no_draw != 0)) || dob.ob_data == nullptr) {
       /* pass */
     }
     else {
-      Object temp_ob = blender::dna::shallow_copy(*dob->ob);
-      blender::bke::ObjectRuntime runtime = *dob->ob->runtime;
+      Object temp_ob = blender::dna::shallow_copy(*dob.ob);
+      blender::bke::ObjectRuntime runtime = *dob.ob->runtime;
       temp_ob.runtime = &runtime;
 
       /* Do not modify the original bounding-box. */
       temp_ob.runtime->bounds_eval.reset();
-      BKE_object_replace_data_on_shallow_copy(&temp_ob, dob->ob_data);
+      BKE_object_replace_data_on_shallow_copy(&temp_ob, dob.ob_data);
       if (const std::optional<Bounds<float3>> bounds = BKE_object_boundbox_get(&temp_ob)) {
         BoundBox bb;
         BKE_boundbox_init_from_minmax(&bb, bounds->min, bounds->max);
-        BKE_boundbox_minmax(bb, float4x4(dob->mat), r_min, r_max);
+        BKE_boundbox_minmax(bb, float4x4(dob.mat), r_min, r_max);
         ok = true;
       }
     }
   }
-  free_object_duplilist(lb); /* does restore */
 
   return ok;
 }

@@ -287,6 +287,7 @@ void AbstractHierarchyIterator::export_graph_construct()
   deg_iter_settings.depsgraph = depsgraph_;
   deg_iter_settings.flags = DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY |
                             DEG_ITER_OBJECT_FLAG_LINKED_VIA_SET;
+  DupliList duplilist;
   DEG_OBJECT_ITER_BEGIN (&deg_iter_settings, object) {
     /* Non-instanced objects always have their object-parent as export-parent. */
     const bool weak_export = mark_as_weak_export(object);
@@ -298,27 +299,27 @@ void AbstractHierarchyIterator::export_graph_construct()
     }
 
     /* Export the duplicated objects instanced by this object. */
-    ListBase *lb = object_duplilist(depsgraph_, scene, object);
-    if (lb) {
+    object_duplilist(depsgraph_, scene, object, nullptr, duplilist);
+    if (!duplilist.is_empty()) {
       DupliParentFinder dupli_parent_finder;
 
-      LISTBASE_FOREACH (DupliObject *, dupli_object, lb) {
-        PersistentID persistent_id(dupli_object);
-        if (!should_visit_dupli_object(dupli_object)) {
+      for (DupliObject &dupli_object : duplilist) {
+        PersistentID persistent_id(&dupli_object);
+        if (!should_visit_dupli_object(&dupli_object)) {
           continue;
         }
-        dupli_parent_finder.insert(dupli_object);
+        dupli_parent_finder.insert(&dupli_object);
       }
 
-      LISTBASE_FOREACH (DupliObject *, dupli_object, lb) {
-        if (!should_visit_dupli_object(dupli_object)) {
+      for (DupliObject &dupli_object : duplilist) {
+        if (!should_visit_dupli_object(&dupli_object)) {
           continue;
         }
-        visit_dupli_object(dupli_object, object, dupli_parent_finder);
+        visit_dupli_object(&dupli_object, object, dupli_parent_finder);
       }
     }
 
-    free_object_duplilist(lb);
+    duplilist.clear();
   }
   DEG_OBJECT_ITER_END;
 }

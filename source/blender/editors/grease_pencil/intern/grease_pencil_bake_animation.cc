@@ -77,19 +77,21 @@ static Vector<Object *> get_bake_targets(bContext &C, Depsgraph &depsgraph, Scen
   Vector<Object *> bake_targets;
   Object *active_object = CTX_data_active_object(&C);
 
+  DupliList duplilist;
+
   if (active_object->type == OB_GREASE_PENCIL) {
     bake_targets.append(active_object);
   }
   else if (active_object->type == OB_EMPTY) {
-    ListBase *lb = object_duplilist(&depsgraph, &scene, active_object);
-    LISTBASE_FOREACH (DupliObject *, duplicate_object, lb) {
-      if (duplicate_object->ob->type != OB_GREASE_PENCIL) {
+    object_duplilist(&depsgraph, &scene, active_object, nullptr, duplilist);
+    for (DupliObject &duplicate_object : duplilist) {
+      if (duplicate_object.ob->type != OB_GREASE_PENCIL) {
         continue;
       }
 
-      bake_targets.append(duplicate_object->ob);
+      bake_targets.append(duplicate_object.ob);
     }
-    free_object_duplilist(lb);
+    duplilist.clear();
   }
 
   CTX_DATA_BEGIN (&C, Object *, object, selected_objects) {
@@ -101,15 +103,15 @@ static Vector<Object *> get_bake_targets(bContext &C, Depsgraph &depsgraph, Scen
       bake_targets.append(object);
     }
     else if (object->type == OB_EMPTY) {
-      ListBase *lb = object_duplilist(&depsgraph, &scene, active_object);
-      LISTBASE_FOREACH (DupliObject *, duplicate_object, lb) {
-        if (duplicate_object->ob->type != OB_GREASE_PENCIL) {
+      object_duplilist(&depsgraph, &scene, active_object, nullptr, duplilist);
+      for (DupliObject &duplicate_object : duplilist) {
+        if (duplicate_object.ob->type != OB_GREASE_PENCIL) {
           continue;
         }
 
-        bake_targets.append(duplicate_object->ob);
+        bake_targets.append(duplicate_object.ob);
       }
-      free_object_duplilist(lb);
+      duplilist.clear();
     }
   }
   CTX_DATA_END;

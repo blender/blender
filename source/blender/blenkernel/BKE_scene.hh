@@ -9,13 +9,13 @@
 
 #include "BLI_sys_types.h"
 
+#include "BKE_duplilist.hh"
+
 struct Base;
 struct Collection;
 struct Depsgraph;
-struct DupliObject;
 struct GHash;
 struct Main;
-struct ListBase;
 struct Object;
 struct RenderData;
 struct Scene;
@@ -73,8 +73,9 @@ Object *BKE_scene_object_find_by_name(const Scene *scene, const char *name);
  * Define struct here, so no need to bother with alloc/free it.
  */
 struct SceneBaseIter {
-  ListBase *duplilist;
+  DupliList duplilist;
   DupliObject *dupob;
+  int dupob_index;
   float omat[4][4];
   Object *dupli_refob;
   int phase;
