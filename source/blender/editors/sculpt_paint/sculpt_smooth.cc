@@ -400,7 +400,7 @@ void neighbor_color_average(const OffsetIndices<int> faces,
       sum += color::color_vert_get(
           faces, corner_verts, vert_to_face_map, color_attribute, color_domain, vert);
     }
-    smooth_colors[i] = sum / neighbors.size();
+    smooth_colors[i] = math::safe_divide(sum, float(neighbors.size()));
   }
 }
 
