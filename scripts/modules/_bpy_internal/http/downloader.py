@@ -13,6 +13,7 @@ import multiprocessing
 import multiprocessing.connection
 import multiprocessing.process
 import time
+import zlib  # For streaming gzip decompression.
 from collections.abc import Callable
 from pathlib import Path
 from typing import Protocol, TypeAlias, Any
@@ -116,7 +117,7 @@ class ConditionalDownloader:
         temp_path.parent.mkdir(exist_ok=True, parents=True)
 
         try:
-            http_meta = self._stream_to_file(http_req_descr, temp_path, http_meta)
+            http_meta = self._request_and_stream(http_req_descr, temp_path, http_meta)
         except Exception:
             # Clean up the partially downloaded file.
             temp_path.unlink(missing_ok=True)
@@ -138,13 +139,13 @@ class ConditionalDownloader:
 
         self._reporter.download_finished(http_req_descr, local_path)
 
-    def _stream_to_file(
+    def _request_and_stream(
         self,
         http_req_descr: RequestDescription,
         local_path: Path,
         meta: HTTPMetadata | None,
     ) -> HTTPMetadata | None:
-        """Stream the remote URL to a local file.
+        """Download the remote URL to a local file.
 
         :return: the metadata of the downloaded data, or None if the passed-in
             metadata matches the URL (a "304 Not Modified" was returned).
@@ -156,6 +157,7 @@ class ConditionalDownloader:
 
         req = requests.Request(http_req_descr.http_method, http_req_descr.url)
         prepped: requests.PreparedRequest = self.http_session.prepare_request(req)
+        self._add_compression_request_headers(prepped)
         self._add_conditional_request_headers(prepped, meta)
 
         with self.http_session.send(prepped, stream=True) as stream:
@@ -173,45 +175,103 @@ class ConditionalDownloader:
                 # The remote file matches what we have locally. Don't bother streaming.
                 return None
 
-            # Avoid reporting any progress when the download was cancelled.
-            if not self.periodic_check():
-                raise DownloadCancelled(http_req_descr)
+            return self._stream_to_file(stream, http_req_descr, local_path)
 
-            # Determine how many bytes are expected.
-            content_length_str: str = stream.headers.get("Content-Length") or ""
-            try:
-                content_length = int(content_length_str, base=10)
-            except ValueError:
-                raise ContentLengthUnknownError(http_req_descr) from None
-            self._reporter.download_progress(http_req_descr, content_length, 0)
+    def _stream_to_file(
+        self,
+        stream: requests.Response,
+        http_req_descr: RequestDescription,
+        local_path: Path,
+    ) -> HTTPMetadata | None:
+        """Stream the data obtained via the HTTP stream to a local file.
 
-            # Stream the response to a file.
-            num_downloaded_bytes = 0
-            with local_path.open("wb") as file:
-                for chunk in stream.iter_content(chunk_size=self.chunk_size):
+        :return: the metadata of the downloaded data, or None if the passed-in
+            metadata matches the URL (a "304 Not Modified" was returned).
+        """
 
-                    if not self.periodic_check():
-                        raise DownloadCancelled(http_req_descr)
+        # Determine how many bytes are expected.
+        content_length_str: str = stream.headers.get("Content-Length") or ""
+        try:
+            content_length = int(content_length_str, base=10)
+        except ValueError:
+            # TODO: add support for this case.
+            raise ContentLengthUnknownError(http_req_descr) from None
 
-                    file.write(chunk)
-                    num_downloaded_bytes += len(chunk)
+        # The Content-Length header, obtained above, indicates the number of
+        # bytes that we will be downloading. The Requests library automatically
+        # decompresses this, and so if the normal (not `stream.raw`) streaming
+        # approach would be used, we would count the wrong number of bytes.
+        #
+        # In order to get to the actual downloaded byte count, we need to bypass
+        # Requests' automatic decompression, use the raw byte stream, and
+        # decompress ourselves.
+        content_encoding: str = stream.headers.get("Content-Encoding") or ""
+        match content_encoding:
+            case "gzip":
+                wbits = 16 + zlib.MAX_WBITS
+                decoder = zlib.decompressobj(wbits=wbits)
+            case "":
+                decoder = None
+            case _:
+                raise HTTPRequestUnknownContentEncoding(http_req_descr, content_encoding)
 
-                    self._reporter.download_progress(
-                        http_req_descr, content_length, num_downloaded_bytes
-                    )
+        # Avoid reporting any progress when the download was cancelled.
+        if not self.periodic_check():
+            raise DownloadCancelled(http_req_descr)
 
-                    if num_downloaded_bytes > content_length:
-                        raise ResponseTooLargeError(http_req_descr)
+        self._reporter.download_progress(http_req_descr, content_length, 0)
 
-            # File was downloaded succesfully, store the metadata.
-            meta = HTTPMetadata(
-                request=http_req_descr,
-                etag=stream.headers.get("ETag") or "",
-                last_modified=stream.headers.get("Last-Modified") or "",
-                content_length=num_downloaded_bytes,
-            )
+        # Stream the response to a file.
+        num_downloaded_bytes = 0
+        with local_path.open("wb") as file:
+            def write_and_report(chunk: bytes) -> None:
+                """Write a chunk to file, and report on the download progress."""
+                file.write(chunk)
+
+                self._reporter.download_progress(
+                    http_req_descr, content_length, num_downloaded_bytes
+                )
+
+                if num_downloaded_bytes > content_length:
+                    raise ContentLengthError(http_req_descr, content_length, num_downloaded_bytes)
+
+            # Download and process chunks until there are no more left.
+            while chunk := stream.raw.read(self.chunk_size):
+                if not self.periodic_check():
+                    raise DownloadCancelled(http_req_descr)
+
+                num_downloaded_bytes += len(chunk)
+                if decoder:
+                    chunk = decoder.decompress(chunk)
+                write_and_report(chunk)
+
+            if decoder:
+                write_and_report(decoder.flush())
+                assert decoder.eof
+
+        if num_downloaded_bytes != content_length:
+            raise ContentLengthError(http_req_descr, content_length, num_downloaded_bytes)
+
+        # File was downloaded succesfully, store the metadata.
+        meta = HTTPMetadata(
+            request=http_req_descr,
+            etag=stream.headers.get("ETag") or "",
+            last_modified=stream.headers.get("Last-Modified") or "",
+            content_length=num_downloaded_bytes,
+        )
 
         return meta
+
+    def _add_compression_request_headers(self, prepped: requests.PreparedRequest) -> None:
+        # GZip is part of Python's stdlib.
+        #
+        # Deflate is hardly ever used.
+        #
+        # Zstd is bundled with Blender (and also will be in Python's stdlib in
+        # 3.14+), but AFAICS doesn't have a way to decompress a stream so we'd
+        # have to keep the entire file in memory. So, for now, limit to GZip
+        # support.
+        prepped.headers["Accept-Encoding"] = "gzip"
 
     def _add_conditional_request_headers(self, prepped: requests.PreparedRequest, meta: HTTPMetadata | None) -> None:
         if not meta:
@@ -987,10 +1047,10 @@ class HTTPRequestDownloadError(RuntimeError):
 
     http_req_desc: RequestDescription
 
-    def __init__(self, http_req_desc: RequestDescription) -> None:
+    def __init__(self, http_req_desc: RequestDescription, *args) -> None:
         # NOTE: passing http_req_desc here is necessary for these exceptions to be pickleable.
         # See https://stackoverflow.com/a/28335286/875379 for an explanation.
-        super().__init__(http_req_desc)
+        super().__init__(http_req_desc, *args)
         self.http_req_desc = http_req_desc
 
     def __repr__(self) -> str:
@@ -1011,12 +1071,31 @@ class ContentLengthUnknownError(HTTPRequestDownloadError):
         super().__init__(http_req_desc)
 
 
-class ResponseTooLargeError(HTTPRequestDownloadError):
-    """Raised when a HTTP response body is larger than its Content-Length header indicates."""
+class ContentLengthError(HTTPRequestDownloadError):
+    """Raised when a HTTP response body is smaller or larger than its Content-Length header indicates."""
 
-    def __init__(self, http_req_desc: RequestDescription) -> None:
+    def __init__(self, http_req_desc: RequestDescription, expected_size: int, actual_size: int) -> None:
         # This __init__ method is necessary to be able to (un)pickle instances.
-        super().__init__(http_req_desc)
+        super().__init__(http_req_desc, expected_size, actual_size)
+        self.expected_size = expected_size
+        self.actual_size = actual_size
+
+    def __repr__(self) -> str:
+        return "{!s}(expected_size={:d}, actual_size={:d}, {!s})".format(
+            self.__class__.__name__, self.expected_size, self.actual_size, self.http_req_desc)
+
+
+class HTTPRequestUnknownContentEncoding(HTTPRequestDownloadError):
+    """Raised when a HTTP response has an unsupported Content-Encoding header.."""
+
+    def __init__(self, http_req_desc: RequestDescription, content_encoding: str) -> None:
+        # This __init__ method is necessary to be able to (un)pickle instances.
+        super().__init__(http_req_desc, content_encoding)
+        self.content_encoding = content_encoding
+
+    def __repr__(self) -> str:
+        return "{!s}(content_encoding={!s}, {!s})".format(
+            self.__class__.__name__, self.content_encoding, self.http_req_desc)
 
 
 class DownloadCancelled(HTTPRequestDownloadError):
