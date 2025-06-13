@@ -376,7 +376,7 @@ bool RNA_property_animated(PointerRNA *ptr, PropertyRNA *prop);
 /**
  * With LibOverrides, a property may be animatable and anim-editable, but not driver-editable (in
  * case the reference data already has an animation data, its Action can be an editable local ID,
- * but the drivers are directly stored in the animdata, overriding these is not supported
+ * but the drivers are directly stored in the animation-data, overriding these is not supported
  * currently).
  *
  * Like #RNA_property_anim_editable, this also checks the actual data referenced by the RNA pointer

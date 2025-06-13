@@ -341,7 +341,7 @@ static std::shared_ptr<DictionaryValue> write_blob_raw_data_with_endian(
 /**
  * Read data of an into an array.
  *
- * \returns True if sucessful, false if reading fails, or endian switch would be needed.
+ * \returns True if successful, false if reading fails, or endian switch would be needed.
  */
 [[nodiscard]] static bool read_blob_raw_data_with_endian(const BlobReader &blob_reader,
                                                          const DictionaryValue &io_data,

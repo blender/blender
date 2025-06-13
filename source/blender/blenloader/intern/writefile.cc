@@ -14,10 +14,10 @@
  *
  * Start of the file:
  *
- * Historic Blendfiles (pre-Blender 5.0):
+ * Historic Blend-files (pre-Blender 5.0):
  * `BLENDER_V100`  : Fixed 12 bytes length. See #BLEND_FILE_FORMAT_VERSION_0 for details.
  *
- * Current Blendfiles (Blender 5.0 and later):
+ * Current Blend-files (Blender 5.0 and later):
  * `BLENDER17-01v0500`: Variable bytes length. See #BLEND_FILE_FORMAT_VERSION_1 for details.
  *
  * data-blocks: (also see struct #BHead).

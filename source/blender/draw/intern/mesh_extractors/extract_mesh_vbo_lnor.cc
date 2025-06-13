@@ -416,7 +416,7 @@ gpu::VertBufPtr extract_normals_subdiv(const MeshRenderData &mr,
   gpu::VertBufPtr subdiv_corner_verts = gpu::VertBufPtr(draw_subdiv_build_origindex_buffer(
       subdiv_cache.subdiv_loop_subdiv_vert_index, subdiv_cache.num_subdiv_loops));
 
-  /* Calculate vertex normals (stored here per subdivided vertex rather than per subdivieded face
+  /* Calculate vertex normals (stored here per subdivided vertex rather than per subdivided face
    * corner). The values are used for smooth shaded faces later. */
   static GPUVertFormat vert_normals_format = GPU_vertformat_from_attribute(
       "vnor", gpu::VertAttrType::SFLOAT_32_32_32);

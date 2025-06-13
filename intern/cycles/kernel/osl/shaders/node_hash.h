@@ -9,7 +9,7 @@
 
 #define vector3 point
 
-/* Hashing uint or uint[234] into a float in the range [0, 1].
+/* Hashing `uint` or `uint[234]` into a float in the range [0, 1].
  * Based on PCG 2D/3D/4D hash, but with signed integers. */
 
 vector2 hash_int2_to_vector2(int2 k)

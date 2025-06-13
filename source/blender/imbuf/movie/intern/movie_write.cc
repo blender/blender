@@ -277,7 +277,7 @@ static AVFrame *generate_video_frame(MovieWriter *context, const ImBuf *image)
       const uint8_t *src = pixels + linesize_src * y;
 
       /* NOTE: this is endianness-sensitive. */
-      /* The target buffer is always expected to conaint little-endian RGBA values. */
+      /* The target buffer is always expected to contain little-endian RGBA values. */
       memcpy(target, src, linesize_src);
     }
   }

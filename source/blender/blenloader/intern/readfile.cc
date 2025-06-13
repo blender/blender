@@ -4740,7 +4740,7 @@ static void library_link_end(Main *mainl, FileData **fd, const int flag, ReportL
   /* FIXME This is extremely bad design, #library_link_end should probably _always_ free the file
    * data? */
   if ((*fd)->flags & FD_FLAGS_SWITCH_ENDIAN) {
-    /* Big Endian blendfiles are not supported for linking. */
+    /* Big Endian blend-files are not supported for linking. */
     BLI_assert_unreachable();
     blo_filedata_free(*fd);
     *fd = nullptr;

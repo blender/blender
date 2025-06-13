@@ -245,7 +245,7 @@ static void add_shape_keys_as_attributes(Mesh &mesh, const Key &key)
   bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
   LISTBASE_FOREACH (const KeyBlock *, kb, &key.block) {
     if (kb == key.refkey) {
-      /* The basis key will just recieve values from the mesh positions. */
+      /* The basis key will just receive values from the mesh positions. */
       continue;
     }
     const Span<float3> key_data(static_cast<float3 *>(kb->data), kb->totelem);
