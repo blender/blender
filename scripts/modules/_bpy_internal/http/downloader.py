@@ -305,6 +305,9 @@ class BackgroundDownloader:
     DownloadDoneCallback: TypeAlias = Callable[['RequestDescription', Path], None]
     _on_downloaded_callbacks: dict[RequestDescription, DownloadDoneCallback]
 
+    OnCallbackErrorCallback: TypeAlias = Callable[['RequestDescription', Path, Exception], None]
+    _on_callback_error: OnCallbackErrorCallback
+
     _reporters: list[DownloadReporter]
     _options: DownloaderOptions
     _downloader_process: multiprocessing.process.BaseProcess | None
@@ -312,11 +315,23 @@ class BackgroundDownloader:
     _shutdown_event: EventClass
     _shutdown_complete_event: EventClass
 
-    def __init__(self, options: DownloaderOptions) -> None:
+    def __init__(self,
+                 options: DownloaderOptions,
+                 on_callback_error: OnCallbackErrorCallback,
+                 ) -> None:
+        """Create a BackgroundDownloader
+
+        :param options: Options to pass to the underlying ConditionalDownloader
+            that will run in the background process.
+        :param on_callback_error: Callback function that is called whenever the
+            "on_download_done" callback of a queued download raises an exception.
+        """
+
         self.num_downloads_ok = 0
         self.num_downloads_error = 0
         self._num_pending_downloads = 0
         self._on_downloaded_callbacks = {}
+        self._on_callback_error = on_callback_error
 
         self._queueing_reporter = QueueingReporter()
         self._options = options
@@ -547,12 +562,19 @@ class BackgroundDownloader:
         self._logger.debug("download done, calling %s", callback.__name__)
         try:
             callback(http_req_descr, local_file)
-        except Exception:
+        except Exception as ex:
             # Catch & log exceptions here, so that a callback causing trouble
             # doesn't break the downloader itself.
-            self._logger.exception(
+            self._logger.debug(
                 "exception while calling {!r}({!r}, {!r})".format(
                     callback, http_req_descr, local_file))
+
+            try:
+                self._on_callback_error(http_req_descr, local_file, ex)
+            except Exception:
+                self._logger.exception(
+                    "exception while handling an error in {!r}({!r}, {!r})".format(
+                        callback, http_req_descr, local_file))
 
 
 class PipeMsgType(enum.Enum):

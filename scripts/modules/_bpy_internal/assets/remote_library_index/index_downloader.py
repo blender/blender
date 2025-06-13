@@ -77,6 +77,7 @@ class RemoteAssetListingDownloader:
                 metadata_provider=self._http_metadata_provider,
                 http_headers={'Accept': 'application/json'},
             ),
+            on_callback_error=self._on_callback_error,
         )
         self._bg_downloader.add_reporter(self)
 
@@ -201,6 +202,17 @@ class RemoteAssetListingDownloader:
             return
 
         self.report({'INFO'}, "Asset library index downloaded")
+        self.shutdown()
+
+    def _on_callback_error(
+            self,
+            http_req_descr: http_dl.RequestDescription,
+            local_file: Path,
+            exception: Exception) -> None:
+        logger.exception(
+            "exception while handling downloaded file ({!r}, saved to {!r})".format(
+                http_req_descr, local_file))
+        self.report({'ERROR'}, "Asset library index had an issue, download aborted")
         self.shutdown()
 
     def _queue_download(self, relative_url: str, relative_path: Path | str,
