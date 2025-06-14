@@ -1621,16 +1621,19 @@ static ImBuf *do_render_strip_seqbase(const RenderData *context,
 
   if (seqbase && !BLI_listbase_is_empty(seqbase)) {
 
+    frame_index += offset;
+
     if (strip->flag & SEQ_SCENE_STRIPS && strip->scene) {
-      BKE_animsys_evaluate_all_animation(context->bmain, context->depsgraph, frame_index + offset);
+      BKE_animsys_evaluate_all_animation(context->bmain, context->depsgraph, frame_index);
     }
 
+    intra_frame_cache_set_cur_frame(context->scene, frame_index, context->view_id);
     ibuf = seq_render_strip_stack(context,
                                   state,
                                   channels,
                                   seqbase,
                                   /* scene strips don't have their start taken into account */
-                                  frame_index + offset,
+                                  frame_index,
                                   0);
   }
 
