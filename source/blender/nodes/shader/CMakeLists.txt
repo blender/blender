@@ -107,10 +107,10 @@ set(SRC
   nodes/node_shader_vector_transform.cc
   nodes/node_shader_vertex_color.cc
   nodes/node_shader_volume_absorption.cc
+  nodes/node_shader_volume_coefficients.cc
   nodes/node_shader_volume_info.cc
   nodes/node_shader_volume_principled.cc
   nodes/node_shader_volume_scatter.cc
-  nodes/node_shader_volume_coefficients.cc
   nodes/node_shader_wavelength.cc
   nodes/node_shader_wireframe.cc
 

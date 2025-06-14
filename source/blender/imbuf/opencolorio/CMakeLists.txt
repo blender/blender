@@ -56,9 +56,9 @@ set(SRC
   intern/libocio/libocio_gpu_shader_binder.hh
   intern/libocio/libocio_look.cc
   intern/libocio/libocio_look.hh
-  intern/libocio/libocio_view.hh
   intern/libocio/libocio_processor.cc
   intern/libocio/libocio_processor.hh
+  intern/libocio/libocio_view.hh
 
   OCIO_api.hh
   OCIO_colorspace.hh

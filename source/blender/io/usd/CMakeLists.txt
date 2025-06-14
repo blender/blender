@@ -90,8 +90,8 @@ set(SRC
   intern/usd_writer_volume.cc
 
   intern/usd_reader_camera.cc
-  intern/usd_reader_domelight.cc
   intern/usd_reader_curve.cc
+  intern/usd_reader_domelight.cc
   intern/usd_reader_geom.cc
   intern/usd_reader_instance.cc
   intern/usd_reader_light.cc
