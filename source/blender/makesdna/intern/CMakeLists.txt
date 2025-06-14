@@ -123,8 +123,8 @@ set(SRC
   dna_genfile.cc
   dna_utils.cc
   ${CMAKE_CURRENT_BINARY_DIR}/dna.cc
-  ${CMAKE_CURRENT_BINARY_DIR}/dna_verify.cc
   ${CMAKE_CURRENT_BINARY_DIR}/dna_struct_ids.cc
+  ${CMAKE_CURRENT_BINARY_DIR}/dna_verify.cc
   ${SRC_DNA_INC}
 
   ${CMAKE_CURRENT_BINARY_DIR}/dna_type_offsets.h
@@ -134,9 +134,9 @@ set(SRC
 
 set_source_files_properties(
   ${CMAKE_CURRENT_BINARY_DIR}/dna.cc
+  ${CMAKE_CURRENT_BINARY_DIR}/dna_struct_ids.cc
   ${CMAKE_CURRENT_BINARY_DIR}/dna_type_offsets.h
   ${CMAKE_CURRENT_BINARY_DIR}/dna_verify.cc
-  ${CMAKE_CURRENT_BINARY_DIR}/dna_struct_ids.cc
   PROPERTIES GENERATED TRUE
 )
 

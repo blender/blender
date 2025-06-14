@@ -312,7 +312,7 @@ void USDPointInstancerWriter::process_instance_reference(
           }
 
           /* If the reference is GeometrySet, then override the transform with the transform of the
-           * Instance inside this Geometryset. */
+           * Instance inside this GeometrySet. */
           Span<float4x4> transforms = instances->transforms();
           if (transforms.size() == 1) {
             if (proto_path_map.find(set_name) != proto_path_map.end()) {

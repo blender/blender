@@ -244,8 +244,8 @@ void USDHierarchyIterator::determine_point_instancers(const HierarchyContext *co
 AbstractHierarchyWriter *USDHierarchyIterator::create_transform_writer(
     const HierarchyContext *context)
 {
-  /* transform writer is always called before data writers, so determin if the Xform's children is
-   * a point instancer before writing data */
+  /* The transform writer is always called before data writers,
+   * so determine if the #Xform's children is a point instancer before writing data. */
   if (params_.use_instancing) {
     determine_point_instancers(context);
   }
