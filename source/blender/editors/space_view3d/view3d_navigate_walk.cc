@@ -1441,7 +1441,7 @@ static void walkApply_ndof(bContext *C, WalkInfo *walk, bool is_confirm)
   Object *lock_ob = ED_view3d_cameracontrol_object_get(walk->v3d_camera_control);
   bool has_translate, has_rotate;
 
-  view3d_ndof_fly(walk->ndof,
+  view3d_ndof_fly(*walk->ndof,
                   walk->v3d,
                   walk->rv3d,
                   walk->is_slow,

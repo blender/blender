@@ -286,7 +286,7 @@ struct wmNDOFMotionData;
 /**
  * Called from both fly mode and walk mode,
  */
-void view3d_ndof_fly(const wmNDOFMotionData *ndof,
+void view3d_ndof_fly(const wmNDOFMotionData &ndof,
                      View3D *v3d,
                      RegionView3D *rv3d,
                      bool use_precision,

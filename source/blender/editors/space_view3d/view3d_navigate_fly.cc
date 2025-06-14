@@ -1041,7 +1041,7 @@ static void flyApply_ndof(bContext *C, FlyInfo *fly, bool is_confirm)
   Object *lock_ob = ED_view3d_cameracontrol_object_get(fly->v3d_camera_control);
   bool has_translate, has_rotate;
 
-  view3d_ndof_fly(fly->ndof,
+  view3d_ndof_fly(*fly->ndof,
                   fly->v3d,
                   fly->rv3d,
                   fly->use_precision,
