@@ -2116,8 +2116,8 @@ class USERPREF_PT_ndof_settings(Panel):
         layout_header.label(text="Advanced")
         if layout_advanced:
             col = layout_advanced.column()
-            col.prop(props, "ndof_sensitivity", text="Pan Sensitivity")
-            col.prop(props, "ndof_orbit_sensitivity")
+            col.prop(props, "ndof_translation_sensitivity")
+            col.prop(props, "ndof_rotation_sensitivity")
             col.prop(props, "ndof_deadzone")
 
             col.separator()

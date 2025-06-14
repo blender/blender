@@ -6692,14 +6692,15 @@ static void rna_def_userdef_input(BlenderRNA *brna)
 #  ifdef WITH_INPUT_NDOF
   /* 3D mouse settings */
   /* global options */
-  prop = RNA_def_property(srna, "ndof_sensitivity", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_range(prop, 0.01f, 40.0f);
-  RNA_def_property_ui_text(prop, "Sensitivity", "Overall sensitivity of the 3D Mouse for panning");
-
-  prop = RNA_def_property(srna, "ndof_orbit_sensitivity", PROP_FLOAT, PROP_NONE);
+  prop = RNA_def_property(srna, "ndof_translation_sensitivity", PROP_FLOAT, PROP_NONE);
   RNA_def_property_range(prop, 0.01f, 40.0f);
   RNA_def_property_ui_text(
-      prop, "Orbit Sensitivity", "Overall sensitivity of the 3D Mouse for orbiting");
+      prop, "Pan Sensitivity", "Overall sensitivity of the 3D Mouse for translation");
+
+  prop = RNA_def_property(srna, "ndof_rotation_sensitivity", PROP_FLOAT, PROP_NONE);
+  RNA_def_property_range(prop, 0.01f, 40.0f);
+  RNA_def_property_ui_text(
+      prop, "Orbit Sensitivity", "Overall sensitivity of the 3D Mouse for rotation");
 
   prop = RNA_def_property(srna, "ndof_deadzone", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_range(prop, 0.0f, 1.0f);

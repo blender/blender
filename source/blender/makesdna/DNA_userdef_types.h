@@ -513,10 +513,11 @@ typedef struct UserDef {
   /** Curve non-linearity parameter. */
   float pressure_softness;
 
-  /** Overall sensitivity of 3D mouse. */
-  float ndof_sensitivity;
-  float ndof_orbit_sensitivity;
-  /** Dead-zone of 3D mouse. */
+  /** 3D mouse: overall translation sensitivity. */
+  float ndof_translation_sensitivity;
+  /** 3D mouse: overall rotation sensitivity. */
+  float ndof_rotation_sensitivity;
+  /** 3D mouse: dead-zone. */
   float ndof_deadzone;
   /** #eNdof_Flag, flags for 3D mouse. */
   int ndof_flag;
