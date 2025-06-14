@@ -1525,7 +1525,7 @@ static wmOperatorStatus view2d_ndof_invoke(bContext *C, wmOperator *op, const wm
 
   /* tune these until it feels right */
   const float zoom_sensitivity = 0.5f;
-  const float speed = 10.0f; /* match view3d ortho */
+  const float pan_speed = NDOF_PIXELS_PER_SECOND;
   const bool has_translate = !is_zero_v2(ndof->tvec) && view_pan_poll(C);
   const bool has_zoom = (ndof->tvec[2] != 0.0f) && view_zoom_poll(C);
 
@@ -1533,8 +1533,7 @@ static wmOperatorStatus view2d_ndof_invoke(bContext *C, wmOperator *op, const wm
   WM_event_ndof_pan_get(ndof, pan_vec);
 
   if (has_translate) {
-    pan_vec[0] *= speed;
-    pan_vec[1] *= speed;
+    mul_v2_fl(pan_vec, ndof->dt * pan_speed);
 
     view_pan_init(C, op);
 
