@@ -66,6 +66,22 @@ static bool ndof_has_rotate(const wmNDOFMotionData *ndof, const RegionView3D *rv
 }
 
 /**
+ * Return true when `rv3d` should use the navigation preference.
+ *
+ * Views which enforce 2D behavior, typically where rotation is disabled should return false.
+ * (camera views and axis-aligned quad views for example).
+ */
+static bool view3d_ndof_use_navigation_mode(const RegionView3D *rv3d)
+{
+  /* Note that there is no need to check orthographic-axis-aligned views
+   * as these are rotation locked too. */
+  if (rv3d->viewlock & RV3D_LOCK_ROTATION) {
+    return false;
+  }
+  return true;
+}
+
+/**
  * \param depth_pt: A point to calculate the depth (in perspective mode)
  */
 static float view3d_ndof_pan_speed_calc_ex(RegionView3D *rv3d, const float depth_pt[3])
@@ -128,12 +144,21 @@ static void view3d_ndof_pan_zoom(const wmNDOFMotionData *ndof,
   RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
   float view_inv[4];
   float pan_vec[3];
+  float pan_vec_no_navigation[3];
 
   if (has_translate == false && has_zoom == false) {
     return;
   }
 
-  WM_event_ndof_pan_get_for_navigation(ndof, pan_vec);
+  WM_event_ndof_pan_get(ndof, pan_vec_no_navigation);
+  negate_v3(pan_vec_no_navigation);
+
+  if (view3d_ndof_use_navigation_mode(rv3d)) {
+    WM_event_ndof_pan_get_for_navigation(ndof, pan_vec);
+  }
+  else {
+    copy_v3_v3(pan_vec, pan_vec_no_navigation);
+  }
 
   if (has_zoom) {
     /* zoom with Z */
@@ -147,12 +172,7 @@ static void view3d_ndof_pan_zoom(const wmNDOFMotionData *ndof,
 
     /* "zoom in" or "translate"? depends on zoom mode in user settings? */
     if (ndof->tvec[2]) {
-      float zoom_distance = rv3d->dist * ndof->dt * ndof->tvec[2];
-
-      if (U.ndof_flag & NDOF_PANZ_INVERT_AXIS) {
-        zoom_distance = -zoom_distance;
-      }
-
+      float zoom_distance = rv3d->dist * ndof->dt * pan_vec_no_navigation[2];
       rv3d->dist += zoom_distance;
     }
   }
@@ -600,7 +620,7 @@ static wmOperatorStatus view3d_ndof_cameraview_pan_zoom(ViewOpsData *vod,
   const bool has_zoom = ndof->tvec[2] != 0.0f;
 
   float pan_vec[3];
-  WM_event_ndof_pan_get_for_navigation(ndof, pan_vec);
+  WM_event_ndof_pan_get(ndof, pan_vec);
 
   mul_v3_fl(pan_vec, ndof->dt);
   /* NOTE: unlike image and clip views, the 2D pan doesn't have to be scaled by the zoom level.
@@ -621,8 +641,12 @@ static wmOperatorStatus view3d_ndof_cameraview_pan_zoom(ViewOpsData *vod,
   bool changed = false;
 
   if (has_translate) {
-    /* Use the X & Y of `pan_vec`. */
-    if (ED_view3d_camera_view_pan(region, pan_vec)) {
+    /* Use the X & Y of `pan_vec`.
+     * Negate while applying the delta time, matches 2D spaces. */
+
+    float pan_2d[2];
+    negate_v2_v2(pan_2d, pan_vec);
+    if (ED_view3d_camera_view_pan(region, pan_2d)) {
       changed = true;
     }
   }

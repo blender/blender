@@ -796,6 +796,7 @@ static wmOperatorStatus image_view_ndof_invoke(bContext *C,
   const float pan_speed = NDOF_PIXELS_PER_SECOND;
 
   WM_event_ndof_pan_get(ndof, pan_vec);
+  negate_v3(pan_vec);
 
   mul_v3_fl(pan_vec, ndof->dt);
   mul_v2_fl(pan_vec, pan_speed / sima->zoom);
