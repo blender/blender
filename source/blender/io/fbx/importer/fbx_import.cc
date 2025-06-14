@@ -343,7 +343,7 @@ void importer_main(Main *bmain, Scene *scene, ViewLayer *view_layer, const FBXIm
    * cause armatures/skins to not import correctly, when inserted in the middle of bone chain. */
   opts.geometry_transform_handling = UFBX_GEOMETRY_TRANSFORM_HANDLING_MODIFY_GEOMETRY_NO_FALLBACK;
 
-  opts.pivot_handling = UFBX_PIVOT_HANDLING_ADJUST_TO_PIVOT;
+  opts.pivot_handling = UFBX_PIVOT_HANDLING_ADJUST_TO_ROTATION_PIVOT;
 
   opts.space_conversion = UFBX_SPACE_CONVERSION_ADJUST_TRANSFORMS;
   opts.target_axes.right = UFBX_COORDINATE_AXIS_POSITIVE_X;

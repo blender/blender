@@ -3635,6 +3635,98 @@ typedef enum ufbx_space_conversion UFBX_ENUM_REPR {
 
 UFBX_ENUM_TYPE(ufbx_space_conversion, UFBX_SPACE_CONVERSION, UFBX_SPACE_CONVERSION_MODIFY_GEOMETRY);
 
+// How to handle FBX node geometry transforms.
+// FBX nodes can have "geometry transforms" that affect only the attached meshes,
+// but not the children. This is not allowed in many scene representations so
+// ufbx provides some ways to simplify them.
+// Geometry transforms can also be used to transform any other attributes such
+// as lights or cameras.
+typedef enum ufbx_geometry_transform_handling UFBX_ENUM_REPR {
+
+	// Preserve the geometry transforms as-is.
+	// To be correct for all files you have to use `ufbx_node.geometry_transform`,
+	// `ufbx_node.geometry_to_node`, or `ufbx_node.geometry_to_world` to compensate
+	// for any potential geometry transforms.
+	UFBX_GEOMETRY_TRANSFORM_HANDLING_PRESERVE,
+
+	// Add helper nodes between the nodes and geometry where needed.
+	// The created nodes have `ufbx_node.is_geometry_transform_helper` set and are
+	// named `ufbx_load_opts.geometry_transform_helper_name`.
+	UFBX_GEOMETRY_TRANSFORM_HANDLING_HELPER_NODES,
+
+	// Modify the geometry of meshes attached to nodes with geometry transforms.
+	// Will add helper nodes like `UFBX_GEOMETRY_TRANSFORM_HANDLING_HELPER_NODES` if
+	// necessary, for example if there are multiple instances of the same mesh with
+	// geometry transforms.
+	UFBX_GEOMETRY_TRANSFORM_HANDLING_MODIFY_GEOMETRY,
+
+	// Modify the geometry of meshes attached to nodes with geometry transforms.
+	// NOTE: This will not work correctly for instanced geometry.
+	UFBX_GEOMETRY_TRANSFORM_HANDLING_MODIFY_GEOMETRY_NO_FALLBACK,
+
+	UFBX_ENUM_FORCE_WIDTH(UFBX_GEOMETRY_TRANSFORM_HANDLING)
+} ufbx_geometry_transform_handling;
+
+UFBX_ENUM_TYPE(ufbx_geometry_transform_handling, UFBX_GEOMETRY_TRANSFORM_HANDLING, UFBX_GEOMETRY_TRANSFORM_HANDLING_MODIFY_GEOMETRY_NO_FALLBACK);
+
+// How to handle FBX transform inherit modes.
+typedef enum ufbx_inherit_mode_handling UFBX_ENUM_REPR {
+
+	// Preserve inherit mode in `ufbx_node.inherit_mode`.
+	// NOTE: To correctly handle all scenes you would need to handle the
+	// non-standard inherit modes.
+	UFBX_INHERIT_MODE_HANDLING_PRESERVE,
+
+	// Create scale helper nodes parented to nodes that need special inheritance.
+	// Scale helper nodes will have `ufbx_node.is_scale_helper` and parents of
+	// scale helpers will have `ufbx_node.scale_helper` pointing to it.
+	UFBX_INHERIT_MODE_HANDLING_HELPER_NODES,
+
+	// Attempt to compensate for bone scale by inversely scaling children.
+	// NOTE: This only works for uniform non-animated scaling, if scale is
+	// non-uniform or animated, ufbx will add scale helpers in the same way
+	// as `UFBX_INHERIT_MODE_HANDLING_HELPER_NODES`.
+	UFBX_INHERIT_MODE_HANDLING_COMPENSATE,
+
+	// Attempt to compensate for bone scale by inversely scaling children.
+	// Will never create helper nodes.
+	UFBX_INHERIT_MODE_HANDLING_COMPENSATE_NO_FALLBACK,
+
+	// Ignore non-standard inheritance modes.
+	// Forces all nodes to have `UFBX_INHERIT_MODE_NORMAL` regardless of the
+	// inherit mode specified in the file. This can be useful for emulating
+	// results from importers/programs that don't support inherit modes.
+	UFBX_INHERIT_MODE_HANDLING_IGNORE,
+
+	UFBX_ENUM_FORCE_WIDTH(UFBX_INHERIT_MODE_HANDLING)
+} ufbx_inherit_mode_handling;
+
+UFBX_ENUM_TYPE(ufbx_inherit_mode_handling, UFBX_INHERIT_MODE_HANDLING, UFBX_INHERIT_MODE_HANDLING_IGNORE);
+
+// How to handle FBX transform pivots.
+typedef enum ufbx_pivot_handling UFBX_ENUM_REPR {
+
+	// Take pivots into account when computing the transform.
+	UFBX_PIVOT_HANDLING_RETAIN,
+
+	// Translate objects to be located at their pivot.
+	// NOTE: Only applied if rotation and scaling pivots are equal.
+	// NOTE: Results in geometric translation. Use `ufbx_geometry_transform_handling`
+	// to interpret these in a standard scene graph.
+	UFBX_PIVOT_HANDLING_ADJUST_TO_PIVOT,
+
+	// Translate objects to be located at their rotation pivot.
+	// NOTE: Results in geometric translation. Use `ufbx_geometry_transform_handling`
+	// to interpret these in a standard scene graph.
+	// NOTE: By default the original transforms of empties are not retained when using this,
+	// use `ufbx_load_opts.pivot_handling_retain_empties` to prevent adjusting these pivots.
+	UFBX_PIVOT_HANDLING_ADJUST_TO_ROTATION_PIVOT,
+
+	UFBX_ENUM_FORCE_WIDTH(UFBX_PIVOT_HANDLING)
+} ufbx_pivot_handling;
+
+UFBX_ENUM_TYPE(ufbx_pivot_handling, UFBX_PIVOT_HANDLING, UFBX_PIVOT_HANDLING_ADJUST_TO_ROTATION_PIVOT);
+
 // Embedded thumbnail in the file, valid if the dimensions are non-zero.
 typedef struct ufbx_thumbnail {
 	ufbx_props props;
@@ -3731,8 +3823,12 @@ typedef struct ufbx_metadata {
 	ufbx_string original_file_path;
 	ufbx_blob raw_original_file_path;
 
-	// Space conversion method used on the scene.
+	// Conversion methods applied for the scene.
 	ufbx_space_conversion space_conversion;
+	ufbx_geometry_transform_handling geometry_transform_handling;
+	ufbx_inherit_mode_handling inherit_mode_handling;
+	ufbx_pivot_handling pivot_handling;
+	ufbx_mirror_axis handedness_conversion_axis;
 
 	// Transform that has been applied to root for axis/unit conversion.
 	ufbx_quat root_rotation;
@@ -4383,91 +4479,6 @@ typedef enum ufbx_unicode_error_handling UFBX_ENUM_REPR {
 
 UFBX_ENUM_TYPE(ufbx_unicode_error_handling, UFBX_UNICODE_ERROR_HANDLING, UFBX_UNICODE_ERROR_HANDLING_UNSAFE_IGNORE);
 
-// How to handle FBX node geometry transforms.
-// FBX nodes can have "geometry transforms" that affect only the attached meshes,
-// but not the children. This is not allowed in many scene representations so
-// ufbx provides some ways to simplify them.
-// Geometry transforms can also be used to transform any other attributes such
-// as lights or cameras.
-typedef enum ufbx_geometry_transform_handling UFBX_ENUM_REPR {
-
-	// Preserve the geometry transforms as-is.
-	// To be correct for all files you have to use `ufbx_node.geometry_transform`,
-	// `ufbx_node.geometry_to_node`, or `ufbx_node.geometry_to_world` to compensate
-	// for any potential geometry transforms.
-	UFBX_GEOMETRY_TRANSFORM_HANDLING_PRESERVE,
-
-	// Add helper nodes between the nodes and geometry where needed.
-	// The created nodes have `ufbx_node.is_geometry_transform_helper` set and are
-	// named `ufbx_load_opts.geometry_transform_helper_name`.
-	UFBX_GEOMETRY_TRANSFORM_HANDLING_HELPER_NODES,
-
-	// Modify the geometry of meshes attached to nodes with geometry transforms.
-	// Will add helper nodes like `UFBX_GEOMETRY_TRANSFORM_HANDLING_HELPER_NODES` if
-	// necessary, for example if there are multiple instances of the same mesh with
-	// geometry transforms.
-	UFBX_GEOMETRY_TRANSFORM_HANDLING_MODIFY_GEOMETRY,
-
-	// Modify the geometry of meshes attached to nodes with geometry transforms.
-	// NOTE: This will not work correctly for instanced geometry.
-	UFBX_GEOMETRY_TRANSFORM_HANDLING_MODIFY_GEOMETRY_NO_FALLBACK,
-
-	UFBX_ENUM_FORCE_WIDTH(UFBX_GEOMETRY_TRANSFORM_HANDLING)
-} ufbx_geometry_transform_handling;
-
-UFBX_ENUM_TYPE(ufbx_geometry_transform_handling, UFBX_GEOMETRY_TRANSFORM_HANDLING, UFBX_GEOMETRY_TRANSFORM_HANDLING_MODIFY_GEOMETRY_NO_FALLBACK);
-
-// How to handle FBX transform inherit modes.
-typedef enum ufbx_inherit_mode_handling UFBX_ENUM_REPR {
-
-	// Preserve inherit mode in `ufbx_node.inherit_mode`.
-	// NOTE: To correctly handle all scenes you would need to handle the
-	// non-standard inherit modes.
-	UFBX_INHERIT_MODE_HANDLING_PRESERVE,
-
-	// Create scale helper nodes parented to nodes that need special inheritance.
-	// Scale helper nodes will have `ufbx_node.is_scale_helper` and parents of
-	// scale helpers will have `ufbx_node.scale_helper` pointing to it.
-	UFBX_INHERIT_MODE_HANDLING_HELPER_NODES,
-
-	// Attempt to compensate for bone scale by inversely scaling children.
-	// NOTE: This only works for uniform non-animated scaling, if scale is
-	// non-uniform or animated, ufbx will add scale helpers in the same way
-	// as `UFBX_INHERIT_MODE_HANDLING_HELPER_NODES`.
-	UFBX_INHERIT_MODE_HANDLING_COMPENSATE,
-
-	// Attempt to compensate for bone scale by inversely scaling children.
-	// Will never create helper nodes.
-	UFBX_INHERIT_MODE_HANDLING_COMPENSATE_NO_FALLBACK,
-
-	// Ignore non-standard inheritance modes.
-	// Forces all nodes to have `UFBX_INHERIT_MODE_NORMAL` regardless of the
-	// inherit mode specified in the file. This can be useful for emulating
-	// results from importers/programs that don't support inherit modes.
-	UFBX_INHERIT_MODE_HANDLING_IGNORE,
-
-	UFBX_ENUM_FORCE_WIDTH(UFBX_INHERIT_MODE_HANDLING)
-} ufbx_inherit_mode_handling;
-
-UFBX_ENUM_TYPE(ufbx_inherit_mode_handling, UFBX_INHERIT_MODE_HANDLING, UFBX_INHERIT_MODE_HANDLING_IGNORE);
-
-// How to handle FBX transform pivots.
-typedef enum ufbx_pivot_handling UFBX_ENUM_REPR {
-
-	// Take pivots into account when computing the transform.
-	UFBX_PIVOT_HANDLING_RETAIN,
-
-	// Translate objects to be located at their pivot.
-	// NOTE: Only applied if rotation and scaling pivots are equal.
-	// NOTE: Results in geometric translation. Use `ufbx_geometry_transform_handling`
-	// to interpret these in a standard scene graph.
-	UFBX_PIVOT_HANDLING_ADJUST_TO_PIVOT,
-
-	UFBX_ENUM_FORCE_WIDTH(UFBX_PIVOT_HANDLING)
-} ufbx_pivot_handling;
-
-UFBX_ENUM_TYPE(ufbx_pivot_handling, UFBX_PIVOT_HANDLING, UFBX_PIVOT_HANDLING_ADJUST_TO_PIVOT);
-
 typedef enum ufbx_baked_key_flags UFBX_FLAG_REPR {
 	// This keyframe represents a constant step from the left side
 	UFBX_BAKED_KEY_STEP_LEFT = 0x1,
@@ -4792,13 +4803,16 @@ typedef struct ufbx_load_opts {
 	// See `ufbx_inherit_mode_handling` for an explanation.
 	ufbx_inherit_mode_handling inherit_mode_handling;
 
+	// How to perform space conversion by `target_axes` and `target_unit_meters`.
+	// See `ufbx_space_conversion` for an explanation.
+	ufbx_space_conversion space_conversion;
+
 	// How to handle pivots.
 	// See `ufbx_pivot_handling` for an explanation.
 	ufbx_pivot_handling pivot_handling;
 
-	// How to perform space conversion by `target_axes` and `target_unit_meters`.
-	// See `ufbx_space_conversion` for an explanation.
-	ufbx_space_conversion space_conversion;
+	// Retain the original transforms of empties when converting pivots.
+	bool pivot_handling_retain_empties;
 
 	// Axis used to mirror for conversion between left-handed and right-handed coordinates.
 	ufbx_mirror_axis handedness_conversion_axis;
