@@ -44,7 +44,7 @@ struct MultiresDisplacementData {
    *
    * NOTE: For quad face this is an index of first corner only, since
    * there we only have one PTEX. */
-  PolyCornerIndex *ptex_face_corner = nullptr;
+  Array<PolyCornerIndex> ptex_face_corner = {};
   /* Indexed by coarse face index, returns first PTEX face index corresponding
    * to that coarse face. */
   int *face_ptex_offset = nullptr;
@@ -360,7 +360,6 @@ static void free_displacement(Displacement *displacement)
 {
   MultiresDisplacementData *data = static_cast<MultiresDisplacementData *>(
       displacement->user_data);
-  MEM_freeN(data->ptex_face_corner);
   MEM_delete(data);
 }
 
@@ -382,12 +381,10 @@ static void displacement_data_init_mapping(Displacement &displacement, const Mes
       displacement.user_data);
   const OffsetIndices faces = mesh.faces();
   const int num_ptex_faces = count_num_ptex_faces(mesh);
-  /* Allocate memory. */
-  data.ptex_face_corner = MEM_malloc_arrayN<PolyCornerIndex>(size_t(num_ptex_faces),
-                                                             "PTEX face corner");
+  data.ptex_face_corner.reinitialize(num_ptex_faces);
   /* Fill in offsets. */
   int ptex_face_index = 0;
-  PolyCornerIndex *ptex_face_corner = data.ptex_face_corner;
+  MutableSpan<PolyCornerIndex> ptex_face_corner = data.ptex_face_corner.as_mutable_span();
   for (int face_index = 0; face_index < mesh.faces_num; face_index++) {
     const IndexRange face = faces[face_index];
     if (face.size() == 4) {
