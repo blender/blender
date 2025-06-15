@@ -15,6 +15,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
+#include "BLI_math_vector.h"
 #include "BLI_vector.hh"
 #include "BLI_virtual_array.hh"
 
