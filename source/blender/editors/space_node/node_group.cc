@@ -1392,7 +1392,6 @@ static bNode *node_group_make_from_node_declaration(bContext &C,
 
   /* Assign the newly created wrapper group to the new group node. */
   gnode->id = &wrapper_group->id;
-  id_us_plus(gnode->id);
 
   /* Position node exactly where the old node was. */
   gnode->parent = src_node.parent;
