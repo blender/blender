@@ -10720,7 +10720,6 @@ static void rna_def_nodes(BlenderRNA *brna)
   define("CompositorNode", "CompositorNodeTrackPos", def_cmp_trackpos);
   define("CompositorNode", "CompositorNodeTransform", dev_cmd_transform);
   define("CompositorNode", "CompositorNodeTranslate", def_cmp_translate);
-  define("CompositorNode", "CompositorNodeValToRGB", def_colorramp);
   define("CompositorNode", "CompositorNodeVecBlur");
   define("CompositorNode", "CompositorNodeViewer", def_cmp_viewer);
   define("CompositorNode", "CompositorNodeZcombine");

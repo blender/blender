@@ -211,7 +211,7 @@ static void do_version_convert_to_generic_nodes(bNodeTree *node_tree)
         node->type_legacy = SH_NODE_CURVE_VEC;
         STRNCPY(node->idname, "ShaderNodeVectorCurve");
         break;
-      case CMP_NODE_VALTORGB: {
+      case CMP_NODE_VALTORGB_DEPRECATED: {
         node->type_legacy = SH_NODE_VALTORGB;
         STRNCPY(node->idname, "ShaderNodeValToRGB");
 
