@@ -9,38 +9,37 @@
 #pragma once
 
 #include "BKE_multires.hh"
-#include "BLI_math_vector.h"
+#include "BLI_math_matrix_types.hh"
+#include "BLI_math_vector.hh"
+#include "BLI_math_vector_types.hh"
 
-BLI_INLINE void BKE_multires_construct_tangent_matrix(float tangent_matrix[3][3],
-                                                      const float dPdu[3],
-                                                      const float dPdv[3],
+BLI_INLINE void BKE_multires_construct_tangent_matrix(blender::float3x3 &tangent_matrix,
+                                                      const blender::float3 &dPdu,
+                                                      const blender::float3 &dPdv,
                                                       const int corner)
 {
   if (corner == 0) {
-    copy_v3_v3(tangent_matrix[0], dPdv);
-    copy_v3_v3(tangent_matrix[1], dPdu);
-    mul_v3_fl(tangent_matrix[0], -1.0f);
-    mul_v3_fl(tangent_matrix[1], -1.0f);
+    tangent_matrix.x_axis() = dPdv * -1.0f;
+    tangent_matrix.y_axis() = dPdu * -1.0f;
   }
   else if (corner == 1) {
-    copy_v3_v3(tangent_matrix[0], dPdu);
-    copy_v3_v3(tangent_matrix[1], dPdv);
-    mul_v3_fl(tangent_matrix[1], -1.0f);
+    tangent_matrix.x_axis() = dPdu;
+    tangent_matrix.y_axis() = dPdv * -1.0f;
   }
   else if (corner == 2) {
-    copy_v3_v3(tangent_matrix[0], dPdv);
-    copy_v3_v3(tangent_matrix[1], dPdu);
+    tangent_matrix.x_axis() = dPdv;
+    tangent_matrix.y_axis() = dPdu;
   }
   else if (corner == 3) {
-    copy_v3_v3(tangent_matrix[0], dPdu);
-    copy_v3_v3(tangent_matrix[1], dPdv);
-    mul_v3_fl(tangent_matrix[0], -1.0f);
+    tangent_matrix.x_axis() = dPdu * -1.0f;
+    tangent_matrix.y_axis() = dPdv;
   }
   else {
     BLI_assert_msg(0, "Unhandled corner index");
   }
-  cross_v3_v3v3(tangent_matrix[2], dPdu, dPdv);
-  normalize_v3(tangent_matrix[0]);
-  normalize_v3(tangent_matrix[1]);
-  normalize_v3(tangent_matrix[2]);
+  tangent_matrix.z_axis() = blender::math::cross(dPdu, dPdv);
+
+  tangent_matrix.x_axis() = blender::math::normalize(tangent_matrix.x_axis());
+  tangent_matrix.y_axis() = blender::math::normalize(tangent_matrix.y_axis());
+  tangent_matrix.z_axis() = blender::math::normalize(tangent_matrix.z_axis());
 }

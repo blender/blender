@@ -1095,14 +1095,14 @@ static void reshape_subdiv_refine_orig_P(
   }
 
   blender::float3 limit_P;
-  float tangent_matrix[3][3];
+  blender::float3x3 tangent_matrix;
   multires_reshape_evaluate_limit_at_grid(reshape_context, grid_coord, limit_P, tangent_matrix);
 
   const ReshapeConstGridElement orig_grid_element =
       multires_reshape_orig_grid_element_for_grid_coord(reshape_context, grid_coord);
 
   float D[3];
-  mul_v3_m3v3(D, tangent_matrix, orig_grid_element.displacement);
+  mul_v3_m3v3(D, tangent_matrix.ptr(), orig_grid_element.displacement);
 
   add_v3_v3v3(r_P, limit_P, D);
 }
@@ -1141,7 +1141,7 @@ static void reshape_subdiv_evaluate_limit_at_grid(
     const PTexCoord *ptex_coord,
     const GridCoord *grid_coord,
     blender::float3 &limit_P,
-    float r_tangent_matrix[3][3])
+    blender::float3x3 &r_tangent_matrix)
 {
   const MultiresReshapeContext *reshape_context = reshape_smooth_context->reshape_context;
 
@@ -1295,11 +1295,12 @@ static void evaluate_base_surface_grids(const MultiresReshapeSmoothContext *resh
   foreach_toplevel_grid_coord(
       reshape_smooth_context, [&](const PTexCoord *ptex_coord, const GridCoord *grid_coord) {
         blender::float3 limit_P;
-        float tangent_matrix[3][3];
+        blender::float3x3 tangent_matrix;
         reshape_subdiv_evaluate_limit_at_grid(
             reshape_smooth_context, ptex_coord, grid_coord, limit_P, tangent_matrix);
 
-        base_surface_grids_write(reshape_smooth_context, grid_coord, limit_P, tangent_matrix);
+        base_surface_grids_write(
+            reshape_smooth_context, grid_coord, limit_P, tangent_matrix.ptr());
       });
 }
 
@@ -1324,13 +1325,13 @@ static void evaluate_final_original_point(
 
   /* Limit surface of the base mesh. */
   blender::float3 base_mesh_limit_P;
-  float base_mesh_tangent_matrix[3][3];
+  blender::float3x3 base_mesh_tangent_matrix;
   multires_reshape_evaluate_limit_at_grid(
       reshape_context, grid_coord, base_mesh_limit_P, base_mesh_tangent_matrix);
 
   /* Convert original displacement from tangent space to object space. */
   float orig_displacement[3];
-  mul_v3_m3v3(orig_displacement, base_mesh_tangent_matrix, orig_grid_element.displacement);
+  mul_v3_m3v3(orig_displacement, base_mesh_tangent_matrix.ptr(), orig_grid_element.displacement);
 
   /* Final point = limit surface + displacement. */
   add_v3_v3v3(r_orig_final_P, base_mesh_limit_P, orig_displacement);
@@ -1365,13 +1366,13 @@ static void evaluate_higher_grid_positions_with_details(
 
         /* Limit surface of smoothed (subdivided) edited sculpt level. */
         blender::float3 smooth_limit_P;
-        float smooth_tangent_matrix[3][3];
+        blender::float3x3 smooth_tangent_matrix;
         reshape_subdiv_evaluate_limit_at_grid(
             reshape_smooth_context, ptex_coord, grid_coord, smooth_limit_P, smooth_tangent_matrix);
 
         /* Add original detail to the smoothed surface. */
         float smooth_delta[3];
-        mul_v3_m3v3(smooth_delta, smooth_tangent_matrix, original_detail_delta_tangent);
+        mul_v3_m3v3(smooth_delta, smooth_tangent_matrix.ptr(), original_detail_delta_tangent);
 
         /* Grid element of the result.
          *

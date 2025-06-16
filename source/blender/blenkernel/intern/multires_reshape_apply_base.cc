@@ -35,13 +35,13 @@ void multires_reshape_apply_base_update_mesh_coords(MultiresReshapeContext *resh
     grid_coord.v = 1.0f;
 
     blender::float3 P;
-    float tangent_matrix[3][3];
+    blender::float3x3 tangent_matrix;
     multires_reshape_evaluate_limit_at_grid(reshape_context, &grid_coord, P, tangent_matrix);
 
     ReshapeConstGridElement grid_element = multires_reshape_orig_grid_element_for_grid_coord(
         reshape_context, &grid_coord);
     float D[3];
-    mul_v3_m3v3(D, tangent_matrix, grid_element.displacement);
+    mul_v3_m3v3(D, tangent_matrix.ptr(), grid_element.displacement);
 
     add_v3_v3v3(base_positions[corner_verts[loop_index]], P, D);
   }

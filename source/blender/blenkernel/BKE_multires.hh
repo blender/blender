@@ -9,6 +9,7 @@
  */
 
 #include "BKE_subsurf.hh"
+#include "BLI_math_matrix_types.hh"
 #include "BLI_utildefines.h"
 
 struct Depsgraph;
@@ -202,9 +203,9 @@ void BKE_multires_subdiv_mesh_settings_init(blender::bke::subdiv::ToMeshSettings
  * Corner needs to be known to properly "rotate" partial derivatives when the
  * matrix is being constructed for quad. For non-quad the corner is to be set to 0.
  */
-BLI_INLINE void BKE_multires_construct_tangent_matrix(float tangent_matrix[3][3],
-                                                      const float dPdu[3],
-                                                      const float dPdv[3],
+BLI_INLINE void BKE_multires_construct_tangent_matrix(blender::float3x3 &tangent_matrix,
+                                                      const blender::float3 &dPdu,
+                                                      const blender::float3 &dPdv,
                                                       int corner);
 
 /* Versioning. */
