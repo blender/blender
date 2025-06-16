@@ -12,6 +12,11 @@
 
 namespace blender::asset_system {
 
+bool AssetCatalogCollection::is_empty() const
+{
+  return catalogs_.is_empty() && deleted_catalogs_.is_empty();
+}
+
 std::unique_ptr<AssetCatalogCollection> AssetCatalogCollection::deep_copy() const
 {
   auto copy = std::make_unique<AssetCatalogCollection>();
