@@ -146,6 +146,7 @@ set(SRC
   engines/overlay/overlay_armature.cc
   engines/overlay/overlay_engine.cc
   engines/overlay/overlay_instance.cc
+  engines/overlay/overlay_mode_transfer.cc
   engines/overlay/overlay_shader.cc
   engines/overlay/overlay_shape.cc
 

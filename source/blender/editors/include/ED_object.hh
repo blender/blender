@@ -11,6 +11,7 @@
 #include <string>
 
 #include "BLI_compiler_attrs.h"
+#include "BLI_map.hh"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_vector.hh"
@@ -456,6 +457,13 @@ Object *object_in_mode_from_index(const Scene *scene,
                                   ViewLayer *view_layer,
                                   eObjectMode mode,
                                   int index);
+
+/**
+ * Retrieve the alpha factors of the currently active mode transfer overlay animations. The key is
+ * the object ID name to prevent possible storage of stale pointers and because the #session_uid
+ * isn't available on evaluated objects.
+ */
+Map<std::string, float, 1> mode_transfer_overlay_current_state();
 
 /* `object_modifier.cc` */
 
