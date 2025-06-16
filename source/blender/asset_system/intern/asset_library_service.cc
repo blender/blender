@@ -262,7 +262,9 @@ AssetLibrary *AssetLibraryService::move_runtime_current_file_into_on_disk_librar
                  "new on-disk library shouldn't have catalog definition files - root path "
                  "changed, so they would have to be relocated");
 
-  {
+  /* Create a CDF with the runtime catalogs that on-disk catalogs can be merged into. Only do if
+   * there's catalogs to write, otherwise we create empty CDFs on disk on every new .blend save. */
+  if (!catalog_service.catalog_collection_->is_empty()) {
     char asset_lib_cdf_path[PATH_MAX];
     BLI_path_join(asset_lib_cdf_path,
                   sizeof(asset_lib_cdf_path),
