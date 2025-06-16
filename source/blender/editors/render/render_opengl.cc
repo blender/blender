@@ -419,7 +419,7 @@ static void screen_opengl_render_write(OGLRender *oglrender)
 
   const char *relbase = BKE_main_blendfile_path(oglrender->bmain);
   const path_templates::VariableMap template_variables =
-      BKE_build_template_variables_for_render_path(relbase, &scene->r);
+      BKE_build_template_variables_for_render_path(&scene->r);
   const blender::Vector<path_templates::Error> errors = BKE_image_path_from_imformat(
       filepath,
       scene->r.pic,
@@ -1049,7 +1049,7 @@ static void write_result(TaskPool *__restrict pool, WriteTaskData *task_data)
     char filepath[FILE_MAX];
     const char *relbase = BKE_main_blendfile_path(oglrender->bmain);
     const path_templates::VariableMap template_variables =
-        BKE_build_template_variables_for_render_path(relbase, &scene->r);
+        BKE_build_template_variables_for_render_path(&scene->r);
     const blender::Vector<path_templates::Error> errors = BKE_image_path_from_imformat(
         filepath,
         scene->r.pic,
@@ -1150,7 +1150,7 @@ static bool screen_opengl_render_anim_step(OGLRender *oglrender)
   if (!is_movie) {
     const char *relbase = BKE_main_blendfile_path(oglrender->bmain);
     const path_templates::VariableMap template_variables =
-        BKE_build_template_variables_for_render_path(relbase, &scene->r);
+        BKE_build_template_variables_for_render_path(&scene->r);
     const blender::Vector<path_templates::Error> errors = BKE_image_path_from_imformat(
         filepath,
         scene->r.pic,

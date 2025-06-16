@@ -975,6 +975,8 @@ void ShaderModule::material_create_info_amend(GPUMaterial *gpumat, GPUCodegenOut
                                    deps_concat + frag_gen.str()});
   }
 
+  int reserved_attr_slots = 0;
+
   /* Geometry Info. */
   switch (geometry_type) {
     case MAT_GEOM_WORLD:
@@ -988,14 +990,30 @@ void ShaderModule::material_create_info_amend(GPUMaterial *gpumat, GPUCodegenOut
       break;
     case MAT_GEOM_MESH:
       info.additional_info("eevee_geom_mesh");
+      reserved_attr_slots = 2; /* Number of vertex attributes inside eevee_geom_mesh. */
       break;
     case MAT_GEOM_POINTCLOUD:
       info.additional_info("eevee_geom_pointcloud");
       break;
     case MAT_GEOM_VOLUME:
       info.additional_info("eevee_geom_volume");
+      reserved_attr_slots = 1; /* Number of vertex attributes inside eevee_geom_mesh. */
       break;
   }
+
+  /* Make shaders that have as too many attributes fail compilation and have correct error
+   * report instead of raising an error. */
+  if (info.vertex_inputs_.size() > 0) {
+    const int last_attr_index = info.vertex_inputs_.last().index;
+    if (last_attr_index - reserved_attr_slots < 0) {
+      const char *material_name = (info.name_.c_str() + 2);
+      std::cerr << "Error: EEVEE: Material " << material_name << " uses too many attributes."
+                << std::endl;
+      /* Avoid assert in ShaderCreateInfo::finalize. */
+      info.vertex_inputs_.clear();
+    }
+  }
+
   /* Pipeline Info. */
   switch (geometry_type) {
     case MAT_GEOM_WORLD:
