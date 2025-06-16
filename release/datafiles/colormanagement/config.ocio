@@ -95,7 +95,7 @@ colorspaces:
 
   - !<ColorSpace>
     name: Linear CIE-XYZ D65
-    aliases: [cie_xyz_d65, CIE-XYZ-D65, XYZ, Linear CIE-XYZ I-D65]
+    aliases: [cie_xyz_d65, CIE-XYZ-D65, XYZ, Linear CIE-XYZ I-D65, lin_ciexyzd65_scene]
     family: Chromaticity
     equalitygroup:
     bitdepth: 32f
@@ -106,7 +106,7 @@ colorspaces:
 
   - !<ColorSpace>
     name: Linear Rec.709
-    aliases: [Linear, Linear BT.709, Linear BT.709 I-D65, Linear Tristimulus, linrec709, Utility - Linear - sRGB, Utility - Linear - Rec.709, lin_srgb, Linear Rec.709 (sRGB), lin_rec709_srgb, lin_rec709, lin_srgb, "CGI: Linear - Rec.709"]
+    aliases: [Linear, Linear BT.709, Linear BT.709 I-D65, Linear Tristimulus, linrec709, Utility - Linear - sRGB, Utility - Linear - Rec.709, lin_srgb, Linear Rec.709 (sRGB), lin_rec709_srgb, lin_rec709, lin_srgb, lin_rec709_scene, "CGI: Linear - Rec.709"]
     family: Linear
     equalitygroup:
     bitdepth: 32f
@@ -120,7 +120,7 @@ colorspaces:
 
   - !<ColorSpace>
     name: Linear DCI-P3 D65
-    aliases: [Linear DCI-P3 I-D65, Linear P3-D65, lin_p3d65, Utility - Linear - P3-D65, Apple DCI-P3 D65]
+    aliases: [Linear DCI-P3 I-D65, Linear P3-D65, lin_p3d65, lin_p3d65_scene, Utility - Linear - P3-D65, Apple DCI-P3 D65]
     family: Linear
     equalitygroup:
     bitdepth: 32f
@@ -134,7 +134,7 @@ colorspaces:
 
   - !<ColorSpace>
     name: Linear Rec.2020
-    aliases: [Linear BT.2020 I-D65, Linear BT.2020, lin_rec2020, Utility - Linear - Rec.2020]
+    aliases: [Linear BT.2020 I-D65, Linear BT.2020, lin_rec2020, lin_rec2020_scene, Utility - Linear - Rec.2020]
     family: Linear
     equalitygroup:
     bitdepth: 32f
@@ -148,7 +148,7 @@ colorspaces:
 
   - !<ColorSpace>
     name: ACES2065-1
-    aliases: [Linear ACES, aces2065_1, ACES - ACES2065-1, lin_ap0, "ACES: Linear - AP0"]
+    aliases: [Linear ACES, aces2065_1, ACES - ACES2065-1, lin_ap0, lin_ap0_scene, "ACES: Linear - AP0"]
     family: Linear
     equalitygroup:
     bitdepth: 32f
@@ -162,7 +162,7 @@ colorspaces:
 
   - !<ColorSpace>
     name: ACEScg
-    aliases: [Linear ACEScg, lin_ap1, ACES - ACEScg, "ACEScg: Linear - AP1"]
+    aliases: [Linear ACEScg, lin_ap1, lin_ap1_scene, ACES - ACEScg, "ACEScg: Linear - AP1"]
     family: Linear
     equalitygroup:
     bitdepth: 32f
@@ -190,7 +190,7 @@ colorspaces:
 
   - !<ColorSpace>
     name: sRGB
-    aliases: [sRGB 2.2, sRGB I-D65, srgb_display, sRGB - Display, g22_rec709, Utility - Gamma 2.2 - Rec.709 - Texture, Utility - sRGB - Texture, sRGB - Texture, srgb_tx, srgb_texture, Input - Generic - sRGB - Texture, "sRGB Display: 2.2 Gamma - Rec.709"]
+    aliases: [sRGB 2.2, sRGB I-D65, srgb_display, srgb_rec709_scene, sRGB - Display, g22_rec709, Utility - Gamma 2.2 - Rec.709 - Texture, Utility - sRGB - Texture, sRGB - Texture, srgb_tx, srgb_texture, Input - Generic - sRGB - Texture, "sRGB Display: 2.2 Gamma - Rec.709"]
     family: Display
     equalitygroup:
     bitdepth: 32f
