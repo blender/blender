@@ -32,10 +32,12 @@ set(OPENCOLORIO_EXTRA_ARGS
 )
 
 if(APPLE)
-  # Work around issue where minizip-ng_LIBRARY assumes -ng in file name.
   set(OPENCOLORIO_EXTRA_ARGS
     ${OPENCOLORIO_EXTRA_ARGS}
+    # Work around issue where minizip-ng_LIBRARY assumes -ng in file name.
     -Dminizip_LIBRARY=${LIBDIR}/minizipng/lib/libminizip${LIBEXT}
+    # Work around issue where homebrew Imath's can be prioritized over our own dependency during linking if installed.
+    -DImath_LIBRARY=${LIBDIR}/imath/lib/libImath${SHAREDLIBEXT}
   )
 endif()
 
