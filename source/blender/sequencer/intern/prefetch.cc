@@ -155,8 +155,7 @@ static Strip *original_strip_get(const Strip *strip, Scene *scene)
 static RenderData *get_original_context(const RenderData *context)
 {
   PrefetchJob *pfjob = seq_prefetch_job_get(context->scene);
-
-  return &pfjob->context;
+  return pfjob ? &pfjob->context : nullptr;
 }
 
 Scene *prefetch_get_original_scene(const RenderData *context)
@@ -164,7 +163,9 @@ Scene *prefetch_get_original_scene(const RenderData *context)
   Scene *scene = context->scene;
   if (context->is_prefetch_render) {
     context = get_original_context(context);
-    scene = context->scene;
+    if (context != nullptr) {
+      scene = context->scene;
+    }
   }
   return scene;
 }
@@ -174,8 +175,10 @@ Scene *prefetch_get_original_scene_and_strip(const RenderData *context, const St
   Scene *scene = context->scene;
   if (context->is_prefetch_render) {
     context = get_original_context(context);
-    scene = context->scene;
-    strip = original_strip_get(strip, scene);
+    if (context != nullptr) {
+      scene = context->scene;
+      strip = original_strip_get(strip, scene);
+    }
   }
   return scene;
 }
