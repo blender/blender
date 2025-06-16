@@ -139,13 +139,6 @@ typedef struct uiWidgetStateColors {
   char _pad0[4];
 } uiWidgetStateColors;
 
-typedef struct uiPanelColors {
-  unsigned char header[4];
-  unsigned char back[4];
-  unsigned char sub_back[4];
-  char _pad0[4];
-} uiPanelColors;
-
 typedef struct ThemeUI {
   /* Interface Elements (buttons, menus, icons) */
   uiWidgetColors wcol_regular, wcol_tool, wcol_toolbar_item, wcol_text;
@@ -207,8 +200,11 @@ typedef struct ThemeUI {
   /** Intensity of the border icons. >0 will render an border around themed
    * icons. */
   float icon_border_intensity;
+  /* Panels. */
   float panel_roundness;
-  char _pad2[4];
+  unsigned char panel_header[4];
+  unsigned char panel_back[4];
+  unsigned char panel_sub_back[4];
 
 } ThemeUI;
 
@@ -242,10 +238,8 @@ typedef struct ThemeSpace {
   unsigned char header_text_hi[4];
 
   /* region tabs */
-  unsigned char tab_active[4];
-  unsigned char tab_inactive[4];
   unsigned char tab_back[4];
-  unsigned char tab_outline[4];
+  char _pad2[4];
 
   /* button/tool regions */
   /** Region background. */
@@ -268,9 +262,6 @@ typedef struct ThemeSpace {
   unsigned char navigation_bar[4];
   /** Region background. */
   unsigned char execution_buts[4];
-
-  /* NOTE: cannot use name 'panel' because of DNA mapping old files. */
-  uiPanelColors panelcolors;
 
   ThemeAssetShelf asset_shelf;
 

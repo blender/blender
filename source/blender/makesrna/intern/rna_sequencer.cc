@@ -309,6 +309,13 @@ static void rna_SequenceEditor_update_cache(Main * /*bmain*/, Scene *scene, Poin
   blender::seq::cache_cleanup(scene);
 }
 
+static void rna_SequenceEditor_cache_settings_changed(Main * /*bmain*/,
+                                                      Scene *scene,
+                                                      PointerRNA * /*ptr*/)
+{
+  blender::seq::cache_settings_changed(scene);
+}
+
 /* internal use */
 static int rna_Strip_elements_length(PointerRNA *ptr)
 {
@@ -2519,10 +2526,14 @@ static void rna_def_editor(BlenderRNA *brna)
                            "Cache Raw",
                            "Cache raw images read from disk, for faster tweaking of strip "
                            "parameters at the cost of memory usage");
+  RNA_def_property_update(
+      prop, NC_SPACE | ND_SPACE_SEQUENCER, "rna_SequenceEditor_cache_settings_changed");
 
   prop = RNA_def_property(srna, "use_cache_final", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "cache_flag", SEQ_CACHE_STORE_FINAL_OUT);
   RNA_def_property_ui_text(prop, "Cache Final", "Cache final image for each frame");
+  RNA_def_property_update(
+      prop, NC_SPACE | ND_SPACE_SEQUENCER, "rna_SequenceEditor_cache_settings_changed");
 
   prop = RNA_def_property(srna, "use_prefetch", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "cache_flag", SEQ_CACHE_PREFETCH_ENABLE);

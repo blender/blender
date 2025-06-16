@@ -53,11 +53,63 @@ void cache_cleanup(Scene *scene)
   intra_frame_cache_invalidate(scene);
 }
 
+void cache_settings_changed(Scene *scene)
+{
+  if (!(scene->ed->cache_flag & SEQ_CACHE_STORE_RAW)) {
+    /* RAW caches has been disabled, clear them out. */
+    source_image_cache_clear(scene);
+  }
+  if (!(scene->ed->cache_flag & SEQ_CACHE_STORE_FINAL_OUT)) {
+    /* Final caches has been disabled, clear them out. */
+    final_image_cache_clear(scene);
+  }
+}
+
 bool is_cache_full(const Scene *scene)
 {
   size_t cache_limit = size_t(U.memcachelimit) * 1024 * 1024;
   return source_image_cache_calc_memory_size(scene) + final_image_cache_calc_memory_size(scene) >
          cache_limit;
+}
+
+bool evict_caches_if_full(Scene *scene)
+{
+  if (!is_cache_full(scene)) {
+    /* Cache is not full, we don't have to evict anything. */
+    return false;
+  }
+
+  /* Cache is full, so we want to remove some images. We always try to remove one final image,
+   * and some amount of source images for each final image, so that ratio of cached images
+   * stays the same. Depending on the frame composition complexity, there can be lots of
+   * source images cached for a single final frame; if we only removed one source image
+   * we'd eventually have the cache still filled only with source images. */
+  const size_t count_final = final_image_cache_get_image_count(scene);
+  const size_t count_source = source_image_cache_get_image_count(scene);
+
+  bool evicted_final = false;
+  if (count_final != 0) {
+    evicted_final = final_image_cache_evict(scene);
+  }
+  bool evicted_source = false;
+  if (count_source != 0) {
+    evicted_source = source_image_cache_evict(scene);
+    /* Only try to enforce the final frame and raw cache ratio when the final cache is active. */
+    if (evicted_source && scene->ed->cache_flag & SEQ_CACHE_STORE_FINAL_OUT) {
+      const size_t source_per_final = divide_ceil_ul(count_source,
+                                                     std::max<size_t>(count_final, 1));
+      /* Start at "1" to make sure we only try to evict more frames if the ratio is above 1:1. */
+      for (size_t i = 1; i < source_per_final; i++) {
+        if (!source_image_cache_evict(scene)) {
+          /* Can't evict any more frames, stop. */
+          break;
+        }
+      }
+    }
+  }
+
+  /* Did we evict anything to free up the cache? */
+  return !(evicted_final || evicted_source);
 }
 
 static void invalidate_final_cache_strip_range(Scene *scene, const Strip *strip)

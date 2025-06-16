@@ -101,7 +101,7 @@ enum class VertAttrType : uint8_t {
 #undef DECLARE
 };
 
-/* TODO: Should reuse GPU_VERTEX_FORMAT_EXPAND, but we need to have s/unorm types first. */
+/* TODO: Should reuse GPU_VERTEX_FORMAT_EXPAND, but we need to have `s/unorm` types first. */
 #define GPU_VERTEX_FORMAT_EXPAND_TYPED(impl) \
   SINT_8_8_8_8_(impl) \
 \

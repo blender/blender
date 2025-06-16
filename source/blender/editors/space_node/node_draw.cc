@@ -5187,7 +5187,9 @@ static void node_draw_nodetree(const bContext &C,
   uiBlock &invalid_links_block = invalid_links_uiblock_init(C);
   for (auto &&item : ntree.runtime->link_errors.items()) {
     if (const bNodeLink *link = item.key.try_find(ntree)) {
-      draw_link_errors(C, snode, *link, item.value, invalid_links_block);
+      if (!bke::node_link_is_hidden(*link)) {
+        draw_link_errors(C, snode, *link, item.value, invalid_links_block);
+      }
     }
   }
   UI_block_end(&C, &invalid_links_block);

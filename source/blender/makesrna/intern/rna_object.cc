@@ -289,6 +289,8 @@ const EnumPropertyItem rna_enum_object_axis_items[] = {
 
 #  include <fmt/format.h>
 
+#  include "BLI_bounds.hh"
+
 #  include "DNA_ID.h"
 #  include "DNA_constraint_types.h"
 #  include "DNA_gpencil_legacy_types.h"
@@ -1892,9 +1894,7 @@ static void rna_Object_boundbox_get(PointerRNA *ptr, float *values)
   using namespace blender;
   Object *ob = reinterpret_cast<Object *>(ptr->owner_id);
   if (const std::optional<Bounds<float3>> bounds = BKE_object_boundbox_eval_cached_get(ob)) {
-    BoundBox bb;
-    BKE_boundbox_init_from_minmax(&bb, bounds->min, bounds->max);
-    memcpy(values, bb.vec, sizeof(bb.vec));
+    *reinterpret_cast<std::array<float3, 8> *>(values) = blender::bounds::corners(*bounds);
   }
   else {
     copy_vn_fl(values, 8 * 3, 0.0f);

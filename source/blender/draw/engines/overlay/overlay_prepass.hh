@@ -168,7 +168,7 @@ class Prepass : Overlay {
 
   void sculpt_sync(Manager &manager, const ObjectRef &ob_ref, Resources &res)
   {
-    ResourceHandle handle = manager.resource_handle_for_sculpt(ob_ref);
+    ResourceHandle handle = manager.unique_handle_for_sculpt(ob_ref);
 
     for (SculptBatch &batch : sculpt_batches_get(ob_ref.object, SCULPT_BATCH_DEFAULT)) {
       select::ID select_id = use_material_slot_selection_ ?

@@ -44,6 +44,10 @@ class AssetCatalogCollection {
   AssetCatalogCollection(const AssetCatalogCollection &other) = delete;
   AssetCatalogCollection(AssetCatalogCollection &&other) noexcept = default;
 
+  /** Check if this contains any catalogs or deleted catalogs. Doesn't check if a CDF is present.
+   */
+  bool is_empty() const;
+
   std::unique_ptr<AssetCatalogCollection> deep_copy() const;
   using OnDuplicateCatalogIdFn =
       FunctionRef<void(const AssetCatalog &existing, const AssetCatalog &to_be_ignored)>;

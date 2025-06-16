@@ -224,9 +224,13 @@ static void fcurves_to_pchan_links_get(ListBase &pfLinks, Object &ob, bPoseChann
   copy_v3_v3(pfl->scale_out, pchan.scale_out);
 
   /* Make copy of custom properties. */
-  if (pchan.prop && (transFlags & ACT_TRANS_PROP)) {
-    pfl->oldprops = IDP_CopyProperty(pchan.prop);
-    pfl->old_system_properties = IDP_CopyProperty(pchan.system_properties);
+  if (transFlags & ACT_TRANS_PROP) {
+    if (pchan.prop) {
+      pfl->oldprops = IDP_CopyProperty(pchan.prop);
+    }
+    if (pchan.system_properties) {
+      pfl->old_system_properties = IDP_CopyProperty(pchan.system_properties);
+    }
   }
 }
 

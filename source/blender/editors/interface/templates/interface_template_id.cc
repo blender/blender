@@ -1432,7 +1432,7 @@ static void template_ID_tabs(const bContext *C,
   const PointerRNA active_ptr = RNA_property_pointer_get(&template_id.ptr, template_id.prop);
   MenuType *mt = menu ? WM_menutype_find(menu, false) : nullptr;
 
-  /* When horizonal show the tabs as pills, rounded on all corners. */
+  /* When horizontal show the tabs as pills, rounded on all corners. */
   const bool horizontal =
       (region->regiontype == RGN_TYPE_HEADER &&
        ELEM(RGN_ALIGN_ENUM_FROM_MASK(region->alignment), RGN_ALIGN_TOP, RGN_ALIGN_BOTTOM));

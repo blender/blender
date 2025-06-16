@@ -790,14 +790,12 @@ static wmOperatorStatus image_view_ndof_invoke(bContext *C,
 
   SpaceImage *sima = CTX_wm_space_image(C);
   ARegion *region = CTX_wm_region(C);
-  float pan_vec[3];
 
-  const wmNDOFMotionData *ndof = static_cast<const wmNDOFMotionData *>(event->customdata);
+  const wmNDOFMotionData &ndof = *static_cast<const wmNDOFMotionData *>(event->customdata);
   const float pan_speed = NDOF_PIXELS_PER_SECOND;
 
-  WM_event_ndof_pan_get(ndof, pan_vec);
+  blender::float3 pan_vec = -ndof.time_delta * WM_event_ndof_translation_get(ndof);
 
-  mul_v3_fl(pan_vec, ndof->dt);
   mul_v2_fl(pan_vec, pan_speed / sima->zoom);
 
   sima_zoom_set_factor(sima, region, max_ff(0.0f, 1.0f - pan_vec[2]), nullptr, false);

@@ -196,15 +196,32 @@ bool final_image_cache_evict(Scene *scene)
    * is full and no longer can evict anything. */
   int cur_prefetch_start = std::numeric_limits<int>::min();
   int cur_prefetch_end = std::numeric_limits<int>::min();
-  seq_prefetch_get_time_range(scene, &cur_prefetch_start, &cur_prefetch_end);
+  if (scene->ed->cache_flag & SEQ_CACHE_STORE_FINAL_OUT) {
+    /* Only activate the prefetch guards if the cache is active. */
+    seq_prefetch_get_time_range(scene, &cur_prefetch_start, &cur_prefetch_end);
+  }
+  const bool prefetch_loops_around = cur_prefetch_start > cur_prefetch_end;
 
-  const int cur_frame = scene->r.cfra;
+  const int timeline_start = PSFRA;
+  const int timeline_end = PEFRA;
+  /* If we wrap around, treat the timeline start as the playback head position.
+   * This is to try to mitigate un-needed cache evictions. */
+  const int cur_frame = prefetch_loops_around ? timeline_start : scene->r.cfra;
+
   std::pair<int, int> best_key = {};
   ImBuf *best_item = nullptr;
   int best_score = 0;
   for (const auto &item : cache->map_.items()) {
     const int item_frame = item.key.first;
-    if (item_frame >= cur_prefetch_start && item_frame <= cur_prefetch_end) {
+    if (prefetch_loops_around) {
+      if (item_frame >= timeline_start && item_frame <= cur_prefetch_end) {
+        continue; /* Within active prefetch range, do not try to remove it. */
+      }
+      if (item_frame >= cur_prefetch_start && item_frame <= timeline_end) {
+        continue; /* Within active prefetch range, do not try to remove it. */
+      }
+    }
+    else if (item_frame >= cur_prefetch_start && item_frame <= cur_prefetch_end) {
       continue; /* Within active prefetch range, do not try to remove it. */
     }
 

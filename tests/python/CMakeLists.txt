@@ -73,8 +73,8 @@ function(add_blender_test_io testname)
 endfunction()
 
 if(WITH_UI_TESTS)
+  set(_blender_headless_env_vars "BLENDER_BIN=${TEST_BLENDER_EXE}")
   if(WITH_UI_TESTS_HEADLESS)
-    set(_blender_headless_env_vars "BLENDER_BIN=${TEST_BLENDER_EXE}")
 
     # Currently only WAYLAND is supported, support for others may be added later.
     # In this case none of the WESTON environment variables will be used.
@@ -104,43 +104,29 @@ if(WITH_UI_TESTS)
         )
       endif()
     endif()
-
-    function(add_blender_test_ui testname)
-      # Remove `--background` so headless execution uses a GUI
-      # (within a headless graphical environment).
-      set(EXE_PARAMS ${TEST_BLENDER_EXE_PARAMS})
-      list(REMOVE_ITEM EXE_PARAMS --background)
-      add_blender_test_impl(
-        "${testname}"
-        "${_blender_headless_env_vars}"
-        "${TEST_PYTHON_EXE}"
-        "${CMAKE_SOURCE_DIR}/tests/utils/blender_headless.py"
-        # NOTE: attempting to maximize the window causes problems with a headless `weston`,
-        # while this could be investigated, use windowed mode instead.
-        # Use a window size that balances software GPU rendering with enough room to use the UI.
-        --factory-startup
-        -p 0 0 800 600
-        "${EXE_PARAMS}"
-        "${ARGN}"
-      )
-    endfunction()
   else()
-    function(add_blender_test_ui testname)
-      # Remove `--background`
-      set(EXE_PARAMS ${TEST_BLENDER_EXE_PARAMS})
-      list(REMOVE_ITEM EXE_PARAMS --background)
-
-      add_blender_test_impl(
-        "${testname}"
-        ""
-        "${TEST_BLENDER_EXE}"
-        --factory-startup
-        -p 0 0 800 600
-        ${EXE_PARAMS}
-        ${ARGN}
-      )
-    endfunction()
+    list(APPEND _blender_headless_env_vars
+      "PASS_THROUGH=1"
+    )
   endif()
+  function(add_blender_test_ui testname)
+    # Remove `--background`a
+    set(EXE_PARAMS ${TEST_BLENDER_EXE_PARAMS})
+    list(REMOVE_ITEM EXE_PARAMS --background)
+    add_blender_test_impl(
+      "${testname}"
+      "${_blender_headless_env_vars}"
+      "${TEST_PYTHON_EXE}"
+      "${CMAKE_SOURCE_DIR}/tests/utils/blender_headless.py"
+      # NOTE: attempting to maximize the window causes problems with a headless `weston`,
+      # while this could be investigated, use windowed mode instead.
+      # Use a window size that balances software GPU rendering with enough room to use the UI.
+      --factory-startup
+      -p 0 0 800 600
+      "${EXE_PARAMS}"
+      "${ARGN}"
+    )
+  endfunction()
 endif()
 
 # Run Python script outside Blender.
@@ -752,7 +738,7 @@ if((WITH_CYCLES OR WITH_GPU_RENDER_TESTS) AND TEST_SRC_DIR_EXISTS)
 
     set(_gpu_render_tests_arguments)
 
-    # Eevee Next
+    # EEVEE
     if(WITH_OPENGL_BACKEND)
       foreach(render_test ${gpu_render_tests})
         add_render_test(
@@ -1298,7 +1284,12 @@ if(WITH_UI_TESTS)
   # This could be generated with:
   # `"${TEST_PYTHON_EXE}" "${CMAKE_CURRENT_LIST_DIR}/ui_simulate/run.py" --list-tests`
   # list explicitly so changes bisecting/updated are sure to re-run CMake.
-  set(_undo_tests
+  set(_ui_tests
+    test_workspace.sanity_check_general
+    test_workspace.sanity_check_2d_animation
+    test_workspace.sanity_check_sculpting
+    test_workspace.sanity_check_vfx
+    test_workspace.sanity_check_video_editing
     test_undo.text_editor_edit_mode_mix
     test_undo.text_editor_simple
     test_undo.view3d_edit_mode_multi_window
@@ -1316,7 +1307,7 @@ if(WITH_UI_TESTS)
     test_undo.view3d_texture_paint_complex
     test_undo.view3d_texture_paint_simple
   )
-  foreach(ui_test ${_undo_tests})
+  foreach(ui_test ${_ui_tests})
     add_blender_test_ui(
       "ui_${ui_test}"
       --enable-event-simulate
@@ -1325,7 +1316,7 @@ if(WITH_UI_TESTS)
       --tests "${ui_test}"
     )
   endforeach()
-  unset(_undo_tests)
+  unset(_ui_tests)
 endif()
 
 

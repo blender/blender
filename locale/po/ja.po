@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Beta (b'798f85a7108f')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'6ccdb8c06e27')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-11 11:13+0000\n"
-"PO-Revision-Date: 2025-06-11 04:59+0000\n"
+"POT-Creation-Date: 2025-06-16 10:45+0000\n"
+"PO-Revision-Date: 2025-06-14 06:59+0000\n"
 "Last-Translator: Satoshi Yamasaki <yamyam@yo.rim.or.jp>\n"
 "Language-Team: Japanese <https://translate.blender.org/projects/blender-ui/ui/ja/>\n"
 "Language: ja\n"
@@ -4302,6 +4302,10 @@ msgstr "このボーンを含むボーンコレクション"
 
 msgid "Display Type"
 msgstr "表示タイプ"
+
+
+msgid "Armature Defined"
+msgstr "アーマチュアの設定"
 
 
 msgid "Use display mode from armature (default)"
@@ -14391,10 +14395,6 @@ msgid "Filter by name or tag, supports '*' wildcard"
 msgstr "名前またはタグで絞り込みます（ワイルドカード「*」対応）"
 
 
-msgid "The width of columns in horizontal list views"
-msgstr "水平リストビューのカラムの幅"
-
-
 msgid "Change the size of thumbnails in list views"
 msgstr "リストビュー内のサムネイルのサイズを変更します"
 
@@ -18019,6 +18019,12 @@ msgid "Use Masks"
 msgstr "マスクを使用"
 
 
+msgid "The visibility of drawings in this tree node is affected by the layers in the masks list"
+msgstr ""
+"このツリーノード内のドローイングの可視性が，\n"
+"マスクリスト中のレイヤーの影響を受けます"
+
+
 msgid "Display onion skins before and after the current frame"
 msgstr "現在のフレーム前後のオニオンスキンを表示します"
 
@@ -21286,6 +21292,10 @@ msgid "Cycles Custom Camera Settings"
 msgstr "Cyclesカスタムカメラ設定"
 
 
+msgid "Parameters for custom (OSL-based) cameras"
+msgstr "カスタム（OSL ベースの）カメラのパラメーター"
+
+
 msgid "Apparent size of the Camera object in the 3D View"
 msgstr "3Dビュー内のカメラオブジェクトの見かけの大きさ"
 
@@ -23953,6 +23963,14 @@ msgid "Specular reflection multiplier"
 msgstr "スペキュラー反射の乗数"
 
 
+msgid "Light color temperature in Kelvin"
+msgstr "光の色温度（ケルビン）"
+
+
+msgid "Temperature Color"
+msgstr "温度カラー"
+
+
 msgid "Color from Temperature"
 msgstr "温度の色"
 
@@ -24027,6 +24045,10 @@ msgid "Use Temperature"
 msgstr "温度を使用"
 
 
+msgid "Use blackbody temperature to define a natural light color"
+msgstr "黒体の温度を使用し自然なライトの色を決めます"
+
+
 msgid "Volume Factor"
 msgstr "ボリューム係数"
 
@@ -24046,6 +24068,10 @@ msgstr "指向性の面光源"
 msgctxt "Light"
 msgid "Power"
 msgstr "パワー"
+
+
+msgid "Light energy emitted over the entire area of the light in all directions, in units of radiant power (W)"
+msgstr "ライトの全領域から全方向に放射する光のエネルギー (放射強度, W)"
 
 
 msgid "Shadow Buffer Clip Start"
@@ -24165,6 +24191,12 @@ msgstr "スポットライト"
 
 msgid "Directional cone Light"
 msgstr "指向性の円錐光源"
+
+
+msgid "The energy this light would emit over its entire area if it wasn't limited by the spot angle, in units of radiant power (W)"
+msgstr ""
+"スポット角度で制限されていないと仮定した時，ライトの\n"
+"全領域から放射されるエネルギー (放射強度, W)"
 
 
 msgid "Show Cone"
@@ -35021,12 +35053,12 @@ msgid "Editor menu containing buttons"
 msgstr "ボタンを含むエディターメニュー"
 
 
-msgid "Show/Hide"
-msgstr "表示/隠す"
-
-
 msgid "Clean Up"
 msgstr "クリーンアップ"
+
+
+msgid "Show/Hide"
+msgstr "表示/隠す"
 
 
 msgid "Special Characters"
@@ -35051,6 +35083,10 @@ msgstr "名前"
 
 msgid "Bone Roll"
 msgstr "ボーンロール"
+
+
+msgid "Merge"
+msgstr "マージ"
 
 
 msgid "Pivot Point"
@@ -35107,10 +35143,6 @@ msgstr "関係"
 
 msgid "Add Image"
 msgstr "画像を追加"
-
-
-msgid "Merge"
-msgstr "マージ"
 
 
 msgid "Light Probe"
@@ -35716,6 +35748,10 @@ msgstr "チャンネルを選択"
 
 msgid "Select Handle"
 msgstr "ハンドルを選択"
+
+
+msgid "Change Effect Type"
+msgstr "エフェクトタイプを変更"
 
 
 msgid "Inputs"
@@ -37519,6 +37555,10 @@ msgid "Amount is absolute distance along adjacent edge"
 msgstr "量を隣接する辺に沿った絶対距離とします"
 
 
+msgid "The profile shape (0.5 = round)"
+msgstr "断面の形状 (0.5で円弧)"
+
+
 msgid "Profile Type"
 msgstr "断面のタイプ"
 
@@ -37703,12 +37743,24 @@ msgid "Method for calculating booleans"
 msgstr "ブーリアン演算の方法"
 
 
+msgid "Simple solver with good performance, without support for overlapping geometry"
+msgstr "シンプルなソルバー．パフォーマンスはいいですが，重なる形状に対応しません"
+
+
 msgid "Exact"
 msgstr "正確"
 
 
+msgid "Slower solver with the best results for coplanar faces"
+msgstr "複数の面が同一平面上にある時に最適な結果を出す低速なソルバー"
+
+
 msgid "Manifold"
 msgstr "多様体"
+
+
+msgid "Fastest solver that works only on manifold meshes but gives better results"
+msgstr "多様体専用でいい結果になる最速のソルバー"
 
 
 msgid "Hole Tolerant"
@@ -44050,6 +44102,10 @@ msgid "Reconstructed"
 msgstr "再構成済"
 
 
+msgid "Whether the tracking data contains valid reconstruction information"
+msgstr "有効な再構成情報を含むトラッキングデータかどうか"
+
+
 msgid "Movie tracking settings"
 msgstr "動画トラッキング設定"
 
@@ -44630,6 +44686,10 @@ msgid "NDOF motion data for window manager events"
 msgstr "ウィンドウマネージャのイベント用 NDOF モーションデータ"
 
 
+msgid "Progress"
+msgstr "進行"
+
+
 msgid "Indicates the gesture phase"
 msgstr "ジェスチャ段階を示します"
 
@@ -45111,6 +45171,10 @@ msgid "Type of aspect correction to use. (Deprecated: Unused.)"
 msgstr "使用するアスペクト補正の種類（廃止予定：未使用）"
 
 
+msgid "(Deprecated: Unused.)"
+msgstr "（廃止予定：未使用）"
+
+
 msgid "Relative Size X"
 msgstr "相対サイズX"
 
@@ -45360,6 +45424,10 @@ msgstr "クロマキー"
 
 msgid "Create matte based on chroma values"
 msgstr "クロマ値を元にマットを生成します"
+
+
+msgid "Alpha falloff. (Deprecated: Use Minimum input instead.)"
+msgstr "アルファ減衰（廃止予定：代わりに「最小」入力を使用してください）"
 
 
 msgid "Lift"
@@ -45859,6 +45927,10 @@ msgid "Anisotropic"
 msgstr "異方性"
 
 
+msgid "Use Anisotropic interpolation"
+msgstr "異方性補間を使用します"
+
+
 msgid "Crops image to a smaller region, either making the cropped area transparent or resizing the image"
 msgstr ""
 "画像を小さな領域に切り取り，領域外を透過に設定，\n"
@@ -45869,8 +45941,16 @@ msgid "X2"
 msgstr "X2"
 
 
+msgid "Right edge of the cropping rectangle. (Deprecated: Use Width input instead.)"
+msgstr "クロップ長方形の右端（廃止予定；代わりに「幅」入力を使用してください）"
+
+
 msgid "Y2"
 msgstr "Y2"
+
+
+msgid "Bottom edge of the cropping rectangle. (Deprecated: Use Height input instead.)"
+msgstr "クロップ長方形の下端（廃止予定：代わりに「高さ」入力を使用してください）"
 
 
 msgid "X1"
@@ -45903,6 +45983,10 @@ msgstr "クロップ長方形の左端（廃止予定；未使用）"
 
 msgid "Top edge of the cropping rectangle. (Deprecated: Unused.)"
 msgstr "クロップ長方形の上端（廃止予定；未使用）"
+
+
+msgid "Use relative values to crop image. (Deprecated: Unused.)"
+msgstr "クロップ画像との相対値を使用（廃止予定：未使用）"
 
 
 msgid "Crop Image Size"
@@ -66456,6 +66540,15 @@ msgstr "孤立ストロークとみなすポイントの数"
 
 
 msgctxt "Operator"
+msgid "Convert Curve Type"
+msgstr "カーブタイプを変換"
+
+
+msgid "Convert type of selected curves"
+msgstr "選択中のカーブのタイプを変換します"
+
+
+msgctxt "Operator"
 msgid "Copy Strokes"
 msgstr "ストロークをコピー"
 
@@ -69894,7 +69987,7 @@ msgstr "平面ポイントの方向"
 
 
 msgid "Axis Threshold"
-msgstr "軸しきい値"
+msgstr "軸のしきい値"
 
 
 msgid "Preserves the existing geometry along the cut plane"
@@ -77358,6 +77451,10 @@ msgstr "スピーカーを追加"
 
 msgid "Add a speaker object to the scene"
 msgstr "スピーカーオブジェクトをシーンに追加します"
+
+
+msgid "Create the corresponding modifier if it does not exist"
+msgstr "対応するモディファイアーが存在しない場合に作成します"
 
 
 msgid "Apply the subdivision surface level as an offset relative to the current level"
@@ -96724,12 +96821,20 @@ msgid "Device up/down directly controls the Z position of the 3D viewport"
 msgstr "デバイスの上下方向で3Dビューポートの Z 位置を直接制御します"
 
 
+msgid "Pan / Zoom Camera View"
+msgstr "パン / ズームカメラビュー"
+
+
 msgid "Pan/zoom the camera view instead of leaving the camera view when orbiting"
-msgstr "回転操作時，カメラビューから抜ける代わりに，カメラビューのパン/ズームを行います"
+msgstr "回転操作時，カメラビューから抜けずに，カメラビューのパン/ズームを行います"
 
 
 msgid "NDOF View Navigate"
 msgstr "NDOFビュー操作"
+
+
+msgid "3D Mouse Navigation Mode"
+msgstr "3Dマウスナビゲーションモード"
 
 
 msgid "Auto sets the orbit center dynamically. When the complete model is in view, the center of volume of the whole model is used as the rotation point. When you move closer, the orbit center will be set on an object close to your center of the view."
@@ -96737,6 +96842,10 @@ msgstr ""
 "回転の中心を自動設定します．モデルが完全にビュー内にある場合，\n"
 "モデル全体のボリュームの中心を回転に使用します．近づいた場合は、\n"
 "回転の中心はビュー中心の近くのオブジェクトに設定されます."
+
+
+msgid "Selected Items"
+msgstr "選択アイテム"
 
 
 msgid "Orbit Sensitivity"
@@ -96789,6 +96898,18 @@ msgstr "回転の中心のガイドを表示"
 
 msgid "Display the orbit center during rotation"
 msgstr "回転中に回転の中心を表示します"
+
+
+msgid "Zoom direction"
+msgstr "ズーム方向"
+
+
+msgid "Which axis of the 3D Mouse cap zooms the view"
+msgstr "3Dマウスのキャップのどの軸でビューをズームするか"
+
+
+msgid "Forward/Backward"
+msgstr "前後"
 
 
 msgid "Up/Down"
@@ -97307,6 +97428,19 @@ msgid "Auto detect best GPU for running Blender"
 msgstr "Blender の実行に最適な GPU を自動探知します"
 
 
+msgid "Shader Compilation Workers"
+msgstr "シェーダーコンパイルワーカー数"
+
+
+msgid "Number of shader compilation threads or subprocesses, clamped at the max threads supported by the CPU (requires restarting Blender for changes to take effect). A higher number increases the RAM usage while reducing compilation time. A value of 0 will use automatic configuration. (OpenGL only)"
+msgstr ""
+"シェーダーコンパイルのスレッド数またはサブプロセス数．\n"
+"CPU が対応する最大スレッド数で制限されます (変更後は\n"
+"Blender の再起動が必要です).\n"
+"大きな値で RAM 使用量が増えコンパイル時間が減ります。\n"
+"０にすると自動設定します (OpenGL のみ)"
+
+
 msgid "Image Display Method"
 msgstr "画像の表示方法"
 
@@ -97419,6 +97553,33 @@ msgstr "手動でプロキシを設定します"
 
 msgid "Build proxies for added movie and image strips in each preview size"
 msgstr "追加された動画と画像ストリップ用のプロキシを，プレビューサイズ毎に構築します"
+
+
+msgid "Shader Compilation Method"
+msgstr "シェーダーコンパイル方法"
+
+
+msgid "Compilation method used for compiling shaders in parallel. Subprocess requires a lot more RAM for each worker but might compile shaders faster on some systems. Requires restarting Blender for changes to take effect. (OpenGL only)"
+msgstr ""
+"シェーダーを並列コンパイルする方法．サブプロセスは各ワーカー毎に\n"
+"多くの RAM が必要ですが、一部のシステムでシェーダーのコンパイルが\n"
+"高速化します．変更後は再起動が必要です (OpenGL のみ)"
+
+
+msgid "Thread"
+msgstr "スレッド"
+
+
+msgid "Use threads for compiling shaders"
+msgstr "シェーダーのコンパイルにスレッドを使用します"
+
+
+msgid "Subprocess"
+msgstr "サブプロセス"
+
+
+msgid "Use subprocesses for compiling shaders"
+msgstr "シェーダーのコンパイルにサブプロセスを使用します"
 
 
 msgid "Solid Lights"
@@ -131146,6 +131307,18 @@ msgid "Unable to open '%s': %s"
 msgstr "「%s」を開くことができません：%s"
 
 
+msgid "Blendfile '%s' was created by a future version of Blender and contains ID names longer than currently supported. These have been truncated."
+msgstr "未来のバージョンの Blender で作成された Blend ファイル「%s」に，現バージョンで対応するより長い名前の ID があります．これらの名前は切り詰められます."
+
+
+msgid "Blendfile '%s' appears corrupted, it contains invalid ID names. These have been truncated."
+msgstr "Blend ファイル「%s」が壊れているらしく，無効な ID 名があります．これらは切り詰めされます."
+
+
+msgid "Library '%s' appears corrupted, it contains invalid ID names. This may cause missing linked data."
+msgstr "ライブラリ「%s」が壊れているらしく，無効な ID 名があります．リンクデータが欠ける可能性があります."
+
+
 msgid "GP_Palette"
 msgstr "GPパレット"
 
@@ -131314,8 +131487,18 @@ msgid "Compiling EEVEE engine shaders"
 msgstr "EEVEE エンジンのシェーダーをコンパイル中"
 
 
+msgid "Loading textures ({} remaining)"
+msgstr "テクスチャ読み込み（残り {} 個）"
+
+
 msgid "Compiling shaders ({} remaining)"
-msgstr "シェーダーコンパイル中（残り {}個）"
+msgstr "シェーダーコンパイル中（残り {} 個）"
+
+
+msgid "Setting Preferences > System > Shader Compilation Method to Subprocess might improve compilation time."
+msgstr ""
+"プリファレンス→システム→シェーダーコンパイル方法をサブプロセス\n"
+"にすることで，コンパイル時間が改善する可能性があります."
 
 
 msgid "Optimizing shaders ({} remaining)"
@@ -134514,18 +134697,6 @@ msgstr ""
 
 msgid "Delete selected objects?"
 msgstr "選択中のオブジェクトを削除しますか？"
-
-
-msgid "None of the objects are compatible of conversion to"
-msgstr "変換対象と互換性のあるオブジェクトがありません："
-
-
-msgid "The selection included"
-msgstr "選択中に"
-
-
-msgid "object(s) types which don't support conversion to"
-msgstr "対象への変換に未対応のオブジェクトタイプがあります："
 
 
 msgid "SoundTrack"
@@ -140947,6 +141118,10 @@ msgid "%s: Error: Couldn't get input socket %s for node %s"
 msgstr "%s: エラー：入力ソケット「%s」（ノード %s）が取得できません"
 
 
+msgid "Invalid face data detected for mesh '%s'. Automatic correction will be used, but some data will most likely be lost"
+msgstr "メッシュ「%s」に無効な面データを発見しました．自動修復を使用しますが，恐らく一部のデータは失われるでしょう"
+
+
 msgid "USD Import: UV attribute value '%s' count inconsistent with interpolation type"
 msgstr "USD Import: UV 属性値「%s」の数が補間タイプと合いません"
 
@@ -144128,6 +144303,22 @@ msgid "Falloff Size"
 msgstr "減衰のサイズ"
 
 
+msgid "The amount of rotation that the blur spans"
+msgstr "ブラー期間の回転量"
+
+
+msgid "The amount of scaling that the blur spans"
+msgstr "ブラー期間のスケーリング量"
+
+
+msgid "The angle that defines the direction of the translation"
+msgstr "移動の方向を決める角度"
+
+
+msgid "If the distance between the color and the key color in the given color space is less than this threshold, it is keyed"
+msgstr "与えられた色空間でのその色とキーカラーの間の距離がしきい値未満であれば，キーになります"
+
+
 msgid "Inner Edge:"
 msgstr "内部境界:"
 
@@ -144166,6 +144357,22 @@ msgstr "ファイルサブパス:"
 
 msgid "Format:"
 msgstr "形式:"
+
+
+msgid "Invalid path template in File Output node. Skipping writing file."
+msgstr "ファイル出力ノード内のパステンプレートが無効です．ファイル書き込みをスキップします."
+
+
+msgid ""
+"Gamma correction value, applied as color^gamma.\n"
+"Typically used to convert from gamma encoded to linear color space, or in the reverse direction with 1/gamma"
+msgstr ""
+"ガンマ補正値，色のガンマ乗で適用されます．\n"
+"通常ガンマエンコードをリニア色空間に，または1/ガンマで逆方向に変換するのに使用されます"
+
+
+msgid "Ghost"
+msgstr "ゴースト"
 
 
 msgid "Disabled, built without FFTW"
@@ -144292,6 +144499,14 @@ msgstr "白レベルより上のマット値のマットが白になるようリ
 
 msgid "Size of the search window used to identify edges. Higher search size corresponds to less noisy and higher quality edges, not necessarily bigger edges. Edge tolerance can be used to expend the size of the edges"
 msgstr "エッジ探知に使用する検索ウィンドウサイズ．大きな検索サイズでノイズが減りエッジ品質が向上しますが，必ずしもエッジが大きくなるわけではありません．エッジサイズの拡大には「★エッジ許容量」を使用してください"
+
+
+msgid "Areas in the garbage matte mask are excluded from the matte"
+msgstr "ガーベジマットマスク内の領域はマットから除外されます"
+
+
+msgid "Areas in the core matte mask are included in the matte"
+msgstr "コアマットマスク内の領域はマットに含まれます"
 
 
 msgid "Specifies the strength of the despill"
@@ -144609,6 +144824,38 @@ msgid "Unknown"
 msgstr "不明"
 
 
+msgid "Format Items"
+msgstr "フォーマットアイテム"
+
+
+msgid "Empty identifier can't be used when explicit identifier was used before. For example, \"{} {x}\" is ok but \"{x} {}\" is not."
+msgstr "以前に明示的に識別子を使用していない場合，空の識別子は使用できません．例えば「{} {x}」はOKですが，「{x} {}」はアウトです."
+
+
+msgid "Invalid identifier: \"{}\""
+msgstr "無効な識別子です：{}"
+
+
+msgid "An input name can't start with a digit: \"{}\""
+msgstr "数字で開始する名前はできません：{}"
+
+
+msgid "There are no inputs."
+msgstr "入力がありません."
+
+
+msgid "Input with index {} does not exist. Currently, the maximum possible index is {}. Did you mean to use {{:{}}}?"
+msgstr "インデックス {} の入力がありません．現在，可能な最小インデックスは [] です．{{:{}}} を使用するつもりでしたか？"
+
+
+msgid "Input does not exist: \"{}\""
+msgstr "入力が存在しません:「{}」"
+
+
+msgid "Invalid format: \"{}\""
+msgstr "無効なフォーマット：{}"
+
+
 msgid "Hash"
 msgstr "ハッシュ"
 
@@ -144756,6 +145003,10 @@ msgstr "パックにベイク"
 
 msgid "Data-Block References"
 msgstr "データブロック参照数"
+
+
+msgid "Can't bake in zone"
+msgstr "ゾーン内ではベイクできません"
 
 
 msgid "Baked Frame {}"
@@ -146608,6 +146859,10 @@ msgstr "スムーズシェード"
 
 msgid "Simulation State"
 msgstr "シミュレーション状態"
+
+
+msgid "Simulation zone is not supported"
+msgstr "シミュレーションゾーンは未対応です"
 
 
 msgid "Skip"
@@ -149629,6 +149884,230 @@ msgstr "マイク"
 
 msgid "network"
 msgstr "ネットワーク"
+
+
+msgid "English (US)"
+msgstr "英語（US）"
+
+
+msgid "Japanese - 日本語"
+msgstr "日本語 - Japanese"
+
+
+msgid "Dutch - Nederlands"
+msgstr "オランダ語 - Nederlands"
+
+
+msgid "Italian - Italiano"
+msgstr "イタリア語 - Italiano"
+
+
+msgid "German - Deutsch"
+msgstr "ドイツ語 - Deutsch"
+
+
+msgid "Finnish - Suomi"
+msgstr "フィンランド語 - Suomi"
+
+
+msgid "Swedish - Svenska"
+msgstr "スウェーデン語 - Svenska"
+
+
+msgid "French - Français"
+msgstr "フランス語 - Français"
+
+
+msgid "Spanish - Español"
+msgstr "スペイン語 - Español"
+
+
+msgid "Catalan - Català"
+msgstr "カタロニア語 - Català"
+
+
+msgid "Czech - Čeština"
+msgstr "チェコ語 - Čeština"
+
+
+msgid "Portuguese (Portugal) - Português europeu"
+msgstr "ポルトガル語 - Português europeu"
+
+
+msgid "Chinese (Simplified) - 简体中文"
+msgstr "簡体字中国語 - 简体中文"
+
+
+msgid "Chinese (Traditional) - 繁體中文"
+msgstr "繁体字中国語 - 繁體中文"
+
+
+msgid "Russian - Русский"
+msgstr "ロシア語 - Русский"
+
+
+msgid "Croatian - Hrvatski"
+msgstr "クロアチア語（Hrvatski）"
+
+
+msgid "Serbian (Cyrillic) - Српски"
+msgstr "セルビア語（キリル文字）- Српски"
+
+
+msgid "Ukrainian - Українська"
+msgstr "ウクライナ語 - Українська"
+
+
+msgid "Polish - Polski"
+msgstr "ポーランド語 - Polski"
+
+
+msgid "Romanian - Român"
+msgstr "ルーマニア語 - Român"
+
+
+msgid "Arabic - ﺔﻴﺑﺮﻌﻟﺍ"
+msgstr "アラビア語 - ﺔﻴﺑﺮﻌﻟﺍ"
+
+
+msgid "Bulgarian - Български"
+msgstr "ブルガリア語 - Български"
+
+
+msgid "Greek - Ελληνικά"
+msgstr "ギリシャ語 - Ελληνικά"
+
+
+msgid "Korean - 한국어"
+msgstr "韓国語 - 한국어"
+
+
+msgid "Nepali - नेपाली"
+msgstr "ネパール語 - नेपाली"
+
+
+msgid "Persian - ﯽﺳﺭﺎﻓ"
+msgstr "ペルシア語 - ﯽﺳﺭﺎﻓ"
+
+
+msgid "Indonesian - Bahasa indonesia"
+msgstr "インドネシア語 - Bahasa indonesia"
+
+
+msgid "Serbian (Latin) - Srpski latinica"
+msgstr "セルビア（ラテン）語 - Srpski latinica"
+
+
+msgid "Kyrgyz - Кыргыз тили"
+msgstr "キルギス語 - Кыргыз тили"
+
+
+msgid "Turkish - Türkçe"
+msgstr "トルコ語 - Türkçe"
+
+
+msgid "Hungarian - Magyar"
+msgstr "ハンガリー語 - Magyar"
+
+
+msgid "Portuguese (Brazil) - Português brasileiro"
+msgstr "ポルトガル（ブラジル）語 - Português brasileiro"
+
+
+msgid "Hebrew - תירִבְעִ"
+msgstr "ヘブライ語 - תירִבְעִ"
+
+
+msgid "Estonian - Eesti keel"
+msgstr "エストニア語 - Eesti keel"
+
+
+msgid "Esperanto - Esperanto"
+msgstr "エスペラント語 - Esperanto"
+
+
+msgid "Amharic - አማርኛ"
+msgstr "アムハラ語 - አማርኛ"
+
+
+msgid "Uzbek (Latin) - Oʻzbek"
+msgstr "ウズベク語（ラテン）- Oʻzbek"
+
+
+msgid "Uzbek (Cyrillic) - Ўзбек"
+msgstr "ウズベク語（キリル）- Ўзбек"
+
+
+msgid "Hindi - हिन्दी"
+msgstr "ヒンディー語 - हिन्दी"
+
+
+msgid "Vietnamese - Tiếng Việt"
+msgstr "ベトナム語 - Tiếng Việt"
+
+
+msgid "Basque - Euskara"
+msgstr "バスク語 - Euskara"
+
+
+msgid "Hausa - Hausa"
+msgstr "ハウサ語 - Hausa"
+
+
+msgid "Kazakh - Қазақша"
+msgstr "カザフ語 - Қазақша"
+
+
+msgid "Abkhaz - Аԥсуа бызшәа"
+msgstr "アブハーズ語 - Аԥсуа бызшәа"
+
+
+msgid "Thai - ภาษาไทย"
+msgstr "タイ語 - ภาษาไทย"
+
+
+msgid "Slovak - Slovenčina"
+msgstr "スロバキア語 - Slovenčina"
+
+
+msgid "Georgian - ქართული"
+msgstr "ジョージア語 - ქართული"
+
+
+msgid "Tamil - தமிழ்"
+msgstr "タミル語 - தமிழ்"
+
+
+msgid "Khmer - ខ្មែរ"
+msgstr "クメール語 - ខ្មែរ"
+
+
+msgid "Swahili - Kiswahili"
+msgstr "スワヒリ語 - Kiswahili"
+
+
+msgid "Belarusian - беларуску"
+msgstr "ベラルーシ語 - беларуску"
+
+
+msgid "Danish - Dansk"
+msgstr "デンマーク語 - Dansk"
+
+
+msgid "Slovenian - Slovenščina"
+msgstr "スロバキア語 - Slovenščina"
+
+
+msgid "Urdu - وُدرُا"
+msgstr "ウルドゥー語 - وُدرُا"
+
+
+msgid "Lithuanian - Lietuviškai"
+msgstr "リトアニア - Lietuviškai"
+
+
+msgid "English (UK)"
+msgstr "英語（UK）"
 
 
 msgid "Add & Subtract"

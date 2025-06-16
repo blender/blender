@@ -37,14 +37,15 @@ void AmbientOcclusion::init()
   render_pass_enabled_ = inst_.film.enabled_passes_get() & EEVEE_RENDER_PASS_AO;
 
   const SceneEEVEE &sce_eevee = inst_.scene->eevee;
+  const ViewLayerEEVEE &view_layer_eevee = inst_.view_layer->eevee;
 
-  data_.distance = sce_eevee.gtao_distance;
+  data_.distance = view_layer_eevee.ambient_occlusion_distance;
   data_.gi_distance = (sce_eevee.fast_gi_distance > 0.0f) ? sce_eevee.fast_gi_distance : 1e16f;
   /* AO node uses its own number of samples. */
   data_.lod_factor_ao = 1.0f / (1.0f + sce_eevee.fast_gi_quality * 4.0f);
   data_.lod_factor = (4.0f / sce_eevee.fast_gi_step_count) /
                      (1.0f + sce_eevee.fast_gi_quality * 4.0f);
-  data_.angle_bias = 1.0 / max_ff(1e-8f, 1.0 - sce_eevee.gtao_focus);
+  data_.angle_bias = 1.0 / max_ff(1e-8f, 1.0 - sce_eevee.fast_gi_bias);
   data_.thickness_near = sce_eevee.fast_gi_thickness_near;
   data_.thickness_far = sce_eevee.fast_gi_thickness_far;
   /* Size is multiplied by 2 because it is applied in NDC [-1..1] range. */

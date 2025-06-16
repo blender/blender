@@ -80,9 +80,9 @@ set(SRC_DNA_INC
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_space_enums.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_space_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_speaker_types.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_theme_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_text_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_texture_types.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_theme_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_tracking_types.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_userdef_enums.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_userdef_types.h
@@ -117,6 +117,7 @@ set(SRC_DNA_DEFAULTS_INC
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_grease_pencil_defaults.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_image_defaults.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_lattice_defaults.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_layer_defaults.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_light_defaults.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_lightprobe_defaults.h
   ${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_linestyle_defaults.h

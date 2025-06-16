@@ -1811,7 +1811,11 @@ static void region_rect_recursive(
 
 static void area_calc_totrct(const bScreen *screen, ScrArea *area, const rcti *window_rect)
 {
-  short px = short(std::max(float(U.border_width) * UI_SCALE_FAC, UI_SCALE_FAC));
+  /* Padding around each area, except at window edges. */
+  const short px = short(std::max(float(U.border_width) * UI_SCALE_FAC, UI_SCALE_FAC));
+
+  /* Padding at window edges. */
+  const short px_edge = int(UI_SCALE_FAC * 2.0f);
 
   area->totrct.xmin = area->v1->vec.x;
   area->totrct.xmax = area->v4->vec.x;
@@ -1819,18 +1823,12 @@ static void area_calc_totrct(const bScreen *screen, ScrArea *area, const rcti *w
   area->totrct.ymax = area->v2->vec.y;
 
   /* Scale down totrct by the border size on all sides not at window edges. */
-  if (!ED_area_is_global(area) && screen->state != SCREENFULL &&
-      !(screen->temp && BLI_listbase_is_single(&screen->areabase)))
+  if (!ED_area_is_global(area) && screen->state != SCREENFULL && !(screen->temp) &&
+      !BLI_listbase_is_single(&screen->areabase))
   {
-    if (area->totrct.xmin > window_rect->xmin) {
-      area->totrct.xmin += px;
-    }
-    if (area->totrct.xmax < (window_rect->xmax - 1)) {
-      area->totrct.xmax -= px;
-    }
-    if (area->totrct.ymin > window_rect->ymin) {
-      area->totrct.ymin += px;
-    }
+    area->totrct.xmin += (area->totrct.xmin > window_rect->xmin) ? px : px_edge;
+    area->totrct.xmax -= (area->totrct.xmax < (window_rect->xmax - 1)) ? px : px_edge;
+    area->totrct.ymin += (area->totrct.ymin > window_rect->ymin) ? px : px_edge;
 
     if (area->totrct.ymax < (window_rect->ymax - 1)) {
       area->totrct.ymax -= px;
@@ -1838,6 +1836,9 @@ static void area_calc_totrct(const bScreen *screen, ScrArea *area, const rcti *w
     else if (!BLI_listbase_is_single(&screen->areabase) || screen->state == SCREENMAXIMIZED) {
       /* Small gap below Top Bar. */
       area->totrct.ymax -= U.pixelsize;
+    }
+    else {
+      area->totrct.ymax -= px_edge;
     }
   }
   /* Although the following asserts are correct they lead to a very unstable Blender.
@@ -3376,6 +3377,16 @@ void ED_region_panels_draw(const bContext *C, ARegion *region)
     mask.xmax -= round_fl_to_int(UI_view2d_scale_get_x(&region->v2d) *
                                  UI_PANEL_CATEGORY_MARGIN_WIDTH);
   }
+
+  /* Hide scrollbars below a threshold. */
+  const float aspect = BLI_rctf_size_y(&region->v2d.cur) /
+                       (BLI_rcti_size_y(&region->v2d.mask) + 1);
+  int min_width = UI_panel_category_is_visible(region) ? 60.0f * UI_SCALE_FAC / aspect :
+                                                         40.0f * UI_SCALE_FAC / aspect;
+  if (BLI_rcti_size_x(&region->winrct) <= min_width) {
+    v2d->scroll &= ~(V2D_SCROLL_HORIZONTAL | V2D_SCROLL_VERTICAL);
+  }
+
   UI_view2d_scrollers_draw(v2d, use_mask ? &mask : nullptr);
 }
 

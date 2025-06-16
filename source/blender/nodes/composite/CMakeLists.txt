@@ -79,7 +79,6 @@ set(SRC
   nodes/node_composite_map_value.cc
   nodes/node_composite_mask.cc
   nodes/node_composite_math.cc
-  nodes/node_composite_mixrgb.cc
   nodes/node_composite_movieclip.cc
   nodes/node_composite_moviedistortion.cc
   nodes/node_composite_normal.cc
@@ -111,7 +110,6 @@ set(SRC
   nodes/node_composite_transform.cc
   nodes/node_composite_translate.cc
   nodes/node_composite_val_to_rgb.cc
-  nodes/node_composite_value.cc
   nodes/node_composite_vec_blur.cc
   nodes/node_composite_viewer.cc
   nodes/node_composite_zcombine.cc

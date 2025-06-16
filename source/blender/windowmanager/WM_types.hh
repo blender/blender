@@ -875,7 +875,7 @@ struct wmNDOFMotionData {
    * This is reset when motion begins: when progress changes from #P_NOT_STARTED to #P_STARTING.
    * In this case a dummy value is used, see #GHOST_NDOF_TIME_DELTA_STARTING.
    */
-  float dt;
+  float time_delta;
   /** Is this the first event, the last, or one of many in between? */
   wmProgress progress;
 };

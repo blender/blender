@@ -34,12 +34,12 @@ if(WITH_LIBMV)
   endif()
 
   list(APPEND INC
-    ${GFLAGS_INCLUDE_DIRS}
-    ${GLOG_INCLUDE_DIRS}
     ../guardedalloc
   )
 
   list(APPEND INC_SYS
+    ${GFLAGS_INCLUDE_DIRS}
+    ${GLOG_INCLUDE_DIRS}
     ${PNG_INCLUDE_DIRS}
     ${ZLIB_INCLUDE_DIRS}
     ../../extern/ceres/include

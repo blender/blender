@@ -364,12 +364,12 @@ bool vert_has_unique_face_set(const OffsetIndices<int> faces,
   const SubdivCCGAdjacencyType adjacency = BKE_subdiv_ccg_coarse_mesh_adjacency_info_get(
       subdiv_ccg, coord, corner_verts, faces, v1, v2);
   switch (adjacency) {
-    case SUBDIV_CCG_ADJACENT_VERTEX:
+    case SubdivCCGAdjacencyType::Vertex:
       return vert_has_unique_face_set(vert_to_face_map, face_sets, v1);
-    case SUBDIV_CCG_ADJACENT_EDGE:
+    case SubdivCCGAdjacencyType::Edge:
       return sculpt_check_unique_face_set_for_edge_in_base_mesh(
           vert_to_face_map, face_sets, corner_verts, faces, v1, v2);
-    case SUBDIV_CCG_ADJACENT_NONE:
+    case SubdivCCGAdjacencyType::None:
       return true;
   }
   BLI_assert_unreachable();
@@ -504,11 +504,11 @@ bool vert_is_boundary(const OffsetIndices<int> faces,
   const SubdivCCGAdjacencyType adjacency = BKE_subdiv_ccg_coarse_mesh_adjacency_info_get(
       subdiv_ccg, vert, corner_verts, faces, v1, v2);
   switch (adjacency) {
-    case SUBDIV_CCG_ADJACENT_VERTEX:
+    case SubdivCCGAdjacencyType::Vertex:
       return boundary[v1].test();
-    case SUBDIV_CCG_ADJACENT_EDGE:
+    case SubdivCCGAdjacencyType::Edge:
       return boundary[v1].test() && boundary[v2].test();
-    case SUBDIV_CCG_ADJACENT_NONE:
+    case SubdivCCGAdjacencyType::None:
       return false;
   }
   BLI_assert_unreachable();
@@ -5245,7 +5245,7 @@ static void store_sculpt_entire_mesh(const wmOperator &op,
 {
   Mesh &mesh = *static_cast<Mesh *>(object.data);
   sculpt_paint::undo::geometry_begin(scene, object, &op);
-  BKE_mesh_nomain_to_mesh(new_mesh, &mesh, &object);
+  BKE_mesh_nomain_to_mesh(new_mesh, &mesh, &object, false);
   sculpt_paint::undo::geometry_end(object);
   BKE_sculptsession_free_pbvh(object);
 }
@@ -7226,10 +7226,12 @@ void reset_translations_to_original(const MutableSpan<float3> translations,
   }
 }
 
+#ifndef NDEBUG
 static bool contains_nan(const Span<float> values)
 {
   return std::any_of(values.begin(), values.end(), [&](const float v) { return std::isnan(v); });
 }
+#endif
 
 void apply_translations(const Span<float3> translations,
                         const Span<int> verts,

@@ -75,67 +75,6 @@ static void extract_normals_mesh(const MeshRenderData &mr, MutableSpan<GPUType> 
 }
 
 template<typename GPUType>
-static void extract_paint_overlay_flags(const MeshRenderData &mr, MutableSpan<GPUType> normals)
-{
-  const bool use_face_select = (mr.mesh->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
-  Span<bool> selection;
-  if (mr.mesh->editflag & ME_EDIT_PAINT_FACE_SEL) {
-    selection = mr.select_poly;
-  }
-  else if (mr.mesh->editflag & ME_EDIT_PAINT_VERT_SEL) {
-    selection = mr.select_vert;
-  }
-  if (selection.is_empty() && mr.hide_poly.is_empty() && (!mr.edit_bmesh || !mr.orig_index_vert)) {
-    return;
-  }
-  const OffsetIndices faces = mr.faces;
-  threading::parallel_for(faces.index_range(), 1024, [&](const IndexRange range) {
-    if (!selection.is_empty()) {
-      if (use_face_select) {
-        for (const int face : range) {
-          if (selection[face]) {
-            for (const int corner : faces[face]) {
-              normals[corner].w = 1;
-            }
-          }
-        }
-      }
-      else {
-        const Span<int> corner_verts = mr.corner_verts;
-        for (const int face : range) {
-          for (const int corner : faces[face]) {
-            if (selection[corner_verts[corner]]) {
-              normals[corner].w = 1;
-            }
-          }
-        }
-      }
-    }
-    if (!mr.hide_poly.is_empty()) {
-      const Span<bool> hide_poly = mr.hide_poly;
-      for (const int face : range) {
-        if (hide_poly[face]) {
-          for (const int corner : faces[face]) {
-            normals[corner].w = -1;
-          }
-        }
-      }
-    }
-    if (mr.edit_bmesh && mr.orig_index_vert) {
-      const Span<int> corner_verts = mr.corner_verts;
-      const Span<int> orig_indices(mr.orig_index_vert, mr.verts_num);
-      for (const int face : range) {
-        for (const int corner : faces[face]) {
-          if (orig_indices[corner_verts[corner]] == ORIGINDEX_NONE) {
-            normals[corner].w = -1;
-          }
-        }
-      }
-    }
-  });
-}
-
-template<typename GPUType>
 static void extract_vert_normals_bm(const MeshRenderData &mr, MutableSpan<GPUType> normals)
 {
   const BMesh &bm = *mr.bm;
@@ -220,24 +159,6 @@ static void extract_face_normals_bm(const MeshRenderData &mr, MutableSpan<GPUTyp
 }
 
 template<typename GPUType>
-static void extract_edit_flags_bm(const MeshRenderData &mr, MutableSpan<GPUType> normals)
-{
-  /* TODO: Return early if there are no hidden faces. */
-  const BMesh &bm = *mr.bm;
-  threading::parallel_for(IndexRange(bm.totface), 2048, [&](const IndexRange range) {
-    for (const int face_index : range) {
-      const BMFace &face = *BM_face_at_index(&const_cast<BMesh &>(bm), face_index);
-      if (BM_elem_flag_test(&face, BM_ELEM_HIDDEN)) {
-        const IndexRange face_range(BM_elem_index_get(BM_FACE_FIRST_LOOP(&face)), face.len);
-        for (GPUType &value : normals.slice(face_range)) {
-          value.w = -1;
-        }
-      }
-    }
-  });
-}
-
-template<typename GPUType>
 static void extract_normals_bm(const MeshRenderData &mr, MutableSpan<GPUType> normals)
 {
   const BMesh &bm = *mr.bm;
@@ -319,11 +240,9 @@ gpu::VertBufPtr extract_normals(const MeshRenderData &mr, const bool use_hq)
 
     if (mr.extract_type == MeshExtractType::Mesh) {
       extract_normals_mesh(mr, corners_data);
-      extract_paint_overlay_flags(mr, corners_data);
     }
     else {
       extract_normals_bm(mr, corners_data);
-      extract_edit_flags_bm(mr, corners_data);
     }
 
     loose_data.fill(short4(0));
@@ -344,11 +263,9 @@ gpu::VertBufPtr extract_normals(const MeshRenderData &mr, const bool use_hq)
 
   if (mr.extract_type == MeshExtractType::Mesh) {
     extract_normals_mesh(mr, corners_data);
-    extract_paint_overlay_flags(mr, corners_data);
   }
   else {
     extract_normals_bm(mr, corners_data);
-    extract_edit_flags_bm(mr, corners_data);
   }
 
   loose_data.fill(gpu::PackedNormal{});
@@ -359,7 +276,7 @@ static const GPUVertFormat &get_normals_format()
 {
   static const GPUVertFormat format = []() {
     GPUVertFormat format{};
-    GPU_vertformat_attr_add(&format, "nor", gpu::VertAttrType::SFLOAT_32_32_32_32);
+    GPU_vertformat_attr_add(&format, "nor", gpu::VertAttrType::SFLOAT_32_32_32);
     GPU_vertformat_alias_add(&format, "lnor");
     GPU_vertformat_alias_add(&format, "vnor");
     return format;
@@ -403,11 +320,7 @@ gpu::VertBufPtr extract_normals_subdiv(const MeshRenderData &mr,
     gpu::VertBufPtr src = gpu::VertBufPtr(GPU_vertbuf_create_with_format(src_normals_format));
     GPU_vertbuf_data_alloc(*src, coarse_mesh->corners_num);
     src->data<float3>().copy_from(coarse_mesh->corner_normals());
-    gpu::VertBufPtr dst = gpu::VertBufPtr(
-        GPU_vertbuf_create_on_device(src_normals_format, vbo_size));
-    draw_subdiv_interp_corner_normals(subdiv_cache, *src, *dst);
-
-    draw_subdiv_build_lnor_buffer_from_custom_normals(subdiv_cache, *dst, *lnor);
+    draw_subdiv_interp_corner_normals(subdiv_cache, *src, *lnor);
 
     update_loose_normals(mr, subdiv_cache, *lnor);
     return lnor;
@@ -416,7 +329,7 @@ gpu::VertBufPtr extract_normals_subdiv(const MeshRenderData &mr,
   gpu::VertBufPtr subdiv_corner_verts = gpu::VertBufPtr(draw_subdiv_build_origindex_buffer(
       subdiv_cache.subdiv_loop_subdiv_vert_index, subdiv_cache.num_subdiv_loops));
 
-  /* Calculate vertex normals (stored here per subdivided vertex rather than per subdivieded face
+  /* Calculate vertex normals (stored here per subdivided vertex rather than per subdivided face
    * corner). The values are used for smooth shaded faces later. */
   static GPUVertFormat vert_normals_format = GPU_vertformat_from_attribute(
       "vnor", gpu::VertAttrType::SFLOAT_32_32_32);

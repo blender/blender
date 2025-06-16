@@ -1094,7 +1094,7 @@ static void reshape_subdiv_refine_orig_P(
     return;
   }
 
-  float limit_P[3];
+  blender::float3 limit_P;
   float tangent_matrix[3][3];
   multires_reshape_evaluate_limit_at_grid(reshape_context, grid_coord, limit_P, tangent_matrix);
 
@@ -1140,12 +1140,13 @@ static void reshape_subdiv_evaluate_limit_at_grid(
     const MultiresReshapeSmoothContext *reshape_smooth_context,
     const PTexCoord *ptex_coord,
     const GridCoord *grid_coord,
-    float limit_P[3],
+    blender::float3 &limit_P,
     float r_tangent_matrix[3][3])
 {
   const MultiresReshapeContext *reshape_context = reshape_smooth_context->reshape_context;
 
-  float dPdu[3], dPdv[3];
+  blender::float3 dPdu;
+  blender::float3 dPdv;
   blender::bke::subdiv::eval_limit_point_and_derivatives(reshape_smooth_context->reshape_subdiv,
                                                          ptex_coord->ptex_face_index,
                                                          ptex_coord->u,
@@ -1293,7 +1294,7 @@ static void evaluate_base_surface_grids(const MultiresReshapeSmoothContext *resh
 {
   foreach_toplevel_grid_coord(
       reshape_smooth_context, [&](const PTexCoord *ptex_coord, const GridCoord *grid_coord) {
-        float limit_P[3];
+        blender::float3 limit_P;
         float tangent_matrix[3][3];
         reshape_subdiv_evaluate_limit_at_grid(
             reshape_smooth_context, ptex_coord, grid_coord, limit_P, tangent_matrix);
@@ -1322,7 +1323,7 @@ static void evaluate_final_original_point(
       multires_reshape_orig_grid_element_for_grid_coord(reshape_context, grid_coord);
 
   /* Limit surface of the base mesh. */
-  float base_mesh_limit_P[3];
+  blender::float3 base_mesh_limit_P;
   float base_mesh_tangent_matrix[3][3];
   multires_reshape_evaluate_limit_at_grid(
       reshape_context, grid_coord, base_mesh_limit_P, base_mesh_tangent_matrix);
@@ -1363,7 +1364,7 @@ static void evaluate_higher_grid_positions_with_details(
                     original_detail_delta);
 
         /* Limit surface of smoothed (subdivided) edited sculpt level. */
-        float smooth_limit_P[3];
+        blender::float3 smooth_limit_P;
         float smooth_tangent_matrix[3][3];
         reshape_subdiv_evaluate_limit_at_grid(
             reshape_smooth_context, ptex_coord, grid_coord, smooth_limit_P, smooth_tangent_matrix);
@@ -1397,7 +1398,7 @@ static void evaluate_higher_grid_positions(
             reshape_context, grid_coord);
 
         /* Surface. */
-        float P[3];
+        blender::float3 P;
         blender::bke::subdiv::eval_limit_point(
             reshape_subdiv, ptex_coord->ptex_face_index, ptex_coord->u, ptex_coord->v, P);
 

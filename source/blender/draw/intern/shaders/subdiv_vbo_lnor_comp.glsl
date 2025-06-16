@@ -6,28 +6,6 @@
 
 COMPUTE_SHADER_CREATE_INFO(subdiv_loop_normals)
 
-bool is_face_selected(uint coarse_quad_index)
-{
-  return (extra_coarse_face_data[coarse_quad_index] & shader_data.coarse_face_select_mask) != 0;
-}
-
-bool is_face_hidden(uint coarse_quad_index)
-{
-  return (extra_coarse_face_data[coarse_quad_index] & shader_data.coarse_face_hidden_mask) != 0;
-}
-
-/* Flag for paint mode overlay and normals drawing in edit-mode. */
-float get_loop_flag(uint coarse_quad_index, int vert_origindex)
-{
-  if (is_face_hidden(coarse_quad_index) || (shader_data.is_edit_mode && vert_origindex == -1)) {
-    return -1.0f;
-  }
-  if (is_face_selected(coarse_quad_index)) {
-    return 1.0f;
-  }
-  return 0.0f;
-}
-
 void main()
 {
   /* We execute for each quad. */
@@ -48,16 +26,12 @@ void main()
       uint subdiv_vert_index = vert_loop_map[start_loop_index + i];
       Normal vert_normal = vert_normals[subdiv_vert_index];
 
-      int origindex = input_vert_origindex[start_loop_index + i];
-      float flag = get_loop_flag(coarse_quad_index, origindex);
+      Normal normal;
+      normal.x = vert_normal.x;
+      normal.y = vert_normal.y;
+      normal.z = vert_normal.z;
 
-      LoopNormal loop_normal;
-      loop_normal.nx = vert_normal.x;
-      loop_normal.ny = vert_normal.y;
-      loop_normal.nz = vert_normal.z;
-      loop_normal.flag = flag;
-
-      output_lnor[start_loop_index + i] = loop_normal;
+      output_lnor[start_loop_index + i] = normal;
     }
   }
   else {
@@ -78,16 +52,13 @@ void main()
 
     face_normal = normalize(face_normal);
 
-    LoopNormal loop_normal;
-    loop_normal.nx = face_normal.x;
-    loop_normal.ny = face_normal.y;
-    loop_normal.nz = face_normal.z;
+    Normal normal;
+    normal.x = face_normal.x;
+    normal.y = face_normal.y;
+    normal.z = face_normal.z;
 
     for (int i = 0; i < 4; i++) {
-      int origindex = input_vert_origindex[start_loop_index + i];
-      loop_normal.flag = get_loop_flag(coarse_quad_index, origindex);
-
-      output_lnor[start_loop_index + i] = loop_normal;
+      output_lnor[start_loop_index + i] = normal;
     }
   }
 }

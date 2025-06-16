@@ -236,9 +236,7 @@ void draw_subdiv_build_lnor_buffer(const DRWSubdivCache &cache,
                                    gpu::VertBuf *subdiv_corner_verts,
                                    gpu::VertBuf *lnor);
 
-void draw_subdiv_build_lnor_buffer_from_custom_normals(const DRWSubdivCache &cache,
-                                                       gpu::VertBuf &interpolated_custom_normals,
-                                                       gpu::VertBuf &lnor);
+void draw_subdiv_build_paint_overlay_flag_buffer(const DRWSubdivCache &cache, gpu::VertBuf &flags);
 
 void draw_subdiv_build_edituv_stretch_area_buffer(const DRWSubdivCache &cache,
                                                   gpu::VertBuf *coarse_data,

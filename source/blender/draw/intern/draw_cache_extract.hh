@@ -109,6 +109,7 @@ enum class VBOType : int8_t {
   Attr15,
   AttrViewer,
   VertexNormal,
+  PaintOverlayFlag,
 };
 
 /**
@@ -177,12 +178,13 @@ struct MeshBatchList {
   /* Individual edges with face normals. */
   gpu::Batch *wire_edges;
   /* Loops around faces. no edges between selected faces */
-  gpu::Batch *wire_loops;
-  /* Same as wire_loops but only has uvs. */
+  gpu::Batch *paint_overlay_wire_loops;
   gpu::Batch *wire_loops_uvs;
   gpu::Batch *wire_loops_edituvs;
   gpu::Batch *sculpt_overlays;
   gpu::Batch *surface_viewer_attribute;
+  gpu::Batch *paint_overlay_verts;
+  gpu::Batch *paint_overlay_surface;
 };
 
 #define MBC_BATCH_LEN (sizeof(MeshBatchList) / sizeof(void *))
@@ -216,12 +218,14 @@ enum DRWBatchFlag : uint64_t {
   MBC_LOOSE_EDGES = (1u << MBC_BATCH_INDEX(loose_edges)),
   MBC_EDGE_DETECTION = (1u << MBC_BATCH_INDEX(edge_detection)),
   MBC_WIRE_EDGES = (1u << MBC_BATCH_INDEX(wire_edges)),
-  MBC_WIRE_LOOPS = (1u << MBC_BATCH_INDEX(wire_loops)),
+  MBC_PAINT_OVERLAY_WIRE_LOOPS = (1u << MBC_BATCH_INDEX(paint_overlay_wire_loops)),
   MBC_WIRE_LOOPS_UVS = (1u << MBC_BATCH_INDEX(wire_loops_uvs)),
   MBC_WIRE_LOOPS_EDITUVS = (1u << MBC_BATCH_INDEX(wire_loops_edituvs)),
   MBC_SCULPT_OVERLAYS = (1u << MBC_BATCH_INDEX(sculpt_overlays)),
   MBC_VIEWER_ATTRIBUTE_OVERLAY = (1u << MBC_BATCH_INDEX(surface_viewer_attribute)),
-  MBC_SURFACE_PER_MAT = (1u << MBC_BATCH_LEN),
+  MBC_PAINT_OVERLAY_VERTS = (1u << MBC_BATCH_INDEX(paint_overlay_verts)),
+  MBC_PAINT_OVERLAY_SURFACE = (uint64_t(1u) << MBC_BATCH_INDEX(paint_overlay_surface)),
+  MBC_SURFACE_PER_MAT = (uint64_t(1u) << MBC_BATCH_LEN),
 };
 ENUM_OPERATORS(DRWBatchFlag, MBC_SURFACE_PER_MAT);
 

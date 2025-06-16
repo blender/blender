@@ -73,7 +73,6 @@
 #include "kernel/svm/vector_transform.h"
 #include "kernel/svm/vertex_color.h"
 #include "kernel/svm/voronoi.h"
-#include "kernel/svm/voxel.h"
 #include "kernel/svm/wave.h"
 #include "kernel/svm/wavelength.h"
 #include "kernel/svm/white_noise.h"
@@ -463,9 +462,6 @@ ccl_device void svm_eval_nodes(KernelGlobals kg,
       break;
 #endif
 
-      SVM_CASE(NODE_TEX_VOXEL)
-      offset = svm_node_tex_voxel<node_feature_mask>(kg, sd, stack, node, offset);
-      break;
       SVM_CASE(NODE_AOV_START)
       if (!svm_node_aov_check(path_flag, render_buffer)) {
         return;

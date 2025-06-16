@@ -57,7 +57,6 @@
 
 /* `inittab` initialization functions. */
 #include "../bmesh/bmesh_py_api.hh"
-#include "../generic/bgl.hh"
 #include "../generic/bl_math_py_api.hh"
 #include "../generic/blf_py_api.hh"
 #include "../generic/idprop_py_api.hh"
@@ -272,7 +271,6 @@ static _inittab bpy_internal_modules[] = {
     {"mathutils.kdtree", PyInit_mathutils_kdtree},
 #endif
     {"_bpy_path", BPyInit__bpy_path},
-    {"bgl", BPyInit_bgl},
     {"blf", BPyInit_blf},
     {"bl_math", BPyInit_bl_math},
     {"imbuf", BPyInit_imbuf},

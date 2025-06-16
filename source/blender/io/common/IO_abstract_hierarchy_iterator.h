@@ -85,6 +85,18 @@ struct HierarchyContext {
   /* When true this is duplisource object. This flag is used to identify instance prototypes. */
   bool is_duplisource;
 
+  /* This flag tells whether an object is a valid point instance of other objects.
+   * If true, it means the object has a valid reference path and its value can be included
+   * in the instances data of UsdGeomPointInstancer. */
+  bool is_point_instance;
+
+  /* This flag tells if an object is a valid prototype of a point instancer. */
+  bool is_point_proto;
+
+  /* True if this context is a descendant of any context with is_point_instance set to true.
+   * This helps skip redundant instancing data during export. */
+  bool has_point_instance_ancestor;
+
   /*********** Determined during writer creation: ***************/
   float parent_matrix_inv_world[4][4]; /* Inverse of the parent's world matrix. */
   std::string export_path; /* Hierarchical path, such as "/grandparent/parent/object_name". */
@@ -111,6 +123,9 @@ struct HierarchyContext {
   void mark_as_instance_of(const std::string &reference_export_path);
   void mark_as_not_instanced();
   bool is_prototype() const;
+
+  /* For handling point instancing (Instance on Points geometry node). */
+  bool is_point_instancer() const;
 
   bool is_object_visible(enum eEvaluationMode evaluation_mode) const;
 };

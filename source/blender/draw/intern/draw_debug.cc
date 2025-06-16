@@ -183,10 +183,9 @@ void drw_debug_matrix(const float4x4 &m4, const uint lifetime)
 void drw_debug_matrix_as_bbox(const float4x4 &mat, const float4 color, const uint lifetime)
 {
   BoundBox bb;
-  const float min[3] = {-1.0f, -1.0f, -1.0f}, max[3] = {1.0f, 1.0f, 1.0f};
-  BKE_boundbox_init_from_minmax(&bb, min, max);
+  std::array<float3, 8> corners = bounds::corners(Bounds<float3>(float3(-1), float3(1)));
   for (auto i : IndexRange(8)) {
-    mul_project_m4_v3(mat.ptr(), bb.vec[i]);
+    mul_project_m4_v3(mat.ptr(), corners[i]);
   }
   drw_debug_bbox(bb, color, lifetime);
 }

@@ -49,14 +49,6 @@ static void cmp_node_ellipsemask_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>("Mask");
 }
 
-static void node_composit_init_ellipsemask(bNodeTree * /*ntree*/, bNode *node)
-{
-  /* All members are deprecated and needn't be set, but the data is still allocated for forward
-   * compatibility. */
-  NodeEllipseMask *data = MEM_callocN<NodeEllipseMask>(__func__);
-  node->storage = data;
-}
-
 static void node_composit_buts_ellipsemask(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   layout->prop(ptr, "mask_type", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
@@ -300,9 +292,6 @@ static void register_node_type_cmp_ellipsemask()
   ntype.nclass = NODE_CLASS_MATTE;
   ntype.declare = file_ns::cmp_node_ellipsemask_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_ellipsemask;
-  ntype.initfunc = file_ns::node_composit_init_ellipsemask;
-  blender::bke::node_type_storage(
-      ntype, "NodeEllipseMask", node_free_standard_storage, node_copy_standard_storage);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
   blender::bke::node_register_type(ntype);

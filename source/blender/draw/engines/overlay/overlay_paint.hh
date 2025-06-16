@@ -233,16 +233,16 @@ class Paints : Overlay {
       const bool in_texture_paint_mode = state.ctx_mode == CTX_MODE_PAINT_TEXTURE;
 
       if ((use_face_selection || show_wires_) && !in_texture_paint_mode) {
-        gpu::Batch *geom = DRW_cache_mesh_surface_edges_get(ob_ref.object);
+        gpu::Batch *geom = DRW_cache_mesh_paint_overlay_edges_get(ob_ref.object);
         paint_region_edge_ps_->push_constant("use_select", use_face_selection);
         paint_region_edge_ps_->draw(geom, manager.unique_handle(ob_ref));
       }
       if (use_face_selection) {
-        gpu::Batch *geom = DRW_cache_mesh_surface_get(ob_ref.object);
+        gpu::Batch *geom = DRW_cache_mesh_paint_overlay_surface_get(ob_ref.object);
         paint_region_face_ps_->draw(geom, manager.unique_handle(ob_ref));
       }
       if (use_vert_selection && !in_texture_paint_mode) {
-        gpu::Batch *geom = DRW_cache_mesh_all_verts_get(ob_ref.object);
+        gpu::Batch *geom = DRW_cache_mesh_paint_overlay_verts_get(ob_ref.object);
         paint_region_vert_ps_->draw(geom, manager.unique_handle(ob_ref));
       }
     }

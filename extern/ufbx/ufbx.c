@@ -5944,6 +5944,11 @@ ufbx_inline ufbx_vec3 ufbxi_normalize3(ufbx_vec3 a) {
 	}
 }
 
+ufbx_inline ufbx_vec3 ufbxi_neg3(ufbx_vec3 a) {
+	ufbx_vec3 v = { -a.x, -a.y, -a.z };
+	return v;
+}
+
 ufbx_inline ufbx_real ufbxi_distsq2(ufbx_vec2 a, ufbx_vec2 b) {
 	ufbx_real dx = a.x - b.x, dy = a.y - b.y;
 	return dx*dx + dy*dy;
@@ -5960,7 +5965,6 @@ static ufbxi_noinline ufbx_vec3 ufbxi_slow_normalized_cross3(const ufbx_vec3 *a,
 // -- Threading
 
 typedef struct ufbxi_task ufbxi_task;
-typedef struct ufbxi_thread ufbxi_thread;
 typedef struct ufbxi_thread_pool ufbxi_thread_pool;
 
 typedef bool ufbxi_task_fn(ufbxi_task *task);
@@ -17985,6 +17989,23 @@ typedef struct {
 	ufbx_vec3 constant_value;
 } ufbxi_pre_anim_value;
 
+static bool ufbxi_pivot_nonzero(ufbx_vec3 offset)
+{
+	// TODO: Expose this as a setting?
+	const double epsilon = 0.0009765625;
+	return ufbx_fabs(offset.x) >= epsilon || ufbx_fabs(offset.y) >= epsilon || ufbx_fabs(offset.z) >= epsilon;
+}
+
+static ufbx_real ufbxi_pivot_div(ufbx_real offset, ufbx_real initial_scale)
+{
+	const double epsilon = 0.0078125;
+	if (ufbx_fabs(initial_scale) >= epsilon) {
+		return offset / initial_scale;
+	} else {
+		return offset;
+	}
+}
+
 // Called between parsing and `ufbxi_finalize_scene()`.
 // This is a very messy function reminiscent of the _old_ ufbx, where we do
 // multiple passes over connections without having a proper scene graph.
@@ -17997,7 +18018,7 @@ ufbxi_nodiscard ufbxi_noinline static int ufbxi_pre_finalize_scene(ufbxi_context
 	bool required = false;
 	if (uc->opts.geometry_transform_handling == UFBX_GEOMETRY_TRANSFORM_HANDLING_HELPER_NODES || uc->opts.geometry_transform_handling == UFBX_GEOMETRY_TRANSFORM_HANDLING_MODIFY_GEOMETRY) required = true;
 	if (uc->opts.inherit_mode_handling == UFBX_INHERIT_MODE_HANDLING_HELPER_NODES || uc->opts.inherit_mode_handling == UFBX_INHERIT_MODE_HANDLING_COMPENSATE || uc->opts.inherit_mode_handling == UFBX_INHERIT_MODE_HANDLING_COMPENSATE_NO_FALLBACK) required = true;
-	if (uc->opts.pivot_handling == UFBX_PIVOT_HANDLING_ADJUST_TO_PIVOT) required = true;
+	if (uc->opts.pivot_handling == UFBX_PIVOT_HANDLING_ADJUST_TO_PIVOT || uc->opts.pivot_handling == UFBX_PIVOT_HANDLING_ADJUST_TO_ROTATION_PIVOT) required = true;
 #if defined(UFBX_REGRESSION)
 	required = true;
 #endif
@@ -18021,6 +18042,9 @@ ufbxi_nodiscard ufbxi_noinline static int ufbxi_pre_finalize_scene(ufbxi_context
 
 	bool *modify_not_supported = ufbxi_push_zero(&uc->tmp_parse, bool, num_elements);
 	ufbxi_check(modify_not_supported);
+
+	ufbx_element_type *node_attrib_type = ufbxi_push_zero(&uc->tmp_parse, ufbx_element_type, num_nodes);
+	ufbxi_check(node_attrib_type);
 
 	bool *has_unscaled_children = ufbxi_push_zero(&uc->tmp_parse, bool, num_nodes);
 	ufbxi_check(has_unscaled_children);
@@ -18090,7 +18114,8 @@ ufbxi_nodiscard ufbxi_noinline static int ufbxi_pre_finalize_scene(ufbxi_context
 				ufbx_node *dst_node = (ufbx_node*)dst;
 
 				if (src->type >= UFBX_ELEMENT_TYPE_FIRST_ATTRIB && src->type <= UFBX_ELEMENT_TYPE_LAST_ATTRIB) {
-					++instance_counts[src->element_id];
+					uint32_t count = ++instance_counts[src->element_id];
+					node_attrib_type[dst->typed_id] = count == 1 ? src->type : UFBX_ELEMENT_UNKNOWN;
 
 					// These must match what can be trasnsformed in `ufbxi_modify_geometry()`
 					switch (src->type) {
@@ -18202,19 +18227,35 @@ ufbxi_nodiscard ufbxi_noinline static int ufbxi_pre_finalize_scene(ufbxi_context
 		}
 	}
 
-	if (uc->opts.pivot_handling == UFBX_PIVOT_HANDLING_ADJUST_TO_PIVOT) {
+	if (uc->opts.pivot_handling == UFBX_PIVOT_HANDLING_ADJUST_TO_PIVOT || uc->opts.pivot_handling == UFBX_PIVOT_HANDLING_ADJUST_TO_ROTATION_PIVOT) {
 		for (size_t i = 0; i < num_nodes; i++) {
 			ufbxi_pre_node *pre_node = &pre_nodes[i];
 			ufbx_node *node = (ufbx_node*)elements[pre_node->element_id];
+
 			ufbx_vec3 rotation_pivot = ufbxi_find_vec3(&node->props, ufbxi_RotationPivot, 0.0f, 0.0f, 0.0f);
 			ufbx_vec3 scaling_pivot = ufbxi_find_vec3(&node->props, ufbxi_ScalingPivot, 0.0f, 0.0f, 0.0f);
-			if (!ufbxi_is_vec3_zero(rotation_pivot)) {
-				ufbx_real err = 0.0f;
-				err += (ufbx_real)ufbx_fabs(rotation_pivot.x - scaling_pivot.x);
-				err += (ufbx_real)ufbx_fabs(rotation_pivot.y - scaling_pivot.y);
-				err += (ufbx_real)ufbx_fabs(rotation_pivot.z - scaling_pivot.z);
+			ufbx_vec3 scaling_offset = ufbxi_find_vec3(&node->props, ufbxi_ScalingOffset, 0.0f, 0.0f, 0.0f);
 
+			bool should_modify_pivot = false;
+			if (uc->opts.pivot_handling == UFBX_PIVOT_HANDLING_ADJUST_TO_PIVOT) {
+				should_modify_pivot = !ufbxi_is_vec3_zero(rotation_pivot);
+			} else if (uc->opts.pivot_handling == UFBX_PIVOT_HANDLING_ADJUST_TO_ROTATION_PIVOT) {
+				should_modify_pivot = ufbxi_pivot_nonzero(rotation_pivot) || ufbxi_pivot_nonzero(scaling_pivot) || ufbxi_pivot_nonzero(scaling_offset);
+			}
+
+			if (should_modify_pivot) {
+				bool skip_geometry_transform = false;
 				bool can_modify_geometry_transform = true;
+				if (uc->opts.pivot_handling == UFBX_PIVOT_HANDLING_ADJUST_TO_ROTATION_PIVOT) {
+					if (node_attrib_type[node->typed_id] == UFBX_ELEMENT_EMPTY) {
+						if (!uc->opts.pivot_handling_retain_empties) {
+							skip_geometry_transform = true;
+						} else {
+							can_modify_geometry_transform = false;
+						}
+					}
+				}
+
 				if (uc->opts.geometry_transform_handling == UFBX_GEOMETRY_TRANSFORM_HANDLING_MODIFY_GEOMETRY_NO_FALLBACK) {
 					if (instance_counts[node->element_id] > 1 || modify_not_supported[node->element_id]) {
 						can_modify_geometry_transform = false;
@@ -18225,24 +18266,77 @@ ufbxi_nodiscard ufbxi_noinline static int ufbxi_pre_finalize_scene(ufbxi_context
 					can_modify_geometry_transform = false;
 				}
 
-				if (err <= pivot_epsilon && can_modify_geometry_transform) {
-					size_t num_props = node->props.props.count;
-					ufbx_prop *new_props = ufbxi_push_zero(&uc->result, ufbx_prop, num_props + 3);
-					ufbxi_check(new_props);
-					memcpy(new_props, node->props.props.data, num_props * sizeof(ufbx_prop));
+				bool can_modify_pivot = true;
+				if (uc->opts.pivot_handling == UFBX_PIVOT_HANDLING_ADJUST_TO_PIVOT) {
+					ufbx_real err = 0.0f;
+					err += (ufbx_real)ufbx_fabs(rotation_pivot.x - scaling_pivot.x);
+					err += (ufbx_real)ufbx_fabs(rotation_pivot.y - scaling_pivot.y);
+					err += (ufbx_real)ufbx_fabs(rotation_pivot.z - scaling_pivot.z);
+					if (err > pivot_epsilon) {
+						can_modify_pivot = false;
+					}
+				}
 
+				if (can_modify_pivot && (can_modify_geometry_transform || skip_geometry_transform)) {
 					ufbx_vec3 geometric_translation = ufbxi_find_vec3(&node->props, ufbxi_GeometricTranslation, 0.0f, 0.0f, 0.0f);
-					geometric_translation.x -= rotation_pivot.x;
-					geometric_translation.y -= rotation_pivot.y;
-					geometric_translation.z -= rotation_pivot.z;
 
-					ufbx_prop *dst = new_props + num_props;
-					ufbxi_init_synthetic_vec3_prop(&dst[0], ufbxi_RotationPivot, &ufbx_zero_vec3, UFBX_PROP_VECTOR);
-					ufbxi_init_synthetic_vec3_prop(&dst[1], ufbxi_ScalingPivot, &ufbx_zero_vec3, UFBX_PROP_VECTOR);
-					ufbxi_init_synthetic_vec3_prop(&dst[2], ufbxi_GeometricTranslation, &geometric_translation, UFBX_PROP_VECTOR);
+					ufbx_vec3 child_offset = { 0.0f };
+					ufbx_prop *new_props = NULL;
+					size_t num_props = node->props.props.count;
+					size_t new_prop_count = num_props;
+					if (uc->opts.pivot_handling == UFBX_PIVOT_HANDLING_ADJUST_TO_PIVOT) {
+						ufbx_assert(!skip_geometry_transform); // not supporeted in legacy mode
+						child_offset = ufbxi_neg3(rotation_pivot);
+						geometric_translation = ufbxi_add3(geometric_translation, child_offset);
+
+						new_props = ufbxi_push_zero(&uc->result, ufbx_prop, num_props + 3);
+						ufbxi_check(new_props);
+						memcpy(new_props, node->props.props.data, num_props * sizeof(ufbx_prop));
+
+						ufbxi_init_synthetic_vec3_prop(&new_props[new_prop_count++], ufbxi_RotationPivot, &ufbx_zero_vec3, UFBX_PROP_VECTOR);
+						ufbxi_init_synthetic_vec3_prop(&new_props[new_prop_count++], ufbxi_ScalingPivot, &ufbx_zero_vec3, UFBX_PROP_VECTOR);
+						ufbxi_init_synthetic_vec3_prop(&new_props[new_prop_count++], ufbxi_GeometricTranslation, &geometric_translation, UFBX_PROP_VECTOR);
+					} else if (uc->opts.pivot_handling == UFBX_PIVOT_HANDLING_ADJUST_TO_ROTATION_PIVOT) {
+						// We can eliminate the post-rotation translation and move it to the geometry/children as follows.
+						// Let Z be the initial value of S in the transform (aka `initial_scale`):
+						//
+						//   (Rp-1+Soff+Sp) + S * (Sp-1)
+						//   S * (Sp-1 + (Rp-1+Soff+Sp)/S)
+						//   S * (Sp-1 + (Rp-1+Soff+Sp)/S - (Rp-1+Soff+Sp)/Z + (Rp-1+Soff+Sp)/Z)
+						//
+						//   (Rp-1 + Soff + Sp) + S * (-(Rp-1 + Soff + Sp)/Z + (Sp-1 + (Rp-1 + Soff + Sp)/Z))
+						//   ^-scaled_offset--^         ^-unscaled_offset--^           ^-unscaled_offset--^
+						//   ^---------------- 0, when S=Z ----------------^   ^------- child_offset ------^
+						//
+						// We need to be careful when doing this in case any component of Z is 0. Fortunately,
+						// the above holds for all `Z != 0`, it will just result in non-zero translation in the parent.
+						ufbx_vec3 initial_scale = ufbxi_find_vec3(&node->props, ufbxi_Lcl_Scaling, 1.0f, 1.0f, 1.0f);
+						ufbx_vec3 scaled_offset = ufbxi_sub3(ufbxi_add3(scaling_offset, scaling_pivot), rotation_pivot);
+						ufbx_vec3 unscaled_offset;
+						unscaled_offset.x = ufbxi_pivot_div(scaled_offset.x, initial_scale.x);
+						unscaled_offset.y = ufbxi_pivot_div(scaled_offset.y, initial_scale.y);
+						unscaled_offset.z = ufbxi_pivot_div(scaled_offset.z, initial_scale.z);
+
+						// Convert `scaled_offset + S*unscaled_offset` to FBX scaling pivot and offset.
+						ufbx_vec3 new_scaling_pivot = unscaled_offset;
+						ufbx_vec3 new_scaling_offset = ufbxi_sub3(scaled_offset, new_scaling_pivot);
+						child_offset = ufbxi_sub3(unscaled_offset, scaling_pivot);
+
+						new_props = ufbxi_push_zero(&uc->result, ufbx_prop, num_props + 4);
+						ufbxi_check(new_props);
+						memcpy(new_props, node->props.props.data, num_props * sizeof(ufbx_prop));
+
+						ufbxi_init_synthetic_vec3_prop(&new_props[new_prop_count++], ufbxi_RotationPivot, &ufbx_zero_vec3, UFBX_PROP_VECTOR);
+						ufbxi_init_synthetic_vec3_prop(&new_props[new_prop_count++], ufbxi_ScalingPivot, &new_scaling_pivot, UFBX_PROP_VECTOR);
+						ufbxi_init_synthetic_vec3_prop(&new_props[new_prop_count++], ufbxi_ScalingOffset, &new_scaling_offset, UFBX_PROP_VECTOR);
+						if (!skip_geometry_transform) {
+							geometric_translation = ufbxi_add3(geometric_translation, child_offset);
+							ufbxi_init_synthetic_vec3_prop(&new_props[new_prop_count++], ufbxi_GeometricTranslation, &geometric_translation, UFBX_PROP_VECTOR);
+						}
+					}
 
 					node->props.props.data = new_props;
-					node->props.props.count = num_props + 3;
+					node->props.props.count = new_prop_count;
 					ufbxi_check(ufbxi_sort_properties(uc, node->props.props.data, node->props.props.count));
 					ufbxi_deduplicate_properties(&node->props.props);
 
@@ -18253,7 +18347,7 @@ ufbxi_nodiscard ufbxi_noinline static int ufbxi_pre_finalize_scene(ufbxi_context
 						ufbxi_pre_node *pre_child = &pre_nodes[ix];
 						ufbx_node *child = (ufbx_node*)elements[pre_child->element_id];
 
-						child->adjust_pre_translation = ufbxi_sub3(child->adjust_pre_translation, rotation_pivot);
+						child->adjust_pre_translation = ufbxi_add3(child->adjust_pre_translation, child_offset);
 						child->has_adjust_transform = true;
 
 						ix = pre_child->next_child;
@@ -23515,8 +23609,13 @@ ufbxi_noinline static void ufbxi_update_adjust_transforms(ufbxi_context *uc, ufb
 		light->local_direction.z = 0.0f;
 	}
 
-	ufbx_real root_scale = ufbxi_min3(root_transform.scale);
 	scene->metadata.space_conversion = conversion;
+	scene->metadata.geometry_transform_handling = uc->opts.geometry_transform_handling;
+	scene->metadata.inherit_mode_handling = uc->opts.inherit_mode_handling;
+	scene->metadata.pivot_handling = uc->opts.pivot_handling;
+	scene->metadata.handedness_conversion_axis = uc->opts.handedness_conversion_axis;
+
+	ufbx_real root_scale = ufbxi_min3(root_transform.scale);
 	if (conversion == UFBX_SPACE_CONVERSION_MODIFY_GEOMETRY) {
 		scene->metadata.geometry_scale = root_scale;
 		scene->metadata.root_scale = 1.0f;

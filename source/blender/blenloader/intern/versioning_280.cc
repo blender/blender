@@ -3438,7 +3438,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
         scene->eevee.volumetric_light_clamp = 0.0f;
         scene->eevee.volumetric_shadow_samples = 16;
 
-        scene->eevee.gtao_distance = 0.2f;
+        scene->eevee.fast_gi_distance = 0.2f;
         scene->eevee.fast_gi_quality = 0.25f;
 
         scene->eevee.bokeh_max_size = 100.0f;

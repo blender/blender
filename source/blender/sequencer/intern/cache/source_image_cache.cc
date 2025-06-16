@@ -256,16 +256,44 @@ bool source_image_cache_evict(Scene *scene)
   if (cache == nullptr) {
     return false;
   }
-
   /* Find which entry to remove -- we pick the one that is furthest from the current frame,
-   * biasing the ones that are behind the current frame. */
-  const int cur_frame = scene->r.cfra;
+   * biasing the ones that are behind the current frame.
+   *
+   * However, do not try to evict entries from the current prefetch job range -- we need to
+   * be able to fully fill the cache from prefetching, and then actually stop the job when it
+   * is full and no longer can evict anything. */
+  int cur_prefetch_start = std::numeric_limits<int>::min();
+  int cur_prefetch_end = std::numeric_limits<int>::min();
+  if (scene->ed->cache_flag & SEQ_CACHE_STORE_RAW) {
+    /* Only activate the prefetch guards if the cache is active. */
+    seq_prefetch_get_time_range(scene, &cur_prefetch_start, &cur_prefetch_end);
+  }
+  const bool prefetch_loops_around = cur_prefetch_start > cur_prefetch_end;
+
+  const int timeline_start = PSFRA;
+  const int timeline_end = PEFRA;
+  /* If we wrap around, treat the timeline start as the playback head position.
+   * This is to try to mitigate un-needed cache evictions. */
+  const int cur_frame = prefetch_loops_around ? timeline_start : scene->r.cfra;
+
   SourceImageCache::StripEntry *best_strip = nullptr;
   std::pair<int, int> best_key = {};
   int best_score = 0;
   for (const auto &strip : cache->map_.items()) {
     for (const auto &entry : strip.value.frames.items()) {
       const int item_frame = int(strip.key->start + entry.value.strip_frame);
+      if (prefetch_loops_around) {
+        if (item_frame >= timeline_start && item_frame <= cur_prefetch_end) {
+          continue; /* Within active prefetch range, do not try to remove it. */
+        }
+        if (item_frame >= cur_prefetch_start && item_frame <= timeline_end) {
+          continue; /* Within active prefetch range, do not try to remove it. */
+        }
+      }
+      else if (item_frame >= cur_prefetch_start && item_frame <= cur_prefetch_end) {
+        continue; /* Within active prefetch range, do not try to remove it. */
+      }
+
       /* Score for removal is distance to current frame; 2x that if behind current frame. */
       int score = 0;
       if (item_frame < cur_frame) {

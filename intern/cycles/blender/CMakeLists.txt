@@ -33,7 +33,6 @@ set(SRC
   session.cpp
   shader.cpp
   sync.cpp
-  texture.cpp
   viewport.cpp
   volume.cpp
 
@@ -48,7 +47,6 @@ set(SRC
   output_driver.h
   sync.h
   session.h
-  texture.h
   util.h
   viewport.h
 )

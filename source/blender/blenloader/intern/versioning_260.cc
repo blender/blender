@@ -629,11 +629,11 @@ static const char *node_get_static_idname(int type, int treetype)
         return "CompositorNodeViewer";
       case CMP_NODE_RGB:
         return "CompositorNodeRGB";
-      case CMP_NODE_VALUE:
+      case CMP_NODE_VALUE_DEPRECATED:
         return "CompositorNodeValue";
-      case CMP_NODE_MIX_RGB:
+      case CMP_NODE_MIX_RGB_DEPRECATED:
         return "CompositorNodeMixRGB";
-      case CMP_NODE_VALTORGB:
+      case CMP_NODE_VALTORGB_DEPRECATED:
         return "CompositorNodeValToRGB";
       case CMP_NODE_RGBTOBW:
         return "CompositorNodeRGBToBW";
@@ -2145,24 +2145,6 @@ void blo_do_versions_260(FileData *fd, Library * /*lib*/, Main *bmain)
         }
       }
     }
-
-    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
-      if (ntree->type == NTREE_COMPOSIT) {
-        LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-          if (node->type_legacy == CMP_NODE_IMAGE) {
-            Image *image = static_cast<Image *>(
-                blo_do_versions_newlibadr(fd, &ntree->id, ID_IS_LINKED(ntree), node->id));
-
-            if (image) {
-              if ((image->flag & IMA_DO_PREMUL) == 0 && image->alpha_mode == IMA_ALPHA_STRAIGHT) {
-                node->custom1 |= CMP_NODE_IMAGE_USE_STRAIGHT_OUTPUT;
-              }
-            }
-          }
-        }
-      }
-    }
-    FOREACH_NODETREE_END;
   }
   else if (!MAIN_VERSION_FILE_ATLEAST(bmain, 266, 1)) {
     /* texture use alpha was removed for 2.66 but added back again for 2.66a,

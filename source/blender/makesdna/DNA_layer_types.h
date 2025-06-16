@@ -117,7 +117,7 @@ typedef struct LayerCollection {
 /* Type containing EEVEE settings per view-layer */
 typedef struct ViewLayerEEVEE {
   int render_passes;
-  int _pad[1];
+  float ambient_occlusion_distance;
 } ViewLayerEEVEE;
 
 /** AOV Render-pass definition. */

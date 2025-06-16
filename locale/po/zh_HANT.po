@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Beta (b'798f85a7108f')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'6ccdb8c06e27')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-11 11:13+0000\n"
+"POT-Creation-Date: 2025-06-16 10:45+0000\n"
 "PO-Revision-Date: 2025-04-14 08:48+0000\n"
 "Last-Translator: luxem <luxem168@gmail.com>\n"
 "Language-Team: Chinese (Traditional Han script) <https://translate.blender.org/projects/blender-ui/ui/zh_Hant/>\n"
@@ -22575,12 +22575,12 @@ msgid "Material slot name"
 msgstr "材質槽名稱"
 
 
-msgid "Show/Hide"
-msgstr "顯示/隱藏"
-
-
 msgid "Clean Up"
 msgstr "清理"
+
+
+msgid "Show/Hide"
+msgstr "顯示/隱藏"
 
 
 msgid "Special Characters"
@@ -22605,6 +22605,10 @@ msgstr "名稱"
 
 msgid "Bone Roll"
 msgstr "骨骼滾動"
+
+
+msgid "Merge"
+msgstr "合併"
 
 
 msgid "Pivot Point"
@@ -22641,10 +22645,6 @@ msgstr "轉換"
 
 msgid "Relations"
 msgstr "關係"
-
-
-msgid "Merge"
-msgstr "合併"
 
 
 msgid "Light Probe"

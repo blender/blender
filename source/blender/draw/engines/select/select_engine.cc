@@ -340,14 +340,14 @@ struct Instance : public DrawEngine {
       blender::gpu::Batch *geom_faces = DRW_mesh_batch_cache_get_surface(
           DRW_object_get_data_for_drawing<Mesh>(*ob));
 
-      depth_occlude->draw(geom_faces, manager.resource_handle(ob_ref));
+      depth_occlude->draw(geom_faces, manager.unique_handle(ob_ref));
       return;
     }
 
     /* Only sync selectable object once.
      * This can happen in retopology mode where there is two sync loop. */
     sel_ctx.elem_ranges.lookup_or_add_cb(ob, [&]() {
-      ResourceHandle res_handle = manager.resource_handle(ob_ref);
+      ResourceHandle res_handle = manager.unique_handle(ob_ref);
       ElemIndexRanges elem_ranges = object_sync(
           draw_ctx->v3d, ob, res_handle, sel_ctx.select_mode, sel_ctx.max_index_drawn_len);
       sel_ctx.max_index_drawn_len = elem_ranges.total.one_after_last();

@@ -69,7 +69,9 @@ void relations_check_uids_unique_and_report(const Scene *scene);
 void relations_session_uid_generate(Strip *strip);
 
 void cache_cleanup(Scene *scene);
+void cache_settings_changed(Scene *scene);
 bool is_cache_full(const Scene *scene);
+bool evict_caches_if_full(Scene *scene);
 
 void source_image_cache_iterate(Scene *scene,
                                 void *userdata,

@@ -147,7 +147,7 @@ class AttributeViewer : Overlay {
         gpu::Batch *batch = DRW_cache_curve_edge_wire_get(&object);
         auto &sub = *instance_sub_;
         sub.push_constant("ucolor", float4(color));
-        ResourceHandle res_handle = manager.resource_handle(object.object_to_world());
+        ResourceHandle res_handle = manager.unique_handle(ob_ref);
         sub.draw(batch, res_handle);
         break;
       }
@@ -214,7 +214,7 @@ class AttributeViewer : Overlay {
               gpu::Batch *batch = DRW_cache_curve_edge_wire_viewer_attribute_get(&object);
               auto &sub = *curve_sub_;
               sub.push_constant("opacity", opacity);
-              ResourceHandle res_handle = manager.resource_handle(object.object_to_world());
+              ResourceHandle res_handle = manager.unique_handle(ob_ref);
               sub.draw(batch, res_handle);
             }
           }

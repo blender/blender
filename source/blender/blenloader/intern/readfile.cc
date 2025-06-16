@@ -47,7 +47,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_endian_defines.h"
-#include "BLI_endian_switch.h"
 #include "BLI_fileops.h"
 #include "BLI_ghash.h"
 #include "BLI_map.hh"
@@ -922,16 +921,11 @@ static int *read_file_thumbnail(FileData *fd)
 
   for (bhead = blo_bhead_first(fd); bhead; bhead = blo_bhead_next(fd, bhead)) {
     if (bhead->code == BLO_CODE_TEST) {
-      const bool do_endian_swap = (fd->flags & FD_FLAGS_SWITCH_ENDIAN) != 0;
+      BLI_assert((fd->flags & FD_FLAGS_SWITCH_ENDIAN) == 0);
       int *data = (int *)(bhead + 1);
 
       if (bhead->len < sizeof(int[2])) {
         break;
-      }
-
-      if (do_endian_swap) {
-        BLI_endian_switch_int32(&data[0]);
-        BLI_endian_switch_int32(&data[1]);
       }
 
       const int width = data[0];
@@ -4740,7 +4734,7 @@ static void library_link_end(Main *mainl, FileData **fd, const int flag, ReportL
   /* FIXME This is extremely bad design, #library_link_end should probably _always_ free the file
    * data? */
   if ((*fd)->flags & FD_FLAGS_SWITCH_ENDIAN) {
-    /* Big Endian blendfiles are not supported for linking. */
+    /* Big Endian blend-files are not supported for linking. */
     BLI_assert_unreachable();
     blo_filedata_free(*fd);
     *fd = nullptr;
@@ -5321,6 +5315,7 @@ static void convert_pointer_array_64_to_32(BlendDataReader *reader,
                                            uint32_t *dst)
 {
   BLI_assert((reader->fd->flags & FD_FLAGS_SWITCH_ENDIAN) == 0);
+  UNUSED_VARS_NDEBUG(reader);
   for (int i = 0; i < array_size; i++) {
     dst[i] = uint32_from_uint64_ptr(src[i]);
   }

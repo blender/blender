@@ -122,7 +122,7 @@ std::optional<BHead> BLO_readfile_read_bhead(FileReader *file, BHeadType type);
 inline uint32_t uint32_from_uint64_ptr(uint64_t ptr)
 {
   /* NOTE: this is endianness-sensitive. */
-  /* Switching endianess would be required to reduce the risk of two different 64bits pointers
+  /* Switching endianness would be required to reduce the risk of two different 64bits pointers
    * generating the same 32bits value. */
   /* Behavior has to match #cast_pointer_64_to_32. */
   ptr >>= 3;

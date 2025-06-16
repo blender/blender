@@ -272,13 +272,13 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
           break;
 
         case TH_PANEL_HEADER:
-          cp = ts->panelcolors.header;
+          cp = btheme->tui.panel_header;
           break;
         case TH_PANEL_BACK:
-          cp = ts->panelcolors.back;
+          cp = btheme->tui.panel_back;
           break;
         case TH_PANEL_SUB_BACK:
-          cp = ts->panelcolors.sub_back;
+          cp = btheme->tui.panel_sub_back;
           break;
 
         case TH_BUTBACK:
@@ -291,17 +291,27 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
           cp = ts->button_text_hi;
           break;
 
+        case TH_TAB_TEXT:
+          cp = btheme->tui.wcol_tab.text;
+          break;
+        case TH_TAB_TEXT_HI:
+          cp = btheme->tui.wcol_tab.text_sel;
+          break;
         case TH_TAB_ACTIVE:
-          cp = ts->tab_active;
+          cp = btheme->tui.wcol_tab.inner_sel;
           break;
         case TH_TAB_INACTIVE:
-          cp = ts->tab_inactive;
-          break;
-        case TH_TAB_BACK:
-          cp = ts->tab_back;
+          cp = btheme->tui.wcol_tab.inner;
           break;
         case TH_TAB_OUTLINE:
-          cp = ts->tab_outline;
+          cp = btheme->tui.wcol_tab.outline;
+          break;
+        case TH_TAB_OUTLINE_ACTIVE:
+          cp = btheme->tui.wcol_tab.outline_sel;
+          break;
+        case TH_TAB_BACK:
+          /* Tab background is set per editor. */
+          cp = ts->tab_back;
           break;
 
         case TH_SHADE1:

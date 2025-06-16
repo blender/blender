@@ -97,8 +97,6 @@ set(SRC_OSL
   node_vector_transform.osl
   node_vertex_color.osl
   node_voronoi_texture.osl
-  node_voxel_texture.osl
-  node_voxel_texture_zero.osl
   node_wavelength.osl
   node_blackbody.osl
   node_wave_texture.osl
@@ -116,6 +114,7 @@ set(SRC_OSL
 file(GLOB SRC_OSL_HEADER_DIST ${OSL_SHADER_DIR}/*.h)
 
 set(SRC_OSL_HEADERS
+  int_vector_types.h
   node_color.h
   node_color_blend.h
   node_fractal_voronoi.h

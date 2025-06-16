@@ -95,8 +95,9 @@ static void ui_fbx_import_settings(const bContext *C, uiLayout *layout, PointerR
     uiLayout *col = &panel->column(false);
     col->prop(ptr, "global_scale", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     col->prop(ptr, "use_custom_props", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-    uiLayoutSetEnabled(col, RNA_boolean_get(ptr, "use_custom_props"));
-    col->prop(ptr, "use_custom_props_enum_as_string", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    uiLayout &subcol = col->column(false);
+    subcol.active_set(RNA_boolean_get(ptr, "use_custom_props"));
+    subcol.prop(ptr, "use_custom_props_enum_as_string", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
   if (uiLayout *panel = layout->panel(C, "FBX_import_geometry", false, IFACE_("Geometry"))) {

@@ -31,7 +31,6 @@ set(SRC
   intern/render_types.cc
   intern/texture_image.cc
   intern/texture_margin.cc
-  intern/texture_pointdensity.cc
   intern/texture_procedural.cc
   intern/tile_highlight.cc
   intern/zbuf.cc

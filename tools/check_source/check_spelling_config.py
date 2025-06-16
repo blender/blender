@@ -343,6 +343,7 @@ dict_custom = {
     "reimplement",
     "reimplemented",
     "reimplementing",
+    "reimport",
     "relink",
     "relinked",
     "relinking",

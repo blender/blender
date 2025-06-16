@@ -35,6 +35,9 @@ struct USDExporterContext {
   const USDExportParams &export_params;
   std::string export_file_path;
   std::function<std::string(Main *, Scene *, Image *, ImageUser *)> export_image_fn;
+
+  /** Optional callback for skel/shape-key path registration (used by USDPointInstancerWriter). */
+  std::function<void(const Object *, const pxr::SdfPath &)> add_skel_mapping_fn;
 };
 
 }  // namespace blender::io::usd

@@ -111,10 +111,9 @@ GPU_SHADER_CREATE_INFO(subdiv_loop_normals)
 DO_STATIC_COMPILATION()
 STORAGE_BUF(LOOP_NORMALS_POS_SLOT, read, Position, positions[])
 STORAGE_BUF(LOOP_NORMALS_EXTRA_COARSE_FACE_DATA_BUF_SLOT, read, uint, extra_coarse_face_data[])
-STORAGE_BUF(LOOP_NORMALS_INPUT_VERT_ORIG_INDEX_BUF_SLOT, read, int, input_vert_origindex[])
 STORAGE_BUF(LOOP_NORMALS_VERT_NORMALS_BUF_SLOT, read, Normal, vert_normals[])
 STORAGE_BUF(LOOP_NORMALS_VERTEX_LOOP_MAP_BUF_SLOT, read, uint, vert_loop_map[])
-STORAGE_BUF(LOOP_NORMALS_OUTPUT_LNOR_BUF_SLOT, write, LoopNormal, output_lnor[])
+STORAGE_BUF(LOOP_NORMALS_OUTPUT_LNOR_BUF_SLOT, write, Normal, output_lnor[])
 COMPUTE_SOURCE("subdiv_vbo_lnor_comp.glsl")
 ADDITIONAL_INFO(subdiv_polygon_offset_base)
 GPU_SHADER_CREATE_END()
@@ -285,13 +284,18 @@ COMPUTE_SOURCE("subdiv_normals_accumulate_comp.glsl")
 ADDITIONAL_INFO(subdiv_base)
 GPU_SHADER_CREATE_END()
 
-GPU_SHADER_CREATE_INFO(subdiv_custom_normals_finalize)
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Paint Overlay Flag
+ * \{ */
+
+GPU_SHADER_CREATE_INFO(subdiv_paint_overlay_flag)
 DO_STATIC_COMPILATION()
-STORAGE_BUF(NORMALS_FINALIZE_CUSTOM_NORMALS_BUF_SLOT, read, Normal, custom_normals[])
-STORAGE_BUF(NORMALS_FINALIZE_INPUT_VERT_ORIG_INDEX_BUF_SLOT, read, int, input_vert_origindex[])
-STORAGE_BUF(NORMALS_FINALIZE_EXTRA_COARSE_FACE_DATA_BUF_SLOT, read, uint, extra_coarse_face_data[])
-STORAGE_BUF(NORMALS_FINALIZE_OUTPUT_LNOR_BUF_SLOT, write, LoopNormal, output_lnor[])
-COMPUTE_SOURCE("subdiv_normals_finalize_comp.glsl")
+STORAGE_BUF(PAINT_OVERLAY_EXTRA_COARSE_FACE_DATA_BUF_SLOT, read, uint, extra_coarse_face_data[])
+STORAGE_BUF(PAINT_OVERLAY_EXTRA_INPUT_VERT_ORIG_INDEX_SLOT, read, int, input_vert_origindex[])
+STORAGE_BUF(PAINT_OVERLAY_OUTPUT_FLAG_SLOT, write, int, flags[])
+COMPUTE_SOURCE("subdiv_vbo_paint_overlay_flag_comp.glsl")
 ADDITIONAL_INFO(subdiv_polygon_offset_base)
 GPU_SHADER_CREATE_END()
 

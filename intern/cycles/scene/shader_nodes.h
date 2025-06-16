@@ -153,9 +153,6 @@ class SkyTextureNode : public TextureNode {
   SHADER_NODE_CLASS(SkyTextureNode)
 
   NODE_SOCKET_API(NodeSkyType, sky_type)
-  NODE_SOCKET_API(float3, sun_direction)
-  NODE_SOCKET_API(float, turbidity)
-  NODE_SOCKET_API(float, ground_albedo)
   NODE_SOCKET_API(bool, sun_disc)
   NODE_SOCKET_API(float, sun_size)
   NODE_SOCKET_API(float, sun_intensity)
@@ -342,42 +339,6 @@ class BrickTextureNode : public TextureNode {
   NODE_SOCKET_API(float, brick_width)
   NODE_SOCKET_API(float, row_height)
   NODE_SOCKET_API(float3, vector)
-};
-
-class PointDensityTextureNode : public ShaderNode {
- public:
-  SHADER_NODE_NO_CLONE_CLASS(PointDensityTextureNode)
-
-  ~PointDensityTextureNode() override;
-  ShaderNode *clone(ShaderGraph *graph) const override;
-  void attributes(Shader *shader, AttributeRequestSet *attributes) override;
-  bool has_attribute_dependency() override
-  {
-    return true;
-  }
-
-  bool has_spatial_varying() override
-  {
-    return true;
-  }
-
-  /* Parameters. */
-  NODE_SOCKET_API(ustring, filename)
-  NODE_SOCKET_API(NodeTexVoxelSpace, space)
-  NODE_SOCKET_API(InterpolationType, interpolation)
-  NODE_SOCKET_API(Transform, tfm)
-  NODE_SOCKET_API(float3, vector)
-
-  /* Runtime. */
-  ImageHandle handle;
-
-  ImageParams image_params() const;
-
-  bool equals(const ShaderNode &other) override
-  {
-    const PointDensityTextureNode &other_node = (const PointDensityTextureNode &)other;
-    return ShaderNode::equals(other) && handle == other_node.handle;
-  }
 };
 
 class IESLightNode : public TextureNode {

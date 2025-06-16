@@ -1275,6 +1275,7 @@ void ED_spacetype_clip()
   art->keymapflag = ED_KEYMAP_FRAMES | ED_KEYMAP_UI;
   art->poll = clip_properties_region_poll;
   art->init = clip_properties_region_init;
+  art->snap_size = ED_region_generic_panel_region_snap_size;
   art->draw = clip_properties_region_draw;
   art->listener = clip_properties_region_listener;
   BLI_addhead(&st->regiontypes, art);

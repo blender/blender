@@ -847,6 +847,7 @@ struct Resources : public select::SelectMap {
     this->depth_in_front_alloc_tx.release();
     this->color_overlay_alloc_tx.release();
     this->color_render_alloc_tx.release();
+    free_movieclips_textures();
   }
 
   ThemeColorID object_wire_theme_id(const ObjectRef &ob_ref, const State &state) const
@@ -952,6 +953,7 @@ struct Resources : public select::SelectMap {
     for (MovieClip *clip : bg_movie_clips) {
       BKE_movieclip_free_gputexture(clip);
     }
+    bg_movie_clips.clear();
   }
 
   static float vertex_size_get()

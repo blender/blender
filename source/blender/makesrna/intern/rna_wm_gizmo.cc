@@ -66,8 +66,6 @@ static void rna_gizmo_draw_cb(const bContext *C, wmGizmo *gz)
   RNA_parameter_set_lookup(&list, "context", &C);
   gzgroup->type->rna_ext.call((bContext *)C, &gz_ptr, func, &list);
   RNA_parameter_list_free(&list);
-  /* This callback may have called bgl functions. */
-  GPU_bgl_end();
 }
 
 static void rna_gizmo_draw_select_cb(const bContext *C, wmGizmo *gz, int select_id)
@@ -84,8 +82,6 @@ static void rna_gizmo_draw_select_cb(const bContext *C, wmGizmo *gz, int select_
   RNA_parameter_set_lookup(&list, "select_id", &select_id);
   gzgroup->type->rna_ext.call((bContext *)C, &gz_ptr, func, &list);
   RNA_parameter_list_free(&list);
-  /* This callback may have called bgl functions. */
-  GPU_bgl_end();
 }
 
 static int rna_gizmo_test_select_cb(bContext *C, wmGizmo *gz, const int location[2])

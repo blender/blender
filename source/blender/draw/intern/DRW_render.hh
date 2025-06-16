@@ -55,7 +55,7 @@ struct GSet;
 struct GPUViewport;
 namespace blender::draw {
 class TextureFromPool;
-struct ObjectRef;
+class ObjectRef;
 class Manager;
 }  // namespace blender::draw
 

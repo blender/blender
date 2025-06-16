@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.5.0 Beta (b'798f85a7108f')\n"
+"Project-Id-Version: Blender 4.5.0 Beta (b'6ccdb8c06e27')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-11 11:13+0000\n"
+"POT-Creation-Date: 2025-06-16 10:45+0000\n"
 "PO-Revision-Date: 2025-05-20 06:39+0000\n"
 "Last-Translator: Jozef Matta <jozef.m923@gmail.com>\n"
 "Language-Team: Slovak <https://translate.blender.org/projects/blender-ui/ui/sk/>\n"
@@ -34523,12 +34523,12 @@ msgid "Editor menu containing buttons"
 msgstr "Ponuka editora obsahujúca tlačidlá"
 
 
-msgid "Show/Hide"
-msgstr "Ukázať/skryť"
-
-
 msgid "Clean Up"
 msgstr "Prečistiť"
+
+
+msgid "Show/Hide"
+msgstr "Ukázať/skryť"
 
 
 msgid "Special Characters"
@@ -34553,6 +34553,10 @@ msgstr "Názvy"
 
 msgid "Bone Roll"
 msgstr "Kývanie kosti"
+
+
+msgid "Merge"
+msgstr "Zlúčiť"
 
 
 msgid "Pivot Point"
@@ -34609,10 +34613,6 @@ msgstr "Vzťahy"
 
 msgid "Add Image"
 msgstr "Pridať obrázok"
-
-
-msgid "Merge"
-msgstr "Zlúčiť"
 
 
 msgid "Light Probe"

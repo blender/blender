@@ -94,7 +94,7 @@ def main():
     if args.gpu_backend == "vulkan":
         report.set_compare_engine('workbench', 'opengl')
     else:
-        report.set_compare_engine('eevee_next', 'opengl')
+        report.set_compare_engine('eevee', 'opengl')
     report.set_pixelated(True)
     report.set_reference_dir("workbench_renders")
 

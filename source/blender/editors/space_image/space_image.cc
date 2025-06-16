@@ -1249,6 +1249,7 @@ void ED_spacetype_image()
   art->listener = image_buttons_region_listener;
   art->message_subscribe = ED_area_do_mgs_subscribe_for_tool_ui;
   art->init = image_buttons_region_init;
+  art->snap_size = ED_region_generic_panel_region_snap_size;
   art->layout = image_buttons_region_layout;
   art->draw = image_buttons_region_draw;
   BLI_addhead(&st->regiontypes, art);

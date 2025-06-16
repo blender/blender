@@ -1,8 +1,11 @@
 /* SPDX-FileCopyrightText: 2020 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
-#include "abc_writer_abstract.h"
+
+#include "BLI_bounds.hh"
+
 #include "abc_hierarchy_iterator.h"
+#include "abc_writer_abstract.h"
 
 #include "BKE_object.hh"
 
@@ -105,17 +108,16 @@ void ABCAbstractWriter::update_bounding_box(Object *object)
     return;
   }
 
-  BoundBox bb;
-  BKE_boundbox_init_from_minmax(&bb, bounds->min, bounds->max);
+  const std::array<float3, 8> corners = blender::bounds::corners(*bounds);
 
   /* Convert Z-up to Y-up. This also changes which vector goes into which min/max property. */
-  bounding_box_.min.x = bb.vec[0][0];
-  bounding_box_.min.y = bb.vec[0][2];
-  bounding_box_.min.z = -bb.vec[6][1];
+  bounding_box_.min.x = corners[0][0];
+  bounding_box_.min.y = corners[0][2];
+  bounding_box_.min.z = -corners[6][1];
 
-  bounding_box_.max.x = bb.vec[6][0];
-  bounding_box_.max.y = bb.vec[6][2];
-  bounding_box_.max.z = -bb.vec[0][1];
+  bounding_box_.max.x = corners[6][0];
+  bounding_box_.max.y = corners[6][2];
+  bounding_box_.max.z = -corners[0][1];
 }
 
 void ABCAbstractWriter::write_visibility(const HierarchyContext &context)

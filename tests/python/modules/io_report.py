@@ -131,7 +131,7 @@ class Report:
             message += """<p><tt>BLENDER_TEST_UPDATE=1 ctest -R %s</tt></p>""" % test_suite_name
             message += """<p>The reference output of new and failing tests will be updated. """ \
                        """Be sure to commit the new reference """ \
-                       """files to the tests/files git submodule afterwards.</p>"""
+                       """files under the tests/files folder afterwards.</p>"""
             message += """</div>"""
             message += f"Tested files: {self.tested_count}, <b>failed: {len(self.failed_list)}</b>"
         else:

@@ -18,6 +18,7 @@
 
 #include "BLI_alloca.h"
 #include "BLI_math_base.h"
+#include "BLI_math_base_safe.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
@@ -7551,7 +7552,8 @@ static float geometry_collide_offset(BevelParams *bp, EdgeHalf *eb)
    * The intersection of these two corner vectors is the collapse point.
    * The length of edge B divided by the projection of these vectors onto edge B
    * is the number of 'offsets' that can be accommodated. */
-  float offsets_projected_on_B = (ka + cos1 * kb) / sin1 + (kc + cos2 * kb) / sin2;
+  float offsets_projected_on_B = safe_divide(ka + cos1 * kb, sin1) +
+                                 safe_divide(kc + cos2 * kb, sin2);
   if (offsets_projected_on_B > BEVEL_EPSILON) {
     offsets_projected_on_B = bp->offset * (len_v3v3(vb->co, vc->co) / offsets_projected_on_B);
     if (offsets_projected_on_B > BEVEL_EPSILON) {

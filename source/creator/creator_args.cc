@@ -1966,7 +1966,9 @@ static int arg_handle_engine_set(int argc, const char **argv, void *data)
 {
   bContext *C = static_cast<bContext *>(data);
   if (argc >= 2) {
-    if (STREQ(argv[1], "help")) {
+    const char *engine_name = argv[1];
+
+    if (STREQ(engine_name, "help")) {
       printf("Blender Engine Listing:\n");
       LISTBASE_FOREACH (RenderEngineType *, type, &R_engines) {
         printf("\t%s\n", type->idname);
@@ -1976,12 +1978,17 @@ static int arg_handle_engine_set(int argc, const char **argv, void *data)
     else {
       Scene *scene = CTX_data_scene(C);
       if (scene) {
-        if (BLI_findstring(&R_engines, argv[1], offsetof(RenderEngineType, idname))) {
-          STRNCPY_UTF8(scene->r.engine, argv[1]);
+        /* Backwards compatibility. */
+        if (STREQ(engine_name, "BLENDER_EEVEE_NEXT")) {
+          engine_name = "BLENDER_EEVEE";
+        }
+
+        if (BLI_findstring(&R_engines, engine_name, offsetof(RenderEngineType, idname))) {
+          STRNCPY_UTF8(scene->r.engine, engine_name);
           DEG_id_tag_update(&scene->id, ID_RECALC_SYNC_TO_EVAL);
         }
         else {
-          fprintf(stderr, "\nError: engine not found '%s'\n", argv[1]);
+          fprintf(stderr, "\nError: engine not found '%s'\n", engine_name);
           exit(1);
         }
       }

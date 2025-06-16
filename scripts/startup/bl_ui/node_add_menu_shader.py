@@ -35,7 +35,7 @@ def cycles_shader_nodes_poll(context):
 
 
 def eevee_shader_nodes_poll(context):
-    return context.engine == 'BLENDER_EEVEE_NEXT'
+    return context.engine == 'BLENDER_EEVEE'
 
 
 def object_not_eevee_shader_nodes_poll(context):
@@ -337,7 +337,6 @@ class NODE_MT_category_shader_texture(Menu):
         node_add_menu.add_node_type(layout, "ShaderNodeTexImage")
         node_add_menu.add_node_type(layout, "ShaderNodeTexMagic")
         node_add_menu.add_node_type(layout, "ShaderNodeTexNoise")
-        node_add_menu.add_node_type(layout, "ShaderNodeTexPointDensity")
         node_add_menu.add_node_type(layout, "ShaderNodeTexSky")
         node_add_menu.add_node_type(layout, "ShaderNodeTexVoronoi")
         node_add_menu.add_node_type(layout, "ShaderNodeTexWave")

@@ -633,12 +633,6 @@ static void node_composit_set_butfunc(blender::bke::bNodeType *ntype)
     case CMP_NODE_CURVE_RGB:
       ntype->draw_buttons = node_buts_curvecol;
       break;
-    case CMP_NODE_MIX_RGB:
-      ntype->draw_buttons = node_buts_mix_rgb;
-      break;
-    case CMP_NODE_VALTORGB:
-      ntype->draw_buttons = node_buts_colorramp;
-      break;
     case CMP_NODE_TIME:
       ntype->draw_buttons = node_buts_time;
       break;

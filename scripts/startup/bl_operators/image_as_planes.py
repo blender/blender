@@ -22,6 +22,7 @@ from bpy.props import (
 
 from bpy.app.translations import (
     pgettext_tip as tip_,
+    pgettext_rpt as rpt_,
     contexts as i18n_contexts,
 )
 from mathutils import Vector
@@ -37,7 +38,7 @@ from bpy_extras.io_utils import ImportHelper
 # -----------------------------------------------------------------------------
 # Constants
 
-COMPATIBLE_ENGINES = {'CYCLES', 'BLENDER_EEVEE_NEXT', 'BLENDER_WORKBENCH'}
+COMPATIBLE_ENGINES = {'CYCLES', 'BLENDER_EEVEE', 'BLENDER_WORKBENCH'}
 
 # -----------------------------------------------------------------------------
 # Image loading
@@ -852,13 +853,13 @@ class IMAGE_OT_import_as_mesh_planes(
     def invoke(self, context, _event):
         engine = context.scene.render.engine
         if engine not in COMPATIBLE_ENGINES:
-            self.report({'ERROR'}, tip_("Cannot generate materials for unknown {:s} render engine").format(engine))
+            self.report({'ERROR'}, rpt_("Cannot generate materials for unknown {:s} render engine").format(engine))
             return {'CANCELLED'}
 
         if engine == 'BLENDER_WORKBENCH':
             self.report(
                 {'WARNING'},
-                tip_("Generating Cycles/EEVEE compatible material, but won't be visible with {:s} engine").format(
+                rpt_("Generating Cycles/EEVEE compatible material, but won't be visible with {:s} engine").format(
                     engine,
                 ))
 
@@ -917,7 +918,7 @@ class IMAGE_OT_import_as_mesh_planes(
             plane.select_set(True)
 
         # All done!
-        self.report({'INFO'}, tip_("Added {:d} Image Plane(s)").format(len(planes)))
+        self.report({'INFO'}, rpt_("Added {:d} Image Plane(s)").format(len(planes)))
         return {'FINISHED'}
 
     # Operate on a single image.
@@ -1130,13 +1131,13 @@ class IMAGE_OT_convert_to_mesh_plane(MaterialProperties_MixIn, TextureProperties
         engine = scene.render.engine
 
         if engine not in COMPATIBLE_ENGINES:
-            self.report({'ERROR'}, tip_("Cannot generate materials for unknown {:s} render engine").format(engine))
+            self.report({'ERROR'}, rpt_("Cannot generate materials for unknown {:s} render engine").format(engine))
             return {'CANCELLED'}
 
         if engine == 'BLENDER_WORKBENCH':
             self.report(
                 {'WARNING'},
-                tip_("Generating Cycles/EEVEE compatible material, but won't be visible with {:s} engine").format(
+                rpt_("Generating Cycles/EEVEE compatible material, but won't be visible with {:s} engine").format(
                     engine,
                 ))
 
@@ -1206,7 +1207,7 @@ class IMAGE_OT_convert_to_mesh_plane(MaterialProperties_MixIn, TextureProperties
             self.report({'ERROR'}, "No images converted")
             return {'CANCELLED'}
 
-        self.report({'INFO'}, "{:d} image(s) converted to mesh plane(s)".format(converted))
+        self.report({'INFO'}, rpt_("{:d} image(s) converted to mesh plane(s)").format(converted))
         return {'FINISHED'}
 
     def draw(self, context):

@@ -2014,7 +2014,6 @@ url_manual_mapping = (
     ("bpy.types.shadernodebsdfanisotropic*", "render/shader_nodes/shader/glossy.html#bpy-types-shadernodebsdfanisotropic"),
     ("bpy.types.shadernodebsdftranslucent*", "render/shader_nodes/shader/translucent.html#bpy-types-shadernodebsdftranslucent"),
     ("bpy.types.shadernodebsdftransparent*", "render/shader_nodes/shader/transparent.html#bpy-types-shadernodebsdftransparent"),
-    ("bpy.types.shadernodetexpointdensity*", "render/shader_nodes/textures/point_density.html#bpy-types-shadernodetexpointdensity"),
     ("bpy.types.shadernodevectortransform*", "render/shader_nodes/vector/transform.html#bpy-types-shadernodevectortransform"),
     ("bpy.types.softbodysettings.friction*", "physics/soft_body/settings/object.html#bpy-types-softbodysettings-friction"),
     ("bpy.types.softbodysettings.goal_max*", "physics/soft_body/settings/goal.html#bpy-types-softbodysettings-goal-max"),

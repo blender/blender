@@ -18,6 +18,14 @@ set(TIFF_EXTRA_ARGS
   -Dsphinx=OFF
 )
 
+if(APPLE)
+  set(TIFF_EXTRA_ARGS
+    ${TIFF_EXTRA_ARGS}
+    # Work around issue where homebrew's libdeflate can be prioritized over our own dependency during linking if installed.
+    -DDeflate_LIBRARY=${LIBDIR}/deflate/lib/libdeflate${LIBEXT}
+  )
+endif()
+
 ExternalProject_Add(external_tiff
   URL file://${PACKAGE_DIR}/${TIFF_FILE}
   DOWNLOAD_DIR ${DOWNLOAD_DIR}

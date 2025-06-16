@@ -274,6 +274,10 @@ int RNA_enum_bitflag_identifiers(const EnumPropertyItem *item,
                                  int value,
                                  const char **r_identifier);
 bool RNA_enum_name(const EnumPropertyItem *item, int value, const char **r_name);
+bool RNA_enum_name_gettexted(const EnumPropertyItem *item,
+                             int value,
+                             const char *translation_context,
+                             const char **r_name);
 bool RNA_enum_description(const EnumPropertyItem *item, int value, const char **r_description);
 int RNA_enum_from_value(const EnumPropertyItem *item, int value);
 int RNA_enum_from_identifier(const EnumPropertyItem *item, const char *identifier);
@@ -376,7 +380,7 @@ bool RNA_property_animated(PointerRNA *ptr, PropertyRNA *prop);
 /**
  * With LibOverrides, a property may be animatable and anim-editable, but not driver-editable (in
  * case the reference data already has an animation data, its Action can be an editable local ID,
- * but the drivers are directly stored in the animdata, overriding these is not supported
+ * but the drivers are directly stored in the animation-data, overriding these is not supported
  * currently).
  *
  * Like #RNA_property_anim_editable, this also checks the actual data referenced by the RNA pointer

@@ -66,8 +66,6 @@
 #include "BLF_api.hh"
 #include "GHOST_C-api.h"
 
-#include "DEG_depsgraph.hh"
-
 #include "wm_window_private.hh"
 
 #include "WM_api.hh" /* Only for #WM_main_playanim. */
@@ -2166,10 +2164,8 @@ static std::optional<int> wm_main_playanim_intern(int argc, const char **argv, P
   g_audaspace.source = nullptr;
 #endif
 
-  /* We still miss freeing a lot!
-   * But many areas could skip initialization too for anim play. */
-
-  DEG_free_node_types();
+  /* Free subsystems the animation player is responsible for starting.
+   * The rest is handled by #BKE_blender_atexit, see early-exit logic in `creator.cc`. */
 
   BLF_exit();
 
@@ -2189,15 +2185,14 @@ static std::optional<int> wm_main_playanim_intern(int argc, const char **argv, P
 
   GHOST_DisposeWindow(ps.ghost_data.system, ps.ghost_data.window);
 
-  /* Early exit, IMB and BKE should be exited only in end. */
+  GHOST_DisposeSystem(ps.ghost_data.system);
+
   if (ps.argv_next) {
     args_next->argc = ps.argc_next;
     args_next->argv = ps.argv_next;
-    /* No exit code, keep running. */
+    /* Returning none, run this function again with the *next* arguments. */
     return std::nullopt;
   }
-
-  GHOST_DisposeSystem(ps.ghost_data.system);
 
   return EXIT_SUCCESS;
 }

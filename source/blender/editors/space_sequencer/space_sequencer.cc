@@ -1161,6 +1161,7 @@ void ED_spacetype_sequencer()
   art->message_subscribe = ED_area_do_mgs_subscribe_for_tool_ui;
   art->listener = sequencer_buttons_region_listener;
   art->init = sequencer_buttons_region_init;
+  art->snap_size = ED_region_generic_panel_region_snap_size;
   art->draw = sequencer_buttons_region_draw;
   BLI_addhead(&st->regiontypes, art);
 

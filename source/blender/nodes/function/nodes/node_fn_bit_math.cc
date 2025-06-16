@@ -121,7 +121,10 @@ static void node_label(const bNodeTree * /*ntree*/, const bNode *node, char *lab
 {
   char name[64] = {0};
   const char *operation_name = IFACE_("Unknown");
-  RNA_enum_name(bit_math_operation_items.data(), node->custom1, &operation_name);
+  /* NOTE: This assumes that the matching RNA enum property also uses the default i18n context, and
+   * needs to be kept manually in sync. */
+  RNA_enum_name_gettexted(
+      bit_math_operation_items.data(), node->custom1, BLT_I18NCONTEXT_DEFAULT, &operation_name);
   SNPRINTF(name, IFACE_("Bitwise %s"), operation_name);
   BLI_strncpy(label, name, maxlen);
 }

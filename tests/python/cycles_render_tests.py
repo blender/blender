@@ -79,8 +79,6 @@ BLOCKLIST_OPTIX_OSL_ALL = BLOCKLIST_OPTIX_OSL_LIMITED + [
     'bake_bevel.blend',
     'bevel.blend',
     'principled_bsdf_bevel_emission_137420.blend',
-    # The 3D texture doesn't have the right mappings
-    'point_density_.*_object.blend',
     # Dicing tests use wireframe node which doesn't appear to be supported with OptiX OSL
     'dicing_camera.blend',
     'offscreen_dicing.blend',

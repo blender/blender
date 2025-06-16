@@ -2011,13 +2011,13 @@ int WM_userdef_event_map(int kmitype);
 int WM_userdef_event_type_from_keymap_type(int kmitype);
 
 #ifdef WITH_INPUT_NDOF
-void WM_event_ndof_pan_get_for_navigation(const wmNDOFMotionData *ndof, float r_pan[3]);
-void WM_event_ndof_rotate_get_for_navigation(const wmNDOFMotionData *ndof, float r_rot[3]);
-void WM_event_ndof_pan_get(const wmNDOFMotionData *ndof, float r_pan[3]);
-void WM_event_ndof_rotate_get(const wmNDOFMotionData *ndof, float r_rot[3]);
+blender::float3 WM_event_ndof_translation_get_for_navigation(const wmNDOFMotionData &ndof);
+blender::float3 WM_event_ndof_rotation_get_for_navigation(const wmNDOFMotionData &ndof);
+blender::float3 WM_event_ndof_translation_get(const wmNDOFMotionData &ndof);
+blender::float3 WM_event_ndof_rotation_get(const wmNDOFMotionData &ndof);
 
-float WM_event_ndof_to_axis_angle(const wmNDOFMotionData *ndof, float axis[3]);
-void WM_event_ndof_to_quat(const wmNDOFMotionData *ndof, float q[4]);
+float WM_event_ndof_to_axis_angle(const wmNDOFMotionData &ndof, float axis[3]);
+void WM_event_ndof_to_quat(const wmNDOFMotionData &ndof, float q[4]);
 #endif /* WITH_INPUT_NDOF */
 
 #ifdef WITH_XR_OPENXR

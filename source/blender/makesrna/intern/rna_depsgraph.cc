@@ -400,7 +400,7 @@ static void rna_Depsgraph_object_instances_next(CollectionPropertyIterator *iter
 
   /* We need to copy current iterator status to next one being worked on. */
   di_it->iterators[(di_it->counter + 1) % 2].iter = di_it->iterators[di_it->counter % 2].iter;
-  di_it->deg_data[(di_it->counter + 1) % 2] = di_it->deg_data[di_it->counter % 2];
+  di_it->deg_data[(di_it->counter + 1) % 2].transfer_from(di_it->deg_data[di_it->counter % 2]);
   di_it->counter++;
 
   di_it->iterators[di_it->counter % 2].iter.data = &di_it->deg_data[di_it->counter % 2];

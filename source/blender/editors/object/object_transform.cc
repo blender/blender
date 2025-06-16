@@ -835,12 +835,11 @@ static wmOperatorStatus apply_objects_internal(bContext *C,
       /* correct for scale, note mul_m3_m3m3 has swapped args! */
       BKE_object_scale_to_mat3(ob, tmat);
       if (!invert_m3_m3(timat, tmat)) {
-        BKE_reportf(reports,
-                    RPT_WARNING,
-                    "%s \"%s\" %s",
-                    RPT_("Object"),
-                    ob->id.name + 2,
-                    RPT_("have non-invertable transformation matrix, not applying transform."));
+        BKE_reportf(
+            reports,
+            RPT_WARNING,
+            "Object \"%s\" has a non-invertible transformation matrix, not applying transform",
+            ob->id.name + 2);
         has_non_invertable_matrix = true;
         continue;
       }

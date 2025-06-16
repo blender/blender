@@ -70,13 +70,10 @@ BlenderStrokeRenderer::BlenderStrokeRenderer(Render *re, int render_count)
 {
   freestyle_bmain = BKE_main_new();
 
-  /* We use the same window manager for freestyle bmain as
-   * real bmain uses. This is needed because freestyle's
-   * bmain could be used to tag scenes for update, which
-   * implies call of ED_render_scene_update in some cases
-   * and that function requires proper window manager
-   * to present (sergey)
-   */
+  /* NOTE(@sergey): We use the same window manager for freestyle `bmain` as real `bmain` uses.
+   * This is needed because freestyle's `bmain` could be used to tag scenes for update,
+   * which implies call of #ED_render_scene_update in some cases and that function
+   * requires proper window manager to present. */
   freestyle_bmain->wm = re->main->wm;
 
   // for stroke mesh generation

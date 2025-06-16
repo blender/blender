@@ -350,7 +350,7 @@ def banner(context):
         "PYTHON INTERACTIVE CONSOLE {:s}".format(version_string),
         "",
         "Builtin Modules:       "
-        "bpy, bpy.data, bpy.ops, bpy.props, bpy.types, bpy.context, bpy.utils, bgl, gpu, blf, mathutils",
+        "bpy, bpy.data, bpy.ops, bpy.props, bpy.types, bpy.context, bpy.utils, gpu, blf, mathutils",
 
         "Convenience Imports:   from mathutils import *; from math import *",
         "Convenience Variables: C = bpy.context, D = bpy.data",

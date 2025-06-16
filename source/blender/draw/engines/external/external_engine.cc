@@ -123,7 +123,7 @@ class Prepass {
 
   void sculpt_sync(Manager &manager, const ObjectRef &ob_ref)
   {
-    ResourceHandle handle = manager.resource_handle_for_sculpt(ob_ref);
+    ResourceHandle handle = manager.unique_handle_for_sculpt(ob_ref);
 
     for (SculptBatch &batch : sculpt_batches_get(ob_ref.object, SCULPT_BATCH_DEFAULT)) {
       mesh_ps_->draw(batch.batch, handle);
@@ -259,8 +259,6 @@ class Instance : public DrawEngine {
     const RenderEngineType *type = render_engine->type;
     type->view_draw(render_engine, draw_ctx->evil_C, draw_ctx->depsgraph);
 
-    GPU_bgl_end();
-
     GPU_matrix_pop();
     GPU_matrix_pop_projection();
 
@@ -362,7 +360,6 @@ class Instance : public DrawEngine {
     GPU_matrix_pop_projection();
 
     blender::draw::command::StateSet::set();
-    GPU_bgl_end();
 
     RE_engine_draw_release(re);
   }

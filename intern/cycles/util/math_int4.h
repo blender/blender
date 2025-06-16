@@ -10,7 +10,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-#ifndef __KERNEL_GPU__
+#if !defined(__KERNEL_METAL__)
 ccl_device_inline int4 operator+(const int4 a, const int4 b)
 {
 #  ifdef __KERNEL_SSE__
@@ -37,6 +37,11 @@ ccl_device_inline int4 operator-(const int4 a, const int4 b)
 ccl_device_inline int4 operator-=(int4 &a, const int4 b)
 {
   return a = a - b;
+}
+
+ccl_device_inline int4 operator*(const int4 a, const int4 b)
+{
+  return make_int4(a.x * b.x, a.y * b.y, a.z * b.z, a.w * b.w);
 }
 
 ccl_device_inline int4 operator>>(const int4 a, const int i)
@@ -240,7 +245,7 @@ ccl_device_inline int4 load_int4(const int *v)
   return make_int4(v[0], v[1], v[2], v[3]);
 #  endif
 }
-#endif /* __KERNEL_GPU__ */
+#endif /* __KERNEL_METAL__ */
 
 ccl_device_inline float4 cast(const int4 a)
 {

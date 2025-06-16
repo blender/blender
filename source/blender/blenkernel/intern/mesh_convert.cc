@@ -1062,7 +1062,7 @@ static void move_shapekey_layers_to_keyblocks(const Mesh &mesh,
   }
 }
 
-void BKE_mesh_nomain_to_mesh(Mesh *mesh_src, Mesh *mesh_dst, Object *ob)
+void BKE_mesh_nomain_to_mesh(Mesh *mesh_src, Mesh *mesh_dst, Object *ob, bool process_shape_keys)
 {
   using namespace blender::bke;
   BLI_assert(mesh_src->id.tag & ID_TAG_NO_MAIN);
@@ -1102,16 +1102,18 @@ void BKE_mesh_nomain_to_mesh(Mesh *mesh_src, Mesh *mesh_dst, Object *ob)
 
   /* For original meshes, shape key data is stored in the #Key data-block, so it
    * must be moved from the storage in #CustomData layers used for evaluation. */
-  if (Key *key_dst = mesh_dst->key) {
-    if (CustomData_has_layer(&mesh_src->vert_data, CD_SHAPEKEY)) {
-      /* If no object, set to -1 so we don't mess up any shapekey layers. */
-      const int uid_active = ob ? find_object_active_key_uid(*key_dst, *ob) : -1;
-      move_shapekey_layers_to_keyblocks(*mesh_dst, mesh_src->vert_data, *key_dst, uid_active);
-    }
-    else if (verts_num_changed) {
-      CLOG_WARN(&LOG, "Shape key data lost when replacing mesh '%s' in Main", mesh_src->id.name);
-      id_us_min(&mesh_dst->key->id);
-      mesh_dst->key = nullptr;
+  if (process_shape_keys) {
+    if (Key *key_dst = mesh_dst->key) {
+      if (CustomData_has_layer(&mesh_src->vert_data, CD_SHAPEKEY)) {
+        /* If no object, set to -1 so we don't mess up any shapekey layers. */
+        const int uid_active = ob ? find_object_active_key_uid(*key_dst, *ob) : -1;
+        move_shapekey_layers_to_keyblocks(*mesh_dst, mesh_src->vert_data, *key_dst, uid_active);
+      }
+      else if (verts_num_changed) {
+        CLOG_WARN(&LOG, "Shape key data lost when replacing mesh '%s' in Main", mesh_src->id.name);
+        id_us_min(&mesh_dst->key->id);
+        mesh_dst->key = nullptr;
+      }
     }
   }
 

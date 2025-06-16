@@ -245,7 +245,6 @@ def get_panels():
         'EEVEE_MATERIAL_PT_context_material',
         'EEVEE_MATERIAL_PT_surface',
         'EEVEE_MATERIAL_PT_volume',
-        # TODO: move to `EEVEE_NEXT_MATERIAL_PT_settings`.
         'EEVEE_MATERIAL_PT_settings',
         'EEVEE_WORLD_PT_surface',
     }
@@ -259,8 +258,7 @@ def get_panels():
                 'BLENDER_RENDER' in compat_engines and
                 panel_cls.__name__ not in exclude_panels
             ) or (
-                # NOTE: once `EEVEE_NEXT_MATERIAL_PT_settings` has been removed, `BLENDER_EEVEE` can be removed too.
-                ('BLENDER_EEVEE' in compat_engines or 'BLENDER_EEVEE_NEXT' in compat_engines) and
+                'BLENDER_EEVEE' in compat_engines and
                 panel_cls.__name__ in include_eevee_panels
             )
         ):

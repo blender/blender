@@ -7,7 +7,6 @@
  */
 
 #include <algorithm>
-#include <cstddef>
 #include <cstdlib>
 #include <cstring>
 
@@ -72,8 +71,12 @@ struct PrefetchJob {
   ListBase *seqbasep_cpy = nullptr;
 
   /* prefetch area */
-  float cfra = 0.0f;
+  int cfra = 0;
+  int timeline_start = 0;
+  int timeline_end = 0;
+  int timeline_length = 0;
   int num_frames_prefetched = 0;
+  int cache_flags = 0; /* Only used to detect cache flag changes. */
 
   /* Control: */
   /* Set by prefetch. */
@@ -152,8 +155,7 @@ static Strip *original_strip_get(const Strip *strip, Scene *scene)
 static RenderData *get_original_context(const RenderData *context)
 {
   PrefetchJob *pfjob = seq_prefetch_job_get(context->scene);
-
-  return &pfjob->context;
+  return pfjob ? &pfjob->context : nullptr;
 }
 
 Scene *prefetch_get_original_scene(const RenderData *context)
@@ -161,7 +163,9 @@ Scene *prefetch_get_original_scene(const RenderData *context)
   Scene *scene = context->scene;
   if (context->is_prefetch_render) {
     context = get_original_context(context);
-    scene = context->scene;
+    if (context != nullptr) {
+      scene = context->scene;
+    }
   }
   return scene;
 }
@@ -171,25 +175,30 @@ Scene *prefetch_get_original_scene_and_strip(const RenderData *context, const St
   Scene *scene = context->scene;
   if (context->is_prefetch_render) {
     context = get_original_context(context);
-    scene = context->scene;
-    strip = original_strip_get(strip, scene);
+    if (context != nullptr) {
+      scene = context->scene;
+      strip = original_strip_get(strip, scene);
+    }
   }
   return scene;
 }
 
 static bool seq_prefetch_is_cache_full(Scene *scene)
 {
-  bool full = is_cache_full(scene);
-  if (!full) {
-    return false;
-  }
-  bool evicted = final_image_cache_evict(scene);
-  return !evicted;
+  return evict_caches_if_full(scene);
 }
 
-static float seq_prefetch_cfra(PrefetchJob *pfjob)
+static int seq_prefetch_cfra(PrefetchJob *pfjob)
 {
-  return pfjob->cfra + pfjob->num_frames_prefetched;
+  int new_frame = pfjob->cfra + pfjob->num_frames_prefetched;
+  Scene *scene = pfjob->scene; /* For the start/end frame macros. */
+  int timeline_start = PSFRA;
+  int timeline_end = PEFRA;
+  if (new_frame >= timeline_end) {
+    /* Wrap around to where we will jump when we reach the end frame. */
+    new_frame = timeline_start + new_frame - timeline_end;
+  }
+  return new_frame;
 }
 static AnimationEvalContext seq_prefetch_anim_eval_context(PrefetchJob *pfjob)
 {
@@ -263,6 +272,24 @@ static void seq_prefetch_update_area(PrefetchJob *pfjob)
   /* reset */
   if (cfra < pfjob->cfra) {
     pfjob->cfra = cfra;
+    pfjob->num_frames_prefetched = 1;
+  }
+
+  /* timeline span changes */
+  Scene *scene = pfjob->scene; /* For the start/end frame macros. */
+  if (pfjob->timeline_start != PSFRA || pfjob->timeline_end != PEFRA) {
+    pfjob->timeline_start = PSFRA;
+    pfjob->timeline_end = PEFRA;
+    pfjob->timeline_length = PEFRA - PSFRA;
+    /* Reset the number of prefetched frames as we need to re-evaluate which
+     * frames to keep in the cache.
+     */
+    pfjob->num_frames_prefetched = 1;
+  }
+
+  /* cache flag changes */
+  if (pfjob->cache_flags != scene->ed->cache_flag) {
+    pfjob->cache_flags = scene->ed->cache_flag;
     pfjob->num_frames_prefetched = 1;
   }
 }
@@ -409,7 +436,7 @@ static bool seq_prefetch_scene_strip_is_rendered(PrefetchJob *pfjob,
                                                  blender::Span<Strip *> scene_strips,
                                                  bool is_recursive_check)
 {
-  float cfra = seq_prefetch_cfra(pfjob);
+  int cfra = seq_prefetch_cfra(pfjob);
   blender::Vector<Strip *> strips = seq_shown_strips_get(
       pfjob->scene_eval, channels, seqbase, cfra, 0);
 
@@ -464,7 +491,7 @@ static bool seq_prefetch_must_skip_frame(PrefetchJob *pfjob, ListBase *channels,
 static bool seq_prefetch_need_suspend(PrefetchJob *pfjob)
 {
   return seq_prefetch_is_cache_full(pfjob->scene) || pfjob->is_scrubbing ||
-         (seq_prefetch_cfra(pfjob) >= pfjob->scene->r.efra);
+         (pfjob->num_frames_prefetched >= pfjob->timeline_length);
 }
 
 static void seq_prefetch_do_suspend(PrefetchJob *pfjob)
@@ -485,7 +512,11 @@ static void *seq_prefetch_frames(void *job)
 {
   PrefetchJob *pfjob = (PrefetchJob *)job;
 
-  while (seq_prefetch_cfra(pfjob) <= pfjob->scene->r.efra) {
+  while (true) {
+    if (pfjob->cfra < pfjob->timeline_start || pfjob->cfra > pfjob->timeline_end) {
+      /* Don't try to prefetch anything when we are outside of the timeline range. */
+      break;
+    }
     pfjob->scene_eval->ed->prefetch_job = nullptr;
 
     seq_prefetch_update_depsgraph(pfjob);
@@ -507,30 +538,28 @@ static void *seq_prefetch_frames(void *job)
     if (seq_prefetch_must_skip_frame(pfjob, channels, seqbase)) {
       pfjob->num_frames_prefetched++;
       /* Break instead of keep looping if the job should be terminated. */
-      if (!(pfjob->scene->ed->cache_flag & SEQ_CACHE_PREFETCH_ENABLE) || pfjob->stop) {
+      if (!(pfjob->scene->ed->cache_flag & SEQ_CACHE_PREFETCH_ENABLE) ||
+          !(pfjob->scene->ed->cache_flag & SEQ_CACHE_ALL_TYPES) || pfjob->stop)
+      {
         break;
       }
       continue;
     }
 
     ImBuf *ibuf = render_give_ibuf(&pfjob->context_cpy, seq_prefetch_cfra(pfjob), 0);
+    pfjob->num_frames_prefetched++;
     IMB_freeImBuf(ibuf);
 
     /* Suspend thread if there is nothing to be prefetched. */
     seq_prefetch_do_suspend(pfjob);
 
-    /* Avoid "collision" with main thread, but make sure to fetch at least few frames */
-    if (pfjob->num_frames_prefetched > 5 && (seq_prefetch_cfra(pfjob) - pfjob->scene->r.cfra) < 2)
+    if (!(pfjob->scene->ed->cache_flag & SEQ_CACHE_PREFETCH_ENABLE) ||
+        !(pfjob->scene->ed->cache_flag & SEQ_CACHE_ALL_TYPES) || pfjob->stop)
     {
       break;
     }
 
-    if (!(pfjob->scene->ed->cache_flag & SEQ_CACHE_PREFETCH_ENABLE) || pfjob->stop) {
-      break;
-    }
-
     seq_prefetch_update_area(pfjob);
-    pfjob->num_frames_prefetched++;
   }
 
   pfjob->running = false;
@@ -560,8 +589,13 @@ static PrefetchJob *seq_prefetch_start_ex(const RenderData *context, float cfra)
   }
   pfjob->bmain = context->bmain;
 
+  Scene *scene = pfjob->scene; /* For the start/end frame macros. */
   pfjob->cfra = cfra;
+  pfjob->timeline_start = PSFRA;
+  pfjob->timeline_end = PEFRA;
+  pfjob->timeline_length = PEFRA - PSFRA;
   pfjob->num_frames_prefetched = 1;
+  pfjob->cache_flags = scene->ed->cache_flag;
 
   pfjob->waiting = false;
   pfjob->stop = false;

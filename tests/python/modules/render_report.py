@@ -343,7 +343,7 @@ class Report:
             message += """<p><tt>BLENDER_TEST_UPDATE=1 ctest -R %s</tt></p>""" % self.engine_name
             message += """<p>This then happens for new and failing tests; reference images of """ \
                        """passing test cases will not be updated. Be sure to commit the new reference """ \
-                       """images to the tests/files git submodule afterwards.</p>"""
+                       """images under the tests/files folder afterwards.</p>"""
             message += """</div>"""
         else:
             message = ""

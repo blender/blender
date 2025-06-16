@@ -9,6 +9,7 @@
 #include "BKE_subdiv_eval.hh"
 
 #include "BLI_math_vector.h"
+#include "BLI_math_vector.hh"
 #include "BLI_task.h"
 
 #include "BKE_customdata.hh"
@@ -288,18 +289,22 @@ void eval_init_displacement(Subdiv *subdiv)
  */
 
 void eval_limit_point(
-    Subdiv *subdiv, const int ptex_face_index, const float u, const float v, float r_P[3])
+    Subdiv *subdiv, const int ptex_face_index, const float u, const float v, float3 &r_P)
 {
-  eval_limit_point_and_derivatives(subdiv, ptex_face_index, u, v, r_P, nullptr, nullptr);
+#ifdef WITH_OPENSUBDIV
+  subdiv->evaluator->eval_output->evaluateLimit(ptex_face_index, u, v, r_P, nullptr, nullptr);
+#else
+  UNUSED_VARS(subdiv, ptex_face_index, u, v, r_P);
+#endif
 }
 
 void eval_limit_point_and_derivatives(Subdiv *subdiv,
                                       const int ptex_face_index,
                                       const float u,
                                       const float v,
-                                      float r_P[3],
-                                      float r_dPdu[3],
-                                      float r_dPdv[3])
+                                      float3 &r_P,
+                                      float3 &r_dPdu,
+                                      float3 &r_dPdv)
 {
 #ifdef WITH_OPENSUBDIV
   subdiv->evaluator->eval_output->evaluateLimit(ptex_face_index, u, v, r_P, r_dPdu, r_dPdv);
@@ -315,11 +320,9 @@ void eval_limit_point_and_derivatives(Subdiv *subdiv,
    * which there must be proper derivatives. This might break continuity of normals, but is better
    * that giving totally unusable derivatives. */
 
-  if (r_dPdu != nullptr && r_dPdv != nullptr) {
-    if ((is_zero_v3(r_dPdu) || is_zero_v3(r_dPdv)) || equals_v3v3(r_dPdu, r_dPdv)) {
-      subdiv->evaluator->eval_output->evaluateLimit(
-          ptex_face_index, u * 0.999f + 0.0005f, v * 0.999f + 0.0005f, r_P, r_dPdu, r_dPdv);
-    }
+  if ((math::is_zero(r_dPdu) || math::is_zero(r_dPdv)) || math::is_equal(r_dPdu, r_dPdv)) {
+    subdiv->evaluator->eval_output->evaluateLimit(
+        ptex_face_index, u * 0.999f + 0.0005f, v * 0.999f + 0.0005f, r_P, r_dPdu, r_dPdv);
   }
 #else
   UNUSED_VARS(subdiv, ptex_face_index, u, v, r_P, r_dPdu, r_dPdv);
@@ -330,13 +333,13 @@ void eval_limit_point_and_normal(Subdiv *subdiv,
                                  const int ptex_face_index,
                                  const float u,
                                  const float v,
-                                 float r_P[3],
-                                 float r_N[3])
+                                 float3 &r_P,
+                                 float3 &r_N)
 {
-  float dPdu[3], dPdv[3];
+  float3 dPdu;
+  float3 dPdv;
   eval_limit_point_and_derivatives(subdiv, ptex_face_index, u, v, r_P, dPdu, dPdv);
-  cross_v3_v3v3(r_N, dPdu, dPdv);
-  normalize_v3(r_N);
+  r_N = math::normalize(math::cross(dPdu, dPdv));
 }
 
 void eval_vertex_data(
@@ -354,7 +357,7 @@ void eval_face_varying(Subdiv *subdiv,
                        const int ptex_face_index,
                        const float u,
                        const float v,
-                       float r_face_varying[2])
+                       float2 &r_face_varying)
 {
 #ifdef WITH_OPENSUBDIV
   subdiv->evaluator->eval_output->evaluateFaceVarying(
@@ -368,12 +371,12 @@ void eval_displacement(Subdiv *subdiv,
                        const int ptex_face_index,
                        const float u,
                        const float v,
-                       const float dPdu[3],
-                       const float dPdv[3],
-                       float r_D[3])
+                       const float3 &dPdu,
+                       const float3 &dPdv,
+                       float3 &r_D)
 {
   if (subdiv->displacement_evaluator == nullptr) {
-    zero_v3(r_D);
+    r_D = float3(0.0f);
     return;
   }
   subdiv->displacement_evaluator->eval_displacement(
@@ -381,13 +384,15 @@ void eval_displacement(Subdiv *subdiv,
 }
 
 void eval_final_point(
-    Subdiv *subdiv, const int ptex_face_index, const float u, const float v, float r_P[3])
+    Subdiv *subdiv, const int ptex_face_index, const float u, const float v, float3 &r_P)
 {
   if (subdiv->displacement_evaluator) {
-    float dPdu[3], dPdv[3], D[3];
+    float3 dPdu;
+    float3 dPdv;
+    float3 D;
     eval_limit_point_and_derivatives(subdiv, ptex_face_index, u, v, r_P, dPdu, dPdv);
     eval_displacement(subdiv, ptex_face_index, u, v, dPdu, dPdv, D);
-    add_v3_v3(r_P, D);
+    r_P += D;
   }
   else {
     eval_limit_point(subdiv, ptex_face_index, u, v, r_P);

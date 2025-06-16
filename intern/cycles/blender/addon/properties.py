@@ -1610,9 +1610,8 @@ class CyclesPreferences(bpy.types.AddonPreferences):
     )
 
     use_hiprt: BoolProperty(
-        name="HIP RT (Unstable)",
-        description="HIP RT enables AMD hardware ray tracing on RDNA2 and above. This currently has known stability "
-        "issues, that are expected to be solved before the next release.",
+        name="HIP RT",
+        description="HIP RT enables AMD hardware ray tracing on RDNA2 and above",
         default=False,
     )
 
@@ -1908,10 +1907,17 @@ class CyclesPreferences(bpy.types.AddonPreferences):
                 row.prop(self, "metalrt")
 
         if compute_device_type == 'HIP':
-            import platform
-            row = layout.row()
+            col = layout.column()
+            row = col.row()
             row.active = has_hardware_rt
             row.prop(self, "use_hiprt")
+
+            row_status = col.split(factor=0.7)
+            row_status.label(text="HIP has known stability issues", icon='ERROR')
+            row_status.operator(
+                "wm.url_open",
+                text='#140278',
+                icon='URL').url = "https://projects.blender.org/blender/blender/issues/140278"
 
         elif compute_device_type == 'ONEAPI' and _cycles.with_embree_gpu:
             row = layout.row()

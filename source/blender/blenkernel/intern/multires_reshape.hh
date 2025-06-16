@@ -256,7 +256,7 @@ ReshapeConstGridElement multires_reshape_orig_grid_element_for_grid_coord(
  */
 void multires_reshape_evaluate_limit_at_grid(const MultiresReshapeContext *reshape_context,
                                              const GridCoord *grid_coord,
-                                             float r_P[3],
+                                             blender::float3 &r_P,
                                              float r_tangent_matrix[3][3]);
 
 /* --------------------------------------------------------------------
