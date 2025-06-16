@@ -3751,14 +3751,27 @@ static void outliner_draw_highlights(uint pos,
     const TreeStoreElem *tselem = TREESTORE(te);
     const int start_y = *io_start_y;
 
+    const float ufac = UI_UNIT_X / 20.0f;
+    const float radius = UI_UNIT_Y / 8.0f;
+    const int padding_x = 3 * UI_SCALE_FAC;
+    rctf rect{};
+    BLI_rctf_init(&rect,
+                  padding_x,
+                  int(region->v2d.cur.xmax) - padding_x,
+                  start_y + ufac,
+                  start_y + UI_UNIT_Y - ufac);
+    UI_draw_roundbox_corner_set(UI_CNR_ALL);
+
     /* Selection status. */
     if ((tselem->flag & TSE_ACTIVE) && (tselem->flag & TSE_SELECTED)) {
-      immUniformColor4fv(col_active);
-      immRectf(pos, 0, start_y, int(region->v2d.cur.xmax), start_y + UI_UNIT_Y);
+      UI_draw_roundbox_4fv(&rect, true, radius, col_active);
+
+      float col_active_outline[4];
+      UI_GetThemeColorShade4fv(TH_SELECT_ACTIVE, 40, col_active_outline);
+      UI_draw_roundbox_4fv(&rect, false, radius, col_active_outline);
     }
     else if (tselem->flag & TSE_SELECTED) {
-      immUniformColor4fv(col_selection);
-      immRectf(pos, 0, start_y, int(region->v2d.cur.xmax), start_y + UI_UNIT_Y);
+      UI_draw_roundbox_4fv(&rect, true, radius, col_selection);
     }
 
     /* Highlights. */
@@ -3767,37 +3780,41 @@ static void outliner_draw_highlights(uint pos,
 
       if (tselem->flag & TSE_DRAG_ANY) {
         /* Drag and drop highlight. */
-        float col[4];
-        UI_GetThemeColorShade4fv(TH_BACK, -40, col);
+        float col_outline[4];
+        UI_GetThemeColorBlend4f(TH_TEXT, TH_BACK, 0.4f, col_outline);
 
         if (tselem->flag & TSE_DRAG_BEFORE) {
-          immUniformColor4fv(col);
+          GPU_blend(GPU_BLEND_ALPHA);
+          immUniformColor4fv(col_outline);
           immRectf(pos,
                    start_x,
                    start_y + UI_UNIT_Y - U.pixelsize,
                    end_x,
                    start_y + UI_UNIT_Y + U.pixelsize);
+          GPU_blend(GPU_BLEND_NONE);
         }
         else if (tselem->flag & TSE_DRAG_AFTER) {
-          immUniformColor4fv(col);
+          GPU_blend(GPU_BLEND_ALPHA);
+          immUniformColor4fv(col_outline);
           immRectf(pos, start_x, start_y - U.pixelsize, end_x, start_y + U.pixelsize);
+          GPU_blend(GPU_BLEND_NONE);
         }
         else {
-          immUniformColor3fvAlpha(col, col[3] * 0.5f);
-          immRectf(pos, start_x, start_y, end_x, start_y + UI_UNIT_Y);
+          float col_bg[4];
+          UI_GetThemeColorShade4fv(TH_BACK, 40, col_bg);
+          UI_draw_roundbox_4fv(&rect, true, radius, col_bg);
+          UI_draw_roundbox_4fv(&rect, false, radius, col_outline);
         }
       }
       else {
         if (is_searching && (tselem->flag & TSE_SEARCHMATCH)) {
           /* Search match highlights. We don't expand items when searching in the data-blocks,
            * but we still want to highlight any filter matches. */
-          immUniformColor4fv(col_searchmatch);
-          immRectf(pos, start_x, start_y, end_x, start_y + UI_UNIT_Y);
+          UI_draw_roundbox_4fv(&rect, true, radius, col_searchmatch);
         }
         else if (tselem->flag & TSE_HIGHLIGHTED) {
           /* Mouse hover highlight. */
-          immUniformColor4fv(col_highlight);
-          immRectf(pos, 0, start_y, end_x, start_y + UI_UNIT_Y);
+          UI_draw_roundbox_4fv(&rect, true, radius, col_highlight);
         }
       }
     }
