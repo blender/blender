@@ -6346,16 +6346,6 @@ static void def_cmp_map_value(BlenderRNA * /*brna*/, StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
-static void def_cmp_map_range(BlenderRNA * /*brna*/, StructRNA *srna)
-{
-  PropertyRNA *prop;
-
-  prop = RNA_def_property(srna, "use_clamp", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "custom1", 1);
-  RNA_def_property_ui_text(prop, "Clamp", "Clamp the result of the node to the target range");
-  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
-}
-
 static void def_cmp_set_alpha(BlenderRNA * /*brna*/, StructRNA *srna)
 {
   PropertyRNA *prop;
@@ -10680,7 +10670,6 @@ static void rna_def_nodes(BlenderRNA *brna)
   define("CompositorNode", "CompositorNodeLensdist", def_cmp_lensdist);
   define("CompositorNode", "CompositorNodeLevels", def_cmp_levels);
   define("CompositorNode", "CompositorNodeLumaMatte");
-  define("CompositorNode", "CompositorNodeMapRange", def_cmp_map_range);
   define("CompositorNode", "CompositorNodeMapUV", def_cmp_map_uv);
   define("CompositorNode", "CompositorNodeMapValue", def_cmp_map_value);
   define("CompositorNode", "CompositorNodeMask", def_cmp_mask);

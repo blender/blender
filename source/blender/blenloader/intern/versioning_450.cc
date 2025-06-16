@@ -223,7 +223,7 @@ static void do_version_convert_to_generic_nodes(bNodeTree *node_tree)
 
         break;
       }
-      case CMP_NODE_MAP_RANGE: {
+      case CMP_NODE_MAP_RANGE_DEPRECATED: {
         node->type_legacy = SH_NODE_MAP_RANGE;
         STRNCPY(node->idname, "ShaderNodeMapRange");
 

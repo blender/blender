@@ -651,7 +651,7 @@ static const char *node_get_static_idname(int type, int treetype)
         return "CompositorNodeFilter";
       case CMP_NODE_MAP_VALUE:
         return "CompositorNodeMapValue";
-      case CMP_NODE_MAP_RANGE:
+      case CMP_NODE_MAP_RANGE_DEPRECATED:
         return "CompositorNodeMapRange";
       case CMP_NODE_TIME:
         return "CompositorNodeTime";

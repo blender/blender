@@ -74,7 +74,6 @@ set(SRC
   nodes/node_composite_lensdist.cc
   nodes/node_composite_levels.cc
   nodes/node_composite_luma_matte.cc
-  nodes/node_composite_map_range.cc
   nodes/node_composite_map_uv.cc
   nodes/node_composite_map_value.cc
   nodes/node_composite_mask.cc
