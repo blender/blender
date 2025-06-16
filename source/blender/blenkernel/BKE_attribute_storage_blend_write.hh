@@ -6,10 +6,6 @@
 
 #include "BKE_attribute_storage.hh"
 
-#include "BLI_map.hh"
-
-#include "DNA_customdata_types.h"
-
 namespace blender::bke {
 
 /**
@@ -18,9 +14,7 @@ namespace blender::bke {
  * created just for the writing process. Creating them mutates the struct, which must be done
  * before writing the struct that embeds it.
  */
-void attribute_storage_blend_write_prepare(
-    AttributeStorage &data,
-    const Map<AttrDomain, Vector<CustomDataLayer, 16> *> &layers_to_write,
-    AttributeStorage::BlendWriteData &write_data);
+void attribute_storage_blend_write_prepare(AttributeStorage &data,
+                                           AttributeStorage::BlendWriteData &write_data);
 
 }  // namespace blender::bke

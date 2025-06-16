@@ -217,7 +217,6 @@ typedef struct UserDef_Experimental {
   char use_extensions_debug;
   char use_recompute_usercount_on_save_debug;
   char write_legacy_blend_file_format;
-  char use_attribute_storage_write;
   char SANITIZE_AFTER_HERE;
   /* The following options are automatically sanitized (set to 0)
    * when the release cycle is not alpha. */
@@ -228,7 +227,7 @@ typedef struct UserDef_Experimental {
   char use_shader_node_previews;
   char use_bundle_and_closure_nodes;
   char use_socket_structure_type;
-  char _pad[4];
+  char _pad[5];
 } UserDef_Experimental;
 
 #define USER_EXPERIMENTAL_TEST(userdef, member) \
